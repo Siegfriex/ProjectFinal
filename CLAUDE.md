@@ -83,6 +83,17 @@ mmdc -i docs/x.mmd -o artifacts/x.svg -p .config/puppeteer.json
 
 Markdown 안의 ```mermaid``` 블록은 그대로 두고, 렌더 산출물만 `artifacts/`에 둔다.
 
+## 워크트리
+
+워크트리는 `.venv`/`env`/`node_modules`를 git으로 가져오지 않는다. 새 워크트리를 만든 직후
+반드시 연결한다:
+
+```bash
+scripts/setup_worktree.sh /path/to/worktree
+```
+
+메인의 환경을 심링크로 공유하므로 재설치가 필요 없고, 12GB를 중복으로 쓰지 않는다.
+
 ## 알려진 제약
 
 - `sudo`가 패스워드를 요구해 **apt 설치는 사용자 개입 없이 불가**. 필요한 경우 사용자에게
