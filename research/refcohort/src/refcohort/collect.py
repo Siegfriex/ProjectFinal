@@ -97,6 +97,8 @@ class CollectResult:
     physical_mm_estimate_method: str = "UNAVAILABLE"
     physical_mm_estimate_confidence: str = "NONE"
     evidence_complete: bool = False
+    access_block: str | None = None
+    frame_count: int = 0
     notes: list[str] = field(default_factory=list)
 
 
@@ -146,16 +148,22 @@ def _ax_tree(context, page) -> tuple[list[dict], int]:
             cdp.detach()
 
 
-def _gate_from_probe(probe: dict) -> str:
-    sig = (probe.get("opportunities", {}).get("gate_signal") or [{}])[0]
+def _gate_from_probe(probe: dict | None) -> str:
+    if not isinstance(probe, dict):
+        return "NONE"
+    sig = (probe.get("opportunities") or {}).get("gate_signal") or [{}]
+    sig = sig[0] if sig else {}
     for key, tag in GATE_TAGS.items():
         if sig.get(key):
             return tag
     return "NONE"
 
 
-def _scope_from_probe(probe: dict, gate: str) -> str:
-    page = (probe.get("opportunities", {}).get("page_signal") or [{}])[0]
+def _scope_from_probe(probe: dict | None, gate: str) -> str:
+    if not isinstance(probe, dict):
+        return "NOT_OBSERVED"
+    page = (probe.get("opportunities") or {}).get("page_signal") or [{}]
+    page = page[0] if page else {}
     text_len = page.get("text_length") or 0
     controls = page.get("visible_control_count") or 0
     links = page.get("visible_link_count") or 0
@@ -221,7 +229,17 @@ def collect_one(
             res.scope_relation = scope_relation(target_url, res.final_url)
 
             probe = page.evaluate(PROBE)
+            if not isinstance(probe, dict):
+                # 네비게이션 중 실행 컨텍스트가 교체되면 undefined가 돌아온다. 안정화 후 1회 재시도한다.
+                res.notes.append("PROBE_NULL_RETRY")
+                with contextlib.suppress(PWTimeout):
+                    page.wait_for_load_state("domcontentloaded", timeout=8000)
+                probe = page.evaluate(PROBE)
+            if not isinstance(probe, dict):
+                res.notes.append("PROBE_NULL_AFTER_RETRY")
+                probe = None
             res.probe = probe
+            res.final_url = page.url
             res.gated_boundary_tag = _gate_from_probe(probe)
             res.observability_scope = _scope_from_probe(probe, res.gated_boundary_tag)
 
@@ -250,9 +268,16 @@ def collect_one(
             res.screen_sha256 = sha256_bytes(shot)
             res.ax_sha256 = sha256_obj(ax)
 
+            # HTTP 오류 상태는 접근성 결함이 아니라 관측 차단이다. 분모에는 남기되 측정 성공으로 세지 않는다.
+            if res.http_status is not None and res.http_status >= 400:
+                res.access_block = f"HTTP_{res.http_status}"
+                res.notes.append(f"ACCESS_BLOCKED_HTTP_{res.http_status}")
+
             # 증거 완결성: 4종이 모두 있고 비어 있지 않아야 한다 (fast_collection의 3KB 빈 스크린샷 방지)
             res.evidence_complete = (
-                len(dom) > 512
+                probe is not None
+                and res.access_block is None
+                and len(dom) > 512
                 and len(shot) > 8192
                 and ax_total > 3
                 and res.observability_scope != "NOT_OBSERVED"

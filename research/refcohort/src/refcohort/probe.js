@@ -32,13 +32,16 @@
   const lum = (c) => { const f=(v)=>{v/=255; return v<=0.03928? v/12.92 : Math.pow((v+0.055)/1.055,2.4);};
     return 0.2126*f(c.r)+0.7152*f(c.g)+0.0722*f(c.b); };
   const effectiveBg = (el) => {
-    let n = el;
-    while (n && n.nodeType === 1) {
-      const c = parseColor(getComputedStyle(n).backgroundColor);
-      if (c && c.a > 0.5) return c;
-      n = n.parentElement;
+    let n = el, hasImage = false, depth = 0;
+    while (n && n.nodeType === 1 && depth < 30) {
+      const cs = getComputedStyle(n);
+      if (cs.backgroundImage && cs.backgroundImage !== 'none') hasImage = true;
+      const c = parseColor(cs.backgroundColor);
+      if (c && c.a > 0.5) return {...c, resolved: true, behindImage: hasImage};
+      n = n.parentElement; depth++;
     }
-    return {r:255,g:255,b:255,a:1};
+    // 불투명 배경을 못 찾았다. 캔버스 흰색으로 가정하되 추정임을 표시한다.
+    return {r:255, g:255, b:255, a:1, resolved: false, behindImage: hasImage};
   };
   const contrast = (fg, bg) => { const L1=lum(fg), L2=lum(bg);
     const hi=Math.max(L1,L2), lo=Math.min(L1,L2); return +(((hi+0.05)/(lo+0.05)).toFixed(2)); };
@@ -117,9 +120,13 @@
       const fpx = parseFloat(cs.fontSize) || 16;
       const bold = (parseInt(cs.fontWeight,10) || 400) >= 700;
       const large = fpx >= 24 || (bold && fpx >= 18.66);
+      const b = box(el);
+      const offscreen = !b || b.y + b.h < 0 || b.x + b.w < 0 || b.x > (window.innerWidth || 390) + 2000;
       res.push({ selector: sel(el), text: t.slice(0,60), font_px: +fpx.toFixed(1), bold, large_text: large,
         fg: [fg.r,fg.g,fg.b], bg: [bg.r,bg.g,bg.b], ratio: contrast(fg,bg),
-        required: large ? 3.0 : 4.5, box: box(el) });
+        required: large ? 3.0 : 4.5, box: b,
+        bg_resolved: bg.resolved === true, behind_image: bg.behindImage === true,
+        fg_alpha: fg.a, offscreen });
       seen++;
     }
     push('contrast_ratio', res);
@@ -178,7 +185,16 @@
       const anim = cs.animationName && cs.animationName !== 'none';
       const iter = cs.animationIterationCount;
       if (anim && (iter === 'infinite' || parseFloat(iter) > 3)) {
-        moving.push({ selector: sel(el), animation: cs.animationName, iteration: iter, duration: cs.animationDuration });
+        const nm = String(cs.animationName || '');
+        const r = el.getBoundingClientRect();
+        moving.push({ selector: sel(el), animation: nm, iteration: iter, duration: cs.animationDuration,
+          // 로딩 인디케이터·스크롤 유도 등 정보를 전달하지 않는 장식은 2.2.2 적용 대상이 아니다
+          loader_like: /spin|load|rotat|dash|circle|pulse|progress|skeleton|shimmer/i.test(nm),
+          scroll_hint_like: /scroll|chevron|arrow|down|mouse|swipe/i.test(nm),
+          role: el.getAttribute('role'), aria_hidden: el.getAttribute('aria-hidden'),
+          text_len: T(el.textContent).length,
+          area: Math.round((r.width || 0) * (r.height || 0)),
+          tag: el.tagName.toLowerCase() });
       }
     });
     const marquee = [...document.querySelectorAll('marquee')].map(el => ({ selector: sel(el), animation: 'marquee', iteration: 'infinite' }));

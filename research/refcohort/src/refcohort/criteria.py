@@ -126,13 +126,27 @@ def c_1_1_1(probe: dict) -> dict:
 
 
 def c_1_2_1(probe: dict) -> dict:
+    """자막은 음성 정보의 대체 수단이다. 음성이 없는 미디어는 적용기회가 아니다.
+
+    자동재생·음소거·제어 없음의 조합은 배경 장식 영상이며 KWCAG 2.2 자막 제공의 대상이 아니다.
+    사용자가 음소거를 해제할 수 있는(controls) 경우에만 음성 존재 가능성을 인정한다.
+    """
     ops = []
     for o in _op(probe, "media_track"):
-        v = PASS if o.get("has_caption_track") else FAIL
-        ops.append({**o, "verdict": v, "reason": "자막 트랙 " + ("있음" if v == PASS else "없음")})
+        muted_decorative = o.get("muted") and not o.get("controls")
+        if muted_decorative:
+            continue  # 적용기회 아님 → NA에 기여
+        if o.get("has_caption_track"):
+            ops.append({**o, "verdict": PASS, "reason": "자막 트랙 있음"})
+        elif o.get("muted"):
+            ops.append(
+                {**o, "verdict": UNDET, "reason": "음소거 상태이나 제어 제공 — 음성 유무 확인 필요"}
+            )
+        else:
+            ops.append({**o, "verdict": FAIL, "reason": "음성 재생 미디어에 자막 트랙 없음"})
     for o in _op(probe, "media_embed"):
         ops.append({**o, "verdict": UNDET, "reason": "외부 임베드 플레이어 — 자막 확인 불가"})
-    return _result("1.2.1", ops)
+    return _result("1.2.1", ops, note="음소거·제어 없는 배경 장식 영상은 적용기회에서 제외")
 
 
 def c_1_3_1(probe: dict) -> dict:
@@ -189,22 +203,49 @@ def c_1_4_2(probe: dict) -> dict:
 
 
 def c_1_4_3(probe: dict) -> dict:
+    """배경색을 실제로 확정한 텍스트만 판정한다.
+
+    불투명 배경을 찾지 못했거나 배경 이미지 위에 놓인 텍스트는 계산된 대비가 실제와 다르다.
+    이런 지점을 FAIL로 세면 미흡률이 측정 오류만큼 부풀려지므로 UNDETERMINED로 분리한다.
+    """
     ops = []
     for o in _op(probe, "contrast_ratio"):
         req = o.get("required", 4.5)
         ratio = o.get("ratio")
-        if ratio is None:
+        if ratio is None or o.get("offscreen"):
             continue
-        v = PASS if ratio >= req else FAIL
+        unresolved = (not o.get("bg_resolved")) or o.get("behind_image")
+        if unresolved:
+            ops.append(
+                {
+                    **o,
+                    "verdict": UNDET,
+                    "reason": "배경색 미확정(투명 조상 또는 배경 이미지) — 대비 계산 불가",
+                    "detail": (o.get("text") or "")[:40],
+                }
+            )
+            continue
+        if ratio <= 1.05:
+            ops.append(
+                {
+                    **o,
+                    "verdict": UNDET,
+                    "reason": f"전경·배경 동색으로 산출(ratio={ratio}) — 측정 실패로 간주",
+                    "detail": (o.get("text") or "")[:40],
+                }
+            )
+            continue
         ops.append(
             {
                 **o,
-                "verdict": v,
+                "verdict": PASS if ratio >= req else FAIL,
                 "reason": f"대비 {ratio} (요구 {req})",
                 "detail": (o.get("text") or "")[:40],
             }
         )
-    return _result("1.4.3", ops, note="배경 이미지/그라디언트 위 텍스트는 배경색 추적이 근사값")
+    return _result(
+        "1.4.3", ops, note="배경 미확정·배경 이미지 위·동색 산출 지점은 UNDETERMINED로 분리"
+    )
 
 
 def c_2_1_1(probe: dict) -> dict:

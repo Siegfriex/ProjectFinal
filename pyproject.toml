@@ -20,6 +20,10 @@ src = ["src", "tests"]
 select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+# 한국어 산출물 문자열에 ×, · 등 전각/수학 기호가 정상 표기로 들어간다
+"research/**/*.py" = ["RUF001", "RUF002", "RUF003"]
+
 [tool.mypy]
 python_version = "3.12"
 ignore_missing_imports = true
