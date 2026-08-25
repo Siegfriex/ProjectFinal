@@ -22,10 +22,14 @@ CRITERIA = {c["id"]: c for c in CODEBOOK["criteria"]}
 
 PASS, FAIL, NA, UNDET = "PASS", "FAIL", "NA", "UNDETERMINED"
 
-# 이 값 미만이면 조작 가능 크기 미달 후보로 본다 (WCAG 2.5.8 최소 타겟 24 CSS px 기준)
-TARGET_MIN_CSS_PX = 24.0
-# 인접 간격이 이보다 좁으면 오조작 위험 신호로 함께 기록한다
-TARGET_GAP_MIN_CSS_PX = 24.0
+# KWCAG 2.2 해설서 2.1.3 체크사항:
+#   "CSS의 픽셀 크기를 기준으로 대각선 길이 6mm 이상으로 구현해야 합니다.
+#    CSS의 픽셀은 1인치/96으로 약 가로 x 세로 0.26mm이 되며 가로 세로 약 17px이
+#    대각선 길이가 6mm가 됩니다."
+# 기준은 최소변이 아니라 '대각선', 단위는 mm이며 CSS 표준 96dpi로 환산한다.
+CSS_PX_TO_MM = 25.4 / 96.0  # 1 CSS px ≈ 0.2646 mm (해설서 CSS 표준 단위표)
+TARGET_DIAGONAL_MIN_MM = 6.0
+TARGET_DIAGONAL_MIN_CSS_PX = TARGET_DIAGONAL_MIN_MM / CSS_PX_TO_MM  # ≈ 22.68 px
 
 
 def _op(probe: dict, key: str) -> list[dict]:
@@ -272,25 +276,46 @@ def c_2_1_2(probe: dict) -> dict:
 
 
 def c_2_1_3(probe: dict) -> dict:
+    """조작 가능 — KWCAG 2.2 해설서의 대각선 6mm 기준.
+
+    해설서는 최소변이 아니라 대각선 길이를, CSS 표준 96dpi 환산 mm로 규정한다.
+    인접 간격은 오조작 위험의 참고 지표로 기록하되 판정 근거로 쓰지 않는다
+    (해설서가 간격에 대한 수치 기준을 제시하지 않음).
+    """
+    import math
+
     ops = []
     for o in _op(probe, "target_size"):
         if o.get("inline_in_text"):
-            continue  # 문장 속 인라인 링크는 예외
-        m = o.get("min_side")
-        gap = o.get("nearest_neighbor_gap_css_px")
-        if m is None:
+            continue  # 문장 속 인라인 링크는 본문 흐름의 일부
+        w, h = o.get("width_css_px"), o.get("height_css_px")
+        if not w or not h:
             continue
-        if m >= TARGET_MIN_CSS_PX:
-            v, r = PASS, f"최소변 {m}px"
-        elif gap is not None and gap >= TARGET_GAP_MIN_CSS_PX:
-            v, r = PASS, f"최소변 {m}px이나 인접 간격 {gap}px 확보"
-        else:
-            v, r = FAIL, f"최소변 {m}px, 인접 간격 {gap}px"
-        ops.append({**o, "verdict": v, "reason": r})
+        diag_px = math.hypot(w, h)
+        diag_mm = diag_px * CSS_PX_TO_MM
+        gap = o.get("nearest_neighbor_gap_css_px")
+        v = PASS if diag_mm >= TARGET_DIAGONAL_MIN_MM else FAIL
+        ops.append(
+            {
+                **o,
+                "diagonal_css_px": round(diag_px, 2),
+                "diagonal_mm_css_standard": round(diag_mm, 2),
+                "verdict": v,
+                "reason": (
+                    f"대각선 {diag_px:.1f}px({diag_mm:.2f}mm) "
+                    f"{'≥' if v == PASS else '<'} 6mm"
+                    + (f", 인접 간격 {gap}px" if gap is not None else "")
+                ),
+            }
+        )
     return _result(
         "2.1.3",
         ops,
-        note=f"CSS px 기준 {TARGET_MIN_CSS_PX}px. 물리 mm는 산출하지 않음(기기 실측 필요)",
+        note=(
+            "KWCAG 2.2 해설서 기준: CSS 96dpi 환산 대각선 6mm 이상"
+            f"(≈{TARGET_DIAGONAL_MIN_CSS_PX:.1f}px, 해설서 예시 17x17px). "
+            "물리 기기 실측 mm는 산출하지 않음"
+        ),
     )
 
 
