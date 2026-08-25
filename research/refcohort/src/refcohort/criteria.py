@@ -327,15 +327,28 @@ def c_2_2_1(probe: dict) -> dict:
 
 
 def c_2_2_2(probe: dict) -> dict:
-    ops = [
-        {
-            **o,
-            "verdict": FAIL,
-            "reason": f"무한/장기 반복 애니메이션({o.get('animation')}) — 정지 수단 미확인",
-        }
-        for o in _op(probe, "autoplay_motion_control")
-    ]
-    return _result("2.2.2", ops, note="정지 버튼 존재 여부는 사람 검토 필요")
+    """대상은 '자동 시작되어 5초 이상 지속되며 정보를 전달하는' 움직임이다.
+
+    로딩 인디케이터, 스크롤 유도 화살표, aria-hidden 장식은 정보를 전달하지 않으므로
+    적용기회가 아니다. 정지 수단의 실제 제공 여부는 자동 관측으로 확정할 수 없으므로
+    남은 대상도 FAIL이 아니라 UNDETERMINED로 둔다.
+    """
+    ops = []
+    for o in _op(probe, "autoplay_motion_control"):
+        if o.get("loader_like") or o.get("scroll_hint_like"):
+            continue
+        if o.get("aria_hidden") == "true":
+            continue
+        if (o.get("text_len") or 0) == 0 and (o.get("area") or 0) < 4000:
+            continue
+        ops.append(
+            {
+                **o,
+                "verdict": UNDET,
+                "reason": f"반복 애니메이션({o.get('animation')}) — 정지 수단 제공 여부 사람 검토 필요",
+            }
+        )
+    return _result("2.2.2", ops, note="로딩·스크롤 유도 장식 제외. 정지 수단 존재는 자동 확인 불가")
 
 
 def c_2_4_1(probe: dict) -> dict:
