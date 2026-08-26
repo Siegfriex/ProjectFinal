@@ -1,6 +1,6 @@
 # 05 — 오케스트레이션 실행 로그 (Phase 1)
 
-**하네스** orchestrator-constitution-v3 · **Phase** P1_ISOLATION_AND_SOURCE_REFREEZE
+**하네스** orchestrator-constitution-v3 + hardening-directive-v3.1 · **Phase** P1_ISOLATION_AND_SOURCE_REFREEZE
 **정지 목표** `READY_FOR_E001` — E001 본수집은 Research Director GO 없이 실행하지 않는다.
 
 ## 0. 역할 격리 구조
@@ -43,7 +43,14 @@ Monitor는 세션 시작부터 persistent로 가동 중이며 `DIRECTIVE_UPDATED
 | C002-3 | adversarial audit | PASS / P0 0 / P1 1 / P2 5 | `e302d31` |
 | C006 | executor | A2 인증 레지스트리 자체 스냅샷 `KWACC_WA_20260826` | `bf5d16e` |
 | C009 | executor | 감사 수용 12건 시정 · 2층 분리 · 축 컬럼 분리 | `fe86e19` |
-| C009 | ssot / adversarial audit | 진행 중 | — |
+| C009 | ssot audit | PASS / P0 0 / P1 2 | `7c928f5` |
+| C009 | adversarial audit | PASS / P0 0 / P1 2 / P2 5 | `fd9773a` |
+| C009 | **orchestrator 재결** | accepted 8 / rejected 0 / deferred 0 · promotion BLOCKED | `bc248ff` |
+| C011 | executor | P1 3건 + P2 5건 시정 | 진행 중 |
+
+오케스트레이터 재결·문서 커밋:
+`441a31b` `1b3ec23` `74a5db3` `30c664f` `1c45d29` `973bce9` `2961713` `ff16bdb` `44ee6c6`
+`7b6b3c2` `1d46c8b` `16cef85` `188e2e3` `3ada6be` `bc76afb` `bc248ff` `9220b83`
 
 오케스트레이터 재결·문서 커밋:
 `441a31b` `1b3ec23` `74a5db3` `30c664f` `1c45d29` `973bce9` `2961713` `ff16bdb` `44ee6c6` `7b6b3c2` `1d46c8b` `16cef85` `188e2e3`
@@ -135,6 +142,33 @@ evidence manifest sha256 대조로 확인했고 403/200 도 직접 확인했다(
 같은 사이클에서 **업종 축 10건이 RETAIL 도메인 "안에" 있다**는 구조적 사실도 드러냈다.
 `domain == 'RETAIL'` 필터만으로는 업종 카테고리가 걸러지지 않으므로
 리테일 브랜드 집계에는 `axis_type == 'SERVICE_BRAND'` 를 함께 걸어야 한다. 테스트로 고정했다.
+
+
+### 3-7. 감사가 오케스트레이터가 제공한 근거의 오류를 잡은 것
+
+C004 에서 오케스트레이터가 xlsx 재정의 근거를 executor 에게 넘겼다.
+C009 적대적 감사가 그 근거 두 개를 반증했다.
+
+| 오케스트레이터 주장 | 실제 |
+|---|---|
+| 드리프트 = 카카오톡 −0.15% / 유튜브 −1.8% / 네이버 −2.5% (전부 음수) | **카카오톡만 부호가 반대다.** 원문 1,377만 < xlsx 1379만 이므로 `(xlsx−원문)/원문 = +0.15%` |
+| xlsx 문서 속성이 **전부** None | `created` / `modified` 는 채워져 있다 (2026-08-25 15:54:10). 실재하는 provenance 단서를 없다고 적었다 |
+
+두 오류 모두 판정 자체(`UNSOURCED_INCOMPATIBLE_PANEL_SET`)를 뒤집지 않는다 — EV-1/3/4/5 로 독립 성립한다.
+그러나 **부호가 갈린다는 사실은 오히려 "비일관 드리프트" 논거의 최강 형태**이고,
+타임스탬프는 판정을 강화하는 단서다. 부정확한 근거가 더 약한 주장을 만들고 있었다.
+
+→ **오케스트레이터가 감사에 제공한 근거도 감사 대상이다.**
+
+### 3-8. 테스트가 통과를 위장하고 있던 것
+
+C009 재현 스크립트의 `matches_existing_c002_output` 이 실제 비교가 아니라 `existing.exists()` 였다.
+파일이 존재하기만 하면 통과한다. 적대적 감사가 diff 를 정독해 잡았다.
+
+같은 감사에서 저널 스크립트를 단독 실행하면 `panel_registry` 가 26→25 컬럼이 되어
+(`panel_scope` 소실) 다른 테스트가 실제로 FAILED 하는 것도 실증했다.
+
+→ **`pytest PASS` 는 연구무결성 PASS 가 아니다.** 테스트가 무엇을 검사하는지 읽어야 한다.
 
 
 ## 4. A1 권위자료 취득 기록
@@ -276,3 +310,60 @@ promotion                  HOLD
 
 **철회는 "틀렸다"가 아니라 "권위 없는 입력으로 계산됐다"는 뜻이다.**
 A1 기준으로 재산출하면 같은 결론이 다시 나올 수 있고, 그때는 근거를 갖는다.
+
+## 11. v3.1 하네스 하드닝
+
+### 11-1. 신뢰 경계 — PROMOTION != EXECUTION
+
+```
+EXECUTED                     구현 commit 존재
+ORCHESTRATOR_PRECHECK_PASS   오케스트레이터 자체 점검 통과
+INDEPENDENTLY_AUDITED        adversarial + SSOT 가 동일 exec SHA 를 독립검토
+RECONCILED                   orchestrator 가 두 audit 을 증거 기반으로 재결
+PROMOTED                     verified baseline 으로 main 에 승격
+```
+
+`ORCHESTRATOR_PRECHECK_PASS` 를 `ACCEPTED` / `VERIFIED` / `PROMOTED` 와 동의어로 쓰지 않는다.
+
+### 11-2. audit lag invariant
+
+```
+MAX_UNAUDITED_EXEC_CYCLES = 1
+unaudited_cycle_depth = latest_exec_cycle − latest_fully_audited_cycle
+```
+
+`fully_audited` 는 `adversarial.target_exec_sha == exec_sha` **AND** `ssot.target_exec_sha == exec_sha`
+**AND** orchestrator reconciliation complete 를 모두 만족할 때만이다.
+
+state.json 에 8개 필드로 추적하고 watchdog 이 매 120초 검증한다.
+
+### 11-3. main branch write protection — 3중
+
+| 층 | 내용 | 검증 |
+|---|---|---|
+| server-side | `research/landing-accessibility-main` force-push 금지·삭제 금지·linear history | gh CLI 설정 완료 |
+| server-side | `research/refcohort-r1` **lock_branch=true + enforce_admins=true** | Pilot 완전 잠금 |
+| client-side | `.git/hooks/pre-push` — main 은 `LA_PROMOTION` 없이 차단, Pilot 은 무조건 차단 | 다른 SHA push 시도 → **실제 BLOCKED 확인** |
+| script | `scripts/promote_landing_main.sh` 6개 검사 | hook 을 유일 보증수단으로 삼지 않는다 |
+
+`SERVER_PROTECTION_UNAVAILABLE` 이 아니다 — 원격 보호가 실제로 활성화됐다.
+
+### 11-4. watchdog 감시 항목 (120초)
+
+```
+P0  PILOT_WRITE                 브랜치 SHA 이동 + 워크트리 변경
+P0  E001_UNAUTHORIZED           4개 워크트리의 evidence/ 파일 존재
+    AUDIT_REQUIRED              exec HEAD 변화
+    AUDIT_LANDED                감사 브랜치 변화
+    AUDIT_LAG                   exec sha vs audit target sha 불일치
+    SOURCE_AUTHORITY_CHANGED    authority_manifest sha256 변화
+    DIRECTIVE_UPDATED           control HEAD 변화
+```
+
+### 11-5. cycle artifact
+
+`control/cycles/Cxxx.json` 에 directive / executor / audit_adversarial / audit_ssot /
+reconciliation / promotion / gate_before / gate_after / accepted·rejected·deferred findings / open_debt 를 기록한다.
+
+**commit message 를 상태 데이터베이스로 쓰지 않는다.**
+
