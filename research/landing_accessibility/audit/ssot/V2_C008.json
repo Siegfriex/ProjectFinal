@@ -1,0 +1,339 @@
+{
+  "cycle": "V2-C008",
+  "auditor": "ssot",
+  "target_sha": "181d17afe22b8319043e4d1ef6311393dc046827",
+  "prev_target_sha": "2025e5667686d42e832298f2dce77b0c7aa6bc07",
+  "intermediate_sha": "64f6936de666b1951a2fa7a4b6c5d630e16dce27",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha": "1d6cedb6aca6933a701275c7c8e14fd7d4628c73",
+  "same_cycle_adversarial_audit_sha": "fed3e70",
+  "same_cycle_adversarial_audit_branch": "audit/landing-adversarial",
+  "same_cycle_adversarial_verdict": "ACCEPT_RECLASSIFY (conditional, 6 conditions) — rc-6-r1-same-authorization-local-reexecution-unbounded",
+  "prior_ssot_audit_sha": "68a715bb250630553b292e96ee992d5880d31b48",
+  "prior_ssot_audit_verdict": "CLOSED — ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 (focused)",
+  "target_branch": "agent/landing-v2-exec",
+  "base_ref": "research/landing-accessibility-main",
+  "phase": "P0_V2_REFREEZE",
+  "gate": "V2_SSOT_FROZEN",
+  "audited_at": "2026-08-27",
+  "audit_type": "gate audit before P0 promotion — coherence-centred full review of PREV..TARGET",
+  "verdict": "FAIL",
+  "counts": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 4,
+    "blocking": 5,
+    "blocking_v2_ssot_frozen": 3,
+    "blocking_e001_v2": 1,
+    "blocking_other_scope": 1,
+    "non_blocking_observations": 6,
+    "closed_this_cycle": 4
+  },
+  "diff_scope": {
+    "compared": "2025e5667686d42e832298f2dce77b0c7aa6bc07..181d17afe22b8319043e4d1ef6311393dc046827",
+    "commits": 2,
+    "files_changed_count": 13,
+    "files_changed": [
+      "research/landing_accessibility/.gitignore",
+      "research/landing_accessibility/docs/07_EVIDENCE_MANIFEST_CONTRACT.md",
+      "research/landing_accessibility/docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+      "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+      "research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json",
+      "research/landing_accessibility/scripts/acquire_wiseapp_authority.py",
+      "research/landing_accessibility/scripts/build_canonical_entities.py",
+      "research/landing_accessibility/sources/wiseapp/authority_manifest.json",
+      "research/landing_accessibility/src/landing_accessibility/authority_manifest.py",
+      "research/landing_accessibility/src/landing_accessibility/evidence_manifest.py",
+      "research/landing_accessibility/src/landing_accessibility/review_queue.py",
+      "tests/test_c012_review_and_grouping.py",
+      "tests/test_source_integrity.py"
+    ],
+    "target_tip_matches_exec_branch": "PASS — origin/agent/landing-v2-exec == 181d17a, no drift",
+    "exec_worktree_dirty": "YES — 1 uncommitted modification to A2 (the F3 remedy, 1 line). Not in the target commit. verify_v2_docs.py FAILS in that worktree state."
+  },
+  "concurrent_edit_coherence": {
+    "verdict": "PASS",
+    "rule_id_collisions": 0,
+    "injection_id_duplicates": 0,
+    "injection_id_gaps": 0,
+    "injection_range": "I-1..I-53, each defined exactly once",
+    "table_column_arity_mismatches": 0,
+    "new_rules_invalidating_existing": 0,
+    "detail": "E-6b narrows E-6/E-6a by adding a third conjunct (promotion set becomes a proper subset); EB-1~EB-4 are purely additive columns on dim_web_target with no change to the 6-value web_eligibility_status domain; C-2 widens RC-6's authorisation layer with an explicit scope table that declines to widen RC-1/RC-3 and deliberately widens RC-4. RC-1~RC-7, A-1~A-8, E-5~E-10, T-*, X-*, N-*, EXC-* all retain their meaning.",
+    "note_commit_split": "commit messages attribute all three A2 edits to 181d17a, but the tree shows 64f6936 carried E-6b + 1.3.1 + MERGE + A1 2.6 and 181d17a carried C-2 only. Bookkeeping only; the audited object is the tree at 181d17a."
+  },
+  "new_section_ssot_conformance": {
+    "E-6b": {
+      "verdict": "CONFORMANT",
+      "exceeds_00_3_scope": false,
+      "reason_scope": "promotion condition is a logical AND of three necessary conditions, so the promoted set is a proper subset of the E-6a-era set; the new 1.5.1a table row (all archetypes / UNDETERMINED -> AUTH_GATE_REACHED, takes precedence) narrows further",
+      "01_6_freeze_conflict": false,
+      "reason_freeze": "the 4 new fact_task_step columns are created via the 6.3 P-C produce-list, not by editing 01; same route already used for depth_segment / counts_toward_depth / area_signal_detected (1.5.4) and auth_gate_before_endpoint. 00~05 verified byte-identical to SSOT/.",
+      "undetermined_gate_omitted_from_E8_E9": false,
+      "reason_prevalence": "guaranteed in four independent places — E-9 boundary table new row (=1); E-8 union first-term note; 6.3 guard 'auth_gate_kind non-NULL with auth_gate_detected = 0 fails'; injection I-49 expects BLOCK",
+      "promotion_path_residual": 0,
+      "promotion_blocked_in": [
+        "1.5.1 AUTH_GATE_REACHED row",
+        "1.5.1a normative table precedence row",
+        "1.5.2 ENDPOINT_VIA_AUTH_GATE proviso",
+        "6.3 fail-closed guard",
+        "6.3 basis cross-check guard",
+        "7 item 11"
+      ],
+      "new_thresholds_created": 0,
+      "residual_honestly_declared": "GK-1 registered with injection I-50 whose expected result is 'not blocked'"
+    },
+    "EB-1_to_EB-4": {
+      "verdict": "CONFORMANT",
+      "covers_v1_06_2_2": true,
+      "covers_v1_06_3_1": true,
+      "covers_v1_06_3_3": true,
+      "v1_source_read_from": "origin/control/landing-orchestrator:research/landing_accessibility/docs/06_ELIGIBILITY_AND_JOIN_RULES.md",
+      "contradicts_01_3_or_a2_1_2_1_3": false,
+      "new_thresholds_created": 0,
+      "reason_no_threshold": "eligibility_confidence HIGH|MEDIUM|LOW is v1 06 §2-2 verbatim; url_type 4 values are v1 06 §3-1 verbatim; 'this section does not' block explicitly rules out re-adjudication, new criteria and physical column creation",
+      "EB-1_vs_W-1_append_only": "no conflict — 1.3.1 scopes EB-1 to P-B produce time, which is W-1 path (a); no in-place overwrite of a frozen row",
+      "measured_claims_reproduced": "all 6 of 6 exactly (81 rows; basis 81/81; reviewer distinct 1; confidence 59/1/11/10; needs_human_review 34/47; redirect_chain column absent)",
+      "residual": "F5 — redirect_chain / target_url phase assignment self-contradiction"
+    },
+    "C-2_option_a": {
+      "verdict": "CONFORMANT_AT_RULE_LEVEL",
+      "consistent_with_02_11_evidence_identity": true,
+      "consistent_with_02_12_append_only": true,
+      "consistent_with_EXC_4": false,
+      "reason_exc4": "EXC-4 is the deviation register and is still scoped to 재수집; the rule it registers now also binds the first (E001 baseline) run. See F2.",
+      "attempt_index_0_vs_RC_7_density": "no conflict — RC-7 density row explicitly excludes attempt_index = 0 from the 1..N density and from the RC-1 count; execution_index (1..E) and ledger_seq (1..M) still apply to first runs",
+      "scope_table_correctness": "correct — RC-1/RC-3 declared not-applicable (no alternative candidate for a first run); RC-4 deliberately widened with a stated reason (otherwise injection I-51 has no rule making it UNDECLARED); disposition value range narrowed to 4 families consistently",
+      "option_b_rejection_argument": "sound — (b) would accept a residual one step wider than R-1 (creating and choosing among different ids), which is the category error C-2 itself identified; I-52 burns that path",
+      "R-1_not_claimed_closed": true,
+      "residual": [
+        "F2",
+        "F3"
+      ]
+    }
+  },
+  "a1_a2_jurisdiction": {
+    "tables_still_identical": true,
+    "rows": 7,
+    "columns_1_2_glyph_identical": true,
+    "column_3_asymmetry": "A1 §0.3 rows §1.8 and §6.1 carry parenthetical explanations absent from A2's cell; A2 states the same points in prose right after the table. Pre-existing, untouched this cycle, passed at V2-C007.",
+    "new_row_required_for": {
+      "A2 §1.3.1": false,
+      "A2 §1.5.1a auth_gate_kind family": false,
+      "A1 §2.6": true
+    },
+    "reason_a1_2_6_requires_row": "§2.6 assigns endpoint_reached / MPFED / endpoint_status / endpoint_status_detail — squarely A2-governed values. Its absence from the table is why F1's contradiction does not resolve in A2's favour (A2 §0 item 3 ranks A1 at 8 and A2 at 9)."
+  },
+  "c2_reported_open_gaps_adjudication": [
+    {
+      "reported": "A1 §6.2 treats evidence_run_id as a free identifier, but option (a) makes the first run's evidence_run_id an image of f as well — a binding row is needed in the A1 §6.2 convention table",
+      "handled_in_this_commit": false,
+      "verdict": "IS_A_FINDING",
+      "finding_id": "a1-6-2-lacks-evidence-run-id-derivation-binding",
+      "severity": "P2",
+      "blocking_class": "E001_V2"
+    },
+    {
+      "reported": "the observation procedure for auth_gate_kind / basis signals is absent from A1, which is authoritative for 'when and how it is observed'",
+      "handled_in_this_commit": false,
+      "verdict": "NOT_A_FINDING",
+      "reason": "A2 explicitly routes the signal token dictionary and per-axis confidence levels to the P-A endpoint codebook freeze (§6.4, rule P-1) and the implementation to P-C (§6.3) — the same route V2-C004 used for E-6a's discrimination criteria, which both audits passed. A1 §1.5's auth gate cross-reference delegates to 'A2 §1.5.1a rules E-5~E-10', a range covering E-6b. A1 is not silent; it names the authority and defers."
+    }
+  ],
+  "install_integrity": {
+    "verify_v2_docs_py_exit": 1,
+    "verify_v2_docs_py_failure_cause": "uncommitted working-tree modification to A2 in the exec worktree (1 line, the F3 remedy) — NOT the target commit",
+    "verify_v2_docs_py_at_commit": "PASS by independent re-derivation (below)",
+    "banner_files_independently_verified": 3,
+    "banner_verification_method": "own marker-strip implementation, not the script's strip_banner(); compared against SSOT/ originals; source = commit contents, not working tree",
+    "banner_results": [
+      {
+        "installed": "docs/v2/README.md",
+        "installed_bytes": 2698,
+        "body_sha256": "e892029b73ee83bdc5c611bd8ddf7bb06d56c0b8b9718b58d4ed83c51b272837",
+        "ssot_original": "SSOT/README.md",
+        "ssot_bytes": 1753,
+        "match": true
+      },
+      {
+        "installed": "docs/v2/bootstrap/07_CLAUDE_FIRST_SESSION_PROMPT_v2.0.md",
+        "installed_bytes": 9337,
+        "body_sha256": "0b528722baa762676b22b31eadcf11f8a7d60141f2262047c00b7c17b9ee3e5e",
+        "ssot_original": "SSOT/07_CLAUDE_FIRST_SESSION_PROMPT_v2.0.md",
+        "ssot_bytes": 8217,
+        "match": true
+      },
+      {
+        "installed": "research/landing_accessibility/CLAUDE.md",
+        "installed_bytes": 4012,
+        "body_sha256": "e0a1d1f81842d18e3ff70c8a9d70426dbffda628e15c029c227ca9795ab958a4",
+        "ssot_original": "SSOT/06_PROJECT_CLAUDE_MD_v2.0.md",
+        "ssot_bytes": 2725,
+        "match": true
+      }
+    ],
+    "banner_policy_respected": "exactly those 3 files carry banners; 00~05 carry none",
+    "install_manifest_entries": 15,
+    "install_manifest_mismatches": 0,
+    "a2_declared_bytes": 253429,
+    "a2_actual_bytes": 253429,
+    "a2_declared_sha256": "156f4d9d7ab9de7533aab79a1714987d7b311a7600fec6dc0740c791caccf80f",
+    "a2_actual_sha256": "156f4d9d7ab9de7533aab79a1714987d7b311a7600fec6dc0740c791caccf80f",
+    "a1_declared_bytes": 47613,
+    "a1_actual_bytes": 47613,
+    "a1_declared_sha256": "830cd68f486f1155e20611c26aba656855ac72001520e53bb89dc469faa5862a",
+    "a1_actual_sha256": "830cd68f486f1155e20611c26aba656855ac72001520e53bb89dc469faa5862a",
+    "install_manifest_cycle": "V2-C008",
+    "pack_00_to_05_and_manifest_unchanged": true,
+    "pack_verification": "all 7 files (00,01,02,03,04,05,MANIFEST.json) byte-identical to SSOT/ originals, no banner"
+  },
+  "invariants": {
+    "pilot_refcohort_diff_base_to_target": 0,
+    "pilot_refcohort_diff_per_commit": 0,
+    "pilot_ruff_format_incident_left_committed_trace": false,
+    "root_claude_md_unchanged": true,
+    "root_claude_md_sha256_prefix": "d3db399360a18a67",
+    "state_parquet_diff": 0,
+    "commit_count_prev_to_target": 2,
+    "baseline_sha_accuracy": "PASS — target == origin/agent/landing-v2-exec tip, base/prev/control SHAs all resolve and match the brief",
+    "e001_v2_started": false
+  },
+  "promotion_readiness": {
+    "control_open_blocking_total": 10,
+    "control_gate_satisfied": false,
+    "control_by_blocking_class": {
+      "V2_SSOT_FROZEN-blocking": 1,
+      "E001_V2-blocking": 3,
+      "v1_inherited": 6
+    },
+    "exec_claims_vs_ledger_contradiction": false,
+    "detail": "No exec document declares closed anything the ledger holds open. rc-6-r1 and R-1 are explicitly NOT claimed closed — only condition C-2 is addressed, which is correct. ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 is still OPEN in the ledger because CONTROL predates this auditor's 68a715bb CLOSED verdict by one commit; that is audit lag, not a contradiction.",
+    "v2_ssot_frozen_class_after_this_audit": "still NOT empty — ssot-00-3 leaves the class but F1, F2 and F3 enter it. READY_FOR_E001_V2 cannot be declared this cycle.",
+    "out_of_scope": "the other 3 v1 inherited debts claimed closed by 64f6936 (a1-raw-payload-files-not-hash-registered-in-authority-manifest, queue-membership-still-hand-set-in-entity-spec, verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard, gitignore-evidence-pattern-single-level-only) were not adjudicated by this audit"
+  },
+  "findings": [
+    {
+      "id": "a1-2-6-min-3-contradicts-a2-1-5-1a-gate-as-endpoint",
+      "severity": "P1",
+      "blocking": true,
+      "blocking_class": "V2_SSOT_FROZEN",
+      "new_this_cycle": true,
+      "location": [
+        "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md §2.6 rule MIN-3 (lines 346-354)",
+        "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md §8 (new bullet)",
+        "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md §0.3 / docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md §0 item 4 (jurisdiction tables)"
+      ],
+      "statement": "Newly added A1 §2.6 rule MIN-3 asserts without exception that when a gate fires, endpoint_reached = 0 and MPFED = NULL, and the new A1 §8 bullet restates it as an unconditional prohibition. A2 §1.5.1a (EXC-2 / E-5 / E-6a / E-6b) requires the opposite for FINANCIAL_ACTION_ENTRY (login or identity gate, kind confirmed) and COMMUNICATION_ENTRY (login gate, kind confirmed): endpoint_reached = 1 and MPFED = integer m, where m is exactly the gate-reaching terminal length A1 §8 now forbids assigning.",
+      "evidence": "A1 §2.6 (lines 306-430) contains zero occurrences of FINANCIAL_ACTION_ENTRY, COMMUNICATION_ENTRY, 'A2 §1.5.1a', 'E-5' or 'E-6' (grep-verified). A2 §0 item 3 ranks A1 at 8 and A2 at 9, and §2.6 is absent from both jurisdiction tables, so the conflict resolves toward MIN-3. No §6.3 guard catches under-promotion: E-6a/E-6b guards fail one direction only (over-promotion), and none of I-42..I-53 asserts that a confirmed gate must promote.",
+      "impact": "Reinstates in A1 exactly proposition 3 of ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1, which this auditor closed one commit earlier at 68a715bb: MPFED becomes structurally NULL for both archetypes, so 00 §7 ExcessDepth baselines, 00 §11 per-archetype Depth distributions and 01 §10 mart_archetype_summary do not hold for those two rows.",
+      "remedy": [
+        "put the two-archetype exception into MIN-3 and delegate with the same wording A1 §1.5 already uses ('분기 규칙의 정본은 A2 §1.5.1a 규칙 E-5~E-10')",
+        "scope the new A1 §8 bullet to exclude confirmed gates in the two archetypes",
+        "add a §2.6 row to BOTH jurisdiction tables (A1 §0.3 and A2 §0 item 4), updating them with identical wording",
+        "recommended: add an over-blocking regression injection asserting that a confirmed gate DOES promote — the symmetric counterpart of I-48"
+      ]
+    },
+    {
+      "id": "exc-4-scope-not-widened-to-first-run-after-c-2",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "V2_SSOT_FROZEN",
+      "new_this_cycle": true,
+      "location": "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md §0 item 7, row EXC-4",
+      "statement": "§0 item 7 is this document's register of deviations from the originals. The EXC-4 row still reads '재수집 시도는 시작 이전에 … 원장에 등재·커밋·push되고'. C-2 widened RC-6's authorisation layer to the first (E001 baseline) run and updated seven other places (RC-6 body, scope table, §4.2, RC-7 density, X-14 ⑨, §6.3 guard, §7 item 13) but not the register.",
+      "impact": "A mandatory precondition now binds ordinary baseline collection while sitting outside the deviation register. The closed finding a2-1-5-1a-deviates-from-01-11-without-exc-registration (ssot V2-C003, blocking) established that unregistered deviation is itself the defect; EXC-3 was registered on exactly this basis (adding 절차 where the original was silent).",
+      "remedy": "amend the EXC-4 row's placement cell to include the first run and add §1.11.2 RC-6 적용범위표 to its section cell — one row."
+    },
+    {
+      "id": "rc-5-execution-authorization-reconciliation-row-still-scoped-to-recollection",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "V2_SSOT_FROZEN",
+      "new_this_cycle": true,
+      "location": "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md §1.11.2 rule RC-5, row '실행 인가 대조' (A2:1460)",
+      "statement": "The row still requires 'control이 인가한 실행 수 E · 원장 EXECUTION 레코드 수 · 제출된 재수집 evidence run 수. 세 수가 같아야 한다 (검사 A-8)'. After C-2, E includes first-run authorisations, so a three-way equality with only 재수집 runs on one side cannot hold; implemented as written it leaves first-run executions outside the reconciliation — the very hole ('인가받고 결과를 숨기는 것', first-run edition) C-2 set out to close. The §6.3 guard was widened to apply A-8 to both, so the document contradicts itself.",
+      "impact": "A-8's coverage claim is not reproducible from the reporting item that reports it.",
+      "remedy": "commit the widening. The exec working tree already contains the correct fix as an uncommitted 1-line edit ('제출된 evidence run 수' + '세 수는 재수집 run 과 최초(E001 baseline) run 을 합쳐 센다'); it is not in the target commit."
+    },
+    {
+      "id": "a1-6-2-lacks-evidence-run-id-derivation-binding",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2",
+      "new_this_cycle": true,
+      "reported_by_executor_as_open": true,
+      "location": "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md §6.2 convention table",
+      "statement": "A1 §6.2 is the runner-facing authority for evidence identity and its convention table says only '재수집은 새 evidence_run_id 를 만든다'; A1 §6.3 then consumes evidence_run_id as a free input to the observation_id hash. After C-2's option (a), every run including the first must have evidence_run_id equal to f(ledger_record_sha256, countersign_commit_sha, execution_index) (A2 §1.11.2 RC-6, checks A-6/A-7). A1 says so nowhere.",
+      "impact": "Not a contradiction — A1 does not assert the id is free, and the §6.3 guard is fail-closed, so no bad evidence escapes. But an implementer working from A1 alone mints a free id and has the whole run rejected at E001 submission time. Hence E001_V2-blocking, not V2_SSOT_FROZEN-blocking.",
+      "remedy": "add one binding row to the A1 §6.2 convention table: evidence_run_id is not a free identifier — it is the image of A2 §1.11.2 RC-6 derivation f, and this applies to the first run as well."
+    },
+    {
+      "id": "redirect-chain-target-url-phase-assignment-contradicts-between-5-5-and-6-2",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "P-B produce-list verification",
+      "new_this_cycle": true,
+      "location": [
+        "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md §5.5 (row 'redirect_chain · target_url')",
+        "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md §6.2",
+        "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md §1.3.1 rule EB-4"
+      ],
+      "statement": "The same commit routes redirect_chain · target_url to '(c) ABSENT → P-C' in §5.5 while registering them in §6.2, which is titled 'P-B (target / task frame)'; EB-4's body says '`redirect_chain` 을 §6.2 에 등재한다'. The two fields also genuinely differ in phase: target_url is fixed at P-B (it is the URL to be requested) whereas redirect_chain, like final_url, only exists after collection — §5.5 already routes final_url to P-C.",
+      "impact": "Both placements are half-wrong and a P-C artefact sits in the P-B produce-list, so a P-B gate check would demand a column that cannot exist yet.",
+      "remedy": "split the row — target_url into §6.2 (P-B), redirect_chain into §6.3 (P-C), and split the §5.5 routing to match."
+    }
+  ],
+  "closed_findings": [
+    {
+      "id": "e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint",
+      "prior_severity": "P2",
+      "prior_blocking_class": "E001_V2",
+      "verdict": "CLOSED",
+      "basis": "rule E-6b creates the column, allowed values, asymmetric fail-closed promotion conjunction, derived-basis cross-check, post-hoc change ban, prevalence preservation and undetermined-rate exposure; promotion blocked in six independent places; E-8/E-9 preservation guaranteed in four; injections I-42..I-50 including honest non-blocking I-50 for residual GK-1; no new threshold (signal dictionary and confidence levels deferred to P-A codebook freeze via §6.4)"
+    },
+    {
+      "id": "eligibility-basis-fields-narrower-than-06-still-carried",
+      "prior_severity": "v1 inherited",
+      "prior_blocking_class": "E001_V2 (v1)",
+      "verdict": "CLOSED",
+      "basis": "checked against the v1 06 original read from origin/control/landing-orchestrator: §2-2's 5 fields and its '근거 없는 상태 부여를 금지한다' are covered by EB-1; confidence 3-value and url_type 4-value domains are inherited verbatim (no new threshold); §3-1's url_type/url_discovery_method/url_reviewer and §3-3's target_url/final_url/redirect_chain are registered; all six measured claims reproduce exactly against the LANE B shadow CSV. Residual placement defect registered separately as F5.",
+      "residual_finding": "redirect-chain-target-url-phase-assignment-contradicts-between-5-5-and-6-2"
+    },
+    {
+      "id": "merge-decision-merges-nothing-no-alias-assert",
+      "prior_severity": "v1 inherited",
+      "prior_blocking_class": "E001_V2 (v1)",
+      "verdict": "CLOSED",
+      "basis": "group layer measured: 68 rows, hypothesis_outcome 65/2/1, MERGE 0, confirmed_by_url all False — reproduced exactly; entity layer MERGE 1 / KEEP_SEPARATE 6 reproduced exactly; review_queue.assert_merge_decisions_absorb_aliases exists with M1/M2/M3; 4 counterexample tests present; pytest on the two relevant files = 61 passed"
+    },
+    {
+      "id": "ned-ied-path-minimality-not-operationalized",
+      "prior_severity": "P2",
+      "prior_blocking_class": "E001_V2",
+      "verdict": "CLOSED",
+      "basis": "A1 §2.6 operationalises the search procedure (MIN-1/MIN-2), determinism via a total order with a mandatory third component (MIN-4), the honest scope limit (MIN-5), k/m read from one path with the declared one-sided NED bias (MIN-6), budget exhaustion as absence-of-observation (MIN-7) and replay-is-not-minimality (MIN-8); BRANCHING_LIMIT added to the §2.1 budget table and the §7 freeze list with two new E000_V2 validation items",
+      "caveat": "the newly written MIN-3 introduced finding F1; that is a new defect in the new text, not a failure to operationalise, so this finding is closed and F1 is registered separately"
+    }
+  ],
+  "condition_adjudications": [
+    {
+      "id": "rc-6-r1 reclassification condition C-2 (this document's share)",
+      "source": "adversarial V2-C008 focused, audit/landing-adversarial @ fed3e70",
+      "verdict": "SATISFIED",
+      "basis": "the false assertion is retracted in the A2:1334 precedent form; option (a) is adopted with a layer-by-layer scope table; R-1 is redefined as a risk class covering both recollection and first E001 runs; RC-5 co-reporting is explicitly labelled a detection layer and not an exclusion layer; I-51/I-52 burn the newly closed paths and I-53 honestly declares the one that stays open",
+      "residual_findings": [
+        "exc-4-scope-not-widened-to-first-run-after-c-2",
+        "rc-5-execution-authorization-reconciliation-row-still-scoped-to-recollection"
+      ]
+    }
+  ],
+  "non_blocking_observations": [
+    "identifier collision: A2 already has rule C-2 (분모 보존, §1.13) while the new markers [V2-C008 시정 · C-2] refer to the adversarial reclassification condition in 14 places; disambiguated by context ('규칙 C-2' vs 'rc-6-r1 C-2')",
+    "field-count wording: EB-3 says '근거 5필드' and lists 6 (the v1 original also has 6). The same pattern predates this cycle — RC-2 says '필드는 다음 5종' over a 6+1 row table, and §6.3 says '5필드(...6 listed)'. C-2's own 'RC-2 6필드 전부' uses the correct number. No load-bearing consequence.",
+    "injection ordering: the table runs I-49 -> I-51, I-52, I-53 -> I-50 because two owners appended independently; no duplicate and no gap",
+    "evidence_run_id keeps the 'rc' prefix for first runs; the document's own reasoning about the ledger filename ('이름은 연혁이지 범위가 아니다') applies",
+    "A2 §6.4 still says 'A1 §7 의 수집 파라미터 8종' while A1 §7 now has 11 rows; the count was already stale before this cycle (9 rows) and carries '등'",
+    "jurisdiction table column 3 asymmetry (A1 §0.3 rows §1.8 and §6.1 carry parentheticals absent from A2); columns 1-2 are glyph-identical, untouched this cycle, passed at V2-C007"
+  ],
+  "operational_note_for_control": "The exec worktree agent/landing-v2-exec is currently dirty (1 uncommitted A2 edit = the F3 remedy). verify_v2_docs.py layer 2 requires the working tree to be clean, so the promotion script cannot pass until that edit is committed or reverted."
+}
