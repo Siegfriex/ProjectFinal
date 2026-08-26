@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T14:18:17.133042",
+  "updated_at": "2026-08-26T14:27:46.005589",
   "phase": "P2_WEB_ELIGIBILITY_AND_URL_IDENTITY",
   "cycle_id": "C012",
   "pilot": {
@@ -60,7 +60,7 @@
     "orchestrator": "control/landing-orchestrator"
   },
   "exec_sha": "5a9015d",
-  "adversarial_audit_sha": "903e247",
+  "adversarial_audit_sha": "510d5f2",
   "ssot_audit_sha": "1bc2c71b",
   "gates": {
     "pilot_archive": "PASS_WITH_LOGICAL_BACKUP_ONLY",
@@ -80,7 +80,7 @@
     "automation_split": "NOT_RUN",
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
-    "adversarial_audit": "PASS_C011_P0_0_P1_0_P2_5",
+    "adversarial_audit": "PASS_C012_P0_0_P1_0_P2_8",
     "ssot_audit": "PASS_C012_P0_0_P1_0_P2_5",
     "certification_snapshot": "PASS_COMPLETE"
   },
@@ -104,43 +104,7 @@
     "rationale": "P1 exec-advanced-to-c002-before-c001-audit 대응. 하드스톱으로 파이프라인을 끊지 않으면서 미감사 산출물이 main 에 승격되는 것을 차단한다.",
     "promoted_sha": "edb0478f56d06ed65cd03680727e366700ac7e84"
   },
-  "open_p1": [
-    {
-      "id": "exec-advanced-to-c002-before-c001-audit",
-      "state": "MITIGATED_BY_PROMOTION_POLICY",
-      "by": "C003 orchestrator"
-    },
-    {
-      "id": "growth-panels-without-growth-values",
-      "state": "OPEN",
-      "assigned": "C006",
-      "detail": "fig11_t1/t2(오프라인 마트), fig05_t1/t2(쇼핑 앱)는 제목이 '많이 성장한' 인데 성장률 수치가 이미지에 없다. 웹 수집 모집단 선별 시 이 패널들은 성장률 근거 없는 선별임을 명시해야 한다."
-    },
-    {
-      "id": "pilot-org-regex-defect-not-manifested",
-      "state": "NOTED",
-      "assigned": null,
-      "detail": "Pilot 의 기관명 정규식 ([^인]+?) 은 기관명에 '인' 이 들어가면 깨진다. 이번 목록에서는 span 폴백이 같은 값을 잡아 발현하지 않았다. 새 수집기는 sr-only 라벨 앵커로 교체했다."
-    },
-    {
-      "id": "index-sections-still-not-verbatim",
-      "state": "OPEN",
-      "assigned": "C011 exec",
-      "resolution": "index_from_source 와 source_section_title 을 A1 원문 본문 문자열 그대로 복원한다. 검증 테스트의 한쪽 끝을 raw/wiseapp933_text.txt 로 바꿔 파생-파생 비교를 제거한다."
-    },
-    {
-      "id": "system-app-candidate-is-unsourced-researcher-prior",
-      "state": "OPEN",
-      "assigned": "C011 exec",
-      "resolution": "build_canonical_entities.py:262 하드코딩 dict 의 11건은 A1~A4 출처가 없는 연구자 사전판단이다. service_master 초기값을 NOT_ASSESSED 로 되돌리고, 선탑재 추정은 별도 파일 state/_researcher_priors/system_app_hypothesis.json 으로 분리해 '가설' 임을 명시한다. web_eligibility 게이트에서 URL 증거로만 판정한다.",
-      "escalation": "게이트에서 URL 증거 없이 EXCLUDED 로 확정되면 P0 승격"
-    },
-    {
-      "id": "web-target-group-member-arrays-positionally-misaligned",
-      "state": "OPEN",
-      "assigned": "C011 exec"
-    }
-  ],
+  "open_p1": [],
   "legacy_xlsx_status": {
     "verdict": "UNSOURCED_INCOMPATIBLE_PANEL_SET",
     "prior_wrong_framing": "933 의 파생자료이며 값이 2만 명 어긋난다 (C001 exec 주장)",
@@ -285,8 +249,9 @@
       "from": "adversarial C011",
       "detail": "executor 가 'diff -r 바이트 동일' 이라 보고했으나 journal_provenance.json 의 journal_path 가 실행자 워크트리 절대경로라 1줄 어긋난다. 나머지 15개 산출물은 실제로 바이트 동일. P2-3 이 없애려던 경로 의존이 형태만 바꿔 남았다.",
       "note": "데이터 오염 아님. executor 보고 정확성 문제.",
-      "state": "CLOSED_PENDING_AUDIT",
-      "closed_in": "D3 (C012)"
+      "state": "CLOSED_VERIFIED",
+      "closed_in": "D3 (C012)",
+      "verified_by": "C012 adversarial"
     },
     {
       "id": "matches-existing-c002-is-self-comparison",
@@ -303,8 +268,9 @@
       "alias_of_merged": [
         "authority-manifest-lacks-version-field"
       ],
-      "state": "CLOSED_PENDING_AUDIT",
-      "closed_in": "D2 (C012)"
+      "state": "CLOSED_VERIFIED",
+      "closed_in": "D2 (C012)",
+      "verified_by": "C012 adversarial"
     },
     {
       "id": "ev-source-xlsx-uncommitted-unhashed",
@@ -324,8 +290,9 @@
       "id": "gitignore-still-preexcludes-e001-evidence",
       "sev": "P2",
       "from": "ssot C011",
-      "state": "CLOSED_PENDING_AUDIT",
-      "closed_in": "D1 (C012)"
+      "state": "CLOSED_VERIFIED",
+      "closed_in": "D1 (C012)",
+      "verified_by": "C012 adversarial"
     },
     {
       "id": "invalidated-xlsx-not-at-protocol-location",
@@ -385,6 +352,54 @@
       "id": "remaining-8-debts-visible-but-unscheduled-and-id-drift",
       "sev": "P2",
       "from": "ssot C012",
+      "state": "OPEN"
+    },
+    {
+      "id": "queue-membership-still-hand-set-in-entity-spec",
+      "sev": "P2",
+      "from": "adversarial C012",
+      "state": "OPEN"
+    },
+    {
+      "id": "merge-decision-merges-nothing-no-alias-assert",
+      "sev": "P2",
+      "from": "adversarial C012",
+      "state": "OPEN"
+    },
+    {
+      "id": "source-label-prefix-rule-inconsistent-coupang-eats",
+      "sev": "P2",
+      "from": "adversarial C012",
+      "state": "OPEN"
+    },
+    {
+      "id": "body-layer-contains-other-article-titles-after-line-328",
+      "sev": "P2",
+      "from": "adversarial C012",
+      "state": "OPEN"
+    },
+    {
+      "id": "verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard",
+      "sev": "P2",
+      "from": "adversarial C012",
+      "state": "OPEN"
+    },
+    {
+      "id": "gitignore-evidence-pattern-single-level-only",
+      "sev": "P2",
+      "from": "adversarial C012",
+      "state": "OPEN"
+    },
+    {
+      "id": "journal-path-in-repo-uses-parents-assumption-not-git",
+      "sev": "P2",
+      "from": "adversarial C012",
+      "state": "OPEN"
+    },
+    {
+      "id": "new-tests-residual-self-stamp-and-narrow-scan",
+      "sev": "P2",
+      "from": "adversarial C012",
       "state": "OPEN"
     }
   ],
@@ -573,24 +588,24 @@
   "audit_lag": {
     "latest_exec_cycle": "C012",
     "latest_exec_sha": "5a9015d",
-    "latest_adversarial_audited_cycle": "C011",
-    "latest_adversarial_target_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
-    "latest_adversarial_audit_sha": "903e247",
+    "latest_adversarial_audited_cycle": "C012",
+    "latest_adversarial_target_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+    "latest_adversarial_audit_sha": "510d5f2",
     "latest_ssot_audited_cycle": "C012",
     "latest_ssot_target_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
     "latest_ssot_audit_sha": "1bc2c71b",
-    "latest_reconciled_cycle": "C011",
+    "latest_reconciled_cycle": "C012",
     "latest_promoted_cycle": "C011",
-    "unaudited_cycle_depth": 1,
+    "unaudited_cycle_depth": 0,
     "MAX_UNAUDITED_EXEC_CYCLES": 1,
-    "status": "WITHIN_BOUND — C012 감사 대기. EXECUTOR_STATE_CHANGE_BLOCKED."
+    "status": "WITHIN_BOUND — C012 fully audited"
   },
   "cycle_lifecycle": {
     "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",
     "promotion": "PROM-001 — main 32460b87 -> edb0478f",
     "note": "ORCHESTRATOR_PRECHECK_PASS 를 ACCEPTED/VERIFIED/PROMOTED 와 동의어로 쓰지 않는다.",
     "C011": "EXECUTED -> INDEPENDENTLY_AUDITED -> RECONCILED -> PROMOTED",
-    "C012": "EXECUTED -> AWAITING_INDEPENDENT_AUDIT"
+    "C012": "EXECUTED -> INDEPENDENTLY_AUDITED -> RECONCILED"
   },
   "main_branch_protection": {
     "established_at": "2026-08-26T13:15:24.007671",
@@ -774,7 +789,25 @@
       "summary": "시정이 SSOT 를 넘어서지 않았고 세 지점에서 오히려 보수적으로 멈췄다. 유일한 MERGE 는 02 §2-2 가 선허용한 건이며 별칭 층에서 이미 끝나 있던 것을 기록만 해 entity/alias/membership/group 카운트가 하나도 움직이지 않았다."
     },
     "adversarial": {
-      "status": "PENDING"
+      "verdict": "PASS",
+      "review_decisions_a1_grounded": true,
+      "gate_not_bypassable": true,
+      "baseline_rows_unchanged": true,
+      "counterexample_injection": [
+        "큐에서 coupang 2건 손으로 제거",
+        "인용을 원문에 없는 문장으로 위조",
+        "근거 그대로 두고 판정값만 뒤집기"
+      ],
+      "injection_result": "셋 다 pytest 실패 — 게이트 우회 불가",
+      "caveat": "빌드 스크립트는 셋 다 exit 0 으로 통과시켰다. (A)(C) 를 잡은 것은 구조 규칙이 아니라 EXPECTED_QUEUE_SIZE=7 같은 하드코딩 리터럴이다.",
+      "independent_reruns": [
+        "두 절대경로에서 빌드 재실행 — 상호 diff -r 및 커밋 트리 대비 diff 모두 빔, 산출물 16종 바이트 재현",
+        "authority_manifest 커밋 4개를 git 에서 직접 추출해 revision_log 와 대조 — 전건 일치, rev4 MODIFIED 공집합",
+        "decision_evidence 40항목 layer 별 전수 대조 — 실패 0, 태그·관련인사이트 블록 인용 0건",
+        "MissingRunManifestError 직접 발생, require_files=False 로도 우회 불가, STRUCTURE_ONLY->VERIFIED 승격 경로 없음",
+        "edb0478 대비 261행 assert_frame_equal IDENTICAL, panel/membership/alias 는 git diff 에 등장조차 안 함",
+        "pytest 85 passed 직접 실행"
+      ]
     }
   },
   "debt_ledger": {
@@ -786,15 +819,17 @@
         "found_by": "ssot C012"
       }
     ],
-    "total": 16,
+    "total": 24,
     "closed_pending_audit": 3,
-    "open": 13,
+    "open": 21,
     "scheduling": {
       "C013_must_include": [
         "eligibility-basis-fields-narrower-than-06-still-carried",
-        "a1-raw-payload-files-not-hash-registered-in-authority-manifest"
+        "a1-raw-payload-files-not-hash-registered-in-authority-manifest",
+        "queue-membership-still-hand-set-in-entity-spec",
+        "merge-decision-merges-nothing-no-alias-assert"
       ],
-      "C013_reason": "둘 다 하중이 크다. 전자는 W3 에서 71건을 판정하는 순간 근거 필드 없이 쌓이고, 후자는 ABSENCE 증거층이 지목한 A1 파일이 해시 미등록이라 판정 근거의 한쪽 끝이 동결되지 않는다.",
+      "C013_reason": "둘 다 하중이 크다. 전자는 W3 에서 71건을 판정하는 순간 근거 필드 없이 쌓이고, 후자는 ABSENCE 증거층이 지목한 A1 파일이 해시 미등록이라 판정 근거의 한쪽 끝이 동결되지 않는다. 추가 2건은 게이트 무결성 문제다. 큐에 오르는지 자체가 손입력이고, MERGE 가 아무것도 병합하지 않는 서술 라벨이라 판정과 데이터가 분리돼 있다.",
       "C014_or_later": [
         "matches-existing-c002-is-self-comparison",
         "ev-source-xlsx-uncommitted-unhashed",
@@ -809,6 +844,7 @@
         "remaining-8-debts-visible-but-unscheduled-and-id-drift"
       ],
       "note": "ssot C012 가 '8건이 phase_plan 어디에도 배정·유예 기록이 없다' 고 지적한 것에 대한 응답이다. 여기서 전량 스케줄링한다."
-    }
+    },
+    "closed_verified": 3
   }
 }
