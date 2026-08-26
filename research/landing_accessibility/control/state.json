@@ -1,8 +1,8 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1 + landing-accessibility-v2 (docs/v2/EXECUTION_AUTHORITY.md)",
-  "updated_at": "2026-08-26T21:30:00",
+  "updated_at": "2026-08-26T21:45:00",
   "phase": "P0_V2_REFREEZE",
-  "cycle_id": "V2-C003",
+  "cycle_id": "V2-C003b",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -90,7 +90,7 @@
     "promotion_guard_verdict_fail_closed": "PASS_PENDING_AUDIT — V2-C003 (검사 5 재작성: verdict 미기록 차단 + 감사 보고서 JSON 직접 대조)",
     "promotion_guard_integrity_verify_invocation": "PASS_PENDING_AUDIT — V2-C003 (검사 6 신설: verify_v2_docs.py 실호출, 부재·비0 exit 모두 차단)",
     "control_claude_md_pointer_only": "PASS_PENDING_AUDIT — V2-C003 (권위 서열 재진술 제거, Gate 정의 귀속을 PHASE_GATES 로 시정)",
-    "repo_pre_push_hook_installed": "FAIL — .git/hooks/pre-push 가 저장소 정본과 다른 legacy 사본이다 (adversarial V2-C002 repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect). 설치는 오케스트레이터 직접 수행 사항. scripts/install_hooks.sh --check 로 확인한다."
+    "repo_pre_push_hook_installed": "PASS_PENDING_AUDIT — .git/hooks/pre-push 가 저장소 정본을 가리키는 심링크다 (core.hooksPath unset, legacy 사본은 .bak.20260826213640 로 백업). install_hooks.sh --check 직접 실행 + stdin 주입 9케이스 9/9 의도대로 실측. legacy 백업본 대조로 결함 실재도 확인(4케이스 fail-open 재현). 잔여 위험: 심링크 대상이 control 워크트리 안이라 워크트리 삭제 시 훅이 조용히 죽는다 → 부채 prepush-hook-symlink-depends-on-control-worktree-lifetime 등재."
   },
   "withdrawn_conclusions": [
     {
@@ -1814,7 +1814,49 @@
                 "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
                 "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
                 "file": "control/landing-orchestrator:research/landing_accessibility/scripts/hooks/pre-push (정본) vs /home/sieg/projects-wsl/ProjectFinal/.git/hooks/pre-push (미추적 로컬 사본, 실제 유효). 선언: control@1350b7f9:research/landing_accessibility/CLAUDE.md:90-94",
-                "state": "OPEN"
+                "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+                "remediated_in": "V2-C003b",
+                "remediated_by": "orchestrator (install_hooks.sh --symlink). 서브에이전트는 .git/hooks/ 를 건드리지 않았다.",
+                "remediation": "정본 훅을 심링크로 설치했다. .git/hooks/pre-push -> /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator/research/landing_accessibility/scripts/hooks/pre-push, core.hooksPath 는 unset 유지, legacy 사본은 .git/hooks/pre-push.bak.20260826213640 으로 백업.",
+                "remediation_evidence": {
+                  "measured_by": "V2-C003b orchestrator support executor — 오케스트레이터 보고를 믿지 않고 직접 실행",
+                  "measured_at": "2026-08-26",
+                  "command": "bash research/landing_accessibility/scripts/install_hooks.sh --check",
+                  "output": [
+                    "repo            : /home/sieg/projects-wsl/ProjectFinal",
+                    "common git dir  : /home/sieg/projects-wsl/ProjectFinal/.git",
+                    "hook 원본       : /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator/research/landing_accessibility/scripts/hooks/pre-push",
+                    "core.hooksPath  : (unset)",
+                    "/home/sieg/projects-wsl/ProjectFinal/.git/hooks/pre-push : symlink -> /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator/research/landing_accessibility/scripts/hooks/pre-push"
+                  ],
+                  "independent_checks": [
+                    "readlink -f .git/hooks/pre-push == 저장소 정본 경로. diff(설치본, 정본) = 0 바이트 차이.",
+                    "legacy 사본은 .git/hooks/pre-push.bak.20260826213640 으로 보존됨 (886B, 2026-08-26 13:12).",
+                    "core.hooksPath unset — 심링크 방식이라 다른 훅을 무효화하지 않는다."
+                  ],
+                  "stdin_injection_9_cases": {
+                    "method": "설치된 .git/hooks/pre-push 에 pre-push stdin 형식(<local_ref> <local_sha> <remote_ref> <remote_sha>)을 직접 주입. 실제 push 는 발생하지 않는다.",
+                    "result": "9/9 의도대로",
+                    "cases": [
+                      "H1 Pilot(refs/heads/research/refcohort-r1) push  → rc=1 BLOCK 'READ_ONLY Pilot archive'",
+                      "H2 main ff, LA_PROMOTION 없음                    → rc=1 BLOCK '오케스트레이터 promotion 경로로만'",
+                      "H3 main ff + LA_PROMOTION=ORCHESTRATOR_PROMOTION_ONLY → rc=0 PASS",
+                      "H4 main 비-ff(force) + LA_PROMOTION              → rc=1 BLOCK 'force push / ref 삭제는 금지'",
+                      "H5 main ref 삭제 + LA_PROMOTION                  → rc=1 BLOCK 동일",
+                      "H6 audit/landing-adversarial force               → rc=1 BLOCK '감사 계보는 append-only'",
+                      "H7 audit/landing-ssot 삭제                       → rc=1 BLOCK 동일",
+                      "H8 agent/landing-v2-exec 일반 push               → rc=0 PASS",
+                      "H9 control/landing-orchestrator 일반 push        → rc=0 PASS"
+                    ]
+                  },
+                  "legacy_backup_control": {
+                    "method": "설치 전 유효했던 legacy 사본(.git/hooks/pre-push.bak.20260826213640)에 같은 입력을 주입해 결함이 실재했는지 대조",
+                    "result": "adversarial 이 '통과한다' 고 지적한 4케이스 전부 rc=0 재현 — main force / main 삭제 / audit force / audit 삭제",
+                    "conclusion": "finding 은 실재했고 심링크 설치가 그 4경로를 실제로 닫았다."
+                  }
+                },
+                "counted_as_open": true,
+                "counted_as_open_reason": "self-approval 금지. 시정이 실측으로 확인됐어도 두 독립감사가 판정하기 전에는 open blocking 합계에서 빼지 않는다."
               },
               {
                 "id": "control-claude-md-invents-authority-rank-0-above-ssot",
@@ -1978,6 +2020,25 @@
             "why_audits_missed_it": "adversarial 은 endpoint 어휘의 scope creep 축(질문 4)에서 '새 endpoint 를 만들지 않았는가' 만 보았고, ssot 는 A1↔A2 상호정합과 A2↔02 접점을 보았다. 00 §3 ↔ A2 §1.5.1 의 교차는 어느 감사 축에도 없었다.",
             "remediation": "V2-C003 에서 A2 개정 (SSOT 우선). AUTH_GATE_REACHED 일반규칙에 '00 §3 이 인증 gate 를 endpoint 로 지정한 archetype 은 예외이며 gate 도달이 endpoint 도달이다' 는 취지의 예외를 명시해야 한다. SSOT 바이트는 수정하지 않는다 — 보충명세를 고친다.",
             "owner": "exec (agent/landing-v2-exec)"
+          },
+          {
+            "id": "prepush-hook-symlink-depends-on-control-worktree-lifetime",
+            "severity": "P2",
+            "blocking": false,
+            "blocking_class": "POST_E001_DEBT",
+            "found_by": "orchestrator support executor (V2-C003b, 훅 설치 실측 중 발견)",
+            "cycle": "V2-C003b",
+            "file": "/home/sieg/projects-wsl/ProjectFinal/.git/hooks/pre-push (symlink) -> /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator/research/landing_accessibility/scripts/hooks/pre-push",
+            "state": "OPEN",
+            "summary": "설치된 pre-push 훅이 control 워크트리 내부 파일을 가리키는 심링크다. 워크트리를 삭제·이동하면 심링크가 끊기고 git 은 존재하지 않는 훅을 **오류 없이 건너뛴다** — 신뢰경계(Pilot 보호·main 직접 push 차단·감사 계보 append-only)가 조용히 사라지며 아무 신호도 남지 않는다. V2-C002 finding 이 지적한 '강제수단이 로컬 파일 하나에 걸려 있으면 그 자체가 공백' 의 변형이 수명 축으로 남은 것이다.",
+            "severity_rationale": "blocking 으로 올리지 않은 이유 — (a) 현재는 훅이 실제로 작동한다(9/9 실측), (b) 발현하려면 운영자가 control 워크트리를 지우는 별도 행위가 필요하다, (c) 1층(promote_landing_main.sh)이 승격 경로에서는 계속 유효하다. 그럼에도 '조용히' 죽는다는 점 때문에 non-blocking 중에서는 무겁게 본다 — P2 / POST_E001_DEBT 로 등재하되 다음 감사가 등급을 재판정하는 것을 환영한다.",
+            "remediation_options": [
+              "(a) install_hooks.sh 의 복사 모드로 재설치 — 워크트리 수명과 분리되나 정본 drift 재발 위험이 생긴다(V2-C002 가 지적한 바로 그 결함).",
+              "(b) 심링크 대상을 main 체크아웃(/home/sieg/projects-wsl/ProjectFinal) 안의 경로로 옮긴다 — 승격 후 그 경로에 훅이 존재해야 한다.",
+              "(c) promote_landing_main.sh 에 '훅 설치 상태' 검사를 추가해 훅이 죽으면 승격 경로에서 드러나게 한다 — 침묵을 없애는 최소 조치.",
+              "(d) control 워크트리 정리 절차에 install_hooks.sh --check 선행을 명문화한다 (CLAUDE.md §5 에 이미 기재)."
+            ],
+            "owner": "orchestrator"
           }
         ]
       },
@@ -1995,15 +2056,15 @@
           "open_blocking": 10
         },
         "orchestrator_registered": {
-          "total": 1,
+          "total": 2,
           "closed": 0,
-          "open": 1,
+          "open": 2,
           "open_blocking": 1
         }
       }
     },
     "open_blocking_total": {
-      "recomputed_in_cycle": "V2-C003",
+      "recomputed_in_cycle": "V2-C003b",
       "formula": "v1_inherited_blocking + v2_c001_open_blocking + v2_c002_adversarial_blocking + v2_c002_ssot_blocking + orchestrator_registered_blocking",
       "v1_inherited_blocking": 6,
       "v2_c001_open_blocking": 0,
@@ -2025,9 +2086,11 @@
           "④ V2-C002 ssot 신규 blocking +4 (4건 전부 blocking: a1-endpoint-status-placement-contradicts-a2, app-only-reallocation-leaves-collection-time-discovery-unrepresented, execution-authority-overclaims-verify-script-invocation, control-claude-md-restates-stale-six-rank-authority-ladder).",
           "⑤ 오케스트레이터 등재 +1 (ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1, P1/blocking).",
           "⑥ v1 승계 6 은 변동 없다 — debt_inheritance.items 21건 전부 여전히 OPEN 이고 blocks_ready_for_e001_v2 = true 가 6건이다.",
-          "합계 6 + 0 + 6 + 4 + 1 = 17."
+          "합계 6 + 0 + 6 + 4 + 1 = 17.",
+          "⑦ V2-C003b: repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect 가 실측으로 해소됐으나(install_hooks.sh --check 직접 실행 + stdin 9케이스 9/9) self-approval 금지에 따라 REMEDIATION_CLAIMED_PENDING_AUDIT 로만 표시하고 빼지 않았다. 합계 불변 17."
         ],
-        "v2_c003_remediation_not_deducted": "V2-C003 이 시정을 주장한 blocking 5건(control-claude-md-invents-authority-rank-0-above-ssot, control-claude-md-restates-stale-six-rank-authority-ladder, promotion-verdict-check-treats-missing-verdict-as-pass, verify-script-declared-in-promotion-path-but-never-called, execution-authority-overclaims-verify-script-invocation)은 REMEDIATION_CLAIMED_PENDING_AUDIT 로만 표시하고 합계에서 빼지 않았다. 다음 사이클의 두 독립감사가 확인하기 전에는 닫지 않는다."
+        "v2_c003_remediation_not_deducted": "V2-C003/V2-C003b 가 시정을 주장한 blocking 6건(control-claude-md-invents-authority-rank-0-above-ssot, control-claude-md-restates-stale-six-rank-authority-ladder, promotion-verdict-check-treats-missing-verdict-as-pass, verify-script-declared-in-promotion-path-but-never-called, execution-authority-overclaims-verify-script-invocation, repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect)은 REMEDIATION_CLAIMED_PENDING_AUDIT 로만 표시하고 합계에서 빼지 않았다. 다음 사이클의 두 독립감사가 확인하기 전에는 닫지 않는다.",
+        "v2_c003b_note": "V2-C003b 에서 신규 등재한 prepush-hook-symlink-depends-on-control-worktree-lifetime 은 non-blocking(P2/POST_E001_DEBT)이라 합계에 들어오지 않는다. orchestrator_registered_blocking 은 여전히 1 (ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1)."
       },
       "note": "REMEDIATION_CLAIMED_PENDING_AUDIT 상태의 건도 독립감사가 확인할 때까지 open 으로 계상한다. executor/orchestrator self-approval 금지."
     },

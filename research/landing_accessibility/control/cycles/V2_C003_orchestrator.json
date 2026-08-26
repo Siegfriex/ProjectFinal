@@ -9,26 +9,38 @@
       "report": "research/landing_accessibility/audit/adversarial/V2_C002.{md,json}",
       "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
       "verdict": "FAIL",
-      "counts": { "P0": 0, "P1": 1, "P2": 7, "blocking": 6 }
+      "counts": {
+        "P0": 0,
+        "P1": 1,
+        "P2": 7,
+        "blocking": 6
+      }
     },
     "ssot": {
       "report": "research/landing_accessibility/audit/ssot/V2_C002.{md,json}",
       "audit_sha": "eb7e4e13a2075b7390d16d545b92f04d549381f1",
       "verdict": "FAIL",
-      "counts": { "P0": 0, "P1": 0, "P2": 4, "blocking": 4 }
+      "counts": {
+        "P0": 0,
+        "P1": 0,
+        "P2": 4,
+        "blocking": 4
+      }
     },
     "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
     "target_branch": "agent/landing-v2-exec"
   },
   "scope_note": "control 브랜치 소관만 처리했다. exec 브랜치 문서(A1/A2/EXECUTION_AUTHORITY 문안)는 손대지 않았고, .git/hooks/ 도 건드리지 않았다(설치는 오케스트레이터 직접 수행 사항).",
-
   "remediations": [
     {
       "finding_ids": [
         "control-claude-md-invents-authority-rank-0-above-ssot",
         "control-claude-md-restates-stale-six-rank-authority-ladder"
       ],
-      "auditors": ["adversarial", "ssot"],
+      "auditors": [
+        "adversarial",
+        "ssot"
+      ],
       "severity": "P2",
       "blocking_class": "V2_SSOT_FROZEN-blocking",
       "file": "research/landing_accessibility/CLAUDE.md",
@@ -48,8 +60,12 @@
       "state": "REMEDIATION_CLAIMED_PENDING_AUDIT"
     },
     {
-      "finding_ids": ["promotion-verdict-check-treats-missing-verdict-as-pass"],
-      "auditors": ["adversarial"],
+      "finding_ids": [
+        "promotion-verdict-check-treats-missing-verdict-as-pass"
+      ],
+      "auditors": [
+        "adversarial"
+      ],
       "severity": "P2",
       "blocking_class": "V2_SSOT_FROZEN-blocking",
       "file": "research/landing_accessibility/scripts/promote_landing_main.sh",
@@ -68,7 +84,10 @@
         "verify-script-declared-in-promotion-path-but-never-called",
         "execution-authority-overclaims-verify-script-invocation"
       ],
-      "auditors": ["adversarial", "ssot"],
+      "auditors": [
+        "adversarial",
+        "ssot"
+      ],
       "severity": "P2",
       "blocking_class": "V2_SSOT_FROZEN-blocking",
       "file": "research/landing_accessibility/scripts/promote_landing_main.sh",
@@ -82,7 +101,6 @@
       "state": "REMEDIATION_CLAIMED_PENDING_AUDIT"
     }
   ],
-
   "not_remediated_here": [
     {
       "id": "repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect",
@@ -106,7 +124,6 @@
       "state": "OPEN"
     }
   ],
-
   "state_json_update": {
     "audit_lag": {
       "latest_exec_cycle": "V2-C001 → V2-C002",
@@ -124,7 +141,10 @@
     "v2_audit_findings": {
       "restructured_to": "cycles[] + orchestrator_registered + totals",
       "V2_C001": "20건 중 18 CLOSED / 2 OPEN. 각 CLOSED 에 closed_in_cycle=V2-C002 · closed_by_audit · closure_evidence(감사 원문) 부착. OPEN 2건에는 reaffirmation_evidence 부착.",
-      "V2_C001_open_ids": ["install-manifest-is-self-anchored", "install-integrity-coverage-gap"],
+      "V2_C001_open_ids": [
+        "install-manifest-is-self-anchored",
+        "install-integrity-coverage-gap"
+      ],
       "V2_C002": "신규 12건 등재 (adversarial 8 = P1 1 + P2 7 / ssot 4 = P2 4). blocking adversarial 6 · ssot 4.",
       "orchestrator_registered": "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 (P1/blocking, 두 감사 미포착)"
     },
@@ -132,7 +152,13 @@
       "previous": 20,
       "recomputed": 17,
       "formula": "v1_inherited_blocking + v2_c001_open_blocking + v2_c002_adversarial_blocking + v2_c002_ssot_blocking + orchestrator_registered_blocking",
-      "breakdown": { "v1_inherited": 6, "v2_c001_open": 0, "v2_c002_adversarial": 6, "v2_c002_ssot": 4, "orchestrator_registered": 1 },
+      "breakdown": {
+        "v1_inherited": 6,
+        "v2_c001_open": 0,
+        "v2_c002_adversarial": 6,
+        "v2_c002_ssot": 4,
+        "orchestrator_registered": 1
+      },
       "basis": [
         "직전 20 = v1 6 + V2-C001 adversarial 3 + V2-C001 ssot 11.",
         "V2-C002 두 감사가 V2-C001 blocking 14건을 전건 CLOSED 판정 → -14. 남은 V2-C001 OPEN 2건은 둘 다 non-blocking 이라 합계에 들어오지 않는다.",
@@ -147,42 +173,152 @@
       "V2_SSOT_FROZEN": "NOT_ACHIEVED (미달성 유지)",
       "adversarial_audit": "FAIL_V2_C002_P0_0_P1_1_P2_7 (blocking 6)",
       "ssot_audit": "FAIL_V2_C002_P0_0_P1_0_P2_4 (blocking 4)",
-      "closed_by_V2_C002_audit": ["v2_routing_banners", "v2_debt_inheritance", "promotion_guard_worktree_resolution"],
-      "new": ["promotion_guard_verdict_fail_closed", "promotion_guard_integrity_verify_invocation", "control_claude_md_pointer_only", "repo_pre_push_hook_installed"]
+      "closed_by_V2_C002_audit": [
+        "v2_routing_banners",
+        "v2_debt_inheritance",
+        "promotion_guard_worktree_resolution"
+      ],
+      "new": [
+        "promotion_guard_verdict_fail_closed",
+        "promotion_guard_integrity_verify_invocation",
+        "control_claude_md_pointer_only",
+        "repo_pre_push_hook_installed"
+      ]
     },
-    "unchanged": ["debt_ledger", "open_p2", "open_p0", "open_p1", "v2_transition.debt_inheritance", "phase(P0_V2_REFREEZE)"]
+    "unchanged": [
+      "debt_ledger",
+      "open_p2",
+      "open_p0",
+      "open_p1",
+      "v2_transition.debt_inheritance",
+      "phase(P0_V2_REFREEZE)"
+    ]
   },
-
   "verification": {
     "method": "수정한 promote_landing_main.sh 를 --dry-run 으로 실제 실행했다. push 는 한 번도 트리거되지 않았다(모든 실행이 push 이전에 exit 1, 또는 DRY_RUN 분기). 실행 후 origin/research/landing-accessibility-main = 5a9015d1… 무변경 확인.",
     "temp_artifacts": "검사 4/6 도달을 위해 scratchpad 에 detached 임시 워크트리 3개를 만들고 시험 후 `git worktree remove --force` + `git worktree prune` 로 전량 제거했다. rogue 커밋은 dangling 이며 어떤 ref 에도 붙지 않았다. state.json 임시 변조본은 md5 대조로 원복 확인했다. 저장소 refs 무변경.",
     "cases": [
-      { "id": "T0", "input": "실제 인자 + 실제 exec 워크트리(dirty)", "expect": "BLOCK", "actual": "PROMOTION BLOCKED: exec 워크트리 dirty — M .gitignore / M A2_VOCABULARY_AND_SCHEMA_BINDING.md", "pass": true },
-      { "id": "T1", "input": "clean 트리 @6fad79fa", "expect": "검사 4 통과 후 검사 5 에서 BLOCK", "actual": "· 4. verify_v2_docs.py exit 0 OK — V2_DOCS_VERIFY: PASS → PROMOTION BLOCKED: open_blocking_total = 17 (…breakdown…)", "pass": true },
-      { "id": "T2", "input": "verify 스크립트가 없는 트리 @5a9015d1", "expect": "BLOCK (부재는 건너뛰기 아님)", "actual": "PROMOTION BLOCKED: 무결성 검증 스크립트가 exec 워크트리에 없다: …/verify_v2_docs.py", "pass": true },
-      { "id": "T3", "input": "docs/v2/A3_ROGUE.md 를 커밋한 트리 (tree clean, verify FAIL)", "expect": "BLOCK", "actual": "PROMOTION BLOCKED: verify_v2_docs.py exit != 0 — UNDECLARED docs/v2/A3_ROGUE.md 이 설치 매니페스트에 없다 / V2_DOCS_VERIFY: FAIL", "pass": true },
-      { "id": "T4", "input": "verdict 키 자체가 없음 (구버전이 통과시키던 케이스)", "expect": "BLOCK", "actual": "state.audit_lag.latest_adversarial_verdict = None — PASS 가 아니다. verdict 미기록(키 부재/null)도 통과시키지 않는다 (fail-closed).", "pass": true },
-      { "id": "T5", "input": "verdict = null", "expect": "BLOCK", "actual": "동일 메시지로 차단", "pass": true },
-      { "id": "T6", "input": "adversarial 만 PASS, ssot 미기록", "expect": "BLOCK", "actual": "state.audit_lag.latest_ssot_verdict = None — 차단", "pass": true },
-      { "id": "T7", "input": "verdict = FAIL (실제 값)", "expect": "BLOCK", "actual": "state.audit_lag.latest_adversarial_verdict = 'FAIL' — 차단", "pass": true },
-      { "id": "T8", "input": "state 는 PASS 라고 주장, 감사 보고서 JSON 은 FAIL", "expect": "BLOCK", "actual": "adversarial 감사 보고서 verdict = 'FAIL' (PASS 아님): 2a28ad3d…:…/adversarial/V2_C002.json", "pass": true },
-      { "id": "T9", "input": "state PASS + 존재하지 않는 cycle 의 보고서 참조", "expect": "BLOCK", "actual": "adversarial 감사 보고서를 읽을 수 없다: …V2_C099.json (does not exist) — 보고서 부재는 차단이다", "pass": true },
-      { "id": "T4-control", "input": "구버전 3줄 로직을 T4 입력에 적용", "expect": "구버전은 통과(=결함 재현)", "actual": "통과 — fail-open 재현됨", "pass": true }
+      {
+        "id": "T0",
+        "input": "실제 인자 + 실제 exec 워크트리(dirty)",
+        "expect": "BLOCK",
+        "actual": "PROMOTION BLOCKED: exec 워크트리 dirty — M .gitignore / M A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+        "pass": true
+      },
+      {
+        "id": "T1",
+        "input": "clean 트리 @6fad79fa",
+        "expect": "검사 4 통과 후 검사 5 에서 BLOCK",
+        "actual": "· 4. verify_v2_docs.py exit 0 OK — V2_DOCS_VERIFY: PASS → PROMOTION BLOCKED: open_blocking_total = 17 (…breakdown…)",
+        "pass": true
+      },
+      {
+        "id": "T2",
+        "input": "verify 스크립트가 없는 트리 @5a9015d1",
+        "expect": "BLOCK (부재는 건너뛰기 아님)",
+        "actual": "PROMOTION BLOCKED: 무결성 검증 스크립트가 exec 워크트리에 없다: …/verify_v2_docs.py",
+        "pass": true
+      },
+      {
+        "id": "T3",
+        "input": "docs/v2/A3_ROGUE.md 를 커밋한 트리 (tree clean, verify FAIL)",
+        "expect": "BLOCK",
+        "actual": "PROMOTION BLOCKED: verify_v2_docs.py exit != 0 — UNDECLARED docs/v2/A3_ROGUE.md 이 설치 매니페스트에 없다 / V2_DOCS_VERIFY: FAIL",
+        "pass": true
+      },
+      {
+        "id": "T4",
+        "input": "verdict 키 자체가 없음 (구버전이 통과시키던 케이스)",
+        "expect": "BLOCK",
+        "actual": "state.audit_lag.latest_adversarial_verdict = None — PASS 가 아니다. verdict 미기록(키 부재/null)도 통과시키지 않는다 (fail-closed).",
+        "pass": true
+      },
+      {
+        "id": "T5",
+        "input": "verdict = null",
+        "expect": "BLOCK",
+        "actual": "동일 메시지로 차단",
+        "pass": true
+      },
+      {
+        "id": "T6",
+        "input": "adversarial 만 PASS, ssot 미기록",
+        "expect": "BLOCK",
+        "actual": "state.audit_lag.latest_ssot_verdict = None — 차단",
+        "pass": true
+      },
+      {
+        "id": "T7",
+        "input": "verdict = FAIL (실제 값)",
+        "expect": "BLOCK",
+        "actual": "state.audit_lag.latest_adversarial_verdict = 'FAIL' — 차단",
+        "pass": true
+      },
+      {
+        "id": "T8",
+        "input": "state 는 PASS 라고 주장, 감사 보고서 JSON 은 FAIL",
+        "expect": "BLOCK",
+        "actual": "adversarial 감사 보고서 verdict = 'FAIL' (PASS 아님): 2a28ad3d…:…/adversarial/V2_C002.json",
+        "pass": true
+      },
+      {
+        "id": "T9",
+        "input": "state PASS + 존재하지 않는 cycle 의 보고서 참조",
+        "expect": "BLOCK",
+        "actual": "adversarial 감사 보고서를 읽을 수 없다: …V2_C099.json (does not exist) — 보고서 부재는 차단이다",
+        "pass": true
+      },
+      {
+        "id": "T4-control",
+        "input": "구버전 3줄 로직을 T4 입력에 적용",
+        "expect": "구버전은 통과(=결함 재현)",
+        "actual": "통과 — fail-open 재현됨",
+        "pass": true
+      }
     ],
     "push_triggered": false,
     "main_ref_after": "5a9015d1e95b15304aaf53a73efb475934610b82"
   },
-
   "files_changed": [
     "research/landing_accessibility/CLAUDE.md",
     "research/landing_accessibility/scripts/promote_landing_main.sh",
     "research/landing_accessibility/control/state.json",
     "research/landing_accessibility/control/cycles/V2_C003_orchestrator.json"
   ],
-
   "next": [
     "오케스트레이터: scripts/install_hooks.sh 로 정본 pre-push 훅 설치 (repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect).",
     "exec: EXECUTION_AUTHORITY §8 문안 확인(이제 참), A1 §2.2 endpoint_status 배치, A2 UNDETERMINED→PASS 전이·app-only 재배치, 경로 최소성, 그리고 오케스트레이터 등재 finding(00 §3 auth gate ↔ A2 §1.5.1) 대응.",
     "두 감사: V2-C003 control 시정 5건을 검증하고 CLOSED/OPEN 을 판정한다."
-  ]
+  ],
+  "addendum_V2_C003b": {
+    "reason": "오케스트레이터가 V2-C003 작업 중 정본 pre-push 훅을 설치했다. 그 사실을 실측으로 확인하고 state·CLAUDE.md 를 현재 사실에 맞춰 정정한다.",
+    "measured_not_reported": "오케스트레이터의 보고를 근거로 쓰지 않았다. install_hooks.sh --check 를 직접 실행하고 stdin 주입 9케이스를 직접 돌렸으며, legacy 백업본에 같은 입력을 넣어 결함이 실재했음까지 대조했다.",
+    "install_hooks_check": {
+      "core.hooksPath": "(unset)",
+      ".git/hooks/pre-push": "symlink -> …/landing_orchestrator/research/landing_accessibility/scripts/hooks/pre-push",
+      "diff(설치본, 저장소 정본)": "0 (내용 동일)",
+      "legacy 백업": ".git/hooks/pre-push.bak.20260826213640 (886B)"
+    },
+    "hook_stdin_cases": "9/9 의도대로 — BLOCK: Pilot / main(LA_PROMOTION 없음) / main force / main 삭제 / audit force / audit 삭제. PASS: main ff+LA_PROMOTION / agent/* / control/*",
+    "legacy_control": "legacy 백업본에 동일 입력 주입 → main force · main 삭제 · audit force · audit 삭제 4케이스 전부 rc=0 (fail-open 재현). finding 은 실재했고 설치가 실제로 닫았다.",
+    "changes": [
+      "state.gates.repo_pre_push_hook_installed: FAIL → PASS_PENDING_AUDIT (실측 근거 포함).",
+      "V2-C002 adversarial finding repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect: OPEN → REMEDIATION_CLAIMED_PENDING_AUDIT + remediation_evidence(실측 전문) + counted_as_open=true.",
+      "CLAUDE.md §5: 'inert' 경고를 '설치돼 있다 + 실측으로 확인하라 + 잔여 위험' 으로 정정.",
+      "새 부채 등재: prepush-hook-symlink-depends-on-control-worktree-lifetime (P2 / non-blocking / POST_E001_DEBT)."
+    ],
+    "open_blocking_total": {
+      "value": 17,
+      "unchanged_from": "V2-C003",
+      "why": "훅 finding 은 실측으로 해소됐으나 self-approval 금지에 따라 합계에서 빼지 않았다. 신규 등재 부채는 non-blocking 이라 더해지지도 않는다."
+    },
+    "new_debt": {
+      "id": "prepush-hook-symlink-depends-on-control-worktree-lifetime",
+      "severity": "P2",
+      "blocking": false,
+      "class": "POST_E001_DEBT",
+      "summary": "훅이 control 워크트리 내부를 가리키는 심링크다. 워크트리를 지우면 심링크가 끊기고 git 은 훅을 오류 없이 건너뛴다 — 신뢰경계가 조용히 사라진다.",
+      "severity_rationale": "현재 훅은 작동하고(9/9), 발현하려면 운영자의 별도 행위가 필요하며, 승격 경로는 1층이 계속 막는다. 다만 '조용히' 죽으므로 non-blocking 중에서는 무겁게 본다. 감사의 등급 재판정을 환영한다."
+    }
+  }
 }

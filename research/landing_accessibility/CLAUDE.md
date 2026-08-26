@@ -99,11 +99,20 @@ PILOT                  = research/refcohort-r1 @ 32460b8  READ_ONLY (수정 시 
 2. `scripts/hooks/pre-push` — 보호 ref 로의 직접 push 차단.
    설치는 사용자 결정 사항이며 `scripts/install_hooks.sh` 로만 수행한다 (자동 설치하지 않는다).
 
-> **주의 (adversarial V2-C002 `repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect`, OPEN).**
-> 2층은 **현재 유효하지 않다.** `.git/hooks/pre-push` 에는 저장소 정본과 다른 미추적 legacy 사본이
-> 놓여 있어 force push·ref 삭제 보호가 inert 하다. 상태 확인은 `scripts/install_hooks.sh --check`.
-> **설치는 오케스트레이터가 직접 수행한다** — 서브에이전트는 `.git/hooks/` 를 건드리지 않는다.
-> 그때까지 1층(`promote_landing_main.sh`)만이 실효 가드다.
+**2층은 현재 설치돼 있다** (2026-08-26, 오케스트레이터가 `install_hooks.sh --symlink` 실행).
+`.git/hooks/pre-push` 가 위 정본을 가리키는 심링크이고 `core.hooksPath` 는 unset 이다.
+직전의 미추적 legacy 사본은 `.git/hooks/pre-push.bak.<timestamp>` 로 백업됐다
+(adversarial V2-C002 `repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect` — 시정 주장, 감사 대기).
+
+상태 확인은 언제나 **실측**으로 한다 — `scripts/install_hooks.sh --check`.
+선언을 믿지 마라. 훅은 `.git/` 안에 있고 `.git/` 은 추적되지 않는다.
+
+> **잔여 위험 (`prepush-hook-symlink-depends-on-control-worktree-lifetime`).**
+> 심링크 대상이 **이 control 워크트리 안**이다. 워크트리를 삭제·이동하면 심링크가 끊기고
+> git 은 **오류 없이 훅을 건너뛴다** — 신뢰경계가 조용히 사라진다.
+> control 워크트리를 정리하기 전에 `install_hooks.sh --check` 를 먼저 돌려라.
+
+**설치·변경은 오케스트레이터가 직접 수행한다** — 서브에이전트는 `.git/hooks/` 를 건드리지 않는다.
 
 ---
 
