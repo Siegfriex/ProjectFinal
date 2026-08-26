@@ -1,0 +1,83 @@
+<!doctype html>
+<!--
+FIXTURE: auth_identity_gate        gate 종류 = IDENTITY_VERIFICATION
+검증 대상 (Q-9): 본인인증 gate 를 로그인 gate 와 **관측으로** 가를 수 있는가.
+
+이 화면이 갖는 **관측 가능한 본인인증 신호**:
+  1. 통신사 선택 (SKT / KT / LG U+ / 알뜰폰)   ← 휴대폰 본인확인의 표준 단계
+  2. 간편인증 제공자 목록 (PASS · 카카오 · 네이버 · 토스)   [추정]
+  3. 이름 · 생년월일 · 주민등록번호 뒷자리 첫 숫자 입력
+  4. 휴대전화번호 입력 (autocomplete="tel")
+  5. 인증번호(OTP) 입력
+  6. 본인인증 어휘: "본인확인" · "휴대폰 본인확인" · "내국인/외국인"
+이 화면이 **갖지 않는** 로그인 신호:
+  <input type=password> 없음 · autocomplete="username" 없음 · "로그인" 제출 버튼 없음
+
+[추정 표시] 간편인증 제공자 목록의 구성(2번)은 서비스마다 다르다. 통신사 3사+알뜰폰 구조와
+휴대폰 본인확인 단계(1·3·4·5)는 일반적으로 알려진 구성이나, **특정 서비스의 실측이 아니다.**
+신호 사전의 서비스별 적용은 P-A endpoint codebook 이 동결한다 (A2 §1.9 규칙 P-1).
+실제 서비스 인증 화면을 열어 대조하는 것은 PHASE_GATES §4.5 위반이므로 하지 않았다.
+
+기대 (A2 §1.5.1a 규칙 E-6a — 두 행의 gate 절이 서로 다르다):
+  FINANCIAL_ACTION_ENTRY  → FUNCTION_ENDPOINT_REACHED + ENDPOINT_VIA_AUTH_GATE
+                            (`00 §3` 금융 행 = "또는 로그인/인증 gate")
+  COMMUNICATION_ENTRY     → AUTH_GATE_REACHED, MPFED = NULL
+                            (`00 §3` 커뮤니티 행 = "또는 로그인 gate" — 인증 문구 없음)
+                            → 주입 I-3 은 차단, I-4 는 통과해야 한다
+  개인정보 입력이 요구되면 PERSONAL_DATA_REQUIRED.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>본인확인 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  fieldset{border:1px solid #999;border-radius:8px;margin:16px 0;padding:12px}
+  legend{font-size:14px}
+  label{display:block;margin-top:12px;font-size:14px}
+  input,select{display:block;width:100%;box-sizing:border-box;min-height:48px;margin-top:4px;
+        font-size:16px;border:1px solid #555;border-radius:6px;padding:0 12px}
+  .provider{display:inline-block;min-width:88px;min-height:48px;margin:4px 4px 0 0;
+        border:1px solid #333;border-radius:6px;background:#fff;font-size:14px}
+</style></head>
+<body data-fixture="auth_identity_gate" data-gate-kind="IDENTITY_VERIFICATION">
+<h1 style="font-size:20px">휴대폰 본인확인</h1>
+<p>서비스 이용을 위해 본인확인이 필요합니다.</p>
+
+<fieldset>
+  <legend>간편인증 수단 선택</legend>
+  <button type="button" class="provider">PASS 앱 인증</button>
+  <button type="button" class="provider">카카오 인증</button>
+  <button type="button" class="provider">네이버 인증</button>
+  <button type="button" class="provider">토스 인증</button>
+</fieldset>
+
+<form id="identity-form" action="/identity/verify" method="post">
+  <fieldset>
+    <legend>통신사 선택</legend>
+    <label for="carrier">통신사</label>
+    <select id="carrier" name="carrier">
+      <option value="">통신사를 선택하세요</option>
+      <option value="SKT">SKT</option>
+      <option value="KT">KT</option>
+      <option value="LGU">LG U+</option>
+      <option value="MVNO">알뜰폰</option>
+    </select>
+  </fieldset>
+
+  <label for="nm">이름</label>
+  <input id="nm" name="name" type="text" autocomplete="name">
+
+  <label for="birth">생년월일 (8자리)</label>
+  <input id="birth" name="birthDate" type="text" inputmode="numeric" placeholder="19500101">
+
+  <label for="rrn">주민등록번호 뒷자리 첫 숫자 (내국인/외국인 구분)</label>
+  <input id="rrn" name="rrnFirst" type="text" inputmode="numeric" maxlength="1">
+
+  <label for="ph">휴대전화번호</label>
+  <input id="ph" name="phone" type="tel" autocomplete="tel" inputmode="tel">
+
+  <label for="otp">인증번호</label>
+  <input id="otp" name="authNumber" type="text" inputmode="numeric"
+         placeholder="인증번호 6자리" maxlength="6">
+</form>
+</body></html>

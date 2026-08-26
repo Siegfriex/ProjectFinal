@@ -1,0 +1,48 @@
+<!doctype html>
+<!--
+FIXTURE: blocking_modal
+검증 대상: 02 §5 4단계 popup 검출 전 구간 + A1 §3 dismiss 5차/6차.
+  1차 후보: role=dialog + aria-modal=true + backdrop + body scroll lock + 고 z-index
+  2차 공간: viewport 전면 교차 (coverage ~ 1.0)
+  3차 blocking: 대표기능(#primary-cta)을 완전히 가림 → blocks_primary_action=1,
+                primary_action_occlusion = 1.0
+  4차 의미: 텍스트 "서비스 이용 안내" → BLOCKING_MODAL
+  5차: dismiss control 존재/가시/이름("닫기")/크기 48x48
+  6차: CONTROL_CLICK 으로 dismiss_succeeded=1
+기대: forced_dismissal_count 는 L1 경로에서 1 (L0 의 dismiss 측정과 합산 금지 — 규칙 I-4)
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>차단형 모달 — 고정 픽스처</title>
+<style>
+  html,body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff}
+  body.locked{overflow:hidden;position:fixed;width:100%}
+  main{padding:16px}
+  #primary-cta{display:block;width:240px;height:56px;line-height:56px;text-align:center;
+    background:#0b4f9e;color:#fff;text-decoration:none;border-radius:6px}
+  #backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000}
+  #modal{position:fixed;inset:0;z-index:9001;background:#fff;padding:24px;
+    display:flex;flex-direction:column;justify-content:center}
+  #modal button.close{position:absolute;top:12px;right:12px;width:48px;height:48px;
+    font-size:18px;background:#fff;border:1px solid #333;border-radius:6px}
+</style></head>
+<body class="locked" data-fixture="blocking_modal">
+<main>
+  <h1 style="font-size:20px">고정 픽스처 서비스</h1>
+  <a id="primary-cta" href="./simple_article.html" data-primary-action="1">서비스 시작하기</a>
+</main>
+<div id="backdrop" data-backdrop="1"></div>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+     data-expected-label="BLOCKING_MODAL">
+  <button class="close" type="button" aria-label="닫기" onclick="closeModal()">✕</button>
+  <h2 id="modal-title" style="font-size:18px">서비스 이용 안내</h2>
+  <p>계속하려면 안내를 확인하고 창을 닫아야 합니다.</p>
+</div>
+<script>
+function closeModal(){
+  document.getElementById('modal').remove();
+  document.getElementById('backdrop').remove();
+  document.body.classList.remove('locked');
+}
+</script>
+</body></html>

@@ -1,0 +1,24 @@
+<!doctype html>
+<!--
+FIXTURE: motion_banner
+검증 대상: motion signal raw feature (02 §3 animation/autoplay).
+기대: infinite CSS animation 1건 이상, marquee 1건, autoplay 미디어 1건.
+      probe 는 이것을 KWCAG 판정으로 바꾸지 않는다 (02 §4).
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>모션 배너 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  @keyframes slide{from{transform:translateX(0)}to{transform:translateX(40px)}}
+  #ticker{animation:slide 1.2s linear infinite;background:#ffe9a8;padding:12px;border-radius:6px}
+  #pulse{animation:slide .8s ease-in-out infinite alternate;margin-top:12px;padding:12px;background:#d9ecff}
+</style></head>
+<body data-fixture="motion_banner">
+<h1 style="font-size:20px">모션이 있는 랜딩</h1>
+<div id="ticker" data-expected-motion="infinite-animation">속보가 계속 흐릅니다</div>
+<div id="pulse" data-expected-motion="infinite-animation">깜빡이는 강조 영역</div>
+<marquee data-expected-motion="marquee">마퀴 텍스트</marquee>
+<video autoplay muted loop playsinline width="200" height="120"
+       data-expected-motion="autoplay-media"></video>
+</body></html>

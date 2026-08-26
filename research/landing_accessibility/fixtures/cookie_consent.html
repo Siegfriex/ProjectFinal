@@ -1,0 +1,29 @@
+<!doctype html>
+<!--
+FIXTURE: cookie_consent
+검증 대상: 4차 의미분류의 COOKIE_CONSENT 라벨 + DETERMINISTIC 확정 경로.
+기대: classification_status=DETERMINISTIC, final_label=COOKIE_CONSENT,
+      blocks_primary_action=0, dismiss_method=CONTROL_CLICK("동의"), dismiss_succeeded=1.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>쿠키 동의 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff}
+  main{padding:16px}
+  #primary-cta{display:block;width:240px;height:56px;line-height:56px;text-align:center;
+    background:#0b4f9e;color:#fff;text-decoration:none;border-radius:6px}
+  #cookie{position:fixed;left:0;right:0;bottom:0;z-index:400;background:#f2f2f2;
+    border-top:1px solid #999;padding:12px}
+  #cookie button{min-width:88px;min-height:48px}
+</style></head>
+<body data-fixture="cookie_consent">
+<main>
+  <h1 style="font-size:20px">고정 픽스처 포털</h1>
+  <a id="primary-cta" href="./simple_article.html" data-primary-action="1">뉴스 보기</a>
+</main>
+<div id="cookie" role="region" aria-label="쿠키 사용 동의" data-expected-label="COOKIE_CONSENT">
+  <p>이 사이트는 쿠키를 사용합니다. 계속하면 쿠키 사용에 동의하는 것으로 봅니다.</p>
+  <button type="button" onclick="this.closest('#cookie').remove()">동의</button>
+</div>
+</body></html>

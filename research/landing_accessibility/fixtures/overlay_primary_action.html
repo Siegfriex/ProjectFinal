@@ -1,0 +1,30 @@
+<!doctype html>
+<!--
+FIXTURE: overlay_primary_action
+검증 대상: PrimaryActionOcclusion 의 분자·분모를 모두 저장해 제3자 재계산이 가능한가
+      (A1 §5.1 · A2 규칙 C-2).
+설계: 대표기능 #primary-cta 는 (x=16,y=200,w=200,h=100) → area_css_px2 = 20000
+      overlay #half 는 (x=16,y=250,w=200,h=200) → 겹침 = 200 x 50 = 10000
+기대: primary_action_occlusion = 0.5, primary_action_visible_initial = 1,
+      blocks_primary_action 은 0(부분 가림) — 3차 blocking 판단은 별도 축이다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>대표기능 부분 가림 — 고정 픽스처</title>
+<style>
+  html,body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff}
+  #primary-cta{position:absolute;left:16px;top:200px;width:200px;height:100px;
+    background:#0b4f9e;color:#fff;border:0;border-radius:6px;font-size:16px}
+  #half{position:fixed;left:16px;top:250px;width:200px;height:200px;z-index:800;
+    background:rgba(20,20,20,.9);color:#fff;padding:0}
+  #half button{margin:8px;min-width:88px;min-height:48px}
+</style></head>
+<body data-fixture="overlay_primary_action">
+<h1 style="font-size:20px;padding:16px;margin:0">고정 픽스처 서비스</h1>
+<button id="primary-cta" type="button" data-primary-action="1" data-area-css-px2="20000">
+  대표 기능 실행
+</button>
+<div id="half" role="dialog" aria-label="추천 안내" data-expected-overlap-px2="10000">
+  <button type="button" aria-label="닫기" onclick="this.closest('#half').remove()">닫기</button>
+</div>
+</body></html>
