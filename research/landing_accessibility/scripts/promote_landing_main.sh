@@ -421,7 +421,8 @@ for auditor, argv_sha in (("adversarial", adv_sha), ("ssot", ssot_sha)):
             "승격 인자가 다르다" % (auditor, rec_audit_sha, argv_sha))
     if blk.get("verdict") != "PASS":
         die("reconciliation 산출물 %s.verdict = %r — PASS 가 아닌 reconciliation 으로는 승격할 수 없다 "
-            "(PHASE_GATES §4: 두 감사 PASS + reconciliation 후 Gate close)" % (auditor, blk.get("verdict")))
+            "(PHASE_GATES 「판정 권한」절 = §5: 두 감사 PASS + reconciliation 후 Gate close. "
+            "절 제목으로 부른다 — 절 번호는 절 신설로 밀린다)" % (auditor, blk.get("verdict")))
 
 obt = rc.get("open_blocking_total")
 if not isinstance(obt, int) or isinstance(obt, bool):
@@ -553,15 +554,19 @@ note "[BLOCKING_DEBT] open P0/P1 = 0 · v2_transition.open_blocking_total = 0 OK
 #         보고서의 cycle·target_sha·auditor 도 원장 기록과 대조한다.
 #     (B) 원장의 **항목들** — v1 debt_inheritance.items, v2_audit_findings.cycles[*].{adversarial,ssot}.findings,
 #         orchestrator_registered.findings 를 직접 세어 스칼라 total 과 대조한다.
-#   (A)와 (B)와 스칼라가 셋 다 일치하고 0 일 때만 통과한다. 하나라도 어긋나면 차단이다.
+#     (C) v1 승계분의 **독립 원천** — state.debt_ledger(v1 시절 원장) 와 그 원장의 git 앵커
+#         (debt_inheritance.v1_ledger_git_anchor). V2-C006 신설. (B) 하나만 보면 v1 항목을
+#         지우고 total 을 1 낮춘 자기일관적 state 가 통과한다 — 감사가 실측한 구멍이다.
+#   (A)와 (B)와 (C)와 스칼라가 전부 일치하고 0 일 때만 통과한다. 하나라도 어긋나면 차단이다.
 #   중복계상 제외(counted_as_open=false)는 duplicate_of / superseded_by 근거가 있을 때만 허용한다 —
 #   근거 없는 조용한 제외로 total 을 낮추는 경로를 막는다.
 #   이 블록은 argv 만으로 독립 실행 가능하게 썼다 (감사자가 그대로 떼어내 공격할 수 있어야 한다).
-python3 - "$STATE" "$REPO" "$EXEC_SHA" "$ADV_SHA" "$SSOT_SHA" <<'PY' || fail "blocking debt 독립 재계산 불일치"
+python3 - "$STATE" "$REPO" "$EXEC_SHA" "$ADV_SHA" "$SSOT_SHA" "$REC_SHA" <<'PY' || fail "blocking debt 독립 재계산 불일치"
 import json, re, subprocess, sys
 
-state_path, repo, exec_sha, adv_sha, ssot_sha = sys.argv[1:6]
+state_path, repo, exec_sha, adv_sha, ssot_sha, rec_sha = sys.argv[1:7]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
+state_rel = "research/landing_accessibility/control/state.json"
 
 
 def die(msg):
@@ -696,9 +701,136 @@ ledger = 0
 di = v2.get("debt_inheritance")
 if not isinstance(di, dict) or not isinstance(di.get("items"), list):
     die("v2_transition.debt_inheritance.items 가 없다 — v1 승계 원장 없이 blocking 0 을 선언할 수 없다 "
-        "(PHASE_GATES §2 부채 승계 조건)")
-v1_blocking = len([i for i in di["items"]
-                   if i.get("blocks_ready_for_e001_v2") is True and not closed(i.get("state"))])
+        "(PHASE_GATES 「공통 통과조건」절 = §2 부채 승계 조건)")
+items = di["items"]
+
+# --- (C) v1 승계분의 **독립 원천** ---
+# V2-C006 시정 — adversarial V2-C005 `debt-recompute-has-no-second-source-for-v1-inherited-items`
+#   이전 판은 v1 승계 blocking 을 debt_inheritance.items **한 소스에서만** 셌다. 감사 실측:
+#   v1 항목 하나를 지우고 total 을 1 낮추면 그 state 는 자기일관적이라 탐지되지 않는다.
+#   v2 신규분은 pinned 감사 보고서라는 외부 원천이 있는데 v1 승계분만 없었다.
+#   이제 두 개의 v1 원천을 더 쓴다.
+#     C1  state.debt_ledger — v1 시절 원장. 승계 목록으로 옮겨쓴 적이 없고 삭제되지도 않았다.
+#         모집단 크기 · class 인구 · E001_BLOCKING 수를 여기서 다시 세어 items 와 대조한다.
+#     C2  그 원장이 **처음 커밋된 시점의 git 객체** (debt_inheritance.v1_ledger_git_anchor).
+#         같은 파일 안의 두 키를 함께 고치는 공격까지 막는다 — anchor 는 이미 게시된
+#         reconciliation 커밋의 조상이어야 하므로 과거를 고치려면 control 계보를 다시 써야 한다.
+#   두 원천이 items 와 한 자리라도 어긋나면 차단이다 (fail-closed).
+v1l = s.get("debt_ledger")
+if not isinstance(v1l, dict):
+    die("state.debt_ledger (v1 원장) 가 없다 — v1 승계분의 두 번째 원천이 사라졌다. "
+        "한 소스만으로 v1 blocking 을 세지 않는다 (fail-closed)")
+tri = (v1l.get("triage") or {}).get("counts")
+if not isinstance(tri, dict) or not tri:
+    die("debt_ledger.triage.counts 가 없다 — v1 승계분을 독립 재계산할 수 없다 (fail-closed)")
+try:
+    tri = {str(k): int(v) for k, v in tri.items()}
+except Exception as e:  # noqa: BLE001
+    die("debt_ledger.triage.counts 값이 정수가 아니다 (%s)" % e)
+for k in ("total", "closed_verified", "open"):
+    if not isinstance(v1l.get(k), int) or isinstance(v1l.get(k), bool):
+        die("debt_ledger.%s 가 정수가 아니다 (%r)" % (k, v1l.get(k)))
+
+# C1-a  v1 원장 자체의 산술이 성립하는가
+if v1l["closed_verified"] + v1l["open"] != v1l["total"]:
+    die("v1 원장 산술 불일치: closed_verified(%d) + open(%d) != total(%d)"
+        % (v1l["closed_verified"], v1l["open"], v1l["total"]))
+if sum(tri.values()) != v1l["total"]:
+    die("debt_ledger.triage.counts 합(%d) != debt_ledger.total(%d) — v1 원장이 스스로와 어긋난다"
+        % (sum(tri.values()), v1l["total"]))
+if tri.get("CLOSED") != v1l["closed_verified"]:
+    die("debt_ledger.triage.counts.CLOSED(%r) != debt_ledger.closed_verified(%d)"
+        % (tri.get("CLOSED"), v1l["closed_verified"]))
+
+# C1-b  승계 모집단의 **크기** — 항목을 조용히 지우는 경로를 여기서 죽인다
+if len(items) != v1l["open"]:
+    die("v1 승계 항목수(%d) != v1 원장 debt_ledger.open(%d) — 승계 목록에서 항목이 사라졌거나 늘었다.\n"
+        "  v1 승계분은 이제 두 원천에서 센다. 한 소스만 고쳐 total 을 낮추는 경로는 여기서 막힌다 "
+        "(adversarial V2-C005 debt-recompute-has-no-second-source-for-v1-inherited-items)."
+        % (len(items), v1l["open"]))
+
+# C1-c  class 인구조사 — 항목을 지우는 대신 class 를 갈아끼우는 경로도 막는다
+census = {}
+for i in items:
+    census[str(i.get("v1_debt_class"))] = census.get(str(i.get("v1_debt_class")), 0) + 1
+expect_census = {k: v for k, v in tri.items() if k != "CLOSED"}
+if census != expect_census:
+    die("v1 승계 항목의 class 인구 %r != v1 원장 triage.counts 미종결분 %r" % (census, expect_census))
+
+# C1-d  debt_inheritance 가 스스로 선언한 v1 수치도 v1 원장과 대조한다
+for fld, val in (("v1_total", v1l["total"]), ("v1_closed_verified", v1l["closed_verified"]),
+                 ("v1_open", v1l["open"]), ("inherited_open", v1l["open"]),
+                 ("v1_open_e001_blocking", tri.get("E001_BLOCKING"))):
+    if di.get(fld) != val:
+        die("debt_inheritance.%s(%r) != v1 원장 값(%r)" % (fld, di.get(fld), val))
+
+# C2  v1 원장의 git 앵커 — 같은 파일의 두 키를 함께 고치는 공격을 막는다
+anchor = di.get("v1_ledger_git_anchor")
+if not isinstance(anchor, str) or not HEX40.match(anchor):
+    die("debt_inheritance.v1_ledger_git_anchor 가 40-hex 전체 SHA 가 아니다 (%r) — "
+        "v1 원장의 git 앵커 없이는 승계분을 두 번째로 셀 수 없다 (fail-closed)")
+r = subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", anchor, rec_sha],
+                   capture_output=True)
+if r.returncode != 0:
+    die("v1_ledger_git_anchor(%s) 가 reconciliation 커밋(%s)의 조상이 아니다 — "
+        "게시된 control 계보 밖의 커밋은 앵커가 될 수 없다" % (anchor, rec_sha))
+r = subprocess.run(["git", "-C", repo, "show", "%s:%s" % (anchor, state_rel)], capture_output=True)
+if r.returncode != 0:
+    die("v1 원장 앵커 커밋에서 state.json 을 읽을 수 없다: %s:%s (%s)"
+        % (anchor, state_rel, r.stderr.decode("utf-8", "replace").strip()))
+try:
+    anchored = json.loads(r.stdout.decode("utf-8")).get("debt_ledger")
+except Exception as e:  # noqa: BLE001
+    die("v1 원장 앵커 커밋의 state.json 파싱 실패: %s (%s)" % (anchor, e))
+if not isinstance(anchored, dict):
+    die("v1 원장 앵커 커밋(%s)에 debt_ledger 가 없다 — 앵커가 v1 원장 수립 커밋이 아니다" % anchor)
+a_tri = (anchored.get("triage") or {}).get("counts")
+if not isinstance(a_tri, dict):
+    die("v1 원장 앵커 커밋(%s)의 debt_ledger.triage.counts 가 없다" % anchor)
+a_tri = {str(k): int(v) for k, v in a_tri.items()}
+if a_tri != tri:
+    die("v1 원장이 앵커 이후 조용히 바뀌었다: 현재 triage.counts %r != 앵커(%s) %r\n"
+        "  v1 승계분은 닫힌 원장이다. 바꾸려면 근거와 함께 v1 원장 자체를 개정해야 한다."
+        % (tri, anchor, a_tri))
+for k in ("total", "closed_verified", "open"):
+    if anchored.get(k) != v1l[k]:
+        die("v1 원장이 앵커 이후 바뀌었다: debt_ledger.%s 현재 %r != 앵커 %r"
+            % (k, v1l[k], anchored.get(k)))
+
+# --- 두 경로로 v1 open blocking 을 센다 ---
+v1_universe = tri.get("E001_BLOCKING")
+if not isinstance(v1_universe, int):
+    die("debt_ledger.triage.counts.E001_BLOCKING 이 없다 — v1 blocking 모집단을 알 수 없다")
+blocking_items = [i for i in items if i.get("blocks_ready_for_e001_v2") is True]
+bids = di.get("blocking_ids")
+if not isinstance(bids, list):
+    die("debt_inheritance.blocking_ids 가 없다")
+if sorted(bids) != sorted([str(i.get("id")) for i in blocking_items]) or len(bids) != len(blocking_items):
+    die("debt_inheritance.blocking_ids(%d건) 와 blocks_ready_for_e001_v2=true 항목(%d건)이 다르다\n"
+        "  ids=%r\n  items=%r"
+        % (len(bids), len(blocking_items), sorted(bids), sorted([str(i.get("id")) for i in blocking_items])))
+if len(blocking_items) != v1_universe:
+    die("v1 승계 blocking 모집단 불일치: items 에서 센 %d != v1 원장 triage.counts.E001_BLOCKING %d\n"
+        "  두 원천이 어긋나면 차단이다 (adversarial V2-C005 "
+        "debt-recompute-has-no-second-source-for-v1-inherited-items)."
+        % (len(blocking_items), v1_universe))
+
+v1_closed_ids = []
+for i in blocking_items:
+    if not closed(i.get("state")):
+        continue
+    if not (i.get("closure_evidence") or i.get("closed_evidence") or i.get("closed_in_cycle")
+            or i.get("closed_by_audit")):
+        die("v1 승계 blocking %r 이 CLOSED 인데 closure_evidence / closed_evidence / closed_in_cycle / "
+            "closed_by_audit 근거가 없다 — 근거 없는 종결은 total 조작 경로다 (fail-closed)"
+            % i.get("id"))
+    v1_closed_ids.append(str(i.get("id")))
+
+v1_by_items = len(blocking_items) - len(v1_closed_ids)     # 경로 A: 승계 목록
+v1_by_ledger = v1_universe - len(v1_closed_ids)            # 경로 B: v1 원장(+앵커)
+if v1_by_items != v1_by_ledger:
+    die("v1 승계 open blocking 두 경로 불일치: items %d != v1 원장 %d" % (v1_by_items, v1_by_ledger))
+v1_blocking = v1_by_items
 ledger += v1_blocking
 
 per_cycle = {}
