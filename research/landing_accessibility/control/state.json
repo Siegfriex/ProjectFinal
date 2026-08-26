@@ -1,8 +1,8 @@
 {
   "harness_version": "orchestrator-constitution-v3",
-  "updated_at": "2026-08-26T12:18:26.967054",
+  "updated_at": "2026-08-26T12:24:32.280182",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
-  "cycle_id": "C005",
+  "cycle_id": "C007",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -61,7 +61,7 @@
   },
   "exec_sha": "933096a5",
   "adversarial_audit_sha": "f98f222",
-  "ssot_audit_sha": "6c22f31",
+  "ssot_audit_sha": "68404d9",
   "gates": {
     "pilot_archive": "PASS_WITH_LOGICAL_BACKUP_ONLY",
     "source_asset_discovery": "PASS",
@@ -81,7 +81,7 @@
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
     "adversarial_audit": "REWORK_C001_P0_1",
-    "ssot_audit": "PASS_C001_P1_7"
+    "ssot_audit": "PASS_C002_C003_P1_2"
   },
   "withdrawn_conclusions": [
     {
@@ -161,6 +161,24 @@
       "state": "OPEN",
       "assigned": "C006",
       "detail": "fig11_t1/t2(오프라인 마트), fig05_t1/t2(쇼핑 앱)는 제목이 '많이 성장한' 인데 성장률 수치가 이미지에 없다. 웹 수집 모집단 선별 시 이 패널들은 성장률 근거 없는 선별임을 명시해야 한다."
+    },
+    {
+      "id": "coupang-cross-domain-merge-rule-inconsistent",
+      "state": "DECIDED_PENDING_IMPL",
+      "assigned": "C008 exec",
+      "resolution": "measurement_entity / web_target 2층 모델로 재구성. 쿠팡 BOTH 를 coupang_app / coupang_retail 로 분리하고 web_target 에서 재결합한다."
+    },
+    {
+      "id": "web-collectable-prestamped-before-web-eligibility-gate",
+      "state": "OPEN",
+      "assigned": "C008 exec",
+      "resolution": "web_collectable(True 70건) 은 URL 증거 없이 '업종이 아니다' 만으로 찍힌 값이다. 컬럼을 web_eligibility_status 로 바꾸고 초기값을 NOT_ASSESSED 로 둔다. INDUSTRY_CATEGORY 10건만 EXCLUDED_INDUSTRY_AXIS 로 확정한다."
+    },
+    {
+      "id": "chapter-guess-column-misnamed",
+      "state": "OPEN",
+      "assigned": "C008 exec",
+      "resolution": "원문 index 와 1:1 대조가 끝났으므로 '추측' 이 아니다. source_chapter / source_section 으로 정규화한다."
     }
   ],
   "legacy_xlsx_status": {
@@ -213,6 +231,21 @@
       "actual": "발행물 원문 자체의 오타. executor 가 fig10.png 를 4배 확대 판독해 확인.",
       "resolution": "원자료 무수정 유지. canonical 레이어에서만 흡수하고 needs_human_review 로 표시.",
       "lesson": "오케스트레이터의 진단도 증거 대조 없이는 지시가 될 수 없다. executor 가 반증한 것이 옳다."
+    }
+  ],
+  "orchestrator_decisions": [
+    {
+      "id": "measurement-entity-vs-web-target-separation",
+      "raised_by": "ssot audit C002-C003 P1 coupang-cross-domain-merge-rule-inconsistent",
+      "problem": "쿠팡은 entity_kind=BOTH 로 APP/RETAIL 행을 한 카운터에 합산했고 네이버는 분리했다. 실제 분기 기준이 '측정 대상 동일성' 이 아니라 '원문 문자열 우연 일치' 였다.",
+      "decision": "측정 단위와 수집 단위를 분리한다.",
+      "rule": {
+        "measurement_entity": "원문 패널의 측정 대상 단위. APP 지표(사용자·사용시간)와 RETAIL 지표(카드 결제추정금액)는 서로 다른 측정 대상이므로 같은 브랜드라도 별개 measurement_entity 다. 쿠팡도 예외가 아니다.",
+        "web_target": "실제로 방문할 랜딩 URL 단위. 여러 measurement_entity 가 같은 web_target 을 가리킬 수 있고, 그 경우 관측은 정확히 1회만 수행한다.",
+        "forbidden": "measurement_entity 를 축으로 APP 지표와 RETAIL 지표를 합산·평균하지 않는다. source_row_count 를 도메인 교차로 합산하지 않는다."
+      },
+      "rationale": "이 분리가 없으면 '쿠팡은 되고 네이버는 안 되는' 임의 규칙이 남고, 분석 단계에서 두 도메인 지표가 한 entity 아래 합산되는 순간 APP/RETAIL 병합 금지(P0)를 위반한다.",
+      "assigned": "C008 exec"
     }
   ]
 }
