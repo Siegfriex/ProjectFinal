@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T15:08:00.593299",
+  "updated_at": "2026-08-26T15:49:34.835648",
   "phase": "P2_WEB_ELIGIBILITY_AND_URL_IDENTITY",
   "cycle_id": "C012",
   "pilot": {
@@ -1001,5 +1001,31 @@
       "D": "E000 + FINAL READINESS"
     },
     "a0_materialization": "scripts/materialize_state.py — derived field 를 promoted artifact 에서 계산. state summary 와 artifact 가 다르면 summary 를 고친다. 역방향 금지."
+  },
+  "automation_state": {
+    "status": "HALTED_BY_RESEARCH_DIRECTOR",
+    "halted_at": "2026-08-26T15:49:34.835648",
+    "reason": "사용자 명시 지시 '일단 정지'",
+    "loop": "stopped",
+    "watchdog": "stopped",
+    "executor": "C013 세션 한도로 중단 (resets 15:40 Asia/Seoul)",
+    "resume_instruction": "재개하려면 C013 을 이어서 실행한다. 미커밋 작업은 exec 워크트리에 보존돼 있다."
+  },
+  "c013_interrupted": {
+    "cycle": "C013 (Bundle A — W3 web eligibility / W4 URL / W5 그룹 승격)",
+    "status": "INCOMPLETE_UNCOMMITTED",
+    "cause": "executor 세션 한도 도달",
+    "artifacts_in_progress": [
+      "state/url_review.parquet",
+      "state/url_review_ledger.json",
+      "state/url_review_candidates.json",
+      "scripts/build_web_eligibility_and_url_review.py",
+      "scripts/probe_official_urls.py",
+      "src/landing_accessibility/registered_domain.py",
+      "sources/wiseapp/authority_manifest.json (manifest_revision 5, raw_assets 6종)"
+    ],
+    "preserved": "exec 워크트리에 미커밋 상태로 보존. 커밋되지 않았으므로 baseline 5a9015d1 은 무오염.",
+    "pilot_clean": "오케스트레이터가 ruff format 오염을 원복한 뒤 재오염 없음",
+    "e001": "evidence/ 부재 — 수집 미실행"
   }
 }
