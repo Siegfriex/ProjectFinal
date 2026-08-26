@@ -156,9 +156,36 @@
     "full_script_chain": {
       "command": "bash research/landing_accessibility/scripts/promote_landing_main.sh 684c792452af670caf5bbf2646cf41bd39a1ce99 b7fd4677202640e8293c9c7a766fb624e88f3925 39e485c85b745e7f34b675e24c54662b83dcea79 <control tip> --dry-run",
       "note": "전체 스크립트는 [DEBT_RECOMPUTE] 에 **도달하기 전에** 앞선 층에서 멈춘다 — V2-C005 는 아직 reconciliation 되지 않았으므로 control/cycles/V2_C005_RECONCILIATION.json 이 없고 [REC_STATE_BIND] 가 fail-closed 로 차단한다. 이것이 정상 동작이다(승격 금지 상태). 그래서 [DEBT_RECOMPUTE] 자체의 실측은 블록 추출 방식으로 했다 — V2-C005 와 같은 방법이다.",
-      "measured": "아래 full_script_measured 참조"
+      "measured": "full_script_measured 참조"
     },
-    "revert_verification": "조작본은 전부 scratchpad 파일이다. 저장소 파일은 조작하지 않았으므로 원복할 것이 없다 — git status --porcelain 으로 의도한 3파일 + 신규 1파일만 변경됐음을 확인했고, state_clean.json(작업 후 정본 사본)과 저장소 state.json 의 md5 동일성을 확인했다."
+    "revert_verification": "임시 조작은 전량 scratchpad 사본에서만 했고 저장소 파일은 조작 상태로 존재한 적이 없다. 실측 원복 확인 — (1) scratchpad state_clean.json 과 저장소 state.json 의 md5 동일 (10f30144534ff66b385f37109b32cfda), (2) .git/hooks/pre-push md5 6acaebb07ec7b428d6053ad38dae6f6a · 심링크 대상 불변 (.git/hooks 무수정), (3) Pilot diff 0 (git diff 32460b87 ede1921c -- research/refcohort = 0 lines), (4) research/landing-accessibility-main = 5a9015d1 불변, (5) 다른 워크트리 HEAD 전부 불변 — exec 워크트리의 dirty 파일 5건은 exec lane 의 작업이며 건드리지 않았다, (6) control 워크트리 git status --porcelain = 0.",
+    "full_script_measured": [
+      {
+        "command": "bash promote_landing_main.sh 684c7924 b7fd4677 39e485c8 ede1921c --dry-run (**push 전**)",
+        "passed": [
+          "[HOOK_INSTALL] OK",
+          "exec/orchestrator worktree 해석 OK",
+          "[REC_RESOLVE] reconciliation commit = ede1921c OK"
+        ],
+        "stopped_at": "[REC_REMOTE_AUTHORITY]",
+        "exit": 1,
+        "message": "reconciliation commit 이 원격 control 권위와 무관하다. rec=ede1921c… / origin/control/landing-orchestrator tip=e7de6841…",
+        "conclusion": "V2-C005 가 닫은 '원격 게시가 전제조건' 이 이 사이클에서도 그대로 작동한다."
+      },
+      {
+        "command": "bash promote_landing_main.sh 684c7924 b7fd4677 39e485c8 ede1921c --dry-run (**push 후**)",
+        "passed": [
+          "[HOOK_INSTALL] OK",
+          "[REC_RESOLVE] OK",
+          "[REC_REMOTE_AUTHORITY] reconciliation == 원격 control tip (ede1921c…) OK",
+          "[PILOT_IMMUTABLE] OK"
+        ],
+        "stopped_at": "[EXEC_TREE]",
+        "exit": 1,
+        "message": "exec 워크트리 dirty (.agent_worktrees/landing_v2_exec): A2_VOCABULARY_AND_SCHEMA_BINDING.md · EXECUTION_AUTHORITY.md · INSTALL_MANIFEST.json · scripts/verify_v2_docs.py · tests/test_v2_docs_integrity.py",
+        "conclusion": "**정상 동작이다.** exec lane 이 재수집 앵커 재설계와 배너 회귀 테스트 시정을 작업 중이라 워크트리가 dirty 다 — 미커밋 상태를 승격하지 않는 것이 [EXEC_TREE] 의 목적이다. 다른 워크트리는 읽기만 했고 손대지 않았다. 이 때문에 전체 스크립트는 [DEBT_RECOMPUTE] 에 도달하지 못하며, 도달했더라도 그 앞의 [REC_STATE_BIND] 가 V2_C005_RECONCILIATION.json 부재로 차단했을 것이다(V2-C005 reconciliation 미수행). 그래서 [DEBT_RECOMPUTE] 자체의 실측은 블록 추출 방식으로 했다 — V2-C005 와 같은 방법이고 adversarial 도 같은 방법으로 이 블록을 공격했다."
+      }
+    ]
   },
   "state_updates": {
     "audit_lag": "latest_exec_cycle = V2-C005 / latest_exec_sha = 684c792452af670caf5bbf2646cf41bd39a1ce99 / adversarial b7fd4677202640e8293c9c7a766fb624e88f3925 @ audit/landing-adversarial (FAIL) / ssot 39e485c85b745e7f34b675e24c54662b83dcea79 @ audit/landing-ssot (FAIL). unaudited_cycle_depth 0 / unreconciled_cycle_depth 1 / unpromoted_cycle_depth 5. v2_history.V2-C005 등재. latest_adversarial_auditor_identity 를 **정규 계보 복귀**로 갱신하되 V2-C004 의 Codex 대체 사실은 v2_history 에 보존했다.",
@@ -233,5 +260,7 @@
     "research/landing_accessibility/control/cycles/V2_C006_orchestrator.json",
     "research/landing_accessibility/control/cycles/V2_C005_orchestrator.json (§5 인용 정정)",
     "research/landing_accessibility/scripts/promote_landing_main.sh"
-  ]
+  ],
+  "control_sha_under_test": "ede1921ca533870403bdea6d995060602c023b7a",
+  "observed_not_mine": "`git worktree list` 에 prunable 항목이 하나 있다 — /tmp/.../scratchpad/atk @ f4bed15 (detached, 디렉터리 없음). 이 사이클이 만든 것이 아니므로 prune 하지 않고 기록만 한다. detached 이고 어떤 권위 브랜치에도 붙어 있지 않다."
 }
