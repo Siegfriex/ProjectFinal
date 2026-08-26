@@ -1,0 +1,305 @@
+{
+ "cycle": "V2-C011",
+ "auditor": "adversarial",
+ "audit_type": "target-diff remediation verification (내 3사이클 OPEN min-4 + 내 V2-C010 P2 + 조건 C-1 control 원장 전이) — not a full re-audit",
+ "target_sha": "48b4a3d9a05717c52ab891799b6203eb41cfc5f5",
+ "target_branch": "agent/landing-v2-exec",
+ "prev_target_sha": "70fa56376239d248e3e468d0a0a9bce60363e73b",
+ "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+ "control_sha": "1852644ac9c7ab6ae2f2a1d7e220216c4db239f1",
+ "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+ "prev_adversarial_audit": "V2-C010 PASS (P2 2) · 30093b4",
+ "audit_branch": "audit/landing-adversarial",
+ "phase": "P0_V2_REFREEZE",
+ "gate": "V2_SSOT_FROZEN",
+ "verdict": "PASS",
+ "counts": {
+  "P0": 0,
+  "P1": 0,
+  "P2": 3,
+  "blocking": 0
+ },
+ "blocking_note": "신규 P2 2건 모두 V2_SSOT_FROZEN 비차단. dom_order 스키마 미바인딩은 P-C 엔진 구현·A1 §5.1/A2 §1.13 바인딩·E001_V2 를, C-6 실효 기계검사 우회는 E001_V2(C-3/C-4 실효) 를 차단한다. 내 소관 V2_SSOT_FROZEN-blocking 잔여 = 0.",
+ "diff_scope": {
+  "files": 3,
+  "code_files": 0,
+  "changed": [
+   "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+   "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+   "docs/v2/INSTALL_MANIFEST.json"
+  ],
+  "summary": "MIN-4 2차 키 area_quantized → dom_order 교체 + 근거·비용·잔여 서술 · §2.5 기대결과 flip 0% · §7 표 행 교체 · A1:485 공표 문장 항 제거 · A2 빈 줄 1개 · manifest 해시/cycle"
+ },
+ "invariants": {
+  "pilot_diff_lines": 0,
+  "pilot_files_opened": 0,
+  "pack_00_05_and_manifest": "무변경",
+  "self_approval_paths_in_diff": 0,
+  "root_claude_md_state_parquet_evidence": 0,
+  "verify_v2_docs": "PASS — 독립 git 스냅샷에서 실행, 17/17 OK",
+  "install_manifest_hash_recompute": "15 파일 전부 바이트+sha256 직접 재계산, 불일치 0, cycle=V2-C011",
+  "quality_gates": "코드 diff 0건이므로 상속"
+ },
+ "findings": [
+  {
+   "id": "min-4-dom-order-not-bound-as-schema-field",
+   "severity": "P2",
+   "state": "OPEN",
+   "blocking": false,
+   "blocking_scope": "P-C 엔진 구현 · A1 §5.1 / A2 §1.13 스키마 바인딩 · E001_V2",
+   "not_blocking": "V2_SSOT_FROZEN",
+   "cosmetic_only": false,
+   "introduced_by_this_diff": true,
+   "statement": "MIN-4 tie-break 2차 키가 된 dom_order 가 어디에도 저장 필드로 바인딩돼 있지 않다. 이전 키의 세 성분(marked_primary · area_css_px2 · selector)은 전부 A1 §5.1 컬럼이었고, 그래서 제3자가 저장 데이터만으로 정렬을 재현할 수 있었다. 새 2차 키만 그 성질을 깬다.",
+   "evidence": {
+    "dom_order_occurrences": "A1 단 하나의 파일, 10줄 (308·366·372·422·424·433·439·445·450·821)",
+    "a2": "0회 — 값 도메인 정의도 스키마 바인딩 표 행도 없다",
+    "a1_5_1_column_table": "없다 (:697-717)",
+    "min_8_freeze_artifacts": "없다 (:517-518)",
+    "engine_probe_code": "origin/agent/landing-pc-fixture @ 0c36c95 전 저장소 grep 0회 — probe 후보 객체에 문서 순서 인덱스가 없다",
+    "search_method": "전 트리 .md/.py/.js/.json, 대소문자 무시, dom_order·domOrder 양쪽"
+   },
+   "why_it_matters": "A1 §5.1 이 이 표를 만든 근거가 '후보를 소실시키지 않고 저장한다' · '제3자 재계산이 가능하다' 이다. dom_order 가 저장되지 않으면 동결본·산출물만으로 후보 순서를 복원할 수 없다 — 내 V2-C010 닫는 조건 3('동결본만으로는 무엇에 대한 최소인지 복원할 수 없다')이 새 필드로 옮겨간 것이다. 파라미터가 아닌 것과 데이터가 아닌 것은 다르다.",
+   "remediation": "A1 §5.1 컬럼 표에 dom_order 행 1줄(해당 state 후보 열거 내 문서 순서 정수 인덱스, probe 산출) + A2 §1.13 값 도메인/바인딩 반영. MIN-8 동결 포함 여부는 P-C 판단."
+  },
+  {
+   "id": "c-6-lapse-machine-check-bypassable-and-e001-half-unimplemented",
+   "severity": "P2",
+   "state": "OPEN",
+   "blocking": false,
+   "blocking_scope": "E001_V2 (C-3/C-4 실효 검사) · control 소관",
+   "not_blocking": "V2_SSOT_FROZEN",
+   "not_blocking_reason": "이 보고서가 C-6 을 실질 판정하므로 이번 선언에서는 기계검사가 하중을 지지 않는다",
+   "cosmetic_only": false,
+   "statement": "promote_landing_main.sh [DEBT_RECOMPUTE] 검사 (D) 의 C-6 자동 실효 트리거가 원장이 스스로 주장하는 것보다 약하다. 내가 만든 8종 공격이 전부 통과했고, E001_V2 절반은 아예 구현돼 있지 않다.",
+   "attack_result": {
+    "harness": "promote_landing_main.sh:589-1038 을 추출, (D) 판정부(residual_in_force · tally · 가시성 강제)를 한 글자도 바꾸지 않고 구동, 실제 control/state.json @1852644 을 변조해 21종 주입",
+    "control_claimed_13": "13/13 전부 차단 재현 — control 이 보고한 '차단 11' 은 보수적이었다",
+    "my_new_8_all_bypassed": [
+     "N1 owner 를 exec → control 로 갈아끼우고 SATISFIED (audit_sha 없음)",
+     "N2 conditions_status 에서 C-5-1 항목 자체를 삭제",
+     "N3 due_before 를 소문자로 (v2_ssot_frozen)",
+     "N4 due_before 를 null 로",
+     "N5 조건 audit_sha 를 쓰레기 문자열 'x' 로",
+     "N6 gate 선언을 'DECLARED / FROZEN — 선언 완료' 로 표기",
+     "N7 due_before 뒤 공백 1개 ('V2_SSOT_FROZEN ')",
+     "N9 gates.E001_V2=ACHIEVED + C-3/C-4 미충족"
+    ],
+    "correctly_blocked": "N8 state='SATISFIED_PENDING_AUDIT' — 등가비교라 유사값은 통하지 않는다"
+   },
+   "root_causes": {
+    "H-1 조건 식별 무결성 없음": "conditions ↔ conditions_status id 집합 대조 없음 + due_before 화이트리스트·정규화 없음. 어휘의 lapse_rule 은 C-1·C-2·C-5-① 을 이름으로 지정하는데 검사는 그 세 id 의 존재·충족을 한 번도 확인하지 않는다 (N2·N3·N4·N7)",
+    "H-2 owner 가 자기신고 자유텍스트": "owner=='control' 이면 audit_sha 요구 면제. owner 는 공격자가 편집하는 같은 객체 안의 필드이고 정본 배정과 대조되지 않는다. 공격 08이 막히는 이유는 owner 가 정직하게 'exec' 로 적혀 있기 때문뿐이다 (N1)",
+    "H-3 조건 audit_sha 미검증": "not c.get('audit_sha') — 순수 truthiness. 40-hex·git 존재·감사 브랜치·조건 판정 여부 어느 것도 확인하지 않는다. 같은 파일의 accepted_by_audit_sha 는 그 넷을 전부 한다 (N5)",
+    "H-4 gate 선언 접두 매칭": "upper().startswith('ACHIEVED') — gate 값 어휘가 열거돼 있지 않아 다른 표기의 선언은 실효를 발화시키지 않는다 (N6)",
+    "H-5 E001_V2 절반 미구현": "코드에 due_before 비교가 'V2_SSOT_FROZEN' 하나뿐이고 gates 조회도 V2_SSOT_FROZEN 하나뿐이다. 어휘가 명시한 'C-3·C-4·C-5-② 미충족 상태로 E001_V2 를 실행·종료할 수 없다' 는 전혀 구현돼 있지 않다 (N9)"
+   },
+   "why_it_matters": "원장 lapse_rule.machine_check 가 주장하는 두 문장을 그대로 시험했고, 첫 문장은 검사하지 않는 필드에 대한 네 가지 편집으로 뚫리고 둘째 문장은 한 글자 'x' 로 충족된다. 원장이 자기 기계검사에 대해 주장하는 것이 실제보다 강하다 — exec 가 두 번 철회한 것과 같은 부류의 결함이며 같은 기준을 control 에 적용한다. 또 N2·N3·N4·N7 은 악의를 요구하지 않는다: 조건 id 개편·구조 변경·표기 차이만으로 fail-closed 가드가 조용히 fail-open 이 된다.",
+   "remediation": [
+    "conditions ↔ conditions_status id 집합 대조 + 누락 시 차단",
+    "due_before 를 열거값으로 제한하고 미지값 차단",
+    "owner 를 정본 배정표와 대조하거나 control 면제를 조건 id 화이트리스트(C-1 만)로 축소",
+    "조건 audit_sha 를 accepted_by_audit_sha 와 같은 강도로 검증",
+    "gates 값 어휘 열거",
+    "E001_V2 실효 분기 신설 (due_before ∈ {E001_V2_EXECUTION, E001_V2_COMPLETION})"
+   ]
+  },
+  {
+   "id": "min-4-dom-order-residual-attributed-to-min-8-replay-which-min-8-says-it-does-not-detect",
+   "severity": "P2",
+   "state": "OPEN",
+   "blocking": false,
+   "counted_as_open": false,
+   "duplicate_of": "ssot V2-C011 1dbc3067 동일 id (그쪽이 blocking=true, E001_V2 클래스로 등재)",
+   "relationship": "독립 도달 동의 (concurrence). 오케스트레이터가 ssot 등재 사실을 알렸으나 나는 A1 원문을 직접 읽고 같은 결론에 도달했으며, 아래 '내가 더한 것' 은 ssot 문면에 없던 논점이다. 중복이라고 빼지 않았고, 알려졌다고 봐주지도 않았다.",
+   "blocking_scope": "E001_V2 (ssot 등재 기준) · V2_SSOT_FROZEN 비차단",
+   "cosmetic_only": false,
+   "introduced_by_this_diff": true,
+   "statement": "A1 이 dom_order 잔여(SPA 가 런마다 DOM 을 다르게 조립하는 경우)를 'MIN-8 Replay 재현 검사가 잡는 사건' 으로 귀속했는데, 같은 문서의 MIN-8 과 §8 이 Replay 가 그것을 판정할 수 없다고 명시한다.",
+   "verbatim_conflict": {
+    "attribution_a1_433_435": "'잔여: dom_order 는 SPA 가 런마다 DOM 을 다르게 조립하면 달라진다. 그 경우는 … 실제 페이지 비결정성이며, MIN-8 Replay 재현 검사가 잡는 사건이다.'",
+    "attribution_a1_308": "'0이 아니면 잡음이 아니라 DOM 비결정성이며 별개 사건이다(MIN-8).'",
+    "min_8_title": "'규칙 MIN-8 — Path Freeze는 최소성을 재검증하지 않는다'",
+    "min_8_body": "'Replay가 확인하는 것은 경로 재현성(같은 step 열이 같은 state 열을 만드는가)이지 그 경로가 여전히 최소인지가 아니다. … 최소성 재판정이 필요하면 그것은 Replay가 아니라 새 Scout이며, 02 §12에 따라 새 evidence run이다.'",
+    "section_8_prohibition": "§8 마지막 항: 'Replay가 통과했다는 사실을 \"경로가 여전히 최소다\"의 근거로 쓰는 것 — Replay는 재현성만 본다(규칙 MIN-8).'"
+   },
+   "my_independent_reasoning": "dom_order 가 런마다 달라지면 바뀌는 것은 **후보 순서**이고, 그 귀결은 **어느 경로가 선택되는가** 다. Replay 는 Scout 을 다시 돌리지 않고 동결된 selector 열을 그대로 밟는다. 따라서 (i) selector 가 여전히 같은 요소·같은 state 로 풀리면 Replay 는 **통과**하고 순서 변화는 관측되지 않으며, (ii) 순서 변화가 다른 경로를 낳는다는 사실은 새 Scout 을 돌려야만 드러난다 — MIN-8 이 'Replay 가 아니라 새 Scout' 이라고 적은 바로 그것이다. 귀속이 향하는 검사는 정의상 이 잔여를 볼 수 없다.",
+   "what_i_add_beyond_ssot": "단순 오귀속이 아니라 **책임 공백**이다. §2.5 의 신설 수용기준은 '±0.5px 대역 flip 률이 0% 인가' 이고, 그 기준이 **위반됐을 때의 처리**를 '별개 사건이다(MIN-8)' 로 넘긴다. MIN-8 이 그것을 볼 수 없으므로, 새 수용기준이 실패해도 **그 실패를 받는 검사가 존재하지 않는다.** 관측된 위반이 '다른 검사 소관' 으로 종결되는데 그 다른 검사가 아무도 아닌 상태다.",
+   "correct_detector_already_exists": "§2.5 의 첫 MIN-4 케이스 — '동일 길이 후보 경로가 둘 이상인 대상 → 같은 fixture 를 두 번 돌려 같은 경로가 나오는가 (§2.6 규칙 MIN-4)'. 이것은 Scout 층의 결정성 검사이며 dom_order 불안정을 정확히 잡는다. 필요한 것은 새 기구가 아니라 **재귀속** 한 줄이다.",
+   "does_not_reopen_min_4": "min-4-selector-tiebreak-… 의 주제는 서브픽셀 jitter 이고 그것은 실측 0.00% 로 닫혔다. 이 결함은 문서가 스스로 '닫혔다고 쓰지 않는다' 고 밝힌 **다른 실패 양상**(DOM 비결정성)의 처리 경로에 관한 것이므로 CLOSED 판정을 되돌리지 않는다. 닫는 조건 1(성립 불가능한 기대결과를 남기지 않을 것)도 기대결과 자체는 달성 가능하므로 유지된다 — 문제는 기대의 달성 가능성이 아니라 위반의 처리다.",
+   "remediation": "A1:433-435 와 A1:308 의 '(MIN-8)' 귀속을 §2.5 MIN-4 결정성 케이스(같은 fixture 2회 → 같은 경로) 로 바꾸고, MIN-8 은 '동결 이후' 국면만 담당함을 명시한다."
+  }
+ ],
+ "closed_findings": [
+  {
+   "id": "min-4-selector-tiebreak-does-not-neutralize-subpixel-jitter",
+   "prior_state": "OPEN 3 cycles (V2-C008·C009·C010)",
+   "new_state": "CLOSED",
+   "closure_basis": "executor 가 내 §3.2 논증을 받아 양자화 접근 자체를 폐기하고 2차 키를 area_quantized → dom_order 로 교체했다. 내 하네스 재시뮬레이션에서 flip 률이 전 대역 0.00% 다.",
+   "simulation_rerun": {
+    "model": "V2-C009/C010 과 동일 — 동일 nominal 형제 2개, 각자·매 run 독립 양축 선형 jitter, probe toFixed(2), Chromium LayoutUnit(1/64px) 스냅, nominal 면적 버킷 위상 무작위화, run-to-run 경로 flip, N=40000",
+    "anchor": "퇴역 키 2종도 같이 돌려 하네스가 내 V2-C010 그림을 재현함을 확인 — round 16px² 가 ±0.01px 에서만 듣고(44%→1.6~17.4%) ±0.5px 에서 전 형상 무력(41.9~49.9%)",
+    "dom_order_flip_rate": {
+     "dw_0.01px": "전 형상 0.00%",
+     "dw_0.05px": "전 형상 0.00%",
+     "dw_0.5px": "전 형상 0.00%",
+     "dw_5.0px": "전 형상 0.00%"
+    },
+    "interpretation": "통계적 우연이 아니라 구조적이다 — 면적이 정렬 키에서 완전히 빠져 jitter 가 순서에 도달할 경로가 없다. 내가 시험한 최악 대역의 10배(±5.0px)에서도 0.00%.",
+    "area_heuristic_loss_measured": "24×24 vs 24×25 의 실제 1px 차이를 ±0.5px jitter 아래에서 '큰 쪽 우선'으로 유지하는 비율: raw 95.67% · floor 1px² 96.08% · round 16px² 98.71%. dom_order 열의 100.00% 는 내가 큰 쪽을 DOM 앞에 놓았기 때문이지 키가 크기를 안다는 뜻이 아니다 — 순서를 뒤집으면 0.00%. dom_order 는 크기 정보를 전혀 담지 않으며 문서가 이 손실을 명시했다."
+   },
+   "closing_conditions_v2_c010_3": [
+    {
+     "n": 1,
+     "text": "±0.5px 대역 처리를 정한다 — 선형 양자화로 스케일 정합 + 목표 flip 률 역산·§7 동결, 또는 절대 양자 불가를 문면에 적고 §2.5 기대결과를 선언된 flip 률 상한으로. 어느 쪽이든 성립 불가능한 기대결과를 남기지 않는다",
+     "verdict": "충족 — 요구보다 강함",
+     "reasoning": "조건이 실제로 요구한 것은 (a) 스케일 정합, (b) 절대 양자 불가능성의 공표, (c) 목표 flip 률 명시, (d) 성립 불가능한 기대결과 제거였다. executor 는 (a)를 초과 달성(형상별 차이가 아니라 잡음 의존성 자체를 제거), (b) A1:412-417 이 자체 실측 + 내 11배 모순 논증을 인용해 축자로 기재, (c) A1:308 이 ±0.5px 대역 0% 를 N≥10000·부호 양쪽과 함께 선언, (d) 0% 는 실제 달성된다(재시뮬레이션). 양자 폐기는 내가 제시한 두 선택지의 상위집합이다 — 다뤄야 할 잡음이 남지 않았으므로 두 선택지가 공허하게 참이 된다. 내가 요구한 형식을 따르지 않았다는 이유로 OPEN 을 유지하는 것은 형식주의이며 감사 실패다."
+    },
+    {
+     "n": 2,
+     "text": "A1:389 중앙 정렬 근거 문장을 UNIT=16 에 맞게 고친다",
+     "verdict": "전제 소멸 (무효화)",
+     "reasoning": "AREA_QUANTIZATION_UNIT 이 존재하지 않는다. 고칠 파라미터가 없다."
+    },
+    {
+     "n": 3,
+     "text": "MIN-8 동결 산출물 목록에 AREA_QUANTIZATION_UNIT 을 넣는다",
+     "verdict": "전제 소멸 (무효화) — 단 실질은 이월",
+     "reasoning": "넣을 값이 없다. 그러나 그 조건의 취지(동결본만으로 무엇에 대한 최소인지 복원 가능해야 한다)는 dom_order 미바인딩으로 재발한다 → 신규 finding min-4-dom-order-not-bound-as-schema-field 로 이월."
+    }
+   ],
+   "c_branching_limit_minimality": {
+    "question": "dom_order 가 BRANCHING_LIMIT 절단선을 바꾼다 — 그 변화가 최소성 주장을 약화시키는가 / 00 §7 정의를 훼손하는가",
+    "verdict": "약화시키지 않는다. 훼손하지 않는다.",
+    "c1_definition": "00 §7 은 개념 정의이고 탐색 절차가 무엇을 먼저 확장하는지에 의존하지 않는다. A1 §2.6 MIN-5 가 이미 '전역 최소가 아니라 열거된 부분격자 안에서의 최소' 로 못박았다 — 후보 순서를 바꾸면 부분격자가 바뀌지만 그 사실은 이미 공표된 한계 안이다.",
+    "c2_executor_claim_verified": "옳다. A1 §5.1(:720) 이 SELECTED 를 관측·task 당 최대 1행으로 규정하므로 marked_primary 로 앞세워지는 후보는 한 state 에서 최대 1개이고 primary 끼리 2차 키로 다투는 경우가 존재하지 않는다. 2차 키 교체는 '어느 primary 가 먼저 확장되는가' 를 절대 바꾸지 못하고 BRANCHING_LIMIT=4 의 나머지 슬롯만 바꾼다 — 손실이 절단선에 한정된다는 주장은 정확하다.",
+    "c3_residual_not_a_finding": "면적 내림차순은 시각적 현저성을, dom_order 오름차순은 문서 앞쪽을 우선하므로 랜딩 페이지에서는 nav 를 히어로 CTA 보다 먼저 확장하는 경향을 갖고 NED 과대추정의 크기가 달라질 수 있다. finding 으로 세우지 않는 이유 셋: (i) MIN-6 이 이미 k 과대추정을 한쪽 방향 편향으로 등재하고 E000_V2 실측을 걸어 두었다, (ii) 편향 크기의 증감을 나는 실측하지 않았고 실측 없이 '약화됐다' 로 쓰면 그것이 곧 내가 exec 에게 두 번 물린 과소·과대 서술이다, (iii) 결정성이 잡음보다 우선한다 — 이전 키는 절단선이 런마다 흔들려(±0.5px 에서 flip 50%) 편향 크기를 측정조차 할 수 없었고, dom_order 는 편향을 상수로 만들어 E000_V2 가 잴 수 있게 한다."
+   },
+   "d_area_css_px2_still_collected": {
+    "verdict": "존속 — 보증 문장이 추가됐다",
+    "sites_unchanged": [
+     "A1 §5.1 컬럼 표 :684→:710 문면 동일",
+     "A1 §5.2 산식 :703→:729 문면 동일",
+     "A2 §1.13 분모 저장 선언 :1807→:1808 문면 동일",
+     "A2 §1.13 규칙 C-2 (분모 보존) :1833→:1834 문면 동일",
+     "A2 스키마 바인딩 표 :2585→:2586 문면 동일"
+    ],
+    "deleted_lines_with_token": "정확히 1줄 — area_quantized = floor(area_css_px2 / AREA_QUANTIZATION_UNIT + 0.5), tie-break 코드 블록 안. MIN-4 블록 밖의 어떤 줄도 바뀌거나 지워지지 않았다.",
+    "guarantee_added": "A1:441-442 — 'area_css_px2 는 00 §8 의 PrimaryActionOcclusion 분모로 계속 저장되며, 그 자리에서는 NULL 을 0 으로 바꾸지 않는다'"
+   }
+  },
+  {
+   "id": "a2-rc8-block-terminator-renders-as-setext-h2",
+   "prior_state": "OPEN (내 V2-C010 신규 P2)",
+   "new_state": "CLOSED",
+   "closure_basis": "A2:1485 에 빈 줄 1개가 들어갔다. A2 전체를 재파싱해 '빈 줄 없이 --- 앞에 오는 비-blank·비-fence·비-list 줄' 을 전수 탐색한 결과 setext-H2 위험 지점 0곳. 1486 은 정상 수평선이고 RC-8 블록 구분선이 복원됐다. 내가 처방한 그대로다."
+  }
+ ],
+ "condition_adjudications": [
+  {
+   "id": "C-1",
+   "title": "rc-6-r1 원장 영구 기록 + 신규 상태값 정의 + 명시적으로 제외된 한 줄 + DEBT_RECOMPUTE 갱신",
+   "owner": "control",
+   "verdict": "SATISFIED",
+   "control_sha": "1852644ac9c7ab6ae2f2a1d7e220216c4db239f1",
+   "requirement_by_requirement": {
+    "① 원장 영구 기록": "충족 — 항목 삭제되지 않고 state 만 OPEN → ACCEPTED_BOUNDED_RESIDUAL_RISK 로 전이. prior_state · blocking_class_before_acceptance · not_closed('CLOSED 가 아니다. 결함은 해소되지 않았고 위험은 그대로 존재한다') 병기",
+    "② 신규 상태값 정의": "충족 — 요구 초과. finding_state_vocabulary 신설, definition · what_it_is_not 4항 · counting_rule · grant_conditions(C-6-2 선례 제한 3요건 전건 필수 + 금지 대상 2건 id 명기) · grant_procedure(독립 감사 전속 부여권 + 필수 필드 13개 + machine_check) · lapse_rule",
+    "③ 명시적으로 제외된 한 줄": "충족 — 요구 초과. 네 자리에 나란히: formula 의 제외항 표기 · accepted_bounded_residual_risk=1 정수 카운터 · accepted_residual_ids 열거 · exclusion_line 산문. 추가로 by_blocking_class 의 전용 행과 gates.accepted_bounded_residual_risk_register 키",
+    "④ DEBT_RECOMPUTE 갱신": "충족 — 검사 (D) 신설. residual_in_force() 가 상태값 정의 존재 · 형식 3필드 · 필수 근거 10필드 · accepted_by_audit_sha 커밋에서 보고서 JSON 직접 read 후 id/verdict/new_class 대조 · 선례 제한 3요건 YES · C-6 실효를 검사하고 제외 건수를 별도 출력. §5.3 에서 13종 공격으로 재현 검증",
+    "⑤ 조용히 사라지는 형태 금지": "충족 — counting_rule·exclusion_line 이 축자로 금지하고 tally() 가 근거 없는 counted_as_open=false 를 차단"
+   },
+   "visibility_check": "rc-6-r1 은 합계 밖이지만 네 곳에서 보인다. exclusion_is_conditional 이 되돌아가는 조건(total 3→4)까지 적었다 — '조용히 사라지는 형태' 의 정반대다."
+  },
+  {
+   "id": "C-2",
+   "owner": "exec",
+   "verdict": "SATISFIED (기왕 판정 · adversarial V2-C008 56f69f3)"
+  },
+  {
+   "id": "C-5-1",
+   "owner": "exec",
+   "verdict": "SATISFIED (기왕 판정 · adversarial V2-C010 30093b4 §4)"
+  },
+  {
+   "id": "C-3",
+   "verdict": "NOT_YET_DUE"
+  },
+  {
+   "id": "C-4",
+   "verdict": "NOT_YET_DUE"
+  },
+  {
+   "id": "C-5-2",
+   "verdict": "NOT_YET_DUE"
+  },
+  {
+   "id": "C-6",
+   "verdict": "NOT_TRIGGERED (실질) — 단 원장 문면 전이가 선언 이전에 필요",
+   "substantive": "실효 트리거는 C-1·C-2·C-5-① 중 하나라도 미충족인 상태로 V2_SSOT_FROZEN 을 선언하는 것이다. 셋 다 이행됐으므로 rc-6-r1 수용은 실효되지 않는다. C-6 관점에서 선언 가능하다.",
+   "procedural_precondition": "control 원장 1852644 는 아직 conditions_status.C-5-1 = NOT_SATISFIED 다 (원장 갱신 시점에 내 V2-C010 보고서가 origin 에 없었고 control 이 self-approval 금지에 따라 exec 주장만으로 SATISFIED 로 적기를 거부했다 — 그 판단은 옳았다). 기계검사는 실질이 아니라 문면을 읽으며, 나는 공격 04 에서 gate 를 ACHIEVED 로 선언하고 원장을 그대로 두면 [DEBT_RECOMPUTE] 가 실제로 실효를 발화시켜 승격을 차단함을 실측했다.",
+   "binding_requirement": "V2_SSOT_FROZEN 을 선언하는 커밋과 같은 커밋 또는 그 이전에, control 은 rc-6-r1.conditions_status 의 C-1 을 SATISFIED(근거: 이 보고서 SHA)로, C-5-1 을 SATISFIED(근거: 30093b4)로 전이시켜야 한다. 하지 않으면 C-6 이 실질로는 충족인데 문면 때문에 발화해 open_blocking_total 이 3 → 4 로 되돌아간다. 원장 위생이며 새 결함이 아니다."
+  }
+ ],
+ "regression_check": [
+  {
+   "target": "MIN-1 · MIN-2 · MIN-3 · MIN-6 · MIN-7",
+   "result": "바이트 동일",
+   "method": "각 규칙 블록을 PREV/TARGET 에서 잘라 sha256 대조"
+  },
+  {
+   "target": "MIN-5",
+   "result": "블록 본문 동일. 유일한 차이는 A1:485 공표 문장에서 AREA_QUANTIZATION_UNIT 1개 항 제거"
+  },
+  {
+   "target": "MIN-8",
+   "result": "블록 본문 바이트 동일. 해시 차이는 잘라낸 구간이 EOF 까지 뻗어 §7 표 행을 포함했기 때문이며 그 행 교체는 예상된 변경"
+  },
+  {
+   "target": "ned-ied-path-minimality-not-operationalized (내 V2-C008 CLOSED)",
+   "result": "CLOSED 유지 · 부활 없음 — MIN-1~MIN-8 골격 그대로, §7 BRANCHING_LIMIT 행 · k 독립 최소화 행 무변경"
+  }
+ ],
+ "promotion_readiness": {
+  "my_lane_blocking_remaining": 0,
+  "my_lane_detail": "min-4 CLOSED · a2-rc8 CLOSED · C-1 이행 · C-2 이행 · C-5-① 이행 · 신규 P2 2건 모두 V2_SSOT_FROZEN 비차단 · C-3/C-4/C-5-② 기한 미도래",
+  "statement": "내 소관에서 V2_SSOT_FROZEN 을 막는 것은 없다. 내가 V2-C010 에서 '실질로 남는 것은 C-1 하나' 라고 했고 그 하나가 이번에 닫혔다.",
+  "control_open_blocking_total": 1,
+  "control_total_composition": "ssot V2-C011 이 V2-C009 신규 3건을 전건 CLOSED 판정하면서 3 → 1 로 내려갔다. 남은 1건은 ssot 신규 P2(min-4-dom-order-residual-attributed-to-min-8-…)이며 E001_V2 클래스로 V2_SSOT_FROZEN 을 막지 않는다. 나는 그 건에 독립 도달 동의했다(findings[2]).",
+  "facts_recorded_not_adjudicated": [
+   "내 조건 C-5-① 은 30093b4 에서 이행 판정됐다 — ssot 의 tracker finding 과는 별개 판정이다",
+   "min-4-quantization-unit-declared-frozen-at-p-d-but-not-registered-in-a1-7 의 대상인 AREA_QUANTIZATION_UNIT 은 이 diff 에서 소멸했다"
+  ],
+  "remaining_gate_requirements": "V2_SSOT_FROZEN 은 open blocking 0 + 해당 클래스 0 + 두 감사 모두 PASS + reconciliation current 를 요구한다. 내 verdict 는 PASS 이고 내 blocking 은 0 이다. 남은 것은 ssot 레인의 3건과 ssot verdict 이며 ssot 소관이다.",
+  "ssot_lane_status": "ssot V2-C011 1dbc3067 PASS — G1·G2·G3 전건 CLOSED, V2_SSOT_FROZEN-blocking 클래스가 비었다. open_blocking_total 3 → 1 (신규 P2 1건은 E001_V2 클래스). C-1 SATISFIED · C-5-① 이행 독립 확인 (내 V2-C010 판정과 일치).",
+  "target_sha_alignment": "EXECUTION_AUTHORITY:129 는 두 감사의 exact same target SHA 를 요구한다. ssot 는 48b4a3d 를 감사했고 직전 adversarial(30093b4)은 70fa563 을 감사해 어긋나 있었다. **이 감사가 48b4a3d 를 감사하므로 정렬이 성립한다** — adversarial 1dbc… 아니라 이 보고서 SHA 와 ssot 1dbc3067 이 같은 target 을 가리킨다.",
+  "gate_verdict": "내 레인 기준 V2_SSOT_FROZEN 승격을 막는 것은 없다. 두 감사 모두 PASS, 두 감사 target SHA 동일, V2_SSOT_FROZEN-blocking 클래스 0. 남은 절차 조건은 §6.2 의 원장 C-1/C-5-1 문면 전이 하나다."
+ },
+ "observations_not_findings": [
+  {
+   "id": "OBS-1",
+   "text": "MIN-4 블록의 V2-C008·V2-C009 판 근거가 규범 어조로 남아 있다 (A1:376 '2차 키는 양자화된 면적이어야 한다', A1:385, A1:392 'floor(x+0.5)는 정수 면적을 버킷 중앙에 놓는다' — 마지막 문장은 UNIT=1 에서만 참). finding 으로 세우지 않는 이유: 문서 규약이 시정 이력을 층으로 쌓는 것이고, 살아 있는 규칙은 20줄 위 코드 블록에 '# area_css_px2 는 tie-break 키에서 제외한다' 와 함께 명시돼 있으며, V2-C010b 블록이 두 판본 모두 틀렸음을 축자로 적었다. 권고: 최종 문면에서 각 상위 블록 머리에 '(폐기됨)' 표식 한 개."
+  },
+  {
+   "id": "OBS-2",
+   "text": "A1:485 공표 문장이 'BRANCHING_LIMIT · 후보 지명 규칙 · 즉시종료 규칙 아래에서 관측된 최소' 로, 이전 판의 순서 항(AREA_QUANTIZATION_UNIT)이 대체 없이 빠졌다. 그런데 MIN-4 블록 자신이 A1:446 에서 '그 범위를 후보 순서가 함께 정하므로' 라고 적는다. 'MIN-4 후보 순서' 한 어절이면 닫힌다. finding 으로 세우지 않는 이유: executor 가 이 점을 명시적으로 검토하고('최소성 주장은 여전히 …') 결론을 문서에 남겼고, 의존성 자체가 같은 문서 두 문단 위에 공표돼 있다 — 숨겨진 것이 아니라 분류가 다른 것이며 이미 공개된 사실에 finding 을 세우는 것은 과탐이다."
+  },
+  {
+   "id": "OBS-3",
+   "text": "범위 밖 · 이월. origin/agent/landing-pc-fixture @ 0c36c95 의 l1_engine.py:339 는 여전히 key=(marked_primary, area_css_px2 or 0.0) 로 3차 키도 dom_order 도 없다. 또 l0_collector.py:181 이 area_css_px2: float(비-Optional)이고 :278·:307 이 float(... or 0.0) 이라 probe 의 null 이 0.0 으로 흡수된다 — A1:437-442 가 '코드의 우연이지 명세가 아니다' 로 지목하고 금지한 동작이다. P-C 소관이고 이 diff 대상이 아니므로 finding 으로 세우지 않는다 (V2-C010 과 같은 처리)."
+  }
+ ],
+ "not_done": [
+  "전면 재감사",
+  "실제 웹사이트 접속 (flip 률은 probe/엔진 규약 재현 수치 시뮬레이션)",
+  "Pilot 열람",
+  "다른 워크트리 쓰기",
+  "ssot 소관 3건 판정",
+  "P-C 엔진 MIN-4 미구현 등재 (OBS-3 으로 기록만)",
+  "C-3/C-4/C-5-② 판정 (기한 미도래)",
+  "control 원장 audit_lag 갱신 (control 소관)",
+  "미추적 draft V2_C004.{md,json} — 건드리지 않았다"
+ ],
+ "counts_note": "findings[] 3건 중 1건(min-4-dom-order-residual-attributed-to-min-8-…)은 ssot V2-C011 1dbc3067 이 이미 blocking 으로 등재한 건에 대한 **독립 도달 동의**다. 이중계상을 막기 위해 내 쪽 등재는 blocking=false · counted_as_open=false · duplicate_of 로 둔다. 내 고유 신규 finding 은 2건이고 내 blocking 은 0 이다.",
+ "same_cycle_ssot": "V2-C011 PASS (P2 1 — E001_V2-blocking) · 1dbc3067 · target 48b4a3d (내 target 과 동일)"
+}
