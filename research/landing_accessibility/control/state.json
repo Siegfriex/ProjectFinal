@@ -1,8 +1,8 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1 + landing-accessibility-v2 (docs/v2/EXECUTION_AUTHORITY.md)",
-  "updated_at": "2026-08-26T20:51:20.071970",
+  "updated_at": "2026-08-26T21:30:00",
   "phase": "P0_V2_REFREEZE",
-  "cycle_id": "V2-C002",
+  "cycle_id": "V2-C003",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -80,13 +80,17 @@
     "automation_split": "NOT_RUN",
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
-    "adversarial_audit": "FAIL_V2_C001_P0_0_P1_3_P2_4",
-    "ssot_audit": "FAIL_V2_C001_P0_0_P1_2_P2_11",
+    "adversarial_audit": "FAIL_V2_C002_P0_0_P1_1_P2_7 (blocking 6)",
+    "ssot_audit": "FAIL_V2_C002_P0_0_P1_0_P2_4 (blocking 4)",
     "certification_snapshot": "PASS_COMPLETE",
-    "V2_SSOT_FROZEN": "NOT_ACHIEVED — V2-C001 두 감사 FAIL (adversarial P1x3 blocking, ssot P1x2+P2x9 blocking). 재시정 후 재감사 필요.",
-    "v2_routing_banners": "PASS_PENDING_AUDIT — V2-C002 (control 브랜치 v1 문서 4종 + nested CLAUDE.md 포인터)",
-    "v2_debt_inheritance": "PASS_PENDING_AUDIT — V2-C002 (v2_transition.debt_inheritance, open 21 승계)",
-    "promotion_guard_worktree_resolution": "PASS_PENDING_AUDIT — V2-C002 (promote_landing_main.sh 워크트리 자동해석 + fail-closed)"
+    "V2_SSOT_FROZEN": "NOT_ACHIEVED — V2-C002 두 감사 FAIL. V2_SSOT_FROZEN-blocking finding 9건 (adversarial 5 + ssot 3 + orchestrator 1) 미해소. PHASE_GATES §2 는 해당 Gate 의 blocking finding 0건을 요구하고 00_SSOT §15 는 open blocking = 0 을 요구한다. 현재 open_blocking_total = 17.",
+    "v2_routing_banners": "PASS — V2-C002 두 감사 CLOSED 확인 (orchestrator-entrypoint-still-routes-to-v1-scope)",
+    "v2_debt_inheritance": "PASS — V2-C002 두 감사 CLOSED 확인 (v1-open-debt-ledger-not-adopted-by-v2-authority)",
+    "promotion_guard_worktree_resolution": "PASS — V2-C002 adversarial 이 --dry-run 8회 직접 실행해 확인 (promotion-clean-check-targets-wrong-worktree)",
+    "promotion_guard_verdict_fail_closed": "PASS_PENDING_AUDIT — V2-C003 (검사 5 재작성: verdict 미기록 차단 + 감사 보고서 JSON 직접 대조)",
+    "promotion_guard_integrity_verify_invocation": "PASS_PENDING_AUDIT — V2-C003 (검사 6 신설: verify_v2_docs.py 실호출, 부재·비0 exit 모두 차단)",
+    "control_claude_md_pointer_only": "PASS_PENDING_AUDIT — V2-C003 (권위 서열 재진술 제거, Gate 정의 귀속을 PHASE_GATES 로 시정)",
+    "repo_pre_push_hook_installed": "FAIL — .git/hooks/pre-push 가 저장소 정본과 다른 legacy 사본이다 (adversarial V2-C002 repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect). 설치는 오케스트레이터 직접 수행 사항. scripts/install_hooks.sh --check 로 확인한다."
   },
   "withdrawn_conclusions": [
     {
@@ -653,32 +657,41 @@
     ]
   },
   "audit_lag": {
-    "latest_exec_cycle": "V2-C001",
-    "latest_exec_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+    "latest_exec_cycle": "V2-C002",
+    "latest_exec_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
     "latest_exec_branch": "agent/landing-v2-exec",
-    "latest_adversarial_audited_cycle": "V2-C001",
-    "latest_adversarial_target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-    "latest_adversarial_audit_sha": "706a8d64ed95a8178f0b1810d9992249875ec12c",
+    "latest_adversarial_audited_cycle": "V2-C002",
+    "latest_adversarial_target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+    "latest_adversarial_audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
     "latest_adversarial_verdict": "FAIL",
-    "latest_ssot_audited_cycle": "V2-C001",
-    "latest_ssot_target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-    "latest_ssot_audit_sha": "507fcf25a7e6800d9c03c6b6c8ecc880264bf6ea",
+    "latest_ssot_audited_cycle": "V2-C002",
+    "latest_ssot_target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+    "latest_ssot_audit_sha": "eb7e4e13a2075b7390d16d545b92f04d549381f1",
     "latest_ssot_verdict": "FAIL",
     "both_audits_same_target_sha": true,
     "latest_reconciled_cycle": "C012",
     "latest_promoted_cycle": "C012",
     "latest_promoted_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
     "unaudited_cycle_depth": 0,
-    "unreconciled_cycle_depth": 1,
-    "unpromoted_cycle_depth": 1,
+    "unreconciled_cycle_depth": 2,
+    "unpromoted_cycle_depth": 2,
     "MAX_UNAUDITED_EXEC_CYCLES": 1,
-    "status": "WITHIN_BOUND_FOR_AUDIT_LAG / NOT_PROMOTABLE — V2-C001 은 두 감사 모두 감사됐으나 (adversarial FAIL, ssot FAIL) reconciliation·promotion 은 C012 에 머물러 있다.",
+    "status": "WITHIN_BOUND_FOR_AUDIT_LAG / NOT_PROMOTABLE — V2-C002 는 두 감사 모두 동일 target SHA 6fad79fa 를 감사했고 verdict 는 adversarial FAIL / ssot FAIL 이다. reconciliation·promotion 은 여전히 C012(5a9015d1)에 머문다.",
     "v1_history": {
       "latest_exec_cycle": "C012",
       "latest_exec_sha": "5a9015d",
       "latest_adversarial_audit_sha": "510d5f2",
       "latest_ssot_audit_sha": "1bc2c71b",
       "status": "WITHIN_BOUND — C012 fully audited"
+    },
+    "v2_history": {
+      "V2-C001": {
+        "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+        "adversarial_audit_sha": "706a8d64ed95a8178f0b1810d9992249875ec12c",
+        "ssot_audit_sha": "507fcf25a7e6800d9c03c6b6c8ecc880264bf6ea",
+        "adversarial_verdict": "FAIL",
+        "ssot_verdict": "FAIL"
+      }
     }
   },
   "cycle_lifecycle": {
@@ -1112,8 +1125,8 @@
     "authoritative_main_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
     "authoritative_main_ref": "research/landing-accessibility-main",
     "v2_exec_branch": "agent/landing-v2-exec",
-    "v2_exec_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-    "v2_exec_sha_note": "V2-C001 감사 대상 SHA. 시정 후 갱신은 오케스트레이터가 한다.",
+    "v2_exec_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+    "v2_exec_sha_note": "V2-C002 exec HEAD. 두 감사가 이 SHA 를 감사했고 둘 다 FAIL. 승격되지 않았다 — authoritative_main 은 여전히 5a9015d1e95b15304aaf53a73efb475934610b82 (C012).",
     "v1_unverified_wip": {
       "branch": "agent/landing-exec",
       "sha": "87a0464e8159d5526069d5e654e648b0dae506ca",
@@ -1446,241 +1459,577 @@
       ]
     },
     "v2_audit_findings": {
-      "cycle": "V2-C001",
-      "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-      "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
-      "adversarial": {
-        "audit_branch": "audit/landing-adversarial",
-        "audit_sha": "706a8d64ed95a8178f0b1810d9992249875ec12c",
-        "report": "research/landing_accessibility/audit/adversarial/V2_C001.{md,json}",
-        "verdict": "FAIL",
-        "counts": {
-          "P0": 0,
-          "P1": 3,
-          "P2": 4,
-          "blocking": 3
+      "schema": "사이클별 등재. 감사가 CLOSED 판정하기 전에는 닫지 않는다(executor/orchestrator self-approval 금지). REMEDIATION_CLAIMED_PENDING_AUDIT 도 open 으로 계상한다.",
+      "cycles": [
+        {
+          "cycle": "V2-C001",
+          "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+          "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+          "adversarial": {
+            "audit_branch": "audit/landing-adversarial",
+            "audit_sha": "706a8d64ed95a8178f0b1810d9992249875ec12c",
+            "report": "research/landing_accessibility/audit/adversarial/V2_C001.{md,json}",
+            "verdict": "FAIL",
+            "counts": {
+              "P0": 0,
+              "P1": 3,
+              "P2": 4,
+              "blocking": 3
+            },
+            "total": 7,
+            "blocking": 3,
+            "findings": [
+              {
+                "id": "orchestrator-entrypoint-still-routes-to-v1-scope",
+                "severity": "P1",
+                "blocking": true,
+                "auditor": "adversarial",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "remediation": "V2-C002: NEXT_SESSION_ENTRYPOINT.md / HANDOFF_PRE_ANALYSIS_START.md / PHASE_EXECUTION_DIRECTIVE_v5.0.md / preserved SSOT_v1.0.md 최상단 v2 라우팅 배너 + research/landing_accessibility/CLAUDE.md 포인터 신설",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "adversarial @ 2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "closure_evidence": "control@1350b7f9 의 v1 문서 4종(NEXT_SESSION_ENTRYPOINT.md / HANDOFF_PRE_ANALYSIS_START.md / PHASE_EXECUTION_DIRECTIVE_v5.0.md / control/handoff/preserved/…SSOT_v1.0.md) 최상단 L1 부터 SUPERSEDED_* 배너. 본문 삭제 0 실측: `git diff --numstat bfa16624 1350b7f9 -- .../docs .../control/handoff` → 13/0, 62/0, 35/0, 16/0 이고 `| grep -c '^-[^-]'` → 0. 배너가 SCOPE 대체값·정지점 READY_FOR_E001_V2·`docs/v2/ 는 이 브랜치 체크아웃에 파일로 존재하지 않는다` + `git show origin/…` 읽기 명령을 명시. HANDOFF §10 본문 안쪽에도 v1→v2 phase 재매핑 supersede 블록 추가. 결정적으로 control 브랜치에 nested research/landing_accessibility/CLAUDE.md 신설(L26 브랜치, L30-39 권위 서열, L41 docs/v2 부재 안내) — Claude Code 자동로드 경로가 채워졌다. 잔여(비-finding): NEXT_SESSION_ENTRYPOINT 본문 L52-53 의 v1 phase 문구는 남아 있으나 배너가 명시 무효화한다."
+              },
+              {
+                "id": "v1-open-debt-ledger-not-adopted-by-v2-authority",
+                "severity": "P1",
+                "blocking": true,
+                "auditor": "adversarial",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "remediation": "V2-C002: state.json v2_transition.debt_inheritance 로 open 21건 전량 승계 + v2 phase 재매핑 + v2_audit_findings 등재 + open_blocking_total 산출",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "adversarial @ 2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "closure_evidence": "직접 세었다. state.json v2_transition.debt_inheritance: by_v2_phase P-A 3 + P-B 8 + P-C 5 + P-I 5 = 21 = v1_open. items[] 21건 전부 state='OPEN' — 근거 없이 닫힌 항목 0건. blocking_ids 6건 전부 v1_debt_class=E001_BLOCKING ∧ blocks_ready_for_e001_v2=true 로 v1 triage 의 E001_BLOCKING 6 과 일치. class 분해 E001_BLOCKING 6 / PUBLICATION_DEBT 6 / POST_E001_DEBT 9 = 21 이 v1 {CLOSED:3, POST_E001_DEBT:9, PUBLICATION_DEBT:6, E001_BLOCKING:6} 와 정확히 정합. 21건 전부 remap_rationale 보유하고 v1 cycle명(C013 처리중 / Bundle C)은 v1_scheduled 에 보존 — 재매핑은 작업 내용 기준이며 자의적이지 않다. REMEDIATION_CLAIMED_PENDING_AUDIT 3건도 v2_adversarial_blocking=3 으로 계속 계상되며 note 가 'executor/orchestrator self-approval 금지' 를 명시. open_blocking_total = 6+3+11 = 20, gate_satisfied=false. 문서 측은 EXECUTION_AUTHORITY §4 L117-118 이 '두 원장의 합계로 계산한다. v1 원장을 무시하고 0을 선언하는 것은 게이트 위반이다' 로 닫는다."
+              },
+              {
+                "id": "promotion-clean-check-targets-wrong-worktree",
+                "severity": "P1",
+                "blocking": true,
+                "auditor": "adversarial",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "remediation": "V2-C002: promote_landing_main.sh 워크트리 하드코딩 제거(git worktree list --porcelain 해석, 미발견 시 fail) + HEAD==EXEC_SHA 단언 + v2_transition.open_blocking_total 검사 + scripts/hooks/pre-push 층 추가",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "adversarial @ 2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "closure_evidence": "promote_landing_main.sh 를 --dry-run 으로 8회 직접 실행(push 미발생 — 스크립트 L197-200 이 push 이전 종료). (a) 자동해석: `exec worktree = /home/sieg/…/.agent_worktrees/landing_v2_exec` — landing_exec 하드코딩 제거, git worktree list --porcelain 파싱(L54-92). (b) open_blocking_total 검사 실작동: `PROMOTION BLOCKED: v2_transition.open_blocking_total = 20 (v1 승계 6 + adversarial 3 + ssot 11)`. (c) fail-closed 4/4: eb36d173 → 'exec 워크트리 HEAD(6fad79fa…) != 승격 대상 SHA'; --exec-worktree=/nonexistent → '경로가 없다'; deadbeef… → 'exec SHA 를 해석할 수 없다'; --skip-checks → 'unknown option'. (d) dirty 주입 3케이스: clean → OK, `touch __dirty_probe__.tmp` → 'dirty … ?? __dirty_probe__.tmp', `echo x >> README.md` → 'dirty … M README.md'. HEAD==EXEC_SHA 단언(L138-140) 신설로 '검증한 트리 != 승격 SHA' 경로도 닫혔다. 저장소 정본 훅 stdin 8케이스도 8/8 정확(Pilot BLOCK / main non-promotion BLOCK / main ff PASS / main force BLOCK / main delete BLOCK / audit force BLOCK / audit delete BLOCK / agent PASS). 훅 미설치 문제는 별건 신규 finding P2-2 로 분리한다."
+              },
+              {
+                "id": "bootstrap-prompt-carries-no-in-file-non-authority-marker",
+                "severity": "P2",
+                "blocking": false,
+                "auditor": "adversarial",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "adversarial @ 2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "closure_evidence": "docs/v2/bootstrap/07_CLAUDE_FIRST_SESSION_PROMPT_v2.0.md L1-20 에 INSTALLED-BANNER-START/END 로 감싼 파일 내부 배너: '## ⚠ 이 파일은 실행권위가 아니다 / 지위: NON_AUTHORITATIVE_BOOTSTRAP_RECORD / 실행규칙·범위·Gate의 근거로 **인용하지 마라.**' + 정본 5종 라우팅표 + 'SHA·브랜치 상태는 부트스트랩 시점의 기대값이며 current가 아니다'. 배너 제외 본문 sha256 = 0b528722… 로 /home/sieg/projects-wsl/ProjectFinal/SSOT/07_… 원본과 바이트 동일(내가 직접 대조)."
+              },
+              {
+                "id": "readme-reading-order-points-to-uninstalled-path",
+                "severity": "P2",
+                "blocking": false,
+                "auditor": "adversarial",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "adversarial @ 2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "closure_evidence": "docs/v2/README.md 최상단 배너가 항목 7·8 의 설치 후 실제 위치를 표로 정정('06은 docs/v2/에 설치되지 않는다. research/landing_accessibility/CLAUDE.md 로 설치됐다' / '07은 docs/v2/bootstrap/에 비권위 이력으로만 보존'). docs/INDEX.md 가 '이 파일이 읽기 순서의 정본이다. docs/v2/README.md 는 … 비권위' 로 강등. 배너 제외 본문 sha256 = e892029b… 로 SSOT/README.md 와 바이트 동일."
+              },
+              {
+                "id": "install-manifest-is-self-anchored",
+                "severity": "P2",
+                "blocking": false,
+                "auditor": "adversarial",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "OPEN",
+                "reaffirmed_in_cycle": "V2-C002",
+                "reaffirmation_evidence": "시정 4항 중 2항만 이행. (1) INSTALL_MANIFEST 에 MANIFEST.json 고정 — 미이행(install['files'] 14키에 없고 verify_v2_docs.py L141 이 이름으로 skip). (2) docs/INDEX.md 를 files 에 추가 — 이행. (3) SSOT/ 원본 대조 — 미이행(/home/sieg/projects-wsl/ProjectFinal/SSOT/ 는 실재하는데 스크립트가 참조하지 않는다). (4) pytest 연결 — 이행(tests/test_v2_docs_integrity.py, 28 passed). 격리 scratch 저장소 ATTACK A 실증: 00_SSOT §3 '### 절대 제외' → '### 절대 제외 (P-C에서 재검토 가능)' 개변 + MANIFEST.json sha 갱신 + INSTALL_MANIFEST sha/bytes/body_sha256 갱신 + 커밋 → V2_DOCS_VERIFY: PASS (rc=0). ATTACK C(docs/v2 밖 신규 권위문서), ATTACK E(docs/v2/addenda/MANIFEST.json)도 PASS. ATTACK D(docs/v2/A3_ROGUE.md)는 'UNDECLARED … 이 설치 매니페스트에 없다' 로 정상 FAIL — 3층 커버리지는 실제 개선이다. 등급·class 는 V2-C001 그대로 P2 / POST_E001_DEBT 유지하며 blocking 으로 올리지 않는다(실질 앵커는 두 감사의 git diff BASE TARGET)."
+              },
+              {
+                "id": "l1-scout-has-no-step-budget",
+                "severity": "P2",
+                "blocking": false,
+                "auditor": "adversarial",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "adversarial @ 2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "closure_evidence": "A1 §2.1 예산 4종 신설: MAX_ACTIVATIONS_PER_TASK=8 / MAX_STATE_REVISITS=2 / MAX_SCOUT_WALL_CLOCK_S=180 / MAX_CONSECUTIVE_NO_STATE_CHANGE=2, 전부 'P-C E000_V2에서 검증 후 동결'. §2.2 종료상태 UNRESOLVED_DEPTH_BUDGET_EXCEEDED 는 '02 §7 UNRESOLVED 의 하위 세분값. 7개 종료값 집합을 확장하지 않는다' 이며 A2 §1.5.2 가 endpoint_status_detail 동반 컬럼 + roll-up 규칙으로 정합화. 내가 요구한 '수집 예산 != 해석 임계값' 구분이 A1 §0.4 표로 명문화됐고 §2.3(measurement status, KWCAG 전환 금지) · §2.4(우측절단 별도집계, 상한값 대입 금지, ExcessDepth 미산출) · §7(P-C 동결 목록) · §8(오독 금지 목록) · A2 X-5 · A2 §7 7-a 로 5중 방어. §2.5 가 02 §14 실패주입에 3케이스 추가(신호 미발화 대상 / 순환 navigation / MPFED 가 8로 새지 않고 NULL 로 저장되는가)."
+              }
+            ],
+            "status_source": "V2-C002 adversarial 감사 prior_findings_status",
+            "closed_in_V2_C002": 6,
+            "still_open": 1,
+            "open_blocking": 0
+          },
+          "ssot": {
+            "audit_branch": "audit/landing-ssot",
+            "audit_sha": "507fcf25a7e6800d9c03c6b6c8ecc880264bf6ea",
+            "report": "research/landing_accessibility/audit/ssot/V2_C001.{md,json}",
+            "verdict": "FAIL",
+            "counts": {
+              "P0": 0,
+              "P1": 2,
+              "P2": 11,
+              "blocking": 11,
+              "non_blocking": 2
+            },
+            "total": 13,
+            "blocking": 11,
+            "findings": [
+              {
+                "id": "ned-ied-split-not-operationalized",
+                "severity": "P1",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "A1 §1이 처방한 메커니즘 그대로 시정. §1.1이 FUNCTION_AREA_REACHED를 관측가능 3조건(PRESENT ∧ HITTABLE ∧ NO_FURTHER_ACTIVATION, scroll만으로 도달 가능하면 만족)으로 정의. §1.2가 archetype 7종 전건에 영역진입 control·1차 판정 소스를 부여하고 UTILITY_ENTRY는 00 §3에 대응 행이 없음을 명시해 임의 생성을 거부(P-A codebook으로 이관). §1.3 NED=k / IED=m-k / MPFED=m. §1.4의 4개 경계상황(k=0, k=m=0, 동시성립, 역전 m<k) 전부에서 MPFED=NED+IED 항등 성립을 직접 검산. §1.8이 fact_task_step.area_signal_detected·depth_segment·counts_toward_depth, fact_task_entry.area_signal_status, dim_representative_task.region_definition·region_signal_type을 요구하고 A2 §1.5.3·§1.5.4·§1.9가 값 도메인 확정. §1.7/A2 규칙 D-1이 사후 재계산 가능성을 규범화해 02 §12 재판정 전제와 정합. §1.6 cascade는 00 §10·02 §1 사다리를 따르고 '확정 불가 시 NOT_OBSERVED 또는 ABSTAIN, 억지 분류하지 않는다'로 laundering을 차단."
+              },
+              {
+                "id": "phase-gate-names-only-in-nonauthoritative-bootstrap",
+                "severity": "P1",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "PHASE_GATES.md 신설 + EXECUTION_AUTHORITY §2 권위서열 7위 편입 + INDEX.md 7위 기재. grep 재실측: V2_SSOT_FROZEN → PHASE_GATES:19,29,66 · EXECUTION_AUTHORITY:21,83,178; ANALYSIS_AND_TASK_CODEBOOK_FROZEN → PHASE_GATES:30,80; TARGET_TASK_FRAME_FROZEN → PHASE_GATES:31,92; L0_L1_ENGINE_READY → PHASE_GATES:32,104. 4개 gate 전건이 권위문서에 존재하며 bootstrap/07 인용 없이 지칭 가능. 신설 라벨 E000_V2_VALIDATED는 §1이 '03과 00이 P-D에 이름을 부여하지 않아 본 문서가 부여한 운영 라벨이다. 연구기준이 아니라 phase 종료를 가리키는 식별자다'로 자진 신고. §3 gate별 통과조건을 03 실행 Phase Gate 및 00 §15와 항목 단위 대조한 결과 완화 0, 엄격화만."
+              },
+              {
+                "id": "interrupt-dismiss-fields-have-no-collection-procedure",
+                "severity": "P2",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "A1 §3이 02 §5의 4단계에 5차(조작 없음)·6차(dismissal 시도)를 잇는다. §3.1이 L0-a/L0-b/L0-c 순서를 고정하고 'L0-a의 evidence가 확정된 뒤에만 L0-c를 수행한다'로 02 §3('L0에서는 대표기능을 아직 클릭하지 않는다')와 02 §12 append-only를 동시에 만족 — 내가 지적한 '조작 허용 여부·수행 시점·evidence 순서 미정'이 정확히 해소. 6개 고아 필드 전건에 산출 절차 부여(dismiss_control_accessible_name은 '브라우저 AX tree의 computed name을 그대로 저장', 빈 이름은 NAME_ABSENT, VLM 추정 금지). dismiss_method·dismiss_failure_mode·dismiss_persistence_hint·before/after evidence 3종 추가. A2 §1.6이 값 도메인 확정."
+              },
+              {
+                "id": "episode-counters-undefined-and-uncollected",
+                "severity": "P2",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "두 겹 결함 모두 시정. (1) 정의 — A1 §4.2 text_input_episode = 'focus 획득부터 그 focus가 끝날 때까지의 연속 입력 구간 1개', '100자를 넣어도 1 episode', IME·자동입력(input_mode=PROGRAMMATIC) 규칙; §4.3 scroll_episode 종료 5조건 + SCROLL_IDLE_MS 기본 500(P-C 동결). 정수 카운트가 재현 가능해졌다. (2) 적재처 — fact_task_episode 표 신설(§4.4) + 카운트 항등식(text_input_episode_count = count(episode_kind='TEXT_INPUT')), 그리고 02 §7 기록목록에 두 episode가 없다는 사실을 §4.4 말미가 명시해 P-C 요구로 이관. A2 §1.12가 episode_kind 2값·ended_by 9값·input_mode를 확정하고 EP-1~EP-3 규칙 부여. 04_GLOSSARY 미개정은 pack 바이트 불변 정책의 필연이며 정의처가 권위서열 8·9위에 존재하므로 공백 아님."
+              },
+              {
+                "id": "primary-action-identity-not-stored",
+                "severity": "P2",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "A1 §5.1 fact_primary_action_candidate 신설. area_css_px2를 'PrimaryActionOcclusion의 분모'로 명시 저장하고 §5.2가 primary_action_visible_initial·primary_action_occlusion·max_primary_action_occlusion 세 파생 스칼라의 산출식을 분자/분모로 분해하며 '분자·분모가 모두 저장되므로 제3자 재계산이 가능하다'고 선언 — 02 §12 재판정 전제와의 충돌 해소. selector·bbox·accessible_name·similarity_score·selection_basis·selection_status·ai_review_status·evidence_package_id로 AI review 감사추적 유지. A2 규칙 C-3 'RUNNER_UP·REJECTED를 지우지 않는다'가 후보 소실을 금지. §5.4가 매핑/머티리얼라이제이션 레이어 산출물임을 명시해 01 서두 원본 불변과 정합."
+              },
+              {
+                "id": "l0-evidence-artifacts-without-storage-slot",
+                "severity": "P2",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "지적 3건 전부. (1) A1 §6.1이 screenshot_initial_path / screenshot_fullpage_path를 분리하고 §6.2가 02 §11 identity 집합을 'DOM / AX / screenshot(initial) / screenshot(fullpage) / computed CSS / probe / manifest' 7종으로 확정. (2) computed_css_path를 probe_path와 별도 파일로 분리('probe는 02 §4 raw feature 전용'). (3) collection_started_at / collection_finished_at 추가 + §6.3 observation_id = hash(web_target_id, evidence_run_id, requested_url, protocol_version, collection_started_at)로 같은 날 재수집 구분 문제를 닫고 'audit_date만으로 관측을 식별하지 않는다'고 못박음. audit_date는 collection_started_at의 Asia/Seoul 파생으로 재정의. viewport_configured_* / device_pixel_ratio도 추가."
+              },
+              {
+                "id": "measurement-status-vocabulary-unreconciled",
+                "severity": "P2",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "(1) 허용값 집합 — A2 §1.2가 MEASURED + FAILED_ACCESS_BLOCKED / FAILED_ROBOTS_OR_TRANSPORT / FAILED_BROWSER_CRASH / FAILED_PAGE_TIMEOUT / FAILED_EVIDENCE_INCOMPLETE 의 닫힌 6값을 열거하고, 'MEASUREMENT_FAILED는 저장값이 아니라 계열(family) 이름이다. 저장되는 것은 leaf 토큰이며 MEASUREMENT_FAILED는 measurement_status LIKE FAILED_% 로 유도되는 술어다'로 01 §11의 단일 개념과 02 §13의 다섯 조건을 동시에 보존 — 우아하고 정확한 해법. 규칙 M-1이 'measurement_status != MEASURED 관측은 fact_criterion_result 행을 생성하지 않는다'로 02 §13 규범을 기계화. (2) app-only 이중주장 — web_eligibility_status.EXCLUDED_APP_ONLY로 배치 결정. 원 finding이 요구한 '값 집합 열거'와 '표 배치 확정'은 모두 답변됐으므로 CLOSED. 다만 그 결정이 만든 새 공백(수집 시점 발견 경로 무주지)은 신규 finding app-only-reallocation-leaves-collection-time-discovery-unrepresented 로 분리 등재한다."
+              },
+              {
+                "id": "undefined-column-vocabularies",
+                "severity": "P2",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "4개 지적 전부. automation_grade → A2 §3이 02 §1 / 00 §10의 6단계 사다리에 A_BROWSER_NATIVE~F_HUMAN_FINAL + UNGRADED 7값을 바인딩하고 최소 등급 원칙 G-1('A로 확정 가능한 항목을 E로 기록하면 결함이다')로 00 §10 '모델을 쓰기 위해 모델을 쓰지 않는다'를 기계화, G-2~G-6 정합 제약 부여. decision coverage → §4.2가 decision_coverage_applicable(정본)과 _all(보조)의 분자·분모를 확정하고 'decision coverage는 수집 실패를 숨긴다'는 함정을 §4.1 evidence completeness 병기 의무로 차단. ABSTAIN → §2가 fact_ai_adjudication.final_status로 귀속 확정, §2.2 표로 UNDETERMINED와 분리, T-4로 criterion 전파 시 UNDETERMINED가 됨을 규정. status 도메인 → §1.7이 verdict_state(AI 검토 이전·불변)와 final_status(adjudication 이후)를 시점으로 분리하고 applicable_count = pass+fail+undetermined 항등식 부여. §1 전체가 12개 상태 컬럼의 열거값을 상호배타 선언과 함께 확정."
+              },
+              {
+                "id": "claude-md-and-evidence-contract-authority-framing",
+                "severity": "P2",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "3개 지적 전부. (1)(2) CLAUDE.md 상단 INSTALLED-BANNER가 '이 파일의 지위는 PROJECT_CONTEXT_DERIVED 다 … 충돌하면 정본이 옳다'를 본문에 담고 00_SSOT·EXECUTION_AUTHORITY·PHASE_GATES·A1·A2·07_EVIDENCE_MANIFEST_CONTRACT·INDEX 7경로를 '찾는 것 → 정본' 표로 제시. 7경로 전건 실재 확인(git cat-file -e). (3) 07_EVIDENCE_MANIFEST_CONTRACT.md가 EXECUTION_AUTHORITY §2 권위서열 10위로 편입됐고 §3 v1 지위표도 '본 브랜치 | 현행 유효 (권위서열 10위)'로 일치 — 두 절 모순 0. manifest grain 명확화도 A1 §6.2('manifest_path는 run manifest 경로이며 관측마다 고유하지 않다. 한 run의 전 관측이 같은 값을 공유한다')와 A2 §4.1 주의 0('고유성 검사를 이 컬럼에 걸지 않는다')으로 완료. 배너는 INSTALLED-BANNER-START/END 마커로 감싸여 배너 제외 본문이 원본 06_PROJECT_CLAUDE_MD_v2.0.md와 바이트 동일(e0a1d1f8…b958a4, 독립 계산 확인)."
+              },
+              {
+                "id": "bootstrap-07-lacks-in-file-nonauthority-banner",
+                "severity": "P2",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "파일 1~25행에 '⚠ 이 파일은 실행권위가 아니다 / 지위: NON_AUTHORITATIVE_BOOTSTRAP_RECORD (EXECUTION_AUTHORITY.md §2) / 실행규칙·범위·Gate의 근거로 인용하지 마라 / 이 본문이 서술하는 SHA·브랜치 상태는 부트스트랩 시점의 기대값이며 current가 아니다' 배너 삽입 + 정본 5경로 안내표. 내가 제안한 것보다 나은 처리 — pack 바이트 동일성을 포기하지 않고 INSTALLED-BANNER-START/END 마커 + verify_v2_docs.py의 strip_banner()로 배너 제외 본문의 바이트 동일성을 계속 검증한다. 독립 계산 결과 배너 제외 본문 sha256 = 0b528722…ee3e5e = 원본 SSOT/07_CLAUDE_FIRST_SESSION_PROMPT_v2.0.md 동일. INSTALL_MANIFEST.json이 banner_inserted: true + body_sha256을 기록."
+              },
+              {
+                "id": "state-table-mapping-declared-without-correspondence",
+                "severity": "P2",
+                "blocking": true,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "A2 §5가 논리↔물리 대응표를 (a) DIRECT / (b) DERIVED / (c) ABSENT 3분류로 제공. 규칙 V-3 '이름이 대응해도 grain이 다르면 대응이 아니다. 이 절은 이름보다 grain 불일치를 먼저 표기한다'가 내가 지적한 은폐를 정면으로 다룬다. §5.0이 'dim_panel · fact_source_ranking · dim_measurement_entity · bridge_source_membership 이라는 이름의 파일은 존재하지 않는다'고 명시. §5.4가 bridge_source_membership(261 기대) ↔ source_membership(142 실측) grain 불일치를 판정하고 '물리 source_membership은 논리 bridge_source_membership이 아니다. 그것은 논리 bridge의 결정적 집계 뷰다'로 결론. §5.5가 dim_web_target ↔ web_target_group을 '대응이 아니라 선행'으로 확정하고 confirmed_by_url=True 0건을 근거로 '그룹을 web target으로 간주한 어떤 집계도 근거가 없다'고 못박음. measurement_entity_id ↔ service_id 키 이름 차이도 §5.3 기재. §6이 산출 Phase(P-A/P-B/P-C/P-F/P-H) 귀속. 본 감사가 §5·§8의 [실측] 수치 20여 건을 state/*.parquet 직접 읽어 전건 재현했다."
+              },
+              {
+                "id": "readme-stale-pack-paths",
+                "severity": "P2",
+                "blocking": false,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "CLOSED",
+                "closed_in_cycle": "V2-C002",
+                "closed_by_audit": "ssot @ eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "closure_evidence": "docs/v2/README.md 상단 배너가 '지위: NON_AUTHORITATIVE_READING_GUIDE'와 함께 06(설치되지 않음 → ../CLAUDE.md)·07(bootstrap/에 비권위 이력으로만 보존, 실행규칙 근거로 인용 금지) 두 항목의 설치 후 실제 위치를 표로 시정하고 '읽기 순서의 정본은 ../INDEX.md'를 선언. INDEX.md도 '이 파일이 읽기 순서의 정본이다. docs/v2/README.md는 원본 pack의 읽기 안내로 비권위이며 설치 후 경로와 어긋나는 부분이 있다'로 대응. 배너 제외 본문 sha256 = e892029b…272837 = 원본 SSOT/README.md 동일(독립 계산) — 내가 우려했던 '원본 대조가 깨진다'는 트레이드오프가 배너 마커 방식으로 소거됐다."
+              },
+              {
+                "id": "install-integrity-coverage-gap",
+                "severity": "P2",
+                "blocking": false,
+                "auditor": "ssot",
+                "cycle": "V2-C001",
+                "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+                "state": "OPEN",
+                "reaffirmed_in_cycle": "V2-C002",
+                "reaffirmation_evidence": "3개 대상 중 1개만 닫혔다. 닫힘: docs/INDEX.md가 INSTALL_MANIFEST.json에 authority: DOCUMENT_INDEX / anchor: git 으로 등재됐고, layer-3 커버리지 스윕(docs/v2/ 아래 전 .md/.json이 매니페스트에 등재됐는지 검사)이 신설됐으며, INSTALL_MANIFEST.json 자신도 git 앵커를 받는다. 잔존: docs/v2/MANIFEST.json이 install[\"files\"]에 없고 커버리지 루프가 'if path.name in {\"MANIFEST.json\", \"INSTALL_MANIFEST.json\"}: continue'로 이름 배제한 뒤 INSTALL_MANIFEST.json에만 git 앵커를 따로 건다 — layer-1 검증의 기준선 자신이 무앵커다. scripts/verify_v2_docs.py와 신설 tests/test_v2_docs_integrity.py도 등재 대상 밖이다. 본 감사가 SSOT/MANIFEST.json과 수동 sha256 대조해 무결을 확인했으므로 비차단(POST_E001_DEBT) 유지."
+              }
+            ],
+            "status_source": "V2-C002 ssot 감사 prior_findings_status",
+            "closed_in_V2_C002": 12,
+            "still_open": 1,
+            "open_blocking": 0
+          },
+          "rollup": {
+            "total_findings": 20,
+            "closed": 18,
+            "open": 2,
+            "open_ids": [
+              "install-manifest-is-self-anchored",
+              "install-integrity-coverage-gap"
+            ],
+            "open_blocking": 0,
+            "note": "V2-C001 blocking 14건(adversarial 3 + ssot 11)은 V2-C002 두 감사가 전건 CLOSED 판정했다. 남은 OPEN 2건은 둘 다 non-blocking(POST_E001_DEBT)이며 설치 무결성 앵커 커버리지 결손이다."
+          }
         },
-        "total": 7,
-        "blocking": 3,
+        {
+          "cycle": "V2-C002",
+          "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+          "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+          "control_sha_audited": "1350b7f91bf6103c86d035f6b9e59120d035d34c",
+          "adversarial": {
+            "audit_branch": "audit/landing-adversarial",
+            "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+            "report": "research/landing_accessibility/audit/adversarial/V2_C002.{md,json}",
+            "verdict": "FAIL",
+            "counts": {
+              "P0": 0,
+              "P1": 1,
+              "P2": 7,
+              "blocking": 6
+            },
+            "total": 8,
+            "blocking": 6,
+            "findings": [
+              {
+                "id": "a2-undetermined-to-pass-transition-underspecified-and-narrowed",
+                "severity": "P1",
+                "blocking": true,
+                "blocking_class": "V2_SSOT_FROZEN-blocking",
+                "auditor": "adversarial",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "file": "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md:572-574,582,1303,453,456-461,778 vs research/landing_accessibility/docs/v2/02_COLLECTION_MEASUREMENT_SPEC_v2.0.md:298",
+                "state": "OPEN"
+              },
+              {
+                "id": "verify-script-declared-in-promotion-path-but-never-called",
+                "severity": "P2",
+                "blocking": true,
+                "blocking_class": "V2_SSOT_FROZEN-blocking",
+                "auditor": "adversarial",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "file": "research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md:178 vs control/landing-orchestrator:research/landing_accessibility/scripts/promote_landing_main.sh (216 lines)",
+                "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+                "remediated_in": "V2-C003",
+                "remediation": "V2-C003 (control): promote_landing_main.sh 에 검사 6 신설. $EXEC_WT/research/landing_accessibility/scripts/verify_v2_docs.py 를 실제 실행하고 exit != 0 이면 승격 차단. 스크립트 부재도 차단(조용한 건너뛰기 없음). 문서 측(EXECUTION_AUTHORITY §8 문안)은 exec 브랜치 소관으로 남는다."
+              },
+              {
+                "id": "repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect",
+                "severity": "P2",
+                "blocking": true,
+                "blocking_class": "V2_SSOT_FROZEN-blocking",
+                "auditor": "adversarial",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "file": "control/landing-orchestrator:research/landing_accessibility/scripts/hooks/pre-push (정본) vs /home/sieg/projects-wsl/ProjectFinal/.git/hooks/pre-push (미추적 로컬 사본, 실제 유효). 선언: control@1350b7f9:research/landing_accessibility/CLAUDE.md:90-94",
+                "state": "OPEN"
+              },
+              {
+                "id": "control-claude-md-invents-authority-rank-0-above-ssot",
+                "severity": "P2",
+                "blocking": true,
+                "blocking_class": "V2_SSOT_FROZEN-blocking",
+                "auditor": "adversarial",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "file": "control/landing-orchestrator@1350b7f9:research/landing_accessibility/CLAUDE.md:30-39 vs agent/landing-v2-exec@6fad79fa:research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md:6,28-40 및 docs/INDEX.md",
+                "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+                "remediated_in": "V2-C003",
+                "remediation": "V2-C003 (control): research/landing_accessibility/CLAUDE.md §2 를 포인터 전용으로 재작성. rank 0 표 삭제, 서열 재진술 제거. 남긴 것은 '00_SSOT 가 1위' · 'EXECUTION_AUTHORITY 는 서열을 선언하는 문서이지 서열 안의 문서가 아니며 00_SSOT 가 우선' 두 문장과 정본 읽기 명령뿐이다."
+              },
+              {
+                "id": "ned-ied-path-minimality-not-operationalized",
+                "severity": "P2",
+                "blocking": true,
+                "blocking_class": "E001_V2-blocking",
+                "auditor": "adversarial",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "file": "research/landing_accessibility/docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md:114-123 (§1.3), :166-182 (§1.7) vs docs/v2/00_SSOT_v2.0.md §7 및 docs/v2/02_COLLECTION_MEASUREMENT_SPEC_v2.0.md:144",
+                "state": "OPEN"
+              },
+              {
+                "id": "gitignore-bare-env-pattern-overreaches-beyond-worktree-symlinks",
+                "severity": "P2",
+                "blocking": false,
+                "blocking_class": "POST_E001_DEBT",
+                "auditor": "adversarial",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "file": ".gitignore:2-3,16 (6fad79fa)",
+                "state": "OPEN"
+              },
+              {
+                "id": "installed-banner-region-is-unanchored-injection-surface",
+                "severity": "P2",
+                "blocking": false,
+                "blocking_class": "POST_E001_DEBT",
+                "auditor": "adversarial",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "file": "research/landing_accessibility/scripts/verify_v2_docs.py:44-53 (strip_banner), :93-111 / research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json (banner_inserted: true 3파일)",
+                "state": "OPEN"
+              },
+              {
+                "id": "promotion-verdict-check-treats-missing-verdict-as-pass",
+                "severity": "P2",
+                "blocking": true,
+                "blocking_class": "V2_SSOT_FROZEN-blocking",
+                "auditor": "adversarial",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "2a28ad3dae5eb385b0af373cfc950ed86468c91d",
+                "file": "control/landing-orchestrator@1350b7f9:research/landing_accessibility/scripts/promote_landing_main.sh:185-187",
+                "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+                "remediated_in": "V2-C003",
+                "remediation": "V2-C003 (control): promote_landing_main.sh 검사 5 재작성. `assert v is None or v == \"PASS\"` → 두 verdict 가 명시적으로 PASS 여야 통과. 추가로 감사 브랜치의 보고서 JSON(V2_C00N.json)을 직접 읽어 verdict/target_sha/cycle/auditor 를 재확인하며 파일 부재·파싱 실패·필드 부재는 전부 차단. both_audits_same_target_sha 도 `is True` 단언."
+              }
+            ]
+          },
+          "ssot": {
+            "audit_branch": "audit/landing-ssot",
+            "audit_sha": "eb7e4e13a2075b7390d16d545b92f04d549381f1",
+            "report": "research/landing_accessibility/audit/ssot/V2_C002.{md,json}",
+            "verdict": "FAIL",
+            "counts": {
+              "P0": 0,
+              "P1": 0,
+              "P2": 4,
+              "blocking": 4,
+              "non_blocking": 0,
+              "blocking_by_class": {
+                "V2_SSOT_FROZEN-blocking": 3,
+                "E001_V2-blocking": 1,
+                "POST_E001_DEBT": 0
+              }
+            },
+            "total": 4,
+            "blocking": 4,
+            "findings": [
+              {
+                "id": "a1-endpoint-status-placement-contradicts-a2",
+                "severity": "P2",
+                "blocking": true,
+                "blocking_class": "V2_SSOT_FROZEN-blocking",
+                "auditor": "ssot",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "file": "research/landing_accessibility/docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+                "state": "OPEN"
+              },
+              {
+                "id": "app-only-reallocation-leaves-collection-time-discovery-unrepresented",
+                "severity": "P2",
+                "blocking": true,
+                "blocking_class": "E001_V2-blocking",
+                "auditor": "ssot",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "file": "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+                "state": "OPEN"
+              },
+              {
+                "id": "execution-authority-overclaims-verify-script-invocation",
+                "severity": "P2",
+                "blocking": true,
+                "blocking_class": "V2_SSOT_FROZEN-blocking",
+                "auditor": "ssot",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "file": "research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md",
+                "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+                "remediated_in": "V2-C003",
+                "remediation": "V2-C003 (control): 선언을 사실로 만드는 쪽으로 시정 — promote_landing_main.sh 검사 6 이 verify_v2_docs.py 를 실제로 호출한다. 이제 EXECUTION_AUTHORITY §8 의 '승격 경로에서 호출된다' 가 참이다. 문안 자체의 확인·조정은 exec 브랜치에서 수행한다."
+              },
+              {
+                "id": "control-claude-md-restates-stale-six-rank-authority-ladder",
+                "severity": "P2",
+                "blocking": true,
+                "blocking_class": "V2_SSOT_FROZEN-blocking",
+                "auditor": "ssot",
+                "cycle": "V2-C002",
+                "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+                "audit_sha": "eb7e4e13a2075b7390d16d545b92f04d549381f1",
+                "file": "control/landing-orchestrator @ 1350b7f9 : research/landing_accessibility/CLAUDE.md",
+                "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+                "remediated_in": "V2-C003",
+                "remediation": "V2-C003 (control): 낡은 6단 서열표 삭제(재진술 자체를 제거). Gate 정의 귀속을 03 → PHASE_GATES.md 로 시정하고 '03 은 Phase 를 정의하지만 Gate 를 정의하지 않는다(PHASE_GATES §0)' 를 명시. 항목 수·순서는 적지 않는다."
+              }
+            ]
+          }
+        }
+      ],
+      "orchestrator_registered": {
+        "registered_by": "orchestrator",
+        "registered_in_cycle": "V2-C003",
+        "basis": "P-A codebook Q-1 (00 §3 archetype endpoint 정의 검토 중 발견)",
+        "note": "감사가 내지 않은 finding 이라도 오케스트레이터가 등재하면 open blocking 에 계상한다. self-approval 금지 원칙은 '닫는 것' 에 걸리는 규칙이지 '여는 것' 에 걸리는 규칙이 아니다.",
         "findings": [
           {
-            "id": "orchestrator-entrypoint-still-routes-to-v1-scope",
+            "id": "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1",
             "severity": "P1",
             "blocking": true,
-            "auditor": "adversarial",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
-            "remediated_in": "V2-C002",
-            "remediation": "V2-C002: NEXT_SESSION_ENTRYPOINT.md / HANDOFF_PRE_ANALYSIS_START.md / PHASE_EXECUTION_DIRECTIVE_v5.0.md / preserved SSOT_v1.0.md 최상단 v2 라우팅 배너 + research/landing_accessibility/CLAUDE.md 포인터 신설"
-          },
-          {
-            "id": "v1-open-debt-ledger-not-adopted-by-v2-authority",
-            "severity": "P1",
-            "blocking": true,
-            "auditor": "adversarial",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
-            "remediated_in": "V2-C002",
-            "remediation": "V2-C002: state.json v2_transition.debt_inheritance 로 open 21건 전량 승계 + v2 phase 재매핑 + v2_audit_findings 등재 + open_blocking_total 산출"
-          },
-          {
-            "id": "promotion-clean-check-targets-wrong-worktree",
-            "severity": "P1",
-            "blocking": true,
-            "auditor": "adversarial",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
-            "remediated_in": "V2-C002",
-            "remediation": "V2-C002: promote_landing_main.sh 워크트리 하드코딩 제거(git worktree list --porcelain 해석, 미발견 시 fail) + HEAD==EXEC_SHA 단언 + v2_transition.open_blocking_total 검사 + scripts/hooks/pre-push 층 추가"
-          },
-          {
-            "id": "bootstrap-prompt-carries-no-in-file-non-authority-marker",
-            "severity": "P2",
-            "blocking": false,
-            "auditor": "adversarial",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "readme-reading-order-points-to-uninstalled-path",
-            "severity": "P2",
-            "blocking": false,
-            "auditor": "adversarial",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "install-manifest-is-self-anchored",
-            "severity": "P2",
-            "blocking": false,
-            "auditor": "adversarial",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "l1-scout-has-no-step-budget",
-            "severity": "P2",
-            "blocking": false,
-            "auditor": "adversarial",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
+            "blocking_class": "V2_SSOT_FROZEN",
+            "found_by": "orchestrator (P-A codebook Q-1)",
+            "cycle": "V2-C003",
+            "target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+            "file": "research/landing_accessibility/docs/v2/00_SSOT_v2.0.md §3 vs docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md §1.5.1",
+            "state": "OPEN",
+            "summary": "00_SSOT §3 이 금융·커뮤니티 archetype 의 endpoint 에 '또는 로그인/인증 gate' 를 포함시켰는데, A2 §1.5.1 은 AUTH_GATE_REACHED 를 일반규칙으로 endpoint_reached = 0 / MPFED = NULL 로 규정한다. 두 규정이 겹치면 해당 두 archetype 의 depth 가 구조적으로 전부 NULL 이 되어 00 §11 archetype 분포, 00 §7 ExcessDepth 기준선, 01 §10 mart_archetype_summary 가 성립하지 않는다.",
+            "why_audits_missed_it": "adversarial 은 endpoint 어휘의 scope creep 축(질문 4)에서 '새 endpoint 를 만들지 않았는가' 만 보았고, ssot 는 A1↔A2 상호정합과 A2↔02 접점을 보았다. 00 §3 ↔ A2 §1.5.1 의 교차는 어느 감사 축에도 없었다.",
+            "remediation": "V2-C003 에서 A2 개정 (SSOT 우선). AUTH_GATE_REACHED 일반규칙에 '00 §3 이 인증 gate 를 endpoint 로 지정한 archetype 은 예외이며 gate 도달이 endpoint 도달이다' 는 취지의 예외를 명시해야 한다. SSOT 바이트는 수정하지 않는다 — 보충명세를 고친다.",
+            "owner": "exec (agent/landing-v2-exec)"
           }
         ]
       },
-      "ssot": {
-        "audit_branch": "audit/landing-ssot",
-        "audit_sha": "507fcf25a7e6800d9c03c6b6c8ecc880264bf6ea",
-        "report": "research/landing_accessibility/audit/ssot/V2_C001.{md,json}",
-        "verdict": "FAIL",
-        "counts": {
-          "P0": 0,
-          "P1": 2,
-          "P2": 11,
-          "blocking": 11,
-          "non_blocking": 2
+      "totals": {
+        "V2_C001": {
+          "total": 20,
+          "closed": 18,
+          "open": 2,
+          "open_blocking": 0
         },
-        "total": 13,
-        "blocking": 11,
-        "findings": [
-          {
-            "id": "ned-ied-split-not-operationalized",
-            "severity": "P1",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "phase-gate-names-only-in-nonauthoritative-bootstrap",
-            "severity": "P1",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "interrupt-dismiss-fields-have-no-collection-procedure",
-            "severity": "P2",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "episode-counters-undefined-and-uncollected",
-            "severity": "P2",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "primary-action-identity-not-stored",
-            "severity": "P2",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "l0-evidence-artifacts-without-storage-slot",
-            "severity": "P2",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "measurement-status-vocabulary-unreconciled",
-            "severity": "P2",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "undefined-column-vocabularies",
-            "severity": "P2",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "claude-md-and-evidence-contract-authority-framing",
-            "severity": "P2",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "bootstrap-07-lacks-in-file-nonauthority-banner",
-            "severity": "P2",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "state-table-mapping-declared-without-correspondence",
-            "severity": "P2",
-            "blocking": true,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "readme-stale-pack-paths",
-            "severity": "P2",
-            "blocking": false,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          },
-          {
-            "id": "install-integrity-coverage-gap",
-            "severity": "P2",
-            "blocking": false,
-            "auditor": "ssot",
-            "cycle": "V2-C001",
-            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
-            "state": "OPEN"
-          }
-        ]
-      },
-      "total_findings": 20,
-      "total_blocking": 14,
-      "note": "두 감사 모두 FAIL. V2-C001(eb36d17) 은 승격 불가. 본 V2-C002 는 adversarial 3건만 시정 주장하며, ssot 11건은 v2 executor 몫으로 남아 있다."
+        "V2_C002": {
+          "total": 12,
+          "closed": 0,
+          "open": 12,
+          "open_blocking": 10
+        },
+        "orchestrator_registered": {
+          "total": 1,
+          "closed": 0,
+          "open": 1,
+          "open_blocking": 1
+        }
+      }
     },
     "open_blocking_total": {
-      "formula": "v1_inherited_blocking + v2_adversarial_blocking + v2_ssot_blocking",
+      "recomputed_in_cycle": "V2-C003",
+      "formula": "v1_inherited_blocking + v2_c001_open_blocking + v2_c002_adversarial_blocking + v2_c002_ssot_blocking + orchestrator_registered_blocking",
       "v1_inherited_blocking": 6,
-      "v2_adversarial_blocking": 3,
-      "v2_ssot_blocking": 11,
-      "total": 20,
+      "v2_c001_open_blocking": 0,
+      "v2_c002_adversarial_blocking": 6,
+      "v2_c002_ssot_blocking": 4,
+      "orchestrator_registered_blocking": 1,
+      "total": 17,
       "gate": "00_SSOT_v2.0.md §15 — open blocking P0/P1/P2 = 0 이어야 READY_FOR_E001_V2 선언 가능",
       "gate_satisfied": false,
-      "note": "REMEDIATION_CLAIMED_PENDING_AUDIT 상태의 3건도 독립감사가 확인할 때까지 open 으로 계상한다. executor/orchestrator self-approval 금지."
+      "previous_total": 20,
+      "delta": -3,
+      "recomputation": {
+        "as_of": "V2-C002 두 감사 보고서 (adversarial 2a28ad3dae5eb385b0af373cfc950ed86468c91d / ssot eb7e4e13a2075b7390d16d545b92f04d549381f1), target 6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+        "steps": [
+          "① 직전 total 20 = v1 승계 6 + V2-C001 adversarial blocking 3 + V2-C001 ssot blocking 11.",
+          "② V2-C002 두 감사가 V2-C001 blocking 14건(adversarial 3 + ssot 11)을 전건 CLOSED 판정 → -14.",
+          "   (남은 V2-C001 OPEN 2건 install-manifest-is-self-anchored · install-integrity-coverage-gap 은 둘 다 non-blocking 이라 합계에 들어오지 않는다.)",
+          "③ V2-C002 adversarial 신규 blocking +6 (a2-undetermined-to-pass-transition-underspecified-and-narrowed P1, verify-script-declared-in-promotion-path-but-never-called, repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect, control-claude-md-invents-authority-rank-0-above-ssot, ned-ied-path-minimality-not-operationalized, promotion-verdict-check-treats-missing-verdict-as-pass). non-blocking 2건(gitignore-bare-env-pattern-overreaches-beyond-worktree-symlinks, installed-banner-region-is-unanchored-injection-surface)은 제외.",
+          "④ V2-C002 ssot 신규 blocking +4 (4건 전부 blocking: a1-endpoint-status-placement-contradicts-a2, app-only-reallocation-leaves-collection-time-discovery-unrepresented, execution-authority-overclaims-verify-script-invocation, control-claude-md-restates-stale-six-rank-authority-ladder).",
+          "⑤ 오케스트레이터 등재 +1 (ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1, P1/blocking).",
+          "⑥ v1 승계 6 은 변동 없다 — debt_inheritance.items 21건 전부 여전히 OPEN 이고 blocks_ready_for_e001_v2 = true 가 6건이다.",
+          "합계 6 + 0 + 6 + 4 + 1 = 17."
+        ],
+        "v2_c003_remediation_not_deducted": "V2-C003 이 시정을 주장한 blocking 5건(control-claude-md-invents-authority-rank-0-above-ssot, control-claude-md-restates-stale-six-rank-authority-ladder, promotion-verdict-check-treats-missing-verdict-as-pass, verify-script-declared-in-promotion-path-but-never-called, execution-authority-overclaims-verify-script-invocation)은 REMEDIATION_CLAIMED_PENDING_AUDIT 로만 표시하고 합계에서 빼지 않았다. 다음 사이클의 두 독립감사가 확인하기 전에는 닫지 않는다."
+      },
+      "note": "REMEDIATION_CLAIMED_PENDING_AUDIT 상태의 건도 독립감사가 확인할 때까지 open 으로 계상한다. executor/orchestrator self-approval 금지."
     },
     "enforcement": {
       "promotion_script": "research/landing_accessibility/scripts/promote_landing_main.sh",
@@ -1689,7 +2038,8 @@
       "hook_installed": "USER_DECISION_PENDING — core.hooksPath 는 저장소 전역 설정이므로 오케스트레이터가 자동 설치하지 않는다",
       "preexisting_local_hook": ".git/hooks/pre-push (untracked, 로컬 전용). 저장소에 커밋된 사본이 없어 clone·재설치 시 소실된다 — scripts/hooks/pre-push 가 그 정본이다.",
       "bypass_env": "LA_PROMOTION=ORCHESTRATOR_PROMOTION_ONLY"
-    }
+    },
+    "current_gate": "V2_SSOT_FROZEN (미달성)"
   },
   "phase_v1_history": "P2_WEB_ELIGIBILITY_AND_URL_IDENTITY",
   "cycle_id_v1_history": "C012"

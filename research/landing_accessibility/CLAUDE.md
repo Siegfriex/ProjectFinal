@@ -27,16 +27,21 @@
 경로   : research/landing_accessibility/docs/v2/
 ```
 
-| 순위 | 문서 |
-|---|---|
-| 0 | `docs/v2/EXECUTION_AUTHORITY.md` — 기계적 상태값·권위 서열·기준선 SHA |
-| 1 | `docs/v2/00_SSOT_v2.0.md` — 목표·범위·단위·해석의 최상위 권위 |
-| 2 | `docs/v2/01_DATA_SPEC_v2.0.md` |
-| 3 | `docs/v2/02_COLLECTION_MEASUREMENT_SPEC_v2.0.md` |
-| 4 | `docs/v2/03_CRISP_DM_EXECUTION_PLAN_v2.0.md` — Phase Gate 정의 |
-| 5 | `docs/v2/04_GLOSSARY_v2.0.md` |
-| 6 | `docs/v2/05_REPO_ORCHESTRATION_PLAN_v2.0.md` |
-| — | `research/landing_accessibility/CLAUDE.md` (**v2 exec 브랜치의 것**) — 위 6종의 요약. 충돌 시 원본 우선 |
+**권위 서열의 정본은 `docs/v2/EXECUTION_AUTHORITY.md` §2 다.**
+이 파일은 그 표를 **옮겨 적지 않는다.** 사본은 원본과 drift 하고, drift 한 사본은
+그 자체가 새 결함이다(§1). 서열을 알아야 하면 아래 명령으로 **원본을 읽어라.**
+
+이 파일이 서열에 대해 말할 수 있는 전부는 다음 세 문장이다.
+
+- 최상위(1위)는 `docs/v2/00_SSOT_v2.0.md` 다. 다른 어떤 문서도 그 위에 오지 않는다.
+- `docs/v2/EXECUTION_AUTHORITY.md` 는 서열을 **선언하는** 문서이지 서열 **안에** 있는 문서가 아니다.
+  그 파일과 `00_SSOT_v2.0.md` 가 충돌하면 `00_SSOT_v2.0.md` 가 우선한다 (그 파일 머리말이 그렇게 적는다).
+- 서열 항목 수·순서·각 문서의 지위는 **여기 적지 않는다.** `EXECUTION_AUTHORITY.md` §2 와
+  `docs/INDEX.md` 가 정본이며, 이 파일의 요약을 근거로 인용하는 것은 금지다.
+
+Gate 이름·통과조건·판정권한의 정본은 `docs/v2/PHASE_GATES.md` 다.
+`03_CRISP_DM_EXECUTION_PLAN_v2.0.md` 는 실행 Phase 를 정의하지만 **Gate 를 정의하지 않는다**
+(`PHASE_GATES.md` §0). Gate 를 `03` 이나 `bootstrap/07` 에서 인용하지 마라.
 
 `docs/v2/` 는 이 브랜치 체크아웃에 **파일로 존재하지 않는다.** 읽는 법:
 
@@ -44,8 +49,9 @@
 R=/home/sieg/projects-wsl/ProjectFinal
 git -C $R fetch origin
 git -C $R show origin/research/landing-accessibility-main:research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md
-# v2 가 아직 main 으로 승격되지 않았다면:
-git -C $R show origin/agent/landing-v2-exec:research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md
+git -C $R show origin/research/landing-accessibility-main:research/landing_accessibility/docs/v2/PHASE_GATES.md
+git -C $R show origin/research/landing-accessibility-main:research/landing_accessibility/docs/INDEX.md
+# v2 가 아직 main 으로 승격되지 않았다면 origin/agent/landing-v2-exec 로 바꿔 읽는다.
 ```
 
 세션을 열 때 **문서의 SHA 를 current 라고 가정하지 마라.** 항상 `git ls-remote --heads origin` 으로 재확인한다.
@@ -93,6 +99,12 @@ PILOT                  = research/refcohort-r1 @ 32460b8  READ_ONLY (수정 시 
 2. `scripts/hooks/pre-push` — 보호 ref 로의 직접 push 차단.
    설치는 사용자 결정 사항이며 `scripts/install_hooks.sh` 로만 수행한다 (자동 설치하지 않는다).
 
+> **주의 (adversarial V2-C002 `repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect`, OPEN).**
+> 2층은 **현재 유효하지 않다.** `.git/hooks/pre-push` 에는 저장소 정본과 다른 미추적 legacy 사본이
+> 놓여 있어 force push·ref 삭제 보호가 inert 하다. 상태 확인은 `scripts/install_hooks.sh --check`.
+> **설치는 오케스트레이터가 직접 수행한다** — 서브에이전트는 `.git/hooks/` 를 건드리지 않는다.
+> 그때까지 1층(`promote_landing_main.sh`)만이 실효 가드다.
+
 ---
 
 ## 6. 부채 원장
@@ -101,7 +113,9 @@ PILOT                  = research/refcohort-r1 @ 32460b8  READ_ONLY (수정 시 
 
 - `debt_ledger` / `open_p2` — v1 원장 (total 24 / open 21 / E001_BLOCKING 6). **삭제하지 않는다.**
 - `v2_transition.debt_inheritance` — 위 open 21건의 v2 phase 재매핑. 근거 없이 닫지 않는다.
-- `v2_transition.v2_audit_findings` — V2-C001 두 감사 등재 (adversarial 7 / ssot 13).
+- `v2_transition.v2_audit_findings` — v2 감사 사이클별 등재.
+  V2-C001 (adversarial 7 / ssot 13, 현재 CLOSED 18 / OPEN 2) · V2-C002 (adversarial 8 / ssot 4)
+  · 오케스트레이터 등재 1건. **감사가 확인하기 전에는 닫지 않는다.**
 - `v2_transition.open_blocking_total` — `00_SSOT_v2.0.md §15` 의 `open blocking = 0` 판정에 쓰는 값.
 
 Root `/home/sieg/projects-wsl/ProjectFinal/CLAUDE.md` 의 환경규칙(venv·경로·워크트리)은 그대로 상속한다.
