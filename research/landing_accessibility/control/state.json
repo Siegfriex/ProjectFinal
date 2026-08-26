@@ -1,8 +1,8 @@
 {
   "harness_version": "orchestrator-constitution-v3",
-  "updated_at": "2026-08-26T12:30:49.594662",
+  "updated_at": "2026-08-26T12:36:09.653679",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
-  "cycle_id": "C008",
+  "cycle_id": "C009",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -59,7 +59,7 @@
     "ssot": "audit/landing-ssot",
     "orchestrator": "control/landing-orchestrator"
   },
-  "exec_sha": "933096a5",
+  "exec_sha": "bf5d16e9",
   "adversarial_audit_sha": "e302d31",
   "ssot_audit_sha": "68404d9",
   "gates": {
@@ -81,7 +81,8 @@
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
     "adversarial_audit": "PASS_C002_C003_P1_1_P2_5",
-    "ssot_audit": "PASS_C002_C003_P1_2"
+    "ssot_audit": "PASS_C002_C003_P1_2",
+    "certification_snapshot": "PASS_COMPLETE"
   },
   "withdrawn_conclusions": [
     {
@@ -185,6 +186,12 @@
       "state": "DECIDED_PENDING_IMPL",
       "assigned": "C008 exec",
       "resolution": "web_target_group 컬럼으로 해소. C007 2층 분리 결정과 동일 조치."
+    },
+    {
+      "id": "pilot-org-regex-defect-not-manifested",
+      "state": "NOTED",
+      "assigned": null,
+      "detail": "Pilot 의 기관명 정규식 ([^인]+?) 은 기관명에 '인' 이 들어가면 깨진다. 이번 목록에서는 span 폴백이 같은 값을 잡아 발현하지 않았다. 새 수집기는 sr-only 라벨 앵커로 교체했다."
     }
   ],
   "legacy_xlsx_status": {
@@ -296,6 +303,57 @@
       "detail": "web_collectable=True 70건에 삼성 계산기·내 파일·디바이스 케어 등 선탑재 시스템 앱이 포함. 이 필드는 'entity_kind not in {INDUSTRY_CATEGORY}' 규칙 하나로 일괄 부여된 값이라 검증된 수집 가능성이 아니다.",
       "assigned": "C008 exec",
       "resolution": "web_eligibility_status=NOT_ASSESSED 로 초기화. 선탑재/시스템 앱은 web eligibility 판정에서 SYSTEM_APP 후보로 다룬다."
+    }
+  ],
+  "certification_authority": {
+    "snapshot_id": "KWACC_WA_20260826",
+    "authority_rank": "A2",
+    "status": "COMPLETE",
+    "pages": 230,
+    "rows": 2283,
+    "dedup_removed": 0,
+    "status_breakdown": {
+      "VALID": 227,
+      "EXPIRED": 2056,
+      "UNKNOWN": 0
+    },
+    "valid_at_audit": 226,
+    "target_url_present": 2279,
+    "stop_reason": "NO_CARDS_AT_DECLARED_END",
+    "completeness_gate": "valid_at_audit_rows() 가 INCOMPLETE 매니페스트에서 IncompleteSnapshotError 를 던져 '목록에 없음 = 인증 0' 을 코드로 차단한다",
+    "independence_scope": {
+      "claim_allowed": "수집 절차의 독립성 — 자체 요청·자체 원문·자체 매니페스트, Pilot 산출물 미사용",
+      "claim_forbidden": "내용의 독립 검증. 230페이지 sha256 이 Pilot 과 전건 동일한 것은 같은 서버 응답을 두 번 받은 것이며, 서버가 틀리면 두 스냅샷이 같은 방식으로 틀린다.",
+      "noted_by": "executor 자체 판단 — 과잉 해석을 스스로 차단함"
+    }
+  },
+  "registry_source_defects": [
+    {
+      "id": "valid-flag-but-outside-audit-window",
+      "count": 1,
+      "detail": "인증번호 2521 국립망향의동산. 목록 상태 VALID 인데 인증기간이 2026-08-27~2027-08-26 으로 감사일(2026-08-26) 다음 날 시작한다. cert_valid_candidate=0 처리.",
+      "significance": "VALID 227 과 감사일 유효 226 의 차이가 정확히 이 1건이다. v2.0 설계서가 경고한 '유효 표시인데 시작일이 미래' 사례가 실재함을 확인했다. certification_join 에서 목록 상태 플래그를 그대로 신뢰하면 안 된다는 실증."
+    },
+    {
+      "id": "target-url-missing",
+      "count": 4,
+      "detail": "대상 URL 링크 부재. 전부 EXPIRED (1954, 803, 689, 549)"
+    },
+    {
+      "id": "scheme-less-href",
+      "count": 26,
+      "detail": "스킴 빠진 href (namdogallery.or.kr, www.high1.com 등). 원문 보존."
+    },
+    {
+      "id": "href-is-text-not-url",
+      "count": 3,
+      "detail": "URL 자리에 텍스트: '보건복지부 홈페이지'(27), '국립중앙도서관 홈페이지'(25), '-'(1812)",
+      "significance": "URL 정규화 단계에서 이 3건을 URL 로 파싱하면 조용히 실패한다. UNRESOLVED 로 분류해야 한다."
+    },
+    {
+      "id": "empty-certification-period",
+      "count": 1,
+      "detail": "1812번, service_name 도 '-'"
     }
   ]
 }
