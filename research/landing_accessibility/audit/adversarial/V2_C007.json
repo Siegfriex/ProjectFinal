@@ -1,0 +1,100 @@
+{
+  "cycle": "V2-C007",
+  "auditor": "adversarial",
+  "audit_type": "target-diff verification (narrow scope, not full re-audit)",
+  "target_sha": "2025e5667686d42e832298f2dce77b0c7aa6bc07",
+  "prev_target_sha": "3ad04585ae0f58500859e4c3b765844b2cdb5089",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha": "3eaf51bd8157f6b24d3ee5f5afd81b1e0387b309",
+  "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+  "prev_adversarial_audit_sha": "7674375",
+  "prev_adversarial_audit_verdict": "PASS — P0 0 / P1 0 / P2 4 (blocking 0)",
+  "prev_adversarial_audit_branch": "audit/landing-adversarial",
+  "prev_adversarial_auditor": "adversarial (Claude, self)",
+  "prev_ssot_audit_sha": "444de0607993e766fd2686b377f42a6d9b7f7dae",
+  "prev_ssot_audit_verdict": "FAIL — P0 0 / P1 0 / P2 1 (blocking 1)",
+  "prev_ssot_blocking_finding_id": "execution-authority-baseline-ssot-audit-row-not-updated",
+  "target_branch": "agent/landing-v2-exec",
+  "audit_branch": "audit/landing-adversarial",
+  "base_ref": "research/landing-accessibility-main",
+  "phase": "P0_V2_REFREEZE",
+  "gate": "V2_SSOT_FROZEN",
+  "verdict": "PASS",
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "blocking": 0
+  },
+  "diff_scope_check": {
+    "command": "git diff 3ad04585ae0f58500859e4c3b765844b2cdb5089 2025e5667686d42e832298f2dce77b0c7aa6bc07 --stat",
+    "files_changed": [
+      "research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md",
+      "research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json"
+    ],
+    "lines_changed": 3,
+    "result": "정확히 지시된 두 파일뿐임을 --name-only 및 두 파일 제외 diff(빈 결과)로 이중 확인",
+    "invariants_diff_zero": [
+      "docs/v2/00_SSOT_v2.0.md .. 05_REPO_ORCHESTRATION_PLAN_v2.0.md (pack)",
+      "docs/v2/MANIFEST.json",
+      "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+      "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+      "docs/v2/PHASE_GATES.md",
+      "research/refcohort/** (Pilot)",
+      "root CLAUDE.md",
+      "state/*.parquet",
+      "control/landing-orchestrator tip (3eaf51bd, 무변경)"
+    ]
+  },
+  "correction_content": {
+    "execution_authority_row": {
+      "before": "V2-C003 @ 43fab0acb3a9352c36b9c0b844cb44cef9f9d79d",
+      "after": "V2-C006 @ 444de0607993e766fd2686b377f42a6d9b7f7dae"
+    },
+    "install_manifest": {
+      "cycle_before": "V2-C006",
+      "cycle_after": "V2-C007",
+      "execution_authority_sha256_before": "99e36d52904fa7c96fad524faf9ab28c18e5bfd23d9e403d9f68313062980578",
+      "execution_authority_sha256_after": "9889ebf863df8a58c352d8e3284735168b4f0172611423253840d8b0de8ba37a",
+      "hash_reverification": "TARGET 트리 파일 실측 sha256sum(9889ebf8...ba37a, 14016 bytes) = 매니페스트 기재값, 직접 일치 확인"
+    }
+  },
+  "correction_adequacy": {
+    "verdict": "적절 — 처방(literal)보다 정확",
+    "reasoning": "ssot V2-C006 처방은 작성 시점 최신 tip인 V2-C005(39e485c8)를 가리키라 했으나, 그 처방 자체가 담긴 커밋(444de06)이 그 후 audit/landing-ssot의 새 tip이 됐다. exec는 '§5 ssot 행 = 브랜치 현재 tip' 원칙에 따라 444de06을 넣었고, git rev-parse origin/audit/landing-ssot로 직접 확인한 현재 tip과 정확히 일치한다. ssot가 지적한 근본 원인(§5/§6 문서 내부 모순)을 정확히 닫는다."
+  },
+  "verify_v2_docs": {
+    "executed_in": ".agent_worktrees/landing_v2_exec (HEAD == TARGET, clean)",
+    "result": "V2_DOCS_VERIFY: PASS",
+    "items_checked": 18,
+    "anchor_note": "ROOT = Path(__file__).resolve().parents[1], subprocess git -C str(REPO) 모두 스크립트 자신의 위치 기준 — cwd 오염 무관"
+  },
+  "prior_pass_stability": {
+    "verdict": "흔들리지 않음",
+    "reasoning": [
+      "표면 비중첩 — V2-C006 PASS 대상(RC-6/A-6~A-8, 배너 회귀 테스트, install-manifest 커버리지, debt 재계산 이중소스)은 이번 diff에 등장하지 않음",
+      "open_blocking_total 계산 입력 파일(promote_landing_main.sh DEBT_RECOMPUTE 블록, control/state.json, debt_ledger) 무변경 — V2-C006에서 독립 재현한 14=12+2 계산식 그대로 유효",
+      "이번 diff가 닫는 것은 ssot 쪽 blocking 1건이며 내 몫이 아님 — ssot가 자신의 다음 감사에서 확인·차감할 사안",
+      "Pilot·root CLAUDE.md·state parquet·C013·evidence·control 불변조건 전부 diff 0으로 재확인"
+    ]
+  },
+  "out_of_scope_not_reaudited": [
+    "R-1 (same-authorization local re-execution) — V2-C006 PASS 재사용, 이번 diff에 미등장",
+    "banner policy regression tests — V2-C006 PASS 재사용",
+    "recollection anchors RC-6/A-6~A-8 — V2-C006 PASS 재사용",
+    "shadow lanes P-A/P-B/P-C — V2-C006 PASS 재사용"
+  ],
+  "verified_commands": [
+    "git -C $REPO fetch --all --prune",
+    "git -C $REPO diff 3ad0458 2025e566 --stat",
+    "git -C $REPO diff 3ad0458 2025e566 -- research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json",
+    "git -C $REPO diff 3ad0458 2025e566 -- . ':!EXECUTION_AUTHORITY.md' ':!INSTALL_MANIFEST.json'  (빈 결과 확인)",
+    "git -C $REPO show 444de06:research/landing_accessibility/audit/ssot/V2_C006.md (blocking finding 원문·처방 확인)",
+    "git -C $REPO rev-parse origin/audit/landing-ssot  (444de06 = 현재 tip 확인)",
+    "git -C $REPO show 2025e566:...EXECUTION_AUTHORITY.md | sha256sum  (매니페스트 값과 대조)",
+    "git -C landing_v2_exec worktree rev-parse HEAD && status --short  (TARGET에 clean 체크아웃 확인)",
+    "python .../scripts/verify_v2_docs.py  (PASS 18/18)",
+    "git -C $REPO rev-parse origin/control/landing-orchestrator  (3eaf51bd, V2-C006과 동일 확인)"
+  ],
+  "note": "V2-C007은 target-diff 검증이다 — 전면 재감사가 아니다. diff는 정확히 지시된 한 줄(EXECUTION_AUTHORITY §5 ssot 기준선 행) + INSTALL_MANIFEST 해시 갱신뿐임을 확인했고, 이는 ssot V2-C006의 유일한 blocking을 처방보다 더 정확한 값(브랜치 실제 현재 tip)으로 닫는다. verify_v2_docs.py PASS. 내가 V2-C006에서 준 PASS(blocking 0)는 표면 비중첩과 계산 입력 무변경으로 흔들리지 않는다. 이 감사 단독 결과는 P0 0/P1 0/P2 0, blocking 0, PASS."
+}
