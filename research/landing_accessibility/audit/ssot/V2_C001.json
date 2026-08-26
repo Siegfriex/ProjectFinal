@@ -1,0 +1,206 @@
+{
+  "cycle": "V2-C001",
+  "auditor": "ssot",
+  "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "target_branch": "agent/landing-v2-exec",
+  "audited_at": "2026-08-26",
+  "verdict": "FAIL",
+  "counts": {"P0": 0, "P1": 2, "P2": 11, "blocking": 11, "non_blocking": 2},
+  "findings": [
+    {
+      "id": "ned-ied-split-not-operationalized",
+      "severity": "P1",
+      "blocking": true,
+      "file": "research/landing_accessibility/docs/v2/02_COLLECTION_MEASUREMENT_SPEC_v2.0.md",
+      "evidence": "00 §7: 'NED — Navigation Entry Depth … 랜딩에서 대표기능이 있는 영역에 도달하기까지의 최소 state-changing activation 수.' / 'IED … 대표기능 영역에서 predefined endpoint까지 필요한 최소 activation 수.' — 01 §6 fact_task_entry: '- NED' '- IED'. 그러나 02 §9 'Depth 계산'은 activation 포함/제외만 규정하며, grep 실측 결과 'NED'·'IED'·'대표기능 영역'이 02에 0회 등장한다.",
+      "contradiction": "EXECUTION_AUTHORITY §2가 02를 '수집·측정·정지조건'의 권위(3위)로 지정했는데, 02가 NED와 IED를 가르는 경계 — '대표기능 영역에 도달했다'를 판정할 관측 가능한 신호 — 를 정의하지 않는다. dim_representative_task(01 §3)에도 endpoint_definition/endpoint_signal_type만 있고 영역 도달 신호에 대응하는 컬럼이 없다. MPFED는 산출 가능하나 그 두 구성요소는 산출 불가능하다. NED/IED 분리는 00 §13이 Augello et al.(2026) 차용으로 명시한 Axis B의 방법론적 정박점이며, 문서가 FROZEN FOR IMPLEMENTATION인 상태에서 이 경계를 P-C 구현자가 정하면 핵심 지표 정의가 SSOT 밖에서 결정된다.",
+      "remedy": "02 §9에 NED|IED 경계 규칙을 추가한다(예: dim_representative_task에 region_definition·region_signal_type 신설, 02 §6이 ranking한 대표기능 후보 control이 조작 가능하게 노출된 최초 시점을 영역 도달로 정의). 01 §3에 대응 컬럼을 추가한다."
+    },
+    {
+      "id": "phase-gate-names-only-in-nonauthoritative-bootstrap",
+      "severity": "P1",
+      "blocking": true,
+      "file": "research/landing_accessibility/docs/v2/03_CRISP_DM_EXECUTION_PLAN_v2.0.md",
+      "evidence": "EXECUTION_AUTHORITY §2: 'docs/v2/bootstrap/07_… — NON_AUTHORITATIVE_BOOTSTRAP_RECORD. 이 세션의 부트스트랩 이력 보존용이며 실행규칙 근거로 인용하지 않는다.' grep 실측: V2_SSOT_FROZEN → bootstrap/07:174 only; ANALYSIS_AND_TASK_CODEBOOK_FROZEN → :226 only; TARGET_TASK_FRAME_FROZEN → :260 only; L0_L1_ENGINE_READY → :327 only. 03의 gate 표기는 절 제목뿐('## P-A — Analysis Foundation + Task Codebook' 등).",
+      "contradiction": "4개 gate 이름이 저장소 전체에서 인용 금지된 비권위 문서에만 존재한다. 따라서 P-A~P-D의 phase 종료 gate에는 인용 가능한 이름이 없고, 05 §10 추적 state(current_phase/next_phase)에 gate 종료를 기록할 권위 근거가 없다. 특히 지금 진행 중인 P0가 닫아야 할 gate 'V2_SSOT_FROZEN'이 바로 이 4개 중 하나다. 대조군으로 READY_FOR_E001_V2는 4곳(00 §15·03 P-E·CLAUDE.md·EXECUTION_AUTHORITY §5), V2_REFREEZE는 2곳(05 §7·EXECUTION_AUTHORITY §4)에 정상 정의돼 있어 규칙 자체는 존재하며 4개만 누락됐다.",
+      "remedy": "03의 각 Phase Gate 절에 gate 이름을 V2_REFREEZE/READY_FOR_E001_V2와 동일한 형식으로 명시하거나, EXECUTION_AUTHORITY §1 기계적 상태값에 gate 이름 목록을 추가한다. bootstrap/07 인용 없이 gate를 지칭할 수 있어야 한다."
+    },
+    {
+      "id": "interrupt-dismiss-fields-have-no-collection-procedure",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/01_DATA_SPEC_v2.0.md",
+      "evidence": "01 §5 fact_interrupt_element: 'dismiss_control_exists' 'dismiss_control_visible' 'dismiss_control_accessible_name' 'dismiss_control_width' 'dismiss_control_height' 'dismiss_succeeded'. 00 §8이 이를 지시: '또한 다음을 기록한다. - 닫기 control 유무 / - 닫기 control 가시성 / - accessible name / - 조작 대상 크기 / - 실제 dismissal 성공'. 그러나 02 §5의 4단계(1차 후보 / 2차 공간검사 / 3차 blocking / 4차 의미분류)와 02 §3 L0 수집목록에 닫기 control 언급이 0회다(grep: '닫기' → 00에만 3회, 02에 0회).",
+      "contradiction": "00(1위 권위)이 기록을 지시하고 01(2위)이 컬럼을 정의했는데 수집절차의 유일한 권위인 02가 닫기 control 탐색·기하·accessible name 추출을 어느 단계에서도 지시하지 않아 6개 필드가 고아가 된다. 02의 유일한 dismiss 언급은 §9 'Popup dismiss는 forced_dismissal_count에 따로 기록'으로 L1 depth 규칙이지 L0 수집이 아니다. 특히 dismiss_succeeded는 L0에서 실제 닫기 조작을 수행해야 채워지는데, 02 §3은 'L0에서는 대표기능을 아직 클릭하지 않는다'만 규정해 dismissal 조작의 허용 여부·수행 시점·전후 evidence 순서(§12 append-only와의 관계)가 전부 미정이다.",
+      "remedy": "02 §5에 '5차 dismiss control 검사'를 추가해 탐색 규칙·기하/accessible name 추출·dismissal 시도 시점(초기 viewport evidence 확정 이후)·실패 시 상태값을 규정한다."
+    },
+    {
+      "id": "episode-counters-undefined-and-uncollected",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/01_DATA_SPEC_v2.0.md",
+      "evidence": "01 §6: '- text_input_episode_count' '- scroll_episode_count'. 00 §7 별도 기록: '- text input / - scroll / - forced popup dismissal / - auth gate / - redirect … 이들은 Depth와 합치지 않는다.' 02 §7 activation별 기록목록 전문: '- URL / - DOM state key / - screenshot / - clicked control / - endpoint signal / - popup / - auth gate'. 02 §9: '제외: 텍스트 한 글자씩 입력 … scroll distance' / 'Popup dismiss는 forced_dismissal_count에 따로 기록.'",
+      "contradiction": "두 겹의 결함. (1) 정의 부재 — 'episode'가 04 용어집에도 다른 어느 문서에도 정의돼 있지 않아 '텍스트 입력 1 episode'가 focus~blur인지 submit 단위인지, 'scroll 1 episode'가 몇 px·몇 초 간격으로 끊기는지 규정이 없다. 정수 카운트가 재현 불가능하다. (2) 수집 부재 — 02 §9는 세 형제 항목 중 popup dismiss만 forced_dismissal_count로 귀속처를 지정하고 text input·scroll은 depth 제외만 말할 뿐 적재처를 말하지 않으며, 02 §7 기록목록에도 없다. 00 §7의 '별도 기록' 지시가 하위에서 미이행이다.",
+      "remedy": "04에 'episode' 항목을 추가해 경계조건을 수치로 고정하고, 02 §7 기록목록에 'text input episode'/'scroll episode'를 추가한다."
+    },
+    {
+      "id": "primary-action-identity-not-stored",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/01_DATA_SPEC_v2.0.md",
+      "evidence": "00 §8: 'PrimaryActionOcclusion = 대표기능 control이 overlay에 가려진 면적 / 대표기능 control 면적'. 02 §3 수집목록: '- primary-action candidate'. 02 §6: 'Interaction archetype의 endpoint 설명과 embedding similarity를 계산해 후보를 ranking한다.' 01은 primary_action_visible_initial · max_primary_action_occlusion · blocks_primary_action · primary_action_occlusion 등 파생 스칼라만 정의한다.",
+      "contradiction": "01의 어느 표에도 대표기능 control 자체의 정체(selector·bbox·accessible name·후보 ranking 점수)를 담는 컬럼이 없어, 02 §3이 수집하고 §6이 ranking한 산출물이 저장처 없이 소실된다. 그 결과 00 §8이 정의한 occlusion 비율의 분모(대표기능 control 면적)가 저장 데이터로부터 재구성되지 않아 재검증이 불가능하며, 이는 02 §12 '같은 evidence 재판정 → 새 judgment version'(재판정 가능성 전제)과 실질적으로 충돌한다. 또한 §6이 '모호하면 AI review'라 하여 오분류 여지를 인정하는데 선택된 후보가 기록되지 않으면 AI review의 감사 추적이 끊긴다.",
+      "remedy": "01 §4에 primary_action_selector / primary_action_bbox / primary_action_name / primary_action_selection_basis를 추가하거나 fact_primary_action_candidate 표를 신설한다."
+    },
+    {
+      "id": "l0-evidence-artifacts-without-storage-slot",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/01_DATA_SPEC_v2.0.md",
+      "evidence": "02 §3: '- 최초 viewport screenshot / - full-page screenshot / - DOM snapshot / - AX tree / - computed CSS'. 02 §2: '- 수집시각 기록'. 02 §11: '한 observation은 정확히 다음과 대응해야 한다. - DOM / - AX / - screenshot / - probe / - manifest'. 01 §4는 screenshot_path(단수) · dom_path · ax_path · probe_path · manifest_path와 시간 컬럼 audit_date만 정의한다.",
+      "contradiction": "(1) 02 §3이 두 종류의 screenshot을 수집하는데 01은 screenshot_path 단수이고 02 §11의 evidence identity 집합도 screenshot 단수여서, full-page screenshot은 선언된 정체 슬롯 없이 §11·§12의 append-only 무결성 대상 밖으로 새어 나간다. (2) computed CSS가 별도 산출물로 열거됐으나 probe_path에 포함되는지 명시가 없다. (3) 02 §2는 '수집시각'(시각)을, 01 §4는 audit_date(일자)를 규정해 grain이 달라, 같은 날 재수집 시(§12 '재수집 → 새 evidence run') 두 run이 (web_target_id, audit_date)로 구분되지 않는다.",
+      "remedy": "01 §4에 screenshot_fullpage_path·collected_at(timestamp)을 추가하고, 02 §11의 identity 집합에 full-page screenshot을 명시하며, computed CSS의 귀속(probe 내부 여부)을 1행으로 확정한다."
+    },
+    {
+      "id": "measurement-status-vocabulary-unreconciled",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/01_DATA_SPEC_v2.0.md",
+      "evidence": "01 §11: '- 수집 실패 = MEASUREMENT_FAILED' (전 문서에서 이 토큰의 유일 등장). 02 §13: '다음은 접근성 FAIL이 아니다. - ACCESS_BLOCKED / - ROBOTS/transport issue / - browser crash / - page timeout / - app-only … 별도 measurement status로 기록.' 01 §4는 '- measurement_status'를 허용값 열거 없이 둔다. 01 §3 dim_web_target에는 '- web_eligibility_status'가 별도로 있다.",
+      "contradiction": "(1) measurement_status의 허용값 집합이 어디에도 열거돼 있지 않다. 01 §11은 MEASUREMENT_FAILED 한 값만, 02 §13은 다섯 조건(토큰 형태는 ACCESS_BLOCKED 하나뿐)만 말하며 둘 사이의 포함관계·매핑이 선언되지 않아 같은 실패를 두 문서가 다른 이름으로 부를 수 있다. (2) 'app-only'는 두 표가 동시에 주장한다 — 앱 전용이라 웹이 없다는 사실은 01 §3 web_eligibility_status(관측 이전의 적격성)에 속하지 01 §4 measurement_status(관측 시도의 결과)에 속하지 않는데, 02 §13이 measurement status로 기록하라고 지시해 표 배치가 상충한다. 상태 중복 기록은 01 §11 '상태와 수치는 분리한다'의 취지와도 어긋난다.",
+      "remedy": "01 §11에 measurement_status 허용값을 열거하고(02 §13 다섯 조건을 토큰화해 포함), app-only는 web_eligibility_status 소관임을 02 §13에 명시한다."
+    },
+    {
+      "id": "undefined-column-vocabularies",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/01_DATA_SPEC_v2.0.md",
+      "evidence": "01 §7: '- automation_grade' — grep 실측 결과 전 문서 통틀어 이 1회만 등장하며 정의·값집합이 없다. 01 §10 / 03 Phase 5: '- decision coverage' — 분자·분모 정의 없음, 04 용어집에도 없음. 00 §9: '나머지는 UNDETERMINED / ABSTAIN.' · 04: '| Abstain | 확신할 수 없어서 억지로 분류하지 않는 것 |'. 01 §9 fact_ai_adjudication은 final_status·human_required만 두고 ABSTAIN을 담는다는 선언이 없다.",
+      "contradiction": "(1) automation_grade는 fact_criterion_result의 저장 컬럼인데 정의도 값집합도 없어 측정 시점에 무엇을 채울지 알 수 없다. (2) decision coverage는 03 Phase 5의 측정품질 합격 판단에 쓰이고 mart_service_summary에 적재되는데 계산식이 없다. (3) 00 §9가 UNDETERMINED와 병렬로 규정한 ABSTAIN을 담을 컬럼이 지정되지 않아 03 Phase 5의 'abstention rate' 산출이 불가능하다. 나아가 verdict_state/final_status(01 §7), classification_status/final_label(01 §5), final_status(01 §9)의 값 도메인과 두 status 컬럼의 차이가 어디에도 선언돼 있지 않다.",
+      "remedy": "01에 컬럼별 허용값 표를 1개 추가한다(verdict_state / final_status / classification_status / final_label / automation_grade / measurement_status). decision coverage는 분자·분모를 04 또는 01 §10에 명시한다."
+    },
+    {
+      "id": "claude-md-and-evidence-contract-authority-framing",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/CLAUDE.md",
+      "evidence": "EXECUTION_AUTHORITY §2: '| — | research/landing_accessibility/CLAUDE.md | 위 6종의 프로젝트 컨텍스트 요약. 원본과 충돌 시 원본 우선 |'. CLAUDE.md 본문 전체에 'EXECUTION_AUTHORITY' 0회, 'INDEX.md' 0회, 자신의 종속 지위 언급 0회. 대칭적으로 EXECUTION_AUTHORITY §3은 'docs/07_EVIDENCE_MANIFEST_CONTRACT.md … 현행 유효. evidence identity 계약은 v2에 그대로 상속'이라 선언하지만 같은 파일 §2 권위 서열 표(1~6위 + CLAUDE.md)에는 이 문서가 없다.",
+      "contradiction": "(1) CLAUDE.md는 Claude Code가 하위 디렉터리 작업 시 자동 로드하는 유일한 진입점인데 권위 선언 정본(EXECUTION_AUTHORITY.md)과 INDEX.md를 가리키지 않아, §3의 v1 supersede 표·§4 기준선 표·§1의 E001_V2_STARTED=false가 자동 로드 경로에서 도달 불가능하다. (2) CLAUDE.md가 자신의 '원본과 충돌 시 원본 우선' 종속 지위를 본문에 담지 않아 요약이 원본과 어긋났을 때의 해소 규칙이 독자에게 없다(v1↔v2 우선순위는 명시돼 있으나 CLAUDE.md↔원본은 없다). (3) 현행 유효로 선언된 07_EVIDENCE_MANIFEST_CONTRACT.md가 §2 권위 서열에 없어 02와 충돌 시 우선순위 규칙이 없다. 본문 통독 대조 결과 07과 02 §11~§12 사이의 실제 모순은 0이므로 P1이 아니며, 명확화가 필요한 유일한 지점은 grain이다 — 07은 manifest를 run 단위(evidence/<run_id>/manifest.jsonl, 파일당 1행, observation_id 키)로 정의하는데 01 §4는 관측당 manifest_path 1개를 두어, run manifest 경로를 전 관측이 공유한다는 해석이 명시돼 있지 않다.",
+      "remedy": "CLAUDE.md 서두에 '권위 선언 정본: docs/v2/EXECUTION_AUTHORITY.md · 문서 인덱스: docs/INDEX.md · 이 파일은 요약이며 원본과 충돌 시 원본 우선' 3행을 추가한다. EXECUTION_AUTHORITY §2 표에 07_EVIDENCE_MANIFEST_CONTRACT.md를 'evidence identity 한정 권위'로 1행 추가하고, manifest_path 의미를 01 §4에 1행 확정한다."
+    },
+    {
+      "id": "bootstrap-07-lacks-in-file-nonauthority-banner",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/bootstrap/07_CLAUDE_FIRST_SESSION_PROMPT_v2.0.md",
+      "evidence": "파일 1~9행: '# CLAUDE CODE — FIRST SESSION BOOTSTRAP PROMPT … 너는 이 프로젝트의 **Main Orchestrator / Research Integrity Controller / Data Analysis Lead**다. … **v2 SSOT를 저장소 실행권위로 설치하고, 독립감사 후 동결한 다음, 기존 오케스트레이션 방식으로 즉시 P-A부터 진행**한다. 사용자에게 micro-task 승인을 요청하지 않는다.'",
+      "contradiction": "격리 장치가 전부 파일 외부에만 있다 — bootstrap/ 디렉터리 배치, EXECUTION_AUTHORITY §2 비권위 표, INSTALL_MANIFEST의 'authority': 'NON_AUTHORITATIVE_BOOTSTRAP_RECORD'. 파일을 직접 연 에이전트·사람은 비권위임을 알 수단이 없고 첫 문장부터 역할 부여와 승인 생략 지시를 명령형으로 받는다. finding 'phase-gate-names-only-in-nonauthoritative-bootstrap'과 결합되면 위험이 실재화한다 — gate 이름 4개가 이 파일에만 있어 후속 세션이 반드시 이 파일을 열게 되고, 그때 같은 파일의 phase 계획·salvage 지침·정지규칙까지 권위로 흡수할 개연성이 높다. README.md 항목 8이 이 파일을 '그대로 넣을 프롬프트'로 안내하는 것도 같은 방향으로 작용한다.",
+      "remedy": "파일 최상단에 'NON_AUTHORITATIVE_BOOTSTRAP_RECORD. 실행규칙 근거로 인용하지 않는다 / 현행 실행권위는 docs/v2/00_SSOT_v2.0.md 및 docs/v2/EXECUTION_AUTHORITY.md / 이 파일은 2026-08-26 P0 V2_REFREEZE 세션의 부트스트랩 이력이다' 배너를 추가하고, INSTALL_MANIFEST.json에 'transform': 'nonauthority_banner_prepended'를 기록해 verify_v2_docs.py의 DRIFT 검사를 해당 파일에 한해 예외 처리한다."
+    },
+    {
+      "id": "state-table-mapping-declared-without-correspondence",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/01_DATA_SPEC_v2.0.md",
+      "evidence": "01 서두: '기존 state/*.parquet 파일은 삭제·rename·migration하지 않는다. 분석용 표는 **매핑/머티리얼라이제이션 레이어**로 만든다.' 01 §2 절 제목: '## 2. 기존 정형 데이터' + '### dim_panel' '### fact_source_ranking' '### dim_measurement_entity' '### bridge_source_membership'. 실측 파일: panel_registry(17행) / source_ranking_rows(261행) / service_master(81행) / source_membership(142행) / entity_alias_map / web_target_group(68행).",
+      "contradiction": "매핑 레이어 선언은 메커니즘과 작업 귀속처(03 Phase 3-7, P-A)를 확정하므로 권위 모순은 아니다. 그러나 해소가 불완전하다. (1) §2의 제목 '기존 정형 데이터'가 이 표들을 현존 표로 단언하는데 그 이름의 파일은 없다. (2) 논리명↔물리명 대응표가 전 문서에 없다. (3) 불일치가 이름에 그치지 않는다 — bridge_source_membership은 '- source_row_id'를 포함한 source row 단위 bridge로 기술됐으나 실제 source_membership은 142행의 (service_id, panel_id) 집계로 grain이 다르다(source row는 261). dim_measurement_entity.measurement_entity_id ↔ service_master.service_id도 키 이름이 다르다. (지시에 따라 컬럼 단위 조사는 여기서 중단한다.) 추가로 01 §3이 dim_web_target을 '신규'로 분류하지만 기준선에 이미 web_target_group(68행, C012 산물)이 존재하며 둘의 관계가 선언돼 있지 않다.",
+      "remedy": "01 §2 서두에 '아래 이름은 매핑 레이어가 제공할 논리 표이며 물리 파일명이 아니다' 1행을 추가하고, 논리명↔물리명 대응표(+grain 차이 표기)를 P-A A1의 최초 산출물로 강제한다. dim_web_target ↔ web_target_group 관계도 같은 표에 넣는다."
+    },
+    {
+      "id": "readme-stale-pack-paths",
+      "severity": "P2",
+      "blocking": false,
+      "blocking_class": "POST_E001_DEBT",
+      "file": "research/landing_accessibility/docs/v2/README.md",
+      "evidence": "README 읽기 순서: '7. `06_PROJECT_CLAUDE_MD_v2.0.md` — `research/landing_accessibility/CLAUDE.md`에 넣을 프로젝트 전용 지침.' / '8. `07_CLAUDE_FIRST_SESSION_PROMPT_v2.0.md` — 다음 Claude Code 첫 세션에 그대로 넣을 프롬프트.'",
+      "contradiction": "설치 트리의 docs/v2/에는 06_…md가 존재하지 않고(내용은 ../CLAUDE.md로 설치됨), 07_…md는 bare name이 아니라 docs/v2/bootstrap/07_…md에 있다. 원인은 README가 원본 pack에서 바이트 그대로 설치됐기 때문이다(sha256 e892029b…272837, 원본 동일). 부수적으로 항목 8이 07을 '그대로 넣을 프롬프트'라는 실행 지시로 소개해 EXECUTION_AUTHORITY §2의 '실행규칙 근거로 인용하지 않는다'와 어조가 어긋난다. README가 §2에서 명시적 비권위이고 정확한 위치는 INSTALL_MANIFEST.json의 source_pack_name 필드·INDEX.md·§2 표가 모두 갖고 있으며, 원본 바이트 보존의 무결성 이득이 더 크므로 비차단이다.",
+      "remedy": "README를 수정하면 원본 대조가 깨지므로 INSTALL_MANIFEST.json에 readme_path_note를 두거나 docs/INDEX.md에 'README 항목 7·8의 설치 후 실제 위치' 각주 1행을 추가한다."
+    },
+    {
+      "id": "install-integrity-coverage-gap",
+      "severity": "P2",
+      "blocking": false,
+      "blocking_class": "POST_E001_DEBT",
+      "file": "research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json",
+      "evidence": "EXECUTION_AUTHORITY §6: '설치본의 sha256이 docs/v2/INSTALL_MANIFEST.json과 일치하는지, 그리고 원본 docs pack MANIFEST.json과 동일 바이트인지 검증한다.' INSTALL_MANIFEST.json의 files 키는 10개(docs/v2/00~05, README.md, bootstrap/07, CLAUDE.md, EXECUTION_AUTHORITY.md)뿐이다. verify_v2_docs.py는 'if name == \"MANIFEST.json\": continue'로 기준선 자신을 건너뛴다.",
+      "contradiction": "커밋이 설치한 14파일 중 3개가 무결성 대상 밖이다 — docs/INDEX.md, docs/v2/MANIFEST.json, scripts/verify_v2_docs.py. INDEX.md는 '현행 실행권위는 docs/v2/ 다'를 선언하는 권위 내비게이션 문서인데 해시 기록이 없어 변조가 탐지되지 않고, MANIFEST.json은 verify 로직의 기준선 자체인데 자기 참조 검증이 없다(본 감사가 수동 sha256sum으로 원본 88ce7033…c681c4와 동일함을 확인). 세 파일 모두 git 추적으로 커밋 히스토리 감사가 가능하고 실행권위 판단은 대상에 포함된 EXECUTION_AUTHORITY.md에 있으므로 비차단이다.",
+      "remedy": "INSTALL_MANIFEST.json에 세 파일을 authority: NAVIGATION / INTEGRITY_BASELINE / VERIFIER로 추가한다(MANIFEST.json은 자기 참조 회피를 위해 INSTALL_MANIFEST 쪽에만 기록)."
+    }
+  ],
+  "checks": {
+    "intra_v2_consistency": "FAIL",
+    "dataspec_collectionspec_linkage": "FAIL",
+    "crispdm_alignment": "PASS",
+    "gate_names_defined": "FAIL",
+    "project_claude_current_only": "PASS_WITH_FINDINGS",
+    "v1_v2_authority_unambiguous": "PASS_WITH_FINDINGS",
+    "evidence_contract_compat": "PASS",
+    "install_integrity": "PASS",
+    "baseline_sha_accuracy": "PASS",
+    "state_table_mapping_declared": "PARTIAL"
+  },
+  "adjudications_no_finding": [
+    {
+      "question": "02 §14 smoke 목록이 7 archetype 중 5개만 포함한 것은 정상인가",
+      "verdict": "정상",
+      "reason": "§14가 '본수집 전에 8~12개 서비스로 반드시 검증한다'로 표본 상한을 스스로 제한하고, 목록이 archetype 전수가 아니라 위험차원 커버리지(popup-heavy / motion-heavy / auth gate / ID collision / certified 혼합)로 구성돼 있다. 상위문서와 모순 없음. 권고(비강제): AUTH_GATE_REACHED 종료경로가 00 §3의 금융·커뮤니티 두 유형에서 발생하는데 smoke는 금융만 태우므로 COMMUNICATION_ENTRY 1건 추가 또는 '미포함 archetype은 의도적 연기' 명시."
+    },
+    {
+      "question": "CLAUDE.md의 '> 이 파일의 실제 설치 위치: research/landing_accessibility/CLAUDE.md'가 설치 후 문맥에서 오해를 낳는가",
+      "verdict": "오해 없음",
+      "reason": "설치 후 문맥에서 사실 진술로 참이며(파일이 실제로 그 경로에 있다) 미이행 지시로 읽히지 않는다. 오히려 파일이 옮겨졌을 때 원위치를 알려주는 앵커로 기능한다. 시정 불요."
+    },
+    {
+      "question": "docs/07_EVIDENCE_MANIFEST_CONTRACT.md가 02 §11~§12와 모순되는가 (모순이면 P1)",
+      "verdict": "모순 0 — P1 아님",
+      "reason": "본문 통독 대조: 02 §11 'DOM/AX/screenshot/probe/manifest 대응' ↔ 07 §3 manifest 필드 observation_id+relpath; 02 §11 'hash-based observation id' ↔ 07 §3 sha256 필수 + §4 (observation_id, relpath) 중복 시 MalformedRunManifestError; 02 §12 append-only ↔ 07 §3 '사후에 관측을 추가하거나 삭제하면 manifest가 어긋난다' + write_run_manifest() 결정적 바이트; 02 §13 '수집실패는 접근성 FAIL 아님' ↔ 07 §4 MANIFEST_WELL_FORMED_FILES_NOT_CHECKED를 VERIFIED와 분리 '검사하지 않은 것을 통과로 세지 않는다'. 07 §5가 '이 모듈은 네트워크에 접근하지 않는다. E001 본수집과 무관하며, 수집을 승인하지도 않는다'로 스스로 범위를 좁혀 00 §15 gate를 침범하지 않는다."
+    },
+    {
+      "question": "docs/v2/README.md의 authoritative baseline 문구가 EXECUTION_AUTHORITY §4와 일치하는가",
+      "verdict": "일치",
+      "reason": "README 'authoritative verified baseline: research/landing-accessibility-main @ 5a9015d1e95b…' = §4 1행 = 00 헤더 '현재 기준선' = 실제 remote HEAD. 'preserved unverified WIP: agent/landing-exec @ 87a0464e8159d5526069d5e654e648b0dae506ca'도 §4·실제 remote와 동일. 3문서 + 실측 4중 일치."
+    },
+    {
+      "question": "root CLAUDE.md가 수정되었는가",
+      "verdict": "무변경",
+      "reason": "git diff 5a9015d1 eb36d17 -- CLAUDE.md 공집합. 05 §5 'Root CLAUDE.md는 건드리지 않는다' 준수. 역할 분리는 nested 파일의 'Root CLAUDE.md의 환경규칙은 그대로 상속한다. 이 파일은 연구 하위프로젝트의 실행규칙만 정의한다'로 명확."
+    }
+  ],
+  "verification_log": {
+    "diff": "git diff 5a9015d1 eb36d17 --stat → 14 files changed, 2432 insertions(+), 0 deletions — 순수 추가",
+    "pilot_untouched": true,
+    "root_claude_md_untouched": true,
+    "verify_v2_docs_py": {"exit": 0, "result": "V2_DOCS_VERIFY: PASS", "files_ok": 10},
+    "independent_sha256_vs_SSOT_pack": "10/10 byte-identical (00·01·02·03·04·05·README·07→bootstrap/07·06→CLAUDE.md·MANIFEST.json). MANIFEST.json 88ce7033e15594301c1e967027a610585f1cfc97ddf00824ee1a223be5c681c4 수동 대조 일치",
+    "remote_sha_check": {
+      "research/landing-accessibility-main": "5a9015d1e95b15304aaf53a73efb475934610b82 MATCH",
+      "agent/landing-v2-exec": "eb36d173182a582e8d7499f29170a83363f9d560 MATCH",
+      "agent/landing-exec": "87a0464e8159d5526069d5e654e648b0dae506ca MATCH",
+      "research/refcohort-r1": "32460b87334a67f6a74823ac55f85ca80a9f8980 MATCH",
+      "audit/landing-adversarial": "510d5f21a4de3d6420a3e41eeb44972e5973c5ac MATCH",
+      "audit/landing-ssot": "1bc2c71b2c48f060609fb458e2dd169086f59111 MATCH",
+      "control/landing-orchestrator": "bfa16624e55e15c4626e74547ed885156a8f2a9e MATCH",
+      "main": "a835d5d8b06a15d5a75dee9ba34a3654555fc930 — §4 주석 '이 연구의 authoritative main이 아니다' 사실 확인"
+    },
+    "state_table_actuals": {
+      "source_ranking_rows": 261,
+      "service_master": 81,
+      "panel_registry": 17,
+      "source_membership": 142,
+      "web_target_group": 68,
+      "note": "00 §12의 '261 Source Rows → 81 Entities'와 03 EDA-00의 'source 261'·'panel 17' 전건 실측 일치"
+    },
+    "v1_docs_on_control_branch": "EXECUTION_AUTHORITY §3 기재 11개 문서 전건 origin/control/landing-orchestrator에 실재 확인, eb36d17 트리에는 부재 — INDEX.md 기술과 일치"
+  },
+  "promotion_recommendation": "HOLD — P1 2건(ned-ied-split-not-operationalized, phase-gate-names-only-in-nonauthoritative-bootstrap) 시정 후 새 executor 커밋을 동일 exact SHA로 재감사. blocking P2 7건을 같은 커밋에서 함께 닫을 것을 권고(READY_FOR_E001_V2의 'open blocking P0/P1/P2 = 0' 조건에 어차피 걸린다). 권위 구조·설치 무결성·기준선 선언은 재작업 불요."
+}
