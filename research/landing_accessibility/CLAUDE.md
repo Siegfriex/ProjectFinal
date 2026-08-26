@@ -102,7 +102,8 @@ PILOT                  = research/refcohort-r1 @ 32460b8  READ_ONLY (수정 시 
 **2층은 현재 설치돼 있다** (2026-08-26, 오케스트레이터가 `install_hooks.sh --symlink` 실행).
 `.git/hooks/pre-push` 가 위 정본을 가리키는 심링크이고 `core.hooksPath` 는 unset 이다.
 직전의 미추적 legacy 사본은 `.git/hooks/pre-push.bak.<timestamp>` 로 백업됐다
-(adversarial V2-C002 `repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect` — 시정 주장, 감사 대기).
+(adversarial V2-C002 `repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect` — V2-C003 adversarial 이
+유효 훅에 stdin 12케이스를 직접 주입해 12/12 설계대로 동작함을 확인하고 **CLOSED** 판정했다).
 
 상태 확인은 언제나 **실측**으로 한다 — `scripts/install_hooks.sh --check`.
 선언을 믿지 마라. 훅은 `.git/` 안에 있고 `.git/` 은 추적되지 않는다.
@@ -111,6 +112,26 @@ PILOT                  = research/refcohort-r1 @ 32460b8  READ_ONLY (수정 시 
 > 심링크 대상이 **이 control 워크트리 안**이다. 워크트리를 삭제·이동하면 심링크가 끊기고
 > git 은 **오류 없이 훅을 건너뛴다** — 신뢰경계가 조용히 사라진다.
 > control 워크트리를 정리하기 전에 `install_hooks.sh --check` 를 먼저 돌려라.
+>
+> **탐지는 붙었다 (V2-C004).** `promote_landing_main.sh` 의 **첫 검사** `[HOOK_INSTALL]` 이
+> 훅 정본 존재 · 심링크 유효(dangling 아님) · 실행권한 · 정본과의 내용 동일을 확인하고
+> 하나라도 아니면 승격을 차단한다. 우회 옵션은 없다.
+> 설치 **방식**(심링크)은 그대로 둔다 — adversarial V2-C003 §2.3 이 `core.hooksPath` 는
+> 수명 의존이 같으면서 다른 훅을 전부 무효화하고 복사 모드는 drift 한다고 실측 판정했다.
+> 수명 의존 자체는 남으므로 이 부채는 계속 OPEN 이다. 탐지가 붙었을 뿐 원인은 그대로다.
+
+**승격 검사는 번호가 아니라 이름으로 부른다** (ssot V2-C003
+`control-state-and-promote-header-mislabel-verify-check-number`).
+검사를 하나 삽입하면 뒤 번호가 전부 밀리고, 그때마다 문서·state 의 번호 서술이 어긋난다.
+현재 순서: `[HOOK_INSTALL]` → `[SHA_RESOLVE]` → `[PILOT_IMMUTABLE]` → `[AUDIT_ANCESTRY]`
+→ `[EXEC_TREE]` → `[ORCH_TREE]` → `[INSTALL_INTEGRITY]` → `[BLOCKING_DEBT]` → `[AUDIT_VERDICT]`.
+
+> **원장은 커밋본에서만 읽는다 (V2-C004).** `[ORCH_TREE]` 가 이 control 워크트리의 dirty 를
+> 검사하고, `control/state.json` 을 `git show <control HEAD>:…` 로 읽어 워킹트리 사본과
+> 바이트 대조한다. 커밋하지 않은 `state.json` 편집으로는 `open_blocking_total` 을 0 으로
+> 만들 수 없다 (adversarial V2-C003 `promotion-reads-uncommitted-state-json-with-no-second-source`).
+> 감사 SHA 도 `audit_lag.latest_*_audit_sha` 에 핀 고정된다 — 인자로 넘긴 SHA 가 원장 기록과
+> 다르면 차단이다.
 
 **설치·변경은 오케스트레이터가 직접 수행한다** — 서브에이전트는 `.git/hooks/` 를 건드리지 않는다.
 
@@ -123,8 +144,10 @@ PILOT                  = research/refcohort-r1 @ 32460b8  READ_ONLY (수정 시 
 - `debt_ledger` / `open_p2` — v1 원장 (total 24 / open 21 / E001_BLOCKING 6). **삭제하지 않는다.**
 - `v2_transition.debt_inheritance` — 위 open 21건의 v2 phase 재매핑. 근거 없이 닫지 않는다.
 - `v2_transition.v2_audit_findings` — v2 감사 사이클별 등재.
-  V2-C001 (adversarial 7 / ssot 13, 현재 CLOSED 18 / OPEN 2) · V2-C002 (adversarial 8 / ssot 4)
-  · 오케스트레이터 등재 1건. **감사가 확인하기 전에는 닫지 않는다.**
+  V2-C001 (adversarial 7 / ssot 13, 현재 CLOSED 18 / OPEN 2) ·
+  V2-C002 (adversarial 8 / ssot 4, 현재 CLOSED 9 / OPEN 3) ·
+  V2-C003 (adversarial 8 / ssot 5, 전건 OPEN) · 오케스트레이터 등재 2건.
+  **감사가 확인하기 전에는 닫지 않는다.**
 - `v2_transition.open_blocking_total` — `00_SSOT_v2.0.md §15` 의 `open blocking = 0` 판정에 쓰는 값.
 
 Root `/home/sieg/projects-wsl/ProjectFinal/CLAUDE.md` 의 환경규칙(venv·경로·워크트리)은 그대로 상속한다.

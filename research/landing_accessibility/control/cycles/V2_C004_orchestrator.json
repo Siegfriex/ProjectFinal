@@ -1,0 +1,380 @@
+{
+  "cycle": "V2-C004",
+  "role": "orchestrator_support_executor",
+  "branch": "control/landing-orchestrator",
+  "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator",
+  "prev_control_sha": "cf5d107b2e8eb056aa8652217b470d10478b6fad",
+  "responds_to": {
+    "adversarial": {
+      "report": "research/landing_accessibility/audit/adversarial/V2_C003.{md,json}",
+      "audit_sha": "ea1d2448eedc80259b421a2b8bb3b840ba6dced8",
+      "verdict": "FAIL",
+      "counts": {
+        "P0": 0,
+        "P1": 1,
+        "P2": 7,
+        "blocking": 7
+      }
+    },
+    "ssot": {
+      "report": "research/landing_accessibility/audit/ssot/V2_C003.{md,json}",
+      "audit_sha": "43fab0acb3a9352c36b9c0b844cb44cef9f9d79d",
+      "verdict": "FAIL",
+      "counts": {
+        "P0": 0,
+        "P1": 0,
+        "P2": 5,
+        "blocking": 3,
+        "non_blocking": 2
+      }
+    },
+    "target_sha": "4a0585e05a2119f11d86e530162d9674e0268a53",
+    "target_branch": "agent/landing-v2-exec"
+  },
+  "scope_note": "control 브랜치 소관만 처리했다. exec 브랜치 문서(A1/A2/EXECUTION_AUTHORITY/verify_v2_docs.py)는 손대지 않았고, .git/hooks/ 도 수정하지 않았다 — [HOOK_INSTALL] 은 **탐지만** 한다. Pilot(research/refcohort) 무변경. 다른 워크트리는 읽기만 했다.",
+  "remediations": [
+    {
+      "finding_id": "promotion-reads-uncommitted-state-json-with-no-second-source",
+      "auditor": "adversarial",
+      "severity": "P2",
+      "blocking_class": "V2_SSOT_FROZEN-blocking",
+      "file": "research/landing_accessibility/scripts/promote_landing_main.sh",
+      "what_was_wrong": [
+        "STATE 를 `$ORCH_WT/…/control/state.json` 즉 control 워크트리의 **워킹트리 파일**에서 읽었다.",
+        "dirty 검사는 exec 워크트리에만 걸려 있었다 — control 워크트리는 clean 여부도 HEAD 도 검사되지 않았다.",
+        "따라서 control 워크트리에서 `open_blocking_total.total` 을 **커밋 없이** 0 으로 고치면 00_SSOT §15 게이트가 통과했고, 그 편집은 승격 커밋 어디에도 남지 않았다.",
+        "같은 사이클이 verdict 검사에 대해서는 정확히 이 문제를 고쳤는데(보고서 JSON 직접 대조) blocking debt 검사는 그 교정을 받지 못했다."
+      ],
+      "how_fixed": [
+        "[ORCH_TREE] 검사를 신설했다 — [EXEC_TREE] 바로 뒤, 원장을 읽는 모든 검사보다 앞이다.",
+        "control 워크트리에 `worktree_dirty_lines` 를 적용한다. 추적파일 변경은 무조건 차단이며 환경 심링크(.venv env node_modules)만 면제한다 — exec 워크트리와 동일한 술어다.",
+        "원장은 `git show <ORCH_SHA>:research/landing_accessibility/control/state.json` 으로 **커밋된 ref** 에서 뽑아 임시파일에 쓴다. 이후 [BLOCKING_DEBT]·[AUDIT_VERDICT] 의 입력은 그 커밋본 하나뿐이다 — 워킹트리 사본은 더 이상 입력이 아니다.",
+        "워킹트리 사본과 커밋본을 `cmp` 로 바이트 대조하고, 다르면 차단하면서 `diff -u` 앞 40행을 보고한다. dirty 검사가 놓치는 경로(`git update-index --skip-worktree` 등)도 이 층에서 잡힌다.",
+        "`--orch-sha=<sha>` 옵션을 추가했다. 명시하면 control 워크트리 HEAD 와 일치해야 하며, 생략하면 HEAD 를 쓴다. PRECHECK PASS 출력에 orch SHA 를 함께 찍는다.",
+        "임시파일은 `mktemp -d` + `trap cleanup EXIT` 로 항상 정리한다."
+      ],
+      "not_adopted": "감사가 제안한 두 번째 출처(‘cycles JSON 등재 목록 + 두 보고서 counts.blocking 으로 open_blocking_total 을 재계산해 대조’)는 이번에 넣지 않았다. 재계산식은 v1 승계·오케스트레이터 등재·CLOSED 판정 승계를 포함하므로 감사 보고서 두 개만으로는 결정되지 않는다. 커밋본 고정으로 ‘커밋 없이 조작’ 경로는 닫혔고, 커밋된 조작은 control 브랜치 이력에 남아 감사 대상이 된다. 자동 재계산은 다음 사이클 후보로 남긴다.",
+      "state": "REMEDIATION_CLAIMED_PENDING_AUDIT"
+    },
+    {
+      "finding_id": "promotion-audit-sha-argument-not-pinned-to-recorded-audit-sha",
+      "auditor": "adversarial",
+      "severity": "P2",
+      "blocking_class": "V2_SSOT_FROZEN-blocking",
+      "file": "research/landing_accessibility/scripts/promote_landing_main.sh",
+      "what_was_wrong": [
+        "argv 로 받은 감사 SHA 로 보고서를 읽으면서 `state.audit_lag.latest_*_audit_sha` 와 대조하지 않았다 (스크립트 전체에서 그 키 참조 0곳).",
+        "[AUDIT_ANCESTRY] 는 원격 감사 브랜치의 **조상** 이기만 요구하므로 tip 일 필요가 없다.",
+        "따라서 감사자가 보고서를 초안→최종 두 커밋으로 올리면, 초안에서 verdict 가 아직 PASS 이고 cycle·target_sha·auditor 3필드가 이미 채워져 있는 경우 그 SHA 를 인자로 넘겨 최종 FAIL 을 우회할 수 있었다."
+      ],
+      "how_fixed": [
+        "[AUDIT_VERDICT] 에 5-b 핀 단계를 넣었다 — argv 감사 SHA 가 `audit_lag.latest_adversarial_audit_sha` / `latest_ssot_audit_sha` 와 **정확히 일치** 해야 한다. 불일치는 차단이다.",
+        "핀은 보고서를 읽기 **전에** 건다. 잘못된 SHA 는 보고서 파싱 단계에 도달하지 못한다.",
+        "원장 기록이 없거나 40-hex 전체 SHA 가 아니면(축약형) 차단한다 — 축약형은 핀이 될 수 없다.",
+        "argv 감사 SHA 도 `git rev-parse --verify` 로 [SHA_RESOLVE] 에서 정규화한다. 문자열 비교가 축약 인자 때문에 어긋나지 않게 하기 위해서다. 해석 불가는 차단이다.",
+        "state.audit_lag 에 `audit_sha_pin_note` 를 추가해 이 두 키가 이제 핀이며 반드시 40-hex 여야 함을 원장 안에 명시했다."
+      ],
+      "not_adopted": "감사가 ‘가능하면’ 이라 단 원격 tip 일치 요구는 넣지 않았다. 감사자가 다음 사이클 보고서를 push 하면 tip 이 앞서가는 것이 정상 운영이고, 그때마다 승격이 깨진다. 핀의 정본은 원장 기록 쪽이며, 원장 기록은 오케스트레이터가 감사 보고서를 읽고 적는 값이라 조작하려면 control 커밋에 흔적이 남는다.",
+      "state": "REMEDIATION_CLAIMED_PENDING_AUDIT"
+    },
+    {
+      "finding_id": "prepush-hook-silent-skip-is-not-detected-anywhere",
+      "auditor": "adversarial",
+      "severity": "P2",
+      "blocking_class": "POST_E001_DEBT",
+      "file": "research/landing_accessibility/scripts/promote_landing_main.sh · research/landing_accessibility/CLAUDE.md §5",
+      "what_was_wrong": [
+        "훅 심링크가 끊기면 git 이 **경고 한 줄 없이 rc=0 으로** push 를 통과시킨다. 신뢰경계(Pilot 보호 · main 직접 push 차단 · 감사 계보 append-only)가 아무 신호 없이 사라진다.",
+        "`install_hooks.sh --check` 는 사람이 기억해서 돌려야 하고 항상 exit 0 이다(보고만 한다).",
+        "`promote_landing_main.sh` 는 훅 설치 상태를 전혀 보지 않았다 — 승격 경로 어디에서도 이 소실이 드러나지 않았다."
+      ],
+      "how_fixed": [
+        "[HOOK_INSTALL] 을 신설하고 **승격 경로 가장 앞**에 두었다. 우회 옵션은 만들지 않았다(fail-closed).",
+        "검사 항목: (1) 저장소 정본 `scripts/hooks/pre-push` 존재 — 스크립트 자기 위치 기준으로 해석한다, (2) 활성 훅 경로 해석 — `core.hooksPath` 가 설정돼 있으면 그쪽, 아니면 `git rev-parse --git-common-dir`/hooks (워크트리에서도 공통 git dir 을 정확히 잡는다), (3) **dangling 심링크** 차단(`-L` 이면서 `-e` 가 아닌 상태를 별도 메시지로 구분), (4) 미설치 차단, (5) 실행권한 없음 차단 — git 은 실행 불가 훅도 조용히 건너뛴다, (6) 정본과 내용 `cmp` 불일치(DRIFT) 차단 — V2-C002 의 legacy 사본 결함 재발 방지.",
+        "차단 메시지에 복구 명령(`install_hooks.sh --symlink`)을 함께 낸다.",
+        "설치 **방식**은 바꾸지 않았다. adversarial V2-C003 §2.3 이 심링크가 옳다고 실측 판정했다 — `core.hooksPath` 는 수명 의존이 동일하면서 저장소의 다른 훅을 전부 무효화하고, 복사 모드는 drift 한다(그 drift 가 V2-C002 finding 자체였다). 결함은 방식이 아니라 **소실의 무성(無聲)** 이므로 탐지를 붙였다.",
+        "CLAUDE.md §5 잔여 위험 문단에 ‘탐지는 붙었다’ 를 추가하되, 수명 의존 자체는 남으므로 부채 `prepush-hook-symlink-depends-on-control-worktree-lifetime` 은 계속 OPEN 임을 명시했다."
+      ],
+      "not_modified": ".git/hooks/ 는 읽기만 했다. 검증을 위해 심링크를 일시적으로 끊은 뒤 전량 원복했고 md5·readlink 로 확인했다(verification.restoration 참조).",
+      "state": "REMEDIATION_CLAIMED_PENDING_AUDIT"
+    },
+    {
+      "finding_id": "control-state-and-promote-header-mislabel-verify-check-number",
+      "auditor": "ssot",
+      "severity": "P2",
+      "blocking_class": "POST_E001_DEBT",
+      "file": "research/landing_accessibility/control/state.json · research/landing_accessibility/scripts/promote_landing_main.sh · research/landing_accessibility/CLAUDE.md §5",
+      "what_was_wrong": [
+        "state.json 3곳과 스크립트 헤더 1곳이 verify_v2_docs.py 실호출을 「검사 6」이라 불렀으나 실제 실행 순서는 4번째였다. 신설분을 4번 자리에 끼워 넣으면서 뒤 번호가 밀렸는데 서술이 따라가지 않았다.",
+        "반대 방향 오기도 있었다 — verdict 검사를 「검사 5」라 적은 곳이 있는데(삽입 이전 번호) 실제로는 6번째였다. ssot 는 이 건을 지목하지 않았으나 같은 결함이다.",
+        "위험은 감사 추적에 한정된다(강제 자체는 실재한다). 다만 다음 사이클 감사원이 state.json 을 근거로 ‘검사 6’ 을 확인하러 가면 verdict 검사를 보게 되고 승계 확인이 어긋난다."
+      ],
+      "how_fixed": [
+        "ssot 의 권고대로 **번호를 고치는 대신 번호 참조 자체를 폐기**했다. 검사를 하나 삽입할 때마다 같은 결함이 재발하기 때문이다 — 이번 사이클이 실제로 [HOOK_INSTALL]·[ORCH_TREE] 두 개를 삽입했다.",
+        "스크립트의 모든 검사에 안정적인 이름을 부여하고 `note`/`fail` 출력과 주석을 그 이름으로 통일했다: [HOOK_INSTALL] · [SHA_RESOLVE] · [PILOT_IMMUTABLE] · [AUDIT_ANCESTRY] · [EXEC_TREE] · [ORCH_TREE] · [INSTALL_INTEGRITY] · [BLOCKING_DEBT] · [AUDIT_VERDICT].",
+        "헤더에 이름 목록과 ‘인용은 이름으로 한다’ 는 규범, 그 이유(삽입하면 번호가 밀린다)를 적었다.",
+        "state.json 의 잘못된 서술 3곳 + 반대 방향 오기 1곳을 이름 참조로 고치고, 각 자리에 ‘등재 당시 번호는 오기였다’ 는 사실을 함께 남겼다(이력을 지우지 않는다).",
+        "CLAUDE.md §5 에 현재 검사 이름 순서를 적어 두었다.",
+        "**감사 보고서에서 인용한 문자열(closed_evidence · reaffirm_evidence · finding 의 file 필드)의 번호 표기는 고치지 않았다** — 감사 원문이므로 개변하지 않는다."
+      ],
+      "authority_doc_note": "exec 소관 `EXECUTION_AUTHORITY §8` 은 「검사 4」라 적었고 그것은 당시 사실과 일치했다(ssot 가 그렇게 확인했다). 이번에 [HOOK_INSTALL]·[ORCH_TREE] 가 삽입돼 verify 호출은 실행 순서상 7번째가 됐으므로, exec 는 §8 의 번호 서술을 이름 `[INSTALL_INTEGRITY]` 로 바꾸는 것이 안전하다. 문안 수정은 exec 브랜치 소관이라 여기서 하지 않고 next 에 넘긴다.",
+      "state": "REMEDIATION_CLAIMED_PENDING_AUDIT"
+    }
+  ],
+  "not_remediated_here": [
+    {
+      "finding_ids": [
+        "recollection-escape-path-unbounded-and-conclusion-prioritized",
+        "install-manifest-does-not-enforce-declared-banner-policy",
+        "t4-and-2-3-step-4-contradict-t6-for-verdict-state-na",
+        "gate-endpoint-archetypes-mix-two-endpoint-semantics-without-stratification",
+        "new-v2-c003-rules-absent-from-failure-injection-set",
+        "a2-1-5-1a-widens-00-3-community-gate-clause-to-any-auth-gate",
+        "a2-1-5-1a-deviates-from-01-11-without-exc-registration",
+        "rule-e-8-omits-01-6-auth-gate-before-endpoint-column",
+        "execution-authority-4-v2-ledger-scope-stale-at-v2-c001",
+        "a1-endpoint-status-placement-contradicts-a2",
+        "ned-ied-path-minimality-not-operationalized",
+        "installed-banner-region-is-unanchored-injection-surface"
+      ],
+      "owner": "exec (agent/landing-v2-exec)",
+      "reason": "docs/v2/** 와 scripts/verify_v2_docs.py 는 exec 브랜치 소관이다. control 이 손대면 두 브랜치가 같은 파일을 놓고 충돌하고, 그 자체가 권위 혼선이 된다. 전건 state.v2_transition.v2_audit_findings 에 OPEN 으로 등재해 두었다."
+    },
+    {
+      "finding_ids": [
+        "install-integrity-coverage-gap",
+        "install-manifest-is-self-anchored"
+      ],
+      "owner": "exec",
+      "reason": "V2-C001 승계 non-blocking 2건. ssot V2-C003 이 3대상 중 docs/v2/MANIFEST.json 1건은 닫혔다고 판정했고 나머지 2건(scripts/verify_v2_docs.py · tests/test_v2_docs_integrity.py 의 INSTALL_MANIFEST 미등재)은 잔존이다. exec 소관."
+    }
+  ],
+  "state_json_update": {
+    "audit_lag": [
+      "latest_exec_cycle V2-C002 → V2-C003, latest_exec_sha 6fad79fa → 4a0585e0.",
+      "두 감사: audited_cycle V2-C003 / target_sha 4a0585e0 / audit_sha adversarial ea1d2448 · ssot 43fab0ac / verdict 둘 다 FAIL.",
+      "both_audits_same_target_sha = true, unaudited_cycle_depth = 0 (≤ MAX_UNAUDITED_EXEC_CYCLES 1).",
+      "unreconciled/unpromoted depth 2 → 3. reconciled/promoted 는 여전히 C012(5a9015d1).",
+      "v2_history 에 V2-C002(target 6fad79fa / adv 2a28ad3d / ssot eb7e4e13 / FAIL·FAIL) 보존.",
+      "audit_sha_pin_note 신설 — 이 두 키가 승격 핀이며 40-hex 여야 한다."
+    ],
+    "v2_audit_findings": [
+      "V2-C002 adversarial 8건: CLOSED 6 / OPEN 2. CLOSED 마다 감사 원문 evidence 를 closed_evidence 로 부착하고 closed_by_audit = 'adversarial @ ea1d2448' 을 적었다. OPEN 2건(ned-ied-path-minimality-not-operationalized[blocking], installed-banner-region-is-unanchored-injection-surface[non-blocking])에는 reaffirm_evidence 를 붙였다.",
+      "V2-C002 ssot 4건: CLOSED 3 / OPEN 1. OPEN 은 a1-endpoint-status-placement-contradicts-a2(blocking, exec 미시정)이며 감사의 remedy 문안을 함께 실었다.",
+      "직전 사이클에 REMEDIATION_CLAIMED_PENDING_AUDIT 로 표시했던 6건은 전부 독립감사가 CLOSED 로 확인했다 — self-approval 없이 닫혔다.",
+      "V2-C003 신규 13건 등재: adversarial 8(P1 1 + P2 7, blocking 7) + ssot 5(P2 5, blocking 3). 감사 JSON 의 id·severity·blocking·class·file 을 그대로 읽어 실었다. adversarial 은 P1 에 p2_class 를 부여하지 않으므로 P1-1 의 blocking_class 는 보고서 헤더 gate 를 근거로 오케스트레이터가 분류했고 그 사실을 blocking_class_source 에 밝혔다.",
+      "이번 사이클이 시정을 주장한 4건은 REMEDIATION_CLAIMED_PENDING_AUDIT + counted_as_open = true 로 표시했다.",
+      "orchestrator_registered: ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 는 exec 가 A2 §1.5.1a 로 시정을 주장했고 두 감사가 그 절을 실측했으나 이 id 를 지목한 CLOSED 판정은 없다 → REMEDIATION_CLAIMED_PENDING_AUDIT, 계상 유지. prepush-hook-symlink-depends-on-control-worktree-lifetime 는 adversarial 이 P2/non-blocking 등급을 적절하다고 확인했고 심링크 방식이 옳다고 판정했다 → OPEN 유지, 탐지 부착 사실 기록.",
+      "totals 에 V2_C003 행 추가."
+    ],
+    "open_blocking_total": {
+      "previous": 17,
+      "value": 19,
+      "delta": 2,
+      "formula": "v1 6 + V2-C001 잔여 0 + V2-C002 adversarial 잔여 1 + V2-C002 ssot 잔여 1 + V2-C003 adversarial 신규 7 + V2-C003 ssot 신규 3 + 오케스트레이터 등재 1 = 19",
+      "by_blocking_class": {
+        "V2_SSOT_FROZEN-blocking": 9,
+        "E001_V2-blocking": 4,
+        "v1_inherited": 6
+      },
+      "not_deducted": "V2-C004 가 시정을 주장한 blocking 2건(promotion-reads-uncommitted-state-json-with-no-second-source, promotion-audit-sha-argument-not-pinned-to-recorded-audit-sha)은 합계에서 빼지 않았다. non-blocking 시정 2건은 원래 합계 밖이다. 이번 사이클의 control 시정은 total 을 한 건도 낮추지 않는다 — self-approval 금지.",
+      "double_count_note": "adversarial 이 V2-C003 §3.3 에서 지적한 중복계상 2쌍(verify-script-declared↔execution-authority-overclaims, control-claude-md-invents↔control-claude-md-restates)은 네 건 전부 CLOSED 되어 사라졌다. 19 에는 알려진 중복계상이 없다.",
+      "cross_check": "adversarial counts.blocking 7(신규) · ssot counts.blocking 3(신규) · ssot 자기 집계 ssot_attributable_open_blocking_total 4(신규 3 + 승계 a1-endpoint 1) 와 대조해 일치를 확인했다."
+    },
+    "gates": {
+      "updated": [
+        "adversarial_audit → FAIL_V2_C003_P0_0_P1_1_P2_7 (blocking 7)",
+        "ssot_audit → FAIL_V2_C003_P0_0_P1_0_P2_5 (blocking 3)",
+        "V2_SSOT_FROZEN → NOT_ACHIEVED 유지. V2_SSOT_FROZEN-blocking 9건 · open_blocking_total 19.",
+        "promotion_guard_verdict_fail_closed → PASS_PENDING_AUDIT → PASS (adversarial 이 위조 3경로 시도 후 CLOSED)",
+        "promotion_guard_integrity_verify_invocation → PASS (adversarial 이 3회 직접 실행 후 CLOSED). '검사 6' 오기 정정 포함.",
+        "control_claude_md_pointer_only → PASS (두 감사 CLOSED)",
+        "repo_pre_push_hook_installed → PASS (adversarial stdin 12케이스 12/12 후 CLOSED) + 탐지 부착 사실"
+      ],
+      "new": [
+        "promotion_guard_state_json_committed_source",
+        "promotion_guard_audit_sha_pinned",
+        "promotion_guard_hook_install_check"
+      ]
+    },
+    "other": [
+      "cycle_id V2-C003b → V2-C004, updated_at 갱신.",
+      "v2_transition.v2_exec_sha 6fad79fa → 4a0585e0 + note 갱신."
+    ],
+    "unchanged": [
+      "debt_ledger",
+      "open_p0",
+      "open_p1",
+      "open_p2",
+      "v2_transition.debt_inheritance",
+      "phase(P0_V2_REFREEZE)",
+      "authoritative_main_sha(5a9015d1)",
+      "pilot(refcohort-r1 @ 32460b8, READ_ONLY)"
+    ]
+  },
+  "verification": {
+    "method": "수정한 promote_landing_main.sh 를 --dry-run 으로 실제 실행했다. push 는 한 번도 트리거되지 않았다(모든 실행이 push 이전에 exit 1, 또는 DRY_RUN 분기). 실행 후 origin/research/landing-accessibility-main = 5a9015d1e95b15304aaf53a73efb475934610b82 무변경 확인. [AUDIT_VERDICT] 는 open_blocking_total = 19 때문에 전체 실행으로는 도달할 수 없으므로, adversarial 이 V2-C003 §2.2 에서 쓴 것과 같은 방법으로 해당 python 블록을 **바이트 그대로** 떼어내(추출본이 스크립트 구간과 byte-identical 임을 확인) 합성 state 로 시험했다.",
+    "temp_artifacts": "exec 워크트리(landing_v2_exec)는 다른 담당이 동시 수정 중이라 dirty 다. 읽기도 쓰기도 하지 않고, scratchpad 에 4a0585e0 의 detached 임시 워크트리 1개를 만들어 --exec-worktree= 로 넘겼다. 시험 후 git worktree remove --force + git worktree prune 로 제거했다. 훅 dangling 무성 통과 재현은 scratchpad 안의 **별도 격리 저장소**(init + bare remote)에서 했고 ProjectFinal 저장소에는 어떤 push 도 하지 않았다. 저장소 refs 무변경.",
+    "A_HOOK_INSTALL": {
+      "baseline": ".git/hooks/pre-push = symlink -> …/landing_orchestrator/…/scripts/hooks/pre-push, md5 6acaebb07ec7b428d6053ad38dae6f6a, core.hooksPath unset, 정본 mode 755",
+      "cases": [
+        {
+          "id": "A1",
+          "input": "정상 설치 (심링크 유효)",
+          "expect": "PASS",
+          "actual": "· [HOOK_INSTALL] OK — …/.git/hooks/pre-push -> …/scripts/hooks/pre-push (내용 = 정본, 실행권한 있음, core.hooksPath unset → …/.git/hooks)",
+          "pass": true
+        },
+        {
+          "id": "A2",
+          "input": "심링크를 존재하지 않는 워크트리 경로로 돌려 dangling 으로 만듦",
+          "expect": "BLOCK",
+          "actual": "PROMOTION BLOCKED: pre-push 훅 심링크가 끊겼다 (dangling): …/.git/hooks/pre-push -> …/.agent_worktrees/DELETED_WORKTREE/scripts/hooks/pre-push / 'git 은 이 상태에서 훅을 경고 없이 건너뛴다' + 복구 명령. rc=1",
+          "pass": true
+        },
+        {
+          "id": "A3",
+          "input": "훅 파일 자체를 제거",
+          "expect": "BLOCK",
+          "actual": "PROMOTION BLOCKED: pre-push 훅이 설치돼 있지 않다: …/.git/hooks/pre-push (core.hooksPath unset → …/.git/hooks). rc=1",
+          "pass": true
+        },
+        {
+          "id": "A4",
+          "input": "정본 + 한 줄을 덧붙인 일반 파일로 교체 (drift)",
+          "expect": "BLOCK",
+          "actual": "PROMOTION BLOCKED: pre-push 훅 내용이 저장소 정본과 다르다 (DRIFT) — 'V2-C002 repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect 의 재발'. rc=1",
+          "pass": true
+        },
+        {
+          "id": "A5",
+          "input": "정본과 내용은 동일하지만 실행권한 없는 일반 파일(644)",
+          "expect": "BLOCK",
+          "actual": "PROMOTION BLOCKED: pre-push 훅에 실행권한이 없다 — git 은 실행권한 없는 훅을 조용히 건너뛴다. rc=1",
+          "pass": true
+        }
+      ],
+      "independent_repro_of_silent_skip": "adversarial 의 주장을 인용하지 않고 직접 재현했다. scratchpad 격리 저장소(git 2.43.0, init + bare remote): 유효 심링크 훅 → 'BLOCKED by hook' rc=1, push 실패. 대상 파일만 삭제해 dangling 으로 만든 뒤 같은 push → **경고 한 줄 없이 rc=0**, remote 에 '* [new branch] master -> master' 로 실제 반영됨. 무성 통과가 실재한다.",
+      "restoration": "trap restore EXIT 로 매 실행 후 원복했다. 최종 확인 — ls -la: symlink -> /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator/research/landing_accessibility/scripts/hooks/pre-push, md5 6acaebb07ec7b428d6053ad38dae6f6a (= 기준선 = 정본), core.hooksPath 여전히 unset, 정본 파일 md5·mode(755) 무변경, control 워크트리 scripts/hooks/ 에 git 변경 0건."
+    },
+    "B_ORCH_TREE": {
+      "baseline": "control 워크트리 clean, state.json md5 6efc3a8f567a4ea0c24b171afe3743fd (커밋 e127c65 시점)",
+      "cases": [
+        {
+          "id": "B0",
+          "input": "정상 인자 + clean control 워크트리 + clean exec 임시 워크트리 @4a0585e0",
+          "expect": "[HOOK_INSTALL]~[INSTALL_INTEGRITY] 통과 후 [BLOCKING_DEBT] 에서 BLOCK",
+          "actual": "[HOOK_INSTALL] OK → [PILOT_IMMUTABLE] OK → [AUDIT_ANCESTRY] OK → [EXEC_TREE] OK → [ORCH_TREE] clean + state.json 워킹트리 == 커밋본(e127c657…) OK → [INSTALL_INTEGRITY] verify_v2_docs.py exit 0 OK — V2_DOCS_VERIFY: PASS → PROMOTION BLOCKED: v2_transition.open_blocking_total = 19 (breakdown 전량 출력). rc=1",
+          "pass": true
+        },
+        {
+          "id": "B1",
+          "input": "control 워크트리에서 state.json 의 open_blocking_total.total 을 0 으로, gate_satisfied 를 true 로 **커밋 없이** 편집",
+          "expect": "BLOCK",
+          "actual": "PROMOTION BLOCKED: control(orchestrator) 워크트리 dirty — ' M research/landing_accessibility/control/state.json' + 'state.json 은 승격 판정의 원장이다. 커밋되지 않은 편집은 승격 근거가 될 수 없다.' rc=1",
+          "pass": true
+        },
+        {
+          "id": "B2",
+          "input": "같은 변조 + `git update-index --skip-worktree` 로 dirty 검사 회피 (git status 가 비어 보이는 상태)",
+          "expect": "BLOCK (두 번째 층)",
+          "actual": "PROMOTION BLOCKED: state.json 워킹트리 사본이 커밋본(e127c657…)과 다르다 + diff -u 발췌 ('-\"total\": 19 / +\"total\": 0', '-\"gate_satisfied\": false / +\"gate_satisfied\": true'). rc=1",
+          "pass": true,
+          "note": "dirty 검사만으로는 막을 수 없는 경로다. 커밋본 대조 층이 실제로 독립적으로 작동함을 보인다."
+        },
+        {
+          "id": "B-CTRL",
+          "input": "구버전 스크립트(cf5d107b) + B1 과 동일한 커밋되지 않은 변조",
+          "expect": "구버전은 통과(=결함 재현)",
+          "actual": "'· 5. open P0/P1 = 0 · v2_transition.open_blocking_total = 0 OK' 를 출력하며 00_SSOT §15 게이트를 **통과**했다. 그 뒤 verdict 검사에서만 멈췄다 (latest_adversarial_verdict = 'FAIL'). 즉 verdict 가 PASS 인 사이클이었다면 커밋 없는 편집만으로 승격이 성립했다. 결함 실재 확인.",
+          "pass": true
+        }
+      ],
+      "restoration": "trap restore EXIT — `git update-index --no-skip-worktree` 로 플래그 해제 후 baseline 사본을 되돌렸다. 최종 확인: state.json md5 6efc3a8f567a4ea0c24b171afe3743fd (= 기준선), `git ls-files -v` = 'H research/landing_accessibility/control/state.json' (S 아님, 플래그 해제됨), `git status --porcelain` = 빈 문자열."
+    },
+    "C_AUDIT_VERDICT_PIN": {
+      "extraction": "promote_landing_main.sh 의 [AUDIT_VERDICT] python heredoc 을 그대로 뽑아 (추출본 3890 byte == 스크립트 구간 3890 byte, byte-identical 확인) 실행했다. 구버전 대조를 위해 cf5d107b 의 같은 블록도 동일 방식으로 뽑았다.",
+      "cases": [
+        {
+          "id": "C1",
+          "input": "합성 state(두 verdict PASS, audit_sha = 실제 V2-C003 감사 SHA) + 인자 = 같은 SHA",
+          "expect": "핀 통과 후 보고서 원본 대조로 진행",
+          "actual": "핀 단계를 통과하고 보고서 JSON 을 읽어 \"adversarial 감사 보고서 verdict = 'FAIL' (PASS 아님)\" 으로 차단. 핀이 정상 경로를 막지 않으며 하위 검사가 계속 작동함을 보인다.",
+          "pass": true
+        },
+        {
+          "id": "C2",
+          "input": "**다른 사이클의 PASS 감사 SHA** 를 인자로 (510d5f21… = C012 adversarial PASS) — adversarial 이 실제로 시험한 경로",
+          "expect": "BLOCK",
+          "actual": "adversarial 감사 SHA 핀 불일치: 인자 510d5f21… != audit_lag.latest_adversarial_audit_sha ea1d2448… — '원장이 기록한 감사 커밋이 아닌 SHA 로는 승격할 수 없다'. rc=1",
+          "pass": true
+        },
+        {
+          "id": "C3",
+          "input": "같은 감사자의 직전 사이클 SHA (2a28ad3d = V2-C002 adversarial)",
+          "expect": "BLOCK",
+          "actual": "adversarial 감사 SHA 핀 불일치. rc=1",
+          "pass": true
+        },
+        {
+          "id": "C4",
+          "input": "ssot 쪽만 바꿔치기 (eb7e4e13 = V2-C002 ssot)",
+          "expect": "BLOCK",
+          "actual": "ssot 감사 SHA 핀 불일치: 인자 eb7e4e13… != audit_lag.latest_ssot_audit_sha 43fab0ac…. rc=1",
+          "pass": true
+        },
+        {
+          "id": "C5",
+          "input": "원장 기록이 축약형(7-hex 'ea1d244')",
+          "expect": "BLOCK",
+          "actual": "audit_lag.latest_adversarial_audit_sha = 'ea1d244' 가 40-hex 전체 SHA 가 아니다 — 축약형은 핀이 될 수 없다. rc=1",
+          "pass": true
+        },
+        {
+          "id": "C6",
+          "input": "원장에 latest_adversarial_audit_sha 키 자체가 없음",
+          "expect": "BLOCK",
+          "actual": "audit_lag.latest_adversarial_audit_sha 가 없다 — 대조할 기준이 없다 (fail-closed). rc=1",
+          "pass": true
+        },
+        {
+          "id": "C7",
+          "input": "adversarial 이 지목한 **초안→최종 시나리오** 를 격리 저장소로 구성 — 감사 브랜치에 draft 커밋(verdict PASS, cycle/target_sha/auditor 3필드 완비) 다음 final 커밋(verdict FAIL). 원장은 final SHA 를 기록. 인자로 draft SHA 를 넘긴다.",
+          "expect": "BLOCK",
+          "actual": "adversarial 감사 SHA 핀 불일치: 인자 4934ad58…(draft) != 원장 329859da…(final). rc=1",
+          "pass": true
+        },
+        {
+          "id": "C-CTRL",
+          "input": "구버전(cf5d107b) 블록에 C7 과 **동일한 입력**",
+          "expect": "구버전은 통과(=결함 재현)",
+          "actual": "rc=0. 구버전은 draft 커밋의 PASS 보고서를 읽고 cycle·target_sha·auditor 3필드가 모두 맞으므로 통과시켰다. 감사가 '오늘은 살아 있는 익스플로잇이 없다' 고 한 이유(V2_C002.json 이 단일 커밋)와 무관하게, 초안 커밋이 존재하는 순간 성립하는 경로임을 확인했다.",
+          "pass": true
+        },
+        {
+          "id": "C8",
+          "input": "신버전 + 원장이 기록한 final SHA (정상 경로)",
+          "expect": "BLOCK (verdict 가 FAIL 이므로)",
+          "actual": "adversarial 감사 보고서 verdict = 'FAIL' (PASS 아님). 핀이 아니라 verdict 검사에서 멈춘다 — 층이 분리돼 있다.",
+          "pass": true
+        }
+      ]
+    },
+    "push_triggered": false,
+    "main_ref_after": "5a9015d1e95b15304aaf53a73efb475934610b82",
+    "all_temp_changes_reverted": ".git/hooks/pre-push (md5·readlink·core.hooksPath) · control/state.json (md5) · skip-worktree 플래그 (ls-files -v) · 임시 exec 워크트리 (worktree remove + prune) · 격리 시험 저장소 (rm -rf) — 전량 원복·제거하고 각각 대조로 확인했다. exec 워크트리(landing_v2_exec)와 Pilot 은 읽기조차 하지 않았다.",
+    "run_against_commit": "검증 실행은 커밋 e127c657d8a6321de124a3114c94491ddcc2f195 (이 사이클의 첫 커밋) 상태에서 했다. 그 뒤 본 파일의 verification 절을 실측 결과로 채우고 `git commit --amend` 했으므로 최종 커밋 SHA 는 다르다. 두 커밋의 트리 차이는 **이 파일 하나**이며 promote_landing_main.sh · state.json · CLAUDE.md 는 바이트 동일하다. 출력에 찍힌 e127c657… 은 그 시점의 control HEAD 다."
+  },
+  "files_changed": [
+    "research/landing_accessibility/scripts/promote_landing_main.sh",
+    "research/landing_accessibility/control/state.json",
+    "research/landing_accessibility/CLAUDE.md",
+    "research/landing_accessibility/control/cycles/V2_C004_orchestrator.json"
+  ],
+  "next": [
+    "exec: EXECUTION_AUTHORITY §8 의 '검사 4' 번호 서술을 이름 [INSTALL_INTEGRITY] 로 바꾼다 — [HOOK_INSTALL]·[ORCH_TREE] 삽입으로 실행 순서상 7번째가 됐다.",
+    "exec: V2-C003 두 감사의 exec 소관 blocking 11건 — 재수집 경로 한정(P1), 배너 정책 강제, T-4↔T-6 NA 충돌, auth gate 층화, 실패주입 3행, ssot 의 §1.5.1a 3건, 그리고 승계 2건(a1-endpoint-status 배치 · NED/IED 경로 최소성).",
+    "두 감사: V2-C004 control 시정 4건을 검증한다. 특히 [HOOK_INSTALL] 은 우회 옵션이 없는지, [ORCH_TREE] 가 커밋본 이외의 입력을 남기지 않았는지, 감사 SHA 핀이 정상 경로를 막지 않는지를 본다.",
+    "오케스트레이터: control 워크트리를 정리·이동하기 전에 install_hooks.sh --check 를 먼저 돌린다. 이제 [HOOK_INSTALL] 이 승격 경로에서도 잡는다."
+  ]
+}
