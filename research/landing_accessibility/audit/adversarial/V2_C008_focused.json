@@ -1,0 +1,91 @@
+{
+  "id": "rc-6-r1-same-authorization-local-reexecution-unbounded",
+  "verdict": "ACCEPT_RECLASSIFY",
+  "new_class": "ACCEPTED_BOUNDED_RESIDUAL_RISK",
+  "conditions": [
+    "C-1 · 원장 영구 기록 (즉시, V2_SSOT_FROZEN 선언 이전). control/state.json 항목을 삭제하지 않고 state=ACCEPTED_BOUNDED_RESIDUAL_RISK / blocking=false / counted_as_open=false 로 전이하고 accepted_by(=이 감사 SHA)·accepted_at·basis·scope·conditions·lapse_rule 을 함께 기록한다. 신규 상태값의 정의(\"환원 불가능성이 감사에 의해 입증·수용됐고 운영 통제와 공표 의무에 묶인 잔여. CLOSED 가 아니다\")를 원장에 명기한다. 이후 모든 open_blocking_total 재계산에서 '명시적으로 제외된 한 줄'로 표시하며 합계에서 조용히 사라지는 형태(항목 삭제·누락)를 금지한다. promote_landing_main.sh [DEBT_RECOMPUTE] 블록이 이 상태값을 인식하고 제외 건수를 별도 출력하도록 갱신한다.",
+    "C-2 · 수용 경계를 실제 크기로 (즉시, V2_SSOT_FROZEN 선언 이전). 이 수용이 덮는 것은 개별 항목이 아니라 위험 부류 '선별적 로컬 재실행 — 수집을 로컬에서 K회 실행한 뒤 선호하는 1회만 커밋'이며 재수집 run(RC-6/R-1)과 최초 E001 run 양쪽에 적용된다. A2:1378 의 '최초 run은 앵커를 요구하지 않는다 — 선택할 대상이 없기 때문이다'를 시정한다: 참된 이유는 '앵커를 걸 선행 커밋 run 이 없기 때문'이며, '선택할 대상이 없다'는 R-1 위협모델(커밋되지 않은 로컬 run 사이의 선택) 아래에서 거짓이다 — 철회된 A2:1334 와 같은 범주 오류. A2 §1.11.2 잔여 위험표에 최초 run 노출을 R-1 적용 범위로 명기하되 닫힌 것처럼 적지 않는다.",
+    "C-3 · 운영 통제 코드 (E001_V2 실행 이전, E001_V2 게이트 선행조건). A2:1400 이 R-1 의 유일한 완화층으로 지목한 '수집 도구'가 현재 코드로 존재하지 않음을 실측 확인했다(claude-b/e001-runner @ 2025e56 = exec tip, 러너 없음; 02 spec 에 단일 실행 강제 문면 0건). 착수 전 구현·검증한다: (1) 인가 튜플 (ledger_record_sha256, execution_index) 마다 영속 실행 lock 을 획득하고 2회차 실행을 거부한다, (2) evidence 생성→원장 기록→commit→push 를 하나의 비대화형 호출 안에서 끝내 '결과를 본 뒤 커밋 여부를 정할 인간의 틈'을 없앤다, (3) 최초 E001 run 에도 (web_target_id, collection_wave) 키로 동일 lock 을 건다(C-2 귀결), (4) run manifest 에 execution_environment(host·wall-clock start/end·tool version·lock id·process id)를 러너가 기계 기록한다. 이는 R-1 을 닫지 않으며 인간 조작 틈을 프로세스 수준에서 좁히는 층이다. E000_V2 smoke 에서 두 감사가 각각 검증한다.",
+    "C-4 · E001_V2 실제 준수 검증 (E001_V2 종료 시). RC-5 보고에 추가하고 두 감사가 각각 대조한다: (i) 인가 대조 3수 control E ↔ 원장 EXECUTION ↔ 제출 evidence run 이 같다, (ii) 러너 lock 기록 ↔ EXECUTION 레코드 1:1 (lock 은 있는데 EXECUTION 이 없으면 은닉된 실행이다), (iii) 수집 담당이 '폐기된 로컬 run 이 존재하지 않는다'를 원장에 서명 기입하고 control 이 countersign 한다 — 증명이 아니라 탐지 불가능한 행위를 기록된 허위진술로 전환하는 장치이며 증명으로 포장하지 않는다, (iv) execution_environment wall-clock 이 evidence 타임스탬프·commit 순서와 모순되지 않는다.",
+    "C-5 · 한계 공표 (문서: 즉시 / 최종 산출물: 보고 시점). (1) 00_SSOT_v2.0 §14 Claim Boundary 또는 03 Phase 5 에 한계 절을 둔다 — '정본 run 선택의 검증은 커밋된 산출물에 한정되며, 로컬 다회 실행 후 선별 커밋은 저장소 측 어떤 검사로도 배제되지 않는다. 본 연구는 프로세스 통제와 역할 분리, 재수집 전후 값 병기에 의존한다. 이 잔여는 독립 감사가 검토·수용한 것이며 해소된 것이 아니다.' (2) 논문/최종 보고서 limitation 절에 같은 취지를 싣는다. 감사 수준에서 수용됐으나 서술에서 빠진 잔여는 정직한 등재를 은폐로 되돌리는 것이며 이 수용의 근거 자체를 무너뜨린다. §14 가 FROZEN 이라 문면 추가가 SSOT 개정에 해당하면 EXC 절차를 따르되, 그 절차 부담을 이유로 이 조건을 생략할 수 없다.",
+    "C-6 · 실효 규칙과 선례 제한. (1) 실효: C-1·C-2·C-5-①(문서) 미충족 상태로 V2_SSOT_FROZEN 을 선언할 수 없고, C-3·C-4·C-5-②(산출물) 미충족 상태로 E001_V2 를 실행·종료할 수 없다. 어느 하나라도 정해진 시점에 미충족이면 새 감사 finding 없이 이 수용은 자동 실효되고 항목은 OPEN/blocking=true/counted_as_open=true 로 복귀한다. (2) 선례 아님: 이 경로는 (i) 직접 공격으로 환원 불가능성이 재현 입증됐고 (ii) 잔여가 단일하게 명명된 차원으로 좁혀졌으며 나머지 갈래가 실제로 봉쇄됐고 (iii) 감사가 지적하기 전에 설계자가 스스로 정직하게 등재한 항목에만 쓸 수 있다. e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint 와 ned-ied-path-minimality-not-operationalized 는 이를 만족하지 않으며, 이 판정을 근거로 그 둘을 닫는 것을 명시적으로 금지한다."
+  ],
+  "rationale": "환원 불가능성은 참이고 내가 V2-C006 에서 직접 공격으로 확인했다 — 커밋되지 않은 로컬 실행은 정의상 저장소에 흔적을 남기지 않으므로 어떤 git 포렌식도 볼 수 없다. 이것은 RC-6 의 설계 결함이 아니라 'committed artifact 만 감사한다'는 이 감사 체계 전체의 정의역이다. 잔여는 단일 차원('인가 1건당 몇 번 돌렸는가')으로 실제로 좁혀졌다 — A-6(유도식 f 의 입력에 control 인가 커밋이 들어가 비인가 id 계산 불가) · A-7(인가1↔실행1↔run1) · A-8(control 이 독립적으로 세는 E 로 상한)이 나머지 세 갈래를 봉쇄함을 2025e566 문면 실측과 V2-C006 직접 공격으로 확인했고, MAX_RECOLLECTION_RUNS_PER_WEB_TARGET 기본값 1(A2:1162)이 재수집 자체를 예외 경로로 만든다. 잔여는 세 곳(A2:1400 잔여표 · A2:1390 닫힘 논거표 · A2:2353 실패주입 I-41, 기대결과 '차단되지 않는다')에 정직하게 등재됐고 닫힌 것처럼 기록한 자리가 한 곳도 없다. 00_SSOT_v2.0 §15 는 13항 전부가 도달 가능한 상태로 구성된 착수 준비도 체크리스트이며, '해소 가능한 결함이 남아 있지 않은가'를 묻는다 — 원리적으로 도달 불가능한 조건으로 읽으면 게이트가 영구히 닫히고, 잔여를 적은 설계는 막히고 적지 않은 설계는 통과하는 은폐 보상 유인이 생긴다. 원리적 잔여의 올바른 처리는 게이트 봉쇄가 아니라 §14 Claim Boundary 의 경계 명시다(C-5). 나는 FROZEN 인 §15 를 개정하지 않는다 — 원장이 이 id 에 한해 '감사의 명시적 잔여위험 수용'을 닫힘 경로로 미리 지정했고(V2_C006_orchestrator.json not_done[8] · state.json why_counted), 오케스트레이터가 '제외에는 감사 판정이라는 근거가 있어야 한다'며 그 판정을 스스로 내리기를 명시적으로 거부해 이 감사에 위임한 빈칸을 채우는 것이다. 05 §6 self-approval 금지는 그대로 지켜진다. 다만 무조건 수용하지 않는다 — A2:1400 이 R-1 의 유일한 완화층으로 지목한 '수집 도구'가 현재 코드로 존재하지 않고(C-3), 수용 경계가 실제보다 좁게 그어져 있으며(C-2/신규 발견), 수용이 최종 산출물에서 침묵으로 귀결되면 수용의 근거 자체가 무너진다(C-5). 조건부 수용은 잔여를 지우는 것이 아니라 blocking 원장에서 운영 통제 원장으로 옮기는 것이며, 그것이 이 위험의 실제 성격에 맞다.",
+  "audit": {
+    "cycle": "V2-C008",
+    "auditor": "adversarial",
+    "audit_type": "FOCUSED CLASSIFICATION ADJUDICATION — 시정 검증이 아니라 분류 판정. 전면 재감사 아님",
+    "audit_branch": "audit/landing-adversarial",
+    "exec_sha": "2025e5667686d42e832298f2dce77b0c7aa6bc07",
+    "control_sha": "1d6cedb6aca6933a701275c7c8e14fd7d4628c73",
+    "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+    "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+    "prev_adversarial_audit_sha": "cd0a4e62fc1e1582bd56678cec35d688edc695ed",
+    "prev_ssot_audit_sha": "68a715bb250630553b292e96ee992d5880d31b48",
+    "phase": "P0_V2_REFREEZE",
+    "gate": "V2_SSOT_FROZEN",
+    "report": "research/landing_accessibility/audit/adversarial/V2_C008_focused.md"
+  },
+  "authority_basis": {
+    "designated_closure_route": "control@1d6cedb:control/cycles/V2_C006_orchestrator.json not_done[8] — '저장소 밖 통제 설계 또는 감사의 명시적 잔여위험 수용이 있어야 닫힌다'",
+    "corroborating": "control@1d6cedb:control/state.json (rc-6-r1-… why_counted / assigned_phase) — 동일 문구",
+    "orchestrator_deliberately_abstained": "V2_C006_orchestrator.json r1_counting_note — '그 판정을 오케스트레이터가 미리 내리지 않는다 … 제외에는 감사 판정이라는 근거가 있어야 한다'",
+    "self_approval_check": "등재 주체(A2 설계 담당·orchestrator support executor) ≠ 수용 판정 주체(독립 adversarial 감사). 05 §6 준수"
+  },
+  "evidence_verified_at_exec_sha": [
+    {"loc": "A2:1162", "fact": "MAX_RECOLLECTION_RUNS_PER_WEB_TARGET = 1 (기본값) — 재수집 자체가 예외 경로"},
+    {"loc": "A2:1348-1360", "fact": "유도식 f(ledger_record_sha256, countersign_commit_sha, execution_index) — 순환 없음, 인가 이전 계산 불가"},
+    {"loc": "A2:1370", "fact": "A-6 재계산 바이트 비교 — 비인가 id 봉쇄"},
+    {"loc": "A2:1368", "fact": "A-7 인가1↔실행1↔run1. '배제하지 못하는 것' 열에 R-1 명시"},
+    {"loc": "A2:1372", "fact": "A-8 control 이 독립적으로 세는 E ↔ EXECUTION ↔ DISPOSITION 전건 대조 — 인가받고 은닉 봉쇄"},
+    {"loc": "A2:1390", "fact": "닫힘 논거표 — '닫히지 않는다' + V2-C005 판 :1334 단언 철회 명기"},
+    {"loc": "A2:1400", "fact": "잔여 위험표 R-1 행 — '저장소 내부 검사로는 배제 불가', 기대는 곳 = '수집 도구와 수집자'"},
+    {"loc": "A2:2353", "fact": "실패주입 I-41 기대결과 = '차단되지 않는다' — 가드가 막는다고 주장하지 않기 위해"},
+    {"loc": "A2:1203-1210", "fact": "RC-2 중단규칙 — 판정 결과(verdict_state)는 어느 검사에도 입력되지 않는다"},
+    {"loc": "A2:1252-1272", "fact": "RC-5 보고 의무 — 재수집 전후 병기 + 실행 인가 대조 3수"},
+    {"loc": "A2:1414-1420", "fact": "RC-7 3방향 대조 + 조밀성"},
+    {"loc": "claude-b/e001-runner @ 2025e56", "fact": "exec tip 과 동일 — 수집 러너 코드 미존재. R-1 의 유일한 실질 완화층이 vaporware (C-3 근거)"},
+    {"loc": "02_COLLECTION_MEASUREMENT_SPEC_v2.0.md", "fact": "'재실행'·'한 번만'·'1회'·'K회' grep 0건 — 단일 실행 강제 문면 없음"},
+    {"loc": "00_SSOT_v2.0 §15", "fact": "13항 전부 도달 가능한 상태(frozen/validated/PASS)로 구성된 착수 준비도 체크리스트. 마지막 항이 'open blocking P0/P1/P2 = 0'"}
+  ],
+  "new_findings": [
+    {
+      "id": "rc-6-initial-run-anchor-exemption-rationale-is-false-under-r1-threat-model",
+      "severity": "P2",
+      "blocking": false,
+      "absorbed_into": "C-2",
+      "loc": "2025e566:research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md:1378",
+      "text": "이 규칙은 재수집 run에만 적용된다. 최초 run은 앵커를 요구하지 않는다 — 선택할 대상이 없기 때문이다.",
+      "why": "뒷문장이 R-1 위협모델 아래에서 거짓이다. '선택할 대상이 없다'는 커밋된 산출물의 세계에서만 참이며, R-1 이 지적하는 선택은 커밋되지 않은 로컬 run 사이의 선택이다. 최초 run 은 그 선택에 완전히 열려 있고 앵커가 없으므로 A-1~A-8 어느 것도 적용되지 않는다(A1:549·568·577 — 최초 run 의 evidence_run_id 에 유도식 제약 없음). 즉 최초 수집을 로컬 K회 실행 후 하나만 커밋하는 것은 저장소상 단일 run 과 구분 불가능하며 어떤 잔여로도 등재돼 있지 않다.",
+      "load_bearing_on_r1": "R-1 수용이 기대는 최상위 탐지층은 RC-5 의 '재수집 전후 병기'인데 그 '전' 값의 기준선이 최초 run 이다. 최초 run 자체가 선별 가능하면 기준선이 오염되고 R-1 탐지층이 약해진다. 따라서 최초 run 을 덮지 않는 좁은 경계로 수용하면 감사가 실제보다 작은 잔여를 인증하게 된다.",
+      "same_species_as": "V2-C005 에서 철회된 A2:1334 '은닉은 정본 선택에 아무 이득을 주지 못한다' — 커밋된 것에 대해 참인 문장을 커밋되지 않은 것까지 덮는 것처럼 적은 범주 오류",
+      "not_raised_as_blocking_because": "새 탈출로를 만드는 문장이 아니라 이미 존재하는 노출을 과소기술하는 문장이며 문면 수정으로 해소된다. 별건 blocking 으로 세우는 대신 수용 조건 C-2 로 흡수해 경계를 실제 크기로 다시 긋게 한다."
+    }
+  ],
+  "alternatives_rejected": [
+    {"option": "KEEP_BLOCKING", "why": "00_SSOT_v2.0 §15 를 만족 불가능하게 만들어 본수집을 영구 봉쇄한다. blocking 표시는 '고칠 것이 있다'는 신호인데 고칠 대상이 저장소 안에 없다 — 위험은 그대로 두고 게이트만 잠그는 것은 안전이 아니라 마비다. 정직한 등재를 처벌하는 유인구조도 남는다."},
+    {"option": "외부 timestamp/seal(RFC 3161·OpenTimestamps) 필수화", "why": "A2:1382 가 이미 허용되는 보강으로 열어 뒀다. seal 은 커밋된 것에 시각을 부여할 뿐 버려진 로컬 run 을 드러내지 못한다 — R-1 을 조금도 좁히지 않는다."},
+    {"option": "MAX_RECOLLECTION_RUNS_PER_WEB_TARGET = 0 (재수집 전면 금지)", "why": "R-1 은 사라지나 UNDETERMINED 의 유일한 복구 경로가 사라져 측정 품질이 악화되고, 최초 run 노출(신규 발견)은 그대로 남아 문제를 옮길 뿐이다."},
+    {"option": "전 수집을 격리 원격 러너에서만 실행", "why": "방향은 옳고 C-3 이 그 축소판이다. 그러나 러너를 로컬에서 K회 호출하는 것을 러너 자신이 막을 수 없어 결국 수집자 신뢰로 돌아오며, 완전판은 이 연구 규모에 과잉이고 §15 어디에도 요구돼 있지 않다."},
+    {"option": "non-blocking 강등만 하고 수용 판정은 안 함", "why": "가장 나쁜 선택. 기록은 남되 조건이 붙지 않아 C-3/C-5 가 사라진다 — '조용히 약화'이며 이 판정이 비판한 은폐 유인과 같은 자리에 선다."}
+  ],
+  "ledger_effect_expected": {
+    "open_blocking_total": {"before": 10, "after": 9},
+    "orchestrator_registered_open_blocking": {"before": 3, "after": 2},
+    "e001_v2_blocking_class_ids_after": [
+      "ned-ied-path-minimality-not-operationalized",
+      "e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint"
+    ],
+    "v2_ssot_frozen_blocking_class_count": {"before": 1, "after": 1},
+    "v1_inherited": {"before": 6, "after": 6},
+    "accepted_bounded_residual_risk_counter": {"before": 0, "after": 1},
+    "gate_effect": "없음. 00_SSOT_v2.0 §15 는 여전히 미충족(9 ≠ 0)이며 V2_SSOT_FROZEN 은 NOT_ACHIEVED 를 유지한다. promotion · P-A · E001_V2 전부 금지 유지. 이 판정을 게이트 통과로 읽어서는 안 된다."
+  },
+  "not_done": [
+    "전면 재감사 — V2-C007 PASS 이후 exec/control tip 재감사는 배정 범위 밖",
+    "실제 웹사이트 접속 — 하지 않았다",
+    "Pilot(32460b8) 열람·변경 — 하지 않았다",
+    "남은 blocking 9건 중 R-1 외 8건에 대한 판정 — 하지 않았다. C-6-2 로 이 경로의 전용(轉用)을 명시적으로 금지했다",
+    "미추적 draft audit/adversarial/V2_C004.{md,json} — 건드리지 않았다"
+  ]
+}
