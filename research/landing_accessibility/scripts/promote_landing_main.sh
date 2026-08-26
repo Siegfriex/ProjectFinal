@@ -32,17 +32,41 @@
 #     → 검사를 **번호가 아니라 이름으로** 부른다. 검사를 삽입하면 번호가 밀리고, 그때마다
 #       state.json·헤더·권위문서의 번호 서술이 어긋난다. 이름은 삽입에 영향을 받지 않는다.
 #
+# V2-C005 시정 — adversarial(Codex) V2-C004 `promotion-reconciliation-sha-is-dead-and-control-state-is-only-local-single-source`
+#   (P2 / V2_SSOT_FROZEN-blocking / ADV-C004-04)
+#   감사가 실증한 것: `reconciliation_sha` 자리에 commit 으로 해석조차 되지 않는 리터럴
+#   `NOT_A_COMMIT` 을 넣었는데 [HOOK_INSTALL]→[SHA_RESOLVE]→[PILOT_IMMUTABLE]→[AUDIT_ANCESTRY]
+#   →[EXEC_TREE]→[ORCH_TREE]→[INSTALL_INTEGRITY] 를 **전부 통과**했다. `REC_SHA` 는 argv 대입 1회 +
+#   최종 echo 1회뿐인 dead argument 였다. `ORCH_SHA` 도 **로컬** control 워크트리 HEAD 에만 묶여
+#   원격 control/reconciliation 권위와 연결되지 않았고, [BLOCKING_DEBT] 는 그 로컬 커밋의 state JSON
+#   **하나만** 읽고 pinned 감사 보고서에서 debt 를 재계산하지 않았다.
+#   → 네 개의 이름 있는 검사를 신설해 감사가 제시한 닫힘조건 4가지에 1:1 로 대응시킨다.
+#     [REC_RESOLVE]           (1) REC_SHA^{commit} fail-closed resolve
+#     [REC_REMOTE_AUTHORITY]  (2) 원격 control 권위 tip / 승인된 ancestry 대조
+#     [REC_STATE_BIND]        (3) state.json 을 reconciliation commit 에 bind + reconciliation 산출물 검증
+#     [DEBT_RECOMPUTE]        (4) pinned 감사 보고서·원장에서 blocking count·cycle·target 독립 재계산
+#   부수 시정 — [AUDIT_ANCESTRY] 가 감사 브랜치 이름을 하드코딩하고 있었다. V2-C004 adversarial 감사는
+#   Claude 세션 한도 중단으로 독립 감사자(Codex)가 `audit/landing-adversarial-codex-c004` 에서 수행했고,
+#   하드코딩된 `audit/landing-adversarial` 로는 그 보고서를 **읽을 수조차 없다**. 이제 감사 브랜치는
+#   원장(audit_lag.latest_*_audit_branch)이 선언하고, 검사는 `audit/landing-*` 네임스페이스 강제 +
+#   원격 실시간 tip(ls-remote) 조상 검증으로 fail-closed 확인한다.
+#
 # 검사 이름과 실행 순서 (번호는 이 목록의 순서일 뿐이며, 인용은 **이름**으로 한다):
-#   1 [HOOK_INSTALL]      pre-push 훅 설치 상태 — 정본 존재 · 심링크 유효 · 실행권한 · 내용 동일
-#   2 [SHA_RESOLVE]       exec/감사 SHA 실재 + 정규화, exec·control 워크트리 해석
-#   3 [PILOT_IMMUTABLE]   Pilot(research/refcohort) diff = 0
-#   4 [AUDIT_ANCESTRY]    두 감사 SHA 가 원격 감사 브랜치의 조상
-#   5 [EXEC_TREE]         exec 워크트리 clean + HEAD == 승격 대상 SHA
-#   6 [ORCH_TREE]         control 워크트리 clean + state.json 워킹트리 == 커밋본
-#   7 [INSTALL_INTEGRITY] verify_v2_docs.py 실호출 (exec 워크트리 기준, exit != 0 · 부재 모두 차단)
-#   8 [BLOCKING_DEBT]     커밋된 state.json 의 open P0/P1 · v2_transition.open_blocking_total
-#   9 [AUDIT_VERDICT]     audit lag · target sha · verdict(state + 보고서 JSON) · 감사 SHA 핀
-#   무결성 검증은 exec **트리** 검사이므로 clean/HEAD 와 같은 층에 둔다.
+#    1 [HOOK_INSTALL]         pre-push 훅 설치 상태 — 정본 존재 · 심링크 유효 · 실행권한 · 내용 동일
+#    2 [SHA_RESOLVE]          exec/감사 SHA 실재 + 정규화, exec·control 워크트리 해석
+#    3 [REC_RESOLVE]          reconciliation SHA 를 commit 으로 fail-closed resolve
+#    4 [REC_REMOTE_AUTHORITY] 원격 control 권위(ls-remote tip)와 REC/ORCH 의 tip·승인된 ancestry 관계
+#    5 [PILOT_IMMUTABLE]      Pilot(research/refcohort) diff = 0
+#    6 [EXEC_TREE]            exec 워크트리 clean + HEAD == 승격 대상 SHA
+#    7 [ORCH_TREE]            control 워크트리 clean + state.json 워킹트리 == 커밋본
+#    8 [REC_STATE_BIND]       state.json == reconciliation commit 본 + reconciliation 산출물 검증
+#    9 [AUDIT_ANCESTRY]       두 감사 SHA 가 **원장이 선언한** 감사 브랜치의 원격 tip 조상
+#   10 [INSTALL_INTEGRITY]    verify_v2_docs.py 실호출 (exec 워크트리 기준, exit != 0 · 부재 모두 차단)
+#   11 [BLOCKING_DEBT]        원장의 open P0/P1 · v2_transition.open_blocking_total
+#   12 [DEBT_RECOMPUTE]       pinned 감사 보고서 + 원장 항목에서 blocking·cycle·target 독립 재계산·대조
+#   13 [AUDIT_VERDICT]        audit lag · target sha · verdict(state + 보고서 JSON) · 감사 SHA 핀
+#   reconciliation 검사는 **입력 검증**이므로 가장 앞 층(3·4)에 두고, 원장 bind 는 원장을 읽을 수 있게 된
+#   직후(8)에 둔다. 무결성 검증은 exec **트리** 검사이므로 clean/HEAD 와 같은 층에 둔다.
 #   원장(state.json)·verdict(감사 브랜치) 검사는 그 다음 층이다.
 #
 # usage:
@@ -53,6 +77,12 @@
 #   --exec-worktree=<path>    exec 워크트리를 명시 (자동해석 우회, 존재 검증은 그대로)
 #   --orch-sha=<sha>          state.json 을 읽을 control 커밋을 명시한다.
 #                             (기본: control 워크트리 HEAD. 명시하면 HEAD 와 일치해야 한다.)
+#
+# <reconciliation_sha> 는 더 이상 장식이 아니다. 반드시 commit 으로 해석되어야 하고, 원격
+# control 권위(origin/control/landing-orchestrator)의 tip 이거나 승인된 ancestry 여야 하며,
+# 그 커밋의 state.json 이 원장으로 bind 되고, 그 커밋이 담은 reconciliation 산출물
+# `control/cycles/<CYCLE>_RECONCILIATION.json` 이 exec SHA·두 감사 SHA·verdict·open_blocking_total
+# 을 선언해야 한다. 어느 하나라도 없으면 차단이다 (fail-closed).
 set -euo pipefail
 
 REPO="/home/sieg/projects-wsl/ProjectFinal"
@@ -70,9 +100,11 @@ note() { echo "  · $*"; }
 TMPDIR_PROMOTE=""
 cleanup() { [ -n "$TMPDIR_PROMOTE" ] && rm -rf "$TMPDIR_PROMOTE" || true; }
 trap cleanup EXIT
+TMPDIR_PROMOTE="$(mktemp -d)"
 
 [ $# -ge 4 ] || fail "usage: promote_landing_main.sh <exec_sha> <adversarial_sha> <ssot_sha> <reconciliation_sha> [--dry-run] [--exec-branch=REF] [--exec-worktree=PATH] [--orch-sha=SHA]"
-EXEC_SHA_IN="$1"; ADV_SHA_IN="$2"; SSOT_SHA_IN="$3"; REC_SHA="$4"; shift 4
+EXEC_SHA_IN="$1"; ADV_SHA_IN="$2"; SSOT_SHA_IN="$3"; REC_SHA_IN="$4"; shift 4
+REC_SHA=""   # [REC_RESOLVE] 가 채운다. 그 전에는 비어 있다 — dead argument 재발 방지.
 
 DRY_RUN=0
 EXEC_BRANCH=""
@@ -225,17 +257,59 @@ else
 fi
 note "orchestrator worktree = $ORCH_WT @ $ORCH_SHA"
 
+# ================================================================ [REC_RESOLVE]
+# V2-C005 시정 (1/4) — adversarial(Codex) V2-C004 ADV-C004-04 닫힘조건 ①
+#   `REC_SHA^{commit}` 을 fail-closed 로 resolve 한다. 해석 불가·미존재·commit 이 아닌 객체는
+#   즉시 차단이다. 감사가 통과시킨 리터럴 `NOT_A_COMMIT` 이 바로 여기서 죽는다.
+REC_SHA="$(git -C "$REPO" rev-parse --verify --quiet "${REC_SHA_IN}^{commit}" || true)"
+[ -n "$REC_SHA" ] \
+  || fail "reconciliation SHA 를 commit 으로 해석할 수 없다: $REC_SHA_IN"$'\n'"  reconciliation_sha 는 장식이 아니다 — 이 인자는 승격 판정의 원장을 고정하는 커밋이어야 한다."$'\n'"  (adversarial V2-C004 ADV-C004-04: 이전 버전은 이 값을 해석조차 하지 않고 출력만 했다.)"
+[ "$REC_SHA" = "$REC_SHA_IN" ] || note "reconciliation sha 정규화: $REC_SHA_IN -> $REC_SHA"
+note "[REC_RESOLVE] reconciliation commit = $REC_SHA OK"
+
+# ================================================================ [REC_REMOTE_AUTHORITY]
+# V2-C005 시정 (2/4) — 닫힘조건 ②
+#   로컬 HEAD 는 권위가 아니다. 원격 control 브랜치의 **실시간 tip** 을 ls-remote 로 직접 읽어
+#   (a) reconciliation commit 이 그 tip 이거나 **승인된 ancestry** 인지, (b) 원장을 읽을 control
+#   커밋(ORCH_SHA)이 실제로 push 돼 있는지를 확인한다.
+#   승인된 ancestry 정의 — REC_SHA 가 tip 의 조상이면서, tip 의 state.json 이 REC_SHA 의 것과
+#   **바이트 동일**할 때만 허용한다. 그 사이 원장이 갱신됐다면 reconciliation 은 current 가 아니다
+#   (PHASE_GATES §2 '오케스트레이터 reconciliation 이 current').
+#   로컬 원격추적 ref(origin/…)는 stale 할 수 있으므로 신뢰하지 않는다.
+REMOTE_ORCH_LINE="$(git -C "$REPO" ls-remote origin "refs/heads/$ORCH_BRANCH" 2>/dev/null || true)"
+[ -n "$REMOTE_ORCH_LINE" ] \
+  || fail "원격에 control 브랜치가 없다: origin/$ORCH_BRANCH"$'\n'"  원격 reconciliation 권위를 조회할 수 없으면 승격하지 않는다 (fail-closed)."
+REMOTE_ORCH_TIP="${REMOTE_ORCH_LINE%%$'\t'*}"
+case "$REMOTE_ORCH_TIP" in
+  [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
+  *) fail "원격 control tip 을 해석할 수 없다: '$REMOTE_ORCH_LINE'" ;;
+esac
+git -C "$REPO" fetch --quiet origin "refs/heads/$ORCH_BRANCH" \
+  || fail "원격 control 브랜치를 fetch 할 수 없다: origin/$ORCH_BRANCH (오프라인 통과 금지 — fail-closed)"
+git -C "$REPO" rev-parse --verify --quiet "$REMOTE_ORCH_TIP^{commit}" >/dev/null \
+  || fail "원격 control tip 객체를 로컬에서 해석할 수 없다: $REMOTE_ORCH_TIP"
+
+git -C "$REPO" merge-base --is-ancestor "$REC_SHA" "$REMOTE_ORCH_TIP" 2>/dev/null \
+  || fail "reconciliation commit 이 원격 control 권위와 무관하다."$'\n'"  rec=$REC_SHA"$'\n'"  origin/$ORCH_BRANCH tip=$REMOTE_ORCH_TIP"$'\n'"  reconciliation 은 원격에 게시된 control 계보 위에서만 성립한다 (PHASE_GATES §2 / 05 §10)."
+git -C "$REPO" merge-base --is-ancestor "$ORCH_SHA" "$REMOTE_ORCH_TIP" 2>/dev/null \
+  || fail "원장을 읽을 control 커밋이 원격에 push 되지 않았다 (local-only)."$'\n'"  orch=$ORCH_SHA"$'\n'"  origin/$ORCH_BRANCH tip=$REMOTE_ORCH_TIP"$'\n'"  push 되지 않은 로컬 clean 커밋 하나가 zero debt 와 감사 핀을 주장하는 경로를 막는다 (ADV-C004-04)."
+
+if [ "$REC_SHA" = "$REMOTE_ORCH_TIP" ]; then
+  note "[REC_REMOTE_AUTHORITY] reconciliation == 원격 control tip ($REMOTE_ORCH_TIP) OK"
+else
+  git -C "$REPO" show "$REC_SHA:$STATE_REL" > "$TMPDIR_PROMOTE/state.rec.json" 2>/dev/null \
+    || fail "reconciliation commit 에 state.json 이 없다: $REC_SHA:$STATE_REL"
+  git -C "$REPO" show "$REMOTE_ORCH_TIP:$STATE_REL" > "$TMPDIR_PROMOTE/state.tip.json" 2>/dev/null \
+    || fail "원격 control tip 에 state.json 이 없다: $REMOTE_ORCH_TIP:$STATE_REL"
+  cmp -s "$TMPDIR_PROMOTE/state.rec.json" "$TMPDIR_PROMOTE/state.tip.json" \
+    || fail "reconciliation commit 이후 원격 control 원장이 갱신됐다 — reconciliation 이 current 가 아니다."$'\n'"  rec=$REC_SHA"$'\n'"  origin/$ORCH_BRANCH tip=$REMOTE_ORCH_TIP"$'\n'"  더 새로운 원장이 원격에 있으면 그 원장으로 다시 reconcile 한 뒤 승격한다 (PHASE_GATES §2)."
+  note "[REC_REMOTE_AUTHORITY] reconciliation($REC_SHA) 은 원격 tip($REMOTE_ORCH_TIP) 의 승인된 ancestry — 원장 바이트 동일 OK"
+fi
+
 # ================================================================ [PILOT_IMMUTABLE]
 [ -z "$(git -C "$REPO" diff --stat "$PILOT_SHA" "$EXEC_SHA" -- research/refcohort)" ] \
   || fail "Pilot path diff != 0 (research/refcohort 는 READ_ONLY, 수정 시 P0)"
 note "[PILOT_IMMUTABLE] OK"
-
-# ================================================================ [AUDIT_ANCESTRY]
-for A in "$ADV_SHA:audit/landing-adversarial" "$SSOT_SHA:audit/landing-ssot"; do
-  sha="${A%%:*}"; br="${A##*:}"
-  git -C "$REPO" merge-base --is-ancestor "$sha" "origin/$br" 2>/dev/null || fail "$br 에 $sha 없음"
-done
-note "[AUDIT_ANCESTRY] 두 감사 SHA 가 원격 감사 브랜치의 조상 OK"
 
 # ================================================================ [EXEC_TREE]
 WT_HEAD="$(git -C "$EXEC_WT" rev-parse HEAD)"
@@ -254,7 +328,6 @@ note "[EXEC_TREE] clean + HEAD == $EXEC_SHA OK (환경 심링크 $ENV_SYMLINKS �
 #   (3) 워킹트리 사본이 커밋본과 다르면 차단하고 차이를 보고한다.
 ORCH_DIRTY="$(worktree_dirty_lines "$ORCH_WT")"
 [ -z "$ORCH_DIRTY" ] || fail "control(orchestrator) 워크트리 dirty ($ORCH_WT):"$'\n'"$ORCH_DIRTY"$'\n'"  state.json 은 승격 판정의 원장이다. 커밋되지 않은 편집은 승격 근거가 될 수 없다."
-TMPDIR_PROMOTE="$(mktemp -d)"
 STATE_COMMITTED="$TMPDIR_PROMOTE/state.committed.json"
 git -C "$REPO" show "$ORCH_SHA:$STATE_REL" > "$STATE_COMMITTED" 2>/dev/null \
   || fail "커밋된 state.json 을 읽을 수 없다: $ORCH_SHA:$STATE_REL"
@@ -267,6 +340,159 @@ fi
 # 이후 모든 원장 검사는 **커밋본만** 읽는다. 워킹트리 사본은 더 이상 입력이 아니다.
 STATE="$STATE_COMMITTED"
 note "[ORCH_TREE] clean + state.json 워킹트리 == 커밋본($ORCH_SHA) OK — 원장은 커밋본에서 읽는다"
+
+# ================================================================ [REC_STATE_BIND]
+# V2-C005 시정 (3/4) — 닫힘조건 ③
+#   원장(state.json)을 reconciliation commit 에 **bind** 한다. [ORCH_TREE] 가 확인한 것은
+#   "워킹트리 == ORCH_SHA 커밋본" 까지이며, 그 커밋이 reconciliation 과 같은 원장을 담는다는
+#   보장이 없었다. 이제 REC_SHA 의 state.json 을 읽어 ORCH_SHA 의 것과 바이트 대조하고,
+#   **이후 모든 원장 검사의 입력을 REC_SHA 본으로 바꾼다.**
+#   또한 reconciliation 이 무엇인지를 산출물로 못박는다 — control/cycles/<CYCLE>_RECONCILIATION.json
+#   이 exec SHA·두 감사 SHA·두 verdict·open_blocking_total·promotion_authorized 를 담아야
+#   "reconciliation 이 current" 라고 말할 수 있다. 부재·파싱실패·필드부재·불일치는 전부 차단이다.
+STATE_REC="$TMPDIR_PROMOTE/state.reconciliation.json"
+git -C "$REPO" show "$REC_SHA:$STATE_REL" > "$STATE_REC" 2>/dev/null \
+  || fail "reconciliation commit 에 state.json 이 없다: $REC_SHA:$STATE_REL"
+if ! cmp -s "$STATE_REC" "$STATE_COMMITTED"; then
+  BIND_DIFF="$(diff -u "$STATE_REC" "$STATE_COMMITTED" | head -40 || true)"
+  fail "원장이 reconciliation commit 에 bind 되지 않는다."$'\n'"  reconciliation: $REC_SHA:$STATE_REL"$'\n'"  control 커밋본: $ORCH_SHA:$STATE_REL"$'\n'"$BIND_DIFF"
+fi
+# 원장의 정본은 이제 reconciliation commit 본이다.
+STATE="$STATE_REC"
+
+python3 - "$STATE" "$REPO" "$REC_SHA" "$EXEC_SHA" "$ADV_SHA" "$SSOT_SHA" <<'PY' || fail "reconciliation 산출물 검증 실패"
+import json, re, subprocess, sys
+
+state_path, repo, rec_sha, exec_sha, adv_sha, ssot_sha = sys.argv[1:7]
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
+
+
+def die(msg):
+    print(msg, file=sys.stderr)
+    sys.exit(1)
+
+
+try:
+    s = json.load(open(state_path, encoding="utf-8"))
+except Exception as e:  # noqa: BLE001
+    die("reconciliation commit 의 state.json 파싱 실패: %s" % e)
+
+al = s.get("audit_lag")
+if not isinstance(al, dict):
+    die("reconciliation commit 의 state.json 에 audit_lag 가 없다")
+cycle = al.get("latest_exec_cycle")
+if not isinstance(cycle, str) or not cycle:
+    die("audit_lag.latest_exec_cycle 가 없다 — 어느 사이클의 reconciliation 인지 알 수 없다")
+if al.get("latest_reconciled_cycle") != cycle:
+    die("audit_lag.latest_reconciled_cycle(%r) != latest_exec_cycle(%r) — reconciliation 이 current 가 아니다 "
+        "(PHASE_GATES §2)" % (al.get("latest_reconciled_cycle"), cycle))
+
+rel = "research/landing_accessibility/control/cycles/%s_RECONCILIATION.json" % cycle.replace("-", "_")
+r = subprocess.run(["git", "-C", repo, "show", "%s:%s" % (rec_sha, rel)], capture_output=True)
+if r.returncode != 0:
+    die("reconciliation 산출물이 없다: %s:%s\n"
+        "  reconciliation 은 선언이 아니라 **파일**이어야 한다 — exec SHA·두 감사 SHA·verdict 를 담은\n"
+        "  control/cycles/<CYCLE>_RECONCILIATION.json 이 그 앵커다 (ADV-C004-04 닫힘조건).\n"
+        "  %s" % (rec_sha, rel, r.stderr.decode("utf-8", "replace").strip()))
+try:
+    rc = json.loads(r.stdout.decode("utf-8"))
+except Exception as e:  # noqa: BLE001
+    die("reconciliation 산출물 JSON 파싱 실패: %s:%s (%s)" % (rec_sha, rel, e))
+if not isinstance(rc, dict):
+    die("reconciliation 산출물이 객체가 아니다: %s:%s" % (rec_sha, rel))
+
+if rc.get("schema") != "landing-accessibility-reconciliation-v1":
+    die("reconciliation 산출물 schema(%r) 불일치 — 'landing-accessibility-reconciliation-v1' 이어야 한다"
+        % (rc.get("schema"),))
+if rc.get("cycle") != cycle:
+    die("reconciliation 산출물 cycle(%r) != audit_lag.latest_exec_cycle(%r)" % (rc.get("cycle"), cycle))
+if rc.get("target_exec_sha") != exec_sha:
+    die("reconciliation 산출물 target_exec_sha(%r) != 승격 대상 exec(%s)" % (rc.get("target_exec_sha"), exec_sha))
+
+for auditor, argv_sha in (("adversarial", adv_sha), ("ssot", ssot_sha)):
+    blk = rc.get(auditor)
+    if not isinstance(blk, dict):
+        die("reconciliation 산출물에 %s 블록이 없다" % auditor)
+    rec_audit_sha = blk.get("audit_sha")
+    if not isinstance(rec_audit_sha, str) or not HEX40.match(rec_audit_sha):
+        die("reconciliation 산출물 %s.audit_sha(%r) 가 40-hex 가 아니다" % (auditor, rec_audit_sha))
+    if rec_audit_sha != argv_sha:
+        die("reconciliation 산출물 %s.audit_sha(%s) != 승격 인자(%s) — reconciliation 이 고정한 감사와 "
+            "승격 인자가 다르다" % (auditor, rec_audit_sha, argv_sha))
+    if blk.get("verdict") != "PASS":
+        die("reconciliation 산출물 %s.verdict = %r — PASS 가 아닌 reconciliation 으로는 승격할 수 없다 "
+            "(PHASE_GATES §4: 두 감사 PASS + reconciliation 후 Gate close)" % (auditor, blk.get("verdict")))
+
+obt = rc.get("open_blocking_total")
+if not isinstance(obt, int) or isinstance(obt, bool):
+    die("reconciliation 산출물 open_blocking_total 이 정수가 아니다 (%r)" % (obt,))
+if obt != 0:
+    die("reconciliation 산출물 open_blocking_total = %d — 00_SSOT_v2.0 §15 open blocking = 0 위반" % obt)
+if rc.get("decision") != "PROMOTE":
+    die("reconciliation 산출물 decision = %r — 'PROMOTE' 가 아니다" % (rc.get("decision"),))
+if rc.get("promotion_authorized") is not True:
+    die("reconciliation 산출물 promotion_authorized 가 true 가 아니다 (%r)" % (rc.get("promotion_authorized"),))
+if not rc.get("reconciled_at"):
+    die("reconciliation 산출물에 reconciled_at 이 없다")
+PY
+note "[REC_STATE_BIND] 원장 == $REC_SHA:$STATE_REL · reconciliation 산출물 검증 OK — 이후 원장은 reconciliation 본에서 읽는다"
+
+# ================================================================ [AUDIT_ANCESTRY]
+# V2-C005 시정 — 감사 브랜치 하드코딩 제거.
+#   이전 버전은 `audit/landing-adversarial` / `audit/landing-ssot` 를 문자열로 박아 두었다.
+#   V2-C004 adversarial 감사는 Claude 세션 한도 중단으로 독립 감사자(Codex)가
+#   `audit/landing-adversarial-codex-c004` 에서 수행했고, 하드코딩된 이름으로는 그 보고서를
+#   읽을 수도 계보를 확인할 수도 없다. 브랜치는 원장이 선언하고, 여기서 fail-closed 로 검증한다:
+#     · audit_lag.latest_{adversarial,ssot}_audit_branch 필수 (부재 = 차단)
+#     · `audit/landing-*` 네임스페이스만 허용 (임의 브랜치로의 우회 차단)
+#     · 원격에 실재해야 한다 — **ls-remote 실시간 tip** 을 쓴다. 로컬 origin/… 추적 ref 는 stale 할
+#       수 있고, "감사 보고서가 아직 push 되지 않았다" 를 통과시키면 안 된다.
+AUDIT_BRANCH_DECL="$(python3 - "$STATE" 2>&1 <<'PY'
+import json, re, sys
+try:
+    al = json.load(open(sys.argv[1], encoding="utf-8")).get("audit_lag")
+except Exception as e:  # noqa: BLE001
+    sys.exit("state.json 파싱 실패: %s" % e)
+if not isinstance(al, dict):
+    sys.exit("state.json 에 audit_lag 가 없다")
+NS = re.compile(r"^audit/landing-[A-Za-z0-9._/-]+$")
+rows = []
+for auditor, key in (("adversarial", "latest_adversarial_audit_branch"),
+                     ("ssot", "latest_ssot_audit_branch")):
+    br = al.get(key)
+    if not isinstance(br, str) or not br:
+        sys.exit("audit_lag.%s 가 없다 — 감사 브랜치를 하드코딩하지 않으므로 원장이 선언해야 한다 (fail-closed)" % key)
+    if not NS.match(br):
+        sys.exit("audit_lag.%s = %r 가 audit/landing-* 네임스페이스가 아니다 — 임의 브랜치는 감사 계보가 아니다" % (key, br))
+    rows.append("%s\t%s" % (auditor, br))
+print("\n".join(rows))
+PY
+)" || fail "감사 브랜치 선언을 읽을 수 없다:"$'\n'"$AUDIT_BRANCH_DECL"
+
+ADV_BRANCH=""; SSOT_BRANCH=""
+while IFS="$(printf '\t')" read -r _who _br; do
+  case "$_who" in
+    adversarial) ADV_BRANCH="$_br" ;;
+    ssot)        SSOT_BRANCH="$_br" ;;
+  esac
+done <<EOF
+$AUDIT_BRANCH_DECL
+EOF
+[ -n "$ADV_BRANCH" ] && [ -n "$SSOT_BRANCH" ] || fail "감사 브랜치 선언 파싱 실패:"$'\n'"$AUDIT_BRANCH_DECL"
+
+for A in "adversarial|$ADV_SHA|$ADV_BRANCH" "ssot|$SSOT_SHA|$SSOT_BRANCH"; do
+  who="${A%%|*}"; rest="${A#*|}"; sha="${rest%%|*}"; br="${rest#*|}"
+  line="$(git -C "$REPO" ls-remote origin "refs/heads/$br" 2>/dev/null || true)"
+  [ -n "$line" ] \
+    || fail "$who 감사 브랜치가 원격에 없다: origin/$br"$'\n'"  감사 보고서가 push 되지 않았으면 승격 검사가 원격 보고서를 읽을 수 없다 (fail-closed)."
+  tip="${line%%$'\t'*}"
+  git -C "$REPO" fetch --quiet origin "refs/heads/$br" \
+    || fail "$who 감사 브랜치를 fetch 할 수 없다: origin/$br"
+  git -C "$REPO" merge-base --is-ancestor "$sha" "$tip" 2>/dev/null \
+    || fail "$who 감사 SHA 가 원격 감사 브랜치 tip 의 조상이 아니다: $sha !<= origin/$br($tip)"
+  note "[AUDIT_ANCESTRY] $who $sha <= origin/$br ($tip)"
+done
+note "[AUDIT_ANCESTRY] 두 감사 SHA 가 원장이 선언한 감사 브랜치의 원격 tip 조상 OK"
 
 # ================================================================ [INSTALL_INTEGRITY]
 # V2-C003 시정 — adversarial V2-C002 `verify-script-declared-in-promotion-path-but-never-called`
@@ -283,7 +509,9 @@ VERIFY_OUT="$(python3 "$VERIFY_SCRIPT" 2>&1)" \
 note "[INSTALL_INTEGRITY] verify_v2_docs.py exit 0 OK — $(printf '%s' "$VERIFY_OUT" | tail -1)"
 
 # ================================================================ [BLOCKING_DEBT]
-# 입력은 커밋된 state.json ($STATE) 하나다 — [ORCH_TREE] 가 워킹트리 사본과의 동일성을 이미 단언했다.
+# 입력은 reconciliation commit 의 state.json ($STATE) 이다 — [ORCH_TREE] 가 워킹트리 == ORCH_SHA 커밋본을,
+# [REC_STATE_BIND] 가 ORCH_SHA 커밋본 == REC_SHA 커밋본을 이미 단언했다.
+# 이 검사는 원장이 **주장하는** 값을 읽는다. 그 주장의 독립 재계산은 다음 [DEBT_RECOMPUTE] 가 한다.
 BLOCK="$(python3 - "$STATE" <<'PY'
 import json, sys
 s = json.load(open(sys.argv[1], encoding="utf-8"))
@@ -314,7 +542,201 @@ print("\n".join(msgs))
 PY
 )"
 [ -z "$BLOCK" ] || fail "blocking debt:"$'\n'"$BLOCK"
-note "[BLOCKING_DEBT] open P0/P1 = 0 · v2_transition.open_blocking_total = 0 OK (원장 = $ORCH_SHA 커밋본)"
+note "[BLOCKING_DEBT] open P0/P1 = 0 · v2_transition.open_blocking_total = 0 OK (원장 = $REC_SHA reconciliation 본)"
+
+# ================================================================ [DEBT_RECOMPUTE]
+# V2-C005 시정 (4/4) — 닫힘조건 ④
+#   [BLOCKING_DEBT] 는 원장이 **주장하는** 스칼라 open_blocking_total 하나만 읽는다.
+#   그 값이 틀렸거나 조작됐으면 게이트 전체가 무력화된다(ADV-C004-04: single source).
+#   여기서는 두 개의 독립 원천에서 다시 센다.
+#     (A) pinned 감사 보고서 JSON — counts 를 믿지 않고 findings[] 에서 직접 센 뒤 counts 와 대조한다.
+#         보고서의 cycle·target_sha·auditor 도 원장 기록과 대조한다.
+#     (B) 원장의 **항목들** — v1 debt_inheritance.items, v2_audit_findings.cycles[*].{adversarial,ssot}.findings,
+#         orchestrator_registered.findings 를 직접 세어 스칼라 total 과 대조한다.
+#   (A)와 (B)와 스칼라가 셋 다 일치하고 0 일 때만 통과한다. 하나라도 어긋나면 차단이다.
+#   중복계상 제외(counted_as_open=false)는 duplicate_of / superseded_by 근거가 있을 때만 허용한다 —
+#   근거 없는 조용한 제외로 total 을 낮추는 경로를 막는다.
+#   이 블록은 argv 만으로 독립 실행 가능하게 썼다 (감사자가 그대로 떼어내 공격할 수 있어야 한다).
+python3 - "$STATE" "$REPO" "$EXEC_SHA" "$ADV_SHA" "$SSOT_SHA" <<'PY' || fail "blocking debt 독립 재계산 불일치"
+import json, re, subprocess, sys
+
+state_path, repo, exec_sha, adv_sha, ssot_sha = sys.argv[1:6]
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
+
+
+def die(msg):
+    print(msg, file=sys.stderr)
+    sys.exit(1)
+
+
+def closed(state_str):
+    return str(state_str or "OPEN").upper().startswith("CLOSED")
+
+
+try:
+    s = json.load(open(state_path, encoding="utf-8"))
+except Exception as e:  # noqa: BLE001
+    die("state.json 파싱 실패: %s" % e)
+
+al = s.get("audit_lag")
+v2 = s.get("v2_transition")
+if not isinstance(al, dict) or not isinstance(v2, dict):
+    die("state.json 에 audit_lag / v2_transition 이 없다")
+
+cycle = al.get("latest_exec_cycle")
+if not isinstance(cycle, str) or not cycle:
+    die("audit_lag.latest_exec_cycle 가 없다")
+
+# --- 감사 SHA 핀 (이 블록만 떼어내 실행해도 성립해야 한다) ---
+PINS = (("adversarial", adv_sha, "latest_adversarial_audit_sha", "latest_adversarial_audited_cycle",
+         "latest_adversarial_target_sha", "latest_adversarial_audit_branch"),
+        ("ssot", ssot_sha, "latest_ssot_audit_sha", "latest_ssot_audited_cycle",
+         "latest_ssot_target_sha", "latest_ssot_audit_branch"))
+
+reports = {}
+for auditor, argv_sha, sha_key, cyc_key, tgt_key, br_key in PINS:
+    rec = al.get(sha_key)
+    if not isinstance(rec, str) or not HEX40.match(rec):
+        die("audit_lag.%s 가 40-hex 전체 SHA 가 아니다 (%r)" % (sha_key, rec))
+    if rec != argv_sha:
+        die("%s 감사 SHA 핀 불일치: 인자 %s != audit_lag.%s %s" % (auditor, argv_sha, sha_key, rec))
+    cyc = al.get(cyc_key)
+    if cyc != cycle:
+        die("audit_lag.%s(%r) != latest_exec_cycle(%r) — 승격 대상 사이클을 감사한 보고서가 아니다"
+            % (cyc_key, cyc, cycle))
+    if al.get(tgt_key) != exec_sha:
+        die("audit_lag.%s(%r) != exec(%s)" % (tgt_key, al.get(tgt_key), exec_sha))
+
+    path = "research/landing_accessibility/audit/%s/%s.json" % (auditor, str(cyc).replace("-", "_"))
+    r = subprocess.run(["git", "-C", repo, "show", "%s:%s" % (argv_sha, path)], capture_output=True)
+    if r.returncode != 0:
+        die("%s 감사 보고서를 읽을 수 없다: %s:%s (%s)"
+            % (auditor, argv_sha, path, r.stderr.decode("utf-8", "replace").strip()))
+    try:
+        rep = json.loads(r.stdout.decode("utf-8"))
+    except Exception as e:  # noqa: BLE001
+        die("%s 감사 보고서 JSON 파싱 실패: %s:%s (%s)" % (auditor, argv_sha, path, e))
+    if rep.get("cycle") != cycle:
+        die("%s 보고서 cycle(%r) != %r" % (auditor, rep.get("cycle"), cycle))
+    if rep.get("target_sha") != exec_sha:
+        die("%s 보고서 target_sha(%r) != 승격 대상(%s)" % (auditor, rep.get("target_sha"), exec_sha))
+    if rep.get("auditor") != auditor:
+        die("%s 보고서 auditor 필드(%r) 불일치" % (auditor, rep.get("auditor")))
+    reports[auditor] = rep
+
+# --- (A) 보고서에서 직접 센다. counts 는 대조 대상이지 근거가 아니다. ---
+report_blocking = {}
+for auditor, rep in reports.items():
+    findings = rep.get("findings")
+    if not isinstance(findings, list):
+        die("%s 보고서에 findings 배열이 없다 — 재계산 불가 (fail-closed)" % auditor)
+    counted = [f for f in findings
+               if f.get("blocking") is True and not closed(f.get("status", f.get("state")))]
+    n = len(counted)
+    declared = (rep.get("counts") or {}).get("blocking")
+    if not isinstance(declared, int) or isinstance(declared, bool):
+        die("%s 보고서 counts.blocking 이 정수가 아니다 (%r)" % (auditor, declared))
+    if declared != n:
+        die("%s 보고서 내부 불일치: counts.blocking=%d 인데 findings[] 에서 센 open blocking=%d "
+            "(%s)" % (auditor, declared, n, ", ".join(str(f.get("id")) for f in counted)))
+    report_blocking[auditor] = n
+
+# --- 원장이 그 사이클을 어떻게 등재했는지 대조 ---
+vaf = v2.get("v2_audit_findings")
+if not isinstance(vaf, dict) or not isinstance(vaf.get("cycles"), list):
+    die("v2_transition.v2_audit_findings.cycles 가 없다")
+cyc_entry = None
+for c in vaf["cycles"]:
+    if c.get("cycle") == cycle:
+        cyc_entry = c
+        break
+if cyc_entry is None:
+    die("원장에 사이클 %s 이(가) 등재돼 있지 않다 — 감사 결과가 원장에 반영되기 전에는 승격할 수 없다" % cycle)
+if cyc_entry.get("target_sha") != exec_sha:
+    die("원장 cycles[%s].target_sha(%r) != exec(%s)" % (cycle, cyc_entry.get("target_sha"), exec_sha))
+for auditor in ("adversarial", "ssot"):
+    blk = cyc_entry.get(auditor)
+    if not isinstance(blk, dict):
+        die("원장 cycles[%s].%s 가 없다" % (cycle, auditor))
+    if blk.get("audit_sha") != (adv_sha if auditor == "adversarial" else ssot_sha):
+        die("원장 cycles[%s].%s.audit_sha(%r) != 승격 인자" % (cycle, auditor, blk.get("audit_sha")))
+    if blk.get("verdict") != reports[auditor].get("verdict"):
+        die("원장 cycles[%s].%s.verdict(%r) != 보고서 verdict(%r)"
+            % (cycle, auditor, blk.get("verdict"), reports[auditor].get("verdict")))
+    reg = blk.get("findings")
+    if not isinstance(reg, list):
+        die("원장 cycles[%s].%s.findings 가 없다" % (cycle, auditor))
+    reg_blocking = len([f for f in reg if f.get("blocking") is True])
+    if reg_blocking != report_blocking[auditor]:
+        die("원장이 등재한 %s blocking finding 수(%d) != 보고서에서 센 수(%d) — 원장이 감사 보고서를 "
+            "그대로 반영하지 않았다" % (auditor, reg_blocking, report_blocking[auditor]))
+
+# --- (B) 원장 항목에서 total 을 다시 센다 ---
+excluded = []
+
+
+def tally(items, label):
+    n = 0
+    for f in items:
+        if f.get("blocking") is not True:
+            continue
+        if closed(f.get("state", f.get("status"))):
+            continue
+        if f.get("counted_as_open") is False:
+            if not (f.get("duplicate_of") or f.get("superseded_by")):
+                die("%s 의 %r 이 counted_as_open=false 인데 duplicate_of/superseded_by 근거가 없다 — "
+                    "근거 없는 제외는 total 조작 경로다 (fail-closed)" % (label, f.get("id")))
+            excluded.append("%s:%s" % (label, f.get("id")))
+            continue
+        n += 1
+    return n
+
+
+ledger = 0
+di = v2.get("debt_inheritance")
+if not isinstance(di, dict) or not isinstance(di.get("items"), list):
+    die("v2_transition.debt_inheritance.items 가 없다 — v1 승계 원장 없이 blocking 0 을 선언할 수 없다 "
+        "(PHASE_GATES §2 부채 승계 조건)")
+v1_blocking = len([i for i in di["items"]
+                   if i.get("blocks_ready_for_e001_v2") is True and not closed(i.get("state"))])
+ledger += v1_blocking
+
+per_cycle = {}
+for c in vaf["cycles"]:
+    n = 0
+    for auditor in ("adversarial", "ssot"):
+        blk = c.get(auditor) or {}
+        n += tally(blk.get("findings") or [], "%s/%s" % (c.get("cycle"), auditor))
+    per_cycle[c.get("cycle")] = n
+    ledger += n
+
+orch = vaf.get("orchestrator_registered") or {}
+orch_blocking = tally(orch.get("findings") or [], "orchestrator_registered")
+ledger += orch_blocking
+
+obt = v2.get("open_blocking_total")
+if not isinstance(obt, dict) or not isinstance(obt.get("total"), int):
+    die("v2_transition.open_blocking_total.total 이 없거나 정수가 아니다")
+declared_total = obt["total"]
+
+breakdown = ("v1=%d, %s, orchestrator=%d"
+             % (v1_blocking, ", ".join("%s=%d" % (k, v) for k, v in per_cycle.items()), orch_blocking))
+if ledger != declared_total:
+    die("원장 항목 재계산(%d) != 선언된 open_blocking_total.total(%d)\n  재계산 내역: %s\n"
+        "  중복계상 제외: %s\n  스칼라 하나를 고쳐 게이트를 통과시키는 경로를 막는다 (ADV-C004-04)."
+        % (ledger, declared_total, breakdown, ", ".join(excluded) or "없음"))
+
+if ledger != 0:
+    die("독립 재계산 open blocking = %d (선언값과 일치하지만 0 이 아니다)\n  내역: %s\n"
+        "  00_SSOT_v2.0 §15 open blocking = 0 위반" % (ledger, breakdown))
+if report_blocking["adversarial"] or report_blocking["ssot"]:
+    die("pinned 감사 보고서의 open blocking = adversarial %d / ssot %d — 0 이 아니다"
+        % (report_blocking["adversarial"], report_blocking["ssot"]))
+
+print("DEBT_RECOMPUTE OK — 보고서 blocking adv=%d ssot=%d · 원장 재계산 %d == 선언 %d (%s)"
+      % (report_blocking["adversarial"], report_blocking["ssot"], ledger, declared_total, breakdown))
+PY
+note "[DEBT_RECOMPUTE] 보고서·원장 항목에서 독립 재계산 == 선언값 == 0 OK"
 
 # ================================================================ [AUDIT_VERDICT]
 # V2-C003 시정 — adversarial V2-C002 `promotion-verdict-check-treats-missing-verdict-as-pass`
@@ -431,7 +853,8 @@ note "[AUDIT_VERDICT] audit lag / target sha / verdict(state + 보고서 JSON) /
 
 MAIN_BEFORE="$(git -C "$REPO" rev-parse "origin/$MAIN")"
 echo "PROMOTION PRECHECK PASS"
-echo "  exec=$EXEC_SHA  adv=$ADV_SHA  ssot=$SSOT_SHA  rec=$REC_SHA  orch=$ORCH_SHA"
+echo "  exec=$EXEC_SHA  adv=$ADV_SHA(origin/$ADV_BRANCH)  ssot=$SSOT_SHA(origin/$SSOT_BRANCH)"
+echo "  rec=$REC_SHA  orch=$ORCH_SHA  remote-control-tip=$REMOTE_ORCH_TIP"
 echo "  exec worktree=$EXEC_WT"
 echo "  main: $MAIN_BEFORE -> $EXEC_SHA"
 

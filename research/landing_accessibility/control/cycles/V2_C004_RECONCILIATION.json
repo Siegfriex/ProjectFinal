@@ -1,0 +1,64 @@
+{
+  "schema": "landing-accessibility-reconciliation-v1",
+  "schema_note": "promote_landing_main.sh [REC_STATE_BIND] 가 읽는 reconciliation 산출물이다. 이 파일이 없으면 승격은 차단된다 (fail-closed). 필수 필드: schema · cycle · target_exec_sha · adversarial.{audit_sha,verdict} · ssot.{audit_sha,verdict} · open_blocking_total · decision · promotion_authorized · reconciled_at.",
+  "cycle": "V2-C004",
+  "reconciled_at": "2026-08-27T02:30:00+09:00",
+  "reconciled_by": "orchestrator support executor (V2-C005), control/landing-orchestrator",
+  "target_exec_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
+  "target_exec_branch": "agent/landing-v2-exec",
+  "prev_target_exec_sha": "4a0585e05a2119f11d86e530162d9674e0268a53",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha_audited": "580e67219d79ca318c9a7c50e03dbe4f762b82e7",
+  "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+  "adversarial": {
+    "audit_branch": "audit/landing-adversarial-codex-c004",
+    "audit_sha": "1d96a48665c4c5d81625982eaba351b0f0d38968",
+    "auditor_identity": "Codex, independent adversarial auditor",
+    "auditor_substitution_reason": "V2-C004 adversarial 을 수행하던 Claude 세션이 API 세션 한도로 중단됐다. Codex 가 전용 워크트리 .agent_worktrees/codex_c004_adversarial 에서 처음부터 독립 수행했고, 중단된 세션의 untracked 초안은 읽거나 재사용하지 않았다.",
+    "branch_differs_from_usual": true,
+    "usual_branch_state": "audit/landing-adversarial 은 ea1d2448eedc80259b421a2b8bb3b840ba6dced8 (V2-C003) 에 멈춰 있다",
+    "pushed_to_origin": true,
+    "report": "research/landing_accessibility/audit/adversarial/V2_C004.{md,json}",
+    "verdict": "FAIL",
+    "counts": { "P0": 0, "P1": 1, "P2": 3, "blocking": 4, "non_blocking_debt": 3 }
+  },
+  "ssot": {
+    "audit_branch": "audit/landing-ssot",
+    "audit_sha": "0ca2f636736dc1e16295f296c6c1e794e4cf3d51",
+    "report": "research/landing_accessibility/audit/ssot/V2_C004.{md,json}",
+    "verdict": "FAIL",
+    "counts": { "P0": 0, "P1": 0, "P2": 1, "blocking": 1, "non_blocking": 0 }
+  },
+  "both_audits_same_target_sha": true,
+  "open_blocking_total": 12,
+  "open_blocking_breakdown": {
+    "v1_inherited": 6,
+    "V2-C001": 0,
+    "V2-C002": 1,
+    "V2-C003": 0,
+    "V2-C004": 4,
+    "orchestrator_registered": 1
+  },
+  "decision": "REWORK",
+  "promotion_authorized": false,
+  "p_a_authorized": false,
+  "e001_v2_authorized": false,
+  "gate": "V2_SSOT_FROZEN",
+  "gate_status": "NOT_ACHIEVED",
+  "reason": "PHASE_GATES §2 는 모든 Gate 에 대해 '두 감사 모두 verdict = PASS' 와 '해당 Gate 의 blocking finding 0건' 을 동시에 요구한다. V2-C004 는 두 감사 모두 FAIL 이고 open blocking = 12 다. 00_SSOT_v2.0 §15 의 open blocking = 0 도 미충족이다. 따라서 research/landing-accessibility-main 승격 · P-A 착수 · E001_V2 실행은 전부 금지 상태를 유지한다.",
+  "accepted_findings": [
+    "recollection-escape-path-unbounded-and-conclusion-prioritized (ADV-C004-01, P1)",
+    "a1-0-3-jurisdiction-declaration-drifts-from-a2-and-collides-with-existing-section (ssot + ADV-C004-02, 동일 사안 1건)",
+    "install-manifest-banner-allowlist-skips-repo-authored-authority-docs (ADV-C004-03)",
+    "promotion-reconciliation-sha-is-dead-and-control-state-is-only-local-single-source (ADV-C004-04)"
+  ],
+  "rejected_findings": [],
+  "orchestrator_independent_verification": [
+    "git ls-remote origin 으로 origin/audit/landing-adversarial-codex-c004 = 1d96a48665c4c5d81625982eaba351b0f0d38968 을 직접 확인했다 — Codex 감사 브랜치는 실제로 push 돼 있다.",
+    "두 감사 보고서 JSON 의 target_sha 가 모두 d5f1da5652953542d5c8be377026cc3293f2075a 이고 cycle 이 모두 V2-C004 임을 직접 읽어 확인했다.",
+    "adversarial 보고서 findings[] 에서 blocking=true 를 직접 세어 4 를 얻었고 counts.blocking = 4 와 일치함을 확인했다. ssot 도 1 = 1 이다.",
+    "ADV-C004-04 를 --dry-run 으로 재현했다 — 구버전 promote_landing_main.sh(580e6721)는 reconciliation_sha=NOT_A_COMMIT 을 거절하지 않았다."
+  ],
+  "duplicate_accounting": "ADV-C004-02 는 ssot 의 a1-0-3-jurisdiction-declaration-drifts-… 와 동일 id·동일 사안이므로 중복계상하지 않는다. 두 감사가 독립적으로 같은 결함에 도달했다는 사실은 신뢰도 근거로만 쓴다.",
+  "next_cycle_requirement": "네 blocking 이 닫히고 **exact same successor target** 을 두 독립감사가 다시 감사해 둘 다 PASS 해야 V2_SSOT_FROZEN 을 닫을 수 있다. 그 뒤에야 이 파일의 후속판이 decision=PROMOTE / promotion_authorized=true 를 담을 수 있다."
+}
