@@ -1,0 +1,81 @@
+{
+  "cycle_id": "C001",
+  "target_exec_sha": "fa7a9763fc8db20f7139c801960a77c13fe940df",
+  "target_ssot_sha": "1565fa8a998acd4f81accc177a59f3b57e68fbf3",
+  "auditor": "ssot",
+  "started_at": "2026-08-26T12:06:00+09:00",
+  "finished_at": "2026-08-26T12:11:00+09:00",
+  "verdict": "PASS",
+  "violations": [
+    {
+      "id": "state-json-stale-vs-exec-progress",
+      "severity": "P1",
+      "rule": "state.json gate 원장은 실제 진행과 일치해야 한다 (감사항목 7)",
+      "evidence": "control/landing-orchestrator(1565fa8) 의 control/state.json 은 population_authority.status=ACQUISITION_IN_PROGRESS, gates.population_source_freeze=REOPENED, exec_sha=null 이다. 그러나 fa7a9763 은 sources/wiseapp/authority_manifest.json(authority_rank=A1) 을 이미 커밋해 동결을 완료했다. git diff --name-status 32460b87 fa7a9763 -> 19 files added, 전부 research/landing_accessibility/sources/wiseapp/**.",
+      "required_action": "orchestrator 가 exec_sha=fa7a9763..., population_authority.status=ACQUIRED, gates.population_source_freeze 를 실제 상태로 갱신한다. 방향은 과소보고(안 한 일을 PASS 표기한 것 아님)이므로 P0 아님."
+    },
+    {
+      "id": "a1-screenshot-untracked",
+      "severity": "P1",
+      "rule": "A1 원문 권위 증거는 재검증 가능해야 한다 (권위 서열 A1 유지)",
+      "evidence": "research/landing_accessibility/.gitignore:2 = 'sources/wiseapp/raw/*.png'. 이로 인해 raw/wiseapp933_full.png (3,832,287 B) 가 버전관리에서 제외됐다. authority_manifest.raw_assets.full_page_screenshot 은 sha256:c1e5422f... 를 선언하지만 저장소만으로는 대조 불가. 워킹트리 실측으로는 해시 일치 확인함.",
+      "required_action": "full_page 스크린샷을 커밋하거나(3.8MB), LFS/외부 아카이브 경로를 manifest 에 명시해 A1 두 취득경로 중 하나가 저장소에서 소실되지 않게 한다."
+    },
+    {
+      "id": "acquisition-script-not-committed",
+      "severity": "P1",
+      "rule": "A1 취득 절차는 재현 가능해야 한다",
+      "evidence": "fa7a9763 은 산출물 19개만 추가했고 취득 코드가 없다. git diff --name-status 32460b87 fa7a9763 결과에 .py/.ts 없음. 취득 방법은 source_evidence_manifest.acquisition_method 의 산문 2줄('curl_cffi POST /insight/detail/getDetail.json {insightNid:\"933\",preview:0}', 'playwright chromium render + full_page screenshot') 뿐이다.",
+      "required_action": "취득 스크립트를 sources/wiseapp/ 하위에 커밋해 A1 재동결이 코드로 재현되게 한다."
+    },
+    {
+      "id": "index-sections-not-verbatim",
+      "severity": "P1",
+      "rule": "원문 INDEX 는 원문 그대로 보존한다 (감사항목 8)",
+      "evidence": "원문 raw/wiseapp933_text.txt:39 = '(1) 액티브시니어+ 세대 앱 사용자 및 사용시간 평균 TOP15'. authority_manifest.index_from_source[0].sections[0] = '(1) 앱 사용자 및 사용시간 평균 TOP15' — 코호트 수식어가 제거됨. 11개 section 전부 동일한 축약. chapter 수(4), section 수(11), APP/RETAIL domain, TOP15/TOP15/TOP10/TOP15/TOP10/TOP10/TOP5 depth 는 모두 원문과 일치.",
+      "required_action": "필드명이 index_from_source 인 이상 원문 문자열을 그대로 넣고, 축약형이 필요하면 별도 short_label 필드로 분리한다. 구조·깊이 손실은 없으므로 P1."
+    },
+    {
+      "id": "imginfolist-13-to-11-undocumented",
+      "severity": "P1",
+      "rule": "원문 panel 삭제 금지 — 제외가 있으면 근거를 남긴다 (감사항목 8)",
+      "evidence": "raw/wiseapp933_detail.json 의 insightInfo.imgInfoList 는 nid 933 에 대해 13건(imgNid 4786-4801). 커밋된 figure 는 11건. 제외된 2건은 9dde5bf3-...png(imgNid 4789, 401859 B)와 1d306db2-...png(imgNid 4796, 406615 B)이며, 각각 4791/4797 과 바이트 크기가 동일한 CMS 교체본으로 본문 content 의 <img src> 에 참조되지 않음. 독립 검증: 본문 <img> 11개의 basename 배열이 source_evidence_manifest.figures 의 source_url basename 배열과 순서까지 완전 일치(ORDER+SET MATCH: True). 실질적 panel 삭제는 없음.",
+      "required_action": "manifest 에 imgInfoList 13 -> 본문 참조 11 감축 근거를 1줄 기록해 후속 감사자가 재확인 없이 판단할 수 있게 한다."
+    },
+    {
+      "id": "invalidated-a7-preserved-untracked",
+      "severity": "P1",
+      "rule": "철회 산출물은 삭제하지 않고 INVALIDATED 로 보존한다 (state.json withdrawn_conclusions OLD_CATEGORY_FEASIBILITY)",
+      "evidence": "state.json 은 'state/category_feasibility_matrix.csv 는 삭제하지 않고 INVALIDATED 로 보존' 이라고 선언한다. 실제로 파일은 메인 체크아웃 /home/sieg/projects-wsl/ProjectFinal/research/landing_accessibility/state/category_feasibility_matrix.csv (897 B) 에 존재하나 git ls-files research/landing_accessibility -> 빈 결과, 즉 어느 브랜치에서도 추적되지 않는 untracked 파일이다. 동 디렉터리의 service_certification_match_draft.csv(8359 B) 도 동일. 레거시 xlsx(manus/fast_collection/50plus_all_rankings_real_url_mapping.xlsx) 도 untracked 로만 존재.",
+      "required_action": "보존을 선언했으면 추적 대상으로 커밋하거나, 보존 위치가 untracked 로컬임을 state.json 에 명시한다. 현재는 워크트리 정리 한 번으로 소실 가능."
+    },
+    {
+      "id": "exec-advanced-to-c002-before-c001-audit",
+      "severity": "P1",
+      "rule": "cycle gate 는 감사 통과 후 진행한다 (gates.adversarial_audit / gates.ssot_audit)",
+      "evidence": "감사 착수 시점 agent/landing-exec HEAD 는 fa7a9763 이었으나 감사 중 1a7cd649 'exec(C002): Wiseapp 933 figure 11종 -> panel_registry / source_ranking_rows 구조화' 로 진행했고 origin 에도 push 됨. 이 시점 state.json 의 gates.adversarial_audit=NOT_RUN, gates.ssot_audit=NOT_RUN. 참고로 C002 산출물(state/panel_registry.csv 15행, state/source_ranking_rows.csv 262행)에 대한 스팟체크에서는 legacy ontology / A7 참조가 검출되지 않았고(git grep exit 1) domain 컬럼도 APP/RETAIL 로 분리 유지됨 — 다만 C002 는 본 감사 범위가 아니며 미감사 상태다.",
+      "required_action": "C002 를 별도 cycle 로 감사 대기시키고, exec 가 감사 미완 상태에서 다음 cycle 을 push 하지 않도록 orchestrator 가 gate 를 강제한다. 본 감사의 모든 판정은 fa7a9763 에 고정되어 있다."
+    }
+  ],
+  "checks_passed": [
+    "A1 선언: sources/wiseapp/authority_manifest.json 의 authority_rank = 'A1', authority_id = 'WISEAPP_ACTIVE_SENIOR_2025H2_933' — SSOT 권위 서열과 일치.",
+    "A7 미사용: git grep -n -E '50plus_all_rankings|comparison_targets|primary_task_code|\\.xlsx' fa7a9763 -- research/landing_accessibility -> exit 1 (0건). 저장소 전체의 해당 문자열 hit 는 전부 research/refcohort(파일럿, 32460b8 시점 기존 자산)에만 존재.",
+    "A7 강등 유지 근거 명문화: authority_manifest.legacy_conflict_detected 3건(panel_depth TOP15 vs Top10, kakaotalk 1,377만 vs 1379, cohort 라벨)이 A1 원문 대조로 기록됨. 원문 실측: '1,377만 명' 존재, '1379' 부재 -> 강등 근거 사실 확인.",
+    "APP/RETAIL 분리 보존: index_from_source 의 chapter별 domain = [APP, APP, RETAIL, RETAIL]. 병합 흔적 없음. 원문 Chapter1-2 = 앱, Chapter3-4 = 결제/리테일 과 일치.",
+    "원문 구조 보존: 원문 INDEX 는 4 chapter (grep '^Chapter \\d+\\. ' -> 4) / 11 section (3+2+4+2). manifest 도 chapters=4, sections=11 로 동일. section 별 TOP-N depth 전부 원문과 일치.",
+    "panel 무삭제·무재분류: 원문 body content 의 <img src> 11건 basename 배열이 source_evidence_manifest.figures 11건의 source_url basename 배열과 순서까지 완전 일치. fig01-03 -> Ch1, fig04-05 -> Ch2, fig06-09 -> Ch3, fig10-11 -> Ch4 로 alt_text 의미도 1:1 대응.",
+    "legacy ontology 미유입: git grep -n -E 'BUY_RESERVE|TRANSFER_ENTRY|COMMUNITY_PARTICIPATION|MOBILITY_MAP|CULTURE_EDU|HEALTH_WELFARE|OTHER_UTILITY|SEARCH_INFO|CLASSIFY_RULES|TYPE_MAP|TASK_ENTRY|\\bPUBLIC\\b' fa7a9763 -- research/landing_accessibility -> exit 1 (0건).",
+    "E001 미실행: fa7a9763 트리에 evidence/ 디렉터리 부재(git archive 추출 후 find -type d 결과 sources/wiseapp/{images,raw} 뿐). 사이트 수집물 0건. 취득 대상은 wiseapp.co.kr 원문 1건뿐으로 본수집 아님.",
+    "Pilot 불변: git diff --stat 32460b87 fa7a9763 -- research/refcohort -> 빈 출력. research/refcohort READ_ONLY 유지.",
+    "gate 과대보고 없음: state.json 의 어떤 gate 도 미수행 항목을 PASS 로 표기하지 않음. NOT_RUN 15건, REOPENED 1건, INVALIDATED 1건은 모두 보수적 표기.",
+    "manifest 무결성 독립 재계산: fa7a9763 에서 git archive 로 추출한 고정 트리에 대해 figure 11종 sha256 전건 일치(mismatch 0), raw_assets 의 detail_json / rendered_html / body_text 해시·바이트 전건 일치. full_page_screenshot 은 워킹트리 실측으로 일치(저장소 미추적, 위 P1 참조).",
+    "domain_flags 원문 대조: detail_json 의 insightInfo(insightNid=933) 에서 bapp=1, bretail=1, bgoods=0 확인 — manifest.domain_flags 와 일치. (초기 재귀 탐색에서 잡힌 bapp=0 값들은 관련 인사이트 nid 714/674 의 것으로 933 과 무관함을 확인.)",
+    "content_structure 원문 대조: 기사 본문 insightInfo.content 의 <table> 0건 / <img> 11건 — manifest 의 html_tables=0, html_images=11 과 일치. 렌더 HTML 전체의 table 7 / img 17 은 prev/next 관련 인사이트와 페이지 크롬에서 유래하며 933 본문이 아님을 확인 — 즉 manifest 수치는 올바르게 본문으로 스코프됨.",
+    "headline 수치 원문 대조: headline_claims_verbatim 2건이 raw/wiseapp933_text.txt 에 축자 존재. 카카오톡 1,377만 / YouTube 1,329만 / Google 1,278만 / 네이버 1,256만.",
+    "코호트 정의 원문 대조: population_definition.age_definition='50대 이상' 이 원문 'Q. 50대 이상 액티브시니어+ 세대' 표기와 일치. 상한·표본크기 미기재 사실을 manifest note 에 한계로 명시 — 임의 수치 보충 없음.",
+    "인증목록 모집단 확장 없음: C001 산출물에 A2 인증목록 데이터가 전혀 포함되지 않음. certified_current 판정 시도 없음.",
+    "RQ 구조 변경 없음: fa7a9763 에 RQ 관련 파일 추가·수정 없음."
+  ],
+  "authority_order_intact": true,
+  "notes": "verdict PASS — P0 위반 0건. C001 은 A1 원문 취득과 권위 매니페스트 동결로 범위가 좁고, 그 범위 안에서 SSOT 를 위반하지 않았다. 특히 '모든 순위표가 이미지' 라는 제약을 임의 수치나 편의적 source substitution 으로 우회하지 않고 figure 판독 필요를 한계로 명시한 점, A7 파생자료를 재사용하지 않고 원문 대조로 강등 근거 3건을 실증한 점이 SSOT 준수의 핵심 근거다. 기록된 7건은 전부 P1 로, 실체적 연구설계 위반이 아니라 (a) 증거 지속성(스크린샷·취득코드·INVALIDATED 자산 미추적), (b) 원장 정합(state.json 과 실제 진행 불일치), (c) 문서화 정밀도(section 축자성, imgInfoList 13->11 근거) 문제다. 다만 P1-7 은 프로세스 리스크다: 본 감사 진행 중 exec 가 C002(1a7cd649)로 진행해 origin push 까지 마쳤으므로, 본 감사의 모든 명제는 fa7a9763 에서 git archive 로 고정 추출한 트리에 대해 재검증한 결과로 한정된다. C002 산출물(panel_registry 15 panel, source_ranking_rows 262행)은 스팟체크상 legacy ontology / A7 오염이 없고 APP/RETAIL 분리도 유지되나, 정식 감사는 별도 cycle 로 수행되어야 한다."
+}
