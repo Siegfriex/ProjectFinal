@@ -1,0 +1,136 @@
+{
+  "schema": "c013_salvage_ledger/v1",
+  "purpose": "agent/landing-exec@87a0464 (C013, UNVERIFIED WIP checkpoint) 의 web eligibility / URL review 관련 로직 중 어느 것을 claude-b/pb-prework 로 salvage했고, 어느 것을 버렸는지, 근거는 무엇인지를 단위별로 기록한다. whole-file merge 는 하지 않았다 — 이 파일이 그 검토 절차의 기록이다.",
+  "status": "SHADOW_PREPARATORY",
+  "shadow_provenance": {
+    "base_sha": "d5f1da5",
+    "created_before_p0_close": true,
+    "authoritative": false,
+    "real_target_outcome_used": false,
+    "requires_post_p0_reconciliation": true,
+    "shadow_lane": "P-B"
+  },
+  "source_commit": "87a0464e8159d5526069d5e654e648b0dae506ca",
+  "source_branch": "agent/landing-exec",
+  "source_commit_status": "UNVERIFIED_WIP_CHECKPOINT — 어떤 독립감사도 거치지 않음, NOT_PROMOTED, NOT_AUTHORITATIVE",
+  "review_method": "read-only (git show <source_commit>:<path>). 이 워크트리에서 해당 브랜치를 checkout 하거나 cherry-pick 하지 않았다.",
+  "salvage_units": [
+    {
+      "id": "registered_domain_module",
+      "source_file": "research/landing_accessibility/src/landing_accessibility/registered_domain.py",
+      "function_or_block": "전체 모듈 (host_of / public_suffix / registered_domain / same_registered_domain / psl_provenance)",
+      "reason": "PSL 파서 기반 등록도메인 판정은 v1/v2 어느 어휘에도 묶여 있지 않다. co.kr/or.kr/go.kr 등 다중라벨 public suffix를 문자열 마지막 두 라벨 비교로 처리하면 오판정이 나는 구조적 문제를 해결한 유일한 구현이었고, v2 A2 §5.5가 요구하는 '등록도메인 비교' 그 자체다.",
+      "current_v2_compatibility": "FULL — 이 모듈은 어떤 상태값 어휘도 다루지 않는다. 순수 함수 라이브러리.",
+      "known_debt": "없음. 원본 그대로 포팅.",
+      "required_changes": "docstring에 salvage provenance 블록 추가만. 로직 무변경.",
+      "tests": "tests/test_pb_registered_domain.py (co.kr/auction.co.kr 반례, same_registered_domain 비대칭 케이스 포함)",
+      "landed_in": "research/landing_accessibility/src/landing_accessibility/registered_domain.py"
+    },
+    {
+      "id": "probe_official_urls_script",
+      "source_file": "research/landing_accessibility/scripts/probe_official_urls.py",
+      "function_or_block": "전체 스크립트 (probe() / _decode() / _legacy_session() / main())",
+      "reason": "URL 식별 목적의 네트워크 관측(http_status/final_url/redirect_chain/title/lang)은 v1/v2 어느 쪽으로 봐도 '본수집 이전의 URL 식별' 경계 안에 있다. TLS legacy renegotiation 재시도, 한국어 인코딩(EUC-KR/CP949) 우선순위 등 실전에서 검증된 예외처리가 이미 있었다.",
+      "current_v2_compatibility": "FULL (관측 스키마는 어휘 중립) — 단 PHASE_GATES.md §4.5 REAL-TARGET FIREWALL 이 새로 요구된 이후에는 execution_mode 게이트가 추가로 필요했다.",
+      "known_debt": "네트워크 결과가 재현되지 않는다는 원본의 한계는 그대로 남는다 (원본이 이미 문서화함 — '왜 빌드와 분리했는가').",
+      "required_changes": "1) --execution-mode 인자 추가, REAL_TARGET hard FAIL (require_execution_mode). 2) --fixture-path 추가 — FIXTURE 모드에서는 네트워크를 아예 타지 않고 로컬 JSON만 읽는다. 3) --candidates-path/--output-path 추가 — 테스트 격리용. 4) shadow_provenance 블록을 출력 payload에 추가. 5) '06 §6' 등 v1 문서 참조를 v2 근거로 교체. 6) build_web_eligibility_and_url_review.py 참조를 web_eligibility.py/url_evidence.py로 교체(그 파일은 salvage하지 않았으므로).",
+      "tests": "tests/test_pb_probe_official_urls.py (REAL_TARGET hard-fail을 서브프로세스로 실행해 확인, FIXTURE 모드 end-to-end)",
+      "landed_in": "research/landing_accessibility/scripts/probe_official_urls.py"
+    },
+    {
+      "id": "confidence_of",
+      "source_file": "research/landing_accessibility/scripts/build_web_eligibility_and_url_review.py",
+      "function_or_block": "confidence_of(probe) — 문자열 라인 752-762",
+      "reason": "관측 품질(HTTP 상태 + 제목 확보 여부)에서만 신뢰도를 유도한다는 원칙 — '손으로 올리고 내릴 수 없다' — 은 v2에도 그대로 유효하다. eligibility_confidence를 사람이 임의로 적는 것을 막는 유일한 장치였다.",
+      "current_v2_compatibility": "PARTIAL — 원본은 LOW/MEDIUM/HIGH 3단 문자열 등급을 반환한다. v2 A2는 `eligibility_confidence`를 [0,1] float로 요구한다(01_DATA_SPEC 암묵 + 이 세션이 결정한 스키마).",
+      "known_debt": "3단 등급 → 3개 float 값(0.2/0.5/0.9) 이산 사상은 임의 경계다. 실제 신뢰도 분포를 본 뒤 재보정이 필요할 수 있다 — 이것은 '해석 임계값'이 아니라 '수집 파라미터'에 해당하므로 P-C에서 검증 후 동결 대상이다(A1 §0.4와 같은 지위).",
+      "required_changes": "반환형을 문자열 등급에서 float로 교체. 로직(조건 분기)은 그대로 유지.",
+      "tests": "tests/test_pb_web_eligibility.py::test_deterministic_confidence_* (5 cases: HIGH/MEDIUM/LOW branches)",
+      "landed_in": "research/landing_accessibility/src/landing_accessibility/web_eligibility.py::deterministic_confidence_from_probe"
+    },
+    {
+      "id": "brand_tokens_and_title_identifies_brand",
+      "source_file": "research/landing_accessibility/scripts/build_web_eligibility_and_url_review.py",
+      "function_or_block": "brand_tokens(name, ckey, url) — 라인 764-786, title_identifies_brand(probe, tokens) — 라인 787-795",
+      "reason": "'기계적으로만' 토큰을 만든다는 원칙(A1 원문 표기 + canonical_service_key + 등록도메인 첫 라벨만 쓰고 손으로 별칭을 보태지 않는다)은 결과를 유도하는 방향으로 신원판정이 휘는 것을 막는 구조적 안전장치였다. 규칙 EL-3(ELIGIBLE_WEB은 신원 확인 근거가 필요)의 자동화 경로로 그대로 재사용 가능하다.",
+      "current_v2_compatibility": "FULL — 두 함수 모두 상태값 어휘를 다루지 않는다. 순수 문자열 매칭 유틸리티.",
+      "known_debt": "제목이 봇 차단 등으로 비어 있으면 None을 반환하고, 그 경우 EL-3의 identity evidence로 못 쓴다 — 원본도 같은 한계를 인정했다(주석 '제목이 없으면 판정하지 않는다').",
+      "required_changes": "함수 시그니처의 매개변수 이름만 명확히 했다(name→service_name, ckey→canonical_service_key). 로직 무변경. registered_domain import를 함수 내부로 옮겨 순환import를 피했다.",
+      "tests": "tests/test_pb_web_eligibility.py::test_brand_match_tokens_*, test_title_identifies_brand_*",
+      "landed_in": "research/landing_accessibility/src/landing_accessibility/web_eligibility.py::brand_match_tokens, title_identifies_brand"
+    },
+    {
+      "id": "crossed_registered_domain",
+      "source_file": "research/landing_accessibility/scripts/build_web_eligibility_and_url_review.py",
+      "function_or_block": "crossed_registered_domain(probe) — 라인 796-804",
+      "reason": "최종 URL이 후보와 다른 등록도메인으로 리다이렉트됐는지 보는 QA 신호.",
+      "current_v2_compatibility": "REDUNDANT — 같은 계산을 이 세션이 독립적으로 설계한 ProbeSignal.same_registered_domain (web_eligibility.py::deterministic_probe_signal)이 이미 수행한다. 별도 함수로 다시 만들면 같은 사실을 두 컬럼이 주장하는 구조가 된다(A2 규칙 S-1 위반 소지).",
+      "known_debt": "없음 — salvage하지 않기로 한 결정 자체가 결론이다.",
+      "required_changes": "salvage 안 함.",
+      "tests": "N/A",
+      "landed_in": null
+    },
+    {
+      "id": "evidence_of",
+      "source_file": "research/landing_accessibility/scripts/build_web_eligibility_and_url_review.py",
+      "function_or_block": "evidence_of(probe, url) — 라인 805-827",
+      "reason": "'확인한 근거'를 사람이 검증 가능한 한 문장으로 조립하는 로직. HTTP 상태 · 최종 URL · 리다이렉트 횟수 · 페이지 제목 · 등록도메인을 순서대로 이어붙이는 형식이 실무적으로 검토자가 읽기 좋았다.",
+      "current_v2_compatibility": "FULL — 문자열 조립 유틸리티, 어휘 의존 없음.",
+      "known_debt": "없음.",
+      "required_changes": "함수명을 probe_evidence_detail로 바꿨다 — 이 문자열이 UrlEvidenceItem(evidence_type='HTTP_PROBE').detail에 그대로 들어간다는 것을 이름에서 드러내기 위해서다. 로직 무변경.",
+      "tests": "tests/test_pb_web_eligibility.py::test_probe_evidence_detail_*",
+      "landed_in": "research/landing_accessibility/src/landing_accessibility/web_eligibility.py::probe_evidence_detail"
+    },
+    {
+      "id": "eligibility_status_vocabulary_and_state_machine",
+      "source_file": "research/landing_accessibility/scripts/build_web_eligibility_and_url_review.py",
+      "function_or_block": "WEB_SERVICE/OFFICIAL_PRODUCT_PAGE/APP_ONLY/SYSTEM_APP/RETAIL_OFFLINE_ONLY/EXCLUDED_INDUSTRY_AXIS/UNRESOLVED 7값 어휘 + STATUS_CRITERIA + RETAIL_LANDING_SELECTION_RULE + STATUS_TO_URL_TYPE (라인 63-137)",
+      "reason": "이 어휘는 v1 문서 06(REPO의 research/landing_accessibility/CLAUDE.md가 가리키는 v2 문서팩으로 이미 대체됨) 기준이다.",
+      "current_v2_compatibility": "INCOMPATIBLE — A2_VOCABULARY_AND_SCHEMA_BINDING.md §1.3이 다른 6값 어휘(NOT_ASSESSED/EXCLUDED_INDUSTRY_AXIS/ELIGIBLE_WEB/EXCLUDED_APP_ONLY/EXCLUDED_NO_PUBLIC_WEB_LANDING/UNDETERMINED_URL_EVIDENCE)를 정본으로 확정했다. RETAIL_OFFLINE_ONLY/SYSTEM_APP은 v2에 대응하는 독립 상태값이 없다.",
+      "known_debt": "값을 그대로 리라벨링(1:1 매핑)하지 않았다 — 경계가 다르기 때문에 기계적 매핑 자체가 오판정을 만든다.",
+      "required_changes": "새로 판정하는 코드로 재작성. 원칙만 살렸다: (a) URL 존재만으로 ELIGIBLE_WEB 아님 → 규칙 EL-3, (b) 배제 판정은 실제 확인 근거 필요 → 규칙 EL-2, (c) 확인 불가는 UNDETERMINED_URL_EVIDENCE → 규칙 EL-4. 리테일 온라인/오프라인 랜딩 선택 판단은 상태값이 아니라 eligibility_basis 자유 텍스트로 흡수(상태값 집합 확장 금지, 규칙 S-3).",
+      "tests": "tests/test_pb_web_eligibility.py (test_vocabulary_does_not_leak_v1_06_tokens 가 이 결정을 회귀 고정한다)",
+      "landed_in": "research/landing_accessibility/src/landing_accessibility/web_eligibility.py (determine_web_eligibility 및 관련 규칙 EL-1~EL-4)"
+    },
+    {
+      "id": "web_target_group_split_confirm_logic",
+      "source_file": "research/landing_accessibility/scripts/build_web_eligibility_and_url_review.py",
+      "function_or_block": "main() 내부 grouping 판정 루프 — 대략 라인 990-1100 (GROUPING_CONFIRMED_SHARED/GROUPING_SPLIT/GROUPING_SINGLETON_* 분기)",
+      "reason": "구조적 아이디어(그룹 구성원의 확정 랜딩 URL 집합이 1개면 CONFIRMED, 2개 이상이면 SPLIT, 미확정이 있으면 PENDING 유지)는 A2 §5.5가 요구하는 falsifier 검정과 정확히 같은 문제를 푼다.",
+      "current_v2_compatibility": "PARTIAL — grouping_status 값 이름(GROUPING_SINGLETON_CONFIRMED 등) 자체는 v1 06 §3-4 어휘이지만 state/web_target_group.parquet의 물리 컬럼값(SINGLETON_PENDING_URL_REVIEW/CANDIDATE_PENDING_URL_REVIEW)과는 이미 다른 이름 체계였다 — 이 결과표가 grounding 단계(C012)에서 만든 물리 스키마와도 어긋난다.",
+      "known_debt": "**중요한 차이**: 원본은 그룹 구성원의 **정확한 URL 문자열 집합**(distinct)이 1개인지로 CONFIRMED/SPLIT을 가른다 — 이것이 '다른 경로로 확정되면 SPLIT'까지 포착한다. 이 세션이 독립적으로 만든 target_grouping.py::evaluate_registered_domain_falsifier는 **등록도메인만** 비교한다 — 같은 도메인·다른 경로인 경우를 SPLIT으로 잡지 못한다(reason 필드에 '사람 검토 필요'로 명시적으로 남김). 이것은 알려진 미해결 격차이며 gmarket/naver 그룹의 falsifier 원문('또는 다른 경로로 확정되면')을 완전히 커버하지 못한다.",
+      "required_changes": "값 이름 대신 A2 §1.4/§5.5 어휘로 새로 설계(FalsifierVerdict.grouping_status ∈ {SPLIT, CONFIRMED_SHARED_TARGET, CANDIDATE_PENDING_URL_REVIEW} — web_target_group.parquet 물리 컬럼 grouping_status 값과 구분되는 별도 판정 결과 타입으로 뒀다). 경로 수준 비교는 구현하지 않았다 — required follow-up.",
+      "tests": "tests/test_pb_target_grouping.py",
+      "landed_in": "research/landing_accessibility/src/landing_accessibility/target_grouping.py::evaluate_registered_domain_falsifier"
+    },
+    {
+      "id": "system_app_hypothesis_reading",
+      "source_file": "research/landing_accessibility/scripts/build_web_eligibility_and_url_review.py",
+      "function_or_block": "docstring 원칙 (b) — 'state/_researcher_priors/system_app_hypothesis.json 의 11건은 가설이지 근거가 아니다 ... 이 파일은 그 JSON 을 읽지 않는다'",
+      "reason": "층 분리 원칙(연구자 사전판단이 판정의 입력이 되면 층 분리가 무의미해진다) 자체를 살렸다 — 파일을 읽는 코드가 아니라 **읽지 않기로 한 결정**을 살렸다.",
+      "current_v2_compatibility": "FULL — 이 원칙은 어휘와 무관하다.",
+      "known_debt": "없음.",
+      "required_changes": "규칙 EL-2(PRIOR_HYPOTHESIS 단독 배제 금지)로 코드화 — determine_web_eligibility()가 evidence_type='PRIOR_HYPOTHESIS' 만으로는 EXCLUDED_APP_ONLY/EXCLUDED_NO_PUBLIC_WEB_LANDING을 거부한다.",
+      "tests": "tests/test_pb_web_eligibility.py::test_prior_hypothesis_alone_cannot_justify_app_only_exclusion",
+      "landed_in": "research/landing_accessibility/src/landing_accessibility/web_eligibility.py (규칙 EL-2)"
+    },
+    {
+      "id": "app_only_system_app_conceptual_taxonomy",
+      "source_file": "research/landing_accessibility/scripts/build_web_eligibility_and_url_review.py",
+      "function_or_block": "STATUS_CRITERIA 딕셔너리의 APP_ONLY/SYSTEM_APP 두 항목이 준 개념 구분(대상이 없다는 사실이 '확인된 앱 전용'인지 '선탑재라 웹 랜딩 개념 자체가 성립 안 함'인지)",
+      "reason": "오케스트레이터 지시서가 P-B 작업항목으로 'APP_ONLY candidate / SYSTEM_APP candidate / NOT_ELIGIBLE candidate / unresolved candidate queue' 4종을 명시했다. v2 저장 어휘(A2 §1.3)는 이 둘을 EXCLUDED_APP_ONLY 하나로 합쳤으므로(이미 eligibility_status_vocabulary_and_state_machine 항목에서 저장값으로는 병합하기로 결정), 두 개념을 구별해야 하는 요구는 검토 큐(비저장 파생 뷰)로만 만족시켰다.",
+      "current_v2_compatibility": "N/A — 코드 salvage가 아니라 개념적 구분만 계승. 저장 스키마에는 영향 없음.",
+      "known_debt": "system_app_queue 분류는 PRIOR_HYPOTHESIS evidence의 텍스트 패턴 매칭(선탑재/시스템 앱/system_app_hypothesis)에 의존한다 — 결정적이지만 텍스트 표현에 취약하다(다른 문구로 적으면 놓친다).",
+      "required_changes": "N/A",
+      "tests": "tests/test_pb_candidate_queue.py",
+      "landed_in": "research/landing_accessibility/src/landing_accessibility/candidate_queue.py"
+    }
+  ],
+  "not_reviewed": [
+    {
+      "note": "build_web_eligibility_and_url_review.py main() 전체(1328행)를 라인 단위로 전수 검토하지 않았다. 위 salvage_units는 함수 정의부(747-1328) 및 상단 어휘 선언부(1-260)를 검토한 결과다. main() 중 위 표에 없는 나머지 로직(예: service_master merge, CSV/parquet write, 통계 출력)은 v2 스키마가 이미 다르므로 검토 없이 폐기했다 — 물리 스키마 자체가 이 세션의 url_evidence.py/certification_join.py와 별도로 설계됐기 때문이다.",
+      "risk": "만약 그 구간에 이 표에 없는 판정 원칙이 더 있다면 이번 salvage가 놓쳤을 수 있다. Claude A/차기 exec가 재검토할 때 이 known-gap을 참고할 것."
+    }
+  ],
+  "outcome_contamination_check": "이 ledger의 어떤 salvage_unit도 KWCAG/popup/MPFED/접근성 verdict/certified_current(선택 목적)/real-target accessibility evidence 를 입력으로 쓰지 않는다 — landing_accessibility.outcome_contamination_guard 로 self-audit 가능 (tests/test_pb_outcome_contamination_guard.py 참고)."
+}
