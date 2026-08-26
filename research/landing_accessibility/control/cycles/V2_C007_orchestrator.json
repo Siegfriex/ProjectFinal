@@ -1,0 +1,79 @@
+{
+  "cycle": "V2-C007",
+  "role": "orchestrator reconciliation — V2-C006/V2-C007 감사 결과를 원장(control/state.json)에 반영하고 reconciliation 산출물을 만든다",
+  "branch": "control/landing-orchestrator",
+  "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator",
+  "prev_control_sha": "3eaf51bd8157f6b24d3ee5f5afd81b1e0387b309",
+  "responds_to": [
+    "V2-C006 adversarial @ audit/landing-adversarial 76743751bf6fff6a212df35230724194965dcf85 (PASS, blocking 0)",
+    "V2-C006 ssot @ audit/landing-ssot 444de0607993e766fd2686b377f42a6d9b7f7dae (FAIL, blocking 1)",
+    "V2-C007 adversarial @ audit/landing-adversarial cd0a4e62fc1e1582bd56678cec35d688edc695ed (PASS, blocking 0, 좁은 확인)",
+    "V2-C007 ssot @ audit/landing-ssot 383c7a053e8099342a62d294449b170a7ee8bcb2 (PASS, blocking 0, 좁은 확인)"
+  ],
+  "scope_note": "V2-C006 은 exec target 3ad04585…에 대한 전면감사였다. adversarial 은 그 사이클에 시정이 주장된 3건(recollection escape / banner regression / debt-recompute v1 second source)을 전부 CLOSED 판정했다. ssot 는 그중 재수집 앵커 관련 F3(a2-rc6-check-a6)를 CLOSED, 나머지 3개 비차단 승계(F4/F5/F6)도 CLOSED 판정했으나, EXECUTION_AUTHORITY.md §5 기준선표의 ssot 행이 아직도 V2-C003 을 가리키는 결함(execution-authority-baseline-ssot-audit-row-not-updated, ssot F2 의 좁혀진 잔여) 1건을 신규 blocking 으로 냈다. exec 가 그 한 줄만 시정한 target 이 V2-C007(2025e5667686d42e832298f2dce77b0c7aa6bc07)이고, 두 감사가 diff 를 EXECUTION_AUTHORITY.md·INSTALL_MANIFEST.json 2파일로 좁혀 그 시정을 확인해 둘 다 PASS 판정했다.",
+  "what_i_did": [
+    "audit/landing-adversarial · audit/landing-ssot 브랜치에서 V2_C006.json · V2_C007.json 네 보고서를 git show 로 직접 읽었다 — 요약을 신뢰하지 않고 target_sha·verdict·prior_findings_status·finding_closure_check·diff_scope_check 를 직접 파싱했다.",
+    "control/state.json 의 audit_lag(V2-C007 로 갱신, v2_history 에 V2-C006/V2-C007 항목 추가), v2_transition.v2_audit_findings(기존 V2-C005 cycle block 의 4개 finding 항목을 소급 CLOSED/OPEN_PARTIAL 로 갱신 + 비차단 4건도 함께 소급 갱신, 신규 V2-C006/V2-C007 cycle block 추가, orchestrator_registered 의 ssot-00-3-auth-gate 항목에 reaffirmed_in_cycle_v2_c007 추가, totals 에 V2_C005 재계산치·V2_C006·V2_C007 추가), v2_transition.open_blocking_total(14 → 10 으로 재계산, by_blocking_class 갱신, recomputation.steps 전면 재작성), gates.adversarial_audit/ssot_audit/V2_SSOT_FROZEN, 최상단 cycle_id/updated_at 를 갱신했다.",
+    "control/cycles/V2_C007_RECONCILIATION.json 을 신설했다 — promote_landing_main.sh [REC_STATE_BIND] 가 요구하는 스키마(schema/cycle/target_exec_sha/adversarial.{audit_sha,verdict}/ssot.{audit_sha,verdict}/open_blocking_total/decision/promotion_authorized/reconciled_at)를 V2_C004_RECONCILIATION.json 의 실제 검증된 형식을 그대로 따라 채웠다."
+  ],
+  "self_approval_boundary": {
+    "closed_with_explicit_audit_verdict": [
+      "recollection-escape-path-unbounded-and-conclusion-prioritized — adversarial V2-C006 CLOSED (prior_findings_status 직접 확인)",
+      "banner-policy-regression-tests-pass-vacuously — adversarial V2-C006 CLOSED",
+      "banner-injection-regression-tests-pass-without-banner-enforcement (ssot F1, dup) — 동일 사안 CLOSED 로 함께 표기, 원래 counted_as_open=false 라 계상 영향 없음",
+      "a2-rc6-check-a6-run-id-derivation-is-circular-and-unspecified (ssot F3) — ssot V2-C006 CLOSED",
+      "phase-gates-new-section-4-left-stale-section-4-citations-in-control (ssot F4, 비차단) — ssot V2-C006 CLOSED",
+      "control-state-a2-sha256-matches-no-existing-a2 (ssot F5, 비차단) — ssot V2-C006 CLOSED",
+      "a2-rc6-check-a5-third-clause-cannot-fail (ssot F6, 비차단) — ssot V2-C006 CLOSED",
+      "debt-recompute-has-no-second-source-for-v1-inherited-items (비차단) — adversarial V2-C006 CLOSED",
+      "execution-authority-has-no-a0-pointer-and-baseline-audit-record-is-one-cycle-stale (ssot F2) — ssot V2-C006 이 'OPEN_PARTIAL, 하위 3/4 CLOSED, 1개만 narrower id 로 재등재' 로 판정 → 옛 id counted_as_open=false, 새 id execution-authority-baseline-ssot-audit-row-not-updated 는 ssot V2-C007 이 CLOSED"
+    ],
+    "kept_open_despite_strong_remediation_signal": [
+      {
+        "id": "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1",
+        "why": "여러 사이클(V2-C003·A2 §1.5.1a·E-5~E-10)에 걸쳐 실질 시정 정황이 강하지만, V2-C006(전면감사)·V2-C007(좁은 확인) 어느 쪽도 이 id 를 지목해 CLOSED 로 판정하지 않았다 — V2-C006 의 diff 범위에도, V2-C007 의 diff 범위(2파일)에도 이 finding 의 영역(00_SSOT §3 vs A2 §1.5.1)이 없었다. self-approval 금지 원칙에 따라 오케스트레이터가 정황만으로 닫지 않는다. reaffirmed_in_cycle_v2_c007 필드로 이번 사이클에도 미판정임을 기록했다."
+      },
+      {
+        "id": "e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint",
+        "why": "이번 두 사이클 모두 착수되지 않았다. LANE C 엔진측 완화만 있고 A2 문면은 그대로다."
+      },
+      {
+        "id": "rc-6-r1-same-authorization-local-reexecution-unbounded",
+        "why": "설계상 잔여 위험으로 등재된 것이며, 이번 사이클에 저장소 밖 통제나 감사의 명시적 수용 판정이 없었다. 닫힌 것처럼 기록하지 않는다는 원 지시가 유효하다."
+      },
+      {
+        "id": "ned-ied-path-minimality-not-operationalized",
+        "why": "V2-C002 부터 미착수. 이번 두 사이클도 A1 §1.3·§1.7 관련 diff 가 없었다."
+      }
+    ]
+  },
+  "open_blocking_total_recomputation": {
+    "previous": 14,
+    "new": 10,
+    "delta": -4,
+    "by_blocking_class": {
+      "V2_SSOT_FROZEN-blocking": 1,
+      "E001_V2-blocking": 3,
+      "v1_inherited": 6
+    },
+    "v2_ssot_frozen_blocking_class_remaining": [
+      "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1"
+    ],
+    "full_derivation": "control/state.json :: v2_transition.open_blocking_total.recomputation.steps ①~⑪ 참조"
+  },
+  "gate_verdict": {
+    "V2_SSOT_FROZEN": "NOT_ACHIEVED — open_blocking_total = 10 (> 0). 두 감사 모두 최신 사이클(V2-C007)에서 PASS 이고 V2_SSOT_FROZEN-blocking 클래스는 5 → 1 로 줄었지만, 그 1건(ssot-00-3-auth-gate-…)이 남아 있는 한 이 클래스만으로도 Gate 는 닫히지 않는다. E001_V2-blocking 3건·v1 승계 6건도 00_SSOT §15 open blocking = 0 요건을 별도로 막는다."
+  },
+  "reconciliation_decision": "REWORK / NOT_PROMOTABLE",
+  "reconciliation_artifact": "research/landing_accessibility/control/cycles/V2_C007_RECONCILIATION.json",
+  "not_done": [
+    "promote_landing_main.sh 실행(dry-run 포함) — 오케스트레이터가 이 세션 밖에서 별도로 수행한다는 명시적 지시에 따라 실행하지 않았다.",
+    "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 을 CLOSED 로 판정하는 것 — 감사 권한이 아니므로 이 세션이 하지 않는다.",
+    "V2-C006/V2-C007 이 다루지 않은 e-6a-accepts-misclassified-gate-kind-… · rc-6-r1-same-authorization-… · ned-ied-path-minimality-… · v1 승계 6건에 대한 임의 판정."
+  ],
+  "artifacts": [
+    "research/landing_accessibility/control/state.json",
+    "research/landing_accessibility/control/cycles/V2_C007_RECONCILIATION.json",
+    "research/landing_accessibility/control/cycles/V2_C007_orchestrator.json"
+  ]
+}

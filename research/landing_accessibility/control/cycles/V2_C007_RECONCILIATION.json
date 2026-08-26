@@ -1,0 +1,109 @@
+{
+  "schema": "landing-accessibility-reconciliation-v1",
+  "schema_note": "promote_landing_main.sh [REC_STATE_BIND] 가 읽는 reconciliation 산출물이다. 이 파일이 없으면 승격은 차단된다 (fail-closed). 필수 필드: schema · cycle · target_exec_sha · adversarial.{audit_sha,verdict} · ssot.{audit_sha,verdict} · open_blocking_total · decision · promotion_authorized · reconciled_at.",
+  "cycle": "V2-C007",
+  "reconciled_at": "2026-08-27T11:30:00+09:00",
+  "reconciled_by": "orchestrator reconciliation executor (V2-C007), control/landing-orchestrator",
+  "target_exec_sha": "2025e5667686d42e832298f2dce77b0c7aa6bc07",
+  "target_exec_branch": "agent/landing-v2-exec",
+  "prev_target_exec_sha": "3ad04585ae0f58500859e4c3b765844b2cdb5089",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha_audited": "3eaf51bd8157f6b24d3ee5f5afd81b1e0387b309",
+  "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+  "prior_cycle_context": {
+    "cycle": "V2-C006",
+    "target_sha": "3ad04585ae0f58500859e4c3b765844b2cdb5089",
+    "adversarial": {
+      "audit_sha": "76743751bf6fff6a212df35230724194965dcf85",
+      "audit_branch": "audit/landing-adversarial",
+      "verdict": "PASS",
+      "counts": {"P0": 0, "P1": 0, "P2": 4, "blocking": 0}
+    },
+    "ssot": {
+      "audit_sha": "444de0607993e766fd2686b377f42a6d9b7f7dae",
+      "audit_branch": "audit/landing-ssot",
+      "verdict": "FAIL",
+      "counts": {"P0": 0, "P1": 0, "P2": 1, "blocking": 1}
+    },
+    "note": "V2-C006 은 exec target 3ad04585…에 대한 전면감사다. adversarial PASS / ssot FAIL(blocking 1 — execution-authority-baseline-ssot-audit-row-not-updated, EXECUTION_AUTHORITY.md §5 ssot 행 정체). exec 가 그 한 줄만 시정한 것이 V2-C007 target 이다."
+  },
+  "adversarial": {
+    "audit_branch": "audit/landing-adversarial",
+    "audit_sha": "cd0a4e62fc1e1582bd56678cec35d688edc695ed",
+    "report": "research/landing_accessibility/audit/adversarial/V2_C007.{md,json}",
+    "verdict": "PASS",
+    "audit_type": "NARROW_SCOPE_VERIFICATION — diff(V2-C006 target..V2-C007 target) 2파일(EXECUTION_AUTHORITY.md, INSTALL_MANIFEST.json) 한정. diff 밖은 재감사하지 않았다.",
+    "counts": {"P0": 0, "P1": 0, "P2": 0, "blocking": 0}
+  },
+  "ssot": {
+    "audit_branch": "audit/landing-ssot",
+    "audit_sha": "383c7a053e8099342a62d294449b170a7ee8bcb2",
+    "report": "research/landing_accessibility/audit/ssot/V2_C007.{md,json}",
+    "verdict": "PASS",
+    "audit_type": "NARROW_SCOPE_VERIFICATION — 위와 동일 범위. execution-authority-baseline-ssot-audit-row-not-updated(V2-C006 신규) 1건의 closure 를 판정했다.",
+    "counts": {"P0": 0, "P1": 0, "P2": 0, "blocking": 0, "ssot_attributable_open_blocking_total": 0}
+  },
+  "both_audits_same_target_sha": true,
+  "closed_this_cycle": [
+    {
+      "id": "execution-authority-baseline-ssot-audit-row-not-updated",
+      "raised_in": "V2-C006 ssot",
+      "closed_by": "V2-C007 ssot (finding_closure_check: status=CLOSED, still_blocking=false)",
+      "note": "V2-C006 이 낸 유일한 blocking finding. 옛 id execution-authority-has-no-a0-pointer-and-baseline-audit-record-is-one-cycle-stale(ssot V2-C005 F2)의 좁혀진 잔여였다."
+    }
+  ],
+  "closed_by_v2_c006_adversarial_and_recorded_here_for_traceability": [
+    "recollection-escape-path-unbounded-and-conclusion-prioritized (adversarial V2-C006 CLOSED — superseded_by rc-6-r1-same-authorization-local-reexecution-unbounded, 이미 별도 계상돼 있던 항목이라 중복계상 없이 -1)",
+    "banner-policy-regression-tests-pass-vacuously (adversarial V2-C006 CLOSED)",
+    "a2-rc6-check-a6-run-id-derivation-is-circular-and-unspecified (ssot V2-C006 F3, CLOSED)"
+  ],
+  "open_blocking_total": 10,
+  "open_blocking_breakdown": {
+    "v1_inherited": 6,
+    "V2-C001": 0,
+    "V2-C002": 1,
+    "V2-C003": 0,
+    "V2-C004": 0,
+    "V2-C005": 0,
+    "V2-C006": 0,
+    "V2-C007": 0,
+    "orchestrator_registered": 3
+  },
+  "v2_ssot_frozen_blocking_class_count": 1,
+  "v2_ssot_frozen_blocking_class_ids": [
+    "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 (orchestrator 등재, V2-C003 이래 REMEDIATION_CLAIMED_PENDING_AUDIT — 어느 감사도 이 id 를 지목해 CLOSED 판정한 적이 없다)"
+  ],
+  "e001_v2_blocking_class_ids": [
+    "ned-ied-path-minimality-not-operationalized (V2-C002 adversarial)",
+    "e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint (orchestrator 등재 / LANE C 발견)",
+    "rc-6-r1-same-authorization-local-reexecution-unbounded (orchestrator 등재 / A2 앵커 재설계 잔여 위험 R-1)"
+  ],
+  "v1_inherited_blocking_ids": [
+    "a1-raw-payload-files-not-hash-registered-in-authority-manifest",
+    "eligibility-basis-fields-narrower-than-06-still-carried",
+    "queue-membership-still-hand-set-in-entity-spec",
+    "merge-decision-merges-nothing-no-alias-assert",
+    "verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard",
+    "gitignore-evidence-pattern-single-level-only"
+  ],
+  "decision": "REWORK",
+  "promotion_authorized": false,
+  "p_a_authorized": false,
+  "e001_v2_authorized": false,
+  "gate": "V2_SSOT_FROZEN",
+  "gate_status": "NOT_ACHIEVED",
+  "reason": "PHASE_GATES §2 는 모든 Gate 에 대해 '두 감사 모두 verdict = PASS' 와 '해당 Gate 의 blocking finding 0건' 을 동시에 요구한다. V2-C007 은 두 감사 모두 PASS(blocking 0, 좁은 확인)이고 그 직전 V2-C006 도 adversarial PASS / ssot FAIL(blocking 1, 이 사이클에 CLOSED)였다 — verdict 조건은 최신 사이클 기준으로는 충족된 것처럼 보인다. 그러나 v2_transition.open_blocking_total 을 원장 전체에서 재계산하면 10건이 남는다: V2_SSOT_FROZEN-blocking 클래스 1건(ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 — 어느 감사도 판정하지 않아 self-approval 금지 원칙상 OPEN 유지), E001_V2-blocking 3건(ned-ied-path-minimality-not-operationalized · e-6a-accepts-misclassified-gate-kind-… · rc-6-r1-same-authorization-…, 전부 미착수), v1 승계 6건. 00_SSOT_v2.0 §15 는 open blocking = 0 을 요구하므로 미충족이다. 따라서 research/landing-accessibility-main 승격 · P-A 착수 · E001_V2 실행은 전부 금지 상태를 유지한다.",
+  "accepted_findings": [
+    "execution-authority-baseline-ssot-audit-row-not-updated (V2-C006 ssot, 이번 사이클 CLOSED)"
+  ],
+  "rejected_findings": [],
+  "orchestrator_independent_verification": [
+    "네 보고서(adversarial/ssot × V2-C006/V2-C007) JSON 을 origin/audit/landing-adversarial · origin/audit/landing-ssot 에서 git show 로 직접 읽어 target_sha·cycle·verdict·counts·prior_findings_status/finding_closure_check 를 확인했다.",
+    "V2-C007 두 감사의 diff_scope_check/diff_scope 필드가 선언한 '정확히 EXECUTION_AUTHORITY.md·INSTALL_MANIFEST.json 2파일' 을 신뢰하고 그 외 범위는 재검증하지 않았다 — 좁은 확인 감사의 명시적 한계다.",
+    "open_blocking_ids 를 v2_transition.open_blocking_total 에서 10개 직접 열거했고 목록 길이 == 합계임을 확인했다.",
+    "V2_SSOT_FROZEN-blocking 클래스가 ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 1건뿐임을 by_blocking_class 재계산으로 확인했다."
+  ],
+  "duplicate_accounting": "V2-C006 ssot F1(banner-injection-regression-tests-pass-without-banner-enforcement)은 adversarial banner-policy-regression-tests-pass-vacuously 와 동일 사안이라 이미 counted_as_open=false 였다 — 두 항목 모두 이번 사이클에 CLOSED 로 판정됐으나 원래 1건으로만 계상돼 있었으므로 이중 차감은 없다.",
+  "self_approval_note": "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 은 여러 사이클에 걸쳐 실질 시정(A2 §1.5.1a, E-5~E-10)이 이뤄졌다는 정황이 있으나, V2-C006(전면감사)·V2-C007(좁은 확인) 어느 쪽도 이 id 를 지목해 CLOSED 판정을 내리지 않았다. 오케스트레이터는 이를 CLOSED 로 표시하지 않았다 — self-approval 금지 원칙에 따라 감사 판정 없이는 닫을 수 없다.",
+  "next_cycle_requirement": "V2_SSOT_FROZEN-blocking 클래스의 마지막 1건(ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1)을 두 독립감사 중 최소 하나가 이 id 를 직접 지목해 CLOSED 로 판정해야 그 클래스가 0 이 된다. 그래도 E001_V2-blocking 3건과 v1 승계 6건이 남아 있는 한 open_blocking_total 은 0 이 되지 않으며, 00_SSOT §15 요건과 promote_landing_main.sh [DEBT_RECOMPUTE]/[BLOCKING_DEBT] 가 그 값을 다시 재계산해 대조한다."
+}
