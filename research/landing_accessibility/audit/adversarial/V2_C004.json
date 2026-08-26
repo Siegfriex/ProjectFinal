@@ -1,0 +1,369 @@
+{
+  "schema_version": "landing-accessibility-adversarial-audit-v2.0",
+  "cycle": "V2-C004",
+  "auditor": "adversarial",
+  "auditor_identity": "Codex independent continuation of interrupted C004 adversarial audit",
+  "audit_completed_at": "2026-08-26T23:43:37+09:00",
+  "phase": "P0_V2_REFREEZE",
+  "gate": "V2_SSOT_FROZEN",
+  "verdict": "FAIL",
+  "target_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
+  "prev_target_sha": "4a0585e05a2119f11d86e530162d9674e0268a53",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha": "580e67219d79ca318c9a7c50e03dbe4f762b82e7",
+  "authoritative_main_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+  "prior_adversarial_sha": "ea1d2448eedc80259b421a2b8bb3b840ba6dced8",
+  "same_cycle_ssot_sha": "0ca2f636736dc1e16295f296c6c1e794e4cf3d51",
+  "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/codex_c004_adversarial",
+  "branch": "audit/landing-adversarial-codex-c004",
+  "target_branch": "agent/landing-v2-exec",
+  "base_ref": "research/landing-accessibility-main",
+  "counts": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 3,
+    "blocking": 4,
+    "non_blocking_debt": 3
+  },
+  "gate_verdict": {
+    "gate": "V2_SSOT_FROZEN",
+    "status": "FAIL",
+    "blocking_findings": 4,
+    "required_state": "OPEN",
+    "promotion_authorized": false,
+    "p_a_authorized": false,
+    "e001_v2_authorized": false,
+    "reason": "open blocking findings are nonzero and both independent audits do not PASS"
+  },
+  "git_verification": {
+    "verified_by": "git ls-remote origin plus local object resolution",
+    "remote_refs": {
+      "origin/agent/landing-v2-exec": "d5f1da5652953542d5c8be377026cc3293f2075a",
+      "origin/control/landing-orchestrator": "580e67219d79ca318c9a7c50e03dbe4f762b82e7",
+      "origin/research/landing-accessibility-main": "5a9015d1e95b15304aaf53a73efb475934610b82",
+      "origin/research/refcohort-r1": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+      "origin/audit/landing-adversarial": "ea1d2448eedc80259b421a2b8bb3b840ba6dced8",
+      "origin/audit/landing-ssot": "0ca2f636736dc1e16295f296c6c1e794e4cf3d51"
+    },
+    "audit_worktree_clean_before_report": true,
+    "exec_worktree_clean": true,
+    "control_worktree_clean": true,
+    "ssot_worktree_clean": true,
+    "primary_worktree_dirty": true,
+    "primary_worktree_treatment": "out of scope; no file or state from it was used as target evidence",
+    "local_main_branch_drift_observed": "local research/landing-accessibility-main pointed at the Pilot SHA, but the authoritative remote ref was independently verified at 5a9015d1e95b15304aaf53a73efb475934610b82",
+    "interrupted_c004_partial_artifacts_treatment": "untracked files in the old landing_adversarial worktree were not read or reused"
+  },
+  "scope_boundaries": {
+    "pilot_diff_vs_pilot_sha": 0,
+    "root_claude_md_diff_vs_authoritative_main": 0,
+    "state_parquet_diff_vs_authoritative_main": 0,
+    "evidence_paths_in_exact_target": 0,
+    "e001_v2_started": false,
+    "full_collection_started": "NO",
+    "source_pack_files_byte_identical_to_supplied_ssot_pack": "6/6",
+    "target_delta_vs_c003_exec_parent": {
+      "parent": "4a0585e05a2119f11d86e530162d9674e0268a53",
+      "files_changed": 5,
+      "paths": [
+        "research/landing_accessibility/docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+        "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+        "research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md",
+        "research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json",
+        "research/landing_accessibility/scripts/verify_v2_docs.py"
+      ]
+    }
+  },
+  "executed_checks": [
+    {
+      "id": "baseline-doc-verifier",
+      "command": "python3 research/landing_accessibility/scripts/verify_v2_docs.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "note": "all 16 declared install entries reported OK"
+    },
+    {
+      "id": "baseline-integrity-tests",
+      "command": "python3 -m pytest -q tests/test_v2_docs_integrity.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "note": "2 passed"
+    },
+    {
+      "id": "independent-transition-enumeration",
+      "command": "python3 /tmp/codex_c004_independent_checks.py",
+      "result": "PASS_FOR_TRANSITION_CLOSURE",
+      "exit_code": 0,
+      "note": "25 independently enumerated valid cases; no UNDETERMINED or NA escape; rows 15-18 stay UNDETERMINED and rows 19-20 stay NA"
+    },
+    {
+      "id": "source-pack-banner-mutation",
+      "command": "inject a declared INSTALLED banner into 00_SSOT, update install bytes/hash/banner fields, commit in disposable clone, run verify_v2_docs.py",
+      "result": "BLOCKED_AS_EXPECTED",
+      "exit_code": 1,
+      "note": "the C003 source-pack exploit is closed"
+    },
+    {
+      "id": "repo-authored-banner-mutation",
+      "command": "inject a fully delimited laundering clause into the A1 top banner, update INSTALL_MANIFEST bytes/hash, commit in disposable clone, run verify_v2_docs.py",
+      "result": "ATTACK_ACCEPTED",
+      "exit_code": 0,
+      "note": "V2_DOCS_VERIFY PASS despite an authority-rank-8 document containing an allowlist-forbidden banner"
+    },
+    {
+      "id": "recollection-backdating-simulation",
+      "command": "python3 /tmp/codex_c004_rc_attack.py",
+      "result": "ATTACK_ACCEPTED_BY_DECLARED_GUARDS",
+      "exit_code": 0,
+      "note": "after observing hidden UNDETERMINED/FAIL/PASS trials, a chosen PASS run can receive an after-the-fact run-manifest block with a backdated preregistered_at; RC-1 through RC-4 checks all accepted it because no immutable precollection anchor exists"
+    },
+    {
+      "id": "audit-sha-pin-wrong-sha",
+      "command": "execute exact AUDIT_VERDICT Python block with a nonrecorded adversarial SHA",
+      "result": "BLOCKED_AS_EXPECTED",
+      "exit_code": 1,
+      "note": "argv audit SHA must equal the state audit-lag SHA"
+    },
+    {
+      "id": "audit-sha-pin-fail-verdict",
+      "command": "execute exact AUDIT_VERDICT Python block with recorded audit pins whose report verdict is FAIL",
+      "result": "BLOCKED_AS_EXPECTED",
+      "exit_code": 1,
+      "note": "direct report verdict is checked fail-closed"
+    },
+    {
+      "id": "promotion-invalid-reconciliation-sha",
+      "command": "run promote_landing_main.sh --dry-run with reconciliation_sha=NOT_A_COMMIT and exact exec/control/audit inputs",
+      "result": "INVALID_INPUT_NOT_REJECTED",
+      "exit_code": 1,
+      "note": "the script passed HOOK_INSTALL, Pilot, audit ancestry, exec/control cleanliness, and install integrity; it stopped only on the unrelated open_blocking_total=19 check. REC_SHA is assigned and printed but never resolved or used as authority evidence"
+    },
+    {
+      "id": "named-promotion-check-review",
+      "command": "independent static trace of control target promote_landing_main.sh",
+      "result": "PARTIAL",
+      "exit_code": 0,
+      "note": "all nine documented labels exist, but no reconciliation check exists; ORCH_SHA is tied only to the local clean control worktree HEAD, not the remote control ref or the supplied reconciliation commit"
+    }
+  ],
+  "findings": [
+    {
+      "id": "recollection-escape-path-unbounded-and-conclusion-prioritized",
+      "severity": "P1",
+      "blocking": true,
+      "status": "OPEN",
+      "gate": "V2_SSOT_FROZEN",
+      "title": "RC-2 preregistration is backdatable because its only home is the run being preregistered",
+      "authoritative_basis": [
+        "A2 section 1.11.2 RC-2 lines 1126-1141",
+        "07_EVIDENCE_MANIFEST_CONTRACT sections 3-4",
+        "00_SSOT_v2.0 section 15 open blocking equals zero"
+      ],
+      "independent_evidence": [
+        "RC-2 locates recollection_preregistration inside the new run manifest itself",
+        "the only explicit ordering predicate is preregistered_at earlier than collection_started_at",
+        "the evidence manifest contract anchors files after the run but provides no independently immutable precollection event",
+        "a simulated operator can inspect discarded trials, choose a PASS trial, then create a conforming manifest with a backdated timestamp and attempt_index 1"
+      ],
+      "impact": "selection of the canonical run can depend on observed outcome while appearing preregistered, changing coverage, stress bounds, and conclusions",
+      "closure_required": "anchor a separate preregistration artifact or digest before collection in a pushed commit, append-only precollection ledger, or externally ordered seal; the run manifest must reference that anchor and all attempted/discarded runs must be enumerable"
+    },
+    {
+      "id": "a1-0-3-jurisdiction-declaration-drifts-from-a2-and-collides-with-existing-section",
+      "severity": "P2",
+      "blocking": true,
+      "status": "OPEN",
+      "gate": "V2_SSOT_FROZEN",
+      "title": "A1 and A2 publish incompatible jurisdiction maps and A1 duplicates section 0.3",
+      "authoritative_basis": [
+        "A1 section 0.3 lines 42-62",
+        "A2 section 0 lines 15-42",
+        "EXECUTION_AUTHORITY sections 2 and 8"
+      ],
+      "independent_evidence": [
+        "A1 says its table and A2 section 0 must contain the same list, but the lists differ",
+        "A1 omits A2-listed A1 sections 3.2, 3.3, 4.2, and 4.3 while A2 omits A1-listed section 1.5",
+        "A1 maps section 1.8 to A2 section 1.5.2 although its relevant field domains are elsewhere in A2",
+        "A1 has two headings numbered 0.3 and A2 retains stale references to A1 section 0.2"
+      ],
+      "impact": "implementers can select different authoritative value-domain bindings, changing schema validation and measured interpretation",
+      "closure_required": "publish one symmetric, exact jurisdiction table with corrected section targets and unique stable anchors; update all A2 backlinks"
+    },
+    {
+      "id": "install-manifest-banner-allowlist-skips-repo-authored-authority-docs",
+      "severity": "P2",
+      "blocking": true,
+      "status": "OPEN",
+      "gate": "V2_SSOT_FROZEN",
+      "title": "Declared banner allowlist is enforced only for source-pack entries",
+      "authoritative_basis": [
+        "EXECUTION_AUTHORITY section 2 lines 59-69",
+        "verify_v2_docs.py lines 105-155"
+      ],
+      "independent_evidence": [
+        "banner parsing, allowlist rejection, banner_inserted comparison, and banner_sha256 validation are nested under if source_pack_name",
+        "repo-authored A1, A2, EXECUTION_AUTHORITY, and PHASE_GATES take the else branch and receive only tracked-and-clean validation",
+        "a committed, manifest-rehashed forbidden banner in A1 containing an UNDETERMINED-to-PASS laundering clause received V2_DOCS_VERIFY PASS"
+      ],
+      "impact": "an allowlist-forbidden block can be presented at the top of an authoritative operationalization document and change research interpretation while all current install-integrity checks pass",
+      "closure_required": "parse and reject INSTALLED-BANNER markers outside the three-file allowlist before branching on source_pack_name; test every repo-authored authority document with committed adversarial mutations"
+    },
+    {
+      "id": "promotion-reconciliation-sha-is-dead-and-control-state-is-only-local-single-source",
+      "severity": "P2",
+      "blocking": true,
+      "status": "OPEN",
+      "gate": "V2_SSOT_FROZEN",
+      "title": "Promotion can ignore reconciliation identity and relies on an unpublished local control commit",
+      "authoritative_basis": [
+        "PHASE_GATES common condition orchestrator reconciliation is current",
+        "PHASE_GATES section 4 two audits PASS plus reconciliation",
+        "05_REPO_ORCHESTRATION_PLAN section 6",
+        "control promote_landing_main.sh at 580e672 lines 74-75, 214-226, 285-317, and 432-443"
+      ],
+      "independent_evidence": [
+        "REC_SHA is only assigned and printed; it is never parsed as a commit, checked for ancestry, or connected to state.json",
+        "the literal invalid value NOT_A_COMMIT was not rejected and execution reached an unrelated debt check",
+        "ORCH_SHA is required to match only the local control worktree HEAD; no origin/control/landing-orchestrator tip or ancestry pin is checked",
+        "BLOCKING_DEBT explicitly trusts the committed state.json as one source without recomputing debt from the pinned audit reports"
+      ],
+      "impact": "a clean local-only control commit can claim zero debt and current audit pins while the supplied reconciliation SHA is arbitrary, bypassing the documented reconciliation authority before a main push",
+      "closure_required": "resolve and pin REC_SHA as a commit, verify it is the current remote reconciliation/control authority, bind state.json to it, and independently recompute blocking debt and audit-cycle identity from the pinned reports"
+    }
+  ],
+  "prior_findings_status": [
+    {
+      "id": "a2-undetermined-to-pass-transition-underspecified-and-narrowed",
+      "status": "CLOSED",
+      "evidence": "independent 25-case enumeration found no UNDETERMINED or NA escape"
+    },
+    {
+      "id": "verify-script-declared-in-promotion-path-but-never-called",
+      "status": "CLOSED",
+      "evidence": "INSTALL_INTEGRITY calls the verifier and fails on absence or nonzero exit"
+    },
+    {
+      "id": "repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect",
+      "status": "CLOSED",
+      "evidence": "canonical hook installation and promotion HOOK_INSTALL are active"
+    },
+    {
+      "id": "control-claude-md-invents-authority-rank-0-above-ssot",
+      "status": "CLOSED",
+      "evidence": "no regression in the exact target/control review"
+    },
+    {
+      "id": "promotion-verdict-check-treats-missing-verdict-as-pass",
+      "status": "CLOSED",
+      "evidence": "AUDIT_VERDICT requires an explicit PASS from both state and report JSON"
+    },
+    {
+      "id": "gitignore-bare-env-pattern-overreaches-beyond-worktree-symlinks",
+      "status": "CLOSED",
+      "evidence": "no regression observed"
+    },
+    {
+      "id": "ned-ied-path-minimality-not-operationalized",
+      "status": "OPEN_DEFERRED_NONBLOCKING_FOR_CURRENT_P0",
+      "evidence": "still not operationalized; authority assigns engine/validation implementation to P-C/P-D, so absence alone is not promoted to a P0 blocker"
+    },
+    {
+      "id": "installed-banner-region-is-unanchored-injection-surface",
+      "status": "PARTIALLY_CLOSED_REMAINS_OPEN",
+      "evidence": "allowed banners are hashed and source-pack forbidden banners are rejected, but repo-authored authority documents bypass all banner checks"
+    },
+    {
+      "id": "recollection-escape-path-unbounded-and-conclusion-prioritized",
+      "status": "OPEN",
+      "evidence": "RC-1 through RC-5 state the right intent, but RC-2 has no immutable precollection anchor"
+    },
+    {
+      "id": "promotion-reads-uncommitted-state-json-with-no-second-source",
+      "status": "CLOSED_WITH_NEW_RELATED_FINDING",
+      "evidence": "uncommitted-state substitution is blocked; committed local single-source state plus an unused reconciliation SHA remains exploitable"
+    },
+    {
+      "id": "promotion-audit-sha-argument-not-pinned-to-recorded-audit-sha",
+      "status": "CLOSED",
+      "evidence": "wrong audit SHA and FAIL report were both rejected by direct execution of the exact verdict block"
+    },
+    {
+      "id": "t4-and-2-3-step-4-contradict-t6-for-verdict-state-na",
+      "status": "CLOSED",
+      "evidence": "NA rows are isolated and independent enumeration found no escape"
+    },
+    {
+      "id": "gate-endpoint-archetypes-mix-two-endpoint-semantics-without-stratification",
+      "status": "CLOSED_IN_SPEC",
+      "evidence": "LOGIN_GATE and general AUTH_GATE are separated; E-9 and E-10 define before-endpoint semantics and endpoint-via-gate stratification"
+    },
+    {
+      "id": "new-v2-c003-rules-absent-from-failure-injection-set",
+      "status": "CLOSED_IN_SPEC_RUNTIME_DEFERRED",
+      "evidence": "I-1 through I-29 plus I-28b and V-a through V-g are enumerated; runtime realization remains assigned to P-C/P-D"
+    },
+    {
+      "id": "prepush-hook-silent-skip-is-not-detected-anywhere",
+      "status": "CLOSED_WITH_NONBLOCKING_TOOLING_DEBT",
+      "evidence": "promotion detects missing, dangling, and non-executable hooks; install_hooks.sh --check itself still reports dangling without nonzero exit"
+    }
+  ],
+  "claimed_c004_remediation_status": {
+    "recollection_optional_stopping_RC_1_to_RC_5": "OPEN",
+    "banner_injection_integrity_enforcement": "PARTIAL_OPEN",
+    "promotion_committed_state_pinning": "PARTIAL_NEW_BLOCKER",
+    "audit_sha_pinning": "CLOSED",
+    "dangling_pre_push_hook_detection": "CLOSED_WITH_DEBT",
+    "endpoint_status_detail_consistency": "CLOSED",
+    "community_LOGIN_GATE_vs_general_AUTH_GATE": "CLOSED",
+    "EXC_2": "CLOSED",
+    "auth_gate_before_endpoint_E_9": "CLOSED_IN_SPEC",
+    "ENDPOINT_VIA_AUTH_GATE_stratification_E_10": "CLOSED_IN_SPEC",
+    "failure_injection_I_1_to_I_29": "CLOSED_IN_SPEC_RUNTIME_DEFERRED",
+    "NA_transition_semantics": "CLOSED",
+    "v2_ledger_scope": "CLOSED",
+    "named_promotion_checks": "PARTIAL_OPEN_RECONCILIATION_MISSING"
+  },
+  "non_blocking_debt": [
+    {
+      "id": "ned-ied-path-minimality-not-operationalized",
+      "gate_assignment": "P-C L0_L1_ENGINE_READY and P-D validation",
+      "status": "OPEN",
+      "reason_not_current_blocker": "the authority documents defer the implementation; it must be closed before its assigned gate/E001, not by inflating the current P0 finding count"
+    },
+    {
+      "id": "install-hooks-check-does-not-fail-dangling-link",
+      "gate_assignment": "tooling hardening",
+      "status": "OPEN",
+      "reason_not_current_blocker": "the promotion path independently fails closed on the same condition"
+    },
+    {
+      "id": "install-integrity-coverage-gap-for-verifier-and-tests",
+      "gate_assignment": "integrity hardening",
+      "status": "OPEN",
+      "reason_not_current_blocker": "the promotion script pins the exec SHA and directly invokes the verifier; expanding manifest coverage remains desirable but did not enable a demonstrated P0 bypass"
+    }
+  ],
+  "independent_same_cycle_ssot_comparison": {
+    "ssot_verdict": "FAIL",
+    "ssot_counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 1
+    },
+    "shared_finding": "a1-0-3-jurisdiction-declaration-drifts-from-a2-and-collides-with-existing-section",
+    "method": "independently reproduced from A1/A2 text and only then compared with the SSOT result",
+    "additional_adversarial_blockers": 3
+  },
+  "prohibited_actions": {
+    "promoted_to_research_landing_accessibility_main": false,
+    "p_a_started": false,
+    "e001_v2_executed": false,
+    "pilot_modified": false,
+    "root_claude_md_modified": false,
+    "state_parquet_modified": false,
+    "target_evidence_generated": false
+  },
+  "final_statement": "V2-C004 adversarial audit FAIL. Keep V2_SSOT_FROZEN open; do not promote, start P-A, or execute E001_V2."
+}
