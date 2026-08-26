@@ -1,8 +1,8 @@
 {
   "harness_version": "orchestrator-constitution-v3",
-  "updated_at": "2026-08-26T12:24:32.280182",
+  "updated_at": "2026-08-26T12:30:49.594662",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
-  "cycle_id": "C007",
+  "cycle_id": "C008",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -60,7 +60,7 @@
     "orchestrator": "control/landing-orchestrator"
   },
   "exec_sha": "933096a5",
-  "adversarial_audit_sha": "f98f222",
+  "adversarial_audit_sha": "e302d31",
   "ssot_audit_sha": "68404d9",
   "gates": {
     "pilot_archive": "PASS_WITH_LOGICAL_BACKUP_ONLY",
@@ -80,7 +80,7 @@
     "automation_split": "NOT_RUN",
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
-    "adversarial_audit": "REWORK_C001_P0_1",
+    "adversarial_audit": "PASS_C002_C003_P1_1_P2_5",
     "ssot_audit": "PASS_C002_C003_P1_2"
   },
   "withdrawn_conclusions": [
@@ -179,6 +179,12 @@
       "state": "OPEN",
       "assigned": "C008 exec",
       "resolution": "원문 index 와 1:1 대조가 끝났으므로 '추측' 이 아니다. source_chapter / source_section 으로 정규화한다."
+    },
+    {
+      "id": "duplicate-web-collection-targets-naver-gmarket",
+      "state": "DECIDED_PENDING_IMPL",
+      "assigned": "C008 exec",
+      "resolution": "web_target_group 컬럼으로 해소. C007 2층 분리 결정과 동일 조치."
     }
   ],
   "legacy_xlsx_status": {
@@ -245,7 +251,51 @@
         "forbidden": "measurement_entity 를 축으로 APP 지표와 RETAIL 지표를 합산·평균하지 않는다. source_row_count 를 도메인 교차로 합산하지 않는다."
       },
       "rationale": "이 분리가 없으면 '쿠팡은 되고 네이버는 안 되는' 임의 규칙이 남고, 분석 단계에서 두 도메인 지표가 한 entity 아래 합산되는 순간 APP/RETAIL 병합 금지(P0)를 위반한다.",
-      "assigned": "C008 exec"
+      "assigned": "C008 exec",
+      "corroboration": {
+        "note": "두 감사관이 독립적으로 같은 구조 결함을 반대편에서 도출했다. 헌장 §24 의 '독립 증거 일치' 조건 충족.",
+        "ssot_finding": "coupang-cross-domain-merge-rule-inconsistent — 합침의 부정합",
+        "adversarial_finding": "duplicate-web-collection-targets-naver-gmarket — 분리가 수집 단위까지 전파되어 2중 수집",
+        "resolved_by": "measurement_entity / web_target 2층 분리 (C007 결정)"
+      }
+    }
+  ],
+  "open_p2": [
+    {
+      "id": "entity-kind-conflates-domain-and-axis",
+      "detail": "entity_kind 가 도메인(APP/RETAIL_BRAND/BOTH)과 축유형(INDUSTRY_CATEGORY)을 한 컬럼에 혼재. ==\"RETAIL_BRAND\" 필터가 리테일 1위 쿠팡을 조용히 누락시킨다.",
+      "assigned": "C008 exec",
+      "resolution": "domain 축과 axis_type 축을 별도 컬럼으로 분리한다."
+    },
+    {
+      "id": "row-count-invariant-vacuous-in-8-panels",
+      "detail": "rows_expected==rows_extracted 17/17 중 8패널은 TOP N 미표기라 구성상 항상 참. 독립 검증력은 9패널뿐이며 나머지 32행은 감사자 육안 계수로 확인(누락 0).",
+      "assigned": "C008 exec",
+      "resolution": "TOP N 미표기 패널은 rows_expected 를 null 로 두고 별도 육안검증 플래그를 남긴다. 항상 참인 불변식을 통과로 세지 않는다."
+    },
+    {
+      "id": "c002-261rows-no-generator-script",
+      "detail": "C002 의 261행에 생성 스크립트도 행별 증거 포인터도 없어 산출물 자체로는 재현 불가.",
+      "assigned": "C008 exec",
+      "resolution": "워크플로 저널에서 재생성하는 스크립트를 커밋하고 행별 figure/판독출처 포인터를 추가한다."
+    },
+    {
+      "id": "entity-candidates-json-orphan",
+      "detail": "entity_candidates.json 을 어떤 스크립트도 사용하지 않는 고아 산출물.",
+      "assigned": "C008 exec",
+      "resolution": "생성 경로를 스크립트에 편입하거나 중간산출물로 명시한다."
+    },
+    {
+      "id": "source-rows-lack-axis-type",
+      "detail": "source_ranking_rows 에 axis_type 이 없어 원자료 직접 집계 시 업종/브랜드 혼입 경로가 남는다.",
+      "assigned": "C008 exec",
+      "resolution": "axis_type 을 행 테이블에도 전파한다."
+    },
+    {
+      "id": "preinstalled-apps-marked-web-collectable",
+      "detail": "web_collectable=True 70건에 삼성 계산기·내 파일·디바이스 케어 등 선탑재 시스템 앱이 포함. 이 필드는 'entity_kind not in {INDUSTRY_CATEGORY}' 규칙 하나로 일괄 부여된 값이라 검증된 수집 가능성이 아니다.",
+      "assigned": "C008 exec",
+      "resolution": "web_eligibility_status=NOT_ASSESSED 로 초기화. 선탑재/시스템 앱은 web eligibility 판정에서 SYSTEM_APP 후보로 다룬다."
     }
   ]
 }
