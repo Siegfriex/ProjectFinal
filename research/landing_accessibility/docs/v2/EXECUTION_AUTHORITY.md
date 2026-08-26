@@ -167,7 +167,7 @@ v1 부채 항목의 phase 스케줄(C013·P-B·P-D 등 v1 phase 이름)은 v2 ph
 | old C013 WIP | `agent/landing-exec` | `87a0464e8159d5526069d5e654e648b0dae506ca` — `UNVERIFIED` / 분석입력 금지 / 삭제 금지 / selective salvage 후 재감사 |
 | Pilot | `research/refcohort-r1` | `32460b87334a67f6a74823ac55f85ca80a9f8980` — `READ_ONLY` |
 | adversarial audit | `audit/landing-adversarial` | V2-C005 @ `b7fd4677202640e8293c9c7a766fb624e88f3925` |
-| ssot audit | `audit/landing-ssot` | V2-C003 @ `43fab0acb3a9352c36b9c0b844cb44cef9f9d79d` |
+| ssot audit | `audit/landing-ssot` | V2-C006 @ `444de0607993e766fd2686b377f42a6d9b7f7dae` |
 | orchestrator | `control/landing-orchestrator` | `bfa16624e55e15c4626e74547ed885156a8f2a9e` 이후 V2-C002 |
 
 > **주의.** 이 저장소의 `origin/main`(`a835d5d8`)은 저장소 부트스트랩 브랜치이며 이 연구의
