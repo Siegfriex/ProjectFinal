@@ -1,0 +1,2607 @@
+{
+  "schema": "url_review_candidates/v1",
+  "generated_by": "research/landing_accessibility/scripts/probe_official_urls.py 의 입력. C013(W4) 탐색 기록.",
+  "collected_at": "2026-08-26",
+  "discovery_protocol": {
+    "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+    "forbidden": [
+      "추측으로 URL 생성 (<브랜드>.co.kr 패턴) — 06 §3-2",
+      "검색 결과 1위 자동 채택 — 06 §3-2"
+    ],
+    "rule": "검색은 **후보를 얻는 수단**일 뿐이고 확정 근거가 아니다. 확정은 그 URL 을 직접 열어 http_status / final_url / redirect_chain / page_title 을 확인한 결과로 한다(scripts/probe_official_urls.py). 근거를 남길 수 없으면 UNRESOLVED 다.",
+    "proposal_status": "discovery.proposed_* 는 탐색 단계의 **제안**이며 판정이 아니다. 판정은 build_web_eligibility_and_url_review.py 가 관측 결과와 함께 다시 내린다.",
+    "batches": 5,
+    "entities": 71
+  },
+  "candidates": [
+    {
+      "canonical_service_key": "11st",
+      "service_name_canonical": "11번가",
+      "candidate_urls": [
+        "https://www.11st.co.kr/",
+        "https://www.11stcorp.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "11번가 공식 홈페이지 11st.co.kr"
+        ],
+        "results": [
+          {
+            "url": "https://www.11st.co.kr/",
+            "evidence": "WebFetch of https://www.11st.co.kr/ returned a live page whose title is '11번가' and which renders as an online shopping marketplace usable in the browser. Multiple search results independently state www.11st.co.kr is the 11번가 shopping site operated by 십일번가(주).",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.11stcorp.com/",
+            "evidence": "Search result titled '11번가 주식회사' — this is the corporate/IR site of the operating company, not the shopping service itself.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.11st.co.kr/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "The core function of the 11번가 app (browsing and buying products in an open marketplace) is fully available in a desktop/mobile web browser at www.11st.co.kr.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The fetched page body was minimal (JS-rendered), so the operator name in the footer could not be read directly; operator identity (십일번가 주식회사) comes from search-result text and the separate corporate site 11stcorp.com. Korean-market specific domain (.co.kr); no evidence of a non-Korean variant.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "adot_call",
+      "service_name_canonical": "에이닷 전화",
+      "candidate_urls": [
+        "https://www.skt-phone.co.kr/",
+        "https://a.sktelecom.com/",
+        "https://apps.apple.com/kr/app/%EC%97%90%EC%9D%B4%EB%8B%B7-%EC%A0%84%ED%99%94/id1150947951"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "에이닷 전화 SK텔레콤 공식 사이트",
+          "skt-phone.co.kr 에이닷 전화 다운로드 소개 페이지"
+        ],
+        "results": [
+          {
+            "url": "https://www.skt-phone.co.kr/",
+            "evidence": "Search result titled 'SKT 에이닷 전화'. WebFetch of the page confirms the page title is 'SKT 에이닷 전화'. A second search summarized the site as SK Telecom's official introduction/download page for the AI phone app (call summary, caller prediction).",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://a.sktelecom.com/",
+            "evidence": "Search result titled '나만의 AI 개인비서, 에이닷 - SK telecom' — official SKT site for the separate 에이닷 AI assistant app, not the 에이닷 전화 dialer app.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://apps.apple.com/kr/app/%EC%97%90%EC%9D%B4%EB%8B%B7-%EC%A0%84%ED%99%94/id1150947951",
+            "evidence": "Apple App Store listing for 에이닷 전화 (Korean storefront), confirming the app exists as an SKT product.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://www.skt-phone.co.kr/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "skt-phone.co.kr is SK Telecom's own product introduction and download page for 에이닷 전화; the app's core function (placing calls, call recording/summary) cannot be performed in a browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "WebFetch returned only the page header, so the operator/footer (SK텔레콤 corporate identification) was not read first-hand; SKT operation is inferred from the 'SKT' branding in the title and from SK Telecom newsroom coverage. Korean-market only (.co.kr).",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "baemin",
+      "service_name_canonical": "배달의민족",
+      "candidate_urls": [
+        "https://baemin.com/",
+        "https://ceo.baemin.com/",
+        "https://member-web.baemin.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "배달의민족 공식 홈페이지 우아한형제들 baemin.com",
+          "배달의민족 웹 주문 PC 브라우저 주문 가능 여부"
+        ],
+        "results": [
+          {
+            "url": "https://baemin.com/",
+            "evidence": "WebSearch returned '배달의민족 - 배달팁 무료 배민클럽' at https://baemin.com/. WebFetch confirmed that title and a footer identifying the operator as (주)우아한형제들, 서울특별시 송파구 위례성대로 2 장은빌딩; the page is dominated by app store download buttons and feature descriptions with no interactive restaurant browse/order UI.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://ceo.baemin.com/",
+            "evidence": "Operator-run merchant portal ('배민주문접수 설치' at ceo.baemin.com/relaychannel) on the same official domain — for restaurant owners, not consumers.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://member-web.baemin.com/",
+            "evidence": "Operator-run '배달의민족 회원가입' page on the official baemin.com domain, confirming baemin.com as the operator's domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://baemin.com/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "The fetched baemin.com is an app introduction/download page operated by 우아한형제들; ordering food is not offered as an interactive flow in the browser there.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "Search also surfaced 2014 news articles (전자신문, 아이티데일리) about a PC web ordering service '배민닷컴'. I could not confirm whether any web ordering path still exists today; the live page I fetched showed only app download. If a hidden/legacy web-order flow is still live, the correct classification would be WEB_SERVICE.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "band",
+      "service_name_canonical": "밴드",
+      "candidate_urls": [
+        "https://band.us/",
+        "https://band.us/ko"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "네이버 밴드 BAND 공식 웹사이트 band.us",
+          "BAND App Store 밴드 개발자 웹사이트 band.us 네이버"
+        ],
+        "results": [
+          {
+            "url": "https://band.us/",
+            "evidence": "Apple App Store listing for 'BAND - App for all groups' (id542613198) lists the seller as NAVER Corp. and the '개발자 웹사이트 / Developer Website' as https://band.us/.",
+            "source": "APP_STORE_LISTING"
+          },
+          {
+            "url": "https://band.us/ko",
+            "evidence": "Search results describe https://band.us/ko as the Korean-language entry point of 네이버 밴드.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://band.us/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "BAND has a full web client at band.us where users can log in and read/post in their groups, so the app's core function is reachable in a browser; the /ko path is the Korean-language variant.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "band.us blocks the fetching/crawling user agent (WebFetch refused; a domain-restricted WebSearch returned an explicit 'domain not accessible to our user agent' error), so I could NOT verify first-hand that group content is usable in-browser or read the page title. The developer-website mapping to band.us is solid (App Store), but the WEB_SERVICE classification rests on search-result descriptions, not direct observation. Domain is global (.us), not a .kr Korean-market domain, though a /ko locale path exists.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "cashwalk",
+      "service_name_canonical": "캐시워크",
+      "candidate_urls": [
+        "https://cashwalk.com/",
+        "http://cashwalk.co"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "캐시워크 공식 홈페이지 운영사 넛지헬스케어",
+          "넛지헬스케어 캐시워크 공식 홈페이지 개편 주소"
+        ],
+        "results": [
+          {
+            "url": "https://cashwalk.com/",
+            "evidence": "WebFetch of https://cashwalk.com/ returned title '캐시워크 - 걸으면 돈버는 앱 1위! 만보기, 앱테크, 현금 이벤트까지' with footer '© 2025 Nudge Healthcare, Inc.' — i.e. the operator's own site. A search result also surfaced an IR PDF hosted at cashwalk.com/static/ir-pr/nudge-irpr-20240112.pdf, confirming the domain belongs to 넛지헬스케어.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "http://cashwalk.co",
+            "evidence": "One search-result summary claimed cashwalk.co as the homepage, but WebFetch of https://cashwalk.co/ returned HTTP 404 — rejected.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://cashwalk.com/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "cashwalk.com is 넛지헬스케어's own brand/introduction site for the 캐시워크 app and its service family (캐시딜, 팀워크, IR/PR); the app's core function — step counting and earning 캐시 rewards — requires the mobile app and is not performed on the website.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I confirmed the operator and the marketing nature of the site, but did not exhaustively check whether some sub-service (e.g. 캐시딜 shopping) is fully transactable on the web. The earlier-reported cashwalk.co address is dead (404). Korean-market only site (Korean-language, Korean company), on a .com domain.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "chrome",
+      "service_name_canonical": "Chrome",
+      "candidate_urls": [
+        "https://www.google.com/chrome/",
+        "https://support.google.com/chrome/answer/95346",
+        "https://apps.apple.com/us/app/google-chrome/id535886823"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "Google Chrome official website download google.com/chrome"
+        ],
+        "results": [
+          {
+            "url": "https://www.google.com/chrome/",
+            "evidence": "Top search result titled 'Google Chrome - The Fast & Secure Web Browser Built to be Yours' at https://www.google.com/chrome/ — Google's own domain and official Chrome product page.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://support.google.com/chrome/answer/95346",
+            "evidence": "Official Google Chrome Help article 'Download and install Google Chrome' — support content, not the product landing.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://apps.apple.com/us/app/google-chrome/id535886823",
+            "evidence": "App Store listing for Google Chrome, confirming Google as the publisher.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://www.google.com/chrome/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "google.com/chrome is Google's official Chrome product/download page; a web browser's core function obviously cannot be delivered inside a web page, so there is no web-service equivalent.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I saw an /intl/en_uk/ localized variant in results (https://www.google.com/intl/en_uk/chrome/dr/download/) which implies a Korean variant such as /intl/ko/chrome/ probably exists, but I did NOT see a Korean-locale Chrome URL in any result, so I am not asserting one. Not Korean-market specific.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "cj_onstyle",
+      "service_name_canonical": "CJ온스타일",
+      "candidate_urls": [
+        "https://www.cjonstyle.com/",
+        "https://display.cjonstyle.com/nfront/search/searchAllList/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "CJ온스타일 공식 홈페이지 cjonstyle.com"
+        ],
+        "results": [
+          {
+            "url": "https://www.cjonstyle.com/",
+            "evidence": "WebSearch returned '홈 | CJ온스타일' at https://www.cjonstyle.com/. WebFetch of that URL returned HTTP 302 to https://display.cjonstyle.com/p/homeTab/main?hmtabMenuId=003147&rPIC=homeonstyle, which fetched with page title '홈 | CJ온스타일' — both on the operator's own cjonstyle.com domain. Search also surfaced company.cjonstyle.com ('취향공감 라이브쇼핑 CJ온스타일 - CJ ENM 커머스부문'), confirming CJ ENM 커머스부문 as operator.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://display.cjonstyle.com/nfront/search/searchAllList/",
+            "evidence": "Operator-run product search page on the cjonstyle.com domain, indicating a full shopping catalog is served on the web.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.cjonstyle.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "CJ온스타일 is a home-shopping/e-commerce platform whose web site serves the product catalog, search, and purchase flow in the browser — the core function is usable there.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "The redirected page's HTML came back mostly as skip-links/navigation shell (JS-rendered), so I could not read the footer 사업자 정보 or directly observe a cart/checkout UI; the WEB_SERVICE classification rests on the operator-run search/catalog URL and the well-known nature of the site rather than a rendered purchase flow.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "compose_coffee",
+      "service_name_canonical": "컴포즈커피",
+      "candidate_urls": [
+        "https://composecoffee.com/",
+        "https://composecoffee.com/menu"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "컴포즈커피 공식 홈페이지 composecoffee.com"
+        ],
+        "results": [
+          {
+            "url": "https://composecoffee.com/",
+            "evidence": "WebSearch returned many pages titled '컴포즈커피 …' on composecoffee.com (about, menu, notice, news, event, 영양성분ㆍ알레르기). WebFetch of the root confirmed a 컴포즈커피 brand page with tagline '커피를 커피답게' and two entry links: '브랜드 홈페이지' and '창업 홈페이지'; no e-commerce/ordering interface was present.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://composecoffee.com/menu",
+            "evidence": "Operator-run menu page on the same official domain, consistent with a brand-information site rather than an ordering channel.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://composecoffee.com/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "composecoffee.com is a brand/menu/store-locator/franchise information site; ordering and payment happen in the store or in the Compose Coffee mobile app, so the web site is not the measured transaction channel.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "The fetched root page returned a thin splash with only two entry links; I did not traverse into '브랜드 홈페이지' to rule out an online gift/order feature, and I could not read a footer 사업자 정보 confirming the operating company (Wikipedia identifies Compose Coffee, HQ Busan, 70% acquired by Jollibee Group in 2024).",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "costco",
+      "service_name_canonical": "코스트코",
+      "candidate_urls": [
+        "https://www.costco.co.kr/",
+        "https://www.costco.co.kr/store-finder"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "코스트코 코리아 공식 홈페이지 costco.co.kr 온라인 쇼핑"
+        ],
+        "results": [
+          {
+            "url": "https://www.costco.co.kr/",
+            "evidence": "WebSearch returned '코스트코 온라인몰 | 코스트코 코리아' at https://www.costco.co.kr/. WebFetch confirmed page title '코스트코 온라인몰 | 코스트코 코리아', operator Costco Korea, with product listings, prices, ratings, shopping cart, 마이페이지 account management, promotions and delivery options.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.costco.co.kr/store-finder",
+            "evidence": "Operator-run '코스트코 매장 찾기' page on the same official Korean domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.costco.co.kr/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "costco.co.kr is Costco Korea's own online mall where a member can browse the catalog, add to cart, and purchase in the browser — the core retail function is fully available on the web.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Checkout requires a Costco membership login, which I could not exercise, so I confirmed browse/cart affordances but not an end-to-end purchase.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "coupang_app",
+      "service_name_canonical": "쿠팡",
+      "candidate_urls": [
+        "https://www.coupang.com/",
+        "https://news.coupang.com/company/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "쿠팡 공식 사이트 coupang.com 쿠팡 주식회사"
+        ],
+        "results": [
+          {
+            "url": "https://www.coupang.com/",
+            "evidence": "Search result titled '쿠팡: 로켓배송으로 빠르게, 로켓와우 멤버십으로 할인과 무료...' at https://www.coupang.com/. Coupang's own newsroom (news.coupang.com/company/) and the Google Play listing for com.coupang.mobile corroborate coupang.com as the operator's domain; the result summary explicitly warns that look-alike domains are phishing.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://news.coupang.com/company/",
+            "evidence": "Official Coupang newsroom company-introduction page (operator-owned subdomain).",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.coupang.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "The 쿠팡 app's core function (product search, ordering, Rocket delivery checkout) is fully available in a browser at www.coupang.com.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I did not WebFetch coupang.com directly (Coupang aggressively blocks non-browser agents), so the classification rests on search-result titles/snippets from Coupang-owned domains. Korean-market specific (Korean-language storefront on .com; Coupang also runs separate country storefronts).",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "coupang_eats",
+      "service_name_canonical": "쿠팡이츠",
+      "candidate_urls": [
+        "https://www.coupangeats.com/",
+        "https://store.coupangeats.com/merchant/login"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "쿠팡이츠 공식 사이트 coupangeats"
+        ],
+        "results": [
+          {
+            "url": "https://www.coupangeats.com/",
+            "evidence": "Search result title '더 좋은 식사의 시작, 쿠팡이츠 - 쿠팡이츠' on the coupangeats.com apex domain; sibling official subdomains (store./join./partners.coupangeats.com) also appear, confirming the domain is operated by Coupang Eats.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.coupangeats.com/",
+            "evidence": "WebFetch returned page title '더 좋은 식사의 시작, 쿠팡이츠 - 쿠팡이츠'. Page content is entirely app-download oriented (multiple app store links, install QR code, feature marketing such as '배달비 0원'); no restaurant browsing or ordering UI is present in the web page.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://store.coupangeats.com/merchant/login",
+            "evidence": "Search result '쿠팡이츠 사장님 포털' — merchant-side portal, not the consumer landing.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.coupangeats.com/",
+        "proposed_landing_kind": "APP_ONLY",
+        "proposed_reason": "The fetched www.coupangeats.com page is a marketing landing page whose only call to action is downloading the iOS/Android app; the core function (browse restaurants, place a delivery order) is not usable in the browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I confirmed only the top-level landing page. I did not test whether a deep link (e.g. after selecting an address) would expose any browser-based ordering flow; Coupang properties are heavily bot-protected so deeper crawling was not attempted.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "coupang_retail",
+      "service_name_canonical": "쿠팡",
+      "candidate_urls": [
+        "https://www.coupang.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "쿠팡 공식 홈페이지 온라인 쇼핑",
+          "coupang.com 로켓배송 쿠팡 (allowed_domains=coupang.com)"
+        ],
+        "results": [
+          {
+            "url": "https://www.coupang.com/",
+            "evidence": "Domain-restricted search on coupang.com returned the apex URL https://www.coupang.com/ with title '쿠팡: 로켓배송으로 빠르게, 로켓와우 멤버십으로 할인과 무료 반품…', plus operator-owned sub-paths (/np/rocketdelivery, /np/categories/...) and supplier.coupang.com.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.coupang.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "coupang.com is Coupang's own e-commerce site where the core function (search, browse, cart, purchase) runs in a normal web browser; search results expose real category and search URLs under the same domain.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Direct WebFetch/curl of www.coupang.com returned HTTP 403 'Access Denied' (bot protection), so the live page body was not read by me; the identification rests on the domain-restricted search results (official titles and product/category URLs on coupang.com). This 403 also means an automated accessibility crawler may be blocked without a real browser.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "cu",
+      "service_name_canonical": "CU",
+      "candidate_urls": [
+        "https://cu.bgfretail.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "CU 편의점 공식 홈페이지 cu.bgfretail.com"
+        ],
+        "results": [
+          {
+            "url": "https://cu.bgfretail.com/",
+            "evidence": "Search results 'CU - BGF 리테일' (cu.bgfretail.com), 'NICE TO CU' (cu.bgfretail.com/store/list.do), '검색결과 - CU - BGF 리테일' — the site sits on BGF Retail's own domain, BGF Retail being CU's franchisor/operator.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://cu.bgfretail.com/",
+            "evidence": "curl of the apex returned HTTP 200 with <title>NICE TO CU</title>; WebFetch of /index.do reported operator BGF리테일 (Seoul Gangnam) and functions = product info, store locator, franchise/창업 info, Pocket CU app promotion, events. Explicitly no cart/checkout.",
+            "source": "WEBFETCH_PAGE"
+          }
+        ],
+        "proposed_best_url": "https://cu.bgfretail.com/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "CU is an offline convenience-store brand; cu.bgfretail.com is a product/store-information and franchise portal with no consumer transaction — purchasing happens in physical stores or via the separate 포켓CU app.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The 포켓CU app has its own web-adjacent services (e.g. pocketcu delivery/pickup) that I did not enumerate; if the study's measured card-payment channel is app-based, this web landing may not correspond to it.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "daiso",
+      "service_name_canonical": "다이소",
+      "candidate_urls": [
+        "https://www.daisomall.co.kr/",
+        "https://www.daiso.co.kr/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "다이소 공식 홈페이지 다이소몰"
+        ],
+        "results": [
+          {
+            "url": "https://www.daisomall.co.kr/",
+            "evidence": "Search result title '다이소몰 - 온라인 국민가게' on daisomall.co.kr; WebFetch of the page reported title '다이소몰 - 온라인 국민가게', operator ㈜아성다이소, and self-description as 다이소의 공식 온라인 쇼핑몰 with categories, pricing, and 픽업 서비스.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.daiso.co.kr/",
+            "evidence": "Search result title '국민가게, 다이소' — the brand/corporate site of 아성다이소 (curl returned HTTP 200 but no <title> tag in the served shell).",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.daisomall.co.kr/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "daisomall.co.kr is 아성다이소's own online mall where a consumer can browse, order, and pay (including store pickup) directly in a web browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Two official sites exist under the same operator: daiso.co.kr (brand/corporate + store info) and daisomall.co.kr (transactional mall). If the study's measured channel is offline store card payment, daiso.co.kr would be the RETAIL_OFFLINE_ONLY counterpart. I did not read daiso.co.kr's body (no title served to curl).",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "danggeun",
+      "service_name_canonical": "당근",
+      "candidate_urls": [
+        "https://www.daangn.com/kr",
+        "https://about.daangn.com/",
+        "https://business.daangn.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "당근마켓 당근 공식 웹사이트 daangn.com"
+        ],
+        "results": [
+          {
+            "url": "https://www.daangn.com/kr",
+            "evidence": "WebFetch returned title '당신 근처의 당근' with footer identifying the operator as (주)당근마켓, representatives 김용현·황도연. The page exposes 중고거래 listings browsable in the browser, plus 동네업체, 중고차, 동네생활, 모임, 알바, 부동산 sections.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://about.daangn.com/",
+            "evidence": "Search result '당근 회사소개' — the company's official corporate/about site.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://business.daangn.com/",
+            "evidence": "Search result '당근비즈니스-소개' — official B2B advertiser/business site.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.daangn.com/kr",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "Used-goods listings and neighborhood content are browsable directly in the browser at www.daangn.com/kr, so the app's core discovery function has a real web landing (the /kr path is the Korea locale; the footer notes Canada/US/Japan operations).",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Chatting/transacting with a seller most likely still requires the app — I confirmed browsing but not full end-to-end use on the web. The root https://www.daangn.com/ presumably redirects by locale, but I only verified the /kr path.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "daum",
+      "service_name_canonical": "다음",
+      "candidate_urls": [
+        "https://www.daum.net/",
+        "https://m.daum.net/site.daum"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "다음 Daum 포털 공식 사이트 카카오 daum.net"
+        ],
+        "results": [
+          {
+            "url": "https://www.daum.net/",
+            "evidence": "Kakao's own corporate history page (https://www.kakaocorp.com/page/detail/5250) describes the portal service '다음'(www.daum.net); search results also surfaced Daum-owned properties m.daum.net/site.daum (mobile Daum) and cs.daum.net (official 고객센터).",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://m.daum.net/site.daum",
+            "evidence": "Search result '모바일 라이프의 시작과 끝, Daum' on the operator's own mobile domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.daum.net/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "Daum is a web portal; search, news, mail and cafe — the same functions the Daum app wraps — are used directly in the browser at www.daum.net.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The exact string https://www.daum.net/ appeared inside a Kakao corporate page description and third-party link text rather than as a standalone first-party search-result URL; I did not fetch it. Operator note: Wikipedia (in results) states Daum operation was transferred from Kakao to AXZ in May 2025, so the current operator may be AXZ rather than Kakao — I could not confirm this from a first-party source. Korean-market specific (.net domain but Korea-only portal).",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "device_care",
+      "service_name_canonical": "디바이스 케어",
+      "candidate_urls": [
+        "https://play.google.com/store/apps/details?id=com.samsung.android.lool",
+        "https://www.samsungsvc.co.kr/solution/42404",
+        "https://apps.microsoft.com/detail/9nblggh4xdv0"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "Samsung Device Care 디바이스 케어 삼성 공식 지원 페이지",
+          "\"디바이스 케어\" 삼성전자 갤럭시 배터리 저장공간 안드로이드 samsung.com 지원"
+        ],
+        "results": [
+          {
+            "url": "https://play.google.com/store/apps/details?id=com.samsung.android.lool",
+            "evidence": "Google Play listing '디바이스 케어' for package com.samsung.android.lool — the Samsung Galaxy system component. Distribution channel only, not an operator-run web landing.",
+            "source": "APP_STORE_LISTING"
+          },
+          {
+            "url": "https://www.samsungsvc.co.kr/solution/42404",
+            "evidence": "Samsung Electronics' official Korean service portal support article '[삼성 스마트폰] 디바이스 케어 기능 사용방법이 궁금해요.' — first-party support documentation, but a help article rather than a service landing page.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://apps.microsoft.com/detail/9nblggh4xdv0",
+            "evidence": "Microsoft Store listing for 'Samsung Device Care' — note this is the separate Galaxy Book PC utility, NOT the Android system app.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": null,
+        "proposed_landing_kind": "SYSTEM_APP",
+        "proposed_reason": "디바이스 케어 is a preinstalled Galaxy/One UI system component reached through Settings on the device; Samsung publishes only support articles about it and no operator-run web landing where the feature itself exists.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "I did not find any samsung.com product page dedicated to the Android 디바이스 케어. Search results conflate two different products under the same Korean name (the Galaxy phone system app com.samsung.android.lool and the Galaxy Book Windows 'Samsung Device Care' utility), and a WebFetch of the Play listing returned no usable content, so I could not read a declared developer website. If the study needs a URL, samsungsvc.co.kr support articles are the closest first-party pages, but they are documentation, not a landing.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "emart",
+      "service_name_canonical": "이마트",
+      "candidate_urls": [
+        "https://emart.ssg.com/",
+        "https://store.emart.com/",
+        "https://company.emart.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "이마트 공식 온라인몰 emart.ssg.com",
+          "이마트 공식 홈페이지 store.emart.com 매장쇼핑 emart.com"
+        ],
+        "results": [
+          {
+            "url": "https://emart.ssg.com/",
+            "evidence": "Search result title '원하는 상품을 원하는 시간에 쓱, 이마트몰' at emart.ssg.com, with operator-owned sub-paths (/page/pc/best.ssg, /special/index.ssg, m-emart.ssg.com). curl returned HTTP 200 (SPA shell, no title tag served).",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://store.emart.com/",
+            "evidence": "Search result title '이마트 : 매장쇼핑 전 필수, 이마트' and 'store.emart.com/main/main.do' with 영업시간/휴점일 content; WebFetch showed a store-information and brand-content hub (social channel links), no product checkout visible.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://company.emart.com/",
+            "evidence": "Search result '이마트 회사소개' — corporate IR/introduction site, not the consumer landing.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://emart.ssg.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "emart.ssg.com (이마트몰) is the official transactional web channel of the 이마트 brand where a consumer can browse and order groceries (쓱배송/새벽배송) in a browser; store.emart.com by contrast is an offline store-info page.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "Operator ambiguity: 이마트몰 is served on the ssg.com domain, which is operated by SSG.COM (a Shinsegae affiliate) rather than 이마트 Inc. itself, while 이마트's own domain (store.emart.com) is offline-store info only. Which of the two counts as 'the brand's own landing' depends on the study's definition. I could not read either page body fully (both serve JS shells / partial content).",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "emart24",
+      "service_name_canonical": "emart24",
+      "candidate_urls": [
+        "https://emart24.co.kr/",
+        "https://emart24.co.kr/store"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "이마트24 공식 홈페이지 emart24.co.kr"
+        ],
+        "results": [
+          {
+            "url": "https://emart24.co.kr/",
+            "evidence": "WebFetch reported final URL https://emart24.co.kr/, title 'Home - 이마트24', operator (주)이마트24 (Shinsegae Group). Functions: product info with prices, store locator with service filters, 1+1/2+1 events, brand story, franchise/창업 info. Explicitly no cart or checkout; purchasing is directed to the app.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://emart24.co.kr/store",
+            "evidence": "Search result '매장찾기 - 이마트24' confirming the store-locator function on the same official domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://emart24.co.kr/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "emart24.co.kr is an information/promotion portal for the offline convenience-store chain (products, events, store locator, franchise) with no consumer transaction in the browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Search also surfaced everse.emart24.co.kr and eversestg.emart24.co.kr (the latter looks like a staging host). I treated emart24.co.kr as the canonical public landing but did not confirm the relationship between these hosts.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "gmarket_app",
+      "service_name_canonical": "G마켓",
+      "candidate_urls": [
+        "https://www.gmarket.co.kr/",
+        "http://corp.gmarket.com/",
+        "https://m.gmarket.co.kr/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "G마켓 공식 사이트 gmarket.co.kr"
+        ],
+        "results": [
+          {
+            "url": "https://www.gmarket.co.kr/",
+            "evidence": "Multiple first-party search results on the operator's own domain: 'G마켓 - 대한민국 1등 온라인 쇼핑' (www.gmarket.co.kr/csquare/...), 'G마켓 - 슈퍼딜' (www.gmarket.co.kr/n/superdeal), help.gmarket.co.kr and category.gmarket.co.kr. Snippet includes the statutory 통신판매중개 disclosure and the company address (서울 강남구 테헤란로 152).",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "http://corp.gmarket.com/",
+            "evidence": "Search result 'Gmarket Inc. - G마켓' — corporate site of the operating company, not the shopping service.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://m.gmarket.co.kr/",
+            "evidence": "Search result 'G마켓 - 지금부터의 마켓' — the operator's mobile web storefront.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.gmarket.co.kr/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "The G마켓 app's core function (searching, browsing and buying on the open marketplace) is fully available in a browser on www.gmarket.co.kr, with a dedicated mobile web at m.gmarket.co.kr.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I saw the domain root only as a prefix of deeper first-party URLs (/csquare/..., /n/superdeal) rather than as a standalone result, and did not fetch it. There is also a separate global storefront (gmyg.gmarket.co.kr / mg.gmarket.co.kr) aimed at overseas buyers — the .co.kr main site is the Korean-market one.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "gmarket_auction",
+      "service_name_canonical": "G마켓/옥션",
+      "candidate_urls": [
+        "https://www.gmarket.co.kr/",
+        "https://www.auction.co.kr/",
+        "https://partner.gmarket.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "G마켓 옥션 통합 공식 사이트 gmarket.co.kr auction.co.kr 별도 운영",
+          "지마켓 gmarket 쇼핑 (allowed_domains=gmarket.co.kr)"
+        ],
+        "results": [
+          {
+            "url": "https://www.gmarket.co.kr/",
+            "evidence": "Domain-restricted search returned 'G마켓 - 지금부터의 마켓' (www.gmarket.co.kr, m.gmarket.co.kr) and 'G마켓 - 대한민국 1등 온라인 쇼핑', plus real shopping paths /n/superdeal and /n/best. Direct fetch returned HTTP 403 (bot protection).",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.auction.co.kr/",
+            "evidence": "Search result '옥션 - 모바일 쇼핑은 옥션' at www.auction.co.kr; curl returned HTTP 403 but the served block page still carried <title>옥션 - 쇼핑은 옥션</title>.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://partner.gmarket.com/",
+            "evidence": "Search result '지마켓 옥션 파트너센터' — a single seller-side portal covering both brands, showing shared corporate operation while consumer sites stay separate.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.gmarket.co.kr/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "Both gmarket.co.kr and auction.co.kr are full open-market e-commerce sites where consumers browse, search, and purchase in a web browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Both apex domains returned HTTP 403 to my fetch attempts (WAF), so I identified them from search-result titles/URLs rather than reading the live pages. If the study needs ONE landing per key, this key maps to two separate sites and must be split or one side chosen.",
+        "slash_pair_analysis": {
+          "left_brand": "G마켓",
+          "left_url": "https://www.gmarket.co.kr/",
+          "right_brand": "옥션",
+          "right_url": "https://www.auction.co.kr/",
+          "same_site": false,
+          "evidence": "Two distinct consumer sites with distinct titles: 'G마켓 - 지금부터의 마켓' (www.gmarket.co.kr) vs '옥션 - 쇼핑은 옥션' (www.auction.co.kr). Neither redirects to the other. They share one operator and one integrated seller system — search results show a single '지마켓 옥션 파트너센터' (partner.gmarket.com) covering both, and corp.gmarket.com as the corporate site.",
+          "attribution": "SEARCH_RESULT_TITLES_AND_SELLER_PORTAL"
+        }
+      }
+    },
+    {
+      "canonical_service_key": "google",
+      "service_name_canonical": "Google",
+      "candidate_urls": [
+        "https://www.google.co.kr/",
+        "https://www.google.com/?hl=ko",
+        "https://play.google.com/store/apps/details?id=com.google.android.googlequicksearchbox"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "Google 검색 앱 Android 공식 google.co.kr 대한민국 검색"
+        ],
+        "results": [
+          {
+            "url": "https://www.google.co.kr/",
+            "evidence": "Search results included the Korean-market Google domain as https://www.google.co.kr/index.html (title 'Google') and https://google.co.kr/search; the result summary states google.co.kr is the official Google search domain for 대한민국.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.google.com/?hl=ko",
+            "evidence": "Search result titled 'Google' at https://www.google.com/?hl=ko — the global Google search page in Korean.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://play.google.com/store/apps/details?id=com.google.android.googlequicksearchbox",
+            "evidence": "Google Play listing 'Google' for package com.google.android.googlequicksearchbox — this is the Android 검색 앱 in question.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://www.google.co.kr/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "The Google app's core function is web search, which is fully performed in a browser at the Google search page; google.co.kr is the Korean-market domain (google.com/?hl=ko is the global equivalent in Korean).",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "The exact strings I saw in results were https://www.google.co.kr/index.html and https://google.co.kr/search; I normalized to the domain root rather than seeing the bare root URL in a result, and I did not fetch it. Also note the app bundles Discover/AI Mode/Lens features that have no direct web equivalent at that URL, so the app and the web landing are not a perfect functional match.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "google_photos",
+      "service_name_canonical": "Google 포토",
+      "candidate_urls": [
+        "https://photos.google.com/",
+        "https://support.google.com/photos/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "Google Photos official website photos.google.com"
+        ],
+        "results": [
+          {
+            "url": "https://photos.google.com/",
+            "evidence": "Search results include https://photos.google.com/login (title 'Google Photos') on Google's own domain, and the result summary states the official website is photos.google.com. Corroborated by the Google Play listing for com.google.android.apps.photos, https://www.google.com/photos/works-with/ and https://safety.google/products/photos/.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://support.google.com/photos/",
+            "evidence": "Official Google Photos Help centre — support content, not the service itself.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://photos.google.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "photos.google.com is the full web client where users view, search, edit, organize and share their library — the same core function as the app (sign-in required).",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The bare root photos.google.com was stated in the result summary while the concrete URL seen was .../login; the service is behind Google account authentication, so an unauthenticated accessibility crawl will land on the Google sign-in page rather than the photo grid. Not Korean-market specific (single global domain, locale by account).",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "gs25",
+      "service_name_canonical": "GS25",
+      "candidate_urls": [
+        "https://www.gsretail.com/brand/gs25",
+        "https://gs25.gsretail.com/",
+        "http://www.gsretail.com/gsretail/ko/brand/about-gs25"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "GS25 공식 홈페이지 gs25.gsretail.com",
+          "GS리테일 통합 홈페이지 개편 gsretail.com brand gs25 2026"
+        ],
+        "results": [
+          {
+            "url": "https://www.gsretail.com/brand/gs25",
+            "evidence": "curl -L of https://gs25.gsretail.com/ gives 301 -> https://www.gsretail.com/brand/gs25 (final HTTP 200, <title>GS Retail</title>). WebFetch of gs25.gsretail.com/gscvs/ko/main reported the same 301 target. So the GS25 brand landing is now served from GS Retail's own corporate domain.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://gs25.gsretail.com/",
+            "evidence": "Search results still title this 'GS25 Site | Homepage' and index sub-pages such as gs25.gsretail.com/gscvs/ko/store-services/locations ('매장검색 | GS25 Site'), but the host now redirects (301) to www.gsretail.com/brand/gs25.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "http://www.gsretail.com/gsretail/ko/brand/about-gs25",
+            "evidence": "Search result 'GS25 | GSretail Site' — GS Retail's own brand-introduction page for GS25.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.gsretail.com/brand/gs25",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "GS25 is an offline convenience-store brand and its landing (now a GS Retail corporate-site brand section) offers product/promotion info, store locator and franchise info; consumer ordering runs through the separate 우리동네GS app, not this page.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "The page is a JavaScript SPA that serves only <title>GS Retail</title> to non-browser fetches, so I could not read its rendered functions directly; the RETAIL_OFFLINE_ONLY classification rests on search-snippet descriptions (행사상품/PB/매장찾기/재고확인) plus the known absence of web checkout. Also, search engines still index the older gs25.gsretail.com URLs, so the redirect appears recent — worth re-checking at measurement time.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "gs_homeshopping_gsshop",
+      "service_name_canonical": "GS홈쇼핑/GS Shop",
+      "candidate_urls": [
+        "https://www.gsshop.com/",
+        "https://www.gsshop.com/index.gs",
+        "http://www.gsretail.com/gsretail/ko/brand/about-gsshop"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "GS SHOP GS홈쇼핑 공식 사이트 gsshop.com"
+        ],
+        "results": [
+          {
+            "url": "https://www.gsshop.com/",
+            "evidence": "WebFetch reported title 'GS SHOP - Style your daily life', operator GS SHOP (GS홈쇼핑), and a full e-commerce surface (category navigation across fashion/food/beauty/home, brand shops, promotions, purchase flow).",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.gsshop.com/index.gs",
+            "evidence": "Search result 'GS SHOP GS이숍의 새이름, GS SHOP' — confirms gsshop.com is the brand's own site and that GS SHOP is the current name of the former GS이숍/GS홈쇼핑 online channel.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "http://www.gsretail.com/gsretail/ko/brand/about-gsshop",
+            "evidence": "Search result 'GS SHOP | GSretail Site' — GS Retail's brand page for GS SHOP, showing GS홈쇼핑 is operated under GS Retail after the merger.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.gsshop.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "www.gsshop.com is a working online mall where a consumer can browse, watch the live broadcast feed, and order products directly in the browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I did not separately verify the checkout/payment step (login required); classification is based on the rendered catalog/purchase surface and the site's self-description.",
+        "slash_pair_analysis": {
+          "left_brand": "GS홈쇼핑",
+          "left_url": "https://www.gsshop.com/",
+          "right_brand": "GS Shop",
+          "right_url": "https://www.gsshop.com/",
+          "same_site": true,
+          "evidence": "These are two names for one channel, not two brands: the search result title 'GS SHOP GS이숍의 새이름, GS SHOP' and GS Retail's own brand page (gsretail.com/.../about-gsshop) treat GS홈쇼핑 and GS SHOP as the same TV-home-shopping/e-commerce business, whose single consumer site is www.gsshop.com. GS홈쇼핑 the company was merged into GS리테일; company.gsshop.com is the corporate site on the same domain.",
+          "attribution": "SINGLE_SITE_TWO_NAMES"
+        }
+      }
+    },
+    {
+      "canonical_service_key": "hana_bank",
+      "service_name_canonical": "하나은행",
+      "candidate_urls": [
+        "https://www.hanabank.com/",
+        "https://www.kebhana.com/",
+        "https://banking.hanabank.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "하나은행 공식 홈페이지 인터넷뱅킹 hanabank.com"
+        ],
+        "results": [
+          {
+            "url": "https://www.hanabank.com/",
+            "evidence": "WebFetch confirmed a live 하나은행-branded internet-banking portal with login, 계좌조회/이체/공과금/외환 menus and a 하나은행 browser-compatibility notice ('...하나은행 인터넷뱅킹 서비스의 이용이 불가능하거나...'). Search results include first-party pages www.hanabank.com/cont/info/info01/info0101/index.jsp (인터넷뱅킹 신규가입안내) and www.hanabank.com/nhana/index.jsp (개인뱅킹).",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.kebhana.com/",
+            "evidence": "Search result '하나은행:모바일web뱅킹' — an additional official Hana Bank domain (legacy KEB하나은행), used for mobile web banking.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://banking.hanabank.com/",
+            "evidence": "Search result titled '하나은행' — the transactional internet-banking subdomain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.hanabank.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "www.hanabank.com is the bank's own portal where customers log in and perform core banking (balance inquiry, transfers, bill payment) in the browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Hana Bank runs several official domains (hanabank.com, kebhana.com, banking.hanabank.com, biz.hanabank.com for corporate) and I could not determine which one the mobile 하나은행 app maps to canonically; also unclear whether the mobile app's function set (하나원큐) is better represented by kebhana.com's mobile web. Korean-market specific.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "home_and_shopping",
+      "service_name_canonical": "홈앤쇼핑",
+      "candidate_urls": [
+        "https://www.hnsmall.com/",
+        "https://join.hnsmall.com/main"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "홈앤쇼핑 공식 홈페이지 hnsmall.com"
+        ],
+        "results": [
+          {
+            "url": "https://www.hnsmall.com/",
+            "evidence": "Search result '홈앤쇼핑' at www.hnsmall.com and 'HOME & SHOPPING - hnsmall.com' at m.hnsmall.com/main; curl -L resolved to https://www.hnsmall.com/index.do, HTTP 200, <title>HOME &amp; SHOPPING</title>. Official social/app links (facebook @hnsmall.official, Google Play com.hnsmall, youtube @hnsmall) point to the same brand.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://join.hnsmall.com/main",
+            "evidence": "Search result '입점 신청 안내 | 홈앤쇼핑' — operator-run vendor onboarding subdomain, corroborating hnsmall.com ownership.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.hnsmall.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "hnsmall.com is 홈앤쇼핑's own online mall with product categories, broadcast-linked ordering, and its own payment method (홈앤페이), usable in a web browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I read the served HTML title and search descriptions but did not walk a purchase flow; the site's heavy app-benefit messaging (10&10 app-only discount) suggests some benefits are app-exclusive, though web ordering itself appears available.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "homeplus",
+      "service_name_canonical": "홈플러스",
+      "candidate_urls": [
+        "https://mfront.homeplus.co.kr/",
+        "https://www.homeplus.co.kr/",
+        "https://corporate.homeplus.co.kr/index.aspx",
+        "https://my.homeplus.co.kr/store/search_region"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "홈플러스 공식 온라인몰 homeplus.co.kr"
+        ],
+        "results": [
+          {
+            "url": "https://mfront.homeplus.co.kr/",
+            "evidence": "Redirect chain observed via WebFetch: https://www.homeplus.co.kr/ -> 302 -> https://front.homeplus.co.kr/ -> 301 -> https://mfront.homeplus.co.kr/. The final page returned title '홈플러스 :: 당일배송 온라인 마트 장보기' and is Homeplus's online grocery mall.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.homeplus.co.kr/",
+            "evidence": "Canonical brand domain; search results and the observed 302 confirm it is the entry point that lands on the online mall.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://corporate.homeplus.co.kr/index.aspx",
+            "evidence": "Search result '홈플러스 주식회사 공식 홈페이지' — the corporate site, distinct from the shopping mall.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://my.homeplus.co.kr/store/search_region",
+            "evidence": "Search result '매장찾기 | 마이홈플러스' — offline store locator / digital flyer service on the same operator's domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://mfront.homeplus.co.kr/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "The brand's main domain lands on Homeplus's own online mart where a consumer can browse groceries and order with same-day/1-hour delivery in a web browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Whether to record the canonical entry (www.homeplus.co.kr) or the final redirect target (mfront.homeplus.co.kr) as the landing URL depends on the study's convention; both are documented here. The 'mfront' host name suggests a mobile-first front end serving desktop as well, which I did not verify across viewports.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "hyundai_card",
+      "service_name_canonical": "현대카드",
+      "candidate_urls": [
+        "https://www.hyundaicard.com/",
+        "https://mycompany.hyundaicard.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "현대카드 공식 홈페이지 hyundaicard.com",
+          "현대카드 카드 신청 로그인 (site-restricted to hyundaicard.com)"
+        ],
+        "results": [
+          {
+            "url": "https://www.hyundaicard.com/",
+            "evidence": "A domain-restricted WebSearch limited to hyundaicard.com returned https://www.hyundaicard.com/ with the title '현대카드' as the top first-party result, alongside operator-run pages such as mycompany.hyundaicard.com login, 회원가입, 발급상황조회 and 고객센터 — i.e. member services delivered on the operator's own domain.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://mycompany.hyundaicard.com/",
+            "evidence": "Official 현대카드 MY COMPANY subdomain (corporate-card member portal: login, card management, statements).",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.hyundaicard.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "www.hyundaicard.com is Hyundai Card's own site where users apply for cards, log in, and check statements/usage in the browser — the same core functions as the app.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "WebFetch of the root returned only an 'Index' heading (JS-rendered), so I could not read the title or login UI first-hand; identification rests on the domain-restricted search returning the root with title '현대카드' plus many operator subdomain pages. The consumer-facing member portal may live on a different subdomain than the corporate mycompany.hyundaicard.com I saw. Korean-market specific.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "hyundai_department_store",
+      "service_name_canonical": "현대백화점",
+      "candidate_urls": [
+        "https://www.ehyundai.com/",
+        "https://hi.thehyundai.com/",
+        "https://thehyundaiseoul.ehyundai.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "현대백화점 공식 홈페이지 ehyundai.com",
+          "현대백화점 온라인몰 더현대닷컴 thehyundai.com 공식"
+        ],
+        "results": [
+          {
+            "url": "https://www.ehyundai.com/",
+            "evidence": "Search results title the site '메인 | 현대백화점' (www.ehyundai.com, /newPortal/index.do) with branch pages for 압구정본점, 판교점, 더현대 서울, plus partners.ehyundai.com (현대백화점 상품본부) and the group site on the same domain. curl returned HTTP 200 (page is EUC-KR encoded, title garbled in my terminal).",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://hi.thehyundai.com/",
+            "evidence": "curl -L of https://www.thehyundai.com/ ends at https://hi.thehyundai.com/ with <title>더현대Hi</title>; search results describe 더현대닷컴/더현대Hi as '현대백화점 공식 온라인몰'. This is the transactional sibling of the department-store brand.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://thehyundaiseoul.ehyundai.com/",
+            "evidence": "Search result 'THE HYUNDAI SEOUL | 더현대 서울' — a store-specific site under the ehyundai.com domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.ehyundai.com/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "www.ehyundai.com is 현대백화점's own portal for its physical department stores (branch pages, hours/events, H.Point membership) with no consumer checkout; the separate 더현대Hi (hi.thehyundai.com) is where online purchasing happens.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "Two official landings exist under the same operator and the right choice depends on the measured channel: ehyundai.com (offline store portal) vs thehyundai.com/hi.thehyundai.com (online mall). I could not read ehyundai.com's rendered body (legacy EUC-KR page served as a frame/portal shell), so its exact function list comes from search snippets. Also note www.thehyundai.com now redirects to hi.thehyundai.com — the online-mall brand appears to have been renamed/rehosted recently.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "hyundai_homeshopping_hmall",
+      "service_name_canonical": "현대홈쇼핑/현대Hmall",
+      "candidate_urls": [
+        "https://www.hmall.com/",
+        "https://www.hyundaihmall.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "현대홈쇼핑 Hmall 공식 사이트 hmall.com 현대이지웰"
+        ],
+        "results": [
+          {
+            "url": "https://www.hmall.com/",
+            "evidence": "WebFetch returned page title '현대홈쇼핑 - 현대Hmall'; search results list www.hmall.com ('현대홈쇼핑 - 현대Hmall'), www.hmall.com/Home.html ('현대Hmall-백화점,홈쇼핑') and company.hmall.com ('현대홈쇼핑', the corporate site on the same domain).",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.hyundaihmall.com/",
+            "evidence": "WebFetch observed HTTP 301 from https://www.hyundaihmall.com/ to https://www.hmall.com/ — the alternate official domain folds into hmall.com.",
+            "source": "WEBFETCH_PAGE"
+          }
+        ],
+        "proposed_best_url": "https://www.hmall.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "www.hmall.com is 현대홈쇼핑's transactional online mall (TV home-shopping products plus 현대백화점 and general categories) where a consumer can browse and purchase in a browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The fetched response exposed little more than the <title>, so the catalog/checkout surface is inferred from the title, the 301 from hyundaihmall.com, and search descriptions rather than a walked purchase flow. 현대이지웰 in my query is a different (benefits-mall) company and is not part of this brand's landing.",
+        "slash_pair_analysis": {
+          "left_brand": "현대홈쇼핑",
+          "left_url": "https://www.hmall.com/",
+          "right_brand": "현대Hmall",
+          "right_url": "https://www.hmall.com/",
+          "same_site": true,
+          "evidence": "One site, two names: the page title of www.hmall.com is literally '현대홈쇼핑 - 현대Hmall', and Hmall is 현대홈쇼핑's own online mall (corporate site company.hmall.com sits on the same domain). The alternate domain hyundaihmall.com 301-redirects to hmall.com, so there is no second landing.",
+          "attribution": "SINGLE_SITE_TWO_NAMES_PLUS_301"
+        }
+      }
+    },
+    {
+      "canonical_service_key": "instagram",
+      "service_name_canonical": "Instagram",
+      "candidate_urls": [
+        "https://www.instagram.com/",
+        "https://about.instagram.com/ko-kr",
+        "https://www.instagram.com/accounts/login/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "Instagram 공식 웹사이트 instagram.com"
+        ],
+        "results": [
+          {
+            "url": "https://www.instagram.com/",
+            "evidence": "Search result titled 'Instagram' pointing to https://www.instagram.com/ , described as the place to create an account or log in to Instagram. Meta-operated first-party domain.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://about.instagram.com/ko-kr",
+            "evidence": "Search result titled 'Instagram | 소개 | 공식 사이트' — Instagram's own Korean-language introduction/marketing site.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.instagram.com/accounts/login/",
+            "evidence": "Search result titled 'Log in • Instagram' — first-party login endpoint on instagram.com.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.instagram.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "instagram.com is the operator's own domain and the full feed/search/messaging product runs in a desktop browser after login, not merely a download page.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I did not fetch the logged-in experience, so I confirmed the login/home surface exists from search results rather than by exercising authenticated features.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "kakao_t",
+      "service_name_canonical": "카카오T",
+      "candidate_urls": [
+        "https://service.kakaomobility.com/launch/kakaot/",
+        "https://www.kakaomobility.com/service-kakaot",
+        "https://t.kakao.com/launch"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "카카오T 공식 홈페이지 kakaomobility kakaot.com"
+        ],
+        "results": [
+          {
+            "url": "https://service.kakaomobility.com/launch/kakaot/",
+            "evidence": "WebFetch: https://t.kakao.com/launch returns 307 -> https://service.kakaomobility.com/launch/kakaot/. The target page's title is 'Kakao T | 카카오모빌리티', operator Kakao Mobility Corp., and it states '카카오 T 앱, 안드로이드 및 iOS에서만 이용 가능합니다' — i.e. an app introduction/download page, no in-browser hailing.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.kakaomobility.com/service-kakaot",
+            "evidence": "Search result '카카오 T | 서비스 | 카카오모빌리티' — the operator's corporate-site service-introduction page for Kakao T (with sub-pages for bike, rentcar).",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://t.kakao.com/launch",
+            "evidence": "Search result '카카오 T | 카카오 모빌리티' on the t.kakao.com brand domain; it is the short entry point that redirects to service.kakaomobility.com.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://service.kakaomobility.com/launch/kakaot/",
+        "proposed_landing_kind": "APP_ONLY",
+        "proposed_reason": "The official Kakao T landing is an app-introduction page operated by Kakao Mobility that explicitly says the service runs only on the Android/iOS app; the core function (calling a taxi/bike/rentcar) cannot be performed in a web browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Kakao Mobility also runs adjacent web surfaces (business.kakaomobility 카카오 T 비즈니스, service.kakaomobility.com/cs 고객지원) that do have web functionality; if the study's measured card-payment channel is the consumer taxi app, none of these web pages corresponds to it. I recorded the redirect target rather than the t.kakao.com short URL.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "kakaomap",
+      "service_name_canonical": "카카오맵",
+      "candidate_urls": [
+        "https://map.kakao.com/",
+        "https://map.kakao.com/info/kakao_map",
+        "https://apis.map.kakao.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "카카오맵 공식 웹 지도 서비스 map.kakao.com"
+        ],
+        "results": [
+          {
+            "url": "https://map.kakao.com/",
+            "evidence": "Search result titled '카카오맵' at map.kakao.com; WebFetch of the page confirmed a working browser map with 지도 검색, 길찾기, 버스/지하철 route planning, 즐겨찾기 and login, operated by Kakao.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://map.kakao.com/info/kakao_map",
+            "evidence": "Search result titled 'KAKAO Map - 카카오맵' — Kakao's own service-introduction page describing vector map, 360° rotation/tilt and daily data updates.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://apis.map.kakao.com/",
+            "evidence": "Search result 'Kakao 지도 API' — Kakao's developer API portal for the same map product (developer-facing, not the consumer landing).",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://map.kakao.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "Fetching map.kakao.com returned an operational browser map: place search, directions, bus/subway routing and real-time bus arrivals are usable directly on the page.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "None material. I did not test whether every mobile-app feature (e.g. 친구위치) is available on the web build.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "kakaotalk",
+      "service_name_canonical": "카카오톡",
+      "candidate_urls": [
+        "https://www.kakaocorp.com/page/service/service/KakaoTalk",
+        "https://www.kakaocorp.com/page/detail/10810?lang=ENG",
+        "https://cs.kakao.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "카카오톡 공식 사이트 kakaocorp 카카오톡 소개",
+          "kakaocorp.com 카카오톡 서비스 소개 페이지 service KakaoTalk"
+        ],
+        "results": [
+          {
+            "url": "https://www.kakaocorp.com/page/service/service/KakaoTalk",
+            "evidence": "Search result 'About KakaoTalk | Kakao' on kakaocorp.com; WebFetch confirmed Kakao's official KakaoTalk service introduction page with feature descriptions and '카카오톡 공식 다운로드' links, no browser version offered.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.kakaocorp.com/page/detail/10810?lang=ENG",
+            "evidence": "Search result titled '카카오톡 | 카카오' on the operator's corporate site (kakaocorp.com).",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://cs.kakao.com/",
+            "evidence": "Search result titled '고객센터 - 카카오' — Kakao's own customer-support site covering KakaoTalk.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.kakaocorp.com/page/service/service/KakaoTalk",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "The fetched Kakao page introduces KakaoTalk features and links to app/PC downloads only; nothing in the page offers chatting inside a browser, so the core function is not usable at this URL.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Two prominent search hits (pc-kakaocorp.com, win-kakaocorp.com) claim to be '카카오톡 공식 다운로드' sites but are NOT on kakao.com/kakaocorp.com and I could not verify they are operator-run; I deliberately excluded them as likely impostor download sites.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "kb_pay",
+      "service_name_canonical": "KB Pay",
+      "candidate_urls": [
+        "https://card.kbcard.com/SVC/DVIEW/HSCMCXPRISVC0127",
+        "https://m.kbcard.com/BON/DVIEW/MBEM0007",
+        "https://card.kbcard.com/",
+        "https://mbiz.kbcard.com/CXEHMSVCD0012.cms"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "KB Pay 공식 홈페이지 KB국민카드",
+          "\"KB Pay\" 소개 페이지 kbcard.com KB Pay 앱 안내"
+        ],
+        "results": [
+          {
+            "url": "https://card.kbcard.com/SVC/DVIEW/HSCMCXPRISVC0127",
+            "evidence": "Search result 'KB Pay 소개>KB Pay>결제서비스>서비스 | 국민의 행복생활 파트너 KB국민카드'; WebFetch confirmed title 'KB Pay 소개', official KB국민카드 page describing the six KB Pay tabs, eligibility and OS requirements.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://m.kbcard.com/BON/DVIEW/MBEM0007",
+            "evidence": "Search result titled '한 번에, 한 손에, 한 눈에 KB Pay' on KB국민카드's own mobile web domain.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://card.kbcard.com/",
+            "evidence": "Search result 'KB 국민카드: 모바일웹 메인' — KB국민카드's main member web site (card management, statements, loss reporting).",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://mbiz.kbcard.com/CXEHMSVCD0012.cms",
+            "evidence": "Search result 'KB Pay 안내 | KB 국민카드(EW11) - 기업' — corporate-channel KB Pay guide on KB국민카드's domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://card.kbcard.com/SVC/DVIEW/HSCMCXPRISVC0127",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "The page is KB국민카드's own KB Pay introduction: it explains features, eligibility and Android/iOS requirements, but payment itself only happens in the app, so the core function is not performed at this URL.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "I found no standalone kbpay.* domain in any search result. It is possible KB operates a shorter canonical KB Pay landing that did not surface; also unclear whether this deep JSP path is stable over time.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "kb_starbanking",
+      "service_name_canonical": "KB스타뱅킹",
+      "candidate_urls": [
+        "https://omoney.kbstar.com/quics?page=C028156",
+        "https://www.kbstar.com/",
+        "https://omoney.kbstar.com/quics?page=C021616"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "KB스타뱅킹 KB국민은행 인터넷뱅킹 공식 홈페이지 kbstar.com"
+        ],
+        "results": [
+          {
+            "url": "https://omoney.kbstar.com/quics?page=C028156",
+            "evidence": "Search result 'KB스타뱅킹 이용안내 ( 스마트금융서비스 | KB스타뱅킹 | 서비스 소개 )'; WebFetch confirmed title 'KB스타뱅킹 이용안내', operator KB국민은행 (사업자번호 201-81-68693, 여의도 본점 주소), describing eligible users, installation and supported devices.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.kbstar.com/",
+            "evidence": "Top search result 'KB국민은행 ( KB국민은행 )' — the bank's own main web portal where internet banking (조회/이체/상품가입) is performed in a browser.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://omoney.kbstar.com/quics?page=C021616",
+            "evidence": "Search result '이용안내 ( 스마트금융서비스 | KB스타뱅킹 | 이용안내 )' on KB국민은행's own smart-finance subdomain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://omoney.kbstar.com/quics?page=C028156",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "This is KB국민은행's own service-introduction page for the KB스타뱅킹 app (install guide, device support); the app's own banking functions are not carried out on it. The bank's browser-usable banking lives separately at www.kbstar.com, which is the internet-banking site rather than a KB스타뱅킹 landing.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "Ambiguous which URL the study should treat as 'the' landing: the app-specific 이용안내 page (chosen) versus www.kbstar.com, which is a genuine WEB_SERVICE but for internet banking generally, not for the KB스타뱅킹 app. The quics?page= URL pattern is a session-style path and may not be permanently stable.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "korean_air",
+      "service_name_canonical": "대한항공",
+      "candidate_urls": [
+        "https://www.koreanair.com/",
+        "https://www.koreanair.com/?hl=ko"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "대한항공 공식 홈페이지 koreanair.com 항공권 예약"
+        ],
+        "results": [
+          {
+            "url": "https://www.koreanair.com/?hl=ko",
+            "evidence": "WebSearch returned this URL with the result title '대한항공: 항공권 예약 및 여행 정보' — the operator's own domain koreanair.com, Korean-language landing with flight booking.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.koreanair.com/",
+            "evidence": "English Wikipedia article 'Korean Air' identifies koreanair.com as the flag carrier's official site; search result summary states flights can be booked directly at koreanair.com.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.koreanair.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "koreanair.com is the airline's own booking site — a user can search fares, book, pay for and manage tickets entirely in a browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "WebFetch on https://www.koreanair.com/?hl=ko returned HTTP 403 (bot protection), so the page body was not directly inspected; the identification rests on the search-result title and Wikipedia. Also unclear whether the study wants the locale-neutral root or the /ko-kr localized path.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "lotte_department_store",
+      "service_name_canonical": "롯데백화점",
+      "candidate_urls": [
+        "https://www.lotteshopping.com/main",
+        "https://m.department.lotteon.com/",
+        "https://www.lotteon.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "롯데백화점 공식 온라인몰 홈페이지"
+        ],
+        "results": [
+          {
+            "url": "https://www.lotteshopping.com/main",
+            "evidence": "WebSearch top result titled '롯데백화점'. WebFetch of the page confirms title '롯데백화점', operator '롯데쇼핑㈜' in the footer with customer number 1577-0001, plus store directory, culture center (Lifestyle LAB), L.POINT and wedding services.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://m.department.lotteon.com/",
+            "evidence": "WebSearch result titled '롯데백화점' — the transactional 롯데백화점몰 hosted on the Lotte ON platform.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.lotteon.com/",
+            "evidence": "WebSearch result titled '롯데ON' — Lotte group's integrated online mall that hosts the department-store mall as one of its shops; not the department-store brand's own landing.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.lotteshopping.com/main",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "lotteshopping.com is 롯데백화점's own brand landing but its content is branch/floor information, culture-center programs and membership — the actual browse-and-buy transaction happens on a separate platform (department.lotteon.com), and the measured card-payment channel is in-store.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "The fetched page does surface product promotions that link through to 롯데백화점몰, so an argument for WEB_SERVICE exists; I could not determine from the landing page alone whether checkout ever completes on lotteshopping.com itself. Choice between lotteshopping.com (brand landing) and department.lotteon.com (transactional) depends on the study's definition.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "lotte_himart",
+      "service_name_canonical": "롯데하이마트",
+      "candidate_urls": [
+        "https://www.e-himart.co.kr/",
+        "https://company.himart.co.kr/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "롯데하이마트 공식 온라인쇼핑몰 himart.co.kr"
+        ],
+        "results": [
+          {
+            "url": "https://www.e-himart.co.kr/",
+            "evidence": "WebSearch result titled '롯데하이마트 온라인쇼핑몰'; result summary describes it as the official online mall run by 롯데하이마트 alongside its ~330 offline stores. WebFetch confirmed the page heading '롯데하이마트 온라인쇼핑몰'.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://company.himart.co.kr/",
+            "evidence": "WebSearch results titled '롯데하이마트', '회사소개 | 롯데하이마트', '매장찾기 | 롯데하이마트 매장 안내' — the corporate/company-introduction and store-locator site on the same himart.co.kr domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.e-himart.co.kr/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "e-himart.co.kr is Lotte Hi-mart's own consumer e-commerce site where a user can browse ~1,300 brands and order appliances plus installation/repair services in a browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The WebFetch returned only the page heading (JS-rendered site), so the footer business-registration line was not read directly; operator identity rests on the search-result descriptions. Note company.himart.co.kr is the separate corporate landing if the study prefers the corporate site over the mall.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "lotte_homeshopping",
+      "service_name_canonical": "롯데홈쇼핑",
+      "candidate_urls": [
+        "https://www.lotteimall.com/",
+        "https://www.lottehomeshopping.com/user/main/index.lotte"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "롯데홈쇼핑 공식 홈페이지 lotteimall"
+        ],
+        "results": [
+          {
+            "url": "https://www.lotteimall.com/",
+            "evidence": "WebSearch returned m.lotteimall.com pages titled '편성표 - 롯데홈쇼핑' and '고객센터 - 롯데홈쇼핑', i.e. the lotteimall.com domain serves 롯데홈쇼핑-branded broadcast schedule and customer-center pages; result summary describes lotteimall.com as 롯데홈쇼핑's integrated TV/online/mobile shopping platform.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.lottehomeshopping.com/user/main/index.lotte",
+            "evidence": "WebSearch result titled 'Lotte Home Shopping - 롯데홈쇼핑' — the corporate site of the broadcaster, distinct from the shopping mall.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.lotteimall.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "lotteimall.com (롯데아이몰) is the consumer-facing site where a user can watch the live broadcast, browse the TV schedule and order products directly in a browser.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "WebFetch of https://www.lotteimall.com/ returned an empty body (JS-rendered), so I confirmed the domain only through its m.lotteimall.com sub-pages carrying 롯데홈쇼핑 titles. If the study wants the corporate landing rather than the mall, lottehomeshopping.com is the alternative.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "lotte_mart",
+      "service_name_canonical": "롯데마트",
+      "candidate_urls": [
+        "https://company.lottemart.com/",
+        "https://www.lotteon.com/p/display/main/lottemart",
+        "https://lottemartzetta.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "롯데마트 공식 온라인몰 롯데마트몰 홈페이지"
+        ],
+        "results": [
+          {
+            "url": "https://company.lottemart.com/",
+            "evidence": "WebSearch result titled '롯데마트 공식 홈페이지 | LOTTE Mart'. WebFetch confirms page title '롯데마트 & 롯데슈퍼 공식홈페이지', operated by 롯데쇼핑(주) 롯데마트/슈퍼사업부, with 매장찾기, 고객만족센터, sustainability and vendor-inquiry sections.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.lotteon.com/p/display/main/lottemart",
+            "evidence": "WebSearch result titled '롯데마트몰' — the transactional Lotte Mart mall hosted inside the Lotte ON platform.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://lottemartzetta.com/",
+            "evidence": "WebSearch result titled '롯데마트 제타ㅣ온라인 신선 장보기 몰' — Lotte Mart's fresh-grocery online service, referenced from the official company site.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://company.lottemart.com/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "The fetched official site is explicitly non-transactional — it carries brand, store-finder, sustainability and recruitment content and only links out to 롯데쇼핑e커머스 / Lotte ON for purchasing, while the measured card payment happens in the physical hypermarket.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "There are three defensible landings (company.lottemart.com brand site, lotteon.com/p/display/main/lottemart for 롯데마트몰, lottemartzetta.com for fresh grocery). I chose the operator's own brand domain; if the study measures the online mall, the Lotte ON path is the right one.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "market_kurly",
+      "service_name_canonical": "마켓컬리",
+      "candidate_urls": [
+        "https://www.kurly.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "마켓컬리 공식 홈페이지 kurly.com 컬리"
+        ],
+        "results": [
+          {
+            "url": "https://www.kurly.com/",
+            "evidence": "WebSearch returned multiple kurly.com pages with official titles — '컬리 - 마켓컬리/뷰티컬리' (cart), '컬리소개 - 컬리' (introduce), '로그인 - 컬리'. The introduce page states the operator is 주식회사 컬리, CEO 김슬아, 서울 강남구 테헤란로 133.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.kurly.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "kurly.com is the operator's own storefront — a user browses collections, adds to cart, logs in and orders dawn-delivery groceries entirely in a browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The brand is now marketed as '컬리' (마켓컬리 + 뷰티컬리) on one domain; there is no separate 마켓컬리-only landing, so the single kurly.com root is used for the 마켓컬리 key.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "mega_coffee",
+      "service_name_canonical": "메가커피",
+      "candidate_urls": [
+        "https://www.mega-mgccoffee.com/",
+        "https://www.megamgccoffee.co.kr/",
+        "https://www.megacoffee.co.kr/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "메가엠지씨커피 공식 홈페이지 메가커피 mmgccoffee"
+        ],
+        "results": [
+          {
+            "url": "https://www.mega-mgccoffee.com/",
+            "evidence": "WebSearch result titled '메가MGC커피'. WebFetch confirms the brand site operated by 주식회사 엠지씨글로벌 (business reg. 105-87-51367, Gangnam Seoul) with menu, store finder across 4,455 stores, franchise startup costs, events and customer-service numbers.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.megamgccoffee.co.kr/",
+            "evidence": "WebSearch result titled '메가MGC커피 공식쇼핑몰, 메가커피 공식 쇼핑몰 …' — a separate official merchandise shopping mall, not the brand landing.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.megacoffee.co.kr/",
+            "evidence": "WebSearch result titled '메가커피 공식 쇼핑몰' — another merchandise-shop domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.mega-mgccoffee.com/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "The official brand site carries menu, store locator, events and franchise recruitment only — beverage ordering and payment happen at the counter or in the 메가MGC커피 app, not on this page.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I did not exhaustively verify that no in-browser ordering path exists behind login; also could not confirm the exact division of roles between 엠지씨글로벌 and 앤하우스 as operators. megamgccoffee.co.kr / megacoffee.co.kr are goods shopping malls and would be WEB_SERVICE if the study meant those.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "monimo",
+      "service_name_canonical": "모니모",
+      "candidate_urls": [
+        "https://www.monimo.com/",
+        "https://www.monimo.com/w/main/WPFMHP0103M0",
+        "https://m.monimo.com/monimo/homepage/bigevent/PGIFPMCHomepageBigeventBridge001"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "모니모 삼성금융네트웍스 공식 홈페이지 monimo",
+          "\"monimo.com\" 모니모 사이트",
+          "삼성금융네트웍스 모니모 samsungfn.com 홈페이지"
+        ],
+        "results": [
+          {
+            "url": "https://www.monimo.com/",
+            "evidence": "Apple App Store listing for 'monimo (모니모, 삼성금융네트웍스)' (id379577046) lists Seller 'Samsungcard Co., Ltd.' and Developer Website https://www.monimo.com ; privacy policy points to samsungcard.com. Search results also return '모니모 - monimo' at www.monimo.com.",
+            "source": "APP_STORE_LISTING"
+          },
+          {
+            "url": "https://www.monimo.com/w/main/WPFMHP0103M0",
+            "evidence": "Search result titled 'monimo (모니모, 삼성금융네트웍스)' — an internal page on the same operator domain.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://m.monimo.com/monimo/homepage/bigevent/PGIFPMCHomepageBigeventBridge001",
+            "evidence": "Search result titled '모니모 - monimo' on the operator's mobile subdomain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.monimo.com/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "monimo.com is confirmed as the operator's own domain via the App Store developer-website field, but the page is JavaScript-rendered and WebFetch returned only the title '모니모 - monimo', so I could not verify that core financial functions run in a browser there.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "Could not confirm whether www.monimo.com offers real in-browser login and transactions (which would make it WEB_SERVICE) or is only a promotional/app-bridge site. No 삼성금융네트웍스 brand site (e.g. samsungfn.com) surfaced in searches.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "my_files",
+      "service_name_canonical": "내 파일",
+      "candidate_urls": [
+        "https://galaxystore.samsung.com/detail/com.sec.android.app.myfiles?langCd=ko",
+        "https://www.samsungsvc.co.kr/solution/164886",
+        "https://play.google.com/store/apps/details?id=com.sec.android.app.myfiles"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "삼성 내 파일 Samsung My Files 앱 삼성전자 공식 페이지",
+          "samsung.com 갤럭시 기본앱 소개 페이지 계산기 내 파일 apps",
+          "\"samsung.com/sec/apps\" 삼성 앱 소개",
+          "\"내 파일\" OR \"계산기\" site samsung.com 앱 서비스 갤럭시 공식 소개 페이지"
+        ],
+        "results": [
+          {
+            "url": "https://galaxystore.samsung.com/detail/com.sec.android.app.myfiles?langCd=ko",
+            "evidence": "Search result titled '내 파일 - Galaxy Store 앱' — Samsung's own Galaxy Store web listing for package com.sec.android.app.myfiles.",
+            "source": "APP_STORE_LISTING"
+          },
+          {
+            "url": "https://www.samsungsvc.co.kr/solution/164886",
+            "evidence": "Search result '[삼성 스마트폰] 갤럭시, 내 파일 앱 사용 방법 안내' — Samsung Electronics' official Korean service/support site how-to article for the 내 파일 app.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://play.google.com/store/apps/details?id=com.sec.android.app.myfiles",
+            "evidence": "Google Play listing 'Samsung My Files' with developer Samsung Electronics Co., Ltd.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://galaxystore.samsung.com/detail/com.sec.android.app.myfiles?langCd=ko",
+        "proposed_landing_kind": "SYSTEM_APP",
+        "proposed_reason": "내 파일 is a One UI preinstalled file manager. I fetched https://www.samsung.com/sec/apps/ and enumerated all 24 listed app pages (Smart Switch, Quick Share, Samsung Notes, Samsung Wallet, 메시지, etc.) — there is no 내 파일 page, so no samsung.com product landing exists; only an app-store listing and a support how-to article.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The Galaxy Store listing is a store page, not a product landing; if the study requires a marketing/product landing, the honest answer is that none exists on samsung.com.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "naver_app",
+      "service_name_canonical": "네이버",
+      "candidate_urls": [
+        "https://www.naver.com/",
+        "https://www.navercorp.com/service/portal"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "네이버 공식 홈페이지 naver.com 포털"
+        ],
+        "results": [
+          {
+            "url": "https://www.naver.com/",
+            "evidence": "Search results consistently identify https://www.naver.com as the NAVER portal; NAVER Corp's own service page https://www.navercorp.com/service/portal describes 포털 as its representative service.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.navercorp.com/service/portal",
+            "evidence": "Search result '포털 l NAVER Corp.' — the operator's corporate page describing the 네이버 portal service.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.naver.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "www.naver.com is the operator's own portal where search, news, shopping and the rest of the core product are fully usable in a browser — the mobile app is a wrapper around the same service.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I did not WebFetch naver.com directly (Naver blocks automated fetches); the URL is confirmed through NAVER Corp's own corporate service page and multiple search results rather than a direct fetch.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "naver_map",
+      "service_name_canonical": "네이버지도",
+      "candidate_urls": [
+        "https://map.naver.com/",
+        "https://www.navercorp.com/service/map"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "네이버지도 웹 map.naver.com 공식"
+        ],
+        "results": [
+          {
+            "url": "https://map.naver.com/",
+            "evidence": "WebFetch of https://www.navercorp.com/service/map (NAVER Corp's own service page) states the official service URL is https://map.naver.com/ and links the Google Play / App Store / ONE Store apps.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.navercorp.com/service/map",
+            "evidence": "Search result '지도 l NAVER Corp.' — the operator's corporate page for the 네이버 지도 service.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://map.naver.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "NAVER Corp itself publishes map.naver.com as the 네이버 지도 service URL, and the desktop web map provides the core functions (place search, directions, transit) in-browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Direct WebFetch of map.naver.com was blocked ('Claude Code is unable to fetch from map.naver.com'), so in-browser functionality is inferred from NAVER Corp's own service page rather than verified by fetching the map itself.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "naver_naverpay",
+      "service_name_canonical": "네이버/네이버페이",
+      "candidate_urls": [
+        "https://pay.naver.com/",
+        "https://www.naver.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "네이버페이 공식 홈페이지 pay.naver.com",
+          "네이버페이 홈 pay.naver.com 결제내역 포인트 웹",
+          "네이버페이 웹사이트 주소 새로운 네이버페이 홈 서비스",
+          "NAVER 네이버 포털 공식 사이트 www.naver.com"
+        ],
+        "results": [
+          {
+            "url": "https://pay.naver.com/",
+            "evidence": "Korean Wikipedia '네이버페이' article (fetched) lists under 외부 링크 the official URL https://pay.naver.com/pc/history?page=1 and identifies the operator as 네이버파이낸셜.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.naver.com/",
+            "evidence": "WebSearch result set includes navercorp.com/service/portal ('포털 l NAVER Corp.') and the Korean Wikipedia 네이버 article identifying www.naver.com as the portal operated by NAVER Corporation.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://pay.naver.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "pay.naver.com is the browser-accessible Naver Pay home where a logged-in user views payment history, points and benefits and manages registered cards — the core function is usable on the web.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "Anthropic's fetcher is blocked from naver.com hosts (WebFetch on pay.naver.com failed and WebSearch refuses naver.com as an allowed domain), so I could not read either page directly; the pay.naver.com identification comes from the Korean Wikipedia external-link section, not from the page itself. The only concrete pay.naver.com path I actually saw is /pc/history?page=1 — I report the root as the landing but did not observe it. Naver Pay is also heavily app-centric, so an APP_ONLY reading is possible for parts of the service.",
+        "slash_pair_analysis": {
+          "left_brand": "네이버",
+          "left_url": "https://www.naver.com/",
+          "right_brand": "네이버페이",
+          "right_url": "https://pay.naver.com/",
+          "same_site": false,
+          "evidence": "Two distinct hosts under the naver.com domain run by two different legal entities: www.naver.com is the search portal operated by NAVER Corporation, while pay.naver.com is the simple-payment service operated by 네이버파이낸셜 (per Korean Wikipedia, which links pay.naver.com/pc/history as the service's official URL). They are related but not one landing site.",
+          "evidence_source": "WEBFETCH_PAGE (ko.wikipedia.org/wiki/네이버페이) + WEBSEARCH_RESULT"
+        }
+      }
+    },
+    {
+      "canonical_service_key": "nc_dept_newcore_outlet",
+      "service_name_canonical": "NC백화점/뉴코아아울렛",
+      "candidate_urls": [
+        "https://www.elandretail.com/",
+        "https://www.elandmall.co.kr/u/store-main"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "NC백화점 뉴코아아울렛 공식 홈페이지 이랜드리테일",
+          "\"NC백화점\" 공식 홈페이지 매장안내 지점 nc.elandretail.com",
+          "이랜드리테일 NC백화점 뉴코아아울렛 통합 홈페이지 주소"
+        ],
+        "results": [
+          {
+            "url": "https://www.elandretail.com/",
+            "evidence": "Newsis article ' 이랜드, NC백화점·뉴코아 아울렛 등 통합 홈페이지 선보여' and etoday article '이랜드리테일, NC백화점∙뉴코아아울렛 등 홈페이지 통합…전국 51개 지점 한 눈에' report that E-Land Retail merged the separate sites of NC백화점, 뉴코아아울렛, 2001아울렛 and 동아백화점 into one homepage. Search also returned elandretail.com sub-pages titled '뉴코아강남점' (/m/store/store_01.do?branchID=00110001), '회사소개 < ELAND RETAIL' and '지점안내ㆍ전단보기'.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.elandmall.co.kr/u/store-main",
+            "evidence": "WebSearch result titled 'NC백화점 | 이랜드 공식 온라인 패션스토어' — E-Land's online fashion mall, a different channel from the department-store/outlet brand landing.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.elandretail.com/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "elandretail.com is a branch-information site (지점안내ㆍ전단보기, floor guides, culture-center pages) for E-Land's offline department stores and outlets; purchasing runs through the separate elandmall.co.kr, while the measured card payment happens in-store.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "WebFetch of https://www.elandretail.com/ returned only the header text 'ELAND RETAIL', so I could not confirm brand coverage or transactionality from the page body itself — the same-site conclusion rests on press coverage plus the 뉴코아강남점 URL title. I also could not verify whether the 2016 consolidation still holds unchanged in 2026, nor whether a brand-specific sub-path (e.g. a NC백화점 landing tab) is the preferred entry point.",
+        "slash_pair_analysis": {
+          "left_brand": "NC백화점",
+          "left_url": "https://www.elandretail.com/",
+          "right_brand": "뉴코아아울렛",
+          "right_url": "https://www.elandretail.com/",
+          "same_site": true,
+          "evidence": "Two Korean press reports (Newsis 2016-05-24, etoday) state E-Land Retail consolidated the homepages of NC백화점, 뉴코아아울렛, 2001아울렛 and 동아백화점 into a single integrated site with mobile web and app. A search result page https://www.elandretail.com/m/store/store_01.do?branchID=00110001 is titled '뉴코아강남점', confirming outlet branches live on the same elandretail.com host that also serves NC백화점 branches. No separate nc.* or newcore.* landing appeared in any search.",
+          "evidence_source": "WEBSEARCH_RESULT"
+        }
+      }
+    },
+    {
+      "canonical_service_key": "netflix",
+      "service_name_canonical": "Netflix",
+      "candidate_urls": [
+        "https://www.netflix.com/",
+        "https://www.netflix.com/login",
+        "https://media.netflix.com/en/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "Netflix 공식 사이트 netflix.com 한국"
+        ],
+        "results": [
+          {
+            "url": "https://www.netflix.com/",
+            "evidence": "Search result 'Netflix - Watch TV Shows Online, Watch Movies Online' at https://www.netflix.com/ ; Netflix Help Center (help.netflix.com/en/node/412) states you can sign in and watch instantly on the web at netflix.com from a personal computer.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.netflix.com/login",
+            "evidence": "Search result 'Netflix' login page on the first-party domain.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://media.netflix.com/en/",
+            "evidence": "Search result 'Netflix Media Center' — Netflix's own corporate press site (not the consumer landing).",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.netflix.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "Netflix's own Help Center confirms playback works in a browser at netflix.com after sign-in, so the core streaming function is usable at the URL, not just advertised there.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I did not verify the Korea-localized entry point separately; netflix.com geo-redirects to the Korean experience rather than using a distinct .kr domain, which I did not test.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "nh_cok_bank",
+      "service_name_canonical": "NH콕뱅크",
+      "candidate_urls": [
+        "https://banking.nonghyup.com/nhbank.html",
+        "http://mobile.nonghyup.com/promotion/appList01.do",
+        "https://apps.apple.com/kr/app/nh%EC%BD%95%EB%B1%85%ED%81%AC-%EB%86%8D%ED%98%91/id1131147442"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "NH콕뱅크 농협상호금융 공식 안내 홈페이지",
+          "\"콕뱅크\" 농협상호금융 인터넷뱅킹 사이트 nonghyup.com 상호금융",
+          "농협상호금융 콕뱅크 공식 사이트 nhcokbank 소개"
+        ],
+        "results": [
+          {
+            "url": "https://banking.nonghyup.com/nhbank.html",
+            "evidence": "WebFetch confirmed title 'NH Bank - 농협인터넷뱅킹', operated by 농협; the page serves both 농협은행 and 농·축협 products and explicitly promotes NH스마트뱅킹, NH올원뱅크 and NH콕뱅크 under 'NH App과 함께'. This is the operator's own web banking site but not a 콕뱅크 landing.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "http://mobile.nonghyup.com/promotion/appList01.do",
+            "evidence": "Search result titled '상호금융/은행 > 농협앱 소개 > e홍보센터' on the operator's nonghyup.com domain — an official app-introduction directory. WebFetch failed (connection refused on 443; the URL is HTTP-only), so I could not confirm its contents.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://apps.apple.com/kr/app/nh%EC%BD%95%EB%B1%85%ED%81%AC-%EB%86%8D%ED%98%91/id1131147442",
+            "evidence": "App Store listing; WebFetch showed seller 'National Agricultural Cooperative Federation' (농협중앙회) and NO developer website field — only a support phone (1600-2800) and a privacy policy at m.nonghyup.com.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://banking.nonghyup.com/nhbank.html",
+        "proposed_landing_kind": "APP_ONLY",
+        "proposed_reason": "No standalone web landing for NH콕뱅크 itself exists in any result I saw: the App Store listing has no developer-website field, and the only operator-run web presence is the general 농협인터넷뱅킹 site, which merely links the app. The URL given is the operator's banking site, not a 콕뱅크 landing page.",
+        "discovery_confidence": "LOW",
+        "uncertainty": "Could not verify http://mobile.nonghyup.com/promotion/appList01.do (HTTPS connection refused), which search results indicate is 농협's official '농협앱 소개' directory and may contain a genuine 콕뱅크 introduction page. If the study needs a 콕뱅크-specific landing, treat this as effectively UNRESOLVED.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "nh_smart_banking",
+      "service_name_canonical": "NH스마트뱅킹",
+      "candidate_urls": [
+        "https://banking.nonghyup.com/nhbank.html",
+        "https://m.nonghyup.com/nhbank.html",
+        "https://apps.apple.com/kr/app/nh%EC%8A%A4%EB%A7%88%ED%8A%B8%EB%B1%85%ED%82%B9/id1444712671"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "NH스마트뱅킹 NH농협은행 앱 공식 안내 nonghyup.com",
+          "농협상호금융 인터넷뱅킹 banking.nonghyup.com 공식"
+        ],
+        "results": [
+          {
+            "url": "https://banking.nonghyup.com/nhbank.html",
+            "evidence": "WebFetch confirmed title 'NH Bank - 농협인터넷뱅킹', operated by NH Bank, offering deposits/products for 농협은행 and 농·축협 and promoting NH스마트뱅킹 by name under 'NH App과 함께'.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://m.nonghyup.com/nhbank.html",
+            "evidence": "Search result '개인 - NH Bank - 농협인터넷뱅킹' — the operator's mobile web banking entry point on the same first-party domain.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://apps.apple.com/kr/app/nh%EC%8A%A4%EB%A7%88%ED%8A%B8%EB%B1%85%ED%82%B9/id1444712671",
+            "evidence": "App Store listing; WebFetch showed seller 'National Agricultural Cooperative Federation', support 1588-2100, developer@nonghyup.com and a privacy policy on m.nonghyup.com — confirming nonghyup.com as the operator's own domain. No developer-website URL was listed.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://banking.nonghyup.com/nhbank.html",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "banking.nonghyup.com is 농협's own internet banking site where the app's core functions (조회, 이체, 상품가입, 공과금 납부) are performed in a browser; it is the web counterpart of NH스마트뱅킹 rather than a download page.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "This is the bank's general internet-banking site, not an NH스마트뱅킹-specific landing — no dedicated app-introduction page on a nonghyup.com domain surfaced in searches, and the App Store listing supplies no developer website to cross-check.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "nonghyup_hanaro_mart",
+      "service_name_canonical": "농협하나로마트",
+      "candidate_urls": [
+        "https://www.nhhanaro.co.kr/",
+        "https://www.nonghyupmall.com/",
+        "https://hanaromart.nonghyup.com/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "농협하나로마트 공식 온라인 하나로마트 쇼핑몰 홈페이지",
+          "농협하나로유통 공식 홈페이지 하나로마트 매장안내"
+        ],
+        "results": [
+          {
+            "url": "https://www.nhhanaro.co.kr/",
+            "evidence": "WebSearch result with the title '농협 하나로마트' at exactly this root URL; a sibling result https://www.nhhanaro.co.kr/mbshome/mbs/nahh002/index.do is titled '농협하나로유통', identifying the operator 농협하나로유통 (Mapo, Seoul, 02-2022-4500).",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.nonghyupmall.com/",
+            "evidence": "WebFetch confirms title '농협몰(NH싱씽몰)', operator '농협경제지주주식회사(e커머스사업부)', with full browse/cart/order functionality — but this is 농협's e-commerce arm, a different operator from 농협하나로유통.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://hanaromart.nonghyup.com/",
+            "evidence": "WebSearch result titled '제주시농협 쇼핑몰' — a single regional cooperative's mall, not the national brand landing.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.nhhanaro.co.kr/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "nhhanaro.co.kr is 농협하나로유통's own site offering 전국마트찾기 store search, flyers and event notices for the 2,000+ physical 하나로마트 outlets; consumer purchasing lives on the separately-operated 농협몰.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "WebFetch of both https://www.nhhanaro.co.kr/ and the /mbshome/... path failed with a redirect loop, so I could not read the page body; identification rests on search-result titles. Also note 하나로마트 is a federated brand — many individual local cooperatives run their own separate malls (e.g. hanaromart.nonghyup.com, nhjirisanfood.co.kr), so 'the' single landing is genuinely ambiguous.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "ns_homeshopping",
+      "service_name_canonical": "NS홈쇼핑",
+      "candidate_urls": [
+        "https://www.nsmall.com/",
+        "http://pr.nsmall.com/company/overview.do"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "NS홈쇼핑 공식 홈페이지 nsmall"
+        ],
+        "results": [
+          {
+            "url": "https://www.nsmall.com/",
+            "evidence": "WebFetch of this URL returned page title 'NS홈쇼핑 - 건강한 아이디어'. Search also returned https://m.nsmall.com/ with the same title and http://pr.nsmall.com/company/overview.do titled '기업소개:회사소개 - NS홈쇼핑', confirming nsmall.com is NS홈쇼핑's own domain.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "http://pr.nsmall.com/company/overview.do",
+            "evidence": "WebSearch result titled '기업소개:회사소개 - NS홈쇼핑' — the corporate-introduction subdomain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.nsmall.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "nsmall.com is NS홈쇼핑's own shopping site where a user can watch the live broadcast, browse categories and order products in a browser.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "The WebFetch returned only the title (JS-rendered page), so I did not read the footer business-registration line or directly observe a cart/checkout flow; transactionality is inferred from the search-result description and the site's role as the TV home-shopping mall.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "paris_baguette_pariscroissant",
+      "service_name_canonical": "파리바게뜨/파리크라상",
+      "candidate_urls": [
+        "https://www.paris.co.kr/",
+        "https://www.paris.co.kr/company/about-pariscroissant/",
+        "https://m.pariscroissant.co.kr/product/list.html?page=1",
+        "https://www.spc.co.kr/brand/bakery_detail?idx=7"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "파리바게뜨 공식 홈페이지 파리크라상 홈페이지",
+          "파리바게뜨 브랜드 공식 사이트 SPC 파리크라상 운영 메뉴 매장찾기",
+          "파리크라상 브랜드 공식 사이트 베이커리 SPC 매장",
+          "\"파리크라상\" 공식 홈페이지 pariscroissant 직영 베이커리 카페"
+        ],
+        "results": [
+          {
+            "url": "https://www.paris.co.kr/",
+            "evidence": "WebSearch result titled '파리바게뜨'. WebFetch confirms the footer 'All Rights Reserved © PARIS BAGUETTE, PARIS CROISSANT CO., LTD.', i.e. operated by 파리크라상 CO., LTD., with product categories, 매장 정보 store locator and a franchise-inquiry section; company address in Seongnam.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.paris.co.kr/company/about-pariscroissant/",
+            "evidence": "WebSearch result titled '회사 소개 - ㈜파리크라상 소개'. WebFetch confirms this page on the same domain presents ㈜파리크라상 as the 1986-founded corporate entity that launched 파리바게뜨 in 1988 and operates the wider brand portfolio (파스쿠찌, 리나스, Passion5 …).",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://m.pariscroissant.co.kr/product/list.html?page=1",
+            "evidence": "WebSearch result titled '온라인 주문 - 파리크라상'. WebFetch shows the footer operator is '파리크라상 서래점' (rep. 도세호, 사업자등록번호 689-85-02870, 서울 서초구 서래로5길 2) — a single flagship-branch order site, not a corporate brand landing.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.spc.co.kr/brand/bakery_detail?idx=7",
+            "evidence": "WebSearch result titled '파리크라상 - SPC' — a group-level brand detail page. WebFetch of spc.co.kr/brand/bakery now returns only a migration notice pointing to https://www.sangmidang.co.kr (SPC Group homepage moved to 상미당홀딩스), so this path is being retired.",
+            "source": "WEBFETCH_PAGE"
+          }
+        ],
+        "proposed_best_url": "https://www.paris.co.kr/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "The fetched paris.co.kr page exposes product categories, a store locator and an online ordering/delivery entry point, so a consumer can act on the brand's core function from the browser.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "I could not confirm whether checkout actually completes on paris.co.kr or hands off to SPC's separate 해피오더 service — a follow-up fetch of /menu/ returned 404, so the ordering flow was not traced. If ordering is only a link-out, RETAIL_OFFLINE_ONLY would be the correct hint since the measured card payment is in-store. Also, if the study treats 파리크라상 as a distinct premium bakery brand rather than the operating company, no corporate landing for it was found and pariscroissant.co.kr covers only the 서래점 branch.",
+        "slash_pair_analysis": {
+          "left_brand": "파리바게뜨",
+          "left_url": "https://www.paris.co.kr/",
+          "right_brand": "파리크라상",
+          "right_url": "https://www.paris.co.kr/",
+          "same_site": true,
+          "evidence": "paris.co.kr is copyrighted jointly as 'PARIS BAGUETTE, PARIS CROISSANT CO., LTD.' and hosts the ㈜파리크라상 corporate introduction at /company/about-pariscroissant/, so both names resolve to one landing site. 파리크라상 here is the operating company of 파리바게뜨, not a co-equal separate web brand. The only 파리크라상-branded standalone site found (pariscroissant.co.kr, ' 온라인 주문 - 파리크라상') is registered to a single store, 파리크라상 서래점, so it is a branch order page rather than a second brand landing.",
+          "evidence_source": "WEBFETCH_PAGE"
+        }
+      }
+    },
+    {
+      "canonical_service_key": "samsung_calculator",
+      "service_name_canonical": "삼성 계산기",
+      "candidate_urls": [
+        "https://galaxystore.samsung.com/detail/com.sec.android.app.popupcalculator?langCd=ko",
+        "https://play.google.com/store/apps/details?id=com.sec.android.app.popupcalculator"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "Samsung Calculator app Google Play 삼성 계산기",
+          "samsung.com 갤럭시 기본앱 소개 페이지 계산기 내 파일 apps",
+          "\"samsung.com/sec/apps\" 삼성 앱 소개",
+          "\"내 파일\" OR \"계산기\" site samsung.com 앱 서비스 갤럭시 공식 소개 페이지"
+        ],
+        "results": [
+          {
+            "url": "https://galaxystore.samsung.com/detail/com.sec.android.app.popupcalculator?langCd=ko",
+            "evidence": "Search result titled '계산기 - Galaxy Store 앱' — Samsung's own Galaxy Store web listing for package com.sec.android.app.popupcalculator.",
+            "source": "APP_STORE_LISTING"
+          },
+          {
+            "url": "https://play.google.com/store/apps/details?id=com.sec.android.app.popupcalculator",
+            "evidence": "Google Play listing 'Samsung Calculator', developer Samsung Electronics Co., Ltd.; installable only on eligible Samsung phones.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://galaxystore.samsung.com/detail/com.sec.android.app.popupcalculator?langCd=ko",
+        "proposed_landing_kind": "SYSTEM_APP",
+        "proposed_reason": "삼성 계산기 is a One UI preinstalled utility. I fetched https://www.samsung.com/sec/apps/ and enumerated its full 24-app list; there is no 계산기 page, so Samsung publishes no product landing for it — only the Galaxy Store / Play listings.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "As with 내 파일, the only Samsung-operated web URL is a store listing, not a product landing; no samsung.com support article for the calculator surfaced either.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "samsung_card",
+      "service_name_canonical": "삼성카드",
+      "candidate_urls": [
+        "https://www.samsungcard.com/",
+        "https://play.google.com/store/apps/details?id=kr.co.samsungcard.mpocket"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "삼성카드 공식 홈페이지 samsungcard.com",
+          "삼성카드 앱 Google Play 삼성카드 developer 삼성카드주식회사"
+        ],
+        "results": [
+          {
+            "url": "https://www.samsungcard.com/",
+            "evidence": "WebFetch returned page title '삼성카드'. Independently corroborated: the Apple App Store listing for monimo (seller 'Samsungcard Co., Ltd.') gives its privacy policy as https://www.samsungcard.com/personal/customer-service/privacy/UHPPCC0378M0.jsp , and fetching that page confirmed '개인정보 처리방침 - 삼성카드' operated by 삼성카드(주) with the SAMSUNG CARD brand header.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://play.google.com/store/apps/details?id=kr.co.samsungcard.mpocket",
+            "evidence": "Google Play listing '삼성카드', developer 삼성카드(주), contact scard.app@samsung.com, address 서울특별시 중구 세종대로 67.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://www.samsungcard.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "samsungcard.com is 삼성카드(주)'s own site (verified via the operator's privacy-policy page on that domain) and provides member login, 이용내역/결제 조회, card application and benefits management in a browser, not merely an app download page.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "The homepage fetch returned only the title (JS-rendered), so the in-browser member functions are asserted from search descriptions plus the verified privacy page rather than from exercising login. Note also: the Google Play listing states all 삼성카드 services are being consolidated into 모니모 and the 삼성카드 app is discontinued on 2026-06-28, and the Korean App Store page for the 삼성카드 iOS app (id535125356) now returns HTTP 404 — the app's status may affect how this service should be classified in the study.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "samsung_internet_browser",
+      "service_name_canonical": "삼성 인터넷 브라우저",
+      "candidate_urls": [
+        "https://www.samsung.com/sec/apps/samsung-browser/",
+        "https://www.samsung.com/sec/apps/samsung-internet",
+        "https://browser.samsung.com/beta"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "삼성 인터넷 브라우저 공식 사이트 Samsung Internet browser official"
+        ],
+        "results": [
+          {
+            "url": "https://www.samsung.com/sec/apps/samsung-browser/",
+            "evidence": "WebSearch returned the result titled '삼성 브라우저 | 앱 & 서비스 | Samsung 대한민국' on samsung.com/sec (Samsung Korea's own domain). WebFetch of the page confirmed title 'Samsung Browser | Apps & Services | Samsung Korea', with Galaxy AI feature descriptions and Google Play / Windows PC download buttons — an official Samsung Korea product page for the Samsung Internet browser.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.samsung.com/sec/apps/samsung-internet",
+            "evidence": "WebSearch also returned a result titled 'samsung internet' on the same samsung.com/sec/apps path; appears to be an alternate/legacy path for the same product page.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://browser.samsung.com/beta",
+            "evidence": "Samsung Newsroom Korea article '삼성 인터넷 PC 브라우저 베타 프로그램 운영' referenced browser.samsung.com/beta as the PC beta program site. Not fetched/confirmed directly.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.samsung.com/sec/apps/samsung-browser/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "The page is an introduction/marketing page describing the browser's features with download links to Google Play and a Windows PC installer. The browser's core function (browsing the web) cannot be performed at that URL.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Could not confirm whether /sec/apps/samsung-internet is a distinct page or a redirect to /sec/apps/samsung-browser/. browser.samsung.com/beta was only seen quoted in a Newsroom article, not fetched.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "samsung_notes",
+      "service_name_canonical": "삼성 노트",
+      "candidate_urls": [
+        "https://www.samsung.com/sec/apps/samsung-notes/",
+        "https://play.google.com/store/apps/details?id=com.samsung.android.app.notes"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "삼성 노트 Samsung Notes 공식 사이트 samsung.com"
+        ],
+        "results": [
+          {
+            "url": "https://www.samsung.com/sec/apps/samsung-notes/",
+            "evidence": "WebSearch returned 'Samsung Notes | Apps & Services | Samsung 대한민국' on samsung.com/sec. WebFetch confirmed page title 'Samsung Notes | Apps & Services | Samsung Korea' describing S Pen handwriting, PDF annotation, Samsung Cloud sync — Samsung Korea's own product introduction page.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://play.google.com/store/apps/details?id=com.samsung.android.app.notes",
+            "evidence": "Google Play listing for Samsung Notes (package com.samsung.android.app.notes), confirming the app identity and Samsung Electronics as publisher.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://www.samsung.com/sec/apps/samsung-notes/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "Samsung Korea's marketing/introduction page for the Samsung Notes app; note-taking itself is not possible in the browser at that URL.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "Did not verify whether Samsung offers any separate web-based Notes viewer/editor (e.g. via Samsung Cloud) that would qualify as a WEB_SERVICE landing.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "samsung_wallet",
+      "service_name_canonical": "삼성 월렛",
+      "candidate_urls": [
+        "https://www.samsung.com/sec/apps/samsung-wallet/",
+        "https://www.samsung.com/sec/apps/samsung-wallet/serviceguide/",
+        "https://galaxystore.samsung.com/detail/com.samsung.android.spay"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "삼성 월렛 Samsung Wallet 공식 사이트 samsung.com/sec"
+        ],
+        "results": [
+          {
+            "url": "https://www.samsung.com/sec/apps/samsung-wallet/",
+            "evidence": "WebSearch returned 'Samsung Wallet ㅣ Samsung 대한민국' on samsung.com/sec. WebFetch confirmed page title 'Samsung Wallet ㅣ Samsung 대한민국', describing 신용카드/신분증/디지털 키/티켓 management with an '앱 다운로드' button linking to Galaxy Store.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.samsung.com/sec/apps/samsung-wallet/serviceguide/",
+            "evidence": "WebSearch returned 'Samsung Wallet - 서비스 가이드 ㅣ Samsung 대한민국' — an official sub-page of the same Samsung Korea section.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://galaxystore.samsung.com/detail/com.samsung.android.spay",
+            "evidence": "Galaxy Store listing 'Samsung Wallet KR' for package com.samsung.android.spay, operator-run app store listing.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://www.samsung.com/sec/apps/samsung-wallet/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "The page introduces Samsung Wallet and points to an app download; the wallet's core functions (payment, digital ID, keys) require the mobile app on a Samsung device and cannot be exercised in the browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "None material; the section has many sub-pages and the exact canonical top-level page could arguably be a different sub-path, but the fetched root page is clearly the section landing.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "seven_eleven",
+      "service_name_canonical": "세븐일레븐",
+      "candidate_urls": [
+        "https://www.7-eleven.co.kr/",
+        "https://www.lotte.co.kr/business/compDetail.do?compCd=L204"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "세븐일레븐 공식 홈페이지 코리아세븐 7-eleven.co.kr"
+        ],
+        "results": [
+          {
+            "url": "https://www.7-eleven.co.kr/",
+            "evidence": "WebFetch confirms the official Korean 7-ELEVEN site operated by Korea Seven Co., Ltd. — tagline 'Life Changing Experience, 고객의 마음속 첫번째 편의점 세븐일레븐', a store locator, event pages, product/PB categories, franchise startup guidance, ESG/ethical-management pages, Seoul corporate address and customer service 1577-0711.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.lotte.co.kr/business/compDetail.do?compCd=L204",
+            "evidence": "WebSearch result titled '코리아세븐 | BUSINESS | 롯데' — Lotte group's corporate page confirming 코리아세븐 as the operating affiliate.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.7-eleven.co.kr/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "The fetched site is store-locator, event, product-introduction and franchise-recruitment content for the physical convenience-store chain; there is no consumer checkout on the page, and the measured card payment happens at the store counter.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The site lists a service directory (bill payment, gift cards, delivery) whose entries might include a member-only transactional flow I did not test; delivery ordering for 세븐일레븐 is generally handled by a separate app (세븐일레븐 앱 / 라스트오더), which I did not verify.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "shinhan_sol_bank",
+      "service_name_canonical": "신한 SOL뱅크",
+      "candidate_urls": [
+        "https://bank.shinhan.com/",
+        "https://nsol.shinhan.com/contents/guide/index.html",
+        "https://apps.apple.com/kr/app/신한-sol뱅크-신한은행-스마트폰뱅킹/id357484932"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "신한 SOL뱅크 신한은행 공식 홈페이지 shinhan.com",
+          "\"bank.shinhan.com\" 신한은행 개인 인터넷뱅킹 공식"
+        ],
+        "results": [
+          {
+            "url": "https://bank.shinhan.com/",
+            "evidence": "WebSearch results consistently identify bank.shinhan.com as Shinhan Bank's official personal internet banking site (계좌조회·이체·상품가입·대출신청 on PC, login via 금융인증서/공동인증서/SOL Pass/ID). WebFetch of the URL returned page title 'Shinhan Bank' on the operator's own shinhan.com domain (page body is JS-rendered so further content could not be read).",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://nsol.shinhan.com/contents/guide/index.html",
+            "evidence": "WebFetch confirmed this is Shinhan Bank's own interactive tutorial site titled '신한 SOL뱅크 사용방법', with Google Play / App Store download links for the 신한 SOL뱅크 app and a disclaimer that all screens are demonstrations with no real transactions.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://apps.apple.com/kr/app/신한-sol뱅크-신한은행-스마트폰뱅킹/id357484932",
+            "evidence": "Apple App Store KR listing for '신한 SOL뱅크 – 신한은행 스마트폰뱅킹', confirming Shinhan Bank as the operator of the measured app.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://bank.shinhan.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "bank.shinhan.com is Shinhan Bank's own personal internet banking portal where a user can log in and perform the core banking functions (inquiry, transfer, product signup) in a browser, i.e. the web counterpart of the SOL뱅크 app.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "The fetched page returned only the title 'Shinhan Bank' (JS-rendered), so I could not directly read the transaction UI or a footer confirming operator details; the WEB_SERVICE claim rests on multiple secondary Korean sources plus the official shinhan.com domain. Also, there is no dedicated 'SOL뱅크'-branded web landing — the app-specific official page (nsol.shinhan.com) is only a tutorial, so which of the two counts as 'the' landing for this app is a judgement call.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "shinsegae_department_store",
+      "service_name_canonical": "신세계백화점",
+      "candidate_urls": [
+        "https://www.shinsegae.com/index.do",
+        "https://shinsegaemall.ssg.com/",
+        "https://www.shinsegae.com/store/main.do"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "신세계백화점 공식 홈페이지 shinsegae.com"
+        ],
+        "results": [
+          {
+            "url": "https://www.shinsegae.com/index.do",
+            "evidence": "WebSearch result titled '신세계백화점' at this exact URL. WebFetch confirms title '신세계백화점', operator '(주)신세계' headquartered in Seoul, with branch pages (강남/본점/타임스퀘어 …), 신백멤버스 membership, academy/gallery/culture-hall programming and customer support.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://shinsegaemall.ssg.com/",
+            "evidence": "WebSearch result titled '다채로운 라이프스타일의 시작, 신세계몰' — the transactional 신세계몰 on the SSG.COM platform, a separate e-commerce channel.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.shinsegae.com/store/main.do",
+            "evidence": "WebSearch result at this URL; sibling deptmapp.shinsegae.com pages titled '한눈에 보기 | 강남점 - 신세계백화점', '층별 안내 | 본점' — branch/floor guides on the same official domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.shinsegae.com/index.do",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "shinsegae.com is the department store's own brand site centred on branch/floor guides, culture-and-arts programming and VIP membership; product purchase is routed to the separately-operated SSG.COM (shinsegaemall.ssg.com), and the measured card payment occurs in-store.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "The fetched page does surface product categories that may lead into an e-commerce flow, so the WEB_SERVICE/RETAIL_OFFLINE_ONLY boundary is judgement-dependent here. Also unresolved: whether the study prefers the root https://www.shinsegae.com/ , /index.do, or /store/main.do as the canonical landing.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "tiktok",
+      "service_name_canonical": "TikTok",
+      "candidate_urls": [
+        "https://www.tiktok.com/",
+        "https://www.tiktok.com/foryou"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "TikTok official website tiktok.com web version watch videos"
+        ],
+        "results": [
+          {
+            "url": "https://www.tiktok.com/",
+            "evidence": "WebSearch returned operator-owned results on www.tiktok.com including 'TikTok - Make Your Day' (https://www.tiktok.com/en/) and 'Watch trending videos for you | TikTok' (https://www.tiktok.com/foryou?lang=en), showing tiktok.com serves a browsable video feed in the web browser.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://www.tiktok.com/foryou",
+            "evidence": "Search result titled 'Watch trending videos for you | TikTok' on the operator's own domain — the web feed page.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://www.tiktok.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "tiktok.com serves the full video feed, search, and account interaction in a web browser — the core function of the service is usable there without the app.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I did not fetch www.tiktok.com directly (bot protection), so the WEB_SERVICE classification rests on operator-domain search results plus the well-documented web client. Korean users land on the same global www.tiktok.com; no separate .kr operator domain was found.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "tiktok_lite",
+      "service_name_canonical": "TikTok Lite",
+      "candidate_urls": [
+        "https://ads.tiktok.com/help/article/about-tiktok-lite-japan-and-korea",
+        "https://play.google.com/store/apps/details?id=com.ss.android.ugc.tiktok.lite",
+        "https://apps.apple.com/ug/app/tiktok-lite/id6447160980"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "TikTok Lite official app 틱톡 라이트 developer website",
+          "틱톡 라이트 TikTok Lite 한국 앱스토어 개발자 TikTok Pte. Ltd. 웹사이트"
+        ],
+        "results": [
+          {
+            "url": "https://ads.tiktok.com/help/article/about-tiktok-lite-japan-and-korea",
+            "evidence": "Operator-published TikTok For Business help article 'About TikTok Lite in Japan and Korea', stating TikTok Lite (Japan/Korea) is a separate 18+ product and an extension of the main TikTok app, distinct from the data-light TikTok Lite in 150+ other countries. This is an operator page about the product, not a consumer landing.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://play.google.com/store/apps/details?id=com.ss.android.ugc.tiktok.lite",
+            "evidence": "Google Play listing for TikTok Lite; developer identified in search results as TikTok Pte. Ltd. WebFetch of the listing was truncated and did not expose a 'developer website' field.",
+            "source": "APP_STORE_LISTING"
+          },
+          {
+            "url": "https://apps.apple.com/ug/app/tiktok-lite/id6447160980",
+            "evidence": "Apple App Store listing for TikTok Lite (id6447160980) surfaced in search; confirms the app exists on iOS under TikTok Pte. Ltd.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": null,
+        "proposed_landing_kind": "APP_ONLY",
+        "proposed_reason": "No consumer-facing web landing operated for TikTok Lite was found — the only operator pages are an advertiser help-center article and app store listings. The TikTok Lite reward/points experience exists solely inside the mobile app.",
+        "discovery_confidence": "MEDIUM",
+        "uncertainty": "I could not read the Google Play 'developer website' field (fetch truncated) or reach a Korean-market TikTok Lite promo page; it is possible TikTok operates a Korea-specific TikTok Lite campaign page I did not surface. www.tiktok.com is the main TikTok product, not TikTok Lite, so I deliberately did not reuse it.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "tmap",
+      "service_name_canonical": "티맵",
+      "candidate_urls": [
+        "https://www.tmapmobility.com/",
+        "https://www.tmap.co.kr/",
+        "https://play.google.com/store/apps/details?id=com.skt.tmap.ku"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "티맵 TMAP 공식 홈페이지 tmap.co.kr 티맵모빌리티"
+        ],
+        "results": [
+          {
+            "url": "https://www.tmapmobility.com/",
+            "evidence": "WebFetch of https://www.tmap.co.kr/ returned HTTP 301 redirecting to https://www.tmapmobility.com/. Fetching that URL gave page title 'TMAP MOBILITY', operator 'Tmap Mobility Co., Ltd. (티맵모빌리티㈜)', with sections on TMAP navigation, driving score, parking, EV charging, TMAP AUTO, API and advertising, plus app download guidance.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.tmap.co.kr/",
+            "evidence": "Search result and multiple Korean sources cite www.tmap.co.kr as TMAP's homepage; a direct fetch shows it is an operator-owned domain that 301-redirects to www.tmapmobility.com.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://play.google.com/store/apps/details?id=com.skt.tmap.ku",
+            "evidence": "Google Play listing '티맵 - 장소추천, 지도, 운전점수, 대중교통, 대리' (package com.skt.tmap.ku), the measured Android app.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://www.tmapmobility.com/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "The fetched page is an informational/marketing hub run by 티맵모빌리티 that describes the TMAP services and directs users to download the app; navigation itself is not usable in the browser there.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "www.tmap.co.kr is the more brand-canonical URL but currently redirects; if the study needs the pre-redirect URL, tmap.co.kr should be used instead. I also did not check whether a separate web map viewer exists elsewhere on the operator's domains.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "top_mart",
+      "service_name_canonical": "탑마트",
+      "candidate_urls": [
+        "https://www.seowon.com/",
+        "https://www.seowon.com/shopping/storeList"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "탑마트 슈퍼마켓 공식 홈페이지 topmart",
+          "서원유통 탑마트 홈페이지 매장찾기 전단"
+        ],
+        "results": [
+          {
+            "url": "https://www.seowon.com/",
+            "evidence": "Namuwiki '탑마트' article (fetched) lists the official homepage as https://www.seowon.com/ and the operator as 서원유통 (HQ Busan Buk-gu), with official Instagram @tapmart_seowon. WebSearch independently returned https://www.seowon.com/shopping/storeList titled '탑마트 휴무일' and https://www.seowon.com/shopping/leafletList titled '서원유통'.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://www.seowon.com/shopping/storeList",
+            "evidence": "WebFetch confirms operator (주)서원유통 with a 탑마트 store list across Busan/Gyeongnam/Gyeongbuk/Ulsan, 인터넷전단 online flyers, 행사안내 events, 탑보너스카드 loyalty program, gift certificates, FAQ, 탑마트앱 and recruitment sections.",
+            "source": "WEBFETCH_PAGE"
+          }
+        ],
+        "proposed_best_url": "https://www.seowon.com/",
+        "proposed_landing_kind": "RETAIL_OFFLINE_ONLY",
+        "proposed_reason": "The operator's site provides store locations, weekly paper-flyer scans, event notices and loyalty-card info for the ~130 physical 탑마트 stores; there is no online ordering, and the measured card payment happens at the store.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "A separate topmart.co.kr domain was mentioned in a search-result summary but never appeared as an actual result URL and my HTTPS fetch of it failed with an SSL WRONG_VERSION_NUMBER error, so I did not treat it as verified. Note the brand landing lives on the operator's corporate domain (seowon.com) rather than a 탑마트-named domain — confirmed by Namuwiki and by two seowon.com pages carrying 탑마트 titles.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "toss",
+      "service_name_canonical": "토스",
+      "candidate_urls": [
+        "https://toss.im/",
+        "https://business.toss.im/"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "토스 toss.im 공식 홈페이지 비바리퍼블리카"
+        ],
+        "results": [
+          {
+            "url": "https://toss.im/",
+            "evidence": "Multiple company-profile sources (THE VC, RocketPunch) list toss.im as 비바리퍼블리카(Viva Republica)'s official homepage. WebFetch of https://toss.im/ returned page title 'Toss' with navigation for 서비스/비즈니스/뉴스/채용 and prominent '앱 다운로드' buttons.",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://business.toss.im/",
+            "evidence": "Operator-run subdomain '토스 비즈니스' surfaced in search — a separate B2B property on the same official domain.",
+            "source": "WEBSEARCH_RESULT"
+          }
+        ],
+        "proposed_best_url": "https://toss.im/",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "toss.im is Viva Republica's corporate/product landing site with app download buttons and service, news and recruiting sections; the actual financial functions require the Toss mobile app.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "The fetched page did not show a footer with the corporate registration details, so operator identity rests on third-party company databases plus the domain being used across Toss's own properties (blog.toss.im, business.toss.im).",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "v3_mobile_plus",
+      "service_name_canonical": "V3 Mobile Plus",
+      "candidate_urls": [
+        "https://www.ahnlab.com/ko/product/v3-mobile-plus",
+        "https://mplweb.ahnlab.com/mplweb/v3mp/main_android.do",
+        "https://play.google.com/store/apps/details?id=com.ahnlab.v3mobileplus"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "V3 Mobile Plus 안랩 AhnLab 공식 제품 페이지 ahnlab.com"
+        ],
+        "results": [
+          {
+            "url": "https://www.ahnlab.com/ko/product/v3-mobile-plus",
+            "evidence": "WebFetch confirmed page title '모바일 금융 보안 솔루션 | V3 Mobile Plus' on AhnLab's own ahnlab.com domain, describing V3 Mobile Plus as a real-time mobile financial transaction security solution, with AhnLab corporate contact (031-722-8000, Gyeonggi-do address).",
+            "source": "WEBFETCH_PAGE"
+          },
+          {
+            "url": "https://mplweb.ahnlab.com/mplweb/v3mp/main_android.do",
+            "evidence": "Search result 'V3 Mobile PLUS' on AhnLab's own mplweb.ahnlab.com subdomain — the app's distribution/terms portal used by partner financial apps.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://play.google.com/store/apps/details?id=com.ahnlab.v3mobileplus",
+            "evidence": "Google Play listing 'V3 Mobile Plus' (package com.ahnlab.v3mobileplus), publisher AhnLab.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://www.ahnlab.com/ko/product/v3-mobile-plus",
+        "proposed_landing_kind": "OFFICIAL_PRODUCT_PAGE",
+        "proposed_reason": "AhnLab's Korean product page introduces V3 Mobile Plus and its features for B2B financial customers; the security agent itself runs inside partner banking apps and has no browser-usable function at that URL.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "None material. mplweb.ahnlab.com is an alternative operator-run landing tied to app install/terms flows; if the study prefers the end-user-facing entry point, that subdomain may be more relevant than the marketing page.",
+        "slash_pair_analysis": null
+      }
+    },
+    {
+      "canonical_service_key": "youtube",
+      "service_name_canonical": "YouTube",
+      "candidate_urls": [
+        "https://www.youtube.com/",
+        "https://play.google.com/store/apps/details?id=com.google.android.youtube"
+      ],
+      "discovery": {
+        "method": "WEB_SEARCH_CANDIDATE_THEN_ONSITE_VERIFICATION",
+        "search_queries": [
+          "YouTube official website youtube.com Google"
+        ],
+        "results": [
+          {
+            "url": "https://www.youtube.com/",
+            "evidence": "WebSearch returned multiple operator-owned pages on www.youtube.com (e.g. https://www.youtube.com/@YouTube 'YouTube's official channel') plus Google-operated properties blog.youtube and support.google.com/youtube, confirming youtube.com as the official site operated by Google/YouTube.",
+            "source": "WEBSEARCH_RESULT"
+          },
+          {
+            "url": "https://play.google.com/store/apps/details?id=com.google.android.youtube",
+            "evidence": "Google Play listing for the YouTube app (package com.google.android.youtube), publisher Google LLC.",
+            "source": "APP_STORE_LISTING"
+          }
+        ],
+        "proposed_best_url": "https://www.youtube.com/",
+        "proposed_landing_kind": "WEB_SERVICE",
+        "proposed_reason": "youtube.com delivers the full service — browsing, searching, watching, commenting, subscribing — directly in a web browser.",
+        "discovery_confidence": "HIGH",
+        "uncertainty": "I did not fetch www.youtube.com directly (JS-rendered/bot-protected); classification rests on operator-domain search results and the universally known web client. No Korea-specific operator domain exists (youtube.com serves .kr users).",
+        "slash_pair_analysis": null
+      }
+    }
+  ]
+}
