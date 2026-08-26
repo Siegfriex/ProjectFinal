@@ -5,9 +5,20 @@ figure 판독 결과만 커밋돼 있어 산출물로부터 재현이 불가능�
 판독이 실제로 일어난 워크플로 저널을 입력으로 삼는 재생성 경로를 코드로 남긴다.
 
 입력 (읽기 전용):
-    저널 JSONL — figure 11종의 판독 결과(figure_id 보유) + 교차검증 결과(agrees 보유)
-    기본 경로는 --journal 로 덮어쓸 수 있다. 저널이 없으면 스크립트는 실패하며,
-    기존 산출물을 덮어쓰지 않는다.
+    sources/wiseapp/extraction_journal/wf_bc403111-047_journal.jsonl
+        figure 11종의 판독 결과(figure_id 보유) + 교차검증 결과(agrees 보유).
+        C011(P2-3): 이 저널은 세션 경로에만 있어 clone 만으로는 261행 재현이 불가능했다.
+        저장소 안으로 옮기고 sha256 을 source_evidence_manifest.json 에 등록했다.
+        --journal 로 다른 경로를 지정할 수 있으나 기본값은 저장소 내부다.
+        저널이 없으면 스크립트는 실패하며, 기존 산출물을 덮어쓰지 않는다.
+
+실행 순서 (C011/P2-4) — 이 스크립트가 먼저다
+    1) build_source_rows_from_journal.py   저널 → source_ranking_rows + panel_registry
+    2) build_canonical_entities.py         위 두 산출물 → service_master / alias / membership /
+                                           web_target_group, 그리고 panel_registry 에 panel_scope 를 얹는다
+    panel_scope 의 소유자는 (2) 다. (1)을 단독 실행해도 (2)가 얹어 둔 panel_scope 를
+    기존 panel_registry 에서 이어받아 스키마(26컬럼)를 깨지 않는다 — 그 컬럼이 사라지면
+    test_axis_type_separates_industry_categories 가 깨진다는 사실을 감사가 실증했다.
 
 출력:
     state/source_ranking_rows.parquet / .csv   261행 (+ axis_type, figure_source_pointer)
@@ -39,29 +50,43 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / "state"
 
-DEFAULT_JOURNAL = Path(
-    "/home/sieg/.claude/projects/-home-sieg-projects-wsl-ProjectFinal/"
-    "11974cfd-b959-4a0e-9910-610e70f08ac8/subagents/workflows/wf_bc403111-047/journal.jsonl"
+# C011(P2-3): 저널을 저장소 안에 둔다. 세션 경로 의존은 단일 머신 재현성 함정이었다.
+DEFAULT_JOURNAL = (
+    ROOT / "sources" / "wiseapp" / "extraction_journal" / "wf_bc403111-047_journal.jsonl"
 )
+
+# panel_registry 에서 이 스크립트가 만들지 않는 컬럼 — 소유자는 build_canonical_entities.py 다.
+# 단독 실행 시 기존 산출물에서 이어받아 스키마를 보존한다(C011/P2-4).
+DOWNSTREAM_PANEL_COLUMNS = ("panel_scope",)
 
 EXPECTED_ROWS = 261
 EXPECTED_PANELS = 17
 EXPECTED_FIGURES = 11
 
-# ── C009(D3) 원문 index 와 1:1 대조가 끝난 장·절. 더 이상 추측이 아니다. ──────
-# authority_manifest.json 의 index_from_source 와 figure 순서를 대조한 결과다.
+# ── C011(P1-3) 원문 INDEX 절 제목 — raw/wiseapp933_text.txt 본문 문자열 그대로다. ──
+# C009 판본은 코호트 한정어 '액티브시니어+ 세대' 를 11개 절 전부에서 지웠고 Ch3(2)는
+# 어순까지 바꿔 적었다. 그래서 "원문 index 와 1:1 대조" 라는 주장은 성립하지 않았다 —
+# 실제로 대조된 것은 authority_manifest(파생 A) 와 panel_registry(파생 B) 였다.
+# 파생물끼리의 일치는 검증이 아니다. 이제 두 파생물 모두 원문 본문을 복사한다.
+# 원문 대조는 tests/test_c009_two_layer.py 가 raw/wiseapp933_text.txt 를 직접 파싱해 수행한다.
 FIGURE_SECTION: dict[str, tuple[int, int, str]] = {
-    "fig01": (1, 1, "(1) 앱 사용자 및 사용시간 평균 TOP15"),
-    "fig02": (1, 2, "(2) 앱 사용자 점유율 순위 TOP15"),
-    "fig03": (1, 3, "(3) 앱 사용자 성장률 순위 TOP10"),
-    "fig04": (2, 1, "(1) 사용자 비율이 높은 주요 금융 앱"),
-    "fig05": (2, 2, "(2) 사용자가 많이 성장한 주요 쇼핑 앱"),
-    "fig06": (3, 1, "(1) 순 결제추정금액 합 인덱스 및 총 결제횟수 평균 TOP15"),
-    "fig07": (3, 2, "(2) 업종별 순 결제추정금액 TOP10"),
-    "fig08": (3, 3, "(3) 순 결제추정금액 점유율 순위 TOP10"),
-    "fig09": (3, 4, "(4) 순 결제추정금액 성장률 TOP5"),
-    "fig10": (4, 1, "(1) 순 결제추정금액 비율이 높은 주요 홈쇼핑 리테일 브랜드"),
-    "fig11": (4, 2, "(2) 순 결제추정금액이 많이 성장한 주요 오프라인 마트 리테일 브랜드"),
+    # Chapter 1 의 세 절만 '세대' 뒤가 U+00A0(non-breaking space) 다. 원문 그대로 옮긴다 —
+    # 눈에 보이지 않는 차이라도 verbatim 은 verbatim 이다.
+    "fig01": (1, 1, "(1) 액티브시니어+ 세대\u00a0앱 사용자 및 사용시간 평균 TOP15"),
+    "fig02": (1, 2, "(2) 액티브시니어+ 세대\u00a0앱 사용자 점유율 순위 TOP15"),
+    "fig03": (1, 3, "(3) 액티브시니어+ 세대\u00a0앱 사용자 성장률 순위 TOP10"),
+    "fig04": (2, 1, "(1) 액티브시니어+ 세대 앱 사용자 비율이 높은 주요 금융 앱"),
+    "fig05": (2, 2, "(2) 액티브시니어+ 세대 앱 사용자가 많이 성장한 주요 쇼핑 앱"),
+    "fig06": (3, 1, "(1) 액티브시니어+ 세대 순 결제추정금액 합 인덱스 및 총 결제횟수 평균 TOP15"),
+    "fig07": (3, 2, "(2) 업종별 액티브시니어+ 세대 순 결제추정금액 TOP10"),
+    "fig08": (3, 3, "(3) 액티브시니어+ 세대 순 결제추정금액 점유율 순위 TOP10"),
+    "fig09": (3, 4, "(4) 액티브시니어+ 세대 순 결제추정금액 성장률 TOP5"),
+    "fig10": (4, 1, "(1) 액티브시니어+ 세대 순 결제추정금액 비율이 높은 주요 홈쇼핑 리테일 브랜드"),
+    "fig11": (
+        4,
+        2,
+        "(2) 액티브시니어+ 세대 순 결제추정금액이 많이 성장한 주요 오프라인 마트 리테일 브랜드",
+    ),
 }
 
 CHAPTER_TITLE: dict[int, str] = {
@@ -171,6 +196,12 @@ def build(readings: dict[str, dict]) -> tuple[pd.DataFrame, pd.DataFrame]:
                             "unit": metric["unit"],
                             "value": float(raw_value) if raw_value is not None else float("nan"),
                             "value_label": labels[j] if j < len(labels) else None,
+                            # C011(P2-5): 축 컬럼 중 axis_type 만 행에 전파돼 있었다.
+                            # '성장률' 은 fig05_t1(HALF_YEAR)과 fig07_t1(SINGLE_MONTH)에
+                            # 동시에 존재하는 유일한 metric_name 이라, 행 수준에서 기간 축이
+                            # 없으면 metric_name 만으로 집계할 때 두 기간이 섞인다.
+                            "period_label": period_label,
+                            "period_axis": period_axis,
                             "figure_source_pointer": (
                                 f"{figure_id}#t{table_index}/rank{row['rank']}/{metric['name']}"
                             ),
@@ -243,23 +274,75 @@ def main() -> None:
     if rows["source_row_id"].duplicated().any():
         raise SystemExit("source_row_id 중복")
 
+    # ── panel_scope 이어받기 (C011/P2-4) ─────────────────────────────────────
+    # 이 스크립트를 단독으로 돌리면 panel_registry 가 26 → 25 컬럼이 되어 panel_scope 가
+    # 사라지고 test_axis_type_separates_industry_categories 가 FAILED 했다(감사자 실증).
+    # 소유자는 build_canonical_entities.py 지만, 단독 실행이 스키마를 깨지 않도록 이어받는다.
+    carried: list[str] = []
+    panel_registry_path = STATE / "panel_registry.parquet"
+    if panel_registry_path.exists():
+        prev = pd.read_parquet(panel_registry_path)
+        for col in DOWNSTREAM_PANEL_COLUMNS:
+            if col in prev.columns and col not in panels.columns:
+                mapping = dict(zip(prev["panel_id"], prev[col], strict=True))
+                panels[col] = panels["panel_id"].map(mapping)
+                carried.append(col)
+    missing_downstream = [c for c in DOWNSTREAM_PANEL_COLUMNS if c not in panels.columns]
+    if missing_downstream:
+        print(
+            f"[주의] panel_registry 에 {missing_downstream} 가 없다. "
+            "build_canonical_entities.py 를 이어서 실행해야 스키마가 완성된다."
+        )
+
+    # ── 기존 산출물과의 실제 동등성 비교 (C011/P2-4) ──────────────────────────
+    # C009 판본은 `matches_existing_c002_output: existing.exists()` 였다. 파일이 있기만 하면
+    # True 를 적었으므로 '재생성이 기존 산출물과 일치한다' 는 주장을 전혀 검증하지 않았다.
+    # 감사 지적: 테스트가 통과를 위장했다. 이제 assert_frame_equal 로 실제 비교한다.
     existing = STATE / "source_ranking_rows.parquet"
+    comparison: dict[str, Any] = {
+        "compared": False,
+        "method": "NO_EXISTING_OUTPUT",
+        "columns_compared": [],
+        "columns_only_in_existing": [],
+        "columns_new_in_rebuild": sorted(rows.columns),
+        "result": None,
+    }
     if existing.exists():
         old = pd.read_parquet(existing)
         shared = [c for c in old.columns if c in rows.columns]
-        merged = old[shared].merge(rows[shared], on=shared, how="outer", indicator=True)
-        drift = merged[merged["_merge"] != "both"]
-        if not drift.empty:
+        left = old[shared].sort_values("source_row_id", ignore_index=True)
+        right = rows[shared].sort_values("source_row_id", ignore_index=True)
+        try:
+            pd.testing.assert_frame_equal(left, right, check_dtype=False, check_like=False)
+        except AssertionError as exc:
             raise SystemExit(
-                f"저널 재생성 결과가 기존 C002 원자료와 다르다 ({len(drift)}행)\n"
-                f"{drift.head(10).to_string()}"
-            )
+                f"저널 재생성 결과가 기존 C002 원자료와 다르다 (공통 {len(shared)}컬럼 비교)\n{exc}"
+            ) from exc
+        comparison = {
+            "compared": True,
+            "method": (
+                "pandas.testing.assert_frame_equal(check_dtype=False) "
+                "on shared columns sorted by source_row_id"
+            ),
+            "columns_compared": shared,
+            "columns_only_in_existing": sorted(set(old.columns) - set(rows.columns)),
+            "columns_new_in_rebuild": sorted(set(rows.columns) - set(old.columns)),
+            "result": "IDENTICAL",
+        }
+
+    journal_path = args.journal.resolve()
+    try:
+        journal_rel = str(journal_path.relative_to(ROOT.parents[1]))
+    except ValueError:
+        journal_rel = None
 
     provenance = {
-        "schema": "journal_provenance/v1",
+        "schema": "journal_provenance/v2",
         "generated_by": "research/landing_accessibility/scripts/build_source_rows_from_journal.py",
-        "journal_path": str(args.journal),
+        "journal_path": str(journal_path),
+        "journal_path_in_repo": journal_rel,
         "journal_sha256": hashlib.sha256(args.journal.read_bytes()).hexdigest(),
+        "journal_bytes": len(args.journal.read_bytes()),
         "figures_read": sorted(readings),
         "cross_verifications": len(verifications),
         "cross_verifications_agreeing": sum(1 for v in verifications if v.get("agrees")),
@@ -267,7 +350,12 @@ def main() -> None:
         "panels_rebuilt": len(panels),
         "row_id_formula": "row_ + sha256('{panel_id}|{rank}|{entity_name_raw}|{metric_name}')[:16]",
         "row_pointer_format": "<figure_id>#t<table_index>/rank<rank>/<metric_name>",
-        "matches_existing_c002_output": existing.exists(),
+        "build_order": [
+            "scripts/build_source_rows_from_journal.py",
+            "scripts/build_canonical_entities.py",
+        ],
+        "panel_columns_carried_from_downstream": carried,
+        "matches_existing_c002_output": comparison,
     }
 
     if args.check:

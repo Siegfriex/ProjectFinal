@@ -12,6 +12,7 @@
     state/web_target_group.parquet      web_target 층 (URL 미확정)
     state/entity_candidates.json        중간산출물 (원문 표기 인벤토리)
     state/extraction_corrections.json
+    state/_researcher_priors/system_app_hypothesis.json   **Source Layer 아님 — 연구자 가설**
     state/*.csv (사람이 읽는 사본)
 
 C009 구조 변경 — 측정 단위와 수집 단위를 분리한다
@@ -36,11 +37,24 @@ C009 감사 지적 반영
     D2  web_collectable 은 게이트 결론을 선점한 명명이었다. True 70건이 URL 증거 없이
         '업종이 아니다' 만으로 찍혔고 그 안에 선탑재 시스템 앱이 섞여 있었다.
         → web_eligibility_status 로 개명하고 기본값을 NOT_ASSESSED 로 되돌린다.
-           확정은 INDUSTRY_CATEGORY 의 EXCLUDED_INDUSTRY_AXIS 뿐이고,
-           선탑재 의심 앱은 SYSTEM_APP_CANDIDATE 로 표시만 한다(판정은 다음 게이트 일이다).
+           확정은 INDUSTRY_CATEGORY 의 EXCLUDED_INDUSTRY_AXIS 뿐이다.
     D6  entity_candidates.json 이 고아 산출물이었다. → 이 스크립트의 중간산출물로 편입한다.
     C   source_row_count 를 app_row_count / retail_row_count 로 분리해
         measurement_entity 축에서 도메인 교차 합산이 성립하지 않게 만든다.
+
+C011 감사 지적 반영
+    P1-1 web_target_group 의 member_service_ids / member_canonical_keys / member_domains 가
+         각각 독립 정렬돼 위치가 어긋났다(naver 그룹에서 naver_app↔RETAIL 로 읽힘).
+         → 하나의 정렬 키로 동시에 정렬한다. 세 배열은 이제 위치가 대응한다.
+    P1-2 SYSTEM_APP_CANDIDATE 11건은 A1~A4 인용이 0건인 하드코딩 이름 목록이었다.
+         → 상태값에서 제거하고 NOT_ASSESSED 로 되돌린다. 선탑재 추정은 Source Layer 밖의
+           state/_researcher_priors/system_app_hypothesis.json 으로 분리한다.
+
+실행 순서 (C011/P2-4)
+    1) scripts/build_source_rows_from_journal.py   저널 → 261행 + 17패널
+    2) scripts/build_canonical_entities.py         (이 파일) 위 산출물 → 2층 구조 + panel_scope
+    panel_scope 의 소유자는 이 파일이다. (1)을 단독 실행해도 (1)이 기존 panel_registry 에서
+    panel_scope 를 이어받으므로 스키마가 깨지지 않는다.
 
 원칙
     - 원자료 261행은 삭제/병합하지 않는다. entity_name_raw 는 그대로 보존한다.
@@ -249,17 +263,24 @@ ALIAS_OVERRIDE: dict[tuple[str, str], tuple[str, str]] = {
 # --------------------------------------------------------------------------
 # 3. web_eligibility_status — 웹 수집 적격 여부. **확정은 업종 축 배제뿐이다.**
 #    C009(D2): 이전 web_collectable 은 URL 증거 없이 True 70건을 찍어 게이트 결론을 선점했다.
-#    여기서는 (a) 업종 축 10건만 배제 확정, (b) 선탑재 의심 앱은 표시만, (c) 나머지는 미평가.
+#    C011(P1-2): 그 시정판이 남긴 SYSTEM_APP_CANDIDATE 11건도 같은 결함이었다. 두 감사관이
+#    독립적으로 지적했다 — 근거 11개가 전부 "…로 알려져 있다" 형식이고 A1~A4 인용이 0건이며,
+#    같은 GMS 번들인데 Google 포토는 찍히고 YouTube 는 안 찍히는 임의성이 실증됐다.
+#    → 상태값은 {NOT_ASSESSED, EXCLUDED_INDUSTRY_AXIS} 둘뿐이다. 선탑재 추정은 Source Layer 가
+#      아니라 state/_researcher_priors/system_app_hypothesis.json 으로 분리한다.
 # --------------------------------------------------------------------------
 STATUS_NOT_ASSESSED = "NOT_ASSESSED"
 STATUS_EXCLUDED_INDUSTRY = "EXCLUDED_INDUSTRY_AXIS"
-STATUS_SYSTEM_APP = "SYSTEM_APP_CANDIDATE"
-ALLOWED_ELIGIBILITY_STATUS = {STATUS_NOT_ASSESSED, STATUS_EXCLUDED_INDUSTRY, STATUS_SYSTEM_APP}
+ALLOWED_ELIGIBILITY_STATUS = {STATUS_NOT_ASSESSED, STATUS_EXCLUDED_INDUSTRY}
 
-# 단말 제조사(OEM) 또는 OS 사업자가 기본 탑재해, 사용자의 설치 행위 없이 단말에 존재했을
-# 가능성이 높은 앱. **선탑재 여부를 여기서 판정하지 않는다** — 다음 게이트가 검증할 후보 표시다.
-# 판정을 미루는 이유: 선탑재는 제조사·통신사·출고 시기별로 달라서 앱 이름만으로는 확정할 수 없다.
-SYSTEM_APP_CANDIDATE_BASIS: dict[str, str] = {
+# --------------------------------------------------------------------------
+# 3-b. 연구자 사전판단 — **연구 결과가 아니다. Source Layer 가 아니다.**
+#      아래 문구는 취득 자료(A1~A4) 어디에도 근거를 두지 않은 연구자의 배경지식이다.
+#      service_master 에 상태값으로 찍으면 근거 없는 판정이 데이터가 된다. 그래서 분리해
+#      가설 파일로만 남기고, 해소는 URL 증거를 보는 web_eligibility 게이트에 맡긴다.
+#      basis 문구는 C009 판본 그대로 옮긴다(사후 윤색 금지).
+# --------------------------------------------------------------------------
+SYSTEM_APP_HYPOTHESIS_BASIS: dict[str, str] = {
     "samsung_calculator": "삼성 단말 기본 탑재 계산기 유틸리티로 알려져 있다. 단독 서비스 랜딩페이지가 존재하는지 미확인.",
     "samsung_notes": "삼성 단말 기본 탑재 메모 유틸리티로 알려져 있다. 단독 서비스 랜딩페이지가 존재하는지 미확인.",
     "samsung_wallet": "삼성 단말 기본 탑재 결제/월렛 앱으로 알려져 있다. 제조사 제품 페이지로 귀결될 가능성이 있다.",
@@ -416,12 +437,9 @@ def main() -> None:
             group_key: str | None = None
             grouping_status: str | None = None
         else:
-            if ckey in SYSTEM_APP_CANDIDATE_BASIS:
-                eligibility = STATUS_SYSTEM_APP
-                elig_basis = SYSTEM_APP_CANDIDATE_BASIS[ckey]
-            else:
-                eligibility = STATUS_NOT_ASSESSED
-                elig_basis = "웹 수집 적격 여부를 아직 평가하지 않았다. URL 증거가 없다."
+            # C011(P1-2): 선탑재 추정으로 상태를 가르지 않는다. 브랜드 축은 전부 미평가다.
+            eligibility = STATUS_NOT_ASSESSED
+            elig_basis = "웹 수집 적격 여부를 아직 평가하지 않았다. URL 증거가 없다."
             if ckey in group_of:
                 group_id, group_key, _ = group_of[ckey]
                 grouping_status = GROUPING_CANDIDATE
@@ -459,6 +477,17 @@ def main() -> None:
     service_master = pd.DataFrame(svc_recs).sort_values(
         ["domain", "axis_type", "canonical_service_key"], ignore_index=True
     )
+    key2name = dict(
+        zip(
+            service_master["canonical_service_key"],
+            service_master["service_name_canonical"],
+            strict=True,
+        )
+    )
+
+    # C011(P1-2): 상태값 도메인을 코드에서 닫는다. 근거 없는 새 상태값이 들어오지 못한다.
+    bad_status = set(service_master["web_eligibility_status"]) - ALLOWED_ELIGIBILITY_STATUS
+    assert not bad_status, f"허용되지 않은 web_eligibility_status: {bad_status}"
 
     # 도메인 순수성 — measurement_entity 는 정확히 한 도메인에만 행을 갖는다.
     both = service_master[
@@ -474,14 +503,31 @@ def main() -> None:
         "web_target_key"
     ):
         is_candidate = wkey in WEB_TARGET_GROUP_CANDIDATES
+        # C011(P1-1): 세 배열을 각각 독립 정렬하면 위치가 어긋난다. wtg_6d5510a695d0a614(naver)
+        # 에서 naver_app 이 RETAIL 과, naver_naverpay 가 APP 과 같은 자리에 놓여 읽혔다.
+        # 집합 수준은 정확했지만, 네이버·G마켓 2중수집을 막으려고 만든 표가 같은 혼동을
+        # 재생산했다. 하나의 정렬 키(service_id)로 튜플을 정렬한 뒤 풀어서 위치를 일치시킨다.
+        members = sorted(
+            zip(
+                sub["service_id"],
+                sub["canonical_service_key"],
+                sub["domain"],
+                strict=True,
+            )
+        )
+        member_ids = [m[0] for m in members]
+        member_keys = [m[1] for m in members]
+        member_domains = [m[2] for m in members]
         web_recs.append(
             {
                 "web_target_group_id": wtg(str(wkey)),
                 "web_target_key": wkey,
-                "member_service_ids": ",".join(sorted(sub["service_id"])),
-                "member_canonical_keys": ",".join(sorted(sub["canonical_service_key"])),
-                "member_count": len(sub),
-                "member_domains": ",".join(sorted(set(sub["domain"]))),
+                "member_service_ids": ",".join(member_ids),
+                "member_canonical_keys": ",".join(member_keys),
+                "member_count": len(members),
+                # 위치 i 는 member_service_ids[i] 의 도메인이다. 집합이 아니라 배열이므로
+                # 같은 도메인이 두 번 나올 수 있다 — 그것이 정상이다.
+                "member_domains": ",".join(member_domains),
                 "grouping_status": GROUPING_CANDIDATE if is_candidate else GROUPING_SINGLETON,
                 "grouping_basis": (
                     WEB_TARGET_GROUP_CANDIDATES[str(wkey)][1]
@@ -498,6 +544,25 @@ def main() -> None:
     )
     unresolved = web_target_group[web_target_group["web_target_url"].notna()]
     assert unresolved.empty, "URL 미확정 상태에서 web_target_url 이 채워졌다"
+    bad_grouping = set(web_target_group["grouping_status"]) - ALLOWED_GROUPING_STATUS
+    assert not bad_grouping, f"허용되지 않은 grouping_status: {bad_grouping}"
+
+    # C011(P1-1): 세 member_* 배열의 위치 대응을 산출 시점에 강제한다.
+    domain_of = dict(zip(service_master["service_id"], service_master["domain"], strict=True))
+    key_of = dict(
+        zip(service_master["service_id"], service_master["canonical_service_key"], strict=True)
+    )
+    for rec in web_target_group.itertuples():
+        ids = rec.member_service_ids.split(",")
+        keys = rec.member_canonical_keys.split(",")
+        doms = rec.member_domains.split(",")
+        assert len(ids) == len(keys) == len(doms) == rec.member_count, (
+            f"{rec.web_target_group_id}: member_* 배열 길이 불일치"
+        )
+        for i, s_id in enumerate(ids):
+            assert domain_of[s_id] == doms[i] and key_of[s_id] == keys[i], (
+                f"{rec.web_target_group_id}[{i}]: member_* 위치 어긋남"
+            )
 
     # ---------------- source_membership ----------------
     mem = (
@@ -607,13 +672,105 @@ def main() -> None:
                 ),
                 "corrected_by": "exec-agent(C009) / 오케스트레이터 재결",
             },
+            {
+                "correction_id": "COR-005",
+                "row_id": None,
+                "affected_row_ids": [],
+                "panel_id": None,
+                "field": "service_master.web_eligibility_status",
+                "before": "SYSTEM_APP_CANDIDATE 11건 + NOT_ASSESSED 60건 + EXCLUDED_INDUSTRY_AXIS 10건",
+                "after": "NOT_ASSESSED 71건 + EXCLUDED_INDUSTRY_AXIS 10건",
+                "action": "UNSOURCED_PRIOR_SEPARATED_FROM_SOURCE_LAYER",
+                "evidence": (
+                    "SYSTEM_APP_CANDIDATE 11건은 스크립트의 하드코딩 dict 에서 `ckey in ...` "
+                    "한 줄로 나왔고, 근거 11개가 전부 '…로 알려져 있다' 형식이며 A1~A4 인용이 "
+                    "0건이다. 적대적 감사가 임의성의 증거를 찾았다 — 같은 GMS 번들인데 "
+                    "Google 포토는 찍혔고 YouTube 는 안 찍혔다. 두 감사관이 독립적으로 지적했다."
+                ),
+                "resolution": (
+                    "상태값 도메인을 {NOT_ASSESSED, EXCLUDED_INDUSTRY_AXIS} 로 닫았다. 확정 판정은 "
+                    "업종 축 배제 10건뿐이다. 선탑재 추정은 Source Layer 밖의 "
+                    "state/_researcher_priors/system_app_hypothesis.json 으로 옮기고 각 항목에 "
+                    "status='UNSOURCED_RESEARCHER_PRIOR', evidence_pointer=null 을 명시했다. "
+                    "해소는 URL 증거를 보는 web_eligibility 게이트가 한다."
+                ),
+                "corrected_by": "exec-agent(C011) / 독립감사 2건 수용",
+            },
+            {
+                "correction_id": "COR-006",
+                "row_id": None,
+                "affected_row_ids": [],
+                "panel_id": None,
+                "field": "web_target_group.member_* 3개 배열",
+                "before": "member_service_ids / member_canonical_keys / member_domains 각각 독립 정렬",
+                "after": "service_id 기준 튜플 정렬 후 unzip — 세 배열의 위치가 대응",
+                "action": "SCHEMA_FIX_POSITIONAL_ALIGNMENT",
+                "evidence": (
+                    "wtg_6d5510a695d0a614(naver)에서 member_service_ids 정렬 순서와 "
+                    "member_domains 정렬 순서가 달라, 위치로 읽으면 naver_app↔RETAIL, "
+                    "naver_naverpay↔APP 으로 읽혔다. 집합 수준은 정확해 값 손실은 없었으나, "
+                    "네이버·G마켓 2중수집을 막으려고 만든 표가 같은 혼동을 재생산했다."
+                ),
+                "resolution": (
+                    "세 배열을 하나의 정렬 키로 동시에 정렬한다. member_domains 는 집합이 아니라 "
+                    "위치 배열이므로 같은 도메인이 중복 등장할 수 있다. "
+                    "tests/test_c009_two_layer.py 가 위치별로 대조한다."
+                ),
+                "corrected_by": "exec-agent(C011) / 독립감사 2건 수용",
+            },
         ],
         "row_value_changes_applied": 0,
         "source_row_count_before": EXPECTED_ROWS,
         "source_row_count_after": len(rows),
     }
 
+    # ---------------- 연구자 사전판단 분리 (C011/P1-2) ----------------
+    # Source Layer 밖에 둔다. 이 파일은 근거가 아니라 다음 게이트가 검증할 가설 목록이다.
+    known_keys = set(service_master["canonical_service_key"])
+    unknown_hyp = sorted(set(SYSTEM_APP_HYPOTHESIS_BASIS) - known_keys)
+    assert not unknown_hyp, f"service_master 에 없는 가설 대상: {unknown_hyp}"
+    priors = {
+        "schema": "researcher_priors/system_app_hypothesis/v1",
+        "generated_by": "research/landing_accessibility/scripts/build_canonical_entities.py",
+        "NOT_A_SOURCE_LAYER": (
+            "이것은 연구 결과가 아니라 가설이며 Source Layer 가 아니다. "
+            "아래 항목은 취득 자료(A1 와이즈앱 원문 / A2 인증 레지스트리 / A3 / A4) 어디에도 "
+            "근거를 두지 않은 연구자의 배경지식이다. 어떤 판정·집계·필터의 입력으로도 "
+            "사용하지 않는다. service_master.web_eligibility_status 는 이 파일을 참조하지 않는다."
+        ),
+        "why_separated": (
+            "C009 판본은 이 목록을 service_master.web_eligibility_status='SYSTEM_APP_CANDIDATE' "
+            "11건으로 찍었다. 두 감사관이 독립적으로 지적했다 — 근거 11개가 전부 "
+            "'…로 알려져 있다' 형식이고 A1~A4 인용이 0건이다. 적대적 감사는 임의성의 증거로 "
+            "같은 GMS 번들인데 Google 포토는 찍히고 YouTube 는 안 찍힌 사실을 들었다. "
+            "근거 없는 추정이 상태값이 되면 데이터가 된다. 그래서 층을 분리했다."
+        ),
+        "resolves_at": "web_eligibility gate via URL evidence",
+        "hypothesis_count": len(SYSTEM_APP_HYPOTHESIS_BASIS),
+        "hypotheses": [
+            {
+                "canonical_service_key": ckey,
+                "service_id": sid(ckey),
+                "service_name_canonical": key2name[ckey],
+                "hypothesis": (
+                    "단말 제조사(OEM)·통신사 또는 OS 사업자가 기본 탑재해, 사용자의 설치 행위 "
+                    "없이 단말에 존재했을 가능성이 있다. 그 경우 단독 서비스 랜딩페이지가 "
+                    "없거나 제조사 제품 페이지로 귀결될 수 있다."
+                ),
+                "basis": basis,
+                "evidence_pointer": None,
+                "status": "UNSOURCED_RESEARCHER_PRIOR",
+                "resolves_at": "web_eligibility gate via URL evidence",
+            }
+            for ckey, basis in sorted(SYSTEM_APP_HYPOTHESIS_BASIS.items())
+        ],
+    }
+
     # ---------------- 저장 ----------------
+    (STATE / "_researcher_priors").mkdir(exist_ok=True)
+    (STATE / "_researcher_priors" / "system_app_hypothesis.json").write_text(
+        json.dumps(priors, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     panels.to_parquet(STATE / "panel_registry.parquet", index=False)
     panels.to_csv(STATE / "panel_registry.csv", index=False, encoding="utf-8-sig")
     for name, df in [
