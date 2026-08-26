@@ -1,0 +1,422 @@
+{
+ "cycle": "V2-C008",
+ "auditor": "adversarial",
+ "audit_type": "target-diff remediation verification (9 prior findings) — not a full re-audit",
+ "target_sha": "181d17afe22b8319043e4d1ef6311393dc046827",
+ "target_branch": "agent/landing-v2-exec",
+ "intermediate_shas": [
+  "64f6936de666b1951a2fa7a4b6c5d630e16dce27",
+  "181d17afe22b8319043e4d1ef6311393dc046827"
+ ],
+ "prev_target_sha": "2025e5667686d42e832298f2dce77b0c7aa6bc07",
+ "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+ "control_sha": "1d6cedb6aca6933a701275c7c8e14fd7d4628c73",
+ "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+ "prev_adversarial_audit_sha": "fed3e70ba8430e0fad4f27df11d2eca550f33d30",
+ "prev_adversarial_audit_verdict": "ACCEPT_RECLASSIFY (conditional, C-1..C-6) — rc-6-r1-same-authorization-local-reexecution-unbounded",
+ "audit_branch": "audit/landing-adversarial",
+ "phase": "P0_V2_REFREEZE",
+ "gate": "V2_SSOT_FROZEN",
+ "verdict": "PASS",
+ "counts": {
+  "P0": 0,
+  "P1": 0,
+  "P2": 2,
+  "blocking": 0
+ },
+ "blocking_note": "P2 2건은 둘 다 V2_SSOT_FROZEN 에 대해 비차단이다. 차단 범위는 각각 P-C/E000_V2 와 E001_V2 보고(RC-5/C-4)다.",
+ "diff_scope": {
+  "command": "git diff 2025e5667686d42e832298f2dce77b0c7aa6bc07 181d17afe22b8319043e4d1ef6311393dc046827 --stat",
+  "files_changed": 13,
+  "insertions": 1777,
+  "deletions": 56,
+  "files": [
+   "research/landing_accessibility/.gitignore",
+   "research/landing_accessibility/docs/07_EVIDENCE_MANIFEST_CONTRACT.md",
+   "research/landing_accessibility/docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+   "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+   "research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json",
+   "research/landing_accessibility/scripts/acquire_wiseapp_authority.py",
+   "research/landing_accessibility/scripts/build_canonical_entities.py",
+   "research/landing_accessibility/sources/wiseapp/authority_manifest.json",
+   "research/landing_accessibility/src/landing_accessibility/authority_manifest.py",
+   "research/landing_accessibility/src/landing_accessibility/evidence_manifest.py",
+   "research/landing_accessibility/src/landing_accessibility/review_queue.py",
+   "tests/test_c012_review_and_grouping.py",
+   "tests/test_source_integrity.py"
+  ]
+ },
+ "invariants": {
+  "pilot_diff": {
+   "result": "0",
+   "method": "git diff --name-only 5a9015d..181d17a -- research/refcohort → 0줄; 1d6cedb..181d17a 도 0줄"
+  },
+  "pilot_reformat_incident": {
+   "result": "되돌려짐 확인",
+   "method": "TARGET 트리에서 ruff format --check . 실행 → research/refcohort/src/refcohort/__init__.py 가 여전히 미포맷 상태 = ruff format 이 건드렸던 바이트가 원상복구됨. BASE 대비 diff 0 과 일치"
+  },
+  "c013_diff": {
+   "result": "0"
+  },
+  "root_claude_md_diff": {
+   "result": "0"
+  },
+  "state_parquet_diff": {
+   "result": "0",
+   "extra": "build_canonical_entities.py 재실행 후 state/*.{csv,parquet,json} 전건 sha256 비교 → 바이트 동일"
+  },
+  "evidence_diff": {
+   "result": "0"
+  },
+  "pack_00_05_and_manifest_json": {
+   "result": "바이트 무변경",
+   "method": "diff 0 + verify_v2_docs.py 가 pack 6종 전부 OK [pack]"
+  },
+  "self_approval": {
+   "result": "0",
+   "method": "exec 커밋 13파일 중 control/ · audit/ 경로 0건. control tip 1d6cedb 이 사이클 무변경"
+  },
+  "verify_v2_docs": {
+   "result": "PASS",
+   "items_ok": 17,
+   "method": "git archive 181d17a 로 푼 깨끗한 트리에서 실행"
+  },
+  "quality_gates": {
+   "ruff_check": "All checks passed",
+   "mypy_src": "Success: no issues found",
+   "pytest": "119 passed"
+  },
+  "install_manifest_hash_recheck": {
+   "A1_bytes": 47613,
+   "A2_bytes": 253429,
+   "A2_sha256": "156f4d9d7ab9de7533aab79a1714987d7b311a7600fec6dc0740c791caccf80f",
+   "result": "직접 재계산 일치"
+  },
+  "exec_worktree_dirty_observation": "landing_v2_exec 워킹트리에 미커밋 A2 1줄(+232B)이 있다. 분석 입력으로 쓰지 않았다(전 분석 = git archive 181d17a 스냅샷)."
+ },
+ "reproductions": {
+  "item5_evidence_manifest": {
+   "method": "PREV 판과 TARGET 판 evidence_manifest.py 를 같은 fixture 3종에 나란히 실행",
+   "A_all_raw_present_require_files_false": {
+    "PREV": "mode=STRUCTURE_ONLY_RAW_ABSENT status=MANIFEST_WELL_FORMED_FILES_NOT_CHECKED files_checked=3/3 (오라벨 재현)",
+    "TARGET": "mode=FULL_BYTE_VERIFICATION status=VERIFIED files_checked=3/3"
+   },
+   "B_symlink_dom_to_outside": {
+    "PREV": "status=VERIFIED files_checked=1 — Run 밖 바이트를 해시하고 VERIFIED 반환 (결함 재현)",
+    "TARGET": "status=FAILED symlink_escape=1 files_checked=0 — 해시하지 않음"
+   },
+   "C_partial_1_of_3": {
+    "PREV": "mode=STRUCTURE_ONLY_RAW_ABSENT (A 와 구분 불가)",
+    "TARGET": "mode=PARTIAL_BYTE_VERIFICATION"
+   },
+   "prior_test_asserted_the_mislabel": "2025e56:tests/test_c012_review_and_grouping.py:390 assert partial['mode'] == 'STRUCTURE_ONLY_RAW_ABSENT'",
+   "materialize_state_py": "TARGET·control 어느 트리에도 존재하지 않음 (git grep -l materialize_state 181d17a → 0). 원 지시의 결함 위치 포인터가 틀렸고 exec 가 살아있는 모듈로 옮겨간 것이 옳다",
+   "a2_vocabulary_conflict": "없음 — A2 §4.1 은 status 3값만 묶고 mode 어휘는 묶지 않는다"
+  },
+  "item3_review_queue": {
+   "build_executed": true,
+   "exit_code": 0,
+   "queue_size": 7,
+   "decisions": {
+    "KEEP_SEPARATE": 6,
+    "MERGE": 1,
+    "UNRESOLVED": 0
+   },
+   "derived_equals_declared": true,
+   "members": [
+    "coupang_app",
+    "coupang_retail",
+    "gmarket_app",
+    "gmarket_auction",
+    "hyundai_homeshopping_hmall",
+    "naver_app",
+    "naver_naverpay"
+   ],
+   "state_artifacts_byte_identical_after_rerun": true,
+   "hand_input_demoted": "raised_for_review = ckey in derived_queue — 유도가 원본, ENTITY_SPEC 플래그는 대조되는 선언",
+   "counterexample_member_swap_caught": true,
+   "counterexample_output": "원자료가 요구하는데 큐에 없다: hyundai_homeshopping_hmall(QR1_ALIAS_ABSORPTION) / 큐에 있는데 원자료 근거가 없다: other_a",
+   "no_thresholds_in_predicates": true
+  },
+  "item7_lane_c_engine": {
+   "engine_source": "agent/landing-pc-fixture:research/landing_accessibility/src/landing_accessibility/engine/l1_engine.py",
+   "branching_limit_4_present": "l1_engine.py:70 branching_limit: int = 4",
+   "branching_limit_undeclared_at_prev": "PREV A1 에 'BRANCHING' 문자열 0건; PREV §2.1 '네 값' → TARGET '다섯 값' + BRANCHING_LIMIT 행",
+   "tiebreak_two_keys_only": "l1_engine.py:338-340 sort(key=(marked_primary, area_css_px2), reverse=True); selector 는 dedup 전용",
+   "exact_ties_reachable": "area_css_px2 = +(w*h).toFixed(2) (l0_probe.js:294) — 구조 동일 형제는 바이트 동일. 입력 순서 뒤집으면 출력 뒤집힘 재현",
+   "float_jitter_flip": "20000.00 vs 20000.01 로 순서 뒤집힘 재현",
+   "min4_is_total_order": true,
+   "min4_totality_reasoning": "_activation_candidates 가 반환 전 selector 로 dedup → 열거 대상 집합 안에서 selector 유일 → (marked_primary, area_css_px2, selector) 는 전순서",
+   "min2_level_order_matches_engine": "deque + popleft FIFO BFS 와 모순 없음",
+   "spec_only": "엔진은 TARGET 에 없음(engine/ 0건, pc-fixture 는 조상 아님). 명세 결함의 처방은 명세이므로 COSMETIC_ONLY 아님",
+   "branching_limit_in_2_1_and_7": true
+  },
+  "item4_merge_moot": {
+   "source": "agent/landing-pb-prework:research/landing_accessibility/shadow/lane_b/state/web_target_group_shadow.csv",
+   "rows": 68,
+   "hypothesis_outcome_distribution": {
+    "NOT_APPLICABLE_SINGLETON": 65,
+    "FALSIFIED_SPLIT_SAME_DOMAIN_DIFFERENT_PATH": 2,
+    "NOT_TESTABLE_MEMBER_URL_UNRESOLVED": 1
+   },
+   "MERGE_count": 0,
+   "CONFIRMED_star_count": 0,
+   "moot_claim_verified": true,
+   "target_group_parquet_crosscheck": "68행 전 컬럼 통틀어 CONFIRMED 0건. MERGE 1건은 member_review_decisions 로 전파된 entity 층 판정(hyundai_homeshopping_hmall) 하나",
+   "entity_layer_merge_count": 1,
+   "assert_wired_into_build": true,
+   "M1_M2_M3_counterexamples_caught": "3/3"
+  },
+  "item1_hash_registry": {
+   "files_present": 20,
+   "files_partition": 3,
+   "delegated_partition": 16,
+   "self_hash_exemption": 1,
+   "undeclared": 0,
+   "phantom": 0,
+   "independent_hash_recompute": "20/20 일치 (files 3건은 sha256+bytes 둘 다, delegated 16건은 포인터 대상 필드값과)",
+   "verify_reachable": "acquire_wiseapp_authority.py:verify() → am.verify_hash_registry(...); --verify 실행 EXIT=0, '해시 등재 커버리지 20파일 (직접 3 / 위임 16 / 자기해시 1) 미선언 0'",
+   "counterexamples": {
+    "injected": 8,
+    "blocked": 8,
+    "detects_omission_not_only_corruption": true
+   },
+   "self_hash_exemption_circularity": "건전 — 자기를 담는 파일의 전체 해시는 고정점 없이 불가. 앵커 미포함 범위(포맷만 바꾼 재직렬화)를 스스로 선언했고 indent=8 재직렬화로 그 한계를 실증 확인",
+   "new_tests": 9
+  },
+  "item6_gitignore": {
+   "method": "PREV/TARGET .gitignore 를 각각 별도 저장소에 넣고 git check-ignore --no-index 로 직접 질의",
+   "raw_evidence_paths_leaking_at_prev": "9건 중 7건",
+   "raw_evidence_paths_leaking_at_target": 0,
+   "manifests_still_tracked_at_all_depths_and_relocations": true,
+   "over_ignoring_check": "TARGET 추적 파일 전건(연구 302 / 저장소 600)을 새 패턴에 태움 → ignored 로 바뀌는 추적 파일 0건",
+   "test_cases_1_to_11": "확인"
+  },
+  "item2_eligibility_basis": {
+   "a2_section": "A2 §1.3.1 (A2:359-455), 7필드 + EB-1~EB-4",
+   "v1_06_recovered_from": "188e2e3",
+   "coverage_vs_06_2_2": "5/5 커버. eligibility_confidence 도메인 HIGH|MEDIUM|LOW 는 06 과 동일, url_type 4값은 06 §3-1 축자 일치, EB-4 3필드+PSL 은 06 §3-3 축자 일치",
+   "rename_is_layer_separation_not_dodge": "needs_human_review → eligibility_needs_review, EB-2 가 두 층 표로 근거 제시",
+   "three_way_measurement_reproduced": {
+    "eligibility_basis_nonempty": "81/81 (distinct 71)",
+    "eligibility_reviewer_distinct": 1,
+    "eligibility_confidence": "ABSENT — LANE B 는 url_confidence 사용 (HIGH 59 / MEDIUM 1 / LOW 11 / 결측 10)",
+    "needs_human_review_shadow": "True 34 / False 47",
+    "EB4_chain_fields": "redirect_chain·target_url·final_url 전부 ABSENT",
+    "EB3_fields": "url_type·url_discovery_method·url_reviewer 전부 ABSENT",
+    "service_master_needs_human_review": "81/81 all False — EB-2 두 층 분리의 실증"
+   },
+   "claim_4_of_5_absent": "정확",
+   "enforcement": "코드 결합 없음 — 그러나 §1.3.1 이 스스로 그렇게 적고 §6.2 P-B 산출 목록에 등재한다. 원 부채가 바인딩 문서 협소화였으므로 완결된 처방"
+  },
+  "item8_e6b": {
+   "elements_verified": [
+    "① 비대칭 근거표",
+    "② auth_gate_kind 3값 + 근거 3필드",
+    "③ 두 미확정 조건(임계값 미도입)",
+    "④ 승격=논리곱, FINANCIAL 예외 요구 명시 기각",
+    "⑤ 근거는 저장 신호에서 재계산되는 파생값",
+    "⑥ 사후 재라벨 금지",
+    "⑦ 승격만 차단·E-8/E-9 관측 보존",
+    "⑧ undetermined_rate 병기, 임계값 없음",
+    "⑨ 잔여 GK-1~GK-3 + I-50 기대결과 '차단되지 않는다'"
+   ],
+   "does_not_neutralize_existing": "신설 '모든 archetype/UNDETERMINED' 행이 위 네 행보다 우선하나 결과가 동일하거나 더 보수적이라 E-6a 무주지를 재개방하지 않음. I-3/I-4 그대로 유지",
+   "n1_conflict": "없음 — §1.14 에 명시적 carve-out. step 수준 값이라 decision_coverage 분모·stress bound·T-*/X-1/N-7 어디에도 진입 안 함"
+  },
+  "item9_c2": {
+   "false_sentence_withdrawn": "A2:1378 '최초 run 은 앵커를 요구하지 않는다 — 선택할 대상이 없기 때문이다' 가 diff 삭제줄에 존재; A2:1574-1582 철회 블록으로 대체",
+   "risk_class_redefined": "A2:1455 RC-5 병기 행 + A2:1607 닫힘 논거표 R-1 행 — '기준선인 최초 run 도 R-1 부류에 열려 있다', '이 병기는 탐지층이지 배제층이 아니다'",
+   "option_a_adopted": "A2:1584-1593 적용 범위 표 6행",
+   "injections": [
+    "I-51 차단",
+    "I-52 차단",
+    "I-53 차단되지 않음(잔여 명시)"
+   ],
+   "beyond_requirement": [
+    "RC-4 미선언 배제를 최초 run 으로 확대 (A2:1593)",
+    "금지 전이 X-14 ⑨ 신설 (A2:1696)",
+    "§4.2 정본 편입 조건 확대 (A2:2125-2126)",
+    "§6.3 가드 확대 (A2:2560)"
+   ],
+   "rc4_extension_was_necessary": "RC-4 원문(A2:1436) 이 문자 그대로 '재수집 run 의 criterion observation' 으로 한정 → 확대 없이는 I-51 이 문면상 차단되지 않음. 직접 확인",
+   "option_a_justified": "(b)는 '다른 id 를 여럿 만들어 고르는' 경로까지 R-1 이름으로 수용하게 되는데 그것은 재수집 run 에서 A-6 이 이미 닫은 경로다. 서로 다른 크기의 잔여를 한 이름으로 묶는 것이 C-2 가 지적한 범주 오류의 반복. (a)의 비용은 control 인가 1건이고 인프라는 이미 존재"
+  },
+  "a2_integrity": {
+   "size": "214013 → 253429 bytes",
+   "I_number_rows": 54,
+   "I_number_duplicates": 0,
+   "I_number_gaps": 0,
+   "I_range": "I-1..I-53 (+I-28b)",
+   "rule_definitions": 56,
+   "rule_id_duplicates": 0,
+   "malformed_table_rows": 0,
+   "deleted_lines": 22,
+   "deleted_lines_all_replaced_by_expansions": true,
+   "transition_rules_untouched": "T-1..T-11 · X-1 · X-9..X-11 · X-15 한 줄도 변경 없음"
+  },
+  "undetermined_to_pass_recheck": {
+   "verdict": "누수 0 — V2-C004 §2.5 판정 유지",
+   "grounds": [
+    "§1.11.1 전이표 무변경",
+    "신규 UNDETERMINED 는 step 수준이며 §1.14 가 decision_coverage 분모·stress bound·T-*/X-1/N-7 에서 명시 격리",
+    "RC-6 확대는 탈출구를 좁힘",
+    "E-6b 는 fail-closed 방향으로만 작동해 PASS 생성 경로를 열 수 없음"
+   ]
+  }
+ },
+ "prior_findings_status": [
+  {
+   "id": "a1-raw-payload-files-not-hash-registered-in-authority-manifest",
+   "status": "CLOSED",
+   "basis": "20파일 전수 커버리지 집합대조(미선언 0·유령 0), 20건 해시 독립 재계산 일치, --verify EXIT=0, 반례 8종 8/8 차단(누락 탐지 포함), self_hash_exemption 순환 논거 건전성 실증"
+  },
+  {
+   "id": "eligibility-basis-fields-narrower-than-06-still-carried",
+   "status": "CLOSED",
+   "basis": "A2 §1.3.1 7필드+EB-1~EB-4 실재, v1 06 §2-2 5요구 5/5 커버(도메인 축자 일치), 3방 대조 수치 전건 독립 재현, '5중 4 부재' 정확"
+  },
+  {
+   "id": "queue-membership-still-hand-set-in-entity-spec",
+   "status": "CLOSED",
+   "basis": "build 실제 실행 exit 0 · 큐 7건 유도=선언 일치 · state artifact 바이트 동일 · 멤버 교체 반례 차단 확인 · 술어에 임계값 없음"
+  },
+  {
+   "id": "merge-decision-merges-nothing-no-alias-assert",
+   "status": "CLOSED",
+   "basis": "shadow CSV 68행 직접 계수 → MERGE 0 / CONFIRMED_* 0 (MOOT 확인). entity 층 MERGE 1건에 M1/M2/M3 assert 신설·빌드 호출 확인·반례 3/3 차단"
+  },
+  {
+   "id": "verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard",
+   "status": "CLOSED",
+   "basis": "두 결함 모두 PREV 에서 실행 재현(A: 3/3 해시하고도 STRUCTURE_ONLY / B: Run 밖 바이트에 VERIFIED), TARGET 에서 각각 FULL_BYTE_VERIFICATION·FAILED+symlink_escape 로 차단. 기존 테스트의 오라벨 단언 확인. materialize_state.py 부재 확인"
+  },
+  {
+   "id": "gitignore-evidence-pattern-single-level-only",
+   "status": "CLOSED",
+   "basis": "git check-ignore 로 PREV 9중 7 누출 → TARGET 0 확인, manifest 전 깊이·위치 추적 유지, 추적 파일 600건 전수 과차단 0"
+  },
+  {
+   "id": "ned-ied-path-minimality-not-operationalized",
+   "status": "CLOSED",
+   "basis": "엔진 실독으로 주장 4/4 확인(branching_limit=4·2키 tie-break·완전동률 재현·jitter flip 재현), MIN-4 전순서 성립 확인, MIN-5 가 미증명·범위한정 명시, BRANCHING_LIMIT 이 §2.1·§7 양쪽에 등재. 명세 결함의 처방은 명세이므로 COSMETIC_ONLY 아님",
+   "new_finding_spawned": "min-4-selector-tiebreak-does-not-neutralize-subpixel-jitter"
+  },
+  {
+   "id": "e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint",
+   "status": "CLOSED",
+   "basis": "E-6b ①~⑨ 전 요소 실재 확인, 근거는 저장 신호에서 재계산되는 파생값, 잔여 GK-1 을 I-50 기대결과 '차단되지 않는다'로 정직 등재, 기존 E-6a/N-1/전이규칙 무력화 없음"
+  },
+  {
+   "id": "rc-6-r1 재분류 조건 C-2 이행",
+   "status": "CLOSED",
+   "basis": "거짓 문장 철회·위험 부류 재정의·(a) 채택 3요구 전건 이행. 요구 이상으로 RC-4 확대와 X-14 ⑨ 신설로 확대를 강제로 전환. RC-4 원문 한정을 직접 확인해 그 확대가 필수였음을 검증",
+   "new_finding_spawned": "rc-5-anchor-verification-report-row-still-scoped-to-recollection-runs"
+  }
+ ],
+ "new_findings": [
+  {
+   "id": "min-4-selector-tiebreak-does-not-neutralize-subpixel-jitter",
+   "severity": "P2",
+   "blocking": false,
+   "blocking_scope": "P-C / E000_V2",
+   "blocks_v2_ssot_frozen": false,
+   "location": "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md §2.6 규칙 MIN-4 · §2.5 검증 케이스",
+   "statement": "MIN-4 의 근거 문장이 'selector 오름차순은 서브픽셀 흔들림에 영향받지 않는다'고 적으나 selector 는 3차 키라 area_css_px2 가 정확히 동일할 때만 참조된다. MIN-4 가 이름으로 지목한 '근소한 동률'(jitter) 케이스에서는 면적이 달라 selector 에 도달하지 못하고 순서가 여전히 run 마다 뒤집힌다.",
+   "reproduction": "0.01 px² 차이로 MIN-4 정렬 결과가 뒤집힘을 실행 재현",
+   "compounding": "§2.5 가 이 규칙에 붙인 검증 케이스가 '같은 fixture 를 두 번 돌려 같은 경로가 나오는가' 인데 fixture 는 결정적이라 현행 2키 엔진에서도 통과한다 — 막으려는 실패 양상을 구조적으로 탐지할 수 없다. 추가로 §2.6 을 LANE C 에 묶는 것이 TARGET 에 없다(엔진 브랜치 A1 사본에 MIN-4 0건, §7 에 엔진 이행 행 없음)",
+   "not_covered_by_min5": "MIN-5 의 세 좁힘은 부분격자 크기에 관한 것이지 run-to-run 결정성에 관한 것이 아니다",
+   "remediation": "selector 키 앞에서 area_css_px2 를 양자화(정수 px² 또는 허용오차 밴드). 결정성 검증을 fixture 재생이 아니라 실대상/jitter 주입 재실행으로 교체. A1 §7 에 엔진 측 이행 의무 등재"
+  },
+  {
+   "id": "rc-5-anchor-verification-report-row-still-scoped-to-recollection-runs",
+   "severity": "P2",
+   "blocking": false,
+   "blocking_scope": "E001_V2 보고 (RC-5 / 수용조건 C-4)",
+   "blocks_v2_ssot_frozen": false,
+   "location": "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md §1.11.2 RC-5 보고 표 — A2:1462 (앵커 검증 결과) · A2:1460 (실행 인가 대조)",
+   "statement": "C-2 (a) 채택으로 강제 층은 최초 run 까지 확대됐으나(§6.3 가드 A2:2560 '재수집 run 과 최초 run 양쪽에', §4.2 A2:2126) RC-5 보고 표의 두 행이 '재수집 run별' / '제출된 재수집 evidence run 수' 로 남아 있다. 그 결과 (i) 최초 run 의 A-1~A-8 결과가 03 Phase 5 에 실리지 않고 (ii) E ↔ EXECUTION ↔ 제출 run 3수가 정의상 어긋난다 — E 는 최초 run 인가를 포함해 세는데 제출 run 수는 재수집만 세기 때문이다.",
+   "why_not_an_escape": "X-14 ⑨ · RC-4 확대 · §6.3 가드가 전부 최초 run 을 묶으므로 실질 탈출구가 아니다. 보고 층과 강제 층의 범위 불일치다",
+   "why_it_matters": "이 3수가 adversarial V2-C008 focused 의 수용조건 C-4 (i)·(ii) 가 두 감사에게 대조하라고 지정한 바로 그 수치다",
+   "remediation": "A2:1462 와 A2:1460 의 '재수집' 한정을 걷어내고 '재수집 run 과 최초 run 을 합쳐 센다'로 정정한다. 두 줄이다",
+   "transparency_note": "오케스트레이터가 exec 워킹트리에 미커밋 보강분이 있음을 감사 중 통보했다. 대상 SHA 기준으로 판정했으며, 두 행 중 A2:1460 한 줄만 그 미커밋 delta(+232B, 1줄)에 이미 고쳐져 있고 A2:1462 는 미커밋 트리에서도 고쳐져 있지 않음을 확인했다. 보강분을 커밋해도 이 finding 은 절반만 닫힌다"
+  }
+ ],
+ "observations_not_raised": [
+  {
+   "id": "OBS-1",
+   "note": "verify_hash_registry 의 커버리지 walk 가 rglob+is_file() 이라 디렉터리 심링크·깨진 심링크가 집합에 안 들어간다. 심링크는 바이트를 담지 않고 파일을 가리키는 심링크는 is_file() 이 따라가 여전히 선언돼야 하므로 페이로드 귀결이 없다. evidence 읽기 경로에만 심링크 가드가 생긴 비대칭일 뿐 악용 경로가 아니다"
+  },
+  {
+   "id": "OBS-2",
+   "note": "항목 1 시정 주석의 '이전엔 호출자 0' 은 am.verify() 에 대해 약간 과한 표현(PREV 에 테스트 호출자 1건). verify_hash_registry 자체는 신설이라 자명하게 참이고 운영 경로에 없었다는 요지는 사실. 표기 문제"
+  }
+ ],
+ "acceptance_conditions_status": {
+  "source": "adversarial V2-C008 focused (fed3e70) §7 C-1..C-6",
+  "reclassification_still_valid": true,
+  "lapsed": false,
+  "lapse_trigger_not_yet_met": "실효 트리거는 'C-1·C-2·C-5-① 미충족 상태로 V2_SSOT_FROZEN 을 선언하는 것' 이며 V2_SSOT_FROZEN 은 control tip 에서 여전히 NOT_ACHIEVED 다",
+  "conditions": [
+   {
+    "id": "C-1",
+    "owner": "control",
+    "due": "V2_SSOT_FROZEN 이전",
+    "state": "UNMET",
+    "evidence": "1d6cedb:control/state.json 의 rc-6-r1 이 state=OPEN · blocking=true · counted_as_open=true 로 남아 있음 (직접 확인)"
+   },
+   {
+    "id": "C-2",
+    "owner": "exec (이 감사 대상)",
+    "due": "V2_SSOT_FROZEN 이전",
+    "state": "MET",
+    "evidence": "§4.6 — 3요구 전건 이행 + RC-4/X-14 ⑨ 확대"
+   },
+   {
+    "id": "C-3",
+    "owner": "exec/control",
+    "due": "E001_V2 실행 전",
+    "state": "NOT_YET_DUE"
+   },
+   {
+    "id": "C-4",
+    "owner": "두 감사",
+    "due": "E001_V2 종료 시",
+    "state": "NOT_YET_DUE",
+    "note": "새 finding rc-5-anchor-verification-report-row-… 가 (i)·(ii)의 근거 수치를 위협한다"
+   },
+   {
+    "id": "C-5-1",
+    "owner": "exec/control",
+    "due": "즉시",
+    "state": "UNMET",
+    "evidence": "00 §14 · 03 Phase 5 는 pack 파일이며 바이트 무변경. A2 §1.11.2 에 정직한 잔여 서술이 생겼으나 C-5-① 이 지정한 자리가 아니다"
+   },
+   {
+    "id": "C-5-2",
+    "owner": "연구자",
+    "due": "보고 시점",
+    "state": "NOT_YET_DUE"
+   },
+   {
+    "id": "C-6",
+    "owner": "-",
+    "state": "NOT_TRIGGERED"
+   }
+  ],
+  "verdict": "C-2 만으로 이 사이클의 exec 산출물을 PASS 시키기에 충분하다. C-1·C-3~C-5 는 exec 담당이 아니며 이번 감사 대상 diff 안에서 이행 가능한 조건은 C-2 하나뿐이다. C-6-1 이 '새 감사 finding 없이 자동 실효' 를 명문화했으므로 C-1·C-5-① 미이행을 finding 으로 세우지 않는다 — 미이행이 발동시키는 것은 finding 이 아니라 실효다.",
+  "binding_statement_to_orchestrator": "V2_SSOT_FROZEN 을 선언하려면 그 선언과 같은 커밋 또는 그 이전에 C-1(원장 전이)과 C-5-①(한계 공표 문면)이 이행돼 있어야 한다. 둘 중 하나라도 없이 선언되면 rc-6-r1 재분류는 자동 실효되고 항목은 OPEN/blocking=true/counted_as_open=true 로 복귀하며 open_blocking_total 이 그만큼 다시 늘어난다. 이 감사의 PASS 는 그것을 면제하지 않는다. C-1 의 원장 전이에는 ACCEPTED_BOUNDED_RESIDUAL_RISK 상태값 정의 · 합계에서 조용히 사라지지 않는 '명시적으로 제외된 한 줄' 표시 · promote_landing_main.sh [DEBT_RECOMPUTE] 의 제외 건수 별도 출력이 함께 포함된다"
+ },
+ "orchestrator_query_answer": {
+  "question": "C-2 보강이 필요했는가, 아니면 원래 문면으로도 I-51 이 차단됐는가",
+  "answer": "필요했다. 그리고 보강 6곳 중 5곳은 이미 181d17a 커밋본 안에 있다(A2:158·1485·1593·2125·1696). 미커밋인 것은 A2:1460 RC-5 실행 인가 대조 한 줄뿐이다. RC-4 원문(A2:1436)이 문자 그대로 '재수집 run 의 criterion observation' 으로 한정돼 있어 적용 범위 표에서 RC-4 를 최초 run 으로 넓히지 않으면 I-51 은 문면상 차단되지 않는다 — 직접 확인했다. 미커밋 1줄도 되돌릴 것이 아니라 실재하는 내부 모순을 고치는 줄이다. 다만 같은 모순의 나머지 절반(A2:1462 앵커 검증 결과 행)이 미커밋 트리에도 남아 있으므로 다음 커밋에서 두 줄을 함께 고치는 것이 맞다. 분량 우려에 대해서는, 이번 A2 증가분 중 C-2 보강 몫은 6곳·수백 바이트이고 253KB 의 원인은 E-6b(규칙 전문 + I-42~I-50)와 §1.3.1(7필드 + EB-1~EB-4)이다. 보강분은 되돌릴 대상이 아니다"
+ },
+ "not_done": [
+  "실제 웹사이트에 접속하지 않았다",
+  "Pilot(32460b8)을 열람·변경하지 않았다 — diff 부재만 기계적으로 확인했다",
+  "다른 워크트리에 쓰지 않았다. exec 워킹트리의 dirty A2 를 분석 입력으로 쓰지 않았다",
+  "diff 범위 밖의 전면 재감사를 하지 않았다 (V2-C007 PASS 재사용). 단 UNDETERMINED → PASS 는 A2 변경 폭 때문에 독립 재확인했다",
+  "C-3·C-4·C-5-② 를 판정하지 않았다 — 기한 미도래",
+  "미추적 draft audit/adversarial/V2_C004.{md,json} 을 건드리지 않았다"
+ ]
+}
