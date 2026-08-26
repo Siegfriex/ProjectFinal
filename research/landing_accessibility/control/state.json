@@ -1,8 +1,8 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T13:41:10.587367",
-  "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
-  "cycle_id": "C011",
+  "updated_at": "2026-08-26T13:43:11.153670",
+  "phase": "P2_WEB_ELIGIBILITY_AND_URL_IDENTITY",
+  "cycle_id": "C012",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -486,7 +486,7 @@
     ]
   },
   "audit_lag": {
-    "latest_exec_cycle": "C011",
+    "latest_exec_cycle": "C012 (directive issued, not yet committed)",
     "latest_exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
     "latest_adversarial_audited_cycle": "C011",
     "latest_adversarial_target_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
@@ -504,7 +504,8 @@
     "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",
     "promotion": "PROM-001 — main 32460b87 -> edb0478f",
     "note": "ORCHESTRATOR_PRECHECK_PASS 를 ACCEPTED/VERIFIED/PROMOTED 와 동의어로 쓰지 않는다.",
-    "C011": "EXECUTED -> INDEPENDENTLY_AUDITED -> RECONCILED -> PROMOTED"
+    "C011": "EXECUTED -> INDEPENDENTLY_AUDITED -> RECONCILED -> PROMOTED",
+    "C012": "DIRECTIVE_ISSUED"
   },
   "main_branch_protection": {
     "established_at": "2026-08-26T13:15:24.007671",
@@ -642,5 +643,29 @@
     "raised_by": "ssot C011",
     "detail": "state.json audit_notes_accepted 에서 C011 exec 에 배정한 5건 중 journal-path-outside-repo 1건만 닫혔고 나머지 4건은 처리도 유예 기록도 없다. 지시서가 C011 을 'P1 3건 + P2 5건' 으로 규정했으므로 범위 밖 미처리로 볼 여지는 있으나, 명시적으로 유예하지 않으면 부채가 조용히 사라진다.",
     "action": "promotion artifact 의 known_debt 에 전량 명시하고 다음 cycle 에서 닫는다."
+  },
+  "phase_plan": {
+    "basis": "v3.1 §9 — 순서를 바꾸지 않는다",
+    "C012": [
+      "W1 measurement entity review queue 해소",
+      "W2 web_target_group 안정화",
+      "debt D1 gitignore-e001-manifest / D2 manifest revision / D3 journal_path 상대경로"
+    ],
+    "C013": [
+      "W3 web eligibility 판정",
+      "W4 official landing URL 확정",
+      "W5 URL evidence/provenance"
+    ],
+    "C014": [
+      "W6 A2 certification join",
+      "W7 feasibility 재산출"
+    ],
+    "then": [
+      "engine hardening",
+      "criterion validation",
+      "E000-SMOKE",
+      "READY_FOR_E001 STOP"
+    ],
+    "split_reason": "MAX_UNAUDITED_EXEC_CYCLES=1 을 지키려면 한 cycle 이 감사를 통과한 뒤 다음 state-change 를 시작해야 한다"
   }
 }
