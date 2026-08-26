@@ -1,16 +1,46 @@
-"""C003 — canonical service entity / alias map / membership 생성.
+"""C003/C009 — measurement_entity / web_target 2층 구조 생성.
 
 입력 (읽기 전용):
-    state/source_ranking_rows.parquet   261행 원자료
+    state/source_ranking_rows.parquet   261행 원자료 (axis_type 포함)
     state/panel_registry.parquet        17패널
 
 출력:
-    state/panel_registry.parquet        (+ axis_type, panel_scope)
-    state/service_master.parquet
-    state/entity_alias_map.parquet
+    state/panel_registry.parquet        (+ panel_scope)
+    state/service_master.parquet        measurement_entity 층
+    state/entity_alias_map.parquet      (entity_name_raw, domain) -> service_id
     state/source_membership.parquet
+    state/web_target_group.parquet      web_target 층 (URL 미확정)
+    state/entity_candidates.json        중간산출물 (원문 표기 인벤토리)
     state/extraction_corrections.json
     state/*.csv (사람이 읽는 사본)
+
+C009 구조 변경 — 측정 단위와 수집 단위를 분리한다
+    두 감사관이 반대편에서 같은 결함을 지적했다. 하나는 쿠팡을 entity_kind='BOTH' 로 합친 것의
+    부정합을, 다른 하나는 네이버·G마켓 분리가 수집 단위까지 전파돼 2중 수집이 되는 것을 지적했다.
+    같은 층에서 두 요구를 동시에 만족시킬 수 없어서 층을 나눈다.
+
+    measurement_entity (이 파일의 service_master)
+        원문 패널이 실제로 잰 대상 단위다. APP 지표(사용자·사용시간)와 RETAIL 지표(카드
+        결제추정금액)는 서로 다른 것을 재므로, 원문 표기가 같아도 별개다. 쿠팡도 예외가 아니다.
+        키는 (entity_name_raw, domain) 이며 entity_kind='BOTH' 는 존재하지 않는다.
+
+    web_target (web_target_group.parquet)
+        실제로 방문할 랜딩 URL 단위다. 여러 measurement_entity 가 같은 web_target 을 가리킬 수
+        있고, 그 경우 관측은 정확히 1회만 수행한다. 다만 **URL 증거를 아직 하나도 갖고 있지 않다.**
+        그래서 그룹은 확정이 아니라 grouping_status='CANDIDATE_PENDING_URL_REVIEW' 로 둔다.
+
+C009 감사 지적 반영
+    D1  entity_kind 가 도메인(APP/RETAIL)과 축유형(브랜드/업종)을 혼재시켜
+        `== 'RETAIL_BRAND'` 필터가 리테일 1위 쿠팡을 조용히 누락시켰다.
+        → domain 과 axis_type 을 별도 컬럼으로 분리한다. entity_kind 는 삭제한다.
+    D2  web_collectable 은 게이트 결론을 선점한 명명이었다. True 70건이 URL 증거 없이
+        '업종이 아니다' 만으로 찍혔고 그 안에 선탑재 시스템 앱이 섞여 있었다.
+        → web_eligibility_status 로 개명하고 기본값을 NOT_ASSESSED 로 되돌린다.
+           확정은 INDUSTRY_CATEGORY 의 EXCLUDED_INDUSTRY_AXIS 뿐이고,
+           선탑재 의심 앱은 SYSTEM_APP_CANDIDATE 로 표시만 한다(판정은 다음 게이트 일이다).
+    D6  entity_candidates.json 이 고아 산출물이었다. → 이 스크립트의 중간산출물로 편입한다.
+    C   source_row_count 를 app_row_count / retail_row_count 로 분리해
+        measurement_entity 축에서 도메인 교차 합산이 성립하지 않게 만든다.
 
 원칙
     - 원자료 261행은 삭제/병합하지 않는다. entity_name_raw 는 그대로 보존한다.
@@ -29,13 +59,13 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / "state"
 
-# --------------------------------------------------------------------------
-# 1. 패널 축 유형 / 부분집합 범위 — 원문 이미지 판독 결과
-#    fig07_t1 의 표 헤더 컬럼명은 '업종' 이며 아이콘도 브랜드 로고가 아닌 픽토그램이다.
-#    나머지 패널의 헤더는 '앱' 또는 '리테일 브랜드' 이므로 SERVICE_BRAND 다.
-# --------------------------------------------------------------------------
-AXIS_TYPE: dict[str, str] = {"fig07_t1": "INDUSTRY_CATEGORY"}
+EXPECTED_ROWS = 261
 
+# --------------------------------------------------------------------------
+# 1. 패널 부분집합 범위 — 원문 이미지 판독 결과
+#    axis_type / period_axis / row_count_verification 은 build_source_rows_from_journal.py 가
+#    저널에서 직접 채운다. 여기서는 panel_scope 만 얹는다.
+# --------------------------------------------------------------------------
 PANEL_SCOPE: dict[str, str] = {
     # 부분집합 패널 — 원문 제목이 명시한 선별 조건 (전수 순위표가 아님)
     "fig04_t1": "SUBSET: 액티브시니어+ 세대 앱 사용자 비율이 높은 '주요 금융 앱' 5개 (선별 기준 미공개)",
@@ -59,9 +89,10 @@ PANEL_SCOPE: dict[str, str] = {
 }
 
 # --------------------------------------------------------------------------
-# 2. canonical_service_key — 안정적 로마자 슬러그. 한글을 쓰지 않는다.
-#    key -> (canonical_service_key, entity_kind, canonicalization_basis, needs_human_review)
-#    dict 의 키는 entity_name_raw 원문 그대로다.
+# 2. measurement_entity 사양 — 키는 (entity_name_raw, domain) 이다.
+#    같은 원문 표기라도 도메인이 다르면 다른 것을 잰 것이므로 별개 entity 다.
+#    값: (canonical_service_key, canonicalization_basis, needs_human_review)
+#    axis_type 은 원자료에서 유도한다(하드코딩하지 않는다).
 # --------------------------------------------------------------------------
 SOLO = "원문 표기 1종만 존재 — 별칭 병합 없이 1:1 대응."
 SLASH = (
@@ -69,148 +100,135 @@ SLASH = (
 )
 INDUSTRY = "fig07_t1 의 축은 표 헤더가 '업종' 인 업종 카테고리다. 브랜드가 아니므로 웹 수집 대상에서 제외한다."
 
-# (canonical_key, kind, basis, needs_review)
-ENTITY_SPEC: dict[str, tuple[str, str, str, bool]] = {
-    # ---- APP ----
-    "11번가": ("11st", "APP", SOLO, False),
-    "Chrome": ("chrome", "APP", SOLO, False),
-    "Google": ("google", "APP", SOLO, False),
-    "Google 포토": ("google_photos", "APP", SOLO, False),
-    "G마켓": (
+ENTITY_SPEC: dict[tuple[str, str], tuple[str, str, bool]] = {
+    ("11번가", "APP"): ("11st", SOLO, False),
+    ("Chrome", "APP"): ("chrome", SOLO, False),
+    ("Google", "APP"): ("google", SOLO, False),
+    ("Google 포토", "APP"): ("google_photos", SOLO, False),
+    ("G마켓", "APP"): (
         "gmarket_app",
-        "APP",
-        "APP 도메인 원문은 'G마켓', RETAIL 도메인 원문은 'G마켓/옥션' 으로 표기가 다르다. "
-        "측정 대상(앱 사용자 vs 옥션 합산 결제)이 달라 별개 entity 로 둔다.",
+        "APP 도메인 원문은 'G마켓', RETAIL 도메인 원문은 'G마켓/옥션' 으로 표기가 다르다. 측정 대상(앱 사용자 vs 옥션 합산 결제)이 달라 별개 entity 로 둔다.",
         True,
     ),
-    "Instagram": ("instagram", "APP", SOLO, False),
-    "KB Pay": ("kb_pay", "APP", SOLO, False),
-    "KB스타뱅킹": ("kb_starbanking", "APP", SOLO, False),
-    "NH스마트뱅킹": ("nh_smart_banking", "APP", SOLO, False),
-    "NH콕뱅크": ("nh_cok_bank", "APP", SOLO, False),
-    "Netflix": ("netflix", "APP", SOLO, False),
-    "TikTok": ("tiktok", "APP", SOLO, False),
-    "TikTok Lite": (
+    ("Instagram", "APP"): ("instagram", SOLO, False),
+    ("KB Pay", "APP"): ("kb_pay", SOLO, False),
+    ("KB스타뱅킹", "APP"): ("kb_starbanking", SOLO, False),
+    ("NH스마트뱅킹", "APP"): ("nh_smart_banking", SOLO, False),
+    ("NH콕뱅크", "APP"): ("nh_cok_bank", SOLO, False),
+    ("Netflix", "APP"): ("netflix", SOLO, False),
+    ("TikTok", "APP"): ("tiktok", SOLO, False),
+    ("TikTok Lite", "APP"): (
         "tiktok_lite",
-        "APP",
         "원문이 'TikTok' 과 'TikTok Lite' 를 별도 행으로 올렸다(fig01_t2 동시 등장). 별개 앱이다.",
         False,
     ),
-    "V3 Mobile Plus": ("v3_mobile_plus", "APP", SOLO, False),
-    "YouTube": ("youtube", "APP", SOLO, False),
-    "내 파일": ("my_files", "APP", SOLO, False),
-    "네이버": (
+    ("V3 Mobile Plus", "APP"): ("v3_mobile_plus", SOLO, False),
+    ("YouTube", "APP"): ("youtube", SOLO, False),
+    ("내 파일", "APP"): ("my_files", SOLO, False),
+    ("네이버", "APP"): (
         "naver_app",
-        "APP",
-        "APP 도메인 원문은 '네이버', RETAIL 도메인 원문은 '네이버/네이버페이' 로 표기가 다르다. "
-        "앱 사용자와 네이버페이 결제는 다른 측정 대상이므로 별개 entity 로 둔다.",
+        "APP 도메인 원문은 '네이버', RETAIL 도메인 원문은 '네이버/네이버페이' 로 표기가 다르다. 앱 사용자와 네이버페이 결제는 다른 측정 대상이므로 별개 entity 로 둔다.",
         True,
     ),
-    "네이버지도": ("naver_map", "APP", SOLO, False),
-    "다음": ("daum", "APP", SOLO, False),
-    "당근": ("danggeun", "APP", SOLO, False),
-    "디바이스 케어": ("device_care", "APP", SOLO, False),
-    "모니모": ("monimo", "APP", SOLO, False),
-    "밴드": ("band", "APP", SOLO, False),
-    "삼성 계산기": ("samsung_calculator", "APP", SOLO, False),
-    "삼성 노트": ("samsung_notes", "APP", SOLO, False),
-    "삼성 월렛": ("samsung_wallet", "APP", SOLO, False),
-    "삼성 인터넷 브라우저": ("samsung_internet_browser", "APP", SOLO, False),
-    "삼성카드": ("samsung_card", "APP", SOLO, False),
-    "신한 SOL뱅크": ("shinhan_sol_bank", "APP", SOLO, False),
-    "에이닷 전화": ("adot_call", "APP", SOLO, False),
-    "카카오맵": ("kakaomap", "APP", SOLO, False),
-    "카카오톡": ("kakaotalk", "APP", SOLO, False),
-    "캐시워크": ("cashwalk", "APP", SOLO, False),
-    "토스": ("toss", "APP", SOLO, False),
-    "티맵": ("tmap", "APP", SOLO, False),
-    "하나은행": (
+    ("네이버지도", "APP"): ("naver_map", SOLO, False),
+    ("다음", "APP"): ("daum", SOLO, False),
+    ("당근", "APP"): ("danggeun", SOLO, False),
+    ("디바이스 케어", "APP"): ("device_care", SOLO, False),
+    ("모니모", "APP"): ("monimo", SOLO, False),
+    ("밴드", "APP"): ("band", SOLO, False),
+    ("삼성 계산기", "APP"): ("samsung_calculator", SOLO, False),
+    ("삼성 노트", "APP"): ("samsung_notes", SOLO, False),
+    ("삼성 월렛", "APP"): ("samsung_wallet", SOLO, False),
+    ("삼성 인터넷 브라우저", "APP"): ("samsung_internet_browser", SOLO, False),
+    ("삼성카드", "APP"): ("samsung_card", SOLO, False),
+    ("신한 SOL뱅크", "APP"): ("shinhan_sol_bank", SOLO, False),
+    ("에이닷 전화", "APP"): ("adot_call", SOLO, False),
+    ("카카오맵", "APP"): ("kakaomap", SOLO, False),
+    ("카카오톡", "APP"): ("kakaotalk", SOLO, False),
+    ("캐시워크", "APP"): ("cashwalk", SOLO, False),
+    ("토스", "APP"): ("toss", SOLO, False),
+    ("티맵", "APP"): ("tmap", SOLO, False),
+    ("하나은행", "APP"): (
         "hana_bank",
-        "APP",
         "fig04 아이콘은 '1Q 하나원큐' 지만 라벨 텍스트가 '하나은행' 이다. 원문 라벨 표기를 따른다.",
         False,
     ),
-    "현대카드": ("hyundai_card", "APP", SOLO, False),
-    # ---- APP + RETAIL ----
-    "쿠팡": (
-        "coupang",
-        "BOTH",
-        "APP(fig01) 과 RETAIL(fig06, fig09) 양쪽에서 원문이 동일하게 '쿠팡' 으로 표기했다. "
-        "동일 표기이므로 하나의 entity 로 묶고 membership 으로 두 도메인을 기록한다.",
-        False,
+    ("현대카드", "APP"): ("hyundai_card", SOLO, False),
+    ("쿠팡", "APP"): (
+        "coupang_app",
+        "APP 도메인은 앱 사용자·사용시간을, RETAIL 도메인은 카드 결제추정금액을 잰다. "
+        "원문 표기가 같아도 측정 대상이 다르므로 measurement_entity 로는 별개다.",
+        True,
     ),
-    # ---- RETAIL ----
-    "CJ온스타일": ("cj_onstyle", "RETAIL_BRAND", SOLO, False),
-    "CU": ("cu", "RETAIL_BRAND", SOLO, False),
-    "GS25": ("gs25", "RETAIL_BRAND", SOLO, False),
-    "GS홈쇼핑/GS Shop": ("gs_homeshopping_gsshop", "RETAIL_BRAND", SLASH, False),
-    "G마켓/옥션": (
+    ("쿠팡", "RETAIL"): (
+        "coupang_retail",
+        "APP 도메인은 앱 사용자·사용시간을, RETAIL 도메인은 카드 결제추정금액을 잰다. "
+        "원문 표기가 같아도 측정 대상이 다르므로 measurement_entity 로는 별개다.",
+        True,
+    ),
+    ("CJ온스타일", "RETAIL"): ("cj_onstyle", SOLO, False),
+    ("CU", "RETAIL"): ("cu", SOLO, False),
+    ("GS25", "RETAIL"): ("gs25", SOLO, False),
+    ("GS홈쇼핑/GS Shop", "RETAIL"): ("gs_homeshopping_gsshop", SLASH, False),
+    ("G마켓/옥션", "RETAIL"): (
         "gmarket_auction",
-        "RETAIL_BRAND",
         "슬래시 묶음 표기이자 APP 의 'G마켓' 과 다른 원문 표기. 원문 단위를 측정 단위로 보고 별개 entity 로 둔다.",
         True,
     ),
-    "NC백화점/뉴코아아울렛": ("nc_dept_newcore_outlet", "RETAIL_BRAND", SLASH, False),
-    "NS홈쇼핑": ("ns_homeshopping", "RETAIL_BRAND", SOLO, False),
-    "emart24": (
+    ("NC백화점/뉴코아아울렛", "RETAIL"): ("nc_dept_newcore_outlet", SLASH, False),
+    ("NS홈쇼핑", "RETAIL"): ("ns_homeshopping", SOLO, False),
+    ("emart24", "RETAIL"): (
         "emart24",
-        "RETAIL_BRAND",
         "원문이 '이마트'(fig06_t1) 와 'emart24'(fig06_t2) 를 별도 행으로 표기했다. 편의점 브랜드로 별개 entity 다.",
         False,
     ),
-    "네이버/네이버페이": (
+    ("네이버/네이버페이", "RETAIL"): (
         "naver_naverpay",
-        "RETAIL_BRAND",
         "슬래시 묶음 표기이자 APP 의 '네이버' 와 다른 원문 표기. 결제 기준 측정 단위로 별개 entity 로 둔다.",
         True,
     ),
-    "농협하나로마트": ("nonghyup_hanaro_mart", "RETAIL_BRAND", SOLO, False),
-    "다이소": ("daiso", "RETAIL_BRAND", SOLO, False),
-    "대한항공": ("korean_air", "RETAIL_BRAND", SOLO, False),
-    "롯데마트": ("lotte_mart", "RETAIL_BRAND", SOLO, False),
-    "롯데백화점": ("lotte_department_store", "RETAIL_BRAND", SOLO, False),
-    "롯데하이마트": ("lotte_himart", "RETAIL_BRAND", SOLO, False),
-    "롯데홈쇼핑": ("lotte_homeshopping", "RETAIL_BRAND", SOLO, False),
-    "마켓컬리": ("market_kurly", "RETAIL_BRAND", SOLO, False),
-    "메가커피": ("mega_coffee", "RETAIL_BRAND", SOLO, False),
-    "배달의민족": ("baemin", "RETAIL_BRAND", SOLO, False),
-    "세븐일레븐": ("seven_eleven", "RETAIL_BRAND", SOLO, False),
-    "신세계백화점": ("shinsegae_department_store", "RETAIL_BRAND", SOLO, False),
-    "이마트": ("emart", "RETAIL_BRAND", SOLO, False),
-    "카카오T": ("kakao_t", "RETAIL_BRAND", SOLO, False),
-    "컴포즈커피": ("compose_coffee", "RETAIL_BRAND", SOLO, False),
-    "코스트코": ("costco", "RETAIL_BRAND", SOLO, False),
-    "쿠팡이츠": (
+    ("농협하나로마트", "RETAIL"): ("nonghyup_hanaro_mart", SOLO, False),
+    ("다이소", "RETAIL"): ("daiso", SOLO, False),
+    ("대한항공", "RETAIL"): ("korean_air", SOLO, False),
+    ("롯데마트", "RETAIL"): ("lotte_mart", SOLO, False),
+    ("롯데백화점", "RETAIL"): ("lotte_department_store", SOLO, False),
+    ("롯데하이마트", "RETAIL"): ("lotte_himart", SOLO, False),
+    ("롯데홈쇼핑", "RETAIL"): ("lotte_homeshopping", SOLO, False),
+    ("마켓컬리", "RETAIL"): ("market_kurly", SOLO, False),
+    ("메가커피", "RETAIL"): ("mega_coffee", SOLO, False),
+    ("배달의민족", "RETAIL"): ("baemin", SOLO, False),
+    ("세븐일레븐", "RETAIL"): ("seven_eleven", SOLO, False),
+    ("신세계백화점", "RETAIL"): ("shinsegae_department_store", SOLO, False),
+    ("이마트", "RETAIL"): ("emart", SOLO, False),
+    ("카카오T", "RETAIL"): ("kakao_t", SOLO, False),
+    ("컴포즈커피", "RETAIL"): ("compose_coffee", SOLO, False),
+    ("코스트코", "RETAIL"): ("costco", SOLO, False),
+    ("쿠팡이츠", "RETAIL"): (
         "coupang_eats",
-        "RETAIL_BRAND",
         "원문이 '쿠팡'(fig06_t1/t2) 과 '쿠팡이츠'(fig06_t2) 를 같은 표에 별도 행으로 올렸다. 별개 측정 대상이다.",
         False,
     ),
-    "탑마트": ("top_mart", "RETAIL_BRAND", SOLO, False),
-    "파리바게뜨/파리크라상": ("paris_baguette_pariscroissant", "RETAIL_BRAND", SLASH, False),
-    "현대백화점": ("hyundai_department_store", "RETAIL_BRAND", SOLO, False),
-    "현대홈쇼핑/현대Hmall": (
+    ("탑마트", "RETAIL"): ("top_mart", SOLO, False),
+    ("파리바게뜨/파리크라상", "RETAIL"): ("paris_baguette_pariscroissant", SLASH, False),
+    ("현대백화점", "RETAIL"): ("hyundai_department_store", SOLO, False),
+    ("현대홈쇼핑/현대Hmall", "RETAIL"): (
         "hyundai_homeshopping_hmall",
-        "RETAIL_BRAND",
-        "fig10_t2 의 '현대홈쇼핑/현대Hmallord' 와 같은 브랜드다. 같은 그림 안의 동일 5개 브랜드 세트이고 "
-        "로고 이미지도 동일하며, 발행처 태그 목록에도 '현대홈쇼핑/현대Hmall' 만 실려 있다. "
-        "'ord' 는 원문(발행물) 자체의 렌더링 오타로 확인되어 별칭으로 흡수했다.",
+        "fig10_t2 의 '현대홈쇼핑/현대Hmallord' 와 같은 브랜드다. 같은 그림 안의 동일 5개 브랜드 세트이고 로고 이미지도 동일하며, 발행처 태그 목록에도 '현대홈쇼핑/현대Hmall' 만 실려 있다. 'ord' 는 원문(발행물) 자체의 렌더링 오타로 확인되어 별칭으로 흡수했다.",
         True,
     ),
-    "현대홈쇼핑/현대Hmallord": ("hyundai_homeshopping_hmall", "RETAIL_BRAND", "", False),
-    "홈앤쇼핑": ("home_and_shopping", "RETAIL_BRAND", SOLO, False),
-    "홈플러스": ("homeplus", "RETAIL_BRAND", SOLO, False),
-    # ---- INDUSTRY CATEGORY (fig07_t1) ----
-    "인터넷 쇼핑": ("industry_internet_shopping", "INDUSTRY_CATEGORY", INDUSTRY, False),
-    "오프라인 마트": ("industry_offline_mart", "INDUSTRY_CATEGORY", INDUSTRY, False),
-    "백화점/아울렛": ("industry_department_store_outlet", "INDUSTRY_CATEGORY", INDUSTRY, False),
-    "홈쇼핑": ("industry_home_shopping", "INDUSTRY_CATEGORY", INDUSTRY, False),
-    "여행/교통": ("industry_travel_transport", "INDUSTRY_CATEGORY", INDUSTRY, False),
-    "편의점": ("industry_convenience_store", "INDUSTRY_CATEGORY", INDUSTRY, False),
-    "전자기기": ("industry_electronics", "INDUSTRY_CATEGORY", INDUSTRY, False),
-    "식품": ("industry_food", "INDUSTRY_CATEGORY", INDUSTRY, False),
-    "배달": ("industry_delivery", "INDUSTRY_CATEGORY", INDUSTRY, False),
-    "식음료": ("industry_food_beverage", "INDUSTRY_CATEGORY", INDUSTRY, False),
+    ("현대홈쇼핑/현대Hmallord", "RETAIL"): ("hyundai_homeshopping_hmall", "", False),
+    ("홈앤쇼핑", "RETAIL"): ("home_and_shopping", SOLO, False),
+    ("홈플러스", "RETAIL"): ("homeplus", SOLO, False),
+    ("인터넷 쇼핑", "RETAIL"): ("industry_internet_shopping", INDUSTRY, False),
+    ("오프라인 마트", "RETAIL"): ("industry_offline_mart", INDUSTRY, False),
+    ("백화점/아울렛", "RETAIL"): ("industry_department_store_outlet", INDUSTRY, False),
+    ("홈쇼핑", "RETAIL"): ("industry_home_shopping", INDUSTRY, False),
+    ("여행/교통", "RETAIL"): ("industry_travel_transport", INDUSTRY, False),
+    ("편의점", "RETAIL"): ("industry_convenience_store", INDUSTRY, False),
+    ("전자기기", "RETAIL"): ("industry_electronics", INDUSTRY, False),
+    ("식품", "RETAIL"): ("industry_food", INDUSTRY, False),
+    ("배달", "RETAIL"): ("industry_delivery", INDUSTRY, False),
+    ("식음료", "RETAIL"): ("industry_food_beverage", INDUSTRY, False),
 }
 
 # 대표 표기: canonical_key -> entity_name_raw (원문 표기 중 하나. 창작 금지)
@@ -219,8 +237,8 @@ CANONICAL_DISPLAY: dict[str, str] = {
 }
 
 # 별칭이 대표 표기와 다를 때의 match_basis / reviewer_note
-ALIAS_OVERRIDE: dict[str, tuple[str, str]] = {
-    "현대홈쇼핑/현대Hmallord": (
+ALIAS_OVERRIDE: dict[tuple[str, str], tuple[str, str]] = {
+    ("현대홈쇼핑/현대Hmallord", "RETAIL"): (
         "REVIEWED",
         "fig10.png 하단 막대차트 라벨을 4배 확대 판독한 결과 원문이 실제로 "
         "'현대홈쇼핑/현대Hmallord' 로 렌더링돼 있음을 확인했다(판독 오류 아님, 발행물 오타). "
@@ -228,105 +246,258 @@ ALIAS_OVERRIDE: dict[str, tuple[str, str]] = {
     ),
 }
 
-# 웹 수집 대상 제외 사유
-NOT_COLLECTABLE = {"INDUSTRY_CATEGORY"}
+# --------------------------------------------------------------------------
+# 3. web_eligibility_status — 웹 수집 적격 여부. **확정은 업종 축 배제뿐이다.**
+#    C009(D2): 이전 web_collectable 은 URL 증거 없이 True 70건을 찍어 게이트 결론을 선점했다.
+#    여기서는 (a) 업종 축 10건만 배제 확정, (b) 선탑재 의심 앱은 표시만, (c) 나머지는 미평가.
+# --------------------------------------------------------------------------
+STATUS_NOT_ASSESSED = "NOT_ASSESSED"
+STATUS_EXCLUDED_INDUSTRY = "EXCLUDED_INDUSTRY_AXIS"
+STATUS_SYSTEM_APP = "SYSTEM_APP_CANDIDATE"
+ALLOWED_ELIGIBILITY_STATUS = {STATUS_NOT_ASSESSED, STATUS_EXCLUDED_INDUSTRY, STATUS_SYSTEM_APP}
+
+# 단말 제조사(OEM) 또는 OS 사업자가 기본 탑재해, 사용자의 설치 행위 없이 단말에 존재했을
+# 가능성이 높은 앱. **선탑재 여부를 여기서 판정하지 않는다** — 다음 게이트가 검증할 후보 표시다.
+# 판정을 미루는 이유: 선탑재는 제조사·통신사·출고 시기별로 달라서 앱 이름만으로는 확정할 수 없다.
+SYSTEM_APP_CANDIDATE_BASIS: dict[str, str] = {
+    "samsung_calculator": "삼성 단말 기본 탑재 계산기 유틸리티로 알려져 있다. 단독 서비스 랜딩페이지가 존재하는지 미확인.",
+    "samsung_notes": "삼성 단말 기본 탑재 메모 유틸리티로 알려져 있다. 단독 서비스 랜딩페이지가 존재하는지 미확인.",
+    "samsung_wallet": "삼성 단말 기본 탑재 결제/월렛 앱으로 알려져 있다. 제조사 제품 페이지로 귀결될 가능성이 있다.",
+    "samsung_internet_browser": "삼성 단말 기본 탑재 브라우저로 알려져 있다. 제조사 제품 페이지로 귀결될 가능성이 있다.",
+    "my_files": "삼성 단말 기본 탑재 파일 관리자('내 파일')로 알려져 있다. 단독 랜딩페이지 부재 가능성이 높다.",
+    "device_care": "삼성 단말 기본 탑재 기기 관리 유틸리티('디바이스 케어')로 알려져 있다. 단독 랜딩페이지 부재 가능성이 높다.",
+    "chrome": "Android 기본 탑재 브라우저로 알려져 있다. OS 사업자 제품 페이지로 귀결될 가능성이 있다.",
+    "google": "Android 기본 탑재 검색 앱으로 알려져 있다. OS 사업자 제품 페이지로 귀결될 가능성이 있다.",
+    "google_photos": "Android 다수 기종에 기본 탑재되는 사진 앱으로 알려져 있다. 선탑재 범위가 기종별로 다르다.",
+    "adot_call": "이동통신사(SKT)가 자사 출고 단말에 기본 탑재하는 전화 앱으로 알려져 있다. 통신사·기종 의존이라 확정 불가.",
+    "v3_mobile_plus": "국내 출고 단말에 통신사/제조사가 번들하는 보안 앱으로 알려져 있다. 번들 범위가 출고 시기별로 달라 확정 불가.",
+}
+
+# --------------------------------------------------------------------------
+# 4. web_target 그룹 후보 — 같은 랜딩 URL 로 귀결될 가능성이 있는 measurement_entity 묶음.
+#    **URL 증거가 아직 하나도 없다.** 그래서 확정이 아니라 후보로만 둔다.
+#    이 그룹이 확정되면 그룹당 관측을 정확히 1회만 수행해 2중 수집을 막는다.
+# --------------------------------------------------------------------------
+WEB_TARGET_GROUP_CANDIDATES: dict[str, tuple[list[str], str]] = {
+    "coupang": (
+        ["coupang_app", "coupang_retail"],
+        "원문이 APP 과 RETAIL 양쪽에서 동일하게 '쿠팡' 으로 표기했다. 같은 브랜드의 랜딩 URL 이 "
+        "하나일 가능성이 높지만 URL 을 확인하지 않았다.",
+    ),
+    "naver": (
+        ["naver_app", "naver_naverpay"],
+        "APP 표기 '네이버' 와 RETAIL 표기 '네이버/네이버페이' 는 측정 대상이 다르지만 "
+        "랜딩 URL 은 하나로 귀결될 수 있다. URL 을 확인하지 않았다.",
+    ),
+    "gmarket": (
+        ["gmarket_app", "gmarket_auction"],
+        "APP 표기 'G마켓' 과 RETAIL 표기 'G마켓/옥션' 은 측정 대상이 다르지만 랜딩 URL 은 "
+        "하나로 귀결될 수 있다. 옥션이 별도 URL 을 갖는지도 확인하지 않았다.",
+    ),
+}
+
+GROUPING_CANDIDATE = "CANDIDATE_PENDING_URL_REVIEW"
+GROUPING_SINGLETON = "SINGLETON_PENDING_URL_REVIEW"
+ALLOWED_GROUPING_STATUS = {GROUPING_CANDIDATE, GROUPING_SINGLETON}
 
 
 def sid(canonical_key: str) -> str:
     return "svc_" + hashlib.sha256(canonical_key.encode("utf-8")).hexdigest()[:16]
 
 
-def aid(raw: str, service_id: str) -> str:
-    return "als_" + hashlib.sha256(f"{raw}\x1f{service_id}".encode()).hexdigest()[:16]
+def aid(raw: str, domain: str, service_id: str) -> str:
+    return "als_" + hashlib.sha256(f"{raw}\x1f{domain}\x1f{service_id}".encode()).hexdigest()[:16]
+
+
+def wtg(web_target_key: str) -> str:
+    return "wtg_" + hashlib.sha256(web_target_key.encode("utf-8")).hexdigest()[:16]
 
 
 def main() -> None:
     rows = pd.read_parquet(STATE / "source_ranking_rows.parquet")
     panels = pd.read_parquet(STATE / "panel_registry.parquet")
 
-    assert len(rows) == 261, f"원자료 행수가 261이 아니다: {len(rows)}"
+    assert len(rows) == EXPECTED_ROWS, f"원자료 행수가 {EXPECTED_ROWS}이 아니다: {len(rows)}"
+    assert "axis_type" in rows.columns, "원자료에 axis_type 이 없다 — 저널 재생성을 먼저 돌려라"
 
-    # ---------------- panel_registry: axis_type / panel_scope ----------------
-    panels["axis_type"] = panels["panel_id"].map(AXIS_TYPE).fillna("SERVICE_BRAND")
+    # ---------------- panel_registry: panel_scope ----------------
     panels["panel_scope"] = panels["panel_id"].map(PANEL_SCOPE)
     missing_scope = panels.loc[panels["panel_scope"].isna(), "panel_id"].tolist()
     assert not missing_scope, f"panel_scope 미지정 패널: {missing_scope}"
-    axis_by_panel = dict(zip(panels["panel_id"], panels["axis_type"], strict=True))
 
     # ---------------- 원자료 커버리지 검사 ----------------
-    raw_names = sorted(rows["entity_name_raw"].unique())
-    unknown = [n for n in raw_names if n not in ENTITY_SPEC]
-    assert not unknown, f"ENTITY_SPEC 에 없는 원문 표기: {unknown}"
-    unused = [n for n in ENTITY_SPEC if n not in set(raw_names)]
+    rows["entity_key"] = list(zip(rows["entity_name_raw"], rows["domain"], strict=True))
+    observed = sorted(set(rows["entity_key"]))
+    unknown = [k for k in observed if k not in ENTITY_SPEC]
+    assert not unknown, f"ENTITY_SPEC 에 없는 (원문 표기, 도메인): {unknown}"
+    unused = [k for k in ENTITY_SPEC if k not in set(observed)]
     assert not unused, f"원자료에 없는 ENTITY_SPEC 항목: {unused}"
 
-    # ---------------- entity_alias_map ----------------
-    per_raw = (
-        rows.groupby("entity_name_raw")
-        .agg(
-            domain=("domain", lambda s: "|".join(sorted(set(s)))),
-            panel_ids=("panel_id", lambda s: ",".join(sorted(set(s)))),
-            n_rows=("source_row_id", "size"),
-        )
-        .reset_index()
-    )
+    # axis_type 은 원자료에서 유도한다. 한 entity 가 두 축에 걸치면 스키마가 깨진 것이다.
+    axis_by_entity = rows.groupby("entity_key")["axis_type"].unique()
+    mixed = {k: list(v) for k, v in axis_by_entity.items() if len(v) > 1}
+    assert not mixed, f"축 유형이 둘 이상인 entity: {mixed}"
+    entity_axis = {k: v[0] for k, v in axis_by_entity.items()}
 
+    # ---------------- entity_candidates.json (중간산출물) ----------------
+    # C009(D6): 고아 산출물이었다. 생성 경로를 이 스크립트로 편입한다.
+    candidates = [
+        {
+            "entity_name_raw": raw,
+            "domain": domain,
+            "axis_type": entity_axis[(raw, domain)],
+            "panels": sorted(
+                rows.loc[rows["entity_key"] == (raw, domain), "panel_id"].unique().tolist()
+            ),
+            "n_rows": int((rows["entity_key"] == (raw, domain)).sum()),
+            "canonical_service_key": ENTITY_SPEC[(raw, domain)][0],
+        }
+        for raw, domain in observed
+    ]
+
+    # ---------------- entity_alias_map ----------------
+    # 키가 (entity_name_raw, domain) 이므로 같은 원문 표기가 도메인별로 다른 별칭을 갖는다.
     alias_recs = []
-    for r in per_raw.itertuples():
-        raw = r.entity_name_raw
-        ckey, _kind, _basis, _rev = ENTITY_SPEC[raw]
+    for raw, domain in observed:
+        ckey, _basis, _rev = ENTITY_SPEC[(raw, domain)]
         service_id = sid(ckey)
         display = CANONICAL_DISPLAY.get(ckey, raw)
-        if raw in ALIAS_OVERRIDE:
-            basis, note = ALIAS_OVERRIDE[raw]
+        if (raw, domain) in ALIAS_OVERRIDE:
+            basis, note = ALIAS_OVERRIDE[(raw, domain)]
         elif raw == display:
             basis, note = "EXACT", ""
         else:
             basis, note = "NORMALIZED", ""
+        sub = rows[rows["entity_key"] == (raw, domain)]
         alias_recs.append(
             {
-                "alias_id": aid(raw, service_id),
+                "alias_id": aid(raw, domain, service_id),
                 "service_id": service_id,
                 "entity_name_raw": raw,
-                "domain": r.domain,
-                "panel_ids": r.panel_ids,
+                "domain": domain,
+                "axis_type": entity_axis[(raw, domain)],
+                "panel_ids": ",".join(sorted(sub["panel_id"].unique())),
                 "match_basis": basis,
                 "reviewer_note": note,
             }
         )
-    alias_map = pd.DataFrame(alias_recs).sort_values(["service_id", "entity_name_raw"])
+    alias_map = pd.DataFrame(alias_recs).sort_values(
+        ["service_id", "entity_name_raw"], ignore_index=True
+    )
 
-    # ---------------- service_master ----------------
-    raw2ckey = {raw: spec[0] for raw, spec in ENTITY_SPEC.items()}
-    rows_ck = rows.assign(canonical_service_key=rows["entity_name_raw"].map(raw2ckey))
-    rows_ck["axis_type"] = rows_ck["panel_id"].map(axis_by_panel)
+    # ---------------- service_master (measurement_entity 층) ----------------
+    key2ckey = {k: v[0] for k, v in ENTITY_SPEC.items()}
+    rows_ck = rows.assign(canonical_service_key=rows["entity_key"].map(key2ckey))
+
+    # canonical_key -> web_target_group
+    group_of: dict[str, tuple[str, str, str]] = {}
+    for wkey, (members, basis) in WEB_TARGET_GROUP_CANDIDATES.items():
+        for member in members:
+            group_of[member] = (wtg(wkey), wkey, basis)
 
     svc_recs = []
     for ckey, sub in rows_ck.groupby("canonical_service_key"):
-        raws = sorted(sub["entity_name_raw"].unique())
+        pairs = sorted(set(zip(sub["entity_name_raw"], sub["domain"], strict=True)))
+        raws = sorted({p[0] for p in pairs})
+        domains = sorted({p[1] for p in pairs})
+        assert len(domains) == 1, f"{ckey}: measurement_entity 가 도메인을 넘나든다 {domains}"
+        domain = domains[0]
+        axes = sorted({entity_axis[p] for p in pairs})
+        assert len(axes) == 1, f"{ckey}: 축 유형이 둘 이상 {axes}"
+        axis_type = axes[0]
+
         primary = CANONICAL_DISPLAY.get(ckey, raws[0])
-        spec_src = next(r for r in raws if ENTITY_SPEC[r][0] == ckey and ENTITY_SPEC[r][2])
-        _, kind, basis, needs_review = ENTITY_SPEC[spec_src]
-        app_panels = sub.loc[sub["domain"] == "APP", "panel_id"].nunique()
-        retail_panels = sub.loc[sub["domain"] == "RETAIL", "panel_id"].nunique()
+        spec_src = next(p for p in pairs if ENTITY_SPEC[p][0] == ckey and ENTITY_SPEC[p][1])
+        _, basis, needs_review = ENTITY_SPEC[spec_src]
+
+        if axis_type == "INDUSTRY_CATEGORY":
+            eligibility, elig_basis = STATUS_EXCLUDED_INDUSTRY, INDUSTRY
+            group_id: str | None = None
+            group_key: str | None = None
+            grouping_status: str | None = None
+        else:
+            if ckey in SYSTEM_APP_CANDIDATE_BASIS:
+                eligibility = STATUS_SYSTEM_APP
+                elig_basis = SYSTEM_APP_CANDIDATE_BASIS[ckey]
+            else:
+                eligibility = STATUS_NOT_ASSESSED
+                elig_basis = "웹 수집 적격 여부를 아직 평가하지 않았다. URL 증거가 없다."
+            if ckey in group_of:
+                group_id, group_key, _ = group_of[ckey]
+                grouping_status = GROUPING_CANDIDATE
+            else:
+                group_key = ckey
+                group_id = wtg(ckey)
+                grouping_status = GROUPING_SINGLETON
+
+        # C009(C): 도메인 교차 합산이 성립하지 않도록 행 수를 도메인별로 나눠 담는다.
+        app_rows = int((sub["domain"] == "APP").sum())
+        retail_rows = int((sub["domain"] == "RETAIL").sum())
         svc_recs.append(
             {
                 "service_id": sid(ckey),
                 "canonical_service_key": ckey,
                 "service_name_canonical": primary,
-                "entity_kind": kind,
-                "appears_in_app_panels": int(app_panels),
-                "appears_in_retail_panels": int(retail_panels),
-                "source_row_count": len(sub),
-                "alias_count": len(raws),
+                "domain": domain,
+                "axis_type": axis_type,
+                "appears_in_app_panels": int(sub.loc[sub["domain"] == "APP", "panel_id"].nunique()),
+                "appears_in_retail_panels": int(
+                    sub.loc[sub["domain"] == "RETAIL", "panel_id"].nunique()
+                ),
+                "app_row_count": app_rows,
+                "retail_row_count": retail_rows,
+                "alias_count": len(pairs),
                 "canonicalization_basis": basis,
                 "needs_human_review": bool(needs_review),
-                "web_collectable": kind not in NOT_COLLECTABLE,
+                "web_eligibility_status": eligibility,
+                "web_eligibility_basis": elig_basis,
+                "web_target_group_id": group_id,
+                "web_target_key": group_key,
+                "web_target_grouping_status": grouping_status,
             }
         )
     service_master = pd.DataFrame(svc_recs).sort_values(
-        ["entity_kind", "canonical_service_key"], ignore_index=True
+        ["domain", "axis_type", "canonical_service_key"], ignore_index=True
     )
+
+    # 도메인 순수성 — measurement_entity 는 정확히 한 도메인에만 행을 갖는다.
+    both = service_master[
+        (service_master["app_row_count"] > 0) & (service_master["retail_row_count"] > 0)
+    ]
+    assert both.empty, (
+        f"도메인을 넘나드는 measurement_entity: {both['canonical_service_key'].tolist()}"
+    )
+
+    # ---------------- web_target_group (web_target 층) ----------------
+    web_recs = []
+    for wkey, sub in service_master[service_master["web_target_key"].notna()].groupby(
+        "web_target_key"
+    ):
+        is_candidate = wkey in WEB_TARGET_GROUP_CANDIDATES
+        web_recs.append(
+            {
+                "web_target_group_id": wtg(str(wkey)),
+                "web_target_key": wkey,
+                "member_service_ids": ",".join(sorted(sub["service_id"])),
+                "member_canonical_keys": ",".join(sorted(sub["canonical_service_key"])),
+                "member_count": len(sub),
+                "member_domains": ",".join(sorted(set(sub["domain"]))),
+                "grouping_status": GROUPING_CANDIDATE if is_candidate else GROUPING_SINGLETON,
+                "grouping_basis": (
+                    WEB_TARGET_GROUP_CANDIDATES[str(wkey)][1]
+                    if is_candidate
+                    else "다른 measurement_entity 와 묶을 원문 근거가 없다. 단독 web_target 후보."
+                ),
+                # URL 증거가 없다. 그룹이 확정되기 전에는 이 두 칸이 비어 있어야 한다.
+                "web_target_url": None,
+                "url_evidence": None,
+            }
+        )
+    web_target_group = pd.DataFrame(web_recs).sort_values(
+        ["grouping_status", "web_target_key"], ignore_index=True
+    )
+    unresolved = web_target_group[web_target_group["web_target_url"].notna()]
+    assert unresolved.empty, "URL 미확정 상태에서 web_target_url 이 채워졌다"
 
     # ---------------- source_membership ----------------
     mem = (
@@ -338,13 +509,12 @@ def main() -> None:
 
     # ---------------- extraction_corrections.json ----------------
     corrections = {
-        "schema": "extraction_corrections/v1",
+        "schema": "extraction_corrections/v2",
         "generated_by": "research/landing_accessibility/scripts/build_canonical_entities.py",
         "note": (
-            "오케스트레이터가 지목한 판독 의심 2건을 원본 이미지 재판독으로 검증했다. "
-            "결론: 원자료(source_ranking_rows.parquet) 값 시정은 0건이며, "
-            "1건은 발행물 자체의 오타로 확인되어 원문 보존 + 별칭 흡수, "
-            "1건은 판독 오류가 아니라 축 유형 오분류로 panel_registry 스키마 확장으로 처리했다."
+            "C003 단계의 판독 검증 2건(COR-001/002)과 C009 감사 수용에 따른 스키마 시정 2건"
+            "(COR-003/004)을 함께 기록한다. 원자료(source_ranking_rows.parquet) 값 시정은 "
+            "누적 0건이며 261행은 그대로다."
         ),
         "corrections": [
             {
@@ -386,15 +556,60 @@ def main() -> None:
                     "식품·배달·식음료)은 브랜드가 아니라 업종 카테고리다."
                 ),
                 "resolution": (
-                    "panel_registry 에 axis_type 컬럼을 추가해 fig07_t1 만 INDUSTRY_CATEGORY, 나머지 16패널은 "
-                    "SERVICE_BRAND 로 표시. 해당 10개 entity 는 entity_kind='INDUSTRY_CATEGORY', "
-                    "web_collectable=False 로 두어 브랜드 entity 공간과 분리했다."
+                    "panel_registry 와 source_ranking_rows 에 axis_type 컬럼을 두어 fig07_t1 만 "
+                    "INDUSTRY_CATEGORY, 나머지 16패널은 SERVICE_BRAND 로 표시. 해당 10개 entity 는 "
+                    "web_eligibility_status='EXCLUDED_INDUSTRY_AXIS' 로 브랜드 entity 공간과 분리했다."
                 ),
                 "corrected_by": "exec-agent(C003) / 이미지 직접 판독",
             },
+            {
+                "correction_id": "COR-003",
+                "row_id": None,
+                "affected_row_ids": [],
+                "panel_id": None,
+                "field": "service_master.entity_kind",
+                "before": "entity_kind ∈ {APP, RETAIL_BRAND, INDUSTRY_CATEGORY, BOTH}",
+                "after": "domain ∈ {APP, RETAIL} × axis_type ∈ {SERVICE_BRAND, INDUSTRY_CATEGORY}",
+                "action": "SCHEMA_FIX_AXIS_DOMAIN_SPLIT",
+                "evidence": (
+                    "entity_kind 한 컬럼이 도메인(무엇을 쟀는가)과 축유형(브랜드인가 업종인가)을 섞고 있었다. "
+                    "그 결과 `entity_kind == 'RETAIL_BRAND'` 필터가 entity_kind='BOTH' 였던 쿠팡을 "
+                    "조용히 누락시켰다. 쿠팡은 리테일 순 결제추정금액 1위다 — 필터가 1위를 떨어뜨렸다."
+                ),
+                "resolution": (
+                    "domain 과 axis_type 을 별도 컬럼으로 분리하고 entity_kind 를 삭제했다. "
+                    "리테일 브랜드 집합은 이제 (domain=='RETAIL') & (axis_type=='SERVICE_BRAND') 로 "
+                    "표현되며 업종 축과 브랜드 축이 컬럼 수준에서 갈린다."
+                ),
+                "corrected_by": "exec-agent(C009) / SSOT·적대적 감사 수용",
+            },
+            {
+                "correction_id": "COR-004",
+                "row_id": None,
+                "affected_row_ids": [],
+                "panel_id": None,
+                "field": "measurement_entity key",
+                "before": "entity_name_raw (쿠팡 = 1개 entity, entity_kind='BOTH')",
+                "after": "(entity_name_raw, domain) (쿠팡 = coupang_app + coupang_retail)",
+                "action": "SCHEMA_FIX_MEASUREMENT_WEB_TWO_LAYER",
+                "evidence": (
+                    "APP 패널은 앱 사용자·사용시간을, RETAIL 패널은 카드 결제추정금액을 잰다. 두 지표는 "
+                    "모집단도 단위도 다르다. 원문 표기가 같다는 이유로 하나의 entity 로 묶으면 "
+                    "서로 다른 것을 잰 값이 한 축에서 합산 가능해진다. 반대로 네이버·G마켓처럼 표기가 "
+                    "다르다는 이유로 분리하면 그 분리가 수집 단위까지 전파돼 같은 랜딩페이지를 2번 방문하게 된다."
+                ),
+                "resolution": (
+                    "층을 나눴다. measurement_entity 는 (entity_name_raw, domain) 을 키로 삼아 "
+                    "무엇을 쟀는지를 보존하고, web_target 층(web_target_group.parquet)이 같은 랜딩 URL 로 "
+                    "귀결될 후보를 묶어 관측 1회를 보장한다. URL 증거가 없으므로 그룹은 "
+                    "grouping_status='CANDIDATE_PENDING_URL_REVIEW' 로 미확정이다. "
+                    "source_row_count 는 app_row_count / retail_row_count 로 분리해 도메인 교차 합산을 막았다."
+                ),
+                "corrected_by": "exec-agent(C009) / 오케스트레이터 재결",
+            },
         ],
         "row_value_changes_applied": 0,
-        "source_row_count_before": 261,
+        "source_row_count_before": EXPECTED_ROWS,
         "source_row_count_after": len(rows),
     }
 
@@ -405,23 +620,35 @@ def main() -> None:
         ("service_master", service_master),
         ("entity_alias_map", alias_map),
         ("source_membership", mem),
+        ("web_target_group", web_target_group),
     ]:
         df.to_parquet(STATE / f"{name}.parquet", index=False)
         df.to_csv(STATE / f"{name}.csv", index=False, encoding="utf-8-sig")
+    (STATE / "entity_candidates.json").write_text(
+        json.dumps(candidates, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     (STATE / "extraction_corrections.json").write_text(
         json.dumps(corrections, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
 
     # ---------------- 요약 ----------------
-    print(f"source_ranking_rows : {len(rows)} 행 (불변)")
-    print(f"panel_registry      : {len(panels)} 패널")
-    print(panels["axis_type"].value_counts().to_string())
-    print(f"service_master      : {len(service_master)} 서비스")
-    print(service_master["entity_kind"].value_counts().to_string())
-    print(f"entity_alias_map    : {len(alias_map)} 별칭")
-    print(f"source_membership   : {len(mem)} 행")
+    print(f"source_ranking_rows  : {len(rows)} 행 (불변)")
+    print(f"panel_registry       : {len(panels)} 패널")
+    print(f"measurement_entity   : {len(service_master)} 개")
+    print(service_master.groupby(["domain", "axis_type"]).size().to_string())
+    print(f"entity_alias_map     : {len(alias_map)} 별칭 ((표기, 도메인) 키)")
+    print(f"source_membership    : {len(mem)} 행")
+    print(f"web_target_group     : {len(web_target_group)} 그룹")
+    print(web_target_group["grouping_status"].value_counts().to_string())
+    print("web_eligibility_status:")
+    print(service_master["web_eligibility_status"].value_counts().to_string())
+    print(
+        f"행수 도메인 분리      : app {int(service_master['app_row_count'].sum())} + "
+        f"retail {int(service_master['retail_row_count'].sum())} = "
+        f"{int(service_master['app_row_count'].sum() + service_master['retail_row_count'].sum())}"
+    )
     nr = service_master[service_master["needs_human_review"]]
-    print(f"needs_human_review  : {len(nr)}")
+    print(f"needs_human_review   : {len(nr)}")
     for r in nr.itertuples():
         print(f"  - {r.service_id} {r.canonical_service_key} ({r.service_name_canonical})")
 

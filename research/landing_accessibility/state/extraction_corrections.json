@@ -1,7 +1,7 @@
 {
-  "schema": "extraction_corrections/v1",
+  "schema": "extraction_corrections/v2",
   "generated_by": "research/landing_accessibility/scripts/build_canonical_entities.py",
-  "note": "오케스트레이터가 지목한 판독 의심 2건을 원본 이미지 재판독으로 검증했다. 결론: 원자료(source_ranking_rows.parquet) 값 시정은 0건이며, 1건은 발행물 자체의 오타로 확인되어 원문 보존 + 별칭 흡수, 1건은 판독 오류가 아니라 축 유형 오분류로 panel_registry 스키마 확장으로 처리했다.",
+  "note": "C003 단계의 판독 검증 2건(COR-001/002)과 C009 감사 수용에 따른 스키마 시정 2건(COR-003/004)을 함께 기록한다. 원자료(source_ranking_rows.parquet) 값 시정은 누적 0건이며 261행은 그대로다.",
   "corrections": [
     {
       "correction_id": "COR-001",
@@ -26,8 +26,34 @@
       "after": "INDUSTRY_CATEGORY",
       "action": "SCHEMA_FIX_AXIS_TYPE",
       "evidence": "sources/wiseapp/images/fig07.png 판독: 표 헤더 컬럼명이 '업종' 이고 행 아이콘이 브랜드 로고가 아닌 업종 픽토그램이다. 각주도 '리테일 브랜드를 업종별로 분류하여 각 업종별 합을 산출' 이라고 명시한다. 10개 행(인터넷 쇼핑·오프라인 마트·백화점/아울렛·홈쇼핑·여행/교통·편의점·전자기기·식품·배달·식음료)은 브랜드가 아니라 업종 카테고리다.",
-      "resolution": "panel_registry 에 axis_type 컬럼을 추가해 fig07_t1 만 INDUSTRY_CATEGORY, 나머지 16패널은 SERVICE_BRAND 로 표시. 해당 10개 entity 는 entity_kind='INDUSTRY_CATEGORY', web_collectable=False 로 두어 브랜드 entity 공간과 분리했다.",
+      "resolution": "panel_registry 와 source_ranking_rows 에 axis_type 컬럼을 두어 fig07_t1 만 INDUSTRY_CATEGORY, 나머지 16패널은 SERVICE_BRAND 로 표시. 해당 10개 entity 는 web_eligibility_status='EXCLUDED_INDUSTRY_AXIS' 로 브랜드 entity 공간과 분리했다.",
       "corrected_by": "exec-agent(C003) / 이미지 직접 판독"
+    },
+    {
+      "correction_id": "COR-003",
+      "row_id": null,
+      "affected_row_ids": [],
+      "panel_id": null,
+      "field": "service_master.entity_kind",
+      "before": "entity_kind ∈ {APP, RETAIL_BRAND, INDUSTRY_CATEGORY, BOTH}",
+      "after": "domain ∈ {APP, RETAIL} × axis_type ∈ {SERVICE_BRAND, INDUSTRY_CATEGORY}",
+      "action": "SCHEMA_FIX_AXIS_DOMAIN_SPLIT",
+      "evidence": "entity_kind 한 컬럼이 도메인(무엇을 쟀는가)과 축유형(브랜드인가 업종인가)을 섞고 있었다. 그 결과 `entity_kind == 'RETAIL_BRAND'` 필터가 entity_kind='BOTH' 였던 쿠팡을 조용히 누락시켰다. 쿠팡은 리테일 순 결제추정금액 1위다 — 필터가 1위를 떨어뜨렸다.",
+      "resolution": "domain 과 axis_type 을 별도 컬럼으로 분리하고 entity_kind 를 삭제했다. 리테일 브랜드 집합은 이제 (domain=='RETAIL') & (axis_type=='SERVICE_BRAND') 로 표현되며 업종 축과 브랜드 축이 컬럼 수준에서 갈린다.",
+      "corrected_by": "exec-agent(C009) / SSOT·적대적 감사 수용"
+    },
+    {
+      "correction_id": "COR-004",
+      "row_id": null,
+      "affected_row_ids": [],
+      "panel_id": null,
+      "field": "measurement_entity key",
+      "before": "entity_name_raw (쿠팡 = 1개 entity, entity_kind='BOTH')",
+      "after": "(entity_name_raw, domain) (쿠팡 = coupang_app + coupang_retail)",
+      "action": "SCHEMA_FIX_MEASUREMENT_WEB_TWO_LAYER",
+      "evidence": "APP 패널은 앱 사용자·사용시간을, RETAIL 패널은 카드 결제추정금액을 잰다. 두 지표는 모집단도 단위도 다르다. 원문 표기가 같다는 이유로 하나의 entity 로 묶으면 서로 다른 것을 잰 값이 한 축에서 합산 가능해진다. 반대로 네이버·G마켓처럼 표기가 다르다는 이유로 분리하면 그 분리가 수집 단위까지 전파돼 같은 랜딩페이지를 2번 방문하게 된다.",
+      "resolution": "층을 나눴다. measurement_entity 는 (entity_name_raw, domain) 을 키로 삼아 무엇을 쟀는지를 보존하고, web_target 층(web_target_group.parquet)이 같은 랜딩 URL 로 귀결될 후보를 묶어 관측 1회를 보장한다. URL 증거가 없으므로 그룹은 grouping_status='CANDIDATE_PENDING_URL_REVIEW' 로 미확정이다. source_row_count 는 app_row_count / retail_row_count 로 분리해 도메인 교차 합산을 막았다.",
+      "corrected_by": "exec-agent(C009) / 오케스트레이터 재결"
     }
   ],
   "row_value_changes_applied": 0,

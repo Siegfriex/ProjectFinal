@@ -57,7 +57,29 @@
     "age_definition": "50대 이상",
     "measurement_period": "2025년 하반기 (25년 하반기)",
     "comparison_period": "전년 동기간",
-    "note": "연령 하한은 원문 본문 'Q. 50대 이상 액티브시니어+ 세대' 표기에 근거. 상한·표본크기·조사방법은 원문 본문에 미기재 — figure 이미지 판독으로 보완 확인 필요."
+    "note": "연령 하한은 원문 본문 'Q. 50대 이상 액티브시니어+ 세대' 표기에 근거. 연령 상한과 표본 크기는 원문 본문에 미기재다. 조사방법은 미기재가 아니다 — 본문에 도메인별로 명시돼 있으며 아래 methodology_verbatim 에 원문 그대로 옮겼다. (C009 시정: 이전 판본은 '조사방법 미기재' 라고 적었으나 이는 원문 확인을 빠뜨린 오기였다.)",
+    "methodology_verbatim": {
+      "APP": {
+        "verbatim": "한국인 Android+iOS 스마트폰 사용자 추정.",
+        "occurrences_in_body_text": 5,
+        "source_file": "sources/wiseapp/raw/wiseapp933_text.txt",
+        "note": "APP 도메인(Chapter 1~2) 각 인사이트 하단에 반복 표기된다."
+      },
+      "RETAIL": {
+        "verbatim": "한국인이 신용카드, 체크카드로 결제한 금액을 표본 조사하였으며, 계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음.",
+        "occurrences_in_body_text": 6,
+        "source_file": "sources/wiseapp/raw/wiseapp933_text.txt",
+        "note": "RETAIL 도메인(Chapter 3~4) 각 인사이트 하단에 반복 표기된다."
+      }
+    },
+    "study_limitation": {
+      "id": "LIM-RETAIL-CARD-SAMPLE",
+      "statement": "리테일 지표는 신용카드·체크카드 결제 표본이다. 계좌이체·현금·상품권 결제가 모집단에서 구조적으로 빠져 있으므로, 현금과 계좌이체 비중이 높은 고령 세그먼트의 소비가 과소집계된다.",
+      "why_it_matters": "본 연구가 겨냥하는 대상이 바로 그 집단(액티브시니어+ 세대)이다. 즉 이 한계는 주변적 잡음이 아니라 연구 대상과 정면으로 겹친다. 리테일 순위·점유율·성장률을 '이 세대의 실제 소비' 로 읽으면 안 되고, '이 세대의 카드 결제 중 관측된 부분' 으로만 읽어야 한다.",
+      "basis": "원문 각주 verbatim (methodology_verbatim.RETAIL)",
+      "scope": "RETAIL 도메인 패널 9종 전체 (fig06~fig11)",
+      "applies_to_app_domain": false
+    }
   },
   "content_structure": {
     "html_tables": 0,
@@ -127,24 +149,113 @@
       "sha256": "sha256:c1e5422f1618a5cb943ae585edef4038b59fce97f6e2b983e3d85f0101ac665f"
     }
   },
-  "legacy_conflict_detected": [
-    {
-      "field": "panel_depth",
-      "authority": "Chapter1(1) 앱 사용자 및 사용시간 평균 TOP15",
-      "legacy_xlsx": "01_사용자_사용시간 = 20행 (Top10 표기)",
-      "verdict": "MISMATCH — 원문은 TOP15, 파생 xlsx는 Top10 표기. 재동결 필요."
+  "freeze_validity_window": {
+    "frozen_edition": "2026-08-26 시점에 게시돼 있던 판본",
+    "frozen_at": "2026-08-26T12:04:03.157282",
+    "publisher_notice": {
+      "nid": 127,
+      "title_verbatim": "[와이즈앱] 모집단 변경 사전 안내",
+      "title_en_verbatim": "[WISEAPP] Advance Notice of Changes to the Population",
+      "apply_start": "2026-08-25T09:00:00+09:00",
+      "apply_start_epoch_ms": 1787616000000,
+      "apply_end": null,
+      "display": 1,
+      "link_url": "https://guide.wiseapp.co.kr/notices/2026/08-25",
+      "observed_in": "sources/wiseapp/raw/wiseapp933_api.json → /notice/notification/getlist.json"
     },
-    {
-      "field": "kakaotalk_users",
-      "authority": "1,377만 명",
-      "legacy_xlsx": "1379 만명",
-      "verdict": "MISMATCH — 값 불일치 2만 명."
-    },
-    {
-      "field": "cohort_definition",
-      "authority": "액티브시니어+ 세대 = 50대 이상",
-      "legacy_xlsx": "'50plus' / '50세 이상' 혼용",
-      "verdict": "용어 정합 확인 필요."
-    }
-  ]
+    "implication": "발행처가 모집단 변경을 사전 공지했고 종료일이 없다. 즉 이 인사이트의 수치가 산출된 모집단 정의가 취득 시점 전후로 바뀔 수 있다. 따라서 이 동결본은 '2026-08-26 시점 게시 판본' 으로만 유효하며, 이후 발행처가 같은 URL 에서 제공하는 수치와 다를 수 있다.",
+    "rule": "이 매니페스트를 A1 권위로 인용할 때는 반드시 동결 시점(2026-08-26)을 함께 적는다. 재취득 시 raw_assets 의 sha256 이 달라지면 새 판본으로 취급하고 기존 동결본을 덮어쓰지 않는다."
+  },
+  "image_inventory_reconciliation": {
+    "img_info_list_count": 13,
+    "figures_in_evidence_manifest": 11,
+    "excluded_count": 2,
+    "reconciliation_rule": "본문(rendered_html)이 참조하는 이미지만 figure 로 채택한다.",
+    "excluded": [
+      {
+        "img_nid": 4789,
+        "img_path": "2026-03-04/9dde5bf3-5019-49b7-98eb-c1dcea0f51e0.png",
+        "img_size": 401859,
+        "create_dt_epoch_ms": 1772607294000,
+        "referenced_in_rendered_html": 0,
+        "http_status_on_fetch": 403,
+        "superseded_by": {
+          "img_nid": 4791,
+          "img_path": "2026-03-04/d74aab50-a52f-4b5d-962a-4a0f1c4c790e.png",
+          "img_size": 401859,
+          "create_dt_epoch_ms": 1772607334000,
+          "http_status_on_fetch": 200,
+          "figure_id": "fig04"
+        },
+        "evidence": "바이트 크기가 후속본과 정확히 같고(401,859) 업로드 시각이 40초 앞선다. rendered_html 에서 참조 0회, CDN 직접 요청 시 403. 후속본은 같은 자리에서 200 으로 응답하며 fig04 로 채택돼 있다. → 본문에 실리지 않은 CMS 교체 전 판본."
+      },
+      {
+        "img_nid": 4796,
+        "img_path": "2026-03-04/1d306db2-08cb-4f62-8756-487d9cf020aa.png",
+        "img_size": 406615,
+        "create_dt_epoch_ms": 1772608382000,
+        "referenced_in_rendered_html": 0,
+        "http_status_on_fetch": 403,
+        "superseded_by": {
+          "img_nid": 4797,
+          "img_path": "2026-03-04/f43af706-41c2-4b57-9c50-5c87b78ffe29.png",
+          "img_size": 406615,
+          "create_dt_epoch_ms": 1772608446000,
+          "http_status_on_fetch": 200,
+          "figure_id": "fig07"
+        },
+        "evidence": "바이트 크기가 후속본과 정확히 같고(406,615) 업로드 시각이 64초 앞선다. rendered_html 에서 참조 0회, CDN 직접 요청 시 403. 후속본은 200 으로 응답하며 fig07 로 채택돼 있다. → 본문에 실리지 않은 CMS 교체 전 판본."
+      }
+    ],
+    "verification_command": "grep -c <uuid> sources/wiseapp/raw/wiseapp933_rendered.html  # 채택본 1, 제외본 0",
+    "note": "제외 2건은 판독 대상에서 빠졌을 뿐 원문 자체가 누락된 것이 아니다. 두 건 모두 채택본과 바이트 크기가 동일한 직전 업로드본이며 본문이 참조하지 않는다."
+  },
+  "legacy_asset_assessment": {
+    "asset": "선행 작업이 남긴 파생 xlsx (본 연구 이전 산출물, 출처 미상)",
+    "verdict": "UNSOURCED_INCOMPATIBLE_PANEL_SET",
+    "usable_as": "NONE",
+    "prohibition": "셀 단위 패치로 두 패널을 융합하는 것을 금지한다. 모집단·대조·보정 어느 용도로도 사용하지 않는다.",
+    "why_previous_framing_was_wrong": "이전 판본은 이 xlsx 를 '값이 어긋난 같은 패널' 로 적고 '카카오톡 1,377만 vs 1379만 — 값 불일치 2만 명' 을 대표 증거로 들었다. 이는 오진이다. 두 자료는 값이 어긋난 같은 패널이 아니라 **애초에 다른 패널 집합**이다. '값 불일치' 프레이밍은 셀 몇 개를 고치면 정합해진다는 잘못된 기대를 만들고, 실제로는 서로 다른 모집단에서 뽑힌 두 표를 융합하게 만든다.",
+    "evidence": [
+      {
+        "id": "EV-1",
+        "kind": "MEMBERSHIP_MISMATCH",
+        "finding": "원문 rank3 = Google 1,278만 명이 xlsx 에 아예 부재하다.",
+        "detail": "xlsx 의 rank3 는 네이버 1224만이다. 원문에서 네이버는 rank4 이며 값은 1,256만이다. 같은 순위표라면 3위 항목이 통째로 빠질 수 없다. 구성원 자체가 다르다."
+      },
+      {
+        "id": "EV-2",
+        "kind": "INCONSISTENT_DRIFT",
+        "finding": "항목별 차이가 한 방향·한 배율로 설명되지 않는다.",
+        "detail": "카카오톡 −0.15% / 유튜브 −1.8% / 네이버 −2.5%. 단위 환산이나 기준 시점 차이라면 나타날 수 없는 비일관 드리프트다."
+      },
+      {
+        "id": "EV-3",
+        "kind": "NON_OVERLAPPING_PANEL",
+        "finding": "점유율 패널은 구성원이 겹치지도 않는다.",
+        "detail": "원문 점유율 1위는 다음 54.1% 인데 xlsx 에서 다음은 38.7% 로 5위다. 원문의 NH콕뱅크·티맵·캐시워크는 xlsx 에 부재하다."
+      },
+      {
+        "id": "EV-4",
+        "kind": "ORDINAL_INVERSION",
+        "finding": "리테일 축에서 서수가 역전된다.",
+        "detail": "원문은 농협하나로마트 #3, 이마트 #4 다. xlsx 는 이마트 #3(INDEX 34), 농협하나로마트 #6(INDEX 19) 이다. 값 오차가 아니라 순서가 뒤집혔다."
+      },
+      {
+        "id": "EV-5",
+        "kind": "PANEL_DEPTH_MISMATCH_BIDIRECTIONAL",
+        "finding": "패널 깊이가 양방향으로 어긋난다.",
+        "detail": "원문 Chapter1(1)은 TOP15 인데 xlsx 는 Top10 표기이고, 동시에 원문 Chapter3(1)은 TOP15 인데 xlsx 는 Top20 이다. 한쪽이 다른 쪽의 부분집합이라는 관계조차 성립하지 않는다."
+      },
+      {
+        "id": "EV-6",
+        "kind": "NO_PROVENANCE",
+        "finding": "출처가 전무하다.",
+        "detail": "파일 creator=openpyxl 이고 문서 속성이 전부 None 이다. `grep -rIoE 'insight/detail/[0-9]+' manus/` 결과 0건 — 어떤 인사이트에서 왔는지 가리키는 문자열이 없다. 발행처·발행일·인사이트 번호 어느 것도 확인할 수 없다."
+      }
+    ],
+    "terminology_note": "코호트 용어도 다르다. 원문은 '액티브시니어+ 세대 = 50대 이상' 이고 xlsx 는 '50plus'/'50세 이상' 을 혼용한다. 다만 이는 위 판정의 근거가 아니라 부수 관찰이다 — 용어가 같았더라도 패널 집합이 다르다는 사실은 변하지 않는다.",
+    "assessed_at": "2026-08-26",
+    "assessed_by": "exec-agent(C009) / 적대적 감사 수용"
+  }
 }

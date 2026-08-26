@@ -1,8 +1,11 @@
-"""C003 원자료 무결성 검증 — research/landing_accessibility/state.
+"""C003/C009 원자료 무결성 검증 — research/landing_accessibility/state.
 
 원자료(source_ranking_rows) 261행이 canonical 레이어를 거치며 한 행도 유실되거나
 중복 매핑되지 않았는지, 그리고 service_id 가 Pilot 실패 원인이었던 한글 키를
 재도입하지 않았는지 검증한다.
+
+C009 이후 measurement_entity 의 키는 (entity_name_raw, domain) 이다. 같은 원문 표기라도
+도메인이 다르면 다른 것을 잰 것이므로 별개 entity 이고, 별칭 유일성도 그 쌍을 기준으로 본다.
 """
 
 from __future__ import annotations
@@ -60,24 +63,23 @@ def test_source_row_ids_unique(rows: pd.DataFrame) -> None:
     assert rows["source_row_id"].notna().all()
 
 
-def test_every_entity_name_raw_maps_to_exactly_one_alias(
+def test_every_entity_key_maps_to_exactly_one_alias(
     rows: pd.DataFrame, alias_map: pd.DataFrame
 ) -> None:
-    counts = alias_map["entity_name_raw"].value_counts()
-    multi = counts[counts > 1]
-    assert multi.empty, f"별칭이 둘 이상인 원문 표기: {multi.to_dict()}"
+    """C009: 별칭 키는 (entity_name_raw, domain) 쌍이다."""
+    key_cols = ["entity_name_raw", "domain"]
+    dupes = alias_map[alias_map.duplicated(key_cols, keep=False)]
+    assert dupes.empty, f"별칭이 둘 이상인 (표기, 도메인): {dupes[key_cols].to_dict('records')}"
 
-    raw_names = set(rows["entity_name_raw"])
-    alias_names = set(alias_map["entity_name_raw"])
-    assert not (raw_names - alias_names), (
-        f"별칭 미등록 원문 표기: {sorted(raw_names - alias_names)}"
-    )
-    assert not (alias_names - raw_names), f"원자료에 없는 별칭: {sorted(alias_names - raw_names)}"
+    raw_keys = set(map(tuple, rows[key_cols].drop_duplicates().to_numpy()))
+    alias_keys = set(map(tuple, alias_map[key_cols].to_numpy()))
+    assert not (raw_keys - alias_keys), f"별칭 미등록: {sorted(raw_keys - alias_keys)}"
+    assert not (alias_keys - raw_keys), f"원자료에 없는 별칭: {sorted(alias_keys - raw_keys)}"
 
     # 261행이 정확히 261행으로 조인되어야 한다 (행 손실/증식 금지)
     joined = rows.merge(
-        alias_map[["entity_name_raw", "alias_id", "service_id"]],
-        on="entity_name_raw",
+        alias_map[[*key_cols, "alias_id", "service_id"]],
+        on=key_cols,
         how="left",
         validate="many_to_one",
     )
@@ -135,7 +137,11 @@ def test_membership_service_panel_pairs_unique(
     assert dupes.empty, f"(service_id, panel_id) 중복 {len(dupes)}건"
 
     expected = (
-        rows.merge(alias_map[["entity_name_raw", "service_id"]], on="entity_name_raw", how="left")
+        rows.merge(
+            alias_map[["entity_name_raw", "domain", "service_id"]],
+            on=["entity_name_raw", "domain"],
+            how="left",
+        )
         .groupby(["service_id", "panel_id"])
         .size()
     )
@@ -153,15 +159,24 @@ def test_axis_type_separates_industry_categories(service_master: pd.DataFrame) -
     assert set(panels.loc[panels["axis_type"] == "INDUSTRY_CATEGORY", "panel_id"]) == {"fig07_t1"}
     assert panels["panel_scope"].notna().all()
 
-    industry = service_master[service_master["entity_kind"] == "INDUSTRY_CATEGORY"]
+    industry = service_master[service_master["axis_type"] == "INDUSTRY_CATEGORY"]
     assert len(industry) == 10
-    assert not industry["web_collectable"].any()
-    assert service_master[service_master["entity_kind"] != "INDUSTRY_CATEGORY"][
-        "web_collectable"
-    ].all()
+    assert set(industry["web_eligibility_status"]) == {"EXCLUDED_INDUSTRY_AXIS"}
+    # 업종 축은 RETAIL 도메인 안에 있다 — domain 만으로는 걸러지지 않는다는 사실 자체를 고정한다.
+    assert set(industry["domain"]) == {"RETAIL"}
+
+    brands = service_master[service_master["axis_type"] == "SERVICE_BRAND"]
+    assert "EXCLUDED_INDUSTRY_AXIS" not in set(brands["web_eligibility_status"])
 
 
 def test_source_row_count_preserved_end_to_end(
     rows: pd.DataFrame, service_master: pd.DataFrame
 ) -> None:
-    assert int(service_master["source_row_count"].sum()) == EXPECTED_ROW_COUNT
+    """C009: source_row_count 는 도메인별로 쪼개졌다. 합계는 여전히 261 이어야 한다."""
+    assert "source_row_count" not in service_master.columns, (
+        "도메인 교차 합산이 가능한 source_row_count 가 되살아났다"
+    )
+    total = int(service_master["app_row_count"].sum() + service_master["retail_row_count"].sum())
+    assert total == EXPECTED_ROW_COUNT
+    assert int(service_master["app_row_count"].sum()) == int((rows["domain"] == "APP").sum())
+    assert int(service_master["retail_row_count"].sum()) == int((rows["domain"] == "RETAIL").sum())
