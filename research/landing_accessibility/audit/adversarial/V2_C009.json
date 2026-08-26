@@ -1,0 +1,122 @@
+{
+ "cycle": "V2-C009",
+ "auditor": "adversarial",
+ "audit_type": "target-diff remediation verification (adversarial V2-C008 P2 x2) — not a full re-audit",
+ "target_sha": "e930fadee8393e08a585377492e3972424d03e11",
+ "target_branch": "agent/landing-v2-exec",
+ "prev_target_sha": "181d17afe22b8319043e4d1ef6311393dc046827",
+ "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+ "control_sha": "1d6cedb6aca6933a701275c7c8e14fd7d4628c73",
+ "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+ "prev_adversarial_audit": "V2-C008 PASS (P2 2) · fed3e70 focused ACCEPT_RECLASSIFY",
+ "audit_branch": "audit/landing-adversarial",
+ "phase": "P0_V2_REFREEZE",
+ "gate": "V2_SSOT_FROZEN",
+ "verdict": "PASS",
+ "counts": { "P0": 0, "P1": 0, "P2": 1, "blocking": 0 },
+ "blocking_note": "잔존 P2 1건은 V2_SSOT_FROZEN 에 대해 비차단이다. 차단 범위는 P-C 엔진 구현 · A1 §7 동결 · E000_V2 다.",
+ "diff_scope": {
+  "command": "git diff 181d17afe22b8319043e4d1ef6311393dc046827 e930fadee8393e08a585377492e3972424d03e11 --stat",
+  "files_changed": 3,
+  "insertions": 51,
+  "deletions": 15,
+  "code_files_changed": 0,
+  "files": [
+   "research/landing_accessibility/docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+   "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+   "research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json"
+  ],
+  "matches_instructed_scope": true
+ },
+ "invariants": {
+  "pilot_diff": { "result": "0", "method": "git diff --name-only 5a9015d..e930fad -- research/refcohort → 0줄; 1d6cedb..e930fad 도 0줄. Pilot 파일 미열람" },
+  "c013_diff": { "result": "0" },
+  "root_claude_md_diff": { "result": "0" },
+  "state_parquet_diff": { "result": "0" },
+  "evidence_diff": { "result": "0" },
+  "pack_00_05_and_manifest_json": { "result": "바이트 무변경", "method": "diff 0 + verify_v2_docs.py 가 pack 6종 전부 OK [pack]" },
+  "self_approval": { "result": "0", "method": "diff 3파일 중 control/ · audit/ 경로 0건. control tip 1d6cedb 이 사이클 무변경" },
+  "verify_v2_docs": { "result": "PASS", "method": "git archive e930fad 스냅샷을 독립 git 저장소로 만들어 실행 → V2_DOCS_VERIFY: PASS, 17항목 전부 OK" },
+  "install_manifest_hashes": { "result": "일치", "method": "직접 재계산 — A1 51079B / 5c18730919e720a2c95327401ba5789f1146e6e2deb8390b76509098c2abd6a2, A2 254488B / 3a88090fac5fd50a617fc29681320a767b144844ea0b32531d626d5bea6b6d94. cycle 도 V2-C009 로 갱신" },
+  "doc_structure": { "result": "위반 0", "method": "표 열수 위반 0 · I-nn 정의 54건 중복 0 · 규칙 id 56건 중복 0 — C008 실측치와 동일 (규칙·주입 신설 없음과 일치)" },
+  "quality_gates": { "result": "상속", "method": "코드 diff 0건이므로 181d17a 에서 확인한 ruff/mypy/pytest(119 passed) 가 그대로 유효" }
+ },
+ "findings": [
+  {
+   "id": "min-4-selector-tiebreak-does-not-neutralize-subpixel-jitter",
+   "severity": "P2",
+   "state": "OPEN",
+   "cycles_open": 2,
+   "blocking": false,
+   "blocking_scope": "P-C 엔진 구현 · A1 §7 동결 · E000_V2",
+   "not_blocking": "V2_SSOT_FROZEN",
+   "cosmetic_only": false,
+   "remediation_assessment": "실질 시정이나 미달 — 2차 키를 area_quantized = floor(area_css_px2) 로 바꾸고 §2.5 에 jitter 명시 주입을 넣었다. 그러나 양자가 면적(px²) 단위 절대값이라 선형(px) 잡음을 Δ(w·h) ≈ h·Δw + w·Δh 로 증폭한 크기를 따라잡지 못한다.",
+   "attack_a_selector_reached": "조건부. nominal 120.00 에 +0.01px² 주입 시 PREV(raw) 는 C008 대로 flip 하고 TARGET(floor) 은 같은 버킷에 들어가 유지된다. 그러나 §2.5 가 부호를 지정하지 않았고, 정수 nominal(5000.00) 에 −0.01px² 를 주면 4999.99 → floor 4999 로 갈려 4케이스 중 1건이 FLIP 한다 — 신설 검증 케이스가 신설 규칙의 반례다.",
+   "attack_b_bucket_boundary": "잔여로 인정할 크기가 아니다. Δw=0.01px(probe toFixed(2) 격자 · Chromium LayoutUnit 1/64px 급 = 잡음의 하한) 에서 면적 delta: nav 88x44 0.44px²(중화 O) · CTA 335x48 0.48px²(O) · 2열카드 171x120 1.20px²(X) · 3열카드 119.67x160 1.60px²(X) · 히어로 335x220 2.20px²(X). MIN-4 가 이름으로 든 예시 '그리드의 동급 카드' 가 정확히 실패 쪽. 위상 무작위화 flip 율(N=40000, Δw=±0.01px): raw 41% → floor(1px²) nav 16.9% / CTA 16.6% / 2열카드 41.4% / 3열카드 41.9% / 히어로 42.0% — 카드급 개선 0. Δw=±0.5px(문서가 명명한 폰트로딩·리플로우·스크롤바 급) 에서는 전 geometry 개선 0 (49.7~50.2% vs 49.9~50.5%). 절대 양자 하나로는 스케일 정합 불가 — floor(100px²) 도 히어로 카드에서 15.8% 잔존.",
+   "attack_c_zero_and_negative": "이상 동작 없음. area = +(w*h).toFixed(2) 이고 getBoundingClientRect 의 width/height 는 음수 불가이므로 floor/truncate 갈림 구간에 도달 불가. 버킷 0=[0,1) 은 selector 로 결정돼 무해. 다만 probe 가 bbox 부재 시 null 을 내는데(l0_probe.js:294) 명세에 NULL 규칙이 없다 — 엔진의 `or 0.0` 은 코드의 우연이지 명세가 정한 것이 아니다.",
+   "attack_d_other_min_rules": "MIN-2 무사(정렬 키는 state 내부 후보 순서, 레벨 순서는 deque FIFO — 직교). MIN-4 전순서 유지. MIN-6/7/8 규칙 자체 무영향. 그러나 (1) MIN-5 — 양자화가 BRANCHING_LIMIT 절단 경계를 바꾼다(실증: 같은 버킷에서 z_big 120.90 이 탈락하고 a_small 120.10 이 진입, 컷이 면적 아닌 selector 문자열로 결정). MIN-5 가 '이 값이 최소성의 범위를 정한다'고 한 범위를 양자가 공동결정하는데 A1 §7 표에 양자 행이 없다. (2) MIN-8 동결 산출물이 '산출 당시의 예산값'만 담아 양자를 담지 않아, 양자가 바뀌면 무엇에 대한 최소인지 복원 불가.",
+   "closing_conditions": [
+    "양자를 스케일 정합으로 교체 — 상대 양자 또는 선형 양자화. 목표 flip 율을 명시하고 잔여 flip 율 ≈ min(1, δ/Q)/2 에 대해 Q 를 정한다",
+    "0.01px² 서술 폐기 — 그것은 감사가 flip 존재를 보이려 쓴 최소 주입값이지 물리량이 아니다. A1:380 · A1:386 잔여 서술을 실측(카드급 1.2~2.2px², 문서가 명명한 세 원인은 0.5px 선형급)으로 다시 쓴다",
+    "§2.5 검증 케이스를 실패 가능하게 — 선형 Δw/Δh 를 ±0.01/±0.05/±0.5px 로 주입, 버킷 위상 무작위화, 기대결과를 '유지된다' 가 아니라 'flip 율 ≤ 선언된 상한' 으로",
+    "A1 §7 표에 area_quantized 양자 단위 등재 (동결 단계 P-C → P-D 검증, 비고 §2.6 MIN-4·MIN-5)",
+    "MIN-5 좁힘 표에 '양자가 BRANCHING_LIMIT 절단 경계를 공동결정한다' 행 · MIN-8 동결 산출물 목록에 양자 값 추가",
+    "area_css_px2 = NULL 인 후보의 area_quantized 를 명시 (엔진 현행 동작인 0 으로 못박으면 족하다)"
+   ]
+  }
+ ],
+ "closed_this_cycle": [
+  {
+   "id": "rc-5-anchor-verification-report-row-still-scoped-to-recollection-runs",
+   "verdict": "CLOSED",
+   "method": "A2:1462 '앵커 검증 결과' 와 A2:1463 '실행 인가 대조' 두 행이 함께 재수집 한정을 걷어내고 '재수집 run과 최초(E001 baseline) run' 으로 정정됐다. 같은 모집단이다. C-4 (i) 성립을 강제 층에서 확인 — RC-6 적용범위표(A2:1586-1593) 가 최초 run 에 대해 실행 인가(control)·EXECUTION·DISPOSITION 적용, f 유도 적용, 검사 A-1~A-8 적용을 못박으므로 E ↔ EXECUTION ↔ 제출 run 3수가 모두 최초 run 을 포함해 정의된다. C-4 (ii) 는 조건 C-3(러너 lock) 에 딸린 것이며 기한 미도래."
+  }
+ ],
+ "regression_check": {
+  "id": "ned-ied-path-minimality-not-operationalized",
+  "result": "회귀 없음 — CLOSED 유지",
+  "method": "MIN-1·MIN-2·MIN-5·MIN-6·MIN-7·MIN-8 및 §7 BRANCHING_LIMIT · k 독립 최소화 행 전부 무변경. MIN-3 예외 블록은 종료의 라벨만 바꾸고 열거를 바꾸지 않으며 UNDETERMINED 승격을 E-6b 로 차단한다. §8 carve-out 은 약화가 아니라 A2 §0 7항 EXC-2(V2-C004) 와의 기존 불일치를 A2 쪽으로 정렬한 것이고, 두 archetype · 그 gate 종류 · 확정된 경우 세 겹으로 좁혀져 새 endpoint 를 만들지 않는다. A1 §6.2 evidence_run_id 확대도 A2 유도식 f(A2:1520-1522) · 검사 A-6(A2:1562) · 적용범위표(A2:1590) 와 축자 일치 — A1 이 A2 보다 넓게 적은 자리 없음."
+ },
+ "promotion_conditions": {
+  "binding_statement": "V2_SSOT_FROZEN 을 선언하려면 그 선언과 같은 커밋 또는 그 이전에 C-1(원장 전이)과 C-5-①(한계 공표 문면)이 이행돼 있어야 한다. 둘 중 하나라도 없이 선언되면 rc-6-r1 재분류는 자동 실효되고 항목은 OPEN/blocking=true/counted_as_open=true 로 복귀한다. 이 PASS 는 그것을 면제하지 않는다.",
+  "C-1": {
+   "state": "미이행 · 기한 미도래 · control 소관",
+   "measured": "1d6cedb:control/state.json 의 rc-6-r1 은 여전히 state=OPEN · blocking=true · counted_as_open=true. ACCEPTED_BOUNDED_RESIDUAL_RISK 전이 · 상태값 정의 · '명시적으로 제외된 한 줄' 표시 · promote_landing_main.sh [DEBT_RECOMPUTE] 제외 건수 별도 출력 전부 부재"
+  },
+  "C-2": { "state": "CLOSED (V2-C008 에서 이행 완료)" },
+  "C-5-1": {
+   "state": "미이행 · 기한 도래 · exec 가 이행 가능",
+   "a2_section7_item13_sufficient": false,
+   "why_insufficient": [
+    "위치 — A2 §7 '금지사항 재확인' 은 00 §14 도 03 Phase 5 도 아니고 그 둘에 바인딩되지도 않는다. A2 에 00 §14 관련 EXC 등재 0건, Claim Boundary 문면 요구 0건",
+    "성격 — 구현자를 향한 내부 규약이며 공표되는 한계 절이 아니다. RC-5 보고 표에 이 문면을 03 Phase 5 에 싣도록 요구하는 행이 없다",
+    "내용 ③ — 의존 대상 중 '재수집 전후 병기' 만 있고 프로세스 통제(단일 실행 잠금 · 단일 호출 커밋) 와 역할 분리(수집자≠인가자≠감사자) 가 없다",
+    "내용 ④ — '이 잔여는 독립 감사가 검토·수용한 것' 이라는 요소가 통째로 없다. 수용·재분류 언급 0줄. 수용의 근거 절반이 은폐 방지인데 수용 사실 자체가 공표 문면에 없다"
+   ],
+   "satisfied_elements": ["① 커밋된 산출물 한정", "② 로컬 K회 후 1커밋 배제 불가", "⑤ 해소된 것이 아니다"],
+   "minimal_sufficient_remediation": [
+    "A2 §0 7항에 EXC-5 등재 — 대상 00 §14(필요시 03 Phase 5 병기). 이탈 성격은 허용·금지 목록의 값 변경이 아니라 한계 절 부가임을 EXC-3·EXC-4 형식으로 논증하고, 00 §14 의 허용·금지 문장이 한 줄도 바뀌지 않음을 보존 열에 적는다",
+    "A2 §1.11.2 RC-5 보고 표에 '한계 공표 문면' 행 신설 — 03 Phase 5 에 문면을 축자 그대로 싣도록 의무화. RC-5 가 이미 03 Phase 5 를 향한 의무 표이므로 여기 들어가야 공표가 강제된다",
+    "문면 본체는 5요소를 전부 담을 것: 커밋된 산출물 한정 · 로컬 K회 후 1커밋 배제 불가(재수집 run 과 최초 E001 run 에 동일 적용) · 의존 대상 3종(단일 실행 잠금·단일 호출 커밋 / 수집자≠인가자≠감사자 / 재수집 전후 병기) · 독립 adversarial 감사가 검토·수용(rc-6-r1, ACCEPTED_BOUNDED_RESIDUAL_RISK) · 해소된 것이 아님"
+   ]
+  },
+  "C-3": { "state": "기한 미도래 (E001_V2 실행 전)" },
+  "C-4": { "state": "기한 미도래 (E001_V2 종료 시). (i) 의 근거 수치는 이번 시정으로 성립하게 됐다" },
+  "C-5-2": { "state": "기한 미도래 (보고 시점, 연구자 소관)" },
+  "C-6": { "state": "발동 안 함 — V2_SSOT_FROZEN 미선언" }
+ },
+ "observations_not_findings": [
+  "OBS-1 — A2:1462 시정 근거문이 '바로 위 실행 인가 대조' 라고 적으나 표에서 그 행은 바로 아래다. 위치 지시 오기 1건, 규범 내용 무영향."
+ ],
+ "not_done": [
+  "실제 웹사이트 접속 없음 — jitter 실측은 probe/엔진 규약을 재현한 수치 시뮬레이션이며 실제 렌더링 jitter 측정이 아니다. Δ(w·h)=h·Δw+w·Δh 와 probe toFixed(2) 격자가 강제하는 하한을 계산했다",
+  "Pilot 32460b8 열람·변경 없음 — diff 부재만 기계적 확인",
+  "다른 워크트리 쓰기 없음 — 전 분석은 git archive e930fad 스냅샷 위에서 수행",
+  "diff 범위 밖 전면 재감사 없음 — V2-C008 PASS 재사용",
+  "ssot 소관 P1 1건 · P2 3건 미판정 — 회귀 검사는 오직 내 CLOSED 의 되돌림 여부",
+  "R-1 · E-6b · v1 부채 6건 재개 없음 — diff 에 걸리지 않는다",
+  "C-3 · C-4(ii)(iii)(iv) · C-5-② 미판정 — 기한 미도래",
+  "미추적 draft V2_C004.{md,json} 미변경"
+ ]
+}
