@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T13:43:11.153670",
+  "updated_at": "2026-08-26T14:05:06.058473",
   "phase": "P2_WEB_ELIGIBILITY_AND_URL_IDENTITY",
   "cycle_id": "C012",
   "pilot": {
@@ -59,7 +59,7 @@
     "ssot": "audit/landing-ssot",
     "orchestrator": "control/landing-orchestrator"
   },
-  "exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
+  "exec_sha": "5a9015d",
   "adversarial_audit_sha": "903e247",
   "ssot_audit_sha": "695caed",
   "gates": {
@@ -229,6 +229,14 @@
       "actual": "created / modified 는 채워져 있다 (2026-08-25 15:54:10). 실재하는 provenance 단서를 없다고 적었다.",
       "found_by": "C009 adversarial audit (EV-6)",
       "resolution": "EV-6 을 '작성 도구가 openpyxl 이고 출처 문서 참조가 없다' 로 정확히 좁힌다."
+    },
+    {
+      "cycle": "C012",
+      "orchestrator_claim": "review queue 는 5건이다",
+      "actual": "7건이었다. state.json entity_layer.needs_human_review 는 7 인데 review_queue 표가 쟁점 3줄(=5건)만 적었고 오케스트레이터가 그 5건을 그대로 지시로 넘겼다. coupang_app/coupang_retail 2건 누락.",
+      "found_by": "C012 executor",
+      "resolution": "7건 전부 판정. MERGE 1 / KEEP_SEPARATE 6 / UNRESOLVED 0.",
+      "lesson": "오케스트레이터가 요약 표를 근거로 지시하면 원본 카운트와 어긋날 수 있다. 지시서에 숫자를 쓸 때는 파생 표가 아니라 원본 필드를 읽어야 한다."
     }
   ],
   "orchestrator_decisions": [
@@ -413,6 +421,20 @@
       "measured": "원문 INDEX 11개 절 대비 SAME 0 / MISMATCH 11. 코호트 한정어 '액티브시니어+ 세대' 가 전 절에서 삭제. Ch3(2) 는 어순까지 변경 ('업종별 액티브시니어+ 세대 순 결제추정금액 TOP10' -> '업종별 순 결제추정금액 TOP10').",
       "principle": "파생물끼리의 일치는 검증이 아니다. 검증은 반드시 authority source 본문을 한쪽 끝으로 놓아야 한다.",
       "assigned": "C011 exec"
+    },
+    {
+      "id": "needs-human-review-was-hand-set-bool-not-derived",
+      "found_by": "C012 executor",
+      "detail": "needs_human_review 가 ENTITY_SPEC 세 번째 원소의 손입력 bool 이었다. 판정 없이 False 로 바꾸는 것만으로 큐를 비울 수 있는 구조였다.",
+      "fix": "파생값으로 전환 — needs_human_review = (review_decision == 'UNRESOLVED')",
+      "principle": "게이트 플래그를 손으로 쓸 수 있으면 게이트가 아니다."
+    },
+    {
+      "id": "a1-layer-scope-confusion-body-vs-raw-payload",
+      "found_by": "C012 executor (자기 반증)",
+      "detail": "'G마켓/옥션 이 A1 텍스트 계층에 부재' 라고 쓰려다 실측하니 detail.json/api.json 에 4회 있었다. 전부 관련 인사이트 페이로드에 실린 다른 기사(insight/detail/1038)의 문장이었다.",
+      "fix": "부재 범위를 933 본문 2파일로 좁히고 A1_BODY_LAYER_FILES / A1_RAW_PAYLOAD_FILES 를 코드에서 분리, 전용 테스트 추가",
+      "principle": "'원문에 없다' 는 주장은 어느 계층의 원문인지 명시해야 한다. raw payload 에는 다른 기사가 섞여 있다."
     }
   ],
   "main_checkout_cleanup": {
@@ -486,8 +508,8 @@
     ]
   },
   "audit_lag": {
-    "latest_exec_cycle": "C012 (directive issued, not yet committed)",
-    "latest_exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
+    "latest_exec_cycle": "C012",
+    "latest_exec_sha": "5a9015d",
     "latest_adversarial_audited_cycle": "C011",
     "latest_adversarial_target_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
     "latest_adversarial_audit_sha": "903e247",
@@ -496,16 +518,16 @@
     "latest_ssot_audit_sha": "695caed",
     "latest_reconciled_cycle": "C011",
     "latest_promoted_cycle": "C011",
-    "unaudited_cycle_depth": 0,
+    "unaudited_cycle_depth": 1,
     "MAX_UNAUDITED_EXEC_CYCLES": 1,
-    "status": "WITHIN_BOUND — C011 fully audited"
+    "status": "WITHIN_BOUND — C012 감사 대기. EXECUTOR_STATE_CHANGE_BLOCKED."
   },
   "cycle_lifecycle": {
     "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",
     "promotion": "PROM-001 — main 32460b87 -> edb0478f",
     "note": "ORCHESTRATOR_PRECHECK_PASS 를 ACCEPTED/VERIFIED/PROMOTED 와 동의어로 쓰지 않는다.",
     "C011": "EXECUTED -> INDEPENDENTLY_AUDITED -> RECONCILED -> PROMOTED",
-    "C012": "DIRECTIVE_ISSUED"
+    "C012": "EXECUTED -> AWAITING_INDEPENDENT_AUDIT"
   },
   "main_branch_protection": {
     "established_at": "2026-08-26T13:15:24.007671",
@@ -667,5 +689,15 @@
       "READY_FOR_E001 STOP"
     ],
     "split_reason": "MAX_UNAUDITED_EXEC_CYCLES=1 을 지키려면 한 cycle 이 감사를 통과한 뒤 다음 state-change 를 시작해야 한다"
+  },
+  "c012_claimed": {
+    "W1": "review queue 7건 전부 판정 — MERGE 1 / KEEP_SEPARATE 6 / UNRESOLVED 0. needs_human_review 파생값 전환",
+    "W2": "web_target_group 68 유지, grouping_basis JSON 구조화, expected_url_relationship 도입 (SAME_LANDING_EXPECTED 3 / UNKNOWN 65), 가설 플래그·반증조건·위험 기재, CONFIRMED 0",
+    "D1": "evidence manifest 계약 — MissingRunManifestError, STRUCTURE_ONLY_RAW_ABSENT 를 VERIFIED 와 분리, git check-ignore 로 실제 추적 확인, docs/07 근거 메모",
+    "D2": "manifest_revision=4, revision_log, self sha256. raw_assets 가 C001->C009->C011 전 판본 바이트 동일 확인",
+    "D3": "journal_provenance v3 — 절대경로 삭제. 다른 절대경로에서 재실행 diff -r empty, 대조군(시정 전 스크립트)은 어긋남 확인",
+    "invariants": "8/8 PASS",
+    "tests": "pytest 85 passed (59+26), ruff·mypy 통과",
+    "status": "UNVERIFIED — executor 자체 주장"
   }
 }
