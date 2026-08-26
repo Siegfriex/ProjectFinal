@@ -102,6 +102,21 @@ def main() -> int:
             failures.append(f"BYTES     {rel}: {len(raw)} != {spec['bytes']}")
             continue
 
+        # 배너 검사는 앵커 종류와 무관하게 **모든** 설치 파일에 먼저 건다.
+        # (닫는 결함: install-manifest-banner-allowlist-skips-repo-authored-authority-docs)
+        if BANNER_START in raw or BANNER_END in raw:
+            if rel not in BANNER_ALLOWED:
+                failures.append(
+                    f"BANNER    {rel}: 배너 마커가 있다 — 배너는 {sorted(BANNER_ALLOWED)} 에만 허용된다"
+                )
+                continue
+            if raw.count(BANNER_START) != 1 or raw.count(BANNER_END) != 1:
+                failures.append(f"BANNER    {rel}: 배너 마커가 정확히 한 쌍이 아니다")
+                continue
+            if not raw.startswith(BANNER_START):
+                failures.append(f"BANNER    {rel}: 배너가 파일 최상단에 있지 않다")
+                continue
+
         origin = spec.get("source_pack_name")
         if origin:
             ref = source.get(origin)
@@ -114,11 +129,6 @@ def main() -> int:
                 failures.append(f"BANNER    {rel}: {exc}")
                 continue
             banner_present = body != raw
-            if banner_present and rel not in BANNER_ALLOWED:
-                failures.append(
-                    f"BANNER    {rel}: 권위문서에 배너가 삽입됐다 — 배너는 {sorted(BANNER_ALLOWED)} 에만 허용된다"
-                )
-                continue
             if (
                 spec.get("banner_inserted") is not None
                 and spec["banner_inserted"] != banner_present

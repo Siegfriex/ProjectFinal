@@ -155,7 +155,114 @@ GO 없이 `P-F (E001_V2)`로 넘어가는 것은 `00 §15` 위반이다.
 
 ---
 
-## 4. 판정 권한
+## 4. SHADOW / PREPARATORY WORK — A0 결정 (2026-08-27)
+
+> **이 절이 SHADOW 정책의 유일한 정의부다.** 다른 문서는 이 절을 가리키기만 하고
+> 정책표를 복제하지 않는다. 중복 정책표는 그 자체가 drift다.
+
+Research Director의 명시적 A0 결정으로, P0가 닫힐 때까지 downstream 전체를 직렬 정지시키던
+운영을 폐기한다. **연구범위·측정정의는 변경하지 않는다** — SCOPE는 여전히
+`L0_INITIAL_LANDING + L1_SHALLOW_REPRESENTATIVE_ENTRY`다. 바뀌는 것은 *언제 무엇을 할 수 있는가*뿐이다.
+
+운영 원칙: **FAIL-CLOSED + ISOLATED SPECULATIVE PARALLELISM.**
+
+### 4.1 P0 종료 전 절대 금지 (10항)
+
+1. downstream 산출물의 `research/landing-accessibility-main` promotion
+2. real-target accessibility evidence collection
+3. real-target KWCAG verdict 생성
+4. real-target popup / obstruction 결과 생성
+5. real-target MPFED / NED / IED 결과 생성
+6. accessibility outcome을 **본 뒤** target·task·archetype을 변경하는 행위
+7. certification outcome을 이용한 task selection
+8. authoritative E000
+9. E001
+10. article / result claim 생성
+
+### 4.2 허용되는 SHADOW / PREPARATORY 작업
+
+source·provenance EDA · source-only mapping · Business Domain / Interaction Archetype codebook ·
+pilot mapping · web eligibility · official URL research · web target grouping ·
+certification join **infrastructure** · C013 selective salvage · collector architecture ·
+**local/synthetic fixture 기반** collector 구현 · DOM/AX/CSS/geometry extractor · screenshot pipeline ·
+evidence identity · manifest/append-only guard · popup detector engineering ·
+Scout/Freeze/Replay framework · depth 계산 구현 · AI review pipeline skeleton ·
+mutation/failure-injection harness · unit/integration test.
+
+**실제 서비스 target에 연결해 접근성 결과를 생성하는 순간부터 금지다.**
+
+### 4.3 산출물 상태
+
+P0 종료 전 생성되는 downstream 산출물은 반드시 `status = SHADOW_PREPARATORY` 를 갖고
+다음 provenance를 기록한다.
+
+```
+base_sha
+created_at
+created_before_p0_close   = true
+authoritative             = false
+real_target_outcome_used  = false
+requires_post_p0_reconciliation = true
+```
+
+가능하면 `shadow_lane` · `input_authority_sha` · `source_frame_sha` · `codebook_sha` ·
+`fixture_only` · `real_target_measurement = false` 도 함께 기록한다.
+
+### 4.4 Lane
+
+| Lane | 브랜치 | 워크트리 |
+|---|---|---|
+| LANE 0 — P0 CLOSURE | `agent/landing-v2-exec` · `control/landing-orchestrator` | `landing_v2_exec` · `landing_orchestrator` |
+| LANE A — P-A SHADOW | `agent/landing-pa-shadow` | `landing_pa_shadow` |
+| LANE B — P-B PREWORK | `agent/landing-pb-prework` | `landing_pb_prework` |
+| LANE C — P-C FIXTURE | `agent/landing-pc-fixture` | `landing_pc_fixture` |
+
+동일 워크트리에 두 writer 금지. 동일 브랜치 동시 write 금지.
+shadow 브랜치는 P0 종료 전 main으로 merge·promotion 금지. 각 브랜치의 base SHA를 반드시 기록한다.
+
+### 4.5 REAL-TARGET FIREWALL
+
+collector는 `execution_mode` 를 갖는다.
+
+| 값 | P0 종료 전 |
+|---|---|
+| `FIXTURE` | 허용 |
+| `SHADOW_DRY_RUN` | 허용 |
+| `REAL_TARGET` | **hard FAIL** |
+
+URL availability/eligibility probe는 measurement가 아니라 target-preparation으로 분리하며,
+그 probe에서도 **accessibility verdict를 생성하지 않는다.**
+
+### 4.6 교차오염 금지
+
+- P-A/P-B mapping agent는 P-C accessibility 결과를 **볼 수 없다**
+- P-B task selection은 certification outcome·accessibility 결과로 task를 고르지 않는다
+- P-C fixture agent는 final target list를 임의 수정하지 않는다
+- P0 auditor는 shadow artifact의 **존재 자체**를 P0 blocker로 올리지 않는다
+- 다만 shadow lane이 **금지된 real-target measurement를 했다면** P0 finding으로 올린다
+
+### 4.7 SHADOW RECONCILIATION
+
+`V2_SSOT_FROZEN = PASS` 후 main promotion을 먼저 완료한다. **shadow artifact는 자동 승격되지 않는다.**
+
+각 lane마다: frozen main SHA 확인 → shadow base SHA 확인 → authority/input drift 확인 →
+rebase 또는 selective port → deterministic rerun → hash/provenance 재생성 →
+금지 outcome 오염 검사 → audit → **그 다음에만** authoritative promotion.
+
+"이미 했으니 그냥 PASS" 처리는 금지다.
+
+### 4.8 감사 정책
+
+감사를 삭제하지 않는다. **batching만 허용**한다. 모든 작은 commit마다 전체를 직렬 정지시키지 않고
+risk boundary 기준으로 묶는다. P0는 독립 dual audit을 유지하고, shadow lane은 lane 내부
+checkpoint audit을 쓸 수 있다. **Gate close 시 exact promoted candidate SHA에 대한 required audit은
+그대로 수행한다.**
+
+> 이 A0 amendment 자체도 다음 P0 audit의 검증 대상이다.
+
+---
+
+## 5. 판정 권한
 
 | 역할 | 권한 |
 |---|---|
