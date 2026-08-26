@@ -37,6 +37,24 @@
 5. 이 문서가 새 컬럼을 요구하는 것으로 읽혀서는 안 된다. §6에 열거한 미존재 표·컬럼은
    **이 문서가 신설한 것이 아니라 `01`/`02`/`A1`이 이미 요구했으나 아직 물리적으로 없는 것**이다.
 6. 원본 docs pack(`00`~`05`)의 **바이트를 수정하지 않는다.** 명세 공백은 보충명세로만 메운다.
+7. **원본 문면과 다른 배치를 채택할 때의 예외 선언** `[V2-C003 시정]`
+
+   2항은 이 문서가 원본의 값·정의·범위를 **조용히** 바꾸는 것을 금지한다.
+   원본의 *의도*를 보존하기 위해 배치를 달리해야 하는 경우에는 아래 표에 **예외로 등재**해야 하며,
+   등재되지 않은 이탈은 그 자체로 이 문서의 결함이다 (`EXECUTION_AUTHORITY §2`).
+   예외 등재는 원본 문면을 무효화하는 장치가 **아니다** — 원본이 요구한 사실이 **어느 컬럼에서 보존되는지**를
+   밝히는 것이며, 보존되지 않으면 예외로 인정되지 않는다. 이 표에 없는 이탈은 시정 대상이다.
+
+   | # | 원본 조항 | 원본 문면 | 이 문서의 배치 | 예외 근거 | 원본이 요구한 사실이 보존되는 곳 | 절 |
+   |---|---|---|---|---|---|---|
+   | **EXC-1** | `02 §13` | `app-only … 별도 measurement status로 기록` | **두 경로로 분리한다.** 관측 이전에 확정된 app-only는 `web_eligibility_status = EXCLUDED_APP_ONLY`, 수집 시점에 발견된 app-only는 `measurement_status = NOT_ELIGIBLE_AT_COLLECTION` | 웹이 없어 관측 행 자체가 생기지 않는 경우와, `ELIGIBLE_WEB`로 동결된 뒤 수집 시점에 반증된 경우는 **서로 다른 사건**이다. 하나의 컬럼에 합치면 규칙 S-1(한 사실 = 한 컬럼)이 깨지고, 나누기만 하면 두 번째 경로가 무주지가 된다 | `measurement_status`에 대응 값이 **실제로 존재한다**(§1.2). `02 §13`의 `별도 measurement status로 기록`은 문면 그대로 충족되며, 접근성 `FAIL`로도 `UNDETERMINED`로도 세지 않는다 (규칙 M-1 · X-4) | §1.2 · §1.3 · §1.4 · §1.11 T-11 · §4.1 |
+
+   `V2-C002` ssot finding `app-only-reallocation-leaves-collection-time-discovery-unrepresented`가
+   지적한 두 결손(**예외 미선언** · **수집 시점 발견 경로 부재**)을 이 항과 §1.2가 함께 닫는다.
+8. **`00`과의 충돌은 언제나 이 문서의 결함이다** `[V2-C003 시정]`
+
+   1항의 귀결이다. 이 문서가 `00`보다 좁거나 넓은 규칙을 적었다면 예외 등재로 정당화되지 않으며,
+   **이 문서를 고쳐야 한다.** §1.5.1a(auth gate ↔ `00 §3` L1 표)가 그렇게 시정된 사례다.
 
 ### 이 문서가 닫는 결함과 위치
 
@@ -46,6 +64,14 @@
 | `undefined-column-vocabularies` (F7) | P2 blocking | §1 전체 · §2 · §3 · §4 |
 | (A1 신규 필드·표의 값 도메인 확정) | — | §1.5 · §1.6 · §1.9 · §1.12 · §1.13 |
 | `state-table-mapping-declared-without-correspondence` (F12) | P2 blocking | §5 · §6 |
+
+**`V2-C002` 이후 추가로 닫는 결함** `[V2-C003 시정]`
+
+| finding id | 출처 · 심각도 | 닫는 절 |
+|---|---|---|
+| `a2-undetermined-to-pass-transition-underspecified-and-narrowed` | adversarial `V2-C002` P1 **blocking** | **§1.11**(T-3 · T-7~T-10 · §1.11.1 · §1.11.2 · X-1 · X-9~X-11) · §1.7 · §1.8 · §2.3 · §7 1항 |
+| `app-only-reallocation-leaves-collection-time-discovery-unrepresented` | ssot `V2-C002` P2 **blocking**(`E001_V2`) | **§0 7항 EXC-1** · §1.2 · §1.3 · §1.4 · §1.11 T-11 · X-12 · §4.1 · §7 3항 |
+| `00 §3 ↔ A2 §1.5.1 auth gate endpoint 충돌` (오케스트레이터 등재, P1 취급) | `V2-C003` | **§1.5.1a**(규칙 E-5~E-8) · §1.5.1 · §1.5.2 · §7 11항 |
 
 **다른 담당이 닫은 결함** — 이 문서는 그 결과를 **참조**할 뿐 재정의하지 않는다.
 
@@ -75,7 +101,7 @@
 | 수준 | 무엇에 대한 상태인가 | 컬럼 | 절 |
 |---|---|---|---|
 | Frame | 관측 **이전**의 적격성·검토 상태 | `review_status` · `web_eligibility_status` · `web_target_status` · `mapping_status` · `region_signal_type` | §1.1 §1.3 §1.4 §1.9 |
-| Observation | 관측 **시도의 결과** | `measurement_status` | §1.2 |
+| Observation | 관측 **시도의 결과** | `measurement_status` · `measurement_status_detail` | §1.2 |
 | Task | L1 경로 **탐색의 종료 상태** | `endpoint_status` · `endpoint_status_detail` · `area_signal_status` · `depth_segment` | §1.5 |
 | Interrupt | 방해요소 **분류·닫기의 상태** | `classification_status` · `final_label` · `dismiss_method` · `dismiss_failure_mode` | §1.6 |
 | Criterion | KWCAG **판정의 상태** | `verdict_state` · `final_status` · `automation_grade` | §1.7 · §3 |
@@ -135,15 +161,47 @@ review_status = review_decision                       if review_decision is not 
 | `FAILED_BROWSER_CRASH` | 실패 | 브라우저 컨텍스트·렌더러가 비정상 종료했다 | 02 §13 `browser crash` |
 | `FAILED_PAGE_TIMEOUT` | 실패 | `02 §3`의 고정 안정화 대기 규칙 안에서 페이지가 안정 상태에 도달하지 못했다 | 02 §13 `page timeout` |
 | `FAILED_EVIDENCE_INCOMPLETE` | 실패 | 페이지는 로드됐으나 evidence 5종 중 일부가 없거나 `07_EVIDENCE_MANIFEST_CONTRACT` 검증을 통과하지 못했다 | 02 §11 · 07 §4 |
+| `NOT_ELIGIBLE_AT_COLLECTION` `[V2-C003 시정]` | **적격성 반증** (성공도 실패도 아니다) | `web_eligibility_status = ELIGIBLE_WEB`로 동결된 타겟에 실제로 접속했으나, `00 §3` L0 범위의 **공개 모바일웹 랜딩이 존재하지 않음이 관측**됐다 (앱 설치 인터스티셜·스토어 리다이렉트만 존재하거나, 로그인 이전 공개 랜딩이 없다) | 02 §13 `app-only` · §0 7항 **EXC-1** |
 
-**상호배타.** 6값은 상호배타다. 한 관측 회차는 정확히 한 값을 가진다.
+**상호배타.** 7값은 상호배타다. 한 관측 회차는 정확히 한 값을 가진다.
 두 실패가 동시에 성립하면 **먼저 발생한 것**을 기록하고 나머지는 `probe_path`의 진단 로그에 남긴다.
 
-**`app-only`는 이 어휘에 속하지 않는다.**
-`02 §13`이 `app-only`를 `별도 measurement status로 기록`이라 적은 것은 `V2-C001` F6이 지적한 상충이다.
-앱 전용이라 모바일웹이 없다는 사실은 **관측 시도의 결과가 아니라 관측 이전의 적격성**이며,
-`01 §3 dim_web_target.web_eligibility_status`의 값 `EXCLUDED_APP_ONLY`(§1.3)에 귀속된다.
-웹이 없으면 `fact_landing_observation` 행 자체가 생기지 않으므로 `measurement_status`가 존재할 자리가 없다.
+**계열 경계 (`[V2-C003 시정]`).** `MEASUREMENT_FAILED` 계열은 `measurement_status LIKE 'FAILED_%'` 다.
+`NOT_ELIGIBLE_AT_COLLECTION`은 **의도적으로 이 패턴에 걸리지 않는다.**
+수집 시도가 실패한 것이 아니라 **P-B의 적격성 판정이 관측으로 반증된 것**이기 때문이다.
+셋을 한 계열로 합치면 `02 §13`이 보호하려던 구분이 사라지고 §4.1 evidence completeness가 오염된다.
+
+| 계열 | 값 | 무엇을 뜻하는가 | criterion 행 | §4.1 분모 |
+|---|---|---|---|---|
+| 성공 | `MEASURED` | evidence가 산출됐다 | 생성 | 포함 (분자 후보) |
+| `MEASUREMENT_FAILED` (`FAILED_%`) | `FAILED_*` 5값 | 관측 시도가 실패했다 | **생성 안 함** (M-1) | 포함, 분자 제외 |
+| 적격성 반증 | `NOT_ELIGIBLE_AT_COLLECTION` | 잴 대상이 애초에 범위 밖이었다 | **생성 안 함** (M-1) | **분자·분모 모두 제외** (§4.1 주의 3) |
+
+#### `app-only`의 두 경로 — `02 §13` 대응 `[V2-C003 시정]`
+
+`02 §13`은 `app-only`를 `별도 measurement status로 기록`하라고 지시했다.
+`V2-C002` ssot 감사가 지적한 대로, 이 문서의 이전 판은 그 지시를 뒤집으면서 §0 2항의 **예외를 선언하지 않았고**,
+그 결과 **수집 시점에 발견된 app-only**가 들어갈 컬럼이 어디에도 없었다.
+`app-only`는 하나의 사실이 아니라 **발견 시점이 다른 두 사실**이므로 다음과 같이 나눠 기록한다.
+
+| 발견 시점 | 사실 | 수준 | 기록 컬럼 | 관측 행 |
+|---|---|---|---|---|
+| **P-B 적격성 판정 시점** (URL 증거 검토 중) | 앱 전용이라 대응하는 공식 모바일웹이 없다 | Frame | `web_eligibility_status = EXCLUDED_APP_ONLY` (§1.3) · `web_target_status = EXCLUDED` (§1.4) | 생성되지 않는다 |
+| **수집 시점** (`ELIGIBLE_WEB` 동결 후 접속) | 동결된 URL이 L0 범위의 공개 웹 랜딩을 제공하지 않는다 | Observation | `measurement_status = NOT_ELIGIBLE_AT_COLLECTION` + `measurement_status_detail` | **생성된다** (접속을 시도했으므로) |
+
+두 번째 경로에서 관측 행이 생기는 것은 첫 번째 경로의 논리("웹이 없으면 행 자체가 없다")와 모순이 아니다.
+첫 번째는 **접속하지 않았으므로** 행이 없고, 두 번째는 **접속했으므로** 행이 있다.
+`02 §13`이 `app-only`를 `ACCESS_BLOCKED`·`browser crash`·`page timeout` 사이에 나열한 것은
+원본이 바로 이 **수집 시점 발견**을 상정했다는 정황이며, 이 값이 그 자리를 채운다.
+
+`measurement_status_detail` — `NOT_ELIGIBLE_AT_COLLECTION` 일 때에만 non-null인 동반 컬럼.
+
+| 값 | 뜻 | 대응 `web_eligibility_status` |
+|---|---|---|
+| `APP_ONLY_AT_COLLECTION` | 앱 설치 유도·스토어 리다이렉트만 있고 웹 콘텐츠가 없다 | `EXCLUDED_APP_ONLY` |
+| `NO_PUBLIC_WEB_LANDING_AT_COLLECTION` | 웹은 응답하나 로그인 이전 공개 랜딩이 없다 | `EXCLUDED_NO_PUBLIC_WEB_LANDING` |
+
+**상호배타.** 2값은 상호배타이며, `measurement_status ≠ NOT_ELIGIBLE_AT_COLLECTION` 이면 `NULL`이다.
 
 **규칙 M-1.** `measurement_status ≠ 'MEASURED'` 인 관측은 `fact_criterion_result` 행을 **생성하지 않는다.**
 수집 실패를 `FAIL`로도 `UNDETERMINED`로도 세지 않는다 (`02 §13`).
@@ -151,6 +209,23 @@ review_status = review_decision                       if review_decision is not 
 
 **규칙 M-2.** 시도하지 않은 관측은 이 어휘로 표현하지 않는다. 행이 없는 것이 정답이다.
 "적격인데 관측되지 않음"은 §4의 **분모**에서 잡는다 (§4.1 · §4.2).
+
+**규칙 M-3 (파이프라인은 실패하지 않는다) `[V2-C003 시정]`.**
+`ELIGIBLE_WEB`로 동결된 타겟이 수집 시점에 공개 웹 랜딩을 제공하지 않는 것은 **정상 처리 가능한 사건**이다.
+파이프라인은 이 관측에서 예외를 던지거나 행을 버리지 않고 `NOT_ELIGIBLE_AT_COLLECTION`을 기록하고 진행한다.
+규칙 S-3(닫힌 집합 위반 시 실패)은 **표에 없는 값이 나올 때**의 규칙이지, 이 값이 나올 때의 규칙이 아니다.
+
+**규칙 M-4 (증거 요구) `[V2-C003 시정]`.**
+`NOT_ELIGIBLE_AT_COLLECTION`은 **양의 관측**이므로 증거 없이 기록할 수 없다.
+그 시점에 산출 가능한 evidence(최소한 `screenshot_initial_path` · `dom_path` · 최종 URL)를 남겨야 하며,
+남기지 못했으면 그것은 이 값이 아니라 `FAILED_EVIDENCE_INCOMPLETE`다.
+증거가 있어야 P-B 적격성 판정의 반증이 제3자에게 재검증 가능하다 (`02 §12` 재판정 전제).
+
+**규칙 M-5 (오용 금지) `[V2-C003 시정]`.**
+수집이 어려운 타겟을 표본에서 조용히 빼기 위해 이 값을 쓰지 않는다.
+`HTTP 401/403/429`·차단 인터스티셜은 `FAILED_ACCESS_BLOCKED`이고, 응답 지연은 `FAILED_PAGE_TIMEOUT`이며,
+그 어느 것도 `NOT_ELIGIBLE_AT_COLLECTION`이 아니다 (금지 전이 X-12).
+이 값의 발생 건수는 `03 Phase 5` 측정품질 보고에 **반드시** 노출된다 (§4.1).
 
 ---
 
@@ -174,8 +249,22 @@ review_status = review_decision                       if review_decision is not 
 `NOT_ASSESSED` 71건은 전부 `axis_type = SERVICE_BRAND`다 `[실측: 교차표 오프대각 0]`.
 즉 현재 적격성 판정은 **축 유형 하나만으로** 내려져 있으며, URL 증거에 기반한 판정은 아직 0건이다.
 
-**`EXCLUDED_APP_ONLY`가 F6을 닫는다.** `02 §13`의 `app-only`는 여기로 귀속된다.
-`measurement_status`(§1.2)에는 대응 값을 두지 않는다.
+**`EXCLUDED_APP_ONLY`가 F6을 닫는다.** `02 §13`의 `app-only` 중 **관측 이전에 확정된 것**이 여기로 귀속된다.
+
+**수집 시점에 발견된 app-only는 여기에 직접 쓰지 않는다** `[V2-C003 시정]`.
+`ELIGIBLE_WEB`로 동결된 뒤 수집에서 반증된 경우는 `measurement_status = NOT_ELIGIBLE_AT_COLLECTION`(§1.2)에
+먼저 기록되고, Frame 수준 반영은 §1.4의 supersede 경로로만 이뤄진다 (전파 규칙 **T-11**).
+관측 행이 Frame 컬럼을 in-place로 고쳐 쓰는 것은 규칙 S-2 위반이며, 동결된 값이 조용히 바뀌면
+`00 §15 final web target frozen`의 의미가 사라진다.
+
+| 수집 관측 | `measurement_status_detail` | supersede 후행(後行)의 `web_eligibility_status` |
+|---|---|---|
+| 앱 설치 유도·스토어 리다이렉트만 존재 | `APP_ONLY_AT_COLLECTION` | `EXCLUDED_APP_ONLY` |
+| 웹은 응답하나 로그인 이전 공개 랜딩 없음 | `NO_PUBLIC_WEB_LANDING_AT_COLLECTION` | `EXCLUDED_NO_PUBLIC_WEB_LANDING` |
+
+**규칙 W-1 (Frame 값은 관측이 아니라 재판정으로 바뀐다) `[V2-C003 시정]`.**
+`web_eligibility_status`의 값이 바뀌는 유일한 경로는 (a) P-B 적격성 판정, (b) §1.4 supersede로 생성되는
+**새 행**이다. 두 경로 모두 근거 증거를 요구하며, 기존 행의 값을 덮어쓰지 않는다 (`02 §12` append-only).
 
 **grain 주의.** `01 §3`은 이 컬럼을 `dim_web_target`(web target 수준)에 두지만
 물리적으로는 `service_master.web_eligibility_status`(measurement entity 수준, 81행)에 있다.
@@ -195,10 +284,36 @@ review_status = review_decision                       if review_decision is not 
 | `PENDING_URL_REVIEW` | URL 후보가 있으나 증거 검토가 끝나지 않았다 |
 | `FROZEN` | `00 §15 final web target frozen` 조건을 충족해 동결됐다. 이후 변경 금지 |
 | `EXCLUDED` | 동결 전에 대상에서 제외됐다. 제외 사유는 `web_eligibility_status`에 있다 |
-| `SUPERSEDED` | 더 정확한 URL 증거로 대체됐다. 이전 행은 남긴다 (append-only, `02 §12`) |
+| `SUPERSEDED` | 더 정확한 **URL 증거 또는 수집 증거**로 대체됐다. 이전 행은 남긴다 (append-only, `02 §12`) |
 
 **상호배타.** 5값은 상호배타이며 `DRAFT → PENDING_URL_REVIEW → {FROZEN, EXCLUDED}` 단방향이다.
 `FROZEN`에서 벗어나는 유일한 경로는 `SUPERSEDED`이며, 이는 새 행을 만든다.
+
+#### 1.4.1 수집 시점 반증에 의한 supersede `[V2-C003 시정]`
+
+> 닫는 finding: `app-only-reallocation-leaves-collection-time-discovery-unrepresented` (ssot `V2-C002`)
+
+`SUPERSEDED`의 사유는 "더 정확한 URL을 찾았다"만이 아니다.
+**"동결된 그 URL이 `00 §3` L0 범위의 대상이 아님을 수집이 보여줬다"**도 증거에 기반한 대체다.
+이 경로가 없으면 `FROZEN` 타겟이 수집 시점에 반증됐을 때 기록할 자리가 없다(감사 지적).
+
+| 단계 | 대상 행 | 값 |
+|---|---|---|
+| 1 | 관측 | `fact_landing_observation.measurement_status = NOT_ELIGIBLE_AT_COLLECTION` + `measurement_status_detail` (§1.2) |
+| 2 | 기존 `dim_web_target` 행 (`FROZEN`) | `web_target_status = SUPERSEDED`. **값을 지우거나 덮어쓰지 않는다** |
+| 3 | 새 `dim_web_target` 행 | `web_target_status = EXCLUDED` · `web_eligibility_status = EXCLUDED_APP_ONLY` 또는 `EXCLUDED_NO_PUBLIC_WEB_LANDING` (§1.3 대응표) · `superseded_from_web_target_id` = 2단계 행 · 근거로 1단계 `observation_id` |
+
+**단방향 제약과의 관계.** `DRAFT → PENDING_URL_REVIEW → {FROZEN, EXCLUDED}` 단방향 제약은
+**한 행의 생애 안에서** 성립하는 제약이다. supersede는 행을 바꾸는 것이 아니라 **새 행을 만드는** 것이므로,
+후행이 `EXCLUDED`에서 시작하는 것은 이 제약을 위반하지 않는다. 후행은 이미 증거가 갖춰진 상태로 태어난다.
+
+**규칙 W-2 (배제 방향으로만).** 이 경로는 **타겟을 범위 밖으로 내보내는 방향으로만** 쓸 수 있다.
+수집이 잘 안 된다는 이유로 URL을 다른 URL로 바꾸는 데 쓸 수 없으며, 그것은 P-B로 되돌아가는 일이다.
+동결 이후의 URL 교체는 `00 §15`가 금지한다.
+
+**규칙 W-3 (반드시 보고).** 이 경로가 한 번이라도 발화하면 P-B 적격성 판정이 틀렸다는 뜻이므로,
+`03 Phase 5` 측정품질 보고에 `eligibility_reversal_rate`(§4.1)로 **반드시** 노출한다.
+조용히 표본에서 빠지는 타겟이 있어서는 안 된다.
 
 **현재 물리 대응.** `web_target_group.grouping_status`는
 `SINGLETON_PENDING_URL_REVIEW` **65** / `CANDIDATE_PENDING_URL_REVIEW` **3** = **68** `[실측]`이며,
@@ -217,7 +332,7 @@ review_status = review_decision                       if review_decision is not 
 | 값 | 뜻 | `endpoint_reached` | NED / IED / MPFED |
 |---|---|---|---|
 | `FUNCTION_ENDPOINT_REACHED` | `dim_representative_task.endpoint_definition`이 정의한 상태에 도달했다 | 1 | 정수 (`A1` §1.3) |
-| `AUTH_GATE_REACHED` | 로그인/인증 gate가 나타나 `00 §3 절대 제외`에 걸렸다 | 0 | `NULL` |
+| `AUTH_GATE_REACHED` | 로그인/인증 gate가 나타나 `00 §3 절대 제외`에 걸렸다. **단 `FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY`에서는 gate가 endpoint이므로 이 값을 쓰지 않는다** (§1.5.1a) `[V2-C003 시정]` | 0 | `NULL` |
 | `PAYMENT_GATE_REACHED` | 결제 단계가 나타났다. 우회하지 않는다 | 0 | `NULL` |
 | `PERSONAL_DATA_REQUIRED` | 개인정보 입력이 요구됐다 | 0 | `NULL` |
 | `CAPTCHA` | 사람 검증이 요구됐다 | 0 | `NULL` |
@@ -233,6 +348,68 @@ review_status = review_decision                       if review_decision is not 
 `FUNCTION_ENDPOINT_REACHED` 인데 `MPFED`가 `NULL`인 경우는 없다. 다만
 `area_signal_status = INFERRED_FROM_ENDPOINT` 경로에서는 `NED = m`, `IED = 0` 이다 (§1.5.3 · `A1` §1.4).
 
+`endpoint_reached`와 `endpoint_status = FUNCTION_ENDPOINT_REACHED`의 동치는 §1.5.1a의 archetype 분기
+이후에도 그대로 유지된다 — 분기는 **어느 상태값으로 저장하는가**를 가를 뿐 동치식을 건드리지 않는다.
+
+#### 1.5.1a auth gate가 endpoint인 archetype `[V2-C003 시정]`
+
+> 닫는 finding: `00 §3 ↔ A2 §1.5.1 auth gate endpoint 충돌` (오케스트레이터 등재, P1 취급)
+> 구체화 대상: `00_SSOT` §3 L1 표 · §7 · §11 · `01_DATA_SPEC` §10 · **A1 §1.2**
+
+`00 §3` L1 표는 **두 행에서만** endpoint 정의 안에 gate를 넣었다.
+
+| `00 §3` 유형 | 원문 | archetype (`A1 §1.2`) |
+|---|---|---|
+| 금융 | `금융기능 진입 **또는 로그인/인증 gate가 나타난 순간**` | `FINANCIAL_ACTION_ENTRY` |
+| 커뮤니티 | `게시물/스레드/작성영역 진입 **또는 로그인 gate**` | `COMMUNICATION_ENTRY` |
+
+§1.5.1의 `AUTH_GATE_REACHED`를 **모든 archetype에 일반 규칙으로** 적용하면 이 두 archetype에서
+`endpoint_reached`가 구조적으로 항상 `0`, `MPFED`가 구조적으로 항상 `NULL`이 된다. 그러면
+`00 §11`의 archetype별 `MPFED` median/IQR/mode/ECDF, `00 §7`의 `ExcessDepth` 기준선(= 같은 archetype의 중앙값),
+`01 §10 mart_archetype_summary`의 `MPFED median`·`MPFED IQR`·`endpoint reach`가 **이 두 행에서 성립하지 않는다.**
+`00`이 최상위 권위이므로(§0 1항·8항) **SSOT가 우선하며 이 문서를 고친다.**
+
+| archetype | auth gate 관측 시 `endpoint_status` | `endpoint_status_detail` | `endpoint_reached` | `NED`/`IED`/`MPFED` | 근거 |
+|---|---|---|---|---|---|
+| `FINANCIAL_ACTION_ENTRY` | **`FUNCTION_ENDPOINT_REACHED`** | `ENDPOINT_VIA_AUTH_GATE` | **1** | 정수 (`m` 확정, `A1 §1.3`) | `00 §3` 금융 행 |
+| `COMMUNICATION_ENTRY` | **`FUNCTION_ENDPOINT_REACHED`** | `ENDPOINT_VIA_AUTH_GATE` | **1** | 정수 (`m` 확정, `A1 §1.3`) | `00 §3` 커뮤니티 행 |
+| `QUERY` · `CONTENT_OPEN` · `ITEM_DETAIL` · `PLACE_LOOKUP` · `UTILITY_ENTRY` | `AUTH_GATE_REACHED` | `NULL` | **0** | `NULL` | `00 §3` 해당 행에 gate 문구 **없음** · `01 §11` |
+
+**규칙 E-5 (두 archetype에서 `AUTH_GATE_REACHED`는 발생하지 않는다).**
+`00 §3`이 gate가 나타난 순간 자체를 endpoint로 정의했으므로, 그 두 archetype의 scout가 관측한 auth gate는
+정의상 `dim_representative_task.endpoint_definition`을 충족한다. 판정은 P-A endpoint codebook이 동결한
+`endpoint_definition`으로 하며(§1.9), **그 정의에는 이 두 archetype에 한해 gate 절이 반드시 포함**된다.
+수집 중에 사람이나 모델이 임의로 가르지 않는다.
+
+**규칙 E-6 (확대 금지).** 이 예외는 위 두 archetype에만 적용한다.
+`00 §3`이 `또는 gate`를 준 행이 그 둘뿐이기 때문이다. 다른 archetype의 auth gate를 endpoint로 승격시키는 것은
+`00 §3` 범위 확대이며 금지다 (§7 11항). `UTILITY_ENTRY`는 `00 §3`에 대응 행 자체가 없으므로
+(`A1 §1.2`) 이 예외의 대상이 **아니다** — 그 archetype의 endpoint는 P-A codebook이 동결한다.
+
+**규칙 E-7 (gate 통과 금지).** endpoint로 세는 것은 gate가 **나타난 순간**이다.
+gate를 통과하거나 자격증명을 입력하지 않는다. `00 §3 절대 제외`의 `로그인 이후`·`본인인증 이후`는
+그대로 유효하고, `02 §7` `결제·본인인증을 우회하지 않는다`도 그대로다.
+scout는 이 두 archetype에서도 gate 관측 **즉시 종료**한다 (`02 §7`). 달라지는 것은 종료 후 저장하는 값뿐이다.
+
+**규칙 E-8 (auth gate 유병률 집계).** `00 §11`·`01 §10`의 `auth gate` 지표를
+`endpoint_status = 'AUTH_GATE_REACHED'` 만으로 세면 이 두 archetype에서 **0으로 과소집계된다.**
+집계 조건은 다음 합집합이다.
+
+```
+auth_gate_observed = (endpoint_status = 'AUTH_GATE_REACHED')
+                  OR (endpoint_status_detail = 'ENDPOINT_VIA_AUTH_GATE')
+                  OR (그 task 의 fact_task_step 중 auth gate 가 기록된 step 이 존재)
+```
+
+세 번째 항의 근거 데이터는 이미 요구돼 있다 — `02 §7`이 각 activation 후 `auth gate`를 기록하게 한다.
+`endpoint reach`(§1.5.2 규칙 E-4)와 `auth gate`는 **서로 다른 지표**이므로 한쪽 값으로 다른 쪽을 대체하지 않는다.
+
+**A1과의 정합.** `A1 §1.2` 신호표는 두 archetype의 endpoint 신호를
+`금융기능 진입 또는 로그인/인증 gate가 나타난 순간` · `게시물/스레드/작성영역 진입 또는 로그인 gate`로
+`00 §3` **원문 그대로** 적었고, 1차 판정 소스도 `DOM/AX + gate 신호`다.
+이 절은 그 신호가 관측됐을 때 **어느 상태값으로 저장되는지**만 확정하며 `A1`의 신호 정의를 바꾸지 않는다
+(`A1 §0.2` — A1이 도입한 필드의 값 도메인은 A2가 확정한다).
+
 #### 1.5.2 `endpoint_status_detail` — 하위 세분값
 
 `02 §7`의 7값만으로는 **왜** `UNRESOLVED`인지 구분되지 않는다.
@@ -241,15 +418,24 @@ review_status = review_decision                       if review_decision is not 
 **이 문서는 두 값을 최상위 열거값이 아니라 동반 컬럼 `endpoint_status_detail`의 하위값으로 배치한다.**
 동결된 7값 집합을 확장하지 않으면서(`A1` §2.2) 사유를 잃지 않기 위함이다.
 
+같은 컬럼이 §1.5.1a의 `ENDPOINT_VIA_AUTH_GATE`도 담는다 `[V2-C003 시정]`. 그 값의 목적은
+`UNRESOLVED`의 사유 세분이 아니라 **endpoint가 auth gate로 실현됐다는 사실의 보존**이며,
+그것이 있어야 `00 §11`·`01 §10`의 `auth gate` 지표가 과소집계되지 않는다 (규칙 E-8).
+어느 경우에도 7값 집합은 확장되지 않는다.
+
 | `endpoint_status_detail` | 상위 `endpoint_status` | 뜻 | 근거 |
 |---|---|---|---|
 | `UNRESOLVED_DEPTH_BUDGET_EXCEEDED` | `UNRESOLVED` | `A1` §2.1의 activation·state 재방문·wall-clock·무변화 예산 중 하나가 발화했다 | `A1` §2.2 |
 | `UNRESOLVED_REPLAY_BROKEN` | `UNRESOLVED` | 동결된 task manifest의 결정적 replay가 깨졌다 | `02 §8` |
 | `UNRESOLVED_NO_SIGNAL` | `UNRESOLVED` | 예산 안에서 어떤 종료신호도 발화하지 않았다 | `02 §7` |
-| `NULL` | 나머지 6값 | 세분이 필요 없다. 상위 값이 이미 사유다 | — |
+| `ENDPOINT_VIA_AUTH_GATE` `[V2-C003 시정]` | `FUNCTION_ENDPOINT_REACHED` | `00 §3`이 gate를 endpoint로 정의한 두 archetype에서 endpoint가 **auth gate로 실현**됐다 | `00 §3` · §1.5.1a |
+| `NULL` | 나머지 값 | 세분이 필요 없다. 상위 값이 이미 사유다 | — |
 
-**roll-up 규칙.** `endpoint_status_detail`이 non-null이면 반드시 `endpoint_status = 'UNRESOLVED'` 이다.
-집계·보고는 기본적으로 상위 7값으로 하고, 세분값은 측정품질 진단에만 쓴다.
+**roll-up 규칙** `[V2-C003 시정]`. `endpoint_status_detail`의 각 값은 위 표가 지정한 상위 값 **하나만** 갖는다 —
+`UNRESOLVED_*` 3값은 `endpoint_status = 'UNRESOLVED'`, `ENDPOINT_VIA_AUTH_GATE`는
+`endpoint_status = 'FUNCTION_ENDPOINT_REACHED'`. 그 외 조합은 존재할 수 없다 (규칙 S-3).
+집계·보고는 기본적으로 상위 7값으로 하고, 세분값은 측정품질 진단에 쓴다.
+**단 하나의 예외**가 `auth gate` 지표이며, 그것은 규칙 E-8의 합집합으로 센다.
 
 **A1 표현의 정합화.** `A1` §2.2는 `endpoint_status`에 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED`를 기록한다고 쓰면서
 같은 절에서 `02 §7의 7개 종료값 집합을 확장하지 않는다`고 못박았다. 두 문장은 한 컬럼에서 양립하지 않으므로
@@ -444,6 +630,18 @@ applicable_count = pass_count + fail_count + undetermined_count
 **`ai_review_required`** — 0/1. `verdict_state = UNDETERMINED` 이거나 결정적 단계가 신뢰구간을 벗어난 경우 1.
 `automation_grade ∈ {D_EMBEDDING_TEXT, E_VLM, F_HUMAN_FINAL}` 인 행은 반드시 `ai_review_required = 1`이다 (§3 제약 G-2).
 
+**`ai_review_required = 1`에는 성격이 다른 두 종류가 있다** `[V2-C003 시정]`.
+
+| 발화 조건 | 검토의 목적 | 검토가 `final_status`를 바꿀 수 있는가 | `review_task_type` (§1.8) |
+|---|---|---|---|
+| 결정적 단계가 신뢰구간을 벗어남 (`verdict_state ∈ {PASS, FAIL}`) | **판정 검토** — 그 판정이 맞는지 | **그렇다.** `PASS ↔ FAIL` 확인·정정, 또는 `ABSTAIN` 시 `UNDETERMINED`로 보수화 | `CRITERION_VERDICT` |
+| `verdict_state = UNDETERMINED` | **triage** — 왜 확정 못했는지, 재수집할 가치가 있는지 | **아니다.** 결과는 `UNDETERMINED`로 고정된다 (전파 규칙 **T-8**) | `CRITERION_UNDETERMINED_TRIAGE` |
+
+두 번째 행이 이 문서가 `V2-C002` adversarial P1을 닫는 지점이다.
+`UNDETERMINED` 행의 검토 산출은 판정이 아니라 `evidence_gap` · `impact_level` · `review_priority`,
+즉 **재수집 대기열의 정렬 정보**다 (§1.11.2). 같은 evidence를 다시 읽는 일이
+`자료가 부족해 확정할 수 없다`는 진술을 반증할 수는 없기 때문이다.
+
 ---
 
 ### 1.8 `final_status` · `human_required` — `fact_ai_adjudication`
@@ -469,11 +667,61 @@ applicable_count = pass_count + fail_count + undetermined_count
 **`reviewer_agreement`** — 0/1/`NA`. reviewer A·B가 **둘 다 라벨을 냈고 서로 같으면** 1, 다르면 0,
 한쪽이라도 `ABSTAIN`이거나 라벨이 없으면 `NA`. `NA`를 0으로 세지 않는다 (§4.4).
 
-**`evidence_gap`** — 0/1. evidence package(`02 §10`) 자체가 판단에 불충분했으면 1.
-이 값이 laundering 차단의 열쇠다 (규칙 T-3).
+**`evidence_gap`** — 0/1. evidence package(`02 §10`) 자체가 판단에 불충분했다고 검토자가 진술하면 1.
+
+**`evidence_gap`은 전이 허가 조건이 아니다** `[V2-C003 시정]`
+(닫는 finding: `a2-undetermined-to-pass-transition-underspecified-and-narrowed`).
+이전 판은 이 값을 `laundering 차단의 열쇠`라고 적었고, 그 서술이 금지 전이 X-1에 `evidence_gap = 1`이라는
+한정어를 붙이게 만들어 **`evidence_gap = 0` 인 `UNDETERMINED` 행이 `PASS`로 새는 경로**를 열었다.
+그 한정어는 제거됐다(§1.11 X-1). 이 값의 용도는 다음 셋뿐이다.
+
+| # | 용도 | 절 |
+|---|---|---|
+| 1 | `abstention rate` 분자를 `증거 부족` / `의미 모호` / `예산 소진`으로 분해 | §4.5 규칙 B-1 |
+| 2 | 사람 검토 5건 선발의 정렬키 (증거가 없으면 사람이 봐도 확정 못하므로 뒤로) | §4.6 규칙 H-1 |
+| 3 | **재수집 우선순위 신호** — 어느 `UNDETERMINED` 행을 새 evidence run으로 다시 잴 것인가 | §1.11.2 |
+
+**`evidence_gap = 0`은 "증거가 충분했다"는 뜻이 아니다.** 그것은
+**"검토자가 증거 부족을 기권 사유로 들지 않았다"**는 **검토 과정에 대한 진술**이며,
+`verdict_state = UNDETERMINED`라는 **데이터에 대한 진술**을 반증하지 못한다 (§2.2의 두 진술 구분).
+`evidence_gap = 0`을 근거로 `UNDETERMINED`를 `PASS`(또는 `FAIL`)로 전이하는 것은 금지 전이 **X-9**이자 **X-1**이다.
+laundering을 막는 것은 이 컬럼이 아니라 전파 규칙 **T-8**과 금지 전이 **X-1**이다.
+
+**`review_task_type`** — review item이 무엇에 대한 검토인가 `[V2-C003 시정]`.
+`01 §9`가 컬럼만 두고 값을 열거하지 않았다. 이 문서가 닫힌 5값으로 확정한다.
+
+| 값 | 검토 대상 | 허용 label 도메인 | criterion `final_status`에 미치는 영향 |
+|---|---|---|---|
+| `CRITERION_VERDICT` | `verdict_state ∈ {PASS, FAIL}` 인 criterion observation | `{PASS, FAIL}` | T-7로 전파 |
+| `CRITERION_UNDETERMINED_TRIAGE` | `verdict_state = UNDETERMINED` 인 criterion observation | `{EVIDENCE_INSUFFICIENT_CONFIRMED, RECOLLECT_RECOMMENDED}` | **없음** (T-8) |
+| `INTERRUPT_LABEL` | `fact_interrupt_element`의 방해요소 분류 | §1.6 `final_label` 10값 | 없음 (Axis B) |
+| `TASK_MAPPING` | `dim_representative_task`의 대표 task 매핑 | §1.9 `mapping_status` 판단 | 없음 (Frame) |
+| `PRIMARY_ACTION_SELECTION` | `fact_primary_action_candidate`의 대표기능 후보 선정 | §1.13 `selection_status` 3값 | 없음 (Axis B) |
+
+**상호배타.** 5값은 상호배타다.
+**규칙 A-2 (label 도메인 격리).** `CRITERION_UNDETERMINED_TRIAGE` item의 어떤 label 컬럼에도
+`PASS`·`FAIL`을 쓰지 않는다. 쓸 수 있게 두면 T-8이 우회될 여지가 생긴다.
+triage의 `RESOLVED`는 **triage의 확정**이지 판정의 확정이 아니다.
 
 **`impact_level`** — `HIGH` / `MEDIUM` / `LOW`. 해당 판정이 `00 §11` 주요 분석 결론을 바꿀 수 있는 정도.
 **`review_priority`** — 정수. 사람 검토 5건 선발의 결정적 순서 (§4.6).
+
+**label 컬럼 5종의 전이 권한** `[V2-C003 시정]`.
+`01 §9`는 `deterministic_label` · `semantic_model_label` · `reviewer_a_label` · `reviewer_b_label` ·
+`arbiter_label` 5개 label 컬럼을 둔다. 어느 것이 criterion `final_status`를 정할 수 있는지 확정한다.
+
+| 컬럼 | `00 §9` cascade 단계 | criterion `final_status`를 단독으로 정할 수 있는가 | 어떻게 반영되는가 |
+|---|---|---|---|
+| `deterministic_label` | 1. deterministic rule | **아니다** | 결정적 단계의 산출은 이미 `verdict_state`가 담고 있다 (§1.7). 이 컬럼은 cascade 1단계 기록이다 |
+| `semantic_model_label` | 2. text/embedding classifier | **아니다** | A·B 검토의 입력. 단독으로 `final_status`가 되지 않는다 |
+| `reviewer_a_label` | 3. multimodal reviewer A | **아니다** | A·B가 **일치할 때에만** 합의 label이 되어 T-7의 입력이 된다 (`reviewer_agreement = 1`) |
+| `reviewer_b_label` | 4. 독립 reviewer B | **아니다** | 위와 동일 |
+| `arbiter_label` | 5. AI arbiter · 6. `HUMAN_FINAL` | **아니다 — 단독으로는.** A·B 불일치 시 확정 label이 되어 T-7의 입력이 된다. 사람 최종검토 결과도 이 컬럼에 담기며 `automation_grade = F_HUMAN_FINAL`로 구별한다 | T-7 |
+
+**세 겹의 제약.** (1) 어느 label 컬럼도 `fact_criterion_result`에 **직접 쓰지 않는다** — 반드시
+`fact_ai_adjudication.final_status`를 거쳐 §1.11.1 전이표를 탄다. (2) T-7은 `verdict_state ∈ {PASS, FAIL}`
+에서만 작동한다. (3) `verdict_state = UNDETERMINED` 행에서는 T-8이 **label을 읽기 전에** 결과를 고정하므로,
+label 컬럼에 무엇이 들어 있든 결과는 `UNDETERMINED`다.
 
 **AI label은 human gold가 아니다.** `arbiter_label`·`reviewer_*_label`은 `04`의 `Gold Label` 정의에 해당하지 않는다.
 분석 문장에서 이들을 정답으로 서술하지 않는다 (`00 §9`).
@@ -570,26 +818,121 @@ NED가 멈추는 `FUNCTION_AREA_REACHED` 신호(§1.5.3)를 task별로 지정한
 |---|---|
 | **T-1** | `measurement_status ≠ MEASURED` → `fact_criterion_result` 행 **생성하지 않음**. `FAIL`·`UNDETERMINED` 어느 쪽으로도 세지 않는다 (`02 §13`) |
 | **T-2** | `ai_review_required = 0` → `final_status = verdict_state` (항등 전파) |
-| **T-3** | `ai_review_required = 1` → `final_status`는 `fact_ai_adjudication`에서 전파. **단 아래 금지 전이를 지킨다** |
+| **T-3** `[V2-C003 시정]` | `ai_review_required = 1` → `final_status`는 **§1.11.1 전이표의 전건 대응으로만** 정한다. `fact_ai_adjudication`의 값을 그때그때 해석해 옮기지 않는다. 표에 없는 조합은 존재할 수 없으며, 나타나면 파이프라인이 실패해야 한다 (규칙 S-3) |
 | **T-4** | `fact_ai_adjudication.final_status = ABSTAIN` → `fact_criterion_result.final_status = UNDETERMINED` |
 | **T-5** | `endpoint_status` · `endpoint_status_detail` · `area_signal_status`는 `fact_criterion_result`로 전파되지 **않는다**. L1 종료 상태는 Axis B 변수이며 Axis A 판정이 아니다 (`00 §4` · `A1 §2.3`) |
 | **T-6** | `verdict_state = NA` → `final_status = NA`. adjudication은 `NA`를 바꾸지 못한다. 적용기회 유무의 재판정은 새 evidence run에서 `verdict_state`를 다시 내는 일이다 |
+| **T-7** `[V2-C003 시정]` | `fact_ai_adjudication.final_status = RESOLVED` → criterion `final_status`는 **`verdict_state ∈ {PASS, FAIL}` 일 때에만** 확정 label로 갱신된다. 확정 label은 `reviewer_agreement = 1` 이면 합의 label(`reviewer_a_label` = `reviewer_b_label`), 아니면 `arbiter_label`이며, 그 값 도메인은 `{PASS, FAIL}`이다. `verdict_state = UNDETERMINED` 인 행에는 **T-8이 우선한다** |
+| **T-8** `[V2-C003 시정]` | `verdict_state = UNDETERMINED` → `final_status = UNDETERMINED`. **adjudication 결과가 무엇이든 바뀌지 않는다.** 이 행에 대한 검토의 산출은 `evidence_gap`·`impact_level`·`review_priority`(재수집 우선순위)이지 판정이 아니다 (§1.7 · §1.11.2) |
+| **T-9** `[V2-C003 시정]` | `fact_ai_adjudication.final_status ∈ {ESCALATED_HUMAN_FINAL, PENDING}` → criterion `final_status = UNDETERMINED`. 이는 **검토가 끝나지 않았다는 사실의 보수적 표현**이며 판정이 아니다. `03 Phase 5` 측정품질 보고 시점에 `PENDING` 잔여는 **0이어야 한다**. `ESCALATED_HUMAN_FINAL`은 사람 검토가 끝나면 `RESOLVED`로 전이하고, 그때 다시 T-7/T-8을 탄다 |
+| **T-10** `[V2-C003 시정]` | 한 criterion observation에 judgment version이 여럿이면 `final_status`는 **가장 최신 version**의 값이다. 이전 version은 삭제하지 않는다 (`02 §12` append-only). 어느 version도 `verdict_state`를 고쳐 쓰지 못한다 (X-10) |
+| **T-11** `[V2-C003 시정]` | `measurement_status = NOT_ELIGIBLE_AT_COLLECTION` → Frame 수준 재판정을 **트리거하되 직접 쓰지 않는다.** `dim_web_target`은 §1.4.1의 supersede 경로로만 갱신되며, 관측 행이 Frame 컬럼을 in-place 수정하는 것은 규칙 S-2 위반이다 (§1.3 규칙 W-1) |
+
+#### 1.11.1 adjudication → criterion 전이 전건표 `[V2-C003 시정]`
+
+> 닫는 finding: `a2-undetermined-to-pass-transition-underspecified-and-narrowed` (adversarial `V2-C002` P1)
+
+이전 판은 `fact_ai_adjudication.final_status` 4값 중 `ABSTAIN` 하나만 매핑했고
+(`RESOLVED`·`ESCALATED_HUMAN_FINAL`·`PENDING`이 criterion 4값 중 무엇이 되는지 문서 어디에도 없었다),
+금지 전이 X-1에는 `evidence_gap = 1` 한정어가 붙어 있었다. 그 둘이 합쳐져
+`UNDETERMINED ∧ evidence_gap = 0 ∧ RESOLVED → PASS` 를 막는 규칙이 하나도 없었다.
+**아래 표가 전건을 남김없이 열거한다. 표에 없는 조합은 존재할 수 없다.**
+
+| # | `verdict_state` | `ai_review_required` | `fact_ai_adjudication.final_status` | 확정 label (`arbiter_label` 또는 합의 label) | → criterion `final_status` | 규칙 | `UNDETERMINED → PASS` 인가 |
+|---|---|---|---|---|---|---|---|
+| 1 | `PASS` | 0 | (행 없음) | — | `PASS` | T-2 | 아니오 |
+| 2 | `FAIL` | 0 | (행 없음) | — | `FAIL` | T-2 | 아니오 |
+| 3 | `NA` | 0 | (행 없음) | — | `NA` | T-2 · T-6 | 아니오 |
+| 4 | `UNDETERMINED` | 0 | (행 없음) | — | `UNDETERMINED` | **존재할 수 없는 조합** (§1.7이 `ai_review_required = 1`을 강제). 그래도 결과는 T-8로 `UNDETERMINED` | 아니오 |
+| 5 | `PASS` | 1 | `RESOLVED` | `PASS` | `PASS` | T-7 | 아니오 |
+| 6 | `PASS` | 1 | `RESOLVED` | `FAIL` | `FAIL` | T-7 (정정) | 아니오 |
+| 7 | `PASS` | 1 | `ABSTAIN` | (없음) | `UNDETERMINED` | T-4 (보수화) | 아니오 |
+| 8 | `PASS` | 1 | `ESCALATED_HUMAN_FINAL` | (미확정) | `UNDETERMINED` | T-9 | 아니오 |
+| 9 | `PASS` | 1 | `PENDING` | (미확정) | `UNDETERMINED` | T-9 | 아니오 |
+| 10 | `FAIL` | 1 | `RESOLVED` | `PASS` | `PASS` | T-7 (정정) | 아니오 |
+| 11 | `FAIL` | 1 | `RESOLVED` | `FAIL` | `FAIL` | T-7 | 아니오 |
+| 12 | `FAIL` | 1 | `ABSTAIN` | (없음) | `UNDETERMINED` | T-4 | 아니오 |
+| 13 | `FAIL` | 1 | `ESCALATED_HUMAN_FINAL` | (미확정) | `UNDETERMINED` | T-9 | 아니오 |
+| 14 | `FAIL` | 1 | `PENDING` | (미확정) | `UNDETERMINED` | T-9 | 아니오 |
+| 15 | **`UNDETERMINED`** | 1 | `RESOLVED` | triage label (`EVIDENCE_INSUFFICIENT_CONFIRMED` / `RECOLLECT_RECOMMENDED`) | **`UNDETERMINED`** | **T-8** | **아니오** |
+| 16 | **`UNDETERMINED`** | 1 | `ABSTAIN` | (없음) | **`UNDETERMINED`** | **T-8** (T-4와 같은 결과) | **아니오** |
+| 17 | **`UNDETERMINED`** | 1 | `ESCALATED_HUMAN_FINAL` | (미확정) | **`UNDETERMINED`** | **T-8** · T-9 | **아니오** |
+| 18 | **`UNDETERMINED`** | 1 | `PENDING` | (미확정) | **`UNDETERMINED`** | **T-8** · T-9 | **아니오** |
+| 19 | `NA` | 1 | `RESOLVED` | 무엇이든 | `NA` | **T-6** (adjudication 무시) | 아니오 |
+| 20 | `NA` | 1 | `ABSTAIN` / `ESCALATED_HUMAN_FINAL` / `PENDING` | (없음/미확정) | `NA` | **T-6** | 아니오 |
+
+**전건 완전성.** `verdict_state` 4값 × `ai_review_required` 2값 × adjudication 4값 = 논리적 조합 32개다.
+`ai_review_required = 0` 이면 adjudication 행이 존재하지 않으므로 그쪽 16개는 1~4행으로 축약되고,
+`ai_review_required = 1` 인 16개는 5~20행이 1:1로 덮는다 (`RESOLVED` 행은 확정 label에 따라 다시 갈린다).
+**남는 조합은 없다.**
+
+**결론 (15~18행).** `verdict_state = UNDETERMINED` 인 행의 criterion `final_status`는
+adjudication 결과 4값 어느 것에서도, 어떤 `evidence_gap` 값에서도, 어떤 label 조합에서도
+`UNDETERMINED` 하나다. **`UNDETERMINED → PASS` 경로 수는 0이다.**
+`arbiter_label`이 `PASS`라고 적히는 상황 자체가 규칙 A-2(§1.8)로 막혀 있고,
+설령 적혀도 T-8이 label을 읽기 전에 결과를 고정한다 — **두 겹으로 닫혀 있다.**
+
+#### 1.11.2 `UNDETERMINED`에서 나가는 유일한 경로 `[V2-C003 시정]`
+
+`UNDETERMINED`는 **"이 evidence로는 확정할 수 없다"**는 진술이다.
+같은 evidence를 다시 읽는 어떤 절차도 그 진술을 반증하지 못한다.
+`verdict_state`는 evidence의 함수이고(§1.7 — 불변), `final_status`는 §1.11.1 전이표를 통한
+`verdict_state`의 함수다. 따라서 **evidence가 바뀌지 않으면 `UNDETERMINED`는 바뀌지 않는다.**
+
+| 경로 | 새 `verdict_state`를 산출하는가 | `UNDETERMINED` 탈출 | 근거 |
+|---|---|---|---|
+| **새 evidence run**(재수집) → 새 관측 행 → 결정적 파이프라인이 새 `verdict_state` 산출 → 새 judgment version | **예** | **가능** — 새로 산출된 값이 `PASS`·`FAIL`·`UNDETERMINED`·`NA` 무엇이든 그것이 결과다 | `02 §12` `재수집 → 새 evidence run` |
+| 같은 evidence 재판정 → 새 judgment version | 아니다 (`verdict_state` 불변) | **불가능** | `02 §12` + T-8 + X-10 |
+| cascade 상위 단계 재호출 (VLM 재실행 · reviewer 교체 · arbiter 재중재) | 아니다 | **불가능** | T-8 · X-1 |
+| 사람 최종검토 (`00 §9` 6단계) | 아니다 | **불가능** | T-8 · X-11 |
+| `evidence_gap`을 `1`에서 `0`으로 정정 | 아니다 | **불가능** | X-9 |
+| `impact_level`·`review_priority` 상향 | 아니다 | **불가능** | X-9 |
+
+**같은 evidence 재판정이 무의미하다는 뜻은 아니다.** `02 §12`가 그 경로를 허용하며, 그것은
+`verdict_state ∈ {PASS, FAIL}` 인 행의 판정을 정정하거나(전이표 6·10행), 판정을 `UNDETERMINED`로
+보수화하는(7·12행) 데 쓰인다. 막히는 것은 **`UNDETERMINED`에서 나가는 방향**뿐이다.
+
+**재수집이 laundering이 아닌 이유.** 새 evidence run은 `evidence_run_id`·수집 시각·evidence 7종 경로를
+새로 남기고 이전 run을 덮어쓰지 않는다 (`02 §12` · `A1 §6`). 판정이 바뀌었다면 **무엇이 달라져서 바뀌었는지가
+데이터로 남고 제3자가 두 run을 비교할 수 있다.** 반면 같은 evidence 위의 재판정에서 바뀌는 것은
+판단자의 태도뿐이므로 비교할 대상이 없다. 이 비대칭이 X-1을 무조건 금지로 두는 근거다.
+
+**재수집 우선순위.** 어느 `UNDETERMINED` 행을 다시 잴지는 `evidence_gap`·`impact_level`·`review_priority`로
+정한다 (§1.8). 이 세 값은 **재수집 대기열의 정렬키**이며 **전이 허가 조건이 아니다** (X-9).
+재수집 여부와 무관하게 남은 `UNDETERMINED`는 `00 §11`의 `UNDETERMINED stress bound` 대상이 되어
+결론에 미치는 영향이 정량화된다 — 값을 지우는 대신 **영향을 재는 것**이 이 연구의 방식이다.
 
 #### 금지 전이 (laundering 차단)
 
 | # | 금지 |
 |---|---|
-| **X-1** | `verdict_state = UNDETERMINED` 이고 `evidence_gap = 1` 인 행을 `final_status = PASS`로 전이하는 것. **증거가 없어서 판단 못한 것을 "충족 확인됨"으로 바꾸는 것이 laundering이다** (`02 §14` `UNDETERMINED→PASS 시도`) |
+| **X-1** `[V2-C003 시정]` | `verdict_state = UNDETERMINED` 인 행을 `final_status = PASS`로 전이하는 것. **조건 없는 금지다.** `evidence_gap` 값, `automation_grade`, reviewer A·B 합의, arbiter 판정, 사람 최종검토 — **어느 것도 예외가 아니다.** 증거가 없어서 판단 못한 것을 "충족 확인됨"으로 바꾸는 것이 laundering이다 (`02 §14` `UNDETERMINED→PASS 시도` 문면 그대로) |
 | **X-2** | `final_status = ABSTAIN` (criterion 표에는 이 값이 없다). ABSTAIN은 T-4로만 들어오고 들어오는 순간 `UNDETERMINED`가 된다 |
 | **X-3** | `NA`를 `PASS`로 세는 집계. `NA`는 분자에도 분모에도 자동으로 들어가지 않는다 (§4.2) |
 | **X-4** | `measurement_status` 실패 계열을 `FAIL`로 세는 집계 |
 | **X-5** | `endpoint_reached = 0` 인 행의 `NED`/`IED`/`MPFED`를 `0`이나 예산 상한값(`8`)으로 채우는 것. 정답은 `NULL`이다 (규칙 N-1 · `A1 §1.5` · `A1 §2.4`) |
+| **X-6** | 사람 검토 예산 소진을 이유로 `ABSTAIN` 대신 `RESOLVED`를 기록하는 것 (규칙 A-1) |
 | **X-7** | `NULL`(미관측)과 `0`(관측된 0)을 같은 칸에 세는 집계 (규칙 N-1 · §1.14) |
 | **X-8** | `NAME_ABSENT`(이름 없음이 관측됨)를 `NULL`(잴 대상 없음)과 합치는 집계 (규칙 N-4 · §1.6 · §1.14) |
-| **X-6** | 사람 검토 예산 소진을 이유로 `ABSTAIN` 대신 `RESOLVED`를 기록하는 것 (규칙 A-1) |
+| **X-9** `[V2-C003 시정]` | `evidence_gap` · `impact_level` · `review_priority` · `automation_grade` 를 **전이 허가 조건으로 쓰는 것.** 이들은 재수집 우선순위·보고 분해용 신호이며 어떤 전이도 허가하지 않는다 (§1.8 · §1.11.2) |
+| **X-10** `[V2-C003 시정]` | 같은 evidence 위의 재판정(새 judgment version)으로 `verdict_state`를 고쳐 쓰는 것. `verdict_state`는 evidence의 함수이며 **불변**이다 (§1.7). 값을 바꾸려면 새 evidence run이 필요하다 (`02 §12`) |
+| **X-11** `[V2-C003 시정]` | `verdict_state = UNDETERMINED` 인 행을 `final_status = FAIL`로 전이하는 것. 증거가 없어 판단 못한 것을 "미충족 확인됨"으로 바꾸는 것도 같은 종류의 조작이며, `FAIL` 비율을 부풀려 `00 §11` 결론을 반대 방향으로 오염시킨다 (T-8) |
+| **X-12** `[V2-C003 시정]` | 수집 실패(`FAILED_*`)를 `NOT_ELIGIBLE_AT_COLLECTION`으로 바꿔 기록해 타겟을 표본에서 빼는 것. 두 계열은 서로 다른 사건이며 증거 요구도 다르다 (규칙 M-4 · M-5) |
 
-`02 §14` 실패주입은 X-1을 실제로 차단하는지 확인한다. 나머지 X-2~X-6도 같은 방식으로
-E000_V2 smoke에서 차단 여부를 확인한다.
+#### `02 §14` 실패주입의 구체화 `[V2-C003 시정]`
+
+`02 §14`의 `UNDETERMINED→PASS 시도`는 **조건이 붙지 않은 한 항목**이다.
+이전 판의 X-1처럼 `evidence_gap = 1`만 태우면 P-D smoke가 통과해도 아무것도 증명하지 못한다.
+이 문서는 그 항목을 다음 **세 변종**으로 구체화한다. 원본 항목을 좁히거나 넓히지 않고 나눠 태우는 것이다.
+
+| 변종 | 주입 | 기대 |
+|---|---|---|
+| V-a | `verdict_state = UNDETERMINED` ∧ `evidence_gap = 1` ∧ `final_status = PASS` 기록 시도 | **차단** (X-1) |
+| V-b | `verdict_state = UNDETERMINED` ∧ `evidence_gap = 0` ∧ `final_status = PASS` 기록 시도 | **차단** (X-1) — 이전 판이 열어두었던 경로 |
+| V-c | `verdict_state = UNDETERMINED` ∧ adjudication `final_status = RESOLVED` ∧ `arbiter_label = PASS` ∧ `evidence_gap = 0` → 전파 | **차단** (T-8 · 규칙 A-2). 감사가 실증한 정확한 laundering 경로 |
+
+추가로 `verdict_state = UNDETERMINED → FAIL` 변종(X-11)도 같은 방식으로 태운다.
+나머지 X-2~X-12도 E000_V2 smoke에서 차단 여부를 확인한다.
 
 ### 1.12 Episode 수준 어휘 — `fact_task_episode`
 
@@ -729,6 +1072,16 @@ embedding 랭킹은 오분류 여지가 있으므로(`02 §6` `모호하면 AI r
 그 사실은 §4.1 evidence completeness와 frame coverage에서만 드러난다.
 둘을 합치면 `UNDETERMINED stress bound`(`00 §11`)가 오염된다.
 
+**규칙 N-6 (다섯 번째 "값 없음"은 결측이 아니다) `[V2-C003 시정]`.**
+`NOT_ELIGIBLE_AT_COLLECTION`(§1.2)은 위 네 결측 어디에도 속하지 않는다.
+그것은 **잴 대상이 범위 밖이었다는 양의 관측**이며, `MEASUREMENT_FAILED` 계열과 합치지 않는다
+(계열 술어 `LIKE 'FAILED_%'`에 걸리지 않는다). 집계에서의 취급은 §4.1 주의 3이 정한다.
+
+**규칙 N-7 (`UNDETERMINED`는 결측이지만 삭제 대상이 아니다) `[V2-C003 시정]`.**
+`UNDETERMINED`를 줄이는 정당한 방법은 **새 evidence run으로 다시 재는 것**뿐이며,
+재판정으로 값을 바꾸거나 행을 빼는 것이 아니다 (§1.11.2 · X-1 · X-10 · X-11).
+남은 `UNDETERMINED`는 지우는 대신 `00 §11` `UNDETERMINED stress bound`로 **영향을 잰다.**
+
 ---
 
 ---
@@ -765,6 +1118,7 @@ embedding 랭킹은 오분류 여지가 있으므로(`02 §6` `모호하면 AI r
 | 대상 | 하나의 (관측 × KWCAG criterion) | 하나의 review item (criterion일 수도, interrupt일 수도, mapping일 수도 있다) |
 | 분석에서의 쓰임 | `decision coverage`의 미확정분 (§4.2), `UNDETERMINED stress bound`(`00 §11`)의 대상 | `abstention rate`의 분자 (§4.5) |
 | 관계 | `ABSTAIN`은 criterion 수준으로 전파될 때 **`UNDETERMINED`가 된다** (T-4) | |
+| 역방향 | **없다.** `UNDETERMINED`는 어떤 adjudication 값으로도 `PASS`/`FAIL`이 되지 않는다 (T-8 · X-1 · X-11) `[V2-C003 시정]` | |
 
 **한 문장.** `UNDETERMINED`는 데이터에 대한 진술이고, `ABSTAIN`은 검토 과정에 대한 진술이다.
 둘을 한 컬럼에 합치면 `abstention rate`(§4.5)와 `UNDETERMINED stress`가 서로를 오염시킨다.
@@ -781,7 +1135,16 @@ embedding 랭킹은 오분류 여지가 있으므로(`02 §6` `모호하면 AI r
 3. 확정 못함 + 사람 예산 소진 → final_status = ABSTAIN,  human_required = 0
                               ai_review_status = ESCALATION_DECLINED_BUDGET
 4. ABSTAIN → (T-4) → fact_criterion_result.final_status = UNDETERMINED
+5. verdict_state 가 애초에 UNDETERMINED 였던 행은 1~4 어느 분기를 타든
+   fact_criterion_result.final_status = UNDETERMINED 다 (T-8).            [V2-C003 시정]
+   1번 분기로 RESOLVED 가 나와도 바뀌지 않는다 — 그 RESOLVED 는
+   triage 의 확정이지 판정의 확정이 아니다 (review_task_type =
+   CRITERION_UNDETERMINED_TRIAGE, 규칙 A-2).
 ```
+
+**5번은 1~4번의 예외가 아니라 상위 제약이다** `[V2-C003 시정]`.
+1~4번은 **판정 검토**(`verdict_state ∈ {PASS, FAIL}`)의 경로이고, 5번은 `verdict_state = UNDETERMINED`
+행에 대한 무조건 제약이다. 전건 전체는 §1.11.1 표가 열거한다.
 
 **어느 분기에서도 값을 지어내지 않는다.** 3번 분기는 "예산이 없으니 대충 정하자"가 아니라
 "예산이 없으므로 판단을 남기지 않는다"이며, 그 결과는 4번에서 `UNDETERMINED`로 **보존**된다.
@@ -894,6 +1257,22 @@ frame_coverage = |관측 행이 1개 이상 있는 web target| / |web_eligibilit
 ```
 
 두 분모가 다르다는 점이 핵심이다 — 규칙 M-2가 말한 "행의 부재"는 여기서만 잡힌다.
+`frame_coverage`의 분모는 supersede(§1.4.1) 이후 **각 타겟의 최신 행 기준**으로 센다.
+
+**주의 3 `[V2-C003 시정]`.** `measurement_status = NOT_ELIGIBLE_AT_COLLECTION` 인 행은
+**분자·분모 양쪽에서 제외**한다. 이 행은 evidence 산출의 실패가 아니라
+**P-B 적격성 판정이 관측으로 반증된 사건**이므로, 분모에 넣으면 적격성 오판정이
+evidence completeness 하락으로 잘못 표시되고, 분자에 넣으면 잴 수 없었던 대상을 잰 것처럼 센다.
+대신 **별도 지표로 반드시 보고**한다 (§1.4.1 규칙 W-3).
+
+```
+eligibility_reversal_rate = |NOT_ELIGIBLE_AT_COLLECTION 이 관측된 web target|
+                          / |P-B 에서 ELIGIBLE_WEB 로 동결된 web target|
+```
+
+이 값이 0이 아니면 `03 Phase 5` 측정품질 보고에 건수와 함께 적고,
+`measurement_status_detail`로 `APP_ONLY_AT_COLLECTION` / `NO_PUBLIC_WEB_LANDING_AT_COLLECTION`을 분해한다.
+숨기면 `02 §13`이 보호하려던 사실 자체가 사라진다.
 
 ### 4.2 decision coverage
 
@@ -970,10 +1349,29 @@ model_decided_rate = |automation_grade ∈ {D_EMBEDDING_TEXT, E_VLM}| / |전체 
 | 의미 모호 기권 | `ABSTAIN` ∧ `evidence_gap = 0` ∧ `ai_review_status ≠ ESCALATION_DECLINED_BUDGET` |
 | 예산 소진 기권 | `ABSTAIN` ∧ `ai_review_status = ESCALATION_DECLINED_BUDGET` |
 
+**규칙 B-2 (`review_task_type`별 분리) `[V2-C003 시정]`.** 분자·분모를 `review_task_type`(§1.8)별로
+**나눠 보고한다.** `CRITERION_UNDETERMINED_TRIAGE` item의 기권은 "판정을 못 정했다"가 아니라
+"재수집 권고를 못 정했다"이므로, 판정 검토(`CRITERION_VERDICT`)의 기권율과 한 칸에 합치면
+`abstention rate`가 실제보다 나쁘게 보인다. 정본으로 보고하는 값은 `CRITERION_VERDICT` 기준이며,
+triage 기권율은 병기한다.
+
 **주의.** `abstention rate`의 분모는 **AI 검토에 올라온 건수**이지 전체 criterion observation이 아니다.
 criterion 수준의 `UNDETERMINED` 비율(§4.2)과 다른 값이며, 서로 대체할 수 없다.
-`UNDETERMINED`에는 (a) AI 검토에 올라가지도 않고 결정적 단계에서 이미 판단불가였던 것과
-(b) `ABSTAIN` 전파분(T-4)이 섞이므로, 두 성분을 나눠 보고한다.
+
+**criterion `UNDETERMINED`의 세 성분** `[V2-C003 시정]`. §1.11.1 전이표에 따라 다음 셋이 섞이므로
+`03 Phase 5` 보고에서 **나눠 적는다.** 셋을 합쳐 놓으면 `00 §11` `UNDETERMINED stress bound`의
+해석이 불가능해진다.
+
+| 성분 | 조건 | 뜻 |
+|---|---|---|
+| (a) 측정 미확정 | `verdict_state = UNDETERMINED` (전이표 15~18행, T-8) | **데이터가 부족했다.** 재수집(새 evidence run) 대상이며 재판정으로는 바뀌지 않는다 (§1.11.2) |
+| (b) 기권 전파 | `verdict_state ∈ {PASS, FAIL}` ∧ adjudication `ABSTAIN` (7·12행, T-4) | **검토가 확신하지 못해 보수화됐다.** `abstention rate`의 분자와 대응한다 |
+| (c) 검토 미완결 | `verdict_state ∈ {PASS, FAIL}` ∧ adjudication `ESCALATED_HUMAN_FINAL`/`PENDING` (8·9·13·14행, T-9) | **아직 끝나지 않았다.** `PENDING` 잔여는 보고 시점에 0이어야 한다 (T-9) |
+
+(a)는 AI 검토에 `CRITERION_UNDETERMINED_TRIAGE`로 올라가지만 그 검토가 판정을 바꾸지 않으므로,
+`CRITERION_VERDICT` 기준 `abstention rate`(규칙 B-2)와 **대응하지 않는다.**
+두 지표를 서로의 대용으로 쓰지 않으며, (a)의 규모는 §4.2 `undetermined_rate_applicable`과
+`00 §11` `UNDETERMINED stress bound`에서 읽는다.
 
 ### 4.6 human escalation ≤5
 
@@ -1244,6 +1642,7 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | **컬럼**: `registered_domain` | 물리 컬럼 없음. falsifier 판정에 필요 `[실측: falsifier 3건 기재]` |
 | **값**: `web_eligibility_status` 4값 | `ELIGIBLE_WEB` · `EXCLUDED_APP_ONLY` · `EXCLUDED_NO_PUBLIC_WEB_LANDING` · `UNDETERMINED_URL_EVIDENCE` — 현재 전부 0건 `[실측]` |
 | **값**: `web_target_status` 4값 | `DRAFT` · `FROZEN` · `EXCLUDED` · `SUPERSEDED` — 현재 전부 0건 `[실측]` |
+| **컬럼**: `superseded_from_web_target_id` | §1.4.1 수집 시점 반증 supersede의 계보 링크. 물리 컬럼 없음 `[V2-C003 시정]` |
 | `dim_representative_task` 동결 | `mapping_status = FROZEN` 전이. 규칙 P-1 순서 준수. `region_signal_type = CODEBOOK_PENDING` 잔여 0 (규칙 P-2) |
 | `dim_certification` join 준비 | `state/_invalidated/`의 draft는 무효 보관물이며 입력이 아니다 |
 | 3건 그룹 가설 검정 | `expected_url_relationship_falsifier` 3건 `[실측]` 을 URL 증거로 검정. SPLIT 여부 확정 |
@@ -1252,19 +1651,21 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 
 | 산출물 | 내용 |
 |---|---|
-| `fact_landing_observation` 표 | `measurement_status` 6값 어휘 구현 (§1.2) |
+| `fact_landing_observation` 표 | `measurement_status` **7값** 어휘 구현 + `measurement_status_detail` 2값 (§1.2) `[V2-C003 시정]` |
 | **컬럼**: `screenshot_initial_path` · `screenshot_fullpage_path` · `computed_css_path` · `evidence_run_id` · `collection_started_at` · `collection_finished_at` · `viewport_configured_*` · `device_pixel_ratio` | `A1` §6.1. §4.1 evidence completeness 분자의 근거 |
 | `fact_interrupt_element` 표 | `classification_status` 5값 · `final_label` 10값 · `ai_review_status` 7값 (§1.6 · §1.10) |
 | **컬럼**: `dismiss_method` 5값 · `dismiss_failure_mode` 5값 · `dismiss_persistence_hint` · `dismiss_screenshot_before/after` · `dismiss_dom_after` | `A1` §3.3 · §3.4 (§1.6) |
-| `fact_task_entry` 표 | `endpoint_status` 7값 + `endpoint_status_detail` 3값 + `area_signal_status` 3값 (§1.5). 규칙 N-1~N-5 `NULL` 처리 구현 |
+| `fact_task_entry` 표 | `endpoint_status` 7값 + `endpoint_status_detail` **4값** + `area_signal_status` 3값 (§1.5). archetype별 auth gate 분기(§1.5.1a 규칙 E-5~E-8) 구현. 규칙 N-1~N-7 `NULL` 처리 구현 `[V2-C003 시정]` |
 | `fact_task_step` 확장 | `depth_segment` 3값 · `counts_toward_depth` · `area_signal_detected` (§1.5.4, `A1` §1.8) |
 | `fact_task_episode` 표 (신규) | `episode_kind` 2값 · `ended_by` 9값 · `input_mode` 2값 (§1.12, `A1` §4.4) |
 | `fact_primary_action_candidate` 표 (신규) | `selection_basis` 4값 · `selection_status` 3값 · `area_css_px2` (§1.13, `A1` §5.1) |
 | `fact_task_step` 표 | — |
 | `fact_criterion_result` 표 | `verdict_state` · `final_status` · `automation_grade` 7값 · `ai_review_required` (§1.7 · §3) |
-| `fact_ai_adjudication` 표 | `final_status` 4값(`ABSTAIN` 포함) · `human_required` · `review_priority` (§1.8 · §2) |
-| **가드**: 전이 규칙 T-1~T-6 | 파이프라인에 강제 |
-| **가드**: 금지 전이 X-1~X-6 | `02 §14` 실패주입으로 차단 검증 |
+| `fact_ai_adjudication` 표 | `final_status` 4값(`ABSTAIN` 포함) · `human_required` · `review_priority` · `review_task_type` **5값** (§1.8 · §2) `[V2-C003 시정]` |
+| **가드**: 전이 규칙 **T-1~T-11** | 파이프라인에 강제. §1.11.1 전이표를 **표 그대로 구현**하고, 표에 없는 조합에서 실패시킨다 `[V2-C003 시정]` |
+| **가드**: 금지 전이 **X-1~X-12** | `02 §14` 실패주입으로 차단 검증. `UNDETERMINED→PASS`는 §1.11 세 변종(V-a·V-b·V-c) 전부를 태운다 `[V2-C003 시정]` |
+| **가드**: 규칙 A-2 label 도메인 격리 | `CRITERION_UNDETERMINED_TRIAGE` item의 label 컬럼에 `PASS`/`FAIL`이 들어가면 실패 `[V2-C003 시정]` |
+| **가드**: 규칙 W-1~W-3 · T-11 | 관측이 Frame 컬럼을 in-place 수정하지 못하게 강제. supersede 경로만 허용 `[V2-C003 시정]` |
 | **가드**: 정합 제약 G-2~G-6 | `automation_grade` 검증 |
 | **가드**: 항등식 | `applicable_count = pass_count + fail_count + undetermined_count` (§1.7) |
 | **지표**: §4의 6개 산식 | numerator/denominator를 코드로 고정. `03 Phase 6` 역추적 요구 |
@@ -1300,9 +1701,9 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 
 | # | 금지 |
 |---|---|
-| 1 | **`UNDETERMINED`를 `PASS`로 흡수하지 않는다** (laundering). 금지 전이 X-1. 증거 부족(`evidence_gap = 1`)은 어떤 검토로도 충족 확인이 되지 않는다 |
-| 2 | **결측을 0으로 치환하지 않는다** (`01 §11`). 규칙 N-1~N-5 · X-5 · X-7. `endpoint_reached = 0`의 `MPFED`는 **`NULL`**이며 `0`도 예산 상한 `8`도 아니다. `rows_expected` 결측 8행 `[실측]`, `value` 결측 7행 `[실측]` 도 0이 아니다 |
-| 3 | **상태와 수치를 분리한다** (`01 §11`). §1.0의 6개 수준을 섞지 않는다. `app-only`를 `measurement_status`에 두지 않는다 |
+| 1 | **`UNDETERMINED`를 `PASS`로 흡수하지 않는다** (laundering). 금지 전이 X-1은 **무조건**이다 — `evidence_gap` 값·`automation_grade`·reviewer 합의·arbiter 판정·사람 최종검토 어느 것도 예외가 아니다. `UNDETERMINED`에서 나가는 유일한 경로는 **새 evidence를 수집한 새 evidence run**이며(§1.11.2 · `02 §12`), 같은 evidence 재판정으로는 바꿀 수 없다(X-10). `FAIL`로 흡수하는 것도 같은 금지다(X-11) `[V2-C003 시정]` |
+| 2 | **결측을 0으로 치환하지 않는다** (`01 §11`). 규칙 N-1~N-7 · X-5 · X-7. `endpoint_reached = 0`의 `MPFED`는 **`NULL`**이며 `0`도 예산 상한 `8`도 아니다. `rows_expected` 결측 8행 `[실측]`, `value` 결측 7행 `[실측]` 도 0이 아니다 |
+| 3 | **상태와 수치를 분리한다** (`01 §11`). §1.0의 수준을 섞지 않는다. `app-only`는 **발견 시점에 따라** 관측 이전 적격성(`web_eligibility_status = EXCLUDED_APP_ONLY`)과 수집 시점 반증(`measurement_status = NOT_ELIGIBLE_AT_COLLECTION`)으로 나눠 기록하며(§0 7항 EXC-1 · §1.2), 어느 쪽도 접근성 `FAIL`로 세지 않는다 `[V2-C003 시정]` |
 | 4 | **AI 라벨을 human gold라 부르지 않는다** (`00 §9` · `04 Gold Label`). 규칙 R-3. `reviewer_agreement`가 높아도 정확도가 아니다 |
 | 5 | **인증을 gold label로 쓰지 않는다** (`00 §4 Axis C`). `certified_current`는 외부 참조축이며 정답이 아니다 |
 | 6 | **수집 실패를 접근성 FAIL로 세지 않는다** (`02 §13`). 규칙 M-1 · X-4 |
@@ -1313,6 +1714,8 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | 8 | **원본 `state/*.parquet`를 rename·migration·수정하지 않는다** (`01` 서두 · `03 Phase 3`). 규칙 V-1 · V-4 · V-5 |
 | 9 | **`research/refcohort/**`(Pilot)은 `READ_ONLY`.** 규칙 V-8 |
 | 10 | **예산 소진을 이유로 강제분류하지 않는다** (`00 §9`). 규칙 A-1 · X-6. §2.3의 3번 분기가 정본 경로다 |
+| 11 | **auth gate를 endpoint로 세는 것은 `FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY` 두 archetype뿐이다** (`00 §3` L1 표가 `또는 gate`를 준 행이 그 둘뿐). 다른 archetype으로 확대하지 않는다. 두 archetype에서도 gate를 **통과하지 않는다** — `00 §3 절대 제외`의 `로그인 이후`는 그대로다 (§1.5.1a 규칙 E-6 · E-7) `[V2-C003 시정]` |
+| 12 | **Frame 수준 동결값을 관측이 조용히 덮어쓰지 않는다.** 수집 시점 반증은 §1.4.1 supersede로 **새 행**을 만들고 이전 행을 남긴다 (규칙 W-1 · T-11 · `02 §12`). 수집이 어렵다는 이유로 타겟을 표본에서 빼지 않는다 (X-12 · 규칙 W-2) `[V2-C003 시정]` |
 
 ---
 

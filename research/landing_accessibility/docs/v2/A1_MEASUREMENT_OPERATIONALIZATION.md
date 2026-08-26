@@ -147,6 +147,14 @@ MPFED = m            ( = NED + IED, 00 §7과 항등 )
 
 `NULL`을 `0`으로 대체하거나 예산 상한값으로 대체하지 않는다.
 
+> **[V2-C003 시정] auth gate 교차참조.** 위 표의 `02` §7 해당 종료값 중 `AUTH_GATE_REACHED`는
+> archetype에 따라 의미가 갈린다. `00` §3이 `FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY`
+> 두 행의 endpoint 문안에만 "또는 로그인/인증 gate"를 포함시켰기 때문이다.
+> 그 두 archetype에서 gate 도달은 **endpoint 도달**이며 `MPFED`가 산출된다.
+> 나머지 5 archetype에서는 종전대로 비-endpoint 종료다.
+> 분기 규칙의 정본은 `A2_VOCABULARY_AND_SCHEMA_BINDING.md` §1.5.1a (규칙 E-5~E-8)이며,
+> 어느 archetype에서도 **gate를 통과하지 않는다**(규칙 E-7).
+
 ### 1.6 판정 cascade
 
 `00` §10 모델 사용 원칙과 `02` §1 우선순위를 그대로 따른다. 결정적 신호를 앞세우고, 모호할 때만 위로 올린다.

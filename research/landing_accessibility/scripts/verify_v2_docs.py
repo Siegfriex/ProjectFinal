@@ -119,12 +119,15 @@ def main() -> int:
 
         print(f"{'OK':10} {rel}  [{mark}]")
 
-    # 매니페스트 자신의 앵커
-    ok, why = git_tracked_and_clean(str(INSTALL_MANIFEST.relative_to(REPO)))
-    if not ok:
-        failures.append(f"ANCHOR    docs/v2/INSTALL_MANIFEST.json: {why}")
-    else:
-        print(f"{'OK':10} docs/v2/INSTALL_MANIFEST.json  [self, git-anchored]")
+    # 두 매니페스트 자신의 앵커. layer-1 기준선인 MANIFEST.json 이 무앵커로 남으면
+    # 원본 대조의 근거 자체를 바꿔치기할 수 있다 (ssot V2-C002 install-integrity-coverage-gap).
+    for manifest in (SOURCE_MANIFEST, INSTALL_MANIFEST):
+        rel = manifest.relative_to(ROOT)
+        ok, why = git_tracked_and_clean(str(manifest.relative_to(REPO)))
+        if not ok:
+            failures.append(f"ANCHOR    {rel}: {why}")
+        else:
+            print(f"{'OK':10} {rel}  [manifest, git-anchored]")
 
     # 원본 pack 전건이 설치됐는가
     for name in source:

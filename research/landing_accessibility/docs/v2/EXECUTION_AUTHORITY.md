@@ -2,7 +2,7 @@
 
 **선언일** 2026-08-26
 **선언 주체** Main Orchestrator (P0 `V2_REFREEZE`)
-**최근 개정** V2-C002 — 두 독립감사(V2-C001)의 blocking finding 시정 반영
+**최근 개정** V2-C003 — 두 독립감사(V2-C002)의 blocking finding 시정 반영
 **성격** 기계적 권위 선언. 이 파일과 `00_SSOT_v2.0.md`가 충돌하면 `00_SSOT_v2.0.md`가 우선한다.
 
 ---
@@ -132,8 +132,8 @@ v1 부채 항목의 phase 스케줄(C013·P-B·P-D 등 v1 phase 이름)은 v2 ph
 | v2 executor | `agent/landing-v2-exec` | 본 커밋 |
 | old C013 WIP | `agent/landing-exec` | `87a0464e8159d5526069d5e654e648b0dae506ca` — `UNVERIFIED` / 분석입력 금지 / 삭제 금지 / selective salvage 후 재감사 |
 | Pilot | `research/refcohort-r1` | `32460b87334a67f6a74823ac55f85ca80a9f8980` — `READ_ONLY` |
-| adversarial audit | `audit/landing-adversarial` | V2-C001 @ `706a8d64ed95a8178f0b1810d9992249875ec12c` |
-| ssot audit | `audit/landing-ssot` | V2-C001 @ `507fcf25a7e6800d9c03c6b6c8ecc880264bf6ea` |
+| adversarial audit | `audit/landing-adversarial` | V2-C002 @ `2a28ad3dae5eb385b0af373cfc950ed86468c91d` |
+| ssot audit | `audit/landing-ssot` | V2-C002 @ `eb7e4e13a2075b7390d16d545b92f04d549381f1` |
 | orchestrator | `control/landing-orchestrator` | `bfa16624e55e15c4626e74547ed885156a8f2a9e` 이후 V2-C002 |
 
 > **주의.** 이 저장소의 `origin/main`(`a835d5d8`)은 저장소 부트스트랩 브랜치이며 이 연구의
@@ -147,6 +147,7 @@ v1 부채 항목의 phase 스케줄(C013·P-B·P-D 등 v1 phase 이름)은 v2 ph
 | 사이클 | target SHA | adversarial | ssot | 결과 |
 |---|---|---|---|---|
 | V2-C001 | `eb36d173182a582e8d7499f29170a83363f9d560` | FAIL — P0 0 / P1 3 / P2 4 | FAIL — P0 0 / P1 2 / P2 11 | 승격 차단, 시정 사이클 V2-C002 개시 |
+| V2-C002 | `6fad79fa98e1ec7d315122d79794b4d5442bb42e` | FAIL — P0 0 / P1 1 / P2 7 | FAIL — P0 0 / P1 0 / P2 4 | V2-C001 blocking 14건 **전건 CLOSED**. 신규 blocking 은 표기 수정 계열 + UNDETERMINED laundering 1건. 시정 사이클 V2-C003 개시 |
 
 두 감사가 **동일 target SHA**를 감사했음이 확인됐다.
 문서 pack 내용 자체(scope creep · depth의 KWCAG 전환 · 인증 gold truth화 · human≤5 강제분류 ·
@@ -175,6 +176,13 @@ python research/landing_accessibility/scripts/verify_v2_docs.py
 2. 저장소 저작 권위문서 — 외부 앵커가 없으므로 **git을 앵커로** 사용 (추적 중 + 워킹트리 clean)
 3. 커버리지 — `docs/v2/` 아래 전 `.md`/`.json`이 `INSTALL_MANIFEST.json`에 등재
 
-이 스크립트는 `PHASE_GATES.md` `V2_SSOT_FROZEN` 통과조건이며 승격 경로에서 호출된다.
+이 스크립트는 `PHASE_GATES.md` `V2_SSOT_FROZEN` 통과조건이며,
+`control/landing-orchestrator` 의 `scripts/promote_landing_main.sh` **검사 4**가 exec 워크트리에서
+실제로 실행한다. exit != 0 이면 승격이 차단되고, 스크립트가 없어도 차단된다.
+
+> V2-C002 두 감사가 이 문장의 이전 판본(`승격 경로에서 호출된다`)을 **거짓 주장**으로 지적했다
+> (`git grep verify_v2_docs` = 0건). V2-C003에서 실제 호출을 만들어 문장을 참으로 만들었다.
+> 닫는 결함: `verify-script-declared-in-promotion-path-but-never-called` ·
+> `execution-authority-overclaims-verify-script-invocation`
 
 (닫는 결함: `install-manifest-is-self-anchored` · `install-integrity-coverage-gap`)
