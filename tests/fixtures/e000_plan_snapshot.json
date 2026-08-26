@@ -1,0 +1,676 @@
+{
+  "plan_id": "E000_V2_TARGET_PLAN",
+  "plan_kind": "E000_PLAN",
+  "status": "CANDIDATE_NOT_FROZEN",
+  "version": "0.1.0-shadow-candidate",
+  "created_at": "2026-08-27T00:00:00+09:00",
+  "produced_by": "WORKER-E (Claude B lane) — E000 target plan (planning only, no real-target measurement)",
+  "gate": "E000_V2_VALIDATED (PHASE_GATES.md #3 P-D) — this document only prepares the target list; it does not close or attempt to close the gate",
+  "authority_note": "이 문서는 계획(candidate)이다. PHASE_GATES.md #3 E000_V2_VALIDATED 의 '8~12개 diverse target' 요건을 충족하는 후보 target 집합을 outcome-blind 로 제시할 뿐, 실제 target freeze 나 실측을 수행하지 않는다.",
+  "input_sources": {
+    "p_a_lane": {
+      "branch": "agent/landing-pa-shadow",
+      "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_pa_shadow",
+      "head_sha": "0f46203",
+      "files_read": [
+        "research/landing_accessibility/state/service_master.csv",
+        "research/landing_accessibility/analysis/codebook/codebook.json"
+      ]
+    },
+    "p_b_lane": {
+      "branch": "agent/landing-pb-prework",
+      "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_pb_prework",
+      "head_sha": "9999857",
+      "files_read": [
+        "research/landing_accessibility/shadow/lane_b/state/web_eligibility_shadow.csv",
+        "research/landing_accessibility/shadow/lane_b/state/representative_task_candidate_shadow.csv",
+        "research/landing_accessibility/shadow/lane_b/state/web_target_group_shadow.csv"
+      ]
+    },
+    "eligible_web_pool_size": 60,
+    "eligible_task_row_count": 60,
+    "pool_note": "P-B ELIGIBLE_WEB 60건 (web_eligibility_shadow.csv) x representative_task_candidate_shadow.csv 조인. mapping_status=AMBIGUOUS_UNRESOLVED 1건(hyundai_homeshopping_hmall) 은 candidate pool 에서 제외."
+  },
+  "selection_method": {
+    "candidate_pool_definition": "canonical_service_key ∈ (web_eligibility_shadow.web_eligibility_status == 'ELIGIBLE_WEB') ∩ (representative_task_candidate_shadow.mapping_status != 'AMBIGUOUS_UNRESOLVED')",
+    "allowed_selection_inputs": [
+      "interaction_archetype",
+      "business_domain",
+      "web_eligibility_status",
+      "official_url_confidence",
+      "auth_gate_expected(archetype-structural)",
+      "source_prominence(panel row count)",
+      "technical_reachability(redirect_hops, mobile_candidates_live, review_reasons)",
+      "target_grouping"
+    ],
+    "forbidden_selection_inputs": [
+      "KWCAG result",
+      "popup result",
+      "MPFED",
+      "any accessibility outcome",
+      "WA certification status"
+    ],
+    "forbidden_inputs_consulted": false,
+    "certification_columns_touched": false,
+    "note": "certification_join_shadow.csv/parquet (P-B 산출)은 이 계획 수립 과정에서 열람하지 않았다.",
+    "goal": "engine/evidence-lineage smoke coverage, NOT statistical representativeness (02_COLLECTION_MEASUREMENT_SPEC_v2.0.md #14)"
+  },
+  "archetype_coverage": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+  ],
+  "archetype_coverage_note": "SSOT 00 §6 의 7개 archetype 중 7/7 커버 (frozen target frame 후보 pool 에 실제로 존재하는 조합만 사용, 인위적 채움 없음).",
+  "business_domain_coverage": [
+    "CONTENT_VIDEO",
+    "FINANCE_PAYMENT",
+    "MAP_MOBILITY",
+    "PORTAL_SEARCH",
+    "SHOPPING_COMMERCE",
+    "SOCIAL_COMMUNICATION",
+    "UTILITY_OTHER"
+  ],
+  "target_count": 11,
+  "targets": [
+    {
+      "e000_id": "E000-01",
+      "target_id": "wtg_91b952863c62993d",
+      "measurement_entity_id": "svc_91b952863c62993d",
+      "canonical_service_key": "daum",
+      "service_name_canonical": "다음",
+      "official_url": "https://m.daum.net/?nil_top=mobile",
+      "interaction_archetype": "QUERY",
+      "business_domain": "PORTAL_SEARCH",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_daum",
+        "primary_function_name": "검색어 제출",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "검색 query가 제출된 순간",
+      "selection_basis": "PORTAL_SEARCH 관문형 QUERY 대표. redirect_hops=1, LANDING_NOT_SEEN_BOT_BLOCKED 관측이력 — reachability 예외처리 smoke.",
+      "selection_inputs": {
+        "interaction_archetype": "QUERY",
+        "business_domain": "PORTAL_SEARCH",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": false,
+        "auth_gate_expected_basis": null,
+        "source_prominence": {
+          "app_panel_row_count": 4,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 1.0,
+          "mobile_candidates_live": 1,
+          "review_reasons": [
+            "LANDING_NOT_SEEN_BOT_BLOCKED",
+            "MOBILE_DESKTOP_FINAL_URL_DIVERGE"
+          ],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_91b952863c62993d",
+          "web_target_key": "daum",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "QUERY_ARCHETYPE",
+          "REDIRECT_PRESENT",
+          "ID_COLLISION_PAIR:daum_danggeun",
+          "BOT_BLOCK_REACHABILITY_FLAG"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-02",
+      "target_id": "wtg_46e5a43370f75308",
+      "measurement_entity_id": "svc_46e5a43370f75308",
+      "canonical_service_key": "danggeun",
+      "service_name_canonical": "당근",
+      "official_url": "https://www.daangn.com/kr/",
+      "interaction_archetype": "COMMUNICATION_ENTRY",
+      "business_domain": "SOCIAL_COMMUNICATION",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_danggeun",
+        "primary_function_name": "교환공간 진입",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "게시물/스레드가 열린 순간",
+      "selection_basis": "SOCIAL_COMMUNICATION 교환공간형. '다음'과 동일 2음절 한글 서비스명 — ID collision 위험 조합.",
+      "selection_inputs": {
+        "interaction_archetype": "COMMUNICATION_ENTRY",
+        "business_domain": "SOCIAL_COMMUNICATION",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": false,
+        "auth_gate_expected_basis": null,
+        "source_prominence": {
+          "app_panel_row_count": 8,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 1.0,
+          "mobile_candidates_live": 3,
+          "review_reasons": [],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_46e5a43370f75308",
+          "web_target_key": "danggeun",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "COMMUNICATION_ENTRY_ARCHETYPE",
+          "REDIRECT_PRESENT",
+          "ID_COLLISION_PAIR:daum_danggeun"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-03",
+      "target_id": "wtg_24e6654bfd1ab85b",
+      "measurement_entity_id": "svc_24e6654bfd1ab85b",
+      "canonical_service_key": "youtube",
+      "service_name_canonical": "YouTube",
+      "official_url": "https://m.youtube.com/",
+      "interaction_archetype": "CONTENT_OPEN",
+      "business_domain": "CONTENT_VIDEO",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_youtube",
+        "primary_function_name": "콘텐츠 1건 열기",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "기사 본문이 열린 순간",
+      "selection_basis": "CONTENT_VIDEO 도메인 — 자동재생/motion 이력이 알려진 도메인 구조적 사전정보(측정 전 도메인 특성, outcome 아님).",
+      "selection_inputs": {
+        "interaction_archetype": "CONTENT_OPEN",
+        "business_domain": "CONTENT_VIDEO",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": false,
+        "auth_gate_expected_basis": null,
+        "source_prominence": {
+          "app_panel_row_count": 2,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 1.0,
+          "mobile_candidates_live": 2,
+          "review_reasons": [
+            "MOBILE_DESKTOP_FINAL_URL_DIVERGE"
+          ],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_24e6654bfd1ab85b",
+          "web_target_key": "youtube",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "CONTENT_OPEN_ARCHETYPE",
+          "REDIRECT_PRESENT",
+          "MOTION_HEAVY_CANDIDATE",
+          "MOBILE_DESKTOP_URL_DIVERGENCE_FLAG"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-04",
+      "target_id": "wtg_49a5eca8b58f7270",
+      "measurement_entity_id": "svc_49a5eca8b58f7270",
+      "canonical_service_key": "11st",
+      "service_name_canonical": "11번가",
+      "official_url": "https://www.11st.co.kr/",
+      "interaction_archetype": "ITEM_DETAIL",
+      "business_domain": "SHOPPING_COMMERCE",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_11st",
+        "primary_function_name": "상품 상세 확인",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "상품 상세와 핵심 상품정보가 보인 순간",
+      "selection_basis": "오픈마켓 subtype. SHOPPING_COMMERCE 도메인은 프로모션 모달 구조적 사전정보 보유. eligibility 단계 CANDIDATE_REGISTERED_DOMAIN_CONFLICT.",
+      "selection_inputs": {
+        "interaction_archetype": "ITEM_DETAIL",
+        "business_domain": "SHOPPING_COMMERCE",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": false,
+        "auth_gate_expected_basis": null,
+        "source_prominence": {
+          "app_panel_row_count": 6,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 0.0,
+          "mobile_candidates_live": 2,
+          "review_reasons": [
+            "CANDIDATE_REGISTERED_DOMAIN_CONFLICT"
+          ],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_49a5eca8b58f7270",
+          "web_target_key": "11st",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "ITEM_DETAIL_ARCHETYPE",
+          "MODAL_HEAVY_CANDIDATE",
+          "REGISTERED_DOMAIN_CONFLICT_FLAG",
+          "OPEN_MARKETPLACE_SUBTYPE"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-05",
+      "target_id": "wtg_5c614fc99631ce5e",
+      "measurement_entity_id": "svc_5c614fc99631ce5e",
+      "canonical_service_key": "home_and_shopping",
+      "service_name_canonical": "홈앤쇼핑",
+      "official_url": "https://m.hnsmall.com/main",
+      "interaction_archetype": "ITEM_DETAIL",
+      "business_domain": "SHOPPING_COMMERCE",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_home_and_shopping",
+        "primary_function_name": "상품 상세 확인",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "상품 상세와 핵심 상품정보가 보인 순간",
+      "selection_basis": "홈쇼핑 subtype (11번가 오픈마켓과 기술적으로 구분). redirect_hops=4 — 동일 archetype 내 최고 redirect 체인, 수집기 redirect 처리 smoke.",
+      "selection_inputs": {
+        "interaction_archetype": "ITEM_DETAIL",
+        "business_domain": "SHOPPING_COMMERCE",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": false,
+        "auth_gate_expected_basis": null,
+        "source_prominence": {
+          "app_panel_row_count": 0,
+          "retail_panel_row_count": 6,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 4.0,
+          "mobile_candidates_live": 2,
+          "review_reasons": [
+            "MOBILE_DESKTOP_FINAL_URL_DIVERGE"
+          ],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_5c614fc99631ce5e",
+          "web_target_key": "home_and_shopping",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "ITEM_DETAIL_ARCHETYPE",
+          "REDIRECT_PRESENT_HEAVY",
+          "MOBILE_DESKTOP_URL_DIVERGENCE_FLAG",
+          "HOMESHOPPING_SUBTYPE",
+          "MODAL_HEAVY_CANDIDATE"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-06",
+      "target_id": "wtg_f322b894ee95c181",
+      "measurement_entity_id": "svc_f322b894ee95c181",
+      "canonical_service_key": "kakaomap",
+      "service_name_canonical": "카카오맵",
+      "official_url": "https://m.map.kakao.com/",
+      "interaction_archetype": "PLACE_LOOKUP",
+      "business_domain": "MAP_MOBILITY",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_kakaomap",
+        "primary_function_name": "장소 탐색",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "장소검색이 제출된 순간",
+      "selection_basis": "지도류 서비스는 canvas/JS 렌더링 비중이 큰 구조로 알려진 기술 아키텍처 사전정보(SPA-looking), outcome 아님.",
+      "selection_inputs": {
+        "interaction_archetype": "PLACE_LOOKUP",
+        "business_domain": "MAP_MOBILITY",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": false,
+        "auth_gate_expected_basis": null,
+        "source_prominence": {
+          "app_panel_row_count": 2,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 1.0,
+          "mobile_candidates_live": 3,
+          "review_reasons": [
+            "MOBILE_DESKTOP_FINAL_URL_DIVERGE"
+          ],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_f322b894ee95c181",
+          "web_target_key": "kakaomap",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "PLACE_LOOKUP_ARCHETYPE",
+          "REDIRECT_PRESENT",
+          "SPA_LOOKING_CANDIDATE",
+          "MOBILE_DESKTOP_URL_DIVERGENCE_FLAG"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-07",
+      "target_id": "wtg_8fd5d30f8b1d707b",
+      "measurement_entity_id": "svc_8fd5d30f8b1d707b",
+      "canonical_service_key": "hana_bank",
+      "service_name_canonical": "하나은행",
+      "official_url": "https://banking.hanabank.com/",
+      "interaction_archetype": "FINANCIAL_ACTION_ENTRY",
+      "business_domain": "FINANCE_PAYMENT",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_hana_bank",
+        "primary_function_name": "금융기능 진입면 도달",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "금융기능 진입면이 열린 순간",
+      "selection_basis": "은행 subtype. SSOT L1 endpoint 정의(00 §3)상 금융 대표기능은 '금융기능 진입 또는 로그인/인증 gate' — 도메인 자체가 auth gate 구조적 기대를 내포.",
+      "selection_inputs": {
+        "interaction_archetype": "FINANCIAL_ACTION_ENTRY",
+        "business_domain": "FINANCE_PAYMENT",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": true,
+        "auth_gate_expected_basis": "00_SSOT_v2.0.md#3 L1 표: 금융 대표기능 endpoint = '금융기능 진입 또는 로그인/인증 gate가 나타난 순간' (archetype-level structural expectation, not a measured outcome)",
+        "source_prominence": {
+          "app_panel_row_count": 7,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 0.0,
+          "mobile_candidates_live": 3,
+          "review_reasons": [
+            "CANDIDATE_REGISTERED_DOMAIN_CONFLICT"
+          ],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_8fd5d30f8b1d707b",
+          "web_target_key": "hana_bank",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "FINANCIAL_ACTION_ENTRY_ARCHETYPE",
+          "AUTH_GATE_EXPECTED",
+          "REGISTERED_DOMAIN_CONFLICT_FLAG",
+          "BANK_SUBTYPE"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-08",
+      "target_id": "wtg_35319a420294ee17",
+      "measurement_entity_id": "svc_35319a420294ee17",
+      "canonical_service_key": "toss",
+      "service_name_canonical": "토스",
+      "official_url": "https://toss.im/",
+      "interaction_archetype": "FINANCIAL_ACTION_ENTRY",
+      "business_domain": "FINANCE_PAYMENT",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_toss",
+        "primary_function_name": "금융기능 진입면 도달",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "금융기능 진입면이 열린 순간",
+      "selection_basis": "간편결제·송금 fintech subtype — 전통 은행(하나은행)과 기술 스택이 다른 SPA 구조 사전정보로 은행 subtype과 대비.",
+      "selection_inputs": {
+        "interaction_archetype": "FINANCIAL_ACTION_ENTRY",
+        "business_domain": "FINANCE_PAYMENT",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": true,
+        "auth_gate_expected_basis": "00_SSOT_v2.0.md#3 L1 표: 금융 대표기능 endpoint = '금융기능 진입 또는 로그인/인증 gate가 나타난 순간' (archetype-level structural expectation, not a measured outcome)",
+        "source_prominence": {
+          "app_panel_row_count": 2,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 0.0,
+          "mobile_candidates_live": 2,
+          "review_reasons": [],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_35319a420294ee17",
+          "web_target_key": "toss",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "FINANCIAL_ACTION_ENTRY_ARCHETYPE",
+          "AUTH_GATE_EXPECTED",
+          "SPA_LOOKING_CANDIDATE",
+          "FINTECH_SUBTYPE"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-09",
+      "target_id": "wtg_088809bf9b31bc6a",
+      "measurement_entity_id": "svc_088809bf9b31bc6a",
+      "canonical_service_key": "samsung_card",
+      "service_name_canonical": "삼성카드",
+      "official_url": "https://www.samsungcard.com/",
+      "interaction_archetype": "FINANCIAL_ACTION_ENTRY",
+      "business_domain": "FINANCE_PAYMENT",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_samsung_card",
+        "primary_function_name": "금융기능 진입면 도달",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "금융기능 진입면이 열린 순간",
+      "selection_basis": "카드사 subtype — 은행/fintech와 구분되는 3번째 금융 기술 프로필.",
+      "selection_inputs": {
+        "interaction_archetype": "FINANCIAL_ACTION_ENTRY",
+        "business_domain": "FINANCE_PAYMENT",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": true,
+        "auth_gate_expected_basis": "00_SSOT_v2.0.md#3 L1 표: 금융 대표기능 endpoint = '금융기능 진입 또는 로그인/인증 gate가 나타난 순간' (archetype-level structural expectation, not a measured outcome)",
+        "source_prominence": {
+          "app_panel_row_count": 7,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 0.0,
+          "mobile_candidates_live": 1,
+          "review_reasons": [],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_088809bf9b31bc6a",
+          "web_target_key": "samsung_card",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "FINANCIAL_ACTION_ENTRY_ARCHETYPE",
+          "AUTH_GATE_EXPECTED",
+          "CARD_SUBTYPE"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-10",
+      "target_id": "wtg_e1fadb214cde51c0",
+      "measurement_entity_id": "svc_e1fadb214cde51c0",
+      "canonical_service_key": "cashwalk",
+      "service_name_canonical": "캐시워크",
+      "official_url": "https://cashwalk.com/",
+      "interaction_archetype": "UTILITY_ENTRY",
+      "business_domain": "UTILITY_OTHER",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_cashwalk",
+        "primary_function_name": "도구 기능면 진입",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "기능면이 열리고 1차 조작 대상이 PRESENT ∧ HITTABLE",
+      "selection_basis": "mobile_candidates_live=1, redirect_hops=0 — 최소 복잡도 baseline 대비군.",
+      "selection_inputs": {
+        "interaction_archetype": "UTILITY_ENTRY",
+        "business_domain": "UTILITY_OTHER",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": false,
+        "auth_gate_expected_basis": null,
+        "source_prominence": {
+          "app_panel_row_count": 7,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 0.0,
+          "mobile_candidates_live": 1,
+          "review_reasons": [],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_e1fadb214cde51c0",
+          "web_target_key": "cashwalk",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "UTILITY_ENTRY_ARCHETYPE",
+          "SINGLE_MOBILE_CANDIDATE_SIMPLE_REACHABILITY"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    },
+    {
+      "e000_id": "E000-11",
+      "target_id": "wtg_190b4501e4415d5e",
+      "measurement_entity_id": "svc_190b4501e4415d5e",
+      "canonical_service_key": "v3_mobile_plus",
+      "service_name_canonical": "V3 Mobile Plus",
+      "official_url": "https://mplweb.ahnlab.com/mplweb/v3mp/main_android.do",
+      "interaction_archetype": "UTILITY_ENTRY",
+      "business_domain": "UTILITY_OTHER",
+      "representative_task_candidate": {
+        "task_id": "task_shadow_v3_mobile_plus",
+        "primary_function_name": "도구 기능면 진입",
+        "mapping_status": "CANDIDATE",
+        "mapping_basis": "RULE"
+      },
+      "endpoint_definition": "기능면이 열리고 1차 조작 대상이 PRESENT ∧ HITTABLE",
+      "selection_basis": "보안·백신 도구 subtype — 캐시워크(리워드 도구)와 기능면 구조가 다른 UTILITY_ENTRY 2번째 사례.",
+      "selection_inputs": {
+        "interaction_archetype": "UTILITY_ENTRY",
+        "business_domain": "UTILITY_OTHER",
+        "web_eligibility_status": "ELIGIBLE_WEB",
+        "official_url_confidence": "HIGH",
+        "observation_confidence": "HIGH",
+        "auth_gate_expected": false,
+        "auth_gate_expected_basis": null,
+        "source_prominence": {
+          "app_panel_row_count": 4,
+          "retail_panel_row_count": 0,
+          "basis": "P-A service_master appears_in_*_panels row count (Wiseapp 소스 노출 빈도) — 인증·접근성 결과 무관 source-side prominence proxy"
+        },
+        "technical_reachability": {
+          "redirect_hops": 0.0,
+          "mobile_candidates_live": 3,
+          "review_reasons": [],
+          "eligibility_rule": "E-2"
+        },
+        "target_grouping": {
+          "web_target_group_id": "wtg_190b4501e4415d5e",
+          "web_target_key": "v3_mobile_plus",
+          "web_target_grouping_status_at_pa_snapshot": "SINGLETON_PENDING_URL_REVIEW"
+        },
+        "diversity_role": [
+          "UTILITY_ENTRY_ARCHETYPE",
+          "SECURITY_TOOL_SUBTYPE"
+        ]
+      },
+      "selection_outcome_blind": true,
+      "certification_used_for_selection": false,
+      "accessibility_outcome_used": false
+    }
+  ],
+  "provenance": {
+    "base_sha": "2025e56",
+    "created_before_p0_close": true,
+    "authoritative": false,
+    "real_target_outcome_used": false,
+    "requires_post_p0_reconciliation": true,
+    "shadow_lane": "E000_PLAN",
+    "real_target_measurement": false,
+    "fixture_only": true,
+    "input_authority_sha": {
+      "p_a": "0f46203",
+      "p_b": "9999857"
+    }
+  },
+  "e000_plan_hash_candidate": "d3c1a216329fce26d7a616378c5a70c1781d77b37f87a49ed7581b92d896b841",
+  "e000_plan_hash_candidate_note": "sha256, computed over this file's exact byte content with this field (and this note) set to null/placeholder, i.e. the hash of the file as first written before this value was patched in. This is a CANDIDATE hash for later drift detection only — it is NOT a freeze hash. Nothing in this document is frozen; TARGET_TASK_FRAME_FROZEN / E000_V2_VALIDATED remain P0-post-close gates."
+}
