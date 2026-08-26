@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T13:24:24.762343",
+  "updated_at": "2026-08-26T13:28:27.277785",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
   "cycle_id": "C011",
   "pilot": {
@@ -59,7 +59,7 @@
     "ssot": "audit/landing-ssot",
     "orchestrator": "control/landing-orchestrator"
   },
-  "exec_sha": "fe86e190",
+  "exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
   "adversarial_audit_sha": "fd9773a1",
   "ssot_audit_sha": "7c928f5",
   "gates": {
@@ -468,8 +468,8 @@
     ]
   },
   "audit_lag": {
-    "latest_exec_cycle": "C009",
-    "latest_exec_sha": "fe86e190e993b3acb7b47518329dddc1777d73d6",
+    "latest_exec_cycle": "C011",
+    "latest_exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
     "latest_adversarial_audited_cycle": "C009",
     "latest_adversarial_target_sha": "fe86e190e993b3acb7b47518329dddc1777d73d6",
     "latest_adversarial_audit_sha": "fd9773a1b46b239d49f11451a00bac6172a58f39",
@@ -478,14 +478,15 @@
     "latest_ssot_audit_sha": "7c928f5bba19ea66756b8d2f00140d60596235a0",
     "latest_reconciled_cycle": "C009",
     "latest_promoted_cycle": null,
-    "unaudited_cycle_depth": 0,
+    "unaudited_cycle_depth": 1,
     "MAX_UNAUDITED_EXEC_CYCLES": 1,
-    "status": "WITHIN_BOUND"
+    "status": "WITHIN_BOUND — C011 감사 진행 중. EXECUTOR_STATE_CHANGE_BLOCKED until fully audited."
   },
   "cycle_lifecycle": {
     "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",
     "promotion": "BLOCKED_PENDING_P1_REMEDIATION",
-    "note": "ORCHESTRATOR_PRECHECK_PASS 를 ACCEPTED/VERIFIED/PROMOTED 와 동의어로 쓰지 않는다."
+    "note": "ORCHESTRATOR_PRECHECK_PASS 를 ACCEPTED/VERIFIED/PROMOTED 와 동의어로 쓰지 않는다.",
+    "C011": "EXECUTED -> AWAITING_INDEPENDENT_AUDIT"
   },
   "main_branch_protection": {
     "established_at": "2026-08-26T13:15:24.007671",
@@ -572,5 +573,14 @@
   ],
   "c011_audit_extra_checks": [
     "authority_manifest 변경에 대응하는 명시적 version/revision 선언이 있는가. 해석층 수정이 A1 원문 동일성 주장을 흐리지 않는가(raw sha256 불변 확인)."
-  ]
+  ],
+  "c011_claimed_remediation": {
+    "p1_1_alignment": "68그룹 71쌍 위치 불일치 0 (주장)",
+    "p1_2_prior_separation": "web_eligibility_status NOT_ASSESSED 71 / EXCLUDED_INDUSTRY_AXIS 10, 11건 _researcher_priors 로 이전 (주장)",
+    "p1_3_verbatim": "INDEX SAME 11 / MISMATCH 0, U+00A0 포함 원문 복원, 검증 한쪽 끝을 raw 파일로 교체 (주장)",
+    "p2": "EV-2 규약 명시 / EV-6 축소 / 저널 41,926B 커밋 / assert_frame_equal 실제 실행 / period_axis 261행 전파 (주장)",
+    "invariants": "261행·137+124·panel17·membership142·service81·alias82·wtg68·url null·refcohort 0·evidence 부재 (주장)",
+    "tests": "pytest 59 passed, ruff 통과, 멱등 diff -r 동일 (주장)",
+    "status": "UNVERIFIED — 전부 executor 자체 주장이며 독립감사 전이다"
+  }
 }
