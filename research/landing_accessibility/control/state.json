@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T14:28:29.665444",
+  "updated_at": "2026-08-26T15:08:00.593299",
   "phase": "P2_WEB_ELIGIBILITY_AND_URL_IDENTITY",
   "cycle_id": "C012",
   "pilot": {
@@ -528,6 +528,18 @@
       "remediation": "git -C <exec> reset --mixed fe86e190. exec HEAD 원복 확인. executor 작업 17파일 + 신규 디렉터리 2개(extraction_journal, _researcher_priors) 전량 보존 확인.",
       "prevention_v2": "모든 git 작업에 git -C <절대경로> 를 쓴다. 오케스트레이터 명령에서 cd 를 금지한다. 첫 번째 P0 의 예방책('절대경로 사용')이 파일 경로에만 적용되고 git 명령에는 적용되지 않아 재발했다.",
       "lesson": "예방책이 근본원인의 일부만 덮으면 재발한다. cwd 의존 자체를 제거해야 했다."
+    },
+    {
+      "id": "pilot-formatted-by-executor-in-exec-worktree",
+      "severity": "P0",
+      "occurrence": 3,
+      "detected_by": "오케스트레이터 수동 점검 — watchdog 은 놓쳤다",
+      "watchdog_blind_spot": "기존 watchdog 의 pilot worktree 검사가 메인 워크트리(git -C $R)만 봤다. exec/adversarial/ssot/orchestrator 워크트리의 research/refcohort 변경은 감시 범위 밖이었다.",
+      "cause": "C013 executor 가 ruff format 을 저장소 전체에 실행해 research/refcohort/src/refcohort/__init__.py 에 빈 줄 1개가 추가됐다.",
+      "impact": "미커밋 상태에서 발견. 커밋됐다면 Pilot 오염. 원격 미오염.",
+      "remediation": "git -C <exec> checkout -- research/refcohort 로 원복. executor 에 경고 발송 — ruff 대상 명시, 커밋 전 Pilot 경로 확인, git add 범위 축소.",
+      "watchdog_fix": "watchdog v2 (task bkw5euzwu) — 4개 워크트리 전부의 research/refcohort 변경을 감시한다.",
+      "lesson": "감시 범위가 실행 범위보다 좁으면 감시가 아니다. P0 #1·#2 는 watchdog 이 잡았지만 #3 은 사각지대에 있었다."
     }
   ],
   "structural_findings": [
