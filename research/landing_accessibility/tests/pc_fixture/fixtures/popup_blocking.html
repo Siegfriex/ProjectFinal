@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>팝업 차단 픽스처</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; overflow: hidden; }
+    main { padding: 16px; }
+    .primary-action { display: inline-block; padding: 14px 20px; min-width: 88px; min-height: 44px;
+      background: #0057d8; color: #fff; text-decoration: none; font-size: 16px; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,.6); z-index: 999; display: flex; align-items: center; justify-content: center; }
+    .modal { background: #fff; padding: 24px; width: 80vw; max-width: 320px; }
+    .close { display: inline-block; padding: 10px 14px; min-width: 44px; min-height: 44px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>합성 픽스처 서비스</h1>
+    <a href="#detail" class="primary-action" data-primary-action="true">대표기능 시작</a>
+  </main>
+  <div class="overlay" role="dialog" aria-modal="true" id="promo-modal">
+    <div class="modal">
+      <p>앱을 설치하면 더 편리합니다. 지금 앱 설치하기</p>
+      <button class="close dismiss" aria-label="닫기">닫기</button>
+    </div>
+  </div>
+  <script>
+    document.querySelector(".dismiss").addEventListener("click", function () {
+      var overlay = document.getElementById("promo-modal");
+      overlay.parentNode.removeChild(overlay);
+      document.body.style.overflow = "";
+    });
+  </script>
+</body>
+</html>
