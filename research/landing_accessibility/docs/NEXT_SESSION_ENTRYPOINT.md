@@ -1,3 +1,38 @@
+> ## ⚠ SUPERSEDED_FOR_SCOPE — v2 라우팅 배너
+>
+> **이 문서는 v1 인계문서다. 아래 본문의 실행범위(`LANDING_ONLY`)와 phase 이름은 무효다.**
+>
+> | 항목 | 현행 값 |
+> |---|---|
+> | 현행 실행권위 | `research/landing-accessibility-main` 브랜치의 `research/landing_accessibility/docs/v2/00_SSOT_v2.0.md` |
+> | 권위 선언 | 같은 브랜치의 `research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md` |
+> | SCOPE | `L0_INITIAL_LANDING + L1_SHALLOW_REPRESENTATIVE_ENTRY` (v1 `LANDING_ONLY` 를 대체) |
+> | HUMAN_FINAL_REVIEW_MAX | 5 |
+> | 정지점 | `READY_FOR_E001_V2` (v1 `READY_FOR_E001` 이 아니다) |
+> | Pilot | `research/refcohort-r1` @ `32460b8` — `READ_ONLY`. 수정 시 P0 |
+>
+> **이 문서에서 무엇이 유효한가**
+>
+> - 유효: 검증된 **사실** — SHA, 카운트, 데이터 상태, Hard Prohibitions.
+> - 무효: **실행범위·phase 순서·다음 헌장 지정.** v2 문서가 대체한다.
+> - 아래 본문은 이력 보존을 위해 **삭제하지 않는다.**
+>
+> **v2 문서를 읽는 법.** 이 브랜치(`control/landing-orchestrator`) 체크아웃에는 `docs/v2/` 가
+> 파일로 존재하지 않는다. 다음 중 하나로 읽는다.
+>
+> ```bash
+> git -C /home/sieg/projects-wsl/ProjectFinal show \
+>   origin/research/landing-accessibility-main:research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md
+> # (v2 승격 전에는 아직 exec 브랜치에만 있다)
+> git -C /home/sieg/projects-wsl/ProjectFinal show \
+>   origin/agent/landing-v2-exec:research/landing_accessibility/docs/v2/00_SSOT_v2.0.md
+> ```
+>
+> 근거: adversarial V2-C001 finding `orchestrator-entrypoint-still-routes-to-v1-scope` (P1/blocking).
+> 시정: V2-C002 orchestrator.
+
+---
+
 # NEXT SESSION ENTRYPOINT
 
 이 파일을 먼저 읽고 순서대로 진행한다.

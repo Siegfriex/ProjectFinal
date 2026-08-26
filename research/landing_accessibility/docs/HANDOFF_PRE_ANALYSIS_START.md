@@ -1,3 +1,38 @@
+> ## ⚠ SUPERSEDED_FOR_SCOPE — v2 라우팅 배너
+>
+> **이 문서는 v1 인계문서다. 아래 본문의 실행범위(`LANDING_ONLY`)와 phase 이름은 무효다.**
+>
+> | 항목 | 현행 값 |
+> |---|---|
+> | 현행 실행권위 | `research/landing-accessibility-main` 브랜치의 `research/landing_accessibility/docs/v2/00_SSOT_v2.0.md` |
+> | 권위 선언 | 같은 브랜치의 `research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md` |
+> | SCOPE | `L0_INITIAL_LANDING + L1_SHALLOW_REPRESENTATIVE_ENTRY` (v1 `LANDING_ONLY` 를 대체) |
+> | HUMAN_FINAL_REVIEW_MAX | 5 |
+> | 정지점 | `READY_FOR_E001_V2` (v1 `READY_FOR_E001` 이 아니다) |
+> | Pilot | `research/refcohort-r1` @ `32460b8` — `READ_ONLY`. 수정 시 P0 |
+>
+> **이 문서에서 무엇이 유효한가**
+>
+> - 유효: 검증된 **사실** — SHA, 카운트, 데이터 상태, Hard Prohibitions.
+> - 무효: **실행범위·phase 순서·다음 헌장 지정.** v2 문서가 대체한다.
+> - 아래 본문은 이력 보존을 위해 **삭제하지 않는다.**
+>
+> **v2 문서를 읽는 법.** 이 브랜치(`control/landing-orchestrator`) 체크아웃에는 `docs/v2/` 가
+> 파일로 존재하지 않는다. 다음 중 하나로 읽는다.
+>
+> ```bash
+> git -C /home/sieg/projects-wsl/ProjectFinal show \
+>   origin/research/landing-accessibility-main:research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md
+> # (v2 승격 전에는 아직 exec 브랜치에만 있다)
+> git -C /home/sieg/projects-wsl/ProjectFinal show \
+>   origin/agent/landing-v2-exec:research/landing_accessibility/docs/v2/00_SSOT_v2.0.md
+> ```
+>
+> 근거: adversarial V2-C001 finding `orchestrator-entrypoint-still-routes-to-v1-scope` (P1/blocking).
+> 시정: V2-C002 orchestrator.
+
+---
+
 # PROJECTFINAL LANDING ACCESSIBILITY
 # PRE-ANALYSIS HANDOFF
 
@@ -198,6 +233,33 @@ P-A에서 **매핑 레이어**로 해결한다 — 원본을 rename/migrate 하�
 ---
 
 ## 10. Next Session Execution Order
+
+> **SUPERSEDED — 이 절의 실행순서는 무효다.**
+>
+> 아래 `P-A → P-B → P-C → P-D → P-E` 는 **v1 phase 이름**이며(`P-B TARGET FRAME CLOSURE`,
+> `P-C CERTIFICATION & FEASIBILITY`, `P-D MEASUREMENT READINESS`, `P-E E000 / READY_FOR_E001`),
+> v2 의 동명 phase 와 **내용이 다르다.** 정지점 이름도 `READY_FOR_E001` → `READY_FOR_E001_V2` 로 바뀌었다.
+>
+> 현행 v2 실행순서 (`docs/v2/03_CRISP_DM_EXECUTION_PLAN_v2.0.md` 「실행 Phase Gate」):
+>
+> ```
+> P0 V2_REFREEZE           v2 docs 설치 · nested CLAUDE.md · v1 supersede 표기 · audit · promotion
+>   → P-A ANALYSIS FOUNDATION + TASK CODEBOOK   EDA-00/01 · mapping layer · endpoint codebook
+>   → P-B TARGET / TASK FRAME                   C013 selective salvage · web eligibility · URL · certification join 준비
+>   → P-C L0/L1 ENGINE                          popup detector · motion · primary action · scout/replay · KWCAG subset · AI cascade
+>   → P-D E000_V2                               smoke · failure injection
+>   → P-E READY_FOR_E001_V2                     exact SHA freeze · 두 독립감사 · blocking debt 0 · STOP
+>
+> STOP at READY_FOR_E001_V2.
+> ```
+>
+> Research Director GO 이후에만 `P-F E001_V2` → `P-G ADJUDICATION` → `P-H EDA/STATISTICS` → `P-I PUBLICATION`.
+>
+> v1 의 `P-C CERTIFICATION & FEASIBILITY` 작업은 v2 에서 **P-B 로 흡수**됐고,
+> v1 `P-D MEASUREMENT READINESS` 는 v2 **P-C(엔진) + P-D(E000_V2 smoke)** 로 분리됐다.
+>
+> 근거: adversarial V2-C001 `orchestrator-entrypoint-still-routes-to-v1-scope`. 시정: V2-C002.
+
 
 ```
 P-A ANALYSIS FOUNDATION

@@ -1,8 +1,8 @@
 {
-  "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T17:55:54.649542",
-  "phase": "P2_WEB_ELIGIBILITY_AND_URL_IDENTITY",
-  "cycle_id": "C012",
+  "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1 + landing-accessibility-v2 (docs/v2/EXECUTION_AUTHORITY.md)",
+  "updated_at": "2026-08-26T20:51:20.071970",
+  "phase": "P0_V2_REFREEZE",
+  "cycle_id": "V2-C002",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -80,9 +80,13 @@
     "automation_split": "NOT_RUN",
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
-    "adversarial_audit": "PASS_C012_P0_0_P1_0_P2_8",
-    "ssot_audit": "PASS_C012_P0_0_P1_0_P2_5",
-    "certification_snapshot": "PASS_COMPLETE"
+    "adversarial_audit": "FAIL_V2_C001_P0_0_P1_3_P2_4",
+    "ssot_audit": "FAIL_V2_C001_P0_0_P1_2_P2_11",
+    "certification_snapshot": "PASS_COMPLETE",
+    "V2_SSOT_FROZEN": "NOT_ACHIEVED — V2-C001 두 감사 FAIL (adversarial P1x3 blocking, ssot P1x2+P2x9 blocking). 재시정 후 재감사 필요.",
+    "v2_routing_banners": "PASS_PENDING_AUDIT — V2-C002 (control 브랜치 v1 문서 4종 + nested CLAUDE.md 포인터)",
+    "v2_debt_inheritance": "PASS_PENDING_AUDIT — V2-C002 (v2_transition.debt_inheritance, open 21 승계)",
+    "promotion_guard_worktree_resolution": "PASS_PENDING_AUDIT — V2-C002 (promote_landing_main.sh 워크트리 자동해석 + fail-closed)"
   },
   "withdrawn_conclusions": [
     {
@@ -649,19 +653,33 @@
     ]
   },
   "audit_lag": {
-    "latest_exec_cycle": "C012",
-    "latest_exec_sha": "5a9015d",
-    "latest_adversarial_audited_cycle": "C012",
-    "latest_adversarial_target_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
-    "latest_adversarial_audit_sha": "510d5f2",
-    "latest_ssot_audited_cycle": "C012",
-    "latest_ssot_target_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
-    "latest_ssot_audit_sha": "1bc2c71b",
+    "latest_exec_cycle": "V2-C001",
+    "latest_exec_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+    "latest_exec_branch": "agent/landing-v2-exec",
+    "latest_adversarial_audited_cycle": "V2-C001",
+    "latest_adversarial_target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+    "latest_adversarial_audit_sha": "706a8d64ed95a8178f0b1810d9992249875ec12c",
+    "latest_adversarial_verdict": "FAIL",
+    "latest_ssot_audited_cycle": "V2-C001",
+    "latest_ssot_target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+    "latest_ssot_audit_sha": "507fcf25a7e6800d9c03c6b6c8ecc880264bf6ea",
+    "latest_ssot_verdict": "FAIL",
+    "both_audits_same_target_sha": true,
     "latest_reconciled_cycle": "C012",
     "latest_promoted_cycle": "C012",
+    "latest_promoted_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
     "unaudited_cycle_depth": 0,
+    "unreconciled_cycle_depth": 1,
+    "unpromoted_cycle_depth": 1,
     "MAX_UNAUDITED_EXEC_CYCLES": 1,
-    "status": "WITHIN_BOUND — C012 fully audited"
+    "status": "WITHIN_BOUND_FOR_AUDIT_LAG / NOT_PROMOTABLE — V2-C001 은 두 감사 모두 감사됐으나 (adversarial FAIL, ssot FAIL) reconciliation·promotion 은 C012 에 머물러 있다.",
+    "v1_history": {
+      "latest_exec_cycle": "C012",
+      "latest_exec_sha": "5a9015d",
+      "latest_adversarial_audit_sha": "510d5f2",
+      "latest_ssot_audit_sha": "1bc2c71b",
+      "status": "WITHIN_BOUND — C012 fully audited"
+    }
   },
   "cycle_lifecycle": {
     "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",
@@ -1072,5 +1090,607 @@
     "executor_checkpoint": "87a0464e8159d5526069d5e654e648b0dae506ca (UNVERIFIED_WIP)",
     "automation": "HALTED",
     "e001_started": false
-  }
+  },
+  "v2_transition": {
+    "declared_at": "2026-08-26T20:51:20.071904",
+    "declared_by": "orchestrator V2-C002",
+    "basis": "adversarial V2-C001 findings: orchestrator-entrypoint-still-routes-to-v1-scope / v1-open-debt-ledger-not-adopted-by-v2-authority / promotion-clean-check-targets-wrong-worktree",
+    "current_ssot": "research/landing_accessibility/docs/v2/00_SSOT_v2.0.md",
+    "execution_authority_doc": "research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md",
+    "scope": "L0_INITIAL_LANDING + L1_SHALLOW_REPRESENTATIVE_ENTRY",
+    "v1_scope_superseded": "LANDING_ONLY",
+    "human_final_review_max": 5,
+    "stop_point": "READY_FOR_E001_V2",
+    "e001_v2_started": false,
+    "full_collection_started": "NO",
+    "pilot": {
+      "branch": "research/refcohort-r1",
+      "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+      "status": "READ_ONLY",
+      "violation_severity": "P0"
+    },
+    "authoritative_main_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+    "authoritative_main_ref": "research/landing-accessibility-main",
+    "v2_exec_branch": "agent/landing-v2-exec",
+    "v2_exec_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+    "v2_exec_sha_note": "V2-C001 감사 대상 SHA. 시정 후 갱신은 오케스트레이터가 한다.",
+    "v1_unverified_wip": {
+      "branch": "agent/landing-exec",
+      "sha": "87a0464e8159d5526069d5e654e648b0dae506ca",
+      "status": "UNVERIFIED",
+      "rule": "분석입력 금지 / 삭제 금지 / selective salvage 후 재감사 (v2 P-B)"
+    },
+    "v2_phase_sequence": [
+      "P0_V2_REFREEZE",
+      "P-A",
+      "P-B",
+      "P-C",
+      "P-D",
+      "P-E",
+      "P-F",
+      "P-G",
+      "P-H",
+      "P-I"
+    ],
+    "v2_phase_sequence_note": "P-E = READY_FOR_E001_V2 STOP. P-F 이후는 Research Director GO 이후에만.",
+    "debt_inheritance": {
+      "policy": "v1 debt_ledger 는 v2 로 그대로 승계된다. 근거 없이 닫지 않는다 — 전량 OPEN 유지가 기본이다. canonical id 를 유지하고 새 id 를 만들지 않는다 (debt_ledger.canonical_id_policy).",
+      "source": "control/state.json :: debt_ledger + open_p2 (v1, C012 기준)",
+      "v1_total": 24,
+      "v1_closed_verified": 3,
+      "v1_open": 21,
+      "v1_open_e001_blocking": 6,
+      "inherited_open": 21,
+      "v1_phase_names_retired": [
+        "C013",
+        "C014",
+        "Bundle C",
+        "P-B TARGET FRAME CLOSURE",
+        "P-C CERTIFICATION & FEASIBILITY",
+        "P-D MEASUREMENT READINESS",
+        "P-E E000 / READY_FOR_E001"
+      ],
+      "remap_note": "v1 debt_ledger.scheduling 의 cycle 이름(C013/C014_or_later/Bundle C)은 v2 에서 의미가 없다. 각 항목을 v2 Phase Gate(03_CRISP_DM_EXECUTION_PLAN_v2.0 「실행 Phase Gate」)로 재매핑했다. debt_ledger.scheduling 원본은 이력으로 남긴다.",
+      "by_v2_phase": {
+        "P-A": [
+          "docs-07-authored-by-executor-in-ssot-numbered-namespace",
+          "c012-claim-status-label-mismatch",
+          "remaining-8-debts-visible-but-unscheduled-and-id-drift"
+        ],
+        "P-B": [
+          "matches-existing-c002-is-self-comparison",
+          "builder-eligibility-vocabulary-narrower-than-06",
+          "a1-raw-payload-files-not-hash-registered-in-authority-manifest",
+          "eligibility-basis-fields-narrower-than-06-still-carried",
+          "queue-membership-still-hand-set-in-entity-spec",
+          "merge-decision-merges-nothing-no-alias-assert",
+          "source-label-prefix-rule-inconsistent-coupang-eats",
+          "body-layer-contains-other-article-titles-after-line-328"
+        ],
+        "P-C": [
+          "new-tests-outside-own-source-of-truth-principle",
+          "verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard",
+          "gitignore-evidence-pattern-single-level-only",
+          "journal-path-in-repo-uses-parents-assumption-not-git",
+          "new-tests-residual-self-stamp-and-narrow-scan"
+        ],
+        "P-I": [
+          "ev-source-xlsx-uncommitted-unhashed",
+          "invalidated-xlsx-not-at-protocol-location",
+          "ev2-youtube-drift-has-no-cited-value-pair",
+          "comparison-period-fig07-exception-not-annotated-in-manifest-field",
+          "study-limitation-derived-claim-flag-only-partial"
+        ]
+      },
+      "blocking_ids": [
+        "a1-raw-payload-files-not-hash-registered-in-authority-manifest",
+        "eligibility-basis-fields-narrower-than-06-still-carried",
+        "queue-membership-still-hand-set-in-entity-spec",
+        "merge-decision-merges-nothing-no-alias-assert",
+        "verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard",
+        "gitignore-evidence-pattern-single-level-only"
+      ],
+      "items": [
+        {
+          "id": "matches-existing-c002-is-self-comparison",
+          "severity": "P2",
+          "found_by": "adversarial C011",
+          "v1_debt_class": "POST_E001_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-B",
+          "v2_verify_in_phase": "P-B",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "비교 기준선 결함. C013 salvage 로 리빌드 하네스를 다시 만드는 v2 P-B 에서 함께 처리."
+        },
+        {
+          "id": "ev-source-xlsx-uncommitted-unhashed",
+          "severity": "P2",
+          "found_by": "adversarial C011",
+          "v1_debt_class": "PUBLICATION_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-I",
+          "v2_verify_in_phase": "P-I",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "clone 재현성. 출판 단계 근거 공개에서 닫는다."
+        },
+        {
+          "id": "new-tests-outside-own-source-of-truth-principle",
+          "severity": "P2",
+          "found_by": "adversarial C011",
+          "v1_debt_class": "POST_E001_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-C",
+          "v2_verify_in_phase": "P-D",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "테스트 품질. v2 P-C 엔진 테스트 재작성 시점에 함께 처리."
+        },
+        {
+          "id": "invalidated-xlsx-not-at-protocol-location",
+          "severity": "P2",
+          "found_by": "ssot C011",
+          "v1_debt_class": "PUBLICATION_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-I",
+          "v2_verify_in_phase": "P-I",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "보존 위치 규약. 출판 단계."
+        },
+        {
+          "id": "ev2-youtube-drift-has-no-cited-value-pair",
+          "severity": "P2",
+          "found_by": "ssot C011",
+          "v1_debt_class": "PUBLICATION_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-I",
+          "v2_verify_in_phase": "P-I",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "근거 인용 완결성. 출판 단계."
+        },
+        {
+          "id": "builder-eligibility-vocabulary-narrower-than-06",
+          "severity": "P2",
+          "found_by": "ssot C011",
+          "v1_debt_class": "PUBLICATION_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-B",
+          "v2_verify_in_phase": "P-B",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "v1 이 'C013 에서 자연 해소 예상' 이라 적었다. v2 P-B web eligibility 재구현에서 확인."
+        },
+        {
+          "id": "comparison-period-fig07-exception-not-annotated-in-manifest-field",
+          "severity": "P2",
+          "found_by": "ssot C011",
+          "v1_debt_class": "PUBLICATION_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-I",
+          "v2_verify_in_phase": "P-I",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "기간축 예외 병기. 출판 단계."
+        },
+        {
+          "id": "study-limitation-derived-claim-flag-only-partial",
+          "severity": "P2",
+          "found_by": "ssot C011",
+          "v1_debt_class": "PUBLICATION_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-I",
+          "v2_verify_in_phase": "P-I",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "원문주장/연구자판단 플래그. 출판 단계."
+        },
+        {
+          "id": "a1-raw-payload-files-not-hash-registered-in-authority-manifest",
+          "severity": "P2",
+          "found_by": "ssot C012",
+          "v1_debt_class": "E001_BLOCKING",
+          "v1_scheduled": "C013 처리중",
+          "v2_close_in_phase": "P-B",
+          "v2_verify_in_phase": "P-B",
+          "blocks_ready_for_e001_v2": true,
+          "state": "OPEN",
+          "remap_rationale": "v1 C013 W3/W4 → v2 P-B(target/task frame). A1 raw 해시 등록은 target frame 확정의 근거층."
+        },
+        {
+          "id": "docs-07-authored-by-executor-in-ssot-numbered-namespace",
+          "severity": "P2",
+          "found_by": "ssot C012",
+          "v1_debt_class": "POST_E001_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-A",
+          "v2_verify_in_phase": "P-A",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "문서 번호공간 소유권. v2 docs/v2/ 재번호로 구조는 해소됐으나 v1 docs/07 잔존분 확인 필요."
+        },
+        {
+          "id": "eligibility-basis-fields-narrower-than-06-still-carried",
+          "severity": "P2",
+          "found_by": "ssot C012",
+          "v1_debt_class": "E001_BLOCKING",
+          "v1_scheduled": "C013 처리중",
+          "v2_close_in_phase": "P-B",
+          "v2_verify_in_phase": "P-B",
+          "blocks_ready_for_e001_v2": true,
+          "state": "OPEN",
+          "remap_rationale": "v1 C013 W3 web eligibility → v2 P-B 의 web eligibility 판정과 동일 작업."
+        },
+        {
+          "id": "c012-claim-status-label-mismatch",
+          "severity": "P2",
+          "found_by": "ssot C012",
+          "v1_debt_class": "POST_E001_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-A",
+          "v2_verify_in_phase": "P-A",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "오케스트레이터가 이미 정정. v2 P-A 재대사에서 확인 후 닫는다."
+        },
+        {
+          "id": "remaining-8-debts-visible-but-unscheduled-and-id-drift",
+          "severity": "P2",
+          "found_by": "ssot C012",
+          "v1_debt_class": "POST_E001_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-A",
+          "v2_verify_in_phase": "P-A",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "본 V2-C002 의 debt_inheritance 로 전량 배정됐다. 다음 감사가 확인하면 닫는다."
+        },
+        {
+          "id": "queue-membership-still-hand-set-in-entity-spec",
+          "severity": "P2",
+          "found_by": "adversarial C012",
+          "v1_debt_class": "E001_BLOCKING",
+          "v1_scheduled": "C013 처리중",
+          "v2_close_in_phase": "P-B",
+          "v2_verify_in_phase": "P-B",
+          "blocks_ready_for_e001_v2": true,
+          "state": "OPEN",
+          "remap_rationale": "v1 C013 → v2 P-B. 큐 멤버십 자동화 없이는 P-B final target 확정이 손입력에 의존한다."
+        },
+        {
+          "id": "merge-decision-merges-nothing-no-alias-assert",
+          "severity": "P2",
+          "found_by": "adversarial C012",
+          "v1_debt_class": "E001_BLOCKING",
+          "v1_scheduled": "C013 처리중",
+          "v2_close_in_phase": "P-B",
+          "v2_verify_in_phase": "P-B",
+          "blocks_ready_for_e001_v2": true,
+          "state": "OPEN",
+          "remap_rationale": "v1 C013 → v2 P-B. MERGE 판정과 데이터 분리는 final target 확정 전에 닫아야 한다."
+        },
+        {
+          "id": "source-label-prefix-rule-inconsistent-coupang-eats",
+          "severity": "P2",
+          "found_by": "adversarial C012",
+          "v1_debt_class": "POST_E001_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-B",
+          "v2_verify_in_phase": "P-B",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "source label 규칙. v2 P-B task mapping 에서 함께 정리."
+        },
+        {
+          "id": "body-layer-contains-other-article-titles-after-line-328",
+          "severity": "P2",
+          "found_by": "adversarial C012",
+          "v1_debt_class": "POST_E001_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-B",
+          "v2_verify_in_phase": "P-B",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "A1 body layer 경계. v2 P-B 에서 source frame 재확정 시 처리."
+        },
+        {
+          "id": "verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard",
+          "severity": "P2",
+          "found_by": "adversarial C012",
+          "v1_debt_class": "E001_BLOCKING",
+          "v1_scheduled": "Bundle C",
+          "v2_close_in_phase": "P-C",
+          "v2_verify_in_phase": "P-D",
+          "blocks_ready_for_e001_v2": true,
+          "state": "OPEN",
+          "remap_rationale": "v1 Bundle C → v2 P-C(엔진 하드닝)에서 수정, P-D E000_V2 failure injection 으로 검증."
+        },
+        {
+          "id": "gitignore-evidence-pattern-single-level-only",
+          "severity": "P2",
+          "found_by": "adversarial C012",
+          "v1_debt_class": "E001_BLOCKING",
+          "v1_scheduled": "Bundle C",
+          "v2_close_in_phase": "P-C",
+          "v2_verify_in_phase": "P-D",
+          "blocks_ready_for_e001_v2": true,
+          "state": "OPEN",
+          "remap_rationale": "v1 Bundle C → v2 P-C 에서 패턴 수정, P-D smoke 에서 evidence 트리 실측 검증."
+        },
+        {
+          "id": "journal-path-in-repo-uses-parents-assumption-not-git",
+          "severity": "P2",
+          "found_by": "adversarial C012",
+          "v1_debt_class": "POST_E001_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-C",
+          "v2_verify_in_phase": "P-D",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "journal provenance 경로 해석. v2 P-C 엔진에서 git 기준으로 교체."
+        },
+        {
+          "id": "new-tests-residual-self-stamp-and-narrow-scan",
+          "severity": "P2",
+          "found_by": "adversarial C012",
+          "v1_debt_class": "POST_E001_DEBT",
+          "v1_scheduled": null,
+          "v2_close_in_phase": "P-C",
+          "v2_verify_in_phase": "P-D",
+          "blocks_ready_for_e001_v2": false,
+          "state": "OPEN",
+          "remap_rationale": "테스트 자기참조 잔존분. v2 P-C 에서 함께 처리."
+        }
+      ]
+    },
+    "v2_audit_findings": {
+      "cycle": "V2-C001",
+      "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+      "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+      "adversarial": {
+        "audit_branch": "audit/landing-adversarial",
+        "audit_sha": "706a8d64ed95a8178f0b1810d9992249875ec12c",
+        "report": "research/landing_accessibility/audit/adversarial/V2_C001.{md,json}",
+        "verdict": "FAIL",
+        "counts": {
+          "P0": 0,
+          "P1": 3,
+          "P2": 4,
+          "blocking": 3
+        },
+        "total": 7,
+        "blocking": 3,
+        "findings": [
+          {
+            "id": "orchestrator-entrypoint-still-routes-to-v1-scope",
+            "severity": "P1",
+            "blocking": true,
+            "auditor": "adversarial",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+            "remediated_in": "V2-C002",
+            "remediation": "V2-C002: NEXT_SESSION_ENTRYPOINT.md / HANDOFF_PRE_ANALYSIS_START.md / PHASE_EXECUTION_DIRECTIVE_v5.0.md / preserved SSOT_v1.0.md 최상단 v2 라우팅 배너 + research/landing_accessibility/CLAUDE.md 포인터 신설"
+          },
+          {
+            "id": "v1-open-debt-ledger-not-adopted-by-v2-authority",
+            "severity": "P1",
+            "blocking": true,
+            "auditor": "adversarial",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+            "remediated_in": "V2-C002",
+            "remediation": "V2-C002: state.json v2_transition.debt_inheritance 로 open 21건 전량 승계 + v2 phase 재매핑 + v2_audit_findings 등재 + open_blocking_total 산출"
+          },
+          {
+            "id": "promotion-clean-check-targets-wrong-worktree",
+            "severity": "P1",
+            "blocking": true,
+            "auditor": "adversarial",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+            "remediated_in": "V2-C002",
+            "remediation": "V2-C002: promote_landing_main.sh 워크트리 하드코딩 제거(git worktree list --porcelain 해석, 미발견 시 fail) + HEAD==EXEC_SHA 단언 + v2_transition.open_blocking_total 검사 + scripts/hooks/pre-push 층 추가"
+          },
+          {
+            "id": "bootstrap-prompt-carries-no-in-file-non-authority-marker",
+            "severity": "P2",
+            "blocking": false,
+            "auditor": "adversarial",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "readme-reading-order-points-to-uninstalled-path",
+            "severity": "P2",
+            "blocking": false,
+            "auditor": "adversarial",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "install-manifest-is-self-anchored",
+            "severity": "P2",
+            "blocking": false,
+            "auditor": "adversarial",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "l1-scout-has-no-step-budget",
+            "severity": "P2",
+            "blocking": false,
+            "auditor": "adversarial",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          }
+        ]
+      },
+      "ssot": {
+        "audit_branch": "audit/landing-ssot",
+        "audit_sha": "507fcf25a7e6800d9c03c6b6c8ecc880264bf6ea",
+        "report": "research/landing_accessibility/audit/ssot/V2_C001.{md,json}",
+        "verdict": "FAIL",
+        "counts": {
+          "P0": 0,
+          "P1": 2,
+          "P2": 11,
+          "blocking": 11,
+          "non_blocking": 2
+        },
+        "total": 13,
+        "blocking": 11,
+        "findings": [
+          {
+            "id": "ned-ied-split-not-operationalized",
+            "severity": "P1",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "phase-gate-names-only-in-nonauthoritative-bootstrap",
+            "severity": "P1",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "interrupt-dismiss-fields-have-no-collection-procedure",
+            "severity": "P2",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "episode-counters-undefined-and-uncollected",
+            "severity": "P2",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "primary-action-identity-not-stored",
+            "severity": "P2",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "l0-evidence-artifacts-without-storage-slot",
+            "severity": "P2",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "measurement-status-vocabulary-unreconciled",
+            "severity": "P2",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "undefined-column-vocabularies",
+            "severity": "P2",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "claude-md-and-evidence-contract-authority-framing",
+            "severity": "P2",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "bootstrap-07-lacks-in-file-nonauthority-banner",
+            "severity": "P2",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "state-table-mapping-declared-without-correspondence",
+            "severity": "P2",
+            "blocking": true,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "readme-stale-pack-paths",
+            "severity": "P2",
+            "blocking": false,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          },
+          {
+            "id": "install-integrity-coverage-gap",
+            "severity": "P2",
+            "blocking": false,
+            "auditor": "ssot",
+            "cycle": "V2-C001",
+            "target_sha": "eb36d173182a582e8d7499f29170a83363f9d560",
+            "state": "OPEN"
+          }
+        ]
+      },
+      "total_findings": 20,
+      "total_blocking": 14,
+      "note": "두 감사 모두 FAIL. V2-C001(eb36d17) 은 승격 불가. 본 V2-C002 는 adversarial 3건만 시정 주장하며, ssot 11건은 v2 executor 몫으로 남아 있다."
+    },
+    "open_blocking_total": {
+      "formula": "v1_inherited_blocking + v2_adversarial_blocking + v2_ssot_blocking",
+      "v1_inherited_blocking": 6,
+      "v2_adversarial_blocking": 3,
+      "v2_ssot_blocking": 11,
+      "total": 20,
+      "gate": "00_SSOT_v2.0.md §15 — open blocking P0/P1/P2 = 0 이어야 READY_FOR_E001_V2 선언 가능",
+      "gate_satisfied": false,
+      "note": "REMEDIATION_CLAIMED_PENDING_AUDIT 상태의 3건도 독립감사가 확인할 때까지 open 으로 계상한다. executor/orchestrator self-approval 금지."
+    },
+    "enforcement": {
+      "promotion_script": "research/landing_accessibility/scripts/promote_landing_main.sh",
+      "pre_push_hook_source": "research/landing_accessibility/scripts/hooks/pre-push",
+      "hook_installer": "research/landing_accessibility/scripts/install_hooks.sh",
+      "hook_installed": "USER_DECISION_PENDING — core.hooksPath 는 저장소 전역 설정이므로 오케스트레이터가 자동 설치하지 않는다",
+      "preexisting_local_hook": ".git/hooks/pre-push (untracked, 로컬 전용). 저장소에 커밋된 사본이 없어 clone·재설치 시 소실된다 — scripts/hooks/pre-push 가 그 정본이다.",
+      "bypass_env": "LA_PROMOTION=ORCHESTRATOR_PROMOTION_ONLY"
+    }
+  },
+  "phase_v1_history": "P2_WEB_ELIGIBILITY_AND_URL_IDENTITY",
+  "cycle_id_v1_history": "C012"
 }

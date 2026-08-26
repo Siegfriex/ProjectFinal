@@ -1,3 +1,19 @@
+> ## ⚠ SUPERSEDED_FOR_SCOPE / OPERATIONAL_GUARDS_INHERITED
+>
+> **현행 실행권위**: `research/landing-accessibility-main` 의
+> `research/landing_accessibility/docs/v2/00_SSOT_v2.0.md` · `docs/v2/EXECUTION_AUTHORITY.md`
+>
+> - **무효**: 이 문서의 실행범위 `LANDING_ONLY`. v2 `SCOPE = L0_INITIAL_LANDING + L1_SHALLOW_REPRESENTATIVE_ENTRY` 가 대체한다.
+> - **무효**: phase 이름·정지점 `READY_FOR_E001`. v2 는 `P0 → P-A → P-B → P-C → P-D → P-E READY_FOR_E001_V2`.
+> - **유효(상속)**: 운영 가드 — `MAX_UNAUDITED_EXEC_CYCLES = 1`, executor self-approval 금지,
+>   두 독립감사가 exact same target SHA, Pilot 수정 = P0, main 직접 push 금지(승격 스크립트 경유만),
+>   UNDETERMINED laundering 금지, 본수집 전 evidence 생성 = gate 위반.
+> - 이 문서는 **삭제·이동하지 않는다.**
+>
+> 근거: adversarial V2-C001 `orchestrator-entrypoint-still-routes-to-v1-scope`. 시정: V2-C002.
+
+---
+
 # PHASE-ORIENTED EXECUTION DIRECTIVE v5.0
 
 **적용 시작** 다음 세션

@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# ProjectFinal landing-accessibility harness — pre-push 신뢰경계 훅 (저장소에 커밋되는 정본)
+#
+# 왜 저장소에 두는가 — V2-C002.
+#   기존 훅은 `.git/hooks/pre-push` 에만 있었다. `.git/` 은 추적되지 않으므로 clone·재설정·
+#   hooksPath 변경으로 조용히 사라진다. 강제수단이 로컬 파일 하나에 걸려 있으면 그 자체가 공백이다.
+#   이 파일이 정본이며 설치는 `scripts/install_hooks.sh` 로 한다.
+#
+# 원칙 — 생산성을 막지 않고 신뢰경계를 넘는 순간만 막는다.
+#   feat/* · agent/* · audit/* · control/* 로의 일반 push 는 막지 않는다.
+#
+# 규칙
+#   1. research/refcohort-r1        → 무조건 차단 (Pilot READ_ONLY, 수정 시 P0)
+#   2. research/landing-accessibility-main
+#                                   → LA_PROMOTION=ORCHESTRATOR_PROMOTION_ONLY 일 때만 통과
+#   3. 보호 ref 로의 force push / 삭제 → 무조건 차단 (LA_PROMOTION 이 있어도)
+#
+# stdin 형식 (git pre-push): <local_ref> <local_sha> <remote_ref> <remote_sha>
+#   삭제 push 는 local_sha 가 0000...
+# argv: $1 = remote name, $2 = remote url
+set -uo pipefail
+
+PROTECTED="refs/heads/research/landing-accessibility-main"
+PILOT="refs/heads/research/refcohort-r1"
+ZERO="0000000000000000000000000000000000000000"
+RC=0
+
+# force push 탐지: git 은 pre-push 에 --force 를 전달하지 않는다.
+#   (a) GIT_PUSH_OPTION / 부모 커맨드라인 대신, non-fast-forward 여부로 판정한다.
+#   (b) remote_sha 가 존재하고 그것이 local_sha 의 조상이 아니면 force 다.
+is_force() {
+  local local_sha="$1" remote_sha="$2"
+  [ "$remote_sha" = "$ZERO" ] && return 1              # 새 ref 생성 — force 아님
+  [ "$local_sha" = "$ZERO" ] && return 0               # 삭제 — force 취급
+  git merge-base --is-ancestor "$remote_sha" "$local_sha" >/dev/null 2>&1 && return 1
+  return 0
+}
+
+block() {
+  echo "BLOCKED: $*" >&2
+  RC=1
+}
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -n "${remote_ref:-}" ] || continue
+
+  # 1. Pilot — 예외 없음
+  if [ "$remote_ref" = "$PILOT" ]; then
+    block "$PILOT 은 READ_ONLY Pilot archive 다. push 금지."
+    echo "  research/refcohort/** 수정 = P0 (docs/v2/EXECUTION_AUTHORITY.md §3)" >&2
+    echo "  LA_PROMOTION 으로도 우회할 수 없다." >&2
+    continue
+  fi
+
+  # 2/3. authoritative main
+  if [ "$remote_ref" = "$PROTECTED" ]; then
+    if is_force "$local_sha" "$remote_sha"; then
+      block "$PROTECTED 로의 force push / ref 삭제는 금지다."
+      echo "  linear history 만 허용한다. 되돌릴 일이 있으면 새 승격 커밋으로 전진한다." >&2
+      continue
+    fi
+    if [ "${LA_PROMOTION:-}" != "ORCHESTRATOR_PROMOTION_ONLY" ]; then
+      block "$PROTECTED 은 오케스트레이터 promotion 경로로만 갱신한다."
+      echo "  promotion 은 research/landing_accessibility/scripts/promote_landing_main.sh 를 통해서만 수행한다." >&2
+      echo "  (그 스크립트가 Pilot 불변 · 두 감사 same target SHA · exec 워크트리 clean ·" >&2
+      echo "   open P0/P1 = 0 · v2_transition.open_blocking_total = 0 · audit lag 를 검사한다.)" >&2
+      continue
+    fi
+    echo "pre-push: $PROTECTED — LA_PROMOTION=ORCHESTRATOR_PROMOTION_ONLY 확인, 통과." >&2
+    continue
+  fi
+
+  # 그 외 브랜치(feat/* agent/* audit/* control/* …) — 통과.
+  # 다만 force push 는 감사 계보를 파괴하므로 audit/* 에 한해 막는다.
+  case "$remote_ref" in
+    refs/heads/audit/*)
+      if is_force "$local_sha" "$remote_sha"; then
+        block "$remote_ref 로의 force push / 삭제는 금지다 — 감사 계보는 append-only 다."
+      fi
+      ;;
+  esac
+done
+
+exit $RC

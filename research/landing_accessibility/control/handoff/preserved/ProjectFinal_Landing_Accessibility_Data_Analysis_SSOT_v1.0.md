@@ -1,3 +1,16 @@
+> ## ⚠ SUPERSEDED_FOR_EXECUTION / PRESERVED_FOR_HISTORY
+>
+> **이 문서는 v1 분석 SSOT 이며 현행 실행권위가 아니다.**
+> 현행: `research/landing-accessibility-main` 의 `research/landing_accessibility/docs/v2/00_SSOT_v2.0.md`.
+>
+> - 유효: 검증된 사실(SHA·카운트·source provenance)과 이력.
+> - 무효: 목표·범위·단위·해석·phase. v2 SSOT 가 대체한다.
+> - 이 문서는 이력·회귀검증용으로 **삭제·이동하지 않는다.**
+>
+> 근거: adversarial V2-C001 `orchestrator-entrypoint-still-routes-to-v1-scope`. 시정: V2-C002.
+
+---
+
 # ProjectFinal — 고령층 실사용 모바일웹 랜딩 접근성 데이터분석 SSOT
 
 **문서 지위**: DATA ANALYSIS SSOT / PRE-E001  

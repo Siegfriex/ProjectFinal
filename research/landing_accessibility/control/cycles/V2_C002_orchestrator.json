@@ -1,0 +1,153 @@
+{
+  "cycle": "V2-C002",
+  "role": "orchestrator support",
+  "branch": "control/landing-orchestrator",
+  "at": "2026-08-26T20:56:24.769928",
+  "purpose": "adversarial V2-C001 이 지적한 '강제수단의 공백' 3건(P1/blocking)을 control 브랜치에서 닫는다. v2 실행권위 자체는 이 브랜치에서 만들지 않는다 — 중복 권위 금지.",
+  "inputs": {
+    "adversarial_report": "origin/audit/landing-adversarial:research/landing_accessibility/audit/adversarial/V2_C001.{md,json} @ 706a8d64ed95a8178f0b1810d9992249875ec12c",
+    "ssot_report": "origin/audit/landing-ssot:research/landing_accessibility/audit/ssot/V2_C001.{md,json} @ 507fcf25a7e6800d9c03c6b6c8ecc880264bf6ea",
+    "v2_authority": "eb36d173182a582e8d7499f29170a83363f9d560:research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md",
+    "v2_phase_gates": "eb36d17:research/landing_accessibility/docs/v2/03_CRISP_DM_EXECUTION_PLAN_v2.0.md 「실행 Phase Gate」",
+    "base_orchestrator_sha": "bfa16624e55e15c4626e74547ed885156a8f2a9e"
+  },
+  "remediations": [
+    {
+      "finding_id": "orchestrator-entrypoint-still-routes-to-v1-scope",
+      "severity": "P1",
+      "blocking": true,
+      "auditor": "adversarial",
+      "problem": "control 브랜치의 NEXT_SESSION_ENTRYPOINT.md 가 v2 를 한 번도 언급하지 않고 v1 SSOT + PHASE_EXECUTION_DIRECTIVE_v5.0 으로 라우팅한다. 다른 브랜치(agent/landing-v2-exec)의 supersede 선언은 이 브랜치의 파일을 무력화하지 못한다 — git 브랜치는 독립 네임스페이스다.",
+      "action": [
+        "docs/NEXT_SESSION_ENTRYPOINT.md 최상단에 v2 라우팅 배너 삽입 (현행 실행권위 경로 · SCOPE · 정지점 READY_FOR_E001_V2 · 유효/무효 구분 · docs/v2 를 git show 로 읽는 법)",
+        "docs/HANDOFF_PRE_ANALYSIS_START.md 최상단에 동일 배너 + §10 'Next Session Execution Order' 직후에 v2 phase 대체표 삽입 (v1 P-A~P-E → v2 P0/P-A/P-B/P-C/P-D/P-E, READY_FOR_E001 → READY_FOR_E001_V2)",
+        "docs/PHASE_EXECUTION_DIRECTIVE_v5.0.md 최상단에 SUPERSEDED_FOR_SCOPE / OPERATIONAL_GUARDS_INHERITED 배너 (상속 가드 7종 명시)",
+        "control/handoff/preserved/ProjectFinal_..._SSOT_v1.0.md 최상단에 SUPERSEDED_FOR_EXECUTION / PRESERVED_FOR_HISTORY 배너",
+        "research/landing_accessibility/CLAUDE.md 신설 — Claude Code 가 이 워크트리에서 자동 로드하는 유일한 경로. exec 브랜치 사본이 아니라 포인터 문서로 작성(중복 권위 금지)"
+      ],
+      "preserved": "v1 본문은 한 줄도 삭제·이동하지 않았다. 배너는 전부 prepend 다.",
+      "state": "REMEDIATION_CLAIMED_PENDING_AUDIT"
+    },
+    {
+      "finding_id": "v1-open-debt-ledger-not-adopted-by-v2-authority",
+      "severity": "P1",
+      "blocking": true,
+      "auditor": "adversarial",
+      "problem": "v1 debt_ledger(total 24 / open 21 / E001_BLOCKING 6)를 v2 문서 어디도 상속 선언하지 않아, 빈 원장으로 00_SSOT_v2.0 §15 'open blocking = 0' 을 거짓 통과할 수 있다.",
+      "action": [
+        "control/state.json 에 최상위 키 v2_transition 신설 (기존 키 삭제 없음, v1 이력 전량 보존)",
+        "v2_transition.debt_inheritance — open 21건 전량을 canonical id 그대로 승계. 근거 없이 닫은 항목 0건, 전부 state=OPEN",
+        "v1 scheduling 의 cycle 이름(C013 / C014_or_later / Bundle C)을 v2 Phase Gate 로 재매핑: P-A 3 / P-B 8 / P-C 5 / P-I 5. 항목마다 remap_rationale 기재",
+        "E001_BLOCKING 6건은 blocks_ready_for_e001_v2=true 로 표시. Bundle C 2건(verify_run 심링크 우회 · gitignore 단일계층)은 P-C 수정 / P-D E000_V2 failure injection 검증으로 분리",
+        "v2_transition.v2_audit_findings — V2-C001 두 감사 findings 를 원장에 등재 (adversarial 7 / ssot 13, 각 id·severity·blocking·auditor·target_sha)",
+        "v2_transition.open_blocking_total 산출",
+        "audit_lag 를 v2 사이클 기준으로 갱신 (latest_exec_cycle=V2-C001, 두 감사 target sha=eb36d17, 감사 sha, verdict 기록, latest_reconciled_cycle/latest_promoted_cycle 은 C012 유지, unreconciled/unpromoted depth 신설)",
+        "phase → P0_V2_REFREEZE, cycle_id → V2-C002, gates.V2_SSOT_FROZEN = NOT_ACHIEVED"
+      ],
+      "open_blocking_total": {
+        "formula": "v1_inherited_blocking + v2_adversarial_blocking + v2_ssot_blocking",
+        "v1_inherited_blocking": 6,
+        "v2_adversarial_blocking": 3,
+        "v2_ssot_blocking": 11,
+        "total": 20,
+        "gate": "00_SSOT_v2.0.md §15 — open blocking P0/P1/P2 = 0 이어야 READY_FOR_E001_V2 선언 가능",
+        "gate_satisfied": false,
+        "note": "REMEDIATION_CLAIMED_PENDING_AUDIT 상태의 3건도 독립감사가 확인할 때까지 open 으로 계상한다. executor/orchestrator self-approval 금지."
+      },
+      "state": "REMEDIATION_CLAIMED_PENDING_AUDIT"
+    },
+    {
+      "finding_id": "promotion-clean-check-targets-wrong-worktree",
+      "severity": "P1",
+      "blocking": true,
+      "auditor": "adversarial",
+      "problem": "promote_landing_main.sh:21 이 .agent_worktrees/landing_exec 를 하드코딩해, v2 승격에서 워킹트리 clean 가드가 아무것도 검사하지 않는다(vacuous). v2 executor 워크트리는 landing_v2_exec 다.",
+      "action": [
+        "(a) 스크립트: 하드코딩 제거. git worktree list --porcelain 을 파싱해 (path,HEAD,branch) 를 뽑고 exec_sha 의 HEAD 일치 → 실패 시 포함 브랜치 경유로 역해석. 미발견/중복이면 fail-closed",
+        "(a) --exec-branch= / --exec-worktree= 로 명시 가능. --dry-run 추가 (push 하지 않고 전 검사 수행)",
+        "(a) 추가 단언: 워크트리 HEAD == EXEC_SHA (검증한 트리 == 승격되는 SHA)",
+        "(a) state.json 경로도 하드코딩 제거 — control/landing-orchestrator 브랜치의 워크트리를 해석해 사용. 미발견 시 fail",
+        "(a) dirty 판정: 추적파일 변경은 무조건 dirty. 미추적은 setup_worktree.sh 가 만드는 환경 심링크 3종(.venv/env/node_modules, 실제 symlink 인 경우만)만 면제. .gitignore 의 `.venv/`·`node_modules/` 는 디렉터리 패턴이라 심링크에 매치되지 않아 명시 면제가 필요했다",
+        "(a) 검사 4 확장: open P0 + open P1 + v2_transition.open_blocking_total. v2_transition 자체가 없으면 fail",
+        "(a) 검사 5 확장: 기존 target sha / audit lag 에 더해 두 감사 verdict 가 PASS 인지 확인",
+        "(a) 기존 검사 1(Pilot 불변)·2(두 감사 SHA 가 원격 감사 브랜치 조상) 유지",
+        "(b) scripts/hooks/pre-push 신설 — 저장소에 커밋되는 훅 정본. Pilot 무조건 차단(LA_PROMOTION 으로도 우회 불가) / main 은 LA_PROMOTION=ORCHESTRATOR_PROMOTION_ONLY 일 때만 통과 / 보호 ref force·삭제 무조건 차단 / audit/* force 차단 / feat·agent·audit·control 일반 push 는 통과",
+        "(b) scripts/install_hooks.sh 신설 — --check(기본) / --symlink(권장) / --hookspath / --uninstall. 오케스트레이터는 설치를 실행하지 않는다 (저장소 전역 설정 = 사용자 결정)"
+      ],
+      "state": "REMEDIATION_CLAIMED_PENDING_AUDIT"
+    }
+  ],
+  "tests": {
+    "pre_push_hook": {
+      "method": "훅을 직접 호출하고 표준입력으로 <local_ref> <local_sha> <remote_ref> <remote_sha> 라인을 주입",
+      "total": 13,
+      "passed": 13,
+      "cases": [
+        "pilot push → BLOCK",
+        "pilot push + LA_PROMOTION → BLOCK (예외 없음)",
+        "main push, LA_PROMOTION 없음 → BLOCK",
+        "main push, LA_PROMOTION, fast-forward(5a9015d1→eb36d17) → PASS",
+        "main force push(rewind eb36d17→5a9015d1), LA_PROMOTION → BLOCK",
+        "main ref 삭제(0000...), LA_PROMOTION → BLOCK",
+        "feat/* push → PASS",
+        "agent/* push → PASS",
+        "control/* push → PASS",
+        "audit/* fast-forward push → PASS",
+        "audit/* force push → BLOCK",
+        "새 브랜치 생성(remote_sha=0000...) → PASS",
+        "한 push 에 feat(OK)+pilot(BLOCK) 혼합 → BLOCK (전체 rc=1)"
+      ]
+    },
+    "promotion_script": {
+      "method": "--dry-run 으로 실행. push 는 한 번도 트리거하지 않았다.",
+      "cases": [
+        "존재하지 않는 exec SHA(deadbeef...) → BLOCK at 0 (SHA 해석 실패)",
+        "eb36d17 → 워크트리를 landing_v2_exec 로 자동 해석, 검사 1·2 통과 후 BLOCK at 3: 추적파일 6건 변경 + 미추적 3건. 환경 심링크 .venv/env/node_modules 는 면제되어 목록에 나타나지 않음 → 심링크 면제 + dirty 탐지 양쪽 실증",
+        "--exec-branch=research/landing-accessibility-main (워크트리 없음) → BLOCK (fail-closed, 조용히 통과하지 않음)",
+        "--exec-worktree=/nonexistent/path → BLOCK",
+        "87a0464e (clean 인 landing_exec 로 자동 해석) → 검사 1·2·3 통과, BLOCK at 4: open_blocking_total = 20",
+        "가짜 adversarial SHA → BLOCK at 2 (원격 감사 브랜치에 없음)",
+        "인자 부족 → usage 출력 후 BLOCK",
+        "검사 5 로직 단독 검증: exec sha 불일치 → AssertionError, verdict FAIL → AssertionError"
+      ],
+      "dirty_test_note": "테스트용 인위적 dirty 는 만들지 않았다. 다른 워크트리는 읽기만 했고 어떤 파일도 수정하지 않았다."
+    },
+    "install_hooks": "--check 만 실행. core.hooksPath 는 여전히 unset 이며 아무것도 설치하지 않았다."
+  },
+  "not_done": [
+    "ssot 감사 13건(blocking 11)은 v2 executor 몫이며 이 사이클에서 손대지 않았다.",
+    "adversarial P2 4건(bootstrap 비권위 마커 / README 미설치 경로 / INSTALL_MANIFEST 자기앵커 / L1 step budget)은 docs/v2 소관이라 exec 브랜치에서 처리한다.",
+    "EXECUTION_AUTHORITY.md 에 DEBT_LEDGER_INHERITED 행을 추가하라는 감사 권고는 exec 브랜치 파일이므로 여기서 수행하지 않았다. state.json v2_transition 이 승계의 기계적 정본이며, exec 측 문서 반영은 v2 executor 가 한다.",
+    "훅 설치(core.hooksPath / 심링크)는 실행하지 않았다 — 사용자 결정 사항."
+  ],
+  "user_decisions_required": [
+    {
+      "item": "pre-push 훅 설치 여부",
+      "detail": "현재 .git/hooks/pre-push 에 추적되지 않는 로컬 사본이 있다(main+pilot 차단만 구현, force push·삭제 미차단). 저장소 정본 scripts/hooks/pre-push 와 내용이 다르다(DRIFT). scripts/install_hooks.sh --symlink 로 교체하면 force push·삭제·audit 계보 보호가 추가된다. core.hooksPath 는 저장소 전역 설정이라 오케스트레이터가 임의로 바꾸지 않았다.",
+      "recommendation": "--symlink 권장. --hookspath 는 저장소의 다른 훅을 전부 무효화한다."
+    },
+    {
+      "item": "v1 open 21건의 v2 phase 재매핑 승인",
+      "detail": "P-A 3 / P-B 8 / P-C 5 / P-I 5. 근거 없이 닫은 항목은 0건이며 전부 OPEN 이다. 재매핑은 오케스트레이터 판단이므로 다음 독립감사가 검증해야 한다."
+    }
+  ],
+  "files_changed": [
+    "research/landing_accessibility/CLAUDE.md (신규 — 포인터)",
+    "research/landing_accessibility/docs/NEXT_SESSION_ENTRYPOINT.md (배너 prepend)",
+    "research/landing_accessibility/docs/HANDOFF_PRE_ANALYSIS_START.md (배너 prepend + §10 v2 phase 대체표)",
+    "research/landing_accessibility/docs/PHASE_EXECUTION_DIRECTIVE_v5.0.md (배너 prepend)",
+    "research/landing_accessibility/control/handoff/preserved/ProjectFinal_Landing_Accessibility_Data_Analysis_SSOT_v1.0.md (배너 prepend)",
+    "research/landing_accessibility/control/state.json (v2_transition 신설 + audit_lag/phase/cycle_id/gates 갱신)",
+    "research/landing_accessibility/scripts/promote_landing_main.sh (워크트리 자동해석 + fail-closed + blocking debt 검사 + dry-run)",
+    "research/landing_accessibility/scripts/hooks/pre-push (신규)",
+    "research/landing_accessibility/scripts/install_hooks.sh (신규)",
+    "research/landing_accessibility/control/cycles/V2_C002_orchestrator.json (본 파일)"
+  ],
+  "invariants_held": [
+    "research/refcohort/** 미수정 (Pilot READ_ONLY)",
+    "다른 워크트리 미수정 — landing_v2_exec / landing_exec / landing_adversarial / landing_ssot 는 읽기만 함",
+    "v1 문서 삭제·이동 0건",
+    "push 는 control/landing-orchestrator 로만",
+    "state.json 기존 키 삭제 0건"
+  ]
+}
