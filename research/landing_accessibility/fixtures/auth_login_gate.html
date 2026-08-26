@@ -1,0 +1,48 @@
+<!doctype html>
+<!--
+FIXTURE: auth_login_gate           gate 종류 = LOGIN
+검증 대상 (Q-9): "무엇을 근거로 로그인 gate 라고 부르는가" 가 fixture 자체에 드러나야 한다.
+
+이 화면이 갖는 **관측 가능한 로그인 신호** — 전부 DOM 에서 결정적으로 읽힌다:
+  1. <input type=password>                      ← 브라우저가 직접 알려주는 결정적 신호
+  2. autocomplete="username" / "current-password"
+  3. 로그인 어휘: "로그인" 제출 버튼 · "아이디 찾기" · "비밀번호 찾기" · "회원가입"
+이 화면이 **갖지 않는** 본인인증 신호 (대조군으로서 중요하다):
+  통신사 선택 없음 · 간편인증 제공자 목록 없음 · 주민등록번호/생년월일 입력 없음 ·
+  인증번호(OTP) 입력 없음 · autocomplete="tel" 없음
+
+기대 (A2 §1.5.1a 규칙 E-5 / E-6 / E-6a):
+  FINANCIAL_ACTION_ENTRY  → FUNCTION_ENDPOINT_REACHED + ENDPOINT_VIA_AUTH_GATE
+  COMMUNICATION_ENTRY     → FUNCTION_ENDPOINT_REACHED + ENDPOINT_VIA_AUTH_GATE
+  나머지 5 archetype      → AUTH_GATE_REACHED, MPFED = NULL
+
+규칙 E-7 (gate 통과 금지): 자격증명 입력 필드는 존재하되 수집기가 절대 채우지 않는다.
+data-gate-kind 는 **테스트의 기대값 메타데이터**이며 판별기의 입력이 아니다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>로그인 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  label{display:block;margin-top:12px;font-size:14px}
+  input{display:block;width:100%;box-sizing:border-box;min-height:48px;margin-top:4px;
+        font-size:16px;border:1px solid #555;border-radius:6px;padding:0 12px}
+  button{margin-top:16px;width:100%;min-height:48px;font-size:16px;
+         background:#0b4f9e;color:#fff;border:0;border-radius:6px}
+  nav a{display:inline-block;min-height:48px;line-height:48px;margin-right:16px;font-size:14px}
+</style></head>
+<body data-fixture="auth_login_gate" data-gate-kind="LOGIN">
+<h1 style="font-size:20px">로그인</h1>
+<form id="login-form" action="/login" method="post">
+  <label for="uid">아이디</label>
+  <input id="uid" name="userId" type="text" autocomplete="username" inputmode="text">
+  <label for="pw">비밀번호</label>
+  <input id="pw" name="password" type="password" autocomplete="current-password">
+  <button type="submit">로그인</button>
+</form>
+<nav>
+  <a href="./auth_login_gate.html">아이디 찾기</a>
+  <a href="./auth_login_gate.html">비밀번호 찾기</a>
+  <a href="./auth_login_gate.html">회원가입</a>
+</nav>
+</body></html>

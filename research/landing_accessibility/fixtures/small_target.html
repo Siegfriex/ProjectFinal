@@ -1,0 +1,26 @@
+<!doctype html>
+<!--
+FIXTURE: small_target
+검증 대상: target-size raw feature (CSS px, border-box, DPR 곱하지 않음) + 인접 간격.
+기대: #tiny-1 #tiny-2 #tiny-3 = 20x20 CSS px, 서로 4px 간격.
+      #ok-1 = 48x48. 값은 raw feature 로만 저장되고 임계값 비교는 probe 밖(verdict 층)에서 한다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>작은 조작 대상 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  .tiny{display:inline-block;width:20px;height:20px;box-sizing:border-box;margin:0 4px 0 0;
+    padding:0;border:1px solid #333;background:#fff;vertical-align:top}
+  .ok{display:inline-block;width:48px;height:48px;box-sizing:border-box;border:1px solid #333;
+    background:#fff;margin-top:16px}
+</style></head>
+<body data-fixture="small_target">
+<h1 style="font-size:20px">조작 대상 크기</h1>
+<div>
+  <button id="tiny-1" class="tiny" type="button" aria-label="작게 1"></button><button
+          id="tiny-2" class="tiny" type="button" aria-label="작게 2"></button><button
+          id="tiny-3" class="tiny" type="button" aria-label="작게 3"></button>
+</div>
+<button id="ok-1" class="ok" type="button" aria-label="충분히 큰 대상"></button>
+</body></html>
