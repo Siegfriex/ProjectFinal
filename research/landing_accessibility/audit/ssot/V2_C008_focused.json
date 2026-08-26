@@ -1,0 +1,49 @@
+{
+ "cycle": "V2-C008",
+ "auditor": "ssot",
+ "audit_type": "focused — final verdict on exactly one long-pending finding; not a full re-audit",
+ "id": "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1",
+ "target_sha": "2025e5667686d42e832298f2dce77b0c7aa6bc07",
+ "target_branch": "agent/landing-v2-exec",
+ "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+ "control_sha": "1d6cedb6aca6933a701275c7c8e14fd7d4628c73",
+ "adversarial_sha": "cd0a4e62fc1e1582bd56678cec35d688edc695ed",
+ "prior_ssot_audit_sha": "383c7a053e8099342a62d294449b170a7ee8bcb2",
+ "audited_at": "2026-08-27",
+ "prior_status": "REMEDIATION_CLAIMED_PENDING_AUDIT (since V2-C003; never explicitly adjudicated across six cycles)",
+ "original_severity": "P1",
+ "original_blocking_class": "V2_SSOT_FROZEN",
+ "found_by": "orchestrator (P-A codebook Q-1), V2-C003",
+ "verdict": "CLOSED",
+ "self_approval_note": "This verdict is issued from the independent audit lane audit/landing-ssot, not from the exec lane. The self-approval prohibition binds the executor closing its own remediation; it does not exempt an independent auditor from adjudicating. Prior cycles misapplied it and left this id unjudged.",
+ "evidence": [
+  "00 §3 L1 table at target is byte-unchanged and still reads 금융 = '금융기능 진입 또는 로그인/인증 gate가 나타난 순간', 커뮤니티 = '게시물/스레드/작성영역 진입 또는 로그인 gate'. The frozen SSOT was therefore never edited; the whole remediation sits in A2, which is the correct direction under A2 §0 clauses 1/6/8.",
+  "CHECK 1 (gate reach => endpoint_reached=1, MPFED computed): A2 §1.5.1a normative table sets FINANCIAL_ACTION_ENTRY (login gate OR identity-verification gate) and COMMUNICATION_ENTRY (login gate ONLY) to endpoint_status=FUNCTION_ENDPOINT_REACHED, endpoint_status_detail=ENDPOINT_VIA_AUTH_GATE, endpoint_reached=1, NED/IED/MPFED = integer (m fixed, A1 §1.3). Rules E-5 (gate of the kind 00 §3 gave IS the endpoint), E-7 (gate is not passed through; scout still terminates on observation, only the stored value differs).",
+  "CHECK 1 cross-consistency: §1.5.1's own AUTH_GATE_REACHED row now carries the exception inline ('단 00 §3 L1 표가 그 archetype의 endpoint 정의 안에 넣은 종류의 gate에서는 이 값을 쓰지 않는다'), so §1.5.1 and §1.5.1a cannot drift apart. The identity endpoint_reached ≡ (endpoint_status = FUNCTION_ENDPOINT_REACHED) is explicitly preserved after the branch. §1.5.2 pins ENDPOINT_VIA_AUTH_GATE's roll-up parent to FUNCTION_ENDPOINT_REACHED only (rule S-3); the frozen 7-value set is not extended (rule E-1).",
+  "CHECK 2 (other 5 archetypes unchanged): same table's remaining rows keep QUERY · CONTENT_OPEN · ITEM_DETAIL · PLACE_LOOKUP · UTILITY_ENTRY at AUTH_GATE_REACHED (or PERSONAL_DATA_REQUIRED) with endpoint_reached=0 and NULL depth for ALL gate kinds, citing '00 §3 해당 행에 gate 문구 없음 · 01 §11 문면 그대로'. COMMUNICATION_ENTRY's identity-verification gate is likewise excluded (E-6a).",
+  "CHECK 2 archetype mapping verified against A1 §1.2: 00 §3's seven rows map onto seven archetypes with CONTENT_OPEN absorbing both 뉴스 and 영상, so exactly two rows carry a gate clause; UTILITY_ENTRY has no 00 §3 row at all and rule E-6 explicitly excludes it from the exception. The split axis is 1:1 with the 00 §3 wording — neither wider nor narrower — and is restated at three independent places (rule E-6, rule E-6a, §7 prohibition 11).",
+  "CHECK 3 (00 §7 baseline / 00 §11 distribution stratified, no regression to a mixed distribution): rule E-10 requires stratified parallel reporting by endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE for 00 §11 Depth (median/IQR/mode/ECDF/0-1-2-3-4+), the 00 §7 ExcessDepth baseline, and the 01 §10 metrics; aggregate-only presentation is forbidden. The canonical formula is untouched (ExcessDepth = MPFED − archetype median, 00 §7 verbatim); stratum values are 병기 only, so no new analysis criterion is created (§7 item 7 / item 14).",
+  "CHECK 3 enforcement: the no-stratification regression path is closed in three places — A2 §7 prohibition 14, the §6.3 P-C guard row ('두 archetype의 MPFED 계열 지표가 층별 값 없이 합산값만 산출되면 실패'), and failure-injection case I-9 in §6.3.1 ('층 구분 없이 합산값만 산출 → 차단'). Missing stratification is a pipeline failure, not a reporting convention.",
+  "CHECK 3 no conflict with 00 §7 별도 기록: E-10 item 4 argues the gate is depth's stopping point, not an added term — it does not increase m — and gate prevalence stays separately aggregated via rule E-8. auth gate prevalence is preserved by rule E-9 (fact_task_entry.auth_gate_before_endpoint, verified to be a REAL column in 01 §6, allowed values 0/1, source fact_task_step.auth_gate_detected, formula + 6 boundary cases) and the E-8 two-term union auth_gate_observed = (auth_gate_before_endpoint = 1) OR (endpoint_status_detail = 'ENDPOINT_VIA_AUTH_GATE'), which prevents the 0-undercount in the two archetypes.",
+  "CHECK 4 (01 §10 mart_archetype_summary reflects stratification): 01 §10 itself is byte-unchanged (frozen) and still lists n · MPFED median · MPFED IQR · endpoint reach · modal prevalence · KWCAG summary. Stratification is imposed by A2 as supplementary spec: E-10 item 1 enumerates those exact four 01 §10 metrics as stratified, E-10 item 3 plus the §6.3 'mart_archetype_summary 층화' row specify columns endpoint_via_auth_gate_rate + per-stratum n, and I-9 blocks violation.",
+  "Deviation is formally registered: A2 §0 clause 7 EXC-2 records the departure from 01 §11 ('로그인 전까지만 가능 = AUTH_GATE_REACHED'), scoped to the two archetypes and to the gate kinds 00 §3 gave each row, with the '원본이 요구한 사실이 보존되는 곳' column pointing at E-8/E-9/E-10. This closes the companion finding a2-1-5-1a-deviates-from-01-11-without-exc-registration and means the 00-vs-01 conflict is resolved in favour of 00 (A2 §0 clauses 1 and 8) rather than silently.",
+  "A1 is consistent, not divergent: A1 §1.2's signal table quotes the two 00 §3 endpoint clauses verbatim, and the A1 §1.5 auth-gate cross-reference note ([V2-C003 시정] + [V2-C004 시정]) states that gate reach IS endpoint reach for those gate kinds, that MPFED is computed, that the other 5 archetypes are unchanged, that COMMUNICATION_ENTRY's identity-verification gate is NOT an endpoint, and that the canonical branch rule is A2 §1.5.1a rules E-5~E-10. No routing ambiguity remains (A1 §0.3 / A2 §0 clause 4 symmetric jurisdiction table)."
+ ],
+ "chain_of_the_original_claim": {
+  "premise_1_00_3_puts_gate_in_endpoint_definition": "STILL TRUE (unchanged, and correctly so — 00 is the top authority)",
+  "premise_2_a2_1_5_1_applies_auth_gate_reached_as_a_general_rule": "NO LONGER TRUE — dissolved by §1.5.1 inline exception + §1.5.1a normative table",
+  "premise_3_depth_structurally_null_in_two_archetypes": "CONSEQUENT BROKEN — endpoint_reached=1 and integer MPFED in exactly the cases 00 §3 named"
+ },
+ "remaining_gap": "",
+ "out_of_scope_not_adjudicated": [
+  "e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint — a separate open finding about the RELIABILITY of gate-kind discrimination. This audit judges only whether the 00 §3 endpoint definition and the A2 §1.5.1 family are mutually contradictory as specifications. The two verdicts are independent; this CLOSED does not weaken that finding.",
+  "full re-audit of the target outside this finding (V2-C007 returned PASS)"
+ ],
+ "non_blocking_observations": [
+  "A2 §0 clause 5 asserts that every missing table/column enumerated in §6 was already required by 01/02/A1 and that 'the exceptions are exactly two' (EXC-3, EXC-4, both non-parquet recording places). But §6.3 designates endpoint_via_auth_gate_rate (rule E-10 item 3) as a 컬럼 that 01 §10 does not list; superseded_from_web_target_id is of the same kind. Stratification itself is not a new analysis criterion (§7 item 14, E-10 item 2) and 01 §10's bullet list is arguably illustrative rather than a closed schema, so this does NOT affect the verdict. Recorded only as a self-description/enumeration mismatch inside A2 §0 clause 5 for orchestrator reconciliation. Non-blocking; not opened as a finding."
+ ],
+ "counts": {
+  "new_blocking_findings_opened": 0
+ },
+ "reconciliation_action_required": "Deduct ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1 (P1, V2_SSOT_FROZEN, orchestrator-registered) from open_blocking_total at the next orchestrator reconciliation."
+}
