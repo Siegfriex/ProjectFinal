@@ -1,0 +1,343 @@
+{
+  "schema": "entity_review_decisions/v1",
+  "generated_by": "research/landing_accessibility/scripts/build_canonical_entities.py",
+  "decided_at": "2026-08-26",
+  "decided_by": "exec-agent(C012) / A1 원문 대조",
+  "authority": "A1_WISEAPP_933",
+  "principle": "판단 근거는 A1 원문의 표기와 패널이어야 한다. 회사 관계·상식·배경지식으로 결정하지 않는다. A1 원문으로 확정할 수 없으면 UNRESOLVED 로 두고 needs_human_review 를 유지한다(06 §2-3).",
+  "evidence_layers": {
+    "BODY_TEXT": "quote 가 933 본문(wiseapp933_text.txt)의 부분문자열인가",
+    "PUBLISHER_TAGS": "quote 가 authority_manifest.source.tags 에 있는가",
+    "FIGURE_ROW": "quote 가 source_ranking_rows 의 해당 panel_id/rank 의 entity_name_raw 인가",
+    "ABSENCE": "quote 가 source 에 나열된 A1 파일들에서 0회 등장하는가"
+  },
+  "absence_scope": {
+    "body_layer": [
+      "sources/wiseapp/raw/wiseapp933_text.txt",
+      "sources/wiseapp/raw/wiseapp933_rendered.html"
+    ],
+    "raw_payload_layer": [
+      "sources/wiseapp/raw/wiseapp933_detail.json",
+      "sources/wiseapp/raw/wiseapp933_api.json"
+    ],
+    "warning": "raw payload 2파일에는 933 본문 외에 '관련 인사이트' 등 다른 기사의 본문이 함께 실려 있다. 부재 검사의 범위를 여기까지 넓히면 검사가 조용히 틀린다 — 실제로 'G마켓/옥션' 은 이 2파일에 4회 있으나 전부 다른 기사의 문장이다."
+  },
+  "axis_independence": "measurement_entity 층의 review_decision 은 web_target 층의 그룹 구성에 자동 전파되지 않는다. 두 축은 독립이다 — KEEP_SEPARATE 로 확정된 naver_app/naver_naverpay 와 gmarket_app/gmarket_auction 은 여전히 같은 web_target 후보 그룹에 남는다. '무엇을 쟀는가' 가 다른 것과 '어느 URL 을 여는가' 가 다른 것은 별개 질문이다. 하나뿐인 예외는 MERGE 인데, MERGE 는 entity 자체를 없애므로 그룹의 member 수를 바꾼다. 이번 MERGE 1건(hyundai_homeshopping_hmall)은 이미 C003 에서 별칭으로 흡수돼 있어 member 구성은 변하지 않는다(단독 그룹, member_count=1 유지).",
+  "queue_size_before": 7,
+  "decisions": [
+    {
+      "canonical_service_key": "coupang_app",
+      "service_id": "svc_79cd0e07c1eac5dc",
+      "service_name_canonical": "쿠팡",
+      "domain": "APP",
+      "review_decision": "KEEP_SEPARATE",
+      "decision_rule": "RULE_1_MEASUREMENT_TARGET",
+      "decision_confidence": "HIGH",
+      "decision_basis": "A1 원문 표기는 두 도메인에서 '쿠팡' 으로 **동일하다.** 따라서 이 판정의 근거는 표기가 아니라 원문이 각 도메인에 붙인 조사방법 각주와 지표다. APP 패널의 각주는 '한국인 Android+iOS 스마트폰 사용자 추정.' 이고 지표는 사용자 평균(만 명)·사용시간 평균(백만 분)이다. RETAIL 패널의 각주는 카드 결제 표본 문장이고 지표는 인덱스·총 결제횟수 평균(백만 회)·순 결제추정금액 성장률(%)이다. 모집단도 단위도 다르다. 규칙 1 (측정 대상 단위) — APP 패널은 앱 사용자·사용시간을, RETAIL 패널은 카드 결제추정금액을 잰다. A1 원문이 두 도메인에 서로 다른 조사방법 각주를 달았다. 원문 표기가 같아도 잰 것이 다르면 measurement_entity 는 별개다.",
+      "decision_evidence": [
+        {
+          "layer": "BODY_TEXT",
+          "quote": "한국인 Android+iOS 스마트폰 사용자 추정.",
+          "source": "wiseapp933_text.txt · APP 패널 각주 (fig01 이 속한 Chapter 1)"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "한국인이 신용카드, 체크카드로 결제한 금액을 표본 조사하였으며, 계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음.",
+          "source": "wiseapp933_text.txt · RETAIL 패널 각주 (fig06 이 속한 Chapter 3)"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "25년 하반기 액티브시니어+ 세대 순 결제추정금액 합과 총 결제횟수 평균이 가장 높았던 리테일 브랜드는 쿠팡.",
+          "source": "wiseapp933_text.txt · Chapter 3 도입부 (RETAIL 도메인)"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "쿠팡",
+          "source": "panel_id=fig01_t1;rank=7"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "쿠팡",
+          "source": "panel_id=fig06_t1;rank=1"
+        }
+      ],
+      "decided_at": "2026-08-26",
+      "decided_by": "exec-agent(C012) / A1 원문 대조",
+      "needs_human_review": false
+    },
+    {
+      "canonical_service_key": "coupang_retail",
+      "service_id": "svc_e22ebedb0e6c205f",
+      "service_name_canonical": "쿠팡",
+      "domain": "RETAIL",
+      "review_decision": "KEEP_SEPARATE",
+      "decision_rule": "RULE_1_MEASUREMENT_TARGET",
+      "decision_confidence": "HIGH",
+      "decision_basis": "coupang_app 과 같은 판정의 반대편이며 두 entity 는 같은 근거로 동시에 결정된다. 근거 전문: A1 원문 표기는 두 도메인에서 '쿠팡' 으로 **동일하다.** 따라서 이 판정의 근거는 표기가 아니라 원문이 각 도메인에 붙인 조사방법 각주와 지표다. APP 패널의 각주는 '한국인 Android+iOS 스마트폰 사용자 추정.' 이고 지표는 사용자 평균(만 명)·사용시간 평균(백만 분)이다. RETAIL 패널의 각주는 카드 결제 표본 문장이고 지표는 인덱스·총 결제횟수 평균(백만 회)·순 결제추정금액 성장률(%)이다. 모집단도 단위도 다르다. 규칙 1 (측정 대상 단위) — APP 패널은 앱 사용자·사용시간을, RETAIL 패널은 카드 결제추정금액을 잰다. A1 원문이 두 도메인에 서로 다른 조사방법 각주를 달았다. 원문 표기가 같아도 잰 것이 다르면 measurement_entity 는 별개다.",
+      "decision_evidence": [
+        {
+          "layer": "BODY_TEXT",
+          "quote": "한국인 Android+iOS 스마트폰 사용자 추정.",
+          "source": "wiseapp933_text.txt · APP 패널 각주 (fig01 이 속한 Chapter 1)"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "한국인이 신용카드, 체크카드로 결제한 금액을 표본 조사하였으며, 계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음.",
+          "source": "wiseapp933_text.txt · RETAIL 패널 각주 (fig06 이 속한 Chapter 3)"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "25년 하반기 액티브시니어+ 세대 순 결제추정금액 합과 총 결제횟수 평균이 가장 높았던 리테일 브랜드는 쿠팡.",
+          "source": "wiseapp933_text.txt · Chapter 3 도입부 (RETAIL 도메인)"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "쿠팡",
+          "source": "panel_id=fig01_t1;rank=7"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "쿠팡",
+          "source": "panel_id=fig06_t1;rank=1"
+        }
+      ],
+      "decided_at": "2026-08-26",
+      "decided_by": "exec-agent(C012) / A1 원문 대조",
+      "needs_human_review": false
+    },
+    {
+      "canonical_service_key": "gmarket_app",
+      "service_id": "svc_112f591a0d47a8d8",
+      "service_name_canonical": "G마켓",
+      "domain": "APP",
+      "review_decision": "KEEP_SEPARATE",
+      "decision_rule": "RULE_3_DISTINCT_SOURCE_LABEL",
+      "decision_confidence": "HIGH",
+      "decision_basis": "A1 원문의 APP 도메인 표기는 'G마켓'(fig03_t1 rank2 · fig05_t1 rank1 · fig05_t2 rank2)이고 RETAIL 도메인 표기는 'G마켓/옥션'(fig06_t1 rank10)으로 문자열이 다르다. 규칙 3 (원문 표기 상이) — A1 원문이 두 표기를 다른 문자열로 적었다. 병합의 입증 책임은 병합하려는 쪽에 있고, A1 원문에 두 표기가 같은 것이라는 진술이 없다. 다만 증거 계층이 비대칭이다 — APP 표기 'G마켓' 은 본문과 발행처 태그 목록에 모두 있으나 RETAIL 표기 'G마켓/옥션' 은 933 본문 텍스트 계층에 0회이고 figure 판독 계층(fig06_t1 rank10)에만 있다. 서버 응답 원본(detail.json / api.json)에는 4회 나오지만 전부 **다른 인사이트 기사**(관련 인사이트 페이로드 — 세대별 리포트 및 insight/detail/1038)의 문장이며 933 본문이 아니다. 933 의 표기 근거로 쓰지 않는다. 이 비대칭은 분리 판정을 약화시키지 않는다: 분리는 기본값이고 병합이 입증을 요구하는데, 병합을 지지하는 원문 진술이 어느 계층에도 없다.",
+      "decision_evidence": [
+        {
+          "layer": "BODY_TEXT",
+          "quote": "25년 하반기 전년 동기간 대비 액티브시니어+ 세대 앱 사용자가 가장 많이 성장한 주요 쇼핑 앱은 G마켓 (51.4%).",
+          "source": "wiseapp933_text.txt · Chapter 2 Insight 2 (APP 도메인, 표기 'G마켓')"
+        },
+        {
+          "layer": "PUBLISHER_TAGS",
+          "quote": "G마켓",
+          "source": "authority_manifest.source.tags"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "G마켓",
+          "source": "panel_id=fig05_t1;rank=1"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "G마켓/옥션",
+          "source": "panel_id=fig06_t1;rank=10"
+        },
+        {
+          "layer": "ABSENCE",
+          "quote": "G마켓/옥션",
+          "source": "sources/wiseapp/raw/wiseapp933_text.txt;sources/wiseapp/raw/wiseapp933_rendered.html",
+          "scope_note": "부재 범위는 933 **본문** 2파일이다. 서버 응답 원본(detail.json / api.json)에는 이 문자열이 4회 있으나 전부 관련 인사이트 페이로드에 실린 다른 기사의 문장이라 933 의 표기가 아니다. 범위를 넓히면 이 부재 검사는 거짓이 된다."
+        }
+      ],
+      "decided_at": "2026-08-26",
+      "decided_by": "exec-agent(C012) / A1 원문 대조",
+      "needs_human_review": false
+    },
+    {
+      "canonical_service_key": "gmarket_auction",
+      "service_id": "svc_e4a6c04cbf9d9421",
+      "service_name_canonical": "G마켓/옥션",
+      "domain": "RETAIL",
+      "review_decision": "KEEP_SEPARATE",
+      "decision_rule": "RULE_3_DISTINCT_SOURCE_LABEL",
+      "decision_confidence": "HIGH",
+      "decision_basis": "gmarket_app 과 같은 판정의 반대편이며 두 entity 는 같은 근거로 동시에 결정된다. 근거 전문: A1 원문의 APP 도메인 표기는 'G마켓'(fig03_t1 rank2 · fig05_t1 rank1 · fig05_t2 rank2)이고 RETAIL 도메인 표기는 'G마켓/옥션'(fig06_t1 rank10)으로 문자열이 다르다. 규칙 3 (원문 표기 상이) — A1 원문이 두 표기를 다른 문자열로 적었다. 병합의 입증 책임은 병합하려는 쪽에 있고, A1 원문에 두 표기가 같은 것이라는 진술이 없다. 다만 증거 계층이 비대칭이다 — APP 표기 'G마켓' 은 본문과 발행처 태그 목록에 모두 있으나 RETAIL 표기 'G마켓/옥션' 은 933 본문 텍스트 계층에 0회이고 figure 판독 계층(fig06_t1 rank10)에만 있다. 서버 응답 원본(detail.json / api.json)에는 4회 나오지만 전부 **다른 인사이트 기사**(관련 인사이트 페이로드 — 세대별 리포트 및 insight/detail/1038)의 문장이며 933 본문이 아니다. 933 의 표기 근거로 쓰지 않는다. 이 비대칭은 분리 판정을 약화시키지 않는다: 분리는 기본값이고 병합이 입증을 요구하는데, 병합을 지지하는 원문 진술이 어느 계층에도 없다.",
+      "decision_evidence": [
+        {
+          "layer": "BODY_TEXT",
+          "quote": "25년 하반기 전년 동기간 대비 액티브시니어+ 세대 앱 사용자가 가장 많이 성장한 주요 쇼핑 앱은 G마켓 (51.4%).",
+          "source": "wiseapp933_text.txt · Chapter 2 Insight 2 (APP 도메인, 표기 'G마켓')"
+        },
+        {
+          "layer": "PUBLISHER_TAGS",
+          "quote": "G마켓",
+          "source": "authority_manifest.source.tags"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "G마켓",
+          "source": "panel_id=fig05_t1;rank=1"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "G마켓/옥션",
+          "source": "panel_id=fig06_t1;rank=10"
+        },
+        {
+          "layer": "ABSENCE",
+          "quote": "G마켓/옥션",
+          "source": "sources/wiseapp/raw/wiseapp933_text.txt;sources/wiseapp/raw/wiseapp933_rendered.html",
+          "scope_note": "부재 범위는 933 **본문** 2파일이다. 서버 응답 원본(detail.json / api.json)에는 이 문자열이 4회 있으나 전부 관련 인사이트 페이로드에 실린 다른 기사의 문장이라 933 의 표기가 아니다. 범위를 넓히면 이 부재 검사는 거짓이 된다."
+        }
+      ],
+      "decided_at": "2026-08-26",
+      "decided_by": "exec-agent(C012) / A1 원문 대조",
+      "needs_human_review": false
+    },
+    {
+      "canonical_service_key": "hyundai_homeshopping_hmall",
+      "service_id": "svc_353f07b932464b82",
+      "service_name_canonical": "현대홈쇼핑/현대Hmall",
+      "domain": "RETAIL",
+      "review_decision": "MERGE",
+      "decision_rule": "MERGE_SOURCE_TYPO_ABSORBED",
+      "decision_confidence": "HIGH",
+      "decision_basis": "A1 원문 fig10 한 그림의 두 패널이 같은 브랜드 세트를 쓴다. fig10_t1(상단 도넛)과 fig10_t2(하단 막대)의 5개 라벨 중 4개(NS홈쇼핑·홈앤쇼핑·CJ온스타일·GS홈쇼핑/GS Shop)가 문자 단위로 같고, 나머지 하나만 '현대홈쇼핑/현대Hmall' vs '현대홈쇼핑/현대Hmallord' 로 다르다. 두 표기가 서로 다른 브랜드라면 fig10 이 다루는 브랜드는 6개가 되는데, A1 본문은 '주요 홈쇼핑 리테일 브랜드 5개' 라고 명시하고 Chapter 4 도입부에서 그 5개를 이름으로 열거하면서 '현대홈쇼핑/현대Hmall' 만 싣는다. 'Hmallord' 는 A1 텍스트 계층 4파일 전부에서 0회다. → 발행물 자체의 렌더링 오타이며 별개 브랜드가 아니다.",
+      "decision_evidence": [
+        {
+          "layer": "BODY_TEXT",
+          "quote": "25년 하반기 NS홈쇼핑, 홈앤쇼핑, 현대홈쇼핑/현대Hmall, CJ 온스타일, GS홈쇼핑/GS Shop은 액티브시니어+ 세대의 순 결제추정금액 비율이 각각 70%를 넘었음.",
+          "source": "wiseapp933_text.txt · Chapter 4 도입부"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "주요 홈쇼핑 리테일 브랜드 5개는 액티브시니어+ 세대 순 결제추정금액 비율이 전체의 70% 이상을 차지.",
+          "source": "wiseapp933_text.txt · Chapter 4 Insight 1 — 브랜드 수가 5개임을 원문이 명시"
+        },
+        {
+          "layer": "PUBLISHER_TAGS",
+          "quote": "현대홈쇼핑/현대Hmall",
+          "source": "authority_manifest.source.tags — 발행처 태그 목록"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "현대홈쇼핑/현대Hmall",
+          "source": "panel_id=fig10_t1;rank=3"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "현대홈쇼핑/현대Hmallord",
+          "source": "panel_id=fig10_t2;rank=2"
+        },
+        {
+          "layer": "ABSENCE",
+          "quote": "Hmallord",
+          "source": "sources/wiseapp/raw/wiseapp933_text.txt;sources/wiseapp/raw/wiseapp933_rendered.html;sources/wiseapp/raw/wiseapp933_detail.json;sources/wiseapp/raw/wiseapp933_api.json",
+          "scope_note": "본문 2파일뿐 아니라 서버 응답 원본 2파일에서도 0회다. 관련 인사이트를 포함한 어떤 기사에도 이 문자열이 없다."
+        }
+      ],
+      "decided_at": "2026-08-26",
+      "decided_by": "exec-agent(C012) / A1 원문 대조",
+      "needs_human_review": false
+    },
+    {
+      "canonical_service_key": "naver_app",
+      "service_id": "svc_8349e143ed01f677",
+      "service_name_canonical": "네이버",
+      "domain": "APP",
+      "review_decision": "KEEP_SEPARATE",
+      "decision_rule": "RULE_1_MEASUREMENT_TARGET",
+      "decision_confidence": "HIGH",
+      "decision_basis": "A1 원문의 APP 도메인 표기는 '네이버'(fig01_t1 rank4 · fig01_t2 rank3)이고 RETAIL 도메인 표기는 '네이버/네이버페이'(fig06_t1 rank2 · fig06_t2 rank7)로 문자열이 다르다. 지표도 다르다 — APP 은 '사용자 평균'(만 명)·'사용시간 평균'(백만 분), RETAIL 은 '인덱스'·'총 결제횟수 평균'(백만 회). 두 도메인의 조사방법 각주도 A1 원문에 서로 다르게 실려 있다. 규칙 1 (측정 대상 단위) — APP 패널은 앱 사용자·사용시간을, RETAIL 패널은 카드 결제추정금액을 잰다. A1 원문이 두 도메인에 서로 다른 조사방법 각주를 달았다. 원문 표기가 같아도 잰 것이 다르면 measurement_entity 는 별개다.",
+      "decision_evidence": [
+        {
+          "layer": "BODY_TEXT",
+          "quote": "A. 25년 하반기 기준 액티브시니어+ 세대 앱 사용자 평균이 높은 앱은 카카오톡 (1,377만 명) > YouTube (1,329만 명) > Google (1,278만 명) > 네이버 (1,256만 명) 등의 순.",
+          "source": "wiseapp933_text.txt · 상단 Q&A (APP 도메인, 표기 '네이버')"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "25년 하반기 액티브시니어+ 세대 순 결제추정금액 합이 높은 순으로 쿠팡 > 네이버/네이버페이 > 농협하나로마트 등.",
+          "source": "wiseapp933_text.txt · Chapter 3 Insight 1 (RETAIL 도메인, 표기 '네이버/네이버페이')"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "한국인 Android+iOS 스마트폰 사용자 추정.",
+          "source": "wiseapp933_text.txt · APP 패널 각주"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "한국인이 신용카드, 체크카드로 결제한 금액을 표본 조사하였으며, 계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음.",
+          "source": "wiseapp933_text.txt · RETAIL 패널 각주"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "네이버",
+          "source": "panel_id=fig01_t1;rank=4"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "네이버/네이버페이",
+          "source": "panel_id=fig06_t1;rank=2"
+        },
+        {
+          "layer": "PUBLISHER_TAGS",
+          "quote": "네이버/네이버페이",
+          "source": "authority_manifest.source.tags — 태그 목록에는 이 표기만 있고 '네이버' 단독 태그는 없다"
+        }
+      ],
+      "decided_at": "2026-08-26",
+      "decided_by": "exec-agent(C012) / A1 원문 대조",
+      "needs_human_review": false
+    },
+    {
+      "canonical_service_key": "naver_naverpay",
+      "service_id": "svc_7ce399cd76c70efa",
+      "service_name_canonical": "네이버/네이버페이",
+      "domain": "RETAIL",
+      "review_decision": "KEEP_SEPARATE",
+      "decision_rule": "RULE_1_MEASUREMENT_TARGET",
+      "decision_confidence": "HIGH",
+      "decision_basis": "naver_app 과 같은 판정의 반대편이며 두 entity 는 같은 근거로 동시에 결정된다. 근거 전문: A1 원문의 APP 도메인 표기는 '네이버'(fig01_t1 rank4 · fig01_t2 rank3)이고 RETAIL 도메인 표기는 '네이버/네이버페이'(fig06_t1 rank2 · fig06_t2 rank7)로 문자열이 다르다. 지표도 다르다 — APP 은 '사용자 평균'(만 명)·'사용시간 평균'(백만 분), RETAIL 은 '인덱스'·'총 결제횟수 평균'(백만 회). 두 도메인의 조사방법 각주도 A1 원문에 서로 다르게 실려 있다. 규칙 1 (측정 대상 단위) — APP 패널은 앱 사용자·사용시간을, RETAIL 패널은 카드 결제추정금액을 잰다. A1 원문이 두 도메인에 서로 다른 조사방법 각주를 달았다. 원문 표기가 같아도 잰 것이 다르면 measurement_entity 는 별개다.",
+      "decision_evidence": [
+        {
+          "layer": "BODY_TEXT",
+          "quote": "A. 25년 하반기 기준 액티브시니어+ 세대 앱 사용자 평균이 높은 앱은 카카오톡 (1,377만 명) > YouTube (1,329만 명) > Google (1,278만 명) > 네이버 (1,256만 명) 등의 순.",
+          "source": "wiseapp933_text.txt · 상단 Q&A (APP 도메인, 표기 '네이버')"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "25년 하반기 액티브시니어+ 세대 순 결제추정금액 합이 높은 순으로 쿠팡 > 네이버/네이버페이 > 농협하나로마트 등.",
+          "source": "wiseapp933_text.txt · Chapter 3 Insight 1 (RETAIL 도메인, 표기 '네이버/네이버페이')"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "한국인 Android+iOS 스마트폰 사용자 추정.",
+          "source": "wiseapp933_text.txt · APP 패널 각주"
+        },
+        {
+          "layer": "BODY_TEXT",
+          "quote": "한국인이 신용카드, 체크카드로 결제한 금액을 표본 조사하였으며, 계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음.",
+          "source": "wiseapp933_text.txt · RETAIL 패널 각주"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "네이버",
+          "source": "panel_id=fig01_t1;rank=4"
+        },
+        {
+          "layer": "FIGURE_ROW",
+          "quote": "네이버/네이버페이",
+          "source": "panel_id=fig06_t1;rank=2"
+        },
+        {
+          "layer": "PUBLISHER_TAGS",
+          "quote": "네이버/네이버페이",
+          "source": "authority_manifest.source.tags — 태그 목록에는 이 표기만 있고 '네이버' 단독 태그는 없다"
+        }
+      ],
+      "decided_at": "2026-08-26",
+      "decided_by": "exec-agent(C012) / A1 원문 대조",
+      "needs_human_review": false
+    }
+  ],
+  "distribution": {
+    "KEEP_SEPARATE": 6,
+    "MERGE": 1,
+    "UNRESOLVED": 0
+  },
+  "unresolved_remaining": 0
+}

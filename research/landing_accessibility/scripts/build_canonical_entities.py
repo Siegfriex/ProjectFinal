@@ -50,6 +50,17 @@ C011 감사 지적 반영
          → 상태값에서 제거하고 NOT_ASSESSED 로 되돌린다. 선탑재 추정은 Source Layer 밖의
            state/_researcher_priors/system_app_hypothesis.json 으로 분리한다.
 
+C012 작업 (W1 / W2 / D3)
+    W1  measurement entity review queue 해소. needs_human_review 는 손입력 플래그를 그만두고
+        review_decision(MERGE | KEEP_SEPARATE | UNRESOLVED)에서 유도되는 파생값이 된다.
+        판정 근거는 A1 원문의 표기와 패널이어야 하며, 인용은 layer 별로 기계 검증된다.
+        A1 원문으로 확정할 수 없으면 UNRESOLVED 로 두고 needs_human_review 를 유지한다.
+    W2  web_target_group 안정화. CONFIRMED 승격은 URL 이 필요하므로 하지 않는다(06 §3-4).
+        URL 없이 확정 가능한 것만 한다 — grouping_basis 를 기계 판독 가능한 JSON 으로
+        정규화하고, expected_url_relationship 을 **가설로** 선언하며(무엇이 반증하는지 포함),
+        service_master ↔ web_target_group 정합 불변식을 빌드 시점에 강제한다.
+    출력 추가: state/entity_review_decisions.json (판정 원장)
+
 실행 순서 (C011/P2-4)
     1) scripts/build_source_rows_from_journal.py   저널 → 261행 + 17패널
     2) scripts/build_canonical_entities.py         (이 파일) 위 산출물 → 2층 구조 + panel_scope
@@ -295,6 +306,280 @@ SYSTEM_APP_HYPOTHESIS_BASIS: dict[str, str] = {
 }
 
 # --------------------------------------------------------------------------
+# 3-c. C012(W1): measurement entity review queue 해소.
+#
+# needs_human_review=True 로 미결이던 7건을 **A1 원문 대조로** 확정한다.
+# 회사 관계나 상식으로 결정하지 않는다 — 판단 근거는 A1 원문의 표기와 패널이어야 한다.
+#
+# 상태값
+#     MERGE           두 원문 표기를 하나의 measurement_entity 로 흡수한다
+#     KEEP_SEPARATE   원문 표기 또는 측정 대상이 달라 별개로 유지한다
+#     UNRESOLVED      A1 원문으로 확정할 수 없다 → needs_human_review 를 유지한다
+#
+# needs_human_review 는 이제 파생값이다: review_decision == UNRESOLVED 일 때만 True.
+# 06 §2-3 원칙이 여기도 적용된다 — 확인 불가를 확정으로 바꾸지 않는다.
+#
+# decision_evidence 의 각 항목은 layer 를 갖고, layer 별로 **기계 검증 가능**하다.
+#     BODY_TEXT       quote 가 sources/wiseapp/raw/wiseapp933_text.txt 의 부분문자열인가
+#     PUBLISHER_TAGS  quote 가 authority_manifest.source.tags 에 있는가
+#     FIGURE_ROW      quote 가 source_ranking_rows 의 해당 panel_id/rank 의 entity_name_raw 인가
+#     ABSENCE         quote 가 지정한 A1 파일들에서 0회 등장하는가
+# tests/test_c012_review_and_grouping.py 가 네 layer 를 전부 원문에 대고 다시 확인한다.
+# 근거를 산문으로만 적으면 아무도 다시 확인하지 않는다.
+# --------------------------------------------------------------------------
+DECIDED_AT = "2026-08-26"
+DECIDED_BY = "exec-agent(C012) / A1 원문 대조"
+
+REVIEW_MERGE = "MERGE"
+REVIEW_KEEP_SEPARATE = "KEEP_SEPARATE"
+REVIEW_UNRESOLVED = "UNRESOLVED"
+ALLOWED_REVIEW_DECISION = {REVIEW_MERGE, REVIEW_KEEP_SEPARATE, REVIEW_UNRESOLVED}
+
+# ABSENCE 검사의 범위 — 두 종류를 구분한다.
+#   A1_BODY_LAYER_FILES  933 **본문만** 담긴 파일. 부재 주장의 기본 범위다.
+#   A1_RAW_PAYLOAD_FILES 서버 응답 원본. 933 본문 외에 '관련 인사이트' 등 **다른 기사**의
+#                        본문이 함께 실려 있다. 여기서 어떤 문자열이 발견되더라도 그것이
+#                        933 원문의 표기라는 뜻이 아니다.
+# 이 구분이 없으면 부재 검사가 조용히 틀린다. 실제로 'G마켓/옥션' 은 detail.json/api.json 에
+# 4회 등장하지만 전부 다른 인사이트 기사(예: insight/detail/1038)의 문장이다.
+A1_BODY_LAYER_FILES = [
+    "sources/wiseapp/raw/wiseapp933_text.txt",
+    "sources/wiseapp/raw/wiseapp933_rendered.html",
+]
+A1_RAW_PAYLOAD_FILES = [
+    "sources/wiseapp/raw/wiseapp933_detail.json",
+    "sources/wiseapp/raw/wiseapp933_api.json",
+]
+A1_ALL_TEXT_FILES = A1_BODY_LAYER_FILES + A1_RAW_PAYLOAD_FILES
+
+_APP_FOOTNOTE = "한국인 Android+iOS 스마트폰 사용자 추정."
+_RETAIL_FOOTNOTE = (
+    "한국인이 신용카드, 체크카드로 결제한 금액을 표본 조사하였으며, "
+    "계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음."
+)
+_RULE_1 = (
+    "규칙 1 (측정 대상 단위) — APP 패널은 앱 사용자·사용시간을, RETAIL 패널은 카드 "
+    "결제추정금액을 잰다. A1 원문이 두 도메인에 서로 다른 조사방법 각주를 달았다. "
+    "원문 표기가 같아도 잰 것이 다르면 measurement_entity 는 별개다."
+)
+_RULE_3 = (
+    "규칙 3 (원문 표기 상이) — A1 원문이 두 표기를 다른 문자열로 적었다. 병합의 입증 책임은 "
+    "병합하려는 쪽에 있고, A1 원문에 두 표기가 같은 것이라는 진술이 없다."
+)
+
+REVIEW_DECISIONS: dict[str, dict[str, object]] = {
+    "hyundai_homeshopping_hmall": {
+        "review_decision": REVIEW_MERGE,
+        "decision_rule": "MERGE_SOURCE_TYPO_ABSORBED",
+        "decision_confidence": "HIGH",
+        "decision_basis": (
+            "A1 원문 fig10 한 그림의 두 패널이 같은 브랜드 세트를 쓴다. fig10_t1(상단 도넛)과 "
+            "fig10_t2(하단 막대)의 5개 라벨 중 4개(NS홈쇼핑·홈앤쇼핑·CJ온스타일·GS홈쇼핑/GS Shop)가 "
+            "문자 단위로 같고, 나머지 하나만 '현대홈쇼핑/현대Hmall' vs '현대홈쇼핑/현대Hmallord' 로 "
+            "다르다. 두 표기가 서로 다른 브랜드라면 fig10 이 다루는 브랜드는 6개가 되는데, "
+            "A1 본문은 '주요 홈쇼핑 리테일 브랜드 5개' 라고 명시하고 Chapter 4 도입부에서 그 5개를 "
+            "이름으로 열거하면서 '현대홈쇼핑/현대Hmall' 만 싣는다. 'Hmallord' 는 A1 텍스트 계층 "
+            "4파일 전부에서 0회다. → 발행물 자체의 렌더링 오타이며 별개 브랜드가 아니다."
+        ),
+        "decision_evidence": [
+            {
+                "layer": "BODY_TEXT",
+                "quote": (
+                    "25년 하반기 NS홈쇼핑, 홈앤쇼핑, 현대홈쇼핑/현대Hmall, CJ 온스타일, "
+                    "GS홈쇼핑/GS Shop은 액티브시니어+ 세대의 순 결제추정금액 비율이 각각 70%를 넘었음."
+                ),
+                "source": "wiseapp933_text.txt · Chapter 4 도입부",
+            },
+            {
+                "layer": "BODY_TEXT",
+                "quote": "주요 홈쇼핑 리테일 브랜드 5개는 액티브시니어+ 세대 순 결제추정금액 비율이 전체의 70% 이상을 차지.",
+                "source": "wiseapp933_text.txt · Chapter 4 Insight 1 — 브랜드 수가 5개임을 원문이 명시",
+            },
+            {
+                "layer": "PUBLISHER_TAGS",
+                "quote": "현대홈쇼핑/현대Hmall",
+                "source": "authority_manifest.source.tags — 발행처 태그 목록",
+            },
+            {
+                "layer": "FIGURE_ROW",
+                "quote": "현대홈쇼핑/현대Hmall",
+                "source": "panel_id=fig10_t1;rank=3",
+            },
+            {
+                "layer": "FIGURE_ROW",
+                "quote": "현대홈쇼핑/현대Hmallord",
+                "source": "panel_id=fig10_t2;rank=2",
+            },
+            {
+                "layer": "ABSENCE",
+                "quote": "Hmallord",
+                "source": ";".join(A1_ALL_TEXT_FILES),
+                "scope_note": (
+                    "본문 2파일뿐 아니라 서버 응답 원본 2파일에서도 0회다. 관련 인사이트를 포함한 "
+                    "어떤 기사에도 이 문자열이 없다."
+                ),
+            },
+        ],
+    },
+    "naver_app": {
+        "review_decision": REVIEW_KEEP_SEPARATE,
+        "decision_rule": "RULE_1_MEASUREMENT_TARGET",
+        "decision_confidence": "HIGH",
+        "decision_basis": (
+            "A1 원문의 APP 도메인 표기는 '네이버'(fig01_t1 rank4 · fig01_t2 rank3)이고 RETAIL "
+            "도메인 표기는 '네이버/네이버페이'(fig06_t1 rank2 · fig06_t2 rank7)로 문자열이 다르다. "
+            "지표도 다르다 — APP 은 '사용자 평균'(만 명)·'사용시간 평균'(백만 분), RETAIL 은 "
+            "'인덱스'·'총 결제횟수 평균'(백만 회). 두 도메인의 조사방법 각주도 A1 원문에 서로 "
+            "다르게 실려 있다. " + _RULE_1
+        ),
+        "decision_evidence": [
+            {
+                "layer": "BODY_TEXT",
+                "quote": (
+                    "A. 25년 하반기 기준 액티브시니어+ 세대 앱 사용자 평균이 높은 앱은 "
+                    "카카오톡 (1,377만 명) > YouTube (1,329만 명) > Google (1,278만 명) > "
+                    "네이버 (1,256만 명) 등의 순."
+                ),
+                "source": "wiseapp933_text.txt · 상단 Q&A (APP 도메인, 표기 '네이버')",
+            },
+            {
+                "layer": "BODY_TEXT",
+                "quote": "25년 하반기 액티브시니어+ 세대 순 결제추정금액 합이 높은 순으로 쿠팡 > 네이버/네이버페이 > 농협하나로마트 등.",
+                "source": "wiseapp933_text.txt · Chapter 3 Insight 1 (RETAIL 도메인, 표기 '네이버/네이버페이')",
+            },
+            {
+                "layer": "BODY_TEXT",
+                "quote": _APP_FOOTNOTE,
+                "source": "wiseapp933_text.txt · APP 패널 각주",
+            },
+            {
+                "layer": "BODY_TEXT",
+                "quote": _RETAIL_FOOTNOTE,
+                "source": "wiseapp933_text.txt · RETAIL 패널 각주",
+            },
+            {"layer": "FIGURE_ROW", "quote": "네이버", "source": "panel_id=fig01_t1;rank=4"},
+            {
+                "layer": "FIGURE_ROW",
+                "quote": "네이버/네이버페이",
+                "source": "panel_id=fig06_t1;rank=2",
+            },
+            {
+                "layer": "PUBLISHER_TAGS",
+                "quote": "네이버/네이버페이",
+                "source": "authority_manifest.source.tags — 태그 목록에는 이 표기만 있고 '네이버' 단독 태그는 없다",
+            },
+        ],
+    },
+    "naver_naverpay": {
+        "review_decision": REVIEW_KEEP_SEPARATE,
+        "decision_rule": "RULE_1_MEASUREMENT_TARGET",
+        "decision_confidence": "HIGH",
+        "decision_basis": "SEE:naver_app",
+        "decision_evidence": "SEE:naver_app",
+    },
+    "gmarket_app": {
+        "review_decision": REVIEW_KEEP_SEPARATE,
+        "decision_rule": "RULE_3_DISTINCT_SOURCE_LABEL",
+        "decision_confidence": "HIGH",
+        "decision_basis": (
+            "A1 원문의 APP 도메인 표기는 'G마켓'(fig03_t1 rank2 · fig05_t1 rank1 · fig05_t2 rank2)이고 "
+            "RETAIL 도메인 표기는 'G마켓/옥션'(fig06_t1 rank10)으로 문자열이 다르다. "
+            + _RULE_3
+            + " "
+            "다만 증거 계층이 비대칭이다 — APP 표기 'G마켓' 은 본문과 발행처 태그 목록에 모두 있으나 "
+            "RETAIL 표기 'G마켓/옥션' 은 933 본문 텍스트 계층에 0회이고 figure 판독 계층"
+            "(fig06_t1 rank10)에만 있다. 서버 응답 원본(detail.json / api.json)에는 4회 나오지만 "
+            "전부 **다른 인사이트 기사**(관련 인사이트 페이로드 — 세대별 리포트 및 "
+            "insight/detail/1038)의 문장이며 933 본문이 아니다. 933 의 표기 근거로 쓰지 않는다. "
+            "이 비대칭은 분리 판정을 약화시키지 않는다: 분리는 기본값이고 병합이 입증을 "
+            "요구하는데, 병합을 지지하는 원문 진술이 어느 계층에도 없다."
+        ),
+        "decision_evidence": [
+            {
+                "layer": "BODY_TEXT",
+                "quote": "25년 하반기 전년 동기간 대비 액티브시니어+ 세대 앱 사용자가 가장 많이 성장한 주요 쇼핑 앱은 G마켓 (51.4%).",
+                "source": "wiseapp933_text.txt · Chapter 2 Insight 2 (APP 도메인, 표기 'G마켓')",
+            },
+            {
+                "layer": "PUBLISHER_TAGS",
+                "quote": "G마켓",
+                "source": "authority_manifest.source.tags",
+            },
+            {"layer": "FIGURE_ROW", "quote": "G마켓", "source": "panel_id=fig05_t1;rank=1"},
+            {"layer": "FIGURE_ROW", "quote": "G마켓/옥션", "source": "panel_id=fig06_t1;rank=10"},
+            {
+                "layer": "ABSENCE",
+                "quote": "G마켓/옥션",
+                "source": ";".join(A1_BODY_LAYER_FILES),
+                "scope_note": (
+                    "부재 범위는 933 **본문** 2파일이다. 서버 응답 원본(detail.json / api.json)에는 "
+                    "이 문자열이 4회 있으나 전부 관련 인사이트 페이로드에 실린 다른 기사의 문장이라 "
+                    "933 의 표기가 아니다. 범위를 넓히면 이 부재 검사는 거짓이 된다."
+                ),
+            },
+        ],
+    },
+    "gmarket_auction": {
+        "review_decision": REVIEW_KEEP_SEPARATE,
+        "decision_rule": "RULE_3_DISTINCT_SOURCE_LABEL",
+        "decision_confidence": "HIGH",
+        "decision_basis": "SEE:gmarket_app",
+        "decision_evidence": "SEE:gmarket_app",
+    },
+    "coupang_app": {
+        "review_decision": REVIEW_KEEP_SEPARATE,
+        "decision_rule": "RULE_1_MEASUREMENT_TARGET",
+        "decision_confidence": "HIGH",
+        "decision_basis": (
+            "A1 원문 표기는 두 도메인에서 '쿠팡' 으로 **동일하다.** 따라서 이 판정의 근거는 표기가 "
+            "아니라 원문이 각 도메인에 붙인 조사방법 각주와 지표다. APP 패널의 각주는 "
+            "'한국인 Android+iOS 스마트폰 사용자 추정.' 이고 지표는 사용자 평균(만 명)·사용시간 "
+            "평균(백만 분)이다. RETAIL 패널의 각주는 카드 결제 표본 문장이고 지표는 인덱스·총 "
+            "결제횟수 평균(백만 회)·순 결제추정금액 성장률(%)이다. 모집단도 단위도 다르다. "
+            + _RULE_1
+        ),
+        "decision_evidence": [
+            {
+                "layer": "BODY_TEXT",
+                "quote": _APP_FOOTNOTE,
+                "source": "wiseapp933_text.txt · APP 패널 각주 (fig01 이 속한 Chapter 1)",
+            },
+            {
+                "layer": "BODY_TEXT",
+                "quote": _RETAIL_FOOTNOTE,
+                "source": "wiseapp933_text.txt · RETAIL 패널 각주 (fig06 이 속한 Chapter 3)",
+            },
+            {
+                "layer": "BODY_TEXT",
+                "quote": "25년 하반기 액티브시니어+ 세대 순 결제추정금액 합과 총 결제횟수 평균이 가장 높았던 리테일 브랜드는 쿠팡.",
+                "source": "wiseapp933_text.txt · Chapter 3 도입부 (RETAIL 도메인)",
+            },
+            {"layer": "FIGURE_ROW", "quote": "쿠팡", "source": "panel_id=fig01_t1;rank=7"},
+            {"layer": "FIGURE_ROW", "quote": "쿠팡", "source": "panel_id=fig06_t1;rank=1"},
+        ],
+    },
+    "coupang_retail": {
+        "review_decision": REVIEW_KEEP_SEPARATE,
+        "decision_rule": "RULE_1_MEASUREMENT_TARGET",
+        "decision_confidence": "HIGH",
+        "decision_basis": "SEE:coupang_app",
+        "decision_evidence": "SEE:coupang_app",
+    },
+}
+
+# review_decision 이 web_target 층에 자동 전파되지 않음을 명시한다.
+# measurement 축의 KEEP_SEPARATE 는 "잰 것이 다르다" 는 뜻이지 "랜딩이 다르다" 는 뜻이 아니다.
+REVIEW_AXIS_INDEPENDENCE_NOTE = (
+    "measurement_entity 층의 review_decision 은 web_target 층의 그룹 구성에 자동 전파되지 "
+    "않는다. 두 축은 독립이다 — KEEP_SEPARATE 로 확정된 naver_app/naver_naverpay 와 "
+    "gmarket_app/gmarket_auction 은 여전히 같은 web_target 후보 그룹에 남는다. "
+    "'무엇을 쟀는가' 가 다른 것과 '어느 URL 을 여는가' 가 다른 것은 별개 질문이다. "
+    "하나뿐인 예외는 MERGE 인데, MERGE 는 entity 자체를 없애므로 그룹의 member 수를 바꾼다. "
+    "이번 MERGE 1건(hyundai_homeshopping_hmall)은 이미 C003 에서 별칭으로 흡수돼 있어 "
+    "member 구성은 변하지 않는다(단독 그룹, member_count=1 유지)."
+)
+
+# --------------------------------------------------------------------------
 # 4. web_target 그룹 후보 — 같은 랜딩 URL 로 귀결될 가능성이 있는 measurement_entity 묶음.
 #    **URL 증거가 아직 하나도 없다.** 그래서 확정이 아니라 후보로만 둔다.
 #    이 그룹이 확정되면 그룹당 관측을 정확히 1회만 수행해 2중 수집을 막는다.
@@ -320,6 +605,78 @@ WEB_TARGET_GROUP_CANDIDATES: dict[str, tuple[list[str], str]] = {
 GROUPING_CANDIDATE = "CANDIDATE_PENDING_URL_REVIEW"
 GROUPING_SINGLETON = "SINGLETON_PENDING_URL_REVIEW"
 ALLOWED_GROUPING_STATUS = {GROUPING_CANDIDATE, GROUPING_SINGLETON}
+
+# --------------------------------------------------------------------------
+# 4-b. C012(W2): expected_url_relationship — URL 없이 확정 가능한 구조적 정합성.
+#      CONFIRMED 승격은 URL 이 필요하므로 이번 cycle 에서 하지 않는다(06 §3-4).
+#      여기서 하는 것은 "URL 을 보면 무엇이 반증되는가" 를 미리 적어 두는 일이다.
+# --------------------------------------------------------------------------
+REL_SAME = "SAME_LANDING_EXPECTED"
+REL_DIFFERENT = "DIFFERENT_LANDING_EXPECTED"
+REL_UNKNOWN = "UNKNOWN"
+ALLOWED_URL_RELATIONSHIP = {REL_SAME, REL_DIFFERENT, REL_UNKNOWN}
+
+# 후보 그룹의 기대 관계 — **전부 가설이다.** 근거는 원문 표기 문자열이지 URL 이 아니다.
+# falsifier 에 URL 을 적지 않는다: 06 §3-2 가 추측 URL 생성을 금지한다.
+GROUP_URL_HYPOTHESIS: dict[str, dict[str, str]] = {
+    "coupang": {
+        "shared_signal": "쿠팡",
+        "signal_kind": "IDENTICAL_SOURCE_LABEL",
+        "rationale": (
+            "A1 원문이 APP 패널(fig01_t1 rank7 / fig01_t2 rank10)과 RETAIL 패널"
+            "(fig06_t1 rank1 / fig06_t2 rank1 / fig09_t1 rank5)에서 같은 문자열 '쿠팡' 을 썼다. "
+            "표기가 문자 단위로 동일한 유일한 후보다."
+        ),
+        "falsifier": (
+            "두 measurement_entity 의 official_landing_url 이 서로 다른 PSL 등록도메인으로 "
+            "확정되면 SPLIT 한다."
+        ),
+        "risk": (
+            "표기 동일성은 랜딩 동일성의 증거가 아니다. 같은 브랜드가 앱 소개 페이지와 "
+            "커머스 랜딩을 따로 두는 경우 두 entity 의 URL 이 갈릴 수 있다."
+        ),
+    },
+    "naver": {
+        "shared_signal": "네이버",
+        "signal_kind": "SOURCE_LABEL_PREFIX",
+        "rationale": (
+            "RETAIL 표기 '네이버/네이버페이'(fig06_t1 rank2 / fig06_t2 rank7)가 APP 표기 "
+            "'네이버'(fig01_t1 rank4 / fig01_t2 rank3)를 접두로 포함한다. 문자열 포함 관계가 "
+            "그룹핑의 유일한 신호다."
+        ),
+        "falsifier": (
+            "RETAIL entity 의 랜딩이 APP entity 와 다른 등록도메인 또는 다른 경로로 확정되면 "
+            "SPLIT 한다."
+        ),
+        "risk": (
+            "슬래시 뒤의 '네이버페이' 가 독립 서비스 랜딩을 가질 수 있다. 그 경우 이 그룹은 "
+            "해체된다."
+        ),
+    },
+    "gmarket": {
+        "shared_signal": "G마켓",
+        "signal_kind": "SOURCE_LABEL_PREFIX",
+        "rationale": (
+            "RETAIL 표기 'G마켓/옥션'(fig06_t1 rank10)이 APP 표기 'G마켓'(fig03_t1 rank2 / "
+            "fig05_t1 rank1 / fig05_t2 rank2)을 접두로 포함한다."
+        ),
+        "falsifier": (
+            "RETAIL entity 의 랜딩이 APP entity 와 다른 등록도메인 또는 다른 경로로 확정되면 "
+            "SPLIT 한다."
+        ),
+        "risk": (
+            "세 후보 중 가장 약하다. RETAIL 측정 단위가 두 브랜드의 합산이고, 슬래시 뒤의 "
+            "'옥션' 이 별도 랜딩을 가지면 하나의 URL 로 귀결되지 않는다. "
+            "또한 'G마켓/옥션' 은 933 본문 텍스트 계층에 없고 figure 판독 계층에만 있다."
+        ),
+    },
+}
+
+SINGLETON_RELATIONSHIP_BASIS = (
+    "member 가 1건인 그룹이다. 그룹 '내부' URL 관계가 성립하지 않으므로 관계를 선언하지 "
+    "않는다. 다른 그룹과 같은 랜딩으로 귀결될 가능성은 URL 확정 전까지 미확인이며, "
+    "그것을 여기서 UNKNOWN 이 아닌 값으로 적으면 URL 없이 결론을 선점하는 것이다."
+)
 
 
 def sid(canonical_key: str) -> str:
@@ -429,7 +786,49 @@ def main() -> None:
 
         primary = CANONICAL_DISPLAY.get(ckey, raws[0])
         spec_src = next(p for p in pairs if ENTITY_SPEC[p][0] == ckey and ENTITY_SPEC[p][1])
-        _, basis, needs_review = ENTITY_SPEC[spec_src]
+        _, basis, raised_for_review = ENTITY_SPEC[spec_src]
+
+        # C012(W1): review queue 를 A1 원문 대조로 해소한다.
+        # needs_human_review 는 더 이상 ENTITY_SPEC 의 손입력이 아니라 파생값이다 —
+        # review_decision == UNRESOLVED 일 때만 True. 확인 불가를 확정으로 바꾸지 않는다.
+        decision = REVIEW_DECISIONS.get(ckey)
+        if raised_for_review and decision is None:
+            raise SystemExit(
+                f"{ckey}: review queue 에 올라왔는데 REVIEW_DECISIONS 에 판정이 없다. "
+                "미결로 두려면 review_decision=UNRESOLVED 를 명시하라."
+            )
+        if decision is not None and not raised_for_review:
+            raise SystemExit(f"{ckey}: review queue 에 없는데 판정만 있다")
+
+        if decision is None:
+            review_decision = None
+            decision_rule = None
+            decision_confidence = None
+            decision_basis = None
+            decision_evidence_json = None
+            decided_at = None
+            decided_by = None
+            needs_review = False
+        else:
+            review_decision = str(decision["review_decision"])
+            decision_rule = str(decision["decision_rule"])
+            decision_confidence = str(decision["decision_confidence"])
+            # 쌍 판정의 반대편은 근거를 포인터로만 두지 않고 **전문을 복제한다.**
+            # 포인터만 남기면 CSV 한 줄만 본 사람은 근거 없는 판정으로 읽는다.
+            decision_basis = str(decision["decision_basis"])
+            if decision_basis.startswith("SEE:"):
+                mirror = decision_basis[4:]
+                decision_basis = (
+                    f"{mirror} 과 같은 판정의 반대편이며 두 entity 는 같은 근거로 동시에 "
+                    f"결정된다. 근거 전문: " + str(REVIEW_DECISIONS[mirror]["decision_basis"])
+                )
+            evidence = decision["decision_evidence"]
+            if isinstance(evidence, str) and evidence.startswith("SEE:"):
+                evidence = REVIEW_DECISIONS[evidence[4:]]["decision_evidence"]
+            decision_evidence_json = json.dumps(evidence, ensure_ascii=False)
+            decided_at = DECIDED_AT
+            decided_by = DECIDED_BY
+            needs_review = review_decision == REVIEW_UNRESOLVED
 
         if axis_type == "INDUSTRY_CATEGORY":
             eligibility, elig_basis = STATUS_EXCLUDED_INDUSTRY, INDUSTRY
@@ -466,6 +865,14 @@ def main() -> None:
                 "retail_row_count": retail_rows,
                 "alias_count": len(pairs),
                 "canonicalization_basis": basis,
+                # C012(W1): review queue 판정. 판정이 없는 entity 는 애초에 큐에 오르지 않았다.
+                "review_decision": review_decision,
+                "decision_rule": decision_rule,
+                "decision_basis": decision_basis,
+                "decision_evidence": decision_evidence_json,
+                "decision_confidence": decision_confidence,
+                "decided_at": decided_at,
+                "decided_by": decided_by,
                 "needs_human_review": bool(needs_review),
                 "web_eligibility_status": eligibility,
                 "web_eligibility_basis": elig_basis,
@@ -497,7 +904,29 @@ def main() -> None:
         f"도메인을 넘나드는 measurement_entity: {both['canonical_service_key'].tolist()}"
     )
 
+    # C012(W1): review_decision 어휘를 코드에서 닫는다.
+    decided = service_master[service_master["review_decision"].notna()]
+    bad_decision = set(decided["review_decision"]) - ALLOWED_REVIEW_DECISION
+    assert not bad_decision, f"허용되지 않은 review_decision: {bad_decision}"
+    # needs_human_review 는 파생값이다 — 손으로 켜고 끄는 플래그가 아니다.
+    derived = service_master["review_decision"].eq(REVIEW_UNRESOLVED)
+    assert service_master["needs_human_review"].equals(derived), (
+        "needs_human_review 가 review_decision 에서 유도되지 않았다"
+    )
+    for col in ("decision_basis", "decision_evidence", "decided_at", "decided_by"):
+        empty = decided[decided[col].isna() | decided[col].eq("")]
+        assert empty.empty, (
+            f"판정은 있는데 {col} 가 비었다: {empty['canonical_service_key'].tolist()}"
+        )
+
     # ---------------- web_target_group (web_target 층) ----------------
+    decision_of = dict(
+        zip(
+            service_master["canonical_service_key"],
+            service_master["review_decision"],
+            strict=True,
+        )
+    )
     web_recs = []
     for wkey, sub in service_master[service_master["web_target_key"].notna()].groupby(
         "web_target_key"
@@ -518,6 +947,42 @@ def main() -> None:
         member_ids = [m[0] for m in members]
         member_keys = [m[1] for m in members]
         member_domains = [m[2] for m in members]
+        # C012(W2-3): W1 판정을 그룹 표에 위치 대응으로 실어 둔다. 전파는 하지 않는다 —
+        # measurement 축의 KEEP_SEPARATE 는 web_target 축의 분리를 뜻하지 않는다.
+        member_decisions = [decision_of.get(k) or "NOT_IN_REVIEW_QUEUE" for k in member_keys]
+
+        # C012(W2-1): grouping_basis 를 산문에서 기계 판독 가능한 구조로 정규화한다.
+        # 산문은 note 로 보존한다(사후 윤색 금지 — C009/C011 문구를 그대로 옮긴다).
+        if is_candidate:
+            hyp = GROUP_URL_HYPOTHESIS[str(wkey)]
+            grouping_basis = {
+                "rule": "SHARED_SOURCE_LABEL_SIGNAL",
+                "signal_kind": hyp["signal_kind"],
+                "shared_signal": hyp["shared_signal"],
+                "evidence_layer": "A1_SOURCE_LABEL",
+                "url_evidence": None,
+                "note": WEB_TARGET_GROUP_CANDIDATES[str(wkey)][1],
+            }
+            relationship = REL_SAME
+            relationship_basis = hyp["rationale"]
+            relationship_is_hypothesis = True
+            relationship_falsifier = hyp["falsifier"]
+            relationship_risk = hyp["risk"]
+        else:
+            grouping_basis = {
+                "rule": "NO_SHARED_SOURCE_LABEL_SIGNAL",
+                "signal_kind": None,
+                "shared_signal": None,
+                "evidence_layer": "A1_SOURCE_LABEL",
+                "url_evidence": None,
+                "note": "다른 measurement_entity 와 묶을 원문 근거가 없다. 단독 web_target 후보.",
+            }
+            relationship = REL_UNKNOWN
+            relationship_basis = SINGLETON_RELATIONSHIP_BASIS
+            relationship_is_hypothesis = False
+            relationship_falsifier = None
+            relationship_risk = None
+
         web_recs.append(
             {
                 "web_target_group_id": wtg(str(wkey)),
@@ -528,12 +993,17 @@ def main() -> None:
                 # 위치 i 는 member_service_ids[i] 의 도메인이다. 집합이 아니라 배열이므로
                 # 같은 도메인이 두 번 나올 수 있다 — 그것이 정상이다.
                 "member_domains": ",".join(member_domains),
+                "member_review_decisions": ",".join(member_decisions),
                 "grouping_status": GROUPING_CANDIDATE if is_candidate else GROUPING_SINGLETON,
-                "grouping_basis": (
-                    WEB_TARGET_GROUP_CANDIDATES[str(wkey)][1]
-                    if is_candidate
-                    else "다른 measurement_entity 와 묶을 원문 근거가 없다. 단독 web_target 후보."
-                ),
+                "grouping_basis": json.dumps(grouping_basis, ensure_ascii=False, sort_keys=True),
+                # C012(W2-2): URL 을 보기 전에 기대 관계를 선언해 두고, 무엇이 이 기대를
+                # 반증하는지 함께 적는다. **확정이 아니라 가설이다.**
+                "expected_url_relationship": relationship,
+                "expected_url_relationship_basis": relationship_basis,
+                "expected_url_relationship_is_hypothesis": relationship_is_hypothesis,
+                "expected_url_relationship_confirmed_by_url": False,
+                "expected_url_relationship_falsifier": relationship_falsifier,
+                "expected_url_relationship_risk": relationship_risk,
                 # URL 증거가 없다. 그룹이 확정되기 전에는 이 두 칸이 비어 있어야 한다.
                 "web_target_url": None,
                 "url_evidence": None,
@@ -559,10 +1029,51 @@ def main() -> None:
         assert len(ids) == len(keys) == len(doms) == rec.member_count, (
             f"{rec.web_target_group_id}: member_* 배열 길이 불일치"
         )
+        decs = rec.member_review_decisions.split(",")
+        assert len(decs) == rec.member_count, (
+            f"{rec.web_target_group_id}: member_review_decisions 길이 불일치"
+        )
         for i, s_id in enumerate(ids):
             assert domain_of[s_id] == doms[i] and key_of[s_id] == keys[i], (
                 f"{rec.web_target_group_id}[{i}]: member_* 위치 어긋남"
             )
+            expected = decision_of.get(key_of[s_id]) or "NOT_IN_REVIEW_QUEUE"
+            assert decs[i] == expected, (
+                f"{rec.web_target_group_id}[{i}]: member_review_decisions 위치 어긋남"
+            )
+
+    # C012(W2-4): web_target_group ↔ service_master 정합 불변식.
+    #   (1) 브랜드 축 service_id 는 정확히 하나의 그룹에 속한다 — 0개도 2개도 아니다.
+    #   (2) 업종 축 10건은 그룹 층에 아예 존재하지 않는다.
+    brand_ids = set(
+        service_master.loc[service_master["axis_type"] == "SERVICE_BRAND", "service_id"]
+    )
+    industry_ids = set(
+        service_master.loc[service_master["axis_type"] == "INDUSTRY_CATEGORY", "service_id"]
+    )
+    membership: dict[str, list[str]] = {}
+    for rec in web_target_group.itertuples():
+        for s_id in rec.member_service_ids.split(","):
+            membership.setdefault(s_id, []).append(rec.web_target_group_id)
+    multi = {k: v for k, v in membership.items() if len(v) > 1}
+    assert not multi, f"두 그룹에 동시에 속한 service_id: {multi}"
+    assert set(membership) == brand_ids, (
+        "그룹 member 집합과 브랜드 축 service_id 집합이 다르다: "
+        f"누락 {sorted(brand_ids - set(membership))} / 잉여 {sorted(set(membership) - brand_ids)}"
+    )
+    assert not (industry_ids & set(membership)), "업종 축 entity 가 web_target 그룹에 들어갔다"
+    assert int(web_target_group["member_count"].sum()) == len(brand_ids)
+
+    # C012(W2-2): 기대 관계는 어휘가 닫혀 있고, URL 이 없는 동안은 전부 미확정이다.
+    bad_rel = set(web_target_group["expected_url_relationship"]) - ALLOWED_URL_RELATIONSHIP
+    assert not bad_rel, f"허용되지 않은 expected_url_relationship: {bad_rel}"
+    assert not web_target_group["expected_url_relationship_confirmed_by_url"].any(), (
+        "URL 없이 기대 관계가 확정으로 표시됐다"
+    )
+    cand_mask = web_target_group["grouping_status"] == GROUPING_CANDIDATE
+    assert web_target_group.loc[cand_mask, "expected_url_relationship_is_hypothesis"].all(), (
+        "후보 그룹의 기대 관계가 가설로 표시되지 않았다"
+    )
 
     # ---------------- source_membership ----------------
     mem = (
@@ -577,9 +1088,10 @@ def main() -> None:
         "schema": "extraction_corrections/v2",
         "generated_by": "research/landing_accessibility/scripts/build_canonical_entities.py",
         "note": (
-            "C003 단계의 판독 검증 2건(COR-001/002)과 C009 감사 수용에 따른 스키마 시정 2건"
-            "(COR-003/004)을 함께 기록한다. 원자료(source_ranking_rows.parquet) 값 시정은 "
-            "누적 0건이며 261행은 그대로다."
+            "C003 단계의 판독 검증 2건(COR-001/002), C009 감사 수용에 따른 스키마 시정 2건"
+            "(COR-003/004), C011 감사 수용 2건(COR-005/006), C012 의 review queue 해소와 "
+            "web_target 구조 정규화 2건(COR-007/008)을 함께 기록한다. "
+            "원자료(source_ranking_rows.parquet) 값 시정은 누적 0건이며 261행은 그대로다."
         ),
         "corrections": [
             {
@@ -718,6 +1230,64 @@ def main() -> None:
                 ),
                 "corrected_by": "exec-agent(C011) / 독립감사 2건 수용",
             },
+            {
+                "correction_id": "COR-007",
+                "row_id": None,
+                "affected_row_ids": [],
+                "panel_id": None,
+                "field": "service_master.needs_human_review",
+                "before": "손입력 플래그 True 7건 (ENTITY_SPEC 세 번째 원소). 판정 없이 '미결' 만 있었다.",
+                "after": (
+                    "review_decision ∈ {MERGE, KEEP_SEPARATE, UNRESOLVED} 에서 유도되는 파생값. "
+                    "needs_human_review = (review_decision == 'UNRESOLVED')"
+                ),
+                "action": "REVIEW_QUEUE_RESOLVED_AGAINST_A1_SOURCE",
+                "evidence": (
+                    "미결 7건 각각에 A1 원문 인용을 붙여 판정했다. 근거는 layer 별로 기계 검증된다 — "
+                    "BODY_TEXT 는 wiseapp933_text.txt 부분문자열, PUBLISHER_TAGS 는 "
+                    "authority_manifest.source.tags 원소, FIGURE_ROW 는 source_ranking_rows 의 "
+                    "panel_id/rank 에 실린 entity_name_raw, ABSENCE 는 지정 파일에서 0회. "
+                    "부재 검사의 범위를 933 본문 2파일로 한정한다: 서버 응답 원본에는 관련 인사이트 등 "
+                    "다른 기사 본문이 섞여 있어 범위를 넓히면 검사가 조용히 틀린다"
+                    "(실제로 'G마켓/옥션' 이 그 2파일에 4회 있으나 전부 다른 기사의 문장이다)."
+                ),
+                "resolution": (
+                    "판정 분포 MERGE 1 / KEEP_SEPARATE 6 / UNRESOLVED 0. "
+                    "needs_human_review 7 → 0. 판정 원장은 state/entity_review_decisions.json 이며 "
+                    "tests/test_c012_review_and_grouping.py 가 인용을 원문에 다시 대고 검증한다. "
+                    "원자료 261행은 변경하지 않았다 — MERGE 1건은 C003 에서 이미 별칭으로 흡수된 건이라 "
+                    "entity 수·그룹 수 어느 것도 바뀌지 않는다."
+                ),
+                "corrected_by": "exec-agent(C012) / A1 원문 대조",
+            },
+            {
+                "correction_id": "COR-008",
+                "row_id": None,
+                "affected_row_ids": [],
+                "panel_id": None,
+                "field": "web_target_group.grouping_basis / expected_url_relationship",
+                "before": "grouping_basis 가 산문 한 덩어리. 기대 URL 관계를 적는 칸이 없었다.",
+                "after": (
+                    "grouping_basis = JSON {rule, signal_kind, shared_signal, evidence_layer, "
+                    "url_evidence, note}. expected_url_relationship ∈ {SAME_LANDING_EXPECTED, "
+                    "DIFFERENT_LANDING_EXPECTED, UNKNOWN} + basis / is_hypothesis / "
+                    "confirmed_by_url / falsifier / risk"
+                ),
+                "action": "GROUPING_BASIS_MACHINE_READABLE_AND_HYPOTHESIS_DECLARED",
+                "evidence": (
+                    "그룹핑 신호가 산문에 묻혀 있으면 '무엇이 근거였는지' 를 기계가 확인할 수 없고, "
+                    "URL 이 나온 뒤에 근거가 사후 조정될 여지가 남는다. url_evidence 는 전 그룹에서 "
+                    "null 이며 그 사실이 필드로 드러난다."
+                ),
+                "resolution": (
+                    "CONFIRMED 승격은 하지 않는다(06 §3-4 — URL 이 필요하다). 대신 후보 3건에 "
+                    "SAME_LANDING_EXPECTED 를 **가설로** 선언하고 무엇이 이 가설을 반증하는지를 "
+                    "falsifier 에 미리 적었다. 반증 조건에 URL 을 적지 않는다(06 §3-2 추측 URL 금지). "
+                    "단독 그룹 65건은 UNKNOWN 이다 — 그룹 내부 관계가 성립하지 않는데 값을 채우면 "
+                    "URL 없이 결론을 선점하는 것이다."
+                ),
+                "corrected_by": "exec-agent(C012)",
+            },
         ],
         "row_value_changes_applied": 0,
         "source_row_count_before": EXPECTED_ROWS,
@@ -788,6 +1358,65 @@ def main() -> None:
         json.dumps(corrections, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
 
+    # C012(W1): 판정을 사람이 읽을 수 있는 형태로도 남긴다. CSV 한 칸에 눌러 담은 JSON 은
+    # 감사자가 읽지 않는다 — 읽히지 않는 근거는 없는 근거와 같다.
+    review_ledger = {
+        "schema": "entity_review_decisions/v1",
+        "generated_by": "research/landing_accessibility/scripts/build_canonical_entities.py",
+        "decided_at": DECIDED_AT,
+        "decided_by": DECIDED_BY,
+        "authority": "A1_WISEAPP_933",
+        "principle": (
+            "판단 근거는 A1 원문의 표기와 패널이어야 한다. 회사 관계·상식·배경지식으로 "
+            "결정하지 않는다. A1 원문으로 확정할 수 없으면 UNRESOLVED 로 두고 "
+            "needs_human_review 를 유지한다(06 §2-3)."
+        ),
+        "evidence_layers": {
+            "BODY_TEXT": "quote 가 933 본문(wiseapp933_text.txt)의 부분문자열인가",
+            "PUBLISHER_TAGS": "quote 가 authority_manifest.source.tags 에 있는가",
+            "FIGURE_ROW": "quote 가 source_ranking_rows 의 해당 panel_id/rank 의 entity_name_raw 인가",
+            "ABSENCE": "quote 가 source 에 나열된 A1 파일들에서 0회 등장하는가",
+        },
+        "absence_scope": {
+            "body_layer": A1_BODY_LAYER_FILES,
+            "raw_payload_layer": A1_RAW_PAYLOAD_FILES,
+            "warning": (
+                "raw payload 2파일에는 933 본문 외에 '관련 인사이트' 등 다른 기사의 본문이 "
+                "함께 실려 있다. 부재 검사의 범위를 여기까지 넓히면 검사가 조용히 틀린다 — "
+                "실제로 'G마켓/옥션' 은 이 2파일에 4회 있으나 전부 다른 기사의 문장이다."
+            ),
+        },
+        "axis_independence": REVIEW_AXIS_INDEPENDENCE_NOTE,
+        "queue_size_before": int(sum(1 for v in ENTITY_SPEC.values() if v[2])),
+        "decisions": [
+            {
+                "canonical_service_key": r.canonical_service_key,
+                "service_id": r.service_id,
+                "service_name_canonical": r.service_name_canonical,
+                "domain": r.domain,
+                "review_decision": r.review_decision,
+                "decision_rule": r.decision_rule,
+                "decision_confidence": r.decision_confidence,
+                "decision_basis": r.decision_basis,
+                "decision_evidence": json.loads(r.decision_evidence),
+                "decided_at": r.decided_at,
+                "decided_by": r.decided_by,
+                "needs_human_review": bool(r.needs_human_review),
+            }
+            for r in service_master[service_master["review_decision"].notna()]
+            .sort_values("canonical_service_key")
+            .itertuples()
+        ],
+    }
+    review_ledger["distribution"] = {
+        d: sum(1 for x in review_ledger["decisions"] if x["review_decision"] == d)
+        for d in sorted(ALLOWED_REVIEW_DECISION)
+    }
+    review_ledger["unresolved_remaining"] = review_ledger["distribution"][REVIEW_UNRESOLVED]
+    (STATE / "entity_review_decisions.json").write_text(
+        json.dumps(review_ledger, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+
     # ---------------- 요약 ----------------
     print(f"source_ranking_rows  : {len(rows)} 행 (불변)")
     print(f"panel_registry       : {len(panels)} 패널")
@@ -804,8 +1433,13 @@ def main() -> None:
         f"retail {int(service_master['retail_row_count'].sum())} = "
         f"{int(service_master['app_row_count'].sum() + service_master['retail_row_count'].sum())}"
     )
+    print("expected_url_relationship:")
+    print(web_target_group["expected_url_relationship"].value_counts().to_string())
+    print(f"review queue         : {review_ledger['queue_size_before']} 건 접수")
+    for name, n in review_ledger["distribution"].items():
+        print(f"  {name:<14}: {n}")
     nr = service_master[service_master["needs_human_review"]]
-    print(f"needs_human_review   : {len(nr)}")
+    print(f"needs_human_review   : {len(nr)} (= UNRESOLVED)")
     for r in nr.itertuples():
         print(f"  - {r.service_id} {r.canonical_service_key} ({r.service_name_canonical})")
 

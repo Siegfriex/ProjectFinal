@@ -23,7 +23,14 @@ figure 판독 결과만 커밋돼 있어 산출물로부터 재현이 불가능�
 출력:
     state/source_ranking_rows.parquet / .csv   261행 (+ axis_type, figure_source_pointer)
     state/panel_registry.parquet / .csv        17패널 (판독 저널 기반 필드 + C009 스키마)
-    state/journal_provenance.json              저널 → 행 매핑 요약
+    state/journal_provenance.json              저널 → 행 매핑 요약 (schema v3)
+
+C012(D3) — 산출물에 절대경로를 적지 않는다
+    v2 의 journal_provenance.json 은 `journal_path` 에 실행자 워크트리 절대경로를 적었다.
+    그래서 "두 빌드 스크립트를 재실행하면 diff -r 이 바이트 동일" 이라는 C011 보고는 **같은
+    워크트리에서만** 참이었다. 다른 clone 에서 재실행하면 그 1줄이 어긋난다.
+    v3 은 `journal_path_in_repo`(저장소 상대경로)만 남기고, 절대경로는 실행 시점에만 존재하는
+    값으로 `path_policy.resolved_at_runtime` 에 이름만 선언한다. 저널이 저장소 밖이면 실패한다.
 
 행별 출처 포인터
     각 행에 `figure_source_pointer` 를 남긴다. 형식:
@@ -330,16 +337,33 @@ def main() -> None:
             "result": "IDENTICAL",
         }
 
+    # C012(D3): 산출물에 실행자 워크트리 절대경로를 적지 않는다.
+    #   C011 은 "두 빌드 스크립트를 재실행하면 diff -r 이 바이트 동일" 이라고 보고했으나
+    #   journal_path 가 절대경로라 다른 워크트리·다른 clone 에서 재실행하면 이 1줄이 어긋난다.
+    #   나머지 15개 산출물은 실제로 바이트 동일했으므로, 거짓이 된 것은 데이터가 아니라 주장이다.
+    #   절대경로는 실행 시점에만 존재하는 값이므로 기록하지 않고, 기록하지 않았다는 사실만 남긴다.
     journal_path = args.journal.resolve()
+    repo_root = ROOT.parents[1]
     try:
-        journal_rel = str(journal_path.relative_to(ROOT.parents[1]))
-    except ValueError:
-        journal_rel = None
+        journal_rel = str(journal_path.relative_to(repo_root))
+    except ValueError as exc:
+        raise SystemExit(
+            f"저널이 저장소 밖에 있다: {journal_path}\n"
+            f"provenance 는 저장소 상대경로만 기록한다 — 저장소 안의 저널을 지정하라."
+        ) from exc
 
     provenance = {
-        "schema": "journal_provenance/v2",
+        "schema": "journal_provenance/v3",
         "generated_by": "research/landing_accessibility/scripts/build_source_rows_from_journal.py",
-        "journal_path": str(journal_path),
+        "path_policy": {
+            "absolute_paths_recorded": False,
+            "resolved_at_runtime": ["journal_path"],
+            "reason": (
+                "절대경로를 산출물에 적으면 실행 위치가 산출물의 일부가 되어 재실행 바이트 "
+                "동일성이 성립하지 않는다(C011 P2 idempotency-claim-false-journal-path-absolute). "
+                "저장소 상대경로만 기록한다."
+            ),
+        },
         "journal_path_in_repo": journal_rel,
         "journal_sha256": hashlib.sha256(args.journal.read_bytes()).hexdigest(),
         "journal_bytes": len(args.journal.read_bytes()),

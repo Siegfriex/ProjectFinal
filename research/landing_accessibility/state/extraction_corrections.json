@@ -1,7 +1,7 @@
 {
   "schema": "extraction_corrections/v2",
   "generated_by": "research/landing_accessibility/scripts/build_canonical_entities.py",
-  "note": "C003 단계의 판독 검증 2건(COR-001/002)과 C009 감사 수용에 따른 스키마 시정 2건(COR-003/004)을 함께 기록한다. 원자료(source_ranking_rows.parquet) 값 시정은 누적 0건이며 261행은 그대로다.",
+  "note": "C003 단계의 판독 검증 2건(COR-001/002), C009 감사 수용에 따른 스키마 시정 2건(COR-003/004), C011 감사 수용 2건(COR-005/006), C012 의 review queue 해소와 web_target 구조 정규화 2건(COR-007/008)을 함께 기록한다. 원자료(source_ranking_rows.parquet) 값 시정은 누적 0건이며 261행은 그대로다.",
   "corrections": [
     {
       "correction_id": "COR-001",
@@ -80,6 +80,32 @@
       "evidence": "wtg_6d5510a695d0a614(naver)에서 member_service_ids 정렬 순서와 member_domains 정렬 순서가 달라, 위치로 읽으면 naver_app↔RETAIL, naver_naverpay↔APP 으로 읽혔다. 집합 수준은 정확해 값 손실은 없었으나, 네이버·G마켓 2중수집을 막으려고 만든 표가 같은 혼동을 재생산했다.",
       "resolution": "세 배열을 하나의 정렬 키로 동시에 정렬한다. member_domains 는 집합이 아니라 위치 배열이므로 같은 도메인이 중복 등장할 수 있다. tests/test_c009_two_layer.py 가 위치별로 대조한다.",
       "corrected_by": "exec-agent(C011) / 독립감사 2건 수용"
+    },
+    {
+      "correction_id": "COR-007",
+      "row_id": null,
+      "affected_row_ids": [],
+      "panel_id": null,
+      "field": "service_master.needs_human_review",
+      "before": "손입력 플래그 True 7건 (ENTITY_SPEC 세 번째 원소). 판정 없이 '미결' 만 있었다.",
+      "after": "review_decision ∈ {MERGE, KEEP_SEPARATE, UNRESOLVED} 에서 유도되는 파생값. needs_human_review = (review_decision == 'UNRESOLVED')",
+      "action": "REVIEW_QUEUE_RESOLVED_AGAINST_A1_SOURCE",
+      "evidence": "미결 7건 각각에 A1 원문 인용을 붙여 판정했다. 근거는 layer 별로 기계 검증된다 — BODY_TEXT 는 wiseapp933_text.txt 부분문자열, PUBLISHER_TAGS 는 authority_manifest.source.tags 원소, FIGURE_ROW 는 source_ranking_rows 의 panel_id/rank 에 실린 entity_name_raw, ABSENCE 는 지정 파일에서 0회. 부재 검사의 범위를 933 본문 2파일로 한정한다: 서버 응답 원본에는 관련 인사이트 등 다른 기사 본문이 섞여 있어 범위를 넓히면 검사가 조용히 틀린다(실제로 'G마켓/옥션' 이 그 2파일에 4회 있으나 전부 다른 기사의 문장이다).",
+      "resolution": "판정 분포 MERGE 1 / KEEP_SEPARATE 6 / UNRESOLVED 0. needs_human_review 7 → 0. 판정 원장은 state/entity_review_decisions.json 이며 tests/test_c012_review_and_grouping.py 가 인용을 원문에 다시 대고 검증한다. 원자료 261행은 변경하지 않았다 — MERGE 1건은 C003 에서 이미 별칭으로 흡수된 건이라 entity 수·그룹 수 어느 것도 바뀌지 않는다.",
+      "corrected_by": "exec-agent(C012) / A1 원문 대조"
+    },
+    {
+      "correction_id": "COR-008",
+      "row_id": null,
+      "affected_row_ids": [],
+      "panel_id": null,
+      "field": "web_target_group.grouping_basis / expected_url_relationship",
+      "before": "grouping_basis 가 산문 한 덩어리. 기대 URL 관계를 적는 칸이 없었다.",
+      "after": "grouping_basis = JSON {rule, signal_kind, shared_signal, evidence_layer, url_evidence, note}. expected_url_relationship ∈ {SAME_LANDING_EXPECTED, DIFFERENT_LANDING_EXPECTED, UNKNOWN} + basis / is_hypothesis / confirmed_by_url / falsifier / risk",
+      "action": "GROUPING_BASIS_MACHINE_READABLE_AND_HYPOTHESIS_DECLARED",
+      "evidence": "그룹핑 신호가 산문에 묻혀 있으면 '무엇이 근거였는지' 를 기계가 확인할 수 없고, URL 이 나온 뒤에 근거가 사후 조정될 여지가 남는다. url_evidence 는 전 그룹에서 null 이며 그 사실이 필드로 드러난다.",
+      "resolution": "CONFIRMED 승격은 하지 않는다(06 §3-4 — URL 이 필요하다). 대신 후보 3건에 SAME_LANDING_EXPECTED 를 **가설로** 선언하고 무엇이 이 가설을 반증하는지를 falsifier 에 미리 적었다. 반증 조건에 URL 을 적지 않는다(06 §3-2 추측 URL 금지). 단독 그룹 65건은 UNKNOWN 이다 — 그룹 내부 관계가 성립하지 않는데 값을 채우면 URL 없이 결론을 선점하는 것이다.",
+      "corrected_by": "exec-agent(C012)"
     }
   ],
   "row_value_changes_applied": 0,
