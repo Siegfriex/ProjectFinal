@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3",
-  "updated_at": "2026-08-26T12:36:09.653679",
+  "updated_at": "2026-08-26T12:46:22.979241",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
   "cycle_id": "C009",
   "pilot": {
@@ -354,6 +354,19 @@
       "id": "empty-certification-period",
       "count": 1,
       "detail": "1812번, service_name 도 '-'"
+    }
+  ],
+  "harness_incidents": [
+    {
+      "id": "orchestrator-committed-to-pilot-branch",
+      "severity": "P0",
+      "detected_by": "Monitor — P0_VIOLATION pilot branch moved 32460b87 -> f26ca974",
+      "detection_latency": "즉시 (다음 폴링 주기)",
+      "cause": "오케스트레이터가 문서를 생성할 때 Bash cwd 가 메인 워크트리에 있었고, 이어지는 'cd .agent_worktrees/landing_orchestrator' 가 체인에서 기대대로 적용되지 않아 git add/commit 이 research/refcohort-r1 브랜치에서 실행됐다.",
+      "impact": "Pilot 브랜치 로컬 HEAD 가 32460b87 -> f26ca974 로 이동. 원격은 오염되지 않았다(push 대상이 control/landing-orchestrator 였고 no-op). Pilot 추적 파일 내용 변경 0 — 신규 파일 1개 추가 커밋이었다.",
+      "remediation": "git reset --mixed 32460b8 로 원복. HEAD 32460b87334a67f6a74823ac55f85ca80a9f8980 확인. CLAUDE.md·tsconfig.json 의 기존 미커밋 수정은 보존(--hard 를 쓰지 않은 이유). 문서는 orchestrator 워크트리로 이동해 재커밋.",
+      "prevention": "오케스트레이터 파일 조작은 절대경로만 사용한다. cd 의존 금지.",
+      "note": "이 사건의 의미: 하네스가 오케스트레이터 자신의 위반을 잡았다. Monitor 의 P0 감시가 실효적으로 작동함을 실증한 사례로 남긴다."
     }
   ]
 }
