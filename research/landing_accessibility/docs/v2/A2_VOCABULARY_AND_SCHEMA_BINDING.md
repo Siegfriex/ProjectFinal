@@ -80,7 +80,7 @@
    | # | 원본 조항 | 원본 문면 | 이 문서의 배치 | 예외 근거 | 원본이 요구한 사실이 보존되는 곳 | 절 |
    |---|---|---|---|---|---|---|
    | **EXC-1** | `02 §13` | `app-only … 별도 measurement status로 기록` | **두 경로로 분리한다.** 관측 이전에 확정된 app-only는 `web_eligibility_status = EXCLUDED_APP_ONLY`, 수집 시점에 발견된 app-only는 `measurement_status = NOT_ELIGIBLE_AT_COLLECTION` | 웹이 없어 관측 행 자체가 생기지 않는 경우와, `ELIGIBLE_WEB`로 동결된 뒤 수집 시점에 반증된 경우는 **서로 다른 사건**이다. 하나의 컬럼에 합치면 규칙 S-1(한 사실 = 한 컬럼)이 깨지고, 나누기만 하면 두 번째 경로가 무주지가 된다 | `measurement_status`에 대응 값이 **실제로 존재한다**(§1.2). `02 §13`의 `별도 measurement status로 기록`은 문면 그대로 충족되며, 접근성 `FAIL`로도 `UNDETERMINED`로도 세지 않는다 (규칙 M-1 · X-4) | §1.2 · §1.3 · §1.4 · §1.11 T-11 · §4.1 |
-   | **EXC-2** `[V2-C004 시정]` | `01 §11` | `로그인 전까지만 가능 = AUTH_GATE_REACHED` | **두 archetype에 한해 저장값을 달리한다.** `FINANCIAL_ACTION_ENTRY`(로그인 gate·인증 gate)와 `COMMUNICATION_ENTRY`(**로그인 gate만**)에서 그 gate가 관측되면 `endpoint_status = FUNCTION_ENDPOINT_REACHED` + `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`로 기록한다. 나머지 5 archetype과 `COMMUNICATION_ENTRY`의 **본인인증 gate**는 `01 §11` 문면 그대로 `AUTH_GATE_REACHED`(개인정보 입력이 요구되면 `02 §7` `PERSONAL_DATA_REQUIRED`)다 | `00 §3` L1 표(권위 **1위**)가 그 두 행의 endpoint 정의 안에 gate를 넣었다. `00` > `01`이므로 충돌은 `00`을 따라 해소하며 그 해소는 이 문서의 몫이다(§0 1항·8항). 이탈은 **두 archetype**과 **`00 §3`이 그 행에 준 gate 종류**를 넘지 않는다(규칙 E-6 · E-6a) | `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`가 gate로 실현된 endpoint를 전부 식별하고, `auth_gate_before_endpoint`(규칙 E-9)와 규칙 E-8 합집합이 `00 §11`·`01 §10`의 `auth gate` 지표를 과소집계 없이 유지한다. 규칙 E-10이 두 endpoint 의미를 층화해 `MPFED` 통계에서 섞이지 않게 한다 | §1.5.1 · §1.5.1a · §1.5.2 · §4.2 |
+   | **EXC-2** `[V2-C004 시정]` | `01 §11` | `로그인 전까지만 가능 = AUTH_GATE_REACHED` | **두 archetype에 한해 저장값을 달리한다.** `FINANCIAL_ACTION_ENTRY`(로그인 gate·인증 gate)와 `COMMUNICATION_ENTRY`(**로그인 gate만**)에서 그 gate가 관측되면 `endpoint_status = FUNCTION_ENDPOINT_REACHED` + `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`로 기록한다. 나머지 5 archetype과 `COMMUNICATION_ENTRY`의 **본인인증 gate**는 `01 §11` 문면 그대로 `AUTH_GATE_REACHED`(개인정보 입력이 요구되면 `02 §7` `PERSONAL_DATA_REQUIRED`)다 | `00 §3` L1 표(권위 **1위**)가 그 두 행의 endpoint 정의 안에 gate를 넣었다. `00` > `01`이므로 충돌은 `00`을 따라 해소하며 그 해소는 이 문서의 몫이다(§0 1항·8항). 이탈은 **두 archetype**과 **`00 §3`이 그 행에 준 gate 종류**를 넘지 않으며, **그 종류가 확정된 경우로 다시 한 번 좁혀진다**(규칙 E-6 · E-6a · **E-6b** `[V2-C008 시정]`) | `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`가 gate로 실현된 endpoint를 전부 식별하고, `auth_gate_before_endpoint`(규칙 E-9)와 규칙 E-8 합집합이 `00 §11`·`01 §10`의 `auth gate` 지표를 과소집계 없이 유지한다. 규칙 E-10이 두 endpoint 의미를 층화해 `MPFED` 통계에서 섞이지 않게 한다 | §1.5.1 · §1.5.1a · §1.5.2 · §4.2 |
    | **EXC-3** `[V2-C004 시정]` | `02 §12` | `재수집 → 새 evidence run` | **기록 방식은 그대로 두고 절차를 부여한다.** 재수집의 횟수 상한·중단규칙·사전선언·정본 run 선택규칙을 §1.11.2 규칙 RC-1~RC-5로 정한다. 원본이 허용한 기록을 금지하지 않는다 — 상한을 넘은 run도 append-only로 남으며, 다만 **정본 지표에 들어가지 않는다** | `02 §12`는 재수집을 **어떻게 기록하는가**만 규정하고 **몇 번·무엇을·어떤 순서로** 재수집하는가에 침묵한다. 침묵을 그대로 두면 `UNDETERMINED`의 유일 탈출구(§1.11.2)가 **원하는 결과가 나올 때까지 다시 재는 통로**가 되고, 그것은 `00 §14`가 금지한 결론 유도다. 절차 부여는 원본의 값·정의·범위를 바꾸지 않으므로 §0 2항과 충돌하지 않는다 | 모든 run이 `02 §12` 그대로 append-only로 보존된다. 어느 run이 정본이고 어느 run이 재수집분인지, 사전선언이 있었는지, 재수집 전후로 `decision coverage`가 얼마나 움직였는지가 `03 Phase 5` 보고(RC-5)에 전부 노출된다 | §1.11.2 · §1.8 · §4.1 · §4.2 |
 
    | **EXC-4** `[V2-C005 시정]` | `02 §11` · `02 §12` | `hash-based observation id 사용` · `재수집 → 새 evidence run` | **evidence identity와 append-only는 그대로 두고, 그 앞에 선행 앵커 층을 얹는다.** 재수집 시도는 시작 **이전에** git 추적 append-only 원장 `recollection_ledger.jsonl`에 등재·커밋·push되고, run manifest가 그 커밋 SHA를 참조한다(규칙 RC-6). **실행 1회마다 control 인가 1건이 필요하고 `evidence_run_id`가 그 인가에서 유도된다** `[V2-C006 시정]`. 시도·중단·폐기된 run 전건이 같은 원장에 남는다(규칙 RC-7) | `02 §11`의 evidence identity는 **run이 끝난 뒤**의 산출물만 앵커한다. `02 §12`의 append-only도 **남은 run**만 보존한다. 둘 다 "이 run을 왜, 무엇을 기대하고 시작했는가"와 "몇 번 시도해서 무엇을 버렸는가"를 담지 않으므로, EXC-3의 사전선언이 run 자신의 산출물 안에만 있으면 **결과를 본 뒤 소급 작성(backdating)** 이 가능하다. 원본은 그 자리를 비워두었을 뿐 금지하지 않았고, 앵커 층은 원본의 값·정의·범위를 바꾸지 않는다 | 원장은 evidence를 대체하지 않는다 — `02 §11`의 7종 identity와 `02 §12`의 run 보존은 문면 그대로다. 원장은 그 **앞**에 순서를 고정하고, 앵커 digest가 run manifest에 들어가 `07 §3` manifest 등록을 통해 evidence 해시 집합에 묶인다 | §1.11.2 규칙 RC-6 · RC-7 · §4.2 · §5.7 V-9 · §6.3 · §6.3.1 |
@@ -146,6 +146,14 @@
 | `recollection-escape-path-unbounded-and-conclusion-prioritized` | adversarial `V2-C005` **P1 blocking** (세 사이클 연속 OPEN) | 앵커 1건이 인가하는 **실행 횟수를 묶는 것이 없어**, 앵커된 `planned_evidence_run_id`로 K회 로컬 실행 후 1회만 커밋하는 경로가 A-1~A-6·RC-7을 전부 통과했다. A-3·A-5의 부재 증명은 구조적으로 항상 참이었다 | **§1.11.2 규칙 RC-6** — `EXECUTION` 레코드 · 실행 인가 · 검사 **A-7 · A-8** 신설, A-3 · A-5 재정의, **잔여 위험 R-1~R-4 명시** · §1.11 X-14 ⑧ · §5.7 · §6.3.1 **I-38~I-41** |
 | `rc-6-a-6-circular-derivation` | ssot `V2-C005` **F3 blocking** | `record_sha256`의 입력집합이 `planned_evidence_run_id`를 포함하는데 A-6은 그 필드가 `record_sha256`에서 유도되기를 요구했다 — 해시 고정점 없이 충족 불가이고 유도식도 없었다 | **§1.11.2 유도식 `f`** — `planned_evidence_run_id` **필드 삭제**, `evidence_run_id`를 `(ledger_record_sha256, countersign_commit_sha, execution_index)`에서 유도, 검사 **A-6 재작성** |
 | `hiding-gives-no-benefit` 단언 (부수) | adversarial `V2-C005` ADV-C005-P1-01 §4 | 닫힘 논거표의 `은닉은 정본 선택에 아무 이득을 주지 못한다`가 **동일 앵커 재실행에 대해 거짓**이었다 | **§1.11.2 닫힘 논거표** — 단언 **철회**, 세 행으로 분해(인가받지 않은 id = 닫힘 / 인가받고 숨김 = 닫힘 / 동일 인가 재실행 = **닫히지 않음**) |
+
+**`V2-C007` LANE C가 연 결함 — 이 판(`V2-C008`)에서 닫는다** `[V2-C008 시정]`
+
+| finding id | 출처 · 심각도 | 무엇이 문제였나 | 닫는 절 |
+|---|---|---|---|
+| `e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint` | LANE C P-C fixture engineering (`agent/landing-pc-fixture` @ `0c36c95`) **P2 `E001_V2-blocking`** | 규칙 E-6a가 gate 종류를 **입력으로 받아** 오분류된 본인인증 gate를 로그인으로 승인했다. 그 순간 `endpoint_reached`가 `0→1`, `MPFED`가 `NULL→정수`로 조용히 뒤집힌다. **규칙만으로는 탐지 불가**다 — 분류 결과를 입력으로 받기 때문이다 | **§1.5.1a 규칙 E-6b**(컬럼 `auth_gate_kind` 외 3종 · 비대칭 fail-closed 승격 조건 · 근거 교차검증 · 잔여 **GK-1~GK-3**) · §1.5.1 `AUTH_GATE_REACHED` 행 · §1.5.1a 규범표 · 규칙 **E-8** · **E-9** · **E-10** 3항 · §1.14 규칙 N-1 주 · §6.3 · §6.3.1 **I-42~I-50** · §6.4 · §7 11항 |
+| `eligibility-basis-fields-narrower-than-06-still-carried` | v1 승계부채 (ssot `C012` 등재, `PHASE_GATES` §2 부채 승계로 main 승격 차단) | v1 `06` §2-2가 요구한 판정 근거 5필드 중 **4필드가 이 문서에 없었다** — `eligibility_basis` · `eligibility_reviewer` · `eligibility_confidence`는 `docs/v2/` 전체에서 0회, `needs_human_review`는 measurement entity 층에만 바인딩돼 적격성 층과 **한 컬럼으로 뭉개져** 있었다. 그 결과 LANE B shadow가 필드를 스스로 만들어 썼고 같은 사실이 세 갈래 이름·값 도메인으로 갈렸다 `[실측]` | **§1.3.1**(필드 7종 값 도메인 · 규칙 **EB-1~EB-4**) · §5.5 대응표 8행 추가 · §6.2 산출 목록 3행 추가 |
+| `merge-decision-merges-nothing-no-alias-assert` | v1 승계부채 (adversarial `C011`/`C012` 계열) | `MERGE` 판정이 **데이터에 흔적을 남겼는지** 확인하는 코드가 없었다. 원장에 `MERGE`라 적기만 하면 별칭을 하나도 흡수하지 않은 entity도 통과했다 | **§5.5 `[V2-C008 시정]` 실측 블록**(층 분리 + 그룹 층 `MERGE` 0건 실측) · 코드: `review_queue.assert_merge_decisions_absorb_aliases` (M1~M3) |
 
 **다른 담당이 닫은 결함** — 이 문서는 그 결과를 **참조**할 뿐 재정의하지 않는다.
 
@@ -346,6 +354,88 @@ review_status = review_decision                       if review_decision is not 
 
 ---
 
+### 1.3.1 적격성 판정 **근거** 필드 — v1 `06` §2-2 최소 동등 보장 `[V2-C008 시정]`
+
+> 구체화 대상: v1 `06_ELIGIBILITY_AND_JOIN_RULES.md` §2-2 (부채 승계, `PHASE_GATES` §2)
+> 닫는 finding: `eligibility-basis-fields-narrower-than-06-still-carried`
+
+§1.3은 `web_eligibility_status`의 **허용값**만 확정한다. 그 값을 **무엇을 보고 정했는지**를
+담는 자리는 이 문서 어디에도 없었다. v1 `06` §2-2는 그것을 다섯 필드로 요구했고,
+v2로 넘어오면서 그중 하나(`web_eligibility_status`)만 살아남았다.
+
+**실측 대조** — v1 `06` §2-2 요구 5필드 · LANE B shadow 산출물(`shadow/lane_b/state/web_eligibility_shadow.csv`,
+81행 `[실측]`) · 이 문서의 선언 상태.
+
+| v1 `06` §2-2 요구 필드 | LANE B가 실제로 기록한 것 | 이 문서(개정 전) | 물리 `service_master` |
+|---|---|---|---|
+| `web_eligibility_status` | `web_eligibility_status` (v2 6값) | §1.3에 선언 | 있음 |
+| `eligibility_basis` | `eligibility_basis` — **81/81 비어 있지 않음** `[실측]` | **없음** (`docs/v2/` 전체 0회) | `web_eligibility_basis` (이름이 다르고 A2가 바인딩하지 않았다) |
+| `eligibility_reviewer` | `eligibility_reviewer` — distinct 1 `[실측]` | **없음** | **없음** |
+| `eligibility_confidence` | `url_confidence` / `observation_confidence` (HIGH 59 · MEDIUM 1 · LOW 11 · 결측 10) `[실측]` | **없음** | **없음** |
+| `needs_human_review` (적격성 층) | `needs_human_review` — True 34 / False 47 `[실측]` | 이름은 있으나 **측정 entity review 층에만** 바인딩(§1.1 · §5.3) | 있으나 그것은 review 층 값이다 |
+
+즉 5필드 중 **4필드가 이 문서의 스키마에 없다.** 판정 근거를 기록할 자리가 없는 상태에서
+LANE B는 필드를 스스로 만들어 썼고, 그 결과 같은 사실이 `eligibility_confidence`(v1) ·
+`url_confidence`(LANE B shadow) · `eligibility_confidence: float`(claude-b 구현)라는
+서로 다른 이름·서로 다른 값 도메인으로 세 갈래로 갈렸다.
+
+#### 필드 정의 — 값 도메인
+
+이 표가 정본이다. **새 임계값을 만들지 않는다** — 판정을 바꾸지 않고, 이미 내려진 판정이
+무엇에 근거했는지를 기록할 뿐이다. LANE B의 71/71 판정을 다시 하지 않는다.
+
+| 컬럼 | 표 | 값 도메인 | 규칙 |
+|---|---|---|---|
+| `eligibility_basis` | `dim_web_target` | 자유서술 문자열, **NOT NULL** | 실제로 확인한 URL · 페이지 제목 · 리다이렉트 결과를 담는다. `web_eligibility_status ≠ NOT_ASSESSED`인 모든 행에서 비어 있을 수 없다 (규칙 **EB-1**) |
+| `eligibility_reviewer` | `dim_web_target` | 자유서술 문자열, **NOT NULL** | 자동 규칙명 또는 사람. 규칙명은 `eligibility_rule`과 함께 적는다 |
+| `eligibility_rule` | `dim_web_target` | 닫힌 집합. P-B `E000_V2`에서 규칙 id 목록을 동결한다 | 자동 판정의 규칙 id. 사람 판정이면 `NULL` |
+| `eligibility_confidence` | `dim_web_target` | `HIGH` \| `MEDIUM` \| `LOW` (**v1 `06` §2-2 그대로**) | 실수 점수로 바꾸지 않는다. 세 단계는 v1이 정한 것이고 이 문서는 값 도메인을 **좁히지도 넓히지도** 않는다 |
+| `eligibility_reviewed_at` | `dim_web_target` | ISO 8601 날짜 | 판정 시점 |
+| `eligibility_needs_review` | `dim_web_target` | `bool` | **적격성 층**의 미결 표시. §1.1의 `review_status`(measurement entity 층)와 **다른 컬럼이다** |
+| `url_evidence` | `dim_web_target` | 자유서술 문자열 | 이미 §5.5에 `(c) ABSENT → P-B`로 등재돼 있다. 여기서 다시 만들지 않는다 |
+
+**규칙 EB-1 (근거 없는 상태 부여 금지).** `web_eligibility_status`가 `NOT_ASSESSED`가 아닌 행은
+`eligibility_basis` · `eligibility_reviewer` · `eligibility_confidence` · `eligibility_reviewed_at`을
+**전부** 가져야 한다. 하나라도 비면 그 판정은 무효이며 `NOT_ASSESSED`로 되돌린다.
+v1 `06` §2-2의 "근거 없는 상태 부여를 금지한다"가 이 규칙이다.
+
+**규칙 EB-2 (층 분리).** `eligibility_needs_review`와 §1.1의 `review_status`는 **다른 층의 다른 질문**이다.
+
+| 층 | 질문 | 컬럼 |
+|---|---|---|
+| measurement entity | 이 두 원문 표기가 같은 것을 잰 것인가 | §1.1 `review_status` · `service_master.needs_human_review` |
+| web target | 이 대상의 공식 랜딩 URL이 확정되는가 | `eligibility_needs_review` |
+
+한 컬럼으로 뭉개면 "표기 모호성이 해소됐다"가 "URL이 확정됐다"로 읽힌다. 현재 물리
+`service_master.needs_human_review`는 **전자**이며(81행 전부 `False` `[실측]`),
+후자를 담을 컬럼은 아직 없다. LANE B가 shadow에서 34건을 `True`로 기록한 것은 **후자**다 —
+두 값이 같은 이름 아래 놓이면 34가 0으로 보인다.
+
+**규칙 EB-3 (v1 `06` §3-1 URL 근거 사슬).** `06` §3-1은 URL 층에도 근거 5필드
+(`official_landing_url` · `url_type` · `url_discovery_method` · `url_evidence` · `url_reviewer` ·
+`url_confidence`)를 요구했다. 이 문서 §5.5는 그중 `official_landing_url` · `url_evidence` ·
+`registered_domain` · `url_confidence`만 `(c) ABSENT`로 등재하고 있었다.
+`url_type` · `url_discovery_method` · `url_reviewer`도 §6.2에 등재한다.
+`url_type`의 값 도메인은 **신설하지 않는다** — `06` §3-1의
+`WEB_SERVICE_LANDING` \| `OFFICIAL_PRODUCT_PAGE` \| `APP_ONLY` \| `UNRESOLVED` 네 값을 그대로 승계하고,
+`web_eligibility_status`(§1.3 6값)와의 대응은 P-B `E000_V2`에서 실측으로 고정한다.
+
+**규칙 EB-4 (v1 `06` §3-3 리다이렉트 보존).** `06` §3-3은 `target_url` · `final_url` ·
+`redirect_chain` 셋을 **전부** 보존하라고 요구한다. §5.5는 `final_url`만 등재하고 있었고,
+LANE B shadow는 `redirect_hops`(횟수)와 `final_registered_domain`만 남겨 **사슬 자체를 버렸다** `[실측]`.
+횟수는 사슬이 아니다 — 중간 홉을 버리면 "어디를 거쳐 갔는가"를 제3자가 재검증할 수 없다.
+`redirect_chain`을 §6.2에 등재한다. 등록도메인 비교는 `06` §3-3대로 **Public Suffix List 파서**로 한다.
+
+**이 절이 하지 않는 것.**
+
+- LANE B의 71/71 적격성 판정을 재판정하지 않는다. 이 절은 **스키마 수준의 최소 동등 보장**이며,
+  그 판정들이 이 필드들을 채우는지는 P-B 산출 시점에 규칙 EB-1이 검사한다.
+- 새 임계값·새 판정 기준을 만들지 않는다. `eligibility_confidence`의 3값은 v1 `06` §2-2의 것이고,
+  `url_type`의 4값은 v1 `06` §3-1의 것이다. 이 문서는 그것을 **좁힌 적이 있다는 사실**을 시정할 뿐이다.
+- 물리 컬럼을 지금 만들지 않는다. 위 컬럼들은 §6.2의 P-B 산출 목록에 등재되며, 그 자리에서 생긴다.
+
+---
+
 ### 1.4 `web_target_status` — `dim_web_target`
 
 > 구체화 대상: 01_DATA_SPEC §3 · 00_SSOT §15 · 03_CRISP_DM P-B
@@ -406,7 +496,7 @@ review_status = review_decision                       if review_decision is not 
 | 값 | 뜻 | `endpoint_reached` | NED / IED / MPFED |
 |---|---|---|---|
 | `FUNCTION_ENDPOINT_REACHED` | `dim_representative_task.endpoint_definition`이 정의한 상태에 도달했다 | 1 | 정수 (`A1` §1.3) |
-| `AUTH_GATE_REACHED` | 로그인/인증 gate가 나타나 `00 §3 절대 제외`에 걸렸다. **단 `00 §3` L1 표가 그 archetype의 endpoint 정의 안에 넣은 종류의 gate에서는 이 값을 쓰지 않는다** — `FINANCIAL_ACTION_ENTRY`의 로그인 gate·인증 gate, `COMMUNICATION_ENTRY`의 **로그인 gate**가 그것이다. `COMMUNICATION_ENTRY`의 **본인인증 gate**는 `00 §3` 커뮤니티 행이 endpoint로 주지 않았으므로 이 값을 그대로 쓴다(개인정보 입력이 요구되면 `PERSONAL_DATA_REQUIRED`) (§1.5.1a 규칙 E-6a) `[V2-C004 시정]` | 0 | `NULL` |
+| `AUTH_GATE_REACHED` | 로그인/인증 gate가 나타나 `00 §3 절대 제외`에 걸렸다. **단 `00 §3` L1 표가 그 archetype의 endpoint 정의 안에 넣은 종류의 gate에서는 이 값을 쓰지 않는다** — `FINANCIAL_ACTION_ENTRY`의 로그인 gate·인증 gate, `COMMUNICATION_ENTRY`의 **로그인 gate**가 그것이다. `COMMUNICATION_ENTRY`의 **본인인증 gate**는 `00 §3` 커뮤니티 행이 endpoint로 주지 않았으므로 이 값을 그대로 쓴다(개인정보 입력이 요구되면 `PERSONAL_DATA_REQUIRED`) (§1.5.1a 규칙 E-6a) `[V2-C004 시정]`. **gate 종류를 확정하지 못한 gate(`auth_gate_kind = UNDETERMINED`)도 archetype을 가리지 않고 이 값이다** — 승격은 확정된 종류에만 열린다 (§1.5.1a 규칙 E-6b) `[V2-C008 시정]` | 0 | `NULL` |
 | `PAYMENT_GATE_REACHED` | 결제 단계가 나타났다. 우회하지 않는다 | 0 | `NULL` |
 | `PERSONAL_DATA_REQUIRED` | 개인정보 입력이 요구됐다 | 0 | `NULL` |
 | `CAPTCHA` | 사람 검증이 요구됐다 | 0 | `NULL` |
@@ -456,6 +546,7 @@ review_status = review_decision                       if review_decision is not 
 | `COMMUNICATION_ENTRY` | **로그인 gate** | **`FUNCTION_ENDPOINT_REACHED`** | `ENDPOINT_VIA_AUTH_GATE` | **1** | 정수 (`m` 확정, `A1 §1.3`) | `00 §3` 커뮤니티 행 `또는 로그인 gate` (§0 7항 **EXC-2**) |
 | `COMMUNICATION_ENTRY` `[V2-C004 시정]` | **본인인증 gate** (로그인 gate가 아닌 것) | `AUTH_GATE_REACHED` — 개인정보 입력이 요구됐으면 `PERSONAL_DATA_REQUIRED` | `NULL` | **0** | `NULL` | `00 §3` 커뮤니티 행에 **인증 gate 문구 없음** · `02 §7`이 두 값을 별개로 둠 · `01 §11` 문면 그대로 (EXC-2의 대상이 **아니다**) |
 | `QUERY` · `CONTENT_OPEN` · `ITEM_DETAIL` · `PLACE_LOOKUP` · `UTILITY_ENTRY` | 모든 gate 종류 | `AUTH_GATE_REACHED` — 개인정보 입력이 요구됐으면 `PERSONAL_DATA_REQUIRED` | `NULL` | **0** | `NULL` | `00 §3` 해당 행에 gate 문구 **없음** · `01 §11` 문면 그대로 (EXC-2의 대상이 **아니다**) |
+| **모든 archetype** `[V2-C008 시정]` | **종류를 확정하지 못한 gate** (`auth_gate_kind = UNDETERMINED`) | `AUTH_GATE_REACHED` — 개인정보 입력이 요구됐으면 `PERSONAL_DATA_REQUIRED` | `NULL` | **0** | `NULL` | 종류가 확정되지 않으면 `00 §3`이 그 행에 준 gate 절을 충족했다고 말할 수 없다. **이 행이 위 네 행보다 우선한다** (규칙 **E-6b**) |
 
 **규칙 E-5 (`00 §3`이 준 종류의 gate는 그 두 archetype에서 endpoint다) `[V2-C004 시정]`.**
 `00 §3`이 gate가 나타난 순간 자체를 endpoint로 정의했으므로, 그 두 archetype의 scout가 관측한 gate 중
@@ -484,6 +575,100 @@ P-A endpoint codebook이 `endpoint_definition`과 **함께 동결**하며(§1.9 
 `fact_task_step.auth_gate_detected` 기록과 evidence(스크린샷·DOM)로 사후 검증 가능해야 한다.
 codebook이 가르지 못한 gate는 `endpoint_definition` 미충족으로 보아 endpoint로 승격시키지 않는다 —
 **모호할 때 endpoint로 올리는 방향의 기본값을 두지 않는다**(그 방향이 `00 §3` 확대다).
+**이 문단은 산문이었고, 그래서 강제되지 않았다** `[V2-C008 시정]` — 판별 결과를 담을 컬럼도, 근거를 남길 자리도,
+미확정을 표현할 값도 없었다. 규칙 E-6b가 그 셋을 만든다.
+
+**규칙 E-6b (gate 종류 판별의 확정성 — 비대칭 fail-closed) `[V2-C008 시정]`.**
+> 닫는 finding: `e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint`
+> (LANE C P-C fixture engineering, `agent/landing-pc-fixture` @ `0c36c95`, P2 `E001_V2-blocking`)
+
+규칙 E-6a는 **gate 종류를 입력으로 받는다.** 입력이 틀리면 E-6a는 틀린 값을 **정당한 것으로 통과시킨다** —
+커뮤니티의 본인인증 gate를 로그인으로 오판한 순간 `endpoint_status`가 `AUTH_GATE_REACHED`에서
+`FUNCTION_ENDPOINT_REACHED`로, `endpoint_reached`가 `0`에서 `1`로, `MPFED`가 `NULL`에서 정수로 **조용히 뒤집힌다.**
+**규칙만으로는 탐지되지 않는다.** 바로 위 문단이 산문으로 적은 요구를 여기서 **컬럼·허용값·가드로 못박는다.**
+
+**① 오분류는 한 방향으로만 위험하다.**
+
+| 오분류 방향 | 결과 | 위험의 크기 |
+|---|---|---|
+| 본인인증 → 로그인 (`COMMUNICATION_ENTRY`) | 없어야 할 `ENDPOINT_VIA_AUTH_GATE`가 생기고 `endpoint_reached 0→1` · `MPFED NULL→정수` | **`00 §3` 커뮤니티 행의 범위 확대**(§7 11항 위반). `MPFED` 분포와 `00 §7` `ExcessDepth` 기준선이 오염된다 |
+| 로그인 → 본인인증 (`COMMUNICATION_ENTRY`) | 승격되지 않고 `AUTH_GATE_REACHED` · `MPFED = NULL` | `00 §3` 범위를 넘지 않는다. 관측 손실이지만 **없는 endpoint를 만들지 않는다** |
+| 두 종류 사이 (`FINANCIAL_ACTION_ENTRY`) | 두 종류가 모두 endpoint이므로 `endpoint_status`는 바뀌지 않는다 | 종류 자체의 오기록은 남아 규칙 E-6a 회귀검사의 근거를 오염시킨다 |
+
+두 방향이 대칭이 아니므로 **기본값도 대칭일 수 없다.** 확정하지 못했을 때의 기본값은 **승격하지 않는 쪽**이다.
+
+**② `fact_task_step`에 판별 결과와 근거를 저장한다** — `01 §6` `auth_gate_detected`의 동반 컬럼 4종.
+
+| 컬럼 | 허용값 | 규약 |
+|---|---|---|
+| `auth_gate_kind` | `LOGIN` / `IDENTITY_VERIFICATION` / `UNDETERMINED` | `auth_gate_detected = 1` 인 step에서 **필수**(비-`NULL`). `auth_gate_detected = 0` 이면 `NULL`이다 — 규칙 N-1의 "상태 컬럼을 비워두지 않는다"는 **그 컬럼이 적용되는 행**에 대한 요구다 |
+| `auth_gate_kind_basis_login` | 로그인 축에서 관측된 **신호 토큰의 배열** | 관측이 없으면 **빈 배열**이며 `NULL`이 아니다 (규칙 N-3 — 찾았으나 없었다) |
+| `auth_gate_kind_basis_identity` | 본인인증 축의 신호 토큰 배열 | 같은 규약 |
+| `auth_gate_kind_reason` | 문자열 | `UNDETERMINED`일 때 **필수**. 확정일 때도 비우지 않는다 |
+
+**신호 토큰의 사전은 이 문서가 정하지 않는다.** 각 토큰은 P-A endpoint codebook이 `endpoint_definition`과
+**함께 동결**하는 gate 신호 사전의 **닫힌 집합**에서만 나오며(§1.9 규칙 P-1 · §6.4), 사전에 없는 토큰이
+기록되면 규칙 S-3 계열로 실패한다. A2는 **필드·허용값·저장 의무**만 정한다 — 무엇이 로그인 신호이고
+무엇이 본인인증 신호인지는 P-A가 동결하고 P-C가 구현한다(§6.3).
+
+**③ 두 미확정 조건.** 다음 두 경우는 **구조적으로** `UNDETERMINED`다.
+
+1. **두 축이 동시에 확정 수준의 근거를 갖는다** — 한 화면에 두 절차가 섞여 있다. 한쪽으로 강제분류하지 않는다 (`00 §9` · `02 §10`).
+2. **어느 축도 확정 수준에 이르지 못한다** — 근거가 없거나 한쪽 어휘 하나뿐이다.
+
+각 축의 **확정 수준**(최소 근거 수·결정적 신호의 지위)은 이 문서가 값을 정하지 **않는다** —
+`A1 §7`의 수집 파라미터와 같은 지위로 P-C가 구현하고 P-A codebook이 동결한다(§6.4).
+이 문서가 고정하는 것은 **두 미확정 조건의 존재**와 그때의 귀결이다. 새 임계값을 만들지 않는다(§7 7항).
+
+`auth_gate_detected` 자체는 이 판별과 **무관하게** 결정된다 — auth gate 축의 신호가 하나도 관측되지
+않았다면 그것은 gate가 아니며 `auth_gate_detected = 0` · `auth_gate_kind = NULL`이다.
+`UNDETERMINED`는 **"gate는 관측됐으나 종류를 모른다"** 이지 "gate가 없다"가 아니다.
+
+**④ 승격 조건 (fail-closed).** endpoint 승격은 아래 세 조건의 **논리곱**이며, 하나라도 거짓이면
+`AUTH_GATE_REACHED`(개인정보 입력이 요구됐으면 `PERSONAL_DATA_REQUIRED`)로 간다.
+
+```
+endpoint_status = FUNCTION_ENDPOINT_REACHED  AND  endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE
+  ⟺  archetype ∈ {FINANCIAL_ACTION_ENTRY, COMMUNICATION_ENTRY}       -- 규칙 E-6
+      AND  auth_gate_kind ≠ UNDETERMINED                             -- 규칙 E-6b  (신설)
+      AND  auth_gate_kind ∈ (E-6a가 그 archetype 행에 허용한 종류)     -- 규칙 E-6a
+```
+
+`FINANCIAL_ACTION_ENTRY`에서는 두 종류가 **모두** endpoint이므로 "둘 중 하나인 것만 확실하면 승격해도
+결과가 같다"는 반론이 가능하다. **성립하지 않는다** — `UNDETERMINED`는 *둘 중 하나다*가 아니라
+*무엇인지 모른다*이며, 결제 gate·CAPTCHA·차단과도 갈리지 않은 상태다. archetype을 가리지 않고 승격시키지 않는다.
+
+**⑤ 기록과 근거의 교차검증을 파이프라인이 강제한다.** `auth_gate_kind`에 기록된 종류가 같은 step의
+`auth_gate_kind_basis_*`가 가리키는 종류와 **모순되면 실패**한다(§6.3 가드). `UNDETERMINED`인데 확정 종류로
+기록하는 것, 확정 종류인데 그 축의 근거 배열이 비어 있는 것이 모두 여기서 막힌다.
+**오분류는 규칙이 아니라 근거로만 잡히기 때문이다** — 규칙 E-6a는 종류를 입력으로 받으므로 이 검사를 대신할 수 없다.
+근거 배열은 **사람이 적어 넣는 값이 아니라** 그 step에 저장된 gate 신호에서 **파생된 값**이다 —
+저장된 신호로 재계산한 결과와 기록이 다르면 실패한다. **재계산되지 않는 근거는 근거가 아니다**
+(규칙 D-1의 "저장 데이터만으로 제3자가 재계산 가능"과 같은 요구).
+
+**⑥ 사후 변경 금지.** 같은 evidence를 다시 보고 `auth_gate_kind`를 `UNDETERMINED`에서 확정 종류로 바꿔
+endpoint를 만드는 것은 금지한다 — X-10이 criterion 축에서 막는 것과 같은 세탁이다. 종류를 바꾸려면
+**근거가 달라져야 하고**, 근거가 달라지려면 새 evidence run이 필요하다(§1.11.2 · `02 §12`).
+
+**⑦ 관측 사실은 보존된다 — 승격만 막는다.** `auth_gate_kind = UNDETERMINED` 인 step도
+`auth_gate_detected = 1`이므로 규칙 E-9의 `auth_gate_before_endpoint`와 규칙 E-8의 `auth_gate_observed`에
+**그대로 들어간다.** 그 gate는 `endpoint_status_detail`이 `NULL`이라 E-9가 말하는
+"endpoint를 실현한 gate step"이 아니고, 따라서 `auth_gate_before_endpoint = 1`이 되어 E-8 합집합의
+**첫 항**으로 집계된다. 승격은 막되 `00 §11`·`01 §10`의 `auth gate` 유병률에서는 사라지지 않는다.
+
+**⑧ 미확정 비율을 노출한다.** `auth_gate_kind = UNDETERMINED` 인 gate로 종료한 task의 비율
+(`auth_gate_kind_undetermined_rate`)을 `mart_archetype_summary`에 archetype별로 병기한다(§6.3).
+이 비율이 높으면 승격이 보수적으로 막힌 것이므로 `endpoint reach`·`MPFED` 표본이 그만큼 줄었다는 사실이
+함께 보여야 한다. **임계값을 두지 않는다** — 몇 %부터 문제라고 말하는 것은 새 연구기준이다(§7 7항).
+
+**⑨ 잔여 위험 — 이 규칙이 닫지 못하는 것.**
+
+| id | 잔여 | 왜 닫히지 않는가 |
+|---|---|---|
+| **GK-1** | **판별기 자신의 오류.** 신호 사전이 실제 화면과 어긋나 판별기가 본인인증 gate를 **확정적으로** `LOGIN`이라 판단한다 | ⑤의 교차검증은 *기록자*와 *판별기*의 불일치를 잡는다. 둘이 **같은 사전**을 쓰므로 사전이 틀리면 양쪽이 함께 틀리고 검사는 침묵한다. 저장소 안의 어떤 검사로도 닫히지 않는다. 완화는 evidence(스크린샷·DOM)로 제3자가 근거를 **재계산**할 수 있게 두는 것과 P-A codebook 동결 절차뿐이다 (실패주입 **I-50**, 기대결과 `차단되지 않는다`) |
+| **GK-2** | **`UNDETERMINED` 과다.** 사전이 빈약하면 승격이 광범위하게 막혀 `MPFED` 표본이 줄어든다 | fail-closed의 대가이며 **위험의 종류가 다르다** — 이 방향은 `00 §3` 확대가 아니다. ⑧의 비율 병기로 노출하되 임계값으로 막지 않는다 |
+| **GK-3** | **P-A 동결 이전.** 신호 사전이 동결되기 전에는 이 층의 실효가 "승격 금지"로만 나타난다 | 이 문서는 자리·허용값·가드만 정한다. 서비스별 적용은 §6.4가 P-A로 미룬 항목이다 |
+
 
 **규칙 E-6 (확대 금지).** 이 예외는 위 두 archetype에만, 그리고 **규칙 E-6a가 그 행에 허용한 gate 종류에만**
 적용한다 `[V2-C004 시정]`. `00 §3`이 `또는 gate`를 준 행이 그 둘뿐이기 때문이다.
@@ -509,7 +694,8 @@ gate가 endpoint인 두 archetype이 생기면서 "endpoint **이전**의 gate"�
 | 정본 원천 | `fact_task_step.auth_gate_detected` (`01 §6` · `02 §7`이 각 activation 후 `auth gate` 기록을 요구한다) |
 
 **`auth_gate_detected`는 gate 종류를 가리지 않는다** `[V2-C004 시정]`. 로그인 gate든 본인인증 gate든
-관측되면 `1`이다. gate 종류의 구분(규칙 E-6a)은 **endpoint 판정에서만** 쓰이며,
+관측되면 `1`이다. **종류를 확정하지 못해도(`auth_gate_kind = UNDETERMINED`) `1`이다** — 그것은 종류가
+미확정이라는 사실이지 gate가 없었다는 사실이 아니다 (규칙 E-6b ⑦) `[V2-C008 시정]`. gate 종류의 구분(규칙 E-6a)은 **endpoint 판정에서만** 쓰이며,
 `auth gate` **유병률**(`00 §7 별도 기록` · `00 §11` · `01 §10`)은 종류를 합쳐 센다 —
 `00 §7`이 `auth gate`를 한 항목으로 적었기 때문이다. 두 용도를 한 컬럼으로 합치면 규칙 S-1이 깨지므로
 `endpoint_status`(종류가 반영된 판정)와 `auth_gate_detected`(종류 무관 관측)를 분리해 둔다.
@@ -532,6 +718,7 @@ endpoint 앞을 막은 장애물이 아니므로 `before`로 세지 않는다. �
 | 두 archetype, gate 없이 실제 기능 진입으로 endpoint 도달 | 앞선 step의 gate 관측 여부대로 0 또는 1 |
 | 나머지 5 archetype, gate로 종료(`AUTH_GATE_REACHED`) | **1** — 그 gate가 endpoint 도달을 막았다 |
 | `COMMUNICATION_ENTRY`의 본인인증 gate로 종료(규칙 E-6a) | **1** — 같은 이유 |
+| **종류 미확정 gate로 종료**(`auth_gate_kind = UNDETERMINED`, 규칙 E-6b) `[V2-C008 시정]` | **1** — 승격되지 않았으므로 그 gate는 endpoint를 실현한 step이 아니다 |
 | gate가 한 번도 관측되지 않았다 | **0** |
 
 **규칙 E-8 (auth gate 유병률 집계) `[V2-C004 시정]`.** `00 §11`·`01 §10`의 `auth gate` 지표를
@@ -550,6 +737,8 @@ auth_gate_observed = (auth_gate_before_endpoint = 1)
 나머지 한 항은 그 컬럼이 정의상 세지 않는 단 하나의 경우(gate가 endpoint 그 자체인 경우)를 더한다.
 `01 §6`의 전용 컬럼을 그대로 쓰는 구현자와 이 합집합을 쓰는 구현자가 **같은 값에 도달한다** —
 E-8이 경고한 과소집계의 재발 경로가 닫힌다.
+`auth_gate_kind = UNDETERMINED` 인 gate도 **첫 항에 들어간다** `[V2-C008 시정]` — 승격되지 않아
+`auth_gate_before_endpoint = 1`이므로, 종류를 확정하지 못했다는 이유로 유병률에서 빠지는 일은 없다 (규칙 E-6b ⑦).
 
 `PERSONAL_DATA_REQUIRED`로 끝난 관측은 그 자체로 `auth_gate_observed = 1`이 되지 **않는다.**
 그 값은 개인정보 입력 요구를 뜻하고 auth gate 관측은 `auth_gate_detected`가 말한다 —
@@ -581,6 +770,8 @@ E-8이 경고한 과소집계의 재발 경로가 닫힌다.
 3. **층 크기를 반드시 노출한다.** `mart_archetype_summary`에 `endpoint_via_auth_gate_rate`
    (= 그 archetype에서 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 인 task 비율)와
    **층별 `n`**을 둔다 (§6.3). 한 층의 `n`이 작아 통계가 성립하지 않으면 그 사실을 적고 산출하지 않는다.
+   같은 자리에 `auth_gate_kind_undetermined_rate`(규칙 **E-6b** ⑧)도 병기한다 `[V2-C008 시정]` —
+   종류 미확정으로 승격이 막힌 만큼 층 크기가 줄었다는 사실이 층별 `n`과 함께 보여야 한다.
 4. **`00 §7 별도 기록`과의 관계.** `00 §7`은 `auth gate`를 **Depth와 합치지 않는다**고 적는다.
    이 절은 그 조항을 위반하지 않는다 — 두 archetype에서 gate는 depth에 **더해지는 항**이 아니라
    depth의 **정지점**이며 `m`을 늘리지 않는다. gate의 유병률은 규칙 E-8로 **별도 집계**되어
@@ -613,7 +804,7 @@ E-8이 경고한 과소집계의 재발 경로가 닫힌다.
 | `UNRESOLVED_DEPTH_BUDGET_EXCEEDED` | `UNRESOLVED` | `A1` §2.1의 activation·state 재방문·wall-clock·무변화 예산 중 하나가 발화했다 | `A1` §2.2 |
 | `UNRESOLVED_REPLAY_BROKEN` | `UNRESOLVED` | 동결된 task manifest의 결정적 replay가 깨졌다 | `02 §8` |
 | `UNRESOLVED_NO_SIGNAL` | `UNRESOLVED` | 예산 안에서 어떤 종료신호도 발화하지 않았다 | `02 §7` |
-| `ENDPOINT_VIA_AUTH_GATE` `[V2-C003 시정]` | `FUNCTION_ENDPOINT_REACHED` | `00 §3`이 gate를 endpoint로 정의한 두 archetype에서 endpoint가 **auth gate로 실현**됐다 | `00 §3` · §1.5.1a |
+| `ENDPOINT_VIA_AUTH_GATE` `[V2-C003 시정]` | `FUNCTION_ENDPOINT_REACHED` | `00 §3`이 gate를 endpoint로 정의한 두 archetype에서 endpoint가 **auth gate로 실현**됐다. **그 gate의 종류가 확정된 경우에 한한다** — `auth_gate_kind = UNDETERMINED` 이면 이 값을 쓰지 않는다 (규칙 **E-6b**) `[V2-C008 시정]` | `00 §3` · §1.5.1a |
 | `NULL` | 나머지 값 | 세분이 필요 없다. 상위 값이 이미 사유다 | — |
 
 **roll-up 규칙** `[V2-C003 시정]`. `endpoint_status_detail`의 각 값은 위 표가 지정한 상위 값 **하나만** 갖는다 —
@@ -1616,6 +1807,13 @@ embedding 랭킹은 오분류 여지가 있으므로(`02 §6` `모호하면 AI r
 `01 §11` `상태와 수치는 분리한다`가 여기서 작동한다 —
 수치 컬럼에 `'UNDETERMINED'` 같은 문자열을 넣지 않고, 상태 컬럼을 `NULL`로 비워두지 않는다.
 
+**`UNDETERMINED`가 사는 다른 축 하나** `[V2-C008 시정]`. §1.5.1a 규칙 E-6b의
+`fact_task_step.auth_gate_kind = UNDETERMINED`는 위 표의 값과 **뜻이 같고 수준이 다르다** —
+*판단할 수 없음*을 gate 종류 판별 축에 적용한 것이다. **Step 수준**의 값이므로 `decision_coverage`(§4.2)의
+분모에 들어가지 않고 `00 §11` `UNDETERMINED stress bound`의 대상도 아니며, 전이 규칙 T-1~T-11 · X-1 · 규칙 N-7은
+criterion 수준의 값에 대한 것이라 이 컬럼에 적용되지 않는다. **같은 evidence로 확정으로 바꾸지 않는다**는
+요구만 같다 (규칙 E-6b ⑥).
+
 **규칙 N-2 (사유는 상태 컬럼에 있다).** `MPFED IS NULL` 인 이유는 `MPFED` 자신이 아니라
 `endpoint_status`(§1.5.1) · `endpoint_status_detail`(§1.5.2) · `area_signal_status`(§1.5.3)가 말한다.
 따라서 `NULL`을 보고할 때는 **반드시 짝이 되는 상태 컬럼을 함께 보고**한다.
@@ -2185,13 +2383,55 @@ distinct `(service_id, panel_id)` 142쌍과 정확히 일치하고,
 | `url_evidence` | `web_target_group.url_evidence` | — | **(c) ABSENT → P-B** | **nonnull 0** `[실측]` |
 | `final_url` | 없음 | — | **(c) ABSENT → P-C** | 수집 시점에 채워진다 (`02 §2`) |
 | `registered_domain` | 없음 | — | **(c) ABSENT → P-B** | `expected_url_relationship_falsifier`가 PSL 등록도메인 비교를 요구한다 `[실측]` |
-| `url_confidence` | 없음 | — | **(c) ABSENT → P-B** | |
+| `url_confidence` | 없음 | — | **(c) ABSENT → P-B** | 값 도메인 `HIGH`/`MEDIUM`/`LOW` — §1.3.1 `[V2-C008 시정]` |
+| `eligibility_basis` | `service_master.web_eligibility_basis` | **entity 수준** | (b) DERIVED, **grain 불일치** | 이름이 다르고 이 문서가 바인딩하지 않고 있었다. §1.3.1 규칙 EB-1 `[V2-C008 시정]` |
+| `eligibility_reviewer` | 없음 | — | **(c) ABSENT → P-B** | v1 `06` §2-2 요구. §1.3.1 `[V2-C008 시정]` |
+| `eligibility_confidence` | 없음 | — | **(c) ABSENT → P-B** | v1 `06` §2-2 요구. §1.3.1 `[V2-C008 시정]` |
+| `eligibility_reviewed_at` | 없음 | — | **(c) ABSENT → P-B** | §1.3.1 `[V2-C008 시정]` |
+| `eligibility_needs_review` | 없음 | — | **(c) ABSENT → P-B** | `service_master.needs_human_review`는 **다른 층**이다 — §1.3.1 규칙 EB-2 `[V2-C008 시정]` |
+| `url_type` · `url_discovery_method` · `url_reviewer` | 없음 | — | **(c) ABSENT → P-B** | v1 `06` §3-1 근거 사슬. §1.3.1 규칙 EB-3 `[V2-C008 시정]` |
+| `redirect_chain` · `target_url` | 없음 | — | **(c) ABSENT → P-C** | `06` §3-3은 사슬 **전체** 보존을 요구한다. 홉 **수**는 사슬이 아니다 — §1.3.1 규칙 EB-4 `[V2-C008 시정]` |
 
 **지적 3.** `01 §3`이 `dim_web_target`을 `신규`로 분류하지만 기준선에 이미 `web_target_group`(68행, C012 산물)이 있다.
 둘의 관계는 **대응이 아니라 선행**이다 — `web_target_group`은 P-B의 **입력**이며,
 URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립하면 SPLIT된다.
 `expected_url_relationship_confirmed_by_url`이 전부 `False` `[실측]` 인 지금,
 그룹을 web target으로 간주한 어떤 집계도 근거가 없다.
+
+**`MERGE` 판정은 이 층에 존재하지 않는다 — 실측** `[V2-C008 시정]`
+
+> 닫는 finding: `merge-decision-merges-nothing-no-alias-assert` (v1 승계)
+
+이 결함은 "`MERGE` 판정이 실제로는 아무것도 병합하지 않는다"를 지적한다. 두 층을 나눠 실측했다.
+
+| 층 | 판정 원장 | `MERGE` 건수 | 판정 |
+|---|---|---|---|
+| **web target 그룹 가설** | LANE B `shadow/lane_b/state/web_target_group_shadow.csv` 68행 | **0** `[실측]` | **적용대상 없음 (MOOT)** |
+| **measurement entity** | `state/entity_review_decisions.json` 7건 | **1** `[실측]` | 실재하며 실제로 별칭을 흡수한다 |
+
+그룹 층 68행의 `hypothesis_outcome` 분포는
+`NOT_APPLICABLE_SINGLETON` **65** · `FALSIFIED_SPLIT_SAME_DOMAIN_DIFFERENT_PATH` **2**(gmarket · naver) ·
+`NOT_TESTABLE_MEMBER_URL_UNRESOLVED` **1**(coupang)이며 `MERGE`도 `CONFIRMED_*`도 **0건**,
+`confirmed_by_url`은 68행 전부 `False`다 `[실측]`. 그룹 층에서는 이 결함이 **재현되지 않는다** —
+고친 것이 아니라 적용할 판정이 없다. 이 사실 자체가 감사가 검증해야 할 근거다.
+
+entity 층의 `MERGE` 1건(`hyundai_homeshopping_hmall`)은 원문 표기 2종
+(`현대홈쇼핑/현대Hmall` · `현대홈쇼핑/현대Hmallord`)을 실제로 흡수한다 `[실측]`.
+그룹 층 `member_count`가 1로 유지되는 것은 그 흡수가 C003에서 이미 별칭으로 끝난 뒤이기 때문이며
+(두 축 독립, §1.3 `REVIEW_AXIS_INDEPENDENCE_NOTE`), **병합이 없었다는 뜻이 아니다.**
+
+없던 것은 판정이 아니라 **단언**이었다. `MERGE`가 데이터 상 무엇을 뜻하는지 검사하는 코드가
+어디에도 없어, 원장에 `MERGE`라고 적기만 하면 흡수가 0건이어도 빌드가 통과했다.
+`src/landing_accessibility/review_queue.py::assert_merge_decisions_absorb_aliases`가 세 조건을 단언한다.
+
+| # | 조건 |
+|---|---|
+| **M1** | `MERGE`로 판정된 canonical entity는 서로 다른 `entity_name_raw`를 2종 이상 갖는다 — 흡수할 것이 없으면 `MERGE`가 아니다 |
+| **M2** | 흡수된 표기가 별칭 원장(`entity_alias_map`)에 그 entity로 등재돼 있다 — 원자료에만 있고 원장에 없으면 흡수가 아니라 유실이다 |
+| **M3** | 흡수된 표기가 다른 canonical entity로도 매핑되지 않는다 — 매핑되면 흡수가 아니라 중복이다 |
+
+`MERGE` 0건은 이 단언의 **정상 상태**이며 오류가 아니다(그룹 층이 그 경우다).
+반례 4종이 `tests/test_c012_review_and_grouping.py`에 주입돼 있다.
 
 ### 5.6 나머지 논리 표 — 전부 (c) ABSENT
 
@@ -2257,6 +2497,9 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | `dim_representative_task` 동결 | `mapping_status = FROZEN` 전이. 규칙 P-1 순서 준수. `region_signal_type = CODEBOOK_PENDING` 잔여 0 (규칙 P-2) |
 | `dim_certification` join 준비 | `state/_invalidated/`의 draft는 무효 보관물이며 입력이 아니다 |
 | 3건 그룹 가설 검정 | `expected_url_relationship_falsifier` 3건 `[실측]` 을 URL 증거로 검정. SPLIT 여부 확정 |
+| **컬럼**: `eligibility_basis` · `eligibility_reviewer` · `eligibility_confidence` · `eligibility_reviewed_at` · `eligibility_needs_review` · `eligibility_rule` | v1 `06` §2-2 판정 근거 요건. 규칙 **EB-1**(근거 없는 상태 부여 금지) · **EB-2**(층 분리)가 이 컬럼들을 검사한다 — §1.3.1 `[V2-C008 시정]` |
+| **컬럼**: `url_type` · `url_discovery_method` · `url_reviewer` | v1 `06` §3-1 URL 근거 사슬. `url_type`의 4값은 `06` §3-1을 그대로 승계한다 — §1.3.1 규칙 **EB-3** `[V2-C008 시정]` |
+| **컬럼**: `redirect_chain` · `target_url` | `06` §3-3은 셋 전부 보존을 요구한다. 등록도메인 비교는 PSL 파서로 — §1.3.1 규칙 **EB-4** `[V2-C008 시정]` |
 
 ### 6.3 P-C (L0/L1 엔진)
 
@@ -2266,8 +2509,10 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | **컬럼**: `screenshot_initial_path` · `screenshot_fullpage_path` · `computed_css_path` · `evidence_run_id` · `collection_started_at` · `collection_finished_at` · `viewport_configured_*` · `device_pixel_ratio` | `A1` §6.1. §4.1 evidence completeness 분자의 근거 |
 | `fact_interrupt_element` 표 | `classification_status` 5값 · `final_label` 10값 · `ai_review_status` 7값 (§1.6 · §1.10) |
 | **컬럼**: `dismiss_method` 5값 · `dismiss_failure_mode` 5값 · `dismiss_persistence_hint` · `dismiss_screenshot_before/after` · `dismiss_dom_after` | `A1` §3.3 · §3.4 (§1.6) |
-| `fact_task_entry` 표 | `endpoint_status` 7값 + `endpoint_status_detail` **4값** + `area_signal_status` 3값 (§1.5). archetype별·**gate 종류별** auth gate 분기(§1.5.1a 규칙 E-5 · E-6 · **E-6a** · E-7) 구현. 규칙 N-1~N-7 `NULL` 처리 구현 `[V2-C004 시정]` |
+| `fact_task_entry` 표 | `endpoint_status` 7값 + `endpoint_status_detail` **4값** + `area_signal_status` 3값 (§1.5). archetype별·**gate 종류별** auth gate 분기(§1.5.1a 규칙 E-5 · E-6 · **E-6a** · **E-6b** `[V2-C008 시정]` · E-7) 구현. 규칙 N-1~N-7 `NULL` 처리 구현 `[V2-C004 시정]` |
 | **컬럼**: `auth_gate_before_endpoint` | `01 §6`의 실재 컬럼. 허용값 `0`/`1`, 정본 원천 `fact_task_step.auth_gate_detected`, 산식과 경계 사례는 **규칙 E-9**(§1.5.1a). `auth gate` 유병률(규칙 E-8)이 이 컬럼에서 나온다 `[V2-C004 시정]` |
+| **컬럼**: `auth_gate_kind` · `auth_gate_kind_basis_login` · `auth_gate_kind_basis_identity` · `auth_gate_kind_reason` (`fact_task_step`) | 규칙 **E-6b** `[V2-C008 시정]`. `auth_gate_detected = 1` 인 step에서 `auth_gate_kind` **3값**(`LOGIN`/`IDENTITY_VERIFICATION`/`UNDETERMINED`) 필수, 근거 배열은 **빈 배열 허용·`NULL` 금지**(규칙 N-3). 신호 토큰은 P-A codebook이 동결한 닫힌 집합에서만 나온다 |
+| **지표**: `auth_gate_kind_undetermined_rate` | 규칙 **E-6b** ⑧. `mart_archetype_summary`에 archetype별 병기. **임계값을 두지 않는다** `[V2-C008 시정]` |
 | `mart_archetype_summary` 층화 | 규칙 **E-10** — `FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY`에서 `MPFED` median/IQR/mode/ECDF · `endpoint reach` · `ExcessDepth` 기준선을 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 여부로 **층별 병기**. **컬럼**: `endpoint_via_auth_gate_rate` + 층별 `n` `[V2-C004 시정]` |
 | **run manifest**: `recollection_preregistration` 블록 | 규칙 **RC-2**의 사전선언 기록 자리. 5필드(`target_criterion_observation_ids` · `reason_evidence_gap` · `reason_impact_level` · `expected_evidence` · `attempt_index` · `preregistered_at`). `07_EVIDENCE_MANIFEST_CONTRACT` · `A1 §6.2` run manifest 안에 산다 (§0 5항의 단 하나의 예외) `[V2-C004 시정]` |
 | **상수**: `MAX_RECOLLECTION_RUNS_PER_WEB_TARGET` | 규칙 **RC-1**. 기본값 **1**. P-C 구현 → P-D(E000_V2) 검증 → 동결. `A1 §7`의 수집 파라미터와 같은 지위 `[V2-C004 시정]` |
@@ -2286,6 +2531,8 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | **가드**: 전이 규칙 **T-1~T-11** | 파이프라인에 강제. §1.11.1 전이표를 **표 그대로 구현**하고, 표에 없는 조합에서 실패시킨다. 규칙 충돌은 **T-6 > T-8 > T-7·T-4·T-9** 순서로 해소한다 `[V2-C004 시정]` |
 | **가드**: 재수집 규칙 **RC-1~RC-5** | 상한 초과·미선언·결과 기반 run 선택을 파이프라인이 **거부**한다. 사전선언 블록의 `preregistered_at < collection_started_at` 검사 포함 — 단 이 검사는 **자기신고 보조 검사**이며 순서 증명은 RC-6이 맡는다 `[V2-C005 시정]` |
 | **가드**: 규칙 **E-6a** gate 종류 한정 | `COMMUNICATION_ENTRY`에 본인인증 gate로 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`가 붙으면 실패 `[V2-C004 시정]` |
+| **가드**: 규칙 **E-6b** 승격 fail-closed | `auth_gate_kind = UNDETERMINED` 인 gate에 `FUNCTION_ENDPOINT_REACHED` · `ENDPOINT_VIA_AUTH_GATE` · `endpoint_reached = 1` · 정수 `MPFED` 중 **어느 하나라도** 붙으면 실패 `[V2-C008 시정]` |
+| **가드**: 규칙 **E-6b** 근거 교차검증 | 기록된 `auth_gate_kind`가 같은 step의 근거 배열이 가리키는 종류와 **모순되면** 실패. 확정 종류인데 그 축의 근거 배열이 비었으면 실패. **근거 배열은 저장된 gate 신호에서 재계산해 대조**하며 손으로 적은 값을 받지 않는다. **`auth_gate_kind`가 비-`NULL`인데 `auth_gate_detected = 0`이면 실패**(유병률 누락 차단, 규칙 E-6b ⑦) `[V2-C008 시정]` |
 | **가드**: 규칙 **E-9** 컬럼 정합 | `auth_gate_before_endpoint`가 step 로그와 어긋나면 실패. `auth_gate_observed` 2항 합집합과 step 로그 기반 재계산이 **일치**해야 한다 `[V2-C004 시정]` |
 | **가드**: 규칙 **E-10** 층화 | 두 archetype의 `MPFED` 계열 지표가 층별 값 없이 합산값만 산출되면 실패 `[V2-C004 시정]` |
 | **가드**: 금지 전이 **X-1~X-15** | `02 §14` 실패주입으로 차단 검증. `UNDETERMINED→PASS`는 §1.11 세 변종(V-a·V-b·V-c) 전부를 태우고, `→FAIL`(V-e) · `→NA`(V-d) · `NA→UNDETERMINED`(V-f) · optional stopping(V-g)도 태운다 `[V2-C004 시정]` |
@@ -2303,9 +2550,9 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 태워지지 않으면 `E000_V2_VALIDATED`가 **비어 있는 근거로** 닫힌다. 아래 표가 각 규칙에 주입 케이스를
 1:1로 붙인다. `UNDETERMINED`/`NA` 계열(V-a~V-g)은 §1.11에 있고 여기서 반복하지 않는다.
 
-**기대결과가 `차단되지 않는다`인 행이 하나 있다** `[V2-C006 시정]` — **I-41**. 실패주입 표는
+**기대결과가 `차단되지 않는다`인 행이 둘 있다** `[V2-C006 시정 · V2-C008 갱신]` — **I-41 · I-50**. 실패주입 표는
 가드가 막는 것을 증명하는 자리이자 **막지 못하는 것을 은폐하지 않는 자리**다. 막지 못하는 주입을
-표에서 빼면 그 표는 "전건이 차단된다"는 거짓 인상을 준다. §1.11.2 잔여 위험 R-1과 짝을 이룬다.
+표에서 빼면 그 표는 "전건이 차단된다"는 거짓 인상을 준다. §1.11.2 잔여 위험 R-1 · §1.5.1a 잔여 **GK-1**과 짝을 이룬다.
 
 | 주입 id | 규칙 | 주입 | 기대 |
 |---|---|---|---|
@@ -2351,8 +2598,17 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | **I-39** `[V2-C006 시정]` | **RC-6** A-7 | 하나의 `(ledger_record_sha256, execution_index)` 인가에 evidence run 2건을 붙여 제출 / 같은 쌍으로 `EXECUTION` 레코드를 2건 append | **차단** — 인가 1건 ↔ 실행 1회 ↔ run 1건의 1:1:1 위반 |
 | **I-40** `[V2-C006 시정]` | **RC-6** A-8 · **RC-7** 인가→원장 | control이 `execution_index` 1·2·3을 인가했는데 원장·evidence에 1·3만 제출(2를 숨긴다) | **차단** — `execution_index` 조밀성 결번 + control 인가 수 `E = 3` ≠ `EXECUTION` 2건. `E`는 executor가 쓰지 못하는 자리에서 센다 |
 | **I-41** `[V2-C006 시정]` — **잔여 명시** | **RC-6** 잔여 R-1 | 인가된 **하나의** id로 로컬에서 K회 실행한 뒤 결과가 가장 좋은 1회만 커밋한다 | **차단되지 않는다.** 저장소 안의 어떤 검사도 커밋되지 않은 로컬 실행을 볼 수 없다. 실패주입 대상으로 **등재하되 기대결과를 `통과`로 적는다** — 가드가 이것을 막는다고 주장하지 않기 위해서다. §1.11.2 잔여 위험 R-1 |
+| **I-42** `[V2-C008 시정]` | **E-6b** ⑤ (LANE C `Q9-1`) | 로그인 축 신호가 확정 수준으로 관측된 step에 `auth_gate_kind = LOGIN` 기록 | **통과해야 한다** — 근거가 있는 확정 기록이다. 과탐 회귀검사 |
+| **I-43** `[V2-C008 시정]` | **E-6b** ⑤ (LANE C `Q9-2`) | 본인인증 축 신호가 확정 수준으로 관측된 step에 `auth_gate_kind = IDENTITY_VERIFICATION` 기록 | **통과해야 한다** — 같은 이유 |
+| **I-44** `[V2-C008 시정]` | **E-6b** ⑤ (LANE C `Q9-3`) | 본인인증 신호가 관측된 step에 `auth_gate_kind = LOGIN` 기록 (오분류 주입) | **차단** — 근거 교차검증. **규칙 E-6a는 이것을 잡지 못한다**(종류를 입력으로 받는다) |
+| **I-45** `[V2-C008 시정]` | **E-6b** ① · **E-6a** (LANE C `Q9-4`) | 그 오분류로 `COMMUNICATION_ENTRY`에 `ENDPOINT_VIA_AUTH_GATE` · `endpoint_reached = 1` · 정수 `MPFED`가 생기는 궤적 | **차단** — 오분류의 **결과**가 실제로 뒤집힘을 만든다는 것을 증명하는 케이스다 |
+| **I-46** `[V2-C008 시정]` | **E-6b** ③ (LANE C `Q9-5`) | 두 축 신호가 함께 확정 수준으로 관측된 gate를 `UNDETERMINED`로 기록하고 두 축 근거를 모두 저장 | **통과해야 한다** — 강제분류하지 않는 정본 경로다. 과탐 회귀검사 |
+| **I-47** `[V2-C008 시정]` | **E-6b** ⑤ (LANE C `Q9-6`) | 확정하지 못한 gate를 `LOGIN`(또는 `IDENTITY_VERIFICATION`)으로 기록 | **차단** — 모호할 때 한쪽으로 넣는 기본값을 두지 않는다 |
+| **I-48** `[V2-C008 시정]` | **E-6b** ④ (LANE C `Q9-7`) | `auth_gate_kind = UNDETERMINED` 인 gate를 `FINANCIAL_ACTION_ENTRY` · `COMMUNICATION_ENTRY` · `QUERY` 세 archetype에서 각각 판정 | **통과해야 한다** — 세 곳 모두 `AUTH_GATE_REACHED` · `endpoint_status_detail = NULL` 이어야 한다. 승격 경로가 남아 있으면 여기서 드러난다 |
+| **I-49** `[V2-C008 시정]` — **LANE C 미대응** | **E-6b** ⑦ · **E-8** · **E-9** | `auth_gate_kind = UNDETERMINED` 인 step을 `auth_gate_detected = 0`으로 기록해 auth gate 유병률에서 누락 | **차단** — 승격을 막는 것과 관측을 지우는 것은 다르다. `auth_gate_observed` 합집합과 step 로그 재계산이 어긋난다(E-8 · E-9) |
+| **I-50** `[V2-C008 시정]` — **잔여 명시** | **E-6b** 잔여 **GK-1** | 신호 사전이 실제 화면과 어긋나 판별기가 본인인증 gate를 **확정적으로** `LOGIN`이라 판단한다 | **차단되지 않는다.** 기록자와 판별기가 같은 사전을 쓰므로 사전이 틀리면 교차검증(⑤)이 침묵한다. **등재하되 기대결과를 `통과`로 적는다** — 가드가 이것을 막는다고 주장하지 않기 위해서다. §1.5.1a 잔여 **GK-1** |
 
-**주입 케이스가 통과해야 하는 것 두 건(I-4 · I-14)을 일부러 넣었다.** 차단만 태우면
+**주입 케이스가 통과해야 하는 것을 일부러 넣었다** — I-4 · I-14, 그리고 `[V2-C008 시정]` I-42 · I-43 · I-46 · I-48이다. 차단만 태우면
 **과탐(over-blocking)** 이 검증되지 않는다 — 규칙 S-3이 정당한 값을 막아 파이프라인을 세우는 것도
 결함이며, `V2-C003` ssot F1이 지적한 무주지가 정확히 그 형태였다.
 
@@ -2381,7 +2637,7 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | KWCAG criterion subset 및 `criterion_id` 목록 | `00 §15` · P-C |
 | `A1` §7의 수집 파라미터 8종 (`MAX_ACTIVATIONS_PER_TASK` 등) | P-C → P-D 검증 |
 | `MAX_RECOLLECTION_RUNS_PER_WEB_TARGET`의 **확정값** (이 문서의 기본값 = **1**, 규칙 RC-1) `[V2-C004 시정]` | P-C 구현 → P-D(E000_V2) 검증 → 동결 |
-| 로그인 gate ↔ 본인인증 gate **판별 기준의 서비스별 적용**(규칙 E-6a) `[V2-C004 시정]` | P-A endpoint codebook → P-B 동결 (§1.9 규칙 P-1) |
+| 로그인 gate ↔ 본인인증 gate **판별 기준의 서비스별 적용**(규칙 E-6a) `[V2-C004 시정]` · **gate 신호 사전의 토큰 집합**과 **각 축의 확정 수준**(규칙 E-6b ②③) `[V2-C008 시정]` | P-A endpoint codebook → P-B 동결 (§1.9 규칙 P-1) |
 
 ## 7. 금지사항 재확인
 
@@ -2402,7 +2658,7 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | 8 | **원본 `state/*.parquet`를 rename·migration·수정하지 않는다** (`01` 서두 · `03 Phase 3`). 규칙 V-1 · V-4 · V-5 |
 | 9 | **`research/refcohort/**`(Pilot)은 `READ_ONLY`.** 규칙 V-8 |
 | 10 | **예산 소진을 이유로 강제분류하지 않는다** (`00 §9`). 규칙 A-1 · X-6. §2.3의 3번 분기가 정본 경로다 |
-| 11 | **auth gate를 endpoint로 세는 것은 두 archetype뿐이며, 그 두 행의 gate 절이 서로 다르다** — `FINANCIAL_ACTION_ENTRY`는 로그인 gate·인증 gate, `COMMUNICATION_ENTRY`는 **로그인 gate만**이다 (`00 §3` L1 표가 `또는 gate`를 준 행이 그 둘뿐이다). 다른 archetype으로도, `COMMUNICATION_ENTRY`의 **본인인증 gate**로도 확대하지 않는다 — 그 gate는 `AUTH_GATE_REACHED`(또는 `PERSONAL_DATA_REQUIRED`)로 남는다. 두 archetype에서도 gate를 **통과하지 않는다** — `00 §3 절대 제외`의 `로그인 이후`·`본인인증 이후`는 그대로다 (§1.5.1a 규칙 E-6 · **E-6a** · E-7) `[V2-C004 시정]` |
+| 11 | **auth gate를 endpoint로 세는 것은 두 archetype뿐이며, 그 두 행의 gate 절이 서로 다르다** — `FINANCIAL_ACTION_ENTRY`는 로그인 gate·인증 gate, `COMMUNICATION_ENTRY`는 **로그인 gate만**이다 (`00 §3` L1 표가 `또는 gate`를 준 행이 그 둘뿐이다). 다른 archetype으로도, `COMMUNICATION_ENTRY`의 **본인인증 gate**로도 확대하지 않는다 — 그 gate는 `AUTH_GATE_REACHED`(또는 `PERSONAL_DATA_REQUIRED`)로 남는다. 두 archetype에서도 gate를 **통과하지 않는다** — `00 §3 절대 제외`의 `로그인 이후`·`본인인증 이후`는 그대로다 (§1.5.1a 규칙 E-6 · **E-6a** · E-7) `[V2-C004 시정]`. **그리고 gate 종류를 확정하지 못했으면 승격시키지 않는다** `[V2-C008 시정]` — `auth_gate_kind = UNDETERMINED`는 archetype을 가리지 않고 `AUTH_GATE_REACHED`다(규칙 **E-6b**). 오분류의 위험은 **비대칭**이며(identity를 login으로 보면 없어야 할 endpoint가 생기고, 반대는 `MPFED`가 `NULL`로 남는다), 의심스러울 때의 기본값은 **승격하지 않는 쪽**이다. 승격만 막을 뿐 그 gate는 `auth_gate_detected = 1`로 남아 `auth gate` 유병률에서 사라지지 않는다 (규칙 E-8 · E-9) |
 | 13 | **재수집으로 결과를 고르지 않는다** `[V2-C004 시정]`. `UNDETERMINED`의 유일 탈출구인 재수집은 상한(RC-1)·사전선언과 중단규칙(RC-2)·정본 run 선택규칙(RC-3)·미선언 배제(RC-4)·보고 의무(RC-5)·**선행 앵커(RC-6)**·**시도 전건 열거와 폐기 사유(RC-7)** 아래에서만 정본 지표에 반영된다 `[V2-C005 시정]`. **앵커 1건은 실행 1회를 인가하고, `evidence_run_id`는 그 인가에서 유도된다** `[V2-C006 시정]` — 인가 없이는 통과하는 id를 만들 수 없고(A-6), 인가 1건에 run은 하나뿐이며(A-7), 인가 수는 control이 독립적으로 센다(A-8). **다만 인가된 하나의 id로 로컬에서 여러 번 돌린 뒤 하나만 커밋하는 것은 저장소 내부 검사로 배제되지 않는다** — §1.11.2 잔여 위험 R-1로 명시하며 닫혔다고 쓰지 않는다. **사전선언은 순서가 run 바깥에서 고정될 때에만 사전선언이다** — 결과를 본 뒤 지어낸 선언, 원장에 없는 run, 판정을 보고 붙인 폐기 사유는 전부 optional stopping이다 (X-14 ⑤~⑦). 원하는 판정이 나올 때까지 다시 재는 것, 판정 결과를 중단 조건으로 쓰는 것, 결과를 보고 정본 run을 바꾸는 것은 **optional stopping**이며 `00 §14`가 금지한 결론 유도다 (X-14). `impact_level`은 그래서 **결론 중립적**으로 정의된다(§1.8) — 재수집 우선순위가 `00 §11` 결론 방향을 따라가면 명세 자신이 편향을 지시하게 된다 |
 | 14 | **두 endpoint 의미를 한 분포에 섞어 제시하지 않는다** `[V2-C004 시정]`. gate가 endpoint인 두 archetype에서 `MPFED` 계열 지표는 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 여부로 **층별 병기**한다 (규칙 E-10). 층화는 **기존 지표를 한 번 더 산출하라는 요구**이며 새 분석 기준이 아니다 — `ExcessDepth`의 정본 산식은 `00 §7` 문면 그대로다. 어느 층이 더 좋다/나쁘다고 말하지 않는다 (`00 §14`) |
 | 15 | **`NA`와 `UNDETERMINED`를 서로 바꿔 기록하지 않는다** `[V2-C004 시정]`. `NA`는 `적용 대상이 없음`(`01 §7` · `00 §4`)이고 `UNDETERMINED`는 `판단할 수 없음`이다. `verdict_state = NA` 행은 adjudication 4값 어느 것으로도 `UNDETERMINED`가 되지 않으며(T-6 우선 · X-15), `verdict_state = UNDETERMINED` 행은 `NA`가 되지 않는다(T-8 · X-13). 둘을 섞으면 §1.7 항등식 `applicable_count = pass_count + fail_count + undetermined_count`가 깨진다 |

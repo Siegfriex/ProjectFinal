@@ -25,9 +25,14 @@ raw 바이트가 로컬에만 있어도, 다른 clone 을 받은 사람은
 1. `load_run_manifest()` 는 manifest 가 없으면 `MissingRunManifestError` 를 던진다.
    "manifest 없이는 Run 이 유효하지 않다" 를 문서가 아니라 코드가 강제한다.
 2. `verify_run()` 은 manifest 를 기준선으로 삼아 로컬 파일을 대조한다.
-   raw 가 없는 clone 에서는 `require_files=False` 로 **구조 검증만** 수행하고,
-   그 사실을 보고서의 `mode` 에 남긴다 — 검사하지 않은 것을 통과로 세지 않는다.
-3. 이 모듈은 어떤 네트워크 접근도 하지 않는다. E001 본수집과 무관하다.
+   `require_files` 는 **정책**(파일 부재를 실패로 볼 것인가)이고, 보고서의 `mode` 는
+   **측정**(실제로 몇 건을 바이트 대조했는가)이다. 둘을 분리해 둘 다 남긴다 —
+   검사하지 않은 것을 통과로 세지 않고, 검사한 것을 안 한 것으로 적지도 않는다.
+   (V2-C008 / v1 승계부채 `verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard`)
+3. relpath 검사는 문자열 규칙만으로 끝나지 않는다. `resolve_entry_path()` 가 경로 성분의
+   symlink 를 거부하고 `realpath` 로 Run 디렉터리 포함관계를 확인한다 — 그러지 않으면
+   `dom` → `/etc` 링크 하나로 Run 밖 바이트가 `VERIFIED` 를 받는다.
+4. 이 모듈은 어떤 네트워크 접근도 하지 않는다. E001 본수집과 무관하다.
 
 근거 메모: `docs/07_EVIDENCE_MANIFEST_CONTRACT.md`
 """
@@ -36,6 +41,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -59,6 +65,10 @@ class MissingRunManifestError(RunManifestError):
 
 class MalformedRunManifestError(RunManifestError):
     """manifest 는 있으나 계약을 만족하지 않는다."""
+
+
+class SymlinkEscapeError(RunManifestError):
+    """relpath 는 규칙을 지켰지만 경로 성분의 symlink 가 Run 디렉터리 밖을 가리킨다."""
 
 
 @dataclass(frozen=True)
@@ -155,11 +165,65 @@ def sha256_of(path: Path) -> str:
     return h.hexdigest()
 
 
+#: `mode` 는 **실제로 무엇을 검사했는지**를 말한다. 요청 플래그가 아니라 측정 결과다.
+MODE_FULL = "FULL_BYTE_VERIFICATION"
+MODE_PARTIAL = "PARTIAL_BYTE_VERIFICATION"
+MODE_STRUCTURE_ONLY = "STRUCTURE_ONLY_RAW_ABSENT"
+
+
+def resolve_entry_path(run_dir: Path | str, relpath: str) -> Path:
+    """relpath 를 Run 디렉터리 안의 실제 경로로 해석한다 — symlink 탈출을 차단한다.
+
+    v1 승계부채 `verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard` 의 후반부.
+    `load_run_manifest` 의 relpath 검사(`/` 시작 금지 · `..` 금지)는 **문자열 검사**다.
+    `run_dir / relpath` 로 만든 경로를 `exists()` · `open()` 하면 파이썬이 경로 성분의
+    symlink 를 따라가므로, `dom` 이 `/etc` 를 가리키는 symlink 이기만 하면
+    `dom/passwd` 라는 완벽히 합법적인 relpath 로 Run 밖 바이트를 해시해
+    **VERIFIED 를 받아낼 수 있다.** 문자열 규칙은 그 경로를 한 글자도 위반하지 않는다.
+
+    두 겹으로 막는다.
+
+    1. 경로 성분 하나라도 symlink 면 거부한다. `realpath` 결과가 Run 안이어도 거부한다 —
+       "지금은 안을 가리키는 symlink" 는 다음 검증 때 밖을 가리키도록 바뀔 수 있고,
+       그때 이 검사는 여전히 통과한다. 링크 자체가 evidence 층에 있을 이유가 없다.
+    2. 그래도 남는 경우(부모 디렉터리 자체가 링크로 교체되는 경합)를 위해
+       `os.path.realpath` 로 푼 최종 경로가 Run 의 실경로 안인지 확인한다.
+
+    LANE C 가 P-C **쓰기** 경로에 만든 `engine/evidence.py::_assert_no_symlink_escape` 와
+    같은 정책이다. 이 모듈은 그 정책이 없던 **읽기·검증** 경로다.
+    """
+    run_dir = Path(run_dir)
+    root_real = os.path.realpath(run_dir)
+    target = run_dir / relpath
+
+    cursor = run_dir
+    for part in Path(relpath).parts:
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise SymlinkEscapeError(
+                f"evidence 경로 성분이 symlink 다: {relpath} 의 {part!r} → {os.readlink(cursor)}"
+            )
+
+    target_real = os.path.realpath(target)
+    if target_real != root_real and not target_real.startswith(root_real + os.sep):
+        raise SymlinkEscapeError(f"evidence 경로가 Run 디렉터리 밖을 가리킨다: {relpath}")
+    return target
+
+
 def verify_run(run_dir: Path | str, *, require_files: bool = True) -> dict[str, Any]:
     """manifest 를 기준선으로 Run 을 검증한다.
 
-    require_files=False 는 raw 가 없는 clone 용이다. 그 경우 파일 대조를 **하지 않았다**고
-    보고서에 남기고, 없는 파일을 통과로 세지 않는다.
+    `require_files` 는 **정책 입력**이다 — 파일이 없는 것을 실패로 볼 것인가만 정한다.
+    보고서의 `mode` 는 **측정 출력**이다 — 실제로 몇 건을 바이트 대조했는지에서 유도한다.
+
+    v1 승계부채 `verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard` 의 전반부:
+    옛 구현은 `mode` 를 `require_files` 플래그에서 바로 찍었다. 그래서 raw 가 전부 있는
+    clone 이 `require_files=False` 로 부르면 **전건을 해시해 놓고도** 보고서에
+    `STRUCTURE_ONLY_RAW_ABSENT` / `MANIFEST_WELL_FORMED_FILES_NOT_CHECKED` 가 찍혔다.
+    반대로 일부만 있는 경우도 같은 라벨이 붙어, 보고서만 읽는 제3자는 **무엇이 검사됐는지
+    알 수 없었다.** 라벨이 의도를 말하고 사실을 말하지 않으면 검증 기록이 아니다.
+
+    `status` 어휘 3값은 `07 §4` 와 `A2 §4.1` 이 이미 묶어 뒀으므로 바꾸지 않는다.
     """
     run_dir = Path(run_dir)
     entries = load_run_manifest(run_dir)
@@ -168,7 +232,8 @@ def verify_run(run_dir: Path | str, *, require_files: bool = True) -> dict[str, 
         "run_id": run_dir.name,
         # 절대경로를 보고서에 넣지 않는다 (C012/D3 와 같은 이유).
         "manifest": MANIFEST_FILENAME,
-        "mode": "FULL_BYTE_VERIFICATION" if require_files else "STRUCTURE_ONLY_RAW_ABSENT",
+        # 요청(정책)과 관측(사실)을 분리해 둘 다 남긴다.
+        "require_files": bool(require_files),
         "entries": len(entries),
         "observations": len({e.observation_id for e in entries}),
         "declared_bytes": sum(e.bytes for e in entries),
@@ -176,10 +241,16 @@ def verify_run(run_dir: Path | str, *, require_files: bool = True) -> dict[str, 
         "missing_files": [],
         "byte_mismatch": [],
         "hash_mismatch": [],
+        "symlink_escape": [],
     }
 
     for entry in entries:
-        target = run_dir / entry.relpath
+        try:
+            target = resolve_entry_path(run_dir, entry.relpath)
+        except SymlinkEscapeError as exc:
+            # 탈출 경로는 해시하지 않는다. 해시하면 Run 밖 바이트가 증거가 된다.
+            report["symlink_escape"].append({"relpath": entry.relpath, "reason": str(exc)})
+            continue
         if not target.exists():
             if require_files:
                 report["missing_files"].append(entry.relpath)
@@ -196,12 +267,27 @@ def verify_run(run_dir: Path | str, *, require_files: bool = True) -> dict[str, 
                 {"relpath": entry.relpath, "declared": entry.sha256, "actual": actual_sha}
             )
 
-    failed = report["missing_files"] or report["byte_mismatch"] or report["hash_mismatch"]
+    checked = report["files_checked"]
+    if checked == 0:
+        report["mode"] = MODE_STRUCTURE_ONLY
+    elif checked == len(entries):
+        report["mode"] = MODE_FULL
+    else:
+        report["mode"] = MODE_PARTIAL
+
+    failed = (
+        report["missing_files"]
+        or report["byte_mismatch"]
+        or report["hash_mismatch"]
+        or report["symlink_escape"]
+    )
     if failed:
         report["status"] = "FAILED"
-    elif require_files:
+    elif report["mode"] == MODE_FULL:
+        # 전건을 대조해 통과했다. require_files 로 부르지 않았어도 사실은 사실이다.
         report["status"] = "VERIFIED"
     else:
+        # 하나라도 안 본 것이 있으면 통과로 세지 않는다 (07 §4 가운데 값의 존재 이유).
         report["status"] = "MANIFEST_WELL_FORMED_FILES_NOT_CHECKED"
     return report
 

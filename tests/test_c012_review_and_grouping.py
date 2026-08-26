@@ -33,6 +33,7 @@ sys.path.insert(0, str(RESEARCH / "src"))
 
 from landing_accessibility import authority_manifest as am  # noqa: E402
 from landing_accessibility import evidence_manifest as em  # noqa: E402
+from landing_accessibility import review_queue as rq  # noqa: E402
 
 ALLOWED_REVIEW = {"MERGE", "KEEP_SEPARATE", "UNRESOLVED"}
 ALLOWED_RELATIONSHIP = {"SAME_LANDING_EXPECTED", "DIFFERENT_LANDING_EXPECTED", "UNKNOWN"}
@@ -120,6 +121,237 @@ def test_review_queue_of_seven_is_fully_accounted_for(
         assert by_key[row.canonical_service_key]["needs_human_review"] == bool(
             row.needs_human_review
         )
+
+
+# ── V2-C008: review queue **멤버십**을 구조 규칙으로 고정한다 ───────────────────
+#
+# v1 승계부채 `queue-membership-still-hand-set-in-entity-spec`.
+# C012 가 고친 것은 needs_human_review 한 칸이고, 누가 큐에 오르는가는 여전히
+# ENTITY_SPEC 손입력이었다. 그것을 잡던 유일한 장치가 위의 EXPECTED_QUEUE_SIZE = 7 이라는
+# **하드코딩 리터럴**인데, 리터럴은 크기만 본다 — 한 건을 빼고 다른 한 건을 넣으면 통과한다.
+#
+# 아래 테스트들은 리터럴을 쓰지 않는다. `state/source_ranking_rows.parquet` 원자료에서
+# 큐를 다시 유도해 산출물과 대조하고, 규칙이 실제로 반례를 잡는지 **반례를 주입해** 확인한다.
+
+
+def _entity_rows_from_state(rows: pd.DataFrame, service_master: pd.DataFrame) -> list[tuple]:
+    """원자료 261행을 유도 입력 삼중항으로 바꾼다 — 산출물의 canonical 매핑만 빌린다."""
+    alias = pd.read_parquet(STATE / "entity_alias_map.parquet")
+    id2key = dict(
+        zip(service_master["service_id"], service_master["canonical_service_key"], strict=True)
+    )
+    pair2key = {
+        (r.entity_name_raw, r.domain): id2key[r.service_id]
+        for r in alias.itertuples()
+        if r.service_id in id2key
+    }
+    return rq.rows_from_frame(rows, pair2key)
+
+
+def test_review_queue_membership_is_derived_from_the_source_rows(
+    rows: pd.DataFrame, service_master: pd.DataFrame
+) -> None:
+    """큐 멤버십은 손입력이 아니라 원자료에서 유도된다 — 크기가 아니라 집합을 본다."""
+    derived = rq.derive_review_queue(_entity_rows_from_state(rows, service_master))
+    decided = set(
+        service_master.loc[service_master["review_decision"].notna(), "canonical_service_key"]
+    )
+    assert set(derived) == decided, (
+        "산출물의 review queue 와 원자료에서 유도한 큐가 다르다\n"
+        f"  유도에만: {sorted(set(derived) - decided)}\n"
+        f"  산출물에만: {sorted(decided - set(derived))}"
+    )
+    # 각 항목이 어떤 규칙으로 올라왔는지도 확정한다 — 우연히 크기만 맞는 경로를 막는다.
+    assert derived == {
+        "coupang_app": (rq.QR_CROSS_DOMAIN_IDENTICAL_LABEL,),
+        "coupang_retail": (rq.QR_CROSS_DOMAIN_IDENTICAL_LABEL,),
+        "gmarket_app": (rq.QR_CROSS_DOMAIN_COMPONENT_LABEL,),
+        "gmarket_auction": (rq.QR_CROSS_DOMAIN_COMPONENT_LABEL,),
+        "hyundai_homeshopping_hmall": (rq.QR_ALIAS_ABSORPTION,),
+        "naver_app": (rq.QR_CROSS_DOMAIN_COMPONENT_LABEL,),
+        "naver_naverpay": (rq.QR_CROSS_DOMAIN_COMPONENT_LABEL,),
+    }
+
+
+def test_queue_rule_catches_a_silently_dropped_member(
+    rows: pd.DataFrame, service_master: pd.DataFrame
+) -> None:
+    """반례 ① — 큐에 올라야 할 entity 를 조용히 빼면 잡힌다.
+
+    C012 이전 구조에서는 ENTITY_SPEC 플래그를 False 로 두는 것만으로 빌드가 exit 0 이었다.
+    """
+    entity_rows = _entity_rows_from_state(rows, service_master)
+    declared = set(rq.derive_review_queue(entity_rows))
+    with pytest.raises(rq.ReviewQueueMismatchError) as err:
+        rq.assert_queue_matches_declaration(entity_rows, declared - {"coupang_retail"})
+    assert "coupang_retail" in str(err.value)
+
+
+def test_queue_rule_catches_a_member_added_without_source_basis(
+    rows: pd.DataFrame, service_master: pd.DataFrame
+) -> None:
+    """반례 ② — 원자료 근거 없이 큐에 올린 entity 도 잡힌다. 크기 검사로는 못 잡는 방향이다."""
+    entity_rows = _entity_rows_from_state(rows, service_master)
+    declared = set(rq.derive_review_queue(entity_rows))
+    with pytest.raises(rq.ReviewQueueMismatchError) as err:
+        rq.assert_queue_matches_declaration(entity_rows, declared | {"kakaotalk"})
+    assert "kakaotalk" in str(err.value)
+
+
+def test_queue_size_stays_seven_while_membership_is_wrong(
+    rows: pd.DataFrame, service_master: pd.DataFrame
+) -> None:
+    """반례 ③ — 한 건을 빼고 한 건을 넣으면 **크기는 7 그대로**다.
+
+    이 반례가 EXPECTED_QUEUE_SIZE 리터럴이 왜 검사가 아닌지를 보여준다.
+    리터럴은 통과시키고 구조 규칙은 차단한다.
+    """
+    entity_rows = _entity_rows_from_state(rows, service_master)
+    tampered = (set(rq.derive_review_queue(entity_rows)) - {"naver_naverpay"}) | {"toss"}
+    assert len(tampered) == EXPECTED_QUEUE_SIZE  # 리터럴 검사는 여기서 침묵한다
+    with pytest.raises(rq.ReviewQueueMismatchError) as err:
+        rq.assert_queue_matches_declaration(entity_rows, tampered)
+    message = str(err.value)
+    assert "naver_naverpay" in message and "toss" in message
+
+
+def test_queue_rule_reacts_to_new_source_ambiguity() -> None:
+    """반례 ④ — 원자료가 늘어 새 모호성이 생기면 큐도 자동으로 늘어난다.
+
+    리터럴 7 은 이 경우 **틀린 숫자**가 되고, 규칙은 새 쌍을 스스로 찾아낸다.
+    """
+    base = [
+        ("toss", "APP", "토스"),
+        ("kakaotalk", "APP", "카카오톡"),
+    ]
+    assert rq.derive_review_queue(base) == {}
+    grown = [*base, ("toss_pay_retail", "RETAIL", "토스/토스페이")]
+    assert rq.derive_review_queue(grown) == {
+        "toss": (rq.QR_CROSS_DOMAIN_COMPONENT_LABEL,),
+        "toss_pay_retail": (rq.QR_CROSS_DOMAIN_COMPONENT_LABEL,),
+    }
+
+
+def test_queue_rule_uses_no_threshold_and_no_fuzzy_matching() -> None:
+    """규칙은 결정적 술어만 쓴다 — 유사도·임계값을 새로 만들지 않았음을 고정한다.
+
+    '토스' 와 '토스뱅크' 는 부분문자열 관계지만 슬래시 구성요소가 아니므로 큐에 오르지 않는다.
+    느슨한 부분문자열 술어를 도입하면 이 테스트가 깨진다.
+    """
+    rows = [
+        ("toss", "APP", "토스"),
+        ("tossbank_retail", "RETAIL", "토스뱅크"),
+    ]
+    assert rq.derive_review_queue(rows) == {}
+    assert rq.label_components("네이버/네이버페이") == ("네이버", "네이버페이")
+    assert rq.label_components("쿠팡") == ("쿠팡",)
+
+
+def test_queue_rule_rejects_a_domain_straddling_entity() -> None:
+    """한 canonical key 가 두 도메인에 걸치면 유도 자체가 성립하지 않는다 — 조용히 넘어가지 않는다."""
+    with pytest.raises(rq.ReviewQueueError):
+        rq.derive_review_queue([("x", "APP", "가"), ("x", "RETAIL", "가")])
+
+
+# ── V2-C008: MERGE 판정은 실제로 무언가를 흡수해야 한다 ────────────────────────
+#
+# v1 승계부채 `merge-decision-merges-nothing-no-alias-assert`.
+
+
+def _alias_pairs(service_master: pd.DataFrame) -> list[tuple[str, str]]:
+    alias = pd.read_parquet(STATE / "entity_alias_map.parquet")
+    id2key = dict(
+        zip(service_master["service_id"], service_master["canonical_service_key"], strict=True)
+    )
+    return [(id2key[r.service_id], r.entity_name_raw) for r in alias.itertuples()]
+
+
+def test_the_single_merge_decision_actually_absorbs_an_alias(
+    rows: pd.DataFrame, service_master: pd.DataFrame
+) -> None:
+    """MERGE 1건이 흡수한 것을 이름으로 확정한다 — '아무것도 병합하지 않는' MERGE 가 아니다."""
+    entity_rows = _entity_rows_from_state(rows, service_master)
+    decisions = dict(
+        zip(
+            service_master["canonical_service_key"],
+            service_master["review_decision"],
+            strict=True,
+        )
+    )
+    absorbed = rq.assert_merge_decisions_absorb_aliases(
+        entity_rows, decisions, _alias_pairs(service_master)
+    )
+    assert absorbed == {
+        "hyundai_homeshopping_hmall": ("현대홈쇼핑/현대Hmall", "현대홈쇼핑/현대Hmallord")
+    }
+    # 흡수된 표기가 원자료에 실재해야 한다 — 대조의 한쪽 끝은 원본이다.
+    raw_labels = set(rows["entity_name_raw"])
+    for label in absorbed["hyundai_homeshopping_hmall"]:
+        assert label in raw_labels
+
+
+def test_merge_that_absorbs_nothing_is_rejected(
+    rows: pd.DataFrame, service_master: pd.DataFrame
+) -> None:
+    """반례 ① — 표기가 1종뿐인 entity 에 MERGE 를 찍으면 잡힌다.
+
+    이것이 결함 이름이 말하는 '아무것도 병합하지 않는 MERGE' 다. 옛 구조에서는 통과했다.
+    """
+    entity_rows = _entity_rows_from_state(rows, service_master)
+    decisions = dict.fromkeys(service_master["canonical_service_key"], None)
+    decisions["kakaotalk"] = rq.MERGE_DECISION  # 표기 1종
+    with pytest.raises(rq.MergeDecisionError) as err:
+        rq.assert_merge_decisions_absorb_aliases(
+            entity_rows, decisions, _alias_pairs(service_master)
+        )
+    assert "kakaotalk" in str(err.value) and "흡수한 것이 없다" in str(err.value)
+
+
+def test_merge_whose_absorbed_label_is_missing_from_the_alias_ledger_is_rejected(
+    rows: pd.DataFrame, service_master: pd.DataFrame
+) -> None:
+    """반례 ② — 흡수했다면서 별칭 원장에 등재하지 않으면 잡힌다. 그것은 흡수가 아니라 유실이다."""
+    entity_rows = _entity_rows_from_state(rows, service_master)
+    decisions = dict(
+        zip(
+            service_master["canonical_service_key"],
+            service_master["review_decision"],
+            strict=True,
+        )
+    )
+    pruned = [pair for pair in _alias_pairs(service_master) if pair[1] != "현대홈쇼핑/현대Hmallord"]
+    with pytest.raises(rq.MergeDecisionError) as err:
+        rq.assert_merge_decisions_absorb_aliases(entity_rows, decisions, pruned)
+    assert "현대홈쇼핑/현대Hmallord" in str(err.value)
+
+
+def test_merge_that_double_maps_a_label_is_rejected() -> None:
+    """반례 ③ — 흡수한 표기가 다른 entity 로도 매핑되면 잡힌다. 흡수가 아니라 중복이다."""
+    entity_rows = [
+        ("a", "RETAIL", "가"),
+        ("a", "RETAIL", "가b"),
+        ("b", "APP", "가b"),
+    ]
+    with pytest.raises(rq.MergeDecisionError) as err:
+        rq.assert_merge_decisions_absorb_aliases(
+            entity_rows,
+            {"a": rq.MERGE_DECISION, "b": None},
+            [("a", "가"), ("a", "가b"), ("b", "가b")],
+        )
+    assert "중복" in str(err.value)
+
+
+def test_zero_merge_decisions_is_a_valid_state_not_an_error() -> None:
+    """MERGE 가 0건인 판정 집합은 정상이다 — 적용대상 없음(moot)을 오류로 만들지 않는다.
+
+    web_target 그룹 가설 검정이 바로 이 경우다 (§ LANE B: MERGE 0 / SPLIT 2 / NOT_TESTABLE 1).
+    """
+    assert (
+        rq.assert_merge_decisions_absorb_aliases(
+            [("a", "APP", "가")], {"a": "KEEP_SEPARATE"}, [("a", "가")]
+        )
+        == {}
+    )
 
 
 def test_every_decision_carries_basis_evidence_and_signature(
@@ -383,11 +615,17 @@ def test_manifest_detects_tampering_and_missing_files(tmp_path: Path) -> None:
     assert ok["status"] == "VERIFIED"
     assert ok["entries"] == 1 and ok["observations"] == 1
     assert ok["files_checked"] == 1
+    assert ok["mode"] == em.MODE_FULL
 
-    # raw 가 없는 clone: 검사하지 않은 것을 통과로 세지 않는다.
-    partial = em.verify_run(run_dir, require_files=False)
-    assert partial["status"] == "MANIFEST_WELL_FORMED_FILES_NOT_CHECKED"
-    assert partial["mode"] == "STRUCTURE_ONLY_RAW_ABSENT"
+    # V2-C008: raw 가 **있는** 상태에서 require_files=False 로 불러도 실제로는 전건을
+    # 해시했다. 옛 구현은 여기서 STRUCTURE_ONLY_RAW_ABSENT 를 찍었고 이 테스트가 그 오라벨을
+    # 사실로 고정하고 있었다 (v1 승계부채 verify-run-mislabels-mode-...).
+    # mode 는 요청이 아니라 측정에서 유도된다.
+    lenient = em.verify_run(run_dir, require_files=False)
+    assert lenient["files_checked"] == 1
+    assert lenient["mode"] == em.MODE_FULL
+    assert lenient["status"] == "VERIFIED"
+    assert lenient["require_files"] is False
 
     # 내용을 바꾸면 잡힌다.
     (run_dir / "dom" / "a.html").write_bytes(b"<html>tampered!!!!!!!</html>")
@@ -400,6 +638,105 @@ def test_manifest_detects_tampering_and_missing_files(tmp_path: Path) -> None:
     gone = em.verify_run(run_dir)
     assert gone["status"] == "FAILED"
     assert gone["missing_files"] == ["dom/a.html"]
+
+    # raw 가 정말로 없는 clone 이라야 STRUCTURE_ONLY 다 — 검사하지 않은 것을 통과로 세지 않는다.
+    absent = em.verify_run(run_dir, require_files=False)
+    assert absent["files_checked"] == 0
+    assert absent["mode"] == em.MODE_STRUCTURE_ONLY
+    assert absent["status"] == "MANIFEST_WELL_FORMED_FILES_NOT_CHECKED"
+
+
+def _one_entry(payload: bytes, relpath: str, observation_id: str = "obs_1") -> em.ManifestEntry:
+    return em.ManifestEntry(
+        observation_id=observation_id,
+        relpath=relpath,
+        sha256=hashlib.sha256(payload).hexdigest(),
+        bytes=len(payload),
+    )
+
+
+def test_partial_verification_is_labelled_partial_not_full(tmp_path: Path) -> None:
+    """반쯤 검사한 Run 을 '전건 검증' 으로도 '아무것도 안 봤음' 으로도 라벨하지 않는다."""
+    run_dir = tmp_path / "run"
+    (run_dir / "dom").mkdir(parents=True)
+    a, b = b"<html>a</html>", b"<html>b</html>"
+    (run_dir / "dom" / "a.html").write_bytes(a)
+    em.write_run_manifest(
+        run_dir, [_one_entry(a, "dom/a.html", "o1"), _one_entry(b, "dom/b.html", "o2")]
+    )
+
+    report = em.verify_run(run_dir, require_files=False)
+    assert report["files_checked"] == 1 and report["entries"] == 2
+    assert report["mode"] == em.MODE_PARTIAL
+    assert report["status"] == "MANIFEST_WELL_FORMED_FILES_NOT_CHECKED", (
+        "하나라도 안 본 것이 있으면 VERIFIED 가 아니다"
+    )
+
+
+def test_symlinked_directory_component_cannot_smuggle_bytes_from_outside(
+    tmp_path: Path,
+) -> None:
+    """반례 — relpath 문자열 규칙을 **한 글자도 위반하지 않고** Run 밖 바이트를 검증시킨다.
+
+    v1 승계부채 `verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard` 의 후반부.
+    `dom` 을 Run 밖 디렉터리로 링크하면 `dom/a.html` 은 절대경로도 `..` 도 아니므로
+    `load_run_manifest` 를 그대로 통과하고, 옛 `verify_run` 은 그 바깥 바이트를 해시해
+    **VERIFIED** 를 돌려줬다.
+    """
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    payload = b"<html>not-in-this-run</html>"
+    (outside / "a.html").write_bytes(payload)
+
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "dom").symlink_to(outside, target_is_directory=True)
+    em.write_run_manifest(run_dir, [_one_entry(payload, "dom/a.html")])
+
+    # 문자열 계약은 통과한다 — 그래서 여기까지는 정상이다.
+    assert em.load_run_manifest(run_dir)[0].relpath == "dom/a.html"
+
+    report = em.verify_run(run_dir)
+    assert report["status"] == "FAILED"
+    assert report["symlink_escape"] and report["symlink_escape"][0]["relpath"] == "dom/a.html"
+    # 해시하지 않았음을 확인한다 — 탈출 경로를 해시하면 그 바이트가 증거가 된다.
+    assert report["files_checked"] == 0
+    assert report["hash_mismatch"] == []
+
+
+def test_symlink_pointing_inside_the_run_is_also_refused(tmp_path: Path) -> None:
+    """지금 Run 안을 가리키는 링크도 거부한다 — realpath 검사만으로는 못 막는 경로다.
+
+    `resolve()` 결과만 보면 이 링크는 합법이다. 그러나 그 링크가 다음 검증 전에 바깥을
+    가리키도록 바뀌어도 검사는 계속 통과한다. 링크 자체를 evidence 층에 두지 않는다.
+    """
+    run_dir = tmp_path / "run"
+    (run_dir / "real").mkdir(parents=True)
+    payload = b"<html>inside</html>"
+    (run_dir / "real" / "a.html").write_bytes(payload)
+    (run_dir / "dom").symlink_to(run_dir / "real", target_is_directory=True)
+    em.write_run_manifest(run_dir, [_one_entry(payload, "dom/a.html")])
+
+    with pytest.raises(em.SymlinkEscapeError):
+        em.resolve_entry_path(run_dir, "dom/a.html")
+    assert em.verify_run(run_dir)["status"] == "FAILED"
+
+
+def test_symlinked_leaf_file_is_refused(tmp_path: Path) -> None:
+    """디렉터리 성분만이 아니라 마지막 성분(파일 자신)이 링크여도 거부한다."""
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    payload = b"<html>leaf</html>"
+    (outside / "a.html").write_bytes(payload)
+
+    run_dir = tmp_path / "run"
+    (run_dir / "dom").mkdir(parents=True)
+    (run_dir / "dom" / "a.html").symlink_to(outside / "a.html")
+    em.write_run_manifest(run_dir, [_one_entry(payload, "dom/a.html")])
+
+    report = em.verify_run(run_dir)
+    assert report["status"] == "FAILED"
+    assert report["symlink_escape"]
 
 
 @pytest.mark.parametrize(
@@ -438,6 +775,57 @@ def test_gitignore_excludes_raw_evidence_but_tracks_the_manifest() -> None:
     assert not ignored(f"{base}/manifest.jsonl"), (
         "manifest 가 gitignore 에 걸린다 — 제외를 감당 가능하게 만드는 유일한 장치가 사라졌다"
     )
+
+
+def test_evidence_exclusion_survives_deeper_and_relocated_run_layouts() -> None:
+    """V2-C008 — 한 겹만 보던 검사를 깊이·위치 두 축으로 넓힌다.
+
+    v1 승계부채 `gitignore-evidence-pattern-single-level-only`.
+    옛 패턴 `evidence/*/dom/` 의 `*` 는 경로 구분자를 넘지 않아 `evidence/<run>/dom/` 딱
+    한 겹만 걸렸다. 위 테스트가 정확히 그 한 겹만 확인했기 때문에 결함이 잡히지 않았다.
+    00_SSOT §7 의 L0/L1 2계층 수집은 Run 안에 층을 하나 더 만들므로, 이것은 가정이 아니라
+    곧 실현될 레이아웃에서 수백 MB 를 그대로 커밋시키는 결함이다.
+    """
+    research = "research/landing_accessibility"
+
+    def ignored(relpath: str) -> bool:
+        proc = subprocess.run(
+            ["git", "-C", str(REPO), "check-ignore", "-q", "--no-index", relpath],
+            capture_output=True,
+        )
+        assert proc.returncode in (0, 1), proc.stderr.decode()
+        return proc.returncode == 0
+
+    # ① 깊이 — Run 안이 한 겹 더 나뉘어도 제외된다.
+    for deep in (
+        f"{research}/evidence/e001_run/L0/dom/page.html",
+        f"{research}/evidence/e001_run/pages/p1/screen/shot.png",
+        f"{research}/evidence/e001_run/L1/task_a/probe/result.json",
+    ):
+        assert ignored(deep), f"깊은 중첩이 추적 대상이 됐다: {deep}"
+
+    # ② 위치 — evidence 디렉터리가 .gitignore 바로 밑이 아니어도 제외된다.
+    for moved in (
+        f"{research}/runs/e001_run/evidence/dom/page.html",
+        f"{research}/analysis/evidence/e001_run/ax/tree.json",
+        f"{research}/engine/out/evidence/e001_run/probe/result.json",
+    ):
+        assert ignored(moved), f"위치가 옮겨진 evidence 가 추적 대상이 됐다: {moved}"
+
+    # ③ manifest 는 어느 깊이·어느 위치에서도 추적된다 — 제외를 감당 가능하게 만드는 장치다.
+    for manifest in (
+        f"{research}/evidence/e001_run/manifest.jsonl",
+        f"{research}/evidence/e001_run/L0/manifest.jsonl",
+        f"{research}/analysis/evidence/e001_run/run_manifest.json",
+    ):
+        assert not ignored(manifest), f"manifest 가 제외됐다: {manifest}"
+
+    # ④ 과잉 제외가 아님 — evidence 아래라도 네 디렉터리 밖은 추적된다.
+    for kept in (
+        f"{research}/evidence/e001_run/report.json",
+        f"{research}/state/service_master.parquet",
+    ):
+        assert not ignored(kept), f"제외 범위가 넓어졌다: {kept}"
 
 
 def test_evidence_directory_is_still_absent() -> None:

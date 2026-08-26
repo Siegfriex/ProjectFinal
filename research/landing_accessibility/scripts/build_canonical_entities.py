@@ -77,12 +77,17 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / "state"
+
+sys.path.insert(0, str(ROOT / "src"))
+
+from landing_accessibility import review_queue as rq  # noqa: E402
 
 EXPECTED_ROWS = 261
 
@@ -767,6 +772,18 @@ def main() -> None:
     key2ckey = {k: v[0] for k, v in ENTITY_SPEC.items()}
     rows_ck = rows.assign(canonical_service_key=rows["entity_key"].map(key2ckey))
 
+    # V2-C008: review queue **멤버십**을 원자료에서 유도한다.
+    #   C012(W1)이 고친 것은 needs_human_review 한 칸뿐이었다. 누가 큐에 오르는가는 여전히
+    #   ENTITY_SPEC 세 번째 원소의 손입력 bool 이었고, 그 플래그를 조용히 False 로 두면
+    #   아무 검사도 걸리지 않고 빌드가 exit 0 으로 끝났다(v1 승계부채
+    #   queue-membership-still-hand-set-in-entity-spec).
+    #   이제 유도가 원본이고 ENTITY_SPEC 플래그는 **대조되는 선언**이다. 둘이 어긋나면 차단한다.
+    #   규칙은 src/landing_accessibility/review_queue.py 에 있고 임계값을 쓰지 않는다.
+    derived_queue = rq.assert_queue_matches_declaration(
+        rq.rows_from_frame(rows, key2ckey),
+        [spec[0] for spec in ENTITY_SPEC.values() if spec[2]],
+    )
+
     # canonical_key -> web_target_group
     group_of: dict[str, tuple[str, str, str]] = {}
     for wkey, (members, basis) in WEB_TARGET_GROUP_CANDIDATES.items():
@@ -786,7 +803,9 @@ def main() -> None:
 
         primary = CANONICAL_DISPLAY.get(ckey, raws[0])
         spec_src = next(p for p in pairs if ENTITY_SPEC[p][0] == ckey and ENTITY_SPEC[p][1])
-        _, basis, raised_for_review = ENTITY_SPEC[spec_src]
+        _, basis, _declared_for_review = ENTITY_SPEC[spec_src]
+        # 큐 멤버십의 원본은 유도 결과다 (위 assert 가 선언과의 일치를 이미 단언했다).
+        raised_for_review = ckey in derived_queue
 
         # C012(W1): review queue 를 A1 원문 대조로 해소한다.
         # needs_human_review 는 더 이상 ENTITY_SPEC 의 손입력이 아니라 파생값이다 —
@@ -902,6 +921,34 @@ def main() -> None:
     ]
     assert both.empty, (
         f"도메인을 넘나드는 measurement_entity: {both['canonical_service_key'].tolist()}"
+    )
+
+    # V2-C008: MERGE 판정이 실제 별칭 흡수와 대응하는지 단언한다.
+    #   v1 승계부채 merge-decision-merges-nothing-no-alias-assert.
+    #   판정 원장에 MERGE 라고 적기만 하면 통과하던 경로를 닫는다 — 흡수된 표기가
+    #   별칭 원장에 있고, 다른 entity 로 중복 매핑되지 않아야 MERGE 다.
+    rq.assert_merge_decisions_absorb_aliases(
+        rq.rows_from_frame(rows, key2ckey),
+        dict(
+            zip(
+                service_master["canonical_service_key"],
+                service_master["review_decision"],
+                strict=True,
+            )
+        ),
+        zip(
+            alias_map["service_id"].map(
+                dict(
+                    zip(
+                        service_master["service_id"],
+                        service_master["canonical_service_key"],
+                        strict=True,
+                    )
+                )
+            ),
+            alias_map["entity_name_raw"],
+            strict=True,
+        ),
     )
 
     # C012(W1): review_decision 어휘를 코드에서 닫는다.

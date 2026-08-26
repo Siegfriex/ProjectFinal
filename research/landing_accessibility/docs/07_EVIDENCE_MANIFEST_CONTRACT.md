@@ -53,20 +53,71 @@ manifest 만 있으면, raw 바이트가 로컬에만 있어도 clone 을 받은
 |---|---|
 | `load_run_manifest(run_dir)` | manifest 부재 → `MissingRunManifestError`. **manifest 없는 Run 은 유효하지 않다.** |
 | | 필수 필드 누락·sha256 형식 위반·relpath 절대경로·`(observation_id, relpath)` 중복·빈 파일 → `MalformedRunManifestError` |
-| `verify_run(run_dir, require_files=True)` | manifest 를 기준선으로 로컬 파일의 존재·크기·해시를 대조 |
-| `verify_run(run_dir, require_files=False)` | raw 가 없는 clone 용. **구조만 검증했다는 사실을 보고서 `mode` 에 남긴다** — 검사하지 않은 것을 통과로 세지 않는다 |
+| `verify_run(run_dir, require_files=True)` | manifest 를 기준선으로 로컬 파일의 존재·크기·해시를 대조. 파일 부재를 **실패로 센다** |
+| `verify_run(run_dir, require_files=False)` | raw 가 없는 clone 용. 파일 부재를 실패로 세지 **않는다**. 그것이 이 플래그가 정하는 전부다 |
+| `resolve_entry_path(run_dir, relpath)` | relpath 를 실제 경로로 해석하며 symlink 탈출을 차단 → `SymlinkEscapeError` |
 | `write_run_manifest()` | `(observation_id, relpath)` 정렬 + `sort_keys` 로 같은 입력이 같은 바이트를 내게 고정 |
 
 `verify_run` 의 `status` 는 셋 중 하나다.
 
 ```
 VERIFIED                              raw 를 전건 대조해 통과
-MANIFEST_WELL_FORMED_FILES_NOT_CHECKED  manifest 는 정합하나 raw 를 보지 않았다
-FAILED                                누락·크기 불일치·해시 불일치가 하나라도 있다
+MANIFEST_WELL_FORMED_FILES_NOT_CHECKED  manifest 는 정합하나 raw 를 전건 보지는 않았다
+FAILED                                누락·크기 불일치·해시 불일치·symlink 탈출이 하나라도 있다
 ```
 
 가운데 값이 `VERIFIED` 와 별개인 것이 핵심이다. 두 상태를 한 단어로 뭉개면
 "파일이 없어서 검사를 못 한 것"이 "검사해서 통과한 것"으로 둔갑한다.
+
+### 4-1. `mode` 는 요청이 아니라 측정이다 `[V2-C008 시정]`
+
+닫는 결함: `verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard` (v1 승계, 전반부)
+
+옛 구현은 `mode` 를 `require_files` 플래그에서 **그대로 찍었다.**
+
+```python
+"mode": "FULL_BYTE_VERIFICATION" if require_files else "STRUCTURE_ONLY_RAW_ABSENT",
+```
+
+그래서 raw 를 전부 가진 clone 이 `require_files=False` 로 부르면, 전건을 해시해 놓고도
+보고서에는 `STRUCTURE_ONLY_RAW_ABSENT` 와 `MANIFEST_WELL_FORMED_FILES_NOT_CHECKED` 가
+남았다. 라벨이 **의도**를 말하고 **사실**을 말하지 않으면 그것은 검증 기록이 아니다.
+반대 방향도 같다 — 일부 파일만 있는 clone 도 같은 라벨을 받아, 보고서만 읽는 제3자는
+무엇이 검사됐는지 알 수 없었다. (그 오라벨을 `tests/test_c012_review_and_grouping.py` 가
+`assert partial["mode"] == "STRUCTURE_ONLY_RAW_ABSENT"` 로 **사실처럼 고정**하고 있었다.)
+
+이제 `mode` 는 `files_checked` 에서 유도된다.
+
+| `files_checked` | `mode` |
+|---|---|
+| `== entries` | `FULL_BYTE_VERIFICATION` |
+| `0 < n < entries` | `PARTIAL_BYTE_VERIFICATION` |
+| `== 0` | `STRUCTURE_ONLY_RAW_ABSENT` |
+
+`status` 어휘 3값은 `A2 §4.1` 이 이미 묶어 뒀으므로 바꾸지 않는다. 다만 그 유도가
+`require_files` 가 아니라 `mode` 를 본다 — `FULL_BYTE_VERIFICATION` 일 때만 `VERIFIED` 다.
+요청 플래그 자체도 `require_files` 로 보고서에 남겨 정책과 사실을 둘 다 보이게 한다.
+
+### 4-2. relpath 규칙은 문자열 검사였다 `[V2-C008 시정]`
+
+닫는 결함: `verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard` (v1 승계, 후반부)
+
+`load_run_manifest` 의 relpath 검사(절대경로 금지 · `..` 금지)는 **문자열**만 본다.
+Run 디렉터리 안에서 `dom` 을 `/etc` 로 링크해 두면 `dom/passwd` 는 그 규칙을
+한 글자도 위반하지 않고, 옛 `verify_run` 은 `run_dir / relpath` 를 그대로 열어
+**Run 밖 바이트를 해시하고 `VERIFIED` 를 돌려줬다.**
+
+`resolve_entry_path()` 가 두 겹으로 막는다.
+
+1. 경로 성분 하나라도 symlink 면 거부한다. `realpath` 결과가 Run 안이어도 거부한다 —
+   "지금은 안을 가리키는 링크" 는 다음 검증 전에 바깥을 가리키도록 바뀔 수 있고, 그때
+   `realpath` 검사만으로는 통과한다. evidence 층에 링크가 있을 이유가 없다.
+2. `os.path.realpath` 로 푼 최종 경로가 Run 실경로 안인지 확인한다 (부모 교체 경합 대비).
+
+탈출로 판정된 항목은 **해시하지 않는다.** 해시하면 Run 밖 바이트가 증거로 남는다.
+보고서 `symlink_escape` 에 기록되고 `status` 는 `FAILED` 다.
+LANE C 가 P-C **쓰기** 경로에 만든 `engine/evidence.py::_assert_no_symlink_escape` 와
+같은 정책이며, 이 모듈은 그 정책이 없던 **읽기·검증** 경로다.
 
 ## 5. 이 계약이 하지 않는 것
 

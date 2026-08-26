@@ -34,6 +34,7 @@
 | `episode-counters-undefined-and-uncollected` | ssot F3 | P2 / blocking | §4 |
 | `primary-action-identity-not-stored` | ssot F4 | P2 / blocking | §5 |
 | `l0-evidence-artifacts-without-storage-slot` | ssot F5 | P2 / blocking | §6 |
+| `ned-ied-path-minimality-not-operationalized` | adversarial `V2-C002` | P2 / `E001_V2-blocking` | **§2.6** |
 
 본 문서가 닫지 않는 finding(ssot F6~F13, adversarial P1 3건)은 다른 담당의 소관이다 —
 상태값 어휘·스키마 대응은 `A2_VOCABULARY_AND_SCHEMA_BINDING.md`, gate 이름은 `PHASE_GATES.md`,
@@ -252,8 +253,11 @@ MPFED = m            ( = NED + IED, 00 §7과 항등 )
 | `MAX_STATE_REVISITS` | `2` | 같은 DOM state key로 3번째 도달하면 순환이다 |
 | `MAX_SCOUT_WALL_CLOCK_S` | `180` | activation은 안 늘어도 로딩만 반복되는 경우를 끊는다 |
 | `MAX_CONSECUTIVE_NO_STATE_CHANGE` | `2` | activation 후 URL·DOM state key가 모두 불변인 상태가 연속되면 진행이 없다 |
+| `BRANCHING_LIMIT` | `4` | 한 state에서 분기시킬 activation 후보 수. **열거의 폭**을 유한하게 만드는 값이다 `[V2-C008 시정]`. 이 값이 표에 없으면 §2.6의 최소성 주장이 무엇에 대해 최소인지 말할 수 없다 — LANE C 엔진(`engine/l1_engine.py::ScoutBudget`)이 이미 이 값으로 돌고 있었고 명세에만 없었다 |
 
-네 값 모두 **P-C `E000_V2`에서 검증 후 동결**한다. 기본값은 착수용이다.
+다섯 값 모두 **P-C `E000_V2`에서 검증 후 동결**한다. 기본값은 착수용이다.
+`BRANCHING_LIMIT`도 §0.5의 **수집 파라미터**이며 해석 임계값이 아니다 — 관측을 유한하게
+만들 뿐 어떤 관측값도 좋음/나쁨으로 바꾸지 않는다.
 
 ### 2.2 예산 소진 시 종료상태
 
@@ -300,6 +304,125 @@ UNRESOLVED_DEPTH_BUDGET_EXCEEDED
 - endpoint 신호가 발화하지 않는 대상 → 예산이 실제로 발화하는가
 - 순환 navigation 대상 → `MAX_STATE_REVISITS`가 먼저 발화하는가
 - 예산 소진 관측이 `MPFED = 8`로 새지 않고 `NULL`로 저장되는가
+- **동일 길이 후보 경로가 둘 이상인 대상 → 같은 fixture를 두 번 돌려 같은 경로가 나오는가** (§2.6 규칙 MIN-4)
+- **짧은 경로와 긴 경로가 같은 endpoint로 가는 대상 → 짧은 쪽이 선택되는가** (§2.6 규칙 MIN-2)
+
+### 2.6 "최소"의 조작화 — 탐색 절차·결정성·최소성의 범위 `[V2-C008 시정]`
+
+> 구체화 대상: `00_SSOT` §7 / `02_COLLECTION` §7 · §9
+> 닫는 finding: `ned-ied-path-minimality-not-operationalized`
+
+`00` §7은 NED를 "영역에 도달하기까지의 **최소** state-changing activation 수", IED를
+"영역에서 endpoint까지 필요한 **최소** activation 수"로 정의한다. §1.3은 그 최소를
+`k = min{i : ...}` · `m = min{i : ...}` 라는 **집합 표기**로 옮겼다.
+
+집합 표기는 최소가 무엇인지를 말하지만 **그 최소를 어떻게 얻는지는 말하지 않는다.**
+그 공백을 그대로 두면 수집기가 처음 찾은 아무 경로나 최소라고 부를 수 있고,
+같은 대상을 두 번 재면 다른 값이 나올 수 있으며, 어느 쪽도 명세를 위반하지 않는다.
+이 절이 탐색 절차·결정성 규칙·최소성이 성립하는 **범위**를 못박는다.
+
+**규칙 MIN-1 — 최소성의 단위는 activation 수다**
+
+비용함수도 가중치도 쓰지 않는다. 최소화 대상은 `02` §9가 정의한 **activation(= `fact_task_step` 행)의 개수**
+하나뿐이다. `00` §7이 Depth와 합치지 말라고 한 것들 — text input · scroll · forced popup
+dismissal · auth gate · redirect — 은 이 개수에 들어가지 않으며, 따라서 **후보 경로를 만드는
+분기 대상도 아니다.** popup 닫기 control을 분기 후보에 넣으면 닫기가 depth로 세어진다.
+
+**규칙 MIN-2 — 탐색은 activation 수에 대한 폭우선 열거다**
+
+랜딩(`s_0`)에서 시작해 activation 수 `0, 1, 2, …` 순으로 후보 경로를 **레벨 순서로** 열거한다.
+길이 `n`의 모든 후보를 소진하기 전에 길이 `n+1`을 시도하지 않는다.
+따라서 **처음 종료신호가 발화한 경로가 그 열거 안에서의 최소 경로다.**
+
+| 단계 | 내용 |
+|---|---|
+| Scout | 위 열거로 최소 경로를 찾는다. 자유롭게 full task를 수행하지 않는다 (`02` §7) |
+| Path Freeze | 찾은 경로를 순서 있는 step 목록으로 동결한다 (`02` §8) |
+| Replay | 동결된 경로만 결정적으로 재실행한다. 깨지면 `UNRESOLVED_REPLAY_BROKEN`이며 **조용히 자유탐색으로 대체하지 않는다** |
+
+탐욕적 하강(매 state에서 가장 그럴듯한 후보 하나만 따라 끝까지 파고드는 방식)은 **금지한다.**
+그 방식은 최소 경로를 찾지 못하고도 자신이 찾지 못했다는 사실을 알 수 없다.
+
+**규칙 MIN-3 — 종료는 endpoint가 아니라 **terminal**에서 일어난다**
+
+`02` §7은 gate 도달 시 즉시 종료를 요구한다. 그러므로 열거가 반환하는 것은 정확히
+"최소 길이의 **terminal** 경로"이며, gate가 더 얕은 길이에서 발화하면 **그보다 깊은
+endpoint 경로는 열거되지 않는다.** 이 경우 `endpoint_reached = 0`이고
+`MPFED`는 `NULL`이다(§1.5) — gate 길이를 MPFED로 대입하지 않는다.
+
+"최소 endpoint 경로"라고 쓰지 않고 "최소 terminal 경로"라고 쓰는 이유가 이것이다.
+두 표현을 섞으면 gate로 끊긴 관측이 endpoint 관측처럼 읽힌다.
+
+**규칙 MIN-4 — 동일 길이 후보의 tie-break는 **전순서**여야 한다**
+
+같은 길이의 후보 경로가 둘 이상일 때 어느 쪽을 고르는지가 정해져 있지 않으면
+`NED`/`IED`는 재현되지 않는 값이 된다. 다음 **전순서(total order)** 로 고정한다.
+
+한 state 안에서 activation 후보를 정렬하는 키 —
+
+```
+( marked_primary desc, area_css_px2 desc, selector asc )
+```
+
+세 번째 성분이 **필수**다. 앞의 둘만으로는 같은 크기·같은 표시의 형제 control
+(그리드의 동급 카드, 폭이 같은 nav 버튼)에서 키가 완전히 동률이 되고, 그때 순서는
+DOM 순서에 대한 정렬 안정성에만 의존한다. `area_css_px2`는 `getBoundingClientRect`에서
+오는 부동소수이며 폰트 로딩·이미지 리플로우·스크롤바 유무로 서브픽셀이 흔들리면
+근소한 동률이 **런마다 뒤집힌다.** `selector` 문자열 오름차순은 그 흔들림에 영향받지 않는다.
+
+경로 사이의 순서는 이 후보 순서에서 유도된다 — 같은 길이의 두 경로는 처음으로 갈리는
+step의 후보 순위로 비교한다(사전식). 열거를 이 순서로 하면 **먼저 반환되는 경로가 곧
+전순서상 최소 경로**이므로 별도의 경로 정렬이 필요 없다.
+
+**규칙 MIN-5 — 최소성은 **열거된 부분격자 안에서만** 성립한다**
+
+이것이 이 절에서 가장 중요한 문장이다. 위 절차는 최소성을 **증명하지 않는다.**
+세 가지가 열거 대상을 좁히기 때문이다.
+
+| 좁히는 것 | 결과 |
+|---|---|
+| `BRANCHING_LIMIT`(§2.1) | 한 state에서 상위 `N`개 후보만 확장한다. `N+1`번째 control을 지나는 더 짧은 경로는 **열거되지 않는다** |
+| 후보 집합의 출처 | 분기 후보는 `fact_primary_action_candidate`(§5.1)가 지명한 것들이다. 그 휴리스틱이 지명하지 않은 요소는 activation이 될 수 없다 |
+| 규칙 MIN-3 | gate/endpoint 발화 시 즉시 종료하므로, 더 깊은 곳의 종료신호는 탐색되지 않는다 |
+
+그러므로 산출된 `NED`/`IED`는 **"전역 최소"가 아니라 "열거된 부분격자 안에서의 최소"** 다.
+보고·논문 문면에서 "최소 경로를 찾았다"로 쓰지 않는다. 쓸 수 있는 문장은
+"`BRANCHING_LIMIT` · 후보 지명 규칙 · 즉시종료 규칙 아래에서 관측된 최소 activation 수"다.
+`00` §7의 "최소"는 개념 정의이고, 이 절은 그 개념을 유한 시간에 근사하는 **절차**다.
+둘을 같은 것으로 읽으면 관측값이 실제보다 강한 주장을 짊어진다(§0.5 · §8).
+
+**규칙 MIN-6 — `k`와 `m`은 같은 경로에서 읽는다**
+
+§1.3의 `k`(영역 도달)와 `m`(endpoint 도달)은 **선택된 최소 terminal 경로 하나** 위에서 읽는다.
+두 값을 서로 다른 경로에서 독립으로 최소화하면 `IED = m - k`가 음수가 되거나
+어떤 실제 경로에도 대응하지 않는 조합이 나온다.
+
+그 대가로 `k`는 **과대추정될 수 있다.** 다른 분기에 영역까지 더 짧은 경로가 있어도
+그 분기가 최소 terminal 경로가 아니면 열거되지 않기 때문이다. 이 편향의 방향은 한쪽이며
+(`NED`는 작아지지 않는다) 그 사실을 여기에 기록해 둔다 — P-C `E000_V2`에서
+동일 대상에 대해 `k` 독립 최소화를 별도로 돌려 차이를 실측한다(§7).
+
+**규칙 MIN-7 — 예산에 걸리면 최소가 아니라 **관측 없음**이다**
+
+`MAX_ACTIVATIONS_PER_TASK` · `BRANCHING_LIMIT` · `MAX_SCOUT_WALL_CLOCK_S` ·
+`MAX_STATE_REVISITS` · `MAX_CONSECUTIVE_NO_STATE_CHANGE` 중 무엇에 걸렸든,
+종료신호 없이 열거가 끝나면 `endpoint_status = UNRESOLVED` ·
+`endpoint_status_detail = UNRESOLVED_DEPTH_BUDGET_EXCEEDED`이고
+`NED`/`IED`/`MPFED`는 `NULL`이다(§1.5 · §2.2 · §2.4). 예산값을 대입하지 않는다.
+어느 예산에 걸렸는지는 **경로 단위로** 기록한다 — 가지치기된 다른 분기에서 발화한
+이유가 최종 종료 이유로 보고되면 진단이 거짓이 된다.
+
+**규칙 MIN-8 — Path Freeze는 최소성을 재검증하지 않는다**
+
+Replay가 확인하는 것은 **경로 재현성**(같은 step 열이 같은 state 열을 만드는가)이지
+그 경로가 여전히 최소인지가 아니다. 대상이 바뀌어 더 짧은 경로가 생겨도 Replay는
+동결 경로를 그대로 밟고 통과시킨다. 최소성 재판정이 필요하면 그것은 Replay가 아니라
+**새 Scout**이며, `02` §12에 따라 새 evidence run이다.
+
+동결 산출물은 최소한 다음을 담는다 — 경로 step 열(`step_index` · `selector` ·
+기대 state id) · 그 열의 `path_sha256` · 산출 당시의 예산값 · `NED`/`IED`/`MPFED`.
+예산값을 함께 동결하는 이유는 규칙 MIN-5 때문이다. 예산이 바뀌면 "무엇에 대한 최소인가"가
+바뀌므로, 예산을 모르는 채로 남은 depth 값은 해석할 수 없다.
 
 ---
 
@@ -599,6 +722,8 @@ grain이 interrupt 단위이기 때문이다.
 | `MAX_STATE_REVISITS` | `2` | P-C → P-D 검증 | §2.1 |
 | `MAX_SCOUT_WALL_CLOCK_S` | `180` | P-C | §2.1 |
 | `MAX_CONSECUTIVE_NO_STATE_CHANGE` | `2` | P-C | §2.1 |
+| `BRANCHING_LIMIT` | `4` | P-C → P-D 검증 | §2.1 · §2.6 규칙 MIN-5. 이 값이 최소성의 **범위**를 정한다 `[V2-C008 시정]` |
+| `k` 독립 최소화와의 차이 | 미측정 | P-C `E000_V2` | §2.6 규칙 MIN-6. `NED` 과대추정의 크기를 실측한다 `[V2-C008 시정]` |
 | `SCROLL_IDLE_MS` | `500` | P-C | §4.3 |
 | `TOP_N_CANDIDATES` | `5` | P-C | §5.1 |
 | 닫기 어휘 사전 | 미확정 | P-C | §3.2 |
@@ -626,3 +751,6 @@ grain이 interrupt 단위이기 때문이다.
 - `text_input_episode_count` / `scroll_episode_count`를 Depth에 더하는 것 — `00` §7이 금지한다.
 - §1.6 cascade의 AI 단계에서 `00` §3에 없는 새 endpoint를 만드는 것 — `02` §10이 금지한다.
 - `NED = 0`을 "진입이 쉽다"로 해석해 점수화하는 것 — 랜딩에 control이 있었다는 관측 사실일 뿐이다.
+- §2.6의 산출값을 "**최소** 경로를 찾았다"로 쓰는 것 — 열거된 부분격자 안에서의 최소다(규칙 MIN-5).
+- gate로 끊긴 관측의 terminal 길이를 `MPFED`로 대입하는 것 — `NULL`이다(규칙 MIN-3).
+- Replay가 통과했다는 사실을 "경로가 여전히 최소다"의 근거로 쓰는 것 — Replay는 재현성만 본다(규칙 MIN-8).

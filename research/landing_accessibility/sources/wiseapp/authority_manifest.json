@@ -2,8 +2,8 @@
   "authority_id": "WISEAPP_ACTIVE_SENIOR_2025H2_933",
   "authority_rank": "A1",
   "acquired_at": "2026-08-26T12:04:03.157282",
-  "manifest_revision": 4,
-  "revised_at": "2026-08-26",
+  "manifest_revision": 5,
+  "revised_at": "2026-08-27",
   "revision_kind": "MANIFEST_DESCRIPTION_ONLY",
   "source_freeze_note": "매니페스트 판본과 A1 원문 판본은 다른 것이다. raw_assets.*.sha256 은 2026-08-26 에 동결한 933 원문 바이트의 해시이며 manifest_revision 이 올라가도 불변이다. revision_log 각 항목의 raw_assets_unchanged 가 그 사실을 판본마다 선언한다. 원문 판본이 바뀌는 일이 생기면 그것은 revision 이 아니라 새 authority_id 다.",
   "self_hash_recipe": "sha256(json.dumps(manifest_without_self_field, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest(), 'sha256:' 접두 부착",
@@ -56,9 +56,24 @@
         "A1 원문 판본과 매니페스트 판본을 필드 수준에서 분리(source_freeze_note). raw_assets 는 revision 1~4 전 판본에서 바이트 동일함을 확인했다.",
         "내용 변경 없음 — revision_kind=MANIFEST_DESCRIPTION_ONLY. 원문 기술이나 판정은 하나도 바꾸지 않았다."
       ]
+    },
+    {
+      "revision": 5,
+      "at": "2026-08-27",
+      "cycle": "V2-C008",
+      "commit": null,
+      "commit_note": "이 판본을 만든 커밋의 해시는 커밋 시점 전에 알 수 없다. 판본 식별은 manifest_self_sha256_excluding_self_field 로 한다.",
+      "raw_assets_unchanged": true,
+      "changes": [
+        "hash_registry 신설 — sources/wiseapp 20파일 전량의 해시 선언 경로를 files / delegated / self_hash_exemption 세 갈래로 닫았다.",
+        "해시가 새로 선언된 파일 3건: raw/wiseapp933_api.json · raw/wiseapp933_images.json · source_evidence_manifest.json.",
+        "authority_manifest.json 자신은 순환이라 파일 해시를 등재하지 않고 manifest_self_sha256_excluding_self_field 를 앵커로 명시했다 (무엇을 덮고 무엇을 덮지 않는지 함께 기록).",
+        "raw_assets 4종은 손대지 않았다 — A1 원문 동결본의 바이트는 그대로다.",
+        "닫는 결함: a1-raw-payload-files-not-hash-registered-in-authority-manifest (v1 승계) / EDA00-PROV-UNDECLARED-FILES (LANE A EDA-00 P2)."
+      ]
     }
   ],
-  "manifest_self_sha256_excluding_self_field": "sha256:a6937fa3e31d5648f9bbf4bc55740aef58a603117880defed7f121d03c1964d4",
+  "manifest_self_sha256_excluding_self_field": "sha256:826031573ce1b9633c7338ff3c223dfe01917f3fb96d8d166f4826790b12cfbb",
   "source": {
     "publisher": "와이즈앱·리테일·굿즈 (주식회사 아이디어웨어)",
     "url": "https://www.wiseapp.co.kr/insight/detail/933/2025-active-senior-app-retail-trend",
@@ -205,6 +220,124 @@
       "bytes": 3832287,
       "sha256": "sha256:c1e5422f1618a5cb943ae585edef4038b59fce97f6e2b983e3d85f0101ac665f"
     }
+  },
+  "hash_registry": {
+    "scope_root": "sources/wiseapp",
+    "rule": "sources/wiseapp 아래 **모든** 파일은 해시가 여기 선언돼 있거나(files), 다른 매니페스트의 선언을 가리키거나(delegated), 순환 때문에 자기해시로 대체된다(self_hash_exemption). 세 목록의 합집합이 실제 파일 집합과 **정확히** 같아야 한다. 파일을 추가하고 등재하지 않으면 verify_hash_registry() 가 차단한다 — 4건을 채우는 것이 아니라 '해시 미선언 파일이 존재할 수 있는 구조' 자체를 닫는다.",
+    "closes_finding": "a1-raw-payload-files-not-hash-registered-in-authority-manifest (v1 승계) / EDA00-PROV-UNDECLARED-FILES (LANE A EDA-00, P2)",
+    "sha256_format": "'sha256:' 접두 + 소문자 hex 64자 (이 매니페스트와 source_evidence_manifest 의 공통 규약)",
+    "coupling_note": "source_evidence_manifest.json 의 해시를 여기에 두면 그 파일이 바뀔 때 이 매니페스트도 재판본화해야 한다. 그 결합은 의도한 것이다 — 두 매니페스트가 서로 모르는 채로 갈라지는 것보다 낫다.",
+    "self_hash_exemption": {
+      "path": "sources/wiseapp/authority_manifest.json",
+      "why": "이 파일의 전체 바이트 sha256 을 이 파일 안에 적으면 고정점이 된다 — 값을 적는 순간 바이트가 바뀌어 그 값이 틀려진다. 그래서 파일 해시를 등재하지 않는다.",
+      "anchor_field": "manifest_self_sha256_excluding_self_field",
+      "anchor_recipe": "sha256(json.dumps(manifest_without_self_field, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest(), 'sha256:' 접두 부착",
+      "what_it_covers": "자기해시 필드 하나를 제외한 매니페스트 **내용**을 정규화(sort_keys · 최소 구분자 · ensure_ascii=False)한 바이트다. 들여쓰기·키 순서를 바꿔도 값이 유지되므로 파일 바이트가 아니라 내용의 동일성을 보증한다.",
+      "what_it_does_not_cover": "포맷팅만 바뀐 재직렬화는 이 앵커로 탐지되지 않는다. 그 층은 git 이 앵커다 — 이 파일은 추적 중이며 커밋 히스토리가 바이트 판본을 고정한다.",
+      "verification": "landing_accessibility.authority_manifest.verify() 가 재계산해 대조한다"
+    },
+    "files": {
+      "sources/wiseapp/raw/wiseapp933_api.json": {
+        "bytes": 250759,
+        "sha256": "sha256:28d54f925b6209547886f1ab98649749d86263fff131141f501b5274a7f7ec37",
+        "role": "Playwright 캡처가 남긴 서버 응답 원본. freeze_validity_window.publisher_notice.observed_in 이 이 파일을 근거로 인용한다 — 해시 없이 동결 유효성 주장의 유일한 근거로 쓰이고 있었다.",
+        "registered_in_cycle": "V2-C008"
+      },
+      "sources/wiseapp/raw/wiseapp933_images.json": {
+        "bytes": 4108,
+        "sha256": "sha256:0e9c3208b2ec52a6ed8771299eeb11d8362d29fd89e63c0f9ae62a3f58dbeee4",
+        "role": "Playwright 캡처가 남긴 imgInfoList 원본. image_inventory_reconciliation 의 대조 입력이다.",
+        "registered_in_cycle": "V2-C008"
+      },
+      "sources/wiseapp/source_evidence_manifest.json": {
+        "bytes": 7512,
+        "sha256": "sha256:ef18ff1ee9e9b3d0ffdaceea5a5ad6e7e823b3aec58ced40be2140ee59f0c5c9",
+        "role": "figure 11종 + 추출저널의 해시를 담는 매니페스트. 자기 해시 필드가 없어 이 파일이 통째로 교체되면 탐지 경로가 없었다 — 그 앵커를 여기에 둔다.",
+        "registered_in_cycle": "V2-C008"
+      }
+    },
+    "delegated": [
+      {
+        "path": "sources/wiseapp/raw/wiseapp933_detail.json",
+        "declared_in": "sources/wiseapp/authority_manifest.json",
+        "field": "raw_assets.detail_json.sha256"
+      },
+      {
+        "path": "sources/wiseapp/raw/wiseapp933_rendered.html",
+        "declared_in": "sources/wiseapp/authority_manifest.json",
+        "field": "raw_assets.rendered_html.sha256"
+      },
+      {
+        "path": "sources/wiseapp/raw/wiseapp933_text.txt",
+        "declared_in": "sources/wiseapp/authority_manifest.json",
+        "field": "raw_assets.body_text.sha256"
+      },
+      {
+        "path": "sources/wiseapp/raw/wiseapp933_full.png",
+        "declared_in": "sources/wiseapp/authority_manifest.json",
+        "field": "raw_assets.full_page_screenshot.sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig01.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[0].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig02.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[1].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig03.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[2].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig04.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[3].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig05.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[4].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig06.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[5].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig07.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[6].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig08.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[7].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig09.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[8].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig10.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[9].sha256"
+      },
+      {
+        "path": "sources/wiseapp/images/fig11.png",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "figures[10].sha256"
+      },
+      {
+        "path": "sources/wiseapp/extraction_journal/wf_bc403111-047_journal.jsonl",
+        "declared_in": "sources/wiseapp/source_evidence_manifest.json",
+        "field": "extraction_journal.sha256"
+      }
+    ]
   },
   "freeze_validity_window": {
     "frozen_edition": "2026-08-26 시점에 게시돼 있던 판본",

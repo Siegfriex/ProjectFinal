@@ -10,7 +10,10 @@ C009 이후 measurement_entity 의 키는 (entity_name_raw, domain) 이다. 같�
 
 from __future__ import annotations
 
+import json
 import re
+import shutil
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -180,3 +183,128 @@ def test_source_row_count_preserved_end_to_end(
     assert total == EXPECTED_ROW_COUNT
     assert int(service_master["app_row_count"].sum()) == int((rows["domain"] == "APP").sum())
     assert int(service_master["retail_row_count"].sum()) == int((rows["domain"] == "RETAIL").sum())
+
+
+# ── V2-C008: sources/ 아래 해시 미선언 파일이 존재할 수 있는 구조를 닫는다 ────────
+#
+# v1 승계부채 `a1-raw-payload-files-not-hash-registered-in-authority-manifest`.
+# LANE A EDA-00 이 같은 사안을 `EDA00-PROV-UNDECLARED-FILES` (P2) 로 실측했다.
+
+RESEARCH = Path(__file__).resolve().parents[1] / "research" / "landing_accessibility"
+WISEAPP_DIR = RESEARCH / "sources" / "wiseapp"
+AUTHORITY_PATH = WISEAPP_DIR / "authority_manifest.json"
+
+sys.path.insert(0, str(RESEARCH / "src"))
+
+from landing_accessibility import authority_manifest as am  # noqa: E402
+
+
+def test_no_file_under_sources_wiseapp_is_missing_a_hash_declaration() -> None:
+    """EDA-00 이 센 4건이 아니라 **커버리지 규칙**을 검사한다."""
+    report = am.verify_hash_registry(AUTHORITY_PATH, RESEARCH)
+    assert report["undeclared"] == 0
+    present = sum(1 for p in WISEAPP_DIR.rglob("*") if p.is_file())
+    assert report["files_present"] == present
+    covered = (
+        report["declared_directly"] + report["declared_by_delegation"] + report["self_hash_exempt"]
+    )
+    assert covered == present, "세 갈래의 합이 실제 파일 수와 다르다"
+
+
+def test_the_four_files_eda00_named_are_now_covered() -> None:
+    """EDA-00 이 이름으로 지목한 4건이 각각 어느 갈래로 닫혔는지 확정한다."""
+    registry = am.load(AUTHORITY_PATH)[am.REGISTRY_FIELD]
+    declared = set(registry["files"])
+    assert "sources/wiseapp/raw/wiseapp933_api.json" in declared
+    assert "sources/wiseapp/raw/wiseapp933_images.json" in declared
+    assert "sources/wiseapp/source_evidence_manifest.json" in declared
+    # 자기 자신은 순환이라 파일 해시가 아니라 자기해시 앵커로 닫힌다.
+    assert registry["self_hash_exemption"]["path"] == "sources/wiseapp/authority_manifest.json"
+    assert registry["self_hash_exemption"]["anchor_field"] == am.SELF_HASH_FIELD
+    assert "sources/wiseapp/authority_manifest.json" not in declared
+
+
+def test_delegated_hashes_are_pointers_not_copies() -> None:
+    """위임된 해시 값을 이 매니페스트에 복제하지 않는다 — 두 개의 진실을 만들지 않는다."""
+    registry = am.load(AUTHORITY_PATH)[am.REGISTRY_FIELD]
+    for entry in registry["delegated"]:
+        assert set(entry) == {"path", "declared_in", "field"}, (
+            f"{entry['path']}: 위임 항목이 해시 값을 들고 있다"
+        )
+
+
+def _registry_sandbox(tmp_path: Path) -> Path:
+    """sources/wiseapp 을 복사해 반례를 주입할 수 있는 트리를 만든다."""
+    root = tmp_path / "la"
+    shutil.copytree(WISEAPP_DIR, root / "sources" / "wiseapp")
+    return root
+
+
+def test_an_added_file_without_a_declaration_is_caught(tmp_path: Path) -> None:
+    """반례 ① — 파일을 하나 더 넣고 등재하지 않으면 차단된다.
+
+    4건을 채우기만 했다면 이 반례는 통과했을 것이다. 커버리지 규칙이라 걸린다.
+    """
+    root = _registry_sandbox(tmp_path)
+    (root / "sources" / "wiseapp" / "raw" / "smuggled.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(am.AuthorityManifestError) as err:
+        am.verify_hash_registry(root / "sources" / "wiseapp" / "authority_manifest.json", root)
+    assert "smuggled.json" in str(err.value)
+
+
+def test_a_tampered_directly_declared_file_is_caught(tmp_path: Path) -> None:
+    """반례 ② — 새로 등재한 파일의 내용을 바꾸면 해시가 어긋난다."""
+    root = _registry_sandbox(tmp_path)
+    target = root / "sources" / "wiseapp" / "raw" / "wiseapp933_images.json"
+    target.write_bytes(target.read_bytes() + b"\n")
+    with pytest.raises(am.AuthorityManifestError) as err:
+        am.verify_hash_registry(root / "sources" / "wiseapp" / "authority_manifest.json", root)
+    assert "wiseapp933_images.json" in str(err.value)
+
+
+def test_a_replaced_source_evidence_manifest_is_now_detectable(tmp_path: Path) -> None:
+    """반례 ③ — EDA-00 이 지적한 그 경로. sem 이 통째로 바뀌면 이제 탐지된다.
+
+    전에는 sem 에 자기해시 필드가 없어 교체를 탐지할 방법이 없었다.
+    """
+    root = _registry_sandbox(tmp_path)
+    sem = root / "sources" / "wiseapp" / "source_evidence_manifest.json"
+    payload = json.loads(sem.read_text(encoding="utf-8"))
+    payload["source_url"] = "https://example.invalid/forged"
+    sem.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    with pytest.raises(am.AuthorityManifestError) as err:
+        am.verify_hash_registry(root / "sources" / "wiseapp" / "authority_manifest.json", root)
+    assert "source_evidence_manifest.json" in str(err.value)
+
+
+def test_a_broken_delegation_pointer_is_caught(tmp_path: Path) -> None:
+    """반례 ④ — 위임 포인터가 가리키는 필드를 지우면 조용히 넘어가지 않는다."""
+    root = _registry_sandbox(tmp_path)
+    path = root / "sources" / "wiseapp" / "authority_manifest.json"
+    manifest = am.load(path)
+    manifest[am.REGISTRY_FIELD]["delegated"][0]["field"] = "raw_assets.no_such_key.sha256"
+    path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    with pytest.raises(am.AuthorityManifestError) as err:
+        am.verify_hash_registry(path, root)
+    assert "위임 포인터가 끊겼다" in str(err.value)
+
+
+def test_exemption_cannot_be_pointed_at_another_file(tmp_path: Path) -> None:
+    """반례 ⑤ — 자기해시 면제로 다른 파일을 빼돌리는 경로를 막는다."""
+    root = _registry_sandbox(tmp_path)
+    path = root / "sources" / "wiseapp" / "authority_manifest.json"
+    manifest = am.load(path)
+    manifest[am.REGISTRY_FIELD]["self_hash_exemption"]["path"] = (
+        "sources/wiseapp/raw/wiseapp933_api.json"
+    )
+    path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    with pytest.raises(am.AuthorityManifestError) as err:
+        am.verify_hash_registry(path, root)
+    assert "self_hash_exemption" in str(err.value)
+
+
+def test_manifest_self_hash_still_verifies_after_the_registry_was_added() -> None:
+    """등재 규칙을 넣은 뒤에도 자기해시 판본 계약이 성립한다."""
+    report = am.verify(AUTHORITY_PATH)
+    assert report["manifest_revision"] >= 5
+    assert report["raw_assets_declared_unchanged"] is True

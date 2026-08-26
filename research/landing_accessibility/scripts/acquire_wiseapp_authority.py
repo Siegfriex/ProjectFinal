@@ -45,6 +45,10 @@ ROOT = Path(__file__).resolve().parents[1]
 WISEAPP = ROOT / "sources" / "wiseapp"
 FROZEN_RAW = WISEAPP / "raw"
 
+sys.path.insert(0, str(ROOT / "src"))
+
+from landing_accessibility import authority_manifest as am  # noqa: E402
+
 INSIGHT_NID = "933"
 INSIGHT_SLUG = "2025-active-senior-app-retail-trend"
 BASE = "https://www.wiseapp.co.kr"
@@ -134,6 +138,29 @@ def verify() -> int:
             name = excluded["img_path"].split("/")[-1]
             if rendered.count(name) != 0:
                 failures.append(f"제외본 {name} 이 렌더된 본문에서 참조된다 — 제외 근거가 깨졌다")
+
+    # V2-C008: 판본 계약과 해시 등재 커버리지를 같은 명령에서 확인한다.
+    #   이 두 검사는 지금까지 src 모듈에만 있었고 운영 경로(--verify)에서 한 번도 호출되지
+    #   않았다. 부르지 않는 검증기는 검증이 아니다.
+    #   커버리지 검사는 sources/wiseapp 아래 **모든** 파일이 등재됐는지 본다 — v1 승계부채
+    #   a1-raw-payload-files-not-hash-registered-in-authority-manifest 를 닫는 검사다.
+    try:
+        version = am.verify(WISEAPP / "authority_manifest.json")
+        print(
+            f"OK  authority_manifest 판본 rev{version['manifest_revision']} "
+            f"({version['revised_at']}) 자기해시 일치"
+        )
+    except am.AuthorityManifestError as exc:
+        failures.append(f"authority_manifest 판본 계약: {exc}")
+    try:
+        coverage = am.verify_hash_registry(WISEAPP / "authority_manifest.json", ROOT)
+        print(
+            f"OK  해시 등재 커버리지 {coverage['files_present']}파일 "
+            f"(직접 {coverage['declared_directly']} / 위임 {coverage['declared_by_delegation']} / "
+            f"자기해시 {coverage['self_hash_exempt']}) 미선언 0"
+        )
+    except am.AuthorityManifestError as exc:
+        failures.append(f"해시 등재 커버리지: {exc}")
 
     if failures:
         print("\n실패:")

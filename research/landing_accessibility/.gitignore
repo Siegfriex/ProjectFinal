@@ -19,9 +19,29 @@ sources/wiseapp/raw/*.png
 #
 # 아래 제외는 디렉터리 단위이며 manifest.jsonl 은 그 디렉터리 밖(Run 루트)에 있다.
 # 부주의한 광역 패턴이 나중에 추가되어도 manifest 가 휩쓸리지 않도록 부정 패턴을 명시해 둔다.
-evidence/*/dom/
-evidence/*/ax/
-evidence/*/screen/
-evidence/*/probe/
-!evidence/*/manifest.jsonl
-!evidence/*/run_manifest.json
+#
+# V2-C008 시정 — v1 승계부채 `gitignore-evidence-pattern-single-level-only`
+#   옛 패턴은 `evidence/*/dom/` 이었다. gitignore 의 `*` 는 **경로 구분자를 넘지 않는다.**
+#   즉 `evidence/<run_id>/dom/` 딱 한 겹만 걸리고, git check-ignore 로 실측한 결과 다음이
+#   전부 **추적 대상**이었다:
+#       evidence/<run>/<level>/dom/…        (Run 안을 L0/L1 로 한 겹 더 나누는 순간)
+#       evidence/<run>/pages/<page>/screen/…
+#       runs/<run>/evidence/dom/…
+#       analysis/evidence/<run>/dom/…       (evidence 디렉터리가 이 파일의 디렉터리 바로 밑이 아닐 때)
+#   00_SSOT §7 의 L0/L1 2계층 수집은 Run 안에 층을 하나 더 만든다. 그러므로 이 결함은
+#   가정이 아니라 **곧 실현될 레이아웃**에서 수백 MB 를 그대로 커밋시킨다.
+#
+#   `**` 는 경로 구분자를 넘고 0개 디렉터리에도 매치한다. 앞의 `**/` 는 이 디렉터리 아래
+#   **어느 깊이의** evidence/ 에도 붙는다. 두 형태를 같이 둬야 두 축(깊이 · 위치)이 모두 닫힌다.
+evidence/**/dom/
+evidence/**/ax/
+evidence/**/screen/
+evidence/**/probe/
+**/evidence/**/dom/
+**/evidence/**/ax/
+**/evidence/**/screen/
+**/evidence/**/probe/
+!evidence/**/manifest.jsonl
+!evidence/**/run_manifest.json
+!**/evidence/**/manifest.jsonl
+!**/evidence/**/run_manifest.json
