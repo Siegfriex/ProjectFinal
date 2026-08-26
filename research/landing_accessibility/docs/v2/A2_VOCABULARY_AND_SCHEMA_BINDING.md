@@ -36,6 +36,10 @@
    이 문서가 A1의 표현을 다듬은 지점은 §1.5(하위 세분값 배치) 한 곳이며, A1의 의도는 그대로 보존된다.
 5. 이 문서가 새 컬럼을 요구하는 것으로 읽혀서는 안 된다. §6에 열거한 미존재 표·컬럼은
    **이 문서가 신설한 것이 아니라 `01`/`02`/`A1`이 이미 요구했으나 아직 물리적으로 없는 것**이다.
+   **단 하나의 예외** `[V2-C004 시정]` — 7항 예외 등재부가 **절차를 부여한** 항목
+   (EXC-3의 재수집 사전선언 블록, §1.11.2 규칙 RC-2)은 원본이 요구한 컬럼이 아니라 이 문서가
+   절차로서 요구하는 **기록 자리**다. 그것은 새 연구기준도 임계값도 아니며(§7 7항),
+   기존 evidence run manifest(`07_EVIDENCE_MANIFEST_CONTRACT` · `A1 §6.2`) 안에 산다.
 6. 원본 docs pack(`00`~`05`)의 **바이트를 수정하지 않는다.** 명세 공백은 보충명세로만 메운다.
 7. **원본 문면과 다른 배치를 채택할 때의 예외 선언** `[V2-C003 시정]`
 
@@ -48,9 +52,17 @@
    | # | 원본 조항 | 원본 문면 | 이 문서의 배치 | 예외 근거 | 원본이 요구한 사실이 보존되는 곳 | 절 |
    |---|---|---|---|---|---|---|
    | **EXC-1** | `02 §13` | `app-only … 별도 measurement status로 기록` | **두 경로로 분리한다.** 관측 이전에 확정된 app-only는 `web_eligibility_status = EXCLUDED_APP_ONLY`, 수집 시점에 발견된 app-only는 `measurement_status = NOT_ELIGIBLE_AT_COLLECTION` | 웹이 없어 관측 행 자체가 생기지 않는 경우와, `ELIGIBLE_WEB`로 동결된 뒤 수집 시점에 반증된 경우는 **서로 다른 사건**이다. 하나의 컬럼에 합치면 규칙 S-1(한 사실 = 한 컬럼)이 깨지고, 나누기만 하면 두 번째 경로가 무주지가 된다 | `measurement_status`에 대응 값이 **실제로 존재한다**(§1.2). `02 §13`의 `별도 measurement status로 기록`은 문면 그대로 충족되며, 접근성 `FAIL`로도 `UNDETERMINED`로도 세지 않는다 (규칙 M-1 · X-4) | §1.2 · §1.3 · §1.4 · §1.11 T-11 · §4.1 |
+   | **EXC-2** `[V2-C004 시정]` | `01 §11` | `로그인 전까지만 가능 = AUTH_GATE_REACHED` | **두 archetype에 한해 저장값을 달리한다.** `FINANCIAL_ACTION_ENTRY`(로그인 gate·인증 gate)와 `COMMUNICATION_ENTRY`(**로그인 gate만**)에서 그 gate가 관측되면 `endpoint_status = FUNCTION_ENDPOINT_REACHED` + `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`로 기록한다. 나머지 5 archetype과 `COMMUNICATION_ENTRY`의 **본인인증 gate**는 `01 §11` 문면 그대로 `AUTH_GATE_REACHED`(개인정보 입력이 요구되면 `02 §7` `PERSONAL_DATA_REQUIRED`)다 | `00 §3` L1 표(권위 **1위**)가 그 두 행의 endpoint 정의 안에 gate를 넣었다. `00` > `01`이므로 충돌은 `00`을 따라 해소하며 그 해소는 이 문서의 몫이다(§0 1항·8항). 이탈은 **두 archetype**과 **`00 §3`이 그 행에 준 gate 종류**를 넘지 않는다(규칙 E-6 · E-6a) | `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`가 gate로 실현된 endpoint를 전부 식별하고, `auth_gate_before_endpoint`(규칙 E-9)와 규칙 E-8 합집합이 `00 §11`·`01 §10`의 `auth gate` 지표를 과소집계 없이 유지한다. 규칙 E-10이 두 endpoint 의미를 층화해 `MPFED` 통계에서 섞이지 않게 한다 | §1.5.1 · §1.5.1a · §1.5.2 · §4.2 |
+   | **EXC-3** `[V2-C004 시정]` | `02 §12` | `재수집 → 새 evidence run` | **기록 방식은 그대로 두고 절차를 부여한다.** 재수집의 횟수 상한·중단규칙·사전선언·정본 run 선택규칙을 §1.11.2 규칙 RC-1~RC-5로 정한다. 원본이 허용한 기록을 금지하지 않는다 — 상한을 넘은 run도 append-only로 남으며, 다만 **정본 지표에 들어가지 않는다** | `02 §12`는 재수집을 **어떻게 기록하는가**만 규정하고 **몇 번·무엇을·어떤 순서로** 재수집하는가에 침묵한다. 침묵을 그대로 두면 `UNDETERMINED`의 유일 탈출구(§1.11.2)가 **원하는 결과가 나올 때까지 다시 재는 통로**가 되고, 그것은 `00 §14`가 금지한 결론 유도다. 절차 부여는 원본의 값·정의·범위를 바꾸지 않으므로 §0 2항과 충돌하지 않는다 | 모든 run이 `02 §12` 그대로 append-only로 보존된다. 어느 run이 정본이고 어느 run이 재수집분인지, 사전선언이 있었는지, 재수집 전후로 `decision coverage`가 얼마나 움직였는지가 `03 Phase 5` 보고(RC-5)에 전부 노출된다 | §1.11.2 · §1.8 · §4.1 · §4.2 |
 
    `V2-C002` ssot finding `app-only-reallocation-leaves-collection-time-discovery-unrepresented`가
    지적한 두 결손(**예외 미선언** · **수집 시점 발견 경로 부재**)을 이 항과 §1.2가 함께 닫는다.
+
+   **EXC-2 · EXC-3은 `V2-C003` 두 감사가 연 결함을 닫는다** `[V2-C004 시정]`.
+   EXC-2는 ssot finding `a2-1-5-1a-deviates-from-01-11-without-exc-registration`을 닫는다 —
+   `01 §11`에서 이탈하면서 등재하지 않은 것이 이 문서 자신의 문면(7항 3문장)에 따른 결함이었다.
+   EXC-3은 adversarial P1 `recollection-escape-path-unbounded-and-conclusion-prioritized`의
+   remedy 5항(`02 §12`는 원본이므로 수정하지 않고 예외 등재 형식으로 절차를 부여한다)을 이행한다.
 8. **`00`과의 충돌은 언제나 이 문서의 결함이다** `[V2-C003 시정]`
 
    1항의 귀결이다. 이 문서가 `00`보다 좁거나 넓은 규칙을 적었다면 예외 등재로 정당화되지 않으며,
@@ -71,7 +83,19 @@
 |---|---|---|
 | `a2-undetermined-to-pass-transition-underspecified-and-narrowed` | adversarial `V2-C002` P1 **blocking** | **§1.11**(T-3 · T-7~T-10 · §1.11.1 · §1.11.2 · X-1 · X-9~X-11) · §1.7 · §1.8 · §2.3 · §7 1항 |
 | `app-only-reallocation-leaves-collection-time-discovery-unrepresented` | ssot `V2-C002` P2 **blocking**(`E001_V2`) | **§0 7항 EXC-1** · §1.2 · §1.3 · §1.4 · §1.11 T-11 · X-12 · §4.1 · §7 3항 |
-| `00 §3 ↔ A2 §1.5.1 auth gate endpoint 충돌` (오케스트레이터 등재, P1 취급) | `V2-C003` | **§1.5.1a**(규칙 E-5~E-8) · §1.5.1 · §1.5.2 · §7 11항 |
+| `00 §3 ↔ A2 §1.5.1 auth gate endpoint 충돌` (오케스트레이터 등재, P1 취급) | `V2-C003` | **§1.5.1a**(규칙 E-5~E-10) · §1.5.1 · §1.5.2 · §7 11항 |
+
+**`V2-C003` 두 감사가 연 결함 — 이 판(`V2-C004`)에서 닫는다** `[V2-C004 시정]`
+
+| finding id | 출처 · 심각도 | 닫는 절 |
+|---|---|---|
+| `recollection-escape-path-unbounded-and-conclusion-prioritized` | adversarial `V2-C003` **P1 blocking** | **§1.11.2**(규칙 RC-1~RC-5) · §0 7항 EXC-3 · §1.8(`impact_level` 재정의) · §1.11 X-14 · §4.1 주의 4 · §4.2 · §6.3 · §7 13항 |
+| `t4-and-2-3-step-4-contradict-t6-for-verdict-state-na` | adversarial `V2-C003` P2 (`V2_SSOT_FROZEN`) | **§1.11 T-4 · T-6** · §2.3 4번 분기 · X-13 · X-15 · §7 15항 |
+| `a2-1-5-1a-widens-00-3-community-gate-clause-to-any-auth-gate` | ssot `V2-C003` P2 (`V2_SSOT_FROZEN`) | **§1.5.1a 규칙 E-6a** · §1.5.1 `AUTH_GATE_REACHED` 행 · §1.5.1a 규범표 · §7 11항 |
+| `a2-1-5-1a-deviates-from-01-11-without-exc-registration` | ssot `V2-C003` P2 (`V2_SSOT_FROZEN`) | **§0 7항 EXC-2** · §1.5.1a 규범표 `근거` 열 |
+| `rule-e-8-omits-01-6-auth-gate-before-endpoint-column` | ssot `V2-C003` P2 (`E001_V2`) | **§1.5.1a 규칙 E-9** · 규칙 E-8 합집합 · §6.3 |
+| `gate-endpoint-archetypes-mix-two-endpoint-semantics-without-stratification` | adversarial `V2-C003` P2 (`E001_V2`) | **§1.5.1a 규칙 E-10** · §1.5.2 규칙 E-4 · §6.3 · §7 14항 |
+| `new-v2-c003-rules-absent-from-failure-injection-set` | adversarial `V2-C003` P2 (`E001_V2`) | **§6.3 실패주입 대응표** · §1.11 실패주입 V-d~V-g · X-13~X-15 |
 
 **다른 담당이 닫은 결함** — 이 문서는 그 결과를 **참조**할 뿐 재정의하지 않는다.
 
@@ -332,7 +356,7 @@ review_status = review_decision                       if review_decision is not 
 | 값 | 뜻 | `endpoint_reached` | NED / IED / MPFED |
 |---|---|---|---|
 | `FUNCTION_ENDPOINT_REACHED` | `dim_representative_task.endpoint_definition`이 정의한 상태에 도달했다 | 1 | 정수 (`A1` §1.3) |
-| `AUTH_GATE_REACHED` | 로그인/인증 gate가 나타나 `00 §3 절대 제외`에 걸렸다. **단 `FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY`에서는 gate가 endpoint이므로 이 값을 쓰지 않는다** (§1.5.1a) `[V2-C003 시정]` | 0 | `NULL` |
+| `AUTH_GATE_REACHED` | 로그인/인증 gate가 나타나 `00 §3 절대 제외`에 걸렸다. **단 `00 §3` L1 표가 그 archetype의 endpoint 정의 안에 넣은 종류의 gate에서는 이 값을 쓰지 않는다** — `FINANCIAL_ACTION_ENTRY`의 로그인 gate·인증 gate, `COMMUNICATION_ENTRY`의 **로그인 gate**가 그것이다. `COMMUNICATION_ENTRY`의 **본인인증 gate**는 `00 §3` 커뮤니티 행이 endpoint로 주지 않았으므로 이 값을 그대로 쓴다(개인정보 입력이 요구되면 `PERSONAL_DATA_REQUIRED`) (§1.5.1a 규칙 E-6a) `[V2-C004 시정]` | 0 | `NULL` |
 | `PAYMENT_GATE_REACHED` | 결제 단계가 나타났다. 우회하지 않는다 | 0 | `NULL` |
 | `PERSONAL_DATA_REQUIRED` | 개인정보 입력이 요구됐다 | 0 | `NULL` |
 | `CAPTCHA` | 사람 검증이 요구됐다 | 0 | `NULL` |
@@ -369,21 +393,52 @@ review_status = review_decision                       if review_decision is not 
 `01 §10 mart_archetype_summary`의 `MPFED median`·`MPFED IQR`·`endpoint reach`가 **이 두 행에서 성립하지 않는다.**
 `00`이 최상위 권위이므로(§0 1항·8항) **SSOT가 우선하며 이 문서를 고친다.**
 
-| archetype | auth gate 관측 시 `endpoint_status` | `endpoint_status_detail` | `endpoint_reached` | `NED`/`IED`/`MPFED` | 근거 |
-|---|---|---|---|---|---|
-| `FINANCIAL_ACTION_ENTRY` | **`FUNCTION_ENDPOINT_REACHED`** | `ENDPOINT_VIA_AUTH_GATE` | **1** | 정수 (`m` 확정, `A1 §1.3`) | `00 §3` 금융 행 |
-| `COMMUNICATION_ENTRY` | **`FUNCTION_ENDPOINT_REACHED`** | `ENDPOINT_VIA_AUTH_GATE` | **1** | 정수 (`m` 확정, `A1 §1.3`) | `00 §3` 커뮤니티 행 |
-| `QUERY` · `CONTENT_OPEN` · `ITEM_DETAIL` · `PLACE_LOOKUP` · `UTILITY_ENTRY` | `AUTH_GATE_REACHED` | `NULL` | **0** | `NULL` | `00 §3` 해당 행에 gate 문구 **없음** · `01 §11` |
+**규범표는 archetype만이 아니라 gate 종류로도 갈린다** `[V2-C004 시정]`.
+`00 §3` 두 행의 gate 절이 **서로 다르기** 때문이다 — 금융은 `로그인/인증`, 커뮤니티는 `로그인`뿐이다.
+이전 판은 두 행을 똑같이 `auth gate`로 일반화해 `00 §3` 커뮤니티 행을 넓혔고, 그 결과
+커뮤니티 대상의 **본인인증 gate**가 `AUTH_GATE_REACHED`(§1.5.1이 금지)와 `FUNCTION_ENDPOINT_REACHED`
+(`00 §3`이 주지 않음) 사이에서 **미매핑**이 되어 규칙 S-3으로 파이프라인이 실패했다.
+아래 표가 그 무주지를 없앤다 (닫는 finding: `a2-1-5-1a-widens-00-3-community-gate-clause-to-any-auth-gate`).
 
-**규칙 E-5 (두 archetype에서 `AUTH_GATE_REACHED`는 발생하지 않는다).**
-`00 §3`이 gate가 나타난 순간 자체를 endpoint로 정의했으므로, 그 두 archetype의 scout가 관측한 auth gate는
-정의상 `dim_representative_task.endpoint_definition`을 충족한다. 판정은 P-A endpoint codebook이 동결한
-`endpoint_definition`으로 하며(§1.9), **그 정의에는 이 두 archetype에 한해 gate 절이 반드시 포함**된다.
-수집 중에 사람이나 모델이 임의로 가르지 않는다.
+| archetype | 관측된 gate 종류 (`00 §3` 문면 기준) | `endpoint_status` | `endpoint_status_detail` | `endpoint_reached` | `NED`/`IED`/`MPFED` | 근거 |
+|---|---|---|---|---|---|---|
+| `FINANCIAL_ACTION_ENTRY` | **로그인 gate 또는 인증(본인인증) gate** | **`FUNCTION_ENDPOINT_REACHED`** | `ENDPOINT_VIA_AUTH_GATE` | **1** | 정수 (`m` 확정, `A1 §1.3`) | `00 §3` 금융 행 `또는 로그인/인증 gate` (§0 7항 **EXC-2**) |
+| `COMMUNICATION_ENTRY` | **로그인 gate** | **`FUNCTION_ENDPOINT_REACHED`** | `ENDPOINT_VIA_AUTH_GATE` | **1** | 정수 (`m` 확정, `A1 §1.3`) | `00 §3` 커뮤니티 행 `또는 로그인 gate` (§0 7항 **EXC-2**) |
+| `COMMUNICATION_ENTRY` `[V2-C004 시정]` | **본인인증 gate** (로그인 gate가 아닌 것) | `AUTH_GATE_REACHED` — 개인정보 입력이 요구됐으면 `PERSONAL_DATA_REQUIRED` | `NULL` | **0** | `NULL` | `00 §3` 커뮤니티 행에 **인증 gate 문구 없음** · `02 §7`이 두 값을 별개로 둠 · `01 §11` 문면 그대로 (EXC-2의 대상이 **아니다**) |
+| `QUERY` · `CONTENT_OPEN` · `ITEM_DETAIL` · `PLACE_LOOKUP` · `UTILITY_ENTRY` | 모든 gate 종류 | `AUTH_GATE_REACHED` — 개인정보 입력이 요구됐으면 `PERSONAL_DATA_REQUIRED` | `NULL` | **0** | `NULL` | `00 §3` 해당 행에 gate 문구 **없음** · `01 §11` 문면 그대로 (EXC-2의 대상이 **아니다**) |
 
-**규칙 E-6 (확대 금지).** 이 예외는 위 두 archetype에만 적용한다.
-`00 §3`이 `또는 gate`를 준 행이 그 둘뿐이기 때문이다. 다른 archetype의 auth gate를 endpoint로 승격시키는 것은
-`00 §3` 범위 확대이며 금지다 (§7 11항). `UTILITY_ENTRY`는 `00 §3`에 대응 행 자체가 없으므로
+**규칙 E-5 (`00 §3`이 준 종류의 gate는 그 두 archetype에서 endpoint다) `[V2-C004 시정]`.**
+`00 §3`이 gate가 나타난 순간 자체를 endpoint로 정의했으므로, 그 두 archetype의 scout가 관측한 gate 중
+**`00 §3`이 그 행에 명시한 종류의 gate**는 정의상 `dim_representative_task.endpoint_definition`을 충족한다.
+판정은 P-A endpoint codebook이 동결한 `endpoint_definition`으로 하며(§1.9),
+**그 정의에는 이 두 archetype에 한해 `00 §3` 문면 그대로의 gate 절이 반드시 포함**된다 —
+금융 행은 `로그인/인증`, 커뮤니티 행은 `로그인`이다. 수집 중에 사람이나 모델이 임의로 가르지 않는다.
+따라서 두 archetype에서 `AUTH_GATE_REACHED`가 **전혀 발생하지 않는 것은 아니다** —
+`COMMUNICATION_ENTRY`의 본인인증 gate는 그 값으로 남는다(규칙 E-6a).
+
+**규칙 E-6a (gate 종류의 archetype별 한정) `[V2-C004 시정]`.**
+`00 §3` L1 표는 두 행에 **서로 다른** gate 절을 주었다. 이 문서는 그 차이를 그대로 옮긴다.
+
+| archetype | `00 §3` 문면 | endpoint로 인정되는 gate | endpoint가 **아닌** gate와 그 기록 자리 |
+|---|---|---|---|
+| `FINANCIAL_ACTION_ENTRY` | `또는 로그인/인증 gate가 나타난 순간` | 로그인 gate · 인증(본인인증) gate | 결제 gate → `PAYMENT_GATE_REACHED`, CAPTCHA → `CAPTCHA`, 차단 → `BLOCKED` (`02 §7`) |
+| `COMMUNICATION_ENTRY` | `또는 로그인 gate` | **로그인 gate만** | **본인인증 gate → `AUTH_GATE_REACHED`**(개인정보 입력이 요구됐으면 `PERSONAL_DATA_REQUIRED`), 결제 gate → `PAYMENT_GATE_REACHED`, CAPTCHA → `CAPTCHA`, 차단 → `BLOCKED` (`02 §7`) |
+
+`02 §7`이 `AUTH_GATE_REACHED`와 `PERSONAL_DATA_REQUIRED`를 **별개 값**으로 둔 것, 그리고
+`00 §3`이 같은 표의 두 행에서 gate 절을 달리 쓴 것이 원본이 두 종류를 구분했다는 증거다.
+**미매핑은 남지 않는다** — `COMMUNICATION_ENTRY`에서 관측 가능한 모든 종료 사건이 `02 §7`의 7값 중
+정확히 하나로 간다. 규칙 S-3(닫힌 집합 위반 시 실패)이 발화할 자리가 없다.
+
+**gate 종류의 판별은 수집기의 재량이 아니다.** 로그인 gate와 본인인증 gate를 무엇으로 가르는지는
+P-A endpoint codebook이 `endpoint_definition`과 **함께 동결**하며(§1.9 규칙 P-1의 동결 순서),
+`fact_task_step.auth_gate_detected` 기록과 evidence(스크린샷·DOM)로 사후 검증 가능해야 한다.
+codebook이 가르지 못한 gate는 `endpoint_definition` 미충족으로 보아 endpoint로 승격시키지 않는다 —
+**모호할 때 endpoint로 올리는 방향의 기본값을 두지 않는다**(그 방향이 `00 §3` 확대다).
+
+**규칙 E-6 (확대 금지).** 이 예외는 위 두 archetype에만, 그리고 **규칙 E-6a가 그 행에 허용한 gate 종류에만**
+적용한다 `[V2-C004 시정]`. `00 §3`이 `또는 gate`를 준 행이 그 둘뿐이기 때문이다.
+다른 archetype의 auth gate를 endpoint로 승격시키는 것도, `COMMUNICATION_ENTRY`의 **본인인증 gate**를
+endpoint로 승격시키는 것도 똑같이 `00 §3` 범위 확대이며 금지다 (§7 11항). `UTILITY_ENTRY`는 `00 §3`에 대응 행 자체가 없으므로
 (`A1 §1.2`) 이 예외의 대상이 **아니다** — 그 archetype의 endpoint는 P-A codebook이 동결한다.
 
 **규칙 E-7 (gate 통과 금지).** endpoint로 세는 것은 gate가 **나타난 순간**이다.
@@ -391,18 +446,98 @@ gate를 통과하거나 자격증명을 입력하지 않는다. `00 §3 절대 �
 그대로 유효하고, `02 §7` `결제·본인인증을 우회하지 않는다`도 그대로다.
 scout는 이 두 archetype에서도 gate 관측 **즉시 종료**한다 (`02 §7`). 달라지는 것은 종료 후 저장하는 값뿐이다.
 
-**규칙 E-8 (auth gate 유병률 집계).** `00 §11`·`01 §10`의 `auth gate` 지표를
+**규칙 E-9 (`fact_task_entry.auth_gate_before_endpoint`의 허용값과 의미) `[V2-C004 시정]`.**
+> 닫는 finding: `rule-e-8-omits-01-6-auth-gate-before-endpoint-column` (ssot `V2-C003` P2)
+
+`01 §6 fact_task_entry`는 이 컬럼을 두는데, 이전 판은 문서 전문에서 **한 번도 언급하지 않았다.**
+분기 이전에는 `AUTH_GATE_REACHED`가 항상 비-endpoint 종료였으므로 의미가 자명했으나,
+gate가 endpoint인 두 archetype이 생기면서 "endpoint **이전**의 gate"가 무엇인지 갈렸다. 여기서 확정한다.
+
+| 항목 | 값 |
+|---|---|
+| 허용값 | **`0` / `1`** (정수 0/1). `NULL`을 쓰지 않는다 — `fact_task_entry` 행이 있으면 step 로그가 있고, gate 미관측은 **관측된 0**이다 (규칙 N-3) |
+| 정본 원천 | `fact_task_step.auth_gate_detected` (`01 §6` · `02 §7`이 각 activation 후 `auth gate` 기록을 요구한다) |
+
+**`auth_gate_detected`는 gate 종류를 가리지 않는다** `[V2-C004 시정]`. 로그인 gate든 본인인증 gate든
+관측되면 `1`이다. gate 종류의 구분(규칙 E-6a)은 **endpoint 판정에서만** 쓰이며,
+`auth gate` **유병률**(`00 §7 별도 기록` · `00 §11` · `01 §10`)은 종류를 합쳐 센다 —
+`00 §7`이 `auth gate`를 한 항목으로 적었기 때문이다. 두 용도를 한 컬럼으로 합치면 규칙 S-1이 깨지므로
+`endpoint_status`(종류가 반영된 판정)와 `auth_gate_detected`(종류 무관 관측)를 분리해 둔다.
+
+```
+auth_gate_before_endpoint =
+  1  if EXISTS step ∈ fact_task_step(그 task):
+         auth_gate_detected = 1  AND  그 step 이 "endpoint 를 실현한 gate step" 이 아니다
+  0  otherwise
+```
+
+**"endpoint를 실현한 gate step"은 정확히 하나다** — `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 인
+task의 **마지막 step**(그 gate 관측으로 scout가 종료한 step, 규칙 E-7)이다. 그 gate는 endpoint **자체**이지
+endpoint 앞을 막은 장애물이 아니므로 `before`로 세지 않는다. 따라서:
+
+| 상황 | `auth_gate_before_endpoint` |
+|---|---|
+| 두 archetype, gate가 endpoint를 실현했고 그 앞 step에는 gate가 없었다 | **0** |
+| 두 archetype, gate가 endpoint를 실현했으나 **그보다 앞선 step에서 별도 gate가 관측됐다** | **1** |
+| 두 archetype, gate 없이 실제 기능 진입으로 endpoint 도달 | 앞선 step의 gate 관측 여부대로 0 또는 1 |
+| 나머지 5 archetype, gate로 종료(`AUTH_GATE_REACHED`) | **1** — 그 gate가 endpoint 도달을 막았다 |
+| `COMMUNICATION_ENTRY`의 본인인증 gate로 종료(규칙 E-6a) | **1** — 같은 이유 |
+| gate가 한 번도 관측되지 않았다 | **0** |
+
+**규칙 E-8 (auth gate 유병률 집계) `[V2-C004 시정]`.** `00 §11`·`01 §10`의 `auth gate` 지표를
 `endpoint_status = 'AUTH_GATE_REACHED'` 만으로 세면 이 두 archetype에서 **0으로 과소집계된다.**
-집계 조건은 다음 합집합이다.
+집계 조건은 다음 합집합이며, **`01 §6`의 전용 컬럼을 우회하지 않는다.**
 
 ```
-auth_gate_observed = (endpoint_status = 'AUTH_GATE_REACHED')
+auth_gate_observed = (auth_gate_before_endpoint = 1)
                   OR (endpoint_status_detail = 'ENDPOINT_VIA_AUTH_GATE')
-                  OR (그 task 의 fact_task_step 중 auth gate 가 기록된 step 이 존재)
 ```
 
-세 번째 항의 근거 데이터는 이미 요구돼 있다 — `02 §7`이 각 activation 후 `auth gate`를 기록하게 한다.
+**이 2항 합집합은 이전 판의 3항 합집합과 같은 집합을 가리키며, 규칙 S-1을 지킨다.**
+이전 판의 1항(`endpoint_status = 'AUTH_GATE_REACHED'`)과 3항(step 로그에 gate가 있는 task)은
+규칙 E-9의 정의에 의해 **둘 다 `auth_gate_before_endpoint = 1`에 포함**된다.
+한 사실(= 이 task 경로에서 auth gate가 관측됐다)이 이제 **한 컬럼**에서 나오고,
+나머지 한 항은 그 컬럼이 정의상 세지 않는 단 하나의 경우(gate가 endpoint 그 자체인 경우)를 더한다.
+`01 §6`의 전용 컬럼을 그대로 쓰는 구현자와 이 합집합을 쓰는 구현자가 **같은 값에 도달한다** —
+E-8이 경고한 과소집계의 재발 경로가 닫힌다.
+
+`PERSONAL_DATA_REQUIRED`로 끝난 관측은 그 자체로 `auth_gate_observed = 1`이 되지 **않는다.**
+그 값은 개인정보 입력 요구를 뜻하고 auth gate 관측은 `auth_gate_detected`가 말한다 —
+두 사실을 합치면 `00 §7 별도 기록`의 `auth gate` 항목이 다른 사건을 흡수한다.
 `endpoint reach`(§1.5.2 규칙 E-4)와 `auth gate`는 **서로 다른 지표**이므로 한쪽 값으로 다른 쪽을 대체하지 않는다.
+
+**규칙 E-10 (두 endpoint 의미의 층화) `[V2-C004 시정]`.**
+> 닫는 finding: `gate-endpoint-archetypes-mix-two-endpoint-semantics-without-stratification` (adversarial `V2-C003` P2)
+
+`FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY` 안에서 `MPFED`는 이제 두 종류의 관측을 담는다 —
+**gate가 나타난 시점까지의 깊이**와 **실제 기능 진입까지의 깊이**다. 사실 자체는
+`endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`로 보존되지만, 층화를 요구하지 않으면
+`00 §7` `ExcessDepth`의 기준선(= 같은 archetype의 중앙값)이 **혼합분포의 중앙값**이 되고
+`동종 대비 깊은가`가 아니라 `로그인 벽을 앞에 세웠는가`를 재게 된다.
+`archetype 내부 비교라 괜찮다`는 반론은 성립하지 않는다 — **혼합이 archetype 내부에서 일어나기 때문이다.**
+
+1. **분리 집계.** 그 두 archetype에서 아래 지표는 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 여부로
+   **층을 갈라 병기**한다. 합산값만 제시하지 않는다.
+
+   | 지표 | 출처 |
+   |---|---|
+   | archetype별 `MPFED` median · IQR · mode · ECDF · `0/1/2/3/4+` 빈도 | `00 §11` Depth |
+   | `ExcessDepth` 기준선(= 같은 archetype의 중앙값) | `00 §7` 상대 깊이 |
+   | `mart_archetype_summary`의 `n` · `MPFED median` · `MPFED IQR` · `endpoint reach` | `01 §10` |
+
+2. **정본 산식은 바뀌지 않는다.** `ExcessDepth`의 정본은 `00 §7` 문면 그대로
+   **`MPFED − 같은 archetype의 중앙값`**이다. 층별 중앙값 기준의 값은 **병기**이며 정본을 대체하지 않는다.
+   이 문서는 새 분석 기준을 만들지 않는다(§7 7항) — 기존 지표를 **층별로 한 번 더 산출하라**는 요구일 뿐이다.
+3. **층 크기를 반드시 노출한다.** `mart_archetype_summary`에 `endpoint_via_auth_gate_rate`
+   (= 그 archetype에서 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 인 task 비율)와
+   **층별 `n`**을 둔다 (§6.3). 한 층의 `n`이 작아 통계가 성립하지 않으면 그 사실을 적고 산출하지 않는다.
+4. **`00 §7 별도 기록`과의 관계.** `00 §7`은 `auth gate`를 **Depth와 합치지 않는다**고 적는다.
+   이 절은 그 조항을 위반하지 않는다 — 두 archetype에서 gate는 depth에 **더해지는 항**이 아니라
+   depth의 **정지점**이며 `m`을 늘리지 않는다. gate의 유병률은 규칙 E-8로 **별도 집계**되어
+   `00 §7`이 요구한 `별도 기록`이 그대로 유지된다.
+5. **층화는 해석을 만들지 않는다.** 어느 층의 깊이가 더 좋다/나쁘다고 말하지 않는다.
+   층화의 목적은 **서로 다른 사건이 한 분포에 섞이는 것을 막는 것**이며,
+   `00 §14` Claim Boundary와 `00 §7`의 `절대 cutoff 대신 상대 깊이` 원칙은 그대로다.
 
 **A1과의 정합.** `A1 §1.2` 신호표는 두 archetype의 endpoint 신호를
 `금융기능 진입 또는 로그인/인증 gate가 나타난 순간` · `게시물/스레드/작성영역 진입 또는 로그인 gate`로
@@ -435,7 +570,9 @@ auth_gate_observed = (endpoint_status = 'AUTH_GATE_REACHED')
 `UNRESOLVED_*` 3값은 `endpoint_status = 'UNRESOLVED'`, `ENDPOINT_VIA_AUTH_GATE`는
 `endpoint_status = 'FUNCTION_ENDPOINT_REACHED'`. 그 외 조합은 존재할 수 없다 (규칙 S-3).
 집계·보고는 기본적으로 상위 7값으로 하고, 세분값은 측정품질 진단에 쓴다.
-**단 하나의 예외**가 `auth gate` 지표이며, 그것은 규칙 E-8의 합집합으로 센다.
+**두 개의 예외가 있다** `[V2-C004 시정]` — (1) `auth gate` 지표는 규칙 E-8의 합집합으로 세고,
+(2) 두 archetype의 `MPFED` 계열 지표는 `ENDPOINT_VIA_AUTH_GATE` 여부로 **층화해 병기**한다(규칙 E-10).
+두 예외 모두 상위 7값 집합을 확장하지 않으며, 세분값을 **집계의 층**으로 쓸 뿐이다.
 
 **A1 표현의 정합화.** `A1` §2.2는 `endpoint_status`에 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED`를 기록한다고 쓰면서
 같은 절에서 `02 §7의 7개 종료값 집합을 확장하지 않는다`고 못박았다. 두 문장은 한 컬럼에서 양립하지 않으므로
@@ -461,6 +598,10 @@ auth_gate_observed = (endpoint_status = 'AUTH_GATE_REACHED')
 | `ExcessDepth` | 산출하지 않는다 (`MPFED`가 `NULL`이므로) |
 | `mart_archetype_summary.endpoint reach` | 분모 포함, 분자 제외. **절단 건수를 별도 컬럼으로 노출** |
 | `mart_service_summary` | `endpoint_status` 원값을 그대로 전달 |
+
+**절단과 층화는 서로 다른 축이다** `[V2-C004 시정]`. 위 표는 `UNRESOLVED_*`(잴 수 없었던 관측)의 취급이고,
+규칙 E-10의 층화는 `FUNCTION_ENDPOINT_REACHED`(잰 관측)를 **endpoint의 의미**로 가르는 것이다.
+두 archetype에서는 두 축이 함께 적용된다 — 층별로 산출하고, 각 층 안에서 절단 건수를 별도로 노출한다.
 
 #### 1.5.3 `area_signal_status` — `fact_task_entry`
 
@@ -636,6 +777,7 @@ applicable_count = pass_count + fail_count + undetermined_count
 |---|---|---|---|
 | 결정적 단계가 신뢰구간을 벗어남 (`verdict_state ∈ {PASS, FAIL}`) | **판정 검토** — 그 판정이 맞는지 | **그렇다.** `PASS ↔ FAIL` 확인·정정, 또는 `ABSTAIN` 시 `UNDETERMINED`로 보수화 | `CRITERION_VERDICT` |
 | `verdict_state = UNDETERMINED` | **triage** — 왜 확정 못했는지, 재수집할 가치가 있는지 | **아니다.** 결과는 `UNDETERMINED`로 고정된다 (전파 규칙 **T-8**) | `CRITERION_UNDETERMINED_TRIAGE` |
+| 결정적 단계가 신뢰구간을 벗어남 (`verdict_state = NA`) `[V2-C004 시정]` | **적용기회 검토** — 적용 대상이 정말 없는지 | **아니다.** 결과는 `NA`로 고정된다 (전파 규칙 **T-6**). 적용기회 유무를 다시 정하는 유일한 길은 새 evidence run이다 (§1.11.2) | `CRITERION_VERDICT` |
 
 두 번째 행이 이 문서가 `V2-C002` adversarial P1을 닫는 지점이다.
 `UNDETERMINED` 행의 검토 산출은 판정이 아니라 `evidence_gap` · `impact_level` · `review_priority`,
@@ -692,18 +834,53 @@ laundering을 막는 것은 이 컬럼이 아니라 전파 규칙 **T-8**과 금
 
 | 값 | 검토 대상 | 허용 label 도메인 | criterion `final_status`에 미치는 영향 |
 |---|---|---|---|
-| `CRITERION_VERDICT` | `verdict_state ∈ {PASS, FAIL}` 인 criterion observation | `{PASS, FAIL}` | T-7로 전파 |
+| `CRITERION_VERDICT` | `verdict_state ∈ {PASS, FAIL, NA}` 인 criterion observation `[V2-C004 시정]` | `{PASS, FAIL, NA}` | `verdict_state ∈ {PASS, FAIL}` 이면 T-7로 전파. **`verdict_state = NA` 이면 전파 없음** — T-6이 우선한다 |
 | `CRITERION_UNDETERMINED_TRIAGE` | `verdict_state = UNDETERMINED` 인 criterion observation | `{EVIDENCE_INSUFFICIENT_CONFIRMED, RECOLLECT_RECOMMENDED}` | **없음** (T-8) |
 | `INTERRUPT_LABEL` | `fact_interrupt_element`의 방해요소 분류 | §1.6 `final_label` 10값 | 없음 (Axis B) |
 | `TASK_MAPPING` | `dim_representative_task`의 대표 task 매핑 | §1.9 `mapping_status` 판단 | 없음 (Frame) |
 | `PRIMARY_ACTION_SELECTION` | `fact_primary_action_candidate`의 대표기능 후보 선정 | §1.13 `selection_status` 3값 | 없음 (Axis B) |
 
 **상호배타.** 5값은 상호배타다.
+
+**`verdict_state = NA` ∧ `ai_review_required = 1` 행의 귀속** `[V2-C004 시정]`.
+이전 판은 `CRITERION_VERDICT`의 검토 대상을 `verdict_state ∈ {PASS, FAIL}`로,
+`CRITERION_UNDETERMINED_TRIAGE`를 `verdict_state = UNDETERMINED`로 두어 **`NA` 행에 붙일 값이 없었다.**
+그런데 §1.11.1 전이표 **19·20행**은 그 조합의 존재를 전제한다 — 적용기회 유무의 결정적 판정이
+신뢰구간을 벗어나면 `ai_review_required = 1`이 될 수 있기 때문이다(§1.7).
+값이 없으면 규칙 S-3으로 파이프라인이 실패한다. `NA`도 **하나의 판정**이므로 `CRITERION_VERDICT`에 귀속시킨다.
+**이것이 `NA`에서 나가는 전이를 열지는 않는다** — 그 행의 검토가 무엇으로 끝나든 T-6이 우선하며,
+적용기회 유무를 다시 정하는 유일한 길은 **새 evidence run**이다(T-6 · §1.11.2 규칙 RC-1~RC-5).
+검토의 산출은 §1.11.2가 정한 재수집 대기열 정보로만 쓰인다.
+(이 결손은 `V2-C004` 자기공격의 전수 열거에서 발견됐다 — §1.5.1a 규칙 E-6a가 닫은 무주지와 같은 계열이다.)
+
 **규칙 A-2 (label 도메인 격리).** `CRITERION_UNDETERMINED_TRIAGE` item의 어떤 label 컬럼에도
 `PASS`·`FAIL`을 쓰지 않는다. 쓸 수 있게 두면 T-8이 우회될 여지가 생긴다.
 triage의 `RESOLVED`는 **triage의 확정**이지 판정의 확정이 아니다.
 
-**`impact_level`** — `HIGH` / `MEDIUM` / `LOW`. 해당 판정이 `00 §11` 주요 분석 결론을 바꿀 수 있는 정도.
+**`impact_level`** — `HIGH` / `MEDIUM` / `LOW`. **evidence 결손의 성격과 복구 가능성** `[V2-C004 시정]`.
+> 닫는 finding: `recollection-escape-path-unbounded-and-conclusion-prioritized` (adversarial `V2-C003` **P1**)
+
+**무엇이 없어서 확정하지 못했는가**, 그리고 **새 evidence run으로 그 결손이 복구될 개연성이 얼마인가**를 적는다.
+
+| 값 | 뜻 |
+|---|---|
+| `HIGH` | 결손이 **특정됐고** 재수집으로 복구될 개연성이 높다. 예: evidence 7종(`A1 §6.2`) 중 특정 산출물이 비었다 · replay가 깨졌다(`UNRESOLVED_REPLAY_BROKEN`) · 예산 소진으로 관측이 끊겼다(`UNRESOLVED_DEPTH_BUDGET_EXCEEDED`) |
+| `MEDIUM` | 결손은 특정되나 복구 개연성이 불확실하다. 예: 동적 렌더링으로 같은 상태가 재현될지 알 수 없다 |
+| `LOW` | 재수집으로 복구되지 않는 결손이다. 예: 대상이 그 기준에 대해 관측 가능한 상태를 애초에 노출하지 않는다 |
+
+**이 값은 결론 중립적이다 — 그렇게 정의해야 한다.**
+이전 판은 이 값을 `해당 판정이 00 §11 주요 분석 결론을 바꿀 수 있는 정도`로 정의했다.
+그 정의 아래에서 §1.11.2의 재수집 우선순위 키로 쓰이면, **명세가 "결론을 바꿀 수 있는 행부터 다시 재라"고
+지시하는 것**이 된다. 그것은 결론 방향으로 조준된 optional stopping이며 `00 §14`가 금지한 결론 유도다.
+따라서 이 값의 산정에 다음을 **입력으로 쓰지 않는다** (규칙 RC-2 · 금지 전이 X-14).
+
+- `verdict_state` · `final_status` · 그 행의 판정이 어느 쪽이었는지
+- `certified_current`(`00 §4` Axis C) · 서비스 정체성 · 도메인·archetype 소속
+- 이미 산출된 집계값(`decision coverage` · `undetermined_rate` · 인증 비교 결과 …)
+
+이 값은 **evidence의 상태에 대한 진술**이지 결론에 대한 진술이 아니다 —
+`evidence_gap`이 "증거 부족을 기권 사유로 들었는가"라는 검토 과정의 진술인 것과 같은 성질이다(위 문단).
+
 **`review_priority`** — 정수. 사람 검토 5건 선발의 결정적 순서 (§4.6).
 
 **label 컬럼 5종의 전이 권한** `[V2-C003 시정]`.
@@ -819,9 +996,9 @@ NED가 멈추는 `FUNCTION_AREA_REACHED` 신호(§1.5.3)를 task별로 지정한
 | **T-1** | `measurement_status ≠ MEASURED` → `fact_criterion_result` 행 **생성하지 않음**. `FAIL`·`UNDETERMINED` 어느 쪽으로도 세지 않는다 (`02 §13`) |
 | **T-2** | `ai_review_required = 0` → `final_status = verdict_state` (항등 전파) |
 | **T-3** `[V2-C003 시정]` | `ai_review_required = 1` → `final_status`는 **§1.11.1 전이표의 전건 대응으로만** 정한다. `fact_ai_adjudication`의 값을 그때그때 해석해 옮기지 않는다. 표에 없는 조합은 존재할 수 없으며, 나타나면 파이프라인이 실패해야 한다 (규칙 S-3) |
-| **T-4** | `fact_ai_adjudication.final_status = ABSTAIN` → `fact_criterion_result.final_status = UNDETERMINED` |
+| **T-4** `[V2-C004 시정]` | `fact_ai_adjudication.final_status = ABSTAIN` → `fact_criterion_result.final_status = UNDETERMINED`. **단 `verdict_state = NA` 인 행에는 T-6이 우선한다**(전이표 20행). `NA`는 `적용 대상 자체가 없다`는 진술이므로(`01 §7` · `00 §4`) 검토자의 기권이 그것을 `판단불가`로 바꾸지 못한다. 바꾸면 §1.7 항등식 `applicable_count = pass_count + fail_count + undetermined_count`가 깨지고 `decision_coverage_applicable`의 분모가 부풀어 `undetermined_rate`가 과대 보고된다 (금지 전이 X-15) |
 | **T-5** | `endpoint_status` · `endpoint_status_detail` · `area_signal_status`는 `fact_criterion_result`로 전파되지 **않는다**. L1 종료 상태는 Axis B 변수이며 Axis A 판정이 아니다 (`00 §4` · `A1 §2.3`) |
-| **T-6** | `verdict_state = NA` → `final_status = NA`. adjudication은 `NA`를 바꾸지 못한다. 적용기회 유무의 재판정은 새 evidence run에서 `verdict_state`를 다시 내는 일이다 |
+| **T-6** `[V2-C004 시정]` | `verdict_state = NA` → `final_status = NA`. adjudication은 `NA`를 바꾸지 못한다 — `RESOLVED`·`ABSTAIN`·`ESCALATED_HUMAN_FINAL`·`PENDING` **네 값 어느 것도 예외가 아니며**, T-4·T-9보다 **우선한다**(전이표 19·20행). 적용기회 유무의 재판정은 새 evidence run에서 `verdict_state`를 다시 내는 일이다(§1.11.2 규칙 RC-1~RC-5) |
 | **T-7** `[V2-C003 시정]` | `fact_ai_adjudication.final_status = RESOLVED` → criterion `final_status`는 **`verdict_state ∈ {PASS, FAIL}` 일 때에만** 확정 label로 갱신된다. 확정 label은 `reviewer_agreement = 1` 이면 합의 label(`reviewer_a_label` = `reviewer_b_label`), 아니면 `arbiter_label`이며, 그 값 도메인은 `{PASS, FAIL}`이다. `verdict_state = UNDETERMINED` 인 행에는 **T-8이 우선한다** |
 | **T-8** `[V2-C003 시정]` | `verdict_state = UNDETERMINED` → `final_status = UNDETERMINED`. **adjudication 결과가 무엇이든 바뀌지 않는다.** 이 행에 대한 검토의 산출은 `evidence_gap`·`impact_level`·`review_priority`(재수집 우선순위)이지 판정이 아니다 (§1.7 · §1.11.2) |
 | **T-9** `[V2-C003 시정]` | `fact_ai_adjudication.final_status ∈ {ESCALATED_HUMAN_FINAL, PENDING}` → criterion `final_status = UNDETERMINED`. 이는 **검토가 끝나지 않았다는 사실의 보수적 표현**이며 판정이 아니다. `03 Phase 5` 측정품질 보고 시점에 `PENDING` 잔여는 **0이어야 한다**. `ESCALATED_HUMAN_FINAL`은 사람 검토가 끝나면 `RESOLVED`로 전이하고, 그때 다시 T-7/T-8을 탄다 |
@@ -861,6 +1038,11 @@ NED가 멈추는 `FUNCTION_AREA_REACHED` 신호(§1.5.3)를 task별로 지정한
 | 19 | `NA` | 1 | `RESOLVED` | 무엇이든 | `NA` | **T-6** (adjudication 무시) | 아니오 |
 | 20 | `NA` | 1 | `ABSTAIN` / `ESCALATED_HUMAN_FINAL` / `PENDING` | (없음/미확정) | `NA` | **T-6** | 아니오 |
 
+**규칙 충돌의 해소 순서** `[V2-C004 시정]`. 한 행에 둘 이상의 T 규칙이 걸리면 다음 순서로 해소한다.
+**T-6(`verdict_state = NA`) > T-8(`verdict_state = UNDETERMINED`) > T-7 · T-4 · T-9.**
+두 상위 규칙은 `verdict_state` **하나만** 보고 결과를 고정하므로 adjudication 값과 label을 읽기 전에 끝난다.
+19·20행(`NA` ∧ 모든 adjudication)과 15~18행(`UNDETERMINED` ∧ 모든 adjudication)이 그 결과다.
+
 **전건 완전성.** `verdict_state` 4값 × `ai_review_required` 2값 × adjudication 4값 = 논리적 조합 32개다.
 `ai_review_required = 0` 이면 adjudication 행이 존재하지 않으므로 그쪽 16개는 1~4행으로 축약되고,
 `ai_review_required = 1` 인 16개는 5~20행이 1:1로 덮는다 (`RESOLVED` 행은 확정 label에 따라 다시 갈린다).
@@ -881,7 +1063,7 @@ adjudication 결과 4값 어느 것에서도, 어떤 `evidence_gap` 값에서도
 
 | 경로 | 새 `verdict_state`를 산출하는가 | `UNDETERMINED` 탈출 | 근거 |
 |---|---|---|---|
-| **새 evidence run**(재수집) → 새 관측 행 → 결정적 파이프라인이 새 `verdict_state` 산출 → 새 judgment version | **예** | **가능** — 새로 산출된 값이 `PASS`·`FAIL`·`UNDETERMINED`·`NA` 무엇이든 그것이 결과다 | `02 §12` `재수집 → 새 evidence run` |
+| **새 evidence run**(재수집) → 새 관측 행 → 결정적 파이프라인이 새 `verdict_state` 산출 → 새 judgment version | **예** | **가능 — 단 아래 규칙 RC-1~RC-5의 절차 안에서만.** 새로 산출된 값이 `PASS`·`FAIL`·`UNDETERMINED`·`NA` 무엇이든 그것이 결과다 `[V2-C004 시정]` | `02 §12` `재수집 → 새 evidence run` · §0 7항 EXC-3 |
 | 같은 evidence 재판정 → 새 judgment version | 아니다 (`verdict_state` 불변) | **불가능** | `02 §12` + T-8 + X-10 |
 | cascade 상위 단계 재호출 (VLM 재실행 · reviewer 교체 · arbiter 재중재) | 아니다 | **불가능** | T-8 · X-1 |
 | 사람 최종검토 (`00 §9` 6단계) | 아니다 | **불가능** | T-8 · X-11 |
@@ -899,8 +1081,129 @@ adjudication 결과 4값 어느 것에서도, 어떤 `evidence_gap` 값에서도
 
 **재수집 우선순위.** 어느 `UNDETERMINED` 행을 다시 잴지는 `evidence_gap`·`impact_level`·`review_priority`로
 정한다 (§1.8). 이 세 값은 **재수집 대기열의 정렬키**이며 **전이 허가 조건이 아니다** (X-9).
+세 값 중 `impact_level`은 §1.8에서 **결론 중립적으로 재정의**됐다 `[V2-C004 시정]` —
+`결론을 바꿀 수 있는 정도`가 아니라 **evidence 결손의 성격과 복구 가능성**이다.
+이전 정의를 그대로 두면 이 문단이 "결론을 바꿀 수 있는 행부터 다시 재라"는 지시가 된다.
 재수집 여부와 무관하게 남은 `UNDETERMINED`는 `00 §11`의 `UNDETERMINED stress bound` 대상이 되어
 결론에 미치는 영향이 정량화된다 — 값을 지우는 대신 **영향을 재는 것**이 이 연구의 방식이다.
+
+---
+
+**이 탈출구에는 절차가 필요하다** `[V2-C004 시정]`
+> 닫는 finding: `recollection-escape-path-unbounded-and-conclusion-prioritized` (adversarial `V2-C003` **P1 blocking**)
+> 예외 등재: §0 7항 **EXC-3** (`02 §12`는 원본이므로 수정하지 않고 절차만 부여한다)
+
+위 표는 재수집을 `UNDETERMINED`의 **유일한 탈출구**로 지정했다. 그런데 `02 §12` 전문은
+`재수집 → 새 evidence run` 한 줄이고 **횟수 상한도, 중단규칙도, 사전선언 요구도, 분석 대상 run
+선택규칙도 없다.** 그 상태로 두면 다음이 명세를 한 번도 위반하지 않고 성립한다.
+
+> `UNDETERMINED` 행을 다시 잰다 → 여전히 `UNDETERMINED`면 또 잰다 → `PASS`가 나오면 멈춘다.
+> 모든 run이 append-only로 남으므로 X-1도 X-10도 전이표도 위반되지 않는다.
+> 그럼에도 `decision coverage`는 올라가고 `UNDETERMINED stress bound`는 작아진다.
+
+**laundering을 컬럼에서 막고 파이프라인 재실행 쪽으로 문을 낸 것**이다. 아래 다섯 규칙이 그 문을 닫는다.
+추적성(새 `evidence_run_id`가 남는다)은 **선택편향을 막지 못한다** — 남는 것은 두 run의 존재이지
+"왜 두 번째 run에서 멈췄는가"가 아니기 때문이다. 그것을 남기는 장치가 사전선언(RC-2)이다.
+
+**규칙 RC-1 (재수집 횟수 상한).**
+한 `web_target_id`에 대해 정본 분석에 쓸 수 있는 **재수집 evidence run 수의 상한**을 상수로 둔다.
+
+```
+MAX_RECOLLECTION_RUNS_PER_WEB_TARGET = 1      (기본값)
+```
+
+- 재수집은 **관측(evidence run) 단위**로 일어나고 한 run이 그 타겟의 모든 criterion 행을 새로 낳으므로,
+  상한도 `(web_target, criterion)`이 아니라 **web target 단위**로 둔다. `(web_target, criterion)`당
+  재수집 run 수는 여기서 따라 나온다.
+- 상한값 **1**은 기본값이며 **P-C에서 구현·P-D(E000_V2 smoke)에서 검증한 뒤 동결**한다.
+  `A1 §7`의 수집 파라미터와 같은 지위이며, 동결 전까지는 이 문서의 제안값이다(§6.4).
+- **상한은 기록의 금지가 아니다.** 상한을 넘어 수집된 run도 `02 §12` append-only로 남는다.
+  다만 그 run의 criterion observation은 **정본 지표(§4.2)에 들어가지 않으며**,
+  건수를 `03 Phase 5`에 보고한다(RC-5). 상한을 넘겨 정본 지표를 산출하는 것은 금지 전이 **X-14**다.
+- 상한을 올려야 할 사유가 생기면 **P-C 착수 전에 상수를 바꿔 동결**한다.
+  수집 중에, 결과를 본 뒤에 올리는 것은 X-14다.
+
+**규칙 RC-2 (사전선언과 중단규칙).**
+재수집 run은 **시작 이전에** 대상·사유·기대 evidence를 기록해야 하며, 그 기록은
+**그 run이 산출할 evidence를 보기 전에 동결**된다.
+
+*어디에 기록하는가* — 새 evidence run의 **run manifest**
+(`07_EVIDENCE_MANIFEST_CONTRACT` · `A1 §6.2` `manifest_path`, 관측이 아니라 run 단위 산출물)에
+`recollection_preregistration` 블록으로 남긴다. 필드는 다음 5종이다.
+
+| 필드 | 내용 | 출처 |
+|---|---|---|
+| `target_criterion_observation_ids` | 이 재수집이 겨냥한 `UNDETERMINED` criterion observation 목록 | `fact_criterion_result` |
+| `reason_evidence_gap` | 대상 행의 `evidence_gap` 값을 그대로 복사 | `fact_ai_adjudication` (§1.8) |
+| `reason_impact_level` | 대상 행의 `impact_level` 값을 그대로 복사 (**결손의 성격·복구 가능성**, §1.8 재정의) | `fact_ai_adjudication` (§1.8) |
+| `expected_evidence` | **복구를 기대하는 evidence 종류** — `A1 §6.2`의 7종(DOM / AX / screenshot(initial) / screenshot(fullpage) / computed CSS / probe / manifest) 중 어느 것이 이번 run에서 산출되어야 하는가. **이전 run에서 실제로 결손이었던 것만 적을 수 있다** — 경로가 `NULL`이었거나 `07` 검증이 `VERIFIED`가 아니었던 산출물, 또는 `endpoint_status_detail = UNRESOLVED_REPLAY_BROKEN`이 기록된 경우의 replay다. 항상 산출되는 산출물(예: run manifest)을 적어 RC-3의 교체 조건을 자동으로 만족시키는 것은 금지 전이 **X-14**다 | `A1 §6.2` · `02 §11` · `07 §4` |
+| `attempt_index` | 이 web target에 대한 몇 번째 재수집인가 (RC-1 상한 대조용, 1부터) | 파이프라인 |
+| `preregistered_at` | 이 블록이 동결된 시각. **`collection_started_at`보다 이르다** | `A1 §6.1` |
+
+*중단규칙* — 다음 중 **하나라도** 성립하면 그 web target에 대한 재수집을 **중단한다.**
+
+| # | 중단 조건 |
+|---|---|
+| 1 | `attempt_index`가 `MAX_RECOLLECTION_RUNS_PER_WEB_TARGET`에 도달했다 (RC-1) |
+| 2 | 사전선언한 `expected_evidence`가 새 run에서 **실제로 산출됐다** — 그 run의 판정 결과가 무엇이든 중단한다 |
+| 3 | 대상 행 전부가 `impact_level = LOW`다 (재수집으로 복구되지 않는 결손) |
+| 4 | 새 run의 결손이 이전 run과 **동일하다**(같은 evidence가 또 비었다). 같은 결손이 반복되면 그것은 복구 가능한 결손이 아니다 |
+
+> **판정 결과는 중단 조건이 아니다.** 새 run에서 `PASS`가 나왔는지 `UNDETERMINED`가 그대로인지는
+> 중단 여부를 **결정하지 않는다.** 판정 결과를 중단 조건으로 쓰는 순간 그것이 optional stopping이며
+> 금지 전이 **X-14**다. 중단 조건 2가 "expected evidence가 산출됐는가"이지
+> "원하는 판정이 나왔는가"가 아닌 이유가 이것이다.
+
+**규칙 RC-3 (정본 run 선택규칙).**
+한 (`web_target_id`, `criterion_id`)에 criterion observation이 여럿이면
+**분석의 분자·분모에 들어가는 행은 다음 사전선언된 규칙으로 정확히 하나 고른다.**
+
+```
+정본 run = evidence_run_id 순 최초의 measurement_status = MEASURED run
+           단, RC-2 사전선언을 갖춘 재수집 run이 사전선언한 expected_evidence 를
+           실제로 산출했다면 그 재수집 run 이 정본이 된다.
+           (조건을 만족한 재수집 run 이 둘 이상이면 evidence_run_id 순 최초)
+```
+
+- **교체 조건은 evidence의 존재 여부이지 판정 결과가 아니다.** 사전선언한 evidence가 산출됐으면
+  그 run이 정본이 되며, 그 run의 `verdict_state`가 `PASS`든 `FAIL`이든 `UNDETERMINED`든 `NA`든
+  **그것이 결과다.** 판정을 보고 정본을 고르는 것은 금지 전이 **X-14**다.
+- **교체는 run 단위로 일괄 일어난다.** 교체 조건(`expected_evidence` 산출 여부)은 **run의 속성**이므로,
+  조건이 성립하면 그 run이 낳은 criterion observation **전부**가 함께 정본이 되고,
+  성립하지 않으면 **하나도** 정본이 되지 않는다. criterion별로 유리한 run을 골라 섞는 것은
+  가장 값싼 optional stopping이며 금지 전이 **X-14**다.
+- 사전선언한 evidence를 산출하지 못한 재수집 run은 정본이 되지 못하고 **민감도 분석 전용**으로 남는다.
+- 이 규칙은 **P-C 착수 전에 동결**한다(규칙 P-1의 동결 순서와 같은 형식 — 결과를 보기 전에 정한다).
+  특정 타겟에 다른 선택규칙을 쓰려면 **그 타겟의 재수집 사전선언 시점에** 그 취지를 manifest에 적어야 한다.
+- run을 고른 **뒤에** 그 행 안에 judgment version이 여럿이면 최신 version이다 (**T-10**).
+  RC-3(어느 run인가)과 T-10(그 run 안 어느 version인가)은 **서로 다른 축**이며 순서대로 적용된다.
+- `NULL` 취급: 어떤 run도 `measurement_status = MEASURED`가 아니면 criterion 행 자체가 없다(규칙 M-1).
+
+**규칙 RC-4 (미선언 run은 정본이 아니다).**
+`recollection_preregistration` 블록 없이 시작된 재수집 run의 criterion observation은
+**정본 지표에 쓰지 않는다.** 삭제하지도 않는다 — `02 §12` append-only로 남기고 건수를 보고한다(RC-5).
+`03 Phase 5` 시점에 이 건수는 **0이어야 한다.**
+
+**규칙 RC-5 (재수집 보고 의무).**
+`03 Phase 5` 측정품질 보고에 다음을 **반드시** 적는다. 재수집이 결론을 얼마나 움직였는지를 노출하는 장치다.
+
+```
+recollection_rate = |재수집 run 이 존재하는 (web_target, criterion)|
+                  / |최초 run 에서 verdict_state = UNDETERMINED 였던 (web_target, criterion)|
+```
+
+| 항목 | 내용 |
+|---|---|
+| `recollection_rate` | 위 산식 |
+| **재수집 전후 병기** | `decision_coverage_applicable`·`undetermined_rate_applicable`(§4.2)을 **최초 run만으로 계산한 값**과 **RC-3 정본 run으로 계산한 값** 둘 다 적는다. 한쪽만 제시한 문장은 `03 Phase 6` 역추적 요구를 만족하지 않는다 |
+| 정본이 교체된 건수 | RC-3의 단서로 재수집 run이 정본이 된 `(web_target, criterion)` 수 |
+| 상한 초과 run 수 | RC-1 상한을 넘어 존재하는 run 수 (정본 지표 제외분) |
+| 미선언 run 수 | RC-4 위반 건수 (**0이어야 한다**) |
+| 중단 사유 분포 | RC-2 중단규칙 1~4 중 무엇으로 멈췄는가의 건수 |
+
+**남는 `UNDETERMINED`를 부끄러워하지 않는다.** 이 다섯 규칙의 목적은 재수집을 줄이는 것이 아니라
+**재수집이 결론을 고르는 장치가 되지 않게 하는 것**이다. 상한을 소진하고도 남은 `UNDETERMINED`는
+그대로 남기고 `00 §11`의 `UNDETERMINED stress bound`로 영향을 잰다 (규칙 N-7).
 
 #### 금지 전이 (laundering 차단)
 
@@ -918,6 +1221,9 @@ adjudication 결과 4값 어느 것에서도, 어떤 `evidence_gap` 값에서도
 | **X-10** `[V2-C003 시정]` | 같은 evidence 위의 재판정(새 judgment version)으로 `verdict_state`를 고쳐 쓰는 것. `verdict_state`는 evidence의 함수이며 **불변**이다 (§1.7). 값을 바꾸려면 새 evidence run이 필요하다 (`02 §12`) |
 | **X-11** `[V2-C003 시정]` | `verdict_state = UNDETERMINED` 인 행을 `final_status = FAIL`로 전이하는 것. 증거가 없어 판단 못한 것을 "미충족 확인됨"으로 바꾸는 것도 같은 종류의 조작이며, `FAIL` 비율을 부풀려 `00 §11` 결론을 반대 방향으로 오염시킨다 (T-8) |
 | **X-12** `[V2-C003 시정]` | 수집 실패(`FAILED_*`)를 `NOT_ELIGIBLE_AT_COLLECTION`으로 바꿔 기록해 타겟을 표본에서 빼는 것. 두 계열은 서로 다른 사건이며 증거 요구도 다르다 (규칙 M-4 · M-5) |
+| **X-13** `[V2-C004 시정]` | `verdict_state = UNDETERMINED` 인 행을 `final_status = NA`로 전이하는 것. `NA`는 `applicable_count`에서 통째로 빠지므로 이 세탁은 `PASS` 세탁보다 `decision_coverage_applicable`을 **더 크게** 움직인다. T-8이 이미 결과를 고정하지만 X-1·X-11과 **대칭을 맞춰** 금지 전이로 등재해 실패주입 대상에 넣는다 (§6.3 V-d) |
+| **X-14** `[V2-C004 시정]` | **결과를 보고 재수집하거나 정본 run을 고르는 것**(optional stopping). 구체적으로 ① `verdict_state`·`final_status`·집계 결과를 재수집 대상 선정·중단 조건으로 쓰는 것, ② 사전선언 없이 재수집을 시작하는 것, ③ 사전선언한 선택규칙 밖에서 분석 대상 run을 바꾸는 것, ④ 상한(규칙 RC-1)을 넘겨 정본 지표를 산출하는 것. 전이 자체는 합법(새 evidence run은 새 `verdict_state`를 낸다)이나 **선택 절차가 결론에 조준되면** 그 결과는 `00 §14`가 금지한 결론 유도다 (§1.11.2 규칙 RC-1~RC-5) |
+| **X-15** `[V2-C004 시정]` | `verdict_state = NA` 인 행을 `final_status = PASS`·`FAIL`·`UNDETERMINED` 어느 것으로도 전이하는 것 — `CRITERION_VERDICT` 검토가 `RESOLVED` + 확정 label로 끝나도 마찬가지다(T-6 > T-7). T-4를 `NA` 행에 문면대로 적용하면 발생하며, §1.7 항등식이 깨지고 `undetermined_rate`가 과대 보고된다. T-6이 우선한다 (전이표 20행) |
 
 #### `02 §14` 실패주입의 구체화 `[V2-C003 시정]`
 
@@ -931,8 +1237,18 @@ adjudication 결과 4값 어느 것에서도, 어떤 `evidence_gap` 값에서도
 | V-b | `verdict_state = UNDETERMINED` ∧ `evidence_gap = 0` ∧ `final_status = PASS` 기록 시도 | **차단** (X-1) — 이전 판이 열어두었던 경로 |
 | V-c | `verdict_state = UNDETERMINED` ∧ adjudication `final_status = RESOLVED` ∧ `arbiter_label = PASS` ∧ `evidence_gap = 0` → 전파 | **차단** (T-8 · 규칙 A-2). 감사가 실증한 정확한 laundering 경로 |
 
+| V-d `[V2-C004 시정]` | `verdict_state = UNDETERMINED` ∧ `final_status = NA` 기록 시도 | **차단** (T-8 · X-13). `NA` 방향은 `applicable_count`를 통째로 줄이므로 `PASS` 세탁보다 `decision_coverage_applicable`을 더 크게 움직인다 |
+| V-e `[V2-C004 시정]` | `verdict_state = UNDETERMINED` ∧ `final_status = FAIL` 기록 시도 | **차단** (T-8 · X-11). 반대 방향 오염 |
+| V-f `[V2-C004 시정]` | `verdict_state = NA` ∧ adjudication `ABSTAIN` → T-4를 문면대로 적용해 `final_status = UNDETERMINED` 기록 시도 | **차단** (T-6 우선 · X-15). 통과하면 §1.7 항등식이 깨진다 |
+| V-g `[V2-C004 시정]` | 사전선언(RC-2) 없는 재수집 run의 criterion observation을 §4.2 분자·분모에 넣는 시도 / 상한(RC-1) 초과 run을 정본으로 쓰는 시도 / 판정 결과를 보고 정본 run을 바꾸는 시도 | **차단** (RC-1 · RC-3 · RC-4 · X-14) |
+
 추가로 `verdict_state = UNDETERMINED → FAIL` 변종(X-11)도 같은 방식으로 태운다.
-나머지 X-2~X-12도 E000_V2 smoke에서 차단 여부를 확인한다.
+나머지 X-2~X-15도 E000_V2 smoke에서 차단 여부를 확인한다.
+`V2-C003`·`V2-C004`가 신설한 **나머지 규칙 전건**의 주입 케이스는 **§6.3 실패주입 대응표**가 열거한다
+`[V2-C004 시정]` — 이 표(V-a~V-g)는 `UNDETERMINED`/`NA` 계열이고, §6.3은 그 밖의 규칙
+(E-5~E-10 · A-2 · W-1~W-3 · M-3~M-5 · N-6~N-7 · B-2 · T-7·T-9~T-11 · X-9·X-10·X-12 · RC-1~RC-5)을 덮는다.
+두 표를 합치면 두 사이클이 세운 guard가 **빠짐없이** 한 번씩 태워진다
+(닫는 finding: `new-v2-c003-rules-absent-from-failure-injection-set`).
 
 ### 1.12 Episode 수준 어휘 — `fact_task_episode`
 
@@ -1080,6 +1396,9 @@ embedding 랭킹은 오분류 여지가 있으므로(`02 §6` `모호하면 AI r
 **규칙 N-7 (`UNDETERMINED`는 결측이지만 삭제 대상이 아니다) `[V2-C003 시정]`.**
 `UNDETERMINED`를 줄이는 정당한 방법은 **새 evidence run으로 다시 재는 것**뿐이며,
 재판정으로 값을 바꾸거나 행을 빼는 것이 아니다 (§1.11.2 · X-1 · X-10 · X-11).
+그 재수집도 **무제한이 아니다** `[V2-C004 시정]` — 상한·중단규칙·사전선언·정본 run 선택규칙
+(§1.11.2 규칙 RC-1~RC-5) 아래에서만 정본 지표에 반영되며, 절차 밖의 재수집으로 값을 고르는 것은
+금지 전이 X-14다.
 남은 `UNDETERMINED`는 지우는 대신 `00 §11` `UNDETERMINED stress bound`로 **영향을 잰다.**
 
 ---
@@ -1135,6 +1454,8 @@ embedding 랭킹은 오분류 여지가 있으므로(`02 §6` `모호하면 AI r
 3. 확정 못함 + 사람 예산 소진 → final_status = ABSTAIN,  human_required = 0
                               ai_review_status = ESCALATION_DECLINED_BUDGET
 4. ABSTAIN → (T-4) → fact_criterion_result.final_status = UNDETERMINED
+   단 verdict_state = NA 였던 행은 T-6 이 우선해 NA 로 남는다.               [V2-C004 시정]
+   adjudication 은 NA 를 바꾸지 못한다 (전이표 19·20행).
 5. verdict_state 가 애초에 UNDETERMINED 였던 행은 1~4 어느 분기를 타든
    fact_criterion_result.final_status = UNDETERMINED 다 (T-8).            [V2-C003 시정]
    1번 분기로 RESOLVED 가 나와도 바뀌지 않는다 — 그 RESOLVED 는
@@ -1145,6 +1466,17 @@ embedding 랭킹은 오분류 여지가 있으므로(`02 §6` `모호하면 AI r
 **5번은 1~4번의 예외가 아니라 상위 제약이다** `[V2-C003 시정]`.
 1~4번은 **판정 검토**(`verdict_state ∈ {PASS, FAIL}`)의 경로이고, 5번은 `verdict_state = UNDETERMINED`
 행에 대한 무조건 제약이다. 전건 전체는 §1.11.1 표가 열거한다.
+
+**4번의 단서도 같은 성질의 상위 제약이다** `[V2-C004 시정]`
+(닫는 finding: `t4-and-2-3-step-4-contradict-t6-for-verdict-state-na`).
+이전 판은 T-4와 이 4번 분기를 **조건 없이** 적어 `verdict_state = NA` 행에서 T-6과 정면으로 갈렸다
+(T-4는 무조건 `UNDETERMINED`, T-6은 무조건 `NA`). §1.11.1 전이표 19·20행은 `NA`로 해소하고 있었으나
+본문 두 곳에 예외 표기가 없었다. **SSOT 근거로 T-6이 옳다** — `01 §7`·`00 §4`에서 `NA`는
+`적용 대상 자체가 없음`이라는 **데이터에 대한 진술**이고, `ABSTAIN`은 §2.2가 정한 대로
+**검토 과정에 대한 진술**이다. 검토자가 기권했다는 사실이 "적용 대상이 없다"를 "판단할 수 없다"로
+바꿀 수는 없다. 게다가 T-4 쪽으로 통일하면 §1.7 항등식
+`applicable_count = pass_count + fail_count + undetermined_count`가 깨진다(`NA` 행은 `applicable_count = 0`).
+**T-4 · 4번 분기 · T-6 · 전이표 19·20행이 이제 한 방향(`NA` 유지)으로 통일됐다.**
 
 **어느 분기에서도 값을 지어내지 않는다.** 3번 분기는 "예산이 없으니 대충 정하자"가 아니라
 "예산이 없으므로 판단을 남기지 않는다"이며, 그 결과는 4번에서 `UNDETERMINED`로 **보존**된다.
@@ -1274,6 +1606,13 @@ eligibility_reversal_rate = |NOT_ELIGIBLE_AT_COLLECTION 이 관측된 web target
 `measurement_status_detail`로 `APP_ONLY_AT_COLLECTION` / `NO_PUBLIC_WEB_LANDING_AT_COLLECTION`을 분해한다.
 숨기면 `02 §13`이 보호하려던 사실 자체가 사라진다.
 
+**주의 4 `[V2-C004 시정]` — 이 지표에는 §1.11.2 규칙 RC-3의 run 선택규칙을 적용하지 않는다.**
+분모가 `관측이 **시도된** 전체 observation 수`이므로 **재수집 run도 하나의 시도**이며 분모에 들어간다.
+정본 run 하나만 세면 재수집이 evidence completeness를 **보이지 않게** 만든다.
+§4.2(criterion 수준)와 이 지표(observation 수준)가 서로 다른 행 집합을 세는 것은 의도된 것이며,
+그래서 두 지표를 **항상 함께** 보고하라는 §4.2의 요구가 여기서도 유효하다.
+재수집으로 늘어난 시도 건수는 `recollection_rate`(규칙 RC-5)와 대조해 읽는다.
+
 ### 4.2 decision coverage
 
 `01 §10` `mart_service_summary`와 `03 Phase 5`가 함께 쓰는 지표다. **두 변종을 모두 저장한다.**
@@ -1282,6 +1621,29 @@ eligibility_reversal_rate = |NOT_ELIGIBLE_AT_COLLECTION 이 관측된 web target
 |---|---|---|
 | `decision_coverage_applicable` **(정본)** | `final_status ∈ {PASS, FAIL}` 인 criterion observation 수 | `final_status ∈ {PASS, FAIL, UNDETERMINED}` 인 criterion observation 수 |
 | `decision_coverage_all` (보조) | `final_status ∈ {PASS, FAIL, NA}` | `final_status ∈ {PASS, FAIL, NA, UNDETERMINED}` |
+
+**분자·분모에 들어가는 criterion observation 행의 선택** `[V2-C004 시정]`
+> 닫는 finding: `recollection-escape-path-unbounded-and-conclusion-prioritized` (adversarial `V2-C003` **P1**)
+
+한 (`web_target_id`, `criterion_id`)에 evidence run이 여럿이면 — 재수집(`02 §12`)이 새 `evidence_run_id`를
+낳고 그것이 새 `observation_id`(`A1 §6`)를 거쳐 **새 criterion observation 행**을 만들기 때문에 —
+분자·분모는 **§1.11.2 규칙 RC-3이 정한 정본 run 하나의 행만** 센다.
+
+| 축 | 규칙 | 무엇을 고르는가 |
+|---|---|---|
+| run | **RC-3** (§1.11.2) | 여러 evidence run 중 **정본 run 하나** |
+| judgment version | **T-10** (§1.11) | 그 run 안에서 **최신 version** |
+
+두 축은 **순서대로** 적용된다. T-10만으로는 부족하다 — T-10은 한 criterion observation **안의**
+version만 다루고, 재수집은 **행 자체를 새로 만들기** 때문이다. 이 순서를 적지 않으면
+"최신 run을 쓴다"는 암묵 관행이 규칙 자리를 대신하고, 그것이 곧 optional stopping의 통로가 된다.
+
+- 정본이 아닌 run의 criterion observation은 **민감도 분석 전용**이며 정본 지표를 대체하지 않는다.
+- **결과를 보고 run을 고르는 것은 금지 전이 X-14다.** RC-3의 교체 조건은 사전선언한
+  `expected_evidence`의 산출 여부이지 판정 결과가 아니다.
+- 재수집 전후 값을 **병기**하는 의무는 규칙 RC-5에 있다.
+- 같은 선택규칙이 `mart_service_summary`·`mart_archetype_summary`의 criterion 계열 집계와
+  `00 §11`의 `decision coverage`·`UNDETERMINED stress bound`에도 그대로 적용된다.
 
 **정본은 `decision_coverage_applicable`이다.** "적용기회가 있는 기준 중 판정이 확정된 비율"이며,
 `NA`를 분모에 넣는 `decision_coverage_all`은 적용기회가 적은 서비스에서 값이 부풀려진다.
@@ -1655,20 +2017,74 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | **컬럼**: `screenshot_initial_path` · `screenshot_fullpage_path` · `computed_css_path` · `evidence_run_id` · `collection_started_at` · `collection_finished_at` · `viewport_configured_*` · `device_pixel_ratio` | `A1` §6.1. §4.1 evidence completeness 분자의 근거 |
 | `fact_interrupt_element` 표 | `classification_status` 5값 · `final_label` 10값 · `ai_review_status` 7값 (§1.6 · §1.10) |
 | **컬럼**: `dismiss_method` 5값 · `dismiss_failure_mode` 5값 · `dismiss_persistence_hint` · `dismiss_screenshot_before/after` · `dismiss_dom_after` | `A1` §3.3 · §3.4 (§1.6) |
-| `fact_task_entry` 표 | `endpoint_status` 7값 + `endpoint_status_detail` **4값** + `area_signal_status` 3값 (§1.5). archetype별 auth gate 분기(§1.5.1a 규칙 E-5~E-8) 구현. 규칙 N-1~N-7 `NULL` 처리 구현 `[V2-C003 시정]` |
+| `fact_task_entry` 표 | `endpoint_status` 7값 + `endpoint_status_detail` **4값** + `area_signal_status` 3값 (§1.5). archetype별·**gate 종류별** auth gate 분기(§1.5.1a 규칙 E-5 · E-6 · **E-6a** · E-7) 구현. 규칙 N-1~N-7 `NULL` 처리 구현 `[V2-C004 시정]` |
+| **컬럼**: `auth_gate_before_endpoint` | `01 §6`의 실재 컬럼. 허용값 `0`/`1`, 정본 원천 `fact_task_step.auth_gate_detected`, 산식과 경계 사례는 **규칙 E-9**(§1.5.1a). `auth gate` 유병률(규칙 E-8)이 이 컬럼에서 나온다 `[V2-C004 시정]` |
+| `mart_archetype_summary` 층화 | 규칙 **E-10** — `FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY`에서 `MPFED` median/IQR/mode/ECDF · `endpoint reach` · `ExcessDepth` 기준선을 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 여부로 **층별 병기**. **컬럼**: `endpoint_via_auth_gate_rate` + 층별 `n` `[V2-C004 시정]` |
+| **run manifest**: `recollection_preregistration` 블록 | 규칙 **RC-2**의 사전선언 기록 자리. 5필드(`target_criterion_observation_ids` · `reason_evidence_gap` · `reason_impact_level` · `expected_evidence` · `attempt_index` · `preregistered_at`). `07_EVIDENCE_MANIFEST_CONTRACT` · `A1 §6.2` run manifest 안에 산다 (§0 5항의 단 하나의 예외) `[V2-C004 시정]` |
+| **상수**: `MAX_RECOLLECTION_RUNS_PER_WEB_TARGET` | 규칙 **RC-1**. 기본값 **1**. P-C 구현 → P-D(E000_V2) 검증 → 동결. `A1 §7`의 수집 파라미터와 같은 지위 `[V2-C004 시정]` |
+| **지표**: `recollection_rate` + 재수집 전후 병기 | 규칙 **RC-5**. `03 Phase 5` 측정품질 보고 항목 6종 `[V2-C004 시정]` |
 | `fact_task_step` 확장 | `depth_segment` 3값 · `counts_toward_depth` · `area_signal_detected` (§1.5.4, `A1` §1.8) |
 | `fact_task_episode` 표 (신규) | `episode_kind` 2값 · `ended_by` 9값 · `input_mode` 2값 (§1.12, `A1` §4.4) |
 | `fact_primary_action_candidate` 표 (신규) | `selection_basis` 4값 · `selection_status` 3값 · `area_css_px2` (§1.13, `A1` §5.1) |
 | `fact_task_step` 표 | — |
 | `fact_criterion_result` 표 | `verdict_state` · `final_status` · `automation_grade` 7값 · `ai_review_required` (§1.7 · §3) |
 | `fact_ai_adjudication` 표 | `final_status` 4값(`ABSTAIN` 포함) · `human_required` · `review_priority` · `review_task_type` **5값** (§1.8 · §2) `[V2-C003 시정]` |
-| **가드**: 전이 규칙 **T-1~T-11** | 파이프라인에 강제. §1.11.1 전이표를 **표 그대로 구현**하고, 표에 없는 조합에서 실패시킨다 `[V2-C003 시정]` |
-| **가드**: 금지 전이 **X-1~X-12** | `02 §14` 실패주입으로 차단 검증. `UNDETERMINED→PASS`는 §1.11 세 변종(V-a·V-b·V-c) 전부를 태운다 `[V2-C003 시정]` |
+| **가드**: 전이 규칙 **T-1~T-11** | 파이프라인에 강제. §1.11.1 전이표를 **표 그대로 구현**하고, 표에 없는 조합에서 실패시킨다. 규칙 충돌은 **T-6 > T-8 > T-7·T-4·T-9** 순서로 해소한다 `[V2-C004 시정]` |
+| **가드**: 재수집 규칙 **RC-1~RC-5** | 상한 초과·미선언·결과 기반 run 선택을 파이프라인이 **거부**한다. 사전선언 블록의 `preregistered_at < collection_started_at` 검사 포함 `[V2-C004 시정]` |
+| **가드**: 규칙 **E-6a** gate 종류 한정 | `COMMUNICATION_ENTRY`에 본인인증 gate로 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`가 붙으면 실패 `[V2-C004 시정]` |
+| **가드**: 규칙 **E-9** 컬럼 정합 | `auth_gate_before_endpoint`가 step 로그와 어긋나면 실패. `auth_gate_observed` 2항 합집합과 step 로그 기반 재계산이 **일치**해야 한다 `[V2-C004 시정]` |
+| **가드**: 규칙 **E-10** 층화 | 두 archetype의 `MPFED` 계열 지표가 층별 값 없이 합산값만 산출되면 실패 `[V2-C004 시정]` |
+| **가드**: 금지 전이 **X-1~X-15** | `02 §14` 실패주입으로 차단 검증. `UNDETERMINED→PASS`는 §1.11 세 변종(V-a·V-b·V-c) 전부를 태우고, `→FAIL`(V-e) · `→NA`(V-d) · `NA→UNDETERMINED`(V-f) · optional stopping(V-g)도 태운다 `[V2-C004 시정]` |
 | **가드**: 규칙 A-2 label 도메인 격리 | `CRITERION_UNDETERMINED_TRIAGE` item의 label 컬럼에 `PASS`/`FAIL`이 들어가면 실패 `[V2-C003 시정]` |
 | **가드**: 규칙 W-1~W-3 · T-11 | 관측이 Frame 컬럼을 in-place 수정하지 못하게 강제. supersede 경로만 허용 `[V2-C003 시정]` |
 | **가드**: 정합 제약 G-2~G-6 | `automation_grade` 검증 |
 | **가드**: 항등식 | `applicable_count = pass_count + fail_count + undetermined_count` (§1.7) |
 | **지표**: §4의 6개 산식 | numerator/denominator를 코드로 고정. `03 Phase 6` 역추적 요구 |
+
+#### 6.3.1 `02 §14` 실패주입 대응표 — `V2-C003`·`V2-C004` 신규 규칙 전건 `[V2-C004 시정]`
+
+> 닫는 finding: `new-v2-c003-rules-absent-from-failure-injection-set` (adversarial `V2-C003` P2, `E001_V2-blocking`)
+
+`02 §14`는 `모든 guard가 실제로 차단하는지 확인한다`고 요구한다. 두 사이클이 세운 규칙이 한 번도
+태워지지 않으면 `E000_V2_VALIDATED`가 **비어 있는 근거로** 닫힌다. 아래 표가 각 규칙에 주입 케이스를
+1:1로 붙인다. `UNDETERMINED`/`NA` 계열(V-a~V-g)은 §1.11에 있고 여기서 반복하지 않는다.
+
+| 주입 id | 규칙 | 주입 | 기대 |
+|---|---|---|---|
+| **I-1** | **E-5** | `FINANCIAL_ACTION_ENTRY` 대상에서 로그인 gate 관측 후 `endpoint_status = AUTH_GATE_REACHED` 기록 시도 | **차단** — `00 §3` 금융 행이 그 gate를 endpoint로 정의했다 |
+| **I-2** | **E-6** | `QUERY` archetype 행에 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 기록 시도 | **차단** (E-6 · S-3 · roll-up 규칙) |
+| **I-3** | **E-6a** | `COMMUNICATION_ENTRY` 대상에서 **본인인증 gate** 관측 후 `FUNCTION_ENDPOINT_REACHED` + `ENDPOINT_VIA_AUTH_GATE` 기록 시도 | **차단** — `00 §3` 커뮤니티 행은 `로그인 gate`만 준다 |
+| **I-4** | **E-6a** (역방향, 미매핑 회귀) | `COMMUNICATION_ENTRY`의 본인인증 gate 관측을 `AUTH_GATE_REACHED`(또는 `PERSONAL_DATA_REQUIRED`)로 기록 | **통과해야 한다** — 이 값이 막히면 `V2-C003` ssot F1의 무주지가 재발한다. S-3 미발화를 확인한다 |
+| **I-5** | **E-7** | 두 archetype에서 gate 관측 **이후** activation이 더 발생한 궤적 주입 (자격증명 입력·gate 통과) | **차단** (E-7 · `02 §7` 즉시종료 · `00 §3 절대 제외`) |
+| **I-6** | **E-8** | `auth gate` 유병률을 `endpoint_status = 'AUTH_GATE_REACHED'` 단독으로 집계 | **차단/불일치 검출** — 두 archetype에서 0으로 과소집계됨을 회귀검사가 잡는다 |
+| **I-7** | **E-9** | `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 인 task에 `auth_gate_before_endpoint = 1`을 그 endpoint gate 하나만 근거로 기록 | **차단** — endpoint를 실현한 gate는 `before`가 아니다 |
+| **I-8** | **E-9** | `auth_gate_before_endpoint`를 `NULL`로 기록 | **차단** (허용값 0/1, 규칙 N-3 관측된 0) |
+| **I-9** | **E-10** | 두 archetype의 `MPFED median`·`ExcessDepth` 기준선을 층 구분 없이 합산값만 산출 | **차단** — 층별 값과 `endpoint_via_auth_gate_rate` 누락 시 산출 실패 |
+| **I-10** | **A-2** | `CRITERION_UNDETERMINED_TRIAGE` item의 label 컬럼에 `PASS`/`FAIL` 기록 시도 | **차단** |
+| **I-11** | **W-1** · **T-11** | 관측 행이 `dim_web_target`의 Frame 컬럼을 in-place 수정 시도 | **차단** (S-2 · supersede 경로만 허용) |
+| **I-12** | **W-2** | supersede 경로를 **범위 안으로 되돌리는** 방향(`EXCLUDED` → `ELIGIBLE_WEB`)으로 사용 시도 | **차단** (배제 방향으로만) |
+| **I-13** | **W-3** | `NOT_ELIGIBLE_AT_COLLECTION`이 1건 이상인데 `eligibility_reversal_rate` 미보고 | **차단** (보고 누락 시 Phase 5 산출 실패) |
+| **I-14** | **M-3** | `measurement_status = NOT_ELIGIBLE_AT_COLLECTION` 기록 시 파이프라인이 실패 | **실패하면 안 된다** — S-3은 표에 **없는** 값의 규칙이다. 오탐 회귀검사 |
+| **I-15** | **M-4** | 증거 없이 `NOT_ELIGIBLE_AT_COLLECTION` 기록 시도 | **차단** (증거 못 남기면 `FAILED_EVIDENCE_INCOMPLETE`) |
+| **I-16** | **M-5** · **X-12** | `FAILED_*` 관측을 `NOT_ELIGIBLE_AT_COLLECTION`으로 재분류해 표본에서 제외 시도 | **차단** |
+| **I-17** | **N-6** | `NOT_ELIGIBLE_AT_COLLECTION`을 `LIKE 'FAILED_%'` 계열에 넣어 §4.1 분모에 산입 | **차단** (계열 경계 위반) |
+| **I-18** | **N-7** | 남은 `UNDETERMINED` 행을 삭제하거나 `stress bound` 대상에서 제외 | **차단** |
+| **I-19** | **B-2** | `abstention rate`를 `review_task_type` 분리 없이 한 칸에 합산 | **차단** (정본은 `CRITERION_VERDICT` 기준, triage 병기 필수) |
+| **I-20** | **T-7** | `verdict_state = UNDETERMINED` 행에 `RESOLVED` + 확정 label로 T-7 적용 시도 | **차단** (T-8 우선) |
+| **I-21** | **T-9** | `03 Phase 5` 시점에 `PENDING` 잔여 > 0 | **차단** (잔여는 0이어야 한다) |
+| **I-22** | **T-10** · **X-10** | 새 judgment version으로 `verdict_state`를 고쳐 쓰는 시도 | **차단** (`verdict_state` 불변) |
+| **I-23** | **X-9** | `evidence_gap = 0`·`impact_level = HIGH`를 전이 허가 조건으로 사용 | **차단** |
+| **I-24** | **RC-1** | `attempt_index > MAX_RECOLLECTION_RUNS_PER_WEB_TARGET` 인 run을 정본으로 사용 | **차단** (X-14) |
+| **I-25** | **RC-2** | `preregistered_at >= collection_started_at` 인 사전선언 블록 / `expected_evidence` 없는 블록 | **차단** (결과를 본 뒤의 선언) |
+| **I-26** | **RC-2** 중단규칙 | 판정 결과(`PASS` 등장)를 중단 조건으로 삼은 재수집 궤적 주입 | **차단** (X-14 optional stopping) |
+| **I-27** | **RC-3** | 사전선언한 `expected_evidence`를 산출하지 못한 재수집 run을 정본으로 사용 | **차단** |
+| **I-28** | **RC-4** | 사전선언 블록 없는 재수집 run의 criterion observation을 §4.2 분자·분모에 산입 | **차단** |
+| **I-28b** | **RC-3** (run 단위 일괄) | 같은 web target에서 criterion마다 서로 다른 run을 정본으로 골라 섞는 시도 | **차단** (X-14) |
+| **I-29** | **RC-5** | 재수집이 1건 이상인데 재수집 전후 `decision_coverage_applicable` 병기 누락 | **차단** (Phase 5 산출 실패) |
+
+**주입 케이스가 통과해야 하는 것 두 건(I-4 · I-14)을 일부러 넣었다.** 차단만 태우면
+**과탐(over-blocking)** 이 검증되지 않는다 — 규칙 S-3이 정당한 값을 막아 파이프라인을 세우는 것도
+결함이며, `V2-C003` ssot F1이 지적한 무주지가 정확히 그 형태였다.
 
 ### 6.4 이 문서가 닫지 않는 것
 
@@ -1694,6 +2110,8 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | `UTILITY_ENTRY` archetype의 endpoint 정의 (`00 §3`에 대응 행 없음) | P-A |
 | KWCAG criterion subset 및 `criterion_id` 목록 | `00 §15` · P-C |
 | `A1` §7의 수집 파라미터 8종 (`MAX_ACTIVATIONS_PER_TASK` 등) | P-C → P-D 검증 |
+| `MAX_RECOLLECTION_RUNS_PER_WEB_TARGET`의 **확정값** (이 문서의 기본값 = **1**, 규칙 RC-1) `[V2-C004 시정]` | P-C 구현 → P-D(E000_V2) 검증 → 동결 |
+| 로그인 gate ↔ 본인인증 gate **판별 기준의 서비스별 적용**(규칙 E-6a) `[V2-C004 시정]` | P-A endpoint codebook → P-B 동결 (§1.9 규칙 P-1) |
 
 ## 7. 금지사항 재확인
 
@@ -1714,7 +2132,10 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | 8 | **원본 `state/*.parquet`를 rename·migration·수정하지 않는다** (`01` 서두 · `03 Phase 3`). 규칙 V-1 · V-4 · V-5 |
 | 9 | **`research/refcohort/**`(Pilot)은 `READ_ONLY`.** 규칙 V-8 |
 | 10 | **예산 소진을 이유로 강제분류하지 않는다** (`00 §9`). 규칙 A-1 · X-6. §2.3의 3번 분기가 정본 경로다 |
-| 11 | **auth gate를 endpoint로 세는 것은 `FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY` 두 archetype뿐이다** (`00 §3` L1 표가 `또는 gate`를 준 행이 그 둘뿐). 다른 archetype으로 확대하지 않는다. 두 archetype에서도 gate를 **통과하지 않는다** — `00 §3 절대 제외`의 `로그인 이후`는 그대로다 (§1.5.1a 규칙 E-6 · E-7) `[V2-C003 시정]` |
+| 11 | **auth gate를 endpoint로 세는 것은 두 archetype뿐이며, 그 두 행의 gate 절이 서로 다르다** — `FINANCIAL_ACTION_ENTRY`는 로그인 gate·인증 gate, `COMMUNICATION_ENTRY`는 **로그인 gate만**이다 (`00 §3` L1 표가 `또는 gate`를 준 행이 그 둘뿐이다). 다른 archetype으로도, `COMMUNICATION_ENTRY`의 **본인인증 gate**로도 확대하지 않는다 — 그 gate는 `AUTH_GATE_REACHED`(또는 `PERSONAL_DATA_REQUIRED`)로 남는다. 두 archetype에서도 gate를 **통과하지 않는다** — `00 §3 절대 제외`의 `로그인 이후`·`본인인증 이후`는 그대로다 (§1.5.1a 규칙 E-6 · **E-6a** · E-7) `[V2-C004 시정]` |
+| 13 | **재수집으로 결과를 고르지 않는다** `[V2-C004 시정]`. `UNDETERMINED`의 유일 탈출구인 재수집은 상한(RC-1)·사전선언과 중단규칙(RC-2)·정본 run 선택규칙(RC-3)·미선언 배제(RC-4)·보고 의무(RC-5) 아래에서만 정본 지표에 반영된다. 원하는 판정이 나올 때까지 다시 재는 것, 판정 결과를 중단 조건으로 쓰는 것, 결과를 보고 정본 run을 바꾸는 것은 **optional stopping**이며 `00 §14`가 금지한 결론 유도다 (X-14). `impact_level`은 그래서 **결론 중립적**으로 정의된다(§1.8) — 재수집 우선순위가 `00 §11` 결론 방향을 따라가면 명세 자신이 편향을 지시하게 된다 |
+| 14 | **두 endpoint 의미를 한 분포에 섞어 제시하지 않는다** `[V2-C004 시정]`. gate가 endpoint인 두 archetype에서 `MPFED` 계열 지표는 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 여부로 **층별 병기**한다 (규칙 E-10). 층화는 **기존 지표를 한 번 더 산출하라는 요구**이며 새 분석 기준이 아니다 — `ExcessDepth`의 정본 산식은 `00 §7` 문면 그대로다. 어느 층이 더 좋다/나쁘다고 말하지 않는다 (`00 §14`) |
+| 15 | **`NA`와 `UNDETERMINED`를 서로 바꿔 기록하지 않는다** `[V2-C004 시정]`. `NA`는 `적용 대상이 없음`(`01 §7` · `00 §4`)이고 `UNDETERMINED`는 `판단할 수 없음`이다. `verdict_state = NA` 행은 adjudication 4값 어느 것으로도 `UNDETERMINED`가 되지 않으며(T-6 우선 · X-15), `verdict_state = UNDETERMINED` 행은 `NA`가 되지 않는다(T-8 · X-13). 둘을 섞으면 §1.7 항등식 `applicable_count = pass_count + fail_count + undetermined_count`가 깨진다 |
 | 12 | **Frame 수준 동결값을 관측이 조용히 덮어쓰지 않는다.** 수집 시점 반증은 §1.4.1 supersede로 **새 행**을 만들고 이전 행을 남긴다 (규칙 W-1 · T-11 · `02 §12`). 수집이 어렵다는 이유로 타겟을 표본에서 빼지 않는다 (X-12 · 규칙 W-2) `[V2-C003 시정]` |
 
 ---

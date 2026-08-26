@@ -36,6 +36,18 @@ SOURCE_MANIFEST = V2 / "MANIFEST.json"
 BANNER_START = b"<!-- INSTALLED-BANNER-START -->"
 BANNER_END = b"<!-- INSTALLED-BANNER-END -->"
 
+# 배너를 넣어도 되는 파일은 이 셋뿐이다. 권위문서(00~05)에 배너가 들어가면
+# 위조 조항을 본문처럼 읽히게 할 수 있다 — adversarial V2-C003 이 실제로 뚫었다.
+# 정책을 EXECUTION_AUTHORITY 문장에만 두지 않고 여기서 강제한다.
+# (닫는 결함: install-manifest-does-not-enforce-declared-banner-policy)
+BANNER_ALLOWED = frozenset(
+    {
+        "docs/v2/README.md",
+        "docs/v2/bootstrap/07_CLAUDE_FIRST_SESSION_PROMPT_v2.0.md",
+        "CLAUDE.md",
+    }
+)
+
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -101,6 +113,31 @@ def main() -> int:
             except ValueError as exc:
                 failures.append(f"BANNER    {rel}: {exc}")
                 continue
+            banner_present = body != raw
+            if banner_present and rel not in BANNER_ALLOWED:
+                failures.append(
+                    f"BANNER    {rel}: 권위문서에 배너가 삽입됐다 — 배너는 {sorted(BANNER_ALLOWED)} 에만 허용된다"
+                )
+                continue
+            if (
+                spec.get("banner_inserted") is not None
+                and spec["banner_inserted"] != banner_present
+            ):
+                failures.append(
+                    f"BANNER    {rel}: banner_inserted={spec['banner_inserted']} 인데 실제는 {banner_present}"
+                )
+                continue
+            if banner_present:
+                banner = raw[: raw.find(BANNER_END) + len(BANNER_END)]
+                declared = spec.get("banner_sha256")
+                if not declared:
+                    failures.append(
+                        f"BANNER    {rel}: banner_sha256 미선언 — 배너 내용이 앵커되지 않는다"
+                    )
+                    continue
+                if sha256(banner) != declared:
+                    failures.append(f"BANNER    {rel}: 배너 내용이 매니페스트 선언과 다르다")
+                    continue
             body_hash = sha256(body)
             if body_hash != ref["sha256"]:
                 failures.append(f"DRIFT     {rel}: 배너 제외 본문이 원본 pack {origin} 과 다르다")

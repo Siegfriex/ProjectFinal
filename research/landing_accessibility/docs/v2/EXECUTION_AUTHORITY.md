@@ -2,7 +2,7 @@
 
 **선언일** 2026-08-26
 **선언 주체** Main Orchestrator (P0 `V2_REFREEZE`)
-**최근 개정** V2-C003 — 두 독립감사(V2-C002)의 blocking finding 시정 반영
+**최근 개정** V2-C004 — 두 독립감사(V2-C003)의 blocking finding 시정 반영
 **성격** 기계적 권위 선언. 이 파일과 `00_SSOT_v2.0.md`가 충돌하면 `00_SSOT_v2.0.md`가 우선한다.
 
 ---
@@ -58,8 +58,15 @@ CURRENT_GATE                    = V2_SSOT_FROZEN (미달성)
 
 **배너 정책.** 비권위 파일과 `CLAUDE.md`의 설치본 상단에는
 `INSTALLED-BANNER-START/END` 로 감싼 배너가 삽입돼 있다. 배너를 걷어낸 본문은 원본 pack과
-바이트 동일해야 하며 `scripts/verify_v2_docs.py`가 이를 검증한다. 권위문서 `00~05`에는
-배너를 넣지 않는다.
+바이트 동일해야 한다. 배너가 허용되는 파일은 `docs/v2/README.md` ·
+`docs/v2/bootstrap/07_...md` · `CLAUDE.md` **셋뿐**이며, 권위문서 `00~05`에는 넣지 않는다.
+
+> **[V2-C004] 이 정책은 문장이 아니라 코드가 강제한다.** V2-C003 적대적 감사가
+> `00_SSOT_v2.0.md` 최상단에 위조 조항을 배너로 삽입하고 매니페스트 해시만 갱신해
+> `V2_DOCS_VERIFY: PASS` 를 받아냈다. 권위서열 1위 문서에 위조 조항을 본문처럼 읽히게
+> 만들 수 있었다는 뜻이다. 이제 `verify_v2_docs.py` 가 (a) 허용목록 밖 파일의 배너를 거부하고,
+> (b) `banner_inserted` 선언과 실제를 대조하며, (c) 배너 영역 자체를 `banner_sha256` 으로
+> 앵커한다. 닫는 결함: `install-manifest-does-not-enforce-declared-banner-policy`
 
 ---
 
@@ -112,7 +119,7 @@ v1의 미결 부채는 **v2로 그대로 승계된다.** v2 원장을 빈 상태
 | 출처 | 원장 |
 |---|---|
 | v1 | `control/state.json` → `debt_ledger` (total 24 / closed_pending_audit 3 / **open 21**, 그중 E001-blocking 6) |
-| v2 | `control/state.json` → `v2_transition.v2_audit_findings` (V2-C001 두 감사의 finding) |
+| v2 | `control/state.json` → `v2_transition.v2_audit_findings` (V2-C001 이후 **모든 사이클**의 두 감사 finding. 사이클이 진행될 때마다 등재·갱신된다) |
 
 `00_SSOT §15`와 `PHASE_GATES.md`가 요구하는 `open blocking = 0` 판정은
 **두 원장의 합계**로 계산한다. v1 원장을 무시하고 0을 선언하는 것은 게이트 위반이다.
@@ -132,8 +139,8 @@ v1 부채 항목의 phase 스케줄(C013·P-B·P-D 등 v1 phase 이름)은 v2 ph
 | v2 executor | `agent/landing-v2-exec` | 본 커밋 |
 | old C013 WIP | `agent/landing-exec` | `87a0464e8159d5526069d5e654e648b0dae506ca` — `UNVERIFIED` / 분석입력 금지 / 삭제 금지 / selective salvage 후 재감사 |
 | Pilot | `research/refcohort-r1` | `32460b87334a67f6a74823ac55f85ca80a9f8980` — `READ_ONLY` |
-| adversarial audit | `audit/landing-adversarial` | V2-C002 @ `2a28ad3dae5eb385b0af373cfc950ed86468c91d` |
-| ssot audit | `audit/landing-ssot` | V2-C002 @ `eb7e4e13a2075b7390d16d545b92f04d549381f1` |
+| adversarial audit | `audit/landing-adversarial` | V2-C003 @ `ea1d2448eedc80259b421a2b8bb3b840ba6dced8` |
+| ssot audit | `audit/landing-ssot` | V2-C003 @ `43fab0acb3a9352c36b9c0b844cb44cef9f9d79d` |
 | orchestrator | `control/landing-orchestrator` | `bfa16624e55e15c4626e74547ed885156a8f2a9e` 이후 V2-C002 |
 
 > **주의.** 이 저장소의 `origin/main`(`a835d5d8`)은 저장소 부트스트랩 브랜치이며 이 연구의
@@ -148,6 +155,7 @@ v1 부채 항목의 phase 스케줄(C013·P-B·P-D 등 v1 phase 이름)은 v2 ph
 |---|---|---|---|---|
 | V2-C001 | `eb36d173182a582e8d7499f29170a83363f9d560` | FAIL — P0 0 / P1 3 / P2 4 | FAIL — P0 0 / P1 2 / P2 11 | 승격 차단, 시정 사이클 V2-C002 개시 |
 | V2-C002 | `6fad79fa98e1ec7d315122d79794b4d5442bb42e` | FAIL — P0 0 / P1 1 / P2 7 | FAIL — P0 0 / P1 0 / P2 4 | V2-C001 blocking 14건 **전건 CLOSED**. 신규 blocking 은 표기 수정 계열 + UNDETERMINED laundering 1건. 시정 사이클 V2-C003 개시 |
+| V2-C003 | `4a0585e05a2119f11d86e530162d9674e0268a53` | FAIL — P0 0 / P1 1 / P2 7 | FAIL — P0 0 / P1 0 / P2 5 | UNDETERMINED laundering 은 **감사자 독립 재구현으로 누수 0 확인 후 CLOSED**. 신규 최대 발견은 배너 주입으로 권위문서 위조가 가능했던 것. 시정 사이클 V2-C004 개시 |
 
 두 감사가 **동일 target SHA**를 감사했음이 확인됐다.
 문서 pack 내용 자체(scope creep · depth의 KWCAG 전환 · 인증 gold truth화 · human≤5 강제분류 ·
@@ -177,8 +185,14 @@ python research/landing_accessibility/scripts/verify_v2_docs.py
 3. 커버리지 — `docs/v2/` 아래 전 `.md`/`.json`이 `INSTALL_MANIFEST.json`에 등재
 
 이 스크립트는 `PHASE_GATES.md` `V2_SSOT_FROZEN` 통과조건이며,
-`control/landing-orchestrator` 의 `scripts/promote_landing_main.sh` **검사 4**가 exec 워크트리에서
-실제로 실행한다. exit != 0 이면 승격이 차단되고, 스크립트가 없어도 차단된다.
+`control/landing-orchestrator` 의 `scripts/promote_landing_main.sh` 검사 **`[INSTALL_INTEGRITY]`** 가
+exec 워크트리에서 실제로 실행한다. exit != 0 이면 승격이 차단되고, 스크립트가 없어도 차단된다.
+
+> **[V2-C004]** 승격 검사는 **번호가 아니라 이름으로** 참조한다. 검사를 추가할 때마다 번호가 밀려
+> 문서와 스크립트가 어긋났기 때문이다(ssot V2-C003
+> `control-state-and-promote-header-mislabel-verify-check-number`).
+> 현재 검사: `[HOOK_INSTALL]` `[SHA_RESOLVE]` `[PILOT_IMMUTABLE]` `[AUDIT_ANCESTRY]`
+> `[EXEC_TREE]` `[ORCH_TREE]` `[INSTALL_INTEGRITY]` `[BLOCKING_DEBT]` `[AUDIT_VERDICT]`
 
 > V2-C002 두 감사가 이 문장의 이전 판본(`승격 경로에서 호출된다`)을 **거짓 주장**으로 지적했다
 > (`git grep verify_v2_docs` = 0건). V2-C003에서 실제 호출을 만들어 문장을 참으로 만들었다.

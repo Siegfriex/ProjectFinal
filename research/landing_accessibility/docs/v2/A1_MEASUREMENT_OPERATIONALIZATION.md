@@ -39,6 +39,23 @@
 상태값 어휘·스키마 대응은 `A2_VOCABULARY_AND_SCHEMA_BINDING.md`, gate 이름은 `PHASE_GATES.md`,
 권위·승격 강제수단은 `EXECUTION_AUTHORITY.md`가 닫는다.
 
+### 0.3 A2가 우선하는 절 (관할 선언)
+
+아래 절이 정의하는 **상태값의 컬럼 배치·허용값 도메인**은 `A2_VOCABULARY_AND_SCHEMA_BINDING.md`가
+정본이며, 본 문서와 충돌하면 **A2가 우선**한다. 본 문서는 그 값을 *언제 어떻게 관측하는가*를 정한다.
+
+| 본 문서 절 | A2 정본 |
+|---|---|
+| §1.5 (신호 미관측 상태값) · §1.5 auth gate 교차참조 | A2 §1.5.1 · §1.5.1a |
+| §1.8 | A2 §1.5.2 |
+| **§2.2 (예산 소진 종료상태)** | **A2 §1.5.2** — `endpoint_status` vs `endpoint_status_detail` 배치 |
+| §3.4 | A2 §1.6 |
+| §4.4 | A2 §1.12 |
+| §5.1 | A2 §1.13 |
+| §6.1 | A2 §1.0 · §4.1 |
+
+이 표는 A2 §0의 대칭 조항과 **같은 목록을 담아야 한다.** 한쪽만 갱신되면 그 자체가 drift다.
+
 본 문서가 §1.8 · §3.4 · §4.4 · §5.1 · §6.1에서 **제안한 신규 필드·표의 상태값 도메인**은
 `A2`의 허용값 표에 등재되어야 최종 확정된다. 두 문서가 어긋나면 `A2`의 어휘 정의가 우선한다.
 
@@ -149,10 +166,13 @@ MPFED = m            ( = NED + IED, 00 §7과 항등 )
 
 > **[V2-C003 시정] auth gate 교차참조.** 위 표의 `02` §7 해당 종료값 중 `AUTH_GATE_REACHED`는
 > archetype에 따라 의미가 갈린다. `00` §3이 `FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY`
-> 두 행의 endpoint 문안에만 "또는 로그인/인증 gate"를 포함시켰기 때문이다.
-> 그 두 archetype에서 gate 도달은 **endpoint 도달**이며 `MPFED`가 산출된다.
+> 두 행의 endpoint 문안에만 gate 조항을 포함시켰기 때문이다.
+> **[V2-C004 시정] gate 종류는 두 행이 다르다** — `00` §3 원문은 금융에 "또는 로그인/**인증** gate",
+> 커뮤니티에 "또는 **로그인** gate"를 준다. 커뮤니티에서 **본인인증** gate는 endpoint가 아니라
+> `02` §7 종료값(`AUTH_GATE_REACHED` / `PERSONAL_DATA_REQUIRED`)으로 기록된다.
+> 해당 gate 종류에 한해 gate 도달은 **endpoint 도달**이며 `MPFED`가 산출된다.
 > 나머지 5 archetype에서는 종전대로 비-endpoint 종료다.
-> 분기 규칙의 정본은 `A2_VOCABULARY_AND_SCHEMA_BINDING.md` §1.5.1a (규칙 E-5~E-8)이며,
+> 분기 규칙의 정본은 `A2_VOCABULARY_AND_SCHEMA_BINDING.md` §1.5.1a (규칙 E-5~E-10)이며,
 > 어느 archetype에서도 **gate를 통과하지 않는다**(규칙 E-7).
 
 ### 1.6 판정 cascade
@@ -234,7 +254,15 @@ UNRESOLVED_DEPTH_BUDGET_EXCEEDED
 ```
 
 `02` §7의 종료값 `UNRESOLVED`의 **하위 세분값**이다. `02` §7의 7개 종료값 집합을 확장하지 않는다.
-`endpoint_status`에 이 값을 기록하고, `endpoint_reached = 0`, `NED`/`IED`/`MPFED`는 §1.5에 따라 `NULL`이다.
+
+> **[V2-C004 시정]** 이 값은 `endpoint_status`가 아니라 **`endpoint_status_detail`** 에 기록한다.
+> `endpoint_status`는 `02` §7의 동결 7값만 담고, 하위 세분은 동반 컬럼으로 분리한다 —
+> 그래야 동결 집합을 확장하지 않는다는 위 문장이 스키마에서도 참이 된다.
+> 배치의 정본은 `A2_VOCABULARY_AND_SCHEMA_BINDING.md` §1.5.2이며 roll-up 규칙도 거기 있다.
+> 닫는 결함: `a1-endpoint-status-placement-contradicts-a2` (ssot V2-C002 → V2-C003 OPEN 유지분)
+
+따라서 `endpoint_status = UNRESOLVED`, `endpoint_status_detail = UNRESOLVED_DEPTH_BUDGET_EXCEEDED`,
+`endpoint_reached = 0`, `NED`/`IED`/`MPFED`는 §1.5에 따라 `NULL`이다.
 
 ### 2.3 이것은 접근성 FAIL이 아니다
 
@@ -255,7 +283,7 @@ UNRESOLVED_DEPTH_BUDGET_EXCEEDED
 | `MPFED` 분포 (`00` §11 median/IQR/mode/ECDF) | 우측절단으로 표기하고 별도 집계한다. 상한값으로 대입하지 않는다 |
 | `ExcessDepth` | 산출하지 않는다 (`MPFED`가 `NULL`이므로) |
 | `mart_archetype_summary.endpoint reach` | 분모에 포함, 분자에서 제외. 절단 건수를 별도 컬럼으로 노출한다 |
-| `mart_service_summary` | `endpoint_status` 원값을 그대로 전달한다 |
+| `mart_service_summary` | `endpoint_status` 원값과 `endpoint_status_detail`을 함께 전달한다 |
 
 ### 2.5 검증 요구
 
