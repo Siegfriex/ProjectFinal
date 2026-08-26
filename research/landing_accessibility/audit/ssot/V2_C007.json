@@ -1,0 +1,61 @@
+{
+ "cycle": "V2-C007",
+ "auditor": "ssot",
+ "target_sha": "2025e5667686d42e832298f2dce77b0c7aa6bc07",
+ "prev_target_sha": "3ad04585ae0f58500859e4c3b765844b2cdb5089",
+ "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+ "control_sha": "3eaf51bd8157f6b24d3ee5f5afd81b1e0387b309",
+ "same_cycle_adversarial_audit_sha": "76743751bf6fff6a212df35230724194965dcf85",
+ "same_cycle_adversarial_audit_branch": "audit/landing-adversarial",
+ "same_cycle_adversarial_verdict": "PASS — P0 0 / P1 0 / P2 4 (blocking 0), audited same prev_target_sha (3ad04585)",
+ "prior_cycle_adversarial_audit_sha": "76743751bf6fff6a212df35230724194965dcf85",
+ "prior_cycle_ssot_audit_sha": "444de0607993e766fd2686b377f42a6d9b7f7dae",
+ "target_branch": "agent/landing-v2-exec",
+ "base_ref": "research/landing-accessibility-main",
+ "phase": "P0_V2_REFREEZE",
+ "gate": "V2_SSOT_FROZEN",
+ "audited_at": "2026-08-27",
+ "audit_type": "narrow_confirmation — verify closure of the single blocking finding this auditor raised in V2-C006; not a full re-audit",
+ "verdict": "PASS",
+ "counts": {
+  "P0": 0,
+  "P1": 0,
+  "P2": 0,
+  "blocking": 0,
+  "non_blocking": 0,
+  "ssot_attributable_open_blocking_total": 0
+ },
+ "diff_scope": {
+  "compared": "3ad04585ae0f58500859e4c3b765844b2cdb5089..2025e5667686d42e832298f2dce77b0c7aa6bc07",
+  "files_changed": [
+   "research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md",
+   "research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json"
+  ],
+  "files_changed_count": 2,
+  "target_tip_matches_exec_branch": "PASS — origin/agent/landing-v2-exec == target_sha, no drift",
+  "all_other_tracked_paths_diff0": "PASS — git diff --stat over the full range enumerates exactly the 2 files above; everything else (00~05 pack, MANIFEST.json, A1, A2, PHASE_GATES, README.md, bootstrap file, root CLAUDE.md, docs/INDEX.md, scripts/verify_v2_docs.py, Pilot ref, state/*.parquet) is diff 0 by construction of that stat"
+ },
+ "finding_closure_check": {
+  "finding_id": "execution-authority-baseline-ssot-audit-row-not-updated",
+  "raised_in": "V2-C006 (this auditor, report commit 444de0607993e766fd2686b377f42a6d9b7f7dae)",
+  "prior_severity": "P2",
+  "prior_blocking": true,
+  "remedy_requested": "EXECUTION_AUTHORITY.md:170 을 ssot audit 최신값으로 갱신",
+  "actual_diff": "EXECUTION_AUTHORITY.md:170 'V2-C003 @ 43fab0acb3a9352c36b9c0b844cb44cef9f9d79d' -> 'V2-C006 @ 444de0607993e766fd2686b377f42a6d9b7f7dae'; INSTALL_MANIFEST.json cycle 'V2-C006'->'V2-C007' and EXECUTION_AUTHORITY.md entry sha256 recomputed for the new byte content (byte length unchanged, 14016, since both replaced strings are equal length)",
+  "sha_identity_check": "PASS — 444de0607993e766fd2686b377f42a6d9b7f7dae == git rev-parse origin/audit/landing-ssot (checked before this cycle's own commit was added) == the commit subject 'audit(V2-C006/ssot): FAIL — P0 0 / P1 0 / P2 1', authored by this auditor, on branch audit/landing-ssot",
+  "hash_recompute_check": "PASS — sha256(git show target:.../EXECUTION_AUTHORITY.md) = 9889ebf863df8a58c352d8e3284735168b4f0172611423253840d8b0de8ba37a, matches INSTALL_MANIFEST.json declared value exactly; byte length 14016 matches declared bytes",
+  "section6_consistency_check": "no contradiction found — §6 감사 이력 최신 행은 여전히 V2-C005(대상 SHA 684c792452af670..., 결과란이 '시정 사이클 V2-C006 개시'로 끝남); §6 은 아직 V2-C006 행 자체를 담고 있지 않다. 이것은 이번 finding의 요구범위 밖이다 — 원 finding은 §5 ssot 행이 §6이 '이미 알고 있던 값'(당시 최신 완결 ssot 감사)과 불일치했던 것만 지적했고, §5는 이제 자기 자신(이 보고서, V2-C006)을 정확히 가리킨다. §6에 V2-C006 행을 추가하는 것은 별도 orchestrator reconciliation 사안(V2-C006 보고서 본문이 이미 이렇게 명시)이며 새 finding으로 열지 않는다",
+  "status": "CLOSED",
+  "still_blocking": false
+ },
+ "checks": {
+  "verify_v2_docs_py": "PASS (exit 0) — 별도 git worktree(detached @ target_sha)에서 직접 실행, 18개 항목(pack 6 + banner 3 + repo-authored 6 + manifest 2 + INDEX.md) 전건 OK",
+  "install_manifest_independent_recompute": "PASS — 15개 파일 엔트리 전건에 대해 독립 재계산(비배너 파일 sha256 직접 비교), 불일치 0",
+  "execution_authority_sha256_recompute": "PASS — 9889ebf8...ba37a, INSTALL_MANIFEST.json 선언과 바이트 단위 일치",
+  "same_cycle_adversarial_consistency": "PASS — adversarial V2-C006(76743751...)이 동일 prev_target(3ad04585)에 대해 PASS/blocking 0을 이미 냈고, 그 판정이 다루는 범위(배너 강제·A0 amendment·shadow lane 등)는 이번 diff(EXECUTION_AUTHORITY 1행 + INSTALL_MANIFEST 메타)와 겹치지 않는다 — TARGET에서도 adversarial 쪽 결론이 그대로 유지된다고 판단할 근거가 있다(새 adversarial 재감사를 요구하지 않음, diff 범위 밖 재검사 금지 지시에 따름)"
+ },
+ "observations": [
+  "이번 diff는 EXECUTION_AUTHORITY.md 1줄 + INSTALL_MANIFEST.json 메타(2줄: cycle 필드, 해당 파일의 sha256 갱신) 뿐으로, V2-C006 finding의 remedy 문구('문면 1줄 수정')와 정확히 일치하는 최소 시정이었다.",
+  "§6 감사 이력에 V2-C006 행(target 3ad04585, ssot FAIL P0 0/P1 0/P2 1, adversarial PASS P0 0/P1 0/P2 4)이 아직 추가되지 않았다 — orchestrator reconciliation 시 §5의 자기참조 패턴(직전 사이클 자신의 SHA를 가리킴)이 유지되도록, 다음에 §6 V2-C006 행을 추가할 때 §5도 그 시점의 최신 완결 ssot 감사(이 V2-C007이 될 수도 있음)로 갱신되는지 함께 확인 권장. 비차단 관찰이며 새 finding 아님."
+ ]
+}
