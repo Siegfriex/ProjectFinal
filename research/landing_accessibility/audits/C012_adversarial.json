@@ -1,0 +1,113 @@
+{
+ "cycle_id": "C012",
+ "target_exec_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+ "auditor": "adversarial",
+ "started_at": "2026-08-26T14:05:00+09:00",
+ "finished_at": "2026-08-26T14:22:00+09:00",
+ "verdict": "PASS",
+ "findings": [
+  {
+   "id": "review-queue-membership-is-still-a-hand-input-bool",
+   "severity": "P2",
+   "claim": "실행자는 'needs_human_review 를 손입력 bool 에서 파생값으로 바꿨다' 고 보고했다. 출력 컬럼에 대해서는 참이다(needs_human_review = review_decision == 'UNRESOLVED', 빌드 assert 로 고정). 그러나 **큐에 오르는지 자체**는 여전히 손입력이다 — ENTITY_SPEC[(표기, 도메인)] 튜플의 세 번째 원소 raised_for_review 가 그것이고, 코드 전체에서 True 는 정확히 7개다. 빌드는 (raised_for_review AND 판정 없음) 과 (판정 있음 AND raised_for_review 없음) 두 방향만 막는다. 두 값을 **함께** 내리면 아무 오류 없이 큐에서 빠진다.",
+   "reproduction": "$SC/injrepo(=5a9015d 고정 트리 + git init) 에서 ENTITY_SPEC 의 ('쿠팡','APP')·('쿠팡','RETAIL') 세 번째 원소를 True→False 로 바꾸고 REVIEW_DECISIONS 의 coupang_app/coupang_retail 블록(529-567행)을 삭제한 뒤 build_canonical_entities.py 실행 → exit 0, 출력 'review queue : 5 건 접수 / KEEP_SEPARATE 4 / MERGE 1 / UNRESOLVED 0 / needs_human_review 0'. 판정 없이 큐가 2건 줄었는데 빌드 assert 는 하나도 걸리지 않았다. 이어서 pytest tests/ → 3 failed (test_review_queue_of_seven_is_fully_accounted_for / test_keep_separate_did_not_change_the_entity_count / test_measurement_decision_does_not_propagate_to_the_web_target_axis). 즉 막는 것은 빌드가 아니라 테스트이고, 그 테스트가 쓰는 것은 EXPECTED_QUEUE_SIZE=7 과 7개 canonical key 를 적어 둔 **하드코딩 리터럴 집합**이다.",
+   "impact": "현재 7건에 대해서는 게이트가 실효적이다(품질 게이트가 pytest 를 포함하는 한 우회 불가). 다만 방어가 구조 규칙이 아니라 리터럴 잠금이므로, **앞으로 새로 애매해지는 entity** 는 raised_for_review=False 로 두면 어떤 assert 도 테스트도 걸리지 않고 조용히 큐 밖에 남는다. 나는 현재 큐가 완전한지를 별도로 확인했다(아래 invariants_checked 의 '큐 완전성' 항목) — 지금은 누락이 없다.",
+   "suggested_fix": "raised_for_review 를 손입력에서 유도값으로 바꾼다. 원자료에서 기계적으로 계산 가능한 후보 규칙(동일 도메인 내 표기 상이가 같은 canonical key 로 흡수되는 경우 + 도메인 교차 표기 동일 + 도메인 교차 표기 포함관계)을 코드로 적고, 그 규칙이 뽑은 집합과 REVIEW_DECISIONS 의 키 집합이 정확히 같음을 assert 한다. 그러면 새 후보가 생겼을 때 판정 없이는 빌드가 실패한다."
+  },
+  {
+   "id": "merge-verdict-performs-nothing-and-is-not-enforced",
+   "severity": "P2",
+   "claim": "review_decision='MERGE' 는 서술 라벨일 뿐 아무 병합도 수행하지 않는다. 유일한 MERGE 1건(hyundai_homeshopping_hmall)은 이미 C003 에서 별칭으로 흡수돼 있던 건이라(alias_count=2) 판정이 산출물을 하나도 바꾸지 않는다 — 원장도 이 사실을 스스로 적어 두었다. 문제는 '판정이 무해했다' 가 아니라 **MERGE 라고 적었는데 실제로 병합되지 않아도 코드가 모른다**는 점이다. MERGE ⇒ alias_count ≥ 2 도, MERGE ⇒ 해당 표기가 다른 canonical key 로 흡수됨도 assert 되지 않는다.",
+   "reproduction": "$SC/injrepo 에서 REVIEW_DECISIONS['coupang_app'].review_decision 만 REVIEW_KEEP_SEPARATE → REVIEW_MERGE 로 바꾸고(증거·근거는 그대로) 빌드 실행 → exit 0, 'MERGE : 2 / KEEP_SEPARATE : 5', measurement_entity 는 여전히 81개이고 coupang_app 은 여전히 독립 entity 다. 즉 MERGE 라고 선언했는데 아무것도 병합되지 않았고 빌드는 통과했다. pytest 는 3건 실패하지만 실패 이유는 전부 '하드코딩된 MERGE 집합/KEEP_SEPARATE 개수와 다르다' 이지 '병합이 일어나지 않았다' 가 아니다.",
+   "impact": "지금은 실해가 없다(MERGE 1건이 이미 흡수된 건이고 값 변화 0). 앞으로 두 살아 있는 entity 에 MERGE 판정을 적으면 원장은 병합됐다고 말하고 service_master 는 분리돼 있는 상태가 조용히 성립한다.",
+   "suggested_fix": "review_decision == 'MERGE' 인 canonical key 에 대해 alias_count >= 2 를 빌드에서 assert 하고, 흡수된 원문 표기가 entity_alias_map 에 match_basis='REVIEWED' 로 실재함을 테스트에서 확인한다."
+  },
+  {
+   "id": "source-label-prefix-rule-is-not-applied-uniformly",
+   "severity": "P2",
+   "claim": "grouping_basis.signal_kind='SOURCE_LABEL_PREFIX' 는 '한 표기가 다른 표기의 접두' 라는 규칙으로 기록돼 있고 naver(네이버 ⊂ 네이버/네이버페이) 와 gmarket(G마켓 ⊂ G마켓/옥션) 을 묶는 근거로 쓰였다. 그런데 같은 규칙을 그대로 적용하면 '쿠팡'(APP, coupang_app) 은 '쿠팡이츠'(RETAIL, coupang_eats) 의 접두이기도 하다. coupang_eats 는 단독 그룹이고 grouping_basis.rule='NO_SHARED_SOURCE_LABEL_SIGNAL' / shared_signal=null 로 '묶을 원문 근거가 없다' 고 기록돼 있다. 두 경우를 가르는 기준은 어디에도 적혀 있지 않고, WEB_TARGET_GROUP_CANDIDATES 는 3개 항목 하드코딩 dict 다.",
+   "reproduction": "service_master 81행에서 APP 표기와 RETAIL SERVICE_BRAND 표기의 문자열 포함관계를 전수 계산 → 4쌍: (쿠팡,쿠팡이츠) (쿠팡,쿠팡) (G마켓,G마켓/옥션) (네이버,네이버/네이버페이). 이 중 3쌍만 CANDIDATE 그룹이고 (쿠팡,쿠팡이츠) 만 각각 SINGLETON 이다. 테스트는 test_expected_url_relationship_is_declared_as_a_hypothesis 가 후보 집합을 {coupang,naver,gmarket} 리터럴로 못 박을 뿐, 규칙 적용의 완전성은 검사하지 않는다.",
+   "impact": "낮다. 방향이 안전한 쪽이다 — 안 묶으면 별개 web_target 으로 각각 수집되고, 같은 URL 로 밝혀지면 URL 리뷰 단계에서 합류시키면 된다(06 §3-4 의 CANDIDATE→CONFIRMED/SPLIT 경로가 그것). 다만 grouping_basis 가 '신호에서 유도된 규칙' 처럼 기록돼 있는데 실제로는 손으로 고른 3건이라, 근거의 성질을 실제보다 강하게 적었다.",
+   "suggested_fix": "둘 중 하나. (a) 접두 규칙을 코드로 계산해 후보 집합을 유도하고 쿠팡이츠도 후보에 넣는다(그리고 falsifier/risk 에 '쿠팡이츠는 별도 서비스일 가능성이 높다' 를 적는다). (b) signal_kind 를 'SOURCE_LABEL_PREFIX' 가 아니라 '슬래시 묶음의 앞 성분이 다른 도메인 표기와 동일' 처럼 실제로 적용한 좁은 규칙으로 다시 적고, 쿠팡이츠가 왜 그 규칙 밖인지를 grouping_basis.note 에 남긴다."
+  },
+  {
+   "id": "body-layer-scope-is-not-purely-the-933-body",
+   "severity": "P2",
+   "claim": "A1_BODY_LAYER_FILES(text.txt / rendered.html) 를 코드와 원장이 '933 **본문만** 담긴 파일' 로 규정하고, 서버 응답 원본과의 차이를 '다른 기사 **본문**이 섞여 있는가' 로 설명한다. 실제로는 본문 계층 파일에도 다른 기사가 들어 있다 — text.txt 328행이 '관련 인사이트' 이고 329·333행이 다른 기사 **제목**('2025년 1월~5월 세대별 특징: 잘파, 밀레니얼, X, 액티브 시니어+ …')이다. 정확한 구분은 '933 본문만 vs 다른 기사 섞임' 이 아니라 '다른 기사의 제목만 vs 다른 기사의 본문 문장까지' 다.",
+   "reproduction": "grep -c 로 확인: '관련 인사이트' text=1 rendered=1 detail=0 api=0 / '밀레니얼' text=2 rendered=1 / 'X세대' text=0. 즉 본문 계층에는 다른 기사의 제목이 있고 본문 문장은 없다. 반대로 detail.json/api.json 에는 본문 문장이 있다('25년 1월~5월간 30대 밀레니얼 세대의 …' 등 4문장, api.json 은 detail.json 을 이스케이프해 감싼 상위 응답이라 같은 4문장의 중복이다 — 원장의 '4회' 는 중복을 제외한 정확한 수다).",
+   "impact": "현재 판정에는 영향이 없다. 나는 7건의 BODY_TEXT 인용 8종이 본문 텍스트의 몇 번째 줄에 있는지 전수 확인했다 — 27·78·92·107·133·141·148·159·168·175·189·203·217·228·236·243·258행으로 전부 933 자신의 Q&A/Chapter 1~4 구간 안이고, 태그 블록(~286행 이후)이나 관련 인사이트 블록(328행 이후)에서 온 인용은 0건이다. 다만 BODY_TEXT 검증이 '파일 전체 부분문자열' 이므로, 앞으로 다른 기사 제목에서 따온 문자열이 인용으로 들어와도 통과한다.",
+   "suggested_fix": "BODY_TEXT 검증 범위를 파일 전체가 아니라 933 본문 구간(Q&A 시작 ~ 태그 블록 직전)으로 자르고, 그 경계를 원문 문자열로 고정한다. absence_scope 의 설명 문구도 '본문만' 이 아니라 '다른 기사의 제목은 있으나 본문 문장은 없다' 로 정확히 고친다."
+  },
+  {
+   "id": "verify-run-mode-mislabels-and-symlink-escapes-relpath-guard",
+   "severity": "P2",
+   "claim": "D1 계약의 핵심 주장(manifest 없는 Run 무효 / STRUCTURE_ONLY 를 VERIFIED 와 분리)은 내가 직접 예외를 발생시켜 전부 확인했다. 남는 두 가지는 라벨과 견고성이다. (a) verify_run(require_files=False) 는 raw 가 **실제로 있고 대조까지 수행한** 경우에도 mode 를 'STRUCTURE_ONLY_RAW_ABSENT' 로 적는다(files_checked=1 인데 이름은 RAW_ABSENT). (b) relpath 가드는 절대경로와 '..' 만 막는다. Run 디렉터리 **안의 심링크**가 바깥 파일을 가리키면 그 파일의 해시로 VERIFIED 가 난다.",
+   "reproduction": "직접 실행. (1) manifest 없는 run → load_run_manifest / verify_run 둘 다 MissingRunManifestError, require_files=False 로도 우회 불가. (2) manifest 있고 파일 없음 → require_files=True FAILED, require_files=False MANIFEST_WELL_FORMED_FILES_NOT_CHECKED. (3) 파일 있고 정상 + require_files=False → status MANIFEST_WELL_FORMED_FILES_NOT_CHECKED / mode STRUCTURE_ONLY_RAW_ABSENT / files_checked 1 ← (a). (4) raw 부재 + require_files=True → FAILED (STRUCTURE_ONLY→VERIFIED 승격 경로 없음, 확인). (5) sha 불일치 → FAILED + hash_mismatch. (6) 빈 manifest → MalformedRunManifestError. (7) run/dom/a.html 을 run 밖 /tmp/…/secret.bin 으로 심링크하고 그 해시를 manifest 에 적음 → VERIFIED ← (b).",
+   "impact": "핵심 계약은 실효적이다 — 승격 경로 없음을 반례로 확인했다. (a)는 보수적 방향의 오라벨이라 과대주장은 아니다. (b)는 아직 수집기가 없어 실해가 없으나, E001 수집기가 붙은 뒤 '증거가 Run 안에 있다' 를 심링크로 우회할 수 있다.",
+   "suggested_fix": "(a) mode 를 require_files 인자가 아니라 실제 결과(files_checked==0 이면 RAW_ABSENT)에서 유도한다. (b) verify_run 에서 target.resolve() 가 run_dir.resolve() 하위인지 확인하고 아니면 FAILED 로 계상한다."
+  },
+  {
+   "id": "gitignore-evidence-patterns-cover-one-nesting-level-and-four-kinds",
+   "severity": "P2",
+   "claim": "'git check-ignore 로 실효를 검사했다' 는 주장은 참이다(내가 직접 실행해 확인). 다만 패턴 자체가 좁다. evidence/*/dom/ 형태라 Run 디렉터리가 한 단계 더 중첩되면(evidence/<date>/<run>/dom/) 제외가 걸리지 않고, dom/ax/screen/probe 네 종류 밖의 산출물(har, trace, video 등)도 제외되지 않는다.",
+   "reproduction": "git -C .agent_worktrees/landing_exec check-ignore -q --no-index 로 직접 실행: evidence/e001_run/{dom/page.html, ax/tree.json, screen/shot.png, probe/result.json} → 전부 ignored(0), evidence/e001_run/{manifest.jsonl, run_manifest.json} → 추적(1) — 여기까지 주장대로다. 추가로 evidence/e001_run/dom/sub/a.html → ignored(0), **evidence/a/b/dom/x.html → 추적(1)**, **evidence/e001_run/har/x.har → 추적(1)**.",
+   "impact": "낮고 방향이 안전한 쪽이다 — 재검증 자산이 사라지는 게 아니라 큰 파일이 커밋될 수 있는 쪽이다. 다만 D1 이 막으려던 사고(Pilot 682MB)의 반대편 사고를 열어 둔다.",
+   "suggested_fix": "Run 레이아웃을 evidence/<run_id>/ 한 단계로 고정한다고 docs/07 에 명시하고, 패턴을 evidence/**/dom/ 형태로 넓히거나 '허용목록 방식'(evidence 전체 제외 + !manifest.jsonl)으로 뒤집는다."
+  },
+  {
+   "id": "journal-path-in-repo-derived-from-a-structural-assumption",
+   "severity": "P2",
+   "claim": "D3 는 실효적이다(아래 재현 참조). 다만 '저장소 상대경로' 는 git 이 아니라 디렉터리 구조 가정으로 계산된다 — repo_root = ROOT.parents[1], 즉 'landing_accessibility 의 두 단계 위가 저장소 루트' 다. 배치가 달라지면 오류 없이 **그럴듯하게 틀린** 값이 기록된다.",
+   "reproduction": "research/landing_accessibility 를 $SC/reloc/deep/deeper/la 로 옮겨 build_source_rows_from_journal.py 실행 → exit 0, journal_path_in_repo='deeper/la/sources/wiseapp/extraction_journal/…'. 저장소 밖 저널 지정은 정상적으로 막힌다: --journal /tmp/outside_journal.jsonl → SystemExit '저널이 저장소 밖에 있다', 산출물 미변경(git status clean).",
+   "impact": "매우 낮다. 정규 배치에서는 정확하고, test_journal_provenance_records_no_absolute_path 가 startswith('research/landing_accessibility/') 를 요구해 잘못된 값이 커밋되면 테스트가 잡는다. 다만 그 방어도 리터럴이다.",
+   "suggested_fix": "repo_root 를 git rev-parse --show-toplevel 로 구하거나, 최소한 repo_root/'research'/'landing_accessibility' == ROOT 를 assert 한다."
+  },
+  {
+   "id": "residual-derivative-vs-literal-patterns-in-the-new-tests",
+   "severity": "P2",
+   "claim": "C011 감사가 지적한 '대조의 한쪽 끝은 원본' 원칙을 신규 26건은 **대체로 지킨다** — W1 인용 검증은 raw/wiseapp933_text.txt 를 직접 읽고, D2 는 raw 4파일에서 sha256 을 재계산하며, D1 의 gitignore 검사는 git 을 실제로 호출한다. 이전 판본에 있던 '소스 문자열 grep' 류 위장은 신규 파일에 없다. 남은 잔재는 셋이다. (a) test_manifest_self_hash_is_recomputable 은 선언값을 **그 값을 찍는 데 쓴 같은 함수**(am.compute_self_sha256)로 검증한다 — 자기 출력 대 자기 계산이며, 매니페스트에 적힌 self_hash_recipe 문자열과 구현이 일치하는지는 검사하지 않는다. (b) test_no_state_artifact_embeds_a_machine_specific_path 는 state/**/*.json 만 훑는다 — csv/parquet 는 대상이 아니다. (c) 커밋된 parquet/csv 가 스크립트 재실행 산출물과 같은지를 확인하는 테스트가 없다.",
+   "reproduction": "(a) 나는 테스트를 쓰지 않고 self_hash_recipe 문구대로 json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(',',':')) 로 직접 재계산했다 → sha256:a6937fa3e31d5648f9bbf4bc55740aef58a603117880defed7f121d03c1964d4, 선언값과 일치. (b) 나는 state/ 전 파일(csv·parquet 바이너리 포함)과 저널·docs 를 '/home/', '/tmp/', '.agent_worktrees', 'C:\\\\' 로 훑었다 → 0건. (c) 나는 5a9015d 트리를 서로 다른 두 절대경로($SC/rA/repo, $SC/rBBBB_deeper/x/repo2)에 풀고 두 빌드 스크립트를 재실행해 diff -r 을 돌렸다 → 두 실행 간 diff 비었고, **커밋된 트리와의 diff 도 비었다**(16개 산출물 전부 바이트 동일).",
+   "impact": "없음 — 세 항목 모두 내가 대신 실행해 값이 옳음을 확인했다. 남는 것은 앞으로의 드리프트를 테스트가 못 잡는다는 점이다.",
+   "suggested_fix": "(a) self_hash_recipe 문자열을 파싱하지 말고, 최소한 recipe 상수(SELF_HASH_RECIPE)와 매니페스트의 self_hash_recipe 필드가 같은지 assert 를 추가한다. (b) 스캔 대상을 state/**/* 로 넓히고 parquet 는 바이트에서 찾는다. (c) tmp_path 에 트리를 복사해 두 스크립트를 subprocess 로 실행하고 산출물이 커밋본과 바이트 동일함을 단언한다."
+  }
+ ],
+ "invariants_checked": [
+  "source_ranking_rows 261행 — 5a9015d 고정 트리에서 261 (PASS)",
+  "직전 승격 baseline edb0478 대비 261행 pandas.testing.assert_frame_equal(정렬키 source_row_id, 16컬럼 전부) — IDENTICAL. 신규/삭제 컬럼 0 (PASS)",
+  "panel_registry 17패널 26컬럼 — edb0478 대비 assert_frame_equal IDENTICAL (PASS)",
+  "source_membership 142행 — edb0478 대비 공통 컬럼 전부 동일, 변경 컬럼 0 (PASS)",
+  "entity_alias_map 82행 — edb0478 대비 공통 컬럼 전부 동일, 변경 컬럼 0 (PASS)",
+  "service_master 81행 — edb0478 대비 변경된 기존 컬럼은 needs_human_review 단 하나(7건 True→False), 신규 7컬럼(review_decision/decision_rule/decision_basis/decision_evidence/decision_confidence/decided_at/decided_by). 삭제 컬럼 0 (PASS)",
+  "web_target_group 68그룹 — edb0478 대비 변경된 기존 컬럼은 grouping_basis 단 하나(68건 산문→JSON), 신규 7컬럼. 삭제 컬럼 0, member_count 합 71 (PASS)",
+  "git diff --stat edb0478..5a9015d — source_ranking_rows / panel_registry / source_membership / entity_alias_map 는 diff 에 아예 등장하지 않는다(파일 바이트 불변) (PASS)",
+  "web_target_url 68행 전부 null, url_evidence 68행 전부 null, grouping_basis.url_evidence 68건 전부 null (PASS)",
+  "web_eligibility_status 어휘 — NOT_ASSESSED 71 + EXCLUDED_INDUSTRY_AXIS 10 = 81, 그 밖의 값 0 (PASS)",
+  "needs_human_review True 0건, review_decision 어휘 ⊆ {MERGE, KEEP_SEPARATE, UNRESOLVED} (PASS)",
+  "A1 raw 6종 · images 11종 · certification 전체 — edb0478→5a9015d diff 0 파일 (PASS)",
+  "A1 raw_assets 4종 sha256 재계산 — detail c860818d… / rendered db197785… / text 236efdd6… / full c1e5422f…, authority_manifest 선언값과 일치 (PASS)",
+  "raw_assets 전 판본 불변 — fa7a976(C001)·fe86e19(C009)·edb0478(C011)·5a9015d(C012) 네 판본의 authority_manifest.raw_assets 를 git show 로 각각 꺼내 비교, 4종 bytes·sha256 전부 문자 단위 동일 (PASS)",
+  "revision_log 대조 — authority_manifest.json 을 건드린 커밋은 정확히 4개(fa7a976/fe86e19/edb0478/5a9015d)이며 revision_log 의 cycle·commit 매핑과 일치. 판본별 최상위 키 변화를 git 에서 직접 추출: rev2 ADDED{freeze_validity_window, image_inventory_reconciliation, legacy_asset_assessment} REMOVED{legacy_conflict_detected} MODIFIED{population_definition} / rev3 ADDED{index_from_source_note} MODIFIED{index_from_source, legacy_asset_assessment} / rev4 ADDED{7개 판본선언 필드} **MODIFIED{} (빈 집합)**. revision_log 의 서술과 전건 일치하고, rev4 의 'revision_kind=MANIFEST_DESCRIPTION_ONLY, 내용 변경 없음' 주장이 MODIFIED 공집합으로 독립 확인됨 (PASS)",
+  "manifest_self_sha256 재계산 — 테스트 함수를 쓰지 않고 self_hash_recipe 문구대로 직접 계산, sha256:a6937fa3… 선언값과 일치 (PASS)",
+  "review 판정 7건의 decision_evidence 전수 원문 대조 — BODY_TEXT 18항목(중복 제외 8종) 전부 wiseapp933_text.txt 부분문자열(줄번호 27~258, 전부 933 자신의 본문 구간), PUBLISHER_TAGS 5항목(중복 제외 3종) 전부 authority_manifest.source.tags 원소, FIGURE_ROW 14항목(중복 제외 10종) 전부 source_ranking_rows 의 해당 panel_id/rank 의 entity_name_raw 와 일치, ABSENCE 3항목 전부 지정 파일에서 0회. 총 40항목 실패 0건 (PASS)",
+  "MERGE 근거 재현 — fig10_t1 라벨 5종 {NS홈쇼핑, 홈앤쇼핑, 현대홈쇼핑/현대Hmall, CJ온스타일, GS홈쇼핑/GS Shop}, fig10_t2 라벨 5종 {CJ온스타일, 현대홈쇼핑/현대Hmallord, GS홈쇼핑/GS Shop, 홈앤쇼핑, NS홈쇼핑}, 교집합 4, 차집합 각 1. 본문 236행 '주요 홈쇼핑 리테일 브랜드 5개는…', 본문 228행이 Chapter 4 도입부에서 5개를 이름으로 열거하며 '현대홈쇼핑/현대Hmall' 만 싣는다. 'Hmallord' 는 A1 텍스트 4파일 전부에서 0회 (PASS)",
+  "02 §2-2 준수 — MERGE 는 canonical 층에서만 흡수됐고 원자료는 무수정이다. source_ranking_rows 에 '현대홈쇼핑/현대Hmallord' 가 fig10_t2 rank2 로 그대로 1행 남아 있고, entity_alias_map 에 match_basis='REVIEWED' 별칭으로 등록돼 있다(82별칭 중 서비스 하나가 별칭 2개를 갖는 유일한 경우). 02 §2-2 표가 지정한 네 처리(네이버 별개 / G마켓 별개 / Hmall 오타 흡수 / 슬래시 미분해)와 판정 7건이 전건 일치 (PASS)",
+  "coupang KEEP_SEPARATE 근거의 사실성 — APP 각주 '한국인 Android+iOS 스마트폰 사용자 추정.' 은 78·92·107·133·148행(Chapter 1~2 구간), RETAIL 각주 '…계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음.' 은 175·189·203·217·243·258행(Chapter 3~4 구간)으로 도메인별로 실제로 다르다. 지표도 다르다 — 쿠팡 APP 은 fig01_t1 '사용자 평균'(만 명) / fig01_t2 '사용시간 평균'(백만 분), RETAIL 은 fig06_t1 '인덱스' / fig06_t2 '총 결제횟수 평균'(백만 회) / fig09_t1 '순 결제추정금액 성장률'(%). 02 §2-3 이 '쿠팡도 예외가 아니다' 로 이미 규정한 사안 (PASS)",
+  "큐 완전성(일관성 공격) — 도메인 순수성 위반 0건(app_row_count>0 AND retail_row_count>0 인 entity 없음). service_name_canonical 중복은 '쿠팡' 1쌍뿐이고 큐에 있다. APP×RETAIL 표기 포함관계는 4쌍(쿠팡⊂쿠팡이츠 / 쿠팡=쿠팡 / G마켓⊂G마켓/옥션 / 네이버⊂네이버/네이버페이)이고 병합 후보 3쌍은 전부 큐에 있다. 별칭 2개 이상인 서비스는 hyundai 1건뿐이고 큐에 있다. 즉 7 = 도메인 교차 3쌍(6) + 오타 흡수 1 로 완전하다 — 같은 논리로 추가 분리가 필요한 곳은 없다 (PASS, 다만 쿠팡이츠 그룹핑 건은 P2 로 별도 기재)",
+  "expected_url_relationship — SAME_LANDING_EXPECTED 3 / UNKNOWN 65, DIFFERENT_LANDING_EXPECTED 0. confirmed_by_url 은 68행 전부 False(dtype bool, unique=[False]). is_hypothesis 는 후보 3건 True / 단독 65건 False. 단독 65건의 basis 는 '그룹 내부 관계가 성립하지 않아 선언하지 않는다, 다른 그룹과 같은 랜딩일 가능성은 URL 확정 전까지 **미확인**' 이라고 명시 — '관계 없음' 이 아니라 '모른다' 다. 후보 3건은 falsifier·risk 를 모두 갖고, 세 텍스트에 http:// https:// www. .com .co.kr .kr/ 이 0건(06 §3-2 추측 URL 금지) (PASS)",
+  "06 §3-4 준수 — CONFIRMED_SHARED_TARGET 0건, grouping_status 는 SINGLETON_PENDING_URL_REVIEW 65 + CANDIDATE_PENDING_URL_REVIEW 3 뿐 (PASS)",
+  "web_target 위치정합 71쌍 전수 독립 재계산 — 실행자 코드를 쓰지 않고 member_service_ids[i] 를 svc_+sha256(member_canonical_keys[i])[:16] 로 역산하고, 도메인은 service_master 가 아니라 entity_alias_map 을 거쳐 원자료 261행에서 끌어와 대조, review_decision 도 위치별 대조. 불일치 0 (PASS)",
+  "브랜드 71건이 정확히 한 그룹에 / 업종 10건은 그룹 층 부재 — membership 집합 == SERVICE_BRAND service_id 집합, 두 그룹에 동시 소속 0건, 업종 10건의 web_target_group_id·web_target_key·grouping_status 전부 null (PASS)",
+  "D1 계약 직접 발생 — manifest 없는 Run 에서 load_run_manifest/verify_run 둘 다 MissingRunManifestError, require_files=False 로도 우회 불가. raw 부재 + require_files=True → FAILED. STRUCTURE_ONLY→VERIFIED 승격 경로 없음. 내용 위조(sha 불일치) FAILED, 빈 manifest MalformedRunManifestError, 스키마 위반 4종 전부 MalformedRunManifestError (PASS)",
+  "gitignore 실효 감사자 직접 실행 — evidence/e001_run/{dom,ax,screen,probe}/* ignored, manifest.jsonl·run_manifest.json 추적 (PASS)",
+  "D3 멱등성 감사자 직접 실행 — 5a9015d 트리를 서로 다른 두 절대경로에 풀고 두 빌드 스크립트를 순서대로 재실행, diff -r 비었음. 나아가 **커밋된 트리와의 diff 도 비었음** — 산출물 16종이 재실행으로 바이트 재현된다 (PASS)",
+  "절대경로 잔존 검사 — state/ 전체(csv·parquet 바이너리 포함) · sources/wiseapp/*.json · 판독 저널 · docs/ 를 '/home/', '/tmp/', '.agent_worktrees', 'C:\\\\' 로 훑음, 0건 (PASS)",
+  "evidence/ 디렉터리 부재 (PASS)",
+  "csv ↔ parquet 행수 6종 전부 일치, membership 의 service_id ⊆ service_master, panel_id ⊆ panel_registry (PASS)",
+  "품질 게이트 감사자 직접 실행 — pytest 85 passed(edb0478 는 59, 신규 26건 전부 tests/test_c012_review_and_grouping.py), ruff check 통과, ruff format --check 16 files already formatted, mypy Success: no issues found in 4 source files (PASS)",
+  "git 위생 — edb0478→5a9015d 변경 파일 15개가 전부 research/landing_accessibility/ 와 tests/ 안이고 그 밖은 0개. research/refcohort 변경 0. Pilot 브랜치 research/refcohort-r1 tip = 32460b87334a67f6a74823ac55f85ca80a9f8980 = origin/research/refcohort-r1, 미이동. exec 워크트리 status clean, HEAD == 5a9015d == origin/agent/landing-exec (PASS)"
+ ],
+ "review_decisions_a1_grounded": true,
+ "gate_not_bypassable": true,
+ "baseline_rows_unchanged": true,
+ "notes": "P0 0건 / P1 0건 / P2 8건. 판정 PASS.\n\n판정은 git archive 5a9015d 고정 트리에서만 했고, 실행자의 설명은 근거로 쓰지 않았다. 이번 사이클은 이전 사이클과 성격이 다르다 — C009·C011 감사에서 반복적으로 나온 '주장은 참인데 검증 기구가 자기 자신을 보고 있다' 패턴이 대부분 사라졌다. 세 가지가 특히 강했다.\n\n첫째, 산출물이 재현된다. 나는 5a9015d 트리를 서로 다른 두 절대경로에 풀고 두 빌드 스크립트를 재실행했는데 두 실행 간 diff -r 이 비었을 뿐 아니라 **커밋된 트리와의 diff 도 비었다**. C011 이 '바이트 동일' 이라고 주장했다가 journal_path 한 줄 때문에 거짓이 됐던 자리에서, 이번에는 16개 산출물 전부가 실제로 바이트 재현된다. D3 는 닫혔다.\n\n둘째, revision_log 가 사실이다. 나는 authority_manifest.json 을 건드린 커밋을 git 에서 직접 찾아(정확히 4개) 판본별 최상위 키 변화를 추출해 revision_log 와 대조했다. rev2·rev3 의 변경 서술이 전건 일치하고, rev4 의 'MANIFEST_DESCRIPTION_ONLY — 내용 변경 없음' 이라는 주장은 MODIFIED 키 집합이 **공집합**이라는 사실로 독립 확인됐다. raw_assets 4종은 네 판본에서 문자 단위 동일하고, 나는 raw 파일에서 해시를 다시 계산해 선언값과 맞췄다. self hash 도 테스트 함수가 아니라 매니페스트가 적어 둔 recipe 문구대로 내가 직접 계산해 맞췄다. D2 는 닫혔다.\n\n셋째, review 판정의 A1 근거가 진짜다. 7건의 decision_evidence 40개 항목(BODY_TEXT 18 / FIGURE_ROW 14 / PUBLISHER_TAGS 5 / ABSENCE 3)을 layer 별로 전수 대조했고 실패 0건이다. 특히 실행자가 스스로 보고한 두 가지를 각각 확인했다. (a) 큐가 5건이 아니라 7건이라는 정정은 옳다 — ENTITY_SPEC 의 raised_for_review=True 가 정확히 7개다. (b) 'G마켓/옥션' 부재 범위 축소도 옳다. detail.json/api.json 의 4회는 전부 다른 기사 문장이며(25년 1월~5월 / 30대 밀레니얼 / 40대 X세대 등 933 과 기간·코호트가 다르다), api.json 은 detail.json 을 감싼 상위 응답이라 같은 4문장의 중복이다 — 원장의 '4회' 는 중복을 제외한 정확한 수다. 자기 주장을 실측으로 반증하고 범위를 좁힌 판단은 옳았다.\n\nMERGE 1건은 02 §2-2 위반이 아니다. 원자료 261행에 '현대홈쇼핑/현대Hmallord' 가 fig10_t2 rank2 로 그대로 남아 있고 흡수는 canonical 층에서만 일어났다. 근거도 원문에서 재현된다 — fig10 두 패널의 라벨 5종 중 4종이 문자 단위로 같고, 본문이 브랜드 수를 '5개' 로 못 박고 Chapter 4 도입부가 그 5개를 열거하면서 'Hmall' 만 싣는다. 'Hmallord' 는 A1 텍스트 4파일 어디에도 없다.\n\n일관성 공격(쿠팡 KEEP_SEPARATE 를 다른 entity 에 적용하면 추가 분리가 필요한가)의 답은 '아니오' 다. 도메인 순수성 위반 0건이고, 표기가 동일한 도메인 교차 쌍은 쿠팡 하나뿐이며 이미 큐에 있었다. 포함관계 4쌍 중 병합 후보 3쌍도 전부 큐에 있었다. 큐 7건은 완전하다. 각주가 두 도메인에서 실제로 다르다는 것도 줄번호로 확인했다(APP 각주는 78~148행 = Chapter 1~2, RETAIL 각주는 175~258행 = Chapter 3~4).\n\ngate_not_bypassable=true 로 적는 근거와 그 한계를 함께 남긴다. 나는 반례를 세 종류 주입했다. (A) 큐에서 2건을 손으로 빼기, (B) 인용을 원문에 없는 문장으로 위조, (C) 근거를 그대로 둔 채 판정값만 뒤집기. 셋 다 pytest 에서 실패했다 — (B)는 인용을 원문에 대는 테스트가, (A)(C)는 큐 크기·키 집합·판정 분포를 못 박은 테스트가 잡았다. 따라서 **현재 7건에 대해 게이트는 우회 불가**다. 다만 (A)(C)를 잡은 것은 구조 규칙이 아니라 하드코딩 리터럴이고, 빌드 스크립트 자체는 세 반례를 전부 통과시켰다(exit 0). 앞으로 새로 애매해지는 entity 는 raised_for_review=False 로 두면 아무것도 걸리지 않는다. 이것이 P2 첫 번째 항목이고, 지금 상태의 결함이 아니라 다음 사이클의 부채로 기재했다.\n\nbaseline_rows_unchanged=true 는 assert_frame_equal 로 직접 확인했다. 261행 16컬럼이 edb0478 과 IDENTICAL 이고, panel_registry·source_membership·entity_alias_map 은 애초에 git diff 에 등장조차 하지 않는다(파일 바이트 불변). 값이 바뀐 기존 컬럼은 service_master.needs_human_review 7건과 web_target_group.grouping_basis 68건, 이 둘뿐이며 둘 다 이번 사이클이 의도한 변경이다.\n\nP2 8건은 전부 '지금 값은 옳은데 앞으로를 못 막는다' 계열이거나 문구 정확성 문제이며, 어느 것도 이번 승격을 막지 않는다. 순위를 매기면 (1) 큐 멤버십 손입력, (2) MERGE 무집행, (3) 접두 규칙 비일관(쿠팡이츠), 순으로 다음 사이클에서 다루는 것이 좋겠다."
+}
