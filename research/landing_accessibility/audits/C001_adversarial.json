@@ -1,0 +1,75 @@
+{
+  "cycle_id": "C001",
+  "target_exec_sha": "fa7a9763fc8db20f7139c801960a77c13fe940df",
+  "auditor": "adversarial",
+  "started_at": "2026-08-26T12:05:30+09:00",
+  "finished_at": "2026-08-26T12:12:00+09:00",
+  "verdict": "REWORK",
+  "findings": [
+    {
+      "id": "legacy-conflict-mischaracterized-as-value-drift",
+      "severity": "P0",
+      "claim": "authority_manifest.legacy_conflict_detected 는 xlsx(A7)를 933 원문의 파생자료로 전제하고 불일치를 '값 2만 명 차이' 수준으로 기록했으나, 두 데이터는 항목 구성·순위·지표 정의가 서로 다른 별개 패널이며 xlsx 의 출처는 어디에도 기록돼 있지 않다.",
+      "reproduction": "(1) 원문 헤드라인 verbatim (raw/wiseapp933_text.txt, detail.json insightInfo.content):\n  '카카오톡 (1,377만 명) > YouTube (1,329만 명) > Google (1,278만 명) > 네이버 (1,256만 명)'\n(2) xlsx 06_전체원자료 '월평균 사용자 Top10' (openpyxl data_only=True):\n  1 카카오톡 1379 / 2 유튜브 1305 / 3 네이버 1224 / 4 쿠팡 826 / 5 밴드 663\n  -> 원문 3위 Google(1,278만)이 xlsx 에 아예 없음. 원문 4위 네이버 1,256만 이 xlsx 에서는 3위 1224만.\n     카카오톡 -2만(0.15%), 유튜브 -24만(1.8%), 네이버 -32만(2.5%) 로 편차가 항목마다 다름 = 전사(轉寫) 오류가 아니라 다른 측정치.\n(3) 점유율 패널: 원문 Insight2 = '다음 (54.1%) > NH콕뱅크 (42.5%) > 티맵 (40.8%) > 캐시워크 (38.6%)'.\n  xlsx 02_50plus_점유율 = 1 홈앤쇼핑 47.7 / 2 퀸잇 47.4 / 3 롯데홈쇼핑 46.4 / 4 현대홈쇼핑 45.3 / 5 다음 38.7 ...\n  -> '다음' 54.1%(1위) vs 38.7%(5위), 15.4pp 격차. 원문의 NH콕뱅크·티맵·캐시워크는 xlsx 에 없고, xlsx 의 홈앤쇼핑·퀸잇·롯데홈쇼핑은 원문 앱 점유율에 없음.\n(4) 리테일 순위 역전: 원문 Chapter3 Insight1 = '쿠팡 > 네이버/네이버페이 > 농협하나로마트 > 이마트 > 롯데백화점 > 코스트코'.\n  xlsx '리테일 INDEX Top20' = 1 쿠팡100 / 2 네이버/네이버페이57 / 3 이마트34 / 4 옥션·G마켓26 / 5 홈플러스26 / 6 농협하나로마트19 / 7 코스트코16.\n  -> 원문 3위 농협하나로마트가 xlsx 6위, 원문 4위 이마트가 xlsx 3위. 서수 직접 모순.\n(5) 패널 깊이도 exec 가 잡은 방향과 반대인 사례 존재: 원문 Chapter3(1)=TOP15 인데 xlsx 리테일=Top20. exec 는 Chapter1(1) TOP15 vs Top10 만 기록.\n(6) 지표 정의 불일치: 원문은 '사용시간 평균'(1인당 평균), xlsx 는 '월평균 사용시간 … 억분'(총량). 4위도 원문 TikTok Lite vs xlsx 티맵.\n(7) xlsx 출처 부재: `openpyxl.load_workbook(...).properties` -> creator='openpyxl', created=2026-08-25, title/description/subject 모두 None. `grep -rIoE 'insight/detail/[0-9]+' manus/` -> 0건. 즉 xlsx 가 933 파생임을 뒷받침하는 근거가 저장소에 없음.\n(8) xlsx 자체 결함: 06_전체원자료 '이커머스/앱테크 앱 사용자 점유율' 1위 쿠팡 26.9% < 2위 캐시워크 32.5% — 순위가 값과 역행.",
+      "impact": "A1 권위 매니페스트가 '카카오톡 값 불일치 2만 명'으로 동결돼 있으면, 후속 재동결 단계에서 xlsx 를 933 파생으로 간주해 1379->1377 같은 셀 단위 패치로 '정합'을 맞출 유인이 생긴다. 그 결과는 측정기간·모집단·지표정의가 다른 두 패널이 섞인 합성 데이터셋이며, 이후 코호트 표본 선정·URL 매핑 전체가 출처 불명 기반 위에 놓인다. Pilot 의 파일-레코드 오대응과 동일 계열의 provenance 오염이다.",
+      "suggested_fix": "legacy_conflict_detected 를 재작성한다. (a) xlsx 를 '933 파생자료'가 아니라 provenance=UNDOCUMENTED / NOT_DERIVED_FROM_933 로 격리 표기하고, (b) 불일치를 값 차이가 아니라 panel_composition_mismatch / ordinal_contradiction / metric_definition_mismatch 로 유형화하며, (c) 위 (1)~(6) 반례를 근거로 첨부한다. (d) xlsx 를 계속 쓰려면 원 출처(insight nid·baseDT·측정기간)를 먼저 특정하고, 특정 실패 시 코호트 표본 선정에서 배제한다."
+    },
+    {
+      "id": "methodology-footnotes-declared-missing-but-present",
+      "severity": "P1",
+      "claim": "population_definition.note 가 '상한·표본크기·조사방법은 원문 본문에 미기재'라고 단정했으나, 조사방법은 원문 본문에 도메인별로 11회 명시돼 있고 이미 커밋된 wiseapp933_text.txt 에 들어 있다.",
+      "reproduction": "grep -c '한국인 Android+iOS' raw/wiseapp933_text.txt -> 5 (78,92,107,133,148행)\ngrep -c '계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음' raw/wiseapp933_text.txt -> 6 (175,189,203,217,243,258행)\n전문: APP figure = '한국인 Android+iOS 스마트폰 사용자 추정.'  /  RETAIL figure = '한국인이 신용카드, 체크카드로 결제한 금액을 표본 조사하였으며, 계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음.'\n5+6 = 11 = figure 수와 일치 (figure 마다 1개).",
+      "impact": "'순 결제추정금액'의 범위 한정(카드결제 표본 한정, 계좌이체·현금·상품권 제외)과 앱 지표의 모집단(Android+iOS 추정)이 A1 동결 기록에서 빠졌다. 리테일 순위를 '전체 소비'로 해석하면 현금·계좌이체 비중이 높은 오프라인 마트·홈쇼핑 세그먼트에서 체계적 편향이 생기며, 이는 액티브시니어 코호트에서 특히 크다. 상한 연령·표본크기가 실제로 미기재라는 나머지 절반의 판단까지 신뢰를 잃는다.",
+      "suggested_fix": "population_definition 에 measurement_basis 를 추가한다: app='한국인 Android+iOS 스마트폰 사용자 추정', retail='신용/체크카드 결제 표본 조사, 계좌이체·현금·상품권 제외'. note 는 '상한 연령·표본크기는 미기재'로 축소하고 조사방법 미기재 주장은 철회한다."
+    },
+    {
+      "id": "fig07-period-mislabeled-by-alt-text",
+      "severity": "P1",
+      "claim": "매니페스트가 figure 캡션으로 alt_text 만 기록해 fig07 의 측정기간이 '25년 하반기'로 남았으나, 해당 Insight 본문은 '25년 12월' 단월 기준이고 비교도 '전년 동월'이다.",
+      "reproduction": "source_evidence_manifest.json fig07 alt_text = '25년 하반기 액티브시니어+ 세대 순 결제추정금액이 가장 높은 업종은 인터넷 쇼핑. 전년 동기간 대비 …'\ngrep -n '25년 12월' raw/wiseapp933_text.txt ->\n  160: 25년 12월 액티브시니어+ 세대 순 결제추정금액이 가장 많았던 업종은 인터넷 쇼핑.\n  183: 25년 12월 … 그 중 배달, 여행/교통, 인터넷 쇼핑 업종은 전년 동월 대비 … 두 자릿수로 성장함.\n즉 동일 Insight 안에서 alt/요약은 '하반기·전년 동기간', 본문은 '12월·전년 동월'.",
+      "impact": "Chapter3(2) 업종별 패널만 단월(25-12) 이고 나머지는 반기(25H2) 인데, 매니페스트에는 전부 반기로 보인다. 이 패널을 다른 반기 패널과 같은 시간축에 놓고 비교하면 계절성(12월 소비 피크)이 반기 평균과 섞여 업종 성장률 해석이 왜곡된다.",
+      "suggested_fix": "figures[] 에 period / comparison_basis 필드를 alt 가 아닌 본문 Insight 텍스트에서 추출해 채운다. fig07 은 period='2025-12', comparison='전년 동월'. 나머지 10개는 본문 대조로 재확인한다."
+    },
+    {
+      "id": "imginfolist-13-vs-content-11-unreconciled",
+      "severity": "P2",
+      "claim": "detail.json 의 insightInfo.imgInfoList 는 13건인데 본문 <img> 는 11건이고, 매니페스트는 이 차이를 전혀 언급하지 않는다.",
+      "reproduction": "len(d['insightInfo']['imgInfoList']) -> 13, 본문 <img> 정규식 -> 11\n본문에 없는 2건: imgNid 4789 '2026-03-04/9dde5bf3-5019-49b7-98eb-c1dcea0f51e0.png' (401859B), imgNid 4796 '2026-03-04/1d306db2-08cb-4f62-8756-487d9cf020aa.png' (406615B)\n두 바이트수는 각각 fig04(d74aab50, 401859B)·fig07(f43af706, 406615B)와 동일 = 편집 중 재업로드로 추정.\ncurl_cffi impersonate=chrome 로 실측: 9dde5bf3 -> HTTP 403 (111B), 1d306db2 -> HTTP 403 (111B) / 대조군 d74aab50 -> 200 401859B, f43af706 -> 200 406615B.\n즉 고아 2건은 CDN 에서 서빙되지 않으며 게재 figure 가 아님. 결론적으로 '11개' 주장 자체는 옳다.",
+      "impact": "결론은 맞지만 근거가 기록돼 있지 않다. 후속 감사자가 imgInfoList=13 을 보면 figure 2건 누락으로 오판하고, 이미 403 인 URL 을 재수집하려다 시간을 쓰거나 취득 불완전으로 잘못 기각할 수 있다.",
+      "suggested_fix": "authority_manifest.content_structure 에 imginfolist_count=13, rendered_figure_count=11, orphan_upload_ids=[4789,4796], orphan_status='HTTP 403 (미서빙, 재업로드 잔재)' 를 기록한다."
+    },
+    {
+      "id": "full-page-screenshot-hashed-but-untracked",
+      "severity": "P2",
+      "claim": "authority_manifest.raw_assets.full_page_screenshot 에 sha256 이 기록돼 있으나 해당 파일은 .gitignore 로 제외돼 커밋에 없고, 매니페스트는 이를 로컬 전용으로 표시하지 않는다.",
+      "reproduction": "git check-ignore -v research/landing_accessibility/sources/wiseapp/raw/wiseapp933_full.png\n  -> research/landing_accessibility/.gitignore:2:sources/wiseapp/raw/*.png\ngit ls-files .../raw/ -> api.json, detail.json, images.json, rendered.html, text.txt (full.png 없음)\n로컬 실측 sha256sum wiseapp933_full.png -> c1e5422f… (매니페스트 값과 일치하나 클론에서는 검증 불가)",
+      "impact": "취득 경로 2종 중 playwright 렌더 경로의 1차 증거가 저장소에 없어, 다른 환경에서는 해시 대조로 재현 검증을 할 수 없다. 나머지 3개 raw asset 은 커밋돼 있어 영향은 제한적이다.",
+      "suggested_fix": "raw_assets.full_page_screenshot 에 tracked=false, retention='local-only (.gitignore)' 를 명시하거나, 용량이 문제라면 다운스케일 사본을 커밋한다."
+    },
+    {
+      "id": "publisher-population-change-notice-not-surfaced",
+      "severity": "P2",
+      "claim": "취득 시 함께 잡힌 공지 API 에 발행처의 '모집단 변경 사전 안내'가 들어 있으나 A1 매니페스트에 반영되지 않았다.",
+      "reproduction": "raw/wiseapp933_api.json -> https://www.wiseapp.co.kr/notice/notification/getlist.json (200):\n  title='[와이즈앱] 모집단 변경 사전 안내' / titleEn='Advance Notice of Changes to the Population'\n  createDTStr='2026.08.25', linkUrl='https://guide.wiseapp.co.kr/notices/2026/08-25'\nauthority_manifest.json 에 'notice'/'모집단' 문자열 없음.",
+      "impact": "933(2026-03-05 발행) 자체 수치를 무효화하지는 않지만, 발행처가 모집단을 변경하면 이후 재수집분과의 종단 비교 가능성이 깨진다. A1 동결의 유효 구간을 정의하는 데 필요한 정보다.",
+      "suggested_fix": "authority_manifest 에 publisher_notices 항목을 추가해 공지 제목·일자·URL 을 기록하고, 해당 공지 원문을 받아 모집단 변경 시행일을 확인한 뒤 freeze validity window 를 명시한다."
+    }
+  ],
+  "invariants_checked": [
+    "figure 해시 정합: 11개 png 를 hashlib.sha256 로 재계산 -> source_evidence_manifest.json 의 sha256 및 bytes 와 11/11 전부 일치, 불일치 0.",
+    "raw asset 해시 정합: sha256sum detail.json/rendered.html/text.txt/full.png -> authority_manifest.raw_assets 4/4 일치 (c860818d…, db197785…, 236efdd6…, c1e5422f…).",
+    "파일<->URL 대응(Pilot CRITICAL 재발 여부): 각 png 의 IHDR 고유 폭·높이를 struct 로 직접 읽어 DOM naturalWidth/Height 와 대조 -> 11/11 일치. 11개 높이 [1520,2120,2270,2418,2506,2578,2814,2818,2846,2916,3290] 가 전부 상이하므로 순열 오대응이면 반드시 검출된다. 오대응 없음.",
+    "취득 진위 독립 재현: curl_cffi(impersonate=chrome)로 fig04(d74aab50)·fig07(f43af706)를 CDN 에서 재다운로드 -> sha256 163427ce…, 6ac5eab6… 로 매니페스트 값과 완전 일치. 파일이 해당 URL 산출물임을 라이브로 확인.",
+    "취득 완결성: insightInfo.content 독립 파싱 -> <img> 11개 / <table> 0개 (exec 주장과 동일). 렌더 HTML 의 cdn.wiseapp.co.kr/static/insight 이미지 중 본문 figure 는 11개이고 나머지는 cover/meta/opentag·타 인사이트 썸네일(2024-07-16, 2025-06-17, 2025-07-08, 2026-02-23).",
+    "lazy-load 누락: 렌더 HTML 의 loading=lazy/data-src 속성 이미지는 facebook.svg, naver.svg, instagram.svg 3개(소셜 아이콘)뿐. srcset 0, <picture> 0. 본문 figure 중 지연로딩으로 빠진 것 없음.",
+    "'<table> 0개' 주장의 범위 검증: 렌더 전체 HTML 에는 <table> 7개가 있으나 전부 이용약관 시행일·개인정보 수집항목·위탁업체·보존기간·문의폼 등 사이트 크롬이며 데이터 표 0개. 본문 기준 0개 주장 유효, 즉 순위표 텍스트 추출 경로가 없다는 결론은 옳다.",
+    "'50대 이상' 근거: 본문 'Q. 50대 이상 액티브시니어+ 세대 앱 사용자가 많은 앱은?', 'Chapter1 … 25년 하반기 50대 이상 액티브시니어+ 세대가 가장 많이 사용한 앱은 카카오톡', metaDesc '25년 하반기 50대 이상 액티브시니어+ 세대가…', tagList 에 '50대','60대'. 3중 근거로 확증. 하위 세그먼트로 '50대'/'60대 이상' 구분 언급도 존재.",
+    "메타데이터 원문 대조: baseDT='2026-03-05', displayDT='2026-03-05 08:00:00', createDT='2026-03-04 15:38:54', bapp=1, bretail=1, bgoods=0, hits=3279, insightNid=933 — 매니페스트 기재와 전부 일치.",
+    "INDEX 구조: 4 chapter / 3+2+4+2 = 11 section 이며 figure 11개와 1:1. exec 기재와 일치.",
+    "카카오톡 원문 값: 본문 verbatim '카카오톡 (1,377만 명)' 확인. 원문 측 값 인용은 정확 (다만 xlsx 대비 해석은 P0 참조).",
+    "xlsx 행 수 주장: 01_사용자_사용시간 max_row=21(헤더 1 + 데이터 20), 패널명 '월평균 사용자 Top10'/'월평균 사용시간 Top10' 각 10행. exec 의 '20행 (Top10 표기)' 기술은 사실과 일치.",
+    "누락된 구조화 데이터 없음: api.json 의 비-getDetail 엔드포인트 전수 확인 -> getAppBrandRel.json 은 insightList/insightInfo 포함 전 필드 null, getlatestApplist.json 은 appList null, getCalendarDate.json 은 baseDT 달력만, resource.json 은 hey-there 채팅 위젯 마케팅 리소스. 이미지 판독 없이 얻을 수 있는 순위 데이터는 존재하지 않음. detail.json 에 pdfPath/pdfFileName/pdfSize 는 모두 null 이라 PDF 대체 경로도 없음.",
+    "git 위생: git show --stat fa7a9763 -> 19 files changed, 3376 insertions, 전부 research/landing_accessibility/ 하위. research/refcohort 및 기타 forbidden path 변경 0건. 삭제·수정 0, 신규 추가만."
+  ],
+  "notes": "취득 계층(fetch/hash/파일-URL 결속)은 견고하다. 해시 11/11 + raw 4/4 일치, PNG IHDR 대 DOM naturalSize 교차검증으로 Pilot 급 오대응 가능성을 배제했고, CDN 라이브 재다운로드로 두 건의 해시를 독립 재현했다. 결함은 전부 해석 계층에 있다. 핵심은 P0: xlsx(A7)를 933 파생자료로 전제한 채 불일치를 '2만 명 값 차이'로 축소 기록한 점이다. 실제로는 원문 3위 Google 이 xlsx 에 부재하고, 점유율 패널은 항목이 거의 겹치지 않으며(다음 54.1% vs 38.7%), 리테일에서는 농협하나로마트/이마트 서수가 역전돼 있고, xlsx 에는 출처 메타데이터가 전무하다(manus 전체에 insight nid 참조 0건). 이는 '전사 오류'가 아니라 '다른 패널'이며, 현재 문구대로 동결되면 셀 단위 패치로 두 패널을 섞는 오염 경로가 열린다. P1 두 건(조사방법 미기재 오단정, fig07 기간 오표기)도 모두 이미 확보한 원문 텍스트만 다시 읽으면 해결되는 사항으로, 추가 수집 없이 매니페스트 수정만으로 REWORK 종결 가능하다."
+}
