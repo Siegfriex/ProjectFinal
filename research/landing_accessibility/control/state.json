@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T13:19:13.105835",
+  "updated_at": "2026-08-26T13:24:24.762343",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
   "cycle_id": "C011",
   "pilot": {
@@ -361,6 +361,18 @@
       "remediation": "git reset --mixed 32460b8 로 원복. HEAD 32460b87334a67f6a74823ac55f85ca80a9f8980 확인. CLAUDE.md·tsconfig.json 의 기존 미커밋 수정은 보존(--hard 를 쓰지 않은 이유). 문서는 orchestrator 워크트리로 이동해 재커밋.",
       "prevention": "오케스트레이터 파일 조작은 절대경로만 사용한다. cd 의존 금지.",
       "note": "이 사건의 의미: 하네스가 오케스트레이터 자신의 위반을 잡았다. Monitor 의 P0 감시가 실효적으로 작동함을 실증한 사례로 남긴다."
+    },
+    {
+      "id": "orchestrator-committed-into-executor-branch-midwork",
+      "severity": "P0",
+      "occurrence": 2,
+      "detected_by": "watchdog — AUDIT_REQUIRED exec=2922af49 (control 커밋 메시지가 exec HEAD 로 나타남)",
+      "cause": "직전 Bash 명령에서 cwd 가 exec 워크트리에 남아 있었고, 이어지는 git add/commit 이 cd 없이 실행돼 agent/landing-exec 에 커밋됐다. 첫 번째 P0(pilot 브랜치 오염)와 동일한 근본원인.",
+      "aggravating": "커밋 내용이 C011 executor 의 **진행 중** 작업 16파일 전체였다. 미완 상태 스냅샷이 control 커밋 메시지를 달고 exec 히스토리에 들어갔다.",
+      "impact": "원격 미오염(ls-remote 가 fe86e190 유지 — push 인자가 control 브랜치라 no-op). 로컬 exec 브랜치만 오염.",
+      "remediation": "git -C <exec> reset --mixed fe86e190. exec HEAD 원복 확인. executor 작업 17파일 + 신규 디렉터리 2개(extraction_journal, _researcher_priors) 전량 보존 확인.",
+      "prevention_v2": "모든 git 작업에 git -C <절대경로> 를 쓴다. 오케스트레이터 명령에서 cd 를 금지한다. 첫 번째 P0 의 예방책('절대경로 사용')이 파일 경로에만 적용되고 git 명령에는 적용되지 않아 재발했다.",
+      "lesson": "예방책이 근본원인의 일부만 덮으면 재발한다. cwd 의존 자체를 제거해야 했다."
     }
   ],
   "structural_findings": [
@@ -536,5 +548,29 @@
     "10_state_and_log_agree": "DONE (05_ORCHESTRATION_LOG 369줄 동기화)",
     "verdict": "HARNESS CLOSED LOOP: NOT VERIFIED — 4·8 미충족 (promotion 체인 대기)",
     "remaining_chain": "C011 시정 -> 독립감사 2건 -> 재결 -> promotion -> 승격 baseline 에서 다음 지시"
-  }
+  },
+  "watchdog_events": [
+    {
+      "at": "2026-08-26T13:21:50.363741",
+      "event": "SOURCE_AUTHORITY_CHANGED",
+      "fingerprint": "b7720800948c",
+      "adjudication": "NOT_A_VIOLATION",
+      "evidence": [
+        "A1 원문 sources/wiseapp/raw 및 images 의 git status 변경 0 — 원문 무결",
+        "변경은 해석층(authority_manifest 서술)에 한정: drift_pct/calculation(EV-2 재산출), creator/created/modified/present_metadata(EV-6 정정), correction_note 2건, index_from_source_note",
+        "신규 디렉터리 extraction_journal/ 와 _researcher_priors/ 는 C011 지시 항목(P2-3, P1-2)"
+      ],
+      "conclusion": "C011 시정 작업 중 발생한 정상 변경. SOURCE_AUTHORITY_MUTATION_WITHOUT_NEW_VERSION 아님.",
+      "follow_up": "v3.1 §8 이 '새 버전 선언' 을 요구하므로 authority_manifest 에 명시적 version/revision 필드가 있는지 C011 감사에서 확인한다. 없으면 P2 로 등록."
+    },
+    {
+      "at": "2026-08-26T13:24:24.762343",
+      "event": "AUDIT_REQUIRED + AUDIT_LAG (exec=2922af49)",
+      "adjudication": "TRUE_POSITIVE_HARNESS_SELF_CATCH",
+      "note": "watchdog 이 오케스트레이터의 두 번째 P0 를 잡았다. exec HEAD 가 control 커밋으로 바뀐 것을 AUDIT_REQUIRED 로 발행했고, 동시에 AUDIT_LAG 가 adv/ssot target(fe86e190)과 불일치를 알렸다."
+    }
+  ],
+  "c011_audit_extra_checks": [
+    "authority_manifest 변경에 대응하는 명시적 version/revision 선언이 있는가. 해석층 수정이 A1 원문 동일성 주장을 흐리지 않는가(raw sha256 불변 확인)."
+  ]
 }
