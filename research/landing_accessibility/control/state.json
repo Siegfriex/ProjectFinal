@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T13:38:52.028715",
+  "updated_at": "2026-08-26T13:40:04.334873",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
   "cycle_id": "C011",
   "pilot": {
@@ -61,7 +61,7 @@
   },
   "exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
   "adversarial_audit_sha": "903e247",
-  "ssot_audit_sha": "7c928f5",
+  "ssot_audit_sha": "695caed",
   "gates": {
     "pilot_archive": "PASS_WITH_LOGICAL_BACKUP_ONLY",
     "source_asset_discovery": "PASS",
@@ -81,7 +81,7 @@
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
     "adversarial_audit": "PASS_C011_P0_0_P1_0_P2_5",
-    "ssot_audit": "PASS_C009_P1_2",
+    "ssot_audit": "PASS_C011_P0_0_P1_0_P2_7",
     "certification_snapshot": "PASS_COMPLETE"
   },
   "withdrawn_conclusions": [
@@ -96,13 +96,7 @@
       "reason": "동일. state/category_feasibility_matrix.csv 는 삭제하지 않고 INVALIDATED 로 보존."
     }
   ],
-  "open_p0": [
-    {
-      "id": "xlsx-conflict-framed-as-value-drift",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "note": "legacy_asset_assessment.verdict=UNSOURCED_INCOMPATIBLE_PANEL_SET, 근거 6종 kind 분류"
-    }
-  ],
+  "open_p0": [],
   "full_collection": "PROHIBITED",
   "e001_authorization": "REQUIRES_RESEARCH_DIRECTOR_GO",
   "promotion_policy": {
@@ -292,6 +286,36 @@
       "sev": "P2",
       "from": "adversarial C011",
       "detail": "신규 테스트 4건이 C011 이 스스로 선언한 '한쪽 끝은 원본' 원칙 밖. EV 테스트는 하드코딩 리터럴 대조, panel_scope 테스트는 이름과 달리 리빌드 대신 소스 문자열 grep."
+    },
+    {
+      "id": "gitignore-still-preexcludes-e001-evidence",
+      "sev": "P2",
+      "from": "ssot C011"
+    },
+    {
+      "id": "invalidated-xlsx-not-at-protocol-location",
+      "sev": "P2",
+      "from": "ssot C011"
+    },
+    {
+      "id": "ev2-youtube-drift-has-no-cited-value-pair",
+      "sev": "P2",
+      "from": "ssot C011"
+    },
+    {
+      "id": "builder-eligibility-vocabulary-narrower-than-06",
+      "sev": "P2",
+      "from": "ssot C011"
+    },
+    {
+      "id": "comparison-period-fig07-exception-not-annotated-in-manifest-field",
+      "sev": "P2",
+      "from": "ssot C011"
+    },
+    {
+      "id": "study-limitation-derived-claim-flag-only-partial",
+      "sev": "P2",
+      "from": "ssot C011"
     }
   ],
   "certification_authority": {
@@ -468,20 +492,20 @@
     "latest_adversarial_audited_cycle": "C011",
     "latest_adversarial_target_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
     "latest_adversarial_audit_sha": "903e247",
-    "latest_ssot_audited_cycle": "C009",
-    "latest_ssot_target_sha": "fe86e190e993b3acb7b47518329dddc1777d73d6",
-    "latest_ssot_audit_sha": "7c928f5bba19ea66756b8d2f00140d60596235a0",
-    "latest_reconciled_cycle": "C009",
+    "latest_ssot_audited_cycle": "C011",
+    "latest_ssot_target_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
+    "latest_ssot_audit_sha": "695caed",
+    "latest_reconciled_cycle": "C011",
     "latest_promoted_cycle": null,
-    "unaudited_cycle_depth": 1,
+    "unaudited_cycle_depth": 0,
     "MAX_UNAUDITED_EXEC_CYCLES": 1,
-    "status": "WITHIN_BOUND — C011 감사 진행 중. EXECUTOR_STATE_CHANGE_BLOCKED until fully audited."
+    "status": "WITHIN_BOUND — C011 fully audited"
   },
   "cycle_lifecycle": {
     "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",
     "promotion": "BLOCKED_PENDING_P1_REMEDIATION",
     "note": "ORCHESTRATOR_PRECHECK_PASS 를 ACCEPTED/VERIFIED/PROMOTED 와 동의어로 쓰지 않는다.",
-    "C011": "EXECUTED -> AWAITING_INDEPENDENT_AUDIT"
+    "C011": "EXECUTED -> INDEPENDENTLY_AUDITED -> RECONCILED"
   },
   "main_branch_protection": {
     "established_at": "2026-08-26T13:15:24.007671",
@@ -602,7 +626,22 @@
       ]
     },
     "ssot": {
-      "status": "PENDING"
+      "verdict": "PASS",
+      "a1_source_unmodified": true,
+      "evidence": [
+        "git diff fe86e190..edb0478 -- sources/wiseapp/raw 빈 출력",
+        "raw 4종 sha256 재계산이 authority_manifest.raw_assets 와 전건 일치",
+        "git log -- raw 는 fa7a976(취득)과 fe86e190 둘뿐, 후자는 wiseapp933_full.png 추가 1건 · 수정 0건",
+        "U+00A0 원문 94회 실재. INDEX 에서는 Chapter1 세 절의 '세대' 뒤에만 나타나고 Ch2~4 8개 절엔 없다. 저장값이 그 비대칭까지 그대로 따랐다 — 삽입도 삭제도 아님",
+        "chapter 4 + section 11 = SAME 15 / MISMATCH 0 (C009 는 SAME 0 / MISMATCH 11)",
+        "가설 파일 write-only — 읽는 코드 grep 0건, web_eligibility_status 는 axis_type 만으로 결정",
+        "261행 키 집합 완전일치 + 공유 14컬럼 값 변경 0건, period_label/period_axis 2컬럼만 추가"
+      ]
     }
+  },
+  "debt_visibility_warning": {
+    "raised_by": "ssot C011",
+    "detail": "state.json audit_notes_accepted 에서 C011 exec 에 배정한 5건 중 journal-path-outside-repo 1건만 닫혔고 나머지 4건은 처리도 유예 기록도 없다. 지시서가 C011 을 'P1 3건 + P2 5건' 으로 규정했으므로 범위 밖 미처리로 볼 여지는 있으나, 명시적으로 유예하지 않으면 부채가 조용히 사라진다.",
+    "action": "promotion artifact 의 known_debt 에 전량 명시하고 다음 cycle 에서 닫는다."
   }
 }

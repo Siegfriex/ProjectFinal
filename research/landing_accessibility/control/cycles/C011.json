@@ -1,0 +1,74 @@
+{
+  "cycle_id": "C011",
+  "directive": {
+    "source": "orchestrator C011 — C009 감사 P1 3건 + P2 5건 시정",
+    "issued_by": "orchestrator"
+  },
+  "executor": {
+    "sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
+    "tests": "pytest 59 passed"
+  },
+  "audit_adversarial": {
+    "sha": "903e247",
+    "target_exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
+    "verdict": "PASS",
+    "p0": 0,
+    "p1": 0,
+    "p2": 5,
+    "p1_remediation_verified": {
+      "p1_1_alignment": true,
+      "p1_2_prior_separation": true,
+      "p1_3_verbatim": true
+    }
+  },
+  "audit_ssot": {
+    "sha": "695caed",
+    "target_exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
+    "target_ssot_sha": "e3fc69d7a86a7abc89db2c538f834d7b4d73670f",
+    "verdict": "PASS",
+    "p0": 0,
+    "p1": 0,
+    "p2": 7,
+    "a1_source_unmodified": true
+  },
+  "reconciliation": {
+    "reconciled_at": "2026-08-26T13:40:04.334873",
+    "case": "CASE_1_PASS_PLUS_PASS",
+    "both_target_same_exec_sha": true,
+    "stale_audit": false,
+    "accepted_findings": 11,
+    "rejected_findings": 0,
+    "deferred_findings": 11,
+    "note": "P1 0건. P2 11건(중복 제거)은 전부 검증 가능성 계열이며 데이터 오염이 아니므로 debt 로 이동한다."
+  },
+  "promotion": {
+    "status": "AUTHORIZED",
+    "conditions_met": [
+      "adversarial PASS",
+      "ssot PASS",
+      "open_p0=0",
+      "p1_remediation_verified 3/3",
+      "a1_source_unmodified true",
+      "audit lag 0"
+    ]
+  },
+  "gate_before": {
+    "promotion": "BLOCKED_PENDING_P1_REMEDIATION"
+  },
+  "gate_after": {
+    "promotion": "AUTHORIZED"
+  },
+  "open_debt": [
+    "idempotency-claim-false-journal-path-absolute",
+    "matches-existing-c002-is-self-comparison",
+    "authority-manifest-lacks-version-field",
+    "ev-source-xlsx-uncommitted-unhashed",
+    "new-tests-outside-own-source-of-truth-principle",
+    "gitignore-still-preexcludes-e001-evidence",
+    "invalidated-xlsx-not-at-protocol-location",
+    "ev2-youtube-drift-has-no-cited-value-pair",
+    "builder-eligibility-vocabulary-narrower-than-06",
+    "comparison-period-fig07-exception-not-annotated-in-manifest-field",
+    "study-limitation-derived-claim-flag-only-partial"
+  ]
+}
