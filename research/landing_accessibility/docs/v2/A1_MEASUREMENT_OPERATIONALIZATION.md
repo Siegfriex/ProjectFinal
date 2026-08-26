@@ -305,6 +305,8 @@ UNRESOLVED_DEPTH_BUDGET_EXCEEDED
 - 순환 navigation 대상 → `MAX_STATE_REVISITS`가 먼저 발화하는가
 - 예산 소진 관측이 `MPFED = 8`로 새지 않고 `NULL`로 저장되는가
 - **동일 길이 후보 경로가 둘 이상인 대상 → 같은 fixture를 두 번 돌려 같은 경로가 나오는가** (§2.6 규칙 MIN-4)
+- **동일 길이 후보의 면적을 `0.01px²`만큼 흔들었을 때 선택 경로가 유지되는가** (§2.6 MIN-4 양자화)
+  — 결정적 fixture 재생만으로는 이 실패 양상이 드러나지 않는다. **jitter를 명시적으로 주입**해야 한다
 - **짧은 경로와 긴 경로가 같은 endpoint로 가는 대상 → 짧은 쪽이 선택되는가** (§2.6 규칙 MIN-2)
 
 ### 2.6 "최소"의 조작화 — 탐색 절차·결정성·최소성의 범위 `[V2-C008 시정]`
@@ -361,14 +363,29 @@ endpoint 경로는 열거되지 않는다.** 이 경우 `endpoint_reached = 0`�
 한 state 안에서 activation 후보를 정렬하는 키 —
 
 ```
-( marked_primary desc, area_css_px2 desc, selector asc )
+( marked_primary desc, area_quantized desc, selector asc )
+
+area_quantized = floor(area_css_px2)      # CSS px² 단위로 절사
 ```
 
 세 번째 성분이 **필수**다. 앞의 둘만으로는 같은 크기·같은 표시의 형제 control
 (그리드의 동급 카드, 폭이 같은 nav 버튼)에서 키가 완전히 동률이 되고, 그때 순서는
-DOM 순서에 대한 정렬 안정성에만 의존한다. `area_css_px2`는 `getBoundingClientRect`에서
-오는 부동소수이며 폰트 로딩·이미지 리플로우·스크롤바 유무로 서브픽셀이 흔들리면
-근소한 동률이 **런마다 뒤집힌다.** `selector` 문자열 오름차순은 그 흔들림에 영향받지 않는다.
+DOM 순서에 대한 정렬 안정성에만 의존한다.
+
+> **[V2-C008 시정 · 2차]** 2차 키는 **양자화된** 면적이어야 한다.
+> 닫는 finding: `min-4-selector-tiebreak-does-not-neutralize-subpixel-jitter` (adversarial V2-C008)
+>
+> `area_css_px2`를 그대로 쓰면 `selector`는 **면적이 정확히 같을 때만** 도달하는 3차 키다.
+> `getBoundingClientRect`가 주는 부동소수는 폰트 로딩·이미지 리플로우·스크롤바 유무로
+> 서브픽셀이 흔들리므로, 같아 보이는 형제 control이 런마다 `0.01px²` 차이로 갈린다.
+> 그러면 2차 키에서 순서가 결정돼 **`selector`에 도달하지 못한 채 런마다 뒤집힌다** —
+> 3차 키를 둔 목적 자체가 무력화된다. 감사가 `0.01px²` 주입으로 flip을 재현했다.
+>
+> `floor`로 절사하면 서브픽셀 흔들림이 같은 정수 버킷에 들어가 `selector`가 실제로
+> 도달되고, 그 지점부터는 DOM 정렬 안정성이 아니라 문자열 순서가 결정한다.
+> 버킷 경계(예: `119.99` vs `120.01`)를 가로지르는 흔들림은 여전히 갈릴 수 있으나,
+> 그 크기의 차이는 서브픽셀 잡음이 아니라 실제 레이아웃 차이다.
+> **정수 단위 선택은 수집 파라미터이며 해석 임계값이 아니다**(§0.5) — P-D에서 검증·동결한다.
 
 경로 사이의 순서는 이 후보 순서에서 유도된다 — 같은 길이의 두 경로는 처음으로 갈리는
 step의 후보 순위로 비교한다(사전식). 열거를 이 순서로 하면 **먼저 반환되는 경로가 곧
@@ -384,6 +401,21 @@ step의 후보 순위로 비교한다(사전식). 열거를 이 순서로 하면
 | `BRANCHING_LIMIT`(§2.1) | 한 state에서 상위 `N`개 후보만 확장한다. `N+1`번째 control을 지나는 더 짧은 경로는 **열거되지 않는다** |
 | 후보 집합의 출처 | 분기 후보는 `fact_primary_action_candidate`(§5.1)가 지명한 것들이다. 그 휴리스틱이 지명하지 않은 요소는 activation이 될 수 없다 |
 | 규칙 MIN-3 | gate/endpoint 발화 시 즉시 종료하므로, 더 깊은 곳의 종료신호는 탐색되지 않는다 |
+
+> **[V2-C008 시정 · 2차] gate 발화가 곧 `MPFED = NULL`은 아니다.**
+> 닫는 finding: `a1-2-6-min-3-contradicts-a2-1-5-1a-gate-as-endpoint` (ssot V2-C008 / P1)
+>
+> `00` §3은 `FINANCIAL_ACTION_ENTRY`(로그인·인증 gate)와 `COMMUNICATION_ENTRY`(로그인 gate만)의
+> endpoint 정의 **안에** gate 절을 두었다. 그 두 archetype에서 해당 종류의 gate가 **확정**되면
+> 그 발화는 `AUTH_GATE_REACHED`(비-endpoint 종료)가 아니라 **endpoint 도달**이며
+> `endpoint_reached = 1` · `MPFED = m`이다.
+>
+> 즉 MIN-3의 "즉시 종료"는 **탐색 종료**를 말하는 것이고, 그 종료가 endpoint인지 아닌지는
+> **archetype과 gate 종류가 결정한다.** 분기 규칙의 정본은
+> `A2_VOCABULARY_AND_SCHEMA_BINDING.md` §1.5.1a (규칙 **E-5~E-10**)이며,
+> gate 종류가 `UNDETERMINED`면 어느 archetype에서도 승격하지 않는다(규칙 **E-6b**).
+> 이 절의 서술이 §1.5.1a와 어긋나면 **§1.5.1a가 옳다** — 이 절은 *탐색 절차*의 정본이고
+> endpoint 여부의 정본이 아니다.
 
 그러므로 산출된 `NED`/`IED`는 **"전역 최소"가 아니라 "열거된 부분격자 안에서의 최소"** 다.
 보고·논문 문면에서 "최소 경로를 찾았다"로 쓰지 않는다. 쓸 수 있는 문장은
@@ -669,7 +701,7 @@ L0의 `SELECTED` 후보는 **NED 경로의 첫 목표**다.
 | `screenshot_initial_path` | 최초 viewport screenshot | 기존 `screenshot_path`의 의미를 이것으로 확정 |
 | `screenshot_fullpage_path` | full-page screenshot | 신규. `02` §11 identity 집합에 명시 필요 |
 | `computed_css_path` | computed CSS 덤프 | `probe_path`와 **별도 파일**로 분리한다. probe는 `02` §4 raw feature 전용 |
-| `evidence_run_id` | `evidence/<run_id>` | `07` 계약의 run grain 연결 |
+| `evidence_run_id` | `evidence/<run_id>` | `07` 계약의 run grain 연결. **값은 자유 식별자가 아니다** `[V2-C008 시정 · 2차]` — `A2` §1.11.2 규칙 RC-6 의 유도식 `f(ledger_record_sha256, countersign_commit_sha, execution_index)` 의 상이어야 하며, 이는 재수집 run 뿐 아니라 **최초(E001 baseline) run 에도 적용된다**(C-2 로 인가 층이 확대됐다). 인가 없이 만든 id 는 검사 A-6 에서 차단된다. 닫는 finding: A1 §6.2 `f` 바인딩 행 부재(ssot V2-C008) |
 | `collection_started_at` | 수집 시작 시각 (UTC, ISO-8601) | `02` §2 `수집시각 기록` |
 | `collection_finished_at` | 수집 종료 시각 (UTC, ISO-8601) | 안정화 대기 포함 여부를 명확히 |
 | `audit_date` | 기존 유지 | `collection_started_at`을 `Asia/Seoul` 기준으로 파생. 독립 입력이 아니다 |
@@ -688,7 +720,7 @@ L0의 `SELECTED` 후보는 **NED 경로의 첫 목표**다.
 | `(observation_id, relpath)` 중복 금지 — 두 screenshot이 서로 다른 relpath를 가져야 하는 이유 | `07` §4 |
 | `manifest_path`는 **run manifest 경로이며 관측마다 고유하지 않다.** 한 run의 전 관측이 같은 값을 공유한다 | `07` §3 grain |
 | `02` §11의 identity 집합을 `DOM / AX / screenshot(initial) / screenshot(fullpage) / computed CSS / probe / manifest`로 읽는다 | `02` §11 + `02` §3 |
-| 재수집은 새 `evidence_run_id`를 만든다. 기존 run을 덮어쓰지 않는다 | `02` §12 · `07` §4 |
+| 재수집은 새 `evidence_run_id`를 만든다. 기존 run을 덮어쓰지 않는다. **그 새 id 도 위 유도식의 상이며 control 인가 1건에 대응한다** `[V2-C008 시정 · 2차]` | `02` §12 · `07` §4 · `A2` §1.11.2 RC-6 |
 
 ### 6.3 `observation_id` 산출
 
@@ -753,4 +785,8 @@ grain이 interrupt 단위이기 때문이다.
 - `NED = 0`을 "진입이 쉽다"로 해석해 점수화하는 것 — 랜딩에 control이 있었다는 관측 사실일 뿐이다.
 - §2.6의 산출값을 "**최소** 경로를 찾았다"로 쓰는 것 — 열거된 부분격자 안에서의 최소다(규칙 MIN-5).
 - gate로 끊긴 관측의 terminal 길이를 `MPFED`로 대입하는 것 — `NULL`이다(규칙 MIN-3).
+  **단 `00` §3이 endpoint 정의 안에 gate를 둔 두 archetype에서 그 종류의 gate가 확정된 경우는 예외이며,
+  그때는 `MPFED = m`이 옳다** `[V2-C008 시정 · 2차]` — 정본은 `A2` §1.5.1a (E-5~E-10, 미확정은 E-6b).
+  이 예외를 무시하고 두 archetype의 `MPFED`를 일괄 `NULL`로 만드는 것은 `00` §11 archetype 분포와
+  `00` §7 ExcessDepth 기준선을 그 두 행에서 성립하지 않게 한다.
 - Replay가 통과했다는 사실을 "경로가 여전히 최소다"의 근거로 쓰는 것 — Replay는 재현성만 본다(규칙 MIN-8).
