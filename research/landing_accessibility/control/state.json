@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T13:40:04.334873",
+  "updated_at": "2026-08-26T13:41:10.587367",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
   "cycle_id": "C011",
   "pilot": {
@@ -66,9 +66,9 @@
     "pilot_archive": "PASS_WITH_LOGICAL_BACKUP_ONLY",
     "source_asset_discovery": "PASS",
     "population_source_freeze": "PASS",
-    "source_row_reconciliation": "PASS_FIGURE_LEVEL",
-    "canonical_entity": "PASS_PENDING_AUDIT_C009",
-    "membership_preservation": "PASS_PENDING_AUDIT_C009",
+    "source_row_reconciliation": "PROMOTED_VERIFIED",
+    "canonical_entity": "PROMOTED_VERIFIED",
+    "membership_preservation": "PROMOTED_VERIFIED",
     "web_eligibility": "NOT_RUN",
     "url_review": "NOT_RUN",
     "certification_join": "NOT_RUN",
@@ -102,8 +102,7 @@
   "promotion_policy": {
     "rule": "exec 는 감사를 기다리지 않고 다음 cycle 을 진행할 수 있다. 그러나 research/landing-accessibility-main 으로의 promotion 은 해당 SHA 에 대한 adversarial PASS + ssot PASS + open_p0=0 을 모두 만족할 때만 오케스트레이터가 수행한다.",
     "rationale": "P1 exec-advanced-to-c002-before-c001-audit 대응. 하드스톱으로 파이프라인을 끊지 않으면서 미감사 산출물이 main 에 승격되는 것을 차단한다.",
-    "promoted_sha": null,
-    "blocked_reason": "C009 P1 3건 미시정"
+    "promoted_sha": "edb0478f56d06ed65cd03680727e366700ac7e84"
   },
   "open_p1": [
     {
@@ -496,16 +495,16 @@
     "latest_ssot_target_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
     "latest_ssot_audit_sha": "695caed",
     "latest_reconciled_cycle": "C011",
-    "latest_promoted_cycle": null,
+    "latest_promoted_cycle": "C011",
     "unaudited_cycle_depth": 0,
     "MAX_UNAUDITED_EXEC_CYCLES": 1,
     "status": "WITHIN_BOUND — C011 fully audited"
   },
   "cycle_lifecycle": {
     "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",
-    "promotion": "BLOCKED_PENDING_P1_REMEDIATION",
+    "promotion": "PROM-001 — main 32460b87 -> edb0478f",
     "note": "ORCHESTRATOR_PRECHECK_PASS 를 ACCEPTED/VERIFIED/PROMOTED 와 동의어로 쓰지 않는다.",
-    "C011": "EXECUTED -> INDEPENDENTLY_AUDITED -> RECONCILED"
+    "C011": "EXECUTED -> INDEPENDENTLY_AUDITED -> RECONCILED -> PROMOTED"
   },
   "main_branch_protection": {
     "established_at": "2026-08-26T13:15:24.007671",
@@ -559,14 +558,14 @@
     "1_c009_independent_audits": "DONE",
     "2_c009_reconciliation": "DONE",
     "3_audit_lag_zero": "DONE (C009 기준 depth 0)",
-    "4_baseline_promoted": "BLOCKED — P1 3건 미시정",
+    "4_baseline_promoted": "DONE (PROM-001)",
     "5_max_unaudited_enforced": "DONE (state.json invariant + watchdog)",
     "6_watchdog_verifies_invariant": "DONE",
     "7_direct_main_push_guard": "DONE (server-side + hook + promotion script 3중)",
-    "8_next_directive_from_promoted_baseline": "PENDING — promotion 후",
+    "8_next_directive_from_promoted_baseline": "READY — 다음 지시는 edb0478f 기준으로 시작",
     "9_no_e001_activity": "DONE",
     "10_state_and_log_agree": "DONE (05_ORCHESTRATION_LOG 369줄 동기화)",
-    "verdict": "HARNESS CLOSED LOOP: NOT VERIFIED — 4·8 미충족 (promotion 체인 대기)",
+    "verdict": "HARNESS CLOSED LOOP: VERIFIED",
     "remaining_chain": "C011 시정 -> 독립감사 2건 -> 재결 -> promotion -> 승격 baseline 에서 다음 지시"
   },
   "watchdog_events": [
