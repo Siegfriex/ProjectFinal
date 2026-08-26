@@ -1,0 +1,308 @@
+{
+  "cycle": "V2-C009",
+  "auditor": "ssot",
+  "target_sha": "e930fadee8393e08a585377492e3972424d03e11",
+  "prev_target_sha": "181d17afe22b8319043e4d1ef6311393dc046827",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha": "1d6cedb6aca6933a701275c7c8e14fd7d4628c73",
+  "same_cycle_adversarial_audit_sha": "56f69f3",
+  "same_cycle_adversarial_focused_sha": "fed3e70",
+  "same_cycle_adversarial_verdict": "PASS (P0 0 / P1 0 / P2 2) + focused ACCEPT_RECLASSIFY (conditions C-1..C-6)",
+  "prior_ssot_audit_sha": "73f3a7d1475ceaea2cf04e3e619cbdaaa2e8714a",
+  "prior_ssot_audit_verdict": "FAIL — P0 0 / P1 1 / P2 4",
+  "target_branch": "agent/landing-v2-exec",
+  "base_ref": "research/landing-accessibility-main",
+  "phase": "P0_V2_REFREEZE",
+  "gate": "V2_SSOT_FROZEN",
+  "audited_at": "2026-08-27",
+  "audit_type": "target-diff remediation verification (not a full re-audit)",
+  "verdict": "FAIL",
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 3,
+    "blocking_v2_ssot_frozen": 1,
+    "blocking_e001_v2": 2,
+    "closed_this_cycle": 5,
+    "partially_remediated": 1,
+    "non_blocking_observations": 6
+  },
+  "diff_scope": {
+    "compared": "181d17afe22b8319043e4d1ef6311393dc046827..e930fadee8393e08a585377492e3972424d03e11",
+    "commits": 1,
+    "files_changed_count": 3,
+    "files_changed": [
+      "research/landing_accessibility/docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+      "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+      "research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json"
+    ],
+    "matches_declared_scope": true
+  },
+  "install_integrity": {
+    "verify_v2_docs_py": "PASS (17/17 OK)",
+    "exec_worktree_clean": true,
+    "note": "V2-C008 §4.1이 승격 전 필수로 적은 dirty 워킹트리가 해소됐다",
+    "manifest_vs_actual": [
+      {
+        "file": "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+        "declared_bytes": 51079,
+        "actual_bytes": 51079,
+        "declared_sha256_prefix": "5c18730919e720a2",
+        "actual_sha256_prefix": "5c18730919e720a2",
+        "match": true
+      },
+      {
+        "file": "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+        "declared_bytes": 254488,
+        "actual_bytes": 254488,
+        "declared_sha256_prefix": "3a88090fac5fd50a",
+        "actual_sha256_prefix": "3a88090fac5fd50a",
+        "match": true
+      }
+    ],
+    "cycle_field": "V2-C008 -> V2-C009"
+  },
+  "invariants": {
+    "pilot_refcohort_unchanged_base_to_target": true,
+    "state_parquet_unchanged_base_to_target": true,
+    "root_claude_md_unchanged_base_to_target": true,
+    "frozen_pack_00_to_05_unchanged": true
+  },
+  "remediation_verification": [
+    {
+      "finding_id": "a1-2-6-min-3-contradicts-a2-1-5-1a-gate-as-endpoint",
+      "origin": "ssot V2-C008 F1 (P1, blocking V2_SSOT_FROZEN)",
+      "verdict": "CLOSED",
+      "where": [
+        "A1 §2.6 MIN-5 좁힘표 뒤 예외 블록 (A1:405-417)",
+        "A1 §8 금지 행 예외 단서 (A1:787-790)"
+      ],
+      "evidence": "A1 §2.6과 A2 §1.5.1a 규범표를 나란히 대조 — 두 archetype·gate 종류·UNDETERMINED(E-6b) 네 행 전부 일치. A1의 MPFED 출현 20곳 전수 확인, gate 문맥 무조건 서술 잔존 0.",
+      "formal_only": false,
+      "revival_of_ssot_00_3": false
+    },
+    {
+      "finding_id": "exc-4-scope-not-widened-to-first-run-after-c-2",
+      "origin": "ssot V2-C008 F2 (P2, blocking V2_SSOT_FROZEN)",
+      "verdict": "CLOSED",
+      "where": [
+        "A2 §0 7항 EXC-4 (A2:86)"
+      ],
+      "evidence": "등재부 이탈 범위가 최초(E001 baseline) run 포함으로 확대됐고 §1.11.2 RC-6 적용범위표를 인용한다."
+    },
+    {
+      "finding_id": "rc-5-execution-authorization-reconciliation-row-still-scoped-to-recollection",
+      "origin": "ssot V2-C008 F3 (P2, blocking V2_SSOT_FROZEN)",
+      "verdict": "CLOSED",
+      "where": [
+        "A2 §1.11.2 RC-5 보고 항목 실행 인가 대조 행 (A2:1463)"
+      ],
+      "evidence": "재수집 한정 삭제 + 재수집·최초 run 합산 명시. 앵커 검증 결과 행(A2:1462)·RC-6 적용범위표·§6.3 가드·X-14 ⑨·§4.2와 동일 모집단."
+    },
+    {
+      "finding_id": "a1-6-2-lacks-evidence-run-id-derivation-binding",
+      "origin": "ssot V2-C008 F4 (P2, blocking E001_V2)",
+      "verdict": "CLOSED",
+      "where": [
+        "A1 §6.2 evidence_run_id 행",
+        "A1 §6.2 규약표 재수집 행"
+      ],
+      "evidence": "자유 식별자 부정 + f(ledger_record_sha256, countersign_commit_sha, execution_index) 명시 + 최초 run 적용 + 검사 A-6 차단. 인자 목록이 A2:1562(A-6)·A2:1590(적용범위표)와 바이트 일치."
+    },
+    {
+      "finding_id": "redirect-chain-target-url-phase-assignment-contradicts-between-5-5-and-6-2",
+      "origin": "ssot V2-C008 F5 (P2, blocking P-B 산출물 검증)",
+      "verdict": "CLOSED",
+      "where": [
+        "A2 §5.5 (A2:2431)",
+        "A2 §6.2 (A2:2540)",
+        "A2 §1.3.1 EB-4 (A2:429)"
+      ],
+      "resolution": "P-B로 통일 (분할 아님)",
+      "phase_assignment_adjudication": "P-B가 옳다. 근거 (1) LANE B(P-B prework) shadow가 이미 redirect_hops·final_registered_domain을 산출했다 — 리다이렉트 해석은 실제로 P-B 활동이다. (2) EB-4의 결함 진술은 '사슬을 P-C에서 만든다'가 아니라 'P-B가 홉 수만 남기고 사슬을 버렸다'다. (3) 등록도메인 비교(PSL)는 eligibility 판정 근거이므로 판정과 같은 phase여야 한다. (4) target_url은 요청 URL이라 P-B. §5.5의 final_url이 P-C에 남은 것은 관측 grain의 최종 URL이라 다른 층이며 모순이 아니다.",
+      "auditor_self_correction": "V2-C008 F5의 '분할 요구'는 'redirect_chain은 수집 시점에만 생긴다'는 틀린 전제에 근거했다. 그 전제를 철회한다."
+    },
+    {
+      "finding_id": "min-4-selector-tiebreak-does-not-neutralize-subpixel-jitter",
+      "origin": "adversarial V2-C008 (P2)",
+      "verdict": "PARTIALLY_REMEDIATED",
+      "where": [
+        "A1 §2.6 MIN-4 (A1:366-386)",
+        "A1 §2.5 (A1:309-310)"
+      ],
+      "what_works": "floor 절사로 서브픽셀 흔들림이 같은 정수 버킷에 들어가 selector가 실제로 3차 키로 도달한다. 실패 확률이 '거의 항상'에서 '경계 근방일 때만'으로 준다. §2.5에 jitter 명시 주입 케이스가 들어갔고 '결정적 fixture 재생만으로는 드러나지 않는다'는 진술이 정확하다.",
+      "residual_acceptable": "존재는 인정할 만하나 문서가 든 논거는 거짓이다 — 119.99 vs 120.01은 0.02px² 차이이며 그것이 바로 서브픽셀 잡음이다. 잔여의 성질은 원 결함과 동일하고 빈도만 줄었다.",
+      "boundary_case_problem": "floor의 버킷 경계가 정수에 있고, MIN-4가 겨냥한 동급 형제 control의 면적이 정수에 놓이기 쉽다(200x40=8000.0). 그 경우 참 면적이 경계 위에 정확히 놓여 ±0.01px² jitter가 7999/8000으로 갈린다.",
+      "misread_as_interpretation_threshold": "없다 — A1 §0.5 구분표상 분류가 옳다. 다만 선언만 하고 §7에 등재하지 않았다.",
+      "carried_to": [
+        "G1",
+        "G2"
+      ]
+    },
+    {
+      "finding_id": "rc-5-anchor-verification-row-scoped-to-recollection",
+      "origin": "adversarial V2-C008 (P2)",
+      "verdict": "CLOSED",
+      "where": [
+        "A2 §1.11.2 RC-5 앵커 검증 결과 행 (A2:1462)"
+      ],
+      "evidence": "run별 + 재수집·최초 run 모두 계수로 정정. 바로 아래 실행 인가 대조 3수와 같은 모집단이며 RC-6 적용범위표·§6.3 가드(A-1~A-8 양쪽)·§4.2와 정합."
+    }
+  ],
+  "authority_order_adjudication": {
+    "jurisdiction_table_row_for_2_6_added": false,
+    "a1_a2_tables_still_identical": true,
+    "one_sided_drift_introduced": false,
+    "resolved": true,
+    "verdict": "SUFFICIENT — finding으로 올리지 않는다",
+    "reasons": [
+      "권위 서열은 미해소 충돌에만 작동한다. A1이 스스로 '§1.5.1a가 옳다'고 적었으므로 서열이 해소할 충돌이 남지 않았다. 상위 문서의 자기 위임은 §0.3 자체가 취한 수단의 절 단위 형태다.",
+      "절 수준 위임문이 관할표 행보다 넓다 — 관할표의 위임은 '상태값의 컬럼 배치·허용값 도메인'으로 한정되는데 이번 충돌은 값의 배정(NULL이냐 m이냐)이었다. 표 행을 넣었어도 이 충돌을 문면상 확실히 덮었다고 말하기 어렵다.",
+      "관할표는 긍정 열거이지 폐쇄 목록이 아니다 — '그 밖의 절은 A1이 정본'이라는 부정 주장을 하지 않는다. 또 §2.6 MIN-3이 인용하는 §1.5는 이미 표에 있고 그 행의 관할 대상이 gate 분기다."
+    ],
+    "if_added_later": "양쪽을 같은 글자로 갱신하고 관할 대상 열은 'endpoint 여부·MPFED 배정(탐색 절차는 A1)'로 적어야 한다."
+  },
+  "findings": [
+    {
+      "id": "min-4-floor-bucket-boundary-aligns-with-integer-areas-and-residual-is-misjustified",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2",
+      "new_this_cycle": true,
+      "location": "A1 §2.6 규칙 MIN-4 (A1:366-386) · A1 §2.5 (A1:309-310)",
+      "statement": "floor의 버킷 경계가 정수에 있고, MIN-4가 겨냥한 대상(그리드 동급 카드·폭이 같은 nav 버튼)의 면적이 정수에 놓이기 쉽다. 그 경우 참 면적이 경계 위에 정확히 놓여 ±0.01px² jitter가 7999/8000으로 갈리며 selector에 도달하지 못한 채 런마다 뒤집힌다 — 시정 이전과 같은 실패 양상이다. floor는 정수 면적을 버킷 가장자리에, round(=floor(x+0.5))는 버킷 중앙에 놓는다.",
+      "evidence": "§2.5가 신설한 검증 케이스('면적을 0.01px²만큼 흔들었을 때 선택 경로가 유지되는가')는 정수 면적 fixture에서 실패하도록 정의돼 있다 — 규칙과 그 규칙의 검증 케이스가 같은 판에서 어긋난다. 잔여 정당화 문장('그 크기의 차이는 서브픽셀 잡음이 아니라 실제 레이아웃 차이다')은 0.02px² 차이를 두고 한 말이라 거짓이다.",
+      "impact": "문면대로 구현하면 NED/IED가 재현되지 않아 Path Freeze / Replay의 전제가 깨진다. 문서 간 모순이나 권위 결함이 아니므로 V2_SSOT_FROZEN은 막지 않는다.",
+      "remedy": [
+        "area_quantized = floor(area_css_px2 + 0.5)로 위상을 옮기고 이유를 한 줄로 적는다(또는 동등 효과의 위상 이동)",
+        "잔여 서술을 정정한다 — 성질은 같고 빈도만 줄어든다",
+        "§2.5 주입 케이스에 경계 근방 면적을 명시적으로 포함시킨다"
+      ],
+      "note_not_a_finding": "LANE C 엔진은 아직 2키 정렬이다(l1_engine.py:339). adversarial V2-C008이 이미 실측한 사실이고 P-C 구현 소관이다."
+    },
+    {
+      "id": "min-4-quantization-unit-declared-frozen-at-p-d-but-not-registered-in-a1-7",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "E001_V2",
+      "new_this_cycle": true,
+      "location": "A1 §2.6 (A1:386) ↔ A1 §7 (A1:747-762)",
+      "statement": "MIN-4가 '정수 단위 선택은 수집 파라미터이며 해석 임계값이 아니다(§0.5) — P-D에서 검증·동결한다'고 선언하는데 §7 'P-C에서 검증·동결할 항목' 표에 해당 행이 없다.",
+      "evidence": "직전 사이클은 같은 절이 만든 두 항목(BRANCHING_LIMIT · k 독립 최소화와의 차이)을 §7에 등재했다. 세 번째 수치만 빠졌다. V2-C008 F2(EXC-4 등재 범위)와 같은 구조이며 a2-1-5-1a-deviates-from-01-11-without-exc-registration(ssot V2-C003)이 세운 '등재 없는 선언은 결함' 기준을 적용한다.",
+      "impact": "등재되지 않은 값은 P-C/P-D 동결 대상 목록에 오르지 않아 동결되지 않은 채 E001_V2에 들어간다. V2_SSOT_FROZEN은 막지 않는다.",
+      "remedy": [
+        "§7 표에 한 행: | area_quantized 양자화 단위·위상 | 1 px² (floor(x+0.5)) | P-C → P-D 검증 | §2.6 규칙 MIN-4 |"
+      ]
+    },
+    {
+      "id": "c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half",
+      "severity": "P2",
+      "blocking": true,
+      "blocking_class": "V2_SSOT_FROZEN",
+      "new_this_cycle": true,
+      "location": "A2 §7 13항 (A2:2703) · A2 §0 7항 EXC 등재부 · A2 §1.11.2 RC-5 보고 항목표",
+      "statement": "adversarial fed3e70이 rc-6-r1 수용 조건으로 건 C-5-①(한계 공표, 문서: 즉시)이 이행되지 않았다. C-6은 C-1·C-2·C-5-①(문서) 미충족 상태로 V2_SSOT_FROZEN을 선언할 수 없다고 규정하며, 미충족 시 새 감사 finding 없이 수용이 실효되어 rc-6-r1이 OPEN/blocking/counted_as_open으로 자동 복귀한다.",
+      "evidence": {
+        "satisfied_elements": [
+          "정본 run 선택 검증은 커밋된 산출물에 한정된다 — '저장소 내부 검사로 배제되지 않으며'",
+          "재수집 전후 값 병기 보고 의존 — 'RC-5의 재수집 전후 병기는 탐지층이지 배제층이 아니다'"
+        ],
+        "unsatisfied_elements": [
+          "위치 요건 — 00 §14 Claim Boundary 또는 03 Phase 5에 한계 절. A2 §7은 둘 다 아니다",
+          "프로세스 통제(단일 실행 잠금·단일 호출 커밋) 의존 — 없다(C-3 미구현)",
+          "역할 분리(수집자 ≠ 인가자 ≠ 감사자) 의존 — §7 13항에 없다",
+          "'독립 감사가 검토·수용한 잔여이며 해소된 것이 아니다' — 수용 사실이 어느 문서에도 없다"
+        ],
+        "exc_registration": "§0 7항에 EXC-1~EXC-4만 있고 이 이탈은 등재돼 있지 않다. 00 §14·03 Phase 5는 프리즈이고 A1 §0.1·A2 §0 2항이 pack 바이트 수정을 금지하므로 A2가 절차를 부여하는 경로가 유일하다 — EXC-3(02 §12의 침묵에 절차 부여)이 밟은 길이다."
+      },
+      "impact": "C-6 실효 규칙이 직접 지정한다 — V2_SSOT_FROZEN 선언 차단.",
+      "remedy": [
+        "§0 7항에 EXC-5 한 행: 이탈 대상 00 §14 · 03 Phase 5 / 이탈 내용 = 바이트 무수정, 두 문서가 침묵한 자리에 잔여 R-1 한계 공표 의무 부여 / 근거 = EXC-3과 같은 절차 부여 + adversarial fed3e70 C-5-① / 보존 = 03 Phase 5 보고에 한계 절이 그대로 실린다 / 절 = §1.11.2 RC-5 · §7 13항",
+        "§1.11.2 RC-5 보고 항목표에 행 1건 '잔여 R-1 한계 공표 (C-5-①)' — 03 Phase 5 보고가 C-5-① 문면(커밋 산출물 한정 · 프로세스 통제 · 역할 분리 · 병기 보고 · 독립 감사 수용이며 미해소)을 그대로 싣게 한다. 프로세스 통제는 C-3이 공급하므로 E001_V2 실행 이전 이행 항목임을 병기한다",
+        "§7 13항 말미에 세 요소 추가 — 프로세스 통제 의존 · 역할 분리 의존 · '독립 감사가 검토·수용한 잔여이며 해소된 것이 아니다' + EXC-5 교차참조"
+      ]
+    }
+  ],
+  "closed_findings": [
+    "a1-2-6-min-3-contradicts-a2-1-5-1a-gate-as-endpoint",
+    "exc-4-scope-not-widened-to-first-run-after-c-2",
+    "rc-5-execution-authorization-reconciliation-row-still-scoped-to-recollection",
+    "a1-6-2-lacks-evidence-run-id-derivation-binding",
+    "redirect-chain-target-url-phase-assignment-contradicts-between-5-5-and-6-2"
+  ],
+  "condition_adjudications": {
+    "C-1": {
+      "owner": "control",
+      "status": "NOT_DONE",
+      "evidence": "control/state.json @ 1d6cedb: ACCEPTED_BOUNDED_RESIDUAL_RISK 출현 0회. rc-6-r1 항목은 state=OPEN / blocking=true / counted_as_open=true 그대로.",
+      "note": "assigned_phase가 지정한 닫힘 경로('감사의 명시적 잔여위험 수용')가 fed3e70으로 열렸으나 원장이 전이하지 않았다. promote_landing_main.sh [DEBT_RECOMPUTE] 갱신·제외 건수 별도 출력도 함께 요구된다.",
+      "blocks": "V2_SSOT_FROZEN"
+    },
+    "C-2": {
+      "owner": "exec",
+      "status": "SATISFIED",
+      "evidence": "V2-C008이 이 문서 소관분을 SATISFIED로 판정하고 남긴 잔여 2건(EXC-4 등재 · RC-5 실행 인가 대조)이 이번 판에서 닫혔다. 잔여 없음."
+    },
+    "C-3": {
+      "status": "NOT_DUE",
+      "due": "E001_V2 실행 이전"
+    },
+    "C-4": {
+      "status": "NOT_DUE",
+      "due": "E001_V2 종료 시"
+    },
+    "C-5-1": {
+      "owner": "exec",
+      "status": "NOT_DONE",
+      "finding": "c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half",
+      "blocks": "V2_SSOT_FROZEN"
+    },
+    "C-5-2": {
+      "status": "NOT_DUE",
+      "due": "최종 산출물 보고 시점"
+    },
+    "C-6": {
+      "status": "ACTIVE",
+      "effect": "C-1 또는 C-5-① 미충족 상태로 V2_SSOT_FROZEN을 선언하면 rc-6-r1이 자동 복귀한다"
+    }
+  },
+  "promotion_readiness": {
+    "v2_ssot_frozen_blocking_class_empty": false,
+    "v2_c008_judgement_holds": "유지된다 — F1 포함 내 finding 5건 전부 닫혔다. 이 감사가 새로 연 것 중 V2_SSOT_FROZEN을 막는 것은 G3 하나이며 그것은 내 finding이 아니라 동사이클 adversarial이 구속력 있게 건 조건의 미이행이다.",
+    "remaining_v2_ssot_frozen_blocking": [
+      {
+        "item": "C-5-① 잔여 R-1 한계 공표 (문서)",
+        "owner": "exec",
+        "finding": "c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half"
+      },
+      {
+        "item": "C-1 원장 전이 ACCEPTED_BOUNDED_RESIDUAL_RISK",
+        "owner": "control",
+        "finding": null
+      }
+    ],
+    "remaining_e001_v2_blocking_from_this_audit": [
+      "min-4-floor-bucket-boundary-aligns-with-integer-areas-and-residual-is-misjustified",
+      "min-4-quantization-unit-declared-frozen-at-p-d-but-not-registered-in-a1-7"
+    ],
+    "can_declare_ready_for_e001_v2": false,
+    "note": "두 잔여 항목은 각각 문서 한 절과 원장 한 블록이며 새 설계·새 기준·새 임계값을 요구하지 않는다."
+  },
+  "non_blocking_observations": [
+    "예외 블록이 MIN-3 본문(A1:348-356)이 아니라 MIN-5 좁힘표의 규칙 MIN-3 행 뒤(A1:405)에 있다. 블록이 MIN-3을 명시 지명하고 절 수준 위임을 선언하므로 판정에 영향 없다. MIN-3 본문 끝 교차참조 한 줄이 있으면 더 낫다.",
+    "A2:1462 앵커 검증 결과 행의 '바로 위 실행 인가 대조' — 그 행은 바로 아래(A2:1463)다. 지시 대상이 이름으로 특정돼 모호하지 않다.",
+    "같은 행이 3수를 'C-4 (i)(ii)가 대조하도록 지정한 수치'라 하는데 3수는 (i)이고 (ii)는 러너 lock ↔ EXECUTION 1:1이다.",
+    "V2-C008 F1 시정 요구 4항(권고, 과소승격 회귀 주입)이 이행되지 않았다 — §6.3.1에 '종류가 확정된 gate가 실제로 승격되는가'를 태우는 행이 없다(I-45는 과승격 차단, I-48은 UNDETERMINED 비승격). 문서 모순은 닫혔고 주입 목록은 설계상 전수가 아니며 LANE C Q9-* 소관이다. finding으로 열지 않되 P-C fixture에 권고로 넘긴다.",
+    "area_quantized는 정렬 키 표현식으로만 등장하고 저장을 주장하지 않으므로 A2 §1.13(§5.1 관할) 등재 대상이 아니다.",
+    "A1 §7 ↔ A2 §6.4 개수 표기 어긋남(V2-C008 §8 관찰 5)이 그대로다. 이번 판이 건드리지 않았다."
+  ],
+  "not_done": [
+    "전면 재감사",
+    "실제 웹사이트 접속",
+    "Pilot 열람",
+    "다른 워크트리 쓰기",
+    "diff 범위 밖 절 재감사 (R-1 · E-6b · §1.3.1 · v1 부채 6건 · ned-ied minimality 나머지)",
+    "C-3 · C-4 · C-5-② 판정 (기한 미도래)"
+  ],
+  "operational_note_for_control": "V2_SSOT_FROZEN-blocking 잔여는 둘이다 — exec 소관 C-5-①(G3)과 control 소관 C-1. 둘 다 이행되면 이 클래스가 비운다. G1·G2는 E001_V2 클래스이므로 이 관문을 막지 않는다. rc-6-r1 원장 전이 시 상태값 정의 문구·accepted_by·accepted_at·scope·conditions·lapse_rule을 함께 기입하고, promote_landing_main.sh [DEBT_RECOMPUTE]가 ACCEPTED_BOUNDED_RESIDUAL_RISK를 인식해 제외 건수를 별도 출력하도록 갱신해야 한다."
+}
