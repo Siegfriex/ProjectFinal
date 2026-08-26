@@ -1,0 +1,58 @@
+<!doctype html>
+<!--
+FIXTURE: auth_ambiguous_gate       gate 종류 = 판별 불가
+검증 대상 (Q-9 2항): **강제분류하지 않는 경로가 실제로 존재하는가.**
+
+이 화면은 로그인 신호와 본인인증 신호를 **동시에** 갖는다 — 한국 서비스에서
+"로그인 또는 휴대폰 본인확인으로 계속하기" 형태로 흔히 나타나는 구성이다. [추정]
+  로그인 쪽: <input type=password> · autocomplete="username" · "로그인" 버튼
+  본인인증 쪽: 통신사 선택 · autocomplete="tel" · "본인확인" 어휘 · 인증번호 입력
+
+기대:
+  classify_gate_kind → UNDETERMINED (강제분류 없음)
+  어느 archetype 에서도 endpoint 로 승격되지 않는다 → AUTH_GATE_REACHED, MPFED = NULL
+  `A2 §1.5.1a`: "codebook 이 가르지 못한 gate 는 endpoint 로 승격시키지 않는다 —
+   모호할 때 endpoint 로 올리는 방향의 기본값을 두지 않는다"
+
+이 fixture 가 없으면 판별기의 abstain 경로가 한 번도 태워지지 않는다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>계속하기 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  label{display:block;margin-top:12px;font-size:14px}
+  input,select{display:block;width:100%;box-sizing:border-box;min-height:48px;margin-top:4px;
+        font-size:16px;border:1px solid #555;border-radius:6px;padding:0 12px}
+  button{margin-top:16px;width:100%;min-height:48px;font-size:16px;
+         background:#0b4f9e;color:#fff;border:0;border-radius:6px}
+  hr{margin:24px 0}
+</style></head>
+<body data-fixture="auth_ambiguous_gate" data-gate-kind="UNDETERMINED_BY_DESIGN">
+<h1 style="font-size:20px">로그인 또는 본인확인으로 계속하기</h1>
+
+<form action="/login" method="post">
+  <label for="uid">아이디</label>
+  <input id="uid" name="userId" type="text" autocomplete="username">
+  <label for="pw">비밀번호</label>
+  <input id="pw" name="password" type="password" autocomplete="current-password">
+  <button type="submit">로그인</button>
+</form>
+
+<hr>
+
+<form action="/identity" method="post">
+  <p>계정이 없으시면 휴대폰 본인확인으로 계속할 수 있습니다.</p>
+  <label for="carrier">통신사</label>
+  <select id="carrier" name="carrier">
+    <option value="SKT">SKT</option>
+    <option value="KT">KT</option>
+    <option value="LGU">LG U+</option>
+    <option value="MVNO">알뜰폰</option>
+  </select>
+  <label for="ph">휴대전화번호</label>
+  <input id="ph" name="phone" type="tel" autocomplete="tel">
+  <label for="otp">인증번호</label>
+  <input id="otp" name="authNumber" type="text" placeholder="인증번호 6자리">
+</form>
+</body></html>

@@ -1,0 +1,690 @@
+"""L0 collector — `02 §2` · `§3` · `§4` · `§5` · `§6` · `A1 §3` · `§5` · `§6`.
+
+**이 수집기는 fixture 만 연다.** 모든 항해가 `firewall.assert_navigation_allowed` 를 거치고,
+그 함수는 `file://` 이 아닌 scheme 을 전부 거부한다 (`PHASE_GATES §4.5`).
+
+## 층 분리
+
+`02 §4` — *probe 는 판정하지 않고 raw feature 만 저장한다.*
+그래서 `l0_probe.js` 는 임계값을 갖지 않고, 이 모듈도 KWCAG verdict 를 만들지 않는다.
+여기서 만들어지는 파생값(`primary_action_occlusion` 등)은 `01 §4`·`§5` 가 요구하는
+**Axis B 관측 변수**이며 criterion 판정이 아니다 (`A2` 전파 규칙 T-5).
+
+## L0-a / L0-b / L0-c (A1 §3.1)
+
+| 단계 | 내용 | 조작 |
+|---|---|---|
+| L0-a | DOM · AX · computed CSS · geometry · screenshot 2종 · probe | 없음 |
+| L0-b | interrupt 후보 · 공간검사 · blocking · 의미분류 · dismiss control 검사 | 없음 |
+| L0-c | dismissal 실제 시도 (interrupt 당 1회, before/after evidence) | 있음 |
+
+L0-a 의 evidence 가 확정된 뒤에만 L0-c 를 수행하고, L0-c 는 L0-a 를 **덮어쓰지 않는다.**
+요약 변수(`max_overlay_coverage` · `primary_action_visible_initial` …)는 **L0-a 상태에서만** 산출한다.
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+from .evidence import EvidenceRun
+from .firewall import ExecutionMode, assert_navigation_allowed
+from .identity import missing_slots, observation_id
+from .provenance import PROTOCOL_VERSION, utc_now_iso
+from .vocabulary import (
+    NAME_ABSENT,
+    ClassificationStatus,
+    DismissFailureMode,
+    DismissMethod,
+    InteractionArchetype,
+    InterruptLabel,
+    MeasurementStatus,
+)
+
+if TYPE_CHECKING:  # pragma: no cover - 타입 전용
+    from playwright.sync_api import Page
+
+PROBE_JS = (Path(__file__).parent / "l0_probe.js").read_text(encoding="utf-8")
+
+# ── `02 §2` 공통 모바일 환경 ──────────────────────────────────────────────────
+VIEWPORT_WIDTH = 390
+VIEWPORT_HEIGHT = 844
+DEVICE_SCALE_FACTOR = 3
+LOCALE = "ko-KR"
+TIMEZONE_ID = "Asia/Seoul"
+MOBILE_USER_AGENT = (
+    "Mozilla/5.0 (Linux; Android 13; SM-S911N) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
+)
+
+#: `02 §3` 고정 안정화 대기 규칙. P-C 수집 파라미터이며 해석 임계값이 아니다.
+SETTLE_MS = 400
+NAV_TIMEOUT_MS = 15_000
+
+#: `A1 §5.1` — 저장할 대표기능 후보 수. P-C 동결값.
+TOP_N_CANDIDATES = 5
+
+_COMPUTED_CSS_PROPERTIES = (
+    "display",
+    "visibility",
+    "opacity",
+    "position",
+    "z-index",
+    "overflow",
+    "color",
+    "background-color",
+    "background-image",
+    "font-size",
+    "font-weight",
+    "line-height",
+    "animation-name",
+    "animation-iteration-count",
+    "pointer-events",
+)
+
+_COMPUTED_CSS_JS = """
+(props) => [...document.querySelectorAll('body *')].slice(0, 1500).map((el, i) => {
+  const cs = getComputedStyle(el);
+  const r = el.getBoundingClientRect();
+  const o = { index: i, tag: el.tagName.toLowerCase(), id: el.id || null,
+    box: {x:+r.x.toFixed(2), y:+r.y.toFixed(2), w:+r.width.toFixed(2), h:+r.height.toFixed(2)} };
+  props.forEach((p) => { o[p] = cs.getPropertyValue(p); });
+  return o;
+})
+"""
+
+_DISMISS_STATE_JS = """
+(selector) => {
+  const el = document.querySelector(selector);
+  if (!el) return { present: false, viewport_overlap: 0, hittable: false };
+  const r = el.getBoundingClientRect();
+  const w = Math.max(0, Math.min(r.x + r.width, window.innerWidth) - Math.max(r.x, 0));
+  const h = Math.max(0, Math.min(r.y + r.height, window.innerHeight) - Math.max(r.y, 0));
+  const cx = Math.min(Math.max(r.x + r.width / 2, 0), window.innerWidth - 1);
+  const cy = Math.min(Math.max(r.y + r.height / 2, 0), window.innerHeight - 1);
+  const top = document.elementFromPoint(cx, cy);
+  return { present: true, viewport_overlap: +(w * h).toFixed(2),
+           hittable: !!top && (top === el || el.contains(top)) };
+}
+"""
+
+#: `02 §5` 4차 의미분류의 결정적 사전. **탐지 사전이며 판정 기준이 아니다.**
+_LABEL_RULES: tuple[tuple[InterruptLabel, tuple[str, ...]], ...] = (
+    (InterruptLabel.COOKIE_CONSENT, ("쿠키", "cookie")),
+    (InterruptLabel.APP_INSTALL_PROMPT, ("앱 설치", "앱으로 보기", "app store", "install app")),
+    (InterruptLabel.LOGIN_PROMPT, ("로그인", "sign in", "log in")),
+    (InterruptLabel.CHAT_WIDGET, ("상담", "채팅", "문의하기", "chat")),
+    (InterruptLabel.PROMOTION_MODAL, ("이벤트", "할인", "쿠폰", "프로모션", "혜택", "sale")),
+    (InterruptLabel.ADVERTISEMENT, ("광고", "sponsored", "advertisement")),
+)
+
+
+@dataclass(frozen=True)
+class FixtureTarget:
+    """이 lane 이 측정할 수 있는 유일한 대상 — 로컬 synthetic fixture."""
+
+    web_target_id: str
+    fixture: str
+    archetype: InteractionArchetype
+    task_id: str = "T-FIXTURE"
+
+    def url(self, fixture_root: Path) -> str:
+        return f"file://{(Path(fixture_root) / self.fixture).resolve()}"
+
+
+@dataclass
+class InterruptRecord:
+    """`01 §5 fact_interrupt_element` 한 행 (fixture engine 산출)."""
+
+    interrupt_index: int
+    selector: str
+    candidate_sources: list[str]
+    viewport_overlap_css_px2: float
+    viewport_coverage: float
+    classification_status: str
+    final_label: str
+    blocks_primary_action: int
+    primary_action_occlusion: float | None
+    dismiss_control_exists: int
+    dismiss_control_visible: int | None
+    dismiss_control_accessible_name: str | None
+    dismiss_control_width: float | None
+    dismiss_control_height: float | None
+    dismiss_persistence_hint: int
+    dismiss_method: str | None = None
+    dismiss_succeeded: int | None = None
+    dismiss_failure_mode: str | None = None
+    dismiss_screenshot_before: str | None = None
+    dismiss_screenshot_after: str | None = None
+    dismiss_dom_after: str | None = None
+
+
+@dataclass
+class PrimaryActionCandidate:
+    """`A1 §5.1 fact_primary_action_candidate` 한 행. **분모(`area_css_px2`)를 보존한다.**"""
+
+    candidate_id: int
+    task_id: str
+    rank: int
+    selector: str
+    control_role: str | None
+    accessible_name: str | None
+    visible_text: str | None
+    nearby_heading: str | None
+    href: str | None
+    bbox_x: float
+    bbox_y: float
+    bbox_w: float
+    bbox_h: float
+    area_css_px2: float
+    viewport_visible: int
+    similarity_score: float | None
+    selection_basis: str
+    selection_status: str
+    selection_confidence: float | None
+    ai_review_status: str
+
+
+@dataclass
+class L0Observation:
+    """`01 §4 fact_landing_observation` 한 행 + 그 관측의 하위 표들."""
+
+    observation_id: str
+    web_target_id: str
+    evidence_run_id: str
+    requested_url: str
+    final_url: str | None
+    measurement_status: str
+    measurement_status_detail: str | None
+    collection_started_at: str
+    collection_finished_at: str
+    audit_date: str
+    viewport_configured_width: int
+    viewport_configured_height: int
+    viewport_width: int | None
+    viewport_height: int | None
+    device_pixel_ratio: float | None
+    dom_path: str | None
+    ax_path: str | None
+    screenshot_initial_path: str | None
+    screenshot_fullpage_path: str | None
+    computed_css_path: str | None
+    probe_path: str | None
+    manifest_path: str
+    max_overlay_coverage: float | None
+    primary_action_visible_initial: int | None
+    max_primary_action_occlusion: float | None
+    interrupts: list[InterruptRecord] = field(default_factory=list)
+    primary_action_candidates: list[PrimaryActionCandidate] = field(default_factory=list)
+    raw_features: dict[str, Any] = field(default_factory=dict)
+    notes: list[str] = field(default_factory=list)
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def _overlap(a: dict[str, float] | None, b: dict[str, float] | None) -> float:
+    if not a or not b:
+        return 0.0
+    w = max(0.0, min(a["x"] + a["w"], b["x"] + b["w"]) - max(a["x"], b["x"]))
+    h = max(0.0, min(a["y"] + a["h"], b["y"] + b["h"]) - max(a["y"], b["y"]))
+    return round(w * h, 2)
+
+
+def classify_interrupt(candidate: dict[str, Any]) -> tuple[ClassificationStatus, InterruptLabel]:
+    """`02 §5` 4차 의미분류 중 **결정적 1순위**만 수행한다.
+
+    확정하지 못하면 `AMBIGUOUS` + `UNKNOWN` 이다 (`A2` 규칙 I-1).
+    억지로 라벨을 고르지 않는다 — semantic/VLM 단계는 `ai_review` 층의 일이다.
+    """
+    if candidate.get("viewport_overlap_css_px2", 0) <= 0:
+        return ClassificationStatus.NOT_CLASSIFIED, InterruptLabel.UNKNOWN
+
+    text = " ".join(
+        str(x) for x in (candidate.get("accessible_text"), candidate.get("aria_label")) if x
+    ).lower()
+    for label, needles in _LABEL_RULES:
+        if any(n.lower() in text for n in needles):
+            return ClassificationStatus.DETERMINISTIC, label
+
+    sources = set(candidate.get("candidate_sources") or ())
+    modal_like = {"dialog_element", "role_dialog", "aria_modal"} & sources
+    if modal_like and candidate.get("viewport_coverage", 0) >= 0.5:
+        return ClassificationStatus.DETERMINISTIC, InterruptLabel.BLOCKING_MODAL
+    if modal_like:
+        return ClassificationStatus.DETERMINISTIC, InterruptLabel.PROMOTION_MODAL
+    if "position_sticky" in sources or "position_fixed" in sources:
+        return ClassificationStatus.DETERMINISTIC, InterruptLabel.BANNER
+    return ClassificationStatus.AMBIGUOUS, InterruptLabel.UNKNOWN
+
+
+def rank_primary_action_candidates(
+    raw: list[dict[str, Any]], *, task_id: str, top_n: int = TOP_N_CANDIDATES
+) -> list[PrimaryActionCandidate]:
+    """`02 §6` 후보 랭킹. 이 lane 은 **결정적 규칙만** 쓴다.
+
+    embedding similarity 는 P-A codebook 이 archetype endpoint 문안을 동결한 뒤에야
+    의미가 생긴다. 그때까지 `similarity_score = None`, `selection_basis = DETERMINISTIC_RULE` 이다 —
+    `A2 §3` 규칙 G-1(최소 등급 원칙)이 요구하는 자리 그대로다.
+
+    후보를 **버리지 않는다** (`A2` 규칙 C-3): 상위 `top_n` 은 `SELECTED`/`RUNNER_UP`,
+    나머지는 `REJECTED` 로 남는다.
+    """
+
+    def score(c: dict[str, Any]) -> tuple[int, float]:
+        marked = 1 if c.get("marked_primary") else 0
+        area = float(c.get("area_css_px2") or 0.0)
+        visible = 1 if c.get("viewport_visible") else 0
+        return (marked * 2 + visible, area)
+
+    ordered = sorted(raw, key=score, reverse=True)
+    out: list[PrimaryActionCandidate] = []
+    for i, c in enumerate(ordered):
+        box = c.get("box") or {"x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0}
+        if i == 0:
+            status = "SELECTED"
+        elif i < top_n:
+            status = "RUNNER_UP"
+        else:
+            status = "REJECTED"
+        out.append(
+            PrimaryActionCandidate(
+                candidate_id=i,
+                task_id=task_id,
+                rank=i + 1,
+                selector=str(c.get("selector")),
+                control_role=c.get("role") or c.get("tag"),
+                accessible_name=c.get("aria_label") or c.get("visible_text"),
+                visible_text=c.get("visible_text"),
+                nearby_heading=c.get("nearby_heading"),
+                href=c.get("href"),
+                bbox_x=float(box["x"]),
+                bbox_y=float(box["y"]),
+                bbox_w=float(box["w"]),
+                bbox_h=float(box["h"]),
+                area_css_px2=float(c.get("area_css_px2") or 0.0),
+                viewport_visible=1 if c.get("viewport_visible") else 0,
+                similarity_score=None,
+                selection_basis="DETERMINISTIC_RULE",
+                selection_status=status,
+                selection_confidence=None,
+                ai_review_status="NOT_REQUIRED",
+            )
+        )
+    return out
+
+
+class L0Collector:
+    """fixture 를 열어 L0 evidence 와 raw feature 를 수집한다."""
+
+    def __init__(
+        self,
+        run: EvidenceRun,
+        *,
+        fixture_root: Path,
+        execution_mode: ExecutionMode = ExecutionMode.FIXTURE,
+    ) -> None:
+        self.run = run
+        self.fixture_root = Path(fixture_root).resolve()
+        self.execution_mode = execution_mode
+
+    # ── 브라우저 컨텍스트 ──────────────────────────────────────────────────
+    def _new_context(self, browser: Any) -> Any:
+        """`02 §2` — fresh context, 로그인·쿠키 없음, ko-KR / Asia/Seoul / mobile UA / touch."""
+        return browser.new_context(
+            viewport={"width": VIEWPORT_WIDTH, "height": VIEWPORT_HEIGHT},
+            device_scale_factor=DEVICE_SCALE_FACTOR,
+            is_mobile=True,
+            has_touch=True,
+            locale=LOCALE,
+            timezone_id=TIMEZONE_ID,
+            user_agent=MOBILE_USER_AGENT,
+            java_script_enabled=True,
+        )
+
+    @staticmethod
+    def _ax_tree(context: Any, page: Page) -> list[dict[str, Any]]:
+        """CDP 로 AX tree 를 가져온다 (Playwright 1.62 에서 `page.accessibility` 제거됨)."""
+        cdp = context.new_cdp_session(page)
+        try:
+            cdp.send("Accessibility.enable")
+            nodes = cdp.send("Accessibility.getFullAXTree").get("nodes", [])
+        finally:
+            cdp.detach()
+        slim: list[dict[str, Any]] = []
+        for n in nodes:
+            role = (n.get("role") or {}).get("value")
+            if role in (None, "none", "InlineTextBox"):
+                continue
+            name_node = n.get("name") or {}
+            slim.append(
+                {
+                    "nodeId": n.get("nodeId"),
+                    "backendDOMNodeId": n.get("backendDOMNodeId"),
+                    "role": role,
+                    # 이름이 계산되지 않은 것과 빈 문자열을 구분해 남긴다 (A2 §1.6 NAME_ABSENT).
+                    "name": name_node.get("value"),
+                    "name_computed": "value" in name_node,
+                    "ignored": n.get("ignored", False),
+                    "properties": [
+                        {"name": p.get("name"), "value": (p.get("value") or {}).get("value")}
+                        for p in (n.get("properties") or [])
+                    ],
+                }
+            )
+        return slim
+
+    # ── 수집 ─────────────────────────────────────────────────────────────
+    def collect(self, target: FixtureTarget, *, dismiss_pass: bool = True) -> L0Observation:
+        from playwright.sync_api import sync_playwright
+
+        requested_url = assert_navigation_allowed(
+            self.execution_mode, target.url(self.fixture_root), fixture_root=self.fixture_root
+        )
+        started = utc_now_iso()
+        obs_id = observation_id(
+            web_target_id=target.web_target_id,
+            evidence_run_id=self.run.run_id,
+            requested_url=requested_url,
+            protocol_version=PROTOCOL_VERSION,
+            collection_started_at=started,
+        )
+        self.run.open_observation(obs_id)
+
+        notes: list[str] = []
+        status = MeasurementStatus.MEASURED
+        paths: dict[str, str | None] = dict.fromkeys(
+            ("dom", "ax", "screenshot_initial", "screenshot_fullpage", "computed_css", "probe"),
+            None,
+        )
+        probe: dict[str, Any] = {}
+        final_url: str | None = None
+        interrupts: list[InterruptRecord] = []
+        candidates: list[PrimaryActionCandidate] = []
+
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(headless=True)
+            context = self._new_context(browser)
+            page = context.new_page()
+            try:
+                page.goto(requested_url, wait_until="load", timeout=NAV_TIMEOUT_MS)
+                page.wait_for_timeout(SETTLE_MS)
+                final_url = page.url
+
+                # ── L0-a: 조작 없음 ──────────────────────────────────────
+                dom = page.content().encode("utf-8")
+                paths["dom"] = self._store(obs_id, "l0a/dom.html", dom)
+
+                ax = self._ax_tree(context, page)
+                paths["ax"] = self._store(obs_id, "l0a/ax.json", _json_bytes(ax))
+
+                css = page.evaluate(_COMPUTED_CSS_JS, list(_COMPUTED_CSS_PROPERTIES))
+                paths["computed_css"] = self._store(
+                    obs_id, "l0a/computed_css.json", _json_bytes(css)
+                )
+
+                paths["screenshot_initial"] = self._store(
+                    obs_id, "l0a/screen_initial.png", page.screenshot(full_page=False)
+                )
+                paths["screenshot_fullpage"] = self._store(
+                    obs_id, "l0a/screen_fullpage.png", page.screenshot(full_page=True)
+                )
+                # full-page 캡처를 위한 프로그램적 스크롤은 episode 가 아니다 (A2 규칙 EP-2).
+                page.evaluate("() => window.scrollTo(0, 0)")
+                page.wait_for_timeout(SETTLE_MS)
+
+                probe = page.evaluate(PROBE_JS)
+                paths["probe"] = self._store(obs_id, "l0a/probe.json", _json_bytes(probe))
+
+                # ── L0-b: 후보·공간·blocking·의미·dismiss control (조작 없음) ──
+                candidates = rank_primary_action_candidates(
+                    probe["raw_features"].get("primary_action_candidates", []),
+                    task_id=target.task_id,
+                )
+                interrupts = self._build_interrupts(probe, candidates)
+
+                # ── L0-c: dismissal 시도 (interrupt 당 정확히 1회) ─────────
+                if dismiss_pass and interrupts:
+                    self._dismiss_pass(page, obs_id, interrupts, probe)
+            except Exception as exc:
+                status = _classify_failure(exc)
+                notes.append(f"{type(exc).__name__}: {exc}")
+            finally:
+                context.close()
+                browser.close()
+
+        finished = utc_now_iso()
+        gaps = missing_slots({**paths, "manifest": "manifest.jsonl"})
+        if status is MeasurementStatus.MEASURED and gaps:
+            status = MeasurementStatus.FAILED_EVIDENCE_INCOMPLETE
+            notes.append(f"evidence 슬롯 결손: {gaps} (02 §11 · 07 §4)")
+
+        viewport = probe.get("raw_features", {}).get("viewport", {})
+        selected = next((c for c in candidates if c.selection_status == "SELECTED"), None)
+        occlusions = [i.primary_action_occlusion for i in interrupts if i.primary_action_occlusion]
+
+        return L0Observation(
+            observation_id=obs_id,
+            web_target_id=target.web_target_id,
+            evidence_run_id=self.run.run_id,
+            requested_url=requested_url,
+            final_url=final_url,
+            measurement_status=status.value,
+            measurement_status_detail=None,
+            collection_started_at=started,
+            collection_finished_at=finished,
+            audit_date=_audit_date(started),
+            viewport_configured_width=VIEWPORT_WIDTH,
+            viewport_configured_height=VIEWPORT_HEIGHT,
+            viewport_width=viewport.get("layout_width"),
+            viewport_height=viewport.get("layout_height"),
+            device_pixel_ratio=viewport.get("device_pixel_ratio"),
+            dom_path=paths["dom"],
+            ax_path=paths["ax"],
+            screenshot_initial_path=paths["screenshot_initial"],
+            screenshot_fullpage_path=paths["screenshot_fullpage"],
+            computed_css_path=paths["computed_css"],
+            probe_path=paths["probe"],
+            manifest_path="manifest.jsonl",
+            max_overlay_coverage=(
+                max((i.viewport_coverage for i in interrupts), default=0.0) if interrupts else 0.0
+            ),
+            # 규칙 C-1 — SELECTED 후보가 0행이면 NULL 이지 0 이 아니다.
+            primary_action_visible_initial=(
+                selected.viewport_visible if selected is not None else None
+            ),
+            max_primary_action_occlusion=(max(occlusions) if occlusions else 0.0),
+            interrupts=interrupts,
+            primary_action_candidates=candidates,
+            raw_features=probe.get("raw_features", {}),
+            notes=notes,
+        )
+
+    # ── 내부 ─────────────────────────────────────────────────────────────
+    def _store(self, obs_id: str, relpath: str, data: bytes) -> str:
+        """산출물을 쓰고 **run 디렉터리 기준 상대경로**를 돌려준다 (`07 §3`).
+
+        경로를 `observation_id` 로 네임스페이스한다. manifest 의 유일성 키는
+        `(observation_id, relpath)` 라 논리적으로는 충돌하지 않지만, 두 관측이 같은
+        `l0a/dom.html` 을 쓰면 **디스크에서** 충돌한다. 그것을 덮어쓰기로 해결하면
+        `02 §12` append-only 가 깨지므로, 경로 자체를 관측별로 가른다.
+        """
+        namespaced = f"{obs_id}/{relpath}"
+        self.run.write_artifact(obs_id, namespaced, data)
+        return namespaced
+
+    def _build_interrupts(
+        self, probe: dict[str, Any], candidates: list[PrimaryActionCandidate]
+    ) -> list[InterruptRecord]:
+        raw = probe["raw_features"]
+        selected = next((c for c in candidates if c.selection_status == "SELECTED"), None)
+        primary_box = (
+            {
+                "x": selected.bbox_x,
+                "y": selected.bbox_y,
+                "w": selected.bbox_w,
+                "h": selected.bbox_h,
+            }
+            if selected
+            else None
+        )
+        by_container = {
+            d["container_selector"]: d for d in raw.get("dismiss_control_candidates", [])
+        }
+        scroll_locked = bool(raw.get("body_scroll_lock", {}).get("locked"))
+
+        records: list[InterruptRecord] = []
+        for idx, cand in enumerate(raw.get("modal_overlay_candidates", [])):
+            if not cand.get("visible"):
+                continue
+            status, label = classify_interrupt(cand)
+            overlap = _overlap(cand.get("box"), primary_box)
+            occlusion = (
+                round(overlap / selected.area_css_px2, 4)
+                if selected and selected.area_css_px2 > 0
+                else None
+            )
+            # `02 §5` 3차 — 대표기능을 완전히 가리거나 body scroll lock 이면 blocking.
+            blocking = int(
+                (occlusion is not None and occlusion >= 0.999)
+                or (scroll_locked and cand.get("viewport_coverage", 0) >= 0.5)
+            )
+
+            dismiss = by_container.get(cand.get("selector"), {})
+            controls = dismiss.get("dismiss_control_candidates") or []
+            best = next(
+                (c for c in controls if c.get("hittable")), controls[0] if controls else None
+            )
+            exists = 1 if best else 0
+            visible_flag: int | None = None
+            if best:
+                visible_flag = int(
+                    best.get("display") != "none"
+                    and best.get("visibility") != "hidden"
+                    and float(best.get("opacity") or 1) > 0.01
+                    and float(best.get("viewport_overlap_css_px2") or 0) > 0
+                    and bool(best.get("hittable"))
+                )
+
+            records.append(
+                InterruptRecord(
+                    interrupt_index=idx,
+                    selector=str(cand.get("selector")),
+                    candidate_sources=list(cand.get("candidate_sources") or []),
+                    viewport_overlap_css_px2=float(cand.get("viewport_overlap_css_px2") or 0.0),
+                    viewport_coverage=float(cand.get("viewport_coverage") or 0.0),
+                    classification_status=status.value,
+                    final_label=label.value,
+                    blocks_primary_action=blocking,
+                    primary_action_occlusion=occlusion,
+                    dismiss_control_exists=exists,
+                    dismiss_control_visible=visible_flag,
+                    # NAME_ABSENT(이름 없음이 관측됨) 과 NULL(잴 대상 없음) 을 섞지 않는다.
+                    dismiss_control_accessible_name=(
+                        (best.get("accessible_name_source") or NAME_ABSENT) if best else None
+                    ),
+                    dismiss_control_width=(best.get("width_css_px") if best else None),
+                    dismiss_control_height=(best.get("height_css_px") if best else None),
+                    dismiss_persistence_hint=int(bool(best and best.get("persistence_hint"))),
+                )
+            )
+        return records
+
+    def _dismiss_pass(
+        self,
+        page: Page,
+        obs_id: str,
+        interrupts: list[InterruptRecord],
+        probe: dict[str, Any],
+    ) -> None:
+        """`A1 §3.3` 6차 — interrupt 당 **정확히 1회** 시도하고 before/after 를 남긴다."""
+        by_container = {
+            d["container_selector"]: d
+            for d in probe["raw_features"].get("dismiss_control_candidates", [])
+        }
+        for rec in interrupts:
+            before = f"l0c/{rec.interrupt_index}/screen_before.png"
+            rec.dismiss_screenshot_before = self._store(
+                obs_id, before, page.screenshot(full_page=False)
+            )
+
+            method = DismissMethod.NONE
+            failure: DismissFailureMode | None = None
+            container = by_container.get(rec.selector, {})
+            controls = container.get("dismiss_control_candidates") or []
+            control = next((c for c in controls if c.get("hittable")), None)
+
+            try:
+                if rec.dismiss_control_visible and control:
+                    method = DismissMethod.CONTROL_CLICK
+                    page.click(control["selector"], timeout=2000)
+                elif container.get("is_dialog_element"):
+                    method = DismissMethod.DIALOG_CLOSE
+                    page.evaluate(
+                        "(s) => { const d = document.querySelector(s); if (d && d.close) d.close(); }",
+                        rec.selector,
+                    )
+                elif controls:
+                    method = DismissMethod.CONTROL_CLICK
+                    failure = DismissFailureMode.NOT_HITTABLE
+                else:
+                    method = DismissMethod.ESCAPE_KEY
+                    page.keyboard.press("Escape")
+            except Exception:
+                failure = DismissFailureMode.NOT_HITTABLE
+
+            page.wait_for_timeout(SETTLE_MS)
+            state = page.evaluate(_DISMISS_STATE_JS, rec.selector)
+            succeeded = int(
+                not state["present"] or state["viewport_overlap"] <= 0 or not state["hittable"]
+            )
+            if not succeeded and failure is None:
+                failure = DismissFailureMode.NO_STATE_CHANGE
+            if not controls and not container.get("is_dialog_element") and not succeeded:
+                failure = DismissFailureMode.NO_CONTROL
+                method = DismissMethod.NONE
+
+            rec.dismiss_method = method.value
+            rec.dismiss_succeeded = succeeded
+            # dismiss_succeeded = 1 ↔ dismiss_failure_mode IS NULL (A2 §1.6 동치)
+            rec.dismiss_failure_mode = (
+                None if succeeded else (failure or DismissFailureMode.NO_STATE_CHANGE).value
+            )
+            rec.dismiss_screenshot_after = self._store(
+                obs_id,
+                f"l0c/{rec.interrupt_index}/screen_after.png",
+                page.screenshot(full_page=False),
+            )
+            rec.dismiss_dom_after = self._store(
+                obs_id,
+                f"l0c/{rec.interrupt_index}/dom_after.html",
+                page.content().encode("utf-8"),
+            )
+
+
+def _json_bytes(obj: Any) -> bytes:
+    return (json.dumps(obj, ensure_ascii=False, sort_keys=True, indent=1) + "\n").encode("utf-8")
+
+
+def _audit_date(started_at: str) -> str:
+    """`A1 §6.1` — `audit_date` 는 `collection_started_at` 의 파생이지 독립 입력이 아니다."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    dt = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+    return dt.astimezone(ZoneInfo(TIMEZONE_ID)).date().isoformat()
+
+
+def _classify_failure(exc: BaseException) -> MeasurementStatus:
+    """`02 §13` — 수집 실패는 접근성 FAIL 이 아니다. 별도 measurement status 로 기록한다."""
+    name = type(exc).__name__
+    text = str(exc).lower()
+    if "timeout" in name.lower() or "timeout" in text:
+        return MeasurementStatus.FAILED_PAGE_TIMEOUT
+    if "crash" in text or "closed" in text:
+        return MeasurementStatus.FAILED_BROWSER_CRASH
+    if "net::" in text or "dns" in text:
+        return MeasurementStatus.FAILED_ROBOTS_OR_TRANSPORT
+    return MeasurementStatus.FAILED_EVIDENCE_INCOMPLETE
