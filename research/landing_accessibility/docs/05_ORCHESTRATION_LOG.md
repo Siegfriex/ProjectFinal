@@ -367,3 +367,97 @@ reconciliation / promotion / gate_before / gate_after / accepted·rejected·defe
 
 **commit message 를 상태 데이터베이스로 쓰지 않는다.**
 
+## 12. PROM-001 — closed loop 완주
+
+```
+main   32460b87334a67f6a74823ac55f85ca80a9f8980  →  edb0478f56d06ed65cd03680727e366700ac7e84
+Pilot  32460b87  (lock_branch, 불변)
+```
+
+### 12-1. 승격까지의 경로
+
+```
+C009 executor        감사 수용 12건 시정                       fe86e190
+  ├ adversarial      PASS  P0 0 / P1 2 / P2 5                fd9773a1
+  └ ssot             PASS  P0 0 / P1 2                       7c928f5b
+C009 재결            accepted 8 / rejected 0 → promotion BLOCKED   bc248ff1
+C011 executor        P1 3건 + P2 5건 시정                      edb0478f
+  ├ adversarial      PASS  P0 0 / P1 0 / P2 5                903e2472
+  │                  p1_remediation_verified 3/3 true
+  └ ssot             PASS  P0 0 / P1 0 / P2 7                695caed7
+                     a1_source_unmodified true
+C011 재결            accepted 11 / rejected 0 / deferred 11    27bbbf37
+PROM-001             3중 보호 통과 후 승격
+```
+
+**감사가 promotion 을 실제로 두 번 막았다.** C009 의 P1 3건이 identity/source/provenance 를 깨고 있었고,
+그것이 해소되기 전에는 어떤 executor 주장으로도 문이 열리지 않았다.
+
+### 12-2. 승격 결정 필드
+
+두 감사관에게 promotion 가부를 직접 결정하는 필드를 심었다.
+
+| 필드 | 담당 | 의미 |
+|---|---|---|
+| `p1_remediation_verified` | adversarial | P1 3건이 **실제로** 해소됐는가 |
+| `a1_source_unmodified` | ssot | verbatim 복원을 **원문 수정으로 맞춘 것은 아닌가** |
+
+후자가 특히 중요했다. 원문을 고쳐서 일치시켰다면 그것은 A1 변조이고 즉시 P0다.
+ssot 은 `git diff fe86e190..edb0478 -- sources/wiseapp/raw` 가 빈 출력임을 확인하고,
+raw 4종 sha256 을 재계산해 매니페스트와 전건 일치시켰다.
+
+### 12-3. U+00A0 — verbatim 의 진짜 의미
+
+원문 INDEX 의 Chapter 1 세 절은 `세대` 뒤에 U+00A0 를 쓰고, Ch2~4 의 8개 절은 쓰지 않는다.
+executor 가 그 **비대칭까지 그대로** 복원했고, ssot 이 원문에 U+00A0 가 94회 실재하며
+INDEX 에서는 정확히 그 세 절에만 나타남을 독립 확인했다.
+
+```
+C009  SAME  0 / MISMATCH 11
+C011  SAME 15 / MISMATCH  0   (chapter 4 + section 11)
+```
+
+**"비슷하게 맞췄다" 는 verbatim 이 아니다.**
+
+### 12-4. 검증의 한쪽 끝은 원본이어야 한다
+
+C009 의 "1:1 대조가 코드로 강제된다" 는 주장은 실제로는
+`index_from_source`(파생 A) 와 `source_section_title`(파생 B) 의 일치였다.
+둘 다 같은 방식으로 원문에서 벗어나면 통과한다. 실제로 그랬다.
+
+C011 은 테스트의 한쪽 끝을 `raw/wiseapp933_text.txt` 파싱으로 바꿨고,
+adversarial 이 `BODY_TEXT` 가 정말 그 파일을 읽는지 **코드로** 확인했다.
+
+### 12-5. 반례 주입 — 테스트가 진짜 잡는지 검사
+
+adversarial 이 P1-1 위치정렬 시정을 검증할 때 naver 그룹의 `member_domains` 순서만 뒤집었다.
+집합은 불변이므로 C009 의 기존 테스트는 통과한다. 신규 테스트는 정확한 위치와 이유를 찍고 실패했다.
+
+**테스트가 무엇을 검사하는지 읽지 않으면 `pytest PASS` 는 아무 의미가 없다.**
+같은 감사에서 `matches_existing_c002_output` 이 실제 비교가 아니라 `existing.exists()` 였음도 드러났다.
+
+### 12-6. VERIFIED / UNVERIFIED 분리
+
+promotion 은 전체 연구의 PASS 가 아니다. `control/promotions/PROM-001.json` 에 범위를 못박았다.
+
+**VERIFIED (소스 계층 한정)** — A1 원문 무결 · 원문 구조 4/11/17 · INDEX verbatim ·
+261행 값 불변 · entity 81/82/142 · APP·RETAIL 137+124 · web_target_group 정렬 무결 ·
+사전판단 write-only 분리 · A2 스냅샷 COMPLETE · xlsx 유입 0
+
+**UNVERIFIED** — web eligibility · URL · certification join · feasibility ·
+measurement engine · judgment semantics · probe coverage · E000 · RQ2~4 성립 여부
+
+**KNOWN DEBT 11건** — 전부 P2, 검증 가능성 계열. ssot 이 *"명시적으로 유예하지 않으면 부채가
+조용히 사라진다"* 고 지적해 artifact 에 전량 기록했다.
+
+### 12-7. 하네스가 관리자 자신을 두 번 잡았다
+
+| # | 사건 | 탐지 | 시정 |
+|---|---|---|---|
+| P0 #1 | cwd 오염으로 Pilot 브랜치에 커밋 | `P0_VIOLATION pilot branch moved` | `git reset --mixed`, 원격 미오염 |
+| P0 #2 | exec 워크트리에 커밋 — executor 진행 중 작업 16파일을 삼킴 | `AUDIT_REQUIRED exec=2922af49` + `AUDIT_LAG` | `git -C reset --mixed`, 작업 17파일 전량 보존 |
+
+#1 의 예방책("절대경로 사용")이 **파일 경로에만 적용되고 git 명령에는 적용되지 않아** #2 가 재발했다.
+예방 v2 는 `git -C <절대경로>` 강제이고 cwd 의존 자체를 제거한다.
+
+**예방책이 근본원인의 일부만 덮으면 재발한다.**
