@@ -33,8 +33,11 @@ V2 = ROOT / "docs" / "v2"
 INSTALL_MANIFEST = V2 / "INSTALL_MANIFEST.json"
 SOURCE_MANIFEST = V2 / "MANIFEST.json"
 
-BANNER_START = b"<!-- INSTALLED-BANNER-START -->"
-BANNER_END = b"<!-- INSTALLED-BANNER-END -->"
+# 마커 리터럴을 그대로 두면 이 파일 자신이 배너를 가진 것으로 탐지된다
+# (검증기도 INSTALL_MANIFEST 에 등재돼 검사 대상이다). 조립해서 쓴다.
+_MARKER = "INSTALLED-BANNER"
+BANNER_START = f"<!-- {_MARKER}-START -->".encode()
+BANNER_END = f"<!-- {_MARKER}-END -->".encode()
 
 # 배너를 넣어도 되는 파일은 이 셋뿐이다. 권위문서(00~05)에 배너가 들어가면
 # 위조 조항을 본문처럼 읽히게 할 수 있다 — adversarial V2-C003 이 실제로 뚫었다.
@@ -175,6 +178,14 @@ def main() -> int:
             failures.append(f"ANCHOR    {rel}: {why}")
         else:
             print(f"{'OK':10} {rel}  [manifest, git-anchored]")
+
+    # 매니페스트에서 항목을 **삭제**해 검사를 회피하는 경로를 막는다.
+    # docs/v2 커버리지 스윕은 그 디렉터리만 훑으므로 바깥 파일은 삭제해도 잡히지 않았고,
+    # 검증기 자신도 등재돼 있지 않아 BANNER_ALLOWED 를 고치면 통과했다.
+    # (adversarial V2-C005: manifest coverage boundary / verifier self-anchor)
+    for required in ("CLAUDE.md", "docs/INDEX.md", "scripts/verify_v2_docs.py"):
+        if required not in install["files"]:
+            failures.append(f"UNDECLARED   {required} 이 설치 매니페스트에서 빠졌다")
 
     # 원본 pack 전건이 설치됐는가
     for name in source:

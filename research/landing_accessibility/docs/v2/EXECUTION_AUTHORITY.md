@@ -2,7 +2,7 @@
 
 **선언일** 2026-08-26
 **선언 주체** Main Orchestrator (P0 `V2_REFREEZE`)
-**최근 개정** V2-C004 — 두 독립감사(V2-C003)의 blocking finding 시정 반영
+**최근 개정** V2-C006 — 두 독립감사(V2-C005)의 blocking finding 시정 반영
 **성격** 기계적 권위 선언. 이 파일과 `00_SSOT_v2.0.md`가 충돌하면 `00_SSOT_v2.0.md`가 우선한다.
 
 ---
@@ -67,6 +67,33 @@ CURRENT_GATE                    = V2_SSOT_FROZEN (미달성)
 > 만들 수 있었다는 뜻이다. 이제 `verify_v2_docs.py` 가 (a) 허용목록 밖 파일의 배너를 거부하고,
 > (b) `banner_inserted` 선언과 실제를 대조하며, (c) 배너 영역 자체를 `banner_sha256` 으로
 > 앵커한다. 닫는 결함: `install-manifest-does-not-enforce-declared-banner-policy`
+
+---
+
+## 2.5 SHADOW / PREPARATORY WORK (A0, 2026-08-27)
+
+Research Director의 A0 결정으로 P0 종료 전에도 outcome-independent 준비작업을 **SHADOW 상태로**
+병렬 진행한다. 연구범위·측정정의는 불변이다.
+
+> **정책의 유일한 정의부는 `PHASE_GATES.md` §4다.** 금지 10항 · 허용 목록 ·
+> `SHADOW_PREPARATORY` provenance · lane 구성 · REAL-TARGET FIREWALL · 교차오염 금지 ·
+> shadow reconciliation · 감사 batching이 전부 거기 있다.
+> **이 문서는 정책표를 복제하지 않는다** — 복제는 그 자체가 drift다.
+
+이 선언이 여기 필요한 이유는 하나뿐이다. `E001_V2_STARTED = false` 와
+`FULL_COLLECTION_STARTED = NO` 는 A0 이후에도 그대로이며, shadow 산출물은
+`authoritative = false` 이므로 §1의 기계적 상태값을 바꾸지 않는다.
+
+### 현재 shadow lane
+
+| lane | 브랜치 | base |
+|---|---|---|
+| LANE A — P-A SHADOW | `agent/landing-pa-shadow` | `d5f1da5652953542d5c8be377026cc3293f2075a` |
+| LANE B — P-B PREWORK | `agent/landing-pb-prework` | 〃 |
+| LANE C — P-C FIXTURE | `agent/landing-pc-fixture` | 〃 |
+
+셋 다 `research/landing-accessibility-main` 으로 merge·promotion 금지이며,
+P0 종료 후 `PHASE_GATES.md` §4.7 reconciliation 을 거쳐야 authoritative 가 된다.
 
 ---
 
@@ -139,7 +166,7 @@ v1 부채 항목의 phase 스케줄(C013·P-B·P-D 등 v1 phase 이름)은 v2 ph
 | v2 executor | `agent/landing-v2-exec` | 본 커밋 |
 | old C013 WIP | `agent/landing-exec` | `87a0464e8159d5526069d5e654e648b0dae506ca` — `UNVERIFIED` / 분석입력 금지 / 삭제 금지 / selective salvage 후 재감사 |
 | Pilot | `research/refcohort-r1` | `32460b87334a67f6a74823ac55f85ca80a9f8980` — `READ_ONLY` |
-| adversarial audit | `audit/landing-adversarial` | V2-C003 @ `ea1d2448eedc80259b421a2b8bb3b840ba6dced8` |
+| adversarial audit | `audit/landing-adversarial` | V2-C005 @ `b7fd4677202640e8293c9c7a766fb624e88f3925` |
 | ssot audit | `audit/landing-ssot` | V2-C003 @ `43fab0acb3a9352c36b9c0b844cb44cef9f9d79d` |
 | orchestrator | `control/landing-orchestrator` | `bfa16624e55e15c4626e74547ed885156a8f2a9e` 이후 V2-C002 |
 
@@ -156,6 +183,8 @@ v1 부채 항목의 phase 스케줄(C013·P-B·P-D 등 v1 phase 이름)은 v2 ph
 | V2-C001 | `eb36d173182a582e8d7499f29170a83363f9d560` | FAIL — P0 0 / P1 3 / P2 4 | FAIL — P0 0 / P1 2 / P2 11 | 승격 차단, 시정 사이클 V2-C002 개시 |
 | V2-C002 | `6fad79fa98e1ec7d315122d79794b4d5442bb42e` | FAIL — P0 0 / P1 1 / P2 7 | FAIL — P0 0 / P1 0 / P2 4 | V2-C001 blocking 14건 **전건 CLOSED**. 신규 blocking 은 표기 수정 계열 + UNDETERMINED laundering 1건. 시정 사이클 V2-C003 개시 |
 | V2-C003 | `4a0585e05a2119f11d86e530162d9674e0268a53` | FAIL — P0 0 / P1 1 / P2 7 | FAIL — P0 0 / P1 0 / P2 5 | UNDETERMINED laundering 은 **감사자 독립 재구현으로 누수 0 확인 후 CLOSED**. 신규 최대 발견은 배너 주입으로 권위문서 위조가 가능했던 것. 시정 사이클 V2-C004 개시 |
+| V2-C004 | `d5f1da5652953542d5c8be377026cc3293f2075a` | FAIL — P0 0 / P1 1 / P2 3 · **Claude 세션이 API 한도로 중단되어 독립 감사자 Codex 가 대체 수행**, 브랜치 `audit/landing-adversarial-codex-c004` @ `1d96a48665c4c5d81625982eaba351b0f0d38968` | FAIL — P0 0 / P1 0 / P2 1 | 배너 정책이 `source_pack_name` 분기 안에 있어 **repo-authored 권위문서를 건너뛰었다**. Codex 가 committed A1 변조로 verifier PASS 를 재현. 시정 사이클 V2-C005 개시 |
+| V2-C005 | `684c792452af670caf5bbf2646cf41bd39a1ce99` | FAIL — P0 0 / P1 1 / P2 4 (정상 브랜치 복귀) | FAIL — P0 0 / P1 0 / P2 6 | 배너 우회 5/5 차단 확인 · A0 amendment **PASS**(정책표 복제 0, firewall 코드 강제) · shadow lane real-target 위반 **0**. 재수집 P1 은 same-anchor 재실행 경로가 남아 세 사이클 연속 OPEN. 시정 사이클 V2-C006 개시 |
 
 두 감사가 **동일 target SHA**를 감사했음이 확인됐다.
 문서 pack 내용 자체(scope creep · depth의 KWCAG 전환 · 인증 gold truth화 · human≤5 강제분류 ·

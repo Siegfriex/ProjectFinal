@@ -83,7 +83,7 @@
    | **EXC-2** `[V2-C004 시정]` | `01 §11` | `로그인 전까지만 가능 = AUTH_GATE_REACHED` | **두 archetype에 한해 저장값을 달리한다.** `FINANCIAL_ACTION_ENTRY`(로그인 gate·인증 gate)와 `COMMUNICATION_ENTRY`(**로그인 gate만**)에서 그 gate가 관측되면 `endpoint_status = FUNCTION_ENDPOINT_REACHED` + `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`로 기록한다. 나머지 5 archetype과 `COMMUNICATION_ENTRY`의 **본인인증 gate**는 `01 §11` 문면 그대로 `AUTH_GATE_REACHED`(개인정보 입력이 요구되면 `02 §7` `PERSONAL_DATA_REQUIRED`)다 | `00 §3` L1 표(권위 **1위**)가 그 두 행의 endpoint 정의 안에 gate를 넣었다. `00` > `01`이므로 충돌은 `00`을 따라 해소하며 그 해소는 이 문서의 몫이다(§0 1항·8항). 이탈은 **두 archetype**과 **`00 §3`이 그 행에 준 gate 종류**를 넘지 않는다(규칙 E-6 · E-6a) | `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE`가 gate로 실현된 endpoint를 전부 식별하고, `auth_gate_before_endpoint`(규칙 E-9)와 규칙 E-8 합집합이 `00 §11`·`01 §10`의 `auth gate` 지표를 과소집계 없이 유지한다. 규칙 E-10이 두 endpoint 의미를 층화해 `MPFED` 통계에서 섞이지 않게 한다 | §1.5.1 · §1.5.1a · §1.5.2 · §4.2 |
    | **EXC-3** `[V2-C004 시정]` | `02 §12` | `재수집 → 새 evidence run` | **기록 방식은 그대로 두고 절차를 부여한다.** 재수집의 횟수 상한·중단규칙·사전선언·정본 run 선택규칙을 §1.11.2 규칙 RC-1~RC-5로 정한다. 원본이 허용한 기록을 금지하지 않는다 — 상한을 넘은 run도 append-only로 남으며, 다만 **정본 지표에 들어가지 않는다** | `02 §12`는 재수집을 **어떻게 기록하는가**만 규정하고 **몇 번·무엇을·어떤 순서로** 재수집하는가에 침묵한다. 침묵을 그대로 두면 `UNDETERMINED`의 유일 탈출구(§1.11.2)가 **원하는 결과가 나올 때까지 다시 재는 통로**가 되고, 그것은 `00 §14`가 금지한 결론 유도다. 절차 부여는 원본의 값·정의·범위를 바꾸지 않으므로 §0 2항과 충돌하지 않는다 | 모든 run이 `02 §12` 그대로 append-only로 보존된다. 어느 run이 정본이고 어느 run이 재수집분인지, 사전선언이 있었는지, 재수집 전후로 `decision coverage`가 얼마나 움직였는지가 `03 Phase 5` 보고(RC-5)에 전부 노출된다 | §1.11.2 · §1.8 · §4.1 · §4.2 |
 
-   | **EXC-4** `[V2-C005 시정]` | `02 §11` · `02 §12` | `hash-based observation id 사용` · `재수집 → 새 evidence run` | **evidence identity와 append-only는 그대로 두고, 그 앞에 선행 앵커 층을 얹는다.** 재수집 시도는 시작 **이전에** git 추적 append-only 원장 `recollection_ledger.jsonl`에 등재·커밋·push되고, run manifest가 그 커밋 SHA를 참조한다(규칙 RC-6). 시도·중단·폐기된 run 전건이 같은 원장에 남는다(규칙 RC-7) | `02 §11`의 evidence identity는 **run이 끝난 뒤**의 산출물만 앵커한다. `02 §12`의 append-only도 **남은 run**만 보존한다. 둘 다 "이 run을 왜, 무엇을 기대하고 시작했는가"와 "몇 번 시도해서 무엇을 버렸는가"를 담지 않으므로, EXC-3의 사전선언이 run 자신의 산출물 안에만 있으면 **결과를 본 뒤 소급 작성(backdating)** 이 가능하다. 원본은 그 자리를 비워두었을 뿐 금지하지 않았고, 앵커 층은 원본의 값·정의·범위를 바꾸지 않는다 | 원장은 evidence를 대체하지 않는다 — `02 §11`의 7종 identity와 `02 §12`의 run 보존은 문면 그대로다. 원장은 그 **앞**에 순서를 고정하고, 앵커 digest가 run manifest에 들어가 `07 §3` manifest 등록을 통해 evidence 해시 집합에 묶인다 | §1.11.2 규칙 RC-6 · RC-7 · §4.2 · §5.7 V-9 · §6.3 |
+   | **EXC-4** `[V2-C005 시정]` | `02 §11` · `02 §12` | `hash-based observation id 사용` · `재수집 → 새 evidence run` | **evidence identity와 append-only는 그대로 두고, 그 앞에 선행 앵커 층을 얹는다.** 재수집 시도는 시작 **이전에** git 추적 append-only 원장 `recollection_ledger.jsonl`에 등재·커밋·push되고, run manifest가 그 커밋 SHA를 참조한다(규칙 RC-6). **실행 1회마다 control 인가 1건이 필요하고 `evidence_run_id`가 그 인가에서 유도된다** `[V2-C006 시정]`. 시도·중단·폐기된 run 전건이 같은 원장에 남는다(규칙 RC-7) | `02 §11`의 evidence identity는 **run이 끝난 뒤**의 산출물만 앵커한다. `02 §12`의 append-only도 **남은 run**만 보존한다. 둘 다 "이 run을 왜, 무엇을 기대하고 시작했는가"와 "몇 번 시도해서 무엇을 버렸는가"를 담지 않으므로, EXC-3의 사전선언이 run 자신의 산출물 안에만 있으면 **결과를 본 뒤 소급 작성(backdating)** 이 가능하다. 원본은 그 자리를 비워두었을 뿐 금지하지 않았고, 앵커 층은 원본의 값·정의·범위를 바꾸지 않는다 | 원장은 evidence를 대체하지 않는다 — `02 §11`의 7종 identity와 `02 §12`의 run 보존은 문면 그대로다. 원장은 그 **앞**에 순서를 고정하고, 앵커 digest가 run manifest에 들어가 `07 §3` manifest 등록을 통해 evidence 해시 집합에 묶인다 | §1.11.2 규칙 RC-6 · RC-7 · §4.2 · §5.7 V-9 · §6.3 · §6.3.1 |
 
    `V2-C002` ssot finding `app-only-reallocation-leaves-collection-time-discovery-unrepresented`가
    지적한 두 결손(**예외 미선언** · **수집 시점 발견 경로 부재**)을 이 항과 §1.2가 함께 닫는다.
@@ -136,8 +136,16 @@
 
 | finding id | 출처 · 심각도 | 재판정 사유 | 닫는 절 |
 |---|---|---|---|
-| `recollection-escape-path-unbounded-and-conclusion-prioritized` | adversarial `V2-C004` **P1 blocking** (`V2-C003`에서 승계, 재판정 **OPEN**) | RC-2 사전선언이 **새 run 자신의 manifest 안에만** 존재해 결과를 본 뒤 소급 작성할 수 있다. 시도·폐기된 run을 열거할 장치도 없다 | **§1.11.2 규칙 RC-6 · RC-7** · §0 5항 · §0 7항 **EXC-4** · §1.11 X-14 ⑤~⑦ · §4.2 · §5.7 **V-9** · §6.3 · §6.3.1 I-30~I-37 · §7 13항 |
+| `recollection-escape-path-unbounded-and-conclusion-prioritized` | adversarial `V2-C004` **P1 blocking** (`V2-C003`에서 승계, 재판정 **OPEN**) | RC-2 사전선언이 **새 run 자신의 manifest 안에만** 존재해 결과를 본 뒤 소급 작성할 수 있다. 시도·폐기된 run을 열거할 장치도 없다 | **§1.11.2 규칙 RC-6 · RC-7** · §0 5항 · §0 7항 **EXC-4** · §1.11 X-14 ⑤~⑦ · §4.2 · §5.7 **V-9** · §6.3 · §6.3.1 I-30~I-41 · §7 13항 |
 | `a1-0-3-jurisdiction-declaration-drifts-from-a2-and-collides-with-existing-section` | ssot `V2-C004` **P2 blocking** + adversarial `V2-C004` **ADV-C004-02** (두 감사 독립 재현) | A1 관할표와 A2 §0 목록이 서로 달랐고, A2가 옛 `A1 §0.2`를 가리키는 stale backlink가 4곳 남아 있었다. 스키마 허용값의 최종 권위를 고르는 routing 결함이다 | **§0 4항 대칭 관할표**(A1 §0.3과 글자 그대로 동일) · backlink 4곳 갱신 · A1 절 번호 이동 반영 2곳 |
+
+**`V2-C005` 두 감사가 연 결함 — 이 판(`V2-C006`)에서 닫는다** `[V2-C006 시정]`
+
+| finding id | 출처 · 심각도 | 무엇이 문제였나 | 닫는 절 |
+|---|---|---|---|
+| `recollection-escape-path-unbounded-and-conclusion-prioritized` | adversarial `V2-C005` **P1 blocking** (세 사이클 연속 OPEN) | 앵커 1건이 인가하는 **실행 횟수를 묶는 것이 없어**, 앵커된 `planned_evidence_run_id`로 K회 로컬 실행 후 1회만 커밋하는 경로가 A-1~A-6·RC-7을 전부 통과했다. A-3·A-5의 부재 증명은 구조적으로 항상 참이었다 | **§1.11.2 규칙 RC-6** — `EXECUTION` 레코드 · 실행 인가 · 검사 **A-7 · A-8** 신설, A-3 · A-5 재정의, **잔여 위험 R-1~R-4 명시** · §1.11 X-14 ⑧ · §5.7 · §6.3.1 **I-38~I-41** |
+| `rc-6-a-6-circular-derivation` | ssot `V2-C005` **F3 blocking** | `record_sha256`의 입력집합이 `planned_evidence_run_id`를 포함하는데 A-6은 그 필드가 `record_sha256`에서 유도되기를 요구했다 — 해시 고정점 없이 충족 불가이고 유도식도 없었다 | **§1.11.2 유도식 `f`** — `planned_evidence_run_id` **필드 삭제**, `evidence_run_id`를 `(ledger_record_sha256, countersign_commit_sha, execution_index)`에서 유도, 검사 **A-6 재작성** |
+| `hiding-gives-no-benefit` 단언 (부수) | adversarial `V2-C005` ADV-C005-P1-01 §4 | 닫힘 논거표의 `은닉은 정본 선택에 아무 이득을 주지 못한다`가 **동일 앵커 재실행에 대해 거짓**이었다 | **§1.11.2 닫힘 논거표** — 단언 **철회**, 세 행으로 분해(인가받지 않은 id = 닫힘 / 인가받고 숨김 = 닫힘 / 동일 인가 재실행 = **닫히지 않음**) |
 
 **다른 담당이 닫은 결함** — 이 문서는 그 결과를 **참조**할 뿐 재정의하지 않는다.
 
@@ -1181,7 +1189,7 @@ MAX_RECOLLECTION_RUNS_PER_WEB_TARGET = 1      (기본값)
 | `expected_evidence` | **복구를 기대하는 evidence 종류** — `A1 §6.2`의 7종(DOM / AX / screenshot(initial) / screenshot(fullpage) / computed CSS / probe / manifest) 중 어느 것이 이번 run에서 산출되어야 하는가. **이전 run에서 실제로 결손이었던 것만 적을 수 있다** — 경로가 `NULL`이었거나 `07` 검증이 `VERIFIED`가 아니었던 산출물, 또는 `endpoint_status_detail = UNRESOLVED_REPLAY_BROKEN`이 기록된 경우의 replay다. 항상 산출되는 산출물(예: run manifest)을 적어 RC-3의 교체 조건을 자동으로 만족시키는 것은 금지 전이 **X-14**다 | `A1 §6.2` · `02 §11` · `07 §4` |
 | `attempt_index` | 이 web target에 대한 몇 번째 재수집인가 (RC-1 상한 대조용, 1부터) | 파이프라인 |
 | `preregistered_at` | 이 블록이 동결된 시각. **`collection_started_at`보다 이르다** | `A1 §6.1` |
-| `anchor` `[V2-C005 시정]` | 이 블록이 **collection 이전에** 원장에 등재됐음을 증명하는 선행 앵커. 5필드는 **규칙 RC-6**이 정한다. `preregistered_at`은 자기신고이며 **단독으로는 순서를 증명하지 않는다** — 순서를 증명하는 것은 이 필드다 | 규칙 **RC-6** |
+| `anchor` `[V2-C005 시정]` | 이 블록이 **collection 이전에** 원장에 등재됐고 그 실행이 **control에서 인가**됐음을 증명하는 선행 앵커. **6필드** `[V2-C006 시정]` 는 **규칙 RC-6**이 정한다. `preregistered_at`은 자기신고이며 **단독으로는 순서를 증명하지 않는다** — 순서를 증명하는 것은 이 필드다 | 규칙 **RC-6** |
 
 > **이 블록만으로는 부족하다** `[V2-C005 시정]`. run manifest는 run이 **끝난 뒤** 쓰이므로
 > `preregistered_at < collection_started_at`은 수집자 자신의 신고일 뿐이다. 그 신고에 순서를 부여하는
@@ -1220,7 +1228,7 @@ MAX_RECOLLECTION_RUNS_PER_WEB_TARGET = 1      (기본값)
   조건이 성립하면 그 run이 낳은 criterion observation **전부**가 함께 정본이 되고,
   성립하지 않으면 **하나도** 정본이 되지 않는다. criterion별로 유리한 run을 골라 섞는 것은
   가장 값싼 optional stopping이며 금지 전이 **X-14**다.
-- **교체의 전제는 앵커 검증 통과다** `[V2-C005 시정]`. 규칙 RC-6의 검사 A-1~A-6 중 **하나라도**
+- **교체의 전제는 앵커 검증 통과다** `[V2-C005 시정]`. 규칙 RC-6의 검사 A-1~A-8 중 **하나라도**
   실패한 재수집 run은 `expected_evidence`를 산출했더라도 정본이 되지 못한다 —
   그 run의 사전선언은 순서가 고정되지 않아 **사전선언으로 인정되지 않으며**, RC-4의 미선언 run과
   같이 취급된다(`disposition = UNDECLARED`, RC-7).
@@ -1258,7 +1266,8 @@ recollection_rate = |재수집 run 이 존재하는 (web_target, criterion)|
 | 중단 사유 분포 | RC-2 중단규칙 1~4 중 무엇으로 멈췄는가의 건수 |
 | **원장 대조 결과** `[V2-C005 시정]` | RC-7 양방향 대조의 4수치 — `ledger_attempts` · `observed_runs` · `원장에만 있는 시도 수` · `원장에 없는 run 수`. 뒤 두 값은 **0이어야 한다** |
 | **`disposition` 분포** `[V2-C005 시정]` | RC-7 closed vocabulary 9값별 건수. 폐기(`ABORTED_*`) 건수와 그 사유 문장을 그대로 싣는다 |
-| **앵커 검증 결과** `[V2-C005 시정]` | 재수집 run별 RC-6 검사 A-1~A-6 통과 여부. 실패 run 수는 **0이어야 한다** |
+| **앵커 검증 결과** `[V2-C005 시정]` | 재수집 run별 RC-6 검사 A-1~A-8 통과 여부. 실패 run 수는 **0이어야 한다** |
+| **실행 인가 대조** `[V2-C006 시정]` | control이 인가한 실행 수 `E`(`recollection_prereg_anchors`에서 센다) · 원장 `EXECUTION` 레코드 수 · 제출된 재수집 evidence run 수. **세 수가 같아야 한다.** 다르면 그 차이가 곧 인가받고 숨긴 실행 수다 (검사 A-8) |
 
 ---
 
@@ -1276,54 +1285,99 @@ RC-1~RC-5는 사전선언을 **새 run 자신의 run manifest 안**에만 두었
 
 두 결손이다 — **(가) 순서를 고정하는 것이 run 바깥에 없다**, **(나) 시도 전건을 열거할 자리가 없다.**
 아래 두 규칙이 그 층을 얹는다. **RC-1~RC-5의 문면은 바뀌지 않으며**, 추가되는 것은
-RC-2 블록의 `anchor` 한 필드와 아래 두 규칙뿐이다.
+RC-2 블록의 `anchor` 필드와 아래 두 규칙뿐이다.
 
 **규칙 RC-6 (선행 앵커 — precollection anchor).**
 재수집 시도는 **시작 이전에** 원장 한 줄을 커밋·push해야 하며, 그 커밋이 앵커다.
+**앵커 1건은 실행 1회를 인가한다** `[V2-C006 시정]` — 실행마다 `EXECUTION` 레코드와 그것을 인가한
+control countersign이 각각 하나씩 필요하고, `evidence_run_id`는 그 인가에서 유도된다(유도식 `f`).
+여러 실행을 하나의 사전선언에 태우는 경로를 닫기 위해서다 (닫는 finding:
+`recollection-escape-path-unbounded-and-conclusion-prioritized`, adversarial `V2-C005` **P1 blocking**).
 
 *원장* — `research/landing_accessibility/collection/recollection_ledger.jsonl`.
 git 추적 **append-only JSONL**이며 `state/*.parquet`가 아니다(규칙 V-4 · V-5 · **V-9**).
-레코드는 두 종류이고 둘 다 append로만 쓴다 — 기존 줄을 고치지 않는다.
+레코드는 **세 종류**이고 셋 다 append로만 쓴다 — 기존 줄을 고치지 않는다 `[V2-C006 시정]`.
+`V2-C005` 판의 두 종류(`PREREGISTRATION` · `DISPOSITION`)에 **실행 단위 레코드 `EXECUTION`** 이 추가된다.
 
-| 필드 | `kind = PREREGISTRATION` (시도 **전**) | `kind = DISPOSITION` (시도 **후**, 규칙 RC-7) |
-|---|---|---|
-| `ledger_seq` | 1부터 **조밀한** 전역 정수. 결번 금지 | 〃 |
-| `prev_record_sha256` | 직전 레코드의 `record_sha256`(첫 레코드는 `0`×64). **해시체인** | 〃 |
-| `record_sha256` | 자신을 제외한 이 레코드 전 필드를 정규화(키 정렬 · UTF-8 · 개행 없음)한 바이트의 sha256 | 〃 |
-| `web_target_id` · `attempt_index` | RC-1 상한 대조. web target 안에서 1부터 **조밀** | 〃 (참조) |
-| `planned_evidence_run_id` | 이 시도가 만들 `evidence_run_id`. **시작 전에 정한다** | 〃 (참조) |
-| `preregistration` | RC-2 6필드를 그대로 담는다 | — |
-| `refers_to_record_sha256` | — | 대응 `PREREGISTRATION` 레코드의 `record_sha256` |
-| `disposition` · `disposition_note` | — | RC-7 closed vocabulary 9값 + 사유 문장 |
+| 필드 | `kind = PREREGISTRATION` (시도 **전**) | `kind = EXECUTION` (실행 **전**) `[V2-C006 시정]` | `kind = DISPOSITION` (실행 **후**, 규칙 RC-7) |
+|---|---|---|---|
+| `ledger_seq` | 1부터 **조밀한** 전역 정수. 결번 금지 | 〃 | 〃 |
+| `prev_record_sha256` | 직전 레코드의 `record_sha256`(첫 레코드는 `0`×64). **해시체인** | 〃 | 〃 |
+| `record_sha256` | 자신을 제외한 이 레코드 전 필드를 정규화(키 정렬 · UTF-8 · 개행 없음)한 바이트의 sha256 | 〃 | 〃 |
+| `web_target_id` · `attempt_index` | RC-1 상한 대조. web target 안에서 1부터 **조밀** | 〃 (참조) | 〃 (참조) |
+| `preregistration` | RC-2 6필드를 그대로 담는다 | — | — |
+| `execution_index` `[V2-C006 시정]` | — | 이 앵커 아래 몇 번째 실행인가. 1부터 **조밀** | 〃 (참조) |
+| `countersign_commit_sha` `[V2-C006 시정]` | — | **이 실행을 인가한** control 커밋 40자리 SHA (검사 A-5 · A-7) | 〃 (참조) |
+| `derived_evidence_run_id` `[V2-C006 시정]` | **없다.** 사전선언 레코드는 run id를 담지 않는다 — 담으면 `record_sha256`이 순환한다 | 아래 유도식 `f`의 값. 레코드에 적되 **검증은 재계산으로 한다**(A-6) | 〃 (참조) |
+| `refers_to_record_sha256` | — | 대응 `PREREGISTRATION` 레코드의 `record_sha256` | 대응 **`EXECUTION`** 레코드의 `record_sha256` `[V2-C006 시정]` |
+| `disposition` · `disposition_note` | — | — | RC-7 closed vocabulary 9값 + 사유 문장 |
 
-*앵커* — RC-2 블록의 `anchor` 5필드는 다음이다.
+*`evidence_run_id` 유도식 `f`* `[V2-C006 시정]`
+> 닫는 finding: `rc-6-a-6-circular-derivation` (ssot `V2-C005` **F3 blocking**)
+
+`V2-C005` 판은 `planned_evidence_run_id`를 사전선언 레코드의 필드로 두고 **동시에** 그 레코드의
+`record_sha256`에서 유도되기를 요구했다. `record_sha256`의 입력집합이 그 필드를 포함하므로
+해시 고정점 없이는 성립할 수 없었고 유도식도 없었다. **필드를 삭제하고 유도식을 명시한다.**
+
+```
+evidence_run_id = "rc" || hex( sha256(
+        b"landing-v2/RC-6/f/v1"   || 0x1F ||
+        ledger_record_sha256      || 0x1F ||   # PREREGISTRATION 레코드의 record_sha256 (64 hex, 소문자)
+        countersign_commit_sha    || 0x1F ||   # 이 실행을 인가한 control 커밋 (40 hex, 소문자)
+        ascii(decimal(execution_index))        # 앵커 아래 실행 순번, 1부터, 선행 0 없음
+) )[0:32]
+```
+
+- **순환이 없다.** `PREREGISTRATION` 레코드에 run id 필드가 없으므로 `record_sha256`의 입력집합에
+  run id가 들어가지 않는다. `f`의 입력 셋은 전부 그 레코드 **바깥**에서 온다.
+- **해석이 하나뿐이다.** 위 식이 전부이며, 검증자는 `f`를 재계산해 제출된 run의 `evidence_run_id`와
+  **바이트 비교**한다(검사 A-6). 구현자가 순환을 임의로 푸는 여지가 없다.
+- **수집 시작 전에 계산할 수 없다.** `countersign_commit_sha`는 오케스트레이터가 control branch에서
+  만드는 값이고 executor는 그 branch를 쓰지 못한다(`05 §6` executor self-approval 금지 ·
+  `EXECUTION_AUTHORITY §5`). 인가 이전에는 evidence 경로 이름 자체가 존재하지 않는다.
+- **인가 레코드는 `evidence_run_id`를 담지 않는다.** control 등재 레코드가 그 id를 적으면 그 id는
+  자기를 담은 커밋의 SHA를 입력으로 갖게 되어 `V2-C005`가 범한 것과 **같은 종류의 순환**이 다시 생긴다.
+  등재 레코드는 `(prereg_commit_sha, ledger_record_sha256, execution_index)`만 담고,
+  id는 그 커밋이 만들어진 **뒤에** 누구나 `f`로 재계산한다. 같은 이유로 control 쪽 `absence_proof`도
+  id를 미리 알 것을 요구할 수 없다 — 부재 증명은 exec 쪽 A-3이 사후에 수행한다.
+- 이 인가는 **오케스트레이터(에이전트) 서명**이며 `00 §9`의 `HUMAN_FINAL_REVIEW_MAX = 5`
+  (실제 인간의 criterion 검토 예산)와 **다른 자원**이다. 앵커 서명은 그 5건을 소비하지 않는다.
+
+*앵커* — RC-2 블록의 `anchor` **6필드**는 다음이다 `[V2-C006 시정]` (`V2-C005` 판의 5필드 + `execution_index`).
 
 | 필드 | 내용 |
 |---|---|
 | `ledger_seq` · `ledger_record_sha256` | 이 run의 `PREREGISTRATION` 레코드 지목 |
 | `prereg_commit_sha` | 그 레코드를 **담아 push된** 커밋의 40자리 SHA |
 | `prereg_pushed_ref` | push 대상 remote ref (예: `origin/agent/landing-v2-exec`) |
-| `countersign_commit_sha` | `prereg_commit_sha`를 `control/state.json`의 `recollection_prereg_anchors`에 등재한 **control branch 커밋** |
+| `countersign_commit_sha` | `prereg_commit_sha`를 `control/state.json`의 `recollection_prereg_anchors`에 등재하고 **이 `execution_index`의 실행을 인가한** control branch 커밋 |
+| `execution_index` `[V2-C006 시정]` | 이 run에 대응하는 `EXECUTION` 레코드의 실행 순번. 유도식 `f`의 입력이다 |
 
-*검사 A-1~A-6* — **전부 fail-closed**다. 하나라도 실패하면 그 run은 `UNDECLARED`(RC-4 · RC-7)다.
+*검사 A-1~A-8* — **전부 fail-closed**다. 하나라도 실패하면 그 run은 `UNDECLARED`(RC-4 · RC-7)다.
+**A-7 · A-8은 `V2-C006`에서 신설**했다. 각 검사의 `무엇을 막는가` 열은 그 검사가 **배제하지 못하는 것**도 함께 적는다 —
+구조적으로 항상 참인 조항을 하중 있는 검사로 착각하지 않기 위해서다.
 
 | # | 검사 | 무엇을 막는가 |
 |---|---|---|
 | **A-1** | `prereg_commit_sha^{commit}`과 `countersign_commit_sha^{commit}`이 **실제 커밋으로 resolve된다.** 해석 불가능한 값(`NOT_A_COMMIT`, 빈 문자열, 짧은 prefix)은 즉시 거절 | dead argument. `V2-C004` ADV-C004-04가 promotion에서 실증한 형태 |
 | **A-2** | `prereg_commit_sha`의 tree에서 원장 파일을 읽어 `ledger_seq` 레코드가 존재하고, 그 레코드의 `record_sha256`이 `anchor.ledger_record_sha256`과 **일치**하며, `prev_record_sha256` 체인이 `ledger_seq = 1`까지 **끊김 없이** 이어진다 | 원장 위조·과거 레코드 개작 |
-| **A-3** | `prereg_commit_sha`의 tree에 이 run의 `evidence/<planned_evidence_run_id>/` 경로가 **존재하지 않는다** | **backdating의 핵심 차단.** 결과를 본 뒤 사전선언을 커밋하면 그 커밋 시점에 evidence가 이미 저장소에 있다 |
+| **A-3** `[V2-C006 시정]` | `prereg_commit_sha`의 tree에 이 run의 `evidence/<evidence_run_id>/`가 **존재하지 않는다** | 이미 커밋된 evidence 위에 앵커를 얹는 것. **배제하지 못하는 것**: 커밋되지 않은 로컬 산출물. 그리고 `f`가 인가 이후에만 계산되므로 이 검사는 **A-6의 귀결에 가깝다** — 독립 근거로 세지 않는다(잔여 R-2). `evidence`는 exec branch에, countersign은 control branch에 있어 **둘 사이에 조상관계가 성립하지 않으므로** 이 검사는 그런 관계를 요구하지 않는다 |
 | **A-4** | `prereg_commit_sha`가 run manifest를 담은 커밋의 **조상**이고, 두 SHA가 다르며, `prereg_pushed_ref`의 기록된 tip의 조상이다 | 커밋을 만들었을 뿐 push하지 않은 로컬 앵커, 별도 계보에 숨긴 앵커 |
-| **A-5** | `countersign_commit_sha`가 **control branch에 있고**, 그 tree의 `control/state.json`이 `prereg_commit_sha`를 등재하며, 그 커밋의 조상 중 **이 run의 evidence를 담은 커밋이 없다** | **수집자 자신이 순서를 정하는 것.** control branch는 executor가 쓰지 않는다(`05 §6` executor self-approval 금지 · `EXECUTION_AUTHORITY`) |
-| **A-6** | 이 run의 `evidence_run_id`가 원장 레코드의 `planned_evidence_run_id`와 **정확히 같다.** 그리고 `planned_evidence_run_id`는 사전선언 레코드의 `record_sha256`을 입력으로 유도된다 | **결과를 본 뒤 로컬 run을 골라 사전선언에 갖다 붙이는 것.** `evidence_run_id`는 `observation_id` 해시 입력(`A1 §6.3`)이자 모든 evidence 경로의 일부이므로, 다른 id로 수집된 run을 이 선언에 재부착하려면 evidence tree와 `manifest.jsonl` 해시 전량을 다시 만들어야 한다 — 그 순간 그것은 그 run이 산출한 산물이 아니다 |
+| **A-5** `[V2-C006 시정]` | `countersign_commit_sha`가 **검증 시점의 remote control tip**(`ls-remote`로 실시간 조회)의 조상이고, 그 tree의 `control/state.json`이 `prereg_commit_sha`를 `(ledger_record_sha256, execution_index)`와 함께 등재한다 | **수집자 자신이 순서를 정하는 것** + push되지 않은 로컬·dangling countersign. control branch는 executor가 쓰지 않는다(`05 §6` · `EXECUTION_AUTHORITY §5`). `V2-C005` 판의 `조상 중 evidence 커밋 없음` 절은 **삭제한다** — countersign은 control에, evidence는 exec branch에 있어 **구조적으로 항상 참**이었고 배제하는 것이 없었다 |
+| **A-6** `[V2-C006 시정]` | 검증자가 유도식 `f(ledger_record_sha256, countersign_commit_sha, execution_index)`를 **재계산**해 이 run의 `evidence_run_id`와 바이트 비교한다. 대응 `EXECUTION` 레코드의 `derived_evidence_run_id`도 같은 값이어야 한다 | **인가받지 않은 id로 수집한 run.** 유효한 id는 `f`의 상(image)뿐이고 `f`의 입력에 control 인가 커밋이 들어가므로, 인가 없이는 통과하는 id를 만들 수 없다. `evidence_run_id`는 `observation_id` 해시 입력(`A1 §6.3`)이자 모든 evidence 경로의 일부라 재부착에는 evidence tree와 `manifest.jsonl` 해시 전량 재생성이 필요하다 |
+| **A-7** `[V2-C006 시정]` | 이 run의 `(ledger_record_sha256, execution_index)` 쌍으로 인가된 countersign이 **정확히 하나**이고, 그 쌍에 대응하는 `EXECUTION` 레코드가 **정확히 하나**이며, 그 쌍으로 제출된 evidence run이 **정확히 하나**다 | **하나의 인가에 두 개 이상의 run을 태우는 것.** 인가 1건 ↔ 실행 1회 ↔ run 1건의 1:1:1을 강제한다. **배제하지 못하는 것**: 같은 인가된 id로 로컬에서 여러 번 돌린 뒤 하나만 커밋하는 것(잔여 R-1) |
+| **A-8** `[V2-C006 시정]` | control이 이 앵커에 대해 인가한 `execution_index` 집합이 `1..E`로 **조밀**하고, 각 index마다 원장에 `EXECUTION` 1건 + `DISPOSITION` 1건이 있으며, 그 `DISPOSITION` 합계가 `E`와 같다 | **인가받고 결과를 숨기는 것.** `E`는 control이 executor와 독립적으로 세는 값이므로, 인가 3건 중 2건만 제출하면 원장이 아니라 **control 쪽 수와 어긋나 잡힌다**. RC-5가 `E`를 보고에 싣는다 |
 
-- **커밋 시각은 앵커가 아니다.** committer date는 `GIT_COMMITTER_DATE`로 위조되므로 A-1~A-6 어디에도
-  순서 근거로 쓰지 않는다. 순서를 고정하는 것은 **부모 관계(A-4)** · **tree의 부재 증명(A-3)** ·
-  **수집자가 쓰지 않는 branch의 대외 서명(A-5)** 세 가지다. `preregistered_at`과 committer date는
+- **커밋 시각은 앵커가 아니다.** committer date는 `GIT_COMMITTER_DATE`로 위조되므로 A-1~A-8 어디에도
+  순서 근거로 쓰지 않는다. 순서를 고정하는 것은 **부모 관계(A-4)** · **수집자가 쓰지 않는 branch의
+  대외 서명(A-5)** · **그 서명을 입력으로 하는 run id 유도(A-6)** 세 가지다 `[V2-C006 시정]`.
+  A-3의 부재 증명은 그 셋의 **귀결**이지 독립 근거가 아니다. `preregistered_at`과 committer date는
   **보조 표시**이며 단독으로 어떤 검사도 통과시키지 않는다.
 - 외부 timestamp/seal(RFC 3161 · OpenTimestamps 등)을 `anchor`에 덧붙이는 것은 **허용되는 보강**이다.
-  A-1~A-6를 대체하지 않으며, 없다고 해서 검사가 완화되지도 않는다.
+  A-1~A-8을 대체하지 않으며, 없다고 해서 검사가 완화되지도 않는다.
 - 이 규칙은 재수집 run에만 적용된다. **최초 run은 앵커를 요구하지 않는다** — 선택할 대상이 없기 때문이다.
-- `ledger_seq` · `attempt_index`의 **조밀성**이 곧 (나)의 절반이다. 결번은 은닉의 흔적이며 RC-7이 잡는다.
+- `ledger_seq` · `attempt_index` · **`execution_index`** `[V2-C006 시정]` 의 **조밀성**이 곧 (나)의 절반이다.
+  결번은 은닉의 흔적이며 RC-7이 잡는다. `execution_index`의 상한 `E`는 control이 인가한 수이며 수집자가 정하지 않는다.
 
 *이 앵커가 무엇을 닫고 어디에 기대는가* — 명시해 둔다.
 
@@ -1331,8 +1385,22 @@ git 추적 **append-only JSONL**이며 `state/*.parquet`가 아니다(규칙 V-4
 |---|---|
 | 사전선언의 **소급 작성** | A-3(부재 증명) · A-4(조상) · A-5(대외 서명). 시각은 근거가 아니다 |
 | 결과를 본 뒤 **로컬 run을 골라 선언에 부착** | A-6(run id 바인딩) — 재부착에 evidence 해시 전량 재생성이 필요하다 |
-| **은닉한 run이 결론을 고르는 것** | 은닉된 run은 원장에 레코드가 없어 A-2·A-6을 통과할 수 없고, **정본이 될 수 없다**(RC-3). 은닉은 정본 선택에 아무 이득을 주지 못한다 |
+| **은닉한 run이 결론을 고르는 것** — *인가받지 않은 id* `[V2-C006 시정]` | **닫힌다.** 유효한 `evidence_run_id`는 유도식 `f`의 상뿐이고 `f`의 입력에 control 인가 커밋이 들어간다. 인가 없이 만든 id는 A-6 재계산에서 불일치하고, 인가된 id는 A-7이 run 1건에 묶는다 |
+| **인가받고 결과를 숨기는 것** `[V2-C006 시정]` | **닫힌다.** 인가 수 `E`는 control이 독립적으로 세며 A-8이 `E` ↔ `EXECUTION` ↔ `DISPOSITION` 전건을 대조한다 |
+| **은닉한 *실행*이 결론을 고르는 것** — *인가된 같은 id로 K회 로컬 실행 후 1회만 커밋* `[V2-C006 시정]` | **닫히지 않는다.** 아래 *잔여 위험* R-1. `V2-C005` 판이 이 자리에 적었던 **"은닉은 정본 선택에 아무 이득을 주지 못한다"는 단언은 동일 앵커 재실행에 대해 거짓이었으므로 철회한다** (adversarial `V2-C005` ADV-C005-P1-01) |
 | **판정을 보고 멈추는 것** | RC-2 중단조건 2와 RC-3 교체조건이 둘 다 `expected_evidence`의 산출 여부만 읽는다. `verdict_state`는 어느 검사에도 입력되지 않는다. 상한 RC-1(기본 1)이 반복 횟수 자체를 묶고, RC-5가 재수집 전후 값을 병기시킨다 |
+
+*이 앵커가 무엇을 닫지 **못하는가** — 잔여 위험* `[V2-C006 시정]`
+
+저장소 안의 검사는 **커밋된 것만** 본다. 그래서 아래 넷은 규칙이 아니라 절차·역할분리에 기댄다.
+닫혔다고 쓰지 않는다.
+
+| # | 잔여 | 얼마나 좁혀졌는가 | 무엇에 기대는가 |
+|---|---|---|---|
+| **R-1** | 인가된 **하나의** `evidence_run_id`로 로컬에서 K회 실행한 뒤 1회만 커밋한다. 버린 K−1은 저장소에 흔적이 없다 | id 하나당 run 하나(A-7), id 집합은 control이 인가한 `E`개로 상한(A-6·A-8). 즉 **서로 다른 id를 여러 개 만들어 고르는 경로는 닫혔고**, 남는 것은 `인가 1건당 몇 번 돌렸는가` 하나다 | 수집 도구와 수집자. **저장소 내부 검사로는 배제 불가**하며 `03 Phase 5` 보고와 두 감사 병행이 유일한 층이다 |
+| **R-2** | A-3의 부재 증명은 *이미 커밋된 evidence 위에 앵커를 얹는 것*만 배제한다 | `f`가 인가 이후에만 계산되므로 A-3은 **거의 자명하게 참**이다. 하중은 A-6이 진다 | — (A-3을 독립 근거로 세지 않는다) |
+| **R-3** | `V2-C005` 판 A-5의 `조상 중 evidence 커밋 없음`은 countersign이 control에, evidence가 exec branch에 있어 **구조적으로 항상 참**이었다 | 그 절은 배제하는 것이 없었으므로 **삭제**하고 remote 실시간 tip 도달성으로 대체했다(A-5) | — (시정 완료) |
+| **R-4** | 오케스트레이터가 담합하면 인가는 무제한이다 | 이 규칙이 새로 만드는 층이 아니다 | `05 §6`(executor self-approval 금지 · `MAX_UNAUDITED_EXEC_CYCLES = 1`)과 두 감사 병행 |
 
 기대는 **새 가정이 아니라 이미 강제된 분리**다 — A-5의 대외 서명 자리는 `control/landing-orchestrator`이며
 `05 §6`(executor self-approval 금지 · `MAX_UNAUDITED_EXEC_CYCLES = 1`)과 `EXECUTION_AUTHORITY`가
@@ -1346,9 +1414,10 @@ executor가 그 branch를 쓰지 못하게 이미 못박고 있다. 앵커는 �
 
 | 방향 | 요구 |
 |---|---|
-| 원장 → run | 모든 `PREREGISTRATION` 레코드에 대응 `DISPOSITION` 레코드가 **정확히 하나** 있다 |
-| run → 원장 | 존재하는 모든 재수집 evidence run에 대응 `PREREGISTRATION` 레코드가 **정확히 하나** 있다. 없으면 `UNDECLARED` |
-| 조밀성 | web target별 `attempt_index`가 1..N에 결번 없이 차 있고, `ledger_seq`가 1..M에 결번 없이 차 있다 |
+| 원장 → run `[V2-C006 시정]` | 모든 `EXECUTION` 레코드에 대응 `DISPOSITION` 레코드가 **정확히 하나** 있다 |
+| run → 원장 `[V2-C006 시정]` | 존재하는 모든 재수집 evidence run에 대응 `EXECUTION` 레코드가 **정확히 하나** 있다. 없으면 `UNDECLARED` |
+| **인가 → 원장** `[V2-C006 시정]` | control이 인가한 `(ledger_record_sha256, execution_index)` **전건**에 대응 `EXECUTION` 레코드가 정확히 하나 있다. 없으면 **인가받고 결과를 숨긴 것**이며 그 앵커의 run 전부가 `UNDECLARED`다 (검사 A-8) |
+| 조밀성 `[V2-C006 시정]` | web target별 `attempt_index`가 1..N, 앵커별 `execution_index`가 1..E, `ledger_seq`가 1..M에 각각 결번 없이 차 있다 |
 | 체인 | `prev_record_sha256` 체인이 `ledger_seq = 1`까지 끊기지 않는다 |
 
 *`disposition` closed vocabulary (9값 · 상호배타)*
@@ -1398,7 +1467,7 @@ executor가 그 branch를 쓰지 못하게 이미 못박고 있다. 앵커는 �
 | **X-11** `[V2-C003 시정]` | `verdict_state = UNDETERMINED` 인 행을 `final_status = FAIL`로 전이하는 것. 증거가 없어 판단 못한 것을 "미충족 확인됨"으로 바꾸는 것도 같은 종류의 조작이며, `FAIL` 비율을 부풀려 `00 §11` 결론을 반대 방향으로 오염시킨다 (T-8) |
 | **X-12** `[V2-C003 시정]` | 수집 실패(`FAILED_*`)를 `NOT_ELIGIBLE_AT_COLLECTION`으로 바꿔 기록해 타겟을 표본에서 빼는 것. 두 계열은 서로 다른 사건이며 증거 요구도 다르다 (규칙 M-4 · M-5) |
 | **X-13** `[V2-C004 시정]` | `verdict_state = UNDETERMINED` 인 행을 `final_status = NA`로 전이하는 것. `NA`는 `applicable_count`에서 통째로 빠지므로 이 세탁은 `PASS` 세탁보다 `decision_coverage_applicable`을 **더 크게** 움직인다. T-8이 이미 결과를 고정하지만 X-1·X-11과 **대칭을 맞춰** 금지 전이로 등재해 실패주입 대상에 넣는다 (§6.3 V-d) |
-| **X-14** `[V2-C004 시정]` | **결과를 보고 재수집하거나 정본 run을 고르는 것**(optional stopping). 구체적으로 ① `verdict_state`·`final_status`·집계 결과를 재수집 대상 선정·중단 조건으로 쓰는 것, ② 사전선언 없이 재수집을 시작하는 것, ③ 사전선언한 선택규칙 밖에서 분석 대상 run을 바꾸는 것, ④ 상한(규칙 RC-1)을 넘겨 정본 지표를 산출하는 것, **⑤ 선행 앵커(규칙 RC-6) 없이, 또는 검사 A-1~A-6에 실패한 앵커로 재수집 run을 정본 지표에 쓰는 것** `[V2-C005 시정]`, **⑥ 시도한 run을 재수집 원장(규칙 RC-7)에 등재하지 않는 것 · 등재를 사후에 고치거나 지우는 것 · `disposition_note`에 판정·집계값을 인용하는 것** `[V2-C005 시정]`, **⑦ `fact_landing_observation` 행을 남긴 run을 `ABORTED_*`로 폐기 처리하는 것** `[V2-C005 시정]`. 전이 자체는 합법(새 evidence run은 새 `verdict_state`를 낸다)이나 **선택 절차가 결론에 조준되면** 그 결과는 `00 §14`가 금지한 결론 유도다 (§1.11.2 규칙 RC-1~RC-5) |
+| **X-14** `[V2-C004 시정]` | **결과를 보고 재수집하거나 정본 run을 고르는 것**(optional stopping). 구체적으로 ① `verdict_state`·`final_status`·집계 결과를 재수집 대상 선정·중단 조건으로 쓰는 것, ② 사전선언 없이 재수집을 시작하는 것, ③ 사전선언한 선택규칙 밖에서 분석 대상 run을 바꾸는 것, ④ 상한(규칙 RC-1)을 넘겨 정본 지표를 산출하는 것, **⑤ 선행 앵커(규칙 RC-6) 없이, 또는 검사 A-1~A-8에 실패한 앵커로 재수집 run을 정본 지표에 쓰는 것** `[V2-C005 시정]`, **⑥ 시도한 run을 재수집 원장(규칙 RC-7)에 등재하지 않는 것 · 등재를 사후에 고치거나 지우는 것 · `disposition_note`에 판정·집계값을 인용하는 것** `[V2-C005 시정]`, **⑦ `fact_landing_observation` 행을 남긴 run을 `ABORTED_*`로 폐기 처리하는 것** `[V2-C005 시정]`, **⑧ 하나의 control 인가(하나의 `execution_index`)로 재수집을 **두 번 이상 실행**하는 것 · 인가받은 실행의 결과를 원장에 남기지 않는 것** `[V2-C006 시정]`. 전이 자체는 합법(새 evidence run은 새 `verdict_state`를 낸다)이나 **선택 절차가 결론에 조준되면** 그 결과는 `00 §14`가 금지한 결론 유도다 (§1.11.2 규칙 RC-1~RC-5) |
 | **X-15** `[V2-C004 시정]` | `verdict_state = NA` 인 행을 `final_status = PASS`·`FAIL`·`UNDETERMINED` 어느 것으로도 전이하는 것 — `CRITERION_VERDICT` 검토가 `RESOLVED` + 확정 label로 끝나도 마찬가지다(T-6 > T-7). T-4를 `NA` 행에 문면대로 적용하면 발생하며, §1.7 항등식이 깨지고 `undetermined_rate`가 과대 보고된다. T-6이 우선한다 (전이표 20행) |
 
 #### `02 §14` 실패주입의 구체화 `[V2-C003 시정]`
@@ -1818,7 +1887,7 @@ version만 다루고, 재수집은 **행 자체를 새로 만들기** 때문이�
 - **결과를 보고 run을 고르는 것은 금지 전이 X-14다.** RC-3의 교체 조건은 사전선언한
   `expected_evidence`의 산출 여부이지 판정 결과가 아니다.
 - **정본이 되려면 선행 앵커가 있어야 한다** `[V2-C005 시정]`. 재수집 run의 criterion observation은
-  규칙 **RC-6** 검사 A-1~A-6을 전부 통과하고 규칙 **RC-7** 원장 대조에서 대응 레코드가 확인될 때에만
+  규칙 **RC-6** 검사 A-1~A-8을 전부 통과하고 규칙 **RC-7** 원장 대조에서 대응 레코드가 확인될 때에만
   분자·분모에 들어간다. 앵커 없는 사전선언은 결과를 본 뒤에도 쓸 수 있으므로 **사전선언이 아니다**.
 - 재수집 전후 값을 **병기**하는 의무는 규칙 RC-5에 있다.
 - 같은 선택규칙이 `mart_service_summary`·`mart_archetype_summary`의 criterion 계열 집계와
@@ -2202,11 +2271,11 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | `mart_archetype_summary` 층화 | 규칙 **E-10** — `FINANCIAL_ACTION_ENTRY`·`COMMUNICATION_ENTRY`에서 `MPFED` median/IQR/mode/ECDF · `endpoint reach` · `ExcessDepth` 기준선을 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 여부로 **층별 병기**. **컬럼**: `endpoint_via_auth_gate_rate` + 층별 `n` `[V2-C004 시정]` |
 | **run manifest**: `recollection_preregistration` 블록 | 규칙 **RC-2**의 사전선언 기록 자리. 5필드(`target_criterion_observation_ids` · `reason_evidence_gap` · `reason_impact_level` · `expected_evidence` · `attempt_index` · `preregistered_at`). `07_EVIDENCE_MANIFEST_CONTRACT` · `A1 §6.2` run manifest 안에 산다 (§0 5항의 단 하나의 예외) `[V2-C004 시정]` |
 | **상수**: `MAX_RECOLLECTION_RUNS_PER_WEB_TARGET` | 규칙 **RC-1**. 기본값 **1**. P-C 구현 → P-D(E000_V2) 검증 → 동결. `A1 §7`의 수집 파라미터와 같은 지위 `[V2-C004 시정]` |
-| **원장**: `research/landing_accessibility/collection/recollection_ledger.jsonl` | 규칙 **RC-6** · **RC-7**의 append-only JSONL. 두 레코드 종류(`PREREGISTRATION` / `DISPOSITION`)와 필드는 §1.11.2 표 그대로. **머티리얼라이제이션 레이어 산출물이며 `state/*.parquet`가 아니다**(규칙 V-9 · §0 7항 EXC-4) `[V2-C005 시정]` |
-| **run manifest**: `recollection_preregistration.anchor` 5필드 | 규칙 **RC-6**. `ledger_seq` · `ledger_record_sha256` · `prereg_commit_sha` · `prereg_pushed_ref` · `countersign_commit_sha` `[V2-C005 시정]` |
-| **control**: `control/state.json` → `recollection_prereg_anchors` | 규칙 **RC-6** 검사 A-5의 대외 서명 자리. **오케스트레이터가 control branch에서만 쓴다** — executor는 쓰지 않는다(`05 §6`). 이 문서는 자리와 검사만 정하고 control 산출물의 형식은 `EXECUTION_AUTHORITY`를 따른다 `[V2-C005 시정]` |
-| **가드**: 규칙 **RC-6** 선행 앵커 | 검사 **A-1~A-6을 전부 fail-closed로** 구현한다. `prereg_commit_sha`·`countersign_commit_sha`를 `rev-parse <sha>^{commit}`로 해석하지 못하면 즉시 실패, tree에 evidence 경로가 있으면 실패, 조상관계가 아니면 실패, control 등재가 없으면 실패. **committer date를 순서 근거로 쓰지 않는다** `[V2-C005 시정]` |
-| **가드**: 규칙 **RC-7** 원장 전수 대조 | 양방향 대조 4수치 · `attempt_index`/`ledger_seq` 조밀성 · `prev_record_sha256` 체인 연속성 · `disposition` 9값 도메인 · **observation 행이 있는 run의 `ABORTED_*` 금지** · `disposition_note`의 판정·집계값 인용 금지를 파이프라인이 **거부**한다 `[V2-C005 시정]` |
+| **원장**: `research/landing_accessibility/collection/recollection_ledger.jsonl` | 규칙 **RC-6** · **RC-7**의 append-only JSONL. **세 레코드 종류**(`PREREGISTRATION` / **`EXECUTION`** / `DISPOSITION`) `[V2-C006 시정]` 와 필드는 §1.11.2 표 그대로. **머티리얼라이제이션 레이어 산출물이며 `state/*.parquet`가 아니다**(규칙 V-9 · §0 7항 EXC-4) `[V2-C005 시정]` |
+| **run manifest**: `recollection_preregistration.anchor` **6필드** | 규칙 **RC-6**. `ledger_seq` · `ledger_record_sha256` · `prereg_commit_sha` · `prereg_pushed_ref` · `countersign_commit_sha` · **`execution_index`** `[V2-C006 시정]` |
+| **control**: `control/state.json` → `recollection_prereg_anchors` | 규칙 **RC-6** 검사 A-5 · **A-7 · A-8**의 대외 서명 자리이자 **실행 인가 대장**이다 `[V2-C006 시정]`. 항목은 `(prereg_commit_sha, ledger_record_sha256, execution_index)`를 담으며 `execution_index`는 앵커별 1..E 조밀이다. **오케스트레이터가 control branch에서만 쓴다** — executor는 쓰지 않는다(`05 §6`). 이 문서는 자리·필드·검사만 정하고 control 산출물의 형식은 `EXECUTION_AUTHORITY`를 따른다 |
+| **가드**: 규칙 **RC-6** 선행 앵커 | 검사 **A-1~A-8을 전부 fail-closed로** 구현한다. `prereg_commit_sha`·`countersign_commit_sha`를 `rev-parse <sha>^{commit}`로 해석하지 못하면 즉시 실패, tree에 evidence 경로가 있으면 실패, 조상관계가 아니면 실패, control 등재가 없으면 실패, **유도식 `f` 재계산값이 `evidence_run_id`와 다르면 실패, 인가 1건에 run이 0건이거나 2건 이상이면 실패, control 인가 수 `E`와 `EXECUTION`·`DISPOSITION` 수가 다르면 실패** `[V2-C006 시정]`. **committer date를 순서 근거로 쓰지 않는다** |
+| **가드**: 규칙 **RC-7** 원장 전수 대조 | 양방향 대조 4수치 · **인가 → 원장 대조** `[V2-C006 시정]` · `attempt_index`/`ledger_seq`/**`execution_index`** 조밀성 · `prev_record_sha256` 체인 연속성 · `disposition` 9값 도메인 · **observation 행이 있는 run의 `ABORTED_*` 금지** · `disposition_note`의 판정·집계값 인용 금지를 파이프라인이 **거부**한다 `[V2-C005 시정]` |
 | **지표**: `recollection_rate` + 재수집 전후 병기 | 규칙 **RC-5**. `03 Phase 5` 측정품질 보고 항목 6종 `[V2-C004 시정]` |
 | `fact_task_step` 확장 | `depth_segment` 3값 · `counts_toward_depth` · `area_signal_detected` (§1.5.4, `A1` §1.8) |
 | `fact_task_episode` 표 (신규) | `episode_kind` 2값 · `ended_by` 9값 · `input_mode` 2값 (§1.12, `A1` §4.4) |
@@ -2233,6 +2302,10 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 `02 §14`는 `모든 guard가 실제로 차단하는지 확인한다`고 요구한다. 두 사이클이 세운 규칙이 한 번도
 태워지지 않으면 `E000_V2_VALIDATED`가 **비어 있는 근거로** 닫힌다. 아래 표가 각 규칙에 주입 케이스를
 1:1로 붙인다. `UNDETERMINED`/`NA` 계열(V-a~V-g)은 §1.11에 있고 여기서 반복하지 않는다.
+
+**기대결과가 `차단되지 않는다`인 행이 하나 있다** `[V2-C006 시정]` — **I-41**. 실패주입 표는
+가드가 막는 것을 증명하는 자리이자 **막지 못하는 것을 은폐하지 않는 자리**다. 막지 못하는 주입을
+표에서 빼면 그 표는 "전건이 차단된다"는 거짓 인상을 준다. §1.11.2 잔여 위험 R-1과 짝을 이룬다.
 
 | 주입 id | 규칙 | 주입 | 기대 |
 |---|---|---|---|
@@ -2267,13 +2340,17 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | **I-28b** | **RC-3** (run 단위 일괄) | 같은 web target에서 criterion마다 서로 다른 run을 정본으로 골라 섞는 시도 | **차단** (X-14) |
 | **I-29** | **RC-5** | 재수집이 1건 이상인데 재수집 전후 `decision_coverage_applicable` 병기 누락 | **차단** (Phase 5 산출 실패) |
 | **I-30** `[V2-C005 시정]` | **RC-6** A-1 | `anchor.prereg_commit_sha`를 누락하거나 해석 불가능한 값(`NOT_A_COMMIT` · 빈 문자열 · 7자리 prefix)으로 두고 정본 지정 시도 | **차단** (fail-closed. dead argument 금지) |
-| **I-31** `[V2-C005 시정]` | **RC-6** A-3 | **backdating 재현** — 로컬에서 재수집을 여러 번 돌려 결과를 모두 본 뒤 사전선언 레코드를 커밋해 앵커로 제출. 그 커밋 tree에는 이미 `evidence/<run_id>/`가 있다 | **차단** — A-3 부재 증명 실패. `V2-C004` §3.4가 통과시켰던 정확한 경로다 |
+| **I-31** `[V2-C005 시정 · V2-C006 갱신]` | **RC-6** A-3 · A-6 | **backdating 재현** — 로컬에서 재수집을 여러 번 돌려 결과를 모두 본 뒤 사전선언 레코드를 커밋해 앵커로 제출. 그 커밋 tree에는 이미 `evidence/<run_id>/`가 있다 | **차단** — A-3 부재 증명 실패. 나아가 그 로컬 run의 id는 인가 이전에 정해졌으므로 유도식 `f` 재계산과도 불일치한다(A-6). `V2-C004` §3.4가 통과시켰던 정확한 경로다 |
 | **I-32** `[V2-C005 시정]` | **RC-6** A-2 | 과거 `PREREGISTRATION` 레코드의 `expected_evidence`·`attempt_index`를 고치고 history를 rewrite해 앵커를 재작성 | **차단** — `prev_record_sha256` 체인 단절 + 기존 `prereg_commit_sha` 참조 전건이 resolve 실패 + A-5 조상관계 파탄 |
 | **I-33** `[V2-C005 시정]` | **RC-6** A-5 | control branch 등재 없이(또는 evidence 커밋 이후에 등재된 countersign으로) 재수집 run을 정본 지정 | **차단** — 수집자 자신이 순서를 정하는 경로 |
 | **I-34** `[V2-C005 시정]` | **RC-7** 양방향 | 시도한 run 하나를 원장에서 누락 — evidence run에 대응 `PREREGISTRATION`이 없거나, web target의 `attempt_index`가 1..N에 결번 | **차단** — 은닉 흔적. 누락분은 `UNDECLARED`로 계상되어 RC-4의 `0` 요구를 깨뜨린다 |
 | **I-35** `[V2-C005 시정]` | **RC-7** 폐기조건 | `fact_landing_observation` 행을 남긴 run을 `ABORTED_OPERATOR`로 기록해 원장에서 폐기 처리 | **차단** — `ABORTED_*`는 observation 행 0건일 때만 |
 | **I-36** `[V2-C005 시정]` | **RC-7** 사유 | `disposition`을 closed vocabulary 9값 밖 값으로 기록 / `disposition_note`에 `verdict_state`·`decision coverage` 등 판정·집계값을 인용 | **차단** (X-14 ⑥) |
-| **I-37** `[V2-C005 시정]` | **RC-6** A-6 | 사전선언 레코드는 정상인데, 실제 제출된 run의 `evidence_run_id`가 `planned_evidence_run_id`와 다르다(= 다른 id로 로컬 수집한 run을 재부착) | **차단** — id 불일치. 재부착하려면 `observation_id`(`A1 §6.3`)와 `manifest.jsonl` 해시 전량 재생성이 필요하다 |
+| **I-37** `[V2-C005 시정 · V2-C006 갱신]` | **RC-6** A-6 | 사전선언·인가는 정상인데, 실제 제출된 run의 `evidence_run_id`가 유도식 `f`의 재계산값과 다르다(= 다른 id로 로컬 수집한 run을 재부착) | **차단** — `f` 재계산 불일치. 재부착하려면 `observation_id`(`A1 §6.3`)와 `manifest.jsonl` 해시 전량 재생성이 필요하다 |
+| **I-38** `[V2-C006 시정]` | **RC-6** A-6 | control 인가 없이 임의의 `evidence_run_id`(또는 앵커 취득 전에 미리 정한 id)로 재수집 run을 만들어 정본 지정 시도 | **차단** — 유효 id는 `f`의 상뿐이고 `f`의 입력에 `countersign_commit_sha`가 들어간다. 인가 이전에는 통과하는 id를 계산할 수 없다 |
+| **I-39** `[V2-C006 시정]` | **RC-6** A-7 | 하나의 `(ledger_record_sha256, execution_index)` 인가에 evidence run 2건을 붙여 제출 / 같은 쌍으로 `EXECUTION` 레코드를 2건 append | **차단** — 인가 1건 ↔ 실행 1회 ↔ run 1건의 1:1:1 위반 |
+| **I-40** `[V2-C006 시정]` | **RC-6** A-8 · **RC-7** 인가→원장 | control이 `execution_index` 1·2·3을 인가했는데 원장·evidence에 1·3만 제출(2를 숨긴다) | **차단** — `execution_index` 조밀성 결번 + control 인가 수 `E = 3` ≠ `EXECUTION` 2건. `E`는 executor가 쓰지 못하는 자리에서 센다 |
+| **I-41** `[V2-C006 시정]` — **잔여 명시** | **RC-6** 잔여 R-1 | 인가된 **하나의** id로 로컬에서 K회 실행한 뒤 결과가 가장 좋은 1회만 커밋한다 | **차단되지 않는다.** 저장소 안의 어떤 검사도 커밋되지 않은 로컬 실행을 볼 수 없다. 실패주입 대상으로 **등재하되 기대결과를 `통과`로 적는다** — 가드가 이것을 막는다고 주장하지 않기 위해서다. §1.11.2 잔여 위험 R-1 |
 
 **주입 케이스가 통과해야 하는 것 두 건(I-4 · I-14)을 일부러 넣었다.** 차단만 태우면
 **과탐(over-blocking)** 이 검증되지 않는다 — 규칙 S-3이 정당한 값을 막아 파이프라인을 세우는 것도
@@ -2326,7 +2403,7 @@ URL 증거로 검증되면 `dim_web_target` 행이 되고, falsifier가 성립�
 | 9 | **`research/refcohort/**`(Pilot)은 `READ_ONLY`.** 규칙 V-8 |
 | 10 | **예산 소진을 이유로 강제분류하지 않는다** (`00 §9`). 규칙 A-1 · X-6. §2.3의 3번 분기가 정본 경로다 |
 | 11 | **auth gate를 endpoint로 세는 것은 두 archetype뿐이며, 그 두 행의 gate 절이 서로 다르다** — `FINANCIAL_ACTION_ENTRY`는 로그인 gate·인증 gate, `COMMUNICATION_ENTRY`는 **로그인 gate만**이다 (`00 §3` L1 표가 `또는 gate`를 준 행이 그 둘뿐이다). 다른 archetype으로도, `COMMUNICATION_ENTRY`의 **본인인증 gate**로도 확대하지 않는다 — 그 gate는 `AUTH_GATE_REACHED`(또는 `PERSONAL_DATA_REQUIRED`)로 남는다. 두 archetype에서도 gate를 **통과하지 않는다** — `00 §3 절대 제외`의 `로그인 이후`·`본인인증 이후`는 그대로다 (§1.5.1a 규칙 E-6 · **E-6a** · E-7) `[V2-C004 시정]` |
-| 13 | **재수집으로 결과를 고르지 않는다** `[V2-C004 시정]`. `UNDETERMINED`의 유일 탈출구인 재수집은 상한(RC-1)·사전선언과 중단규칙(RC-2)·정본 run 선택규칙(RC-3)·미선언 배제(RC-4)·보고 의무(RC-5)·**선행 앵커(RC-6)**·**시도 전건 열거와 폐기 사유(RC-7)** 아래에서만 정본 지표에 반영된다 `[V2-C005 시정]`. **사전선언은 순서가 run 바깥에서 고정될 때에만 사전선언이다** — 결과를 본 뒤 지어낸 선언, 원장에 없는 run, 판정을 보고 붙인 폐기 사유는 전부 optional stopping이다 (X-14 ⑤~⑦). 원하는 판정이 나올 때까지 다시 재는 것, 판정 결과를 중단 조건으로 쓰는 것, 결과를 보고 정본 run을 바꾸는 것은 **optional stopping**이며 `00 §14`가 금지한 결론 유도다 (X-14). `impact_level`은 그래서 **결론 중립적**으로 정의된다(§1.8) — 재수집 우선순위가 `00 §11` 결론 방향을 따라가면 명세 자신이 편향을 지시하게 된다 |
+| 13 | **재수집으로 결과를 고르지 않는다** `[V2-C004 시정]`. `UNDETERMINED`의 유일 탈출구인 재수집은 상한(RC-1)·사전선언과 중단규칙(RC-2)·정본 run 선택규칙(RC-3)·미선언 배제(RC-4)·보고 의무(RC-5)·**선행 앵커(RC-6)**·**시도 전건 열거와 폐기 사유(RC-7)** 아래에서만 정본 지표에 반영된다 `[V2-C005 시정]`. **앵커 1건은 실행 1회를 인가하고, `evidence_run_id`는 그 인가에서 유도된다** `[V2-C006 시정]` — 인가 없이는 통과하는 id를 만들 수 없고(A-6), 인가 1건에 run은 하나뿐이며(A-7), 인가 수는 control이 독립적으로 센다(A-8). **다만 인가된 하나의 id로 로컬에서 여러 번 돌린 뒤 하나만 커밋하는 것은 저장소 내부 검사로 배제되지 않는다** — §1.11.2 잔여 위험 R-1로 명시하며 닫혔다고 쓰지 않는다. **사전선언은 순서가 run 바깥에서 고정될 때에만 사전선언이다** — 결과를 본 뒤 지어낸 선언, 원장에 없는 run, 판정을 보고 붙인 폐기 사유는 전부 optional stopping이다 (X-14 ⑤~⑦). 원하는 판정이 나올 때까지 다시 재는 것, 판정 결과를 중단 조건으로 쓰는 것, 결과를 보고 정본 run을 바꾸는 것은 **optional stopping**이며 `00 §14`가 금지한 결론 유도다 (X-14). `impact_level`은 그래서 **결론 중립적**으로 정의된다(§1.8) — 재수집 우선순위가 `00 §11` 결론 방향을 따라가면 명세 자신이 편향을 지시하게 된다 |
 | 14 | **두 endpoint 의미를 한 분포에 섞어 제시하지 않는다** `[V2-C004 시정]`. gate가 endpoint인 두 archetype에서 `MPFED` 계열 지표는 `endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE` 여부로 **층별 병기**한다 (규칙 E-10). 층화는 **기존 지표를 한 번 더 산출하라는 요구**이며 새 분석 기준이 아니다 — `ExcessDepth`의 정본 산식은 `00 §7` 문면 그대로다. 어느 층이 더 좋다/나쁘다고 말하지 않는다 (`00 §14`) |
 | 15 | **`NA`와 `UNDETERMINED`를 서로 바꿔 기록하지 않는다** `[V2-C004 시정]`. `NA`는 `적용 대상이 없음`(`01 §7` · `00 §4`)이고 `UNDETERMINED`는 `판단할 수 없음`이다. `verdict_state = NA` 행은 adjudication 4값 어느 것으로도 `UNDETERMINED`가 되지 않으며(T-6 우선 · X-15), `verdict_state = UNDETERMINED` 행은 `NA`가 되지 않는다(T-8 · X-13). 둘을 섞으면 §1.7 항등식 `applicable_count = pass_count + fail_count + undetermined_count`가 깨진다 |
 | 12 | **Frame 수준 동결값을 관측이 조용히 덮어쓰지 않는다.** 수집 시점 반증은 §1.4.1 supersede로 **새 행**을 만들고 이전 행을 남긴다 (규칙 W-1 · T-11 · `02 §12`). 수집이 어렵다는 이유로 타겟을 표본에서 빼지 않는다 (X-12 · 규칙 W-2) `[V2-C003 시정]` |

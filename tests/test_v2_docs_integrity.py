@@ -78,6 +78,36 @@ def test_banner_injection_is_rejected(rel: str, tmp_path: Path) -> None:
             [sys.executable, str(SCRIPT)], capture_output=True, text=True, cwd=str(REPO)
         )
         assert proc.returncode != 0, f"{rel} 배너 위조가 통과했다:\n{proc.stdout}"
+        # returncode 만 보면 vacuous 하다 — 매니페스트를 쓰는 순간 워킹트리가 오염되어
+        # git 앵커 검사가 배너와 무관하게 실패시키기 때문이다. 두 감사(V2-C005 ssot F1 /
+        # adversarial banner-policy-regression-tests-pass-vacuously)가 배너 강제 블록을
+        # 제거한 변형으로 5/5 여전히 통과함을 실증했다. 차단 **사유**를 확인한다.
+        combined = proc.stdout + proc.stderr
+        assert "BANNER" in combined, (
+            f"{rel}: 차단됐으나 사유가 배너가 아니다 — 이 테스트는 배너 강제를 검증하지 못한다\n"
+            f"{combined}"
+        )
     finally:
         target.write_bytes(original)
         manifest_path.write_bytes(manifest_original)
+
+
+def test_non_banner_mutation_does_not_report_banner(tmp_path: Path) -> None:
+    """대조군 — 배너 없는 변조는 BANNER 가 아닌 사유로 잡혀야 한다.
+
+    이 테스트가 없으면 위 회귀 테스트가 "무엇이든 BANNER 를 출력한다"는 상황을
+    구별하지 못한다.
+    """
+    root = REPO / "research" / "landing_accessibility"
+    target = root / "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md"
+    original = target.read_bytes()
+    try:
+        target.write_bytes(original + "\n<!-- 배너 마커 없는 꼬리 변조 -->\n".encode())
+        proc = subprocess.run(
+            [sys.executable, str(SCRIPT)], capture_output=True, text=True, cwd=str(REPO)
+        )
+        combined = proc.stdout + proc.stderr
+        assert proc.returncode != 0, "본문 변조가 통과했다"
+        assert "BANNER" not in combined, f"배너가 아닌데 BANNER 로 보고됐다:\n{combined}"
+    finally:
+        target.write_bytes(original)
