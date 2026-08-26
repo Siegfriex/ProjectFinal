@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T13:28:27.277785",
+  "updated_at": "2026-08-26T13:38:52.028715",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
   "cycle_id": "C011",
   "pilot": {
@@ -60,7 +60,7 @@
     "orchestrator": "control/landing-orchestrator"
   },
   "exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
-  "adversarial_audit_sha": "fd9773a1",
+  "adversarial_audit_sha": "903e247",
   "ssot_audit_sha": "7c928f5",
   "gates": {
     "pilot_archive": "PASS_WITH_LOGICAL_BACKUP_ONLY",
@@ -80,7 +80,7 @@
     "automation_split": "NOT_RUN",
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
-    "adversarial_audit": "PASS_C009_P1_2_P2_5",
+    "adversarial_audit": "PASS_C011_P0_0_P1_0_P2_5",
     "ssot_audit": "PASS_C009_P1_2",
     "certification_snapshot": "PASS_COMPLETE"
   },
@@ -263,40 +263,35 @@
   ],
   "open_p2": [
     {
-      "id": "entity-kind-conflates-domain-and-axis",
-      "detail": "entity_kind 가 도메인(APP/RETAIL_BRAND/BOTH)과 축유형(INDUSTRY_CATEGORY)을 한 컬럼에 혼재. ==\"RETAIL_BRAND\" 필터가 리테일 1위 쿠팡을 조용히 누락시킨다.",
-      "assigned": "C008 exec",
-      "resolution": "domain 축과 axis_type 축을 별도 컬럼으로 분리한다."
+      "id": "idempotency-claim-false-journal-path-absolute",
+      "sev": "P2",
+      "from": "adversarial C011",
+      "detail": "executor 가 'diff -r 바이트 동일' 이라 보고했으나 journal_provenance.json 의 journal_path 가 실행자 워크트리 절대경로라 1줄 어긋난다. 나머지 15개 산출물은 실제로 바이트 동일. P2-3 이 없애려던 경로 의존이 형태만 바꿔 남았다.",
+      "note": "데이터 오염 아님. executor 보고 정확성 문제."
     },
     {
-      "id": "row-count-invariant-vacuous-in-8-panels",
-      "detail": "rows_expected==rows_extracted 17/17 중 8패널은 TOP N 미표기라 구성상 항상 참. 독립 검증력은 9패널뿐이며 나머지 32행은 감사자 육안 계수로 확인(누락 0).",
-      "assigned": "C008 exec",
-      "resolution": "TOP N 미표기 패널은 rows_expected 를 null 로 두고 별도 육안검증 플래그를 남긴다. 항상 참인 불변식을 통과로 세지 않는다."
+      "id": "matches-existing-c002-is-self-comparison",
+      "sev": "P2",
+      "from": "adversarial C011",
+      "detail": "비교 기구 자체는 진짜지만 기준선이 C002 가 아니라 자기 출력이다. columns_compared 16개인데 C009 파일은 14컬럼, columns_new_in_rebuild 가 [] 인데 이번 사이클이 두 컬럼을 신설했다."
     },
     {
-      "id": "c002-261rows-no-generator-script",
-      "detail": "C002 의 261행에 생성 스크립트도 행별 증거 포인터도 없어 산출물 자체로는 재현 불가.",
-      "assigned": "C008 exec",
-      "resolution": "워크플로 저널에서 재생성하는 스크립트를 커밋하고 행별 figure/판독출처 포인터를 추가한다."
+      "id": "authority-manifest-lacks-version-field",
+      "sev": "P2",
+      "from": "adversarial C011 + orchestrator follow-up",
+      "detail": "version/revision 필드 없음, 자신의 sha256 미등록. A1 raw 6종 sha256 은 불변 확인됨."
     },
     {
-      "id": "entity-candidates-json-orphan",
-      "detail": "entity_candidates.json 을 어떤 스크립트도 사용하지 않는 고아 산출물.",
-      "assigned": "C008 exec",
-      "resolution": "생성 경로를 스크립트에 편입하거나 중간산출물로 명시한다."
+      "id": "ev-source-xlsx-uncommitted-unhashed",
+      "sev": "P2",
+      "from": "adversarial C011",
+      "detail": "EV-2/EV-6 근거 xlsx 가 manus/ 에 미커밋·미해시. 감사자가 로컬에서 3/3 수치 재산출 일치를 확인했으나 clone 에서는 재현 불가."
     },
     {
-      "id": "source-rows-lack-axis-type",
-      "detail": "source_ranking_rows 에 axis_type 이 없어 원자료 직접 집계 시 업종/브랜드 혼입 경로가 남는다.",
-      "assigned": "C008 exec",
-      "resolution": "axis_type 을 행 테이블에도 전파한다."
-    },
-    {
-      "id": "preinstalled-apps-marked-web-collectable",
-      "detail": "web_collectable=True 70건에 삼성 계산기·내 파일·디바이스 케어 등 선탑재 시스템 앱이 포함. 이 필드는 'entity_kind not in {INDUSTRY_CATEGORY}' 규칙 하나로 일괄 부여된 값이라 검증된 수집 가능성이 아니다.",
-      "assigned": "C008 exec",
-      "resolution": "web_eligibility_status=NOT_ASSESSED 로 초기화. 선탑재/시스템 앱은 web eligibility 판정에서 SYSTEM_APP 후보로 다룬다."
+      "id": "new-tests-outside-own-source-of-truth-principle",
+      "sev": "P2",
+      "from": "adversarial C011",
+      "detail": "신규 테스트 4건이 C011 이 스스로 선언한 '한쪽 끝은 원본' 원칙 밖. EV 테스트는 하드코딩 리터럴 대조, panel_scope 테스트는 이름과 달리 리빌드 대신 소스 문자열 grep."
     }
   ],
   "certification_authority": {
@@ -470,9 +465,9 @@
   "audit_lag": {
     "latest_exec_cycle": "C011",
     "latest_exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
-    "latest_adversarial_audited_cycle": "C009",
-    "latest_adversarial_target_sha": "fe86e190e993b3acb7b47518329dddc1777d73d6",
-    "latest_adversarial_audit_sha": "fd9773a1b46b239d49f11451a00bac6172a58f39",
+    "latest_adversarial_audited_cycle": "C011",
+    "latest_adversarial_target_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
+    "latest_adversarial_audit_sha": "903e247",
     "latest_ssot_audited_cycle": "C009",
     "latest_ssot_target_sha": "fe86e190e993b3acb7b47518329dddc1777d73d6",
     "latest_ssot_audit_sha": "7c928f5bba19ea66756b8d2f00140d60596235a0",
@@ -582,5 +577,32 @@
     "invariants": "261행·137+124·panel17·membership142·service81·alias82·wtg68·url null·refcohort 0·evidence 부재 (주장)",
     "tests": "pytest 59 passed, ruff 통과, 멱등 diff -r 동일 (주장)",
     "status": "UNVERIFIED — 전부 executor 자체 주장이며 독립감사 전이다"
+  },
+  "c011_verification": {
+    "adversarial": {
+      "verdict": "PASS",
+      "p1_remediation_verified": {
+        "p1_1_alignment": true,
+        "p1_2_prior_separation": true,
+        "p1_3_verbatim": true
+      },
+      "method_notes": [
+        "검사 기준을 실행자 코드와 분리 — member_service_ids[i] 를 sha256(canonical_key) 로 역검증, 도메인은 entity_alias_map 경유로 원자료 261행에서 대조",
+        "반례 주입 — naver 그룹 member_domains 순서만 뒤집어(집합 불변) 신규 테스트가 위치·이유를 찍고 실패하는지 확인",
+        "저장소 전체 grep — prior 파일을 읽는 스크립트 0, 쓰기 1곳뿐",
+        "원문 INDEX 를 실행자 파서와 별개로 재파싱, NBSP 3절 보존·삽입/누락 0",
+        "테스트의 BODY_TEXT 가 실제 raw/wiseapp933_text.txt 를 읽는지 코드로 확인 — 파생-파생 구도 실제 해소"
+      ],
+      "independent_reruns": [
+        "저장소 내부 저널만으로 261행 재생성 성공",
+        "값 반례 주입 시 SystemExit 발생",
+        "저널 단독 실행 시 26컬럼 유지 + 59 tests 통과",
+        "C009 대비 261행 공통 14컬럼 assert_frame_equal IDENTICAL",
+        "refcohort 변경 0, 2922af49 는 dangling 객체이며 조상 아님"
+      ]
+    },
+    "ssot": {
+      "status": "PENDING"
+    }
   }
 }
