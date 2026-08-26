@@ -1,0 +1,196 @@
+{
+  "schema": "landing-accessibility-reconciliation-v1",
+  "schema_note": "promote_landing_main.sh [REC_STATE_BIND] 가 읽는 reconciliation 산출물이다. 이 파일이 없으면 승격은 차단된다 (fail-closed). 필수 필드: schema · cycle · target_exec_sha · adversarial.{audit_sha,verdict} · ssot.{audit_sha,verdict} · open_blocking_total · decision · promotion_authorized · reconciled_at.",
+  "cycle": "V2-C010",
+  "reconciled_at": "2026-08-27T18:40:00+09:00",
+  "reconciled_by": "orchestrator reconciliation executor (V2-C010), control/landing-orchestrator",
+  "target_exec_sha": "70fa56376239d248e3e468d0a0a9bce60363e73b",
+  "target_exec_branch": "agent/landing-v2-exec",
+  "target_exec_note": "exec V2-C010(0a7c38db538d22a94961615307fe57dc8f1f6ce2) + V2-C010b(70fa56376239d248e3e468d0a0a9bce60363e73b). tip 이 진행 중인 V2-C010 감사의 대상이다.",
+  "prev_target_exec_sha": "e930fadee8393e08a585377492e3972424d03e11",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha_prev": "1d6cedb6aca6933a701275c7c8e14fd7d4628c73",
+  "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+
+  "audit_currency_warning": "**이 reconciliation 의 두 감사는 target_exec_sha 를 감사하지 않았다.** 최신 두 감사는 V2-C009(target e930fadee8393e08a585377492e3972424d03e11)에 머물러 있고, exec 는 그 뒤로 V2-C010·V2-C010b 두 커밋을 더 냈다. V2-C010 감사는 이 시각 origin/audit/landing-adversarial · origin/audit/landing-ssot 어디에도 push 되지 않았다(실측: 두 브랜치 tip = 152d6c95df12a382746c8f40077fcd05af761832 / ac766e0433a17c99f8f2f812394dfa7fe8155267, 둘 다 V2-C009). 따라서 이 reconciliation 은 **원장 정합성 갱신과 조건 C-1 이행을 기록하는 것**이며 승격 판정이 아니다. promote_landing_main.sh 의 [DEBT_RECOMPUTE] 는 audit_lag.latest_*_audited_cycle != latest_exec_cycle 을 fail-closed 로 차단하므로 이 상태에서 승격 시도는 스크립트 수준에서도 막힌다.",
+
+  "adversarial": {
+    "audit_branch": "audit/landing-adversarial",
+    "audit_sha": "152d6c95df12a382746c8f40077fcd05af761832",
+    "report": "research/landing_accessibility/audit/adversarial/V2_C009.{md,json}",
+    "audited_cycle": "V2-C009",
+    "audited_target_sha": "e930fadee8393e08a585377492e3972424d03e11",
+    "audited_target_is_reconciliation_target": false,
+    "verdict": "PASS",
+    "audit_type": "target-diff remediation verification (adversarial V2-C008 P2 x2) — not a full re-audit",
+    "counts": {"P0": 0, "P1": 0, "P2": 1, "blocking": 0},
+    "binding_statement": "V2_SSOT_FROZEN 을 선언하려면 그 선언과 같은 커밋 또는 그 이전에 C-1(원장 전이)과 C-5-①(한계 공표 문면)이 이행돼 있어야 한다. 둘 중 하나라도 없이 선언되면 rc-6-r1 재분류는 자동 실효되고 항목은 OPEN/blocking=true/counted_as_open=true 로 복귀한다. 이 PASS 는 그것을 면제하지 않는다."
+  },
+  "ssot": {
+    "audit_branch": "audit/landing-ssot",
+    "audit_sha": "ac766e0433a17c99f8f2f812394dfa7fe8155267",
+    "report": "research/landing_accessibility/audit/ssot/V2_C009.{md,json}",
+    "audited_cycle": "V2-C009",
+    "audited_target_sha": "e930fadee8393e08a585377492e3972424d03e11",
+    "audited_target_is_reconciliation_target": false,
+    "verdict": "FAIL",
+    "audit_type": "target-diff remediation verification (not a full re-audit)",
+    "counts": {"P0": 0, "P1": 0, "P2": 3, "blocking_v2_ssot_frozen": 1, "blocking_e001_v2": 2, "closed_this_cycle": 5},
+    "operational_note_for_control": "V2_SSOT_FROZEN-blocking 잔여는 둘 — exec 소관 C-5-①(G3)과 control 소관 C-1. rc-6-r1 원장 전이 시 상태값 정의 문구·accepted_by·accepted_at·scope·conditions·lapse_rule 을 함께 기입하고, promote_landing_main.sh [DEBT_RECOMPUTE] 가 ACCEPTED_BOUNDED_RESIDUAL_RISK 를 인식해 제외 건수를 별도 출력하도록 갱신해야 한다."
+  },
+  "both_audits_same_target_sha": true,
+  "both_audits_pass": false,
+
+  "focused_adjudications_reflected": [
+    {
+      "auditor": "adversarial",
+      "audit_sha": "fed3e70ba8430e0fad4f27df11d2eca550f33d30",
+      "report": "research/landing_accessibility/audit/adversarial/V2_C008_focused.{md,json}",
+      "subject": "rc-6-r1-same-authorization-local-reexecution-unbounded",
+      "verdict": "ACCEPT_RECLASSIFY",
+      "new_class": "ACCEPTED_BOUNDED_RESIDUAL_RISK",
+      "action_taken": "조건 C-1 을 이 사이클에서 이행했다 — 상태값 정의 신설 · 항목 전이 · 명시적 제외 한 줄 · [DEBT_RECOMPUTE] 갱신."
+    },
+    {
+      "auditor": "ssot",
+      "audit_sha": "68a715bb250630553b292e96ee992d5880d31b48",
+      "report": "research/landing_accessibility/audit/ssot/V2_C008_focused.{md,json}",
+      "subject": "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1",
+      "verdict": "CLOSED",
+      "action_taken": "open_blocking_total 에서 차감했다 (보고서 reconciliation_action_required 의 지시대로)."
+    }
+  ],
+
+  "c1_implementation": {
+    "condition": "C-1 · 원장 영구 기록 (즉시 · V2_SSOT_FROZEN 선언 이전)",
+    "source": "adversarial V2-C008 focused fed3e70ba8430e0fad4f27df11d2eca550f33d30 §7 C-1",
+    "owner": "control (orchestrator)",
+    "state": "SATISFIED",
+    "what_was_done": [
+      "① 상태값 정의 — control/state.json 에 v2_transition.finding_state_vocabulary 를 신설하고 ACCEPTED_BOUNDED_RESIDUAL_RISK 를 정의했다: '환원 불가능성이 감사에 의해 입증·수용됐고, 운영 통제와 공표 의무에 묶인 잔여. CLOSED 가 아니다 — 결함이 해소된 것이 아니라 성격이 재분류된 것이다.' 부여 조건(C-6-2 선례 제한 3요건 전건)·부여 절차(독립 감사만, 등재자 자기부여 금지)·자동 실효 규칙(C-6-1)을 함께 적었다.",
+      "② 항목 전이 — rc-6-r1-same-authorization-local-reexecution-unbounded 를 **삭제하지 않고** state=ACCEPTED_BOUNDED_RESIDUAL_RISK / blocking=false / counted_as_open=false / excluded_from_total=true 로 전이하고 accepted_by_audit_sha·accepted_by_audit_branch·accepted_by_audit_report·accepted_at·basis·scope·conditions·conditions_status(C-1~C-6 각각의 owner·기한·상태·근거)·lapse_rule·precedent_limits_satisfied 를 기록했다.",
+      "③ 명시적 제외 한 줄 — open_blocking_total 에 accepted_bounded_residual_risk(정수 카운터) · accepted_residual_ids(id 열거) · exclusion_line(제외의 의미) · exclusion_is_conditional(C-6 실효 경고) 을 신설하고, formula 와 formula_expanded 산식에 제외항을 **합계와 나란히** 표기했다. by_blocking_class 에도 'accepted_bounded_residual_risk (합계 밖 · 명시적 제외)' 행을 두었다. 합계에서 조용히 사라지는 형태(항목 삭제·누락)를 쓰지 않았다.",
+      "④ [DEBT_RECOMPUTE] 갱신 — promote_landing_main.sh 에 검사 (D) 를 신설했다."
+    ],
+    "debt_recompute_changes": [
+      "ACCEPTED_BOUNDED_RESIDUAL_RISK 항목을 tally 에서 인식한다 (기존 tally 는 blocking=false 항목을 무조건 건너뛰어 **조용히 사라지는 형태**였다 — 그것이 C-1 이 금지한 바로 그 형태다).",
+      "제외 건수를 별도 출력한다: 'DEBT_RECOMPUTE 명시적 제외 — ACCEPTED_BOUNDED_RESIDUAL_RISK N건: <ids>'. breakdown 문자열에도 제외항이 들어간다. [BLOCKING_DEBT] 의 성공 note 에도 제외 건수가 항상 한 줄로 붙는다(합계가 0 이어도 보인다).",
+      "근거 없는 제외를 차단한다 — 원장의 상태값 정의 존재(definition·counting_rule·grant_conditions·lapse_rule), 형식 요건(blocking=false/counted_as_open=false/excluded_from_total=true), 필수 근거 필드 10종, accepted_by_audit_sha 의 40-hex·audit/landing-* 네임스페이스, **그 SHA 에서 실제로 읽히는 감사 보고서의 id 일치 · verdict=ACCEPT_RECLASSIFY · new_class=ACCEPTED_BOUNDED_RESIDUAL_RISK**, C-6-2 선례 제한 3요건 YES 기록. 하나라도 없으면 die.",
+      "선언값 대조 — open_blocking_total.accepted_bounded_residual_risk 카운터와 accepted_residual_ids 열거가 원장 항목에서 센 수·id 와 일치해야 하고 exclusion_line 이 있어야 한다. 항목만 지우고 카운터를 남기거나, 카운터 없이 항목만 제외하는 두 방향 모두 차단된다.",
+      "C-6 자동 실효 — gates.V2_SSOT_FROZEN 이 ACHIEVED 로 선언된 원장에서 due_before=V2_SSOT_FROZEN 인 조건(C-1·C-2·C-5-①)이 하나라도 SATISFIED 가 아니면 그 항목을 **다시 open blocking 으로 세고** 실효를 명시적으로 보고한다. 또 owner 가 control 이 아닌 조건을 SATISFIED 로 적으려면 audit_sha 근거가 있어야 한다 (self-approval 금지)."
+    ],
+    "verification": {
+      "method": "[DEBT_RECOMPUTE] 파이썬 블록을 스크립트에서 그대로 떼어내(debt_recompute.py) 격리 git 저장소 픽스처 위에서 13개 케이스로 직접 실행했다. 픽스처의 수용 판정 보고서는 fed3e70 의 V2_C008_focused.json **실물 바이트**를 그대로 넣었다.",
+      "cases": [
+        "T1 정상 — exit 0. '명시적 제외 1건' 출력 + 'C-5-1=NOT_SATISFIED, V2_SSOT_FROZEN 선언 시 자동 실효' 경고 출력.",
+        "T2 accepted_by_audit_sha 삭제 — 차단.",
+        "T3 카운터·id 열거 없이 항목만 제외(조용한 제외) — 차단.",
+        "T3b 카운터·열거는 있으나 exclusion_line 없음 — 차단.",
+        "T4 gates.V2_SSOT_FROZEN=ACHIEVED + C-5-① 미충족 — **자동 실효**로 차단, 실효 항목·미충족 조건을 출력.",
+        "T5 수용 판정 보고서 verdict 위조(PASS) — 차단.",
+        "T6 counted_as_open=false 인데 duplicate_of/superseded_by 없음(기존 검사 회귀) — 차단.",
+        "T7 선례 제한 3요건 중 하나가 YES 아님 — 차단.",
+        "T8 owner=exec 조건을 audit_sha 없이 SATISFIED — 차단.",
+        "T9 gate ACHIEVED + 선행 조건 전건 SATISFIED(감사 근거 포함) — exit 0, 실효 없음.",
+        "T10 원장에 상태값 정의 없음 — 차단.",
+        "T11 ABRR 인데 blocking=true(형식 요건 미달) — 차단.",
+        "T12 항목을 지우고 카운터만 남김 — 차단."
+      ],
+      "real_repo_check": "실제 원장의 rc-6-r1 항목이 실제 저장소($REPO=/home/sieg/projects-wsl/ProjectFinal)에서 fed3e70ba8430e0fad4f27df11d2eca550f33d30:research/landing_accessibility/audit/adversarial/V2_C008_focused.json 을 읽어 id 일치 · verdict=ACCEPT_RECLASSIFY · new_class=ACCEPTED_BOUNDED_RESIDUAL_RISK 를 확인함을 실측했다 (main 체크아웃·control 워크트리 양쪽에서).",
+      "bash_syntax": "bash -n scripts/promote_landing_main.sh = OK. 승격 스크립트는 --dry-run 을 포함해 실행하지 않았다."
+    }
+  },
+
+  "open_blocking_total": 3,
+  "accepted_bounded_residual_risk": 1,
+  "accepted_residual_ids": [
+    "rc-6-r1-same-authorization-local-reexecution-unbounded (ACCEPTED_BOUNDED_RESIDUAL_RISK — 명시적으로 제외된 한 줄. CLOSED 아님)"
+  ],
+  "exclusion_line": "합계 3 + 명시적 제외 1 = 원장에 살아 있는 blocking 성 항목 4건. 제외된 1건은 해소된 것이 아니라 감사가 조건부로 수용한 잔여이며, C-1·C-2·C-5-① 미충족 상태로 V2_SSOT_FROZEN 이 선언되면 자동 실효되어 합계로 되돌아온다.",
+  "open_blocking_breakdown": {
+    "v1_inherited": 0,
+    "V2-C001": 0,
+    "V2-C002": 0,
+    "V2-C003": 0,
+    "V2-C004": 0,
+    "V2-C005": 0,
+    "V2-C006": 0,
+    "V2-C007": 0,
+    "V2-C008": 0,
+    "V2-C009": 3,
+    "V2-C010": 0,
+    "orchestrator_registered": 0
+  },
+  "by_blocking_class": {
+    "V2_SSOT_FROZEN-blocking": 1,
+    "E001_V2-blocking": 2,
+    "v1_inherited (E001_V2 계열)": 0,
+    "accepted_bounded_residual_risk (합계 밖 · 명시적 제외)": 1
+  },
+  "v2_ssot_frozen_blocking_class_count": 1,
+  "v2_ssot_frozen_blocking_class_ids": [
+    "c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half (ssot V2-C009 ac766e0433a17c99f8f2f812394dfa7fe8155267 — exec V2-C010 0a7c38db538d22a94961615307fe57dc8f1f6ce2 이 이행을 주장하나 감사 판정 없음)"
+  ],
+  "e001_v2_blocking_class_ids": [
+    "min-4-floor-bucket-boundary-aligns-with-integer-areas-and-residual-is-misjustified (ssot V2-C009)",
+    "min-4-quantization-unit-declared-frozen-at-p-d-but-not-registered-in-a1-7 (ssot V2-C009)"
+  ],
+  "v1_inherited_blocking_ids": [],
+  "previous_open_blocking_total": 10,
+  "delta": -7,
+
+  "closed_this_round": [
+    {"id": "ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1", "class": "V2_SSOT_FROZEN", "closed_by": "ssot focused 68a715bb250630553b292e96ee992d5880d31b48 (verdict=CLOSED, remaining_gap=\"\")"},
+    {"id": "a1-raw-payload-files-not-hash-registered-in-authority-manifest", "class": "v1 inherited", "closed_by": "adversarial V2-C008 56f69f3b23eaa15b7eb0689c526eb617a12c813a prior_findings_status"},
+    {"id": "eligibility-basis-fields-narrower-than-06-still-carried", "class": "v1 inherited", "closed_by": "adversarial V2-C008 56f69f3b23eaa15b7eb0689c526eb617a12c813a + ssot V2-C008 73f3a7d1475ceaea2cf04e3e619cbdaaa2e8714a"},
+    {"id": "queue-membership-still-hand-set-in-entity-spec", "class": "v1 inherited", "closed_by": "adversarial V2-C008 56f69f3b23eaa15b7eb0689c526eb617a12c813a"},
+    {"id": "merge-decision-merges-nothing-no-alias-assert", "class": "v1 inherited", "closed_by": "adversarial V2-C008 56f69f3b23eaa15b7eb0689c526eb617a12c813a + ssot V2-C008 73f3a7d1475ceaea2cf04e3e619cbdaaa2e8714a"},
+    {"id": "verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard", "class": "v1 inherited", "closed_by": "adversarial V2-C008 56f69f3b23eaa15b7eb0689c526eb617a12c813a"},
+    {"id": "gitignore-evidence-pattern-single-level-only", "class": "v1 inherited", "closed_by": "adversarial V2-C008 56f69f3b23eaa15b7eb0689c526eb617a12c813a"},
+    {"id": "ned-ied-path-minimality-not-operationalized", "class": "E001_V2", "closed_by": "adversarial V2-C008 + ssot V2-C008 (adversarial V2-C009 regression_check 가 비회귀 재확인)"},
+    {"id": "e-6a-accepts-misclassified-gate-kind-and-silently-flips-endpoint", "class": "E001_V2", "closed_by": "adversarial V2-C008 + ssot V2-C008"},
+    {"id": "a1-2-6-min-3-contradicts-a2-1-5-1a-gate-as-endpoint", "class": "V2_SSOT_FROZEN (ssot V2-C008 F1)", "closed_by": "ssot V2-C009 ac766e0433a17c99f8f2f812394dfa7fe8155267"},
+    {"id": "exc-4-scope-not-widened-to-first-run-after-c-2", "class": "V2_SSOT_FROZEN (ssot V2-C008 F2)", "closed_by": "ssot V2-C009"},
+    {"id": "rc-5-execution-authorization-reconciliation-row-still-scoped-to-recollection", "class": "V2_SSOT_FROZEN (ssot V2-C008 F3)", "closed_by": "ssot V2-C009"},
+    {"id": "a1-6-2-lacks-evidence-run-id-derivation-binding", "class": "E001_V2 (ssot V2-C008 F4)", "closed_by": "ssot V2-C009"},
+    {"id": "redirect-chain-target-url-phase-assignment-contradicts-between-5-5-and-6-2", "class": "P-B (ssot V2-C008 F5)", "closed_by": "ssot V2-C009"},
+    {"id": "rc-5-anchor-verification-report-row-still-scoped-to-recollection-runs", "class": "비차단 (adversarial V2-C008 신규)", "closed_by": "adversarial V2-C009 152d6c95df12a382746c8f40077fcd05af761832"}
+  ],
+  "reclassified_this_round": [
+    {"id": "rc-6-r1-same-authorization-local-reexecution-unbounded", "from": "OPEN / blocking=true / counted_as_open=true (E001_V2-blocking)", "to": "ACCEPTED_BOUNDED_RESIDUAL_RISK / blocking=false / counted_as_open=false / excluded_from_total=true", "by": "adversarial focused fed3e70ba8430e0fad4f27df11d2eca550f33d30 (ACCEPT_RECLASSIFY)", "not_closed": "CLOSED 가 아니다. 조건 C-1~C-6 에 묶인 조건부 수용이며 명시적 제외 한 줄로 상시 표시된다."}
+  ],
+  "opened_this_round": [
+    {"id": "c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half", "by": "ssot V2-C009", "class": "V2_SSOT_FROZEN", "state": "OPEN"},
+    {"id": "min-4-floor-bucket-boundary-aligns-with-integer-areas-and-residual-is-misjustified", "by": "ssot V2-C009", "class": "E001_V2", "state": "OPEN"},
+    {"id": "min-4-quantization-unit-declared-frozen-at-p-d-but-not-registered-in-a1-7", "by": "ssot V2-C009", "class": "E001_V2", "state": "OPEN"},
+    {"id": "min-4-selector-tiebreak-does-not-neutralize-subpixel-jitter", "by": "adversarial V2-C008, V2-C009 에서 존속", "class": "P-C / E000_V2", "state": "OPEN", "blocking": false}
+  ],
+
+  "gate": "V2_SSOT_FROZEN",
+  "gate_status": "NOT_ACHIEVED",
+  "gate_reason": "네 요건 중 셋이 미충족이다. (1) open_blocking_total = 3 ≠ 0 — 00_SSOT_v2.0 §15 위반. (2) V2_SSOT_FROZEN-blocking 클래스가 비지 않았다 — c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half 1건. (3) 두 감사 모두 PASS 아님 — 최신 ssot verdict = FAIL (ac766e0433a17c99f8f2f812394dfa7fe8155267). PHASE_GATES 「공통 통과조건」절(=§2)은 '두 감사 모두 verdict = PASS' 와 '해당 Gate 의 blocking finding 0건' 을 동시에 요구한다. (4) reconciliation 은 current 다 — 이 파일. 추가로 exec tip(V2-C010)이 미감사여서 어느 감사도 승격 대상 산출물을 보지 않았다.",
+  "c6_lapse_avoidance": "C-5-①(exec 소관 한계 공표 문면)이 감사로 확인되지 않은 상태다. adversarial fed3e70 §7 C-6-1 은 C-1·C-2·C-5-① 미충족 상태로 V2_SSOT_FROZEN 을 선언하면 rc-6-r1 수용이 **새 감사 finding 없이 자동 실효**되고 항목이 OPEN/blocking=true/counted_as_open=true 로 복귀한다고 규정한다. 따라서 지금 V2_SSOT_FROZEN 을 ACHIEVED 로 선언하면 open_blocking_total 이 3 → 4 로 되돌아간다. 선언하지 않는 편이 정직할 뿐 아니라 산술적으로도 옳다.",
+
+  "decision": "REWORK",
+  "promotion_authorized": false,
+  "p_a_authorized": false,
+  "e001_v2_authorized": false,
+  "decision_reason": "PROMOTE 를 쓸 수 있는 조건이 하나도 충족되지 않았다. (a) open_blocking_total = 3 (≠ 0), (b) 최신 ssot verdict = FAIL, (c) 두 감사 모두 승격 대상 exec SHA(70fa56376239d248e3e468d0a0a9bce60363e73b)를 감사하지 않았다 — V2-C010 감사가 origin 에 없다, (d) V2_SSOT_FROZEN = NOT_ACHIEVED. 이 사이클의 성과는 승격이 아니라 **조건 C-1 이행과 원장 정합화**다: open_blocking_total 이 10 → 3 으로 줄었고 v1 승계 부채 6건이 모두 닫혔으며 V2_SSOT_FROZEN-blocking 클래스가 1건(exec 소관, 시정 주장됨)으로 좁혀졌다.",
+
+  "accepted_findings": [
+    "ssot V2-C009 신규 3건 (G1·G2·G3) — 전부 등재하고 open 으로 계상했다. exec 의 V2-C010 시정 주장은 감사 전이므로 반영하지 않았다.",
+    "adversarial V2-C009 min-4-selector-tiebreak-… — 비차단 존속으로 등재했다."
+  ],
+  "rejected_findings": [],
+
+  "orchestrator_independent_verification": [
+    "여섯 보고서(adversarial focused/V2-C008/V2-C009, ssot focused/V2-C008/V2-C009) JSON 을 origin/audit/landing-adversarial · origin/audit/landing-ssot 에서 git show 로 직접 읽어 cycle·target_sha·auditor·verdict·counts·prior_findings_status·closed_findings·remediation_verification·condition_adjudications·promotion_readiness 를 파싱했다. 요약을 신뢰하지 않았다.",
+    "git fetch origin 후 세 브랜치 tip 을 실측했다 — origin/agent/landing-v2-exec = 70fa56376239d248e3e468d0a0a9bce60363e73b(V2-C010b), origin/audit/landing-adversarial = 152d6c95df12a382746c8f40077fcd05af761832(V2-C009), origin/audit/landing-ssot = ac766e0433a17c99f8f2f812394dfa7fe8155267(V2-C009). V2-C010 감사 부재를 이 실측으로 확정했다.",
+    "open_blocking_total 을 원장 항목에서 [DEBT_RECOMPUTE] 와 같은 규칙으로 독립 재계산했다 — v1 0 + 사이클 3(전부 V2-C009 ssot) + orchestrator 0 = 3, 명시적 제외 1. open_blocking_ids 길이 == 합계 == 3 을 확인했다.",
+    "v1 승계 6건은 debt_inheritance.items 에서 삭제하지 않고 state=CLOSED_VERIFIED + closed_by_audit + closure_evidence 로 전이했다 — 모집단 크기·class 인구·E001_BLOCKING 수의 이중 원천 대조([DEBT_RECOMPUTE] C1-b/C1-c)가 그대로 성립한다.",
+    "[DEBT_RECOMPUTE] 블록을 떼어내 격리 저장소에서 13케이스로 실행해 새 제외 로직의 작동과 근거 없는 제외의 차단을 확인했다 (c1_implementation.verification)."
+  ],
+  "self_approval_note": "오케스트레이터가 닫은 finding 은 없다. 차감한 9건은 전부 두 독립감사 중 하나 이상이 그 id 를 지목해 CLOSED 로 판정한 것이고, 제외한 1건은 독립 adversarial 감사가 ACCEPT_RECLASSIFY 로 판정한 것이다. exec 가 V2-C010 에서 시정을 주장한 3건은 감사 판정이 없어 전부 open 으로 유지했다. C-1 은 control 소관 조건이며 그 이행 사실은 원장 문면 자체로 기계 검증된다 — 감사 판정이 필요한 수용 여부는 fed3e70 이 이미 내렸다.",
+  "next_cycle_requirement": "V2-C010 두 감사(target 70fa56376239d248e3e468d0a0a9bce60363e73b)가 (1) c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half 를 id 지목 CLOSED 로 판정하고 — 그래야 V2_SSOT_FROZEN-blocking 클래스가 비고 rc-6-r1 수용의 C-5-① 조건이 충족돼 C-6 자동 실효가 해제된다 — (2) min-4 관련 2건도 CLOSED 로 판정하며 (3) 둘 다 verdict=PASS 여야 open_blocking_total = 0 과 '두 감사 PASS' 가 동시에 성립해 V2_SSOT_FROZEN 이 ACHIEVED 후보가 된다. 그 시점의 reconciliation 이 decision=PROMOTE 를 쓸 수 있다.",
+  "audit_lag_note": "unaudited_cycle_depth = 1 로 MAX_UNAUDITED_EXEC_CYCLES = 1 의 **한도에 도달**했다. V2-C011 exec 는 V2-C010 감사가 나온 뒤에 시작해야 한다."
+}

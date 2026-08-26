@@ -1,0 +1,88 @@
+{
+  "cycle": "V2-C010",
+  "role": "orchestrator reconciliation — adversarial fed3e70 조건 C-1 이행(원장 전이 + 상태값 정의 + 명시적 제외 + [DEBT_RECOMPUTE] 갱신) 및 V2-C008/V2-C009 감사 결과를 원장에 반영한 최종 reconciliation",
+  "branch": "control/landing-orchestrator",
+  "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator",
+  "prev_control_sha": "1d6cedb6aca6933a701275c7c8e14fd7d4628c73",
+  "reconciled_at": "2026-08-27T18:40:00+09:00",
+
+  "responds_to": [
+    "V2-C008 adversarial focused @ audit/landing-adversarial fed3e70ba8430e0fad4f27df11d2eca550f33d30 (ACCEPT_RECLASSIFY — rc-6-r1, 조건 C-1~C-6)",
+    "V2-C008 ssot focused @ audit/landing-ssot 68a715bb250630553b292e96ee992d5880d31b48 (CLOSED — ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1)",
+    "V2-C008 adversarial @ audit/landing-adversarial 56f69f3b23eaa15b7eb0689c526eb617a12c813a (PASS, blocking 0, target 181d17afe22b8319043e4d1ef6311393dc046827)",
+    "V2-C008 ssot @ audit/landing-ssot 73f3a7d1475ceaea2cf04e3e619cbdaaa2e8714a (FAIL, blocking 5, 같은 target)",
+    "V2-C009 adversarial @ audit/landing-adversarial 152d6c95df12a382746c8f40077fcd05af761832 (PASS, blocking 0, target e930fadee8393e08a585377492e3972424d03e11)",
+    "V2-C009 ssot @ audit/landing-ssot ac766e0433a17c99f8f2f812394dfa7fe8155267 (FAIL, blocking 3, 같은 target)"
+  ],
+
+  "assignment": "P0(V2_SSOT_FROZEN) 승격을 막는 마지막 control 소관 항목 C-1 을 이행하고 최종 reconciliation 을 만든다.",
+
+  "what_i_did": [
+    "**C-1 이행 (1) 상태값 정의** — control/state.json 에 v2_transition.finding_state_vocabulary 를 신설하고 ACCEPTED_BOUNDED_RESIDUAL_RISK 를 정의했다. 정의문은 감사가 지정한 문면 그대로다: '환원 불가능성이 감사에 의해 입증·수용됐고, 운영 통제와 공표 의무에 묶인 잔여. CLOSED 가 아니다 — 결함이 해소된 것이 아니라 성격이 재분류된 것이다.' 부여 조건은 C-6-2 선례 제한 3요건(직접 공격 재현 · 단일 차원 축소 · 지적 전 자진 등재)을 **전건 필수**로 못박고, 감사가 전용(轉用)을 명시적으로 금지한 두 id(e-6a-… · ned-ied-…)를 explicitly_forbidden_for 에 적었다. 부여 권한은 독립 감사에만 있고 등재자 자기부여는 금지임을 명기했다. 자동 실효 규칙(C-6-1)도 함께 적었다.",
+    "**C-1 이행 (2) 항목 전이** — rc-6-r1-same-authorization-local-reexecution-unbounded 를 삭제하지 않고 state=ACCEPTED_BOUNDED_RESIDUAL_RISK / blocking=false / counted_as_open=false / excluded_from_total=true 로 전이했다. accepted_by_audit_sha(fed3e70…)·accepted_by_audit_branch·accepted_by_audit_report·accepted_at·basis(원장이 미리 지정해 둔 닫힘 경로)·scope(C-2 가 확대한 위험 부류 = 재수집 run + 최초 E001 run)·conditions·conditions_status(C-1~C-6 각각 owner·기한·상태·근거)·lapse_rule·lapse_currently_armed·precedent_limits_satisfied 를 기록했다. why_counted 는 지우지 않고 why_counted_superseded 로 이력을 남겼다.",
+    "**C-1 이행 (3) 명시적 제외 한 줄** — open_blocking_total 에 accepted_bounded_residual_risk(=1) · accepted_residual_ids(1건 열거) · exclusion_line · exclusion_is_conditional 을 신설하고 formula/formula_expanded 산식에 제외항을 합계와 나란히 표기했다. by_blocking_class 에도 '합계 밖 · 명시적 제외' 행을 두었다. 항목 삭제·누락 형태를 쓰지 않았다.",
+    "**C-1 이행 (4) [DEBT_RECOMPUTE] 갱신** — promote_landing_main.sh 에 검사 (D) 를 신설했다. 종전 tally 는 blocking=false 항목을 무조건 건너뛰어 ACCEPTED_BOUNDED_RESIDUAL_RISK 가 **조용히 사라지는** 구조였다 — C-1 이 금지한 바로 그 형태다. 이제 (a) 상태값 정의 존재, (b) 형식 요건, (c) 필수 근거 필드 10종, (d) accepted_by_audit_sha 커밋에서 실제로 읽히는 감사 보고서의 id·verdict=ACCEPT_RECLASSIFY·new_class 대조, (e) C-6-2 선례 제한 3요건, (f) 선언 카운터·id 열거·exclusion_line 과의 일치를 검증하고 **제외 건수를 별도 출력**한다. 하나라도 없으면 차단이다. C-6 자동 실효도 검사한다 — gates.V2_SSOT_FROZEN 이 ACHIEVED 로 선언된 원장에서 due_before=V2_SSOT_FROZEN 조건이 미충족이면 그 항목을 다시 open blocking 으로 센다. control 소관이 아닌 조건을 SATISFIED 로 적으려면 audit_sha 근거가 필요하다. [BLOCKING_DEBT] 의 성공 note 에도 제외 건수가 항상 붙는다.",
+    "**감사 결과 반영** — v1 승계 blocking 6건(adversarial V2-C008 이 6건 전부 id 지목 CLOSED, ssot V2-C008 이 그중 2건 독립 CLOSED)을 debt_inheritance.items 에서 state=CLOSED_VERIFIED + closed_by_audit + closure_evidence 로 전이했다(삭제하지 않았다 — 이중 원천 대조 유지). ned-ied-path-minimality-not-operationalized(V2-C002) · e-6a-…(orchestrator 등재) · ssot-00-3-…(orchestrator 등재)를 각각의 감사 판정 근거와 함께 CLOSED 로 전이했다. v2_audit_findings.cycles 에 V2-C008 · V2-C009 · V2-C010 블록을 신설하고 totals 를 재계산했다.",
+    "**open_blocking_total 재계산** — 10 → 3. by_blocking_class 와 recomputation.steps(①~⑪)를 이전 사이클 형식으로 다시 썼다.",
+    "**audit_lag 갱신** — latest_exec_cycle=V2-C010 / latest_exec_sha=70fa5637… , 두 감사는 V2-C009 (adversarial 152d6c95 PASS / ssot ac766e04 FAIL, 둘 다 target e930fade…). audit_round_v2_c008_c009 에 이번 라운드 감사 여섯 커밋의 체인을 실측 순서로 기록했다. unaudited_cycle_depth=1(한도 도달), latest_reconciled_cycle=V2-C010.",
+    "**gates 갱신** — V2_SSOT_FROZEN 은 NOT_ACHIEVED 를 유지하고 무엇이 남았는지 네 요건별로 적었다. accepted_bounded_residual_risk_register 게이트 행을 신설했다.",
+    "**reconciliation 산출물** — control/cycles/V2_C010_RECONCILIATION.json (decision=REWORK, promotion_authorized=false, open_blocking_total=3, accepted_bounded_residual_risk=1)."
+  ],
+
+  "measured_not_assumed": [
+    "git fetch origin 후 origin/agent/landing-v2-exec = 70fa56376239d248e3e468d0a0a9bce60363e73b (V2-C010b), origin/audit/landing-adversarial = 152d6c95df12a382746c8f40077fcd05af761832 (V2-C009), origin/audit/landing-ssot = ac766e0433a17c99f8f2f812394dfa7fe8155267 (V2-C009) 를 직접 확인했다. **V2-C010 감사는 origin 에 없다.**",
+    "여섯 감사 보고서 JSON 을 git show 로 직접 읽었다. adversarial V2_C008.json 의 prior_findings_status 9건, ssot V2_C008.json 의 closed_findings 4건 + findings 5건, ssot V2_C009.json 의 remediation_verification·closed_findings·condition_adjudications·promotion_readiness, adversarial V2_C009.json 의 findings·closed_this_cycle·regression_check·promotion_conditions 를 전부 파싱해 대조했다.",
+    "adversarial V2_C008_focused.md 원문을 읽어 C-1 요구(상태값 정의 · 명시적으로 제외된 한 줄 · 조용히 사라지는 형태 금지 · [DEBT_RECOMPUTE] 갱신 + 제외 건수 별도 출력)를 확인했다.",
+    "실제 원장의 rc-6-r1 항목이 실제 저장소에서 fed3e70:…/V2_C008_focused.json 을 읽어 id·verdict·new_class 를 확인함을 실측했다(main 체크아웃·control 워크트리 양쪽)."
+  ],
+
+  "debt_recompute_verification": {
+    "method": "[DEBT_RECOMPUTE] 파이썬 블록을 스크립트에서 그대로 떼어내 격리 git 저장소 픽스처에서 13케이스로 실행했다. 픽스처의 수용 판정 보고서는 fed3e70 의 실물 바이트다.",
+    "results": {
+      "T1 정상": "exit 0 — '명시적 제외 1건' 출력 + C-5-1 미충족 경고 출력",
+      "T2 accepted_by_audit_sha 삭제": "차단",
+      "T3 카운터·열거 없이 항목만 제외(조용한 제외)": "차단",
+      "T3b exclusion_line 없음": "차단",
+      "T4 gate=ACHIEVED + C-5-① 미충족": "**자동 실효**로 차단, 실효 항목·미충족 조건 출력",
+      "T5 수용 보고서 verdict 위조": "차단",
+      "T6 counted_as_open=false 에 근거 없음(기존 검사 회귀)": "차단",
+      "T7 선례 제한 미기록": "차단",
+      "T8 owner=exec 조건을 audit_sha 없이 SATISFIED": "차단",
+      "T9 gate=ACHIEVED + 선행 조건 전건 SATISFIED(감사 근거)": "exit 0, 실효 없음",
+      "T10 상태값 정의 없음": "차단",
+      "T11 ABRR 인데 blocking=true": "차단",
+      "T12 항목 삭제 + 카운터 유지": "차단"
+    },
+    "bash_syntax": "bash -n scripts/promote_landing_main.sh = OK",
+    "json_validity": "python3 -c 'import json; json.load(...)' 로 state.json · V2_C010_RECONCILIATION.json · 이 파일 전부 확인"
+  },
+
+  "open_blocking_total": {"before": 10, "after": 3, "accepted_bounded_residual_risk": 1},
+  "by_blocking_class": {"V2_SSOT_FROZEN-blocking": 1, "E001_V2-blocking": 2, "v1_inherited": 0, "accepted_bounded_residual_risk (합계 밖)": 1},
+  "gate": {"V2_SSOT_FROZEN": "NOT_ACHIEVED"},
+  "decision": "REWORK",
+  "promotion_authorized": false,
+
+  "not_done": [
+    "승격 스크립트를 실행하지 않았다 — --dry-run 포함. 검증은 [DEBT_RECOMPUTE] 블록만 격리 저장소에서 떼어내 실행했다.",
+    "다른 워크트리에 쓰지 않았다. 전 분석은 git show / git log 읽기 전용.",
+    "Pilot(32460b8) 을 열람·변경하지 않았다.",
+    ".git/hooks/ 를 건드리지 않았다.",
+    "실제 웹사이트에 접속하지 않았다.",
+    "감사가 판정하지 않은 것을 CLOSED 로 만들지 않았다 — exec 가 V2-C010 에서 시정을 주장한 3건(C-5-① · MIN-4 2건)은 전부 open 으로 유지했다.",
+    "V2_SSOT_FROZEN 을 선언하지 않았다 — 선언하면 C-6 으로 rc-6-r1 수용이 자동 실효돼 open_blocking_total 이 4 로 되돌아간다.",
+    "V2-C010 감사 결과를 예단하지 않았다 — 원장의 V2-C010 블록은 audit_status=AWAITING_AUDIT 이고 findings 는 비어 있다.",
+    "min-4-selector-tiebreak-…(adversarial, 비차단)는 V2-C008 쪽에서만 계상하고 V2-C009 쪽은 duplicate_of 로 표기했다 — 비차단이라 합계에는 어느 쪽이든 영향이 없다."
+  ],
+
+  "handoff": {
+    "to": "V2-C010 두 감사 (audit/landing-adversarial · audit/landing-ssot)",
+    "target_exec_sha": "70fa56376239d248e3e468d0a0a9bce60363e73b",
+    "control_sha": "이 커밋",
+    "what_to_judge": [
+      "c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half — **V2_SSOT_FROZEN 을 막는 유일한 blocking finding**이자 rc-6-r1 수용의 C-5-① 조건 tracker. 닫히지 않으면 게이트가 두 경로로 막힌다(클래스 비지 않음 + C-6 자동 실효).",
+      "min-4-floor-bucket-boundary-… · min-4-quantization-unit-… — E001_V2-blocking 2건. exec 가 round 정정 후 양자화 단위를 16px² 로 다시 바꿨다(V2-C010b).",
+      "C-1 이행 자체 — 이 커밋의 상태값 정의·전이·명시적 제외·[DEBT_RECOMPUTE] (D) 검사가 감사가 요구한 것을 실제로 하는지. 특히 '근거 없는 제외 차단' 과 'C-6 자동 실효' 를 직접 공격해 보기를 요청한다."
+    ]
+  }
+}

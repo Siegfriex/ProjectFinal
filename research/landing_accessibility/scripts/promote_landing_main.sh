@@ -64,6 +64,7 @@
 #   10 [INSTALL_INTEGRITY]    verify_v2_docs.py 실호출 (exec 워크트리 기준, exit != 0 · 부재 모두 차단)
 #   11 [BLOCKING_DEBT]        원장의 open P0/P1 · v2_transition.open_blocking_total
 #   12 [DEBT_RECOMPUTE]       pinned 감사 보고서 + 원장 항목에서 blocking·cycle·target 독립 재계산·대조
+#                              + ACCEPTED_BOUNDED_RESIDUAL_RISK 명시적 제외 검증·건수 출력·C-6 자동 실효 (V2-C010)
 #   13 [AUDIT_VERDICT]        audit lag · target sha · verdict(state + 보고서 JSON) · 감사 SHA 핀
 #   reconciliation 검사는 **입력 검증**이므로 가장 앞 층(3·4)에 두고, 원장 bind 는 원장을 읽을 수 있게 된
 #   직후(8)에 둔다. 무결성 검증은 exec **트리** 검사이므로 clean/HEAD 와 같은 층에 둔다.
@@ -543,7 +544,17 @@ print("\n".join(msgs))
 PY
 )"
 [ -z "$BLOCK" ] || fail "blocking debt:"$'\n'"$BLOCK"
-note "[BLOCKING_DEBT] open P0/P1 = 0 · v2_transition.open_blocking_total = 0 OK (원장 = $REC_SHA reconciliation 본)"
+# 명시적 제외(ACCEPTED_BOUNDED_RESIDUAL_RISK)는 합계가 0 이어도 **항상 한 줄로 보인다.**
+# 합계만 출력하면 수용된 잔여가 승격 로그에서 조용히 사라진다 (adversarial fed3e70 §7 C-1).
+ACCEPTED_LINE="$(python3 - "$STATE" <<'PY'
+import json, sys
+obt = (json.load(open(sys.argv[1], encoding="utf-8")).get("v2_transition") or {}).get("open_blocking_total") or {}
+n = obt.get("accepted_bounded_residual_risk") or 0
+ids = obt.get("accepted_residual_ids") or []
+print("명시적 제외 %s건%s" % (n, (" — " + "; ".join(str(i).split(" — ")[0] for i in ids)) if ids else ""))
+PY
+)"
+note "[BLOCKING_DEBT] open P0/P1 = 0 · v2_transition.open_blocking_total = 0 OK (원장 = $REC_SHA reconciliation 본) · $ACCEPTED_LINE"
 
 # ================================================================ [DEBT_RECOMPUTE]
 # V2-C005 시정 (4/4) — 닫힘조건 ④
@@ -557,6 +568,19 @@ note "[BLOCKING_DEBT] open P0/P1 = 0 · v2_transition.open_blocking_total = 0 OK
 #     (C) v1 승계분의 **독립 원천** — state.debt_ledger(v1 시절 원장) 와 그 원장의 git 앵커
 #         (debt_inheritance.v1_ledger_git_anchor). V2-C006 신설. (B) 하나만 보면 v1 항목을
 #         지우고 total 을 1 낮춘 자기일관적 state 가 통과한다 — 감사가 실측한 구멍이다.
+#     (D) ACCEPTED_BOUNDED_RESIDUAL_RISK **명시적 제외**. V2-C010 신설 — adversarial V2-C008
+#         focused (fed3e70) §7 C-1 이행. 이 상태값은 CLOSED 가 아니다: 결함은 해소되지 않았고
+#         감사가 잔여 위험을 조건부로 수용한 것이다. 따라서 합계에서 빠지되 **조용히 사라져서는 안 된다.**
+#         이 블록은 그 항목을 (a) 원장의 상태값 정의 존재, (b) 필수 근거 필드 전건,
+#         (c) accepted_by_audit_sha 커밋에서 실제로 읽히는 감사 보고서의
+#             id 일치 · verdict=ACCEPT_RECLASSIFY · new_class=ACCEPTED_BOUNDED_RESIDUAL_RISK,
+#         (d) C-6-2 선례 제한 3요건 기록, (e) 선언된 제외 카운터·id 열거와의 일치
+#         로 검증하고 **제외 건수를 별도 출력**한다. 하나라도 없으면 차단이다 —
+#         근거 없는 제외로 total 을 낮추는 경로는 counted_as_open=false 쪽과 똑같이 막는다.
+#         또 C-6 **자동 실효**를 검사한다: gates.V2_SSOT_FROZEN 이 ACHIEVED 로 선언된 원장에서
+#         due_before=V2_SSOT_FROZEN 인 조건(C-1·C-2·C-5-①)이 하나라도 SATISFIED 가 아니면
+#         그 항목을 **다시 open blocking 으로 센다** (새 감사 finding 없이 수용이 실효되므로).
+#         control 소관이 아닌 조건을 SATISFIED 로 적으려면 audit_sha 근거가 있어야 한다.
 #   (A)와 (B)와 (C)와 스칼라가 전부 일치하고 0 일 때만 통과한다. 하나라도 어긋나면 차단이다.
 #   중복계상 제외(counted_as_open=false)는 duplicate_of / superseded_by 근거가 있을 때만 허용한다 —
 #   근거 없는 조용한 제외로 total 을 낮추는 경로를 막는다.
@@ -587,6 +611,16 @@ al = s.get("audit_lag")
 v2 = s.get("v2_transition")
 if not isinstance(al, dict) or not isinstance(v2, dict):
     die("state.json 에 audit_lag / v2_transition 이 없다")
+
+# --- (D) ACCEPTED_BOUNDED_RESIDUAL_RISK 준비 ---
+ABRR = "ACCEPTED_BOUNDED_RESIDUAL_RISK"
+residual_seen = []      # 원장에 있는 ABRR 항목 전부 (선언값 대조용)
+accepted_residual = []  # 그중 수용이 유효한 것 — 합계에서 제외
+lapsed_residual = []    # C-6 자동 실효로 open 복귀한 것
+pending_residual = []   # 아직 선언 전이라 유효하나 미충족 조건이 남은 것
+VOCAB = (v2.get("finding_state_vocabulary") or {}).get(ABRR)
+_gate_decl = str((s.get("gates") or {}).get("V2_SSOT_FROZEN") or "").strip().upper()
+GATE_DECLARED_ACHIEVED = _gate_decl.startswith("ACHIEVED")
 
 cycle = al.get("latest_exec_cycle")
 if not isinstance(cycle, str) or not cycle:
@@ -680,9 +714,109 @@ for auditor in ("adversarial", "ssot"):
 excluded = []
 
 
+def residual_in_force(f, label):
+    """(D) ACCEPTED_BOUNDED_RESIDUAL_RISK 항목을 검증한다.
+
+    근거가 없으면 die — 근거 없는 제외는 counted_as_open=false 와 똑같이 차단이다.
+    근거는 있으나 C-6 실효가 성립하면 False 를 돌려 **다시 open blocking 으로 세게** 한다.
+    """
+    fid = str(f.get("id"))
+    where = "%s 의 %r" % (label, fid)
+    residual_seen.append("%s:%s" % (label, fid))
+
+    if not isinstance(VOCAB, dict):
+        die("%s 이 %s 인데 원장에 상태값 정의(v2_transition.finding_state_vocabulary.%s)가 없다 — "
+            "정의 없는 상태값으로 합계에서 빼지 않는다 (fail-closed)" % (where, ABRR, ABRR))
+    for key in ("definition", "counting_rule", "grant_conditions", "lapse_rule"):
+        if not VOCAB.get(key):
+            die("finding_state_vocabulary.%s 에 %r 이 없다 — 상태값 정의가 불완전하다 (fail-closed)"
+                % (ABRR, key))
+
+    if (f.get("blocking") is not False or f.get("counted_as_open") is not False
+            or f.get("excluded_from_total") is not True):
+        die("%s 이 %s 인데 blocking=false / counted_as_open=false / excluded_from_total=true 가 아니다 — "
+            "제외의 형식 요건 미달 (fail-closed)" % (where, ABRR))
+
+    for key in ("accepted_by_audit_sha", "accepted_by_audit_branch", "accepted_by_audit_report",
+                "accepted_at", "basis", "scope", "conditions", "conditions_status",
+                "lapse_rule", "precedent_limits_satisfied"):
+        if not f.get(key):
+            die("%s 이 %s 인데 %r 근거가 없다 — 근거 없는 제외는 total 조작 경로다 (fail-closed)"
+                % (where, ABRR, key))
+
+    a_sha = str(f.get("accepted_by_audit_sha"))
+    if not HEX40.match(a_sha):
+        die("%s 의 accepted_by_audit_sha(%r) 가 40-hex 전체 SHA 가 아니다" % (where, a_sha))
+    a_br = str(f.get("accepted_by_audit_branch"))
+    if not a_br.startswith("audit/landing-"):
+        die("%s 의 accepted_by_audit_branch(%r) 가 audit/landing-* 네임스페이스가 아니다 — "
+            "임의 브랜치의 판정으로 제외할 수 없다" % (where, a_br))
+
+    rep_path = str(f.get("accepted_by_audit_report"))
+    rr = subprocess.run(["git", "-C", repo, "show", "%s:%s" % (a_sha, rep_path)], capture_output=True)
+    if rr.returncode != 0:
+        die("%s 의 수용 판정 보고서를 읽을 수 없다: %s:%s — 감사 보고서로 확인되지 않는 수용은 "
+            "제외 근거가 아니다 (%s)" % (where, a_sha, rep_path,
+                                        rr.stderr.decode("utf-8", "replace").strip()))
+    try:
+        adj = json.loads(rr.stdout.decode("utf-8"))
+    except Exception as e:  # noqa: BLE001
+        die("%s 의 수용 판정 보고서 JSON 파싱 실패: %s:%s (%s)" % (where, a_sha, rep_path, e))
+    if not isinstance(adj, dict):
+        die("%s 의 수용 판정 보고서가 객체가 아니다: %s:%s" % (where, a_sha, rep_path))
+    if adj.get("id") != fid:
+        die("%s 의 수용 판정 보고서가 다른 id 를 판정했다 — 보고서 id=%r" % (where, adj.get("id")))
+    if adj.get("verdict") != "ACCEPT_RECLASSIFY":
+        die("%s 의 수용 판정 보고서 verdict=%r — ACCEPT_RECLASSIFY 가 아니다" % (where, adj.get("verdict")))
+    if adj.get("new_class") != ABRR:
+        die("%s 의 수용 판정 보고서 new_class=%r != %s" % (where, adj.get("new_class"), ABRR))
+
+    plim = f.get("precedent_limits_satisfied")
+    if not isinstance(plim, dict):
+        die("%s 의 precedent_limits_satisfied 가 객체가 아니다" % where)
+    for key in ("i_reproduced_irreducibility", "ii_single_named_dimension",
+                "iii_self_registered_before_audit"):
+        if not str(plim.get(key, "")).strip().upper().startswith("YES"):
+            die("%s 의 선례 제한 %r 이 YES 로 기록돼 있지 않다 — 직접 공격 재현 · 단일 차원 축소 · "
+                "지적 전 자진 등재 셋을 **전부** 만족하는 항목만 이 경로를 쓸 수 있다 (C-6-2)"
+                % (where, key))
+
+    # --- C-6 자동 실효 ---
+    cs = f.get("conditions_status")
+    if not isinstance(cs, list) or not cs:
+        die("%s 의 conditions_status 가 비어 있다 — 조건 이행 상태 없이 제외할 수 없다" % where)
+    unmet = []
+    for c in cs:
+        if not isinstance(c, dict):
+            die("%s 의 conditions_status 원소가 객체가 아니다" % where)
+        st = str(c.get("state") or "").strip().upper()
+        if st == "SATISFIED" and str(c.get("owner") or "") != "control" and not c.get("audit_sha"):
+            die("%s 의 조건 %r 이 SATISFIED 인데 audit_sha 근거가 없다 (owner=%r) — control 소관이 "
+                "아닌 조건은 감사 근거 없이 충족으로 적을 수 없다 (self-approval 금지)"
+                % (where, c.get("id"), c.get("owner")))
+        if str(c.get("due_before") or "") == "V2_SSOT_FROZEN" and st != "SATISFIED":
+            unmet.append("%s=%s" % (c.get("id"), st or "?"))
+    if unmet:
+        if GATE_DECLARED_ACHIEVED:
+            lapsed_residual.append("%s [%s]" % (fid, ", ".join(unmet)))
+            return False
+        pending_residual.append("%s (미충족: %s — V2_SSOT_FROZEN 선언 시 자동 실효)"
+                                % (fid, ", ".join(unmet)))
+
+    accepted_residual.append("%s:%s" % (label, fid))
+    return True
+
+
 def tally(items, label):
     n = 0
     for f in items:
+        st = str(f.get("state", f.get("status")) or "OPEN").strip().upper()
+        if st == ABRR:
+            if residual_in_force(f, label):
+                continue
+            # C-6 자동 실효 — OPEN / blocking=true / counted_as_open=true 로 복귀시켜 센다.
+            n += 1
+            continue
         if f.get("blocking") is not True:
             continue
         if closed(f.get("state", f.get("status"))):
@@ -851,8 +985,38 @@ if not isinstance(obt, dict) or not isinstance(obt.get("total"), int):
     die("v2_transition.open_blocking_total.total 이 없거나 정수가 아니다")
 declared_total = obt["total"]
 
-breakdown = ("v1=%d, %s, orchestrator=%d"
-             % (v1_blocking, ", ".join("%s=%d" % (k, v) for k, v in per_cycle.items()), orch_blocking))
+# --- (D) 명시적 제외의 가시성 강제 — 조용히 사라지는 것을 금지한다 ---
+declared_acc = obt.get("accepted_bounded_residual_risk")
+declared_acc_ids = obt.get("accepted_residual_ids")
+if residual_seen or declared_acc or declared_acc_ids:
+    if not isinstance(declared_acc, int) or isinstance(declared_acc, bool):
+        die("원장에 %s 항목이 %d건 있는데 open_blocking_total.accepted_bounded_residual_risk 카운터가 "
+            "정수로 선언돼 있지 않다 (%r) — 제외는 합계와 나란히 **명시적으로 표시**돼야 한다 "
+            "(adversarial fed3e70 §7 C-1)" % (ABRR, len(residual_seen), declared_acc))
+    if declared_acc != len(residual_seen):
+        die("선언된 accepted_bounded_residual_risk(%d) != 원장 항목에서 센 %s 항목수(%d)\n  항목: %s"
+            % (declared_acc, ABRR, len(residual_seen), ", ".join(residual_seen) or "없음"))
+    if not isinstance(declared_acc_ids, list) or len(declared_acc_ids) != len(residual_seen):
+        die("open_blocking_total.accepted_residual_ids 가 %d건으로 열거돼 있지 않다 (%r) — "
+            "카운터만 있고 id 열거가 없으면 '명시적으로 제외된 한 줄' 요건 미달이다"
+            % (len(residual_seen), declared_acc_ids))
+    for ent in residual_seen:
+        fid = ent.split(":", 1)[1]
+        if not any(fid in str(x) for x in declared_acc_ids):
+            die("accepted_residual_ids 열거에 %r 이 없다 — 합계에서 빠진 항목은 반드시 열거돼야 한다" % fid)
+    if not obt.get("exclusion_line"):
+        die("open_blocking_total.exclusion_line 이 없다 — 제외가 무엇을 뜻하는지(CLOSED 가 아님) 적은 "
+            "한 줄이 있어야 한다 (C-1)")
+if lapsed_residual:
+    die("%s 수용이 **자동 실효**됐다 (C-6): gates.V2_SSOT_FROZEN 이 ACHIEVED 로 선언됐는데 "
+        "V2_SSOT_FROZEN 이전 조건이 미충족이다.\n  %s\n"
+        "  실효된 항목은 OPEN / blocking=true / counted_as_open=true 로 복귀해 다시 계상된다."
+        % (ABRR, "\n  ".join(lapsed_residual)))
+
+breakdown = ("v1=%d, %s, orchestrator=%d, 제외(%s)=%d%s"
+             % (v1_blocking, ", ".join("%s=%d" % (k, v) for k, v in per_cycle.items()), orch_blocking,
+                ABRR, len(accepted_residual),
+                (" [" + ", ".join(accepted_residual) + "]") if accepted_residual else ""))
 if ledger != declared_total:
     die("원장 항목 재계산(%d) != 선언된 open_blocking_total.total(%d)\n  재계산 내역: %s\n"
         "  중복계상 제외: %s\n  스칼라 하나를 고쳐 게이트를 통과시키는 경로를 막는다 (ADV-C004-04)."
@@ -867,8 +1031,13 @@ if report_blocking["adversarial"] or report_blocking["ssot"]:
 
 print("DEBT_RECOMPUTE OK — 보고서 blocking adv=%d ssot=%d · 원장 재계산 %d == 선언 %d (%s)"
       % (report_blocking["adversarial"], report_blocking["ssot"], ledger, declared_total, breakdown))
+print("DEBT_RECOMPUTE 명시적 제외 — %s %d건%s"
+      % (ABRR, len(accepted_residual),
+         (": " + ", ".join(accepted_residual)) if accepted_residual else " (없음)"))
+for _p in pending_residual:
+    print("DEBT_RECOMPUTE 경고 — 수용 조건 미충족 잔여: %s" % _p)
 PY
-note "[DEBT_RECOMPUTE] 보고서·원장 항목에서 독립 재계산 == 선언값 == 0 OK"
+note "[DEBT_RECOMPUTE] 보고서·원장 항목에서 독립 재계산 == 선언값 == 0 OK (ACCEPTED_BOUNDED_RESIDUAL_RISK 제외 건수는 위 출력에 별도 표시)"
 
 # ================================================================ [AUDIT_VERDICT]
 # V2-C003 시정 — adversarial V2-C002 `promotion-verdict-check-treats-missing-verdict-as-pass`
