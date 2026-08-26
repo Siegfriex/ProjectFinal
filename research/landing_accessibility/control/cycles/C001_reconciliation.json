@@ -9,7 +9,11 @@
     "sha": "6c22f31"
   },
   "adversarial_audit": {
-    "verdict": "PENDING"
+    "verdict": "REWORK",
+    "p0": 1,
+    "p1": 2,
+    "p2": 3,
+    "sha": "f98f222"
   },
   "accepted_findings": [
     "a1-screenshot-untracked",
@@ -28,5 +32,20 @@
       "note": "헌장 CASE 5 — auditor 주장을 자동 우선하지 않고 오케스트레이터가 증거를 직접 확인함"
     }
   ],
-  "decision": "C001 ACCEPTED. promotion 은 adversarial 결과 수령 후 판단. exec 는 C003 계속 진행."
+  "decision": "C001 = REWORK. 취득층은 무결하나 해석층(manifest 기술)에 P0 1건. 재수집 불필요, 이미 확보한 원문 텍스트로 manifest 수정만 하면 된다. promotion 보류.",
+  "adversarial_accepted": [
+    "xlsx-conflict-framed-as-value-drift (P0)",
+    "methodology-falsely-marked-missing (P1)",
+    "fig07-period-mislabeled (P1)",
+    "imginfolist-13-to-11-unreconciled (P2)",
+    "full-png-hashed-but-gitignored (P2)",
+    "publisher-population-change-notice-unsurfaced (P2)"
+  ],
+  "adversarial_rejected": [],
+  "orchestrator_independent_verification": [
+    "본문에서 '한국인 Android+iOS 스마트폰 사용자 추정' 5회, '계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음' 6회 직접 확인 — 감사 주장 사실",
+    "fig07 본문 '25년 12월 … 전년 동월 대비' 직접 확인 — 감사 주장 사실",
+    "공지 nid=127 applyStartDT=2026-08-25T09:00:00, applyEndDT=null, display=1 직접 파싱 — 감사 주장 사실",
+    "취득층(해시 11/11, IHDR 높이 대조, CDN 재다운로드)은 감사에서 전건 통과 — 파일명 충돌형 오대응 없음"
+  ]
 }

@@ -1,8 +1,8 @@
 {
   "harness_version": "orchestrator-constitution-v3",
-  "updated_at": "2026-08-26T12:13:47.386582",
+  "updated_at": "2026-08-26T12:16:28.840192",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
-  "cycle_id": "C003",
+  "cycle_id": "C004",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -17,7 +17,30 @@
       "POST /insight/detail/getDetail.json",
       "playwright chromium render"
     ],
-    "figures": 11
+    "figures": 11,
+    "publisher_population_change_notice": {
+      "notice_nid": 127,
+      "title": "[와이즈앱] 모집단 변경 사전 안내",
+      "apply_start": "2026-08-25T09:00:00",
+      "apply_end": null,
+      "display": 1,
+      "detected_by": "C001 adversarial audit (P2)",
+      "implication": "A1 원문 baseDT 2026-03-05 자료를 2026-08-26 에 취득했는데, 발행처는 그 전날 모집단 변경을 예고했다. 동결본은 '2026-08-26 시점에 게시돼 있던 933 판본'으로 유효창을 한정한다.",
+      "freeze_validity_window": {
+        "frozen_at": "2026-08-26",
+        "valid_for": "본 연구 한정. 발행처 모집단 변경 이후 수치와 혼용 금지"
+      }
+    },
+    "methodology_verbatim": {
+      "app_panel": "한국인 Android+iOS 스마트폰 사용자 추정",
+      "retail_panel": "계좌이체, 현금거래, 상품권으로 결제한 금액은 포함되지 않음",
+      "occurrences": {
+        "app": 5,
+        "retail": 6
+      },
+      "study_limitation": "리테일 지표는 신용/체크카드 결제 표본 기반이다. 현금·계좌이체 비중이 높은 고령 세그먼트가 구조적으로 과소집계된다 — 본 연구가 겨냥하는 바로 그 집단이다. 기사 인용 시 반드시 병기한다.",
+      "prior_wrong_claim": "'조사방법 미기재' (C001 exec authority_manifest). 실제로는 본문에 11회 명시돼 있었다."
+    }
   },
   "authority_order": [
     "A0_USER_DECISION",
@@ -27,7 +50,7 @@
     "A4_KWCAG_COMMENTARY",
     "A5_MAIN_DERIVATIVES",
     "A6_PILOT_R1_R4",
-    "A7_LEGACY_XLSX_INVALIDATED"
+    "A7_LEGACY_XLSX_UNSOURCED_NOT_A_933_DERIVATIVE"
   ],
   "branches": {
     "main": "research/landing-accessibility-main",
@@ -37,7 +60,7 @@
     "orchestrator": "control/landing-orchestrator"
   },
   "exec_sha": "1a7cd649ff647a35d1d1f2e4d0abbb830db66923",
-  "adversarial_audit_sha": null,
+  "adversarial_audit_sha": "f98f222",
   "ssot_audit_sha": "6c22f31",
   "gates": {
     "pilot_archive": "PASS_WITH_LOGICAL_BACKUP_ONLY",
@@ -57,7 +80,7 @@
     "automation_split": "NOT_RUN",
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
-    "adversarial_audit": "NOT_RUN",
+    "adversarial_audit": "REWORK_C001_P0_1",
     "ssot_audit": "PASS_C001_P1_7"
   },
   "withdrawn_conclusions": [
@@ -72,7 +95,13 @@
       "reason": "동일. state/category_feasibility_matrix.csv 는 삭제하지 않고 INVALIDATED 로 보존."
     }
   ],
-  "open_p0": [],
+  "open_p0": [
+    {
+      "id": "xlsx-conflict-framed-as-value-drift",
+      "state": "FIXED_BY_ORCHESTRATOR",
+      "note": "state.json legacy_xlsx_status 로 재정의. exec manifest 반영은 C004."
+    }
+  ],
   "full_collection": "PROHIBITED",
   "e001_authorization": "REQUIRES_RESEARCH_DIRECTOR_GO",
   "promotion_policy": {
@@ -115,6 +144,32 @@
       "id": "exec-advanced-to-c002-before-c001-audit",
       "state": "MITIGATED_BY_PROMOTION_POLICY",
       "by": "C003 orchestrator"
+    },
+    {
+      "id": "methodology-falsely-marked-missing",
+      "state": "OPEN",
+      "assigned": "C004 exec"
+    },
+    {
+      "id": "fig07-period-mislabeled-halfyear-vs-single-month",
+      "state": "OPEN",
+      "assigned": "C004 exec",
+      "detail": "fig07 은 '25년 12월 … 전년 동월 대비' 단월 패널. 나머지 패널은 25년 하반기(7~12월). alt 텍스트만 보고 반기로 기록했다."
     }
-  ]
+  ],
+  "legacy_xlsx_status": {
+    "verdict": "UNSOURCED_INCOMPATIBLE_PANEL_SET",
+    "prior_wrong_framing": "933 의 파생자료이며 값이 2만 명 어긋난다 (C001 exec 주장)",
+    "corrected_framing": "933 과 대조 가능한 파생물이 아니다. 서로 다른 패널 집합이다.",
+    "evidence": [
+      "원문 rank3 = Google 1,278만 — xlsx 에 부재. xlsx rank3 = 네이버 1224만",
+      "항목별 드리프트 비일관: 카카오톡 -0.15% / 유튜브 -1.8% / 네이버 -2.5%",
+      "점유율 패널 거의 미중첩: 원문 다음 54.1%(1위) vs xlsx 다음 38.7%(5위). 원문 NH콕뱅크·티맵·캐시워크가 xlsx 에 부재",
+      "리테일 서수 역전: 원문 농협하나로마트#3/이마트#4 vs xlsx 이마트#3/농협하나로마트#6",
+      "깊이 불일치 양방향: 원문 Ch1(1)=TOP15 vs xlsx Top10 이면서, 원문 Ch3(1)=TOP15 vs xlsx Top20",
+      "provenance 전무: creator=openpyxl, 문서속성 전부 None, manus/ 전체에서 insight/detail/<id> 참조 0건"
+    ],
+    "consequence": "셀 단위 패치(1379->1377)로 두 패널을 융합하는 것을 금지한다. xlsx 는 모집단·수치 어느 용도로도 사용하지 않는다.",
+    "action": "RETAINED_AS_UNSOURCED_ARTIFACT_ONLY"
+  }
 }
