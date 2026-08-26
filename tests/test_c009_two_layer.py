@@ -25,8 +25,28 @@ BODY_TEXT = WISEAPP / "raw" / "wiseapp933_text.txt"
 
 EXPECTED_ROW_COUNT = 261
 # C011(P1-2): SYSTEM_APP_CANDIDATE 는 A1~A4 인용 0건의 하드코딩 이름 목록이었다. 상태값에서 뺐다.
-ALLOWED_ELIGIBILITY = {"NOT_ASSESSED", "EXCLUDED_INDUSTRY_AXIS"}
-ALLOWED_GROUPING = {"CANDIDATE_PENDING_URL_REVIEW", "SINGLETON_PENDING_URL_REVIEW"}
+# C013 에서 W3 게이트가 열렸다. 어휘는 06 §2-1 전체이며, 그 밖의 값은 여전히 금지다.
+ALLOWED_ELIGIBILITY = {
+    "NOT_ASSESSED",
+    "WEB_SERVICE",
+    "OFFICIAL_PRODUCT_PAGE",
+    "APP_ONLY",
+    "SYSTEM_APP",
+    "RETAIL_OFFLINE_ONLY",
+    "EXCLUDED_INDUSTRY_AXIS",
+    "UNRESOLVED",
+}
+# C013 에서 W5 게이트가 열렸다. 승격·해체 상태가 어휘에 들어오지만 어휘는 여전히 닫혀 있다.
+# SINGLETON_NOT_A_WEB_TARGET 은 '아직 안 봤다'(PENDING)와 '보고 나서 웹 랜딩이 성립하지
+# 않는다고 판정했다' 를 구별하기 위해 06 §3-4 에 없던 값을 하나 더 둔 것이다.
+ALLOWED_GROUPING = {
+    "CANDIDATE_PENDING_URL_REVIEW",
+    "SINGLETON_PENDING_URL_REVIEW",
+    "CONFIRMED_SHARED_TARGET",
+    "SPLIT",
+    "SINGLETON_CONFIRMED",
+    "SINGLETON_NOT_A_WEB_TARGET",
+}
 
 
 def parse_index_from_body(body: str) -> list[dict]:
@@ -192,21 +212,40 @@ def test_coupang_is_split_into_two_measurement_entities(
 def test_web_eligibility_status_domain_is_closed(service_master: pd.DataFrame) -> None:
     values = set(service_master["web_eligibility_status"])
     assert values <= ALLOWED_ELIGIBILITY, f"허용되지 않은 상태값: {values - ALLOWED_ELIGIBILITY}"
-    assert service_master["web_eligibility_basis"].notna().all()
-    assert (service_master["web_eligibility_basis"].str.len() > 0).all()
+    # C013: 근거 칸이 06 §2-2 필드로 넓어졌다. 한 칸짜리 옛 이름이 남아 있으면
+    # 어느 쪽이 정본인지 흐려진다.
+    assert "web_eligibility_basis" not in service_master.columns
+    for col in ("eligibility_basis", "eligibility_reviewer", "eligibility_confidence"):
+        assert col in service_master.columns, f"06 §2-2 근거 필드 누락: {col}"
+    assert service_master["eligibility_basis"].notna().all()
+    assert (service_master["eligibility_basis"].str.len() > 0).all()
 
 
 def test_only_industry_axis_is_a_settled_exclusion(service_master: pd.DataFrame) -> None:
-    """확정 판정은 업종 축 배제뿐이다. 나머지는 URL 증거가 없으므로 미평가로 남아야 한다."""
+    """**배제는 여전히 업종 축 하나뿐이다.**
+
+    C013 에서 브랜드 축 71건이 판정됐다. 그 판정이 어느 하나라도 '제외' 로 흘러가면
+    06 §2-3 의 금지("확인 불가를 제외로 바꾸지 않는다")를 어긴 것이다. 그래서 상태값이
+    늘어난 뒤에도 EXCLUDED_INDUSTRY_AXIS 는 업종 축 10건에만 붙어 있어야 한다.
+    """
     excluded = service_master[service_master["web_eligibility_status"] == "EXCLUDED_INDUSTRY_AXIS"]
     assert set(excluded["axis_type"]) == {"INDUSTRY_CATEGORY"}
     assert len(excluded) == 10
 
-    # C011(P1-2): 브랜드 축은 예외 없이 미평가다. 근거 없는 추정이 상태값을 가르면 안 된다.
     brands = service_master[service_master["axis_type"] == "SERVICE_BRAND"]
-    assert set(brands["web_eligibility_status"]) == {"NOT_ASSESSED"}
     assert len(brands) == 71
+    assert "EXCLUDED_INDUSTRY_AXIS" not in set(brands["web_eligibility_status"]), (
+        "브랜드 축 entity 가 업종 배제를 받았다 — 확인 불가를 제외로 바꾼 것이다"
+    )
+    assert "NOT_ASSESSED" not in set(brands["web_eligibility_status"]), (
+        "W3 게이트가 열렸는데 미평가가 남아 있다"
+    )
+    # C011(P1-2) 이 없앤 근거 없는 상태값은 되살아나지 않는다.
     assert "SYSTEM_APP_CANDIDATE" not in set(service_master["web_eligibility_status"])
+
+    # 확인 불가는 UNRESOLVED 로 남고 반드시 미결로 표시된다 (06 §2-3).
+    unresolved = brands[brands["web_eligibility_status"] == "UNRESOLVED"]
+    assert unresolved["eligibility_needs_review"].all()
 
 
 def test_unsourced_system_app_prior_is_outside_the_source_layer() -> None:
@@ -233,30 +272,71 @@ def test_unsourced_system_app_prior_is_outside_the_source_layer() -> None:
     keys = {h["canonical_service_key"] for h in priors["hypotheses"]}
     assert "google_photos" in keys
     sm = pd.read_parquet(STATE / "service_master.parquet")
-    leaked = sm[sm["canonical_service_key"].isin(keys)]
-    assert set(leaked["web_eligibility_status"]) == {"NOT_ASSESSED"}
+    resolved = sm[sm["canonical_service_key"].isin(keys)]
+
+    # C013: 게이트가 이 11건을 판정했다. **가설이 그대로 답이 되지 않았음**을 고정한다.
+    # 11건 전부가 SYSTEM_APP 으로 찍혔다면 그것은 가설을 상태값으로 옮겨 적은 것이다.
+    statuses = set(resolved["web_eligibility_status"])
+    assert len(statuses) > 1, (
+        f"선탑재 가설 11건이 한 상태값으로 몰렸다({statuses}) — 가설이 판정을 대신했다"
+    )
+    assert "NOT_ASSESSED" not in statuses
+
+    # SYSTEM_APP 으로 확정된 건은 06 §2-3 이 요구한 **부재 확인**을 근거에 담고 있어야 한다.
+    for row in resolved.itertuples():
+        assert row.eligibility_basis
+        if row.web_eligibility_status == "SYSTEM_APP":
+            assert "[부재확인]" in row.eligibility_basis, (
+                f"{row.canonical_service_key}: SYSTEM_APP 인데 웹 랜딩 부재를 어떻게 "
+                "확인했는지가 근거에 없다. 선탑재 여부 자체는 판정 근거가 아니다."
+            )
+
+    # 판정 스크립트가 가설 파일을 입력으로 읽으면 층 분리가 무의미해진다.
+    builder = (RESEARCH / "scripts" / "build_web_eligibility_and_url_review.py").read_text(
+        encoding="utf-8"
+    )
+    assert "system_app_hypothesis" not in builder.replace(
+        "state/_researcher_priors/system_app_hypothesis.json` 의 11건은 가설이지 근거가 아니다", ""
+    ).replace("state/_researcher_priors/system_app_hypothesis.json 을 읽지 않는다", ""), (
+        "판정 스크립트가 연구자 가설 파일을 참조한다"
+    )
 
 
 # ── C: web_target 층 ────────────────────────────────────────────────────────
 
 
 def test_web_target_groups_have_no_urls_while_pending(web_target_group: pd.DataFrame) -> None:
-    """URL 증거가 없다. 후보 상태에서 URL 칸이 채워지면 게이트를 건너뛴 것이다."""
+    """**URL 칸은 확정된 그룹만 갖는다** (06 §3-4).
+
+    C012 에서는 전 그룹이 PENDING 이라 '전부 비어 있어야 한다' 로 충분했다. C013 에서
+    일부가 확정됐으므로 검사를 대응 관계로 바꾼다 — 느슨해진 것이 아니라 방향이 하나 늘었다.
+    확정되지 않았는데 URL 이 있어도, 확정됐는데 URL 이 없어도 잡는다.
+    """
     assert set(web_target_group["grouping_status"]) <= ALLOWED_GROUPING
+    confirmed = web_target_group["grouping_status"].isin(
+        {"CONFIRMED_SHARED_TARGET", "SINGLETON_CONFIRMED"}
+    )
+    assert web_target_group.loc[confirmed, "web_target_url"].notna().all(), (
+        "확정 그룹인데 web_target_url 이 비었다"
+    )
+    assert web_target_group.loc[~confirmed, "web_target_url"].isna().all(), (
+        "확정되지 않았는데 web_target_url 이 채워졌다 — 게이트를 건너뛴 것이다"
+    )
+    assert web_target_group.loc[~confirmed, "url_evidence"].isna().all()
+
     pending = web_target_group[
         web_target_group["grouping_status"].str.endswith("PENDING_URL_REVIEW")
     ]
-    assert len(pending) == len(web_target_group), "URL 검토가 끝난 그룹이 있을 수 없다"
-    assert pending["web_target_url"].isna().all(), "URL 미확정 상태에서 web_target_url 이 채워졌다"
-    assert pending["url_evidence"].isna().all()
+    assert pending["web_target_url"].isna().all()
 
 
 def test_web_target_candidates_are_the_three_declared_groups(
     web_target_group: pd.DataFrame, service_master: pd.DataFrame
 ) -> None:
-    candidates = web_target_group[
-        web_target_group["grouping_status"] == "CANDIDATE_PENDING_URL_REVIEW"
-    ]
+    # C013: 후보 3건은 URL 검정을 거쳐 상태가 갈렸다(CONFIRMED_SHARED_TARGET / SPLIT).
+    # 그래서 '후보였다' 는 사실은 상태값이 아니라 **가설 선언 플래그**로 식별한다.
+    # 가설 선언이 지워지면 무엇을 예상했는지가 사라진다 — 그것이 이 검사의 핵심이다.
+    candidates = web_target_group[web_target_group["expected_url_relationship_is_hypothesis"]]
     assert set(candidates["web_target_key"]) == {"coupang", "naver", "gmarket"}
     assert (candidates["member_count"] == 2).all()
     # 후보 그룹은 도메인을 가로지르는 묶음이다 — 그래서 관측 1회 규칙이 필요하다.

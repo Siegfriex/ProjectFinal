@@ -23,6 +23,67 @@
     "warning": "raw payload 2파일에는 933 본문 외에 '관련 인사이트' 등 다른 기사의 본문이 함께 실려 있다. 부재 검사의 범위를 여기까지 넓히면 검사가 조용히 틀린다 — 실제로 'G마켓/옥션' 은 이 2파일에 4회 있으나 전부 다른 기사의 문장이다."
   },
   "axis_independence": "measurement_entity 층의 review_decision 은 web_target 층의 그룹 구성에 자동 전파되지 않는다. 두 축은 독립이다 — KEEP_SEPARATE 로 확정된 naver_app/naver_naverpay 와 gmarket_app/gmarket_auction 은 여전히 같은 web_target 후보 그룹에 남는다. '무엇을 쟀는가' 가 다른 것과 '어느 URL 을 여는가' 가 다른 것은 별개 질문이다. 하나뿐인 예외는 MERGE 인데, MERGE 는 entity 자체를 없애므로 그룹의 member 수를 바꾼다. 이번 MERGE 1건(hyundai_homeshopping_hmall)은 이미 C003 에서 별칭으로 흡수돼 있어 member 구성은 변하지 않는다(단독 그룹, member_count=1 유지).",
+  "queue_membership": {
+    "derived_from": "STRUCTURE_ONLY",
+    "note": "큐 멤버십은 손입력 플래그가 아니라 (entity_name_raw, domain) 표기 구조에서 도출된다. ENTITY_SPEC 의 세 번째 원소(손입력 bool)는 C013 에서 제거했다. 플래그와 판정이 같은 손에서 나오면 어느 쪽도 다른 쪽을 검증하지 못한다.",
+    "rules": {
+      "CROSS_DOMAIN_IDENTICAL_SOURCE_LABEL": "같은 entity_name_raw 가 APP·RETAIL 양쪽에 있다",
+      "CROSS_DOMAIN_SLASH_SEGMENT_MATCH": "슬래시 묶음 표기의 segment 가 다른 도메인의 단독 표기와 문자 단위로 같다. 양쪽 모두 큐에 오른다",
+      "MULTI_SOURCE_LABEL_ABSORBED": "하나의 canonical_service_key 에 별칭이 2개 이상 매핑돼 있다"
+    },
+    "reproduces_c012_hand_set_queue": true,
+    "members": {
+      "coupang_app": [
+        {
+          "rule": "CROSS_DOMAIN_IDENTICAL_SOURCE_LABEL",
+          "detail": "원문 표기 '쿠팡' 가 APP 과 RETAIL 양쪽에 있다",
+          "peer_canonical_service_key": "coupang_retail"
+        }
+      ],
+      "coupang_retail": [
+        {
+          "rule": "CROSS_DOMAIN_IDENTICAL_SOURCE_LABEL",
+          "detail": "원문 표기 '쿠팡' 가 RETAIL 과 APP 양쪽에 있다",
+          "peer_canonical_service_key": "coupang_app"
+        }
+      ],
+      "gmarket_app": [
+        {
+          "rule": "CROSS_DOMAIN_SLASH_SEGMENT_MATCH",
+          "detail": "'G마켓' 가 RETAIL 슬래시 표기 'G마켓/옥션' 의 segment 와 같다",
+          "peer_canonical_service_key": "gmarket_auction"
+        }
+      ],
+      "gmarket_auction": [
+        {
+          "rule": "CROSS_DOMAIN_SLASH_SEGMENT_MATCH",
+          "detail": "'G마켓/옥션' 의 segment 'G마켓' 가 APP 단독 표기와 같다",
+          "peer_canonical_service_key": "gmarket_app"
+        }
+      ],
+      "hyundai_homeshopping_hmall": [
+        {
+          "rule": "MULTI_SOURCE_LABEL_ABSORBED",
+          "detail": "(표기, 도메인) 별칭 2개가 매핑돼 있다",
+          "peer_canonical_service_key": ""
+        }
+      ],
+      "naver_app": [
+        {
+          "rule": "CROSS_DOMAIN_SLASH_SEGMENT_MATCH",
+          "detail": "'네이버' 가 RETAIL 슬래시 표기 '네이버/네이버페이' 의 segment 와 같다",
+          "peer_canonical_service_key": "naver_naverpay"
+        }
+      ],
+      "naver_naverpay": [
+        {
+          "rule": "CROSS_DOMAIN_SLASH_SEGMENT_MATCH",
+          "detail": "'네이버/네이버페이' 의 segment '네이버' 가 APP 단독 표기와 같다",
+          "peer_canonical_service_key": "naver_app"
+        }
+      ]
+    }
+  },
   "queue_size_before": 7,
   "decisions": [
     {
@@ -30,6 +91,16 @@
       "service_id": "svc_79cd0e07c1eac5dc",
       "service_name_canonical": "쿠팡",
       "domain": "APP",
+      "review_queue_rules": [
+        {
+          "detail": "원문 표기 '쿠팡' 가 APP 과 RETAIL 양쪽에 있다",
+          "peer_canonical_service_key": "coupang_retail",
+          "rule": "CROSS_DOMAIN_IDENTICAL_SOURCE_LABEL"
+        }
+      ],
+      "review_queue_peers": [
+        "coupang_retail"
+      ],
       "review_decision": "KEEP_SEPARATE",
       "decision_rule": "RULE_1_MEASUREMENT_TARGET",
       "decision_confidence": "HIGH",
@@ -70,6 +141,16 @@
       "service_id": "svc_e22ebedb0e6c205f",
       "service_name_canonical": "쿠팡",
       "domain": "RETAIL",
+      "review_queue_rules": [
+        {
+          "detail": "원문 표기 '쿠팡' 가 RETAIL 과 APP 양쪽에 있다",
+          "peer_canonical_service_key": "coupang_app",
+          "rule": "CROSS_DOMAIN_IDENTICAL_SOURCE_LABEL"
+        }
+      ],
+      "review_queue_peers": [
+        "coupang_app"
+      ],
       "review_decision": "KEEP_SEPARATE",
       "decision_rule": "RULE_1_MEASUREMENT_TARGET",
       "decision_confidence": "HIGH",
@@ -110,6 +191,16 @@
       "service_id": "svc_112f591a0d47a8d8",
       "service_name_canonical": "G마켓",
       "domain": "APP",
+      "review_queue_rules": [
+        {
+          "detail": "'G마켓' 가 RETAIL 슬래시 표기 'G마켓/옥션' 의 segment 와 같다",
+          "peer_canonical_service_key": "gmarket_auction",
+          "rule": "CROSS_DOMAIN_SLASH_SEGMENT_MATCH"
+        }
+      ],
+      "review_queue_peers": [
+        "gmarket_auction"
+      ],
       "review_decision": "KEEP_SEPARATE",
       "decision_rule": "RULE_3_DISTINCT_SOURCE_LABEL",
       "decision_confidence": "HIGH",
@@ -151,6 +242,16 @@
       "service_id": "svc_e4a6c04cbf9d9421",
       "service_name_canonical": "G마켓/옥션",
       "domain": "RETAIL",
+      "review_queue_rules": [
+        {
+          "detail": "'G마켓/옥션' 의 segment 'G마켓' 가 APP 단독 표기와 같다",
+          "peer_canonical_service_key": "gmarket_app",
+          "rule": "CROSS_DOMAIN_SLASH_SEGMENT_MATCH"
+        }
+      ],
+      "review_queue_peers": [
+        "gmarket_app"
+      ],
       "review_decision": "KEEP_SEPARATE",
       "decision_rule": "RULE_3_DISTINCT_SOURCE_LABEL",
       "decision_confidence": "HIGH",
@@ -192,6 +293,14 @@
       "service_id": "svc_353f07b932464b82",
       "service_name_canonical": "현대홈쇼핑/현대Hmall",
       "domain": "RETAIL",
+      "review_queue_rules": [
+        {
+          "detail": "(표기, 도메인) 별칭 2개가 매핑돼 있다",
+          "peer_canonical_service_key": "",
+          "rule": "MULTI_SOURCE_LABEL_ABSORBED"
+        }
+      ],
+      "review_queue_peers": [],
       "review_decision": "MERGE",
       "decision_rule": "MERGE_SOURCE_TYPO_ABSORBED",
       "decision_confidence": "HIGH",
@@ -238,6 +347,16 @@
       "service_id": "svc_8349e143ed01f677",
       "service_name_canonical": "네이버",
       "domain": "APP",
+      "review_queue_rules": [
+        {
+          "detail": "'네이버' 가 RETAIL 슬래시 표기 '네이버/네이버페이' 의 segment 와 같다",
+          "peer_canonical_service_key": "naver_naverpay",
+          "rule": "CROSS_DOMAIN_SLASH_SEGMENT_MATCH"
+        }
+      ],
+      "review_queue_peers": [
+        "naver_naverpay"
+      ],
       "review_decision": "KEEP_SEPARATE",
       "decision_rule": "RULE_1_MEASUREMENT_TARGET",
       "decision_confidence": "HIGH",
@@ -288,6 +407,16 @@
       "service_id": "svc_7ce399cd76c70efa",
       "service_name_canonical": "네이버/네이버페이",
       "domain": "RETAIL",
+      "review_queue_rules": [
+        {
+          "detail": "'네이버/네이버페이' 의 segment '네이버' 가 APP 단독 표기와 같다",
+          "peer_canonical_service_key": "naver_app",
+          "rule": "CROSS_DOMAIN_SLASH_SEGMENT_MATCH"
+        }
+      ],
+      "review_queue_peers": [
+        "naver_app"
+      ],
       "review_decision": "KEEP_SEPARATE",
       "decision_rule": "RULE_1_MEASUREMENT_TARGET",
       "decision_confidence": "HIGH",

@@ -2,10 +2,10 @@
   "authority_id": "WISEAPP_ACTIVE_SENIOR_2025H2_933",
   "authority_rank": "A1",
   "acquired_at": "2026-08-26T12:04:03.157282",
-  "manifest_revision": 4,
+  "manifest_revision": 5,
   "revised_at": "2026-08-26",
-  "revision_kind": "MANIFEST_DESCRIPTION_ONLY",
-  "source_freeze_note": "매니페스트 판본과 A1 원문 판본은 다른 것이다. raw_assets.*.sha256 은 2026-08-26 에 동결한 933 원문 바이트의 해시이며 manifest_revision 이 올라가도 불변이다. revision_log 각 항목의 raw_assets_unchanged 가 그 사실을 판본마다 선언한다. 원문 판본이 바뀌는 일이 생기면 그것은 revision 이 아니라 새 authority_id 다.",
+  "revision_kind": "RAW_ASSET_REGISTRY_COMPLETED",
+  "source_freeze_note": "매니페스트 판본과 A1 원문 판본은 다른 것이다. raw_assets.*.sha256 은 2026-08-26 에 동결한 933 원문 바이트의 해시이며 manifest_revision 이 올라가도 불변이다. revision_log 각 항목의 raw_assets_unchanged 가 그 사실을 판본마다 선언한다. 원문 판본이 바뀌는 일이 생기면 그것은 revision 이 아니라 새 authority_id 다. (C013) raw_assets 는 rev5 에서 sources/wiseapp/raw 의 6개 파일 전수를 등록한다. raw_assets_unchanged 는 '이미 선언돼 있던 항목의 sha256 이 불변' 이라는 뜻이며, 등록 목록이 늘어난 것은 raw_assets_registry_extended 로 구분해 적는다. 원문 판본이 바뀌는 일이 생기면 그것은 revision 이 아니라 새 authority_id 다.",
   "self_hash_recipe": "sha256(json.dumps(manifest_without_self_field, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest(), 'sha256:' 접두 부착",
   "revision_log": [
     {
@@ -56,9 +56,26 @@
         "A1 원문 판본과 매니페스트 판본을 필드 수준에서 분리(source_freeze_note). raw_assets 는 revision 1~4 전 판본에서 바이트 동일함을 확인했다.",
         "내용 변경 없음 — revision_kind=MANIFEST_DESCRIPTION_ONLY. 원문 기술이나 판정은 하나도 바꾸지 않았다."
       ]
+    },
+    {
+      "revision": 5,
+      "at": "2026-08-26",
+      "cycle": "C013",
+      "commit": null,
+      "commit_note": "이 판본을 만든 커밋의 해시는 커밋 시점 전에 알 수 없다. 판본 식별은 manifest_self_sha256_excluding_self_field 로 한다.",
+      "raw_assets_unchanged": true,
+      "raw_assets_registry_extended": [
+        "api_json",
+        "images_json"
+      ],
+      "changes": [
+        "A1 raw payload 6종 전수 등록 — debt(a1-raw-payload-files-not-hash-registered-in-authority-manifest)를 닫는다. rev4 까지 raw_assets 에는 4종만 있었고, decision_evidence 의 ABSENCE 층이 판정 근거로 지목한 sources/wiseapp/raw/wiseapp933_api.json 과 함께 wiseapp933_images.json 이 authority_manifest 에도 source_evidence_manifest 에도 sha256 이 없었다. 판정 근거의 한쪽 끝이 동결되지 않은 상태였다.",
+        "raw_assets 각 항목에 file 필드 신설 — 어느 파일의 해시인지 매니페스트 자신이 말하게 한다. rev4 까지는 키 이름과 파일명의 대응이 테스트 코드에만 하드코딩돼 있었다.",
+        "raw_assets_unchanged=true 의 뜻을 명확히 한다: rev1~rev4 에 이미 선언돼 있던 4종의 sha256 이 바이트 단위로 동일하다는 뜻이다. 등록 목록이 2종 늘어난 사실은 raw_assets_registry_extended 에 따로 적는다. A1 원문 파일 자체는 하나도 수정하지 않았다."
+      ]
     }
   ],
-  "manifest_self_sha256_excluding_self_field": "sha256:a6937fa3e31d5648f9bbf4bc55740aef58a603117880defed7f121d03c1964d4",
+  "manifest_self_sha256_excluding_self_field": "sha256:0d3a8a625870da06894c025895e295f93fb8840d4beaf5af5d103e145b4ca118",
   "source": {
     "publisher": "와이즈앱·리테일·굿즈 (주식회사 아이디어웨어)",
     "url": "https://www.wiseapp.co.kr/insight/detail/933/2025-active-senior-app-retail-trend",
@@ -190,20 +207,34 @@
   ],
   "raw_assets": {
     "detail_json": {
+      "file": "sources/wiseapp/raw/wiseapp933_detail.json",
       "bytes": 192139,
       "sha256": "sha256:c860818df8db1b5417c12ca53fa0dcc02738fb1e6f1a897f905f41b6e86cb60f"
     },
     "rendered_html": {
+      "file": "sources/wiseapp/raw/wiseapp933_rendered.html",
       "bytes": 166288,
       "sha256": "sha256:db1977851f00a08ffc95608cadfcd9833cabaf9805dfd6c4ce5a01d40b080fed"
     },
     "body_text": {
+      "file": "sources/wiseapp/raw/wiseapp933_text.txt",
       "bytes": 13550,
       "sha256": "sha256:236efdd699c9bb626e02547dfb630ff165228dcf25433461aef3c99aaeac2d52"
     },
     "full_page_screenshot": {
+      "file": "sources/wiseapp/raw/wiseapp933_full.png",
       "bytes": 3832287,
       "sha256": "sha256:c1e5422f1618a5cb943ae585edef4038b59fce97f6e2b983e3d85f0101ac665f"
+    },
+    "api_json": {
+      "file": "sources/wiseapp/raw/wiseapp933_api.json",
+      "bytes": 250759,
+      "sha256": "sha256:28d54f925b6209547886f1ab98649749d86263fff131141f501b5274a7f7ec37"
+    },
+    "images_json": {
+      "file": "sources/wiseapp/raw/wiseapp933_images.json",
+      "bytes": 4108,
+      "sha256": "sha256:0e9c3208b2ec52a6ed8771299eeb11d8362d29fd89e63c0f9ae62a3f58dbeee4"
     }
   },
   "freeze_validity_window": {

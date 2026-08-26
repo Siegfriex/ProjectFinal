@@ -78,6 +78,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
@@ -125,135 +126,124 @@ SLASH = (
 )
 INDUSTRY = "fig07_t1 의 축은 표 헤더가 '업종' 인 업종 카테고리다. 브랜드가 아니므로 웹 수집 대상에서 제외한다."
 
-ENTITY_SPEC: dict[tuple[str, str], tuple[str, str, bool]] = {
-    ("11번가", "APP"): ("11st", SOLO, False),
-    ("Chrome", "APP"): ("chrome", SOLO, False),
-    ("Google", "APP"): ("google", SOLO, False),
-    ("Google 포토", "APP"): ("google_photos", SOLO, False),
+ENTITY_SPEC: dict[tuple[str, str], tuple[str, str]] = {
+    ("11번가", "APP"): ("11st", SOLO),
+    ("Chrome", "APP"): ("chrome", SOLO),
+    ("Google", "APP"): ("google", SOLO),
+    ("Google 포토", "APP"): ("google_photos", SOLO),
     ("G마켓", "APP"): (
         "gmarket_app",
         "APP 도메인 원문은 'G마켓', RETAIL 도메인 원문은 'G마켓/옥션' 으로 표기가 다르다. 측정 대상(앱 사용자 vs 옥션 합산 결제)이 달라 별개 entity 로 둔다.",
-        True,
     ),
-    ("Instagram", "APP"): ("instagram", SOLO, False),
-    ("KB Pay", "APP"): ("kb_pay", SOLO, False),
-    ("KB스타뱅킹", "APP"): ("kb_starbanking", SOLO, False),
-    ("NH스마트뱅킹", "APP"): ("nh_smart_banking", SOLO, False),
-    ("NH콕뱅크", "APP"): ("nh_cok_bank", SOLO, False),
-    ("Netflix", "APP"): ("netflix", SOLO, False),
-    ("TikTok", "APP"): ("tiktok", SOLO, False),
+    ("Instagram", "APP"): ("instagram", SOLO),
+    ("KB Pay", "APP"): ("kb_pay", SOLO),
+    ("KB스타뱅킹", "APP"): ("kb_starbanking", SOLO),
+    ("NH스마트뱅킹", "APP"): ("nh_smart_banking", SOLO),
+    ("NH콕뱅크", "APP"): ("nh_cok_bank", SOLO),
+    ("Netflix", "APP"): ("netflix", SOLO),
+    ("TikTok", "APP"): ("tiktok", SOLO),
     ("TikTok Lite", "APP"): (
         "tiktok_lite",
         "원문이 'TikTok' 과 'TikTok Lite' 를 별도 행으로 올렸다(fig01_t2 동시 등장). 별개 앱이다.",
-        False,
     ),
-    ("V3 Mobile Plus", "APP"): ("v3_mobile_plus", SOLO, False),
-    ("YouTube", "APP"): ("youtube", SOLO, False),
-    ("내 파일", "APP"): ("my_files", SOLO, False),
+    ("V3 Mobile Plus", "APP"): ("v3_mobile_plus", SOLO),
+    ("YouTube", "APP"): ("youtube", SOLO),
+    ("내 파일", "APP"): ("my_files", SOLO),
     ("네이버", "APP"): (
         "naver_app",
         "APP 도메인 원문은 '네이버', RETAIL 도메인 원문은 '네이버/네이버페이' 로 표기가 다르다. 앱 사용자와 네이버페이 결제는 다른 측정 대상이므로 별개 entity 로 둔다.",
-        True,
     ),
-    ("네이버지도", "APP"): ("naver_map", SOLO, False),
-    ("다음", "APP"): ("daum", SOLO, False),
-    ("당근", "APP"): ("danggeun", SOLO, False),
-    ("디바이스 케어", "APP"): ("device_care", SOLO, False),
-    ("모니모", "APP"): ("monimo", SOLO, False),
-    ("밴드", "APP"): ("band", SOLO, False),
-    ("삼성 계산기", "APP"): ("samsung_calculator", SOLO, False),
-    ("삼성 노트", "APP"): ("samsung_notes", SOLO, False),
-    ("삼성 월렛", "APP"): ("samsung_wallet", SOLO, False),
-    ("삼성 인터넷 브라우저", "APP"): ("samsung_internet_browser", SOLO, False),
-    ("삼성카드", "APP"): ("samsung_card", SOLO, False),
-    ("신한 SOL뱅크", "APP"): ("shinhan_sol_bank", SOLO, False),
-    ("에이닷 전화", "APP"): ("adot_call", SOLO, False),
-    ("카카오맵", "APP"): ("kakaomap", SOLO, False),
-    ("카카오톡", "APP"): ("kakaotalk", SOLO, False),
-    ("캐시워크", "APP"): ("cashwalk", SOLO, False),
-    ("토스", "APP"): ("toss", SOLO, False),
-    ("티맵", "APP"): ("tmap", SOLO, False),
+    ("네이버지도", "APP"): ("naver_map", SOLO),
+    ("다음", "APP"): ("daum", SOLO),
+    ("당근", "APP"): ("danggeun", SOLO),
+    ("디바이스 케어", "APP"): ("device_care", SOLO),
+    ("모니모", "APP"): ("monimo", SOLO),
+    ("밴드", "APP"): ("band", SOLO),
+    ("삼성 계산기", "APP"): ("samsung_calculator", SOLO),
+    ("삼성 노트", "APP"): ("samsung_notes", SOLO),
+    ("삼성 월렛", "APP"): ("samsung_wallet", SOLO),
+    ("삼성 인터넷 브라우저", "APP"): ("samsung_internet_browser", SOLO),
+    ("삼성카드", "APP"): ("samsung_card", SOLO),
+    ("신한 SOL뱅크", "APP"): ("shinhan_sol_bank", SOLO),
+    ("에이닷 전화", "APP"): ("adot_call", SOLO),
+    ("카카오맵", "APP"): ("kakaomap", SOLO),
+    ("카카오톡", "APP"): ("kakaotalk", SOLO),
+    ("캐시워크", "APP"): ("cashwalk", SOLO),
+    ("토스", "APP"): ("toss", SOLO),
+    ("티맵", "APP"): ("tmap", SOLO),
     ("하나은행", "APP"): (
         "hana_bank",
         "fig04 아이콘은 '1Q 하나원큐' 지만 라벨 텍스트가 '하나은행' 이다. 원문 라벨 표기를 따른다.",
-        False,
     ),
-    ("현대카드", "APP"): ("hyundai_card", SOLO, False),
+    ("현대카드", "APP"): ("hyundai_card", SOLO),
     ("쿠팡", "APP"): (
         "coupang_app",
         "APP 도메인은 앱 사용자·사용시간을, RETAIL 도메인은 카드 결제추정금액을 잰다. "
         "원문 표기가 같아도 측정 대상이 다르므로 measurement_entity 로는 별개다.",
-        True,
     ),
     ("쿠팡", "RETAIL"): (
         "coupang_retail",
         "APP 도메인은 앱 사용자·사용시간을, RETAIL 도메인은 카드 결제추정금액을 잰다. "
         "원문 표기가 같아도 측정 대상이 다르므로 measurement_entity 로는 별개다.",
-        True,
     ),
-    ("CJ온스타일", "RETAIL"): ("cj_onstyle", SOLO, False),
-    ("CU", "RETAIL"): ("cu", SOLO, False),
-    ("GS25", "RETAIL"): ("gs25", SOLO, False),
-    ("GS홈쇼핑/GS Shop", "RETAIL"): ("gs_homeshopping_gsshop", SLASH, False),
+    ("CJ온스타일", "RETAIL"): ("cj_onstyle", SOLO),
+    ("CU", "RETAIL"): ("cu", SOLO),
+    ("GS25", "RETAIL"): ("gs25", SOLO),
+    ("GS홈쇼핑/GS Shop", "RETAIL"): ("gs_homeshopping_gsshop", SLASH),
     ("G마켓/옥션", "RETAIL"): (
         "gmarket_auction",
         "슬래시 묶음 표기이자 APP 의 'G마켓' 과 다른 원문 표기. 원문 단위를 측정 단위로 보고 별개 entity 로 둔다.",
-        True,
     ),
-    ("NC백화점/뉴코아아울렛", "RETAIL"): ("nc_dept_newcore_outlet", SLASH, False),
-    ("NS홈쇼핑", "RETAIL"): ("ns_homeshopping", SOLO, False),
+    ("NC백화점/뉴코아아울렛", "RETAIL"): ("nc_dept_newcore_outlet", SLASH),
+    ("NS홈쇼핑", "RETAIL"): ("ns_homeshopping", SOLO),
     ("emart24", "RETAIL"): (
         "emart24",
         "원문이 '이마트'(fig06_t1) 와 'emart24'(fig06_t2) 를 별도 행으로 표기했다. 편의점 브랜드로 별개 entity 다.",
-        False,
     ),
     ("네이버/네이버페이", "RETAIL"): (
         "naver_naverpay",
         "슬래시 묶음 표기이자 APP 의 '네이버' 와 다른 원문 표기. 결제 기준 측정 단위로 별개 entity 로 둔다.",
-        True,
     ),
-    ("농협하나로마트", "RETAIL"): ("nonghyup_hanaro_mart", SOLO, False),
-    ("다이소", "RETAIL"): ("daiso", SOLO, False),
-    ("대한항공", "RETAIL"): ("korean_air", SOLO, False),
-    ("롯데마트", "RETAIL"): ("lotte_mart", SOLO, False),
-    ("롯데백화점", "RETAIL"): ("lotte_department_store", SOLO, False),
-    ("롯데하이마트", "RETAIL"): ("lotte_himart", SOLO, False),
-    ("롯데홈쇼핑", "RETAIL"): ("lotte_homeshopping", SOLO, False),
-    ("마켓컬리", "RETAIL"): ("market_kurly", SOLO, False),
-    ("메가커피", "RETAIL"): ("mega_coffee", SOLO, False),
-    ("배달의민족", "RETAIL"): ("baemin", SOLO, False),
-    ("세븐일레븐", "RETAIL"): ("seven_eleven", SOLO, False),
-    ("신세계백화점", "RETAIL"): ("shinsegae_department_store", SOLO, False),
-    ("이마트", "RETAIL"): ("emart", SOLO, False),
-    ("카카오T", "RETAIL"): ("kakao_t", SOLO, False),
-    ("컴포즈커피", "RETAIL"): ("compose_coffee", SOLO, False),
-    ("코스트코", "RETAIL"): ("costco", SOLO, False),
+    ("농협하나로마트", "RETAIL"): ("nonghyup_hanaro_mart", SOLO),
+    ("다이소", "RETAIL"): ("daiso", SOLO),
+    ("대한항공", "RETAIL"): ("korean_air", SOLO),
+    ("롯데마트", "RETAIL"): ("lotte_mart", SOLO),
+    ("롯데백화점", "RETAIL"): ("lotte_department_store", SOLO),
+    ("롯데하이마트", "RETAIL"): ("lotte_himart", SOLO),
+    ("롯데홈쇼핑", "RETAIL"): ("lotte_homeshopping", SOLO),
+    ("마켓컬리", "RETAIL"): ("market_kurly", SOLO),
+    ("메가커피", "RETAIL"): ("mega_coffee", SOLO),
+    ("배달의민족", "RETAIL"): ("baemin", SOLO),
+    ("세븐일레븐", "RETAIL"): ("seven_eleven", SOLO),
+    ("신세계백화점", "RETAIL"): ("shinsegae_department_store", SOLO),
+    ("이마트", "RETAIL"): ("emart", SOLO),
+    ("카카오T", "RETAIL"): ("kakao_t", SOLO),
+    ("컴포즈커피", "RETAIL"): ("compose_coffee", SOLO),
+    ("코스트코", "RETAIL"): ("costco", SOLO),
     ("쿠팡이츠", "RETAIL"): (
         "coupang_eats",
         "원문이 '쿠팡'(fig06_t1/t2) 과 '쿠팡이츠'(fig06_t2) 를 같은 표에 별도 행으로 올렸다. 별개 측정 대상이다.",
-        False,
     ),
-    ("탑마트", "RETAIL"): ("top_mart", SOLO, False),
-    ("파리바게뜨/파리크라상", "RETAIL"): ("paris_baguette_pariscroissant", SLASH, False),
-    ("현대백화점", "RETAIL"): ("hyundai_department_store", SOLO, False),
+    ("탑마트", "RETAIL"): ("top_mart", SOLO),
+    ("파리바게뜨/파리크라상", "RETAIL"): ("paris_baguette_pariscroissant", SLASH),
+    ("현대백화점", "RETAIL"): ("hyundai_department_store", SOLO),
     ("현대홈쇼핑/현대Hmall", "RETAIL"): (
         "hyundai_homeshopping_hmall",
         "fig10_t2 의 '현대홈쇼핑/현대Hmallord' 와 같은 브랜드다. 같은 그림 안의 동일 5개 브랜드 세트이고 로고 이미지도 동일하며, 발행처 태그 목록에도 '현대홈쇼핑/현대Hmall' 만 실려 있다. 'ord' 는 원문(발행물) 자체의 렌더링 오타로 확인되어 별칭으로 흡수했다.",
-        True,
     ),
-    ("현대홈쇼핑/현대Hmallord", "RETAIL"): ("hyundai_homeshopping_hmall", "", False),
-    ("홈앤쇼핑", "RETAIL"): ("home_and_shopping", SOLO, False),
-    ("홈플러스", "RETAIL"): ("homeplus", SOLO, False),
-    ("인터넷 쇼핑", "RETAIL"): ("industry_internet_shopping", INDUSTRY, False),
-    ("오프라인 마트", "RETAIL"): ("industry_offline_mart", INDUSTRY, False),
-    ("백화점/아울렛", "RETAIL"): ("industry_department_store_outlet", INDUSTRY, False),
-    ("홈쇼핑", "RETAIL"): ("industry_home_shopping", INDUSTRY, False),
-    ("여행/교통", "RETAIL"): ("industry_travel_transport", INDUSTRY, False),
-    ("편의점", "RETAIL"): ("industry_convenience_store", INDUSTRY, False),
-    ("전자기기", "RETAIL"): ("industry_electronics", INDUSTRY, False),
-    ("식품", "RETAIL"): ("industry_food", INDUSTRY, False),
-    ("배달", "RETAIL"): ("industry_delivery", INDUSTRY, False),
-    ("식음료", "RETAIL"): ("industry_food_beverage", INDUSTRY, False),
+    ("현대홈쇼핑/현대Hmallord", "RETAIL"): ("hyundai_homeshopping_hmall", ""),
+    ("홈앤쇼핑", "RETAIL"): ("home_and_shopping", SOLO),
+    ("홈플러스", "RETAIL"): ("homeplus", SOLO),
+    ("인터넷 쇼핑", "RETAIL"): ("industry_internet_shopping", INDUSTRY),
+    ("오프라인 마트", "RETAIL"): ("industry_offline_mart", INDUSTRY),
+    ("백화점/아울렛", "RETAIL"): ("industry_department_store_outlet", INDUSTRY),
+    ("홈쇼핑", "RETAIL"): ("industry_home_shopping", INDUSTRY),
+    ("여행/교통", "RETAIL"): ("industry_travel_transport", INDUSTRY),
+    ("편의점", "RETAIL"): ("industry_convenience_store", INDUSTRY),
+    ("전자기기", "RETAIL"): ("industry_electronics", INDUSTRY),
+    ("식품", "RETAIL"): ("industry_food", INDUSTRY),
+    ("배달", "RETAIL"): ("industry_delivery", INDUSTRY),
+    ("식음료", "RETAIL"): ("industry_food_beverage", INDUSTRY),
 }
 
 # 대표 표기: canonical_key -> entity_name_raw (원문 표기 중 하나. 창작 금지)
@@ -270,6 +260,121 @@ ALIAS_OVERRIDE: dict[tuple[str, str], tuple[str, str]] = {
         "원자료 entity_name_raw 는 보정하지 않고 별칭으로만 흡수한다.",
     ),
 }
+
+# --------------------------------------------------------------------------
+# 2-b. C013(G1): review queue 멤버십을 **구조에서 도출한다.**
+#
+# 문제 (debt: queue-membership-still-hand-set-in-entity-spec)
+#     C012 는 needs_human_review 를 review_decision 의 파생값으로 바꿨다. 그러나 "그 entity 가
+#     애초에 큐에 오르는가" 자체는 ENTITY_SPEC 세 번째 원소의 손입력 bool 이었다. 감사자가
+#     그 bool 과 REVIEW_DECISIONS 항목을 **함께** 내리면 빌드가 조용히 통과했다.
+#     플래그와 판정이 같은 손에서 나오면 어느 쪽도 다른 쪽을 검증하지 못한다.
+#
+# 시정
+#     세 번째 원소를 제거했다. 큐는 이제 (entity_name_raw, domain) 표기 구조에서만 나온다.
+#     아래 세 규칙은 전부 기계 판정 가능하며 A1 원문 표기 문자열과 별칭 매핑만을 입력으로 쓴다.
+#
+#     R1 CROSS_DOMAIN_IDENTICAL_SOURCE_LABEL
+#        같은 entity_name_raw 가 APP 과 RETAIL 양쪽에 있다. 표기가 같은데 잰 것이 다르므로
+#        병합/분리 판단이 필요하다. → 쿠팡 2건
+#     R2 CROSS_DOMAIN_SLASH_SEGMENT_MATCH
+#        슬래시 묶음 표기의 어느 한 segment 가 **다른 도메인의** 단독 표기와 문자 단위로 같다.
+#        그 쌍은 같은 것을 가리킬 수도, 아닐 수도 있다. 양쪽 모두 큐에 오른다.
+#        → 네이버/네이버페이 ↔ 네이버, G마켓/옥션 ↔ G마켓 = 4건
+#     R3 MULTI_SOURCE_LABEL_ABSORBED
+#        하나의 canonical_service_key 에 (표기, 도메인) 별칭이 2개 이상 매핑돼 있다.
+#        즉 이미 병합이 일어났다. 병합에는 근거가 필요하다. → 현대홈쇼핑/현대Hmall 1건
+#
+# 이 규칙이 C012 의 손입력 큐 7건을 정확히 재현한다는 사실을 빌드와 테스트가 각각 확인한다.
+# 재현되지 않으면 규칙이 틀렸거나 큐가 불완전했던 것이며, 어느 쪽이든 빌드가 멈춘다.
+# --------------------------------------------------------------------------
+QUEUE_RULE_CROSS_DOMAIN_LABEL = "CROSS_DOMAIN_IDENTICAL_SOURCE_LABEL"
+QUEUE_RULE_SLASH_SEGMENT = "CROSS_DOMAIN_SLASH_SEGMENT_MATCH"
+QUEUE_RULE_MULTI_ALIAS = "MULTI_SOURCE_LABEL_ABSORBED"
+
+# C012 가 손으로 켰던 큐. 여기서는 **비교 대상**으로만 쓴다 — 큐를 만들지 않는다.
+# 구조 규칙이 이 집합을 재현하지 못하면 빌드를 멈춘다.
+C012_HAND_SET_QUEUE: frozenset[str] = frozenset(
+    {
+        "coupang_app",
+        "coupang_retail",
+        "gmarket_app",
+        "gmarket_auction",
+        "hyundai_homeshopping_hmall",
+        "naver_app",
+        "naver_naverpay",
+    }
+)
+
+
+def derive_review_queue(
+    entity_spec: dict[tuple[str, str], tuple[str, str]],
+    industry_keys: set[str],
+) -> dict[str, list[dict[str, str]]]:
+    """(원문 표기, 도메인) 구조만으로 review queue 를 도출한다.
+
+    입력은 ENTITY_SPEC 의 **키와 canonical_service_key 매핑뿐**이다. 손입력 플래그도,
+    이름 목록도 읽지 않는다. 업종 축은 웹 수집 대상이 아니므로 큐에서 제외한다.
+    """
+    labels_by_domain: dict[str, set[str]] = {}
+    for (raw, domain), (ckey, _basis) in entity_spec.items():
+        if ckey in industry_keys:
+            continue
+        labels_by_domain.setdefault(domain, set()).add(raw)
+
+    queue: dict[str, list[dict[str, str]]] = {}
+
+    def enqueue(ckey: str, rule: str, detail: str, peer: str | None) -> None:
+        entries = queue.setdefault(ckey, [])
+        rec = {"rule": rule, "detail": detail, "peer_canonical_service_key": peer or ""}
+        if rec not in entries:
+            entries.append(rec)
+
+    for (raw, domain), (ckey, _basis) in sorted(entity_spec.items()):
+        if ckey in industry_keys:
+            continue
+        # R1 — 같은 표기가 다른 도메인에도 있다.
+        for other_domain, labels in sorted(labels_by_domain.items()):
+            if other_domain == domain or raw not in labels:
+                continue
+            peer = entity_spec[(raw, other_domain)][0]
+            enqueue(
+                ckey,
+                QUEUE_RULE_CROSS_DOMAIN_LABEL,
+                f"원문 표기 '{raw}' 가 {domain} 과 {other_domain} 양쪽에 있다",
+                peer,
+            )
+        # R2 — 슬래시 segment 가 다른 도메인의 단독 표기와 같다.
+        if "/" in raw:
+            for segment in raw.split("/"):
+                for other_domain, labels in sorted(labels_by_domain.items()):
+                    if other_domain == domain or segment not in labels:
+                        continue
+                    peer = entity_spec[(segment, other_domain)][0]
+                    enqueue(
+                        ckey,
+                        QUEUE_RULE_SLASH_SEGMENT,
+                        f"'{raw}' 의 segment '{segment}' 가 {other_domain} 단독 표기와 같다",
+                        peer,
+                    )
+                    enqueue(
+                        peer,
+                        QUEUE_RULE_SLASH_SEGMENT,
+                        f"'{segment}' 가 {domain} 슬래시 표기 '{raw}' 의 segment 와 같다",
+                        ckey,
+                    )
+
+    # R3 — 별칭이 2개 이상 흡수된 entity. 이미 병합이 일어났다는 뜻이다.
+    alias_counts: dict[str, int] = {}
+    for _key, (ckey, _basis) in entity_spec.items():
+        alias_counts[ckey] = alias_counts.get(ckey, 0) + 1
+    for ckey, count in sorted(alias_counts.items()):
+        if ckey in industry_keys or count < 2:
+            continue
+        enqueue(ckey, QUEUE_RULE_MULTI_ALIAS, f"(표기, 도메인) 별칭 {count}개가 매핑돼 있다", None)
+
+    return {k: queue[k] for k in sorted(queue)}
+
 
 # --------------------------------------------------------------------------
 # 3. web_eligibility_status — 웹 수집 적격 여부. **확정은 업종 축 배제뿐이다.**
@@ -717,6 +822,18 @@ def main() -> None:
     assert not mixed, f"축 유형이 둘 이상인 entity: {mixed}"
     entity_axis = {k: v[0] for k, v in axis_by_entity.items()}
 
+    # ---------------- C013(G1): review queue 를 구조에서 도출 ----------------
+    # 업종 축은 원자료 axis_type 에서 유도한다 — 이름 목록을 다시 손으로 적지 않는다.
+    industry_keys = {ENTITY_SPEC[k][0] for k in observed if entity_axis[k] == "INDUSTRY_CATEGORY"}
+    review_queue = derive_review_queue(ENTITY_SPEC, industry_keys)
+    if set(review_queue) != set(C012_HAND_SET_QUEUE):
+        raise SystemExit(
+            "구조 규칙이 C012 손입력 큐를 재현하지 못했다.\n"
+            f"  규칙에만 있음: {sorted(set(review_queue) - set(C012_HAND_SET_QUEUE))}\n"
+            f"  손입력에만 있음: {sorted(set(C012_HAND_SET_QUEUE) - set(review_queue))}\n"
+            "규칙이 틀렸거나 C012 큐가 불완전했던 것이다. 어느 쪽이든 조용히 넘기지 않는다."
+        )
+
     # ---------------- entity_candidates.json (중간산출물) ----------------
     # C009(D6): 고아 산출물이었다. 생성 경로를 이 스크립트로 편입한다.
     candidates = [
@@ -737,7 +854,7 @@ def main() -> None:
     # 키가 (entity_name_raw, domain) 이므로 같은 원문 표기가 도메인별로 다른 별칭을 갖는다.
     alias_recs = []
     for raw, domain in observed:
-        ckey, _basis, _rev = ENTITY_SPEC[(raw, domain)]
+        ckey, _basis = ENTITY_SPEC[(raw, domain)]
         service_id = sid(ckey)
         display = CANONICAL_DISPLAY.get(ckey, raw)
         if (raw, domain) in ALIAS_OVERRIDE:
@@ -769,8 +886,8 @@ def main() -> None:
 
     # canonical_key -> web_target_group
     group_of: dict[str, tuple[str, str, str]] = {}
-    for wkey, (members, basis) in WEB_TARGET_GROUP_CANDIDATES.items():
-        for member in members:
+    for wkey, (candidate_members, basis) in WEB_TARGET_GROUP_CANDIDATES.items():
+        for member in candidate_members:
             group_of[member] = (wtg(wkey), wkey, basis)
 
     svc_recs = []
@@ -786,7 +903,18 @@ def main() -> None:
 
         primary = CANONICAL_DISPLAY.get(ckey, raws[0])
         spec_src = next(p for p in pairs if ENTITY_SPEC[p][0] == ckey and ENTITY_SPEC[p][1])
-        _, basis, raised_for_review = ENTITY_SPEC[spec_src]
+        _, basis = ENTITY_SPEC[spec_src]
+
+        # C013(G1): 큐 멤버십은 손입력 플래그가 아니라 구조 규칙의 결과다.
+        queue_rules = review_queue.get(ckey, [])
+        raised_for_review = bool(queue_rules)
+        queue_peers = sorted(
+            {
+                r["peer_canonical_service_key"]
+                for r in queue_rules
+                if r["peer_canonical_service_key"]
+            }
+        )
 
         # C012(W1): review queue 를 A1 원문 대조로 해소한다.
         # needs_human_review 는 더 이상 ENTITY_SPEC 의 손입력이 아니라 파생값이다 —
@@ -832,6 +960,10 @@ def main() -> None:
 
         if axis_type == "INDUSTRY_CATEGORY":
             eligibility, elig_basis = STATUS_EXCLUDED_INDUSTRY, INDUSTRY
+            elig_reviewer: str | None = "exec-agent(C003) / fig07.png 직접 판독"
+            elig_confidence: str | None = "HIGH"
+            elig_reviewed_at: str | None = "2026-08-26"
+            elig_needs_review = False
             group_id: str | None = None
             group_key: str | None = None
             grouping_status: str | None = None
@@ -839,6 +971,11 @@ def main() -> None:
             # C011(P1-2): 선탑재 추정으로 상태를 가르지 않는다. 브랜드 축은 전부 미평가다.
             eligibility = STATUS_NOT_ASSESSED
             elig_basis = "웹 수집 적격 여부를 아직 평가하지 않았다. URL 증거가 없다."
+            elig_reviewer = None
+            elig_confidence = None
+            elig_reviewed_at = None
+            # 미평가는 '사람이 봐야 한다' 가 켜진 상태다. 평가가 끝나야 꺼진다.
+            elig_needs_review = True
             if ckey in group_of:
                 group_id, group_key, _ = group_of[ckey]
                 grouping_status = GROUPING_CANDIDATE
@@ -866,6 +1003,12 @@ def main() -> None:
                 "alias_count": len(pairs),
                 "canonicalization_basis": basis,
                 # C012(W1): review queue 판정. 판정이 없는 entity 는 애초에 큐에 오르지 않았다.
+                "review_queue_rules": (
+                    json.dumps(queue_rules, ensure_ascii=False, sort_keys=True)
+                    if queue_rules
+                    else None
+                ),
+                "review_queue_peers": ",".join(queue_peers) if queue_peers else None,
                 "review_decision": review_decision,
                 "decision_rule": decision_rule,
                 "decision_basis": decision_basis,
@@ -874,8 +1017,17 @@ def main() -> None:
                 "decided_at": decided_at,
                 "decided_by": decided_by,
                 "needs_human_review": bool(needs_review),
+                # 06 §2-2 근거 필드. C012 판본은 web_eligibility_basis 한 칸뿐이었고,
+                # 71건을 판정하는 순간 근거 없이 상태값만 쌓이는 구조였다
+                # (debt: eligibility-basis-fields-narrower-than-06-still-carried).
+                # eligibility_needs_review 는 measurement 층의 needs_human_review 와
+                # **별도 컬럼**이다 — 한 칸을 공유하면 어느 층의 미결인지 구별되지 않는다.
                 "web_eligibility_status": eligibility,
-                "web_eligibility_basis": elig_basis,
+                "eligibility_basis": elig_basis,
+                "eligibility_reviewer": elig_reviewer,
+                "eligibility_confidence": elig_confidence,
+                "eligibility_reviewed_at": elig_reviewed_at,
+                "eligibility_needs_review": elig_needs_review,
                 "web_target_group_id": group_id,
                 "web_target_key": group_key,
                 "web_target_grouping_status": grouping_status,
@@ -919,6 +1071,73 @@ def main() -> None:
             f"판정은 있는데 {col} 가 비었다: {empty['canonical_service_key'].tolist()}"
         )
 
+    # C013(G1): 큐 멤버십과 판정이 서로를 검증한다.
+    # 큐에 오른 entity 는 review_queue_rules 를 갖고, 큐 밖 entity 는 갖지 않는다.
+    in_queue = set(
+        service_master.loc[service_master["review_queue_rules"].notna(), "canonical_service_key"]
+    )
+    assert in_queue == set(review_queue), "review_queue_rules 컬럼과 도출된 큐가 다르다"
+    assert set(decided["canonical_service_key"]) == set(review_queue), (
+        "판정 집합과 큐 집합이 다르다 — 큐 밖 판정이거나 판정 없는 큐다"
+    )
+
+    # C013(G2): 판정 라벨을 데이터에 연결한다.
+    #   debt: merge-decision-merges-nothing-no-alias-assert
+    #   C012 판본에서 MERGE 는 서술 라벨일 뿐이었다. coupang_app 을 MERGE 로 바꿔도
+    #   entity 81 개가 그대로 유지되고 빌드가 통과했다. 판정이 데이터를 하나도 건드리지
+    #   않으면 그 판정은 검증할 수 없다. 그래서 두 방향을 모두 못 박는다.
+    alias_ids_of: dict[str, set[str]] = {}
+    alias_raws_of: dict[str, set[str]] = {}
+    for rec in alias_map.itertuples():
+        alias_ids_of.setdefault(rec.service_id, set()).add(rec.alias_id)
+        alias_raws_of.setdefault(rec.service_id, set()).add(rec.entity_name_raw)
+
+    id_of_key = dict(
+        zip(service_master["canonical_service_key"], service_master["service_id"], strict=True)
+    )
+    for rec in decided.itertuples():
+        n_alias = len(alias_ids_of.get(rec.service_id, set()))
+        assert n_alias == rec.alias_count, (
+            f"{rec.canonical_service_key}: alias_count({rec.alias_count}) 와 "
+            f"entity_alias_map 실제 별칭 수({n_alias}) 가 다르다"
+        )
+        peers = [k for k in (rec.review_queue_peers or "").split(",") if k]
+        if rec.review_decision == REVIEW_MERGE:
+            # MERGE 는 '두 원문 표기를 하나로 흡수했다' 는 주장이다. 흡수된 표기가
+            # 실제로 2개 이상 없으면 아무것도 병합하지 않은 것이다.
+            assert n_alias >= 2, (
+                f"{rec.canonical_service_key}: MERGE 인데 별칭이 {n_alias}개다. "
+                "MERGE 는 최소 2개의 원문 표기를 흡수해야 한다 — 아무것도 병합하지 않는 "
+                "MERGE 는 서술 라벨일 뿐이다."
+            )
+            assert len(alias_raws_of.get(rec.service_id, set())) >= 2, (
+                f"{rec.canonical_service_key}: MERGE 인데 서로 다른 원문 표기가 2개 미만이다"
+            )
+        elif rec.review_decision == REVIEW_KEEP_SEPARATE:
+            # KEEP_SEPARATE 는 '흡수하지 않았다' 는 주장이다. 별칭이 늘어나 있으면 거짓이다.
+            assert n_alias == 1, (
+                f"{rec.canonical_service_key}: KEEP_SEPARATE 인데 별칭이 {n_alias}개다. "
+                "분리 판정인데 표기를 흡수했다면 판정과 데이터가 어긋난 것이다."
+            )
+            # 큐 상대편이 실제로 별개 entity 로 남아 있어야 한다.
+            assert peers, (
+                f"{rec.canonical_service_key}: KEEP_SEPARATE 인데 큐 상대편이 없다. "
+                "'무엇으로부터 분리했는가' 가 데이터에 없으면 판정이 공중에 뜬다."
+            )
+            for peer in peers:
+                assert peer in id_of_key, f"{rec.canonical_service_key}: 상대편 {peer} 가 없다"
+                assert id_of_key[peer] != rec.service_id, (
+                    f"{rec.canonical_service_key}: KEEP_SEPARATE 인데 상대편 {peer} 와 "
+                    "service_id 가 같다"
+                )
+                shared = alias_ids_of.get(rec.service_id, set()) & alias_ids_of.get(
+                    id_of_key[peer], set()
+                )
+                assert not shared, (
+                    f"{rec.canonical_service_key}: KEEP_SEPARATE 인데 상대편 {peer} 와 "
+                    f"별칭을 공유한다: {sorted(shared)}"
+                )
+
     # ---------------- web_target_group (web_target 층) ----------------
     decision_of = dict(
         zip(
@@ -936,7 +1155,7 @@ def main() -> None:
         # 에서 naver_app 이 RETAIL 과, naver_naverpay 가 APP 과 같은 자리에 놓여 읽혔다.
         # 집합 수준은 정확했지만, 네이버·G마켓 2중수집을 막으려고 만든 표가 같은 혼동을
         # 재생산했다. 하나의 정렬 키(service_id)로 튜플을 정렬한 뒤 풀어서 위치를 일치시킨다.
-        members = sorted(
+        members: list[tuple[str, str, str]] = sorted(
             zip(
                 sub["service_id"],
                 sub["canonical_service_key"],
@@ -1360,7 +1579,7 @@ def main() -> None:
 
     # C012(W1): 판정을 사람이 읽을 수 있는 형태로도 남긴다. CSV 한 칸에 눌러 담은 JSON 은
     # 감사자가 읽지 않는다 — 읽히지 않는 근거는 없는 근거와 같다.
-    review_ledger = {
+    review_ledger: dict[str, Any] = {
         "schema": "entity_review_decisions/v1",
         "generated_by": "research/landing_accessibility/scripts/build_canonical_entities.py",
         "decided_at": DECIDED_AT,
@@ -1387,13 +1606,33 @@ def main() -> None:
             ),
         },
         "axis_independence": REVIEW_AXIS_INDEPENDENCE_NOTE,
-        "queue_size_before": int(sum(1 for v in ENTITY_SPEC.values() if v[2])),
+        "queue_membership": {
+            "derived_from": "STRUCTURE_ONLY",
+            "note": (
+                "큐 멤버십은 손입력 플래그가 아니라 (entity_name_raw, domain) 표기 구조에서 "
+                "도출된다. ENTITY_SPEC 의 세 번째 원소(손입력 bool)는 C013 에서 제거했다. "
+                "플래그와 판정이 같은 손에서 나오면 어느 쪽도 다른 쪽을 검증하지 못한다."
+            ),
+            "rules": {
+                QUEUE_RULE_CROSS_DOMAIN_LABEL: "같은 entity_name_raw 가 APP·RETAIL 양쪽에 있다",
+                QUEUE_RULE_SLASH_SEGMENT: (
+                    "슬래시 묶음 표기의 segment 가 다른 도메인의 단독 표기와 문자 단위로 같다. "
+                    "양쪽 모두 큐에 오른다"
+                ),
+                QUEUE_RULE_MULTI_ALIAS: "하나의 canonical_service_key 에 별칭이 2개 이상 매핑돼 있다",
+            },
+            "reproduces_c012_hand_set_queue": sorted(review_queue) == sorted(C012_HAND_SET_QUEUE),
+            "members": {k: review_queue[k] for k in sorted(review_queue)},
+        },
+        "queue_size_before": len(review_queue),
         "decisions": [
             {
                 "canonical_service_key": r.canonical_service_key,
                 "service_id": r.service_id,
                 "service_name_canonical": r.service_name_canonical,
                 "domain": r.domain,
+                "review_queue_rules": json.loads(r.review_queue_rules),
+                "review_queue_peers": [k for k in (r.review_queue_peers or "").split(",") if k],
                 "review_decision": r.review_decision,
                 "decision_rule": r.decision_rule,
                 "decision_confidence": r.decision_confidence,
@@ -1435,7 +1674,13 @@ def main() -> None:
     )
     print("expected_url_relationship:")
     print(web_target_group["expected_url_relationship"].value_counts().to_string())
-    print(f"review queue         : {review_ledger['queue_size_before']} 건 접수")
+    print(
+        f"review queue         : {review_ledger['queue_size_before']} 건 접수 "
+        f"(구조 도출, C012 손입력 큐 재현={review_ledger['queue_membership']['reproduces_c012_hand_set_queue']})"
+    )
+    for ckey in sorted(review_queue):
+        rules = ",".join(sorted({r["rule"] for r in review_queue[ckey]}))
+        print(f"  큐 {ckey:<28} {rules}")
     for name, n in review_ledger["distribution"].items():
         print(f"  {name:<14}: {n}")
     nr = service_master[service_master["needs_human_review"]]

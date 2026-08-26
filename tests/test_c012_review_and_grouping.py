@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -249,9 +250,12 @@ def test_grouping_basis_is_machine_readable(web_target_group: pd.DataFrame) -> N
     for row in web_target_group.itertuples():
         basis = json.loads(row.grouping_basis)
         assert required <= basis.keys(), f"{row.web_target_key}: grouping_basis 필드 누락"
-        assert basis["url_evidence"] is None, "URL 증거가 없는데 채워졌다"
         assert basis["evidence_layer"] == "A1_SOURCE_LABEL"
-        if row.grouping_status == "CANDIDATE_PENDING_URL_REVIEW":
+        # grouping_basis 는 **그룹을 왜 묶었는가** 의 기록이고 그 근거는 A1 표기다.
+        # C013 에서 URL 이 확정된 뒤에도 이 칸이 URL 로 사후 보강되면 안 된다 —
+        # 묶은 이유가 바뀌어 버리고 가설 검정이 성립하지 않는다.
+        assert basis["url_evidence"] is None, "그룹핑 근거가 URL 로 사후 보강됐다"
+        if row.expected_url_relationship_is_hypothesis:
             assert basis["rule"] == "SHARED_SOURCE_LABEL_SIGNAL"
             assert basis["shared_signal"], "후보인데 공유 신호가 비었다"
         else:
@@ -262,13 +266,16 @@ def test_grouping_basis_is_machine_readable(web_target_group: pd.DataFrame) -> N
 def test_expected_url_relationship_is_declared_as_a_hypothesis(
     web_target_group: pd.DataFrame,
 ) -> None:
-    """URL 을 보기 전에 기대를 적되, 그것이 확정이 아님을 필드로 드러낸다."""
-    assert set(web_target_group["expected_url_relationship"]) <= ALLOWED_RELATIONSHIP
-    assert not web_target_group["expected_url_relationship_confirmed_by_url"].any()
-    assert web_target_group["web_target_url"].isna().all()
-    assert web_target_group["url_evidence"].isna().all()
+    """URL 을 보기 전에 적어 둔 기대와, URL 을 본 뒤의 결과가 **같은 행에 남아 있어야 한다.**
 
-    cand = web_target_group[web_target_group["grouping_status"] == "CANDIDATE_PENDING_URL_REVIEW"]
+    C012 판본은 '아직 아무것도 확정되지 않았음' 을 고정했다. C013 에서 검정이 끝났으므로
+    고정 대상이 바뀐다 — **틀린 가설이 조용히 지워지지 않았는가.** 선언문(관계·반증조건·위험)이
+    그대로 있고 결과가 그 옆에 붙어 있어야 한다. 선언을 지우고 결과만 남기면 무엇을
+    예상했는지가 사라지고, 사후에 맞춘 것과 구별되지 않는다.
+    """
+    assert set(web_target_group["expected_url_relationship"]) <= ALLOWED_RELATIONSHIP
+
+    cand = web_target_group[web_target_group["expected_url_relationship_is_hypothesis"]]
     assert set(cand["web_target_key"]) == {"coupang", "naver", "gmarket"}
     assert (cand["expected_url_relationship"] == "SAME_LANDING_EXPECTED").all()
     assert cand["expected_url_relationship_is_hypothesis"].all()
@@ -280,11 +287,22 @@ def test_expected_url_relationship_is_declared_as_a_hypothesis(
         text = row.expected_url_relationship_falsifier + row.expected_url_relationship_basis
         for token in ("http://", "https://", "www.", ".com", ".co.kr", ".kr/"):
             assert token not in text, f"{row.web_target_key}: 추측 URL 이 섞였다 ({token})"
+        # 검정 결과가 선언 옆에 있어야 한다. 결과가 없으면 가설이 검정되지 않은 것이고,
+        # 근거가 없으면 무엇이 그 결론을 만들었는지 알 수 없다.
+        assert row.hypothesis_outcome and row.hypothesis_outcome != "NOT_APPLICABLE_SINGLETON"
+        assert len(row.hypothesis_outcome_basis) > 40
 
-    single = web_target_group[web_target_group["grouping_status"] == "SINGLETON_PENDING_URL_REVIEW"]
+    # 확정 표시는 검정 결과와 정확히 대응한다 — URL 없이 켜질 수 없다.
+    for row in web_target_group.itertuples():
+        if row.expected_url_relationship_confirmed_by_url:
+            assert row.hypothesis_outcome == "CONFIRMED_SAME_LANDING"
+            assert row.web_target_url
+
+    single = web_target_group[~web_target_group["expected_url_relationship_is_hypothesis"]]
     assert len(single) == 65
     assert (single["expected_url_relationship"] == "UNKNOWN").all()
-    assert not single["expected_url_relationship_is_hypothesis"].any()
+    assert (single["hypothesis_outcome"] == "NOT_APPLICABLE_SINGLETON").all()
+    assert not single["expected_url_relationship_confirmed_by_url"].any()
 
 
 def test_every_brand_entity_belongs_to_exactly_one_group(
@@ -340,15 +358,24 @@ def test_measurement_decision_does_not_propagate_to_the_web_target_axis(
     """두 축은 독립이다.
 
     naver / gmarket 을 measurement 층에서 KEEP_SEPARATE 로 확정했다고 해서 web_target 층에서
-    그룹이 해체되는 것이 아니다. '무엇을 쟀는가' 와 '어느 URL 을 여는가' 는 다른 질문이고,
-    후자는 URL 증거가 나올 때까지 미확정이다. 여기서 그룹을 깨면 URL 없이 결론을 내린 것이다.
+    그룹이 해체되는 것이 아니다. '무엇을 쟀는가' 와 '어느 URL 을 여는가' 는 다른 질문이다.
+
+    C013 에서 두 그룹이 실제로 SPLIT 됐다. 그러나 그 근거는 measurement 판정이 아니라
+    **URL 관측**이어야 한다. 세 후보가 measurement 층에서 똑같이 KEEP_SEPARATE 인데
+    web_target 층 결과는 갈렸다는 사실이 두 축의 독립성을 보여준다 — 전파였다면 셋 다
+    같은 결과가 나왔을 것이다.
     """
-    cand = web_target_group[web_target_group["grouping_status"] == "CANDIDATE_PENDING_URL_REVIEW"]
+    cand = web_target_group[web_target_group["expected_url_relationship_is_hypothesis"]]
     assert len(cand) == 3
     for row in cand.itertuples():
         assert set(row.member_review_decisions.split(",")) == {"KEEP_SEPARATE"}
         assert row.member_count == 2
         assert row.expected_url_relationship == "SAME_LANDING_EXPECTED"
+
+    # measurement 판정이 같은데 web_target 결과가 갈렸다 = 전파가 아니다.
+    assert len(set(cand["grouping_status"])) > 1, (
+        "세 후보의 그룹 결과가 전부 같다 — measurement 판정이 전파됐을 가능성을 배제할 수 없다"
+    )
 
 
 # ── D1: evidence manifest 계약 ──────────────────────────────────────────────
@@ -523,11 +550,54 @@ def test_no_state_artifact_embeds_a_machine_specific_path() -> None:
 
     경로 의존은 C011 P2-3 에서 한 번 제거됐다가 형태만 바꿔 되살아났다. 필드 하나가 아니라
     '절대경로가 산출물에 들어가는 것' 자체를 막는다.
+
+    C013: 값이 '/' 로 시작하기만 하면 잡던 규칙은 URL 경로에서 오탐한다 — url_review 의
+    redirect Location 은 "/index.do" 같은 상대 경로이고 머신 의존이 아니다. 규칙을
+    **파일시스템 루트 이름**으로 좁힌다. 좁힌 규칙이 실제 절대경로를 여전히 잡는지는
+    아래에서 스스로 확인한다 — 오탐만 없애고 검사를 죽이지 않았음을 보이기 위해서다.
     """
+    machine_roots = {
+        "home",
+        "Users",
+        "tmp",
+        "mnt",
+        "var",
+        "opt",
+        "etc",
+        "root",
+        "srv",
+        "usr",
+        "media",
+    }
+
+    def looks_like_a_machine_path(value: str) -> bool:
+        if re.match(r"^[A-Za-z]:[\\/]", value):
+            return True
+        if not value.startswith("/"):
+            return False
+        return value.lstrip("/").split("/", 1)[0] in machine_roots
+
+    def walk(node: object, trail: str) -> list[str]:
+        found: list[str] = []
+        if isinstance(node, str):
+            if looks_like_a_machine_path(node):
+                found.append(f"{trail} = {node[:90]}")
+        elif isinstance(node, dict):
+            for key, value in node.items():
+                found += walk(value, f"{trail}.{key}")
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                found += walk(value, f"{trail}[{index}]")
+        return found
+
     offenders: list[str] = []
     for path in sorted(STATE.rglob("*.json")):
-        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-            stripped = line.strip()
-            if '": "/' in stripped or "/home/" in stripped or "\\\\Users\\\\" in stripped:
-                offenders.append(f"{path.relative_to(STATE)}:{line_no} {stripped[:90]}")
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        offenders += [f"{path.relative_to(STATE)}: {hit}" for hit in walk(payload, path.stem)]
     assert not offenders, "산출물에 머신 의존 절대경로가 있다:\n" + "\n".join(offenders)
+
+    assert looks_like_a_machine_path("/home/sieg/x/y.json")
+    assert looks_like_a_machine_path("/tmp/scratch/a")
+    assert looks_like_a_machine_path("C:\\Users\\x")
+    assert not looks_like_a_machine_path("/index.do")
+    assert not looks_like_a_machine_path("research/landing_accessibility/x")
