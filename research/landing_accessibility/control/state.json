@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T13:11:34.671133",
+  "updated_at": "2026-08-26T13:15:24.007671",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
   "cycle_id": "C011",
   "pilot": {
@@ -474,5 +474,66 @@
     "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",
     "promotion": "BLOCKED_PENDING_P1_REMEDIATION",
     "note": "ORCHESTRATOR_PRECHECK_PASS 를 ACCEPTED/VERIFIED/PROMOTED 와 동의어로 쓰지 않는다."
+  },
+  "main_branch_protection": {
+    "established_at": "2026-08-26T13:15:24.007671",
+    "server_side": {
+      "status": "ACTIVE",
+      "research/landing-accessibility-main": {
+        "allow_force_pushes": false,
+        "allow_deletions": false,
+        "required_linear_history": true
+      },
+      "research/refcohort-r1": {
+        "lock_branch": true,
+        "enforce_admins": true,
+        "allow_force_pushes": false,
+        "allow_deletions": false
+      },
+      "note": "SERVER_PROTECTION_UNAVAILABLE 아님 — gh CLI 로 실제 설정 완료"
+    },
+    "client_side": {
+      "hook": ".git/hooks/pre-push",
+      "verified": "main 으로 다른 SHA push 시도 -> BLOCKED 출력 및 push 실패 확인",
+      "bypass": "LA_PROMOTION=ORCHESTRATOR_PROMOTION_ONLY 환경변수"
+    },
+    "promotion_script": {
+      "path": "research/landing_accessibility/scripts/promote_landing_main.sh",
+      "checks": [
+        "Pilot path diff 0",
+        "두 감사 SHA 가 원격 감사 브랜치의 조상",
+        "exec 워크트리 clean",
+        "open P0 = 0",
+        "audit_lag target sha == exec sha",
+        "unaudited_cycle_depth <= 1"
+      ],
+      "note": "v3.1 §6 — hook 을 유일 보증수단으로 삼지 않는다. 이 스크립트가 검사의 정본이다."
+    }
+  },
+  "watchdog": {
+    "task": "b23k9sub6",
+    "interval_sec": 120,
+    "checks": [
+      "PILOT_WRITE (브랜치 SHA + 워크트리)",
+      "E001_UNAUTHORIZED (4개 워크트리 evidence/ 파일)",
+      "AUDIT_REQUIRED (exec HEAD 변화)",
+      "AUDIT_LANDED (감사 브랜치 변화)",
+      "DIRECTIVE_UPDATED",
+      "AUDIT_LAG (exec sha vs audit target sha)",
+      "SOURCE_AUTHORITY_CHANGED (authority_manifest sha256)"
+    ]
+  },
+  "v31_completion": {
+    "1_c009_independent_audits": "DONE",
+    "2_c009_reconciliation": "DONE",
+    "3_audit_lag_zero": "DONE (C009 기준 depth 0)",
+    "4_baseline_promoted": "BLOCKED — P1 3건 미시정",
+    "5_max_unaudited_enforced": "DONE (state.json invariant + watchdog)",
+    "6_watchdog_verifies_invariant": "DONE",
+    "7_direct_main_push_guard": "DONE (server-side + hook + promotion script 3중)",
+    "8_next_directive_from_promoted_baseline": "PENDING — promotion 후",
+    "9_no_e001_activity": "DONE",
+    "10_state_and_log_agree": "IN_PROGRESS",
+    "verdict": "HARNESS CLOSED LOOP: NOT VERIFIED — 4·8·10 미충족"
   }
 }
