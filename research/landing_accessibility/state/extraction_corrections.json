@@ -1,0 +1,36 @@
+{
+  "schema": "extraction_corrections/v1",
+  "generated_by": "research/landing_accessibility/scripts/build_canonical_entities.py",
+  "note": "오케스트레이터가 지목한 판독 의심 2건을 원본 이미지 재판독으로 검증했다. 결론: 원자료(source_ranking_rows.parquet) 값 시정은 0건이며, 1건은 발행물 자체의 오타로 확인되어 원문 보존 + 별칭 흡수, 1건은 판독 오류가 아니라 축 유형 오분류로 panel_registry 스키마 확장으로 처리했다.",
+  "corrections": [
+    {
+      "correction_id": "COR-001",
+      "row_id": null,
+      "affected_row_ids": [],
+      "panel_id": "fig10_t2",
+      "field": "entity_name_raw",
+      "before": "현대홈쇼핑/현대Hmallord",
+      "after": "현대홈쇼핑/현대Hmallord",
+      "action": "NO_CHANGE_SOURCE_TYPO_CONFIRMED",
+      "evidence": "sources/wiseapp/images/fig10.png 하단 막대차트 x축 라벨을 4배 확대(LANCZOS) 판독한 결과 '현대홈쇼핑/현대Hmallord' 로 실제 렌더링돼 있음. 같은 그림 상단 도넛 패널(fig10_t1)의 대응 라벨은 '현대홈쇼핑/현대Hmall' 이고 브랜드 로고 이미지는 두 패널이 동일. 추가로 sources/wiseapp/authority_manifest.json 의 발행처 태그 목록에도 '현대홈쇼핑/현대Hmall' 만 존재. → 추출 단계 판독 오류가 아니라 발행물 자체의 오타.",
+      "resolution": "원자료 entity_name_raw 는 원문 그대로 보존한다. canonical 단계에서만 service_id=svc_(hyundai_homeshopping_hmall) 로 흡수하고 alias.match_basis='REVIEWED', service_master.needs_human_review=True 로 표시한다.",
+      "corrected_by": "exec-agent(C003) / 이미지 직접 판독"
+    },
+    {
+      "correction_id": "COR-002",
+      "row_id": null,
+      "affected_row_ids": [],
+      "panel_id": "fig07_t1",
+      "field": "panel_registry.axis_type",
+      "before": "(컬럼 없음 — 모든 패널이 서비스 축으로 암묵 취급됨)",
+      "after": "INDUSTRY_CATEGORY",
+      "action": "SCHEMA_FIX_AXIS_TYPE",
+      "evidence": "sources/wiseapp/images/fig07.png 판독: 표 헤더 컬럼명이 '업종' 이고 행 아이콘이 브랜드 로고가 아닌 업종 픽토그램이다. 각주도 '리테일 브랜드를 업종별로 분류하여 각 업종별 합을 산출' 이라고 명시한다. 10개 행(인터넷 쇼핑·오프라인 마트·백화점/아울렛·홈쇼핑·여행/교통·편의점·전자기기·식품·배달·식음료)은 브랜드가 아니라 업종 카테고리다.",
+      "resolution": "panel_registry 에 axis_type 컬럼을 추가해 fig07_t1 만 INDUSTRY_CATEGORY, 나머지 16패널은 SERVICE_BRAND 로 표시. 해당 10개 entity 는 entity_kind='INDUSTRY_CATEGORY', web_collectable=False 로 두어 브랜드 entity 공간과 분리했다.",
+      "corrected_by": "exec-agent(C003) / 이미지 직접 판독"
+    }
+  ],
+  "row_value_changes_applied": 0,
+  "source_row_count_before": 261,
+  "source_row_count_after": 261
+}
