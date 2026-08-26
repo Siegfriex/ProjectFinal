@@ -1,23 +1,34 @@
 {
   "harness_version": "orchestrator-constitution-v3",
-  "updated_at": "2026-08-26T11:45:00+09:00",
+  "updated_at": "2026-08-26T12:13:47.386582",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
-  "cycle_id": "C001",
-
+  "cycle_id": "C003",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
     "status": "READ_ONLY_HISTORICAL_REGRESSION_ASSET"
   },
-
   "population_authority": {
     "id": "WISEAPP_ACTIVE_SENIOR_2025H2_933",
     "url": "https://www.wiseapp.co.kr/insight/detail/933/2025-active-senior-app-retail-trend",
-    "status": "ACQUISITION_IN_PROGRESS"
+    "status": "ACQUIRED_AND_FROZEN",
+    "acquired_at": "2026-08-26",
+    "acquisition_paths": [
+      "POST /insight/detail/getDetail.json",
+      "playwright chromium render"
+    ],
+    "figures": 11
   },
-
-  "authority_order": ["A0_USER_DECISION", "A1_WISEAPP_933", "A2_KWACC_REGISTRY", "A3_KWCAG_22_SOURCE", "A4_KWCAG_COMMENTARY", "A5_MAIN_DERIVATIVES", "A6_PILOT_R1_R4", "A7_LEGACY_XLSX_INVALIDATED"],
-
+  "authority_order": [
+    "A0_USER_DECISION",
+    "A1_WISEAPP_933",
+    "A2_KWACC_REGISTRY",
+    "A3_KWCAG_22_SOURCE",
+    "A4_KWCAG_COMMENTARY",
+    "A5_MAIN_DERIVATIVES",
+    "A6_PILOT_R1_R4",
+    "A7_LEGACY_XLSX_INVALIDATED"
+  ],
   "branches": {
     "main": "research/landing-accessibility-main",
     "exec": "agent/landing-exec",
@@ -25,16 +36,14 @@
     "ssot": "audit/landing-ssot",
     "orchestrator": "control/landing-orchestrator"
   },
-
-  "exec_sha": null,
+  "exec_sha": "1a7cd649ff647a35d1d1f2e4d0abbb830db66923",
   "adversarial_audit_sha": null,
-  "ssot_audit_sha": null,
-
+  "ssot_audit_sha": "6c22f31",
   "gates": {
     "pilot_archive": "PASS_WITH_LOGICAL_BACKUP_ONLY",
     "source_asset_discovery": "PASS",
-    "population_source_freeze": "REOPENED",
-    "source_row_reconciliation": "NOT_RUN",
+    "population_source_freeze": "PASS",
+    "source_row_reconciliation": "PASS_FIGURE_LEVEL",
     "canonical_entity": "NOT_RUN",
     "membership_preservation": "NOT_RUN",
     "web_eligibility": "NOT_RUN",
@@ -49,17 +58,63 @@
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
     "adversarial_audit": "NOT_RUN",
-    "ssot_audit": "NOT_RUN"
+    "ssot_audit": "PASS_C001_P1_7"
   },
-
   "withdrawn_conclusions": [
-    {"id": "RQ2_RQ3_RQ4_NO_GO", "state": "WITHDRAWN_PENDING_SOURCE_REFREEZE",
-     "reason": "48 canonical service frame 이 Wiseapp 933 원문과 reconciliation 되지 않은 파생자료(A7)에서 산출됨. 원문 재동결 전까지 NO-GO 판정 자체가 권위 없음."},
-    {"id": "OLD_CATEGORY_FEASIBILITY", "state": "INVALIDATED_BY_SOURCE_MISMATCH",
-     "reason": "동일. state/category_feasibility_matrix.csv 는 삭제하지 않고 INVALIDATED 로 보존."}
+    {
+      "id": "RQ2_RQ3_RQ4_NO_GO",
+      "state": "WITHDRAWN_PENDING_SOURCE_REFREEZE",
+      "reason": "48 canonical service frame 이 Wiseapp 933 원문과 reconciliation 되지 않은 파생자료(A7)에서 산출됨. 원문 재동결 전까지 NO-GO 판정 자체가 권위 없음."
+    },
+    {
+      "id": "OLD_CATEGORY_FEASIBILITY",
+      "state": "INVALIDATED_BY_SOURCE_MISMATCH",
+      "reason": "동일. state/category_feasibility_matrix.csv 는 삭제하지 않고 INVALIDATED 로 보존."
+    }
   ],
-
   "open_p0": [],
   "full_collection": "PROHIBITED",
-  "e001_authorization": "REQUIRES_RESEARCH_DIRECTOR_GO"
+  "e001_authorization": "REQUIRES_RESEARCH_DIRECTOR_GO",
+  "promotion_policy": {
+    "rule": "exec 는 감사를 기다리지 않고 다음 cycle 을 진행할 수 있다. 그러나 research/landing-accessibility-main 으로의 promotion 은 해당 SHA 에 대한 adversarial PASS + ssot PASS + open_p0=0 을 모두 만족할 때만 오케스트레이터가 수행한다.",
+    "rationale": "P1 exec-advanced-to-c002-before-c001-audit 대응. 하드스톱으로 파이프라인을 끊지 않으면서 미감사 산출물이 main 에 승격되는 것을 차단한다.",
+    "promoted_sha": null
+  },
+  "open_p1": [
+    {
+      "id": "state-json-stale-vs-exec-progress",
+      "state": "FIXED",
+      "by": "C003 orchestrator"
+    },
+    {
+      "id": "a1-screenshot-untracked",
+      "state": "OPEN",
+      "assigned": "C004 exec"
+    },
+    {
+      "id": "acquisition-script-not-committed",
+      "state": "OPEN",
+      "assigned": "C004 exec"
+    },
+    {
+      "id": "index-sections-not-verbatim",
+      "state": "OPEN",
+      "assigned": "C004 exec"
+    },
+    {
+      "id": "imginfolist-13-to-11-undocumented",
+      "state": "OPEN",
+      "assigned": "C004 exec"
+    },
+    {
+      "id": "invalidated-a7-preserved-untracked",
+      "state": "OPEN",
+      "assigned": "C004 exec"
+    },
+    {
+      "id": "exec-advanced-to-c002-before-c001-audit",
+      "state": "MITIGATED_BY_PROMOTION_POLICY",
+      "by": "C003 orchestrator"
+    }
+  ]
 }

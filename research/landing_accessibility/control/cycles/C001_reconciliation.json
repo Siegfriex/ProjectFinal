@@ -1,0 +1,32 @@
+{
+  "cycle_id": "C001",
+  "reconciled_at": "2026-08-26T12:13:47.386907",
+  "target_exec_sha": "fa7a9763fc8d",
+  "ssot_audit": {
+    "verdict": "PASS",
+    "p0": 0,
+    "p1": 7,
+    "sha": "6c22f31"
+  },
+  "adversarial_audit": {
+    "verdict": "PENDING"
+  },
+  "accepted_findings": [
+    "a1-screenshot-untracked",
+    "acquisition-script-not-committed",
+    "index-sections-not-verbatim",
+    "imginfolist-13-to-11-undocumented",
+    "invalidated-a7-preserved-untracked",
+    "state-json-stale-vs-exec-progress",
+    "exec-advanced-to-c002-before-c001-audit"
+  ],
+  "rejected_findings": [
+    {
+      "claim": "C002 산출물이 panel_registry 15 panel / source_ranking_rows 262행",
+      "rejected_because": "오케스트레이터가 git archive 1a7cd649 고정 트리에서 직접 재계산한 결과 17 panel / 261행. 고유 panel_id 17, 고유 source_row_id 261, 그리고 sum(n_metrics * rows_extracted) = 261 로 패널 정의와 행 테이블이 완전 정합. 감사자의 스팟체크 수치가 오독이다.",
+      "orchestrator_evidence": "git archive 1a7cd649 research/landing_accessibility/state | pandas read_parquet",
+      "note": "헌장 CASE 5 — auditor 주장을 자동 우선하지 않고 오케스트레이터가 증거를 직접 확인함"
+    }
+  ],
+  "decision": "C001 ACCEPTED. promotion 은 adversarial 결과 수령 후 판단. exec 는 C003 계속 진행."
+}
