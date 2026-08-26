@@ -1,0 +1,90 @@
+{
+  "cycle_id": "C011",
+  "target_exec_sha": "edb0478f56d06ed65cd03680727e366700ac7e84",
+  "auditor": "adversarial",
+  "started_at": "2026-08-26T12:55:00+09:00",
+  "finished_at": "2026-08-26T13:35:00+09:00",
+  "verdict": "PASS",
+  "findings": [
+    {
+      "id": "journal-provenance-embeds-executor-worktree-absolute-path",
+      "severity": "P2",
+      "claim": "실행자는 '두 빌드 스크립트 재실행 시 diff -r 바이트 동일' 을 주장했다. 거짓이다. state/journal_provenance.json 의 journal_path 는 실행자 워크트리의 절대경로 '/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_exec/...' 를 그대로 담고 있고, 스크립트는 매 실행마다 args.journal.resolve() 로 이 값을 다시 쓴다. 다른 체크아웃(=clone 을 포함한 모든 제3자)에서 재실행하면 반드시 이 한 줄이 달라진다. P2-3 이 없애려던 '세션 경로 의존' 이 세션 경로 대신 워크트리 경로로 형태만 바꿔 남았다. 나머지 15개 산출물(parquet 6 + csv 6 + json 3)은 실제로 바이트 동일이므로 결정성 자체는 성립한다 — 깨진 것은 '경로를 산출물에 박는다' 는 한 줄이다.",
+      "reproduction": "git -C /home/sieg/projects-wsl/ProjectFinal archive edb0478f56d06ed65cd03680727e366700ac7e84 | tar -x -C $SC/tree ; cp -a $SC/tree $SC/run ; cd $SC/run ; .venv/bin/python research/landing_accessibility/scripts/build_source_rows_from_journal.py ; .venv/bin/python research/landing_accessibility/scripts/build_canonical_entities.py ; diff -r $SC/tree/research/landing_accessibility/state $SC/run/research/landing_accessibility/state  ->  exit=1, 단 한 파일 journal_provenance.json 의 4행만 상이: < \"journal_path\": \".../.agent_worktrees/landing_exec/research/...\"  ---  > \"journal_path\": \"$SC/run/research/...\". 나머지 전부 무차이.",
+      "impact": "clone 받은 제3자가 재현 검증으로 diff 를 돌리면 항상 1건 차이가 나서 '재현 성공' 판정 기준이 흐려진다. journal_path_in_repo 가 이미 저장소 상대경로를 담고 있으므로 절대경로 필드는 정보 가치도 없다. 검증 재현성 저해이지 데이터 오염은 아니다.",
+      "suggested_fix": "journal_provenance.json 에서 journal_path(절대경로)를 제거하거나, ROOT.parents[1] 기준 상대경로로만 기록한다. 절대경로가 필요하면 산출물이 아닌 stdout 로만 출력한다. 그 뒤 diff -r 이 완전히 비는지 재확인한다."
+    },
+    {
+      "id": "matches-existing-c002-output-is-a-self-comparison",
+      "severity": "P2",
+      "claim": "P2-4 시정의 핵심 주장은 'matches_existing_c002_output 이 existing.exists() 가 아니라 assert_frame_equal 실제 실행' 이다. 비교 기구 자체는 진짜다(반례 주입 시 SystemExit 확인). 그러나 기록된 결과는 C002/C009 산출물과의 비교가 아니라 **같은 스크립트가 직전에 쓴 자기 출력과의 비교**다. 증거 두 가지. (1) 기록된 columns_compared 가 16개이고 period_axis / period_label 을 포함하는데, C009 고정 트리(fe86e19)의 source_ranking_rows.parquet 은 14컬럼이고 두 컬럼이 없다. 진짜 C009 산출물과 비교했다면 shared 는 14 여야 한다. (2) 기록된 columns_new_in_rebuild 가 [] 인데, P2-5 는 바로 이 사이클에서 두 컬럼을 신설했다고 주장한다. 진짜 C009 산출물과 비교했다면 ['period_axis','period_label'] 이 찍혀야 한다. 즉 필드명 'existing_c002_output' 이 가리키는 대상이 실제로는 C011 자기 출력이다. 덧붙여 검증 테스트 test_journal_rebuild_comparison_is_a_real_comparison 은 이 JSON 을 다시 읽어 문자열을 단언할 뿐 비교를 실행하지 않는다.",
+      "reproduction": "git -C <repo> archive fe86e19 research/landing_accessibility/state | tar -x -C $SC/c009 ; .venv/bin/python -c \"import pandas as pd; a=pd.read_parquet('$SC/c009/.../source_ranking_rows.parquet'); print(a.shape, list(a.columns))\"  ->  (261, 14) [... 'value_label', 'figure_source_pointer'] (period_axis/period_label 없음). 대조: 고정 트리 state/journal_provenance.json 의 matches_existing_c002_output.columns_compared 는 16개이며 'period_label','period_axis' 를 포함하고 columns_only_in_existing=[] / columns_new_in_rebuild=[]. // 기구가 진짜임은 별도 확인: $SC/mut2 에서 source_ranking_rows.parquet 의 row0 value 를 +1 한 뒤 스크립트 재실행 -> '저널 재생성 결과가 기존 C002 원자료와 다르다 (공통 16컬럼 비교) ... 1378.0 != 1377.0', EXIT=1.",
+      "impact": "'재생성이 기존 원자료와 일치한다' 는 문장이 실제로는 '재생성이 직전 재생성과 일치한다' 를 뜻한다. 스크립트가 한 번이라도 잘못된 값을 쓰고 나면 그 이후의 모든 실행이 IDENTICAL 을 기록하며, 원 C002 판독과의 계보 단절을 감지하지 못한다. 다만 이번 사이클에서는 내가 직접 C009 고정 트리와 261행 공통 14컬럼을 assert_frame_equal 로 대조해 완전 일치를 확인했으므로, 현재 데이터에 실제 오염은 없다.",
+      "suggested_fix": "비교 기준을 git 고정 리비전으로 못박는다 — 예: `git show <c002_sha>:research/.../source_ranking_rows.parquet` 를 임시 파일로 받아 비교하고, 그 sha 를 provenance 에 baseline_ref 로 기록한다. 최소한 필드명을 matches_previous_build_output 으로 바꾸고, columns_only_in_existing / columns_new_in_rebuild 가 비어 있다는 사실이 무엇을 뜻하는지 명시한다."
+    },
+    {
+      "id": "authority-manifest-has-no-version-or-revision-field",
+      "severity": "P2",
+      "claim": "authority_manifest.json 은 C009 와 C011 두 사이클에서 실질 수정됐다(index_from_source 11개 절 전면 교체, EV-2/EV-6 재작성, index_from_source_note 신설). 그런데 최상위 키 어디에도 manifest_version / revision / schema 필드가 없다. 있는 것은 acquired_at(=A1 취득 시각, 2026-08-26T12:04:03.157282, 두 사이클 내내 불변)과 source 하위의 frozen_edition / frozen_at(=발행물 자체의 동결 정보) 뿐이다. 또 이 매니페스트 자신의 sha256 은 source_evidence_manifest.json 을 포함해 어디에도 등록돼 있지 않다(top keys: acquired_at, authority_id, source_url, acquisition_method, figures, extraction_journal). 결과적으로 매니페스트 사본을 손에 든 사람이 '이것이 어느 시점 판본인가' 를 파일 내부만으로 판별할 수 없다.",
+      "reproduction": ".venv/bin/python -c \"import json,re; s=open('.../authority_manifest.json').read(); print(re.findall(r'\\\"[a-z_]*(?:version|revision|schema|cycle)[a-z_]*\\\"', s))\" -> [] (frozen_edition/frozen_at 만 존재). // git -C <repo> diff --stat fe86e19 edb0478 -- .../authority_manifest.json -> 47 lines changed. // json.load(...).keys() -> authority_id, authority_rank, acquired_at, source, domain_flags, population_definition, content_structure, index_from_source, headline_claims_verbatim, raw_assets, freeze_validity_window, image_inventory_reconciliation, legacy_asset_assessment, index_from_source_note.",
+      "impact": "매니페스트 판본 식별 불가. 다만 A1 원문 raw 자산 6종의 sha256 은 C009 와 C011 사이에서 전부 불변임을 확인했다(wiseapp933_text.txt / rendered.html / api.json / detail.json / images.json / full.png 모두 SAME). 즉 권위 원본은 흔들리지 않았고, 흔들린 것은 해설 레이어의 판본 식별성뿐이다.",
+      "suggested_fix": "최상위에 manifest_revision(예: 'C011') 과 revised_at, 그리고 사이클별 revision_log(무엇을 왜 고쳤는지 — 이미 index_from_source_note / correction_note 로 산문화돼 있으므로 구조화만 하면 된다)를 추가한다. 매니페스트 자신의 sha256 을 source_evidence_manifest.json 에 등록하는 것도 함께 한다."
+    },
+    {
+      "id": "ev2-ev6-evidence-file-is-untracked-and-unhashed",
+      "severity": "P2",
+      "claim": "P2-1(EV-2 부호)과 P2-2(EV-6 문서속성)의 시정 근거는 전부 '선행 작업이 남긴 파생 xlsx' 실측이다. 그 파일은 manus/fast_collection/50plus_all_rankings_real_url_mapping.xlsx 이며 저장소에 커밋돼 있지 않고(git ls-tree 결과 0건, git status 에서 '?? manus/'), .gitignore 로 정식 제외된 것도 아니며, sha256 도 authority_manifest 어디에도 기록돼 있지 않다. legacy_asset_assessment.asset 은 '선행 작업이 남긴 파생 xlsx (본 연구 이전 산출물, 출처 미상)' 라는 산문뿐 파일 경로조차 없다. 즉 P2-3 이 판독 저널에 대해 해소한 '단일 머신에만 있는 증거' 패턴이 EV 증거에는 그대로 남아 있다.",
+      "reproduction": "git -C <repo> ls-tree -r --name-only edb0478 | grep -i 'xlsx\\|manus' -> 출력 0건. // 내가 로컬 파일로 직접 검산: .venv/bin/python -c \"import openpyxl; wb=openpyxl.load_workbook('manus/fast_collection/50plus_all_rankings_real_url_mapping.xlsx'); ...\" -> creator='openpyxl', created=modified=datetime(2026,8,25,15,54,10) [EV-6 present_metadata 와 일치], 시트 01 rank1 카카오톡=1379 / rank2 유튜브=1305 / rank3 네이버=1224. 원문측(state/source_ranking_rows.parquet, fig01_t1)=카카오톡 1377 / YouTube 1329 / Google 1278 / 네이버 1256. 규약 (xlsx-원문)/원문*100 재산출 -> 카카오톡 +0.145->0.15, 유튜브 -1.806->-1.81, 네이버 -2.548->-2.55. 매니페스트 drift_pct 와 3/3 일치. sha256(xlsx)=95132834c74d1e8e4ca4785197f71286f4c53baac3ca1da6d2884be4660a3e02.",
+      "impact": "EV-2 / EV-6 의 수치는 (내가 로컬 파일로 검산한 결과) 전부 정확하다. 문제는 정확성이 아니라 검증 가능성이다 — clone 만 받은 제3자는 A7 폐기 판정의 근거를 재현할 수 없다. 판정 대상이 '사용 금지' 로 결론난 자산이라 연구 결론에는 영향이 없어 P2 로 둔다. 또한 tests/test_c009_two_layer.py::test_ev2_drift_signs_are_consistent_with_one_stated_convention 은 세 값 중 카카오톡·네이버 두 쌍만 재산출하고 유튜브 -1.81 은 근거 쌍 없이 리터럴만 고정한다.",
+      "suggested_fix": "xlsx 를 sources/_rejected/ 아래에 커밋하고 sha256 을 authority_manifest.legacy_asset_assessment 에 asset_path / asset_sha256 로 등록한다. 커밋이 불가하면 최소한 경로와 sha256 을 매니페스트에 적어 '이 해시의 파일을 두고 한 판정' 임을 고정한다. EV-2 테스트에는 유튜브 (1329, 1305) 쌍도 추가한다."
+    },
+    {
+      "id": "new-tests-still-compare-derivative-to-hardcoded-literal",
+      "severity": "P2",
+      "claim": "C011 은 테스트 파일 docstring 에 '파생물끼리의 일치는 검증이 아니다. 원문 대조 테스트는 한쪽 끝이 반드시 sources/wiseapp/raw/ 의 원본 파일이어야 한다' 는 원칙을 새로 선언했다. 신규 6건 중 이 원칙을 지킨 것은 test_index_sections_are_verbatim_from_the_source_body(raw/wiseapp933_text.txt 직접 파싱)와 test_extraction_journal_is_committed_and_hashed(바이트에서 sha256 재계산) 둘이다. 나머지는 원칙 밖이다. (a) test_ev2_... / test_ev6_... 는 authority_manifest 의 값을 테스트 안의 하드코딩 리터럴과 대조한다 — 원본 xlsx 를 읽지 않으므로 매니페스트 수치가 실제와 어긋나도 잡지 못한다. (b) test_journal_rebuild_comparison_is_a_real_comparison 은 비교를 실행하지 않고 journal_provenance.json 의 자기신고 문자열('IDENTICAL', 'assert_frame_equal' 포함 여부)을 단언한다. (c) test_panel_scope_survives_a_standalone_journal_rebuild 는 이름과 달리 단독 리빌드를 실행하지 않고, 현재 산출물의 컬럼 수(26)와 **스크립트 소스 문자열 grep**('DOWNSTREAM_PANEL_COLUMNS' in src, '\"panel_scope\"' in src)으로 대체한다.",
+      "reproduction": "tests/test_c009_two_layer.py:462-495(EV-2/EV-6), :626-642(journal comparison), :644-657(panel_scope) 를 읽어 확인. // 실제 동작은 내가 대신 실행해 확인했다: (c) $SC/mut3 에서 build_source_rows_from_journal.py 만 단독 실행 -> panel_registry 26컬럼, panel_scope notna 전부 True, carried=['panel_scope'], 이어서 pytest tests/ -q -> 59 passed. 즉 동작은 주장대로다. (b) $SC/mut2 반례 주입 -> SystemExit 확인(별도 finding 참조). // 신규 정렬 테스트의 실효성은 반례로 확인: $SC/mut1 에서 naver 그룹의 member_domains 만 순서 뒤집기(집합은 불변) -> pytest 1 failed, 'wtg_6d5510a695d0a614[0]: svc_7ce399cd76c70efa(naver_naverpay) 의 도메인은 RETAIL 인데 member_domains[0]=APP 다 — 위치 어긋남'.",
+      "impact": "선언한 원칙과 구현의 간극. 현재 값이 전부 맞다는 것은 내가 별도로 확인했으므로 즉시 위험은 없다. 다만 (c)의 소스 문자열 grep 은 리팩터링으로 상수 이름만 바뀌어도 거짓 실패하고, 반대로 이어받기 로직이 망가져도 상수 이름만 남아 있으면 통과한다 — '통과를 위장' 계열의 잔재다.",
+      "suggested_fix": "(a) EV 테스트는 xlsx(커밋 후)를 열어 값 쌍을 직접 읽어 drift 를 재산출한다. (b)(c) tmp_path 에 state 를 복사해 스크립트를 subprocess 로 실제 실행하고, 산출된 panel_registry 컬럼 수와 provenance 의 comparison 결과를 실행 결과로부터 단언한다."
+    }
+  ],
+  "invariants_checked": [
+    "source_ranking_rows 261행 — 재계산 261 (PASS)",
+    "도메인 분리 137 APP + 124 RETAIL = 261 (PASS)",
+    "panel_registry 17패널 / 26컬럼, panel_scope 전 행 notna (PASS)",
+    "service_master 81행 17컬럼 (PASS)",
+    "entity_alias_map 82행 (PASS)",
+    "source_membership 142행 (PASS)",
+    "web_target_group 68그룹 / member_count 합 71 (PASS)",
+    "web_target_url 68행 전부 null, url_evidence 68행 전부 null (PASS)",
+    "web_eligibility_status = NOT_ASSESSED 71 + EXCLUDED_INDUSTRY_AXIS 10 = 81, SYSTEM_APP_CANDIDATE 0건 (PASS)",
+    "axis_type x status 교차 — INDUSTRY_CATEGORY 10건이 정확히 EXCLUDED_INDUSTRY_AXIS, SERVICE_BRAND 71건이 정확히 NOT_ASSESSED (PASS)",
+    "web_target_group 71쌍 전수 위치정합 — member_service_ids[i] 가 sha256(member_canonical_keys[i]) 와 일치하고, alias_map/원자료가 주는 도메인이 member_domains[i] 와 일치. 불일치 0 (PASS)",
+    "member_count>=2 인 3그룹(coupang/naver/gmarket) 육안 대조 — 전부 정합 (PASS)",
+    "web_target_group_id 집합 == SERVICE_BRAND service_master 의 web_target_group_id 집합, 68 == 68 (PASS)",
+    "web_target_group 에 나열된 member_service_ids 71개 == SERVICE_BRAND service_id 71개 (PASS)",
+    "INDUSTRY_CATEGORY 10건은 web_target_group_id 가 전부 null (PASS)",
+    "원문 INDEX 독립 파싱 — 4 chapter / 11 section, authority_manifest.index_from_source 와 완전일치, panel_registry.source_section_title 과 완전일치, chapter 제목까지 일치, 11개 절 커버리지 완전 (SAME 11 / MISMATCH 0)",
+    "U+00A0 처리 — Chapter1 의 3개 절만 '세대' 뒤가 NBSP 이며 매니페스트·panel_registry 양쪽에 그대로 보존됨. 원문에 없는 문자 삽입 0건, 있는 문자 누락 0건. 11개 절 문자열 전부 본문에 정확히 1회 등장 (PASS)",
+    "A1 raw 자산 6종 sha256 — fe86e19 대비 edb0478 에서 전부 불변 (PASS)",
+    "판독 저널 — 41,926 bytes / 44 lines / sha256 662eba62... 매니페스트 등록값과 일치, figure 11종 판독 결과 포함 (PASS)",
+    "clone 재현성 — 저장소 내부 저널만으로 261행/17패널 재생성 성공 (PASS)",
+    "C009 대비 261행 공통 14컬럼 assert_frame_equal — IDENTICAL, 신규 컬럼은 period_axis/period_label 둘뿐 (PASS)",
+    "C009 대비 panel_registry 26컬럼 — source_section_title 만 상이(의도된 P1-3 시정), 나머지 25컬럼 동일 (PASS)",
+    "C009 대비 service_master — web_eligibility_status/basis 두 컬럼만 상이(의도된 P1-2 시정) (PASS)",
+    "C009 대비 web_target_group — member_canonical_keys/member_domains 두 컬럼만 상이(의도된 P1-1 시정) (PASS)",
+    "C009 대비 entity_alias_map / source_membership — 완전 동일 (PASS)",
+    "period_axis 전파 — 261행 전부 notna, {HALF_YEAR 231, SINGLE_MONTH 30}, SINGLE_MONTH 은 fig07_t1 단독, 행/패널 period_axis·period_label 100% 정합 (PASS)",
+    "period_axis 오염 경로 — 두 축에 걸친 metric_name 은 '성장률' 뿐이며 fig05_t1(HALF_YEAR, APP, SERVICE_BRAND) 3행 / fig07_t1(SINGLE_MONTH, RETAIL, INDUSTRY_CATEGORY) 10행으로 domain·axis_type·period_axis 삼중으로 분리돼 있다. 행 수준 혼합 집계 경로 없음 (PASS)",
+    "csv/parquet 병행 — 6쌍 전부 행수·컬럼순서 일치 (PASS)",
+    "멱등성 — 두 빌드 스크립트 순서 재실행 후 diff -r: parquet 6 + csv 6 + json 2 바이트 동일, journal_provenance.json 만 journal_path 1행 상이 (부분 PASS, finding 참조)",
+    "pytest tests/ -q -> 59 passed (직접 실행)",
+    "ruff check research/landing_accessibility tests -> All checks passed / ruff format --check -> 12 files already formatted (직접 실행)",
+    "git 위생 — fe86e19..edb0478 은 커밋 1건, research/refcohort 변경 파일 0건. 2922af49 는 객체로만 남아 있고 edb0478 의 조상이 아니며 어떤 브랜치 로그에도 없다 (PASS)"
+  ],
+  "p1_remediation_verified": {
+    "p1_1_alignment": true,
+    "p1_2_prior_separation": true,
+    "p1_3_verbatim": true
+  },
+  "notes": "P0 0건 / P1 0건. C009 감사가 막고 있던 P1 3건은 전부 실질적으로 해소됐고, 나는 실행자의 설명을 쓰지 않고 세 건 모두 독립 재계산으로 확인했다.\n\nP1-1(위치정렬): 68그룹 71쌍을 전수 재계산했다. 검사 기준을 실행자 코드와 분리하기 위해 member_service_ids[i] 를 sha256(member_canonical_keys[i]) 로 역검증하고, 도메인은 service_master 가 아니라 entity_alias_map 을 거쳐 원자료 261행에서 끌어와 대조했다(alias 82건 전부 원자료에 뒷받침되는 행이 있음도 함께 확인). 불일치 0. member_count 2인 3그룹은 눈으로 확인했다 — naver 그룹은 service_id 정렬 결과 [0]=naver_naverpay(RETAIL) / [1]=naver_app(APP) 순이 됐고 세 배열이 그 순서대로 대응한다. 테스트의 실효성은 반례로 확인했다: naver 그룹의 member_domains 만 순서를 뒤집어(집합은 불변) 돌리자 test_web_target_member_arrays_are_positionally_aligned 가 정확한 위치와 이유를 찍고 실패했다. C009 판본의 테스트가 못 잡던 결함을 신규 테스트가 잡는다.\n\nP1-2(사전판단 분리): service_master 81건의 web_eligibility_status 는 NOT_ASSESSED 71 / EXCLUDED_INDUSTRY_AXIS 10 이고 SYSTEM_APP_CANDIDATE 는 0건이다. 확정 배제는 INDUSTRY_CATEGORY 축과 정확히 일치한다. 11건은 누락 없이 state/_researcher_priors/system_app_hypothesis.json 으로 이전됐고(11개 canonical key 전부 service_master 에 실재, 상태값은 전부 NOT_ASSESSED), 각 항목이 status=UNSOURCED_RESEARCHER_PRIOR / evidence_pointer=null 을 달고 있다. 잔재 검색: service_master 전 행 전 컬럼에서 '선탑재'·'기본 탑재' 문자열 0건, web_eligibility_basis 는 두 종류뿐. 읽기 경로 검색: 저장소 전체에서 _researcher_priors / system_app_hypothesis 를 참조하는 곳은 (i) build_canonical_entities.py 의 쓰기 1곳과 주석, (ii) 테스트의 읽기, (iii) extraction_corrections.json 의 기록뿐이다. 어떤 스크립트도 이 파일을 읽어 service_master 를 만들지 않는다. 상태값 도메인은 ALLOWED_ELIGIBILITY_STATUS 로 코드에서 닫혀 있어 새 상태값이 조용히 들어올 수 없다.\n\nP1-3(원문 verbatim): raw/wiseapp933_text.txt 의 'INDEX.' 블록을 실행자 파서와 별개로 내가 다시 파싱해 4 chapter / 11 section 을 뽑고 authority_manifest.index_from_source · panel_registry.source_section_title 과 대조했다. 11/11 완전일치, 장 제목까지 일치, 커버리지 완전. NBSP 는 Chapter1 의 3개 절만 '세대' 뒤가 U+00A0 이며 양쪽 파생물에 그대로 보존돼 있다 — 원문에 없는 문자를 넣거나 있는 문자를 뺀 절은 없다. 11개 절 문자열은 각각 본문에 정확히 1회 등장한다. 검증 테스트의 한쪽 끝이 정말 원문인지도 코드로 확인했다: tests 의 BODY_TEXT 는 sources/wiseapp/raw/wiseapp933_text.txt 를 직접 읽고 parse_index_from_body 로 파싱하며, 그 결과(source_map)를 기준으로 매니페스트와 panel_registry 양쪽을 검사한다. 파생 A vs 파생 B 구도가 실제로 해소됐다.\n\nP2 5건도 실질 시정을 확인했다. EV-2 세 값은 커밋되지 않은 원본 xlsx 를 내가 직접 열어 3/3 재산출 일치를 확인했고(카카오톡 1379 vs 1377 -> +0.15 포함), EV-6 의 created/modified/creator 도 실측과 일치하며 '전부 None' 이 과장이었다는 시정 자체가 옳다. 저널은 저장소 안에서 sha256·바이트·라인수가 모두 맞고, 저장소 내부 저널만으로 261행이 재생성된다. 저널 단독 실행 시 panel_registry 26컬럼이 유지되고 그 상태에서 59 tests 가 전부 통과한다. 값 반례를 주입하면 스크립트가 SystemExit 로 막는다.\n\n남은 P2 5건은 모두 '검증 가능성' 계열이고 데이터 오염은 아니다 — 절대경로 1줄로 깨진 멱등성, 자기 출력과의 자기 비교로 기록된 IDENTICAL, 매니페스트 판본 식별 불가, EV 증거 파일 미커밋, 그리고 신규 테스트 4건이 스스로 선언한 '한쪽 끝은 원본' 원칙 밖에 있는 점이다. promotion 을 막을 사유는 없다고 판단한다.\n\ngit 위생 이상 없음: fe86e19..edb0478 은 커밋 1건이고 research/refcohort 변경 0건. 2922af49 는 dangling 객체로만 남아 edb0478 의 조상이 아니고 어떤 브랜치 로그에도 없다."
+}
