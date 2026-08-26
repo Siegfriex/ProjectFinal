@@ -1,0 +1,81 @@
+{
+  "cycle_id": "C002-C003",
+  "target_exec_sha": "933096a59426d5f1cb90be7b458b050f5a9cf5a0",
+  "auditor": "adversarial",
+  "started_at": "2026-08-26T12:15:00+09:00",
+  "finished_at": "2026-08-26T12:28:00+09:00",
+  "verdict": "PASS",
+  "findings": [
+    {
+      "id": "duplicate-web-collection-targets-naver-gmarket",
+      "severity": "P1",
+      "claim": "네이버(naver_app)/네이버-네이버페이(naver_naverpay), G마켓(gmarket_app)/G마켓-옥션(gmarket_auction) 4개 service_id 가 전부 web_collectable=True 이면서 서로를 가리키는 기계 판독 가능한 연결 필드가 없다. 다음 사이클 웹 수집이 naver.com 과 gmarket.co.kr 을 각각 두 개의 별개 서비스로 두 번 수집한다.",
+      "reproduction": "python -c 로 service_master.parquet 조회:\n  svc_8349e143ed01f677 naver_app        네이버          APP          web_collectable=True  needs_human_review=True\n  svc_7ce399cd76c70efa naver_naverpay   네이버/네이버페이  RETAIL_BRAND web_collectable=True  needs_human_review=True\n  svc_112f591a0d47a8d8 gmarket_app      G마켓           APP          web_collectable=True  needs_human_review=True\n  svc_e4a6c04cbf9d9421 gmarket_auction  G마켓/옥션       RETAIL_BRAND web_collectable=True  needs_human_review=True\nservice_master 컬럼 11개(service_id, canonical_service_key, service_name_canonical, entity_kind, appears_in_app_panels, appears_in_retail_panels, source_row_count, alias_count, canonicalization_basis, needs_human_review, web_collectable) 중 두 행을 같은 웹 타깃으로 묶는 필드는 없다.\n대조: 같은 표기 '쿠팡'은 alias.domain='APP|RETAIL' 로 단일 svc_5b8c59f6fd9839f7 에 묶여 있어 중복이 없다 → 중복 위험은 '표기가 다른 동일 웹 타깃' 경로에만 남아 있다.",
+      "impact": "분리 자체는 원문 측정 단위 보존 관점에서 정당하다(앱 사용자 vs 결제). 문제는 그 분리가 '웹 랜딩페이지 수집 단위'에까지 그대로 전파된다는 점이다. C004 수집이 네이버/G마켓 랜딩을 각 2회 수집하면 (a) 동일 페이지에 대해 중복 접근·중복 증거가 쌓이고, (b) service_id 단위 접근성 지표 집계에서 네이버·G마켓이 2중 계상되며, (c) 두 수집 시점이 달라 같은 페이지에 서로 다른 판정이 붙는 모순이 생길 수 있다. Pilot 의 파일-레코드 오대응과 같은 계열의 단위 불일치다.",
+      "suggested_fix": "service_master 에 web_target_group(또는 collect_group_key) 컬럼을 추가해 naver_app/naver_naverpay -> 'naver', gmarket_app/gmarket_auction -> 'gmarket' 으로 묶고, 수집기는 service_id 가 아니라 web_target_group 단위로 1회만 수집한 뒤 결과를 두 service_id 에 공유 참조시킨다. 대안으로 각 쌍에서 한쪽만 web_collectable=True 로 두고 사유를 canonicalization_basis 에 기록한다. 어느 쪽이든 measurement entity(원문 단위)와 collection target(웹 단위)을 별개 축으로 분리해 명시해야 한다."
+    },
+    {
+      "id": "entity-kind-conflates-domain-and-axis-kind",
+      "severity": "P2",
+      "claim": "entity_kind 의 값 집합이 {APP=37, RETAIL_BRAND=32, BOTH=1, INDUSTRY_CATEGORY=10} 로, 앞의 셋은 '출처 도메인'을, 마지막 하나는 '축 유형'을 인코딩한다. 서로 다른 두 개념이 한 컬럼에 섞여 있다.",
+      "reproduction": "pd.read_parquet('state/service_master.parquet').entity_kind.value_counts()\n  -> {'APP': 37, 'RETAIL_BRAND': 32, 'INDUSTRY_CATEGORY': 10, 'BOTH': 1}\nservice_master[service_master.entity_kind=='RETAIL_BRAND'] -> 32행. 리테일 1위 '쿠팡'(svc_5b8c59f6fd9839f7, entity_kind='BOTH', 인덱스 100, 총 결제횟수 1위)은 여기서 빠진다.\n한편 도메인 정보는 appears_in_app_panels / appears_in_retail_panels 로 이미 별도 컬럼에 존재한다(쿠팡: 2 / 3).",
+      "impact": "후속 코드가 entity_kind=='RETAIL_BRAND' 로 리테일 브랜드를 필터하면 리테일 1위 쿠팡이 조용히 빠진다. 반대로 entity_kind!='INDUSTRY_CATEGORY' 로 브랜드를 필터하면 의도대로 동작한다 — 즉 같은 컬럼이 어떤 값으로 거르느냐에 따라 안전하기도 하고 조용히 틀리기도 한다. 현 산출물의 값은 옳지만 스키마가 다음 사이클에서 오용을 유도한다.",
+      "suggested_fix": "entity_kind 를 {SERVICE_BRAND, INDUSTRY_CATEGORY} 두 값으로 축소하고 도메인 소속은 이미 존재하는 appears_in_app_panels/appears_in_retail_panels(또는 명시적 domains 컬럼)로만 표현한다. tests/test_source_integrity.py 의 test_axis_type_separates_industry_categories 도 entity_kind!='INDUSTRY_CATEGORY' 기준을 그대로 쓰면 되므로 변경 비용은 작다."
+    },
+    {
+      "id": "row-count-invariant-tautological-for-8-of-17-panels",
+      "severity": "P2",
+      "claim": "'17개 패널 전부 rows_expected == rows_extracted' 주장에서, 8개 패널은 rows_expected 를 '이미지에 실제로 그려진 항목 수'로 정의했기 때문에 등식이 구성상 항상 참이다. 독립 검증력이 있는 패널은 제목에 TOP N 이 명시된 9개뿐이다.",
+      "reproduction": "제목에 TOP N 이 있는 패널(9): fig01_t1/t2(TOP15), fig02_t1(TOP15), fig03_t1(TOP10), fig06_t1/t2(TOP15), fig07_t1(TOP10), fig08_t1(TOP10), fig09_t1(TOP5).\nTOP N 표기가 없는 패널(8): fig04_t1/t2(5), fig05_t1/t2(3), fig10_t1/t2(5), fig11_t1/t2(3).\npanel_registry.csv fig10_t1 unreadable 필드 원문: \"제목에 TOP N 표기가 없어 rows_expected는 이미지에 실제로 그려진 브랜드 수(5)로 기록함.\"\nfig11_t1 unreadable 필드 원문: \"도넛 차트/막대 차트 형식이라 순위표(TOP N) 자체가 존재하지 않는다 (rows_expected는 표시된 브랜드 수 3으로 설정).\"",
+      "impact": "row_count_ok 컬럼 17/17 True 를 '17개 패널 모두 원문이 선언한 행 수를 빠짐없이 추출했다'는 뜻으로 읽으면 과대 해석이다. 실제로는 9개 패널에 대한 검증이고, 나머지 8개(전체 261행 중 32행)에 대해서는 항목 누락 여부를 이 지표로 알 수 없다. 감사자는 이 8개 패널에서 이미지를 직접 세어야 하며, 이번 감사에서 fig04(5+5)/fig05(3+3)/fig10(5+5)/fig11(3+3)을 육안 확인해 누락 0건을 별도로 확인했다.",
+      "suggested_fix": "panel_registry 에 rows_expected_basis 컬럼(DECLARED_TOP_N | COUNTED_FROM_IMAGE)을 추가하고, row_count_ok 는 DECLARED_TOP_N 패널에서만 유의한 지표임을 명시한다. 상위 보고서의 '17/17' 문구는 '선언형 9패널 검증 통과 + 계수형 8패널 이미지 재확인'으로 분리 서술한다."
+    },
+    {
+      "id": "c002-extraction-has-no-generating-script-or-evidence-pointer",
+      "severity": "P2",
+      "claim": "C002 커밋(1a7cd64)은 panel_registry/source_ranking_rows 의 parquet+csv 4개 파일만 담고 있고 이를 생성한 코드가 없다. source_ranking_rows 261행에는 어느 이미지의 어느 좌표에서 읽었는지 가리키는 필드도 없다.",
+      "reproduction": "git show --stat 1a7cd64 ->\n  state/panel_registry.csv | 18 ++\n  state/panel_registry.parquet | Bin 0 -> 20676 bytes\n  state/source_ranking_rows.csv | 262 ++++\n  state/source_ranking_rows.parquet | Bin 0 -> 17978 bytes\n  4 files changed, 280 insertions(+)\nsource_ranking_rows 컬럼 12개(source_row_id, panel_id, figure_id, domain, table_title, panel_label, rank, entity_name_raw, metric_name, unit, value, value_label) — 이미지 좌표/크롭 참조 필드 없음.\n대조: C003 산출물은 build_canonical_entities.py 를 사본 트리에서 재실행해 5개 parquet + extraction_corrections.json 전부 바이트 동등 재현됨(재현=True).",
+      "impact": "C003 는 재현 가능하지만 그 입력인 261행 자체는 재현 불가능하다. 값이 틀렸을 때 코드 결함인지 판독 오류인지 구분할 방법이 없고, 재검증은 매번 이미지 11장 전량 재판독이라는 사람 비용을 요구한다. 이번 감사에서 11장 전부를 직접 열어 대조했고 항목명·값 불일치 0건, 패널 간 교차 정합(fig08 87.8/78.6/76.7/76.6/76.3 = fig10_t1 동일값, fig08 탑마트 67.3·농협 63.8 = fig11_t1 동일값, fig02 캐시워크 38.6% = fig03 캐시워크 38.6%, fig03 G마켓 51.4 = fig05 +51.4%)도 확인했으나, 이는 산출물이 자체적으로 제공하는 보증이 아니다.",
+      "suggested_fix": "(a) source_ranking_rows 에 evidence_ref(figure_id + 크롭 bbox 또는 최소한 figure_id+panel_label)를 추가하고, (b) 판독 결과를 코드로 고정한 seed 파일(JSON) + 그것을 parquet 으로 굽는 스크립트를 커밋해 재현 경로를 만든다. 최소안으로는 이번 감사의 교차정합 검사(패널 간 동일 지표 값 일치)를 tests/ 에 회귀 테스트로 박아 넣는다."
+    },
+    {
+      "id": "entity-candidates-json-is-an-orphan-artifact",
+      "severity": "P2",
+      "claim": "state/entity_candidates.json(81개 항목)이 C003 커밋에 포함돼 있으나 build_canonical_entities.py 가 이 파일을 읽지도 쓰지도 않는다. 생성 주체가 없는 산출물이다.",
+      "reproduction": "grep -n 'entity_candidates' research/landing_accessibility/scripts/build_canonical_entities.py -> 0건\n사본 트리에서 스크립트 재실행 후에도 entity_candidates.json 의 mtime 만 원본 복사 시각으로 남고 다른 5개 산출물만 갱신됨.\n현재 내용은 정합한다: json 항목 81개 = entity_alias_map 81행 = source_ranking_rows.entity_name_raw.nunique() 81.",
+      "impact": "지금은 일치하지만 다음에 원자료가 바뀌면 다른 산출물만 갱신되고 이 파일만 조용히 낡는다. 후속 에이전트가 이 파일을 entity 목록의 근거로 삼으면 낡은 목록으로 작업하게 된다.",
+      "suggested_fix": "build_canonical_entities.py 안에서 per_raw 집계로부터 entity_candidates.json 을 함께 쓰도록 하거나, 중간 산출물이라면 커밋에서 제외한다(.gitignore)."
+    },
+    {
+      "id": "source-ranking-rows-lacks-axis-type-guard",
+      "severity": "P2",
+      "claim": "axis_type 은 panel_registry 와 source_membership 에만 있고 원자료 source_ranking_rows 에는 없다. 261행만 보고 entity 단위로 집계하면 업종 10종(fig07_t1, long 30행)이 브랜드와 같은 축에 섞인다.",
+      "reproduction": "source_ranking_rows 컬럼에 axis_type 없음.\nrr.groupby('entity_name_raw') 로 바로 집계하면 '인터넷 쇼핑'(업종)과 '쿠팡'(브랜드)이 동급으로 나온다.\n분리 장치는 존재한다: service_master.entity_kind=='INDUSTRY_CATEGORY' 10건 전부 web_collectable=False, source_membership 에서 해당 10개 service_id 는 fig07_t1 이외 패널에 0건 등장, fig07_t1 에 비업종 service_id 0건. 다만 이 보호를 받으려면 반드시 조인을 해야 한다.",
+      "impact": "COR-002 의 분리는 실효성이 있으나(웹 수집 경로는 확실히 막힘), 원자료 레이어 단독 사용 시에는 보호가 없다. 다음 사이클에서 261행을 직접 읽는 코드가 생기면 업종·브랜드 혼입이 재발할 수 있다.",
+      "suggested_fix": "source_ranking_rows 에 axis_type(또는 entity_kind) 컬럼을 panel_id 조인으로 전파하거나, 브랜드 전용 뷰(brand_ranking_rows) 를 명시적으로 만들어 원자료 직접 사용을 억제한다."
+    }
+  ],
+  "invariants_checked": [
+    "target_exec_sha 고정: git rev-parse agent/landing-exec = 933096a59426d5f1cb90be7b458b050f5a9cf5a0; 모든 판정은 git archive 로 추출한 고정 트리에서 수행(워킹트리 미사용).",
+    "행 보존: git diff 1a7cd64 933096a5 -- state/source_ranking_rows.csv = 빈 diff. parquet 도 diff --stat 목록에 없음. C002 262줄(헤더1+261) = C003 262줄. 재현 실행 후에도 261행 동일. extraction_corrections.json 의 row_value_changes_applied=0 / before=after=261 주장과 일치.",
+    "panel_registry 변경의 순수 가산성: C002 19컬럼 -> C003 21컬럼(+axis_type, +panel_scope). 삭제 컬럼 0, 공통 19컬럼 전 행 값 변경 0건.",
+    "패널 무결: 17패널(APP 8 / RETAIL 9), rows_expected == rows_extracted 17/17, rows_expected == 원자료 distinct entity 수 17/17, rows_expected * n_metrics == 패널별 long 행 수 17/17, 합계 261.",
+    "행 무결: 261행, source_row_id 유일, entity_name_raw 고유 81, APP 137 / RETAIL 124, 패널별 rank 1..N 연속·유일, value/value_label 수치 불일치 0건(결측 7건은 fig07 성장률 미표기 7행으로 원문과 일치).",
+    "COR-001 실물 대조: fig10.png 하단 막대차트 x축 3번째 라벨을 원해상도 크롭 4배 확대해 직접 열람 -> '현대홈쇼핑/현대Hmallord' 로 실제 렌더링됨을 확인. 같은 그림 상단 도넛 대응 라벨은 '현대홈쇼핑/현대Hmall'. executor 가 원문에 없는 표기를 만들어낸 것이 아니다.",
+    "COR-001 보강 증거: grep -o '현대Hmall[a-z]*' raw/*.json raw/*.html raw/*.txt authority_manifest.json -> 12건 전부 '현대Hmall', 'Hmallord' 0건. 본문 Insight 문장과 태그 목록도 '현대홈쇼핑/현대Hmall'. 발행물 오타 판정 타당.",
+    "COR-002 실물 대조: fig07.png 직접 열람 -> 표 헤더가 '업종', 행 아이콘이 브랜드 로고가 아닌 업종 픽토그램, 배지가 '24년 12월 vs 25년 12월', 각주가 '리테일 브랜드를 업종별로 분류하여 각 업종별 합을 산출'. INDUSTRY_CATEGORY 분류 타당.",
+    "판독 오염 전수 수색: entity_name_raw 81종 전부를 figure 11장 원본 이미지 직접 열람으로 대조(fig01 t1/t2 15+15, fig02 15, fig03 10, fig04 5+5, fig05 3+3, fig06 15+15, fig07 10, fig08 10, fig09 5, fig10 5+5, fig11 3+3). 신규 판독 오염 0건. 슬래시 묶음 표기 5종(네이버/네이버페이, G마켓/옥션, GS홈쇼핑/GS Shop, NC백화점/뉴코아아울렛, 파리바게뜨/파리크라상, 현대홈쇼핑/현대Hmall)은 확대 판독으로 원문 일치 확인.",
+    "패널 간 교차 정합(전사 오류 탐지): fig08_t1 점유율 합계(87.8/78.6/76.7/76.6/76.3) == fig10_t1 액티브시니어 비율 동일값; fig08_t1 탑마트 67.3·농협하나로마트 63.8 == fig11_t1 동일값; fig09_t1 코스트코 53.5 == fig11_t1 53.5; fig02_t1 캐시워크 38.6% == fig03_t1 38.6%; fig02_t1 모니모 37.1% == fig03_t1 == fig04_t1 37.1%; fig03_t1 성장률 51.4/15.7/14.7 == fig05_t1 +51.4%/+15.7%/+14.7%; fig01_t1 사용자(935/626/575) == fig02_t1·fig05_t1 동일값. 불일치 0건.",
+    "과잉 병합 없음: 네이버(svc_8349e143ed01f677) != 네이버/네이버페이(svc_7ce399cd76c70efa), G마켓(svc_112f591a0d47a8d8) != G마켓/옥션(svc_e4a6c04cbf9d9421). match_basis 분포 = {EXACT: 80, REVIEWED: 1}, NORMALIZED 0건. 병합은 현대홈쇼핑 1건뿐이며 이미지·본문·태그 3중 근거가 있다.",
+    "과소 분리 없음: 동일 표기 '쿠팡'은 alias 1행(domain='APP|RETAIL', panel_ids=fig01_t1,fig01_t2,fig06_t1,fig06_t2,fig09_t1) -> 단일 svc_5b8c59f6fd9839f7. 양 도메인에 걸친 service 는 쿠팡 1건뿐이며 도메인별 분열 0건.",
+    "service_id 안전성(Pilot CRITICAL 재발 여부): 80개 service_id 전부 ^svc_[0-9a-f]{16}$ 정규식 일치, 비 ASCII 0건, 한글 0건. canonical_service_key 80개 전부 ASCII·유일. service_id == 'svc_' + sha256(canonical_service_key)[:16] 불일치 0건. service_id 충돌 0건(80키 -> 80 id). alias_id 81개도 전부 ASCII.",
+    "membership 무결: (service_id, panel_id) 142쌍 전부 유일. 원자료 261행을 alias 로 조인한 결과 고아 0건·행 증식 0건(261 -> 261), 조인에서 파생한 (service, panel) 집합 == source_membership 집합(차집합 양방향 0). service_master.source_row_count 합 = 261, 개별 불일치 0건. alias_count 불일치 0건. membership.axis_type == panel_registry.axis_type 전 행 일치.",
+    "fig07 분리 실효성: axis_type 분포 = {SERVICE_BRAND: 16, INDUSTRY_CATEGORY: 1}, INDUSTRY 패널 = fig07_t1 단일. 업종 10종 전부 entity_kind='INDUSTRY_CATEGORY' + web_collectable=False. 업종 service_id 가 fig07_t1 이외 패널에 등장 0건, fig07_t1 에 비업종 service_id 등장 0건. web_collectable=True 는 70건(80-10).",
+    "pytest 실물 실행: 고정 트리에서 .venv/bin/python -m pytest tests/test_source_integrity.py -v -> 9 passed in 0.60s. skipif 가드가 걸려 있으나 산출물이 존재하므로 실제 실행됨(9건 전부 skip 아님). 테스트가 검사하는 명제(261행, source_row_id 유일, alias 1:1 및 many_to_one 조인, service_master 참조 무결, rank 연속성, service_id 한글/비ASCII 금지, membership 쌍 유일성, axis_type 분리, source_row_count 합계)는 모두 원자료로부터 독립 계산 가능하며, 감사자가 별도 스크립트로 재계산한 결과와 일치한다(순환논리 아님).",
+    "C003 재현성: 사본 트리에서 build_canonical_entities.py 재실행 -> panel_registry(17x21) / service_master(80x11) / entity_alias_map(81x7) / source_membership(142x7) / source_ranking_rows(261x12) 전부 커밋본과 값 동등, extraction_corrections.json 도 동등. 커밋된 parquet 이 손으로 편집된 흔적 없음.",
+    "스크립트 커버리지 가드: build_canonical_entities.py 가 ENTITY_SPEC 미등록 원문표기(unknown)와 원자료에 없는 ENTITY_SPEC 항목(unused)을 양방향 assert 로 막고 있어, entity 조용한 누락/유령 항목 경로가 없다. len(rows)==261 assert 도 존재.",
+    "csv/parquet 동등: 5개 산출물 모두 shape·컬럼 동일. 값 차이는 결측 표현(빈문자열/None <-> NaN)뿐이며 실질 불일치 0건.",
+    "git 위생: git diff --stat 32460b8 933096a5 -- research/refcohort -> 빈 출력(변경 0). 전체 diff 는 research/landing_accessibility/* 33파일 + tests/test_source_integrity.py 로만 구성, 5469 insertions / 0 deletions."
+  ],
+  "notes": "C002·C003 주 실행자 주장은 전건 사실로 확인됐다. 17패널/261행/81 entity/domain 분포, 행 보존, 판독 오염 2건 시정, pytest 통과가 모두 실물 검증을 통과했다. 특히 '현대홈쇼핑/현대Hmallord' 는 executor 의 날조가 아니라 원본 fig10.png 에 실제로 렌더링된 발행물 오타이며(확대 판독 + 본문/태그 grep 이중 확인), 원자료를 보정하지 않고 별칭으로만 흡수한 처리는 원문 보존 원칙에 부합한다. C001 감사에서 P0 였던 provenance 오염 계열의 재발은 없다. P0 0건이므로 PASS 로 판정한다.\n\n다만 PASS 에는 조건이 붙는다. P1(duplicate-web-collection-targets-naver-gmarket)은 C002/C003 산출물 자체의 결함이 아니라 다음 사이클(C004 웹 수집)에서 반드시 터지는 단위 불일치다. 수집 착수 전에 measurement entity(원문 측정 단위)와 collection target(웹 수집 단위)을 별개 축으로 분리하지 않으면 네이버·G마켓이 2중 수집·2중 계상된다. needs_human_review=True 가 네 건 모두에 붙어 있어 게이트를 걸 수는 있으나, 현재 스키마에는 두 행을 같은 웹 타깃으로 묶는 필드가 없다.\n\n추가로 지적해 둘 방법론적 한계 두 가지. (1) 'rows_expected == rows_extracted 17/17' 은 8개 패널에서 구성상 항상 참이라 독립 검증력이 없다 — 이번 감사에서 해당 8패널(32행)을 이미지 육안 계수로 별도 확인했고 누락은 없었다. (2) C002 의 261행 판독에는 생성 스크립트도 행별 증거 포인터도 없어 산출물 자체로는 재현·재검증이 불가능하다. 이번 감사는 figure 11장 전량 직접 열람과 패널 간 교차 정합 검사로 이를 대신했으며 불일치 0건이었으나, 다음 사이클에서 원자료가 늘어나면 같은 비용을 매번 사람이 치러야 한다.\n\n감사자가 별도로 확인한 사항: web_collectable=True 인 70건에는 '삼성 계산기', '내 파일', '디바이스 케어', '삼성 노트', 'Chrome', 'Google 포토', 'V3 Mobile Plus' 같은 선탑재/시스템 앱이 포함돼 있다. 이 필드는 entity_kind not in {INDUSTRY_CATEGORY} 라는 규칙 하나로 일괄 부여된 것이며(스크립트 NOT_COLLECTABLE 상수), 개별 entity 에 실제로 수집 대상 랜딩페이지가 존재하는지는 검증되지 않았다. C003 의 선언 범위를 벗어나므로 finding 으로 올리지는 않되, C004 표본 선정 시 이 필드를 '검증된 수집 가능성'으로 신뢰하지 말 것."
+}
