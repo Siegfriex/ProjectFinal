@@ -1,8 +1,8 @@
 {
   "harness_version": "orchestrator-constitution-v3",
-  "updated_at": "2026-08-26T12:46:22.979241",
+  "updated_at": "2026-08-26T12:57:50.368679",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
-  "cycle_id": "C009",
+  "cycle_id": "C010",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -59,7 +59,7 @@
     "ssot": "audit/landing-ssot",
     "orchestrator": "control/landing-orchestrator"
   },
-  "exec_sha": "bf5d16e9",
+  "exec_sha": "fe86e190",
   "adversarial_audit_sha": "e302d31",
   "ssot_audit_sha": "68404d9",
   "gates": {
@@ -67,8 +67,8 @@
     "source_asset_discovery": "PASS",
     "population_source_freeze": "PASS",
     "source_row_reconciliation": "PASS_FIGURE_LEVEL",
-    "canonical_entity": "PASS_PENDING_AUDIT",
-    "membership_preservation": "PASS_PENDING_AUDIT",
+    "canonical_entity": "PASS_PENDING_AUDIT_C009",
+    "membership_preservation": "PASS_PENDING_AUDIT_C009",
     "web_eligibility": "NOT_RUN",
     "url_review": "NOT_RUN",
     "certification_join": "NOT_RUN",
@@ -99,8 +99,8 @@
   "open_p0": [
     {
       "id": "xlsx-conflict-framed-as-value-drift",
-      "state": "FIXED_BY_ORCHESTRATOR",
-      "note": "state.json legacy_xlsx_status 로 재정의. exec manifest 반영은 C004."
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
+      "note": "legacy_asset_assessment.verdict=UNSOURCED_INCOMPATIBLE_PANEL_SET, 근거 6종 kind 분류"
     }
   ],
   "full_collection": "PROHIBITED",
@@ -112,33 +112,28 @@
   },
   "open_p1": [
     {
-      "id": "state-json-stale-vs-exec-progress",
-      "state": "FIXED",
-      "by": "C003 orchestrator"
-    },
-    {
       "id": "a1-screenshot-untracked",
-      "state": "OPEN",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C004 exec"
     },
     {
       "id": "acquisition-script-not-committed",
-      "state": "OPEN",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C004 exec"
     },
     {
       "id": "index-sections-not-verbatim",
-      "state": "OPEN",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C004 exec"
     },
     {
       "id": "imginfolist-13-to-11-undocumented",
-      "state": "OPEN",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C004 exec"
     },
     {
       "id": "invalidated-a7-preserved-untracked",
-      "state": "OPEN",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C004 exec"
     },
     {
@@ -148,12 +143,12 @@
     },
     {
       "id": "methodology-falsely-marked-missing",
-      "state": "OPEN",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C004 exec"
     },
     {
       "id": "fig07-period-mislabeled-halfyear-vs-single-month",
-      "state": "OPEN",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C004 exec",
       "detail": "fig07 은 '25년 12월 … 전년 동월 대비' 단월 패널. 나머지 패널은 25년 하반기(7~12월). alt 텍스트만 보고 반기로 기록했다."
     },
@@ -165,25 +160,25 @@
     },
     {
       "id": "coupang-cross-domain-merge-rule-inconsistent",
-      "state": "DECIDED_PENDING_IMPL",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C008 exec",
       "resolution": "measurement_entity / web_target 2층 모델로 재구성. 쿠팡 BOTH 를 coupang_app / coupang_retail 로 분리하고 web_target 에서 재결합한다."
     },
     {
       "id": "web-collectable-prestamped-before-web-eligibility-gate",
-      "state": "OPEN",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C008 exec",
       "resolution": "web_collectable(True 70건) 은 URL 증거 없이 '업종이 아니다' 만으로 찍힌 값이다. 컬럼을 web_eligibility_status 로 바꾸고 초기값을 NOT_ASSESSED 로 둔다. INDUSTRY_CATEGORY 10건만 EXCLUDED_INDUSTRY_AXIS 로 확정한다."
     },
     {
       "id": "chapter-guess-column-misnamed",
-      "state": "OPEN",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C008 exec",
       "resolution": "원문 index 와 1:1 대조가 끝났으므로 '추측' 이 아니다. source_chapter / source_section 으로 정규화한다."
     },
     {
       "id": "duplicate-web-collection-targets-naver-gmarket",
-      "state": "DECIDED_PENDING_IMPL",
+      "state": "FIXED_IN_C009_PENDING_AUDIT",
       "assigned": "C008 exec",
       "resolution": "web_target_group 컬럼으로 해소. C007 2층 분리 결정과 동일 조치."
     },
@@ -210,14 +205,9 @@
     "action": "RETAINED_AS_UNSOURCED_ARTIFACT_ONLY"
   },
   "entity_layer": {
-    "service_master": 80,
-    "by_kind": {
-      "APP": 37,
-      "RETAIL_BRAND": 32,
-      "INDUSTRY_CATEGORY": 10,
-      "BOTH": 1
-    },
-    "entity_alias_map": 81,
+    "service_master": 81,
+    "by_kind": null,
+    "entity_alias_map": 82,
     "source_membership": 142,
     "source_rows_preserved": 261,
     "needs_human_review": 5,
@@ -235,7 +225,35 @@
         "issue": "원문 표기 상이. 규칙3으로 분리 유지"
       }
     ],
-    "web_collectable_excluded": "INDUSTRY_CATEGORY 10건"
+    "web_collectable_excluded": "INDUSTRY_CATEGORY 10건",
+    "by_domain_axis": {
+      "APP×SERVICE_BRAND": 38,
+      "RETAIL×SERVICE_BRAND": 33,
+      "RETAIL×INDUSTRY_CATEGORY": 10
+    },
+    "web_target_group": {
+      "total": 68,
+      "CANDIDATE_PENDING_URL_REVIEW": 3,
+      "SINGLETON_PENDING_URL_REVIEW": 65
+    },
+    "web_eligibility_status": {
+      "NOT_ASSESSED": 60,
+      "SYSTEM_APP_CANDIDATE": 11,
+      "EXCLUDED_INDUSTRY_AXIS": 10
+    },
+    "row_count_verification": {
+      "DECLARED_TOP_N": 9,
+      "VISUAL_COUNT_ONLY": 8
+    },
+    "period_axis": {
+      "HALF_YEAR": 16,
+      "SINGLE_MONTH": 1
+    },
+    "app_retail_row_split": {
+      "app": 137,
+      "retail": 124,
+      "sum": 261
+    }
   },
   "orchestrator_diagnosis_corrections": [
     {
@@ -264,7 +282,9 @@
         "ssot_finding": "coupang-cross-domain-merge-rule-inconsistent — 합침의 부정합",
         "adversarial_finding": "duplicate-web-collection-targets-naver-gmarket — 분리가 수집 단위까지 전파되어 2중 수집",
         "resolved_by": "measurement_entity / web_target 2층 분리 (C007 결정)"
-      }
+      },
+      "implemented_in": "fe86e190 (C009)",
+      "result": "쿠팡 -> coupang_app/coupang_retail 분리, entity_kind BOTH 컬럼 삭제, web_target_group 68 신설(전 행 web_target_url null), 도메인 순수성 빌드 assert + 테스트 강제"
     }
   ],
   "open_p2": [
@@ -368,5 +388,31 @@
       "prevention": "오케스트레이터 파일 조작은 절대경로만 사용한다. cd 의존 금지.",
       "note": "이 사건의 의미: 하네스가 오케스트레이터 자신의 위반을 잡았다. Monitor 의 P0 감시가 실효적으로 작동함을 실증한 사례로 남긴다."
     }
-  ]
+  ],
+  "structural_findings": [
+    {
+      "id": "industry-axis-lives-inside-retail-domain",
+      "found_by": "C009 exec",
+      "detail": "업종 축 10건이 RETAIL 도메인 '안에' 있다. domain=='RETAIL' 필터만으로는 업종 카테고리가 걸러지지 않는다.",
+      "consequence": "리테일 브랜드 집계 시 반드시 axis_type=='SERVICE_BRAND' 를 함께 걸어야 한다. 테스트로 고정됨."
+    },
+    {
+      "id": "imginfolist-successor-mapped-to-wrong-figure",
+      "found_by": "C009 exec (지시 범위 밖 자체 발견)",
+      "detail": "imgInfoList 제외 2건 검증 중, 4796 의 후속본 f43af706 이 fig08 이 아니라 fig07 임을 evidence manifest sha256 대조로 확인. 403/200 도 직접 확인(제외 2건 403, 채택본 200).",
+      "consequence": "매니페스트에 fig07 로 기록하고 테스트가 매핑을 강제한다."
+    }
+  ],
+  "main_checkout_cleanup": {
+    "done_at": "2026-08-26T12:57:50.368903",
+    "action": "메인 체크아웃(research/refcohort-r1)의 research/landing_accessibility 잔재 제거",
+    "moved": [
+      "sources/source_registry.json -> orchestrator sources/",
+      "docs/G2_FEASIBILITY_GONOGO.md -> orchestrator docs/_invalidated/ (INVALIDATED 헤더 부착)"
+    ],
+    "already_preserved": [
+      "state/category_feasibility_matrix.csv 와 service_certification_match_draft.csv 는 exec state/_invalidated/ 에 헤더 붙여 추적 중"
+    ],
+    "reason": "executor 가 역할 격리 제약(다른 워크트리 쓰기 금지) 때문에 복사만 수행하고 보고한 편차를 오케스트레이터가 마무리"
+  }
 }
