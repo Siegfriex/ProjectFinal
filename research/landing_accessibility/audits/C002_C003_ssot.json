@@ -1,0 +1,48 @@
+{
+  "cycle_id": "C002-C003",
+  "target_exec_sha": "933096a59426d5f1cb90be7b458b050f5a9cf5a0",
+  "target_ssot_sha": "1b3ec23cebc814c48df4973a7ed34090575c85a5",
+  "auditor": "ssot",
+  "started_at": "2026-08-26T12:17:00+09:00",
+  "finished_at": "2026-08-26T12:26:00+09:00",
+  "verdict": "PASS",
+  "method": "git archive 933096a59426d5f1cb90be7b458b050f5a9cf5a0 로 고정 트리를 추출한 뒤 그 트리에서만 판정했다. 워킹트리는 판정 근거로 쓰지 않았다. build_canonical_entities.py 를 고정 트리 사본에서 재실행해 산출물 재현성을 직접 확인했다.",
+  "violations": [
+    {
+      "id": "coupang-cross-domain-merge-rule-inconsistent",
+      "severity": "P1",
+      "rule": "SSOT 00_AUTHORITY_AND_DECISIONS §3 'APP / RETAIL 분리' + build_canonical_entities.py 가 스스로 선언한 규칙 '원문 표기가 다르면 기본은 별개 entity. 병합은 근거를 남기고 needs_human_review=True'",
+      "evidence": "고정 트리 state/source_ranking_rows.parquet 재계산 결과 — 쿠팡 = {('APP','fig01_t1','사용자 평균'):1, ('APP','fig01_t2','사용시간 평균'):1, ('RETAIL','fig06_t1','인덱스'):1, ('RETAIL','fig06_t2','총 결제횟수 평균'):1, ('RETAIL','fig09_t1','세대 비율*'):1, ('RETAIL','fig09_t1','순 결제추정금액 성장률*'):1}. 네이버 = APP fig01_t1/t2 (사용자 평균·사용시간 평균), 네이버/네이버페이 = RETAIL fig06_t1/t2 (인덱스·총 결제횟수 평균). 즉 쿠팡과 네이버는 '앱 사용 지표와 결제 지표가 한 이름 아래 걸쳐 있다'는 구조가 동일하다. 그런데 service_master 에서 네이버는 naver_app / naver_naverpay 로 분리되고 basis 에 '앱 사용자와 네이버페이 결제는 다른 측정 대상이므로 별개 entity 로 둔다' 라고 명시했으며 needs_human_review=True 다. 반면 쿠팡은 entity_kind='BOTH' 단일 entity(svc_5b8c59f6fd9839f7), source_row_count=6 으로 APP 2행 + RETAIL 4행을 한 카운터에 합산했고 needs_human_review=False 다. 실제 분기 기준은 '측정 대상이 같은가'가 아니라 '원문 문자열이 우연히 일치하는가' 뿐이다.",
+      "required_action": "다음 중 하나를 명시적으로 택하고 문서화한다. (a) 쿠팡도 coupang_app / coupang_retail 로 분리해 네이버·G마켓과 규칙을 일치시킨다. (b) BOTH 를 유지하되 canonicalization_basis 에 '측정 대상 상이에도 불구하고 동일 표기 근거로 병합' 임을 적고 needs_human_review=True 로 올려 사람 검토 대기로 남긴다. 어느 쪽이든 source_row_count 처럼 도메인을 가로질러 합산되는 필드는 app/retail 로 분리 집계한다. 이 상태로 RQ 분석에 들어가면 쿠팡 1건만 APP/RETAIL 축이 뭉개진 채 계산된다.",
+      "escalates_to_p0_if": "이 entity 를 축으로 APP 지표와 RETAIL 지표를 합산·평균하는 분석값이 산출되는 순간 P0(APP/RETAIL 병합)로 승격된다."
+    },
+    {
+      "id": "web-collectable-prestamped-before-web-eligibility-gate",
+      "severity": "P1",
+      "rule": "state.json gates.web_eligibility = NOT_RUN / gates.url_review = NOT_RUN — 웹 수집 대상은 미확정 상태를 유지해야 한다",
+      "evidence": "build_canonical_entities.py:324 `\"web_collectable\": kind not in NOT_COLLECTABLE`. service_master 집계 결과 web_collectable=True 가 APP 37 + RETAIL_BRAND 32 + BOTH 1 = 70건, False 가 INDUSTRY_CATEGORY 10건. 즉 True 쪽 70건은 '업종 카테고리가 아니다' 라는 사실만으로 부여됐고 사이트 존재·URL·수집 가능성에 대한 증거가 하나도 없다. 컬럼명은 web_collectable(웹 수집 가능)이라 web_eligibility 게이트의 결론을 미리 찍은 것처럼 읽힌다.",
+      "required_action": "컬럼을 axis_eligible_for_web_target 또는 not_industry_category 처럼 실제 근거와 일치하는 이름으로 바꾸거나, 3값(True/False/UNKNOWN)으로 바꿔 70건을 UNKNOWN 으로 둔다. C005+ 웹 수집 대상 선별에서 이 True 를 근거로 삼지 않는다.",
+      "note": "INDUSTRY_CATEGORY 10건을 False 로 분리한 처리 자체는 정확하며 감사 지시 8번이 요구한 바로 그 처리다. 문제는 True 쪽의 의미 과잉뿐이다."
+    }
+  ],
+  "checks_passed": [
+    "1-panel-structure-intact — authority_manifest.index_from_source 는 4 chapter / 11 section, panel_registry 는 17 panel. chapter_guess 를 파싱해 (chapter, section) 쌍을 재구성한 결과 정확히 11쌍이고 Ch1(1,2,3)/Ch2(1,2)/Ch3(1,2,3,4)/Ch4(1,2) 로 원문 index 와 1:1 대응한다. 패널의 domain 도 원문 chapter domain(Ch1,2=APP / Ch3,4=RETAIL)과 불일치 0건. C003 은 panel_registry 에 axis_type·panel_scope 두 컬럼만 append 했고 기존 19컬럼·17행은 손대지 않았다.",
+    "2-app-retail-separation-maintained — service_master.entity_kind = APP 37 / RETAIL_BRAND 32 / INDUSTRY_CATEGORY 10 / BOTH 1 (합 80). source_membership 에 domain·axis_type 컬럼이 살아 있고, entity_kind 별 관측 도메인을 교차하면 APP→APP 37, RETAIL_BRAND→RETAIL 32, INDUSTRY_CATEGORY→RETAIL 10, BOTH→APP|RETAIL 1 로 완전 정합. 두 도메인을 하나의 분석 축으로 뭉갠 산출물은 없다(BOTH 1건의 규칙 비일관은 위 P1 로 별도 기록).",
+    "3-legacy-ontology-zero — 고정 트리 research/landing_accessibility 전체에 BUY_RESERVE / TRANSFER_ENTRY / COMMUNITY_PARTICIPATION / MOBILITY_MAP / CULTURE_EDU / HEALTH_WELFARE / OTHER_UTILITY / SEARCH_INFO / CLASSIFY_RULES / TYPE_MAP / TASK_ENTRY / primary_task_code 매치 0건. 트리 전체로 넓혀도 히트는 research/refcohort/ (읽기전용 Pilot) 내부뿐이다.",
+    "4-xlsx-inflow-zero — 50plus_all_rankings / comparison_targets / .xlsx / openpyxl / read_excel / primary_task_code 를 research/landing_accessibility 전체에 grep 한 결과 0건. C003 canonicalization 의 입력은 state/source_ranking_rows.parquet 과 state/panel_registry.parquet 두 개뿐이며(스크립트 docstring 및 main() 확인), xlsx 를 근거로 인용한 곳도 없다. 트리 전역 grep 의 히트는 전부 Pilot 내부.",
+    "5-e001-not-executed — 고정 트리에 evidence/ 디렉터리 부재. dom/ax/screen/probe 이름의 수집 디렉터리 0개. artifacts/ 와 data/ 는 .gitkeep 만 존재. .gitignore 에 evidence/*/dom/ 등 경로가 선언돼 있으나 해당 디렉터리 자체가 생성된 적 없다.",
+    "6-pilot-unchanged — git diff --stat 32460b87334a67f6a74823ac55f85ca80a9f8980 933096a5 -- research/refcohort 출력 없음. 트리 오브젝트 해시도 양쪽 d9fb80f4249ac0b2003cfa271ebf0335928c2ec0 으로 동일. 바이트 단위 불변.",
+    "7-web-target-still-undetermined — 고정 트리에 url_review / certification_match / eligibility 이름의 파일 0건. build_canonical_entities.py 와 tests/test_source_integrity.py 에 kwacc / 인증 / certif / http(s):// 매치 0건. C003 은 A2 인증목록을 조회하지도, URL 을 확정하지도 않았다. 순수 데이터 정규화로 범위를 지켰다(web_collectable 컬럼의 의미 과잉만 P1 로 기록).",
+    "8-industry-category-quarantined — fig07_t1 만 axis_type=INDUSTRY_CATEGORY 로 분리되고 나머지 16패널은 SERVICE_BRAND. 해당 10개 업종(인터넷 쇼핑·오프라인 마트·백화점/아울렛·홈쇼핑·여행/교통·편의점·전자기기·식품·배달·식음료)은 entity_kind='INDUSTRY_CATEGORY', web_collectable=False 로 브랜드 entity 공간과 분리됐다. 근거는 원문 fig07.png 의 표 헤더 컬럼명 '업종' 과 각주 '리테일 브랜드를 업종별로 분류하여 각 업종별 합을 산출' 이며 연구자 임의 분류가 아니라 원문 축 그대로다. 서비스 브랜드와 같은 공간에 섞이지 않았다.",
+    "9-ambiguity-not-hardened — needs_human_review=True 5건(gmarket_app, naver_app, gmarket_auction, hyundai_homeshopping_hmall, naver_naverpay). 이 중 4건은 병합이 아니라 '분리 유지' 쪽으로 보수적으로 처리됐고, 유일한 병합 1건(현대홈쇼핑/현대Hmall ↔ 현대홈쇼핑/현대Hmallord)도 원자료 entity_name_raw 는 원문 그대로 두고 canonical 레이어에서만 흡수했으며 entity_alias_map 이 두 원문 표기를 모두 보존해 완전 가역이다. 애매함으로부터 분석값이 산출된 곳 없음.",
+    "source-layer-immutable — source_ranking_rows.parquet blob 해시가 1a7cd649 와 933096a5 에서 6422d94449d1f81d882488dabe974be620e8d49b 로 동일. sources/ 전체 diff 도 공백. extraction_corrections.json 이 row_value_changes_applied=0, source_row_count 261→261 로 자기 선언한 내용과 실제가 일치한다.",
+    "row-conservation-261 — sum(source_membership.n_metrics)=261 = len(source_ranking_rows)=261 = sum(service_master.source_row_count)=261. 고유 source_row_id 261, 고유 entity_name_raw 81 = entity_alias_map 81행. alias/membership/service_master 의 service_id 집합이 3자 완전 일치, membership 의 panel_id 집합이 panel_registry 와 완전 일치. 원자료 행이 정규화 과정에서 삭제·중복·유실된 흔적 0.",
+    "deterministic-reproducibility — 고정 트리 사본에서 build_canonical_entities.py 를 재실행한 결과 service_master.csv / entity_alias_map.csv / source_membership.csv / panel_registry.csv / extraction_corrections.json 5개 전부 커밋본과 sha256 동일. source_ranking_rows.parquet 도 실행 전후 해시 불변(스크립트가 원자료를 쓰지 않음을 실증).",
+    "integrity-tests-green — 고정 트리에서 pytest tests/test_source_integrity.py 9 passed.",
+    "commit-scope-contained — 933096a5 변경 파일 12개 전부 research/landing_accessibility/{scripts,state}/ + tests/test_source_integrity.py. 다른 연구 디렉터리·설정·Pilot 침범 0."
+  ],
+  "authority_order_intact": true,
+  "p0_count": 0,
+  "p1_count": 2,
+  "notes": "C003 은 SSOT 가 금지한 8개 P0 항목 어느 것도 건드리지 않았다. 특히 C004 에서 재정의된 A7(xlsx = UNSOURCED_INCOMPATIBLE_PANEL_SET) 을 canonicalization 근거로 단 한 번도 참조하지 않았고, 정규화 규칙 전체를 A1 원문 이미지 판독과 원문 표기 자체에서만 끌어왔다. 오케스트레이터가 '판독 오염' 으로 지목한 2건을 executor 가 원본 이미지 재판독으로 되받아 1건은 발행물 오타 확정, 1건은 축 유형 오분류로 재규정하고 원자료 값 시정을 0건으로 유지한 처리는 A1 우선 원칙에 정확히 부합한다. 남은 P1 2건은 모두 canonical 레이어의 의미 표기 문제이며 원자료·구조를 훼손하지 않고 수정 가능하다. 다만 coupang 건은 웹 수집 대상 선별이나 RQ 분석에 들어가기 전에 반드시 결론지어야 한다 — 그 시점에 방치되면 P0(APP/RETAIL 병합)로 승격된다.\n\n판정 범위 밖 관찰: state.json open_p1 의 index-sections-not-verbatim 은 여전히 유효하다. panel_registry.chapter_guess 문자열이 패널마다 형식이 다르다(fig01_t1 은 'Chapter 1. (1) …' 인데 fig02_t1 은 'Chapter 1. 25년 하반기 … — (2) …'). 구조 자체는 원문과 1:1 대응하므로 판정에는 영향이 없고, C004 exec 에 이미 배정된 건이라 신규 위반으로 올리지 않는다. 컬럼명이 chapter_guess('추측') 인 점도 이제는 원문 index 와 대조 완료됐으므로 chapter_section 등으로 개명할 근거가 생겼다."
+}
