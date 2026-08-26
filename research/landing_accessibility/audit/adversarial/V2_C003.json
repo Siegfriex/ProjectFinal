@@ -1,0 +1,209 @@
+{
+  "cycle": "V2-C003",
+  "auditor": "adversarial",
+  "target_sha": "4a0585e05a2119f11d86e530162d9674e0268a53",
+  "prev_target_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha": "cf5d107b2e8eb056aa8652217b470d10478b6fad",
+  "target_branch": "agent/landing-v2-exec",
+  "base_ref": "research/landing-accessibility-main",
+  "phase": "P0_V2_REFREEZE",
+  "gate": "V2_SSOT_FROZEN",
+  "verdict": "FAIL",
+  "counts": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 7,
+    "blocking": 7
+  },
+  "prior_findings_status": [
+    {
+      "id": "a2-undetermined-to-pass-transition-underspecified-and-narrowed",
+      "status": "CLOSED",
+      "evidence": "executor 엔진을 쓰지 않고 A2 §1.11.1 표 20행 + §1.8 label 도메인 표만 읽어 전이표를 감사자 코드로 독립 재구현했다. verdict_state(4) x ai_review_required(2) x adjudication.final_status(4+행없음) x review_task_type(3) x 확정 label(5) x reviewer_agreement(3) x evidence_gap(2) 의 곱에서 구조적 불가 조합을 제거한 정합 조합 360건 전수 대입 결과 UNDETERMINED 탈출 0건 (PASS/FAIL/NA 어느 방향도 없음). 규칙 A-2 위반 조합(TRIAGE item 에 PASS/FAIL label)을 일부러 남겼음에도 T-8 이 verdict_state 하나만 보고 결과를 고정하므로 막힌다. 덮이지 않은 72조합은 전부 verdict_state 와 review_task_type 이 어긋난 out-of-domain 조합이며 §1.8 표가 배제하고 T-3/S-3 이 fail-closed 처리한다. X-1 의 evidence_gap=1 한정어가 실제로 제거됐고(A2:907 '조건 없는 금지다'), X-11(UNDETERMINED->FAIL) 이 대칭으로 신설됐으며, 02 §14 원본 1항목을 V-a/V-b/V-c 세 변종으로 나눠 태운다(V-b·V-c 는 내가 실증했던 경로 그 자체). 반례를 찾지 못했다. 다만 이 시정이 지정한 유일한 탈출구(재수집)에 대해 신규 P1-1 을 낸다."
+    },
+    {
+      "id": "verify-script-declared-in-promotion-path-but-never-called",
+      "status": "CLOSED",
+      "evidence": "promote_landing_main.sh 를 직접 3회 실행했다. (1) 정상 인자 --dry-run: '· 4. verify_v2_docs.py exit 0 OK — V2_DOCS_VERIFY: PASS' 출력 후 검사 5(open_blocking_total=17)에서 차단 — 검사 4 에 도달하고 실제로 실행된다. (2) 스크립트가 없는 워크트리(landing_exec @ 87a0464, clean, Pilot diff 0)를 --exec-worktree= 로 지정: 'PROMOTION BLOCKED: 무결성 검증 스크립트가 exec 워크트리에 없다' — 부재는 건너뛰기가 아니라 차단. (3) 검사 4 블록을 바이트 그대로 떼어 set -euo pipefail 아래에서 exit 3 스텁으로 실행: 'PROMOTION BLOCKED: verify_v2_docs.py exit != 0' — 명령치환 할당의 종료코드가 정상 전파된다. verify_v2_docs.py 는 ROOT.parents[1] 로 REPO 를 잡으므로 exec 워크트리를 앵커로 삼는다(엉뚱한 워크트리 검사 아님). EXECUTION_AUTHORITY §8 문장도 사실에 맞게 개정됐다."
+    },
+    {
+      "id": "repo-canonical-pre-push-hook-is-inert-legacy-copy-in-effect",
+      "status": "CLOSED",
+      "evidence": "install_hooks.sh --check 실행: .git/hooks/pre-push 가 control 워크트리의 정본을 가리키는 symlink, core.hooksPath unset, legacy 사본은 pre-push.bak.20260826213640 로 백업됨. 유효 훅에 stdin 12케이스를 직접 주입해 12/12 설계대로 동작 확인 — Pilot push 차단 / main LA_PROMOTION 없음 차단 / main LA_PROMOTION ff 통과 / main non-ff 차단 / main 삭제 차단 / main 신규ref 차단 / audit force 차단 / audit ff 통과 / agent force 통과 / Pilot 삭제는 LA_PROMOTION 으로도 차단 / control ff 통과 / audit 삭제 차단."
+    },
+    {
+      "id": "control-claude-md-invents-authority-rank-0-above-ssot",
+      "status": "CLOSED",
+      "evidence": "control CLAUDE.md §2 의 서열표 7행이 통째로 삭제되고 포인터 3문장 + gate 포인터 2문장만 남았다. 남은 문장을 정본과 한 줄씩 대조했다 — '최상위 1위는 00_SSOT' = EXECUTION_AUTHORITY §2 1행, 'EXECUTION_AUTHORITY 는 서열 안의 문서가 아니다' = §2 표에 자기 자신이 실제로 없음(1~10 + CLAUDE.md), '충돌 시 00 우선' = EXECUTION_AUTHORITY 머리말 L5, 'Gate 정본은 PHASE_GATES / 03 은 Gate 를 정의하지 않는다' = PHASE_GATES §0 원문, 'bootstrap/07 인용 금지' = EXECUTION_AUTHORITY §2 비권위 자료표. rank 0 은 사라졌고 새로 참칭하는 문장은 0건. 파일 L3 이 '이 파일은 권위 문서가 아니다. 포인터다.'"
+    },
+    {
+      "id": "promotion-verdict-check-treats-missing-verdict-as-pass",
+      "status": "CLOSED",
+      "evidence": "검사 6 이 state.json 자기기록(5-a)과 감사 브랜치 보고서 JSON 원본(5-b)을 양쪽 요구한다. 위조 3경로를 시도했다 — (a) state.json 의 verdict 만 PASS 로: 5-b 가 보고서 verdict 를 다시 읽어 차단. (b) verdict 키 부재/null: 'if v != PASS' 로 차단(이전 'v is None or v == PASS' 가 통과시키던 그 경로). (c) verdict 가 PASS 인 다른 사이클 감사 SHA(510d5f2 C012/PASS)를 인자로: 경로가 audit/adversarial/V2_C002.json 으로 계산돼 그 SHA 에 파일이 없어 차단. 추가로 both_audits_same_target_sha, unaudited_cycle_depth 정수화, 보고서 target_sha==exec_sha, cycle 일치, auditor 필드 일치까지 전부 fail-closed. 잔여 구멍은 argv 감사 SHA 가 state 기록과 대조되지 않는 것 — 신규 P2-3 으로 별도 등재."
+    },
+    {
+      "id": "ned-ied-path-minimality-not-operationalized",
+      "status": "OPEN",
+      "evidence": "이번 사이클에서 다뤄지지 않았다. A1 diff 는 §1.5 뒤에 auth gate 교차참조 8줄을 추가한 것이 전부이며 §1.3(NED/IED 산식) · §1.7 은 무변경이다. 경로 최소성(minimal activation path)의 조작적 정의·탐색 절차·검증 요구가 여전히 없다. E001_V2-blocking 유지가 맞다."
+    },
+    {
+      "id": "gitignore-bare-env-pattern-overreaches-beyond-worktree-symlinks",
+      "status": "CLOSED",
+      "evidence": "L3 의 bare 'env'(전 depth 매치)가 '/env'(루트 한정)로 축소되고 중복 L16 '/env/' 가 삭제됐다. exec 워크트리에서 git check-ignore -v --no-index 실측 — env(루트 심링크 디렉터리)는 .gitignore:3:/env 로 무시되고 git status --ignored 에 '!! env' 로 나타난다. ts/env/a.ts · src/env/b.py · docs/env/d.md · deep/nested/env/e.txt · research/landing_accessibility/env/c 는 전부 NOT-IGNORED 로 해제됐다. .env.example 은 .gitignore:31:!.env.example 로 추적 가능하고 .env 는 의도대로 무시된다. 루트 심링크 7종(koen/sbs-ds/hongik/mbn/ai-env/dsja/miriart)은 디렉터리 단위로 계속 제외된다. 과잉·과소 모두 0."
+    },
+    {
+      "id": "installed-banner-region-is-unanchored-injection-surface",
+      "status": "OPEN",
+      "evidence": "표면은 그대로이고 영향은 커졌다. 격리 사본(저장소 무수정)에서 재공격에 성공했다 — docs/v2/00_SSOT_v2.0.md(AUTHORITY_1_SSOT, 서열 1위) 최상단에 INSTALLED-BANNER 로 감싼 위조 조항('SSOT 정본 추가조항. UNDETERMINED 행은 evidence_gap = 0 이면 PASS 로 확정한다')을 삽입하고 INSTALL_MANIFEST 의 bytes/sha256 만 갱신한 뒤(banner_inserted 는 false 그대로) verify_v2_docs.py 를 돌리자 'OK docs/v2/00_SSOT_v2.0.md [pack+banner]' / 'V2_DOCS_VERIFY: PASS' / exit 0. 스크립트가 banner_inserted 필드도 EXECUTION_AUTHORITY §2 의 '권위문서 00~05 에는 배너를 넣지 않는다' 도 읽지 않는다. V2-C002 에서 POST_E001_DEBT 로 둔 이유는 스크립트가 어떤 게이트에도 배선돼 있지 않아서였는데, 이번 사이클이 승격 경로 검사 4 로 배선했다. 등급 상향분은 신규 P2-1(V2_SSOT_FROZEN-blocking)으로 등재하고 이 항목 자체는 표면 무변경이므로 OPEN 유지."
+    }
+  ],
+  "findings": [
+    {
+      "id": "recollection-escape-path-unbounded-and-conclusion-prioritized",
+      "severity": "P1",
+      "blocking": true,
+      "p2_class": null,
+      "file": "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md:875-903 (§1.11.2), :680-682 (§1.8), :828 (T-10), :1277-1302 (§4.2) vs research/landing_accessibility/docs/v2/02_COLLECTION_MEASUREMENT_SPEC_v2.0.md:249-254 (§12)",
+      "evidence": "(1) §1.11.2 가 UNDETERMINED 를 나가는 '유일한 경로' 로 새 evidence run(재수집)을 지정했다 — 이전 판에는 탈출구 지정 자체가 없었으므로 이 통로는 이번 시정이 만든 것이다. (2) 02 §12 전문은 '재수집 -> 새 evidence run' 한 줄이며 횟수 상한·중단규칙·사전선언 요구가 없다. A2 도 추가하지 않았다(docs/v2 전체 grep 확인: 재수집 언급 13곳 중 상한/중단 규정 0곳). (3) §1.8 은 재수집 우선순위 키를 evidence_gap·impact_level·review_priority 로 정하고 impact_level 을 '해당 판정이 00 §11 주요 분석 결론을 바꿀 수 있는 정도' 로 정의한다 — 결론을 바꿀 수 있는 행부터 다시 재라고 명세가 지시한다. (4) 재수집 후 어느 criterion 행이 분석에 들어가는지 규칙이 없다. T-10 은 '한 criterion observation 안의 judgment version' 만 다루는데, 재수집은 새 evidence_run_id -> 새 observation_id(A1 §6 해시 입력에 evidence_run_id 포함) -> 새 criterion observation 행을 만든다. §4.2 분자·분모는 'criterion observation 수' 라고만 적혀 있어 run 이 둘일 때 둘 다 세는지 최신만 세는지 미정의다. A2 에서 '최신' 은 T-10(judgment version)과 §4.1 frame_coverage(supersede 후 최신 행) 두 곳뿐이다.",
+      "failure_scenario": "P-D/E001_V2 운영자가 명세 지시대로 impact_level = HIGH 인 UNDETERMINED 행부터 재수집한다. 여전히 UNDETERMINED 면 다시 잰다(막는 규칙 없음). PASS 가 나오면 멈춘다. 모든 run 이 append-only 로 남으므로 X-1·X-10·전이표는 한 번도 위반되지 않는다. 그럼에도 decision_coverage_applicable 이 올라가고 00 §11 의 UNDETERMINED stress bound 가 작아진다. §4.2 에 run 선택규칙이 없으므로 '최신 run 을 쓴다' 는 암묵 관행이 곧 규칙이 된다. 결론 방향으로 조준된 optional stopping 이며, 00 §11 의 인증(certified vs non-certified) 비교에 이 편향이 얹히면 이 연구의 핵심 결론이 직접 오염된다. laundering 을 컬럼 하나에서 막고 파이프라인 재실행으로 열어둔 셈이다.",
+      "remedy": "A2 §1.11.2 에 4항 추가(A2 는 저장소 저작 문서라 원본 pack 바이트와 무관). (1) run 선택규칙 — 한 (measurement entity, 기준)에 criterion 행이 여럿이면 분석에 쓰는 행을 사전선언된 규칙 하나로 고정하고(예: 최초 run 을 정본, 재수집분은 민감도 분석 전용) §4.2 분자·분모 정의에 명시한다. (2) 재수집 상한 — (target, 기준)당 재수집 run 수 상한을 HUMAN_FINAL_REVIEW_MAX 와 같은 형식의 상수로 두고, 소진 후에도 UNDETERMINED 면 그대로 남긴다. (3) 사전선언 — 재수집 대상 선정규칙을 재수집 이전에 동결하고 artifact 로 남긴다(mapping_status 규칙 P-1 의 동결 순서와 같은 형식). impact_level 을 단독 선정키로 쓰지 않는다. (4) 보고 의무 — 03 Phase 5 에 recollection_rate 와 재수집 전후 decision coverage 를 병기해 재수집이 결론을 얼마나 움직였는지 노출한다. (5) 02 §12 는 원본이므로 수정하지 않고 A2 §0 7항의 예외 등재 형식으로 '원본이 침묵한 지점에 절차를 부여한다' 를 명시해 §0 2항과의 충돌을 피한다."
+    },
+    {
+      "id": "install-manifest-does-not-enforce-declared-banner-policy",
+      "severity": "P2",
+      "blocking": true,
+      "p2_class": "V2_SSOT_FROZEN-blocking",
+      "file": "research/landing_accessibility/scripts/verify_v2_docs.py:44-53,93-111 vs research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md §2 (배너 정책) · docs/v2/INSTALL_MANIFEST.json (banner_inserted) · control@cf5d107b:research/landing_accessibility/scripts/promote_landing_main.sh 검사 4",
+      "evidence": "격리 사본에서 실증했다. docs/v2/00_SSOT_v2.0.md(AUTHORITY_1_SSOT) 최상단에 INSTALLED-BANNER-START/END 로 감싼 위조 SSOT 조항을 209바이트 삽입하고 INSTALL_MANIFEST 의 bytes/sha256 만 갱신했다. banner_inserted 는 false 로 남겼다. 결과: 'OK docs/v2/00_SSOT_v2.0.md [pack+banner]', 'V2_DOCS_VERIFY: PASS', exit 0. strip_banner() 는 무조건 배너를 걷어내고 본문만 대조하므로 배너가 없어야 할 파일에 생겨도 탐지되지 않는다. INSTALL_MANIFEST 는 00~05 6종 전부에 banner_inserted: false 를 기록하고 EXECUTION_AUTHORITY §2 는 '권위문서 00~05 에는 배너를 넣지 않는다' 고 선언하는데, 스크립트는 두 선언 중 어느 것도 읽지 않는다.",
+      "failure_scenario": "이번 사이클이 이 스크립트를 promote_landing_main.sh 검사 4 로 배선했다. 따라서 서열 1위 권위문서 최상단에 삽입된 위조 조항이 V2_SSOT_FROZEN 통과조건을 통과한다. A2 §0 1항·8항이 '00 과 충돌하면 00 이 이기고 A2 를 고쳐야 한다' 를 규정하므로, 주입된 문장은 A2 의 X-1(UNDETERMINED laundering 금지)을 문서상 무력화하는 형태를 취할 수 있다 — 내가 주입한 문장이 정확히 그것이다. 무결성 게이트가 자기가 지키기로 선언한 정책을 강제하지 않는 상태로 게이트 역할을 맡았다.",
+      "remedy": "verify_v2_docs.py 에 세 줄. (1) spec['banner_inserted'] 가 false 면 strip_banner(raw) == raw 를 단언하고 불일치는 FAIL 로 올린다. (2) banner_inserted: true 인 파일은 INSTALL_MANIFEST 에 banner_sha256 을 기록하고 배너 구간 해시를 대조한다. (3) spec['authority'] 가 AUTHORITY_ 로 시작하는 파일에는 배너를 금지한다(EXECUTION_AUTHORITY §2 문장의 기계적 이행)."
+    },
+    {
+      "id": "promotion-reads-uncommitted-state-json-with-no-second-source",
+      "severity": "P2",
+      "blocking": true,
+      "p2_class": "V2_SSOT_FROZEN-blocking",
+      "file": "control@cf5d107b:research/landing_accessibility/scripts/promote_landing_main.sh:130-133 (STATE 해석) · :157-201 (검사 5) vs :153 (dirty 검사 대상)",
+      "evidence": "dirty 검사는 exec 워크트리에만 걸린다 — DIRTY=\"$(worktree_dirty_lines \"$EXEC_WT\")\" 한 줄뿐이고 ORCH_WT 에 대한 clean/HEAD 검사는 없다(grep -n 'ORCH_WT' 결과 존재확인 3줄뿐). STATE 는 오케스트레이터 워크트리의 워킹트리 파일을 그대로 읽는다. 검사 5(open_blocking_total)는 이 파일 하나만 근거로 삼으며 두 번째 출처가 없다. 같은 사이클이 검사 6 주석에 'state.json 하나를 잘못 쓰면 검사 4·5 가 함께 무력화되므로' 라고 적고 verdict 에 대해서만 보고서 JSON 대조를 추가했다 — 검사 5 는 그 교정을 받지 못했다.",
+      "failure_scenario": "오케스트레이터 워크트리에서 state.json 의 v2_transition.open_blocking_total.total 을 0 으로 고치기만 하면(커밋할 필요도 없다) 00 §15 'open blocking = 0' 게이트가 통과한다. 승격 커밋에는 그 편집이 남지 않으므로 사후 추적도 되지 않는다. verdict fail-open 을 닫은 바로 그 사이클에 같은 종류의 단일 가변 입력이 blocking debt 검사에 남아 있다.",
+      "remedy": "(1) ORCH_WT 에도 worktree_dirty_lines 를 적용하고, state.json 을 커밋된 판본(git show <ORCH_SHA>:...)에서 읽는다. 승격 인자에 orchestrator SHA 를 추가한다. (2) 검사 5 에 두 번째 출처를 준다 — control/cycles/V2_C0NN_orchestrator.json 의 등재 목록과 두 감사 보고서 JSON 의 counts.blocking 합으로 open_blocking_total 을 재계산해 대조하고 불일치는 차단한다."
+    },
+    {
+      "id": "promotion-audit-sha-argument-not-pinned-to-recorded-audit-sha",
+      "severity": "P2",
+      "blocking": true,
+      "p2_class": "V2_SSOT_FROZEN-blocking",
+      "file": "control@cf5d107b:research/landing_accessibility/scripts/promote_landing_main.sh:255-285 (검사 6 5-b) vs control@cf5d107b:research/landing_accessibility/control/state.json:665,669",
+      "evidence": "state.json 은 latest_adversarial_audit_sha / latest_ssot_audit_sha 를 기록한다. 검사 6 은 argv 로 받은 ADV_SHA/SSOT_SHA 로 보고서를 읽으면서 그 기록과 대조하지 않는다 — grep -n 'audit_sha' promote_landing_main.sh 결과 argv 변수 사용 6곳, latest_*_audit_sha 참조 0곳. 검사 2 는 원격 감사 브랜치의 조상이기만 요구하므로 tip 일 필요도 없다.",
+      "failure_scenario": "감사자가 보고서를 두 커밋에 나눠 올리면(초안 -> 최종) 초안 커밋이 조상으로 남는다. 초안에서 verdict 가 아직 PASS 였고 cycle·target_sha·auditor 가 이미 채워져 있으면 그 SHA 를 승격 인자로 넘겨 최종 FAIL 을 우회할 수 있다. 현재는 V2_C002.json 이 단일 커밋이라(git log --all -- .../V2_C002.json 결과 커밋 1개) 살아 있는 익스플로잇이 없지만, 감사 보고서의 다중 커밋은 정상적인 작업 형태다.",
+      "remedy": "검사 6 에 두 줄 — adv_sha == al['latest_adversarial_audit_sha'] 와 ssot_sha == al['latest_ssot_audit_sha'] 를 단언하고 불일치는 차단한다. 가능하면 merge-base --is-ancestor 대신 origin/audit/* 의 tip 과 일치할 것을 요구한다."
+    },
+    {
+      "id": "t4-and-2-3-step-4-contradict-t6-for-verdict-state-na",
+      "severity": "P2",
+      "blocking": true,
+      "p2_class": "V2_SSOT_FROZEN-blocking",
+      "file": "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md:822 (T-4), :1140 (§2.3 4번 분기) vs :824 (T-6), :862 (§1.11.1 전이표 20행)",
+      "evidence": "T-4 는 조건 없이 'fact_ai_adjudication.final_status = ABSTAIN -> fact_criterion_result.final_status = UNDETERMINED' 라고 적는다. T-6 은 조건 없이 'verdict_state = NA -> final_status = NA. adjudication 은 NA 를 바꾸지 못한다' 라고 적는다. verdict_state = NA 와 ABSTAIN 이 동시에 성립하는 조합에서 두 규칙이 정면으로 갈린다. §1.11.1 전이표 20행은 NA 로 해소하지만 T-4 본문에도 §2.3 4번 분기에도 예외 표기가 없다. 같은 사이클이 T-7 에는 'verdict_state = UNDETERMINED 인 행에는 T-8 이 우선한다' 를, §2.3 5번에는 '1~4번의 예외가 아니라 상위 제약이다' 를 넣었다 — NA 쪽만 빠졌다.",
+      "failure_scenario": "구현자가 T-4 를 문면대로 적용하면 verdict_state = NA 인 행이 UNDETERMINED 로 들어간다. §1.7 의 항등식 applicable_count = pass_count + fail_count + undetermined_count 가 깨지고(NA 행은 applicable_count = 0 이어야 한다), §4.2 decision_coverage_applicable 의 분모가 부풀며 undetermined_rate 가 과대 보고된다. 금지 전이 X-3 이 막으려던 방향의 반대편 오염이다.",
+      "remedy": "T-4 에 '단 verdict_state = NA 인 행에는 T-6 이 우선한다(§1.11.1 전이표 20행)' 를, §2.3 4번 분기에 같은 단서를 추가한다. 각 한 줄이다."
+    },
+    {
+      "id": "gate-endpoint-archetypes-mix-two-endpoint-semantics-without-stratification",
+      "severity": "P2",
+      "blocking": true,
+      "p2_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md:354-411 (§1.5.1a), :413-440 (§1.5.2) vs docs/v2/00_SSOT_v2.0.md §7 (ExcessDepth · 별도 기록) · §11 · docs/v2/01_DATA_SPEC_v2.0.md §10",
+      "evidence": "00 §3 L1 표를 원문 확인한 결과 '또는 gate' 는 금융·커뮤니티 두 행에만 있고 A2 §1.5.1a 는 그 둘만 FUNCTION_ENDPOINT_REACHED 로 돌린다(권한 누출 0, 규칙 E-6 이 확대 금지, UTILITY_ENTRY 명시 제외). 그러나 두 archetype 안에서 gate 를 앞세운 서비스와 gate 없이 실제 기능에 닿는 서비스가 섞이므로 MPFED 가 서로 다른 endpoint 의미(gate 출현 시점 vs 기능 진입 시점)의 혼합분포가 된다. 사실은 endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE 로 보존되지만 그 값의 용도는 규칙 E-8(auth gate 유병률)뿐이다. docs/v2 전체 grep 결과 ENDPOINT_VIA_AUTH_GATE 는 A2 6곳뿐이고 MPFED·ExcessDepth·mart_archetype_summary 를 이 값으로 층화하라는 요구는 0곳이다.",
+      "failure_scenario": "00 §7 의 ExcessDepth = MPFED - 같은 archetype 의 중앙값 에서 기준선이 혼합분포의 중앙값이 된다. gate 를 앞세운 서비스가 많을수록 중앙값이 낮아지고, gate 없이 실제 기능까지 가는 서비스가 구조적으로 '깊다' 고 표시된다. 00 §11 의 archetype별 median/IQR/mode/ECDF, MPFED <-> 접근성 장벽 Spearman, ExcessDepth <-> popup/overlay Spearman, 인증 비교의 median difference 가 전부 이 인공물을 탄다. 'archetype 내부 비교이므로 괜찮다' 는 반론은 성립하지 않는다 — 혼합이 archetype 내부에서 일어나기 때문이다.",
+      "remedy": "A2 §1.5.1a 에 규칙 E-9 신설. (1) 00 §7 ExcessDepth 기준선과 00 §11·01 §10 의 archetype별 MPFED 통계는 endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE 여부로 층화해 병기한다(합산값만 제시 금지). (2) mart_archetype_summary 에 endpoint_via_auth_gate_rate 를 둔다. (3) 00 §7 '별도 기록' 의 auth gate 조항과의 관계를 한 문단으로 명시한다 — gate 를 depth 에 더하는 것이 아니라 depth 의 정지점으로 쓰는 것이며 유병률은 규칙 E-8 로 별도 집계된다."
+    },
+    {
+      "id": "new-v2-c003-rules-absent-from-failure-injection-set",
+      "severity": "P2",
+      "blocking": true,
+      "p2_class": "E001_V2-blocking",
+      "file": "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md:922-936 (02 §14 실패주입의 구체화) vs :385-397 (E-6 · E-7) · :826 (T-8) · :909 (X-3) · docs/v2/02_COLLECTION_MEASUREMENT_SPEC_v2.0.md §14",
+      "evidence": "이 사이클은 02 §14 의 'UNDETERMINED->PASS 시도' 를 V-a/V-b/V-c 로 나눠 태우면서 '이전 판의 X-1 처럼 evidence_gap = 1 만 태우면 P-D smoke 가 통과해도 아무것도 증명하지 못한다' 를 근거로 들었다. 같은 논리가 이번에 새로 만든 규칙에는 적용되지 않았다. 누락 3종 — (1) UNDETERMINED -> NA 방향의 금지 전이가 없다(X-1 은 PASS, X-11 은 FAIL 만 다룬다). T-8 이 결과를 고정하므로 명세상 막혀 있으나 금지 전이 목록에 없어 '나머지 X-2~X-12 도 E000_V2 smoke 에서 차단 여부를 확인한다' 의 대상에 들어가지 않는다. (2) 규칙 E-6 확대 위반(다른 archetype 에 ENDPOINT_VIA_AUTH_GATE 부여) 주입이 없다. (3) 규칙 E-7 통과 위반(gate 관측 후 추가 activation) 주입이 없다 — 02 §14 의 'auth gate' 는 시나리오 목록이지 실패주입 목록이 아니다.",
+      "failure_scenario": "E000_V2_VALIDATED 게이트가 '모든 guard 가 실제로 차단하는지 확인했다' 를 근거로 닫히는데, 이번 사이클이 세운 guard 세 개는 한 번도 태워지지 않은 채 통과한다. 특히 UNDETERMINED -> NA 는 NA 가 applicable_count 에서 통째로 빠지므로 decision_coverage_applicable 에 대해 PASS 세탁보다 효과가 크다 — 분자와 분모에서 동시에 빠져 coverage 가 올라간다.",
+      "remedy": "§1.11 실패주입 표에 3행 추가 — (V-d) UNDETERMINED -> NA 기록 시도는 차단(T-8), (V-e) QUERY archetype 에 endpoint_status_detail = ENDPOINT_VIA_AUTH_GATE 기록 시도는 차단(E-6 · S-3), (V-f) gate 관측 후 추가 activation 궤적은 차단(E-7 · 02 §7 즉시종료). 아울러 금지 전이에 X-13(verdict_state = UNDETERMINED -> final_status = NA)을 신설해 X-1·X-11 과 대칭을 맞춘다."
+    },
+    {
+      "id": "prepush-hook-silent-skip-is-not-detected-anywhere",
+      "severity": "P2",
+      "blocking": false,
+      "p2_class": "POST_E001_DEBT",
+      "file": "control@cf5d107b:research/landing_accessibility/CLAUDE.md §5 (잔여 위험 문단) · control@cf5d107b:research/landing_accessibility/scripts/install_hooks.sh:53-63 vs control@cf5d107b:research/landing_accessibility/scripts/promote_landing_main.sh (전체)",
+      "evidence": "격리 저장소에서 git 2.43.0 의 동작을 실측했다 — 차단 훅이 있을 때 push rc=1, 훅을 dangling 심링크로 바꾸자 경고 한 줄 없이 rc=0 으로 push 성공. 오케스트레이터가 이 위험을 CLAUDE.md §5 에 prepush-hook-symlink-depends-on-control-worktree-lifetime 으로 등재한 것과 심각도 P2/non-blocking 판단은 옳다(훅은 유일 보증수단이 아니고 승격 스크립트가 검사의 정본이다). 그러나 소실이 무성이라 아무도 알아채지 못한다 — install_hooks.sh --check 는 사람이 기억해서 돌려야 하고 그 자체도 dangling 을 exit 0 으로 보고하며, promote_landing_main.sh 는 훅 설치 상태를 전혀 보지 않는다.",
+      "failure_scenario": "control 워크트리를 정리·이동하면 훅이 죽는다. 그 뒤로 research/refcohort-r1(Pilot)과 research/landing-accessibility-main 으로의 직접 push 가 아무 저항 없이 성공한다. Pilot 수정은 EXECUTION_AUTHORITY §3 기준 P0 다. 신뢰경계가 사라진 사실이 어디에도 기록되지 않는다.",
+      "remedy": "결함은 설치 방식이 아니라 소실의 무성함이므로 탐지를 붙인다. (1) promote_landing_main.sh 검사 0 에 훅 상태 확인을 추가한다 — .git/hooks/pre-push 가 존재하고(심링크면 target 이 실재하고) 정본과 cmp 로 동일한지. 승격이 이 신뢰경계에 기대는 유일한 작업이므로 여기가 맞는 자리다. (2) install_hooks.sh --check 가 dangling 을 명시적으로 exit != 0 으로 보고하게 한다. (3) --hookspath 로 바꾸지 마라 — core.hooksPath 도 같은 control 워크트리 안 디렉터리를 가리키므로 수명 의존이 동일하고 저장소의 다른 훅을 전부 무효화한다. 복사 모드도 안 된다 — drift 하며 drift 한 미추적 사본이 V2-C002 결함 그 자체였다. 심링크가 옳은 선택이다."
+    }
+  ],
+  "checks": {
+    "undetermined_to_pass_independent_exhaustive_attack": "PASS",
+    "undetermined_to_fail_and_na_direction": "PASS_WITH_P2",
+    "transition_table_precondition_completeness": "PASS",
+    "recollection_escape_path_soundness": "FAIL",
+    "auth_gate_endpoint_scope_confinement": "PASS",
+    "auth_gate_endpoint_measurement_validity": "PASS_WITH_P2",
+    "auth_gate_pass_through_prohibition_enforced": "PASS",
+    "not_eligible_at_collection_vs_measurement_failed_separation": "PASS",
+    "not_eligible_at_collection_sample_shrink_guard": "PASS",
+    "a2_new_rules_mutual_consistency": "PASS_WITH_P2",
+    "supplement_specs_do_not_create_new_research_criteria": "PASS",
+    "promotion_verify_script_actually_invoked": "PASS",
+    "promotion_verify_script_fail_closed": "PASS",
+    "promotion_verdict_check_fail_closed": "PASS_WITH_P2",
+    "promotion_blocking_debt_check_input_integrity": "FAIL",
+    "pre_push_hook_efficacy": "PASS",
+    "pre_push_hook_lifetime_debt_severity": "PASS_WITH_P2",
+    "control_claude_md_authority_usurpation": "PASS",
+    "install_integrity_banner_policy_enforced": "FAIL",
+    "gitignore_change": "PASS",
+    "pilot_write": "PASS",
+    "c013_contamination": "PASS",
+    "root_claude_md_and_state_parquet_untouched": "PASS",
+    "evidence_artifacts_untouched": "PASS",
+    "pack_byte_identity_vs_external_SSOT_source": "PASS",
+    "self_approval_and_max_unaudited_exec_cycles": "PASS",
+    "open_blocking_total_recount": "PASS",
+    "e001_v2_not_started": "PASS"
+  },
+  "verified_commands": [
+    "git -C $REPO fetch --all --prune",
+    "git diff --stat 6fad79fa 4a0585e0 -> 6 files, 471 insertions(+), 51 deletions(-)",
+    "git diff --numstat 6fad79fa 4a0585e0 -> A2 +434/-31 · EXECUTION_AUTHORITY +12/-4 · INSTALL_MANIFEST +7/-7 · verify_v2_docs.py +9/-6 · A1 +8/-0 · .gitignore +1/-3",
+    "git diff --stat 5a9015d1 4a0585e0 -> 19 files, 5286 insertions(+), 4 deletions(-)",
+    "git diff --stat 1350b7f9 cf5d107b -> 4 files, 1126 insertions(+), 268 deletions(-)",
+    "git diff --name-status 5a9015d1 4a0585e0 -> 19파일 전부 docs/v2 · scripts · tests · .gitignore (C013 산물 0)",
+    "git diff --stat 32460b87 4a0585e0 -- research/refcohort -> 0",
+    "git diff --stat 5a9015d1 4a0585e0 -- CLAUDE.md -> 0",
+    "git diff --name-only 6fad79fa 4a0585e0 | grep -E 'control/|audit/' -> (none)",
+    "git diff --name-only 1350b7f9 cf5d107b | grep -E 'docs/v2|audit/' -> (none)",
+    "wc -c A2_VOCABULARY_AND_SCHEMA_BINDING.md -> 126907 (prev 87035) · wc -l -> 1757 (prev 1354)",
+    "promote_landing_main.sh 4a0585e0 2a28ad3d eb7e4e13 cf5d107b --dry-run -> '· 4. verify_v2_docs.py exit 0 OK — V2_DOCS_VERIFY: PASS' 후 검사 5 에서 BLOCKED (open_blocking_total = 17)",
+    "promote_landing_main.sh 87a0464e ... --dry-run --exec-worktree=.../landing_exec -> BLOCKED '무결성 검증 스크립트가 exec 워크트리에 없다'",
+    "검사 4 블록 바이트 그대로 추출 + exit 3 스텁 -> BLOCKED 'verify_v2_docs.py exit != 0' (set -euo pipefail 하 종료코드 전파 확인)",
+    "install_hooks.sh --check -> .git/hooks/pre-push : symlink -> control 워크트리 정본 · core.hooksPath (unset) · legacy 사본 pre-push.bak.20260826213640",
+    "pre-push stdin 주입 12케이스 -> 12/12 설계대로 (Pilot 차단 · main gated · force/삭제 차단 · audit append-only · agent/control 통과)",
+    "격리 저장소 dangling 심링크 훅 재현 (git 2.43.0) -> 훅 있을 때 rc=1, dangling 일 때 경고 없이 rc=0 push 성공",
+    "scratchpad 격리 사본에 00_SSOT_v2.0.md 배너 주입(209B) + INSTALL_MANIFEST bytes/sha256 갱신 -> verify_v2_docs.py 'OK [pack+banner]' / 'V2_DOCS_VERIFY: PASS' / exit 0",
+    "감사자 독립 전이표 재구현 전수 대입 -> 정합 조합 360 · 표 미커버 72(전부 out-of-domain) · UNDETERMINED 탈출 0",
+    "git check-ignore -v --no-index (exec 워크트리) -> env=/env 무시 · ts/env·src/env·docs/env·deep/nested/env·research/.../env 전부 NOT-IGNORED · .env.example=!.env.example",
+    "git status --porcelain --ignored (exec 워크트리) -> '!! env' '!! .venv' '!! node_modules'",
+    "cmp $REPO/SSOT/{00..05} vs 설치본 -> 6/6 IDENTICAL (외부 원본 대조)",
+    "python3 (MANIFEST.json 해시 대조) -> 00~05 6종 sha256·bytes 일치",
+    "state.json debt_inheritance.items -> 21건, blocks_ready_for_e001_v2 true = 6, non-CLOSED = 21",
+    "adversarial V2_C002.json counts.blocking = 6 / ssot V2_C002.json counts.blocking = 4 -> 6+0+6+4+1 = 17 재계산 일치",
+    "git log --oneline --all -- research/landing_accessibility/audit/adversarial/V2_C002.json -> 커밋 1개 (2a28ad3)",
+    "grep -n 'audit_sha' promote_landing_main.sh -> argv 사용 6곳 · latest_*_audit_sha 참조 0곳",
+    "grep -n 'ORCH_WT' promote_landing_main.sh -> 존재확인 3줄, dirty/HEAD 검사 0",
+    "grep -rn 'ENDPOINT_VIA_AUTH_GATE' docs/v2 -> A2 6곳 (MPFED/ExcessDepth 층화 요구 0)",
+    "grep -rn '재수집|evidence run' docs/v2 -> 02 §12 한 줄 + A2 13곳, 횟수 상한·중단규칙 0",
+    "git log --format 4a0585e0 / cf5d107b -> exec 21:55:23, control 21:53:36 (control 이 먼저)",
+    "git log -3 origin/audit/landing-adversarial / origin/audit/landing-ssot -> tip 은 여전히 V2-C002 커밋 (자기승인 0)",
+    "git -C .agent_worktrees/landing_v2_exec status --porcelain -> 0 · landing_orchestrator -> 0"
+  ],
+  "note": "CLOSED 6 / OPEN 2. 시정은 부실하지 않다 — 내 8건 중 6건이 실효 있게 닫혔고 그 중 5건은 직접 실행해 확인했으며, 가장 무거운 P1 은 executor 엔진을 쓰지 않고 A2 문면만으로 전이표를 독립 재구현해 360조합을 공격했으나 반례를 찾지 못했다. 00~05 는 저장소 밖 원본 SSOT/ 와 바이트 동일이고 Pilot·C013·state parquet·evidence·자기승인은 전부 0이며 open_blocking_total = 17 은 원자료로 다시 세어 정확하다(동일 결함 2쌍의 중복계상을 포함하나 게이트가 =0 이라 보수적이므로 finding 으로 올리지 않았다). FAIL 은 두 가지 때문이다. (1) laundering 을 컬럼에서 닫으면서 파이프라인 재실행 쪽 문을 지정해 열었고 그 문에 횟수·중단규칙·분석 행 선택규칙이 없으며 우선순위 키가 '00 §11 결론을 바꿀 수 있는 정도' 다(P1-1). (2) 무결성 스크립트를 게이트에 배선한 바로 그 사이클에 그 스크립트가 자기가 선언한 배너 정책을 강제하지 않아, 서열 1위 문서 00_SSOT_v2.0.md 최상단에 위조 조항을 주입하고 exit 0 을 받았다(P2-1, 실증). 나머지 5건은 각각 한 줄~세 줄 수정이다. 과탐 회피를 위해 finding 으로 올리지 않은 관찰 8건을 보고서 §6.1 에 명시했다."
+}
