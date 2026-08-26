@@ -1,8 +1,8 @@
 {
   "harness_version": "orchestrator-constitution-v3",
-  "updated_at": "2026-08-26T12:16:28.840192",
+  "updated_at": "2026-08-26T12:18:26.967054",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
-  "cycle_id": "C004",
+  "cycle_id": "C005",
   "pilot": {
     "branch": "research/refcohort-r1",
     "sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
@@ -59,7 +59,7 @@
     "ssot": "audit/landing-ssot",
     "orchestrator": "control/landing-orchestrator"
   },
-  "exec_sha": "1a7cd649ff647a35d1d1f2e4d0abbb830db66923",
+  "exec_sha": "933096a5",
   "adversarial_audit_sha": "f98f222",
   "ssot_audit_sha": "6c22f31",
   "gates": {
@@ -67,8 +67,8 @@
     "source_asset_discovery": "PASS",
     "population_source_freeze": "PASS",
     "source_row_reconciliation": "PASS_FIGURE_LEVEL",
-    "canonical_entity": "NOT_RUN",
-    "membership_preservation": "NOT_RUN",
+    "canonical_entity": "PASS_PENDING_AUDIT",
+    "membership_preservation": "PASS_PENDING_AUDIT",
     "web_eligibility": "NOT_RUN",
     "url_review": "NOT_RUN",
     "certification_join": "NOT_RUN",
@@ -155,6 +155,12 @@
       "state": "OPEN",
       "assigned": "C004 exec",
       "detail": "fig07 은 '25년 12월 … 전년 동월 대비' 단월 패널. 나머지 패널은 25년 하반기(7~12월). alt 텍스트만 보고 반기로 기록했다."
+    },
+    {
+      "id": "growth-panels-without-growth-values",
+      "state": "OPEN",
+      "assigned": "C006",
+      "detail": "fig11_t1/t2(오프라인 마트), fig05_t1/t2(쇼핑 앱)는 제목이 '많이 성장한' 인데 성장률 수치가 이미지에 없다. 웹 수집 모집단 선별 시 이 패널들은 성장률 근거 없는 선별임을 명시해야 한다."
     }
   ],
   "legacy_xlsx_status": {
@@ -171,5 +177,42 @@
     ],
     "consequence": "셀 단위 패치(1379->1377)로 두 패널을 융합하는 것을 금지한다. xlsx 는 모집단·수치 어느 용도로도 사용하지 않는다.",
     "action": "RETAINED_AS_UNSOURCED_ARTIFACT_ONLY"
-  }
+  },
+  "entity_layer": {
+    "service_master": 80,
+    "by_kind": {
+      "APP": 37,
+      "RETAIL_BRAND": 32,
+      "INDUSTRY_CATEGORY": 10,
+      "BOTH": 1
+    },
+    "entity_alias_map": 81,
+    "source_membership": 142,
+    "source_rows_preserved": 261,
+    "needs_human_review": 5,
+    "review_queue": [
+      {
+        "key": "hyundai_homeshopping_hmall",
+        "issue": "원문 표기 2종 병합 — 발행물 오타로 확인"
+      },
+      {
+        "key": "naver_app / naver_naverpay",
+        "issue": "동일 회사·다른 측정대상. 규칙1로 분리 유지"
+      },
+      {
+        "key": "gmarket_app / gmarket_auction",
+        "issue": "원문 표기 상이. 규칙3으로 분리 유지"
+      }
+    ],
+    "web_collectable_excluded": "INDUSTRY_CATEGORY 10건"
+  },
+  "orchestrator_diagnosis_corrections": [
+    {
+      "cycle": "C003",
+      "orchestrator_claim": "현대홈쇼핑/현대Hmallord 는 판독 오염이다",
+      "actual": "발행물 원문 자체의 오타. executor 가 fig10.png 를 4배 확대 판독해 확인.",
+      "resolution": "원자료 무수정 유지. canonical 레이어에서만 흡수하고 needs_human_review 로 표시.",
+      "lesson": "오케스트레이터의 진단도 증거 대조 없이는 지시가 될 수 없다. executor 가 반증한 것이 옳다."
+    }
+  ]
 }
