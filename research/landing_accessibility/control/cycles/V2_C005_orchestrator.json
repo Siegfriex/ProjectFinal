@@ -14,20 +14,29 @@
       "pushed_to_origin": true,
       "remote_verification": "git ls-remote origin refs/heads/audit/landing-adversarial-codex-c004 = 1d96a48665c4c5d81625982eaba351b0f0d38968 (2026-08-27 실측)",
       "verdict": "FAIL",
-      "counts": { "P0": 0, "P1": 1, "P2": 3, "blocking": 4 }
+      "counts": {
+        "P0": 0,
+        "P1": 1,
+        "P2": 3,
+        "blocking": 4
+      }
     },
     "ssot": {
       "report": "research/landing_accessibility/audit/ssot/V2_C004.{md,json}",
       "audit_branch": "audit/landing-ssot",
       "audit_sha": "0ca2f636736dc1e16295f296c6c1e794e4cf3d51",
       "verdict": "FAIL",
-      "counts": { "P0": 0, "P1": 0, "P2": 1, "blocking": 1 }
+      "counts": {
+        "P0": 0,
+        "P1": 0,
+        "P2": 1,
+        "blocking": 1
+      }
     },
     "target_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
     "target_branch": "agent/landing-v2-exec"
   },
   "scope_note": "control 브랜치 소관만 처리했다. exec 브랜치 문서(A1/A2/EXECUTION_AUTHORITY/PHASE_GATES/verify_v2_docs.py)는 손대지 않았고, .git/hooks/ 도 수정하지 않았다 — [HOOK_INSTALL] 은 탐지만 한다. Pilot(research/refcohort) 무변경. 다른 워크트리는 읽기만 했다. push 는 control/landing-orchestrator 한 브랜치뿐이며 research/landing-accessibility-main 으로의 push 는 하지 않았다.",
-
   "primary_remediation": {
     "finding_id": "promotion-reconciliation-sha-is-dead-and-control-state-is-only-local-single-source",
     "adversarial_code": "ADV-C004-04",
@@ -70,43 +79,145 @@
       "how_fixed": "브랜치는 원장이 선언한다(audit_lag.latest_adversarial_audit_branch / latest_ssot_audit_branch). 검사는 (a) 필드 부재 = 차단, (b) `audit/landing-*` 네임스페이스 강제, (c) ls-remote 로 원격에 실재 확인(push 되지 않은 보고서 = 차단), (d) 감사 SHA 가 그 **실시간 tip** 의 조상임을 확인한다. 이전 판은 로컬 origin/… 추적 ref 를 썼는데 그것은 stale 할 수 있다."
     },
     "check_order_after": [
-      "1 [HOOK_INSTALL]", "2 [SHA_RESOLVE]", "3 [REC_RESOLVE]", "4 [REC_REMOTE_AUTHORITY]",
-      "5 [PILOT_IMMUTABLE]", "6 [EXEC_TREE]", "7 [ORCH_TREE]", "8 [REC_STATE_BIND]",
-      "9 [AUDIT_ANCESTRY]", "10 [INSTALL_INTEGRITY]", "11 [BLOCKING_DEBT]",
-      "12 [DEBT_RECOMPUTE]", "13 [AUDIT_VERDICT]"
+      "1 [HOOK_INSTALL]",
+      "2 [SHA_RESOLVE]",
+      "3 [REC_RESOLVE]",
+      "4 [REC_REMOTE_AUTHORITY]",
+      "5 [PILOT_IMMUTABLE]",
+      "6 [EXEC_TREE]",
+      "7 [ORCH_TREE]",
+      "8 [REC_STATE_BIND]",
+      "9 [AUDIT_ANCESTRY]",
+      "10 [INSTALL_INTEGRITY]",
+      "11 [BLOCKING_DEBT]",
+      "12 [DEBT_RECOMPUTE]",
+      "13 [AUDIT_VERDICT]"
     ],
     "naming_policy": "번호 참조로 되돌아가지 않았다. 검사는 이름으로 부르고 번호는 목록의 순서일 뿐이라는 V2-C004 의 처방(ssot control-state-and-promote-header-mislabel-verify-check-number)을 그대로 유지했다. [AUDIT_ANCESTRY] 를 [REC_STATE_BIND] 뒤로 옮긴 것도 이름 체계이기에 가능한 재배치다 — 원장을 읽을 수 있게 된 뒤라야 감사 브랜치 선언을 읽을 수 있기 때문이다.",
     "self_approval": "이 시정은 open_blocking_total 에서 차감하지 않았다. ADV-C004-04 는 REMEDIATION_CLAIMED_PENDING_AUDIT 로 계상을 유지한다."
   },
-
   "dry_run_evidence": {
     "policy": "모든 실행은 --dry-run 이며 push 는 발생하지 않았다. 임시 조작은 저장소 파일이 아니라 scratchpad 사본에서만 했고 원복을 md5/git diff 로 확인했다.",
     "a_invalid_reconciliation_sha": [
-      { "input": "reconciliation_sha = NOT_A_COMMIT (감사가 통과시킨 바로 그 입력)", "result": "BLOCKED at [REC_RESOLVE]", "exit": 1, "message": "reconciliation SHA 를 commit 으로 해석할 수 없다: NOT_A_COMMIT" },
-      { "input": "reconciliation_sha = deadbeef… (존재하지 않는 40-hex)", "result": "BLOCKED at [REC_RESOLVE]", "exit": 1 },
-      { "input": "reconciliation_sha = ec08b3fa… (580e6721 의 tree — commit 이 아닌 객체)", "result": "BLOCKED at [REC_RESOLVE]", "exit": 1 }
+      {
+        "input": "reconciliation_sha = NOT_A_COMMIT (감사가 통과시킨 바로 그 입력)",
+        "result": "BLOCKED at [REC_RESOLVE]",
+        "exit": 1,
+        "message": "reconciliation SHA 를 commit 으로 해석할 수 없다: NOT_A_COMMIT"
+      },
+      {
+        "input": "reconciliation_sha = deadbeef… (존재하지 않는 40-hex)",
+        "result": "BLOCKED at [REC_RESOLVE]",
+        "exit": 1
+      },
+      {
+        "input": "reconciliation_sha = ec08b3fa… (580e6721 의 tree — commit 이 아닌 객체)",
+        "result": "BLOCKED at [REC_RESOLVE]",
+        "exit": 1
+      }
     ],
     "b_valid_commit_unrelated_to_remote_authority": [
-      { "input": "reconciliation_sha = d5f1da56… (exec 대상 SHA — 유효한 commit, control 계보 아님)", "result": "BLOCKED at [REC_REMOTE_AUTHORITY]", "exit": 1, "message": "reconciliation commit 이 원격 control 권위와 무관하다. rec=d5f1da56… / origin/control/landing-orchestrator tip=580e6721…" },
-      { "input": "reconciliation_sha = 32460b87… (Pilot SHA — control tip 의 조상이긴 하다)", "result": "BLOCKED", "exit": 1, "message": "reconciliation commit 에 state.json 이 없다 — 원장 없는 커밋은 reconciliation 이 될 수 없다 (승인된 ancestry 경로에서 차단)" }
+      {
+        "input": "reconciliation_sha = d5f1da56… (exec 대상 SHA — 유효한 commit, control 계보 아님)",
+        "result": "BLOCKED at [REC_REMOTE_AUTHORITY]",
+        "exit": 1,
+        "message": "reconciliation commit 이 원격 control 권위와 무관하다. rec=d5f1da56… / origin/control/landing-orchestrator tip=580e6721…"
+      },
+      {
+        "input": "reconciliation_sha = 32460b87… (Pilot SHA — control tip 의 조상이긴 하다)",
+        "result": "BLOCKED",
+        "exit": 1,
+        "message": "reconciliation commit 에 state.json 이 없다 — 원장 없는 커밋은 reconciliation 이 될 수 없다 (승인된 ancestry 경로에서 차단)"
+      }
     ],
     "c_manipulated_blocking_count": {
       "method": "[DEBT_RECOMPUTE] 의 Python 블록을 스크립트에서 그대로 떼어내(argv 만으로 독립 실행되게 작성했다) scratchpad 의 state.json 사본에 조작을 넣고 실행했다. 저장소 파일과 브랜치는 건드리지 않았다.",
       "cases": [
-        { "input": "open_blocking_total.total 을 12 → 0 으로 조작", "result": "BLOCKED", "exit": 1, "message": "원장 항목 재계산(12) != 선언된 open_blocking_total.total(0)" },
-        { "input": "항목까지 함께 조작 — 모든 open blocking 을 counted_as_open=false 로 내리고 total=0", "result": "BLOCKED", "exit": 1, "message": "'ned-ied-path-minimality-not-operationalized' 이 counted_as_open=false 인데 duplicate_of/superseded_by 근거가 없다 — 근거 없는 제외는 total 조작 경로다" },
-        { "input": "원장의 V2-C004 adversarial blocking 등재 4건 중 3건을 삭제하고 total 을 9 로 맞춤", "result": "BLOCKED", "exit": 1, "message": "원장이 등재한 adversarial blocking finding 수(1) != 보고서에서 센 수(4) — 원장이 감사 보고서를 그대로 반영하지 않았다" },
-        { "input": "조작 없는 정본 state.json", "result": "정확히 재계산", "exit": 1, "message": "독립 재계산 open blocking = 12 (선언값과 일치하지만 0 이 아니다) / 내역: v1=6, V2-C001=0, V2-C002=1, V2-C003=0, V2-C004=4, orchestrator=1" }
+        {
+          "input": "open_blocking_total.total 을 12 → 0 으로 조작",
+          "result": "BLOCKED",
+          "exit": 1,
+          "message": "원장 항목 재계산(12) != 선언된 open_blocking_total.total(0)"
+        },
+        {
+          "input": "항목까지 함께 조작 — 모든 open blocking 을 counted_as_open=false 로 내리고 total=0",
+          "result": "BLOCKED",
+          "exit": 1,
+          "message": "'ned-ied-path-minimality-not-operationalized' 이 counted_as_open=false 인데 duplicate_of/superseded_by 근거가 없다 — 근거 없는 제외는 total 조작 경로다"
+        },
+        {
+          "input": "원장의 V2-C004 adversarial blocking 등재 4건 중 3건을 삭제하고 total 을 9 로 맞춤",
+          "result": "BLOCKED",
+          "exit": 1,
+          "message": "원장이 등재한 adversarial blocking finding 수(1) != 보고서에서 센 수(4) — 원장이 감사 보고서를 그대로 반영하지 않았다"
+        },
+        {
+          "input": "조작 없는 정본 state.json",
+          "result": "정확히 재계산",
+          "exit": 1,
+          "message": "독립 재계산 open blocking = 12 (선언값과 일치하지만 0 이 아니다) / 내역: v1=6, V2-C001=0, V2-C002=1, V2-C003=0, V2-C004=4, orchestrator=1"
+        }
       ]
     },
     "old_version_comparison": {
       "script": "git show 580e67219d79ca318c9a7c50e03dbe4f762b82e7:research/landing_accessibility/scripts/promote_landing_main.sh",
       "input": "동일한 인자, reconciliation_sha = NOT_A_COMMIT",
       "result": "REC_SHA 를 거절하지 않고 [HOOK_INSTALL]·[SHA_RESOLVE]·[PILOT_IMMUTABLE]·[AUDIT_ANCESTRY]·[EXEC_TREE]·[ORCH_TREE]·[INSTALL_INTEGRITY] 를 통과한 뒤 무관한 [BLOCKING_DEBT] 에서 멈춘다 — 감사 §3.6 의 관측과 동일하다. 신판은 세 번째 검사에서 죽는다.",
-      "note": "실측 결과는 아래 old_version_measured 에 있다."
+      "note": "실측 결과는 old_version_measured 에 있다."
+    },
+    "control_sha_under_test": "ac5b0cb7830f1c9548c52de7e9563f5fa509dff1",
+    "exec_worktree_used": "dry-run 시점에 d5f1da56 을 가진 기존 워크트리들이 다른 lane 의 작업으로 dirty 였으므로, scratchpad 에 detached 임시 워크트리를 만들어 [EXEC_TREE] 를 통과시킨 뒤 `git worktree remove --force` + `git worktree prune` 로 제거했다. 저장소 브랜치·다른 워크트리는 건드리지 않았다.",
+    "old_version_measured": {
+      "command": "구버전(580e6721) promote_landing_main.sh, reconciliation_sha = NOT_A_COMMIT, --dry-run",
+      "passed_checks": [
+        "[HOOK_INSTALL] OK",
+        "exec worktree 해석 OK",
+        "orchestrator worktree 해석 OK",
+        "[PILOT_IMMUTABLE] OK",
+        "[AUDIT_ANCESTRY] OK",
+        "[EXEC_TREE] OK",
+        "[ORCH_TREE] OK",
+        "[INSTALL_INTEGRITY] verify_v2_docs.py exit 0 OK — V2_DOCS_VERIFY: PASS"
+      ],
+      "stopped_at": "[BLOCKING_DEBT] — 무관한 open_blocking_total = 12",
+      "exit": 1,
+      "conclusion": "감사 §3.6 의 관측과 **정확히 동일**하다. NOT_A_COMMIT 은 7개 검사를 통과했고 reconciliation 과 무관한 지점에서야 멈췄다. 신판은 세 번째 검사 [REC_RESOLVE] 에서 죽는다."
+    },
+    "new_version_measured_chain": {
+      "command": "신판 promote_landing_main.sh, reconciliation_sha = ac5b0cb7… (원격 control tip), --dry-run",
+      "passed_checks": [
+        "[HOOK_INSTALL] OK",
+        "[REC_RESOLVE] reconciliation commit = ac5b0cb7… OK",
+        "[REC_REMOTE_AUTHORITY] reconciliation == 원격 control tip (ac5b0cb7…) OK",
+        "[PILOT_IMMUTABLE] OK",
+        "[EXEC_TREE] OK",
+        "[ORCH_TREE] OK"
+      ],
+      "stopped_at": "[REC_STATE_BIND] — reconciliation 산출물 adversarial.verdict = 'FAIL'",
+      "exit": 1,
+      "conclusion": "감사가 우회 가능하다고 지적한 PHASE_GATES §4 조건('두 감사 PASS + reconciliation 후 Gate close')이 이제 승격 경로에서 실제로 강제된다. reconciliation 산출물이 verdict FAIL 을 담고 있으므로 승격이 여기서 멈춘다."
+    },
+    "local_only_control_commit_measured": {
+      "command": "신판, reconciliation_sha = ac5b0cb7… **push 전** 상태에서 --dry-run",
+      "result": "BLOCKED at [REC_REMOTE_AUTHORITY]",
+      "exit": 1,
+      "message": "reconciliation commit 이 원격 control 권위와 무관하다. rec=ac5b0cb7… / origin/control/landing-orchestrator tip=580e6721…",
+      "conclusion": "ADV-C004-04 가 지적한 '원격에 핀되지 않은 로컬 clean 커밋 하나' 경로가 실제로 닫혔다. 같은 커밋을 push 한 뒤에는 통과한다 — 원격 게시가 전제조건이 됐다."
+    },
+    "audit_branch_hardcoding_measured": {
+      "old_version": "구버전에 Codex 감사 SHA(1d96a486…)를 넣으면 `PROMOTION BLOCKED: audit/landing-adversarial 에 1d96a48665c4c5d81625982eaba351b0f0d38968 없음` 으로 차단된다 — 하드코딩된 브랜치로는 이번 사이클의 adversarial 보고서에 **도달할 수조차 없다**. 승격 경로가 실제 감사 결과를 못 읽는 상태였다.",
+      "new_version_block_extracted": "신판의 브랜치 선언 파서를 단독 실행했다 — 정본 state 는 `adversarial\\taudit/landing-adversarial-codex-c004` / `ssot\\taudit/landing-ssot` 를 exit 0 으로 내고, 선언 필드를 지우면 exit 1 ('원장이 선언해야 한다'), 네임스페이스 밖 브랜치(agent/landing-v2-exec)를 넣으면 exit 1 ('audit/landing-* 네임스페이스가 아니다')."
+    },
+    "reversion_verification": {
+      "control_worktree": "git status --short 빈 출력 (clean)",
+      "hook_md5": "6acaebb07ec7b428d6053ad38dae6f6a — .git/hooks/pre-push(심링크)와 저장소 정본이 동일. .git/hooks/ 는 수정하지 않았다.",
+      "temp_worktree": "scratchpad/execcheck 제거 + git worktree prune 완료. git worktree list 에 잔재 0.",
+      "state_manipulation": "조작은 전부 scratchpad 의 state.json **사본**에서만 했다. 저장소 파일은 한 번도 조작 상태로 존재하지 않았다.",
+      "pilot_diff": "git diff --stat 32460b87… ac5b0cb7… -- research/refcohort → 빈 출력 (diff 0)",
+      "other_worktrees": "landing_v2_exec d5f1da56 / landing_ssot 0ca2f636 / landing_adversarial ea1d2448 / codex_c004_adversarial 1d96a486 — 전부 불변",
+      "remote_refs": "research/landing-accessibility-main = 5a9015d1e95b15304aaf53a73efb475934610b82 **불변**. 이번 세션이 움직인 원격 ref 는 control/landing-orchestrator (580e6721 → ac5b0cb7) 하나뿐이다."
     }
   },
-
   "state_updates": {
     "audit_lag": {
       "latest_exec_cycle": "V2-C003 → V2-C004",
@@ -142,18 +253,20 @@
     ],
     "gates": "V2_SSOT_FROZEN 미달성 유지. adversarial_audit / ssot_audit 를 V2-C004 결과로 갱신. promotion_reconciliation_binding 신설 (REMEDIATION_CLAIMED_PENDING_AUDIT)."
   },
-
   "open_blocking_total_recomputation": {
     "previous": 19,
     "current": 12,
     "delta": -7,
     "formula": "v1 6 + V2-C001 0 + V2-C002 1 + V2-C003 0 + V2-C004 4 + orchestrator 1 = 12",
-    "by_blocking_class": { "V2_SSOT_FROZEN-blocking": 5, "E001_V2-blocking": 1, "v1_inherited (E001_V2 계열)": 6 },
+    "by_blocking_class": {
+      "V2_SSOT_FROZEN-blocking": 5,
+      "E001_V2-blocking": 1,
+      "v1_inherited (E001_V2 계열)": 6
+    },
     "why_it_dropped": "감사가 실제로 CLOSED 판정한 것만 뺐다 — V2-C002 ssot 승계 1건(a1-endpoint-status-placement) + V2-C003 adversarial 5건 + V2-C003 ssot 3건 = 9건이 닫혔고, V2-C004 신규 4건이 들어왔다(19 − 9 − 2[중복 이관] + 4 = 12). '중복 이관' 2건은 V2-C003 의 recollection / banner policy 로, V2-C004 후속 id 로 다시 등재됐기에 어느 한쪽에서만 센 것이며 총계 영향은 0 이다.",
     "not_deducted": "V2-C005 사이클에서 시정이 주장된 blocking 은 한 건도 차감하지 않았다 — ADV-C004-01(A2 외부 앵커 + control A-5 자리), ADV-C004-02/ssot a1-0-3(관할표 drift, 기계 검증 전건 일치), ADV-C004-03(배너 allowlist, 3/3 차단 실증 + 회귀 테스트 5종), ADV-C004-04(본 건). 전부 REMEDIATION_CLAIMED_PENDING_AUDIT 다. self-approval 금지.",
     "independent_recomputation_is_now_enforced": "이 숫자를 신뢰하라고 요구하지 않는다. [DEBT_RECOMPUTE] 가 승격 경로에서 원장 항목과 pinned 보고서로부터 다시 세어 대조한다. 정본 state.json 으로 실행한 결과가 v1=6, V2-C001=0, V2-C002=1, V2-C003=0, V2-C004=4, orchestrator=1 = 12 로 선언값과 일치했다."
   },
-
   "gate_verdict": {
     "gate": "V2_SSOT_FROZEN",
     "status": "NOT_ACHIEVED — 유지",
@@ -165,14 +278,12 @@
     "e001_v2_started": false,
     "full_collection_started": "NO"
   },
-
   "artifacts": [
     "research/landing_accessibility/scripts/promote_landing_main.sh — 검사 4종 신설 + [AUDIT_ANCESTRY] 재작성·재배치",
     "research/landing_accessibility/control/state.json — audit_lag / v2_audit_findings / open_blocking_total / recollection_prereg_anchors / a0_shadow_parallelization / non_authoritative_branches / a2_document_state / gates",
     "research/landing_accessibility/control/cycles/V2_C004_RECONCILIATION.json — [REC_STATE_BIND] 가 읽는 reconciliation 산출물 정본 (decision = REWORK)",
     "research/landing_accessibility/control/cycles/V2_C005_orchestrator.json — 본 파일"
   ],
-
   "not_done": [
     "research/landing-accessibility-main 으로의 push 0회 — 승격하지 않았다.",
     "Pilot(research/refcohort) 수정 0.",
