@@ -1,6 +1,6 @@
 {
-  "harness_version": "orchestrator-constitution-v3",
-  "updated_at": "2026-08-26T13:07:17.512955",
+  "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
+  "updated_at": "2026-08-26T13:11:34.671133",
   "phase": "P1_ISOLATION_AND_SOURCE_REFREEZE",
   "cycle_id": "C011",
   "pilot": {
@@ -60,7 +60,7 @@
     "orchestrator": "control/landing-orchestrator"
   },
   "exec_sha": "fe86e190",
-  "adversarial_audit_sha": "e302d31",
+  "adversarial_audit_sha": "fd9773a1",
   "ssot_audit_sha": "7c928f5",
   "gates": {
     "pilot_archive": "PASS_WITH_LOGICAL_BACKUP_ONLY",
@@ -80,7 +80,7 @@
     "automation_split": "NOT_RUN",
     "criterion_probe_coverage": "NOT_RUN",
     "smoke_e000": "NOT_RUN",
-    "adversarial_audit": "PASS_C002_C003_P1_1_P2_5",
+    "adversarial_audit": "PASS_C009_P1_2_P2_5",
     "ssot_audit": "PASS_C009_P1_2",
     "certification_snapshot": "PASS_COMPLETE"
   },
@@ -108,79 +108,20 @@
   "promotion_policy": {
     "rule": "exec 는 감사를 기다리지 않고 다음 cycle 을 진행할 수 있다. 그러나 research/landing-accessibility-main 으로의 promotion 은 해당 SHA 에 대한 adversarial PASS + ssot PASS + open_p0=0 을 모두 만족할 때만 오케스트레이터가 수행한다.",
     "rationale": "P1 exec-advanced-to-c002-before-c001-audit 대응. 하드스톱으로 파이프라인을 끊지 않으면서 미감사 산출물이 main 에 승격되는 것을 차단한다.",
-    "promoted_sha": null
+    "promoted_sha": null,
+    "blocked_reason": "C009 P1 3건 미시정"
   },
   "open_p1": [
-    {
-      "id": "a1-screenshot-untracked",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C004 exec"
-    },
-    {
-      "id": "acquisition-script-not-committed",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C004 exec"
-    },
-    {
-      "id": "index-sections-not-verbatim",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C004 exec"
-    },
-    {
-      "id": "imginfolist-13-to-11-undocumented",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C004 exec"
-    },
-    {
-      "id": "invalidated-a7-preserved-untracked",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C004 exec"
-    },
     {
       "id": "exec-advanced-to-c002-before-c001-audit",
       "state": "MITIGATED_BY_PROMOTION_POLICY",
       "by": "C003 orchestrator"
     },
     {
-      "id": "methodology-falsely-marked-missing",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C004 exec"
-    },
-    {
-      "id": "fig07-period-mislabeled-halfyear-vs-single-month",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C004 exec",
-      "detail": "fig07 은 '25년 12월 … 전년 동월 대비' 단월 패널. 나머지 패널은 25년 하반기(7~12월). alt 텍스트만 보고 반기로 기록했다."
-    },
-    {
       "id": "growth-panels-without-growth-values",
       "state": "OPEN",
       "assigned": "C006",
       "detail": "fig11_t1/t2(오프라인 마트), fig05_t1/t2(쇼핑 앱)는 제목이 '많이 성장한' 인데 성장률 수치가 이미지에 없다. 웹 수집 모집단 선별 시 이 패널들은 성장률 근거 없는 선별임을 명시해야 한다."
-    },
-    {
-      "id": "coupang-cross-domain-merge-rule-inconsistent",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C008 exec",
-      "resolution": "measurement_entity / web_target 2층 모델로 재구성. 쿠팡 BOTH 를 coupang_app / coupang_retail 로 분리하고 web_target 에서 재결합한다."
-    },
-    {
-      "id": "web-collectable-prestamped-before-web-eligibility-gate",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C008 exec",
-      "resolution": "web_collectable(True 70건) 은 URL 증거 없이 '업종이 아니다' 만으로 찍힌 값이다. 컬럼을 web_eligibility_status 로 바꾸고 초기값을 NOT_ASSESSED 로 둔다. INDUSTRY_CATEGORY 10건만 EXCLUDED_INDUSTRY_AXIS 로 확정한다."
-    },
-    {
-      "id": "chapter-guess-column-misnamed",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C008 exec",
-      "resolution": "원문 index 와 1:1 대조가 끝났으므로 '추측' 이 아니다. source_chapter / source_section 으로 정규화한다."
-    },
-    {
-      "id": "duplicate-web-collection-targets-naver-gmarket",
-      "state": "FIXED_IN_C009_PENDING_AUDIT",
-      "assigned": "C008 exec",
-      "resolution": "web_target_group 컬럼으로 해소. C007 2층 분리 결정과 동일 조치."
     },
     {
       "id": "pilot-org-regex-defect-not-manifested",
@@ -200,6 +141,11 @@
       "assigned": "C011 exec",
       "resolution": "build_canonical_entities.py:262 하드코딩 dict 의 11건은 A1~A4 출처가 없는 연구자 사전판단이다. service_master 초기값을 NOT_ASSESSED 로 되돌리고, 선탑재 추정은 별도 파일 state/_researcher_priors/system_app_hypothesis.json 으로 분리해 '가설' 임을 명시한다. web_eligibility 게이트에서 URL 증거로만 판정한다.",
       "escalation": "게이트에서 URL 증거 없이 EXCLUDED 로 확정되면 P0 승격"
+    },
+    {
+      "id": "web-target-group-member-arrays-positionally-misaligned",
+      "state": "OPEN",
+      "assigned": "C011 exec"
     }
   ],
   "legacy_xlsx_status": {
@@ -275,6 +221,21 @@
       "actual": "발행물 원문 자체의 오타. executor 가 fig10.png 를 4배 확대 판독해 확인.",
       "resolution": "원자료 무수정 유지. canonical 레이어에서만 흡수하고 needs_human_review 로 표시.",
       "lesson": "오케스트레이터의 진단도 증거 대조 없이는 지시가 될 수 없다. executor 가 반증한 것이 옳다."
+    },
+    {
+      "cycle": "C004",
+      "orchestrator_claim": "xlsx 드리프트 = 카카오톡 -0.15% / 유튜브 -1.8% / 네이버 -2.5% (전부 음수)",
+      "actual": "카카오톡만 부호가 반대다. 원문 1,377만 < xlsx 1379만 이므로 (xlsx-원문)/원문 = +0.15%.",
+      "found_by": "C009 adversarial audit (EV-2)",
+      "resolution": "authority_manifest EV-2 를 한 가지 계산 규약으로 재산출한다. 부호가 섞인다는 사실 자체가 '비일관 드리프트' 논거를 오히려 강화한다.",
+      "lesson": "오케스트레이터가 감사에 제공한 근거도 감사 대상이다."
+    },
+    {
+      "cycle": "C004",
+      "orchestrator_claim": "xlsx 문서 속성이 전부 None 이다",
+      "actual": "created / modified 는 채워져 있다 (2026-08-25 15:54:10). 실재하는 provenance 단서를 없다고 적었다.",
+      "found_by": "C009 adversarial audit (EV-6)",
+      "resolution": "EV-6 을 '작성 도구가 openpyxl 이고 출처 문서 참조가 없다' 로 정확히 좁힌다."
     }
   ],
   "orchestrator_decisions": [
@@ -462,5 +423,56 @@
       "detail": "build_source_rows_from_journal.py 기본 저널 경로가 저장소 밖이라 clone 만으로는 261행 재생성 불가",
       "assigned": "C011 exec"
     }
-  ]
+  ],
+  "state_reconciliation": {
+    "checked_at": "2026-08-26T13:10:28.876122",
+    "required": true,
+    "drift_count": 3,
+    "note": "drift 3건은 전부 지시서 발행 이후의 진전이다. remote 를 우선한다.",
+    "drift": [
+      {
+        "branch": "audit/landing-adversarial",
+        "directive_baseline": "e302d3182902",
+        "remote_actual": "fd9773a1b46b",
+        "reason": "C009 adversarial 감사 커밋"
+      },
+      {
+        "branch": "audit/landing-ssot",
+        "directive_baseline": "68404d9d70ee",
+        "remote_actual": "7c928f5bba19",
+        "reason": "C009 ssot 감사 커밋"
+      },
+      {
+        "branch": "control/landing-orchestrator",
+        "directive_baseline": "16cef8566e85",
+        "remote_actual": "bc76afba9154",
+        "reason": "C010~C011 재결·문서 커밋"
+      }
+    ],
+    "unchanged": [
+      "research/refcohort-r1",
+      "research/landing-accessibility-main",
+      "agent/landing-exec"
+    ]
+  },
+  "audit_lag": {
+    "latest_exec_cycle": "C009",
+    "latest_exec_sha": "fe86e190e993b3acb7b47518329dddc1777d73d6",
+    "latest_adversarial_audited_cycle": "C009",
+    "latest_adversarial_target_sha": "fe86e190e993b3acb7b47518329dddc1777d73d6",
+    "latest_adversarial_audit_sha": "fd9773a1b46b239d49f11451a00bac6172a58f39",
+    "latest_ssot_audited_cycle": "C009",
+    "latest_ssot_target_sha": "fe86e190e993b3acb7b47518329dddc1777d73d6",
+    "latest_ssot_audit_sha": "7c928f5bba19ea66756b8d2f00140d60596235a0",
+    "latest_reconciled_cycle": "C009",
+    "latest_promoted_cycle": null,
+    "unaudited_cycle_depth": 0,
+    "MAX_UNAUDITED_EXEC_CYCLES": 1,
+    "status": "WITHIN_BOUND"
+  },
+  "cycle_lifecycle": {
+    "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",
+    "promotion": "BLOCKED_PENDING_P1_REMEDIATION",
+    "note": "ORCHESTRATOR_PRECHECK_PASS 를 ACCEPTED/VERIFIED/PROMOTED 와 동의어로 쓰지 않는다."
+  }
 }
