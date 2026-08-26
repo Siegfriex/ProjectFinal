@@ -1,0 +1,77 @@
+{
+  "cycle_id": "C012",
+  "target_exec_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "target_ssot_sha": "6455c228840cc84312059dd5a9a260e6c778d971",
+  "auditor": "ssot",
+  "started_at": "2026-08-26T13:52:00+09:00",
+  "finished_at": "2026-08-26T14:14:00+09:00",
+  "verdict": "PASS",
+  "method": "git archive 5a9015d1e95b15304aaf53a73efb475934610b82 로 고정 트리를 스크래치패드 사본(T/)에 추출하고 그 트리에서만 판정했다. exec 워킹트리는 판정 근거로 쓰지 않았다(참고로 git -C <exec> status --porcelain 은 빈 출력 = clean). 모든 git 명령은 git -C <절대경로> 로 실행했고 cd 에 의존하지 않았다. SSOT 는 control/landing-orchestrator 6455c228(워크트리 clean) 의 docs/00·02·03·04·06 과 control/state.json · control/promotions/PROM-001.json · control/cycles/C009.json · C011.json 최신본을 읽었다. exec 측 신규 docs/07 은 exec 고정 트리에서 읽었다. 판정 근거 인용 전건은 고정 트리의 A1 원문 4파일(text/rendered_html/detail_json/api_json)에 문자열 단위로 다시 대조했고, 매니페스트 self-hash 는 선언된 recipe 로 재계산했다.",
+  "violations": [
+    {
+      "id": "a1-raw-payload-files-not-hash-registered-in-authority-manifest",
+      "severity": "P2",
+      "rule": "02 §1 계보 / 00 §2 A1 모집단 권위 — 판정 근거의 한쪽 끝은 무결성이 선언된 authority source 여야 한다. C011 structural_findings 'derivative-to-derivative-verification' 의 연장선.",
+      "evidence": "C012 는 review queue 판정에 ABSENCE 증거층을 새로 도입했고, state/entity_review_decisions.json 의 absence_scope.raw_payload_layer 는 sources/wiseapp/raw/wiseapp933_detail.json 과 wiseapp933_api.json 을 A1 파일로 지목한다. hyundai_homeshopping_hmall 의 MERGE 판정은 'Hmallord 가 A1 텍스트 계층 4파일 전부에서 0회' 를 근거로 삼아 api.json 까지 부재 검사 범위에 넣는다. 그런데 sources/wiseapp/authority_manifest.json 의 raw_assets 는 detail_json / rendered_html / body_text / full_page_screenshot 4종만 등록하며, wiseapp933_api.json(250,759 B, sha256 28d54f925b620954…) 과 wiseapp933_images.json(4,108 B, sha256 0e9c3208b2ec52a6…) 은 authority_manifest.json 에도 source_evidence_manifest.json(figure 11종 + 저널만 해시)에도 sha256 이 없다. 즉 판정 근거로 쓰인 파일 하나의 무결성이 A1 계층에서 선언돼 있지 않다. 감사자가 고정 트리에서 실측한 해시는 위와 같으며, 이 값은 어떤 매니페스트와도 대조되지 않는다. 실제 판정 자체는 감사자가 4파일 전건에 재대조해 참임을 확인했다(Hmallord: text 0 / html 0 / detail 0 / api 0). 따라서 값 오류는 없고, 결여된 것은 '그 파일이 A1 동결본이라는 선언' 이다.",
+      "required_action": "authority_manifest.raw_assets 에 wiseapp933_api.json 과 wiseapp933_images.json 을 bytes·sha256 과 함께 등록하고 manifest_revision 을 5 로 올린다(raw_assets_unchanged=false 가 아니라, 등록 범위 확대임을 revision_log 에 명시). 또는 entity_review_decisions.absence_scope 를 해시 등록된 파일로만 한정한다. 둘 중 하나를 하지 않으면 '4파일 전부에서 0회' 라는 문장의 '4파일' 이 A1 이 무엇인지 매니페스트로 확정되지 않는다."
+    },
+    {
+      "id": "docs-07-authored-by-executor-in-ssot-numbered-namespace",
+      "severity": "P2",
+      "rule": "00 §1 권위 서열 — SSOT 문서(docs/00~06)는 control 계층의 산출물이다. 명문 규칙은 없으나 문서 번호 공간의 소유가 미정이다.",
+      "evidence": "지시받은 검증(06 과 번호·범위 중복)은 성립하지 않는다 — docs/07 의 범위는 evidence Run manifest 계약이고 06 의 범위는 web eligibility·url review·certification join 으로 겹치지 않으며, 번호도 중복되지 않는다. 내용도 SSOT 를 넘지 않는다: docs/07 §5 가 '이 모듈은 네트워크에 접근하지 않는다. E001 본수집과 무관하며, 수집을 승인하지도 않는다' 를 명시하고, 문서 머리에 'C012 exec 가 작성' 이라고 저자를 밝힌다. 남는 문제는 배치다. docs/00~06 은 control/landing-orchestrator 브랜치에만 존재하고(git ls-tree control/landing-orchestrator:.../docs/ = 00~06 + _invalidated), agent/landing-exec 의 docs/ 에는 07 하나뿐이며(git ls-tree 5a9015d1:.../docs/ = 07), 승격된 main(edb0478f)에는 docs/ 자체가 없다. 즉 executor 가 SSOT 번호 계열의 다음 번호를 다른 브랜치에서 선점했다. 향후 orchestrator 가 docs/07 을 발행하면 같은 경로에 서로 다른 두 문서가 브랜치별로 존재하게 되고, 미래 사이클이 exec 메모를 SSOT 규약으로 읽을 여지가 생긴다.",
+      "required_action": "orchestrator 가 둘 중 하나를 명시적으로 결정한다 — (a) docs/07 을 SSOT 로 채택해 control/landing-orchestrator 로 이관하고 C012 사이클 기록에 채택 사실을 남긴다, 또는 (b) exec 산출 메모임이 경로에서 드러나도록 재배치한다(예: research/landing_accessibility/notes/EXEC_C012_EVIDENCE_MANIFEST_CONTRACT.md). 아울러 docs/NN 번호 공간의 소유를 헌장/00 에 한 줄로 못박는다."
+    },
+    {
+      "id": "eligibility-basis-fields-narrower-than-06-still-carried",
+      "severity": "P2",
+      "rule": "06 §2-2 판정 근거 요건 — 각 entity 에 web_eligibility_status / eligibility_basis / eligibility_reviewer / eligibility_confidence / needs_human_review 를 기록한다.",
+      "evidence": "고정 트리 state/service_master.csv 의 컬럼은 web_eligibility_status, web_eligibility_basis 뿐이고 eligibility_reviewer · eligibility_confidence 컬럼이 없다. 그런데 EXCLUDED_INDUSTRY_AXIS 10건은 06 §2-1 이 '확정' 이라 부른 값이 이미 부여된 상태다(basis: \"fig07_t1 의 축은 표 헤더가 '업종' 인 업종 카테고리다\"). needs_human_review 는 C012 에서 review_decision 파생값으로 바뀌어 전 81건 False 인데, 이는 measurement entity 층의 파생값이지 web_eligibility 층의 플래그가 아니다 — 두 층이 같은 컬럼 하나를 공유한다. C012 가 새로 만든 결함은 아니며 기존 debt builder-eligibility-vocabulary-narrower-than-06 과 같은 계열이지만, C013 W3 에서 71건을 실제로 판정하는 순간 하중을 받는다.",
+      "required_action": "C013 W3 착수 전에 service_master 에 eligibility_reviewer / eligibility_confidence 를 신설하고, needs_human_review 를 review 층(measurement entity)과 eligibility 층으로 분리한다. 06 §2-1 8개 어휘를 builder 상수로 고정해 어휘 밖 값이 들어가면 빌드가 실패하게 한다."
+    },
+    {
+      "id": "c012-claim-status-label-mismatch",
+      "severity": "P2",
+      "rule": "C011 감사가 세운 원칙 — executor 보고의 정확성. 기존 debt idempotency-claim-false-journal-path-absolute 와 같은 계열.",
+      "evidence": "control/state.json c012_claimed.D1 은 'STRUCTURE_ONLY_RAW_ABSENT 를 VERIFIED 와 분리' 라고 적었으나, 구현된 상태 리터럴은 MANIFEST_WELL_FORMED_FILES_NOT_CHECKED 다(src/landing_accessibility/evidence_manifest.py verify_run 의 status 분기, docs/07 §4 표와도 일치). 개념은 동일하고 분리 자체는 실제로 구현돼 있으므로 데이터·판정 영향은 없다. 다만 보고서의 식별자와 코드의 식별자가 다르면 다음 사이클이 문자열로 대조할 수 없다.",
+      "required_action": "state.json c012_claimed.D1 의 표기를 코드 리터럴 MANIFEST_WELL_FORMED_FILES_NOT_CHECKED 로 정정하거나, 코드/문서 쪽을 STRUCTURE_ONLY_RAW_ABSENT 로 통일한다. 어느 쪽이든 하나의 문자열만 남긴다."
+    },
+    {
+      "id": "remaining-8-debts-visible-but-unscheduled-and-id-drift",
+      "severity": "P2",
+      "rule": "control/state.json debt_visibility_warning (ssot C011) — '명시적으로 유예하지 않으면 부채가 조용히 사라진다'. PROM-001 debt_note.",
+      "evidence": "부채 소실은 없다 — PROM-001 known_debt 11건은 state.json open_p2 에 11건 전량이 그대로 남아 있고, C012 가 닫았다고 주장한 D1/D2/D3 3건도 감사 전이라 아직 open_p2 에서 제거되지 않았다. 따라서 debt_still_visible = true 다. 그러나 phase_plan 은 C012 에 D1·D2·D3 만 배정하고 C013(W3~W5)·C014(W6~W7)·then(engine hardening…) 어디에도 나머지 8건이 등장하지 않으며, 유예(defer) 사실을 명시한 항목도 없다. ssot 이 C011 에서 경고한 형태 그대로 '보이지만 배정되지 않은' 상태다. 추가로 식별자 드리프트가 있다 — 같은 부채가 PROM-001 에서는 authority-manifest-lacks-explicit-revision-declaration, open_p2 에서는 authority-manifest-lacks-version-field 로 두 개의 id 를 갖는다. id 로 대사하는 순간 한 건이 이중 계상되거나 닫혔는데 열린 채로 남는다.",
+      "required_action": "각 부채에 assigned_cycle 또는 deferred_until 을 명시적으로 붙여 8건의 처리 시점을 phase_plan 과 연결한다. 부채 id 를 하나로 정규화하고(권장: authority-manifest-lacks-explicit-revision-declaration), PROM-001 ↔ open_p2 ↔ cycle 기록이 같은 키를 쓰도록 고정한다. C012 가 닫았다고 주장한 3건은 이번 감사 결과 반영 시 open_p2 에서 CLOSED 로 이동하고 닫은 근거 커밋을 남긴다."
+    }
+  ],
+  "checks_passed": [
+    "W1 MERGE 판정이 02 §2-2 를 위반하지 않는다 — 유일한 MERGE 인 hyundai_homeshopping_hmall 은 02 §2-2 표가 '현대홈쇼핑/현대Hmall vs 현대홈쇼핑/현대Hmallord → 발행물 오타로 확인, canonical 에서만 흡수, 원자료 무수정' 으로 이미 선허용한 바로 그 건이다. 근거를 A1 원문에 재대조했다: 'CJ 온스타일' 표기 차이를 포함한 Chapter 4 도입부 문장과 '주요 홈쇼핑 리테일 브랜드 5개는 …' 문장이 wiseapp933_text.txt 에 각 1회 실재하고(브랜드 수 5 를 원문이 명시), 'Hmallord' 는 text/rendered_html/detail_json/api_json 4파일 전부에서 0회다. fig10_t1 과 fig10_t2 의 라벨 5개 중 4개가 문자 단위로 동일함도 source_ranking_rows 로 확인했다(t1: NS홈쇼핑·홈앤쇼핑·현대홈쇼핑/현대Hmall·CJ온스타일·GS홈쇼핑/GS Shop / t2: CJ온스타일·현대홈쇼핑/현대Hmallord·GS홈쇼핑/GS Shop·홈앤쇼핑·NS홈쇼핑).",
+    "MERGE 가 원자료를 건드리지 않았다 — source_ranking_rows.csv/.parquet 은 edb0478f 대비 변경 0파일이고, fig10_t2 rank2 의 entity_name_raw 는 여전히 '현대홈쇼핑/현대Hmallord' 다. 흡수는 entity_alias_map 의 als_374ed3de3bfe9b79(match_basis=REVIEWED)에서만 일어나며 이 별칭은 C003 에 이미 존재해 alias_map 도 이번 사이클에 변경 0파일이다. 즉 MERGE 판정은 기록이지 재구성이 아니다 — service_master 81 / alias 82 / membership 142 / web_target_group 68 전부 불변.",
+    "나머지 6건 KEEP_SEPARATE 의 규칙 적용이 맞다 — coupang_app·coupang_retail·naver_app·naver_naverpay 는 RULE_1_MEASUREMENT_TARGET(02 §2-3 측정 대상 단위), gmarket_app·gmarket_auction 은 RULE_3_DISTINCT_SOURCE_LABEL(02 §2-2 원문 표기 상이). 인용 전건을 A1 에 재대조해 실재를 확인했다: APP 각주 '한국인 Android+iOS 스마트폰 사용자 추정.' 5회, RETAIL 각주 '한국인이 신용카드, 체크카드로 …' 6회 — 02 §3 이 원문에서 확정한 APP 5회 / RETAIL 6회 와 정확히 일치. 'G마켓/옥션' 은 본문 2파일에서 0회, payload 2파일에서 4회이며 판정 기록이 그 비대칭과 '다른 기사 문장' 이라는 사실을 scope_note 로 먼저 밝혔다 — C012 executor 가 자기 주장을 스스로 반증한 structural_finding(a1-layer-scope-confusion)과 일치한다.",
+    "coupang 분리가 orchestrator_decisions 와 일치한다 — measurement-entity-vs-web-target-separation 의 rule.measurement_entity 는 '쿠팡도 예외가 아니다' 를 명시한다. C012 는 coupang 을 KEEP_SEPARATE 로 확정했고, 결정적으로 그 근거를 표기가 아니라 지표·조사방법 각주에 둔다('A1 원문 표기는 두 도메인에서 쿠팡으로 동일하다. 따라서 이 판정의 근거는 표기가 아니라 …'). 이는 오케스트레이터가 문제로 지목한 '원문 문자열 우연 일치' 분기 기준을 정면으로 뒤집은 것이며, 표기가 같은데도 분리한 유일한 사례라 규칙이 표기에 의존하지 않음을 증명한다.",
+    "2층 분리가 유지된다 — entity_review_decisions.axis_independence 가 'measurement_entity 층 판정은 web_target 층 그룹 구성에 자동 전파되지 않는다' 를 선언하고 실제로 그렇다: KEEP_SEPARATE 로 확정된 naver·gmarket·coupang 6 entity 는 여전히 3개 CANDIDATE 그룹(member_count=2)에 남아 있다. web_target_group member 합계 71 = service_master 81 − EXCLUDED_INDUSTRY_AXIS 10 으로 정합.",
+    "APP/RETAIL 병합 금지 유지 — source_ranking_rows domain APP 137 / RETAIL 124 = 261, axis_type SERVICE_BRAND 231 / INDUSTRY_CATEGORY 30 으로 domain 과 axis_type 이 별도 컬럼. service_master 는 app_row_count(합 137) 와 retail_row_count(합 124) 를 분리 보유하며 두 값을 합산한 컬럼이 존재하지 않는다. by domain×axis: APP×SERVICE_BRAND 38 / RETAIL×SERVICE_BRAND 33 / RETAIL×INDUSTRY_CATEGORY 10 = 81.",
+    "W2 가 url_review 게이트를 앞지르지 않았다 — web_target_group 68건 전부 web_target_url = null, url_evidence = null, grouping_status ∈ {SINGLETON_PENDING_URL_REVIEW 65, CANDIDATE_PENDING_URL_REVIEW 3}, CONFIRMED_SHARED_TARGET 0건, SPLIT 0건. 06 §3-4 가 요구하는 'URL 확정 뒤에만 CONFIRMED' 를 지켰다.",
+    "가설 표시와 미확정 표시가 실제로 붙었다 — expected_url_relationship_is_hypothesis 는 후보 3건 True / 단독 65건 False, expected_url_relationship_confirmed_by_url 은 68건 전부 False. 후보 3건 각각에 falsifier(예: '두 measurement_entity 의 official_landing_url 이 서로 다른 PSL 등록도메인으로 확정되면 SPLIT 한다')와 risk(예: '표기 동일성은 랜딩 동일성의 증거가 아니다')가 기재돼 있다. falsifier 는 06 §3-2 를 지켜 구체 URL 을 적지 않고 관계 조건만 적는다. build_canonical_entities.py 가 ALLOWED_URL_RELATIONSHIP 어휘 검사와 'confirmed_by_url 이 하나라도 True 면 실패' assert, '후보 그룹은 전부 is_hypothesis 여야 한다' assert 를 빌드에 걸어 코드로 강제한다.",
+    "UNKNOWN 65 가 06 이 요구하는 '판정 안 함' 이다 — 단독 그룹의 basis 는 \"member 가 1건인 그룹이다. 그룹 '내부' URL 관계가 성립하지 않으므로 관계를 선언하지 않는다. … 그것을 여기서 UNKNOWN 이 아닌 값으로 적으면 URL 없이 결론을 선점하는 것이다\" 로, 확인 불가를 다른 값으로 바꾸지 않았다(06 §6 '확인 불가를 제외로 바꾸지 않는다').",
+    "expected_url_relationship 이 판정 입력으로 소비되지 않는다 — 저장소 전체 grep 결과 이 컬럼을 읽는 코드는 빌드 시 어휘/불변식 assert 와 요약 출력뿐이고, 다른 판정에 분기로 쓰이는 경로가 0건이다. 가설이 write-only 로 격리된 C011 의 _researcher_priors 원칙과 같은 형태다(system_app_hypothesis.json 도 여전히 write-only: 쓰는 곳은 build_canonical_entities.py, 읽는 곳은 테스트 1곳뿐).",
+    "D1 이 E001 금지를 우회하지 않았다 — 고정 트리와 exec 워킹트리 어디에도 evidence/ 디렉터리·Run·수집물이 존재하지 않는다(git ls-tree 5a9015d1 전수 검색 결과 매치는 docs/07 · source_evidence_manifest.json · src/…/evidence_manifest.py 세 파일명뿐, exec 워크트리 untracked 0). evidence_manifest.py 는 hashlib·json·dataclasses·pathlib·typing 만 import 하며 네트워크 심볼이 없다. docs/07 §5 가 '수집을 승인하지도 않는다' 를 명시한다. gitignore 변경은 제외 패턴을 넓히지 않고 !evidence/*/manifest.jsonl · !evidence/*/run_manifest.json 부정 패턴만 추가해 추적 대상을 늘렸다. e001_authorization = REQUIRES_RESEARCH_DIRECTOR_GO, full_collection = PROHIBITED 는 그대로다.",
+    "D1 이 '검사하지 않은 것' 과 '통과한 것' 을 분리했다 — verify_run 의 status 가 VERIFIED / MANIFEST_WELL_FORMED_FILES_NOT_CHECKED / FAILED 셋으로 갈리고, manifest 부재는 MissingRunManifestError 로 차단된다. Pilot 이 NA 와 UNDETERMINED 를 뭉갠 실패를 반복하지 않는 형태다(06 §2-3).",
+    "D2 manifest revision 이 A1 원문 판본과 혼동되지 않는다 — authority_manifest.json 에 manifest_revision=4, revision_kind=MANIFEST_DESCRIPTION_ONLY, source_freeze_note('매니페스트 판본과 A1 원문 판본은 다른 것이다 … 원문 판본이 바뀌는 일이 생기면 그것은 revision 이 아니라 새 authority_id 다')가 신설됐고, revision_log 4개 항목이 각각 raw_assets_unchanged 를 선언한다.",
+    "raw_assets_unchanged 선언이 정확하다 — fa7a976(C001) / fe86e19(C009) / edb0478(C011) / 5a9015d(C012) 네 판본의 authority_manifest 를 git show 로 꺼내 raw_assets 4종 sha256 을 대조한 결과 전 판본 동일했고, 고정 트리 실파일 해시와도 일치한다(detail c860818df8db1b54… / rendered_html db1977851f00a08f… / body_text 236efdd699c9bb62… / full_png c1e5422f1618a5cb…). manifest_self_sha256_excluding_self_field 는 선언된 recipe 그대로 재계산해 sha256:a6937fa3e31d5648f9bbf4bc55740aef58a603117880defed7f121d03c1964d4 로 일치했다 — 자기 해시가 실제로 검증 가능하다.",
+    "A1 원문 불변 — git -C <exec> diff edb0478f 5a9015d1 -- .../sources/wiseapp/raw 및 .../sources/wiseapp/images 모두 빈 출력. sources/wiseapp 하위에서 변경된 파일은 authority_manifest.json 하나뿐(+57행, 판본 선언 신설)이며 extraction_journal · source_evidence_manifest.json 도 변경 0파일이다.",
+    "Pilot 불변 — git -C <repo> diff --stat 32460b87 5a9015d1 -- research/refcohort 빈 출력. READ_ONLY 유지.",
+    "원문 구조 보존 — 고정 트리 panel_registry 17패널, source_chapter 고유값 4, (source_chapter, source_section) 조합 11, source_ranking_rows 261행. panel_registry 와 source_ranking_rows 는 승격 baseline edb0478f 대비 csv·parquet 모두 변경 0파일이므로 261행 값이 바이트 수준에서 불변이다. extraction_corrections.json 의 row_value_changes_applied 도 여전히 0.",
+    "web_eligibility 선판정 금지 — web_eligibility_status 는 정확히 {NOT_ASSESSED 71, EXCLUDED_INDUSTRY_AXIS 10} 이고 06 §2-1 어휘 밖 값은 0건이다. C011 이 제거한 SYSTEM_APP_CANDIDATE 는 재유입되지 않았고, URL 증거 없이 EXCLUDED 로 확정된 건도 없다(open_p1 system-app-candidate-is-unsourced-researcher-prior 의 escalation 조건 '게이트에서 URL 증거 없이 EXCLUDED 로 확정되면 P0' 미해당).",
+    "gates 순서 유지 — web_eligibility / url_review / certification_join 세 게이트가 모두 NOT_RUN 이고, C012 산출물 어디에도 certified_current · official_landing_url · feasibility 값이 생성되지 않았다. 06 §1 '앞 단계가 확정되기 전에 뒤 단계 값을 채우지 않는다' 준수.",
+    "A7 / legacy ontology 유입 0 — 라이브 코드(scripts/, src/)와 라이브 state 산출물에 xlsx 참조가 0건이고, BUY_RESERVE·TRANSFER_ENTRY·CLASSIFY_RULES·TYPE_MAP·TASK_ENTRY·primary_task_code 등 폐기 어휘는 state/_invalidated/ 안의 보존 파일에만 존재하며 이를 읽는 코드는 0건이다. 인증목록으로 모집단을 넓힌 흔적도 없다(service_master 81 불변).",
+    "D3 절대경로 제거 — journal_provenance schema v3 로 journal_path 절대경로가 삭제되고 journal_path_in_repo 상대경로만 남았으며, path_policy.absolute_paths_recorded=false 와 resolved_at_runtime 선언이 붙었다. 빌더는 저널이 저장소 밖이면 SystemExit 으로 실패한다. state/ 와 sources/ 전 산출물에 '/home/sieg' 문자열 0건.",
+    "exec 워크트리 clean, control/ 미침범 — git status --porcelain 빈 출력이고 C012 diff 에 research/landing_accessibility/control/ 파일이 0개다. executor 가 SSOT control 산출물을 직접 쓰지 않았다.",
+    "테스트 재현 — 감사자가 exec 워크트리에서 pytest 를 독립 실행해 85 passed 를 확인했다(c012_claimed.tests 주장과 일치)."
+  ],
+  "authority_order_intact": true,
+  "a1_source_unmodified": true,
+  "gate_order_respected": true,
+  "debt_still_visible": true,
+  "notes": "P0 0건 · P1 0건 · P2 5건. 즉시 P0 목록(xlsx 사용 / 원문 panel 삭제·재분류 / APP·RETAIL 병합 / 인증목록 모집단 확장 / 등록도메인만으로 인증 1 / Pilot 통계 사용 / 승인 없는 RQ 변경 / E001 무단 실행 / legacy ontology) 전 항목 미해당. C012 의 핵심은 '시정이 SSOT 를 넘어섰는가' 인데, 세 지점에서 오히려 SSOT 가 요구한 것보다 보수적으로 멈췄다: (1) 유일한 MERGE 는 02 §2-2 가 이름을 들어 선허용한 건이고, 그마저 원자료가 아니라 별칭 층에서 이미 끝나 있던 것을 판정으로 기록만 했다 — entity/alias/membership/group 카운트가 하나도 움직이지 않았다. (2) coupang 을 '표기가 같은데도' 분리하며 판정 근거를 표기에서 지표·조사방법 각주로 옮겼는데, 이것은 orchestrator_decisions 가 문제로 지목한 '원문 문자열 우연 일치' 분기를 없앤 것이다. (3) W2 는 URL 없이 관계를 확정할 수 있었음에도 확정하지 않았다 — SAME_LANDING_EXPECTED 3건은 is_hypothesis=True / confirmed_by_url=False / falsifier / risk 를 달았고, 단독 65건은 UNKNOWN 으로 남겼으며, 'confirmed_by_url 이 하나라도 True 면 빌드 실패' assert 로 자기 자신을 묶었다. D1 은 E001 우회의 반대다 — 수집 전에 검증 경로를 먼저 만들고 네트워크 심볼조차 두지 않았으며, gitignore 는 제외를 넓힌 게 아니라 manifest 를 추적 대상으로 끌어냈다. 남은 P2 5건은 전부 '검증 가능성·표기·소유' 계열이고 데이터 오염이나 판정 왜곡이 아니다. 그중 하중이 큰 것은 두 개다 — (a) ABSENCE 증거층이 A1 매니페스트에 해시 등록되지 않은 api.json 을 근거로 쓴다는 점은 '검증의 한쪽 끝은 원본' 원칙을 파일 무결성 선언 수준까지 밀어야 완결된다는 뜻이고, (b) eligibility 근거 컬럼이 06 §2-2 보다 좁은 상태로 C013 W3 에 진입하면 71건 판정이 근거 필드 없이 쌓인다. debt 는 소실되지 않았다(open_p2 11건 전량 유지) — 문제는 소실이 아니라 배정 부재와 id 드리프트이므로 debt_still_visible 은 true 로 둔다. promotion 가부를 결정하는 네 필드는 모두 true 이며 verdict 는 PASS 다."
+}
