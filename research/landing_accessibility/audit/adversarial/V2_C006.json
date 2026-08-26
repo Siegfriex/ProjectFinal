@@ -1,0 +1,314 @@
+{
+  "cycle": "V2-C006",
+  "auditor": "adversarial",
+  "target_sha": "3ad04585ae0f58500859e4c3b765844b2cdb5089",
+  "prev_target_sha": "684c792452af670caf5bbf2646cf41bd39a1ce99",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha": "3eaf51bd8157f6b24d3ee5f5afd81b1e0387b309",
+  "pilot_sha": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+  "prev_adversarial_audit_sha": "b7fd4677202640e8293c9c7a766fb624e88f3925",
+  "prev_adversarial_audit_branch": "audit/landing-adversarial",
+  "prev_adversarial_auditor": "adversarial (Claude, self)",
+  "prev_ssot_audit_sha": "39e485c85b745e7f34b675e24c54662b83dcea79",
+  "target_branch": "agent/landing-v2-exec",
+  "audit_branch": "audit/landing-adversarial",
+  "base_ref": "research/landing-accessibility-main",
+  "phase": "P0_V2_REFREEZE",
+  "gate": "V2_SSOT_FROZEN",
+  "verdict": "PASS",
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 4,
+    "blocking": 0
+  },
+  "prior_findings_status": [
+    {
+      "id": "recollection-escape-path-unbounded-and-conclusion-prioritized",
+      "source": "adversarial V2-C003 -> Codex V2-C004 ADV-C004-01 -> adversarial V2-C005 / P1 blocking (3 cycles OPEN)",
+      "status": "CLOSED",
+      "superseded_by": "rc-6-r1-same-authorization-local-reexecution-unbounded (orchestrator-registered, P2 / E001_V2-blocking)",
+      "evidence": "재설계된 RC-6 (EXECUTION 레코드, 유도식 f(ledger_record_sha256, countersign_commit_sha, execution_index), 검사 A-6/A-7/A-8)를 직접 공격했다. (1) 미인가 id 생성 후 정본 지정 시도 - f의 입력에 control 인가 커밋이 필요해 인가 전 통과 id 계산 불가 (I-38 재현 확인). (2) 인가받고 결과 숨김 - A-8이 control 인가 수 E(executor가 못 쓰는 자리) 대 EXECUTION/DISPOSITION 수 대조로 차단 (I-40 재현 확인). (3) 하나의 인가에 두 run - A-7 1:1:1 강제. 유일하게 통과하는 경로는 '인가된 하나의 id로 로컬 K회 실행 후 1회만 커밋'(R-1)뿐이며 이는 커밋되지 않은 로컬 실행이라 저장소 내부 검사로 원리적 배제 불가 - 오케스트레이터 판단에 동의. R-1은 orchestrator가 이미 별도 blocking 항목(rc-6-r1-same-authorization-local-reexecution-unbounded, P2/E001_V2-blocking)으로 등재해 open_blocking_total에서 계속 계상되므로 이 항목을 닫아도 아무것도 조용히 사라지지 않는다. 추가로 control/landing-orchestrator 브랜치 쓰기가 git/GitHub 수준에서 강제되지 않음을 직접 확인(gh api 404 not protected, rulesets [], pre-push hook explicit allow) - 이는 R-1과 무관(순수 로컬 경로)하지만 R-4 범위를 넓히므로 별도 non-blocking finding으로 등재."
+    },
+    {
+      "id": "banner-policy-regression-tests-pass-vacuously",
+      "source": "adversarial V2-C005 / P2 blocking",
+      "status": "CLOSED",
+      "evidence": "일회용 clone에서 verify_v2_docs.py 배너 강제 블록(105-118행)을 통째로 삭제하고 5개 대상(00_SSOT/A1/A2/EXECUTION_AUTHORITY/PHASE_GATES)에 위조 배너+매니페스트 해시 갱신을 넣고 pytest 실행. 결과 5 failed 3 passed - A1/A2/EXECUTION_AUTHORITY/PHASE_GATES 4건에서 신설된 assert \"BANNER\" in combined 가 정확히 실패(AssertionError: 차단됐으나 사유가 배너가 아니다). V2-C005에서는 동일 조작에 7 passed였다. 00_SSOT는 별도 방어선(banner_inserted 필드 대조)이 살아있어 통과 - 공격이 노린 지점도 아니고 약화도 아님. 대조군 test_non_banner_mutation_does_not_report_banner도 정상 동작 확인. 마커 f-string 조립은 조립된 바이트열이 이전 리터럴과 완전 동일해 탐지 로직에 영향 없음을 확인 - 검사 약화 없음."
+    },
+    {
+      "id": "install-manifest-coverage-boundary-leaves-non-pack-docs-outside-v2-droppable",
+      "source": "adversarial V2-C005 / P2 non-blocking",
+      "status": "OPEN",
+      "narrowed": true,
+      "evidence": "docs/INDEX.md 삭제 공격(V2-C005 F2/G)은 이제 required=(CLAUDE.md, docs/INDEX.md, scripts/verify_v2_docs.py) 루프가 UNDECLARED 로 차단함을 직접 재현 확인. 그러나 docs/07_EVIDENCE_MANIFEST_CONTRACT.md(A2 §0 권위 10위, RC-6 앵커 digest 결속 근거)는 required 목록에 없고 docs/v2/ 밖이라 두 그물(pack 루프 + V2.rglob) 모두에서 빠진다 - 그 파일에 임의 텍스트를 추가하고 커밋해도 V2_DOCS_VERIFY: PASS 를 직접 재현했다."
+    },
+    {
+      "id": "verify-script-and-its-tests-are-not-in-the-install-manifest",
+      "source": "adversarial V2-C005 / P2 non-blocking",
+      "status": "OPEN",
+      "narrowed": true,
+      "evidence": "scripts/verify_v2_docs.py 는 이번 사이클에 INSTALL_MANIFEST.json 에 anchor:git 으로 등재됐다. BANNER_ALLOWED 에 A1 추가(자기수정) + A1 배너 주입 + A1 매니페스트만 갱신(스크립트 자신의 매니페스트 해시는 그대로) 공격을 재현한 결과 SHA scripts/verify_v2_docs.py: 설치본 해시가 매니페스트와 다르다 로 차단됨을 확인 - V2-C005에서는 이 공격이 통과했었다. 단, tests/test_v2_docs_integrity.py 는 여전히 매니페스트 미등재다."
+    },
+    {
+      "id": "debt-recompute-has-no-second-source-for-v1-inherited-items",
+      "source": "adversarial V2-C005 / P2 non-blocking",
+      "status": "CLOSED",
+      "evidence": "v1 항목 1건 삭제 + (B) debt_inheritance.items 와 (C1) state.debt_ledger(triage.counts/total/open) 를 자기일관되게 함께 낮춘 뒤 [DEBT_RECOMPUTE] 블록을 스크립트에서 추출해 argv 로 독립 실행. (C2) git 앵커(322f5347, v1 debt triage 최초 확립 커밋으로 직접 검증)와의 대조에서 즉시 차단됨을 확인. V2-C005에서 뚫렸던 B 단일소스 자기일관 조작은 이제 C1 까지 자기일관되게 해도 C2 가 독립적으로 막는다."
+    }
+  ],
+  "ssot_findings_independent_observation": [
+    {
+      "id": "banner-injection-regression-tests-pass-without-banner-enforcement",
+      "source": "ssot V2-C005 F1",
+      "note": "adversarial 담당분과 동일 사안(§5). 독립 재현 결과 CLOSED로 보인다. 공식 판정은 ssot 소관."
+    },
+    {
+      "id": "execution-authority-has-no-a0-pointer-and-baseline-audit-record-is-one-cycle-stale",
+      "source": "ssot V2-C005 F2",
+      "note": "(a) pointer 신설 확인, 정책표 복제 0건 - 해소. (c) §6 이력에 V2-C004/V2-C005 행 추가 확인 - 해소. (b) §5 기준선 stale은 adversarial 행만 고쳐지고 ssot 행은 43fab0ac(V2-C003)로 방치됨을 직접 확인 - 부분만 해소. 잔여를 execution-authority-ssot-baseline-row-still-stale 로 신규 등재(non-blocking). 공식 판정은 ssot 소관."
+    },
+    {
+      "id": "a2-rc6-check-a6-run-id-derivation-is-circular-and-unspecified",
+      "source": "ssot V2-C005 F3",
+      "note": "record_sha256 입력집합에서 run id 필드(planned_evidence_run_id)가 완전 삭제되고 evidence_run_id는 레코드 바깥 3값(ledger_record_sha256/countersign_commit_sha/execution_index)에서만 유도됨을 A2 diff 직접 검토로 확인 - 순환 원인이 구조적으로 제거됐다. control 쪽 스키마도 FORBIDDEN_evidence_run_id 로 재발 명문 금지. 독립 재유도 결과 결함 없음을 확인했으나 공식 판정은 ssot 소관."
+    },
+    {
+      "id": "ned-ied-path-minimality-not-operationalized",
+      "source": "adversarial V2-C002 / P2 (E001_V2-blocking, non-blocking for current P0)",
+      "note": "OPEN, 미착수 확인만. A1_MEASUREMENT_OPERATIONALIZATION.md 는 이번 사이클 diff(684c792->3ad0458, 5파일)에 전혀 등장하지 않는다. P-C/P-D 귀속."
+    }
+  ],
+  "findings": [
+    {
+      "id": "install-manifest-coverage-boundary-leaves-non-pack-docs-outside-v2-droppable",
+      "severity": "P2",
+      "blocking": false,
+      "status": "OPEN",
+      "blocking_class": "POST_E001_DEBT",
+      "file": "research/landing_accessibility/scripts/verify_v2_docs.py:184-192 (required tuple) · docs/07_EVIDENCE_MANIFEST_CONTRACT.md",
+      "evidence": "required=(CLAUDE.md, docs/INDEX.md, scripts/verify_v2_docs.py) 3종만 강제된다. docs/07_EVIDENCE_MANIFEST_CONTRACT.md(A2 §0 권위 10위)는 목록 밖이고 docs/v2/ 밖이라 pack 루프·V2.rglob 커버리지 둘 다에서 빠진다. 임의 변조 커밋 후에도 V2_DOCS_VERIFY: PASS 를 직접 재현했다.",
+      "impact": "라우팅/앵커 근거로 쓰이는 권위 10위 문서가 무결성 검증 밖에 있다. 매니페스트 삭제와 달리 이 파일은 애초에 매니페스트에 없었으므로 diff로 드러나지도 않는다.",
+      "closure": [
+        "required 목록에 docs/07_EVIDENCE_MANIFEST_CONTRACT.md 를 추가하거나 커버리지 루프를 ROOT/docs 전체로 넓힌다.",
+        "INSTALL_MANIFEST.json 에 anchor: git 으로 등재한다."
+      ]
+    },
+    {
+      "id": "verify-script-and-its-tests-are-not-in-the-install-manifest",
+      "severity": "P2",
+      "blocking": false,
+      "status": "OPEN",
+      "blocking_class": "POST_E001_DEBT",
+      "file": "tests/test_v2_docs_integrity.py",
+      "evidence": "scripts/verify_v2_docs.py 는 이번 사이클에 매니페스트 등재됐으나 tests/test_v2_docs_integrity.py 는 여전히 미등재다.",
+      "impact": "제한적 - [EXEC_TREE] 가 exec SHA 를 핀하므로 감사 후 교체는 diff 로 드러난다. 실질 앵커는 감사 자체다.",
+      "closure": [
+        "tests/test_v2_docs_integrity.py 를 INSTALL_MANIFEST.json 에 anchor: git 으로 등재한다."
+      ]
+    },
+    {
+      "id": "execution-authority-ssot-baseline-row-still-stale",
+      "severity": "P2",
+      "blocking": false,
+      "status": "OPEN",
+      "blocking_class": "POST_E001_DEBT",
+      "file": "research/landing_accessibility/docs/v2/EXECUTION_AUTHORITY.md §5 (기준선표, 'ssot audit' 행)",
+      "evidence": "세 사이클(V2-C004/C005/C006) 동안 바이트 단위로 무변경 - 'V2-C003 @ 43fab0acb3a9352c36b9c0b844cb44cef9f9d79d'. 실제 최신 ssot 감사는 39e485c85b745e7f34b675e24c54662b83dcea79(V2-C005). 같은 표의 adversarial audit 행은 이번 사이클에 정확히 V2-C005 @ b7fd4677... 로 갱신됐다 - 두 행 중 하나만 고쳐졌다. ssot V2-C005 F2(b)가 정확히 이 표(양쪽 행)를 지적했었다.",
+      "impact": "control/state.json.audit_lag.latest_ssot_audit_sha (실제 게이팅에 쓰이는 값)는 정확함을 직접 확인 - 오게이팅은 없다. 문서 기준선 정확성 결함만.",
+      "closure": [
+        "EXECUTION_AUTHORITY.md §5 ssot audit 행을 'V2-C005 @ 39e485c85b745e7f34b675e24c54662b83dcea79' 로 갱신한다.",
+        "두 감사 행을 같은 커밋에서 함께 갱신하는 습관화를 권장한다."
+      ]
+    },
+    {
+      "id": "control-branch-write-access-not-technically-restricted-to-orchestrator-role",
+      "severity": "P2",
+      "blocking": false,
+      "status": "OPEN",
+      "blocking_class": "E001_V2",
+      "file": "scripts/hooks/pre-push (control/landing-orchestrator 규칙) · GitHub branch protection (부재)",
+      "evidence": "gh api repos/Siegfriex/ProjectFinal/branches/control%2Flanding-orchestrator/protection -> 404 'Branch not protected'. gh api .../rulesets -> []. pre-push 훅 주석: '그 외 브랜치(feat/* agent/* audit/* control/* ...) 로의 일반 push 는 막지 않는다' - control/* 을 명시적으로 허용. gh api repos/Siegfriex/ProjectFinal --jq .permissions -> {admin:true,...}. A-5/A-7/A-8이 기대는 'executor는 control 브랜치를 쓰지 못한다'는 전제는 git/GitHub 수준에서 전혀 강제되지 않는 순수 관례(역할분리)다.",
+      "impact": "R-1 판단에는 영향 없음(R-1은 control 조작이 불필요한 순수 로컬 경로). R-4(오케스트레이터 담합 시 인가 무제한)의 실제 진입장벽이 예상보다 낮다는 것을 확인한다 - '담합'조차 필요 없이 동일 자격증명을 쓰는 어떤 세션이든 직접 쓸 수 있다. 이번 사이클에 새로 생긴 취약면이 아니다 - A-5는 V2-C005부터 이미 이 가정에 기댔고 ssot V2-C005 §8 관찰 4가 문서 차원에서 이미 지적한 것과 같은 계열이다.",
+      "closure": [
+        "E001_V2 착수 전 control/landing-orchestrator 에 브랜치 보호(지정 토큰만 push, 또는 review 요구)를 건다.",
+        "또는 pre-push 훅에 control/* 규칙을 추가해 recollection_prereg_anchors 를 쓰는 커밋을 별도 서명 없이는 거부한다."
+      ]
+    }
+  ],
+  "recollection_redesign_direct_attacks": {
+    "unauthorized_id_generation": "BLOCKED - f 의 입력에 countersign_commit_sha 필요, 인가 전 통과 id 계산 불가 (I-38 재현)",
+    "authorized_execution_result_hidden": "BLOCKED - A-8이 control 인가 수 E(executor 미접근 자리) 대 EXECUTION/DISPOSITION 수 대조 (I-40 재현)",
+    "single_authorization_two_runs": "BLOCKED - A-7 1:1:1 강제 (I-39)",
+    "single_authorized_id_K_local_runs_commit_one": "NOT BLOCKED - R-1, 저장소 내부 검사로 원리적 배제 불가, 오케스트레이터 판단에 동의",
+    "control_branch_write_access_git_permission_test": {
+      "pre_push_hook": "explicit allow for control/* (설계상 의도, Pilot·research/landing-accessibility-main만 실제 차단)",
+      "github_branch_protection": "404 Branch not protected",
+      "github_rulesets": "[]",
+      "gh_permissions": "admin:true",
+      "conclusion": "executor가 control 브랜치를 못 쓴다는 전제는 관례일 뿐 기술적으로 강제되지 않는다. R-1과는 무관(순수 로컬 경로)하나 R-4 범위를 넓힌다. 신규 non-blocking finding으로 등재."
+    },
+    "r1_acceptance_verdict": "AGREE - 원리적 불가능성이 참(committed artifact만 감사 가능한 체계의 근본 한계), id 다양화 경로는 실제로 닫힘(A-6/A-7/A-8), 정직하게 3곳에 등재됨(잔여표·닫힘논거표·I-41), 위험도가 P1/V2_SSOT_FROZEN에서 P2/E001_V2 로 낮아짐(재수집이 실제 실행되기 전에는 행사 불가), orchestrator가 별도 blocking 항목으로 이미 등재해 fail-closed 유지(무언가 조용히 사라지지 않음)"
+  },
+  "banner_regression_direct_verification": {
+    "attack": "verify_v2_docs.py 배너 강제 블록(105-118행) 통째 삭제 후 5개 대상에 위조 배너+매니페스트 해시 갱신하여 pytest 실행",
+    "result_before_fix_v2_c005": "7 passed (vacuous)",
+    "result_after_fix_v2_c006": "5 failed 3 passed - A1/A2/EXECUTION_AUTHORITY/PHASE_GATES 4건이 assert \"BANNER\" in combined 로 실제 FAIL",
+    "00_ssot_exception": "별도 방어선(pack 파일의 banner_inserted 필드 대조)이 살아있어 통과 - 공격 대상도 아니고 약화도 아님",
+    "control_group": "test_non_banner_mutation_does_not_report_banner 정상 동작 확인",
+    "marker_assembly_weakening_check": "조립된 바이트열이 이전 리터럴과 완전 동일 - 다른 파일 탐지 로직에 영향 없음, 우회 경로 없음"
+  },
+  "manifest_coverage_and_self_anchor": {
+    "docs_index_deletion_attack": "BLOCKED (UNDECLARED) - required 3종 루프 신설로 시정 확인",
+    "verifier_self_modification_attack": "BLOCKED (scripts/verify_v2_docs.py SHA mismatch) - 스크립트 매니페스트 등재로 시정 확인. 스크립트 자신의 매니페스트 해시까지 자기일관되게 고치면 통과하나 이는 A1/A2/PHASE_GATES와 동급 잔여 (EXEC_TREE 핀 + 감사가 실질 앵커)",
+    "docs_07_evidence_manifest_contract_unregistered": "STILL PASSES arbitrary tampering - required 목록·rglob 커버리지 둘 다 밖 (직접 재현)",
+    "tests_file_unregistered": "confirmed still absent from INSTALL_MANIFEST.json files"
+  },
+  "control_dry_runs": {
+    "v1_debt_double_source": {
+      "attack": "v1 항목 1건 삭제 + debt_inheritance.items(B)와 state.debt_ledger(C1, triage.counts/total/open) 자기일관 동시 조작",
+      "result": "BLOCKED - v1 원장이 앵커 이후 조용히 바뀌었다: C1 vs C2(git anchor 322f5347) 불일치",
+      "anchor_commit_validated": "322f5347f382f7beca0690a0b1b44435c18c56bb - control(v4.0): closure baseline 동결 + A0 state materialization + debt triage. 부모 커밋에는 debt_ledger.triage 필드 자체가 없음을 직접 확인 - v1 부채 확정의 최초 지점, 앵커 선택 타당",
+      "baseline_recompute_no_manipulation": "14 (v1=6, V2-C001=0, V2-C002=1, V2-C003=0, V2-C004=0, V2-C005=4, orchestrator=3) - 선언값과 일치"
+    },
+    "section_4_to_5_citations": {
+      "stale_bare_number_citations_remaining": 0,
+      "control_citations_now_title_plus_number": "PHASE_GATES 「판정 권한」절 = §5 (promote_landing_main.sh:424), 「판정 권한」절(당시 §4, A0 §4 SHADOW 신설 후 =§5) (V2_C005_orchestrator.json:52,198)",
+      "verified_against_actual_heading": "PHASE_GATES.md 실제 헤딩 ## 4. SHADOW... / ## 5. 판정 권한 - 병기가 정확히 맞는 절을 가리킴을 직접 대조 확인"
+    },
+    "open_blocking_total_14_verification": {
+      "declared": 14,
+      "recomputed_by_extracted_DEBT_RECOMPUTE_block": 14,
+      "breakdown": {
+        "v1": 6,
+        "V2-C001": 0,
+        "V2-C002": 1,
+        "V2-C003": 0,
+        "V2-C004": 0,
+        "V2-C005": 4,
+        "orchestrator_registered": 3
+      },
+      "open_blocking_ids_len": 14,
+      "remediation_claims_deducted_this_cycle": 0,
+      "verdict": "정확하다. v2_c006_remediation_not_deducted 필드가 명시한 대로 이번 사이클 시정 주장분(재수집 재설계·배너 검증 강화·v1 이중소스·§5 인용)은 어느 것도 미리 차감되지 않았음을 독립 재계산으로 확인.",
+      "expected_next_ledger_value": "14 -> 12 (recollection-escape-path CLOSED - R-1은 orchestrator 항목으로 이미 계상돼 순변화 없음, banner-policy-regression CLOSED). ssot가 F2/F3을 CLOSED로 판정하면 10까지 추가 하락 가능."
+    }
+  },
+  "a2_reverification": {
+    "size_change": "199424B -> 214013B (+14589)",
+    "undetermined_to_pass_transition_table_touched": false,
+    "note": "diff(299줄) 전체 검토 결과 §1.11.1 UNDETERMINED->PASS 전이표는 전혀 건드리지 않았다. V2-C005에서 독립 재열거한 결과(32조합 전건 매핑, 탈출 0)는 변경 없이 유효.",
+    "new_rules_weaken_existing": "NONE FOUND - RC-1~RC-5 문면 무변경, A-1/A-2/A-4 무변경, A-3은 A-6의 귀결로 재분류(약화 아닌 정직한 재분류), A-5는 죽은 조항(구조적으로 항상 참)을 살아있는 조항(remote tip 실시간 조회)으로 교체"
+  },
+  "execution_authority_2_5_pointer": {
+    "policy_table_duplication": "0건 (git grep 전 target tree, PHASE_GATES.md 밖)",
+    "lane_base_sha_verified": "3개 lane 전부 git merge-base 로 d5f1da5652953542d5c8be377026cc3293f2075a 와 정확히 일치 확인",
+    "codex_history_recorded": "§6 이력표 V2-C004 행에 정확히 기록됨",
+    "adversarial_baseline_row": "updated correctly to V2-C005 @ b7fd4677...",
+    "ssot_baseline_row": "STALE - see finding execution-authority-ssot-baseline-row-still-stale"
+  },
+  "shadow_lanes": {
+    "policy": "research/landing_accessibility/docs/v2/PHASE_GATES.md §4",
+    "p0_findings": 0,
+    "lanes": [
+      {
+        "branch": "agent/landing-pa-shadow",
+        "tip": "0f46203905e5526d5b4038de56e9c286e65b1542",
+        "real_target_measurement": false,
+        "note": "tip 불변(V2-C005와 동일) - 재확인 결과 유지"
+      },
+      {
+        "branch": "agent/landing-pb-prework",
+        "tip": "9999857e04ebdb73271871c55c77d19f1d5cc660",
+        "real_target_measurement": false,
+        "note": "tip 불변 - 358 HTTP probe는 §4.2/§4.5 target-preparation carve-out 범위 내, V2-C005 판정 유지"
+      },
+      {
+        "branch": "agent/landing-pc-fixture",
+        "tip": "0c36c95f3567a27908346151d7fec3ec9ce86215",
+        "real_target_measurement": false,
+        "note": "신규 커밋(V2-C005 시점은 미커밋 상태였음). engine/firewall.py 전문 직접 검토 - P0_GATE_STATUS 하드코딩 OPEN, ExecutionMode 닫힌 집합, assert_navigation_allowed 가 SHADOW_DRY_RUN 항해 자체 금지·FIXTURE는 file:// + fixture_root 안쪽만. l0_collector.py:383-412에서 assert_navigation_allowed 반환값이 그대로 page.goto 에 전달됨을 확인(TOCTOU 없음). tests/test_pc_firewall.py 가 REAL_TARGET/5종 비-file 스킴/SHADOW_DRY_RUN 항해시도/미상값 4종을 각각 차단 확인."
+      }
+    ],
+    "cross_lane_checks": {
+      "evidence_directory_in_repo": 0,
+      "merged_to_main_or_landing_accessibility_main": 0,
+      "state_parquet_modified": 0,
+      "fact_criterion_result_or_verdict_state_pass_actual_data": 0
+    }
+  },
+  "checks": {
+    "recollection_unauthorized_id_generation_blocked": "PASS (I-38 재현)",
+    "recollection_authorized_execution_hidden_blocked": "PASS (I-40 재현)",
+    "recollection_single_auth_two_runs_blocked": "PASS (A-7)",
+    "recollection_r1_local_reexecution_not_blockable_by_repo_inspection": "CONFIRMED_AND_ACCEPTED",
+    "recollection_control_branch_write_access_technically_unrestricted": "CONFIRMED (gh api 404, rulesets [], pre-push explicit allow)",
+    "banner_regression_test_now_detects_removal": "PASS (4/5 대상 직접 재현, 5번째는 별도 방어선으로 정상 통과)",
+    "banner_marker_assembly_does_not_weaken_detection": "PASS (바이트열 동일)",
+    "manifest_docs_index_deletion_blocked": "PASS",
+    "manifest_verifier_self_modification_blocked": "PASS (자기 SHA 불일치)",
+    "manifest_07_evidence_contract_still_unregistered": "FAIL_NONBLOCKING (직접 재현)",
+    "manifest_test_file_still_unregistered": "FAIL_NONBLOCKING",
+    "v1_debt_double_source_c1_c2_holds_under_self_consistent_attack": "PASS (C2 anchor catches)",
+    "v1_ledger_anchor_commit_322f5347_validity": "PASS (직접 검증 - 최초 확립 커밋)",
+    "phase_gates_4_to_5_citation_no_stale_bare_number": "PASS (9브랜치 전수 grep)",
+    "open_blocking_total_14_independent_recompute": "PASS (일치)",
+    "a2_undetermined_to_pass_table_untouched": "PASS (재확인 불요, diff 미포함)",
+    "a2_new_rules_do_not_weaken_existing": "PASS",
+    "execution_authority_2_5_no_policy_duplication": "PASS",
+    "execution_authority_lane_base_sha": "PASS (git merge-base 3/3)",
+    "execution_authority_codex_history_recorded": "PASS",
+    "execution_authority_ssot_baseline_row": "FAIL_NONBLOCKING (3사이클 stale)",
+    "shadow_lane_c_firewall_enforced_in_code": "PASS (firewall.py + l0_collector.py + test_pc_firewall.py 직접 검토)",
+    "shadow_lane_real_target_measurement": "PASS - 위반 0건 (전 lane)",
+    "shadow_lane_merged_to_main": "PASS - 0건",
+    "pilot_immutable": "PASS",
+    "root_claude_md": "PASS",
+    "state_parquet": "PASS",
+    "c013_contamination": "PASS",
+    "evidence_in_target": "PASS",
+    "self_approval": "PASS",
+    "unaudited_depth": "PASS (0 <= 1)"
+  },
+  "invariants": {
+    "pilot_diff": 0,
+    "root_claude_md_diff": 0,
+    "state_parquet_diff": 0,
+    "c013_contamination": 0,
+    "evidence_in_target_tree": 0,
+    "source_pack_untouched_this_cycle": true,
+    "self_approval": 0,
+    "unaudited_cycle_depth": 0,
+    "max_unaudited_exec_cycles": 1,
+    "E001_V2_STARTED": false,
+    "FULL_COLLECTION_STARTED": "NO"
+  },
+  "non_findings_observed": [
+    "00_SSOT 배너 위조 테스트는 배너 강제 블록 삭제 상태에서도 통과한다 - pack 파일 전용 별도 방어선(banner_inserted 필드 대조)이 살아있기 때문이며 공격이 노린 지점이 아니고 약화도 아니다.",
+    "scripts/verify_v2_docs.py 자신을 자기일관되게(BANNER_ALLOWED 수정 + 자기 매니페스트 해시도 함께 갱신) 고치면 통과한다 - A1/A2/PHASE_GATES와 동급 잔여이며 [EXEC_TREE] 핀 + 감사 diff가 실질 앵커다. finding으로 올리지 않는다.",
+    "control-branch-write-access 발견은 R-1 판단에 영향을 주지 않는다 - R-1은 control 조작이 전혀 불필요한 순수 로컬 경로다."
+  ],
+  "verified_commands": [
+    "git -C $REPO fetch --all --prune",
+    "git -C $REPO ls-remote origin",
+    "git clone --shared $REPO $SCRATCH/atk_c006*  (일회용 공격 clone, 4종)",
+    "python3 (verify_v2_docs.py 105-118행 삭제 스크립트) + pytest tests/test_v2_docs_integrity.py -v",
+    "python3 (INSTALL_MANIFEST.json docs/INDEX.md 항목 삭제) + python verify_v2_docs.py",
+    "python3 (BANNER_ALLOWED에 A1 추가 + A1 배너주입 + A1 매니페스트만 갱신) + python verify_v2_docs.py",
+    "python3 (docs/07_EVIDENCE_MANIFEST_CONTRACT.md 임의 변조, 매니페스트 무변경) + python verify_v2_docs.py",
+    "gh api repos/Siegfriex/ProjectFinal/branches/control%2Flanding-orchestrator/protection",
+    "gh api repos/Siegfriex/ProjectFinal/rulesets",
+    "gh api repos/Siegfriex/ProjectFinal --jq .permissions",
+    "cat scripts/hooks/pre-push (control/landing-orchestrator 심링크 정본)",
+    "sed -n '565,869p' promote_landing_main.sh > debt_recompute_block.py (DEBT_RECOMPUTE 블록 추출)",
+    "python3 debt_recompute_block.py $STATE $REPO $EXEC_SHA $ADV_SHA $SSOT_SHA $REC_SHA (기준값 + v1 이중소스 공격 2회)",
+    "git cat-file -t 322f5347... && git show 322f5347^:...state.json (v1 앵커 커밋 최초성 검증)",
+    "git grep 'PHASE_GATES §4:' 전9브랜치",
+    "git show <sha>:docs/v2/PHASE_GATES.md | grep '^## ' (실제 헤딩 대조)",
+    "git show <sha>:...EXECUTION_AUTHORITY.md | grep 'ssot audit' (3개 SHA 비교)",
+    "git show origin/agent/landing-pc-fixture:.../engine/firewall.py, l0_collector.py, tests/test_pc_firewall.py 전문 검토",
+    "git branch -a --contains origin/agent/landing-p{a,b,c}-* (merge to main 확인)",
+    "git ls-tree -r 3ad0458 | grep evidence/"
+  ],
+  "note": "이 시리즈 첫 adversarial PASS. 내 담당 blocking finding 2건(recollection P1, banner P2)이 직접 재현 공격으로 CLOSED 확인됐다. R-1은 원리적으로 저장소 검사로 닫을 수 없어 오케스트레이터의 잔여 수용 판단에 동의했고, orchestrator가 이미 별도 blocking 항목으로 등재해 두어 open_blocking_total에서 계속 계상된다 - 아무것도 조용히 사라지지 않는다. 신규 발견 2건(EXECUTION_AUTHORITY ssot 행 stale, control 브랜치 쓰기 무방비)은 모두 non-blocking이며 이번 사이클에 새로 생긴 취약면이 아니라 기존에 알려진 관례-강제 간극을 더 구체적으로 실측한 것이다. V2_SSOT_FROZEN 게이트는 여전히 열려 있다 - open_blocking_total=14는 내 담당 밖(v1 6, ned-ied 1, orchestrator 3, ssot F2/F3 2)에서 온다."
+}
