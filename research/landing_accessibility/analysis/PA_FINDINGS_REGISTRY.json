@@ -1,0 +1,383 @@
+{
+  "cycle": "P-A SHADOW (LANE A)",
+  "generated_by": "P-A A2/A3/A4/A5 → LANE A SHADOW 통합·재검증",
+  "note": "승격 전 준비물. status = SHADOW_PREPARATORY, base d5f1da5. P-A 감사·승격 시 findings registry 로 등재한다. 자동 승격되지 않는다 (PHASE_GATES §4.7)",
+  "total": 35,
+  "findings": [
+    {
+      "id": "EDA00-PANEL-ROWS-EXTRACTED-GRAIN",
+      "severity": "P1",
+      "source": "EDA-00",
+      "assigned_phase": "P-A",
+      "handling": "매핑 레이어가 이미 metric 전개를 반영. 컬럼명 오해 방지 주석·문서 보정",
+      "observed": "9/17 panels: rows_extracted != count of source_ranking_rows for that panel",
+      "area": "grain",
+      "status": "ADDRESSED",
+      "shadow_handling": "ADDRESSED_IN_MAPPING_LAYER — dim_panel.n_entities_extracted / n_source_rows 로 grain 분리 + 불변조건 (9/17 패널에서 두 값이 갈린다)"
+    },
+    {
+      "id": "EDA00-PROV-UNDECLARED-FILES",
+      "severity": "P2",
+      "source": "EDA-00",
+      "assigned_phase": "P-B",
+      "handling": "wiseapp 4파일 해시 미선언. authority manifest 에 등록",
+      "observed": "4 files under sources/wiseapp carry no sha256 in any manifest: ['sources/wiseapp/authority_manifest.json', 'sources/wiseapp/raw/wiseapp933_api.json', 'sources/wiseapp/raw/wiseapp933_images.json', 'sources/wiseapp/source_evidence_manifest.json']",
+      "area": "provenance",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA00-CERT-COLUMN-NAME",
+      "severity": "P2",
+      "source": "EDA-00",
+      "assigned_phase": "P-B",
+      "handling": "valid_on_audit_date 미존재. 실제 컬럼명으로 join 코드 작성",
+      "observed": "certification_registry has no column named 'valid_on_audit_date'; the nearest columns are in_period_at_audit and cert_valid_candidate",
+      "area": "schema",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA00-CERT-VALID-NOT-IN-PERIOD",
+      "severity": "P1",
+      "source": "EDA-00",
+      "assigned_phase": "P-B",
+      "handling": "audit_date 경계 규약 문서화. 227 vs 226 의 원인",
+      "observed": "1 rows listed VALID by the registry but whose period does not cover audit_date 2026-08-26",
+      "area": "distribution",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA00-CERT-REPARSE-WS-SERVICE_NAME",
+      "severity": "P2",
+      "source": "EDA-00",
+      "assigned_phase": "P-B",
+      "handling": "공백/NBSP 정규화 3건 미선언",
+      "observed": "3 rows where the parquet service_name is whitespace/NBSP-normalized relative to the stored raw HTML (e.g. U+00A0 and doubled spaces collapsed)",
+      "area": "provenance",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA00-STRUCTURAL-ZERO-COUNTERS",
+      "severity": "P2",
+      "source": "EDA-00",
+      "assigned_phase": "P-A",
+      "handling": "구조적 NA 를 0 과 구분해 노출",
+      "observed": "service_master carries domain-scoped counters that are 0 purely because the entity does not exist in that domain: appears_in_app_panels==0 for all 43 RETAIL entities and appears_in_retail_panels==0 for all 38 APP entities. Under 01 §11 these are NA, not measured zeros; any mean/sum over them is wrong",
+      "area": "missingness",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA00-UNIT-NOT-NORMALIZED",
+      "severity": "P2",
+      "source": "EDA-00",
+      "assigned_phase": "P-A",
+      "handling": "'만 명'/'만명' 정규화는 매핑 레이어에서. 원본 불변",
+      "observed": "`unit` carries variants that differ only by whitespace: {'만명': ['만 명', '만명']} (row counts {'만 명': 30, '만명': 6})",
+      "area": "distribution",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA00-RANK-DENORMALIZED-ACROSS-METRICS",
+      "severity": "P1",
+      "source": "EDA-00",
+      "assigned_phase": "P-A",
+      "handling": "anchor metric 개념을 명시하고 8쌍의 rank 무의미성을 경고로 고정",
+      "observed": "`rank` is one value per (panel, entity) but is stored on every metric row: in all 17 panels exactly one metric decreases with rank, while 8 (panel, metric) pairs are non-monotone. For those metrics `rank` carries no ordering information, and source_membership.rank inherits the same ambiguity",
+      "area": "grain",
+      "status": "ADDRESSED",
+      "shadow_handling": "ADDRESSED_IN_MAPPING_LAYER — rank_anchor_metrics 표 신설 + fact_source_ranking.rank_orders_this_metric (anchor DESC 17 / NON_MONOTONE 8, 비정렬 fact 행 119/261)"
+    },
+    {
+      "id": "EDA00-GRAIN-NAME-NOT-KEY",
+      "severity": "P1",
+      "source": "EDA-00",
+      "assigned_phase": "P-A",
+      "handling": "표시명 조인 금지 규칙을 매핑 레이어가 강제 중. 문서에 명시",
+      "observed": "service_name_canonical has 80 distinct values for 81 rows; duplicate = {'쿠팡': 2}",
+      "area": "grain",
+      "status": "ADDRESSED",
+      "shadow_handling": "ADDRESSED_IN_MAPPING_LAYER — canonical_service_key 유일성 단언, 조인은 id 로만"
+    },
+    {
+      "id": "EDA00-GRAIN-MEMBERSHIP-METRIC",
+      "severity": "P1",
+      "source": "EDA-00",
+      "assigned_phase": "P-A",
+      "handling": "논리 bridge 는 261 grain 으로 이미 분리됨. 142 는 집계 뷰로 문서화",
+      "observed": "source_membership is (service_id, panel_id) grain; 66/142 pairs span >1 metric, and its single `rank` column is min(rank) across those metrics",
+      "area": "grain",
+      "status": "ADDRESSED",
+      "shadow_handling": "ADDRESSED_IN_MAPPING_LAYER — 논리 bridge 261 grain 유지 + 다중 metric 쌍 실재(66/142) 불변조건으로 물리 rank=min(rank)의 요약성 고정"
+    },
+    {
+      "id": "EDA00-GRAIN-INDUSTRY-IN-ENTITY-TABLE",
+      "severity": "P1",
+      "source": "EDA-00",
+      "assigned_phase": "P-A",
+      "handling": "매핑 대상 71 = 81-10. 분모 정의를 코드북·mart 에 고정",
+      "observed": "service_master (81 rows) mixes 71 SERVICE_BRAND with 10 INDUSTRY_CATEGORY rows; the latter are analytic categories, not measurable web targets, and all 10 of them carry NULL web_target_group_id",
+      "area": "grain",
+      "status": "ADDRESSED",
+      "shadow_handling": "ADDRESSED_IN_MAPPING_LAYER — dim_measurement_entity.is_web_mappable_entity (71/81) + 업종의 web_target_group_id 전건 NULL 불변조건"
+    },
+    {
+      "id": "EDA00-GRAIN-CERT-NAME-FANOUT",
+      "severity": "P1",
+      "source": "EDA-00",
+      "assigned_phase": "P-B",
+      "handling": "이름 다중 인증 513건. 01 §8 3요건만으로 1:1 불성립",
+      "observed": "certification_registry has 2283 rows over 1282 distinct service_name; 513 names carry more than one certification (max 7)",
+      "area": "grain",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA00-CERT-DATE-ORDER",
+      "severity": "P1",
+      "source": "EDA-00",
+      "assigned_phase": "P-B",
+      "handling": "end<start 1건. 원문 보존하되 join 에서 배제 규칙",
+      "observed": "1 certification rows where end < start",
+      "area": "distribution",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA00-CERT-URL-FANOUT",
+      "severity": "P1",
+      "source": "EDA-00",
+      "assigned_phase": "P-B",
+      "handling": "URL 다중 496건. 유효 226행도 URL 220종",
+      "observed": "certified_target_url_listed is not unique: 1167 distinct URLs over 2279 rows; 496 URLs carry more than one certification row (max 11). Only 220 distinct URLs are currently valid",
+      "area": "grain",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA00-GRAIN-GROUPING-STATUS",
+      "severity": "P2",
+      "source": "EDA-00",
+      "assigned_phase": "P-A",
+      "handling": "entity grain 6 / group grain 3 을 A2 §5.5 에 반영",
+      "observed": "the same status label counts 6 at entity grain (service_master) and 3 at group grain (web_target_group); counting groups by reading service_master double-counts",
+      "area": "grain",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA01-A2-5-5-GROUPING-STATUS-GRAIN",
+      "severity": "P2",
+      "source": "EDA-01",
+      "assigned_phase": "P-A",
+      "handling": "A2 §5.5 가 group 65/3 과 entity 65/6 을 한 표에 섞어 서술",
+      "observed": null,
+      "area": "document",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA01-A2-5-3-REVIEW-STATUS-NULL",
+      "severity": "P2",
+      "source": "EDA-01",
+      "assigned_phase": "P-A",
+      "handling": "NOT_IN_REVIEW_QUEUE 74 는 물리에 NULL 74 로 저장. DERIVED 명시 유지",
+      "observed": null,
+      "area": "document",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA01-A2-5-2-MATCH-BASIS-PRECISION",
+      "severity": "P2",
+      "source": "EDA-01",
+      "assigned_phase": "P-A",
+      "handling": "REVIEWED 는 Hmallord alias 1건. 표기 정밀화",
+      "observed": null,
+      "area": "document",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA01-SSOT-12-FUNNEL-MISSING-STEP",
+      "severity": "P2",
+      "source": "EDA-01",
+      "assigned_phase": "P-A",
+      "handling": "00 §12 funnel 에 142 membership 계단 누락",
+      "observed": null,
+      "area": "document",
+      "status": "OPEN"
+    },
+    {
+      "id": "EDA01-UNIT-WHITESPACE-VARIANT",
+      "severity": "P2",
+      "source": "EDA-01",
+      "assigned_phase": "P-A",
+      "handling": "'만 명'(30)/'만명'(6) — EDA00-UNIT-NOT-NORMALIZED 와 동일 사안",
+      "observed": null,
+      "area": "document",
+      "status": "OPEN"
+    },
+    {
+      "id": "CODEBOOK-Q-1",
+      "severity": "P1",
+      "source": "codebook",
+      "assigned_phase": "P-A",
+      "handling": "gate 가 endpoint 인 archetype 의 endpoint_status — V2-C003 에서 A2 개정 중",
+      "observed": null,
+      "area": "codebook",
+      "status": "CLOSED",
+      "shadow_handling": "CLOSED — A2 §1.5.1a (V2-C003 신설 · V2-C004 시정, base d5f1da5). 초판 제안 GATE-1 은 기록 슬롯·gate 종류 두 지점이 틀려 폐기"
+    },
+    {
+      "id": "CODEBOOK-Q-2",
+      "severity": "P1",
+      "source": "codebook",
+      "assigned_phase": "P-A",
+      "handling": "UTILITY_ENTRY U-1 채택 여부. CODEBOOK_PENDING 이 FROZEN 전이를 차단 중",
+      "observed": null,
+      "area": "codebook",
+      "status": "OPEN"
+    },
+    {
+      "id": "CODEBOOK-Q-3",
+      "severity": "P2",
+      "source": "codebook",
+      "assigned_phase": "P-C",
+      "handling": "UTILITY_ENTRY 의 ExcessDepth 기준선 적격성",
+      "observed": null,
+      "area": "codebook",
+      "status": "OPEN"
+    },
+    {
+      "id": "CODEBOOK-Q-4",
+      "severity": "P2",
+      "source": "codebook",
+      "assigned_phase": "P-C",
+      "handling": "브라우저 네이티브 권한 프롬프트 기록 슬롯",
+      "observed": null,
+      "area": "codebook",
+      "status": "OPEN"
+    },
+    {
+      "id": "CODEBOOK-Q-5",
+      "severity": "P2",
+      "source": "codebook",
+      "assigned_phase": "P-A",
+      "handling": "ITEM_DETAIL 핵심 상품정보 조작화 승인",
+      "observed": null,
+      "area": "codebook",
+      "status": "OPEN"
+    },
+    {
+      "id": "CODEBOOK-Q-6",
+      "severity": "P2",
+      "source": "codebook",
+      "assigned_phase": "P-H",
+      "handling": "business_domain 을 통계 검정 그룹으로 쓸 수 있는가",
+      "observed": null,
+      "area": "codebook",
+      "status": "OPEN"
+    },
+    {
+      "id": "CODEBOOK-Q-7",
+      "severity": "P2",
+      "source": "codebook",
+      "assigned_phase": "P-A",
+      "handling": "COMMUNICATION_ENTRY 의 1:1 메신저 포함 여부",
+      "observed": null,
+      "area": "codebook",
+      "status": "OPEN"
+    },
+    {
+      "id": "CODEBOOK-Q-8",
+      "severity": "P2",
+      "source": "codebook",
+      "assigned_phase": "P-C",
+      "handling": "mapping_freeze_stamp / mapping_run_manifest 물리 저장 슬롯",
+      "observed": null,
+      "area": "codebook",
+      "status": "OPEN"
+    },
+    {
+      "id": "PA-SHADOW-EDA00-SEVERITY-SUMMARY-MISMATCH",
+      "severity": "P2",
+      "source": "LANE-A 재현검증",
+      "assigned_phase": "P-A",
+      "handling": "EDA00_REPORT.md 요약행을 P1 9 / P2 6 으로 시정. F-표와 기계 산출이 옳다",
+      "observed": "EDA00_REPORT.md §0 요약행은 'P1 8건 · P2 7건'인데 같은 문서 §12 F-표와 eda00_findings.json 은 P1 9 / P2 6 이다 (총 15 는 일치). 요약행만 어긋났다",
+      "area": "report_integrity",
+      "status": "ADDRESSED"
+    },
+    {
+      "id": "PA-SHADOW-CROSS-WORKTREE-INPUT-HARDCODE",
+      "severity": "P2",
+      "source": "LANE-A 이관",
+      "assigned_phase": "P-A",
+      "handling": "세 스크립트의 입력을 자기 워크트리 state/ 로 변경 ($LANDING_STATE_DIR 로 재지정). 두 워크트리의 parquet 6종 sha256 이 전건 동일함을 확인한 뒤 옮겼다",
+      "observed": "mapping/eda00/eda01 이 .agent_worktrees/landing_v2_exec 경로를 하드코딩하고 있었다. 그 워크트리는 LANE 0 가 동시 write 중이며, 그 상태에 산출물이 좌우되면 PHASE_GATES §4.4 lane 격리가 깨진다",
+      "area": "provenance",
+      "status": "ADDRESSED"
+    },
+    {
+      "id": "PILOT-CASCADE-STAGE3-NO-SIGNAL",
+      "severity": "P2",
+      "source": "P-A A5 pilot",
+      "assigned_phase": "P-C",
+      "handling": "stage 3 은 02 §6 후보 control 없이는 동작 불가. P-C 엔진 준비 전 cascade 는 실질 2단계로 계획해야 한다",
+      "observed": "source-context 텍스트 기반 대체구현의 archetype 유사도가 0.02 이하이고 순위가 무의미하다 (배달앱 top1 = FINANCIAL_ACTION_ENTRY). 유사도로 확정했다면 그것이 강제분류였다",
+      "area": "cascade",
+      "status": "OPEN"
+    },
+    {
+      "id": "PILOT-CAS2-VS-STAGE3-THRESHOLD",
+      "severity": "P2",
+      "source": "P-A A5 pilot",
+      "assigned_phase": "P-A",
+      "handling": "codebook 내부 모순. 이 run 은 보수적으로 stage 3 무확정을 택했고 그 선택을 기록했다. 감사 판정 필요",
+      "observed": "규칙 CAS-2 '1·2위가 근접하면 4단계로 올린다'(= 근접하지 않으면 확정 가능)와 stage 3 cannot_see_or_do '임계값 자동 확정 금지'가 한 단계에서 양립하지 않는다",
+      "area": "codebook",
+      "status": "OPEN"
+    },
+    {
+      "id": "PILOT-ABSTAIN-CAUSE-IS-GATE-NOT-AMBIGUITY",
+      "severity": "P2",
+      "source": "P-A A5 pilot",
+      "assigned_phase": "P-B",
+      "handling": "이 abstain 비율을 P-B 예측이나 A2 §4.5 abstention rate 품질지표로 전용하지 않는다",
+      "observed": "abstain 6/15 의 사유가 대상의 모호성이 아니라 stage 4 가 P0 차단으로 실행 불가라는 데 있다 (abstain_reason=AI_REVIEW_UNAVAILABLE_PRE_P0)",
+      "area": "measurement_quality",
+      "status": "OPEN"
+    },
+    {
+      "id": "PILOT-Q8-MANIFEST-SLOT-UNRESOLVED",
+      "severity": "P2",
+      "source": "P-A A5 pilot",
+      "assigned_phase": "P-A",
+      "handling": "Q-8 확정 시 이동. 현재는 analysis/out/pilot/mapping_run_manifest.json",
+      "observed": "codebook freeze_protocol F0 의 mapping_run_manifest 물리 저장 슬롯이 미결(Q-8)이라 임시 위치에 뒀다",
+      "area": "schema",
+      "status": "OPEN"
+    },
+    {
+      "id": "CODEBOOK-Q-9",
+      "severity": "P1",
+      "source": "LANE-A codebook 재정합",
+      "assigned_phase": "P-A",
+      "handling": "gate 종류(로그인 gate ↔ 본인인증 gate) 판별 규칙. A2 규칙 E-6a 의 실행 전제이며 아직 미작성. SHADOW lane 은 실관측 없이 쓰지 않았다",
+      "observed": "Q-1 이 닫히면서 A2 §1.5.1a 가 gate 종류로 endpoint 판정을 가르게 됐는데, A2 는 판별을 codebook 소관으로 넘겼고 그 규칙이 없다. 규칙이 없는 동안 COMMUNICATION_ENTRY 의 모든 gate 가 endpoint 미승격이 되어 Q-1 이 풀려던 문제가 되살아난다",
+      "area": "codebook",
+      "status": "OPEN"
+    }
+  ],
+  "base_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
+  "previous_base_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+  "shadow_provenance": {
+    "status": "SHADOW_PREPARATORY",
+    "shadow_lane": "LANE_A",
+    "created_before_p0_close": true,
+    "authoritative": false,
+    "real_target_outcome_used": false,
+    "requires_post_p0_reconciliation": true
+  },
+  "status_counts": {
+    "ADDRESSED": 7,
+    "OPEN": 27,
+    "CLOSED": 1
+  },
+  "severity_counts": {
+    "P1": 12,
+    "P2": 23
+  }
+}

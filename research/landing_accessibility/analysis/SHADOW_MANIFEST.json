@@ -1,0 +1,112 @@
+{
+  "manifest": "SHADOW_MANIFEST",
+  "authority_note": "SHADOW 정책의 정의부는 docs/v2/PHASE_GATES.md §4 다. 이 파일은 그 절을 가리킬 뿐 정책표를 복제하지 않는다 (§4 서두 — 중복 정책표는 그 자체가 drift).",
+  "status": "SHADOW_PREPARATORY",
+  "base_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
+  "created_at": "2026-08-26T17:07:31.543470+00:00",
+  "shadow_lane": "LANE_A",
+  "lane_role": "P-A SHADOW — 분석 기반 + task codebook",
+  "branch": "agent/landing-pa-shadow",
+  "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_pa_shadow",
+  "created_before_p0_close": true,
+  "authoritative": false,
+  "real_target_outcome_used": false,
+  "requires_post_p0_reconciliation": true,
+  "input_authority_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
+  "source_frame_sha": {
+    "entity_alias_map.parquet": "3c2ab507e8b432241980135f68fa7473a9848ef6fcb77a2cca47e59e682b7ef5",
+    "panel_registry.parquet": "1b71bcd79ff9cd3319fcd8d000e5b7f3cca1a11d5fdb7d20239e4a8f667f4d86",
+    "service_master.parquet": "86d665cc9091c84440acaa622bcbbdd48d8c5585f931d3dbf16c9c14e07b8136",
+    "source_membership.parquet": "fff91f021276f63e60b409e219288970efb604b22db8f6078d82be148c38beec",
+    "source_ranking_rows.parquet": "e4710f350ee678c2e509d21b0d534efb354f544e201044566402a7d98018eefa",
+    "web_target_group.parquet": "5262522de24f62e9dd5808cabf13dbcd74e79f74fe61b62ba85ba1a459f409d7"
+  },
+  "codebook_sha": "49cc10484fa4f5cf344be96ed828dcb1ae93ccbab61b4e59caeaec1b8deb239e",
+  "fixture_only": false,
+  "fixture_note": "이 lane은 collector를 실행하지 않는다. 입력은 이미 저장된 state/*.parquet 과 문서뿐이라 fixture 축이 적용되지 않는다",
+  "real_target_measurement": false,
+  "execution_mode": "NOT_APPLICABLE_NO_COLLECTOR",
+  "prohibited_inputs_check": {
+    "reference": "PHASE_GATES §4.6 · 오케스트레이터 지시",
+    "kwcag_verdict_used": false,
+    "popup_obstruction_result_used": false,
+    "depth_result_used": false,
+    "wa_certification_result_used": false,
+    "accessibility_outcome_used": false,
+    "real_measurement_result_used": false,
+    "enforcement": "pilot mapping 은 builtins.open 을 감싼 allowlist 로 강제하고, 차단이 살아 있는지 매 run 자체 시험한다 (analysis/out/pilot/mapping_run_manifest.json guard_selftest = GUARD_WORKS)",
+    "known_exception": {
+      "artifact": "analysis/eda/eda00_frame_provenance.py",
+      "reads": "sources/certification/** (certification_registry.parquet · registry_snapshot_manifest.json · raw/*.html 230쪽)",
+      "why_allowed": "EDA-00 은 매핑이 아니라 frame & provenance audit 이다 (PHASE_GATES §4.2 'source·provenance EDA' · 'certification join infrastructure'). 인증 원자료를 구조·해시·grain 관점에서만 검사하며 certification outcome 을 어떤 매핑·task 선정 입력으로도 쓰지 않는다",
+      "boundary": "매핑 레이어(analysis/mapping)와 pilot mapping(analysis/pilot)은 인증 경로를 열지 않는다. pilot 의 denylist 가 이를 코드로 강제한다"
+    }
+  },
+  "gates": {
+    "ANALYSIS_AND_TASK_CODEBOOK_FROZEN": {
+      "closed": false,
+      "state": "FREEZE_CANDIDATE_ONLY",
+      "reason": "P0 종료 전이다. executor 는 Gate 를 스스로 닫을 수 없다 (PHASE_GATES §5)",
+      "blockers": [
+        "P0 (V2_SSOT_FROZEN) 미종료",
+        "Q-2 UTILITY_ENTRY endpoint 미결 → region_signal_type=CODEBOOK_PENDING → 규칙 FRZ-4/P-2 로 FROZEN 불가",
+        "Q-9 gate 종류 판별 규칙 미작성 (신설)",
+        "Q-8 mapping_freeze_stamp / mapping_run_manifest 물리 슬롯 미확정"
+      ]
+    }
+  },
+  "verification": {
+    "eda00_rerun_byte_identical": true,
+    "eda01_rerun_byte_identical": true,
+    "eda01_figures_byte_identical": true,
+    "pilot_rerun_deterministic": true,
+    "mapping_pytest": "24 passed",
+    "ruff_check": "pass",
+    "ruff_format_check": "pass",
+    "mypy": "pass (analysis_interface.py · test_analysis_interface.py · pilot_mapping.py)",
+    "state_parquet_hash_match_with_landing_v2_exec": "6/6 identical (입력 경로를 자기 워크트리로 돌린 근거)",
+    "discrepancy_found": "EDA00_REPORT.md 요약행의 심각도 집계가 자기 F-표·기계 산출과 어긋났다 (P1 8/P2 7 → 실제 P1 9/P2 6). 시정함"
+  },
+  "reconciliation_todo": {
+    "reference": "PHASE_GATES §4.7",
+    "steps": [
+      "V2_SSOT_FROZEN = PASS 확인 후 main promotion 선행",
+      "frozen main SHA 대비 base d5f1da5 의 authority drift 확인 — 특히 A2 §1.5.1a · §5 · §6.1 · PHASE_GATES §4",
+      "state/*.parquet 해시 재대조 (source_frame_sha)",
+      "EDA-00/EDA-01/pilot deterministic rerun 후 산출물 해시 재생성",
+      "금지 outcome 오염 재검사 (pilot guard_selftest 재실행 포함)",
+      "P-A 감사 (adversarial + ssot) 후에만 authoritative promotion"
+    ],
+    "not_allowed": "'이미 했으니 그냥 PASS' 처리 금지"
+  },
+  "artifact_sha256": {
+    "analysis/.gitignore": "586f878d73f0f3772357f9b443b1fa4a0c78dde50678895832740489d8347020",
+    "analysis/PA_FINDINGS_REGISTRY.json": "0a3f3040903354e7fc7583c2fbb23265e8f3724a9a5edf85fbdd9efd8f74f081",
+    "analysis/README.md": "345d01078355e0f787e0c7429891e5bec9474a1e1c63bc0ba4dd01ca61ff5050",
+    "analysis/codebook/FUNCTIONAL_CODEBOOK.md": "65998f9cba9c8cacce17879f28c18ac8a7dad3a886f549a154df8d0df619dbbd",
+    "analysis/codebook/OPEN_QUESTIONS.md": "796b58106b8bed393ccce037bf0cfe6879b6908875726a210f78238f73e3dca4",
+    "analysis/codebook/codebook.json": "49cc10484fa4f5cf344be96ed828dcb1ae93ccbab61b4e59caeaec1b8deb239e",
+    "analysis/eda/EDA00_REPORT.md": "f09c12a196c4c790b71d782b59482ae62da8224699ca67ccf5cec2689a6d5f83",
+    "analysis/eda/EDA01_REPORT.md": "948a3ad50d0b78398db13de3115526488827d9102332a48be395ec1487c9fee6",
+    "analysis/eda/eda00_frame_provenance.py": "a45a54a5cc49824930baeadd8b02b218494ede63e24e609783451a211b3f6a2a",
+    "analysis/eda/eda01_source_structure.py": "6f55b8bcdb8caadac99722f1a92b8c6b422c2a17d464bcad66005786718b2316",
+    "analysis/mapping/MAPPING_REPORT.md": "e45905f9888b2310d2b2741f924109489560e28b590849c852c4b548a4605b4b",
+    "analysis/mapping/analysis_interface.py": "29225271d0c5100c6ea63caa09f5432a4802b25ec6229d0d950fbfd7f2451223",
+    "analysis/mapping/test_analysis_interface.py": "52054ed9531f8c4b83a0133ea3055a5c94eb7afb258c3235bc38c115cd2d54ed",
+    "analysis/out/eda00/eda00_findings.json": "aeb624d413032eab2789d684fe2f800674cffe16c341a5c8befd102f888eb97b",
+    "analysis/out/eda00/eda00_measured.json": "a66f9bcb5b1a38ff91e6a3d7ee4f2b19c85b4c92bcec4967f6332e36f7b6cb02",
+    "analysis/out/eda00/eda00_raw_output.txt": "3ca649cdaf45edd5afe4e54fda757cfd85b160ef9324020d2964b231c2decbcf",
+    "analysis/out/eda01/eda01_console.txt": "b427cc3bdb5be465cf08beaab2c67ca63aef246a3c94cbbb0050883f66f2c1f0",
+    "analysis/out/eda01/entity_structure.csv": "f51416ecc2a7ccaea9a1b056cc457a3ce123ec63ea742ee0d2c445c3a5d35bc8",
+    "analysis/out/eda01/figs/fig1_panel_composition.png": "c1d1e5437804b8b405fc142a16c80db620874466fdf2a5f6be642999371512be",
+    "analysis/out/eda01/figs/fig2_entity_panel_appearance.png": "63e7e3898d6674100c5ceb790b9d1c633f89994d76fc4c79f907737026c5daf9",
+    "analysis/out/eda01/figs/fig3_best_norm_rank_ecdf.png": "559074f80fad30867b127f803c6c9d344e5a5074f8d172ef47b84805e5b7d040",
+    "analysis/out/eda01/membership_normalized_rank.csv": "eb6a6d97b732674757d948a7908e77bcef7f74823945a49a8ce55eac3de02814",
+    "analysis/out/eda01/panel_summary.csv": "d10ded15829fc1e3b36fda1adbd7afdcd9ef3c475a726e8f579f5e6c8e3ad40e",
+    "analysis/out/pilot/mapping_run_manifest.json": "daf9ee21afcbe307d7bad87e2f029ba901cc0721dc5b283fe27d9cca4579e2e3",
+    "analysis/out/pilot/pilot_mapping.jsonl": "53e7d50b2b7225a030ed657ec7ba2ee5de219cd5c31ff7e7df3c51a46fc9db09",
+    "analysis/pilot/PILOT_MAPPING_REPORT.md": "2491447043621509e82459bf9a28aad5e247cff61990e001d72b2df244161c11",
+    "analysis/pilot/pilot_mapping.py": "35f1de384601404a9868de72de8b8bec1796c999691bbed9210a358e2adc1e59"
+  },
+  "artifact_sha256_note": "SHADOW_MANIFEST.json 자신은 제외한다 (자기 해시 순환)"
+}
