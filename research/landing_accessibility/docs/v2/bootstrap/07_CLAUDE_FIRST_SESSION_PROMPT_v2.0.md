@@ -1,3 +1,25 @@
+<!-- INSTALLED-BANNER-START -->
+> ## ⚠ 이 파일은 실행권위가 아니다
+>
+> 지위: `NON_AUTHORITATIVE_BOOTSTRAP_RECORD` (`EXECUTION_AUTHORITY.md` §2)
+>
+> 이것은 v2 부트스트랩 세션에 투입된 프롬프트의 **이력 보존본**이다. 실행규칙·범위·Gate의
+> 근거로 **인용하지 마라.** 아래 본문이 현행 권위문서와 어긋나면 언제나 권위문서가 옳다.
+>
+> | 찾는 것 | 정본 |
+> |---|---|
+> | 목표·범위·단위·해석 | `../00_SSOT_v2.0.md` |
+> | Gate 이름과 통과조건 | `../PHASE_GATES.md` |
+> | 권위 서열·v1 지위·기준선 SHA | `../EXECUTION_AUTHORITY.md` |
+> | 측정 조작화 | `../A1_MEASUREMENT_OPERATIONALIZATION.md` |
+> | 상태값 어휘·스키마 대응 | `../A2_VOCABULARY_AND_SCHEMA_BINDING.md` |
+>
+> 특히 이 본문이 서술하는 SHA·브랜치 상태는 **부트스트랩 시점의 기대값**이며 current가 아니다.
+> 실제 remote를 우선한다.
+>
+> 닫는 결함: `bootstrap-07-lacks-in-file-nonauthority-banner` · `bootstrap-prompt-carries-no-in-file-non-authority-marker`
+<!-- INSTALLED-BANNER-END -->
+
 # CLAUDE CODE — FIRST SESSION BOOTSTRAP PROMPT
 # ProjectFinal Landing Accessibility v2
 

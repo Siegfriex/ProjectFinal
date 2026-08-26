@@ -1,26 +1,74 @@
 #!/usr/bin/env python3
 """v2 문서 설치본 무결성 검증.
 
-설치된 각 파일의 sha256을 INSTALL_MANIFEST.json 과 대조하고, 원본 docs pack
-MANIFEST.json 에 기록된 바이트/해시와도 일치하는지 확인한다.
+세 층으로 검증한다.
+
+1. **pack 파생 파일** — 원본 docs pack(`MANIFEST.json`)에서 온 파일.
+   설치본에 비권위 배너가 삽입된 경우 배너를 걷어낸 **본문 바이트**가 원본과
+   동일해야 한다. 배너는 `INSTALLED-BANNER-START/END` 주석으로 감싸여 있다.
+
+2. **저장소 저작 파일** — 원본 pack에 대응물이 없는 권위문서
+   (`EXECUTION_AUTHORITY.md`, `PHASE_GATES.md`, `A*.md` 등).
+   외부 앵커가 없으므로 git을 앵커로 쓴다. 추적 중이고 워킹트리가 깨끗해야 한다.
+   (닫는 결함: `install-manifest-is-self-anchored`)
+
+3. **커버리지** — `docs/v2/` 아래 모든 `.md`/`.json`이 설치 매니페스트에 등재돼야 한다.
+   매니페스트 자신도 git 앵커로 검증한다.
+   (닫는 결함: `install-integrity-coverage-gap`)
 
 exit 0 = PASS, exit 1 = FAIL.
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+REPO = ROOT.parents[1]
 V2 = ROOT / "docs" / "v2"
 INSTALL_MANIFEST = V2 / "INSTALL_MANIFEST.json"
 SOURCE_MANIFEST = V2 / "MANIFEST.json"
 
+BANNER_START = b"<!-- INSTALLED-BANNER-START -->"
+BANNER_END = b"<!-- INSTALLED-BANNER-END -->"
 
-def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def strip_banner(data: bytes) -> bytes:
+    """설치 시 삽입한 비권위 배너를 걷어내고 원본 본문만 남긴다."""
+    start = data.find(BANNER_START)
+    if start == -1:
+        return data
+    end = data.find(BANNER_END)
+    if end == -1:
+        raise ValueError("배너 시작만 있고 종료 표식이 없다")
+    tail = data[end + len(BANNER_END) :]
+    return data[:start] + tail.lstrip(b"\n")
+
+
+def git_tracked_and_clean(rel_to_repo: str) -> tuple[bool, str]:
+    ls = subprocess.run(
+        ["git", "-C", str(REPO), "ls-files", "--error-unmatch", rel_to_repo],
+        capture_output=True,
+        text=True,
+    )
+    if ls.returncode != 0:
+        return False, "git 미추적"
+    diff = subprocess.run(
+        ["git", "-C", str(REPO), "status", "--porcelain", "--", rel_to_repo],
+        capture_output=True,
+        text=True,
+    )
+    if diff.stdout.strip():
+        return False, f"워킹트리 오염: {diff.stdout.strip()}"
+    return True, ""
 
 
 def main() -> int:
@@ -28,33 +76,72 @@ def main() -> int:
     source = json.loads(SOURCE_MANIFEST.read_text(encoding="utf-8"))
     failures: list[str] = []
 
-    for rel, spec in install["files"].items():
+    for rel, spec in sorted(install["files"].items()):
         target = ROOT / rel
         if not target.exists():
-            failures.append(f"MISSING  {rel}")
+            failures.append(f"MISSING   {rel}")
             continue
-        actual = sha256(target)
-        if actual != spec["sha256"]:
-            failures.append(f"SHA      {rel}: {actual} != {spec['sha256']}")
+        raw = target.read_bytes()
+
+        if sha256(raw) != spec["sha256"]:
+            failures.append(f"SHA       {rel}: 설치본 해시가 매니페스트와 다르다")
             continue
-        size = target.stat().st_size
-        if size != spec["bytes"]:
-            failures.append(f"BYTES    {rel}: {size} != {spec['bytes']}")
+        if len(raw) != spec["bytes"]:
+            failures.append(f"BYTES     {rel}: {len(raw)} != {spec['bytes']}")
             continue
+
         origin = spec.get("source_pack_name")
         if origin:
             ref = source.get(origin)
             if ref is None:
-                failures.append(f"ORIGIN   {rel}: {origin} not in MANIFEST.json")
-            elif ref["sha256"] != actual:
-                failures.append(f"DRIFT    {rel}: 원본 pack {origin} 과 바이트 불일치")
-        print(f"{'OK':8} {rel}")
+                failures.append(f"ORIGIN    {rel}: {origin} 이 MANIFEST.json 에 없다")
+                continue
+            try:
+                body = strip_banner(raw)
+            except ValueError as exc:
+                failures.append(f"BANNER    {rel}: {exc}")
+                continue
+            body_hash = sha256(body)
+            if body_hash != ref["sha256"]:
+                failures.append(f"DRIFT     {rel}: 배너 제외 본문이 원본 pack {origin} 과 다르다")
+                continue
+            if spec.get("body_sha256") and spec["body_sha256"] != body_hash:
+                failures.append(f"BODY      {rel}: body_sha256 불일치")
+                continue
+            mark = "pack" if body == raw else "pack+banner"
+        else:
+            rel_repo = str((ROOT / rel).relative_to(REPO))
+            ok, why = git_tracked_and_clean(rel_repo)
+            if not ok:
+                failures.append(f"ANCHOR    {rel}: {why}")
+                continue
+            mark = "repo-authored"
 
+        print(f"{'OK':10} {rel}  [{mark}]")
+
+    # 매니페스트 자신의 앵커
+    ok, why = git_tracked_and_clean(str(INSTALL_MANIFEST.relative_to(REPO)))
+    if not ok:
+        failures.append(f"ANCHOR    docs/v2/INSTALL_MANIFEST.json: {why}")
+    else:
+        print(f"{'OK':10} docs/v2/INSTALL_MANIFEST.json  [self, git-anchored]")
+
+    # 원본 pack 전건이 설치됐는가
     for name in source:
         if name == "MANIFEST.json":
             continue
         if not any(s.get("source_pack_name") == name for s in install["files"].values()):
             failures.append(f"UNINSTALLED  원본 pack {name} 이 설치 매니페스트에 없다")
+
+    # docs/v2 아래 전건이 매니페스트에 등재됐는가
+    declared = {(ROOT / r).resolve() for r in install["files"]}
+    for path in sorted(V2.rglob("*")):
+        if not path.is_file() or path.suffix not in {".md", ".json"}:
+            continue
+        if path.name in {"MANIFEST.json", "INSTALL_MANIFEST.json"}:
+            continue
+        if path.resolve() not in declared:
+            failures.append(f"UNDECLARED   {path.relative_to(ROOT)} 이 설치 매니페스트에 없다")
 
     if failures:
         print("\n".join(failures), file=sys.stderr)

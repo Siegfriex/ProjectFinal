@@ -1,3 +1,20 @@
+<!-- INSTALLED-BANNER-START -->
+> ## ⚠ 이 파일은 실행권위가 아니다
+>
+> 지위: `NON_AUTHORITATIVE_READING_GUIDE` (`EXECUTION_AUTHORITY.md` §2)
+>
+> 아래 본문은 **원본 docs pack의 바이트 그대로**이며, 설치 후 저장소 구조와 다음 두 곳이 어긋난다.
+>
+> | 본문 서술 | 설치 후 실제 |
+> |---|---|
+> | `06_PROJECT_CLAUDE_MD_v2.0.md` 를 읽기 순서에 포함 | `06`은 `docs/v2/`에 설치되지 않는다. `research/landing_accessibility/CLAUDE.md` 로 설치됐다 |
+> | `07_...` 을 "다음 세션에 그대로 넣을 프롬프트"로 지시 | `07`은 `docs/v2/bootstrap/`에 **비권위 이력**으로만 보존된다. 실행규칙 근거로 인용 금지 |
+>
+> 읽기 순서의 정본은 `../INDEX.md`, 권위 서열의 정본은 `EXECUTION_AUTHORITY.md` 다.
+>
+> 닫는 결함: `readme-reading-order-points-to-uninstalled-path` · `readme-stale-pack-paths`
+<!-- INSTALLED-BANNER-END -->
+
 # ProjectFinal Landing Accessibility v2 — DOCS Pack
 
 이 묶음은 **고령층 실사용 모바일웹 초기진입 접근성 분석 v2**의 실행 기준 문서다.
