@@ -1,6 +1,6 @@
 {
   "harness_version": "orchestrator-constitution-v3 + hardening-directive-v3.1",
-  "updated_at": "2026-08-26T14:17:35.930563",
+  "updated_at": "2026-08-26T14:18:17.133042",
   "phase": "P2_WEB_ELIGIBILITY_AND_URL_IDENTITY",
   "cycle_id": "C012",
   "pilot": {
@@ -245,6 +245,14 @@
       "found_by": "C012 ssot audit",
       "cause": "executor 보고 문구를 코드 확인 없이 state.json 에 옮겼다.",
       "lesson": "오케스트레이터가 executor 보고를 state 에 기록할 때도 근거를 대조해야 한다. state.json 은 요약이 아니라 상태 데이터베이스다."
+    },
+    {
+      "cycle": "C012",
+      "orchestrator_claim": "부채 11건을 일관된 id 로 추적하고 있다",
+      "actual": "authority-manifest 판본 선언 부채가 PROM-001 과 open_p2 에서 서로 다른 id 를 갖고 있었다.",
+      "found_by": "C012 ssot audit",
+      "resolution": "정본 id 로 통합하고 debt_ledger 에 canonical_id_policy 를 세웠다.",
+      "lesson": "부채를 두 곳에 적으면 id 가 갈린다. 대사 가능한 단일 원장이 필요하다."
     }
   ],
   "orchestrator_decisions": [
@@ -276,86 +284,108 @@
       "sev": "P2",
       "from": "adversarial C011",
       "detail": "executor 가 'diff -r 바이트 동일' 이라 보고했으나 journal_provenance.json 의 journal_path 가 실행자 워크트리 절대경로라 1줄 어긋난다. 나머지 15개 산출물은 실제로 바이트 동일. P2-3 이 없애려던 경로 의존이 형태만 바꿔 남았다.",
-      "note": "데이터 오염 아님. executor 보고 정확성 문제."
+      "note": "데이터 오염 아님. executor 보고 정확성 문제.",
+      "state": "CLOSED_PENDING_AUDIT",
+      "closed_in": "D3 (C012)"
     },
     {
       "id": "matches-existing-c002-is-self-comparison",
       "sev": "P2",
       "from": "adversarial C011",
-      "detail": "비교 기구 자체는 진짜지만 기준선이 C002 가 아니라 자기 출력이다. columns_compared 16개인데 C009 파일은 14컬럼, columns_new_in_rebuild 가 [] 인데 이번 사이클이 두 컬럼을 신설했다."
+      "detail": "비교 기구 자체는 진짜지만 기준선이 C002 가 아니라 자기 출력이다. columns_compared 16개인데 C009 파일은 14컬럼, columns_new_in_rebuild 가 [] 인데 이번 사이클이 두 컬럼을 신설했다.",
+      "state": "OPEN"
     },
     {
-      "id": "authority-manifest-lacks-version-field",
+      "id": "authority-manifest-lacks-explicit-revision-declaration",
       "sev": "P2",
       "from": "adversarial C011 + orchestrator follow-up",
-      "detail": "version/revision 필드 없음, 자신의 sha256 미등록. A1 raw 6종 sha256 은 불변 확인됨."
+      "detail": "version/revision 필드 없음, 자신의 sha256 미등록. A1 raw 6종 sha256 은 불변 확인됨.",
+      "alias_of_merged": [
+        "authority-manifest-lacks-version-field"
+      ],
+      "state": "CLOSED_PENDING_AUDIT",
+      "closed_in": "D2 (C012)"
     },
     {
       "id": "ev-source-xlsx-uncommitted-unhashed",
       "sev": "P2",
       "from": "adversarial C011",
-      "detail": "EV-2/EV-6 근거 xlsx 가 manus/ 에 미커밋·미해시. 감사자가 로컬에서 3/3 수치 재산출 일치를 확인했으나 clone 에서는 재현 불가."
+      "detail": "EV-2/EV-6 근거 xlsx 가 manus/ 에 미커밋·미해시. 감사자가 로컬에서 3/3 수치 재산출 일치를 확인했으나 clone 에서는 재현 불가.",
+      "state": "OPEN"
     },
     {
       "id": "new-tests-outside-own-source-of-truth-principle",
       "sev": "P2",
       "from": "adversarial C011",
-      "detail": "신규 테스트 4건이 C011 이 스스로 선언한 '한쪽 끝은 원본' 원칙 밖. EV 테스트는 하드코딩 리터럴 대조, panel_scope 테스트는 이름과 달리 리빌드 대신 소스 문자열 grep."
+      "detail": "신규 테스트 4건이 C011 이 스스로 선언한 '한쪽 끝은 원본' 원칙 밖. EV 테스트는 하드코딩 리터럴 대조, panel_scope 테스트는 이름과 달리 리빌드 대신 소스 문자열 grep.",
+      "state": "OPEN"
     },
     {
       "id": "gitignore-still-preexcludes-e001-evidence",
       "sev": "P2",
-      "from": "ssot C011"
+      "from": "ssot C011",
+      "state": "CLOSED_PENDING_AUDIT",
+      "closed_in": "D1 (C012)"
     },
     {
       "id": "invalidated-xlsx-not-at-protocol-location",
       "sev": "P2",
-      "from": "ssot C011"
+      "from": "ssot C011",
+      "state": "OPEN"
     },
     {
       "id": "ev2-youtube-drift-has-no-cited-value-pair",
       "sev": "P2",
-      "from": "ssot C011"
+      "from": "ssot C011",
+      "state": "OPEN"
     },
     {
       "id": "builder-eligibility-vocabulary-narrower-than-06",
       "sev": "P2",
-      "from": "ssot C011"
+      "from": "ssot C011",
+      "state": "OPEN"
     },
     {
       "id": "comparison-period-fig07-exception-not-annotated-in-manifest-field",
       "sev": "P2",
-      "from": "ssot C011"
+      "from": "ssot C011",
+      "state": "OPEN"
     },
     {
       "id": "study-limitation-derived-claim-flag-only-partial",
       "sev": "P2",
-      "from": "ssot C011"
+      "from": "ssot C011",
+      "state": "OPEN"
     },
     {
       "id": "a1-raw-payload-files-not-hash-registered-in-authority-manifest",
       "sev": "P2",
-      "from": "ssot C012"
+      "from": "ssot C012",
+      "state": "OPEN"
     },
     {
       "id": "docs-07-authored-by-executor-in-ssot-numbered-namespace",
       "sev": "P2",
-      "from": "ssot C012"
+      "from": "ssot C012",
+      "state": "OPEN"
     },
     {
       "id": "eligibility-basis-fields-narrower-than-06-still-carried",
       "sev": "P2",
-      "from": "ssot C012"
+      "from": "ssot C012",
+      "state": "OPEN"
     },
     {
       "id": "c012-claim-status-label-mismatch",
       "sev": "P2",
-      "from": "ssot C012"
+      "from": "ssot C012",
+      "state": "OPEN"
     },
     {
       "id": "remaining-8-debts-visible-but-unscheduled-and-id-drift",
       "sev": "P2",
-      "from": "ssot C012"
+      "from": "ssot C012",
+      "state": "OPEN"
     }
   ],
   "certification_authority": {
@@ -745,6 +775,40 @@
     },
     "adversarial": {
       "status": "PENDING"
+    }
+  },
+  "debt_ledger": {
+    "canonical_id_policy": "부채 id 는 최초 발견 감사가 부여한 문자열을 정본으로 쓴다. 별칭이 생기면 alias_of_merged 에 기록하고 정본으로 통합한다. 서로 다른 두 id 가 같은 부채를 가리키면 대사에서 이중계상되거나 한쪽이 조용히 사라진다.",
+    "id_drift_fixed": [
+      {
+        "canonical": "authority-manifest-lacks-explicit-revision-declaration",
+        "merged_alias": "authority-manifest-lacks-version-field",
+        "found_by": "ssot C012"
+      }
+    ],
+    "total": 16,
+    "closed_pending_audit": 3,
+    "open": 13,
+    "scheduling": {
+      "C013_must_include": [
+        "eligibility-basis-fields-narrower-than-06-still-carried",
+        "a1-raw-payload-files-not-hash-registered-in-authority-manifest"
+      ],
+      "C013_reason": "둘 다 하중이 크다. 전자는 W3 에서 71건을 판정하는 순간 근거 필드 없이 쌓이고, 후자는 ABSENCE 증거층이 지목한 A1 파일이 해시 미등록이라 판정 근거의 한쪽 끝이 동결되지 않는다.",
+      "C014_or_later": [
+        "matches-existing-c002-is-self-comparison",
+        "ev-source-xlsx-uncommitted-unhashed",
+        "new-tests-outside-own-source-of-truth-principle",
+        "invalidated-xlsx-not-at-protocol-location",
+        "ev2-youtube-drift-has-no-cited-value-pair",
+        "builder-eligibility-vocabulary-narrower-than-06",
+        "comparison-period-fig07-exception-not-annotated-in-manifest-field",
+        "study-limitation-derived-claim-flag-only-partial",
+        "docs-07-authored-by-executor-in-ssot-numbered-namespace",
+        "c012-claim-status-label-mismatch",
+        "remaining-8-debts-visible-but-unscheduled-and-id-drift"
+      ],
+      "note": "ssot C012 가 '8건이 phase_plan 어디에도 배정·유예 기록이 없다' 고 지적한 것에 대한 응답이다. 여기서 전량 스케줄링한다."
     }
   }
 }
