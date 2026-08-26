@@ -41,7 +41,12 @@ Monitor는 세션 시작부터 persistent로 가동 중이며 `DIRECTIVE_UPDATED
 | C003 | executor | canonical entity 80 · alias 81 · membership 142 | `933096a` |
 | C002-3 | ssot audit | PASS / P0 0 / P1 2 | `68404d9` |
 | C002-3 | adversarial audit | PASS / P0 0 / P1 1 / P2 5 | `e302d31` |
-| C006 | executor | A2 인증 레지스트리 자체 스냅샷 | 진행 중 |
+| C006 | executor | A2 인증 레지스트리 자체 스냅샷 `KWACC_WA_20260826` | `bf5d16e` |
+| C009 | executor | 감사 수용 12건 시정 · 2층 분리 · 축 컬럼 분리 | `fe86e19` |
+| C009 | ssot / adversarial audit | 진행 중 | — |
+
+오케스트레이터 재결·문서 커밋:
+`441a31b` `1b3ec23` `74a5db3` `30c664f` `1c45d29` `973bce9` `2961713` `ff16bdb` `44ee6c6` `7b6b3c2` `1d46c8b` `16cef85` `188e2e3`
 
 오케스트레이터 재결 커밋: `441a31b` `1b3ec23` `74a5db3` `30c664f` `1c45d29`
 
@@ -98,6 +103,40 @@ ssot 감사가 C002 산출물을 "panel_registry 15 panel / source_ranking_rows 
 
 헌장 §24 "서로 독립된 증거가 일치할 때만 승격" 조건을 충족한 결정이다.
 
+### 3-5. 하네스가 오케스트레이터 자신의 위반을 잡은 것 (P0)
+
+오케스트레이터가 문서를 생성할 때 Bash cwd 가 메인 워크트리에 있었고, 이어지는
+`cd .agent_worktrees/landing_orchestrator` 가 체인에서 기대대로 적용되지 않아
+`git add/commit` 이 **Pilot 브랜치(`research/refcohort-r1`)에서 실행됐다.**
+
+Monitor 가 즉시 발행했다.
+
+```
+P0_VIOLATION pilot branch moved 32460b87 -> f26ca974 — Pilot is READ_ONLY
+```
+
+원격은 오염되지 않았고(push 대상이 `control/landing-orchestrator` 라 no-op),
+Pilot 추적 파일의 내용 변경은 0이었다(신규 파일 1개 추가 커밋).
+
+시정: `git reset --mixed 32460b8`. `--hard` 를 쓰지 않은 이유는 `CLAUDE.md` · `tsconfig.json` 의
+기존 미커밋 수정을 보존하기 위해서다. Monitor 가 원복도 감지했다(`f26ca974 -> 32460b87`).
+
+예방: **오케스트레이터 파일 조작은 절대경로만 사용한다. cd 의존 금지.**
+
+→ 이 사건의 의미는 하네스가 관리자 자신에게도 작동한다는 것이다.
+`harness_incidents` 에 P0 로 기록했다.
+
+### 3-6. executor 가 지시 범위 밖에서 오류를 찾은 것
+
+C009 에서 `imgInfoList` 13 vs 11 을 문서화하라는 지시를 수행하다가,
+제외 대상 `4796` 의 후속본 `f43af706` 이 fig08 이 아니라 **fig07** 임을 발견했다.
+evidence manifest sha256 대조로 확인했고 403/200 도 직접 확인했다(제외 2건 403, 채택본 200).
+
+같은 사이클에서 **업종 축 10건이 RETAIL 도메인 "안에" 있다**는 구조적 사실도 드러냈다.
+`domain == 'RETAIL'` 필터만으로는 업종 카테고리가 걸러지지 않으므로
+리테일 브랜드 집계에는 `axis_type == 'SERVICE_BRAND'` 를 함께 걸어야 한다. 테스트로 고정했다.
+
+
 ## 4. A1 권위자료 취득 기록
 
 원문은 SPA 라 HTML 에 데이터가 없었다. 두 경로로 확보하고 상호 교차검증했다.
@@ -111,6 +150,47 @@ ssot 감사가 C002 산출물을 "panel_registry 15 panel / source_ranking_rows 
 `preview` 는 `Number(0)` 이라 `false` 로 보내면 400 이 난다.
 
 **본문 `<table>` 0개 / `<img>` 11개** — 모든 순위표가 이미지다. 텍스트 파싱 경로가 없어 figure 판독이 유일하다.
+
+## 4-B. A2 인증 레지스트리 자체 스냅샷
+
+Pilot 수집분은 A6 자산이라 A2 권위로 쓸 수 없어 Main Study 자체 스냅샷을 만들었다.
+
+```
+snapshot_id   KWACC_WA_20260826
+pages         230 (카드 보유 229 + 빈 종료 페이지 1)
+stop_reason   NO_CARDS_AT_DECLARED_END
+status        COMPLETE
+rows          2,283 (중복 0)  VALID 227 / EXPIRED 2,056 / UNKNOWN 0
+valid_at_audit 226            target_url 보유 2,279
+```
+
+완결성 게이트를 코드로 강제했다 — `valid_at_audit_rows()` 가 INCOMPLETE 매니페스트에서
+`IncompleteSnapshotError` 를 던져 **"목록에 없음 = 인증 0"** 을 차단한다.
+
+### 독립성 주장의 범위
+
+230페이지 sha256 이 Pilot 수집분과 전건 동일했다. executor 가 스스로 과잉 해석을 차단했다.
+
+```
+주장 가능   수집 절차의 독립성 — 자체 요청·자체 원문·자체 매니페스트, Pilot 산출물 미사용
+주장 금지   내용의 독립 검증 — 같은 서버 응답을 두 번 받은 것이며,
+                              서버가 틀리면 두 스냅샷이 같은 방식으로 틀린다
+```
+
+### 레지스트리 원문 자체의 결함
+
+| 결함 | 건수 | 비고 |
+|---|---:|---|
+| **VALID 인데 감사일 기간 밖** | **1** | 2521 국립망향의동산, 인증기간 2026-08-27 시작 — **감사일 다음 날** |
+| 대상 URL 링크 부재 | 4 | 전부 EXPIRED |
+| 스킴 없는 href | 26 | `namdogallery.or.kr` 등 |
+| URL 자리에 텍스트 | 3 | `보건복지부 홈페이지`(27) · `국립중앙도서관 홈페이지`(25) · `-`(1812) |
+| 인증기간 공란 | 1 | 1812번, service_name 도 `-` |
+
+**VALID 227 과 감사일 유효 226 의 차이가 정확히 국립망향의동산 1건이다.**
+설계서가 경고한 "유효 표시인데 시작일이 미래" 사례가 실재함을 확인했다.
+목록의 상태 플래그를 그대로 신뢰하면 안 된다는 실증이다.
+
 
 ## 5. figure 판독 워크플로
 
