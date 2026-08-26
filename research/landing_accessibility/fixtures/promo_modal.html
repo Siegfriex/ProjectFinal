@@ -1,0 +1,32 @@
+<!doctype html>
+<!--
+FIXTURE: promo_modal
+검증 대상: 후보이나 대표기능을 가리지 않는 modal.
+기대: candidate=1, viewport 교차=참, blocks_primary_action=0,
+      primary_action_occlusion=0.0, final_label=PROMOTION_MODAL,
+      dismiss control 이름은 "오늘 하루 보지 않기" → dismiss_persistence_hint=1
+      body scroll lock 없음.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프로모션 모달 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff}
+  main{padding:16px}
+  #primary-cta{display:block;width:240px;height:56px;line-height:56px;text-align:center;
+    background:#0b4f9e;color:#fff;text-decoration:none;border-radius:6px}
+  #promo{position:fixed;left:8px;right:8px;bottom:8px;height:180px;z-index:500;
+    background:#fff;border:1px solid #333;border-radius:8px;padding:12px}
+  #promo button{min-width:140px;min-height:48px;font-size:15px}
+</style></head>
+<body data-fixture="promo_modal">
+<main>
+  <h1 style="font-size:20px">고정 픽스처 쇼핑</h1>
+  <a id="primary-cta" href="./simple_article.html" data-primary-action="1">상품 보러가기</a>
+</main>
+<div id="promo" role="dialog" aria-label="이벤트 안내" data-expected-label="PROMOTION_MODAL">
+  <h2 style="font-size:16px">가을 이벤트 최대 50% 할인</h2>
+  <p>지금 참여하고 쿠폰을 받아보세요.</p>
+  <button type="button" onclick="this.closest('#promo').remove()">오늘 하루 보지 않기</button>
+</div>
+</body></html>

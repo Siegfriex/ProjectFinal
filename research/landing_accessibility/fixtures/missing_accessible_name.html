@@ -1,0 +1,25 @@
+<!doctype html>
+<!--
+FIXTURE: missing_accessible_name
+검증 대상: accessible-name raw feature. AX computed name 이 비어 있음을 "관측된 사실"로 기록.
+기대: 이름 없는 조작 대상 3건(#icon-a #icon-b #icon-c) — AX name = "" 로 관측되고
+      dismiss control 문맥에서는 NAME_ABSENT 센티널로 저장된다(A2 §1.6).
+      이름 있는 대조군 2건(#named-a #named-b) 은 이름이 그대로 관측된다.
+      probe 는 여기서 KWCAG 판정을 내리지 않는다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>이름 없는 컨트롤 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  button,a.btn{display:inline-block;width:48px;height:48px;margin:6px;border:1px solid #333;
+    border-radius:6px;background:#fff;text-align:center;line-height:48px;color:#111;text-decoration:none}
+</style></head>
+<body data-fixture="missing_accessible_name">
+<h1 style="font-size:20px">아이콘 버튼 모음</h1>
+<button id="icon-a" type="button" data-expected-name="ABSENT"></button>
+<button id="icon-b" type="button" data-expected-name="ABSENT"><span aria-hidden="true"></span></button>
+<a id="icon-c" class="btn" href="./simple_article.html" data-expected-name="ABSENT"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></a>
+<button id="named-a" type="button" aria-label="검색" data-expected-name="검색">🔍</button>
+<a id="named-b" class="btn" href="./simple_article.html" data-expected-name="기사">기사</a>
+</body></html>

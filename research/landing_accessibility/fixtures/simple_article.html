@@ -1,0 +1,30 @@
+<!doctype html>
+<!--
+FIXTURE: simple_article
+검증 대상: L0 기본 수집 경로 (DOM/AX/CSS/geometry/screenshot) + CONTENT_OPEN 랜딩 endpoint.
+기대: interrupt 0건, body scroll lock 없음, motion 신호 0건,
+      primary action candidate >= 1, 랜딩 자체가 본문이므로 NED=0 / IED=0 / MPFED=0.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>기사 본문 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff}
+  header{padding:12px 16px;border-bottom:1px solid #ddd}
+  main{padding:16px}
+  h1{font-size:22px;margin:0 0 12px}
+  p{font-size:16px;line-height:1.7}
+  a.cta{display:inline-block;min-width:88px;min-height:48px;line-height:48px;
+        text-align:center;background:#0b4f9e;color:#fff;text-decoration:none;border-radius:6px}
+</style></head>
+<body data-fixture="simple_article" data-archetype="CONTENT_OPEN">
+<header><a href="./simple_article.html" aria-label="홈으로">고정 픽스처 뉴스</a></header>
+<main>
+  <article data-endpoint="ARTICLE_BODY_OPEN">
+    <h1>본문이 이미 열려 있는 기사</h1>
+    <p>이 픽스처는 랜딩 자체가 CONTENT_OPEN endpoint인 경우를 만든다.</p>
+    <p>수집기는 여기서 어떤 activation도 수행하지 않고 endpoint 신호를 관측해야 한다.</p>
+    <a class="cta" href="./simple_article.html" data-primary-action="1">기사 계속 읽기</a>
+  </article>
+</main>
+</body></html>

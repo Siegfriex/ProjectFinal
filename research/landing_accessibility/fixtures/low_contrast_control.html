@@ -1,0 +1,26 @@
+<!doctype html>
+<!--
+FIXTURE: low_contrast_control
+검증 대상: contrast raw feature (전경색·유효 배경색·명도대비·font_px·bold·large_text·
+      bg_resolved·behind_image). probe 는 required threshold 를 계산하지 않는다 (02 §4).
+기대: #low  = #999999 on #ffffff → ratio 2.85 (소수 둘째자리)
+      #high = #111111 on #ffffff → ratio 18.10 부근
+      #on-image = 배경이 이미지 → behind_image=true, bg_resolved 는 불투명 조상 색 기준
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>명도 대비 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;background:#ffffff;padding:16px}
+  #low{color:#999999;background:#ffffff;font-size:16px}
+  #high{color:#111111;background:#ffffff;font-size:16px}
+  #large-low{color:#999999;background:#ffffff;font-size:24px}
+  #img-wrap{background-image:linear-gradient(#ccc,#eee);background-color:#ffffff;padding:8px}
+  #on-image{color:#bbbbbb;font-size:16px}
+</style></head>
+<body data-fixture="low_contrast_control">
+<p id="low" data-expected-ratio="2.85">낮은 대비 본문 텍스트</p>
+<p id="high" data-expected-ratio="18.1">충분한 대비 본문 텍스트</p>
+<p id="large-low" data-expected-large="true">큰 글씨 낮은 대비</p>
+<div id="img-wrap"><p id="on-image" data-expected-behind-image="true">이미지 위 텍스트</p></div>
+</body></html>

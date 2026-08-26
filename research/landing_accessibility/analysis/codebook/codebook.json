@@ -1,0 +1,1540 @@
+{
+  "codebook_id": "PA_A4_FUNCTIONAL_CODEBOOK",
+  "version": "0.2.0-shadow",
+  "adoption_status": "SHADOW_PREPARATORY_PENDING_PA_AUDIT",
+  "produced_by": "P-A A4 (Functional Codebook)",
+  "gate": "ANALYSIS_AND_TASK_CODEBOOK_FROZEN",
+  "base_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
+  "companion_documents": [
+    "FUNCTIONAL_CODEBOOK.md",
+    "OPEN_QUESTIONS.md"
+  ],
+  "authority": {
+    "supersedes_nothing": true,
+    "conflict_rule": "00_SSOT_v2.0.md wins over this codebook; A2_VOCABULARY_AND_SCHEMA_BINDING.md wins on enumerations",
+    "source_authority_order": [
+      "00_SSOT_v2.0.md#3",
+      "00_SSOT_v2.0.md#6",
+      "00_SSOT_v2.0.md#7",
+      "01_DATA_SPEC_v2.0.md#3",
+      "02_COLLECTION_MEASUREMENT_SPEC_v2.0.md#6",
+      "02_COLLECTION_MEASUREMENT_SPEC_v2.0.md#7",
+      "02_COLLECTION_MEASUREMENT_SPEC_v2.0.md#9",
+      "02_COLLECTION_MEASUREMENT_SPEC_v2.0.md#10",
+      "A1_MEASUREMENT_OPERATIONALIZATION.md#1",
+      "A2_VOCABULARY_AND_SCHEMA_BINDING.md#1.5",
+      "A2_VOCABULARY_AND_SCHEMA_BINDING.md#1.9",
+      "PHASE_GATES.md#3"
+    ],
+    "creates_no_new_schema_columns": true,
+    "creates_no_new_enum_values": true,
+    "creates_no_thresholds": true
+  },
+  "shared_enums": {
+    "signal_type": {
+      "source": "A2_VOCABULARY_AND_SCHEMA_BINDING.md#1.9",
+      "shared_by": [
+        "dim_representative_task.region_signal_type",
+        "dim_representative_task.endpoint_signal_type"
+      ],
+      "mutually_exclusive_per_row": true,
+      "values": [
+        "DOM_AX_ROLE",
+        "FORM_STRUCTURE",
+        "URL_PATTERN",
+        "MEDIA_STATE",
+        "GATE_SIGNAL",
+        "CODEBOOK_PENDING"
+      ]
+    },
+    "mapping_status": {
+      "source": "A2_VOCABULARY_AND_SCHEMA_BINDING.md#1.9",
+      "values": [
+        "DRAFT",
+        "CANDIDATE",
+        "FROZEN",
+        "AMBIGUOUS_UNRESOLVED",
+        "EXCLUDED"
+      ],
+      "transitions": [
+        {
+          "from": "DRAFT",
+          "to": "CANDIDATE"
+        },
+        {
+          "from": "CANDIDATE",
+          "to": "FROZEN"
+        },
+        {
+          "from": "CANDIDATE",
+          "to": "AMBIGUOUS_UNRESOLVED"
+        },
+        {
+          "from": "CANDIDATE",
+          "to": "EXCLUDED"
+        }
+      ],
+      "unidirectional": true
+    },
+    "mapping_basis": {
+      "source": "A2_VOCABULARY_AND_SCHEMA_BINDING.md#1.9",
+      "values": [
+        "RULE",
+        "SOURCE_CONTEXT",
+        "EMBEDDING",
+        "AI_REVIEW",
+        "HUMAN_FINAL"
+      ]
+    },
+    "endpoint_status": {
+      "source": "02_COLLECTION_MEASUREMENT_SPEC_v2.0.md#7 via A2#1.5.1",
+      "set_is_closed": true,
+      "values": [
+        "FUNCTION_ENDPOINT_REACHED",
+        "AUTH_GATE_REACHED",
+        "PAYMENT_GATE_REACHED",
+        "PERSONAL_DATA_REQUIRED",
+        "CAPTCHA",
+        "BLOCKED",
+        "UNRESOLVED"
+      ]
+    }
+  },
+  "business_domain": {
+    "purpose": "INTERPRETATION_AND_REPORTING_ONLY",
+    "source": "00_SSOT_v2.0.md#6",
+    "not_used_for": [
+      "depth comparison",
+      "ExcessDepth baseline grouping",
+      "mart_archetype_summary grain",
+      "Kruskal-Wallis grouping for depth without separate approval (OPEN Q-6)"
+    ],
+    "common_rules": [
+      {
+        "id": "BD-1",
+        "rule": "one value per dim_representative_task row; no multi-label"
+      },
+      {
+        "id": "BD-2",
+        "rule": "primary identity decides; evidence order = (a) source panel context, (b) official self-description, (c) registered domain string"
+      },
+      {
+        "id": "BD-3",
+        "rule": "domain judged independently of archetype; neither is an input to the other"
+      },
+      {
+        "id": "BD-4",
+        "rule": "UTILITY_OTHER is a residual for 'no grounds for the other 7', not a dumping ground for 'unsure'"
+      },
+      {
+        "id": "BD-5",
+        "rule": "evenly conflicting grounds -> abstain path, not UTILITY_OTHER"
+      },
+      {
+        "id": "BD-6",
+        "rule": "no L0/L1 measurement outputs and no certification as input"
+      }
+    ],
+    "values": [
+      {
+        "code": "PORTAL_SEARCH",
+        "label_ko": "포털·범용검색",
+        "definition": "특정 콘텐츠를 소유하지 않고 범용 정보 탐색의 관문 역할을 1차 정체성으로 갖는 서비스",
+        "inclusion": [
+          "범용 검색엔진",
+          "종합 포털",
+          "범용 검색을 전면에 둔 브라우저 시작면"
+        ],
+        "exclusion": [
+          "자사 콘텐츠·상품 안에서만 검색되는 서비스",
+          "특정 주제 한정 수직검색"
+        ],
+        "boundary_rules": [
+          "포털이 다도메인 기능을 품어도 관문 정체성이 1차이면 PORTAL_SEARCH (BD-2)",
+          "대표 task가 뉴스 열기여도 domain은 PORTAL_SEARCH일 수 있다 (비대각 D1)"
+        ],
+        "typical_archetype": "QUERY"
+      },
+      {
+        "code": "CONTENT_VIDEO",
+        "label_ko": "영상·스트리밍",
+        "definition": "영상·오디오 스트리밍 콘텐츠 소비를 1차 정체성으로 갖는 서비스",
+        "inclusion": [
+          "동영상 플랫폼",
+          "OTT",
+          "숏폼",
+          "라이브 스트리밍",
+          "음악 스트리밍"
+        ],
+        "exclusion": [
+          "영상이 부수적인 뉴스·커머스 서비스",
+          "개인 미디어 보관·관리 도구"
+        ],
+        "boundary_rules": [
+          "라이브커머스: 시청이 상품이면 CONTENT_VIDEO, 거래가 목적이면 SHOPPING_COMMERCE",
+          "음악 스트리밍은 MEDIA_STATE 신호를 공유하므로 이 값에 포함"
+        ],
+        "typical_archetype": "CONTENT_OPEN"
+      },
+      {
+        "code": "NEWS_CONTENT",
+        "label_ko": "뉴스·기사",
+        "definition": "편집된 텍스트 기사·기고 콘텐츠의 발행과 소비를 1차 정체성으로 갖는 서비스",
+        "inclusion": [
+          "신문·방송사 뉴스",
+          "뉴스 애그리게이터",
+          "매거진형 텍스트 콘텐츠"
+        ],
+        "exclusion": [
+          "사용자 생성 게시물이 본체인 서비스",
+          "상품 리뷰"
+        ],
+        "boundary_rules": [
+          "검색 관문이 전면이면 PORTAL_SEARCH, 기사 목록이 전면이면 NEWS_CONTENT",
+          "블로그 플랫폼: 편집주체가 사용자면 SOCIAL_COMMUNICATION, 편집국이면 NEWS_CONTENT"
+        ],
+        "typical_archetype": "CONTENT_OPEN"
+      },
+      {
+        "code": "SHOPPING_COMMERCE",
+        "label_ko": "쇼핑·커머스",
+        "definition": "상품·서비스의 탐색과 거래를 1차 정체성으로 갖는 서비스",
+        "inclusion": [
+          "오픈마켓",
+          "종합몰",
+          "홈쇼핑",
+          "배달 주문",
+          "브랜드 자사몰",
+          "식료품 배송"
+        ],
+        "exclusion": [
+          "금융상품 자체를 파는 서비스",
+          "결제수단만 제공하는 서비스"
+        ],
+        "boundary_rules": [
+          "결제는 거래의 부속이므로 domain은 SHOPPING_COMMERCE (단 archetype은 FINANCIAL_ACTION_ENTRY일 수 있다, D3)",
+          "여행·항공·숙박 예약은 SHOPPING_COMMERCE. 예약 완료는 00 §3 절대 제외",
+          "오프라인 점포 브랜드: 상품·주문이 1차면 SHOPPING_COMMERCE, 적립·쿠폰 도구가 1차면 UTILITY_OTHER"
+        ],
+        "typical_archetype": "ITEM_DETAIL"
+      },
+      {
+        "code": "MAP_MOBILITY",
+        "label_ko": "지도·이동",
+        "definition": "지리적 위치 탐색·경로 안내·이동수단 이용을 1차 정체성으로 갖는 서비스",
+        "inclusion": [
+          "지도",
+          "내비게이션",
+          "대중교통 안내",
+          "택시·차량 호출",
+          "자전거·킥보드 대여"
+        ],
+        "exclusion": [
+          "위치 기반이지만 목적이 거래인 서비스"
+        ],
+        "boundary_rules": [
+          "호출·배차 확정은 예약 완료에 준해 00 §3 절대 제외",
+          "지도 위 장소 상세가 상점 상세여도 1차 정체성이 지도이면 MAP_MOBILITY"
+        ],
+        "typical_archetype": "PLACE_LOOKUP"
+      },
+      {
+        "code": "FINANCE_PAYMENT",
+        "label_ko": "금융·결제",
+        "definition": "자금·금융상품·결제수단의 조회와 처리를 1차 정체성으로 갖는 서비스",
+        "inclusion": [
+          "은행",
+          "카드사",
+          "증권",
+          "보험",
+          "간편결제·송금",
+          "통합자산조회"
+        ],
+        "exclusion": [
+          "커머스의 부속 결제",
+          "가계부·계산기 등 비거래 도구"
+        ],
+        "boundary_rules": [
+          "리워드·적립: 현금성 자산 조회·이체가 1차면 FINANCE_PAYMENT, 행동 보상 도구가 1차면 UTILITY_OTHER",
+          "은행 서비스의 비금융 부가기능이 전면에 있어도 1차 정체성은 금융"
+        ],
+        "typical_archetype": "FINANCIAL_ACTION_ENTRY"
+      },
+      {
+        "code": "SOCIAL_COMMUNICATION",
+        "label_ko": "소셜·커뮤니케이션",
+        "definition": "사람 사이의 메시지·게시물 교환을 1차 정체성으로 갖는 서비스",
+        "inclusion": [
+          "메신저",
+          "SNS",
+          "커뮤니티·게시판",
+          "지역기반 이웃 커뮤니티",
+          "사용자 블로그 플랫폼"
+        ],
+        "exclusion": [
+          "편집국이 발행하는 기사",
+          "판매자-구매자 문의만 있는 커머스"
+        ],
+        "boundary_rules": [
+          "중고거래: 서비스 자기규정이 커뮤니티면 SOCIAL_COMMUNICATION, 마켓플레이스면 SHOPPING_COMMERCE, 대등하면 abstain (BD-5)",
+          "영상 플랫폼의 댓글·커뮤니티 탭은 부속이므로 domain을 바꾸지 않는다"
+        ],
+        "typical_archetype": "COMMUNICATION_ENTRY"
+      },
+      {
+        "code": "UTILITY_OTHER",
+        "label_ko": "유틸리티·기타",
+        "definition": "위 7종 어디에도 1차 정체성이 귀속되지 않는 도구·기능 제공형 서비스이자 00 §6 목록의 잔여값",
+        "inclusion": [
+          "기기 관리·보안·백신",
+          "파일·사진 관리",
+          "메모·계산기류 생산성 도구",
+          "걸음수·리워드 적립 도구",
+          "공공·행정 민원 도구",
+          "인증서 지갑",
+          "날씨·시계 등 단일목적 조회 도구"
+        ],
+        "exclusion": [
+          "7종 중 하나로 볼 근거가 있는 서비스 (BD-4)"
+        ],
+        "boundary_rules": [
+          "공공 민원: 발급·신청 완료는 절대 제외이므로 대표 task는 진입면까지",
+          "인증서·지갑: 결제수단 관리가 1차면 FINANCE_PAYMENT, 신원증명 도구가 1차면 UTILITY_OTHER",
+          "UTILITY_OTHER domain이 곧 UTILITY_ENTRY archetype을 뜻하지 않는다 (D4, D5)"
+        ],
+        "typical_archetype": "UTILITY_ENTRY"
+      }
+    ]
+  },
+  "interaction_archetype": {
+    "purpose": "DEPTH_COMPARISON_GROUPING",
+    "source": "00_SSOT_v2.0.md#6",
+    "used_for": [
+      "ExcessDepth baseline (median of same archetype)",
+      "mart_archetype_summary grain"
+    ],
+    "ssot_l1_row_correspondence": {
+      "note": "00 §3 L1 표 7행과 00 §6 archetype 7종은 1:1이 아니다 (2:1 병합 1건 + 대응 결측 1건)",
+      "map": [
+        {
+          "ssot_00_s3_row": "검색",
+          "archetype": "QUERY",
+          "kind": "ONE_TO_ONE"
+        },
+        {
+          "ssot_00_s3_row": "뉴스",
+          "archetype": "CONTENT_OPEN",
+          "kind": "MERGED_TWO_TO_ONE"
+        },
+        {
+          "ssot_00_s3_row": "영상",
+          "archetype": "CONTENT_OPEN",
+          "kind": "MERGED_TWO_TO_ONE"
+        },
+        {
+          "ssot_00_s3_row": "쇼핑",
+          "archetype": "ITEM_DETAIL",
+          "kind": "ONE_TO_ONE_NAME_MISMATCH"
+        },
+        {
+          "ssot_00_s3_row": "지도",
+          "archetype": "PLACE_LOOKUP",
+          "kind": "ONE_TO_ONE_NAME_MISMATCH"
+        },
+        {
+          "ssot_00_s3_row": "금융",
+          "archetype": "FINANCIAL_ACTION_ENTRY",
+          "kind": "ONE_TO_ONE_NAME_MISMATCH"
+        },
+        {
+          "ssot_00_s3_row": "커뮤니티",
+          "archetype": "COMMUNICATION_ENTRY",
+          "kind": "ONE_TO_ONE_NAME_BROADENED"
+        },
+        {
+          "ssot_00_s3_row": null,
+          "archetype": "UTILITY_ENTRY",
+          "kind": "NO_CORRESPONDING_ROW_PROPOSED_HERE"
+        }
+      ]
+    },
+    "common_rules": [
+      {
+        "id": "AR-1",
+        "rule": "one value per task row"
+      },
+      {
+        "id": "AR-2",
+        "rule": "judged by the structure of the user's actual operation, not by business domain or service name"
+      },
+      {
+        "id": "E-SHAPE",
+        "rule": "no endpoint may be defined as completion of a transaction, send, booking, or issuance; all 00 §3 endpoints are shallow entry"
+      },
+      {
+        "id": "AR-BND",
+        "rule": "post-login / post-identity-verification / payment-transfer-booking completion / signup are never endpoints"
+      },
+      {
+        "id": "AR-SIG-1",
+        "rule": "archetype declares an allowed set for region_signal_type and endpoint_signal_type; each task row carries exactly one"
+      },
+      {
+        "id": "AR-SIG-2",
+        "rule": "the two columns carry only the primary decision source; secondary confirmations live in this codebook as non-binding notes, never as new columns"
+      },
+      {
+        "id": "AR-AREA",
+        "rule": "region_definition text is transcribed from A1 §1.2; per-service specialization comes from re-applying 02 §6 candidate ranking at each state"
+      },
+      {
+        "id": "AR-3",
+        "rule": "NED=0 or MPFED=0 are valid observations (A1 §1.4); never deepen an endpoint to avoid them"
+      },
+      {
+        "id": "AR-4",
+        "rule": "scroll, per-character input, redirect, passive loading, server wait, popup dismiss are not activations (02 §9); area reachable by scroll alone still satisfies FUNCTION_AREA_REACHED"
+      },
+      {
+        "id": "AR-5",
+        "rule": "no cascade stage may invent an archetype or endpoint absent from this codebook (02 §10)"
+      }
+    ],
+    "values": [
+      {
+        "code": "QUERY",
+        "label_ko": "질의 제출",
+        "user_action": "자유 텍스트 검색어를 입력해 제출하고 서비스가 결과 상태로 전환하는 행동",
+        "region_definition": "검색어 입력 control이 focus 가능한 상태로 노출 (input[type=search] / role=searchbox / role=combobox + 제출 가능한 form 또는 제출 control)",
+        "region_definition_source": "A1#1.2",
+        "region_signal_type_default": "DOM_AX_ROLE",
+        "region_signal_type_allowed": [
+          "DOM_AX_ROLE",
+          "FORM_STRUCTURE"
+        ],
+        "endpoint_definition": "검색 query가 제출된 순간",
+        "endpoint_definition_source": "SSOT_00_S3",
+        "endpoint_branches": [
+          {
+            "branch_id": "SUBMIT",
+            "text": "검색 query가 제출된 순간",
+            "endpoint_signal_type": "FORM_STRUCTURE"
+          }
+        ],
+        "endpoint_signal_type_default": "FORM_STRUCTURE",
+        "endpoint_signal_type_allowed": [
+          "FORM_STRUCTURE",
+          "URL_PATTERN"
+        ],
+        "secondary_confirmation": [
+          "질의 파라미터를 포함한 URL 전이",
+          "결과 목록 컨테이너 출현"
+        ],
+        "gate_is_endpoint": false,
+        "non_endpoint_terminations": [
+          "AUTH_GATE_REACHED",
+          "CAPTCHA",
+          "BLOCKED",
+          "UNRESOLVED"
+        ],
+        "boundary_cases_not_this_archetype_or_not_endpoint": [
+          "자동완성 드롭다운 노출은 제출이 아니다 (endpoint 미도달)",
+          "문자 단위 입력은 activation이 아니며 text_input_episode로 간다 (A1 §4.2)",
+          "필터·정렬·카테고리 탭은 자유 텍스트 질의가 아니다 -> CONTENT_OPEN 또는 ITEM_DETAIL",
+          "음성검색 진입은 제출과 다르다; 텍스트 경로를 대표 경로로 삼는다",
+          "대표 task가 QUERY이면 검색 결과에서 상세까지 더 가지 않는다 (E-SHAPE)",
+          "내부 검색이 있다는 이유만으로 QUERY를 붙이지 않는다 (AR-2)"
+        ],
+        "typical_business_domains": [
+          "PORTAL_SEARCH"
+        ],
+        "atypical_but_valid_business_domains": [
+          "SHOPPING_COMMERCE",
+          "NEWS_CONTENT",
+          "MAP_MOBILITY",
+          "CONTENT_VIDEO",
+          "UTILITY_OTHER"
+        ]
+      },
+      {
+        "code": "CONTENT_OPEN",
+        "label_ko": "콘텐츠 열기",
+        "user_action": "이미 존재하는 콘텐츠 1건을 골라 열어 소비를 시작하는 행동",
+        "region_definition": "개별 콘텐츠(기사·영상) 항목의 링크·카드가 목록 형태로 노출",
+        "region_definition_source": "A1#1.2",
+        "region_signal_type_default": "DOM_AX_ROLE",
+        "region_signal_type_allowed": [
+          "DOM_AX_ROLE"
+        ],
+        "endpoint_definition": "기사 본문이 열린 순간 / 영상 재생이 시작된 순간",
+        "endpoint_definition_source": "SSOT_00_S3",
+        "endpoint_branches": [
+          {
+            "branch_id": "ARTICLE_OPEN",
+            "text": "기사 본문이 열린 순간",
+            "endpoint_signal_type": "URL_PATTERN"
+          },
+          {
+            "branch_id": "PLAYBACK_START",
+            "text": "영상 재생이 시작된 순간",
+            "endpoint_signal_type": "MEDIA_STATE"
+          }
+        ],
+        "endpoint_signal_type_default": null,
+        "endpoint_signal_type_allowed": [
+          "URL_PATTERN",
+          "MEDIA_STATE"
+        ],
+        "secondary_confirmation": [
+          "<article>/본문 landmark + 제목·본문 텍스트 블록 출현",
+          "<video> play 이벤트 + currentTime 증가"
+        ],
+        "gate_is_endpoint": false,
+        "non_endpoint_terminations": [
+          "AUTH_GATE_REACHED",
+          "PERSONAL_DATA_REQUIRED",
+          "BLOCKED",
+          "UNRESOLVED"
+        ],
+        "boundary_cases_not_this_archetype_or_not_endpoint": [
+          "목록에서 요약 스니펫만 인라인 확장되는 것은 본문 열림이 아니다",
+          "무음 autoplay 미리보기는 재생 시작이 아니다 (사용자 activation 결과가 아니며 motion 지표로 별도 기록)",
+          "광고 pre-roll 재생은 대표 콘텐츠 재생이 아니다; 본편 재생 시작이 endpoint",
+          "썸네일 hover/포커스 미리보기 동일",
+          "라이브 스트림은 본편 재생과 동일 취급",
+          "목록이 랜딩이면 NED=0이며 그것을 endpoint로 올리지 않는다"
+        ],
+        "typical_business_domains": [
+          "NEWS_CONTENT",
+          "CONTENT_VIDEO"
+        ],
+        "atypical_but_valid_business_domains": [
+          "PORTAL_SEARCH",
+          "SOCIAL_COMMUNICATION",
+          "SHOPPING_COMMERCE",
+          "UTILITY_OTHER"
+        ]
+      },
+      {
+        "code": "ITEM_DETAIL",
+        "label_ko": "상품 상세 확인",
+        "user_action": "거래 대상 1건의 상세면에 진입해 핵심 정보를 확인하는 행동. 구매·주문은 하지 않는다",
+        "region_definition": "개별 상품 항목의 링크·카드가 목록 형태로 노출",
+        "region_definition_source": "A1#1.2",
+        "region_signal_type_default": "DOM_AX_ROLE",
+        "region_signal_type_allowed": [
+          "DOM_AX_ROLE"
+        ],
+        "endpoint_definition": "상품 상세와 핵심 상품정보가 보인 순간",
+        "endpoint_definition_source": "SSOT_00_S3",
+        "endpoint_operationalization": {
+          "term": "핵심 상품정보",
+          "status": "OPERATIONALIZED_BY_PA_A4",
+          "classification": "COLLECTION_PARAMETER (A1 §0.4) — not an interpretation threshold",
+          "conjunction_all_required": [
+            "(a) 개별 상품을 식별하는 상품명 텍스트",
+            "(b) 가격 표기 (품절·가격미표기 등 명시적 부재 문구 포함)",
+            "(c) 1차 거래 control(구매/주문/장바구니 등)이 DOM·AX에 PRESENT"
+          ],
+          "scope": "세 요소가 같은 상세 문서 안에서 관측되면 충족",
+          "note": "(c)는 control의 존재이지 누름이 아니다. 누르면 E-SHAPE 위반",
+          "audit_required": true
+        },
+        "endpoint_branches": [
+          {
+            "branch_id": "DETAIL_PAGE",
+            "text": "상품 상세와 핵심 상품정보가 보인 순간",
+            "endpoint_signal_type": "URL_PATTERN"
+          },
+          {
+            "branch_id": "DETAIL_INPLACE",
+            "text": "URL 전이 없이 상세가 인플레이스로 열린 경우",
+            "endpoint_signal_type": "DOM_AX_ROLE"
+          }
+        ],
+        "endpoint_signal_type_default": "URL_PATTERN",
+        "endpoint_signal_type_allowed": [
+          "URL_PATTERN",
+          "DOM_AX_ROLE"
+        ],
+        "secondary_confirmation": [
+          "상품 상세 URL 패턴 전이",
+          "Product 구조화 데이터",
+          "가격 요소의 accessible name"
+        ],
+        "gate_is_endpoint": false,
+        "non_endpoint_terminations": [
+          "AUTH_GATE_REACHED",
+          "PAYMENT_GATE_REACHED",
+          "PERSONAL_DATA_REQUIRED",
+          "UNRESOLVED"
+        ],
+        "boundary_cases_not_this_archetype_or_not_endpoint": [
+          "퀵뷰/미리보기 모달: (a)(b)(c) 모두 관측되면 인정하되 endpoint_signal_type=DOM_AX_ROLE",
+          "목록 카드의 가격 표시는 상세가 아니다",
+          "장바구니 담기 이후 상태는 상세 도달 이후다 - 하지 않는다",
+          "옵션 선택 강제로 가격이 가려지면 '옵션 선택 시 표시' 명시를 (b)의 명시적 부재로 인정",
+          "카테고리 랜딩·기획전 페이지는 개별 상품 상세가 아니다",
+          "배달 서비스의 매장 상세는 상품이 아니라 장소·판매자다 -> PLACE_LOOKUP 쪽"
+        ],
+        "typical_business_domains": [
+          "SHOPPING_COMMERCE"
+        ],
+        "atypical_but_valid_business_domains": [
+          "SOCIAL_COMMUNICATION",
+          "FINANCE_PAYMENT",
+          "MAP_MOBILITY"
+        ]
+      },
+      {
+        "code": "PLACE_LOOKUP",
+        "label_ko": "장소 탐색",
+        "user_action": "지리적 장소를 질의하거나 특정 장소의 상세를 여는 행동",
+        "region_definition": "장소검색 입력 control 또는 장소 항목 목록이 노출",
+        "region_definition_source": "A1#1.2",
+        "region_signal_type_default": "DOM_AX_ROLE",
+        "region_signal_type_allowed": [
+          "DOM_AX_ROLE"
+        ],
+        "endpoint_definition": "장소검색이 제출되거나 장소 상세가 열린 순간",
+        "endpoint_definition_source": "SSOT_00_S3",
+        "endpoint_branches": [
+          {
+            "branch_id": "PLACE_QUERY_SUBMIT",
+            "text": "장소검색이 제출된 순간",
+            "endpoint_signal_type": "FORM_STRUCTURE"
+          },
+          {
+            "branch_id": "PLACE_DETAIL_OPEN",
+            "text": "장소 상세가 열린 순간",
+            "endpoint_signal_type": "URL_PATTERN"
+          },
+          {
+            "branch_id": "PLACE_DETAIL_INPLACE",
+            "text": "SPA로 URL 불변인 채 장소 상세가 열린 경우",
+            "endpoint_signal_type": "DOM_AX_ROLE"
+          }
+        ],
+        "endpoint_signal_type_default": "URL_PATTERN",
+        "endpoint_signal_type_allowed": [
+          "FORM_STRUCTURE",
+          "URL_PATTERN",
+          "DOM_AX_ROLE"
+        ],
+        "branch_rule": "선언적 OR — 두 분기 중 먼저 관측된 쪽이 endpoint",
+        "secondary_confirmation": [
+          "장소 id를 포함한 URL 전이",
+          "장소 상세 패널 landmark 출현"
+        ],
+        "gate_is_endpoint": false,
+        "non_endpoint_terminations": [
+          "AUTH_GATE_REACHED",
+          "UNRESOLVED"
+        ],
+        "boundary_cases_not_this_archetype_or_not_endpoint": [
+          "지도 pan/zoom은 activation이 아니며 endpoint도 아니다",
+          "브라우저 위치권한 프롬프트는 종료조건이 아니다 (AUTH_GATE_REACHED도 PERSONAL_DATA_REQUIRED도 아님); 권한 미부여로 텍스트 검색 경로 진행 - OPEN Q-4",
+          "현재 위치 자동표시만으로는 장소검색 제출이 아니다",
+          "경로 안내(길찾기) 시작은 장소 상세 이후 단계다 - endpoint를 옮기지 않는다",
+          "차량 호출·배차 확정은 예약 완료에 준하므로 절대 제외",
+          "장소 상세가 상점 상세인 경우 대표 task 기준으로 PLACE_LOOKUP / ITEM_DETAIL 분기"
+        ],
+        "typical_business_domains": [
+          "MAP_MOBILITY"
+        ],
+        "atypical_but_valid_business_domains": [
+          "SHOPPING_COMMERCE",
+          "PORTAL_SEARCH",
+          "FINANCE_PAYMENT"
+        ]
+      },
+      {
+        "code": "COMMUNICATION_ENTRY",
+        "label_ko": "교환공간 진입",
+        "user_action": "사람 사이의 글·메시지 교환 공간에 진입하는 행동. 실제 발신·게시는 하지 않는다",
+        "region_definition": "게시물/스레드 목록 또는 작성 진입 control이 노출",
+        "region_definition_source": "A1#1.2",
+        "region_signal_type_default": "DOM_AX_ROLE",
+        "region_signal_type_allowed": [
+          "DOM_AX_ROLE"
+        ],
+        "endpoint_definition": "게시물/스레드/작성영역 진입 또는 로그인 gate",
+        "endpoint_definition_source": "SSOT_00_S3",
+        "endpoint_branches": [
+          {
+            "branch_id": "POST_OPEN",
+            "text": "게시물/스레드가 열린 순간",
+            "endpoint_signal_type": "URL_PATTERN"
+          },
+          {
+            "branch_id": "COMPOSE_ENTRY",
+            "text": "작성영역에 진입한 순간",
+            "endpoint_signal_type": "DOM_AX_ROLE"
+          },
+          {
+            "branch_id": "LOGIN_GATE",
+            "text": "로그인 gate가 나타난 순간",
+            "endpoint_signal_type": "GATE_SIGNAL"
+          }
+        ],
+        "endpoint_signal_type_default": null,
+        "endpoint_signal_type_allowed": [
+          "URL_PATTERN",
+          "DOM_AX_ROLE",
+          "GATE_SIGNAL"
+        ],
+        "secondary_confirmation": [
+          "게시물 id URL 전이",
+          "textbox role + editable 상태",
+          "gate 키워드 + 인증 form 구조"
+        ],
+        "gate_is_endpoint": true,
+        "gate_conflict_note": "GATE-1 참조 — A2 §1.5.1의 AUTH_GATE_REACHED와 충돌. OPEN Q-1",
+        "non_endpoint_terminations": [
+          "PERSONAL_DATA_REQUIRED",
+          "CAPTCHA",
+          "UNRESOLVED"
+        ],
+        "boundary_cases_not_this_archetype_or_not_endpoint": [
+          "실제 메시지 전송·게시물 등록은 절대 제외",
+          "작성창 focus 획득까지가 진입이며 문자 입력은 text_input_episode",
+          "댓글 입력창은 대표 task가 그것으로 동결된 경우에만 작성영역으로 인정",
+          "QR·앱 전환 로그인만 제공하는 메신저 웹은 gate 분기로 성립",
+          "1:1 메신저는 SSOT 원문 라벨('커뮤니티')보다 넓은 해석이므로 mapping_basis에 근거를 남긴다",
+          "고객센터 문의·챗봇은 사람 사이 교환이 아니면 UTILITY_ENTRY 쪽"
+        ],
+        "typical_business_domains": [
+          "SOCIAL_COMMUNICATION"
+        ],
+        "atypical_but_valid_business_domains": [
+          "CONTENT_VIDEO",
+          "SHOPPING_COMMERCE",
+          "PORTAL_SEARCH"
+        ]
+      },
+      {
+        "code": "FINANCIAL_ACTION_ENTRY",
+        "label_ko": "금융기능 진입",
+        "user_action": "금융 처리 기능의 진입면에 도달하는 행동. 조회·이체·결제의 시작 지점까지이며 실행하지 않는다",
+        "region_definition": "금융기능 진입 control(조회·이체·인증 진입 등)이 노출",
+        "region_definition_source": "A1#1.2",
+        "region_signal_type_default": "DOM_AX_ROLE",
+        "region_signal_type_allowed": [
+          "DOM_AX_ROLE"
+        ],
+        "endpoint_definition": "금융기능 진입 또는 로그인/인증 gate가 나타난 순간",
+        "endpoint_definition_source": "SSOT_00_S3",
+        "endpoint_branches": [
+          {
+            "branch_id": "FUNCTION_ENTRY",
+            "text": "금융기능 진입면이 열린 순간",
+            "endpoint_signal_type": "DOM_AX_ROLE"
+          },
+          {
+            "branch_id": "FUNCTION_ENTRY_URL",
+            "text": "금융기능 진입면으로 URL 전이한 순간",
+            "endpoint_signal_type": "URL_PATTERN"
+          },
+          {
+            "branch_id": "AUTH_GATE",
+            "text": "로그인/인증 gate가 나타난 순간",
+            "endpoint_signal_type": "GATE_SIGNAL"
+          }
+        ],
+        "endpoint_signal_type_default": null,
+        "endpoint_signal_type_allowed": [
+          "DOM_AX_ROLE",
+          "URL_PATTERN",
+          "GATE_SIGNAL"
+        ],
+        "secondary_confirmation": [
+          "인증 form 구조",
+          "금융기능 진입 URL 패턴"
+        ],
+        "gate_is_endpoint": true,
+        "gate_conflict_note": "GATE-1 참조 — A2 §1.5.1의 AUTH_GATE_REACHED와 충돌. OPEN Q-1",
+        "non_endpoint_terminations": [
+          "PAYMENT_GATE_REACHED",
+          "PERSONAL_DATA_REQUIRED",
+          "CAPTCHA",
+          "BLOCKED",
+          "UNRESOLVED"
+        ],
+        "boundary_cases_not_this_archetype_or_not_endpoint": [
+          "송금·이체 실행, 결제 완료는 절대 제외",
+          "앱 설치 유도로만 진행 가능하면 UNRESOLVED; 설치 유도 자체는 L0 interrupt 축",
+          "보안 프로그램 설치 요구로 진행 차단이면 BLOCKED (로그인 gate와 구분)",
+          "공개 정보 조회(환율·금리 표)는 금융 처리 진입이 아니다 -> UTILITY_ENTRY 쪽",
+          "커머스의 결제 진입도 archetype은 FINANCIAL_ACTION_ENTRY (D3)"
+        ],
+        "typical_business_domains": [
+          "FINANCE_PAYMENT"
+        ],
+        "atypical_but_valid_business_domains": [
+          "SHOPPING_COMMERCE",
+          "MAP_MOBILITY",
+          "UTILITY_OTHER"
+        ]
+      },
+      {
+        "code": "UTILITY_ENTRY",
+        "label_ko": "도구 기능면 진입",
+        "user_action": "특정 목적의 도구를 꺼내 쓸 수 있는 상태로 만드는 행동",
+        "region_definition": "해당 task의 기능면 진입 control이 노출",
+        "region_definition_source": "A1#1.2 (구체화)",
+        "region_signal_type_default": "CODEBOOK_PENDING",
+        "region_signal_type_after_adoption": "DOM_AX_ROLE",
+        "region_signal_type_allowed": [
+          "DOM_AX_ROLE",
+          "CODEBOOK_PENDING"
+        ],
+        "endpoint_definition": "대표 유틸리티 기능의 전용 기능면(function surface)이 열리고, 그 기능의 1차 조작 대상(primary control)이 PRESENT ∧ HITTABLE 상태로 관측된 순간",
+        "endpoint_definition_source": "PROPOSED_BY_PA_A4",
+        "proposal_id": "U-1",
+        "adoption_status": "PROPOSED_PENDING_PA_AUDIT",
+        "freeze_blocked_until_adopted": true,
+        "freeze_block_rule": "A2 §1.9 규칙 P-2 — region_signal_type=CODEBOOK_PENDING 인 task는 mapping_status=FROZEN 불가",
+        "endpoint_branches": [
+          {
+            "branch_id": "SURFACE_READY",
+            "text": "기능면이 열리고 1차 조작 대상이 PRESENT ∧ HITTABLE",
+            "endpoint_signal_type": "DOM_AX_ROLE"
+          },
+          {
+            "branch_id": "SURFACE_READY_URL",
+            "text": "기능면으로 URL 전이한 뒤 1차 조작 대상이 PRESENT ∧ HITTABLE",
+            "endpoint_signal_type": "URL_PATTERN"
+          }
+        ],
+        "endpoint_signal_type_default": "CODEBOOK_PENDING",
+        "endpoint_signal_type_after_adoption": "DOM_AX_ROLE",
+        "endpoint_signal_type_allowed": [
+          "DOM_AX_ROLE",
+          "URL_PATTERN",
+          "CODEBOOK_PENDING"
+        ],
+        "predicate_reuse": "PRESENT ∧ HITTABLE 은 A1 §1.1이 FUNCTION_AREA_REACHED에 대해 정의한 술어를 그대로 재사용한다. 새 술어를 만들지 않았다",
+        "gate_is_endpoint": false,
+        "rationale": [
+          {
+            "id": "G1",
+            "text": "명명 정합 — _ENTRY 접미사 family(COMMUNICATION_ENTRY, FINANCIAL_ACTION_ENTRY)의 00 §3 endpoint는 진입형이다"
+          },
+          {
+            "id": "G2",
+            "text": "깊이 수준 정합 — 00 §3의 7개 endpoint는 전부 완료가 아닌 진입이며 A1 §2.1이 통상 경로를 4 이내로 상정했다"
+          },
+          {
+            "id": "G3",
+            "text": "절대 제외 미침범 — 발급·전환·신청 완료 앞에서 멈춘다"
+          },
+          {
+            "id": "G4",
+            "text": "관측 가능성 — DOM/AX + hit-test로 02 §1 우선순위 1단계에서 닫힌다"
+          },
+          {
+            "id": "G5",
+            "text": "이질성 봉쇄 — 도구 종류와 무관하게 '기능면 도달'은 같은 의미를 갖는다"
+          }
+        ],
+        "alternatives": [
+          {
+            "id": "U-1",
+            "recommended": true,
+            "text": "기능면 도달 + 1차 조작 대상 PRESENT ∧ HITTABLE",
+            "pro": "G1~G5",
+            "con": "단일목적 유틸리티에서 랜딩=기능면이 되어 MPFED=0에 질량이 몰릴 수 있다 (OPEN Q-3)"
+          },
+          {
+            "id": "U-1g",
+            "recommended": false,
+            "text": "U-1 + '또는 로그인/인증 gate가 나타난 순간' (gate_is_endpoint=true)",
+            "pro": "로그인 선행형 유틸리티에서 depth가 NULL로 사라지지 않는다",
+            "con": "00 §3이 gate 분기를 금융·커뮤니티 두 행에만 부여했다. 세 번째 archetype으로의 확장은 SSOT가 주지 않은 권한이다"
+          },
+          {
+            "id": "U-2",
+            "recommended": false,
+            "text": "유틸리티 기능이 1회 실행돼 결과 상태가 화면에 반영된 순간",
+            "pro": "QUERY·CONTENT_OPEN과 같은 행위 완결형이라 6종과 형태가 맞는다",
+            "con": "결과 정의가 서비스마다 이질적이고 발급·신청·전환류에서 절대 제외 침범 위험. 금융·커뮤니티가 진입형인 점과 불일치"
+          },
+          {
+            "id": "U-3",
+            "recommended": false,
+            "text": "archetype 폐지 — 6종 중 최근접 강제 배정, 불가하면 EXCLUDED",
+            "pro": "새 정의를 만들지 않는다",
+            "con": "00 §6이 열거한 값의 삭제 = SSOT 위반. 강제 분류는 00 §9 정신 위반이며 6종 중앙값을 오염시킨다"
+          },
+          {
+            "id": "U-4",
+            "recommended": false,
+            "text": "U-1 채택 + UTILITY_ENTRY를 ExcessDepth 기준선 archetype에서 제외",
+            "pro": "이질 잔여군이 상대깊이 비교를 오염시키지 않는다",
+            "con": "00 §7·§11에 없는 분석 규칙 신설이므로 이 문서의 권한 밖 -> OPEN Q-3"
+          }
+        ],
+        "non_endpoint_terminations": [
+          "AUTH_GATE_REACHED",
+          "PERSONAL_DATA_REQUIRED",
+          "PAYMENT_GATE_REACHED",
+          "CAPTCHA",
+          "BLOCKED",
+          "UNRESOLVED"
+        ],
+        "boundary_cases_not_this_archetype_or_not_endpoint": [
+          "도구의 실행 결과 확인(발급·전환·신청 완료)은 E-SHAPE·절대 제외 위반",
+          "범용 검색 도구는 QUERY다",
+          "파일·사진 목록에서 항목 1건 열기가 대표기능이면 CONTENT_OPEN 쪽이 더 정확하다",
+          "포인트 출금·전환 진입은 FINANCIAL_ACTION_ENTRY다",
+          "설정 화면 도달은 대표기능이 아니다 (02 §6 후보 랭킹에서 설정·계정 메뉴는 대표 후보가 아니다)",
+          "앱 다운로드 페이지만 있는 서비스는 web_eligibility 단계에서 처리하며 endpoint를 억지로 만들지 않는다"
+        ],
+        "typical_business_domains": [
+          "UTILITY_OTHER"
+        ],
+        "atypical_but_valid_business_domains": [
+          "FINANCE_PAYMENT",
+          "MAP_MOBILITY",
+          "SHOPPING_COMMERCE",
+          "PORTAL_SEARCH"
+        ]
+      }
+    ]
+  },
+  "termination_rules": {
+    "source": "02#7 via A2#1.5.1",
+    "set_is_closed": true,
+    "no_bypass": "결제·본인인증을 우회하지 않는다 (02 §7)",
+    "null_discipline": "NULL을 0이나 예산 상한으로 대체하지 않는다 (A1 §1.5, §2.4)",
+    "not_accessibility_failure": "endpoint_status와 endpoint_status_detail은 measurement status이며 KWCAG 판정으로 전환하지 않는다 (A2 규칙 E-3)",
+    "budget_exhaustion": {
+      "endpoint_status": "UNRESOLVED",
+      "endpoint_status_detail": "UNRESOLVED_DEPTH_BUDGET_EXCEEDED",
+      "treatment": "우측절단으로 별도 집계, ExcessDepth 미산출 (A2 규칙 E-4)"
+    },
+    "gate_conflict": {
+      "id": "GATE-1",
+      "status": "SUPERSEDED_BY_A2_1_5_1a",
+      "resolved_at_base_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
+      "authority": "A2 §1.5.1a 규칙 E-5 ~ E-10 (V2-C003 신설 · V2-C004 시정). 이 JSON은 정본을 가리키기만 하고 정책표를 복제하지 않는다",
+      "problem": "00 §3은 금융·커뮤니티의 endpoint 문안 안에 gate를 넣었는데 A2 §1.5.1의 AUTH_GATE_REACHED는 endpoint_reached=0, MPFED=NULL이다. 그대로 겹치면 두 archetype의 depth가 구조적으로 전부 NULL이 된다",
+      "resolution_summary": "A2 §0 7항 EXC-2가 00 > 01 우선순위로 해소했다. 두 archetype에서 00 §3이 그 행에 명시한 종류의 gate가 관측되면 endpoint_status=FUNCTION_ENDPOINT_REACHED + endpoint_status_detail=ENDPOINT_VIA_AUTH_GATE, endpoint_reached=1",
+      "gate_kind_scope": {
+        "FINANCIAL_ACTION_ENTRY": "로그인 gate + 본인인증 gate 둘 다 endpoint",
+        "COMMUNICATION_ENTRY": "로그인 gate만 endpoint. 본인인증 gate는 AUTH_GATE_REACHED (개인정보 입력 요구 시 PERSONAL_DATA_REQUIRED)",
+        "others": "모든 gate 종류가 AUTH_GATE_REACHED. 승격 금지"
+      },
+      "why_GATE_1_was_wrong": [
+        "기록 슬롯 오류 — GATE-1은 endpoint_signal_type=GATE_SIGNAL 에 담자고 했으나 A2는 endpoint_status_detail=ENDPOINT_VIA_AUTH_GATE 에 담는다. 규칙 E-8 유병률 합집합과 규칙 E-10 층화가 후자를 조건으로 쓴다",
+        "gate 종류 일반화 오류 — GATE-1은 두 archetype을 똑같이 '로그인/인증 gate'로 일반화했으나 00 §3의 두 행은 gate 절이 서로 다르다. 일반화는 00 §3 커뮤니티 행을 넓히는 SSOT 침범이며 V2-C004가 이를 시정했다"
+      ],
+      "unconditional_rules": [
+        {
+          "id": "GATE-2",
+          "equals": "A2 규칙 E-7",
+          "text": "gate를 통과하지 않는다. 두 archetype에서도 gate 관측 즉시 종료한다. 달라지는 것은 종료 후 저장하는 값뿐이다"
+        },
+        {
+          "id": "GATE-3",
+          "equals": "A2 규칙 E-6",
+          "text": "7값 집합은 확장되지 않는다. 예외는 두 archetype과 규칙 E-6a가 그 행에 허용한 gate 종류를 넘지 않는다"
+        },
+        {
+          "id": "GATE-4",
+          "status": "NEW_OPEN",
+          "open_question": "Q-9",
+          "text": "gate 종류(로그인 gate ↔ 본인인증 gate)의 판별은 수집기 재량이 아니라 이 코드북이 정의할 관측 규칙이다. 아직 미작성이며 그것 없이는 규칙 E-6a가 실행 불가다"
+        }
+      ],
+      "downstream_obligation": "규칙 E-10 — 두 archetype의 MPFED 계열 지표는 endpoint_status_detail=ENDPOINT_VIA_AUTH_GATE 여부로 층화 병기한다 (P-H 이행 의무)",
+      "open_question": "Q-1 (CLOSED)"
+    }
+  },
+  "mapping_rules": {
+    "one_task_per_entity": {
+      "source": "00 §6, 00 §5",
+      "rules": [
+        {
+          "id": "MAP-1",
+          "text": "한 measurement_entity_id에 FROZEN 상태 task 행은 1개"
+        },
+        {
+          "id": "MAP-2",
+          "text": "대표 task 선정 근거 순서: (a) 서비스가 1차로 내세우는 기능, (b) 02 §6 후보 랭킹 최상위, (c) 패널 등재 사유"
+        },
+        {
+          "id": "MAP-3",
+          "text": "예외 A — 한 entity가 복수 web target을 가지면 task 행은 web_target_id 단위로 생성될 수 있고, web target 하나당 task 1개다"
+        },
+        {
+          "id": "MAP-4",
+          "text": "예외 B — 후보 2개의 근거가 대등하면 둘 다 만들지 않고 abstain으로 보낸다. 둘을 동결해 depth를 두 번 세지 않는다"
+        },
+        {
+          "id": "MAP-5",
+          "text": "예외 C — 웹에서 대표기능이 성립하지 않으면 mapping_status=EXCLUDED"
+        },
+        {
+          "id": "MAP-6",
+          "text": "같은 web_target × archetype 조합의 task 행을 2개 만들지 않는다. 재측정은 fact_task_entry 수준 append다"
+        },
+        {
+          "id": "MAP-7",
+          "text": "domain·archetype은 독립 판정되며, 둘 중 하나라도 미확정이면 mapping_status는 FROZEN이 될 수 없다"
+        }
+      ]
+    },
+    "freeze_protocol": {
+      "source": "00 §6, A2 규칙 P-1, PHASE_GATES P-A",
+      "steps": [
+        {
+          "step": "F0",
+          "action": "매핑 작업공간 개방. 입력 allowlist 밖 경로를 읽지 않는다",
+          "artifact": "mapping_run_manifest (실행 시각, base SHA, 허용 입력 경로와 content hash)"
+        },
+        {
+          "step": "F1",
+          "action": "domain·archetype·endpoint 판정 (cascade)",
+          "artifact": "단계별 mapping_basis, cascade 이력"
+        },
+        {
+          "step": "F2",
+          "action": "mapping_status DRAFT -> CANDIDATE",
+          "artifact": "전이 시각"
+        },
+        {
+          "step": "F3",
+          "action": "동결 선언. mapping_status = FROZEN",
+          "artifact": "mapping_freeze_stamp (frozen_at UTC, 동결 행 집합 hash, base SHA)"
+        },
+        {
+          "step": "F4",
+          "action": "동결 이후에만 L0/L1 수집·KWCAG 판정·certified_current 산출 시작",
+          "artifact": "각 접근성 산출물 생성 시각"
+        },
+        {
+          "step": "F5",
+          "action": "순서 자동 검증",
+          "artifact": "mapping_freeze_stamp.frozen_at < min(모든 접근성 산출물 생성 시각). 위반 시 gate 실패"
+        }
+      ],
+      "rules": [
+        {
+          "id": "FRZ-1",
+          "text": "DRAFT -> CANDIDATE -> {FROZEN, AMBIGUOUS_UNRESOLVED, EXCLUDED} 단방향"
+        },
+        {
+          "id": "FRZ-2",
+          "text": "동결 후 오류 발견 시 조용히 고치지 않는다. 사유·발견 시점·발견자·재동결 시각을 append하고 보고에 노출한다"
+        },
+        {
+          "id": "FRZ-3",
+          "text": "접근성·인증 결과를 본 뒤 그것을 이유로 매핑을 바꾸는 것은 금지. 00 §6이 막으려는 정확한 행위다"
+        },
+        {
+          "id": "FRZ-4",
+          "text": "region_signal_type 또는 endpoint_signal_type이 CODEBOOK_PENDING인 행은 FROZEN 불가 (A2 P-2)"
+        }
+      ]
+    },
+    "input_allowlist": {
+      "tiers": [
+        {
+          "tier": "T1",
+          "name": "source context",
+          "allowed": [
+            "panel_registry",
+            "source_ranking_rows",
+            "source_membership",
+            "service_master(service_name_canonical, domain, axis_type, canonicalization_basis)",
+            "entity_alias_map"
+          ],
+          "applies_to": "P-A A5 pilot uses T1 only (PHASE_GATES P-A)"
+        },
+        {
+          "tier": "T2",
+          "name": "target identity",
+          "allowed": [
+            "dim_web_target.official_landing_url",
+            "dim_web_target.final_url",
+            "dim_web_target.registered_domain",
+            "dim_web_target.url_evidence"
+          ],
+          "applies_to": "P-B full mapping"
+        },
+        {
+          "tier": "T3",
+          "name": "function surface structure",
+          "allowed": [
+            "02 §6 candidate extraction (accessible name, visible text, nearby heading, href, role, bbox, viewport visibility)",
+            "embedding ranking over those"
+          ],
+          "applies_to": "P-B full mapping"
+        }
+      ],
+      "denylist": [
+        "fact_criterion_result (all columns)",
+        "dim_certification / certified_current / 인증목록 원자료",
+        "fact_landing_observation measurement scalars (contrast, target size, overlay coverage, occlusion, density)",
+        "fact_interrupt_element judgement results (final_label, blocking, dismiss_*)",
+        "fact_task_entry / fact_task_step depth and endpoint results",
+        "mart_* (all)"
+      ],
+      "rules": [
+        {
+          "id": "IN-1",
+          "text": "T3는 '무엇을 하는 서비스인가'만 답할 수 있고 '얼마나 잘 하는가'는 답할 수 없다. 후자를 근거로 매핑을 바꾸면 FRZ-3 위반이다"
+        },
+        {
+          "id": "IN-2",
+          "text": "allowlist 위반은 사후 증명이 불가하므로 F0 manifest의 입력 hash가 유일한 강제수단이다. manifest에 없는 경로를 읽은 흔적이 발견되면 그 run은 무효다"
+        }
+      ]
+    },
+    "cascade": {
+      "source": "00 §9, 00 §10, 02 §1, 02 §10, 03 M0, A1 §1.6",
+      "stop_at_first_resolution": true,
+      "stages": [
+        {
+          "stage": 1,
+          "name": "deterministic rule",
+          "mapping_basis": "RULE",
+          "sees": [
+            "등록 도메인 문자열",
+            "서비스명 canonical 토큰",
+            "axis_type",
+            "이 코드북의 포함/제외 규칙"
+          ],
+          "cannot_see_or_do": [
+            "화면을 못 본다",
+            "의미 유사도를 못 쓴다",
+            "규칙에 없는 신조어를 못 다룬다"
+          ],
+          "output": "domain·archetype 확정 또는 NO_RULE_MATCH"
+        },
+        {
+          "stage": 2,
+          "name": "source context",
+          "mapping_basis": "SOURCE_CONTEXT",
+          "sees": [
+            "패널 카테고리 문맥",
+            "랭킹 위치",
+            "다른 패널 동반 등장"
+          ],
+          "cannot_see_or_do": [
+            "서비스 내부 구조를 못 본다",
+            "패널 카테고리가 사업분류라 archetype(행위 구조)을 직접 답하지 못한다 — 주로 domain에 기여"
+          ],
+          "output": "domain 후보 + 신뢰도"
+        },
+        {
+          "stage": 3,
+          "name": "embedding similarity",
+          "mapping_basis": "EMBEDDING",
+          "sees": [
+            "후보 control의 accessible name·visible text·nearby heading",
+            "archetype endpoint 설명문과의 임베딩 유사도 (02 §6)"
+          ],
+          "cannot_see_or_do": [
+            "시각적 배치·아이콘 의미를 못 본다",
+            "텍스트 없는 icon-only control을 못 다룬다",
+            "유사도는 순위이지 판정이 아니다 — 임계값 자동 확정 금지"
+          ],
+          "output": "후보 순위 + 유사도 점수"
+        },
+        {
+          "stage": 4,
+          "name": "AI reviewer A",
+          "mapping_basis": "AI_REVIEW",
+          "sees": [
+            "02 §10 evidence package만 (screenshot crop, surrounding screenshot, DOM/AX facts, bbox, relevant text, 허용 label 목록, rule excerpt)"
+          ],
+          "cannot_see_or_do": [
+            "사이트를 자유 탐색하지 못한다",
+            "새 label·새 endpoint를 만들지 못한다 (AR-5)",
+            "접근성·인증 정보를 받지 못한다"
+          ],
+          "output": "JSON classification only"
+        },
+        {
+          "stage": "4-prime",
+          "name": "AI reviewer B -> arbiter",
+          "mapping_basis": "AI_REVIEW",
+          "sees": [
+            "A와 독립으로 같은 evidence package",
+            "arbiter는 두 답과 evidence"
+          ],
+          "cannot_see_or_do": [
+            "B는 A의 답을 보지 못한다 (독립성 조건)"
+          ],
+          "output": "합의 라벨 또는 불일치"
+        },
+        {
+          "stage": 5,
+          "name": "HUMAN_FINAL",
+          "mapping_basis": "HUMAN_FINAL",
+          "sees": [
+            "전체 evidence package",
+            "이 코드북"
+          ],
+          "cannot_see_or_do": [
+            "예산 HUMAN_FINAL_REVIEW_MAX = 5, fact_ai_adjudication.human_required와 같은 예산 공유 (A2 §1.9, §4.6)"
+          ],
+          "output": "최종 라벨"
+        }
+      ],
+      "rules": [
+        {
+          "id": "CAS-1",
+          "text": "mapping_basis는 최종 확정에 사용된 단계를 기록한다. 거쳐온 이력은 별도"
+        },
+        {
+          "id": "CAS-2",
+          "text": "3단계 유사도만으로 확정하지 않는다. 1·2위가 근접하면 4단계로 올린다"
+        },
+        {
+          "id": "CAS-3",
+          "text": "4단계 이상에서 ABSTAIN이 나오면 abstain 경로"
+        },
+        {
+          "id": "CAS-4",
+          "text": "어느 단계도 이 코드북에 없는 값을 만들 수 없다"
+        },
+        {
+          "id": "CAS-5",
+          "text": "예산 소진 상태에서 5단계가 필요하면 RESOLVED로 위장하지 않는다 — ESCALATION_DECLINED_BUDGET + ABSTAIN (A2 규칙 A-1)"
+        }
+      ]
+    },
+    "abstain_path": {
+      "trigger": [
+        "BD-5 (domain 근거 대등 상충)",
+        "MAP-4 (후보 동률)",
+        "CAS-2 (유사도 근접)"
+      ],
+      "flow": [
+        "cascade 3 -> 4 -> 4-prime",
+        "합의 -> mapping_status=FROZEN, mapping_basis=AI_REVIEW",
+        "불일치 + 사람 예산 남음 -> human_final_required=1 -> HUMAN_FINAL -> FROZEN, mapping_basis=HUMAN_FINAL",
+        "불일치 + 사람 예산 소진 -> fact_ai_adjudication.final_status=ABSTAIN, dim_representative_task.mapping_ai_review_status=ABSTAINED (+ESCALATION_DECLINED_BUDGET) -> mapping_status=AMBIGUOUS_UNRESOLVED"
+      ],
+      "rules": [
+        {
+          "id": "AB-1",
+          "text": "ABSTAIN은 fact_ai_adjudication.final_status의 값. dim_representative_task에는 mapping_ai_review_status=ABSTAINED 그림자 상태로 나타나고 task 자체는 AMBIGUOUS_UNRESOLVED (A2 §2.1)"
+        },
+        {
+          "id": "AB-2",
+          "text": "AMBIGUOUS_UNRESOLVED를 피하려고 UTILITY_OTHER/UTILITY_ENTRY로 밀지 않는다. 잔여값은 근거가 없을 때 쓰는 값이지 판단이 안 될 때 쓰는 값이 아니다"
+        },
+        {
+          "id": "AB-3",
+          "text": "AMBIGUOUS_UNRESOLVED task는 L1 측정 대상이 아니며 어떤 archetype 분모에도 넣지 않고 별도 건수로 보고한다"
+        },
+        {
+          "id": "AB-4",
+          "text": "PHASE_GATES P-A는 abstain 가능함의 실증을 요구한다. Pilot에서 최소 1건의 abstain 또는 abstain 경로 도달 기록이 나와야 하며, 0건이면 주입 시험으로 증명한다"
+        },
+        {
+          "id": "AB-5",
+          "text": "EXCLUDED는 대상 부재, AMBIGUOUS_UNRESOLVED는 판정 실패. 섞지 않는다"
+        }
+      ]
+    }
+  },
+  "dim_representative_task_binding": {
+    "target_table": "dim_representative_task",
+    "column_source": "01_DATA_SPEC_v2.0.md#3 (12 columns) + A1_MEASUREMENT_OPERATIONALIZATION.md#1.8 (2 columns)",
+    "no_new_columns_introduced": true,
+    "columns": [
+      {
+        "name": "task_id",
+        "filled_by": "P-B",
+        "codebook_constrains": false
+      },
+      {
+        "name": "measurement_entity_id",
+        "filled_by": "join service_master",
+        "codebook_constrains": false
+      },
+      {
+        "name": "web_target_id",
+        "filled_by": "join dim_web_target",
+        "codebook_constrains": true,
+        "rule": "MAP-3"
+      },
+      {
+        "name": "business_domain",
+        "filled_by": "codebook",
+        "codebook_constrains": true,
+        "domain": "business_domain.values[].code"
+      },
+      {
+        "name": "interaction_archetype",
+        "filled_by": "codebook",
+        "codebook_constrains": true,
+        "domain": "interaction_archetype.values[].code"
+      },
+      {
+        "name": "primary_function_name",
+        "filled_by": "per-service free text",
+        "codebook_constrains": true,
+        "rule": "archetype 코드를 그대로 복사하지 않는다"
+      },
+      {
+        "name": "endpoint_definition",
+        "filled_by": "codebook branch text",
+        "codebook_constrains": true,
+        "rule": "선택된 endpoint_branches[].text 를 넣는다. 문안을 임의로 깊게 고쳐 쓰지 않는다"
+      },
+      {
+        "name": "endpoint_signal_type",
+        "filled_by": "codebook",
+        "codebook_constrains": true,
+        "domain": "archetype.endpoint_signal_type_allowed (exactly one)"
+      },
+      {
+        "name": "mapping_basis",
+        "filled_by": "cascade",
+        "codebook_constrains": true,
+        "domain": "shared_enums.mapping_basis.values",
+        "rule": "CAS-1"
+      },
+      {
+        "name": "mapping_status",
+        "filled_by": "freeze protocol",
+        "codebook_constrains": true,
+        "domain": "shared_enums.mapping_status.values"
+      },
+      {
+        "name": "mapping_ai_review_status",
+        "filled_by": "cascade",
+        "codebook_constrains": false,
+        "domain": "A2 §1.10"
+      },
+      {
+        "name": "human_final_required",
+        "filled_by": "cascade",
+        "codebook_constrains": true,
+        "rule": "1이면 HUMAN_FINAL_REVIEW_MAX=5 예산 소비, fact_ai_adjudication.human_required와 공유"
+      },
+      {
+        "name": "region_definition",
+        "filled_by": "codebook + per-service specialization",
+        "codebook_constrains": true,
+        "source": "A1 §1.8",
+        "rule": "AR-AREA"
+      },
+      {
+        "name": "region_signal_type",
+        "filled_by": "codebook",
+        "codebook_constrains": true,
+        "source": "A1 §1.8",
+        "domain": "archetype.region_signal_type_allowed (exactly one)",
+        "rule": "UTILITY_ENTRY는 채택 전 CODEBOOK_PENDING"
+      }
+    ],
+    "row_templates": [
+      {
+        "interaction_archetype": "QUERY",
+        "endpoint_definition": "검색 query가 제출된 순간",
+        "endpoint_signal_type": "FORM_STRUCTURE",
+        "region_definition": "검색어 입력 control이 focus 가능한 상태로 노출 (input[type=search] / role=searchbox / role=combobox + 제출 가능한 form 또는 제출 control)",
+        "region_signal_type": "DOM_AX_ROLE"
+      },
+      {
+        "interaction_archetype": "CONTENT_OPEN",
+        "endpoint_definition": "기사 본문이 열린 순간",
+        "endpoint_signal_type": "URL_PATTERN",
+        "region_definition": "개별 콘텐츠(기사·영상) 항목의 링크·카드가 목록 형태로 노출",
+        "region_signal_type": "DOM_AX_ROLE"
+      },
+      {
+        "interaction_archetype": "CONTENT_OPEN",
+        "endpoint_definition": "영상 재생이 시작된 순간",
+        "endpoint_signal_type": "MEDIA_STATE",
+        "region_definition": "개별 콘텐츠(기사·영상) 항목의 링크·카드가 목록 형태로 노출",
+        "region_signal_type": "DOM_AX_ROLE"
+      },
+      {
+        "interaction_archetype": "ITEM_DETAIL",
+        "endpoint_definition": "상품 상세와 핵심 상품정보가 보인 순간",
+        "endpoint_signal_type": "URL_PATTERN",
+        "region_definition": "개별 상품 항목의 링크·카드가 목록 형태로 노출",
+        "region_signal_type": "DOM_AX_ROLE"
+      },
+      {
+        "interaction_archetype": "PLACE_LOOKUP",
+        "endpoint_definition": "장소검색이 제출된 순간",
+        "endpoint_signal_type": "FORM_STRUCTURE",
+        "region_definition": "장소검색 입력 control 또는 장소 항목 목록이 노출",
+        "region_signal_type": "DOM_AX_ROLE"
+      },
+      {
+        "interaction_archetype": "PLACE_LOOKUP",
+        "endpoint_definition": "장소 상세가 열린 순간",
+        "endpoint_signal_type": "URL_PATTERN",
+        "region_definition": "장소검색 입력 control 또는 장소 항목 목록이 노출",
+        "region_signal_type": "DOM_AX_ROLE"
+      },
+      {
+        "interaction_archetype": "COMMUNICATION_ENTRY",
+        "endpoint_definition": "게시물/스레드가 열린 순간",
+        "endpoint_signal_type": "URL_PATTERN",
+        "region_definition": "게시물/스레드 목록 또는 작성 진입 control이 노출",
+        "region_signal_type": "DOM_AX_ROLE"
+      },
+      {
+        "interaction_archetype": "COMMUNICATION_ENTRY",
+        "endpoint_definition": "작성영역에 진입한 순간",
+        "endpoint_signal_type": "DOM_AX_ROLE",
+        "region_definition": "게시물/스레드 목록 또는 작성 진입 control이 노출",
+        "region_signal_type": "DOM_AX_ROLE"
+      },
+      {
+        "interaction_archetype": "COMMUNICATION_ENTRY",
+        "endpoint_definition": "로그인 gate가 나타난 순간",
+        "endpoint_signal_type": "GATE_SIGNAL",
+        "region_definition": "게시물/스레드 목록 또는 작성 진입 control이 노출",
+        "region_signal_type": "DOM_AX_ROLE",
+        "note": "GATE-1 / OPEN Q-1"
+      },
+      {
+        "interaction_archetype": "FINANCIAL_ACTION_ENTRY",
+        "endpoint_definition": "금융기능 진입면이 열린 순간",
+        "endpoint_signal_type": "DOM_AX_ROLE",
+        "region_definition": "금융기능 진입 control(조회·이체·인증 진입 등)이 노출",
+        "region_signal_type": "DOM_AX_ROLE"
+      },
+      {
+        "interaction_archetype": "FINANCIAL_ACTION_ENTRY",
+        "endpoint_definition": "로그인/인증 gate가 나타난 순간",
+        "endpoint_signal_type": "GATE_SIGNAL",
+        "region_definition": "금융기능 진입 control(조회·이체·인증 진입 등)이 노출",
+        "region_signal_type": "DOM_AX_ROLE",
+        "note": "GATE-1 / OPEN Q-1"
+      },
+      {
+        "interaction_archetype": "UTILITY_ENTRY",
+        "endpoint_definition": "대표 유틸리티 기능의 전용 기능면이 열리고, 그 기능의 1차 조작 대상이 PRESENT ∧ HITTABLE 상태로 관측된 순간",
+        "endpoint_signal_type": "CODEBOOK_PENDING",
+        "endpoint_signal_type_after_adoption": "DOM_AX_ROLE",
+        "region_definition": "해당 task의 기능면 진입 control이 노출",
+        "region_signal_type": "CODEBOOK_PENDING",
+        "region_signal_type_after_adoption": "DOM_AX_ROLE",
+        "note": "U-1 제안. 채택 전 mapping_status=FROZEN 불가 (A2 P-2)"
+      }
+    ]
+  },
+  "domain_archetype_cross": {
+    "is_one_to_one": false,
+    "rules": [
+      {
+        "id": "XT-1",
+        "text": "전형 대응을 기본값으로 자동 채우지 않는다. archetype은 항상 AR-2(행위 구조)로 독립 판정한다. 전형표는 사후 점검용이며 비대각을 오류로 보지 않는다"
+      },
+      {
+        "id": "XT-2",
+        "text": "교차표는 00 §11 기술통계로 보고한다. 셀 빈도가 낮다고 archetype을 병합하지 않는다 — 병합은 ExcessDepth 기준선을 바꾸는 행위다"
+      }
+    ],
+    "off_diagonal_examples_illustrative_only": [
+      {
+        "id": "D1",
+        "business_domain": "PORTAL_SEARCH",
+        "interaction_archetype": "CONTENT_OPEN",
+        "why": "관문 서비스이나 대표기능이 뉴스면 기사 열기이면 행위 구조는 콘텐츠 열기"
+      },
+      {
+        "id": "D2",
+        "business_domain": "NEWS_CONTENT",
+        "interaction_archetype": "QUERY",
+        "why": "언론사 서비스이나 대표기능이 기사 검색 제출이면 질의 제출"
+      },
+      {
+        "id": "D3",
+        "business_domain": "SHOPPING_COMMERCE",
+        "interaction_archetype": "FINANCIAL_ACTION_ENTRY",
+        "why": "커머스이나 대표기능이 결제·페이 진입이면 금융 진입"
+      },
+      {
+        "id": "D4",
+        "business_domain": "UTILITY_OTHER",
+        "interaction_archetype": "CONTENT_OPEN",
+        "why": "사진·파일 관리 도구에서 대표기능이 항목 1건 열기이면 목록->개별 콘텐츠 소비"
+      },
+      {
+        "id": "D5",
+        "business_domain": "UTILITY_OTHER",
+        "interaction_archetype": "QUERY",
+        "why": "사전·번역·조회 도구에서 대표기능이 검색어 제출이면 QUERY"
+      },
+      {
+        "id": "D6",
+        "business_domain": "FINANCE_PAYMENT",
+        "interaction_archetype": "UTILITY_ENTRY",
+        "why": "은행 서비스이나 로그인 없는 공개 환율·금리 조회 도구가 대표기능이면 금융 처리 진입이 아니다"
+      },
+      {
+        "id": "D7",
+        "business_domain": "MAP_MOBILITY",
+        "interaction_archetype": "ITEM_DETAIL",
+        "why": "모빌리티이나 대표기능이 예약 대상 1건 상세 확인이면 상세 확인 구조"
+      },
+      {
+        "id": "D8",
+        "business_domain": "SOCIAL_COMMUNICATION",
+        "interaction_archetype": "ITEM_DETAIL",
+        "why": "중고거래 커뮤니티에서 대표기능이 거래 게시물 상세이면 상품 상세 구조와 같다"
+      },
+      {
+        "id": "D9",
+        "business_domain": "CONTENT_VIDEO",
+        "interaction_archetype": "COMMUNICATION_ENTRY",
+        "why": "영상 플랫폼이나 대표기능이 커뮤니티 탭 진입이면 교환 공간 진입"
+      },
+      {
+        "id": "D10",
+        "business_domain": "SHOPPING_COMMERCE",
+        "interaction_archetype": "PLACE_LOOKUP",
+        "why": "오프라인 유통 브랜드에서 대표기능이 점포 찾기이면 장소 탐색"
+      }
+    ],
+    "illustrative_disclaimer": "위 예시는 규칙 설명용이며 특정 measurement entity에 대한 매핑 판정이 아니다. 실제 매핑은 P-A A5 / P-B 소관이다"
+  },
+  "prohibitions": [
+    "business_domain으로 depth를 비교하는 것 (BD-USE-2, BD-USE-3)",
+    "전형 대응표를 자동 채움 규칙으로 쓰는 것 (XT-1)",
+    "UTILITY_ENTRY U-1 endpoint를 감사 채택 전에 FROZEN으로 쓰는 것 (FRZ-4, A2 P-2)",
+    "gate가 endpoint인 archetype에서 gate를 통과하는 것 (GATE-2)",
+    "ITEM_DETAIL의 핵심 상품정보 조작화를 품질 임계값으로 읽는 것 (A1 §0.4)",
+    "MPFED=0을 '진입이 쉽다'로 점수화하는 것 (A2 규칙 D-4)",
+    "모호한 사례를 UTILITY_OTHER/UTILITY_ENTRY로 밀어 abstain을 회피하는 것 (AB-2)",
+    "접근성·인증 결과를 본 뒤 매핑을 고치는 것 (FRZ-3)",
+    "depth >= N = 나쁨 류 임계값 신설",
+    "세 축(A/B/C)의 단일 종합점수 합산",
+    "WA 인증을 gold label로 사용",
+    "endpoint를 완료(completion)로 정의 (E-SHAPE)"
+  ],
+  "open_questions": {
+    "Q-1": "CLOSED — A2 §1.5.1a (base d5f1da5)",
+    "Q-2": "OPEN — UTILITY_ENTRY endpoint. A2 §6.4가 P-A 소관으로 유지. SHADOW lane은 결정하지 않고 근거만 정리했다",
+    "Q-3": "OPEN",
+    "Q-4": "OPEN",
+    "Q-5": "OPEN",
+    "Q-6": "OPEN",
+    "Q-7": "OPEN",
+    "Q-8": "OPEN",
+    "Q-9": "OPEN (신설) — gate 종류 판별 규칙. A2 규칙 E-6a의 실행 전제"
+  },
+  "previous_base_sha": "6fad79fa98e1ec7d315122d79794b4d5442bb42e",
+  "shadow_provenance": {
+    "status": "SHADOW_PREPARATORY",
+    "shadow_lane": "LANE_A",
+    "created_before_p0_close": true,
+    "authoritative": false,
+    "real_target_outcome_used": false,
+    "requires_post_p0_reconciliation": true
+  }
+}

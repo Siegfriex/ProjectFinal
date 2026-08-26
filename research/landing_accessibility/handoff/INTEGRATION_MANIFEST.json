@@ -1,0 +1,100 @@
+{
+  "manifest": "INTEGRATION_MANIFEST",
+  "authority_note": "SHADOW 정책의 정의부는 docs/v2/PHASE_GATES.md §4다. 이 파일은 그 절을 가리킬 뿐 정책표를 복제하지 않는다.",
+  "lane": "claude-b/integration-prep-c007",
+  "role": "WORKER-I — P0 종료를 기다리지 않고 P-A + P-B + P-C의 selective port candidate를 미리 준비한다. P0를 닫거나 승격하지 않는다.",
+  "status": "SHADOW_PREPARATORY",
+  "shadow_lane": "INTEGRATION",
+  "base_branch": "agent/landing-v2-exec",
+  "base_sha": "2025e5667686d42e832298f2dce77b0c7aa6bc07",
+  "created_at": "2026-08-26T19:30:00Z",
+  "created_before_p0_close": true,
+  "authoritative": false,
+  "real_target_outcome_used": false,
+  "requires_post_p0_reconciliation": true,
+  "real_target_measurement": false,
+  "sources": {
+    "P-A": {
+      "branch": "agent/landing-pa-shadow",
+      "sha": "0f46203",
+      "ported_paths": ["research/landing_accessibility/analysis/**"],
+      "port_method": "file-tree copy (selective port, not a git merge) — no lane history was merged into this branch"
+    },
+    "P-B": {
+      "branch": "agent/landing-pb-prework",
+      "sha": "9999857",
+      "ported_paths": [
+        "research/landing_accessibility/shadow/lane_b/**",
+        "research/landing_accessibility/src/landing_accessibility/registered_domain.py"
+      ],
+      "port_method": "file-tree copy (selective port, not a git merge)"
+    },
+    "P-C": {
+      "branch": "agent/landing-pc-fixture",
+      "sha": "0c36c95",
+      "ported_paths": [
+        "research/landing_accessibility/fixtures/**",
+        "research/landing_accessibility/scripts/run_fixture_engine.py",
+        "research/landing_accessibility/src/landing_accessibility/engine/**"
+      ],
+      "port_method": "file-tree copy (selective port, not a git merge)"
+    }
+  },
+  "path_collision_check": {
+    "method": "각 lane이 base(2025e56) 위에 추가한 파일 트리를 pairwise diff로 대조했다. scripts/ · state/ · sources/ · src/landing_accessibility/{__init__,authority_manifest,evidence_manifest,registry}.py 는 세 lane 모두 base와 바이트 동일(공유 상속분)했고, scripts/verify_v2_docs.py만 세 lane 모두 base보다 오래된 판이라 base(2025e56)의 판을 그대로 유지했다(port하지 않음).",
+    "result": "analysis/** (P-A) · shadow/** (P-B) · fixtures/** + scripts/run_fixture_engine.py + src/landing_accessibility/engine/** (P-C) · src/landing_accessibility/registered_domain.py (P-B) 사이에 경로 충돌 없음. import 의존성도 lane 간 교차하지 않음(각 lane은 자기 자신의 신규 모듈만 import)."
+  },
+  "schema_reconciliation": {
+    "mapping_status_fsm": {
+      "issue": "P-A pilot_mapping.py(0f46203)가 A2 §1.9 mapping_status FSM(DRAFT→CANDIDATE→{FROZEN,AMBIGUOUS_UNRESOLVED,EXCLUDED})을 위반 — RULE/SOURCE_CONTEXT로 해소된 9건을 CANDIDATE 대신 DRAFT로, abstain 6건을 CANDIDATE를 거치지 않고 DRAFT에서 AMBIGUOUS_UNRESOLVED로 직행시켰다 (닫는 CR: claude-b/pa-qa CR-002).",
+      "corroboration": "P-B(shadow/lane_b/scripts/task_candidate_rules.py, 9999857)는 이미 A2 §1.9를 정확히 따라 {CANDIDATE, AMBIGUOUS_UNRESOLVED, EXCLUDED}만 방출하도록 스스로 구현돼 있었다(주석이 A2 §1.9 규칙 P-1을 직접 인용) — 즉 동일 필드(dim_representative_task.mapping_status)에 대해 P-A는 틀렸고 P-B는 처음부터 맞았다. 이 포팅에서 시정한 P-A 값은 P-B가 독립적으로 이미 맞춘 값과 방향이 일치한다.",
+      "fix_applied_in": "research/landing_accessibility/analysis/pilot/pilot_mapping.py (_finish()), 재실행으로 analysis/out/pilot/pilot_mapping.jsonl · mapping_run_manifest.json 재생성",
+      "authoritative": false,
+      "note": "이 시정은 P-A 원본 브랜치(agent/landing-pa-shadow)를 고치지 않는다 — 이 통합 브랜치 안에서의 selective-port 시점 수정이며, P-A 감사(adversarial+ssot)의 정식 판정을 대신하지 않는다."
+    },
+    "provenance_block_shape": {
+      "issue": "source_frame_sha(P-A: 6-파일 해시 dict / P-B: git commit SHA를 재사용한 스칼라)와 codebook_sha(P-A: bare hex / P-B: sha256: 접두)의 형태가 lane마다 다르다. PHASE_GATES §4.3은 이 두 필드의 형태를 지정하지 않는다.",
+      "action": "판단 근거 없음 → 시정하지 않고 그대로 포팅. CR-003으로 등재",
+      "cr": "handoff/claude_b_change_requests/CR-003-provenance-block-shape-drift-across-lanes.md"
+    },
+    "vocabulary_cross_check": "InteractionArchetype(7종) · BusinessDomain(8종) · MeasurementStatus(7값, A2 §1.2) · EndpointStatus(7값, A2 §1.5.1) · RegionSignalType(6값, A2 §1.9) 는 P-A codebook.json과 P-C vocabulary.py 사이에 드리프트 없음(전건 대조)."
+  },
+  "quality_gates": {
+    "pytest": "24 passed, 0 failed (research/landing_accessibility 범위 — 전량 analysis/mapping/test_analysis_interface.py, P-A 산출. P-B/P-C는 이 포팅 시점에 자체 단위테스트가 없었다)",
+    "ruff_check": "pass (research/landing_accessibility 범위 전체)",
+    "ruff_format_check": "pass — shadow/lane_b/docs/C013_SALVAGE_LEDGER.md의 예시 python 코드블록 공백 정렬 1건 수정",
+    "mypy": "pass, 30 source files — 통합 시점에 15건의 pre-existing 오류를 시정함(아래 참고)"
+  },
+  "mypy_fixes": {
+    "scope": "analysis/eda/eda00_frame_provenance.py (P-A, 12건) · shadow/lane_b/scripts/build_web_eligibility_shadow.py (P-B, 2건) · shadow/lane_b/scripts/run_lane_b.py (P-B, 2건, 1건은 build_web_eligibility_shadow.py와 겹침 표기 조정)",
+    "nature": "전부 타입 주석 추가·정규식 Match 중복탐색 제거(walrus)·sorted() 앞 str() 강제화 — 런타임 동작을 바꾸지 않는다",
+    "verification": "eda00_frame_provenance.py와 shadow/lane_b/scripts/run_lane_b.py를 통합 트리에서 재실행해 산출물(eda00_findings.json · eda00_measured.json · eda00_raw_output.txt · web_eligibility_shadow.csv · web_target_group_shadow.csv · certification_join_shadow.csv · representative_task_candidate_shadow.csv · c013_absence_checks.json · url_probe_shadow.json)이 각 lane 원본과 바이트 동일함을 확인했다(manifest의 timestamp 필드 제외)."
+  },
+  "contamination_check": {
+    "reference": "PHASE_GATES §4.6",
+    "pa_read_accessibility_outcome": {
+      "result": "NOT_FOUND",
+      "method": "analysis/** 전체를 kwcag|popup|depth|verdict|certified_current|accessibility_outcome 키워드로 grep, 발견된 매치는 전부 guard_selftest의 자기 검증 verdict(GUARD_WORKS/CLEAN) 문자열이거나 denylist 선언 주석. 통합 트리에서 pilot_mapping.py를 재실행해 contamination_check.verdict=CLEAN, guard_selftest.verdict=GUARD_WORKS를 직접 재확인했다"
+    },
+    "pb_used_kwcag_popup_mpfed_verdict_certification_for_task_selection": {
+      "result": "NOT_FOUND",
+      "method": "task_candidate_rules.py/build_web_eligibility_shadow.py/probe_official_urls_shadow.py grep — 발견된 매치는 전부 '이 필드를 쓰지 않는다'는 금지 선언 주석뿐"
+    },
+    "pc_modified_final_target_list": {
+      "result": "NOT_FOUND",
+      "method": "src/landing_accessibility/engine/**에서 state/*.parquet write·to_parquet 호출 grep — 0건. dim_web_target 언급은 transitions.py의 supersede 경로 설명 docstring 1건뿐, 실제 쓰기 없음"
+    },
+    "real_target_evidence_already_generated": {
+      "result": "NOT_FOUND",
+      "method": "포팅된 트리 전체에서 evidence/ 디렉터리 검색 — 0건. engine/firewall.py의 REAL_TARGET 모드는 hard FAIL로 구현돼 있고 기본 허용 모드는 {FIXTURE, SHADOW_DRY_RUN}뿐"
+    }
+  },
+  "not_executed": {
+    "run_fixture_engine.py": "P-C 엔진 엔드투엔드 실행(fixtures/**에 대해 L0/L1 전체 파이프라인 구동)은 이 워커 범위에서 실행하지 않았다 — 브라우저 자동화가 필요하고, 지시서가 요구한 품질게이트(pytest/ruff/mypy)에는 포함되지 않는다. mypy·ruff·import 정합성만 확인했다."
+  },
+  "open_issues": [
+    "CR-003 (source_frame_sha/codebook_sha 형식 drift) — P-A/P-B 각 lane 감사가 정본을 정해야 한다",
+    "P-A의 CR-001(mapping_run_manifest.json 자기해시 불일치)은 이 포팅 트리에서 그 파일을 artifact_sha256 고정목록에서 제외하는 방식으로 처리했다 — SHADOW_MANIFEST.json non_reproducible_artifacts 참고. P-A 원본 브랜치 자체는 고치지 않았다",
+    "run_fixture_engine.py 엔드투엔드 실행은 미검증 — §4.7 reconciliation 시점에 재실행 필요"
+  ]
+}

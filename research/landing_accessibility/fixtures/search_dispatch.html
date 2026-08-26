@@ -1,0 +1,38 @@
+<!doctype html>
+<!--
+FIXTURE: search_dispatch
+검증 대상: QUERY archetype. 영역진입 control(검색 입력)이 랜딩에 존재(NED=0),
+      1회 activation(제출)으로 endpoint 도달(IED=1, MPFED=1).
+      text_input_episode 계수(문자 수와 무관하게 1 episode) 검증.
+기대: area_signal_status=OBSERVED, endpoint_status=FUNCTION_ENDPOINT_REACHED,
+      NED=0 / IED=1 / MPFED=1, text_input_episode_count=1.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>검색 — 고정 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  input{width:100%;box-sizing:border-box;min-height:48px;font-size:16px;
+        border:1px solid #555;border-radius:6px;padding:0 12px}
+  button{margin-top:12px;min-width:88px;min-height:48px;font-size:16px;
+         background:#0b4f9e;color:#fff;border:0;border-radius:6px}
+  #result{margin-top:16px;font-size:16px}
+</style></head>
+<body data-fixture="search_dispatch" data-archetype="QUERY">
+<h1 style="font-size:20px">고정 픽스처 검색</h1>
+<form id="q" data-region="SEARCH_INPUT_REGION" onsubmit="return dispatch(event)">
+  <label for="kw">검색어</label>
+  <input id="kw" name="kw" type="search" role="searchbox" placeholder="검색어를 입력하세요">
+  <button type="submit" data-primary-action="1">검색</button>
+</form>
+<div id="result" data-endpoint="QUERY_SUBMITTED" hidden>검색이 제출되었습니다.</div>
+<script>
+function dispatch(e){
+  e.preventDefault();
+  var r = document.getElementById('result');
+  r.hidden = false;
+  document.body.setAttribute('data-endpoint-reached','QUERY_SUBMITTED');
+  return false;
+}
+</script>
+</body></html>

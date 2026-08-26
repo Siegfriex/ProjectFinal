@@ -1,0 +1,132 @@
+{
+  "artifact": "mapping_run_manifest",
+  "note": "codebook freeze_protocol F0. 물리 저장 슬롯은 미결 Q-8 — 확정 전까지 analysis/out/pilot 에 둔다",
+  "status": "SHADOW_PREPARATORY",
+  "shadow_lane": "LANE_A",
+  "base_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
+  "run_started_at": "2026-08-26T19:14:36.305994+00:00",
+  "created_before_p0_close": true,
+  "authoritative": false,
+  "real_target_outcome_used": false,
+  "real_target_measurement": false,
+  "requires_post_p0_reconciliation": true,
+  "input_tier": "T1_SOURCE_CONTEXT_ONLY",
+  "allowed_inputs": [
+    {
+      "name": "panel_registry",
+      "path_in_research": "state/panel_registry.parquet",
+      "sha256": "1b71bcd79ff9cd3319fcd8d000e5b7f3cca1a11d5fdb7d20239e4a8f667f4d86"
+    },
+    {
+      "name": "source_ranking_rows",
+      "path_in_research": "state/source_ranking_rows.parquet",
+      "sha256": "e4710f350ee678c2e509d21b0d534efb354f544e201044566402a7d98018eefa"
+    },
+    {
+      "name": "source_membership",
+      "path_in_research": "state/source_membership.parquet",
+      "sha256": "fff91f021276f63e60b409e219288970efb604b22db8f6078d82be148c38beec"
+    },
+    {
+      "name": "service_master",
+      "path_in_research": "state/service_master.parquet",
+      "sha256": "86d665cc9091c84440acaa622bcbbdd48d8c5585f931d3dbf16c9c14e07b8136"
+    },
+    {
+      "name": "entity_alias_map",
+      "path_in_research": "state/entity_alias_map.parquet",
+      "sha256": "3c2ab507e8b432241980135f68fa7473a9848ef6fcb77a2cca47e59e682b7ef5"
+    },
+    {
+      "name": "codebook",
+      "path_in_research": "analysis/codebook/codebook.json",
+      "sha256": "49cc10484fa4f5cf344be96ed828dcb1ae93ccbab61b4e59caeaec1b8deb239e"
+    }
+  ],
+  "service_master_columns_used": [
+    "service_id",
+    "canonical_service_key",
+    "service_name_canonical",
+    "domain",
+    "axis_type",
+    "canonicalization_basis"
+  ],
+  "denied_inputs": [
+    "sources/certification/** (dim_certification · certified_current · 인증목록 원자료)",
+    "fact_criterion_result (KWCAG 판정 전 컬럼)",
+    "fact_landing_observation measurement scalars",
+    "fact_interrupt_element judgement results (popup/obstruction)",
+    "fact_task_entry / fact_task_step (depth · endpoint 결과)",
+    "mart_* (전부)",
+    "state/web_target_group.parquet (T2 target identity — P-B 소관이라 이 run에서는 안 쓴다)"
+  ],
+  "guard_selftest": {
+    "probe_path": "sources/certification/certification_registry.parquet",
+    "probe_exists": true,
+    "guard_fired": true,
+    "verdict": "GUARD_WORKS"
+  },
+  "summary": {
+    "run_started_at": "2026-08-26T19:14:36.305994+00:00",
+    "run_finished_at": "2026-08-26T19:14:36.370607+00:00",
+    "n_sampled": 15,
+    "n_resolved": 9,
+    "n_abstain": 6,
+    "n_frozen": 0,
+    "resolved_by_stage": {
+      "1": 9
+    },
+    "archetype_distribution": {
+      "UTILITY_ENTRY": 2,
+      "ITEM_DETAIL": 4,
+      "FINANCIAL_ACTION_ENTRY": 2,
+      "QUERY": 1
+    },
+    "domain_distribution": {
+      "UTILITY_OTHER": 2,
+      "SHOPPING_COMMERCE": 4,
+      "FINANCE_PAYMENT": 2,
+      "PORTAL_SEARCH": 1
+    },
+    "gate_closed": false,
+    "gate_note": "ANALYSIS_AND_TASK_CODEBOOK_FROZEN 은 닫지 않았다. freeze candidate 까지다"
+  },
+  "contamination_check": {
+    "check": "PHASE_GATES §4.6 교차오염 금지 · codebook 규칙 IN-2",
+    "method": "builtins.open 을 감싸 이 프로세스가 연 모든 경로를 기록했다. 선언이 아니라 접근 흔적이다. pandas.read_parquet 도 이 open 을 거친다",
+    "research_root_paths_opened": [
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/entity_alias_map.parquet",
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/panel_registry.parquet",
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/service_master.parquet",
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/source_membership.parquet",
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/source_ranking_rows.parquet"
+    ],
+    "refused_open_attempts": [
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/sources/certification/certification_registry.parquet"
+    ],
+    "refused_note": "차단 자체 시험(guard_selftest)이 만든 시도다. 열리지 않았으므로 읽힌 바이트는 0이다",
+    "allowlist_paths": [
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/analysis/codebook/codebook.json",
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/entity_alias_map.parquet",
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/panel_registry.parquet",
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/service_master.parquet",
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/source_membership.parquet",
+      "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_integration_prep_c007/research/landing_accessibility/state/source_ranking_rows.parquet"
+    ],
+    "outside_allowlist": [],
+    "denylist_paths_touched": [],
+    "kwcag_result_used": false,
+    "popup_result_used": false,
+    "depth_result_used": false,
+    "wa_certification_used": false,
+    "accessibility_outcome_used": false,
+    "real_target_measurement": false,
+    "guard_selftest": {
+      "probe_path": "sources/certification/certification_registry.parquet",
+      "probe_exists": true,
+      "guard_fired": true,
+      "verdict": "GUARD_WORKS"
+    },
+    "verdict": "CLEAN"
+  }
+}

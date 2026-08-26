@@ -1,0 +1,122 @@
+[
+  {
+    "id": "EDA00-PANEL-ROWS-EXTRACTED-GRAIN",
+    "severity": "P1",
+    "area": "grain",
+    "observed": "9/17 panels: rows_extracted != count of source_ranking_rows for that panel",
+    "expected": "equal, or documented as a different grain",
+    "evidence": "[{'panel_id': 'fig02_t1', 'rows_extracted': 15, 'actual_rows': 60, 'n_metrics': 4}, {'panel_id': 'fig03_t1', 'rows_extracted': 10, 'actual_rows': 20, 'n_metrics': 2}, {'panel_id': 'fig04_t1', 'rows_extracted': 5, 'actual_rows': 10, 'n_metrics': 2}, {'panel_id': 'fig05_t1', 'rows_extracted': 3, 'actual_rows': 9, 'n_metrics': 3}, {'panel_id': 'fig07_t1', 'rows_extracted': 10, 'actual_rows': 30, 'n_metrics': 3}, {'panel_id': 'fig08_t1', 'rows_extracted': 10, 'actual_rows': 30, 'n_metrics': 3}, {'panel_id': 'fig09_t1', 'rows_extracted': 5, 'actual_rows': 10, 'n_metrics': 2}, {'panel_id': 'fig10_t1', 'rows_extracted': 5, 'actual_rows': 10, 'n_metrics': 2}, {'panel_id': 'fig11_t1', 'rows_extracted': 3, 'actual_rows': 6, 'n_metrics': 2}]"
+  },
+  {
+    "id": "EDA00-PROV-UNDECLARED-FILES",
+    "severity": "P2",
+    "area": "provenance",
+    "observed": "4 files under sources/wiseapp carry no sha256 in any manifest: ['sources/wiseapp/authority_manifest.json', 'sources/wiseapp/raw/wiseapp933_api.json', 'sources/wiseapp/raw/wiseapp933_images.json', 'sources/wiseapp/source_evidence_manifest.json']",
+    "expected": "every source artifact hashed, or explicitly exempted",
+    "evidence": "eda00_frame_provenance.py §4"
+  },
+  {
+    "id": "EDA00-CERT-COLUMN-NAME",
+    "severity": "P2",
+    "area": "schema",
+    "observed": "certification_registry has no column named 'valid_on_audit_date'; the nearest columns are in_period_at_audit and cert_valid_candidate",
+    "expected": "handoff cites valid_on_audit_date = 226",
+    "evidence": "eda00_frame_provenance.py §5"
+  },
+  {
+    "id": "EDA00-CERT-VALID-NOT-IN-PERIOD",
+    "severity": "P1",
+    "area": "distribution",
+    "observed": "1 rows listed VALID by the registry but whose period does not cover audit_date 2026-08-26",
+    "expected": "status_breakdown.VALID (227) == valid_at_audit (226) would require 0",
+    "evidence": "[{'certification_number': '2521', 'service_name': '국립망향의동산', 'cert_start_date': '2026-08-27', 'cert_end_date': '2027-08-26'}]"
+  },
+  {
+    "id": "EDA00-CERT-REPARSE-WS-SERVICE_NAME",
+    "severity": "P2",
+    "area": "provenance",
+    "observed": "3 rows where the parquet service_name is whitespace/NBSP-normalized relative to the stored raw HTML (e.g. U+00A0 and doubled spaces collapsed)",
+    "expected": "byte-faithful, or the normalization declared in the manifest",
+    "evidence": "[{'list_page': 45, 'list_index': 6, 'service_name_pq': '문화체육관광부 i-나루', 'service_name_rp': '문화체육관광부  i-나루'}, {'list_page': 177, 'list_index': 2, 'service_name_pq': '누텔라 코리아 홈페이지', 'service_name_rp': '누텔라\\xa0코리아 홈페이지'}, {'list_page': 201, 'list_index': 3, 'service_name_pq': '이마트타운(모바일웹) 홈페이지', 'service_name_rp': '이마트타운(모바일웹)  홈페이지'}]"
+  },
+  {
+    "id": "EDA00-STRUCTURAL-ZERO-COUNTERS",
+    "severity": "P2",
+    "area": "missingness",
+    "observed": "service_master carries domain-scoped counters that are 0 purely because the entity does not exist in that domain: appears_in_app_panels==0 for all 43 RETAIL entities and appears_in_retail_panels==0 for all 38 APP entities. Under 01 §11 these are NA, not measured zeros; any mean/sum over them is wrong",
+    "expected": "NA for the non-applicable domain, or an explicit note that the zero is structural",
+    "evidence": "eda00_frame_provenance.py §6"
+  },
+  {
+    "id": "EDA00-UNIT-NOT-NORMALIZED",
+    "severity": "P2",
+    "area": "distribution",
+    "observed": "`unit` carries variants that differ only by whitespace: {'만명': ['만 명', '만명']} (row counts {'만 명': 30, '만명': 6})",
+    "expected": "one token per unit, or an explicit statement that raw notation is preserved verbatim",
+    "evidence": "eda00_frame_provenance.py §7"
+  },
+  {
+    "id": "EDA00-RANK-DENORMALIZED-ACROSS-METRICS",
+    "severity": "P1",
+    "area": "grain",
+    "observed": "`rank` is one value per (panel, entity) but is stored on every metric row: in all 17 panels exactly one metric decreases with rank, while 8 (panel, metric) pairs are non-monotone. For those metrics `rank` carries no ordering information, and source_membership.rank inherits the same ambiguity",
+    "expected": "either rank is metric-scoped, or the anchor metric is declared",
+    "evidence": "[{'panel_id': 'fig02_t1', 'non_monotone_metrics': ['사용자', '점유율 - 50대', '점유율 - 60대 이상']}, {'panel_id': 'fig03_t1', 'non_monotone_metrics': ['사용자 비율*']}, {'panel_id': 'fig07_t1', 'non_monotone_metrics': ['24년 12월 합산 순 결제추정금액']}, {'panel_id': 'fig08_t1', 'non_monotone_metrics': ['점유율 - 50대', '점유율 - 60대 이상']}, {'panel_id': 'fig09_t1', 'non_monotone_metrics': ['세대 비율*']}]"
+  },
+  {
+    "id": "EDA00-GRAIN-NAME-NOT-KEY",
+    "severity": "P1",
+    "area": "grain",
+    "observed": "service_name_canonical has 80 distinct values for 81 rows; duplicate = {'쿠팡': 2}",
+    "expected": "01 §2 dim_measurement_entity implies canonical_name identifies the entity",
+    "evidence": "eda00_frame_provenance.py §8"
+  },
+  {
+    "id": "EDA00-GRAIN-MEMBERSHIP-METRIC",
+    "severity": "P1",
+    "area": "grain",
+    "observed": "source_membership is (service_id, panel_id) grain; 66/142 pairs span >1 metric, and its single `rank` column is min(rank) across those metrics",
+    "expected": "01 §2 bridge_source_membership is (entity, panel, source_row) grain",
+    "evidence": "eda00_frame_provenance.py §8"
+  },
+  {
+    "id": "EDA00-GRAIN-INDUSTRY-IN-ENTITY-TABLE",
+    "severity": "P1",
+    "area": "grain",
+    "observed": "service_master (81 rows) mixes 71 SERVICE_BRAND with 10 INDUSTRY_CATEGORY rows; the latter are analytic categories, not measurable web targets, and all 10 of them carry NULL web_target_group_id",
+    "expected": "01 §2 dim_measurement_entity is described as a service unit",
+    "evidence": "eda00_frame_provenance.py §8"
+  },
+  {
+    "id": "EDA00-GRAIN-CERT-NAME-FANOUT",
+    "severity": "P1",
+    "area": "grain",
+    "observed": "certification_registry has 2283 rows over 1282 distinct service_name; 513 names carry more than one certification (max 7)",
+    "expected": "01 §8 dim_certification is web_target grain",
+    "evidence": "eda00_frame_provenance.py §8"
+  },
+  {
+    "id": "EDA00-CERT-DATE-ORDER",
+    "severity": "P1",
+    "area": "distribution",
+    "observed": "1 certification rows where end < start",
+    "expected": "0",
+    "evidence": "[{'certification_number': '1095', 'cert_start_date': '2020-12-12', 'cert_end_date': '2020-12-11'}]"
+  },
+  {
+    "id": "EDA00-CERT-URL-FANOUT",
+    "severity": "P1",
+    "area": "grain",
+    "observed": "certified_target_url_listed is not unique: 1167 distinct URLs over 2279 rows; 496 URLs carry more than one certification row (max 11). Only 220 distinct URLs are currently valid",
+    "expected": "01 §8 dim_certification is one row per web_target",
+    "evidence": "eda00_frame_provenance.py §9"
+  },
+  {
+    "id": "EDA00-GRAIN-GROUPING-STATUS",
+    "severity": "P2",
+    "area": "grain",
+    "observed": "the same status label counts 6 at entity grain (service_master) and 3 at group grain (web_target_group); counting groups by reading service_master double-counts",
+    "expected": "the grain of each count is stated wherever the label appears",
+    "evidence": "eda00_frame_provenance.py §9"
+  }
+]

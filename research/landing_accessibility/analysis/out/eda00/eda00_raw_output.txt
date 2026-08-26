@@ -1,0 +1,687 @@
+# EDA-00 raw output
+
+## 1. ROW COUNTS & UNIQUENESS
+
+panel_registry: rows=17 cols=26
+source_ranking_rows: rows=261 cols=16
+service_master: rows=81 cols=24
+entity_alias_map: rows=82 cols=8
+source_membership: rows=142 cols=7
+web_target_group: rows=68 cols=17
+certification_registry: rows=2283 cols=15
+
+source_ranking_rows.domain = {'APP': 137, 'RETAIL': 124}
+service_master.domain = {'RETAIL': 43, 'APP': 38}
+panel_registry.domain = {'RETAIL': 9, 'APP': 8}
+source_membership.domain = {'RETAIL': 71, 'APP': 71}
+entity_alias_map.domain = {'RETAIL': 44, 'APP': 38}
+
+panel_registry.axis_type = {'SERVICE_BRAND': 16, 'INDUSTRY_CATEGORY': 1}
+source_ranking_rows.axis_type = {'SERVICE_BRAND': 231, 'INDUSTRY_CATEGORY': 30}
+service_master.axis_type = {'SERVICE_BRAND': 71, 'INDUSTRY_CATEGORY': 10}
+
+  doc[source_ranking_rows] = 261  measured = 261  -> OK
+  doc[source_ranking_rows.APP] = 137  measured = 137  -> OK
+  doc[source_ranking_rows.RETAIL] = 124  measured = 124  -> OK
+  doc[panel_registry] = 17  measured = 17  -> OK
+  doc[panel_registry.SERVICE_BRAND] = 16  measured = 16  -> OK
+  doc[panel_registry.INDUSTRY_CATEGORY] = 1  measured = 1  -> OK
+  doc[service_master] = 81  measured = 81  -> OK
+  doc[service_master.APP] = 38  measured = 38  -> OK
+  doc[service_master.RETAIL] = 43  measured = 43  -> OK
+  doc[entity_alias_map] = 82  measured = 82  -> OK
+  doc[source_membership] = 142  measured = 142  -> OK
+  doc[web_target_group] = 68  measured = 68  -> OK
+  doc[certification_registry] = 2283  measured = 2283  -> OK
+
+### primary key uniqueness
+panel_registry PK['panel_id']: duplicates=0 nunique=17/17
+source_ranking_rows PK['source_row_id']: duplicates=0 nunique=261/261
+service_master PK['service_id']: duplicates=0 nunique=81/81
+entity_alias_map PK['alias_id']: duplicates=0 nunique=82/82
+source_membership PK['service_id', 'panel_id']: duplicates=0 nunique=142/142
+web_target_group PK['web_target_group_id']: duplicates=0 nunique=68/68
+certification_registry PK['certification_number']: duplicates=0 nunique=2283/2283
+
+### natural / candidate key uniqueness
+service_master.canonical_service_key: nonnull=81/81 unique=81 dup_rows=0
+service_master.service_name_canonical: nonnull=81/81 unique=80 dup_rows=1
+service_master.(service_name_canonical,domain): nonnull=81/81 unique=81 dup_rows=0
+service_master.web_target_key: nonnull=71/81 unique=68 dup_rows=3
+entity_alias_map.(entity_name_raw,domain,axis_type): nonnull=82/82 unique=82 dup_rows=0
+entity_alias_map.entity_name_raw: nonnull=82/82 unique=81 dup_rows=1
+source_ranking_rows.(panel_id,rank,entity_name_raw,metric_name): nonnull=261/261 unique=261 dup_rows=0
+source_ranking_rows.(panel_id,rank,metric_name): nonnull=261/261 unique=261 dup_rows=0
+web_target_group.web_target_key: nonnull=68/68 unique=68 dup_rows=0
+panel_registry.(figure_id,table_index): nonnull=17/17 unique=17 dup_rows=0
+certification_registry.(certification_number): nonnull=2283/2283 unique=2283 dup_rows=0
+certification_registry.(list_page,list_index): nonnull=2283/2283 unique=2283 dup_rows=0
+
+service_name_canonical duplicated rows (2):
+          service_id canonical_service_key service_name_canonical domain     axis_type
+svc_79cd0e07c1eac5dc           coupang_app                     쿠팡    APP SERVICE_BRAND
+svc_e22ebedb0e6c205f        coupang_retail                     쿠팡 RETAIL SERVICE_BRAND
+
+entity_alias_map.entity_name_raw duplicated rows (2):
+            alias_id           service_id entity_name_raw domain     axis_type match_basis
+als_aad162fc95fdaeef svc_79cd0e07c1eac5dc              쿠팡    APP SERVICE_BRAND       EXACT
+als_b4c4023d37acc23b svc_e22ebedb0e6c205f              쿠팡 RETAIL SERVICE_BRAND       EXACT
+
+alias per service_id: {np.int64(1): 80, np.int64(2): 1}
+services with >1 alias: {'svc_353f07b932464b82': 2}
+match_basis: {'EXACT': 81, 'REVIEWED': 1}
+
+## 2/3. ORPHANS & REFERENTIAL INTEGRITY
+
+alias join key ['entity_name_raw', 'domain', 'axis_type'] duplicates in alias map: 0
+join left rows=261 result rows=261 fanout=0
+join unmatched source rows=0
+
+FK source_ranking_rows.panel_id -> panel_registry: left_nonnull=261 unmatched_values=0 rows_unmatched=0
+FK source_membership.panel_id -> panel_registry: left_nonnull=142 unmatched_values=0 rows_unmatched=0
+FK source_membership.service_id -> service_master: left_nonnull=142 unmatched_values=0 rows_unmatched=0
+FK entity_alias_map.service_id -> service_master: left_nonnull=82 unmatched_values=0 rows_unmatched=0
+FK service_master.web_target_group_id -> web_target_group: left_nonnull=71 unmatched_values=0 rows_unmatched=0
+FK derived joined.service_id -> service_master: left_nonnull=261 unmatched_values=0 rows_unmatched=0
+FK source_ranking_rows.figure_id -> panel_registry.figure_id: left_nonnull=261 unmatched_values=0 rows_unmatched=0
+FK source_membership.figure_id -> panel_registry.figure_id: left_nonnull=142 unmatched_values=0 rows_unmatched=0
+
+REV panel_registry.panel_id <- source_ranking_rows: parent_values=17 never_referenced=0
+REV panel_registry.panel_id <- source_membership: parent_values=17 never_referenced=0
+REV service_master.service_id <- source_membership: parent_values=81 never_referenced=0
+REV service_master.service_id <- entity_alias_map: parent_values=81 never_referenced=0
+REV service_master.service_id <- derived source_row join: parent_values=81 never_referenced=0
+REV web_target_group.web_target_group_id <- service_master: parent_values=68 never_referenced=0
+
+service_master rows with NULL web_target_group_id: 10
+web_eligibility_status
+EXCLUDED_INDUSTRY_AXIS    10
+axis_type
+INDUSTRY_CATEGORY    10
+  service_ids: ['svc_2af5cef408b64669', 'svc_412589798229c678', 'svc_77c78a1555cf28ae', 'svc_7e16a52529c5b629', 'svc_903a71c3a24e4116', 'svc_92e05e8212e443a2', 'svc_a6b8f11674c80b5f', 'svc_b6a2bad4a8d88e77', 'svc_bc65e77baaea207c', 'svc_c23db7aed7ecd624']
+
+web_target_group.member_service_ids exploded: 71 (distinct 71)
+  member_count sum = 71
+  member_count distribution = {1: 65, 2: 3}
+  members not in service_master: 0 []
+  service_master entities with a group_id but NOT listed in that group's members: 0 []
+  member<->service_master group_id backref mismatches: 0 []
+
+derived (service_id,panel_id) pairs = 142
+stored source_membership pairs      = 142
+derived - stored = 0 []
+stored - derived = 0 []
+
+alias.panel_ids exploded pairs = 142
+  vs stored membership: alias-stored=0 stored-alias=0
+  alias.panel_ids referencing unknown panel: 0 []
+
+source_membership.rank vs min(rank) from join: mismatches=0
+source_membership.n_metrics vs panel_registry.n_metrics: mismatches=0
+source_membership.domain vs panel_registry.domain: mismatches=0
+source_membership.axis_type vs panel_registry.axis_type: mismatches=0
+source_membership.figure_id vs panel_registry.figure_id: mismatches=0
+source_ranking_rows.domain vs panel_registry.domain: mismatches=0
+source_ranking_rows.axis_type vs panel_registry.axis_type: mismatches=0
+source_ranking_rows.figure_id vs panel_registry.figure_id: mismatches=0
+source_ranking_rows.table_title vs panel_registry.table_title: mismatches=0
+source_ranking_rows.panel_label vs panel_registry.panel_label: mismatches=0
+source_ranking_rows.period_label vs panel_registry.period_label: mismatches=0
+source_ranking_rows.period_axis vs panel_registry.period_axis: mismatches=0
+entity_alias_map.domain vs service_master.domain: mismatches=0
+entity_alias_map.axis_type vs service_master.axis_type: mismatches=0
+
+service_master.app_row_count vs derived: mismatches=0
+service_master.retail_row_count vs derived: mismatches=0
+service_master.appears_in_app_panels vs derived: mismatches=0
+service_master.appears_in_retail_panels vs derived: mismatches=0
+service_master.alias_count vs derived: mismatches=0
+
+### panel_registry row accounting
+panel_id figure_id domain         axis_type  n_metrics  rows_expected  rows_extracted  actual_rows row_count_verification  row_count_ok
+fig01_t1     fig01    APP     SERVICE_BRAND          1             15              15           15         DECLARED_TOP_N          True
+fig01_t2     fig01    APP     SERVICE_BRAND          1             15              15           15         DECLARED_TOP_N          True
+fig02_t1     fig02    APP     SERVICE_BRAND          4             15              15           60         DECLARED_TOP_N          True
+fig03_t1     fig03    APP     SERVICE_BRAND          2             10              10           20         DECLARED_TOP_N          True
+fig04_t1     fig04    APP     SERVICE_BRAND          2           <NA>               5           10      VISUAL_COUNT_ONLY          <NA>
+fig04_t2     fig04    APP     SERVICE_BRAND          1           <NA>               5            5      VISUAL_COUNT_ONLY          <NA>
+fig05_t1     fig05    APP     SERVICE_BRAND          3           <NA>               3            9      VISUAL_COUNT_ONLY          <NA>
+fig05_t2     fig05    APP     SERVICE_BRAND          1           <NA>               3            3      VISUAL_COUNT_ONLY          <NA>
+fig06_t1     fig06 RETAIL     SERVICE_BRAND          1             15              15           15         DECLARED_TOP_N          True
+fig06_t2     fig06 RETAIL     SERVICE_BRAND          1             15              15           15         DECLARED_TOP_N          True
+fig07_t1     fig07 RETAIL INDUSTRY_CATEGORY          3             10              10           30         DECLARED_TOP_N          True
+fig08_t1     fig08 RETAIL     SERVICE_BRAND          3             10              10           30         DECLARED_TOP_N          True
+fig09_t1     fig09 RETAIL     SERVICE_BRAND          2              5               5           10         DECLARED_TOP_N          True
+fig10_t1     fig10 RETAIL     SERVICE_BRAND          2           <NA>               5           10      VISUAL_COUNT_ONLY          <NA>
+fig10_t2     fig10 RETAIL     SERVICE_BRAND          1           <NA>               5            5      VISUAL_COUNT_ONLY          <NA>
+fig11_t1     fig11 RETAIL     SERVICE_BRAND          2           <NA>               3            6      VISUAL_COUNT_ONLY          <NA>
+fig11_t2     fig11 RETAIL     SERVICE_BRAND          1           <NA>               3            3      VISUAL_COUNT_ONLY          <NA>
+rows_extracted != actual source rows: 9
+panel_id  rows_extracted  actual_rows  n_metrics
+fig02_t1              15           60          4
+fig03_t1              10           20          2
+fig04_t1               5           10          2
+fig05_t1               3            9          3
+fig07_t1              10           30          3
+fig08_t1              10           30          3
+fig09_t1               5           10          2
+fig10_t1               5           10          2
+fig11_t1               3            6          2
+rows_extracted * n_metrics != actual: 0
+sum(rows_extracted)=142 sum(actual)=261 sum(rows_extracted*n_metrics)=261
+rows_expected nonnull=9/17
+rows_expected != rows_extracted (where nonnull): 0
+row_count_verification = {'DECLARED_TOP_N': 9, 'VISUAL_COUNT_ONLY': 8}
+row_count_ok = {np.True_: 9, <NA>: 8}
+n_metrics distribution = {1: 8, 2: 5, 3: 3, 4: 1}
+panels with n_metrics>1 = 9 -> ['fig02_t1', 'fig03_t1', 'fig04_t1', 'fig05_t1', 'fig07_t1', 'fig08_t1', 'fig09_t1', 'fig10_t1', 'fig11_t1']
+extraction_confidence = {'HIGH': 17}
+unreadable = {'[]': 8, '["두 패널 모두 이미지에 순위 숫자(1,2,3…) 표기가 없다. rank는 이미지의 좌→우 배열 순서(값 내림차순)를 그대로 옮긴 것이다.", "패널 1의 현대카드와 하나은행은 모두 35.0%로 동일 표기이며, 어느 쪽이 상위인지 구분 표기는 없다(배열 순서만 존재).", "하나은행 항목의 아이콘은 \'1Q 하나원큐\'로 표기되어 있으나 라벨 텍스트는 \'하나은행\'이다. 라벨 텍스트를 entity_name으로 사용했다.", "조사 표본 규모(패널 수 등) 표기는 이미지에 없다. 기간 표기는 제목 옆 배지 \'25년 하반기\'와 각주의 \'(25년 7월 ~ 12월)\'뿐이다."]': 2, '["제목은 \'순 결제추정금액이 많이 성장한\' 브랜드를 말하지만, 이미지에는 성장률(전년 동기간 대비 %) 수치가 전혀 표기돼 있지 않다. 표시된 값은 세대 비율과 1인당 평균 결제금액 두 가지뿐이라 성장률 값은 추출할 수 없다.", "브랜드별 순위 번호(1,2,3)는 이미지에 표기돼 있지 않다. rows[].rank는 차트 내 좌→우 배치 순서로 부여한 값이다.", "도넛 차트/막대 차트 형식이라 순위표(TOP N) 자체가 존재하지 않는다 (rows_expected는 표시된 브랜드 수 3으로 설정)."]': 2, '["두 번째 패널 3위 브랜드명이 이미지에 \'현대홈쇼핑/현대Hmallord\'로 표기돼 있음 — 원문 표기 그대로 옮김(첫 번째 패널에서는 \'현대홈쇼핑/현대Hmall\'). 원자료 오탈자로 보이나 추측 보정하지 않음.", "두 패널 모두 이미지에 순위 숫자 표기는 없음. rank는 이미지의 좌→우 배열(내림차순) 순서를 그대로 부여함.", "제목에 TOP N 표기가 없어 rows_expected는 이미지에 실제로 그려진 브랜드 수(5)로 기록함."]': 2, '["10위 삼성 계산기: 막대 내 분할값 21.7 + 13.8 = 35.5 이나 합계 표기는 35.4% 로 되어 있음(이미지 표기 그대로 기록)."]': 1, '["2위 홈앤쇼핑의 50대 구간 라벨이 원본 이미지에서 글리프가 서로 포개진 상태로 렌더링됨. 확대 판독 결과 \'34.4\'로 읽었고 합계 78.6 − 60대 이상 44.2 = 34.4 로 정합하나, 라벨 자체는 육안상 모호함."]': 1, '["성장률(%) 컬럼은 이미지에 1위(인터넷 쇼핑, +10.1%), 5위(여행/교통, +15.9%), 10위(배달, +19.5%) 세 행에만 배지로 표기되어 있고 나머지 7개 행에는 표기가 없어 null 처리함"]': 1}
+period_axis = {'HALF_YEAR': 16, 'SINGLE_MONTH': 1}
+source_section = {1: 8, 2: 6, 3: 2, 4: 1}
+panel_scope = {"SUBSET: 액티브시니어+ 세대 앱 사용자 비율이 높은 '주요 금융 앱' 5개 (선별 기준 미공개)": 2, "SUBSET: 순 결제추정금액이 많이 성장한 '주요 오프라인 마트 리테일 브랜드' 3개 (오프라인 마트 업종 한정)": 2, "SUBSET: 순 결제추정금액 비율이 높은 '주요 홈쇼핑 리테일 브랜드' 5개 (홈쇼핑 업종 한정)": 2, "SUBSET: 액티브시니어+ 세대 앱 사용자가 많이 성장한 '주요 쇼핑 앱' 3개 (선별 기준 미공개)": 2, 'FULL: 액티브시니어+ 세대 앱 사용자 평균 TOP15 (별도 선별 조건 없음)': 1, 'THRESHOLD: 월간 사용자 평균 200만 명 이상 + 액티브시니어+ 세대 비율 25% 이상인 앱': 1, 'THRESHOLD: 25년 하반기 액티브시니어+ 세대 월간 사용자 평균 200만 명 이상인 앱': 1, 'FULL: 액티브시니어+ 세대 앱 사용시간 평균 TOP15 (별도 선별 조건 없음)': 1, 'FULL: 액티브시니어+ 세대 순 결제추정금액 합 인덱스 TOP15 (별도 선별 조건 없음)': 1, 'AGGREGATE: 24~25년 12월 월간 순 결제추정금액 50억 원 초과 브랜드를 업종으로 집계 (브랜드 축 아님)': 1, 'FULL: 액티브시니어+ 세대 총 결제횟수 평균 TOP15 (별도 선별 조건 없음)': 1, 'THRESHOLD: 순 결제추정금액 합 5천억 원 이상 + 액티브시니어+ 세대 비율 30% 이상인 리테일 브랜드': 1, 'THRESHOLD: 25년 하반기 액티브시니어+ 세대 순 결제추정금액 합 5천억 원 이상인 리테일 브랜드': 1}
+
+## 4. SOURCE HASH / PROVENANCE VERIFICATION
+
+                                  item  exists   ok  declared_bytes  actual_bytes
+                                 fig01    True True        473361.0      473361.0
+                                 fig02    True True        580326.0      580326.0
+                                 fig03    True True        414548.0      414548.0
+                                 fig04    True True        401859.0      401859.0
+                                 fig05    True True        321633.0      321633.0
+                                 fig06    True True        397172.0      397172.0
+                                 fig07    True True        406615.0      406615.0
+                                 fig08    True True        416137.0      416137.0
+                                 fig09    True True        298151.0      298151.0
+                                 fig10    True True        409962.0      409962.0
+                                 fig11    True True        348013.0      348013.0
+          extraction_journal(manifest)    True True         41926.0       41926.0
+extraction_journal(journal_provenance)    True True         41926.0       41926.0
+                raw_assets.detail_json    True True        192139.0      192139.0
+              raw_assets.rendered_html    True True        166288.0      166288.0
+                  raw_assets.body_text    True True         13550.0       13550.0
+       raw_assets.full_page_screenshot    True True       3832287.0     3832287.0
+        authority_manifest.self_sha256    True True             NaN           NaN
+
+HASH FAILURES: 0/18
+
+files under sources/wiseapp with no declared sha256: 4
+    sources/wiseapp/authority_manifest.json
+    sources/wiseapp/raw/wiseapp933_api.json
+    sources/wiseapp/raw/wiseapp933_images.json
+    sources/wiseapp/source_evidence_manifest.json
+
+journal_provenance.rows_rebuilt = 261  actual source_ranking_rows = 261
+journal_provenance.panels_rebuilt = 17  actual panel_registry = 17
+journal_provenance.figures_read = 11  manifest figures = 11  distinct figure_id in panel_registry = 11
+  panel figure_ids: ['fig01', 'fig02', 'fig03', 'fig04', 'fig05', 'fig06', 'fig07', 'fig08', 'fig09', 'fig10', 'fig11']
+  manifest figure_ids: ['fig01', 'fig02', 'fig03', 'fig04', 'fig05', 'fig06', 'fig07', 'fig08', 'fig09', 'fig10', 'fig11']
+  figures declared but with no panel: []
+source_row_id vs declared formula row_+sha256('panel|rank|entity|metric')[:16]: mismatches=0
+figure_source_pointer not matching '<figure>#t<idx>/rank<r>/<metric>': 0
+
+## 5. CERTIFICATION SNAPSHOT
+
+manifest: rows_raw=2283 rows_dedup=2283 pages_fetched=230 pages_with_cards=229 declared_last_page=229
+manifest: status_breakdown={'VALID': 227, 'EXPIRED': 2056, 'UNKNOWN': 0} in_period_at_audit=226 valid_at_audit=226 snapshot_status=COMPLETE
+parquet rows = 2283 cols = ['certification_number', 'service_name', 'organization_name', 'certification_detail_url', 'certified_target_url_listed', 'certification_status_listed', 'cert_start_date', 'cert_end_date', 'list_page', 'list_index', 'source_url', 'raw_sha256', 'collected_at', 'in_period_at_audit', 'cert_valid_candidate']
+'valid_on_audit_date' column present: False
+in_period_at_audit sum = 226
+cert_valid_candidate sum = 226
+certification_status_listed = {'EXPIRED': 2056, 'VALID': 227}
+rows_with_target_url(nonnull&nonempty) = 2279
+rows_without_target_url = 4
+scheme-less target urls = 26 e.g. ['www.high1.com', 'www.law.go.kr', 'www.high1.com', 'www.high1.com', 'www.gwff.kr']
+rows_without_period (start or end blank) = 1
+certification_number service_name cert_start_date cert_end_date certification_status_listed
+                1812            -            None          None                     EXPIRED
+recomputed in-period at 2026-08-26: 226  (stored in_period_at_audit=226)
+per-row in_period mismatch = 0
+status_listed==VALID: 227; of those in-period: 226; VALID but NOT in-period: 1
+certification_number service_name cert_start_date cert_end_date certification_status_listed
+                2521      국립망향의동산      2026-08-27    2027-08-26                       VALID
+in-period but NOT listed VALID: 0
+
+### manifest vs parquet
+  rows_dedup: manifest=2283 measured=2283 -> OK
+  rows_raw: manifest=2283 measured=2283 -> OK
+  in_period_at_audit: manifest=226 measured=226 -> OK
+  valid_at_audit: manifest=226 measured=226 -> OK
+  status VALID: manifest=227 measured=227 -> OK
+  status EXPIRED: manifest=2056 measured=2056 -> OK
+  rows_with_target_url: manifest=2279 measured=2279 -> OK
+  rows_without_target_url: manifest=4 measured=4 -> OK
+  rows_with_scheme_less_target_url: manifest=26 measured=26 -> OK
+  rows_without_period: manifest=1 measured=1 -> OK
+
+### raw HTML page hashes and card counts
+raw files on disk = 230; page_hashes entries = 230
+on-disk but not in manifest: []
+in manifest but not on disk: []
+page hash mismatches = 0 []
+declared card_count sum = 2283; detail-link occurrences in raw HTML = 2283
+parquet rows = 2283
+pages where raw-HTML link count != parquet row count: 0
+pages where manifest card_count != parquet row count: 0 {}
+list_page range in parquet: 1..229 distinct=229
+declared_last_page=229 pages with 0 parquet rows: []
+certification_registry.raw_sha256 rows disagreeing with the manifest page hash: 0
+
+### independent re-parse of raw HTML vs parquet (field level)
+re-parsed cards = 2283; parquet rows = 2283
+page banner 'total applications' distinct values across 230 pages = [2283]; total pages = [229]
+merge on (list_page,list_index): both=2283 pq_only=0 raw_only=0
+  field certification_number: mismatches=0 (+0 whitespace/NBSP-normalization-only)
+  field service_name: mismatches=0 (+3 whitespace/NBSP-normalization-only)
+     ws-only: [{'list_page': 45, 'list_index': 6, 'service_name_pq': '문화체육관광부 i-나루', 'service_name_rp': '문화체육관광부  i-나루'}, {'list_page': 177, 'list_index': 2, 'service_name_pq': '누텔라 코리아 홈페이지', 'service_name_rp': '누텔라\xa0코리아 홈페이지'}, {'list_page': 201, 'list_index': 3, 'service_name_pq': '이마트타운(모바일웹) 홈페이지', 'service_name_rp': '이마트타운(모바일웹)  홈페이지'}]
+  field organization_name: mismatches=0 (+0 whitespace/NBSP-normalization-only)
+  field cert_start_date: mismatches=0 (+0 whitespace/NBSP-normalization-only)
+  field cert_end_date: mismatches=0 (+0 whitespace/NBSP-normalization-only)
+  field certified_target_url_listed: mismatches=0
+  raw status label distribution: {'만료': 2056, '유효': 227}
+
+duplicate certification_number rows = 0
+distinct certification_number = 2283 / 2283
+distinct service_name = 1282
+distinct (service_name, organization_name) = 1454
+
+## 6. MISSINGNESS PROFILE
+
+### panel_registry (n=17)
+                column   dtype  null  null_pct  empty_str  nunique  zeros
+              panel_id  object     0      0.00          0       17      0
+             figure_id  object     0      0.00          0       11      0
+           table_index   int64     0      0.00          0        2      0
+                domain  object     0      0.00          0        2      0
+             axis_type  object     0      0.00          0        2      0
+        source_chapter   int64     0      0.00          0        4      0
+        source_section   int64     0      0.00          0        4      0
+  source_section_title  object     0      0.00          0       11      0
+  source_chapter_title  object     0      0.00          0        4      0
+           table_title  object     0      0.00          0       14      0
+              subtitle  object     1      5.88          4       10      0
+           panel_label  object     0      0.00          0       11      0
+          period_label  object     0      0.00          0        2      0
+           period_axis  object     0      0.00          0        2      0
+         rows_expected   Int64     8     47.06          0        3      0
+        rows_extracted   int64     0      0.00          0        4      0
+row_count_verification  object     0      0.00          0        2      0
+          row_count_ok boolean     8     47.06          0        1      0
+        metric_columns  object     0      0.00          0       14      0
+             n_metrics   int64     0      0.00          0        4      0
+   universe_definition  object     0      0.00          0       10      0
+           source_note  object     0      0.00          0        8      0
+             footnotes  object     0      0.00          0       16      0
+ extraction_confidence  object     0      0.00          0        1      0
+            unreadable  object     0      0.00          8        7      0
+           panel_scope  object     0      0.00          0       13      0
+
+### source_ranking_rows (n=261)
+               column   dtype  null  null_pct  empty_str  nunique  zeros
+        source_row_id  object     0      0.00          0      261      0
+             panel_id  object     0      0.00          0       17      0
+            figure_id  object     0      0.00          0       11      0
+               domain  object     0      0.00          0        2      0
+            axis_type  object     0      0.00          0        2      0
+          table_title  object     0      0.00          0       14      0
+          panel_label  object     0      0.00          0       11      0
+                 rank   int64     0      0.00          0       15      0
+      entity_name_raw  object     0      0.00          0       81      0
+          metric_name  object     0      0.00          0       23      0
+                 unit  object     0      0.00          0        9      0
+                value float64     7      2.68          0      209      0
+          value_label  object     7      2.68          7      225      0
+         period_label  object     0      0.00          0        2      0
+          period_axis  object     0      0.00          0        2      0
+figure_source_pointer  object     0      0.00          0      261      0
+
+### service_master (n=81)
+                    column  dtype  null  null_pct  empty_str  nunique  zeros
+                service_id object     0      0.00          0       81      0
+     canonical_service_key object     0      0.00          0       81      0
+    service_name_canonical object     0      0.00          0       80      0
+                    domain object     0      0.00          0        2      0
+                 axis_type object     0      0.00          0        2      0
+     appears_in_app_panels  int64     0      0.00          0        6     43
+  appears_in_retail_panels  int64     0      0.00          0        6     38
+             app_row_count  int64     0      0.00          0       10     43
+          retail_row_count  int64     0      0.00          0        7     38
+               alias_count  int64     0      0.00          0        2      0
+    canonicalization_basis object     0      0.00          0       13      0
+           review_decision object    74     91.36         74        2      0
+             decision_rule object    74     91.36         74        3      0
+            decision_basis object    74     91.36         74        7      0
+         decision_evidence object    74     91.36         74        4      0
+       decision_confidence object    74     91.36         74        1      0
+                decided_at object    74     91.36         74        1      0
+                decided_by object    74     91.36         74        1      0
+        needs_human_review   bool     0      0.00          0        1     81
+    web_eligibility_status object     0      0.00          0        2      0
+     web_eligibility_basis object     0      0.00          0        2      0
+       web_target_group_id object    10     12.35         10       68      0
+            web_target_key object    10     12.35         10       68      0
+web_target_grouping_status object    10     12.35         10        2      0
+
+### entity_alias_map (n=82)
+         column  dtype  null  null_pct  empty_str  nunique  zeros
+       alias_id object     0       0.0          0       82      0
+     service_id object     0       0.0          0       81      0
+entity_name_raw object     0       0.0          0       81      0
+         domain object     0       0.0          0        2      0
+      axis_type object     0       0.0          0        2      0
+      panel_ids object     0       0.0          0       29      0
+    match_basis object     0       0.0          0        2      0
+  reviewer_note object     0       0.0         81        2      0
+
+### source_membership (n=142)
+    column  dtype  null  null_pct  empty_str  nunique  zeros
+service_id object     0       0.0          0       81      0
+  panel_id object     0       0.0          0       17      0
+ figure_id object     0       0.0          0       11      0
+    domain object     0       0.0          0        2      0
+ axis_type object     0       0.0          0        2      0
+      rank  int64     0       0.0          0       15      0
+ n_metrics  int64     0       0.0          0        4      0
+
+### web_target_group (n=68)
+                                    column  dtype  null  null_pct  empty_str  nunique  zeros
+                       web_target_group_id object     0      0.00          0       68      0
+                            web_target_key object     0      0.00          0       68      0
+                        member_service_ids object     0      0.00          0       68      0
+                     member_canonical_keys object     0      0.00          0       68      0
+                              member_count  int64     0      0.00          0        2      0
+                            member_domains object     0      0.00          0        4      0
+                   member_review_decisions object     0      0.00          0        3      0
+                           grouping_status object     0      0.00          0        2      0
+                            grouping_basis object     0      0.00          0        4      0
+                 expected_url_relationship object     0      0.00          0        2      0
+           expected_url_relationship_basis object     0      0.00          0        4      0
+   expected_url_relationship_is_hypothesis   bool     0      0.00          0        2     65
+expected_url_relationship_confirmed_by_url   bool     0      0.00          0        1     68
+       expected_url_relationship_falsifier object    65     95.59         65        2      0
+            expected_url_relationship_risk object    65     95.59         65        3      0
+                            web_target_url object    68    100.00         68        0      0
+                              url_evidence object    68    100.00         68        0      0
+
+### certification_registry (n=2283)
+                     column  dtype  null  null_pct  empty_str  nunique  zeros
+       certification_number object     0      0.00          0     2283      0
+               service_name object     0      0.00          0     1282      0
+          organization_name object     0      0.00          0      691      0
+   certification_detail_url object     0      0.00          0     2283      0
+certified_target_url_listed object     4      0.18          4     1167      0
+certification_status_listed object     0      0.00          0        2      0
+            cert_start_date object     1      0.04          1     1424      0
+              cert_end_date object     1      0.04          1     1425      0
+                  list_page  int64     0      0.00          0      229      0
+                 list_index  int64     0      0.00          0       10      0
+                 source_url object     0      0.00          0      229      0
+                 raw_sha256 object     0      0.00          0      229      0
+               collected_at object     0      0.00          0      229      0
+         in_period_at_audit  int64     0      0.00          0        2   2057
+       cert_valid_candidate  int64     0      0.00          0        2   2057
+
+### 01 §11 'missing must not be replaced by 0' probes
+source_ranking_rows.value null = 7
+       source_row_id panel_id  rank entity_name_raw metric_name unit  value value_label
+row_5bf102b0e5db297f fig07_t1     2         오프라인 마트         성장률    %    NaN        None
+row_71309c3543f0f834 fig07_t1     3         백화점/아울렛         성장률    %    NaN        None
+row_63f6459a9f58084c fig07_t1     4             홈쇼핑         성장률    %    NaN        None
+row_f0b2af1378477738 fig07_t1     6             편의점         성장률    %    NaN        None
+row_a5a61466413ee8dd fig07_t1     7            전자기기         성장률    %    NaN        None
+row_2a8040ca7dc4b11c fig07_t1     8             식음료         성장률    %    NaN        None
+row_d5b76101f62cc407 fig07_t1     9              식품         성장률    %    NaN        None
+  null value panels: {'fig07_t1': 7}
+  null value metric_name: {'성장률': 7}
+  null value unit: {'%': 7}
+source_ranking_rows.value == 0 rows = 0
+value NULL but value_label present = 0
+value present but value_label NULL = 0
+
+### structural zeros in service_master counters (01 §11 relevance)
+  appears_in_app_panels: zeros=43; of those, entities whose domain is RETAIL (i.e. structurally not applicable) = 43
+  appears_in_retail_panels: zeros=38; of those, entities whose domain is APP (i.e. structurally not applicable) = 38
+  app_row_count: zeros=43; of those, entities whose domain is RETAIL (i.e. structurally not applicable) = 43
+  retail_row_count: zeros=38; of those, entities whose domain is APP (i.e. structurally not applicable) = 38
+
+service_master rows with app_row_count==0 AND retail_row_count==0 = 0
+
+web_target_group.web_target_url nonnull = 0
+web_target_group.url_evidence nonnull = 0
+web_target_group.grouping_status = {'SINGLETON_PENDING_URL_REVIEW': 65, 'CANDIDATE_PENDING_URL_REVIEW': 3}
+web_target_group.expected_url_relationship_is_hypothesis = {False: 65, True: 3}
+web_target_group.expected_url_relationship_confirmed_by_url = {False: 68}
+web_target_group.expected_url_relationship_falsifier nonnull/nonempty = 3
+service_master.web_eligibility_status = {'NOT_ASSESSED': 71, 'EXCLUDED_INDUSTRY_AXIS': 10}
+service_master.web_target_grouping_status = {'SINGLETON_PENDING_URL_REVIEW': 65, None: 10, 'CANDIDATE_PENDING_URL_REVIEW': 6}
+service_master.review_decision = {None: 74, 'KEEP_SEPARATE': 6, 'MERGE': 1}
+service_master.needs_human_review = {False: 81}
+service_master.decision_confidence = {None: 74, 'HIGH': 7}
+service_master.canonicalization_basis = {'원문 표기 1종만 존재 — 별칭 병합 없이 1:1 대응.': 57, "fig07_t1 의 축은 표 헤더가 '업종' 인 업종 카테고리다. 브랜드가 아니므로 웹 수집 대상에서 제외한다.": 10, '원문이 한 셀에 슬래시로 묶어 표기한 단일 측정 단위 — 분해하지 않고 그대로 1개 entity 로 둔다.': 3, 'APP 도메인은 앱 사용자·사용시간을, RETAIL 도메인은 카드 결제추정금액을 잰다. 원문 표기가 같아도 측정 대상이 다르므로 measurement_entity 로는 별개다.': 2, "APP 도메인 원문은 'G마켓', RETAIL 도메인 원문은 'G마켓/옥션' 으로 표기가 다르다. 측정 대상(앱 사용자 vs 옥션 합산 결제)이 달라 별개 entity 로 둔다.": 1, "APP 도메인 원문은 '네이버', RETAIL 도메인 원문은 '네이버/네이버페이' 로 표기가 다르다. 앱 사용자와 네이버페이 결제는 다른 측정 대상이므로 별개 entity 로 둔다.": 1, "fig04 아이콘은 '1Q 하나원큐' 지만 라벨 텍스트가 '하나은행' 이다. 원문 라벨 표기를 따른다.": 1, "원문이 '쿠팡'(fig06_t1/t2) 과 '쿠팡이츠'(fig06_t2) 를 같은 표에 별도 행으로 올렸다. 별개 측정 대상이다.": 1, "원문이 'TikTok' 과 'TikTok Lite' 를 별도 행으로 올렸다(fig01_t2 동시 등장). 별개 앱이다.": 1, "원문이 '이마트'(fig06_t1) 와 'emart24'(fig06_t2) 를 별도 행으로 표기했다. 편의점 브랜드로 별개 entity 다.": 1, "슬래시 묶음 표기이자 APP 의 'G마켓' 과 다른 원문 표기. 원문 단위를 측정 단위로 보고 별개 entity 로 둔다.": 1, "fig10_t2 의 '현대홈쇼핑/현대Hmallord' 와 같은 브랜드다. 같은 그림 안의 동일 5개 브랜드 세트이고 로고 이미지도 동일하며, 발행처 태그 목록에도 '현대홈쇼핑/현대Hmall' 만 실려 있다. 'ord' 는 원문(발행물) 자체의 렌더링 오타로 확인되어 별칭으로 흡수했다.": 1, "슬래시 묶음 표기이자 APP 의 '네이버' 와 다른 원문 표기. 결제 기준 측정 단위로 별개 entity 로 둔다.": 1}
+service_master.decided_by = {None: 74, 'exec-agent(C012) / A1 원문 대조': 7}
+
+### review_status derivation cross-check (A2 §1.1 measured values)
+needs_human_review  False
+review_decision          
+KEEP_SEPARATE           6
+MERGE                   1
+NaN                    74
+
+## 7. DISTRIBUTIONS & OUTLIERS
+
+rank: min=1 max=15
+count    261.000000
+mean       5.984674
+std        4.014368
+min        1.000000
+25%        3.000000
+50%        5.000000
+75%        9.000000
+max       15.000000
+
+metric_name distinct = 23
+metric_name
+점유율 - 50대                 25
+점유율 - 60대 이상              25
+사용자 평균                    15
+사용시간 평균                   15
+점유율 합계                    15
+사용자                       15
+인덱스                       15
+총 결제횟수 평균                 15
+그 외 세대 비율                 13
+성장률                       13
+액티브시니어+ 세대 비율             13
+성장률*                      10
+사용자 비율*                   10
+25년 12월 합산 순 결제추정금액       10
+24년 12월 합산 순 결제추정금액       10
+점유율 합계 (50대 이상)           10
+1인당 평균 실행횟수                8
+순 결제추정금액 성장률*              5
+세대 비율*                     5
+액티브시니어+ 세대 1인당 평균 결제금액     5
+25년 하반기 월간 사용자 평균          3
+24년 하반기 월간 사용자 평균          3
+1인당 평균 결제금액                3
+
+unit distinct = 9
+unit
+%              144
+만 명             30
+십억 원            20
+인덱스(쿠팡=100)     15
+백만 분            15
+백만 회            15
+회                8
+만 원              8
+만명               6
+
+value describe by unit:
+             count         mean          std     min       25%      50%       75%      max
+unit                                                                                      
+%            137.0    35.459124    19.244711     8.6    21.700    32.90    40.800     87.8
+만 명           30.0   634.600000   373.680262   206.0   285.750   566.00   904.250   1377.0
+만 원            8.0    20.150000     8.918200    11.4    12.700    19.05    23.250     35.7
+만명             6.0   322.333333   172.795447   147.0   223.750   244.00   441.250    575.0
+백만 분          15.0  4612.533333  8183.108542  1228.0  1414.500  1655.00  2721.000  33272.0
+백만 회          15.0    22.646667    19.370038     6.8    10.000    14.00    24.500     60.0
+십억 원          20.0  1381.450000  1107.001996   372.0   481.500  1006.00  2061.000   3868.0
+인덱스(쿠팡=100)   15.0    26.226667    22.685221    10.9    15.450    19.00    24.900    100.0
+회              8.0    54.525000    50.780220    17.7    33.175    36.50    52.875    176.7
+
+unit values that collapse to the same token after NFKC+space-strip: {'만명': ['만 명', '만명']}
+
+### rank contiguity per (panel_id, metric_name)
+groups whose ranks are not 1..n contiguous: 0
+duplicate (panel, metric, rank): 0
+duplicate (panel, metric, entity_name_raw): 0
+
+### rank/value monotonicity per (panel, metric)
+(panel, metric) groups where value is neither monotone-decreasing nor -increasing with rank: 8
+    fig02_t1 / 사용자: [318.0, 236.0, 479.0, 217.0, 379.0, 626.0, 248.0, 935.0, 218.0, 818.0, 213.0, 206.0, 209.0, 275.0, 427.0]
+    fig02_t1 / 점유율 - 50대: [31.5, 22.4, 28.2, 21.4, 24.8, 24.3, 26.7, 21.0, 26.4, 21.7, 26.4, 23.7, 24.4, 22.4, 21.9]
+    fig02_t1 / 점유율 - 60대 이상: [22.6, 20.1, 12.6, 17.2, 12.9, 13.0, 10.4, 15.4, 9.4, 13.8, 8.6, 11.3, 10.5, 11.4, 11.4]
+    fig03_t1 / 사용자 비율*: [37.1, 32.9, 30.1, 32.1, 27.7, 29.4, 25.7, 31.2, 38.6, 31.2]
+    fig07_t1 / 24년 12월 합산 순 결제추정금액: [3513.0, 3014.0, 2051.0, 1177.0, 911.0, 984.0, 675.0, 444.0, 448.0, 372.0]
+    fig08_t1 / 점유율 - 50대: [25.9, 34.4, 33.4, 38.9, 39.2, 35.8, 30.6, 30.2, 27.2, 29.2]
+    fig08_t1 / 점유율 - 60대 이상: [62.0, 44.2, 43.3, 37.7, 37.1, 38.7, 36.6, 33.6, 33.8, 29.6]
+    fig09_t1 / 세대 비율*: [53.5, 37.6, 30.7, 32.2, 34.5]
+
+### which metric does `rank` actually order? (anchor metric per panel)
+panel_id  n_metrics       descending_metrics           non_monotone_metrics
+fig01_t1          1                 [사용자 평균]                             []
+fig01_t2          1                [사용시간 평균]                             []
+fig02_t1          4                 [점유율 합계] [사용자, 점유율 - 50대, 점유율 - 60대 이상]
+fig03_t1          2                   [성장률*]                      [사용자 비율*]
+fig04_t1          2          [액티브시니어+ 세대 비율]                             []
+fig04_t2          1            [1인당 평균 실행횟수]                             []
+fig05_t1          3                    [성장률]                             []
+fig05_t2          1            [1인당 평균 실행횟수]                             []
+fig06_t1          1                    [인덱스]                             []
+fig06_t2          1              [총 결제횟수 평균]                             []
+fig07_t1          3    [25년 12월 합산 순 결제추정금액]          [24년 12월 합산 순 결제추정금액]
+fig08_t1          3        [점유율 합계 (50대 이상)]      [점유율 - 50대, 점유율 - 60대 이상]
+fig09_t1          2          [순 결제추정금액 성장률*]                       [세대 비율*]
+fig10_t1          2          [액티브시니어+ 세대 비율]                             []
+fig10_t2          1 [액티브시니어+ 세대 1인당 평균 결제금액]                             []
+fig11_t1          2          [액티브시니어+ 세대 비율]                             []
+fig11_t2          1            [1인당 평균 결제금액]                             []
+panels with no descending anchor metric: 0
+total (panel, metric) pairs where rank does NOT order the value: 8
+
+### entity panel-appearance counts (derived)
+distribution: {np.int64(5): 2, np.int64(4): 2, np.int64(3): 15, np.int64(2): 17, np.int64(1): 45}
+top 15:
+          service_id  panel_id service_name_canonical domain
+svc_46e5a43370f75308         5                     당근    APP
+svc_517b8047eb5be716         5                농협하나로마트 RETAIL
+svc_22ffba7a86ea9919         4                   코스트코 RETAIL
+svc_d5ae5426eac23877         4                    모니모    APP
+svc_353f07b932464b82         3          현대홈쇼핑/현대Hmall RETAIL
+svc_0f3bdb2bd0bb891e         3                    탑마트 RETAIL
+svc_e268b0ad5a2d6ece         3          GS홈쇼핑/GS Shop RETAIL
+svc_112f591a0d47a8d8         3                    G마켓    APP
+svc_088809bf9b31bc6a         3                   삼성카드    APP
+svc_5c614fc99631ce5e         3                   홈앤쇼핑 RETAIL
+svc_b728911c9782edb8         3                   현대카드    APP
+svc_8fd5d30f8b1d707b         3                   하나은행    APP
+svc_95e22b9aff7196b3         3                  NS홈쇼핑 RETAIL
+svc_49a5eca8b58f7270         3                   11번가    APP
+svc_4feab7e61bf642e8         3                 CJ온스타일 RETAIL
+entities appearing in exactly 1 panel: 45
+
+source rows per panel: {'fig01_t1': 15, 'fig01_t2': 15, 'fig02_t1': 60, 'fig03_t1': 20, 'fig04_t1': 10, 'fig04_t2': 5, 'fig05_t1': 9, 'fig05_t2': 3, 'fig06_t1': 15, 'fig06_t2': 15, 'fig07_t1': 30, 'fig08_t1': 30, 'fig09_t1': 10, 'fig10_t1': 10, 'fig10_t2': 5, 'fig11_t1': 6, 'fig11_t2': 3}
+membership rows per panel: {'fig01_t1': 15, 'fig01_t2': 15, 'fig02_t1': 15, 'fig03_t1': 10, 'fig04_t1': 5, 'fig04_t2': 5, 'fig05_t1': 3, 'fig05_t2': 3, 'fig06_t1': 15, 'fig06_t2': 15, 'fig07_t1': 10, 'fig08_t1': 10, 'fig09_t1': 5, 'fig10_t1': 5, 'fig10_t2': 5, 'fig11_t1': 3, 'fig11_t2': 3}
+
+## 8. GRAIN TRAPS
+
+T1 service_name_canonical unique = 80 / 81 rows
+[P2] T1 canonical_name is not a key: 80/81; dupes = {'쿠팡': 2}
+T2 entity_name_raw spanning >1 domain: {'쿠팡': 2}
+[P2] T2 entity_name_raw alone is not a join key: {'쿠팡': 2}
+    entity_name_raw spanning >1 axis_type: {}
+T3 panels with n_metrics>1 = 9; metric-per-panel = {'fig01_t1': 1, 'fig01_t2': 1, 'fig02_t1': 4, 'fig03_t1': 2, 'fig04_t1': 2, 'fig04_t2': 1, 'fig05_t1': 3, 'fig05_t2': 1, 'fig06_t1': 1, 'fig06_t2': 1, 'fig07_t1': 3, 'fig08_t1': 3, 'fig09_t1': 2, 'fig10_t1': 2, 'fig10_t2': 1, 'fig11_t1': 2, 'fig11_t2': 1}
+[P2] T3 dim_panel.metric_name is undefined for multi-metric panels: 9 panels
+
+### additional grain traps found
+T4 (service_id,panel_id) pairs covering >1 metric: 66/142; source rows behind 142 membership rows = 261
+[P1] T4 source_membership loses the metric axis: 66 of 142 (service,panel) pairs cover more than one metric; membership.rank is min(rank) across metrics
+    (service,panel) pairs whose rank differs across metrics: 0
+T5 service_master.web_target_key nonnull=71 distinct=68
+    web_target_key shared by >1 entity: {'gmarket': 2, 'naver': 2, 'coupang': 2}
+[P2] T5 web_target_key groups entities: {'gmarket': 2, 'naver': 2, 'coupang': 2}
+T6 canonical names present under >1 domain (=> 2 service_ids): {'쿠팡': 2}
+T7 INDUSTRY_CATEGORY entities in service_master: 10 -> ['편의점', '배달', '백화점/아울렛', '전자기기', '식품', '식음료', '홈쇼핑', '인터넷 쇼핑', '오프라인 마트', '여행/교통']
+    their web_eligibility_status: {'EXCLUDED_INDUSTRY_AXIS': 10}
+    their web_target_group_id nonnull: 0
+[P1] T7 industry categories sit in the same table as service brands: 10 INDUSTRY_CATEGORY rows inside the 81-row service_master; they are not web targets
+T8 panel_registry.axis_type = {'SERVICE_BRAND': 16, 'INDUSTRY_CATEGORY': 1}
+    source rows by axis_type = {'SERVICE_BRAND': 231, 'INDUSTRY_CATEGORY': 30}
+T9 figures carrying >1 panel: {'fig01': 2, 'fig04': 2, 'fig05': 2, 'fig06': 2, 'fig10': 2, 'fig11': 2}  (figure_id is NOT a panel key)
+[P2] T9 figure_id is not a panel identifier: {'fig01': 2, 'fig04': 2, 'fig05': 2, 'fig06': 2, 'fig10': 2, 'fig11': 2}
+T10 grain ladder: source rows 261 -> (svc,panel) 142 -> entities 81 -> web target groups 68 -> groups with a URL 0
+    entities reachable as a web target today = 71; with a confirmed URL = 0
+T11 certification_registry.service_name distinct = 1282 / 2283; a name can hold many certifications over time
+    names with >1 certification: 513; max = 7 (국립재활원)
+[P1] T11 certification join on service_name will fan out: 513 names carry >1 certification row, max 7
+
+T12 metric_columns length != n_metrics: 0 []
+T13 panel.metric_columns names != distinct metric_name in rows: 0
+
+## 9. EXTRA SANITY CHECKS
+
+certification rows with cert_end_date < cert_start_date: 1
+certification_number   service_name cert_start_date cert_end_date
+                1095 주택관리공단 대표 홈페이지      2020-12-12    2020-12-11
+cert_start_date range: 2014-03-06 00:00:00 .. 2026-08-27 00:00:00
+cert_end_date range:   2015-03-05 00:00:00 .. 2027-08-26 00:00:00
+cert periods longer than 400 days: 0
+cert periods shorter than 300 days: 2
+(ed-sd).days describe: {'count': 2282.0, 'mean': 364.0350569675723, 'std': 8.250548198081793, 'min': -1.0, '25%': 364.0, '50%': 364.0, '75%': 364.0, 'max': 395.0}
+certification_number numeric? True
+certification_number range 10..2522; gaps in that range = 230
+duplicate certified_target_url_listed values: 1112
+distinct target urls = 1167 over 2279 rows
+among the 226 currently-valid rows: 226 have a target url, 220 distinct
+urls appearing in >1 certification row: 496; max 11 (http://www.bgnmh.go.kr)
+
+### web_target_group hypothesis rows (the 3 multi-member groups)
+ web_target_group_id web_target_key                        member_service_ids  member_count member_domains              grouping_status expected_url_relationship  expected_url_relationship_is_hypothesis  expected_url_relationship_confirmed_by_url
+wtg_5b8c59f6fd9839f7        coupang svc_79cd0e07c1eac5dc,svc_e22ebedb0e6c205f             2     APP,RETAIL CANDIDATE_PENDING_URL_REVIEW     SAME_LANDING_EXPECTED                                     True                                       False
+wtg_f9fbd771ffcdbd42        gmarket svc_112f591a0d47a8d8,svc_e4a6c04cbf9d9421             2     APP,RETAIL CANDIDATE_PENDING_URL_REVIEW     SAME_LANDING_EXPECTED                                     True                                       False
+wtg_6d5510a695d0a614          naver svc_7ce399cd76c70efa,svc_8349e143ed01f677             2     RETAIL,APP CANDIDATE_PENDING_URL_REVIEW     SAME_LANDING_EXPECTED                                     True                                       False
+
+falsifiers:
+  wtg_5b8c59f6fd9839f7 / coupang: 두 measurement_entity 의 official_landing_url 이 서로 다른 PSL 등록도메인으로 확정되면 SPLIT 한다.
+  wtg_f9fbd771ffcdbd42 / gmarket: RETAIL entity 의 랜딩이 APP entity 와 다른 등록도메인 또는 다른 경로로 확정되면 SPLIT 한다.
+  wtg_6d5510a695d0a614 / naver: RETAIL entity 의 랜딩이 APP entity 와 다른 등록도메인 또는 다른 경로로 확정되면 SPLIT 한다.
+
+service_master.web_target_grouping_status CANDIDATE count = 6 (entity grain) vs web_target_group CANDIDATE = 3 (group grain)
+
+### entity_alias_map.panel_ids internal consistency
+alias rows whose panel_ids contain duplicates: 0 []
+
+### journal cross-verification claim
+journal_provenance.cross_verifications = 11 agreeing = 11
+journal_provenance.matches_existing_c002_output.result = IDENTICAL
+journal lines parsed = 44; distinct record kinds = Counter({'type': 44})
+
+## SUMMARY
+findings: 15
+by severity: {'P1': 9, 'P2': 6}
+  [P1] EDA00-PANEL-ROWS-EXTRACTED-GRAIN — 9/17 panels: rows_extracted != count of source_ranking_rows for that panel
+  [P2] EDA00-PROV-UNDECLARED-FILES — 4 files under sources/wiseapp carry no sha256 in any manifest: ['sources/wiseapp/authority_manifest.json', 'sources/wiseapp/raw/wiseapp933_api.json', 'sources/w
+  [P2] EDA00-CERT-COLUMN-NAME — certification_registry has no column named 'valid_on_audit_date'; the nearest columns are in_period_at_audit and cert_valid_candidate
+  [P1] EDA00-CERT-VALID-NOT-IN-PERIOD — 1 rows listed VALID by the registry but whose period does not cover audit_date 2026-08-26
+  [P2] EDA00-CERT-REPARSE-WS-SERVICE_NAME — 3 rows where the parquet service_name is whitespace/NBSP-normalized relative to the stored raw HTML (e.g. U+00A0 and doubled spaces collapsed)
+  [P2] EDA00-STRUCTURAL-ZERO-COUNTERS — service_master carries domain-scoped counters that are 0 purely because the entity does not exist in that domain: appears_in_app_panels==0 for all 43 RETAIL ent
+  [P2] EDA00-UNIT-NOT-NORMALIZED — `unit` carries variants that differ only by whitespace: {'만명': ['만 명', '만명']} (row counts {'만 명': 30, '만명': 6})
+  [P1] EDA00-RANK-DENORMALIZED-ACROSS-METRICS — `rank` is one value per (panel, entity) but is stored on every metric row: in all 17 panels exactly one metric decreases with rank, while 8 (panel, metric) pair
+  [P1] EDA00-GRAIN-NAME-NOT-KEY — service_name_canonical has 80 distinct values for 81 rows; duplicate = {'쿠팡': 2}
+  [P1] EDA00-GRAIN-MEMBERSHIP-METRIC — source_membership is (service_id, panel_id) grain; 66/142 pairs span >1 metric, and its single `rank` column is min(rank) across those metrics
+  [P1] EDA00-GRAIN-INDUSTRY-IN-ENTITY-TABLE — service_master (81 rows) mixes 71 SERVICE_BRAND with 10 INDUSTRY_CATEGORY rows; the latter are analytic categories, not measurable web targets, and all 10 of th
+  [P1] EDA00-GRAIN-CERT-NAME-FANOUT — certification_registry has 2283 rows over 1282 distinct service_name; 513 names carry more than one certification (max 7)
+  [P1] EDA00-CERT-DATE-ORDER — 1 certification rows where end < start
+  [P1] EDA00-CERT-URL-FANOUT — certified_target_url_listed is not unique: 1167 distinct URLs over 2279 rows; 496 URLs carry more than one certification row (max 11). Only 220 distinct URLs ar
+  [P2] EDA00-GRAIN-GROUPING-STATUS — the same status label counts 6 at entity grain (service_master) and 3 at group grain (web_target_group); counting groups by reading service_master double-counts
