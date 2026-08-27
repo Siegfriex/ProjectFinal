@@ -1,0 +1,357 @@
+{
+  "note": "synthetic fixture 에 대한 engine test 결과다. 실제 서비스에 대한 research finding 이 아니다.",
+  "engine_src": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/research/landing_accessibility/src",
+  "engine_commit": "222ef2c28ed5971b3c9f8b07120b7627d2617476",
+  "fixture_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/recovery/fixtures",
+  "run_id": "partial-depth-20260827T063802Z",
+  "firewall": {
+    "p0_gate_name": "V2_SSOT_FROZEN",
+    "p0_gate_status": "CLOSED",
+    "shadow_lane": "LANE_C",
+    "allowed_modes": [
+      "FIXTURE",
+      "SHADOW_DRY_RUN"
+    ],
+    "known_scopes": [
+      "E000_FAST",
+      "E001_FULL"
+    ],
+    "real_target_permitted": false,
+    "real_target_measurement": false,
+    "fixture_only": true
+  },
+  "summary": {
+    "pass": 4,
+    "fail": 3
+  },
+  "results": [
+    {
+      "case": "CASE1",
+      "fixture": "case1_landing_region.html",
+      "task": {
+        "archetype": "ITEM_DETAIL",
+        "region_definition": "ITEM_LIST_REGION",
+        "endpoint_definition": "ITEM_DETAIL_OPEN",
+        "region_signal_type": "DOM_AX_ROLE",
+        "endpoint_signal_type": "DOM_AX_ROLE",
+        "mapping_frozen_allowed": true
+      },
+      "contract": "A1 §1.4 행1 (k=0) · §1.5 행3 (영역만 관측 → OBSERVED, NED=k, IED/MPFED NULL)",
+      "expected": {
+        "ned": 0,
+        "ied": null,
+        "mpfed": null,
+        "endpoint_reached": 0,
+        "area_signal_status": "OBSERVED",
+        "endpoint_status_not": "FUNCTION_ENDPOINT_REACHED"
+      },
+      "actual": {
+        "ned": null,
+        "ied": null,
+        "mpfed": null,
+        "endpoint_status": "UNRESOLVED",
+        "endpoint_status_detail": "UNRESOLVED_NO_SIGNAL",
+        "endpoint_reached": 0,
+        "area_signal_status": "NOT_OBSERVED",
+        "budget_reason": null,
+        "manifest_frozen": false,
+        "steps": [],
+        "notes": []
+      },
+      "verdict": "FAIL",
+      "failures": [
+        "ned: expected=0 actual=None",
+        "area_signal_status: expected='OBSERVED' actual='NOT_OBSERVED'"
+      ]
+    },
+    {
+      "case": "CASE2",
+      "fixture": "case2_landing.html",
+      "task": {
+        "archetype": "ITEM_DETAIL",
+        "region_definition": "ITEM_LIST_REGION",
+        "endpoint_definition": "ITEM_DETAIL_OPEN",
+        "region_signal_type": "DOM_AX_ROLE",
+        "endpoint_signal_type": "DOM_AX_ROLE",
+        "mapping_frozen_allowed": true
+      },
+      "contract": "A1 §1.5 행3 · A2 §1.5.1a 표 4행 (ITEM_DETAIL 은 모든 gate 가 AUTH_GATE_REACHED, MPFED NULL)",
+      "expected": {
+        "ned": 2,
+        "ied": null,
+        "mpfed": null,
+        "endpoint_reached": 0,
+        "area_signal_status": "OBSERVED",
+        "endpoint_status": "AUTH_GATE_REACHED"
+      },
+      "actual": {
+        "ned": 2,
+        "ied": null,
+        "mpfed": null,
+        "endpoint_status": "AUTH_GATE_REACHED",
+        "endpoint_status_detail": null,
+        "endpoint_reached": 0,
+        "area_signal_status": "OBSERVED",
+        "budget_reason": null,
+        "manifest_frozen": false,
+        "steps": [
+          {
+            "step_index": 1,
+            "url_tail": "case2_s1.html",
+            "area": 0,
+            "endpoint": 0,
+            "gate": 0,
+            "depth_segment": "NED"
+          },
+          {
+            "step_index": 2,
+            "url_tail": "case2_s2.html",
+            "area": 1,
+            "endpoint": 0,
+            "gate": 0,
+            "depth_segment": "NED"
+          },
+          {
+            "step_index": 3,
+            "url_tail": "case2_login_gate.html",
+            "area": 0,
+            "endpoint": 0,
+            "gate": 1,
+            "depth_segment": "IED"
+          }
+        ],
+        "notes": [
+          "gate 판별: RESOLVED LOGIN (password_input 은 로그인 gate 의 결정적 신호다)"
+        ]
+      },
+      "verdict": "PASS",
+      "failures": []
+    },
+    {
+      "case": "CASE3",
+      "fixture": "case3_landing.html",
+      "task": {
+        "archetype": "ITEM_DETAIL",
+        "region_definition": "ITEM_LIST_REGION",
+        "endpoint_definition": "ITEM_DETAIL_OPEN",
+        "region_signal_type": "DOM_AX_ROLE",
+        "endpoint_signal_type": "DOM_AX_ROLE",
+        "mapping_frozen_allowed": true
+      },
+      "contract": "A1 §1.3 · §1.5 행1",
+      "expected": {
+        "ned": 2,
+        "ied": 1,
+        "mpfed": 3,
+        "endpoint_reached": 1,
+        "area_signal_status": "OBSERVED",
+        "endpoint_status": "FUNCTION_ENDPOINT_REACHED"
+      },
+      "actual": {
+        "ned": 2,
+        "ied": 1,
+        "mpfed": 3,
+        "endpoint_status": "FUNCTION_ENDPOINT_REACHED",
+        "endpoint_status_detail": null,
+        "endpoint_reached": 1,
+        "area_signal_status": "OBSERVED",
+        "budget_reason": null,
+        "manifest_frozen": true,
+        "steps": [
+          {
+            "step_index": 1,
+            "url_tail": "case3_s1.html",
+            "area": 0,
+            "endpoint": 0,
+            "gate": 0,
+            "depth_segment": "NED"
+          },
+          {
+            "step_index": 2,
+            "url_tail": "case3_s2.html",
+            "area": 1,
+            "endpoint": 0,
+            "gate": 0,
+            "depth_segment": "NED"
+          },
+          {
+            "step_index": 3,
+            "url_tail": "case3_endpoint.html",
+            "area": 0,
+            "endpoint": 1,
+            "gate": 0,
+            "depth_segment": "IED"
+          }
+        ],
+        "notes": []
+      },
+      "verdict": "PASS",
+      "failures": []
+    },
+    {
+      "case": "CASE4",
+      "fixture": "case4_landing.html",
+      "task": {
+        "archetype": "ITEM_DETAIL",
+        "region_definition": "ITEM_LIST_REGION",
+        "endpoint_definition": null,
+        "region_signal_type": "DOM_AX_ROLE",
+        "endpoint_signal_type": "DOM_AX_ROLE",
+        "mapping_frozen_allowed": true
+      },
+      "contract": "A1 §1.5 행3 — endpoint 정의 불명이어도 관측된 영역(k=0)은 보존, IED/MPFED NULL, 강제 산출 0",
+      "expected": {
+        "ned": 0,
+        "ied": null,
+        "mpfed": null,
+        "endpoint_reached": 0,
+        "area_signal_status": "OBSERVED",
+        "endpoint_status_not": "FUNCTION_ENDPOINT_REACHED"
+      },
+      "actual": {
+        "ned": null,
+        "ied": null,
+        "mpfed": null,
+        "endpoint_status": "UNRESOLVED",
+        "endpoint_status_detail": "UNRESOLVED_NO_SIGNAL",
+        "endpoint_reached": 0,
+        "area_signal_status": "NOT_OBSERVED",
+        "budget_reason": null,
+        "manifest_frozen": false,
+        "steps": [],
+        "notes": []
+      },
+      "verdict": "FAIL",
+      "failures": [
+        "ned: expected=0 actual=None",
+        "area_signal_status: expected='OBSERVED' actual='NOT_OBSERVED'"
+      ]
+    },
+    {
+      "case": "CASE4b",
+      "fixture": "case4b_landing.html",
+      "task": {
+        "archetype": "ITEM_DETAIL",
+        "region_definition": "ITEM_LIST_REGION",
+        "endpoint_definition": null,
+        "region_signal_type": "DOM_AX_ROLE",
+        "endpoint_signal_type": "DOM_AX_ROLE",
+        "mapping_frozen_allowed": true
+      },
+      "contract": "진단 보조 — CASE4 와 같은 task, 종료가 gate 로 확정되는 변형 (NED 소실이 UNRESOLVED 경로 한정인지 분리)",
+      "expected": {
+        "ned": 0,
+        "ied": null,
+        "mpfed": null,
+        "endpoint_reached": 0,
+        "area_signal_status": "OBSERVED",
+        "endpoint_status": "AUTH_GATE_REACHED"
+      },
+      "actual": {
+        "ned": 0,
+        "ied": null,
+        "mpfed": null,
+        "endpoint_status": "AUTH_GATE_REACHED",
+        "endpoint_status_detail": null,
+        "endpoint_reached": 0,
+        "area_signal_status": "OBSERVED",
+        "budget_reason": null,
+        "manifest_frozen": false,
+        "steps": [
+          {
+            "step_index": 1,
+            "url_tail": "case2_login_gate.html",
+            "area": 0,
+            "endpoint": 0,
+            "gate": 1,
+            "depth_segment": "IED"
+          }
+        ],
+        "notes": [
+          "gate 판별: RESOLVED LOGIN (password_input 은 로그인 gate 의 결정적 신호다)"
+        ]
+      },
+      "verdict": "PASS",
+      "failures": []
+    },
+    {
+      "case": "CASE5a",
+      "fixture": "case5_landing.html",
+      "task": {
+        "archetype": "ITEM_DETAIL",
+        "region_definition": null,
+        "endpoint_definition": null,
+        "region_signal_type": "CODEBOOK_PENDING",
+        "endpoint_signal_type": "CODEBOOK_PENDING",
+        "mapping_frozen_allowed": false
+      },
+      "contract": "A2 §1.9 규칙 P-2 — CODEBOOK_PENDING task 는 FROZEN 전이 불가. E001 실제 구성(executor.py:68-75)",
+      "expected": {
+        "endpoint_reached": 0,
+        "endpoint_status_not": "FUNCTION_ENDPOINT_REACHED",
+        "manifest_frozen": false
+      },
+      "actual": {
+        "ned": null,
+        "ied": null,
+        "mpfed": null,
+        "endpoint_status": "UNRESOLVED",
+        "endpoint_status_detail": "UNRESOLVED_NO_SIGNAL",
+        "endpoint_reached": 0,
+        "area_signal_status": "NOT_OBSERVED",
+        "budget_reason": null,
+        "manifest_frozen": false,
+        "steps": [],
+        "notes": []
+      },
+      "verdict": "PASS",
+      "failures": []
+    },
+    {
+      "case": "CASE5b",
+      "fixture": "case5_landing.html",
+      "task": {
+        "archetype": "ITEM_DETAIL",
+        "region_definition": "ITEM_LIST_REGION",
+        "endpoint_definition": "ITEM_DETAIL_OPEN",
+        "region_signal_type": "CODEBOOK_PENDING",
+        "endpoint_signal_type": "CODEBOOK_PENDING",
+        "mapping_frozen_allowed": false
+      },
+      "contract": "A2 §1.9 규칙 P-2 — signal_type=CODEBOOK_PENDING 인 채로 정의 문자열만 있을 때 false 승격이 막히는가",
+      "expected": {
+        "endpoint_reached": 0,
+        "endpoint_status_not": "FUNCTION_ENDPOINT_REACHED",
+        "manifest_frozen": false
+      },
+      "actual": {
+        "ned": 0,
+        "ied": 1,
+        "mpfed": 1,
+        "endpoint_status": "FUNCTION_ENDPOINT_REACHED",
+        "endpoint_status_detail": null,
+        "endpoint_reached": 1,
+        "area_signal_status": "OBSERVED",
+        "budget_reason": null,
+        "manifest_frozen": true,
+        "steps": [
+          {
+            "step_index": 1,
+            "url_tail": "case5_endpoint.html",
+            "area": 0,
+            "endpoint": 1,
+            "gate": 0,
+            "depth_segment": "IED"
+          }
+        ],
+        "notes": []
+      },
+      "verdict": "FAIL",
+      "failures": [
+        "endpoint_reached: expected=0 actual=1",
+        "endpoint_status == FUNCTION_ENDPOINT_REACHED (금지)",
+        "manifest_frozen: expected=False actual=True"
+      ]
+    }
+  ]
+}
