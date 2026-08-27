@@ -1,0 +1,145 @@
+{
+  "artifact": "ANALYSIS_FRAME_FREEZE",
+  "frozen_at": "2026-08-27T14:28:32+09:00",
+  "frozen_by": "A (Authority Plane, projectfinal-64)",
+  "snapshot_command": "TZ=Asia/Seoul date — 2026-08-27 14:28:32 KST",
+  "counts_source": "A 가 배치 JSON 원본에서 직접 계수. B/C 보고를 인용하지 않았다.",
+
+  "collection_status": {
+    "state": "COMPLETE_BEFORE_HARD_STOP",
+    "hard_stop_scheduled": "14:45",
+    "actual_completion": "14:28",
+    "margin_minutes": 17,
+    "workers_alive_at_freeze": 0,
+    "note": "하드스톱을 집행할 필요가 없었다 — 전 워커가 배정분을 소진하고 스스로 종료했다."
+  },
+
+  "analysis_sample": {
+    "scope": "E001_ONLY",
+    "collector_sha": "222ef2c28ed5971b3c9f8b07120b7627d2617476",
+    "attempted_observations": 59,
+    "unique_targets": 59,
+    "frame_size": 59,
+    "coverage_unique_over_frame": 1.0,
+    "coverage_note": "**프레임 전수 100% 수집**. 절단이 없으므로 archetype 편향 확인(expected_by_plan 대 observed 기술 대조)은 자명하게 일치한다 — 절단 편향이 원리적으로 발생하지 않았다.",
+    "worker_partition_completed": { "w01": 15, "w02": 15, "w03": 15, "w04": 14 },
+    "e000_excluded": "E000 6건은 분석 표본에 넣지 않는다. collector 가 다르고(a86b4c7), E000 의 6타깃이 전부 E001 에도 있어 고유 기여가 0 이다. 측정기·lineage 검증 산출물로 독립 보고한다."
+  },
+
+  "depth_axis": {
+    "mpfed_available_n": 0,
+    "denominator": 59,
+    "statement": "59건을 시도해 0건에서 MPFED 가 산출됐다.",
+    "cumulative_with_e000": "0 / 65",
+    "note": "**'0건 산출' 이 아니라 '59건 중 0건' 으로 서술한다.** 전자는 '측정하지 않았다' 로도 읽힌다."
+  },
+
+  "outcome_distribution": {
+    "ACCOUNT_ACTION_BLOCKED": 25,
+    "UNRESOLVED": 18,
+    "AUTH_GATE": 12,
+    "SKIPPED_RETRY_EXHAUSTED": 3,
+    "CAPTCHA": 1,
+    "total": 59
+  },
+
+  "scout_invoked_distribution": {
+    "false": 25,
+    "true": 31,
+    "null": 3,
+    "interpretation": "`false` 25 = 가드가 Scout 이전에 차단(우리 도구의 제약). `true` 31 = Scout 이 실제로 돌아 종결상태 도달. `null` 3 = 아무것도 시도되지 않음(SKIPPED_RETRY_EXHAUSTED)."
+  },
+
+  "exclusion_taxonomy": {
+    "우리_도구의_제약": {
+      "guard_blocked_pre_scout": 25,
+      "breakdown": { "LOGIN": 19, "PURCHASE": 3, "SIGNUP": 2, "PAYMENT": 1 },
+      "note": "가드가 초기 화면의 계정행동 텍스트 후보 **존재**만으로 탐색을 중단시켰다. gate 통과 여부는 확인하지 못했다."
+    },
+    "우리_쪽_사정": {
+      "skipped_retry_exhausted": 3,
+      "unresolved_max_scout_wall_clock": 7,
+      "unresolved_scout_error": 3,
+      "note": "`SKIPPED_RETRY_EXHAUSTED` 는 detail 이 빈 {} 이고 scout_invoked=null — L0 도 L1 도 시도되지 않았다. `l1_not_attempted`(L0 는 성공)와 구분한다. `SCOUT_ERROR` 는 'Page.evaluate: Execution context was destroyed' 계열 기술 실패다."
+    },
+    "대상의_성질": {
+      "auth_gate_reached": 12,
+      "captcha_terminal": 1,
+      "unresolved_no_state_change": 2,
+      "note": "전부 scout_invoked=true — Scout 이 실제로 돌아 대상의 구조에 의해 종결됐다."
+    },
+    "미분류": {
+      "unresolved_reason_unrecorded": 6,
+      "note": "`budget_reason` 이 기록되지 않았다. **추측해서 배정하지 않는다.** 별도 계수로 보고한다."
+    },
+    "sum_check": "25 + (3+7+3) + (12+1+2) + 6 = 59 ✓"
+  },
+
+  "mpfed_null_causal_attribution": {
+    "warning": "**E-6b 발화 횟수를 원인 계수로 그대로 쓰면 영향이 8배 과대평가된다.** 발화한 것과 결과를 바꾼 것은 다르다.",
+    "measured_by": "A, 배치 JSON 직접 계수 (2026-08-27 14:29:38 KST). C 의 상단 계수와 E-6b=8 · RESOLVED=5 는 독립적으로 일치 확인.",
+
+    "auth_gate_decomposition": {
+      "total": 12,
+      "archetype_promotes_gate_to_endpoint": 1,
+      "archetype_does_not_promote": 11,
+      "promoting_archetypes": ["FINANCIAL_ACTION_ENTRY", "COMMUNICATION_ENTRY"],
+      "observed_archetypes": { "ITEM_DETAIL": 7, "PLACE_LOOKUP": 2, "CONTENT_OPEN": 1, "FINANCIAL_ACTION_ENTRY": 1, "UTILITY_ENTRY": 1 }
+    },
+
+    "e6b_impact": {
+      "fired_n": 8,
+      "binding_n": 1,
+      "explanation": "E-6b(gate 종류 UNDETERMINED → endpoint 승격 거부)는 8회 발화했다. 그러나 그중 7건은 **archetype 이 애초에 gate 를 endpoint 로 승격시키지 않는** 유형이라 판별에 성공했어도 MPFED 는 NULL 이었다. **E-6b 가 결과를 바꾼 것은 FINANCIAL_ACTION_ENTRY 1건뿐이다.**",
+      "reporting_rule": "'E-6b 가 8회 발화했다' 는 사실이나, 그것을 depth 축 실패의 원인으로 8건 계상하면 거짓이다. **발화 8 · 구속 1 을 함께 적는다.**"
+    },
+
+    "dominant_causes": {
+      "guard_blocked_pre_scout": { "n": 25, "share": 0.42, "kind": "우리 도구의 제약" },
+      "auth_gate_non_promoting_archetype": { "n": 11, "share": 0.19, "kind": "**본 연구 계약의 설계**", "note": "A2 §1.5.1 + 00_SSOT §3 이 gate 를 endpoint 로 인정하는 archetype 을 2종으로 한정한다. 나머지 5종에서는 auth gate 도달 = MPFED 정의 불가다. **결함이 아니라 설계이며, 그 설계가 이 프레임에서 depth 를 측정 불가로 만든다는 것이 관측 결과다.**" },
+      "unresolved": { "n": 18, "share": 0.31, "kind": "혼합 — budget_reason 으로 분해 필요" },
+      "skipped_retry_exhausted": { "n": 3, "share": 0.05, "kind": "우리 쪽 사정" },
+      "captcha_terminal": { "n": 1, "share": 0.02, "kind": "대상의 성질" },
+      "e6b_binding": { "n": 1, "share": 0.02, "kind": "측정기 한계" },
+      "sum": 59
+    },
+
+    "headline_implication": "depth 축 실패의 지배적 원인은 **(1) 가드 입도(25건, 우리 도구)** 와 **(2) archetype-endpoint 규칙 자체(11건, 우리 설계)** 다. gate 판별 실패(E-6b)는 1건에 불과하다. **셋을 뭉뚱그려 '측정기가 실패했다' 로 쓰면 원인이 흐려진다.**"
+  },
+
+  "known_measurement_defect": {
+    "id": "endpoint_status_detail_conflates_budget_and_error",
+    "finding": "`SCOUT_ERROR` 3건의 `endpoint_status_detail` 이 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED` 로 찍힌다. 실제 notes 는 'Page.evaluate: Execution context was destroyed' 로 **예산 소진이 아니라 기술적 실패**다.",
+    "impact": "`endpoint_status_detail` 만 근거로 보고하면 기술 실패가 '깊이 예산 초과' 로 잘못 기술된다.",
+    "handling": "보고는 `budget_reason` 으로 분해한다. **수집기는 고치지 않는다** — collector SHA 가 움직이면 이미 완료된 59건과 어긋난다. post-E001 backlog.",
+    "found_by": "A (raw 분해 중 발견)"
+  },
+
+  "grade": {
+    "value": "PILOT / PRELIMINARY",
+    "rule_source": ".agent_bus/landing_v2/COLLECTION_WINDOW_RULE.md — 2026-08-27 12:48 선언, REAL TARGET evidence 0건 상태",
+    "trigger": "E001 개시 13:35 이후",
+    "not_revised_because": "**커버리지 100% 가 등급을 올리지 않는다.** 이 규칙은 결과가 나쁠 때 재협상하지 않기 위해 evidence 0건 시점에 선언됐고, **결과가 예상보다 좋다는 이유로 뒤집는 것도 같은 실패다.** 개시 지연이라는 사실은 커버리지와 무관하게 존재한다.",
+    "report_both": "등급(PRELIMINARY)과 커버리지(100%)는 **서로 다른 사실이며 둘 다 보고한다.** 독자가 각각을 보고 판단할 수 있어야 한다."
+  },
+
+  "integrity_at_freeze": {
+    "c0_count": 0,
+    "prohibited_actions": 0,
+    "pilot_diff": 0,
+    "append_only_violations": 0,
+    "duplicate_targets_in_batches": 0,
+    "c1_open": [
+      "CONCURRENT_LAUNCH_SUPERSEDED — E000 3건 + E001 w02 4건 격리. 데이터 무결성 영향 없음(배치 미참조).",
+      "DUPLICATE_AUTOMATED_REQUESTS_TO_REAL_HOSTS — 실제 상용 호스트 7곳에 중복 자동요청. **연구수행 항목이며 데이터 위생과 분리해 LIMITATIONS 에 기재한다.** 원인은 발사 명령 중복 투입(오케스트레이션)이지 수집기 결함이 아니다. 배타 생성 가드가 두 번 모두 차단했다."
+    ]
+  },
+
+  "next_gates": {
+    "14:40": "AI ambiguity cutoff — 미해결은 UNDETERMINED freeze",
+    "14:50": "MART_FREEZE — 기준은 .agent_bus/landing_v2/MART_ACCEPTANCE.md (사전 공개됨)",
+    "15:40": "STATISTICS",
+    "16:00": "CLAIM — 기준은 .agent_bus/landing_v2/CLAIM_GOVERNANCE.md (사전 공개됨)",
+    "16:30": "FINAL"
+  }
+}
