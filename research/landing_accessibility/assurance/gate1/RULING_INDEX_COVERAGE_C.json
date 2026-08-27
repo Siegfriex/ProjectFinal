@@ -643,20 +643,6 @@
    "gap_note": "Needs runner_cmd_template + action-log schema. R20's acceptance is 'guard fires' on the real runner→guard seam: S4 asserts forbidden controls are never activated but does not assert a refusal event was logged — add to S4: ≥1 refused:true action_log entry on a fixture that tempts a forbidden action (positive control of the guard itself) with the allowed action passing in the same run (음성대조). Also request in B's COMPLETION the seam-test list (runner↔guard, runner↔evidence writer, runner↔L1/L2 firewall) with real-object test names."
   },
   {
-   "id": "STEP1-015",
-   "due": "GATE1",
-   "verified_by": "C",
-   "requires": "AX 조인·scroll state 는 STEP 1 안. 가산적·회귀 전건 통과·collector_sha256 을 모든 v3 관측 행에 기록",
-   "must_appear_in": "수집기 + 관측 행",
-   "C_check": [
-    "lane5_evidence/EVIDENCE_CONTRACT_C.md §2/§3/§3b — collector_sha required on every state/step/flow record; evidence_lineage_check.py STATE_REQUIRED / STEP_REQUIRED / FLOW_REQUIRED + FIELD_ALIASES collector_sha ← (collector_sha, collector_git_sha, collector_version_sha), check_required (:301)",
-    "AX join: lane5 per-state 'ax' artifact required (ARTIFACT_ALIASES) + lane2 measure_geometry CDP Accessibility.getPartialAXTree; scroll state: run_gate1 L3-scroll-capture-03s3",
-    "run_gate1.py item L5-runner-evidence-tree"
-   ],
-   "coverage": "COVERED_PENDING_ADAPTER",
-   "gap_note": "(1) FIELD_ALIASES lacks the ruling's exact name collector_sha256 — add it (else MISSING_FIELD false positive); (2) '가산적·회귀 전건 통과' is not checked by C — add a SUT_STATIC item that runs B's regression suite at the SUT SHA in the scratchpad clone and records counts (R20 caveat: lane tests passing ≠ integrated), and a schema diff of B's mart at the SHA vs 02 §3–§4 for removed fields; (3) add an equality assertion collector_sha(256) == exact_sha of the SUT."
-  },
-  {
    "id": "Δ11",
    "due": "상시",
    "requires": "버스는 결정을 ACK 본문에 담는다 — completions 파일 부재를 미해결로 읽으면 거짓 양성. 버스를 읽는 도구는 ACK 본문을 검사한다. v2.1 dangling reference 는 소급 생성하지 않는다",
@@ -815,10 +801,41 @@
    "verified_by": "C",
    "coverage": "NOT_DUE_YET",
    "C_check": "GATE 3: lane6 family_summary reports UNDETERMINED as its own category, not dropped from denominator — verify B aggregation does the same"
+  },
+  {
+   "id": "Δ22-R22",
+   "due": "GATE1",
+   "requires": "모든 v3 관측 행은 **engine sha + driver/session sha** 를 함께 기록한다. collector_sha256 하나로는 포착 동작이 호출자에 있을 때 불완전하다",
+   "must_appear_in": "관측 행",
+   "authority": "Δ22",
+   "verified_by": "C",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "C_check": "lane5_evidence: driver_sha256 (aliases session_sha256/capture_stack_sha256) required alongside collector_sha256 on v3 rows — being added; comparator adapter must map both"
+  },
+  {
+   "id": "Δ22-scrollfix",
+   "due": "GATE1",
+   "requires": "커밋된 스크롤 fixture — 런타임 임시 파일이 아니라 재현 가능한 커밋본으로 S1..Sn 을 검증",
+   "must_appear_in": "tests/fixtures",
+   "authority": "Δ22",
+   "verified_by": "C",
+   "coverage": "COVERED",
+   "C_check": "lane3_sequence_dismiss_auth/fixtures/seq_typing_and_scroll_not_depth.html (committed; scrollable body, control y≈928, fvss=S1) + L3-scroll-capture-03s3 item in run_gate1"
+  },
+  {
+   "id": "Δ22-R23",
+   "due": "상시",
+   "requires": "지시문·판정문에서 원문 인용과 그로부터의 추론을 표기로 구분한다",
+   "must_appear_in": "A 결정문 · B 지시문",
+   "authority": "Δ22",
+   "verified_by": "C",
+   "coverage": "COVERED",
+   "C_check": "C convention: ACK/FINDING text separates 'C 실측' (measured) from 'C 독해' (inference); applied in STEP1-020 re-ACK and onward"
   }
  ],
- "index_version": 4,
+ "index_version": 5,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
- "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1"
+ "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
+ "index_sha256_v5": "8f1374e7b70a0675819ccb61e8dc57c420b55df110bcb4ba78257bd17ced4373"
 }
