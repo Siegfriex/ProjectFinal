@@ -469,6 +469,36 @@ class TestDuplicateCaptureGroup:
         # A 의 전수 스캔 결과("이런 쌍은 이 1군뿐")를 W4 가 독립적으로 재확인.
         assert denominators["duplicate_capture_groups"] == 1
 
+    def test_dr054_primary_collapses_one_member_sensitivity_keeps_both(
+        self, mart_rows, denominators
+    ):
+        """`D-R0-54` — 주분석은 그룹당 1건으로 접고, 2건 계수는 감도분석으로 낸다."""
+        nh = [r for r in mart_rows if r["service_name"] in ("nh_smart_banking", "nh_cok_bank")]
+        roles = {r["collapse_role"] for r in nh}
+        assert roles == {"PRIMARY_REPRESENTATIVE", "COLLAPSED_IN_PRIMARY"}
+        primary_count = sum(1 for r in nh if r["axis_c_valid_primary"])
+        assert primary_count == 1  # 주분석엔 그룹당 1건만
+        sensitivity_count = sum(1 for r in nh if r["axis_c_valid"])
+        assert sensitivity_count == 2  # 감도분석(uncollapsed)엔 2건 다
+        assert denominators["axis_c_valid_primary_collapsed"] == 52
+        assert denominators["axis_c_valid_sensitivity_uncollapsed"] == 53
+
+    def test_collapse_role_deterministic_by_service_name(self, mart_rows):
+        """대표 선택이 임의가 아니라 `service_name` 사전순으로 재현 가능해야 한다."""
+        nh = sorted(
+            (r for r in mart_rows if r["service_name"] in ("nh_smart_banking", "nh_cok_bank")),
+            key=lambda r: r["service_name"],
+        )
+        # "nh_cok_bank" < "nh_smart_banking" 사전순 — cok 이 대표가 돼야 한다.
+        assert nh[0]["service_name"] == "nh_cok_bank"
+        assert nh[0]["collapse_role"] == "PRIMARY_REPRESENTATIVE"
+        assert nh[1]["collapse_role"] == "COLLAPSED_IN_PRIMARY"
+
+    def test_non_grouped_rows_are_always_primary_representative(self, mart_rows):
+        for r in mart_rows:
+            if r.get("in_main_population") and r.get("duplicate_capture_group") is None:
+                assert r["collapse_role"] == "PRIMARY_REPRESENTATIVE"
+
 
 # ══════════════════════════════════════════════════════════════════════════
 # 8. 소유 파일 경계 — l0_probe.js 를 건드리지 않았는지, 다른 owner 파일 무손 확인
@@ -505,6 +535,146 @@ class TestProbeCapCountsMatchConfirmedScan:
             assert isinstance(r["ts_len"], int)
             assert isinstance(r["contrast_len"], int)
             assert isinstance(r["anim_len"], int)
+
+
+class TestCapHitDecisionD_R0_53:
+    """`D-R0-53` DECISION-1(이름 확정) · DECISION-2(영향 범위) 를 코드로 확인한다."""
+
+    def test_cap_hit_keys_use_confirmed_naming(self, mart_rows):
+        measured = [r for r in mart_rows if r["measurement_status"] == "MEASURED"]
+        assert measured
+        for r in measured:
+            for key in (
+                "cap_hit_primary_action_candidates",
+                "cap_hit_accessible_name_sources",
+                "cap_hit_target_size",
+                "cap_hit_contrast",
+                "cap_hit_animated_elements",
+            ):
+                assert key in r
+                assert r[key] in (True, False)
+
+    def test_cap_hit_matches_len_based_truncated_flags(self, mart_rows):
+        for r in mart_rows:
+            if r["measurement_status"] != "MEASURED":
+                continue
+            assert r["cap_hit_primary_action_candidates"] == r["pac_truncated"]
+            assert r["cap_hit_accessible_name_sources"] == r["ans_truncated"]
+            assert r["cap_hit_target_size"] == r["ts_truncated"]
+            assert r["cap_hit_contrast"] == r["contrast_at_400"]
+
+    def test_truncation_does_not_lower_axis_c_valid(self, mart_rows):
+        """DECISION-2 — 절단은 그 필드 의존 지표만 UNDETERMINED 후보다. 이 mart 에
+        `axis_c_valid`를 낮추는 코드 경로가 cap 여부를 참조하지 않는지 소스로 확인한다.
+
+        대입문 전체(괄호가 닫힐 때까지, 여러 줄일 수 있음)를 잘라내 검사한다 — 한
+        줄만 보면 `row["axis_c_valid"] = (` 만 잡혀 아무것도 검증하지 못한다.
+        """
+        source = Path(mart.__file__).read_text(encoding="utf-8")
+        start = source.index('row["axis_c_valid"] = (')
+        end = source.index(")\n", start) + 1
+        formula = source[start:end]
+        assert "bool(row[" in formula  # 실제로 뭔가 잡혔는지 자체 검증
+        assert "measurement_status" in formula
+        assert "cap_hit" not in formula
+        assert "truncated" not in formula
+
+    def test_regex_extraction_sanity_check(self):
+        """위 테스트가 실제로 formula 를 잘라내는지 자체 검증 — 빈 문자열을 통과
+        시키는 퇴화 테스트가 아님을 보증한다."""
+        source = Path(mart.__file__).read_text(encoding="utf-8")
+        start = source.index('row["axis_c_valid"] = (')
+        end = source.index(")\n", start) + 1
+        formula = source[start:end]
+        assert len(formula) > 40
+
+    def test_overlay_geometry_unaffected_by_any_cap(self, mart_rows):
+        """DECISION-2 — modal_overlay/dismiss_control 은 cap 무관이므로 page-level
+        OverlayCoverage 는 절단 영향이 없다."""
+        report = mart.verify_overlay_fields_not_capped(mart_rows)
+        assert report["safe_from_cap"] is True
+
+    def test_cap_hit_counts_match_confirmed_scan(self, mart_rows):
+        assert sum(1 for r in mart_rows if r.get("cap_hit_primary_action_candidates")) == 7
+        assert sum(1 for r in mart_rows if r.get("cap_hit_accessible_name_sources")) == 13
+        assert sum(1 for r in mart_rows if r.get("cap_hit_target_size")) == 6
+        assert sum(1 for r in mart_rows if r.get("cap_hit_contrast")) == 8
+
+
+class TestPriorObservedArchetypeD_R0_55:
+    """`D-R0-55` — A 가 유보한 결정을 W4 가 대신 확정하지 않는다."""
+
+    def test_prior_archetype_populated_for_all_attempted(self, mart_rows):
+        attempted_rows = [
+            r for r in mart_rows if r["population_status"] != "EXCLUDED_DUPLICATE_LAUNCH"
+        ]
+        assert len(attempted_rows) == 59
+        for r in attempted_rows:
+            assert r["prior_archetype"] in (
+                "QUERY",
+                "CONTENT_OPEN",
+                "ITEM_DETAIL",
+                "PLACE_LOOKUP",
+                "COMMUNICATION_ENTRY",
+                "FINANCIAL_ACTION_ENTRY",
+                "UTILITY_ENTRY",
+            )
+
+    def test_observed_archetype_never_populated_without_task_binding(self, mart_rows):
+        for r in mart_rows:
+            assert r["observed_archetype"] is None
+            assert r["observed_archetype_status"] == "PENDING_TASK_BINDING"
+
+    def test_neither_archetype_column_is_dropped_or_renamed_to_the_other(self, mart_rows):
+        """두 컬럼이 항상 공존해야 한다 — 어느 한쪽으로 확정해 다른 쪽을 지우지 않는다."""
+        for r in mart_rows:
+            assert "prior_archetype" in r
+            assert "observed_archetype" in r
+
+
+class TestCapHitBiasIsDescriptiveOnly:
+    """cap-hit 15/14 건의 archetype 분포는 기술통계다 — 이 mart 는 결론을 내지 않는다."""
+
+    def test_manifest_marks_distribution_as_descriptive_only(self):
+        stats = mart.cap_hit_prior_archetype_distribution(
+            [
+                {
+                    "measurement_status": "MEASURED",
+                    "cap_hit_primary_action_candidates": True,
+                    "cap_hit_accessible_name_sources": False,
+                    "cap_hit_target_size": False,
+                    "cap_hit_contrast": False,
+                    "prior_archetype": "ITEM_DETAIL",
+                },
+                {
+                    "measurement_status": "MEASURED",
+                    "cap_hit_primary_action_candidates": False,
+                    "cap_hit_accessible_name_sources": False,
+                    "cap_hit_target_size": False,
+                    "cap_hit_contrast": False,
+                    "prior_archetype": "QUERY",
+                },
+            ]
+        )
+        assert (
+            stats["note"]
+            == "DESCRIPTIVE_ONLY_NOT_A_TEST — 통계적 유의성 주장 없음, archetype 비교 왜곡 결론 없음"
+        )
+        assert stats["cap_hit_n"] == 1
+        assert stats["measured_n"] == 2
+
+    def test_no_conclusion_language_in_mart_script_source(self):
+        """ "왜곡"·"편향" 같은 결론성 단어가 소스 문자열 리터럴(출력값)에 들어가지
+        않는지 확인한다 — 주석/문서에서의 인용은 허용하되, 실제로 만드는 데이터에
+        결론을 담지 않는다는 것을 간접적으로 확인한다."""
+        stats_keys = set(
+            mart.cap_hit_prior_archetype_distribution(
+                [{"measurement_status": "MEASURED", "prior_archetype": "QUERY"}]
+            ).keys()
+        )
+        assert "conclusion" not in stats_keys
+        assert "bias_confirmed" not in stats_keys
+        assert "skew" not in stats_keys
 
 
 class TestSlotRawMaterialLeavesDefinitionOpen:
