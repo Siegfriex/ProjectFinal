@@ -842,13 +842,23 @@ def main() -> None:
 
     payload = {
         # 이전의 `"manifest": "REAL_RUN_SUMMARY"`는 **문자열 라벨일 뿐인데 manifest
-        # 블록으로 오해됐다.** 오해 소지를 없애고 실제 manifest 파일을 가리킨다.
+        # 블록으로 오해됐다.** 라벨을 지우되 **참조를 반드시 넣는다** — 비워 두면
+        # 검증자가 manifest를 찾지 못한다(C 로더는 dict가 아니면 무시한다).
         "document_type": "REAL_RUN_SUMMARY",
+        # 같은 디렉터리 기준 상대경로. **manifest 자신의 sha256은 여기에만 둔다** —
+        # manifest 안에 자기 해시를 넣으면 순환이 된다.
+        "manifest": {
+            "path": manifest_path.name,
+            "sha256": f"sha256:{_sha256_of(manifest_path)}",
+            "document_type": "FROZEN_MART_MANIFEST",
+        },
         "frozen_mart_manifest_ref": {
             "file": manifest_path.name,
-            "path": str(manifest_path),
+            "path": manifest_path.name,
             "sha256": f"sha256:{_sha256_of(manifest_path)}",
-            "note": "mart 파일별 sha256·row_count는 이 파일에 있다.",
+            "note": (
+                "`manifest` 키와 동일한 참조다. mart 파일별 sha256·row_count는 그 파일에 있다."
+            ),
         },
         # C(assurance)가 이 파일에서 입력 SHA를 찾으므로 manifest와 **양쪽에** 싣는다.
         "input_shas": input_shas,
