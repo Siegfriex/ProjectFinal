@@ -770,30 +770,62 @@ _ADJ_NEGATE = ("NOT_SATISFIED", "NOT SATISFIED", "UNSATISFIED", "UNMET", "NOT_ME
                "NOT_YET_DUE", "NOT YET DUE", "NOT_TRIGGERED", "미충족", "미이행", "불충족", "미도래")
 
 
+_AUDIT_BRANCH_NS = re.compile(r"^audit/landing-[A-Za-z0-9._/-]+$")
+
+
+def _resolve_branch_tip(where, br):
+    """감사 브랜치 하나의 원격 **실시간** tip. [AUDIT_ANCESTRY]/H-3 과 같은 원천·순서
+    (로컬 원격추적 ref 우선 → ls-remote) 를 쓴다. 로컬 origin/… 추적 ref 는 stale 할 수 있으므로
+    rev-parse 가 실패하면 ls-remote 로 다시 시도한다.
+
+    V2-C014 — audit_branch_tips() 와 top-level accepted_by_audit_branch(residual_in_force) 양쪽이
+    이 함수 하나를 공유한다. 감사(V2-C013 §2)가 지적한 새 우회로는, top-level 필드가 이 조상 검증을
+    **전혀 호출하지 않아** 어느 ref 에도 속하지 않는 dangling 커밋을 근거로 통과시킨 것이었다 —
+    새 검증 알고리즘을 만들지 않고 이 함수를 재사용해 닫는다.
+    """
+    tip = ""
+    rp = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "--quiet",
+                         "refs/remotes/origin/%s^{commit}" % br], capture_output=True)
+    if rp.returncode == 0:
+        tip = rp.stdout.decode("utf-8", "replace").strip()
+    else:
+        lsr = subprocess.run(["git", "-C", repo, "ls-remote", "origin", "refs/heads/%s" % br],
+                             capture_output=True)
+        if lsr.returncode == 0 and lsr.stdout.strip():
+            tip = lsr.stdout.decode("utf-8", "replace").split("\t", 1)[0].strip()
+    if not HEX40.match(tip or ""):
+        die("%s 의 감사 브랜치 origin/%s 의 tip 을 확인할 수 없다 — 계보를 확인할 수 없는 근거로는 "
+            "조건/수용을 승인할 수 없다 (fail-closed)" % (where, br))
+    return tip
+
+
 def audit_branch_tips():
     """원장이 선언한 감사 브랜치의 tip. [AUDIT_ANCESTRY] 와 같은 원천을 쓴다."""
     if _AUDIT_TIPS:
         return _AUDIT_TIPS
     for key in ("latest_adversarial_audit_branch", "latest_ssot_audit_branch"):
         br = al.get(key)
-        if not isinstance(br, str) or not re.match(r"^audit/landing-[A-Za-z0-9._/-]+$", br):
+        if not isinstance(br, str) or not _AUDIT_BRANCH_NS.match(br):
             die("audit_lag.%s(%r) 가 audit/landing-* 네임스페이스가 아니다 — 조건 근거의 계보를 "
                 "확인할 기준 브랜치가 없다 (fail-closed)" % (key, br))
-        tip = ""
-        rp = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "--quiet",
-                             "refs/remotes/origin/%s^{commit}" % br], capture_output=True)
-        if rp.returncode == 0:
-            tip = rp.stdout.decode("utf-8", "replace").strip()
-        else:
-            lsr = subprocess.run(["git", "-C", repo, "ls-remote", "origin", "refs/heads/%s" % br],
-                                 capture_output=True)
-            if lsr.returncode == 0 and lsr.stdout.strip():
-                tip = lsr.stdout.decode("utf-8", "replace").split("\t", 1)[0].strip()
-        if not HEX40.match(tip or ""):
-            die("감사 브랜치 origin/%s 의 tip 을 확인할 수 없다 — 계보를 확인할 수 없는 근거로 조건을 "
-                "SATISFIED 로 적을 수 없다 (fail-closed)" % br)
-        _AUDIT_TIPS[br] = tip
+        _AUDIT_TIPS[br] = _resolve_branch_tip("audit_lag.%s" % key, br)
     return _AUDIT_TIPS
+
+
+_DECLARED_BRANCH_TIPS = {}
+
+
+def declared_branch_tip(where, br):
+    """finding 단위로 선언되는 임의 감사 브랜치(예: accepted_by_audit_branch)의 tip.
+
+    audit_branch_tips() 가 두 표준 브랜치(latest_adversarial/ssot)에 대해 쓰는 것과
+    **정확히 같은** `_resolve_branch_tip()` 을 재사용한다 — 다른 캐시를 쓸 뿐 알고리즘은
+    하나다 (audit_branch_tips() 의 `if _AUDIT_TIPS: return` 단락평가와 섞이면 두 표준
+    브랜치가 아닌 값이 캐시를 오염시킬 수 있어 캐시만 분리했다).
+    """
+    if br not in _DECLARED_BRANCH_TIPS:
+        _DECLARED_BRANCH_TIPS[br] = _resolve_branch_tip(where, br)
+    return _DECLARED_BRANCH_TIPS[br]
 
 
 def reports_at(sha):
@@ -848,6 +880,50 @@ def adjudication_hits(node, want):
                 walk(v, keyed)
 
     walk(node, False)
+    return hits
+
+
+# --- accepted_by_audit_report 재귀 스캔용 어휘 (V2-C014) ---
+# adjudication_hits() 의 _ADJ_AFFIRM/_ADJ_NEGATE 는 "조건이 SATISFIED 됐는가" 를 판정하는
+# 어휘라 이 자리(수용 등급 부여)의 어휘와 다르다 — "ACCEPT_RECLASSIFY"/"ACCEPTED_BOUNDED_RESIDUAL_RISK"
+# 는 SATISFIED/MET 같은 부분문자열을 포함하지 않는다. 같은 함수를 그대로 호출하면 항상 0 hit 이
+# 나와 사실상 새 die 사유를 만드는 것과 같으므로, **같은 설계**(재귀 · 부정 어휘 우선)를 이
+# 어휘에 맞춰 다시 인스턴스화한다 — 알고리즘은 adjudication_hits() 와 동일하고 새로 만드는 것은
+# 어휘 상수뿐이다.
+_ABRR_ADJ_AFFIRM = ("ACCEPT_RECLASSIFY",)
+_ABRR_ADJ_NEGATE = ("REJECT", "DECLINE", "DECLINED", "NOT_ACCEPTED", "WITHDRAWN", "SUPERSEDED",
+                    "INVALIDATED", "REVOKED", "RETRACTED", "REOPEN", "REOPENED")
+
+
+def abrr_grant_hits(node, want_id, want_class):
+    """accepted_by_audit_report 가 실제로 이 id 를 ACCEPT_RECLASSIFY/want_class 로 긍정 판정한
+    자리를 재귀로 찾는다. adjudication_hits() 와 같은 설계(재귀 · 부정 어휘 우선) — id 가 맞는
+    객체를 찾은 뒤 verdict 와 new_class 를 **함께** 확인하고, 부정 어휘가 섞이면 긍정으로 세지
+    않는다(H-3 의 "UNMET 이 MET 로 잡히는 것을 막는다" 와 같은 이유로, "REJECT" 가 우연히
+    "ACCEPT" 부분문자열을 포함하는 경로는 없지만 대칭성을 위해 부정어휘 우선 규칙을 그대로 둔다).
+    """
+    hits = []
+
+    def negated(t):
+        return any(n in t for n in _ABRR_ADJ_NEGATE)
+
+    def walk(n):
+        if isinstance(n, dict):
+            if norm_token(n.get("id")) == norm_token(want_id):
+                verdict_t = norm_token(n.get("verdict", ""))
+                class_t = norm_token(n.get("new_class", ""))
+                if not negated(verdict_t) and not negated(class_t):
+                    if (any(a in verdict_t for a in _ABRR_ADJ_AFFIRM)
+                            and class_t == norm_token(want_class)):
+                        hits.append("id=%s verdict=%s new_class=%s"
+                                    % (want_id, n.get("verdict"), n.get("new_class")))
+            for v in n.values():
+                walk(v)
+        elif isinstance(n, list):
+            for v in n:
+                walk(v)
+
+    walk(node)
     return hits
 
 
@@ -1010,9 +1086,30 @@ def residual_in_force(f, label):
     if not HEX40.match(a_sha):
         die("%s 의 accepted_by_audit_sha(%r) 가 40-hex 전체 SHA 가 아니다" % (where, a_sha))
     a_br = str(f.get("accepted_by_audit_branch"))
-    if not a_br.startswith("audit/landing-"):
+    if not _AUDIT_BRANCH_NS.match(a_br):
         die("%s 의 accepted_by_audit_branch(%r) 가 audit/landing-* 네임스페이스가 아니다 — "
             "임의 브랜치의 판정으로 제외할 수 없다" % (where, a_br))
+
+    # --- ancestry 검증 (V2-C014 — adversarial V2-C013 §2 시정) ---
+    # 이전에는 이 자리에서 (a) 40-hex 형식 (b) `git show` 로 파일이 읽히는지 (c) JSON 내용 대조
+    # 셋만 봤다. `git show <sha>:<path>` 는 그 커밋 객체가 **로컬 저장소에 존재하기만 하면**
+    # 성공한다 — 어느 브랜치에도 속하지 않아도, push 된 적이 없어도 상관없다. 감사가
+    # `git commit-tree` 로 만든 dangling 커밋(어느 ref 에도 없음, `git branch --contains` 공집합)에
+    # 위조된 verdict JSON 을 넣어 이 검사를 그대로 통과시켰다. per-condition 쪽
+    # verify_condition_audit_sha() (H-3) 는 처음부터 조상 검증을 했으므로, 그 검사가 이미
+    # 구현한 declared_branch_tip()(= audit_branch_tips() 와 같은 _resolve_branch_tip())과
+    # `git merge-base --is-ancestor` 를 여기서도 그대로 재사용한다. 새 알고리즘은 없다.
+    a_rp = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "--quiet",
+                          "%s^{commit}" % a_sha], capture_output=True)
+    if a_rp.returncode != 0 or a_rp.stdout.decode("utf-8", "replace").strip() != a_sha:
+        die("%s 의 accepted_by_audit_sha(%s) 가 이 저장소의 커밋으로 resolve 되지 않는다" % (where, a_sha))
+    a_tip = declared_branch_tip(where, a_br)
+    if subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", a_sha, a_tip],
+                      capture_output=True).returncode != 0:
+        die("%s 의 accepted_by_audit_sha(%s) 가 accepted_by_audit_branch 로 선언한 "
+            "origin/%s 의 실시간 tip(%s) 의 조상이 아니다 — 어느 ref 에도 속하지 않는 커밋"
+            "(dangling commit)은 감사 계보 밖이므로 최상위 수용 근거가 될 수 없다 "
+            "(V2-C013 §2, H-3 과 같은 강도, fail-closed)" % (where, a_sha, a_br, a_tip))
 
     rep_path = str(f.get("accepted_by_audit_report"))
     rr = subprocess.run(["git", "-C", repo, "show", "%s:%s" % (a_sha, rep_path)], capture_output=True)
@@ -1026,12 +1123,13 @@ def residual_in_force(f, label):
         die("%s 의 수용 판정 보고서 JSON 파싱 실패: %s:%s (%s)" % (where, a_sha, rep_path, e))
     if not isinstance(adj, dict):
         die("%s 의 수용 판정 보고서가 객체가 아니다: %s:%s" % (where, a_sha, rep_path))
-    if adj.get("id") != fid:
-        die("%s 의 수용 판정 보고서가 다른 id 를 판정했다 — 보고서 id=%r" % (where, adj.get("id")))
-    if adj.get("verdict") != "ACCEPT_RECLASSIFY":
-        die("%s 의 수용 판정 보고서 verdict=%r — ACCEPT_RECLASSIFY 가 아니다" % (where, adj.get("verdict")))
-    if adj.get("new_class") != ABRR:
-        die("%s 의 수용 판정 보고서 new_class=%r != %s" % (where, adj.get("new_class"), ABRR))
+    # 내용 판정도 H-3(adjudication_hits) 과 같은 설계(재귀 · 부정 어휘 우선)로 본다 — 이 id 를
+    # ACCEPT_RECLASSIFY/ABRR 로 긍정 판정한 자리가 문서 어딘가에 실제로 있는지, id/verdict/
+    # new_class top-level 등가비교 하나만으로 끝내지 않는다.
+    if not abrr_grant_hits(adj, fid, ABRR):
+        die("%s 의 수용 판정 보고서(%s:%s) 어디에도 이 id 를 ACCEPT_RECLASSIFY/%s 로 긍정 판정한 "
+            "자리가 없다 — id/verdict/new_class 를 재귀로 훑어 확인한다 (H-3 과 같은 설계, "
+            "V2-C014, fail-closed)" % (where, a_sha, rep_path, ABRR))
 
     plim = f.get("precedent_limits_satisfied")
     if not isinstance(plim, dict):

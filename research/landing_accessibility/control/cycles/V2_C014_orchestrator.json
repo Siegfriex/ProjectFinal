@@ -1,0 +1,291 @@
+{
+  "cycle": "V2-C014",
+  "role": "orchestrator support executor — adversarial V2-C013 §2 P0 `abrr-accepted-by-audit-sha-not-ancestor-checked` 시정 (residual_in_force() 최상위 grant-evidence 필드의 ancestry/내용 검증 결여로 인한 self-approval 우회 차단)",
+  "branch": "control/landing-orchestrator",
+  "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator",
+  "prev_control_sha": "17389a27006719a220304e27e921c8ceb8f14770",
+  "responds_to": [
+    "V2-C013 adversarial @ audit/landing-adversarial a97daeb247ecbb2b5146e8b57319455e774c43a5 (FAIL, P0 1/P1 0/P2 1, blocking 1, target exec bc0b7a087faf2328cbafdfa9b40bd426c5080d7d + control 17389a27006719a220304e27e921c8ceb8f14770) — §2 새 P0 실증(dangling commit live-exploit) + L-2 결합 self-approval 우회 실증 + §2.2 자기 V2-C011 서술 과대주장 정정"
+  ],
+  "assignment": "FAST-EXIT 기준 Category B(wrong-authority canonical promotion bypass, 열린 경로 포함) — residual_in_force() 의 top-level 수용 근거 필드(accepted_by_audit_sha/accepted_by_audit_branch/accepted_by_audit_report, V2-C005/C006 시절부터 있었고 V2-C012 의 H-1~H-5 재작성이 손대지 않은 구간)가 git ancestry 를 검증하지 않아, 어느 ref 에도 속하지 않는 dangling 커밋을 진짜 감사 판정으로 오인시킬 수 있었다. per-condition 층(H-3, verify_condition_audit_sha)은 처음부터 조상 검증을 했으므로, H-3 이 이미 구현한 audit_branch_tips() + git merge-base --is-ancestor 를 새 알고리즘 없이 최상위 필드에도 재사용해 닫는다. accepted_by_audit_report 내용 판정도 H-3 의 재귀·부정어휘우선 설계로 강화한다. 부수적으로 L-2(_ABRR_CANON 편집 가능) 위험도 변화를 재평가하고, adversarial 자신의 V2-C011 과대주장을 machine_check_history 에 정정 기록하며, P2(document 컬럼 미정의)는 손대지 않고 backlog 로만 남긴다.",
+  "audit_finding_addressed": {
+    "finding_id": "abrr-accepted-by-audit-sha-not-ancestor-checked",
+    "severity": "P0",
+    "fast_exit_category": "B — wrong-authority canonical promotion bypass (열린 경로, live-exploited)",
+    "blocking_scope": "V2_SSOT_FROZEN (rc-6-r1 수용의 유효성 경유) 및 향후 모든 ACCEPTED_BOUNDED_RESIDUAL_RISK 부여",
+    "audit_report": "research/landing_accessibility/audit/adversarial/V2_C013.md §2 (a97daeb247ecbb2b5146e8b57319455e774c43a5)",
+    "pre_existing_since": "V2-C005/C006 (top-level accepted_by_audit_sha 검증 블록 신설 시점) — H-1~H-5 재작성(V2-C012)이 건드리지 않은 구간",
+    "what_the_gap_was": "residual_in_force() 는 top-level accepted_by_audit_sha 에 대해 (a) 40-hex 형식 (b) `git show <sha>:<report_path>` 성공 여부 (c) 그 JSON 의 id/verdict/new_class 등가비교 셋만 확인했다. `git show` 는 그 커밋 객체가 로컬 저장소에 **존재하기만 하면** 성공한다 — 어느 브랜치에도 속하지 않아도, push 된 적이 없어도 상관없다. `promote_landing_main.sh:91` 이 REPO 를 CLAUDE.md 규약상 모든 워크트리가 공유하는 `.git` 객체 저장소로 하드코딩하므로, 어느 워크트리에서든 `git commit-tree` 로 만든 dangling 커밋이 후보가 됐다."
+  },
+  "what_i_did": {
+    "fix_location": "research/landing_accessibility/scripts/promote_landing_main.sh — residual_in_force() 내부, DR_D_SKIP_END 이후 (D) 판정부",
+    "reused_code_path": "새 검증 알고리즘을 만들지 않았다. H-3(verify_condition_audit_sha)이 이미 쓰던 audit_branch_tips()/`git merge-base --is-ancestor` 를 그대로 재사용한다 — audit_branch_tips() 내부의 tip 해석 로직(로컬 원격추적 ref 우선 → ls-remote, 형식 HEX40 강제)을 `_resolve_branch_tip(where, br)` 로 뽑아내 audit_branch_tips() 와 새 `declared_branch_tip(where, br)` (top-level 용, 별도 캐시) 양쪽이 공유하게 했다. audit_branch_tips() 의 동작은 변경되지 않았다(같은 로직을 호출할 뿐).",
+    "change_1_ancestry": "residual_in_force() 에서 accepted_by_audit_branch 형식 검증(정규식을 audit_branch_tips() 와 동일한 `^audit/landing-[A-Za-z0-9._/-]+$` 로 통일, 종전은 startswith 만 썼다) 직후 accepted_by_audit_sha 를 `git rev-parse --verify <sha>^{commit}` 으로 commit resolve 하고, declared_branch_tip() 으로 accepted_by_audit_branch 의 원격 실시간 tip 을 얻어 `git merge-base --is-ancestor <sha> <tip>` 로 조상 여부를 검증한다. 해석 불가·조상 아님은 die() 로 fail-closed 차단한다.",
+    "change_2_report_content": "accepted_by_audit_report 판정을 top-level id/verdict/new_class 단순 등가비교에서, H-3 의 adjudication_hits() 와 같은 설계(재귀 · 부정 어휘 우선)를 쓰는 신설 `abrr_grant_hits()` 로 교체했다. adjudication_hits() 자체는 재사용하지 않았다 — 그 함수의 긍정/부정 어휘(SATISFIED/MET vs NOT_SATISFIED/UNMET)는 '조건 충족' 판정용이라 '수용 등급 부여'(ACCEPT_RECLASSIFY/ACCEPTED_BOUNDED_RESIDUAL_RISK) 어휘와 겹치지 않는다 — 그대로 호출하면 항상 0 hit 이 나와 실질적으로 새 차단 사유를 만드는 것과 같다. 그래서 **같은 설계**(재귀 · 부정 어휘 우선 · norm_token 재사용)를 이 어휘에 맞춰 다시 인스턴스화했다 — 새로 만든 것은 어휘 상수(_ABRR_ADJ_AFFIRM/_ABRR_ADJ_NEGATE)뿐이다.",
+    "diff_scope": "promote_landing_main.sh 한 파일. audit_branch_tips()/adjudication_hits()/verify_condition_audit_sha()/_ABRR_CANON/gate_declared_achieved()/tally() 등 H-1~H-5 코드는 **바이트 무변경**(직접 diff 로 확인, 아래 measured_not_assumed 참조). DR_HEAD_BEGIN/END·DR_D_BEGIN/DR_D_SKIP_BEGIN·DR_D_SKIP_END/DR_D_END·DR_D2_BEGIN/END 추출 마커도 무변경 — 감사가 같은 방식으로 재추출할 수 있다.",
+    "state_json_hygiene": "finding_state_vocabulary.ACCEPTED_BOUNDED_RESIDUAL_RISK.grant_procedure.machine_check 와 lapse_rule.machine_check 텍스트를 최상위 필드도 이제 조상 검증 + 재귀 내용 스캔을 한다는 사실에 맞춰 갱신했고, lapse_rule.machine_check_history 에 V2-C011 의 과대주장 → V2-C013 의 정정·실증 → V2-C014 의 시정을 잇는 3개 항목을 추가했다(패턴은 V2-C010→V2-C011→V2-C012 기존 항목과 동일)."
+  },
+  "measured_not_assumed": {
+    "diff_scope_verification": "`dr_extracted_old.py`(HEAD=17389a27, 시정 전) 와 `dr_extracted_new.py`(작업트리, 시정 후)를 promote_landing_main.sh 자신의 DR_HEAD_BEGIN/END + DR_D_BEGIN/DR_D_SKIP_BEGIN + DR_D_SKIP_END/DR_D_END 마커로 한 글자도 손대지 않고 슬라이스해 직접 diff 했다 — 변경은 declared_branch_tip()/_resolve_branch_tip()/abrr_grant_hits() 신설과 residual_in_force() 의 두 검사 블록(ancestry·report-content)에만 있고, 그 외 모든 함수·상수(_ABRR_CANON·gate_declared_achieved·verify_condition_audit_sha·adjudication_hits·tally 등)는 바이트 단위로 동일했다.",
+    "harness": "bash -n 으로 전체 스크립트 구문 검사, python3 -m py_compile 로 추출된 (D) 블록 구문 검사, 실제 저장소(/home/sieg/projects-wsl/ProjectFinal, promote_landing_main.sh:91 과 동일)를 대상으로 tally(orchestrator_registered.findings)/residual_in_force() 를 서브프로세스로 직접 구동.",
+    "live_exploit_reproduction": {
+      "method": "adversarial V2-C013 §2 와 정확히 같은 방식 — `git hash-object -w` + `git mktree`(부모 체인) + `git commit-tree`(브랜치 미생성, ref 미이동)로 위조 verdict JSON({\"id\": \"rc-6-r1-same-authorization-local-reexecution-unbounded\", \"verdict\": \"ACCEPT_RECLASSIFY\", \"new_class\": \"ACCEPTED_BOUNDED_RESIDUAL_RISK\"})을 담은 dangling 커밋을 만들었다.",
+      "dangling_commit_sha": "b1137318ea772b19ec15182c540addfd98c98e82",
+      "ancestor_check": "git merge-base --is-ancestor b1137318ea772b19ec15182c540addfd98c98e82 origin/audit/landing-adversarial -> NOT an ancestor (실측 확인)",
+      "reachability_check": "git for-each-ref --contains=b1137318ea772b19ec15182c540addfd98c98e82 -> 공집합 (실측 확인, 어느 ref 에도 속하지 않는다)",
+      "injection": "이 SHA 를 실제 committed state.json(17389a27) 사본의 rc-6-r1 항목 accepted_by_audit_sha 에만 주입(accepted_by_audit_branch/accepted_by_audit_report 는 원래 값 audit/landing-adversarial / V2_C008_focused.json 그대로 유지 — adversarial 의 공격과 동일한 최소변경).",
+      "result_pre_fix": "시정 전 코드(HEAD, 17389a27) — residual_in_force(rc-6-r1) = True. 통과(결함 재현).",
+      "result_post_fix": "시정 후 코드(작업트리) — die(): \"accepted_by_audit_sha(...) 가 accepted_by_audit_branch 로 선언한 origin/audit/landing-adversarial 의 실시간 tip(...) 의 조상이 아니다 ... (V2-C013 §2, H-3 과 같은 강도, fail-closed)\". exit=1. 차단.",
+      "regression_control": "같은 dangling 커밋을 실제 fed3e70 값 대신 넣지 않고 **원래의 진짜** accepted_by_audit_sha=fed3e70ba8430e0fad4f27df11d2eca550f33d30 로 시정 후 코드를 돌리면 residual_in_force = True — 정당한 grant 는 그대로 통과한다(회귀 없음)."
+    },
+    "l2_combined_exploit_reproduction": {
+      "method": "adversarial V2-C013 §2.3 live_exploit_3 와 정확히 같은 시나리오 — (1) promote_landing_main.sh 사본의 _ABRR_CANON 에 완전히 새로 지어낸 id `brand-new-p0-finding-self-exempted` 를 주입해 L-2(control 이 캔넌을 편집할 수 있다는 것)를 실제로 행사, (2) orchestrator_registered.findings 에 그 id 로 새 ACCEPTED_BOUNDED_RESIDUAL_RISK 항목을 만들고 top-level 근거는 두 번째 dangling 커밋(위조 FAKE_GRANT2.json)으로, (3) per-condition 근거(C-1)는 **진짜, 조상-유효한** 0dfb6d5788631347d4d50793f25d3f689251e1bd 를 재사용(H-3 를 정직하게 통과), (4) 가시성 카운터(accepted_bounded_residual_risk/accepted_residual_ids) 도 자기일관되게 갱신.",
+      "second_dangling_commit_sha": "4639d326ac6ddc30121b7a8a63c1d2963684d334",
+      "reachability_check": "git for-each-ref --contains=4639d326ac6ddc30121b7a8a63c1d2963684d334 -> 공집합 (실측 확인)",
+      "result_pre_fix": "L-2 패치를 적용한 **시정 전** promote_landing_main.sh 사본으로 tally(orchestrator_registered) 구동 -> open_blocking = 0. 지어낸 P0 finding 이 지어낸 감사 판정으로 (D) 판정부 전체를 에러 없이 통과 — 완전한 self-approval 우회 재현.",
+      "result_post_fix": "같은 L-2 패치를 적용한 **시정 후** promote_landing_main.sh 사본으로 같은 입력 구동 -> die(): top-level accepted_by_audit_sha(dangling) 가 accepted_by_audit_branch 선언 tip 의 조상이 아니다. exit=1. L-2 를 실제로 행사해도 더 이상 뚫리지 않는다."
+    }
+  },
+  "l2_risk_reassessment": {
+    "supersedes": "V2_C012_orchestrator.json still_not_blocked.L-2_canon_is_this_file (control 의 원래 claim)",
+    "original_claim": "'_ABRR_CANON 은 스크립트가 정본이다 ... 의도된 마찰이며, control 이 스스로 정본을 고칠 수 있다는 뜻이기도 하다. 그 편집은 control 커밋으로 남고 감사 대상이다.' — 이 주장은 '새 수용에는 진짜 ACCEPT_RECLASSIFY 판정이 필요하다' 는 안전 근거에 암묵적으로 의존했다.",
+    "what_v2_c013_showed": "그 안전 근거(진짜 판정이 필요하다)가 top-level ancestry 미검증으로 인해 **위조 가능**했다 — L-2(캔넌 편집)와 결합하면 진짜 판정 없이도 끝까지 뚫렸다(live_exploit_3, §2.3). 즉 V2-C012 시점의 L-2 claim 은 '단독으로는 맞지만 실제로는 결합 공격이 가능하다' 는 점에서 불완전했다.",
+    "post_fix_status": "measured — l2_combined_exploit_reproduction 이 보여주듯, 시정 후에는 캔넌을 편집(L-2 행사)해도 top-level accepted_by_audit_sha 가 accepted_by_audit_branch 선언 tip 의 **실제 조상**이어야 하므로, 지어낸 finding 에 지어낸(dangling) grant 를 붙이는 경로가 막힌다. **위험이 실질적으로 줄었다** — L-2 만으로는 여전히 부족하고(원래 claim 그대로), 이제 top-level grant 도 진짜 조상 커밋 + 그 조건을 실제로 긍정 판정한 보고서 내용을 요구하므로 '위조 가능한 진짜 판정'(V2-C013 이 뚫었던 것) 경로도 닫혔다.",
+    "residual_risk_still_honest": "L-2 자체(캔넌이 스크립트 파일이라 control 커밋 권한만 있으면 편집 가능하다는 구조)는 **여전히 남아 있다** — 이번 시정은 그 편집을 막지 않는다. 남는 것은: control 이 캔넌에 새 id 를 추가하고, 그 id 로 orchestrator_registered.findings 항목을 만들되, top-level accepted_by_audit_sha 로 **진짜** 감사 브랜치의 **진짜** 조상 커밋을 골라 쓰는 경우 — 단 그 커밋의 보고서가 그 id 를 ACCEPT_RECLASSIFY/ABRR 로 실제로 긍정 판정하지 않으면 abrr_grant_hits() 가 막는다. 즉 남는 유일한 경로는 '진짜 감사 계보 안의, 그 조건을 실제로 긍정 판정한 커밋' 뿐이며 — 이는 정의상 진짜 감사 판정이다. L-1(같은 트리의 구판 부정 판정 비-veto)과 마찬가지로 이론적 잔여로 분류한다."
+  },
+  "attack_matrix": {
+    "methodology": "OLD(HEAD=17389a27, 시정 전)/NEW(작업트리, 시정 후) 로 추출한 (D) 블록을 tally(orchestrator_registered.findings) 로 구동해 open_blocking 카운트(exit 코드 아님 — C-6 자동 실효는 die() 없이 n=1 로 되돌아가는 정상 경로이므로 카운트로 판정)를 비교했다. 28건 중 완전한 신규 은 EXPLOIT-dangling-audit-sha(V2-C013 §2 실증)와 NEW-cross-branch-mismatch(내가 추가한 인접 케이스) 둘 뿐이고, 나머지 26건은 V2-C013 attack_matrix_literal/compound/new_probes 에서 residual_in_force() 경로(H-1~H-5·top-level 필드)를 실제로 거치는 대표 부분집합이다 — H-1~H-5 자체는 diff 로 바이트 무변경임이 이미 확인됐으므로 전수 재현보다 대표 케이스 확인이 합리적이다.",
+    "case_count": 28,
+    "regressions": 0,
+    "cases": [
+      {
+        "case": "00-baseline",
+        "attack": "무변조 실제 원장(fed3e70, 진짜 grant)",
+        "old": "PASS",
+        "new": "PASS",
+        "note": "정당 grant 는 그대로 통과 — 회귀 없음"
+      },
+      {
+        "case": "01-sha-deleted",
+        "attack": "accepted_by_audit_sha 필드 삭제",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "05-report-swapped",
+        "attack": "accepted_by_audit_report 를 무관한 실제 보고서로 교체(sha 는 진짜)",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "13-branch-bad-namespace",
+        "attack": "accepted_by_audit_branch 를 audit/landing-* 밖 브랜치로",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "07-precedent-no",
+        "attack": "precedent_limits_satisfied.i=NO",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "NEW-cross-branch-mismatch",
+        "attack": "진짜 accepted_by_audit_sha 지만 accepted_by_audit_branch 가 그 sha 의 실제 조상이 아닌 다른 진짜 브랜치를 선언",
+        "old": "PASS (신규로 발견된 인접 결함 — 이번 시정으로 함께 닫힘)",
+        "new": "BLOCK"
+      },
+      {
+        "case": "N2-literal",
+        "attack": "C-5-1 을 conditions/conditions_status 에서 제거",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "N4-literal",
+        "attack": "C-5-1.due_before = null",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "N5-literal",
+        "attack": "C-5-1.audit_sha = 'x'",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "N9-literal",
+        "attack": "gates.E001_V2 = ACHIEVED (C-3/C-4/C-5-2 진짜 NOT_YET_DUE)",
+        "old": "BLOCK(lapse)",
+        "new": "BLOCK(lapse)"
+      },
+      {
+        "case": "N1-compound",
+        "attack": "gate ACHIEVED + C-5-1 NOT_SATISFIED + owner exec→control",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "N3-compound",
+        "attack": "gate ACHIEVED + C-5-1 NOT_SATISFIED + due_before 소문자",
+        "old": "BLOCK(lapse)",
+        "new": "BLOCK(lapse)"
+      },
+      {
+        "case": "N6-compound",
+        "attack": "C-5-1 NOT_SATISFIED + gate 'DECLARED / FROZEN'",
+        "old": "BLOCK(lapse)",
+        "new": "BLOCK(lapse)"
+      },
+      {
+        "case": "N7-compound",
+        "attack": "gate ACHIEVED + C-5-1 NOT_SATISFIED + due_before 뒤 공백",
+        "old": "BLOCK(lapse)",
+        "new": "BLOCK(lapse)"
+      },
+      {
+        "case": "N8-compound",
+        "attack": "gate ACHIEVED + C-1 SATISFIED_PENDING_AUDIT + audit_sha 삭제",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "L2a-new-id-no-canon",
+        "attack": "rc-6-r1 id 를 canon 에 없는 새 문자열로 개명",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "SUP1-extra-condition-id",
+        "attack": "conditions_status 초과집합(canon 에 없는 id 추가)",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "HOMO1-cyrillic-due_before",
+        "attack": "due_before 에 키릴 동형이의어, 실붕괴와 결합",
+        "old": "BLOCK(lapse)",
+        "new": "BLOCK(lapse)"
+      },
+      {
+        "case": "OWN1-fullwidth-owner",
+        "attack": "owner 를 전각 유니코드 'ｅｘｅｃ' 로",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "H3a-audit_sha-wrong-condition-report",
+        "attack": "C-5-1.audit_sha 를 진짜·조상유효 이지만 그 조건을 다루지 않는 커밋으로",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "H3b-negative-verdict-commit-as-evidence",
+        "attack": "C-5-1.audit_sha 를 관련 tracker finding 을 부정 판정한 진짜 커밋으로",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "H4a-unknown-token",
+        "attack": "gates.V2_SSOT_FROZEN = 'ESTABLISHED'(어휘 밖)",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "H4b-gate-value-non-string",
+        "attack": "gates.V2_SSOT_FROZEN 을 dict 로",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "H5a-e001-unknown-token",
+        "attack": "gates.E001_V2 = 'STARTED'(어휘 밖)",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "CMP1-owner+due_before+no_sha",
+        "attack": "owner+due_before+audit_sha 삭제 동시",
+        "old": "BLOCK",
+        "new": "BLOCK"
+      },
+      {
+        "case": "WS1-compound",
+        "attack": "gate ACHIEVED + C-5-1 NOT_SATISFIED + due_before 뒤 탭",
+        "old": "BLOCK(lapse)",
+        "new": "BLOCK(lapse)"
+      },
+      {
+        "case": "WS2-compound",
+        "attack": "gate ACHIEVED + C-5-1 NOT_SATISFIED + due_before 뒤 NBSP",
+        "old": "BLOCK(lapse)",
+        "new": "BLOCK(lapse)"
+      },
+      {
+        "case": "EXPLOIT-dangling-audit-sha",
+        "attack": "accepted_by_audit_sha = dangling 커밋 (V2-C013 §2 실공격 재현)",
+        "old": "PASS (결함 재현 — 감사가 실제로 뚫은 것과 동일)",
+        "new": "BLOCK"
+      }
+    ],
+    "l2_combined_case": {
+      "case": "L2-COMBINED-self-approval",
+      "attack": "L-2(캔넌 편집) + 지어낸 finding + dangling grant + 진짜 C-1 증거 (V2-C013 §2.3 live_exploit_3 재현)",
+      "old": "PASS — open_blocking=0 (완전한 self-approval 우회 재현)",
+      "new": "BLOCK — top-level ancestry 검사에서 die()"
+    }
+  },
+  "still_not_blocked": {
+    "statement": "새 검사가 막지 못하는 것을 정직하게 적는다 — V2_C012_orchestrator.json 의 같은 절을 잇는다.",
+    "L-1_older_report_does_not_veto": "V2-C012 판과 동일 — 조건 근거 검사는 audit_sha 커밋 트리의 감사 보고서 전부를 훑어 '긍정 판정 자리가 하나라도 있는가' 만 본다. 이번 시정은 top-level 필드에도 같은 설계를 적용했으므로 top-level 도 같은 잔여를 상속한다: 같은 트리의 더 오래된 보고서가 그 id 를 부정 판정해도 veto 하지 않는다. adversarial V2-C013 §4 L-1 판정(현재 실제 조건에 대해 살아있는 착취 경로 없음, 이론적 잔여)을 그대로 승계한다.",
+    "L-2_canon_is_this_file_UPDATED": "l2_risk_reassessment 참조 — 원래 claim('단독으로는 안전')은 여전히 참이고, 이번 시정으로 '결합하면 실질 구멍' 이라는 V2-C013 의 지적이 닫혔다. 남는 것은 L-1 과 동형인 이론적 잔여(진짜 감사 계보 안의, 그 id 를 실제로 긍정 판정한 커밋을 고르는 자유)뿐이며, 그것은 정의상 진짜 감사 판정이다.",
+    "L-3_gate_vocabulary_is_a_list": "V2-C012 판과 동일, 무변경 — gate achieved 어휘는 열거이며 열거 밖 표현은 차단된다(fail-open 아님).",
+    "L-4_text_not_substance": "V2-C012 판과 동일, 무변경 — 이 블록은 원장 문면과, 이제는 top-level grant-evidence 커밋의 조상관계·보고서 내용까지 검사한다. 조건/수용의 실질 판단 자체는 감사 소관이다.",
+    "L-5_e001_v2_gate_not_yet_exercised": "V2-C012 판과 동일, 무변경.",
+    "L-6_only_the_D_part_was_run": "이번에도 재현은 (D) 판정부에 대해서만 했다 — (A)/(C) 는 pinned 감사 보고서·cycle 정합을 요구해 이 사이클 범위 밖이다. 그 구간은 diff 로 바이트 무변경임을 확인했다(measured_not_assumed.diff_scope_verification).",
+    "L-7_top_level_report_scan_assumes_flat_grant_docs_NEW": "abrr_grant_hits() 는 accepted_by_audit_report 문서 전체를 재귀로 훑지만, 실제 운영 중인 grant 문서(V2_C008_focused.json 등)는 대체로 얕은 {id, verdict, new_class, ...} 평면 구조다. 아주 깊이 중첩된 문서에서 같은 id 가 여러 자리에 다른 verdict 로 등장하면(예: 상위 논의 초안에 REJECT, 최종 결론에 ACCEPT_RECLASSIFY) '어딘가에 긍정 자리가 있으면 hit' 이므로 그 상위-하위 순서를 구분하지 않는다 — adjudication_hits() 가 이미 갖고 있던 것과 같은 종류의 잔여이며, 이번 신설로 새로 도입됐다."
+  },
+  "p2_backlog_not_fixed": {
+    "id": "min-4-dom-order-uniqueness-constraint-references-undefined-document-column",
+    "opened_in": "V2-C013 adversarial §3.3/§3.4 (신규, 이 diff 가 만듦 — exec 쪽 A2 §1.13)",
+    "classification": "PRE_E001_NONBLOCKING — 오케스트레이터 지시대로 이번 사이클에서 손대지 않았다.",
+    "not_blocking": "V2_SSOT_FROZEN",
+    "statement": "A2 §1.13 의 dom_order 유일성 제약이 '(observation_id, document)' 를 참조하지만 fact_primary_action_candidate 스키마 어디에도 document/document_id/frame_id/frame_url 컬럼이 없다 — iframe/다중문서 후보 처리는 00~02 문서 전체에 개념 자체가 존재하지 않는다.",
+    "next_cycle_target": "A1 §5.1 컬럼 표에 문서 스코프 컬럼(예: document_index/frame_id, 0-based) 추가 + A2 §1.13 유일성 제약을 그 실제 컬럼명으로 수정, 또는 현재 범위(iframe 미지원)를 명시하고 유일성을 (observation_id) 단독으로 좁힌다. exec 레인(agent/landing-v2-exec) 소관이며 이 사이클(control) 이 다루지 않는다.",
+    "backlog_owner": "exec (다음 exec 사이클) — control 은 상태를 기록만 한다"
+  },
+  "files_changed": [
+    "research/landing_accessibility/scripts/promote_landing_main.sh",
+    "research/landing_accessibility/control/state.json"
+  ],
+  "not_done": [
+    "promote_landing_main.sh 본체 실행 (--dry-run 포함)",
+    "다른 워크트리 읽기 외 접근/쓰기",
+    ".git/hooks/ 수정",
+    "실제 웹사이트 접속",
+    "Pilot(research/refcohort) 열람/수정",
+    "V2-C013 이 새로 연 P2(document 컬럼) 시정 — PRE_E001_NONBLOCKING 으로 backlog 기록만",
+    "git gc — 재현에 쓴 dangling 커밋 2건(아래 exploit_evidence)은 원래도 어느 ref 에도 없었고 확인 결과 지금도 없다. 다른 워크트리가 동시에 활발히 쓰고 있는 공유 .git 객체 저장소에 대한 gc 는 신중을 요구했고, '즉시 조치 불필요'(adversarial 자신의 판단)이므로 이번 사이클에서는 수행하지 않았다."
+  ],
+  "exploit_evidence": {
+    "dangling_commit_1_standalone": {
+      "sha": "b1137318ea772b19ec15182c540addfd98c98e82",
+      "purpose": "rc-6-r1 top-level accepted_by_audit_sha 단독 exploit 재현",
+      "content_path": "research/landing_accessibility/audit/adversarial/V2_C008_focused.json",
+      "content": "{\"id\": \"rc-6-r1-same-authorization-local-reexecution-unbounded\", \"verdict\": \"ACCEPT_RECLASSIFY\", \"new_class\": \"ACCEPTED_BOUNDED_RESIDUAL_RISK\", ...}",
+      "reachable_from_any_ref": false
+    },
+    "dangling_commit_2_l2_combined": {
+      "sha": "4639d326ac6ddc30121b7a8a63c1d2963684d334",
+      "purpose": "L-2 결합(가짜 canon + 가짜 finding) self-approval 우회 재현",
+      "content_path": "research/landing_accessibility/audit/adversarial/FAKE_GRANT2.json",
+      "content": "{\"id\": \"brand-new-p0-finding-self-exempted\", \"verdict\": \"ACCEPT_RECLASSIFY\", \"new_class\": \"ACCEPTED_BOUNDED_RESIDUAL_RISK\", ...}",
+      "reachable_from_any_ref": false
+    },
+    "cleanup_status": "둘 다 어느 ref 에도 연결된 적 없고 push 된 적 없다 (git for-each-ref --contains 로 재확인). 자연 gc 대상, 즉시 조치 불필요."
+  },
+  "handoff": {
+    "for_orchestrator": "이 커밋으로 abrr-accepted-by-audit-sha-not-ancestor-checked (P0) 를 코드 수준에서 닫는다. 다음 사이클에서: (1) V2-C013 의 findings(신규 P0 1건 + 신규 P2 1건 + 재검증 CLOSED 2건)를 state.json v2_transition.v2_audit_findings.cycles 에 정식 등재(이번 사이클은 코드 시정에 집중했고, 사이클 등재는 별도 reconciliation 절차로 남겨둔다), (2) 시정된 target(현재 작업트리 HEAD, 곧 커밋될 SHA)에 대해 독립 재감사(adversarial + ssot) 를 받아야 V2_SSOT_FROZEN 승격 경로가 다시 열린다 — 이 사이클 산출물 자체는 승격을 수행하지 않았고 수행 권한도 없다.",
+    "for_next_adversarial": "재현 대상은 정확히 §2 의 dangling-commit 공격과 L-2 결합 공격이다. 두 경우 모두 이 사이클에서 fail-closed 로 차단됨을 실측했다(measured_not_assumed 참조) — 리터럴 재현으로 재확인해도 좋고, still_not_blocked.L-7 이 새로 지목한 '깊이 중첩된 grant 문서에서 상위/하위 verdict 충돌' 각도로 새 프로브를 만들어도 좋다."
+  }
+}
