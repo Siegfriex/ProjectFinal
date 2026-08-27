@@ -1,7 +1,7 @@
 {
  "schema": "RF2_B_feature_discriminability/v1",
- "verdict": "SUPPORTED",
- "verdict_note": "H-B1 지지: permutation null 대비 prior 정보를 남기는 feature 가 하나도 없다.",
+ "verdict": "PARTIALLY_SUPPORTED",
+ "verdict_note": "H-B1 지지 + H-B3 지지, H-B2 미지지. 16개 feature 중 BH-FDR(q<0.10) 을 통과해 permutation null 을 넘는 feature 는 0개다. 동시에 실효 차원은 명목 차원보다 훨씬 작아 feature 들이 서로 같은 것을 재고 있다. 두 가설이 함께 성립하므로 단일 SUPPORTED 로 적지 않는다.",
  "research_question": "RQ-D-RF-002 / D-RF2-B — 존재하는 feature 와 구별력 있는 feature 를 분리한다",
  "child_id": "D-RF2-B",
  "hypothesis_id": "H-RF2-B-FEATURE-INFORMATION",
@@ -2115,6 +2115,70 @@
    "n_perm": 5000
   },
   {
+   "feature_id": "F11_accessible_name_richness",
+   "ordinal_source": "n_accessible_name_sources",
+   "cuts": [
+    0,
+    50,
+    200
+   ],
+   "levels": 3,
+   "n": 54,
+   "mi_bits_plugin": 0.2707029492279913,
+   "perm_null_mean_bits": 0.19669653310324892,
+   "mi_excess_over_null_mean_bits": 0.0740064161247424,
+   "perm_p": 0.14277144571085784,
+   "n_perm": 5000
+  },
+  {
+   "feature_id": "F12_primary_candidate_count",
+   "ordinal_source": "n_primary_action_candidates",
+   "cuts": [
+    0,
+    20,
+    100
+   ],
+   "levels": 3,
+   "n": 54,
+   "mi_bits_plugin": 0.2248142839437839,
+   "perm_null_mean_bits": 0.19944388130261978,
+   "mi_excess_over_null_mean_bits": 0.025370402641164108,
+   "perm_p": 0.3307338532293541,
+   "n_perm": 5000
+  },
+  {
+   "feature_id": "F13_interactive_count",
+   "ordinal_source": "dom_interactive_n",
+   "cuts": [
+    0,
+    20,
+    100
+   ],
+   "levels": 3,
+   "n": 56,
+   "mi_bits_plugin": 0.25616817197863373,
+   "perm_null_mean_bits": 0.18583394891530183,
+   "mi_excess_over_null_mean_bits": 0.0703342230633319,
+   "perm_p": 0.13897220555888823,
+   "n_perm": 5000
+  },
+  {
+   "feature_id": "F14_form_count",
+   "ordinal_source": "dom_input_n",
+   "cuts": [
+    0,
+    1,
+    4
+   ],
+   "levels": 3,
+   "n": 56,
+   "mi_bits_plugin": 0.2369562524230706,
+   "perm_null_mean_bits": 0.18906540813402373,
+   "mi_excess_over_null_mean_bits": 0.047890844289046886,
+   "perm_p": 0.22355528894221155,
+   "n_perm": 5000
+  },
+  {
    "feature_id": "F15_url_path_tokens",
    "ordinal_source": "url_token_count",
    "cuts": [
@@ -2125,9 +2189,9 @@
    "levels": 3,
    "n": 56,
    "mi_bits_plugin": 0.19934168562317556,
-   "perm_null_mean_bits": 0.18604781817553231,
-   "mi_excess_over_null_mean_bits": 0.013293867447643243,
-   "perm_p": 0.3807238552289542,
+   "perm_null_mean_bits": 0.1871821757254036,
+   "mi_excess_over_null_mean_bits": 0.012159509897771953,
+   "perm_p": 0.3903219356128774,
    "n_perm": 5000
   }
  ],
@@ -3543,7 +3607,91 @@
    "F15_url_path_tokens",
    "F16_landmark_structure"
   ],
+  "tier_A_zero_information_mi_at_or_below_null_mean": [
+   "F01_search_input",
+   "F02_submit_form",
+   "F03_repeated_cards",
+   "F07_communication_surface",
+   "F08_auth_structure",
+   "F10_utility_surface",
+   "F14_form_count",
+   "F15_url_path_tokens"
+  ],
+  "tier_B_no_information_after_bh_fdr_q010": [
+   "F01_search_input",
+   "F02_submit_form",
+   "F03_repeated_cards",
+   "F04_price_evidence",
+   "F05_transaction_controls",
+   "F06_map_address_route",
+   "F07_communication_surface",
+   "F08_auth_structure",
+   "F09_financial_action_controls",
+   "F10_utility_surface",
+   "F11_accessible_name_richness",
+   "F12_primary_candidate_count",
+   "F13_interactive_count",
+   "F14_form_count",
+   "F15_url_path_tokens",
+   "F16_landmark_structure"
+  ],
+  "tier_C_marginal_uncorrected_p_lt_005_but_fdr_fails": [
+   "F06_map_address_route",
+   "F11_accessible_name_richness"
+  ],
   "degenerate_or_near_degenerate": [],
+  "top5_by_mi_excess_over_null": [
+   {
+    "feature_id": "F11_accessible_name_richness",
+    "mi_bits": 0.2638214354121464,
+    "null_mean_bits": 0.09586583114859029,
+    "excess_bits": 0.16795560426355613,
+    "perm_p": 0.0073996300184990755,
+    "perm_q_bh": 0.11839408029598521,
+    "normalized_mi": 0.11326979493161621,
+    "cramers_v": 0.5587001544232779
+   },
+   {
+    "feature_id": "F06_map_address_route",
+    "mi_bits": 0.1937398103110013,
+    "null_mean_bits": 0.09228675709432975,
+    "excess_bits": 0.10145305321667154,
+    "perm_p": 0.04699765011749413,
+    "perm_q_bh": 0.23310834458277085,
+    "normalized_mi": 0.08383334536597052,
+    "cramers_v": 0.47232753112275283
+   },
+   {
+    "feature_id": "F09_financial_action_controls",
+    "mi_bits": 0.1816372843156726,
+    "null_mean_bits": 0.09243106688277358,
+    "excess_bits": 0.08920621743289903,
+    "perm_p": 0.06329683515824208,
+    "perm_q_bh": 0.23310834458277085,
+    "normalized_mi": 0.07859644934579611,
+    "cramers_v": 0.44925082384958237
+   },
+   {
+    "feature_id": "F05_transaction_controls",
+    "mi_bits": 0.1741074820523827,
+    "null_mean_bits": 0.09301699351253512,
+    "excess_bits": 0.08109048853984757,
+    "perm_p": 0.07284635768211589,
+    "perm_q_bh": 0.23310834458277085,
+    "normalized_mi": 0.07533822114446498,
+    "cramers_v": 0.4198377499269644
+   },
+   {
+    "feature_id": "F04_price_evidence",
+    "mi_bits": 0.17468823810788425,
+    "null_mean_bits": 0.09379973569113875,
+    "excess_bits": 0.0808885024167455,
+    "perm_p": 0.07254637268136593,
+    "perm_q_bh": 0.23310834458277085,
+    "normalized_mi": 0.07558952067292062,
+    "cramers_v": 0.45064056971928645
+   }
+  ],
   "informative_features_ranked": [],
   "redundant_pairs_abs_phi_ge_060": [
    {
@@ -7532,5 +7680,7 @@
   "network": "none",
   "labels_produced": false,
   "production_modified": false
- }
+ },
+ "mlflow_run_id": "6bcfe2bffbf54bab8ae3b4ba54dfed6a",
+ "mlflow_parent_run_id": "ae754858ba3a4be391e5f811640d3fd8"
 }
