@@ -1,0 +1,994 @@
+{
+  "verdict": "READY_WITH_AMBIGUITY",
+  "verdict_basis": "All fixtures and all mutations pass, so the implemented calculators are verified; the verdict is not plain READY because 13 definitions the lane was asked to implement are unresolved in SSOTV3, AMB-S01 (entry_zone has no frozen boundary) being blocking for zone derivation.",
+  "lane": "S — Spatial / Control-form / Menu-Reveal",
+  "generated_by": "tools/v3_harness/lane_s_spatial_control_reveal.py",
+  "base_sha": "7448184a811f5d7d8772f21488bb75418fde3313",
+  "ssot_dir": "/home/sieg/projects-wsl/ProjectFinal/SSOTV3",
+  "ssot_manifest_self_sha256": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+  "data_status": "NO_REAL_DATA — MAIN50 not collected; outcome-independent preparation only",
+  "codebook_definitions_verbatim": {
+    "04 §4 s0_task_control_visible": "| s0_task_control_visible | Surface | bool | 최초 viewport에서 사전지정 task 진입 control이 직접 보이는가 |",
+    "04 §4 first_visible_scroll_state": "| first_visible_scroll_state | Surface | S0,S1,... | task 진입 control이 최초 관측된 scroll state. scroll은 activation depth에 포함하지 않음 |",
+    "04 §4 entry_x_norm": "| entry_x_norm | Geometry | 0~1 | task-entry control 중심 x 좌표를 viewport로 정규화 |",
+    "04 §4 entry_y_norm": "| entry_y_norm | Geometry | 0~1 | task-entry control 중심 y 좌표를 viewport로 정규화 |",
+    "04 §4 entry_zone": "| entry_zone | Geometry | categorical | TOP_LEFT/TOP_CENTER/TOP_RIGHT/MID/BOTTOM/FLOATING/DRAWER |",
+    "04 §4 entry_control_type": "| entry_control_type | DOM/AX/Visual | categorical | TEXT_LINK/TEXT_BUTTON/ICON_TEXT/ICON_ONLY/TAB/BOTTOM_NAV/HAMBURGER/CARD/SEARCHBOX/LIST_ITEM/OTHER |",
+    "04 §4 nav_container_type": "| nav_container_type | Flow | categorical | NONE/HAMBURGER/LEFT_DRAWER/RIGHT_DRAWER/TOP_DROPDOWN/BOTTOM_SHEET/MODAL_MENU/INLINE_EXPAND |",
+    "04 §4 reveal_direction": "| reveal_direction | Flow/Geometry | categorical | NONE/LEFT/RIGHT/TOP/BOTTOM/CENTER/INLINE |",
+    "04 §4 menu_dependency": "| menu_dependency | Derived | bool | action_sequence에 OPEN/REVEAL 계열 token이 endpoint 이전에 존재하는지 |",
+    "04 §4 nav_container_depth": "| nav_container_depth | Derived | count | task control 노출 전 menu/drawer expansion 수 |",
+    "04 §5 menu_dependency rule": "- `menu_dependency = 1` iff endpoint 전 OPEN_GLOBAL_MENU/OPEN_LOCAL_MENU/EXPAND_ACCORDION 등 reveal token 존재.",
+    "04 §5 nav_container_depth rule": "- `nav_container_depth`: task control 노출 전 nested reveal 수.",
+    "04 §6 Spatial zone (FULL SECTION)": "## 6. Spatial zone\n\nNormalized center `(x,y)`를 보존하고 zone은 요약값으로만 쓴다. 좌표 원자료를 버리지 않는다.",
+    "05 §1 analysis unit": "Primary: `service × frozen task`.\n\nfamily n=10. 동일 family의 45 pair는 distance matrix의 cell이지 독립 표본 n=45가 아니다.",
+    "05 §2-B Spatial": "### B. Spatial\n- x/y distribution\n- zone distribution / entropy\n- service-pair spatial displacement",
+    "05 §2-D Control / Reveal": "### D. Control / Reveal\n- control type distribution\n- nav container type\n- reveal direction\n- nav container depth",
+    "05 §3 no composite score": "가중합 단일 score 생성 금지. Secondary visualization으로 Gower/mixed distance를 쓸 수 있으나 규범적 threshold나 '고령자 부담 점수'로 해석 금지.",
+    "05 §4 family denominator": "family별:\n- n=10 denominator 고정\n- median/IQR/range\n- categorical distribution + entropy",
+    "03 §1 viewport": "- viewport `390×844 CSS px`",
+    "02 §3 fact_surface_state": "한 행 = 한 target의 한 scroll state. ... `state_index` (`S0`, `S1`...) / `scroll_y` / `viewport_width/height` / `task_control_visible` / `entry_x_norm / entry_y_norm` / `entry_zone` / `entry_control_type` / `nav_container_type` / `reveal_direction`"
+  },
+  "implemented_variables": [
+    {
+      "variable": "entry_x_norm",
+      "status": "IMPLEMENTED",
+      "fn": "normalize_center",
+      "caveat": "no clamping; out-of-[0,1] preserved and flagged (AMB-S04)"
+    },
+    {
+      "variable": "entry_y_norm",
+      "status": "IMPLEMENTED",
+      "fn": "normalize_center",
+      "caveat": "same as entry_x_norm"
+    },
+    {
+      "variable": "entry_zone",
+      "status": "IMPLEMENTED_POLICY_REQUIRED",
+      "fn": "classify_zone_geometric / validate_categorical",
+      "caveat": "derivation refuses to run without an injected ZonePolicy; SSOTV3 freezes none (AMB-S01/02/03). Collected values are validated and tabulated."
+    },
+    {
+      "variable": "entry_control_type",
+      "status": "IMPLEMENTED_VALIDATION_ONLY",
+      "fn": "validate_categorical / categorical_distribution",
+      "caveat": "collector-coded; Lane S does not assign control types"
+    },
+    {
+      "variable": "nav_container_type",
+      "status": "IMPLEMENTED_VALIDATION_ONLY",
+      "fn": "validate_categorical / categorical_distribution / reveal_contingency",
+      "caveat": ""
+    },
+    {
+      "variable": "reveal_direction",
+      "status": "IMPLEMENTED_VALIDATION_ONLY",
+      "fn": "validate_categorical / reveal_contingency",
+      "caveat": "no type->direction mapping asserted (AMB-S09)"
+    },
+    {
+      "variable": "nav_container_depth",
+      "status": "IMPLEMENTED_EXPLICIT_INPUT_REQUIRED",
+      "fn": "recompute_nav_container_depth",
+      "caveat": "exposure step index must be supplied; nesting not verified (AMB-S08)"
+    },
+    {
+      "variable": "menu_dependency",
+      "status": "IMPLEMENTED",
+      "fn": "menu_dependency",
+      "caveat": "closed reveal-token set of the three NAMED tokens; sequence_field explicit (AMB-S06/07)"
+    },
+    {
+      "variable": "s0_task_control_visible",
+      "status": "IMPLEMENTED_PASSTHROUGH",
+      "fn": "s0_task_control_visible",
+      "caveat": "no occlusion arbitration (AMB-S05)"
+    },
+    {
+      "variable": "first_visible_scroll_state",
+      "status": "IMPLEMENTED",
+      "fn": "first_visible_scroll_state",
+      "caveat": "never-visible -> None, never 'S0'"
+    }
+  ],
+  "descriptive_statistics": [
+    {
+      "name": "x/y distribution (05 §2-B)",
+      "fn": "coordinate_summary",
+      "denominator": "family n=10 fixed; n_valid/n_missing reported"
+    },
+    {
+      "name": "zone distribution + entropy (05 §2-B)",
+      "fn": "categorical_distribution",
+      "denominator": "proportions over n_valid AND over n_declared=10"
+    },
+    {
+      "name": "service-pair spatial displacement (05 §2-B)",
+      "fn": "pairwise_spatial_displacement",
+      "denominator": "n=10; 45 cells reported as matrix coverage only (05 §1)"
+    },
+    {
+      "name": "control type distribution (05 §2-D)",
+      "fn": "categorical_distribution",
+      "denominator": "n=10"
+    },
+    {
+      "name": "nav container type distribution (05 §2-D)",
+      "fn": "categorical_distribution",
+      "denominator": "n=10"
+    },
+    {
+      "name": "reveal direction contingency (05 §2-D)",
+      "fn": "reveal_contingency",
+      "denominator": "n=10"
+    },
+    {
+      "name": "nav container depth distribution (05 §2-D)",
+      "fn": "coordinate-free count summary",
+      "denominator": "n=10"
+    }
+  ],
+  "denominator_discipline": {
+    "rule": "05 §1/§4 — family n=10 is the fixed denominator; the 45 within-family pairs are distance-matrix cells, never n=45.",
+    "enforced_by": "_family_denominator(); fixture P-DISP family of 10 -> 45 cells, n=10; mutation M09 corrupts it and is caught."
+  },
+  "missing_value_policy": {
+    "sentinel": "None",
+    "rule": "Absence is None and is never coerced to 0, 0.0, False, or ''. Missing never forms a detector match, never enters a distribution's valid count, and never shrinks n_declared.",
+    "enforced_by": "_coord_or_none(), _label_groupable(); mutations M02 and M07 corrupt these and are caught by N-NORM/N-DISP and N-DETB fixtures."
+  },
+  "boundary_policy": {
+    "rule": "Bands are half-open [prev_cut, cut); a value exactly on a cut falls into the UPPER band.",
+    "status": "MECHANISM_ONLY — the cut VALUES are not defined by SSOTV3 (AMB-S01); this rule describes tie-handling, not the boundaries themselves.",
+    "enforced_by": "_below_cut(); fixtures P-ZONE-BOUND *; mutation M01 flips < to <= and is caught."
+  },
+  "zone_policy_used_in_fixtures": {
+    "y_top_max": 0.3333333333333333,
+    "y_mid_max": 0.6666666666666666,
+    "x_left_max": 0.3333333333333333,
+    "x_center_max": 0.6666666666666666,
+    "source": "FIXTURE_ONLY_NOT_SSOT",
+    "note": "Equal thirds. Chosen ONLY to exercise classifier mechanics on synthetic fixtures. This is NOT an SSOT boundary and must never be used to code real observations.",
+    "boundary_rule": "lower band is half-open [prev, cut); a value exactly on a cut goes to the UPPER band"
+  },
+  "ssot_zone_policy": null,
+  "fixture_results": {
+    "positive": {
+      "passed": 35,
+      "total": 35,
+      "cases": [
+        {
+          "fixture": "P-ZONE-GRID x=0.10 y=0.10",
+          "kind": "positive",
+          "expected": "TOP_LEFT",
+          "observed": "TOP_LEFT",
+          "pass": true,
+          "notes": "AMB-S03: x consulted only inside TOP band"
+        },
+        {
+          "fixture": "P-ZONE-GRID x=0.50 y=0.10",
+          "kind": "positive",
+          "expected": "TOP_CENTER",
+          "observed": "TOP_CENTER",
+          "pass": true,
+          "notes": "AMB-S03: x consulted only inside TOP band"
+        },
+        {
+          "fixture": "P-ZONE-GRID x=0.90 y=0.10",
+          "kind": "positive",
+          "expected": "TOP_RIGHT",
+          "observed": "TOP_RIGHT",
+          "pass": true,
+          "notes": "AMB-S03: x consulted only inside TOP band"
+        },
+        {
+          "fixture": "P-ZONE-GRID x=0.10 y=0.50",
+          "kind": "positive",
+          "expected": "MID",
+          "observed": "MID",
+          "pass": true,
+          "notes": "AMB-S03: x consulted only inside TOP band"
+        },
+        {
+          "fixture": "P-ZONE-GRID x=0.50 y=0.50",
+          "kind": "positive",
+          "expected": "MID",
+          "observed": "MID",
+          "pass": true,
+          "notes": "AMB-S03: x consulted only inside TOP band"
+        },
+        {
+          "fixture": "P-ZONE-GRID x=0.90 y=0.50",
+          "kind": "positive",
+          "expected": "MID",
+          "observed": "MID",
+          "pass": true,
+          "notes": "AMB-S03: x consulted only inside TOP band"
+        },
+        {
+          "fixture": "P-ZONE-GRID x=0.10 y=0.90",
+          "kind": "positive",
+          "expected": "BOTTOM",
+          "observed": "BOTTOM",
+          "pass": true,
+          "notes": "AMB-S03: x consulted only inside TOP band"
+        },
+        {
+          "fixture": "P-ZONE-GRID x=0.50 y=0.90",
+          "kind": "positive",
+          "expected": "BOTTOM",
+          "observed": "BOTTOM",
+          "pass": true,
+          "notes": "AMB-S03: x consulted only inside TOP band"
+        },
+        {
+          "fixture": "P-ZONE-GRID x=0.90 y=0.90",
+          "kind": "positive",
+          "expected": "BOTTOM",
+          "observed": "BOTTOM",
+          "pass": true,
+          "notes": "AMB-S03: x consulted only inside TOP band"
+        },
+        {
+          "fixture": "P-ZONE-BOUND y=1/3 exact",
+          "kind": "positive",
+          "expected": "MID",
+          "observed": "MID",
+          "pass": true,
+          "notes": "value on a cut goes to the UPPER band (half-open [prev, cut))"
+        },
+        {
+          "fixture": "P-ZONE-BOUND y=2/3 exact",
+          "kind": "positive",
+          "expected": "BOTTOM",
+          "observed": "BOTTOM",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-ZONE-BOUND x=1/3 exact",
+          "kind": "positive",
+          "expected": "TOP_CENTER",
+          "observed": "TOP_CENTER",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-ZONE-BOUND x=2/3 exact",
+          "kind": "positive",
+          "expected": "TOP_RIGHT",
+          "observed": "TOP_RIGHT",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-ZONE-BOUND y just below 1/3",
+          "kind": "positive",
+          "expected": "TOP_LEFT",
+          "observed": "TOP_LEFT",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-ZONE-BOUND corner (0,0)",
+          "kind": "positive",
+          "expected": "TOP_LEFT",
+          "observed": "TOP_LEFT",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-ZONE-BOUND corner (1,1)",
+          "kind": "positive",
+          "expected": "BOTTOM",
+          "observed": "BOTTOM",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-NORM centre of 390x844",
+          "kind": "positive",
+          "expected": [
+            0.5,
+            0.05,
+            false
+          ],
+          "observed": [
+            0.5,
+            0.05,
+            false
+          ],
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-NORM off-viewport preserved not clamped",
+          "kind": "positive",
+          "expected": [
+            true,
+            true,
+            true
+          ],
+          "observed": [
+            true,
+            true,
+            true
+          ],
+          "pass": true,
+          "notes": "AMB-S04: no clamping"
+        },
+        {
+          "fixture": "P-S0VIS collected False at S0",
+          "kind": "positive",
+          "expected": false,
+          "observed": false,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-FVSS first visible = S2",
+          "kind": "positive",
+          "expected": "S2",
+          "observed": "S2",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-FVSS visible already at S0",
+          "kind": "positive",
+          "expected": "S0",
+          "observed": "S0",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-MD reveal before endpoint",
+          "kind": "positive",
+          "expected": [
+            true,
+            2
+          ],
+          "observed": [
+            true,
+            2
+          ],
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-MD reveal AFTER endpoint is not counted",
+          "kind": "positive",
+          "expected": false,
+          "observed": false,
+          "pass": true,
+          "notes": "guards the endpoint prefix rule of 04 §5"
+        },
+        {
+          "fixture": "P-MD SWITCH_TAB not in named reveal set",
+          "kind": "positive",
+          "expected": false,
+          "observed": false,
+          "pass": true,
+          "notes": "AMB-S06: '등' left the set open; only the three NAMED tokens are counted"
+        },
+        {
+          "fixture": "P-MD auth-terminal cut basis",
+          "kind": "positive",
+          "expected": [
+            true,
+            "SEQUENCE_END_NO_ENDPOINT_TOKEN"
+          ],
+          "observed": [
+            true,
+            "SEQUENCE_END_NO_ENDPOINT_TOKEN"
+          ],
+          "pass": true,
+          "notes": "AMB-S07 recorded per row"
+        },
+        {
+          "fixture": "P-NCD two reveals before exposure idx 2",
+          "kind": "positive",
+          "expected": 2,
+          "observed": 2,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-DISP euclidean 0.3/0.4 -> 0.5",
+          "kind": "positive",
+          "expected": 0.5,
+          "observed": 0.5,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-DISP denominator stays family n=10",
+          "kind": "positive",
+          "expected": [
+            10,
+            1
+          ],
+          "observed": [
+            10,
+            1
+          ],
+          "pass": true,
+          "notes": "05 §1: pairs are matrix cells, not n"
+        },
+        {
+          "fixture": "P-DISP family of 10 -> 45 cells, n=10",
+          "kind": "positive",
+          "expected": [
+            45,
+            10
+          ],
+          "observed": [
+            45,
+            10
+          ],
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-ENT uniform over 4 -> 2.0 bits",
+          "kind": "positive",
+          "expected": 2.0,
+          "observed": 2.0,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-ENT fixed denominator n=10 with 4 rows",
+          "kind": "positive",
+          "expected": [
+            10,
+            4
+          ],
+          "observed": [
+            10,
+            4
+          ],
+          "pass": true,
+          "notes": "05 §4"
+        },
+        {
+          "fixture": "P-ENT degenerate single category -> 0.0 bits",
+          "kind": "positive",
+          "expected": 0.0,
+          "observed": -0.0,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-DETA same zone, different hierarchy",
+          "kind": "positive",
+          "expected": 1,
+          "observed": 1,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-DETA depth-only difference still detected",
+          "kind": "positive",
+          "expected": 1,
+          "observed": 1,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "P-DETB same label, different control type",
+          "kind": "positive",
+          "expected": 1,
+          "observed": 1,
+          "pass": true,
+          "notes": ""
+        }
+      ]
+    },
+    "negative": {
+      "passed": 21,
+      "total": 21,
+      "cases": [
+        {
+          "fixture": "N-DETA same zone, identical hierarchy -> no hit",
+          "kind": "negative",
+          "expected": 0,
+          "observed": 0,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-DETA different zone -> no hit even though hierarchy differs",
+          "kind": "negative",
+          "expected": 0,
+          "observed": 0,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-DETA missing zone never matches missing zone",
+          "kind": "negative",
+          "expected": 0,
+          "observed": 0,
+          "pass": true,
+          "notes": "None is not a value"
+        },
+        {
+          "fixture": "N-DETB same label, same control type -> no hit",
+          "kind": "negative",
+          "expected": 0,
+          "observed": 0,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-DETB different labels -> no hit",
+          "kind": "negative",
+          "expected": 0,
+          "observed": 0,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-DETB missing labels never group",
+          "kind": "negative",
+          "expected": [
+            0,
+            2
+          ],
+          "observed": [
+            0,
+            2
+          ],
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-DETB empty-string labels never group",
+          "kind": "negative",
+          "expected": 0,
+          "observed": 0,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-NORM missing viewport -> None not 0.0",
+          "kind": "negative",
+          "expected": [
+            null,
+            null,
+            "MISSING_VIEWPORT"
+          ],
+          "observed": [
+            null,
+            null,
+            "MISSING_VIEWPORT"
+          ],
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-NORM missing bbox -> None not 0.0",
+          "kind": "negative",
+          "expected": [
+            null,
+            "MISSING_BBOX"
+          ],
+          "observed": [
+            null,
+            "MISSING_BBOX"
+          ],
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-FVSS never visible -> None not S0",
+          "kind": "negative",
+          "expected": null,
+          "observed": null,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-S0VIS no S0 row -> None not False",
+          "kind": "negative",
+          "expected": null,
+          "observed": null,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-ZONE missing coords -> None not a zone",
+          "kind": "negative",
+          "expected": null,
+          "observed": null,
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-ZONE no policy -> refuses to derive",
+          "kind": "negative",
+          "expected": "UnresolvedDefinition",
+          "observed": "UnresolvedDefinition",
+          "pass": true,
+          "notes": "AMB-S01: SSOTV3 freezes no boundaries"
+        },
+        {
+          "fixture": "N-ZONE fixture policy blocked outside fixtures",
+          "kind": "negative",
+          "expected": "FixtureOnlyPolicyLeak",
+          "observed": "FixtureOnlyPolicyLeak",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-DETA epsilon mode has no default tolerance",
+          "kind": "negative",
+          "expected": "UnresolvedDefinition",
+          "observed": "UnresolvedDefinition",
+          "pass": true,
+          "notes": "AMB-S12"
+        },
+        {
+          "fixture": "N-MD sequence_field must be an existing schema field",
+          "kind": "negative",
+          "expected": "UnresolvedDefinition",
+          "observed": "UnresolvedDefinition",
+          "pass": true,
+          "notes": "AMB-S07"
+        },
+        {
+          "fixture": "N-NCD no exposure index -> None not 0",
+          "kind": "negative",
+          "expected": null,
+          "observed": null,
+          "pass": true,
+          "notes": "AMB-S08"
+        },
+        {
+          "fixture": "N-ENUM out-of-enum zone is flagged not coerced",
+          "kind": "negative",
+          "expected": "OUT_OF_ENUM",
+          "observed": "OUT_OF_ENUM",
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-ENUM geometry can never emit FLOATING/DRAWER",
+          "kind": "negative",
+          "expected": false,
+          "observed": false,
+          "pass": true,
+          "notes": "AMB-S02"
+        },
+        {
+          "fixture": "N-DISP missing coord -> None cell not 0.0",
+          "kind": "negative",
+          "expected": [
+            null,
+            1
+          ],
+          "observed": [
+            null,
+            1
+          ],
+          "pass": true,
+          "notes": ""
+        },
+        {
+          "fixture": "N-DENOM missing rows keep n_declared=10",
+          "kind": "negative",
+          "expected": [
+            10,
+            7,
+            3
+          ],
+          "observed": [
+            10,
+            7,
+            3
+          ],
+          "pass": true,
+          "notes": "05 §4: denominator is not shrunk to observed n"
+        }
+      ]
+    },
+    "mutation": {
+      "caught": 10,
+      "total": 10,
+      "cases": [
+        {
+          "mutation_id": "M01",
+          "target_primitive": "_below_cut",
+          "mutation": "boundary comparison < becomes <= (cut falls into the LOWER band)",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 4,
+          "example_failing_fixtures": [
+            "P-ZONE-BOUND y=1/3 exact",
+            "P-ZONE-BOUND y=2/3 exact",
+            "P-ZONE-BOUND x=1/3 exact",
+            "P-ZONE-BOUND x=2/3 exact"
+          ],
+          "exception_under_mutation": null
+        },
+        {
+          "mutation_id": "M02",
+          "target_primitive": "_coord_or_none",
+          "mutation": "missing coordinate silently coerced to 0.0",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 2,
+          "example_failing_fixtures": [
+            "N-NORM missing viewport -> None not 0.0",
+            "N-NORM missing bbox -> None not 0.0"
+          ],
+          "exception_under_mutation": null
+        },
+        {
+          "mutation_id": "M03",
+          "target_primitive": "_distance",
+          "mutation": "Euclidean displacement replaced by Manhattan",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 1,
+          "example_failing_fixtures": [
+            "P-DISP euclidean 0.3/0.4 -> 0.5"
+          ],
+          "exception_under_mutation": null
+        },
+        {
+          "mutation_id": "M04",
+          "target_primitive": "_log_p",
+          "mutation": "entropy logarithm base 2 replaced by natural log",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 1,
+          "example_failing_fixtures": [
+            "P-ENT uniform over 4 -> 2.0 bits"
+          ],
+          "exception_under_mutation": null
+        },
+        {
+          "mutation_id": "M05",
+          "target_primitive": "_pick_first_state",
+          "mutation": "first visible scroll state uses max instead of min",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 2,
+          "example_failing_fixtures": [
+            "P-FVSS first visible = S2",
+            "P-FVSS visible already at S0"
+          ],
+          "exception_under_mutation": null
+        },
+        {
+          "mutation_id": "M06",
+          "target_primitive": "_hierarchy_key",
+          "mutation": "nav_container_depth dropped from the hierarchy key",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 1,
+          "example_failing_fixtures": [
+            "<exception>"
+          ],
+          "exception_under_mutation": "IndexError: tuple index out of range"
+        },
+        {
+          "mutation_id": "M07",
+          "target_primitive": "_label_groupable",
+          "mutation": "missing/empty labels allowed to form collision groups",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 2,
+          "example_failing_fixtures": [
+            "N-DETB missing labels never group",
+            "N-DETB empty-string labels never group"
+          ],
+          "exception_under_mutation": null
+        },
+        {
+          "mutation_id": "M08",
+          "target_primitive": "_endpoint_cut",
+          "mutation": "menu_dependency scans the whole sequence, ignoring the endpoint cut",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 2,
+          "example_failing_fixtures": [
+            "P-MD reveal before endpoint",
+            "P-MD reveal AFTER endpoint is not counted"
+          ],
+          "exception_under_mutation": null
+        },
+        {
+          "mutation_id": "M09",
+          "target_primitive": "_family_denominator",
+          "mutation": "fixed family n=10 replaced by observed n",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 2,
+          "example_failing_fixtures": [
+            "P-DISP denominator stays family n=10",
+            "P-ENT fixed denominator n=10 with 4 rows"
+          ],
+          "exception_under_mutation": null
+        },
+        {
+          "mutation_id": "M10",
+          "target_primitive": "_pick_axes",
+          "mutation": "x and y axes swapped in zone classification",
+          "baseline_all_passed": true,
+          "caught": true,
+          "n_fixtures_failed_under_mutation": 10,
+          "example_failing_fixtures": [
+            "P-ZONE-GRID x=0.50 y=0.10",
+            "P-ZONE-GRID x=0.90 y=0.10",
+            "P-ZONE-GRID x=0.10 y=0.50",
+            "P-ZONE-GRID x=0.90 y=0.50"
+          ],
+          "exception_under_mutation": null
+        }
+      ],
+      "restored_after_mutation": true,
+      "restored_fixture_count": 56,
+      "mutation_notes": [
+        "First run of the suite reported positive 35/35, negative 21/21 but mutation 9/10: M02 ('missing coordinate coerced to 0.0') ESCAPED. Cause was a defect in this harness, not in the fixtures — normalize_center() guarded missing inputs with early `return`s, so the primitive `_coord_or_none` never saw a None and the corruption was unreachable. normalize_center() was restructured to route every exit path, missing ones included, through `_coord_or_none`; M02 is now caught. This is the concrete payoff of mutation testing here: the pass-only view (56/56 fixtures green) would have shipped a dead guard."
+      ]
+    }
+  },
+  "ambiguous_definitions": [
+    {
+      "id": "AMB-S01",
+      "variable": "entry_zone",
+      "issue": "04 §6 fixes NO numeric boundary for the zone bands. No x cut (LEFT|CENTER|RIGHT) and no y cut (TOP|MID|BOTTOM) appears anywhere in SSOTV3 (grep over 00-15 returns nothing). entry_zone therefore cannot be derived from (x_norm, y_norm) without new operationalization.",
+      "lane_s_action": "classify_zone_geometric() REQUIRES an injected ZonePolicy and ships NO default. Fixtures use FIXTURE_ONLY_ZONE_POLICY, which the code refuses to apply to non-fixture data. Collected entry_zone values are validated + tabulated, never recomputed.",
+      "owner": "A (SSOT) — must freeze boundaries or declare entry_zone collector-coded only."
+    },
+    {
+      "id": "AMB-S02",
+      "variable": "entry_zone",
+      "issue": "FLOATING and DRAWER are in the same enum as five viewport-region labels but are containment/positioning STATES, not regions. A control can simultaneously be inside a drawer and at the top-right of the viewport. No precedence rule is given.",
+      "lane_s_action": "Geometry emits only the 5-region subset. State categories are pass-through only, and zone-vs-geometry cross-checks are skipped (reported as SKIPPED_STATE_ZONE) for them.",
+      "owner": "A (SSOT)."
+    },
+    {
+      "id": "AMB-S03",
+      "variable": "entry_zone",
+      "issue": "Taxonomy is asymmetric: the TOP band is split three ways on x, MID and BOTTOM are not. Whether MID/BOTTOM ignore x, or whether TOP_* also covers non-top controls, is unstated.",
+      "lane_s_action": "Implemented as: x is consulted only inside the TOP band. This follows the enum literally but is an inference, so it is registered here rather than presented as settled.",
+      "owner": "A (SSOT)."
+    },
+    {
+      "id": "AMB-S04",
+      "variable": "entry_x_norm / entry_y_norm",
+      "issue": "'viewport로 정규화' does not say whether values may fall outside [0,1] (control partially off-screen, or below the fold in state Sn), nor whether clamping is allowed, nor which state's viewport is the denominator when the control is first seen at S2.",
+      "lane_s_action": "No clamping. Out-of-range values are preserved and flagged (`out_of_unit_range=True`); the per-state viewport on the same row is used.",
+      "owner": "A (SSOT) / B (collector)."
+    },
+    {
+      "id": "AMB-S05",
+      "variable": "s0_task_control_visible",
+      "issue": "'직접 보이는가' vs `task_control_occlusion` (02 §5): whether a control rendered at S0 but covered by an overlay counts as visible is unstated.",
+      "lane_s_action": "Pass-through of the collected boolean only. No occlusion arbitration performed.",
+      "owner": "A (SSOT)."
+    },
+    {
+      "id": "AMB-S06",
+      "variable": "menu_dependency",
+      "issue": "04 §5 lists three reveal tokens then writes '등' (etc.), leaving the token set open. SWITCH_TAB is a canonical token (04 §2) and is arguably a reveal, but is not named.",
+      "lane_s_action": "Closed set = the three NAMED tokens. Any extension must be passed explicitly via `extra_reveal_tokens`; the default is empty and SWITCH_TAB is NOT counted.",
+      "owner": "A (SSOT)."
+    },
+    {
+      "id": "AMB-S07",
+      "variable": "menu_dependency",
+      "issue": "'endpoint 전' is undefined when the run terminates at AUTH_GATE / BLOCKED / ABSTAIN and no ENDPOINT_REACHED token exists. Also, 04 §4 says 'action_sequence' but 02 §4 stores two sequences (task_flow_sequence, experienced_flow_sequence) and no field named action_sequence.",
+      "lane_s_action": "Prefix = up to ENDPOINT_REACHED if present, else the whole sequence; the choice is reported per row as `endpoint_cut_basis`. `sequence_field` is a REQUIRED argument — the harness will not silently pick one of the two sequences.",
+      "owner": "A (SSOT)."
+    },
+    {
+      "id": "AMB-S08",
+      "variable": "nav_container_depth",
+      "issue": "'task control 노출 전 nested reveal 수' presupposes an identifiable exposure step, but no rule defines which step index constitutes exposure, nor whether sibling (non-nested) reveals count.",
+      "lane_s_action": "recompute_nav_container_depth() requires an explicit `exposure_step_index`; it is never inferred. With no index supplied the stored collector value is validated, not recomputed.",
+      "owner": "A (SSOT) / B (collector)."
+    },
+    {
+      "id": "AMB-S09",
+      "variable": "reveal_direction",
+      "issue": "No mapping between nav_container_type and reveal_direction is fixed (e.g. whether LEFT_DRAWER must imply LEFT, or INLINE_EXPAND must imply INLINE).",
+      "lane_s_action": "Contingency table only (type x direction). No combination is scored, flagged as invalid, or corrected.",
+      "owner": "A (SSOT)."
+    },
+    {
+      "id": "AMB-S10",
+      "variable": "zone entropy (05 §2-B)",
+      "issue": "Logarithm base is unspecified, and it is unspecified whether the support k is the full enum cardinality (7) or the observed support, and whether missing rows enter the denominator given 05 §4's fixed n=10.",
+      "lane_s_action": "Shannon entropy reported in BITS with the base recorded; both max_entropy_enum (log2 7) and max_entropy_observed (log2 k_obs) reported; proportions computed over n_valid with n_declared=10 and n_missing reported alongside. No single figure is presented as the entropy.",
+      "owner": "A (SSOT) / C (report convention)."
+    },
+    {
+      "id": "AMB-S11",
+      "variable": "service-pair spatial displacement (05 §2-B)",
+      "issue": "'displacement' names no metric (Euclidean vs Manhattan vs component-wise) and no aspect-ratio handling — normalized x and y come from a 390x844 viewport, so one normalized unit of x is not one normalized unit of y in physical terms.",
+      "lane_s_action": "Raw dx and dy components are reported for every cell alongside the Euclidean value; `metric` is an explicit parameter. No physical rescaling is applied or implied.",
+      "owner": "A (SSOT)."
+    },
+    {
+      "id": "AMB-S12",
+      "variable": "counterexample detector: 'same position, different hierarchy'",
+      "issue": "'same position' has no tolerance defined. A coordinate-epsilon comparison would require a threshold that SSOTV3 does not contain.",
+      "lane_s_action": "Default mode is `zone` — exact equality of the collected categorical entry_zone, which introduces no threshold. A `coordinate_epsilon` mode exists but has NO default epsilon and raises UnresolvedDefinition unless the caller passes one explicitly.",
+      "owner": "A (SSOT)."
+    },
+    {
+      "id": "AMB-S13",
+      "variable": "counterexample detector: 'same visible label, different control type'",
+      "issue": "Label equivalence (unicode/whitespace normalization, synonym map) is defined in 04 §5 for `label_relation` and is Lane L's deliverable, not Lane S's.",
+      "lane_s_action": "The detector takes a REQUIRED `label_key_fn` injected by the caller. Lane S ships only `identity_label_key` (raw byte-exact, no normalization) so that Lane L's normalizer can be plugged in unchanged. Lane S reports the control_type divergence side only.",
+      "owner": "L (label normalization)."
+    }
+  ],
+  "counterexample_detectors": [
+    {
+      "id": "CE-A",
+      "name": "same_position_different_hierarchy",
+      "question": "위치는 같은데 menu hierarchy 가 다른 경우",
+      "position_equivalence": "default mode 'zone' = exact equality of the collected categorical entry_zone (introduces no threshold). mode 'coordinate_epsilon' exists but has no default epsilon and refuses to run without one (AMB-S12).",
+      "hierarchy_key": [
+        "nav_container_type",
+        "reveal_direction",
+        "nav_container_depth",
+        "menu_dependency"
+      ],
+      "output": "pair list of counterexamples AND the same-position/same-hierarchy pairs, so the negative side is inspectable; no severity or score attached",
+      "verified_by": [
+        "P-DETA same zone, different hierarchy",
+        "P-DETA depth-only difference still detected",
+        "N-DETA same zone, identical hierarchy -> no hit",
+        "N-DETA different zone -> no hit even though hierarchy differs",
+        "N-DETA missing zone never matches missing zone",
+        "N-DETA epsilon mode has no default tolerance",
+        "mutation M06"
+      ]
+    },
+    {
+      "id": "CE-B",
+      "name": "same_label_different_control_type",
+      "question": "visible label 은 같은데 control type 이 다른 경우",
+      "interface": "detect_same_label_different_control_type(observations, label_key_fn) — label_key_fn is REQUIRED and injected. Lane S ships only identity_label_key (byte-exact, no normalization). Lane L's normalizer plugs in unchanged.",
+      "lane_s_scope": "control_type divergence side only; Lane S makes no label-equivalence judgement (04 §5 belongs to Lane L, AMB-S13)",
+      "output": "group list of counterexamples AND same-label/same-type groups; count of rows dropped for missing/empty labels",
+      "verified_by": [
+        "P-DETB same label, different control type",
+        "N-DETB same label, same control type -> no hit",
+        "N-DETB different labels -> no hit",
+        "N-DETB missing labels never group",
+        "N-DETB empty-string labels never group",
+        "mutation M07"
+      ]
+    }
+  ],
+  "limitation": "MAIN50 measurement data does not exist yet (A freeze pending, REAL unpublished). Every result in this file comes from synthetic fixtures with pre-planted answers; nothing here is an empirical finding about any service. The harness has never been executed against a real observation row, so schema-drift between this implementation and B's emitted columns is unverified. The single largest blocker is AMB-S01: entry_zone is listed as a Geometry variable but SSOTV3 defines no boundary, so zone derivation is inoperable until A freezes one or declares entry_zone collector-coded only; the fixture-only equal-thirds policy exercises mechanics and is not a proposal. Fixture coverage is structural, not distributional: fixtures confirm the calculators recover planted answers and reject planted non-cases, but say nothing about behaviour on real coordinate distributions, real Korean label strings, or real sequence lengths. Mutation testing covers ten single-primitive corruptions; a mutation the fixtures do not cover would go unnoticed.",
+  "not_implemented": [
+    "entry_zone boundary values — SSOTV3 freezes none; Lane S must not invent them (AMB-S01).",
+    "FLOATING / DRAWER derivation — state categories with no geometric rule (AMB-S02).",
+    "Any threshold, cut-off, or composite/weighted 'friction' score (05 §3 prohibits it).",
+    "Label normalization, synonym mapping, label_relation — Lane L owns 04 §5 (AMB-S13).",
+    "Gower / mixed-type distance — 05 §3 allows it only as secondary visualization; not needed pre-freeze.",
+    "Any inferential test, effect size, or significance claim — 05 §4 is descriptive.",
+    "Any REAL target access, URL fetch, or candidate-list read.",
+    "Occlusion arbitration for s0_task_control_visible (AMB-S05).",
+    "Nesting verification inside nav_container_depth (AMB-S08).",
+    "GO/NO-GO judgement, gold labels, holdout access."
+  ],
+  "prohibitions_observed": [
+    "no new operationalization: every unresolved definition is registered in ambiguous_definitions rather than filled in",
+    "no threshold / cut-off / composite score (05 §3)",
+    "no REAL target access, no candidate URL opened",
+    "no write outside results/harness/lane_s/ and tools/v3_harness/lane_s_spatial_control_reveal.py",
+    "no read or write of other lanes' files",
+    "no git add/commit/push",
+    "no gold label, no holdout access, no GO/NO-GO"
+  ]
+}
