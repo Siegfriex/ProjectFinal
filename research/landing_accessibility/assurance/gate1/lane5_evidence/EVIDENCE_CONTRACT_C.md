@@ -1,8 +1,9 @@
 # EVIDENCE_CONTRACT_C — C's independent evidence completeness & lineage contract (V3, GATE 1 → 2/3)
 
 Authority: SSOTV3 `03_COLLECTION_MEASUREMENT_SPEC_v3.0.md` §10, `02_DATA_SCHEMA_v3.0.md` §3–§4 and §8,
-`06_ABCD_ORCHESTRATION_PROTOCOL_v3.0.md` §6. Derived by C from those texts only; B's code/marts were not read.
-Checked from raw files only (manifests + artifacts on disk) by `evidence_lineage_check.py`. Base: `5e05da9`.
+`06_ABCD_ORCHESTRATION_PROTOCOL_v3.0.md` §6; ticket `T-A-V3-STEP1-007` R11 (terminal_reason) / R13 (auth_gate_stage UNDETERMINED);
+`04_FLOW_CODEBOOK_v3.0.md` for the `endpoint_status` enum. Derived by C from those texts only; B's code/marts were not read.
+Checked from raw files only by `evidence_lineage_check.py`. Base: `5e05da9`.
 
 ## 1. Identity (02 §8, 06 §6)
 - Observation identity = `service_id + task_id + run_id` (the **identity spine**). State identity = spine + `attempt_id` + `state_index`.
@@ -31,6 +32,17 @@ task_contract_sha256, endpoint_contract_sha256, {dom,ax,screenshot}_sha256_{befo
 Lineage: `state_before_id`/`state_after_id` MUST resolve to state records of the same spine; `url_before/after`
 MUST equal the referenced state's `url`; the six step hashes MUST equal the referenced states' manifest hashes.
 
+## 3b. Per-RUN flow observation = terminal record (02 §4 `fact_flow_observation`; R11/R13) — exactly one per run×attempt
+Required: `flow_observation_id, service_id, task_id, run_id, attempt_id, endpoint_status, terminal_reason, auth_gate_stage,
+captured_at, collector_sha, protocol_sha, task_contract_sha256, endpoint_contract_sha256`; `terminal_note` required iff `terminal_reason=OTHER`.
+`endpoint_status` ∈ {REACHED, AUTH_GATE, PUBLIC_WEB_UNOBSERVABLE, APP_REQUIRED, EVIDENCE_DEFECT, BLOCKED, ABSTAIN} (unchanged, R11); `terminal_reason` ∈ 13 values {TIMEOUT, WAF_BLOCK, ACTIVE_CHALLENGE, NO_PUBLIC_MOBILE_WEB, TASK_SURFACE_ABSENT, APP_REQUIRED,
+CONTROL_DISABLED_OR_INERT, FORBIDDEN_ACTION_REQUIRED, AUTH_REQUIRED, EVIDENCE_DEFECT, REPLAY_BROKEN, AMBIGUOUS_MULTIPLE_CANDIDATES, OTHER}.
+`auth_gate_stage` ∈ {NONE, BEFORE_TASK_DISCOVERY, AFTER_TASK_SELECT, AT_ENDPOINT, UNDETERMINED}; NONE = "observed, no gate" (affirmative).
+Allowed `endpoint_status × terminal_reason` (C's pre-registered table; OTHER allowed with any non-REACHED status):
+REACHED→∅ (must be null) · AUTH_GATE→AUTH_REQUIRED · PUBLIC_WEB_UNOBSERVABLE→NO_PUBLIC_MOBILE_WEB|TASK_SURFACE_ABSENT · APP_REQUIRED→APP_REQUIRED ·
+EVIDENCE_DEFECT→EVIDENCE_DEFECT|REPLAY_BROKEN · BLOCKED→WAF_BLOCK|ACTIVE_CHALLENGE|TIMEOUT|CONTROL_DISABLED_OR_INERT|FORBIDDEN_ACTION_REQUIRED · ABSTAIN→AMBIGUOUS_MULTIPLE_CANDIDATES.
+Consistency: `AUTH_GATE` requires `auth_gate_stage` ∉ {NONE, UNDETERMINED}; `EVIDENCE_DEFECT`/`ABSTAIN` with `auth_gate_stage=NONE` is an affirmative claim without evidence.
+
 ## 4. Hash chain (02 §8 "path manifest ↔ evidence manifest linked by hash"; 03 §10 "manifest SHA")
 - Evidence manifest lists sha256 of **every** artifact it references (level 1).
 - Path manifest (`path_manifest.json`, `runs[]`) references each evidence manifest by `evidence_manifest` path +
@@ -40,8 +52,8 @@ MUST equal the referenced state's `url`; the six step hashes MUST equal the refe
 ## 5. Append-only rule (02 §8, 06 §6)
 - Identical artifact paths are never rewritten. Detection: manifest sha256 ≠ recomputed sha256 **and** artifact mtime is later
   than the manifest mtime or than the record's `captured_at` (+1 s tolerance) ⇒ overwrite.
-- The same state identity declared twice with different hashes ⇒ overwrite (in-place re-collection instead of a new run).
-- The same spine appearing under two directories, or the same `observation_id`/state/step identity twice ⇒ identity collision.
+- Same state identity declared twice with different hashes ⇒ overwrite (in-place re-collection). Same spine under two directories, or the
+  same `observation_id`/state/step/flow identity twice ⇒ identity collision.
 
 ## 6. Defect catalogue (fixed; severities are part of the contract)
 
@@ -54,10 +66,12 @@ MUST equal the referenced state's `url`; the six step hashes MUST equal the refe
 | `HASH_MISMATCH` | artifact sha ≠ manifest sha (no seal-after evidence), or step hash ≠ state hash | isolated |
 | `MISSING_ARTIFACT` | required artifact not referenced or not on disk; no manifest found | isolated |
 | `LINEAGE_BREAK` | step references a non-existent state / other spine / url discontinuity | isolated |
-| `MISSING_FIELD` | required field absent, malformed digest/timestamp/state_index, unparseable manifest line | isolated (C addition, see §7) |
+| `MISSING_FIELD` | required field absent (incl. terminal record without `terminal_reason`, run without flow record), malformed digest/timestamp/state_index | isolated (C addition, see §7) |
+| `SCHEMA_VIOLATION` | value outside enum; `OTHER` without note; combination outside §3b table (e.g. REACHED×non-null); AUTH_GATE×NONE/UNDETERMINED | isolated (R11) |
+| `AFFIRMATIVE_WITHOUT_EVIDENCE` | `auth_gate_stage=NONE` on `endpoint_status` ∈ {EVIDENCE_DEFECT, ABSTAIN} — absence of evidence recorded as evidence of absence | isolated (R13) |
 
-Verdict: no defects ⇒ `COMPLETE`; only isolated ⇒ `COMPLETE_WITH_ISOLATED_DEFECTS`; any systemic ⇒ `SYSTEMIC_DEFECT`.
-Exit code 0 only when no systemic defect. Isolated defects are still reported for per-observation exclusion at GATE 2/3.
+Verdict: no defects ⇒ `COMPLETE`; only isolated ⇒ `COMPLETE_WITH_ISOLATED_DEFECTS`; any systemic ⇒ `SYSTEMIC_DEFECT`. Exit 0 only when no
+systemic defect; isolated defects are still reported for per-observation exclusion at GATE 2/3.
 
 ## 7. Ambiguities in SSOTV3 resolved by C (pre-registered)
 1. 03 §10 lists artifacts but not manifest fields. `attempt_id, collector_sha, protocol_sha, task_contract_sha256,
@@ -70,3 +84,6 @@ Exit code 0 only when no systemic defect. Isolated defects are still reported fo
 4. `MISSING_FIELD` is added as an eighth kind; folding missing fields into `MISSING_ARTIFACT` would hide the distinction.
 5. Overwrite needs both hash mismatch and a later mtime/captured_at; hash mismatch alone (e.g. wrong manifest) stays isolated.
 6. URL continuity (`url_before == state.url`) is enforced exactly (no normalisation); relax only by explicit decision.
+7. R11 says B specifies the combination table and C verifies it; B's table is not yet published, so §3b is C's table, pre-registered.
+   If B's table differs, the diff is a finding, not a silent merge. "Terminal record" = the flow record of every run, REACHED included
+   (REACHED carries `terminal_reason: null`). `terminal_reason` missing is MISSING_FIELD only for non-REACHED statuses.

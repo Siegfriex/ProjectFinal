@@ -16,8 +16,11 @@ Discovery heuristics (documented so they can be pre-registered):
       If --path-manifest is omitted and ROOT/path_manifest.json exists, it is auto-detected (reported in JSON).
   D2  *.jsonl -> one JSON object per non-empty line. *.json -> list => records; dict with a list under any of
       {records, states, steps, observations, entries} => concatenated; other dict => single record.
-  D3  a record is a STATE if it has step_index absent and (state_index or observation_id) present;
-      a STEP if it has step_index present; otherwise UNKNOWN (counted, not a defect).
+  D3  a record is a STEP if step_index is present; a FLOW (terminal observation, 02 §4 fact_flow_observation) if
+      endpoint_status is present or (flow_observation_id present and no state_index); a STATE if state_index or
+      observation_id is present; otherwise UNKNOWN (counted, not a defect).
+  D7  T-A-V3-STEP1-007 R11/R13: every FLOW record carries endpoint_status AND terminal_reason (null only for REACHED),
+      auth_gate_stage (incl. UNDETERMINED); allowed endpoint_status x terminal_reason table = ALLOWED_TERMINAL below.
   D4  artifact paths are resolved relative to the manifest's directory, then relative to ROOT.
   D5  identity spine = (service_id, task_id, run_id); state identity = spine + attempt_id + state_index;
       observation_id must be globally unique.
@@ -60,7 +63,31 @@ FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "url_after":             ("url_after",),
     "artifacts":             ("artifacts", "evidence", "files"),
     "display_name":          ("display_name", "service_name", "service_display_name"),
+    "endpoint_status":       ("endpoint_status",),
+    "terminal_reason":       ("terminal_reason",),
+    "terminal_note":         ("terminal_note", "terminal_reason_note", "note"),
+    "auth_gate_stage":       ("auth_gate_stage",),
 }
+# ---- T-A-V3-STEP1-007 R11/R13 (endpoint_status enum from 04_FLOW_CODEBOOK; terminal_reason 13 values from ticket)
+ENDPOINT_STATUS = ("REACHED", "AUTH_GATE", "PUBLIC_WEB_UNOBSERVABLE", "APP_REQUIRED", "EVIDENCE_DEFECT", "BLOCKED", "ABSTAIN")
+TERMINAL_REASON = ("TIMEOUT", "WAF_BLOCK", "ACTIVE_CHALLENGE", "NO_PUBLIC_MOBILE_WEB", "TASK_SURFACE_ABSENT", "APP_REQUIRED",
+                   "CONTROL_DISABLED_OR_INERT", "FORBIDDEN_ACTION_REQUIRED", "AUTH_REQUIRED", "EVIDENCE_DEFECT",
+                   "REPLAY_BROKEN", "AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER")
+AUTH_GATE_STAGE = ("NONE", "BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "UNDETERMINED")
+ALLOWED_TERMINAL: dict[str, frozenset] = {   # C's pre-registered combination table (OTHER allowed for any non-REACHED)
+    "REACHED": frozenset(),                  # terminal_reason MUST be null
+    "AUTH_GATE": frozenset({"AUTH_REQUIRED", "OTHER"}),
+    "PUBLIC_WEB_UNOBSERVABLE": frozenset({"NO_PUBLIC_MOBILE_WEB", "TASK_SURFACE_ABSENT", "OTHER"}),
+    "APP_REQUIRED": frozenset({"APP_REQUIRED", "OTHER"}),
+    "EVIDENCE_DEFECT": frozenset({"EVIDENCE_DEFECT", "REPLAY_BROKEN", "OTHER"}),
+    "BLOCKED": frozenset({"WAF_BLOCK", "ACTIVE_CHALLENGE", "TIMEOUT", "CONTROL_DISABLED_OR_INERT",
+                          "FORBIDDEN_ACTION_REQUIRED", "OTHER"}),
+    "ABSTAIN": frozenset({"AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER"}),
+}
+NO_EVIDENCE_STATUSES = frozenset({"EVIDENCE_DEFECT", "ABSTAIN"})   # R13: NONE here is an affirmative claim without evidence
+FLOW_REQUIRED = ("flow_observation_id", "service_id", "task_id", "run_id", "attempt_id", "endpoint_status",
+                 "auth_gate_stage", "captured_at", "collector_sha", "protocol_sha", "task_contract_sha256",
+                 "endpoint_contract_sha256")
 # artifact kinds required per STATE (SSOTV3 03 §10: DOM, AX, screenshot, probe/CSS geometry, control facts; URL is a field)
 ARTIFACT_ALIASES: dict[str, tuple[str, ...]] = {
     "dom":           ("dom", "dom_html", "html"),
@@ -97,7 +124,7 @@ class Report:
     def __init__(self, root: Path, path_manifest: Path | None):
         self.root, self.path_manifest = root, path_manifest
         self.defects: list[dict] = []
-        self.n_manifests = self.n_states = self.n_steps = self.n_unknown = self.n_artifacts_checked = 0
+        self.n_manifests = self.n_states = self.n_steps = self.n_flows = self.n_unknown = self.n_artifacts_checked = 0
 
     def add(self, kind: str, path: str, detail: str, *, systemic: bool | None = None) -> None:
         if systemic is None:
@@ -112,7 +139,7 @@ class Report:
         return {
             "checker": "evidence_lineage_check.py", "contract": "EVIDENCE_CONTRACT_C.md",
             "root": str(self.root), "path_manifest": str(self.path_manifest) if self.path_manifest else None,
-            "n_manifests": self.n_manifests, "n_states": self.n_states, "n_steps": self.n_steps,
+            "n_manifests": self.n_manifests, "n_states": self.n_states, "n_steps": self.n_steps, "n_flows": self.n_flows,
             "n_unknown_records": self.n_unknown, "n_artifacts_checked": self.n_artifacts_checked,
             "counts_by_kind": dict(sorted(Counter(d["kind"] for d in self.defects).items())),
             "defects": self.defects, "systemic": systemic, "verdict": verdict,
@@ -195,9 +222,41 @@ def load_records(mp: Path, rep: Report) -> list[dict]:
 def classify(rec: dict) -> str:
     if get(rec, "step_index") is not None:
         return "step"
+    if get(rec, "endpoint_status") is not None or (
+            get(rec, "flow_observation_id") is not None and get(rec, "state_index") is None):
+        return "flow"
     if get(rec, "state_index") is not None or get(rec, "observation_id") is not None:
         return "state"
     return "unknown"
+
+
+def check_flow(rec: dict, where: str, rep: Report) -> None:
+    """R11/R13 terminal-observation checks (D7)."""
+    check_required(rec, FLOW_REQUIRED, where, rep)
+    es, tr, ag = get(rec, "endpoint_status"), get(rec, "terminal_reason"), get(rec, "auth_gate_stage")
+    note = get(rec, "terminal_note")
+    if es is not None and es not in ENDPOINT_STATUS:
+        rep.add("SCHEMA_VIOLATION", where, f"endpoint_status={es!r} not in enum")
+        es = None
+    if tr is not None and tr not in TERMINAL_REASON:
+        rep.add("SCHEMA_VIOLATION", where, f"terminal_reason={tr!r} not in 13-value enum")
+    if ag is not None and ag not in AUTH_GATE_STAGE:
+        rep.add("SCHEMA_VIOLATION", where, f"auth_gate_stage={ag!r} not in enum (incl. UNDETERMINED)")
+    if es is not None:
+        if es == "REACHED":
+            if tr is not None:
+                rep.add("SCHEMA_VIOLATION", where, f"impossible combination REACHED x terminal_reason={tr!r}")
+        elif tr is None:
+            rep.add("MISSING_FIELD", where, f"terminal record (endpoint_status={es}) lacks terminal_reason (R11)")
+        elif tr in TERMINAL_REASON and tr not in ALLOWED_TERMINAL[es]:
+            rep.add("SCHEMA_VIOLATION", where, f"combination {es} x {tr} not in allowed table")
+    if tr == "OTHER" and not (isinstance(note, str) and note.strip()):
+        rep.add("SCHEMA_VIOLATION", where, "terminal_reason=OTHER without non-empty terminal_note (R11)")
+    if ag == "NONE" and es in NO_EVIDENCE_STATUSES:
+        rep.add("AFFIRMATIVE_WITHOUT_EVIDENCE", where,
+                f"auth_gate_stage=NONE asserted on endpoint_status={es}; must be UNDETERMINED (R13)")
+    if es == "AUTH_GATE" and ag in ("NONE", "UNDETERMINED"):
+        rep.add("SCHEMA_VIOLATION", where, f"endpoint_status=AUTH_GATE but auth_gate_stage={ag}")
 
 
 def resolve_artifacts(rec: dict) -> dict[str, dict]:
@@ -343,6 +402,8 @@ def run(root: Path, path_manifest: Path | None) -> dict:
     state_identity: dict[tuple, list[tuple]] = defaultdict(list)   # spine+attempt+state_index -> [(obs_id, shas, where)]
     spine_dirs: dict[tuple, set[str]] = defaultdict(set)  # spine -> manifest dirs
     steps: list[tuple[dict, str]] = []
+    flows: dict[tuple, str] = {}                          # spine+attempt -> where
+    run_has_states: set[tuple] = set()
 
     for mp in manifests:
         check_manifest_binding(mp, bindings, rep)
@@ -364,6 +425,14 @@ def run(root: Path, path_manifest: Path | None) -> dict:
                 else:
                     states[oid] = {"rec": rec, "shas": shas, "where": where}
                 state_identity[spine + (str(get(rec, "attempt_id")), str(get(rec, "state_index")))].append((oid, shas, where))
+                run_has_states.add(spine + (str(get(rec, "attempt_id")),))
+            elif kind == "flow":
+                rep.n_flows += 1
+                check_flow(rec, where, rep)
+                fid = spine + (str(get(rec, "attempt_id")),)
+                if fid in flows:
+                    rep.add("IDENTITY_COLLISION", where, f"second flow observation for run {fid} (first at {flows[fid]})")
+                flows.setdefault(fid, where)
             elif kind == "step":
                 rep.n_steps += 1
                 check_required(rec, STEP_REQUIRED, where, rep)
@@ -387,6 +456,9 @@ def run(root: Path, path_manifest: Path | None) -> dict:
         if len(dirs) > 1 and all(x != "None" for x in spine):
             rep.add("IDENTITY_COLLISION", ";".join(sorted(dirs)),
                     f"run identity {spine} declared in {len(dirs)} directories")
+
+    for fid in sorted(run_has_states - set(flows)):
+        rep.add("MISSING_FIELD", "/".join(fid), "run has states but no flow observation (terminal) record")
 
     # lineage: step -> state references, url continuity, hash chain
     seen_step_ids: set[tuple] = set()
