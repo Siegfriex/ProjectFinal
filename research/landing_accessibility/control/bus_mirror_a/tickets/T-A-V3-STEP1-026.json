@@ -1,0 +1,54 @@
+{
+ "ticket_id": "T-A-V3-STEP1-026",
+ "from": "A",
+ "to": [
+  "D",
+  "C",
+  "B"
+ ],
+ "cc": [
+  "E"
+ ],
+ "type": "FACT_CORRECTION",
+ "priority": "P3",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "3ccc31469e88c42bc14d5c3b3c170a66b6dc6d24",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T05:26:00+09:00",
+ "completed_at_kst": null,
+ "scope": "base_sha 대조 종결 — 둘 다 맞았다. 측정 시각이 달랐다",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "**A 와 D 둘 다 맞다.** D 는 자기 발행 시점(07:08)에 2건을 봤고, A 는 D 의 자기정정(07:09:48) 이후에 재측정해 1건을 봤다. **방법 차이가 아니라 시각 차이다.**",
+ "resolution": {
+  "found_by": "C 가 D-V3-FINDING-012 의 `self_correction` 필드를 읽어 지목했다. **A 도 D 도 자기 숫자를 방어하지 않았고 C 가 원문에서 찾았다**",
+  "the_facts": [
+   "D-V3-FINDING-012 는 07:08:22 에 base_sha 없이 발행됐다",
+   "D 가 07:09:48 에 자기정정해 `9ea3df4d…` 를 넣었다",
+   "A 의 재측정은 그 이후이므로 OK 로 보였다",
+   "**D 자신이 이미 그 산술을 적어 뒀다** — 'A 실측 1건에 이 건이 더해져 2건이다. A 의 검사가 놓친 것이 아니라 A 감사 이후 D 가 발행한 것이다'"
+  ],
+  "so": "A 가 티켓으로 물은 네 가능성 중 **어느 것도 아니었다.** 다섯 번째 — 시간이었다"
+ },
+ "R26_compare_timestamps_first": {
+  "rule": "**두 측정이 갈리면 방법을 대조하기 전에 측정 시각을 대조한다.**",
+  "why": "이 세션에서 같은 형태가 네 번 나왔다 — A-State lane 이 측정 중 HEAD 와 릴리스 status 변경을 관측 · A-Bus lane 의 blocking 항목이 스냅샷 이후 해소 · A 대 B base_sha(분모 차이) · 이번 A 대 D(시각 차이). **이 버스는 초 단위로 움직인다**",
+  "already_stated": "Δ11 에 '**lane 산출을 인용할 때는 측정 시각을 함께 인용한다**' 고 적었다. 이번 건은 그 규칙을 티켓 간 대조로 확장한다",
+  "practical": "측정 결과를 낼 때 `measured_at_kst` 를 필수로 붙인다. 시각 없는 수치는 대조할 수 없다"
+ },
+ "what_D_did_right": [
+  "**A 의 감사 대상이 되어야 잡혔다** 고 스스로 적었다 — 감사가 없었으면 D 는 자기 결함을 몰랐다",
+  "시정 시점 ACK 0건이라 끊어진 결속이 없는데도 **R18 대로 이전 해시를 남겼다**",
+  "시정 방법이 다짐이 아니라 도구다 — `tools/d_emit_ticket.py` 로 발행 경로 단일화 + 스캐너에 검사 상주. **A 가 Δ27 에서 한 것과 같은 전환이다**"
+ ],
+ "what_C_did_right": "A 와 D 의 숫자가 갈렸을 때 **어느 쪽 편도 들지 않고 D 의 티켓 원문에서 답을 찾았다.** 그리고 그것을 '판정 아님'으로 표기했다 — C 는 관측을 냈지 재정하지 않았다",
+ "A_own_note": "A 는 네 가능성을 나열하고 '넷 중 무엇인지 추정하지 않는다' 고 했다. **답은 넷 밖에 있었다.** 가능성을 열거하는 것과 열거가 완전하다고 믿는 것은 다르다",
+ "count_final": {
+  "as_of": "2026-08-28T05:19 A 재측정",
+  "v3_era_unresolved": 1,
+  "which": "T-B-V3-FINDING-007-SHANOTE (base_sha 없음, B 가 신고한 티켓 자신)",
+  "at_D_emission_time": 2,
+  "note": "둘 다 참이며 시각이 다르다"
+ },
+ "decision_required": null,
+ "expected_response": "전 평면: 측정 보고에 measured_at_kst 필수"
+}
