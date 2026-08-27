@@ -148,7 +148,11 @@ root 내역:
 | `claude_b_e001_worker_04/artifacts` | 278 | 180,921,638 |
 | `claude_b_analysis_current/artifacts` | 14 | 272,679 |
 
-### 4.1 run 60 vs target 56 (OBSERVATION, P2)
+### 4.1 run 60 vs target 56 (OBSERVATION, ~~P2~~ → **P1**)
+
+> **⚠ 이 절의 판정은 SUPERSEDED다.** C가 `C-FACT_CORRECTION-210136`(@`77d4b50e`)에서
+> 반박했고 B가 재검증 후 **수락**했다. 정정 전문은 **부록 B**를 보라.
+> 아래 원문은 감사 추적을 위해 남긴다 — **결론("retry로 판정한다")은 틀렸다.**
 
 4개 target이 evidence run을 2개씩 갖는다:
 `wtg_13ed070478ef62c3` · `wtg_9390ef32addf32bf` · `wtg_b728911c9782edb8` · `wtg_e1fadb214cde51c0`.
@@ -369,3 +373,58 @@ Git-tracked mirror에도 남긴다.
 
 A.1~A.3은 전부 **제안**이다. 본문 §9의 R0 결정 6건이 나오기 전에는 착수하지 않는다.
 특히 A.2는 `T-B-BLK-001`의 대상이며, A가 "W1 범위에 포함"을 결정해야 구현에 들어간다.
+
+---
+
+# 부록 B — §4.1 판정 철회: duplicate launch 확정 `OBSERVATION` `P1`
+
+C의 `C-FACT_CORRECTION-210136` / `T-B-CLEAN0-001.C.json`
+(`result_type=B_CLEAN0_VERIFIED_MATCH_8_REFUTED_1`, @`77d4b50e8ac2734ee867b086726da93a371e7744`)이
+본문 §4.1의 유일한 반박 항목이다. **B는 재검증 후 C의 판정을 전면 수락한다.**
+
+## B.1 C의 반박 근거와 B의 독립 재확인
+
+| C의 근거 | B의 재확인 | 결과 |
+|---|---|---|
+| `attempts=1` | `batch_0001_b0001.json` 4행 전건 `attempt_count = None` — retry 카운터가 증가한 흔적이 **없다** | 확인 |
+| run B가 run A **sealed 전** 시작 | `wtg_b728911c9782edb8`: run A mtime `14:14:51~14:15:00`, run B `14:14:57~14:15:06` — **겹친다**. retry는 직렬이라 겹칠 수 없다 | 확인 |
+| `batch_0001` **집합 전체** | 해당 batch의 target은 4개이고 **4/4 전부가 evidence run 2개**를 갖는다 | 확인 |
+
+추가 근거 (B 독립):
+
+- 두 run의 **파일 수가 정확히 같다** (8/8, 17/17, 35/35, 14/14). 실패 후 재시도라면
+  중단 지점이 달라 산출물 수가 갈린다.
+- 4건의 outcome은 `ACCOUNT_ACTION_BLOCKED` 3 + `CAPTCHA` 1로 **결정적 종료**다.
+  guard 차단은 후보 목록만 보고 즉시 결정되므로 **재시도할 이유가 없다.**
+
+→ **retry가 아니라 `batch_0001` 통째의 중복 발사다.**
+
+## B.2 B가 왜 틀렸는가 (재발 방지)
+
+§4.1에서 B는 "batch 결과에 outcome이 target당 1행뿐"을 **1회 실행의 증거**로 읽었다.
+이는 잘못된 추론이다 — batch 기록이 target당 1행만 유지하는 구조라면
+**두 번 실행해도 1행**이다. 즉 그 관측은 두 가설을 구분하지 못한다.
+
+B는 mtime 겹침 데이터를 **손에 쥐고도** "순차적"이라고 읽었다. 겹침은 retry 가설의
+반증인데 그것을 확인하지 않았다. 판별력 없는 증거로 결론을 내렸고,
+판별력 있는 증거(겹침·파일수 동일·attempt_count·outcome 결정성)를 쓰지 않았다.
+
+## B.3 계약·설계에 미치는 영향
+
+1. **LA-ORCH-2.1 §10의 "이전 duplicate launch 7건"에 이 4건이 추가**된다.
+   duplicate launch는 과거형이 아니라 **E001_FULL 본수집에서 실제로 재발했다.**
+2. 부록 A.2.2의 서술 "관측된 run 60 vs target 56은 retry 기전"은 **철회**한다.
+   A.2.2의 규범적 내용("retry를 중복 실행으로 억제하면 안 된다 / 같은 key 안에서
+   `attempt_id`로 센다")은 **여전히 유효**하다 — 다만 그 근거로 이 4건을 들 수 없다.
+   이 4건은 **억제되었어야 할 중복**이다.
+3. `attempt_count`가 전건 `None`이라는 것은 **retry 계측 자체가 산출물에 남지 않는다**는
+   뜻이다. W1의 exactly-once 구현은 억제뿐 아니라 **`attempt_id` 기록**도 포함해야
+   duplicate와 retry를 사후에 구분할 수 있다. 지금은 구분 수단이 없다.
+4. **분모 영향**: mart가 evidence run을 세면 56이 아니라 60이 되어 4건 과대계산.
+   §4.1이 이미 지적한 위험은 그대로이나, 원인이 retry가 아니라 duplicate이므로
+   **중복분은 제거 대상이지 attempt 병합 대상이 아니다.** W4 필수 점검.
+
+## B.4 A에게
+
+이 정정은 `T-B-BLK-001`(A가 `GO`로 W1 편입 결정)의 **근거를 강화**한다.
+exactly-once 미구현이 이론적 위험이 아니라 **실측 재발 사건**이었음이 확정됐다.
