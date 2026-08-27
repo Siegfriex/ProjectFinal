@@ -1,0 +1,2187 @@
+{
+  "rq": "RQ-D8",
+  "ticket": "T-B-RQ-D-001 Q1",
+  "question": "Is l0_probe cap truncation biased with respect to prior interaction_archetype, and how would it distort the same-archetype median baseline used by ExcessDepth?",
+  "input": {
+    "file": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_OBSERVATION_TABLE.csv",
+    "rows": 66,
+    "cols": 64
+  },
+  "caps_definition": {
+    "primary_action_candidates": {
+      "ceiling": 200,
+      "visible_filter_applied": true
+    },
+    "accessible_name_sources": {
+      "ceiling": 300,
+      "visible_filter_applied": false
+    },
+    "target_size": {
+      "ceiling": 300,
+      "visible_filter_applied": true
+    },
+    "contrast": {
+      "ceiling": 400,
+      "visible_filter_applied": true
+    }
+  },
+  "caps_definition_provenance": "l0_probe.js @2281c85 as relayed in ticket T-B-RQ-D-001; treated as DEFINITION, not re-verified from source in this RQ (source file is outside this RQ's permitted inputs)",
+  "seed": 20260827,
+  "grain": {
+    "raw_observations": 66,
+    "unique_targets_wtg": 59,
+    "targets_with_repeat_runs": 7,
+    "targets_with_repeat_runs_ids": [
+      "13ed070478ef62c3",
+      "2cd43b99c1ed87cf",
+      "9390ef32addf32bf",
+      "b728911c9782edb8",
+      "dd5061eb74e2d4d4",
+      "e1fadb214cde51c0",
+      "ff3ee504792f6cfc"
+    ],
+    "repeat_runs_with_a_mart_canonical": 4,
+    "in_mart_rows": 56,
+    "rows_without_cap_data": 8,
+    "rows_without_cap_data_reason": {
+      "probe_present_missing": 6,
+      "probe_present_zero": 2
+    },
+    "ANALYSIS_SET_observation_grain_N": 58,
+    "ANALYSIS_SET_observation_grain_unique_targets": 54,
+    "ANALYSIS_SET_target_grain_N": 54,
+    "note": "Observation grain N=58 contains 4 repeat runs of targets that also contribute their mart-canonical row, so 58 observations cover only 54 distinct targets. The '/58' denominator used by B and C is the observation grain, not a per-target rate."
+  },
+  "repeat_run_reliability": {
+    "pairs_with_cap_data": 4,
+    "pairs_agreeing_on_cap_any": 4,
+    "pairs": [
+      {
+        "wtg": "13ed070478ef62c3",
+        "prior_archetype": "CONTENT_OPEN",
+        "cap_any": [
+          0,
+          0
+        ],
+        "n_primary": [
+          11.0,
+          11.0
+        ],
+        "n_accessible_name": [
+          50.0,
+          51.0
+        ],
+        "dom_element_n": [
+          429.0,
+          436.0
+        ],
+        "cap_flag_agreement": true
+      },
+      {
+        "wtg": "9390ef32addf32bf",
+        "prior_archetype": "QUERY",
+        "cap_any": [
+          0,
+          0
+        ],
+        "n_primary": [
+          59.0,
+          59.0
+        ],
+        "n_accessible_name": [
+          132.0,
+          132.0
+        ],
+        "dom_element_n": [
+          1150.0,
+          1150.0
+        ],
+        "cap_flag_agreement": true
+      },
+      {
+        "wtg": "b728911c9782edb8",
+        "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+        "cap_any": [
+          0,
+          0
+        ],
+        "n_primary": [
+          164.0,
+          164.0
+        ],
+        "n_accessible_name": [
+          197.0,
+          197.0
+        ],
+        "dom_element_n": [
+          804.0,
+          804.0
+        ],
+        "cap_flag_agreement": true
+      },
+      {
+        "wtg": "e1fadb214cde51c0",
+        "prior_archetype": "UTILITY_ENTRY",
+        "cap_any": [
+          0,
+          0
+        ],
+        "n_primary": [
+          100.0,
+          100.0
+        ],
+        "n_accessible_name": [
+          203.0,
+          203.0
+        ],
+        "dom_element_n": [
+          945.0,
+          945.0
+        ],
+        "cap_flag_agreement": true
+      }
+    ],
+    "assertion_type": "OBSERVATION"
+  },
+  "flag_threshold_consistency": {
+    "detail": {
+      "primary_action_candidates": {
+        "n_ge_ceiling": 7,
+        "n_eq_ceiling": 7,
+        "n_gt_ceiling": 0,
+        "flag_eq_1": 7,
+        "flag_matches_ge": true,
+        "flag_matches_eq": true,
+        "denominator": 58
+      },
+      "accessible_name_sources": {
+        "n_ge_ceiling": 13,
+        "n_eq_ceiling": 13,
+        "n_gt_ceiling": 0,
+        "flag_eq_1": 13,
+        "flag_matches_ge": true,
+        "flag_matches_eq": true,
+        "denominator": 58
+      },
+      "target_size": {
+        "n_ge_ceiling": 6,
+        "n_eq_ceiling": 6,
+        "n_gt_ceiling": 0,
+        "flag_eq_1": 6,
+        "flag_matches_ge": true,
+        "flag_matches_eq": true,
+        "denominator": 58
+      },
+      "contrast": {
+        "n_ge_ceiling": 8,
+        "n_eq_ceiling": 8,
+        "n_gt_ceiling": 0,
+        "flag_eq_1": 8,
+        "flag_matches_ge": true,
+        "flag_matches_eq": true,
+        "denominator": 58
+      }
+    },
+    "conclusion": "flag==1 <=> n>=ceiling <=> n==ceiling for all four caps; no row exceeds its ceiling, so '>=' vs '==' cannot explain any disagreement in counts.",
+    "assertion_type": "OBSERVATION"
+  },
+  "recount": {
+    "observation_grain": {
+      "primary_action_candidates": {
+        "hits": 7,
+        "n": 58,
+        "rate": "7/58",
+        "pct": 12.07,
+        "ci95_wilson": [
+          0.0597,
+          0.2288
+        ]
+      },
+      "accessible_name_sources": {
+        "hits": 13,
+        "n": 58,
+        "rate": "13/58",
+        "pct": 22.41,
+        "ci95_wilson": [
+          0.1359,
+          0.3466
+        ]
+      },
+      "target_size": {
+        "hits": 6,
+        "n": 58,
+        "rate": "6/58",
+        "pct": 10.34,
+        "ci95_wilson": [
+          0.0483,
+          0.2079
+        ]
+      },
+      "contrast": {
+        "hits": 8,
+        "n": 58,
+        "rate": "8/58",
+        "pct": 13.79,
+        "ci95_wilson": [
+          0.0716,
+          0.2493
+        ]
+      },
+      "cap_any_4cap": {
+        "hits": 14,
+        "n": 58,
+        "rate": "14/58",
+        "pct": 24.14,
+        "ci95_wilson": [
+          0.1496,
+          0.3653
+        ]
+      },
+      "cap_any_6flag_incl_motion_and_bodytext": {
+        "hits": 14,
+        "n": 58,
+        "rate": "14/58"
+      },
+      "_grain": "observation"
+    },
+    "target_grain_in_mart": {
+      "primary_action_candidates": {
+        "hits": 7,
+        "n": 54,
+        "rate": "7/54",
+        "pct": 12.96,
+        "ci95_wilson": [
+          0.0642,
+          0.2442
+        ]
+      },
+      "accessible_name_sources": {
+        "hits": 13,
+        "n": 54,
+        "rate": "13/54",
+        "pct": 24.07,
+        "ci95_wilson": [
+          0.1464,
+          0.3695
+        ]
+      },
+      "target_size": {
+        "hits": 6,
+        "n": 54,
+        "rate": "6/54",
+        "pct": 11.11,
+        "ci95_wilson": [
+          0.0519,
+          0.2219
+        ]
+      },
+      "contrast": {
+        "hits": 8,
+        "n": 54,
+        "rate": "8/54",
+        "pct": 14.81,
+        "ci95_wilson": [
+          0.077,
+          0.266
+        ]
+      },
+      "cap_any_4cap": {
+        "hits": 14,
+        "n": 54,
+        "rate": "14/54",
+        "pct": 25.93,
+        "ci95_wilson": [
+          0.1612,
+          0.3893
+        ]
+      },
+      "cap_any_6flag_incl_motion_and_bodytext": {
+        "hits": 14,
+        "n": 54,
+        "rate": "14/54"
+      },
+      "_grain": "target"
+    }
+  },
+  "reconciliation_with_other_planes": {
+    "B_T-B-FINDING-002_claim": "primary_action_candidates cap-hit 7/58",
+    "C_C-FINDING-212855_claim_1": "primary_action_candidates cap-hit 8/58",
+    "D_recount": {
+      "primary_action_cap_hit_observation_grain": "7/58",
+      "primary_action_cap_hit_target_grain": "7/54"
+    },
+    "D_verdict_on_B": "REPRODUCED at observation grain (7/58). B's number is correct for the grain B used, but '/58' is 58 observations covering 54 distinct targets; the per-target rate is 7/54.",
+    "D_verdict_on_C_count": "NOT REPRODUCED. No definition tried yields 8. Tried: flag==1 (7), n>=200 (7), n>200 (0), n==200 (7), target grain (7/54), including the 2 probe_present==0 rows as non-hits (7/60), counting all 66 raw rows (7/66). C's 8 is off by one against every reconstruction.",
+    "definitions_tried_for_primary_action": {
+      "flag_eq_1_obs58": 7,
+      "n_ge_200_obs58": 7,
+      "n_gt_200_obs58": 0,
+      "flag_eq_1_target54": 7,
+      "flag_eq_1_all66_nan_as_0": 7,
+      "n_ge_190_obs58_near_cap": 7,
+      "n_ge_180_obs58_near_cap": 8
+    },
+    "C_C-FINDING-212855_claim_2": "cap-hit 15 targets, prior ITEM_DETAIL 11/15 (73%) vs overall 43%",
+    "D_on_C_claim_2": {
+      "D_cap_any_hits_observation_grain": "14/58",
+      "D_cap_any_hits_target_grain": "14/54",
+      "D_cap_any_hits_all_are_in_mart": true,
+      "D_cap_any_hits_all_distinct_targets": true,
+      "D_ITEM_DETAIL_among_cap_hits": "11/14",
+      "D_ITEM_DETAIL_base_rate_observation_grain": "25/58 = 43.1%",
+      "D_cap_any_6flag": "14/58",
+      "note": "C's numerator (11 ITEM_DETAIL) and C's base rate (43% = 25/58) both reproduce exactly; C's denominator does not — D finds 14 cap-hits, not 15, under both the 4-cap and the 6-flag union. C's extra unit is therefore a non-ITEM_DETAIL one, consistent with the same off-by-one seen in C's 8/58. Direction of the effect: C's 73% is an under-count of D's 11/14 = 78.6%."
+    },
+    "assertion_type": "ANALYSIS"
+  },
+  "crosstab": {
+    "observation_grain": {
+      "grain": "observation",
+      "N": 58,
+      "by_archetype": {
+        "COMMUNICATION_ENTRY": {
+          "n": 4,
+          "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "cap_any": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "dom_element_n_median": 626.0,
+          "dom_element_n_min_max": [
+            373.0,
+            2051.0
+          ],
+          "median_n_primary_action_candidates": 23.5,
+          "median_n_accessible_name_sources": 68.5,
+          "median_n_target_size": 24.0,
+          "median_n_contrast": 59.5
+        },
+        "CONTENT_OPEN": {
+          "n": 4,
+          "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "cap_any": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "dom_element_n_median": 432.5,
+          "dom_element_n_min_max": [
+            216.0,
+            828.0
+          ],
+          "median_n_primary_action_candidates": 11.0,
+          "median_n_accessible_name_sources": 44.5,
+          "median_n_target_size": 14.0,
+          "median_n_contrast": 24.0
+        },
+        "FINANCIAL_ACTION_ENTRY": {
+          "n": 10,
+          "n_tier": "OK",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/10",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 1,
+            "rate": "1/10",
+            "pct": 10.0,
+            "ci95_wilson": [
+              0.0179,
+              0.4042
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/10",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/10",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          },
+          "cap_any": {
+            "hits": 1,
+            "rate": "1/10",
+            "pct": 10.0,
+            "ci95_wilson": [
+              0.0179,
+              0.4042
+            ]
+          },
+          "dom_element_n_median": 581.0,
+          "dom_element_n_min_max": [
+            11.0,
+            2573.0
+          ],
+          "median_n_primary_action_candidates": 36.0,
+          "median_n_accessible_name_sources": 114.5,
+          "median_n_target_size": 36.0,
+          "median_n_contrast": 80.0
+        },
+        "ITEM_DETAIL": {
+          "n": 25,
+          "n_tier": "OK",
+          "primary_action_candidates": {
+            "hits": 5,
+            "rate": "5/25",
+            "pct": 20.0,
+            "ci95_wilson": [
+              0.0886,
+              0.3913
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 10,
+            "rate": "10/25",
+            "pct": 40.0,
+            "ci95_wilson": [
+              0.234,
+              0.5926
+            ]
+          },
+          "target_size": {
+            "hits": 5,
+            "rate": "5/25",
+            "pct": 20.0,
+            "ci95_wilson": [
+              0.0886,
+              0.3913
+            ]
+          },
+          "contrast": {
+            "hits": 6,
+            "rate": "6/25",
+            "pct": 24.0,
+            "ci95_wilson": [
+              0.115,
+              0.4343
+            ]
+          },
+          "cap_any": {
+            "hits": 11,
+            "rate": "11/25",
+            "pct": 44.0,
+            "ci95_wilson": [
+              0.2667,
+              0.6293
+            ]
+          },
+          "dom_element_n_median": 795.0,
+          "dom_element_n_min_max": [
+            101.0,
+            13642.0
+          ],
+          "median_n_primary_action_candidates": 99.0,
+          "median_n_accessible_name_sources": 251.0,
+          "median_n_target_size": 100.0,
+          "median_n_contrast": 165.0
+        },
+        "PLACE_LOOKUP": {
+          "n": 4,
+          "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "cap_any": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "dom_element_n_median": 537.5,
+          "dom_element_n_min_max": [
+            412.0,
+            960.0
+          ],
+          "median_n_primary_action_candidates": 44.0,
+          "median_n_accessible_name_sources": 83.0,
+          "median_n_target_size": 44.0,
+          "median_n_contrast": 77.0
+        },
+        "QUERY": {
+          "n": 5,
+          "n_tier": "OK",
+          "primary_action_candidates": {
+            "hits": 2,
+            "rate": "2/5",
+            "pct": 40.0,
+            "ci95_wilson": [
+              0.1176,
+              0.7693
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 2,
+            "rate": "2/5",
+            "pct": 40.0,
+            "ci95_wilson": [
+              0.1176,
+              0.7693
+            ]
+          },
+          "target_size": {
+            "hits": 1,
+            "rate": "1/5",
+            "pct": 20.0,
+            "ci95_wilson": [
+              0.0362,
+              0.6245
+            ]
+          },
+          "contrast": {
+            "hits": 2,
+            "rate": "2/5",
+            "pct": 40.0,
+            "ci95_wilson": [
+              0.1176,
+              0.7693
+            ]
+          },
+          "cap_any": {
+            "hits": 2,
+            "rate": "2/5",
+            "pct": 40.0,
+            "ci95_wilson": [
+              0.1176,
+              0.7693
+            ]
+          },
+          "dom_element_n_median": 1150.0,
+          "dom_element_n_min_max": [
+            371.0,
+            3130.0
+          ],
+          "median_n_primary_action_candidates": 59.0,
+          "median_n_accessible_name_sources": 132.0,
+          "median_n_target_size": 60.0,
+          "median_n_contrast": 103.0
+        },
+        "UTILITY_ENTRY": {
+          "n": 6,
+          "n_tier": "OK",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/6",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.3903
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 0,
+            "rate": "0/6",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.3903
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/6",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.3903
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/6",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.3903
+            ]
+          },
+          "cap_any": {
+            "hits": 0,
+            "rate": "0/6",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.3903
+            ]
+          },
+          "dom_element_n_median": 647.5,
+          "dom_element_n_min_max": [
+            159.0,
+            945.0
+          ],
+          "median_n_primary_action_candidates": 60.5,
+          "median_n_accessible_name_sources": 157.0,
+          "median_n_target_size": 62.5,
+          "median_n_contrast": 80.0
+        }
+      }
+    },
+    "target_grain_in_mart": {
+      "grain": "target",
+      "N": 54,
+      "by_archetype": {
+        "COMMUNICATION_ENTRY": {
+          "n": 4,
+          "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "cap_any": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "dom_element_n_median": 626.0,
+          "dom_element_n_min_max": [
+            373.0,
+            2051.0
+          ],
+          "median_n_primary_action_candidates": 23.5,
+          "median_n_accessible_name_sources": 68.5,
+          "median_n_target_size": 24.0,
+          "median_n_contrast": 59.5
+        },
+        "CONTENT_OPEN": {
+          "n": 3,
+          "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/3",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.5615
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 0,
+            "rate": "0/3",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.5615
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/3",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.5615
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/3",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.5615
+            ]
+          },
+          "cap_any": {
+            "hits": 0,
+            "rate": "0/3",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.5615
+            ]
+          },
+          "dom_element_n_median": 429.0,
+          "dom_element_n_min_max": [
+            216.0,
+            828.0
+          ],
+          "median_n_primary_action_candidates": 11.0,
+          "median_n_accessible_name_sources": 39.0,
+          "median_n_target_size": 14.0,
+          "median_n_contrast": 24.0
+        },
+        "FINANCIAL_ACTION_ENTRY": {
+          "n": 9,
+          "n_tier": "OK",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/9",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2991
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 1,
+            "rate": "1/9",
+            "pct": 11.1,
+            "ci95_wilson": [
+              0.0199,
+              0.435
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/9",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2991
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/9",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2991
+            ]
+          },
+          "cap_any": {
+            "hits": 1,
+            "rate": "1/9",
+            "pct": 11.1,
+            "ci95_wilson": [
+              0.0199,
+              0.435
+            ]
+          },
+          "dom_element_n_median": 567.0,
+          "dom_element_n_min_max": [
+            11.0,
+            2573.0
+          ],
+          "median_n_primary_action_candidates": 32.0,
+          "median_n_accessible_name_sources": 93.0,
+          "median_n_target_size": 32.0,
+          "median_n_contrast": 78.0
+        },
+        "ITEM_DETAIL": {
+          "n": 25,
+          "n_tier": "OK",
+          "primary_action_candidates": {
+            "hits": 5,
+            "rate": "5/25",
+            "pct": 20.0,
+            "ci95_wilson": [
+              0.0886,
+              0.3913
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 10,
+            "rate": "10/25",
+            "pct": 40.0,
+            "ci95_wilson": [
+              0.234,
+              0.5926
+            ]
+          },
+          "target_size": {
+            "hits": 5,
+            "rate": "5/25",
+            "pct": 20.0,
+            "ci95_wilson": [
+              0.0886,
+              0.3913
+            ]
+          },
+          "contrast": {
+            "hits": 6,
+            "rate": "6/25",
+            "pct": 24.0,
+            "ci95_wilson": [
+              0.115,
+              0.4343
+            ]
+          },
+          "cap_any": {
+            "hits": 11,
+            "rate": "11/25",
+            "pct": 44.0,
+            "ci95_wilson": [
+              0.2667,
+              0.6293
+            ]
+          },
+          "dom_element_n_median": 795.0,
+          "dom_element_n_min_max": [
+            101.0,
+            13642.0
+          ],
+          "median_n_primary_action_candidates": 99.0,
+          "median_n_accessible_name_sources": 251.0,
+          "median_n_target_size": 100.0,
+          "median_n_contrast": 165.0
+        },
+        "PLACE_LOOKUP": {
+          "n": 4,
+          "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "cap_any": {
+            "hits": 0,
+            "rate": "0/4",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4899
+            ]
+          },
+          "dom_element_n_median": 537.5,
+          "dom_element_n_min_max": [
+            412.0,
+            960.0
+          ],
+          "median_n_primary_action_candidates": 44.0,
+          "median_n_accessible_name_sources": 83.0,
+          "median_n_target_size": 44.0,
+          "median_n_contrast": 77.0
+        },
+        "QUERY": {
+          "n": 4,
+          "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+          "primary_action_candidates": {
+            "hits": 2,
+            "rate": "2/4",
+            "pct": 50.0,
+            "ci95_wilson": [
+              0.15,
+              0.85
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 2,
+            "rate": "2/4",
+            "pct": 50.0,
+            "ci95_wilson": [
+              0.15,
+              0.85
+            ]
+          },
+          "target_size": {
+            "hits": 1,
+            "rate": "1/4",
+            "pct": 25.0,
+            "ci95_wilson": [
+              0.0456,
+              0.6994
+            ]
+          },
+          "contrast": {
+            "hits": 2,
+            "rate": "2/4",
+            "pct": 50.0,
+            "ci95_wilson": [
+              0.15,
+              0.85
+            ]
+          },
+          "cap_any": {
+            "hits": 2,
+            "rate": "2/4",
+            "pct": 50.0,
+            "ci95_wilson": [
+              0.15,
+              0.85
+            ]
+          },
+          "dom_element_n_median": 2105.0,
+          "dom_element_n_min_max": [
+            371.0,
+            3130.0
+          ],
+          "median_n_primary_action_candidates": 129.5,
+          "median_n_accessible_name_sources": 216.0,
+          "median_n_target_size": 160.5,
+          "median_n_contrast": 251.5
+        },
+        "UTILITY_ENTRY": {
+          "n": 5,
+          "n_tier": "OK",
+          "primary_action_candidates": {
+            "hits": 0,
+            "rate": "0/5",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ]
+          },
+          "accessible_name_sources": {
+            "hits": 0,
+            "rate": "0/5",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ]
+          },
+          "target_size": {
+            "hits": 0,
+            "rate": "0/5",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ]
+          },
+          "contrast": {
+            "hits": 0,
+            "rate": "0/5",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ]
+          },
+          "cap_any": {
+            "hits": 0,
+            "rate": "0/5",
+            "pct": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ]
+          },
+          "dom_element_n_median": 588.0,
+          "dom_element_n_min_max": [
+            159.0,
+            945.0
+          ],
+          "median_n_primary_action_candidates": 60.0,
+          "median_n_accessible_name_sources": 149.0,
+          "median_n_target_size": 62.0,
+          "median_n_contrast": 80.0
+        }
+      }
+    }
+  },
+  "global_archetype_test": {
+    "observation_grain": {
+      "table": {
+        "COMMUNICATION_ENTRY": {
+          "no_cap": 4,
+          "cap": 0
+        },
+        "CONTENT_OPEN": {
+          "no_cap": 4,
+          "cap": 0
+        },
+        "FINANCIAL_ACTION_ENTRY": {
+          "no_cap": 9,
+          "cap": 1
+        },
+        "ITEM_DETAIL": {
+          "no_cap": 14,
+          "cap": 11
+        },
+        "PLACE_LOOKUP": {
+          "no_cap": 4,
+          "cap": 0
+        },
+        "QUERY": {
+          "no_cap": 3,
+          "cap": 2
+        },
+        "UTILITY_ENTRY": {
+          "no_cap": 6,
+          "cap": 0
+        }
+      },
+      "chi2": 12.8918,
+      "min_expected_cell": 0.966,
+      "chi2_asymptotic_INVALID_flag": true,
+      "permutation_p_two_sided": 0.0355,
+      "n_permutations": 10000,
+      "note": "7x2 table with min expected cell < 5 -> asymptotic chi-square is invalid; the permutation p is the only usable global figure and it still rests on 3-5 units in four archetypes."
+    },
+    "target_grain_in_mart": {
+      "table": {
+        "COMMUNICATION_ENTRY": {
+          "no_cap": 4,
+          "cap": 0
+        },
+        "CONTENT_OPEN": {
+          "no_cap": 3,
+          "cap": 0
+        },
+        "FINANCIAL_ACTION_ENTRY": {
+          "no_cap": 8,
+          "cap": 1
+        },
+        "ITEM_DETAIL": {
+          "no_cap": 14,
+          "cap": 11
+        },
+        "PLACE_LOOKUP": {
+          "no_cap": 4,
+          "cap": 0
+        },
+        "QUERY": {
+          "no_cap": 2,
+          "cap": 2
+        },
+        "UTILITY_ENTRY": {
+          "no_cap": 5,
+          "cap": 0
+        }
+      },
+      "chi2": 12.0883,
+      "min_expected_cell": 0.778,
+      "chi2_asymptotic_INVALID_flag": true,
+      "permutation_p_two_sided": 0.05159,
+      "n_permutations": 10000,
+      "note": "7x2 table with min expected cell < 5 -> asymptotic chi-square is invalid; the permutation p is the only usable global figure and it still rests on 3-5 units in four archetypes."
+    }
+  },
+  "fisher_item_detail_vs_rest": {
+    "observation_grain": {
+      "primary_action_candidates": {
+        "label": "ITEM_DETAIL vs rest — primary_action_candidates (observation_grain)",
+        "table_2x2": {
+          "group1_hit": 5,
+          "group1_n": 25,
+          "group0_hit": 2,
+          "group0_n": 33
+        },
+        "rate_group1": "5/25",
+        "rate_group1_pct": 20.0,
+        "ci95_group1": [
+          0.0886,
+          0.3913
+        ],
+        "rate_group0": "2/33",
+        "rate_group0_pct": 6.06,
+        "ci95_group0": [
+          0.0168,
+          0.1961
+        ],
+        "risk_difference": 0.1394,
+        "risk_difference_ci95_newcombe": [
+          -0.036,
+          0.3356
+        ],
+        "risk_ratio": 3.3,
+        "ci95": [
+          0.6967,
+          15.6305
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 3.7845,
+        "odds_ratio_ci95": [
+          0.554,
+          43.3794
+        ],
+        "fisher_exact_p_two_sided": 0.220634
+      },
+      "accessible_name_sources": {
+        "label": "ITEM_DETAIL vs rest — accessible_name_sources (observation_grain)",
+        "table_2x2": {
+          "group1_hit": 10,
+          "group1_n": 25,
+          "group0_hit": 3,
+          "group0_n": 33
+        },
+        "rate_group1": "10/25",
+        "rate_group1_pct": 40.0,
+        "ci95_group1": [
+          0.234,
+          0.5926
+        ],
+        "rate_group0": "3/33",
+        "rate_group0_pct": 9.09,
+        "ci95_group0": [
+          0.0314,
+          0.2357
+        ],
+        "risk_difference": 0.3091,
+        "risk_difference_ci95_newcombe": [
+          0.0888,
+          0.5107
+        ],
+        "risk_ratio": 4.4,
+        "ci95": [
+          1.3508,
+          14.3324
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 6.4357,
+        "odds_ratio_ci95": [
+          1.387,
+          41.8334
+        ],
+        "fisher_exact_p_two_sided": 0.009446
+      },
+      "target_size": {
+        "label": "ITEM_DETAIL vs rest — target_size (observation_grain)",
+        "table_2x2": {
+          "group1_hit": 5,
+          "group1_n": 25,
+          "group0_hit": 1,
+          "group0_n": 33
+        },
+        "rate_group1": "5/25",
+        "rate_group1_pct": 20.0,
+        "ci95_group1": [
+          0.0886,
+          0.3913
+        ],
+        "rate_group0": "1/33",
+        "rate_group0_pct": 3.03,
+        "ci95_group0": [
+          0.0054,
+          0.1532
+        ],
+        "risk_difference": 0.1697,
+        "risk_difference_ci95_newcombe": [
+          0.0038,
+          0.3626
+        ],
+        "risk_ratio": 6.6,
+        "ci95": [
+          0.8219,
+          52.9983
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 7.7339,
+        "odds_ratio_ci95": [
+          0.7842,
+          389.8907
+        ],
+        "fisher_exact_p_two_sided": 0.075057
+      },
+      "contrast": {
+        "label": "ITEM_DETAIL vs rest — contrast (observation_grain)",
+        "table_2x2": {
+          "group1_hit": 6,
+          "group1_n": 25,
+          "group0_hit": 2,
+          "group0_n": 33
+        },
+        "rate_group1": "6/25",
+        "rate_group1_pct": 24.0,
+        "ci95_group1": [
+          0.115,
+          0.4343
+        ],
+        "rate_group0": "2/33",
+        "rate_group0_pct": 6.06,
+        "ci95_group0": [
+          0.0168,
+          0.1961
+        ],
+        "risk_difference": 0.1794,
+        "risk_difference_ci95_newcombe": [
+          -0.005,
+          0.3786
+        ],
+        "risk_ratio": 3.96,
+        "ci95": [
+          0.8717,
+          17.99
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 4.7609,
+        "odds_ratio_ci95": [
+          0.7525,
+          52.9153
+        ],
+        "fisher_exact_p_two_sided": 0.064867
+      },
+      "cap_any": {
+        "label": "ITEM_DETAIL vs rest — cap_any (observation_grain)",
+        "table_2x2": {
+          "group1_hit": 11,
+          "group1_n": 25,
+          "group0_hit": 3,
+          "group0_n": 33
+        },
+        "rate_group1": "11/25",
+        "rate_group1_pct": 44.0,
+        "ci95_group1": [
+          0.2667,
+          0.6293
+        ],
+        "rate_group0": "3/33",
+        "rate_group0_pct": 9.09,
+        "ci95_group0": [
+          0.0314,
+          0.2357
+        ],
+        "risk_difference": 0.3491,
+        "risk_difference_ci95_newcombe": [
+          0.1233,
+          0.5475
+        ],
+        "risk_ratio": 4.84,
+        "ci95": [
+          1.5081,
+          15.5328
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 7.5559,
+        "odds_ratio_ci95": [
+          1.6522,
+          48.8562
+        ],
+        "fisher_exact_p_two_sided": 0.004179
+      },
+      "_group_sizes": {
+        "ITEM_DETAIL_n": 25,
+        "other_n": 33
+      }
+    },
+    "target_grain_in_mart": {
+      "primary_action_candidates": {
+        "label": "ITEM_DETAIL vs rest — primary_action_candidates (target_grain_in_mart)",
+        "table_2x2": {
+          "group1_hit": 5,
+          "group1_n": 25,
+          "group0_hit": 2,
+          "group0_n": 29
+        },
+        "rate_group1": "5/25",
+        "rate_group1_pct": 20.0,
+        "ci95_group1": [
+          0.0886,
+          0.3913
+        ],
+        "rate_group0": "2/29",
+        "rate_group0_pct": 6.9,
+        "ci95_group0": [
+          0.0191,
+          0.2196
+        ],
+        "risk_difference": 0.131,
+        "risk_difference_ci95_newcombe": [
+          -0.0563,
+          0.3287
+        ],
+        "risk_ratio": 2.9,
+        "ci95": [
+          0.6154,
+          13.665
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 3.3006,
+        "odds_ratio_ci95": [
+          0.4798,
+          38.0211
+        ],
+        "fisher_exact_p_two_sided": 0.229382
+      },
+      "accessible_name_sources": {
+        "label": "ITEM_DETAIL vs rest — accessible_name_sources (target_grain_in_mart)",
+        "table_2x2": {
+          "group1_hit": 10,
+          "group1_n": 25,
+          "group0_hit": 3,
+          "group0_n": 29
+        },
+        "rate_group1": "10/25",
+        "rate_group1_pct": 40.0,
+        "ci95_group1": [
+          0.234,
+          0.5926
+        ],
+        "rate_group0": "3/29",
+        "rate_group0_pct": 10.34,
+        "ci95_group0": [
+          0.0358,
+          0.2639
+        ],
+        "risk_difference": 0.2966,
+        "risk_difference_ci95_newcombe": [
+          0.0657,
+          0.5007
+        ],
+        "risk_ratio": 3.8667,
+        "ci95": [
+          1.1952,
+          12.5095
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 5.5847,
+        "odds_ratio_ci95": [
+          1.1917,
+          36.5501
+        ],
+        "fisher_exact_p_two_sided": 0.02315
+      },
+      "target_size": {
+        "label": "ITEM_DETAIL vs rest — target_size (target_grain_in_mart)",
+        "table_2x2": {
+          "group1_hit": 5,
+          "group1_n": 25,
+          "group0_hit": 1,
+          "group0_n": 29
+        },
+        "rate_group1": "5/25",
+        "rate_group1_pct": 20.0,
+        "ci95_group1": [
+          0.0886,
+          0.3913
+        ],
+        "rate_group0": "1/29",
+        "rate_group0_pct": 3.45,
+        "ci95_group0": [
+          0.0061,
+          0.1718
+        ],
+        "risk_difference": 0.1655,
+        "risk_difference_ci95_newcombe": [
+          -0.0113,
+          0.3589
+        ],
+        "risk_ratio": 5.8,
+        "ci95": [
+          0.7251,
+          46.395
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 6.7726,
+        "odds_ratio_ci95": [
+          0.6827,
+          342.6169
+        ],
+        "fisher_exact_p_two_sided": 0.084906
+      },
+      "contrast": {
+        "label": "ITEM_DETAIL vs rest — contrast (target_grain_in_mart)",
+        "table_2x2": {
+          "group1_hit": 6,
+          "group1_n": 25,
+          "group0_hit": 2,
+          "group0_n": 29
+        },
+        "rate_group1": "6/25",
+        "rate_group1_pct": 24.0,
+        "ci95_group1": [
+          0.115,
+          0.4343
+        ],
+        "rate_group0": "2/29",
+        "rate_group0_pct": 6.9,
+        "ci95_group0": [
+          0.0191,
+          0.2196
+        ],
+        "risk_difference": 0.171,
+        "risk_difference_ci95_newcombe": [
+          -0.0247,
+          0.3716
+        ],
+        "risk_ratio": 3.48,
+        "ci95": [
+          0.7701,
+          15.7256
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 4.1516,
+        "odds_ratio_ci95": [
+          0.6513,
+          46.3789
+        ],
+        "fisher_exact_p_two_sided": 0.125171
+      },
+      "cap_any": {
+        "label": "ITEM_DETAIL vs rest — cap_any (target_grain_in_mart)",
+        "table_2x2": {
+          "group1_hit": 11,
+          "group1_n": 25,
+          "group0_hit": 3,
+          "group0_n": 29
+        },
+        "rate_group1": "11/25",
+        "rate_group1_pct": 44.0,
+        "ci95_group1": [
+          0.2667,
+          0.6293
+        ],
+        "rate_group0": "3/29",
+        "rate_group0_pct": 10.34,
+        "ci95_group0": [
+          0.0358,
+          0.2639
+        ],
+        "risk_difference": 0.3366,
+        "risk_difference_ci95_newcombe": [
+          0.1004,
+          0.5376
+        ],
+        "risk_ratio": 4.2533,
+        "ci95": [
+          1.3345,
+          13.5561
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 6.5566,
+        "odds_ratio_ci95": [
+          1.4192,
+          42.686
+        ],
+        "fisher_exact_p_two_sided": 0.011061
+      },
+      "_group_sizes": {
+        "ITEM_DETAIL_n": 25,
+        "other_n": 29
+      }
+    }
+  },
+  "power_analysis": {
+    "grain": "target_grain_in_mart",
+    "margins": {
+      "ITEM_DETAIL_n": 25,
+      "other_n": 29,
+      "total": 54
+    },
+    "method": "Monte-Carlo power of the two-sided Fisher exact test at fixed group sizes (binomial sampling, alpha=0.05).",
+    "observed_rates_cap_any": {
+      "ITEM_DETAIL": "11/25",
+      "other": "3/29"
+    },
+    "power_at_observed_effect_cap_any": 0.803,
+    "mde_at_80pct_power_given_observed_control_rate": {
+      "p0_assumed": 0.1034,
+      "mde_p1": 0.45,
+      "mde_risk_difference": 0.3466,
+      "mde_risk_ratio": 4.35,
+      "power_at_mde": 0.819
+    },
+    "mde_at_80pct_power_given_p0_0.10": {
+      "p0_assumed": 0.1,
+      "mde_p1": 0.44,
+      "mde_risk_difference": 0.34,
+      "mde_risk_ratio": 4.4,
+      "power_at_mde": 0.809
+    },
+    "power_grid": [
+      {
+        "p0": 0.05,
+        "risk_ratio": 1.5,
+        "p1": 0.075,
+        "power_fisher_two_sided_alpha05": 0.03
+      },
+      {
+        "p0": 0.05,
+        "risk_ratio": 2.0,
+        "p1": 0.1,
+        "power_fisher_two_sided_alpha05": 0.069
+      },
+      {
+        "p0": 0.05,
+        "risk_ratio": 3.0,
+        "p1": 0.15,
+        "power_fisher_two_sided_alpha05": 0.187
+      },
+      {
+        "p0": 0.05,
+        "risk_ratio": 4.0,
+        "p1": 0.2,
+        "power_fisher_two_sided_alpha05": 0.331
+      },
+      {
+        "p0": 0.05,
+        "risk_ratio": 6.0,
+        "p1": 0.3,
+        "power_fisher_two_sided_alpha05": 0.662
+      },
+      {
+        "p0": 0.1,
+        "risk_ratio": 1.5,
+        "p1": 0.15,
+        "power_fisher_two_sided_alpha05": 0.061
+      },
+      {
+        "p0": 0.1,
+        "risk_ratio": 2.0,
+        "p1": 0.2,
+        "power_fisher_two_sided_alpha05": 0.135
+      },
+      {
+        "p0": 0.1,
+        "risk_ratio": 3.0,
+        "p1": 0.3,
+        "power_fisher_two_sided_alpha05": 0.389
+      },
+      {
+        "p0": 0.1,
+        "risk_ratio": 4.0,
+        "p1": 0.4,
+        "power_fisher_two_sided_alpha05": 0.713
+      },
+      {
+        "p0": 0.1,
+        "risk_ratio": 6.0,
+        "p1": 0.6,
+        "power_fisher_two_sided_alpha05": 0.985
+      },
+      {
+        "p0": 0.15,
+        "risk_ratio": 1.5,
+        "p1": 0.225,
+        "power_fisher_two_sided_alpha05": 0.082
+      },
+      {
+        "p0": 0.15,
+        "risk_ratio": 2.0,
+        "p1": 0.3,
+        "power_fisher_two_sided_alpha05": 0.216
+      },
+      {
+        "p0": 0.15,
+        "risk_ratio": 3.0,
+        "p1": 0.45,
+        "power_fisher_two_sided_alpha05": 0.663
+      },
+      {
+        "p0": 0.15,
+        "risk_ratio": 4.0,
+        "p1": 0.6,
+        "power_fisher_two_sided_alpha05": 0.941
+      },
+      {
+        "p0": 0.15,
+        "risk_ratio": 6.0,
+        "p1": 0.9,
+        "power_fisher_two_sided_alpha05": 1.0
+      },
+      {
+        "p0": 0.2,
+        "risk_ratio": 1.5,
+        "p1": 0.3,
+        "power_fisher_two_sided_alpha05": 0.113
+      },
+      {
+        "p0": 0.2,
+        "risk_ratio": 2.0,
+        "p1": 0.4,
+        "power_fisher_two_sided_alpha05": 0.334
+      },
+      {
+        "p0": 0.2,
+        "risk_ratio": 3.0,
+        "p1": 0.6,
+        "power_fisher_two_sided_alpha05": 0.843
+      },
+      {
+        "p0": 0.2,
+        "risk_ratio": 4.0,
+        "p1": 0.8,
+        "power_fisher_two_sided_alpha05": 0.996
+      },
+      {
+        "p0": 0.2,
+        "risk_ratio": 6.0,
+        "p1": 0.999,
+        "power_fisher_two_sided_alpha05": 1.0
+      }
+    ],
+    "interpretation": "Power is adequate only for large risk ratios on top of a low control rate. Everything below roughly a 2.5x risk ratio is not detectable at this N, so a null result here cannot be read as absence of bias, and the four archetypes with n=3-5 carry no power at all.",
+    "assertion_type": "ANALYSIS",
+    "per_archetype_floor": {
+      "COMMUNICATION_ENTRY": {
+        "n": 4,
+        "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+        "widest_possible_wilson_ci_if_0_hits": [
+          0.0,
+          0.4899
+        ],
+        "comment": "with 0/n observed the upper bound alone spans this much — nothing below it is excluded"
+      },
+      "CONTENT_OPEN": {
+        "n": 3,
+        "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+        "widest_possible_wilson_ci_if_0_hits": [
+          0.0,
+          0.5615
+        ],
+        "comment": "with 0/n observed the upper bound alone spans this much — nothing below it is excluded"
+      },
+      "FINANCIAL_ACTION_ENTRY": {
+        "n": 9,
+        "n_tier": "OK",
+        "widest_possible_wilson_ci_if_0_hits": [
+          0.0,
+          0.2991
+        ],
+        "comment": "with 0/n observed the upper bound alone spans this much — nothing below it is excluded"
+      },
+      "ITEM_DETAIL": {
+        "n": 25,
+        "n_tier": "OK",
+        "widest_possible_wilson_ci_if_0_hits": [
+          0.0,
+          0.1332
+        ],
+        "comment": "with 0/n observed the upper bound alone spans this much — nothing below it is excluded"
+      },
+      "PLACE_LOOKUP": {
+        "n": 4,
+        "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+        "widest_possible_wilson_ci_if_0_hits": [
+          0.0,
+          0.4899
+        ],
+        "comment": "with 0/n observed the upper bound alone spans this much — nothing below it is excluded"
+      },
+      "QUERY": {
+        "n": 4,
+        "n_tier": "LOW_N_DESCRIPTIVE_ONLY",
+        "widest_possible_wilson_ci_if_0_hits": [
+          0.0,
+          0.4899
+        ],
+        "comment": "with 0/n observed the upper bound alone spans this much — nothing below it is excluded"
+      },
+      "UTILITY_ENTRY": {
+        "n": 5,
+        "n_tier": "OK",
+        "widest_possible_wilson_ci_if_0_hits": [
+          0.0,
+          0.4345
+        ],
+        "comment": "with 0/n observed the upper bound alone spans this much — nothing below it is excluded"
+      }
+    }
+  },
+  "confounding_dom_size": {
+    "grain": "target_grain_in_mart",
+    "dom_element_n_by_archetype_median": {
+      "COMMUNICATION_ENTRY": 626.0,
+      "CONTENT_OPEN": 429.0,
+      "FINANCIAL_ACTION_ENTRY": 567.0,
+      "ITEM_DETAIL": 795.0,
+      "PLACE_LOOKUP": 537.5,
+      "QUERY": 2105.0,
+      "UTILITY_ENTRY": 588.0
+    },
+    "dom_element_n_ITEM_DETAIL_vs_other": {
+      "median_ITEM_DETAIL": 795.0,
+      "median_other": 567.0,
+      "mannwhitney_p": 0.15739,
+      "auc_effect_size": 0.6131
+    },
+    "dom_element_n_cap_hit_vs_not": {
+      "median_cap_hit": 2799.5,
+      "median_no_cap": 549.0,
+      "mannwhitney_p": 9e-06,
+      "auc_effect_size": 0.9036
+    },
+    "stratified_by_dom_tertile": {
+      "T1_small": {
+        "dom_range": [
+          11.0,
+          429.0
+        ],
+        "ITEM_DETAIL": "1/7",
+        "other": "0/11",
+        "risk_difference": 0.1429,
+        "fisher_p": 0.38889
+      },
+      "T2_mid": {
+        "dom_range": [
+          498.0,
+          873.0
+        ],
+        "ITEM_DETAIL": "1/8",
+        "other": "0/10",
+        "risk_difference": 0.125,
+        "fisher_p": 0.44444
+      },
+      "T3_large": {
+        "dom_range": [
+          945.0,
+          13642.0
+        ],
+        "ITEM_DETAIL": "9/10",
+        "other": "3/8",
+        "risk_difference": 0.525,
+        "fisher_p": 0.04299
+      }
+    },
+    "mantel_haenszel_across_dom_tertiles": {
+      "mh_odds_ratio": 22.0,
+      "ci95": [
+        1.7465,
+        277.1281
+      ],
+      "strata_used": 3
+    },
+    "logistic_regression": {
+      "model": "cap_any ~ log10(dom_element_n) + is_ITEM_DETAIL, target grain",
+      "n": 54,
+      "events": 14,
+      "events_per_variable": 7.0,
+      "coefficients": {
+        "const": {
+          "beta": -18.1447,
+          "odds_ratio": 0.0,
+          "ci95_or": [
+            0.0,
+            0.0004
+          ],
+          "p": 0.00062
+        },
+        "log10_dom_element_n": {
+          "beta": 5.2992,
+          "odds_ratio": 200.1763,
+          "ci95_or": [
+            7.9764,
+            5023.6443
+          ],
+          "p": 0.00127
+        },
+        "is_ITEM_DETAIL": {
+          "beta": 2.1098,
+          "odds_ratio": 8.2469,
+          "ci95_or": [
+            1.1203,
+            60.7099
+          ],
+          "p": 0.03832
+        }
+      },
+      "pseudo_r2_mcfadden": 0.5145,
+      "WARNING": "14 events / 2 predictors = 7 EPV, below the usual 10 EPV floor; Wald CIs here are optimistic and the estimate is unstable. Treat as descriptive, not as an adjusted effect estimate."
+    },
+    "size_adjusted_residual_test": {
+      "primary_action_candidates": {
+        "n_used": 54,
+        "ols_log10_slope_on_log10_dom": 0.5233,
+        "r": 0.5888,
+        "median_residual_ITEM_DETAIL": 0.1652,
+        "median_residual_other": -0.0154,
+        "mannwhitney_p": 0.07975,
+        "auc_effect_size": 0.64,
+        "caution": "counts are right-censored at the ceiling, so residuals of capped rows are lower bounds; this test is conservative toward the null for the capped group"
+      },
+      "accessible_name_sources": {
+        "n_used": 54,
+        "ols_log10_slope_on_log10_dom": 0.439,
+        "r": 0.5967,
+        "median_residual_ITEM_DETAIL": 0.1122,
+        "median_residual_other": -0.0185,
+        "mannwhitney_p": 0.11441,
+        "auc_effect_size": 0.6262,
+        "caution": "counts are right-censored at the ceiling, so residuals of capped rows are lower bounds; this test is conservative toward the null for the capped group"
+      },
+      "target_size": {
+        "n_used": 54,
+        "ols_log10_slope_on_log10_dom": 0.579,
+        "r": 0.6188,
+        "median_residual_ITEM_DETAIL": 0.1301,
+        "median_residual_other": -0.0419,
+        "mannwhitney_p": 0.05863,
+        "auc_effect_size": 0.651,
+        "caution": "counts are right-censored at the ceiling, so residuals of capped rows are lower bounds; this test is conservative toward the null for the capped group"
+      },
+      "contrast": {
+        "n_used": 54,
+        "ols_log10_slope_on_log10_dom": 0.6017,
+        "r": 0.6668,
+        "median_residual_ITEM_DETAIL": 0.1088,
+        "median_residual_other": 0.0064,
+        "mannwhitney_p": 0.40501,
+        "auc_effect_size": 0.5669,
+        "caution": "counts are right-censored at the ceiling, so residuals of capped rows are lower bounds; this test is conservative toward the null for the capped group"
+      }
+    },
+    "assertion_type": "ANALYSIS"
+  },
+  "cap_structure": {
+    "grain": "observation_grain",
+    "phi_matrix": {
+      "cap_primary_action_candidates": {
+        "cap_primary_action_candidates": 1.0,
+        "cap_accessible_name_sources": 0.689,
+        "cap_target_size": 0.917,
+        "cap_contrast": 0.773
+      },
+      "cap_accessible_name_sources": {
+        "cap_primary_action_candidates": 0.689,
+        "cap_accessible_name_sources": 1.0,
+        "cap_target_size": 0.632,
+        "cap_contrast": 0.624
+      },
+      "cap_target_size": {
+        "cap_primary_action_candidates": 0.917,
+        "cap_accessible_name_sources": 0.632,
+        "cap_target_size": 1.0,
+        "cap_contrast": 0.685
+      },
+      "cap_contrast": {
+        "cap_primary_action_candidates": 0.773,
+        "cap_accessible_name_sources": 0.624,
+        "cap_target_size": 0.685,
+        "cap_contrast": 1.0
+      }
+    },
+    "cooccurrence": {
+      "cap_primary_action_candidates|cap_accessible_name_sources": {
+        "both": 7,
+        "either": 13,
+        "jaccard": 0.5385
+      },
+      "cap_primary_action_candidates|cap_target_size": {
+        "both": 6,
+        "either": 7,
+        "jaccard": 0.8571
+      },
+      "cap_primary_action_candidates|cap_contrast": {
+        "both": 6,
+        "either": 9,
+        "jaccard": 0.6667
+      },
+      "cap_accessible_name_sources|cap_target_size": {
+        "both": 6,
+        "either": 13,
+        "jaccard": 0.4615
+      },
+      "cap_accessible_name_sources|cap_contrast": {
+        "both": 7,
+        "either": 14,
+        "jaccard": 0.5
+      },
+      "cap_target_size|cap_contrast": {
+        "both": 5,
+        "either": 9,
+        "jaccard": 0.5556
+      }
+    },
+    "cap_count_distribution": {
+      "0": 44,
+      "1": 6,
+      "2": 1,
+      "3": 2,
+      "4": 5
+    },
+    "binding_constraint": {
+      "cap_hits_total": 14,
+      "of_which_hit_accessible_name_sources": 13,
+      "of_which_hit_accessible_name_ONLY": 5,
+      "statement": "accessible_name_sources (ceiling 300, the only cap with no visible filter) is the first cap to bite in almost every cap-hit unit; it is the binding constraint of the probe."
+    },
+    "smallest_dom_that_hit_accessible_name_cap": {
+      "wtg": "54",
+      "dom_element_n": 176.0,
+      "note": "a unit can reach 300 name sources with far fewer DOM elements, because one element contributes several name sources; the no-visible-filter cap therefore does not track rendered page size cleanly."
+    },
+    "assertion_type": "OBSERVATION"
+  },
+  "counterexamples": {
+    "alt_hypothesis": "cap-hits are concentrated in large pages, not in ITEM_DETAIL; prior_archetype only correlates with page size.",
+    "largest_dom_without_any_cap": [
+      {
+        "wtg": "12e3942c0495b9a4",
+        "prior_archetype": "ITEM_DETAIL",
+        "dom_element_n": 2617.0,
+        "n_accessible_name_sources": 251.0,
+        "n_primary_action_candidates": 56.0
+      },
+      {
+        "wtg": "65f15ce8fee25b24",
+        "prior_archetype": "COMMUNICATION_ENTRY",
+        "dom_element_n": 2051.0,
+        "n_accessible_name_sources": 53.0,
+        "n_primary_action_candidates": 17.0
+      },
+      {
+        "wtg": "35319a420294ee17",
+        "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+        "dom_element_n": 1570.0,
+        "n_accessible_name_sources": 93.0,
+        "n_primary_action_candidates": 32.0
+      },
+      {
+        "wtg": "9390ef32addf32bf",
+        "prior_archetype": "QUERY",
+        "dom_element_n": 1150.0,
+        "n_accessible_name_sources": 132.0,
+        "n_primary_action_candidates": 59.0
+      },
+      {
+        "wtg": "efda6e0b8457d63c",
+        "prior_archetype": "PLACE_LOOKUP",
+        "dom_element_n": 960.0,
+        "n_accessible_name_sources": 251.0,
+        "n_primary_action_candidates": 74.0
+      }
+    ],
+    "smallest_dom_with_a_cap": [
+      {
+        "wtg": "49a5eca8b58f7270",
+        "prior_archetype": "ITEM_DETAIL",
+        "dom_element_n": 176.0,
+        "n_accessible_name_sources": 300.0,
+        "n_primary_action_candidates": 138.0
+      },
+      {
+        "wtg": "0ee385d0c964e560",
+        "prior_archetype": "ITEM_DETAIL",
+        "dom_element_n": 728.0,
+        "n_accessible_name_sources": 260.0,
+        "n_primary_action_candidates": 188.0
+      },
+      {
+        "wtg": "fdce1294fac3dfdb",
+        "prior_archetype": "ITEM_DETAIL",
+        "dom_element_n": 1115.0,
+        "n_accessible_name_sources": 300.0,
+        "n_primary_action_candidates": 23.0
+      },
+      {
+        "wtg": "be1e6feb78e5ef03",
+        "prior_archetype": "ITEM_DETAIL",
+        "dom_element_n": 1234.0,
+        "n_accessible_name_sources": 300.0,
+        "n_primary_action_candidates": 162.0
+      },
+      {
+        "wtg": "7f6f1aa6dd218d4d",
+        "prior_archetype": "ITEM_DETAIL",
+        "dom_element_n": 2223.0,
+        "n_accessible_name_sources": 300.0,
+        "n_primary_action_candidates": 200.0
+      }
+    ],
+    "ITEM_DETAIL_without_any_cap": "14/25",
+    "QUERY_note": {
+      "QUERY_n": 4,
+      "QUERY_cap_hits": 2,
+      "QUERY_median_dom": 2105.0,
+      "ITEM_DETAIL_median_dom": 795.0,
+      "statement": "QUERY has the largest median DOM of any archetype yet a smaller n; it is a direct counterexample to 'ITEM_DETAIL = the big pages'."
+    },
+    "assertion_type": "ANALYSIS"
+  },
+  "excess_depth": {
+    "definition": "ExcessDepth(unit) = MPFED(unit) - median(MPFED | same prior_archetype)",
+    "measurability_now": {
+      "MPFED_column_present_in_D_OBSERVATION_TABLE": false,
+      "statement": "MPFED is not a column of this RQ's input, and the frozen mart is reported (external to this RQ) as 0/31 non-null MPFED. No observed ExcessDepth exists to measure, so every statement below is a PROJECTION about the direction of distortion once MPFED becomes available, not a measurement."
+    },
+    "mechanism": [
+      "A cap is a right-censoring of the candidate pool at a fixed ceiling. Any statistic computed downstream of a censored pool is computed on a subset, not on the page.",
+      "MPFED is a max-type statistic over paths reachable from the entry candidate set. Censoring the candidate set can only remove candidates, so the measured maximum is a lower bound on the true one: censoring biases MPFED downward or leaves it unchanged, never upward.",
+      "Within an archetype whose cap incidence is high, the same-archetype median MPFED is therefore pulled downward relative to the uncensored truth."
+    ],
+    "direction_within_archetype": "For a censored archetype, the baseline median is depressed. Uncensored members of that archetype are then scored against a too-low baseline and their ExcessDepth is inflated; censored members carry a depressed MPFED against a depressed median, so their ExcessDepth is compressed toward zero. The within-archetype ranking is distorted in a direction that systematically flatters the units the probe failed to measure and penalises the units it measured completely.",
+    "direction_between_archetypes": "Cross-archetype comparison of median MPFED confounds true archetype depth with cap incidence. In this data the cap-incidence spread across archetypes is the full range from 0/4 to 11/25, so an apparent 'ITEM_DETAIL is shallower than X' finding would be indistinguishable from 'ITEM_DETAIL is measured less completely than X'. ExcessDepth is defined within archetype so it is partially insulated from this, but any analysis that then compares ExcessDepth distributions across archetypes reimports the confound, because the baselines were subtracted at different levels of censoring.",
+    "magnitude_bound": "Not estimable. The censored counts give no information about how many candidates were discarded (no overflow counter is emitted), so the size of the MPFED depression is unbounded from the data alone.",
+    "actionable_requirement": "To make ExcessDepth comparable, the probe must emit a truncation indicator per unit (already present as cap_* flags) AND a total-before-truncation counter (absent). Without the second, censored units can only be excluded, not corrected.",
+    "assertion_type": "PROJECTION"
+  },
+  "figure": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/figures/RQ_D8_cap_by_archetype.png",
+  "verdict": {
+    "value": "PARTIALLY_SUPPORTED",
+    "one_line": "Cap truncation is unevenly distributed across prior_archetype and is concentrated in ITEM_DETAIL (11/25 vs 3/29, Fisher p=0.011061), but the sample cannot separate that from the DOM-size confound and has no power at all for four of the seven archetypes.",
+    "what_is_supported": "That cap incidence is non-uniform across archetypes and that the same-archetype median baseline of ExcessDepth would be unequally censored.",
+    "what_is_not_supported": "That prior_archetype rather than page size is what the cap tracks; and any claim about the size of the ExcessDepth distortion.",
+    "assertion_type": "ANALYSIS"
+  }
+}
