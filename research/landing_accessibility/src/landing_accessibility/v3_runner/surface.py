@@ -41,6 +41,25 @@ DOM 속성으로 추정하면 그 순간 두 값이 같은 출처가 되어 분�
    `scroll_states` 는 주어진 순서대로 S0, S1, ... 로 본다. 각 원소가 `state_index` 를
    가지면 그 값을 쓰고, 없으면 인덱스로 `S{i}` 를 만든다.
 
+**이 형태는 런타임에 강제된다** (Δ35 · `SurfaceProbeShapeError`). 어긋나면 예외이고
+`NOT_OBSERVED` 를 내지 않는다. 넘겨야 하는 것은 `raw_features` 를 **담고 있는 봉투**이지
+그 안쪽 dict 가 아니다 — `engine/l0_probe.js` 가 `{..., raw_features: {...}}` 를 내고
+`engine/l0_collector.py` 가 `raw_features=probe.get("raw_features", {})` 로 **안쪽만**
+꺼내 `L0Observation.raw_features` 에 담기 때문에, `L0Observation.raw_features` 를 그대로
+넘기면 봉투를 한 겹 벗긴 것이 된다. 그러면 아래 `_iter_states` 가 한 겹 더 벗겨 `{}` 가
+되고 control 0행 → `NOT_OBSERVED` 가 나온다. 실제로 W5I lane 이 그렇게 호출했다.
+
+위반으로 보는 것 (전부 예외):
+
+- `probe_state` 가 dict 가 아니다
+- `scroll_states` 와 `raw_features` 를 동시에 갖는다 (번들인지 단일인지 미결)
+- `scroll_states` 가 list 가 아니다 / 비어 있다 / 원소가 dict 가 아니다 /
+  원소에 `raw_features` 가 없거나 dict 가 아니다
+- 단일 state 인데 `raw_features` 키가 없다 / dict 가 아니다
+
+위반이 **아닌** 것: `raw_features` 가 `{}` 다. 그것은 "probe 가 후보를 하나도 못 봤다"
+는 관측이고, `NOT_OBSERVED` 를 낼 자격이 있는 경로다.
+
    **KNOWN LIMITATION**: 03 §3 은 "고정 scroll 정책으로 S1...Sn 을 만든다"고만 하고 그
    번들의 직렬화 형태를 정의하지 않았다. base SHA 시점 코드베이스에는 scroll state 수집
    구현이 없다(`grep scroll_state|state_index|scroll_y` → 0건). 위 `scroll_states` 키
@@ -196,6 +215,7 @@ __all__ = [
     "ZONE_RIGHT_X_MIN",
     "ZONE_TOP_Y_MAX",
     "SurfaceMeasurement",
+    "SurfaceProbeShapeError",
     "measure_surface",
     "normalize_label",
 ]
@@ -335,20 +355,151 @@ class SurfaceMeasurement:
     notes: tuple[str, ...] = field(default_factory=tuple)
 
 
+# ── probe 형태 계약 (Δ35 · Δ32-R30) ─────────────────────────────────────────
+
+
+class SurfaceProbeShapeError(ValueError):
+    """`probe_state` 가 probe 봉투 형태가 아니다.
+
+    Δ35 (`T-B-V3-FINDING-010`) 판정의 구현이다. `NOT_OBSERVED` 는 **관측을 주장하는
+    값**이다 — "볼 수 있었고 없었다". 형태 위반은 **볼 수 없었다**는 뜻이라 그 값을 낼
+    자격이 없다. 형태가 틀렸는데도 `NOT_OBSERVED` 를 내면 "control 이 정말 없었다" 와
+    "형태를 잘못 넘겼다" 가 같은 출력이 되어 구분이 데이터에서 사라진다.
+
+    `ValueError` 를 상속한다 — 이 모듈의 기존 입력 계약 위반(`selector` 누락 · 비양수
+    viewport)과 같은 갈래이고, `engine/l0_collector.py::Min4ProbeContractError` 도 같은
+    관례다.
+    """
+
+
+#: 봉투 **안쪽** `raw_features` 에만 나타나는 probe 목록 키. 판정에 쓰지 않는다 —
+#: "봉투를 한 겹 벗긴 것을 넘겼다" 를 오류 메시지에서 지목하기 위한 진단 힌트다.
+_RAW_FEATURE_MARKER_KEYS = frozenset(
+    {
+        "primary_action_candidates",
+        "accessible_name_sources",
+        "utility_input_widgets",
+        "region_signals",
+    }
+)
+
+#: 오류 메시지에 나열할 최대 키 수. 메시지가 로그를 덮지 않게 자른다.
+_SHAPE_DIGEST_MAX_KEYS = 12
+
+
+def _shape_digest(value: Any) -> str:
+    """무엇을 받았는지 오류 메시지에 적을 수 있는 형태로 요약한다 (결정적)."""
+    if isinstance(value, dict):
+        keys = sorted(repr(str(k)) for k in value)
+        shown = ", ".join(keys[:_SHAPE_DIGEST_MAX_KEYS])
+        more = (
+            f", …(+{len(keys) - _SHAPE_DIGEST_MAX_KEYS} more)"
+            if len(keys) > _SHAPE_DIGEST_MAX_KEYS
+            else ""
+        )
+        return f"dict(keys=[{shown}{more}])"
+    if isinstance(value, list):
+        return f"list(len={len(value)})"
+    return f"{type(value).__name__}({value!r})" if value is None else type(value).__name__
+
+
+def _stripped_envelope_hint(value: Any) -> str:
+    """받은 dict 자체가 `raw_features` 로 보이면 그렇다고 메시지에 적는다."""
+    if isinstance(value, dict) and (_RAW_FEATURE_MARKER_KEYS & {str(k) for k in value}):
+        return (
+            " 넘긴 dict 자체가 raw_features 로 보인다 — 봉투를 한 겹 벗긴 것이다."
+            " `L0Observation.raw_features` 는 봉투가 아니라 그 안쪽 dict 이므로"
+            ' `{"raw_features": <그 dict>}` 로 감싸서 넘겨라.'
+        )
+    return ""
+
+
+def _require_probe_envelope(probe_state: Any) -> None:
+    """`probe_state` 가 봉투 계약을 지키는지 검사한다. 어기면 예외 — 조용히 접지 않는다.
+
+    받아들이는 두 형태는 모듈 docstring "입력 형태" 와 같다.
+
+    - 단일 state: `raw_features`(dict) 를 **담고 있는** 봉투
+    - 번들: `scroll_states`(비지 않은 list), 각 원소가 위 단일 state 봉투
+
+    `raw_features` 가 `{}` 인 것은 위반이 아니다 — 그것은 "probe 가 아무 후보도 못 봤다"
+    는 **관측**이고, 그 경로가 `NOT_OBSERVED` 를 낼 자격이 있는 유일한 경로다.
+    """
+    if not isinstance(probe_state, dict):
+        raise SurfaceProbeShapeError(
+            "probe_state 는 probe 산출물 봉투(dict)여야 한다. "
+            f"받은 것: {_shape_digest(probe_state)}"
+        )
+
+    has_bundle = "scroll_states" in probe_state
+    has_raw = "raw_features" in probe_state
+
+    if has_bundle and has_raw:
+        raise SurfaceProbeShapeError(
+            "probe_state 가 'scroll_states' 와 'raw_features' 를 동시에 갖는다 — 번들인지 "
+            "단일 state 인지 정해지지 않는다. 하나만 담아라. "
+            f"받은 것: {_shape_digest(probe_state)}"
+        )
+
+    if has_bundle:
+        bundle = probe_state["scroll_states"]
+        if not isinstance(bundle, list):
+            raise SurfaceProbeShapeError(
+                f"probe_state['scroll_states'] 는 list 여야 한다. 받은 것: {_shape_digest(bundle)}"
+            )
+        if not bundle:
+            raise SurfaceProbeShapeError(
+                "probe_state['scroll_states'] 가 비어 있다 — state 가 하나도 없으면 "
+                "관측 자체가 없었다는 뜻이므로 NOT_OBSERVED 를 낼 근거가 없다."
+            )
+        for i, st in enumerate(bundle):
+            where = f"probe_state['scroll_states'][{i}]"
+            if not isinstance(st, dict):
+                raise SurfaceProbeShapeError(
+                    f"{where} 는 probe 봉투(dict)여야 한다. 받은 것: {_shape_digest(st)}"
+                )
+            if "raw_features" not in st:
+                raise SurfaceProbeShapeError(
+                    f"{where} 에 'raw_features' 가 없다 — scroll state 원소도 봉투다. "
+                    f"받은 것: {_shape_digest(st)}{_stripped_envelope_hint(st)}"
+                )
+            if not isinstance(st["raw_features"], dict):
+                raise SurfaceProbeShapeError(
+                    f"{where}['raw_features'] 는 dict 여야 한다. "
+                    f"받은 것: {_shape_digest(st['raw_features'])}"
+                )
+        return
+
+    if not has_raw:
+        raise SurfaceProbeShapeError(
+            "probe_state 에 'raw_features' 가 없다 — 단일 state 는 raw_features 를 담고 "
+            "있는 봉투여야 하고, 번들이면 'scroll_states' 를 담아야 한다. "
+            f"받은 것: {_shape_digest(probe_state)}{_stripped_envelope_hint(probe_state)}"
+        )
+
+    if not isinstance(probe_state["raw_features"], dict):
+        raise SurfaceProbeShapeError(
+            "probe_state['raw_features'] 는 dict 여야 한다. "
+            f"받은 것: {_shape_digest(probe_state['raw_features'])}"
+        )
+
+
 # ── probe 접근 helper ────────────────────────────────────────────────────────
 
 
 def _iter_states(probe_state: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
-    """`probe_state` 를 `(state_index, raw_features)` 순서열로 편다."""
+    """`probe_state` 를 `(state_index, raw_features)` 순서열로 편다.
+
+    형태 검증을 먼저 통과시킨다. 여기가 봉투를 벗기는 지점이라 형태 위반이 실제로
+    무해한 `{}` 로 접히던 자리다 (Δ35).
+    """
+    _require_probe_envelope(probe_state)
     bundle = probe_state.get("scroll_states")
     states = bundle if isinstance(bundle, list) else [probe_state]
     out: list[tuple[str, dict[str, Any]]] = []
     for i, st in enumerate(states):
-        if not isinstance(st, dict):
-            continue
         idx = st.get("state_index") or f"S{i}"
-        raw = st.get("raw_features")
-        out.append((str(idx), raw if isinstance(raw, dict) else {}))
+        out.append((str(idx), st["raw_features"]))
     return out
 
 
@@ -833,6 +984,9 @@ def measure_surface(
     Raises:
         ValueError: `task_control["selector"]` 가 없거나 viewport 가 양수가 아닐 때.
             명세 공백을 추정으로 메우지 않는다.
+        SurfaceProbeShapeError: `probe_state` 가 봉투 형태가 아닐 때 (`ValueError` 하위).
+            Δ35 — 형태 위반은 `NOT_OBSERVED` 로 접히지 않는다. `NOT_OBSERVED` 는 관측을
+            주장하는 값이고, 형태 위반은 볼 수 없었다는 뜻이다.
     """
     selector = task_control.get("selector")
     if not isinstance(selector, str) or not selector:
@@ -842,9 +996,10 @@ def measure_surface(
         raise ValueError(f"viewport 는 양수여야 한다: {viewport!r}")
 
     notes: list[str] = []
+    # 형태 위반이면 여기서 예외가 난다 (Δ35). 통과하면 `states` 는 반드시 1개 이상이라
+    # "state 가 0개" 를 note 로 적던 분기(`PROBE_STATES_EMPTY`)는 사라졌다 — 그 상태는
+    # 이제 `scroll_states` 빈 list 라는 형태 위반이고 note 가 아니라 예외다.
     states = _iter_states(probe_state)
-    if not states:
-        notes.append("PROBE_STATES_EMPTY")
 
     nav_container_type, nav_container_chain = _resolve_nav_container(task_control, notes)
 

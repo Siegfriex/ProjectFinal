@@ -619,12 +619,16 @@ def test_the_stripped_envelope_is_what_made_w5c_say_not_observed(
 ) -> None:
     """음성 대조 — 위 테스트가 통과하는 이유가 **완화가 아니라 형태 시정**임을 보인다.
 
-    봉투를 벗긴 `obs.raw_features` 를 그대로 넘기면 W5C 는 control 을 하나도 찾지 못하고
-    `NOT_OBSERVED` + `TASK_CONTROL_NOT_IN_PROBE` 를 낸다. 병합 회귀에서 난
-    ``assert 'NOT_OBSERVED' == 'ICON_ONLY_AX_NAMED'`` 가 바로 이것이다.
-
     같은 fixture · 같은 `task_control` · 같은 viewport 이고 **`probe_state` 형태 하나만**
     다르다. 그래서 두 결과의 차이는 형태에 귀속된다.
+
+    **W5N (Δ35) 갱신.** 이 테스트는 원래 벗긴 봉투가 `NOT_OBSERVED` +
+    `TASK_CONTROL_NOT_IN_PROBE` 를 낸다고 단언했다. 그 동작 자체가 결함이었다 —
+    `NOT_OBSERVED` 는 **관측을 주장하는 값**("볼 수 있었고 없었다")이라 형태 위반이
+    낼 자격이 없다. 이제 벗긴 봉투는 `SurfaceProbeShapeError` 다. 기대값을 완화한 것이
+    아니라 **더 강한 것으로 바꾼 것**이다 — `NOT_OBSERVED` 는 병합 회귀에서 난
+    ``assert 'NOT_OBSERVED' == 'ICON_ONLY_AX_NAMED'`` 처럼 다른 곳에서야 터졌지만
+    예외는 호출 지점에서 터진다.
     """
     surface = pytest.importorskip("landing_accessibility.v3_runner.surface")
     obs = joined_pair["obs"]["icon_only_ax_named.html"]
@@ -635,22 +639,49 @@ def test_the_stripped_envelope_is_what_made_w5c_say_not_observed(
     }
     viewport = (obs.viewport_width, obs.viewport_height)
 
-    stripped = surface.measure_surface(
-        task_control=task_control, probe_state=obs.raw_features, viewport=viewport
-    )
-    assert stripped.entry_label_modality == "NOT_OBSERVED"
-    assert stripped.dom_control_observed is False
-    assert "TASK_CONTROL_NOT_IN_PROBE" in stripped.notes
+    # (b) 벗긴 것 → 예외. `NOT_OBSERVED` 로 접히지 않는다.
+    with pytest.raises(surface.SurfaceProbeShapeError) as excinfo:
+        surface.measure_surface(
+            task_control=task_control, probe_state=obs.raw_features, viewport=viewport
+        )
+    message = str(excinfo.value)
+    # 무엇이 잘못된 형태였는지가 메시지에 있어야 한다 — 없으면 다음 사람이 또 헤맨다.
+    assert "raw_features" in message
+    assert "봉투" in message
+    # 벗긴 것이라는 진단이 실제로 붙는다 (probe 목록 키를 보고 지목한다).
+    assert "primary_action_candidates" in message
 
+    # (a) 봉투 → 정상 판정.
     enveloped = surface.measure_surface(
         task_control=task_control, probe_state=_probe_envelope(obs), viewport=viewport
     )
     assert enveloped.entry_label_modality == "ICON_ONLY_AX_NAMED"
     assert enveloped.dom_control_observed is True
+    assert enveloped.ax_control_observed is True
+    assert enveloped.accessible_name == "운행정보 조회"
 
-    # AX 쪽 관측은 두 경우 모두 성립한다 — 갈린 것은 DOM 쪽 형태뿐이다.
-    assert stripped.ax_control_observed is enveloped.ax_control_observed is True
-    assert stripped.accessible_name == enveloped.accessible_name == "운행정보 조회"
+
+def test_a_real_absence_still_says_not_observed_not_an_exception(
+    joined_pair: dict[str, Any],
+) -> None:
+    """회귀 대조군 — Δ35 가 깨서는 안 된다고 못 박은 쪽.
+
+    형태는 **정확히 같은 봉투**이고 `selector` 만 probe 에 없는 것으로 바꾼다. 그러면
+    "볼 수 있었고 없었다" 이므로 예외가 아니라 `NOT_OBSERVED` 다. 위 테스트의 예외가
+    "모르면 일단 던진다" 가 아니라 형태에만 반응한다는 것을 이것이 보인다.
+    """
+    surface = pytest.importorskip("landing_accessibility.v3_runner.surface")
+    obs = joined_pair["obs"]["icon_only_ax_named.html"]
+    viewport = (obs.viewport_width, obs.viewport_height)
+
+    m = surface.measure_surface(
+        task_control={"selector": "button#this-selector-is-not-in-the-probe"},
+        probe_state=_probe_envelope(obs),
+        viewport=viewport,
+    )
+    assert m.entry_label_modality == "NOT_OBSERVED"
+    assert m.dom_control_observed is False
+    assert "TASK_CONTROL_NOT_IN_PROBE" in m.notes
 
 
 @pytest.fixture(scope="module")

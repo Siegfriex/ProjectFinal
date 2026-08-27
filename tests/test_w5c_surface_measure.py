@@ -42,6 +42,7 @@ from landing_accessibility.v3_runner.surface import (  # noqa: E402
     ZONE_RIGHT_X_MIN,
     ZONE_TOP_Y_MAX,
     SurfaceMeasurement,
+    SurfaceProbeShapeError,
     measure_surface,
     normalize_label,
 )
@@ -548,6 +549,150 @@ def test_empty_probe_is_reported_not_guessed() -> None:
     assert m.accessible_name is None
     assert m.entry_observed_state == NOT_OBSERVED
     assert "TASK_CONTROL_NOT_IN_PROBE" in m.notes
+
+
+# ── Δ35 — probe_state 형태 검증 (`T-B-V3-FINDING-010`) ──────────────────────
+#
+# `NOT_OBSERVED` 는 **관측을 주장하는 값**이다 — "볼 수 있었고 없었다". 형태 위반은
+# "볼 수 없었다" 이므로 그 값을 낼 자격이 없다. 아래 두 묶음이 그 경계를 양쪽에서 민다:
+# 위반은 예외여야 하고, 실제 부재는 여전히 `NOT_OBSERVED` 여야 한다.
+
+#: `_probe_envelope` 대조군에 쓰는 최소 봉투 — control 이 실제로 하나 있다.
+_ONE_CONTROL_ENVELOPE: dict[str, Any] = {
+    "probe_version": "pc-fixture-1",
+    "raw_features": {
+        "primary_action_candidates": [
+            {
+                "selector": "body>a",
+                "tag": "a",
+                "visible_text": "예매",
+                "dom_order": 1,
+                "box": {"x": 10.0, "y": 10.0, "w": 100.0, "h": 40.0},
+            }
+        ]
+    },
+}
+
+_SHAPE_VIOLATIONS: list[tuple[str, Any, str]] = [
+    ("not_a_dict_none", None, "봉투(dict)"),
+    ("not_a_dict_list", [{"raw_features": {}}], "봉투(dict)"),
+    ("not_a_dict_str", "raw_features", "봉투(dict)"),
+    # 이것이 W5I lane 이 실제로 넘긴 것 — `L0Observation.raw_features` 를 그대로.
+    (
+        "stripped_envelope",
+        {"primary_action_candidates": [], "accessible_name_sources": []},
+        "raw_features",
+    ),
+    ("raw_features_missing_plain", {"probe_version": "pc-fixture-1"}, "raw_features"),
+    ("raw_features_not_a_dict", {"raw_features": []}, "dict 여야 한다"),
+    ("raw_features_is_none", {"raw_features": None}, "dict 여야 한다"),
+    ("bundle_not_a_list", {"scroll_states": {"raw_features": {}}}, "list 여야 한다"),
+    ("bundle_empty", {"scroll_states": []}, "비어 있다"),
+    ("bundle_element_not_a_dict", {"scroll_states": [None]}, "봉투(dict)"),
+    (
+        "bundle_element_stripped",
+        {"scroll_states": [{"primary_action_candidates": []}]},
+        "raw_features",
+    ),
+    ("bundle_element_raw_not_dict", {"scroll_states": [{"raw_features": 3}]}, "dict 여야 한다"),
+    (
+        "both_forms_at_once",
+        {"raw_features": {}, "scroll_states": [{"raw_features": {}}]},
+        "동시에",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    ("probe_state", "expected_fragment"),
+    [pytest.param(p, f, id=i) for i, p, f in _SHAPE_VIOLATIONS],
+)
+def test_probe_state_shape_violation_raises_instead_of_not_observed(
+    probe_state: Any, expected_fragment: str
+) -> None:
+    """형태 위반은 예외다. `NOT_OBSERVED` 로 접히지 않는다 (Δ35 판정).
+
+    같은 `task_control` · 같은 viewport 다. 갈리는 것은 `probe_state` 형태뿐이다.
+    """
+    with pytest.raises(SurfaceProbeShapeError) as excinfo:
+        measure_surface(probe_state, {"selector": "body>a"}, (390, 844))
+    assert expected_fragment in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    ("probe_state", "_fragment"),
+    [pytest.param(p, f, id=i) for i, p, f in _SHAPE_VIOLATIONS],
+)
+def test_shape_violation_message_names_what_was_actually_received(
+    probe_state: Any, _fragment: str
+) -> None:
+    """메시지가 **무엇을 받았는지** 말해야 한다 — 규칙만 읊으면 진단이 안 된다."""
+    with pytest.raises(SurfaceProbeShapeError) as excinfo:
+        measure_surface(probe_state, {"selector": "body>a"}, (390, 844))
+    message = str(excinfo.value)
+    assert "받은 것" in message or "비어 있다" in message
+
+
+def test_the_stripped_envelope_is_named_as_such_in_the_message() -> None:
+    """벗긴 봉투는 그냥 "raw_features 없음" 이 아니라 **벗겨졌다**고 지목한다.
+
+    다음 사람이 `L0Observation.raw_features` 를 그대로 넘겼을 때 무엇을 고쳐야 하는지
+    메시지만 보고 알 수 있어야 한다.
+    """
+    with pytest.raises(SurfaceProbeShapeError) as excinfo:
+        measure_surface(_ONE_CONTROL_ENVELOPE["raw_features"], {"selector": "body>a"}, (390, 844))
+    message = str(excinfo.value)
+    assert "벗긴" in message
+    assert "primary_action_candidates" in message
+
+
+def test_shape_error_is_a_value_error() -> None:
+    """기존 입력 계약 위반(`selector`·viewport)과 같은 갈래로 잡힌다."""
+    assert issubclass(SurfaceProbeShapeError, ValueError)
+
+
+# ── 반대쪽 — 실제 부재는 여전히 NOT_OBSERVED 다 (Δ35 가 깨지 말라고 한 것) ──
+
+
+def test_envelope_and_stripped_differ_only_in_shape() -> None:
+    """음성 대조 — 같은 raw_features · 같은 control · 같은 viewport, 형태만 다르다.
+
+    (a) 봉투 → 정상 판정 · (b) 벗긴 것 → 예외. 차이가 형태에만 귀속된다.
+    """
+    task_control = {"selector": "body>a"}
+    enveloped = measure_surface(_ONE_CONTROL_ENVELOPE, task_control, (390, 844))
+    assert enveloped.dom_control_observed is True
+    assert enveloped.entry_control_type != NOT_OBSERVED
+    assert "TASK_CONTROL_NOT_IN_PROBE" not in enveloped.notes
+
+    with pytest.raises(SurfaceProbeShapeError):
+        measure_surface(_ONE_CONTROL_ENVELOPE["raw_features"], task_control, (390, 844))
+
+
+def test_an_empty_raw_features_is_absence_not_a_shape_violation() -> None:
+    """`raw_features: {}` 는 위반이 아니다 — "probe 가 아무 것도 못 봤다" 는 관측이다.
+
+    이 경로만이 `NOT_OBSERVED` 를 낼 자격이 있다. 형태 검증이 여기까지 삼키면 Δ35 가
+    지키라고 한 쪽을 깬 것이다.
+    """
+    m = measure_surface({"raw_features": {}}, {"selector": "body>a"}, (390, 844))
+    assert m.entry_zone == NOT_OBSERVED
+    assert m.dom_control_observed is False
+    assert "TASK_CONTROL_NOT_IN_PROBE" in m.notes
+
+
+def test_a_selector_absent_from_a_well_formed_probe_is_still_not_observed() -> None:
+    """봉투는 멀쩡하고 control 만 없다 → 예외가 아니라 `NOT_OBSERVED`."""
+    m = measure_surface(_ONE_CONTROL_ENVELOPE, {"selector": "body>button#nope"}, (390, 844))
+    assert m.entry_zone == NOT_OBSERVED
+    assert m.dom_control_observed is False
+    assert "TASK_CONTROL_NOT_IN_PROBE" in m.notes
+
+
+def test_every_fixture_case_passes_the_shape_gate() -> None:
+    """기존 fixture 88건이 전부 계약을 지킨다 — 검증이 정본 입력을 막지 않는다."""
+    for c in CASES:
+        measure_surface(c["probe_state"], c["task_control"], tuple(c["viewport"]))
 
 
 def test_measurement_is_frozen() -> None:
