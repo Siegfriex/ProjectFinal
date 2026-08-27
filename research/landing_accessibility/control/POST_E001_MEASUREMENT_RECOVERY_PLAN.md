@@ -121,10 +121,65 @@ compute_depth  →  NED/IED/MPFED = NULL
 | `REC-B-1` | `TargetSpec` 에 `region_definition`·`region_signal_type`·`endpoint_signal_type`·`task_id` 필드가 없어 P-B CSV 값이 경계에서 유실된다 |
 | `REC-B-2` | `default_task_definition()` 이 `TargetSpec.endpoint_definition` 이 값을 가져도 무조건 `None` 으로 덮는다 |
 | `REC-B-3` | `task_id` 가 CSV 값 대신 `f"task-{target_id}"` 로 합성된다 (executor.py:69 · real_executor.py:66) |
-| `REC-B-4` | P-A endpoint codebook 이 동결되지 않았다 — `PHASE_GATES` P-A 미수행 항목 |
+| ~~`REC-B-4`~~ | ~~P-A endpoint codebook 이 동결되지 않았다~~ → **철회. 아래 §2.2.1 참조** |
 
-> **`REC-B-4` 가 상류이고 `REC-B-1~3` 이 하류다.** codebook 이 있어도 wiring 이 없으면
-> 값이 도달하지 않고, wiring 이 있어도 codebook 이 없으면 채울 값이 없다. **둘 다 필요하다.**
+### 2.2.1 `REC-B-4` 철회 — **A 의 오류. 정의는 존재한다**
+
+**초판에서 `REC-B-4`(codebook 미동결)를 등록했다. 틀렸다.**
+
+C 가 반증했고 A 가 원천 CSV 에서 직접 재확인했다 (`9999857` · `mapping_status=CANDIDATE` 59행):
+
+```
+region_definition     59/59 비어있지 않음   예: "개별 상품 항목의 링크·카드가 목록 형태로 노출"
+endpoint_definition   59/59 비어있지 않음   예: "상품 상세와 핵심 상품정보가 보인 순간"
+task_id               59/59                예: "task_shadow_11st"
+region_signal_type    DOM_AX_ROLE 53 · CODEBOOK_PENDING 6
+endpoint_signal_type  URL_PATTERN 33 · DOM_AX_ROLE 17 · FORM_STRUCTURE 9   ← PENDING 0건
+```
+
+**정의가 존재한다.** `endpoint_signal_type` 은 **59건 전부 실제 값**이고 `CODEBOOK_PENDING` 이 하나도 없다.
+
+#### A 의 오류 원인 — **docstring 을 코드 사실로 받았다**
+
+`default_task_definition()` docstring 은 *"P-A endpoint codebook 이 동결하기 전에는 존재하지
+않는다"* 고 적는다. **그 전제가 낡았다** — P-B 레인이 이후에 정의를 산출했다.
+**A 는 그 전제를 검증 없이 `REC-B-4` 로 옮겨 적었다.**
+
+> **docstring 이 그렇게 적혀 있다는 것과 코드가 실제로 그렇게 동작한다는 것,
+> 그리고 그 전제가 지금도 사실인가는 서로 다른 사실이다.** (B 지적)
+
+**이것이 오늘 A 의 4번째 같은 축 오류다** — 문서화된 진술을 원본 확인 없이 사실로 취급했다.
+§4.5 (b) 표에 **유형 3: 문서 진술을 코드 사실로 취급** 을 추가한다.
+
+#### 정정된 원인 구조
+
+```
+정의는 존재한다 (P-B CSV 59/59)
+        ↓  ← **여기서 유실된다 (REC-B-1·2·3)**
+TaskDefinition 이 None / CODEBOOK_PENDING 으로 고정
+        ↓
+신호 성립 불가
+```
+
+**시정 방향이 완전히 달라진다.** codebook 을 **만들** 필요가 없다 — **연결만 하면 된다.**
+초판대로 갔으면 다음 수행자가 이미 있는 것을 다시 만들었을 것이다.
+
+#### C 의 관측이 이를 뒷받침한다 (recovery lane, 확정 전 예비)
+
+```
+Scout 실행 31건의 task_id : 전부 `task-wtg_<id>` 합성, CSV `task_shadow_<key>` 와 일치 0/31
+area_signal_status        : NOT_OBSERVED 31/31
+area_signal_detected      : 0/31
+endpoint_signal_detected  : 0/31
+activation                : 0회 27/31
+```
+
+**모든 Scout 실행이 정의 없이 돌아 어떤 신호도 볼 수 없었다.** 이는 6종 귀속(가드·규칙·UNRESOLVED)
+**아래에 깔린 공통 층위**이며 그것들과 **다른 원인**이다.
+
+> **단, C 의 이 관측은 recovery lane 의 예비 사실이며 코드 판독 완료 전이다.**
+> `CURRENT_IMPLEMENTATION_CAUSAL_AUDIT` 로 확정된 뒤 이 문서를 갱신한다.
+> **오늘 FINAL 에 섞지 않는다.**
 
 ### 2.3 축 C — 결정론 분류만 있고 semantic 단계가 없다
 
