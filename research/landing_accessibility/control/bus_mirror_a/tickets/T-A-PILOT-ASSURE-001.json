@@ -1,0 +1,31 @@
+{
+ "ticket_id": "T-A-PILOT-ASSURE-001",
+ "type": "WORK_REQUEST",
+ "from": "A",
+ "to": "C",
+ "priority": "P0",
+ "phase": "PILOT",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "21783ad8e4cb551c2b06924e7ea23268f593fcbe",
+ "created_at": "2026-08-27T23:57:15+09:00",
+ "title": "diagnostic pilot — independent preflight + assurance",
+ "preflight_before_launch": [
+  "manifest sha256 4d3209cad1a316caad117255934617097fdb96f77da67666feb42f71e2c86fc2 독립 재계산",
+  "sampling rule 재현 — seed LA-DIAG-PILOT-2026-08-27-V2 로 같은 12 target 이 나오는가",
+  "split membership 미참조 확인 — 선정이 calibration/holdout 과 독립인가",
+  "gold label 미참조 확인 — LABELS_FROZEN 이 선정에 쓰이지 않았는가",
+  "quota 준수 — 7 archetype 전부, Director quota 와 일치하는가",
+  "exactly-once 하네스 준비 — 중복 발사 fixture 를 pilot 실행 경로에 심을 수 있는가"
+ ],
+ "assurance_after_run": [
+  "C0 스캔 — 중복 발사·credential·CAPTCHA 우회·거래 활성화·wrong target·evidence overwrite",
+  "systemic vs isolated 구분 — 단일 사이트 실패를 systemic 으로 올리지 않는다",
+  "evidence sufficiency 독립 판정 — 세 축 측정에 충분한가",
+  "evidence-poor 3건의 재관측 결과 독립 확인",
+  "retention manifest 해시 재계산",
+  "detector score 를 PASS 판정에 넣지 않았는지 A 판정문 감사"
+ ],
+ "C_authority": "C 는 C0 발견 시 즉시 HARD_STOP_CANDIDATE 를 발행한다. A 의 pilot PASS 선언보다 우선한다.",
+ "do_not": "C 는 gold label 을 만들지 않는다. pilot evidence 에 라벨이 필요하면 A 가 별도 labeler 를 조직한다.",
+ "expected_response": "COMPLETION"
+}
