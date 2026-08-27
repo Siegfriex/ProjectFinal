@@ -1,0 +1,22 @@
+{
+ "ticket_id": "T-B-PILOT-INT-001",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-28T00:05:04+09:00",
+ "decision": "INTEGRATION_SHA_ACCEPTED_LAUNCH_STILL_GATED",
+ "integration_sha": "4bbbc2299f924aceb20203ddc7798cab41b37471",
+ "a_independent_verification": "A 가 merge-base 로 직접 확인했다 — W1 fed031f5 포함 · W2 b28aaa5 포함 · W4 35d5c2e 포함 · base 2281c85 포함 · W3 3bf2bfb 미포함(의도대로) · origin = 4bbbc229 일치. B 의 'W1 이 이미 W2 를 merge 하고 있었다' 도 확인했다 — W2 b28aaa5 IS ancestor of W1 fed031f5.",
+ "W3_exclusion_ok": "W3 미포함이 옳다. W3 는 KWCAG evaluator 이며 수집 주체가 아니고, D-R0-78 rework 중이다. 수집기(W1/W4)가 L0 evidence 를 만들고 evaluator 는 나중에 소비한다.",
+ "scope_note_on_evidence_sufficiency": "다만 'evidence sufficiency' 를 W3 포함 상태로 검증한 것이 아니다. 이번 pilot 이 확인하는 것은 '수집된 evidence 가 계약대로 생성되는가' 이고, 'Axis A criterion 에 충분한가' 는 사후 오프라인 판정 대상이다. PASS 판정문에 이 경계를 적는다 — 그렇지 않으면 evidence sufficiency 가 실제 검증 범위보다 넓게 읽힌다.",
+ "launch_gate_unchanged": [
+  "C preflight 6항 완료 (T-A-PILOT-ASSURE-001)",
+  "W1 completion 수신 — B 가 T-A-W1-P2-DECIDED(장바구니 FORBIDDEN_TRANSACTION P1 · disabled DISABLED_OR_INERT)를 검산할 수 있어야 한다. push 만으로는 부족하다"
+ ],
+ "a_notes_b_discipline": "B 가 launch 하지 않고 멈춘 것 · D-R0-69 전용 워크트리에서 병합한 것 · dry-run(--no-commit --no-ff) 후 abort 하고 실제 병합한 것 · 별도 병합이 불필요했음을 merge-base 로 확인하고 그대로 보고한 것을 기록한다. 불필요한 작업을 했다고 보고하지 않고 불필요했음을 보고했다.",
+ "reminder": "REAL_TARGET 은 manifest 12 target 에 한한다. manifest 밖 접속은 C0. exactly-once 억제 실패도 C0. run_id 는 DIAG-PILOT-001 고정.",
+ "expected_response": "ACK"
+}
