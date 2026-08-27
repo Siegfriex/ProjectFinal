@@ -214,20 +214,33 @@ class TestNotApplicableIsNaNeverPass:
 class TestPassFailCarryEvidenceAndVersion:
     def test_real_shaped_probe_produces_pass_and_fail_with_evidence(self):
         probe = _empty_probe()
-        # 1.4.3: 기준 미달 항목 하나 추가 → FAIL 기대
+        # 1.4.3: 기준 미달 항목 하나 추가 → FAIL 기대. bg_resolved=True·fg_alpha=1·
+        # font_px=14(작은 폰트지만 TINY_GLYPH_MAX_PX=2 보다 크다)로 "측정 불가" 배제
+        # 조건에 안 걸리게 만든다 — 진짜 FAIL 로 판정돼야 하는 항목이다.
         probe["raw_features"]["contrast"] = [
             {
                 "text": "회색 위 회색",
                 "selector": "div.low",
                 "bg_resolved": True,
                 "behind_image": False,
+                "fg_alpha": 1,
                 "contrast_ratio": 1.2,
                 "font_px": 14,
                 "font_weight": 400,
             }
         ]
-        # 2.4.2: title 존재 → PASS 기대
-        probe["raw_features"]["viewport"]["title"] = "정상 제목"
+        # 2.1.3: 대각선 6mm(≈22.68px) 이상인 타깃 → PASS 기대.
+        probe["raw_features"]["target_size"] = [
+            {
+                "selector": "a.big",
+                "tag": "a",
+                "role": None,
+                "width_css_px": 40.0,
+                "height_css_px": 40.0,
+                "min_side_css_px": 40.0,
+                "nearest_neighbor_gap_css_px": 10.0,
+            }
+        ]
 
         fail_outcome = sp.evaluate_criterion("1.4.3", probe, evidence_ref={"probe_path": "x"})
         assert fail_outcome.outcome == VerdictState.FAIL
@@ -235,7 +248,7 @@ class TestPassFailCarryEvidenceAndVersion:
         assert fail_outcome.evidence_ref["physical_evidence_slot"] == "probe"
         assert fail_outcome.evaluator_version == EVALUATOR_VERSION
 
-        pass_outcome = sp.evaluate_criterion("2.4.2", probe, evidence_ref={"probe_path": "x"})
+        pass_outcome = sp.evaluate_criterion("2.1.3", probe, evidence_ref={"probe_path": "x"})
         assert pass_outcome.outcome == VerdictState.PASS
         assert pass_outcome.evidence_ref
         assert pass_outcome.evaluator_version == EVALUATOR_VERSION
@@ -411,6 +424,158 @@ class TestEvaluatorVersionAndPhysicalSlotAlwaysPresent:
         outcome = sp.evaluate_criterion(criterion_id, _empty_probe())
         assert outcome.evaluator_version == EVALUATOR_VERSION
         assert outcome.evidence_ref.get("physical_evidence_slot") == "probe"
+
+
+# ── T-A-W3-SCHEMA-001 요구#3 — 2.4.2 존재≠적절성(D-R0-70) ───────────────────────────
+class TestTitleExistenceDoesNotEqualPass:
+    def test_title_present_is_undetermined_needs_semantic_not_pass(self):
+        """존재만으로 PASS 를 주지 않는다 — `D-R0-70`, 이 세션의 4번째 '존재≠작동' 사례."""
+        probe = _empty_probe()
+        probe["raw_features"]["viewport"]["title"] = "정상적으로 보이는 제목"
+        outcome = sp.evaluate_criterion("2.4.2", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.outcome != VerdictState.PASS
+        assert outcome.needs_semantic is True
+
+    def test_title_missing_is_still_deterministic_fail(self):
+        """부재는 모호하지 않다 — 결정적으로 FAIL 이다(존재≠작동의 반대쪽은 그대로 결정적)."""
+        probe = _empty_probe()
+        probe["raw_features"]["viewport"]["title"] = ""
+        outcome = sp.evaluate_criterion("2.4.2", probe)
+        assert outcome.outcome == VerdictState.FAIL
+        assert outcome.needs_semantic is False
+        assert outcome.evidence_ref
+
+    def test_title_whitespace_only_is_also_fail(self):
+        probe = _empty_probe()
+        probe["raw_features"]["viewport"]["title"] = "   "
+        outcome = sp.evaluate_criterion("2.4.2", probe)
+        assert outcome.outcome == VerdictState.FAIL
+
+
+# ── T-A-W3-SCHEMA-001 요구#2 — 1.4.3 측정불가(alpha0/1px/bg미해결) vs 실제 실패 구분 ──────
+class TestContrastMeasurementInconclusiveNeverCountsAsRealVerdict:
+    def _contrast_item(self, **overrides) -> dict:
+        base = {
+            "text": "표본",
+            "selector": "div.x",
+            "bg_resolved": True,
+            "behind_image": False,
+            "fg_alpha": 1,
+            "contrast_ratio": 1.2,
+            "font_px": 14,
+            "font_weight": 400,
+        }
+        return {**base, **overrides}
+
+    def test_alpha0_item_alone_is_undetermined_not_fail(self):
+        """alpha0(전경 투명) 단독 항목 — ratio=1.2(기준 미달처럼 보이는 값)라도 FAIL 로
+        세면 안 된다. 색 자체를 신뢰 못하기 때문이다."""
+        probe = _empty_probe()
+        probe["raw_features"]["contrast"] = [self._contrast_item(fg_alpha=0)]
+        outcome = sp.evaluate_criterion("1.4.3", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.outcome != VerdictState.FAIL
+        assert outcome.needs_semantic is True
+
+    def test_tiny_font_item_alone_is_undetermined_not_fail(self):
+        """1px 짜리 '텍스트'(아이콘 글리프/장식 배지 추정) — FAIL 로 세면 안 된다."""
+        probe = _empty_probe()
+        probe["raw_features"]["contrast"] = [self._contrast_item(font_px=1)]
+        outcome = sp.evaluate_criterion("1.4.3", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.outcome != VerdictState.FAIL
+
+    def test_near_identical_ratio_item_alone_is_undetermined_not_fail(self):
+        """전경·배경 동색 산출(ratio<=1.05) — 계산 신뢰 불가, FAIL 로 세면 안 된다."""
+        probe = _empty_probe()
+        probe["raw_features"]["contrast"] = [self._contrast_item(contrast_ratio=1.0)]
+        outcome = sp.evaluate_criterion("1.4.3", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.outcome != VerdictState.FAIL
+
+    def test_real_fail_still_stands_alongside_inconclusive_items(self):
+        """측정불가 항목과 진짜 결함 항목이 섞여 있으면, 측정불가는 세지 않되 진짜
+        결함은 그대로 FAIL 로 반영돼야 한다 — 측정불가가 실제 실패를 가리면 안 된다."""
+        probe = _empty_probe()
+        probe["raw_features"]["contrast"] = [
+            self._contrast_item(fg_alpha=0, selector="div.inconclusive"),
+            self._contrast_item(contrast_ratio=1.2, selector="div.real-fail"),
+        ]
+        outcome = sp.evaluate_criterion("1.4.3", probe)
+        assert outcome.outcome == VerdictState.FAIL
+        item_verdicts = {
+            it.get("selector"): it.get("item_verdict")
+            for it in outcome.stage_trace["expectation"].matched_items
+        }
+        assert item_verdicts["div.inconclusive"] == "MEASUREMENT_INCONCLUSIVE"
+        assert item_verdicts["div.real-fail"] == "FAIL"
+
+    def test_all_inconclusive_probe_is_undetermined_with_evidence_preserved(self):
+        probe = _empty_probe()
+        probe["raw_features"]["contrast"] = [
+            self._contrast_item(fg_alpha=0),
+            self._contrast_item(font_px=1),
+        ]
+        outcome = sp.evaluate_criterion("1.4.3", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        # stage_trace 에 두 항목 모두 MEASUREMENT_INCONCLUSIVE 로 보존돼 있어야 한다(기록 요구).
+        matched = outcome.stage_trace["expectation"].matched_items
+        assert len(matched) == 2
+        assert all(m["item_verdict"] == "MEASUREMENT_INCONCLUSIVE" for m in matched)
+
+
+# ── T-A-W3-SCHEMA-001 요구#1 — schema gap 4건 개별 재심사 결과 회귀 방지 ─────────────────
+class TestSchemaGapReassessment:
+    @pytest.mark.parametrize("criterion_id", ["2.2.1", "2.5.4"])
+    def test_truly_absent_signals_stay_absent_even_with_rich_probe(self, criterion_id):
+        """2.2.1/2.5.4 는 probe 스키마 자체에 대응 신호가 없다 — 아무리 다른 필드를
+        채워도 UNDETERMINED(schema gap)여야 한다."""
+        probe = _empty_probe()
+        probe["raw_features"]["motion"]["infinite_animation_count"] = 5
+        probe["raw_features"]["gate_signals"]["password_input_count"] = 3
+        outcome = sp.evaluate_criterion(criterion_id, probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.needs_semantic is True
+
+    def test_2_4_1_does_not_use_declared_regions_even_when_present(self):
+        """`region_signals.declared_regions` 가 실제로 채워져 있어도(합성 fixture 마커
+        신호) 2.4.1 은 그것을 쓰지 않는다 — 의도적 미배선(근거는 stage1_evidence.py
+        모듈 docstring)."""
+        probe = _empty_probe()
+        probe["raw_features"]["region_signals"]["declared_regions"] = [
+            {"selector": "nav#skip", "region": "main", "present": True}
+        ]
+        outcome = sp.evaluate_criterion("2.4.1", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.stage_trace["evidence_slot"].status.value == "ABSENT_FROM_PROBE_SCHEMA"
+
+    def test_3_3_4_evidence_slot_now_shows_real_signal_but_outcome_stays_undetermined(self):
+        """3.3.4 매핑 누락을 고쳤으므로 evidence_slot 은 이제 실제 신호를 보여줘야
+        한다 — 그러나 Applicability/Outcome 은 여전히 UNDETERMINED 다(구조적 비대칭)."""
+        probe = _empty_probe()
+        probe["raw_features"]["gate_signals"]["username_autocomplete_count"] = 2
+
+        outcome = sp.evaluate_criterion("3.3.4", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.outcome not in (VerdictState.PASS, VerdictState.FAIL, VerdictState.NA)
+        assert outcome.needs_semantic is True
+        # Applicability 이유에 "판정에는 쓰지 않았다"는 문구가 남아 투명성은 있되 결정에는
+        # 반영 안 됐음을 보여줘야 한다.
+        assert "판정에는 쓰지 않았다" in outcome.stage_trace["applicability"].reason
+
+        evidence_slot = sev.required_evidence_slots("3.3.4", probe)
+        assert evidence_slot.status.value != "ABSENT_FROM_PROBE_SCHEMA", (
+            "매핑을 고쳤는데도 evidence_slot 이 여전히 ABSENT 로 나온다 — 배선 실패"
+        )
+        assert evidence_slot.item_count == 1
+
+    def test_3_3_4_zero_signal_also_stays_undetermined_not_na(self):
+        """count==0 이 '적용기회 없음'(NA)으로 조용히 바뀌면 안 된다 — 그것도 이 신호가
+        구분 못하는 경우다."""
+        outcome = sp.evaluate_criterion("3.3.4", _empty_probe())
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.outcome != VerdictState.NA
 
 
 # ── (선택) 실제 evidence 스모크 — 다른 agent worktree 에 있으면만 돈다 ───────────────

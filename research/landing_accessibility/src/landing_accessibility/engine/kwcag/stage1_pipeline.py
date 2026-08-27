@@ -139,12 +139,17 @@ def _finalize(
 
     # 여기부터 codebook_grade == AUTO_DECIDABLE, applicability == APPLICABLE.
 
-    # 6) Stage 1 에 이 criterion 의 Expectation(공식 조건) 로직이 없다 — 구현 갭이지 measurement
-    #    실패가 아니다. FAIL 로 전이하지 않는다(애초에 candidate 자체가 없다).
+    # 6) Expectation 이 candidate_verdict 를 내지 않았다 — 두 경우를 구분한다
+    #    (`T-A-W3-SCHEMA-001` 요구#3, `D-R0-70` 존재≠작동):
+    #      (a) escalate_semantic=True — "존재는 확인했지만 적절성/작동은 의미 판단이
+    #          필요해 여기서 멈춘다"(예: 2.4.2 title 존재는 확인했으나 설명적인지는
+    #          판단 못함). 다음 자동화 tier(semantic/VLM)로 넘겨야 하므로 needs_semantic=True.
+    #      (b) escalate_semantic=False(기본) — Stage 1 에 이 경로의 Expectation 로직이
+    #          아예 없다(구현 갭). FAIL 로 전이하지 않는다(애초에 candidate 자체가 없다).
     if expectation.candidate_verdict is None:
         return _undetermined(
             expectation.reason or "Stage 1 에 이 criterion 의 Expectation 로직이 없다 (구현 갭)",
-            False,
+            expectation.escalate_semantic,
         )
 
     candidate = expectation.candidate_verdict

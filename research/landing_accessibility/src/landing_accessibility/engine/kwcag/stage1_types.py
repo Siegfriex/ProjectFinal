@@ -94,10 +94,16 @@ class ExpectationResult:
     automation_grade cap·cap_hit 하향·evidence 유무를 반영해 최종 승격 여부를 정한다.
     """
 
-    #: None = 이 criterion의 공식 조건 검사를 Stage 1에서 아직 구현하지 않음.
+    #: None = 이 criterion의 공식 조건 검사를 Stage 1에서 아직 구현하지 않음(또는
+    #: 존재만으로는 결정할 수 없어 의도적으로 결정을 보류함 — `escalate_semantic` 참조).
     candidate_verdict: VerdictState | None
     matched_items: tuple[dict[str, Any], ...]
     reason: str
+    #: `T-A-W3-SCHEMA-001` 요구#3 — `candidate_verdict is None` 인데 그 이유가 "존재는
+    #: 확인했지만 적절성/작동은 의미 판단이 필요해 여기서 멈춘다"(`D-R0-70` 존재≠작동)면
+    #: True. `_finalize` 가 이 값을 `needs_semantic` 에 그대로 반영한다. 그냥 "Stage 1에
+    #: 로직이 없다"(구현 갭)와 구분하기 위한 필드 — 기본값 False(기존 동작 그대로).
+    escalate_semantic: bool = False
 
 
 @dataclass(frozen=True, slots=True)
