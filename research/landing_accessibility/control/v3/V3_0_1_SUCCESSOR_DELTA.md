@@ -945,3 +945,87 @@ B 가 앞선 실행에서 무결과를 얻었고 **그것은 B 의 명령 결함
 `D-R0-76`(0건에는 대조군) 계열이 **도구 호출 층**에 나타난 것이다. 지금까지는 "검색이 실제로 동작하는가"를 물었는데, 이번엔 **"출력이 억제되지 않았는가"** 다.
 
 → 회귀·검색 결과를 근거로 쓸 때 **출력 형식이 억제되지 않았음을 함께 보인다.** B 가 터미널 요약과 `--junitxml` 두 독립 출처로 같은 수(2073/3/0/1)를 얻은 것이 그 형태다.
+
+## Δ32 — 0-activation 은 관측이 아니라 주장이다 (T-B-V3-BLK-014, P0)
+
+B 가 계측기 안에서 이 세션의 중심 결함을 실물로 찾았다.
+
+**측정**(W5K 레인, `measured_at_kst 2026-08-28T07:27:40`):
+```
+isinstance(naive_binder, runner.CandidateBinder)  → True   ← Protocol 은 메서드 이름만 본다
+bind() 반환                                        → TaskCandidate 1건 (Mapping 아님)
+결과   driver.activate 0회 · raw_steps 0 · refusal None · phase MART
+dict 로 감싸면                                     → activate 2회 · raw_steps 1
+```
+
+`bind` 계약은 `Sequence[Mapping]` 인데 `discover_task_candidates` 는 dataclass 를 낸다. `propose_next` 가 `isinstance(c, Mapping)` 으로 **전건 탈락**시킨 뒤 `None` 을 반환하고, runner 는 그 `None` 을 **정상 종료**로 읽는다.
+
+> **예외도 refusal 도 없이 깨끗한 0-activation 행이 나온다.**
+
+### 왜 P0 인가
+
+이 상태로 50 target 을 돌리면 **전건이 '성공'** 으로 나온다. 사후에 보면 "아무 일도 안 일어난 깨끗한 관측"이다. **0-activation 행과 '정말로 activation 이 필요 없던 target' 이 산출에서 구분되지 않는다.**
+
+B 가 짚었다 — **v2 Day-1 에서 MPFED 0/59 가 나왔고 진짜 원인은 task wiring + fixture detector 였다. 같은 층이다.** 파이프라인이 조용히 비어 돌았다.
+
+그리고 A 의 `Δ18` 인용이 정확하다 — "시끄러운 실패를 조용한 통과로 바꾸지 마라"인데 **여기서는 처음부터 조용한 통과다. 바꿀 시끄러운 실패조차 없었다.**
+
+### 판정 — 원인으로 가른다
+
+B 가 물은 것: `RunnerError` 로 멈출 것인가, `terminal_reason` 으로 기록하고 계속할 것인가.
+
+**둘 다다. 섞이면 안 되는 두 상황이기 때문이다.**
+
+| 상황 | 성격 | 처리 |
+|---|---|---|
+| **binder 가 후보를 냈는데 소비자가 전건 탈락시켰다** | **계측기 결함** — 형태·계약 불일치 | **`RunnerError`. 항상 멈춘다** |
+| **페이지에 후보 control 이 실제로 없다** | **관측** | `endpoint_status=ABSTAIN` × `terminal_reason=NO_TASK_CANDIDATE_FOUND` (15번째 값) |
+
+**현재 결함은 첫째가 둘째로 위장한 것이고, 실제로는 그보다 나쁘게 '성공'으로 위장했다.**
+
+구성요소 간 계약 위반은 **결코 관측이 아니다.** 사이트에 대해 아무것도 말해주지 않는다.
+
+### R29 — `activation_depth = 0` 은 근거를 요구한다
+
+> **0 은 관측이 아니라 주장이다. 주장에는 근거가 필요하다.**
+
+`activation_depth=0` 과 `endpoint_status=REACHED` 가 함께 나오려면 **둘 다** 참이어야 한다:
+1. endpoint contract 가 실제로 충족됐다는 증거
+2. **최소 하나의 후보가 실제로 바인딩됐다**
+
+**후보 0건은 어떤 경우에도 `endpoint_status=REACHED` 를 낼 수 없다.** 스키마가 그 조합을 거부한다.
+
+`R13`(`NONE` 은 '관측했고 없었다'는 적극적 주장)이 `auth_gate_stage` 에 세운 것과 같은 규칙을 depth 에 적용한다.
+
+### R30 — 구조적 타입 검사는 계약을 검사하지 않는다
+
+`isinstance(naive_binder, runner.CandidateBinder)` 가 **True 를 반환했다.** Protocol 은 메서드 **이름**만 본다. **계약 위반이 타입 검사를 통과한다.**
+
+→ lane 경계에서 Protocol 만족으로 충분하다고 보지 않는다. **반환값의 형태를 런타임에 검증**하고, 위반이면 `RunnerError` 다. `Δ18-R20`(양쪽 실물로 실행)이 왜 필요한지의 구체적 이유다 — 대역은 Protocol 을 만족시키지만 계약은 만족시키지 않을 수 있다.
+
+### EligibilityChecker — 이건 결함이 아니다
+
+동결 manifest 50 target 이 전부 `mobile_web_eligibility=PRECHECK_REQUIRED` 이고 그 값이 `ELIGIBILITY_VALUES` 밖이라 `RunnerError` 로 거부된다.
+
+**의도된 fail-closed 다.** precheck 이 아직 수행되지 않았으므로 runner 가 한 건도 돌지 않는 것이 옳다. `Δ20` 의 세 조건과 `Δ8-R1` 의 precheck 규칙이 그것을 요구한다.
+
+B 가 "이쪽은 시끄러운 실패라 P0 이 아니다"라고 가른 것이 정확하다. **binder 쪽만 조용하다.**
+
+### 안전 전수 — 미발화 3종 중 2종은 구멍이다
+
+`seam1` 금지행동 12종 중 **9 차단 · 3 미발화**.
+
+- `login submit` 미발화 — **결함 아님.** `D3-09` 가 의도적으로 금지하지 않는다
+- `credential` · `실제 개인정보` 미발화 — **구멍이다.** guard 는 `input[type=password]`·field name 으로 판정하는데 `PlannedAction` 이 5필드뿐이라 **그 신호가 seam 을 건너오지 못한다**
+
+B 가 감추지 않고 `test_seam1_forbidden_sweep_known_non_firing` 으로 명시 고정했다.
+
+> **A 판정: 이 구멍이 열린 채로 `V3_PILOT_5` 를 release 하지 않는다.** B 가 자신에게 건 조건을 A 가 release 전제조건으로 승격한다.
+
+**차단 9종의 근거 한계도 기록한다** — 텍스트 문구 기준이므로 `보안문자`(단독) · `본인인증` · `이체`(`이체하기`는 잡힘)는 현재 어휘로 미탐지다. **실제 사이트 문구가 fixture 와 다르면 커버리지가 달라진다.** 이것은 `Δ10-R14`(해석 오류는 변이 검사가 못 잡는다)가 안전 층에 나타난 형태다.
+
+### B 가 주장하지 않은 것
+
+- W5K 가 고쳤다고 하지 않는다 — **측정만 했다.** B 가 "측정만"으로 지시했고 워커가 그 경계를 지켰다
+- 원인 귀속 미확정 — `discover_task_candidates` 가 dataclass 를 내는 것이 맞는지, `propose_next` 가 Mapping 을 요구하는 것이 맞는지 **아직 판정하지 않았다.** 어느 쪽을 맞출지는 측정 후 정한다
+- **고치지 않고 재현부터 고정했다** (`test_seam3_*` 4건). 옳은 순서다
