@@ -101,7 +101,7 @@ def discover() -> list[dict]:
     # RQ 산출이 아닌 것 — 관측 테이블·결함기록·방화벽·부모런·사전등록
     SKIP = _re.compile(
         r"^(D_OBSERVATION_TABLE|D_DEF_|D_INPUT_|D_CORPUS_|D_DASHBOARD|D_FACT_"
-        r"|PILOT_PREREGISTRATION)|_PARENT_RUN\.json$"
+        r"|PILOT_PREREGISTRATION)|_PARENT_RUN\.json$|_MLFLOW_RUN\.json$"
     )
 
     def rq_id_of(prefix: str) -> str | None:
@@ -140,9 +140,18 @@ def discover() -> list[dict]:
             "md": RD / "results" / f"{prefix}_FINDINGS.md",
             "json": None,
         })
-        if e["json"] is None:
+        # [D-DEF-10 시정] 같은 prefix 에 JSON 이 여럿이면 알파벳 첫 파일을 집었다.
+        # RQ_D13b12 는 134바이트 MLflow 사이드카가 먼저 잡혀 결과 JSON 을 가렸고,
+        # 완결 게이트가 "verdict 없음" 이라고 보고했다 — 그 파일에 대해선 참이지만
+        # 그 RQ 에 대해선 거짓이다. 최상위 verdict 를 가진 파일을 우선한다.
+        try:
+            has_verdict = "verdict" in json.loads(f.read_text())
+        except Exception:
+            has_verdict = False
+        if e["json"] is None or (has_verdict and not e.get("_json_has_verdict")):
             e["json"] = f
-    return list(found.values())
+            e["_json_has_verdict"] = has_verdict
+    return [{k: v for k, v in e.items() if not k.startswith("_")} for e in found.values()]
 
 
 def sync() -> int:
@@ -178,6 +187,19 @@ def sync() -> int:
                 continue
             if not md.exists():
                 skipped.append(f"{rq}(미완: FINDINGS.md 없음)")
+                continue
+            # [D-DEF-10 시정 2] 완결 게이트는 세 조건인데 코드가 둘만 봤다.
+            # 노트북(Restart -> Run All 산출물)이 없으면 아직 완결이 아니다.
+            prefix = js.name.rsplit(".", 1)[0]
+            nb_dir = RD.parent / "notebooks" / "d_research"
+            parts = prefix.split("_")
+            nbs = []
+            for k in range(min(3, len(parts)), 0, -1):
+                nbs = sorted(nb_dir.glob("_".join(parts[:k]) + "*.ipynb"))
+                if nbs:
+                    break
+            if not nbs:
+                skipped.append(f"{rq}(미완: 노트북 없음)")
                 continue
         rsha = sha256(payload)
         if (rq, rsha) in existing:
