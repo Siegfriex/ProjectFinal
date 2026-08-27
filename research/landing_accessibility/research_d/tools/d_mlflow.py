@@ -234,9 +234,12 @@ def gate_controls() -> dict:
     for name, (got_ok, reason), want in cases:
         good = got_ok is want
         ok &= good
-        rows.append({"case": name, "passed_gate": got_ok, "expected": want,
+        rows.append({"case": name,
+                     "expectation": "must_not_flag" if want else "must_flag",
+                     "passed_gate": got_ok, "expected": want,
                      "reason": reason, "ok": good})
     return {"verdict": "PASS" if ok else "FAIL", "cases": rows,
+            "naming": "Δ40 — must_flag(게이트가 막아야 함) / must_not_flag(통과해야 함)",
             "why": "대조군이 실패하면 sync 를 돌리지 않는다 — 닫힌 채 망가진 게이트의 "
                    "'전부 미완' 은 정상 출력과 구분되지 않는다"}
 

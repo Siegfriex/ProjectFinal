@@ -191,8 +191,10 @@ def run_controls() -> dict:
     for name, got_v, want in cases:
         good = got_v is want
         ok &= good
-        rows.append({"case": name, "got": got_v, "expected": want, "ok": good})
+        rows.append({"case": name, "expectation": "must_flag" if want else "must_not_flag",
+                     "got": got_v, "expected": want, "ok": good})
     return {"verdict": "PASS" if ok else "FAIL", "cases": rows,
+            "naming": "Δ40 — must_flag / must_not_flag ('양성/음성' 은 두 뜻으로 쓰여 버린다)",
             "why": "대조군이 실패하면 목록을 내지 않는다 — 못 잡는 대조기의 "
                    "'교차 문제 0 건' 은 0 이 아니다 (D-DEF-11)"}
 

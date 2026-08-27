@@ -266,19 +266,24 @@ def run_controls(denied) -> dict:
         got = severity({"reference": ref, "file": "control.py", "line": 1}, "")
         good = got.startswith("FAIL")
         ok &= good
-        rows.append({"kind": "DENY", "case": name, "got": got, "expected": "FAIL", "ok": good})
+        rows.append({"kind": "DENY", "expectation": "must_flag", "case": name,
+                     "got": got, "expected": "FAIL", "ok": good})
     for name, ref in ALLOW:
         got = severity({"reference": ref, "file": "control.py", "line": 1}, "")
         good = got == "ALLOWED_BY_EXCEPTION"
         ok &= good
-        rows.append({"kind": "ALLOW", "case": name, "got": got,
-                     "expected": "ALLOWED_BY_EXCEPTION", "ok": good})
+        rows.append({"kind": "ALLOW", "expectation": "must_not_flag", "case": name,
+                     "got": got, "expected": "ALLOWED_BY_EXCEPTION", "ok": good})
     # 금지 패턴 목록 자체가 비어버리면 위 DENY 가 전부 통과할 수 없다는 보장이 없다
     n_denied = len(denied)
-    rows.append({"kind": "SANITY", "case": "금지 패턴 개수", "got": n_denied,
-                 "expected": ">=10", "ok": n_denied >= 10})
+    rows.append({"kind": "SANITY", "expectation": "must_flag", "case": "금지 패턴 개수",
+                 "got": n_denied, "expected": ">=10", "ok": n_denied >= 10})
     ok &= n_denied >= 10
     return {"verdict": "PASS" if ok else "FAIL", "cases": rows,
+            "naming": ("Δ40 — '양성/음성' 대신 `must_flag`/`must_not_flag`. "
+                       "이 프로젝트에서 '양성대조' 가 두 뜻으로 쓰였다: "
+                       "(a) 걸려야 하는 fixture, (b) 검색이 동작함을 보이는 확인. "
+                       "이름을 고르지 않고 버린다."),
             "why": "대조군이 실패하면 스캔 결과를 PASS 로 내지 않는다 — "
                    "못 막는 스캐너의 FAIL=0 은 0 이 아니다"}
 

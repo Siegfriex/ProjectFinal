@@ -4,8 +4,8 @@
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
  "verdict": "PASS",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T08:26:53.626302+09:00",
- "d_head_sha": "8969c5873485f8d9e6494f68a9e809a0de48827c",
+ "checked_at_kst": "2026-08-28T08:27:51.990986+09:00",
+ "d_head_sha": "99806b8d8accf1b4c3a078bf89bb8b49ec4ac3e9",
  "manifest_sha256": "5321e4f19d990d70ae9bc89370bb134d85970ac5f7a12d2f2ca048743529de94",
  "scanned_files": 209,
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
@@ -14,6 +14,7 @@
   "cases": [
    {
     "kind": "DENY",
+    "expectation": "must_flag",
     "case": "label 절대경로",
     "got": "FAIL",
     "expected": "FAIL",
@@ -21,6 +22,7 @@
    },
    {
     "kind": "DENY",
+    "expectation": "must_flag",
     "case": "holdout",
     "got": "FAIL",
     "expected": "FAIL",
@@ -28,6 +30,7 @@
    },
    {
     "kind": "DENY",
+    "expectation": "must_flag",
     "case": "split 동결",
     "got": "FAIL",
     "expected": "FAIL",
@@ -35,6 +38,7 @@
    },
    {
     "kind": "DENY",
+    "expectation": "must_flag",
     "case": "control 기타",
     "got": "FAIL",
     "expected": "FAIL",
@@ -42,6 +46,7 @@
    },
    {
     "kind": "DENY",
+    "expectation": "must_flag",
     "case": "허용파일과 이름만 같은 남의 파일",
     "got": "FAIL",
     "expected": "FAIL",
@@ -49,6 +54,7 @@
    },
    {
     "kind": "DENY",
+    "expectation": "must_flag",
     "case": "짧은 허용 디렉터리명을 흉내낸 남의 트리",
     "got": "FAIL",
     "expected": "FAIL",
@@ -56,6 +62,7 @@
    },
    {
     "kind": "ALLOW",
+    "expectation": "must_not_flag",
     "case": "허용 예외 상대경로",
     "got": "ALLOWED_BY_EXCEPTION",
     "expected": "ALLOWED_BY_EXCEPTION",
@@ -63,6 +70,7 @@
    },
    {
     "kind": "ALLOW",
+    "expectation": "must_not_flag",
     "case": "허용 예외 절대경로",
     "got": "ALLOWED_BY_EXCEPTION",
     "expected": "ALLOWED_BY_EXCEPTION",
@@ -70,6 +78,7 @@
    },
    {
     "kind": "ALLOW",
+    "expectation": "must_not_flag",
     "case": "ssot_snapshot 하위 상대",
     "got": "ALLOWED_BY_EXCEPTION",
     "expected": "ALLOWED_BY_EXCEPTION",
@@ -77,6 +86,7 @@
    },
    {
     "kind": "ALLOW",
+    "expectation": "must_not_flag",
     "case": "ssot_snapshot 하위 절대",
     "got": "ALLOWED_BY_EXCEPTION",
     "expected": "ALLOWED_BY_EXCEPTION",
@@ -84,12 +94,14 @@
    },
    {
     "kind": "SANITY",
+    "expectation": "must_flag",
     "case": "금지 패턴 개수",
     "got": 15,
     "expected": ">=10",
     "ok": true
    }
   ],
+  "naming": "Δ40 — '양성/음성' 대신 `must_flag`/`must_not_flag`. 이 프로젝트에서 '양성대조' 가 두 뜻으로 쓰였다: (a) 걸려야 하는 fixture, (b) 검색이 동작함을 보이는 확인. 이름을 고르지 않고 버린다.",
   "why": "대조군이 실패하면 스캔 결과를 PASS 로 내지 않는다 — 못 막는 스캐너의 FAIL=0 은 0 이 아니다"
  },
  "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
