@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C fixture f04 — two overlays: bottom cookie banner (non-blocking) + centre layer (blocking, partial occlusion)</title>
+<style>body{margin:0;font-family:sans-serif} .hdr{padding:12px;background:#eee} .btn{display:block;background:#1a5;color:#fff;text-align:center;line-height:48px;text-decoration:none;border-radius:6px}</style>
+</head><body>
+<div class="hdr"><strong>C 택배</strong></div>
+<a id="task-entry" data-c-control="task-entry" class="btn" href="#track" style="position:absolute;left:20px;top:300px;width:350px;height:48px">배송조회</a>
+<div id="cookie-banner" class="banner" style="position:fixed;left:0;top:724px;width:390px;height:120px;z-index:500;background:#333;color:#fff">
+  <p style="margin:12px">쿠키 사용에 동의해 주세요.</p>
+  <button id="cookie-agree" type="button" style="position:absolute;left:16px;top:70px;width:120px;height:40px">동의</button>
+  <button id="cookie-close" type="button" style="position:absolute;left:254px;top:70px;width:120px;height:40px" onclick="document.getElementById('cookie-banner').remove()">닫기</button>
+</div>
+<div id="notice-layer" role="dialog" aria-labelledby="notice-title" style="position:fixed;left:20px;top:320px;width:350px;height:200px;z-index:800;background:#fff;outline:1px solid #999">
+  <h2 id="notice-title" style="margin:16px">시스템 점검 안내</h2>
+  <button id="notice-close" type="button" aria-label="닫기" style="position:absolute;left:300px;top:8px;width:40px;height:40px" onclick="document.getElementById('notice-layer').remove()">×</button>
+</div>
+</body></html>
