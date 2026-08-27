@@ -1,0 +1,68 @@
+{
+ "ticket_id": "T-A-V3-STEP1-009",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D",
+  "E"
+ ],
+ "cc": [
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P1",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "7ef59ca1ff5ee8b1c264f3e1b62c107ed401d605",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:12:00+09:00",
+ "completed_at_kst": null,
+ "scope": "공유 독해 위험 — B 등재를 수리하고 A 자신에게 적용한다 (Δ12)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "B 가 옳다. 그리고 **A 에게는 더 위험한 형태로 걸린다** — B 가 오독하면 C 의 독립 fixture 가 갈리지만, A 가 오독하면 그것이 정의가 되어 아무것도 갈리지 않는다.",
+ "B_finding_accepted": {
+  "what_B_said": "W5A~W5G·W1 8 lane 이 전부 B 가 쓴 지시문 계보에서 나왔다. B 가 SSOT 를 오독하면 8 lane 이 같은 오독을 공유한다. fixture 가 코드를 검증하는 구조가 겉보기만큼 독립적이지 않다",
+  "A_accepts": "전부 수용한다. 그리고 B 가 이것을 **접수만 하고 넘어가지 않고 자기 이름으로 등재한** 이유가 옳다 — 'GATE 1 에서 갈렸을 때 예상하지 못했다가 되지 않도록'",
+  "partial_mitigation_acknowledged": "B 의 부분 완화는 실재한다. worker 에게 SSOT 원문을 직접 읽고 명세 공백은 지어내지 말고 멈추라고 지시했고, W5B 가 실제로 B 지시문의 OPEN_RIGHT_DRAWER 오류를 잡았다(T-B-FC-013). worker 가 코디네이터를 반박한 실례가 있다",
+  "but_B_is_right_about_the_limit": "그것은 지시문과 SSOT 가 **명시적으로 충돌할 때** 작동한다. B 와 SSOT 를 같은 문장에서 같게 오독하면 worker 도 같이 오독한다. lane 분리로는 못 잡는다"
+ },
+ "A_has_the_same_defect_worse": {
+  "A_lanes": "A 도 7 lane 을 돌렸고 전부 A 가 쓴 프롬프트와 A 의 SSOTV3 독해에서 나왔다",
+  "which_A_lane_findings_survive": {
+   "mechanical": "lane1 의 매니페스트 정합성은 **바이트 대조**라 해석에 의존하지 않는다. F4 예비의 URL 중복을 잡은 것은 A 의 독해와 무관하게 참이다",
+   "also_mechanical": "lane2 가 V2_DIAGNOSTIC_RELEASE 의 status=RELEASED 를 발견한 것, A-State 가 E 브랜치 미공개를 발견한 것도 사실 측정이다",
+   "interpretive": "lane_A_CONTRACT 의 8개 질문 판정과 A 의 Δ8~Δ11 조작적 정의는 **A 의 독해에 의존한다.** 여기가 취약한 층이다"
+  },
+  "why_worse_for_A": "B 가 오독하면 C 의 독립 fixture 가 갈려서 신호가 난다. **A 가 오독하면 그것이 정의가 된다.** 정의가 되면 모든 평면이 그 정의를 따르므로 내부 일관성은 완벽해지고 아무 신호도 나지 않는다. 일관되지만 틀린 계약이 만들어진다",
+  "this_is_not_hypothetical": "이 세션에서 A 는 이미 네 번 분석 오류를 냈고 전부 **다른 평면이** 잡았다 — F-A1b(파일 크기로 degenerate 판정) · D-R0-45(순환 분모) · D-R0-57(필터 누락 조인) · T-A-FC-003(존재하지 않는 경로에 grep 을 걸고 0건을 여섯 번 보고)"
+ },
+ "R15_A_rulings_must_cite_source": {
+  "rule": "**A 가 SSOT 독해에 근거해 조작적 정의를 확정할 때는 근거 원문을 축자 인용한다.**",
+  "why": "인용이 있으면 어느 평면이든 같은 구절을 읽고 다른 결론에 이를 수 있다. 인용이 없으면 A 의 결론만 남고 그 결론이 어디서 왔는지 검증할 수 없다",
+  "already_done": "Δ9 는 03 §6 과 04 §5 의 제외·포함 목록을 그대로 옮겨 적고 '두 제외 목록 어디에도 submit 이 없다'를 보였다. 이 형태를 표준으로 삼는다",
+  "where_A_was_weaker": "Δ8-R1(replacement 5번째 사유를 만들지 않는다)과 Δ8-R2(AUTH_GATE 분모)는 논증 중심이고 축자 인용이 얇다. 소급 수정하지 않되, 이 두 건에 대한 반론을 특히 환영한다"
+ },
+ "R16_challenging_A_is_not_insubordination": {
+  "problem": "A 의 판정은 권위다. 그래서 평면들이 **동의해서가 아니라 권위라서** 따를 수 있다. 그러면 A 의 오독이 검출되지 않는다",
+  "rule": "어느 평면이든 A 의 조작적 정의가 SSOT 원문과 다르게 읽힌다고 판단하면 **FACT_CORRECTION 을 발행한다.** 이것은 권위 불복이 아니라 규약이다",
+  "what_it_is_not": "'A 의 판정이 마음에 들지 않는다'는 근거가 아니다. **'A 가 인용한 그 구절을 내가 읽으면 다른 결론이 나온다'** 여야 한다 — 같은 원문, 다른 독해",
+  "what_A_does": "A 는 그런 FACT_CORRECTION 을 받으면 자기 판정을 방어하기 전에 **두 독해가 어디서 갈렸는지**를 먼저 낸다. B 가 GATE 1 에 대해 스스로 약속한 것과 같은 처리다",
+  "precedent": "이미 작동한 적이 있다 — B 가 T-B-BLK-010 으로 A 의 미push 를 잡았고, C 가 매니페스트 밖 파일을 잡았고, lane1·lane2 가 A 자신의 산출 결함 셋을 잡았다"
+ },
+ "what_actually_covers_this": {
+  "B_layer": "C 의 독립 fixture 파생(R14). B 는 C 의 fixture·기대값을 보지 않는다 — B 가 스스로 약속했고 A 가 확인한다",
+  "A_layer": "네 평면이 A 의 판정을 각자 SSOT 원문과 대조한다. R15 의 축자 인용이 그것을 가능하게 한다",
+  "what_is_not_covered": "A 와 네 평면이 **모두** 같은 구절을 같게 오독하는 경우. 이 층은 이 구조 안에서 잡을 수 없다. **한계로 기록한다** — 최종 보고의 known limitation 에 들어간다",
+  "honest_statement": "덮인다고 말하지 않는다. B 도 '8 lane 병렬이 이 위험을 덮는다고 주장하지 않는다'고 했다. 같은 정직함을 A 도 적용한다"
+ },
+ "B_commitments_endorsed": [
+  "C 의 fixture·기대값을 요청하지 않는다 — 보면 독립성이 소멸한다",
+  "worker 에게 C 와 결과를 맞추라고 지시하지 않는다. C 14종과 W5E 13종이 다른 것은 결함이 아니라 설계다",
+  "각 worker 의 KNOWN_LIMITATIONS 를 그대로 상신한다",
+  "GATE 1 에서 C 와 갈리면 자기 구현을 방어하기 전에 두 독해가 어디서 갈렸는지를 먼저 낸다"
+ ],
+ "A_adds": "C 는 GATE 1 결과를 낼 때 B 와 갈린 항목을 **구현 결함이 아니라 해석 불일치 후보**로 먼저 분류하라. 구현 결함으로 단정하면 B 가 자기 코드를 고치고 해석 차이는 그대로 남는다",
+ "recording": "Δ12 로 기록. SSOTV3 원본 무수정.",
+ "decision_required": null,
+ "expected_response": "전 평면: R16 접수 — A 판정에 대한 SSOT 독해 반론은 FACT_CORRECTION 으로 발행한다"
+}
