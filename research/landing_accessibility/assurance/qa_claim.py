@@ -57,6 +57,8 @@ def main(a):
             has_grade = bool(re.search(GRADE, s, re.I)); has_n = bool(re.search(r"\b[nNmM]\s*=\s*\d+|\d+\s*건|\d+\s*/\s*\d+|\d+\s*개", s))
             is_claim = bool(re.search(r"(비율|분포|상관|median|IQR|ρ|rho|Spearman|Kruskal|산출|탐지|관측됐|관측되|FAIL|UNDETERMINED|N\s*=)", s))
             if re.search(HEDGE_N, s) and not has_n: issues.append("§2.5 N/분모 없는 일반화")
+            # A 14:21: '0건' must be written as 'N건 중 0건' — bare zero reads as 'not measured'
+            if re.search(r"(?<![\d/])0\s*건", s) and not re.search(r"\d+\s*건\s*(중|가운데|에서)\s*0\s*건|0\s*/\s*\d+|\d+\s*(건|개)\s*(을|를)?\s*시도", s): issues.append("분모 없는 '0건' — 'N건 중 0건' 으로")
             nums = numbers_in(s) - {"2026", "08", "27", "2", "1"}
             unmatched = sorted(n for n in nums if n not in ref and not re.match(r"^\d{1,2}$", n) is None and n not in ref)
             unmatched = sorted(n for n in nums if n not in ref)
