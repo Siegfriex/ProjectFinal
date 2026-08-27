@@ -1,0 +1,343 @@
+{
+  "manifest": "REAL_RUN_SUMMARY",
+  "snapshot_at": "2026-08-27T14:34:31+09:00",
+  "grade": "PILOT / PRELIMINARY",
+  "grade_note": "커버리지 100%가 등급을 올리지 않는다 — 결과가 예상보다 좋다는 이유로 사전 규칙을 뒤집는 것도 나쁠 때 뒤집는 것과 같은 실패다. 등급과 커버리지를 둘 다 보고한다.",
+  "collection_markers": {
+    "batches_found": true,
+    "snapshot_at": "2026-08-27T14:34:31+09:00",
+    "analysis_cohort": "E001_FULL",
+    "analysis_collector_sha": "222ef2c",
+    "analysis_sample": {
+      "attempted_observations": 59,
+      "unique_targets": 59,
+      "frame_size": 59,
+      "coverage": 1.0,
+      "counts_distinct_note": "`attempted_observations`(시도한 관측 건수)와 `unique_targets`(서로 다른 서비스 수)는 **다른 숫자다** — 재시도·중복발사 격리분이 관측 수를 부풀린다. 'N건 시도'를 'N개 서비스'로 쓰지 않는다.",
+      "archetype_observed": {
+        "PLACE_LOOKUP": 4,
+        "CONTENT_OPEN": 3,
+        "ITEM_DETAIL": 16,
+        "FINANCIAL_ACTION_ENTRY": 4,
+        "COMMUNICATION_ENTRY": 2,
+        "UTILITY_ENTRY": 2
+      },
+      "archetype_unknown_by_outcome": {
+        "ACCOUNT_ACTION_BLOCKED": 25,
+        "SKIPPED_RETRY_EXHAUSTED": 3
+      },
+      "archetype_unknown_n": 28,
+      "archetype_note": "archetype은 Scout가 돈 관측에만 있다 — 가드 차단·재시도 소진 건은 archetype이 없어 `archetype_unknown_by_outcome`으로 따로 센다. 전수를 못 채운 경우 어느 archetype이 덜 수집됐는지가 expected_by_plan 대조의 입력이다(기술 대조이지 가설검정이 아니다)."
+    },
+    "verification_only_cohorts": [],
+    "cohort_policy_note": "분석 표본은 `E001_FULL`만이다(Claude A 판정). E000은 고유 서비스를 0건 기여하고 측정기가 다르므로(E000 a86b4c7 / E001 222ef2c) 한 기술통계에 섞지 않는다 — 이득 0, 위험만 있다. E000은 측정기·evidence lineage 검증 산출물로만 보고한다.",
+    "n_sources": 4,
+    "n_sources_existing": 4,
+    "n_sources_with_files": 4,
+    "n_batch_files": 16,
+    "n_results": 59,
+    "cohorts": [
+      "E001_FULL"
+    ],
+    "cross_cohort_merged": false,
+    "cross_cohort_repeated_targets": [],
+    "cross_cohort_repeated_n": 0,
+    "cross_cohort_note": "단일 코호트 — 코호트 간 재측정 없음.",
+    "by_source": [
+      {
+        "worker_id": "e001_w01",
+        "batches_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/batches",
+        "exists": true,
+        "n_batch_files": 4,
+        "n_results": 15,
+        "batch_ids": [
+          "b0001",
+          "b0002",
+          "b0003",
+          "b0004"
+        ],
+        "duplicate_batch_ids_within_source": [],
+        "cohorts": [
+          "E001_FULL"
+        ],
+        "chain_ok": true,
+        "chain_error": null,
+        "n_targets": 15,
+        "guard_blocked_n": 5,
+        "guard_blocked_by_category": {
+          "LOGIN": 4,
+          "SIGNUP": 1
+        },
+        "e6b_fired_n": 3,
+        "e6b_value_corroborated_n": 3,
+        "outcome_counts": {
+          "ACCOUNT_ACTION_BLOCKED": 5,
+          "AUTH_GATE": 5,
+          "UNRESOLVED": 5
+        },
+        "skipped_retry_exhausted_n": 0,
+        "unresolved_by_budget_reason": {
+          "MAX_SCOUT_WALL_CLOCK_S": 2,
+          "SCOUT_ERROR": 1,
+          "unresolved_reason_unrecorded": 2
+        },
+        "unresolved_by_category": {
+          "OUR_CIRCUMSTANCE": 3,
+          "UNCLASSIFIED": 2
+        },
+        "unresolved_reason_unrecorded_n": 2,
+        "unresolved_note": "UNRESOLVED는 단일 범주가 아니다 — `budget_reason`으로 분해했다. `endpoint_status_detail`은 **단독 근거로 쓰지 않는다**: SCOUT_ERROR(기술적 실패)에도 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED`가 찍혀 있어 그것만 보면 '깊이 예산 초과'로 잘못 기술된다. `budget_reason` 미기록분은 `unresolved_reason_unrecorded`로 따로 세며 다른 사유로 뭉뚱그리지 않는다."
+      },
+      {
+        "worker_id": "e001_w02",
+        "batches_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/batches",
+        "exists": true,
+        "n_batch_files": 4,
+        "n_results": 15,
+        "batch_ids": [
+          "b0001",
+          "b0002",
+          "b0003",
+          "b0004"
+        ],
+        "duplicate_batch_ids_within_source": [],
+        "cohorts": [
+          "E001_FULL"
+        ],
+        "chain_ok": true,
+        "chain_error": null,
+        "n_targets": 15,
+        "guard_blocked_n": 7,
+        "guard_blocked_by_category": {
+          "LOGIN": 4,
+          "SIGNUP": 1,
+          "PAYMENT": 1,
+          "PURCHASE": 1
+        },
+        "e6b_fired_n": 2,
+        "e6b_value_corroborated_n": 2,
+        "outcome_counts": {
+          "CAPTCHA": 1,
+          "ACCOUNT_ACTION_BLOCKED": 7,
+          "AUTH_GATE": 3,
+          "UNRESOLVED": 3,
+          "SKIPPED_RETRY_EXHAUSTED": 1
+        },
+        "skipped_retry_exhausted_n": 1,
+        "unresolved_by_budget_reason": {
+          "MAX_SCOUT_WALL_CLOCK_S": 1,
+          "unresolved_reason_unrecorded": 1,
+          "SCOUT_ERROR": 1
+        },
+        "unresolved_by_category": {
+          "OUR_CIRCUMSTANCE": 2,
+          "UNCLASSIFIED": 1
+        },
+        "unresolved_reason_unrecorded_n": 1,
+        "unresolved_note": "UNRESOLVED는 단일 범주가 아니다 — `budget_reason`으로 분해했다. `endpoint_status_detail`은 **단독 근거로 쓰지 않는다**: SCOUT_ERROR(기술적 실패)에도 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED`가 찍혀 있어 그것만 보면 '깊이 예산 초과'로 잘못 기술된다. `budget_reason` 미기록분은 `unresolved_reason_unrecorded`로 따로 세며 다른 사유로 뭉뚱그리지 않는다."
+      },
+      {
+        "worker_id": "e001_w03",
+        "batches_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/batches",
+        "exists": true,
+        "n_batch_files": 4,
+        "n_results": 15,
+        "batch_ids": [
+          "b0001",
+          "b0002",
+          "b0003",
+          "b0004"
+        ],
+        "duplicate_batch_ids_within_source": [],
+        "cohorts": [
+          "E001_FULL"
+        ],
+        "chain_ok": true,
+        "chain_error": null,
+        "n_targets": 15,
+        "guard_blocked_n": 6,
+        "guard_blocked_by_category": {
+          "PURCHASE": 1,
+          "LOGIN": 5
+        },
+        "e6b_fired_n": 2,
+        "e6b_value_corroborated_n": 2,
+        "outcome_counts": {
+          "AUTH_GATE": 3,
+          "ACCOUNT_ACTION_BLOCKED": 6,
+          "SKIPPED_RETRY_EXHAUSTED": 2,
+          "UNRESOLVED": 4
+        },
+        "skipped_retry_exhausted_n": 2,
+        "unresolved_by_budget_reason": {
+          "unresolved_reason_unrecorded": 1,
+          "MAX_SCOUT_WALL_CLOCK_S": 1,
+          "SCOUT_ERROR": 1,
+          "MAX_CONSECUTIVE_NO_STATE_CHANGE": 1
+        },
+        "unresolved_by_category": {
+          "UNCLASSIFIED": 1,
+          "OUR_CIRCUMSTANCE": 2,
+          "TARGET_PROPERTY": 1
+        },
+        "unresolved_reason_unrecorded_n": 1,
+        "unresolved_note": "UNRESOLVED는 단일 범주가 아니다 — `budget_reason`으로 분해했다. `endpoint_status_detail`은 **단독 근거로 쓰지 않는다**: SCOUT_ERROR(기술적 실패)에도 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED`가 찍혀 있어 그것만 보면 '깊이 예산 초과'로 잘못 기술된다. `budget_reason` 미기록분은 `unresolved_reason_unrecorded`로 따로 세며 다른 사유로 뭉뚱그리지 않는다."
+      },
+      {
+        "worker_id": "e001_w04",
+        "batches_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/batches",
+        "exists": true,
+        "n_batch_files": 4,
+        "n_results": 14,
+        "batch_ids": [
+          "b0001",
+          "b0002",
+          "b0003",
+          "b0004"
+        ],
+        "duplicate_batch_ids_within_source": [],
+        "cohorts": [
+          "E001_FULL"
+        ],
+        "chain_ok": true,
+        "chain_error": null,
+        "n_targets": 14,
+        "guard_blocked_n": 7,
+        "guard_blocked_by_category": {
+          "LOGIN": 6,
+          "PURCHASE": 1
+        },
+        "e6b_fired_n": 1,
+        "e6b_value_corroborated_n": 1,
+        "outcome_counts": {
+          "ACCOUNT_ACTION_BLOCKED": 7,
+          "UNRESOLVED": 6,
+          "AUTH_GATE": 1
+        },
+        "skipped_retry_exhausted_n": 0,
+        "unresolved_by_budget_reason": {
+          "MAX_SCOUT_WALL_CLOCK_S": 3,
+          "unresolved_reason_unrecorded": 2,
+          "MAX_CONSECUTIVE_NO_STATE_CHANGE": 1
+        },
+        "unresolved_by_category": {
+          "OUR_CIRCUMSTANCE": 3,
+          "UNCLASSIFIED": 2,
+          "TARGET_PROPERTY": 1
+        },
+        "unresolved_reason_unrecorded_n": 2,
+        "unresolved_note": "UNRESOLVED는 단일 범주가 아니다 — `budget_reason`으로 분해했다. `endpoint_status_detail`은 **단독 근거로 쓰지 않는다**: SCOUT_ERROR(기술적 실패)에도 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED`가 찍혀 있어 그것만 보면 '깊이 예산 초과'로 잘못 기술된다. `budget_reason` 미기록분은 `unresolved_reason_unrecorded`로 따로 세며 다른 사유로 뭉뚱그리지 않는다."
+      }
+    ],
+    "chain_verified_all_sources": true,
+    "chain_errors": {},
+    "chain_note": "해시 체인은 **소스(워커)별로 독립 검증**했다 — 서로 다른 워커의 체인을 이어붙이지 않았다. 계수만 합산했다.",
+    "guard_blocked_n": 25,
+    "guard_blocked_by_category": {
+      "LOGIN": 19,
+      "SIGNUP": 2,
+      "PAYMENT": 1,
+      "PURCHASE": 3
+    },
+    "e6b_fired_n": 8,
+    "e6b_value_corroborated_n": 8,
+    "outcome_counts": {
+      "ACCOUNT_ACTION_BLOCKED": 25,
+      "AUTH_GATE": 12,
+      "UNRESOLVED": 18,
+      "CAPTCHA": 1,
+      "SKIPPED_RETRY_EXHAUSTED": 3
+    },
+    "skipped_retry_exhausted_n": 3,
+    "unresolved_by_budget_reason": {
+      "MAX_SCOUT_WALL_CLOCK_S": 7,
+      "SCOUT_ERROR": 3,
+      "unresolved_reason_unrecorded": 6,
+      "MAX_CONSECUTIVE_NO_STATE_CHANGE": 2
+    },
+    "unresolved_by_category": {
+      "OUR_CIRCUMSTANCE": 10,
+      "UNCLASSIFIED": 6,
+      "TARGET_PROPERTY": 2
+    },
+    "unresolved_reason_unrecorded_n": 6,
+    "unresolved_note": "UNRESOLVED는 단일 범주가 아니다 — `budget_reason`으로 분해했다. `endpoint_status_detail`은 **단독 근거로 쓰지 않는다**: SCOUT_ERROR(기술적 실패)에도 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED`가 찍혀 있어 그것만 보면 '깊이 예산 초과'로 잘못 기술된다. `budget_reason` 미기록분은 `unresolved_reason_unrecorded`로 따로 세며 다른 사유로 뭉뚱그리지 않는다.",
+    "derivation": "guard_blocked = outcome ACCOUNT_ACTION_BLOCKED (scout_invoked=false, blocked_category 보유). e6b_fired = detail.notes의 'gate 판별: UNDETERMINED' 마커(규칙 E-6b fail-closed). 수집기를 바꾸지 않고 배치 결과에서 파생했다."
+  },
+  "cause_attribution": {
+    "total": 59,
+    "attribution": {
+      "guard_granularity": {
+        "n": 25,
+        "pct": 42.4,
+        "category": "OUR_TOOL_CONSTRAINT",
+        "label": "가드 입도 — 우리 도구의 제약"
+      },
+      "archetype_endpoint_rule": {
+        "n": 11,
+        "pct": 18.6,
+        "category": "OUR_CONTRACT_DESIGN",
+        "label": "archetype-endpoint 규칙 자체 — 본 연구 계약의 설계",
+        "by_archetype": {
+          "PLACE_LOOKUP": 2,
+          "CONTENT_OPEN": 1,
+          "ITEM_DETAIL": 7,
+          "UTILITY_ENTRY": 1
+        }
+      },
+      "unresolved": {
+        "n": 18,
+        "pct": 30.5,
+        "category": "MIXED",
+        "label": "UNRESOLVED — budget_reason으로 분해",
+        "by_budget_reason": {
+          "MAX_SCOUT_WALL_CLOCK_S": 7,
+          "SCOUT_ERROR": 3,
+          "unresolved_reason_unrecorded": 6,
+          "MAX_CONSECUTIVE_NO_STATE_CHANGE": 2
+        },
+        "by_category": {
+          "OUR_CIRCUMSTANCE": 3,
+          "UNCLASSIFIED": 6,
+          "TARGET_PROPERTY": 2
+        }
+      },
+      "skipped_retry_exhausted": {
+        "n": 3,
+        "pct": 5.1,
+        "category": "OUR_CIRCUMSTANCE",
+        "label": "SKIPPED_RETRY_EXHAUSTED — 우리 쪽 사정"
+      },
+      "captcha": {
+        "n": 1,
+        "pct": 1.7,
+        "category": "TARGET_PROPERTY",
+        "label": "CAPTCHA — 대상의 성질"
+      },
+      "e6b_binding": {
+        "n": 1,
+        "pct": 1.7,
+        "category": "MEASUREMENT_LIMIT",
+        "label": "E-6b 구속 — 측정기 한계"
+      }
+    },
+    "e6b_fired_n": 8,
+    "e6b_binding_n": 1,
+    "e6b_note": "E-6b는 8건에서 **발화**했으나 실제로 결과를 바꾼 것(구속)은 1건이다. 승격은 `A2 §1.5.1`+`00_SSOT §3`이 FINANCIAL_ACTION_ENTRY·COMMUNICATION_ENTRY 2종으로 한정하므로, 나머지 archetype에서는 gate 종류를 정확히 판별했어도 MPFED가 NULL이다. **발화 횟수를 원인으로 쓰면 과대평가다.**",
+    "auth_gate_by_archetype": {
+      "PLACE_LOOKUP": 2,
+      "CONTENT_OPEN": 1,
+      "ITEM_DETAIL": 7,
+      "FINANCIAL_ACTION_ENTRY": 1,
+      "UTILITY_ENTRY": 1
+    },
+    "attribution_note": "'측정기가 실패했다'로 뭉뚱그리지 않는다 — 도구 입도(가드) / 계약 설계(archetype-endpoint 규칙) / 판별 실패(E-6b)는 성격이 다르고 시정 방향도 다르다."
+  },
+  "mart_row_counts": {
+    "fact_landing_observation": 56,
+    "fact_task_entry": 31,
+    "fact_interrupt_element": 235,
+    "fact_criterion_result": 0,
+    "dim_certification": 0
+  }
+}
