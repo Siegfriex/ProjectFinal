@@ -1,0 +1,1827 @@
+{
+ "schema": "RQ_E1_icononly_ablation/1",
+ "verdict": "PARTIALLY_SUPPORTED",
+ "verdict_note": "주가설 H-E1-RECOVERY 는 pool grain 에서 SUPPORTED 다. 그러나 같은 증거가 H-E1-IRRELEVANT 도 SUPPORTED 로 만든다 — 회복은 실재하나 현 mart 의 Axis B 산출값에는 도달하지 않는다. 그래서 전체 verdict 는 PARTIALLY_SUPPORTED 다.",
+ "hypothesis_verdicts": {
+  "H-E1-RECOVERY": {
+   "statement": "icon_only 를 끄면 제거된 후보의 상당수가 되돌아오고, pool 이 비었던 target 이 회복된다.",
+   "verdict": "SUPPORTED",
+   "evidence": "제거된 57개 hittable 후보 중 35개가 회복된다 (0.614; Wilson95 [0.4843, 0.7294]; grain=removed hittable pac). baseline 에서 pool 이 빈 target 5/54 중 5개가 비지 않게 된다 (ablation 후 0/54).",
+   "caveat": "반사실 재계산이다. 실제로 코드를 고쳐 재수집한 결과가 아니다."
+  },
+  "H-E1-NULL": {
+   "statement": "icon_only 로 제거된 후보는 대부분 close_vocabulary 로도 잡히므로 회복량이 미미하다.",
+   "verdict": "REFUTED",
+   "evidence": "중복근거(both) 셀은 5/57 뿐이다. icon_only 단독근거가 35/57 로 최대 셀이다. 즉 두 조건은 대부분 겹치지 않는다."
+  },
+  "H-E1-HARM": {
+   "statement": "되돌아온 후보의 다수가 진짜 닫기 control 이라, 회복은 Axis B 의 오탐을 늘릴 뿐이다.",
+   "decision_rule": "threshold=0.5 ('다수'). SUPPORTED = min(all rules) > 0.5. NOT_SUPPORTED = max(R1..R6) < 0.5. 그 외 INCONCLUSIVE. R7 은 의도적 과대계상이라 NOT_SUPPORTED 판정에서 제외하되 수치는 항상 병기한다.",
+   "verdict": "NOT_SUPPORTED",
+   "evidence": "보수적 상한 7개 규칙에서 '진짜 닫기일 수 있음' 비율은 0.0–0.6286 구간이고, 의도적 과대계상 R7 을 뺀 최댓값은 0.4857 다 (grain=recovered candidate, 분모 35). 확장 닫기 사전 적중은 0/35 이고, 명백한 비-닫기 기능어휘(메뉴/검색/홈/로고 등) 적중이 11/35 이다.",
+   "caveat": "gold label 이 없다. 이 판정은 규칙 기반 상한이며 사람의 재판정이 필요하다 — recovered_sample 을 그대로 실었다."
+  },
+  "H-E1-IRRELEVANT": {
+   "statement": "pool 크기가 회복돼도 Axis B 산출(NED/IED/MPFED)이 전부 None 이므로 회복은 결과에 도달하지 않는다.",
+   "verdict": "SUPPORTED",
+   "evidence": "frozen mart fact_task_entry.json 에서 NED/IED/MPFED 가 각각 0/31, 0/31, 0/31 non-null 이고 endpoint_reached>0 은 0/31 다. 회복량은 탐색공간 크기까지만 말하며 산출값에 도달하지 않는다.",
+   "note": "이 가설은 H-E1-RECOVERY 와 배타적이지 않다. 둘 다 참일 수 있고 실제로 둘 다 참이다 — 회복은 pool grain 에서 실재하고, 결과 grain 에서는 관측되지 않는다."
+  }
+ },
+ "rq_id": "RQ-E-1",
+ "child_id": "D-RQ-E-1",
+ "hypothesis_id": "H-E1-RECOVERY",
+ "plane": "D",
+ "authority": "NON_CANONICAL",
+ "claim_kind": "ANALYSIS",
+ "split": "none",
+ "seed": 20260828,
+ "model_or_rule_version": "RQ_E1_v1",
+ "generated_at_kst": "2026-08-28T00:36:18.183064+09:00",
+ "go_nogo_decision": "NOT_IN_SCOPE — D 는 GO/NO-GO 와 threshold 를 내지 않는다",
+ "construct_authority_note": "icon_only 를 끌지 말지는 A 의 권한이다. 이 문서는 회복량과 회복분의 성질만 보고한다.",
+ "causal_claim": "none — 코드를 고쳐 재수집한 것이 아니라 frozen probe flag 로 filter 를 재계산한 반사실이다.",
+ "method": "l0_probe.js:409 의 `filter(x => x.matches_close_vocabulary || x.icon_only)` 를 `filter(x => x.matches_close_vocabulary)` 로 바꾼 반사실 집합을 frozen probe raw 에서 재계산하고, l1_engine.py:346-357 의 selector-set 차집합 연산을 그대로 재현한다.",
+ "definitions": {
+  "grain_dismiss_entry": "probe raw `dismiss_control_candidates[*].dismiss_control_candidates[*]` 의 원소 1개. 같은 selector 가 서로 다른 container 에서 두 번 나올 수 있으므로 selector 와 1:1 이 아니다.",
+  "grain_dismiss_selector": "target 안에서 selector 문자열 1개. l1_engine.py:346-350 이 실제로 만드는 것은 **selector 문자열의 set** 이므로, 같은 selector 의 여러 entry 는 flag 를 OR 로 합친 것과 동치다. baseline/ablation 집합은 이 grain 에서 정의한다.",
+  "grain_pac_hittable": "`primary_action_candidates` 중 `hittable==true` 이고 selector 가 있는 원소 1개. l1_engine.py:352-356 의 후보 필터와 같다. Axis B activation pool 의 분모다.",
+  "grain_target": "in_mart==1 이며 l0a/probe.json 을 가진 web target 1개 (n=54).",
+  "baseline_dismiss_set": "D_base(t) = { selector : 그 selector 의 entry 가 probe 에 하나라도 존재 }. probe 가 이미 l0_probe.js:409 `matches_close_vocabulary || icon_only` 로 걸러 저장하므로, 저장된 entry 는 전부 둘 중 하나를 만족한다.",
+  "ablated_dismiss_set": "D_abl(t) = { selector : 그 selector 의 entry 중 하나라도 matches_close_vocabulary==true }. l0_probe.js:409 의 filter 를 `x.matches_close_vocabulary` 만으로 바꾼 반사실이다.",
+  "pool_baseline": "P_base(t) = { hittable pac : selector ∉ D_base(t) }",
+  "pool_ablated": "P_abl(t) = { hittable pac : selector ∉ D_abl(t) }",
+  "recovered": "R(t) = P_abl(t) \\ P_base(t) = { hittable pac : selector ∈ D_base(t) ∧ selector ∉ D_abl(t) }. 즉 **icon_only 만이 유일한 제거근거였던** 후보다. 정의상 P_base ⊆ P_abl 이므로 이 ablation 은 pool 을 줄일 수 없다(단조).",
+  "recovery_rate_denominator": "회복률의 분모는 **baseline 에서 제거된 hittable 후보 수** 이며, hittable pac 전체가 아니다. 두 분모를 모두 병기한다.",
+  "not_a_gold_label": "이 문서의 '진짜 닫기인가' 판정은 gold label 이 아니다. 규칙 기반 상한이며, 사람이 재판정할 수 있도록 표본을 그대로 덤프한다."
+ },
+ "code_read": {
+  "sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "method": "git show <sha>:<path> — 읽기 전용. 실행하지 않았다.",
+  "files": [
+   {
+    "path": "src/landing_accessibility/engine/l0_probe.js",
+    "lines": "377-418 (dismiss_control_candidates 블록); :379-381 CLOSE_WORDS/PERSIST_WORDS/CLOSE_GLYPH; :384-390 컨테이너 집합(dialog/role=dialog/alertdialog/aria-modal ∪ fixed/sticky/z>=100); :392-393 control 질의(button,[role=button],a[href],[role=link],form[method=dialog] button); :394 name=aria-label||title||textContent; :400 matches_close_vocabulary; :402 icon_only = !textContent && (aria-label || img/svg 자식); :409 filter",
+    "ablated_line": ":402/:409 의 `|| x.icon_only` 항"
+   },
+   {
+    "path": "src/landing_accessibility/engine/l1_engine.py",
+    "lines": "334-370 _activation_candidates; :346-350 dismiss_selectors 집합 구성(컨테이너 전체 flatten, hittable 무관); :351-357 hittable ∧ selector 존재 ∧ selector ∉ dismiss_selectors; :358 min4_sort_key 정렬; :360-368 dedup + limit 절단"
+   }
+  ],
+  "note": "l1_engine 은 selector **문자열 집합** 을 만든다. 따라서 같은 selector 의 여러 entry 는 flag OR 과 동치이며, 이 분석은 그 grain 을 따랐다."
+ },
+ "duplicate_basis_decomposition": {
+  "grain": "removed hittable pac (selector 단위 OR 집계) — 분모는 baseline 에서 제거된 후보 수",
+  "denominator_removed": 57,
+  "cells": {
+   "icon_only_only": {
+    "numerator": 35,
+    "denominator": 57,
+    "grain": "removed hittable pac",
+    "rate": 0.614,
+    "wilson95": [
+     0.4843,
+     0.7294
+    ]
+   },
+   "close_vocabulary_only": {
+    "numerator": 17,
+    "denominator": 57,
+    "grain": "removed hittable pac",
+    "rate": 0.2982,
+    "wilson95": [
+     0.1953,
+     0.4266
+    ]
+   },
+   "both": {
+    "numerator": 5,
+    "denominator": 57,
+    "grain": "removed hittable pac",
+    "rate": 0.0877,
+    "wilson95": [
+     0.0381,
+     0.1895
+    ]
+   }
+  },
+  "close_vocabulary_any": {
+   "numerator": 22,
+   "denominator": 57,
+   "grain": "removed hittable pac",
+   "rate": 0.386,
+   "wilson95": [
+    0.2706,
+    0.5157
+   ]
+  },
+  "icon_only_any": {
+   "numerator": 40,
+   "denominator": 57,
+   "grain": "removed hittable pac",
+   "rate": 0.7018,
+   "wilson95": [
+    0.5734,
+    0.8047
+   ]
+  },
+  "entry_grain_check": {
+   "note": "selector 가 여러 container 에 중복 등장하면 entry grain 과 selector grain 이 갈린다.",
+   "n_dismiss_entries_all": 483,
+   "n_distinct_selector_target_pairs": 395,
+   "n_selectors_with_multiple_entries": 60,
+   "n_removed_selectors_with_multiple_entries": 6
+  },
+  "pilot_e_comparison": {
+   "pilot_e_reported": {
+    "icon_only": 35,
+    "close_vocabulary": 22
+   },
+   "note": "PILOT-E 의 basis 는 상호배타 우선순위(close_vocabulary 우선)였고 selector 당 첫 entry 만 봤다. 이 문서는 3분할 + selector OR 집계를 쓴다. close_vocabulary_any 가 PILOT-E 의 22 와 일치하고 icon_only_only 가 35 와 일치하면 두 계산은 같은 것을 다르게 표기한 것뿐이다."
+  }
+ },
+ "ablation_recovery": {
+  "grain_note": "후보 grain 과 target grain 을 섞지 않는다. 각 항목에 grain 을 붙였다.",
+  "candidate_grain": {
+   "n_hittable_candidates": 854,
+   "n_removed_baseline": {
+    "numerator": 57,
+    "denominator": 854,
+    "grain": "hittable pac",
+    "rate": 0.0667,
+    "wilson95": [
+     0.0519,
+     0.0855
+    ]
+   },
+   "n_removed_ablated": {
+    "numerator": 22,
+    "denominator": 854,
+    "grain": "hittable pac",
+    "rate": 0.0258,
+    "wilson95": [
+     0.0171,
+     0.0387
+    ]
+   },
+   "n_recovered": 35,
+   "recovery_rate_of_removed": {
+    "numerator": 35,
+    "denominator": 57,
+    "grain": "removed hittable pac",
+    "rate": 0.614,
+    "wilson95": [
+     0.4843,
+     0.7294
+    ]
+   },
+   "recovery_rate_of_all_hittable": {
+    "numerator": 35,
+    "denominator": 854,
+    "grain": "hittable pac",
+    "rate": 0.041,
+    "wilson95": [
+     0.0296,
+     0.0565
+    ]
+   },
+   "pool_baseline_total": 797,
+   "pool_ablated_total": 832,
+   "pool_growth_pct": 4.3915
+  },
+  "target_grain": {
+   "n_targets_with_probe": 54,
+   "n_targets_expected": 56,
+   "n_targets_affected_baseline": {
+    "numerator": 31,
+    "denominator": 54,
+    "grain": "target",
+    "rate": 0.5741,
+    "wilson95": [
+     0.4416,
+     0.6967
+    ]
+   },
+   "n_targets_with_any_recovery": {
+    "numerator": 22,
+    "denominator": 54,
+    "grain": "target",
+    "rate": 0.4074,
+    "wilson95": [
+     0.2868,
+     0.5403
+    ]
+   },
+   "n_targets_pool_emptied_baseline": {
+    "numerator": 5,
+    "denominator": 54,
+    "grain": "target",
+    "rate": 0.0926,
+    "wilson95": [
+     0.0402,
+     0.1991
+    ]
+   },
+   "n_targets_pool_emptied_ablated": {
+    "numerator": 0,
+    "denominator": 54,
+    "grain": "target",
+    "rate": 0.0,
+    "wilson95": [
+     0.0,
+     0.0664
+    ]
+   },
+   "n_emptied_targets_that_unempty": 5,
+   "unempty_rate": {
+    "numerator": 5,
+    "denominator": 5,
+    "grain": "target (baseline 에서 pool 이 빈 target)",
+    "rate": 1.0,
+    "wilson95": [
+     0.5655,
+     1.0
+    ]
+   },
+   "emptied_target_detail": [
+    {
+     "wtg": "e7bb158c1c8d9fe7",
+     "n_hittable": 2.0,
+     "n_removed_base": 2.0,
+     "pool_base": 0.0,
+     "n_recovered": 1.0,
+     "pool_abl": 1.0,
+     "emptied_abl": 0.0
+    },
+    {
+     "wtg": "190b4501e4415d5e",
+     "n_hittable": 2.0,
+     "n_removed_base": 2.0,
+     "pool_base": 0.0,
+     "n_recovered": 1.0,
+     "pool_abl": 1.0,
+     "emptied_abl": 0.0
+    },
+    {
+     "wtg": "b728911c9782edb8",
+     "n_hittable": 2.0,
+     "n_removed_base": 2.0,
+     "pool_base": 0.0,
+     "n_recovered": 1.0,
+     "pool_abl": 1.0,
+     "emptied_abl": 0.0
+    },
+    {
+     "wtg": "0ee385d0c964e560",
+     "n_hittable": 3.0,
+     "n_removed_base": 3.0,
+     "pool_base": 0.0,
+     "n_recovered": 2.0,
+     "pool_abl": 2.0,
+     "emptied_abl": 0.0
+    },
+    {
+     "wtg": "35319a420294ee17",
+     "n_hittable": 2.0,
+     "n_removed_base": 2.0,
+     "pool_base": 0.0,
+     "n_recovered": 2.0,
+     "pool_abl": 2.0,
+     "emptied_abl": 0.0
+    }
+   ],
+   "monotonicity_check": {
+    "pool_never_shrinks": true,
+    "note": "정의상 P_base ⊆ P_abl 이므로 참이어야 한다. 거짓이면 계산 오류다."
+   },
+   "per_target_pool_delta_describe": {
+    "count": 54.0,
+    "mean": 0.6481,
+    "std": 1.0668,
+    "min": 0.0,
+    "25%": 0.0,
+    "50%": 0.0,
+    "75%": 1.0,
+    "max": 6.0
+   }
+  },
+  "axis_c_side_effect": {
+   "note": "icon_only 를 끄면 Axis C 의 dismiss 후보 자체도 줄어든다. 이 문서는 크기만 보고한다.",
+   "n_dismiss_selectors_baseline_total": 395,
+   "n_dismiss_selectors_ablated_total": 165,
+   "shrink_rate": {
+    "numerator": 230,
+    "denominator": 395,
+    "grain": "dismiss selector (target×selector)",
+    "rate": 0.5823,
+    "wilson95": [
+     0.5331,
+     0.6299
+    ]
+   },
+   "n_targets_dismiss_set_becomes_empty": {
+    "numerator": 9,
+    "denominator": 51,
+    "grain": "target (baseline 에 dismiss selector 가 있던 target)",
+    "rate": 0.1765,
+    "wilson95": [
+     0.0957,
+     0.3025
+    ]
+   }
+  }
+ },
+ "recovered_properties": {
+  "grain": "recovered hittable pac",
+  "denominator": 35,
+  "has_href": {
+   "numerator": 22,
+   "denominator": 35,
+   "grain": "recovered candidate",
+   "rate": 0.6286,
+   "wilson95": [
+    0.4634,
+    0.7683
+   ]
+  },
+  "homeish_href": {
+   "numerator": 5,
+   "denominator": 35,
+   "grain": "recovered candidate",
+   "rate": 0.1429,
+   "wilson95": [
+    0.0626,
+    0.2938
+   ]
+  },
+  "non_navigating": {
+   "numerator": 17,
+   "denominator": 35,
+   "grain": "recovered candidate",
+   "rate": 0.4857,
+   "wilson95": [
+    0.3299,
+    0.6443
+   ]
+  },
+  "name_slot_distribution": {
+   "none": {
+    "numerator": 22,
+    "denominator": 35,
+    "grain": "recovered candidate",
+    "rate": 0.6286,
+    "wilson95": [
+     0.4634,
+     0.7683
+    ]
+   },
+   "aria_label": {
+    "numerator": 13,
+    "denominator": 35,
+    "grain": "recovered candidate",
+    "rate": 0.3714,
+    "wilson95": [
+     0.2317,
+     0.5366
+    ]
+   }
+  },
+  "pac_tag_distribution": {
+   "a": 22,
+   "button": 13
+  },
+  "container_overlay_heuristic": {
+   "numerator": 35,
+   "denominator": 35,
+   "grain": "recovered candidate",
+   "rate": 1.0,
+   "wilson95": [
+    0.9011,
+    1.0
+   ]
+  },
+  "container_semantic_dialog": {
+   "numerator": 1,
+   "denominator": 35,
+   "grain": "recovered candidate",
+   "rate": 0.0286,
+   "wilson95": [
+    0.0051,
+    0.1453
+   ]
+  },
+  "no_name_at_all": {
+   "numerator": 19,
+   "denominator": 35,
+   "grain": "recovered candidate",
+   "rate": 0.5429,
+   "wilson95": [
+    0.3819,
+    0.6953
+   ]
+  },
+  "close_vocabulary_by_definition": {
+   "note": "회복분은 정의상 probe 의 CLOSE_WORDS/CLOSE_GLYPH 에 걸리지 않는다(그래서 icon_only 단독이었다). 따라서 어휘유사도는 **확장 사전**으로만 의미가 있다.",
+   "probe_regex_hits": 0
+  },
+  "extended_close_lexicon_hit": {
+   "numerator": 0,
+   "denominator": 35,
+   "grain": "recovered candidate",
+   "rate": 0.0,
+   "wilson95": [
+    0.0,
+    0.0989
+   ]
+  },
+  "non_close_lexicon_hit": {
+   "numerator": 11,
+   "denominator": 35,
+   "grain": "recovered candidate",
+   "rate": 0.3143,
+   "wilson95": [
+    0.1855,
+    0.4798
+   ]
+  },
+  "unnamed": {
+   "numerator": 19,
+   "denominator": 35,
+   "grain": "recovered candidate",
+   "rate": 0.5429,
+   "wilson95": [
+    0.3819,
+    0.6953
+   ]
+  }
+ },
+ "recovered_sample": [
+  {
+   "wtg": "054d78ed187cdd9f",
+   "selector": "header#re-header>div>div>div>div:nth-of-type(1)>div>a",
+   "pac_tag": "a",
+   "pac_href": "https://www.coupangeats.com",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": null,
+   "pac_area": 6524.22,
+   "dismiss_min_area": 6524.22,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "054d78ed187cdd9f",
+   "selector": "div>div>div>div:nth-of-type(2)>div:nth-of-type(3)>div>div>a",
+   "pac_tag": "a",
+   "pac_href": "#elementor-action%3Aaction%3Dpopup%3Aopen%26settings%3DeyJpZCI6IjU0NTIiLCJ0b2dnbGUiOnRydWV9",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": null,
+   "pac_area": 1024.0,
+   "dismiss_min_area": 1024.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "22ffba7a86ea9919",
+   "selector": "div#siteLogoContainer>sip-responsive-costco-logo>a",
+   "pac_tag": "a",
+   "pac_href": "/",
+   "dismiss_name": "home",
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": null,
+   "pac_area": 4146.0,
+   "dismiss_min_area": 4146.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "60d4d22e3809f780",
+   "selector": "html>body>div:nth-of-type(3)>section>div>div>a",
+   "pac_tag": "a",
+   "pac_href": "/",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "스마트한 이동 생활의 시작티맵과 함께 언제나 마음 편한 이동과 일상",
+   "pac_area": 12427.56,
+   "dismiss_min_area": 12427.5592,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "60d4d22e3809f780",
+   "selector": "html>body>div:nth-of-type(3)>header>section>div:nth-of-type(2)>div>button:nth-of-type(2)",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "메뉴",
+   "pac_aria_label": "메뉴",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "스마트한 이동 생활의 시작티맵과 함께 언제나 마음 편한 이동과 일상",
+   "pac_area": 2182.76,
+   "dismiss_min_area": 2182.7583999999997,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "60d4d22e3809f780",
+   "selector": "section>div:nth-of-type(2)>div>div>div>ul>li:nth-of-type(2)>button",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "슬라이드 2",
+   "pac_aria_label": "슬라이드 2",
+   "pac_visible_text": null,
+   "pac_nearby_heading": null,
+   "pac_area": 495.06,
+   "dismiss_min_area": 495.0625,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "8195b68ac17e42a3",
+   "selector": "html>body>div:nth-of-type(3)>div>a",
+   "pac_tag": "a",
+   "pac_href": "https://m.7-eleven.co.kr/franchise/advice/joinadviceOld.asp",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "PRODUCT",
+   "pac_area": 6650.0,
+   "dismiss_min_area": 6650.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "dd2cec4c1fa2beec",
+   "selector": "div#mainLayout>header>div:nth-of-type(1)>div:nth-of-type(1)>a",
+   "pac_tag": "a",
+   "pac_href": "javascript:;",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "롯데백화점 몰이동",
+   "pac_area": 24960.0,
+   "dismiss_min_area": 24960.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "dd2cec4c1fa2beec",
+   "selector": "div#mainLayout>div:nth-of-type(3)>div:nth-of-type(1)>div>a",
+   "pac_tag": "a",
+   "pac_href": "https://www.lotteon.com/display/planV2/planDetail/107164?mall_no=2&ch_no=100523&ch_dtl_no=1072119&direct=lkellotte-0acbb81117f040839c88857b3e74a738&fc=dptpop",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "롯데백화점 몰이동",
+   "pac_area": 10200.0,
+   "dismiss_min_area": 10200.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": true,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "e7bb158c1c8d9fe7",
+   "selector": "html>body>div:nth-of-type(2)>div:nth-of-type(2)>div:nth-of-type(1)>div>p>a",
+   "pac_tag": "a",
+   "pac_href": "https://event.kurly.com/lego/event/2023/0911/join/coupon",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": null,
+   "pac_area": 6650.0,
+   "dismiss_min_area": 6650.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "190b4501e4415d5e",
+   "selector": "a#layerClickTrack",
+   "pac_tag": "a",
+   "pac_href": "https://www.ahnlabad.com/track.click?zone=21&ad=554e405caaa34cfb80324d21adf25a05_3005",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "",
+   "pac_area": 147067.0,
+   "dismiss_min_area": 147067.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "9390ef32addf32bf",
+   "selector": "div#js-header>div:nth-of-type(1)>div:nth-of-type(2)>div>a",
+   "pac_tag": "a",
+   "pac_href": "/intl/ko/chrome/",
+   "dismiss_name": "Google Chrome Homepage",
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "원하는 대로 활용할 수 있는 브라우저",
+   "pac_area": 7200.0,
+   "dismiss_min_area": 7200.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "b728911c9782edb8",
+   "selector": "div#mainPopNotice1>div>div>div>div:nth-of-type(1)>div>a",
+   "pac_tag": "a",
+   "pac_href": "https://mycompany.hyundaicard.com/cr/in/CRIN1015.do?",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": null,
+   "pac_area": 103467.0,
+   "dismiss_min_area": 103467.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "be1e6feb78e5ef03",
+   "selector": "html>body>div:nth-of-type(5)>div>a:nth-of-type(1)",
+   "pac_tag": "a",
+   "pac_href": "javascript:void(0);",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "브랜드 스토리",
+   "pac_area": 441.0,
+   "dismiss_min_area": 441.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "0ee385d0c964e560",
+   "selector": "div#site-wrapper>div:nth-of-type(5)>div>div>div:nth-of-type(1)>div>a",
+   "pac_tag": "a",
+   "pac_href": "/exhibit?promoNo=20717&storeType=HYPER",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": null,
+   "pac_area": 47442.5,
+   "dismiss_min_area": 47442.50000000001,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "0ee385d0c964e560",
+   "selector": "div#site-wrapper>div:nth-of-type(5)>button:nth-of-type(2)",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "홈플러스 매직배송 홈",
+   "pac_area": 3200.0,
+   "dismiss_min_area": 3200.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "0f3bdb2bd0bb891e",
+   "selector": "div#wrap>div:nth-of-type(1)>div>div:nth-of-type(2)>header>h1>a",
+   "pac_tag": "a",
+   "pac_href": "/",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "",
+   "pac_area": 8060.0,
+   "dismiss_min_area": 8059.999999999999,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "35319a420294ee17",
+   "selector": "html>body>div:nth-of-type(3)>div>nav>div>a",
+   "pac_tag": "a",
+   "pac_href": "/",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "금융부터 일상까지마침내토스 하나로",
+   "pac_area": 1896.0,
+   "dismiss_min_area": 1896.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "35319a420294ee17",
+   "selector": "html>body>div:nth-of-type(3)>div>nav>button",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "메뉴 열기",
+   "pac_aria_label": "메뉴 열기",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "금융부터 일상까지마침내토스 하나로",
+   "pac_area": 1764.0,
+   "dismiss_min_area": 1764.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "888d37f34b5d3aaa",
+   "selector": "header#header>div>h1>a",
+   "pac_tag": "a",
+   "pac_href": "https://www.lottehomeshopping.com",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "",
+   "pac_area": 7350.0,
+   "dismiss_min_area": 7350.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "8fd5d30f8b1d707b",
+   "selector": "a#gnbOpen",
+   "pac_tag": "a",
+   "pac_href": "javascript:void(0)",
+   "dismiss_name": "gnb열기",
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "",
+   "pac_area": 1024.0,
+   "dismiss_min_area": 1024.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "c5285b96b598a08b",
+   "selector": "html>body>div:nth-of-type(1)>div:nth-of-type(1)>button",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "치킨,지금 배민됩니다",
+   "pac_area": 1024.0,
+   "dismiss_min_area": 1024.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "24e6654bfd1ab85b",
+   "selector": "ytm-mobile-topbar-renderer#header-bar>header>ytm-home-logo>button",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "YouTube 홈",
+   "pac_aria_label": "YouTube 홈",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "검색하여 시작하기",
+   "pac_area": 5616.0,
+   "dismiss_min_area": 5616.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "24e6654bfd1ab85b",
+   "selector": "ytm-mobile-topbar-renderer#header-bar>header>div>button",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "YouTube 검색",
+   "pac_aria_label": "YouTube 검색",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "검색하여 시작하기",
+   "pac_area": 2304.0,
+   "dismiss_min_area": 2304.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "46e5a43370f75308",
+   "selector": "html>body>header>header>div>a",
+   "pac_tag": "a",
+   "pac_href": "/kr/",
+   "dismiss_name": "당근",
+   "pac_aria_label": "당근",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "당신 근처의 당근",
+   "pac_area": 2304.0,
+   "dismiss_min_area": 2304.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "46e5a43370f75308",
+   "selector": "html>body>header>header>div>div>button",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "메뉴",
+   "pac_aria_label": "메뉴",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "당신 근처의 당근",
+   "pac_area": 1760.0,
+   "dismiss_min_area": 1760.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "bbdefa2950f49882",
+   "selector": "div#gbwa>div>a",
+   "pac_tag": "a",
+   "pac_href": "https://www.google.co.kr/intl/ko/about/products",
+   "dismiss_name": "Google 앱",
+   "pac_aria_label": "Google 앱",
+   "pac_visible_text": null,
+   "pac_nearby_heading": null,
+   "pac_area": 1600.0,
+   "dismiss_min_area": 1600.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "selector": "html>body>header>div>div>a",
+   "pac_tag": "a",
+   "pac_href": "/",
+   "dismiss_name": "THE HYUNDAI SEOUL",
+   "pac_aria_label": "THE HYUNDAI SEOUL",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "더현대 서울 (THE HYUNDAI SEOUL)",
+   "pac_area": 1636.32,
+   "dismiss_min_area": 1636.3200000000002,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "selector": "html>body>header>div>div>div>button:nth-of-type(1)",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "검색",
+   "pac_aria_label": "검색",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "더현대 서울 (THE HYUNDAI SEOUL)",
+   "pac_area": 1296.0,
+   "dismiss_min_area": 1296.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "selector": "html>body>header>div>div>div>button:nth-of-type(2)",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "메뉴 열기",
+   "pac_aria_label": "메뉴 열기",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "더현대 서울 (THE HYUNDAI SEOUL)",
+   "pac_area": 1600.0,
+   "dismiss_min_area": 1600.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": true,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "selector": "html>body>div:nth-of-type(2)>div:nth-of-type(2)>div>a",
+   "pac_tag": "a",
+   "pac_href": "https://www.youtube.com/watch?v=7jcrIqPGdls",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "더현대 서울 (THE HYUNDAI SEOUL)",
+   "pac_area": 22053.24,
+   "dismiss_min_area": 22053.239999999998,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "selector": "html>body>div:nth-of-type(2)>div:nth-of-type(2)>div>a>div>button",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "음소거 해제",
+   "pac_aria_label": "음소거 해제",
+   "pac_visible_text": null,
+   "pac_nearby_heading": null,
+   "pac_area": 576.0,
+   "dismiss_min_area": 576.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "selector": "html>body>div:nth-of-type(3)>div:nth-of-type(2)>button:nth-of-type(1)",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": "AI 챗봇 헤이디",
+   "pac_aria_label": "AI 챗봇 헤이디",
+   "pac_visible_text": null,
+   "pac_nearby_heading": "더현대 서울 (THE HYUNDAI SEOUL)",
+   "pac_area": 3136.0,
+   "dismiss_min_area": 3136.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": false,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "d5ae5426eac23877",
+   "selector": "div#__nuxt>div>header>div>button:nth-of-type(1)",
+   "pac_tag": "button",
+   "pac_href": null,
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "내게 딱 맞는 금융",
+   "pac_area": 1616.0,
+   "dismiss_min_area": 1616.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  },
+  {
+   "wtg": "e67be79550661604",
+   "selector": "header#header>div>div:nth-of-type(1)>a",
+   "pac_tag": "a",
+   "pac_href": "#",
+   "dismiss_name": null,
+   "pac_aria_label": null,
+   "pac_visible_text": null,
+   "pac_nearby_heading": "",
+   "pac_area": 900.0,
+   "dismiss_min_area": 900.0,
+   "dialogish_container": true,
+   "dialog_semantic_container": false,
+   "no_name_at_all": true,
+   "ext_close_lex": false,
+   "non_close_lex": false,
+   "basis_cell": "icon_only_only"
+  }
+ ],
+ "harm_sensitivity": {
+  "grain": "recovered hittable pac",
+  "denominator": 35,
+  "rules": {
+   "R1_semantic_dialog_unnamed_icon": {
+    "definition": "container 가 **의미적 dialog** (<dialog> / role=dialog / role=alertdialog / aria-modal=true / form[method=dialog]) ∧ pac.href 없음 ∧ 이름 전무 ∧ 면적 ≤ 2500 css px²",
+    "plausibly_genuine_close": {
+     "numerator": 0,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0989
+     ]
+    },
+    "clearly_not_close": {
+     "numerator": 35,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 1.0,
+     "wilson95": [
+      0.9011,
+      1.0
+     ]
+    },
+    "examples_flagged": []
+   },
+   "R2_unnamed_icon_no_href": {
+    "definition": "pac.href 없음 ∧ 접근가능 이름 전무 ∧ 면적 ≤ 2500 css px²",
+    "plausibly_genuine_close": {
+     "numerator": 2,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.0571,
+     "wilson95": [
+      0.0158,
+      0.1861
+     ]
+    },
+    "clearly_not_close": {
+     "numerator": 33,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.9429,
+     "wilson95": [
+      0.8139,
+      0.9842
+     ]
+    },
+    "examples_flagged": [
+     {
+      "wtg": "c5285b96b598a08b",
+      "selector": "html>body>div:nth-of-type(1)>div:nth-of-type(1)>button",
+      "dismiss_name": null,
+      "pac_href": null
+     },
+     {
+      "wtg": "d5ae5426eac23877",
+      "selector": "div#__nuxt>div>header>div>button:nth-of-type(1)",
+      "dismiss_name": null,
+      "pac_href": null
+     }
+    ]
+   },
+   "R3_no_href_not_obviously_non_close": {
+    "definition": "pac.href 없음 ∧ 이름이 명백한 비-닫기 기능어휘(메뉴/검색/홈/로고…)에 걸리지 않음",
+    "plausibly_genuine_close": {
+     "numerator": 5,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.1429,
+     "wilson95": [
+      0.0626,
+      0.2938
+     ]
+    },
+    "clearly_not_close": {
+     "numerator": 30,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.8571,
+     "wilson95": [
+      0.7062,
+      0.9374
+     ]
+    },
+    "examples_flagged": [
+     {
+      "wtg": "0ee385d0c964e560",
+      "selector": "div#site-wrapper>div:nth-of-type(5)>button:nth-of-type(2)",
+      "dismiss_name": null,
+      "pac_href": null
+     },
+     {
+      "wtg": "c5285b96b598a08b",
+      "selector": "html>body>div:nth-of-type(1)>div:nth-of-type(1)>button",
+      "dismiss_name": null,
+      "pac_href": null
+     },
+     {
+      "wtg": "ccb9754c97fa7341",
+      "selector": "html>body>div:nth-of-type(2)>div:nth-of-type(2)>div>a>div>button",
+      "dismiss_name": "음소거 해제",
+      "pac_href": null
+     },
+     {
+      "wtg": "ccb9754c97fa7341",
+      "selector": "html>body>div:nth-of-type(3)>div:nth-of-type(2)>button:nth-of-type(1)",
+      "dismiss_name": "AI 챗봇 헤이디",
+      "pac_href": null
+     },
+     {
+      "wtg": "d5ae5426eac23877",
+      "selector": "div#__nuxt>div>header>div>button:nth-of-type(1)",
+      "dismiss_name": null,
+      "pac_href": null
+     }
+    ]
+   },
+   "R4_no_href": {
+    "definition": "pac.href 없음 (오버레이 안의 모든 icon button 이 닫기일 수 있다고 가정)",
+    "plausibly_genuine_close": {
+     "numerator": 13,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.3714,
+     "wilson95": [
+      0.2317,
+      0.5366
+     ]
+    },
+    "clearly_not_close": {
+     "numerator": 22,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.6286,
+     "wilson95": [
+      0.4634,
+      0.7683
+     ]
+    },
+    "examples_flagged": [
+     {
+      "wtg": "60d4d22e3809f780",
+      "selector": "html>body>div:nth-of-type(3)>header>section>div:nth-of-type(2)>div>button:nth-of-type(2)",
+      "dismiss_name": "메뉴",
+      "pac_href": null
+     },
+     {
+      "wtg": "60d4d22e3809f780",
+      "selector": "section>div:nth-of-type(2)>div>div>div>ul>li:nth-of-type(2)>button",
+      "dismiss_name": "슬라이드 2",
+      "pac_href": null
+     },
+     {
+      "wtg": "0ee385d0c964e560",
+      "selector": "div#site-wrapper>div:nth-of-type(5)>button:nth-of-type(2)",
+      "dismiss_name": null,
+      "pac_href": null
+     },
+     {
+      "wtg": "35319a420294ee17",
+      "selector": "html>body>div:nth-of-type(3)>div>nav>button",
+      "dismiss_name": "메뉴 열기",
+      "pac_href": null
+     },
+     {
+      "wtg": "c5285b96b598a08b",
+      "selector": "html>body>div:nth-of-type(1)>div:nth-of-type(1)>button",
+      "dismiss_name": null,
+      "pac_href": null
+     },
+     {
+      "wtg": "24e6654bfd1ab85b",
+      "selector": "ytm-mobile-topbar-renderer#header-bar>header>ytm-home-logo>button",
+      "dismiss_name": "YouTube 홈",
+      "pac_href": null
+     }
+    ]
+   },
+   "R5_extended_close_lexicon": {
+    "definition": "이름이 확장 닫기 사전에 걸림 (probe 정규식이 놓쳤을 표현 포함)",
+    "plausibly_genuine_close": {
+     "numerator": 0,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0989
+     ]
+    },
+    "clearly_not_close": {
+     "numerator": 35,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 1.0,
+     "wilson95": [
+      0.9011,
+      1.0
+     ]
+    },
+    "examples_flagged": []
+   },
+   "R6_no_href_or_non_navigating": {
+    "definition": "pac.href 없음 ∨ href 가 비-내비게이션(# / javascript: / 빈값)",
+    "plausibly_genuine_close": {
+     "numerator": 17,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.4857,
+     "wilson95": [
+      0.3299,
+      0.6443
+     ]
+    },
+    "clearly_not_close": {
+     "numerator": 18,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.5143,
+     "wilson95": [
+      0.3557,
+      0.6701
+     ]
+    },
+    "examples_flagged": [
+     {
+      "wtg": "60d4d22e3809f780",
+      "selector": "html>body>div:nth-of-type(3)>header>section>div:nth-of-type(2)>div>button:nth-of-type(2)",
+      "dismiss_name": "메뉴",
+      "pac_href": null
+     },
+     {
+      "wtg": "60d4d22e3809f780",
+      "selector": "section>div:nth-of-type(2)>div>div>div>ul>li:nth-of-type(2)>button",
+      "dismiss_name": "슬라이드 2",
+      "pac_href": null
+     },
+     {
+      "wtg": "dd2cec4c1fa2beec",
+      "selector": "div#mainLayout>header>div:nth-of-type(1)>div:nth-of-type(1)>a",
+      "dismiss_name": null,
+      "pac_href": "javascript:;"
+     },
+     {
+      "wtg": "be1e6feb78e5ef03",
+      "selector": "html>body>div:nth-of-type(5)>div>a:nth-of-type(1)",
+      "dismiss_name": null,
+      "pac_href": "javascript:void(0);"
+     },
+     {
+      "wtg": "0ee385d0c964e560",
+      "selector": "div#site-wrapper>div:nth-of-type(5)>button:nth-of-type(2)",
+      "dismiss_name": null,
+      "pac_href": null
+     },
+     {
+      "wtg": "35319a420294ee17",
+      "selector": "html>body>div:nth-of-type(3)>div>nav>button",
+      "dismiss_name": "메뉴 열기",
+      "pac_href": null
+     }
+    ]
+   },
+   "R7_overgenerous_incl_site_root": {
+    "definition": "R1~R6 ∪ href 가 사이트 루트(/ · ./). **의도적으로 부풀린 상한** — 닫기 control 이 홈으로 이동하지는 않으므로 이 규칙은 거의 확실히 과대계상이다. 상한의 상한을 보이기 위해 남긴다.",
+    "plausibly_genuine_close": {
+     "numerator": 22,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.6286,
+     "wilson95": [
+      0.4634,
+      0.7683
+     ]
+    },
+    "clearly_not_close": {
+     "numerator": 13,
+     "denominator": 35,
+     "grain": "recovered candidate",
+     "rate": 0.3714,
+     "wilson95": [
+      0.2317,
+      0.5366
+     ]
+    },
+    "examples_flagged": [
+     {
+      "wtg": "22ffba7a86ea9919",
+      "selector": "div#siteLogoContainer>sip-responsive-costco-logo>a",
+      "dismiss_name": "home",
+      "pac_href": "/"
+     },
+     {
+      "wtg": "60d4d22e3809f780",
+      "selector": "html>body>div:nth-of-type(3)>section>div>div>a",
+      "dismiss_name": null,
+      "pac_href": "/"
+     },
+     {
+      "wtg": "60d4d22e3809f780",
+      "selector": "html>body>div:nth-of-type(3)>header>section>div:nth-of-type(2)>div>button:nth-of-type(2)",
+      "dismiss_name": "메뉴",
+      "pac_href": null
+     },
+     {
+      "wtg": "60d4d22e3809f780",
+      "selector": "section>div:nth-of-type(2)>div>div>div>ul>li:nth-of-type(2)>button",
+      "dismiss_name": "슬라이드 2",
+      "pac_href": null
+     },
+     {
+      "wtg": "dd2cec4c1fa2beec",
+      "selector": "div#mainLayout>header>div:nth-of-type(1)>div:nth-of-type(1)>a",
+      "dismiss_name": null,
+      "pac_href": "javascript:;"
+     },
+     {
+      "wtg": "be1e6feb78e5ef03",
+      "selector": "html>body>div:nth-of-type(5)>div>a:nth-of-type(1)",
+      "dismiss_name": null,
+      "pac_href": "javascript:void(0);"
+     }
+    ]
+   }
+  },
+  "decision_rule": "threshold=0.5 ('다수'). SUPPORTED = min(all rules) > 0.5. NOT_SUPPORTED = max(R1..R6) < 0.5. 그 외 INCONCLUSIVE. R7 은 의도적 과대계상이라 NOT_SUPPORTED 판정에서 제외하되 수치는 항상 병기한다.",
+  "rule_family_revision_note": "이 규칙군은 **1차 계산 뒤 한 번 수정됐다**. 수정 내역을 숨기지 않고 적는다. (a) 최초 R1 은 container 판정에 modal_overlay_candidates 소속을 썼는데, 그 목록의 후보조건(l0_probe.js:195-199 fixed/sticky/z>=100)이 dismiss container 스캔조건(l0_probe.js:386-390)과 사실상 같아서 판별력이 0 이었다(회복분 35/35 가 전부 '해당'). 그래서 R1 을 candidate_sources 가 dialog_element/role_dialog/aria_modal 인 **의미적 dialog** 로 좁혔다. (b) 최초 R4('non_navigating')는 href='/' 를 비-내비게이션에 포함시켜 로고·홈 링크를 '닫기일 수 있음' 으로 계상했고 상한을 0.63 까지 부풀렸다. 닫기 control 은 홈으로 이동하지 않으므로 이는 정의 결함이다. 사이트 루트를 분리하고, 부풀린 판본은 R7 로 **남겨서 병기**한다.",
+  "container_discriminator_note": "dismiss container 를 modal_overlay_candidates 소속으로 판정하면 판별력이 없다 — 두 스캔이 같은 fixed/sticky/z>=100 조건을 쓴다(l0_probe.js:195-199 vs :386-390). 실제로 회복분 35/35 가 그 느슨한 정의에서 '오버레이 안' 으로 잡힌다. 그래서 R1 은 candidate_sources 의 dialog_element/role_dialog/aria_modal 만 인정한다.",
+  "sensitivity": {
+   "n_rules": 7,
+   "min_rate": 0.0,
+   "max_rate": 0.6286,
+   "max_rate_excluding_overgenerous_R7": 0.4857,
+   "median_rate": 0.1429,
+   "direction_stable_below_half": true,
+   "direction_stable_above_half": false,
+   "reading": "규칙을 느슨하게 할수록 상한이 커지도록 설계했다. **가장 느슨한 상한조차** 낮으면 회복분의 다수가 진짜 닫기라고 보기 어렵다는 뜻이고, 가장 엄격한 상한조차 높으면 그 반대다. 이 상한은 gold 가 아니라 규칙 기반이며 probe 와 같은 slot 을 읽으므로 독립적이지 않다.",
+   "counter_evidence_non_close_lexicon": {
+    "numerator": 11,
+    "denominator": 35,
+    "grain": "recovered candidate",
+    "rate": 0.3143,
+    "wilson95": [
+     0.1855,
+     0.4798
+    ]
+   }
+  }
+ },
+ "statistical_tests": {
+  "family_size": 5,
+  "correction": "Benjamini-Hochberg FDR across the 5 pre-listed comparisons",
+  "tests": [
+   {
+    "test_id": "T1_href_recovered_vs_stillremoved",
+    "description": "회복분과 여전히 제거되는 분의 href 보유율 차이 (grain: removed candidate)",
+    "table": [
+     [
+      22,
+      13
+     ],
+     [
+      5,
+      17
+     ]
+    ],
+    "odds_ratio": 5.7538,
+    "p_raw": 0.005857,
+    "p_bh_fdr": 0.014643,
+    "significant_at_q05": true
+   },
+   {
+    "test_id": "T2_href_recovered_vs_survivors",
+    "description": "회복분과 baseline 에서 살아남은 pool 의 href 보유율 차이 (grain: hittable pac)",
+    "table": [
+     [
+      22,
+      13
+     ],
+     [
+      633,
+      164
+     ]
+    ],
+    "odds_ratio": 0.4384,
+    "p_raw": 0.031987,
+    "p_bh_fdr": 0.053312,
+    "significant_at_q05": false
+   },
+   {
+    "test_id": "T3_unnamed_recovered_vs_survivors",
+    "description": "이름 slot 이 전혀 없는 비율 차이 (grain: hittable pac)",
+    "table": [
+     [
+      22,
+      13
+     ],
+     [
+      100,
+      697
+     ]
+    ],
+    "odds_ratio": 11.7954,
+    "p_raw": 0.0,
+    "p_bh_fdr": 0.0,
+    "significant_at_q05": true
+   },
+   {
+    "test_id": "T4_area_recovered_vs_survivors",
+    "description": "회복분과 생존 pool 의 면적 분포 차이 (Mann-Whitney, grain: hittable pac)",
+    "median_recovered": 2304.0,
+    "median_survivors": 5226.48,
+    "n_recovered": 35,
+    "n_survivors": 797,
+    "p_raw": 0.189818,
+    "p_bh_fdr": 0.237272,
+    "significant_at_q05": false
+   },
+   {
+    "test_id": "T5_semanticdialog_recovered_vs_stillremoved",
+    "description": "의미적 dialog(role/aria-modal/<dialog>) 컨테이너 소속 비율 차이 (grain: removed candidate)",
+    "table": [
+     [
+      1,
+      34
+     ],
+     [
+      3,
+      19
+     ]
+    ],
+    "odds_ratio": 0.1863,
+    "p_raw": 0.287524,
+    "p_bh_fdr": 0.287524,
+    "significant_at_q05": false
+   }
+  ],
+  "note": "이 검정들은 회복분의 **성질 기술**이지 회복량의 유의성 검정이 아니다. 회복량은 계수(count)이며 표집오차가 아니라 결정적 재계산 결과다."
+ },
+ "axis_b_output_state": {
+  "grain": "task_entry row (mart)",
+  "n_rows": 31,
+  "NED_notnull": 0,
+  "IED_notnull": 0,
+  "MPFED_notnull": 0,
+  "endpoint_reached_positive": 0,
+  "endpoint_status_counts": {
+   "UNRESOLVED": 18,
+   "AUTH_GATE_REACHED": 11,
+   "CAPTCHA": 1,
+   "PAYMENT_GATE_REACHED": 1
+  },
+  "reading": "현 frozen mart 에서 Axis B 의 세 산출값은 전부 결측이다. pool 회복이 산출값을 바꾸는지는 이 증거로 확인 불가능하다."
+ },
+ "counterexamples": {
+  "note": "가설에 불리한 관측을 먼저 적는다.",
+  "items": [
+   {
+    "against": "H-E1-RECOVERY",
+    "observation": "회복된 35개 중 확장 닫기 사전에 걸리는 것이 0개 있다. 이들은 probe 정규식이 좁아서 icon_only 로만 잡힌 **진짜 닫기**일 수 있고, 그렇다면 그만큼의 회복은 오탐이다."
+   },
+   {
+    "against": "H-E1-RECOVERY",
+    "observation": "pool 이 회복돼도 Axis B 산출은 여전히 전부 결측이다 (NED/IED/MPFED 0/31). 회복이 결과를 바꾼다는 증거는 이 문서에 없다."
+   },
+   {
+    "against": "H-E1-HARM",
+    "observation": "회복분 중 href 보유가 22/35 이고, 그 중 상당수가 사이트 루트(/)나 외부 도메인으로 가는 로고·홈 링크다. 닫기 control 이 외부 도메인으로 네비게이션하지는 않는다."
+   },
+   {
+    "against": "H-E1-NULL",
+    "observation": "두 조건이 함께 걸린(both) 후보는 5개뿐이다. 중복 근거 가정이 데이터에서 지지되지 않는다."
+   }
+  ]
+ },
+ "limitation": "(1) 반사실 재계산이다 — 코드를 고쳐 재수집한 결과가 아니다. probe 가 저장한 flag 만 쓰므로, icon_only 를 실제로 끄면 달라질 수 있는 2차 효과(dismiss 실행 → 화면 변화 → 다음 state 의 pac 집합 변화)는 전혀 잡히지 않는다. 회복량은 **첫 state 의 정적 pool** 에 한정된다. (2) '진짜 닫기 control 인가' 에 대한 gold label 이 없다. HARM 상한은 규칙 기반이며 규칙 자체가 probe 와 같은 slot(name/href/box)을 읽으므로 독립적이지 않다. (3) n=54 target · 57 제거후보로 작다. 회복 후보의 하위분포(예: 규칙별 harm 비율) CI 는 넓다. (4) Axis B 산출(NED/IED/MPFED)이 mart 에서 0/31 non-null 이므로, pool 회복이 결과값을 바꾸는지는 이 증거로 확인 **불가능**하다 — 회복량은 탐색공간 크기까지만 말한다. (5) icon_only 를 끄면 Axis C 의 dismiss_control_exists 가 함께 줄어든다. 이 문서는 그 trade-off 의 크기만 보고하고 어느 쪽이 옳은지 말하지 않는다(construct 는 A 권한).",
+ "not_answered_by_this_rq": [
+  "icon_only 를 실제로 끄고 재수집했을 때 Axis B 의 NED/IED/MPFED 가 달라지는가 — 이 증거로는 불가능하다(현 mart 에서 셋 다 0/31 non-null).",
+  "회복된 후보가 '진짜 닫기'인지의 gold 판정 — D 는 label 을 만들지 않는다.",
+  "icon_only 를 끔으로써 Axis C 의 dismiss_control_exists 가 얼마나 과소가 되는가의 정오 — 그 정오는 Axis C gold 없이는 정해지지 않는다.",
+  "1-state 를 넘어선 경로 전개(scout 2~N step)에서의 누적 회복량 — 재수집 없이는 계산되지 않는다.",
+  "icon_only 대신 다른 완화(예: 컨테이너를 dialog 로 한정)를 썼을 때의 회복량 — 이 RQ 는 icon_only 단일 항만 껐다."
+ ],
+ "further_research_questions": [
+  "RQ-E-1a: dismiss 컨테이너 집합을 l0_probe.js:386-390 의 fixed/sticky/z>=100 에서 dialog/aria-modal 로 좁히면 Axis B pool 회복량은 icon_only ablation 대비 얼마인가 (두 완화의 회복량 비교, 재수집 불필요).",
+  "RQ-E-1b: 회복된 35개 후보를 Axis B 가 실제로 활성화했을 때 state 가 전진하는가 — 이는 재수집이 필요하며 D 범위 밖이다(B/C 협의 필요).",
+  "RQ-E-1c: icon_only 를 끌 때 Axis C 의 dismiss_control_exists 가 몇 target 에서 1→0 으로 뒤집히는가, 그 target 들이 modal_overlay_candidates 를 실제로 갖고 있는가.",
+  "RQ-E-2 (PILOT-E 등재분): dismiss detector 의 name 소스(aria-label||title||textContent)가 비어 있는 control 의 비율과, 그것이 icon_only 발동과 얼마나 겹치는가."
+ ],
+ "firewall": {
+  "denied_paths_not_opened": true,
+  "note": "D_INPUT_ALLOWLIST.json 의 denied 목록을 하나도 열지 않았다. 네트워크 접속 없음. gold label 생산 없음. 기존 산출물 수정 없음(새 파일만 썼다)."
+ },
+ "inputs": {
+  "observation_table": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_OBSERVATION_TABLE_v2.csv",
+   "sha256": "c39c10f09f7a6a7603409550eb331612eb44634eb98ec387a604aa5221351e6b"
+  },
+  "mart_fact_task_entry": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/fact_task_entry.json",
+   "sha256": "61bb7051045ab27ddc5b8105728b64c3f0df1c69c3f278d14087789fbcad0064"
+  },
+  "probe_raw": {
+   "n_files": 54,
+   "glob": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_0*/artifacts/e001_w0*/evidence/<run_dir>/*/l0a/probe.json",
+   "files": [
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_054d78ed187cdd9f-2026-08-27T051944913397Z/07ca02fc2c5ec2fee799ccab6971acad/l0a/probe.json",
+     "sha256": "1d1e87faa73c4ae222125c55939555456de1e19cdca7b9c7254bab00058674a2"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_088809bf9b31bc6a-2026-08-27T052011572224Z/d2310fab51ea781ea00323f4fad792fd/l0a/probe.json",
+     "sha256": "22ccb69599fed1b0f04b434a064bc5378c871ac1b9f6c45c3090dc715c64c142"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_12e3942c0495b9a4-2026-08-27T052024022613Z/d32eb11bdfeb7cb7dd51d7afbf77a579/l0a/probe.json",
+     "sha256": "b0b7546f51b95af39c8e5b70d90e4edb9bef1053b8c7a84894e7c698344f0070"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_22ffba7a86ea9919-2026-08-27T051919414067Z/e63ab5fcbe13f1449fdce925831381c8/l0a/probe.json",
+     "sha256": "b9e65809a735ba6725320b6615479aa970386986edabe8af0b8870ce742280ac"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_5beeafeac2e27eae-2026-08-27T051453834882Z/7c57141de14aaef201e4ff2ffae77b57/l0a/probe.json",
+     "sha256": "7740933a9f59c0c804717e15dad179ce25f6101e42b2552278a2013d41270df2"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_60d4d22e3809f780-2026-08-27T051555382392Z/db501b7ce9f1ebf2e72266bce773db17/l0a/probe.json",
+     "sha256": "6ca03a061f7f698cd9b62d79ab4cd082b80fa5488583b7bf7ea94d945665ed33"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_65f15ce8fee25b24-2026-08-27T051425554381Z/500967c024fafa02666ab74f9750be84/l0a/probe.json",
+     "sha256": "1eca6ae8329a7063c100610ed676566a887435c8cad3a6a927ad9ee68cfc3501"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_8195b68ac17e42a3-2026-08-27T052455939111Z/3387fa0447f1f1db0ba255d9e7c5446b/l0a/probe.json",
+     "sha256": "48512ccb42863bc3ef6ba8a4e283563e6e5161fc6788a6b6ccc44a1fed9fa385"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_91b952863c62993d-2026-08-27T051526470750Z/9ec9d90c8ec79dc72f69b3c2fdbc8337/l0a/probe.json",
+     "sha256": "e6d2e9e7987a8ef3f623d9fdee2ca38a6c561ff80138f2979f9b2a60a15f4a49"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_b8b226f9fe32539a-2026-08-27T051538490284Z/d86d805765201b40e226089ec78d2857/l0a/probe.json",
+     "sha256": "b2fe14c361c1d566c3b58dfd3d126cdcf7597fc34342438042b8f379560da3a3"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_ccd84811932b237b-2026-08-27T051433717695Z/6048d2c51a6201fe4da86d9d3fedd3b0/l0a/probe.json",
+     "sha256": "8a6ffd72782e5bd959ea3e7ca093dc6d3485c9ee104f7573e65c1c0b11632b09"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_cdce1ffd6b1b1e24-2026-08-27T051543952104Z/97957fe19feffd3c4c7cd1a7821d1e15/l0a/probe.json",
+     "sha256": "8a143da29a180facc524caa247e72fdf9e5cc0638615b5ebe3b609d11a5d65cf"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_dd2cec4c1fa2beec-2026-08-27T052353473212Z/a9d3b29eef8d88a038451757fb1f01f4/l0a/probe.json",
+     "sha256": "cf090fdacd14e50a01738ae5ef711d99b611a11418bc501e7ce22c2c48eff607"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_01/artifacts/e001_w01/evidence/e001_full-wtg_e7bb158c1c8d9fe7-2026-08-27T052414424401Z/2db5f2caa74db3010ac5540015a13723/l0a/probe.json",
+     "sha256": "46f8b516c37e17269b0983c6a53a5d01d8eda506d0458a239860e1575b1579b7"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_13ed070478ef62c3-2026-08-27T051430493325Z/90d4646b3105c57c0fa3af7419d663a0/l0a/probe.json",
+     "sha256": "a4f6343810c56484399509e842e949633511be7b22c82482a07a646e3dc0b6e0"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_190b4501e4415d5e-2026-08-27T052051203323Z/f7d7f8aace4852a658b62b3c074723bf/l0a/probe.json",
+     "sha256": "9244afc0b2c1c5d6661cb794614da6bc6a699c0662072dac0aed693b65766fc4"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_377983572bd38242-2026-08-27T052101270894Z/f6be8e16939c0548539163729075455c/l0a/probe.json",
+     "sha256": "b80e4c4f9055681cf4b811593b248d22fd3902294fb3fe39007714d0ea8e33ce"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_4feab7e61bf642e8-2026-08-27T051506415041Z/8cf29ed21e923beb69e662083a68c87d/l0a/probe.json",
+     "sha256": "e1965be38b2977ad1fd083fdcc4a9f15eb10891a6f7cbd041030b7a50042c537"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_5c614fc99631ce5e-2026-08-27T052203828777Z/625eb4232c8fa1864b9796395b29abbd/l0a/probe.json",
+     "sha256": "ea83c64776974ac4505de691a480e87d190dcc88273a40ed3172dc3691888641"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_699a5e2f3f410152-2026-08-27T051537329346Z/3a2d2b6d24d1dfb459991701d4a84752/l0a/probe.json",
+     "sha256": "0e1fb841b45e89a9c513a73af52df934a0cca699876fed9016ad33e0c5f3df36"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_6d5510a695d0a614-2026-08-27T051845477422Z/23653d37b79fab28fdc08239fa32a749/l0a/probe.json",
+     "sha256": "9edf3129ea20288ab45ce5aed3764f72808020cb765eec575000d8861b3478b2"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_9390ef32addf32bf-2026-08-27T051440847025Z/6c8dac6c12346e336d1cd6c5f643aa00/l0a/probe.json",
+     "sha256": "d6e26ef603d25cdda0563a6d52bf076c81b947d43bab351031a2ee985ad86a81"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_b728911c9782edb8-2026-08-27T051447794738Z/4c8ec7f188a2d35e875b78ad404357f5/l0a/probe.json",
+     "sha256": "10ec173cbecb9c8b700394a31cb144952acfa71ce385548323b0cf2df1fc0876"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_be1e6feb78e5ef03-2026-08-27T052150258471Z/fa84f0a25e53ed2d4df5a16b50bc6072/l0a/probe.json",
+     "sha256": "7966bdbaed39eda078492a46198dde7f26cc89e596584c4a7c0394063eada800"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_e1fadb214cde51c0-2026-08-27T051500365784Z/14fba63a4decbe8f5f5108bd04ceb4a2/l0a/probe.json",
+     "sha256": "f6d353e0b7fe792fc2f515ecb731bb0b2b0acb6b17635562b7944b14ac7a9023"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_ea031f85e857140e-2026-08-27T052222679178Z/b4d5c5bb364ef0d292e584df234e5cdb/l0a/probe.json",
+     "sha256": "3d2c14e858da28392812a7674ea524800d98868bc7c76550166faad1cd64bbd6"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_02/artifacts/e001_w02/evidence/e001_full-wtg_fdce1294fac3dfdb-2026-08-27T052245153346Z/464c1fb557417122dcdc85c11989f21c/l0a/probe.json",
+     "sha256": "d0cdc5608db7ec49b11ea6daf74f4551eec8ffd6560a2089d7a748ff8fc74f05"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_0ee385d0c964e560-2026-08-27T052001613003Z/08efe1f76321b8f079a32b7849b9aee3/l0a/probe.json",
+     "sha256": "317675247c0278ca4b115b9a77482dd4efecd397cd514b474334787ebc784ee8"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_0f3bdb2bd0bb891e-2026-08-27T052428749107Z/c1f91d326831821ca8478001f6a43872/l0a/probe.json",
+     "sha256": "1d2f4ce0bdae8161645f158b18a6ab049695b0f31fdb82725941940af9ed471f"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_35319a420294ee17-2026-08-27T051947549087Z/5b96caa0d265bc1d4f4a39676a583825/l0a/probe.json",
+     "sha256": "e80b9647e410b255851649f31caf49af2772ab1d023a7e8096d9099d165066a8"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_517b8047eb5be716-2026-08-27T052347442544Z/ca14be534d2cf67c5de89912f5336a17/l0a/probe.json",
+     "sha256": "ac4dd105bb97b501fb018bebab4aa58ddba7684cae993ca5323423439550ac30"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_5ede56738376a8c5-2026-08-27T051555247726Z/7cd83a1ad79cddcb0de40f71cf319a85/l0a/probe.json",
+     "sha256": "ed27310be97395cbd327e1d5078519b448a86363d268dd50452b2d05c9d30db5"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_888d37f34b5d3aaa-2026-08-27T052012699280Z/8e5b634eafffe38c5e8105b29c23f82d/l0a/probe.json",
+     "sha256": "984dad5f0e7341651fb28415fb7c36d027324ad0f01a0a3e57ccde55bb7e492e"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_8fd5d30f8b1d707b-2026-08-27T051524503998Z/cd955f4d5cf0ab69d409061c42ed02cf/l0a/probe.json",
+     "sha256": "b037b5e5a81433d1a9922f15f716eed37636a0e91006341c7c1bcf7b9edfe120"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_95967b50683649f2-2026-08-27T051806340380Z/bd2af5f2a0b5a346827b67410dc1e9c0/l0a/probe.json",
+     "sha256": "f03f1cef2c9223cd7282befb6c1856f423a958d311fcd66a55591e469fbfd5ad"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_a215c45b2cc585ca-2026-08-27T051541867878Z/e1427608966cc0638cb3ad44607d1fe5/l0a/probe.json",
+     "sha256": "506c2e6acfbc97375154acec08177a116ac02d035a15ed6e2804a1dd3564ef3e"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_c5285b96b598a08b-2026-08-27T051548001919Z/12158b645bfa072640414a4f8ea5d66e/l0a/probe.json",
+     "sha256": "4079f06aba7497b5f70f8641ff61e01cf625c5b740b24bc172a4b922697f5551"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_e296af221a5f7128-2026-08-27T051610954078Z/4527fc528e92ba320f693940a4d181b9/l0a/probe.json",
+     "sha256": "86f2bb9ceffd9956595c13374e584f7490b08398f67b579a731e277ee4f98a1e"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_ed7b9bea21def8f8-2026-08-27T051620501534Z/90a3f404f3934105c3728a2ee6dffcd4/l0a/probe.json",
+     "sha256": "c9df0a1b87c296f8ab2ccfa098874da1e34afbb02fe4ab74d61edbf605fa9ae9"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03/evidence/e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z/62a6d162da96601df7cb4b3d7a7dfa1c/l0a/probe.json",
+     "sha256": "660fc879a78a04ed766f6fbf80b93dc0704fe94849fb35db69d6f725645b3a3b"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_24e6654bfd1ab85b-2026-08-27T051911281696Z/3fd7812f9fcd0bfe4d52db57870990e0/l0a/probe.json",
+     "sha256": "79bc21b113ba82023058c71f376696b49ab3b35dca16a3e4eb2704c50c01226c"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_46e5a43370f75308-2026-08-27T051542990241Z/dec9f65686074aa3540f1133649f594f/l0a/probe.json",
+     "sha256": "d5e5186d7effd631047cbd5d54edb796810848357c6f465368518d7db56a4d0a"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_49a5eca8b58f7270-2026-08-27T051532092010Z/73cc6defeda190331a5789b458b17578/l0a/probe.json",
+     "sha256": "ce3833588f87925e0c89d087d348c11d0df45455e984aca652323906fb85c781"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_51484a735cdb487b-2026-08-27T052231789159Z/fe4869d78ce4af45bbe4eef640522d52/l0a/probe.json",
+     "sha256": "3fa78bf7effbe45b67e7f74d9894bb96051bb04f6694bc7eb8ad544c06f9eff7"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_7f6f1aa6dd218d4d-2026-08-27T052339082037Z/69c77cbd03fd98f0835c4552c81a6e78/l0a/probe.json",
+     "sha256": "230cdb1bbe46ac69a5a6074eecd179a88a865e6c1cfb04c5e5250620b33f593e"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_88cb7f1e54f26500-2026-08-27T052737415965Z/ba31bc6ece7073097c42a7bb788321b9/l0a/probe.json",
+     "sha256": "b750057668a74c2acf2d245a68475767556d3265c78d2ecf8385d0ed500a5854"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_95e22b9aff7196b3-2026-08-27T052750064924Z/02b4c4a78d5f06a7c7b8a04c5f2b5213/l0a/probe.json",
+     "sha256": "fb41d062bf1895ad66a03c5b11ebf00e0c67cd116ff3491e2dabbe845495f82b"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_bbdefa2950f49882-2026-08-27T052227951656Z/6d3d8552dd778770d684c600298370fe/l0a/probe.json",
+     "sha256": "99c8eff2d700a7ce7aafe0a6c351532cef056f2651413d8236a420c0056f141e"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_ccb9754c97fa7341-2026-08-27T052409538843Z/d1266c2d142d2487d6c946860befe7d1/l0a/probe.json",
+     "sha256": "f45adb3ef598354e247a2871706d13658798f5d4e777a4061c927aa7c411ba4c"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_d5ae5426eac23877-2026-08-27T052302742466Z/89146aa39a5c3f02ebdd9f69ebbd4486/l0a/probe.json",
+     "sha256": "823c43d0bfd2383d76e5df45105f4a50e9d2b4fad2f410bb9d21be9708578e4d"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_e67be79550661604-2026-08-27T052317699723Z/d0e57e46c6df02aa27a2893db31d85c6/l0a/probe.json",
+     "sha256": "558f4671c0675858a393ea59a0e077289494d7878f1986957092a8bf250a5a30"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_f322b894ee95c181-2026-08-27T051859903516Z/9632c315136c647d651c7933ef5ce209/l0a/probe.json",
+     "sha256": "7bff58fcc8eb636381c844aaf83f24ed391b94d5fd3c1de24d25cc4b6c71fa92"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_f9fbd771ffcdbd42-2026-08-27T052359250628Z/1eefe03ba28fc62e02a18fd4b30f090e/l0a/probe.json",
+     "sha256": "ae8b3ffd75932a19e94217860676ef1d0328609625b933f0552af9da56fd4f0a"
+    },
+    {
+     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_04/artifacts/e001_w04/evidence/e001_full-wtg_fb3d1841dddfd982-2026-08-27T052309990475Z/c2e1baae1578361765af1810431815b0/l0a/probe.json",
+     "sha256": "e92bae8c2fb2d82944f92dbb80e5778c33b1557c53d6778b2d7bba50b45e9305"
+    }
+   ]
+  }
+ },
+ "n_expected": 56,
+ "n_observed": 54,
+ "parent_run_id": "27d10a01df5442b681ee73062e01c123",
+ "figures": [
+  "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/figures/RQ_E1_ablation_overview.png",
+  "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/figures/RQ_E1_per_target_pool.png"
+ ],
+ "mlflow_run_id": "2ae10cc3be9840e7a20c9fbc4ae23569"
+}

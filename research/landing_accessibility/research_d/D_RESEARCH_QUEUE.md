@@ -294,3 +294,20 @@ PILOT child A / B / C-part2 / D 는 `PENDING_PILOT_FREEZE` 유지.
 
 동시 실행 워커 3건: RQ-E-1, RQ-D13b-1/2, RQ-D7.
 파일럿: A 가 00:29:37 에 `control/pilot-manifest` ref(`54a0c7a`, base `2281c85`)를 만들어 manifest 를 integration SHA 안으로 넣었다. **캡처 산출물은 여전히 없다** — child A/B/C-part2/D 는 `PENDING_PILOT_FREEZE` 유지.
+
+## 2026-08-28 00:41 — RQ-E-1 종료, RQ-E-1a 파생
+
+| RQ | 질문 | 상태 | 산출 |
+|---|---|---|---|
+| **RQ-E-1** | `icon_only`(l0_probe.js:402) 를 끄면 Axis B activation pool 이 얼마나 회복되는가 | **DONE — PARTIALLY_SUPPORTED** | `results/RQ_E1_icononly_ablation.json` |
+| **RQ-E-1a** | overlay 후보 조건(l0_probe.js:196-199)과 dismiss 컨테이너 스캔 조건(:386-390)이 사실상 같아, "의미적 dialog 컨테이너 소속" 을 판별자로 쓸 수 없다 | **OPEN** | RQ-E-1 규칙 결함 (a) 에서 파생. D 가 exact SHA 에서 직접 확인함 |
+
+RQ-E-1 요약: 제거된 57 중 **35 회복**(0.614, Wilson95 0.484–0.729), pool 이 빈 target **5/54 → 0/54**,
+pool 총량 797→832(+4.39%). 다만 `H-E1-IRRELEVANT` 도 동시에 SUPPORTED — mart 에서 NED/IED/MPFED 가 0/31 non-null 이라
+회복이 Axis B 산출에 도달하지 않는다. 그래서 SUPPORTED 로 올리지 않았다.
+반대급부: Axis C dismiss selector 가 395→165(−0.582)로 줄고, 51 target 중 9(0.176)는 dismiss 집합이 완전히 빈다.
+
+**D 직접 확인 (exact SHA 2281c85)**: overlay 후보는 `sources.length || fixed||sticky || z>=100`,
+dismiss 컨테이너는 `dialog|[role=dialog]|[role=alertdialog]|[aria-modal=true]` ∪ `{fixed|sticky|z>=100}`.
+두 집합이 거의 포함관계라 워커의 판별력 0 지적은 코드 수준에서 맞다. 이건 **D 자신의 규칙 설계 문제**이지
+수집기 결함이 아니므로 상위계층 결함 티켓을 발행하지 않는다.
