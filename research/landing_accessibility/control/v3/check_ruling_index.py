@@ -120,16 +120,32 @@ def positive_control(idx, delta_text):
     probe("ghost_alias",
           lambda m: m["rulings"][0]["aliases"].append("존재하지 않는 서술 별칭 XYZ"))
 
-    # delta 본문에 등장하지 않는 id 를 써야 한다.
-    # `Δ999-R99` 는 A 가 Δ33 부기에 그 문자열을 쓰는 바람에 delta 에서 도달 가능해졌다 —
-    # 문서가 자기 양성대조를 무력화한 사례이므로 여기 남긴다.
-    fake = "Δ90001-R901"
-    assert fake not in delta_text, "양성대조 id 가 delta 에 등장한다 — 다른 값을 써라"
+    # 도달성은 **두 방향**으로 고정한다 (C-FINDING-074834).
+    #   불 probe  — 어느 경로로도 못 닿는 행 → 반드시 잡혀야 한다
+    #   무 probe  — authority 경로로만 닿는 행 → 잡히면 안 된다(선언된 넓은 규칙)
+    # 하나만 두면 좁은 규칙과 넓은 규칙을 구분하지 못한다.
+    # `Δ999-R99` 는 A 가 Δ33 부기에 그 문자열을 써버려 delta 에서 도달 가능해졌다 —
+    # 문서가 자기 양성대조를 무력화한 사례이므로 주석으로 남긴다.
+    orphan = "Δ90001-R901"
+    assert orphan not in delta_text, "양성대조 id 가 delta 에 등장한다 — 다른 값을 써라"
     probe("index_to_delta_reachability",
-          lambda m: m["rulings"].append({"id": fake, "requires": "x",
+          lambda m: m["rulings"].append({"id": orphan, "requires": "x",
                                          "must_appear_in": "x", "verified_by": "x",
                                          "due": "상시", "authority": "Δ90001",
-                                         "aliases": [fake]}))
+                                         "aliases": [orphan]}))
+
+    # 음성 대조 — 부모 절이 실재하는 가짜 자식은 authority 경로로 도달해야 한다.
+    # 이것이 잡히면 구현이 (a)(b)(c) 로 좁혀졌다는 뜻이고 선언과 어긋난다.
+    child = "Δ32-nonexistentchild"
+    assert child not in delta_text
+    m = json.loads(json.dumps(base))
+    m["rulings"].append({"id": child, "requires": "x", "must_appear_in": "x",
+                         "verified_by": "x", "due": "상시", "authority": "Δ32",
+                         "aliases": [child]})
+    m["count"] = len(m["rulings"])
+    f, _ = run(m, delta_text)
+    caught = "index_to_delta_reachability" in {k for k, _ in f}
+    results["reachability_authority_path_declared"] = not caught
     probe("required_field",
           lambda m: m["rulings"][0].__setitem__("requires", ""))
     probe("count_mismatch",
