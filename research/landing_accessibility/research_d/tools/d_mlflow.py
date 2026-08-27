@@ -193,8 +193,14 @@ def sync() -> int:
             prefix = js.name.rsplit(".", 1)[0]
             nb_dir = RD.parent / "notebooks" / "d_research"
             parts = prefix.split("_")
+            # [D-DEF-10b] 첫 판본은 k=1 까지 내려가 `RQ*.ipynb` 로 아무 노트북이나
+            # 잡았고, 노트북이 없는 RQ-D7 을 통과시켰다. RQ 식별자까지(k>=2)만 허용한다.
             nbs = []
-            for k in range(min(3, len(parts)), 0, -1):
+            if rq in NOTEBOOK_MAP:                       # 이름이 규칙과 다른 예외
+                nbs = [nb_dir / NOTEBOOK_MAP[rq]] if (nb_dir / NOTEBOOK_MAP[rq]).exists() else []
+            for k in range(min(3, len(parts)), 1, -1):
+                if nbs:
+                    break
                 nbs = sorted(nb_dir.glob("_".join(parts[:k]) + "*.ipynb"))
                 if nbs:
                     break

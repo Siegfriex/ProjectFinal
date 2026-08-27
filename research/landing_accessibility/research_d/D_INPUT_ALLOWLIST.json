@@ -29,11 +29,18 @@
       "read_only": true
     },
     {
+      "id": "SSOT_V30",
+      "glob": "SSOTV3/**",
+      "why": "유일 SSOT. MANIFEST_v3.0.json 20개 항목 sha256 D 독립 검증 완료(불일치 0).",
+      "note": "CROSS_SERVICE_TARGET_FRAME_50_v3.0_candidate.json 과 CROSS_SERVICE_TASK_REGISTRY_50_v3.0.csv 는 **문서로 읽는 것만** 허용한다. 거기 적힌 URL 로의 접속은 REAL_TARGET 접속이며 D 에게 금지된다."
+    },
+    {
       "id": "SSOT_V21",
       "glob": "SSOTV2/**",
       "kind": "frozen research contract",
       "why": "정의와 조작화. 관측값이 아니다.",
-      "read_only": true
+      "read_only": true,
+      "note": "[v3] legacy — SSOTV3 가 유일 SSOT 다. SSOTV2 는 supersession 경계 확인 목적의 참조로만 남긴다."
     },
     {
       "id": "D_OWN_SCOPE",
@@ -58,21 +65,66 @@
     }
   ],
   "denied": [
-    {"pattern": "research/landing_accessibility/control/label/**", "reason": "labeler 산출 전체. calibration 파일 포함 — D 는 label 을 전혀 쓰지 않으므로 전면 차단이 안전하다."},
-    {"pattern": "**/HOLDOUT_FOR_C*", "reason": "holdout 그 자체"},
-    {"pattern": "**/HOLDOUT_CUSTODY*", "reason": "holdout 관리 기록"},
-    {"pattern": "**/LABELS_FROZEN*", "reason": "56행 중 holdout 26행을 split 필드까지 포함 (T-A-HOLDOUT-SCOPE-001)"},
-    {"pattern": "**/LABEL_SPLIT_FROZEN*", "reason": "split 배정 — 어느 target 이 holdout 인지 드러남"},
-    {"pattern": "**/RAW_L2*", "reason": "15행 전부 holdout (A recount)"},
-    {"pattern": "**/RAW_L4*", "reason": "11행 전부 holdout (A recount)"},
-    {"pattern": "**/RAW_L1*", "reason": "labeler 원본 label rows. calibration 이라도 D 는 label 을 쓰지 않는다."},
-    {"pattern": "**/RAW_L3*", "reason": "동일"},
-    {"pattern": "**/PACKET_L*", "reason": "labeler 패킷"},
-    {"pattern": "**/*_OVERLAP*", "reason": "overlap 파일의 holdout label"},
-    {"pattern": "**/PRECEDENCE_CONTESTED*", "reason": "per-target label/candidate pair — D amendment 명시 금지"},
-    {"pattern": "**/CALIBRATION_FOR_B*", "reason": "B 전용 calibration. D 는 detector producer 가 아니므로 필요 없다."},
-    {"pattern": "research/landing_accessibility/control/r0/D_R0_6*", "reason": "holdout-derived target-level directive"},
-    {"pattern": "research/landing_accessibility/control/**", "reason": "A control 전체. 무비판적 연구입력 금지 — 필요한 사실은 raw 에서 독립 재계산한다."}
+    {
+      "pattern": "research/landing_accessibility/control/label/**",
+      "reason": "labeler 산출 전체. calibration 파일 포함 — D 는 label 을 전혀 쓰지 않으므로 전면 차단이 안전하다."
+    },
+    {
+      "pattern": "**/HOLDOUT_FOR_C*",
+      "reason": "holdout 그 자체"
+    },
+    {
+      "pattern": "**/HOLDOUT_CUSTODY*",
+      "reason": "holdout 관리 기록"
+    },
+    {
+      "pattern": "**/LABELS_FROZEN*",
+      "reason": "56행 중 holdout 26행을 split 필드까지 포함 (T-A-HOLDOUT-SCOPE-001)"
+    },
+    {
+      "pattern": "**/LABEL_SPLIT_FROZEN*",
+      "reason": "split 배정 — 어느 target 이 holdout 인지 드러남"
+    },
+    {
+      "pattern": "**/RAW_L2*",
+      "reason": "15행 전부 holdout (A recount)"
+    },
+    {
+      "pattern": "**/RAW_L4*",
+      "reason": "11행 전부 holdout (A recount)"
+    },
+    {
+      "pattern": "**/RAW_L1*",
+      "reason": "labeler 원본 label rows. calibration 이라도 D 는 label 을 쓰지 않는다."
+    },
+    {
+      "pattern": "**/RAW_L3*",
+      "reason": "동일"
+    },
+    {
+      "pattern": "**/PACKET_L*",
+      "reason": "labeler 패킷"
+    },
+    {
+      "pattern": "**/*_OVERLAP*",
+      "reason": "overlap 파일의 holdout label"
+    },
+    {
+      "pattern": "**/PRECEDENCE_CONTESTED*",
+      "reason": "per-target label/candidate pair — D amendment 명시 금지"
+    },
+    {
+      "pattern": "**/CALIBRATION_FOR_B*",
+      "reason": "B 전용 calibration. D 는 detector producer 가 아니므로 필요 없다."
+    },
+    {
+      "pattern": "research/landing_accessibility/control/r0/D_R0_6*",
+      "reason": "holdout-derived target-level directive"
+    },
+    {
+      "pattern": "research/landing_accessibility/control/**",
+      "reason": "A control 전체. 무비판적 연구입력 금지 — 필요한 사실은 raw 에서 독립 재계산한다."
+    }
   ],
   "note_on_control_head": {
     "checked_at_kst": "2026-08-27T22:12",
@@ -80,5 +132,6 @@
     "observation": "이 head 의 control/label/ 에는 LABELS_FROZEN.jsonl · RAW_L2.jsonl · RAW_L4.jsonl · HOLDOUT_FOR_C 가 파일명 목록에 없다. RAW_L1/RAW_L3/CALIBRATION_FOR_B 는 있다. 파일명만 확인했고 내용은 열지 않았다.",
     "claim_kind": "OBSERVATION",
     "caveat": "현재 head 에 없다는 것이 과거 노출을 되돌리지 않는다. 노출 커밋 5b826e3 은 히스토리에 남는다."
-  }
+  },
+  "ssot_version": "v3.0"
 }
