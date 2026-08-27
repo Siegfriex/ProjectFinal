@@ -1,11 +1,11 @@
 {
   "manifest": "REAL_RUN_SUMMARY",
-  "snapshot_at": "2026-08-27T14:44:33+09:00",
+  "snapshot_at": "2026-08-27T14:51:33+09:00",
   "grade": "PILOT / PRELIMINARY",
   "grade_note": "커버리지 100%가 등급을 올리지 않는다 — 결과가 예상보다 좋다는 이유로 사전 규칙을 뒤집는 것도 나쁠 때 뒤집는 것과 같은 실패다. 등급과 커버리지를 둘 다 보고한다.",
   "collection_markers": {
     "batches_found": true,
-    "snapshot_at": "2026-08-27T14:44:33+09:00",
+    "snapshot_at": "2026-08-27T14:51:33+09:00",
     "analysis_cohort": "E001_FULL",
     "analysis_collector_sha": "222ef2c",
     "analysis_sample": {
@@ -432,7 +432,44 @@
     },
     "axis_c_initial_screen_obstruction": {
       "axis": "C — 초기 화면 방해요소",
-      "status": "MEASURED",
+      "status": "RAW_MEASURED_CLASSIFICATION_INCOMPLETE",
+      "status_expansion": "raw 는 실측(235건) · 분류는 47% 미분류",
+      "independently_verified": true,
+      "verification_status": {
+        "independently_verified": true,
+        "verifier": "Claude C (claude-c/assurance-current)",
+        "verified_at": "2026-08-27T14:49+09:00",
+        "method": "같은 원천(`results[].detail.l0.interrupts[]`)에서 C가 **자기 코드로** 재계산.",
+        "result": "전건 일치 · C1 없음",
+        "cross_checked": {
+          "n_interrupts": 235,
+          "dismiss_control_exists_1": 103,
+          "dismiss_succeeded_1": 166,
+          "dismissal_paths": {
+            "(0,1)": 102,
+            "(1,1)": 64,
+            "(1,0)": 38,
+            "(0,0)": 30,
+            "(1,None)": 1
+          },
+          "n_observations": 56,
+          "interrupts_per_obs_median": 3,
+          "max_overlay_coverage_median": 0.1281,
+          "blocks_primary_action": 74,
+          "final_label": {
+            "UNKNOWN": 110,
+            "BANNER": 88,
+            "LOGIN_PROMPT": 13,
+            "PROMOTION_MODAL": 11,
+            "COOKIE_CONSENT": 4,
+            "APP_INSTALL_PROMPT": 3,
+            "CHAT_WIDGET": 2,
+            "ADVERTISEMENT": 2,
+            "BLOCKING_MODAL": 2
+          }
+        },
+        "known_convention_difference": "q1이 B 0.0655(exclusive) / C 0.0661(inclusive)로 갈렸으나 이는 사분위 계산 **규약 차이**이며 데이터 불일치가 아니다. B가 C 규약(inclusive)에 맞췄고 exclusive 값도 `q1_exclusive_method`로 함께 남긴다."
+      },
       "n_observations": 56,
       "n_interrupts": 235,
       "interrupts_per_observation": {
@@ -443,10 +480,18 @@
         "q3": 6.0,
         "max": 18.0,
         "iqr": 4.0,
+        "quantile_method": "inclusive (C 재계산과 동일 규약)",
+        "q1_exclusive_method": 2.0,
+        "quantile_method_note": "q1이 규약에 따라 0.0661(inclusive) / 0.0655(exclusive)로 갈린다 — **데이터 차이가 아니라 사분위 계산 규약 차이다.** median·q3는 두 규약에서 동일하다.",
         "mass_below_0_25": 5,
         "mass_0_25_to_0_75": 0,
         "mass_at_or_above_0_75": 51,
+        "n_at_full_coverage_1_0": 51,
+        "pct_at_full_coverage_1_0": 91.1,
+        "n_at_zero_coverage": 5,
+        "pct_at_zero_coverage": 8.9,
         "bimodal": true,
+        "reporting_rule": "**median 단독 인용 금지.** min/q1/median/q3/max 전부와 `n_at_full_coverage_1_0`(전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다.",
         "deciles": [
           0.7,
           2.0,
@@ -463,15 +508,23 @@
       "max_overlay_coverage": {
         "n": 56,
         "min": 0.0,
-        "q1": 0.0655,
+        "q1": 0.0661,
         "median": 0.1281,
         "q3": 1.0,
         "max": 1.0,
-        "iqr": 0.9345,
+        "iqr": 0.9339,
+        "quantile_method": "inclusive (C 재계산과 동일 규약)",
+        "q1_exclusive_method": 0.0655,
+        "quantile_method_note": "q1이 규약에 따라 0.0661(inclusive) / 0.0655(exclusive)로 갈린다 — **데이터 차이가 아니라 사분위 계산 규약 차이다.** median·q3는 두 규약에서 동일하다.",
         "mass_below_0_25": 32,
         "mass_0_25_to_0_75": 2,
         "mass_at_or_above_0_75": 22,
+        "n_at_full_coverage_1_0": 22,
+        "pct_at_full_coverage_1_0": 39.3,
+        "n_at_zero_coverage": 6,
+        "pct_at_zero_coverage": 10.7,
         "bimodal": true,
+        "reporting_rule": "**median 단독 인용 금지.** min/q1/median/q3/max 전부와 `n_at_full_coverage_1_0`(전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다.",
         "deciles": [
           0.0,
           0.0625,
@@ -488,15 +541,23 @@
       "max_primary_action_occlusion": {
         "n": 56,
         "min": 0.0,
-        "q1": 0.0321,
+        "q1": 0.0962,
         "median": 1.0,
         "q3": 1.0,
         "max": 1.0,
-        "iqr": 0.9679,
+        "iqr": 0.9038,
+        "quantile_method": "inclusive (C 재계산과 동일 규약)",
+        "q1_exclusive_method": 0.0321,
+        "quantile_method_note": "q1이 규약에 따라 0.0661(inclusive) / 0.0655(exclusive)로 갈린다 — **데이터 차이가 아니라 사분위 계산 규약 차이다.** median·q3는 두 규약에서 동일하다.",
         "mass_below_0_25": 15,
         "mass_0_25_to_0_75": 1,
         "mass_at_or_above_0_75": 40,
+        "n_at_full_coverage_1_0": 39,
+        "pct_at_full_coverage_1_0": 69.6,
+        "n_at_zero_coverage": 14,
+        "pct_at_zero_coverage": 25.0,
         "bimodal": true,
+        "reporting_rule": "**median 단독 인용 금지.** min/q1/median/q3/max 전부와 `n_at_full_coverage_1_0`(전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다.",
         "deciles": [
           0.0,
           0.0,
@@ -515,13 +576,21 @@
         "min": 0.0,
         "q1": 0.0,
         "median": 0.0533,
-        "q3": 0.1137,
+        "q3": 0.1108,
         "max": 1.0,
-        "iqr": 0.1137,
+        "iqr": 0.1108,
+        "quantile_method": "inclusive (C 재계산과 동일 규약)",
+        "q1_exclusive_method": 0.0,
+        "quantile_method_note": "q1이 규약에 따라 0.0661(inclusive) / 0.0655(exclusive)로 갈린다 — **데이터 차이가 아니라 사분위 계산 규약 차이다.** median·q3는 두 규약에서 동일하다.",
         "mass_below_0_25": 190,
         "mass_0_25_to_0_75": 15,
         "mass_at_or_above_0_75": 30,
+        "n_at_full_coverage_1_0": 27,
+        "pct_at_full_coverage_1_0": 11.5,
+        "n_at_zero_coverage": 69,
+        "pct_at_zero_coverage": 29.4,
         "bimodal": false,
+        "reporting_rule": "**median 단독 인용 금지.** min/q1/median/q3/max 전부와 `n_at_full_coverage_1_0`(전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다.",
         "deciles": [
           0.0,
           0.0,
@@ -542,10 +611,18 @@
         "q3": 2.0,
         "max": 7.0,
         "iqr": 2.0,
+        "quantile_method": "inclusive (C 재계산과 동일 규약)",
+        "q1_exclusive_method": 0.0,
+        "quantile_method_note": "q1이 규약에 따라 0.0661(inclusive) / 0.0655(exclusive)로 갈린다 — **데이터 차이가 아니라 사분위 계산 규약 차이다.** median·q3는 두 규약에서 동일하다.",
         "mass_below_0_25": 15,
         "mass_0_25_to_0_75": 0,
         "mass_at_or_above_0_75": 41,
+        "n_at_full_coverage_1_0": 41,
+        "pct_at_full_coverage_1_0": 73.2,
+        "n_at_zero_coverage": 15,
+        "pct_at_zero_coverage": 26.8,
         "bimodal": true,
+        "reporting_rule": "**median 단독 인용 금지.** min/q1/median/q3/max 전부와 `n_at_full_coverage_1_0`(전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다.",
         "deciles": [
           0.0,
           0.0,
@@ -645,10 +722,27 @@
           "label": "기타/미기록"
         }
       ],
-      "dismissal_narrative_constraint": "○ 닫기 컨트롤이 관측되지 않은 상태에서 ESC/backdrop 경로로 해제된 건이 N건이다. ✗ '고령자가 못 닫는다' / '사용자가 닫기 어렵다'로 쓰지 않는다 — **우리가 관측한 것은 자동화 도구의 dismissal 결과이지 사용자 행동이 아니다.**",
+      "dismissal_paths_equal_weight_note": "네 조합은 **서로 다른 네 사실이며 같은 비중으로 읽어야 한다.** `(exists=0, succeeded=1)` 102건만 강조하면 `(exists=1, succeeded=0)` 38건 — **닫기 컨트롤이 탐지됐는데도 해제에 실패한 경우** — 이 가려진다. 둘은 서로 다른 현상이고 시정 방향도 다르다.",
+      "dismissal_narrative_constraint": {
+        "forbidden": [
+          "고령자가 이 방해요소를 닫지 못한다",
+          "닫을 수 없는 방해요소가 102건이다"
+        ],
+        "correct": "시각적 닫기 컨트롤이 탐지되지 않은 상태에서 ESC/배경클릭으로 닫힌 경우가 102건이다",
+        "principle": "우리가 관측한 것은 **자동화 도구의 dismissal 결과**이지 사용자 행동이 아니다 (축 B의 '우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다'와 같은 구분)."
+      },
+      "full_coverage_narrative_constraint": {
+        "forbidden": [
+          "고령자가 콘텐츠를 볼 수 없었다",
+          "사용자가 화면을 이용할 수 없었다"
+        ],
+        "correct": "초기 화면 상태에서 방해요소가 뷰포트를 완전히 덮은 관측이 22/56건(39%)이다",
+        "principle": "우리가 관측한 것은 **초기 화면 상태**이지 사용자 경험이 아니다 (축 B '우리 도구의 도달 한계', dismissal '자동화 도구의 dismissal 결과'와 같은 구분)."
+      },
       "note": "축 C는 L0 관측만으로 성립하므로 depth 축 소실과 무관하게 실측됐다. 이것이 오늘 유일하게 데이터가 있는 축이다 — 다만 분류는 절반이 미완이다(`classification_incomplete_note` 참조)."
     },
-    "methodological_conclusion": "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** 이것은 대상 서비스에 대한 진술이 아니라 **이 측정 접근에 대한 진술**이다 — 우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다."
+    "unified_finding": "**세 축 모두에서 같은 구조적 한계가 나타났다 — 수집기는 만들어졌고 판정기는 만들어지지 않았다.** 축 A는 criterion 평가기 부재로 `NOT_EVALUATED`, 축 B는 gate 종류 판별(E-6b)이 fail-closed로 막혀 `MEASURED_ZERO`, 축 C는 interrupt 분류기가 결정론 규칙까지만 돌아 47%가 `UNKNOWN`이다. 세 경우 모두 **raw 수집은 되고 그 위의 판정 단계가 비어 있다.** 이것이 개별 축의 실패가 아니라 오늘의 통합적 발견이다.",
+    "methodological_conclusion": "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** 이것은 대상 서비스에 대한 진술이 아니라 **이 측정 접근에 대한 진술**이다 — 우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다. 그리고 세 축이 같은 지점에서 막혔다 — **수집기는 만들어졌고 판정기는 만들어지지 않았다**(`unified_finding`)."
   },
   "association_slots": {
     "primary": {

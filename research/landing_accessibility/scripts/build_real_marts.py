@@ -329,14 +329,49 @@ def _load_archetype_by_target(csv_path: str | None) -> dict[str, str]:
 
 #: 축 B의 서술 제약과 같은 원리 — 우리가 관측한 것은 **자동화 도구의 dismissal
 #: 결과**이지 사용자 행동이 아니다.
-DISMISSAL_NARRATIVE_CONSTRAINT = (
-    "○ 닫기 컨트롤이 관측되지 않은 상태에서 ESC/backdrop 경로로 해제된 건이 N건이다. "
-    "✗ '고령자가 못 닫는다' / '사용자가 닫기 어렵다'로 쓰지 않는다 — "
-    "**우리가 관측한 것은 자동화 도구의 dismissal 결과이지 사용자 행동이 아니다.**"
-)
+DISMISSAL_NARRATIVE_CONSTRAINT = {
+    "forbidden": [
+        "고령자가 이 방해요소를 닫지 못한다",
+        "닫을 수 없는 방해요소가 102건이다",
+    ],
+    "correct": (
+        "시각적 닫기 컨트롤이 탐지되지 않은 상태에서 ESC/배경클릭으로 닫힌 경우가 102건이다"
+    ),
+    "principle": (
+        "우리가 관측한 것은 **자동화 도구의 dismissal 결과**이지 사용자 행동이 아니다 "
+        "(축 B의 '우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다'와 같은 구분)."
+    ),
+}
 
 #: interrupt 분류기도 결정론 규칙만 돌고 semantic 단계가 없다 — 축 A·B와 같은
 #: skeleton 구조다. 이걸 안 적으면 오늘 유일한 실측 축이 실제보다 강해 보인다.
+#: 축 C 상태값. `MEASURED`로 쓰지 않는다 — raw는 실측됐으나 분류가 절반 미완이라
+#: '측정됨'으로 적으면 오늘 유일한 실측 축이 실제보다 강해 보인다 (A 판정).
+AXIS_C_STATUS = "RAW_MEASURED_CLASSIFICATION_INCOMPLETE"
+
+#: 전면 가림(coverage==1.0) 서술 제약 — 축 B·dismissal과 같은 구분이다.
+FULL_COVERAGE_NARRATIVE_CONSTRAINT = {
+    "forbidden": [
+        "고령자가 콘텐츠를 볼 수 없었다",
+        "사용자가 화면을 이용할 수 없었다",
+    ],
+    "correct": ("초기 화면 상태에서 방해요소가 뷰포트를 완전히 덮은 관측이 22/56건(39%)이다"),
+    "principle": (
+        "우리가 관측한 것은 **초기 화면 상태**이지 사용자 경험이 아니다 "
+        "(축 B '우리 도구의 도달 한계', dismissal '자동화 도구의 dismissal 결과'와 같은 구분)."
+    ),
+}
+
+#: 오늘의 **통합적 발견** — 세 축이 같은 구조에서 막혔다.
+UNIFIED_SKELETON_FINDING = (
+    "**세 축 모두에서 같은 구조적 한계가 나타났다 — 수집기는 만들어졌고 판정기는 "
+    "만들어지지 않았다.** 축 A는 criterion 평가기 부재로 `NOT_EVALUATED`, 축 B는 "
+    "gate 종류 판별(E-6b)이 fail-closed로 막혀 `MEASURED_ZERO`, 축 C는 interrupt "
+    "분류기가 결정론 규칙까지만 돌아 47%가 `UNKNOWN`이다. 세 경우 모두 **raw 수집은 "
+    "되고 그 위의 판정 단계가 비어 있다.** 이것이 개별 축의 실패가 아니라 오늘의 "
+    "통합적 발견이다."
+)
+
 AXIS_C_CLASSIFICATION_INCOMPLETE_NOTE = (
     "축 C는 **'완전 측정'이 아니라 'raw 실측 + 분류 절반 미완'**이다. interrupt "
     "분류기도 결정론 규칙만 돌고 semantic/VLM 단계가 없어(축 A·B와 같은 skeleton "
@@ -352,6 +387,22 @@ _DISMISSAL_PATH_LABELS: dict[tuple[str, str], str] = {
 }
 
 
+class LabelReportingViolation(ValueError):
+    """`final_label` 분포를 `UNKNOWN` 없이 보고하려 했다 — A 판정으로 금지된다."""
+
+
+def assert_unknown_reported(label_table: list[dict[str, Any]]) -> None:
+    """`final_label` 분포에 `UNKNOWN` 행이 없으면 실패시킨다.
+
+    A 판정: "`final_label` 분포를 UNKNOWN 없이 보고하는 것 자체를 금지한다."
+    문서로 부탁하지 않고 코드로 막는다 — 최대 범주를 생략하면 실측 강도가 과대표시된다.
+    """
+    if not any(row.get("label") == "UNKNOWN" for row in label_table):
+        raise LabelReportingViolation(
+            "final_label 분포에 UNKNOWN 행이 없다 — UNKNOWN을 뺀 유형 분포 보고는 금지된다."
+        )
+
+
 def _describe_distribution(values: list[float]) -> dict[str, Any]:
     """전체 사분위 + 이봉 여부. **median 단독 인용을 막기 위해** 항상 함께 낸다."""
     import statistics as st
@@ -359,7 +410,10 @@ def _describe_distribution(values: list[float]) -> dict[str, Any]:
     if not values:
         return {"n": 0}
     sv = sorted(values)
-    q = st.quantiles(sv, n=4) if len(sv) > 1 else [sv[0], sv[0], sv[0]]
+    # C(claude-c/assurance-current)가 inclusive 방법으로 재계산했으므로 같은 규약을
+    # 1차값으로 쓴다. exclusive 값도 함께 남겨 두 보고가 대조 가능하게 한다.
+    q = st.quantiles(sv, n=4, method="inclusive") if len(sv) > 1 else [sv[0], sv[0], sv[0]]
+    q_exclusive = st.quantiles(sv, n=4) if len(sv) > 1 else [sv[0], sv[0], sv[0]]
     low = sum(1 for v in sv if v < 0.25)
     mid = sum(1 for v in sv if 0.25 <= v < 0.75)
     high = sum(1 for v in sv if v >= 0.75)
@@ -373,10 +427,26 @@ def _describe_distribution(values: list[float]) -> dict[str, Any]:
         "q3": round(q[2], 4),
         "max": round(sv[-1], 4),
         "iqr": round(q[2] - q[0], 4),
+        "quantile_method": "inclusive (C 재계산과 동일 규약)",
+        "q1_exclusive_method": round(q_exclusive[0], 4),
+        "quantile_method_note": (
+            "q1이 규약에 따라 0.0661(inclusive) / 0.0655(exclusive)로 갈린다 — "
+            "**데이터 차이가 아니라 사분위 계산 규약 차이다.** median·q3는 두 규약에서 동일하다."
+        ),
         "mass_below_0_25": low,
         "mass_0_25_to_0_75": mid,
         "mass_at_or_above_0_75": high,
+        # 겹침 100% 건수 — 사분위와 함께 반드시 낸다(q3=1.0의 실체다).
+        "n_at_full_coverage_1_0": sum(1 for v in sv if v >= 0.999),
+        "pct_at_full_coverage_1_0": round(sum(1 for v in sv if v >= 0.999) / len(sv) * 100, 1),
+        "n_at_zero_coverage": sum(1 for v in sv if v <= 0.0001),
+        "pct_at_zero_coverage": round(sum(1 for v in sv if v <= 0.0001) / len(sv) * 100, 1),
         "bimodal": bimodal,
+        "reporting_rule": (
+            "**median 단독 인용 금지.** min/q1/median/q3/max 전부와 "
+            "`n_at_full_coverage_1_0`(전면 가림 건수)을 함께 보고한다 — "
+            "median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다."
+        ),
     }
     if len(sv) >= 10:
         out["deciles"] = [round(v, 4) for v in st.quantiles(sv, n=10)]
@@ -427,6 +497,13 @@ def describe_axis_c(marts: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
             dismiss_ok += 1
 
     total_interrupts = len(interrupts) or 1
+    # 네 조합을 **같은 비중으로** 다룬다 — 102만 강조하지 않는다.
+    _DISMISSAL_EQUAL_WEIGHT_NOTE = (
+        "네 조합은 **서로 다른 네 사실이며 같은 비중으로 읽어야 한다.** "
+        "`(exists=0, succeeded=1)` 102건만 강조하면 `(exists=1, succeeded=0)` 38건 — "
+        "**닫기 컨트롤이 탐지됐는데도 해제에 실패한 경우** — 이 가려진다. 둘은 서로 "
+        "다른 현상이고 시정 방향도 다르다."
+    )
     # UNKNOWN을 **맨 위에** 둔다 — 최대 범주를 각주로 빼지 않는다.
     ordered_labels = sorted(labels.items(), key=lambda kv: (kv[0] != "UNKNOWN", -kv[1]))
     label_table = [
@@ -437,7 +514,52 @@ def describe_axis_c(marts: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
     counts = [float(per_obs.get(str(o.get("observation_id")), 0)) for o in landing]
     return {
         "axis": "C — 초기 화면 방해요소",
-        "status": "MEASURED",
+        # `MEASURED`가 아니다 — raw 실측 + 분류 47% 미완.
+        "status": AXIS_C_STATUS,
+        "status_expansion": "raw 는 실측(235건) · 분류는 47% 미분류",
+        # C가 final_label 235건을 독립 재계산하기 전까지 확정 서술로 쓰지 않는다.
+        "independently_verified": True,
+        "verification_status": {
+            "independently_verified": True,
+            "verifier": "Claude C (claude-c/assurance-current)",
+            "verified_at": "2026-08-27T14:49+09:00",
+            "method": (
+                "같은 원천(`results[].detail.l0.interrupts[]`)에서 C가 **자기 코드로** 재계산."
+            ),
+            "result": "전건 일치 · C1 없음",
+            "cross_checked": {
+                "n_interrupts": 235,
+                "dismiss_control_exists_1": 103,
+                "dismiss_succeeded_1": 166,
+                "dismissal_paths": {
+                    "(0,1)": 102,
+                    "(1,1)": 64,
+                    "(1,0)": 38,
+                    "(0,0)": 30,
+                    "(1,None)": 1,
+                },
+                "n_observations": 56,
+                "interrupts_per_obs_median": 3,
+                "max_overlay_coverage_median": 0.1281,
+                "blocks_primary_action": 74,
+                "final_label": {
+                    "UNKNOWN": 110,
+                    "BANNER": 88,
+                    "LOGIN_PROMPT": 13,
+                    "PROMOTION_MODAL": 11,
+                    "COOKIE_CONSENT": 4,
+                    "APP_INSTALL_PROMPT": 3,
+                    "CHAT_WIDGET": 2,
+                    "ADVERTISEMENT": 2,
+                    "BLOCKING_MODAL": 2,
+                },
+            },
+            "known_convention_difference": (
+                "q1이 B 0.0655(exclusive) / C 0.0661(inclusive)로 갈렸으나 이는 사분위 계산 "
+                "**규약 차이**이며 데이터 불일치가 아니다. B가 C 규약(inclusive)에 맞췄고 "
+                "exclusive 값도 `q1_exclusive_method`로 함께 남긴다."
+            ),
+        },
         "n_observations": len(landing),
         "n_interrupts": len(interrupts),
         "interrupts_per_observation": _stats(counts),
@@ -464,7 +586,9 @@ def describe_axis_c(marts: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
             }
             for k, v in sorted(dismissal_paths.items(), key=lambda kv: -kv[1])
         ],
+        "dismissal_paths_equal_weight_note": _DISMISSAL_EQUAL_WEIGHT_NOTE,
         "dismissal_narrative_constraint": DISMISSAL_NARRATIVE_CONSTRAINT,
+        "full_coverage_narrative_constraint": FULL_COVERAGE_NARRATIVE_CONSTRAINT,
         "note": (
             "축 C는 L0 관측만으로 성립하므로 depth 축 소실과 무관하게 실측됐다. "
             "이것이 오늘 유일하게 데이터가 있는 축이다 — 다만 분류는 절반이 미완이다"
@@ -511,10 +635,13 @@ def build_analysis_axes(axis_c: dict[str, Any], causes: dict[str, Any]) -> dict[
             ),
         },
         "axis_c_initial_screen_obstruction": axis_c,
+        "unified_finding": UNIFIED_SKELETON_FINDING,
         "methodological_conclusion": (
             "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** "
             "이것은 대상 서비스에 대한 진술이 아니라 **이 측정 접근에 대한 진술**이다 — "
-            "우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다."
+            "우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다. "
+            "그리고 세 축이 같은 지점에서 막혔다 — **수집기는 만들어졌고 판정기는 "
+            "만들어지지 않았다**(`unified_finding`)."
         ),
     }
 
