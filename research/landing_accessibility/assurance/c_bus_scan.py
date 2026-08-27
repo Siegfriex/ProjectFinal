@@ -333,7 +333,10 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
     # token — a contaminated control. C uses a fake that no document mentions and reports A's as a separate observation.
     reach_controls = [{"control": "positive: fake row Δ997-R97 (never written anywhere) unreachable", "result": "PASS" if _reachable({"id": "Δ997-R97", "aliases": ["R97", "C_FAKE_ALIAS_NEVER_WRITTEN"]}) is None else "FAIL"},
                       {"control": "observation: A's control Δ999-R99 reachable-by-token in delta (contaminated if true)", "result": "CONTAMINATED" if _reachable({"id": "Δ999-R99", "aliases": ["R99"]}) else "CLEAN"},
-                      {"control": "negative: Δ21 reachable", "result": "PASS" if reach.get("Δ21") else "FAIL"}]
+                      {"control": "negative: Δ21 reachable", "result": "PASS" if reach.get("Δ21") else "FAIL"},
+                      # D-V3-FINDING-015: a fake CHILD whose parent section exists discriminates the declared (split_rows-only) rule
+                      # from an all-hyphen-ids-inherit rule; under C's declared-rule implementation it must be unreachable.
+                      {"control": "discriminating: fake child Δ15-NOSUCH (parent Δ15 exists) unreachable under declared rule", "result": "PASS" if _reachable({"id": "Δ15-NOSUCH", "aliases": []}) is None else "FAIL"}]
     out.update({"status": "OK", "a_tickets_v3_era": len(a_tickets), "tokens_mentioned": len(mentions),
                 "index_to_delta_reachability": {"rule": "heading | token(id/alias, boundary) | split_rows parent (STEP1-029)", "split_rows_declared": len(split_map),
                                                 "unreachable_rows": unreachable_rows, "reached_only_via_split_parent": sorted(k for k, v in reach.items() if v == "split_parent"),
