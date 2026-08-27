@@ -19,6 +19,14 @@ import re
 import subprocess
 from pathlib import Path
 
+_LA = Path("/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research"
+           "/research/landing_accessibility")
+_BASES = [_LA / "research_d", _LA, _LA.parent.parent,
+          Path("/home/sieg/projects-wsl/ProjectFinal")]
+_PATHLIKE = re.compile(
+    r"^(?:research|research_d|tools|results|notebooks|figures|SSOTV3)"
+    r"[\w./\-]*\.(?:json|md|ipynb|py|csv|png|jsonl)$")
+
 BUS = Path("/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2")
 _HEX40 = re.compile(r"[0-9a-f]{40}")
 # 측정을 담고 있음을 드러내는 키 이름. 보수적으로 넓게 잡는다 —
@@ -64,6 +72,18 @@ def check(t: dict) -> list[str]:
         m = [p for p, _ in _walk(t) if any(w in p.lower() for w in _MEASURE_KEYS)]
         if m:
             errs.append(f"measured_at_kst 누락 — R26. 측정 필드: {m[0]}")
+
+    # 인용한 산출물 경로는 발행 시점에 실재해야 한다. base_sha 와 같은 층이다 —
+    # 없는 파일을 증거로 적으면 받는 쪽은 그것을 확인할 수 없고, 확인 실패가
+    # **상대의 결함**처럼 보인다. 기준 디렉터리를 넓게 잡는다: 경로 표기가
+    # 티켓마다 달라서(research_d/… · tools/… · research/…) 좁게 잡으면
+    # 실재하는 파일을 없다고 보고한다 — D 가 이 검사를 만들다 실제로 겪었다.
+    for path, val in _walk(t):
+        if not (isinstance(val, str) and _PATHLIKE.match(val.strip())):
+            continue
+        rel = val.strip()
+        if not any((b / rel).exists() for b in _BASES):
+            errs.append(f"인용 경로가 실재하지 않는다: {path} = {rel}")
 
     # 본문 어디의 40자 hex 든 실재 커밋이어야 한다 (B 의 b_ticket_precheck 에서 채택).
     # base_sha 만 보면 본문에 적은 증거 sha 의 조작·오타는 통과한다. B 가 실제로
