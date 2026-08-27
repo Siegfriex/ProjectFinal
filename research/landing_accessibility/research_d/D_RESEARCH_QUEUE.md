@@ -424,3 +424,28 @@ Step 3(adversarial 분석) 활성화 시 노트북·워커에 span 계측을 넣
 
 ### Step 3 활성화 신호
 **B canonical MAIN50 mart/evidence freeze + C 의 analysis-ready 확인.** 그 신호가 오면 8축(Spatial/Label/Control/Menu·Reveal/Flow Topology/Depth/Auth/Obstruction) 적대적 분석을 **한 번에** 시작한다. family n=10, 45 pair 를 n=45 로 쓰지 않고, 단일 composite 점수를 만들지 않는다.
+
+## 2026-08-28 02:30 — Director ADDENDUM: 오케스트레이터 전환 · 5 lane 병렬 투입
+
+Director 가 D 를 단독 실행자에서 **ORCHESTRATOR** 로 전환했다. §5 가 명시한다 —
+다른 plane 을 기다리는 동안 **outcome-independent 준비는 병렬 수행**한다("B가 mart 생성 중 → D는 analysis harness / counterexample code 준비").
+이것이 STANDBY 와 충돌하지 않는 지점이다: 새 *연구* 는 없고, 하네스 *준비* 만 한다.
+
+| Lane | 좁은 책임 | isolated namespace |
+|---|---|---|
+| **S** | Spatial · Control-form · Menu/Reveal | `tools/v3_harness/lane_s_*.py` · `results/harness/lane_s/` |
+| **L** | Label · Accessible Name | `lane_l_*` · `results/harness/lane_l/` |
+| **F** | Flow Topology · Depth (**primary outcome 축**) | `lane_f_*` · `results/harness/lane_f/` |
+| **A** | Auth timing · Obstruction | `lane_a_*` · `results/harness/lane_a/` |
+| **P** | Provenance · 분모 사슬 · Metric redundancy | `lane_p_*` · `results/harness/lane_p/` |
+
+전 lane 공통 계약: base SHA `7448184`, SSOTV3 manifest `1735c956…`, **정의는 codebook 원문 그대로 구현**,
+모호하면 채우지 말고 `AMBIGUOUS_DEFINITION` 으로 올림, **threshold·cut-off·composite 금지**,
+**45 pair 를 n=45 로 금지**, 합성 fixture **양방향 대조 + 변이 검사**, REAL 접속 0, git 금지, lane 간 파일 접근 금지.
+
+Director 지정 반례 8종을 lane 에 배분했다 — depth 동일/flow 상이·distance 크고 depth 차 0·modal 로 experienced 만 김(F),
+visible label 다른데 AX 같음·label 같은데 control type 다름(L, control_type 판정은 S),
+위치 같은데 hierarchy 다름(S), auth timing 만 다름(A), 지표 중복(P).
+
+**reconciliation 규칙**: worker completion 을 그대로 canonical 로 채택하지 않는다. source SHA·중복·모순·누락·완결성을
+대조한 뒤 통합하고, 두 worker 가 같은 사실에 다른 결과를 내면 조용히 고르지 않고 `RECONCILIATION_REQUIRED` 로 명시한다.
