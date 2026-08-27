@@ -40,11 +40,21 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
+
+from lane_ownership import (
+    ENGINE_DIR,
+    LaneTipUnresolvable,
+    lane_changed_paths,
+    lane_committed_paths,
+    paths_under,
+    resolve_lane_tip,
+)
 
 REPO = Path(__file__).resolve().parents[1]
 RESEARCH = REPO / "research" / "landing_accessibility"
@@ -67,8 +77,12 @@ MAX_STATES = 8
 # 1. 이 lane 은 engine 을 고치지 않고, 두 번째 열거기를 내놓지 않는다.
 # ══════════════════════════════════════════════════════════════════════════════
 
-#: base SHA `7c5ae70` 의 engine 파일 sha256. A 가 `R22` 를 신설한 근거이기도 하다 —
-#: **engine 은 바이트 동일한데 포착 능력은 driver 에 있었다.**
+#: 이 lane 의 브랜치. 소유 경계는 이 브랜치가 base 이후 만든 diff 로 잰다.
+LANE_BRANCH = "claude-b/w5j-scroll-state"
+
+#: base SHA `7c5ae70` 의 engine 파일 sha256. A 가 `R22` 를 신설한 근거다 —
+#: **engine 은 바이트 동일한데 포착 능력은 driver 에 있었다.** 지금은 이 값이 lane 소유
+#: 경계의 판정 기준이 **아니다**(아래 W5M 시정 참조). 그 시점의 사실로 남겨 둔다.
 BASE_ENGINE_SHA256 = {
     "l0_collector.py": "4090ada130889dc44cf933b93b09005b2b06d18cb6f0434be52bab0fe6ad0074",
     "l0_probe.js": "386932995003ad7e0b9e777250341e535f71cf8681cd674124a75f73f8fd9c03",
@@ -76,15 +90,100 @@ BASE_ENGINE_SHA256 = {
 
 
 def test_this_lane_does_not_touch_the_engine() -> None:
-    """가산성의 가장 강한 형태 — 기존 수집기가 **바이트 동일**이다.
+    """이 lane 의 **자기 diff** 안에 engine 파일이 하나도 없다.
 
-    "기존 출력이 안 변한다" 를 회귀 수로 논증할 필요가 없다. 입력이 그대로면 출력도
-    그대로다. 이 테스트가 깨지면 이 lane 이 소유하지 않은 파일을 고쳤다는 뜻이다.
+    ## W5M 시정 — 재는 대상이 틀렸었다
+
+    원래 이 테스트는 `l0_collector.py` 의 **절대 sha256** 이 base 와 같은지를 봤다. 그래서
+    12 lane 병합에서 깨졌다:
+
+        `[인용]` ``assert '9ea010389f8a...' == '4090ada13088...'``
+
+    그런데 W5J 는 그 파일을 건드리지 않았다. 바뀐 것은 **W5I 의 승인된 가산 수정**
+    (`8fcf540` selector <-> backendDOMNodeId 조인, +37/-0)이다. 파일의 절대 상태를 재면
+    다른 lane 의 승인된 변경까지 잡는다 — 지키려던 명제("이 lane 은 engine 을 고치지
+    않는다")는 여전히 참인데 계기가 틀린 것을 가리켰다.
+
+    지금은 `LANE_BRANCH` 가 base 이후 만든 diff(+ 아직 커밋 안 된 작업 트리 변경)에
+    engine 경로가 있는지를 본다. 단언이 **더 강해진다**:
+
+    - 다른 lane 이 engine 을 승인받아 고쳐도 이 테스트는 흔들리지 않는다.
+    - 이 lane 이 engine 을 고치면 커밋했든 안 했든 잡힌다.
+    - 파일 두 개가 아니라 `engine/` **디렉터리 전체**를 본다 — 새 파일을 끼워 넣어도 잡힌다.
+
+    음성 대조는 `test_the_same_measurement_catches_a_lane_that_did_touch_the_engine`
+    (실제로 engine 을 고친 W5I 를 같은 계기로 재면 잡힌다) 과
+    `test_the_measurement_catches_an_injected_engine_edit` (합성 lane 에 engine 수정을
+    심으면 잡힌다) 이다.
     """
-    engine = RESEARCH / "src" / "landing_accessibility" / "engine"
-    for name, expected in BASE_ENGINE_SHA256.items():
-        actual = hashlib.sha256((engine / name).read_bytes()).hexdigest()
-        assert actual == expected, f"{name} 이 base 와 다르다 — 이 lane 은 engine 을 고치지 않는다"
+    changed = lane_changed_paths(LANE_BRANCH)
+    assert changed, "diff 가 비면 계기가 죽은 것이다 — 무엇도 잡지 못한다"
+    offenders = paths_under(changed, ENGINE_DIR)
+    assert offenders == (), f"이 lane 이 engine 을 고쳤다: {offenders}"
+
+
+def test_the_same_measurement_catches_a_lane_that_did_touch_the_engine() -> None:
+    """음성 대조 (실측) — 같은 계기를 W5I 에 대면 engine 수정이 **잡힌다**.
+
+    W5I 는 A 승인 아래 `l0_collector.py` 에 조인을 넣었다. 그러니 이 계기가 "아무것도
+    못 잡는 계기" 가 아님을 저장소 안의 실제 lane 로 보일 수 있다. 위 테스트의 초록불이
+    "engine 수정을 못 보는 눈" 때문이 아님을 이 대조가 배제한다.
+    """
+    theirs = paths_under(lane_committed_paths("claude-b/w5i-ax-join"), ENGINE_DIR)
+    assert theirs == (f"{ENGINE_DIR}/l0_collector.py",), theirs
+    mine = paths_under(lane_committed_paths(LANE_BRANCH), ENGINE_DIR)
+    assert mine == ()
+
+
+def test_the_measurement_catches_an_injected_engine_edit(tmp_path: Path) -> None:
+    """음성 대조 (주입) — 합성 lane 의 diff 에 engine 수정을 심으면 반드시 잡힌다.
+
+    이 저장소를 건드리지 않고 임시 git 저장소에 base 커밋 + lane 커밋을 만든다. lane
+    커밋이 `engine/l0_collector.py` 를 고치므로, `lane_committed_paths` 가 그 경로를
+    돌려주지 않으면 계기가 고장 난 것이다.
+    """
+    repo = tmp_path / "synthetic"
+    (repo / ENGINE_DIR).mkdir(parents=True)
+    run = lambda *a: subprocess.run(  # noqa: E731
+        ["git", *a], cwd=repo, check=True, capture_output=True, text=True
+    )
+    run("init", "-q", "-b", "main")
+    run("config", "user.email", "w5m@example.invalid")
+    run("config", "user.name", "w5m")
+    (repo / ENGINE_DIR / "l0_collector.py").write_text("BASE\n", encoding="utf-8")
+    (repo / "README.md").write_text("base\n", encoding="utf-8")
+    run("add", "-A")
+    run("commit", "-qm", "base")
+    base = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True, check=True
+    ).stdout.strip()
+
+    run("checkout", "-q", "-b", "claude-b/w5j-scroll-state")
+    (repo / ENGINE_DIR / "l0_collector.py").write_text("BASE\n# 위반\n", encoding="utf-8")
+    run("add", "-A")
+    run("commit", "-qm", "lane 이 engine 을 고친다")
+
+    caught = paths_under(lane_committed_paths(LANE_BRANCH, base=base, repo=repo), ENGINE_DIR)
+    assert caught == (f"{ENGINE_DIR}/l0_collector.py",), caught
+
+
+def test_the_measurement_refuses_to_pass_when_it_cannot_find_the_lane() -> None:
+    """lane 을 특정하지 못하면 **조용히 통과하지 않는다** — 예외를 던진다."""
+    with pytest.raises(LaneTipUnresolvable):
+        lane_committed_paths("claude-b/does-not-exist-w5m-control")
+
+
+def test_the_lane_tip_survives_a_deleted_branch_ref() -> None:
+    """브랜치 ref 가 정리돼도 병합 커밋의 두 번째 부모로 같은 tip 을 찾는다.
+
+    ref 이름을 일부러 존재하지 않는 것으로 주면 fallback 경로만 탄다. 그래도 브랜치
+    ref 로 찾은 tip 과 같은 커밋이 나와야 한다.
+    """
+    by_ref = resolve_lane_tip(LANE_BRANCH)
+    by_merge = resolve_lane_tip("deleted-remote/w5j-scroll-state")
+    assert by_ref[0] == "branch-ref"
+    assert by_merge[0].startswith("merge-commit ")
+    assert by_ref[1] == by_merge[1]
 
 
 def test_this_lane_ships_no_second_enumerator() -> None:

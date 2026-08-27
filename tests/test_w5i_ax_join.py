@@ -567,8 +567,33 @@ def test_icon_only_ax_named_and_icon_only_unnamed_are_actually_told_apart(
     assert bool((b["name"] or "").strip()) is False
 
 
+def _probe_envelope(obs: Any) -> dict[str, Any]:
+    """`L0Observation` 을 W5C `measure_surface(probe_state=...)` 가 받는 형태로 되돌린다.
+
+    W5M 시정. 이 lane 은 원래 `obs.raw_features` 를 그대로 넘겼는데, 그것은 **봉투를 한
+    겹 벗긴 것**이라 W5C 계약이 아니다.
+
+    - `[인용]` `engine/l0_probe.js`: ``const out = { probe_version: ..., raw_features: {} }``
+      — probe 산출물은 `raw_features` 를 **담고 있는** 객체다.
+    - `[인용]` `engine/l0_collector.py`: ``raw_features=probe.get("raw_features", {})``
+      — `L0Observation.raw_features` 는 그 **안쪽** dict 다. 봉투가 아니다.
+    - `[인용]` `v3_runner/surface.py::_iter_states`: ``raw = st.get("raw_features")``
+      — 단일 state 로 넘어온 `probe_state` 에서 `raw_features` 를 **다시 꺼낸다**.
+    - `[인용]` `tests/test_w5c_surface_measure.py`: ``measure_surface({"raw_features": {}}, ...)``
+      — W5C 자신의 호출 형태도 봉투다.
+
+    즉 어긋난 것은 W5C 의 판정이 아니라 **이 lane 의 호출 형태**였다. `ICON_ONLY_AX_NAMED`
+    라는 기대값은 그대로 두고 입력만 계약에 맞춘다.
+    """
+    return {"raw_features": obs.raw_features}
+
+
 def test_w5c_splits_the_pair_when_it_is_available(joined_pair: dict[str, Any]) -> None:
-    """W5C `surface.py` 가 병합돼 있으면 끝까지 통과시켜 본다 (없으면 skip)."""
+    """W5C `surface.py` 가 병합돼 있으면 끝까지 통과시켜 본다 (없으면 skip).
+
+    lane 안에서는 `surface.py` 가 없어 skip 됐다. 병합해야만 실행되는 이음매라서 이 호출
+    형태 결함이 병합 회귀에서 처음 드러났다.
+    """
     surface = pytest.importorskip("landing_accessibility.v3_runner.surface")
     got = {}
     for name, payload in joined_pair["payloads"].items():
@@ -576,12 +601,56 @@ def test_w5c_splits_the_pair_when_it_is_available(joined_pair: dict[str, Any]) -
         node = selector_ax_index(payload)["button#entry"]
         measurement = surface.measure_surface(
             task_control={"selector": "button#entry", "ax_node": node},
-            probe_state=obs.raw_features,
+            probe_state=_probe_envelope(obs),
             viewport=(obs.viewport_width, obs.viewport_height),
         )
+        # 형태가 다시 어긋나면 W5C 는 예외가 아니라 조용한 `NOT_OBSERVED` 를 낸다.
+        # "control 이 정말 없었다" 와 "형태를 잘못 넘겼다" 가 같은 출력이므로, 여기서
+        # DOM 관측이 실제로 성립했음을 먼저 못 박는다.
+        assert measurement.dom_control_observed is True, (name, measurement.notes)
+        assert "TASK_CONTROL_NOT_IN_PROBE" not in measurement.notes, (name, measurement.notes)
         got[name] = measurement.entry_label_modality
     assert got["icon_only_ax_named.html"] == "ICON_ONLY_AX_NAMED"
     assert got["icon_only_unnamed.html"] == "ICON_ONLY_UNNAMED"
+
+
+def test_the_stripped_envelope_is_what_made_w5c_say_not_observed(
+    joined_pair: dict[str, Any],
+) -> None:
+    """음성 대조 — 위 테스트가 통과하는 이유가 **완화가 아니라 형태 시정**임을 보인다.
+
+    봉투를 벗긴 `obs.raw_features` 를 그대로 넘기면 W5C 는 control 을 하나도 찾지 못하고
+    `NOT_OBSERVED` + `TASK_CONTROL_NOT_IN_PROBE` 를 낸다. 병합 회귀에서 난
+    ``assert 'NOT_OBSERVED' == 'ICON_ONLY_AX_NAMED'`` 가 바로 이것이다.
+
+    같은 fixture · 같은 `task_control` · 같은 viewport 이고 **`probe_state` 형태 하나만**
+    다르다. 그래서 두 결과의 차이는 형태에 귀속된다.
+    """
+    surface = pytest.importorskip("landing_accessibility.v3_runner.surface")
+    obs = joined_pair["obs"]["icon_only_ax_named.html"]
+    payload = joined_pair["payloads"]["icon_only_ax_named.html"]
+    task_control = {
+        "selector": "button#entry",
+        "ax_node": selector_ax_index(payload)["button#entry"],
+    }
+    viewport = (obs.viewport_width, obs.viewport_height)
+
+    stripped = surface.measure_surface(
+        task_control=task_control, probe_state=obs.raw_features, viewport=viewport
+    )
+    assert stripped.entry_label_modality == "NOT_OBSERVED"
+    assert stripped.dom_control_observed is False
+    assert "TASK_CONTROL_NOT_IN_PROBE" in stripped.notes
+
+    enveloped = surface.measure_surface(
+        task_control=task_control, probe_state=_probe_envelope(obs), viewport=viewport
+    )
+    assert enveloped.entry_label_modality == "ICON_ONLY_AX_NAMED"
+    assert enveloped.dom_control_observed is True
+
+    # AX 쪽 관측은 두 경우 모두 성립한다 — 갈린 것은 DOM 쪽 형태뿐이다.
+    assert stripped.ax_control_observed is enveloped.ax_control_observed is True
+    assert stripped.accessible_name == enveloped.accessible_name == "운행정보 조회"
 
 
 @pytest.fixture(scope="module")

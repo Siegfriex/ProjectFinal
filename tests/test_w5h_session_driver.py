@@ -25,6 +25,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import subprocess
 import sys
 from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
@@ -35,6 +36,14 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 RESEARCH = REPO / "research" / "landing_accessibility"
 sys.path.insert(0, str(RESEARCH / "src"))
+
+from lane_ownership import (  # noqa: E402
+    ENGINE_DIR,
+    LANE_BASE,
+    lane_changed_paths,
+    lane_committed_paths,
+    paths_under,
+)
 
 pytest.importorskip("playwright.sync_api")
 
@@ -64,6 +73,27 @@ from landing_accessibility.v3_runner.session import (  # noqa: E402
     is_credential_field,
     observe_input_mode,
 )
+
+#: 이 lane 의 브랜치. 소유 경계는 이 브랜치가 base 이후 만든 diff 로 잰다 (W5M).
+W5H_BRANCH = "claude-b/w5h-session-driver"
+
+
+def _base_engine_text(name: str) -> str:
+    """`LANE_BASE` 커밋 시점의 engine 파일 원문. 작업 트리를 읽지 않는다."""
+    proc = subprocess.run(
+        ["git", "show", f"{LANE_BASE}:{ENGINE_DIR}/{name}"],
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return proc.stdout
+
+
+def _join_lines(text: str) -> list[str]:
+    """selector 와 `backendDOMNodeId` 가 **같은 줄**에 있는 줄. 조인의 흔적이다."""
+    return [line for line in text.splitlines() if "backendDOMNodeId" in line and "selector" in line]
+
 
 FIXTURES_V3 = RESEARCH / "fixtures" / "v3"
 MATRIX_PATH = FIXTURES_V3 / "FIXTURE_DISCRIMINATION_MATRIX.json"
@@ -1093,9 +1123,13 @@ class TestAxNodeJoinIsAbsent:
     """`l0_probe.js` 는 accessible name 을 **계산하지 않는다** — 출처만 낸다.
 
     계산된 이름은 CDP slim node 에만 있고 그 노드는 `backendDOMNodeId` 로 키잉된다.
-    selector ↔ backendDOMNodeId 조인이 base 에 없으므로 W5C 가 요구하는 `ax_node` 를
-    이 드라이버는 채울 수 없다. **추정으로 채우지 않는다** — 그러면 W5C 가 피한
-    결함을 도로 만든다.
+    selector ↔ backendDOMNodeId 조인이 **이 lane 이 갈라져 나온 base 에** 없었으므로
+    W5C 가 요구하는 `ax_node` 를 이 드라이버는 채울 수 없다. **추정으로 채우지 않는다**
+    — 그러면 W5C 가 피한 결함을 도로 만든다.
+
+    W5M 주: 그 조인은 그 뒤 W5I 가 engine 에 만들었다(`8fcf540`). 그래도 **이 드라이버는**
+    여전히 조인을 하지 않으며 슬롯은 `None` 이다. 이 클래스가 고정하는 것은 "조인이
+    세상에 없다" 가 아니라 "이 드라이버가 조인 없이 슬롯을 비워 두는 근거" 다.
     """
 
     def test_the_ax_node_slot_exists_and_is_empty_with_a_reason(self, driver_factory: Any) -> None:
@@ -1118,44 +1152,129 @@ class TestAxNodeJoinIsAbsent:
         for banned in ("accessible_name", "compute_name", "accname"):
             assert banned not in SESSION_SOURCE, f"{banned} 가 session.py 에 생겼다"
 
-    def test_the_join_really_is_absent_from_the_base_engine(self) -> None:
-        """음성 주장의 근거를 회귀로 고정한다 — 양성 대조를 같이 둔다.
+    def test_the_join_was_absent_at_the_base_this_lane_forked_from(self) -> None:
+        """W5H 가 슬롯을 비워 둔 **근거**를 base 커밋에서 고정한다.
 
-        음성: `backendDOMNodeId` 를 selector 와 잇는 코드가 engine 에 없다.
-        양성: `backendDOMNodeId` 자체는 `_ax_tree` 에서 실제로 발화한다 — 즉 이 grep 이
-        아무것도 못 찾는 grep 이 아니다.
+        ## W5M 시정 — 이 단언은 이제 승인된 산출물의 부정을 주장하고 있었다
+
+        원래 이 테스트는 **작업 트리의** `l0_collector.py` 에 selector 와
+        `backendDOMNodeId` 가 같은 줄에 있는 줄이 없다고 주장했고, 병합에서 깨졌다:
+
+            `[인용]` ``AssertionError: ['                # ── W5I: selector <->
+            backendDOMNodeId <-> AX slim node ────']``
+
+        매치된 것은 코드가 아니라 W5I 의 주석 한 줄이었다. **그렇다고 주석을 걸러내는
+        것은 답이 아니다.** 걸러내면 이 테스트는 초록불이 되지만 그때 주장하는 명제가
+        거짓이다 — 조인은 실재한다:
+
+            `[인용]` `engine/l0_collector.py`: ``payload = collect_ax_join(cdp,
+            probe=probe, ax_nodes=ax)``
+
+        W5I 의 과업이 그 조인을 만드는 것이었고(`8fcf540`, +37/-0) A 가 승인했다. 주석
+        필터는 "조인이 없다" 라는 **거짓 명제를 조용히 통과**시키는 장치일 뿐이다.
+
+        소유를 W5I 로 넘기는 것도 답이 아니다. W5I 는 "조인이 있다" 를 자기 테스트에서
+        이미 증명한다(`test_w5i_ax_join.py`). 여기서 필요한 것은 그 반대 명제가 아니라
+        **W5H 가 슬롯을 비워 둔 판단의 근거** — 즉 *W5H 가 갈라져 나온 시점의 base 에는*
+        조인이 없었다는 사실이다. 그것은 지금도 참이고, 앞으로 어떤 lane 이 engine 을
+        고쳐도 참으로 남는다. 그래서 작업 트리가 아니라 base 커밋을 읽는다.
         """
-        collector = (ENGINE / "l0_collector.py").read_text(encoding="utf-8")
-        probe = (ENGINE / "l0_probe.js").read_text(encoding="utf-8")
-        assert "backendDOMNodeId" in collector  # 양성 대조
+        collector = _base_engine_text("l0_collector.py")
+        probe = _base_engine_text("l0_probe.js")
+        assert "backendDOMNodeId" in collector  # 양성 대조 — 못 찾는 grep 이 아니다
         assert "backendDOMNodeId" not in probe  # probe 쪽에는 키가 아예 없다
-        joined = [
-            line
-            for line in collector.splitlines()
-            if "backendDOMNodeId" in line and "selector" in line
-        ]
-        assert joined == [], joined
+        assert _join_lines(collector) == [], _join_lines(collector)
+
+    def test_the_join_detector_is_not_a_grep_that_finds_nothing(self) -> None:
+        """음성 대조 — 조인이 있으면 위 계기가 **반드시 잡는다**.
+
+        base 에서 빈 결과가 나온 것이 "조인이 없어서" 인지 "계기가 고장 나서" 인지
+        구분하려면 이 대조가 있어야 한다. 저장소 상태에 의존하지 않도록 합성 문자열로
+        건다 — 어느 lane 이 engine 을 어떻게 고치든 이 대조는 흔들리지 않는다.
+        """
+        injected = "\n".join(
+            [
+                "def join(probe, ax):",
+                "    return {selector: backendDOMNodeId for selector, backendDOMNodeId in rows}",
+            ]
+        )
+        assert _join_lines(injected) != []
+        assert _join_lines("selector 만 있는 줄") == []
+        assert _join_lines("backendDOMNodeId 만 있는 줄") == []
+
+    def test_this_driver_still_does_not_do_the_join_itself(self) -> None:
+        """W5I 가 engine 에 조인을 만든 뒤에도 **이 드라이버는** 조인을 하지 않는다.
+
+        W5H 의 선언된 한계(`W5H-L1-AX-JOIN-ABSENT`)가 살아 있다는 뜻이다. 이 lane 이
+        조용히 조인을 끌어다 쓰기 시작하면 여기서 잡힌다.
+
+        줄 단위 grep 을 쓰지 않는다 — `session.py` 자신의 docstring 이 selector 와
+        `backendDOMNodeId` 를 한 줄에 적고 있어(한계를 설명하는 산문) 같은 함정에 걸린다.
+        A-1 과 같은 실수를 여기서 반복하지 않으려고 **AST 로 import 와 호출만** 본다.
+        """
+        tree = ast.parse(SESSION_SOURCE)
+        imported: list[str] = []
+        called: list[str] = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported += [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                imported += [f"{node.module or ''}.{a.name}" for a in node.names]
+            elif isinstance(node, ast.Call):
+                func = node.func
+                if isinstance(func, ast.Name):
+                    called.append(func.id)
+                elif isinstance(func, ast.Attribute):
+                    called.append(func.attr)
+        assert not [n for n in imported if "ax_join" in n], imported
+        assert "collect_ax_join" not in called, called
+        assert AX_NODE_JOIN_STATUS == "AX_NODE_ABSENT_NO_SELECTOR_TO_BACKEND_NODE_JOIN"
+
+    def test_the_ast_check_would_notice_the_driver_taking_the_join_up(self) -> None:
+        """음성 대조 — 위 AST 계기가 조인 도입을 실제로 잡는다.
+
+        `session.py` 에 조인이 들어온 형태를 합성해 같은 계기에 건다. 잡히지 않으면 위
+        테스트의 초록불은 "안 한다" 가 아니라 "못 본다" 다.
+        """
+        injected = ast.parse(
+            "from ..v3_runner.ax_join import collect_ax_join\n"
+            "def f(cdp, probe, ax):\n"
+            "    return collect_ax_join(cdp, probe=probe, ax_nodes=ax)\n"
+        )
+        imported: list[str] = []
+        called: list[str] = []
+        for node in ast.walk(injected):
+            if isinstance(node, ast.ImportFrom):
+                imported += [f"{node.module or ''}.{a.name}" for a in node.names]
+            elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                called.append(node.func.id)
+        assert [n for n in imported if "ax_join" in n]
+        assert "collect_ax_join" in called
 
 
 class TestScrollEnumerationIsMineNotTheEngines:
     """scroll 열거는 이 드라이버 안에 있다 — 소유 밖 파일을 고치지 않았다."""
 
-    def test_engine_files_are_byte_identical_to_base(self) -> None:
-        """`l0_collector.py` · `l0_probe.js` 를 건드리지 않았음을 해시로 고정한다."""
-        import subprocess
+    def test_this_lane_does_not_touch_the_engine(self) -> None:
+        """이 lane 의 **자기 diff** 안에 engine 파일이 하나도 없다.
 
-        for relative in (
-            "research/landing_accessibility/src/landing_accessibility/engine/l0_collector.py",
-            "research/landing_accessibility/src/landing_accessibility/engine/l0_probe.js",
-        ):
-            proc = subprocess.run(
-                ["git", "diff", "--name-only", "HEAD", "--", relative],
-                cwd=REPO,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            assert proc.stdout.strip() == "", f"{relative} 가 수정됐다"
+        W5M 시정. 원래는 ``git diff --name-only HEAD`` — **작업 트리 vs HEAD** 를 쟀다.
+        커밋하고 나면 무조건 빈 문자열이라 병합 뒤에는 무엇도 잡지 못한다. 시끄럽게
+        깨지지는 않았지만 이미 조용한 통과였다.
+
+        지금은 W5H 브랜치가 base 이후 만든 diff(+ 미커밋 작업 트리 변경)를 본다.
+        음성 대조는 `test_the_same_measurement_catches_w5i_which_did_touch_the_engine`.
+        """
+        changed = lane_changed_paths(W5H_BRANCH)
+        assert changed, "diff 가 비면 계기가 죽은 것이다"
+        offenders = paths_under(changed, ENGINE_DIR)
+        assert offenders == (), f"이 lane 이 engine 을 고쳤다: {offenders}"
+
+    def test_the_same_measurement_catches_w5i_which_did_touch_the_engine(self) -> None:
+        """음성 대조 — engine 을 실제로 고친 lane 을 같은 계기로 재면 잡힌다."""
+        theirs = paths_under(lane_committed_paths("claude-b/w5i-ax-join"), ENGINE_DIR)
+        assert theirs == (f"{ENGINE_DIR}/l0_collector.py",), theirs
+        assert paths_under(lane_committed_paths(W5H_BRANCH), ENGINE_DIR) == ()
 
     def test_scroll_enumeration_lives_in_the_driver(self) -> None:
         node = function_node("capture_surface")
