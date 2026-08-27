@@ -1,1335 +1,1334 @@
 {
-  "index": "V3_RULING_INDEX",
-  "version": 30,
-  "purpose": "A 가 발행한 모든 조작적 정의·계약 요구의 정본 목록. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(T-B-V3-SCOPE-001).",
-  "how_to_use": "C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 목록**을 기준으로 대조한다. 목록에 있는데 산출에 없으면 미반영이다.",
-  "source": "control/v3/V3_0_1_SUCCESSOR_DELTA.md — 이 목록은 그 문서의 색인이며 정본은 그 문서다. 충돌 시 delta 원문이 이긴다.",
-  "authority_sha": "adcdcb6050e96817be8645662c098b3221d4f90f",
-  "count": 96,
-  "rulings": [
-    {
-      "id": "Δ1-a",
-      "requires": "F5 날짜 fixture — T+1 상대일자 + target 별 collection_date_kst·요일 기록 + 날짜 분산 사전등록 민감도",
-      "must_appear_in": "FINAL_MAIN50_MANIFEST.f5_date_rule · 관측 행의 collection_date_kst/query_date/dow/is_holiday",
-      "verified_by": "C",
-      "due": "STEP2",
-      "authority": "Δ1-a",
-      "aliases": [
-        "D3-06",
-        "Δ1-a"
-      ]
-    },
-    {
-      "id": "Δ1-b",
-      "requires": "F1 시중7/지방3 층 사전등록. primary 분모 불변",
-      "must_appear_in": "manifest.strata · 분석 산출의 층별 병기",
-      "verified_by": "C",
-      "due": "STEP3",
-      "authority": "Δ1-b",
-      "aliases": [
-        "D3-06",
-        "Δ1-b"
-      ]
-    },
-    {
-      "id": "Δ2",
-      "requires": "replacement 순서명부 precheck 이전 동결·hash 포함·층 유지·소진 시 n<10",
-      "must_appear_in": "manifest.replacement_reserve · replacement_rule",
-      "verified_by": "C",
-      "due": "STEP2",
-      "authority": "Δ2",
-      "aliases": [
-        "D3-08",
-        "Δ2"
-      ]
-    },
-    {
-      "id": "Δ4",
-      "requires": "promoted main 은 origin/ 접두 또는 exact SHA 로만 참조. bare 브랜치명 금지",
-      "must_appear_in": "코드·티켓·결정문 전수",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ4",
-      "aliases": [
-        "promoted main 참조 규칙",
-        "Δ4"
-      ]
-    },
-    {
-      "id": "Δ5",
-      "requires": "v3 이후 티켓은 15 스키마. legacy type 매핑표. 소급 개정 금지",
-      "must_appear_in": "버스 티켓",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ5",
-      "aliases": [
-        "Δ5",
-        "티켓 스키마 전환"
-      ]
-    },
-    {
-      "id": "Δ6-a",
-      "requires": "E 를 enum 에 포함. E 의 REAL 티켓은 5필드 필수",
-      "must_appear_in": "버스 티켓",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ6-a",
-      "aliases": [
-        "Δ6-a"
-      ]
-    },
-    {
-      "id": "Δ6-b",
-      "requires": "E REAL scope 0. 어느 평면도 E 에 REAL 요청 불가",
-      "must_appear_in": "릴리스 문서 부재",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ6-b",
-      "aliases": [
-        "Δ6-b"
-      ]
-    },
-    {
-      "id": "Δ6-c",
-      "requires": "B 는 E route 를 실행 대본으로 재생하지 않는다. 갈리면 B 것이 task_flow_sequence",
-      "must_appear_in": "B replay 입력이 task_id+endpoint_contract 뿐임을 보이는 artifact · E_ROUTE_ID 는 lineage hint 로만",
-      "verified_by": "C",
-      "due": "GATE2",
-      "authority": "Δ6-c",
-      "aliases": [
-        "Δ6-c"
-      ]
-    },
-    {
-      "id": "Δ6-d",
-      "requires": "Scout 의 결정론적 경로선택 정책 문서화·P4 이전 동결",
-      "must_appear_in": "B 의 정책 문서 + 결정론 테스트",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ6-d",
-      "aliases": [
-        "Δ6-d"
-      ]
-    },
-    {
-      "id": "Δ7",
-      "requires": "phase 자율전이는 REAL release 를 대체하지 않는다. **hard stop 어휘 정본은 Δ19-R9 의 8종**(Δ7 본문의 6종은 SUPERSEDED)",
-      "must_appear_in": "릴리스 발행 기록",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ7",
-      "aliases": [
-        "THREE_TURN_RUNBOOK",
-        "Δ7"
-      ]
-    },
-    {
-      "id": "Δ8-R1",
-      "requires": "replacement 5번째 사유 없음. 과업 의미 불일치는 TASK_COMPARABILITY_CONCERN finding + ABSTAIN",
-      "must_appear_in": "precheck 기록",
-      "verified_by": "C",
-      "due": "STEP2",
-      "authority": "Δ8",
-      "aliases": [
-        "R1",
-        "Δ8-R1"
-      ]
-    },
-    {
-      "id": "Δ8-R2",
-      "requires": "진입 flow 지표는 AUTH_GATE 여부와 무관하게 산출. endpoint 의존 지표만 flow-evaluable n",
-      "must_appear_in": "분석 산출의 두 분모 분리",
-      "verified_by": "C",
-      "due": "STEP3",
-      "authority": "Δ8",
-      "aliases": [
-        "R2",
-        "Δ8-R2"
-      ]
-    },
-    {
-      "id": "Δ8-R3a",
-      "requires": "task_role 필드 PRIMARY/SECONDARY_REPEATED 가 mart 스키마에 존재하고 관측 행에 실린다",
-      "must_appear_in": "mart 스키마 · 관측 행",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ8",
-      "aliases": [
-        "R3a",
-        "Δ8-R3a"
-      ]
-    },
-    {
-      "id": "Δ8-R3b",
-      "requires": "family-level 집계가 task_role='PRIMARY' 로만 필터하고 **적용된 필터 조건 문자열**을 산출에 남긴다",
-      "must_appear_in": "집계 산출",
-      "verified_by": "C",
-      "due": "STEP3",
-      "authority": "Δ8",
-      "split_note": "필드 존재는 GATE 1 에, 집계 규칙 적용은 STEP 3 에 검사된다. 하나의 행으로 두면 GATE 1 이 절반만 보고 통과시키거나 전체를 NOT_TESTABLE 로 접는다",
-      "aliases": [
-        "R3b",
-        "Δ8-R3b"
-      ]
-    },
-    {
-      "id": "Δ8-R4",
-      "requires": "분모 사슬에 교체 이력 노출. k=0 도 명시",
-      "must_appear_in": "분석 산출",
-      "verified_by": "C",
-      "due": "STEP3",
-      "authority": "Δ8",
-      "aliases": [
-        "R4",
-        "Δ8-R4"
-      ]
-    },
-    {
-      "id": "Δ8-R5",
-      "requires": "fixture 는 의미 명세. fixture_input_mode 기록(FREE_TEXT/DROPDOWN/MIXED/MAP_PAN/OTHER)",
-      "must_appear_in": "관측 행 필드",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ8",
-      "aliases": [
-        "R5",
-        "Δ8-R5"
-      ]
-    },
-    {
-      "id": "Δ8-R6",
-      "requires": "F1 auth 절단 사전등록 민감도. AUTH_GATE/ABSTAIN 필드 한정 의무",
-      "must_appear_in": "분석 산출·mart 컬럼",
-      "verified_by": "C",
-      "due": "GATE3",
-      "authority": "Δ8",
-      "aliases": [
-        "R6",
-        "Δ8-R6"
-      ]
-    },
-    {
-      "id": "Δ8-R7",
-      "requires": "entry_zone 임계 — y 삼등분, TOP 안에서만 x 삼등분, [a,b) 두 축 균일, y=1/3→MID · y=2/3→BOTTOM · TOP 내 x=1/3→TOP_CENTER · x=2/3→TOP_RIGHT. DRAWER>FLOATING>기하. 원좌표 항상 저장",
-      "must_appear_in": "zone 유도 코드 + 경계 테스트",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ8-R7",
-      "aliases": [
-        "R7",
-        "Δ8-R7"
-      ]
-    },
-    {
-      "id": "Δ9",
-      "requires": "activation_depth 18종 귀속 — IN 10 / OUT 5 / CONDITIONAL 3(fixture_input_mode 로 갈림). depth_conditional_tokens 근거 기록. 방향은 토큰 아님",
-      "must_appear_in": "flow 정규화 코드 + depth_conditional_tokens 필드",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ9",
-      "aliases": [
-        "Δ9"
-      ]
-    },
-    {
-      "id": "Δ10-R11",
-      "requires": "`terminal_reason` 동반 필드 — **15값 전체를 열거한다**: `TIMEOUT` · `WAF_BLOCK` · `ACTIVE_CHALLENGE` · `NO_PUBLIC_MOBILE_WEB` · `TASK_SURFACE_ABSENT` · `APP_REQUIRED` · `CONTROL_DISABLED_OR_INERT` · `FORBIDDEN_ACTION_REQUIRED` · `AUTH_REQUIRED` · `EVIDENCE_DEFECT` · `REPLAY_BROKEN` · `AMBIGUOUS_MULTIPLE_CANDIDATES` · `OTHER` · `BUDGET_EXCEEDED` · `NO_TASK_CANDIDATE_FOUND`. 1~13 은 Δ10-R11 원안, **14 `BUDGET_EXCEEDED`(Δ30)** · **15 `NO_TASK_CANDIDATE_FOUND`(Δ32)**. 모든 terminal 이 `endpoint_status` 와 `terminal_reason` 을 둘 다 갖는다. `OTHER` 는 note 필수. 허용 조합표를 B 가 명시하고 C 가 검증한다",
-      "must_appear_in": "관측 행 + 조합표",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ10-R11",
-      "aliases": [
-        "R11",
-        "Δ10-R11"
-      ],
-      "terminal_reason_values": [
-        "TIMEOUT",
-        "WAF_BLOCK",
-        "ACTIVE_CHALLENGE",
-        "NO_PUBLIC_MOBILE_WEB",
-        "TASK_SURFACE_ABSENT",
-        "APP_REQUIRED",
-        "CONTROL_DISABLED_OR_INERT",
-        "FORBIDDEN_ACTION_REQUIRED",
-        "AUTH_REQUIRED",
-        "EVIDENCE_DEFECT",
-        "REPLAY_BROKEN",
-        "AMBIGUOUS_MULTIPLE_CANDIDATES",
-        "OTHER",
-        "BUDGET_EXCEEDED",
-        "NO_TASK_CANDIDATE_FOUND"
-      ],
-      "fix_note": "D-V3-FINDING-014 — 이전 판은 '15값(Δ30 으로 BUDGET_EXCEEDED 추가)' 이라 **15번째가 BUDGET_EXCEEDED 로 읽혔다.** 실제는 14 다. **누적 문자열 치환으로 갱신한 요약 행이 이전 편집의 괄호를 물려받았다.** 서술 대신 전체 열거로 바꿔 오독의 자리를 없앤다"
-    },
-    {
-      "id": "Δ10-R12",
-      "requires": "sequence 거리 정규화 primary=max(len), sum(len)·Yujian-Bo 저장, 군집 시 YB 병기",
-      "must_appear_in": "**STEP 3 mart/분석**",
-      "verified_by": "C",
-      "due": "GATE3",
-      "authority": "Δ10-R12",
-      "aliases": [
-        "R12",
-        "Δ10-R12"
-      ]
-    },
-    {
-      "id": "Δ10-R13a",
-      "requires": "auth_gate_stage 에 UNDETERMINED 값이 존재하고 NONE 은 '관측했고 없었다'는 적극적 주장으로 구현된다. 전 변수에 판정불능 값 존재",
-      "must_appear_in": "관측 행 · 스키마",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ10-R13",
-      "aliases": [
-        "R13a",
-        "Δ10-R13a"
-      ]
-    },
-    {
-      "id": "Δ10-R13b",
-      "requires": "UNDETERMINED 를 분모에서 빼지 않고 별도 범주로 보고한다",
-      "must_appear_in": "집계 산출",
-      "verified_by": "C",
-      "due": "STEP3",
-      "authority": "Δ10-R13",
-      "split_note": "값의 존재는 GATE 1, 집계에서의 취급은 STEP 3",
-      "aliases": [
-        "R13b",
-        "Δ10-R13b"
-      ]
-    },
-    {
-      "id": "Δ10-R14",
-      "requires": "C 는 B·D 의 fixture 를 쓰지 않고 SSOT 원문에서 자기 fixture 를 파생",
-      "must_appear_in": "C 의 fixture 출처 기록",
-      "verified_by": "A",
-      "due": "GATE1",
-      "authority": "Δ10-R14",
-      "aliases": [
-        "R14",
-        "Δ10-R14"
-      ]
-    },
-    {
-      "id": "Δ12-R15",
-      "requires": "A 의 판정은 근거 원문을 축자 인용",
-      "must_appear_in": "A 결정문",
-      "verified_by": "B·C·D·E",
-      "due": "상시",
-      "authority": "Δ12",
-      "aliases": [
-        "R15",
-        "Δ12-R15"
-      ]
-    },
-    {
-      "id": "Δ12-R16",
-      "requires": "A 판정 반론은 FACT_CORRECTION. 근거는 같은 원문 다른 독해",
-      "must_appear_in": "버스",
-      "verified_by": "A",
-      "due": "상시",
-      "authority": "Δ12",
-      "aliases": [
-        "R16",
-        "Δ12-R16"
-      ]
-    },
-    {
-      "id": "Δ13-R17",
-      "requires": "철회는 주장과 같은 근거를 요구. 발행 시 어떻게 알았는가, 수신 시 원 기록 대조",
-      "must_appear_in": "버스 FACT_CORRECTION",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ13",
-      "aliases": [
-        "R17",
-        "Δ13-R17"
-      ]
-    },
-    {
-      "id": "Δ14-P06",
-      "requires": "SWITCH_TAB 은 reveal 아님. menu_dependency_incl_tab 민감도 병기",
-      "must_appear_in": "flow 정규화 + 민감도 산출",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ14",
-      "aliases": [
-        "P-06",
-        "P06",
-        "Δ14-P06"
-      ]
-    },
-    {
-      "id": "Δ14-P09",
-      "requires": "menu_dependency 는 sequence 기반. 04 가 10 glossary 를 이긴다",
-      "must_appear_in": "flow 정규화",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ14",
-      "aliases": [
-        "P-09",
-        "P09",
-        "Δ14-P09"
-      ]
-    },
-    {
-      "id": "Δ14-auth",
-      "requires": "auth_gate_stage 단일 위치규칙 — 과업 특이적 토큰 10종 기준",
-      "must_appear_in": "flow 정규화",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ14",
-      "aliases": [
-        "Δ14-auth"
-      ]
-    },
-    {
-      "id": "Δ14-P17",
-      "requires": "ABSTAIN(모른다) 과 TASK_SURFACE_ABSENT(없다고 안다) 구분",
-      "must_appear_in": "조합표",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ14",
-      "aliases": [
-        "P-17",
-        "P17",
-        "Δ14-P17"
-      ]
-    },
-    {
-      "id": "Δ15-GAP07",
-      "requires": "entry_observed_state 신규 필드 — 모든 행이 자기 시점 선언",
-      "must_appear_in": "관측 행 필드",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ15",
-      "aliases": [
-        "GAP-07",
-        "GAP07",
-        "Δ15-GAP07"
-      ]
-    },
-    {
-      "id": "Δ15-GAP06",
-      "requires": "nav_container_type=최내곽 + nav_container_chain 병기",
-      "must_appear_in": "관측 행 필드",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ15",
-      "aliases": [
-        "GAP-06",
-        "GAP06",
-        "Δ15-GAP06"
-      ]
-    },
-    {
-      "id": "Δ15-GAP02",
-      "requires": "first_visible_scroll_state = 최초 관측 scroll state. 끝내 미관측만 NULL. **03 §3 scroll-only capture 검증 필수**",
-      "must_appear_in": "수집기 + GATE1 보고",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ15",
-      "aliases": [
-        "GAP-02",
-        "GAP02",
-        "Δ15-GAP02"
-      ]
-    },
-    {
-      "id": "Δ15-GAP03",
-      "requires": "flow_step_count 에서 ENDPOINT_REACHED·ABSTAIN 제외, AUTH_GATE 포함",
-      "must_appear_in": "flow 정규화",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ15",
-      "aliases": [
-        "GAP-03",
-        "GAP03",
-        "Δ15-GAP03"
-      ]
-    },
-    {
-      "id": "Δ15-GAP04",
-      "requires": "수치 미관측은 null(0 아님). occlusion=0.0 은 관측했고 안 가려짐. 한 행 안 결측 표현 일관",
-      "must_appear_in": "관측 행",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ15",
-      "aliases": [
-        "GAP-04",
-        "GAP04",
-        "Δ15-GAP04"
-      ]
-    },
-    {
-      "id": "Δ15-GAP05",
-      "requires": "s0_task_control_visible 과 occlusion 은 독립. 임계값 없음",
-      "must_appear_in": "측정 코드",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ15",
-      "aliases": [
-        "GAP-05",
-        "GAP05",
-        "Δ15-GAP05"
-      ]
-    },
-    {
-      "id": "Δ15-domax",
-      "requires": "DOM/AX 불일치 시 어느 쪽도 우선 안 함. dom_ax_divergence 플래그",
-      "must_appear_in": "관측 행 필드",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ15",
-      "aliases": [
-        "DOM/AX 불일치",
-        "Δ15-domax"
-      ]
-    },
-    {
-      "id": "Δ17-R18",
-      "requires": "모든 ACK 은 ticket_sha256 포함. 발행 전 경로 존재 확인",
-      "must_appear_in": "버스 ACK",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ17",
-      "aliases": [
-        "R18",
-        "Δ17-R18"
-      ]
-    },
-    {
-      "id": "Δ17-R19",
-      "requires": "재ACK 은 덮지 않고 <ticket>.<plane>-N.json",
-      "must_appear_in": "버스 ACK",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ17",
-      "aliases": [
-        "R19",
-        "Δ17-R19"
-      ]
-    },
-    {
-      "id": "Δ18-R20",
-      "requires": "lane 경계를 가로지르는 경로는 양쪽 실물로 한 번 이상 실행. seam 1 수용기준은 guard 발화이지 AttributeError 소멸이 아님",
-      "must_appear_in": "실물 연결 테스트 + 음성대조",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ18",
-      "aliases": [
-        "R20",
-        "Δ18-R20"
-      ]
-    },
-    {
-      "id": "Δ11",
-      "requires": "버스는 결정을 ACK 본문에 담는다 — completions 파일 부재를 미해결로 읽으면 거짓 양성. 버스를 읽는 도구는 ACK 본문을 검사한다. v2.1 dangling reference 는 소급 생성하지 않는다",
-      "must_appear_in": "버스 스캐너 구현",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ11",
-      "aliases": [
-        "Δ11",
-        "버스 구조"
-      ]
-    },
-    {
-      "id": "Δ6-e",
-      "requires": "C 는 E 를 증거 획득 operator 로만 쓰고 판정자로 취급하지 않는다. E artifact hash·raw evidence 는 C 가 독립 계산. **B/E 가 같은 도구·가정을 공유하면 둘의 일치는 독립성의 증거가 아니다**. D 는 E 결과를 자기 결론으로 즉시 broadcast 하지 않는다",
-      "must_appear_in": "C·D 의 E 사용 기록",
-      "verified_by": "A",
-      "due": "GATE2",
-      "authority": "Δ6-e",
-      "aliases": [
-        "C·D 의 E 사용",
-        "Δ6-e"
-      ]
-    },
-    {
-      "id": "Δ12-C",
-      "requires": "C 는 GATE 1 에서 B 와 갈린 항목을 구현 결함이 아니라 **해석 불일치 후보**로 먼저 분류한다. 구현 결함으로 단정하면 B 가 코드를 고치고 해석 차이는 남는다",
-      "must_appear_in": "GATE 1 보고의 분류",
-      "verified_by": "A",
-      "due": "GATE1",
-      "authority": "Δ12",
-      "aliases": [
-        "Δ12-C"
-      ]
-    },
-    {
-      "id": "Δ3",
-      "requires": "08 baseline SHA 갱신표 — 원본 무수정, delta 에 갱신본",
-      "must_appear_in": "인용 시 갱신본 사용",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ3",
-      "aliases": [
-        "baseline SHA 갱신",
-        "Δ3"
-      ]
-    },
-    {
-      "id": "Δ16",
-      "requires": "SSOTV3 provenance — control/v3/ssot_snapshot/ 22 파일. **지금부터의 provenance 이며 01:52~03:19 무변조 증명이 아니다**. 이 한계를 최종 보고 known limitation 에 넣는다",
-      "must_appear_in": "최종 보고",
-      "verified_by": "A",
-      "due": "GATE3",
-      "authority": "Δ16",
-      "aliases": [
-        "SSOT provenance",
-        "Δ16"
-      ]
-    },
-    {
-      "id": "Δ5-vr",
-      "requires": "finding_class VALIDITY_RISK 는 **P1 이상으로만** 발행 — FINDING 으로 접으면서 우선순위를 잃지 않게",
-      "must_appear_in": "버스 티켓",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ5",
-      "aliases": [
-        "Δ5-vr"
-      ]
-    },
-    {
-      "id": "Δ2-skip",
-      "requires": "reserve 순서를 건너뛰면 사유를 기록하고 C 가 검증한다",
-      "must_appear_in": "replacement 기록",
-      "verified_by": "C",
-      "due": "STEP2",
-      "authority": "Δ2",
-      "aliases": [
-        "Δ2-skip"
-      ]
-    },
-    {
-      "id": "Δ20",
-      "requires": "AX 조인·scroll state 는 STEP 1 안. **scroll state 는 engine 수정 불요**(호출자 page.evaluate, Δ22 로 전제 시정) · 회귀 전건 통과 · 포착 스택 신원 기록. 미검증 선언 기각",
-      "must_appear_in": "수집기 + 관측 행",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ20+Δ22",
-      "aliases": [
-        "STEP1-015",
-        "T-A-V3-STEP1-015",
-        "Δ20"
-      ]
-    },
-    {
-      "id": "Δ19-R8",
-      "requires": "HOLD 승격은 개수가 아니라 원인의 소재 — fixture 재현되면 systemic, 아니면 site-level, 재현 불가면 ABSTAIN. 판정자는 C. 보고 하한 family n<5 는 HOLD 아님",
-      "must_appear_in": "HOLD 판정 기록",
-      "verified_by": "A",
-      "due": "상시",
-      "authority": "Δ19-R8",
-      "aliases": [
-        "R8",
-        "Δ19-R8"
-      ]
-    },
-    {
-      "id": "Δ19-R9",
-      "requires": "hard-stop 8종 정본 — wrong_scope · target_outside_manifest · forbidden_action · evidence_overwrite · duplicate_launch · task_contract_drift · task_or_outcome_leakage · denominator_corruption",
-      "must_appear_in": "게이트 판정",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ19-R9",
-      "aliases": [
-        "R9",
-        "Δ19-R9"
-      ]
-    },
-    {
-      "id": "Δ19-R10",
-      "requires": "release 문서는 preconditions[] 로 전제조건 SHA 를 인용한다. V3_PILOT_5 부터",
-      "must_appear_in": "A 가 발행하는 V3_PILOT_5 릴리스 문서",
-      "verified_by": "C",
-      "due": "V3_PILOT_5_RELEASE",
-      "authority": "Δ19-R10",
-      "note": "due 를 GATE1 로 둔 것은 A 의 오류였다 — release 문서는 GATE 1 **통과 후** 발행되므로 GATE 1 시점에는 영구 NOT_TESTABLE 이 된다. C 의 매핑(NOT_TESTABLE)이 그 오류를 드러냈다. 검증 시점은 release 발행 순간이다",
-      "aliases": [
-        "R10",
-        "Δ19-R10"
-      ]
-    },
-    {
-      "id": "Δ21",
-      "requires": "판정 색인 유지 — A 가 새 판정마다 색인 추가. **C 는 색인 대 delta 뿐 아니라 delta 대 발행 티켓도 대조한다**",
-      "must_appear_in": "색인 + delta + 티켓",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ21",
-      "aliases": [
-        "R21",
-        "Δ21"
-      ]
-    },
-    {
-      "id": "Δ22-R22",
-      "requires": "모든 v3 관측 행은 **engine sha + driver/session sha** 를 함께 기록한다. collector_sha256 하나로는 포착 동작이 호출자에 있을 때 불완전하다",
-      "must_appear_in": "관측 행",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ22",
-      "aliases": [
-        "R22",
-        "Δ22-R22"
-      ]
-    },
-    {
-      "id": "Δ22-scrollfix",
-      "requires": "커밋된 스크롤 fixture — 런타임 임시 파일이 아니라 재현 가능한 커밋본으로 S1..Sn 을 검증",
-      "must_appear_in": "tests/fixtures",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ22",
-      "aliases": [
-        "scrollfix",
-        "Δ22-scrollfix",
-        "커밋된 스크롤 fixture"
-      ]
-    },
-    {
-      "id": "Δ22-R23",
-      "requires": "지시문·판정문에서 원문 인용과 그로부터의 추론을 표기로 구분한다",
-      "must_appear_in": "A 결정문 · B 지시문",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ22",
-      "aliases": [
-        "R23",
-        "Δ22-R23"
-      ]
-    },
-    {
-      "id": "Δ23",
-      "requires": "패턴 규칙을 쓰지 않는다. **색인이 자기 별칭을 선언하고 소비자는 추론하지 않는다.** 대조 도구는 id 와 aliases 를 둘 다 조회한다",
-      "must_appear_in": "대조 도구 구현",
-      "verified_by": "C+D",
-      "due": "상시",
-      "authority": "Δ23",
-      "aliases": [
-        "Δ23"
-      ]
-    },
-    {
-      "id": "Δ23-R24",
-      "requires": "**A 가 규칙을 쓰면 누군가 그것을 실제로 구현해봐야 한다.** 규칙이 문장으로만 있으면 그 결함은 보이지 않는다",
-      "must_appear_in": "규칙 발행 시 실행 검증 기록",
-      "verified_by": "B",
-      "due": "상시",
-      "authority": "Δ23",
-      "aliases": [
-        "R24",
-        "Δ23-R24"
-      ]
-    },
-    {
-      "id": "Δ24-R25",
-      "requires": "**패턴을 선언으로 바꾸는 것으로 끝나지 않는다. 선언 자체가 틀릴 수 있다.** 별칭 유일성 자체검사를 색인에 상주시키고 마지막 실행 결과를 남긴다",
-      "must_appear_in": "V3_RULING_INDEX.self_check",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ24",
-      "aliases": [
-        "R25",
-        "Δ24-R25"
-      ]
-    },
-    {
-      "id": "Δ25",
-      "requires": "별칭 자격 — 그 판정이 실제로 불리는 형태만. 소문자 단일어 길이 6 이하 배제. **토큰 경계 매칭, 부분일치 금지**",
-      "must_appear_in": "alias_rules · 대조 도구",
-      "verified_by": "C+D",
-      "due": "상시",
-      "authority": "Δ25",
-      "aliases": [
-        "Δ25"
-      ]
-    },
-    {
-      "id": "Δ26",
-      "requires": "**`base_sha` 는 `git cat-file -e` 로 해석되는 객체여야 한다.** 축약형 확장 시 0 을 채우지 않는다. 발행 전 확인",
-      "must_appear_in": "버스 티켓",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ26",
-      "aliases": [
-        "Δ26"
-      ]
-    },
-    {
-      "id": "Δ28-R26",
-      "authority": "Δ28+Δ29",
-      "aliases": [
-        "R26",
-        "Δ28-R26",
-        "Δ28"
-      ],
-      "requires": "**두 측정이 갈리면 (a) 각 측정 시각 (b) 각 주장이 쓰인 시각 (c) 관련 상태가 바뀐 시각 을 함께 놓는다.** (a) 만으로는 '둘 다 맞다'가 너무 쉽게 나온다. 측정 결과에 `measured_at_kst` 필수",
-      "must_appear_in": "측정을 담은 모든 티켓·lane 산출",
-      "verified_by": "C",
-      "due": "상시"
-    },
-    {
-      "id": "Δ29",
-      "authority": "Δ29",
-      "aliases": [
-        "Δ29"
-      ],
-      "requires": "**판정자가 불일치를 대칭으로 만들면 한쪽의 실제 오류가 사라진다.** A 는 '둘 다 맞다'는 정리를 첫 그럴듯함에서 채택하지 않는다",
-      "must_appear_in": "A 의 불일치 판정문",
-      "verified_by": "B+C+D",
-      "due": "상시"
-    },
-    {
-      "id": "Δ30",
-      "requires": "Scout 경로선택 정책 — MIN-1~MIN-7 승계. **MIN-2 는 Δ36 으로 v3 에 요구하지 않음**(최소성 어휘 금지)·최소성은 부분격자 안에서만·k와 m은 같은 경로에서·예산 소진은 관측 없음",
-      "must_appear_in": "B 의 Scout 구현 + 정책 문서",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ30+Δ36",
-      "aliases": [
-        "MIN-1",
-        "MIN-2",
-        "MIN-3",
-        "MIN-6",
-        "MIN-7",
-        "Δ30"
-      ],
-      "note_scope": "MIN-4 는 Δ30-tiebreak, MIN-5 는 Δ30-claim 이 소유한다. 우산 행이 같은 별칭을 함께 갖지 않는다"
-    },
-    {
-      "id": "Δ30-branch",
-      "requires": "분기 대상 집합 = Δ9 의 IN 10 + CONDITIONAL 3. INPUT_QUERY·DISMISS_OBSTRUCTION·AUTH_GATE·ENDPOINT_REACHED·ABSTAIN 은 분기 대상 아님. **v2.1 과 달리 SUBMIT_QUERY 는 분기 대상이다**",
-      "must_appear_in": "Scout 구현",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ30",
-      "aliases": [
-        "Δ30-branch"
-      ]
-    },
-    {
-      "id": "Δ30-tiebreak",
-      "requires": "tie-break 전순서 = `task_binding_candidate desc, dom_order asc, selector asc`. **점수를 키로 쓰지 않는다** — 집합 소속과 구조값만. marked_primary 는 v3 에 없다",
-      "must_appear_in": "Scout 구현 + 결정성 테스트",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ30",
-      "aliases": [
-        "MIN-4",
-        "Δ30-tiebreak"
-      ]
-    },
-    {
-      "id": "Δ30-budget",
-      "requires": "수집 파라미터 `BRANCHING_LIMIT=4`(승계) 외 4종은 **B 가 실측 근거와 함께 제안하고 A 가 P4 이전 동결**. manifest 기재 필수 — 값 없이는 '무엇에 대한 최소인가'를 말할 수 없다",
-      "must_appear_in": "FINAL manifest",
-      "verified_by": "A",
-      "due": "V3_PILOT_5_RELEASE",
-      "authority": "Δ30",
-      "aliases": [
-        "Δ30-budget"
-      ]
-    },
-    {
-      "id": "Δ30-claim",
-      "requires": "보고에 '최소 경로를 찾았다'로 쓰지 않는다. 쓸 수 있는 문장은 'BRANCHING_LIMIT·후보 지명 규칙·즉시종료 규칙 아래에서 관측된 최소 activation 수'",
-      "must_appear_in": "claim registry · 최종 보고",
-      "verified_by": "C",
-      "due": "GATE3",
-      "authority": "Δ30",
-      "aliases": [
-        "MIN-5",
-        "Δ30-claim"
-      ]
-    },
-    {
-      "id": "Δ31",
-      "requires": "일시적 부재를 기대값으로 동결한 테스트는 **지우지 않고 그 lane 자신의 diff 로 다시 좁힌다.** 파일의 절대 상태를 재면 다른 lane 의 승인된 변경까지 잡는다",
-      "must_appear_in": "B 의 회귀 테스트",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ31",
-      "aliases": [
-        "Δ31"
-      ]
-    },
-    {
-      "id": "Δ31-R27",
-      "requires": "**skip 은 통과가 아니다.** B 의 COMPLETION 은 skip 전건을 사유와 함께 열거한다. C 는 사유가 설명되지 않은 skip 을 PASS 로 세지 않고 NOT_TESTABLE 로 분류한다",
-      "must_appear_in": "B COMPLETION · C GATE 보고",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ31",
-      "aliases": [
-        "R27",
-        "Δ31-R27"
-      ]
-    },
-    {
-      "id": "Δ31-R28",
-      "requires": "**도구의 출력 억제가 무결과를 만든다.** 회귀·검색 결과를 근거로 쓸 때 출력이 억제되지 않았음을 함께 보인다(예: 터미널 요약 + junitxml 두 독립 출처)",
-      "must_appear_in": "측정을 담은 모든 보고",
-      "verified_by": "C",
-      "due": "상시",
-      "authority": "Δ31",
-      "aliases": [
-        "R28",
-        "Δ31-R28"
-      ]
-    },
-    {
-      "id": "Δ32",
-      "requires": "후보 전건 탈락은 **원인으로 가른다** — 계약·형태 불일치는 `RunnerError`(항상 멈춤), 페이지에 후보가 실제로 없으면 `ABSTAIN × NO_TASK_CANDIDATE_FOUND`(terminal_reason 15번째 값). **계약 위반은 관측이 아니다**",
-      "must_appear_in": "runner 구현 + 조합표",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ32",
-      "aliases": [
-        "Δ32"
-      ]
-    },
-    {
-      "id": "Δ32-R29",
-      "requires": "**`activation_depth=0` 은 근거를 요구한다.** `REACHED` 와 함께 나오려면 endpoint 충족 증거 + 최소 1개 후보 바인딩이 둘 다 참이어야 한다. **후보 0건은 어떤 경우에도 REACHED 를 낼 수 없다** — 스키마가 거부한다",
-      "must_appear_in": "runner 스키마 · 관측 행",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ32",
-      "aliases": [
-        "R29",
-        "Δ32-R29"
-      ]
-    },
-    {
-      "id": "Δ32-R30",
-      "requires": "**구조적 타입 검사는 계약을 검사하지 않는다.** Protocol 은 메서드 이름만 본다. lane 경계에서 반환값 형태를 런타임 검증하고 위반이면 RunnerError",
-      "must_appear_in": "seam 구현",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ32",
-      "aliases": [
-        "R30",
-        "Δ32-R30"
-      ]
-    },
-    {
-      "id": "Δ32-safety",
-      "requires": "`credential`·`실제 개인정보` guard 미발화 구멍이 열린 채로 **V3_PILOT_5 를 release 하지 않는다.** 차단 9종이 텍스트 문구 기준이라는 한계도 기재한다",
-      "must_appear_in": "V3_PILOT_5 릴리스 전제조건",
-      "verified_by": "A",
-      "due": "V3_PILOT_5_RELEASE",
-      "authority": "Δ32",
-      "aliases": [
-        "Δ32-safety"
-      ]
-    },
-    {
-      "id": "Δ27",
-      "requires": "**유지 규약을 다짐에서 검사로.** delta 의 모든 ruling 절이 색인에 대응 행을 가져야 한다. 컨테이너 절은 예외이며 `container_sections` 에 명시된 것뿐",
-      "must_appear_in": "V3_RULING_INDEX.self_check · check_ruling_index.py",
-      "verified_by": "C+D",
-      "due": "상시",
-      "authority": "Δ27",
-      "aliases": [
-        "Δ27"
-      ]
-    },
-    {
-      "id": "Δ33",
-      "requires": "**별칭 기준은 모양이 아니라 특정성이다.** 판정과 무관한 산문에서 발화하지 않아야 한다. 길이·대소문자는 대리 지표이며 대조 말뭉치 매칭이 실제 기준이다",
-      "must_appear_in": "alias_rules · check_ruling_index.py",
-      "verified_by": "C+D",
-      "due": "상시",
-      "authority": "Δ33",
-      "aliases": [
-        "Δ33"
-      ]
-    },
-    {
-      "id": "Δ34",
-      "requires": "**색인 자체검사는 서술이 아니라 실행 가능한 검사기다.** `check_ruling_index.py` 7검사 + 검사별 변이 양성대조. `self_check.last_run` 은 `index_version`·`rows` 를 싣고, 그것이 현재 색인과 다르면 그 결과는 무효다",
-      "must_appear_in": "control/v3/check_ruling_index.py · self_check.last_run",
-      "verified_by": "C+D",
-      "due": "상시",
-      "authority": "Δ34",
-      "aliases": [
-        "Δ34"
-      ]
-    },
-    {
-      "id": "Δ35",
-      "requires": "`measure_surface` 는 `probe_state` 형태 위반에 **예외를 던진다.** `NOT_OBSERVED` 를 내지 않는다 — 그 값은 '볼 수 있었고 없었다'는 관측 주장이며 계약 위반은 그 자격이 없다. 호출부 방어는 유지하되 대체물이 아니다",
-      "must_appear_in": "measure_surface 계약 + 조합표",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ35",
-      "aliases": [
-        "Δ35"
-      ]
-    },
-    {
-      "id": "Δ35-R31",
-      "requires": "**모든 단언은 실패 가능함을 실증해야 한다.** 조용한 통과는 실패보다 오래 산다 — 깨지지 않는 단언은 아무도 보지 않는다",
-      "must_appear_in": "B 의 테스트 + 음성대조 기록",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ35",
-      "aliases": [
-        "R31",
-        "Δ35-R31"
-      ]
-    },
-    {
-      "id": "Δ35-wiring",
-      "requires": "`measure_surface` 의 production 호출부가 없으므로 형태 결함이 실제 수집 경로에도 있는지 확인 불가다. **W5F/W5K 배선 시점 재확인이 GATE 1 통과 조건**이다. 배선 없이 '고쳤다'로 닫지 않는다",
-      "must_appear_in": "GATE 1 보고",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ35",
-      "aliases": [
-        "Δ35-wiring"
-      ]
-    },
-    {
-      "id": "Δ36",
-      "requires": "**MIN-2 폭우선을 v3 에 요구하지 않는다** — v3 는 최소성을 주장하지 않는다(flow divergence 가 construct, depth 는 derived). 대신 Δ6-d 의 결정성·균일성. **v3 산출·보고 어디에도 '최소' 를 쓰지 않는다.** `search_strategy` 를 path manifest 에 필수 기재",
-      "must_appear_in": "path manifest · 보고 어휘",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ36",
-      "aliases": [
-        "Δ36"
-      ]
-    },
-    {
-      "id": "Δ36-order",
-      "requires": "v3 경로 선택은 **v3 tiebreak** 을 쓴다. v2 `min4_sort_key` 를 고치지 않는다. **evidence 랭킹과 실제 경로가 갈리면 ruling_10 위반**이다. `marked_primary` 가 v3 에서 True 가 될 수 있는지 B 실측",
-      "must_appear_in": "v3 Scout · 발산 테스트",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ36",
-      "aliases": [
-        "Δ36-order"
-      ]
-    },
-    {
-      "id": "Δ36-budgetseam",
-      "requires": "`BUDGET_EXCEEDED` 가 runner 를 건너오게 Protocol 반환 형태를 바꾼다. **terminal_reason=None 인 terminal 은 Δ10-R11 위반**. 기존 테스트는 Δ31 대로 다시 좁히고 R31 로 실패 가능성을 실증",
-      "must_appear_in": "runner Protocol · 조합표",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ36",
-      "aliases": [
-        "Δ36-budgetseam"
-      ]
-    },
-    {
-      "id": "Δ36-tokens",
-      "requires": "**Δ9 의 IN 10종은 분류 가능해야 한다.** 집합 선언만으로 Δ30-branch 를 이행으로 보지 않는다. 분류 불가 토큰이 남으면 그 target 의 activation_depth 는 UNDETERMINED. `l0_probe.js` 구조 신호 추가는 Δ20 허용 범주",
-      "must_appear_in": "토큰 분류기 · 관측 행",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ36",
-      "aliases": [
-        "Δ36-tokens"
-      ]
-    },
-    {
-      "id": "Δ37",
-      "authority": "Δ37",
-      "aliases": [
-        "Δ37"
-      ],
-      "requires": "v3 관측 행은 legacy `NED`·`IED`·`MPFED` 를 **`NULL`** 로 둔다 — 그 이름의 유일한 정의는 v2.1 의 최소성 주장이고 Δ36 이 v3 는 그 주장을 하지 않는다고 확정했다. 탐욕적 하강 값을 그 컬럼에 넣으면 ruling_11 의 '같은 이름 다른 양' 이다. **`legacy_depth_null_reason` 을 함께 기록한다** — NULL 만 두면 '못 쟀다' 로 읽힌다",
-      "must_appear_in": "관측 행 · mart 스키마",
-      "verified_by": "C",
-      "due": "GATE1"
-    },
-    {
-      "id": "Δ38",
-      "authority": "Δ38",
-      "aliases": [
-        "Δ38"
-      ],
-      "requires": "**측정값은 `self_check.last_run` 한 곳에만 둔다.** 하위 블록은 규칙·근거·한계만 담는다. 사본이 둘이면 반드시 갈린다 — 하나만 갱신되기 때문이다. 검사기 8번째 검사가 강제한다",
-      "must_appear_in": "V3_RULING_INDEX.self_check · check_ruling_index.py",
-      "verified_by": "C+D",
-      "due": "상시"
-    },
-    {
-      "id": "Δ39-R32",
-      "requires": "**선택적 입력은 세 상태를 구분한다** — 부재(관측, None+사유 note) · 형태 위반(계약 위반, raise) · 존재(값). 부재와 형태 위반이 같은 출력이면 계약 위반이 관측으로 위장한다",
-      "must_appear_in": "모든 선택적 입력을 받는 함수",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ39",
-      "aliases": [
-        "R32",
-        "Δ39",
-        "Δ39-R32"
-      ]
-    },
-    {
-      "id": "Δ39-list",
-      "requires": "**R30 적용 대상 목록은 B 가 만든다**(호출 그래프를 아는 쪽이 안다). A 는 규칙과 수용기준만 정한다. **목록의 완전성은 C 가 독립 확인한다** — B 자기보고로 닫지 않는다",
-      "must_appear_in": "B 의 목록 + C 독립 열거",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ39",
-      "aliases": [
-        "Δ39-list"
-      ]
-    },
-    {
-      "id": "Δ39-scroll",
-      "requires": "빈 `scroll_states` 는 **계약 위반이다. raise.** S0 는 구성상 항상 존재하므로 빈 목록은 '포착했고 없었다' 가 될 수 없고 '포착이 돌지 않았다' 뿐이다",
-      "must_appear_in": "scroll 포착 경로",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ39",
-      "aliases": [
-        "Δ39-scroll"
-      ]
-    },
-    {
-      "id": "Δ40-R33",
-      "requires": "**모호한 입력은 raise 다.** 두 형태 계약이 동시에 만족되어 어느 계약인지 결정되지 않는 상태는 `R32` 의 세 상태에 없는 네 번째 상태이며, 처리는 형태 위반과 같다. 우선순위 선언 + note 는 답이 아니다 — **도구가 무엇을 측정할지 스스로 정하면 note 로 무해해지지 않는다**",
-      "must_appear_in": "`_iter_states` 등 다형 입력을 읽는 이음매",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ40",
-      "aliases": [
-        "R33",
-        "Δ40-R33"
-      ]
-    },
-    {
-      "id": "Δ40-exception",
-      "requires": "모호가 아닌 유일한 경우는 **계약이 두 키의 공존을 제3의 형태로 명시 정의한 때**뿐이다. 정의는 `R16` 으로 올려서 만들고 **구현으로 만들지 않는다**",
-      "must_appear_in": "계약 문서",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ40",
-      "aliases": [
-        "Δ40-exception"
-      ]
-    },
-    {
-      "id": "Δ40-precheck",
-      "requires": "raise 전환 전에 **두 키를 함께 넘기는 기존 호출자·fixture·테스트를 실측**한다. 있으면 의도한 형태를 기록하고 고친다. **없으면 '없음' 을 대조군으로 보인다**",
-      "must_appear_in": "B 의 전환 기록",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ40",
-      "aliases": [
-        "Δ40-precheck"
-      ]
-    },
-    {
-      "id": "Δ40-R34",
-      "requires": "**모집단 정의를 공유하면 정의의 결함은 독립 검증으로 잡히지 않는다.** 완전성 확인은 (a) 단위 안의 열거 일치 **와** (b) **단위 밖 반례 탐색** 을 모두 가져야 한다. (b) 가 없으면 C 의 확인은 B 의 필터 재실행이지 독립 확인이 아니다",
-      "must_appear_in": "C 의 완전성 확인 (CI-19)",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ40",
-      "aliases": [
-        "R34",
-        "Δ40-R34"
-      ]
-    },
-    {
-      "id": "Δ40-control-naming",
-      "requires": "대조는 **`must_flag` / `must_not_flag`** 로 적는다. 이 프로젝트에서 '양성대조' 가 두 뜻으로 쓰였으므로 **이름을 고르지 말고 버린다**",
-      "must_appear_in": "B 의 검사기 완료조건 · C 의 확인 절차",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ40",
-      "aliases": [
-        "must_flag",
-        "must_not_flag",
-        "Δ40-control-naming"
-      ]
-    },
-    {
-      "id": "Δ40-unit",
-      "requires": "`R30`/`R32` 적용 대상의 열거 단위는 **매개변수가 아니라 구조 입력 안의 선택적 키 접근**이다(B 정정 채택). 목록 문서는 단위를 **검사 가능한 술어**로 적고 '전수' 대신 **무엇의 전수인지** 적는다",
-      "must_appear_in": "docs/v3/R32_APPLICATION_POINTS.md",
-      "verified_by": "C",
-      "due": "GATE1",
-      "authority": "Δ40",
-      "aliases": [
-        "Δ40-unit"
-      ]
-    }
-  ],
-  "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안) | v9: 기계적 접미사 별칭 제거 + 토큰경계 매칭 + 길이3 미만 금지 (T-B-V3-FINDING-007) | v10: Δ23~Δ26·R24·R25 누락 5행 추가 + container_sections 명시 + delta 절 커버리지 검사 상주 (D-V3-FINDING-012). **A 의 Δ21 위반 네 번째** | v11: Δ28-R26 추가 (delta 기록과 색인 추가를 함께 — Δ21/Δ27 자기적용) | v12: Δ29 추가 + R26 보강 (D-V3-FACT_CORRECTION-003 — A 의 Δ28 이 너무 관대했다) | v13: Δ30 Scout 정책 승계 5행 + terminal_reason 14값 (T-B-V3-BLK-013) | v14: Δ31 계열 3행 (T-B-V3-FINDING-008) | v15: Δ32 계열 4행 + terminal_reason 15값 (T-B-V3-BLK-014 P0) | v16: Δ10-R11 을 15값 전체 열거로 (D-V3-FINDING-014 — 서술이 14/15 를 뒤집어 읽히게 했다) + 82 분해 기록 | v17: 별칭 기준을 모양에서 특정성으로 (D-V3-FACT_CORRECTION-004). 대조 말뭉치 검사 상주 | v18: split_rows 선언 + index→delta 도달성 검사 상주 (C 의 v16 11건 보고가 v17 에서 우연히 0 이 된 것을 구조로 고정) | v19: MIN-4/MIN-5 중복 해소 + 유령 별칭 7건 제거 (T-B-V3-FINDING-009 · D-V3-ADDENDUM-003) | v20: Δ27·Δ33·Δ34 색인 행 추가 — **서술로만 있던 검사가 실제로 돌자 A 의 Δ21 위반 다섯 번째가 나왔다** | v21: 도달성 선언에 authority 경로 명시 + 헤더 추출 정규식 시정 (D-V3-FINDING-015) | v22: authority 경로를 한계와 함께 선언 + 두 방향 양성대조 (C-FINDING-074834) | v23: probe 값 런타임 선택 — 문서가 자기 검사를 무력화한 두 번째 사례 | v24: Δ35 계열 3행 (T-B-V3-FINDING-010) | v25: Δ36 계열 4행 — A 의 MIN-2 과잉 승계 시정 (T-B-V3-BLK-015) | v26: Δ37 — legacy depth 필드 NULL + 사유 (D-V3-FINDING-016) | v27: 하위 블록의 낡은 측정값 제거 — 측정값 단일 출처 (D-V3-FINDING-017) | v28: Δ38 행 추가 | v29: Δ39/R32 계열 3행 (T-B-V3-FINDING-011)",
-  "maintenance_rule": "A 가 판정을 낼 때 **delta 기록과 색인 추가를 함께** 한다. 티켓만 발행하면 정본이 전달 이력에 의존한다. C 는 색인↔delta 와 delta↔티켓 양방향을 대조한다.",
-  "coverage_denominator": {
-    "rule": "커버리지 분모는 **색인의 전체 행 수**다. 구조적으로 제외되는 행을 두지 않는다",
-    "not_yet_due_is_not_excluded": "due 가 아직 오지 않은 행(V3_PILOT_5_RELEASE · STEP2 · STEP3)은 **NOT_DUE_YET 으로 세되 분모에서 빼지 않는다.** 빼면 그것이 selection 이다",
-    "origin": "D-V3-FINDING-011 이 제기했다. **D 의 구체적 관측(Δ21 미수록)은 틀렸으나**(Δ21 행은 v2 부터 존재한다) '커버리지 분모가 무엇인지 먼저 정해야 한다'는 논점은 유효하다"
+ "index": "V3_RULING_INDEX",
+ "version": 30,
+ "purpose": "A 가 발행한 모든 조작적 정의·계약 요구의 정본 목록. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(T-B-V3-SCOPE-001).",
+ "how_to_use": "C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 목록**을 기준으로 대조한다. 목록에 있는데 산출에 없으면 미반영이다.",
+ "source": "control/v3/V3_0_1_SUCCESSOR_DELTA.md — 이 목록은 그 문서의 색인이며 정본은 그 문서다. 충돌 시 delta 원문이 이긴다.",
+ "authority_sha": "adcdcb6050e96817be8645662c098b3221d4f90f",
+ "count": 96,
+ "rulings": [
+  {
+   "id": "Δ1-a",
+   "requires": "F5 날짜 fixture — T+1 상대일자 + target 별 collection_date_kst·요일 기록 + 날짜 분산 사전등록 민감도",
+   "must_appear_in": "FINAL_MAIN50_MANIFEST.f5_date_rule · 관측 행의 collection_date_kst/query_date/dow/is_holiday",
+   "verified_by": "C",
+   "due": "STEP2",
+   "authority": "Δ1-a",
+   "aliases": [
+    "D3-06",
+    "Δ1-a"
+   ]
   },
-  "id_notation": {
-    "rule": "**색인이 자기 별칭을 선언한다. 소비자는 별칭을 추론하지 않는다.**",
-    "each_row_has": "`aliases[]` — 그 판정이 티켓·delta·평면 산출에서 불릴 수 있는 모든 표기",
-    "why_not_a_pattern_rule": "T-A-V3-FC-004 가 `Δn-Rm ↔ Rm ↔ P-nn` 패턴 규칙을 명시했으나 **그 규칙으로도 D 의 오탐이 재현된다**(T-B-V3-FINDING-005, A 가 양성대조와 함께 검증). bare `Δn` 형태 10건이 패턴에 걸리지 않는다. 패턴은 새 표기가 생길 때마다 틀린다",
-    "consumer_rule": "대조 도구는 `id` 와 `aliases` 를 **둘 다** 조회한다. 어느 쪽에도 없으면 그때가 진짜 미수록이다",
-    "verified": "A 가 FC-004 규칙을 실제로 구현해 `Δ17-R18 → R18` 이 동작하는 양성대조 상태에서 `Δ21 → None` 임을 확인했다. B 주장 재현됨"
+  {
+   "id": "Δ1-b",
+   "requires": "F1 시중7/지방3 층 사전등록. primary 분모 불변",
+   "must_appear_in": "manifest.strata · 분석 산출의 층별 병기",
+   "verified_by": "C",
+   "due": "STEP3",
+   "authority": "Δ1-b",
+   "aliases": [
+    "D3-06",
+    "Δ1-b"
+   ]
   },
-  "independent_audits": [
-    {
-      "by": "C",
-      "span": "v2~v5",
-      "result": "v2 에서 누락7·충돌1·근거부재1 검출 → 시정. v5 정합"
+  {
+   "id": "Δ2",
+   "requires": "replacement 순서명부 precheck 이전 동결·hash 포함·층 유지·소진 시 n<10",
+   "must_appear_in": "manifest.replacement_reserve · replacement_rule",
+   "verified_by": "C",
+   "due": "STEP2",
+   "authority": "Δ2",
+   "aliases": [
+    "D3-08",
+    "Δ2"
+   ]
+  },
+  {
+   "id": "Δ4",
+   "requires": "promoted main 은 origin/ 접두 또는 exact SHA 로만 참조. bare 브랜치명 금지",
+   "must_appear_in": "코드·티켓·결정문 전수",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ4",
+   "aliases": [
+    "promoted main 참조 규칙",
+    "Δ4"
+   ]
+  },
+  {
+   "id": "Δ5",
+   "requires": "v3 이후 티켓은 15 스키마. legacy type 매핑표. 소급 개정 금지",
+   "must_appear_in": "버스 티켓",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ5",
+   "aliases": [
+    "Δ5",
+    "티켓 스키마 전환"
+   ]
+  },
+  {
+   "id": "Δ6-a",
+   "requires": "E 를 enum 에 포함. E 의 REAL 티켓은 5필드 필수",
+   "must_appear_in": "버스 티켓",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ6-a",
+   "aliases": [
+    "Δ6-a"
+   ]
+  },
+  {
+   "id": "Δ6-b",
+   "requires": "E REAL scope 0. 어느 평면도 E 에 REAL 요청 불가",
+   "must_appear_in": "릴리스 문서 부재",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ6-b",
+   "aliases": [
+    "Δ6-b"
+   ]
+  },
+  {
+   "id": "Δ6-c",
+   "requires": "B 는 E route 를 실행 대본으로 재생하지 않는다. 갈리면 B 것이 task_flow_sequence",
+   "must_appear_in": "B replay 입력이 task_id+endpoint_contract 뿐임을 보이는 artifact · E_ROUTE_ID 는 lineage hint 로만",
+   "verified_by": "C",
+   "due": "GATE2",
+   "authority": "Δ6-c",
+   "aliases": [
+    "Δ6-c"
+   ]
+  },
+  {
+   "id": "Δ6-d",
+   "requires": "Scout 의 결정론적 경로선택 정책 문서화·P4 이전 동결",
+   "must_appear_in": "B 의 정책 문서 + 결정론 테스트",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ6-d",
+   "aliases": [
+    "Δ6-d"
+   ]
+  },
+  {
+   "id": "Δ7",
+   "requires": "phase 자율전이는 REAL release 를 대체하지 않는다. **hard stop 어휘 정본은 Δ19-R9 의 8종**(Δ7 본문의 6종은 SUPERSEDED)",
+   "must_appear_in": "릴리스 발행 기록",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ7",
+   "aliases": [
+    "THREE_TURN_RUNBOOK",
+    "Δ7"
+   ]
+  },
+  {
+   "id": "Δ8-R1",
+   "requires": "replacement 5번째 사유 없음. 과업 의미 불일치는 TASK_COMPARABILITY_CONCERN finding + ABSTAIN",
+   "must_appear_in": "precheck 기록",
+   "verified_by": "C",
+   "due": "STEP2",
+   "authority": "Δ8",
+   "aliases": [
+    "R1",
+    "Δ8-R1"
+   ]
+  },
+  {
+   "id": "Δ8-R2",
+   "requires": "진입 flow 지표는 AUTH_GATE 여부와 무관하게 산출. endpoint 의존 지표만 flow-evaluable n",
+   "must_appear_in": "분석 산출의 두 분모 분리",
+   "verified_by": "C",
+   "due": "STEP3",
+   "authority": "Δ8",
+   "aliases": [
+    "R2",
+    "Δ8-R2"
+   ]
+  },
+  {
+   "id": "Δ8-R3a",
+   "requires": "task_role 필드 PRIMARY/SECONDARY_REPEATED 가 mart 스키마에 존재하고 관측 행에 실린다",
+   "must_appear_in": "mart 스키마 · 관측 행",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ8",
+   "aliases": [
+    "R3a",
+    "Δ8-R3a"
+   ]
+  },
+  {
+   "id": "Δ8-R3b",
+   "requires": "family-level 집계가 task_role='PRIMARY' 로만 필터하고 **적용된 필터 조건 문자열**을 산출에 남긴다",
+   "must_appear_in": "집계 산출",
+   "verified_by": "C",
+   "due": "STEP3",
+   "authority": "Δ8",
+   "split_note": "필드 존재는 GATE 1 에, 집계 규칙 적용은 STEP 3 에 검사된다. 하나의 행으로 두면 GATE 1 이 절반만 보고 통과시키거나 전체를 NOT_TESTABLE 로 접는다",
+   "aliases": [
+    "R3b",
+    "Δ8-R3b"
+   ]
+  },
+  {
+   "id": "Δ8-R4",
+   "requires": "분모 사슬에 교체 이력 노출. k=0 도 명시",
+   "must_appear_in": "분석 산출",
+   "verified_by": "C",
+   "due": "STEP3",
+   "authority": "Δ8",
+   "aliases": [
+    "R4",
+    "Δ8-R4"
+   ]
+  },
+  {
+   "id": "Δ8-R5",
+   "requires": "fixture 는 의미 명세. fixture_input_mode 기록(FREE_TEXT/DROPDOWN/MIXED/MAP_PAN/OTHER)",
+   "must_appear_in": "관측 행 필드",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ8",
+   "aliases": [
+    "R5",
+    "Δ8-R5"
+   ]
+  },
+  {
+   "id": "Δ8-R6",
+   "requires": "F1 auth 절단 사전등록 민감도. AUTH_GATE/ABSTAIN 필드 한정 의무",
+   "must_appear_in": "분석 산출·mart 컬럼",
+   "verified_by": "C",
+   "due": "GATE3",
+   "authority": "Δ8",
+   "aliases": [
+    "R6",
+    "Δ8-R6"
+   ]
+  },
+  {
+   "id": "Δ8-R7",
+   "requires": "entry_zone 임계 — y 삼등분, TOP 안에서만 x 삼등분, [a,b) 두 축 균일, y=1/3→MID · y=2/3→BOTTOM · TOP 내 x=1/3→TOP_CENTER · x=2/3→TOP_RIGHT. DRAWER>FLOATING>기하. 원좌표 항상 저장",
+   "must_appear_in": "zone 유도 코드 + 경계 테스트",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ8-R7",
+   "aliases": [
+    "R7",
+    "Δ8-R7"
+   ]
+  },
+  {
+   "id": "Δ9",
+   "requires": "activation_depth 18종 귀속 — IN 10 / OUT 5 / CONDITIONAL 3(fixture_input_mode 로 갈림). depth_conditional_tokens 근거 기록. 방향은 토큰 아님",
+   "must_appear_in": "flow 정규화 코드 + depth_conditional_tokens 필드",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ9",
+   "aliases": [
+    "Δ9"
+   ]
+  },
+  {
+   "id": "Δ10-R11",
+   "requires": "`terminal_reason` 동반 필드 — **15값 전체를 열거한다**: `TIMEOUT` · `WAF_BLOCK` · `ACTIVE_CHALLENGE` · `NO_PUBLIC_MOBILE_WEB` · `TASK_SURFACE_ABSENT` · `APP_REQUIRED` · `CONTROL_DISABLED_OR_INERT` · `FORBIDDEN_ACTION_REQUIRED` · `AUTH_REQUIRED` · `EVIDENCE_DEFECT` · `REPLAY_BROKEN` · `AMBIGUOUS_MULTIPLE_CANDIDATES` · `OTHER` · `BUDGET_EXCEEDED` · `NO_TASK_CANDIDATE_FOUND`. 1~13 은 Δ10-R11 원안, **14 `BUDGET_EXCEEDED`(Δ30)** · **15 `NO_TASK_CANDIDATE_FOUND`(Δ32)**. 모든 terminal 이 `endpoint_status` 와 `terminal_reason` 을 둘 다 갖는다. `OTHER` 는 note 필수. 허용 조합표를 B 가 명시하고 C 가 검증한다",
+   "must_appear_in": "관측 행 + 조합표",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ10-R11",
+   "aliases": [
+    "R11",
+    "Δ10-R11"
+   ],
+   "terminal_reason_values": [
+    "TIMEOUT",
+    "WAF_BLOCK",
+    "ACTIVE_CHALLENGE",
+    "NO_PUBLIC_MOBILE_WEB",
+    "TASK_SURFACE_ABSENT",
+    "APP_REQUIRED",
+    "CONTROL_DISABLED_OR_INERT",
+    "FORBIDDEN_ACTION_REQUIRED",
+    "AUTH_REQUIRED",
+    "EVIDENCE_DEFECT",
+    "REPLAY_BROKEN",
+    "AMBIGUOUS_MULTIPLE_CANDIDATES",
+    "OTHER",
+    "BUDGET_EXCEEDED",
+    "NO_TASK_CANDIDATE_FOUND"
+   ],
+   "fix_note": "D-V3-FINDING-014 — 이전 판은 '15값(Δ30 으로 BUDGET_EXCEEDED 추가)' 이라 **15번째가 BUDGET_EXCEEDED 로 읽혔다.** 실제는 14 다. **누적 문자열 치환으로 갱신한 요약 행이 이전 편집의 괄호를 물려받았다.** 서술 대신 전체 열거로 바꿔 오독의 자리를 없앤다"
+  },
+  {
+   "id": "Δ10-R12",
+   "requires": "sequence 거리 정규화 primary=max(len), sum(len)·Yujian-Bo 저장, 군집 시 YB 병기",
+   "must_appear_in": "**STEP 3 mart/분석**",
+   "verified_by": "C",
+   "due": "GATE3",
+   "authority": "Δ10-R12",
+   "aliases": [
+    "R12",
+    "Δ10-R12"
+   ]
+  },
+  {
+   "id": "Δ10-R13a",
+   "requires": "auth_gate_stage 에 UNDETERMINED 값이 존재하고 NONE 은 '관측했고 없었다'는 적극적 주장으로 구현된다. 전 변수에 판정불능 값 존재",
+   "must_appear_in": "관측 행 · 스키마",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ10-R13",
+   "aliases": [
+    "R13a",
+    "Δ10-R13a"
+   ]
+  },
+  {
+   "id": "Δ10-R13b",
+   "requires": "UNDETERMINED 를 분모에서 빼지 않고 별도 범주로 보고한다",
+   "must_appear_in": "집계 산출",
+   "verified_by": "C",
+   "due": "STEP3",
+   "authority": "Δ10-R13",
+   "split_note": "값의 존재는 GATE 1, 집계에서의 취급은 STEP 3",
+   "aliases": [
+    "R13b",
+    "Δ10-R13b"
+   ]
+  },
+  {
+   "id": "Δ10-R14",
+   "requires": "C 는 B·D 의 fixture 를 쓰지 않고 SSOT 원문에서 자기 fixture 를 파생",
+   "must_appear_in": "C 의 fixture 출처 기록",
+   "verified_by": "A",
+   "due": "GATE1",
+   "authority": "Δ10-R14",
+   "aliases": [
+    "R14",
+    "Δ10-R14"
+   ]
+  },
+  {
+   "id": "Δ12-R15",
+   "requires": "A 의 판정은 근거 원문을 축자 인용",
+   "must_appear_in": "A 결정문",
+   "verified_by": "B·C·D·E",
+   "due": "상시",
+   "authority": "Δ12",
+   "aliases": [
+    "R15",
+    "Δ12-R15"
+   ]
+  },
+  {
+   "id": "Δ12-R16",
+   "requires": "A 판정 반론은 FACT_CORRECTION. 근거는 같은 원문 다른 독해",
+   "must_appear_in": "버스",
+   "verified_by": "A",
+   "due": "상시",
+   "authority": "Δ12",
+   "aliases": [
+    "R16",
+    "Δ12-R16"
+   ]
+  },
+  {
+   "id": "Δ13-R17",
+   "requires": "철회는 주장과 같은 근거를 요구. 발행 시 어떻게 알았는가, 수신 시 원 기록 대조",
+   "must_appear_in": "버스 FACT_CORRECTION",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ13",
+   "aliases": [
+    "R17",
+    "Δ13-R17"
+   ]
+  },
+  {
+   "id": "Δ14-P06",
+   "requires": "SWITCH_TAB 은 reveal 아님. menu_dependency_incl_tab 민감도 병기",
+   "must_appear_in": "flow 정규화 + 민감도 산출",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ14",
+   "aliases": [
+    "P-06",
+    "P06",
+    "Δ14-P06"
+   ]
+  },
+  {
+   "id": "Δ14-P09",
+   "requires": "menu_dependency 는 sequence 기반. 04 가 10 glossary 를 이긴다",
+   "must_appear_in": "flow 정규화",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ14",
+   "aliases": [
+    "P-09",
+    "P09",
+    "Δ14-P09"
+   ]
+  },
+  {
+   "id": "Δ14-auth",
+   "requires": "auth_gate_stage 단일 위치규칙 — 과업 특이적 토큰 10종 기준",
+   "must_appear_in": "flow 정규화",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ14",
+   "aliases": [
+    "Δ14-auth"
+   ]
+  },
+  {
+   "id": "Δ14-P17",
+   "requires": "ABSTAIN(모른다) 과 TASK_SURFACE_ABSENT(없다고 안다) 구분",
+   "must_appear_in": "조합표",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ14",
+   "aliases": [
+    "P-17",
+    "P17",
+    "Δ14-P17"
+   ]
+  },
+  {
+   "id": "Δ15-GAP07",
+   "requires": "entry_observed_state 신규 필드 — 모든 행이 자기 시점 선언",
+   "must_appear_in": "관측 행 필드",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ15",
+   "aliases": [
+    "GAP-07",
+    "GAP07",
+    "Δ15-GAP07"
+   ]
+  },
+  {
+   "id": "Δ15-GAP06",
+   "requires": "nav_container_type=최내곽 + nav_container_chain 병기",
+   "must_appear_in": "관측 행 필드",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ15",
+   "aliases": [
+    "GAP-06",
+    "GAP06",
+    "Δ15-GAP06"
+   ]
+  },
+  {
+   "id": "Δ15-GAP02",
+   "requires": "first_visible_scroll_state = 최초 관측 scroll state. 끝내 미관측만 NULL. **03 §3 scroll-only capture 검증 필수**",
+   "must_appear_in": "수집기 + GATE1 보고",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ15",
+   "aliases": [
+    "GAP-02",
+    "GAP02",
+    "Δ15-GAP02"
+   ]
+  },
+  {
+   "id": "Δ15-GAP03",
+   "requires": "flow_step_count 에서 ENDPOINT_REACHED·ABSTAIN 제외, AUTH_GATE 포함",
+   "must_appear_in": "flow 정규화",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ15",
+   "aliases": [
+    "GAP-03",
+    "GAP03",
+    "Δ15-GAP03"
+   ]
+  },
+  {
+   "id": "Δ15-GAP04",
+   "requires": "수치 미관측은 null(0 아님). occlusion=0.0 은 관측했고 안 가려짐. 한 행 안 결측 표현 일관",
+   "must_appear_in": "관측 행",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ15",
+   "aliases": [
+    "GAP-04",
+    "GAP04",
+    "Δ15-GAP04"
+   ]
+  },
+  {
+   "id": "Δ15-GAP05",
+   "requires": "s0_task_control_visible 과 occlusion 은 독립. 임계값 없음",
+   "must_appear_in": "측정 코드",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ15",
+   "aliases": [
+    "GAP-05",
+    "GAP05",
+    "Δ15-GAP05"
+   ]
+  },
+  {
+   "id": "Δ15-domax",
+   "requires": "DOM/AX 불일치 시 어느 쪽도 우선 안 함. dom_ax_divergence 플래그",
+   "must_appear_in": "관측 행 필드",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ15",
+   "aliases": [
+    "DOM/AX 불일치",
+    "Δ15-domax"
+   ]
+  },
+  {
+   "id": "Δ17-R18",
+   "requires": "모든 ACK 은 ticket_sha256 포함. 발행 전 경로 존재 확인",
+   "must_appear_in": "버스 ACK",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ17",
+   "aliases": [
+    "R18",
+    "Δ17-R18"
+   ]
+  },
+  {
+   "id": "Δ17-R19",
+   "requires": "재ACK 은 덮지 않고 <ticket>.<plane>-N.json",
+   "must_appear_in": "버스 ACK",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ17",
+   "aliases": [
+    "R19",
+    "Δ17-R19"
+   ]
+  },
+  {
+   "id": "Δ18-R20",
+   "requires": "lane 경계를 가로지르는 경로는 양쪽 실물로 한 번 이상 실행. seam 1 수용기준은 guard 발화이지 AttributeError 소멸이 아님",
+   "must_appear_in": "실물 연결 테스트 + 음성대조",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ18",
+   "aliases": [
+    "R20",
+    "Δ18-R20"
+   ]
+  },
+  {
+   "id": "Δ11",
+   "requires": "버스는 결정을 ACK 본문에 담는다 — completions 파일 부재를 미해결로 읽으면 거짓 양성. 버스를 읽는 도구는 ACK 본문을 검사한다. v2.1 dangling reference 는 소급 생성하지 않는다",
+   "must_appear_in": "버스 스캐너 구현",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ11",
+   "aliases": [
+    "Δ11",
+    "버스 구조"
+   ]
+  },
+  {
+   "id": "Δ6-e",
+   "requires": "C 는 E 를 증거 획득 operator 로만 쓰고 판정자로 취급하지 않는다. E artifact hash·raw evidence 는 C 가 독립 계산. **B/E 가 같은 도구·가정을 공유하면 둘의 일치는 독립성의 증거가 아니다**. D 는 E 결과를 자기 결론으로 즉시 broadcast 하지 않는다",
+   "must_appear_in": "C·D 의 E 사용 기록",
+   "verified_by": "A",
+   "due": "GATE2",
+   "authority": "Δ6-e",
+   "aliases": [
+    "C·D 의 E 사용",
+    "Δ6-e"
+   ]
+  },
+  {
+   "id": "Δ12-C",
+   "requires": "C 는 GATE 1 에서 B 와 갈린 항목을 구현 결함이 아니라 **해석 불일치 후보**로 먼저 분류한다. 구현 결함으로 단정하면 B 가 코드를 고치고 해석 차이는 남는다",
+   "must_appear_in": "GATE 1 보고의 분류",
+   "verified_by": "A",
+   "due": "GATE1",
+   "authority": "Δ12",
+   "aliases": [
+    "Δ12-C"
+   ]
+  },
+  {
+   "id": "Δ3",
+   "requires": "08 baseline SHA 갱신표 — 원본 무수정, delta 에 갱신본",
+   "must_appear_in": "인용 시 갱신본 사용",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ3",
+   "aliases": [
+    "baseline SHA 갱신",
+    "Δ3"
+   ]
+  },
+  {
+   "id": "Δ16",
+   "requires": "SSOTV3 provenance — control/v3/ssot_snapshot/ 22 파일. **지금부터의 provenance 이며 01:52~03:19 무변조 증명이 아니다**. 이 한계를 최종 보고 known limitation 에 넣는다",
+   "must_appear_in": "최종 보고",
+   "verified_by": "A",
+   "due": "GATE3",
+   "authority": "Δ16",
+   "aliases": [
+    "SSOT provenance",
+    "Δ16"
+   ]
+  },
+  {
+   "id": "Δ5-vr",
+   "requires": "finding_class VALIDITY_RISK 는 **P1 이상으로만** 발행 — FINDING 으로 접으면서 우선순위를 잃지 않게",
+   "must_appear_in": "버스 티켓",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ5",
+   "aliases": [
+    "Δ5-vr"
+   ]
+  },
+  {
+   "id": "Δ2-skip",
+   "requires": "reserve 순서를 건너뛰면 사유를 기록하고 C 가 검증한다",
+   "must_appear_in": "replacement 기록",
+   "verified_by": "C",
+   "due": "STEP2",
+   "authority": "Δ2",
+   "aliases": [
+    "Δ2-skip"
+   ]
+  },
+  {
+   "id": "Δ20",
+   "requires": "AX 조인·scroll state 는 STEP 1 안. **scroll state 는 engine 수정 불요**(호출자 page.evaluate, Δ22 로 전제 시정) · 회귀 전건 통과 · 포착 스택 신원 기록. 미검증 선언 기각",
+   "must_appear_in": "수집기 + 관측 행",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ20+Δ22",
+   "aliases": [
+    "STEP1-015",
+    "T-A-V3-STEP1-015",
+    "Δ20"
+   ]
+  },
+  {
+   "id": "Δ19-R8",
+   "requires": "HOLD 승격은 개수가 아니라 원인의 소재 — fixture 재현되면 systemic, 아니면 site-level, 재현 불가면 ABSTAIN. 판정자는 C. 보고 하한 family n<5 는 HOLD 아님",
+   "must_appear_in": "HOLD 판정 기록",
+   "verified_by": "A",
+   "due": "상시",
+   "authority": "Δ19-R8",
+   "aliases": [
+    "R8",
+    "Δ19-R8"
+   ]
+  },
+  {
+   "id": "Δ19-R9",
+   "requires": "hard-stop 8종 정본 — wrong_scope · target_outside_manifest · forbidden_action · evidence_overwrite · duplicate_launch · task_contract_drift · task_or_outcome_leakage · denominator_corruption",
+   "must_appear_in": "게이트 판정",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ19-R9",
+   "aliases": [
+    "R9",
+    "Δ19-R9"
+   ]
+  },
+  {
+   "id": "Δ19-R10",
+   "requires": "release 문서는 preconditions[] 로 전제조건 SHA 를 인용한다. V3_PILOT_5 부터",
+   "must_appear_in": "A 가 발행하는 V3_PILOT_5 릴리스 문서",
+   "verified_by": "C",
+   "due": "V3_PILOT_5_RELEASE",
+   "authority": "Δ19-R10",
+   "note": "due 를 GATE1 로 둔 것은 A 의 오류였다 — release 문서는 GATE 1 **통과 후** 발행되므로 GATE 1 시점에는 영구 NOT_TESTABLE 이 된다. C 의 매핑(NOT_TESTABLE)이 그 오류를 드러냈다. 검증 시점은 release 발행 순간이다",
+   "aliases": [
+    "R10",
+    "Δ19-R10"
+   ]
+  },
+  {
+   "id": "Δ21",
+   "requires": "판정 색인 유지 — A 가 새 판정마다 색인 추가. **C 는 색인 대 delta 뿐 아니라 delta 대 발행 티켓도 대조한다**",
+   "must_appear_in": "색인 + delta + 티켓",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ21",
+   "aliases": [
+    "R21",
+    "Δ21"
+   ]
+  },
+  {
+   "id": "Δ22-R22",
+   "requires": "모든 v3 관측 행은 **engine sha + driver/session sha** 를 함께 기록한다. collector_sha256 하나로는 포착 동작이 호출자에 있을 때 불완전하다",
+   "must_appear_in": "관측 행",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ22",
+   "aliases": [
+    "R22",
+    "Δ22-R22"
+   ]
+  },
+  {
+   "id": "Δ22-scrollfix",
+   "requires": "커밋된 스크롤 fixture — 런타임 임시 파일이 아니라 재현 가능한 커밋본으로 S1..Sn 을 검증",
+   "must_appear_in": "tests/fixtures",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ22",
+   "aliases": [
+    "scrollfix",
+    "Δ22-scrollfix",
+    "커밋된 스크롤 fixture"
+   ]
+  },
+  {
+   "id": "Δ22-R23",
+   "requires": "지시문·판정문에서 원문 인용과 그로부터의 추론을 표기로 구분한다",
+   "must_appear_in": "A 결정문 · B 지시문",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ22",
+   "aliases": [
+    "R23",
+    "Δ22-R23"
+   ]
+  },
+  {
+   "id": "Δ23",
+   "requires": "패턴 규칙을 쓰지 않는다. **색인이 자기 별칭을 선언하고 소비자는 추론하지 않는다.** 대조 도구는 id 와 aliases 를 둘 다 조회한다",
+   "must_appear_in": "대조 도구 구현",
+   "verified_by": "C+D",
+   "due": "상시",
+   "authority": "Δ23",
+   "aliases": [
+    "Δ23"
+   ]
+  },
+  {
+   "id": "Δ23-R24",
+   "requires": "**A 가 규칙을 쓰면 누군가 그것을 실제로 구현해봐야 한다.** 규칙이 문장으로만 있으면 그 결함은 보이지 않는다",
+   "must_appear_in": "규칙 발행 시 실행 검증 기록",
+   "verified_by": "B",
+   "due": "상시",
+   "authority": "Δ23",
+   "aliases": [
+    "R24",
+    "Δ23-R24"
+   ]
+  },
+  {
+   "id": "Δ24-R25",
+   "requires": "**패턴을 선언으로 바꾸는 것으로 끝나지 않는다. 선언 자체가 틀릴 수 있다.** 별칭 유일성 자체검사를 색인에 상주시키고 마지막 실행 결과를 남긴다",
+   "must_appear_in": "V3_RULING_INDEX.self_check",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ24",
+   "aliases": [
+    "R25",
+    "Δ24-R25"
+   ]
+  },
+  {
+   "id": "Δ25",
+   "requires": "별칭 자격 — 그 판정이 실제로 불리는 형태만. 소문자 단일어 길이 6 이하 배제. **토큰 경계 매칭, 부분일치 금지**",
+   "must_appear_in": "alias_rules · 대조 도구",
+   "verified_by": "C+D",
+   "due": "상시",
+   "authority": "Δ25",
+   "aliases": [
+    "Δ25"
+   ]
+  },
+  {
+   "id": "Δ26",
+   "requires": "**`base_sha` 는 `git cat-file -e` 로 해석되는 객체여야 한다.** 축약형 확장 시 0 을 채우지 않는다. 발행 전 확인",
+   "must_appear_in": "버스 티켓",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ26",
+   "aliases": [
+    "Δ26"
+   ]
+  },
+  {
+   "id": "Δ28-R26",
+   "authority": "Δ28+Δ29",
+   "aliases": [
+    "R26",
+    "Δ28-R26",
+    "Δ28"
+   ],
+   "requires": "**두 측정이 갈리면 (a) 각 측정 시각 (b) 각 주장이 쓰인 시각 (c) 관련 상태가 바뀐 시각 을 함께 놓는다.** (a) 만으로는 '둘 다 맞다'가 너무 쉽게 나온다. 측정 결과에 `measured_at_kst` 필수",
+   "must_appear_in": "측정을 담은 모든 티켓·lane 산출",
+   "verified_by": "C",
+   "due": "상시"
+  },
+  {
+   "id": "Δ29",
+   "authority": "Δ29",
+   "aliases": [
+    "Δ29"
+   ],
+   "requires": "**판정자가 불일치를 대칭으로 만들면 한쪽의 실제 오류가 사라진다.** A 는 '둘 다 맞다'는 정리를 첫 그럴듯함에서 채택하지 않는다",
+   "must_appear_in": "A 의 불일치 판정문",
+   "verified_by": "B+C+D",
+   "due": "상시"
+  },
+  {
+   "id": "Δ30",
+   "requires": "Scout 경로선택 정책 — MIN-1~MIN-7 승계. **MIN-2 는 Δ36 으로 v3 에 요구하지 않음**(최소성 어휘 금지)·최소성은 부분격자 안에서만·k와 m은 같은 경로에서·예산 소진은 관측 없음",
+   "must_appear_in": "B 의 Scout 구현 + 정책 문서",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ30+Δ36",
+   "aliases": [
+    "MIN-1",
+    "MIN-2",
+    "MIN-3",
+    "MIN-6",
+    "MIN-7",
+    "Δ30"
+   ],
+   "note_scope": "MIN-4 는 Δ30-tiebreak, MIN-5 는 Δ30-claim 이 소유한다. 우산 행이 같은 별칭을 함께 갖지 않는다"
+  },
+  {
+   "id": "Δ30-branch",
+   "requires": "분기 대상 집합 = Δ9 의 IN 10 + CONDITIONAL 3. INPUT_QUERY·DISMISS_OBSTRUCTION·AUTH_GATE·ENDPOINT_REACHED·ABSTAIN 은 분기 대상 아님. **v2.1 과 달리 SUBMIT_QUERY 는 분기 대상이다**",
+   "must_appear_in": "Scout 구현",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ30",
+   "aliases": [
+    "Δ30-branch"
+   ]
+  },
+  {
+   "id": "Δ30-tiebreak",
+   "requires": "tie-break 전순서 = `task_binding_candidate desc, dom_order asc, selector asc`. **점수를 키로 쓰지 않는다** — 집합 소속과 구조값만. marked_primary 는 v3 에 없다",
+   "must_appear_in": "Scout 구현 + 결정성 테스트",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ30",
+   "aliases": [
+    "MIN-4",
+    "Δ30-tiebreak"
+   ]
+  },
+  {
+   "id": "Δ30-budget",
+   "requires": "수집 파라미터 `BRANCHING_LIMIT=4`(승계) 외 4종은 **B 가 실측 근거와 함께 제안하고 A 가 P4 이전 동결**. manifest 기재 필수 — 값 없이는 '무엇에 대한 최소인가'를 말할 수 없다",
+   "must_appear_in": "FINAL manifest",
+   "verified_by": "A",
+   "due": "V3_PILOT_5_RELEASE",
+   "authority": "Δ30",
+   "aliases": [
+    "Δ30-budget"
+   ]
+  },
+  {
+   "id": "Δ30-claim",
+   "requires": "보고에 '최소 경로를 찾았다'로 쓰지 않는다. 쓸 수 있는 문장은 'BRANCHING_LIMIT·후보 지명 규칙·즉시종료 규칙 아래에서 관측된 최소 activation 수'",
+   "must_appear_in": "claim registry · 최종 보고",
+   "verified_by": "C",
+   "due": "GATE3",
+   "authority": "Δ30",
+   "aliases": [
+    "MIN-5",
+    "Δ30-claim"
+   ]
+  },
+  {
+   "id": "Δ31",
+   "requires": "일시적 부재를 기대값으로 동결한 테스트는 **지우지 않고 그 lane 자신의 diff 로 다시 좁힌다.** 파일의 절대 상태를 재면 다른 lane 의 승인된 변경까지 잡는다",
+   "must_appear_in": "B 의 회귀 테스트",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ31",
+   "aliases": [
+    "Δ31"
+   ]
+  },
+  {
+   "id": "Δ31-R27",
+   "requires": "**skip 은 통과가 아니다.** B 의 COMPLETION 은 skip 전건을 사유와 함께 열거한다. C 는 사유가 설명되지 않은 skip 을 PASS 로 세지 않고 NOT_TESTABLE 로 분류한다",
+   "must_appear_in": "B COMPLETION · C GATE 보고",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ31",
+   "aliases": [
+    "R27",
+    "Δ31-R27"
+   ]
+  },
+  {
+   "id": "Δ31-R28",
+   "requires": "**도구의 출력 억제가 무결과를 만든다.** 회귀·검색 결과를 근거로 쓸 때 출력이 억제되지 않았음을 함께 보인다(예: 터미널 요약 + junitxml 두 독립 출처)",
+   "must_appear_in": "측정을 담은 모든 보고",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ31",
+   "aliases": [
+    "R28",
+    "Δ31-R28"
+   ]
+  },
+  {
+   "id": "Δ32",
+   "requires": "후보 전건 탈락은 **원인으로 가른다** — 계약·형태 불일치는 `RunnerError`(항상 멈춤), 페이지에 후보가 실제로 없으면 `ABSTAIN × NO_TASK_CANDIDATE_FOUND`(terminal_reason 15번째 값). **계약 위반은 관측이 아니다**",
+   "must_appear_in": "runner 구현 + 조합표",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ32",
+   "aliases": [
+    "Δ32"
+   ]
+  },
+  {
+   "id": "Δ32-R29",
+   "requires": "**`activation_depth=0` 은 근거를 요구한다.** `REACHED` 와 함께 나오려면 endpoint 충족 증거 + 최소 1개 후보 바인딩이 둘 다 참이어야 한다. **후보 0건은 어떤 경우에도 REACHED 를 낼 수 없다** — 스키마가 거부한다",
+   "must_appear_in": "runner 스키마 · 관측 행",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ32",
+   "aliases": [
+    "R29",
+    "Δ32-R29"
+   ]
+  },
+  {
+   "id": "Δ32-R30",
+   "requires": "**구조적 타입 검사는 계약을 검사하지 않는다.** Protocol 은 메서드 이름만 본다. lane 경계에서 반환값 형태를 런타임 검증하고 위반이면 RunnerError",
+   "must_appear_in": "seam 구현",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ32",
+   "aliases": [
+    "R30",
+    "Δ32-R30"
+   ]
+  },
+  {
+   "id": "Δ32-safety",
+   "requires": "`credential`·`실제 개인정보` guard 미발화 구멍이 열린 채로 **V3_PILOT_5 를 release 하지 않는다.** 차단 9종이 텍스트 문구 기준이라는 한계도 기재한다",
+   "must_appear_in": "V3_PILOT_5 릴리스 전제조건",
+   "verified_by": "A",
+   "due": "V3_PILOT_5_RELEASE",
+   "authority": "Δ32",
+   "aliases": [
+    "Δ32-safety"
+   ]
+  },
+  {
+   "id": "Δ27",
+   "requires": "**유지 규약을 다짐에서 검사로.** delta 의 모든 ruling 절이 색인에 대응 행을 가져야 한다. 컨테이너 절은 예외이며 `container_sections` 에 명시된 것뿐",
+   "must_appear_in": "V3_RULING_INDEX.self_check · check_ruling_index.py",
+   "verified_by": "C+D",
+   "due": "상시",
+   "authority": "Δ27",
+   "aliases": [
+    "Δ27"
+   ]
+  },
+  {
+   "id": "Δ33",
+   "requires": "**별칭 기준은 모양이 아니라 특정성이다.** 판정과 무관한 산문에서 발화하지 않아야 한다. 길이·대소문자는 대리 지표이며 대조 말뭉치 매칭이 실제 기준이다",
+   "must_appear_in": "alias_rules · check_ruling_index.py",
+   "verified_by": "C+D",
+   "due": "상시",
+   "authority": "Δ33",
+   "aliases": [
+    "Δ33"
+   ]
+  },
+  {
+   "id": "Δ34",
+   "requires": "**색인 자체검사는 서술이 아니라 실행 가능한 검사기다.** `check_ruling_index.py` 7검사 + 검사별 변이 양성대조. `self_check.last_run` 은 `index_version`·`rows` 를 싣고, 그것이 현재 색인과 다르면 그 결과는 무효다",
+   "must_appear_in": "control/v3/check_ruling_index.py · self_check.last_run",
+   "verified_by": "C+D",
+   "due": "상시",
+   "authority": "Δ34",
+   "aliases": [
+    "Δ34"
+   ]
+  },
+  {
+   "id": "Δ35",
+   "requires": "`measure_surface` 는 `probe_state` 형태 위반에 **예외를 던진다.** `NOT_OBSERVED` 를 내지 않는다 — 그 값은 '볼 수 있었고 없었다'는 관측 주장이며 계약 위반은 그 자격이 없다. 호출부 방어는 유지하되 대체물이 아니다",
+   "must_appear_in": "measure_surface 계약 + 조합표",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ35",
+   "aliases": [
+    "Δ35"
+   ]
+  },
+  {
+   "id": "Δ35-R31",
+   "requires": "**모든 단언은 실패 가능함을 실증해야 한다.** 조용한 통과는 실패보다 오래 산다 — 깨지지 않는 단언은 아무도 보지 않는다",
+   "must_appear_in": "B 의 테스트 + 음성대조 기록",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ35",
+   "aliases": [
+    "R31",
+    "Δ35-R31"
+   ]
+  },
+  {
+   "id": "Δ35-wiring",
+   "requires": "`measure_surface` 의 production 호출부가 없으므로 형태 결함이 실제 수집 경로에도 있는지 확인 불가다. **W5F/W5K 배선 시점 재확인이 GATE 1 통과 조건**이다. 배선 없이 '고쳤다'로 닫지 않는다",
+   "must_appear_in": "GATE 1 보고",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ35",
+   "aliases": [
+    "Δ35-wiring"
+   ]
+  },
+  {
+   "id": "Δ36",
+   "requires": "**MIN-2 폭우선을 v3 에 요구하지 않는다** — v3 는 최소성을 주장하지 않는다(flow divergence 가 construct, depth 는 derived). 대신 Δ6-d 의 결정성·균일성. **v3 산출·보고 어디에도 '최소' 를 쓰지 않는다.** `search_strategy` 를 path manifest 에 필수 기재",
+   "must_appear_in": "path manifest · 보고 어휘",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ36",
+   "aliases": [
+    "Δ36"
+   ]
+  },
+  {
+   "id": "Δ36-order",
+   "requires": "v3 경로 선택은 **v3 tiebreak** 을 쓴다. v2 `min4_sort_key` 를 고치지 않는다. **evidence 랭킹과 실제 경로가 갈리면 ruling_10 위반**이다. `marked_primary` 가 v3 에서 True 가 될 수 있는지 B 실측",
+   "must_appear_in": "v3 Scout · 발산 테스트",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ36",
+   "aliases": [
+    "Δ36-order"
+   ]
+  },
+  {
+   "id": "Δ36-budgetseam",
+   "requires": "`BUDGET_EXCEEDED` 가 runner 를 건너오게 Protocol 반환 형태를 바꾼다. **terminal_reason=None 인 terminal 은 Δ10-R11 위반**. 기존 테스트는 Δ31 대로 다시 좁히고 R31 로 실패 가능성을 실증",
+   "must_appear_in": "runner Protocol · 조합표",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ36",
+   "aliases": [
+    "Δ36-budgetseam"
+   ]
+  },
+  {
+   "id": "Δ36-tokens",
+   "requires": "**Δ9 의 IN 10종은 분류 가능해야 한다.** 집합 선언만으로 Δ30-branch 를 이행으로 보지 않는다. 분류 불가 토큰이 남으면 그 target 의 activation_depth 는 UNDETERMINED. `l0_probe.js` 구조 신호 추가는 Δ20 허용 범주",
+   "must_appear_in": "토큰 분류기 · 관측 행",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ36",
+   "aliases": [
+    "Δ36-tokens"
+   ]
+  },
+  {
+   "id": "Δ37",
+   "authority": "Δ37",
+   "aliases": [
+    "Δ37"
+   ],
+   "requires": "v3 관측 행은 legacy `NED`·`IED`·`MPFED` 를 **`NULL`** 로 둔다 — 그 이름의 유일한 정의는 v2.1 의 최소성 주장이고 Δ36 이 v3 는 그 주장을 하지 않는다고 확정했다. 탐욕적 하강 값을 그 컬럼에 넣으면 ruling_11 의 '같은 이름 다른 양' 이다. **`legacy_depth_null_reason` 을 함께 기록한다** — NULL 만 두면 '못 쟀다' 로 읽힌다",
+   "must_appear_in": "관측 행 · mart 스키마",
+   "verified_by": "C",
+   "due": "GATE1"
+  },
+  {
+   "id": "Δ38",
+   "authority": "Δ38",
+   "aliases": [
+    "Δ38"
+   ],
+   "requires": "**측정값은 `self_check.last_run` 한 곳에만 둔다.** 하위 블록은 규칙·근거·한계만 담는다. 사본이 둘이면 반드시 갈린다 — 하나만 갱신되기 때문이다. 검사기 8번째 검사가 강제한다",
+   "must_appear_in": "V3_RULING_INDEX.self_check · check_ruling_index.py",
+   "verified_by": "C+D",
+   "due": "상시"
+  },
+  {
+   "id": "Δ39-R32",
+   "requires": "**선택적 입력은 세 상태를 구분한다** — 부재(관측, None+사유 note) · 형태 위반(계약 위반, raise) · 존재(값). 부재와 형태 위반이 같은 출력이면 계약 위반이 관측으로 위장한다",
+   "must_appear_in": "모든 선택적 입력을 받는 함수",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ39",
+   "aliases": [
+    "R32",
+    "Δ39",
+    "Δ39-R32"
+   ]
+  },
+  {
+   "id": "Δ39-list",
+   "requires": "**R30 적용 대상 목록은 B 가 만든다**(호출 그래프를 아는 쪽이 안다). A 는 규칙과 수용기준만 정한다. **목록의 완전성은 C 가 독립 확인한다** — B 자기보고로 닫지 않는다",
+   "must_appear_in": "B 의 목록 + C 독립 열거",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ39",
+   "aliases": [
+    "Δ39-list"
+   ]
+  },
+  {
+   "id": "Δ39-scroll",
+   "requires": "빈 `scroll_states` 는 **계약 위반이다. raise.** S0 는 구성상 항상 존재하므로 빈 목록은 '포착했고 없었다' 가 될 수 없고 '포착이 돌지 않았다' 뿐이다",
+   "must_appear_in": "scroll 포착 경로",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ39",
+   "aliases": [
+    "Δ39-scroll"
+   ]
+  },
+  {
+   "id": "Δ40-R33",
+   "requires": "**모호한 입력은 raise 다.** 두 형태 계약이 동시에 만족되어 어느 계약인지 결정되지 않는 상태는 `R32` 의 세 상태에 없는 네 번째 상태이며, 처리는 형태 위반과 같다. 우선순위 선언 + note 는 답이 아니다 — **도구가 무엇을 측정할지 스스로 정하면 note 로 무해해지지 않는다**",
+   "must_appear_in": "`_iter_states` 등 다형 입력을 읽는 이음매",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ40",
+   "aliases": [
+    "R33",
+    "Δ40-R33"
+   ]
+  },
+  {
+   "id": "Δ40-exception",
+   "requires": "모호가 아닌 유일한 경우는 **계약이 두 키의 공존을 제3의 형태로 명시 정의한 때**뿐이다. 정의는 `R16` 으로 올려서 만들고 **구현으로 만들지 않는다**",
+   "must_appear_in": "계약 문서",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ40",
+   "aliases": [
+    "Δ40-exception"
+   ]
+  },
+  {
+   "id": "Δ40-precheck",
+   "requires": "raise 전환 전에 **두 키를 함께 넘기는 기존 호출자·fixture·테스트를 실측**한다. 있으면 의도한 형태를 기록하고 고친다. **없으면 '없음' 을 대조군으로 보인다**",
+   "must_appear_in": "B 의 전환 기록",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ40",
+   "aliases": [
+    "Δ40-precheck"
+   ]
+  },
+  {
+   "id": "Δ40-R34",
+   "requires": "**모집단 정의를 공유하면 정의의 결함은 독립 검증으로 잡히지 않는다.** 완전성 확인은 (a) 단위 안의 열거 일치 **와** (b) **단위 밖 반례 탐색** 을 모두 가져야 한다. (b) 가 없으면 C 의 확인은 B 의 필터 재실행이지 독립 확인이 아니다",
+   "must_appear_in": "C 의 완전성 확인 (CI-19)",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ40",
+   "aliases": [
+    "R34",
+    "Δ40-R34"
+   ]
+  },
+  {
+   "id": "Δ40-control-naming",
+   "requires": "대조는 **`must_flag` / `must_not_flag`** 로 적는다. 이 프로젝트에서 '양성대조' 가 두 뜻으로 쓰였으므로 **이름을 고르지 말고 버린다**",
+   "must_appear_in": "B 의 검사기 완료조건 · C 의 확인 절차",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ40",
+   "aliases": [
+    "must_flag",
+    "must_not_flag",
+    "Δ40-control-naming"
+   ]
+  },
+  {
+   "id": "Δ40-unit",
+   "requires": "`R30`/`R32` 적용 대상의 열거 단위는 **매개변수가 아니라 구조 입력 안의 선택적 키 접근**이다(B 정정 채택). 목록 문서는 단위를 **검사 가능한 술어**로 적고 '전수' 대신 **무엇의 전수인지** 적는다",
+   "must_appear_in": "docs/v3/R32_APPLICATION_POINTS.md",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ40",
+   "aliases": [
+    "Δ40-unit"
+   ]
+  }
+ ],
+ "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안) | v9: 기계적 접미사 별칭 제거 + 토큰경계 매칭 + 길이3 미만 금지 (T-B-V3-FINDING-007) | v10: Δ23~Δ26·R24·R25 누락 5행 추가 + container_sections 명시 + delta 절 커버리지 검사 상주 (D-V3-FINDING-012). **A 의 Δ21 위반 네 번째** | v11: Δ28-R26 추가 (delta 기록과 색인 추가를 함께 — Δ21/Δ27 자기적용) | v12: Δ29 추가 + R26 보강 (D-V3-FACT_CORRECTION-003 — A 의 Δ28 이 너무 관대했다) | v13: Δ30 Scout 정책 승계 5행 + terminal_reason 14값 (T-B-V3-BLK-013) | v14: Δ31 계열 3행 (T-B-V3-FINDING-008) | v15: Δ32 계열 4행 + terminal_reason 15값 (T-B-V3-BLK-014 P0) | v16: Δ10-R11 을 15값 전체 열거로 (D-V3-FINDING-014 — 서술이 14/15 를 뒤집어 읽히게 했다) + 82 분해 기록 | v17: 별칭 기준을 모양에서 특정성으로 (D-V3-FACT_CORRECTION-004). 대조 말뭉치 검사 상주 | v18: split_rows 선언 + index→delta 도달성 검사 상주 (C 의 v16 11건 보고가 v17 에서 우연히 0 이 된 것을 구조로 고정) | v19: MIN-4/MIN-5 중복 해소 + 유령 별칭 7건 제거 (T-B-V3-FINDING-009 · D-V3-ADDENDUM-003) | v20: Δ27·Δ33·Δ34 색인 행 추가 — **서술로만 있던 검사가 실제로 돌자 A 의 Δ21 위반 다섯 번째가 나왔다** | v21: 도달성 선언에 authority 경로 명시 + 헤더 추출 정규식 시정 (D-V3-FINDING-015) | v22: authority 경로를 한계와 함께 선언 + 두 방향 양성대조 (C-FINDING-074834) | v23: probe 값 런타임 선택 — 문서가 자기 검사를 무력화한 두 번째 사례 | v24: Δ35 계열 3행 (T-B-V3-FINDING-010) | v25: Δ36 계열 4행 — A 의 MIN-2 과잉 승계 시정 (T-B-V3-BLK-015) | v26: Δ37 — legacy depth 필드 NULL + 사유 (D-V3-FINDING-016) | v27: 하위 블록의 낡은 측정값 제거 — 측정값 단일 출처 (D-V3-FINDING-017) | v28: Δ38 행 추가 | v29: Δ39/R32 계열 3행 (T-B-V3-FINDING-011)",
+ "maintenance_rule": "A 가 판정을 낼 때 **delta 기록과 색인 추가를 함께** 한다. 티켓만 발행하면 정본이 전달 이력에 의존한다. C 는 색인↔delta 와 delta↔티켓 양방향을 대조한다.",
+ "coverage_denominator": {
+  "rule": "커버리지 분모는 **색인의 전체 행 수**다. 구조적으로 제외되는 행을 두지 않는다",
+  "not_yet_due_is_not_excluded": "due 가 아직 오지 않은 행(V3_PILOT_5_RELEASE · STEP2 · STEP3)은 **NOT_DUE_YET 으로 세되 분모에서 빼지 않는다.** 빼면 그것이 selection 이다",
+  "origin": "D-V3-FINDING-011 이 제기했다. **D 의 구체적 관측(Δ21 미수록)은 틀렸으나**(Δ21 행은 v2 부터 존재한다) '커버리지 분모가 무엇인지 먼저 정해야 한다'는 논점은 유효하다"
+ },
+ "id_notation": {
+  "rule": "**색인이 자기 별칭을 선언한다. 소비자는 별칭을 추론하지 않는다.**",
+  "each_row_has": "`aliases[]` — 그 판정이 티켓·delta·평면 산출에서 불릴 수 있는 모든 표기",
+  "why_not_a_pattern_rule": "T-A-V3-FC-004 가 `Δn-Rm ↔ Rm ↔ P-nn` 패턴 규칙을 명시했으나 **그 규칙으로도 D 의 오탐이 재현된다**(T-B-V3-FINDING-005, A 가 양성대조와 함께 검증). bare `Δn` 형태 10건이 패턴에 걸리지 않는다. 패턴은 새 표기가 생길 때마다 틀린다",
+  "consumer_rule": "대조 도구는 `id` 와 `aliases` 를 **둘 다** 조회한다. 어느 쪽에도 없으면 그때가 진짜 미수록이다",
+  "verified": "A 가 FC-004 규칙을 실제로 구현해 `Δ17-R18 → R18` 이 동작하는 양성대조 상태에서 `Δ21 → None` 임을 확인했다. B 주장 재현됨"
+ },
+ "independent_audits": [
+  {
+   "by": "C",
+   "span": "v2~v5",
+   "result": "v2 에서 누락7·충돌1·근거부재1 검출 → 시정. v5 정합"
+  },
+  {
+   "by": "D",
+   "at": "v5",
+   "result": "index↔delta 0 · delta↔ticket 33/33 실재 · 미인용 ruling 4건 delta 수록 확인",
+   "one_observation": "Δ21 미수록 — **오탐**. D 가 R21 로 검색했고 색인 id 는 Δ21 이다",
+   "independence": "C 결과 미참조. 두 대조가 v5 정합으로 수렴"
+  }
+ ],
+ "self_check": {
+  "alias_uniqueness": "전 별칭이 정확히 한 행에 대응해야 한다. 예외는 intentional_multi 에 명시된 것뿐",
+  "intentional_multi": {
+   "D3-06": "Δ1-a 와 Δ1-b 가 같은 D3-06 결정을 개정한다. 조회 시 두 행이 모두 반환되는 것이 옳다"
+  },
+  "last_run": {
+   "at_kst": "2026-08-28T08:25:35+0900",
+   "index_version": 30,
+   "rows": 96,
+   "total_aliases": 175,
+   "duplicate": 1,
+   "unexpected_duplicate": 0,
+   "positive_control": {
+    "per_check": {
+     "alias_uniqueness": true,
+     "alias_specificity": true,
+     "ghost_alias": true,
+     "index_to_delta_reachability": true,
+     "reachability_authority_path_declared": true,
+     "required_field": true,
+     "count_mismatch": true,
+     "measurement_single_source": true
     },
-    {
-      "by": "D",
-      "at": "v5",
-      "result": "index↔delta 0 · delta↔ticket 33/33 실재 · 미인용 ruling 4건 delta 수록 확인",
-      "one_observation": "Δ21 미수록 — **오탐**. D 가 R21 로 검색했고 색인 id 는 Δ21 이다",
-      "independence": "C 결과 미참조. 두 대조가 v5 정합으로 수렴"
-    }
-  ],
-  "self_check": {
-    "alias_uniqueness": "전 별칭이 정확히 한 행에 대응해야 한다. 예외는 intentional_multi 에 명시된 것뿐",
-    "intentional_multi": {
-      "D3-06": "Δ1-a 와 Δ1-b 가 같은 D3-06 결정을 개정한다. 조회 시 두 행이 모두 반환되는 것이 옳다"
-    },
-    "last_run": {
-      "at_kst": "2026-08-28T08:24:50+0900",
-      "index_version": 30,
-      "rows": 96,
-      "total_aliases": 176,
-      "duplicate": 1,
-      "unexpected_duplicate": 0,
-      "positive_control": {
-        "per_check": {
-          "alias_uniqueness": true,
-          "alias_specificity": true,
-          "ghost_alias": true,
-          "index_to_delta_reachability": true,
-          "reachability_authority_path_declared": true,
-          "required_field": true,
-          "count_mismatch": true,
-          "measurement_single_source": true
-        },
-        "ok": true
-      },
-      "checker": "control/v3/check_ruling_index.py",
-      "staleness_rule": "rows 또는 index_version 이 현재 색인과 다르면 이 결과는 무효다. 그대로 인용하지 마라",
-      "delta_sections": 73
-    },
-    "origin": "C 제안(T-B-V3-FINDING-006 ACK)",
-    "what_it_found_immediately": "v7 에서 3건 — `a`·`b`(A 의 별칭 생성 버그: 정규식이 `Δ1-a` 에서 `a` 를 뽑았다) · `D3-06`(의도적 다중). **선언식으로 바꿔도 선언 자체가 틀릴 수 있다**",
+    "ok": true
+   },
+   "checker": "control/v3/check_ruling_index.py",
+   "staleness_rule": "rows 또는 index_version 이 현재 색인과 다르면 이 결과는 무효다. 그대로 인용하지 마라"
+  },
+  "origin": "C 제안(T-B-V3-FINDING-006 ACK)",
+  "what_it_found_immediately": "v7 에서 3건 — `a`·`b`(A 의 별칭 생성 버그: 정규식이 `Δ1-a` 에서 `a` 를 뽑았다) · `D3-06`(의도적 다중). **선언식으로 바꿔도 선언 자체가 틀릴 수 있다**",
+  "delta_section_coverage": {
+   "rule": "**delta 의 모든 ruling 절이 색인에 대응 행을 가져야 한다.** 컨테이너 절은 예외이며 container_sections 에 명시된 것뿐",
+   "why_a_check_not_a_habit": "A 가 Δ21 로 '판정을 낼 때 delta 기록과 색인 추가를 함께 한다' 고 규약화했으나 **그 뒤로도 네 번 어겼다**(Δ19·Δ20 누락 → C 검출, Δ23~Δ26 누락 → D 검출). 규약을 지키겠다는 다짐은 통제가 아니다. 검사로 바꾼다",
+   "measurement_lives_in": "self_check.last_run — **측정값은 한 곳에만 있다**(Δ38)"
+  },
+  "alias_specificity": {
+   "rule": "모든 별칭은 `alias_rules.control_corpus` 에 토큰 경계로 매칭되지 않아야 한다. 매칭되면 **모양과 무관하게** 색인 결함이다",
+   "positive_control": "같은 검사가 `coverage`·`manifest`·`container`·`strategy`·`evidence` 를 걸러낸다 — **검사가 동작한다**",
+   "measurement_lives_in": "self_check.last_run — **측정값은 한 곳에만 있다**(Δ38)"
+  },
+  "index_to_delta_reachability": {
+   "rule": "네 경로 중 하나 — (a) `id` 가 delta 절 헤더 (b) **`authority` 가 delta 절 헤더** (c) 별칭 중 하나가 delta 본문에 토큰경계로 등장 (d) `split_rows` 부모 절",
+   "stated_limitation": "**(b) 는 앵커만 검사하고 자식별 서술 존재는 검사하지 않는다.** 부모 절이 있으면 그 절이 그 자식 판정을 실제로 서술하는지와 무관하게 도달로 센다. 따라서 **색인에만 있고 delta 본문에 서술이 없는 자식 행은 이 검사로 검출되지 않는다.** C-FINDING-074834 가 이 결과를 명시하라고 요구했고 A 가 받는다",
+   "why_declared_wide": "자식 행은 부모 절 안에서 서술되는 것이 정상이다(예: `Δ32-safety` 는 Δ32 의 '안전 전수' 소절). 좁은 규칙을 쓰면 정상 행 10건이 미도달로 나온다 — **검사가 참인 것을 거짓으로 만든다**",
+   "two_way_probe": "양성대조를 **두 방향**으로 고정한다 — (1) 어느 경로로도 못 닿는 고아 행은 **반드시 잡힌다** (2) 부모 절이 실재하는 가짜 자식은 **잡히면 안 된다**. 하나만 두면 좁은 규칙과 넓은 규칙을 구분하지 못한다(C 제안)",
+   "checker": "control/v3/check_ruling_index.py"
+  },
+  "probe_value_rule": {
+   "rule": "probe 값은 **런타임에 delta 에 없는 것으로 고른다.** 고정 리터럴 금지",
+   "why": "A 가 probe 값을 문서에 인용하면 그 토큰이 delta 에 존재하게 되어 probe 가 죽는다. **두 번 일어났다** — `Δ999-R99`(부기 1) · 부모 값(부기 2). **첫 번째를 주석으로 경고해 두고도 두 번째를 만들었다**",
+   "the_lesson": "경고를 적는 것과 그 경고가 작동하는 것은 다르다. 주석은 사람이 읽어야 작동하고 assert 는 읽지 않아도 작동한다. **그런데 그 assert 도 id 만 검사하고 authority 는 검사하지 않았다**",
+   "fix": "id·authority·별칭 **모든 토큰의 부재**를 확인하고 걸리면 다음 후보로 넘어간다"
+  },
+  "measurement_single_source": {
+   "rule": "**측정값은 `self_check.last_run` 한 곳에만 둔다.** 하위 블록은 규칙·근거·한계만 담고 수치를 담지 않는다",
+   "why": "사본이 둘이면 반드시 갈린다. 실제로 갈렸다 — `delta_section_coverage` 가 38 절이라 했는데 실제 67, `alias_specificity` 가 별칭 157 인데 루트는 159. **둘 다 A 가 그 시점에 손으로 적고 갱신하지 않았다**",
+   "detected_by": "D-V3-FINDING-017 — **A 가 낡음 시정을 루트에만 적용했다.** B 가 지적한 결함의 한 층 아래가 그대로 남아 있었다",
+   "removed_stale": {
     "delta_section_coverage": {
-      "rule": "**delta 의 모든 ruling 절이 색인에 대응 행을 가져야 한다.** 컨테이너 절은 예외이며 container_sections 에 명시된 것뿐",
-      "why_a_check_not_a_habit": "A 가 Δ21 로 '판정을 낼 때 delta 기록과 색인 추가를 함께 한다' 고 규약화했으나 **그 뒤로도 네 번 어겼다**(Δ19·Δ20 누락 → C 검출, Δ23~Δ26 누락 → D 검출). 규약을 지키겠다는 다짐은 통제가 아니다. 검사로 바꾼다",
-      "measurement_lives_in": "self_check.last_run — **측정값은 한 곳에만 있다**(Δ38)"
+     "at_kst": "2026-08-28T05:10:00+09:00",
+     "delta_sections": 38,
+     "uncovered": []
     },
     "alias_specificity": {
-      "rule": "모든 별칭은 `alias_rules.control_corpus` 에 토큰 경계로 매칭되지 않아야 한다. 매칭되면 **모양과 무관하게** 색인 결함이다",
-      "positive_control": "같은 검사가 `coverage`·`manifest`·`container`·`strategy`·`evidence` 를 걸러낸다 — **검사가 동작한다**",
-      "measurement_lives_in": "self_check.last_run — **측정값은 한 곳에만 있다**(Δ38)"
-    },
-    "index_to_delta_reachability": {
-      "rule": "네 경로 중 하나 — (a) `id` 가 delta 절 헤더 (b) **`authority` 가 delta 절 헤더** (c) 별칭 중 하나가 delta 본문에 토큰경계로 등장 (d) `split_rows` 부모 절",
-      "stated_limitation": "**(b) 는 앵커만 검사하고 자식별 서술 존재는 검사하지 않는다.** 부모 절이 있으면 그 절이 그 자식 판정을 실제로 서술하는지와 무관하게 도달로 센다. 따라서 **색인에만 있고 delta 본문에 서술이 없는 자식 행은 이 검사로 검출되지 않는다.** C-FINDING-074834 가 이 결과를 명시하라고 요구했고 A 가 받는다",
-      "why_declared_wide": "자식 행은 부모 절 안에서 서술되는 것이 정상이다(예: `Δ32-safety` 는 Δ32 의 '안전 전수' 소절). 좁은 규칙을 쓰면 정상 행 10건이 미도달로 나온다 — **검사가 참인 것을 거짓으로 만든다**",
-      "two_way_probe": "양성대조를 **두 방향**으로 고정한다 — (1) 어느 경로로도 못 닿는 고아 행은 **반드시 잡힌다** (2) 부모 절이 실재하는 가짜 자식은 **잡히면 안 된다**. 하나만 두면 좁은 규칙과 넓은 규칙을 구분하지 못한다(C 제안)",
-      "checker": "control/v3/check_ruling_index.py"
-    },
-    "probe_value_rule": {
-      "rule": "probe 값은 **런타임에 delta 에 없는 것으로 고른다.** 고정 리터럴 금지",
-      "why": "A 가 probe 값을 문서에 인용하면 그 토큰이 delta 에 존재하게 되어 probe 가 죽는다. **두 번 일어났다** — `Δ999-R99`(부기 1) · 부모 값(부기 2). **첫 번째를 주석으로 경고해 두고도 두 번째를 만들었다**",
-      "the_lesson": "경고를 적는 것과 그 경고가 작동하는 것은 다르다. 주석은 사람이 읽어야 작동하고 assert 는 읽지 않아도 작동한다. **그런데 그 assert 도 id 만 검사하고 authority 는 검사하지 않았다**",
-      "fix": "id·authority·별칭 **모든 토큰의 부재**를 확인하고 걸리면 다음 후보로 넘어간다"
-    },
-    "measurement_single_source": {
-      "rule": "**측정값은 `self_check.last_run` 한 곳에만 둔다.** 하위 블록은 규칙·근거·한계만 담고 수치를 담지 않는다",
-      "why": "사본이 둘이면 반드시 갈린다. 실제로 갈렸다 — `delta_section_coverage` 가 38 절이라 했는데 실제 67, `alias_specificity` 가 별칭 157 인데 루트는 159. **둘 다 A 가 그 시점에 손으로 적고 갱신하지 않았다**",
-      "detected_by": "D-V3-FINDING-017 — **A 가 낡음 시정을 루트에만 적용했다.** B 가 지적한 결함의 한 층 아래가 그대로 남아 있었다",
-      "removed_stale": {
-        "delta_section_coverage": {
-          "at_kst": "2026-08-28T05:10:00+09:00",
-          "delta_sections": 38,
-          "uncovered": []
-        },
-        "alias_specificity": {
-          "at_kst": "2026-08-28T06:06:00+09:00",
-          "aliases_checked": 157,
-          "corpus_hits": 0,
-          "hit_list": []
-        }
-      }
+     "at_kst": "2026-08-28T06:06:00+09:00",
+     "aliases_checked": 157,
+     "corpus_hits": 0,
+     "hit_list": []
     }
-  },
-  "alias_rules": {
-    "what_qualifies": "별칭은 **그 판정이 실제로 다른 곳에서 불리는 형태**여야 한다. id 에서 기계적으로 잘라낸 조각은 별칭이 아니다",
-    "criterion": "**모양이 아니라 특정성이다.** 별칭은 판정과 무관한 산문에서 발화하지 않아야 한다",
-    "test_not_heuristic": "길이·대소문자 같은 모양 규칙은 **대리 지표**다. 실제 기준은 대조 말뭉치 매칭 여부이며, 그것을 self_check 로 돌린다",
-    "why_shape_was_wrong": "Δ25 의 '소문자 단일어 길이 6 이하' 규칙은 `coverage` · `manifest` · `container` · `strategy` · `evidence` 를 **전부 통과시킨다**(A 실측). 현재 별칭 집합이 우연히 깨끗할 뿐 규칙이 틀렸다. D-V3-FACT_CORRECTION-004 가 '모양이 아니라 특정성' 이라고 짚었다",
-    "matching": "**토큰 경계 매칭.** 부분일치 금지",
-    "control_corpus": "The scan of a database and a cache did not detect any drift; C and D reviewed the auth flow and the vr module, then skipped the domax step. A fix was applied. The runner merges each lane and reports coverage of the manifest. A container holds the session driver and the collector; the binder proposes candidates and the strategy selects one. Tests pass, tests skip, and the report lists every failure with a reason. The index declares aliases for each ruling. Evidence is frozen, hashes are recorded, and the gate verifies the schema before any collection begins. 수집기는 후보를 바인딩하고 경로를 동결한 뒤 재생한다. 관측 행은 증거와 해시를 함께 담는다.",
-    "ghost_alias_rule": "delta 어디에도 등장하지 않는 서술 별칭은 **A 가 지어낸 이름**이지 실제 참조 형태가 아니다(Δ25 기준). 색인에 두지 않는다",
-    "removed_ghosts_v19": {
-      "Δ9": [
-        "activation_depth 귀속"
-      ],
-      "Δ14-auth": [
-        "auth_gate_stage 위치규칙"
-      ],
-      "Δ12-C": [
-        "C divergence 분류"
-      ],
-      "Δ5-vr": [
-        "VALIDITY_RISK 우선순위"
-      ],
-      "Δ2-skip": [
-        "reserve 순서 건너뜀"
-      ],
-      "Δ21": [
-        "색인 유지"
-      ],
-      "Δ29": [
-        "대칭 해석 금지"
-      ]
-    }
-  },
-  "container_sections": {
-    "list": [
-      "Δ1",
-      "Δ6",
-      "Δ8",
-      "Δ10",
-      "Δ12",
-      "Δ13",
-      "Δ14",
-      "Δ15",
-      "Δ17",
-      "Δ18",
-      "Δ19",
-      "Δ22",
-      "Δ24"
-    ],
-    "rule": "이 절들은 **자식 행을 담는 컨테이너**다. 자체 index 행을 갖지 않으며 자식이 색인에 있으면 충족이다. 소비자는 이것을 미수록으로 보고하지 않는다",
-    "origin": "D-V3-FINDING-012 — A 의 소비자 규칙을 그대로 구현하면 컨테이너 절이 미수록으로 나온다"
-  },
-  "denominator_notes": {
-    "mobile_web_eligibility_82": "C 실측 '필드 82개 전부 PRECHECK_REQUIRED' 의 82 는 **target 82개가 아니라 50(targets) + 31(replacement_reserve) + 1(frame 수준 필드)** 이다. D 가 재현하며 분해했다(D-V3-FINDING-014). **target 분모는 50 이다**"
-  },
-  "split_rows": {
-    "map": {
-      "Δ8-R3a": "Δ8-R3",
-      "Δ8-R3b": "Δ8-R3",
-      "Δ10-R13a": "Δ10-R13",
-      "Δ10-R13b": "Δ10-R13"
-    },
-    "rule": "**분할 행은 부모 delta 절을 상속한다.** `Δn-Rm` 하나의 판정을 색인에서 `Δn-Rma`/`Δn-Rmb` 로 쪼갠 것이며(Δ20 — 한 행은 한 시점에 검사 가능해야 한다), 자체 delta 절을 갖지 않는다",
-    "consumer_rule": "index→delta 도달성 검사에서 분할 행은 **부모 절 존재로 충족**이다. 이것은 `container_sections` 의 역방향 대응물이다",
-    "why_declared": "v16 에서 C 가 도달 불가 11건을 보고했고 v17 에서 0 이 됐다. **그러나 그 해소는 구조가 아니라 산문 우연이다** — A 가 Δ33 본문 표에 `Δ32-R29` 등을 쓴 덕에 토큰이 등장했을 뿐이다. 다음에 A 가 그런 언급을 하지 않으면 다시 도달 불가가 된다. **우연에 기대지 않도록 선언한다**"
+   }
   }
+ },
+ "alias_rules": {
+  "what_qualifies": "별칭은 **그 판정이 실제로 다른 곳에서 불리는 형태**여야 한다. id 에서 기계적으로 잘라낸 조각은 별칭이 아니다",
+  "criterion": "**모양이 아니라 특정성이다.** 별칭은 판정과 무관한 산문에서 발화하지 않아야 한다",
+  "test_not_heuristic": "길이·대소문자 같은 모양 규칙은 **대리 지표**다. 실제 기준은 대조 말뭉치 매칭 여부이며, 그것을 self_check 로 돌린다",
+  "why_shape_was_wrong": "Δ25 의 '소문자 단일어 길이 6 이하' 규칙은 `coverage` · `manifest` · `container` · `strategy` · `evidence` 를 **전부 통과시킨다**(A 실측). 현재 별칭 집합이 우연히 깨끗할 뿐 규칙이 틀렸다. D-V3-FACT_CORRECTION-004 가 '모양이 아니라 특정성' 이라고 짚었다",
+  "matching": "**토큰 경계 매칭.** 부분일치 금지",
+  "control_corpus": "The scan of a database and a cache did not detect any drift; C and D reviewed the auth flow and the vr module, then skipped the domax step. A fix was applied. The runner merges each lane and reports coverage of the manifest. A container holds the session driver and the collector; the binder proposes candidates and the strategy selects one. Tests pass, tests skip, and the report lists every failure with a reason. The index declares aliases for each ruling. Evidence is frozen, hashes are recorded, and the gate verifies the schema before any collection begins. 수집기는 후보를 바인딩하고 경로를 동결한 뒤 재생한다. 관측 행은 증거와 해시를 함께 담는다.",
+  "ghost_alias_rule": "delta 어디에도 등장하지 않는 서술 별칭은 **A 가 지어낸 이름**이지 실제 참조 형태가 아니다(Δ25 기준). 색인에 두지 않는다",
+  "removed_ghosts_v19": {
+   "Δ9": [
+    "activation_depth 귀속"
+   ],
+   "Δ14-auth": [
+    "auth_gate_stage 위치규칙"
+   ],
+   "Δ12-C": [
+    "C divergence 분류"
+   ],
+   "Δ5-vr": [
+    "VALIDITY_RISK 우선순위"
+   ],
+   "Δ2-skip": [
+    "reserve 순서 건너뜀"
+   ],
+   "Δ21": [
+    "색인 유지"
+   ],
+   "Δ29": [
+    "대칭 해석 금지"
+   ]
+  }
+ },
+ "container_sections": {
+  "list": [
+   "Δ1",
+   "Δ6",
+   "Δ8",
+   "Δ10",
+   "Δ12",
+   "Δ13",
+   "Δ14",
+   "Δ15",
+   "Δ17",
+   "Δ18",
+   "Δ19",
+   "Δ22",
+   "Δ24"
+  ],
+  "rule": "이 절들은 **자식 행을 담는 컨테이너**다. 자체 index 행을 갖지 않으며 자식이 색인에 있으면 충족이다. 소비자는 이것을 미수록으로 보고하지 않는다",
+  "origin": "D-V3-FINDING-012 — A 의 소비자 규칙을 그대로 구현하면 컨테이너 절이 미수록으로 나온다"
+ },
+ "denominator_notes": {
+  "mobile_web_eligibility_82": "C 실측 '필드 82개 전부 PRECHECK_REQUIRED' 의 82 는 **target 82개가 아니라 50(targets) + 31(replacement_reserve) + 1(frame 수준 필드)** 이다. D 가 재현하며 분해했다(D-V3-FINDING-014). **target 분모는 50 이다**"
+ },
+ "split_rows": {
+  "map": {
+   "Δ8-R3a": "Δ8-R3",
+   "Δ8-R3b": "Δ8-R3",
+   "Δ10-R13a": "Δ10-R13",
+   "Δ10-R13b": "Δ10-R13"
+  },
+  "rule": "**분할 행은 부모 delta 절을 상속한다.** `Δn-Rm` 하나의 판정을 색인에서 `Δn-Rma`/`Δn-Rmb` 로 쪼갠 것이며(Δ20 — 한 행은 한 시점에 검사 가능해야 한다), 자체 delta 절을 갖지 않는다",
+  "consumer_rule": "index→delta 도달성 검사에서 분할 행은 **부모 절 존재로 충족**이다. 이것은 `container_sections` 의 역방향 대응물이다",
+  "why_declared": "v16 에서 C 가 도달 불가 11건을 보고했고 v17 에서 0 이 됐다. **그러나 그 해소는 구조가 아니라 산문 우연이다** — A 가 Δ33 본문 표에 `Δ32-R29` 등을 쓴 덕에 토큰이 등장했을 뿐이다. 다음에 A 가 그런 언급을 하지 않으면 다시 도달 불가가 된다. **우연에 기대지 않도록 선언한다**"
+ }
 }
