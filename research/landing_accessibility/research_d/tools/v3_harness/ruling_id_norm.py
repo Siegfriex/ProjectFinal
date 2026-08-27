@@ -36,10 +36,21 @@ DEFAULT_INDEX = Path(
     "/research/landing_accessibility/control/v3/V3_RULING_INDEX.json"
 )
 
-# 별칭이 텍스트 검색에 쓰이려면 id 형태여야 한다. 색인에는 서술형 별칭
-# ('색인 유지')과 한 글자 조각('a','b')이 섞여 있는데, 그대로 정규식에 넣으면
-# 문서 전체에 걸린다. 버리되 **버린 것을 결과에 남긴다** — 조용한 절단 금지.
-_USABLE = re.compile(r"^[A-Za-zΔ0-9][A-Za-zΔ0-9\-_.]{1,}$")
+# 별칭을 **모양**으로 거르면 안 된다. 실제 위험은 모양이 아니라 **특정성**이다.
+#
+# 처음 이 모듈은 id 형태(`^[A-Za-zΔ0-9…]$`)가 아닌 별칭을 전부 버렸다. 근거는
+# 한 글자 별칭 `a`·`b`·`C` 가 아무 문서에서나 발화한다는 것이었고 그건 맞다.
+# 그러나 `DOM/AX 불일치` 같은 서술형 별칭은 정반대다 — 공백·`/`·한글이 섞여
+# **극도로 특정하다.** 그것을 버리면 실재하는 도달 경로를 없앤다.
+#
+# 실제로 그랬다: C 가 8/56 을 얻고 D 가 9/56 을 얻어 `Δ15-domax` 하나가 갈렸다.
+# delta 원문에 `DOM/AX 불일치` 가 그대로 있다. **C 가 옳고 D 가 틀렸다.**
+#
+# 그래서 기준을 길이로 바꾼다. 그리고 매칭 방식을 별칭마다 나눈다:
+#   id 형태  → 단어경계 정규식 (R1 이 R11 에 걸리지 않게)
+#   서술형   → 원문 그대로의 부분문자열 (한글·기호에는 단어경계가 안 맞는다)
+_ID_LIKE = re.compile(r"^[A-Za-zΔ0-9][A-Za-zΔ0-9\-_.]{1,}$")
+_MIN_LEN = 2   # 한 글자 별칭만 버린다 — A 가 Δ24 에서 제거한 그 형태
 
 
 class Index:
@@ -58,7 +69,7 @@ class Index:
             rid = r["id"]
             keep, drop = [], []
             for a in [rid, *r.get("aliases", [])]:
-                (keep if _USABLE.match(a) else drop).append(a)
+                (keep if len(a) >= _MIN_LEN else drop).append(a)
             self.tokens[rid] = sorted(set(keep))
             if drop:
                 self.dropped[rid] = drop
@@ -82,10 +93,18 @@ class Index:
         vs = self.variants(rid)
         if not vs:
             return None
-        return any(
-            re.search(r"(?<![A-Za-z0-9])" + re.escape(v) + r"(?![A-Za-z0-9])", text)
-            for v in vs
-        )
+        return any(self._hit(v, text) for v in vs)
+
+    @staticmethod
+    def _hit(token: str, text: str) -> bool:
+        """id 형태는 단어경계로, 서술형은 원문 그대로 찾는다."""
+        if _ID_LIKE.match(token):
+            return bool(re.search(r"(?<![A-Za-z0-9])" + re.escape(token)
+                                  + r"(?![A-Za-z0-9])", text))
+        return token in text
+
+    def match_mode(self, token: str) -> str:
+        return "word_boundary" if _ID_LIKE.match(token) else "verbatim_substring"
 
 
 _default: Index | None = None

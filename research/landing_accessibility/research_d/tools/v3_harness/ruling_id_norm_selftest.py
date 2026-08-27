@@ -40,6 +40,10 @@ POSITIVE = [           # (id, 티켓/문서가 쓰는 표기) — 걸려야 한�
     ("Δ18-R20", "R20"),
     ("Δ19-R8", "R8"),
     ("Δ10-R13a", "Δ10-R13a"),
+    # 서술형 별칭 경로 — C 가 8/56, D 가 9/56 을 얻어 갈렸던 그 행이다.
+    # D 가 모양으로 걸러 이 경로를 없앴다. 공백·`/`·한글이 섞인 별칭은
+    # id 형태가 아니라서 버려졌는데, 실은 **가장 특정한** 별칭이다.
+    ("Δ15-domax", "DOM/AX 불일치"),
 ]
 NEGATIVE = [           # (id, 표기) — 걸리면 안 된다.
     # 전부 v2 가 실제로 틀린 지점이다. v2 는 bare `Δn` id 에 `Rn` 을 발명했고,
@@ -83,6 +87,19 @@ def main() -> int:
         print(f"  {'OK ' if ok else 'FAIL'} {rid:<12} ↛ {tok:<10} present={got}   "
               f"(v2={'걸렸음 → 이 음성대조는 실효' if old else '안 걸림'})   "
               f"주인={idx.resolve(tok)}")
+
+    print("\n[서술형 별칭] 무관한 영문 문단에서 발화하지 않는가 (B 의 음성대조)")
+    NEG_DOC = ("This document describes a build pipeline. It has a cache, "
+               "b-tree indexes, and c-style comments. Contact plane C for details.")
+    fired = [r["id"] for r in idx.rows if idx.present(r["id"], NEG_DOC)]
+    ok = not fired
+    fail += not ok
+    print(f"  {'OK ' if ok else 'FAIL'} present {len(fired)}/{len(idx.rows)}  {fired}")
+
+    print("\n[매칭 방식] 별칭별로 무엇을 쓰는가")
+    from collections import Counter
+    modes = Counter(idx.match_mode(t) for ts in idx.tokens.values() for t in ts)
+    print("  ", dict(modes))
 
     print("\n[UNKNOWN] 색인에 없는 id 는 False 가 아니라 None")
     got = idx.present("Δ999-R99", "아무 본문")
