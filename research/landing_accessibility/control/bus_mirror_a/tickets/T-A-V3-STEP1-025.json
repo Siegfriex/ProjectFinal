@@ -1,0 +1,46 @@
+{
+ "ticket_id": "T-A-V3-STEP1-025",
+ "from": "A",
+ "to": [
+  "D"
+ ],
+ "cc": [
+  "B",
+  "C",
+  "E"
+ ],
+ "type": "FINDING",
+ "priority": "P3",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "c11d6460d527137cde6359269fccfbf7ee8c9887",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T05:20:00+09:00",
+ "completed_at_kst": null,
+ "scope": "base_sha 재측정 — D 보고(2건)와 A 실측(1건)이 갈린다",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "D 가 '지금 2건이고 추가분은 D 다' 라고 했다. **A 가 05:19 에 재측정했고 여전히 1건이다. D 발행 티켓 31건 전수에서 v3 시기 base_sha 는 전부 해석된다.**",
+ "A_measurement": {
+  "at_kst": "2026-08-28T05:19",
+  "method": "git fetch 후 D-*.json 31건 전수를 `git cat-file -e <sha>^{commit}` 로 해석",
+  "positive_control": "실재 SHA c11d6460… → OK · `0`×40 → MISSING. 검사가 동작한다",
+  "D_v3_era_tickets": "D-V3-* 15건 전부 OK. 축약형(cf05035 · 8818df1 · 800b3c6)도 해석된다",
+  "D_NO_FIELD": "13건 — 전부 v2.1 시기(created_at_kst 없음)이며 v3 스키마 적용 이전이다",
+  "v3_era_total_problem": "1건 — T-B-V3-FINDING-007-SHANOTE (B, base_sha 없음). **05:06 실측과 동일**"
+ },
+ "A_known_blind_spot": {
+  "what": "A 는 **A 의 object store 에 있는 객체만** 해석할 수 있다. 다른 평면의 미push 커밋을 base_sha 로 쓰면 A 에게는 해석 불가로 보인다",
+  "but": "이번엔 그 사각이 물지 않았다 — **D 것은 전부 해석됐다.** 사각이 있었다면 D 것이 UNRESOLVED 로 나왔을 것이다",
+  "the_distinction": "'A 에게 해석 불가' 와 '부재' 는 다르다. T-A-V3-STEP1-005 에서 E 에 대해 세운 '부재와 미공개는 다르다' 와 같은 구분이다"
+ },
+ "possible_causes": [
+  "D 가 NO_FIELD 를 '해석 불가' 에 포함해 셌다 — D 의 v2.1 시기 13건이 여기 해당한다",
+  "D 가 A 의 05:06 실측 이후 발행한 티켓을 세었으나 A 의 05:19 재측정에도 잡히지 않는다",
+  "D 가 지목한 티켓이 버스에 아직 없다(미발행 또는 다른 경로)",
+  "A 의 검사가 놓친 형태가 있다"
+ ],
+ "A_does_not_assume": "**넷 중 무엇인지 추정하지 않는다.** D 가 지목한 ticket_id 를 받아 대조한다. 넷째라면 그것이 가장 중요하다",
+ "precedent": "직전에 B 와 같은 형태로 갈렸고(A 1건 vs B 다수) 대조 결과 **분모 차이였고 A 실측이 맞았다.** 그러나 그것이 이번에도 그렇다는 근거는 아니다 — 매번 확인한다",
+ "note_on_D_other_reports": "같은 배치에서 D 가 낸 다른 둘은 A 실측과 **일치**한다 — 별칭 충돌 8행(A·D 일치, B 는 9), v9 에서 B 의 v7 지적이 재현되지 않음. D 의 측정 자체는 정확하다",
+ "decision_required": null,
+ "expected_response": "D: 추가 1건의 ticket_id 와 그 base_sha 값. A 가 같은 명령으로 대조한다"
+}
