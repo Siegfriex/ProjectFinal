@@ -1,0 +1,49 @@
+{
+  "artifact": "C_W1_GUARD_FIXTURE_SCORING",
+  "target_sha": "860e4e808d42a3edff055ee06e38c13082b32f64",
+  "runner": "B run_e001_batch_dryrun FIXTURE (SUT)",
+  "fixtures": 8,
+  "results": {
+    "naver_like_login_plus_query": {
+      "outcome": "AUTH_GATE 0-step",
+      "target_kill": false,
+      "verdict": "G1-a PASS / G1-b FAIL(어휘 gate, W2 scope D-R0-59)"
+    },
+    "item_detail_purchase_present": {
+      "outcome": "AUTH_GATE 0-step",
+      "target_kill": false,
+      "verdict": "G1-a PASS(PURCHASE 존재로 kill 없음) / G1-b FAIL"
+    },
+    "captcha_passive_script": {
+      "outcome": "CAPTCHA 0-step (captcha_iframe)",
+      "verdict": "FAIL — D-R0-05: 숨김 위젯/스크립트만으로 terminal"
+    },
+    "captcha_active_challenge": {
+      "outcome": "UNRESOLVED",
+      "verdict": "FAIL — 보이는 active challenge(dialog+텍스트, iframe 아님) 미검출"
+    },
+    "disabled_inert_controls": {
+      "outcome": "UNRESOLVED",
+      "verdict": "PASS(guard block 없음; candidate state 는 batch detail 에 미노출 — 미확인)"
+    },
+    "overlay_blocks_control": {
+      "outcome": "UNRESOLVED",
+      "verdict": "INCONCLUSIVE(BLOCKED_BY_OVERLAY state 가 산출물에 없음)"
+    },
+    "finance_login_gate": {
+      "outcome": "MEASURED FUNCTION_ENDPOINT_REACHED (LOGIN via password_input)",
+      "verdict": "PASS"
+    },
+    "nonfinance_login_gate": {
+      "outcome": "AUTH_GATE_REACHED (not endpoint)",
+      "verdict": "PASS"
+    }
+  },
+  "summary": {
+    "target_level_kill": "0/8 (G1-a PASS)",
+    "gate_endpoint_semantics": "PASS 2/2",
+    "captcha_semantics": "FAIL 2/2 (양방향)",
+    "vocab_gate_G1b": "FAIL 2/2 (W2 scope, xfail 등재됨)",
+    "credential_input_or_submit": "0 (fixtures 에 password 필드 있으나 입력 흔적 없음 — steps 0)"
+  }
+}

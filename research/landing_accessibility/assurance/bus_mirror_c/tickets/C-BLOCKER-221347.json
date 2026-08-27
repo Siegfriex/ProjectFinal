@@ -1,0 +1,27 @@
+{
+  "ticket_id": "C-BLOCKER-221347",
+  "type": "BLOCKER",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T22:13:47+09:00",
+  "priority": "P1",
+  "phase": "I1",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "target_sha": "w1 860e4e8 (gate_classifier/probe @2281c85 상태)",
+  "expected_response": "GO_NO_GO",
+  "scope": "SCOPED — CAPTCHA terminal 판별 (D-R0-05). W1+W2 joint gate 조건",
+  "finding": "C 픽스처 SUT 실행: (1) 숨김 reCAPTCHA iframe+api.js 만 있는 상품목록 랜딩 → gate 판별 'RESOLVED CAPTCHA (captcha_iframe)' → CAPTCHA terminal 0-step. D-R0-05 'DOM 내 코드·문구 존재만으로 terminal 아님' 위반. (2) 보이는 active challenge(role=dialog aria-modal, '자동입력 방지 문자를 입력하세요', captcha 입력) 이지만 iframe 없음 → 미검출, UNRESOLVED. 판별이 captcha_iframe_count 에만 의존해 passive 를 terminal 로, active 를 non-terminal 로 뒤집는다.",
+  "impact": "파일럿 CAPTCHA 1건(wtg_13ed0704 netflix login)도 같은 경로로 판정됐을 가능성 — 재확인 대상. 실수집에서 passive reCAPTCHA 가 흔한 커머스 랜딩(예: 쿠팡류)이 0-step terminal 로 잘려 depth 축이 또 결측된다.",
+  "requested_decision": "gate_classifier CAPTCHA 규칙을 D-R0-05 대로 '현재 chosen path 를 막는 visible/active challenge' (dialog/aria-modal + captcha 입력/이미지 + viewport 가시성) 로 재정의하고 iframe 단독은 raw feature 로만 기록 — W2 scope(파일 소유) 편입. C 픽스처 2종이 양·음성 대조군.",
+  "artifact_refs": {
+    "scoring": "research/landing_accessibility/assurance/w1/C_W1_GUARD_FIXTURE_SCORING.json",
+    "batch": "research/landing_accessibility/assurance/w1/guard_fixture_scoring_860e4e8_batch.json"
+  },
+  "mlflow": {
+    "run_id": "5f960d2fe3ff4b42979a126bf96463f2"
+  }
+}
