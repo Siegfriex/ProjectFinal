@@ -104,7 +104,10 @@ def main(a):
         for col in ("dom_path", "ax_path", "screenshot_path", "probe_path"):
             c_ = _col(flo, col)
             if c_ is None: add("C2", "MART_L0_COVERAGE_COL_MISSING", f"fact_landing_observation lacks {col}")
-            elif flo[c_].isna().any(): add("C1", "MART_L0_COVERAGE_NULL", f"{int(flo[c_].isna().sum())} rows with null {col}")
+            else:
+                ms = _col(flo, "measurement_status"); bad = flo[flo[c_].isna() & (flo[ms] == "MEASURED")] if ms else flo[flo[c_].isna()]
+                if len(bad): add("C1", "MART_L0_COVERAGE_NULL", f"{len(bad)} MEASURED rows with null {col}")
+                elif flo[c_].isna().any(): add("C2", "MART_L0_PATH_NULL_ON_FAILED", f"{int(flo[c_].isna().sum())} rows null {col} — all measurement_status != MEASURED (consistent)")
     else: acc1 = {"mart_rows": None}
     manifest_path = pathlib.Path(a.manifest) if a.manifest else pathlib.Path(a.mart_dir) / "FROZEN_MART_MANIFEST.json"
     if not manifest_path.is_file(): manifest_path = pathlib.Path(a.mart_dir).parent / "FROZEN_MART_MANIFEST.json"
