@@ -4,7 +4,7 @@
 Ticket files are never modified. ACK and results go to completions/ as separate files.
 """
 from __future__ import annotations
-import json, sys, datetime, pathlib
+import json, hashlib, sys, datetime, pathlib
 
 BUS = pathlib.Path("/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2")
 TICKETS = BUS / "tickets"
@@ -45,9 +45,14 @@ def _write(path: pathlib.Path, obj: dict) -> pathlib.Path:
 
 def ack(ticket: dict, note: str = "") -> pathlib.Path:
     tid = ticket.get("ticket_id") or ticket.get("id") or pathlib.Path(ticket["_file"]).stem
-    obj = {"kind": "ACK", "from": "C", "ticket_id": tid, "ticket_file": ticket["_file"],
+    _tf = TICKETS / ticket["_file"].split("/")[-1] if not str(ticket["_file"]).startswith("acks/") and not str(ticket["_file"]).startswith("completions/") else BUS / ticket["_file"]
+    _sha = hashlib.sha256(_tf.read_bytes()).hexdigest() if _tf.exists() else None
+    obj = {"kind": "ACK", "from": "C", "ticket_id": tid, "ticket_file": ticket["_file"], "ticket_sha256": _sha,
            "ticket_type": ticket.get("type") or ticket.get("kind"), "acked_at": now(), "note": note}
-    p = _write(ACKS / f"{tid}.C.json", obj); _log("ACK", ticket_id=tid); return p
+    _ap = ACKS / f"{tid}.C.json"; _seq = 0
+    while _ap.exists():
+        _seq += 1; _ap = ACKS / f"{tid}.C-{_seq}.json"  # immutable: re-ACK creates a new file, never overwrites
+    p = _write(_ap, obj); _log("ACK", ticket_id=tid); return p
 
 def complete(ticket: dict, result_type: str, payload: dict, to=("A", "B")) -> pathlib.Path:
     tid = ticket.get("ticket_id") or ticket.get("id") or pathlib.Path(ticket["_file"]).stem

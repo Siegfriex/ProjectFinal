@@ -9,7 +9,8 @@ def scan(bus_dir: str, plane: str = "C") -> dict:
     tdir = os.path.join(bus_dir, "tickets"); adir = os.path.join(bus_dir, "acks")
     acked = {os.path.basename(p)[: -len(f".{plane}.json")] for p in glob.glob(os.path.join(adir, f"*.{plane}.json"))}
     files = sorted(glob.glob(os.path.join(tdir, "*.json")))
-    pending, errors = [], []
+    pending, errors, changed, unrecorded = [], [], [], []
+    import hashlib
     for p in files:
         tid = os.path.basename(p)[:-5]
         try:
@@ -18,6 +19,15 @@ def scan(bus_dir: str, plane: str = "C") -> dict:
             errors.append({"file": os.path.basename(p), "error": f"{type(e).__name__}: {e}"[:120]}); continue
         to = d.get("to"); to = [to] if isinstance(to, str) else (to or [])
         cc = d.get("cc"); cc = [cc] if isinstance(cc, str) else (cc or [])
+        if (plane in to or plane in cc) and d.get("from") != plane and tid in acked:
+            # D-DEF-13 class: bind ACK to ticket bytes
+            cur = hashlib.sha256(open(p, "rb").read()).hexdigest()
+            for ap in sorted(glob.glob(os.path.join(adir, f"{tid}.{plane}*.json"))):
+                try: a = json.load(open(ap, encoding="utf-8"))
+                except Exception: continue
+                s_ = a.get("ticket_sha256")
+                if s_ is None: unrecorded.append(tid)
+                elif s_ != cur: changed.append({"ticket_id": tid, "ack": os.path.basename(ap), "acked_sha": s_[:12], "current_sha": cur[:12]})
         if (plane in to or plane in cc) and d.get("from") != plane and tid not in acked:
             pending.append({"ticket_id": tid, "from": d.get("from"), "type": d.get("type"), "priority": d.get("priority"), "via": "to" if plane in to else "cc"})
     # T-A-V3-STEP1-008 forward rule: no ACK/completion without a ticket file (v3-era only, checked by mtime >= cutoff)
@@ -36,6 +46,6 @@ def scan(bus_dir: str, plane: str = "C") -> dict:
                 ts = ""
             if ts >= "2026-08-28T02:12:00":  # v3 adoption (T-A-V3-P0-001); string compare on ISO-KST is monotonic here
                 dangling.append({"file": f"{sub}/{os.path.basename(p2)}", "missing_ticket": tid})
-    return {"scanned": len(files), "pending": pending, "parse_errors": errors, "dangling_refs_v3_era": dangling, "status": "PARSE_ERRORS_PRESENT" if errors else "OK"}
+    return {"scanned": len(files), "pending": pending, "parse_errors": errors, "dangling_refs_v3_era": dangling, "content_changed_after_ack": changed, "acked_sha_unrecorded_n": len(set(unrecorded)), "status": "PARSE_ERRORS_PRESENT" if errors else "OK"}
 if __name__ == "__main__":
     print(json.dumps(scan(sys.argv[1] if len(sys.argv) > 1 else "/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2"), ensure_ascii=False, indent=1))

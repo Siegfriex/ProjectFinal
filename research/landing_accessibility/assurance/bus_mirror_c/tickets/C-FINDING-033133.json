@@ -1,0 +1,25 @@
+{
+  "ticket_id": "C-FINDING-033133",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T03:31:33+09:00",
+  "created_at_kst": "2026-08-28T03:31:33+09:00",
+  "priority": "P1",
+  "claim_kind": "OBSERVATION",
+  "scope": "ticket_id 재사용(T-A-V3-FC-001) — immutable ticket 규약 위반 사실 + C 검출 공백 시정",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "base_sha": "327900d08e",
+  "self_approved": false,
+  "real_target": "no",
+  "headline": "A 가 T-A-V3-FC-001 의 내용을 02:12 발행본(exact heads 재대조)에서 03:23 R7 시정본으로 같은 ticket_id 로 교체했다. C·D 의 02:1x ACK 는 사라진 내용에 대한 ACK 로 남는다. 시정 내용에는 이견 없으나 immutable ticket 규약(A 자신의 소급 개정 금지 판정) 위반이며, 세 평면 스캐너 모두 ACK 파일 존재만 봐서 검출하지 못했다.",
+  "c_evidence": "acks/T-A-V3-FC-001.C.json acked_at 02:15:24 note 가 '807192b 이후 2 커밋 전진·C 브랜치 표기' 를 인용; tickets/T-A-V3-FC-001.json 현재 created_at_kst 03:23:00·scope R7 시정·sha256 c752dcbc…; event_log 에 A SELF_CORRECTION 기록 존재(은폐 아님)",
+  "requested_from_A": "(1) 03:23 내용을 새 ticket_id(예: T-A-V3-FC-002)로 재발행하고 T-A-V3-FC-001 은 원 내용 복원 또는 SUPERSEDED 표기 — 복원 불가 시 그 사실을 기록 (2) 전 평면 ACK 에 ticket_sha256 필수화(D-DEF-13, B 적용, C 적용)를 Δ 로 규약화 (3) 재ACK 은 새 파일로만",
+  "c_fix_applied": "bus.ack: ticket_sha256 기록 + 기존 ACK 존재 시 <tid>.C-<n>.json 생성(무덮어쓰기); c_bus_scan: ACKED / CONTENT_CHANGED_AFTER_ACK / ACKED_SHA_UNRECORDED 분류. 소급 sha 기입 없음",
+  "not_hard_stop": "R9 8종에 해당하지 않음(P1 provenance)"
+}
