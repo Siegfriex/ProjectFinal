@@ -82,7 +82,7 @@ def main(a):
             for trig, comp, note in AXIS_C_CHECKS:
                 if re.search(trig, s, re.I) and not re.search(comp, s, re.I): issues.append(f"AXIS_C: {note}")
             # A 14:21: '0건' must be written as 'N건 중 0건' — bare zero reads as 'not measured'
-            if re.search(r"(?<![\d/])0\s*건", s) and not re.search(r"\d+\s*건\s*(중|가운데|에서)\s*0\s*건|0\s*/\s*\d+|\d+\s*(건|개)\s*(을|를)?\s*시도", s): issues.append("분모 없는 '0건' — 'N건 중 0건' 으로")
+            if re.search(r"(?<![\d/])0\s*건", s) and not re.search(r"\d+\s*건\s*(중|가운데|에서)\s*0\s*건|0\s*/\s*\d+|\d+\s*(건|개)[^.]{0,25}시도", s): issues.append("분모 없는 '0건' — 'N건 중 0건' 으로")
             nums = numbers_in(s) - {"2026", "08", "27", "2", "1"}
             unmatched = sorted(n for n in nums if n not in ref and not re.match(r"^\d{1,2}$", n) is None and n not in ref)
             unmatched = sorted(n for n in nums if n not in ref)
