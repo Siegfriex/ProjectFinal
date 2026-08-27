@@ -138,6 +138,12 @@ def run_l1_if_safe_real(
             "scout_invoked": False,
             "blocked_category": risk.category,
             "blocked_reason": risk.reason,
+            # A `C-FINDING-001512.A` — 이 차단을 유발한 candidate state (`DISABLED_OR_INERT` 인지
+            # `FORBIDDEN_TRANSACTION`/`FORBIDDEN_CREDENTIAL_INPUT` 계열인지)를 terminal/outcome
+            # 레코드에 함께 남긴다 — `ACCOUNT_ACTION_BLOCKED` 하나가 "위험해서"와 "아무것도
+            # 조작 가능하지 않아서"를 뭉뚱그리지 않도록(이 세션의 G1-b와 같은 형태가 outcome
+            # 어휘에서 재발하지 않게, `guard.ActionRisk.blocking_state` 참고).
+            "blocked_state": risk.blocking_state,
             "candidate_action_mask": assessment.as_dict(),
             "l0_observation_id": l0.get("observation_id"),
             "l0": l0,
