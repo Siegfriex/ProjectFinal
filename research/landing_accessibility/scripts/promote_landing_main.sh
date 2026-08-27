@@ -774,9 +774,19 @@ _AUDIT_BRANCH_NS = re.compile(r"^audit/landing-[A-Za-z0-9._/-]+$")
 
 
 def _resolve_branch_tip(where, br):
-    """감사 브랜치 하나의 원격 **실시간** tip. [AUDIT_ANCESTRY]/H-3 과 같은 원천·순서
-    (로컬 원격추적 ref 우선 → ls-remote) 를 쓴다. 로컬 origin/… 추적 ref 는 stale 할 수 있으므로
-    rev-parse 가 실패하면 ls-remote 로 다시 시도한다.
+    """감사 브랜치 하나의 원격 **실시간** tip. 원천은 `git ls-remote origin refs/heads/<br>`
+    **하나뿐**이며, [AUDIT_ANCESTRY] 블록(같은 파일)이 쓰는 것과 같은 호출이다.
+
+    V2-C015 시정 — adversarial V2-C014
+    `abrr-grant-branch-tip-resolved-from-locally-forgeable-tracking-ref` (P0, Category B).
+    이전 구현은 `refs/remotes/origin/<br>` 을 먼저 rev-parse 하고 **실패했을 때만** ls-remote 로
+    폴백했다. 로컬 원격추적 ref 는 push·자격증명·네트워크 없이 `git update-ref` 한 줄로 위조되므로,
+    dangling 커밋을 accepted_by_audit_sha 에 넣고 추적 ref 를 그 커밋으로 위조하면 조상 검사가
+    무오류 통과했다(감사 실측 RC=0). 종전 docstring 이 "[AUDIT_ANCESTRY] 와 같은 원천·순서" 라고
+    적은 것도 사실이 아니었다 — [AUDIT_ANCESTRY] 는 로컬 추적 ref 를 **아예 쓰지 않는다**.
+    이제 로컬 추적 ref 경로를 완전히 제거했고, ls-remote 가 비었거나 실패하면 폴백 없이
+    fail-closed die() 한다. tip 객체가 로컬에 없을 수 있으므로 [AUDIT_ANCESTRY] 와 같이
+    `git fetch origin refs/heads/<br>` 로 가져와 이후 조상 검사가 가능하게 한다.
 
     V2-C014 — audit_branch_tips() 와 top-level accepted_by_audit_branch(residual_in_force) 양쪽이
     이 함수 하나를 공유한다. 감사(V2-C013 §2)가 지적한 새 우회로는, top-level 필드가 이 조상 검증을
@@ -784,23 +794,24 @@ def _resolve_branch_tip(where, br):
     새 검증 알고리즘을 만들지 않고 이 함수를 재사용해 닫는다.
     """
     tip = ""
-    rp = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "--quiet",
-                         "refs/remotes/origin/%s^{commit}" % br], capture_output=True)
-    if rp.returncode == 0:
-        tip = rp.stdout.decode("utf-8", "replace").strip()
-    else:
-        lsr = subprocess.run(["git", "-C", repo, "ls-remote", "origin", "refs/heads/%s" % br],
-                             capture_output=True)
-        if lsr.returncode == 0 and lsr.stdout.strip():
-            tip = lsr.stdout.decode("utf-8", "replace").split("\t", 1)[0].strip()
+    lsr = subprocess.run(["git", "-C", repo, "ls-remote", "origin", "refs/heads/%s" % br],
+                         capture_output=True)
+    if lsr.returncode == 0 and lsr.stdout.strip():
+        tip = lsr.stdout.decode("utf-8", "replace").split("\t", 1)[0].strip()
     if not HEX40.match(tip or ""):
-        die("%s 의 감사 브랜치 origin/%s 의 tip 을 확인할 수 없다 — 계보를 확인할 수 없는 근거로는 "
-            "조건/수용을 승인할 수 없다 (fail-closed)" % (where, br))
+        die("%s 의 감사 브랜치 origin/%s 의 tip 을 ls-remote 로 확인할 수 없다 — 로컬 원격추적 ref 로 "
+            "폴백하지 않는다(위조 가능). 계보를 확인할 수 없는 근거로는 조건/수용을 승인할 수 없다 "
+            "(fail-closed)" % (where, br))
+    if subprocess.run(["git", "-C", repo, "fetch", "--quiet", "origin", "refs/heads/%s" % br],
+                      capture_output=True).returncode != 0:
+        die("%s 의 감사 브랜치 origin/%s 를 fetch 할 수 없다 — 원격 tip(%s) 객체가 없으면 조상 검사를 "
+            "수행할 수 없다 (fail-closed)" % (where, br, tip[:12]))
     return tip
 
 
 def audit_branch_tips():
-    """원장이 선언한 감사 브랜치의 tip. [AUDIT_ANCESTRY] 와 같은 원천을 쓴다."""
+    """원장이 선언한 감사 브랜치의 tip. _resolve_branch_tip() 을 통해 [AUDIT_ANCESTRY] 와 같은
+    ls-remote 원천을 쓴다 (V2-C015 이후 로컬 원격추적 ref 경로 없음)."""
     if _AUDIT_TIPS:
         return _AUDIT_TIPS
     for key in ("latest_adversarial_audit_branch", "latest_ssot_audit_branch"):
@@ -819,8 +830,8 @@ def declared_branch_tip(where, br):
     """finding 단위로 선언되는 임의 감사 브랜치(예: accepted_by_audit_branch)의 tip.
 
     audit_branch_tips() 가 두 표준 브랜치(latest_adversarial/ssot)에 대해 쓰는 것과
-    **정확히 같은** `_resolve_branch_tip()` 을 재사용한다 — 다른 캐시를 쓸 뿐 알고리즘은
-    하나다 (audit_branch_tips() 의 `if _AUDIT_TIPS: return` 단락평가와 섞이면 두 표준
+    같은 `_resolve_branch_tip()` 함수 객체를 호출한다 — 다른 캐시를 쓸 뿐 tip 해석 경로는
+    하나다(V2-C015 이후 ls-remote 전용) (audit_branch_tips() 의 `if _AUDIT_TIPS: return` 단락평가와 섞이면 두 표준
     브랜치가 아닌 값이 캐시를 오염시킬 수 있어 캐시만 분리했다).
     """
     if br not in _DECLARED_BRANCH_TIPS:
