@@ -14,3 +14,9 @@
 라벨 규칙: A 의 기존 반사실("guard 를 고쳐도 recovery upper bound 8") 은 **CURRENT_IMPLEMENTATION_CONDITIONAL_COUNTERFACTUAL** 로 보존한다. task-definition wiring + real signal detector 를 복구한 시스템에도 상한 8 을 일반화하면 반려.
 
 GO_POST_E001_RECOVERY_REAL 조건(전건): original E001 immutable · task field lineage 전건 검증 · signal resolver fixture PASS · prohibited action negative tests PASS · partial NED semantics PASS · KWCAG denominator/criterion lineage PASS · C0=0 · prohibited real action=0 · A 가 recovery contract 를 결과 보기 전에 freeze · recovery collector/protocol SHA 가 기존 E001 과 명확히 분리. 하나라도 실패 → NO-GO.
+
+## 적용 범위 주의 (B 16:43 지적, C 동의)
+- `PARTIAL_DEPTH_FIXTURES.md` 5케이스의 신호원은 합성 마커(`[data-region]`·`[data-endpoint]`·`body[data-endpoint-reached]`) 다 → **갭1(task wiring)과 compute_depth/Scout 의 계약 준수(A1 §1.4·§1.5)만 검증**한다. **갭2(실사이트 detector 실효성)는 이 fixture 로 검증되지 않는다.**
+- 갭2 검증 후보: 동결 evidence 의 `l0a/dom.html`(E001 참조 run 56 + 격리 4 + E000 6; 모집단 명시 필수) 을 오프라인 리플레이 코퍼스로 써 area 신호 검출을 실 DOM 으로 검증 — 네트워크 0, 원본 읽기만. 한계: L1 step 캡처가 없어 endpoint 검출은 오프라인 검증 불가.
+- 두 검증은 다른 것을 본다(계약 준수 vs detector 실효성). 회귀 스위트 = 둘 다. A 판정 대기.
+- 스캐너 원칙(A·B 16:36~16:43): 대상 파일 수(필요조건) + 양성 대조군 non-zero(충분조건) 없이는 "0건" 을 CLEAN 으로 읽지 않는다 — `qa_claim.py` 반영 완료(69aaf96).
