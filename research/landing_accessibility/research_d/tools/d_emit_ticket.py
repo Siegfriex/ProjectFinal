@@ -112,6 +112,43 @@ def _walk(o, p: str = ""):
         yield p, o
 
 
+def self_test() -> dict:
+    """발행 가드가 아직 무언가를 막고 있는가 — 매 발행마다 확인한다.
+
+    `emit()` 은 `check()` 만 믿는다. `check()` 가 조용히 통과하게 되면
+    (정규식 변경 · 예외 삼킴 · 리팩터링) **모든 불량 티켓이 그대로 나가고
+    출력은 지금과 똑같다.** 방화벽에서 발견한 것과 같은 형태이고,
+    B 가 T-B-V3-FINDING-010 에서 잡은 것과도 같다 —
+    **조용한 통과는 실패보다 오래 산다.**
+
+    고정 fixture 두 개를 매번 통과시킨다. 파일을 쓰지 않는다.
+    """
+    head = _sh("git", "rev-parse", "HEAD")
+    good = {"ticket_id": "D-SELFTEST-GOOD", "from": "D", "type": "FINDING",
+            "to": ["C"], "claim_kind": "OBSERVATION", "base_sha": head,
+            "limitation": "자체 대조군 fixture",
+            "artifact_refs": {"tool": "research/landing_accessibility/research_d/"
+                                      "tools/d_emit_ticket.py"}}
+    bad = {"ticket_id": "D-SELFTEST-BAD", "from": "D", "type": "FINDING",
+           "to": ["A"],                       # 라우팅 위반
+           "claim_kind": "OBSERVATION",
+           "base_sha": "0" * 40,              # 실재하지 않는 커밋
+           "measurement": {"n": 1},           # 측정인데 measured_at_kst 없음 (R26)
+           "evidence": ["results/__NO_SUCH_FILE__.json"]}  # 없는 경로
+    # limitation 도 없다 → 최소 5종이 걸려야 한다
+    g, b = check(good), check(bad)
+    expect = {"base_sha 가 실재": any("실재 커밋이 아니다" in e for e in b),
+              "to=[C] 라우팅": any("to=[C]" in e for e in b),
+              "limitation 필수": any("limitation" in e for e in b),
+              "R26 measured_at": any("measured_at_kst" in e for e in b),
+              "인용 경로 실재": any("인용 경로가" in e for e in b)}
+    ok = not g and all(expect.values())
+    return {"verdict": "PASS" if ok else "FAIL",
+            "good_fixture_errors": g,
+            "bad_fixture_caught": expect,
+            "why": "대조군이 실패하면 발행하지 않는다 — 못 막는 가드의 '오류 0' 은 0 이 아니다"}
+
+
 def emit(t: dict, *, dry_run: bool = False) -> dict:
     """검사를 통과하면 티켓을 쓰고 event_log 에 append 한다."""
     t = dict(t)
@@ -120,6 +157,12 @@ def emit(t: dict, *, dry_run: bool = False) -> dict:
     t.setdefault("created_at_kst", _sh("date", "-Iseconds"))
     t.setdefault("expected_response", "ACK")
     t.setdefault("not_a_verdict", "D 는 NON_CANONICAL. 조치·판정은 A 소관이다.")
+
+    st = self_test()
+    if st["verdict"] != "PASS":
+        return {"emitted": False,
+                "errors": ["발행 가드 자체 대조군 실패 — 티켓을 내보내지 않는다",
+                           json.dumps(st, ensure_ascii=False)]}
 
     errs = check(t)
     if errs:
@@ -170,4 +213,9 @@ def audit_emitted(v3_since: str = "2026-08-28T02:12") -> dict:
 
 
 if __name__ == "__main__":
-    print(json.dumps(audit_emitted(), ensure_ascii=False, indent=1))
+    import sys
+    if "--self-test" in sys.argv:
+        print(json.dumps(self_test(), ensure_ascii=False, indent=1))
+        raise SystemExit(0)
+    print(json.dumps({"self_test": self_test()["verdict"],
+                      "emitted_audit": audit_emitted()}, ensure_ascii=False, indent=1))

@@ -58,18 +58,23 @@ def main() -> int:
     doc = json.loads(idx.path.read_text(encoding="utf-8"))
     split = (doc.get("split_rows") or {}).get("map", {})
     heads_set = set(heads)
+
+    def reach(rid, tokens):
+        """A 가 선언한 세 경로만. 대조군도 이 함수를 탄다 (D-DEF-09)."""
+        if rid in heads_set:
+            return "a_delta_section_header"
+        if any(idx._hit(t, text) for t in tokens):
+            return "b_alias_token_boundary"
+        if rid in split:
+            parent = split[rid]
+            if parent in heads_set or idx._hit(parent, text):
+                return f"c_split_parent:{parent}"
+        return None
+
     b_hit, b_miss = [], []
     for r in idx.rows:
         rid = r["id"]
-        via = None
-        if rid in heads_set:
-            via = "a_delta_section_header"
-        elif idx.present(rid, text):
-            via = "b_alias_token_boundary"
-        elif rid in split:
-            parent = split[rid]
-            if parent in heads_set or idx._hit(parent, text):
-                via = f"c_split_parent:{parent}"
+        via = reach(rid, idx.variants(rid))
         rec = {"index_id": rid, "tokens": idx.variants(rid), "reachable_via": via}
         (b_hit if via else b_miss).append(rec)
 
@@ -79,13 +84,30 @@ def main() -> int:
         "index_rows": len(idx.rows),
         "positive_control": idx.present("Δ21", text),      # 반드시 True
         "negative_control": idx.present("Δ999-R99", text),  # 반드시 None
-        "reachability_control": ("Δ999-R99" not in set(heads)
-                                 and idx.present("Δ999-R99", text) is None),
+        # --- 판별 대조군 ---
+        # `Δ999-R99` 는 부모 절도 없어서 **좁은 규칙에서도 넓은 규칙에서도**
+        # 미도달이다. 그래서 두 규칙을 구분하지 못한다 (D-V3-FINDING-015).
+        # 부모 절이 **존재하는** 가짜 자식이라야 갈린다:
+        #   선언된 (a)(b)(c) 규칙  → 미도달
+        #   authority/부모 상속 규칙 → 도달
+        # 이 도구는 선언된 규칙을 구현하므로 미도달이어야 한다. 도달로 나오면
+        # 구현이 조용히 넓어진 것이다.
+        "discriminating_control": {
+            "fake_child": "Δ15-NOSUCHCONTROL",
+            "parent_section_exists": "Δ15" in set(heads),
+            "reach_result": reach("Δ15-NOSUCHCONTROL", ["Δ15-NOSUCHCONTROL"]),
+            "expected": None,
+            "why": "부모 절이 존재하는 가짜 자식. 선언 규칙이면 미도달, "
+                   "부모 상속 규칙이면 도달 — 두 규칙이 여기서 갈린다",
+        },
     }
     ctrl["verdict"] = (
         "PASS" if (len(heads) >= 10 and len(idx.rows) >= 10
                    and ctrl["positive_control"] is True
-                   and ctrl["negative_control"] is None) else "FAIL"
+                   and ctrl["negative_control"] is None
+                   and ctrl["discriminating_control"]["parent_section_exists"]
+                   and ctrl["discriminating_control"]["reach_result"] is None)
+        else "FAIL"
     )
 
     out = {
@@ -112,7 +134,10 @@ def main() -> int:
     }
     Path("results/D_V3_INDEX_DELTA_CROSSCHECK_v3resolver.json").write_text(
         json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    dc = ctrl["discriminating_control"]
     print(f"control={ctrl['verdict']} heads={len(heads)} rows={len(idx.rows)}")
+    print(f"   판별대조군 {dc['fake_child']}: 부모절존재={dc['parent_section_exists']} "
+          f"도달={dc['reach_result']} (기대 None — 선언 규칙 구현)")
     print(f"A) delta표제→색인  해결 {len(a_hit)}/{len(heads)}  미해결 {len(a_miss)}")
     for x in a_miss:
         print("   -", x["delta_head"])

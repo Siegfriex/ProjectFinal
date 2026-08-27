@@ -1,28 +1,34 @@
 {
  "tool": "tools/v3_harness/index_delta_crosscheck.py",
  "resolver": "ruling_id_norm v3 — 색인 aliases 조회, 추론 없음",
- "checked_at_kst": "2026-08-28T07:43:41+09:00",
+ "checked_at_kst": "2026-08-28T07:53:48+09:00",
  "index": {
-  "version": 18,
-  "sha256": "0eb3279a92556ecc5040ac7d9c2af9a75dd4ab4ea39627d00efe0f8a7788819a",
+  "version": 23,
+  "sha256": "f0fb6a36e7e485583e50b85aced75719c861e234dc2b429e6e6b8df2bc3323fc",
   "authority_sha": "adcdcb6050e96817be8645662c098b3221d4f90f",
-  "rows": 75
+  "rows": 78
  },
  "delta": {
   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_a_control/research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md",
-  "sha256": "755d7023c7525f31b73864200f013ea7944b4d5312fa56a84c99772690e21ed6"
+  "sha256": "edea716f6be90e8dfe17df50d4113cf5b5a17f9ba3cb55b3f1b5b76f737d84ed"
  },
  "control": {
-  "delta_heads_found": 64,
-  "index_rows": 75,
+  "delta_heads_found": 65,
+  "index_rows": 78,
   "positive_control": true,
   "negative_control": null,
-  "reachability_control": true,
+  "discriminating_control": {
+   "fake_child": "Δ15-NOSUCHCONTROL",
+   "parent_section_exists": true,
+   "reach_result": null,
+   "expected": null,
+   "why": "부모 절이 존재하는 가짜 자식. 선언 규칙이면 미도달, 부모 상속 규칙이면 도달 — 두 규칙이 여기서 갈린다"
+  },
   "verdict": "PASS"
  },
  "A_delta_head_to_index": {
-  "n": 64,
-  "resolved": 48,
+  "n": 65,
+  "resolved": 51,
   "UNRESOLVED": [
    {
     "delta_head": "Δ1",
@@ -79,31 +85,22 @@
    {
     "delta_head": "Δ24",
     "index_ids": []
-   },
-   {
-    "delta_head": "Δ27",
-    "index_ids": []
-   },
-   {
-    "delta_head": "Δ33",
-    "index_ids": []
    }
   ]
  },
  "B_index_row_to_delta": {
-  "n": 75,
-  "reachable": 65,
+  "n": 78,
+  "reachable": 69,
   "rule": "A self_check.index_to_delta_reachability — (a)헤더 (b)별칭 토큰경계 (c)split_rows 부모",
   "by_path": {
-   "a_": 28,
-   "b_": 37,
+   "a_": 31,
+   "b_": 38,
    "c_": 0
   },
   "UNRESOLVED": [
    {
     "index_id": "Δ14-auth",
     "tokens": [
-     "auth_gate_stage 위치규칙",
      "Δ14-auth"
     ],
     "reachable_via": null
@@ -138,7 +135,6 @@
    {
     "index_id": "Δ12-C",
     "tokens": [
-     "C divergence 분류",
      "Δ12-C"
     ],
     "reachable_via": null
@@ -146,7 +142,6 @@
    {
     "index_id": "Δ5-vr",
     "tokens": [
-     "VALIDITY_RISK 우선순위",
      "Δ5-vr"
     ],
     "reachable_via": null
@@ -154,7 +149,6 @@
    {
     "index_id": "Δ2-skip",
     "tokens": [
-     "reserve 순서 건너뜀",
      "Δ2-skip"
     ],
     "reachable_via": null
@@ -172,13 +166,6 @@
      "Δ30-budget"
     ],
     "reachable_via": null
-   },
-   {
-    "index_id": "Δ32-safety",
-    "tokens": [
-     "Δ32-safety"
-    ],
-    "reachable_via": null
    }
   ]
  },
@@ -187,14 +174,6 @@
   "D3-06": [
    "Δ1-a",
    "Δ1-b"
-  ],
-  "MIN-4": [
-   "Δ30",
-   "Δ30-tiebreak"
-  ],
-  "MIN-5": [
-   "Δ30",
-   "Δ30-claim"
   ]
  },
  "claim_kind": "OBSERVATION",
