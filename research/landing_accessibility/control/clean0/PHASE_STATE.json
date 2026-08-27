@@ -1,8 +1,8 @@
 {
   "doc_id": "LA-PHASE-STATE",
   "purpose": "프로토콜 §16 투명성 목표 — GitHub 만 보고 현재 상태를 알 수 있게 하는 A 의 미러. bus 는 로컬 transport 로 남는다.",
-  "updated_at_kst": "2026-08-27T20:59:00+09:00",
-  "phase": "R0",
+  "updated_at_kst": "2026-08-27T21:07:49+09:00",
+  "phase": "I1 + LABEL (R0_GO 발효)",
   "phase_window_kst": "CLEAN0 20:42~20:52 완료 · R0 20:52~ 진행",
   "ssot": "research/landing_accessibility/docs/v2_1/  (SSOTV2 11개 문서팩)",
   "planes": {
@@ -10,22 +10,23 @@
       "branch": "control/landing-orchestrator",
       "base_sha": "084eff541836c2e16418b96bd230c1d58bcda663",
       "worktree": ".agent_worktrees/claude_a_control",
-      "state": "R0_CONTRACT_FROZEN_PENDING_C",
-      "head_sha": "dad5c1f8d700e53bbf9e31eb4c8edeba8ab19c6f"
+      "state": "R0_GO_ISSUED_DIRECTOR_RECONCILED",
+      "head_sha": "PENDING_COMMIT"
     },
     "B": {
       "branch": "claude-b/clean0-v21",
       "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
-      "state": "CLEAN0_COMPLETE_AWAITING_R0",
-      "head_sha": "fcf403abc8cac295db69be4336d8156828466c41",
-      "self_approved": false
+      "state": "R0_GO_RECEIVED — W1~W4 배정",
+      "head_sha": "f52367e224661fd0a82193f0f404b2ba4946b14f",
+      "self_approved": false,
+      "accepted_sha": "4ae6df0a1e1dec76a642a1eeafd52bf7f04eff04"
     },
     "C": {
       "branch": "claude-c/assurance-v21",
       "base_sha": "1baa865b4a673af05033e6e6289fd2713676baa5",
-      "state": "CLEAN0_INDEPENDENT_AUDIT_RUNNING",
-      "head_sha": "1baa865b4a673af05033e6e6289fd2713676baa5",
-      "pushed": false
+      "state": "CLEAN0+R0 QA 완료 — 구현 diff 감사 대기",
+      "head_sha": "77d4b50e8ac2734ee867b086726da93a371e7744",
+      "pushed": true
     },
     "LABELER": {
       "branch": "label/e001-independent-*",
@@ -41,25 +42,27 @@
   },
   "gates": {
     "REAL_TARGET": "NO-GO",
-    "REAL_TARGET_conditions": [
-      "B 구현 completion",
-      "C assurance PASS (same SHA)",
-      "A 명시적 GO"
+    "R0": "GO (발효)",
+    "next_milestone": [
+      "LABEL_FROZEN",
+      "W1~W4 IMPLEMENTATION_COMPLETE_CANDIDATE"
     ],
-    "offline_frozen_dom_replay": "ALLOWED (n=56 파일, E000 은 sensitivity-only)",
-    "next_gate": "R0_GO — C contradiction check + T-A-R0-C-001 재현 결과",
-    "R0": "FROZEN_PENDING_C_CONTRADICTION_CHECK — B 는 W1/W3/W4 + W2 rule-DT 착수 가능"
+    "REAL_TARGET_GO_conditions": [
+      "W1+W2 joint offline PASS (한 gate, 중간 재수집 없음)",
+      "W3 criterion QA PASS",
+      "W4 mart compatibility PASS",
+      "C same-SHA assurance PASS",
+      "A explicit GO"
+    ]
   },
   "open_blockers": [
-    "G1",
-    "G2",
-    "G3",
-    "G3b",
-    "G4",
-    "G5",
-    "TRAP-01",
-    "T-B-BLK-001(A GO — W1 범위 편입)",
-    "T-B-BLK-002(A DECISION — plane별 mirror)"
+    "G1(W1)",
+    "G2(W1)",
+    "G3(W2)",
+    "G3b(W2)",
+    "G4(W3)",
+    "G5(W4)",
+    "TRAP-01"
   ],
   "raw_artifacts_outside_git": {
     "manifest": "control/clean0/ARTIFACT_RETENTION_MANIFEST.json",
@@ -76,15 +79,34 @@
     },
     "target_coverage": "56/56 web_target_group — superseded retry 4건은 타깃 누락이 아니다"
   },
-  "next_action": "C contradiction check 수신 → R0_GO 발행 → labeler 4~6 배치",
+  "next_action": "labeler 4~6 배치 → label SHA256 freeze → calibration/holdout split 동결",
   "resolved_this_phase": [
-    "BUS-F1 → locks/ 생성 + D-R0-29",
-    "ISSUE-A-001 → D-R0-30",
-    "A/B 인벤토리 Δ → RECONCILED_EXACT"
+    "BUS-F1",
+    "ISSUE-A-001",
+    "T-B-BLK-001→D-R0-38",
+    "T-B-BLK-002→D-R0-39",
+    "T-B-FC-001→D-R0-42",
+    "C-FACT_CORRECTION-210041→D-R0-37",
+    "T-A-R0-C-001 6/6 CONFIRMED",
+    "T-A-R0-C-002 MATCH"
   ],
   "bus_mirror": {
     "A": "control/bus_mirror_a/",
     "B": "handoff/bus_mirror_b/ @ claude-b/clean0-v21",
     "C": "assurance/bus_mirror_c/ (미생성)"
-  }
+  },
+  "integration_base": {
+    "sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+    "authority_parent": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "ancestry_verified": "2281c85 IS descendant of bc0b7a0 (merge-base 실측)",
+    "note": "bc0b7a08 에는 engine/e001_runner 0파일, 2281c85 에 16파일"
+  },
+  "canonical_ledger_correction": "w02 4 runs = duplicate launch (retry 아님). B/A 의 retry 분류 SUPERSEDED.",
+  "canonical_retention_manifest": {
+    "doc": "handoff/ARTIFACT_RETENTION_MANIFEST_E001.json (B)",
+    "unit": "artifacts/ 루트 전체",
+    "E001": "1265 files / 791908794 bytes / run 60 / wtg 56",
+    "A_index": "control/clean0/ARTIFACT_RETENTION_MANIFEST.json (evidence-only, 메타 제외) — 보조"
+  },
+  "operating_rule": "D-R0-44 — CLEAN loop 종료. C0 또는 결과를 바꾸는 C1 만 blocking. 나머지 backlog."
 }

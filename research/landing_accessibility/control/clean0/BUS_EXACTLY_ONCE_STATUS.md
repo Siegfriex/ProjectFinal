@@ -27,6 +27,12 @@ locks/              **부재**
 
 ### BUS-F2 — idempotency key 경로 미확인 · P1
 
+> **[정정 · D-R0-35]** 아래 서술은 **틀렸다.** C 가 raw 로 확인한 바 2026-08-27 05:14 w02 에서
+> **duplicate launch 가 실제로 일어났다** (worker_02 프로세스 2개, batch_0001 attempts=1 전건,
+> run B 가 run A sealed 이전 시작). 실사이트 접속 단위에서는 억제가 없었고 batch 원장
+> exclusive-create 가 **사후에** 막았을 뿐이다. **사후 원장 차단은 exactly-once 가 아니다.**
+> 원문은 발행 시점 상태로 보존한다.
+
 `ticket_id + run_id + target_id + collector_sha + protocol_sha` 로 구성된 key 가
 실제 실행 경로에서 소비되는지 **A 는 확인하지 않았다** (코드 확인은 B/C 의 영역).
 `DUPLICATE_SUPPRESSED` 이벤트 타입이 event_log 에 한 번도 나타난 적 없다 —

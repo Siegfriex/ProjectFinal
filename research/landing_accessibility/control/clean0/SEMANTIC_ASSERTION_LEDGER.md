@@ -54,13 +54,15 @@ OBSERVATION →  DEFINITION       금지.  결과를 보고 정의를 바꾸는 
 
 | # | 주장 | 타입 | 상태 |
 |---|---|---|---|
-| S-10 | task definition 이 원천 CSV 에 59/59 존재했다 | `OBSERVATION` | 감사 O-1/O-2 등재 · **C 재현 대기** |
-| S-11 | `default_task_definition()` 이 None/CODEBOOK_PENDING 을 하드코딩 | `IMPLEMENTATION` | 감사 등재 · **C 재현 대기** |
-| S-12 | area/endpoint detector 에 실사이트 구현이 없다 (F-1 P0) | `IMPLEMENTATION` | 감사 등재 · **C 재현 대기** |
-| S-13 | `*_signal_type` 이 프로덕션에서 소비되지 않는다 (F-2) | `IMPLEMENTATION` | 감사 등재 · **C 재현 대기** |
-| S-14 | target-level guard 25/59, LOGIN 19 | `OBSERVATION` | baseline 등재 · **C 재현 대기** |
-| S-15 | 갭1·갭2 는 독립이며 한쪽만 고치면 결과가 동일하다 | `ANALYSIS` | 감사 §6.3 · **R0 검증 대상** |
+| S-10 | task definition 이 원천 CSV 에 59/59 존재했다 · `granularity = archetype-level (7 distinct)` · UTILITY_ENTRY 6행은 CSV 자체가 `CODEBOOK_PENDING` | `OBSERVATION` | **C CONFIRMED_WITH_QUALIFIER** (D-R0-34) |
+| S-11 | `default_task_definition()` 이 None/CODEBOOK_PENDING 을 하드코딩 | `IMPLEMENTATION` | **C CONFIRMED** |
+| S-12 | area/endpoint detector 에 실사이트 구현이 없다 (F-1 P0) | `IMPLEMENTATION` | **C CONFIRMED (+probe 58/58 raw)** |
+| S-13 | `*_signal_type` 이 프로덕션에서 소비되지 않는다 (F-2) | `IMPLEMENTATION` | **C CONFIRMED · 강화 (tests 호출도 0 @2281c85)** |
+| S-14 | target-level guard 25/59, LOGIN 19 | `OBSERVATION` | **C CONFIRMED (25/19/QUERY 5)** |
+| S-15 | 갭1·갭2 는 독립이며 한쪽만 고치면 결과가 동일하다 | `ANALYSIS` | **C CONFIRMED** |
 
+> **[2026-08-27 21:00 갱신] C 가 `C_R0_QA.json @ 77d4b50` 에서 S-10~S-15 를 6/6 CONFIRMED 했다** (S-10 은 §D-R0-34 qualifier 포함). 아래 원문은 발행 시점의 상태로 보존한다.
+>
 > **S-10~S-15 는 아직 A 가 독립 확인하지 않았다.** 문서에 적혀 있다는 것은 T5/T6 이다.
 > R0 GO 의 근거로 쓰려면 C 가 exact SHA 에서 재현해야 한다. **A 는 이것을 선언으로 덮지 않는다.**
 

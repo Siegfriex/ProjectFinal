@@ -60,7 +60,8 @@ SSOTV2/ 11개 문서팩이 이 연구의 단일 SSOT다.
 | **canonical 산출물** | `artifacts/e001_real_marts/` | `82f631f1e6bd3708bc8f95f0b8edcd90e22cef0d` | `FINAL_ACCEPTED (PILOT/PRELIMINARY)` — 대체 아님, 층이 얹힌다 |
 | **R0 입력 감사** | `handoff/RECOVERY_DATAFLOW_AUDIT.md` | `2281c853950d0c475c5d2c1678680b971c2804f4` | `R0_INPUT — C 독립검증 대기` |
 | **C assurance** | `assurance/` | `1baa865b4a673af05033e6e6289fd2713676baa5` | `CURRENT_ASSURANCE_BASE` |
-| **연구 코드베이스** | `research/landing_accessibility/src` 등 | `bc0b7a087faf2328cbafdfa9b40bd426c5080d7d` | `AUTHORITATIVE_LANDING_MAIN` |
+| **연구 코드베이스 (기준선)** | 승격 이력·소스·문서 | `bc0b7a087faf2328cbafdfa9b40bd426c5080d7d` | `AUTHORITATIVE_LANDING_MAIN` |
+| **integration base (구현)** | `engine` / `e001_runner` **16 파일** | `2281c853950d0c475c5d2c1678680b971c2804f4` | `INTEGRATION_BASE` — **D-R0-36.** `bc0b7a08` 에는 engine 파일이 **0개**다. W1~W4 는 여기서 분기한다 |
 | **KWCAG frozen subset** | `control/OLDER_RELEVANT_KWCAG_SUBSET.md` | 084eff5 내 | `FROZEN — 연구 중 확대 금지 (D-13)` |
 | **분석 계약** | `control/ANALYSIS_CONTRACT.md` + `AMENDMENT_1` | 084eff5 내 | `CURRENT — 계약은 유효하고, 그 계약이 지정한 분석이 계산 불가라는 것이 오늘의 산출물이다` |
 

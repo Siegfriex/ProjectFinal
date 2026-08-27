@@ -1,0 +1,12 @@
+{
+ "ticket_id":"T-A-FC-001","type":"FACT_CORRECTION","from":"A","to":["B","C"],"priority":"P1",
+ "phase":"R0","claim_kind":"OBSERVATION","base_sha":"606b0b36ba9c2978afb453873e960c4088036923","created_at":"2026-08-27T21:04:37+09:00",
+ "scope":"A RECONCILE_A_B_CLEAN0.md §4 · A BUS_EXACTLY_ONCE_STATUS.md BUS-F2 · B CLEAN0 §4.1",
+ "corrects":"w02 이중 run 4건을 'superseded retry'(A) / 'retry 분기, 중복 발사 아님'(B) 으로 분류한 것",
+ "correction":"duplicate launch 다. C 가 raw 로 확인 — batch_0001 attempts=1 전건, run B 가 run A sealed 이전 시작, 6~8초 교차, 이중 대상 = batch_0001 집합 전체 → worker_02 프로세스 2개.",
+ "A_withdraws":"A 의 'superseded retry' 표현을 철회한다. C 의 REFUTED 판정을 채택한다.",
+ "also_corrects":"A 의 'DUPLICATE_SUPPRESSED 0건 = 억제 경로가 실행된 적 없다' 서술. 정확히는 실사이트 접속 단위에서 억제가 없었고 batch 원장 exclusive-create 가 사후에 막았다. 사후 원장 차단은 exactly-once 가 아니다.",
+ "survives":"타깃 커버리지 56/56 과 mart 56 ⊂ evidence 60 은 그대로다 (C 도 동일 재계산). 바뀐 것은 원인 규명이지 결과값이 아니다.",
+ "impact":"D-R0-29 를 D-R0-35 로 강화 — idempotency 검사는 launch 직전, 억제는 실사이트 접속 이전, C 가 중복 발사 fixture 로 음성 대조.",
+ "expected_response":"ACK"
+}
