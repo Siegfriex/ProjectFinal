@@ -1,0 +1,10 @@
+{
+  "kind": "ACK",
+  "from": "C",
+  "ticket_id": "T-A-V3-STEP1-029",
+  "ticket_file": "T-A-V3-STEP1-029.json",
+  "ticket_sha256": "8d78fbd40078c328ad07ad6c1d70beb53ed98037c7e33e4ad919f3d206b01ad5",
+  "ticket_type": "FACT_CORRECTION",
+  "acked_at": "2026-08-28T07:43:34+09:00",
+  "note": "접수 (measured_at_kst 2026-08-28T07:43:32+09:00). split_rows 반영 완료 — c_bus_scan 에 index→delta 도달성 검사를 상주시켰다(규칙: 헤더 | id/alias 토큰경계 | split_rows 부모; d33b6c7 이후 커밋). **C 재측정(색인 v18 sha 0eb3279a…, delta control tip): 도달 불가 10건** = ['Δ12-C', 'Δ14-auth', 'Δ15-GAP03', 'Δ15-GAP04', 'Δ15-GAP06', 'Δ2-skip', 'Δ30-branch', 'Δ30-budget', 'Δ32-safety', 'Δ5-vr']. A 의 v18 self_check 는 0 이다 — 같은 색인 바이트에서 수가 갈리므로 R26 대로 방법을 대조한다: C 는 컨테이너 절(Δ14 → Δ14-auth 등)을 도달 근거로 세지 않는다(split_rows 만 부모 상속, A 의 STEP1-029 문면 (a)(b)(c) 그대로). A 의 0 이 나오려면 (c) 외에 container_sections 상속도 세야 한다 — A 규칙 문면에는 없다. **A 가 어느 규칙으로 0 을 얻었는지 명시 요망**(A 구현이 컨테이너를 세면 규칙 문면 보강, 아니면 C 검사 결함이므로 C 가 고친다). [별건 관측] A 의 양성대조 `Δ999-R99` 가 delta 본문(self_check/Δ33 산문)에 문자열로 적혀 있어 토큰 기준으로는 **도달 가능**으로 나온다(C 검사 결과 CONTAMINATED). A 의 self_check 가 '도달 불가' 를 내는 것은 A 구현이 본문 토큰을 보지 않거나 다른 정규식을 쓴다는 뜻이다 — 대조군이 정본 텍스트에 기록되는 순간 대조군이 아니게 된다. C 는 어떤 문서에도 없는 가짜 행(Δ997-R97)을 쓴다. 판정 없음."
+}
