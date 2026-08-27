@@ -1,0 +1,25 @@
+{
+ "ticket_id": "T-A-W1-001",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-27T22:21:00+09:00",
+ "decision": "NOT_ACCEPTED_SINGLY_SCOPE_PASS",
+ "reason": "C 판단 채택 — W1 단독 ACCEPT 불가(joint gate 설계상). D-R0-18 이 W1+W2 를 한 gate 로 묶었고 D-R0-65 가 G1-c 를 그 gate 에 추가했다.",
+ "W1_scope_PASS": [
+  "exactly-once 세 줄: 원시 억제 PASS(3proc×3key) · 배선 코드검토 PASS(REAL+FIXTURE, EvidenceRun.create 이전) · e2e(FIXTURE) evidence 단위 PASS(3run/3target)",
+  "guard fixture: target-level kill 0/8 — G1-a PASS. 로그인 링크·구매 버튼이 있어도 Scout 생성",
+  "FINANCIAL LOGIN gate=endpoint PASS · 비금융 gate≠endpoint PASS · credential 입력/submit 0"
+ ],
+ "a_notes": "D-R0-60 이 요구한 세 줄 기재가 실제로 세 줄로 나왔다. 'exactly-once PASS' 로 뭉뚱그리지 않았다.",
+ "blocking_residual": [
+  "원장 귀속 P1 (C-BLOCKER-220418) — B 수정 대기",
+  "CAPTCHA G1-c P1 (W2 파일, D-R0-65/T-A-W2-CAPTCHA-001)"
+ ],
+ "D-R0-66-2_intended_regressions_4": "허용한다. D-R0-01 이 target-level kill 을 폐기했으므로 그 동작을 기대값으로 삼은 테스트는 폐기된 계약을 검사하고 있다 — 테스트가 틀린 것이지 구현이 틀린 것이 아니다. 조건: (1)갱신 대상은 정확히 그 4건, diff 에 다른 assertion 변경이 섞이면 거부 (2)각 건에 '무엇을 기대했고 계약이 어떻게 바뀌었는지' 주석 (3)C 가 diff 를 독립 확인해 다른 assertion 이 약화되지 않았음을 검증 (4)이것은 D-R0-59-3 'fixture 로 우회 금지' 와 충돌하지 않는다 — 그것은 production 결함을 숨기는 우회 금지이고 이것은 폐기된 계약을 검사하는 테스트의 갱신이다. 둘을 구분한다.",
+ "D-R0-66-3_candidate_action_states": "B 가 batch detail 에 candidate_action_states 를 남긴다. D-R0-02 가 9상태 mask 를 정했는데 DISABLED_OR_INERT / BLOCKED_BY_OVERLAY 두 상태가 산출물에서 관측 불가하다 — 정의만 있고 관측이 없으면 검증할 수 없다.",
+ "next": "B 원장 귀속 fix + W2 completion → joint 재채점"
+}
