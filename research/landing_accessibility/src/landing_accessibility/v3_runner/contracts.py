@@ -154,3 +154,46 @@ class TaskContract:
     # task_contract_hash 에는 들어가지 않는다. 기록용이 아니라 activation_depth 파생의
     # 입력이며, step 단위 실제 수단은 FlowStep.input_mode(W5B)가 갖는다.
     fixture_input_mode: str | None = None
+
+
+@dataclass(frozen=True)
+class FlowStep:
+    """`02 §4 fact_flow_step` — raw ordered action 한 건. derived 값은 여기 없다.
+
+    `action_token` 은 `04 §2` canonical 18종 중 하나이며 **action_token 층**의
+    값이다 (R6-Q8). `endpoint_status` 층의 값을 여기에 넣지 않는다.
+
+    정본 위치 확정 (W5K / SEAM 2, A 판정)
+    -------------------------------------
+    이 dataclass 는 세 곳에 중복 정의돼 있었다 — `runner.py`(W5F) · `flow.py`(W5B) ·
+    여기. A 가 ``contracts.py`` 를 정본으로 확정했고, ``flow.py`` 의 ``input_mode``
+    추가를 승인했다. 나머지 두 곳은 이 정의를 import 한다.
+    """
+
+    step_index: int
+    action_token: str
+    state_before_id: str
+    state_after_id: str
+    control_selector: str | None
+    control_role: str | None
+    control_visible_text: str | None
+    control_accessible_name: str | None
+    bbox_before: tuple[float, float, float, float] | None
+    url_before: str
+    url_after: str
+    auth_gate_detected: bool
+    endpoint_signal_detected: bool
+    #: Δ8-R5 ``fixture_input_mode`` 의 **step 단위** 값 (W5B 추가, A 승인).
+    #: CONDITIONAL 3종(``SELECT_ORIGIN``·``SELECT_DESTINATION``·``SELECT_DATE``)의
+    #: ``activation_depth`` 귀속 판정에만 쓴다. ``None`` 은 미기록 → 판정 불능이다.
+    #:
+    #: 관측 단위(:attr:`TaskContract.fixture_input_mode`)가 아니라 step 단위인 이유:
+    #: 한 flow 안에서 출발지는 dropdown, 날짜는 calendar 인 경우가 실재하고 관측 단위
+    #: 스칼라 하나로는 그걸 표현할 수 없다. 기본값이 있어 기존 호출부는 그대로 동작한다.
+    #:
+    #: .. important::
+    #:    이 필드는 **판정 지점까지 실제로 도달해야** 의미가 있다. 값을 채우지 않고
+    #:    ``flow.normalize_flow`` 에 넘기면 CONDITIONAL 3종이 전부 판정 불능이 되고
+    #:    ``activation_depth`` 가 조용히 ``None`` 으로 접힌다 — 그것은 결측이 아니라
+    #:    배선 누락이다 (W5K SEAM 2).
+    input_mode: str | None = None

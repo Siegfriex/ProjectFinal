@@ -48,6 +48,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
+from .contracts import FlowStep, TaskContract
 from .evidence import (
     INPUT_MODE_VALUES,
     OBSERVATION_SCOPE_NODE,
@@ -68,51 +69,23 @@ from .evidence import (
 )
 
 # ---------------------------------------------------------------------------
-# RECONCILIATION SEAM — W5A `contracts.py` 가 최종 소유자
+# RECONCILIATION SEAM — 닫혔다 (W5K, A 판정)
+#
+# `TaskContract` · `FlowStep` 의 **정본은 `contracts.py`** 다. 이 모듈이 갖고 있던
+# 중복 정의는 제거하고 import 로 대체했다.
+#
+# 왜 runner 쪽이 아니라 contracts.py 인가 — 구현 선택이 아니라 계약 준수다:
+#   * runner 쪽 정의를 쓰면 `stratum` · `is_pilot_5` · `collection_order` ·
+#     `fixture_input_mode` 네 필드가 사라진다.
+#   * 앞의 셋은 A 가 동결한 MAIN50 manifest 의 필드이고, 마지막 하나는 Δ8-R5 가
+#     요구한 관측 변수이자 Δ9 CONDITIONAL 3종 판정의 입력이다.
+#
+# import 방향: `contracts` 는 패키지 내부를 아무것도 import 하지 않는 leaf 다.
+# `flow` → `contracts`, `runner` → `contracts`. `runner` 는 `flow` 를 import 하지
+# 않으므로 순환이 생기지 않는다 (W5F 가 권한 "contracts → 나머지" 순서 그대로).
+#
+# import 는 위 import 블록에 있다: `from .contracts import FlowStep, TaskContract`.
 # ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class TaskContract:
-    """수집 **전에** 동결된 과업 계약 (`02 §2 dim_task_contract` · `00 §1.2`)."""
-
-    target_id: str
-    family_id: str
-    service: str
-    starting_url: str
-    frozen_task: str
-    task_instruction: str
-    fixed_fixture: str
-    fixture_override: str | None
-    endpoint_contract: str
-    forbidden_actions: tuple[str, ...]
-    task_contract_hash: str
-    endpoint_contract_hash: str
-    legacy_archetype: str | None = None
-    mobile_web_eligibility: str = "PRECHECK_REQUIRED"
-    #: `R3` (A `T-A-V3-STEP1-003`) — 본표본 n 은 `PRIMARY` 만 센다.
-    #: F1 은행 10곳의 잔액조회 secondary task 가 분모를 늘리지 않게 하는 필드다.
-    task_role: str = TASK_ROLE_PRIMARY
-
-
-@dataclass(frozen=True)
-class FlowStep:
-    """`02 §4 fact_flow_step` — raw ordered action 한 건. derived 값은 여기 없다."""
-
-    step_index: int
-    action_token: str
-    state_before_id: str
-    state_after_id: str
-    control_selector: str | None
-    control_role: str | None
-    control_visible_text: str | None
-    control_accessible_name: str | None
-    bbox_before: tuple[float, float, float, float] | None
-    url_before: str
-    url_after: str
-    auth_gate_detected: bool
-    endpoint_signal_detected: bool
-
 
 # ---------------------------------------------------------------------------
 # 닫힌 어휘 — `04 §2` · `03 §2` · `04 §4`
@@ -1001,6 +974,11 @@ def _to_flow_step(index: int, action: PlannedAction, transition: RawTransition) 
         url_after=transition.url_after,
         auth_gate_detected=transition.auth_gate_detected,
         endpoint_signal_detected=transition.endpoint_signal_detected,
+        # SEAM 2 (W5K) — Δ8-R5 step 단위 입력수단을 **step 자체에** 싣는다.
+        # 이 한 줄이 없으면 `flow.normalize_flow` 가 `step.input_mode is None` 을 보고
+        # CONDITIONAL 3종을 전부 판정 불능으로 접는다. 값이 존재하는 것과 판정 지점에
+        # 도달하는 것은 다른 사실이고, 여기가 그 둘을 잇는 유일한 지점이다.
+        input_mode=_validated_input_mode(transition.input_mode),
     )
 
 

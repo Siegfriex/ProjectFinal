@@ -109,6 +109,7 @@ __all__ = [
     "classify_auth_boundary",
     "credential_actuation_counts",
     "load_fixture_matrix",
+    "planned_action_to_candidate",
     "preflight_reachable_assessment",
     "resolve_forbidden_actions",
     "run_fixture_safety_regression",
@@ -561,6 +562,44 @@ def _detect_forbidden_action(
     return None, "no forbidden signal"
 
 
+#: `runner.PlannedAction` 의 필드명 → 이 모듈의 detector 가 실제로 읽는 candidate 키.
+#:
+#: **이 표가 SEAM 1 의 하중을 전부 진다.** `_detect_forbidden_action` /
+#: `guard.classify_candidate` 는 `visible_text` · `accessible_name` · `selector` 만
+#: 읽는다. `dataclasses.asdict(action)` 을 그대로 넘기면 키가 `control_visible_text`
+#: 로 들어가 detector 가 **아무것도 못 읽고 전건 허용**한다 — 이름만 맞춘 배선이
+#: fail-open 이 되는 정확한 경로가 이것이다. 그래서 번역표를 상수로 꺼내 두고
+#: 실물-대-실물 테스트로 차단이 실제로 발화하는지 확인한다 (A 수용기준 3).
+_PLANNED_ACTION_FIELD_MAP: tuple[tuple[str, str], ...] = (
+    ("control_selector", "selector"),
+    ("control_role", "role"),
+    ("control_visible_text", "visible_text"),
+    ("control_accessible_name", "accessible_name"),
+)
+
+
+def planned_action_to_candidate(action: Any) -> dict[str, Any]:
+    """`runner.PlannedAction` 하나를 이 모듈의 candidate mapping 으로 옮긴다.
+
+    `runner.py` 를 import 하지 않는다 — safety 가 runner 를 참조하면 순환이 된다
+    (`scout_strategy` → `runner` → … ). duck typing 으로 필드만 읽는다.
+
+    값이 `None` 인 필드는 **키 자체를 넣지 않는다.** `_observe` 가 `"hittable" in
+    candidate` 처럼 키 존재를 보는 자리가 있어서, `None` 을 넣으면 "관측했고 없었다"
+    로 읽힐 수 있다.
+    """
+    candidate: dict[str, Any] = {}
+    for src, dst in _PLANNED_ACTION_FIELD_MAP:
+        value = getattr(action, src, None)
+        if value is not None:
+            candidate[dst] = value
+    token = getattr(action, "action_token", None)
+    if token is not None:
+        # detector 는 이 키를 읽지 않는다. evidence 추적용 provenance 다.
+        candidate["action_token"] = token
+    return candidate
+
+
 def _observe(
     candidate: Mapping[str, Any], *, credential_form_ids: frozenset[str] = frozenset()
 ) -> ControlObservation:
@@ -792,6 +831,37 @@ class ActivationSafetyGuard:
         if self.terminal_sink is not None:
             self.terminal_sink.emit(SAFETY_STOP, stop.as_dict())
         raise stop
+
+    # ── runner 배선 (SEAM 1, W5K) ─────────────────────────────────────────
+    def assert_action_allowed(self, contract: Any, action: Any) -> None:
+        """`runner.SafetyGuard` Protocol 구현. `V3Runner._assert_action_allowed` 가
+        activation **직전에** 호출하고, `driver.activate(action)` 은 이 호출이 돌아온
+        뒤에만 실행된다.
+
+        **rename 이 아니다.** 이 메서드는 `PlannedAction` 을 detector 가 읽는 키로
+        번역해(:func:`planned_action_to_candidate`) 기존 :meth:`authorize` 에 건다 —
+        새 판정 로직을 만들지 않는다. 차단은 `SafetyStop` 으로 나가며 이 모듈이
+        잡지 않고 runner 도 잡지 않는다(fail-closed). `terminal_sink` 통보와
+        `violations` 기록도 `authorize` 경로 그대로 남는다.
+
+        ``contract`` 인자를 쓰지 않는 이유 — 감춘 것이 아니라 측정된 사실이다:
+        :data:`UNIVERSAL_FORBIDDEN_ACTIONS` 가 ``frozenset(ForbiddenAction)`` 이라
+        :func:`resolve_forbidden_actions` 의 결과는 계약과 무관하게 **항상 전 항목**을
+        포함한다. 계약은 더할 수만 있고 뺄 수 없으므로, 호출 시점 계약이 생성 시점
+        계약과 달라도 금지 집합이 **줄어드는 경로가 존재하지 않는다.** 계약별로
+        갈리는 것은 `allowed_input_values` 뿐이고 그건 `GuardedPage` 의 텍스트 검사
+        소관이다. Protocol 시그니처를 지키기 위해 인자는 받아 둔다.
+
+        .. warning::
+           **이 관문은 actuation 지점이 아니라 그 앞의 사전 관문이다.** 실제 클릭은
+           `SessionDriver`(W5H) 안에서 일어나고, 그 page 가 `guard_page()` 를 통과한
+           `GuardedPage` 인지는 이 메서드가 보증하지 못한다. W5G 가 자기 known
+           limitation 에 적은 그 구멍은 **여전히 열려 있다** — 좁아졌을 뿐이다.
+        """
+        self.authorize(
+            planned_action_to_candidate(action),
+            method=str(getattr(action, "action_token", None) or "activate"),
+        )
 
     # ── actuation 래핑 ────────────────────────────────────────────────────
     def guard_page(
