@@ -364,7 +364,7 @@ flow.AUTH_STAGE_VALUES         NONE UNDETERMINED BEFORE_TASK_DISCOVERY
 | # | C 요청 | 판정 | 근거 |
 |---|---|---|---|
 | ① | `terminal_dom` 캡처 (body dataset · visible marker 요소 · form input value) | **ABSENT** | 트리 전체에 `terminal_dom` 심볼 0개. `terminal.py` 는 `TerminalSignals` 21필드(전부 bool/str 판정 입력)만 받고 DOM 을 보지 않는다 |
-| ② | `surface.entry_selector` | **ABSENT** | `surface.SurfaceMeasurement` 24필드에 selector 계열 필드가 없다. 행이 **어느 control 을 서술하는지** 산출물만으로는 특정 불가 |
+| ② | `surface.entry_selector` | **ABSENT** | `surface.SurfaceMeasurement` 23필드에 selector 계열 필드가 없다. 행이 **어느 control 을 서술하는지** 산출물만으로는 특정 불가 |
 | ③ | `surface.entry_is_floating` | **PARTIAL** | **있는 것**: FLOATING 판정 자체 — `_FLOATING_POSITIONS={fixed,sticky}` 로 `entry_zone == "FLOATING"` 을 낸다. **없는 것**: 독립 bool 필드가 없고, `entry_zone` 은 DRAWER>FLOATING>기하 우선순위로 **덮어쓰기**되므로 `DRAWER` 인 행이 동시에 floating 인지 복원할 수 없다 |
 | ④ | `surface.visible_text_provenance` / `rendered_pseudo_text` | **ABSENT** | 두 심볼 모두 0개. 인접한 `accessible_name_source`(9값)는 **accessible name** 의 출처이지 visible text 의 출처가 아니다. `surface._resolve_name_source` 가 자기 KNOWN LIMITATION 에 "pseudo-element `::before` content 는 enum 에 '미상' 값이 없어 `NONE` 을 낸다"고 적어 뒀다 — 즉 C 가 요청한 그 경우가 현재 구분 불가로 알려져 있다 |
 | ⑤ | `run_result.entry_selector_ignored: bool` | **ABSENT** | `run.json` 키는 `protocol_version` · `observation_id` · `service_id` · `task_id` · `run_id` · `entry_count` · `evidence_manifest_sha256` · `path_manifest_sha256` 8개뿐(`evidence.EvidenceRunWriter.seal`). 애초에 `TaskContract` 에 `entry_selector` 필드가 없어 hint 를 받는 경로 자체가 없다 |
