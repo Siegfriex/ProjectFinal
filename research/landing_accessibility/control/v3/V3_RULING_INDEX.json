@@ -1,6 +1,6 @@
 {
  "index": "V3_RULING_INDEX",
- "version": 5,
+ "version": 6,
  "purpose": "A 가 발행한 모든 조작적 정의·계약 요구의 정본 목록. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(T-B-V3-SCOPE-001).",
  "how_to_use": "C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 목록**을 기준으로 대조한다. 목록에 있는데 산출에 없으면 미반영이다.",
  "source": "control/v3/V3_0_1_SUCCESSOR_DELTA.md — 이 목록은 그 문서의 색인이며 정본은 그 문서다. 충돌 시 delta 원문이 이긴다.",
@@ -459,6 +459,29 @@
    "authority": "Δ22"
   }
  ],
- "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture",
- "maintenance_rule": "A 가 판정을 낼 때 **delta 기록과 색인 추가를 함께** 한다. 티켓만 발행하면 정본이 전달 이력에 의존한다. C 는 색인↔delta 와 delta↔티켓 양방향을 대조한다."
+ "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004)",
+ "maintenance_rule": "A 가 판정을 낼 때 **delta 기록과 색인 추가를 함께** 한다. 티켓만 발행하면 정본이 전달 이력에 의존한다. C 는 색인↔delta 와 delta↔티켓 양방향을 대조한다.",
+ "coverage_denominator": {
+  "rule": "커버리지 분모는 **색인의 전체 행 수**다. 구조적으로 제외되는 행을 두지 않는다",
+  "not_yet_due_is_not_excluded": "due 가 아직 오지 않은 행(V3_PILOT_5_RELEASE · STEP2 · STEP3)은 **NOT_DUE_YET 으로 세되 분모에서 빼지 않는다.** 빼면 그것이 selection 이다",
+  "origin": "D-V3-FINDING-011 이 제기했다. **D 의 구체적 관측(Δ21 미수록)은 틀렸으나**(Δ21 행은 v2 부터 존재한다) '커버리지 분모가 무엇인지 먼저 정해야 한다'는 논점은 유효하다"
+ },
+ "id_notation": {
+  "rule": "색인 행 id 는 **delta 절 표기(Δn 또는 Δn-Rm)** 를 쓴다. 티켓의 Rm 단독 표기와 다르다",
+  "why_this_is_recorded": "D 가 `R21` 로 찾아 없다고 보고했고 A 가 검증 없이 수용했다. 표기 규칙이 명시돼 있지 않았다. 대조 도구는 `Δn-Rm ↔ Rm ↔ P-nn` 을 정규화해야 한다"
+ },
+ "independent_audits": [
+  {
+   "by": "C",
+   "span": "v2~v5",
+   "result": "v2 에서 누락7·충돌1·근거부재1 검출 → 시정. v5 정합"
+  },
+  {
+   "by": "D",
+   "at": "v5",
+   "result": "index↔delta 0 · delta↔ticket 33/33 실재 · 미인용 ruling 4건 delta 수록 확인",
+   "one_observation": "Δ21 미수록 — **오탐**. D 가 R21 로 검색했고 색인 id 는 Δ21 이다",
+   "independence": "C 결과 미참조. 두 대조가 v5 정합으로 수렴"
+  }
+ ]
 }
