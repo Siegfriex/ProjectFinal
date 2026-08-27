@@ -200,7 +200,9 @@ def test_blocking_modal_is_detected_classified_and_dismissed(l0: dict[str, Any])
     expected = EXPECTATIONS["fixtures"]["blocking_modal.html"]
     assert obs.raw_features["body_scroll_lock"]["locked"] is True
     modal = next(i for i in obs.interrupts if i.selector.endswith("#modal"))
-    assert modal.final_label == expected["final_label"]
+    # `D-R0-58`(`C-FINDING-214214` 시정) — BLOCKING_MODAL 은 구조(form) 축 값이다.
+    # 옛 단일축 `final_label` 은 `InterruptRecord` 에서 제거됐다(정당한 갱신, 고장 아님).
+    assert modal.interrupt_form == expected["final_label"]
     assert modal.blocks_primary_action == expected["blocks_primary_action"]
     assert modal.primary_action_occlusion == expected["primary_action_occlusion"]
     assert modal.dismiss_control_exists == 1
@@ -231,7 +233,9 @@ def test_promotion_modal_does_not_block_and_records_persistence_hint(l0: dict[st
     obs = l0["obs"]["promo_modal.html"]
     expected = EXPECTATIONS["fixtures"]["promo_modal.html"]
     promo = next(i for i in obs.interrupts if i.selector.endswith("#promo"))
-    assert promo.final_label == expected["final_label"]
+    # PROMOTION_MODAL 도 구조(form) 축 값이다 — 이 fixture 는 role="dialog"(구조)와
+    # "이벤트"(텍스트) 를 모두 갖고 있어 두 축 다 PROMOTION_MODAL 로 일치한다.
+    assert promo.interrupt_form == expected["final_label"]
     assert promo.blocks_primary_action == 0
     assert promo.primary_action_occlusion == 0.0
     assert promo.dismiss_persistence_hint == expected["dismiss_persistence_hint"]
@@ -241,8 +245,10 @@ def test_promotion_modal_does_not_block_and_records_persistence_hint(l0: dict[st
 def test_cookie_consent_is_settled_deterministically(l0: dict[str, Any]) -> None:
     obs = l0["obs"]["cookie_consent.html"]
     cookie = next(i for i in obs.interrupts if i.selector.endswith("#cookie"))
-    assert cookie.classification_status == "DETERMINISTIC"
-    assert cookie.final_label == "COOKIE_CONSENT"
+    # COOKIE_CONSENT 는 의미(semantic) 축 전용 값이다(텍스트 사전으로만 도달).
+    # `D-R0-58-1` 확정 어휘로는 RESOLVED(옛 DETERMINISTIC/SEMANTIC_MODEL 이 통합됨).
+    assert cookie.interrupt_semantic_status == "RESOLVED"
+    assert cookie.interrupt_semantic == "COOKIE_CONSENT"
     assert cookie.dismiss_succeeded == 1
 
 

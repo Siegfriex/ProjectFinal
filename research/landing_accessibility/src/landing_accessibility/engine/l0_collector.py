@@ -643,7 +643,13 @@ class L0Collector:
                 page.evaluate("() => window.scrollTo(0, 0)")
                 page.wait_for_timeout(SETTLE_MS)
 
-                probe = page.evaluate(PROBE_JS)
+                # `D-R0-42` 이중화 — probe 단 marker 게이팅(W2, `l0_probe.js`)이
+                # `execution_mode` 인자 없이는 `undefined`가 되어 FIXTURE 취급으로
+                # 조용히 유지되고 있었다(`l0_probe.js` 자체 주석이 이를 명시). 이 값을
+                # 실제로 전달한다 — engine 단 단락(우연 일치 위양성 방지)과 별개의
+                # 두 번째 겹이다(`C-BLOCKER` 시정, W4 소유 호출부만 수정, `l0_probe.js`
+                # 는 W2 소유라 손대지 않는다).
+                probe = page.evaluate(PROBE_JS, self.execution_mode.value)
                 paths["probe"] = self._store(obs_id, "l0a/probe.json", _json_bytes(probe))
 
                 # ── L0-b: 후보·공간·blocking·의미·dismiss control (조작 없음) ──
