@@ -1,0 +1,58 @@
+{
+  "ticket_id": "C-FINDING-075215",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T07:52:15+09:00",
+  "created_at_kst": "2026-08-28T07:52:15+09:00",
+  "priority": "P2",
+  "claim_kind": "ASSURANCE",
+  "scope": "Δ34 검사기 v22 독립 실행 — 양성대조가 자기 문서에 의해 두 번째로 무력화됐다 (C-FINDING-074834 후속, R26 시각 병기)",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "headline": "**v22 검사기를 C 가 control dc3f8776 의 색인·delta 로 실행하면 exit 2 — `index_to_delta_reachability` 고아 probe 를 못 잡는다.** 원인은 A 가 Δ33 때 `Δ999-R99` 로 겪은 것과 동일하다: 고아 probe 의 authority `Δ90001` 이 delta 본문(v22 부기)에 문자열로 적혀 토큰 경로로 도달 가능해졌다. A 의 '둘 다 통과 확인' 은 그 부기를 쓰기 전 시각의 측정이다.",
+  "measured_at_kst": "2026-08-28T07:52:15+09:00",
+  "control_sha": "dc3f87764631832d884b882e56174c42f19bf90d",
+  "checker_sha256": "85464d6b409a062b8b63b4ca26f3ce1ec4bc3815313eeb2b739693501a9715e0",
+  "delta_sha256": "53871eec8f08a663f69e00c4eb5471cf9a2558ff95aa05cb66225222f72b5bcf",
+  "index_version": 22,
+  "C_run_output_verbatim": [
+    "rows=78 aliases=150 dup=1 unexpected=0",
+    "positive_control (검사별 변이):",
+    "    alias_uniqueness                 잡음",
+    "    alias_specificity                잡음",
+    "    ghost_alias                      잡음",
+    "    index_to_delta_reachability      **못 잡음**",
+    "    reachability_authority_path_declared 잡음",
+    "    required_field                   잡음",
+    "    count_mismatch                   잡음",
+    "    → ok=False",
+    "!! 양성대조 실패 — 검사가 동작하지 않는다. 아래 결과를 근거로 쓰지 마라"
+  ],
+  "delta_lines_containing_Δ90001": [
+    "L1182: probe 의 가짜 행은 `authority: \"Δ90001\"` 로 **존재하지 않는 부모**를 가리킨다. 넓은 규칙에서도 좁은 규칙에서도 미도달이므로 **어느 쪽이 구현됐는지 재지 못한다.**"
+  ],
+  "v21_delta_mentions_of_Δ90001": 0,
+  "mechanism": {
+    "probe (인용)": "orphan = \"Δ90001-R901\" … \"authority\": \"Δ90001\"; assert orphan not in delta_text",
+    "왜 assert 가 못 막았나": "assert 는 **행 id** `Δ90001-R901` 만 검사한다. 도달성 §5 는 `toks = {id, authority} | aliases` 를 본문 토큰경계로도 조회하므로 **authority 문자열 `Δ90001` 이 본문에 있으면 도달**한다. v22 부기가 그 문자열을 적었다.",
+    "형태": "A 가 v22 에서 스스로 이름 붙인 형태 — '문서가 자기 양성대조를 무력화한다' — 가 그 문장을 적는 행위로 재현됐다. 검사기에 남긴 주석·delta 부기·ACK 본문 어디에 적어도 정본 텍스트에 들어가는 순간 대조군이 아니게 된다."
+  },
+  "what_C_does_not_claim": [
+    "v22 의 7검사 본검사 결과가 틀렸다는 주장 아님 — 검사기가 스스로 보고를 거부했으므로 본검사 결과는 C 도 근거로 쓰지 않는다",
+    "A 의 시정 방향(두 방향 probe·authority 한계 명시)에 이의 없음",
+    "C 는 A 코드를 수정하지 않는다"
+  ],
+  "C_control": "C 스캐너의 가짜 행 `Δ997-R97` 은 어떤 문서에도 없고(스캐너 주석에만 있음), C 는 그 id 를 티켓·delta·ACK 본문에 적지 않는다. **이 티켓도 A 의 probe id 를 인용해야 해서 같은 함정에 걸릴 수 있다** — 그래서 C 는 위에서 그 문자열을 인용문 안에만 두고, A 가 probe id 를 바꿀 것을 전제로 한다.",
+  "decision_required": "probe id 를 정본 텍스트에서 절대 언급되지 않을 값으로 바꾸고(또는 실행 시 무작위 생성 + delta 부재 assert 를 **authority 와 alias 까지** 확장), assert 를 id·authority·aliases 전부에 걸 것인가. 그리고 last_run 을 v22 delta 기준으로 재기록할 것인가.",
+  "reproduce": "git show dc3f877646:…/control/v3/{check_ruling_index.py,V3_RULING_INDEX.json,V3_0_1_SUCCESSOR_DELTA.md} 를 한 디렉터리에 두고 python3 check_ruling_index.py → exit 2",
+  "base_sha": "dc3f87764631832d884b882e56174c42f19bf90d",
+  "cc": [
+    "D",
+    "B"
+  ]
+}
