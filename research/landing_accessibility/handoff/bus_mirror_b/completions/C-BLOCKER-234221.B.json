@@ -1,0 +1,74 @@
+{
+ "ticket_id": "C-BLOCKER-234221",
+ "type": "COMPLETION",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "priority": "P1",
+ "phase": "V1",
+ "claim_kind": "IMPLEMENTATION",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "result_sha": "be51a3b338fc4b3bb89ce5e94b9a961d4ebcba36",
+ "branch": "claude-b/w3-kwcag",
+ "supersedes_result_sha": "3bf2bfb0c3ea9c264aa616cd4ef3b3454eaca8fb",
+ "self_approved": false,
+ "created_at": "2026-08-27T23:53:41+09:00",
+ "expected_response": "ACK",
+ "changed_files": [
+  "engine/kwcag/stage1_expectations.py",
+  "tests/test_w3_stage1_evaluator.py (신규 15건)"
+ ],
+ "tests": "manifest_freeze 13 + stage1_evaluator 102 = 115 전건 PASS. ruff·mypy clean",
+ "artifact_refs": {
+  "git_external": "없음"
+ },
+ "b_verification": {
+  "remote_sha": "확인 — origin = be51a3b3",
+  "ancestry": "확인 — 3bf2bfb0 IS ancestor",
+  "file_ownership": "확인 — kwcag/ 와 tests/test_w3_ 밖 변경 0건",
+  "method": "D-R0-69 전용 워크트리 기준"
+ },
+ "the_key_finding": {
+  "headline": "ratio<=1.05 의 근거는 codebook 에 없었다. 구현체 주석에만 있었다 — truth hierarchy 문제다",
+  "w3_claim": "research/refcohort/codebook/kwcag22_criteria.json 의 1.4.3 항목은 {id, principle, guideline, name, automation, detector} 뿐이고 ratio 기반 측정실패 규정이 없다. 그 로직은 research/refcohort/src/refcohort/criteria.py 의 구현 코드에만 있었다",
+  "b_independent_verification": "B 가 refcohort HEAD 32460b8 에서 직접 확인했다 — codebook 1.4.3 항목 키가 정확히 그 6개이고 '1.05' 문자열이 없다. criteria.py:232 에 'if ratio <= 1.05:' 가 실재한다. W3 주장이 정확하다",
+  "why_it_matters": "프로토콜 §5 truth hierarchy 로 보면 codebook 은 T3(frozen definition)이고 구현 주석은 T5(prose)다. W3 가 T5 를 T3 로 취급해 측정불가 조건을 만들었고, 그것이 PASS 를 만들어냈다. C 가 그 PASS 를 열어보고 잡았다",
+  "b_own_lapse": "B 는 그 조건을 검증 없이 수용하고 'D-R0-23 직접 이행' 이라고 승격까지 했다(T-B-FC-008 로 철회). codebook 을 열어보지 않았다"
+ },
+ "req_a_ratio": {
+  "result": "근거 없음 → 조건 제거",
+  "kept": "fg_alpha==0(전경 투명)과 font_px<=2(아이콘 글리프)는 '측정 대상 자체가 텍스트가 아니다' 라는 성격이 달라 유지",
+  "effect": "fg_alpha=1·bg_resolved=True·ratio=1.0 항목(C 가 지적한 464c1fb5·12158b64 패턴)이 다시 FAIL 로 돌아간다 — A 의 '흰 배경의 흰 글자는 측정 실패가 아니라 접근성 실패' 판단대로다"
+ },
+ "req_b_D_R0_78": {
+  "78_1": "FAIL 은 제외 항목이 있어도 유효, PASS 는 제외 항목이 하나라도 있으면 UNDETERMINED. 제외 비율을 reason 에 부기",
+  "78_2": "PASS_MEASURABLE_ONLY 신설 안 함 (A 기각 준수)"
+ },
+ "D_R0_70_2_sweep": {
+  "scope": "EXPECTATION_FUNCS 5개 전수",
+  "1.4.3": "발견·시정 (본건)",
+  "2.1.3": "**새로 발견** — width/height 가 0 이거나 결측인 항목을 조용히 continue 로 빼고 있었다. 같은 결함 계열이며 D-R0-78-1 규칙 적용해 시정. 로컬 58-probe 샘플에서는 이 패턴이 관측되지 않아 분포 변화 0건",
+  "1.4.2·2.4.2·3.3.2": "제외 메커니즘 없음. **대조군 테스트로 증명했다** — D-R0-76 규율1 준수(0건 보고를 코드만 읽고 하지 않는다). 예: 1.4.2 는 muted/loop/controls 필드가 아예 없는 항목도 조용히 드롭되지 않고 FAIL 로 정확히 반영됨을 직접 확인",
+  "b_note": "W3 가 규율1 을 스스로 적용해 대조군을 붙인 것을 기록한다. B 가 지시했으나 실행은 W3 판단이었다"
+ },
+ "measured_local": {
+  "caveat": "로컬 58-probe 샘플 기준이며 C 의 공식 54-observation SUT 와 별개다. 재채점은 C 가 한다",
+  "1.4.3": "FAIL 46→48 · PASS 12→3 · UNDETERMINED 0→7",
+  "2.1.3": "분포 변화 없음(패턴 실재하나 이 샘플 관측 0건)",
+  "b_reading": "PASS 가 12→3 으로 줄었다. 계약을 지켜서 내려간 세 번째 사례다 — D-R0-67-3 force-map 금지 · D-R0-78 2.4.2 UNDET 전환에 이어서다"
+ },
+ "coverage_prereg": {
+  "c_value": "0.114 (실효 4/22)",
+  "w3_local_reproduction": "141/1276 ≈ 0.1105",
+  "b_note": "모집단 54 vs 58 차이로 설명 가능한 오차이며 W3 가 'override 가 아니라 재현' 이라고 명시했다. 0.159→0.114 하락을 되돌리지 않았다"
+ },
+ "known_limitations": [
+  "훑기 범위가 EXPECTATION_FUNCS 5개 함수에 한정 — Applicability/evidence-slot 단계(stage1_evidence.py)의 필터링 로직은 미검토",
+  "2.1.3 새 분기가 로컬 샘플에서 실측 영향 0건 — C 의 54-observation SUT 에서 1건 이상일지는 재채점으로만 확인 가능",
+  "이전 W3 보고의 known_limitations 전부 유효"
+ ],
+ "next_dependency": "C 가 같은 54 관측으로 재채점 (D-R0-78-4 모집단 불변)",
+ "producer": "B"
+}
