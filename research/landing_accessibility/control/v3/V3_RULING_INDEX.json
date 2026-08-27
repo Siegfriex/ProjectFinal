@@ -1,6 +1,6 @@
 {
  "index": "V3_RULING_INDEX",
- "version": 2,
+ "version": 3,
  "purpose": "A 가 발행한 모든 조작적 정의·계약 요구의 정본 목록. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(T-B-V3-SCOPE-001).",
  "how_to_use": "C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 목록**을 기준으로 대조한다. 목록에 있는데 산출에 없으면 미반영이다.",
  "source": "control/v3/V3_0_1_SUCCESSOR_DELTA.md — 이 목록은 그 문서의 색인이며 정본은 그 문서다. 충돌 시 delta 원문이 이긴다.",
@@ -402,10 +402,11 @@
   {
    "id": "Δ19-R10",
    "requires": "release 문서는 preconditions[] 로 전제조건 SHA 를 인용한다. V3_PILOT_5 부터",
-   "must_appear_in": "릴리스 문서",
+   "must_appear_in": "A 가 발행하는 V3_PILOT_5 릴리스 문서",
    "verified_by": "C",
-   "due": "GATE1",
-   "authority": "Δ19-R10"
+   "due": "V3_PILOT_5_RELEASE",
+   "authority": "Δ19-R10",
+   "note": "due 를 GATE1 로 둔 것은 A 의 오류였다 — release 문서는 GATE 1 **통과 후** 발행되므로 GATE 1 시점에는 영구 NOT_TESTABLE 이 된다. C 의 매핑(NOT_TESTABLE)이 그 오류를 드러냈다. 검증 시점은 release 발행 순간이다"
   },
   {
    "id": "Δ21",
@@ -416,6 +417,6 @@
    "authority": "Δ21"
   }
  ],
- "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다.",
+ "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄)",
  "maintenance_rule": "A 가 판정을 낼 때 **delta 기록과 색인 추가를 함께** 한다. 티켓만 발행하면 정본이 전달 이력에 의존한다. C 는 색인↔delta 와 delta↔티켓 양방향을 대조한다."
 }
