@@ -284,6 +284,24 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
         if b.get("execution_mode") == "SHADOW_DRY_RUN": f.add("C1", "DRY_RUN_BATCH", f"{b['_file']} is SHADOW_DRY_RUN — not real evidence", file=b["_file"])
         for r in b.get("results") or []: rows.append(reconstruct_target(r, b, out, f, plan_targets))
     plan_rep = check_plan_order(rows, plan, worker, f, label)
+    # A E000_FAST_ACCEPTANCE §1-3: observation_id uniqueness across all runs
+    oids = Counter(r.get("observation_id") for r in rows if r.get("observation_id"))
+    dup_o = [o for o, c in oids.items() if c > 1]
+    if dup_o: f.add("C0", "OBS_ID_DUPLICATE", f"duplicate observation_id across results: {dup_o[:5]} (systemic evidence identity corruption candidate)", ids=dup_o[:10])
+    # §1-8 failure isolation: batch provenance isolated_failure_count must equal non-MEASURED results, and batch must still carry every planned target
+    for b in batches:
+        res = b.get("results") or []; nonm = sum(1 for r in res if r.get("outcome") not in ("MEASURED", "PLANNED_NOT_EXECUTED"))
+        ifc = (b.get("provenance") or {}).get("isolated_failure_count")
+        if ifc is not None and ifc != nonm: f.add("C1", "ISOLATION_COUNT", f"{b['_file']}: provenance isolated_failure_count {ifc} != non-MEASURED results {nonm}", file=b["_file"])
+        if (b.get("provenance") or {}).get("target_count") not in (None, len(res)): f.add("C1", "ISOLATION_TARGET_COUNT", f"{b['_file']}: provenance target_count != results (target dropped after failure?)", file=b["_file"])
+    # §0 naming contract: forbidden string anywhere in out_dir JSON/JSONL/MD
+    forb = []
+    for pth in list(out.rglob("*.json")) + list(out.rglob("*.jsonl")) + list(out.rglob("*.md")):
+        try:
+            if "E000_V2_VALIDATED" in pth.read_text(encoding="utf-8", errors="ignore"): forb.append(str(pth.relative_to(out)))
+        except Exception: pass
+    if forb: f.add("C1", "FORBIDDEN_LABEL_E000_V2_VALIDATED", f"forbidden string E000_V2_VALIDATED found in {len(forb)} files", files=forb[:10])
+    # §1-5 counts: disk runs == referenced runs (+orphans reported separately)
     referenced = {r.get("evidence_run_id") for r in rows if r.get("evidence_run_id")}
     ev = out / "evidence"; orphan = sorted(d.name for d in ev.iterdir() if d.is_dir() and d.name not in referenced) if ev.is_dir() else []
     if orphan: f.add("C2", "ORPHAN_EVIDENCE_RUNS", f"{len(orphan)} evidence runs not referenced by any batch result (guard-blocked targets drop their L0 record)", runs=orphan[:20])
