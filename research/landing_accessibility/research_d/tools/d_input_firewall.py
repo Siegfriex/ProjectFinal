@@ -363,6 +363,15 @@ def main() -> int:
         "d_head_sha": git("rev-parse", "HEAD"),
         "manifest_sha256": __import__("hashlib").sha256(MANIFEST.read_bytes()).hexdigest(),
         "scanned_files": len(files),
+        # [R38] **무엇을 쟀는지의 바이트 신원.** 파일 수만 적으면 다음 실행과
+        # 비교할 수 없다 — 같은 211개라도 내용이 다르면 다른 측정이다.
+        # 파일별 sha 를 경로순으로 이어 해싱한다.
+        "scanned_corpus_sha256": __import__("hashlib").sha256(
+            "".join(f"{p.relative_to(RD.parents[2])}:"
+                    f"{__import__('hashlib').sha256(p.read_bytes()).hexdigest()}\n"
+                    for p in sorted(files)).encode()).hexdigest(),
+        "corpus_identity_note": ("scanned_files 는 개수이고 이것은 신원이다. "
+                                 "두 실행의 코퍼스 sha 가 다르면 FAIL 수를 비교하지 않는다 (R38)."),
         "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
         "controls": controls,
         "r35": _r35_block(),

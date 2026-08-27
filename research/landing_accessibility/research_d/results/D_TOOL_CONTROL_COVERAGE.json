@@ -159,5 +159,26 @@
    }
   },
   "what_this_changed": "(a) 만으로 '독립 재계산' 이라 적었던 두 건 중 하나에서 실제로 단위 밖 사례가 나왔다. **(b) 가 형식이 아니다.**"
+ },
+ "R38_input_identity_2026_08_28": {
+  "measured_at_kst": "2026-08-28T08:47:41+09:00",
+  "d_head": "60b0429766bc04db7554eb4fa80d35efe2c991fa",
+  "rule": "T-A-V3-STEP1-033 R38 — 산출은 측정 대상의 바이트 sha 를 함께 싣는다. 입력 sha 가 다른 두 측정값은 비교하지 않는다.",
+  "audit": {
+   "산출 JSON": 85,
+   "64자 hex 를 담은 것": 38,
+   "키 이름 종류": 34,
+   "주의": "D 의 첫 탐지기가 키 이름 6종만 봐서 '신원 없음 75건' 이 나왔다. 실제로는 `sha256`·`hash`·`file_sha256` 등 34종으로 흩어져 있었다. **탐지기가 좁아서 생긴 수였고 보고 전에 잡았다.**"
+  },
+  "active_tools_now_carry": {
+   "d_standing_control": "index/delta sha + `input_identity`(색인 선언 vs 실제) + `delta_sections_crosscheck`(같은 입력일 때만 비교)",
+   "index_delta_crosscheck": "index.sha256 · delta.sha256",
+   "d_input_firewall": "**신규** `scanned_corpus_sha256` — 파일별 sha 를 경로순으로 이어 해싱. 개수(211)는 신원이 아니다",
+   "reconcile_lanes": "**신규** `measured_input_sha256` — lane 산출 5개 각각의 sha",
+   "control_failure_demo": "tool_sha256 (실증을 도구 커밋에 묶는다)",
+   "d_emit_ticket": "발행 티켓별 sha256 (기준선)"
+  },
+  "legacy_not_amended": "PIVOT_DEFERRED_LEGACY 시기 산출은 소급 개정하지 않는다 — A 의 방침과 같다. 그 산출을 인용할 때 입력 신원이 없다는 것이 한계다.",
+  "why_it_matters_measured": "이번 회차에 A 의 `delta_sections=83` 과 D 의 85 를 **같은 input_sha256 에서** 대조해 차이 2건(`### P-09`·`### GAP-07`)을 완전히 규명했다. 이전의 38·51·63·67·72 로는 같은 일을 할 수 없었다."
  }
 }

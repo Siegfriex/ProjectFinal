@@ -265,6 +265,13 @@ def main() -> int:
         "orchestrator_dirty": bool(git("status", "--porcelain")),
         "lanes": [{k: v for k, v in L.items() if k != "payload"} for L in lanes],
         "lane_verdicts": {L["lane"]: (L.get("payload") or {}).get("verdict") for L in lanes},
+        # [R38] 이 대조가 **어떤 바이트를 읽고** 낸 결과인지. lane 산출이 바뀌면
+        # 같은 verdict 라도 다른 측정이다.
+        "measured_input_sha256": {
+            L["lane"]: (lambda f: __import__("hashlib").sha256(f.read_bytes()).hexdigest()
+                        if f and f.exists() else None)(
+                RD / "results" / "harness" / LANES[L["lane"]][0] / (L.get("json") or ""))
+            for L in lanes},
         "missing_lanes": missing,
         "incomplete_lanes": incomplete,
         "cross_lane_issues": issues,
