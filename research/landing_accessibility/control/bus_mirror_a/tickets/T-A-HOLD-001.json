@@ -1,0 +1,41 @@
+{
+ "ticket_id": "T-A-HOLD-001",
+ "type": "HARD_STOP_CANDIDATE",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "priority": "P0",
+ "phase": "V1",
+ "claim_kind": "DECISION",
+ "base_sha": "b360198c3622470f3d566e3b62438e4ea79c3b64",
+ "created_at": "2026-08-27T23:49:31+09:00",
+ "title": "HOLD 선언 — W1_W2_JOINT_GATE. Director 판단 요청",
+ "doc": "research/landing_accessibility/control/r0/D_R0_79_HOLD_DECLARED.md",
+ "trigger": "D-R0-64 트리거 4 (SSOT/construct/threshold 변경 필요). D-R0-77-3 종결 조건 충족.",
+ "target_sha": {
+  "W2": "b28aaa5cad736082a6a76c0ca6a9f6be330bbcfb",
+  "W1": "ef7db338b58c",
+  "C_joint": "ae3dd49"
+ },
+ "measurement": "prior_only 전 모집단 coverage<0.75 (18 primary 0.538 · 23 0.444 · 26 0.45 · cal 0.318). fallback 발화 0/56. all7 stress 에서 26 이 coverage 0.75 경계에 닿으나 agreement 0.11~0.13 · force-map 4 로 다른 두 조건 FAIL — coverage 상승은 오매핑(PLACE_LOOKUP 25)으로 얻은 것이다.",
+ "a_self_correction": "D-R0-77-3 의 유예 근거가 부정확했다. A 는 '코퍼스에 신규 raw feature 가 없어 DOM replay 가 미실행' 이라고 했으나 C 의 DOM replay 는 joint5 에서 이미 신규 l0_probe.js 로 probe_v2 를 만들었고, b28aaa5 재사용은 l0_probe.js 가 바이트 동일하기 때문이었다(B 가 git diff --quiet 로 독립 검증). 결론은 바뀌지 않으나 근거가 부정확한 유예는 결과가 같아도 같은 결정이 아니므로 기록한다.",
+ "planes_conduct": "C 는 '새 경로를 제안하지 않는다' 고 명시했고, B 는 A 의 자기구속을 자기에게도 적용해 추가 개선안·threshold 조정·평가 방식 변경을 제안하지 않았으며 세 선택지 중 어느 것도 고르지 않고 사실만 제공했다. HOLD 회피 유혹이 가장 큰 지점에서 세 plane 이 모두 멈췄다.",
+ "director_options": {
+  "a": "게이트 유지 + W2 rework 계속(R1) — B·C 모두 구체적 경로를 제시하지 않는다. 남은 미지수는 D-R0-67-2(list-family 판별 신호) 완료 후의 값뿐이다",
+  "b": "frozen DOM 모집단 한계 인정(R2) → 평가 모집단을 pilot 으로 교체. A7 순서를 뒤집으므로 Director 승인 필요. 장점: D-R0-62 에서 청정 holdout 이 0 임이 확인됐으므로 pilot 신규 관측이 유일하게 진짜 blind set 을 만드는 길이다",
+  "c": "PARTIAL_READY_WITH_BLOCKER 로 stratified pilot 진입 — SSOT §18 명시 경로",
+  "a_note": "A 는 (b)+(c) 결합을 선택지로만 제시하고 권고하지 않는다. A7 순서는 Director 가 정했고 A 가 선호를 얹으면 자기 게이트 실패를 자기 설계 변경으로 푸는 모양이 된다."
+ },
+ "co_pending_director_items": [
+  "A7 게이트 순서 (D-R0-76 §4) — 본 HOLD 와 직결",
+  "D-R0-72 OverlayCoverage construct — joint figure point size",
+  "blind set 존재 여부 E000 6 (D-R0-62-6) — 본 HOLD 와 직결",
+  "1 과 3 은 본 HOLD 의 선택지와 같은 질문이므로 따로 결정하면 서로 모순할 수 있다"
+ ],
+ "not_stopped_by_hold": "HOLD 는 W2 detector 게이트에 관한 것이다 (D-R0-64 A4). W1 안전 항목(장바구니 FORBIDDEN_TRANSACTION P1) · W3 1.4.3 rework(D-R0-78) · W4 유지 · D-R0-70-2 훑기는 계속한다.",
+ "real_target": "NO-GO — 어느 선택지에서도 A 명시 GO 전까지 변경 없음",
+ "expected_response": "GO_NO_GO"
+}
