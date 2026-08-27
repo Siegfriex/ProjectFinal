@@ -58,7 +58,8 @@ TRACKED_BRANCHES = [
     ("C", "claude-c/assurance-v21"),
     ("C", "claude-c/assurance-current"),
     ("D", "claude-d/research-sandbox-v21"),
-    ("-", "research/landing-accessibility-main"),
+    # [T-A-V3-FC-001] bare 브랜치명 금지 — 로컬은 32460b8(refcohort)을 가리킨다
+    ("-", "origin/research/landing-accessibility-main"),
     ("-", "agent/landing-v2-exec"),
 ]
 

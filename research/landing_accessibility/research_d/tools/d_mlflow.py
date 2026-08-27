@@ -89,7 +89,7 @@ NOTEBOOK_MAP = {
 }
 
 
-def discover() -> list[dict]:
+def discover(base=None) -> list[dict]:
     """results/ 에서 RQ 단위 산출을 찾는다. rq_id 는 파일명에서만 뽑는다.
 
     [D-DEF-06 시정] 이전 정규식 `RQ_(D\\d+)_` 는 숫자 뒤에 `_` 를 요구해
@@ -128,7 +128,8 @@ def discover() -> list[dict]:
         return None
 
     found: dict[str, dict] = {}
-    for f in sorted((RD / "results").glob("*.json")):
+    root = Path(base) if base else (RD / "results")
+    for f in sorted(root.glob("*.json")):
         if SKIP.search(f.name):
             continue
         prefix = prefix_of(f.name)
@@ -137,7 +138,7 @@ def discover() -> list[dict]:
         rq = rq_id_of(prefix)
         e = found.setdefault(rq, {
             "rq_id": rq,
-            "md": RD / "results" / f"{prefix}_FINDINGS.md",
+            "md": root / f"{prefix}_FINDINGS.md",
             "json": None,
         })
         # [D-DEF-10 시정] 같은 prefix 에 JSON 이 여럿이면 알파벳 첫 파일을 집었다.
