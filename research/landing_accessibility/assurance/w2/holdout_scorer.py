@@ -40,7 +40,7 @@ def main(labels_p, split_p, det_p, out_p):
     for o in hold:
         if o not in labels or o not in det: continue
         L, D = labels[o], det[o]
-        lab = L.get("archetype_label"); pred = D.get("archetype_pred")
+        lab = L.get("archetype_label") or L.get("archetype"); pred = D.get("archetype_pred")
         if pred not in ARCHETYPES and pred not in (ABSTAIN, None): problems.append({"kind":"PRED_OUTSIDE_7","observation_id":o,"pred":pred})
         key = lab if lab in ARCHETYPES else ABSTAIN
         per[key]["n"] += 1

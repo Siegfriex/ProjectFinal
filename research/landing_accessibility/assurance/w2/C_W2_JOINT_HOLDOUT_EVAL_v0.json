@@ -1,0 +1,108 @@
+{
+  "artifact": "C_W2_JOINT_HOLDOUT_EVAL_v0",
+  "sut": "C-local merge d454a3f = W1 860e4e8 + W2 f76ee8b (production integration 아님, 충돌 0)",
+  "input": "frozen E001 probe.json raw_features (protocol v2.0-pc-fixture-1), mart 참조 56 중 probe 보유 54 (FAILED 2 는 probe 없음)",
+  "resolver": "resolve_representative_function(raw, candidates)",
+  "conditions": {
+    "all7": "Layer P 없이 7 후보 전부",
+    "prior_only": "CSV frozen prior 1후보",
+    "no_utility": "6 후보(UTILITY 제외) — 54/54 AMBIGUOUS"
+  },
+  "tier3_trace": {
+    "all7": {
+      "evidenced=[UTILITY_ENTRY]": 35,
+      "evidence 없음": 15,
+      "evidenced=[PLACE,QUERY,UTILITY]": 4
+    },
+    "no_utility": {
+      "evidence 없음": 50,
+      "evidenced=[PLACE,QUERY]": 4
+    },
+    "prior_only": {
+      "evidence 없음": 48,
+      "UTILITY": 4,
+      "QUERY": 2
+    }
+  },
+  "aggregates": {
+    "all7/26_full_exposed": {
+      "n": 26,
+      "evaluated": 20,
+      "coverage": 0.7,
+      "agreement_on_mapped": 0.21428571428571427,
+      "macro": 0.14285714285714285,
+      "force_map": 3,
+      "missing_detector_output": 1
+    },
+    "all7/23_partial_exclusion": {
+      "n": 23,
+      "evaluated": 18,
+      "coverage": 0.6666666666666666,
+      "agreement_on_mapped": 0.25,
+      "macro": 0.16666666666666666,
+      "force_map": 2,
+      "missing_detector_output": 1
+    },
+    "all7/18_clean_primary": {
+      "n": 18,
+      "evaluated": 13,
+      "coverage": 0.6153846153846154,
+      "agreement_on_mapped": 0.25,
+      "macro": 0.2,
+      "force_map": 2,
+      "missing_detector_output": 1
+    },
+    "all7/calibration_30_reference": {
+      "n": 30,
+      "evaluated": 22,
+      "coverage": 0.6363636363636364,
+      "agreement_on_mapped": 0.07142857142857142,
+      "macro": 0.2,
+      "force_map": 4,
+      "missing_detector_output": 1
+    },
+    "prior_only/26_full_exposed": {
+      "n": 26,
+      "evaluated": 20,
+      "coverage": 0.05,
+      "agreement_on_mapped": 0.0,
+      "macro": 0.0,
+      "force_map": 0,
+      "missing_detector_output": 1
+    },
+    "prior_only/23_partial_exclusion": {
+      "n": 23,
+      "evaluated": 18,
+      "coverage": 0.05555555555555555,
+      "agreement_on_mapped": 0.0,
+      "macro": 0.0,
+      "force_map": 0,
+      "missing_detector_output": 1
+    },
+    "prior_only/18_clean_primary": {
+      "n": 18,
+      "evaluated": 13,
+      "coverage": 0.07692307692307693,
+      "agreement_on_mapped": 0.0,
+      "macro": 0.0,
+      "force_map": 0,
+      "missing_detector_output": 1
+    },
+    "prior_only/calibration_30_reference": {
+      "n": 30,
+      "evaluated": 22,
+      "coverage": 0.22727272727272727,
+      "agreement_on_mapped": 0.6,
+      "macro": 0.6666666666666666,
+      "force_map": 0,
+      "missing_detector_output": 1
+    }
+  },
+  "diagnosis": [
+    "frozen probe.json 은 region_signals={declared_regions,search_inputs} 뿐 — W2 가 읽는 신규 신호(list-container 링크, commerce control, content endpoint 등)가 없어 tier3 evidence 가 구조적으로 부재 → 결과는 'W2 가 틀렸다' 가 아니라 'frozen probe 로는 평가 불가(NOT_REPRODUCIBLE)'. V1 offline validation 은 stored dom.html 에 신규 l0_probe.js 를 다시 돌리는 DOM replay 가 선행돼야 한다(B 자신도 '실제 n=58 에 한 번도 실행되지 않았다' 고 기재).",
+    "Branch U(UTILITY) 가 '버튼/입력 hittable 존재' 만으로 성립해 Layer P 없이 후보에 넣으면 35/54 를 흡수(catch-all) → 라벨 AMBIGUOUS 인 관측을 UTILITY 로 매핑(force-map 3/26). 계약 gap: UTILITY_ENTRY 는 Layer P prior 가 지목한 경우에만 후보가 되거나 Branch U region 정의를 강화해야 함(D-R0-41/47 보강, A DECISION).",
+    "prior_only 조건도 coverage 0.05~0.23 — 같은 원인(신규 신호 부재)."
+  ],
+  "gate_status": "D-R0-32 (agreement≥0.85, coverage≥0.75, force-map 0) — 현 입력으로는 평가 불가. NOT_REPRODUCIBLE 로 기록, PASS/FAIL 판정 유보",
+  "c_only": "per-target 출력/채점은 artifacts/c_only_holdout/ (git 미추적). 공개는 집계만"
+}
