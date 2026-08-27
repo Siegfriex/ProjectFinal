@@ -43,6 +43,8 @@ EXPERIMENTS = {
     "LA_08_MART":        "mart 구축 · missingness · joint-valid",
     "LA_09_STATISTICS":  "기술통계 · planned association · robustness",
     "LA_10_RESEARCH_D":  "D 연구소 메타 — queue · cross-RQ synthesis · dashboard",
+    "LA_04_DIAGNOSTIC_PILOT_RESEARCH":
+        "RQ-D-PILOT-001 — diagnostic real evidence sufficiency. old/new input SHA 병기 필수",
 }
 
 RUN_STATUS = ("RUNNING", "COMPLETED", "FAILED", "ABSTAINED", "INVALIDATED", "SUPERSEDED")

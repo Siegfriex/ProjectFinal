@@ -206,3 +206,60 @@ D 는 볼 수 없고, **이것은 D 가 판단할 사안이 아니라 확인이 
 HOLD 는 W2 detector 게이트에 관한 것이다(A 명시). D 의 연구는 frozen evidence 재분석이며
 게이트·REAL_TARGET 과 무관하다. RQ-D15(v3 코퍼스 재현)는 계속한다.
 D 산출은 어느 선택지도 전제하지 않는다.
+
+---
+
+# RQ-D-PILOT-001 — Diagnostic Real Evidence Sufficiency (Director 승인)
+
+parent run `27d10a01df5442b681ee73062e01c123` @ `LA_04_DIAGNOSTIC_PILOT_RESEARCH`.
+old/new input SHA 를 모두 기록한다 (`input_snapshot_sha_OLD` / `input_snapshot_sha_NEW`).
+
+**판정질문 4개**: R1 증거가 강해졌는가 / R2 증거가 강해졌는가 / 둘 다인가 / full-59 수집이 정보가치가 있는가.
+**D 는 GO/NO_GO 를 내지 않는다. C replication 가능한 finding 만 전달한다.**
+**목표는 새 classifier 를 만드는 것이 아니다.**
+
+## child 상태 — pilot artifact 가 아직 없다
+
+D 가 확인한 사실: `.agent_worktrees` 어디에도 pilot·diagnostic capture 디렉터리가 없다.
+따라서 새 capture 를 요구하는 child 는 **지금 띄우지 않는다.** 데이터 없는 워커를 띄우면
+토큰만 태우고 결과가 안 나온다.
+
+| child | 내용 | 상태 |
+|---|---|---|
+| **E** slot dependency matrix | 세 축이 공유하는 raw slot 과 correlated measurement error 위험 pair | **RUNNING** — frozen evidence + SSOT + exact-SHA 코드만 필요 |
+| **C-part1** episode schema 감사 (RQ-D6a) | Scout 코드에 activation episode 기록 경로가 **존재하는가** | 착수 가능 — 다음 루프 |
+| A old-vs-new delta | 동일 target 의 old frozen vs new capture field-by-field | **PENDING_PILOT_FREEZE** |
+| B frame/target validity | new final URL·redirect chain 기준 3값 분류 | **PENDING_PILOT_FREEZE** |
+| C-part2 episode validity | new pilot 에서 non-SCROLL activation 실측 | **PENDING_PILOT_FREEZE** |
+| D surface-absent vs damaged | 표면부재 14 / 관측손상 9 taxonomy 재검증 | **PENDING_PILOT_FREEZE** |
+
+**전환 조건**: pilot artifact 가 freeze 되면 즉시 A/B/C-part2/D 를 띄우고 우선순위를 전환한다.
+매 루프에서 pilot 디렉터리 존재를 확인한다.
+
+## D 가 pilot 전에 이미 확정한 것 (child A~D 의 기준선)
+
+| 항목 | 값 | 출처 |
+|---|---|---|
+| 원칙적 abstain 하한 | 14/56 (정의 문제 포함 16) | RF2-F |
+| 표면부재 / 관측손상만 / 정의문제 | 14 / 9 / 2 | RF2-F · RF2-E |
+| episode 기록 | 151개 **전부 SCROLL**, non-SCROLL 0/15 | RQ-D6 |
+| area_signal_status | task row 31/31 **NOT_OBSERVED** | RQ-D6 |
+| 세 rule 구현 확정집합 | Jaccard 0.043~0.190, 교집합 1/56 | RF2-F |
+| L1 출구 | 대상 82.8% vs 대조 92.6% (p=0.24) | D-SUP-02 |
+| prior ≡ 업종 | nMI 1.000, 56/56 | D-FACT-01 |
+
+child D 는 이 taxonomy 를 **재검증**하는 것이지 새로 만드는 것이 아니다.
+
+## 라우팅 위반 1건 — A6
+
+`D-HOLD-EVIDENCE-001` 을 `to=[A]` 로 보낸 것은 **A6 위반**이었다(`T-A-D-ROUTING-003`).
+A 의 진단이 정확하다 — 규칙 미이해가 아니라 **긴급하다고 판단해 우회**했다.
+A 가 D 에게 직접 물었다는 사실이 라우팅 예외를 만들지 않는다.
+D 는 `D-RESEARCH_FINDING-002` 부터 `to=[C]` 로 고쳤으면서 **정작 가장 중요한 P0 에서 되돌아갔다** —
+규칙을 지키기 쉬운 곳에서만 지킨 셈이다.
+
+시정: 원 티켓은 immutable 이므로 수정하지 않고 같은 증거를 `to=[C]` 로 재발행했다
+(`D-HOLD-EVIDENCE-002`, 내용 동일·경로만 시정).
+
+**앞으로의 규칙**: D 의 모든 research finding·evidence 는 **A 가 직접 물었을 때에도** `to=[C]` 로 간다.
+긴급성은 `priority` 필드로만 표현하고 경로로 표현하지 않는다.
