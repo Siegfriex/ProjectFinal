@@ -449,3 +449,35 @@ visible label 다른데 AX 같음·label 같은데 control type 다름(L, contro
 
 **reconciliation 규칙**: worker completion 을 그대로 canonical 로 채택하지 않는다. source SHA·중복·모순·누락·완결성을
 대조한 뒤 통합하고, 두 worker 가 같은 사실에 다른 결과를 내면 조용히 고르지 않고 `RECONCILIATION_REQUIRED` 로 명시한다.
+
+## 2026-08-28 02:43 — STEP 3 worker 로스터 확정 (Director D SUBAGENT MODE)
+
+Director 가 STEP 3 adversarial analysis 의 worker 를 **8개**로 지정했다.
+현재 실행 중인 **5 lane 은 하네스 준비**(outcome-independent)이고 STEP 3 분석 worker 와 다른 층이다.
+5 lane 을 중간에 쪼개지 않는다 — namespace 를 나눠 exactly-once 로 돌리는 중이라 지금 분할하면 중복 실행이 된다.
+
+### 하네스 lane → STEP 3 worker 매핑
+
+| 현재 하네스 lane | STEP 3 worker | 분할 |
+|---|---|---|
+| Lane **S** | `D-Spatial` + `D-Control` | **분할** — 좌표/zone 과 control form/menu/reveal/nesting 을 나눈다 |
+| Lane **L** | `D-Label` | 1:1 |
+| Lane **F** | `D-Flow` | 1:1 (primary outcome 축) |
+| Lane **A** | `D-Auth` + `D-Obstruction` | **분할** — auth timing 과 modal/dismissal/occlusion 을 나눈다 |
+| Lane **P** | `D-Provenance` + `D-Stats` | **분할** — lineage/분모 감사와 지표중복/불확실성/pseudoreplication 을 나눈다 |
+
+즉 STEP 3 에서 5 → **8 worker** 로 늘린다. 하네스 lane 산출이 각 worker 의 계산기 입력이 된다.
+
+### 고정 규칙 (Director)
+- worker 가 찾은 finding 을 **A/B 로 직접 보내지 않는다.** worker → D 본체 → `to=[C]`.
+- **하나의 worker 분석을 전체 결론으로 일반화하지 않는다.** D 본체가 construct-level interpretation 을 만든다.
+- `D-Stats` 는 pseudoreplication 을 전담한다 — **45 pair 를 n=45 로 쓰지 않는 것**을 코드 수준에서 강제한다.
+
+### reconciliation 하네스
+`tools/v3_harness/reconcile_lanes.py` 작성. Director ADDENDUM §3 의 검사를 코드로 고정했다 —
+source SHA · namespace 침범 · 필수키/verdict 어휘 · 완결성 · **DUPLICATE_IMPLEMENTATION** · **CONTRADICTION_AMBIGUOUS_VS_IMPLEMENTED**.
+
+빈 상태에서 `NOT_READY`(exit 1)를 내는 것을 확인했고, 탐지기는 **양방향 대조**로 검증했다:
+겹침 없는 대조군 0건 / 같은 변수 2 lane 구현 → `DUPLICATE_IMPLEMENTATION` 1건 /
+한 lane 모호선언 + 다른 lane 구현 → `CONTRADICTION_AMBIGUOUS_VS_IMPLEMENTED` 1건.
+**빈 결과를 정상으로 읽지 않는다** — lane 산출이 없으면 MISSING 이고, cross-lane 0건은 전 lane COMPLETE 일 때만 의미가 있다.
