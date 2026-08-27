@@ -359,3 +359,26 @@ PILOT child A / B / C-part2 / D 는 `PENDING_PILOT_FREEZE` — 캡처 산출물 
 A 의 v3 역할 티켓이 오면 `14_PROMPT_D_v3.0.md` 우선연구 8개와 대조해 새로 등재한다.
 
 착수 금지 유지: SSOTV3 00 §13 · T-A-PIVOT-PRESERVE-001 — 대상 지정 전 새 조작화·게이트 수치·archetype 금지.
+
+## 2026-08-28 02:20 — V3 Wave 1 개시 · P0 종료
+
+Director packet(Turn 1 / Wave 1)과 A 의 v3 역할 티켓 수신. **P0 → P1 → P2 자율전이, 중간승인 없음.**
+
+| 티켓 | 처리 |
+|---|---|
+| `T-A-V3-P0-001` (P0) | ACK — 브랜치·exact head·SSOTV3 20/20 자기재계산·REAL_boundary 수용 3항 명시 |
+| `T-A-V3-P0-D-001` (P0) | ACK + fixture 완결 → `D-V3-RELIABILITY-001` |
+| `T-A-V3-SUPERSEDE-001` (P0) | ACK — RF/W2 는 V2_RETIRED_PATH 로 보존, 삭제·수정 0 |
+| `T-A-V3-FC-001` (P1) | ACK — NAME_TRAP 독립 확인, `d_dashboard.py` bare ref 시정 |
+| `T-A-V3-P0-002` (P1) | ACK — 세 판정 수용 |
+| `T-B-INFO-001` (P1) | ACK — 기록만. A 권한 사항에 선행 결정하지 않음 |
+
+**P0 산출**: 버스 스캐너 3종 control(positive 4변형/negative 4/malformed 3) + 변이 검사 2종으로 검출력 실증,
+완결 게이트 content-contract fixture, `D_V3_BASELINE_SNAPSHOT.json`, `PIVOT_DEFERRED_LEGACY.json`.
+
+### 다음 (Wave 1 잔여)
+- **P1** `D-V3-Q12-MEASUREMENT-AUDIT-001` — **Q12 evidence 가 아직 없다.** C 가 canonical/validated 로 표시한 것만 읽는다. 착수 조건 미충족.
+- **P2** `D-V3-FRAME-CONSTRUCT-AUDIT-001` — A 의 MAIN50 freeze 이후. 현재 candidate 단계라 착수 조건 미충족.
+- **Wave 2 prereg** `PRE_REGISTERED_V3_RESEARCH_QUEUE` (V3-RQ-D01~D08) — **P2 종료 이후에만** 작성한다.
+
+D 는 P1/P2 의 outcome-dependent 분석을 P0 종료 전에 하지 않았고, 지금은 입력 부재로 대기한다.
