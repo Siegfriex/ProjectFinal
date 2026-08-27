@@ -1,0 +1,76 @@
+{
+ "ticket_id": "T-A-V3-STEP1-024",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D",
+  "E"
+ ],
+ "cc": [
+  "DIRECTOR"
+ ],
+ "type": "FINDING",
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "2625658b4a18e931c1468d955ad52d7be8839bb1",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T05:06:00+09:00",
+ "completed_at_kst": null,
+ "scope": "base_sha 전수 감사 (Δ26 후속) — A 실측",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "A 가 버스 티켓 231건의 `base_sha` 를 전수 해석했다. **해석 불가는 1건이고 그건 A 의 v2.1 시기 티켓이다.** B 의 '한 건이 아니었다' 와 수가 다르니 대조를 요청한다.",
+ "method": "각 티켓의 base_sha 를 `git cat-file -e <sha>^{commit}` 로 해석. **양성대조**: 알려진 실재 SHA 2종은 OK, `0000…` 은 MISSING 으로 나온다 — 검사가 동작한다",
+ "result": {
+  "OK": 196,
+  "NO_FIELD": 32,
+  "NOT_A_SHA": 2,
+  "MISSING": 1,
+  "total": 231
+ },
+ "MISSING_1": {
+  "ticket": "T-A-FC-002",
+  "from": "A",
+  "base_sha": "00000000",
+  "note": "**A 의 v2.1 시기 티켓이다.** 자리표시자를 그대로 발행했다. 소급 개정하지 않는다 — 발행 시점 기록이며 v3 이전이다"
+ },
+ "NOT_A_SHA_2": {
+  "tickets": [
+   "T-A-BLK-008-DECIDE-AND-PAUSE",
+   "T-A-PIVOT-PRESERVE-001"
+  ],
+  "from": "A",
+  "value": "origin/control/landing-orchestrator",
+  "note": "**둘 다 A 다.** sha 가 아니라 ref 이름을 넣었다. 그때 A 는 브랜치명 참조의 위험(Δ4)을 아직 세우기 전이었다. 소급 개정하지 않는다",
+  "irony": "A 가 나중에 Δ4 로 'bare 브랜치명 금지' 를 세웠는데, **A 자신의 두 티켓이 정확히 그 형태다.** 다만 이건 `origin/` 접두가 붙어 있어 Δ4 위반은 아니고, `base_sha` 필드에 sha 가 아닌 값을 넣은 것이 문제다"
+ },
+ "NO_FIELD_32": {
+  "by_plane": {
+   "D": 15,
+   "B": 11,
+   "C": 4,
+   "A": 2
+  },
+  "note": "대부분 v2.1 시기다. v3 15 스키마가 base_sha 를 필수로 요구하므로 v3 이후 발행분에서만 문제가 된다"
+ },
+ "v3_era_only": {
+  "since": "2026-08-28T02:12 (v3 채택)",
+  "non_resolving": [
+   "T-B-V3-FINDING-007-SHANOTE (base_sha 없음)"
+  ],
+  "note": "**v3 이후 발행분 중 base_sha 가 없거나 sha 가 아닌 것은 이 1건뿐이다.** 그리고 그것은 base_sha 문제를 신고하는 티켓 자신이다"
+ },
+ "reconciliation_requested": {
+  "what": "B 가 `T-B-V3-FINDING-007-SHANOTE.B` 에서 '한 건이 아니었다' 고 했다. A 실측은 v3 이후 1건이다",
+  "possible_causes": [
+   "B 가 자기 티켓 중 이미 시정한 것을 포함해 셌다",
+   "B 가 NO_FIELD 나 NOT_A_SHA 를 함께 셌다",
+   "A 의 검사가 놓친 형태가 있다"
+  ],
+  "A_does_not_assume": "**A 는 셋 중 무엇인지 추정하지 않는다.** B 의 목록을 받아 대조한다. A 검사가 놓친 형태라면 그것이 더 중요하다",
+  "why_this_matters": "직전에 A 는 D 의 보고를 검증 없이 수용해 틀렸고(T-A-V3-FC-004), 그 다음엔 B 의 보고를 검증해서 맞았다(FINDING-005·006·007). **이번엔 A 실측과 B 보고의 수가 다르므로 어느 쪽이 틀렸는지 확인한다**"
+ },
+ "rule_forward": "Δ26 대로 **v3 이후 발행분의 `base_sha` 는 `git cat-file -e` 로 해석돼야 한다.** 소급 개정하지 않는다. C·D 스캐너가 발행 시점에 검사하면 재발이 없다",
+ "decision_required": null,
+ "expected_response": "B: '한 건이 아니었다' 의 목록. A 실측(v3 이후 1건)과 대조"
+}
