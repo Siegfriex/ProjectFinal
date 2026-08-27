@@ -204,6 +204,18 @@ def reconstruct_target(res: dict, batch: dict, out_dir: pathlib.Path, f: F, plan
             f.add("C0", "ACTIVATION_AFTER_GATE", f"activation(s) recorded after auth gate step {gate_idx[0]} (E-7 forbidden action)", target_id=tid)
         row["n_steps"] = len(steps); row["gate_step_idx"] = gate_idx[:1]
         if row["mpfed"] is not None and steps and row["mpfed"] > len(steps): f.add("C1", "MPFED_GT_STEPS", f"MPFED {row['mpfed']} > recorded steps {len(steps)}", target_id=tid)
+    # A 13:48: mpfed_null_reason breakdown + E-6b fail-closed counter
+    notes = " ".join(str(n) for n in ((te.get("notes") or []) + (det.get("notes") or []))) if (te or det) else ""
+    row["e6b_gate_kind_undetermined"] = ("gate 판별: UNDETERMINED" in notes) or ("gate 판별: UNDETERMINED" in notes.replace("  ", " "))
+    if row["mpfed"] is None:
+        if row["outcome"] == "ACCOUNT_ACTION_BLOCKED": row["mpfed_null_reason"] = "guard_blocked_pre_scout"
+        elif row["endpoint_status"] in ("AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED") and row["e6b_gate_kind_undetermined"]: row["mpfed_null_reason"] = "gate_kind_undetermined"
+        elif row["endpoint_status"] in ("AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED"): row["mpfed_null_reason"] = "gate_reached_non_endpoint_archetype"
+        elif row["endpoint_status"] == "UNRESOLVED" and "NO_SIGNAL" in str(row.get("endpoint_status_detail") or ""): row["mpfed_null_reason"] = "scout_no_signal"
+        elif row["endpoint_status"] == "UNRESOLVED": row["mpfed_null_reason"] = "endpoint_not_reached"
+        elif not row["l1_present"]: row["mpfed_null_reason"] = "l1_not_attempted"
+        else: row["mpfed_null_reason"] = "other:" + str(row["endpoint_status"])
+    else: row["mpfed_null_reason"] = None
     # timeout / transport separation
     if row["outcome"] == "TRANSPORT_FAILURE" and row["error"].startswith("TIMEOUT_EXCEEDED"): row["timeout_cap_exceeded"] = True
     if row["endpoint_status"] == "UNDETERMINED" or row["measurement_status"] == "UNDETERMINED":
@@ -338,12 +350,15 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
     for r in attempted:
         a = r.get("archetype") or "UNKNOWN"; by_arch[a]["attempted"] += 1; by_arch[a]["j1_j3_valid"] += int(r["j1_j3_valid"])
     outcomes = Counter(r["outcome"] for r in rows)
+    mpfed_null_reasons = Counter(r.get("mpfed_null_reason") for r in attempted if r.get("mpfed_null_reason"))
+    e6b_fired_n = sum(1 for r in attempted if r.get("e6b_gate_kind_undetermined"))
+    quarantine = [{"run_id": n, "class": "CONCURRENT_LAUNCH_SUPERSEDED", "reason": "sealed REAL run not referenced by any batch; produced by a concurrent duplicate launch process (A 13:48: possibly duplicate launch command presentation)", "limitations_sentence": "동시 이중 발사로 실제 호스트에 중복 요청이 나갔고, 그 run 은 분석에서 격리했다."} for n in orphan]
     sev = f.worst()
     verdict = "MATCH" if sev in (None, "C2") else ("MISMATCH" if sev == "C1" else "SYSTEMIC_HARD_STOP_CANDIDATE")
     return {"artifact": f"QA_{label}", "generated_by": "C", "generated_at": now(), "out_dir": str(out), "plan": plan_path, "worker": worker,
             "verdict": verdict, "severity_max": sev, "n_batches": len(batches), "batch_hash_all_ok": all(b["_hash_ok"] for b in batches) if batches else None,
             "outcomes": dict(outcomes), "attempted_n": len(attempted), "joint_valid_j1_j3_n": len(jv), "j4_pending": "requires fact_criterion_result + frozen older-relevant set",
-            "excluded_by_reason": dict(excl), "by_archetype": dict(by_arch), "plan": plan_rep, "append_only": ao,
+            "excluded_by_reason": dict(excl), "by_archetype": dict(by_arch), "mpfed_null_reason": dict(mpfed_null_reasons), "mpfed_available_n": sum(1 for r in attempted if r.get("mpfed") is not None), "e6b_fail_closed_fired_n": e6b_fired_n, "quarantine": quarantine, "plan": plan_rep, "append_only": ao,
             "provenance_variants": list(provs), "protocol_versions": dict(protos), "orphan_evidence_runs": orphan, "run_accounting": run_accounting,
             "findings": f.items, "rows": rows}
 

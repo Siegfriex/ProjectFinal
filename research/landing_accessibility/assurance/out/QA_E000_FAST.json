@@ -1,7 +1,7 @@
 {
   "artifact": "QA_E000_FAST",
   "generated_by": "C",
-  "generated_at": "2026-08-27T13:43:25+09:00",
+  "generated_at": "2026-08-27T13:44:30+09:00",
   "out_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e000_real/artifacts/e000_fast_real",
   "plan": {
     "frozen_order_n": 6,
@@ -58,6 +58,33 @@
       "j1_j3_valid": 0
     }
   },
+  "mpfed_null_reason": {
+    "guard_blocked_pre_scout": 3,
+    "gate_kind_undetermined": 2,
+    "scout_no_signal": 1
+  },
+  "mpfed_available_n": 0,
+  "e6b_fail_closed_fired_n": 2,
+  "quarantine": [
+    {
+      "run_id": "e000_fast-wtg_24e6654bfd1ab85b-2026-08-27T043451259138Z",
+      "class": "CONCURRENT_LAUNCH_SUPERSEDED",
+      "reason": "sealed REAL run not referenced by any batch; produced by a concurrent duplicate launch process (A 13:48: possibly duplicate launch command presentation)",
+      "limitations_sentence": "동시 이중 발사로 실제 호스트에 중복 요청이 나갔고, 그 run 은 분석에서 격리했다."
+    },
+    {
+      "run_id": "e000_fast-wtg_5c614fc99631ce5e-2026-08-27T043807318907Z",
+      "class": "CONCURRENT_LAUNCH_SUPERSEDED",
+      "reason": "sealed REAL run not referenced by any batch; produced by a concurrent duplicate launch process (A 13:48: possibly duplicate launch command presentation)",
+      "limitations_sentence": "동시 이중 발사로 실제 호스트에 중복 요청이 나갔고, 그 run 은 분석에서 격리했다."
+    },
+    {
+      "run_id": "e000_fast-wtg_91b952863c62993d-2026-08-27T043424594223Z",
+      "class": "CONCURRENT_LAUNCH_SUPERSEDED",
+      "reason": "sealed REAL run not referenced by any batch; produced by a concurrent duplicate launch process (A 13:48: possibly duplicate launch command presentation)",
+      "limitations_sentence": "동시 이중 발사로 실제 호스트에 중복 요청이 나갔고, 그 run 은 분석에서 격리했다."
+    }
+  ],
   "append_only": {
     "batch_files": 2,
     "runs": 9,
@@ -148,6 +175,8 @@
       "forced_dismissal_count": null,
       "area_signal_status": null,
       "path_sha256": null,
+      "e6b_gate_kind_undetermined": false,
+      "mpfed_null_reason": "guard_blocked_pre_scout",
       "j1_j3_valid": false,
       "exclusion_reason_c": "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
     },
@@ -202,6 +231,8 @@
       "gate_step_idx": [
         0
       ],
+      "e6b_gate_kind_undetermined": true,
+      "mpfed_null_reason": "gate_kind_undetermined",
       "j1_j3_valid": false,
       "exclusion_reason_c": "GATE_REACHED_MPFED_NULL"
     },
@@ -252,6 +283,8 @@
       "forced_dismissal_count": null,
       "area_signal_status": null,
       "path_sha256": null,
+      "e6b_gate_kind_undetermined": false,
+      "mpfed_null_reason": "guard_blocked_pre_scout",
       "j1_j3_valid": false,
       "exclusion_reason_c": "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
     },
@@ -304,6 +337,8 @@
       "path_sha256": null,
       "n_steps": 0,
       "gate_step_idx": [],
+      "e6b_gate_kind_undetermined": false,
+      "mpfed_null_reason": "scout_no_signal",
       "j1_j3_valid": false,
       "exclusion_reason_c": "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
     },
@@ -356,6 +391,8 @@
       "path_sha256": null,
       "n_steps": 0,
       "gate_step_idx": [],
+      "e6b_gate_kind_undetermined": true,
+      "mpfed_null_reason": "gate_kind_undetermined",
       "j1_j3_valid": false,
       "exclusion_reason_c": "GATE_REACHED_MPFED_NULL"
     },
@@ -406,21 +443,10 @@
       "forced_dismissal_count": null,
       "area_signal_status": null,
       "path_sha256": null,
+      "e6b_gate_kind_undetermined": false,
+      "mpfed_null_reason": "guard_blocked_pre_scout",
       "j1_j3_valid": false,
       "exclusion_reason_c": "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
     }
-  ],
-  "c_verdict_note": {
-    "lineage_9_items": "PASS on all referenced runs (order per E000_FAST_PLAN, identity 6/6, manifest VERIFIED 6/6, chain OK, isolation OK, provenance single, mode REAL_TARGET, firewall bound before collection, cap 360s not exceeded)",
-    "C0": 0,
-    "C1": [
-      "3 unreferenced sealed REAL runs from concurrent duplicate launch (daum 043424, youtube 043451, hnsmall 043807#2) — quarantine as CONCURRENT_LAUNCH_SUPERSEDED; disk 9 vs referenced 6"
-    ],
-    "judgment_for_A": "§1-2 L0+L1: joint-valid 0/6 (guard pre-scout block 3, gate kind UNDETERMINED 2 incl. FINANCIAL hana_bank, UNRESOLVED_NO_SIGNAL 1). Engine followed E-6b/E-7; whether this is measurement defect or legitimate observation is A's call. C proposes no threshold.",
-    "C2": [
-      "collector_sha absent in run/batch provenance (base_sha 397a10d only)",
-      "real_target_outcome_used=true semantic clash (reported 13:38)"
-    ],
-    "naming": "E000_FAST (no E000_V2_VALIDATED string found in out_dir)"
-  }
+  ]
 }
