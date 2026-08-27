@@ -11,9 +11,12 @@ from __future__ import annotations
 import csv
 import json
 import re
+import sys
 from pathlib import Path
 
-from lxml import html as lxml_html
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from html_decode import parse_html   # D 파싱 결함 시정: 선언 charset 준수
 
 REPO = Path("/home/sieg/projects-wsl/ProjectFinal")
 EVIDENCE_ROOTS = {
@@ -65,7 +68,7 @@ def mart_kept_runs() -> set[str]:
 def dom_features(path: Path) -> dict:
     raw = path.read_bytes()
     try:
-        tree = lxml_html.fromstring(raw)
+        tree, enc = parse_html(path)
     except Exception:
         return {"dom_parse_ok": 0}
     body = tree.find("body")
@@ -73,6 +76,7 @@ def dom_features(path: Path) -> dict:
     title_el = tree.find(".//title")
     return {
         "dom_parse_ok": 1,
+        "dom_encoding": enc,
         "dom_bytes": len(raw),
         "dom_title": (title_el.text or "").strip() if title_el is not None else "",
         "dom_element_n": len(tree.xpath("//*")),
@@ -176,11 +180,11 @@ def main() -> int:
                 cols.append(k)
     out_dir = Path(__file__).resolve().parents[1] / "results"
     out_dir.mkdir(exist_ok=True)
-    with (out_dir / "D_OBSERVATION_TABLE.csv").open("w", newline="", encoding="utf-8") as fh:
+    with (out_dir / "D_OBSERVATION_TABLE_v2.csv").open("w", newline="", encoding="utf-8") as fh:
         wcsv = csv.DictWriter(fh, fieldnames=cols)
         wcsv.writeheader()
         wcsv.writerows(rows)
-    (out_dir / "D_OBSERVATION_TABLE.json").write_text(
+    (out_dir / "D_OBSERVATION_TABLE_v2.json").write_text(
         json.dumps({"caps_verified_at_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
                     "caps": CAPS, "undisclosed_caps": UNDISCLOSED_CAPS,
                     "n_rows": len(rows), "rows": rows}, ensure_ascii=False, indent=1) + "\n",

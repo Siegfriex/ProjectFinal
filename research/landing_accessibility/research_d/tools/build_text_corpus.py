@@ -13,9 +13,12 @@ from __future__ import annotations
 import csv
 import json
 import re
+import sys
 from pathlib import Path
 
-from lxml import html as lxml_html
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from html_decode import parse_html   # D 파싱 결함 시정: 선언 charset 준수
 
 REPO = Path("/home/sieg/projects-wsl/ProjectFinal")
 RD = Path(__file__).resolve().parents[1]
@@ -63,7 +66,7 @@ def url_tokens(url: str) -> list[str]:
 
 
 def extract(dom: Path, url: str) -> dict:
-    tree = lxml_html.fromstring(dom.read_bytes())
+    tree, _enc = parse_html(dom)
     title_el = tree.find(".//title")
     meta = tree.xpath("//meta[@name='description']/@content")
     headings = texts(tree.xpath("//h1 | //h2 | //h3"), 25)
@@ -119,7 +122,7 @@ def main() -> int:
         out.append(rec)
 
     cols = list(out[0].keys())
-    dest = RD / "results" / "D_TEXT_CORPUS.csv"
+    dest = RD / "results" / "D_TEXT_CORPUS_v2.csv"
     with dest.open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=cols)
         w.writeheader()

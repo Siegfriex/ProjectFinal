@@ -1,0 +1,398 @@
+{
+ "rq": "RQ-D13",
+ "title": "duplicate measurement-vector detection — wtg dedup 이 놓치는 중복",
+ "derived_from": [
+  "RQ-D9 부수발견(byte-identical 관측)",
+  "D amendment D5 우선순위 4"
+ ],
+ "competing_hypotheses": {
+  "H1_COLLECTOR": "수집기가 같은 페이지를 두 target 에 기록 (결함)",
+  "H2_SHARED": "두 서비스가 실제로 같은 랜딩 공유 (frame 문제, 결함 아님)",
+  "H3_BLOCKPAGE": "WAF/에러/앱설치 페이지가 동일하게 반환",
+  "H4_NONE": "요약 통계만 같고 원본 바이트는 다름"
+ },
+ "grain": "observation (66) / web_target_group (59)",
+ "n_observations": 66,
+ "n_targets": 59,
+ "n_with_manifest": 60,
+ "byte_identical_cross_target_pairs": 3,
+ "pairs": [
+  {
+   "wtgs": [
+    "64d30ef262d8782d",
+    "95967b50683649f2",
+    "ef06dc942ef3ccc9",
+    "fb3d1841dddfd982"
+   ],
+   "shared_slots": [
+    "computed_css.json",
+    "screen_initial.png"
+   ],
+   "n_shared_slots": 2,
+   "services": {
+    "64d30ef262d8782d": "신한 SOL뱅크",
+    "ef06dc942ef3ccc9": "롯데하이마트",
+    "95967b50683649f2": "NH스마트뱅킹",
+    "fb3d1841dddfd982": "NH콕뱅크"
+   },
+   "archetypes": {
+    "64d30ef262d8782d": "FINANCIAL_ACTION_ENTRY",
+    "ef06dc942ef3ccc9": "ITEM_DETAIL",
+    "95967b50683649f2": "FINANCIAL_ACTION_ENTRY",
+    "fb3d1841dddfd982": "FINANCIAL_ACTION_ENTRY"
+   },
+   "requested_hosts": {
+    "64d30ef262d8782d": "bank.shinhan.com",
+    "ef06dc942ef3ccc9": "e-himart.co.kr",
+    "95967b50683649f2": "banking.nonghyup.com",
+    "fb3d1841dddfd982": "banking.nonghyup.com"
+   },
+   "final_hosts": {
+    "64d30ef262d8782d": "",
+    "ef06dc942ef3ccc9": "",
+    "95967b50683649f2": "nonghyup.com",
+    "fb3d1841dddfd982": "nonghyup.com"
+   },
+   "titles": {
+    "64d30ef262d8782d": "Shinhan Bank",
+    "ef06dc942ef3ccc9": "",
+    "95967b50683649f2": "NH농협 인터넷뱅킹",
+    "fb3d1841dddfd982": "NH농협 인터넷뱅킹"
+   },
+   "same_requested_host": false,
+   "same_final_host": true,
+   "hypothesis_verdict": "H4_PARTIAL_SLOT_ONLY",
+   "why": "공유 slot 이 ['computed_css.json', 'screen_initial.png'] 뿐 — dom 본문은 다르다",
+   "shared_sha_sample": [
+    {
+     "slot": "computed_css.json",
+     "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+     "n_obs": 4
+    },
+    {
+     "slot": "screen_initial.png",
+     "sha256": "04efb0e77f29f408652c188975b7a844b786cc383d06d8b8e3942cc9e36993a5",
+     "n_obs": 4
+    }
+   ]
+  },
+  {
+   "wtgs": [
+    "95967b50683649f2",
+    "ef06dc942ef3ccc9",
+    "fb3d1841dddfd982"
+   ],
+   "shared_slots": [
+    "screen_fullpage.png"
+   ],
+   "n_shared_slots": 1,
+   "services": {
+    "ef06dc942ef3ccc9": "롯데하이마트",
+    "95967b50683649f2": "NH스마트뱅킹",
+    "fb3d1841dddfd982": "NH콕뱅크"
+   },
+   "archetypes": {
+    "ef06dc942ef3ccc9": "ITEM_DETAIL",
+    "95967b50683649f2": "FINANCIAL_ACTION_ENTRY",
+    "fb3d1841dddfd982": "FINANCIAL_ACTION_ENTRY"
+   },
+   "requested_hosts": {
+    "ef06dc942ef3ccc9": "e-himart.co.kr",
+    "95967b50683649f2": "banking.nonghyup.com",
+    "fb3d1841dddfd982": "banking.nonghyup.com"
+   },
+   "final_hosts": {
+    "ef06dc942ef3ccc9": "",
+    "95967b50683649f2": "nonghyup.com",
+    "fb3d1841dddfd982": "nonghyup.com"
+   },
+   "titles": {
+    "ef06dc942ef3ccc9": "",
+    "95967b50683649f2": "NH농협 인터넷뱅킹",
+    "fb3d1841dddfd982": "NH농협 인터넷뱅킹"
+   },
+   "same_requested_host": false,
+   "same_final_host": true,
+   "hypothesis_verdict": "H4_PARTIAL_SLOT_ONLY",
+   "why": "공유 slot 이 ['screen_fullpage.png'] 뿐 — dom 본문은 다르다",
+   "shared_sha_sample": [
+    {
+     "slot": "screen_fullpage.png",
+     "sha256": "a75c5429b481e873c2214fecded4221a150040bfacac9d8515de089329eb721c",
+     "n_obs": 3
+    }
+   ]
+  },
+  {
+   "wtgs": [
+    "95967b50683649f2",
+    "fb3d1841dddfd982"
+   ],
+   "shared_slots": [
+    "dom.html"
+   ],
+   "n_shared_slots": 1,
+   "services": {
+    "95967b50683649f2": "NH스마트뱅킹",
+    "fb3d1841dddfd982": "NH콕뱅크"
+   },
+   "archetypes": {
+    "95967b50683649f2": "FINANCIAL_ACTION_ENTRY",
+    "fb3d1841dddfd982": "FINANCIAL_ACTION_ENTRY"
+   },
+   "requested_hosts": {
+    "95967b50683649f2": "banking.nonghyup.com",
+    "fb3d1841dddfd982": "banking.nonghyup.com"
+   },
+   "final_hosts": {
+    "95967b50683649f2": "nonghyup.com",
+    "fb3d1841dddfd982": "nonghyup.com"
+   },
+   "titles": {
+    "95967b50683649f2": "NH농협 인터넷뱅킹",
+    "fb3d1841dddfd982": "NH농협 인터넷뱅킹"
+   },
+   "same_requested_host": true,
+   "same_final_host": true,
+   "hypothesis_verdict": "H1_COLLECTOR_OR_SAME_TARGET",
+   "why": "요청 host 까지 같다 — 사실상 같은 target 이 두 wtg 로 등록됐거나 수집기가 같은 페이지를 두 번 기록",
+   "shared_sha_sample": [
+    {
+     "slot": "dom.html",
+     "sha256": "b783cbd0ec7630f37ba34f6f64a36760bb37a8b1dad39e980c50fa3a580b11e5",
+     "n_obs": 2
+    }
+   ]
+  }
+ ],
+ "numeric_vector_duplicate_groups": 0,
+ "numeric_vector_duplicates": [],
+ "numeric_vector_columns_used": [
+  "ax_bytes",
+  "css_bytes",
+  "dom_bytes",
+  "dom_title",
+  "dom_element_n",
+  "dom_body_element_n",
+  "dom_interactive_n",
+  "dom_a_href_n",
+  "dom_button_n",
+  "dom_input_n",
+  "dom_role_n",
+  "dom_aria_label_n",
+  "dom_script_n",
+  "dom_body_text_len",
+  "dom_body_empty",
+  "probe_bytes",
+  "probe_version",
+  "probe_collected_at",
+  "probe_url",
+  "probe_final_url",
+  "probe_title",
+  "probe_lang",
+  "probe_scroll_height",
+  "probe_layout_width",
+  "modal_overlay_n",
+  "dismiss_control_n",
+  "search_inputs_n",
+  "declared_regions_n",
+  "declared_endpoints_n",
+  "article_present",
+  "motion_animated_n",
+  "gate_password_input_n",
+  "gate_captcha_iframe_n",
+  "gate_visible_text_len",
+  "n_primary_action_candidates",
+  "cap_primary_action_candidates",
+  "n_accessible_name_sources",
+  "cap_accessible_name_sources",
+  "n_target_size",
+  "cap_target_size",
+  "n_contrast",
+  "cap_contrast",
+  "cap_any",
+  "cap_count",
+  "cap_motion_animated_60",
+  "cap_body_text_4000"
+ ],
+ "verdict": "PARTIALLY_SUPPORTED",
+ "summary": {
+  "H1_like": 1,
+  "H2_shared": 0,
+  "H4_partial_slot_only": 2
+ },
+ "url_level_duplicates": [
+  {
+   "requested_url": "https://banking.nonghyup.com/nhbank.html",
+   "wtgs": [
+    "95967b50683649f2",
+    "fb3d1841dddfd982"
+   ],
+   "services": [
+    "NH스마트뱅킹",
+    "NH콕뱅크"
+   ],
+   "archetypes": [
+    "FINANCIAL_ACTION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY"
+   ],
+   "in_mart": {
+    "95967b50683649f2": "1",
+    "fb3d1841dddfd982": "1"
+   }
+  }
+ ],
+ "distinct_requested_urls": 56,
+ "degenerate_captures": [
+  {
+   "wtg": "64d30ef262d8782d",
+   "service": "신한 SOL뱅크",
+   "requested_url": "https://bank.shinhan.com/",
+   "computed_css_bytes": 3,
+   "empty_css": true,
+   "dom_bytes": 6072,
+   "dom_body_empty": true,
+   "dom_interactive_n": "0",
+   "probe_present": "0",
+   "in_mart": "1"
+  },
+  {
+   "wtg": "ef06dc942ef3ccc9",
+   "service": "롯데하이마트",
+   "requested_url": "https://www.e-himart.co.kr/",
+   "computed_css_bytes": 3,
+   "empty_css": true,
+   "dom_bytes": 314,
+   "dom_body_empty": true,
+   "dom_interactive_n": "0",
+   "probe_present": "0",
+   "in_mart": "1"
+  },
+  {
+   "wtg": "95967b50683649f2",
+   "service": "NH스마트뱅킹",
+   "requested_url": "https://banking.nonghyup.com/nhbank.html",
+   "computed_css_bytes": 3,
+   "empty_css": true,
+   "dom_bytes": 1657,
+   "dom_body_empty": true,
+   "dom_interactive_n": "0",
+   "probe_present": "1",
+   "in_mart": "1"
+  },
+  {
+   "wtg": "fb3d1841dddfd982",
+   "service": "NH콕뱅크",
+   "requested_url": "https://banking.nonghyup.com/nhbank.html",
+   "computed_css_bytes": 3,
+   "empty_css": true,
+   "dom_bytes": 1657,
+   "dom_body_empty": true,
+   "dom_interactive_n": "0",
+   "probe_present": "1",
+   "in_mart": "1"
+  }
+ ],
+ "mart_status_consistency": {
+  "rows": [
+   {
+    "wtg": "64d30ef262d8782d",
+    "service": "신한 SOL뱅크",
+    "requested_url": "https://bank.shinhan.com/",
+    "computed_css_bytes": 3,
+    "empty_css": true,
+    "dom_bytes": 6072,
+    "dom_body_empty": true,
+    "dom_interactive_n": "0",
+    "probe_present": "0",
+    "in_mart": "1",
+    "measurement_status": "FAILED_EVIDENCE_INCOMPLETE",
+    "max_overlay_coverage": 0.0,
+    "max_primary_action_occlusion": 0.0
+   },
+   {
+    "wtg": "ef06dc942ef3ccc9",
+    "service": "롯데하이마트",
+    "requested_url": "https://www.e-himart.co.kr/",
+    "computed_css_bytes": 3,
+    "empty_css": true,
+    "dom_bytes": 314,
+    "dom_body_empty": true,
+    "dom_interactive_n": "0",
+    "probe_present": "0",
+    "in_mart": "1",
+    "measurement_status": "FAILED_EVIDENCE_INCOMPLETE",
+    "max_overlay_coverage": 0.0,
+    "max_primary_action_occlusion": 0.0
+   },
+   {
+    "wtg": "95967b50683649f2",
+    "service": "NH스마트뱅킹",
+    "requested_url": "https://banking.nonghyup.com/nhbank.html",
+    "computed_css_bytes": 3,
+    "empty_css": true,
+    "dom_bytes": 1657,
+    "dom_body_empty": true,
+    "dom_interactive_n": "0",
+    "probe_present": "1",
+    "in_mart": "1",
+    "measurement_status": "MEASURED",
+    "max_overlay_coverage": 1.0,
+    "max_primary_action_occlusion": 1.0
+   },
+   {
+    "wtg": "fb3d1841dddfd982",
+    "service": "NH콕뱅크",
+    "requested_url": "https://banking.nonghyup.com/nhbank.html",
+    "computed_css_bytes": 3,
+    "empty_css": true,
+    "dom_bytes": 1657,
+    "dom_body_empty": true,
+    "dom_interactive_n": "0",
+    "probe_present": "1",
+    "in_mart": "1",
+    "measurement_status": "MEASURED",
+    "max_overlay_coverage": 1.0,
+    "max_primary_action_occlusion": 1.0
+   }
+  ],
+  "status_split": {
+   "FAILED_EVIDENCE_INCOMPLETE": [
+    "64d30ef262d8782d",
+    "ef06dc942ef3ccc9"
+   ],
+   "MEASURED": [
+    "95967b50683649f2",
+    "fb3d1841dddfd982"
+   ]
+  },
+  "inconsistent": true
+ },
+ "axis_c_sensitivity": {
+  "n_all": 56,
+  "median_all": 0.1281,
+  "mean_all": 0.4428,
+  "n_excl_degenerate": 52,
+  "median_excl": 0.1281,
+  "mean_excl": 0.4384,
+  "coverage_eq_1_n": 22,
+  "coverage_eq_1_degenerate_n": 2,
+  "note": "coverage==1.0 의 대다수는 정상 DOM 을 가진 페이지다. 퇴화 관측은 소수이며 median 을 바꾸지 않는다. 그러나 그 소수는 서로 같은 URL 이라 독립 관측이 아니다."
+ },
+ "dismissal_effect": {
+  "steps_total": 248,
+  "no_visual_change": 82,
+  "no_visual_change_rate": 0.3306,
+  "changed": 166,
+  "targets_with_l0c": 50,
+  "targets_no_change_in_any_step": 6,
+  "no_change_target_ids": [
+   "12e3942c0495b9a4",
+   "24e6654bfd1ab85b",
+   "517b8047eb5be716",
+   "5ede56738376a8c5",
+   "b8b226f9fe32539a",
+   "efda6e0b8457d63c"
+  ]
+ }
+}

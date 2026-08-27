@@ -98,12 +98,19 @@ def section(fn):
     return wrapped
 
 
-def n(value, grain: str, denom=None, denom_grain: str | None = None, tier: str = "T2"):
-    """모든 수에 grain·분모·출처계층을 붙여 담는다."""
+def n(value, grain: str, denom=None, denom_grain: str | None = None, tier: str = "T2",
+      numerator=None):
+    """모든 수에 grain·분모·출처계층을 붙여 담는다.
+
+    비율을 담을 때는 numerator 를 함께 준다. 그래야 "0.53 / 235 rows" 처럼
+    비율과 분모가 나눗셈으로 읽히는 오독을 막고 "0.53 (125/235 rows)" 로 렌더된다.
+    """
     d = {"value": value, "grain": grain, "tier": tier}
     if denom is not None:
         d["denominator"] = denom
         d["denominator_grain"] = denom_grain or grain
+    if numerator is not None:
+        d["numerator"] = numerator
     return d
 
 
@@ -114,10 +121,11 @@ def fmt(x) -> str:
     v = x["value"]
     if isinstance(v, float):
         v = f"{v:.4g}"
-    s = f"{v} {x['grain']}"
+    if "numerator" in x and "denominator" in x:
+        return f"{v} ({x['numerator']}/{x['denominator']} {x['denominator_grain']})"
     if "denominator" in x:
-        s = f"{v} / {x['denominator']} {x['denominator_grain']}"
-    return s
+        return f"{v} / {x['denominator']} {x['denominator_grain']}"
+    return f"{v} {x['grain']}"
 
 
 def unavailable(kind: str, why: str, tier: str = "T1") -> dict:
@@ -404,6 +412,29 @@ def sec_data() -> dict:
         "tier": "T3",
     }
 
+    # 스키마 함정 — 대시보드 첫 실행에서 실제로 오판을 냈다. Director 가 알아야 한다.
+    str_bool_fields = []
+    for name, rows, fields in (
+            ("fact_task_entry", te, ("endpoint_reached", "auth_gate_before_endpoint")),
+            ("fact_interrupt_element", ie, ("blocks_primary_action", "dismiss_control_exists",
+                                            "dismiss_control_visible", "dismiss_succeeded")),
+            ("fact_landing_observation", lo, ("primary_action_visible_initial",))):
+        for f in fields:
+            types = {type(r.get(f)).__name__ for r in rows if r.get(f) is not None}
+            if types == {"str"}:
+                str_bool_fields.append(f"{name}.{f}")
+    out["data_quality_flags"] = {
+        "string_typed_boolean_fields": str_bool_fields,
+        "why_it_matters": ("이 필드들은 JSON bool 이 아니라 문자열 \"0\"/\"1\" 로 저장돼 있다. "
+                           "파이썬에서 \"0\" 은 truthy 이므로 `if row[f]:` 로 세면 **전건이 True 로 집계된다**. "
+                           "이 대시보드의 첫 실행이 정확히 그 오류로 endpoint_reached 를 31/31 로 냈고, "
+                           "as_bool() 을 넣어 0/31 로 시정했다. 같은 mart 를 읽는 다른 소비자도 같은 함정에 빠진다."),
+        "same_typing_within_file": ("fact_landing_observation.primary_action_visible_initial 은 int 0/1 인데 "
+                                    "fact_task_entry.endpoint_reached 는 str \"0\"/\"1\" 이다 — "
+                                    "한 mart 안에서 불리언 표현이 통일돼 있지 않다."),
+        "tier": "T3",
+    }
+
     out["mart_provenance"] = mart_provenance()
     out["summary"] = (
         f"66 observation dirs → 59 attempted targets → 56 evidence-bearing → "
@@ -618,7 +649,7 @@ def sec_axis_c() -> dict:
     out["semantic_classified_rate"] = n(
         round(classified / nie, 4) if nie else None,
         "share of interrupt elements with classification_status=DETERMINISTIC",
-        denom=nie, denom_grain="interrupt element rows", tier="T3")
+        denom=nie, denom_grain="interrupt element rows", tier="T3", numerator=classified)
     out["semantic_classification_status"] = {
         k: n(v, "interrupt element rows", denom=nie, denom_grain="interrupt element rows", tier="T3")
         for k, v in cls.most_common()}
@@ -627,7 +658,8 @@ def sec_axis_c() -> dict:
     out["unknown_label_share"] = n(
         round(lab.get("UNKNOWN", 0) / nie, 4) if nie else None,
         "share of interrupt elements labeled UNKNOWN",
-        denom=nie, denom_grain="interrupt element rows", tier="T3")
+        denom=nie, denom_grain="interrupt element rows", tier="T3",
+        numerator=lab.get("UNKNOWN", 0))
 
     out["task_bound_occlusion_available"] = unavailable(
         NA,
@@ -820,25 +852,58 @@ def sec_c_assurance(runs, exps) -> dict:
         Counter((load_json(p).get("priority") or "NONE") for p in c_tickets).most_common())
     out["c_tickets_total"] = n(len(c_tickets), "tickets authored by C on the bus", tier="T4")
 
-    # C 가 D finding 을 재현했는가 (T4: bus 전수 스캔)
-    hits = []
+    # C 가 D finding 을 재현했는가.
+    # 두 경로를 모두 본다 — C 는 bus 파일이 아니라 MLflow run 으로만 재현을 남길 수 있다.
+    # (첫 구현은 bus 만 봐서 C_D_F_Q1_cap_bias_replication 을 놓치고 NONE_YET 을 냈다.)
+    bus_hits = []
     for p in list(acks) + list(comps) + c_tickets:
         try:
             txt = p.read_text(encoding="utf-8")
         except Exception:                            # noqa: BLE001
             continue
-        if re.search(r"RQ-D\d", txt) and (".C." in p.name or p.name.startswith("C-")):
-            hits.append(p.name)
-    if hits:
-        out["reproduced_d_findings"] = n(len(hits), "C-authored bus files referencing an RQ-D finding",
-                                         tier="T4")
-        out["reproduced_d_findings_files"] = hits
+        if (".C." in p.name or p.name.startswith("C-")) and re.search(r"RQ-D|D-RESEARCH_FINDING", txt):
+            bus_hits.append(p.name)
+
+    mlflow_hits = []
+    for r in c_runs:
+        t = r.data.tags
+        refs_d = (t.get("source_plane") == "D"
+                  or str(t.get("ticket_id", "")).startswith("D-")
+                  or str(t.get("hypothesis_id", "")).startswith("D-")
+                  or re.search(r"RQ-D|D-RESEARCH_FINDING", json.dumps(dict(t), ensure_ascii=False)))
+        if refs_d:
+            mlflow_hits.append({
+                "run_name": r.info.run_name, "run_id": r.info.run_id,
+                "experiment": exps.get(r.info.experiment_id),
+                "d_source_run_id": t.get("source_run_id"),
+                "ticket_id": t.get("ticket_id"), "hypothesis_id": t.get("hypothesis_id"),
+                "independent_method": t.get("independent_method"),
+                "match_status": t.get("match_status"), "d_verdict": t.get("d_verdict"),
+                "difference": t.get("difference"), "severity": t.get("severity"),
+                "evidence_status": t.get("evidence_status"),
+            })
+
+    total_repro = len(mlflow_hits)
+    if total_repro:
+        out["reproduced_d_findings"] = n(
+            total_repro, "C-plane MLflow runs that independently recomputed a D finding", tier="T5")
+        out["reproduced_d_findings_detail"] = mlflow_hits
+        out["reproduced_d_findings_bus_files"] = bus_hits
+        confirmed = sum(1 for h in mlflow_hits if h.get("d_verdict") == "D_CONFIRMED"
+                        or h.get("match_status") == "MATCH")
+        out["d_findings_confirmed_by_c"] = n(
+            confirmed, "D findings C reproduced with match_status=MATCH / d_verdict=D_CONFIRMED",
+            denom=total_repro, denom_grain="C reproduction runs", tier="T5")
+        out["reproduction_caveat"] = (
+            "C 의 재현은 D 코드를 쓰지 않은 독립 재계산(evidence_status=INDEPENDENT_RECOMPUTATION)이다. "
+            "그래도 이것은 T5 근거(MLflow tag)이며, D run 의 authority_status 를 바꾸지는 않는다 — "
+            "승격은 A 의 A_ACCEPTED 결정이 필요하다.")
     else:
         out["reproduced_d_findings"] = unavailable(
             "NONE_YET",
-            "bus 전체(acks/completions/C 티켓)에서 C 가 작성한 파일 중 RQ-D 를 언급한 것이 0건이다. "
-            "D 는 D-RESEARCH_FINDING 을 방금 발행했고 C 는 W1/W2/W4 acceptance 검증 중이다 — "
-            "재현 요청이 C 큐에 도달했지만 아직 처리되지 않았다는 뜻이다.", "T4")
+            "C 가 작성한 bus 파일에도, plane=C MLflow run 에도 D finding 을 재계산한 기록이 없다. "
+            "D 의 finding 은 발행됐으나 C 는 W1/W2/W4 acceptance 검증 중이다.", "T5")
+        out["reproduced_d_findings_bus_files"] = bus_hits
 
     out["asymmetry_note"] = (
         "C 가 D 를 재현하지 않았다는 것은 D 결과가 틀렸다는 뜻도, 맞다는 뜻도 아니다. "
@@ -848,7 +913,9 @@ def sec_c_assurance(runs, exps) -> dict:
         f"MATCH_WITH_NONBLOCKING_DIFFERENCE {ms.get('MATCH_WITH_NONBLOCKING_DIFFERENCE', 0)} / "
         f"result-affecting+systemic mismatch {out['mismatch']['value']}. "
         f"C completions {len(c_comps)} (severity C1 {sev.get('C1', 0)} · C0 없음). "
-        f"reproduced D findings: {out['reproduced_d_findings'].get('value')}")
+        f"reproduced D findings: {out['reproduced_d_findings'].get('value')}"
+        + (f" (그중 D_CONFIRMED/MATCH {out['d_findings_confirmed_by_c']['value']})"
+           if "d_findings_confirmed_by_c" in out else ""))
     return out
 
 
@@ -868,7 +935,8 @@ def md_table(headers, rows) -> str:
     out = ["| " + " | ".join(headers) + " |",
            "|" + "|".join(["---"] * len(headers)) + "|"]
     for r in rows:
-        out.append("| " + " | ".join("" if c is None else str(c) for c in r) + " |")
+        cells = ["" if c is None else str(c).replace("|", "\\|").replace("\n", " ") for c in r]
+        out.append("| " + " | ".join(cells) + " |")
     return "\n".join(out)
 
 
@@ -1006,6 +1074,15 @@ def render_md(d: dict) -> str:
         A("")
         A(f"*{sm['note']}*")
         A("")
+        dq = dd["data_quality_flags"]
+        A("### 스키마 함정 (T3)")
+        A(f"문자열로 저장된 불리언 필드 **{len(dq['string_typed_boolean_fields'])}개**: "
+          + ", ".join(f"`{f}`" for f in dq["string_typed_boolean_fields"]))
+        A("")
+        A(f"> {dq['why_it_matters']}")
+        A("")
+        A(f"> {dq['same_typing_within_file']}")
+        A("")
         mp = dd["mart_provenance"]
         A(f"mart provenance (T3) — frozen at `{mp['snapshot_at']}` · "
           f"declared vs actual sha256 전건 일치: **{mp['all_hashes_match']}**")
@@ -1059,8 +1136,9 @@ def render_md(d: dict) -> str:
         A("")
         A(f"> **오독 방지** — {r4.get('misreading_guard', '')}")
         A("")
-        A(f"criterion result rows = {fmt(r4['criterion_rows'])} · "
-          f"dim_certification rows = {fmt(r4.get('dim_certification_rows', {}))}")
+        A(f"criterion result rows = **{r4['criterion_rows']['value']}** · "
+          f"dim_certification rows = **{r4.get('dim_certification_rows', {}).get('value')}** "
+          f"(frozen mart, T3)")
     A("")
 
     # ── 5 Depth ──
@@ -1177,16 +1255,27 @@ def render_md(d: dict) -> str:
         A(f"**{r8['summary']}**")
         A("")
         A(md_table(["항목", "값", "tier"],
-                   [["MATCH", fmt(r8["match"]), "T5"],
-                    ["result-affecting + systemic mismatch", fmt(r8["mismatch"]), "T5"],
-                    ["C completions severity C1", fmt(r8["c1"]), "T4"],
-                    ["C completions severity C0", cell(r8["c0"]), "T4"],
-                    ["**reproduced D findings**", cell(r8["reproduced_d_findings"]), "T4"]]))
+                   [["MATCH", fmt(r8["match"]), r8["match"]["tier"]],
+                    ["result-affecting + systemic mismatch", fmt(r8["mismatch"]),
+                     r8["mismatch"]["tier"]],
+                    ["C completions severity C1", fmt(r8["c1"]), r8["c1"]["tier"]],
+                    ["C completions severity C0", cell(r8["c0"]), r8["c0"]["tier"]],
+                    ["**reproduced D findings**", cell(r8["reproduced_d_findings"]),
+                     r8["reproduced_d_findings"]["tier"]]]))
         A("")
         if why(r8["reproduced_d_findings"]):
             A(f"> reproduced D findings 가 없는 이유 — {why(r8['reproduced_d_findings'])}")
             A("")
-        A(f"> {r8['asymmetry_note']}")
+            A(f"> {r8['asymmetry_note']}")
+        else:
+            A("**C 가 독립 재계산한 D finding** (T5)")
+            A(md_table(["C run", "D hypothesis", "C 방법", "match", "d_verdict", "차이"],
+                       [[h["run_name"][:36], h["hypothesis_id"],
+                         (h["independent_method"] or "")[:40], h["match_status"],
+                         h["d_verdict"], (h["difference"] or "")[:40]]
+                        for h in r8["reproduced_d_findings_detail"]]))
+            A("")
+            A(f"> {r8['reproduction_caveat']}")
         A("")
         A(md_table(["match_status (MLflow)", "C runs"],
                    [[k, v["value"]] for k, v in r8["match_status_mlflow"].items()]))
@@ -1317,6 +1406,8 @@ def collect_metrics(d: dict) -> dict:
         put("cassure.severity_c1", r8["c1"]["value"])
         v = r8["reproduced_d_findings"].get("value")
         put("cassure.reproduced_d_findings", v if isinstance(v, int) else 0)
+        if "d_findings_confirmed_by_c" in r8:
+            put("cassure.d_findings_confirmed", r8["d_findings_confirmed_by_c"]["value"])
 
     m["dashboard.sections_ok"] = float(sum(
         1 for v in s.values() if v.get("section_status") == "OK"))

@@ -28,6 +28,7 @@ import hashlib
 import json
 import math
 import re
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -96,8 +97,11 @@ LEX = {
                       r"접수하기|예약하기|등록하기|신고하기|충전하기|잔여|남은|만보기|걸음",
     "tool_primary":   r"조회|계산|변환|측정|스캔|검사|진단|발급|신청|접수|예약|등록|충전|시작하기",
     # Stage 0 / guard
-    "error_page":     r"page not found|404|not found|error 페이지|페이지를 찾을 수 없|"
-                      r"존재하지 않는 페이지|서비스 점검|access denied|접근이 거부",
+    # 주의: 맨 처음 구현은 bare `404` 를 썼고 상품 규격 "(404G)" 에 걸려 롯데마트를 잘못
+    # Stage0 기각했다. 토큰 경계를 강제한다 (결과 개선용 튜닝이 아니라 구현 결함 시정).
+    "error_page":     r"page not found|(?<![\w,.])404(?![\w,.])|not found|error 페이지|"
+                      r"페이지를 찾을 수 없|존재하지 않는 페이지|서비스 점검|"
+                      r"access denied|접근이 거부",
     "app_interstitial": r"앱에서 (열기|보기)|앱 열기|앱으로 보기|앱 설치|앱 다운로드|"
                         r"open in app|open app|install the app|앱에서 계속",
 }
@@ -709,6 +713,83 @@ def compute() -> dict:
     return {"out": out, "mat": mat, "df": df, "leaves": leaves, "fc": fc}
 
 
+def mlflow_metrics(out: dict) -> dict:
+    """metric key 는 영문/숫자/_-./: 만."""
+    m = dict(out["metrics"])
+    md = {k: float(v) for k, v in m.items() if isinstance(v, (int, float))}
+    for a, pc in out["per_class"].items():
+        s = {"QUERY": "query", "CONTENT_OPEN": "content", "ITEM_DETAIL": "item",
+             "PLACE_LOOKUP": "place", "COMMUNICATION_ENTRY": "comm",
+             "FINANCIAL_ACTION_ENTRY": "fin", "UTILITY_ENTRY": "util"}[a]
+        for k, v in pc.items():
+            if isinstance(v, (int, float)) and not (isinstance(v, float) and math.isnan(v)):
+                md[f"class/{s}/{k}"] = float(v)
+    for b, v in out["rule_firing_counts"]["strong_candidate_per_branch"].items():
+        md[f"strong/{b}"] = float(v)
+    for k, v in out["rule_firing_counts"]["predicate_fired"].items():
+        md[f"fired/{k.replace('::', '/')}"] = float(v)
+    for k, v in out["safety_audit"].items():
+        if isinstance(v, int):
+            md[f"safety/{k}"] = float(v)
+    for var, d in out["sensitivity"].items():
+        for k, v in d.items():
+            if isinstance(v, (int, float)) and not (isinstance(v, float) and math.isnan(v)):
+                md[f"sens/{var}/{k}"] = float(v)
+    md["n_counterexamples"] = float(len(out["counterexamples_mapped_but_disagree_with_prior"]))
+    return md
+
+
+def log_mlflow(out: dict, figs: dict) -> str:
+    import sys as _sys
+    _sys.path.insert(0, str(RD / "tools"))
+    import mlflow
+    import mlflow_contract as C
+
+    parent = json.loads((RD / "results" / "RF001_PARENT_RUN.json").read_text())["parent_run_id"]
+    with C.research_run(
+            experiment="LA_03_RF_MAPPING", run_name="D-RF-001-A rule_dt",
+            plane="D", agent_id="D", subagent_id="worker/D-RF-001-A",
+            objective=("SSOT 01 S5 rule DT 를 결정론적으로 구현해 "
+                       "유일 leaf 가 어디까지 닫히는지 측정"),
+            method="deterministic rule decision tree + explicit abstention",
+            dataset_grain="target (in_mart==1), n=56",
+            n_expected=59, n_observed=out["n_observed"],
+            hypothesis_id="H-RF001-A-RULE-DT",
+            competing_hypothesis=out["competing_hypothesis"],
+            claim_kind="ANALYSIS", ticket_id="NONE", phase="I1", split="none",
+            parent_run_id=parent,
+            result_path=RD / "results" / "RF001_A_rule_dt.json",
+            model_or_rule_version=RULE_VERSION, seed=SEED,
+            extra_tags={"mlflow.parentRunId": parent, "rq_id": "RQ-D-RF-001",
+                        "child_id": "D-RF-001-A"},
+            extra_params={"repeat_min": REPEAT_MIN_DEFAULT,
+                          "prior_used_as_rule_input": "false",
+                          "endpoint_definition_downgrade":
+                              "endpoint-enabling control presence (static snapshot)"},
+    ) as run:
+        mlflow.log_metrics(mlflow_metrics(out))
+        for name, fig in figs.items():
+            mlflow.log_figure(fig, name)
+        mlflow.log_artifact(str(RD / "results" / "RF001_A_FINDINGS.md"), artifact_path="result")
+        mlflow.log_artifact(str(RD / "results" / "RF001_A_rule_dt.json"), artifact_path="result")
+        mlflow.log_text(rules_text(), "rule_definitions.txt")
+        mlflow.log_text(json.dumps(out["counterexamples_mapped_but_disagree_with_prior"],
+                                   ensure_ascii=False, indent=1), "counterexamples.json")
+        mlflow.log_text(json.dumps(out["safety_audit"], ensure_ascii=False, indent=1),
+                        "safety_audit.json")
+        C.finish(
+            verdict=out["verdict"],
+            limitation=("가장 무거운 한계: prior_archetype 은 서비스(앱)의 대표기능인데 수집된 URL "
+                        "상당수가 기업/브랜드/앱설치 유도 랜딩이라 어떤 archetype 의 region/endpoint 도 "
+                        "존재하지 않는다. 이는 DT 결함이 아니라 Stage0/1 target URL 정의 문제이며 "
+                        "DT 수정으로는 해결되지 않는다. 부수적으로 (a) 정적 단일 snapshot 이라 "
+                        "endpoint 를 control 존재로 강등했고(coverage 상한 추정), "
+                        "(b) 공용 텍스트 코퍼스가 절단되어 있으며, "
+                        "(c) 8/56 이 CP949 mojibake 로 한글 증거가 소실됐고, "
+                        "(d) gold label 이 없어 prior_agreement 는 정확도가 아니다."))
+        return run.info.run_id
+
+
 def main():
     r = compute()
     out, mat, fc = r["out"], r["mat"], r["fc"]
@@ -731,6 +812,9 @@ def main():
                         for a in out["mapped_and_agree_with_prior"]])
     print("\nsensitivity:", json.dumps(out["sensitivity"], ensure_ascii=False, indent=1))
     print("\nsafety:", {k: v for k, v in out["safety_audit"].items() if k.endswith("_n")})
+    if "--no-mlflow" not in sys.argv:
+        rid = log_mlflow(out, figs)
+        print(f"\nmlflow run_id = {rid}")
     return out, figs
 
 
