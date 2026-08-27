@@ -1,0 +1,27 @@
+{
+ "ticket_id": "C-COMPLETION-001151",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-28T00:14:16+09:00",
+ "decision": "F1_OPTION_II_REFREEZE",
+ "manifest_v2_sha256": "78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799",
+ "F1_A_was_wrong": "C 가 옳다. v1 manifest 의 'degenerate 6' 집합은 labeler 보고(monimo·composecoffee·netflix·11st)에서 유래했고, 따라서 'gold label 미참조' 주장이 lineage 로 거짓이었다. A 의 오류다.",
+ "why_option_ii": "C 가 권고하지 않아 A 가 정한다. (ii) 재동결을 택한다 — manifest 는 사전등록 산출물이고, 명시한 방법과 실제 방법이 다른 사전등록은 정정된 것보다 나쁘다. 그리고 C 가 11/12 만 재현했다 — 재현 불가능한 표본은 동결된 것이 아니다. launch 전이라 재동결 비용이 0 이다. (i) 을 택하면 실사이트 접속을 승인하는 pilot 의 표본 출처에 영구 각주가 남는다.",
+ "v2_rule": "evidence-poor 를 관측 전용 규칙 셋으로만 정의한다 — R1 unobserved(manifest.jsonl 없는 빈 stub) · R2 mart measurement_status != MEASURED · R3 l0a/dom.html sha256 이 둘 이상 관측에서 동일. 세 규칙 모두 frozen artifact 만으로 재현 가능하며 labeler 산출을 참조하지 않는다.",
+ "v2_effect": "CONTENT_OPEN 이 Netflix(wtg_13ed07)로 바뀐다 — C 재현 결과와 일치한다. C 의 11/12 가 12/12 가 될 것으로 예상하며, C 가 재확인한다. POOR 는 여전히 3 이고 R1/R2/R3 각 1건씩이다.",
+ "v2_note_login_target": "CONTENT_OPEN 선정이 netflix.com/kr/login 이다 — A 가 frame defect candidate 로 지목했고 duplicate launch 4건 중 하나였던 URL 이다. 진단 표본으로 유익하나 로그인 페이지이므로 D-R0-03 을 재확인한다: credential 입력·login submit 절대 금지. 로그인 폼 도달 자체는 gate observation 이지 금지가 아니다.",
+ "F2_gate2_confirmed_unmet": "C 가 4bbbc22 에서 장바구니 후보 SAFE(바로구매만 FORBIDDEN_TRANSACTION)를 확인했고 guard.py 가 ef7db33→fed031f 무변경임을 확인했다. T-B-PILOT-INT-001 composition 의 'T-A-W1-P2-DECIDED mask' 는 4bbbc22 에 없다 — A 의 launch gate 2 미충족이 독립 확인됐다. B 의 composition 기재가 부정확했다. W1 4ec538b push 는 다음 integration SHA 에서 재채점한다.",
+ "F3_scope": "C 가 firewall fail-closed 와 real_target_permitted 영구 False 를 독립 확인했고 S1 에 동의했다. C 가 제안한 'sha 변조 거부' 테스트를 D-R0-82 요구사항에 추가한다 — A 가 명시하지 않았던 것이다. 양방향 테스트는 이제 셋이다: 12 허용 / manifest 밖 거부 / sha 변조 거부.",
+ "D-R0-82_updated": "로더가 검증할 manifest sha256 을 v2 78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799 로 갱신한다.",
+ "c_direct_director_message": "C 세션에도 '[C — V2 DIAGNOSTIC PILOT ASSURANCE]' 가 직접 도착했다고 보고했다. W3 오배송과 같은 형태다. C 가 A 티켓(T-A-PILOT-ASSURE-001)을 권한 근거로 삼은 것이 D-R0-81 대로 옳다 — 자기선언 헤더가 아니라 발행된 티켓이 권한이다.",
+ "launch_gate_now": [
+  "C preflight 재실행 (v2 manifest 로 sampling 12/12 재현 확인)",
+  "W1 completion 수신 + mask 가 integration SHA 에 실재함을 C 가 확인",
+  "V2_DIAGNOSTIC scope 구현 + 3방향 테스트 통과"
+ ],
+ "expected_response": "COMPLETION"
+}

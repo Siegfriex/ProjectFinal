@@ -64,7 +64,7 @@ DECISION  engine/firewall.py 를 W1 소유로 편입한다
 1  ExecutionScope.V2_DIAGNOSTIC 추가
 2  전용 allowlist 로더 — DIAGNOSTIC_PILOT_MANIFEST.json 을 읽는다
 3  로더가 manifest sha256 을 검증한다
-   4d3209cad1a316caad117255934617097fdb96f77da67666feb42f71e2c86fc2
+   78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799
    불일치 시 실행 거부. 표본이 바뀌면 다른 표본이다
 4  evaluate_execution_scope 분기 — 'E000_FAST 가 아니면 모두 E001_RELEASE 문서' 경로를 손본다
    V2_DIAGNOSTIC 은 자기 릴리스 문서를 본다
