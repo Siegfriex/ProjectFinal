@@ -684,6 +684,128 @@
    ],
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": "(1) FIELD_ALIASES lacks the ruling's exact name collector_sha256 — add it (else MISSING_FIELD false positive); (2) '가산적·회귀 전건 통과' is not checked by C — add a SUT_STATIC item that runs B's regression suite at the SUT SHA in the scratchpad clone and records counts (R20 caveat: lane tests passing ≠ integrated), and a schema diff of B's mart at the SHA vs 02 §3–§4 for removed fields; (3) add an equality assertion collector_sha(256) == exact_sha of the SUT."
+  },
+  {
+   "id": "Δ11",
+   "due": "상시",
+   "requires": "버스는 결정을 ACK 본문에 담는다 — completions 파일 부재를 미해결로 읽으면 거짓 양성. 버스를 읽는 도구는 ACK 본문을 검사한다. v2.1 dangling reference 는 소급 생성하지 않는다",
+   "must_appear_in": "버스 스캐너 구현",
+   "authority": "Δ11",
+   "verified_by": "C",
+   "coverage": "UNMAPPED_NEW_ROW",
+   "C_check": "to map"
+  },
+  {
+   "id": "Δ6-e",
+   "due": "GATE2",
+   "requires": "C 는 E 를 증거 획득 operator 로만 쓰고 판정자로 취급하지 않는다. E artifact hash·raw evidence 는 C 가 독립 계산. **B/E 가 같은 도구·가정을 공유하면 둘의 일치는 독립성의 증거가 아니다**. D 는 E 결과를 자기 결론으로 즉시 broadcast 하지 않는다",
+   "must_appear_in": "C·D 의 E 사용 기록",
+   "authority": "Δ6-e",
+   "verified_by": "A",
+   "coverage": "UNMAPPED_NEW_ROW",
+   "C_check": "to map"
+  },
+  {
+   "id": "Δ12-C",
+   "due": "GATE1",
+   "requires": "C 는 GATE 1 에서 B 와 갈린 항목을 구현 결함이 아니라 **해석 불일치 후보**로 먼저 분류한다. 구현 결함으로 단정하면 B 가 코드를 고치고 해석 차이는 남는다",
+   "must_appear_in": "GATE 1 보고의 분류",
+   "authority": "Δ12",
+   "verified_by": "A",
+   "coverage": "UNMAPPED_NEW_ROW",
+   "C_check": "to map"
+  },
+  {
+   "id": "Δ3",
+   "due": "상시",
+   "requires": "08 baseline SHA 갱신표 — 원본 무수정, delta 에 갱신본",
+   "must_appear_in": "인용 시 갱신본 사용",
+   "authority": "Δ3",
+   "verified_by": "C",
+   "coverage": "UNMAPPED_NEW_ROW",
+   "C_check": "to map"
+  },
+  {
+   "id": "Δ16",
+   "due": "GATE3",
+   "requires": "SSOTV3 provenance — control/v3/ssot_snapshot/ 22 파일. **지금부터의 provenance 이며 01:52~03:19 무변조 증명이 아니다**. 이 한계를 최종 보고 known limitation 에 넣는다",
+   "must_appear_in": "최종 보고",
+   "authority": "Δ16",
+   "verified_by": "A",
+   "coverage": "UNMAPPED_NEW_ROW",
+   "C_check": "to map"
+  },
+  {
+   "id": "Δ5-vr",
+   "due": "상시",
+   "requires": "finding_class VALIDITY_RISK 는 **P1 이상으로만** 발행 — FINDING 으로 접으면서 우선순위를 잃지 않게",
+   "must_appear_in": "버스 티켓",
+   "authority": "Δ5",
+   "verified_by": "C",
+   "coverage": "UNMAPPED_NEW_ROW",
+   "C_check": "to map"
+  },
+  {
+   "id": "Δ2-skip",
+   "due": "STEP2",
+   "requires": "reserve 순서를 건너뛰면 사유를 기록하고 C 가 검증한다",
+   "must_appear_in": "replacement 기록",
+   "authority": "Δ2",
+   "verified_by": "C",
+   "coverage": "UNMAPPED_NEW_ROW",
+   "C_check": "to map"
+  },
+  {
+   "id": "Δ20",
+   "due": "GATE1",
+   "requires": "AX 조인·scroll state 는 STEP 1 안. 가산적·회귀 전건 통과·collector_sha256 을 모든 v3 관측 행에 기록. 미검증 선언 기각",
+   "must_appear_in": "수집기 + 관측 행",
+   "authority": "Δ20",
+   "verified_by": "C",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "C_check": "lane2_label_reveal (AX name 14 fixtures) + lane3 seq_typing_and_scroll_not_depth (fvss S1) + lane5 collector_sha256 alias (in progress)"
+  },
+  {
+   "id": "Δ19-R8",
+   "due": "상시",
+   "requires": "HOLD 승격은 개수가 아니라 원인의 소재 — fixture 재현되면 systemic, 아니면 site-level, 재현 불가면 ABSTAIN. 판정자는 C. 보고 하한 family n<5 는 HOLD 아님",
+   "must_appear_in": "HOLD 판정 기록",
+   "authority": "Δ19-R8",
+   "verified_by": "A",
+   "coverage": "COVERED",
+   "C_check": "run_gate1.py evaluate(): FAIL on C fixture = systemic (fixture-reproducible); site-level listed non-blocking"
+  },
+  {
+   "id": "Δ19-R9",
+   "due": "상시",
+   "requires": "hard-stop 8종 정본 — wrong_scope · target_outside_manifest · forbidden_action · evidence_overwrite · duplicate_launch · task_contract_drift · task_or_outcome_leakage · denominator_corruption",
+   "must_appear_in": "게이트 판정",
+   "authority": "Δ19-R9",
+   "verified_by": "C",
+   "coverage": "COVERED",
+   "C_check": "run_gate1.py HARD_STOP_8"
+  },
+  {
+   "id": "Δ19-R10",
+   "due": "GATE1",
+   "requires": "release 문서는 preconditions[] 로 전제조건 SHA 를 인용한다. V3_PILOT_5 부터",
+   "must_appear_in": "릴리스 문서",
+   "authority": "Δ19-R10",
+   "verified_by": "C",
+   "coverage": "NOT_DUE_YET_AT_GATE1_NO_RELEASE_DOC",
+   "C_check": "GATE 2: release doc preconditions[] must cite C assurance exact SHA — check to be added to run_gate2; at GATE 1 no V3 release doc exists → NOT_TESTABLE"
+  },
+  {
+   "id": "Δ21",
+   "due": "상시",
+   "requires": "판정 색인 유지 — A 가 새 판정마다 색인 추가. **C 는 색인 대 delta 뿐 아니라 delta 대 발행 티켓도 대조한다**",
+   "must_appear_in": "색인 + delta + 티켓",
+   "authority": "Δ21",
+   "verified_by": "C",
+   "coverage": "PARTIAL",
+   "C_check": "index↔delta done (C-FINDING-040011); delta↔ticket cross-check to be added to c_bus_scan"
   }
- ]
+ ],
+ "index_version": 2,
+ "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a"
 }
