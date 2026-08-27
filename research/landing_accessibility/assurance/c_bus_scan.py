@@ -198,9 +198,26 @@ def git_show(repo: str, ref: str) -> str | None:
     try: return subprocess.run(["git", "-C", repo, "show", ref], capture_output=True, text=True, timeout=30, check=True).stdout
     except Exception: return None
 
-def unsafe_alias(a: str) -> bool:
-    """Index v9 alias_rules / delta Δ25: excluded iff lowercase single word (no separators) and length <= 6."""
+def shape_unsafe_alias(a: str) -> bool:
+    """Δ25 shape proxy (kept as a *report-only* proxy after Δ33): lowercase single word (no separators), length <= 6."""
     return len(a) <= 6 and a == a.lower() and re.fullmatch(r"[a-z][a-z0-9]*", a) is not None
+
+# Δ33 (index v17 alias_rules): the criterion is specificity, not shape — an alias is unsafe iff it fires in prose that has
+# nothing to do with any ruling. C keeps its own control corpus (independent of A's self_check corpus); token-bounded match.
+ALIAS_CONTROL_CORPUS = (
+    "This document describes a build pipeline. It has a cache, b-tree indexes, and c-style comments. Contact plane C for details. "
+    "The coverage report is generated per manifest; each container runs one strategy and stores evidence under an auth token. "
+    "Skip the vr headset demo, the domax vendor call, and the scrollbar fix; the runbook lives in the wiki. "
+    "이 문단은 판정과 무관하다. 커버리지 보고서는 매니페스트별로 생성되고, 컨테이너는 하나의 전략을 실행하며 증거를 인증 토큰 아래에 저장한다. "
+    "회의는 3층 회의실에서 열리고 자료는 공유 폴더에 있다. 예산은 다음 분기에 확정된다."
+)
+
+def alias_fires_in_corpus(a: str, corpus: str = ALIAS_CONTROL_CORPUS) -> bool:
+    return re.search(r"(?<![\w-])" + re.escape(a) + r"(?![\w-])", corpus) is not None
+
+def unsafe_alias(a: str) -> bool:
+    """Δ33: unsafe iff it fires in the ruling-unrelated control corpus (measured), regardless of shape."""
+    return alias_fires_in_corpus(a)
 
 class RulingIndex:
     def __init__(self, obj: dict, source: str, sha256: str):
@@ -215,6 +232,7 @@ class RulingIndex:
         self.collisions = {a: ids for a, ids in amap.items() if len(ids) > 1}
         self.unsafe = sorted(a for a in amap if unsafe_alias(a))
         self.short_alpha = sorted(a for a in amap if len(a) < 3 and a.isascii() and a.isalpha())   # Δ25: index defect report
+        self.shape_unsafe = sorted(a for a in amap if shape_unsafe_alias(a))                          # Δ25 proxy, report-only
         self.alias_rules = obj.get("alias_rules")
         self.safe_alias_map = {a: ids for a, ids in amap.items() if not unsafe_alias(a)}
     def resolve(self, token: str) -> list:
@@ -238,6 +256,8 @@ def index_controls(idx: RulingIndex) -> list:
         ("positive Δ18-R20→Δ18-R20", idx.resolve("Δ18-R20") == ["Δ18-R20"]),
         ("negative STEP1↛Δ20", "Δ20" not in idx.resolve("STEP1") and "Δ20" not in idx.resolve_unsafe("STEP1")),
         ("negative R15↛Δ20", "Δ20" not in idx.resolve("R15")),
+        ("Δ33 positive: shape-clean prose words fire in corpus", all(alias_fires_in_corpus(w) for w in ("coverage", "manifest", "container", "strategy", "evidence", "auth", "skip"))),
+        ("Δ33 negative: real ruling names do not fire in corpus", not any(alias_fires_in_corpus(w) for w in ("Δ18-R20", "R21", "GAP-07", "scrollfix", "THREE_TURN_RUNBOOK", "DOM/AX 불일치"))),
     ]
     return [{"control": n, "result": "PASS" if ok else "FAIL"} for n, ok in checks]
 
@@ -255,9 +275,9 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
     idx = RulingIndex(json.loads(raw), source, hashlib.sha256(raw.encode("utf-8")).hexdigest())
     controls = index_controls(idx)
     out = {"index_source": source, "index_version": idx.version, "index_rows": len(idx.rows), "index_sha256": idx.sha256, "controls": controls,
-           "alias_rule_applied": "index v9 alias_rules / Δ25: exclude lowercase single word ≤ 6 chars; token-boundary matching",
+           "alias_rule_applied": "index v17 alias_rules / Δ33: alias unsafe iff it fires in C's ruling-unrelated control corpus (specificity, measured); Δ25 shape rule kept as report-only proxy; token-boundary matching",
            "index_alias_rules_present": idx.alias_rules is not None,
-           "alias_collisions": idx.collisions, "unsafe_aliases": idx.unsafe, "short_alpha_aliases": idx.short_alpha, "empty_alias_rows": idx.empty_alias_rows}
+           "alias_collisions": idx.collisions, "unsafe_aliases": idx.unsafe, "shape_unsafe_aliases_delta25_proxy": idx.shape_unsafe, "short_alpha_aliases": idx.short_alpha, "empty_alias_rows": idx.empty_alias_rows}
     if any(c["result"] == "FAIL" for c in controls):
         out["status"] = "CONTROLS_FAILED_MAIN_CHECK_REFUSED"; return out
     a_tickets = [(tid, d) for tid, p, d, v3 in tickets if v3 and str(d.get("from")) == "A"]
