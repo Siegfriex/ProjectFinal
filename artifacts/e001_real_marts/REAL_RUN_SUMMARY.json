@@ -1,11 +1,11 @@
 {
   "manifest": "REAL_RUN_SUMMARY",
-  "snapshot_at": "2026-08-27T14:39:21+09:00",
+  "snapshot_at": "2026-08-27T14:40:42+09:00",
   "grade": "PILOT / PRELIMINARY",
   "grade_note": "커버리지 100%가 등급을 올리지 않는다 — 결과가 예상보다 좋다는 이유로 사전 규칙을 뒤집는 것도 나쁠 때 뒤집는 것과 같은 실패다. 등급과 커버리지를 둘 다 보고한다.",
   "collection_markers": {
     "batches_found": true,
-    "snapshot_at": "2026-08-27T14:39:21+09:00",
+    "snapshot_at": "2026-08-27T14:40:42+09:00",
     "analysis_cohort": "E001_FULL",
     "analysis_collector_sha": "222ef2c",
     "analysis_sample": {
@@ -361,6 +361,160 @@
     "honest_range_note": "회복 상한 8건은 가드 차단분 중 승격 가능 archetype 수다. 그마저 gate 종류 판별이 되어야 하며, AUTH_GATE 12건 중 8건에서 E-6b가 발화했다(판별 실패율 2/3). **상한에 가까울 근거는 없다.**",
     "finding": "가드 입도는 25건에서 L1 탐색을 차단했으나 **구속 조건은 아니다.** 가드가 개입하지 않은 25건에서도 endpoint 도달이 0이었다. 더 근본적인 제약은 **이 측정 접근이 이 프레임의 대표기능 진입점에 닿지 못한다**는 것이며, archetype-endpoint 규칙이 그것을 정의 수준에서 확정한다.",
     "inference_limit": "무작위 배정이 아니다 — 가드 발화가 페이지 텍스트에 의존하므로 Scout이 돈 25건과 가드에 막힌 17건이 체계적으로 다를 수 있다. 뒷받침하는 근거는 두 집단의 archetype 구성이 유사하고(양쪽 ITEM_DETAIL 지배) Scout 쪽이 예외 없이 0/25라는 것이다. 확정하려면 가드를 고친 뒤 같은 프레임을 재수집해야 하고 오늘 하지 않았다."
+  },
+  "analysis_axes": {
+    "axis_a_standard_accessibility_barriers": {
+      "status": "NOT_EVALUATED",
+      "reason": "**criterion 평가기가 애초에 만들어진 적이 없다.** 저장소 전체에 `evaluate_criterion`/`CriterionResult` 정의 0건, e001_runner의 criterion·kwcag 참조 0건, `ai_review.py`는 머리말이 '인터페이스와 전이 규칙만, 모델을 호출하지 않는다'로 명시한 skeleton이며 판정 실행 스크립트가 없다. 수집 실패가 아니라 **평가 단계 자체의 부재**다.",
+      "consequence": "`fact_criterion_result` 빈 표 · `OlderRelevantKWCAGFailRate` 계산 불가 · J4 미충족으로 `l0_analyzable_n = 0`.",
+      "not_evaded": "회피하지 않고 명시한다 — 이 축은 오늘 평가되지 않았다."
+    },
+    "axis_b_entry_depth": {
+      "status": "MEASURED_ZERO",
+      "mpfed_available_n": 0,
+      "attempted_n": 59,
+      "cause_breakdown": {
+        "guard_granularity": {
+          "n": 25,
+          "pct": 42.4,
+          "category": "OUR_TOOL_CONSTRAINT",
+          "label": "가드 입도 — 우리 도구의 제약"
+        },
+        "archetype_endpoint_rule": {
+          "n": 11,
+          "pct": 18.6,
+          "category": "OUR_CONTRACT_DESIGN",
+          "label": "archetype-endpoint 규칙 자체 — 본 연구 계약의 설계",
+          "by_archetype": {
+            "PLACE_LOOKUP": 2,
+            "CONTENT_OPEN": 1,
+            "ITEM_DETAIL": 7,
+            "UTILITY_ENTRY": 1
+          }
+        },
+        "unresolved": {
+          "n": 18,
+          "pct": 30.5,
+          "category": "MIXED",
+          "label": "UNRESOLVED — budget_reason으로 분해",
+          "by_budget_reason": {
+            "MAX_SCOUT_WALL_CLOCK_S": 7,
+            "SCOUT_ERROR": 3,
+            "unresolved_reason_unrecorded": 6,
+            "MAX_CONSECUTIVE_NO_STATE_CHANGE": 2
+          },
+          "by_category": {
+            "OUR_CIRCUMSTANCE": 3,
+            "UNCLASSIFIED": 6,
+            "TARGET_PROPERTY": 2
+          }
+        },
+        "skipped_retry_exhausted": {
+          "n": 3,
+          "pct": 5.1,
+          "category": "OUR_CIRCUMSTANCE",
+          "label": "SKIPPED_RETRY_EXHAUSTED — 우리 쪽 사정"
+        },
+        "captcha": {
+          "n": 1,
+          "pct": 1.7,
+          "category": "TARGET_PROPERTY",
+          "label": "CAPTCHA — 대상의 성질"
+        },
+        "e6b_binding": {
+          "n": 1,
+          "pct": 1.7,
+          "category": "MEASUREMENT_LIMIT",
+          "label": "E-6b 구속 — 측정기 한계"
+        }
+      },
+      "counterfactual": "가드는 **구속 조건이 아니다** — 가드가 개입하지 않고 Scout이 돈 승격 불가 archetype 25건에서 endpoint 도달 0건이다(0/25)."
+    },
+    "axis_c_initial_screen_obstruction": {
+      "axis": "C — 초기 화면 방해요소",
+      "status": "MEASURED",
+      "n_observations": 56,
+      "n_interrupts": 235,
+      "interrupts_per_observation": {
+        "n": 56,
+        "median": 3.0,
+        "q1": 2.0,
+        "q3": 6.0,
+        "iqr": 4.0,
+        "min": 0.0,
+        "max": 18.0
+      },
+      "max_overlay_coverage": {
+        "n": 56,
+        "median": 0.1281,
+        "q1": 0.0655,
+        "q3": 1.0,
+        "iqr": 0.9345,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "max_primary_action_occlusion": {
+        "n": 56,
+        "median": 1.0,
+        "q1": 0.0321,
+        "q3": 1.0,
+        "iqr": 0.9679,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "overlay_coverage_per_interrupt": {
+        "n": 235,
+        "median": 0.0533,
+        "q1": 0.0,
+        "q3": 0.1137,
+        "iqr": 0.1137,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "blocking_modal_count": {
+        "n": 56,
+        "median": 1.0,
+        "q1": 0.0,
+        "q3": 2.0,
+        "iqr": 2.0,
+        "min": 0.0,
+        "max": 7.0
+      },
+      "interrupt_final_label": {
+        "LOGIN_PROMPT": 13,
+        "BANNER": 88,
+        "UNKNOWN": 110,
+        "PROMOTION_MODAL": 11,
+        "CHAT_WIDGET": 2,
+        "COOKIE_CONSENT": 4,
+        "APP_INSTALL_PROMPT": 3,
+        "ADVERTISEMENT": 2,
+        "BLOCKING_MODAL": 2
+      },
+      "blocks_primary_action_n": 74,
+      "dismiss_control_exists_n": 103,
+      "dismiss_control_visible_n": 45,
+      "dismiss_succeeded_n": 166,
+      "note": "축 C는 L0 관측만으로 성립하므로 depth 축 소실과 무관하게 실측됐다. 이것이 오늘 유일하게 데이터가 있는 축이다."
+    },
+    "methodological_conclusion": "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** 이것은 대상 서비스에 대한 진술이 아니라 **이 측정 접근에 대한 진술**이다 — 우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다."
+  },
+  "association_slots": {
+    "primary": {
+      "contract": "LA-AC-AMD1-20260827 §1.1 Spearman(OlderRelevantKWCAGFailRate, obstruction)",
+      "status": "NOT_COMPUTABLE",
+      "reason": "Y축(OlderRelevantKWCAGFailRate)이 존재하지 않는다 — criterion 평가기가 만들어진 적이 없어 KWCAG 판정 자체가 수행되지 않았다. X축(obstruction)은 56건 실측됐으나 한쪽만으로 association을 계산할 수 없다.",
+      "substitute_made": false,
+      "substitute_policy": "**새 association을 만들지 않는다.** 개정 1은 'X가 원리적으로 산출 불가'라는 **측정 가능성**에 근거했으나, 지금 남은 변수 중에서 새 association을 고르면 그것은 **쓸 수 있는 데이터를 보고 분석을 고르는 것**이 되어 성격이 다르다. 계약을 결과에 맞추지 않고 **계산 불가라는 사실을 결과로 보고한다.**"
+    },
+    "secondary": {
+      "contract": "LA-AC-AMD1-20260827 §1.3 Kruskal-Wallis(FailRate ~ InteractionArchetype)",
+      "status": "NOT_COMPUTABLE",
+      "reason": "동일 — 종속변수 FailRate가 존재하지 않는다.",
+      "substitute_made": false,
+      "substitute_policy": "**새 association을 만들지 않는다.** 개정 1은 'X가 원리적으로 산출 불가'라는 **측정 가능성**에 근거했으나, 지금 남은 변수 중에서 새 association을 고르면 그것은 **쓸 수 있는 데이터를 보고 분석을 고르는 것**이 되어 성격이 다르다. 계약을 결과에 맞추지 않고 **계산 불가라는 사실을 결과로 보고한다.**"
+    },
+    "contract_status": "`ANALYSIS_CONTRACT`와 개정 1은 **그대로 유효하다.** 다만 그것이 지정한 분석이 오늘 evidence로 계산 불가능하다 — 계약을 개정하지 않는다."
   },
   "mart_row_counts": {
     "fact_landing_observation": 56,

@@ -326,6 +326,129 @@ def _load_archetype_by_target(csv_path: str | None) -> dict[str, str]:
     return mapping
 
 
+def describe_axis_c(marts: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
+    """축 C(초기 화면 방해요소) 기술통계 — **오늘 유일하게 실측된 축**이다."""
+    import statistics as st
+
+    landing = marts["fact_landing_observation"]
+    interrupts = marts["fact_interrupt_element"]
+
+    def _num(rows: list[dict[str, Any]], key: str) -> list[float]:
+        out = []
+        for row in rows:
+            v = row.get(key)
+            if v is not None and str(v) not in {"", "None", "nan"}:
+                try:
+                    out.append(float(v))
+                except (TypeError, ValueError):
+                    pass
+        return out
+
+    def _stats(values: list[float]) -> dict[str, Any]:
+        if not values:
+            return {"n": 0, "median": None, "q1": None, "q3": None, "iqr": None}
+        sv = sorted(values)
+        q1, med, q3 = (
+            st.quantiles(sv, n=4)[0] if len(sv) > 1 else sv[0],
+            st.median(sv),
+            st.quantiles(sv, n=4)[2] if len(sv) > 1 else sv[0],
+        )
+        return {
+            "n": len(sv),
+            "median": round(med, 4),
+            "q1": round(q1, 4),
+            "q3": round(q3, 4),
+            "iqr": round(q3 - q1, 4),
+            "min": round(sv[0], 4),
+            "max": round(sv[-1], 4),
+        }
+
+    per_obs: dict[str, int] = {}
+    labels: dict[str, int] = {}
+    blocks = dismiss_exists = dismiss_visible = dismiss_ok = 0
+    for row in interrupts:
+        obs = str(row.get("observation_id"))
+        per_obs[obs] = per_obs.get(obs, 0) + 1
+        label = str(row.get("final_label") or "UNLABELED")
+        labels[label] = labels.get(label, 0) + 1
+        if str(row.get("blocks_primary_action")) == "1":
+            blocks += 1
+        if str(row.get("dismiss_control_exists")) == "1":
+            dismiss_exists += 1
+        if str(row.get("dismiss_control_visible")) == "1":
+            dismiss_visible += 1
+        if str(row.get("dismiss_succeeded")) == "1":
+            dismiss_ok += 1
+
+    counts = [float(per_obs.get(str(o.get("observation_id")), 0)) for o in landing]
+    return {
+        "axis": "C — 초기 화면 방해요소",
+        "status": "MEASURED",
+        "n_observations": len(landing),
+        "n_interrupts": len(interrupts),
+        "interrupts_per_observation": _stats(counts),
+        "max_overlay_coverage": _stats(_num(landing, "max_overlay_coverage")),
+        "max_primary_action_occlusion": _stats(_num(landing, "max_primary_action_occlusion")),
+        "overlay_coverage_per_interrupt": _stats(_num(interrupts, "overlay_coverage")),
+        "blocking_modal_count": _stats(_num(landing, "blocking_modal_count")),
+        "interrupt_final_label": labels,
+        "blocks_primary_action_n": blocks,
+        "dismiss_control_exists_n": dismiss_exists,
+        "dismiss_control_visible_n": dismiss_visible,
+        "dismiss_succeeded_n": dismiss_ok,
+        "note": (
+            "축 C는 L0 관측만으로 성립하므로 depth 축 소실과 무관하게 실측됐다. "
+            "이것이 오늘 유일하게 데이터가 있는 축이다."
+        ),
+    }
+
+
+#: 오늘 association 분석을 **하지 않는다**. 대체물도 만들지 않는다.
+NO_SUBSTITUTE_ASSOCIATION_NOTE = (
+    "**새 association을 만들지 않는다.** 개정 1은 'X가 원리적으로 산출 불가'라는 "
+    "**측정 가능성**에 근거했으나, 지금 남은 변수 중에서 새 association을 고르면 그것은 "
+    "**쓸 수 있는 데이터를 보고 분석을 고르는 것**이 되어 성격이 다르다. 계약을 결과에 "
+    "맞추지 않고 **계산 불가라는 사실을 결과로 보고한다.**"
+)
+
+
+def build_analysis_axes(axis_c: dict[str, Any], causes: dict[str, Any]) -> dict[str, Any]:
+    """오늘 산출물 4종 — 축 A/B/C + 방법론적 결론."""
+    return {
+        "axis_a_standard_accessibility_barriers": {
+            "status": "NOT_EVALUATED",
+            "reason": (
+                "**criterion 평가기가 애초에 만들어진 적이 없다.** 저장소 전체에 "
+                "`evaluate_criterion`/`CriterionResult` 정의 0건, e001_runner의 "
+                "criterion·kwcag 참조 0건, `ai_review.py`는 머리말이 '인터페이스와 전이 "
+                "규칙만, 모델을 호출하지 않는다'로 명시한 skeleton이며 판정 실행 스크립트가 "
+                "없다. 수집 실패가 아니라 **평가 단계 자체의 부재**다."
+            ),
+            "consequence": (
+                "`fact_criterion_result` 빈 표 · `OlderRelevantKWCAGFailRate` 계산 불가 · "
+                "J4 미충족으로 `l0_analyzable_n = 0`."
+            ),
+            "not_evaded": "회피하지 않고 명시한다 — 이 축은 오늘 평가되지 않았다.",
+        },
+        "axis_b_entry_depth": {
+            "status": "MEASURED_ZERO",
+            "mpfed_available_n": 0,
+            "attempted_n": causes.get("total"),
+            "cause_breakdown": causes.get("attribution"),
+            "counterfactual": (
+                "가드는 **구속 조건이 아니다** — 가드가 개입하지 않고 Scout이 돈 승격 불가 "
+                "archetype 25건에서 endpoint 도달 0건이다(0/25)."
+            ),
+        },
+        "axis_c_initial_screen_obstruction": axis_c,
+        "methodological_conclusion": (
+            "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** "
+            "이것은 대상 서비스에 대한 진술이 아니라 **이 측정 접근에 대한 진술**이다 — "
+            "우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다."
+        ),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--batches-dir", action="append", required=True)
@@ -367,6 +490,32 @@ def main() -> None:
         "collection_markers": markers,
         "cause_attribution": causes,
         "depth_recovery_analysis": depth_recovery,
+        "analysis_axes": build_analysis_axes(describe_axis_c(marts), causes),
+        # association 슬롯 — 빈 값이나 0이 아니라 **왜 계산 불가인지**가 들어간다.
+        "association_slots": {
+            "primary": {
+                "contract": "LA-AC-AMD1-20260827 §1.1 Spearman(OlderRelevantKWCAGFailRate, obstruction)",
+                "status": "NOT_COMPUTABLE",
+                "reason": (
+                    "Y축(OlderRelevantKWCAGFailRate)이 존재하지 않는다 — criterion 평가기가 "
+                    "만들어진 적이 없어 KWCAG 판정 자체가 수행되지 않았다. X축(obstruction)은 "
+                    "56건 실측됐으나 한쪽만으로 association을 계산할 수 없다."
+                ),
+                "substitute_made": False,
+                "substitute_policy": NO_SUBSTITUTE_ASSOCIATION_NOTE,
+            },
+            "secondary": {
+                "contract": "LA-AC-AMD1-20260827 §1.3 Kruskal-Wallis(FailRate ~ InteractionArchetype)",
+                "status": "NOT_COMPUTABLE",
+                "reason": "동일 — 종속변수 FailRate가 존재하지 않는다.",
+                "substitute_made": False,
+                "substitute_policy": NO_SUBSTITUTE_ASSOCIATION_NOTE,
+            },
+            "contract_status": (
+                "`ANALYSIS_CONTRACT`와 개정 1은 **그대로 유효하다.** 다만 그것이 지정한 분석이 "
+                "오늘 evidence로 계산 불가능하다 — 계약을 개정하지 않는다."
+            ),
+        },
         "mart_row_counts": {k: len(v) for k, v in marts.items()},
     }
     (out / "REAL_RUN_SUMMARY.json").write_text(
