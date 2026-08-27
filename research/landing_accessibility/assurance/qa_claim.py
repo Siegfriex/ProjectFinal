@@ -37,6 +37,12 @@ AXIS_C_CHECKS = [  # (trigger, required-companion, note)
 ]
 _FORBIDDEN_TAIL = None
 # CLAIM_GOVERNANCE rev 14:58: association NOT_COMPUTABLE, substitute_made=false → any association/GRADE B/C claim is out today
+RETRACTED = [  # A 16:29: 철회된 주장은 지목된 자리 외에도 남을 수 있다 — '제거 확인' 상시 항목
+    (r"정직하게\s*거부|정직한\s*거부", "RETRACTED 16:25", "wiring 갭을 '거부' 로 서술한 문구는 철회됨 (E-6b 1건 한정 표현만 허용)"),
+    (r"없는\s*codebook|codebook\s*(이|가)?\s*없", "RETRACTED 16:25", "정의는 CSV 59/59 존재 — 'codebook 부재' 전제는 철회됨(REC-B-4)"),
+    (r"만들어내지\s*않기로\s*한\s*설계|설계가\s*작동", "RETRACTED 16:26", "wiring 갭은 결함이지 설계 의도가 아님"),
+    (r"wiring\s*을?\s*고쳐도[^.]{0,20}신호가\s*없", "RETRACTED 16:25", "조건부 라벨 없는 반사실 — 철회됨"),
+]
 TODAY_RULES = [
     (r"(?=.*(Spearman|ρ|rho|순위\s*상관|Kruskal|association))(?=.*(=\s*-?\d|보였다|나타났|유의|p\s*[<=]|n\s*=\s*\d))", "rev14:58 §1", "오늘 association 없음 — 검정 이름은 계약 인용 맥락에서만; 결과처럼 읽히면 반려"),
     (r"(예산\s*(소진|초과)|깊이\s*예산|DEPTH_BUDGET_EXCEEDED)[^.]{0,25}(?<!\d)(10|12|13|15|16|18)\s*건", "rev14:58 축B", "예산 계수 흡수: 10=7+SCOUT_ERROR3 · 12=detail 필드 뭉침 · 13=7+미기록6 · 15/16/18 — 허용값은 7 · 2 · 9 뿐 (B 15:11)"),
@@ -82,6 +88,8 @@ def main(a):
             has_grade = bool(re.search(GRADE, s, re.I)); has_n = bool(re.search(r"\b[nNmM]\s*=\s*\d+|\d+\s*건|\d+\s*/\s*\d+|\d+\s*개", s))
             is_claim = bool(re.search(r"(비율|분포|상관|median|IQR|ρ|rho|Spearman|Kruskal|산출|탐지|관측됐|관측되|FAIL|UNDETERMINED|N\s*=)", s))
             if re.search(HEDGE_N, s) and not has_n: issues.append("§2.5 N/분모 없는 일반화")
+            for pat, rule, note in RETRACTED:
+                if re.search(pat, s, re.I) and not re.search(r"철회|정정|교정|뒤집|이전에는|초판|둔갑|로\s*읽으면|가\s*아니라", s): issues.append(f"RETRACTED_CLAIM_PRESENT {rule}: {note}")
             for pat, rule, note in TODAY_RULES:
                 if re.search(pat, s, re.I): issues.append(f"FORBIDDEN {rule}: {note}")
             for trig, comp, note in AXIS_C_CHECKS:
@@ -93,7 +101,8 @@ def main(a):
             unmatched = sorted(n for n in nums if n not in ref)
             if is_claim and unmatched and ref: issues.append(f"NUMBER_NOT_IN_C_REPLAY: {unmatched[:6]}")
             if is_claim and not has_grade: issues.append("§4-2 grade 태그 없음")
-            if any(i.startswith("FORBIDDEN") for i in issues): status = "MISMATCH" if any("NUMBER" in i for i in issues) else "UNSUPPORTED"
+            if any(i.startswith("RETRACTED_CLAIM_PRESENT") for i in issues): status = "MISMATCH"
+            elif any(i.startswith("FORBIDDEN") for i in issues): status = "MISMATCH" if any("NUMBER" in i for i in issues) else "UNSUPPORTED"
             elif any("NUMBER_NOT_IN" in i for i in issues): status = "MISMATCH"
             elif re.search(r"exploratory|EXPLORATORY|GRADE\s*C", s, re.I): status = "EXPLORATORY_ONLY"
             elif issues: status = "SUPPORTED_WITH_LIMITATION"
