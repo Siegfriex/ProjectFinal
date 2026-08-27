@@ -1,4 +1,4 @@
-# QA_CLAIM_LEDGER (C) — 2026-08-27T16:42:30+09:00
+# QA_CLAIM_LEDGER (C) — 2026-08-27T16:44:05+09:00
 
 기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_STAT_REPLAY.json, /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_MART_RECONCILIATION.json
 

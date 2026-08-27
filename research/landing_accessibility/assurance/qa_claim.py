@@ -112,18 +112,28 @@ def main(a):
         for s in sentences(txt):
             sentences_scanned += 1
             issues = []; status = "SUPPORTED"
-            META = re.search(r"않는|않은|않았|금지|반려|패턴|규칙|원칙|허용|예:|✗|○|assert|forbidden|scan|스캔|목록", s)
-            # pattern-list entries inside generators/json: the bare forbidden phrase as a short standalone string
-            if p.suffix in (".py", ".json") and len(s) < 45 and any(re.search(pat, s, re.I) for pat, _, _ in FORBIDDEN): META = True
+            # Exclusion is LOCAL to the matched phrase (B 16:49): only (a) sentence is an explicit example/rule row (✗/○/예:), or
+            # (b) the matched phrase is quoted, or (c) a negation/prohibition token sits within 14 chars AFTER the match, or
+            # (d) py/json bare pattern-list entry (short standalone string). Whole-sentence keywords no longer exclude.
+            def _excluded(m):
+                if re.match(r"^\s*(✗|○|예\s*:|\|\s*✗)", s): return True
+                pre = s[max(0, m.start()-2):m.start()]; post = s[m.end():m.end()+14]
+                if re.search(r"[\"'`「“‘]", pre) and re.search(r"[\"'`」”’]", s[m.end():m.end()+3]): return True
+                if re.search(r"^.{0,12}(않|금지|반려|쓰지|읽으면|둔갑)", post): return True
+                return False
+            pattern_list_entry = (p.suffix in (".py", ".json") and len(s) < 45 and any(re.search(pat, s, re.I) for pat, _, _ in FORBIDDEN))
+            META = pattern_list_entry
             for pat, rule, note in ([] if META else FORBIDDEN):
-                if re.search(pat, s, re.I): issues.append(f"FORBIDDEN {rule}: {note}")
+                m = re.search(pat, s, re.I)
+                if m and not _excluded(m): issues.append(f"FORBIDDEN {rule}: {note}")
             has_grade = bool(re.search(GRADE, s, re.I)); has_n = bool(re.search(r"\b[nNmM]\s*=\s*\d+|\d+\s*건|\d+\s*/\s*\d+|\d+\s*개", s))
             is_claim = bool(re.search(r"(비율|분포|상관|median|IQR|ρ|rho|Spearman|Kruskal|산출|탐지|관측됐|관측되|FAIL|UNDETERMINED|N\s*=)", s))
             if re.search(HEDGE_N, s) and not has_n: issues.append("§2.5 N/분모 없는 일반화")
             for pat, rule, note in RETRACTED:
                 if re.search(pat, s, re.I) and not re.search(r"철회|정정|교정|뒤집|이전에는|초판|둔갑|로\s*읽으면|가\s*아니라", s): issues.append(f"RETRACTED_CLAIM_PRESENT {rule}: {note}")
             for pat, rule, note in ([] if META else TODAY_RULES):
-                if re.search(pat, s, re.I): issues.append(f"FORBIDDEN {rule}: {note}")
+                m = re.search(pat, s, re.I)
+                if m and not _excluded(m): issues.append(f"FORBIDDEN {rule}: {note}")
             for trig, comp, note in ([] if META else AXIS_C_CHECKS):
                 if re.search(trig, s, re.I) and not re.search(comp, s, re.I): issues.append(f"AXIS_C: {note}")
             # A 14:21: '0건' must be written as 'N건 중 0건' — bare zero reads as 'not measured'
