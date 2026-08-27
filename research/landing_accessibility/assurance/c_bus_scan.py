@@ -4,6 +4,8 @@ Malformed JSON is reported explicitly as PARSE_ERROR — never silently counted 
 Usage: c_bus_scan.py [bus_dir]  -> prints JSON {pending:[...], parse_errors:[...], scanned:n}
 """
 import json, glob, os, sys, re
+# ACKs whose ticket_sha256 legitimately differs from the current file (documented provenance events); never silently drop
+EXPLAINED_CHANGES = {('T-A-V3-FC-001','T-A-V3-FC-001.C-1.json'): 'acked replaced content (now T-A-V3-FC-002); FC-001 restored by A STEP1-014'}
 V3_CUTOFF_EPOCH = 1787500320  # 2026-08-28T02:12:00+09:00 (T-A-V3-P0-001 adoption)
 def scan(bus_dir: str, plane: str = "C") -> dict:
     tdir = os.path.join(bus_dir, "tickets"); adir = os.path.join(bus_dir, "acks")
@@ -27,7 +29,7 @@ def scan(bus_dir: str, plane: str = "C") -> dict:
                 except Exception: continue
                 s_ = a.get("ticket_sha256")
                 if s_ is None: unrecorded.append(tid)
-                elif s_ != cur: changed.append({"ticket_id": tid, "ack": os.path.basename(ap), "acked_sha": s_[:12], "current_sha": cur[:12]})
+                elif s_ != cur: changed.append({"ticket_id": tid, "ack": os.path.basename(ap), "acked_sha": s_[:12], "current_sha": cur[:12], "explained": EXPLAINED_CHANGES.get((tid, os.path.basename(ap)))})
         if (plane in to or plane in cc) and d.get("from") != plane and tid not in acked:
             pending.append({"ticket_id": tid, "from": d.get("from"), "type": d.get("type"), "priority": d.get("priority"), "via": "to" if plane in to else "cc"})
     # T-A-V3-STEP1-008 forward rule: no ACK/completion without a ticket file (v3-era only, checked by mtime >= cutoff)
