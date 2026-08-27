@@ -1,0 +1,52 @@
+{
+  "record_id": "D_V3_INDEX_DELTA_CROSSCHECK",
+  "kind": "OBSERVATION",
+  "owner": "D",
+  "assigned_by": "T-A-V3-STEP1-022",
+  "independent_of_C": "C 결과를 보지 않고 수행했다. 사전 공유 없음.",
+  "checked_at_kst": "2026-08-28T04:20:00+09:00",
+  "verdict": "CONSISTENT_WITH_ONE_OBSERVATION",
+  "inputs": {
+    "index_sha256": "8f1374e7b70a0675819ccb61e8dc57c420b55df110bcb4ba78257bd17ced4373",
+    "index_version": 5,
+    "index_rows": 56,
+    "delta_sha256": "e3b35fb22befe50860fb27f4b1ff99f37348beddd2131248fae9223150fc4720"
+  },
+  "results": {
+    "index_internal": "count 필드 56 == 실제 행수 56, 중복 id 0",
+    "index_to_delta": "불일치 0 (표기 정규화 후)",
+    "delta_to_index": "delta 의 Δn-Rm 조합 중 색인에 없는 것 0",
+    "delta_to_tickets": "delta 가 인용한 티켓 33건 전부 버스에 실재",
+    "tickets_to_delta": {
+      "a_v3_tickets": 33,
+      "id_not_cited_in_delta": 17,
+      "of_which_no_ruling_body": 15,
+      "of_which_carry_rulings": 2,
+      "the_2": {
+        "T-A-V3-STEP1-018": [
+          "R12",
+          "R21"
+        ],
+        "T-A-V3-STEP1-021": [
+          "R22",
+          "R23"
+        ]
+      },
+      "verified": "네 ruling 모두 delta 본문에 수록돼 있다. 티켓 id 가 인용되지 않았을 뿐 판정 자체는 기록됐다."
+    }
+  },
+  "the_one_observation": {
+    "what": "R21(판정 색인 발행) 은 delta 에 Δ21 섹션으로 있으나 **색인 자신에는 행이 없다.**",
+    "reading": "색인이 자기 자신을 만든 판정을 색인하지 않는다. 자기참조 회피로 의도된 것일 수 있다.",
+    "d_does_not_judge": "결함인지 설계인지 D 는 판정하지 않는다. 다만 '색인 커버리지 100%' 를 말할 때 이 한 행이 구조적으로 빠진다는 점은 기록해 둔다.",
+    "why_it_could_matter": "T-A-V3-FC-003 이 지적한 '영구 검사 불가 항목' 과 형태가 비슷하다 — 원리적으로 색인에 못 들어가는 항목이 있으면 커버리지 분모가 무엇인지 먼저 정해야 한다."
+  },
+  "my_own_tool_defect_found_first": {
+    "id": "D-DEF-14",
+    "what": "1차 매칭이 색인 id(`Δ14-P06`)를 delta 표기(`P-06`)와 맞추지 못해 **28건 누락으로 나왔다.**",
+    "why_i_did_not_report_it": "C 가 다섯 번 검증한 문서에서 28건이 빠졌을 리 없다고 보고 내 도구를 먼저 의심했다. delta 실제 표기를 확인하니 Δn- 접두·하이픈 유무·접미 a/b 차이였다.",
+    "after_normalization": "28 -> 0",
+    "lesson": "표기 정규화 없는 id 대조는 상대 문서의 결함이 아니라 내 매칭의 결함을 만든다. 이 세션에서 D 가 상위계층 결함을 잘못 올릴 뻔한 두 번째 사례다(첫 번째는 D-DEF-01 charset)."
+  },
+  "limitation": "문자열 수준 대조다. ruling 의 **내용**이 티켓과 delta 에서 같은지는 검사하지 않았다 — 같은 id 아래 다른 내용이 있어도 이 대조는 통과한다."
+}
