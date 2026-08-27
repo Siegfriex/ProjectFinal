@@ -56,13 +56,37 @@ _EXPLICIT_UNREACHABLE_ENDPOINT_STATUSES = frozenset(
     {"AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED", "CAPTCHA", "BLOCKED"}
 )
 
+#: **Claude A(governor) 확정** — gate에 도달해서 MPFED가 NULL이 된 경우는
+#: `MPFED_NULL`과 **섞지 않는다**. 전자는 **대상의 성질**(대표기능이 인증/결제/
+#: 본인확인 벽 뒤에 있다)이고, 후자·transport·timeout은 **우리 쪽 사정**(수집이
+#: 끝을 못 봤다)이다. A2 §1.5.1상 endpoint 미도달이면 MPFED=NULL이라 J3에서
+#: 탈락하는 것은 같지만, **왜 탈락했는가**가 전혀 다르므로 사유를 분리한다.
+#:
+#: `BLOCKED`는 여기 넣지 않는다 — 접근 차단은 gate(진입 조건)가 아니라 거절이라
+#: 성격이 다르고, gate 집계를 부풀리면 "인증 벽 뒤 N건" 보고가 과대해진다.
+GATE_ENDPOINT_STATUSES = frozenset(
+    {"AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED", "CAPTCHA"}
+)
+
 EXCLUSION_REASONS: tuple[str, ...] = (
     "TRANSPORT_FAILURE",
     "TIMEOUT",
     "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
+    "GATE_REACHED_MPFED_NULL",
     "MPFED_NULL",
     "KWCAG_ALL_UNDETERMINED",
 )
+
+#: 위 사유가 **대상의 성질**인가(True) **우리 쪽 수집 사정**인가(False).
+#: 보고에서 이 둘을 합산하지 않기 위한 표다.
+EXCLUSION_REASON_IS_TARGET_PROPERTY: dict[str, bool] = {
+    "TRANSPORT_FAILURE": False,
+    "TIMEOUT": False,
+    "L1_NOT_ATTEMPTED_OR_UNRESOLVED": False,
+    "GATE_REACHED_MPFED_NULL": True,
+    "MPFED_NULL": False,
+    "KWCAG_ALL_UNDETERMINED": False,
+}
 
 _JOINT_VALIDITY_COLUMNS = [
     "observation_id",
@@ -70,6 +94,8 @@ _JOINT_VALIDITY_COLUMNS = [
     "archetype",
     "is_joint_valid",
     "exclusion_reason",
+    # gate 종류를 남긴다 — "인증 벽 뒤 N건"을 endpoint_status별로 분해해 보고하기 위해서다.
+    "endpoint_status",
 ]
 
 
@@ -141,11 +167,18 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
             continue
 
         # 조건 3 — MPFED 산출 가능(NED·IED 둘 다 정의).
+        # **판정 동작은 바꾸지 않는다**(governor 확인: 현 동작이 맞다) — 탈락 여부는
+        # 그대로고, gate 도달로 인한 탈락만 사유 라벨을 분리한다.
         ned = task_row.get("NED")
         ied = task_row.get("IED")
         mpfed = task_row.get("MPFED")
         if pd.isna(ned) or pd.isna(ied) or pd.isna(mpfed):
-            rows.append(_row(obs_id, wt_id, archetype, False, "MPFED_NULL"))
+            reason = (
+                "GATE_REACHED_MPFED_NULL"
+                if endpoint_status in GATE_ENDPOINT_STATUSES
+                else "MPFED_NULL"
+            )
+            rows.append(_row(obs_id, wt_id, archetype, False, reason, endpoint_status))
             continue
 
         # 조건 4 — older-relevant KWCAG 기준 중 최소 1개가 UNDETERMINED 아님.
@@ -161,7 +194,12 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
 
 
 def _row(
-    obs_id: Any, wt_id: Any, archetype: Any, is_valid: bool, reason: str | None
+    obs_id: Any,
+    wt_id: Any,
+    archetype: Any,
+    is_valid: bool,
+    reason: str | None,
+    endpoint_status: Any = None,
 ) -> dict[str, Any]:
     return {
         "observation_id": obs_id,
@@ -169,6 +207,7 @@ def _row(
         "archetype": archetype,
         "is_joint_valid": is_valid,
         "exclusion_reason": reason,
+        "endpoint_status": endpoint_status,
     }
 
 
@@ -183,6 +222,7 @@ def joint_validity_summary(validity: pd.DataFrame) -> dict[str, Any]:
             "n_joint_valid": 0,
             "n_excluded": 0,
             "excluded_by_reason": dict.fromkeys(EXCLUSION_REASONS, 0),
+            "behind_gate": {"n_services": 0, "by_endpoint_status": {}},
             "by_archetype": {},
         }
 
@@ -205,10 +245,30 @@ def joint_validity_summary(validity: pd.DataFrame) -> dict[str, Any]:
             },
         }
 
+    # **대표기능이 인증/결제/본인확인 벽 뒤에 있는 서비스** — joint-valid에서
+    # 빠졌다는 이유로 서술에서 사라지면 은폐다(governor 지시). entry friction에
+    # 관한 실질 관측이므로 gate 종류별로 분해해 항상 보고한다.
+    behind_gate = excluded[excluded["exclusion_reason"] == "GATE_REACHED_MPFED_NULL"]
+    behind_gate_by_status = (
+        behind_gate["endpoint_status"].astype(str).value_counts().to_dict()
+        if not behind_gate.empty
+        else {}
+    )
+
     return {
         "n_attempted": n_attempted,
         "n_joint_valid": n_valid,
         "n_excluded": n_attempted - n_valid,
         "excluded_by_reason": excluded_by_reason,
+        "excluded_reason_is_target_property": dict(EXCLUSION_REASON_IS_TARGET_PROPERTY),
+        "behind_gate": {
+            "n_services": len(behind_gate),
+            "by_endpoint_status": {str(k): int(v) for k, v in behind_gate_by_status.items()},
+            "note": (
+                "대표기능이 인증/결제/본인확인 벽 뒤에 있어 MPFED를 잴 수 없었던 서비스다. "
+                "joint-valid 표본에서는 빠지지만 이것은 **대상의 성질**이며 entry friction에 "
+                "관한 실질 관측이므로 별도로 보고한다 — transport/timeout(우리 쪽 사정)과 합산하지 않는다."
+            ),
+        },
         "by_archetype": by_archetype,
     }

@@ -25,6 +25,7 @@ from analysis.deliverables import (
     build_statistical_results_json,
     generate_data_dictionary,
     generate_eda_report,
+    generate_final_results_summary,
     generate_limitations,
     generate_model_diagnostics,
     generate_robustness_results,
@@ -81,6 +82,13 @@ def main() -> None:
         eda_summaries.get("eda08", {}), out_dir, provenance=provenance
     )
     diag_path = generate_model_diagnostics(marts, out_dir, provenance=provenance)
+    final_summary_path = generate_final_results_summary(
+        eda_summaries.get("eda05", {}),
+        eda_summaries.get("eda07", {}),
+        eda_summaries.get("eda09", {}),
+        out_dir,
+        provenance=provenance,
+    )
     limitations_path = generate_limitations(
         eda_summaries.get("eda05", {}),
         eda_summaries.get("eda07", {}),
@@ -120,6 +128,7 @@ def main() -> None:
             "EDA_REPORT.md": report_path,
             "ROBUSTNESS_RESULTS.md": robust_path,
             "LIMITATIONS.md": limitations_path,
+            "FINAL_RESULTS_SUMMARY.md": final_summary_path,
             "DECISION_INPUT_TABLE.csv": table_paths["csv"],
         },
         adjudication_schema_bound=True,
@@ -145,6 +154,7 @@ def main() -> None:
         robust_path,
         diag_path,
         limitations_path,
+        final_summary_path,
         frozen_manifest_path,
         coverage_path,
         stats_json_path,

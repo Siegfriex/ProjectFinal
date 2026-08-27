@@ -48,25 +48,56 @@ from .schema import (
     OLDER_RELEVANCE,
 )
 
-#: `00 §9` KWCAG criterion id 표본 (실제 codebook 전체가 아니라 fixture용 축소 집합).
+#: fixture용 축소 집합 (실제 codebook 전체가 아니다).
+#:
+#: **`2.4.7`은 제거됐다** — KWCAG 2.2에 존재하지 않는 id다(Claude A 확인). KWCAG
+#: 2.4는 2.4.1~2.4.4뿐이고 2.4.7(Focus Visible)은 WCAG 쪽 항목이라, 이 목록에
+#: 남겨두면 언젠가 실제 목록으로 오용된다. 존재하지 않는 id는 픽스처에서도 뺀다.
 CRITERION_IDS: tuple[str, ...] = (
     "1.1.1",
     "1.3.1",
     "2.1.1",
-    "2.4.7",
     "2.5.1",
     "3.2.2",
 )
 
-_CRITERION_RELEVANCE: dict[str, str] = {
+#: **이것은 픽스처용이며 정본이 아니다. 그리고 내용 자체가 검증되지 않았다.**
+#:
+#: `OlderRelevantKWCAGFailRate`의 분모가 되는 older-relevant criterion 집합의
+#: **정본 표는 아직 저장소 어디에도 동결돼 있지 않다**(Claude A governor 지적).
+#: 이 목록은 synthetic universe를 조립하기 위한 임시 배정일 뿐이며 실제 데이터의
+#: 분모를 정의하지 않는다 — 그래서 상수 이름 자체에 `SYNTHETIC_ONLY_...FIXTURE`를
+#: 박아 오용을 이름 단계에서 막는다.
+#:
+#: **Claude A가 확인한 이 목록의 알려진 오류** (픽스처라서 남겨두지만, 정본
+#: 판정으로 절대 인용하지 않는다):
+#:
+#: - `2.4.7`은 **KWCAG 2.2에 존재하지 않아 삭제했다** — WCAG 항목이 섞여 들어간 것.
+#: - `3.2.2`는 KWCAG에서 "찾기 쉬운 도움 정보"이며 WCAG의 On Input과 **다른 항목**이다
+#:   — 아래 배정된 `COGNITIVE_NAVIGATION`은 그 사실을 반영하지 않은 임의 배정이다.
+#: - `2.5.1`은 `NOT_AUTOMATABLE`이라 **적용 기회가 항상 0**이다 — 실제로는 분모에
+#:   기여하지 못하는데 이 픽스처는 기여하는 것처럼 행동한다.
+#:
+#: 정본은 A가 Pilot 코드북(`research/refcohort/codebook/kwcag22_criteria.json`,
+#: KWCAG 2.2 해설서 출처 33개 전수)에 `older_relevance` 태깅을 붙여 SHA와 함께
+#: 보낸다. `research/refcohort/`는 READ_ONLY라 이 lane이 쓰지 않는다.
+#:
+#: 실제 데이터 경로는 `analysis/older_relevance_registry.py`의 fail-closed
+#: 가드가 막는다: 정본 표를 주입하기 전에는 실제 데이터로 FailRate를 계산할 수 없다.
+SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE: dict[str, str] = {
     "1.1.1": "VISION",
     "1.3.1": "VISION",
     "2.1.1": "MOTOR",
-    "2.4.7": "COGNITIVE_NAVIGATION",
-    "2.5.1": "MOTOR",
-    "3.2.2": "COGNITIVE_NAVIGATION",
+    "2.5.1": "MOTOR",  # 주의: 실제로는 NOT_AUTOMATABLE(적용 기회 0)
+    "3.2.2": "COGNITIVE_NAVIGATION",  # 주의: KWCAG 3.2.2 = "찾기 쉬운 도움 정보"
 }
-assert set(_CRITERION_RELEVANCE.values()) <= set(OLDER_RELEVANCE)
+#: 픽스처 배정이 정본과 다르다는 것을 기계가 읽을 수 있게 남긴다.
+SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE_KNOWN_DEFECTS: tuple[str, ...] = (
+    "2.4.7 removed — KWCAG 2.2에 존재하지 않는 id (WCAG Focus Visible이 섞여 들어감)",
+    "3.2.2 — KWCAG에서는 '찾기 쉬운 도움 정보'이며 WCAG On Input과 다른 항목이다",
+    "2.5.1 — NOT_AUTOMATABLE이라 실제 적용 기회는 항상 0이다",
+)
+assert set(SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE.values()) <= set(OLDER_RELEVANCE)
 
 
 @dataclass(frozen=True)
@@ -342,7 +373,7 @@ def generate_synthetic_universe(n_services: int = 24, *, seed: int = 20260827) -
                 {
                     "observation_id": observation_id,
                     "criterion_id": criterion_id,
-                    "older_relevance": _CRITERION_RELEVANCE[criterion_id],
+                    "older_relevance": SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE[criterion_id],
                     "applicable_count": applicable,
                     "pass_count": pass_count,
                     "fail_count": fail_count,

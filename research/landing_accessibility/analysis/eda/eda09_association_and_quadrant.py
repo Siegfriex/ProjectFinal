@@ -83,6 +83,7 @@ from .statistics import (
     kruskal_wallis_gate,
     kruskal_wallis_pairwise_dunn,
     older_relevant_kwcag_fail_rate,
+    resolve_measurement_uncertainty_axis,
     select_secondary_association_variable,
     sign_preserved_across_bounds,
 )
@@ -118,7 +119,16 @@ PRIMARY_A0_INTERPRETATION_CONSTRAINT = (
 )
 
 
-def _build_joint_frame(marts: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, dict]:
+_FAIL_RATE_MU_RATIONALE = (
+    "Y(OlderRelevantKWCAGFailRate)가 adjudicated final_status에 직접 의존한다 — "
+    "UNDETERMINED lower(전부 PASS, FailRate 최소)/upper(전부 FAIL, 최대) bound에서 "
+    "rho 부호를 대조했다."
+)
+
+
+def _build_joint_frame(
+    marts: dict[str, pd.DataFrame], *, source_kind: str = "SYNTHETIC"
+) -> tuple[pd.DataFrame, dict]:
     """joint-valid 관측으로 제한된 서비스별 joint frame.
 
     obstruction 후보 4종은 **전부** aggregate하고 **전부의 결측률**을 meta에
@@ -165,7 +175,8 @@ def _build_joint_frame(marts: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, di
         ),
     )
 
-    fail_df = older_relevant_kwcag_fail_rate(criterion, landing)
+    # 정본 older_relevance 표 미동결 상태에서 실제 데이터가 오면 여기서 fail-closed로 막힌다.
+    fail_df = older_relevant_kwcag_fail_rate(criterion, landing, source_kind=source_kind)
     fail_df = fail_df.set_index("web_target_id") if not fail_df.empty else fail_df
 
     # obstruction 후보 4종 — secondary 변수 선택 재확인용으로 전부 aggregate한다.
@@ -254,7 +265,7 @@ def run_eda09(
     run_optional_pairwise: bool = False,
 ) -> EDAOutputPaths:
     provenance = provenance or ShadowProvenance()
-    joint, meta = _build_joint_frame(marts)
+    joint, meta = _build_joint_frame(marts, source_kind=provenance.source_kind)
     task = marts.get("fact_task_entry", pd.DataFrame())
     validity_summary = meta.get("joint_validity", {})
 
@@ -283,6 +294,11 @@ def run_eda09(
             role="primary_structure_adjusted",
             assumption="빈 입력",
         )
+        empty_mu, empty_mu_rationale = resolve_measurement_uncertainty_axis(
+            pd.DataFrame(columns=[secondary_variable]),
+            x_col="excess_depth_mean",
+            variable=secondary_variable,
+        )
         secondary = association_result(
             pd.Series(dtype=float),
             pd.Series(dtype=float),
@@ -290,7 +306,8 @@ def run_eda09(
             y_name=secondary_variable,
             role="secondary",
             assumption="빈 입력",
-            measurement_uncertainty="NOT_APPLICABLE",
+            measurement_uncertainty=empty_mu,
+            measurement_uncertainty_rationale=empty_mu_rationale,
         )
         kw_result = {"executed": False, "reason_not_executed": "빈 입력", "group_sizes": {}}
         classification_rule: dict = {"n_classified": 0, "reason": "빈 입력"}
@@ -317,6 +334,7 @@ def run_eda09(
                 joint["fail_rate_lower_bound"],
                 joint["fail_rate_upper_bound"],
             ),
+            measurement_uncertainty_rationale=_FAIL_RATE_MU_RATIONALE,
         )
         structure_adjusted = association_result(
             joint["excess_depth_mean"],
@@ -336,6 +354,10 @@ def run_eda09(
                 joint["fail_rate_lower_bound"],
                 joint["fail_rate_upper_bound"],
             ),
+            measurement_uncertainty_rationale=_FAIL_RATE_MU_RATIONALE,
+        )
+        secondary_mu, secondary_mu_rationale = resolve_measurement_uncertainty_axis(
+            joint, x_col="excess_depth_mean", variable=secondary_variable
         )
         secondary = association_result(
             joint["excess_depth_mean"],
@@ -352,9 +374,12 @@ def run_eda09(
             sample_composition=_robust_direction_preserved(
                 joint, "excess_depth_mean", secondary_variable
             ),
-            # Y(obstruction)가 UNDETERMINED 판정에 의존하지 않는다 — 측정 불확실성
-            # 축이 구조적으로 적용되지 않는 association이다(강등 사유가 아니다).
-            measurement_uncertainty="NOT_APPLICABLE",
+            # 측정 불확실성 축은 변수 **이름**이 아니라 **산출 경로 성질**로 건다:
+            # 판정 비의존이면 근거와 함께 NOT_APPLICABLE, 판정 의존이면 bound 계산,
+            # 미분류면 fail-closed로 None(강등). 실제 데이터에서 tie-break 결과가
+            # 달라져 다른 변수가 뽑혀도 자동으로 옳게 동작한다.
+            measurement_uncertainty=secondary_mu,
+            measurement_uncertainty_rationale=secondary_mu_rationale,
         )
 
         if not task.empty:

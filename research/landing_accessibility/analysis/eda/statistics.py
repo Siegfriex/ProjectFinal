@@ -15,12 +15,15 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
 from scipy import stats as scipy_stats
 from statsmodels.stats.multitest import multipletests
+
+from ..older_relevance_registry import assert_older_relevance_frozen
 
 # ── 표본 크기 tier ──────────────────────────────────────────────────────────
 #: **Claude A(governor) 확정 규칙** (LA-TB-1630-20260827, 결과를 보기 전에 고정,
@@ -102,6 +105,143 @@ SECONDARY_ASSOCIATION_PRIORITY: tuple[str, ...] = (
 #: 후보 4종 전부 — **선택된 것만이 아니라 전부의 결측률을 산출물에 기록한다**
 #: (governor 지시: 선택된 것만 적으면 선택 자체가 검증 불가능해진다).
 SECONDARY_ASSOCIATION_CANDIDATES: tuple[str, ...] = SECONDARY_ASSOCIATION_PRIORITY
+
+
+# ── obstruction 변수의 판정(adjudication) 의존성 — 이름이 아니라 성질로 건다 ──
+class ObstructionPropertyUnknown(KeyError):
+    """미분류 obstruction 변수 — fail-closed. '몰라서 면제'를 금지한다."""
+
+
+@dataclass(frozen=True)
+class ObstructionVariableProperty:
+    """후보 obstruction 변수 하나의 **산출 경로 성질**.
+
+    `measurement_uncertainty` 축 면제 여부를 변수 **이름**이 아니라 이 성질로
+    건다 — 실제 데이터에서는 tie-break 결과가 달라져 다른 변수가 뽑힐 수 있고,
+    그때 이름 하드코딩은 조용히 틀린 면제를 준다 (governor 지시).
+    """
+
+    variable: str
+    #: True면 값이 adjudicated 판정(AI review cascade의 산출)에 의존한다 →
+    #: UNDETERMINED bound를 실제로 계산해 부호를 대조해야 한다.
+    #: False면 순수 결정론적 DOM/CSS/기하/행위 계수 → 축이 구조적으로 미적용.
+    adjudication_dependent: bool
+    #: **왜** 판정 비의존/의존인가. `NOT_APPLICABLE` 옆에 이 문자열이 반드시
+    #: 같이 나간다 — 근거 없는 NOT_APPLICABLE은 None(확인 불가)과 구별되지 않는다.
+    rationale: str
+    #: 그 근거를 확인할 수 있는 코드 경로.
+    evidence_path: str
+
+
+#: 후보 4종의 성질 — 산출 경로를 실제로 읽고 확정했다. 새 후보를 추가하면서
+#: 이 표에 등재하지 않으면 `resolve_measurement_uncertainty_axis()`가
+#: fail-closed로 `None`(강등)을 낸다.
+OBSTRUCTION_VARIABLE_PROPERTIES: dict[str, ObstructionVariableProperty] = {
+    "max_overlay_coverage": ObstructionVariableProperty(
+        variable="max_overlay_coverage",
+        adjudication_dependent=False,
+        rationale=(
+            "순수 기하 — interrupt별 viewport_coverage(= 겹침 면적 / 뷰포트 면적)의 최대값이며, "
+            "overlay 후보 판별도 <dialog>/role=dialog/aria-modal/position:fixed|sticky/z-index/"
+            "backdrop 클래스명 같은 결정론적 DOM·CSS 신호로만 이뤄진다. AI review cascade의 "
+            "판정(final_label·adjudication)이 값에 들어가지 않는다."
+        ),
+        evidence_path="engine/l0_collector.py:524 (max(viewport_coverage)) · engine/l0_probe.js overlay 후보 판별",
+    ),
+    "max_primary_action_occlusion": ObstructionVariableProperty(
+        variable="max_primary_action_occlusion",
+        adjudication_dependent=True,
+        rationale=(
+            "분모가 SELECTED 대표기능 후보의 area_css_px2다(occlusion = 겹침/선택후보 면적). "
+            "대표기능 선택은 A2 §1.8의 review_task_type `PRIMARY_ACTION_SELECTION` 대상이며 "
+            "A2 §1.13 selection_basis가 AI_REVIEW·HUMAN_FINAL을 허용한다 — 즉 **계약상** "
+            "adjudicated 판정이 어느 후보가 SELECTED인지를 바꿀 수 있고 그러면 이 값이 바뀐다. "
+            "현재 fixture 엔진이 DETERMINISTIC_RULE 분기만 타는 것은 구현 상태이지 성질이 아니다."
+        ),
+        evidence_path="engine/l0_collector.py:577 (overlap / selected.area_css_px2) · A2 §1.8 · §1.13",
+    ),
+    "blocking_modal_count": ObstructionVariableProperty(
+        variable="blocking_modal_count",
+        adjudication_dependent=True,
+        rationale=(
+            "blocking 판정이 primary_action_occlusion(>=0.999)에 의존하므로 "
+            "max_primary_action_occlusion과 같은 사슬로 대표기능 선택(PRIMARY_ACTION_SELECTION)에 "
+            "의존한다. 추가로 interrupt final_label(BLOCKING_MODAL)은 A2 §1.8 "
+            "`INTERRUPT_LABEL` review 대상이라 라벨 자체가 adjudicated일 수 있다."
+        ),
+        evidence_path="engine/l0_collector.py:583-586 (blocking = occlusion>=0.999 or ...) · A2 §1.8",
+    ),
+    "forced_dismissal_count": ObstructionVariableProperty(
+        variable="forced_dismissal_count",
+        adjudication_dependent=False,
+        rationale=(
+            "경로 진행을 위해 실제로 클릭해 닫은 dismiss control의 **행위 계수**다 — "
+            "hittable한 컨트롤을 클릭해 성공한 횟수만 센다. 어떤 라벨·판정도 값에 들어가지 "
+            "않는다(A2 규칙 I-4로 L0 dismiss 가능성 측정과 합산조차 하지 않는다)."
+        ),
+        evidence_path="engine/l1_engine.py:671-689 (_dismiss_blockers, 클릭 성공 횟수)",
+    ),
+}
+
+
+def obstruction_variable_property(variable: str) -> ObstructionVariableProperty:
+    """등재되지 않은 변수면 `ObstructionPropertyUnknown` — fail-closed."""
+    try:
+        return OBSTRUCTION_VARIABLE_PROPERTIES[variable]
+    except KeyError as exc:
+        raise ObstructionPropertyUnknown(
+            f"obstruction 변수 {variable!r}의 판정 의존성이 등재되지 않았다 — "
+            "OBSTRUCTION_VARIABLE_PROPERTIES에 산출 경로 근거와 함께 등재해야 한다. "
+            "'몰라서 면제'는 금지다(fail-closed)."
+        ) from exc
+
+
+def resolve_measurement_uncertainty_axis(
+    frame: pd.DataFrame,
+    *,
+    x_col: str,
+    variable: str,
+    lower_col: str | None = None,
+    upper_col: str | None = None,
+) -> tuple[SignStability, str]:
+    """선택된 obstruction 변수에 대해 **측정 불확실성 축**을 성질 기반으로 판정한다.
+
+    ```
+    adjudication_dependent == False → NOT_APPLICABLE + 근거 문자열
+    adjudication_dependent == True  → bound(lower/upper) 계산 후 rho 부호 대조
+    미분류 변수                      → fail-closed로 None(강등)
+    ```
+
+    판정 의존 변수인데 bound 컬럼이 아직 산출되지 않았으면 **면제하지 않고**
+    `None`(확인 불가 → 강등)을 낸다 — 이것도 fail-closed다.
+    """
+    try:
+        prop = obstruction_variable_property(variable)
+    except ObstructionPropertyUnknown as exc:
+        return None, f"FAIL_CLOSED: {exc}"
+
+    if not prop.adjudication_dependent:
+        return "NOT_APPLICABLE", (
+            f"{prop.variable}은 adjudicated UNDETERMINED를 일절 포함하지 않는다 — {prop.rationale} "
+            f"(근거: {prop.evidence_path})"
+        )
+
+    lower_col = lower_col or f"{variable}__lower"
+    upper_col = upper_col or f"{variable}__upper"
+    if lower_col not in frame.columns or upper_col not in frame.columns:
+        return None, (
+            f"FAIL_CLOSED: {prop.variable}은 판정 의존 변수인데({prop.rationale}) "
+            f"UNDETERMINED bound 컬럼({lower_col}/{upper_col})이 산출되지 않았다 — "
+            "면제하지 않고 확인 불가로 강등한다."
+        )
+
+    verdict = sign_preserved_across_bounds(
+        frame[x_col], frame[variable], frame[lower_col], frame[upper_col]
+    )
+    return verdict, (
+        f"{prop.variable}은 판정 의존 변수다({prop.rationale}) — "
+        f"UNDETERMINED lower({lower_col})/upper({upper_col}) bound에서 rho 부호를 대조했다."
+    )
 
 
 def select_secondary_association_variable(
@@ -216,8 +356,16 @@ def _axis_ok(value: SignStability) -> bool:
     return value is True or value == "NOT_APPLICABLE"
 
 
+class MissingExemptionRationale(ValueError):
+    """`NOT_APPLICABLE`인데 근거 문자열이 없다 — None과 구별되지 않으므로 금지."""
+
+
 def resolve_sign_flip_axis(
-    *, sample_composition: SignStability, measurement_uncertainty: SignStability
+    *,
+    sample_composition: SignStability,
+    measurement_uncertainty: SignStability,
+    sample_composition_rationale: str | None = None,
+    measurement_uncertainty_rationale: str | None = None,
 ) -> dict[str, Any]:
     """어느 축에서 부호가 뒤집혔는지 판정한다 (governor 지시 3항).
 
@@ -225,7 +373,20 @@ def resolve_sign_flip_axis(
     `"measurement_uncertainty"` · `null`)만 갖는다. 두 축이 동시에 뒤집힌 경우엔
     측정 불확실성 쪽을 대표값으로 올리고(더 근본적인 결손이다), 전체 목록은
     `sign_flip_axes`에 남긴다 — 정보를 잃지 않기 위해서다.
+
+    **`NOT_APPLICABLE`에는 근거 문자열이 반드시 동반돼야 한다** — 근거 없는
+    면제는 `None`(확인 불가)과 구별되지 않아 조용한 강등 회피가 된다.
+    없으면 `MissingExemptionRationale`로 실패시킨다(조용히 넘어가지 않는다).
     """
+    for axis, value, rationale in (
+        ("sample_composition", sample_composition, sample_composition_rationale),
+        ("measurement_uncertainty", measurement_uncertainty, measurement_uncertainty_rationale),
+    ):
+        if value == "NOT_APPLICABLE" and not rationale:
+            raise MissingExemptionRationale(
+                f"{axis} 축이 NOT_APPLICABLE인데 근거 문자열이 없다 — "
+                "면제는 산출 경로 근거와 함께만 기록한다(governor 지시)."
+            )
     flipped = []
     if sample_composition is False:
         flipped.append("sample_composition")
@@ -253,6 +414,11 @@ def resolve_sign_flip_axis(
         "by_axis": {
             "sample_composition": sample_composition,
             "measurement_uncertainty": measurement_uncertainty,
+        },
+        # 축 판정 옆에 항상 붙는 근거 — 특히 NOT_APPLICABLE은 근거 없이 나갈 수 없다.
+        "axis_rationale": {
+            "sample_composition": sample_composition_rationale,
+            "measurement_uncertainty": measurement_uncertainty_rationale,
         },
         "sign_flip_axis": primary_axis,
         "sign_flip_axes": flipped,
@@ -345,6 +511,8 @@ def association_result(
     interpretation_constraint: str | None = None,
     sample_composition: SignStability = None,
     measurement_uncertainty: SignStability = None,
+    sample_composition_rationale: str | None = None,
+    measurement_uncertainty_rationale: str | None = None,
 ) -> dict[str, Any]:
     """Spearman association 결과를 `effect`+`n`+`missing_n`+`undetermined_n`+
     `claim_grade`+`sign_stability` 구조로 낸다.
@@ -389,7 +557,10 @@ def association_result(
         measurement_uncertainty=measurement_uncertainty,
     )
     sign_stability = resolve_sign_flip_axis(
-        sample_composition=sample_composition, measurement_uncertainty=measurement_uncertainty
+        sample_composition=sample_composition,
+        measurement_uncertainty=measurement_uncertainty,
+        sample_composition_rationale=sample_composition_rationale,
+        measurement_uncertainty_rationale=measurement_uncertainty_rationale,
     )
 
     return {
@@ -416,7 +587,9 @@ def association_result(
     }
 
 
-def older_relevant_kwcag_fail_rate(criterion: pd.DataFrame, landing: pd.DataFrame) -> pd.DataFrame:
+def older_relevant_kwcag_fail_rate(
+    criterion: pd.DataFrame, landing: pd.DataFrame, *, source_kind: str = "SYNTHETIC"
+) -> pd.DataFrame:
     """`web_target_id`별 OlderRelevantKWCAGFailRate — **Research Director 확정
     정의** (LA-TB-1630-20260827, 동결):
 
@@ -442,7 +615,15 @@ def older_relevant_kwcag_fail_rate(criterion: pd.DataFrame, landing: pd.DataFram
     UNDETERMINED를 전부 PASS로(best case, fail이 적어지는 방향), upper는 전부
     FAIL로(worst case) 가정해 재계산한다. **점추정 하나로 접지 않는다** —
     UNDETERMINED가 있는 서비스는 이 두 경계를 항상 함께 본다.
+
+    **fail-closed 가드** (governor 지시): 이 metric의 분모가 되는 older-relevant
+    criterion 집합의 **정본 표가 아직 동결되지 않았다.** `source_kind`가
+    synthetic/empty/fixture가 아닌데 정본 표가 주입돼 있지 않으면
+    `OlderRelevanceNotFrozenError`로 실패한다 — 실제 데이터로 FailRate를 계산할
+    수 없다. synthetic 경로는 그대로 돈다.
     """
+    assert_older_relevance_frozen(source_kind)
+
     empty_columns = [
         "web_target_id",
         "fail_rate",

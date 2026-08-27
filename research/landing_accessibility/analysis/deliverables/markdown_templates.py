@@ -17,6 +17,8 @@ from typing import Any
 
 from ..eda.statistics import DIRECTION_DEFINITION
 from ..marts.schema import TABLE_SCHEMAS
+from ..marts.synthetic import SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE_KNOWN_DEFECTS
+from ..older_relevance_registry import registry_status
 from ..provenance import (
     INTERPRETATION_DISCIPLINE_NOTICE,
     ShadowProvenance,
@@ -231,6 +233,93 @@ def generate_model_diagnostics(
     return _write(Path(out_dir) / "MODEL_DIAGNOSTICS.md", lines, provenance)
 
 
+def generate_final_results_summary(
+    eda05_summary: dict[str, Any],
+    eda07_summary: dict[str, Any],
+    eda09_summary: dict[str, Any],
+    out_dir: str | Path,
+    *,
+    provenance: ShadowProvenance | None = None,
+) -> Path:
+    """`FINAL_RESULTS_SUMMARY.md`.
+
+    **Claude A(governor) 의무 보고 항목**: "대표기능이 인증 벽 뒤에 있는 서비스
+    N건"을 명시적으로 싣는다. 그 서비스들은 MPFED를 잴 수 없어 joint-valid
+    표본에서 빠지지만, **빠졌다는 이유로 서술에서 사라지면 은폐다** — 대표기능이
+    로그인/본인확인/결제 벽 뒤에 있다는 것 자체가 entry friction에 관한 실질
+    관측이기 때문이다.
+    """
+    provenance = provenance or ShadowProvenance()
+    validity = eda05_summary.get("joint_validity", {}) or {}
+    behind_gate = validity.get("behind_gate", {}) or {}
+
+    lines = ["# FINAL_RESULTS_SUMMARY", "", f"`shadow_lane={provenance.shadow_lane}`", ""]
+
+    lines.append("## 관측 범위")
+    lines.append("")
+    lines.append(
+        f"- 시도 {validity.get('n_attempted')}건 · joint-valid {validity.get('n_joint_valid')}건 · "
+        f"제외 {validity.get('n_excluded')}건"
+    )
+    lines.append(f"- 제외 사유별: {validity.get('excluded_by_reason')}")
+    lines.append("")
+
+    lines.append("## 대표기능이 인증 벽 뒤에 있는 서비스")
+    lines.append("")
+    lines.append(
+        f"**{behind_gate.get('n_services', 0)}건** — 대표기능 진입이 로그인·본인확인·결제·"
+        "CAPTCHA 같은 gate에 막혀 MPFED를 산출할 수 없었던 서비스다."
+    )
+    lines.append("")
+    lines.append(f"- gate 종류별: {behind_gate.get('by_endpoint_status', {})}")
+    lines.append(
+        "- 이 서비스들은 joint-valid 표본(진입깊이 통계·association)에서 빠지지만, "
+        "**빠졌다는 사실 자체가 결과다.** 대표기능이 벽 뒤에 있다는 것은 entry friction에 "
+        "관한 실질 관측이며, transport failure·timeout 같은 **우리 쪽 수집 사정**과 "
+        "합산하지 않는다(전자는 대상의 성질이다)."
+    )
+    lines.append(
+        "- 이것을 '측정 실패'로 적으면 관측 결과를 수집 결함으로 오기하는 것이다 — "
+        "제외 사유를 `GATE_REACHED_MPFED_NULL`로 분리해 두는 이유다."
+    )
+    lines.append("")
+
+    lines.append("## 인증(WA certification)")
+    lines.append("")
+    lines.append(f"- {eda07_summary.get('descriptive_sentence', '(EDA-07 미실행)')}")
+    lines.append(
+        f"- claim 등급: `{eda07_summary.get('claim_grade', 'SUPPORTED_WITH_LIMITATION')}` — "
+        "인증 관련 상관·집단비교·회귀는 만들지 않았다(관측 프레임에서 무분산)."
+    )
+    lines.append("")
+
+    lines.append("## Association (전부 exploratory 이하 — 아래 등급 참조)")
+    lines.append("")
+    for label, key in (
+        ("primary (A0)", "primary_association"),
+        ("구조보정", "primary_structure_adjusted_association"),
+        ("secondary", "secondary_association"),
+    ):
+        assoc = eda09_summary.get(key) or {}
+        if not assoc:
+            continue
+        lines.append(
+            f"- {label}: {assoc.get('metric')} → effect={assoc.get('effect')} "
+            f"(n={assoc.get('n')}, claim_grade=`{assoc.get('claim_grade')}`, "
+            f"headline_eligible={assoc.get('headline_eligible')}, "
+            f"sign_flip_axis=`{assoc.get('sign_flip_axis')}`)"
+        )
+    lines.append("")
+    lines.append(
+        "- 세 축(KWCAG / entry friction / WA certification)을 단일 종합점수로 합치지 않는다."
+    )
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+    lines.append(f"> {INTERPRETATION_DISCIPLINE_NOTICE}")
+    return _write(Path(out_dir) / "FINAL_RESULTS_SUMMARY.md", lines, provenance)
+
+
 def generate_limitations(
     eda05_summary: dict[str, Any],
     eda07_summary: dict[str, Any],
@@ -344,7 +433,33 @@ def generate_limitations(
     )
     lines.append("")
 
-    lines.append("## 3. 인증(certification) — NOT_CERTIFIED vs UNDETERMINED")
+    # ── 선택편향 — primary 표본은 "대표기능에 도달 가능한 서비스"로 한정된다 ──
+    behind_gate = validity.get("behind_gate", {}) or {}
+    lines.append("## 3. 선택편향 — primary association 표본의 한정")
+    lines.append("")
+    lines.append(
+        "**primary association의 표본은 '대표기능에 실제로 도달 가능한 서비스'로 한정된다.** "
+        "joint-valid 조건 J3(MPFED 산출 가능)이 대표기능 진입에 성공했거나 최소한 깊이를 "
+        "잴 수 있었던 관측만 남기기 때문이다."
+    )
+    lines.append("")
+    lines.append(
+        f"- 그 결과 **대표기능이 인증·결제·본인확인 벽 뒤에 있는 서비스 "
+        f"{behind_gate.get('n_services', 0)}건**이 primary 표본에서 제외됐다 "
+        f"(gate 종류별: {behind_gate.get('by_endpoint_status', {})})."
+    )
+    lines.append(
+        "- 이 제외는 무작위가 아니다 — **진입 장벽이 가장 큰 서비스들이 선택적으로 빠진다.** "
+        "따라서 primary association이 추정하는 관계는 '벽을 넘을 수 있었던 서비스들 안에서의' "
+        "관계이며, 모집단 전체로 외삽하면 진입 마찰을 **과소평가**하는 방향으로 편향된다."
+    )
+    lines.append(
+        "- 제외된 서비스들은 `FINAL_RESULTS_SUMMARY.md`가 별도 항목으로 보고한다 — "
+        "표본에서 빠졌다는 이유로 서술에서 사라지지 않게 한다."
+    )
+    lines.append("")
+
+    lines.append("## 4. 인증(certification) — NOT_CERTIFIED vs UNDETERMINED")
     lines.append("")
     lines.append(f"- {eda07_summary.get('descriptive_sentence', '(EDA-07 미실행)')}")
     breakdown = eda07_summary.get("match_status_breakdown", {}) or {}
@@ -364,7 +479,32 @@ def generate_limitations(
     )
     lines.append("")
 
-    lines.append("## 4. 게이트 지위 — E000_FAST, `E000_V2_VALIDATED` 아님")
+    # ── older_relevance 정본 미동결 ──────────────────────────────────
+    lines.append("## 5. `older_relevance` 정본 미동결 — 실제 데이터 FailRate 계산 차단")
+    lines.append("")
+    lines.append(
+        "`OlderRelevantKWCAGFailRate`의 **분모가 되는 older-relevant criterion 집합의 정본 표가 "
+        "아직 동결되지 않았다.** 현재 상태: "
+        f"`{registry_status()}`"
+    )
+    lines.append("")
+    lines.append(
+        "- `marts/synthetic.py`의 `SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE`는 **픽스처용이며 "
+        "정본이 아니다.** 알려진 오류: "
+        f"{list(SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE_KNOWN_DEFECTS)}"
+    )
+    lines.append(
+        "- 정본 표가 주입되기 전에 실제 데이터로 FailRate를 계산하려 하면 "
+        "`OlderRelevanceNotFrozenError`로 **fail-closed 차단**된다 "
+        "(`analysis/older_relevance_registry.py`). synthetic 경로만 통과한다."
+    )
+    lines.append(
+        "- 따라서 이 산출물의 모든 FailRate 수치는 **정본 분모가 아닌 픽스처 분모** 위에서 "
+        "계산된 것이며, 실제 서비스 판정으로 인용할 수 없다."
+    )
+    lines.append("")
+
+    lines.append("## 6. 게이트 지위 — E000_FAST, `E000_V2_VALIDATED` 아님")
     lines.append("")
     lines.append(
         "이번 타임박스(LA-TB-1630-20260827)는 **6개 타깃 스모크 검증(`E000_FAST`)** 이며, "

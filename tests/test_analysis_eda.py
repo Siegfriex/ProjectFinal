@@ -353,3 +353,137 @@ def test_headline_eligibility_follows_grade_not_just_sample_size() -> None:
     assert flipped["claim_grade"] == "C"
     assert flipped["headline_eligible"] is False
     assert flipped["sign_flip_axis"] == "measurement_uncertainty"
+
+
+# ── governor 추가 판정 3건 ────────────────────────────────────────────────
+
+
+def test_measurement_uncertainty_exemption_is_by_property_not_by_name() -> None:
+    """면제는 변수 이름이 아니라 산출 경로 성질로 건다 — 판정 의존 변수는 면제되지 않는다."""
+    import pandas as pd
+    from analysis.eda.statistics import (
+        OBSTRUCTION_VARIABLE_PROPERTIES,
+        resolve_measurement_uncertainty_axis,
+    )
+
+    frame = pd.DataFrame({"x": [1.0, 2.0, 3.0], "max_overlay_coverage": [0.1, 0.2, 0.3]})
+
+    # 판정 비의존 → NOT_APPLICABLE + 근거 문자열이 반드시 함께.
+    verdict, rationale = resolve_measurement_uncertainty_axis(
+        frame, x_col="x", variable="max_overlay_coverage"
+    )
+    assert verdict == "NOT_APPLICABLE"
+    assert rationale and "adjudicated UNDETERMINED를 일절 포함하지 않는다" in rationale
+
+    # 판정 의존 변수는 bound 없이 면제되지 않는다 — fail-closed로 None(강등).
+    dep = pd.DataFrame({"x": [1.0, 2.0, 3.0], "max_primary_action_occlusion": [0.1, 0.2, 0.3]})
+    verdict2, rationale2 = resolve_measurement_uncertainty_axis(
+        dep, x_col="x", variable="max_primary_action_occlusion"
+    )
+    assert verdict2 is None
+    assert "FAIL_CLOSED" in rationale2
+
+    # 미분류 변수 → fail-closed. "몰라서 면제"는 금지.
+    unknown = pd.DataFrame({"x": [1.0, 2.0, 3.0], "made_up_var": [0.1, 0.2, 0.3]})
+    verdict3, rationale3 = resolve_measurement_uncertainty_axis(
+        unknown, x_col="x", variable="made_up_var"
+    )
+    assert verdict3 is None
+    assert "FAIL_CLOSED" in rationale3
+
+    # 후보 4종은 전부 성질이 등재돼 있어야 한다(근거 문자열 포함).
+    for prop in OBSTRUCTION_VARIABLE_PROPERTIES.values():
+        assert prop.rationale and prop.evidence_path
+
+
+def test_not_applicable_without_rationale_is_rejected() -> None:
+    """근거 없는 NOT_APPLICABLE은 None과 구별되지 않으므로 실패시킨다."""
+    import pytest as _pytest
+    from analysis.eda.statistics import MissingExemptionRationale, resolve_sign_flip_axis
+
+    with _pytest.raises(MissingExemptionRationale):
+        resolve_sign_flip_axis(sample_composition=True, measurement_uncertainty="NOT_APPLICABLE")
+
+
+def test_gate_reached_mpfed_null_is_separated_from_our_side_failures(
+    marts: dict[str, pd.DataFrame],
+) -> None:
+    """gate 도달로 인한 탈락은 대상의 성질 — transport/timeout/mpfed_null과 섞지 않는다."""
+    from analysis.eda.joint_validity import (
+        EXCLUSION_REASON_IS_TARGET_PROPERTY,
+        classify_joint_validity,
+        joint_validity_summary,
+    )
+
+    validity = classify_joint_validity(marts)
+    summary = joint_validity_summary(validity)
+
+    assert "GATE_REACHED_MPFED_NULL" in summary["excluded_by_reason"]
+    assert EXCLUSION_REASON_IS_TARGET_PROPERTY["GATE_REACHED_MPFED_NULL"] is True
+    assert EXCLUSION_REASON_IS_TARGET_PROPERTY["MPFED_NULL"] is False
+    assert EXCLUSION_REASON_IS_TARGET_PROPERTY["TIMEOUT"] is False
+
+    behind = summary["behind_gate"]
+    assert behind["n_services"] == summary["excluded_by_reason"]["GATE_REACHED_MPFED_NULL"]
+    # gate에 막힌 행은 gate 계열 endpoint_status로만 라벨된다.
+    gate_rows = validity[validity["exclusion_reason"] == "GATE_REACHED_MPFED_NULL"]
+    assert set(gate_rows["endpoint_status"]) <= {
+        "AUTH_GATE_REACHED",
+        "PAYMENT_GATE_REACHED",
+        "PERSONAL_DATA_REQUIRED",
+        "CAPTCHA",
+    }
+
+
+def test_fail_rate_is_fail_closed_for_real_data_until_canonical_table_frozen(
+    marts: dict[str, pd.DataFrame],
+) -> None:
+    """정본 older_relevance 표 미동결 상태에서 실제 데이터 FailRate 계산은 차단된다."""
+    import pytest as _pytest
+    from analysis.eda.statistics import older_relevant_kwcag_fail_rate
+    from analysis.older_relevance_registry import (
+        OlderRelevanceNotFrozenError,
+        canonical_mapping_sha256,
+        clear_canonical_older_relevance,
+        freeze_canonical_older_relevance,
+        is_frozen,
+    )
+
+    criterion = marts["fact_criterion_result"]
+    landing = marts["fact_landing_observation"]
+
+    clear_canonical_older_relevance()
+    assert is_frozen() is False
+
+    # synthetic 경로는 그대로 돈다.
+    assert not older_relevant_kwcag_fail_rate(criterion, landing, source_kind="SYNTHETIC").empty
+
+    # 실제 데이터는 fail-closed로 막힌다.
+    with _pytest.raises(OlderRelevanceNotFrozenError):
+        older_relevant_kwcag_fail_rate(criterion, landing, source_kind="REAL_E001")
+
+    # 정본 표가 주입되면 통과한다.
+    mapping = {"1.1.1": "VISION", "2.1.1": "MOTOR"}
+    try:
+        freeze_canonical_older_relevance(
+            mapping=mapping,
+            sha256=canonical_mapping_sha256(mapping),
+            source="test-injection",
+            frozen_at="2026-08-27T00:00:00Z",
+        )
+        assert not older_relevant_kwcag_fail_rate(criterion, landing, source_kind="REAL_E001").empty
+    finally:
+        clear_canonical_older_relevance()
+
+
+def test_synthetic_fixture_has_no_nonexistent_kwcag_id() -> None:
+    """2.4.7은 KWCAG 2.2에 없는 id다 — 픽스처에서도 제거돼야 한다."""
+    from analysis.marts.synthetic import (
+        CRITERION_IDS,
+        SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE,
+    )
+
+    assert "2.4.7" not in CRITERION_IDS
+    assert "2.4.7" not in SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE
+    # 픽스처 목록과 criterion id 목록이 어긋나지 않는다.
+    assert set(SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE) == set(CRITERION_IDS)

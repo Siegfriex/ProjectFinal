@@ -14,6 +14,7 @@ from .manifests import (
 from .markdown_templates import (
     generate_data_dictionary,
     generate_eda_report,
+    generate_final_results_summary,
     generate_limitations,
     generate_model_diagnostics,
     generate_robustness_results,
@@ -29,6 +30,7 @@ __all__ = [
     "build_statistical_results_json",
     "generate_data_dictionary",
     "generate_eda_report",
+    "generate_final_results_summary",
     "generate_limitations",
     "generate_model_diagnostics",
     "generate_robustness_results",
