@@ -275,6 +275,66 @@ codebook 없이 endpoint 를 만들어내지 않았다.
 
 ---
 
+## 3.5 R4 fixture 검증 결과 — **naive wiring 복구는 안전하지 않다**
+
+C 가 엔진 `222ef2c` 를 fixture 신호로 직접 돌렸다(`assurance/recovery/PARTIAL_DEPTH_FIXTURES.md`,
+15 html + 실행 스크립트 + 결과 JSON). **fixture 를 엔진에 맞춰 조정하지 않았다.**
+
+7케이스 중 **3 FAIL**. 두 결함을 등록한다.
+
+### `REC-B-6` (C1) — **wiring 을 고치는 순간 NED 가 다시 사라진다**
+
+```
+l1_engine.py:532   area_here 를 계산한다
+           :540    endpoint 종료 분기에서만 area_index 대입
+           :558    gate 종료 분기에서만 area_index 대입
+           :600-616 UNRESOLVED 경로 → area_index = None 을 compute_depth 에 넘긴다
+```
+
+**`A1 §1.5` 표 3행 위반** — *"영역만 관측, endpoint 전 종료 → NED=k, IED NULL"* 이 동작하지 않는다.
+케이스 1·4 에서 `NED NULL` 로 실측됐다(기대 `NED 0` / `NED 보존`).
+
+**`compute_depth` 자체는 계약대로 동작한다**(케이스 2·4b 가 증거). 결함은 호출부다.
+
+> **E001 에서는 발현하지 않았다** — region 정의가 전부 `None` 이라 애초에 도달하지 못했다.
+> **`REC-B-1~3`(wiring)을 고치는 즉시 발현한다.**
+>
+> **따라서 `REC-B-6` 은 wiring 과 *동시에* 고쳐야 한다. 나중에 고칠 항목이 아니다.**
+> 이것을 모르고 wiring 만 복구하면 **NED 가 또 NULL 로 나오고, 원인을 다시 찾게 된다.**
+
+### `REC-B-7` (C1) — **PENDING 정의로 endpoint 승격이 일어난다**
+
+```
+TaskDefinition.mapping_frozen_allowed()  (:100-105)   호출자 0
+detector                                              signal_type 을 읽지 않는다
+승격 (:538-543) · Path Freeze (:662-680)              P-2 가드 없음
+```
+
+**케이스 5b 실증:** 정의 문자열 + `CODEBOOK_PENDING` 상태에서
+**`FUNCTION_ENDPOINT_REACHED` 0/1/1 산출 + TaskManifest 동결**이 일어났다.
+
+**이는 §4-5 「`UNDETERMINED` 를 `PASS`/endpoint 로 승격하지 않는다」의 직접 위반이다.**
+
+> **E001 에서 발현하지 않은 이유가 우연이다** — 케이스 5a(정의 `None` + `PENDING`, E001 실제 구성)는
+> 승격 0 이었으나, C 판정대로 그것은 **detector 가 상수 False 를 반환한 부수효과**이지
+> 가드가 작동한 것이 아니다. **정의가 채워지는 순간 가드 없는 승격 경로가 열린다.**
+
+### 복구 순서에 대한 함의
+
+```
+잘못된 순서   REC-B-1~3 (wiring) 먼저  →  REC-B-6 로 NED 소실 재발
+                                        →  REC-B-7 로 PENDING 정의가 endpoint 로 승격
+올바른 순서   REC-B-1~3 · REC-B-6 · REC-B-7 을 **한 묶음으로** 시정한 뒤 R2 로
+```
+
+**`R4`(partial-depth semantics)는 현재 `FAIL` 이다.** `GO_POST_E001_RECOVERY_REAL` 조건 미충족.
+
+> **E001 의 "모든 정의가 None" 상태가 이 두 결함을 가리고 있었다.**
+> 오늘 관측이 0 이었던 것이 **결함을 숨긴 대가**이기도 하다 — 값이 나왔다면 두 결함이
+> 조용히 잘못된 값을 만들었을 것이다.
+
+---
+
 ## 4. 복구 원칙 — 동결
 
 1. **prohibited action set 을 절대 완화하지 않는다** — 로그인·결제·OTP·본인인증·PII·CAPTCHA 우회
