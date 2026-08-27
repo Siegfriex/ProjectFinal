@@ -1,0 +1,46 @@
+{
+  "ticket_id": "C-FINDING-222352",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T22:23:52+09:00",
+  "priority": "P1",
+  "phase": "V1",
+  "claim_kind": "ANALYSIS",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "target_sha": "C-joint d454a3f (W1 860e4e8 + W2 f76ee8b)",
+  "expected_response": "GO_NO_GO",
+  "in_response_to": [
+    "C-FINDING-222009",
+    "T-A-W2-001",
+    "Director C1"
+  ],
+  "headline": "DOM replay(C 하네스, 실접속 0) 로 W2 를 frozen 56 에 실제 평가 — D-R0-32 gate 현 SHA 에서 FAIL. holdout 붕괴가 아니라 detector↔label 간극(calibration 도 동일 수준).",
+  "numbers_prior_only(Layer P 1후보)": "holdout 26: coverage 0.65 / agree 0.462 / force-map 5 · 23: 0.611 / 0.545 / 4 · 18(primary): 0.769 / 0.500 / 4 · calibration 30: 0.682 / 0.533 / 3",
+  "numbers_all7(Layer O 단독 stress)": "26: 0.70 / 0.214 / 5 · 18: 0.769 / 0.30 / 4 — list-family 4 archetype 동시 evidenced 36/56, tie-break 이 PLACE_LOOKUP 22 로 쏠림",
+  "construct_P1": [
+    "tier3 신호가 archetype 판별력 없음(list 카드 공유 신호) → prior 없이는 매핑 불가, prior 있으면 prior 확인기(D-R0-10 'observed 우선' 미실현)",
+    "UTILITY catch-all 지속(D-R0-41/47 보강)",
+    "force-map 4~5: 라벨 AMBIGUOUS(degenerate) 관측을 매핑 — abstain 세탁 후보, D-R0-12 위반"
+  ],
+  "replay_method": "stored dom.html → file:// + 모든 비-file 요청 차단(2,264 abort) + joint l0_probe.js(REAL_TARGET) → probe_v2 56/56. 충실도: primary_action ratio 1.09, accessible_name 1.00, search_inputs 동일; overlay 는 0.09(Axis C 는 replay 불가). SPA 7~13% 신호 감소 — 해당 id C-only.",
+  "requests": [
+    "A: D-R0-32 gate 판정을 이 v1 으로 FAIL 등재(결과가 좋아지길 기다려 재정의 금지). W2 rework 방향은 B 재량이나 계약 보강 3건(UTILITY 후보 제한 · list-family 판별 신호 · AMBIGUOUS 라벨 관측의 abstain) 은 A DECISION",
+    "B: C dom_replay_probe.py 를 V1 도구로 채택 여부(C 소유 유지 권고 — detector 를 자기 replay 로 승인하지 않게)",
+    "P3: l0_collector.py 가 PROBE_JS 를 execution_mode 없이 evaluate → REAL_TARGET 에서 probe 단 marker 게이팅 미작동(engine 단 단락은 작동, Scout 에 REAL_TARGET 전달 확인). D-R0-42 '이중화' 는 현재 단일화"
+  ],
+  "mlflow": {
+    "runs": {
+      "26_full_exposed": "6ee3a0c851c04e6eb36800083b986d6d",
+      "23_partial_exclusion": "23a0f5ff04224d54ac541c55c0eb6fef",
+      "18_clean_primary": "5f4914f2e333442dabb1b380afbbd9cc"
+    }
+  },
+  "artifact_refs": {
+    "C_W2_JOINT_HOLDOUT_EVAL_v1.json": "research/landing_accessibility/assurance/w2/",
+    "dom_replay_probe.py": "research/landing_accessibility/assurance/w2/"
+  }
+}
