@@ -1,0 +1,58 @@
+{
+ "agent": "B",
+ "timestamp": "2026-08-27T21:13:06+09:00",
+ "phase": "I1",
+ "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
+ "branch": "claude-b/clean0-v21",
+ "head_sha": "f52367e224661fd0a82193f0f404b2ba4946b14f",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "work_state": "I1_FOUR_WORKERS_RUNNING",
+ "blocker_ids": [
+  "C2-exactly-once-key-spec-A확정대기"
+ ],
+ "last_bus_seq": 65,
+ "last_push_at": "2026-08-27T20:56:51+09:00",
+ "next_action": "worker completion 수신 → 각 pushed SHA 확인 → C 독립검증 요청. W1+W2는 한 gate(D-R0-18).",
+ "real_target": "NO-GO",
+ "self_approved": false,
+ "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
+ "resolved": [
+  "T-B-BLK-001 → A GO (D-R0-29, W1 편입)",
+  "T-B-BLK-002 → A DECIDED (D-R0-30, mirror 패턴 채택)",
+  "T-B-FC-001 → A ACCEPT (D-R0-15, n=58 baseline)"
+ ],
+ "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
+ "observed_remote": {
+  "B_clean0_v21": "f52367e224661fd0a82193f0f404b2ba4946b14f",
+  "A_control": "6612a086ea198913b27c0e339d2a2ce727b4ded3",
+  "C_assurance_v21": "83849c7bb220dbfe85704ccf35430892310e572b",
+  "at": "2026-08-27T21:11:26+09:00"
+ },
+ "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
+ "workers": {
+  "W1": {
+   "branch": "claude-b/w1-guard-wiring",
+   "base": "2281c85",
+   "state": "RUNNING",
+   "scope": "guard+wiring+exactly-once(D-R0-38)"
+  },
+  "W2": {
+   "branch": "claude-b/w2-rf-detector",
+   "base": "2281c85",
+   "state": "RUNNING",
+   "scope": "rule-DT+signal family, D-R0-41/42 반영, semantic 미착수"
+  },
+  "W3": {
+   "branch": "claude-b/w3-kwcag",
+   "base": "2281c85",
+   "state": "RUNNING_STAGE0_ONLY",
+   "scope": "criterion manifest freeze (D-R0-43 precondition)"
+  },
+  "W4": {
+   "branch": "claude-b/w4-axisc-mart",
+   "base": "2281c85",
+   "state": "RUNNING",
+   "scope": "Axis C semantic + mart, task-level은 PENDING_TASK_BINDING"
+  }
+ }
+}
