@@ -104,6 +104,12 @@ def main() -> int:
                 return f"c_split_parent:{parent}"
         return None
 
+    # 양성 대조군용 — 각 경로로 실제 도달하는 행을 하나씩 고른다
+    _pos_header = next((r["id"] for r in idx.rows if r["id"] in heads_set), None)
+    _pos_alias = next((r["id"] for r in idx.rows
+                       if r["id"] not in heads_set
+                       and any(idx._hit(t, text) for t in idx.variants(r["id"]))), None)
+
     b_hit, b_miss = [], []
     for r in idx.rows:
         rid = r["id"]
@@ -125,6 +131,25 @@ def main() -> int:
         #   authority/부모 상속 규칙 → 도달
         # 이 도구는 선언된 규칙을 구현하므로 미도달이어야 한다. 도달로 나오면
         # 구현이 조용히 넓어진 것이다.
+        # --- 양성 도달 대조군 (B 의 R31 양방향 기준) ---
+        # 위 대조군은 셋 다 **None 을 기대한다.** `reach()` 가 무조건 None 을
+        # 내도록 망가지면 전부 통과하고 전 행이 '미도달' 로 보고된다 —
+        # 그리고 그건 진짜 결함 보고와 구분되지 않는다.
+        # B 가 T-B-V3-FINDING-011 에서 실증한 것이 이것이다: 위반 단언과 부재
+        # 단언은 **서로 다른 변형**으로 각각 실패함을 보여야 한다.
+        # 그래서 각 경로마다 실제로 도달하는 행 하나를 고정한다.
+        "positive_reach_control": {
+            "via_header": {
+                "row": _pos_header,
+                "reach": reach(_pos_header, idx.variants(_pos_header)) if _pos_header else None,
+                "expected": "a_delta_section_header",
+            },
+            "via_alias": {
+                "row": _pos_alias,
+                "reach": reach(_pos_alias, idx.variants(_pos_alias)) if _pos_alias else None,
+                "expected": "b_alias_token_boundary",
+            },
+        },
         # 방향 A 대조군 — 커버 판정이 열린 채 망가지면 미커버 0 이 계속 나오고
         # 그건 지금의 정상 출력과 같다. 존재하지 않는 delta 표제가 커버로
         # 나오면 안 된다. id 는 delta 해시에서 파생한다(고정 문자열을 쓰면
@@ -160,7 +185,11 @@ def main() -> int:
                    and ctrl["discriminating_control"]["probe_absent_from_delta"]
                    and ctrl["discriminating_control"]["reach_result"] is None
                    and ctrl["coverage_control"]["absent_from_index"]
-                   and ctrl["coverage_control"]["cover_result"] is None)
+                   and ctrl["coverage_control"]["cover_result"] is None
+                   and ctrl["positive_reach_control"]["via_header"]["reach"]
+                       == "a_delta_section_header"
+                   and ctrl["positive_reach_control"]["via_alias"]["reach"]
+                       == "b_alias_token_boundary")
         else "FAIL"
     )
 
@@ -195,6 +224,9 @@ def main() -> int:
         json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     dc = ctrl["discriminating_control"]
     print(f"control={ctrl['verdict']} heads={len(heads)} rows={len(idx.rows)}")
+    pr = ctrl["positive_reach_control"]
+    print(f"   양성도달   헤더경로 {pr['via_header']['row']}→{pr['via_header']['reach']} · "
+          f"별칭경로 {pr['via_alias']['row']}→{pr['via_alias']['reach']}")
     cc = ctrl["coverage_control"]
     print(f"   커버대조군 {cc['fake_head']}: 색인부재={cc['absent_from_index']} "
           f"커버={cc['cover_result']} (기대 None)")

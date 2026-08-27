@@ -1,44 +1,56 @@
 {
  "tool": "tools/v3_harness/index_delta_crosscheck.py",
  "resolver": "ruling_id_norm v3 — 색인 aliases 조회, 추론 없음",
- "checked_at_kst": "2026-08-28T08:08:49+09:00",
+ "checked_at_kst": "2026-08-28T08:16:17+09:00",
  "index": {
-  "version": 26,
-  "sha256": "d40d947a4b0dcd6cbfdfb102cb2352bd4b847b49be3cafb713aa3e5ac5ffad7d",
+  "version": 29,
+  "sha256": "e5737ef581516a647d7d9640a8b199704a99a632cf1b034d6336ed0c627e826a",
   "authority_sha": "adcdcb6050e96817be8645662c098b3221d4f90f",
-  "rows": 86
+  "rows": 90
  },
  "delta": {
   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_a_control/research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md",
-  "sha256": "f7f6fcc416cd155ee3885e8f1ec49d38e33796f84b93292f2e332f041544c706"
+  "sha256": "bb673d893cf51c98b6c008db3ebf27ea5250c92e762520c75f0adbe599d81848"
  },
  "control": {
-  "delta_heads_found": 69,
-  "index_rows": 86,
+  "delta_heads_found": 72,
+  "index_rows": 90,
   "positive_control": true,
   "negative_control": null,
+  "positive_reach_control": {
+   "via_header": {
+    "row": "Δ1-a",
+    "reach": null,
+    "expected": "a_delta_section_header"
+   },
+   "via_alias": {
+    "row": "Δ8-R1",
+    "reach": null,
+    "expected": "b_alias_token_boundary"
+   }
+  },
   "coverage_control": {
-   "fake_head": "Δ9f7f6fc",
+   "fake_head": "Δ9bb673d",
    "absent_from_index": true,
    "cover_result": null,
    "expected": null
   },
   "discriminating_control": {
-   "fake_child": "Δ15-Pf7f6fcc416",
+   "fake_child": "Δ15-Pbb673d893c",
    "probe_absent_from_delta": true,
    "parent_section_exists": true,
    "reach_result": null,
    "expected": null,
    "why": "부모 절이 존재하는 가짜 자식. 선언 규칙이면 미도달, 부모 상속 규칙이면 도달 — 두 규칙이 여기서 갈린다"
   },
-  "verdict": "PASS"
+  "verdict": "FAIL"
  },
  "A_delta_head_to_index": {
-  "n": 69,
-  "covered": 69,
+  "n": 72,
+  "covered": 72,
   "rule": "A self_check.delta_section_coverage — 별칭/자식행/선언된 컨테이너",
   "by_path": {
-   "alias_or_id": 55,
+   "alias_or_id": 58,
    "child_rows": 13,
    "declared_split_parent": 1,
    "declared_container": 0
@@ -46,19 +58,266 @@
   "UNCOVERED": []
  },
  "B_index_row_to_delta": {
-  "n": 86,
-  "reachable": 75,
+  "n": 90,
+  "reachable": 0,
   "rule": "A self_check.index_to_delta_reachability — (a)헤더 (b)별칭 토큰경계 (c)split_rows 부모",
   "by_path": {
-   "a_": 34,
-   "b_": 41,
+   "a_": 0,
+   "b_": 0,
    "c_": 0
   },
   "UNRESOLVED": [
    {
+    "index_id": "Δ1-a",
+    "tokens": [
+     "D3-06",
+     "Δ1-a"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ1-b",
+    "tokens": [
+     "D3-06",
+     "Δ1-b"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ2",
+    "tokens": [
+     "D3-08",
+     "Δ2"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ4",
+    "tokens": [
+     "promoted main 참조 규칙",
+     "Δ4"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ5",
+    "tokens": [
+     "Δ5",
+     "티켓 스키마 전환"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ6-a",
+    "tokens": [
+     "Δ6-a"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ6-b",
+    "tokens": [
+     "Δ6-b"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ6-c",
+    "tokens": [
+     "Δ6-c"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ6-d",
+    "tokens": [
+     "Δ6-d"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ7",
+    "tokens": [
+     "THREE_TURN_RUNBOOK",
+     "Δ7"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ8-R1",
+    "tokens": [
+     "R1",
+     "Δ8-R1"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ8-R2",
+    "tokens": [
+     "R2",
+     "Δ8-R2"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ8-R3a",
+    "tokens": [
+     "R3a",
+     "Δ8-R3a"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ8-R3b",
+    "tokens": [
+     "R3b",
+     "Δ8-R3b"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ8-R4",
+    "tokens": [
+     "R4",
+     "Δ8-R4"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ8-R5",
+    "tokens": [
+     "R5",
+     "Δ8-R5"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ8-R6",
+    "tokens": [
+     "R6",
+     "Δ8-R6"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ8-R7",
+    "tokens": [
+     "R7",
+     "Δ8-R7"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ9",
+    "tokens": [
+     "Δ9"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ10-R11",
+    "tokens": [
+     "R11",
+     "Δ10-R11"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ10-R12",
+    "tokens": [
+     "R12",
+     "Δ10-R12"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ10-R13a",
+    "tokens": [
+     "R13a",
+     "Δ10-R13a"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ10-R13b",
+    "tokens": [
+     "R13b",
+     "Δ10-R13b"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ10-R14",
+    "tokens": [
+     "R14",
+     "Δ10-R14"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ12-R15",
+    "tokens": [
+     "R15",
+     "Δ12-R15"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ12-R16",
+    "tokens": [
+     "R16",
+     "Δ12-R16"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ13-R17",
+    "tokens": [
+     "R17",
+     "Δ13-R17"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ14-P06",
+    "tokens": [
+     "P-06",
+     "P06",
+     "Δ14-P06"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ14-P09",
+    "tokens": [
+     "P-09",
+     "P09",
+     "Δ14-P09"
+    ],
+    "reachable_via": null
+   },
+   {
     "index_id": "Δ14-auth",
     "tokens": [
      "Δ14-auth"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ14-P17",
+    "tokens": [
+     "P-17",
+     "P17",
+     "Δ14-P17"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ15-GAP07",
+    "tokens": [
+     "GAP-07",
+     "GAP07",
+     "Δ15-GAP07"
     ],
     "reachable_via": null
    },
@@ -68,6 +327,15 @@
      "GAP-06",
      "GAP06",
      "Δ15-GAP06"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ15-GAP02",
+    "tokens": [
+     "GAP-02",
+     "GAP02",
+     "Δ15-GAP02"
     ],
     "reachable_via": null
    },
@@ -90,9 +358,82 @@
     "reachable_via": null
    },
    {
+    "index_id": "Δ15-GAP05",
+    "tokens": [
+     "GAP-05",
+     "GAP05",
+     "Δ15-GAP05"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ15-domax",
+    "tokens": [
+     "DOM/AX 불일치",
+     "Δ15-domax"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ17-R18",
+    "tokens": [
+     "R18",
+     "Δ17-R18"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ17-R19",
+    "tokens": [
+     "R19",
+     "Δ17-R19"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ18-R20",
+    "tokens": [
+     "R20",
+     "Δ18-R20"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ11",
+    "tokens": [
+     "Δ11",
+     "버스 구조"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ6-e",
+    "tokens": [
+     "C·D 의 E 사용",
+     "Δ6-e"
+    ],
+    "reachable_via": null
+   },
+   {
     "index_id": "Δ12-C",
     "tokens": [
      "Δ12-C"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ3",
+    "tokens": [
+     "baseline SHA 갱신",
+     "Δ3"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ16",
+    "tokens": [
+     "SSOT provenance",
+     "Δ16"
     ],
     "reachable_via": null
    },
@@ -111,9 +452,266 @@
     "reachable_via": null
    },
    {
+    "index_id": "Δ20",
+    "tokens": [
+     "STEP1-015",
+     "T-A-V3-STEP1-015",
+     "Δ20"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ19-R8",
+    "tokens": [
+     "R8",
+     "Δ19-R8"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ19-R9",
+    "tokens": [
+     "R9",
+     "Δ19-R9"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ19-R10",
+    "tokens": [
+     "R10",
+     "Δ19-R10"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ21",
+    "tokens": [
+     "R21",
+     "Δ21"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ22-R22",
+    "tokens": [
+     "R22",
+     "Δ22-R22"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ22-scrollfix",
+    "tokens": [
+     "scrollfix",
+     "Δ22-scrollfix",
+     "커밋된 스크롤 fixture"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ22-R23",
+    "tokens": [
+     "R23",
+     "Δ22-R23"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ23",
+    "tokens": [
+     "Δ23"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ23-R24",
+    "tokens": [
+     "R24",
+     "Δ23-R24"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ24-R25",
+    "tokens": [
+     "R25",
+     "Δ24-R25"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ25",
+    "tokens": [
+     "Δ25"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ26",
+    "tokens": [
+     "Δ26"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ28-R26",
+    "tokens": [
+     "R26",
+     "Δ28",
+     "Δ28-R26"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ29",
+    "tokens": [
+     "Δ29"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ30",
+    "tokens": [
+     "MIN-1",
+     "MIN-2",
+     "MIN-3",
+     "MIN-6",
+     "MIN-7",
+     "Δ30"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ30-branch",
+    "tokens": [
+     "Δ30-branch"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ30-tiebreak",
+    "tokens": [
+     "MIN-4",
+     "Δ30-tiebreak"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ30-budget",
+    "tokens": [
+     "Δ30-budget"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ30-claim",
+    "tokens": [
+     "MIN-5",
+     "Δ30-claim"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ31",
+    "tokens": [
+     "Δ31"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ31-R27",
+    "tokens": [
+     "R27",
+     "Δ31-R27"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ31-R28",
+    "tokens": [
+     "R28",
+     "Δ31-R28"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ32",
+    "tokens": [
+     "Δ32"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ32-R29",
+    "tokens": [
+     "R29",
+     "Δ32-R29"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ32-R30",
+    "tokens": [
+     "R30",
+     "Δ32-R30"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ32-safety",
+    "tokens": [
+     "Δ32-safety"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ27",
+    "tokens": [
+     "Δ27"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ33",
+    "tokens": [
+     "Δ33"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ34",
+    "tokens": [
+     "Δ34"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ35",
+    "tokens": [
+     "Δ35"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ35-R31",
+    "tokens": [
+     "R31",
+     "Δ35-R31"
+    ],
+    "reachable_via": null
+   },
+   {
     "index_id": "Δ35-wiring",
     "tokens": [
      "Δ35-wiring"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ36",
+    "tokens": [
+     "Δ36"
     ],
     "reachable_via": null
    },
@@ -135,6 +733,43 @@
     "index_id": "Δ36-tokens",
     "tokens": [
      "Δ36-tokens"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ37",
+    "tokens": [
+     "Δ37"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ38",
+    "tokens": [
+     "Δ38"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ39-R32",
+    "tokens": [
+     "R32",
+     "Δ39",
+     "Δ39-R32"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ39-list",
+    "tokens": [
+     "Δ39-list"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ39-scroll",
+    "tokens": [
+     "Δ39-scroll"
     ],
     "reachable_via": null
    }
