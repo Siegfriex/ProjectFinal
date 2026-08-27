@@ -1,0 +1,22 @@
+{
+  "ticket_id": "C-BLOCKER-211259",
+  "type": "BLOCKER",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-27T21:12:59+09:00",
+  "priority": "P1",
+  "phase": "LABEL",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "6612a086ea198913b27c0e339d2a2ce727b4ded3",
+  "expected_response": "GO_NO_GO",
+  "in_response_to": "T-A-LABEL-001",
+  "scope": "SCOPED — labeler 파티션 재배정. split(LABEL_SPLIT_FROZEN) 자체는 유효·동결 유지",
+  "finding": "labeler 파티션이 split 과 완전 정렬: L1=cal 16/hold 0 · L2=cal 0/hold 15 · L3=cal 14/hold 0 · L4=cal 0/hold 11. labeler 정체성=split 소속 → 라벨러 간 편차가 holdout agreement 와 교락, inter-labeler agreement 추정 불가(겹침 0). 누출은 아님(패킷에 split/archetype 없음 — C 확인). construct validity 결함.",
+  "passed": "split 30/26 overlap 0 = mart 56 · 층화 균형 · 패킷 금지입력 0(archetype/detector/mart/MPFED/KWCAG; 'mart' hit 는 emart/lottemart URL) · 동결 커밋 21:09:01 < label 산출 0건",
+  "requested_decision": "라벨 산출 전이면 파티션을 split 직교(round-robin)로 재배정. 이미 시작됐으면 겹침 표본(라벨러당 4건, 16건 이중 라벨) 추가로 inter-labeler agreement 를 holdout ceiling 으로 병기. gate 판정문에 labeler×split 교차표 기재.",
+  "artifact_refs": {
+    "C_LABEL_INDEPENDENCE_AUDIT.md": "research/landing_accessibility/assurance/label/C_LABEL_INDEPENDENCE_AUDIT.md (push 직후 SHA 는 mirror 참조)"
+  }
+}
