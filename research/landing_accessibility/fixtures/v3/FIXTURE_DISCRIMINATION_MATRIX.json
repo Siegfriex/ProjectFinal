@@ -1,0 +1,1618 @@
+{
+  "schema_version": "w5e-v3-fixture-discrimination/1.0",
+  "produced_by": "W5E (ProjectFinal V3 Claude B plane)",
+  "codebook_source": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §2 · §3 · §4 · §5 · §6 · §7",
+  "supporting_sources": [
+    "SSOTV3/02_DATA_SCHEMA_v3.0.md §3 · §4",
+    "SSOTV3/03_COLLECTION_MEASUREMENT_SPEC_v3.0.md §1 · §5 · §6 · §7 · §9 · §10"
+  ],
+  "provenance": {
+    "fixture_only": true,
+    "real_target_measurement": false,
+    "external_resource_referenced": false,
+    "authoritative": false,
+    "self_approved": false,
+    "note": "synthetic offline fixture 에 대한 명세다. 실제 서비스에 대한 research finding 이 아니며 그렇게 인용할 수 없다. 여기의 expected_values 는 측정기가 이 fixture 를 읽었을 때 나와야 하는 값이지, 어떤 실서비스의 관측값이 아니다.",
+    "terminology": "SSOTV3 본문에서 'fixture' 는 주로 task 파라미터 고정값(fixed_fixture: 출발지·날짜 등)을 뜻한다. 이 문서의 'fixture' 는 측정기 검증용 offline HTML 을 뜻하며 서로 다른 개념이다."
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "note": "03 §1 공통 모바일 환경 390x844 CSS px. 모든 좌표는 이 뷰포트 기준이다."
+  },
+  "numeric_tolerance": 0.0005,
+  "measured_fields": [
+    "s0_task_control_visible",
+    "first_visible_scroll_state",
+    "entry_x_norm",
+    "entry_y_norm",
+    "entry_zone",
+    "entry_control_type",
+    "entry_label_modality",
+    "visible_label_text",
+    "accessible_name",
+    "accessible_name_source",
+    "label_relation",
+    "nav_container_type",
+    "reveal_direction",
+    "menu_dependency",
+    "nav_container_depth",
+    "activation_depth",
+    "flow_step_count",
+    "auth_gate_stage",
+    "forced_dismissal_count",
+    "task_control_occlusion",
+    "endpoint_status"
+  ],
+  "allowed_values": {
+    "entry_zone": [
+      "TOP_LEFT",
+      "TOP_CENTER",
+      "TOP_RIGHT",
+      "MID",
+      "BOTTOM",
+      "FLOATING",
+      "DRAWER"
+    ],
+    "entry_control_type": [
+      "TEXT_LINK",
+      "TEXT_BUTTON",
+      "ICON_TEXT",
+      "ICON_ONLY",
+      "TAB",
+      "BOTTOM_NAV",
+      "HAMBURGER",
+      "CARD",
+      "SEARCHBOX",
+      "LIST_ITEM",
+      "OTHER"
+    ],
+    "entry_label_modality": [
+      "EXPLICIT_TEXT",
+      "ICON_TEXT",
+      "ICON_ONLY_AX_NAMED",
+      "ICON_ONLY_UNNAMED",
+      "HIDDEN_UNTIL_REVEAL"
+    ],
+    "accessible_name_source": [
+      "VISIBLE_TEXT",
+      "ARIA_LABEL",
+      "ARIA_LABELLEDBY",
+      "LABEL",
+      "ALT",
+      "TITLE",
+      "VALUE",
+      "MIXED",
+      "NONE"
+    ],
+    "label_relation": [
+      "MATCH",
+      "SEMANTIC_EQUIV",
+      "DIFFERENT",
+      "VISIBLE_ONLY",
+      "AX_ONLY",
+      "NONE"
+    ],
+    "nav_container_type": [
+      "NONE",
+      "HAMBURGER",
+      "LEFT_DRAWER",
+      "RIGHT_DRAWER",
+      "TOP_DROPDOWN",
+      "BOTTOM_SHEET",
+      "MODAL_MENU",
+      "INLINE_EXPAND"
+    ],
+    "reveal_direction": [
+      "NONE",
+      "LEFT",
+      "RIGHT",
+      "TOP",
+      "BOTTOM",
+      "CENTER",
+      "INLINE"
+    ],
+    "auth_gate_stage": [
+      "NONE",
+      "BEFORE_TASK_DISCOVERY",
+      "AFTER_TASK_SELECT",
+      "AT_ENDPOINT"
+    ],
+    "endpoint_status": [
+      "REACHED",
+      "AUTH_GATE",
+      "PUBLIC_WEB_UNOBSERVABLE",
+      "APP_REQUIRED",
+      "EVIDENCE_DEFECT",
+      "BLOCKED",
+      "ABSTAIN"
+    ]
+  },
+  "value_type_rules": {
+    "bool_fields": [
+      "s0_task_control_visible",
+      "menu_dependency"
+    ],
+    "count_fields": [
+      "nav_container_depth",
+      "activation_depth",
+      "flow_step_count",
+      "forced_dismissal_count"
+    ],
+    "unit_interval_fields": [
+      "entry_x_norm",
+      "entry_y_norm",
+      "task_control_occlusion"
+    ],
+    "free_text_fields": [
+      "visible_label_text",
+      "accessible_name"
+    ],
+    "scroll_state_field": "first_visible_scroll_state",
+    "scroll_state_pattern": "^S(0|[1-9][0-9]*)$"
+  },
+  "field_semantics": {
+    "discriminates": "이 fixture 의 **상호 대조짝**이 격리하는 필드. 짝과 이 fixture 사이에서 그 필드의 값이 실제로 갈리고, 갈리는 원인이 선언된 조작 하나로 국한된다.",
+    "does_not_discriminate": "이 fixture(및 그 짝)를 관측해도 서로 다른 값을 가려낼 수 없는 필드. 짝과 값이 같아 고정 default 로만 나오는 필드를 포함한다.",
+    "blocked_by_codebook_gap": "04 에 근거가 없어 기대값을 확정할 수 없는 필드 → codebook_gaps 의 ID 로 연결.",
+    "not_asserted_measurement_dependent": "측정기 구현에 따라 달라져 W5E 가 단정하지 않는 필드.",
+    "partition_rule": "discriminates · does_not_discriminate · blocked_by_codebook_gap · not_asserted_measurement_dependent 는 서로소이고 합집합이 measured_fields 21개와 같다.",
+    "secondary_contrasts": "상호 짝이 아닌 비대칭 대조. 정보용이며 pair-level 격리로 계산하지 않는다."
+  },
+  "codebook_gaps": [
+    {
+      "id": "GAP-01",
+      "field": "entry_zone",
+      "gap": "04 §4 는 zone 토큰 집합을 정의하지만 §6 은 'zone 은 요약값으로만 쓴다' 고만 하고 정규화 좌표 → zone 임계를 정하지 않는다.",
+      "w5e_action": "좌표로 결정되는 zone 은 선언하지 않는다. 컨테이너 소속으로 결정되는 left_drawer/right_drawer 의 DRAWER 만 선언했다.",
+      "needed_from": "A (04 개정) — 좌표→zone 임계 또는 zone 산출 규칙"
+    },
+    {
+      "id": "GAP-02",
+      "field": "first_visible_scroll_state",
+      "gap": "reveal 로 노출되는 control 이나 완전 가려진 control 의 first_visible_scroll_state 를 04 가 정하지 않는다 (scroll 없이 노출되었으므로 S0 인지, 노출 안 됐으므로 NULL 인지).",
+      "w5e_action": "scroll 없이 S0 에서 직접 보이는 fixture 에만 'S0' 을 선언했다.",
+      "needed_from": "A (04 개정)"
+    },
+    {
+      "id": "GAP-03",
+      "field": "flow_step_count",
+      "gap": "04 §5 는 'typing/submit/auth encounter 포함, scroll/passive 제외' 만 정한다. ENDPOINT_REACHED 같은 terminal 토큰을 세는지 정하지 않아 절대값이 확정되지 않는다. AUTH_GATE 는 'auth encounter 포함' 으로 세는 것이 명시적이다.",
+      "w5e_action": "어느 fixture 에서도 절대값을 선언하지 않았다. 짝 안에서 terminal 토큰 수가 같아 상쇄되는 hamburger↔nested_menu 만 expected_deltas_vs_pair 로 +1 을 선언했다.",
+      "needed_from": "A (04 개정) — terminal 토큰 계수 여부"
+    },
+    {
+      "id": "GAP-04",
+      "field": "entry_* / task_control_occlusion",
+      "gap": "task control 이 끝내 관측되지 않은 run 에서 entry 계열과 occlusion 을 어떻게 기록하는지 (NULL / 생략 / 0) 04 와 02 가 정하지 않는다.",
+      "w5e_action": "login_first_auth 에서 해당 필드를 선언하지 않았다.",
+      "needed_from": "A (02·04 개정) — 미관측 표기 규약"
+    },
+    {
+      "id": "GAP-05",
+      "field": "s0_task_control_visible",
+      "gap": "04 §4 는 '직접 보이는가' 라고만 하고, 렌더는 됐지만 가려진 control 이 어느 occlusion 비율부터 not visible 인지 임계를 주지 않는다.",
+      "w5e_action": "modal_obstruction 은 occlusion=1.0(완전 포함)이지만 s0_task_control_visible 을 선언하지 않았다. bottom_sheet 는 display:none 이라 모호함 없이 false 다.",
+      "needed_from": "A (04 개정) — occlusion→visible 임계"
+    },
+    {
+      "id": "GAP-06",
+      "field": "nav_container_type",
+      "gap": "02 §3 surface 행은 nav_container_type 을 값 하나로 기록하는데, 중첩 reveal 에서 어느 컨테이너를 기록하는지 04 가 정하지 않는다.",
+      "w5e_action": "nested_menu 는 최외곽(HAMBURGER)으로 선언하고 이 가정을 명시했다.",
+      "needed_from": "A (02·04 개정)"
+    },
+    {
+      "id": "GAP-07",
+      "field": "entry_* (reveal-gated control)",
+      "gap": "reveal 로만 노출되는 control 의 entry_* 를 S0 기준으로 기록하는지 reveal 이후 기준으로 기록하는지 04 가 정하지 않는다. entry_label_modality 에 HIDDEN_UNTIL_REVEAL 토큰이 있다는 것은 S0 기준 기록을 시사하지만, 그러면 같은 행의 entry_x_norm 등이 무엇인지 불분명하다.",
+      "w5e_action": "reveal 계열 fixture 는 entry_label_modality 만 HIDDEN_UNTIL_REVEAL 로 두고 나머지 entry_* 는 reveal 이후 관측값으로 선언한 뒤 이 가정을 fixture 별로 명시했다.",
+      "needed_from": "A (04 개정) — reveal-gated control 의 기록 state"
+    }
+  ],
+  "contrast_pairs": [
+    {
+      "pair": [
+        "direct_text_button",
+        "icon_text"
+      ],
+      "isolates": [
+        "entry_label_modality",
+        "entry_control_type"
+      ],
+      "dom_tag_sequence_identical": false
+    },
+    {
+      "pair": [
+        "icon_only_ax_named",
+        "icon_only_unnamed"
+      ],
+      "isolates": [
+        "entry_label_modality",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation"
+      ],
+      "dom_tag_sequence_identical": true
+    },
+    {
+      "pair": [
+        "left_drawer",
+        "right_drawer"
+      ],
+      "isolates": [
+        "nav_container_type",
+        "reveal_direction",
+        "entry_x_norm"
+      ],
+      "dom_tag_sequence_identical": true
+    },
+    {
+      "pair": [
+        "hamburger",
+        "nested_menu"
+      ],
+      "isolates": [
+        "nav_container_depth",
+        "activation_depth",
+        "entry_y_norm"
+      ],
+      "dom_tag_sequence_identical": false
+    },
+    {
+      "pair": [
+        "task_first_auth",
+        "login_first_auth"
+      ],
+      "isolates": [
+        "auth_gate_stage",
+        "s0_task_control_visible",
+        "activation_depth"
+      ],
+      "dom_tag_sequence_identical": true
+    },
+    {
+      "pair": [
+        "bottom_sheet",
+        "modal_obstruction"
+      ],
+      "isolates": [
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "nav_container_depth",
+        "activation_depth",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "entry_x_norm",
+        "entry_y_norm"
+      ],
+      "dom_tag_sequence_identical": true
+    }
+  ],
+  "unpaired_fixtures": [
+    "evidence_defect"
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "direct_text_button",
+      "file": "direct_text_button.html",
+      "title": "첫 화면에 명시 텍스트 버튼으로 보이는 진입 control",
+      "entry_control_box_css_px": {
+        "x": 24,
+        "y": 120,
+        "w": 160,
+        "h": 48
+      },
+      "entry_box_observed_after": [],
+      "expected_values": {
+        "s0_task_control_visible": true,
+        "first_visible_scroll_state": "S0",
+        "entry_x_norm": 0.26667,
+        "entry_y_norm": 0.17062,
+        "entry_control_type": "TEXT_BUTTON",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "visible_label_text": "운행정보 조회",
+        "accessible_name": "운행정보 조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "nav_container_type": "NONE",
+        "reveal_direction": "NONE",
+        "menu_dependency": false,
+        "nav_container_depth": 0,
+        "activation_depth": 1,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "entry_label_modality",
+        "entry_control_type"
+      ],
+      "contrast_pair": "icon_text",
+      "what_differs_from_pair": "icon_text 는 button 안에 aria-hidden 아이콘 span 이 하나 더 있다. 좌표(24,120,160x48)·라벨 문구·accessible name·나머지 DOM·CSS 는 같다.",
+      "dom_tag_sequence_identical_to_pair": false,
+      "structural_diff_note": "body 태그 시퀀스 h1>main>p>button (여기) vs h1>main>p>button>span (icon_text). 차이는 button 자식 span 1개뿐이며, 그 span 이 ICON_TEXT 판정의 유일한 근거다. 아이콘 없이 ICON_TEXT 를 만들 수 없으므로 이 쌍은 태그 시퀀스 완전 일치가 불가능하다.",
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03"
+      },
+      "secondary_contrasts": [
+        {
+          "fixture_id": "icon_only_ax_named",
+          "differs_in": [
+            "entry_label_modality",
+            "entry_control_type",
+            "accessible_name_source",
+            "label_relation",
+            "visible_label_text",
+            "entry_x_norm",
+            "entry_y_norm"
+          ]
+        },
+        {
+          "fixture_id": "modal_obstruction",
+          "differs_in": [
+            "task_control_occlusion",
+            "forced_dismissal_count"
+          ]
+        },
+        {
+          "fixture_id": "evidence_defect",
+          "differs_in": [
+            "endpoint_status"
+          ]
+        },
+        {
+          "fixture_id": "hamburger",
+          "differs_in": [
+            "s0_task_control_visible",
+            "menu_dependency",
+            "nav_container_type",
+            "reveal_direction",
+            "nav_container_depth",
+            "activation_depth"
+          ]
+        }
+      ],
+      "does_not_discriminate": [
+        "s0_task_control_visible",
+        "first_visible_scroll_state",
+        "entry_x_norm",
+        "entry_y_norm",
+        "visible_label_text",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation",
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "nav_container_depth",
+        "activation_depth",
+        "auth_gate_stage",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "icon_text",
+      "file": "icon_text.html",
+      "title": "아이콘 + 텍스트 진입 control",
+      "entry_control_box_css_px": {
+        "x": 24,
+        "y": 120,
+        "w": 160,
+        "h": 48
+      },
+      "entry_box_observed_after": [],
+      "expected_values": {
+        "s0_task_control_visible": true,
+        "first_visible_scroll_state": "S0",
+        "entry_x_norm": 0.26667,
+        "entry_y_norm": 0.17062,
+        "entry_control_type": "ICON_TEXT",
+        "entry_label_modality": "ICON_TEXT",
+        "visible_label_text": "운행정보 조회",
+        "accessible_name": "운행정보 조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "nav_container_type": "NONE",
+        "reveal_direction": "NONE",
+        "menu_dependency": false,
+        "nav_container_depth": 0,
+        "activation_depth": 1,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "entry_label_modality",
+        "entry_control_type"
+      ],
+      "contrast_pair": "direct_text_button",
+      "what_differs_from_pair": "아이콘 span 하나가 더 있다. span 은 aria-hidden 이라 accessible name 계산에 기여하지 않으므로 accessible_name·label_relation 은 짝과 동일하다 — 즉 이 쌍은 '보이는 양식'만 가르고 'AX 이름'은 가르지 않는다.",
+      "dom_tag_sequence_identical_to_pair": false,
+      "structural_diff_note": "button 자식 span 1개 추가. 그 외 태그 시퀀스·좌표·CSS 동일.",
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03"
+      },
+      "secondary_contrasts": [
+        {
+          "fixture_id": "icon_only_ax_named",
+          "differs_in": [
+            "entry_label_modality",
+            "entry_control_type",
+            "visible_label_text",
+            "accessible_name_source",
+            "label_relation"
+          ]
+        }
+      ],
+      "does_not_discriminate": [
+        "s0_task_control_visible",
+        "first_visible_scroll_state",
+        "entry_x_norm",
+        "entry_y_norm",
+        "visible_label_text",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation",
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "nav_container_depth",
+        "activation_depth",
+        "auth_gate_stage",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "icon_only_ax_named",
+      "file": "icon_only_ax_named.html",
+      "title": "아이콘만 보이지만 aria-label 로 AX 이름이 있는 control",
+      "entry_control_box_css_px": {
+        "x": 318,
+        "y": 72,
+        "w": 48,
+        "h": 48
+      },
+      "entry_box_observed_after": [],
+      "expected_values": {
+        "s0_task_control_visible": true,
+        "first_visible_scroll_state": "S0",
+        "entry_x_norm": 0.87692,
+        "entry_y_norm": 0.11374,
+        "entry_control_type": "ICON_ONLY",
+        "entry_label_modality": "ICON_ONLY_AX_NAMED",
+        "visible_label_text": "",
+        "accessible_name": "운행정보 조회",
+        "accessible_name_source": "ARIA_LABEL",
+        "label_relation": "AX_ONLY",
+        "nav_container_type": "NONE",
+        "reveal_direction": "NONE",
+        "menu_dependency": false,
+        "nav_container_depth": 0,
+        "activation_depth": 1,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "entry_label_modality",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation"
+      ],
+      "contrast_pair": "icon_only_unnamed",
+      "what_differs_from_pair": "aria-label 속성 유무 하나. 나머지 DOM 태그 시퀀스·CSS·좌표(318,72,48x48)·렌더 결과가 동일하다. 아이콘은 CSS 로 그린 빈 span 이라 렌더된 문구가 없고, 따라서 visible_label_text 는 글리프 해석에 의존하지 않고 빈 문자열이다.",
+      "dom_tag_sequence_identical_to_pair": true,
+      "structural_diff_note": null,
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03"
+      },
+      "secondary_contrasts": [
+        {
+          "fixture_id": "direct_text_button",
+          "differs_in": [
+            "entry_label_modality",
+            "entry_control_type",
+            "visible_label_text",
+            "accessible_name_source",
+            "label_relation"
+          ]
+        }
+      ],
+      "does_not_discriminate": [
+        "s0_task_control_visible",
+        "first_visible_scroll_state",
+        "entry_x_norm",
+        "entry_y_norm",
+        "entry_control_type",
+        "visible_label_text",
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "nav_container_depth",
+        "activation_depth",
+        "auth_gate_stage",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "icon_only_unnamed",
+      "file": "icon_only_unnamed.html",
+      "title": "아이콘만 보이고 AX 이름도 없는 control",
+      "entry_control_box_css_px": {
+        "x": 318,
+        "y": 72,
+        "w": 48,
+        "h": 48
+      },
+      "entry_box_observed_after": [],
+      "expected_values": {
+        "s0_task_control_visible": true,
+        "first_visible_scroll_state": "S0",
+        "entry_x_norm": 0.87692,
+        "entry_y_norm": 0.11374,
+        "entry_control_type": "ICON_ONLY",
+        "entry_label_modality": "ICON_ONLY_UNNAMED",
+        "visible_label_text": "",
+        "accessible_name": "",
+        "accessible_name_source": "NONE",
+        "label_relation": "NONE",
+        "nav_container_type": "NONE",
+        "reveal_direction": "NONE",
+        "menu_dependency": false,
+        "nav_container_depth": 0,
+        "activation_depth": 1,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "entry_label_modality",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation"
+      ],
+      "contrast_pair": "icon_only_ax_named",
+      "what_differs_from_pair": "aria-label 속성 유무 하나. 그 외 전부 동일.",
+      "dom_tag_sequence_identical_to_pair": true,
+      "structural_diff_note": null,
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03"
+      },
+      "secondary_contrasts": [],
+      "does_not_discriminate": [
+        "s0_task_control_visible",
+        "first_visible_scroll_state",
+        "entry_x_norm",
+        "entry_y_norm",
+        "entry_control_type",
+        "visible_label_text",
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "nav_container_depth",
+        "activation_depth",
+        "auth_gate_stage",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "hamburger",
+      "file": "hamburger.html",
+      "title": "전역 햄버거 메뉴 안에 있는 진입 control",
+      "entry_control_box_css_px": {
+        "x": 20,
+        "y": 72,
+        "w": 200,
+        "h": 48
+      },
+      "entry_box_observed_after": [
+        "#open"
+      ],
+      "expected_values": {
+        "s0_task_control_visible": false,
+        "entry_x_norm": 0.30769,
+        "entry_y_norm": 0.11374,
+        "entry_control_type": "TEXT_BUTTON",
+        "entry_label_modality": "HIDDEN_UNTIL_REVEAL",
+        "visible_label_text": "운행정보 조회",
+        "accessible_name": "운행정보 조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "nav_container_type": "HAMBURGER",
+        "reveal_direction": "TOP",
+        "menu_dependency": true,
+        "nav_container_depth": 1,
+        "activation_depth": 2,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "nav_container_depth",
+        "activation_depth",
+        "entry_y_norm"
+      ],
+      "expected_deltas_vs_pair": {
+        "flow_step_count": -1
+      },
+      "contrast_pair": "nested_menu",
+      "what_differs_from_pair": "nested_menu 는 같은 햄버거 패널 안에 로컬 메뉴 reveal 이 한 겹 더 있다. 컨테이너 종류(HAMBURGER)·reveal 방향(TOP)·트리거·CSS·라벨은 같다. task control 의 y 가 그 한 겹만큼 아래로 밀리는데(72→128px) 이는 중첩의 기하학적 귀결이지 별도 조작이 아니다. flow_step_count 는 절대값이 GAP-03 으로 막혀 있어 짝 대비 델타(+1)로만 선언한다.",
+      "dom_tag_sequence_identical_to_pair": false,
+      "structural_diff_note": "h1>button>span>nav>button>script (여기) vs h1>button>span>nav>button>div>button>script (nested_menu). 차이는 중간 reveal 을 이루는 button(카테고리)+div(서브메뉴) 2노드. 중첩 단계를 추가하지 않고 nav_container_depth 를 2로 만들 수 없으므로 이 쌍은 태그 시퀀스 완전 일치가 불가능하다.",
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03",
+        "first_visible_scroll_state": "GAP-02"
+      },
+      "measurement_state_assumption": "entry_* 계열은 reveal 이후 상태에서 측정한 값으로 선언했다. 04 는 reveal-gated control 의 entry_* 를 어느 state 에서 기록하는지 정하지 않는다 (GAP-07).",
+      "secondary_contrasts": [
+        {
+          "fixture_id": "left_drawer",
+          "differs_in": [
+            "nav_container_type",
+            "reveal_direction",
+            "entry_x_norm",
+            "entry_y_norm"
+          ]
+        },
+        {
+          "fixture_id": "bottom_sheet",
+          "differs_in": [
+            "nav_container_type",
+            "reveal_direction",
+            "entry_x_norm",
+            "entry_y_norm"
+          ]
+        }
+      ],
+      "does_not_discriminate": [
+        "s0_task_control_visible",
+        "entry_x_norm",
+        "entry_control_type",
+        "entry_label_modality",
+        "visible_label_text",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation",
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "auth_gate_stage",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "endpoint_status"
+      ]
+    },
+    {
+      "fixture_id": "left_drawer",
+      "file": "left_drawer.html",
+      "title": "왼쪽에서 열리는 drawer 안의 진입 control",
+      "entry_control_box_css_px": {
+        "x": 40,
+        "y": 80,
+        "w": 200,
+        "h": 48
+      },
+      "entry_box_observed_after": [
+        "#open"
+      ],
+      "expected_values": {
+        "s0_task_control_visible": false,
+        "entry_x_norm": 0.35897,
+        "entry_y_norm": 0.12322,
+        "entry_zone": "DRAWER",
+        "entry_control_type": "TEXT_BUTTON",
+        "entry_label_modality": "HIDDEN_UNTIL_REVEAL",
+        "visible_label_text": "운행정보 조회",
+        "accessible_name": "운행정보 조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "nav_container_type": "LEFT_DRAWER",
+        "reveal_direction": "LEFT",
+        "menu_dependency": true,
+        "nav_container_depth": 1,
+        "activation_depth": 2,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "nav_container_type",
+        "reveal_direction",
+        "entry_x_norm"
+      ],
+      "contrast_pair": "right_drawer",
+      "what_differs_from_pair": "CSS 의 앵커 가장자리와 translateX 부호 하나. DOM 태그 시퀀스·트리거·라벨·drawer 크기(300x788)·drawer 내부 오프셋(left 40 / top 24)이 전부 같다. 그래서 entry_y_norm 은 같고 entry_x_norm 만 달라진다 — reveal_direction 이 좌표에 남기는 흔적이 그 한 축으로 격리된다.",
+      "dom_tag_sequence_identical_to_pair": true,
+      "structural_diff_note": null,
+      "blocked_by_codebook_gap": {
+        "flow_step_count": "GAP-03",
+        "first_visible_scroll_state": "GAP-02"
+      },
+      "entry_zone_assertion_basis": "entry_zone=DRAWER 는 컨테이너 소속으로 결정되며 좌표 임계에 의존하지 않는다. drawer 는 왼쪽(x 0..300) 가장자리에 앵커된다. 좌표 기반 zone(TOP_*/MID/BOTTOM)은 04 에 임계가 없어 다른 fixture 에서는 선언하지 않는다 (GAP-01).",
+      "measurement_state_assumption": "entry_* 는 reveal 이후 상태 기준이다 (GAP-07).",
+      "secondary_contrasts": [
+        {
+          "fixture_id": "bottom_sheet",
+          "differs_in": [
+            "nav_container_type",
+            "reveal_direction",
+            "entry_y_norm"
+          ]
+        },
+        {
+          "fixture_id": "hamburger",
+          "differs_in": [
+            "nav_container_type",
+            "reveal_direction"
+          ]
+        }
+      ],
+      "does_not_discriminate": [
+        "s0_task_control_visible",
+        "entry_y_norm",
+        "entry_zone",
+        "entry_control_type",
+        "entry_label_modality",
+        "visible_label_text",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation",
+        "menu_dependency",
+        "nav_container_depth",
+        "activation_depth",
+        "auth_gate_stage",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "right_drawer",
+      "file": "right_drawer.html",
+      "title": "오른쪽에서 열리는 drawer 안의 진입 control",
+      "entry_control_box_css_px": {
+        "x": 130,
+        "y": 80,
+        "w": 200,
+        "h": 48
+      },
+      "entry_box_observed_after": [
+        "#open"
+      ],
+      "expected_values": {
+        "s0_task_control_visible": false,
+        "entry_x_norm": 0.58974,
+        "entry_y_norm": 0.12322,
+        "entry_zone": "DRAWER",
+        "entry_control_type": "TEXT_BUTTON",
+        "entry_label_modality": "HIDDEN_UNTIL_REVEAL",
+        "visible_label_text": "운행정보 조회",
+        "accessible_name": "운행정보 조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "nav_container_type": "RIGHT_DRAWER",
+        "reveal_direction": "RIGHT",
+        "menu_dependency": true,
+        "nav_container_depth": 1,
+        "activation_depth": 2,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "nav_container_type",
+        "reveal_direction",
+        "entry_x_norm"
+      ],
+      "contrast_pair": "left_drawer",
+      "what_differs_from_pair": "CSS 의 앵커 가장자리와 translateX 부호 하나. DOM 태그 시퀀스·트리거·라벨·drawer 크기(300x788)·drawer 내부 오프셋(left 40 / top 24)이 전부 같다. 그래서 entry_y_norm 은 같고 entry_x_norm 만 달라진다 — reveal_direction 이 좌표에 남기는 흔적이 그 한 축으로 격리된다.",
+      "dom_tag_sequence_identical_to_pair": true,
+      "structural_diff_note": null,
+      "blocked_by_codebook_gap": {
+        "flow_step_count": "GAP-03",
+        "first_visible_scroll_state": "GAP-02"
+      },
+      "entry_zone_assertion_basis": "entry_zone=DRAWER 는 컨테이너 소속으로 결정되며 좌표 임계에 의존하지 않는다. drawer 는 오른쪽(x 90..390) 가장자리에 앵커된다. 좌표 기반 zone(TOP_*/MID/BOTTOM)은 04 에 임계가 없어 다른 fixture 에서는 선언하지 않는다 (GAP-01).",
+      "measurement_state_assumption": "entry_* 는 reveal 이후 상태 기준이다 (GAP-07).",
+      "secondary_contrasts": [
+        {
+          "fixture_id": "bottom_sheet",
+          "differs_in": [
+            "nav_container_type",
+            "reveal_direction",
+            "entry_y_norm"
+          ]
+        },
+        {
+          "fixture_id": "hamburger",
+          "differs_in": [
+            "nav_container_type",
+            "reveal_direction"
+          ]
+        }
+      ],
+      "does_not_discriminate": [
+        "s0_task_control_visible",
+        "entry_y_norm",
+        "entry_zone",
+        "entry_control_type",
+        "entry_label_modality",
+        "visible_label_text",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation",
+        "menu_dependency",
+        "nav_container_depth",
+        "activation_depth",
+        "auth_gate_stage",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "bottom_sheet",
+      "file": "bottom_sheet.html",
+      "title": "아래에서 올라오는 sheet 가 task 경로의 nav 컨테이너인 경우",
+      "entry_control_box_css_px": {
+        "x": 40,
+        "y": 584,
+        "w": 200,
+        "h": 48
+      },
+      "entry_box_observed_after": [
+        "#open"
+      ],
+      "expected_values": {
+        "s0_task_control_visible": false,
+        "entry_x_norm": 0.35897,
+        "entry_y_norm": 0.72038,
+        "entry_control_type": "TEXT_BUTTON",
+        "entry_label_modality": "HIDDEN_UNTIL_REVEAL",
+        "visible_label_text": "운행정보 조회",
+        "accessible_name": "운행정보 조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "nav_container_type": "BOTTOM_SHEET",
+        "reveal_direction": "BOTTOM",
+        "menu_dependency": true,
+        "nav_container_depth": 1,
+        "activation_depth": 2,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "nav_container_depth",
+        "activation_depth",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "entry_x_norm",
+        "entry_y_norm"
+      ],
+      "contrast_pair": "modal_obstruction",
+      "what_differs_from_pair": "body 태그 시퀀스가 h1>button>div>button>button>script 로 **완전히 같다**. 다른 것은 각 노드의 역할과 overlay 의 초기 표시 상태뿐이다: bottom_sheet 에서는 overlay 가 task control 을 담고 트리거로 열리고, modal_obstruction 에서는 overlay 가 로드 시점부터 떠 있고 그 아래 body 자식인 task control 을 완전히 덮는다. 구조·기하가 같아도 판정이 갈려야 한다 — 03 §9 'geometry overlap 만으로 modal 의미를 확정하지 않는다' 를 그대로 시험하는 쌍이다.",
+      "dom_tag_sequence_identical_to_pair": true,
+      "structural_diff_note": null,
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03",
+        "first_visible_scroll_state": "GAP-02"
+      },
+      "entry_zone_assertion_basis": "bottom sheet 안의 control 이 DRAWER 인지 BOTTOM 인지 04 가 가르지 않아 선언하지 않는다 (GAP-01). left/right drawer 와 달리 여기서는 컨테이너 소속만으로 토큰이 결정되지 않는다.",
+      "measurement_state_assumption": "entry_* 는 reveal 이후 상태 기준이다 (GAP-07).",
+      "secondary_contrasts": [
+        {
+          "fixture_id": "left_drawer",
+          "differs_in": [
+            "nav_container_type",
+            "reveal_direction"
+          ]
+        }
+      ],
+      "does_not_discriminate": [
+        "s0_task_control_visible",
+        "entry_control_type",
+        "entry_label_modality",
+        "visible_label_text",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation",
+        "auth_gate_stage",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "nested_menu",
+      "file": "nested_menu.html",
+      "title": "메뉴 안 메뉴 — reveal 2단",
+      "entry_control_box_css_px": {
+        "x": 20,
+        "y": 128,
+        "w": 200,
+        "h": 48
+      },
+      "entry_box_observed_after": [
+        "#open",
+        "#cat"
+      ],
+      "expected_values": {
+        "s0_task_control_visible": false,
+        "entry_x_norm": 0.30769,
+        "entry_y_norm": 0.18009,
+        "entry_control_type": "TEXT_BUTTON",
+        "entry_label_modality": "HIDDEN_UNTIL_REVEAL",
+        "visible_label_text": "운행정보 조회",
+        "accessible_name": "운행정보 조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "nav_container_type": "HAMBURGER",
+        "reveal_direction": "TOP",
+        "menu_dependency": true,
+        "nav_container_depth": 2,
+        "activation_depth": 3,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "OPEN_LOCAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "OPEN_LOCAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "nav_container_depth",
+        "activation_depth",
+        "entry_y_norm"
+      ],
+      "expected_deltas_vs_pair": {
+        "flow_step_count": 1
+      },
+      "contrast_pair": "hamburger",
+      "what_differs_from_pair": "중간 reveal(로컬 메뉴) 한 겹. 그 외 컨테이너·방향·트리거·CSS·라벨 동일.",
+      "dom_tag_sequence_identical_to_pair": false,
+      "structural_diff_note": "button(카테고리)+div(서브메뉴) 2노드가 추가된다. 중첩 없이는 depth 2 를 만들 수 없다.",
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03",
+        "first_visible_scroll_state": "GAP-02"
+      },
+      "measurement_state_assumption": "nav_container_type 은 최외곽 컨테이너(HAMBURGER)로 선언했다. 02 §3 의 surface 행은 값 하나만 기록하는데 중첩 시 어느 컨테이너를 쓰는지 04 가 정하지 않는다 (GAP-06). entry_* 는 reveal 이후 상태 기준이다 (GAP-07).",
+      "secondary_contrasts": [],
+      "does_not_discriminate": [
+        "s0_task_control_visible",
+        "entry_x_norm",
+        "entry_control_type",
+        "entry_label_modality",
+        "visible_label_text",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation",
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "auth_gate_stage",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "endpoint_status"
+      ]
+    },
+    {
+      "fixture_id": "task_first_auth",
+      "file": "task_first_auth.html",
+      "title": "task 를 고른 뒤에 인증이 나타남",
+      "entry_control_box_css_px": {
+        "x": 24,
+        "y": 200,
+        "w": 200,
+        "h": 48
+      },
+      "entry_box_observed_after": [],
+      "expected_values": {
+        "s0_task_control_visible": true,
+        "first_visible_scroll_state": "S0",
+        "entry_x_norm": 0.31795,
+        "entry_y_norm": 0.2654,
+        "entry_control_type": "TEXT_BUTTON",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "visible_label_text": "예매내역 조회",
+        "accessible_name": "예매내역 조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "nav_container_type": "NONE",
+        "reveal_direction": "NONE",
+        "menu_dependency": false,
+        "nav_container_depth": 0,
+        "activation_depth": 1,
+        "auth_gate_stage": "AFTER_TASK_SELECT",
+        "forced_dismissal_count": 0,
+        "task_control_occlusion": 0.0,
+        "endpoint_status": "AUTH_GATE"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "SELECT_FUNCTION",
+          "AUTH_GATE"
+        ],
+        "experienced_flow_sequence": [
+          "SELECT_FUNCTION",
+          "AUTH_GATE"
+        ]
+      },
+      "discriminates": [
+        "auth_gate_stage",
+        "s0_task_control_visible",
+        "activation_depth"
+      ],
+      "contrast_pair": "login_first_auth",
+      "what_differs_from_pair": "`hidden` 속성이 task 버튼에 붙어 있느냐 gate 폼에 붙어 있느냐 하나. DOM 태그 시퀀스도 CSS 도 완전히 같다 — 두 fixture 의 판정 차이는 오직 '무엇이 S0 에 있었는가' 에서만 나올 수 있다.",
+      "dom_tag_sequence_identical_to_pair": true,
+      "structural_diff_note": null,
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03"
+      },
+      "auth_safety_note": "03 §7 을 지켜 credential 을 넣지 않았다. 폼은 비어 있고 value 속성도 없다. login submit 은 어떤 스크립트도 수행하지 않는다.",
+      "secondary_contrasts": [],
+      "does_not_discriminate": [
+        "first_visible_scroll_state",
+        "entry_x_norm",
+        "entry_y_norm",
+        "entry_control_type",
+        "entry_label_modality",
+        "visible_label_text",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation",
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "nav_container_depth",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "login_first_auth",
+      "file": "login_first_auth.html",
+      "title": "task 발견 전에 로그인이 막음",
+      "entry_control_box_css_px": {
+        "x": 24,
+        "y": 200,
+        "w": 200,
+        "h": 48
+      },
+      "entry_box_observed_after": null,
+      "entry_box_note": "task control 은 `hidden` 이라 렌더되지 않는다. 위 box 는 DOM 상 CSS 선언값이며 관측값이 아니다.",
+      "expected_values": {
+        "s0_task_control_visible": false,
+        "nav_container_type": "NONE",
+        "reveal_direction": "NONE",
+        "menu_dependency": false,
+        "nav_container_depth": 0,
+        "activation_depth": 0,
+        "auth_gate_stage": "BEFORE_TASK_DISCOVERY",
+        "forced_dismissal_count": 0,
+        "endpoint_status": "AUTH_GATE"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "AUTH_GATE"
+        ],
+        "experienced_flow_sequence": [
+          "AUTH_GATE"
+        ]
+      },
+      "discriminates": [
+        "auth_gate_stage",
+        "s0_task_control_visible",
+        "activation_depth"
+      ],
+      "contrast_pair": "task_first_auth",
+      "what_differs_from_pair": "`hidden` 속성의 위치 하나. 태그 시퀀스·CSS 동일.",
+      "dom_tag_sequence_identical_to_pair": true,
+      "structural_diff_note": null,
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03",
+        "first_visible_scroll_state": "GAP-04",
+        "entry_x_norm": "GAP-04",
+        "entry_y_norm": "GAP-04",
+        "entry_control_type": "GAP-04",
+        "entry_label_modality": "GAP-04",
+        "visible_label_text": "GAP-04",
+        "accessible_name": "GAP-04",
+        "accessible_name_source": "GAP-04",
+        "label_relation": "GAP-04",
+        "task_control_occlusion": "GAP-04"
+      },
+      "auth_safety_note": "폼은 비어 있고 credential 이 없다 (03 §7).",
+      "secondary_contrasts": [],
+      "does_not_discriminate": [
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "nav_container_depth",
+        "forced_dismissal_count",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "modal_obstruction",
+      "file": "modal_obstruction.html",
+      "title": "modal 이 task 진입 control 을 가리는 경우",
+      "entry_control_box_css_px": {
+        "x": 24,
+        "y": 120,
+        "w": 200,
+        "h": 48
+      },
+      "entry_box_observed_after": [],
+      "expected_values": {
+        "entry_x_norm": 0.31795,
+        "entry_y_norm": 0.17062,
+        "entry_control_type": "TEXT_BUTTON",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "visible_label_text": "운행정보 조회",
+        "accessible_name": "운행정보 조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "nav_container_type": "NONE",
+        "reveal_direction": "NONE",
+        "menu_dependency": false,
+        "nav_container_depth": 0,
+        "activation_depth": 1,
+        "auth_gate_stage": "NONE",
+        "forced_dismissal_count": 1,
+        "task_control_occlusion": 1.0,
+        "endpoint_status": "REACHED"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "DISMISS_OBSTRUCTION",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ]
+      },
+      "discriminates": [
+        "nav_container_type",
+        "reveal_direction",
+        "menu_dependency",
+        "nav_container_depth",
+        "activation_depth",
+        "forced_dismissal_count",
+        "task_control_occlusion",
+        "entry_x_norm",
+        "entry_y_norm"
+      ],
+      "contrast_pair": "bottom_sheet",
+      "what_differs_from_pair": "body 태그 시퀀스가 h1>button>div>button>button>script 로 **완전히 같다**. 다른 것은 각 노드의 역할과 overlay 의 초기 표시 상태뿐이다: bottom_sheet 에서는 overlay 가 task control 을 담고 트리거로 열리고, modal_obstruction 에서는 overlay 가 로드 시점부터 떠 있고 그 아래 body 자식인 task control 을 완전히 덮는다. 구조·기하가 같아도 판정이 갈려야 한다 — 03 §9 'geometry overlap 만으로 modal 의미를 확정하지 않는다' 를 그대로 시험하는 쌍이다.",
+      "dom_tag_sequence_identical_to_pair": true,
+      "structural_diff_note": null,
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03",
+        "first_visible_scroll_state": "GAP-02",
+        "s0_task_control_visible": "GAP-05"
+      },
+      "geometry_note": "overlay(0,96)-(390,296) 가 task(24,120)-(224,168) 을 완전히 포함한다 → occlusion=1.0. activation_depth 는 1 이다 — dismiss 는 04 §5 에서 activation 에서 제외된다. task_flow 와 experienced_flow 의 차이(DISMISS_OBSTRUCTION)가 04 §3 의 두 sequence 분리를 시험한다.",
+      "secondary_contrasts": [
+        {
+          "fixture_id": "direct_text_button",
+          "differs_in": [
+            "task_control_occlusion",
+            "forced_dismissal_count"
+          ]
+        }
+      ],
+      "does_not_discriminate": [
+        "entry_control_type",
+        "entry_label_modality",
+        "visible_label_text",
+        "accessible_name",
+        "accessible_name_source",
+        "label_relation",
+        "auth_gate_stage",
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    },
+    {
+      "fixture_id": "evidence_defect",
+      "file": "evidence_defect.html",
+      "title": "관측 자체가 깨진 구조 — closed shadow root",
+      "entry_control_box_css_px": {
+        "x": 24,
+        "y": 120,
+        "w": 160,
+        "h": 48
+      },
+      "entry_box_observed_after": null,
+      "entry_box_note": "사람 화면에는 direct_text_button 과 같은 자리에 렌더되지만 document DOM 에서는 도달할 수 없다. 위 box 는 shadow root 내부 CSS 선언값이며 document probe 의 관측값이 아니다.",
+      "defect_mechanism": {
+        "kind": "CLOSED_SHADOW_ROOT",
+        "verified_offline": {
+          "document.querySelector('button')": false,
+          "host.shadowRoot": null,
+          "host.childElementCount": 0,
+          "chrome_ax_full_tree_button_names": [
+            "운행정보 조회"
+          ]
+        },
+        "why_it_is_a_defect": "DOM probe 와 AX probe 가 서로 다른 사실을 보고한다 — document DOM 에는 control 이 없고 Chrome AX full tree 에는 이름 있는 button 이 있다. 어느 쪽을 믿든 03 §5 Freeze 가 요구하는 raw selector 를 만들 수 없어 replay 가 불가능하고, 03 §10 의 evidence package 가 완성되지 않는다."
+      },
+      "expected_values": {
+        "endpoint_status": "EVIDENCE_DEFECT"
+      },
+      "flow_tokens": {
+        "task_flow_sequence": [
+          "ABSTAIN"
+        ],
+        "experienced_flow_sequence": [
+          "ABSTAIN"
+        ]
+      },
+      "discriminates": [],
+      "contrast_pair": null,
+      "contrast_pair_absent_reason": "상호 짝짓기는 매칭이므로 13(홀수)에서는 최소 1개가 남는다. 이 fixture 의 자연스러운 baseline 인 direct_text_button 은 label modality 대조(icon_text)에 이미 배타적으로 배정돼 있고, 그 배정을 풀면 EXPLICIT_TEXT↔ICON_TEXT 대조가 사라진다. 따라서 짝 없이 두고 secondary_contrasts 로 비대칭 대조를 선언한다 — direct_text_button 과 보이는 affordance·좌표(24,120,160x48)·라벨이 같고 closed shadow root 하나만 다르다. 그 대조는 상호 짝이 아니므로 pair-level 격리로 계산하지 않는다.",
+      "what_differs_from_pair": null,
+      "dom_tag_sequence_identical_to_pair": null,
+      "structural_diff_note": null,
+      "blocked_by_codebook_gap": {
+        "entry_zone": "GAP-01",
+        "flow_step_count": "GAP-03",
+        "first_visible_scroll_state": "GAP-02"
+      },
+      "not_asserted_measurement_dependent": {
+        "s0_task_control_visible": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "entry_x_norm": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "entry_y_norm": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "entry_control_type": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "entry_label_modality": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "visible_label_text": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "accessible_name": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "accessible_name_source": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "label_relation": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "nav_container_type": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "reveal_direction": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "menu_dependency": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "nav_container_depth": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "activation_depth": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "auth_gate_stage": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "forced_dismissal_count": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다.",
+        "task_control_occlusion": "DOM probe 와 AX probe 가 closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제다. W5E 는 04 근거 없이 단정하지 않는다."
+      },
+      "secondary_contrasts": [
+        {
+          "fixture_id": "direct_text_button",
+          "differs_in": [
+            "endpoint_status"
+          ]
+        }
+      ],
+      "does_not_discriminate": [
+        "endpoint_status"
+      ],
+      "expected_deltas_vs_pair": {}
+    }
+  ],
+  "known_limitations": {
+    "pair_isolated_fields": [
+      "accessible_name",
+      "accessible_name_source",
+      "activation_depth",
+      "auth_gate_stage",
+      "entry_control_type",
+      "entry_label_modality",
+      "entry_x_norm",
+      "entry_y_norm",
+      "forced_dismissal_count",
+      "label_relation",
+      "menu_dependency",
+      "nav_container_depth",
+      "nav_container_type",
+      "reveal_direction",
+      "s0_task_control_visible",
+      "task_control_occlusion"
+    ],
+    "set_level_varying_fields": [
+      "accessible_name",
+      "accessible_name_source",
+      "activation_depth",
+      "auth_gate_stage",
+      "endpoint_status",
+      "entry_control_type",
+      "entry_label_modality",
+      "entry_x_norm",
+      "entry_y_norm",
+      "forced_dismissal_count",
+      "label_relation",
+      "menu_dependency",
+      "nav_container_depth",
+      "nav_container_type",
+      "reveal_direction",
+      "s0_task_control_visible",
+      "task_control_occlusion",
+      "visible_label_text"
+    ],
+    "varying_but_not_pair_isolated": [
+      "endpoint_status",
+      "visible_label_text"
+    ],
+    "never_varying_across_the_set": [
+      "entry_zone",
+      "first_visible_scroll_state",
+      "flow_step_count"
+    ],
+    "does_not_discriminate_union": [
+      "entry_zone",
+      "first_visible_scroll_state",
+      "flow_step_count"
+    ],
+    "interpretation": {
+      "never_varying_across_the_set": "13개 fixture 전체에서 값이 하나로만 나오거나 아예 선언되지 않는 필드 — 이 집합으로는 측정기가 그 필드를 제대로 재는지 확인할 수 없다. 세 필드 모두 원인이 codebook 공백이지 fixture 설계 누락이 아니다: entry_zone=GAP-01, first_visible_scroll_state=GAP-02, flow_step_count=GAP-03.",
+      "varying_but_not_pair_isolated": "집합 안에서 값이 갈리기는 하지만 구조가 같은 상호 짝으로 격리되지 않은 필드 — 값이 갈리는 원인이 여러 조작에 섞여 있어 '측정기가 그 필드를 재고 있다' 를 이 집합만으로 단정할 수 없다."
+    },
+    "scroll_dependent_discovery_not_covered": "13개 모두 본문이 한 뷰포트(390x844)에 들어가 S1 이상이 생기지 않는다. 03 §3 의 scroll-only surface capture(S0→S1...Sn)와 04 의 first_visible_scroll_state 는 이 집합으로 검증할 수 없다. Director 가 지정한 13종 목록에 스크롤 fixture 가 없다.",
+    "uncovered_codebook_tokens": {
+      "entry_zone": {
+        "covered": [
+          "DRAWER"
+        ],
+        "not_covered": [
+          "TOP_LEFT",
+          "TOP_CENTER",
+          "TOP_RIGHT",
+          "MID",
+          "BOTTOM",
+          "FLOATING"
+        ]
+      },
+      "entry_control_type": {
+        "covered": [
+          "ICON_ONLY",
+          "ICON_TEXT",
+          "TEXT_BUTTON"
+        ],
+        "not_covered": [
+          "TEXT_LINK",
+          "TAB",
+          "BOTTOM_NAV",
+          "HAMBURGER",
+          "CARD",
+          "SEARCHBOX",
+          "LIST_ITEM",
+          "OTHER"
+        ]
+      },
+      "entry_label_modality": {
+        "covered": [
+          "EXPLICIT_TEXT",
+          "HIDDEN_UNTIL_REVEAL",
+          "ICON_ONLY_AX_NAMED",
+          "ICON_ONLY_UNNAMED",
+          "ICON_TEXT"
+        ],
+        "not_covered": []
+      },
+      "accessible_name_source": {
+        "covered": [
+          "ARIA_LABEL",
+          "NONE",
+          "VISIBLE_TEXT"
+        ],
+        "not_covered": [
+          "ARIA_LABELLEDBY",
+          "LABEL",
+          "ALT",
+          "TITLE",
+          "VALUE",
+          "MIXED"
+        ]
+      },
+      "label_relation": {
+        "covered": [
+          "AX_ONLY",
+          "MATCH",
+          "NONE"
+        ],
+        "not_covered": [
+          "SEMANTIC_EQUIV",
+          "DIFFERENT",
+          "VISIBLE_ONLY"
+        ]
+      },
+      "nav_container_type": {
+        "covered": [
+          "BOTTOM_SHEET",
+          "HAMBURGER",
+          "LEFT_DRAWER",
+          "NONE",
+          "RIGHT_DRAWER"
+        ],
+        "not_covered": [
+          "TOP_DROPDOWN",
+          "MODAL_MENU",
+          "INLINE_EXPAND"
+        ]
+      },
+      "reveal_direction": {
+        "covered": [
+          "BOTTOM",
+          "LEFT",
+          "NONE",
+          "RIGHT",
+          "TOP"
+        ],
+        "not_covered": [
+          "CENTER",
+          "INLINE"
+        ]
+      },
+      "auth_gate_stage": {
+        "covered": [
+          "AFTER_TASK_SELECT",
+          "BEFORE_TASK_DISCOVERY",
+          "NONE"
+        ],
+        "not_covered": [
+          "AT_ENDPOINT"
+        ]
+      },
+      "endpoint_status": {
+        "covered": [
+          "AUTH_GATE",
+          "EVIDENCE_DEFECT",
+          "REACHED"
+        ],
+        "not_covered": [
+          "PUBLIC_WEB_UNOBSERVABLE",
+          "APP_REQUIRED",
+          "BLOCKED",
+          "ABSTAIN"
+        ]
+      }
+    },
+    "uncovered_token_note": "위 not_covered 토큰들은 이 집합이 만들어내지 못하는 값이다. 측정기가 그 값을 낼 수 있는지는 이 fixture 로 확인되지 않는다. 특히 label_relation 의 SEMANTIC_EQUIV/DIFFERENT/VISIBLE_ONLY, accessible_name_source 의 ARIA_LABELLEDBY/LABEL/ALT/TITLE/VALUE/MIXED, auth_gate_stage 의 AT_ENDPOINT, endpoint_status 의 PUBLIC_WEB_UNOBSERVABLE/APP_REQUIRED/BLOCKED/ABSTAIN 이 비어 있다.",
+    "partial_occlusion_not_covered": "task_control_occlusion 은 0.0 과 1.0 만 나온다. 0<v<1 인 부분 가림이 없어 겹침 비율 계산의 분자·분모가 맞는지는 이 집합으로 확인되지 않는다.",
+    "no_measurement_logic_here": "W5E 는 fixture 와 판별 명세만 만든다. 이 문서의 expected_values 를 실제로 산출하는 파이썬 측정 로직은 W5B/W5C/W5D 담당이며 여기에 없다."
+  }
+}
