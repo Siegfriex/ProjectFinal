@@ -148,3 +148,86 @@ association NOT_COMPUTABLE · substitute_made false   무변경
 ```
 
 **정정 대상은 서술뿐이며, 어떤 수치도 다시 계산되지 않았다.**
+
+---
+
+## §8 추가 발견 — 생성기 층 (16:31)
+
+A 가 교정본 검증 중 잔여를 찾았다. **B 가 그 잔여의 진짜 원본을 찾았다.**
+
+```
+artifacts/…/REAL_RUN_SUMMARY.json:829     산출물      ← A 가 지목
+artifacts/…/STATISTICAL_RESULTS.md:176    산출물      ← A 가 지목
+scripts/build_real_marts.py:879-880       생성 원본   ← B 가 찾음  ★
+```
+
+**산출물만 고쳤으면 다음 재생성에서 되살아났다.**
+
+### 세 겹으로 드러난 같은 패턴
+
+```
+1겹  교정이 명시적으로 지목된 자리에만 들어간다        A 가 지적
+2겹  지목된 자리를 다 고쳐도 생성기가 되살린다          B 가 발견
+3겹  검사가 '추가 확인' 만 하고 '제거 확인' 을 안 한다   A 가 지적 · C 가 자진 등재
+```
+
+> **구조적 관측.** 워커는 오늘 **숫자**를 파일에서 읽게 만들어 손 타이핑을 없앴다.
+> **문장은 그 원리를 따르지 않았다** — 산문이 생성기 안에 상수로 박혀 있어
+> **정본이 없다.** 숫자에는 SSOT 가 있고 서술에는 없었다.
+> post-E001 backlog: 서술도 단일 출처를 갖게 할 것.
+
+---
+
+## §9 최종 판정 — canonical = `82f631f`
+
+**B 는 (b) errata 정본 · 산출물 `da3883a` 동결을 권고했다. 채택하지 않는다.**
+
+### 사유 — 재량이 아니라 조문
+
+`da3883a` 는 **FAST-EXIT (C) 측정 의미 모순을 보유한 상태**다.
+`methodological_conclusion` 이 `axis_b_honest_refusal` 을 **근거로 인용하면서
+그 필드가 말하는 것의 정반대를 진술**한다.
+
+**(b) 를 택하면 blocking category 가 시계가 다 됐다는 이유로 blocking 을 멈춘다.**
+그것은 FAST-EXIT 를 사전 선언한 의미를 없앤다.
+
+**그리고 이것은 디렉터 SSOT 가 이미 정한 사항이다:**
+
+> `LA-TB-1630-20260827` — 타임박스는 **실행 우선순위 오버레이이며
+> measurement semantics 를 override 하지 않는다.**
+
+**마감은 측정 의미 위반을 수용 가능한 산출물로 바꿀 권한이 없다.**
+
+### 동결이 고정하는 것 — 구분
+
+```
+동결이 고정하는 것    산출을 마치는 시각
+동결이 고정하지 않는 것  수용될 산출물의 정체성
+```
+
+**blocking check 에 걸린 산출물은 애초에 수용 가능한 적이 없었다.**
+그 결함을 16:20 에 찾았든 16:31 에 찾았든 같다.
+**canonical 은 blocking 을 통과하는 첫 SHA 다.**
+
+### 남용 방지 — 이 경로의 적용 조건 (셋 다 충족해야 함)
+
+```
+1  사전 선언된 blocking category 에 해당할 것 (FAST-EXIT A/B/C 만)
+2  결함이 freeze 이전에 식별·통보됐을 것         ← A 16:28~16:29 통보
+3  데이터 무변경일 것                            ← fact 5파일 sha256·row_count 실측 동일
+```
+
+> **freeze 이후에 새로 발견된 결함에는 이 경로를 쓰지 않는다.**
+> 그것까지 허용하면 동결이 무한히 밀린다. **`82f631f` 는 freeze 이전에
+> 이미 확정된 교정 의무의 완결이지, 새 발견이 아니다.**
+
+### 실측 검증 (A 직접)
+
+```
+fact 5파일 sha256 · row_count      da3883a == 82f631f   완전 동일
+'정직하게 거부' / '없는 codebook'   artifacts + scripts 전 경로 0건
+methodological_conclusion          인용 관계 정합 확인
+build_real_marts.py                생성 원본 교정 확인
+```
+
+**`FINAL_ACCEPTED_PENDING_CORRECTION` → `FINAL_ACCEPTED` (canonical `82f631f`).**
