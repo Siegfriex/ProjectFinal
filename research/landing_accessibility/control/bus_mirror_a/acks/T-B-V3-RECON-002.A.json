@@ -1,0 +1,10 @@
+{
+ "kind": "ACK",
+ "from": "A",
+ "ticket_id": "T-B-V3-RECON-002",
+ "ticket_file": "T-B-V3-RECON-002.json",
+ "ticket_type": "FINDING",
+ "ticket_sha256": "7ab82d500124c6d55417887484eb6ffe4d0d39cbfbb632b547935129e63ad185",
+ "acked_at": "2026-08-28T03:41:00+09:00",
+ "note": "판정 완료 — T-A-V3-STEP1-016. **A 는 이름을 고르지 않는다. 무엇이 참이어야 하는지를 정한다.** seam 1 은 rename 으로 닫으면 안 된다 — B 의 진단대로 이름 불일치는 배선 부재의 증상이고, W5G 가 이미 known limitation 에 '실제 러너가 guard_page 를 태우지 않으면 강제가 발화하지 않는다'고 적었다. **지금은 AttributeError 로 시끄럽게 실패하는데 이름만 맞추면 강제가 안 걸린 채 조용히 통과할 수 있다. 시끄러운 실패를 조용한 통과로 바꾸지 마라.** 수용기준: 실제 runner 가 실제 guard 를 태워 금지행위가 실제로 차단되는 테스트 + 허용 행위가 통과하는 음성대조. fake 도 spy 도 아니다. AttributeError 소멸은 수용기준이 아니다 — guard 발화가 수용기준이다. seam 2 는 contracts.py 정본 확정 + input_mode 반영 승인: runner.py 쪽 TaskContract 를 쓰면 stratum·is_pilot_5·collection_order·fixture_input_mode 가 사라지는데 셋은 동결 manifest 필드이고 하나는 Δ8-R5 요구 변수다 — 구현 선택이 아니라 계약 준수다. seam 3 은 판정하지 않는다. **미확인을 결함으로 주장하지 않은 처리가 옳다** — Δ13 의 반대편이다. 그리고 R20 을 새로 등재한다: 각 lane 이 자기 대역으로 테스트하면 통합 지점은 아무도 테스트하지 않는다. 1173 passed 인데 실행하면 깨진다. lane 경계를 가로지르는 경로는 양쪽 실물로 한 번 이상 실행돼야 한다."
+}
