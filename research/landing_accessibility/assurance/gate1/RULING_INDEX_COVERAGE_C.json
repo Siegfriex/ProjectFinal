@@ -1050,9 +1050,42 @@
    "coverage": "NOT_C",
    "gap_note": null,
    "added_at_index_version": 15
+  },
+  {
+   "id": "Δ27",
+   "due": "상시",
+   "verified_by": "C+D",
+   "requires": "**유지 규약을 다짐에서 검사로.** delta 의 모든 ruling 절이 색인에 대응 행을 가져야 한다. 컨테이너 절은 예외이며 `container_sections` 에 명시된 것뿐",
+   "must_appear_in": "V3_RULING_INDEX.self_check · check_ruling_index.py",
+   "C_check": "c_bus_scan delta_headings_without_index_row(컨테이너·서브행 해소 포함) 상주 — 매 실행 색인 sha·measured_at_kst 병기",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 20
+  },
+  {
+   "id": "Δ33",
+   "due": "상시",
+   "verified_by": "C+D",
+   "requires": "**별칭 기준은 모양이 아니라 특정성이다.** 판정과 무관한 산문에서 발화하지 않아야 한다. 길이·대소문자는 대리 지표이며 대조 말뭉치 매칭이 실제 기준이다",
+   "must_appear_in": "alias_rules · check_ruling_index.py",
+   "C_check": "c_bus_scan 별칭 특정성: C 독립 말뭉치 + 색인 control_corpus 제2채널, 양성 7/음성 6 대조",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 20
+  },
+  {
+   "id": "Δ34",
+   "due": "상시",
+   "verified_by": "C+D",
+   "requires": "**색인 자체검사는 서술이 아니라 실행 가능한 검사기다.** `check_ruling_index.py` 7검사 + 검사별 변이 양성대조. `self_check.last_run` 은 `index_version`·`rows` 를 싣고, 그것이 현재 색인과 다르면 그 결과는 무효다",
+   "must_appear_in": "control/v3/check_ruling_index.py · self_check.last_run",
+   "C_check": "C 는 A 의 check_ruling_index.py 를 매 색인 갱신마다 독립 실행해 C 스캐너 수치와 대조(첫 실행 결과는 STEP1-029 후속 ACK 참조); last_run 의 index_version·rows 가 현재 색인과 다르면 무효로 취급",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 20
   }
  ],
- "index_version": 17,
+ "index_version": 20,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1075,5 +1108,6 @@
   "c_terminal_table_values": 15,
   "missing_in_index_text": []
  },
- "index_sha256_v17": "60b5931b35fbdbede3dad078e9853d659b3df4fa5e8347923d5b8ef47ab3dbf0"
+ "index_sha256_v17": "60b5931b35fbdbede3dad078e9853d659b3df4fa5e8347923d5b8ef47ab3dbf0",
+ "index_sha256_v20": "f4571daf9bc6d93948d34f0a7e73e676d65f9ce9039e8ebe716bcb7f1bc76d5a"
 }
