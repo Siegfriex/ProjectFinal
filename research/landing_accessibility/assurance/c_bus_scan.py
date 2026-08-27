@@ -272,7 +272,8 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
         raw = git_show(repo, index_ref); source = f"git show {index_ref}"
     if raw is None:
         return {"status": "INDEX_UNAVAILABLE", "source": source}
-    idx = RulingIndex(json.loads(raw), source, hashlib.sha256(raw.encode("utf-8")).hexdigest())
+    idx_obj = json.loads(raw)
+    idx = RulingIndex(idx_obj, source, hashlib.sha256(raw.encode("utf-8")).hexdigest())
     controls = index_controls(idx)
     out = {"index_source": source, "index_version": idx.version, "index_rows": len(idx.rows), "index_sha256": idx.sha256, "controls": controls,
            "alias_rule_applied": "index v17 alias_rules / Δ33: alias unsafe iff it fires in C's ruling-unrelated control corpus (specificity, measured); Δ25 shape rule kept as report-only proxy; token-boundary matching",
@@ -307,7 +308,30 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
     delta = git_show(repo, delta_ref) or ""
     heads = re.findall(r"^##+\s+(Δ\d+(?:-[A-Za-z0-9]+)?)\b", delta, re.M)
     heads_without_row = sorted({h for h in heads if not idx.resolve(h) and not idx.resolve_by_subrows(h)})
+    # (g) Δ21/STEP1-029 index→delta reachability: a row is reachable iff (a) its id is a delta heading, (b) any id/alias token
+    # appears in the delta body (token-bounded, C's single boundary regex — Δ33 specificity, no shape filter), or
+    # (c) it is a declared split row whose parent section exists (index `split_rows.map`). Positive control: fake row Δ999-R99.
+    split_map = ((idx_obj.get("split_rows") or {}).get("map") or {}) if isinstance(idx_obj, dict) else {}
+    def _tok_delta(t: str) -> bool:
+        return re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", delta) is not None
+    def _reachable(row: dict) -> str | None:
+        rid = row["id"]
+        if rid in heads: return "heading"
+        if any(_tok_delta(t) for t in [rid] + list(row.get("aliases") or [])): return "token"
+        parent = split_map.get(rid)
+        if parent and (parent in heads or _tok_delta(parent)): return "split_parent"
+        return None
+    reach = {r["id"]: _reachable(r) for r in idx.rows}
+    unreachable_rows = sorted(k for k, v in reach.items() if v is None)
+    # NB: A's own positive control 'Δ999-R99' is written into the delta text (Δ33/self_check prose), so it is now *reachable* by
+    # token — a contaminated control. C uses a fake that no document mentions and reports A's as a separate observation.
+    reach_controls = [{"control": "positive: fake row Δ997-R97 (never written anywhere) unreachable", "result": "PASS" if _reachable({"id": "Δ997-R97", "aliases": ["R97", "C_FAKE_ALIAS_NEVER_WRITTEN"]}) is None else "FAIL"},
+                      {"control": "observation: A's control Δ999-R99 reachable-by-token in delta (contaminated if true)", "result": "CONTAMINATED" if _reachable({"id": "Δ999-R99", "aliases": ["R99"]}) else "CLEAN"},
+                      {"control": "negative: Δ21 reachable", "result": "PASS" if reach.get("Δ21") else "FAIL"}]
     out.update({"status": "OK", "a_tickets_v3_era": len(a_tickets), "tokens_mentioned": len(mentions),
+                "index_to_delta_reachability": {"rule": "heading | token(id/alias, boundary) | split_rows parent (STEP1-029)", "split_rows_declared": len(split_map),
+                                                "unreachable_rows": unreachable_rows, "reached_only_via_split_parent": sorted(k for k, v in reach.items() if v == "split_parent"),
+                                                "controls": reach_controls},
                 "unrecorded_mentions": unrecorded, "resolved_only_via_unsafe_alias": via_unsafe, "section_mentions_resolved_by_subrows": via_sub,
                 "index_rows_unmentioned_in_A_tickets": sorted(set(idx.ids) - resolved_rows),
                 "delta_headings_without_index_row": heads_without_row, "delta_source": f"git show {delta_ref}"})
