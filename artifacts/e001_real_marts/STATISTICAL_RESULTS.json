@@ -1,0 +1,101 @@
+{
+  "document_type": "STATISTICAL_RESULTS",
+  "snapshot_at": "2026-08-27T15:20:20+09:00",
+  "grade": "PILOT / PRELIMINARY",
+  "contract_specified_analysis": {
+    "status": "NOT_COMPUTABLE",
+    "reason": "종속변수가 존재하지 않는다 — 판정기 부재로 축 A가 평가되지 않았다.",
+    "substitute_made": false,
+    "substitute_policy": "대체 분석을 만들지 않는다. 쓸 수 있는 데이터를 보고 분석을 고르면 계약을 결과에 맞추는 것이 된다."
+  },
+  "claims": {
+    "axis_c_descriptive": [
+      {
+        "grade": "A",
+        "claim": "L0 산출물을 보유한 56개 관측에서 방해요소 235건이 탐지됐다.",
+        "basis": "fact_landing_observation · fact_interrupt_element 행수"
+      },
+      {
+        "grade": "A",
+        "claim": "그 235건 중 `final_label`이 `UNKNOWN`인 것이 110건(46.8%)으로 최대 범주다.",
+        "basis": "fact_interrupt_element.final_label 집계"
+      },
+      {
+        "grade": "A",
+        "claim": "56개 관측 중 22건(39.3%)에서 방해요소가 뷰포트를 완전히 덮었고, 6건은 겹침이 없었으며, 나머지 28건의 median은 0.0723이다.",
+        "basis": "max_overlay_coverage 3구간 분해 (median 단독 인용 금지 규칙 준수)"
+      },
+      {
+        "grade": "A",
+        "claim": "닫기 컨트롤이 탐지되지 않은 상태에서 ESC/배경클릭으로 닫힌 경우 102건, 컨트롤이 탐지됐으나 닫기가 실패한 경우 38건, 컨트롤이 탐지되고 닫힌 경우 64건, 컨트롤이 탐지되지 않고 닫히지도 않은 경우 30건이다.",
+        "basis": "dismiss_control_exists x dismiss_succeeded 4조합 동등 비중"
+      }
+    ],
+    "axis_b_cause_attribution": [
+      {
+        "grade": "A",
+        "claim": "59개 서비스 전수를 시도해 대표기능 진입 깊이(MPFED)가 산출된 것은 0건이다.",
+        "basis": "fact_task_entry.MPFED 전건 NULL"
+      },
+      {
+        "grade": "A",
+        "claim": "관측된 초기 화면 중 25개에 로그인/구매/가입 관련 텍스트 후보가 존재했고, 계정행동 가드가 그 지점에서 탐색을 중단시켰다(LOGIN — 등).",
+        "basis": "batch outcome=ACCOUNT_ACTION_BLOCKED · blocked_category"
+      },
+      {
+        "grade": "A",
+        "claim": "본 연구 계약이 대표기능 endpoint로 인정하지 않는 archetype에서 gate에 도달해 진입 깊이가 정의상 산출되지 않은 경우가 11건이다.",
+        "basis": "archetype-endpoint 규칙 (계약 설계)"
+      },
+      {
+        "grade": "A",
+        "claim": "탐색이 종결 상태에 이르지 못한 경우가 18건이며, 사유별로 {'MAX_SCOUT_WALL_CLOCK_S': 7, 'SCOUT_ERROR': 3, 'unresolved_reason_unrecorded': 6, 'MAX_CONSECUTIVE_NO_STATE_CHANGE': 2}로 분해된다. 사유가 기록되지 않은 6건은 다른 사유로 배정하지 않고 미기록으로 남겼다.",
+        "basis": "budget_reason 기준 분해 (endpoint_status_detail 단독 근거 사용 안 함)"
+      },
+      {
+        "grade": "A",
+        "claim": "gate 종류 판별이 UNDETERMINED로 떨어져 fail-closed 규칙이 endpoint 승격을 거부한 발화가 8건이고, 그중 실제로 결과를 바꾼 것은 1건이다.",
+        "basis": "발화와 구속의 구분 — 발화 횟수를 원인으로 쓰면 과대평가된다"
+      },
+      {
+        "grade": "A",
+        "claim": "가드가 개입하지 않고 탐색이 실제로 수행된, 계약상 승격 불가 archetype 25건에서 endpoint 도달은 0건이다.",
+        "basis": "반사실 대조 — 가드가 구속 조건인지 확인"
+      }
+    ],
+    "axis_a_not_evaluated": [
+      {
+        "grade": "A",
+        "claim": "본 수집에서 KWCAG criterion 판정은 수행되지 않았다 — 판정기가 구현돼 있지 않다.",
+        "basis": "저장소 전체에 criterion 평가 실행 경로 부재 · fact_criterion_result 0행"
+      },
+      {
+        "grade": "A",
+        "claim": "프레임 59개 중 현행 WA 인증 join 3요건 충족은 0건이었다.",
+        "basis": "dim_certification 0행"
+      }
+    ]
+  },
+  "claim_count": 12,
+  "all_claims_graded": true,
+  "grades_used": [
+    "A"
+  ],
+  "forbidden_pattern_scan": {
+    "patterns_checked": 12,
+    "hits": 0
+  },
+  "markdown": {
+    "path": "STATISTICAL_RESULTS.md",
+    "sha256": "sha256:4ba5cdf705f1c0f9533e3b14b626399bdabf63862da4a1a7270c5b748c2244a3"
+  },
+  "mart_manifest_ref": {
+    "path": "FROZEN_MART_MANIFEST.json",
+    "sha256": "sha256:b65cf0c401649beb4953e0fbd52a1565965e5f809e94a261f0d322cccdcb7fa8",
+    "document_type": "FROZEN_MART_MANIFEST"
+  },
+  "limitations": {
+    "path": "LIMITATIONS.md",
+    "sha256": "sha256:75af98f5e134ccfeb4831620f4f2749480d3d208d6b384133438bc0f290c1874"
+  }
+}
