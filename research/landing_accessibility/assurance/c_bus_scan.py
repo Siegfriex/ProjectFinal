@@ -52,8 +52,11 @@ SHA40_RE = re.compile(r"\b[0-9a-f]{40}\b")
 DELTA_TOKEN_RE = re.compile(r"Δ\d+(?:-[A-Za-z0-9]+)?")
 R_TOKEN_RE = re.compile(r"(?<![A-Za-z0-9_\-Δ])R\d+[a-z]?(?![A-Za-z0-9_])")
 DEFAULT_REPO = "/home/sieg/projects-wsl/ProjectFinal"
-DEFAULT_INDEX_REF = "origin/control/landing-orchestrator:research/landing_accessibility/control/v3/V3_RULING_INDEX.json"
-DEFAULT_DELTA_REF = "origin/control/landing-orchestrator:research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md"
+# D-V3-FINDING-019 follow-up: A commits on a worktree of the SAME repo, so the local branch ref is the live authority and
+# `origin/...` lags until someone fetches — the scanner read a stale index (v29 while tip was v33) because of that.
+CONTROL_REF = "refs/heads/control/landing-orchestrator"
+DEFAULT_INDEX_REF = CONTROL_REF + ":research/landing_accessibility/control/v3/V3_RULING_INDEX.json"
+DEFAULT_DELTA_REF = CONTROL_REF + ":research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md"
 ASSURANCE_ROOT = pathlib.Path(__file__).resolve().parent
 
 def _ts(d: dict) -> str:
