@@ -351,7 +351,8 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
                                                 "controls": reach_controls},
                 "unrecorded_mentions": unrecorded, "resolved_only_via_unsafe_alias": via_unsafe, "section_mentions_resolved_by_subrows": via_sub,
                 "index_rows_unmentioned_in_A_tickets": sorted(set(idx.ids) - resolved_rows),
-                "delta_headings_without_index_row": heads_without_row, "delta_source": f"git show {delta_ref}"})
+                "delta_headings_without_index_row": heads_without_row, "delta_source": f"git show {delta_ref}",
+                "delta_sha256": hashlib.sha256(delta.encode("utf-8")).hexdigest(), "delta_heading_counts": {"##_only_distinct": len({h for h in heads if not h.startswith("R")}), "all_with_dups": len(heads), "all_distinct": len(set(heads))}})
     return out
 
 # ---------------------------------------------------------------- (f) Δ26
