@@ -224,10 +224,117 @@ def attribute_causes(results: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+#: A가 원천 CSV(`9999857:...representative_task_candidate_shadow.csv`,
+#: `mapping_status=CANDIDATE` 59건)로 조인한 결과를 재현한다.
+_SHADOW_CSV_REF = (
+    "9999857:research/landing_accessibility/shadow/lane_b/state/"
+    "representative_task_candidate_shadow.csv"
+)
+
+DEPTH_RECOVERY_FINDING = (
+    "가드 입도는 25건에서 L1 탐색을 차단했으나 **구속 조건은 아니다.** 가드가 개입하지 "
+    "않은 25건에서도 endpoint 도달이 0이었다. 더 근본적인 제약은 **이 측정 접근이 이 "
+    "프레임의 대표기능 진입점에 닿지 못한다**는 것이며, archetype-endpoint 규칙이 그것을 "
+    "정의 수준에서 확정한다."
+)
+
+DEPTH_RECOVERY_INFERENCE_LIMIT = (
+    "무작위 배정이 아니다 — 가드 발화가 페이지 텍스트에 의존하므로 Scout이 돈 25건과 "
+    "가드에 막힌 17건이 체계적으로 다를 수 있다. 뒷받침하는 근거는 두 집단의 archetype "
+    "구성이 유사하고(양쪽 ITEM_DETAIL 지배) Scout 쪽이 예외 없이 0/25라는 것이다. "
+    "확정하려면 가드를 고친 뒤 같은 프레임을 재수집해야 하고 오늘 하지 않았다."
+)
+
+
+def analyze_depth_recovery(
+    results: list[dict[str, Any]], archetype_by_target: dict[str, str]
+) -> dict[str, Any]:
+    """ "가드 입도를 고치면 depth 축이 살아나는가"에 데이터로 답한다.
+
+    **답: 아니다.** 가드가 개입하지 않고 Scout이 실제로 돈 승격 불가 archetype
+    25건에서 endpoint 도달이 0건이다. 따라서 가드에 막힌 17건도 가드를 고친다고
+    MPFED가 나올 근거가 없다. 회복 상한은 가드 차단 중 **승격 가능** archetype
+    8건뿐이며, 그마저 gate 종류 판별이 되어야 한다.
+    """
+    guard_by_archetype: dict[str, int] = {}
+    guard_promoting = guard_non_promoting = unmapped = 0
+    scout_non_promoting = scout_non_promoting_reached = 0
+    scout_non_promoting_outcomes: dict[str, int] = {}
+
+    for result in results:
+        detail = result.get("detail") or {}
+        outcome = str(result.get("outcome"))
+        target_id = result.get("target_id")
+        mapped = archetype_by_target.get(str(target_id))
+
+        if outcome == "ACCOUNT_ACTION_BLOCKED":
+            if mapped is None:
+                unmapped += 1
+                continue
+            guard_by_archetype[mapped] = guard_by_archetype.get(mapped, 0) + 1
+            if mapped in PROMOTION_ELIGIBLE_ARCHETYPES:
+                guard_promoting += 1
+            else:
+                guard_non_promoting += 1
+        elif detail.get("scout_invoked") is True:
+            archetype = detail.get("archetype") or mapped
+            if archetype and archetype not in PROMOTION_ELIGIBLE_ARCHETYPES:
+                scout_non_promoting += 1
+                scout_non_promoting_outcomes[outcome] = (
+                    scout_non_promoting_outcomes.get(outcome, 0) + 1
+                )
+                if str(detail.get("endpoint_reached")) == "1":
+                    scout_non_promoting_reached += 1
+
+    return {
+        "question": "가드 입도를 고치면 depth 축이 살아나는가?",
+        "answer": "아니다 — 데이터가 지지하지 않는다.",
+        "source_csv": _SHADOW_CSV_REF,
+        "guard_blocked_archetype_join": {
+            "n": guard_promoting + guard_non_promoting,
+            "by_archetype": guard_by_archetype,
+            "promotion_eligible": guard_promoting,
+            "non_promoting": guard_non_promoting,
+            "unmapped": unmapped,
+        },
+        "scout_ran_non_promoting_endpoint_reached": (
+            f"{scout_non_promoting_reached} / {scout_non_promoting}"
+        ),
+        "scout_ran_non_promoting_outcomes": scout_non_promoting_outcomes,
+        "depth_recovery_upper_bound": guard_promoting,
+        "honest_range": f"0~{guard_promoting}",
+        "honest_range_note": (
+            f"회복 상한 {guard_promoting}건은 가드 차단분 중 승격 가능 archetype 수다. "
+            "그마저 gate 종류 판별이 되어야 하며, AUTH_GATE 12건 중 8건에서 E-6b가 "
+            "발화했다(판별 실패율 2/3). **상한에 가까울 근거는 없다.**"
+        ),
+        "finding": DEPTH_RECOVERY_FINDING,
+        "inference_limit": DEPTH_RECOVERY_INFERENCE_LIMIT,
+    }
+
+
+def _load_archetype_by_target(csv_path: str | None) -> dict[str, str]:
+    if not csv_path or not Path(csv_path).exists():
+        return {}
+    import csv as _csv
+
+    mapping: dict[str, str] = {}
+    with open(csv_path, encoding="utf-8-sig") as handle:
+        for row in _csv.DictReader(handle):
+            if row.get("mapping_status") == "CANDIDATE" and row.get("web_target_id"):
+                mapping[row["web_target_id"]] = row.get("interaction_archetype", "")
+    return mapping
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--batches-dir", action="append", required=True)
     parser.add_argument("--out-dir", required=True)
+    parser.add_argument(
+        "--archetype-csv",
+        default=None,
+        help="representative_task_candidate_shadow.csv (가드 차단분 archetype 조인용)",
+    )
     args = parser.parse_args()
 
     dirs: list[str] = []
@@ -242,6 +349,10 @@ def main() -> None:
     markers = derive_collection_markers_multi(dirs)
     marts = build_marts(all_results)
     causes = attribute_causes(all_results)
+    archetype_by_target = _load_archetype_by_target(args.archetype_csv)
+    depth_recovery = (
+        analyze_depth_recovery(all_results, archetype_by_target) if archetype_by_target else None
+    )
 
     out = Path(args.out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -255,6 +366,7 @@ def main() -> None:
         ),
         "collection_markers": markers,
         "cause_attribution": causes,
+        "depth_recovery_analysis": depth_recovery,
         "mart_row_counts": {k: len(v) for k, v in marts.items()},
     }
     (out / "REAL_RUN_SUMMARY.json").write_text(

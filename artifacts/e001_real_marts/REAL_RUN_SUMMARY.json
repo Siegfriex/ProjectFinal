@@ -1,11 +1,11 @@
 {
   "manifest": "REAL_RUN_SUMMARY",
-  "snapshot_at": "2026-08-27T14:36:13+09:00",
+  "snapshot_at": "2026-08-27T14:39:21+09:00",
   "grade": "PILOT / PRELIMINARY",
   "grade_note": "커버리지 100%가 등급을 올리지 않는다 — 결과가 예상보다 좋다는 이유로 사전 규칙을 뒤집는 것도 나쁠 때 뒤집는 것과 같은 실패다. 등급과 커버리지를 둘 다 보고한다.",
   "collection_markers": {
     "batches_found": true,
-    "snapshot_at": "2026-08-27T14:36:13+09:00",
+    "snapshot_at": "2026-08-27T14:39:21+09:00",
     "analysis_cohort": "E001_FULL",
     "analysis_collector_sha": "222ef2c",
     "analysis_sample": {
@@ -332,6 +332,35 @@
       "UTILITY_ENTRY": 1
     },
     "attribution_note": "'측정기가 실패했다'로 뭉뚱그리지 않는다 — 도구 입도(가드) / 계약 설계(archetype-endpoint 규칙) / 판별 실패(E-6b)는 성격이 다르고 시정 방향도 다르다."
+  },
+  "depth_recovery_analysis": {
+    "question": "가드 입도를 고치면 depth 축이 살아나는가?",
+    "answer": "아니다 — 데이터가 지지하지 않는다.",
+    "source_csv": "9999857:research/landing_accessibility/shadow/lane_b/state/representative_task_candidate_shadow.csv",
+    "guard_blocked_archetype_join": {
+      "n": 25,
+      "by_archetype": {
+        "COMMUNICATION_ENTRY": 2,
+        "QUERY": 4,
+        "FINANCIAL_ACTION_ENTRY": 6,
+        "UTILITY_ENTRY": 3,
+        "ITEM_DETAIL": 10
+      },
+      "promotion_eligible": 8,
+      "non_promoting": 17,
+      "unmapped": 0
+    },
+    "scout_ran_non_promoting_endpoint_reached": "0 / 25",
+    "scout_ran_non_promoting_outcomes": {
+      "AUTH_GATE": 11,
+      "UNRESOLVED": 13,
+      "CAPTCHA": 1
+    },
+    "depth_recovery_upper_bound": 8,
+    "honest_range": "0~8",
+    "honest_range_note": "회복 상한 8건은 가드 차단분 중 승격 가능 archetype 수다. 그마저 gate 종류 판별이 되어야 하며, AUTH_GATE 12건 중 8건에서 E-6b가 발화했다(판별 실패율 2/3). **상한에 가까울 근거는 없다.**",
+    "finding": "가드 입도는 25건에서 L1 탐색을 차단했으나 **구속 조건은 아니다.** 가드가 개입하지 않은 25건에서도 endpoint 도달이 0이었다. 더 근본적인 제약은 **이 측정 접근이 이 프레임의 대표기능 진입점에 닿지 못한다**는 것이며, archetype-endpoint 규칙이 그것을 정의 수준에서 확정한다.",
+    "inference_limit": "무작위 배정이 아니다 — 가드 발화가 페이지 텍스트에 의존하므로 Scout이 돈 25건과 가드에 막힌 17건이 체계적으로 다를 수 있다. 뒷받침하는 근거는 두 집단의 archetype 구성이 유사하고(양쪽 ITEM_DETAIL 지배) Scout 쪽이 예외 없이 0/25라는 것이다. 확정하려면 가드를 고친 뒤 같은 프레임을 재수집해야 하고 오늘 하지 않았다."
   },
   "mart_row_counts": {
     "fact_landing_observation": 56,
