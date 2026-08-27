@@ -58,6 +58,8 @@ def main() -> int:
     doc = json.loads(idx.path.read_text(encoding="utf-8"))
     split = (doc.get("split_rows") or {}).get("map", {})
     heads_set = set(heads)
+    # 판별 대조군의 가짜 자식 id — delta 해시에서 파생한다 (아래 설명 참조).
+    _probe = f"Δ15-P{delta_sha[:10]}"
 
     def reach(rid, tokens):
         """A 가 선언한 세 경로만. 대조군도 이 함수를 탄다 (D-DEF-09)."""
@@ -93,9 +95,17 @@ def main() -> int:
         # 이 도구는 선언된 규칙을 구현하므로 미도달이어야 한다. 도달로 나오면
         # 구현이 조용히 넓어진 것이다.
         "discriminating_control": {
-            "fake_child": "Δ15-NOSUCHCONTROL",
+            # id 를 **문서 내용에서 파생**한다. 고정 문자열을 쓰면 그 id 를
+            # 어딘가에 적는 순간 대조군이 죽는다 — A 의 probe `Δ90001` 이
+            # 정확히 그렇게 됐다(C-FINDING-075215): 그 문제를 기술한 delta
+            # 부기에 문자열이 들어가면서 authority 경로로 도달 가능해졌다.
+            # delta 해시에서 파생하면 문서가 바뀔 때마다 id 도 바뀌므로
+            # 미리 적혀 있을 수 없다. 그래도 **부재를 검사한다** — 파생이
+            # 우연히 충돌해도 조용히 통과하지 않도록.
+            "fake_child": _probe,
+            "probe_absent_from_delta": _probe not in text,
             "parent_section_exists": "Δ15" in set(heads),
-            "reach_result": reach("Δ15-NOSUCHCONTROL", ["Δ15-NOSUCHCONTROL"]),
+            "reach_result": reach(_probe, [_probe]),
             "expected": None,
             "why": "부모 절이 존재하는 가짜 자식. 선언 규칙이면 미도달, "
                    "부모 상속 규칙이면 도달 — 두 규칙이 여기서 갈린다",
@@ -106,6 +116,7 @@ def main() -> int:
                    and ctrl["positive_control"] is True
                    and ctrl["negative_control"] is None
                    and ctrl["discriminating_control"]["parent_section_exists"]
+                   and ctrl["discriminating_control"]["probe_absent_from_delta"]
                    and ctrl["discriminating_control"]["reach_result"] is None)
         else "FAIL"
     )
@@ -136,8 +147,9 @@ def main() -> int:
         json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     dc = ctrl["discriminating_control"]
     print(f"control={ctrl['verdict']} heads={len(heads)} rows={len(idx.rows)}")
-    print(f"   판별대조군 {dc['fake_child']}: 부모절존재={dc['parent_section_exists']} "
-          f"도달={dc['reach_result']} (기대 None — 선언 규칙 구현)")
+    print(f"   판별대조군 {dc['fake_child']}: 부재={dc['probe_absent_from_delta']} "
+          f"부모절존재={dc['parent_section_exists']} 도달={dc['reach_result']} "
+          f"(기대 None — 선언 규칙 구현)")
     print(f"A) delta표제→색인  해결 {len(a_hit)}/{len(heads)}  미해결 {len(a_miss)}")
     for x in a_miss:
         print("   -", x["delta_head"])
