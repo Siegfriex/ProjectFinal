@@ -275,6 +275,92 @@ codebook 없이 endpoint 를 만들어내지 않았다.
 
 ---
 
+## 3.4 B dataflow 감사 (`RECOVERY_DATAFLOW_AUDIT.md`, `claude-b/measurement-recovery@2281c85`) — **정정 4건**
+
+### 3.4.1 `C-E` 를 **12 → 1** 로 정정한다
+
+`ENDPOINT_GATE_KINDS`(`depth.py:35-45`)가 **공집합이 아닌 archetype 은 2개뿐**이다.
+gate 종료 13건 중 **승격 계약이 실제로 걸리는 것은 `FINANCIAL_ACTION_ENTRY` 1건**이고
+그마저 gate 판별이 `UNDETERMINED` 다.
+
+**나머지 12건은 판별을 개선해도 설계상 endpoint 가 될 수 없다.**
+
+```
+정정 전   C-G 25 · C-W 59 · C-D 31 · C-E 12
+정정 후   C-G 25 · C-W 59 · C-D 31 · C-E  1
+```
+
+**자릿수가 다르다.** 동급 우선순위로 두면 자원 배분이 왜곡된다.
+
+### 3.4.2 4층위는 **중첩**이고 6종 outcome 표는 **분할**이다 — 합계가 다른 이유를 명시한다
+
+```
+4층위 (원인)      C-W 59 ⊇ {C-G 25, C-D 31, C-E 1}   중첩. 합산 불가
+6종 (outcome)     상호배타 분할. 합 = 59
+```
+
+**두 표를 함께 실을 때 합계가 다른 이유를 반드시 적는다.** 안 적으면 독자가 불일치로 읽는다.
+
+### 3.4.3 `REC-B-8` (C1) — **가드가 존재하는데 배선이 없다. 오늘 가장 무거운 발견이다**
+
+`A2` 규칙 **P-2 를 구현한 `mapping_frozen_allowed()`(`l1_engine.py:100-105`)의
+호출부가 `tests/test_pc_fixture_engine.py:491-492` 뿐이다.** 프로덕션 경로에서 아무도 부르지 않는다.
+
+**결과: 전건 `CODEBOOK_PENDING` task 로 본수집이 아무 저항 없이 진행됐다.**
+
+> **"codebook 없이 수집하면 막는다" 는 계약이 코드에 있었는데 연결되지 않았다.**
+>
+> 오늘 세 번 본 "있다고 가정했으나 없었던" 것의 **네 번째이자 다른 변종**이다 —
+> 앞의 셋은 **없었고**, 이번은 **있는데 배선이 없다.** 후자가 더 위험하다:
+> 코드를 읽으면 가드가 보이므로 **있다고 믿게 된다.**
+
+`REC-B-7` 과 같은 뿌리다. `REC-B-7`(승격 시점 가드 부재)과 `REC-B-8`(수집 시작 시점 가드 미배선)을
+함께 시정한다.
+
+### 3.4.4 `compute_depth()` 는 결함이 아니다 — 호출부다
+
+**Director 가정 정정:** `compute_depth()` 는 complete-case 가 **아니다.**
+`depth.py:178-186` 이 endpoint 미도달이라도 area 관측 시 NED 를 살린다.
+
+**따라서 MART 31/31 NULL 의 원인은 depth 로직이 아니라 area 신호가 한 번도 성립하지 않은 것이다.**
+`REC-B-6`(C 가 `l1_engine.py:532/540/558/600-616` 에서 찾은 호출부 결함)과 **정합한다** —
+C 는 호출부에서 결함을 찾았고 B 는 `compute_depth` 자체가 계약대로임을 확인했다. **두 판정이 일치한다.**
+
+**함의: "부분 depth 보존" 을 `compute_depth` 개선 과제로 두면 대상이 틀린다.**
+
+**잠복 결함:** `assign_depth_segments` 는 step 수준 complete-case 이고
+`m = ... else step_count` 대체(`depth.py:215`)로 **IED 가 NULL 인데 step 이 IED 로 라벨링**될 수 있다.
+현 MART 는 미오염이나 **복구 후 발현한다.** → `REC-B-9` 로 등록.
+
+### 3.4.5 갭 1·2 는 **독립이다** — 중간 재수집을 넣으면 안 된다
+
+B 가 (c) 질문에 코드로 답했다:
+
+```
+B1(wiring) 만 고치면   산문 정의가 존재하지 않는 [data-region] 토큰과 비교돼 여전히 False
+B2(detector) 만 고치면 `is None` 조기 반환(:213, :223)에 먼저 걸려 resolver 도달 불가
+```
+
+**∴ `REC-B-1~3` 단독 완료는 검증 가능한 결과를 내지 않는다. 중간 재수집을 금지한다.**
+
+### 3.4.6 정의의 성격 — **archetype 수준 산문이지 서비스별 selector 가 아니다**
+
+O-1 부분 확인: CSV 정의는 71/71 non-empty 이지만 **서비스별이 아니라 archetype 당 1개인 한국어 산문**이다
+(distinct 7 / 2 / 7 / 3).
+
+> **`REC-B-4` 철회는 유지된다** — 정의는 존재한다. **다만 그 정의를 detector 가 직접 쓸 수 있는
+> 형태가 아니다.** `"개별 상품 항목의 링크·카드가 목록 형태로 노출"` 은 사람이 읽는 서술이지
+> DOM 질의가 아니다. **`REC-B-5`(detector 구현)에 "산문 → 질의" 변환 설계가 포함돼야 한다.**
+
+### 3.4.7 모집단 명시 의무
+
+`endpoint_signal_type` 분포는 **동결 59 기준 `URL_PATTERN` 33 · `DOM_AX_ROLE` 17 · `FORM_STRUCTURE` 9**,
+**전체 71행 기준은 42 / 20 / 9** 다. `region_signal_type` 은 동결 59 에서 `DOM_AX_ROLE` 53 · `CODEBOOK_PENDING` 6.
+
+**인용할 때 모집단을 반드시 명시한다.**
+
+---
+
 ## 3.5 R4 fixture 검증 결과 — **naive wiring 복구는 안전하지 않다**
 
 C 가 엔진 `222ef2c` 를 fixture 신호로 직접 돌렸다(`assurance/recovery/PARTIAL_DEPTH_FIXTURES.md`,
