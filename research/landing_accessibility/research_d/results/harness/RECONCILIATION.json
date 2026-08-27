@@ -1,96 +1,138 @@
 {
-  "reconciliation_id": "D_V3_LANE_RECONCILIATION",
-  "verdict": "RECONCILIATION_REQUIRED",
-  "orchestrator_head": "879ee855e1705405d1e0e358a820cae63aa905d9",
-  "orchestrator_dirty": true,
-  "lanes": [
-    {
-      "lane": "S",
-      "namespace": "lane_s",
-      "responsibility": "spatial / control-form / menu·reveal",
-      "json": "LANE_S_HARNESS.json",
-      "md": "LANE_S_FINDINGS.md",
-      "code": [
-        "lane_s_spatial_control_reveal.py"
-      ],
-      "status": "COMPLETE",
-      "problems": []
-    },
-    {
-      "lane": "L",
-      "namespace": "lane_l",
-      "responsibility": "label / accessible name",
-      "json": "LANE_L_HARNESS.json",
-      "md": "LANE_L_FINDINGS.md",
-      "code": [
-        "lane_l_label_ax.py"
-      ],
-      "status": "COMPLETE",
-      "problems": []
-    },
-    {
-      "lane": "F",
-      "namespace": "lane_f",
-      "responsibility": "flow topology / depth",
-      "json": "LANE_F_HARNESS.json",
-      "md": "LANE_F_FINDINGS.md",
-      "code": [
-        "lane_f_flow_depth.py"
-      ],
-      "status": "COMPLETE",
-      "problems": []
-    },
-    {
-      "lane": "A",
-      "namespace": "lane_a",
-      "responsibility": "auth timing / obstruction",
-      "json": "LANE_A_HARNESS.json",
-      "md": "LANE_A_FINDINGS.md",
-      "code": [
-        "lane_a_auth_obstruction.py"
-      ],
-      "status": "COMPLETE",
-      "problems": []
-    },
-    {
-      "lane": "P",
-      "namespace": "lane_p",
-      "responsibility": "provenance / denominator / metric redundancy",
-      "json": "LANE_P_HARNESS.json",
-      "md": "LANE_P_FINDINGS.md",
-      "code": [
-        "lane_p_provenance_denominator.py"
-      ],
-      "status": "COMPLETE",
-      "problems": []
-    }
-  ],
-  "lane_verdicts": {
-    "S": "READY_WITH_AMBIGUITY",
-    "L": "READY_WITH_AMBIGUITY",
-    "F": "READY_WITH_AMBIGUITY",
-    "A": "READY_WITH_AMBIGUITY",
-    "P": "READY_WITH_AMBIGUITY"
+ "reconciliation_id": "D_V3_LANE_RECONCILIATION",
+ "verdict": "RECONCILIATION_REQUIRED",
+ "orchestrator_head": "465a9295f7f8e7c1968b82f38eb8e0e13f9f90df",
+ "orchestrator_dirty": true,
+ "lanes": [
+  {
+   "lane": "S",
+   "namespace": "lane_s",
+   "responsibility": "spatial / control-form / menu·reveal",
+   "json": "LANE_S_HARNESS.json",
+   "md": "LANE_S_FINDINGS.md",
+   "code": [
+    "lane_s_spatial_control_reveal.py"
+   ],
+   "status": "COMPLETE",
+   "problems": []
   },
-  "missing_lanes": [],
-  "incomplete_lanes": [],
-  "cross_lane_issues": [
-    {
-      "kind": "DUPLICATE_IMPLEMENTATION",
-      "variable": "nav_container_depth",
-      "lanes": [
-        "F",
-        "S"
-      ]
-    },
-    {
-      "kind": "DUPLICATE_IMPLEMENTATION",
-      "variable": "menu_dependency",
-      "lanes": [
-        "F",
-        "S"
-      ]
-    }
+  {
+   "lane": "L",
+   "namespace": "lane_l",
+   "responsibility": "label / accessible name",
+   "json": "LANE_L_HARNESS.json",
+   "md": "LANE_L_FINDINGS.md",
+   "code": [
+    "lane_l_label_ax.py"
+   ],
+   "status": "COMPLETE",
+   "problems": []
+  },
+  {
+   "lane": "F",
+   "namespace": "lane_f",
+   "responsibility": "flow topology / depth",
+   "json": "LANE_F_HARNESS.json",
+   "md": "LANE_F_DELTA9_FINDINGS.md",
+   "code": [
+    "lane_f_flow_depth.py"
+   ],
+   "status": "COMPLETE",
+   "problems": []
+  },
+  {
+   "lane": "A",
+   "namespace": "lane_a",
+   "responsibility": "auth timing / obstruction",
+   "json": "LANE_A_HARNESS.json",
+   "md": "LANE_A_FINDINGS.md",
+   "code": [
+    "lane_a_auth_obstruction.py"
+   ],
+   "status": "COMPLETE",
+   "problems": []
+  },
+  {
+   "lane": "P",
+   "namespace": "lane_p",
+   "responsibility": "provenance / denominator / metric redundancy",
+   "json": "LANE_P_HARNESS.json",
+   "md": "LANE_P_FINDINGS.md",
+   "code": [
+    "lane_p_provenance_denominator.py"
+   ],
+   "status": "COMPLETE",
+   "problems": []
+  }
+ ],
+ "lane_verdicts": {
+  "S": "READY_WITH_AMBIGUITY",
+  "L": "READY_WITH_AMBIGUITY",
+  "F": "READY_WITH_AMBIGUITY",
+  "A": "READY_WITH_AMBIGUITY",
+  "P": "READY_WITH_AMBIGUITY"
+ },
+ "missing_lanes": [],
+ "incomplete_lanes": [],
+ "cross_lane_issues": [
+  {
+   "kind": "DUPLICATE_IMPLEMENTATION",
+   "variable": "nav_container_depth",
+   "lanes": [
+    "F",
+    "S"
+   ]
+  },
+  {
+   "kind": "DUPLICATE_IMPLEMENTATION",
+   "variable": "menu_dependency",
+   "lanes": [
+    "F",
+    "S"
+   ]
+  }
+ ],
+ "controls": {
+  "verdict": "PASS",
+  "cases": [
+   {
+    "case": "겹침(list[str])을 잡는가",
+    "got": true,
+    "expected": true,
+    "ok": true
+   },
+   {
+    "case": "모양이 다른 겹침을 잡는가 (D-DEF-11 형태)",
+    "got": true,
+    "expected": true,
+    "ok": true
+   },
+   {
+    "case": "dict 키 형태 겹침을 잡는가",
+    "got": true,
+    "expected": true,
+    "ok": true
+   },
+   {
+    "case": "모호 대 구현 모순을 잡는가",
+    "got": true,
+    "expected": true,
+    "ok": true
+   },
+   {
+    "case": "미해석 항목을 드러내는가",
+    "got": true,
+    "expected": true,
+    "ok": true
+   },
+   {
+    "case": "겹치지 않으면 만들어내지 않는가",
+    "got": false,
+    "expected": false,
+    "ok": true
+   }
   ],
-  "note": "빈 결과를 정상으로 읽지 않는다. lane 산출이 없으면 MISSING 이고 verdict 는 NOT_READY 다. cross_lane_issues 가 비었다는 것은 lane 이 전부 COMPLETE 일 때만 의미가 있다."
+  "why": "대조군이 실패하면 목록을 내지 않는다 — 못 잡는 대조기의 '교차 문제 0 건' 은 0 이 아니다 (D-DEF-11)"
+ },
+ "note": "빈 결과를 정상으로 읽지 않는다. lane 산출이 없으면 MISSING 이고 verdict 는 NOT_READY 다. cross_lane_issues 가 비었다는 것은 lane 이 전부 COMPLETE 일 때만 의미가 있다."
 }

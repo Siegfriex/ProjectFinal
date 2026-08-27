@@ -236,6 +236,16 @@ def main() -> int:
         "note": ("빈 결과를 정상으로 읽지 않는다. lane 산출이 없으면 MISSING 이고 verdict 는 NOT_READY 다. "
                  "cross_lane_issues 가 비었다는 것은 lane 이 전부 COMPLETE 일 때만 의미가 있다."),
     }
+    # [시정] 이 도구는 지금까지 **출력만 하고 파일을 쓰지 않았다.** 그런데
+    # docstring 은 "대조군이 실패하면 RECONCILIATION.json 을 쓰지 않는다" 고
+    # 적었고, 디스크의 그 파일은 다른 경로로 만들어진 것이었다.
+    # 즉 **산출물과 도구가 조용히 갈라질 수 있었다.** 도구가 쓴다.
+    out_p = RD / "results" / "harness" / "RECONCILIATION.json"
+    out_p.parent.mkdir(parents=True, exist_ok=True)
+    out_p.write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n",
+                     encoding="utf-8")
+    print(f"wrote {out_p.relative_to(RD)}")
+
     if "--json" in sys.argv:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
