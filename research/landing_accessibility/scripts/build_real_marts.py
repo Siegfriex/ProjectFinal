@@ -459,6 +459,13 @@ def analyze_depth_recovery(
             "그마저 gate 종류 판별이 되어야 하며, AUTH_GATE 12건 중 8건에서 E-6b가 "
             "발화했다(판별 실패율 2/3). **상한에 가까울 근거는 없다.**"
         ),
+        "scope_condition": (
+            "**이 결론은 현재 collector/measurement 구현 하에서만 성립한다.** "
+            "task definition이 `CODEBOOK_PENDING`으로 고정된 상태를 전제한 값이므로, "
+            "*'올바른 task-definition wiring과 signal detector를 구현해도 depth는 최대 "
+            f"{guard_promoting}'*로 확대해 읽으면 **거짓이다.** 그 경우의 상한은 오늘 "
+            "데이터로 알 수 없다."
+        ),
         "finding": DEPTH_RECOVERY_FINDING,
         "inference_limit": DEPTH_RECOVERY_INFERENCE_LIMIT,
     }
@@ -513,13 +520,39 @@ FULL_COVERAGE_NARRATIVE_CONSTRAINT = {
 }
 
 #: 오늘의 **통합적 발견** — 세 축이 같은 구조에서 막혔다.
+#: **정정됨** — 이전 문구 "수집기는 만들어졌고 판정기는 만들어지지 않았다"는
+#: 축 A·C엔 맞지만 **축 B엔 틀리다.** 축 B는 판정기가 없는 게 아니라 판정기가 쓸
+#: **입력이 연결되지 않았다**(A 자기 정정).
 UNIFIED_SKELETON_FINDING = (
-    "**세 축 모두에서 같은 구조적 한계가 나타났다 — 수집기는 만들어졌고 판정기는 "
-    "만들어지지 않았다.** 축 A는 criterion 평가기 부재로 `NOT_EVALUATED`, 축 B는 "
-    "gate 종류 판별(E-6b)이 fail-closed로 막혀 `MEASURED_ZERO`, 축 C는 interrupt "
-    "분류기가 결정론 규칙까지만 돌아 47%가 `UNKNOWN`이다. 세 경우 모두 **raw 수집은 "
-    "되고 그 위의 판정 단계가 비어 있다.** 이것이 개별 축의 실패가 아니라 오늘의 "
-    "통합적 발견이다."
+    "**세 축이 서로 다른 단계에서 막혔다.** "
+    "축 A — **판정기 부재**(criterion evaluator가 없다). "
+    "축 B — **입력 미연결**(task definition이 `CODEBOOK_PENDING`으로 고정돼 "
+    "판정기가 쓸 입력이 연결되지 않았다). "
+    "축 C — **판정기 미완**(semantic 단계 없이 결정론 규칙만 돈다). "
+    "세 축을 한 문장으로 뭉뚱그리면(예: '수집기는 만들어졌고 판정기는 만들어지지 "
+    "않았다') 축 B가 틀린 서술이 된다 — 축 B의 판정기는 존재하며, 쓸 입력이 없었다."
+)
+
+#: 축 B가 **수집 전에 구조적으로 확정돼 있었다**는 증거. 수집 결과가 아니다.
+AXIS_B_PREDETERMINED_FINDING = (
+    "**MPFED 0/59는 수집을 돌리기 전에 구조적으로 확정돼 있었다.** "
+    "`e001_runner/executor.py`의 `default_task_definition()`이 스스로 밝힌다 — "
+    "P-A endpoint codebook이 동결되기 전에는 서비스별 `region_definition`/"
+    "`endpoint_definition`이 존재하지 않아 `CODEBOOK_PENDING`을 그대로 두며, "
+    "**그 상태에서 Scout를 돌리면 QUERY를 제외한 모든 archetype은 area/endpoint "
+    "신호가 결코 성립하지 않는다.** 유일한 예외인 QUERY 5건은 **전부 Scout 이전에 "
+    "차단됐다**(4건 `ACCOUNT_ACTION_BLOCKED` scout_invoked=false, 1건 "
+    "`SKIPPED_RETRY_EXHAUSTED`). **충분원인이 둘이고 서로 겹치지 않으므로** "
+    "MPFED가 산출될 경로는 애초에 없었다."
+)
+
+#: 코드가 한 일을 정확히 적는다 — 실패가 아니라 거부다.
+AXIS_B_HONEST_REFUSAL_NOTE = (
+    "**코드는 이것을 정직하게 거부했다.** `default_task_definition()`의 docstring이 "
+    "그렇게 적고 있다 — *\"그것이 정직한 결과다 — codebook 없이 endpoint를 "
+    "만들어내지 않는다\"*. 없는 codebook을 추측으로 채워 endpoint를 만들어냈다면 "
+    "MPFED 값은 나왔겠지만 그것은 관측이 아니라 날조였을 것이다. "
+    "**측정되지 않은 것을 측정된 것처럼 만들지 않은 설계 선택의 결과다.**"
 )
 
 AXIS_C_CLASSIFICATION_INCOMPLETE_NOTE = (
@@ -789,12 +822,16 @@ def build_analysis_axes(axis_c: dict[str, Any], causes: dict[str, Any]) -> dict[
         },
         "axis_c_initial_screen_obstruction": axis_c,
         "unified_finding": UNIFIED_SKELETON_FINDING,
+        "axis_b_predetermined": AXIS_B_PREDETERMINED_FINDING,
+        "axis_b_honest_refusal": AXIS_B_HONEST_REFUSAL_NOTE,
         "methodological_conclusion": (
             "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** "
             "이것은 대상 서비스에 대한 진술이 아니라 **이 측정 접근에 대한 진술**이다 — "
             "우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다. "
-            "그리고 세 축이 같은 지점에서 막혔다 — **수집기는 만들어졌고 판정기는 "
-            "만들어지지 않았다**(`unified_finding`)."
+            "그리고 **세 축이 서로 다른 단계에서 막혔다** — 판정기 부재(A) · 입력 "
+            "미연결(B) · 판정기 미완(C)(`unified_finding`). 축 B는 수집 전에 구조적으로 "
+            "확정돼 있었으며(`axis_b_predetermined`), 코드는 없는 codebook을 채우는 대신 "
+            "정직하게 거부했다(`axis_b_honest_refusal`)."
         ),
     }
 
