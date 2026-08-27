@@ -49,7 +49,7 @@ def run(idx, delta_text):
 
     # 4. delta 절 커버리지 (delta → index)
     heads = [h.strip() for h in re.findall(
-        r'^#{2,3}\s+(Δ[0-9]+(?:-[A-Za-z0-9\-]+)?|R\d+)\s*(?:—|$)', delta_text, re.M)]
+        r'^#{2,3}\s+(Δ[0-9]+(?:-[A-Za-z0-9\-]+)?|R\d+)(?![0-9A-Za-z_-])', delta_text, re.M)]
     allref = set()
     for r in rows:
         allref.add(r["id"]); allref.update(r["aliases"]); allref.add(r.get("authority", ""))
@@ -58,7 +58,9 @@ def run(idx, delta_text):
     if uncovered:
         fail.append(("delta_section_coverage", uncovered))
 
-    # 5. 역방향 도달성 (index → delta), split_rows 는 부모 절로 충족
+    # 5. 역방향 도달성 (index → delta)
+    #    경로 4종: id 헤더 · authority 헤더 · 별칭 본문 토큰경계 · split_rows 부모
+    #    D-V3-FINDING-015 — 선언에 authority 경로가 빠져 있었고 구현은 쓰고 있었다
     split = idx.get("split_rows", {}).get("map", {})
     hs = set(heads)
     unreachable = []
