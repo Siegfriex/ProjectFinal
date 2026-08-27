@@ -118,7 +118,9 @@ def scan(bus_dir: str, plane: str = "C") -> dict:
                 ts = ""
             if ts >= V3_CUTOFF_ISO:  # v3 adoption (T-A-V3-P0-001); string compare on ISO-KST is monotonic here
                 dangling.append({"file": f"{sub}/{os.path.basename(p2)}", "missing_ticket": tid})
-    return {"scanned": len(files), "pending": pending, "parse_errors": errors, "dangling_refs_v3_era": dangling, "content_changed_after_ack": changed, "acked_sha_unrecorded_n": len(set(unrecorded)), "status": "PARSE_ERRORS_PRESENT" if errors else "OK"}
+    import datetime as _dt
+    _kst=_dt.timezone(_dt.timedelta(hours=9))
+    return {"measured_at_kst": _dt.datetime.now(_kst).isoformat(timespec="seconds"), "scanned": len(files), "pending": pending, "parse_errors": errors, "dangling_refs_v3_era": dangling, "content_changed_after_ack": changed, "acked_sha_unrecorded_n": len(set(unrecorded)), "status": "PARSE_ERRORS_PRESENT" if errors else "OK"}
 
 def load_tickets(bus_dir: str) -> list:
     out = []
