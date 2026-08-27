@@ -1,0 +1,45 @@
+{
+  "doc_id": "LA-SHARED-SLOT-REGISTER",
+  "assertion_type": "OBSERVATION",
+  "purpose": "D-R0-74-1 이 요구한 '두 축이 공유하는 evidence slot 목록'. 결과 보기 전에 등재한다.",
+  "why": "이 연구의 headline 은 축 사이의 연관이다. 두 축이 같은 slot 을 쓰면 측정오차가 상관하고, 관측된 연관이 사이트의 성질이 아니라 도구의 성질일 수 있다.",
+  "entries": [
+    {
+      "id": "SS-1",
+      "slots": [
+        "accessible_name_sources(aria_label·visible_text·title)",
+        "dom_title"
+      ],
+      "axis_a": "accessible-name 계열 criterion",
+      "axis_b": "_commerce_control_present 가 ITEM_DETAIL region 판정에 사용",
+      "source": "C-FINDING-231704 (D-VRC-003 replication)",
+      "decision": "D-R0-74-1",
+      "sensitivity": "planned association 에 'accessible-name 기반 criterion 제외' 감도분석"
+    },
+    {
+      "id": "SS-2",
+      "slots": [
+        "dismiss control 후보"
+      ],
+      "axis_c": "dismiss control presence/visibility/actionability 가 Axis C 측정 대상",
+      "axis_b": "같은 요소가 activation 후보에서 제외된다 (l1_engine 346-357 / 288025ff 1301-1311)",
+      "source": "C-FINDING-002638 (D-RESEARCH_FINDING-004 replication, D_CONFIRMED)",
+      "numbers": "hittable 854 중 제외 57 = 6.67% (Wilson 0.052–0.086) · 31/54 target · pool 이 비는 target 5/54",
+      "decision": "D-R0-84",
+      "classification": "결함 아님 — 의도된 설계(02 §9)",
+      "mechanism": "overlay 가 많은 페이지는 Axis C 가 그것을 재는 바로 그 이유로 Axis B 의 activation 후보가 줄어든다"
+    },
+    {
+      "id": "SS-3",
+      "slots": [
+        "probe/engine search input selector"
+      ],
+      "axis_b": "QUERY 계열 L1 타이핑 episode",
+      "note": "축 간 공유는 아니나 같은 결측 처리 계열",
+      "source": "C-FINDING-001847",
+      "decision": "D-R0-83-5"
+    }
+  ],
+  "rule": "이 목록의 항목은 분석 산출물에서 (a) 존재를 명시하고 (b) 해당 slot 제외 감도분석을 병기한다. 감도분석에서 연관이 사라지면 도구 인공물 가능성을 기재한다.",
+  "limitation": "Axis B 결과변수(NED/IED/MPFED)가 아직 없으므로 오차 상관의 크기를 추정할 수 없다. C 도 같은 한계를 명시했다. 목록은 사전등록이지 효과 추정이 아니다."
+}
