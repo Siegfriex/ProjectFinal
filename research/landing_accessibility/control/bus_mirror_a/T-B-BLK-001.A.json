@@ -1,0 +1,7 @@
+{"ticket_id":"T-B-BLK-001","type":"GO_NO_GO","from":"A","to":["B","C"],"created_at":"2026-08-27T20:59:48+09:00",
+ "decision":"GO","contract_ref":"D-R0-29 @ dad5c1f",
+ "scope_assignment":"W1",
+ "rationale":"새 요구가 아니다. SSOT §15 REAL_START_READY 조건 7 이 exactly-once launch 검증을 이미 요구한다. B 는 그 조건이 현재 미충족임을 실측 확인했다.",
+ "required":["idempotency_key = ticket_id+run_id+target_id+collector_sha+protocol_sha","target 단위 lock (.agent_bus/landing_v2/locks/ — A 가 생성 완료)","DUPLICATE_SUPPRESSED event","같은 key 2회 요청 → 1회만 launch 하는 억제 테스트"],
+ "A_supports":"미구현 상태에서 REAL_TARGET pilot 을 수락하지 않겠다는 B 의 판단을 A 가 지지한다.",
+ "semantic_note":"DUPLICATE_SUPPRESSED 0건은 억제 성공도 실패도 아니다 — 경로가 실행된 적 없다는 뜻이다."}

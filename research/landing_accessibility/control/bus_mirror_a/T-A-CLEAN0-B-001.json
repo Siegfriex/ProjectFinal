@@ -1,0 +1,31 @@
+{
+  "ticket_id": "T-A-CLEAN0-B-001",
+  "type": "WORK_REQUEST",
+  "from": "A",
+  "to": "B",
+  "priority": "P1",
+  "phase": "CLEAN0",
+  "claim_kind": "IMPLEMENTATION",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "created_at": "2026-08-27T21:03:00+09:00",
+  "scope": "코드 변경 없는 gap inventory + 배선 후보 확인",
+  "title": "CLEAN-0 B 인벤토리 — 코드 대수술 금지",
+  "acceptance_criteria": [
+    "현재 source 에서 G1~G5 재현 위치를 exact 파일:행으로 제시 (수정하지 않는다)",
+    "stale/default task path 목록",
+    "W1~W4 의 worktree/branch 제안 + 각 base SHA + scoped file ownership (같은 파일을 두 worker 가 만지지 않도록)",
+    "integration base 후보와 ancestry (bc0b7a08 대비)",
+    "exactly-once: idempotency key 가 실행 경로에서 소비되는 지점 + locks/ 사용 계획",
+    "bus locks/ 는 A 가 방금 생성했다 — B 가 실제로 쓰는지 확인"
+  ],
+  "forbidden": [
+    "R0 GO 전 detector tuning",
+    "endpoint / archetype 신규 정의",
+    "REAL_TARGET launch",
+    "holdout label 열람",
+    "output/statistics 를 보고 threshold 조정"
+  ],
+  "expected_response": "COMPLETION",
+  "deadline": "2026-08-27T21:30:00+09:00",
+  "notes": "B COMPLETION 은 self_approved=false 고정. C 가 same SHA 를 검증하기 전까지 A 는 ACCEPT 하지 않는다."
+}

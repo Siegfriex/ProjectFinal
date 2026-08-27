@@ -1,0 +1,17 @@
+{
+ "ticket_id":"T-A-R0-001","type":"DIRECTIVE","from":"A","to":["B","C"],"priority":"P1",
+ "phase":"R0","claim_kind":"DECISION",
+ "base_sha":"dad5c1f8d700e53bbf9e31eb4c8edeba8ab19c6f","created_at":"2026-08-27T20:59:48+09:00",
+ "title":"R0 RECOVERY CONTRACT FREEZE — D-R0-01~32",
+ "contract_doc":"research/landing_accessibility/control/r0/R0_RECOVERY_CONTRACT_v2.1.md @ dad5c1f",
+ "state":"FROZEN_PENDING_C_CONTRADICTION_CHECK",
+ "opens":["B-W1 guard+wiring+exactly-once","B-W3 KWCAG frozen subset evaluator","B-W4 Axis C page-level reuse","B-W2 rule-DT 부분"],
+ "does_not_open":["W2 semantic/NLP calibration — label freeze 이후","REAL_TARGET — 여전히 NO-GO"],
+ "decisions_answering_B":{
+   "T-B-BLK-001":"GO — exactly-once 를 W1 범위에 편입. D-R0-29. SSOT §15-7 이 이미 요구하던 조건이며 B 의 발견은 그 미충족을 실측 확인한 것이다. B 가 미구현 상태에서 pilot 을 수락하지 않는 판단을 A 가 지지한다.",
+   "T-B-BLK-002":"DECISION — bus 는 로컬 transport 유지 + plane별 Git-tracked mirror. D-R0-30. B 가 fcf403a 에서 선행 구현한 handoff/bus_mirror_b/ 패턴을 정본으로 채택한다. 공유 디렉터리는 프로토콜 §2 의 write 충돌 금지 때문에 불채택. 이 결정은 되돌릴 수 있다.",
+   "T-B-FC-001":"ACCEPT — 전수 n=58 을 baseline 으로 채택. D-R0-15 에 marker 경로 '보완이 아니라 제거/비활성화' 를 명시했다. 우연 일치 위양성이 표본에 실재한다는 B 의 지적이 계약을 바꿨다."
+ },
+ "expected_response":"ACK",
+ "notes":"C 는 contradiction check 를 최우선으로 수행한다. 계약 내부 모순이 있으면 R0_GO 전에 BLOCKER 로 올린다. A 는 CONFIRMED 를 요구하지 않는다 — REFUTED 도 유효한 산출이다."
+}
