@@ -31,8 +31,10 @@ NAME_TOKENS = ("HOLDOUT_FOR_C", "HOLDOUT_CUSTODY", "LABELS_FROZEN", "LABEL_SPLIT
                "RAW_L1", "RAW_L2", "RAW_L3", "RAW_L4", "PACKET_L", "PRECEDENCE_CONTESTED",
                "CALIBRATION_FOR_B", "_OVERLAP")
 # D 자신의 제약 선언·방화벽 정의는 '참조' 가 아니다. 이 파일들은 토큰 검사에서 제외한다.
-SELF_DECLARATION_FILES = {"D_INPUT_ALLOWLIST.json", "d_input_firewall.py",
-                          "D_INPUT_FIREWALL_VERIFICATION.json"}
+SELF_DECLARATION_FILES = {"D_INPUT_ALLOWLIST.json", "d_input_firewall.py"}
+# 스캔 결과 파일은 자기가 찾은 위반의 문맥을 그대로 담는다. 그것을 다시 스캔하면
+# 자기참조로 WARN 이 누적된다. 파일명 접두로 제외한다 (내용은 D 자신의 스캔 기록이다).
+SELF_DECLARATION_PREFIXES = ("D_INPUT_FIREWALL_VERIFICATION",)
 
 SCAN_SUFFIX = (".py", ".ipynb", ".md", ".json", ".csv", ".sh", ".txt", ".jsonl")
 
@@ -100,7 +102,8 @@ def scan_file(p: Path, denied: list[dict]) -> list[dict]:
         text = p.read_text(encoding="utf-8", errors="replace")
     except Exception as e:
         return [{"file": str(p), "kind": "UNREADABLE", "detail": str(e)}]
-    self_decl = p.name in SELF_DECLARATION_FILES
+    self_decl = (p.name in SELF_DECLARATION_FILES
+                 or p.name.startswith(SELF_DECLARATION_PREFIXES))
     for m in PATH_RE.finditer(text):
         cand = m.group(0)
         if len(cand) < 6:
@@ -135,7 +138,35 @@ def existence_check(denied: list[dict]) -> list[dict]:
     return out
 
 
+def _override_root(root: Path, out_name: str) -> None:
+    """임의 트리(예: 특정 SHA 를 풀어놓은 디렉터리)를 스캔 대상으로 바꾼다.
+
+    Director 지시: RQ-D14 child 실행 시점의 exact HEAD 에서 방화벽을 다시 돌리고
+    결과 commit 이후에도 post-run scan 을 남긴다. 두 기록은 서로 덮어쓰지 않는다.
+    """
+    global RD, NB_DIR, MANIFEST, OUT_NAME
+    RD = root / "research/landing_accessibility/research_d"
+    NB_DIR = root / "research/landing_accessibility/notebooks/d_research"
+    MANIFEST = RD / "D_INPUT_ALLOWLIST.json"
+    OUT_NAME = out_name
+
+
+OUT_NAME = "D_INPUT_FIREWALL_VERIFICATION.json"
+SCAN_LABEL = "current_worktree"
+
+
 def main() -> int:
+    global OUT_NAME, SCAN_LABEL
+    args = sys.argv[1:]
+    if "--root" in args:
+        i = args.index("--root")
+        root = Path(args[i + 1])
+        out = args[args.index("--out") + 1] if "--out" in args else "D_INPUT_FIREWALL_VERIFICATION_alt.json"
+        label = args[args.index("--label") + 1] if "--label" in args else str(root)
+        _override_root(root, out)
+        SCAN_LABEL = label
+        # 산출은 항상 현재 워크트리의 results/ 에 쓴다 (임시 트리를 더럽히지 않는다)
+        globals()["OUT_DIR_OVERRIDE"] = Path(__file__).resolve().parents[1] / "results"
     man = load_manifest()
     denied = man["denied"]
     files = [p for p in RD.rglob("*") if p.is_file() and p.suffix in SCAN_SUFFIX]
@@ -160,6 +191,8 @@ def main() -> int:
     verdict = "PASS" if not fails and not base_label_hits else "FAIL"
     doc = {
         "verification_id": "D-INPUT-FIREWALL-VERIFICATION",
+        "scan_label": SCAN_LABEL,
+        "scan_root": str(RD.parents[2]),
         "verdict": verdict,
         "claim_kind": "OBSERVATION",
         "checked_at_kst": datetime.now(KST).isoformat(),
@@ -174,12 +207,14 @@ def main() -> int:
         "base_sha_label_paths": base_label_hits,
         "base_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
         "self_declaration_files_excluded": sorted(SELF_DECLARATION_FILES),
+        "self_declaration_prefixes_excluded": list(SELF_DECLARATION_PREFIXES),
         "residual_risk": ("파일시스템 접근 로그가 아니라 산출물 정적 스캔이다. worker 프로세스가 "
                           "읽고 아무 흔적을 남기지 않았을 가능성은 이 방법으로 배제되지 않는다. "
                           "다만 금지 파일이 D 워크트리에 존재하지 않고 D base 가 노출 커밋의 "
                           "조상이 아니므로 상대경로 접근 경로는 없다."),
     }
-    out = RD / "results" / "D_INPUT_FIREWALL_VERIFICATION.json"
+    out_dir = globals().get("OUT_DIR_OVERRIDE") or (RD / "results")
+    out = out_dir / OUT_NAME
     out.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"verdict={verdict}  scanned={len(files)} files  FAIL={len(fails)} WARN={len(warns)}  "
           f"base_sha_label_paths={len(base_label_hits)}")

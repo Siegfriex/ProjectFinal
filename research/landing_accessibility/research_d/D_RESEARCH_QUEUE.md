@@ -85,3 +85,27 @@
 | **RQ-D13c** | `measurement_status` 를 가르는 규칙과 evidence 완결성의 관계 | RQ-D13 F2 | OPEN |
 | **RQ-D15** | v2 코퍼스(인코딩 시정) 기준 RF001-B/C 재실행 — 결론이 바뀌는가. **새 child run 으로만** | D-DEF-01 | OPEN |
 | **RQ-D16** | RF001-A/B/C 의 오류가 같은 target 에 몰리는가 (error taxonomy / falsification) = D-RF-001-E | RF001 parent reconcile | B 대기 |
+
+## Research Director supplemental inquiry (2026-08-27 22:40)
+
+기존 D autonomous research queue 와 **별개**로 취급한다. 기존 RQ 의 우선순위·판정·산출물을 바꾸지 않는다.
+결과가 기존 D 가설을 반박하면 기존 산출물을 수정하지 않고 **superseding finding** 으로 기록한다.
+
+| id | 질문 | 선행조건 | 상태 |
+|---|---|---|---|
+| **D-SUP-01** | RF embedding signal 이 **representative interaction semantics** 인가 **business/domain semantics** 인가 — falsification 중심 분리검증. 동일 BGE-M3 · frozen prototype 유지, `FULL` / `CONTROL_ONLY` / `TOPIC_ONLY` / `NO_BRAND_DOMAIN` representation ablation. `prior_archetype` 은 학습·튜닝에 사용 금지, diagnostic agreement 에만. RQ-D14 의 `FUNCTIONAL` / `CORPORATE_OR_APP` / `UNDETERMINED` strata 별로 별도 제시. **top-1 보다 prototype/representation 간 prediction stability · top-2 stability · margin · class coverage 를 우선 보고.** production threshold·GO/NO-GO 결정 금지 | RQ-D14 완료 · v2 코퍼스 | **PENDING (D14 대기)** |
+| **D-SUP-02** | RQ-D14 에서 `CORPORATE_OR_APP` 또는 `UNDETERMINED` 로 분류된 target 에 한해, **frozen DOM/AX evidence 만으로** shallow L1 functional-entry candidate 존재 여부 검토. live navigation·REAL_TARGET 접속 금지. 결과는 `RECOVERABLE_WITHIN_L1` / `NO_FUNCTIONAL_EXIT_OBSERVED` / `AMBIGUOUS` 로만 기록. 대표기능 gold label 생성 금지 | RQ-D14 완료 | **PENDING (D14 대기)** |
+
+## Firewall 운영 조건 (Director 지시)
+
+RQ-D14 child 실행 시점의 exact HEAD 에서 사전 스캔을 남기고, 결과 commit 이후에도 사후 스캔을 남긴다.
+두 기록은 서로 덮어쓰지 않는다.
+
+| 시점 | 파일 | HEAD | 결과 |
+|---|---|---|---|
+| PRE-RUN | `results/D_INPUT_FIREWALL_VERIFICATION_pre_de94051.json` | `de94051f6091c08bde992a74f46af696d7b64aaf` | **PASS** (56 files, FAIL 0, WARN 10) |
+| POST-RUN | `results/D_INPUT_FIREWALL_VERIFICATION.json` | 매 commit 이후 갱신 | PASS |
+
+**정직한 기록**: RQ-D14 worker 는 이 지시가 도착하기 전인 HEAD `de94051` 시점에 이미 기동됐다.
+위 PRE-RUN 스캔은 `git archive de94051` 로 그 시점 트리를 복원해 **소급 수행**한 것이다.
+"실행 전에 돌렸다" 가 아니라 "실행 시점의 트리를 사후에 복원해 검사했다" 가 정확한 서술이다.
