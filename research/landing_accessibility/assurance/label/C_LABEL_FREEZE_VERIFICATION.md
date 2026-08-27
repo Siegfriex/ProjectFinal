@@ -28,7 +28,7 @@ prior 일치 22/42 (0.524) — A 의 21/42 와 1 차이: C 는 CSV frozen CANDID
 | 신호 | cap | C n==cap /58 | B |
 |---|---|---|---|
 | accessible_name_sources | 300 | 13 | 13 ✓ |
-| primary_action_candidates | 200 | **8** | 7 (1 차이 — B 재확인 요) |
+| primary_action_candidates | 200 | 7 (C 첫 판 8 은 스캐너 cap 집합 미분리 오류 — 자체 정정 C-FACT_CORRECTION) | 7 ✓ |
 | target_size | 300 | 6 | 6 ✓ |
 | contrast | 400 | **8** (정확히 400) | "max 400 의심" → 확정 |
 cap-hit 관측 15 target: prior ITEM_DETAIL 11/15 (73%) vs 전체 25/58 (43%) → **대형 커머스 편향 확인**(B 의 미검정 가설을 C 가 기술통계로 확인, 검정은 하지 않음). labeled 기준 ITEM_DETAIL 8/15.
