@@ -52,9 +52,15 @@ SHA40_RE = re.compile(r"\b[0-9a-f]{40}\b")
 DELTA_TOKEN_RE = re.compile(r"Δ\d+(?:-[A-Za-z0-9]+)?")
 R_TOKEN_RE = re.compile(r"(?<![A-Za-z0-9_\-Δ])R\d+[a-z]?(?![A-Za-z0-9_])")
 DEFAULT_REPO = "/home/sieg/projects-wsl/ProjectFinal"
-# D-V3-FINDING-019 follow-up: A commits on a worktree of the SAME repo, so the local branch ref is the live authority and
-# `origin/...` lags until someone fetches — the scanner read a stale index (v29 while tip was v33) because of that.
-CONTROL_REF = "refs/heads/control/landing-orchestrator"
+# T-A-V3-FC-007 (R39): what A has published is defined ONLY by what A pushed. C reads `origin/control/landing-orchestrator`
+# after an explicit fetch — never the local branch (that is A's unpublished working state; producer ≠ reviewer at the byte
+# layer). The v29-vs-v33 staleness of 08:38 was A not pushing 12 commits, not a C defect (A ruled), so the fix is fetch-first.
+CONTROL_REF = "origin/control/landing-orchestrator"
+def fetch_control(repo: str) -> dict:
+    import datetime as _dt
+    r = subprocess.run(["git", "-C", repo, "fetch", "-q", "origin", "control/landing-orchestrator"], capture_output=True, text=True, timeout=60)
+    sha = subprocess.run(["git", "-C", repo, "rev-parse", CONTROL_REF], capture_output=True, text=True).stdout.strip()
+    return {"fetched_at_kst": _dt.datetime.now(_dt.timezone(_dt.timedelta(hours=9))).isoformat(timespec="seconds"), "fetch_rc": r.returncode, "control_ref": CONTROL_REF, "control_commit": sha}
 DEFAULT_INDEX_REF = CONTROL_REF + ":research/landing_accessibility/control/v3/V3_RULING_INDEX.json"
 DEFAULT_DELTA_REF = CONTROL_REF + ":research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md"
 ASSURANCE_ROOT = pathlib.Path(__file__).resolve().parent
@@ -275,6 +281,7 @@ def token_in(text: str, tok: str) -> bool:
 
 def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | None, delta_ref: str) -> dict:
     raw = None; source = None
+    fetch_info = fetch_control(repo)
     if index_file:
         raw = pathlib.Path(index_file).read_text(encoding="utf-8"); source = index_file
     else:
@@ -284,7 +291,7 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
     idx_obj = json.loads(raw)
     idx = RulingIndex(idx_obj, source, hashlib.sha256(raw.encode("utf-8")).hexdigest())
     controls = index_controls(idx)
-    out = {"index_source": source, "index_version": idx.version, "index_rows": len(idx.rows), "index_sha256": idx.sha256, "controls": controls,
+    out = {"index_source": source, "control_fetch": fetch_info, "index_version": idx.version, "index_rows": len(idx.rows), "index_sha256": idx.sha256, "controls": controls,
            "alias_rule_applied": "index v17 alias_rules / Δ33: alias unsafe iff it fires in C's ruling-unrelated control corpus (specificity, measured); Δ25 shape rule kept as report-only proxy; token-boundary matching",
            "index_alias_rules_present": idx.alias_rules is not None,
            "alias_collisions": idx.collisions, "unsafe_aliases": idx.unsafe, "unsafe_aliases_by_index_control_corpus": idx.unsafe_by_a_corpus, "index_control_corpus_declared": idx.a_corpus_present, "shape_unsafe_aliases_delta25_proxy": idx.shape_unsafe, "short_alpha_aliases": idx.short_alpha, "empty_alias_rows": idx.empty_alias_rows}
