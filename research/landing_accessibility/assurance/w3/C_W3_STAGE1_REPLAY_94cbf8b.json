@@ -1,0 +1,65 @@
+{
+  "artifact": "C_W3_STAGE1_REPLAY_94cbf8b",
+  "target": "claude-b/w3-kwcag@94cbf8b (Stage 1 evaluator)",
+  "input": "frozen mart probe 54 (FAILED 2 no probe)",
+  "method": "evaluate_older_relevant_subset SUT + C invariant checks + 1.4.3 item-level artifact analysis",
+  "invariants": {
+    "scope_22_only": "PASS (1.1.1 → SubsetScopeError)",
+    "NOT_AUTOMATABLE_7→UNDET": "PASS 54/54 each",
+    "AUTO_FLAG_ONLY_6→UNDET_or_NA": "PASS (UNDET 또는 NA(적용항목 0) 만, PASS/FAIL 0)",
+    "schema_gap_4(2.2.1/2.4.1/2.5.4/3.3.4)→UNDET": "PASS 54/54 each",
+    "cap_hit∧PASS→UNDET": "PASS (cap∧PASS 0건)",
+    "FAIL_erased_by_cap": "PASS (FAIL 80 중 cap_hit 0; cap 하향은 PASS 만)",
+    "measurement_failure→FAIL": "1.4.3 FAIL 45 중 artifact-only 1 (P3, 아래)",
+    "service_level_replication": "criterion 별 독립 호출(코드 구조) PASS"
+  },
+  "outcomes_AUTO_DECIDABLE": {
+    "1.4.2": {
+      "FAIL": 5,
+      "NA": 49
+    },
+    "1.4.3": {
+      "FAIL": 45,
+      "PASS": 9
+    },
+    "2.1.3": {
+      "PASS": 34,
+      "FAIL": 16,
+      "UNDET": 4
+    },
+    "2.4.2": {
+      "PASS": 54
+    },
+    "3.3.2": {
+      "NA": 21,
+      "UNDET": 7,
+      "PASS": 12,
+      "FAIL": 14
+    },
+    "2.2.1/2.4.1/2.5.4/3.3.4": "UNDET 54 (schema gap)"
+  },
+  "decision_coverage": {
+    "PASS+FAIL": 189,
+    "cells": 1188,
+    "rate": 0.159,
+    "effective_decidable_criteria": "5/22 (1.4.2, 1.4.3, 2.1.3, 2.4.2, 3.3.2) — D-R0-52 상한 9/22 중 4 는 schema gap 으로 미실현. 사전등록 권고: 실효 상한 5/22=0.227"
+  },
+  "construct_notes": [
+    {
+      "sev": "P2",
+      "note": "1.4.3 대비 FAIL 45/54(83%): 'any item < 요구비' 규칙이 최대 400 항목에 적용돼 FailRate 가 1.4.3 에 지배됨. artifact-only FAIL 은 1건뿐(실패 항목 1,174 중 alpha0 17·1px 50·bg 미해결 등 62) → FAIL 은 실측이나, OlderRelevantKWCAGFailRate 를 criterion 별 병기 없이 합산하면 단일 criterion 이 축을 결정. per-criterion 보고 사전등록"
+    },
+    {
+      "sev": "P3",
+      "note": "1.4.3 항목 필터: fg_alpha==0 / box≤1px / bg 미해결 항목을 evidence 에서 제외(또는 UNDET 표기) — 결과 1건 변동"
+    },
+    {
+      "sev": "P3",
+      "note": "2.4.2 PASS 54/54 — title 존재만으로 PASS: 구현은 계약(존재 판정)과 일치하나 evidence 강도 약함, '적절한 제목' 은 FLAG 로 분리 권고"
+    }
+  ],
+  "not_verified": [
+    "evidence_ref 의 physical slot 이 probe 뿐 — dom/ax slot 미사용 여부(설계) 확인 안 함",
+    "Expectation 함수의 KWCAG 원문 임계값(대비 4.5/3.0, target size 등) 정본 대조 — refcohort codebook 과 대조는 이월"
+  ]
+}
