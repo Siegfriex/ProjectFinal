@@ -164,7 +164,9 @@ runbook 의 "A 는 같은 Wave 내부 phase 사이에서 Director 추가 승인�
 
 → 어떤 phase 전이도 REAL 개시 근거가 아니다. REAL 은 해당 scope 의 release 문서가 `RELEASED` 이고 manifest hash 가 바인딩되고 A 의 명시 GO 가 있을 때만 실행한다. `V2_DIAGNOSTIC` 12 가 RELEASED 인데도 실행되지 않고 있는 것이 이 기준의 현행 실례다.
 
-**hard stop 어휘**: runbook 과 `T-A-V3-P0-001` 의 어휘가 다르나 일대일 대응한다(scope leak↔wrong scope · task contract drift↔task/outcome leakage · evidence mutation↔evidence overwrite). **정본은 `T-A-V3-P0-001` 의 6종**이다. B·C 가 이미 같은 판단을 했다.
+**hard stop 어휘**: runbook 과 `T-A-V3-P0-001` 의 어휘가 다르나 일대일 대응한다(scope leak↔wrong scope · task contract drift↔task/outcome leakage · evidence mutation↔evidence overwrite). 발행 시점 정본은 `T-A-V3-P0-001` 의 6종이었다. B·C 가 같은 판단을 했다.
+
+> **SUPERSEDED — 정본은 Δ19-R9 의 8종이다.** 6종은 이 문서 발행 시점의 기록으로 남긴다. C 가 색인 대조에서 이 불일치를 잡았다(`C-FINDING-040011`).
 
 **partial failure policy 정합**: runbook 의 "P5 실행 중 실패한 target 은 표본 교체 금지, 실패/결측 사유로 보존"은 Δ2 및 v3 01 §1 · 05 §5 와 같은 방향이며 모순 없다.
 
@@ -501,3 +503,63 @@ R18 의 `ticket_sha256` 이 이 층을 연다.
 ### 오케스트레이션 결함군 다섯 번째
 
 작업을 나누면 **나눈 자리마다 아무도 테스트하지 않는 이음매가 생긴다.** B 의 lane 분할(R7 전달 누락) · D 의 워커 간 입력 의존성 · A 의 디렉터리 add · B 의 수집기 소유 미명시 · 그리고 이번엔 **lane 사이의 실행 경로**.
+
+## Δ19 — R8·R9·R10 (누락분 정본화)
+
+`T-A-V3-STEP1-004` 로 발행했으나 **delta 에 기록하지 않았다.** 그래서 티켓에만 존재했고, 색인이 Δ7 의 옛 6종을 인용해 정본이 뒤로 돌아갈 뻔했다. C 가 색인 대조로 잡았다(`C-FINDING-040011`).
+
+이것이 색인을 만든 이유 그대로다 — **판정이 티켓에만 있으면 정본이 어디인지가 전달 이력에 의존한다.**
+
+### R8 — HOLD 승격은 개수가 아니라 원인의 소재로 가른다
+
+**개수 임계값을 만들지 않는다.** 개수 기준은 "4건이니 하나만 더 참자"를 만들고, 판정이 수를 세는 일이 되면 판정자가 세는 사람이 된다.
+
+실제 검정: **원인이 우리 쪽에 있는가.**
+
+1. 실패 양식을 우리가 통제하는 fixture 로 재현 시도
+2. 재현되면 → **systemic**, 즉시 HOLD
+3. 재현 안 되고 사이트마다 양상이 다르면 → **site-level**, terminal/missing 사유로 보존하고 계속
+4. 재현 시도가 불가능하면 재현 불가로 기록 — **판정을 미루는 것이 잘못 판정하는 것보다 낫다.** 그 target 은 ABSTAIN
+
+판정자는 **C** 다. B 도 E 도 자기 실패를 site-level 로 자가 분류하지 않는다.
+
+**보고 하한(HOLD 조건 아님)**: family 의 evidence-bearing n 이 10 중 5 미만이면 C 가 finding 을 내고 A 가 그 family 를 기술통계 보고 대상으로 삼을지 판정한다. 수집은 계속한다.
+
+### R9 — hard-stop 어휘 8종 (정본)
+
+`wrong_scope` · `target_outside_manifest` · `forbidden_action` · `evidence_overwrite` · `duplicate_launch` · `task_contract_drift`(endpoint drift 포함) · `task_or_outcome_leakage` · `denominator_corruption`
+
+`T-A-V3-P0-001` 의 6종을 대체한다. **이 확장은 hard-stop 대상을 늘린다. 줄이지 않는다** — 6종에 애매하게 걸리던 것이 8종에서 명확히 걸린다. 서로 다른 실패 양식을 맞지 않는 통에 밀어 넣으면 나중에 "이건 wrong_scope 인가"로 다투게 된다.
+
+### R10 — release 문서는 전제조건 SHA 를 인용한다
+
+A 가 release 를 발행하고 A 가 그 근거를 판정한다. self-authority 자체는 없앨 수 없다 — 없앨 수 있는 것은 **근거가 사후에 복원되지 않는 것**이다.
+
+필수 필드: `preconditions[]`(각 completion/assurance 의 ticket_id·plane·exact SHA·판정) · `producer_sha` 와 `assurance_sha` 가 같은 대상인지 · `manifest_sha256` 과 **이미 push 된** 브랜치·SHA · `what_this_authorizes` / `what_this_does_not_authorize` · `revocation`.
+
+`V3_PILOT_5` 부터 적용한다. 기존 release 는 소급 개정하지 않는다.
+
+교훈 출처: `V2_DIAGNOSTIC_RELEASE` 가 Director 의 취소 지시 후 12분간 `RELEASED` 로 남아 있었다. 그 문서는 스스로 "A 가 status 를 변경한다"고 적어 뒀는데도 그랬다. **조항의 존재가 집행이 아니다.**
+
+## Δ20 — 수집기 두 공백은 STEP 1 안이다 (STEP1-015 정본화)
+
+`T-A-V3-STEP1-015` 로 발행했으나 delta 에 기록하지 않았다. C 가 "delta 근거 없는 색인 행"으로 잡았다.
+
+**AX 조인**과 **scroll state 열거** 둘 다 STEP 1 안이다. 미검증 선언(선택지 3)을 기각한다.
+
+- AX 조인 없이는 `accessible_name` · `accessible_name_source` · `label_relation` 과 `ICON_ONLY_AX_NAMED` ↔ `ICON_ONLY_UNNAMED` 구분이 산출되지 않는다. 00 §8 의 절반이며 **미검증으로 두면 한계가 아니라 결측 축이다.**
+- scroll state 없이는 "접힌 아래에 있다"와 "존재하지 않는다"를 구분할 수 없다. R13 의 `NONE` 대 `UNDETERMINED` 혼동이 surface 층에서 재현된다. **A 의 Δ15-GAP02 판정이 scroll state 수집 능력을 전제했다** — B 가 그 전제 오류를 짚었다.
+
+`l0_probe.js` / `l0_collector.py` 수정 허용. W2 freeze 는 RF detector 에 걸린 것이지 수집기 전체가 아니다. **세 조건**: 가산적일 것 · 기존 회귀 전건 통과 · **`collector_sha256` 을 모든 v3 관측 행에 기록**(legacy 59·12 는 현재 수집기가, v3 는 바뀐 수집기가 낸다. 그 경계가 데이터에 남아야 한다).
+
+lane 구조는 B 가 정한다. B 는 W5I(AX 조인)·W5J(scroll state)로 나눴다 — Δ12 의 공유 독해 위험을 수집기 층에 적용한 것이다.
+
+## Δ21 — R21 판정 색인 (정본화)
+
+`control/v3/V3_RULING_INDEX.json`. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(`T-B-V3-SCOPE-001`).
+
+C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 색인**으로 대조한다. 색인에 있는데 산출에 없으면 미반영이다.
+
+정본은 이 delta 원문이며 **충돌 시 delta 가 이긴다.** 단 delta 자체가 누락돼 있으면 색인도 함께 틀린다 — Δ19·Δ20 이 그 사례다. 그러므로 **C 는 색인 대 delta 뿐 아니라 delta 대 발행 티켓도 대조한다.**
+
+각 색인 행은 `authority` 필드로 근거 delta 절 또는 티켓 id 를 갖는다(C 제안).
