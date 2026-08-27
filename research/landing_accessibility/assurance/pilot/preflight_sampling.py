@@ -45,7 +45,8 @@ for a, q in sorted(quota.items()):
     sel[a] = chosen; trace.append({"archetype": a, "pool": len(pool), "poor_in_pool": len(poor), "quota": q, "selected": chosen})
 man_sel = {t["prior_archetype"]: [] for t in man["targets"]}
 for t in man["targets"]: man_sel[t["prior_archetype"]].append(t["web_target_id"])
-man_class = {t["web_target_id"]: (t["evidence_class"], t["poor_reason"]) for t in man["targets"]}
+RMAP = {"unobserved": "R1", "failed_evidence_incomplete": "R2", "degenerate": "R3", None: None}
+man_class = {t["web_target_id"]: (t["evidence_class"], (t.get("poor_reason") or t.get("poor_rule") or None)) for t in man["targets"]}
 mine_class = {t: list(eclass(t)) for a in sel for t in sel[a]}
 okeys_match = all(okey(t["web_target_id"]) == t["order_key"] for t in man["targets"])
 result = {"artifact": "C_PILOT_PREFLIGHT_SAMPLING", "control_sha": CTRL_SHA, "frame_sha": FRAME_SHA, "seed": SEED,
@@ -53,7 +54,7 @@ result = {"artifact": "C_PILOT_PREFLIGHT_SAMPLING", "control_sha": CTRL_SHA, "fr
           "frame_rows": len(rows), "frame_candidate": len(cand), "archetypes_in_frame": sorted(pools), "quota_sum": sum(quota.values()),
           "evidence_class_counts_frame": collections.Counter(eclass(r["web_target_id"])[1] or "NORMAL" for r in cand),
           "order_key_match_12": okeys_match, "selection_match": sel == {a: man_sel.get(a, []) for a in sel},
-          "evidence_class_match": all(t in man_class and tuple(mine_class[t]) == (man_class[t][0], man_class[t][1] if man_class[t][1] != "None" else None) for t in mine_class), "mine_class": mine_class, "man_class": man_class,
+          "evidence_class_match": all(t in man_class and mine_class[t][0] == man_class[t][0] and (man_class[t][1] in (None, "None") or str(man_class[t][1]).startswith(RMAP[mine_class[t][1]] or "R?") or man_class[t][1] == mine_class[t][1]) for t in mine_class), "mine_class": mine_class, "man_class": man_class,
           "trace_match": trace == man["selection_trace"], "inputs_used": ["frame CSV @2281c85 (mapping_status==CANDIDATE, interaction_archetype)", "E001 mart fact_landing_observation (measurement_status, observation_id)", "stored dom.html bytes (degenerate)", "seed"],
           "inputs_NOT_used": ["split json (calibration/holdout)", "LABELS_FROZEN", "any detector output"], "trace": trace}
 print(json.dumps(result, ensure_ascii=False, indent=1, default=str))

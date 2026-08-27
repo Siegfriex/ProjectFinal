@@ -25,3 +25,10 @@
 
 ## 이 preflight 가 검증하지 않은 것
 REAL_TARGET 경로 자체(FIXTURE 만 실행) · W4 probe 의 REAL 모드 동작 · retention manifest(run 이후) · evidence sufficiency(run 이후).
+
+---
+## Addendum — manifest v2 재동결 (control `fa6780d902`, 00:14 A 결정 F1_OPTION_II_REFREEZE)
+- sha256 독립 재계산 `78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799` = A 주장 **MATCH**
+- sampling 재현(같은 `preflight_sampling.py`, 입력 = frame@2281c85 + mart + dom 바이트 + seed, split/label 미사용): **12/12 MATCH** — order_key 12/12 · selection_trace 7/7 동일 · evidence class 12/12 (POOR 3 = R3 NH스마트뱅킹 · R2 롯데하이마트 · R1 삼성 인터넷 브라우저). CONTENT_OPEN = Netflix `wtg_13ed07`(C 의 v1 재현과 일치)
+- 항목 2·4 → **MET**. 항목 1·3·5 유지. 항목 6 은 최종 integration SHA 에서 재실행.
+- Netflix 는 `/kr/login` URL — D-R0-03(credential 입력·login submit 금지) 재확인. 로그인 폼 도달은 gate observation.
