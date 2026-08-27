@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C-Lane3 fixture: F5 intercity schedule via global menu + non-blocking bottom banner (NEGATIVE_CONTROL: overlay present != obstruction)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;font-family:sans-serif;background:#fff;color:#111}
+  header{position:sticky;top:0;height:56px;display:flex;align-items:center;padding:6px 8px;border-bottom:1px solid #ddd;background:#fff;z-index:10}
+  header .logo{flex:1;text-align:center;font-weight:700;font-size:18px}
+  button,a{font:inherit;cursor:pointer}
+  .icon{width:44px;height:44px;border:1px solid #ccc;border-radius:6px;background:#fafafa;font-size:22px}
+  [data-screen]{display:none;padding:16px}
+  [data-screen].on{display:block}
+  .hero{height:300px;background:#e8f0fe;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .list button,.list a{display:block;width:100%;text-align:left;padding:14px 12px;margin-bottom:8px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:16px;text-decoration:none;color:#111}
+  aside[data-c-drawer]{position:fixed;top:0;left:0;width:300px;height:100%;background:#fff;border-right:1px solid #999;padding:16px;z-index:200;box-shadow:4px 0 12px rgba(0,0,0,.3)}
+  aside[hidden]{display:none}
+  .drawer-title{font-weight:700;font-size:18px;margin-bottom:12px}
+  label{display:block;margin:12px 0 4px;font-size:14px}
+  input[type=search]{width:100%;padding:12px;font-size:16px;border:1px solid #888;border-radius:8px}
+  .static{padding:12px;border:1px solid #ddd;border-radius:8px;background:#f6f6f6}
+  .primary{width:100%;padding:14px;margin-top:16px;background:#1a56db;color:#fff;border:0;border-radius:8px;font-size:16px}
+  .err{color:#b00020;font-size:14px;margin-top:8px;min-height:18px}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  td,th{border-bottom:1px solid #ddd;padding:10px 6px;text-align:left;font-size:15px}
+  h1{font-size:20px;margin-bottom:12px}
+  .banner{position:fixed;left:0;right:0;bottom:0;height:64px;background:#fff8e1;border-top:1px solid #f0c000;z-index:50;display:flex;align-items:center;padding:0 12px;gap:8px}
+  .banner span{flex:1;font-size:14px}
+  .banner button{padding:8px 10px;border:1px solid #999;border-radius:6px;background:#fff}
+</style>
+</head>
+<body data-c-state="LANDING" data-c-fixture="seq_non_blocking_banner" data-c-banner="present" data-c-family="F5" data-c-terminal="">
+
+<div class="banner" role="region" aria-label="앱 설치 안내" data-c-overlay="banner" data-c-interrupt="banner">
+  <span>앱에서 더 편리하게 예매하세요</span>
+  <button data-c-decoy="DISMISS_NOT_REQUIRED" onclick="closeBanner()">배너 닫기</button>
+</div>
+<header>
+  <button class="icon" data-c-action="OPEN_GLOBAL_MENU" aria-label="전체메뉴" onclick="openMenu()">&#9776;</button>
+  <div class="logo">C버스터미널</div>
+  <div style="width:44px"></div>
+</header>
+
+<section data-screen="LANDING" class="on">
+  <div class="hero">오늘도 안전한 여행</div>
+  <p>공지: 명절 기간 운행편이 증편됩니다.</p>
+  <p style="margin-top:12px">터미널 주차 안내, 분실물 센터 운영시간은 고객센터에서 확인하세요.</p>
+</section>
+
+<aside data-c-drawer role="dialog" aria-label="전체메뉴" hidden>
+  <div class="drawer-title">전체메뉴</div>
+  <div class="list">
+    <button data-c-action="SELECT_CATEGORY" data-c-path="1" onclick="selectCategory()">시외/고속버스</button>
+    <button onclick="noop('공지사항')">공지사항</button>
+    <button onclick="noop('고객센터')">고객센터</button>
+  </div>
+  <button style="margin-top:16px" onclick="closeMenu()">메뉴 닫기</button>
+</aside>
+
+<section data-screen="CATEGORY">
+  <h1>시외/고속버스</h1>
+  <div class="list">
+    <button data-c-action="SELECT_FUNCTION" data-c-task-control="1" data-c-path="1" onclick="selectFunction()">운행편 조회</button>
+    <button onclick="noop('예매 확인')">예매 확인</button>
+    <button onclick="noop('터미널 안내')">터미널 안내</button>
+  </div>
+</section>
+
+<section data-screen="FORM">
+  <h1>운행편 조회</h1>
+  <label>출발지</label><div class="static">서울경부</div>
+  <label for="dest">도착지</label>
+  <input id="dest" type="search" data-c-action="INPUT_QUERY" data-c-path="1" placeholder="도착지 검색" oninput="onQuery(this)">
+  <label>날짜</label><div class="static">내일 (T+1)</div>
+  <label>인원</label><div class="static">성인 1</div>
+  <button class="primary" data-c-action="SUBMIT_QUERY" data-c-path="1" onclick="submitQuery()">조회</button>
+  <div class="err" id="err" aria-live="polite"></div>
+</section>
+
+<section data-screen="RESULTS">
+  <h1>노선 목록</h1>
+  <p style="font-size:14px;color:#555">노선을 선택하면 시간표와 요금이 표시됩니다.</p>
+  <div class="list" style="margin-top:12px">
+    <button data-c-action="SELECT_RESULT" data-c-path="1" onclick="selectResult('직통')">서울경부 → 부산 (직통)</button>
+    <button data-c-action="SELECT_RESULT" onclick="selectResult('경유')">서울경부 → 부산사상 (경유)</button>
+  </div>
+</section>
+
+<section data-screen="SCHEDULE" data-c-endpoint="REACHED">
+  <h1>서울경부 → 부산 시간표</h1>
+  <table>
+    <thead><tr><th>출발</th><th>등급</th><th>요금</th></tr></thead>
+    <tbody>
+      <tr><td>06:00</td><td>우등</td><td>34,000원</td></tr>
+      <tr><td>07:00</td><td>일반</td><td>25,000원</td></tr>
+      <tr><td>08:00</td><td>프리미엄</td><td>44,000원</td></tr>
+    </tbody>
+  </table>
+  <button style="margin-top:16px;padding:12px" data-c-forbidden="RESERVE" onclick="noop('예매')">예매하기 (금지 control)</button>
+</section>
+
+<script>
+(function(){
+  const B=document.body, T=window.__cTransitions=[];
+  window.cGo=function(action,state,screen,terminal){
+    const before=B.dataset.cState;
+    B.dataset.cState=state;
+    if(screen){document.querySelectorAll('[data-screen]').forEach(s=>s.classList.toggle('on',s.dataset.screen===screen));window.scrollTo(0,0);}
+    if(terminal!==undefined)B.dataset.cTerminal=terminal;
+    location.hash=state;
+    T.push({before,action,after:state});
+  };
+  window.closeBanner=function(){document.querySelector('.banner').remove();T.push({before:B.dataset.cState,action:'DISMISS_NOT_REQUIRED',after:B.dataset.cState});};
+  window.noop=function(n){T.push({before:B.dataset.cState,action:'NOOP:'+n,after:B.dataset.cState});};
+  const drawer=document.querySelector('[data-c-drawer]');
+  window.openMenu=function(){if(B.dataset.cState!=='LANDING')return;drawer.hidden=false;cGo('OPEN_GLOBAL_MENU','MENU_OPEN');};
+  window.closeMenu=function(){drawer.hidden=true;cGo('CLOSE_MENU','LANDING');};
+  window.selectCategory=function(){drawer.hidden=true;cGo('SELECT_CATEGORY','CATEGORY_BUS','CATEGORY');};
+  window.selectFunction=function(){cGo('SELECT_FUNCTION','FORM','FORM');};
+  window.onQuery=function(el){
+    const v=el.value.trim(), s=B.dataset.cState;
+    if(v&&s==='FORM')cGo('INPUT_QUERY','FORM_FILLED');
+    else if(!v&&s==='FORM_FILLED')cGo('INPUT_CLEARED','FORM');
+  };
+  window.submitQuery=function(){
+    if(B.dataset.cState!=='FORM_FILLED'){document.getElementById('err').textContent='도착지를 입력하세요.';T.push({before:B.dataset.cState,action:'SUBMIT_QUERY_REJECTED',after:B.dataset.cState});return;}
+    cGo('SUBMIT_QUERY','RESULT_ROUTES','RESULTS');
+  };
+  window.selectResult=function(k){if(k!=='직통'){noop('경유노선');return;}cGo('SELECT_RESULT','ENDPOINT_SCHEDULE','SCHEDULE','ENDPOINT_REACHED');};
+})();
+</script>
+</body>
+</html>

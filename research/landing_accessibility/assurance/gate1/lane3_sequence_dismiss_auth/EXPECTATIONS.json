@@ -1,0 +1,976 @@
+{
+ "$schema_note": "C-authored, independent of B runner code. Values are derived only from SSOTV3 04_FLOW_CODEBOOK §2-§5, 03_COLLECTION_MEASUREMENT_SPEC §5-§9, 00_SSOT §6-§7, 02_DATA_SCHEMA §4-§5 and from the fixture geometry C built.",
+ "base_commit": "f5e3c8ea3fb6d9cddf509524407a64f036a94233",
+ "viewport": {
+  "width": 390,
+  "height": 844
+ },
+ "token_sets": {
+  "ACTIVATION_SET": [
+   "OPEN_GLOBAL_MENU",
+   "OPEN_LOCAL_MENU",
+   "SWITCH_TAB",
+   "EXPAND_ACCORDION",
+   "SELECT_CATEGORY",
+   "SELECT_FUNCTION",
+   "SELECT_ORIGIN",
+   "SELECT_DESTINATION",
+   "SELECT_DATE",
+   "SUBMIT_QUERY",
+   "SELECT_RESULT",
+   "OPEN_ITEM_DETAIL",
+   "OPEN_PLACE_DETAIL"
+  ],
+  "REVEAL_SET": [
+   "OPEN_GLOBAL_MENU",
+   "OPEN_LOCAL_MENU",
+   "EXPAND_ACCORDION"
+  ],
+  "TERMINAL_SET": [
+   "ENDPOINT_REACHED",
+   "AUTH_GATE",
+   "ABSTAIN"
+  ],
+  "EXCLUDED_FROM_ACTIVATION_DEPTH": [
+   "INPUT_QUERY",
+   "DISMISS_OBSTRUCTION",
+   "AUTH_GATE",
+   "ENDPOINT_REACHED",
+   "ABSTAIN",
+   "scroll",
+   "passive wait/redirect"
+  ]
+ },
+ "derivation_rules_preregistered": {
+  "task_flow_sequence": "experienced_flow_sequence with every DISMISS_OBSTRUCTION removed; order preserved; terminal token (ENDPOINT_REACHED|AUTH_GATE) kept as last element (codebook §3 example keeps AUTH_GATE).",
+  "activation_depth": "count of tokens in ACTIVATION_SET. SUBMIT_QUERY IS counted (it is a button activation; 03 §6 exclusion list names only scroll, passive load, per-character typing, popup dismiss). INPUT_QUERY, DISMISS_OBSTRUCTION, AUTH_GATE, ENDPOINT_REACHED are not.",
+  "flow_step_count": "count of task_flow_sequence tokens excluding the pure terminal markers ENDPOINT_REACHED/ABSTAIN; AUTH_GATE IS counted because 04 §4 says 'auth encounter 포함'. Typing/submit counted. Scroll/dismiss never counted.",
+  "menu_dependency": "true iff any REVEAL_SET token precedes the terminal token. SWITCH_TAB is left undecided (not exercised by these fixtures) and must be pre-registered before use.",
+  "nav_container_depth": "count of REVEAL_SET tokens that precede SELECT_FUNCTION. SELECT_CATEGORY that navigates to a category page is a page transition, not a container reveal, so it does not add depth (fixture 1: depth 1, not 2).",
+  "forced_dismissal_count": "count of DISMISS_OBSTRUCTION in experienced_flow_sequence; each must be paired with a fact_task_obstruction row with dismiss_required_for_task=true.",
+  "dismiss_required_for_task": "true iff the next frozen-path control is not hittable (hit-test at its center lands on the interrupt) until an allowed close control is activated. Geometric overlap alone is insufficient; a blocking_proof click must fail.",
+  "task_control_occlusion": "fraction of a uniform 9x9 sample grid inside the next-path-control bbox whose elementFromPoint is neither the control nor its descendant (hit-test); cross-checked with bbox-intersection against [data-c-overlay] elements. Measured against the path-entry control of the CURRENT state (hamburger at S0 when the task function is behind a menu).",
+  "overlay_coverage": "secondary only: overlay bbox area / viewport area. Non-zero coverage with occlusion 0 is NOT an obstruction (fixture 3).",
+  "s0_task_control_visible": "true iff the SELECT_FUNCTION control's bbox intersects the S0 viewport and it is hittable. A hamburger that leads to it does not count.",
+  "first_visible_scroll_state": "first scroll-only state Sk (scroll step chosen by runner within [120,844] px) whose viewport intersects the SELECT_FUNCTION control; 'NONE' when no scroll state exposes it (menu-hidden or login wall).",
+  "auth_gate_stage": {
+   "NONE": "no AUTH_GATE token.",
+   "BEFORE_TASK_DISCOVERY": "AUTH_GATE with no SELECT_FUNCTION before it: no task-specific control observable at any scroll state S0..Sn and no reveal container available without auth.",
+   "AFTER_TASK_SELECT": "AUTH_GATE occurs at/after SELECT_FUNCTION and before any result-level token (SELECT_RESULT/OPEN_ITEM_DETAIL/OPEN_PLACE_DETAIL) and before any task results surface is rendered. Position rule wins even if the gated action would have yielded the endpoint (e.g. F3 where the form itself is the endpoint).",
+   "AT_ENDPOINT": "AUTH_GATE occurs on a result-level activation after a task results surface was rendered without auth, OR the endpoint surface is rendered but the contract-required content (e.g. F5 time+price) is withheld behind auth."
+  },
+  "endpoint_status": "REACHED iff the family endpoint contract is satisfied in the final state; AUTH_GATE iff final token is AUTH_GATE; nothing else exercised here.",
+  "generic_login_rule": "presence of a login control/link anywhere on the page never produces AUTH_GATE; only a gate that the frozen task path enters counts (00 §6, 03 §7). Fixture 4 is the negative control.",
+  "lossless": "runner's fact_flow_step rows, ordered by step_index, restricted to token-bearing rows, must equal lossless_check as (state_before,data-c-action,state_after) triples with state = body[data-c-state]; url_before/url_after must differ exactly where the fixture changes location.hash (every recorded step)."
+ },
+ "fixtures": {
+  "seq_menu_category_function_endpoint": {
+   "file": "fixtures/seq_menu_category_function_endpoint.html",
+   "family": "F5",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "Canonical 7-token path through a global drawer; every token must survive into task_flow_sequence with typing counted in flow_step_count but not in activation_depth.",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "OPEN_GLOBAL_MENU",
+    "SELECT_CATEGORY",
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "SELECT_RESULT",
+    "ENDPOINT_REACHED"
+   ],
+   "experienced_flow_sequence": [
+    "OPEN_GLOBAL_MENU",
+    "SELECT_CATEGORY",
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "SELECT_RESULT",
+    "ENDPOINT_REACHED"
+   ],
+   "endpoint_status": "REACHED",
+   "auth_gate_stage": "NONE",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": 0.0,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "NONE",
+   "overlay_coverage_s0": 0.0,
+   "s0_task_control_visible": false,
+   "first_visible_scroll_state": "NONE",
+   "s0_path_entry_control": {
+    "token": "OPEN_GLOBAL_MENU",
+    "accessible_name": "전체메뉴",
+    "entry_control_type": "HAMBURGER",
+    "visible": true
+   },
+   "nav_container_type": "LEFT_DRAWER",
+   "reveal_direction": "LEFT",
+   "decoys_visible_at_s0": [],
+   "integrity_probes": [
+    {
+     "at_state": "FORM",
+     "action": "SUBMIT_QUERY",
+     "expect_state": "FORM",
+     "why": "submit without the typed query is rejected by the fixture, so a runner that drops INPUT_QUERY cannot reach the endpoint"
+    }
+   ],
+   "blocking_proof": null,
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "OPEN_GLOBAL_MENU",
+     "state_after": "MENU_OPEN",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "MENU_OPEN",
+     "action": "SELECT_CATEGORY",
+     "state_after": "CATEGORY_BUS",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "CATEGORY_BUS",
+     "action": "SELECT_FUNCTION",
+     "state_after": "FORM",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "FORM",
+     "action": "INPUT_QUERY",
+     "state_after": "FORM_FILLED",
+     "kind": "fill",
+     "runner_must_record": true,
+     "value": "부산"
+    },
+    {
+     "state_before": "FORM_FILLED",
+     "action": "SUBMIT_QUERY",
+     "state_after": "RESULT_ROUTES",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "RESULT_ROUTES",
+     "action": "SELECT_RESULT",
+     "state_after": "ENDPOINT_SCHEDULE",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "ENDPOINT_REACHED",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent",
+   "activation_depth_excluded_tokens": [
+    "INPUT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "activation_depth": 5,
+   "flow_step_count": 6,
+   "menu_dependency": true,
+   "nav_container_depth": 1,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "OPEN_GLOBAL_MENU",
+     "MENU_OPEN"
+    ],
+    [
+     "MENU_OPEN",
+     "SELECT_CATEGORY",
+     "CATEGORY_BUS"
+    ],
+    [
+     "CATEGORY_BUS",
+     "SELECT_FUNCTION",
+     "FORM"
+    ],
+    [
+     "FORM",
+     "INPUT_QUERY",
+     "FORM_FILLED"
+    ],
+    [
+     "FORM_FILLED",
+     "SUBMIT_QUERY",
+     "RESULT_ROUTES"
+    ],
+    [
+     "RESULT_ROUTES",
+     "SELECT_RESULT",
+     "ENDPOINT_SCHEDULE"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "ENDPOINT_SCHEDULE",
+    "terminal_token": "ENDPOINT_REACHED"
+   }
+  },
+  "seq_with_forced_dismissal": {
+   "file": "fixtures/seq_with_forced_dismissal.html",
+   "family": "F5",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "Blocking modal fully covers the hamburger at S0 and only its '닫기' control clears it; DISMISS_OBSTRUCTION must appear in experienced_flow_sequence only.",
+   "initial_state": "LANDING_MODAL",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "OPEN_GLOBAL_MENU",
+    "SELECT_CATEGORY",
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "SELECT_RESULT",
+    "ENDPOINT_REACHED"
+   ],
+   "experienced_flow_sequence": [
+    "DISMISS_OBSTRUCTION",
+    "OPEN_GLOBAL_MENU",
+    "SELECT_CATEGORY",
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "SELECT_RESULT",
+    "ENDPOINT_REACHED"
+   ],
+   "endpoint_status": "REACHED",
+   "auth_gate_stage": "NONE",
+   "dismiss_required_for_task": true,
+   "task_control_occlusion_s0": 1.0,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "MODAL",
+   "overlay_coverage_s0": 1.0,
+   "dismiss_control": {
+    "exists": true,
+    "visible": true,
+    "accessible_name": "닫기",
+    "role": "button"
+   },
+   "s0_task_control_visible": false,
+   "first_visible_scroll_state": "NONE",
+   "s0_path_entry_control": {
+    "token": "OPEN_GLOBAL_MENU",
+    "accessible_name": "전체메뉴",
+    "entry_control_type": "HAMBURGER",
+    "visible": true,
+    "note": "visible in DOM/geometry terms but fully occluded; hit-test at its center lands on the backdrop"
+   },
+   "nav_container_type": "LEFT_DRAWER",
+   "reveal_direction": "LEFT",
+   "decoys_visible_at_s0": [],
+   "integrity_probes": [
+    {
+     "at_state": "FORM",
+     "action": "SUBMIT_QUERY",
+     "expect_state": "FORM",
+     "why": "submit without the typed query is rejected by the fixture, so a runner that drops INPUT_QUERY cannot reach the endpoint"
+    }
+   ],
+   "blocking_proof": {
+    "click_center_of": "OPEN_GLOBAL_MENU",
+    "expect_state_after": "LANDING_MODAL",
+    "why": "proves the overlay blocks the task path (semantic obstruction), not merely overlaps it"
+   },
+   "walk": [
+    {
+     "state_before": "LANDING_MODAL",
+     "action": "DISMISS_OBSTRUCTION",
+     "state_after": "LANDING",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "LANDING",
+     "action": "OPEN_GLOBAL_MENU",
+     "state_after": "MENU_OPEN",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "MENU_OPEN",
+     "action": "SELECT_CATEGORY",
+     "state_after": "CATEGORY_BUS",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "CATEGORY_BUS",
+     "action": "SELECT_FUNCTION",
+     "state_after": "FORM",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "FORM",
+     "action": "INPUT_QUERY",
+     "state_after": "FORM_FILLED",
+     "kind": "fill",
+     "runner_must_record": true,
+     "value": "부산"
+    },
+    {
+     "state_before": "FORM_FILLED",
+     "action": "SUBMIT_QUERY",
+     "state_after": "RESULT_ROUTES",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "RESULT_ROUTES",
+     "action": "SELECT_RESULT",
+     "state_after": "ENDPOINT_SCHEDULE",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "ENDPOINT_REACHED",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent",
+   "activation_depth_excluded_tokens": [
+    "DISMISS_OBSTRUCTION",
+    "INPUT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "activation_depth": 5,
+   "flow_step_count": 6,
+   "menu_dependency": true,
+   "nav_container_depth": 1,
+   "forced_dismissal_count": 1,
+   "lossless_check": [
+    [
+     "LANDING_MODAL",
+     "DISMISS_OBSTRUCTION",
+     "LANDING"
+    ],
+    [
+     "LANDING",
+     "OPEN_GLOBAL_MENU",
+     "MENU_OPEN"
+    ],
+    [
+     "MENU_OPEN",
+     "SELECT_CATEGORY",
+     "CATEGORY_BUS"
+    ],
+    [
+     "CATEGORY_BUS",
+     "SELECT_FUNCTION",
+     "FORM"
+    ],
+    [
+     "FORM",
+     "INPUT_QUERY",
+     "FORM_FILLED"
+    ],
+    [
+     "FORM_FILLED",
+     "SUBMIT_QUERY",
+     "RESULT_ROUTES"
+    ],
+    [
+     "RESULT_ROUTES",
+     "SELECT_RESULT",
+     "ENDPOINT_SCHEDULE"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [
+    0
+   ],
+   "lossless_terminal": {
+    "state": "ENDPOINT_SCHEDULE",
+    "terminal_token": "ENDPOINT_REACHED"
+   }
+  },
+  "seq_non_blocking_banner": {
+   "file": "fixtures/seq_non_blocking_banner.html",
+   "family": "F5",
+   "control_role": "NEGATIVE_CONTROL",
+   "rationale": "A fixed bottom banner with its own close button exists (overlay_coverage>0) but never covers a path control and is never required; obstruction fields must all stay at zero/false and the sequences must equal the plain fixture.",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "OPEN_GLOBAL_MENU",
+    "SELECT_CATEGORY",
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "SELECT_RESULT",
+    "ENDPOINT_REACHED"
+   ],
+   "experienced_flow_sequence": [
+    "OPEN_GLOBAL_MENU",
+    "SELECT_CATEGORY",
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "SELECT_RESULT",
+    "ENDPOINT_REACHED"
+   ],
+   "endpoint_status": "REACHED",
+   "auth_gate_stage": "NONE",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": 0.0,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "BANNER_NON_BLOCKING",
+   "overlay_coverage_s0": [
+    0.07,
+    0.08
+   ],
+   "dismiss_control": {
+    "exists": true,
+    "visible": true,
+    "accessible_name": "배너 닫기",
+    "role": "button",
+    "required": false
+   },
+   "s0_task_control_visible": false,
+   "first_visible_scroll_state": "NONE",
+   "s0_path_entry_control": {
+    "token": "OPEN_GLOBAL_MENU",
+    "accessible_name": "전체메뉴",
+    "entry_control_type": "HAMBURGER",
+    "visible": true
+   },
+   "nav_container_type": "LEFT_DRAWER",
+   "reveal_direction": "LEFT",
+   "decoys_visible_at_s0": [
+    "DISMISS_NOT_REQUIRED"
+   ],
+   "integrity_probes": [
+    {
+     "at_state": "FORM",
+     "action": "SUBMIT_QUERY",
+     "expect_state": "FORM",
+     "why": "submit without the typed query is rejected by the fixture, so a runner that drops INPUT_QUERY cannot reach the endpoint"
+    }
+   ],
+   "blocking_proof": {
+    "click_center_of": "OPEN_GLOBAL_MENU",
+    "expect_state_after": "MENU_OPEN",
+    "why": "hamburger works with the banner still present, so the banner is not a forced dismissal",
+    "then_reload": true
+   },
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "OPEN_GLOBAL_MENU",
+     "state_after": "MENU_OPEN",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "MENU_OPEN",
+     "action": "SELECT_CATEGORY",
+     "state_after": "CATEGORY_BUS",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "CATEGORY_BUS",
+     "action": "SELECT_FUNCTION",
+     "state_after": "FORM",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "FORM",
+     "action": "INPUT_QUERY",
+     "state_after": "FORM_FILLED",
+     "kind": "fill",
+     "runner_must_record": true,
+     "value": "부산"
+    },
+    {
+     "state_before": "FORM_FILLED",
+     "action": "SUBMIT_QUERY",
+     "state_after": "RESULT_ROUTES",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "RESULT_ROUTES",
+     "action": "SELECT_RESULT",
+     "state_after": "ENDPOINT_SCHEDULE",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "ENDPOINT_REACHED",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent",
+   "activation_depth_excluded_tokens": [
+    "INPUT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "activation_depth": 5,
+   "flow_step_count": 6,
+   "menu_dependency": true,
+   "nav_container_depth": 1,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "OPEN_GLOBAL_MENU",
+     "MENU_OPEN"
+    ],
+    [
+     "MENU_OPEN",
+     "SELECT_CATEGORY",
+     "CATEGORY_BUS"
+    ],
+    [
+     "CATEGORY_BUS",
+     "SELECT_FUNCTION",
+     "FORM"
+    ],
+    [
+     "FORM",
+     "INPUT_QUERY",
+     "FORM_FILLED"
+    ],
+    [
+     "FORM_FILLED",
+     "SUBMIT_QUERY",
+     "RESULT_ROUTES"
+    ],
+    [
+     "RESULT_ROUTES",
+     "SELECT_RESULT",
+     "ENDPOINT_SCHEDULE"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "ENDPOINT_SCHEDULE",
+    "terminal_token": "ENDPOINT_REACHED"
+   }
+  },
+  "auth_generic_login_present_no_gate": {
+   "file": "fixtures/auth_generic_login_present_no_gate.html",
+   "family": "F3",
+   "control_role": "NEGATIVE_CONTROL",
+   "rationale": "A generic 로그인 button and a 로그인 하러가기 link are visible at S0, but the F3 endpoint (tracking-number input + 조회 control observable) is reached without any auth; auth_gate_stage must be NONE.",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "SELECT_FUNCTION",
+    "ENDPOINT_REACHED"
+   ],
+   "experienced_flow_sequence": [
+    "SELECT_FUNCTION",
+    "ENDPOINT_REACHED"
+   ],
+   "endpoint_status": "REACHED",
+   "auth_gate_stage": "NONE",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": 0.0,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "NONE",
+   "overlay_coverage_s0": 0.0,
+   "s0_task_control_visible": true,
+   "first_visible_scroll_state": "S0",
+   "s0_path_entry_control": {
+    "token": "SELECT_FUNCTION",
+    "accessible_name": "배송조회",
+    "entry_control_type": "TEXT_BUTTON",
+    "visible": true
+   },
+   "nav_container_type": "NONE",
+   "reveal_direction": "NONE",
+   "decoys_visible_at_s0": [
+    "GENERIC_LOGIN",
+    "GENERIC_LOGIN_LINK"
+   ],
+   "integrity_probes": [],
+   "blocking_proof": null,
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "SELECT_FUNCTION",
+     "state_after": "ENDPOINT_TRACKING_FORM",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "ENDPOINT_REACHED",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent; tracking-number input empty and 조회 not activated (F3 forbids the submit)",
+   "activation_depth_excluded_tokens": [
+    "ENDPOINT_REACHED"
+   ],
+   "activation_depth": 1,
+   "flow_step_count": 1,
+   "menu_dependency": false,
+   "nav_container_depth": 0,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "SELECT_FUNCTION",
+     "ENDPOINT_TRACKING_FORM"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "ENDPOINT_TRACKING_FORM",
+    "terminal_token": "ENDPOINT_REACHED"
+   }
+  },
+  "auth_gate_after_task_select": {
+   "file": "fixtures/auth_gate_after_task_select.html",
+   "family": "F1",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "Selecting 이체 navigates straight to a login/identity gate; the gate is on the task path (AFTER_TASK_SELECT) and the run terminates with AUTH_GATE and zero credential input.",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "SELECT_FUNCTION",
+    "AUTH_GATE"
+   ],
+   "experienced_flow_sequence": [
+    "SELECT_FUNCTION",
+    "AUTH_GATE"
+   ],
+   "endpoint_status": "AUTH_GATE",
+   "auth_gate_stage": "AFTER_TASK_SELECT",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": 0.0,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "NONE",
+   "overlay_coverage_s0": 0.0,
+   "s0_task_control_visible": true,
+   "first_visible_scroll_state": "S0",
+   "s0_path_entry_control": {
+    "token": "SELECT_FUNCTION",
+    "accessible_name": "이체",
+    "entry_control_type": "TEXT_BUTTON",
+    "visible": true
+   },
+   "nav_container_type": "NONE",
+   "reveal_direction": "NONE",
+   "decoys_visible_at_s0": [
+    "GENERIC_LOGIN"
+   ],
+   "integrity_probes": [],
+   "blocking_proof": null,
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "SELECT_FUNCTION",
+     "state_after": "AUTH_GATE_TRANSFER",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "AUTH_GATE",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent",
+   "activation_depth_excluded_tokens": [
+    "AUTH_GATE"
+   ],
+   "activation_depth": 1,
+   "flow_step_count": 2,
+   "menu_dependency": false,
+   "nav_container_depth": 0,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "SELECT_FUNCTION",
+     "AUTH_GATE_TRANSFER"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "AUTH_GATE_TRANSFER",
+    "terminal_token": "AUTH_GATE"
+   }
+  },
+  "auth_gate_before_discovery": {
+   "file": "fixtures/auth_gate_before_discovery.html",
+   "family": "F1",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "Login wall at S0; no task-specific control exists at any scroll state (S0,S1) and no reveal container exists, so the only token is AUTH_GATE with stage BEFORE_TASK_DISCOVERY.",
+   "initial_state": "LOGIN_WALL",
+   "initial_terminal": "AUTH_GATE",
+   "task_flow_sequence": [
+    "AUTH_GATE"
+   ],
+   "experienced_flow_sequence": [
+    "AUTH_GATE"
+   ],
+   "endpoint_status": "AUTH_GATE",
+   "auth_gate_stage": "BEFORE_TASK_DISCOVERY",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": null,
+   "task_control_occlusion_all_steps": null,
+   "interrupt_type": "NONE",
+   "overlay_coverage_s0": 0.0,
+   "s0_task_control_visible": false,
+   "first_visible_scroll_state": "NONE",
+   "s0_path_entry_control": null,
+   "scroll_states_expected": [
+    "S0",
+    "S1"
+   ],
+   "nav_container_type": "NONE",
+   "reveal_direction": "NONE",
+   "decoys_visible_at_s0": [],
+   "integrity_probes": [],
+   "blocking_proof": null,
+   "walk": [],
+   "final_terminal": "AUTH_GATE",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent",
+   "trap": "footer contains the plain text '이체수수료 안내…' inside a <p>; a runner that binds task controls by text alone will hallucinate a task control here",
+   "activation_depth_excluded_tokens": [
+    "AUTH_GATE"
+   ],
+   "activation_depth": 0,
+   "flow_step_count": 1,
+   "menu_dependency": false,
+   "nav_container_depth": 0,
+   "forced_dismissal_count": 0,
+   "lossless_check": [],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "LOGIN_WALL",
+    "terminal_token": "AUTH_GATE"
+   }
+  },
+  "auth_gate_at_endpoint": {
+   "file": "fixtures/auth_gate_at_endpoint.html",
+   "family": "F5",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "Function select, typed query and submit all succeed without auth and a route list is rendered; only the result-level activation that would yield the endpoint content (time/price) hits login, so stage is AT_ENDPOINT.",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "SELECT_RESULT",
+    "AUTH_GATE"
+   ],
+   "experienced_flow_sequence": [
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "SELECT_RESULT",
+    "AUTH_GATE"
+   ],
+   "endpoint_status": "AUTH_GATE",
+   "auth_gate_stage": "AT_ENDPOINT",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": 0.0,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "NONE",
+   "overlay_coverage_s0": 0.0,
+   "s0_task_control_visible": true,
+   "first_visible_scroll_state": "S0",
+   "s0_path_entry_control": {
+    "token": "SELECT_FUNCTION",
+    "accessible_name": "운행편 조회",
+    "entry_control_type": "TEXT_BUTTON",
+    "visible": true
+   },
+   "nav_container_type": "NONE",
+   "reveal_direction": "NONE",
+   "decoys_visible_at_s0": [
+    "GENERIC_LOGIN"
+   ],
+   "integrity_probes": [
+    {
+     "at_state": "FORM",
+     "action": "SUBMIT_QUERY",
+     "expect_state": "FORM",
+     "why": "submit without the typed query is rejected by the fixture, so a runner that drops INPUT_QUERY cannot reach the endpoint"
+    }
+   ],
+   "blocking_proof": null,
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "SELECT_FUNCTION",
+     "state_after": "FORM",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "FORM",
+     "action": "INPUT_QUERY",
+     "state_after": "FORM_FILLED",
+     "kind": "fill",
+     "runner_must_record": true,
+     "value": "부산"
+    },
+    {
+     "state_before": "FORM_FILLED",
+     "action": "SUBMIT_QUERY",
+     "state_after": "RESULT_ROUTES",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "RESULT_ROUTES",
+     "action": "SELECT_RESULT",
+     "state_after": "AUTH_GATE_SCHEDULE",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "AUTH_GATE",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent",
+   "activation_depth_excluded_tokens": [
+    "INPUT_QUERY",
+    "AUTH_GATE"
+   ],
+   "activation_depth": 3,
+   "flow_step_count": 5,
+   "menu_dependency": false,
+   "nav_container_depth": 0,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "SELECT_FUNCTION",
+     "FORM"
+    ],
+    [
+     "FORM",
+     "INPUT_QUERY",
+     "FORM_FILLED"
+    ],
+    [
+     "FORM_FILLED",
+     "SUBMIT_QUERY",
+     "RESULT_ROUTES"
+    ],
+    [
+     "RESULT_ROUTES",
+     "SELECT_RESULT",
+     "AUTH_GATE_SCHEDULE"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "AUTH_GATE_SCHEDULE",
+    "terminal_token": "AUTH_GATE"
+   }
+  },
+  "seq_typing_and_scroll_not_depth": {
+   "file": "fixtures/seq_typing_and_scroll_not_depth.html",
+   "family": "F5",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "Task control sits at y≈928px (below the 844px fold) so it is first observed at S1; scroll and typing must not raise activation_depth (=2) while INPUT_QUERY/SUBMIT_QUERY stay in flow_step_count (=3).",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "experienced_flow_sequence": [
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "endpoint_status": "REACHED",
+   "auth_gate_stage": "NONE",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": null,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "NONE",
+   "overlay_coverage_s0": 0.0,
+   "s0_task_control_visible": false,
+   "first_visible_scroll_state": "S1",
+   "first_visible_scroll_state_note": "S1 for any fixed scroll step in [120, 844] px; the control top is ≈928px and bottom ≈988px",
+   "s0_path_entry_control": {
+    "token": "SELECT_FUNCTION",
+    "accessible_name": "운행편 조회",
+    "entry_control_type": "TEXT_BUTTON",
+    "visible": false,
+    "note": "occlusion undefined at S0 because the control is outside the viewport; 0.0 at S1"
+   },
+   "nav_container_type": "NONE",
+   "reveal_direction": "NONE",
+   "decoys_visible_at_s0": [],
+   "integrity_probes": [
+    {
+     "at_state": "FORM",
+     "action": "SUBMIT_QUERY",
+     "expect_state": "FORM",
+     "why": "submit without the typed query is rejected by the fixture, so a runner that drops INPUT_QUERY cannot reach the endpoint"
+    }
+   ],
+   "blocking_proof": null,
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "SCROLL",
+     "state_after": "LANDING",
+     "kind": "scroll",
+     "runner_must_record": false,
+     "value": 844,
+     "note": "surface step: recorded in fact_surface_state (S1), never as a flow step"
+    },
+    {
+     "state_before": "LANDING",
+     "action": "SELECT_FUNCTION",
+     "state_after": "FORM",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "FORM",
+     "action": "INPUT_QUERY",
+     "state_after": "FORM_FILLED",
+     "kind": "fill",
+     "runner_must_record": true,
+     "value": "부산"
+    },
+    {
+     "state_before": "FORM_FILLED",
+     "action": "SUBMIT_QUERY",
+     "state_after": "ENDPOINT_SCHEDULE",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "ENDPOINT_REACHED",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent",
+   "activation_depth_excluded_tokens": [
+    "SCROLL(not a token)",
+    "INPUT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "activation_depth": 2,
+   "flow_step_count": 3,
+   "menu_dependency": false,
+   "nav_container_depth": 0,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "SELECT_FUNCTION",
+     "FORM"
+    ],
+    [
+     "FORM",
+     "INPUT_QUERY",
+     "FORM_FILLED"
+    ],
+    [
+     "FORM_FILLED",
+     "SUBMIT_QUERY",
+     "ENDPOINT_SCHEDULE"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "ENDPOINT_SCHEDULE",
+    "terminal_token": "ENDPOINT_REACHED"
+   }
+  }
+ }
+}
