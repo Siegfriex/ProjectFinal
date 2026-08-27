@@ -308,8 +308,18 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
     if forb: f.add("C1", "FORBIDDEN_LABEL_E000_V2_VALIDATED", f"forbidden string E000_V2_VALIDATED found in {len(forb)} files", files=forb[:10])
     # §1-5 counts: disk runs == referenced runs (+orphans reported separately)
     referenced = {r.get("evidence_run_id") for r in rows if r.get("evidence_run_id")}
-    ev = out / "evidence"; orphan = sorted(d.name for d in ev.iterdir() if d.is_dir() and d.name not in referenced) if ev.is_dir() else []
-    if orphan: f.add("C2", "ORPHAN_EVIDENCE_RUNS", f"{len(orphan)} evidence runs not referenced by any batch result (guard-blocked targets drop their L0 record)", runs=orphan[:20])
+    ev = out / "evidence"; disk_runs = sorted(d.name for d in ev.iterdir() if d.is_dir()) if ev.is_dir() else []
+    unref = [n for n in disk_runs if n not in referenced]
+    attempts_by_tid = {r["target_id"]: (r.get("attempts") or 0) for r in rows}
+    def _tid_of(run_name):
+        m = re.search(r"-(wt[g_-][A-Za-z0-9_-]+?)-\d{4}-\d{2}-\d{2}T", run_name); return m.group(1) if m else None
+    retry_superseded = [n for n in unref if attempts_by_tid.get(_tid_of(n), 0) > 1]
+    guard_blocked = [n for n in unref if n not in retry_superseded and any(r["target_id"] == _tid_of(n) and r["outcome"] == "ACCOUNT_ACTION_BLOCKED" for r in rows)]
+    unsealed = [n for n in disk_runs if not (ev / n / "manifest.jsonl").is_file()]
+    orphan = [n for n in unref if n not in retry_superseded and n not in guard_blocked and n not in unsealed]
+    if orphan: f.add("C1", "ORPHAN_EVIDENCE_RUNS", f"{len(orphan)} sealed evidence runs referenced by no batch result and not explained by retry/guard", runs=orphan[:20])
+    if guard_blocked: f.add("C2", "GUARD_BLOCKED_L0_RUNS", f"{len(guard_blocked)} L0 runs from ACCOUNT_ACTION_BLOCKED targets (lineage note)", runs=guard_blocked[:10])
+    run_accounting = {"disk_runs": len(disk_runs), "referenced_by_batch": len(referenced), "retry_superseded": retry_superseded, "guard_blocked_l0": guard_blocked, "unsealed_in_progress": unsealed, "orphan_unexplained": orphan}
     ao = append_only_check(out, batches, pathlib.Path(state) if state else None, f)
     # SHA consistency across runs
     provs = Counter(json.dumps(r.get("run_provenance"), sort_keys=True) for r in rows if r.get("run_provenance"))
@@ -333,7 +343,7 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
             "verdict": verdict, "severity_max": sev, "n_batches": len(batches), "batch_hash_all_ok": all(b["_hash_ok"] for b in batches) if batches else None,
             "outcomes": dict(outcomes), "attempted_n": len(attempted), "joint_valid_j1_j3_n": len(jv), "j4_pending": "requires fact_criterion_result + frozen older-relevant set",
             "excluded_by_reason": dict(excl), "by_archetype": dict(by_arch), "plan": plan_rep, "append_only": ao,
-            "provenance_variants": list(provs), "protocol_versions": dict(protos), "orphan_evidence_runs": orphan,
+            "provenance_variants": list(provs), "protocol_versions": dict(protos), "orphan_evidence_runs": orphan, "run_accounting": run_accounting,
             "findings": f.items, "rows": rows}
 
 if __name__ == "__main__":

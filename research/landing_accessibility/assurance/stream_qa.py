@@ -65,7 +65,7 @@ def main(a):
                 batch_findings = [f for f in rep["findings"] if f.get("target_id") in {x["target_id"] for x in batch_rows} or not f.get("target_id")]
                 rec = {"artifact": "QA_BATCH_STREAM", "generated_by": "C", "generated_at": now(), "out_dir": str(root), "worker": worker, "batch_file": bf.name, "batch_file_sha256": h, "rerun_after_change": changed,
                        "verdict_cumulative": rep["verdict"], "severity_max_cumulative": rep["severity_max"], "batch_targets": [(x["target_id"], x["outcome"], x["exclusion_reason_c"]) for x in batch_rows],
-                       "cumulative": {k: rep[k] for k in ("attempted_n", "joint_valid_j1_j3_n", "excluded_by_reason", "by_archetype", "n_batches", "batch_hash_all_ok", "outcomes", "orphan_evidence_runs")},
+                       "cumulative": {k: rep[k] for k in ("attempted_n", "joint_valid_j1_j3_n", "excluded_by_reason", "by_archetype", "n_batches", "batch_hash_all_ok", "outcomes", "orphan_evidence_runs", "run_accounting")},
                        "append_only": rep["append_only"], "findings_batch": batch_findings, "findings_all_count": len(rep["findings"])}
                 (d / f"batch_{idx}.json").write_text(json.dumps(rec, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
                 (d / "QA_EVIDENCE_CUMULATIVE.json").write_text(json.dumps(rep, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
