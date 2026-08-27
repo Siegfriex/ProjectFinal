@@ -19,7 +19,7 @@ def token_match(tok, text):
     return bool(re.search(BND % re.escape(tok), text))
 
 
-def run(idx, delta_text):
+def run(idx, delta_text, delta_sha=None, writing=False):
     rows = idx["rulings"]
     fail = []
 
@@ -90,11 +90,23 @@ def run(idx, delta_text):
     if idx.get("count") != len(rows):
         fail.append(("count_mismatch", {"count": idx.get("count"), "actual": len(rows)}))
 
+    # 8. 입력 신원 — 측정값만 있고 무엇을 측정했는지가 없으면 시점 간 비교가 불가능하다 (Δ44)
+    #    `--write` 중에는 건너뛴다. 갱신이 곧 이 검사의 시정이므로 교착이 된다.
+    #    검사만 돌리는 쪽(B/C/D)에게는 **색인이 낡았음**을 알리는 유일한 신호다.
+    if not writing and delta_sha is not None:
+        decl = idx.get("source_sha256")
+        if decl != delta_sha:
+            fail.append(("input_identity", {"declared": decl, "actual_delta": delta_sha,
+                                            "뜻": "색인이 현재 delta 로 재생성되지 않았다. --write 로 갱신하라"}))
+
+    sections = sorted(set(re.findall(
+        r'^#{2,3}\s+(Δ[0-9]+(?:-[A-Za-z0-9\-]+)?|R\d+)(?![0-9A-Za-z_-])', delta_text, re.M)))
     return fail, {"rows": len(rows), "total_aliases": len(own),
-                  "duplicate": len(dup), "unexpected_duplicate": len(unexpected)}
+                  "duplicate": len(dup), "unexpected_duplicate": len(unexpected),
+                  "delta_sections": len(sections), "input_sha256": delta_sha}
 
 
-def positive_control(idx, delta_text):
+def positive_control(idx, delta_text, delta_sha=None):
     """검사별 변이 — 각 검사가 자기 결함만 잡는지 하나씩 확인한다.
 
     이전 판은 결함 하나에 별칭 두 개를 실어 어느 검사가 무엇을 잡았는지
@@ -165,6 +177,14 @@ def positive_control(idx, delta_text):
           lambda m: m["rulings"][0].__setitem__("requires", ""))
     probe("count_mismatch",
           lambda m: m.__setitem__("count", 99999))
+    # 입력 신원 — 선언된 source_sha256 을 흐트러뜨리면 잡혀야 한다.
+    # 이 probe 만 writing=False 로 돈다(검사 자체가 --write 중 비활성이므로).
+    m = json.loads(json.dumps(base))
+    m["source_sha256"] = "0" * 64
+    m["count"] = len(m["rulings"])
+    f, _ = run(m, delta_text, delta_sha=(delta_sha or "1" * 64), writing=False)
+    results["input_identity"] = "input_identity" in {k for k, _ in f}
+
     probe("measurement_single_source",
           lambda m: m["self_check"].setdefault("alias_rules_probe", {}).__setitem__(
               "last_run", {"stale": True}))
@@ -174,12 +194,18 @@ def positive_control(idx, delta_text):
 
 def main():
     idx = json.load(open(IDX, encoding="utf-8"))
-    delta_text = open(DELTA, encoding="utf-8").read()
-    fail, stats = run(idx, delta_text)
-    pc = positive_control(idx, delta_text)
+    delta_bytes = open(DELTA, "rb").read()
+    delta_text = delta_bytes.decode("utf-8")
+    delta_sha = hashlib.sha256(delta_bytes).hexdigest()
+    writing = "--write" in sys.argv
+    fail, stats = run(idx, delta_text, delta_sha=delta_sha, writing=writing)
+    pc = positive_control(idx, delta_text, delta_sha=delta_sha)
 
     print(f"rows={stats['rows']} aliases={stats['total_aliases']} "
-          f"dup={stats['duplicate']} unexpected={stats['unexpected_duplicate']}")
+          f"dup={stats['duplicate']} unexpected={stats['unexpected_duplicate']} "
+          f"sections={stats['delta_sections']}")
+    print(f"input delta sha256={delta_sha}"
+          f"{'' if writing else ('  선언=' + str(idx.get('source_sha256')))}")
     print("positive_control (검사별 변이):")
     for k, v in pc["per_check"].items():
         print(f"    {k:32s} {'잡음' if v else '**못 잡음**'}")
@@ -192,7 +218,14 @@ def main():
             print(f"FAIL {k}: {v}")
         return 1
     print(f"PASS — {len(pc['per_check'])}개 검사 전부 통과 (변이 probe 로 셈)")
-    if "--write" in sys.argv:
+    if writing:
+        # 입력 신원을 정본에 박는다 — 측정값만 남기면 시점 간 비교가 불가능하다 (Δ44)
+        idx["source_sha256"] = delta_sha
+        idx["authority_sha"] = subprocess.run(
+            ["git", "-C", HERE, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+        idx["authority_sha_semantics"] = (
+            "이 값을 쓴 시점의 git HEAD 다. **이 갱신 자체는 그 다음 커밋에 담기므로 항상 한 칸 뒤진다.** "
+            "정확한 입력 신원은 `source_sha256`(delta 바이트) 이며 그쪽을 인용하라")
         idx["self_check"]["last_run"] = {
             "at_kst": subprocess.run(["date", "+%Y-%m-%dT%H:%M:%S%z"], capture_output=True,
                                      text=True, env={**os.environ, "TZ": "Asia/Seoul"}).stdout.strip(),
