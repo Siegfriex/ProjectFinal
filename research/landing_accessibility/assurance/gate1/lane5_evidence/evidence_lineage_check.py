@@ -27,6 +27,9 @@ Discovery heuristics (documented so they can be pre-registered):
       observation_id must be globally unique.
   D6  manifest SHA binding: with --path-manifest, every discovered evidence manifest must be listed there
       with a matching sha256; without it, a sidecar <manifest>.sha256 must exist and match.
+  D8  T-A-V3-STEP1-021 R22 (Δ22-R22): every v3 state / step / flow record carries the capture-stack identity as TWO
+      hashes — engine (collector_sha / collector_sha256) AND driver/session (driver_sha256; aliases session_sha256,
+      capture_stack_sha256). Either missing → MISSING_FIELD (isolated); non-hex → MISSING_FIELD.
 """
 from __future__ import annotations
 
@@ -54,6 +57,7 @@ FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "url":                   ("url", "page_url"),
     "captured_at":           ("captured_at", "timestamp", "ts", "observed_at"),
     "collector_sha":         ("collector_sha", "collector_sha256", "collector_git_sha", "collector_version_sha"),  # collector_sha256 = exact name in T-A-V3-STEP1-015
+    "driver_sha256":         ("driver_sha256", "session_sha256", "capture_stack_sha256"),  # T-A-V3-STEP1-021 R22 (Δ22): engine sha + driver/session sha on every v3 row
     "protocol_sha":          ("protocol_sha", "protocol_git_sha", "ssot_sha"),
     "task_contract_sha256":  ("task_contract_sha256", "task_contract_sha"),
     "endpoint_contract_sha256": ("endpoint_contract_sha256", "endpoint_contract_sha"),
@@ -81,7 +85,7 @@ AUTH_GATE_STAGE = _T.AUTH_GATE_STAGES
 ALLOWED_TERMINAL: dict[str, frozenset] = _T.TERMINAL_ALLOWED
 NO_EVIDENCE_STATUSES = frozenset({"EVIDENCE_DEFECT", "ABSTAIN"})   # R13: NONE here is an affirmative claim without evidence
 FLOW_REQUIRED = ("flow_observation_id", "service_id", "task_id", "run_id", "attempt_id", "endpoint_status",
-                 "auth_gate_stage", "captured_at", "collector_sha", "protocol_sha", "task_contract_sha256",
+                 "auth_gate_stage", "captured_at", "collector_sha", "driver_sha256", "protocol_sha", "task_contract_sha256",
                  "endpoint_contract_sha256")
 # artifact kinds required per STATE (SSOTV3 03 §10: DOM, AX, screenshot, probe/CSS geometry, control facts; URL is a field)
 ARTIFACT_ALIASES: dict[str, tuple[str, ...]] = {
@@ -98,11 +102,11 @@ STEP_HASH_FIELDS: dict[str, tuple[str, str]] = {
     "screenshot_sha256_before": ("screenshot", "before"), "screenshot_sha256_after": ("screenshot", "after"),
 }
 STATE_REQUIRED = ("observation_id", "service_id", "task_id", "run_id", "attempt_id", "state_index", "url",
-                  "captured_at", "collector_sha", "protocol_sha", "task_contract_sha256",
+                  "captured_at", "collector_sha", "driver_sha256", "protocol_sha", "task_contract_sha256",
                   "endpoint_contract_sha256", "artifacts")
 STEP_REQUIRED = ("flow_observation_id", "service_id", "task_id", "run_id", "attempt_id", "step_index",
                  "action_token", "state_before_id", "state_after_id", "url_before", "url_after", "captured_at",
-                 "collector_sha", "protocol_sha", "task_contract_sha256", "endpoint_contract_sha256",
+                 "collector_sha", "driver_sha256", "protocol_sha", "task_contract_sha256", "endpoint_contract_sha256",
                  *STEP_HASH_FIELDS)
 
 # ---------------------------------------------------------------- defect catalogue (severity fixed by contract)
@@ -295,7 +299,7 @@ def check_required(rec: dict, required: tuple[str, ...], where: str, rep: Report
     for f in required:
         if get(rec, f) is None:
             rep.add("MISSING_FIELD", where, f"required field absent/empty: {f}")
-    for f in ("collector_sha", "protocol_sha", "task_contract_sha256", "endpoint_contract_sha256"):
+    for f in ("collector_sha", "driver_sha256", "protocol_sha", "task_contract_sha256", "endpoint_contract_sha256"):
         v = get(rec, f)
         if v is not None and not re.match(r"^[0-9a-f]{7,64}$", str(v)):
             rep.add("MISSING_FIELD", where, f"{f} is not a hex digest: {v!r}")

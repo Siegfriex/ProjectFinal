@@ -3,11 +3,12 @@
 
   good/           1 service-task: run 01 = 3 states (S0..S2), 2 steps, REACHED; run 02 = legitimate re-collection under a new
                   run_id, ABSTAIN x terminal_reason=OTHER (+note) x auth_gate_stage=UNDETERMINED, collector hash written as
-                  collector_sha256 (T-A-V3-STEP1-015 exact name). Hashes consistent, path manifest bound
+                  collector_sha256 (T-A-V3-STEP1-015 exact name) and driver hash as session_sha256 (R22 alias). Every row
+                  carries engine + driver/session sha (T-A-V3-STEP1-021 R22). Hashes consistent, path manifest bound
   bad_overwrite/  run 01 only, S1/screenshot.png rewritten AFTER the manifest was sealed; flow record REACHED x OTHER (no note)
   bad_lineage/    step 1 references state S9 (absent), S2 screenshot missing,
                   service_id is a display name ("Coupang Mobile App") instead of an id; flow record EVIDENCE_DEFECT with
-                  terminal_reason absent and auth_gate_stage=NONE
+                  terminal_reason absent and auth_gate_stage=NONE, and WITHOUT driver_sha256 (R22 negative control)
 
 No real service data. Layout follows C's EVIDENCE_CONTRACT_C.md (pre-registered layout):
   <root>/<service_id>/<task_id>/<run_id>/evidence_manifest.jsonl
@@ -33,7 +34,8 @@ TASK_ID = "T07_search_product"
 RUN_ID = "run_20260828T000000Z_01"
 RUN_ID_2 = "run_20260828T001000Z_02"   # re-collection of the same service-task = NEW run id (06 §6)
 ATTEMPT_ID = "a1"
-COLLECTOR_SHA = "c0ffee00" * 5          # 40 hex
+COLLECTOR_SHA = "c0ffee00" * 5          # 40 hex  (engine)
+DRIVER_SHA = "d21ae500" * 5            # 40 hex  (driver/session — T-A-V3-STEP1-021 R22: engine sha + driver sha on every row)
 PROTOCOL_SHA = "5e05da9" + "0" * 33     # 40 hex
 TASK_CONTRACT_SHA = hashlib.sha256(b"task_contract:T07").hexdigest()
 ENDPOINT_CONTRACT_SHA = hashlib.sha256(b"endpoint_contract:T07").hexdigest()
@@ -77,7 +79,7 @@ def artifact_bytes(kind: str, k: int) -> bytes:
 
 def flow_record(service_id: str, run_id: str, n_steps: int, *, endpoint_status: str, terminal_reason,
                 auth_gate_stage: str, terminal_note: str | None = None, omit_terminal_reason: bool = False,
-                collector_field: str = "collector_sha") -> dict:
+                collector_field: str = "collector_sha", driver_field: str | None = "driver_sha256") -> dict:
     """fact_flow_observation (02 §4) + R11/R13 fields. One per run.
     collector_field: source name of the collector hash — "collector_sha" (C canonical) or "collector_sha256"
     (exact name in T-A-V3-STEP1-015; accepted through FIELD_ALIASES)."""
@@ -92,6 +94,8 @@ def flow_record(service_id: str, run_id: str, n_steps: int, *, endpoint_status: 
         collector_field: COLLECTOR_SHA, "protocol_sha": PROTOCOL_SHA,
         "task_contract_sha256": TASK_CONTRACT_SHA, "endpoint_contract_sha256": ENDPOINT_CONTRACT_SHA,
     }
+    if driver_field:                       # None = R22 negative control (flow record without the driver/session sha)
+        r[driver_field] = DRIVER_SHA
     if terminal_note is not None:
         r["terminal_note"] = terminal_note
     if omit_terminal_reason:
@@ -100,7 +104,8 @@ def flow_record(service_id: str, run_id: str, n_steps: int, *, endpoint_status: 
 
 
 def build(root: Path, *, service_id: str = SERVICE_ID, run_id: str = RUN_ID, n_states: int = 3,
-          base_time: datetime | None = None, collector_field: str = "collector_sha") -> tuple[Path, list[dict], list[dict]]:
+          base_time: datetime | None = None, collector_field: str = "collector_sha",
+          driver_field: str = "driver_sha256") -> tuple[Path, list[dict], list[dict]]:
     """Write states + steps + manifest. Returns (manifest_path, state_records, step_records)."""
     base_time = base_time or datetime(2026, 8, 28, 0, 0, 0, tzinfo=timezone.utc)
     run_dir = root / service_id / TASK_ID / run_id
@@ -125,6 +130,7 @@ def build(root: Path, *, service_id: str = SERVICE_ID, run_id: str = RUN_ID, n_s
             "url": URLS[k % len(URLS)],
             "captured_at": (base_time + timedelta(seconds=5 * k)).isoformat(),
             collector_field: COLLECTOR_SHA,
+            driver_field: DRIVER_SHA,
             "protocol_sha": PROTOCOL_SHA,
             "task_contract_sha256": TASK_CONTRACT_SHA,
             "endpoint_contract_sha256": ENDPOINT_CONTRACT_SHA,
@@ -153,7 +159,7 @@ def build(root: Path, *, service_id: str = SERVICE_ID, run_id: str = RUN_ID, n_s
             "screenshot_sha256_before": b["artifacts"]["screenshot"]["sha256"],
             "screenshot_sha256_after": a["artifacts"]["screenshot"]["sha256"],
             "captured_at": (base_time + timedelta(seconds=5 * i + 3)).isoformat(),
-            collector_field: COLLECTOR_SHA, "protocol_sha": PROTOCOL_SHA,
+            collector_field: COLLECTOR_SHA, driver_field: DRIVER_SHA, "protocol_sha": PROTOCOL_SHA,
             "task_contract_sha256": TASK_CONTRACT_SHA, "endpoint_contract_sha256": ENDPOINT_CONTRACT_SHA,
         })
     return run_dir / "evidence_manifest.jsonl", states, steps
@@ -195,10 +201,12 @@ def main() -> int:
                                                      terminal_reason=None, auth_gate_stage="NONE"))
     # run 02 writes the collector hash under the T-A-V3-STEP1-015 exact name collector_sha256 (FIELD_ALIASES positive control:
     # a checker lacking the alias would report MISSING_FIELD collector_sha on every run-02 record)
-    mpath2, states2, steps2 = build(root, run_id=RUN_ID_2, n_states=1, collector_field="collector_sha256")
+    # run 02 also writes the driver/session hash under the alias session_sha256 (R22 alias positive control)
+    mpath2, states2, steps2 = build(root, run_id=RUN_ID_2, n_states=1, collector_field="collector_sha256", driver_field="session_sha256")
     write_manifest(mpath2, states2, steps2, flow_record(
         SERVICE_ID, RUN_ID_2, 0, endpoint_status="ABSTAIN", terminal_reason="OTHER", auth_gate_stage="UNDETERMINED",
-        terminal_note="two equally plausible search entry controls; replay not attempted", collector_field="collector_sha256"))
+        terminal_note="two equally plausible search entry controls; replay not attempted", collector_field="collector_sha256",
+        driver_field="session_sha256"))
     write_path_manifest(root, [(mpath, SERVICE_ID, RUN_ID), (mpath2, SERVICE_ID, RUN_ID_2)])
     for p in root.rglob("*"):
         if p.is_file() and p.name not in ("evidence_manifest.jsonl", "path_manifest.json"):
@@ -225,9 +233,11 @@ def main() -> int:
     display_name = "Coupang Mobile App"
     mpath, states, steps = build(root, service_id=display_name)
     steps[1]["state_after_id"] = f"{display_name}.{TASK_ID}.{RUN_ID}.{ATTEMPT_ID}.S9"
-    # R11/R13 negatives: EVIDENCE_DEFECT without terminal_reason; auth_gate_stage=NONE asserted without evidence
+    # R11/R13 negatives: EVIDENCE_DEFECT without terminal_reason; auth_gate_stage=NONE asserted without evidence;
+    # R22 negative: flow record carries collector_sha but NO driver/session sha (driver_field=None) → MISSING_FIELD driver_sha256
     write_manifest(mpath, states, steps, flow_record(display_name, RUN_ID, len(steps), endpoint_status="EVIDENCE_DEFECT",
-                                                     terminal_reason=None, auth_gate_stage="NONE", omit_terminal_reason=True))
+                                                     terminal_reason=None, auth_gate_stage="NONE", omit_terminal_reason=True,
+                                                     driver_field=None))
     write_path_manifest(root, [(mpath, display_name, RUN_ID)])
     (root / display_name / TASK_ID / RUN_ID / "S2" / "screenshot.png").unlink()
     for p in root.rglob("*"):

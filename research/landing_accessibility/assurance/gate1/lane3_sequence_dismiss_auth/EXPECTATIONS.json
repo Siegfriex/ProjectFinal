@@ -39,19 +39,33 @@
    "ABSTAIN",
    "scroll",
    "passive wait/redirect"
+  ],
+  "CONDITIONAL_SET": [
+   "SELECT_ORIGIN",
+   "SELECT_DESTINATION",
+   "SELECT_DATE"
+  ],
+  "CONTROL_INPUT_MODES_IN": [
+   "DROPDOWN",
+   "MAP_PAN",
+   "PICKER",
+   "CALENDAR"
+  ],
+  "TYPING_INPUT_MODES_OUT": [
+   "FREE_TEXT"
   ]
  },
  "derivation_rules_preregistered": {
   "task_flow_sequence": "experienced_flow_sequence with every DISMISS_OBSTRUCTION removed; order preserved; terminal token (ENDPOINT_REACHED|AUTH_GATE) kept as last element (codebook §3 example keeps AUTH_GATE).",
-  "activation_depth": "count of tokens in ACTIVATION_SET. SUBMIT_QUERY IS counted (it is a button activation; 03 §6 exclusion list names only scroll, passive load, per-character typing, popup dismiss). INPUT_QUERY, DISMISS_OBSTRUCTION, AUTH_GATE, ENDPOINT_REACHED are not.",
+  "activation_depth": "count of tokens in ACTIVATION_SET, where the three CONDITIONAL tokens (SELECT_ORIGIN/SELECT_DESTINATION/SELECT_DATE) count only when the observation's fixture_input_mode for that token is a control means (DROPDOWN/MAP_PAN/PICKER/CALENDAR → IN); FREE_TEXT typing → OUT (flow_step_count only); MIXED → the means actually used; missing/OTHER → UNRESOLVED (counted OUT, flagged). A T-A-V3-STEP1-006 CONDITIONAL rule; Δ8-R5 fixture_input_mode is recorded by the collector from what the SERVICE offers (service-first: the collector does not choose the means). SUBMIT_QUERY IS counted (button activation; 03 §6 exclusion list names only scroll, passive load, per-character typing, popup dismiss). INPUT_QUERY, DISMISS_OBSTRUCTION, AUTH_GATE, ENDPOINT_REACHED are not. Same rule as lane6 c_flow_derive.py::resolve_input_mode.",
   "flow_step_count": "count of task_flow_sequence tokens excluding the pure terminal markers ENDPOINT_REACHED and ABSTAIN; AUTH_GATE IS counted (04 §5 'auth encounter 포함'; A T-A-V3-STEP1-012 GAP-03 confirms: ENDPOINT_REACHED and ABSTAIN excluded, AUTH_GATE included). Typing/submit counted. Scroll/dismiss never counted.",
   "menu_dependency": "true iff any REVEAL_SET token precedes the terminal token (sequence-based; A T-A-V3-STEP1-011 P-09: 04 §4/§5 wording wins over 10_GLOSSARY, nav_container_depth and s0_task_control_visible carry the 'task control not directly visible' concept). SWITCH_TAB is NOT a reveal token (A T-A-V3-STEP1-011 P-06; it stays in ACTIVATION_SET per STEP1-006); menu_dependency_incl_tab is the declared sensitivity.",
   "nav_container_depth": "count of REVEAL_SET tokens that precede the anchor = the first SELECT_FUNCTION or, when absent, the first task-body token (INPUT_QUERY / SELECT_CATEGORY / SELECT_ORIGIN / SELECT_DESTINATION / SELECT_DATE / SUBMIT_QUERY / SELECT_RESULT / OPEN_ITEM_DETAIL / OPEN_PLACE_DETAIL); no anchor → count reveals before the terminal and flag nav_anchor_found=false (C-DECISION_REQUEST-031138 P-11, lane6 C-5 rule adopted). SELECT_CATEGORY navigating to a category page is a page transition, not a container reveal, so it adds no depth (fixture 1: depth 1, not 2 — unchanged under the anchor rule because the reveal precedes SELECT_CATEGORY as well).",
   "forced_dismissal_count": "count of DISMISS_OBSTRUCTION in experienced_flow_sequence; each must be paired with a fact_task_obstruction row with dismiss_required_for_task=true.",
   "dismiss_required_for_task": "true iff the next frozen-path control is not hittable (hit-test at its center lands on the interrupt) until an allowed close control is activated. Geometric overlap alone is insufficient; a blocking_proof click must fail. Primary across C lanes per C-DECISION_REQUEST-031138 P-24 (lane7 aligned: aria-modal / occlusion>0 are dismiss_required_signal, never the verdict).",
-  "task_control_occlusion": "fraction of a uniform 9x9 sample grid inside the next-path-control bbox whose elementFromPoint is neither the control nor its descendant (hit-test); cross-checked with bbox-intersection against [data-c-overlay] elements. Measured against the path-entry control of the CURRENT state (hamburger at S0 when the task function is behind a menu). Null convention (A T-A-V3-STEP1-012 GAP-04): null = not observed (control outside the viewport / no path control at S0); 0.0 = observed and unoccluded. Primary across C lanes per C-DECISION_REQUEST-031138 P-23 (lane7 aligned: geometry on the frozen entry control is occlusion_geom_crosscheck).",
+  "task_control_occlusion": "fraction of a uniform 9x9 sample grid inside the next-path-control bbox whose elementFromPoint is neither the control nor its descendant (hit-test); cross-checked with bbox-intersection against [data-c-overlay] elements. Measured against the path-entry control of the CURRENT state (hamburger at S0 when the task function is behind a menu). Null convention (A T-A-V3-STEP1-012 GAP-04): null = not observed (control outside the viewport / no path control at S0); 0.0 = observed and unoccluded. Primary across C lanes per C-DECISION_REQUEST-031138 P-23 (lane7 aligned: geometry on the frozen entry control is occlusion_geom_crosscheck). Geometric cross-check = area of the UNION of all [data-c-overlay] bbox ∩ control bbox over the control area (union, so two overlays that together cover the control are not under-counted; identical to the single-overlay value on fixtures 1-8). overlay_coverage is likewise the union of overlay bboxes over the viewport.",
   "overlay_coverage": "secondary only: overlay bbox area / viewport area. Non-zero coverage with occlusion 0 is NOT an obstruction (fixture 3).",
-  "s0_task_control_visible": "true iff the SELECT_FUNCTION control's bbox intersects the S0 viewport AND it is hit-testable at S0 (elementFromPoint at its centre is the control or a descendant). No occlusion threshold — independent of task_control_occlusion (A T-A-V3-STEP1-012 GAP-05). A hamburger that leads to it does not count.",
+  "s0_task_control_visible": "true iff the SELECT_FUNCTION control's bbox intersects the S0 viewport AND it is hit-testable at S0 (elementFromPoint at its centre is the control or a descendant). No occlusion threshold — independent of task_control_occlusion (A T-A-V3-STEP1-012 GAP-05). A hamburger that leads to it does not count. Positive control occluded_but_hittable: occlusion ≈0.84 with the centre hit-testable → true; a runner applying an occlusion threshold (e.g. <0.5) fails it.",
   "first_visible_scroll_state": "the scroll state Sk (scroll step chosen by runner within [120,844] px) at which the SELECT_FUNCTION control was FIRST observed; for a control exposed by a reveal it is the scroll state where the reveal happened (S0 in the menu-hidden fixtures); null ONLY when the control was never observed on the path (login wall), and then endpoint_status × terminal_reason carry the reason (A T-A-V3-STEP1-012 GAP-02).",
   "auth_gate_stage": {
    "authority": "A T-A-V3-STEP1-011 P-13/P-14 (single positional rule; supersedes C's r1 wording, fixture values unchanged)",
@@ -83,7 +97,9 @@
   },
   "endpoint_status": "REACHED iff the family endpoint contract is satisfied in the final state; AUTH_GATE iff final token is AUTH_GATE; nothing else exercised here. A T-A-V3-STEP1-011 P-17: endpoint_status and action_token are separate layers (always field-qualified); a task surface that is absent is endpoint_status=PUBLIC_WEB_UNOBSERVABLE × terminal_reason=TASK_SURFACE_ABSENT ('we know it is absent'), endpoint_status=ABSTAIN is 'we do not know'.",
   "generic_login_rule": "presence of a login control/link anywhere on the page never produces AUTH_GATE; only a gate that the frozen task path enters counts (00 §6, 03 §7). Fixture 4 is the negative control.",
-  "lossless": "runner's fact_flow_step rows, ordered by step_index, restricted to token-bearing rows, must equal lossless_check as (state_before,data-c-action,state_after) triples with state = body[data-c-state]; url_before/url_after must differ exactly where the fixture changes location.hash (every recorded step)."
+  "lossless": "runner's fact_flow_step rows, ordered by step_index, restricted to token-bearing rows, must equal lossless_check as (state_before,data-c-action,state_after) triples with state = body[data-c-state]; url_before/url_after must differ exactly where the fixture changes location.hash (every recorded step).",
+  "fixture_input_mode": "Δ8-R5 / STEP1-006 'how_to_decide': recorded per conditional token as observed on the control the service offered: <select> or role=listbox/combobox → DROPDOWN; input[type=date|month|time] or a calendar/picker widget (role=dialog|grid opened by the control) → PICKER/CALENDAR; a map drag → MAP_PAN; input[type=text|search|tel|number] typed → FREE_TEXT; several means on one token → MIXED (then the means actually used decides); anything else → OTHER. walk_fixture.py observes the mode from the DOM of the control it drives and requires equality with the expected mode; depth_conditional_tokens is recorded per fixture with index/token/fixture_input_mode/decision/basis (STEP1-006 'record').",
+  "conditional_pairs": "Positive-control pairs: two fixtures identical except for the input means of one CONDITIONAL token must differ in activation_depth by exactly 1 and be equal in flow_step_count and in task_flow_sequence — checked by walk_fixture.py after the walk (a runner ignoring fixture_input_mode reports equal depths and fails the pair)."
  },
  "fixtures": {
   "seq_menu_category_function_endpoint": {
@@ -999,9 +1015,341 @@
     "state": "ENDPOINT_SCHEDULE",
     "terminal_token": "ENDPOINT_REACHED"
    }
+  },
+  "seq_conditional_date_picker": {
+   "file": "fixtures/seq_conditional_date_picker.html",
+   "family": "F5",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "STEP1-006 CONDITIONAL, IN branch (Δ8-R5): the service offers the date as a <select> dropdown, so SELECT_DATE requires a control activation and counts in activation_depth (=3). Pair of seq_conditional_date_freetext (same path, depth 2): the only difference between the two is the input means the service offers; fixture_input_mode must be recorded as DROPDOWN and depth_conditional_tokens must state the IN decision. Authority: A T-A-V3-STEP1-006 §CONDITIONAL ('picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 포함'), Δ8-R5.",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "SELECT_FUNCTION",
+    "SELECT_DATE",
+    "SUBMIT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "experienced_flow_sequence": [
+    "SELECT_FUNCTION",
+    "SELECT_DATE",
+    "SUBMIT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "endpoint_status": "REACHED",
+   "auth_gate_stage": "NONE",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": 0.0,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "NONE",
+   "overlay_coverage_s0": 0.0,
+   "s0_task_control_visible": true,
+   "first_visible_scroll_state": "S0",
+   "s0_path_entry_control": {
+    "token": "SELECT_FUNCTION",
+    "accessible_name": "운행편 조회",
+    "entry_control_type": "TEXT_BUTTON",
+    "visible": true
+   },
+   "nav_container_type": "NONE",
+   "reveal_direction": "NONE",
+   "decoys_visible_at_s0": [],
+   "integrity_probes": [
+    {
+     "at_state": "FORM",
+     "action": "SUBMIT_QUERY",
+     "expect_state": "FORM",
+     "why": "submit without a date is rejected by the fixture, so a runner that drops SELECT_DATE cannot reach the endpoint"
+    }
+   ],
+   "blocking_proof": null,
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "SELECT_FUNCTION",
+     "state_after": "FORM",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "FORM",
+     "action": "SELECT_DATE",
+     "state_after": "FORM_DATED",
+     "kind": "select",
+     "runner_must_record": true,
+     "value": "T+1"
+    },
+    {
+     "state_before": "FORM_DATED",
+     "action": "SUBMIT_QUERY",
+     "state_after": "ENDPOINT_SCHEDULE",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "ENDPOINT_REACHED",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent",
+   "activation_depth_excluded_tokens": [
+    "ENDPOINT_REACHED"
+   ],
+   "activation_depth": 3,
+   "flow_step_count": 3,
+   "menu_dependency": false,
+   "nav_container_depth": 0,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "SELECT_FUNCTION",
+     "FORM"
+    ],
+    [
+     "FORM",
+     "SELECT_DATE",
+     "FORM_DATED"
+    ],
+    [
+     "FORM_DATED",
+     "SUBMIT_QUERY",
+     "ENDPOINT_SCHEDULE"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "ENDPOINT_SCHEDULE",
+    "terminal_token": "ENDPOINT_REACHED"
+   },
+   "fixture_input_mode": "DROPDOWN",
+   "depth_conditional_tokens": [
+    {
+     "index": 1,
+     "token": "SELECT_DATE",
+     "fixture_input_mode": "DROPDOWN",
+     "decision": "IN",
+     "basis": "control means (DROPDOWN) had to be activated — T-A-V3-STEP1-006 CONDITIONAL; Δ8-R5"
+    }
+   ]
+  },
+  "seq_conditional_date_freetext": {
+   "file": "fixtures/seq_conditional_date_freetext.html",
+   "family": "F5",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "STEP1-006 CONDITIONAL, OUT branch (Δ8-R5): the service asks for the date in a free-text input, so SELECT_DATE is typing — excluded from activation_depth (=2) but kept in flow_step_count (=3) and in task_flow_sequence. Pair of seq_conditional_date_picker (depth 3): task_flow_sequence and flow_step_count identical, activation_depth lower by exactly 1; fixture_input_mode FREE_TEXT, depth_conditional_tokens decision OUT. Authority: A T-A-V3-STEP1-006 §CONDITIONAL ('자유입력란에 타이핑했다면 … 제외하고 flow_step_count 에만'), Δ8-R5.",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "SELECT_FUNCTION",
+    "SELECT_DATE",
+    "SUBMIT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "experienced_flow_sequence": [
+    "SELECT_FUNCTION",
+    "SELECT_DATE",
+    "SUBMIT_QUERY",
+    "ENDPOINT_REACHED"
+   ],
+   "endpoint_status": "REACHED",
+   "auth_gate_stage": "NONE",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": 0.0,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "NONE",
+   "overlay_coverage_s0": 0.0,
+   "s0_task_control_visible": true,
+   "first_visible_scroll_state": "S0",
+   "s0_path_entry_control": {
+    "token": "SELECT_FUNCTION",
+    "accessible_name": "운행편 조회",
+    "entry_control_type": "TEXT_BUTTON",
+    "visible": true
+   },
+   "nav_container_type": "NONE",
+   "reveal_direction": "NONE",
+   "decoys_visible_at_s0": [],
+   "integrity_probes": [
+    {
+     "at_state": "FORM",
+     "action": "SUBMIT_QUERY",
+     "expect_state": "FORM",
+     "why": "submit without a date is rejected by the fixture, so a runner that drops SELECT_DATE cannot reach the endpoint"
+    }
+   ],
+   "blocking_proof": null,
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "SELECT_FUNCTION",
+     "state_after": "FORM",
+     "kind": "click",
+     "runner_must_record": true
+    },
+    {
+     "state_before": "FORM",
+     "action": "SELECT_DATE",
+     "state_after": "FORM_DATED",
+     "kind": "fill",
+     "runner_must_record": true,
+     "value": "2026-09-01"
+    },
+    {
+     "state_before": "FORM_DATED",
+     "action": "SUBMIT_QUERY",
+     "state_after": "ENDPOINT_SCHEDULE",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "ENDPOINT_REACHED",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent",
+   "activation_depth_excluded_tokens": [
+    "SELECT_DATE (FREE_TEXT → OUT, STEP1-006 CONDITIONAL)",
+    "ENDPOINT_REACHED"
+   ],
+   "activation_depth": 2,
+   "flow_step_count": 3,
+   "menu_dependency": false,
+   "nav_container_depth": 0,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "SELECT_FUNCTION",
+     "FORM"
+    ],
+    [
+     "FORM",
+     "SELECT_DATE",
+     "FORM_DATED"
+    ],
+    [
+     "FORM_DATED",
+     "SUBMIT_QUERY",
+     "ENDPOINT_SCHEDULE"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "ENDPOINT_SCHEDULE",
+    "terminal_token": "ENDPOINT_REACHED"
+   },
+   "fixture_input_mode": "FREE_TEXT",
+   "depth_conditional_tokens": [
+    {
+     "index": 1,
+     "token": "SELECT_DATE",
+     "fixture_input_mode": "FREE_TEXT",
+     "decision": "OUT",
+     "basis": "FREE_TEXT typing — flow_step_count only — T-A-V3-STEP1-006 CONDITIONAL; Δ8-R5"
+    }
+   ]
+  },
+  "occluded_but_hittable": {
+   "file": "fixtures/occluded_but_hittable.html",
+   "family": "F3",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "A T-A-V3-STEP1-012 GAP-05 discriminator: the F3 entry control is ~84% covered by two blocking sticky overlays (top banner + event ribbon) but its centre lies in a 9px slit and is hit-testable, so s0_task_control_visible=true while task_control_occlusion≈0.84 — the two fields are independent and no occlusion threshold exists (a runner applying occlusion<0.5 reports visible=false and fails). Neither overlay is required for the task (blocking proof: a click at the centre reaches the endpoint with both present) → dismiss_required_for_task=false, forced_dismissal_count=0. Design note: a single rectangle that leaves the centre exposed covers ≤50% of the control, and a pointer-events:none banner yields hit-test occlusion 0.0, so two blocking overlays are used; hit-test (9x9 grid) 68/81=0.840, geometric union 0.832, both pre-computed from the CSS before the run.",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "SELECT_FUNCTION",
+    "ENDPOINT_REACHED"
+   ],
+   "experienced_flow_sequence": [
+    "SELECT_FUNCTION",
+    "ENDPOINT_REACHED"
+   ],
+   "endpoint_status": "REACHED",
+   "auth_gate_stage": "NONE",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": [
+    0.82,
+    0.86
+   ],
+   "task_control_occlusion_all_steps": [
+    0.82,
+    0.86
+   ],
+   "interrupt_type": "BANNER_NON_BLOCKING",
+   "overlay_coverage_s0": [
+    0.16,
+    0.17
+   ],
+   "s0_task_control_visible": true,
+   "first_visible_scroll_state": "S0",
+   "s0_path_entry_control": {
+    "token": "SELECT_FUNCTION",
+    "accessible_name": "배송조회",
+    "entry_control_type": "TEXT_BUTTON",
+    "visible": true,
+    "note": "in viewport, centre hit-testable through the slit, ~84% of the 9x9 grid points land on an overlay"
+   },
+   "nav_container_type": "NONE",
+   "reveal_direction": "NONE",
+   "decoys_visible_at_s0": [
+    "DISMISS_NOT_REQUIRED"
+   ],
+   "integrity_probes": [],
+   "blocking_proof": {
+    "click_center_of": "SELECT_FUNCTION",
+    "expect_state_after": "ENDPOINT_TRACKING_FORM",
+    "why": "the centre click reaches the endpoint with both overlays present, so neither is a forced dismissal (GAP-05: visible ⟂ occlusion)",
+    "then_reload": true
+   },
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "SELECT_FUNCTION",
+     "state_after": "ENDPOINT_TRACKING_FORM",
+     "kind": "click",
+     "runner_must_record": true,
+     "occlusion": [
+      0.82,
+      0.86
+     ]
+    }
+   ],
+   "final_terminal": "ENDPOINT_REACHED",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent; tracking-number input empty and 조회 not activated (F3 forbids the submit)",
+   "activation_depth_excluded_tokens": [
+    "ENDPOINT_REACHED"
+   ],
+   "activation_depth": 1,
+   "flow_step_count": 1,
+   "menu_dependency": false,
+   "nav_container_depth": 0,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "SELECT_FUNCTION",
+     "ENDPOINT_TRACKING_FORM"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "ENDPOINT_TRACKING_FORM",
+    "terminal_token": "ENDPOINT_REACHED"
+   },
+   "dismiss_control": {
+    "exists": true,
+    "visible": true,
+    "accessible_name": "배너 닫기",
+    "role": "button",
+    "required": false
+   }
   }
  },
  "revision": {
-  "r2": "2026-08-28 on claude-c/assurance-v21 after 67f473b: rule text aligned to A T-A-V3-STEP1-011 (P-06/P-09/P-13/P-14/P-17), T-A-V3-STEP1-012 (GAP-02/03/04/05) and C-DECISION_REQUEST-031138 (P-11/P-23/P-24). Only first_visible_scroll_state values changed (NONE → S0 for the three menu-hidden fixtures, NONE → null for the login wall); every other expected value is unchanged and was re-verified by walk_fixture.py."
- }
+  "r2": "2026-08-28 on claude-c/assurance-v21 after 67f473b: rule text aligned to A T-A-V3-STEP1-011 (P-06/P-09/P-13/P-14/P-17), T-A-V3-STEP1-012 (GAP-02/03/04/05) and C-DECISION_REQUEST-031138 (P-11/P-23/P-24). Only first_visible_scroll_state values changed (NONE → S0 for the three menu-hidden fixtures, NONE → null for the login wall); every other expected value is unchanged and was re-verified by walk_fixture.py.",
+  "r3": "2026-08-28 on claude-c/assurance-v21 after fe33eae: +3 fixtures — seq_conditional_date_picker / seq_conditional_date_freetext (STEP1-006 CONDITIONAL, Δ8-R5 fixture_input_mode; activation_depth 3 vs 2, flow_step_count 3 = 3) and occluded_but_hittable (STEP1-012 GAP-05 positive control: occlusion≈0.84, visible=true). Walker: select-kind steps, observed fixture_input_mode, depth_conditional_tokens re-derivation, pair check, union geometric cross-check. Values of the 8 r2 fixtures unchanged."
+ },
+ "conditional_pairs": [
+  {
+   "in": "seq_conditional_date_picker",
+   "out": "seq_conditional_date_freetext",
+   "activation_depth_delta": 1,
+   "flow_step_count_delta": 0,
+   "authority": "T-A-V3-STEP1-006 CONDITIONAL; Δ8-R5 fixture_input_mode"
+  }
+ ]
 }

@@ -11,7 +11,7 @@ harnesses (`../../w1`, `../../w2`, `../../pilot`) and the read-only scratchpad c
 | `GATE1_SAFETY_PLAN.md` | per-item test / inputs / positive+negative control / pass criterion / reuse-vs-adapt; two-layer scope table (today + after T-B-BLK-009); V3-6 failure-injection map; L1-vs-L2 contradictions |
 | `two_layer_scope_probe.py` | imports both firewalls, asks each "REAL_TARGET under scope S?" for known/hypothetical/unknown scopes; greps layer 2 for manifest-sha mentions; no network/browser; import errors recorded not raised |
 | `two_layer_scope_probe_joint10.json` | probe record at joint10 (SUT e02eee4) — the table in the plan comes from this run |
-| `forbidden_action_matrix.json` | C expectation matrix for the 13 guard fixtures (state per control + `never_activate` lists + cross-fixture invariants), derived from the HTML directly |
+| `forbidden_action_matrix.json` | C expectation matrix for the 13 guard fixtures (state per control + `never_activate` lists + cross-fixture invariants), derived from the HTML directly; r2 adds `guard_fired_expected: true` on the credential (finance/nonfinance login) and cart/purchase fixtures with the Δ18-R20 / T-A-V3-STEP1-016 pass rule (`scoring_rule.guard_fired_positive_control`: ≥1 `refused==true` guard event on a never_activate control AND ≥1 allowed activation in the same live run) |
 | `adapter_interface_stub.py` | `run_gate1_safety(sut_root, runner_cmd_template, out_dir)`: S1 dup-launch, S1b lock race, S2 probe, S2b 3-way, S3 E001 blob check; S4 forbidden-action scoring left as a TODO hook. `--dry-run` prints the plan and exits 0 |
 
 ## Run

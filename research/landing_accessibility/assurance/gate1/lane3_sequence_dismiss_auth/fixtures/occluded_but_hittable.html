@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>C-Lane3 fixture: F3 tracking entry 85% covered by a fixed promo banner, exposed bottom strip hit-testable (STEP1-012 GAP-05: visible and occlusion are independent, no threshold)</title>
+<title>C-Lane3 fixture: F3 tracking entry ~84% covered by two blocking sticky overlays, centre slit hit-testable (STEP1-012 GAP-05: visible and occlusion are independent, no threshold)</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{width:100%;font-family:sans-serif;background:#fff;color:#111}
@@ -19,11 +19,20 @@
   input{width:100%;padding:12px;font-size:16px;border:1px solid #888;border-radius:8px}
   .primary{width:100%;padding:14px;margin-top:16px;background:#1a56db;color:#fff;border:0;border-radius:8px;font-size:16px}
   h1{font-size:20px;margin-bottom:12px}
-  /* fixed promo banner: covers y ∈ [0, 140.5) → the 90px entry control at y ∈ [64, 154) is covered for 76.5px = 85% of its area;
-     its bottom strip y ∈ [140.5, 154) stays exposed and hit-testable. The banner is NOT a blocking interrupt (the exposed strip works). */
-  .banner{position:fixed;left:0;right:0;top:0;height:140.5px;background:#fff8e1;border-bottom:1px solid #f0c000;z-index:50;display:flex;align-items:center;padding:0 12px;gap:8px}
+  /* Entry control bbox at S0: x 16..374 (w 358), y 64..154 (h 90); its centre is (195, 109).
+     Two BLOCKING (pointer-events auto) fixed overlays cover ~84% of the control but leave a 9px horizontal slit
+     y in (104.5, 113.5) that contains the centre:
+       .banner  y 0..104.5, full width   -> covers the top 45% of the control (grid rows 0..3 of the 9x9 hit-test grid)
+       .ribbon  y 113.5..157.5, x 0..320 -> covers the bottom 45% except the right-most grid column (rows 5..8 x cols 0..7)
+     hit-test occlusion (9x9, elementFromPoint) = (36 + 32) / 81 = 0.840 ; geometric union of overlay∩control = 0.45 + 0.45*0.849 = 0.832.
+     The centre is hit-testable, so s0_task_control_visible = true although occlusion ~0.84 (GAP-05: no threshold, fields independent).
+     Why two overlays: a single rectangle inside the control bbox that excludes the centre covers at most 50% of it, and a
+     pointer-events:none banner gives hit-test occlusion 0.0 (not the GAP-05 discriminator). Neither overlay is required
+     for the task (blocking proof: a click at the centre reaches the endpoint with both overlays present). */
+  .banner{position:fixed;left:0;right:0;top:0;height:104.5px;background:#fff8e1;border-bottom:1px solid #f0c000;z-index:50;display:flex;align-items:center;padding:0 12px;gap:8px}
   .banner span{flex:1;font-size:14px}
   .banner button{padding:8px 10px;border:1px solid #999;border-radius:6px;background:#fff}
+  .ribbon{position:fixed;left:0;top:113.5px;width:320px;height:44px;background:#e3f2fd;border:1px solid #64b5f6;border-left:0;border-radius:0 8px 8px 0;z-index:50;display:flex;align-items:center;padding:0 12px;font-size:14px}
 </style>
 </head>
 <body data-c-state="LANDING" data-c-fixture="occluded_but_hittable" data-c-family="F3" data-c-terminal="">
@@ -32,6 +41,7 @@
   <span>앱에서 배송 알림을 받아보세요</span>
   <button data-c-decoy="DISMISS_NOT_REQUIRED" onclick="closeBanner()">배너 닫기</button>
 </div>
+<div class="ribbon" role="region" aria-label="이벤트 안내" data-c-overlay="ribbon" data-c-interrupt="ribbon">여름 무료배송 이벤트 진행 중 ›</div>
 <header>
   <div style="width:44px"></div>
   <div class="logo">C택배</div>

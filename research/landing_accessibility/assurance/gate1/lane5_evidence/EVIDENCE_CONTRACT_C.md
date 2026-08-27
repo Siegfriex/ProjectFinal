@@ -1,7 +1,7 @@
 # EVIDENCE_CONTRACT_C — C's independent evidence completeness & lineage contract (V3, GATE 1 → 2/3)
 
 Authority: SSOTV3 `03_COLLECTION_MEASUREMENT_SPEC_v3.0.md` §10, `02_DATA_SCHEMA_v3.0.md` §3–§4 and §8,
-`06_ABCD_ORCHESTRATION_PROTOCOL_v3.0.md` §6; ticket `T-A-V3-STEP1-007` R11 (terminal_reason) / R13 (auth_gate_stage UNDETERMINED);
+`06_ABCD_ORCHESTRATION_PROTOCOL_v3.0.md` §6; ticket `T-A-V3-STEP1-007` R11 (terminal_reason) / R13 (auth_gate_stage UNDETERMINED); `T-A-V3-STEP1-021` R22 (Δ22-R22: engine sha + driver/session sha on every v3 row);
 `04_FLOW_CODEBOOK_v3.0.md` for the `endpoint_status` enum. Derived by C from those texts only; B's code/marts were not read.
 Checked from raw files only by `evidence_lineage_check.py`. Base: `5e05da9`.
 
@@ -23,18 +23,18 @@ Required artifact files, each referenced from the manifest with `path` + `sha256
 | `control_facts` | selected control facts |
 
 Required manifest fields per state record: `observation_id, service_id, task_id, run_id, attempt_id, state_index (S<n>),
-url, captured_at (ISO-8601), collector_sha (accepted source names: collector_sha, collector_sha256 [T-A-V3-STEP1-015 exact name], collector_git_sha, collector_version_sha), protocol_sha, task_contract_sha256, endpoint_contract_sha256, artifacts{kind:{path,sha256}}`.
+url, captured_at (ISO-8601), collector_sha (accepted source names: collector_sha, collector_sha256 [T-A-V3-STEP1-015 exact name], collector_git_sha, collector_version_sha), driver_sha256 (accepted source names: driver_sha256, session_sha256, capture_stack_sha256 — T-A-V3-STEP1-021 R22), protocol_sha, task_contract_sha256, endpoint_contract_sha256, artifacts{kind:{path,sha256}}`.
 
 ## 3. Per-STEP record (02 §4 `fact_flow_step`)
 Required fields: `flow_observation_id, service_id, task_id, run_id, attempt_id, step_index, action_token,
-state_before_id, state_after_id, url_before, url_after, captured_at, collector_sha, protocol_sha,
+state_before_id, state_after_id, url_before, url_after, captured_at, collector_sha, driver_sha256, protocol_sha,
 task_contract_sha256, endpoint_contract_sha256, {dom,ax,screenshot}_sha256_{before,after}`.
 Lineage: `state_before_id`/`state_after_id` MUST resolve to state records of the same spine; `url_before/after`
 MUST equal the referenced state's `url`; the six step hashes MUST equal the referenced states' manifest hashes.
 
 ## 3b. Per-RUN flow observation = terminal record (02 §4 `fact_flow_observation`; R11/R13) — exactly one per run×attempt
 Required: `flow_observation_id, service_id, task_id, run_id, attempt_id, endpoint_status, terminal_reason, auth_gate_stage,
-captured_at, collector_sha, protocol_sha, task_contract_sha256, endpoint_contract_sha256`; `terminal_note` required iff `terminal_reason=OTHER`.
+captured_at, collector_sha, driver_sha256, protocol_sha, task_contract_sha256, endpoint_contract_sha256`; `terminal_note` required iff `terminal_reason=OTHER`.
 `endpoint_status` ∈ {REACHED, AUTH_GATE, PUBLIC_WEB_UNOBSERVABLE, APP_REQUIRED, EVIDENCE_DEFECT, BLOCKED, ABSTAIN} (unchanged, R11); `terminal_reason` ∈ 13 values {TIMEOUT, WAF_BLOCK, ACTIVE_CHALLENGE, NO_PUBLIC_MOBILE_WEB, TASK_SURFACE_ABSENT, APP_REQUIRED,
 CONTROL_DISABLED_OR_INERT, FORBIDDEN_ACTION_REQUIRED, AUTH_REQUIRED, EVIDENCE_DEFECT, REPLAY_BROKEN, AMBIGUOUS_MULTIPLE_CANDIDATES, OTHER}.
 `auth_gate_stage` ∈ {NONE, BEFORE_TASK_DISCOVERY, AFTER_TASK_SELECT, AT_ENDPOINT, UNDETERMINED}; NONE = "observed, no gate" (affirmative).
@@ -86,6 +86,7 @@ systemic defect; isolated defects are still reported for per-observation exclusi
 4. `MISSING_FIELD` is added as an eighth kind; folding missing fields into `MISSING_ARTIFACT` would hide the distinction.
 5. Overwrite needs both hash mismatch and a later mtime/captured_at; hash mismatch alone (e.g. wrong manifest) stays isolated.
 6. URL continuity (`url_before == state.url`) is enforced exactly (no normalisation); relax only by explicit decision.
+8. **Capture-stack identity (R22, `T-A-V3-STEP1-021`, Δ22-R22)**: `collector_sha256` alone is incomplete when the capture behaviour lives in the caller (session/driver) — every v3 state / step / flow record carries BOTH the engine sha (`collector_sha`/`collector_sha256`) and the driver/session sha (`driver_sha256`; aliases `session_sha256`, `capture_stack_sha256`). Either missing ⇒ `MISSING_FIELD` (isolated, per record); non-hex ⇒ `MISSING_FIELD`. Positive control: `good` run 02 writes the alias `session_sha256`; negative control: `bad_lineage`'s flow record omits the driver sha ⇒ 1 additional `MISSING_FIELD`.
 7. R11 says B specifies the combination table and C verifies it; B's table is not yet published, so §3b is C's table, pre-registered.
    If B's table differs, the diff is a finding, not a silent merge. "Terminal record" = the flow record of every run, REACHED included
    (REACHED carries `terminal_reason: null`). `terminal_reason` missing is MISSING_FIELD only for non-REACHED statuses.

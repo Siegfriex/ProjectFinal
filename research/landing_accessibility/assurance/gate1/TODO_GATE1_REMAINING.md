@@ -1,8 +1,12 @@
 # GATE 1 — remaining C tasks (after worker interruption 04:2x, session limit)
 Done by interrupted worker (verified by C 06:45): R11 table unified (`gate1/c_terminal_table.py`, lane5+lane6 import it; lane6 30/30, lane5 COMPLETE/SYSTEMIC/SYSTEMIC), lane3 field rename → `endpoint_surface_rendered_before_gate` (walk 8/8), lane5 `collector_sha256` alias, bus.emit `base_sha` guard.
-Remaining:
-- [ ] lane4: "guard fired" positive control in forbidden_action_matrix.json + GATE1_SAFETY_PLAN.md (Δ18-R20)
-- [ ] fixtures: lane3 `seq_conditional_date_picker.html` / `seq_conditional_date_freetext.html` (Δ8-R5 / STEP1-006 CONDITIONAL); lane2 `drawer_nested_accordion.html` (GAP-06); `occluded_but_hittable.html` (GAP-05); lane2 `dom_ax_divergence_positive.html` (STEP1-012)
-- [ ] c_bus_scan.py: Δ6-a enum/5-field check, Δ4 `--ref-lint`, Δ13-R17 FACT_CORRECTION how_known check, Δ5-vr VALIDITY_RISK≥P1, Δ21 delta↔ticket cross-check
-- [ ] lane5: `driver_sha256` (Δ22-R22) required alongside collector_sha256
-- [ ] coverage table: flip PARTIAL/UNCOVERED rows to COVERED after the above; re-run run_gate1 --dry-run
+Done by the second worker (2026-08-28, base fe33eae, not committed by the worker):
+- [x] lane4: "guard fired" positive control — `forbidden_action_matrix.json` (`guard_fired_expected: true` on finance/nonfinance login + item_detail_purchase_present; `scoring_rule.guard_fired_positive_control`) + `GATE1_SAFETY_PLAN.md` (b) pass rule (Δ18-R20, T-A-V3-STEP1-016). Follow-up: `comparators/grade_lane4.py::grade_s4` still grades refused attempts as ISOLATED FAIL — must read `guard_fired_expected` (comparators/ frozen for this edit).
+- [x] fixtures: lane3 `seq_conditional_date_picker` / `seq_conditional_date_freetext` (Δ8-R5 / STEP1-006 CONDITIONAL; depth 3 vs 2, flow_step_count 3 = 3, pair check) + `occluded_but_hittable` rewritten (two blocking overlays, occlusion 0.84, visible=true, GAP-05) — walk 11/11 + 1/1 pair; lane2 `drawer_nested_accordion` (GAP-06 chain [LEFT_DRAWER, INLINE_EXPAND]) + `dom_ax_divergence_positive` (open shadow root → dom_ax_divergence=true) — measure 16/16, non-file 0.
+- [x] c_bus_scan.py: Δ6-a enum/5-field, Δ4 `--ref-lint`, Δ13-R17 FACT_CORRECTION how_known, Δ5-vr VALIDITY_RISK≥P1, Δ21 index(id+aliases v9)↔ticket cross-check with controls/collisions/unsafe aliases (STEP1-023, FINDING-005/006/007, Δ25), Δ26 base_sha resolvability — report-only; summary in the module docstring.
+- [x] lane5: `driver_sha256` (aliases session_sha256 / capture_stack_sha256) required on state/step/flow (Δ22-R22, STEP1-021); good COMPLETE / bad_overwrite SYSTEMIC / bad_lineage SYSTEMIC (+1 MISSING_FIELD negative control).
+- [x] coverage table rows flipped (see RULING_INDEX_COVERAGE_C.json `revision_r2`); run_gate1 --dry-run --skip-browser re-run (counts in the worker report).
+Remaining (C):
+- [ ] commit the above on claude-c/assurance-v21 after C's own re-verification (walk_fixture 11/11, measure_geometry 16/16, lane5 3 checks, c_bus_scan controls PASS).
+- [ ] grade_lane4.py: honour `guard_fired_expected` (refused-on-forbidden = positive control there).
+- [ ] c_bus_scan findings to route: E REAL 5-field gaps, v3-era dangling ACK/COMPLETION refs, bare-branch refs in v3 tickets, delta headings without index rows (Δ23–Δ26), alias collision D3-06 — decide FINDING vs note.

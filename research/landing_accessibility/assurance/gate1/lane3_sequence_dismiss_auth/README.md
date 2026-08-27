@@ -24,6 +24,9 @@ resources, every path control carries `data-c-action=<TOKEN>` and `data-c-path="
 | auth_gate_before_discovery | F1 | POSITIVE | AUTH_GATE | = task | 0 | 1 | 0/0 | BEFORE_TASK_DISCOVERY | 0/F | null | AUTH_GATE | null |
 | auth_gate_at_endpoint | F5 | POSITIVE | SELECT_FUNCTION > INPUT_QUERY > SUBMIT_QUERY > SELECT_RESULT > AUTH_GATE | = task | 3 | 5 | 0/0 | AT_ENDPOINT | 0/F | 0.0 | AUTH_GATE | S0 |
 | seq_typing_and_scroll_not_depth | F5 | POSITIVE | SELECT_FUNCTION > INPUT_QUERY > SUBMIT_QUERY > ENDPOINT_REACHED | = task | 2 | 3 | 0/0 | NONE | 0/F | null | REACHED | S1 |
+| seq_conditional_date_picker (r3) | F5 | POSITIVE | SELECT_FUNCTION > SELECT_DATE > SUBMIT_QUERY > ENDPOINT_REACHED | = task | **3** (SELECT_DATE via `<select>` → fixture_input_mode DROPDOWN → IN) | 3 | 0/0 | NONE | 0/F | 0.0 | REACHED | S0 |
+| seq_conditional_date_freetext (r3) | F5 | POSITIVE | SELECT_FUNCTION > SELECT_DATE > SUBMIT_QUERY > ENDPOINT_REACHED | = task | **2** (SELECT_DATE typed → FREE_TEXT → OUT) | 3 | 0/0 | NONE | 0/F | 0.0 | REACHED | S0 |
+| occluded_but_hittable (r3) | F3 | POSITIVE | SELECT_FUNCTION > ENDPOINT_REACHED | = task | 1 | 1 | 0/0 | NONE | 0/F | **≈0.84 (hit 0.840 / geo 0.832), s0_task_control_visible = true** | REACHED | S0 |
 
 Rationale per fixture is in `EXPECTATIONS.json[fixtures][*].rationale`; `lossless_check` there lists the exact
 `(state_before, data-c-action, state_after)` triples (state = `body[data-c-state]`). Fixture 2's first triple
@@ -43,6 +46,8 @@ Fixture 4 shows a visible 로그인 button and 로그인 하러가기 link but t
 8. **s0_task_control_visible** (GAP-05) = bbox intersects the S0 viewport AND hit-testable at S0 (`elementFromPoint` at the centre is the control or a descendant) — the r1 walker used an occlusion < 0.5 threshold, replaced by the centre hit-test; no value changed. Independent of task_control_occlusion.
 9. **Null convention** (GAP-04): `task_control_occlusion_s0` / `overlay` are `null` when the path control is not observed at S0 (fixtures 6, 8 — already so in r1), `0.0` when observed and unoccluded; occlusion primary and `dismiss_required_for_task` blocking proof are now the C-wide primaries (`C-DECISION_REQUEST-031138` P-23/P-24; lane7 aligned).
 8. **F5 SELECT_RESULT before endpoint**: a route list without time/price does not satisfy the F5 contract, so selecting a route is pre-endpoint (fixture 1 & 7).
+10. **CONDITIONAL tokens / fixture_input_mode (r3, A `T-A-V3-STEP1-006` §CONDITIONAL, Δ8-R5)**: SELECT_ORIGIN / SELECT_DESTINATION / SELECT_DATE count in activation_depth only when the means the SERVICE offers is a control (`fixture_input_mode` ∈ DROPDOWN / MAP_PAN / PICKER / CALENDAR → IN); FREE_TEXT typing → OUT (flow_step_count only); MIXED → the means actually used; missing/OTHER → UNRESOLVED (counted OUT, flagged) — the same rule as lane6 `c_flow_derive.py::resolve_input_mode`. The walker *observes* the mode from the control it drives (`<select>` → DROPDOWN, `input[type=text]` → FREE_TEXT …), requires equality with the expected `depth_conditional_tokens[].fixture_input_mode`, re-derives the IN/OUT decision, and checks the pair `seq_conditional_date_picker` / `seq_conditional_date_freetext`: identical task_flow_sequence and flow_step_count (3 = 3), activation_depth 3 vs 2 (Δ = 1). A runner that ignores `fixture_input_mode` reports equal depths and fails the pair.
+11. **GAP-05 positive control (r3, A `T-A-V3-STEP1-012`)**: `occluded_but_hittable` — the F3 entry control is ~84 % covered by two blocking sticky overlays (top banner + event ribbon) but its centre lies in a 9 px slit and is hit-testable → `s0_task_control_visible = true` with `task_control_occlusion ≈ 0.84` (hit-test 68/81 = 0.840, geometric union 0.832; both pre-computed from the CSS). A runner applying an occlusion threshold reports visible=false and fails. Neither overlay is required (blocking proof: a centre click reaches the endpoint with both present). Design note recorded in EXPECTATIONS: a single rectangle that leaves the centre exposed covers ≤ 50 % of the control and a `pointer-events:none` banner has hit-test occlusion 0.0, so two blocking overlays are used; the geometric cross-check is now the **union** of overlay∩control areas (identical to the single-overlay value on fixtures 1–8).
 
 ## Runner-adapter comparison plan (what C will diff)
 
@@ -56,7 +61,7 @@ Fixture 4 shows a visible 로그인 button and 로그인 하러가기 link but t
 | `fact_surface_state.{task_control_visible, state_index}` | `s0_task_control_visible`, `first_visible_scroll_state` | exact; `null` fvss only for a never-observed control (GAP-02) |
 | prohibited-action log / credential inputs | `credential_check` | zero `data-c-forbidden` activations, all such inputs empty |
 
-## walk_fixture.py result (r2 run 2026-08-28 after STEP1-011/012 + P-11/P-23/P-24 edits, chromium headless 390×844, non-file requests aborted)
+## walk_fixture.py result (r3 run 2026-08-28 after fe33eae: +3 fixtures, select-kind steps, observed fixture_input_mode, conditional pair check; chromium headless 390×844, non-file requests aborted)
 
 | fixture | role | recorded steps | S0 occl (hit/geo) | S0 overlay cov | fvss | terminal | result |
 |---|---|---|---|---|---|---|---|
@@ -68,8 +73,13 @@ Fixture 4 shows a visible 로그인 button and 로그인 하러가기 link but t
 | auth_gate_before_discovery | POSITIVE | 0/0 | n/a | 0.000 | null | AUTH_GATE | PASS |
 | auth_gate_at_endpoint | POSITIVE | 4/4 | 0.00/0.00 | 0.000 | S0 | AUTH_GATE | PASS |
 | seq_typing_and_scroll_not_depth | POSITIVE | 3/3 | n/a | 0.000 | S1 | ENDPOINT_REACHED | PASS |
+| seq_conditional_date_picker | POSITIVE | 3/3 | 0.00/0.00 | 0.000 | S0 | ENDPOINT_REACHED | PASS |
+| seq_conditional_date_freetext | POSITIVE | 3/3 | 0.00/0.00 | 0.000 | S0 | ENDPOINT_REACHED | PASS |
+| occluded_but_hittable | POSITIVE | 1/1 | 0.84/0.83 | 0.167 | S0 | ENDPOINT_REACHED | PASS |
+| PAIR:seq_conditional_date_picker\|seq_conditional_date_freetext | PAIR | - | - | - | - | - | PASS |
 
-RESULT: ALL PASS (8/8 fixtures) -> out/walk_result.json
+RESULT: ALL PASS (11/11 fixtures, 1/1 conditional pairs) -> out/walk_result.json
 
 Mutation control: with five planted errors in a scratch copy of EXPECTATIONS (drop INPUT_QUERY, put DISMISS in task flow,
 claim banner occlusion 0.5, claim fixture 4 AFTER_TASK_SELECT, count scroll in depth) the walker reports FAIL on every mutated fixture (3/8 pass, exit 1).
+r3 mutation control (scratch copy, 3 new fixtures only): freetext `activation_depth` claimed 3 (input mode ignored) → FAIL + pair FAIL; picker claimed FREE_TEXT → FAIL (observed DROPDOWN); `occluded_but_hittable` claimed `s0_task_control_visible=false` / occlusion 0.3 (threshold runner) → FAIL — 0/3 pass, exit 1.

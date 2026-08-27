@@ -2,7 +2,9 @@
 """C Lane-3 fixture self-validation walker.
 
 Drives every fixture in EXPECTATIONS.json through its intended path using the
-data-c-action controls, records (state_before, action, state_after) triples,
+data-c-action controls (click / fill / select), records (state_before, action, state_after) triples,
+the fixture_input_mode observed on each CONDITIONAL token's control (Δ8-R5, STEP1-006) and the
+depth_conditional_tokens decision it implies, checks the STEP1-006 positive-control pairs,
 bbox + hit-test occlusion of the next path control, scroll-state discovery of the
 task control, decoy visibility, credential emptiness, and re-derives the depth
 variables from the pre-registered rules.  It validates the FIXTURES against C's
@@ -19,6 +21,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 EXP = json.loads((HERE / "EXPECTATIONS.json").read_text())
 VW, VH = EXP["viewport"]["width"], EXP["viewport"]["height"]
 ACT, REVEAL = set(EXP["token_sets"]["ACTIVATION_SET"]), set(EXP["token_sets"]["REVEAL_SET"])
+COND = set(EXP["token_sets"]["CONDITIONAL_SET"])                    # T-A-V3-STEP1-006 CONDITIONAL 3 (Δ8-R5 fixture_input_mode decides)
+MODES_IN, MODES_OUT = set(EXP["token_sets"]["CONTROL_INPUT_MODES_IN"]), set(EXP["token_sets"]["TYPING_INPUT_MODES_OUT"])
 OUT = HERE / "out"; OUT.mkdir(exist_ok=True)
 
 JS_HELPERS = r"""
@@ -34,13 +38,26 @@ JS_HELPERS = r"""
                  const t=document.elementFromPoint(x,y); if(!(t===e||e.contains(t))) occ++; }
                return n? occ/n : null; },
     // geometric intersection of control bbox with [data-c-overlay] elements, as a fraction of control area
+    // exact area of the union of rectangles [{l,t,r,b}] (coordinate compression; n is tiny)
+    unionArea(rs){ rs=rs.filter(q=>q.r>q.l&&q.b>q.t); if(!rs.length) return 0;
+              const xs=[...new Set(rs.flatMap(q=>[q.l,q.r]))].sort((a,b)=>a-b), ys=[...new Set(rs.flatMap(q=>[q.t,q.b]))].sort((a,b)=>a-b); let a=0;
+              for(let i=0;i<xs.length-1;i++)for(let j=0;j<ys.length-1;j++){ const cx=(xs[i]+xs[i+1])/2, cy=(ys[j]+ys[j+1])/2;
+                if(rs.some(q=>cx>q.l&&cx<q.r&&cy>q.t&&cy<q.b)) a+=(xs[i+1]-xs[i])*(ys[j+1]-ys[j]); } return a; },
+    // geometric cross-check: UNION of [data-c-overlay] bboxes ∩ control bbox, over the control area (== single-overlay value when one overlay)
     geo(sel){ const e=document.querySelector(sel); if(!e) return null; const r=e.getBoundingClientRect(); if(r.width<=0||r.bottom<=0||r.top>=innerHeight) return null;
-              let best=0; document.querySelectorAll('[data-c-overlay]').forEach(o=>{ const b=o.getBoundingClientRect();
-                const w=Math.max(0,Math.min(r.right,b.right)-Math.max(r.left,b.left)), h=Math.max(0,Math.min(r.bottom,b.bottom)-Math.max(r.top,b.top));
-                best=Math.max(best, w*h/(r.width*r.height)); }); return best; },
-    overlayCov(){ let best=0; document.querySelectorAll('[data-c-overlay]').forEach(o=>{ const b=o.getBoundingClientRect();
-                const w=Math.max(0,Math.min(innerWidth,b.right)-Math.max(0,b.left)), h=Math.max(0,Math.min(innerHeight,b.bottom)-Math.max(0,b.top));
-                best=Math.max(best, w*h/(innerWidth*innerHeight)); }); return best; },
+              const rs=[...document.querySelectorAll('[data-c-overlay]')].map(o=>{ const b=o.getBoundingClientRect();
+                return {l:Math.max(r.left,b.left), t:Math.max(r.top,b.top), r:Math.min(r.right,b.right), b:Math.min(r.bottom,b.bottom)}; });
+              return __c.unionArea(rs)/(r.width*r.height); },
+    overlayCov(){ const rs=[...document.querySelectorAll('[data-c-overlay]')].map(o=>{ const b=o.getBoundingClientRect();
+                return {l:Math.max(0,b.left), t:Math.max(0,b.top), r:Math.min(innerWidth,b.right), b:Math.min(innerHeight,b.bottom)}; });
+              return __c.unionArea(rs)/(innerWidth*innerHeight); },
+    // Δ8-R5 fixture_input_mode as OBSERVED on the control the service offers (service-first: the walker does not choose)
+    inputMode(sel){ const e=document.querySelector(sel); if(!e) return null; const tag=e.tagName.toLowerCase(), role=(e.getAttribute('role')||'').toLowerCase(), type=(e.getAttribute('type')||'text').toLowerCase();
+              if(tag==='select'||role==='listbox'||role==='combobox') return 'DROPDOWN';
+              if(tag==='input'&&['date','month','time','datetime-local','week'].includes(type)) return 'PICKER';
+              if(e.getAttribute('aria-haspopup')==='dialog'||e.getAttribute('aria-haspopup')==='grid') return 'CALENDAR';
+              if(tag==='input'&&['text','search','tel','number','email','url'].includes(type)||tag==='textarea') return 'FREE_TEXT';
+              return 'OTHER'; },
     // GAP-05: hit-testable = elementFromPoint at the bbox centre is the control or a descendant (no occlusion threshold)
     hitCentre(sel){ const e=document.querySelector(sel); if(!e) return false; const r=e.getBoundingClientRect(); if(r.width<=0||r.height<=0) return false;
               const x=r.x+r.width/2, y=r.y+r.height/2; if(x<0||y<0||x>innerWidth||y>innerHeight) return false; const t=document.elementFromPoint(x,y); return !!t&&(t===e||e.contains(t)); },
@@ -80,8 +97,15 @@ def auth_stage(task, endpoint_surface_rendered_before_gate=False):
     if not any(t in TASK_SPECIFIC for t in before): return "BEFORE_TASK_DISCOVERY"
     return "AT_ENDPOINT" if endpoint_surface_rendered_before_gate else "AFTER_TASK_SELECT"
 
-def derive(task):
-    return dict(activation_depth=sum(t in ACT for t in task),
+def cond_decision(mode):
+    """T-A-V3-STEP1-006 CONDITIONAL: control means → IN, FREE_TEXT → OUT, missing/MIXED/OTHER → UNRESOLVED (counted OUT, flagged); = lane6 resolve_input_mode."""
+    return "IN" if mode in MODES_IN else "OUT" if mode in MODES_OUT else "UNRESOLVED"
+
+def derive(task, modes=None):
+    """modes: {index in task: fixture_input_mode} for CONDITIONAL tokens (Δ8-R5)."""
+    modes = modes or {}
+    counted = lambda i, t: t in ACT and (t not in COND or cond_decision(modes.get(i)) == "IN")
+    return dict(activation_depth=sum(counted(i, t) for i, t in enumerate(task)),
                 flow_step_count=sum(t not in ("ENDPOINT_REACHED", "ABSTAIN") for t in task),   # GAP-03: AUTH_GATE counted, terminals excluded
                 menu_dependency=any(t in REVEAL for t in task if t not in EXP["token_sets"]["TERMINAL_SET"]),
                 nav_container_depth=nav_depth(task))
@@ -174,10 +198,14 @@ def walk_one(browser, name, f):
             chk(loc.count() >= 1 and loc.is_visible(), f"step {i}: control for {st['action']} not visible")
             entry["bbox_before"] = page.evaluate(f"__c.bbox({s!r})")
             occ = page.evaluate(f"__c.occl({s!r})"); entry["occlusion_hittest"] = occ
-            if st["action"] != "DISMISS_OBSTRUCTION" and f.get("task_control_occlusion_all_steps") is not None:
-                chk(approx(occ, f["task_control_occlusion_all_steps"]), f"step {i}: path control occluded {occ}")
+            exp_occ = st.get("occlusion", f.get("task_control_occlusion_all_steps"))          # per-step override (occluded_but_hittable)
+            if st["action"] != "DISMISS_OBSTRUCTION" and exp_occ is not None:
+                chk(approx(occ, exp_occ), f"step {i}: path control occluded {occ} != {exp_occ}")
             entry["accessible_name"] = page.evaluate(f"__c.ariaName({s!r})")
+            if st["action"] in COND:                                                          # Δ8-R5: record the means the SERVICE offers
+                entry["fixture_input_mode_observed"] = page.evaluate(f"__c.inputMode({s!r})")
             if st["kind"] == "fill": loc.fill(st["value"])
+            elif st["kind"] == "select": loc.select_option(st["value"])
             else: loc.click()
         ok = wait_state(page, st["state_after"])
         entry["state_after"] = page.evaluate("__c.state()"); entry["url_before"], entry["url_after"] = url_before, page.url
@@ -208,7 +236,20 @@ def walk_one(browser, name, f):
     walked = [[s["state_before"], s["action"], s["state_after"]] for s in rec["steps"] if s["kind"] != "scroll"]
     chk(walked == f["lossless_check"], "walker-observed triples != lossless_check")
     # derived-variable self-consistency of EXPECTATIONS with the pre-registered rules
-    d = derive(f["task_flow_sequence"])
+    # STEP1-006 CONDITIONAL / Δ8-R5: observed input mode must equal the expected one per conditional token; decisions re-derived
+    dct = f.get("depth_conditional_tokens", [])
+    task_cond_idx = [i for i, t in enumerate(f["task_flow_sequence"]) if t in COND]
+    chk([c["index"] for c in dct] == task_cond_idx, f"depth_conditional_tokens indices {[c['index'] for c in dct]} != conditional positions {task_cond_idx}")
+    obs = [e for e in rec["steps"] if "fixture_input_mode_observed" in e]
+    for c, e in zip(dct, obs):
+        chk(e["action"] == c["token"], f"conditional token order: walked {e['action']} vs expected {c['token']}")
+        chk(e["fixture_input_mode_observed"] == c["fixture_input_mode"], f"fixture_input_mode observed {e['fixture_input_mode_observed']} != expected {c['fixture_input_mode']} ({c['token']})")
+        chk(cond_decision(c["fixture_input_mode"]) == c["decision"], f"depth_conditional_tokens decision {c['decision']} != rule {cond_decision(c['fixture_input_mode'])}")
+    chk(len(obs) == len(dct), f"{len(obs)} conditional steps walked but {len(dct)} expected in depth_conditional_tokens")
+    if len(dct) == 1: chk(f.get("fixture_input_mode") == dct[0]["fixture_input_mode"], "row-level fixture_input_mode != single conditional token mode")
+    rec["depth_conditional_tokens_observed"] = [{"index": c["index"], "token": c["token"], "fixture_input_mode": e["fixture_input_mode_observed"],
+                                                 "decision": cond_decision(e["fixture_input_mode_observed"])} for c, e in zip(dct, obs)]
+    d = derive(f["task_flow_sequence"], {c["index"]: c["fixture_input_mode"] for c in dct})
     for k, v in d.items(): chk(f[k] == v, f"EXPECTATIONS {k}={f[k]} but rule gives {v}")
     chk([t for t in f["experienced_flow_sequence"] if t != "DISMISS_OBSTRUCTION"] == f["task_flow_sequence"], "task != experienced minus DISMISS")
     chk(f["forced_dismissal_count"] == f["experienced_flow_sequence"].count("DISMISS_OBSTRUCTION"), "forced_dismissal_count mismatch")
@@ -229,18 +270,37 @@ def main():
             except Exception as e: r = {"fixture": name, "fails": [f"EXCEPTION {type(e).__name__}: {e}"], "steps": []}
             results.append(r)
         browser.close()
+    # STEP1-006 CONDITIONAL positive-control pairs: same path, one input means differs → activation_depth differs by exactly 1
+    pair_rows = []
+    for pr in EXP.get("conditional_pairs", []):
+        a, b = EXP["fixtures"][pr["in"]], EXP["fixtures"][pr["out"]]
+        ra, rb = [r for r in results if r["fixture"] == pr["in"]][0], [r for r in results if r["fixture"] == pr["out"]][0]
+        fails = []
+        if a["activation_depth"] - b["activation_depth"] != pr["activation_depth_delta"]: fails.append("activation_depth delta")
+        if a["flow_step_count"] - b["flow_step_count"] != pr["flow_step_count_delta"]: fails.append("flow_step_count delta")
+        if a["task_flow_sequence"] != b["task_flow_sequence"]: fails.append("task_flow_sequence differs")
+        ma = [c["fixture_input_mode"] for c in ra.get("depth_conditional_tokens_observed", [])]; mb = [c["fixture_input_mode"] for c in rb.get("depth_conditional_tokens_observed", [])]
+        if not (ma and mb and ma != mb): fails.append(f"observed input modes do not differ ({ma} vs {mb})")
+        if ra["fails"] or rb["fails"]: fails.append("member fixture failed")
+        pair_rows.append({"pair": [pr["in"], pr["out"]], "activation_depth": [a["activation_depth"], b["activation_depth"]],
+                          "flow_step_count": [a["flow_step_count"], b["flow_step_count"]], "modes": [ma, mb], "fails": fails})
+        results.append({"fixture": f"PAIR:{pr['in']}|{pr['out']}", "fails": fails, "steps": [], "_pair": True})
     (OUT / "walk_result.json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
     hdr = "| fixture | role | recorded steps | S0 occl (hit/geo) | S0 overlay cov | fvss | terminal | result |"
     print(hdr); print("|" + "---|" * 8)
     all_ok = True
     for r in results:
+        if r.get("_pair"):
+            ok = not r["fails"]; all_ok &= ok
+            print(f"| {r['fixture']} | PAIR | - | - | - | - | - | {'PASS' if ok else 'FAIL: ' + '; '.join(r['fails'])} |"); continue
         f = EXP["fixtures"][r["fixture"]]; ok = not r["fails"]; all_ok &= ok
         n = sum(1 for s in r["steps"] if s.get("kind") != "scroll")
         occ = r.get("s0_occlusion_hittest"); geo = r.get("s0_occlusion_geometric")
         occs = "n/a" if occ is None else f"{occ:.2f}/{geo:.2f}"
         cov = r.get("s0_overlay_coverage"); covs = "n/a" if cov is None else f"{cov:.3f}"
         print(f"| {r['fixture']} | {f['control_role'].split('_')[0]} | {n}/{len(f['lossless_check'])} | {occs} | {covs} | {'null' if r.get('first_visible_scroll_state', '?') is None else r.get('first_visible_scroll_state', '?')} | {r.get('terminal','?')} | {'PASS' if ok else 'FAIL: ' + '; '.join(r['fails'])} |")
-    print(f"\nRESULT: {'ALL PASS' if all_ok else 'FAIL'} ({sum(1 for r in results if not r['fails'])}/{len(results)} fixtures) -> {OUT/'walk_result.json'}")
+    nf = [r for r in results if not r.get("_pair")]; npair = len(results) - len(nf)
+    print(f"\nRESULT: {'ALL PASS' if all_ok else 'FAIL'} ({sum(1 for r in nf if not r['fails'])}/{len(nf)} fixtures, {sum(1 for r in results if r.get('_pair') and not r['fails'])}/{npair} conditional pairs) -> {OUT/'walk_result.json'}")
     sys.exit(0 if all_ok else 1)
 
 if __name__ == "__main__":

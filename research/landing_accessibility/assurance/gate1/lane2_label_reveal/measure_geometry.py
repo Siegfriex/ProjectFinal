@@ -6,7 +6,10 @@ reads the entry control through THREE channels (CDP AX tree with name sources; P
 aria_snapshot; DOM fallbacks), records bbox before/after the reveal toggle, infers the
 reveal direction purely from geometry, and compares against EXPECTATIONS.json.
 Zone derivation follows A T-A-V3-STEP1-003 R7 (terciles, [a,b), DRAWER > FLOATING > geometry);
-entry_observed_state / nav_container_chain / dom_ax_divergence / null convention follow A T-A-V3-STEP1-012.
+entry_observed_state / nav_container_chain / dom_ax_divergence / null convention follow A T-A-V3-STEP1-012:
+nav_container_chain is derived one container per reveal step (outermost ancestor that flips to rendered, typed from its
+own geometry; innermost = nav_container_type); dom_ax_divergence compares a naive light-DOM querySelector channel with the
+CDP AX node found through the element's backendNodeId (works inside open shadow roots).
 
 Exit 0 only if every fixture PASSes.
 """
@@ -64,8 +67,11 @@ JS_INFO = r"""
   let floatAnchor = null; n = el;
   while (n && n !== document.body) { const p = getComputedStyle(n).position; if (p === 'fixed' || p === 'sticky') { const fr = n.getBoundingClientRect(); floatAnchor = {position: p, tag: n.tagName.toLowerCase(), id: n.id, cls: n.className, width: fr.width, height: fr.height, self: n === el}; break; } n = n.parentElement; }
   // GAP-05: hit-testable at this state = elementFromPoint at the bbox centre is the control or a descendant
+  // (shadow-aware: hit-test from the control's own root so a control inside an open shadow root is not reported as covered by its host)
   let hitAtCentre = false;
-  if (inViewport) { const t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); hitAtCentre = !!t && (t === el || el.contains(t)); }
+  if (inViewport) { const root = el.getRootNode(); const hv = (root && root.elementFromPoint) ? root : document;
+    const t = hv.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); hitAtCentre = !!t && (t === el || el.contains(t)); }
+  const inShadow = el.getRootNode() !== document;
   return {
     tag, type, role: el.getAttribute('role'), href: el.getAttribute('href'),
     innerText: rendered ? (el.innerText || '') : '', textContent: el.textContent || '',
@@ -74,15 +80,49 @@ JS_INFO = r"""
     imgAlts, svgTitles, hasIcon, rendered, inViewport,
     display: cs.display, visibility: cs.visibility, opacity: cs.opacity,
     bbox: {x: r.x, y: r.y, width: r.width, height: r.height},
-    container: contInfo, floatAnchor, hitAtCentre, cls: el.className, id: el.id
+    container: contInfo, floatAnchor, hitAtCentre, inShadow, cls: el.className, id: el.id
   };
 }
 """
 
-def cdp_ax(cdp, selector):
-    doc = cdp.send("DOM.getDocument", {"depth": 0})
-    node = cdp.send("DOM.querySelector", {"nodeId": doc["root"]["nodeId"], "selector": selector})
-    tree = cdp.send("Accessibility.getPartialAXTree", {"nodeId": node["nodeId"], "fetchRelatives": False})
+# DOM channel as a selector-based collector sees it: naive light-DOM query, no shadow piercing (STEP1-012 divergence)
+JS_NAIVE = r"""
+(s) => { const e = document.querySelector(s); if (!e) return {found: false, rendered: false, inViewport: false};
+  const r = e.getBoundingClientRect(); const rendered = e.checkVisibility ? e.checkVisibility({visibilityProperty: true, opacityProperty: true}) : true;
+  return {found: true, rendered, inViewport: r.width > 0 && r.height > 0 && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight}; }
+"""
+
+# ancestor chain of the control, inner → outer (hops out of shadow roots via the host), with rendered state and bbox — GAP-06 chain derivation
+JS_ANCESTORS = r"""
+(el) => { const up = n => n.parentElement || ((n.getRootNode && n.getRootNode().host) || null);
+  const out = []; let n = up(el);
+  while (n && n !== document.body) { const cs = getComputedStyle(n); const r = n.getBoundingClientRect();
+    out.push({tag: n.tagName.toLowerCase(), id: n.id, cls: typeof n.className === 'string' ? n.className : '', position: cs.position,
+      rendered: n.checkVisibility ? n.checkVisibility({visibilityProperty: true, opacityProperty: true}) : cs.display !== 'none',
+      bbox: {x: r.x, y: r.y, width: r.width, height: r.height}, dataSide: n.getAttribute('data-side'), ariaLabel: n.getAttribute('aria-label'), dataState: n.getAttribute('data-state')});
+    n = up(n); }
+  return out; }
+"""
+
+def cdp_ax(cdp, loc):
+    """AX node of the element behind a Playwright locator, located by backendNodeId through a temporary probe attribute
+    (DOM.querySelector does not pierce shadow roots; the pierced DOM.getDocument tree does)."""
+    tag = loc.evaluate("el => { const t = 'p' + Math.random().toString(36).slice(2); el.setAttribute('data-c-probe', t); return t; }")
+    try:
+        doc = cdp.send("DOM.getDocument", {"depth": -1, "pierce": True})
+        def find(n):
+            a = n.get("attributes") or []
+            if dict(zip(a[0::2], a[1::2])).get("data-c-probe") == tag: return n
+            for ch in (n.get("children") or []) + (n.get("shadowRoots") or []) + ([n["contentDocument"]] if n.get("contentDocument") else []):
+                r = find(ch)
+                if r: return r
+            return None
+        node = find(doc["root"])
+        if node is None:
+            return {"name": "", "role": None, "ignored": True, "sources": [], "error": "element not found in pierced DOM tree"}
+        tree = cdp.send("Accessibility.getPartialAXTree", {"backendNodeId": node["backendNodeId"], "fetchRelatives": False})
+    finally:
+        loc.evaluate("el => el.removeAttribute('data-c-probe')")
     n = tree["nodes"][0]
     name = (n.get("name") or {}).get("value", "") or ""
     srcs = [(s.get("type"), s.get("attribute"), s.get("nativeSource")) for s in (n.get("name") or {}).get("sources", []) if s.get("value") is not None or s.get("attributeValue") is not None]
@@ -174,6 +214,34 @@ def infer_direction(before, after_info):
     if full_h and c["x"] + c["width"] >= VW - 1: return "RIGHT", None, None, "edge-anchor"
     return "CENTER", None, None, "edge-anchor/fallback"
 
+def opened_container(anc_before, anc_after):
+    """GAP-06: the container opened by a reveal step = the OUTERMOST ancestor of the control that flips not-rendered → rendered."""
+    if len(anc_before) != len(anc_after): return None
+    idx = [i for i, (b, a) in enumerate(zip(anc_before, anc_after)) if not b["rendered"] and a["rendered"]]
+    if not idx: return None
+    i = max(idx); a = anc_after[i]
+    return {"tag": a["tag"], "id": a["id"], "cls": a["cls"], "position": a["position"], "bbox_before": anc_before[i]["bbox"], "bbox_after": a["bbox"],
+            "dataSide": a["dataSide"], "ariaLabel": a["ariaLabel"]}
+
+def step_direction(ctrl_before, after_info, cont):
+    """Direction attributable to ONE reveal step. Control motion when the control was laid out before the step (r2 rule);
+    otherwise the geometry of the container opened by the step: in-flow → INLINE; fixed/absolute → motion of its own box, no motion → CENTER,
+    no box before → edge anchoring (r2 fallback)."""
+    if ctrl_before and ctrl_before["width"] > 0:
+        return infer_direction(ctrl_before, after_info)
+    if cont is None:
+        return infer_direction(None, after_info)
+    if cont["position"] in ("static", "relative", "sticky"):
+        return "INLINE", None, None, "container-in-flow"
+    cb, ca = cont["bbox_before"], cont["bbox_after"]
+    if cb and cb["width"] > 0 and ca["width"] > 0:
+        dx = (ca["x"] + ca["width"] / 2) - (cb["x"] + cb["width"] / 2); dy = (ca["y"] + ca["height"] / 2) - (cb["y"] + cb["height"] / 2)
+        if max(abs(dx), abs(dy)) <= 4: return "CENTER", dx, dy, "container-no-motion"
+        if abs(dx) >= abs(dy): return ("LEFT" if dx > 0 else "RIGHT"), dx, dy, "container-motion-x"
+        return ("TOP" if dy > 0 else "BOTTOM"), dx, dy, "container-motion-y"
+    fake = dict(after_info); fake["container"] = {"x": ca["x"], "y": ca["y"], "width": ca["width"], "height": ca["height"]}
+    return infer_direction(None, fake)
+
 def nav_type_from(direction, after_info, steps):
     if not steps: return "NONE"
     c = after_info["container"]
@@ -206,9 +274,10 @@ def settle_bbox(loc, min_ms=260, max_ms=2500):
 NOT_OBSERVED = "NOT_OBSERVED"
 
 def read_control(page, cdp, sel, in_reveal):
-    loc = page.locator(sel).first
+    loc = page.locator(sel).first                                          # Playwright pierces open shadow roots
     info = loc.evaluate(JS_INFO)
-    ax = cdp_ax(cdp, sel)
+    ax = cdp_ax(cdp, loc)
+    naive = page.evaluate(JS_NAIVE, sel)                                   # DOM channel: naive light-DOM query
     pw_name, pw_line = aria_snapshot_name(loc)
     observed = bool(info["rendered"] and info["inViewport"])          # GAP-04: not rendered / off-viewport => nothing observed at this state
     ax_name = norm(ax["name"]) if observed else NOT_OBSERVED
@@ -217,8 +286,8 @@ def read_control(page, cdp, sel, in_reveal):
     rel = label_relation(vis, ax_name) if observed else NOT_OBSERVED
     z, band, xn, yn = zone(info, in_reveal)
     fallback = norm(info["ariaLabel"] or "") or norm(info["innerText"])
-    dom_exists = observed                                                 # DOM query found a rendered, in-viewport control
-    ax_exists = observed and not ax["ignored"] and ax["role"] is not None # AX tree exposes a node for it
+    dom_exists = bool(naive["found"] and naive["rendered"] and naive["inViewport"])   # DOM channel: naive light-DOM querySelector finds a rendered, in-viewport control
+    ax_exists = bool(observed and not ax["ignored"] and ax["role"] is not None)      # AX channel: a non-ignored AX node with a role exists for it
     return {
         "selector": sel, "observed": observed, "visible_label_text": vis, "visible_text_provenance": prov,
         "accessible_name": ax_name, "accessible_name_channel": "CDP Accessibility.getPartialAXTree",
@@ -230,7 +299,8 @@ def read_control(page, cdp, sel, in_reveal):
         "rendered": info["rendered"], "in_viewport": info["inViewport"], "hit_at_centre": info["hitAtCentre"], "bbox": info["bbox"] if observed else None,
         "entry_zone": z if observed else NOT_OBSERVED, "entry_zone_band_R7": band if observed else NOT_OBSERVED,
         "entry_x_norm": xn, "entry_y_norm": yn, "container": info["container"], "float_anchor": info.get("floatAnchor"),
-        "dom_exists": dom_exists, "ax_exists": ax_exists, "dom_ax_divergence": dom_exists != ax_exists, "_info": info,
+        "dom_exists": dom_exists, "ax_exists": ax_exists, "dom_ax_divergence": dom_exists != ax_exists,
+        "dom_channel_naive_light_dom": naive, "in_shadow_root": info.get("inShadow"), "_info": info,
     }
 
 def cmp(field, got, exp, diffs):
@@ -283,19 +353,28 @@ def run_fixture(browser, fx):
         cmp(f"aux[{aux['selector']}].pw==cdp", norm(a["pw_aria_snapshot_name"] or ""), a["accessible_name"], diffs)
     # ---- reveal ----
     direction, dx, dy, method, naive = "NONE", None, None, "n/a", None
+    chain, step_log = [], []
     if steps:
         before = page.locator(sel).first.bounding_box()
         for i, st in enumerate(steps):
+            ctrl_before = page.locator(sel).first.bounding_box()
+            anc_before = page.locator(sel).first.evaluate(JS_ANCESTORS)
             page.locator(st).first.click()
             settle_bbox(page.locator(sel).first)
+            anc_after = page.locator(sel).first.evaluate(JS_ANCESTORS)
             mid = read_control(page, cdp, sel, in_reveal=True)
             if i < len(steps) - 1 and mid["rendered"] and mid["in_viewport"]:
                 diffs.append(f"control visible after {i+1} of {len(steps)} steps (depth over-stated)")
+            cont = opened_container(anc_before, anc_after)                      # GAP-06: one container per step
+            d_i, dx_i, dy_i, m_i = step_direction(ctrl_before, mid["_info"], cont)
+            chain.append(nav_type_from(d_i, mid["_info"], steps))
+            step_log.append({"step": i, "toggle": st, "direction": d_i, "dx": dx_i, "dy": dy_i, "method": m_i, "container": cont,
+                             "control_laid_out_before": bool(ctrl_before and ctrl_before["width"] > 0)})
+            direction, dx, dy, method = d_i, dx_i, dy_i, m_i                   # innermost = last step
         s1 = read_control(page, cdp, sel, in_reveal=True)
         rec["s1_after_reveal"] = {k: v for k, v in s1.items() if k != "_info"}
-        rec["bbox_before"] = before
+        rec["bbox_before"] = before; rec["reveal_steps_observed"] = step_log
         if not (s1["rendered"] and s1["in_viewport"]): diffs.append("control not visible after reveal steps")
-        direction, dx, dy, method = infer_direction(before, s1["_info"])
         naive = naive_name_guess(s1["_info"])
         ar = fx.get("after_reveal", {})
         for f in ("visible_label_text", "accessible_name", "accessible_name_source", "label_relation"):
@@ -317,7 +396,7 @@ def run_fixture(browser, fx):
     else:
         zone_src = s0
     menu_dep = 0 if s0_visible else (1 if steps else None)
-    nav_type = nav_type_from(direction, (rec.get("s1_after_reveal") and read_control(page, cdp, sel, True)["_info"]) or s0["_info"], steps)
+    nav_type = chain[-1] if chain else "NONE"                                    # GAP-06: innermost container
     cmp("reveal_direction", direction, exp["reveal_direction"], diffs)
     cmp("nav_container_type", nav_type, exp["nav_container_type"], diffs)
     cmp("menu_dependency", menu_dep, exp["menu_dependency"], diffs)
@@ -328,8 +407,8 @@ def run_fixture(browser, fx):
     # GAP-07: the row declares the state its entry_* facts come from
     observed_state = "S0" if s0["observed"] else (f"POST_REVEAL:{nav_type}" if (steps and zone_src["observed"]) else "NOT_OBSERVED")
     cmp("entry_observed_state", observed_state, exp["entry_observed_state"], diffs)
-    # GAP-06: innermost container type + outer->inner chain (single-level fixtures: one reveal step => one container)
-    chain = [nav_type] if (menu_dep and steps) else []
+    # GAP-06: innermost container type + outer->inner chain (one container per reveal step, typed from its own geometry)
+    chain = chain if (menu_dep and steps) else []
     cmp("nav_container_chain", chain, exp["nav_container_chain"], diffs)
     if len(chain) != (len(steps) if menu_dep else 0): diffs.append("nav_container_chain length != nav_container_depth")
     cmp("dom_ax_divergence", zone_src["dom_ax_divergence"], exp["dom_ax_divergence"], diffs)
@@ -355,9 +434,10 @@ def main():
                          rec["s0"]["accessible_name_source"], mod, rec["s0"]["label_relation"], zs["entry_control_type"],
                          "T" if rec["s0"]["rendered"] and rec["s0"]["in_viewport"] else "F", d,
                          "" if rec["dx"] is None else f"{rec['dx']:+.0f}", "" if rec["dy"] is None else f"{rec['dy']:+.0f}",
-                         zs["entry_zone"], zs["entry_zone_band_R7"], f"{zs['entry_x_norm']:.2f},{zs['entry_y_norm']:.2f}", rec["entry_observed_state"], naive or "", rec["result"]])
+                         zs["entry_zone"], zs["entry_zone_band_R7"], f"{zs['entry_x_norm']:.2f},{zs['entry_y_norm']:.2f}", rec["entry_observed_state"], ">".join(rec["nav_container_chain"]) or "-",
+                         "T" if rec["s0"]["dom_ax_divergence"] or (rec.get("s1_after_reveal") or {}).get("dom_ax_divergence") else "F", naive or "", rec["result"]])
         browser.close()
-    hdr = ["fixture", "ctl", "visible", "ax_name", "ax_src", "modality", "relation", "ctype", "s0", "dir", "dx", "dy", "zone(R7)", "band", "x,y", "observed_state", "naive", "result"]
+    hdr = ["fixture", "ctl", "visible", "ax_name", "ax_src", "modality", "relation", "ctype", "s0", "dir", "dx", "dy", "zone(R7)", "band", "x,y", "observed_state", "chain", "domax", "naive", "result"]
     widths = [max(len(str(r[i])) for r in [hdr] + rows) for i in range(len(hdr))]
     lines = [" | ".join(str(c).ljust(w) for c, w in zip(r, widths)) for r in [hdr, ["-" * w for w in widths]] + rows]
     print("\n".join(lines))

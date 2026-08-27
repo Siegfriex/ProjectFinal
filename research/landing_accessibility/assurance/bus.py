@@ -3,10 +3,12 @@
 
 Ticket files are never modified. ACK and results go to completions/ as separate files.
 
-emit() refuses to write a schema-invalid ticket: SSOTV3 15_TICKET_PROTOCOL_SCHEMA requires base_sha (Δ5, 40-hex
-or >=7-hex git object id) — a payload without it raises ValueError BEFORE any file is created (RULING_INDEX_COVERAGE_C
-Δ5 defect: emit used to omit base_sha silently). Selftest that shows the refusal without touching the real bus:
-    python3 bus.py selftest      # redirects TICKETS/EVENT_LOG to a temp dir, expects ValueError, then one valid emit
+emit() refuses to write a schema-invalid ticket: SSOTV3 15_TICKET_PROTOCOL_SCHEMA requires base_sha (Δ5) and delta Δ26
+requires it to be a REAL object: the written value is always a 40-char lowercase hex commit id that resolves via
+`git -C <repo> cat-file -e <sha>^{commit}`; a short hex input is expanded with `git rev-parse --verify <sha>^{commit}` before
+writing (never zero-padded — the T-B-V3-FINDING-007-SHANOTE case), and a missing / non-hex / non-resolving value raises
+ValueError BEFORE any file is created. Selftest that shows the refusals without touching the real bus:
+    python3 bus.py selftest      # temp dir; expects ValueError for missing, short-fake, 40-hex-fake; short real sha expands; full real sha passes
 """
 from __future__ import annotations
 import json, hashlib, sys, datetime, pathlib
@@ -66,12 +68,33 @@ def complete(ticket: dict, result_type: str, payload: dict, to=("A", "B")) -> pa
     p = _write(COMPLETIONS / f"{tid}.C.json", obj); _log("COMPLETION", ticket_id=tid, result_type=result_type, severity_max=payload.get("severity_max")); return p
 
 BASE_SHA_RE = __import__("re").compile(r"^[0-9a-f]{7,40}$")
+REPO = pathlib.Path("/home/sieg/projects-wsl/ProjectFinal")     # object store shared by every worktree
 
-def emit(kind: str, payload: dict, to=("A", "B")) -> pathlib.Path:
-    """Unsolicited C→A/B ticket (e.g. SYSTEMIC_HARD_STOP_CANDIDATE). Raises ValueError if payload lacks a valid base_sha."""
-    bs = payload.get("base_sha")
+def resolve_base_sha(bs, repo: pathlib.Path = REPO) -> str:
+    """Δ26 guard: return the 40-char lowercase commit id for `bs`, or raise ValueError. Short hex is expanded via
+    git rev-parse --verify (no zero padding); a 40-hex value must exist (git cat-file -e)."""
+    import subprocess
     if not (isinstance(bs, str) and BASE_SHA_RE.match(bs.strip().lower())):
         raise ValueError(f"emit refused: base_sha is mandatory (15 schema / Δ5) and must be a 7-40 hex git sha; got {bs!r}")
+    bs = bs.strip().lower()
+    if len(bs) == 40:
+        if subprocess.run(["git", "-C", str(repo), "cat-file", "-e", f"{bs}^{{commit}}"], capture_output=True).returncode != 0:
+            raise ValueError(f"emit refused: base_sha {bs} does not resolve to a commit (Δ26: base_sha must be a real object)")
+        return bs
+    r = subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "--quiet", f"{bs}^{{commit}}"], capture_output=True, text=True)
+    full = r.stdout.strip()
+    if r.returncode != 0 or not BASE_SHA_RE.match(full) or len(full) != 40:
+        raise ValueError(f"emit refused: short base_sha {bs} does not resolve to a unique commit (Δ26; never zero-pad an abbreviation)")
+    return full
+
+def emit(kind: str, payload: dict, to=("A", "B")) -> pathlib.Path:
+    """Unsolicited C→A/B ticket (e.g. SYSTEMIC_HARD_STOP_CANDIDATE). Raises ValueError if payload lacks a base_sha that
+    resolves to a real commit (Δ5 + Δ26); a short sha is expanded to 40 chars before writing (base_sha_as_given kept)."""
+    given = payload.get("base_sha")
+    full = resolve_base_sha(given)
+    payload = {**payload, "base_sha": full}
+    if isinstance(given, str) and given.strip().lower() != full:
+        payload["base_sha_as_given"] = given
     TICKETS.mkdir(parents=True, exist_ok=True)
     stamp = datetime.datetime.now(KST).strftime("%H%M%S")
     # ticket files are immutable: never overwrite — add a sequence suffix on same-second collisions
@@ -123,6 +146,16 @@ if __name__ == "__main__":
             except ValueError as e:
                 print("refused as expected:", e)
             assert not list(TICKETS.glob("*.json")) if TICKETS.exists() else True, "a file was created despite refusal"
-            p = emit("FINDING", {"headline": "ok", "base_sha": "0123abcd"}); d = json.loads(p.read_text(encoding="utf-8"))
-            assert d["base_sha"] == "0123abcd" and p.parent == TICKETS, "valid emit did not land in the temp dir"
-            print("valid emit wrote", p.name, "in temp dir only; selftest OK")
+            import subprocess
+            head = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+            for bad, why in (("0123abcd", "short sha that resolves to nothing"), ("deadbeef" * 5, "40-hex fake sha"), ("zz1234567", "non-hex")):
+                try:
+                    emit("FINDING", {"headline": "bad", "base_sha": bad}); print(f"FAIL: emit accepted {why} {bad}"); sys.exit(1)
+                except ValueError as e:
+                    print("refused as expected:", str(e)[:90])
+            assert not list(TICKETS.glob("*.json")) if TICKETS.exists() else True, "a file was created despite refusal"
+            p = emit("FINDING", {"headline": "ok short", "base_sha": head[:10]}); d = json.loads(p.read_text(encoding="utf-8"))
+            assert d["base_sha"] == head and d.get("base_sha_as_given") == head[:10] and p.parent == TICKETS, "short real sha was not expanded to 40 chars"
+            p2 = emit("FINDING", {"headline": "ok full", "base_sha": head}); d2 = json.loads(p2.read_text(encoding="utf-8"))
+            assert d2["base_sha"] == head and "base_sha_as_given" not in d2, "full sha changed"
+            print("valid emits wrote", p.name, p2.name, "in temp dir only (short sha expanded to", head[:12] + "…); selftest OK")

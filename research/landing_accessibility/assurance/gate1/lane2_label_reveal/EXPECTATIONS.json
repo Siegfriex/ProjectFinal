@@ -9,9 +9,22 @@
       "SSOTV3/03_COLLECTION_MEASUREMENT_SPEC_v3.0.md §3-§4"
     ],
     "independence": "Expectations were written from the SSOT text and the accname/HTML-AAM algorithms BEFORE running measure_geometry.py. No B code, B tests, or B worktrees were read.",
-    "viewport": {"width": 390, "height": 844, "is_mobile": true, "has_touch": true, "device_scale_factor": 1},
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "is_mobile": true,
+      "has_touch": true,
+      "device_scale_factor": 1
+    },
     "text_normalization": "NFC + collapse whitespace + trim (04 §5)",
-    "synonym_map_fixed": {"배송조회": ["배송 조회", "택배조회", "택배 조회", "배송추적"]},
+    "synonym_map_fixed": {
+      "배송조회": [
+        "배송 조회",
+        "택배조회",
+        "택배 조회",
+        "배송추적"
+      ]
+    },
     "label_relation_rule": {
       "NONE": "visible=='' and ax==''",
       "AX_ONLY": "visible=='' and ax!=''",
@@ -40,10 +53,10 @@
       "entry_zone_band_R7": "geometry-only tercile band under R7 (no structural override), recorded per fixture as a declared sensitivity; raw entry_x_norm/entry_y_norm stay the primary comparison (+-0.02)"
     },
     "entry_observed_state_rule": "A T-A-V3-STEP1-012 GAP-07: entry_* geometry / label / AX facts are recorded at the state where the control first became observable; each row declares it as entry_observed_state = S0 | S1 | ... | POST_REVEAL:<nav_container_type>. s0_task_control_visible stays an S0 fact (false for reveal-gated controls).",
-    "s0_task_control_visible_rule": "A T-A-V3-STEP1-012 GAP-05: true iff the control bbox intersects the S0 viewport AND the control is hit-testable at S0 (elementFromPoint at its centre is the control or a descendant). Independent of task_control_occlusion; no threshold.",
-    "nav_container_chain_rule": "A T-A-V3-STEP1-012 GAP-06: nav_container_type = the innermost container that directly holds the entry control; nav_container_chain = outer-to-inner array of container types opened on the way (len == nav_container_depth; [] when nav_container_type == NONE). All current fixtures are single-level (chain length 1 or 0).",
+    "s0_task_control_visible_rule": "A T-A-V3-STEP1-012 GAP-05: true iff the control bbox intersects the S0 viewport AND the control is hit-testable at S0 (elementFromPoint at its centre is the control or a descendant). Independent of task_control_occlusion; no threshold. Hit test is shadow-aware (elementFromPoint on the control's root node) so a control inside an open shadow root is not misreported as covered by its host.",
+    "nav_container_chain_rule": "A T-A-V3-STEP1-012 GAP-06: nav_container_type = the innermost container that directly holds the entry control; nav_container_chain = outer-to-inner array of container types opened on the way (len == nav_container_depth; [] when nav_container_type == NONE). measure_geometry derives one container per reveal step: the outermost ancestor of the control that flips from not-rendered to rendered at that step (fallback: the nearest fixed/absolute ancestor), typed from ITS OWN geometry — in-flow (static/relative) → INLINE_EXPAND; fixed/absolute with a pre-reveal box → motion of that box (LEFT/RIGHT/TOP/BOTTOM drawer), no motion → MODAL_MENU; no pre-reveal box → edge anchoring. The control's own motion is used whenever the control was laid out before the step (identical to the r2 single-step rule). Positive control drawer_nested_accordion (hamburger → left drawer → accordion holding the control): type INLINE_EXPAND, chain [LEFT_DRAWER, INLINE_EXPAND], depth 2 — a runner reporting the outer container (LEFT_DRAWER) or a one-element chain fails.",
     "null_convention": "A T-A-V3-STEP1-012 GAP-04: at a state where the control is not observed (not rendered or outside the viewport), numeric fields (entry_x_norm, entry_y_norm) are null — never 0 — and categorical/text fields (visible_label_text, accessible_name, accessible_name_source, label_relation, entry_zone) are the explicit NOT_OBSERVED value — never ''. An observed-but-empty accessible name (label_icon_only_unnamed) is '' with accessible_name_source NONE: that is an observed absence, not a missing observation. One row never mixes the two conventions.",
-    "dom_ax_divergence_rule": "A T-A-V3-STEP1-012: when the DOM query and the AX tree disagree on whether the entry control exists at the observed state, both are recorded and dom_ax_divergence=true; neither side wins. All 14 fixtures expect false.",
+    "dom_ax_divergence_rule": "A T-A-V3-STEP1-012 'DOM_AX_divergence_noted' (W5E: querySelector finds no button, AX full tree has a named button): when the DOM channel and the AX channel disagree on whether the entry control exists at the observed state, both are recorded and dom_ax_divergence=true; neither side wins. Channels as C operationalises them: DOM = naive light-DOM document.querySelector(entry_selector) finds a rendered, in-viewport element (no shadow piercing — what a selector-based collector sees); AX = a CDP accessibility node for the control (located through the element's backendNodeId, which works inside open shadow roots), not ignored, with a role. Positive control dom_ax_divergence_positive: the control is an <a> inside an OPEN shadow root of a custom element — naive DOM: not found; AX: link '배송조회' → dom_ax_divergence=true. All 16 other fixtures expect false (both channels agree at the observed state, including the S0 rows of hidden controls where both are false).",
     "synonym_map_shape": "frozen shape = canonical -> [forms]; identity (canonical -> canonical) is implicit. C-DECISION_REQUEST-031138 P-30 (C-decided, A confirmed in T-A-V3-STEP1-011): lane6 lookup is made bidirectional; lane2 expectations unchanged.",
     "reveal_direction_rule_C": {
       "motion": "delta of the entry control bbox center between closed and opened state (dx=x1-x0, dy=y1-y0). |dx|>=|dy| and |dx|>4 => LEFT if dx>0 (came in from the left edge) else RIGHT. |dy|>|dx| and |dy|>4 => TOP if dy>0 else BOTTOM.",
@@ -51,7 +64,8 @@
       "not_rendered_before": "control had no box before open (display:none) => container in-flow (static/relative) => INLINE; fixed/absolute covering >=90% viewport => CENTER; else edge-anchoring (touches top+full width TOP, bottom BOTTOM, left+full height LEFT, right RIGHT)",
       "precedence": "Geometry wins. class/id/data-*/aria-label naming NEVER decides reveal_direction; it is recorded only as naive_name_guess for the negative control."
     },
-    "menu_dependency_rule": "1 iff the entry control is not visible at S0 and becomes visible only after >=1 reveal activation (OPEN_GLOBAL_MENU / OPEN_LOCAL_MENU / EXPAND_ACCORDION). nav_container_depth = number of reveal activations required (04 §5). A T-A-V3-STEP1-011 (P-09) fixes the primary reading as sequence-based (a reveal token before the endpoint); SWITCH_TAB is not a reveal token (P-06). On all 14 fixtures the only reveal in the recorded path is the one that exposes the control, so the S0-based wording above and the sequence-based primary yield identical values."
+    "menu_dependency_rule": "1 iff the entry control is not visible at S0 and becomes visible only after >=1 reveal activation (OPEN_GLOBAL_MENU / OPEN_LOCAL_MENU / EXPAND_ACCORDION). nav_container_depth = number of reveal activations required (04 §5). A T-A-V3-STEP1-011 (P-09) fixes the primary reading as sequence-based (a reveal token before the endpoint); SWITCH_TAB is not a reveal token (P-06). On all 14 fixtures the only reveal in the recorded path is the one that exposes the control, so the S0-based wording above and the sequence-based primary yield identical values.",
+    "revision_r3": "2026-08-28 after fe33eae: +drawer_nested_accordion (GAP-06 two-level chain) and +dom_ax_divergence_positive (STEP1-012 divergence positive control); measure_geometry: per-step container chain, naive light-DOM channel vs AX-by-backendNodeId, shadow-aware hit test. Values of the 14 r2 fixtures unchanged (re-run)."
   },
   "fixtures": [
     {
@@ -253,8 +267,12 @@
       "fixture": "label_hidden_until_reveal",
       "control_role": "POSITIVE_CONTROL",
       "entry_selector": "[data-c-target=entry]",
-      "reveal_steps": ["[data-c-toggle=menu]"],
-      "reveal_tokens": ["OPEN_GLOBAL_MENU"],
+      "reveal_steps": [
+        "[data-c-toggle=menu]"
+      ],
+      "reveal_tokens": [
+        "OPEN_GLOBAL_MENU"
+      ],
       "expected": {
         "visible_label_text": "NOT_OBSERVED",
         "accessible_name": "NOT_OBSERVED",
@@ -273,13 +291,22 @@
         "entry_zone": "DRAWER",
         "entry_zone_band_R7": "TOP_CENTER",
         "entry_observed_state": "POST_REVEAL:MODAL_MENU",
-        "nav_container_chain": ["MODAL_MENU"],
+        "nav_container_chain": [
+          "MODAL_MENU"
+        ],
         "dom_ax_divergence": false
       },
       "after_reveal": {
-        "visible_label_text": "배송조회", "accessible_name": "배송조회", "accessible_name_source": "VISIBLE_TEXT",
-        "label_relation": "MATCH", "entry_label_modality": "EXPLICIT_TEXT",
-        "motion": {"axis": "none", "max_abs_delta_px": 4, "note": "fade-in overlay: control does not move; container is fixed and covers the viewport => CENTER"}
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "motion": {
+          "axis": "none",
+          "max_abs_delta_px": 4,
+          "note": "fade-in overlay: control does not move; container is fixed and covers the viewport => CENTER"
+        }
       },
       "ambiguity": "S0 accessible_name for an element outside the AX tree: C records NOT_OBSERVED (A STEP1-012 GAP-04) with accessible_name_source / label_relation NOT_OBSERVED and null geometry, and defers the modality/relation of the control itself to the post-reveal state (entry_observed_state POST_REVEAL:<type>, GAP-07). A runner storing null for the text fields is equivalent; '' or 0 is not. It must NOT store the post-reveal name in the S0 row."
     },
@@ -287,8 +314,12 @@
       "fixture": "drawer_left",
       "control_role": "POSITIVE_CONTROL",
       "entry_selector": "[data-c-target=entry]",
-      "reveal_steps": ["[data-c-toggle=menu]"],
-      "reveal_tokens": ["OPEN_GLOBAL_MENU"],
+      "reveal_steps": [
+        "[data-c-toggle=menu]"
+      ],
+      "reveal_tokens": [
+        "OPEN_GLOBAL_MENU"
+      ],
       "expected": {
         "visible_label_text": "NOT_OBSERVED",
         "accessible_name": "NOT_OBSERVED",
@@ -306,21 +337,35 @@
         "entry_zone": "DRAWER",
         "entry_zone_band_R7": "TOP_CENTER",
         "entry_observed_state": "POST_REVEAL:LEFT_DRAWER",
-        "nav_container_chain": ["LEFT_DRAWER"],
+        "nav_container_chain": [
+          "LEFT_DRAWER"
+        ],
         "dom_ax_divergence": false
       },
       "after_reveal": {
-        "visible_label_text": "배송조회", "accessible_name": "배송조회", "accessible_name_source": "VISIBLE_TEXT",
-        "label_relation": "MATCH", "entry_label_modality": "EXPLICIT_TEXT",
-        "motion": {"axis": "x", "sign": "+", "min_abs_delta_px": 200, "note": "drawer width = min(80vw,320px) = 312px; closed translateX(-100%) puts the control center at x<0; open puts it at x in (0,312). dx = +312 expected"}
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "motion": {
+          "axis": "x",
+          "sign": "+",
+          "min_abs_delta_px": 200,
+          "note": "drawer width = min(80vw,320px) = 312px; closed translateX(-100%) puts the control center at x<0; open puts it at x in (0,312). dx = +312 expected"
+        }
       }
     },
     {
       "fixture": "drawer_right",
       "control_role": "POSITIVE_CONTROL",
       "entry_selector": "[data-c-target=entry]",
-      "reveal_steps": ["[data-c-toggle=menu]"],
-      "reveal_tokens": ["OPEN_GLOBAL_MENU"],
+      "reveal_steps": [
+        "[data-c-toggle=menu]"
+      ],
+      "reveal_tokens": [
+        "OPEN_GLOBAL_MENU"
+      ],
       "expected": {
         "visible_label_text": "NOT_OBSERVED",
         "accessible_name": "NOT_OBSERVED",
@@ -338,21 +383,35 @@
         "entry_zone": "DRAWER",
         "entry_zone_band_R7": "TOP_CENTER",
         "entry_observed_state": "POST_REVEAL:RIGHT_DRAWER",
-        "nav_container_chain": ["RIGHT_DRAWER"],
+        "nav_container_chain": [
+          "RIGHT_DRAWER"
+        ],
         "dom_ax_divergence": false
       },
       "after_reveal": {
-        "visible_label_text": "배송조회", "accessible_name": "배송조회", "accessible_name_source": "VISIBLE_TEXT",
-        "label_relation": "MATCH", "entry_label_modality": "EXPLICIT_TEXT",
-        "motion": {"axis": "x", "sign": "-", "min_abs_delta_px": 200, "note": "closed translateX(100%) puts the control center at x>390; open at x in (78,390). dx = -312 expected"}
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "motion": {
+          "axis": "x",
+          "sign": "-",
+          "min_abs_delta_px": 200,
+          "note": "closed translateX(100%) puts the control center at x>390; open at x in (78,390). dx = -312 expected"
+        }
       }
     },
     {
       "fixture": "drawer_mislabeled_left_class_but_right_geometry",
       "control_role": "NEGATIVE_CONTROL",
       "entry_selector": "[data-c-target=entry]",
-      "reveal_steps": ["[data-c-toggle=menu]"],
-      "reveal_tokens": ["OPEN_GLOBAL_MENU"],
+      "reveal_steps": [
+        "[data-c-toggle=menu]"
+      ],
+      "reveal_tokens": [
+        "OPEN_GLOBAL_MENU"
+      ],
       "expected": {
         "visible_label_text": "NOT_OBSERVED",
         "accessible_name": "NOT_OBSERVED",
@@ -370,13 +429,23 @@
         "entry_zone": "DRAWER",
         "entry_zone_band_R7": "TOP_CENTER",
         "entry_observed_state": "POST_REVEAL:RIGHT_DRAWER",
-        "nav_container_chain": ["RIGHT_DRAWER"],
+        "nav_container_chain": [
+          "RIGHT_DRAWER"
+        ],
         "dom_ax_divergence": false
       },
       "after_reveal": {
-        "visible_label_text": "배송조회", "accessible_name": "배송조회", "accessible_name_source": "VISIBLE_TEXT",
-        "label_relation": "MATCH", "entry_label_modality": "EXPLICIT_TEXT",
-        "motion": {"axis": "x", "sign": "-", "min_abs_delta_px": 200, "note": "class='left-drawer', id='menu', data-side='left', data-direction='left', aria-label='왼쪽 메뉴' all say LEFT; CSS anchors right:0 and animates translateX(100%)->0, so the control moves leftward INTO the viewport from the right edge. Geometry wins => RIGHT."}
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "motion": {
+          "axis": "x",
+          "sign": "-",
+          "min_abs_delta_px": 200,
+          "note": "class='left-drawer', id='menu', data-side='left', data-direction='left', aria-label='왼쪽 메뉴' all say LEFT; CSS anchors right:0 and animates translateX(100%)->0, so the control moves leftward INTO the viewport from the right edge. Geometry wins => RIGHT."
+        }
       },
       "naive_name_guess": "LEFT",
       "negative_control_note": "A runner that derives reveal_direction from class/id/data-*/aria-label reports LEFT and FAILS. Expected RIGHT."
@@ -385,8 +454,12 @@
       "fixture": "bottom_sheet",
       "control_role": "POSITIVE_CONTROL",
       "entry_selector": "[data-c-target=entry]",
-      "reveal_steps": ["[data-c-toggle=menu]"],
-      "reveal_tokens": ["OPEN_GLOBAL_MENU"],
+      "reveal_steps": [
+        "[data-c-toggle=menu]"
+      ],
+      "reveal_tokens": [
+        "OPEN_GLOBAL_MENU"
+      ],
       "expected": {
         "visible_label_text": "NOT_OBSERVED",
         "accessible_name": "NOT_OBSERVED",
@@ -404,21 +477,35 @@
         "entry_zone": "DRAWER",
         "entry_zone_band_R7": "MID",
         "entry_observed_state": "POST_REVEAL:BOTTOM_SHEET",
-        "nav_container_chain": ["BOTTOM_SHEET"],
+        "nav_container_chain": [
+          "BOTTOM_SHEET"
+        ],
         "dom_ax_divergence": false
       },
       "after_reveal": {
-        "visible_label_text": "배송조회", "accessible_name": "배송조회", "accessible_name_source": "VISIBLE_TEXT",
-        "label_relation": "MATCH", "entry_label_modality": "EXPLICIT_TEXT",
-        "motion": {"axis": "y", "sign": "-", "min_abs_delta_px": 200, "note": "sheet height 60vh = 506px; closed translateY(100%) => control center y>844; open => y in (338,844). dy = -506 expected"}
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "motion": {
+          "axis": "y",
+          "sign": "-",
+          "min_abs_delta_px": 200,
+          "note": "sheet height 60vh = 506px; closed translateY(100%) => control center y>844; open => y in (338,844). dy = -506 expected"
+        }
       }
     },
     {
       "fixture": "top_dropdown",
       "control_role": "POSITIVE_CONTROL",
       "entry_selector": "[data-c-target=entry]",
-      "reveal_steps": ["[data-c-toggle=menu]"],
-      "reveal_tokens": ["OPEN_GLOBAL_MENU"],
+      "reveal_steps": [
+        "[data-c-toggle=menu]"
+      ],
+      "reveal_tokens": [
+        "OPEN_GLOBAL_MENU"
+      ],
       "expected": {
         "visible_label_text": "NOT_OBSERVED",
         "accessible_name": "NOT_OBSERVED",
@@ -436,21 +523,35 @@
         "entry_zone": "DRAWER",
         "entry_zone_band_R7": "TOP_CENTER",
         "entry_observed_state": "POST_REVEAL:TOP_DROPDOWN",
-        "nav_container_chain": ["TOP_DROPDOWN"],
+        "nav_container_chain": [
+          "TOP_DROPDOWN"
+        ],
         "dom_ax_divergence": false
       },
       "after_reveal": {
-        "visible_label_text": "배송조회", "accessible_name": "배송조회", "accessible_name_source": "VISIBLE_TEXT",
-        "label_relation": "MATCH", "entry_label_modality": "EXPLICIT_TEXT",
-        "motion": {"axis": "y", "sign": "+", "min_abs_delta_px": 150, "note": "panel anchored top:56px, closed translateY(-120%) of its own height (~260px) => control center y<0; open => y in (56,~320). dy ~ +310 expected"}
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "motion": {
+          "axis": "y",
+          "sign": "+",
+          "min_abs_delta_px": 150,
+          "note": "panel anchored top:56px, closed translateY(-120%) of its own height (~260px) => control center y<0; open => y in (56,~320). dy ~ +310 expected"
+        }
       }
     },
     {
       "fixture": "inline_expand",
       "control_role": "POSITIVE_CONTROL",
       "entry_selector": "[data-c-target=entry]",
-      "reveal_steps": ["[data-c-toggle=menu]"],
-      "reveal_tokens": ["EXPAND_ACCORDION"],
+      "reveal_steps": [
+        "[data-c-toggle=menu]"
+      ],
+      "reveal_tokens": [
+        "EXPAND_ACCORDION"
+      ],
       "expected": {
         "visible_label_text": "NOT_OBSERVED",
         "accessible_name": "NOT_OBSERVED",
@@ -468,15 +569,99 @@
         "entry_zone": "DRAWER",
         "entry_zone_band_R7": "MID",
         "entry_observed_state": "POST_REVEAL:INLINE_EXPAND",
-        "nav_container_chain": ["INLINE_EXPAND"],
+        "nav_container_chain": [
+          "INLINE_EXPAND"
+        ],
         "dom_ax_divergence": false
       },
       "after_reveal": {
-        "visible_label_text": "배송조회", "accessible_name": "배송조회", "accessible_name_source": "VISIBLE_TEXT",
-        "label_relation": "MATCH", "entry_label_modality": "EXPLICIT_TEXT",
-        "motion": {"axis": "none", "before_rendered": false, "note": "panel is display:none (hidden attr) before; after it is an in-flow block (position static) below the accordion header, pushing siblings down => INLINE. entry_zone = DRAWER under A R7 (the control sits inside the reveal-requiring container that made menu_dependency=1, INLINE_EXPAND included); the geometry-only band is MID (entry_zone_band_R7)."}
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "motion": {
+          "axis": "none",
+          "before_rendered": false,
+          "note": "panel is display:none (hidden attr) before; after it is an in-flow block (position static) below the accordion header, pushing siblings down => INLINE. entry_zone = DRAWER under A R7 (the control sits inside the reveal-requiring container that made menu_dependency=1, INLINE_EXPAND included); the geometry-only band is MID (entry_zone_band_R7)."
+        }
       },
       "ambiguity": "menu_dependency=1 because 04 §5 lists EXPAND_ACCORDION among reveal tokens; nav_container_depth=1 counts the expansion even though no overlay container exists."
+    },
+    {
+      "fixture": "drawer_nested_accordion",
+      "control_role": "POSITIVE_CONTROL",
+      "entry_selector": "[data-c-target=entry]",
+      "reveal_steps": [
+        "[data-c-toggle=menu]",
+        "[data-c-toggle=acc]"
+      ],
+      "reveal_tokens": [
+        "OPEN_GLOBAL_MENU",
+        "EXPAND_ACCORDION"
+      ],
+      "expected": {
+        "visible_label_text": "NOT_OBSERVED",
+        "accessible_name": "NOT_OBSERVED",
+        "accessible_name_source": "NOT_OBSERVED",
+        "accessible_name_reasoning": "S0 row: the control sits in an accordion panel (display:none) inside a closed left drawer — not rendered, not in the AX tree → NOT_OBSERVED / null geometry (GAP-04). After OPEN_GLOBAL_MENU alone it is still hidden (accordion closed) — a runner that reports it visible after one step over-states depth; after EXPAND_ACCORDION it is an in-flow link '배송조회'.",
+        "entry_label_modality": "HIDDEN_UNTIL_REVEAL",
+        "label_relation": "NOT_OBSERVED",
+        "s0_entry_x_norm": null,
+        "s0_entry_y_norm": null,
+        "entry_control_type": "TEXT_LINK",
+        "nav_container_type": "INLINE_EXPAND",
+        "reveal_direction": "INLINE",
+        "menu_dependency": 1,
+        "nav_container_depth": 2,
+        "s0_task_control_visible": false,
+        "entry_zone": "DRAWER",
+        "entry_zone_band_R7": "TOP_CENTER",
+        "entry_observed_state": "POST_REVEAL:INLINE_EXPAND",
+        "nav_container_chain": [
+          "LEFT_DRAWER",
+          "INLINE_EXPAND"
+        ],
+        "dom_ax_divergence": false
+      },
+      "after_reveal": {
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "label_relation": "MATCH",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "motion": {
+          "axis": "none",
+          "before_rendered": false,
+          "note": "control has no box before the last step (accordion panel hidden); step 1 opens the fixed left drawer (its own box moves dx +312 → LEFT_DRAWER), step 2 expands the in-flow accordion panel inside it (INLINE_EXPAND). Innermost = INLINE_EXPAND; band TOP_CENTER inside the drawer (x≈0.4, y<1/3) under R7 geometry, zone DRAWER."
+        }
+      },
+      "rationale": "A T-A-V3-STEP1-012 GAP-06 positive control ('hamburger 안 accordion 이면 INLINE_EXPAND, nav_container_depth = 2, chain 병기'): innermost vs outermost and chain ordering become distinguishable — the 14 r2 fixtures are all single-level."
+    },
+    {
+      "fixture": "dom_ax_divergence_positive",
+      "control_role": "POSITIVE_CONTROL",
+      "entry_selector": "[data-c-target=entry]",
+      "expected": {
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_reasoning": "link inside an OPEN shadow root (custom element c-quick-actions); accname 2F name-from-content = text node '배송조회'. The AX tree is flat across shadow boundaries, so the node is exposed with role link and this name; a naive light-DOM document.querySelector('[data-c-target=entry]') returns null.",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "label_relation": "MATCH",
+        "entry_control_type": "TEXT_LINK",
+        "nav_container_type": "NONE",
+        "reveal_direction": "NONE",
+        "menu_dependency": 0,
+        "nav_container_depth": 0,
+        "s0_task_control_visible": true,
+        "entry_zone": "TOP_LEFT",
+        "entry_zone_band_R7": "TOP_LEFT",
+        "entry_observed_state": "S0",
+        "nav_container_chain": [],
+        "dom_ax_divergence": true
+      },
+      "rationale": "A T-A-V3-STEP1-012 'DOM_AX_divergence_noted' positive control: DOM channel (naive querySelector over the light DOM) does not find the control, AX channel does → dom_ax_divergence=true with both channels recorded. A runner that hard-codes false, or that lets one channel win (drops the row or reports the control absent), fails here; the other 16 fixtures expect false. Same layout as label_explicit_text (control at x≈0.20, y≈0.26 → TOP_LEFT) so only the channel disagreement differs."
     }
   ]
 }

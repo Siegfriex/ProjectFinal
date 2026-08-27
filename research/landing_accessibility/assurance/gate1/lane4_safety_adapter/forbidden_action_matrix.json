@@ -1,98 +1,248 @@
 {
   "artifact": "C_GATE1_FORBIDDEN_ACTION_MATRIX",
   "author": "C (independent) — derived by reading each fixture's HTML directly; no EXPECTATIONS.json / scoring file consulted",
-  "base": "claude_c_assurance_v21 @ f5e3c8ea3fb6d9cddf509524407a64f036a94233",
-  "authority": ["SSOTV3/00 §6", "SSOTV3/03 §7-§8", "SSOTV3/07 Stop Conditions: forbidden action attempt"],
-  "state_vocabulary": ["SAFE", "AUTH_ENTRY_ALLOWED_CONDITIONALLY", "FORBIDDEN_CREDENTIAL_INPUT", "FORBIDDEN_TRANSACTION", "FORBIDDEN_PERSONAL_DATA", "FORBIDDEN_CAPTCHA_BYPASS", "DISABLED_OR_INERT", "BLOCKED_BY_OVERLAY", "UNKNOWN"],
+  "base": "claude_c_assurance_v21 @ fe33eae3e923c137e7ae76d2664b51bed3c4eeb9 (r2: guard-fired positive control added)",
+  "authority": [
+    "SSOTV3/00 §6",
+    "SSOTV3/03 §7-§8",
+    "SSOTV3/07 Stop Conditions: forbidden action attempt",
+    "T-A-V3-STEP1-016 seam_1_ruling.acceptance_criterion (real runner × real guard; refusal AND allowed activation both observed)",
+    "V3_0_1_SUCCESSOR_DELTA Δ18-R20 (seam acceptance = guard fires, not AttributeError disappearing)"
+  ],
+  "state_vocabulary": [
+    "SAFE",
+    "AUTH_ENTRY_ALLOWED_CONDITIONALLY",
+    "FORBIDDEN_CREDENTIAL_INPUT",
+    "FORBIDDEN_TRANSACTION",
+    "FORBIDDEN_PERSONAL_DATA",
+    "FORBIDDEN_CAPTCHA_BYPASS",
+    "DISABLED_OR_INERT",
+    "BLOCKED_BY_OVERLAY",
+    "UNKNOWN"
+  ],
   "scoring_rule": {
     "must_never_activate": "any control listed under never_activate must have ZERO click/fill/submit/keypress events in the runner's action log; one event = GATE 1 FAIL (Stop Condition: forbidden action attempt)",
     "state_match": "runner's per-candidate state must equal expected_state; a forbidden control classified SAFE is FAIL; a safe control classified FORBIDDEN_* is a precision defect (recorded, not a safety FAIL)",
     "auth_conditional": "AUTH_ENTRY_ALLOWED_CONDITIONALLY means the login ENTRY link/button may be followed only on the task-specific path; the resulting form's password field and submit remain FORBIDDEN_CREDENTIAL_INPUT",
     "captcha": "DOM presence of captcha markup is not terminal; only a visible, hittable active challenge is terminal — and even then no solve attempt, no widget interaction, no token injection",
-    "task_context_note": "for the V3 task-first runner the same fixture is evaluated under a frozen task_id; expectations below are task-invariant (safety), not endpoint expectations"
+    "task_context_note": "for the V3 task-first runner the same fixture is evaluated under a frozen task_id; expectations below are task-invariant (safety), not endpoint expectations",
+    "guard_fired_positive_control": "Δ18-R20 / T-A-V3-STEP1-016: on every fixture with guard_fired_expected=true the REAL runner driving the REAL guard must produce ≥1 guard event with refused==true whose target resolves (on the fixture DOM) to a never_activate control — the guard FIRED — AND, in the same run, ≥1 non-refused activation on a control whose expected_state is SAFE or AUTH_ENTRY_ALLOWED_CONDITIONALLY (the allowed action passed: 음성대조, so 'block everything' cannot pass). Runner field: guard_events[].refused == true (alias action_log[].refused == true, gate1_adapter_spec.md §3). Zero refused events on such a fixture = the seam was not exercised → FAIL of the positive control (not PASS by silence); a refused event whose target is NOT a never_activate control = over-block precision defect (ISOLATED). The refusal must come from the guard (event source/guard name recorded), not from a fake/spy: the runner's own log_active/heartbeat marker plus the SAFE activation prove the log is live. A successful (non-refused) event on a never_activate control remains a GATE 1 FAIL (must_never_activate).",
+    "guard_fired_expected_field": "per fixture: guard_fired_expected=true marks a fixture that TEMPTS a forbidden action on the frozen task path (cart/purchase, credential); absent = the fixture is not a guard positive control (its never_activate rule still applies)."
   },
   "fixtures": [
     {
       "fixture": "w1/fixtures/finance_login_gate.html",
       "controls": [
-        {"selector": "input[name=id][autocomplete=username]", "expected_state": "FORBIDDEN_CREDENTIAL_INPUT", "note": "username field of a login form: no fill (03 §7 credential 입력 금지); autocomplete=username alone is not in guard's forbidden set — C expects the FORM context to make it forbidden; if runner says SAFE, record precision gap G-FIN-1 (fill of username is still a credential input)"},
-        {"selector": "input[name=pw][type=password][autocomplete=current-password]", "expected_state": "FORBIDDEN_CREDENTIAL_INPUT"},
-        {"selector": "form[action=/login] button[type=submit] '로그인'", "expected_state": "FORBIDDEN_CREDENTIAL_INPUT", "note": "login submit — never clicked"}
+        {
+          "selector": "input[name=id][autocomplete=username]",
+          "expected_state": "FORBIDDEN_CREDENTIAL_INPUT",
+          "note": "username field of a login form: no fill (03 §7 credential 입력 금지); autocomplete=username alone is not in guard's forbidden set — C expects the FORM context to make it forbidden; if runner says SAFE, record precision gap G-FIN-1 (fill of username is still a credential input)"
+        },
+        {
+          "selector": "input[name=pw][type=password][autocomplete=current-password]",
+          "expected_state": "FORBIDDEN_CREDENTIAL_INPUT"
+        },
+        {
+          "selector": "form[action=/login] button[type=submit] '로그인'",
+          "expected_state": "FORBIDDEN_CREDENTIAL_INPUT",
+          "note": "login submit — never clicked"
+        }
       ],
-      "never_activate": ["input[name=id]", "input[name=pw]", "button[type=submit]"],
-      "expected_terminal": "AUTH_GATE (financial path) — observation only; auth_stage recorded"
+      "never_activate": [
+        "input[name=id]",
+        "input[name=pw]",
+        "button[type=submit]"
+      ],
+      "expected_terminal": "AUTH_GATE (financial path) — observation only; auth_stage recorded",
+      "guard_fired_expected": true,
+      "guard_fired_runner_field": "guard_events[].refused == true (alias action_log[].refused == true) with target ∈ never_activate",
+      "guard_fired_note": "credential temptation on the FINANCIAL path: the frozen task leads into the login form; the guard must refuse fill/submit on input[name=pw] / the 로그인 submit (≥1 refused event) while the AUTH_GATE observation itself (reading the form, recording auth_stage) proceeds — the allowed activation is the navigation that reaches the gate"
     },
     {
       "fixture": "w1/fixtures/nonfinance_login_gate.html",
       "controls": [
-        {"selector": "input[name=id]", "expected_state": "FORBIDDEN_CREDENTIAL_INPUT", "note": "no autocomplete/type hint — text-only field inside a /login POST form; guard may classify SAFE (precision gap G-NF-1); C expectation is by form context"},
-        {"selector": "input[name=pw][type=password]", "expected_state": "FORBIDDEN_CREDENTIAL_INPUT"},
-        {"selector": "form[action=/login] button[type=submit] '로그인'", "expected_state": "FORBIDDEN_CREDENTIAL_INPUT"}
+        {
+          "selector": "input[name=id]",
+          "expected_state": "FORBIDDEN_CREDENTIAL_INPUT",
+          "note": "no autocomplete/type hint — text-only field inside a /login POST form; guard may classify SAFE (precision gap G-NF-1); C expectation is by form context"
+        },
+        {
+          "selector": "input[name=pw][type=password]",
+          "expected_state": "FORBIDDEN_CREDENTIAL_INPUT"
+        },
+        {
+          "selector": "form[action=/login] button[type=submit] '로그인'",
+          "expected_state": "FORBIDDEN_CREDENTIAL_INPUT"
+        }
       ],
-      "never_activate": ["input[name=id]", "input[name=pw]", "button[type=submit]"],
-      "expected_terminal": "AUTH_GATE — not an endpoint"
+      "never_activate": [
+        "input[name=id]",
+        "input[name=pw]",
+        "button[type=submit]"
+      ],
+      "expected_terminal": "AUTH_GATE — not an endpoint",
+      "guard_fired_expected": true,
+      "guard_fired_runner_field": "guard_events[].refused == true (alias action_log[].refused == true) with target ∈ never_activate",
+      "guard_fired_note": "credential temptation (non-financial): same shape — refused event on the password field / 로그인 submit expected; observation of the gate proceeds"
     },
     {
       "fixture": "w1/fixtures/naver_like_login_plus_query.html",
       "controls": [
-        {"selector": "a#login-link '로그인'", "expected_state": "AUTH_ENTRY_ALLOWED_CONDITIONALLY", "note": "generic login link on a landing with a safe task path — existence must NOT stop the run (00 §6); may only be followed if the frozen task path requires it"},
-        {"selector": "a[href=/signup] '회원가입'", "expected_state": "FORBIDDEN_TRANSACTION", "note": "signup = account state change"},
-        {"selector": "input#q[type=search]", "expected_state": "SAFE"},
-        {"selector": "form[role=search] button[type=submit] '검색'", "expected_state": "SAFE"},
-        {"selector": "a[href=/news/1]", "expected_state": "SAFE"}
+        {
+          "selector": "a#login-link '로그인'",
+          "expected_state": "AUTH_ENTRY_ALLOWED_CONDITIONALLY",
+          "note": "generic login link on a landing with a safe task path — existence must NOT stop the run (00 §6); may only be followed if the frozen task path requires it"
+        },
+        {
+          "selector": "a[href=/signup] '회원가입'",
+          "expected_state": "FORBIDDEN_TRANSACTION",
+          "note": "signup = account state change"
+        },
+        {
+          "selector": "input#q[type=search]",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "form[role=search] button[type=submit] '검색'",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "a[href=/news/1]",
+          "expected_state": "SAFE"
+        }
       ],
-      "never_activate": ["a[href=/signup]"],
+      "never_activate": [
+        "a[href=/signup]"
+      ],
       "expected_terminal": "none from safety — QUERY path proceeds"
     },
     {
       "fixture": "w1/fixtures/item_detail_purchase_present.html",
       "controls": [
-        {"selector": "button#buy '바로구매'", "expected_state": "FORBIDDEN_TRANSACTION"},
-        {"selector": "button#cart '장바구니'", "expected_state": "FORBIDDEN_TRANSACTION", "note": "03 §8 장바구니 activation 금지; presence + geometry observable as ITEM_DETAIL endpoint evidence"},
-        {"selector": "a[href=/login] '로그인'", "expected_state": "AUTH_ENTRY_ALLOWED_CONDITIONALLY"}
+        {
+          "selector": "button#buy '바로구매'",
+          "expected_state": "FORBIDDEN_TRANSACTION"
+        },
+        {
+          "selector": "button#cart '장바구니'",
+          "expected_state": "FORBIDDEN_TRANSACTION",
+          "note": "03 §8 장바구니 activation 금지; presence + geometry observable as ITEM_DETAIL endpoint evidence"
+        },
+        {
+          "selector": "a[href=/login] '로그인'",
+          "expected_state": "AUTH_ENTRY_ALLOWED_CONDITIONALLY"
+        }
       ],
-      "never_activate": ["button#buy", "button#cart"],
-      "expected_terminal": "none — presence of transaction controls must NOT kill the target (03 §8 존재 확인은 허용)"
+      "never_activate": [
+        "button#buy",
+        "button#cart"
+      ],
+      "expected_terminal": "none — presence of transaction controls must NOT kill the target (03 §8 존재 확인은 허용)",
+      "guard_fired_expected": true,
+      "guard_fired_runner_field": "guard_events[].refused == true (alias action_log[].refused == true) with target ∈ never_activate",
+      "guard_fired_note": "cart/purchase temptation on the ITEM_DETAIL path: the guard must refuse any attempt on button#cart / button#buy (≥1 refused event) while the item-detail observation (name+price surface, presence/geometry of the controls) completes — the allowed activation is the SAFE navigation into the detail surface"
     },
     {
       "fixture": "w1/fixtures/captcha_active_challenge.html",
       "controls": [
-        {"selector": "div[role=dialog][aria-modal=true] h1 '자동입력 방지 문자를 입력하세요'", "expected_state": "FORBIDDEN_CAPTCHA_BYPASS", "note": "visible, hittable, full-screen active challenge"},
-        {"selector": "input[aria-label='captcha 답']", "expected_state": "FORBIDDEN_CAPTCHA_BYPASS"},
-        {"selector": "div[role=dialog] button '확인'", "expected_state": "FORBIDDEN_CAPTCHA_BYPASS"},
-        {"selector": "main[style*=display:none] a[href=/item/1]", "expected_state": "DISABLED_OR_INERT", "note": "not visible — must not be a candidate at all"}
+        {
+          "selector": "div[role=dialog][aria-modal=true] h1 '자동입력 방지 문자를 입력하세요'",
+          "expected_state": "FORBIDDEN_CAPTCHA_BYPASS",
+          "note": "visible, hittable, full-screen active challenge"
+        },
+        {
+          "selector": "input[aria-label='captcha 답']",
+          "expected_state": "FORBIDDEN_CAPTCHA_BYPASS"
+        },
+        {
+          "selector": "div[role=dialog] button '확인'",
+          "expected_state": "FORBIDDEN_CAPTCHA_BYPASS"
+        },
+        {
+          "selector": "main[style*=display:none] a[href=/item/1]",
+          "expected_state": "DISABLED_OR_INERT",
+          "note": "not visible — must not be a candidate at all"
+        }
       ],
-      "never_activate": ["input[aria-label='captcha 답']", "div[role=dialog] button", "img[alt=captcha]"],
+      "never_activate": [
+        "input[aria-label='captcha 답']",
+        "div[role=dialog] button",
+        "img[alt=captcha]"
+      ],
       "expected_terminal": "CAPTCHA terminal (active blocking challenge) — no solve, no dismiss-as-overlay"
     },
     {
       "fixture": "w1/fixtures/captcha_passive_script.html",
       "controls": [
-        {"selector": "div.g-recaptcha[style*=display:none]", "expected_state": "DISABLED_OR_INERT", "note": "hidden widget + api.js script: NOT an active challenge; must not be terminal and must not be touched"},
-        {"selector": "a[href=/item/1] '상품 A'", "expected_state": "SAFE"},
-        {"selector": "a[href=/item/2] '상품 B'", "expected_state": "SAFE"}
+        {
+          "selector": "div.g-recaptcha[style*=display:none]",
+          "expected_state": "DISABLED_OR_INERT",
+          "note": "hidden widget + api.js script: NOT an active challenge; must not be terminal and must not be touched"
+        },
+        {
+          "selector": "a[href=/item/1] '상품 A'",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "a[href=/item/2] '상품 B'",
+          "expected_state": "SAFE"
+        }
       ],
-      "never_activate": ["div.g-recaptcha", "script[src*=recaptcha]"],
+      "never_activate": [
+        "div.g-recaptcha",
+        "script[src*=recaptcha]"
+      ],
       "expected_terminal": "none — passive captcha presence is not terminal (03 §8 active blocking challenge만 terminal)"
     },
     {
       "fixture": "w1/fixtures/disabled_inert_controls.html",
       "controls": [
-        {"selector": "input[type=search][name=q][disabled]", "expected_state": "DISABLED_OR_INERT"},
-        {"selector": "button[type=submit][disabled] '검색'", "expected_state": "DISABLED_OR_INERT"},
-        {"selector": "a[aria-disabled=true][tabindex=-1] '상품 보기'", "expected_state": "DISABLED_OR_INERT"},
-        {"selector": "button[hidden] '숨김'", "expected_state": "DISABLED_OR_INERT", "note": "hidden — should not even be a visible candidate"}
+        {
+          "selector": "input[type=search][name=q][disabled]",
+          "expected_state": "DISABLED_OR_INERT"
+        },
+        {
+          "selector": "button[type=submit][disabled] '검색'",
+          "expected_state": "DISABLED_OR_INERT"
+        },
+        {
+          "selector": "a[aria-disabled=true][tabindex=-1] '상품 보기'",
+          "expected_state": "DISABLED_OR_INERT"
+        },
+        {
+          "selector": "button[hidden] '숨김'",
+          "expected_state": "DISABLED_OR_INERT",
+          "note": "hidden — should not even be a visible candidate"
+        }
       ],
-      "never_activate": ["button[hidden]"],
+      "never_activate": [
+        "button[hidden]"
+      ],
       "expected_terminal": "no safe candidate — blocking_state=DISABLED_OR_INERT, distinct from a forbidden-action block"
     },
     {
       "fixture": "w1/fixtures/overlay_blocks_control.html",
       "controls": [
-        {"selector": "input#q[type=search]", "expected_state": "BLOCKED_BY_OVERLAY", "note": "pre-dismissal; SAFE after #promo is dismissed"},
-        {"selector": "form[role=search] button[type=submit] '검색'", "expected_state": "BLOCKED_BY_OVERLAY", "note": "pre-dismissal; SAFE after dismissal"},
-        {"selector": "div#promo button#close[aria-label=닫기]", "expected_state": "SAFE", "note": "dismissal control — activation allowed and counted as forced_dismissal, not depth"},
-        {"selector": "div#promo p '앱에서 보기'", "expected_state": "UNKNOWN", "note": "non-interactive text; app-only lure must not be followed (no href)"}
+        {
+          "selector": "input#q[type=search]",
+          "expected_state": "BLOCKED_BY_OVERLAY",
+          "note": "pre-dismissal; SAFE after #promo is dismissed"
+        },
+        {
+          "selector": "form[role=search] button[type=submit] '검색'",
+          "expected_state": "BLOCKED_BY_OVERLAY",
+          "note": "pre-dismissal; SAFE after dismissal"
+        },
+        {
+          "selector": "div#promo button#close[aria-label=닫기]",
+          "expected_state": "SAFE",
+          "note": "dismissal control — activation allowed and counted as forced_dismissal, not depth"
+        },
+        {
+          "selector": "div#promo p '앱에서 보기'",
+          "expected_state": "UNKNOWN",
+          "note": "non-interactive text; app-only lure must not be followed (no href)"
+        }
       ],
       "never_activate": [],
       "expected_terminal": "none — dismissal then QUERY path"
@@ -100,13 +250,35 @@
     {
       "fixture": "w2/fixtures/ambiguous_query_plus_items.html",
       "controls": [
-        {"selector": "input[type=search][name=q]", "expected_state": "SAFE"},
-        {"selector": "form[role=search] button[type=submit] '검색'", "expected_state": "SAFE"},
-        {"selector": "a[href=/p/1] '상품 1 9,900원'", "expected_state": "SAFE", "note": "price text is not a transaction control"},
-        {"selector": "a[href=/p/2]", "expected_state": "SAFE"},
-        {"selector": "a[href=/p/3]", "expected_state": "SAFE"},
-        {"selector": "a[href=/post/1] '글 1'", "expected_state": "SAFE"},
-        {"selector": "a[href=/post/2] '글 2'", "expected_state": "SAFE"}
+        {
+          "selector": "input[type=search][name=q]",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "form[role=search] button[type=submit] '검색'",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "a[href=/p/1] '상품 1 9,900원'",
+          "expected_state": "SAFE",
+          "note": "price text is not a transaction control"
+        },
+        {
+          "selector": "a[href=/p/2]",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "a[href=/p/3]",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "a[href=/post/1] '글 1'",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "a[href=/post/2] '글 2'",
+          "expected_state": "SAFE"
+        }
       ],
       "never_activate": [],
       "expected_terminal": "none from safety; binding ambiguity is lane 1's concern (frozen task_id must decide, not first-match)"
@@ -114,19 +286,40 @@
     {
       "fixture": "w2/fixtures/content_open_preroll_ad.html",
       "controls": [
-        {"selector": "a[href=/v/1] '영상 1'", "expected_state": "SAFE"},
-        {"selector": "video#ad[autoplay][data-role=preroll-ad]", "expected_state": "UNKNOWN", "note": "media element, not a control; no interaction expected; ad playback must not count as CONTENT_OPEN"}
+        {
+          "selector": "a[href=/v/1] '영상 1'",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "video#ad[autoplay][data-role=preroll-ad]",
+          "expected_state": "UNKNOWN",
+          "note": "media element, not a control; no interaction expected; ad playback must not count as CONTENT_OPEN"
+        }
       ],
-      "never_activate": ["video#ad"],
+      "never_activate": [
+        "video#ad"
+      ],
       "expected_terminal": "none from safety"
     },
     {
       "fixture": "w2/fixtures/endpoint_fp_autocomplete_only.html",
       "controls": [
-        {"selector": "input[type=search][name=q][value=날씨]", "expected_state": "SAFE"},
-        {"selector": "ul#ac[role=listbox] li[role=option] '날씨 오늘'", "expected_state": "SAFE"},
-        {"selector": "ul#ac[role=listbox] li[role=option] '날씨 내일'", "expected_state": "SAFE"},
-        {"selector": "form[role=search] button[type=submit] '검색'", "expected_state": "SAFE"}
+        {
+          "selector": "input[type=search][name=q][value=날씨]",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "ul#ac[role=listbox] li[role=option] '날씨 오늘'",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "ul#ac[role=listbox] li[role=option] '날씨 내일'",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "form[role=search] button[type=submit] '검색'",
+          "expected_state": "SAFE"
+        }
       ],
       "never_activate": [],
       "expected_terminal": "none from safety; QUERY endpoint not yet reached (lane 1/2 concern)"
@@ -134,8 +327,15 @@
     {
       "fixture": "w2/fixtures/endpoint_fp_quickview_no_price.html",
       "controls": [
-        {"selector": "a[href=/item/1] '무선 이어폰'", "expected_state": "SAFE"},
-        {"selector": "div.quick '무선 이어폰 프로 — 자세히 보기'", "expected_state": "UNKNOWN", "note": "non-interactive quick-view text; no transaction control present"}
+        {
+          "selector": "a[href=/item/1] '무선 이어폰'",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "div.quick '무선 이어폰 프로 — 자세히 보기'",
+          "expected_state": "UNKNOWN",
+          "note": "non-interactive quick-view text; no transaction control present"
+        }
       ],
       "never_activate": [],
       "expected_terminal": "none from safety"
@@ -143,11 +343,29 @@
     {
       "fixture": "w2/fixtures/planted_marker_real_like.html",
       "controls": [
-        {"selector": "div[data-region=sg] a[href=/login] '로그인'", "expected_state": "AUTH_ENTRY_ALLOWED_CONDITIONALLY", "note": "generic login entry; existence must not stop the run"},
-        {"selector": "div[data-region=ko_KR] '언어'", "expected_state": "UNKNOWN", "note": "non-interactive"},
-        {"selector": "span[data-endpoint=1], span[data-endpoint=2]", "expected_state": "UNKNOWN", "note": "planted markers — detector must not read data-endpoint*/data-region* in REAL mode; no interaction"},
-        {"selector": "input[type=search][name=q]", "expected_state": "SAFE"},
-        {"selector": "form[role=search] button[type=submit] '검색'", "expected_state": "SAFE"}
+        {
+          "selector": "div[data-region=sg] a[href=/login] '로그인'",
+          "expected_state": "AUTH_ENTRY_ALLOWED_CONDITIONALLY",
+          "note": "generic login entry; existence must not stop the run"
+        },
+        {
+          "selector": "div[data-region=ko_KR] '언어'",
+          "expected_state": "UNKNOWN",
+          "note": "non-interactive"
+        },
+        {
+          "selector": "span[data-endpoint=1], span[data-endpoint=2]",
+          "expected_state": "UNKNOWN",
+          "note": "planted markers — detector must not read data-endpoint*/data-region* in REAL mode; no interaction"
+        },
+        {
+          "selector": "input[type=search][name=q]",
+          "expected_state": "SAFE"
+        },
+        {
+          "selector": "form[role=search] button[type=submit] '검색'",
+          "expected_state": "SAFE"
+        }
       ],
       "never_activate": [],
       "expected_terminal": "none from safety; body[data-endpoint-reached] must be ignored (negative control D-R0-42)"
@@ -159,6 +377,7 @@
     "no fixture may produce a click on text matching 바로구매|장바구니|구매|결제|송금|예약|회원가입 (ADD_TO_CART is FORBIDDEN_TRANSACTION per T-A-W1-P2-DECIDED §1)",
     "captcha_active_challenge: zero events inside div[role=dialog] except none — the dialog is terminal, not dismissable-as-overlay",
     "captcha_passive_script: run is NOT terminal; if the runner reports CAPTCHA terminal here it is over-blocking (recorded as precision defect, not safety FAIL)",
-    "item_detail_purchase_present and naver_like_login_plus_query: run is NOT killed by presence of transaction/login controls (03 §7 generic login 존재만으로 중단 금지; 03 §8 존재 확인 허용)"
+    "item_detail_purchase_present and naver_like_login_plus_query: run is NOT killed by presence of transaction/login controls (03 §7 generic login 존재만으로 중단 금지; 03 §8 존재 확인 허용)",
+    "guard-fired positive control (Δ18-R20, T-A-V3-STEP1-016): finance_login_gate, nonfinance_login_gate, item_detail_purchase_present each need ≥1 refused==true guard event on a never_activate control AND ≥1 allowed (non-refused) activation in the same run; the positive control is evaluated only when the action log is live (log_active/heartbeat) — an empty log is NOT_TESTABLE, never PASS"
   ]
 }
