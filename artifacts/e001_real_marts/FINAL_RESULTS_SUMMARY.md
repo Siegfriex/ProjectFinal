@@ -1,19 +1,23 @@
 # FINAL_RESULTS_SUMMARY — E001
 
-**스냅샷** 2026-08-27T16:17:56+09:00 (Asia/Seoul) · **등급** PILOT / PRELIMINARY
-**mart manifest** `FROZEN_MART_MANIFEST.json` (`sha256:256ae9a9d8721e0d…`)
+**스냅샷** 2026-08-27T16:26:28+09:00 (Asia/Seoul) · **등급** PILOT / PRELIMINARY
+**mart manifest** `FROZEN_MART_MANIFEST.json` (`sha256:656b5ac3e077579c…`)
 
 ## 1. 오늘 결론의 핵심
 
-> **코드는 이것을 정직하게 거부했다.** `default_task_definition()`의 docstring이 그렇게 적고 있다 — *"그것이 정직한 결과다 — codebook 없이 endpoint를 만들어내지 않는다"*. 없는 codebook을 추측으로 채워 endpoint를 만들어냈다면 MPFED 값은 나왔겠지만 그것은 관측이 아니라 날조였을 것이다. **측정되지 않은 것을 측정된 것처럼 만들지 않은 설계 선택의 결과다.**
+> **정의는 존재했으나 실행 경로에 전달되지 않았다(wiring 갭).** 그 상태에서 코드는 값을 만들어내지 않았다. 별도로, gate 종류가 판별되지 않은 1건에서는 fail-closed 규칙이 endpoint 승격을 실제로 **거부**했다.
 
-**우리가 값을 못 얻은 것이 아니라, 값을 만들어내지 않기로 한 설계가 작동한 것이다.** 이 구분이 오늘 산출물 전체의 성격을 정한다 — 빈 자리는 실패의 흔적이 아니라 측정되지 않은 것을 측정된 것처럼 만들지 않은 결과다.
+- **실제 거부** 1건 (E-6b 구속) — gate kind가 UNDETERMINED로 **도달**했고 fail-closed 규칙이 승격을 막았다.
+- **미도달** (CODEBOOK_PENDING) — 입력이 실행 경로에 **도달하지 않았다** — 부재이지 거부가 아니다. 정의는 원천 CSV에 존재했으나 행 변환에서 탈락했다(감사 O-1/O-2).
+- 둘을 한 단어로 묶지 않는다. 참인 것(1건의 실제 거부)을 지우는 것도 거짓을 쓰는 것과 같은 부정확이다.
+
+**빈 자리를 추측으로 채우지 않았다.** 입력이 도달하지 않은 경우(wiring 갭)든 판별이 안 된 경우(E-6b 1건)든, 없는 값을 만들어내지 않았다. 다만 **wiring 갭은 설계 의도가 아니라 결함이며**(감사 O-1/O-2), 그것을 '설계가 작동했다'로 읽으면 결함이 미덕으로 둔갑한다. 이 구분이 오늘 산출물 전체의 성격을 정한다.
 
 ## 2. 세 축의 상태
 
 **세 축이 서로 다른 단계에서 막혔다.** 축 A — **판정기 부재**(criterion evaluator가 없다). 축 B — **입력 미연결**(task definition이 `CODEBOOK_PENDING`으로 고정돼 판정기가 쓸 입력이 연결되지 않았다). 축 C — **판정기 미완**(semantic 단계 없이 결정론 규칙만 돈다). 세 축을 한 문장으로 뭉뚱그리면(예: '수집기는 만들어졌고 판정기는 만들어지지 않았다') 축 B가 틀린 서술이 된다 — 축 B의 판정기는 존재하며, 쓸 입력이 없었다.
 
-**MPFED 0/59는 수집을 돌리기 전에 구조적으로 확정돼 있었다.** `e001_runner/executor.py`의 `default_task_definition()`이 스스로 밝힌다 — P-A endpoint codebook이 동결되기 전에는 서비스별 `region_definition`/`endpoint_definition`이 존재하지 않아 `CODEBOOK_PENDING`을 그대로 두며, **그 상태에서 Scout를 돌리면 QUERY를 제외한 모든 archetype은 area/endpoint 신호가 결코 성립하지 않는다.** 유일한 예외인 QUERY 5건은 **전부 Scout 이전에 차단됐다**(4건 `ACCOUNT_ACTION_BLOCKED` scout_invoked=false, 1건 `SKIPPED_RETRY_EXHAUSTED`). **충분원인이 둘이고 서로 겹치지 않으므로** MPFED가 산출될 경로는 애초에 없었다.
+**MPFED 0/59는 수집을 돌리기 전에 구조적으로 확정돼 있었다.** `e001_runner/executor.py`의 `default_task_definition()`이 `CODEBOOK_PENDING`을 그대로 두며(그 docstring은 정의가 존재하지 않는다고 적었으나 **감사 O-1/O-2가 그 전제를 뒤집었다** — 정의는 원천 CSV에 71/71 존재했고 행 변환에서 탈락했다), **그 상태에서 Scout를 돌리면 QUERY를 제외한 모든 archetype은 area/endpoint 신호가 결코 성립하지 않는다.** 유일한 예외인 QUERY 5건은 **전부 Scout 이전에 차단됐다**(4건 `ACCOUNT_ACTION_BLOCKED` scout_invoked=false, 1건 `SKIPPED_RETRY_EXHAUSTED`). **충분원인이 둘이고 서로 겹치지 않으므로** MPFED가 산출될 경로는 애초에 없었다.
 
 ## 3. 수집 커버리지
 
@@ -54,6 +58,8 @@
 - **25건** (42.4%) `OUR_TOOL_CONSTRAINT` — 가드 입도 — 우리 도구의 제약
 - **11건** (18.6%) `OUR_CONTRACT_DESIGN` — archetype-endpoint 규칙 자체 — 본 연구 계약의 설계
 - **18건** (30.5%) `MIXED` — UNRESOLVED — budget_reason으로 분해
+  - 사유별: MAX_SCOUT_WALL_CLOCK_S 7 · SCOUT_ERROR 3 · unresolved_reason_unrecorded 6 · MAX_CONSECUTIVE_NO_STATE_CHANGE 2
+  - **미기록 6건은 다른 사유로 배정하지 않고 미기록으로 남겼다** — 오늘 유일하게 '왜 실패했는지 모른다'고 적힌 항목이며, 흡수되면 그 사실이 사라진다.
 - **3건** (5.1%) `OUR_CIRCUMSTANCE` — SKIPPED_RETRY_EXHAUSTED — 우리 쪽 사정
 - **1건** (1.7%) `TARGET_PROPERTY` — CAPTCHA — 대상의 성질
 - **1건** (1.7%) `MEASUREMENT_LIMIT` — E-6b 구속 — 측정기 한계
@@ -71,7 +77,7 @@
 
 - task definition wiring — CODEBOOK_PENDING 고정으로 Scout에 전달되지 않는다
 - 실웹 signal detector — probe가 보는 data-region/data-endpoint 속성은 fixture가 심는 것이며 실사이트에는 없다
-- wiring을 고쳐도 probe가 실사이트에서 볼 신호가 없다 — 원인이 이 표보다 한 층 더 아래에 있다는 뜻이다. **이 표가 틀린 것이 아니라 층이 다른 것이다.**
+- **현재 detector는 fixture 전용 속성만 보므로 wiring만 고쳐서는 신호가 없다(현재 구현 조건부).** 원인이 이 표보다 한 층 더 아래에 있다는 뜻이다 — **이 표가 틀린 것이 아니라 층이 다른 것이다.** detector를 구현하면 달라질 수 있으며 그 경우는 오늘 데이터로 알 수 없다.
 
 ## 6. 등급
 

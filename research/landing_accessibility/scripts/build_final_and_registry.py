@@ -69,10 +69,19 @@ def build_final(d: Path) -> str:
     a("")
     a(f"> {axes['axis_b_honest_refusal']}")
     a("")
+    rv = axes["axis_b_refusal_vs_nonarrival"]
     a(
-        "**우리가 값을 못 얻은 것이 아니라, 값을 만들어내지 않기로 한 설계가 작동한 "
-        "것이다.** 이 구분이 오늘 산출물 전체의 성격을 정한다 — 빈 자리는 실패의 흔적이 "
-        "아니라 측정되지 않은 것을 측정된 것처럼 만들지 않은 결과다."
+        f"- **실제 거부** {rv['actual_refusal']['n']}건 ({rv['actual_refusal']['case']}) — "
+        f"{rv['actual_refusal']['why']}"
+    )
+    a(f"- **미도달** ({rv['non_arrival']['case']}) — {rv['non_arrival']['why']}")
+    a(f"- {rv['note']}")
+    a("")
+    a(
+        "**빈 자리를 추측으로 채우지 않았다.** 입력이 도달하지 않은 경우(wiring 갭)든 "
+        "판별이 안 된 경우(E-6b 1건)든, 없는 값을 만들어내지 않았다. 다만 **wiring 갭은 "
+        "설계 의도가 아니라 결함이며**(감사 O-1/O-2), 그것을 '설계가 작동했다'로 읽으면 "
+        "결함이 미덕으로 둔갑한다. 이 구분이 오늘 산출물 전체의 성격을 정한다."
     )
     a("")
 
@@ -145,6 +154,15 @@ def build_final(d: Path) -> str:
     a("")
     for item in attr["attribution"].values():
         a(f"- **{item['n']}건** ({item['pct']}%) `{item['category']}` — {item['label']}")
+        if item.get("by_budget_reason"):
+            parts = " · ".join(f"{k} {v}" for k, v in item["by_budget_reason"].items())
+            a(f"  - 사유별: {parts}")
+            a(
+                f"  - **미기록 "
+                f"{item['by_budget_reason'].get('unresolved_reason_unrecorded', 0)}건은 "
+                "다른 사유로 배정하지 않고 미기록으로 남겼다** — 오늘 유일하게 '왜 "
+                "실패했는지 모른다'고 적힌 항목이며, 흡수되면 그 사실이 사라진다."
+            )
     a("")
     a(f"- {attr['e6b_note']}")
     a("")

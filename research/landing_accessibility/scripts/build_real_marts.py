@@ -242,8 +242,10 @@ def attribute_causes(results: list[dict[str, Any]]) -> dict[str, Any]:
                 "fixture가 심는 것이며 실사이트에는 없다",
             ],
             "consequence_if_confirmed": (
-                "wiring을 고쳐도 probe가 실사이트에서 볼 신호가 없다 — 원인이 이 표보다 "
-                "한 층 더 아래에 있다는 뜻이다. **이 표가 틀린 것이 아니라 층이 다른 것이다.**"
+                "**현재 detector는 fixture 전용 속성만 보므로 wiring만 고쳐서는 신호가 "
+                "없다(현재 구현 조건부).** 원인이 이 표보다 한 층 더 아래에 있다는 뜻이다 — "
+                "**이 표가 틀린 것이 아니라 층이 다른 것이다.** detector를 구현하면 달라질 "
+                "수 있으며 그 경우는 오늘 데이터로 알 수 없다."
             ),
         },
         "independently_verified": True,
@@ -560,9 +562,9 @@ UNIFIED_SKELETON_FINDING = (
 #: 축 B가 **수집 전에 구조적으로 확정돼 있었다**는 증거. 수집 결과가 아니다.
 AXIS_B_PREDETERMINED_FINDING = (
     "**MPFED 0/59는 수집을 돌리기 전에 구조적으로 확정돼 있었다.** "
-    "`e001_runner/executor.py`의 `default_task_definition()`이 스스로 밝힌다 — "
-    "P-A endpoint codebook이 동결되기 전에는 서비스별 `region_definition`/"
-    "`endpoint_definition`이 존재하지 않아 `CODEBOOK_PENDING`을 그대로 두며, "
+    "`e001_runner/executor.py`의 `default_task_definition()`이 `CODEBOOK_PENDING`을 "
+    "그대로 두며(그 docstring은 정의가 존재하지 않는다고 적었으나 **감사 O-1/O-2가 그 "
+    "전제를 뒤집었다** — 정의는 원천 CSV에 71/71 존재했고 행 변환에서 탈락했다), "
     "**그 상태에서 Scout를 돌리면 QUERY를 제외한 모든 archetype은 area/endpoint "
     "신호가 결코 성립하지 않는다.** 유일한 예외인 QUERY 5건은 **전부 Scout 이전에 "
     "차단됐다**(4건 `ACCOUNT_ACTION_BLOCKED` scout_invoked=false, 1건 "
@@ -572,12 +574,31 @@ AXIS_B_PREDETERMINED_FINDING = (
 
 #: 코드가 한 일을 정확히 적는다 — 실패가 아니라 거부다.
 AXIS_B_HONEST_REFUSAL_NOTE = (
-    "**코드는 이것을 정직하게 거부했다.** `default_task_definition()`의 docstring이 "
-    "그렇게 적고 있다 — *\"그것이 정직한 결과다 — codebook 없이 endpoint를 "
-    "만들어내지 않는다\"*. 없는 codebook을 추측으로 채워 endpoint를 만들어냈다면 "
-    "MPFED 값은 나왔겠지만 그것은 관측이 아니라 날조였을 것이다. "
-    "**측정되지 않은 것을 측정된 것처럼 만들지 않은 설계 선택의 결과다.**"
+    "**정의는 존재했으나 실행 경로에 전달되지 않았다(wiring 갭).** 그 상태에서 코드는 "
+    "값을 만들어내지 않았다. 별도로, gate 종류가 판별되지 않은 1건에서는 fail-closed "
+    "규칙이 endpoint 승격을 실제로 **거부**했다."
 )
+
+#: **거부와 미도달을 한 단어로 묶지 않는다.** 거부는 거부할 대상이 도달했을 때만
+#: 성립한다 — 묶으면 1건짜리 실제 거부가 54건짜리 미도달을 정당화하는 데 쓰인다.
+AXIS_B_REFUSAL_VS_NONARRIVAL = {
+    "actual_refusal": {
+        "n": 1,
+        "case": "E-6b 구속",
+        "why": "gate kind가 UNDETERMINED로 **도달**했고 fail-closed 규칙이 승격을 막았다.",
+    },
+    "non_arrival": {
+        "case": "CODEBOOK_PENDING",
+        "why": (
+            "입력이 실행 경로에 **도달하지 않았다** — 부재이지 거부가 아니다. "
+            "정의는 원천 CSV에 존재했으나 행 변환에서 탈락했다(감사 O-1/O-2)."
+        ),
+    },
+    "note": (
+        "둘을 한 단어로 묶지 않는다. 참인 것(1건의 실제 거부)을 지우는 것도 거짓을 쓰는 "
+        "것과 같은 부정확이다."
+    ),
+}
 
 AXIS_C_CLASSIFICATION_INCOMPLETE_NOTE = (
     "축 C는 **'완전 측정'이 아니라 'raw 실측 + 분류 절반 미완'**이다. interrupt "
@@ -848,6 +869,7 @@ def build_analysis_axes(axis_c: dict[str, Any], causes: dict[str, Any]) -> dict[
         "unified_finding": UNIFIED_SKELETON_FINDING,
         "axis_b_predetermined": AXIS_B_PREDETERMINED_FINDING,
         "axis_b_honest_refusal": AXIS_B_HONEST_REFUSAL_NOTE,
+        "axis_b_refusal_vs_nonarrival": AXIS_B_REFUSAL_VS_NONARRIVAL,
         "methodological_conclusion": (
             "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** "
             "이것은 대상 서비스에 대한 진술이 아니라 **이 측정 접근에 대한 진술**이다 — "

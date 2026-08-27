@@ -1,8 +1,8 @@
 # STATISTICAL_RESULTS — E001
 
-**스냅샷** 2026-08-27T15:38:12+09:00 (Asia/Seoul)
+**스냅샷** 2026-08-27T16:26:28+09:00 (Asia/Seoul)
 **등급** PILOT / PRELIMINARY — 커버리지 100%가 등급을 올리지 않는다 — 결과가 예상보다 좋다는 이유로 사전 규칙을 뒤집는 것도 나쁠 때 뒤집는 것과 같은 실패다. 등급과 커버리지를 둘 다 보고한다.
-**mart manifest** `FROZEN_MART_MANIFEST.json` (`sha256:256ae9a9d8721e0d…`)
+**mart manifest** `FROZEN_MART_MANIFEST.json` (`sha256:656b5ac3e077579c…`)
 
 ## 0. 이 산출물이 무엇인가
 
@@ -14,9 +14,9 @@
 
 ### 오늘 결론의 핵심
 
-> **코드는 이것을 정직하게 거부했다.** `default_task_definition()`의 docstring이 그렇게 적고 있다 — *"그것이 정직한 결과다 — codebook 없이 endpoint를 만들어내지 않는다"*. 없는 codebook을 추측으로 채워 endpoint를 만들어냈다면 MPFED 값은 나왔겠지만 그것은 관측이 아니라 날조였을 것이다. **측정되지 않은 것을 측정된 것처럼 만들지 않은 설계 선택의 결과다.**
+> **정의는 존재했으나 실행 경로에 전달되지 않았다(wiring 갭).** 그 상태에서 코드는 값을 만들어내지 않았다. 별도로, gate 종류가 판별되지 않은 1건에서는 fail-closed 규칙이 endpoint 승격을 실제로 **거부**했다.
 
-**우리가 값을 못 얻은 것이 아니라, 값을 만들어내지 않기로 한 설계가 작동한 것이다.** 이 구분이 오늘 산출물 전체의 성격을 정한다 — 빈 자리는 실패의 흔적이 아니라 측정되지 않은 것을 측정된 것처럼 만들지 않은 결과다.
+**빈 자리를 추측으로 채우지 않았다.** 입력이 도달하지 않은 경우(wiring 갭)든 판별이 안 된 경우(E-6b 1건)든, 없는 값을 만들어내지 않았다. 다만 **wiring 갭은 설계 의도가 아니라 결함이며**(감사 O-1/O-2), 그것을 '설계가 작동했다'로 읽으면 결함이 미덕으로 둔갑한다. 이 구분이 오늘 산출물 전체의 성격을 정한다.
 
 ## 1. 축 C — 초기 화면 방해요소 (기술통계)
 
@@ -66,9 +66,9 @@
 
 ### 축 B는 수집 전에 구조적으로 확정돼 있었다
 
-**MPFED 0/59는 수집을 돌리기 전에 구조적으로 확정돼 있었다.** `e001_runner/executor.py`의 `default_task_definition()`이 스스로 밝힌다 — P-A endpoint codebook이 동결되기 전에는 서비스별 `region_definition`/`endpoint_definition`이 존재하지 않아 `CODEBOOK_PENDING`을 그대로 두며, **그 상태에서 Scout를 돌리면 QUERY를 제외한 모든 archetype은 area/endpoint 신호가 결코 성립하지 않는다.** 유일한 예외인 QUERY 5건은 **전부 Scout 이전에 차단됐다**(4건 `ACCOUNT_ACTION_BLOCKED` scout_invoked=false, 1건 `SKIPPED_RETRY_EXHAUSTED`). **충분원인이 둘이고 서로 겹치지 않으므로** MPFED가 산출될 경로는 애초에 없었다.
+**MPFED 0/59는 수집을 돌리기 전에 구조적으로 확정돼 있었다.** `e001_runner/executor.py`의 `default_task_definition()`이 `CODEBOOK_PENDING`을 그대로 두며(그 docstring은 정의가 존재하지 않는다고 적었으나 **감사 O-1/O-2가 그 전제를 뒤집었다** — 정의는 원천 CSV에 71/71 존재했고 행 변환에서 탈락했다), **그 상태에서 Scout를 돌리면 QUERY를 제외한 모든 archetype은 area/endpoint 신호가 결코 성립하지 않는다.** 유일한 예외인 QUERY 5건은 **전부 Scout 이전에 차단됐다**(4건 `ACCOUNT_ACTION_BLOCKED` scout_invoked=false, 1건 `SKIPPED_RETRY_EXHAUSTED`). **충분원인이 둘이고 서로 겹치지 않으므로** MPFED가 산출될 경로는 애초에 없었다.
 
-**코드는 이것을 정직하게 거부했다.** `default_task_definition()`의 docstring이 그렇게 적고 있다 — *"그것이 정직한 결과다 — codebook 없이 endpoint를 만들어내지 않는다"*. 없는 codebook을 추측으로 채워 endpoint를 만들어냈다면 MPFED 값은 나왔겠지만 그것은 관측이 아니라 날조였을 것이다. **측정되지 않은 것을 측정된 것처럼 만들지 않은 설계 선택의 결과다.**
+**정의는 존재했으나 실행 경로에 전달되지 않았다(wiring 갭).** 그 상태에서 코드는 값을 만들어내지 않았다. 별도로, gate 종류가 판별되지 않은 1건에서는 fail-closed 규칙이 endpoint 승격을 실제로 **거부**했다.
 
 ### 반사실 — 가드는 구속 조건인가
 
@@ -83,7 +83,7 @@
 - 상태: `AUDIT_IN_PROGRESS` · lane `claude-b/measurement-recovery`
   - task definition wiring — CODEBOOK_PENDING 고정으로 Scout에 전달되지 않는다
   - 실웹 signal detector — probe가 보는 data-region/data-endpoint 속성은 fixture가 심는 것이며 실사이트에는 없다
-- wiring을 고쳐도 probe가 실사이트에서 볼 신호가 없다 — 원인이 이 표보다 한 층 더 아래에 있다는 뜻이다. **이 표가 틀린 것이 아니라 층이 다른 것이다.**
+- **현재 detector는 fixture 전용 속성만 보므로 wiring만 고쳐서는 신호가 없다(현재 구현 조건부).** 원인이 이 표보다 한 층 더 아래에 있다는 뜻이다 — **이 표가 틀린 것이 아니라 층이 다른 것이다.** detector를 구현하면 달라질 수 있으며 그 경우는 오늘 데이터로 알 수 없다.
 
 - 이 결과는 **가드 입도를 정밀화하면 달라질 수 있다**(post-E001 backlog 등재). 동시에, 안전 계약(로그인·결제·본인인증 금지)을 유지하는 한 자동 관측에는 **원리적 상한이 있을 수 있다** — 이것이 방법론적 시사점이며, 오늘 데이터로 그 상한의 크기를 확정하지는 못한다.
 
