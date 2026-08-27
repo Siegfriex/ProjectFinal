@@ -101,12 +101,24 @@ class GateSignals:
     otp_input_count: int = 0
     carrier_option_count: int = 0
     simple_auth_provider_count: int = 0
+    #: 존재 카운트일 뿐이다 — **terminal 판정에 쓰지 않는다** (`D-R0-05`, `C-BLOCKER-221347`
+    #: 시정). raw feature 로만 남긴다. 아래 `captcha_challenge_active` 가 실제 판정을 한다.
     captcha_iframe_count: int = 0
     payment_input_count: int = 0
+    #: `C-BLOCKER-221347`(P1) · `D-R0-65` 확정 — dialog/aria-modal 소속 + captcha 입력 또는
+    #: 이미지 + viewport 가시성을 **전부** 만족하는 candidate 가 있는가. `D-R0-05` 원문의
+    #: "visible/active challenge 가 실제로 나타난 순간"을 구조 신호로 옮긴 것이다.
+    #: 숨겨진 iframe 만 있는 경우(`captcha_iframe_count>0` 이어도)는 여기 포함되지 않는다.
+    captcha_challenge_active: bool = False
 
     @classmethod
     def from_raw(cls, raw: dict[str, Any]) -> GateSignals:
         gate = raw.get("gate_signals", {}) or {}
+        challenge_candidates = raw.get("captcha_challenge_candidates", []) or []
+        challenge_active = any(
+            c.get("visible") and (c.get("viewport_overlap_css_px2") or 0) > 0
+            for c in challenge_candidates
+        )
         return cls(
             text=str(gate.get("visible_text") or ""),
             password_input_count=int(gate.get("password_input_count") or 0),
@@ -118,6 +130,7 @@ class GateSignals:
             simple_auth_provider_count=int(gate.get("simple_auth_provider_count") or 0),
             captcha_iframe_count=int(gate.get("captcha_iframe_count") or 0),
             payment_input_count=int(gate.get("payment_input_count") or 0),
+            captcha_challenge_active=bool(challenge_active),
         )
 
 
@@ -188,9 +201,18 @@ def classify_gate_kind(signals: GateSignals) -> GateKindDecision:
     판별 순서는 결정적 신호 → 어휘 신호이며 (`02 §1` 수집 우선순위),
     어느 단계에서도 `00 §3` 에 없는 새 gate 종류를 만들지 않는다.
     """
-    if signals.captcha_iframe_count:
+    # `C-BLOCKER-221347`(P1) · `D-R0-65`(`T-A-W2-CAPTCHA-001`) 확정 시정 — `captcha_iframe_count`(존재 카운트)
+    # 단독으로는 더 이상 RESOLVED 를 내지 않는다. 숨겨진/비활성 iframe 이 있다는 사실만으로
+    # terminal 로 승격하면 `D-R0-05`("DOM 내 코드·문구 존재만으로 terminal 아님")를 위반한다
+    # — 커머스 랜딩에 흔한 passive reCAPTCHA 가 0-step CAPTCHA terminal 로 오판되고, 반대로
+    # iframe 없이 visible dialog 로만 뜨는 실제 challenge 는 미검출로 빠졌다(C 의 양·음성
+    # 대조 픽스처로 확인). `captcha_challenge_active`(dialog/aria-modal + captcha 입력 또는
+    # 이미지 + viewport 가시성)가 실제 관측 근거다.
+    if signals.captcha_challenge_active:
         return GateKindDecision(
-            GateClassificationStatus.RESOLVED, GateKind.CAPTCHA, reason="captcha_iframe"
+            GateClassificationStatus.RESOLVED,
+            GateKind.CAPTCHA,
+            reason="visible_active_challenge(dialog_or_aria_modal+captcha_input_or_image+viewport_visible)",
         )
     if signals.payment_input_count:
         return GateKindDecision(

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -40,6 +41,7 @@ from landing_accessibility.engine.l1_engine import (  # noqa: E402
     _gate_basis_is_vocabulary_only,
     detect_area_signal,
     detect_endpoint_signal,
+    gate_observed,
     observation_truncation_caveats,
     resolve_representative_function,
 )
@@ -47,6 +49,7 @@ from landing_accessibility.engine.vocabulary import (  # noqa: E402
     AreaSignalStatus,
     DepthSegment,
     EndpointStatus,
+    GateKind,
 )
 from landing_accessibility.engine.vocabulary import InteractionArchetype as A  # noqa: E402
 from landing_accessibility.engine.vocabulary import RegionSignalType as R  # noqa: E402
@@ -640,3 +643,92 @@ def test_marker_path_still_works_in_fixture_mode_for_existing_regression_fixture
     assert entry.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
     assert (entry.ned, entry.ied, entry.mpfed) == (2, 1, 3)
     assert manifest is not None
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 8) CAPTCHA presence≠blocking (C-BLOCKER-221347, D-R0-05, D-R0-65 확정) — G1-c
+# ══════════════════════════════════════════════════════════════════════════
+def _probe_raw(fixture_name: str) -> dict[str, Any]:
+    """PROBE_JS 를 fixture 에 직접 실행해 `raw_features` 를 얻는다(FIXTURE 모드, mode 인자 없음)."""
+    from playwright.sync_api import sync_playwright
+
+    fixture = FIXTURES / fixture_name
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+        page = browser.new_context(viewport={"width": 390, "height": 844}).new_page()
+        try:
+            page.goto(f"file://{fixture.resolve()}", wait_until="load")
+            page.wait_for_timeout(200)
+            probe = page.evaluate(PROBE_JS)
+            return probe["raw_features"]
+        finally:
+            browser.close()
+
+
+def test_hidden_captcha_iframe_alone_is_not_resolved_as_captcha_gate() -> None:
+    """양성 대조군 — `captcha_hidden_iframe_only.html`. iframe 은 raw feature 로는 잡히지만
+    (`captcha_iframe_count>0`), `captcha_challenge_active` 는 False 여야 하고 판별기는
+    RESOLVED CAPTCHA 를 내면 안 된다(`D-R0-05`: 존재만으로 terminal 아님). `gate_observed()`
+    도 이 iframe 만으로는 True 가 되지 않는다 — 이게 빠지면 Scout 가 이 state 를 gate 로
+    취급해 탐색이 여기서 멈춘다(정확히 C 가 실측한 결함)."""
+    raw = _probe_raw("captcha_hidden_iframe_only.html")
+    signals = GateSignals.from_raw(raw)
+    assert signals.captcha_iframe_count > 0, "iframe 존재 자체는 raw feature 로 관측돼야 한다"
+    assert signals.captcha_challenge_active is False
+    decision = classify_gate_kind(signals)
+    assert decision.gate_kind is not GateKind.CAPTCHA
+    assert gate_observed(raw) is False
+
+
+def test_visible_active_challenge_without_iframe_is_resolved_as_captcha_gate() -> None:
+    """음성 대조군 — `captcha_visible_active_challenge.html`. iframe 이 전혀 없어도
+    dialog/aria-modal + captcha 입력/이미지 + viewport 가시성이 전부 있으면 CAPTCHA 로
+    RESOLVED 돼야 한다. 이 대조군이 없으면 "iframe 만 안 믿는다"는 구현이 통과해 버리고,
+    실제로 막고 있는 challenge 를 놓친다(A 가 지적한 "한 방향만 보면 통과하는" 함정)."""
+    raw = _probe_raw("captcha_visible_active_challenge.html")
+    signals = GateSignals.from_raw(raw)
+    assert signals.captcha_iframe_count == 0, "이 픽스처는 iframe 이 전혀 없다"
+    assert signals.captcha_challenge_active is True
+    decision = classify_gate_kind(signals)
+    assert decision.resolved and decision.gate_kind is GateKind.CAPTCHA
+    assert gate_observed(raw) is True
+
+
+def test_scout_does_not_terminate_on_a_hidden_captcha_iframe() -> None:
+    """Scout 통합 — 숨김 iframe 이 있는 랜딩에서 실제로 탐색이 멈추지 않고 실 `<article>`
+    endpoint(`w2_real_content_article.html`, marker 없음)까지 도달해야 한다."""
+    task = TaskDefinition("TCH1", A.CONTENT_OPEN, None, None)
+    entry, _ = _scout().scout(
+        web_target_id="wt-captcha-hidden",
+        entry_fixture="captcha_hidden_iframe_only.html",
+        task=task,
+    )
+    assert entry.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
+    assert entry.endpoint_status_detail is None
+    assert (entry.ned, entry.ied, entry.mpfed) == (0, 1, 1)
+
+
+def test_scout_terminates_zero_step_on_a_visible_active_captcha_challenge() -> None:
+    """Scout 통합 — visible active challenge 는 landing 에서 즉시 CAPTCHA terminal(0-step)
+    이어야 한다. 입력 필드를 채우거나 제출하지 않는다(해결·우회 금지, 그대로 유지)."""
+    task = TaskDefinition("TCH2", A.ITEM_DETAIL, None, None)
+    entry, manifest = _scout().scout(
+        web_target_id="wt-captcha-visible",
+        entry_fixture="captcha_visible_active_challenge.html",
+        task=task,
+    )
+    assert entry.endpoint_status == "CAPTCHA"
+    assert len(entry.steps) == 0
+    assert (entry.ned, entry.ied, entry.mpfed) == (None, None, None)
+    assert manifest is None
+
+
+def test_gate_structural_signal_no_longer_keys_on_bare_iframe_presence() -> None:
+    """`_gate_structural_signal_present` 가 여전히 `captcha_iframe_count` 를 쓰면 이
+    테스트가 실패한다 — 회귀 방지용 화이트박스 확인."""
+    from landing_accessibility.engine.l1_engine import _gate_structural_signal_present
+
+    only_iframe = GateSignals(captcha_iframe_count=3, captcha_challenge_active=False)
+    assert _gate_structural_signal_present(only_iframe) is False
+    active_challenge = GateSignals(captcha_iframe_count=0, captcha_challenge_active=True)
+    assert _gate_structural_signal_present(active_challenge) is True

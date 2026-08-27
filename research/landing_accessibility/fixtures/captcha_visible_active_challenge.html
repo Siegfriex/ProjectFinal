@@ -1,0 +1,36 @@
+<!doctype html>
+<!--
+FIXTURE: captcha_visible_active_challenge
+검증 대상 (W2 · C-BLOCKER-221347 · D-R0-05 · D-R0-65): **음성 대조군** — iframe 은 전혀 없지만
+`role=dialog`+`aria-modal=true` 로 뜬 실제 challenge 다: "자동입력 방지 문자를 입력하세요"
+문구 + challenge 이미지(`<img alt="자동입력 방지 문자 이미지">`) + captcha 입력 필드
+(`placeholder="자동입력 방지 문자"`)가 전부 viewport 안에서 보인다.
+
+기대: `classify_gate_kind` 가 CAPTCHA 로 RESOLVED 해야 한다(`captcha_challenge_active=True`
+— dialog/aria-modal 소속 + captcha 입력/이미지 + viewport 가시성 전부 만족). `gate_observed()`
+도 True 여야 하고, Scout 는 이 state 에서 **0-step CAPTCHA terminal**로 멈춰야 한다(해결·우회
+금지는 그대로 — 입력 필드를 채우지 않는다).
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>본인 확인 — W2 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  a{display:block;min-height:48px;line-height:48px}
+  #challenge{position:fixed;inset:0;z-index:9000;background:#fff;padding:24px;
+    display:flex;flex-direction:column;gap:12px}
+  input{min-height:48px;font-size:16px;border:1px solid #555;border-radius:6px;padding:0 12px}
+  img{width:200px;height:60px;background:#ddd}
+</style></head>
+<body data-fixture="captcha_visible_active_challenge">
+<h1 style="font-size:20px">상품 상세</h1>
+<a href="./captcha_visible_active_challenge.html" data-primary-action="1">구매하기</a>
+
+<div id="challenge" role="dialog" aria-modal="true" aria-labelledby="challenge-title">
+  <h2 id="challenge-title" style="font-size:18px">자동입력 방지 문자를 입력하세요</h2>
+  <img alt="자동입력 방지 문자 이미지" src="./captcha-challenge-image.png">
+  <label for="captcha-input">문자 입력</label>
+  <input id="captcha-input" name="captchaAnswer" type="text"
+         placeholder="자동입력 방지 문자" autocomplete="off">
+</div>
+</body></html>

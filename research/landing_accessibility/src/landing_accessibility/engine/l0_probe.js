@@ -430,6 +430,40 @@
     const optionTexts = [...document.querySelectorAll(
       'option,[role=radio],input[type=radio],button,label')].map((el) => T(
         el.textContent || el.getAttribute('aria-label') || el.value || ''));
+    /* W2 · C-BLOCKER-221347(P1) · D-R0-65(T-A-W2-CAPTCHA-001) 확정 — CAPTCHA "visible/active challenge" 신호.
+       `D-R0-05` 원문: "DOM 안에 CAPTCHA 코드·문구가 있다는 사실만으로 terminal 처리하지
+       않는다. 현재 chosen path 의 다음 진행을 막는 visible/active challenge 가 실제로
+       나타난 순간만 terminal 로 기록한다." `captcha_iframe_count`(존재 카운트, 아래 유지)
+       는 raw feature 로만 남고 이 신호가 판정을 대신한다: dialog/aria-modal 소속 +
+       captcha 입력 또는 이미지 존재 + viewport 가시성을 **전부** 요구한다.
+       되돌리기: `gate_classifier.classify_gate_kind`/`_gate_structural_signal_present`
+       가 이 필드 대신 `captcha_iframe_count` 를 다시 참조하게 하면 이전 동작으로 돌아간다
+       — 이 raw feature 블록 자체는 그대로 둬도 무해하다(소비하지 않으면 그만이다). */
+    {
+      const CAPTCHA_INPUT_SEL = 'input[name*=captcha i],input[id*=captcha i],'
+        + 'input[aria-label*=captcha i],input[placeholder*=captcha i],'
+        + 'input[placeholder*="자동입력" i],input[placeholder*="보안문자" i],'
+        + 'input[aria-label*="보안문자" i],input[aria-label*="자동입력" i]';
+      const CAPTCHA_IMAGE_SEL = 'img[alt*=captcha i],img[src*=captcha i],'
+        + 'canvas[aria-label*=captcha i],img[alt*="보안문자" i],img[alt*="자동입력" i]';
+      const dialogs = [...document.querySelectorAll(
+        'dialog,[role=dialog],[role=alertdialog],[aria-modal=true]')];
+      const challengeCandidates = dialogs.map((el) => {
+        const hasInput = !!el.querySelector(CAPTCHA_INPUT_SEL);
+        const hasImage = !!el.querySelector(CAPTCHA_IMAGE_SEL);
+        const b = box(el);
+        return {
+          selector: sel(el),
+          visible: visible(el),
+          hittable: hittable(el, b),
+          viewport_overlap_css_px2: intersectArea(b, viewportBox),
+          has_captcha_input: hasInput,
+          has_captcha_image: hasImage,
+          box: b,
+        };
+      }).filter((c) => c.has_captcha_input || c.has_captcha_image);
+      push('captcha_challenge_candidates', challengeCandidates);
+    }
     push('gate_signals', {
       declared_gate: document.body.getAttribute('data-gate-kind'),
       visible_text: text,

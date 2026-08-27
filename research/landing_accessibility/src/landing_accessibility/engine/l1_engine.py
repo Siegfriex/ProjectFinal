@@ -454,6 +454,13 @@ def detect_endpoint_signal(
 
 #: `D-R0-59-1` — gate 성립의 **필요조건**. 구조 신호(브라우저가 DOM 에서 직접 알려주는
 #: 값)만 센다. `GateSignals.text`(어휘 매칭)는 여기 없다 — 어휘 단독으로는 gate 가 아니다.
+#:
+#: `captcha_iframe_count`(존재 카운트)는 **일부러 뺐다** — `C-BLOCKER-221347`(P1) 시정.
+#: 숨겨진/비활성 iframe 하나만으로 이 게이트를 True 로 만들면 `obs.gate_present` 가
+#: 발화해 Scout 가 그 state 를 gate 로 취급한다 — `D-R0-05`("숨김/비활성 script 존재
+#: → terminal 아님")는 단지 "CAPTCHA 종류로 승격하지 않는다"가 아니라 **경로 진행을
+#: 막는 상태로도 취급하지 않는다**는 뜻이다. 대신 `captcha_challenge_active`(visible/
+#: active challenge 가 실제로 관측됨)를 쓴다 — 이건 Scout 종료를 유발해야 맞는 신호다.
 def _gate_structural_signal_present(signals: GateSignals) -> bool:
     return any(
         (
@@ -464,7 +471,7 @@ def _gate_structural_signal_present(signals: GateSignals) -> bool:
             signals.otp_input_count,
             signals.carrier_option_count,
             signals.simple_auth_provider_count,
-            signals.captcha_iframe_count,
+            signals.captcha_challenge_active,
             signals.payment_input_count,
         )
     )
