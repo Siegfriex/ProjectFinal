@@ -177,9 +177,65 @@ activation                : 0회 27/31
 **모든 Scout 실행이 정의 없이 돌아 어떤 신호도 볼 수 없었다.** 이는 6종 귀속(가드·규칙·UNRESOLVED)
 **아래에 깔린 공통 층위**이며 그것들과 **다른 원인**이다.
 
-> **단, C 의 이 관측은 recovery lane 의 예비 사실이며 코드 판독 완료 전이다.**
-> `CURRENT_IMPLEMENTATION_CAUSAL_AUDIT` 로 확정된 뒤 이 문서를 갱신한다.
-> **오늘 FINAL 에 섞지 않는다.**
+### 2.2.2 코드 확정 — `CURRENT_IMPLEMENTATION_CAUSAL_AUDIT` (C, 15:34)
+
+**예비 사실이 코드 인용으로 확정됐다.** (`claude-c/assurance-current`
+`assurance/recovery/CURRENT_IMPLEMENTATION_CAUSAL_AUDIT.md` · `DEPTH_DATAFLOW_222ef2c.md` ·
+`TASK_LINEAGE_59.json`)
+
+| # | 확정 사실 | 위치 |
+|---|---|---|
+| 1 | `load_e001_full_targets` 가 `region_definition`·`signal_type`·`mapping_status` 를 **읽지 않는다** | `firewall.py:692-723` |
+| 2 | `default_task_definition` 이 region/endpoint=None · signal_type=CODEBOOK_PENDING 을 **무조건** 넣는다 | `executor.py:67-75` |
+| 3 | `task or default_task_definition` 경로라 **항상 default 가 쓰인다** | `batch.py:258` → `real_executor.py:138` |
+| 4 | `TargetSpec.endpoint_definition` 은 59/59 전달되지만 **소비처가 0이다 (dead field)** | — |
+| 5 | **detector 는 정의가 None 이면 항상 False. probe 는 `data-region`/`data-endpoint` 속성만 본다 — fixture 전용이다** | — |
+
+#### **5번이 결정적이다 — 갭이 둘이다**
+
+`REC-B-1~3`(wiring)을 전부 고쳐도 **probe 가 실사이트에서 볼 신호가 없다.**
+`data-region`/`data-endpoint` 는 우리 fixture 가 심는 속성이고 실제 상용 사이트에는 없다.
+
+**따라서 복구는 두 단계가 모두 필요하다:**
+
+```
+REC-B-1~3   task definition wiring        (정의를 전달한다)
+REC-B-5     실웹 signal detector 구현      (전달된 정의로 실제 DOM/AX/URL 에서 신호를 찾는다)
+                                          ← 신규 등록. wiring 만으로는 부족하다
+```
+
+**`REC-B-5` 를 신규 등록한다.** `endpoint_signal_type` 이 이미 `URL_PATTERN` 33 ·
+`DOM_AX_ROLE` 17 · `FORM_STRUCTURE` 9 로 **어떤 방식으로 탐지할지까지 명시하고 있으므로**,
+detector 는 그 세 방식을 실제로 구현하면 된다. **설계를 새로 하는 게 아니다.**
+
+### 2.2.3 원인의 4층위 — C 의 분해를 채택한다
+
+```
+C-G  가드 입도          25건 (Scout 이전 차단)
+C-W  task wiring        **59건 전건** (정의가 전달되지 않음)
+C-D  signal detector    **Scout 31건 전건** (전달돼도 실웹에서 탐지 불가)
+C-E  endpoint 계약      gate 12건 (11 = archetype 미승격, 1 = E-6b 구속)
+```
+
+**내 6종 outcome 귀속표(`ANALYSIS_FRAME_FREEZE`)는 outcome 층위에서 정확하며 보존한다.**
+C 의 4층위는 **원인 층위**다 — 서로 다른 층을 보는 것이지 어느 쪽이 틀린 게 아니다.
+
+**`UNRESOLVED` 18건의 1차 코드 원인은 "탐지할 정의가 없었다" 다.**
+
+### 2.2.4 반사실의 라벨 확정
+
+`ANALYSIS_FRAME_FREEZE` 의 *"가드를 고쳐도 회복 상한 8"* 을
+**`CURRENT_IMPLEMENTATION_CONDITIONAL_COUNTERFACTUAL`** 로 라벨해 보존한다.
+
+**그 조건(정의 None · `data-*` detector) 하에서는 코드적으로도 맞다** — C 가 확인했다.
+**wiring + detector 를 복구한 시스템으로 일반화하는 것은 반려한다.**
+
+### 2.2.5 계약–코드 불일치 (C 등재)
+
+**C1 4건:** 정의 출처 미구현 · `CODEBOOK_PENDING` 상수 부여 · `endpoint_definition` dead field ·
+probe fixture 전용. **C2 1건:** E-6a/E-6b 명칭.
+
+**이들은 recovery lane 에서 처리하며 오늘 FINAL 에 섞지 않는다.**
 
 ### 2.3 축 C — 결정론 분류만 있고 semantic 단계가 없다
 
