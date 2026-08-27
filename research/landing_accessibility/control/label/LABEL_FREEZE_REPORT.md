@@ -108,12 +108,16 @@ inter-labeler agreement 를 잰 적이 없다. 즉 `0.5238` 이 prior 의 오류
 
 ### §3.1 유일한 자연 복제 — 그리고 불일치했다
 
+> **[REDACTED · D-R0-62]** 이 표의 target id 와 라벨은 holdout 유래라 가렸다.
+> 원본은 `.agent_bus/landing_v2/holdout_c_only/` 와 C 브랜치에만 둔다.
+> 불일치가 있었다는 사실과 그 원인(evidence slot 차이)은 그대로 유지한다.
+
 `F-A2` 의 NH 쌍은 **dom.html 바이트가 완전히 동일**하다. 서로 다른 labeler 에게 갔다.
 
 | target | labeler | archetype | confidence |
 |---|---|---|---|
-| `wtg_95967b50683649f2` | L2 | `FINANCIAL_ACTION_ENTRY` | HIGH |
-| `wtg_fb3d1841dddfd982` | L3 | `AMBIGUOUS_UNRESOLVED` | LOW |
+| `[REDACTED — holdout]` | L2 | `[REDACTED]` | HIGH |
+| `[REDACTED — holdout]` | L3 | `[REDACTED]` | LOW |
 
 ```
 동일 바이트에 대한 자연 복제 일치율   0 / 1

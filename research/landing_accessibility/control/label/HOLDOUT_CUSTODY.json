@@ -23,8 +23,40 @@
     "OVERLAP_L4.jsonl": {
       "sha256": "d520fe34de56bbbec2472cf61961add354a08e641a5f54b0dd98c8e2eec79a40",
       "bytes": 8892
+    },
+    "LABELS_FROZEN.jsonl": {
+      "sha256": "f373004bec9a298c9ba5860144d106cbed97f28e1ee3c4d8ed717448e7e68883",
+      "bytes": 80047,
+      "why_removed": "56행 중 holdout 26행을 split 필드까지 포함"
+    },
+    "RAW_L2.jsonl": {
+      "sha256": "5375cb4909520118f5ef3d6544a0079e123d7f415a246d12955f20fbb735187c",
+      "bytes": 17941,
+      "why_removed": "15행 전부 holdout"
+    },
+    "RAW_L4.jsonl": {
+      "sha256": "226a538ad596ab997e3b2d3edb3a7fd53f78e53480988e1bb60a688d28acf2bf",
+      "bytes": 19806,
+      "why_removed": "11행 전부 holdout"
     }
   },
   "irreversible": "5b826e3 · fd06761 · 9f39acf 에 이미 push 된 이력은 되돌리지 않는다. 제거는 향후 가용성만 줄인다.",
-  "consequence": "holdout 26 중 8 은 이미 물리적으로 가용했다. 채점 primary 는 18 이다."
+  "consequence": "holdout 26 중 8 은 이미 물리적으로 가용했다. 채점 primary 는 18 이다.",
+  "second_pass": "첫 조치는 C 가 지목한 3경로만 처리해 불완전했다. A 의 26 확대 확인에 맞춰 LABELS_FROZEN.jsonl · RAW_L2 · RAW_L4 도 같은 처리를 한다. 이것들이 26 노출의 실제 경로다.",
+  "remaining_in_git": "RAW_L1.jsonl · RAW_L3.jsonl (전량 calibration) · CALIBRATION_FOR_B.jsonl · LABELS_FROZEN.meta.json(해시·집계만, 라벨 없음) · PACKET_*(라벨 없음)",
+  "canonical_label_file_note": "LABELS_FROZEN.jsonl 은 정본 label 파일이다. Git 에서 뺐지만 sha256 f373004b… 가 LABELS_FROZEN.meta.json 과 이 문서에 남아 검증 가능하다 — 프로토콜 §9 의 '해시는 Git, 바이트는 Git 밖' 패턴 그대로다.",
+  "prior_vs_label_distinction": {
+    "rule": "보호 대상은 gold label 이지 prior 가 아니다.",
+    "prior_archetype": "frozen CSV representative_task_candidate_shadow.csv @2281c85 의 interaction_archetype. B 가 원래부터 갖고 작업하는 입력이다. control 문서에 나와도 누출이 아니다.",
+    "gold_label": "LABELS_FROZEN.jsonl 의 archetype. labeler 가 evidence 만 보고 생산한 것. holdout 분은 보호 대상이다.",
+    "why_not_blanket_redact": "prior 를 전부 가리면 F-A2(NH 쌍 관측 비독립) · D-R0-57(CSV 중복행) 같은 frame 발견이 사라진다. 그 발견들은 prior 표의 성질에 관한 것이지 label 에 관한 것이 아니다.",
+    "residual_inference_channel": "prior 와 label 이 우연히 일치하는 target 에서는 prior 공개가 label 을 암시할 수 있다. 직접 누출은 아니나 추론 경로로 남는다 — 한계로 기재한다. 이번 세션 실측으로 prior-label 일치율은 22/42 = 0.5238 이므로 이 추론은 절반만 맞는다.",
+    "docs_carrying_prior_only": [
+      "r0/FRAME_INTEGRITY_FINDING_A.md",
+      "r0/D_R0_57_SUPERSEDED.md",
+      "r0/R0_DECISIONS_51_57.md",
+      "r0/D_R0_58_W4_INTERRUPT_SPLIT.md"
+    ],
+    "immutable_not_edited": "bus_mirror_a/tickets/* 는 발행된 티켓이라 수정하지 않는다 (append-only)."
+  }
 }
