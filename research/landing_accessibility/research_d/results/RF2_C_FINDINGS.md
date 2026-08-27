@@ -354,7 +354,7 @@ v1 코퍼스는 한글이 깨져 있었다(`html_decode.py` 로 선언 charset �
 | `headings` | 0.381 | 0.436 | +0.055 |
 | `nav_links` | 0.390 | 0.438 | +0.047 |
 | `identity` | 0.516 | 0.556 | +0.040 |
-| `text_blob__ALL` | 0.494 | 0.509 | +0.015 |
+| `text_blob__ALL` | 0.497 | 0.509 | +0.012 |
 | `placeholders` | 0.180 | 0.116 | −0.064 |
 | `ssot7_bundle` | 0.464 | 0.433 | −0.031 |
 
@@ -365,13 +365,13 @@ v1 코퍼스는 한글이 깨져 있었다(`html_decode.py` 로 선언 charset �
   v2: title, identity, text_blob, meta_description, content_body).
 - 이득이 **짧고 정보밀도 높은 field 에 집중**됐다. `title` 은 중앙값 8토큰짜리 field 인데
   8/56 target 에서 6건이 바뀌었고 그 결과 macro F1 이 12.5%p 올랐다.
-  긴 `text_blob` 은 +0.015 밖에 안 올랐다 — **깨진 문자 몇 개가 긴 텍스트에서는 희석되지만
+  긴 `text_blob` 은 +0.012 밖에 안 올랐다 — **깨진 문자 몇 개가 긴 텍스트에서는 희석되지만
   짧은 텍스트에서는 그 field 전체를 망친다.**
-- **`text_blob` 하나만 봤다면 인코딩 결함의 영향을 +0.015 로 과소평가했을 것이다.**
+- **`text_blob` 하나만 봤다면 인코딩 결함의 영향을 +0.012 로 과소평가했을 것이다.**
   선행 실험 D-RF-001-C 가 v1 위에서 `text_blob` 중심으로 돌았다는 점을 감안하면,
   그 실험의 절대 수치는 field 수준 결론의 근거로 재사용해서는 안 된다.
-- 단, §2 의 세 가설 판정은 v1 에서도 **모두 동일**하다(v1 에서도 1위는 `text_blob` 이 아닌
-  `identity` 였고, primary controls 계열은 v1 에서도 하위권). **판정은 안 바뀌고 순위는 바뀐다.**
+- 단, §2 의 세 가설 판정은 v1 에서도 **모두 동일**하다(v1 에서도 1위는 `text_blob` 이 아닌 `identity`(2위가 `text_blob`)였고,
+  `primary_controls` 는 v1 에서도 17위였다). **판정은 안 바뀌고 순위는 바뀐다.**
 
 ---
 
@@ -419,8 +419,8 @@ controls 가 진 23건 중 4건은 아예 `ABSTAIN` (조작 표면이 비어 있
 **`PARTIALLY_SUPPORTED`**
 
 성립한 것:
-- semantic information 은 **field 마다 크게 다르다**. bge-m3 기준 field 간 macro F1 range 0.537,
-  prototype 문구 노이즈의 3.3배 (H-C3 REFUTED).
+- semantic information 은 **field 마다 크게 다르다**. bge-m3 기준 34개 representation 에 걸친 macro F1 range 0.537 (평가 대상 22개만 보면 0.030~0.559),
+  field 간 sd 가 prototype 문구 노이즈 sd 의 3.3배 (H-C3 REFUTED).
 - **어떤 field 는 정보가 전혀 없다**: `form_labels`(p=.611) · `input_names`(p=.614) 는
   permutation null 과 구별되지 않는다.
 - **어떤 field 는 blob 안에서 노이즈다**: `headings`(Δ −0.096) · `placeholders`(Δ −0.088) ·
@@ -501,7 +501,7 @@ controls 가 진 23건 중 4건은 아예 `ABSTAIN` (조작 표면이 비어 있
    (`form_labels` 39/56 empty 인데 margin 은 0.029 로 평균보다 오히려 높다 —
    **정보가 없을수록 margin 이 커지는 역전이 있다**).
 6. **인코딩 검증을 파이프라인 게이트로 넣어라.** §10 에서 8/56 target 의 mojibake 가
-   짧은 field 의 macro F1 을 12.5%p 떨어뜨렸는데 `text_blob` 수준 지표로는 1.5%p 로만 보였다.
+   짧은 field 의 macro F1 을 12.5%p 떨어뜨렸는데 `text_blob` 수준 지표로는 1.2%p 로만 보였다.
    **blob 수준 모니터링은 인코딩 결함을 숨긴다.**
 
 ---

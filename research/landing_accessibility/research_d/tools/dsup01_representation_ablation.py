@@ -1023,7 +1023,8 @@ def main() -> int:
             u = by_strata[st].get("stability_complete_case", {}).get("unanimity")
             if not u:
                 continue
-        labels.append(f"{st[:12]}\nn={u['n']}")
+        SHORT_STRATA = {"ALL": "ALL", "FUNCTIONAL_LANDING": "FUNC", "UNDETERMINED": "UNDET", "CORPORATE_OR_APP_LANDING": "CORP"}
+        labels.append(f"{SHORT_STRATA[st]}\nn={u['n']}")
         vals.append(u["four_way_top1_unanimity"])
         lo, hi = u["four_way_top1_unanimity_wilson95"]
         errs.append([u["four_way_top1_unanimity"] - lo, hi - u["four_way_top1_unanimity"]])

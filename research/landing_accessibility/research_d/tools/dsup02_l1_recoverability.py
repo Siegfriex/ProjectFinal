@@ -754,13 +754,15 @@ def main():
                                       .open(encoding="utf-8")) if r["in_mart"] == "1"]
     assert len(rows) == 56, len(rows)
 
-    per = []
+    per, per_b = [], []
     for r in rows:
         t = d14.get(r["wtg"])
         if t is None:
             continue
-        per.append(analyze_target(r, t))
+        per.append(analyze_target(r, t, "v1"))
+        per_b.append(analyze_target(r, t, "v1b"))
     per.sort(key=lambda x: (x["identity_class"], -x["n_candidates"]))
+    per_b.sort(key=lambda x: (x["identity_class"], -x["n_candidates"]))
 
     TARGET_CLASSES = ("CORPORATE_OR_APP_LANDING", "UNDETERMINED")
     CONTROL_CLASS = "FUNCTIONAL_LANDING"
@@ -823,6 +825,36 @@ def main():
         lo, hi = wilson(k, n)
         return {"n": n, "k": k, "rate": round(k / n, 4) if n else None, "wilson95": [lo, hi]}
 
+    tgt_b = [x for x in per_b if x["identity_class"] in TARGET_CLASSES]
+    ctl_b = [x for x in per_b if x["identity_class"] == CONTROL_CLASS]
+    v1_by_wtg = {x["wtg"]: x for x in per}
+    flipped = [{"wtg": x["wtg"], "service": x["service"],
+                "identity_class": x["identity_class"],
+                "v1": v1_by_wtg[x["wtg"]]["verdict"], "v1b": x["verdict"],
+                "n_cand_v1": v1_by_wtg[x["wtg"]]["n_candidates"],
+                "n_cand_v1b": x["n_candidates"]}
+               for x in per_b if x["verdict"] != v1_by_wtg[x["wtg"]]["verdict"]]
+    v1b_block = {
+        "status": "POST_HOC_ADVERSARIAL — primary 를 대체하지 않는다",
+        "rule_version": "DSUP02_L1_v1b",
+        "patch_definition": V1B_PATCH_DEFINITION,
+        "target_29": tally(tgt_b), "control_27": tally(ctl_b), "all_56": tally(per_b),
+        "by_identity_class": {c: tally([x for x in per_b if x["identity_class"] == c])
+                              for c in sorted({x["identity_class"] for x in per_b})},
+        "verdict_flips_vs_v1": flipped,
+        "control_contrast": {
+            "target_recoverable_rate": round(
+                sum(1 for x in tgt_b if x["verdict"] == "RECOVERABLE_WITHIN_L1") / len(tgt_b), 4),
+            "control_recoverable_rate": round(
+                sum(1 for x in ctl_b if x["verdict"] == "RECOVERABLE_WITHIN_L1") / len(ctl_b), 4),
+        },
+        "per_target_compact": [
+            {"wtg": x["wtg"], "service": x["service"],
+             "identity_class": x["identity_class"], "n_candidates": x["n_candidates"],
+             "verdict": x["verdict"],
+             "top_candidates": x["top_candidates"][:3]} for x in per_b],
+    }
+
     sensitivity = {}
     for lbl, items in (("target_29", tgt), ("control_27", ctl), ("all_56", per)):
         sensitivity[lbl] = {s: sens(items, s) for s in
@@ -883,6 +915,7 @@ def main():
             "candidate": CANDIDATE_DEFINITION,
             "exclusions": EXCLUSION_DEFINITION,
             "verdict_rule": VERDICT_RULE_DEFINITION,
+            "post_hoc_v1b_patch": V1B_PATCH_DEFINITION,
             "region_vocab": REGION_VOCAB,
             "weak_auth_vocab": WEAK_AUTH_TEXT,
         },
@@ -917,6 +950,19 @@ def main():
                     "targets_with_probe_only_candidates 로 하라."),
             },
             "sensitivity": sensitivity,
+            "post_hoc_variant_v1b": v1b_block,
+            "hand_audit_of_marginal_targets": {
+                "scope": "v1 결과에서 n_cand<=6 인 target 을 전수 손 감사했다 (사후).",
+                "leaks_found": ["쿠키동의 컨트롤(밴드·Netflix)", "언어선택 combobox(Instagram)",
+                                "앱스토어 링크의 '스토어' 어휘(에이닷 전화)"],
+                "direction": "확인된 누수는 모두 후보를 과대계수하는 방향이었다.",
+                "near_misses_false_negative": [
+                    "컴포즈커피 '브랜드 홈페이지'(/index1) — 기능면 진입일 수 있으나 기능어휘가 없어 탈락",
+                    "모니모 '공동인증서' — SSOT F-Region 의 auth entry 로 볼 여지가 있으나 어휘 미등재로 탈락",
+                ],
+                "note": "즉 v1 은 위양성(과대)과 위음성(과소)을 모두 갖는다. 방향은 상쇄적이며 "
+                        "어느 쪽도 0으로 가정하지 않는다.",
+            },
             "candidate_count_distribution": {
                 "target_29": sorted(x["n_candidates"] for x in tgt),
                 "control_27": sorted(x["n_candidates"] for x in ctl),
@@ -966,3 +1012,131 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ---------------------------------------------------------------------------
+# 5. figures
+# ---------------------------------------------------------------------------
+# 색은 마지막에 정한다. categorical 3슬롯 (blue/orange/aqua) — dataviz validator
+#   node scripts/validate_palette.js "#2a78d6,#eb6834,#1baf7a" --mode light
+#   → ALL CHECKS PASS, contrast WARN(#1baf7a 2.74:1) → relief rule 로 모든 세그먼트에
+#     직접 라벨(개수)을 찍는다.
+SURFACE = "#fcfcfb"
+INK, INK2, MUTED = "#1a1a19", "#4a4a46", "#8a8a82"
+C_REC, C_NOEXIT, C_AMB = "#2a78d6", "#eb6834", "#1baf7a"
+VERD_ORDER = [("RECOVERABLE_WITHIN_L1", C_REC), ("NO_FUNCTIONAL_EXIT_OBSERVED", C_NOEXIT),
+              ("AMBIGUOUS", C_AMB)]
+
+
+def _mpl():
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    plt.rcParams.update({
+        "font.family": "Noto Sans CJK KR", "axes.unicode_minus": False,
+        "figure.facecolor": SURFACE, "axes.facecolor": SURFACE,
+        "text.color": INK, "axes.labelcolor": INK2, "axes.edgecolor": "#dcdcd6",
+        "xtick.color": INK2, "ytick.color": INK2, "font.size": 10,
+        "axes.spines.top": False, "axes.spines.right": False,
+    })
+    return plt
+
+
+def make_figures(doc):
+    plt = _mpl()
+    fig_dir = RD / "figures"
+    res = doc["results"]
+
+    # --- F1: 3값 판정 구성 (stratum × rule variant) ------------------------------
+    rows = []
+    for lbl, blk in (("v1 (사전등록)", res["primary_degenerate_isolated"]["by_identity_class"]),
+                     ("v1b (사후)", res["post_hoc_variant_v1b"]["by_identity_class"])):
+        for cls in ("CORPORATE_OR_APP_LANDING", "UNDETERMINED", "FUNCTIONAL_LANDING"):
+            rows.append((f"{cls}\n{lbl}", blk[cls]))
+    fig, ax = plt.subplots(figsize=(9.2, 5.4))
+    ys = list(range(len(rows)))[::-1]
+    for y, (name, blk) in zip(ys, rows):
+        left = 0.0
+        n = blk["n"]
+        for v, col in VERD_ORDER:
+            k = blk[v]["k"]
+            if k == 0:
+                continue
+            w = k / n * 100
+            ax.barh(y, w, left=left, height=0.62, color=col, edgecolor=SURFACE,
+                    linewidth=2)          # 2px surface gap between stacked segments
+            ax.text(left + w / 2, y, str(k), ha="center", va="center", fontsize=10,
+                    color="#ffffff" if col != C_AMB else INK, fontweight="bold")
+            left += w
+        ax.text(101, y, f"n={n}", va="center", fontsize=9, color=MUTED)
+    ax.set_yticks(ys)
+    ax.set_yticklabels([r[0] for r in rows], fontsize=8.5)
+    ax.set_xlim(0, 112)
+    ax.set_xlabel("target 비율 (%)  · 세그먼트 숫자 = target 개수")
+    ax.set_title("D-SUP-02 · shallow L1 functional-entry 3값 판정\n"
+                 "대상군(CORPORATE_OR_APP + UNDETERMINED) vs 대조군(FUNCTIONAL_LANDING)",
+                 fontsize=12, loc="left", pad=14)
+    ax.grid(axis="x", color="#eeeee8", linewidth=1)
+    ax.set_axisbelow(True)
+    handles = [plt.Rectangle((0, 0), 1, 1, color=c) for _, c in VERD_ORDER]
+    ax.legend(handles, [v for v, _ in VERD_ORDER], loc="lower center",
+              bbox_to_anchor=(0.5, -0.26), ncol=3, frameon=False, fontsize=9)
+    fig.tight_layout()
+    fig.savefig(fig_dir / "DSUP02_verdict_by_stratum.png", dpi=150,
+                bbox_inches="tight", facecolor=SURFACE)
+    plt.close(fig)
+
+    # --- F2: 후보 개수 분포 (dot strip, log) --------------------------------------
+    tgt = [x for x in doc["per_target"] if x["identity_class"] != "FUNCTIONAL_LANDING"]
+    ctl = [x for x in doc["per_target"] if x["identity_class"] == "FUNCTIONAL_LANDING"]
+    fig, ax = plt.subplots(figsize=(9.2, 3.6))
+    import random
+    rnd = random.Random(SEED)
+    for i, (items, col, name) in enumerate(((ctl, C_REC, "대조군 FUNCTIONAL_LANDING (n=27)"),
+                                            (tgt, C_NOEXIT,
+                                             "대상군 CORPORATE_OR_APP + UNDETERMINED (n=29)"))):
+        xs = [max(x["n_candidates"], 0.5) for x in items]
+        yy = [i + rnd.uniform(-0.14, 0.14) for _ in xs]
+        ax.scatter(xs, yy, s=54, color=col, edgecolor=SURFACE, linewidth=2,
+                   zorder=3, label=name)
+        med = sorted(max(x["n_candidates"], 0.5) for x in items)[len(items) // 2]
+        ax.plot([med, med], [i - 0.3, i + 0.3], color=INK, linewidth=2, zorder=4)
+        ax.text(med, i + 0.36, f"중앙값 {int(med)}", ha="center", fontsize=8.5, color=INK2)
+    ax.set_xscale("log")
+    ax.set_yticks([0, 1])
+    ax.set_yticklabels(["대조군\nFUNCTIONAL", "대상군\nCORP+UNDET"], fontsize=9)
+    ax.set_xlabel("target 당 shallow L1 후보 개수 (log, 0 은 0.5 위치에 표시)")
+    ax.set_title("후보 개수 분포 — 두 층 모두 대부분 ≥1. 차이는 '유무' 가 아니라 '풍부함' 이다\n"
+                 "(0 인 target 은 log 축에 표시하려고 0.5 위치에 찍었다)",
+                 fontsize=11, loc="left", pad=12)
+    ax.grid(axis="x", color="#eeeee8", linewidth=1)
+    ax.set_axisbelow(True)
+    ax.set_ylim(-0.6, 1.6)
+    fig.tight_layout()
+    fig.savefig(fig_dir / "DSUP02_candidate_distribution.png", dpi=150,
+                bbox_inches="tight", facecolor=SURFACE)
+    plt.close(fig)
+
+    # --- F3: slot provenance -------------------------------------------------------
+    sp = res["slot_provenance"]["target_level_slot_contributed"]
+    fig, ax = plt.subplots(figsize=(7.4, 3.4))
+    order = ["dom", "ax", "probe"]
+    vals = [sp.get(k, 0) for k in order]
+    bars = ax.bar(order, vals, color=[C_AMB, C_NOEXIT, C_REC], width=0.55,
+                  edgecolor=SURFACE, linewidth=2)
+    for b, v in zip(bars, vals):
+        ax.text(b.get_x() + b.get_width() / 2, v + 0.8, f"{v}/56", ha="center",
+                fontsize=10, color=INK, fontweight="bold")
+    n_probe_only = len(res["slot_provenance"]["targets_with_probe_only_candidates"])
+    ax.set_ylim(0, 60)
+    ax.set_ylabel("후보를 1개 이상 제공한 target 수")
+    ax.set_title(f"어느 slot 이 후보를 냈나 — probe 전용 target {n_probe_only}건, dom 전용 0건",
+                 fontsize=11.5, loc="left", pad=12)
+    ax.grid(axis="y", color="#eeeee8", linewidth=1)
+    ax.set_axisbelow(True)
+    fig.tight_layout()
+    fig.savefig(fig_dir / "DSUP02_slot_provenance.png", dpi=150,
+                bbox_inches="tight", facecolor=SURFACE)
+    plt.close(fig)
+    return ["DSUP02_verdict_by_stratum.png", "DSUP02_candidate_distribution.png",
+            "DSUP02_slot_provenance.png"]
