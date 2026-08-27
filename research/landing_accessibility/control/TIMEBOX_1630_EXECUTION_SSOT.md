@@ -235,7 +235,7 @@ global systemic hard stop 이 걸려도 REAL_TARGET 만 fail-closed 하고 나�
 | 11:10 | `P0_RELEASE` 목표 · `P0_STATUS.json` |
 | 11:15 | integration-ready 목표 |
 | 11:40 | E000 complete 목표 · `E000_STATUS.json` |
-| 11:40~13:30 | E001 full-speed collection |
+| 11:40~13:30 | E001 full-speed collection ⚠️ **13:50 으로 조정 — §19.1** |
 | 12:15 | first collection checkpoint · `COLLECTION_CHECKPOINT.json` |
 | 13:00 | minimum-N checkpoint · `COLLECTION_CHECKPOINT.json` |
 | **13:30** | **NEW TARGET START STOP** · analytic collection frame freeze · `ANALYSIS_FRAME_FREEZE.json` |
