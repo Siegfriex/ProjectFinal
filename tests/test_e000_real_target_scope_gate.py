@@ -173,8 +173,17 @@ def test_live_p0_release_document_is_read_from_a_git_ref_not_the_worktree() -> N
         assert evaluate_execution_scope(ExecutionScope.E000_FAST).allowed is False
 
 
-def test_e001_full_scope_is_blocked_until_its_own_release_exists() -> None:
-    """E001 전체 개방은 별도 릴리스 문서가 있어야만 열린다 — 지금은 차단."""
+def test_e001_full_scope_is_blocked_without_its_own_release_document(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """E001 전체 개방은 **자기 릴리스 문서**가 있어야만 열린다.
+
+    2026-08-27 A 가 `E001_RELEASE.json` 을 발행해 이 scope 가 실제로 열렸다. 그래서
+    이 테스트는 "지금 닫혀 있다" 가 아니라 **"문서가 없으면 닫힌다"** 를 고정한다 —
+    P0_RELEASE 하나로는 E001 이 열리지 않는다는 사실이 여기 남는다.
+    E001 이 열린 상태의 판정은 `tests/test_e001_full_scope_gate.py` 가 다룬다.
+    """
+    _inject(monkeypatch, _doc(None, error="git show 실패"))
     verdict = evaluate_execution_scope(ExecutionScope.E001_FULL)
     assert verdict.allowed is False
     with pytest.raises(ExecutionScopeBlockedError):

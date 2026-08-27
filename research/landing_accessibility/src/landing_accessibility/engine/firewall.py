@@ -90,8 +90,11 @@ class ExecutionScope(StrEnum):
     """`REAL_TARGET` 을 어느 승인 범위에서 여는가. `ExecutionMode` 와 직교한다.
 
     - `E000_FAST` — 오늘의 E000 빠른 검증. `E000_FAST_PLAN` 의 동결된 6 target 만.
-    - `E001_FULL` — E001 본수집. **지금은 항상 차단**이며, `E001_RELEASE.json` 이
-      `status == RELEASED` 로 존재해야만 열린다 (A 의 별도 릴리스 티켓).
+    - `E001_FULL` — E001 본수집. `E001_MASTER_PLAN` 의 동결된 59 target 만.
+      `control/E001_RELEASE.json` 이 `status == RELEASED` · `promoted_main_sha` ·
+      `e001_allowed == true` 로 **런타임에 확인될 때만** 열린다 (A 의 별도 릴리스
+      티켓). 문서가 없거나 조건이 하나라도 어긋나면 차단이다 — P0_RELEASE 하나로는
+      절대 열리지 않는다.
     """
 
     E000_FAST = "E000_FAST"
@@ -132,6 +135,73 @@ E000_FAST_PLAN_CANDIDATES: tuple[Path, ...] = (
     / "e000_plan"
     / "E000_FAST_PLAN.json",
 )
+
+#: 워크트리 안에서 실행되면 `.agent_worktrees/<name>` 의 부모가 메인 저장소 루트다.
+#: P-B 산출물(lane_b state CSV)은 그 아래의 다른 워크트리에 있고 **읽기 전용**으로만 쓴다.
+_MAIN_REPO_ROOT: Path = (
+    _REPO_ROOT.parents[1] if _REPO_ROOT.parent.name == ".agent_worktrees" else _REPO_ROOT
+)
+
+
+def _plan_candidates(*relative: str) -> tuple[Path, ...]:
+    """이 워크트리 안 → 메인 저장소 → 형제 워크트리 순으로 후보 경로를 만든다."""
+    rel = Path(*relative)
+    return (
+        _RESEARCH_ROOT / rel,
+        _MAIN_REPO_ROOT / "research" / "landing_accessibility" / rel,
+    )
+
+
+#: `E001_FULL` allowlist 의 정본(동결 계획). 앞에서부터 처음 존재하는 것을 쓴다.
+E001_MASTER_PLAN_CANDIDATES: tuple[Path, ...] = (
+    *_plan_candidates("shadow", "e001_plan", "E001_MASTER_PLAN.json"),
+    _MAIN_REPO_ROOT
+    / ".agent_worktrees"
+    / "claude_b_e001_master_plan"
+    / "research"
+    / "landing_accessibility"
+    / "shadow"
+    / "e001_plan"
+    / "E001_MASTER_PLAN.json",
+)
+
+#: `E001_MASTER_PLAN.json` 이 선언한 동결 계획 해시. 재계산과 다르면 **차단**이다.
+E001_FROZEN_PLAN_HASH = "b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc"
+E001_FROZEN_PLAN_HASH_FIELD = "frozen_plan_hash_candidate"
+
+#: 계획에는 key 만 있다 — URL/target_id 는 P-B(lane_b) 산출물에서 조인한다.
+#: **두 파일 모두 읽기 전용으로만 연다.**
+_LANE_B_STATE = ("shadow", "lane_b", "state")
+E001_ELIGIBILITY_CSV_CANDIDATES: tuple[Path, ...] = (
+    *_plan_candidates(*_LANE_B_STATE, "web_eligibility_shadow.csv"),
+    _MAIN_REPO_ROOT
+    / ".agent_worktrees"
+    / "landing_pb_prework"
+    / "research"
+    / "landing_accessibility"
+    / "shadow"
+    / "lane_b"
+    / "state"
+    / "web_eligibility_shadow.csv",
+)
+E001_TASK_CSV_CANDIDATES: tuple[Path, ...] = (
+    *_plan_candidates(*_LANE_B_STATE, "representative_task_candidate_shadow.csv"),
+    _MAIN_REPO_ROOT
+    / ".agent_worktrees"
+    / "landing_pb_prework"
+    / "research"
+    / "landing_accessibility"
+    / "shadow"
+    / "lane_b"
+    / "state"
+    / "representative_task_candidate_shadow.csv",
+)
+
+#: `worker_partition.assignments` 의 닫힌 키 집합. 그 밖의 워커 id 는 실행할 수 없다.
+E001_WORKER_IDS: tuple[str, ...] = ("worker_01", "worker_02", "worker_03", "worker_04")
+
+#: eligibility CSV 에서 실제 수집을 허용하는 유일한 상태.
+E001_ELIGIBLE_STATUS = "ELIGIBLE_WEB"
 
 
 class FirewallError(RuntimeError):
@@ -313,6 +383,14 @@ def _evaluate_release_document(
         )
     promoted = data.get("promoted_main_sha")
     if not _looks_like_sha(promoted):
+        # `E001_RELEASE.json` 은 승격 SHA 를 `authority_refs` 블록 안에 둔다. 최상위 키가
+        # 없을 때만 그 한 곳을 더 본다 — **다른 어떤 위치도 보지 않는다.** 값이 거기에도
+        # 없으면 그대로 차단이다 (fail-closed). E000 문서는 최상위 키를 가지므로 이
+        # 경로를 타지 않는다 — 기존 판정은 한 글자도 바뀌지 않는다.
+        refs = data.get("authority_refs")
+        if isinstance(refs, dict):
+            promoted = refs.get("promoted_main_sha")
+    if not _looks_like_sha(promoted):
         return verdict(
             False,
             f"promoted_main_sha 가 채워지지 않았다: {promoted!r}",
@@ -460,10 +538,234 @@ def load_e000_fast_allowlist(path: str | Path | None = None) -> TargetAllowlist:
     return allowlist
 
 
+# ── E001_FULL allowlist ──────────────────────────────────────────────────────
+@dataclass(frozen=True)
+class E001TargetRow:
+    """`E001_MASTER_PLAN` 의 key 하나를 P-B 산출물과 조인한 결과."""
+
+    canonical_service_key: str
+    target_id: str
+    official_url: str
+    interaction_archetype: str
+    worker_id: str
+    order_index: int
+    service_name_canonical: str | None = None
+    endpoint_definition: str | None = None
+    task_id: str | None = None
+
+
+def _first_existing(candidates: tuple[Path, ...], what: str) -> Path:
+    chosen = next((c for c in candidates if c.is_file()), None)
+    if chosen is None:
+        raise AllowlistUnavailableError(
+            f"{what} 정본을 찾지 못했다: {[str(c) for c in candidates]} — "
+            "정본 없이 실제 수집을 시작하지 않는다."
+        )
+    return chosen
+
+
+def _read_key_indexed_csv(path: Path, *, what: str) -> dict[str, dict[str, str]]:
+    """`canonical_service_key` 로 색인된 CSV 를 읽는다. **읽기 전용이다.**"""
+    import csv
+
+    with open(path, encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    indexed: dict[str, dict[str, str]] = {}
+    for row in rows:
+        key = (row.get("canonical_service_key") or "").strip()
+        if not key:
+            continue
+        if key in indexed:
+            raise AllowlistUnavailableError(
+                f"{what}({path}) 에 canonical_service_key 중복: {key!r} — "
+                "어느 행이 정본인지 알 수 없으므로 차단한다."
+            )
+        indexed[key] = row
+    if not indexed:
+        raise AllowlistUnavailableError(f"{what}({path}) 에서 읽은 행이 없다")
+    return indexed
+
+
+def recompute_plan_hash(data: dict[str, object], hash_field: str) -> str:
+    """동결 계획의 hash candidate 를 재계산한다 (`scripts/verify_plan_hash.py` 와 같은 규칙).
+
+    payload = 계획 dict 에서 hash 필드 **하나만** 제거한 것 (키 순서 그대로),
+    blob = `json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=False)`.
+    """
+    payload = {k: v for k, v in data.items() if k != hash_field}
+    blob = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=False).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()
+
+
+def load_e001_master_plan(path: str | Path | None = None) -> tuple[Path, dict[str, object]]:
+    """`E001_MASTER_PLAN.json` 을 읽고 **동결 해시를 재계산해 대조한다**.
+
+    선언값과 재계산값이 다르거나, 이 코드가 아는 동결 해시
+    (`E001_FROZEN_PLAN_HASH`) 와 다르면 차단한다 — 계획이 결과를 보고 바뀌지
+    않았다는 것을 실행 직전에 기계적으로 확인하는 자리다.
+    """
+    chosen = (
+        Path(path)
+        if path is not None
+        else _first_existing(
+            E001_MASTER_PLAN_CANDIDATES, "E001_FULL allowlist 정본(E001_MASTER_PLAN.json)"
+        )
+    )
+    if not chosen.is_file():
+        raise AllowlistUnavailableError(f"E001_MASTER_PLAN.json 이 없다: {chosen}")
+    data = json.loads(chosen.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise AllowlistUnavailableError(f"{chosen} 이 객체가 아니다")
+    declared = data.get(E001_FROZEN_PLAN_HASH_FIELD)
+    recomputed = recompute_plan_hash(data, E001_FROZEN_PLAN_HASH_FIELD)
+    if declared != recomputed:
+        raise AllowlistUnavailableError(
+            f"{chosen} 의 {E001_FROZEN_PLAN_HASH_FIELD} 재계산 불일치 — "
+            f"declared={declared!r} recomputed={recomputed!r}. 동결 계획이 변조됐거나 "
+            "다른 규칙으로 만들어졌다 — 실행하지 않는다."
+        )
+    if declared != E001_FROZEN_PLAN_HASH:
+        raise AllowlistUnavailableError(
+            f"{chosen} 의 동결 해시가 이 코드가 아는 값과 다르다 — "
+            f"기대 {E001_FROZEN_PLAN_HASH}, 파일 {declared!r}."
+        )
+    return chosen, data
+
+
+def load_e001_full_targets(path: str | Path | None = None) -> tuple[E001TargetRow, ...]:
+    """동결 순서 그대로 조인된 `E001_FULL` target 목록을 만든다. **재정렬하지 않는다.**
+
+    조인에 실패한 key 가 하나라도 있으면 **조용히 빼지 않고 차단한다** — 동결된
+    집합에서 무언가가 빠지는 것은 결과 조건부 재선택과 구분되지 않기 때문이다.
+    """
+    chosen, data = load_e001_master_plan(path)
+
+    order = data.get("frozen_collection_order")
+    if not isinstance(order, list) or not order:
+        raise AllowlistUnavailableError(f"{chosen} 에 frozen_collection_order 가 없다")
+    keys = [str(k) for k in order]
+    if len(keys) != len(set(keys)):
+        raise AllowlistUnavailableError("frozen_collection_order 에 중복 key 가 있다")
+
+    partition = data.get("worker_partition")
+    assignments = partition.get("assignments") if isinstance(partition, dict) else None
+    if not isinstance(assignments, dict):
+        raise AllowlistUnavailableError(f"{chosen} 에 worker_partition.assignments 가 없다")
+    if tuple(sorted(assignments)) != tuple(sorted(E001_WORKER_IDS)):
+        raise AllowlistUnavailableError(
+            f"worker_partition.assignments 의 워커 집합이 다르다: {sorted(assignments)!r}"
+        )
+    worker_of: dict[str, str] = {}
+    for worker_id in E001_WORKER_IDS:
+        bucket = assignments[worker_id]
+        if not isinstance(bucket, list) or not bucket:
+            raise AllowlistUnavailableError(f"{worker_id} 의 배정이 비어 있다")
+        for raw_key in bucket:
+            key = str(raw_key)
+            if key in worker_of:
+                raise AllowlistUnavailableError(
+                    f"워커 배정이 겹친다: {key!r} 가 {worker_of[key]} 와 {worker_id} 양쪽에 있다"
+                )
+            worker_of[key] = worker_id
+    if set(worker_of) != set(keys):
+        missing = sorted(set(keys) - set(worker_of))
+        extra = sorted(set(worker_of) - set(keys))
+        raise AllowlistUnavailableError(
+            f"워커 배정이 동결 순서와 일치하지 않는다 — 누락 {missing}, 초과 {extra}"
+        )
+
+    eligibility_path = _first_existing(E001_ELIGIBILITY_CSV_CANDIDATES, "web_eligibility_shadow")
+    task_path = _first_existing(E001_TASK_CSV_CANDIDATES, "representative_task_candidate_shadow")
+    eligibility = _read_key_indexed_csv(eligibility_path, what="web_eligibility_shadow")
+    tasks = _read_key_indexed_csv(task_path, what="representative_task_candidate_shadow")
+
+    rows: list[E001TargetRow] = []
+    for index, key in enumerate(keys):
+        elig = eligibility.get(key)
+        task = tasks.get(key)
+        if elig is None or task is None:
+            raise AllowlistUnavailableError(
+                f"canonical_service_key={key!r} 를 조인하지 못했다 "
+                f"(eligibility={elig is not None}, task={task is not None}) — "
+                "동결된 집합의 일부를 조용히 빼지 않는다."
+            )
+        status = (elig.get("web_eligibility_status") or "").strip()
+        if status != E001_ELIGIBLE_STATUS:
+            raise AllowlistUnavailableError(
+                f"{key!r} 의 web_eligibility_status 가 {E001_ELIGIBLE_STATUS} 가 아니다: {status!r}"
+            )
+        url = (elig.get("web_target_url") or "").strip()
+        target_id = (task.get("web_target_id") or "").strip() or (
+            elig.get("web_target_group_id") or ""
+        ).strip()
+        archetype = (task.get("interaction_archetype") or "").strip()
+        if not url or not target_id or not archetype:
+            raise AllowlistUnavailableError(
+                f"{key!r} 의 조인 결과에 필수 값이 비었다 "
+                f"(url={url!r}, target_id={target_id!r}, archetype={archetype!r})"
+            )
+        scheme = urlparse(url).scheme.lower()
+        if scheme not in REAL_TARGET_URL_SCHEMES:
+            raise AllowlistUnavailableError(
+                f"{key!r} 의 web_target_url scheme 이 허용 밖이다: {url!r}"
+            )
+        rows.append(
+            E001TargetRow(
+                canonical_service_key=key,
+                target_id=target_id,
+                official_url=url,
+                interaction_archetype=archetype,
+                worker_id=worker_of[key],
+                order_index=index,
+                service_name_canonical=(elig.get("service_name_canonical") or "").strip() or None,
+                endpoint_definition=(task.get("endpoint_definition") or "").strip() or None,
+                task_id=(task.get("task_id") or "").strip() or None,
+            )
+        )
+
+    ids = [r.target_id for r in rows]
+    if len(ids) != len(set(ids)):
+        dupes = sorted({i for i in ids if ids.count(i) > 1})
+        raise AllowlistUnavailableError(f"조인 결과 target_id 중복: {dupes}")
+    return tuple(rows)
+
+
+def load_e001_full_allowlist(path: str | Path | None = None) -> TargetAllowlist:
+    """`E001_MASTER_PLAN.json` + P-B 조인으로 `E001_FULL` allowlist 를 만든다."""
+    chosen = (
+        Path(path)
+        if path is not None
+        else _first_existing(
+            E001_MASTER_PLAN_CANDIDATES, "E001_FULL allowlist 정본(E001_MASTER_PLAN.json)"
+        )
+    )
+    key = f"E001_FULL::{chosen}"
+    if path is None and key in _ALLOWLIST_CACHE:
+        return _ALLOWLIST_CACHE[key]
+
+    rows = load_e001_full_targets(chosen)
+    hosts = {urlparse(r.official_url).netloc.lower() for r in rows}
+    hosts.discard("")
+    allowlist = TargetAllowlist(
+        scope=ExecutionScope.E001_FULL.value,
+        source_path=str(chosen),
+        plan_sha256=E001_FROZEN_PLAN_HASH,
+        target_ids=frozenset(r.target_id for r in rows),
+        canonical_service_keys=frozenset(r.canonical_service_key for r in rows),
+        official_urls=frozenset(r.official_url for r in rows),
+        hosts=frozenset(hosts),
+    )
+    if path is None:
+        _ALLOWLIST_CACHE[key] = allowlist
+    return allowlist
+
+
 def load_scope_allowlist(scope: object, *, path: str | Path | None = None) -> TargetAllowlist:
     resolved = resolve_execution_scope(scope)
     if resolved is ExecutionScope.E000_FAST:
         return load_e000_fast_allowlist(path)
+    if resolved is ExecutionScope.E001_FULL:
+        return load_e001_full_allowlist(path)
     raise AllowlistUnavailableError(
         f"{resolved.value} 의 allowlist 정본이 아직 없다 — 이 scope 는 실행할 수 없다."
     )

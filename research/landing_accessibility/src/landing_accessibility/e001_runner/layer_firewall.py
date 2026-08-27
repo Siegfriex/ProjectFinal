@@ -34,13 +34,21 @@ BATCH_LAYER_ALLOWED_MODES: frozenset[str] = frozenset({"FIXTURE", "SHADOW_DRY_RU
 
 BATCH_LAYER_BLOCKED_MODE: str = "REAL_TARGET"
 
-#: scope 가 주어졌을 때만 `REAL_TARGET` 을 통과시킬 수 있는 유일한 값.
+#: scope 가 주어졌을 때만 `REAL_TARGET` 을 통과시킬 수 있는 값 (E000 경로 하위호환 상수).
 BATCH_LAYER_REAL_SCOPE: str = "E000_FAST"
 
 #: 이 층이 **자기 힘으로** 확인하는 릴리스 문서. 엔진 모듈의 상수를 재사용하지 않는다 —
 #: 두 층이 같은 파일을 각자 읽어야 한 층의 버그가 두 층을 동시에 뚫지 않는다.
 BATCH_LAYER_RELEASE_REF = "origin/control/landing-orchestrator"
 BATCH_LAYER_RELEASE_PATH = "research/landing_accessibility/control/P0_RELEASE.json"
+BATCH_LAYER_E001_RELEASE_PATH = "research/landing_accessibility/control/E001_RELEASE.json"
+
+#: scope → (릴리스 문서 경로, 그 scope 를 여는 허용 플래그).
+#: 여기에 없는 scope 는 이 층에서 차단이다 (fail-closed).
+BATCH_LAYER_REAL_SCOPES: dict[str, tuple[str, str]] = {
+    "E000_FAST": (BATCH_LAYER_RELEASE_PATH, "e000_allowed"),
+    "E001_FULL": (BATCH_LAYER_E001_RELEASE_PATH, "e001_allowed"),
+}
 
 _REPO_ROOT = Path(__file__).resolve().parents[5]
 
@@ -54,7 +62,9 @@ class BatchRealTargetBlockedError(RuntimeError):
     """
 
 
-def _release_document(repo_dir: Path | None = None) -> dict[str, object] | None:
+def _release_document(
+    repo_dir: Path | None = None, path: str = BATCH_LAYER_RELEASE_PATH
+) -> dict[str, object] | None:
     """`git show` 로 릴리스 문서를 직접 읽는다. 실패는 `None` — 그리고 `None` 은 차단이다."""
     cwd = Path(repo_dir) if repo_dir is not None else _REPO_ROOT
     try:
@@ -64,7 +74,7 @@ def _release_document(repo_dir: Path | None = None) -> dict[str, object] | None:
                 "-C",
                 str(cwd),
                 "show",
-                f"{BATCH_LAYER_RELEASE_REF}:{BATCH_LAYER_RELEASE_PATH}",
+                f"{BATCH_LAYER_RELEASE_REF}:{path}",
             ],
             capture_output=True,
             timeout=30,
@@ -80,17 +90,31 @@ def _release_document(repo_dir: Path | None = None) -> dict[str, object] | None:
     return data if isinstance(data, dict) else None
 
 
-def batch_layer_real_target_released(repo_dir: Path | None = None) -> bool:
-    """이 층이 독립적으로 판정하는 "실제 수집이 승인됐는가"."""
-    data = _release_document(repo_dir)
+def batch_layer_real_target_released(
+    repo_dir: Path | None = None, scope: str = BATCH_LAYER_REAL_SCOPE
+) -> bool:
+    """이 층이 독립적으로 판정하는 "이 scope 의 실제 수집이 승인됐는가".
+
+    scope 가 이 층이 아는 집합 밖이면 문서를 읽지도 않고 `False` 다 (fail-closed).
+    """
+    binding = BATCH_LAYER_REAL_SCOPES.get(scope)
+    if binding is None:
+        return False
+    path, allow_flag = binding
+    data = _release_document(repo_dir, path)
     if data is None:
         return False
     promoted = data.get("promoted_main_sha")
+    if not isinstance(promoted, str):
+        # E001_RELEASE.json 은 승격 SHA 를 authority_refs 안에 둔다. 그 한 곳만 더 본다.
+        refs = data.get("authority_refs")
+        promoted = refs.get("promoted_main_sha") if isinstance(refs, dict) else None
     return bool(
         data.get("status") == "RELEASED"
         and isinstance(promoted, str)
         and len(promoted) >= 7
-        and data.get("e000_allowed") is True
+        and data.get(allow_flag) is True
+        and data.get("real_target_allowed") is not False
     )
 
 
@@ -119,16 +143,17 @@ def assert_batch_execution_mode_safe(mode: object, scope: object | None = None) 
                 "독립적으로 hard block 된다. 무제한 실제 수집 경로는 열리지 않는다. "
                 "이 검사는 landing_accessibility.engine.firewall 과 별개다."
             )
-        if scope_value != BATCH_LAYER_REAL_SCOPE:
+        if scope_value not in BATCH_LAYER_REAL_SCOPES:
             raise BatchRealTargetBlockedError(
                 f"E001 배치 러너 층 firewall: 이 레이어가 아는 실제 수집 scope 는 "
-                f"{BATCH_LAYER_REAL_SCOPE!r} 뿐이다 — 받은 값: {scope_value!r}."
+                f"{sorted(BATCH_LAYER_REAL_SCOPES)} 뿐이다 — 받은 값: {scope_value!r}."
             )
-        if not batch_layer_real_target_released():
+        release_path, allow_flag = BATCH_LAYER_REAL_SCOPES[scope_value]
+        if not batch_layer_real_target_released(None, scope_value):
             raise BatchRealTargetBlockedError(
                 "E001 배치 러너 층 firewall: 릴리스 문서를 이 레이어가 직접 확인했으나 "
-                f"승인 조건(status=RELEASED · promoted_main_sha · e000_allowed=true)이 "
-                f"충족되지 않았다 ({BATCH_LAYER_RELEASE_REF}:{BATCH_LAYER_RELEASE_PATH})."
+                f"승인 조건(status=RELEASED · promoted_main_sha · {allow_flag}=true)이 "
+                f"충족되지 않았다 ({BATCH_LAYER_RELEASE_REF}:{release_path})."
             )
         return value
 
@@ -150,6 +175,7 @@ __all__ = [
     "BATCH_LAYER_ALLOWED_MODES",
     "BATCH_LAYER_BLOCKED_MODE",
     "BATCH_LAYER_REAL_SCOPE",
+    "BATCH_LAYER_REAL_SCOPES",
     "BatchRealTargetBlockedError",
     "assert_batch_execution_mode_safe",
     "batch_layer_real_target_released",
