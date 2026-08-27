@@ -87,9 +87,9 @@ def load_plan(path: str | Path) -> list[TargetSpec]:
 
 def load_plan_dict(data: dict[str, Any]) -> list[TargetSpec]:
     plan_kind = data.get("plan_kind")
-    if plan_kind not in (None, "E000_PLAN", "E001_PLAN"):
+    if plan_kind not in (None, "E000_PLAN", "E000_FAST_PLAN", "E001_PLAN"):
         raise PlanValidationError(
-            f"plan_kind 는 E000_PLAN/E001_PLAN 만 이 러너와 호환된다: {plan_kind!r}"
+            f"plan_kind 는 E000_PLAN/E000_FAST_PLAN/E001_PLAN 만 이 러너와 호환된다: {plan_kind!r}"
         )
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
@@ -120,10 +120,39 @@ def validate_no_real_navigation_fields_required(specs: list[TargetSpec]) -> None
         )
 
 
+def validate_real_target_scope_allowlist(
+    specs: list[TargetSpec], *, scope: object = None, allowlist: object = None
+) -> object:
+    """실제 수집 배치 시작 **전에** 모든 target 이 scope allowlist 안인지 확인한다.
+
+    개별 target 실행 중이 아니라 배치 시작 전에 실패하게 만드는 것이 목적이다 —
+    "6개 중 4번째에서야 목록 밖 target 이 드러나 3개는 이미 열려 버렸다" 는 상황을
+    만들지 않는다.
+    """
+    from landing_accessibility.engine.firewall import (
+        ExecutionScope,
+        assert_target_allowlisted,
+        load_scope_allowlist,
+    )
+
+    resolved_scope = scope if scope is not None else ExecutionScope.E000_FAST
+    resolved_list = allowlist or load_scope_allowlist(resolved_scope)
+    for spec in specs:
+        assert_target_allowlisted(
+            resolved_scope,
+            target_id=spec.target_id,
+            url=spec.official_url,
+            canonical_service_key=spec.canonical_service_key,
+            allowlist=resolved_list,  # type: ignore[arg-type]
+        )
+    return resolved_list
+
+
 __all__ = [
     "PlanValidationError",
     "TargetSpec",
     "load_plan",
     "load_plan_dict",
     "validate_no_real_navigation_fields_required",
+    "validate_real_target_scope_allowlist",
 ]

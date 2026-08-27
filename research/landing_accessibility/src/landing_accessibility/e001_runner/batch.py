@@ -53,17 +53,22 @@ from typing import Any, Protocol
 
 from landing_accessibility.engine.firewall import (
     ExecutionMode,
+    ExecutionScope,
     FirewallError,
     assert_mode_allowed,
 )
-from landing_accessibility.engine.provenance import ShadowProvenance
+from landing_accessibility.engine.provenance import RealTargetProvenance, ShadowProvenance
 from landing_accessibility.engine.vocabulary import MeasurementStatus, is_measurement_failed
 
 from .guard import AccountActionBlockedError
 from .layer_firewall import BatchRealTargetBlockedError, assert_batch_execution_mode_safe
 from .ledger import BatchLedger, BatchManifest
 from .outcomes import TargetOutcome, is_failure_isolated, map_engine_result
-from .plan import TargetSpec, validate_no_real_navigation_fields_required
+from .plan import (
+    TargetSpec,
+    validate_no_real_navigation_fields_required,
+    validate_real_target_scope_allowlist,
+)
 from .retry import MAX_RETRIES_PER_TARGET, run_with_retry
 from .wall_clock import (
     DEFAULT_TARGET_WALL_CLOCK_CAP_S,
@@ -157,6 +162,8 @@ class BatchRunner:
         #: negative test(고의로 느린 executor로 cap 초과 유도)를 검증한다.
         self.target_wall_clock_cap_s = target_wall_clock_cap_s
         self.ledger = BatchLedger(self.out_dir)
+        #: 실제 수집 배치가 돌 때만 채워진다 (`_run_real`). FIXTURE 배치에서는 항상 None.
+        self._real_scope: object | None = None
 
     # ── 진입점 ───────────────────────────────────────────────────────────
     def run(
@@ -164,25 +171,29 @@ class BatchRunner:
         plan: list[TargetSpec],
         *,
         execution_mode: object,
+        execution_scope: object | None = None,
         target_executor: TargetExecutor | None = None,
     ) -> list[BatchManifest]:
         """`plan`을 batch로 나눠 순회하고 봉인된 `BatchManifest` 목록을 돌려준다.
 
-        REAL_TARGET을 요청하면 **두 firewall 모두** 통과하지 못하고 즉시 실패한다.
-        어느 한쪽만 통과시켜도 이 함수는 진행하지 않는다 — 순서와 무관하게 둘 다
-        호출된다.
+        scope 없는 REAL_TARGET을 요청하면 **두 firewall 모두** 통과하지 못하고 즉시
+        실패한다. 어느 한쪽만 통과시켜도 이 함수는 진행하지 않는다 — 순서와 무관하게
+        둘 다 호출된다. scope 가 주어진 경우에도 두 층이 **각자** 릴리스 문서를 읽어
+        판정한다.
         """
-        layer_mode = assert_batch_execution_mode_safe(execution_mode)
-        engine_mode = assert_mode_allowed(execution_mode)  # 엔진 정본 firewall — 별개 재확인
+        layer_mode = assert_batch_execution_mode_safe(execution_mode, execution_scope)
+        engine_mode = assert_mode_allowed(execution_mode, scope=execution_scope)
         assert layer_mode == engine_mode.value  # 두 firewall이 같은 값을 봤다는 것을 명시
 
         if engine_mode is ExecutionMode.SHADOW_DRY_RUN:
             return [self._run_dry(plan)]
 
+        if engine_mode is ExecutionMode.REAL_TARGET:
+            return self._run_real(plan, scope=execution_scope, target_executor=target_executor)
+
         if engine_mode is not ExecutionMode.FIXTURE:
-            # assert_mode_allowed가 REAL_TARGET을 이미 막았으므로 이론상 도달 불가능하지만,
             # 새 execution_mode가 언젠가 추가돼도 이 함수가 조용히 통과시키지 않게 한다.
-            raise FirewallError(f"이 배치 러너는 FIXTURE/SHADOW_DRY_RUN만 실행한다: {engine_mode}")
+            raise FirewallError(f"이 배치 러너가 아는 모드가 아니다: {engine_mode}")
 
         validate_no_real_navigation_fields_required(plan)
         executor = target_executor or self._default_fixture_executor
@@ -194,6 +205,60 @@ class BatchRunner:
             manifests.append(manifest)
         return manifests
 
+    # ── 실제 수집 배치 ───────────────────────────────────────────────────
+    def _run_real(
+        self,
+        plan: list[TargetSpec],
+        *,
+        scope: object,
+        target_executor: TargetExecutor | None = None,
+    ) -> list[BatchManifest]:
+        """`REAL_TARGET` + 승인된 scope 배치.
+
+        FIXTURE 경로와 **같은** `_run_target_isolated` 를 쓴다 — 재시도 1회 상한,
+        wall-clock cap, 실패 격리, 계정 행동 가드가 그대로 적용된다는 뜻이다.
+        다른 것은 executor 와 provenance 뿐이다.
+        """
+        # 배치가 시작되기 전에 allowlist 전건 확인 — 목록 밖 target 이 하나라도 있으면
+        # 브라우저를 한 번도 켜지 않고 실패한다.
+        validate_real_target_scope_allowlist(plan, scope=scope)
+        self._real_scope = scope
+        executor = target_executor or self._real_executor
+
+        manifests: list[BatchManifest] = []
+        for batch_index, batch_targets in enumerate(_chunk(plan, self.batch_size), start=1):
+            target_results = [self._run_target_isolated(t, executor) for t in batch_targets]
+            manifest = self._seal_batch(
+                batch_index, batch_targets, target_results, "REAL_TARGET", scope=scope
+            )
+            manifests.append(manifest)
+        return manifests
+
+    def _real_executor(self, target: TargetSpec) -> dict[str, Any]:
+        """실제 수집 executor — L0 + L1 을 함께 수행한다 (L0-only run 을 만들지 않는다)."""
+        from landing_accessibility.engine.evidence import EvidenceRun
+
+        from .real_executor import run_l1_if_safe_real
+
+        scope = self._real_scope or ExecutionScope.E000_FAST
+        scope_label = getattr(scope, "value", None) or str(scope)
+        run_id = (
+            f"{scope_label.lower()}-{target.target_id}-"
+            f"{_utc_now_iso().replace(':', '').replace('.', '')}"
+        )
+        run = EvidenceRun.create(
+            self.out_dir / "evidence",
+            run_id,
+            execution_mode=ExecutionMode.REAL_TARGET,
+            execution_scope=scope,
+            provenance=RealTargetProvenance.for_scope(
+                scope, base_sha=E001_RUNNER_BASE_SHA, execution_lane=E001_RUNNER_SHADOW_LANE
+            ),
+        )
+        result = run_l1_if_safe_real(target, run=run, scope=scope)
+        run.seal()
+        return result
+
     # ── target 하나 ──────────────────────────────────────────────────────
     def _run_target_isolated(self, target: TargetSpec, executor: TargetExecutor) -> TargetResult:
         """target 하나를 실행한다. **여기서 던진 예외는 이 함수를 벗어나지 않는다**
@@ -204,11 +269,13 @@ class BatchRunner:
         × cap"이 아니라 "이 target에 쓸 수 있는 전체 시간"이 상한이라는 뜻이다.
         """
         attempt_count = 0
+        last_result: dict[str, Any] = {}
 
         def attempt() -> dict[str, Any]:
-            nonlocal attempt_count
+            nonlocal attempt_count, last_result
             attempt_count += 1  # 최선 노력 카운터 — wall-clock cap 이 발화했을 때도 보고용으로 쓴다
             result = executor(target)
+            last_result = result if isinstance(result, dict) else {}
             if result.get("outcome") == TargetOutcome.ACCOUNT_ACTION_BLOCKED.value:
                 raise AccountActionBlockedError(
                     f"target {target.target_id!r}: "
@@ -227,10 +294,13 @@ class BatchRunner:
                 lambda: run_with_retry(attempt), cap_s=self.target_wall_clock_cap_s
             )
         except AccountActionBlockedError as exc:
+            # L0 관측은 이미 끝났고 evidence 도 디스크에 있다 — 그 lineage 를 결과에서
+            # 잃어버리지 않는다 (L0 산출물과 L1 종결상태가 함께 남아야 한다).
             return TargetResult(
                 target_id=target.target_id,
                 outcome=TargetOutcome.ACCOUNT_ACTION_BLOCKED.value,
                 attempts=1,
+                detail=last_result,
                 error=str(exc),
             )
         except (BatchRealTargetBlockedError, FirewallError):
@@ -320,8 +390,19 @@ class BatchRunner:
         targets: list[TargetSpec],
         results: list[TargetResult],
         execution_mode: str,
+        *,
+        scope: object | None = None,
     ) -> BatchManifest:
         isolated = sum(1 for r in results if is_failure_isolated(TargetOutcome(r.outcome)))
+        provenance = (
+            RealTargetProvenance.for_scope(
+                scope, base_sha=E001_RUNNER_BASE_SHA, execution_lane=E001_RUNNER_SHADOW_LANE
+            )
+            if scope is not None
+            else ShadowProvenance(
+                base_sha=E001_RUNNER_BASE_SHA, shadow_lane=E001_RUNNER_SHADOW_LANE
+            )
+        )
         manifest = BatchManifest(
             batch_index=batch_index,
             batch_id=f"b{batch_index:04d}",
@@ -329,9 +410,7 @@ class BatchRunner:
             target_ids=[t.target_id for t in targets],
             results=[r.as_dict() for r in results],
             provenance={
-                **ShadowProvenance(
-                    base_sha=E001_RUNNER_BASE_SHA, shadow_lane=E001_RUNNER_SHADOW_LANE
-                ).as_dict(),
+                **provenance.as_dict(),
                 "isolated_failure_count": isolated,
                 "target_count": len(targets),
                 "max_retries_per_target": MAX_RETRIES_PER_TARGET,

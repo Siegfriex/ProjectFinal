@@ -123,15 +123,36 @@ _LABEL_RULES: tuple[tuple[InterruptLabel, tuple[str, ...]], ...] = (
 
 @dataclass(frozen=True)
 class FixtureTarget:
-    """이 lane 이 측정할 수 있는 유일한 대상 — 로컬 synthetic fixture."""
+    """FIXTURE 모드가 측정할 수 있는 유일한 대상 — 로컬 synthetic fixture."""
 
     web_target_id: str
     fixture: str
     archetype: InteractionArchetype
     task_id: str = "T-FIXTURE"
 
-    def url(self, fixture_root: Path) -> str:
+    def url(self, fixture_root: Path | None) -> str:
+        if fixture_root is None:
+            raise ValueError("FixtureTarget 은 fixture_root 없이 URL 을 만들 수 없다")
         return f"file://{(Path(fixture_root) / self.fixture).resolve()}"
+
+
+@dataclass(frozen=True)
+class RealServiceTarget:
+    """`REAL_TARGET` 모드 + 승인된 scope 에서만 열리는 실제 서비스 target.
+
+    `FixtureTarget` 과 **별도의 타입**인 것이 핵심이다 — 두 타입이 서로의 URL 을 만들 수
+    없으므로, fixture 실행기가 실수로 실제 서비스를 여는 조합이 타입 수준에서 성립하지
+    않는다. `L0Collector.collect()` 가 모드와 target 타입의 짝을 다시 한 번 확인한다.
+    """
+
+    web_target_id: str
+    official_url: str
+    archetype: InteractionArchetype
+    task_id: str = "T-E000"
+    canonical_service_key: str | None = None
+
+    def url(self, fixture_root: Path | None = None) -> str:
+        return self.official_url
 
 
 @dataclass
@@ -356,12 +377,15 @@ class L0Collector:
         self,
         run: EvidenceRun,
         *,
-        fixture_root: Path,
+        fixture_root: Path | None = None,
         execution_mode: ExecutionMode = ExecutionMode.FIXTURE,
+        execution_scope: object | None = None,
     ) -> None:
         self.run = run
-        self.fixture_root = Path(fixture_root).resolve()
+        self.fixture_root = Path(fixture_root).resolve() if fixture_root is not None else None
         self.execution_mode = execution_mode
+        #: `REAL_TARGET` 에서만 의미가 있다 — 어느 승인 범위로 여는가 (`firewall.ExecutionScope`).
+        self.execution_scope = execution_scope
 
     # ── 브라우저 컨텍스트 ──────────────────────────────────────────────────
     def _new_context(self, browser: Any) -> Any:
@@ -409,12 +433,39 @@ class L0Collector:
             )
         return slim
 
+    def _assert_target_matches_mode(self, target: FixtureTarget | RealServiceTarget) -> None:
+        """모드와 target 타입의 짝을 확인한다 — firewall 이전의 1차 방어선.
+
+        firewall 의 scheme 검사만으로도 잘못된 조합은 막히지만, 그때의 실패 메시지는
+        "scheme 이 틀렸다" 가 되어 **무엇이 잘못됐는지**를 말해주지 못한다. 여기서
+        타입 자체를 확인해 "fixture 실행기가 실제 서비스 target 을 받았다" 를 그대로
+        말한다.
+        """
+        real = isinstance(target, RealServiceTarget)
+        if self.execution_mode is ExecutionMode.REAL_TARGET and not real:
+            raise ValueError(
+                f"REAL_TARGET 모드에 {type(target).__name__} 이 들어왔다 — "
+                "실제 수집 경로는 RealServiceTarget 만 받는다."
+            )
+        if self.execution_mode is not ExecutionMode.REAL_TARGET and real:
+            raise ValueError(
+                f"{self.execution_mode.value} 모드에 RealServiceTarget 이 들어왔다 — "
+                "fixture 경로는 실제 서비스 target 을 받지 않는다."
+            )
+
     # ── 수집 ─────────────────────────────────────────────────────────────
-    def collect(self, target: FixtureTarget, *, dismiss_pass: bool = True) -> L0Observation:
+    def collect(
+        self, target: FixtureTarget | RealServiceTarget, *, dismiss_pass: bool = True
+    ) -> L0Observation:
         from playwright.sync_api import sync_playwright
 
+        self._assert_target_matches_mode(target)
         requested_url = assert_navigation_allowed(
-            self.execution_mode, target.url(self.fixture_root), fixture_root=self.fixture_root
+            self.execution_mode,
+            target.url(self.fixture_root),
+            fixture_root=self.fixture_root,
+            scope=self.execution_scope,
+            target_id=target.web_target_id if self.execution_scope is not None else None,
         )
         started = utc_now_iso()
         obs_id = observation_id(

@@ -172,10 +172,11 @@ class EvidenceRun:
         run_id: str,
         *,
         execution_mode: object,
+        execution_scope: object | None = None,
         provenance: ShadowProvenance | None = None,
         preregistration: RecollectionPreregistration | None = None,
     ) -> EvidenceRun:
-        mode = assert_mode_allowed(execution_mode)
+        mode = assert_mode_allowed(execution_mode, scope=execution_scope)
         run_dir = Path(root) / run_id
         if run_dir.exists():
             raise EvidenceOverwriteError(

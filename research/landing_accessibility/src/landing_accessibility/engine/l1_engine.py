@@ -274,15 +274,30 @@ class Scout:
     def __init__(
         self,
         *,
-        fixture_root: Path,
+        fixture_root: Path | None = None,
         budget: ScoutBudget | None = None,
         execution_mode: ExecutionMode = ExecutionMode.FIXTURE,
+        execution_scope: object | None = None,
         run: EvidenceRun | None = None,
     ) -> None:
-        self.fixture_root = Path(fixture_root).resolve()
+        self.fixture_root = Path(fixture_root).resolve() if fixture_root is not None else None
         self.budget = budget or ScoutBudget()
         self.execution_mode = execution_mode
+        #: `REAL_TARGET` 에서만 의미가 있다 — 어느 승인 범위로 여는가.
+        self.execution_scope = execution_scope
         self.run = run
+
+    def _provenance_block(self) -> dict[str, Any]:
+        """이 Scout 이 낸 산출물의 provenance. 모드에 따라 **다른 계약**을 쓴다.
+
+        실제 수집(`REAL_TARGET` + scope)에서 `ShadowProvenance` 를 붙이면
+        `real_target_measurement = false` 로 나가 하류가 fixture 산물로 오인한다.
+        """
+        if self.execution_mode is ExecutionMode.REAL_TARGET:
+            from .provenance import RealTargetProvenance
+
+            return RealTargetProvenance.for_scope(self.execution_scope).as_dict()
+        return ShadowProvenance().as_dict()
 
     # ── 관측 ─────────────────────────────────────────────────────────────
     def _observe_after_clearing(
@@ -358,21 +373,52 @@ class Scout:
         self,
         *,
         web_target_id: str,
-        entry_fixture: str,
+        entry_fixture: str | None = None,
         task: TaskDefinition,
+        entry_real_url: str | None = None,
     ) -> tuple[TaskEntry, TaskManifest | None]:
-        """bounded minimality search. 최소 activation 경로를 찾거나 예산에서 멈춘다."""
+        """bounded minimality search. 최소 activation 경로를 찾거나 예산에서 멈춘다.
+
+        진입점은 둘 중 **정확히 하나**다:
+
+        - `entry_fixture` — FIXTURE 모드. `fixture_root` 안의 로컬 파일.
+        - `entry_real_url` — `REAL_TARGET` + 승인된 scope. 실제 서비스 진입 URL.
+
+        둘 다 주거나 둘 다 안 주면 실패한다 — "어느 쪽인지 모르는 채로" 항해하지 않는다.
+        어느 쪽이든 `assert_navigation_allowed` 를 거치므로, 모드와 진입점이 어긋나면
+        firewall 이 막는다.
+        """
         from playwright.sync_api import sync_playwright
 
-        entry_url = assert_navigation_allowed(
-            self.execution_mode,
-            f"file://{(self.fixture_root / entry_fixture).resolve()}",
-            fixture_root=self.fixture_root,
-        )
+        if (entry_fixture is None) == (entry_real_url is None):
+            raise ValueError(
+                "entry_fixture 와 entry_real_url 중 정확히 하나를 지정해야 한다 "
+                f"(fixture={entry_fixture!r}, real={entry_real_url!r})"
+            )
+        if entry_real_url is not None:
+            entry_url = assert_navigation_allowed(
+                self.execution_mode,
+                entry_real_url,
+                scope=self.execution_scope,
+                target_id=web_target_id,
+            )
+            entry_label = entry_real_url
+        else:
+            if self.fixture_root is None or entry_fixture is None:
+                raise ValueError("entry_fixture 를 쓰려면 fixture_root 가 있어야 한다")
+            entry_url = assert_navigation_allowed(
+                self.execution_mode,
+                f"file://{(self.fixture_root / entry_fixture).resolve()}",
+                fixture_root=self.fixture_root,
+            )
+            entry_label = entry_fixture
         started = time.monotonic()
         collector = (
             L0Collector(
-                self.run, fixture_root=self.fixture_root, execution_mode=self.execution_mode
+                self.run,
+                fixture_root=self.fixture_root,
+                execution_mode=self.execution_mode,
+                execution_scope=self.execution_scope,
             )
             if self.run
             else None
@@ -619,7 +665,7 @@ class Scout:
                 task_id=task.task_id,
                 archetype=task.archetype.value,
                 web_target_id=web_target_id,
-                entry_fixture=entry_fixture,
+                entry_fixture=entry_label,
                 frozen_at=utc_now_iso(),
                 path=best_path,
                 endpoint_status=depth.endpoint_status.value,
@@ -629,7 +675,7 @@ class Scout:
                 ned=depth.ned,
                 ied=depth.ied,
                 mpfed=depth.mpfed,
-                provenance=ShadowProvenance().as_dict(),
+                provenance=self._provenance_block(),
             )
         return entry, manifest
 
