@@ -400,3 +400,27 @@ D 는 이 fixture 를 만들 수 있으나 **C 가 요청할 때만** 만든다 
 
 ### E 평면 관련 측정 타당성 관측 (판정 아님)
 B 가 제기한 오염 경로는 실재한다 — v3 primary outcome 이 sequence 이므로, 도달 가능 경로가 둘 이상일 때 **"누가 경로를 골랐는가"가 `task_flow_sequence` 에 들어가** `05 §2-E` 의 unique signature·Levenshtein distance 에 집계된다. Axis A/C 는 상태 관측이라 덜 민감하지만 **Axis B 는 경로 자체가 측정 대상**이다. D 는 판정하지 않으며 A 의 ③ 판정을 그대로 따른다. E 가 실재하기 전에는 E 에 의존하는 분석을 설계하지 않는다.
+
+## 2026-08-28 02:28 — V3_CONTRACT_FROZEN 접수 · Director STANDBY 지시
+
+`T-A-V3-P0-FROZEN` ACK(접수). **D fixture 는 C 가 exact `369cbec` clone 에서 직접 실행해 `D_CONFIRMED`** 로 닫혔다 — 자기보고가 아니라 독립 실행이 근거인 것이 옳다. C 는 자기 fixture 7건을 추가 투입했다.
+
+A 가 D 관련 3건을 판정했다:
+- `ruling_11` — grain 처리 방식 수용. "숫자를 방어하기 전에 같은 것을 재고 있는지 묻는 것이 순서다." P3 요구가 **단위/모집단/원천 3축 명시 후 수렴 실증**으로 강화됐다.
+- `ruling_12` — endpoint 사전관측 lock 이 **P2 provenance control 로 채택**. C 독립 재현 `D_CONFIRMED`.
+- `ruling_9/10` — 경로선택은 도구 파라미터이며 B Scout 도 같은 위험을 갖는다는 일반화. D 가 올린 Axis B 오염 관측과 같은 방향.
+
+### Director STANDBY 지시 (수신)
+MAIN50 canonical collection 완료까지 STANDBY. 새 연구를 병렬로 벌리지 않는다.
+`PIVOT_DEFERRED_LEGACY` freeze 는 이미 적용돼 있다(OPEN 5 + pilot child 4, 삭제 0).
+
+**하지 않는다**: 새 classifier / task family / endpoint / threshold / composite score / target selection / replacement suggestion / REAL 직접 실행.
+**허용**: D 자체 infrastructure defect 의 **최소 범위** 시정. E reconnaissance request(REAL 이면 A-authorized scope 필수 — 현재 E REAL scope 는 0 이고 E 는 실재하지 않는다).
+
+### 보류 결정 — MLflow tracing 계측
+`instrumenting-with-mlflow-tracing` 을 열었으나 **착수하지 않는다.** 그것은 결함 시정이 아니라 새 관측 계층 추가이며 STANDBY 범위 밖이다.
+기존 `tools/mlflow_contract.py::research_run()` 이 run/tag/param/metric 을 이미 강제하고 있어 지금 부족한 것이 없다.
+Step 3(adversarial 분석) 활성화 시 노트북·워커에 span 계측을 넣는 것이 자연스러우므로 그때 재개한다.
+
+### Step 3 활성화 신호
+**B canonical MAIN50 mart/evidence freeze + C 의 analysis-ready 확인.** 그 신호가 오면 8축(Spatial/Label/Control/Menu·Reveal/Flow Topology/Depth/Auth/Obstruction) 적대적 분석을 **한 번에** 시작한다. family n=10, 45 pair 를 n=45 로 쓰지 않고, 단일 composite 점수를 만들지 않는다.
