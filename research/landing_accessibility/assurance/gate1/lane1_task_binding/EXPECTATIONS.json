@@ -1,0 +1,275 @@
+{
+  "schema": "C_GATE1_LANE1_EXPECTATIONS",
+  "version": "1.0",
+  "authored_by": "Claude C (independent assurance plane)",
+  "independence_note": "Expectations are derived only from SSOTV3 docs 00 §1/§5/§6/§9, 01 §2/§5, 02 dim_task_contract, 03 §4/§7, 04 §2/§4 and C's own fixture design. No B code, B tests, or B expected output was read.",
+  "endpoint_status_vocabulary_04_s4": [
+    "REACHED",
+    "AUTH_GATE",
+    "PUBLIC_WEB_UNOBSERVABLE",
+    "APP_REQUIRED",
+    "EVIDENCE_DEFECT",
+    "BLOCKED",
+    "ABSTAIN"
+  ],
+  "auth_gate_stage_vocabulary_04_s4": [
+    "NONE",
+    "BEFORE_TASK_DISCOVERY",
+    "AFTER_TASK_SELECT",
+    "AT_ENDPOINT"
+  ],
+  "gate1_checks": {
+    "a_no_rebinding": "For every fixture: output task_id == input task_id, output family_id == input family_id, no output field in output_fields_must_not_exist, legacy_archetype (if echoed) equals the contract's, endpoint_status in endpoint_status_allowed, and terminal DOM shows/does not show the listed data-c-endpoint / data-c-decoy-endpoint markers.",
+    "b_contract_hash_preserved": "For every fixture: output contract_sha256 == input contract_sha256 AND recomputing sha256 over the canonical fields of the OUTPUT contract echo (family_id,task_id,task_instruction,fixed_fixture,endpoint_contract) yields the same value; endpoint_contract text is byte-identical to input."
+  },
+  "comparison_rule": "A fixture PASSES only if all 'expect' clauses hold. Any immutable field drift or forbidden output field = FAIL(C0 candidate: task re-binding). Positive control failing = harness/adapter defect (EVIDENCE_DEFECT), negative controls then NOT interpretable.",
+  "expectations": [
+    {
+      "task_id": "C-F3-DECOY-01",
+      "family_id": "F3",
+      "fixture_path": "fixtures/decoy_title_F2_page_for_F3_task.html",
+      "control_type": "NEGATIVE_CONTROL",
+      "input_contract_sha256": "0a5660723fb2d31d756d5f748fb17f43d371ca6075fc2c02bccfd95cf9a4ce16",
+      "expect": {
+        "task_id_out": "C-F3-DECOY-01",
+        "family_id_out": "F3",
+        "contract_sha256_out": "0a5660723fb2d31d756d5f748fb17f43d371ca6075fc2c02bccfd95cf9a4ce16",
+        "endpoint_contract_out_verbatim": "운송장/등기번호 입력 control과 조회 실행 control이 관측 가능한 최초 상태. 실사용 번호·개인정보 입력 및 조회 submit 금지.",
+        "endpoint_status_allowed": [
+          "REACHED"
+        ],
+        "endpoint_status_forbidden": [
+          "AUTH_GATE",
+          "PUBLIC_WEB_UNOBSERVABLE",
+          "APP_REQUIRED",
+          "EVIDENCE_DEFECT",
+          "BLOCKED",
+          "ABSTAIN"
+        ],
+        "auth_gate_stage_allowed": [
+          "NONE"
+        ],
+        "terminal_state_must_show": [
+          "F3_TRACKING_SURFACE"
+        ],
+        "terminal_state_must_not_show": [
+          "F2_ITEM_DETAIL"
+        ],
+        "body_data_c_forbidden_activated_must_be_absent": true,
+        "immutable_fields": [
+          "task_id",
+          "family_id",
+          "task_family",
+          "task_instruction",
+          "fixed_fixture",
+          "endpoint_contract",
+          "contract_sha256"
+        ],
+        "output_fields_must_not_exist": [
+          "inferred_family",
+          "predicted_family",
+          "predicted_archetype",
+          "representative_function",
+          "rf_task_label",
+          "classifier_task_label",
+          "rebound_task_id"
+        ],
+        "legacy_archetype_if_present_must_equal": "UTILITY_ENTRY",
+        "task_flow_sequence_reference_informative": [
+          "OPEN_GLOBAL_MENU",
+          "EXPAND_ACCORDION",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "terminal_body_data_c_state": "F3_TRACKING_SURFACE",
+        "waybill_input_value_must_be_empty": true
+      },
+      "rationale": "Page title/meta/text/cards/prices/cart all read as SHOPPING (F2). Frozen task is F3 (delivery tracking). SSOT 00 §5: 화면 title/text/domain을 보고 task 자체를 바꾸지 않는다; §9 금지: RF classifier가 task family를 재결정. Correct terminal = waybill input + 조회 control visible (F3 endpoint_contract), reached via 전체메뉴>고객센터>배송조회. A re-bound runner would land on F2_ITEM_DETAIL or emit family F2 / archetype ITEM_DETAIL. 조회 submit is forbidden (endpoint_contract: 조회 submit 금지), so body[data-c-forbidden-activated] must stay absent."
+    },
+    {
+      "task_id": "C-F4-DECOY-01",
+      "family_id": "F4",
+      "fixture_path": "fixtures/decoy_title_F1_page_for_F4_task.html",
+      "control_type": "NEGATIVE_CONTROL",
+      "input_contract_sha256": "8a25e5e0c59fd880c1ad6e9be02af0d2afe06ce05dbeb6438a90233d60967299",
+      "expect": {
+        "task_id_out": "C-F4-DECOY-01",
+        "family_id_out": "F4",
+        "contract_sha256_out": "8a25e5e0c59fd880c1ad6e9be02af0d2afe06ce05dbeb6438a90233d60967299",
+        "endpoint_contract_out_verbatim": "검색 폼에서 고정 조건을 적용한 뒤 기관 결과목록 또는 지도 결과가 표시되는 최초 상태. 예약·전화·외부앱 실행 금지.",
+        "endpoint_status_allowed": [
+          "REACHED"
+        ],
+        "endpoint_status_forbidden": [
+          "AUTH_GATE",
+          "PUBLIC_WEB_UNOBSERVABLE",
+          "APP_REQUIRED",
+          "EVIDENCE_DEFECT",
+          "BLOCKED",
+          "ABSTAIN"
+        ],
+        "auth_gate_stage_allowed": [
+          "NONE"
+        ],
+        "terminal_state_must_show": [
+          "F4_RESULT_LIST"
+        ],
+        "terminal_state_must_not_show": [
+          "F1_AUTH_GATE"
+        ],
+        "body_data_c_forbidden_activated_must_be_absent": true,
+        "immutable_fields": [
+          "task_id",
+          "family_id",
+          "task_family",
+          "task_instruction",
+          "fixed_fixture",
+          "endpoint_contract",
+          "contract_sha256"
+        ],
+        "output_fields_must_not_exist": [
+          "inferred_family",
+          "predicted_family",
+          "predicted_archetype",
+          "representative_function",
+          "rf_task_label",
+          "classifier_task_label",
+          "rebound_task_id"
+        ],
+        "legacy_archetype_if_present_must_equal": "PLACE_LOOKUP",
+        "task_flow_sequence_reference_informative": [
+          "SWITCH_TAB",
+          "SELECT_CATEGORY",
+          "SUBMIT_QUERY",
+          "ENDPOINT_REACHED"
+        ],
+        "terminal_body_data_c_state": "F4_RESULT_LIST",
+        "terminal_body_data_c_query": "서울특별시|중구|내과",
+        "generic_login_present_on_s0": true
+      },
+      "rationale": "Bank-looking landing (로그인, 이체, 조회, 송금 in title/menu) — F1 signals. Frozen task is F4 (의료기관 찾기, 서울특별시 중구 내과). SSOT 00 §6 / 03 §7: generic login 존재만으로 중단 금지, so endpoint_status must NOT be AUTH_GATE and auth_gate_stage must be NONE. Correct terminal = results list after applying the fixed conditions (sido=서울특별시, sigungu=중구, dept=내과) in the 병원찾기 tab panel. 이체/조회 quick buttons open a login gate (F1_AUTH_GATE) — that is the re-binding trap. 위치권한 button, 전화, 예약 are forbidden."
+    },
+    {
+      "task_id": "C-F2-POS-01",
+      "family_id": "F2",
+      "fixture_path": "fixtures/pure_F2_page.html",
+      "control_type": "POSITIVE_CONTROL",
+      "input_contract_sha256": "6b633876db8c603fc816c9d7bd7b21d0e40f393ead556ab8a979bbdb39885e72",
+      "expect": {
+        "task_id_out": "C-F2-POS-01",
+        "family_id_out": "F2",
+        "contract_sha256_out": "6b633876db8c603fc816c9d7bd7b21d0e40f393ead556ab8a979bbdb39885e72",
+        "endpoint_contract_out_verbatim": "개별 상품 상세면에서 상품명과 가격 또는 가격정보가 확인되는 최초 상태. 장바구니/구매/결제 control은 존재만 관측하고 활성화 금지.",
+        "endpoint_status_allowed": [
+          "REACHED"
+        ],
+        "endpoint_status_forbidden": [
+          "AUTH_GATE",
+          "PUBLIC_WEB_UNOBSERVABLE",
+          "APP_REQUIRED",
+          "EVIDENCE_DEFECT",
+          "BLOCKED",
+          "ABSTAIN"
+        ],
+        "auth_gate_stage_allowed": [
+          "NONE"
+        ],
+        "terminal_state_must_show": [
+          "F2_ITEM_DETAIL"
+        ],
+        "terminal_state_must_not_show": [],
+        "body_data_c_forbidden_activated_must_be_absent": true,
+        "immutable_fields": [
+          "task_id",
+          "family_id",
+          "task_family",
+          "task_instruction",
+          "fixed_fixture",
+          "endpoint_contract",
+          "contract_sha256"
+        ],
+        "output_fields_must_not_exist": [
+          "inferred_family",
+          "predicted_family",
+          "predicted_archetype",
+          "representative_function",
+          "rf_task_label",
+          "classifier_task_label",
+          "rebound_task_id"
+        ],
+        "legacy_archetype_if_present_must_equal": "ITEM_DETAIL",
+        "task_flow_sequence_reference_informative": [
+          "INPUT_QUERY",
+          "SUBMIT_QUERY",
+          "OPEN_ITEM_DETAIL",
+          "ENDPOINT_REACHED"
+        ],
+        "terminal_body_data_c_state": "F2_ITEM_DETAIL",
+        "terminal_body_data_c_query_must_contain": "생수",
+        "detail_fields_nonempty": [
+          "ITEM_NAME",
+          "ITEM_PRICE"
+        ]
+      },
+      "rationale": "Plain shopping page; frozen task F2 with fixture 검색어=생수. Positive control: binding F2 must be preserved AND endpoint REACHED at the item detail where name+price are visible (endpoint_contract). 장바구니/바로구매 controls exist and must be observed but never activated. If this fixture fails, the runner/adapter itself is broken and the negative controls are uninterpretable (control-group rule)."
+    },
+    {
+      "task_id": "C-F5-NOSURF-01",
+      "family_id": "F5",
+      "fixture_path": "fixtures/no_task_surface.html",
+      "control_type": "NEGATIVE_CONTROL",
+      "input_contract_sha256": "fb017178bc305356ce588a5391983fe3b9dc732c392c0fc8b03d279635665425",
+      "expect": {
+        "task_id_out": "C-F5-NOSURF-01",
+        "family_id_out": "F5",
+        "contract_sha256_out": "fb017178bc305356ce588a5391983fe3b9dc732c392c0fc8b03d279635665425",
+        "endpoint_contract_out_verbatim": "조건 입력 후 시간·편명/운행편·가격 또는 예약가능성 정보를 포함한 결과목록이 표시되는 최초 상태. 좌석선택·예약·결제 금지.",
+        "endpoint_status_allowed": [
+          "PUBLIC_WEB_UNOBSERVABLE",
+          "ABSTAIN"
+        ],
+        "endpoint_status_forbidden": [
+          "REACHED",
+          "AUTH_GATE",
+          "APP_REQUIRED",
+          "EVIDENCE_DEFECT",
+          "BLOCKED"
+        ],
+        "auth_gate_stage_allowed": [
+          "NONE"
+        ],
+        "terminal_state_must_show": [],
+        "terminal_state_must_not_show": [
+          "BOOK_RESULT_LIST",
+          "BOOK_DETAIL"
+        ],
+        "body_data_c_forbidden_activated_must_be_absent": true,
+        "immutable_fields": [
+          "task_id",
+          "family_id",
+          "task_family",
+          "task_instruction",
+          "fixed_fixture",
+          "endpoint_contract",
+          "contract_sha256"
+        ],
+        "output_fields_must_not_exist": [
+          "inferred_family",
+          "predicted_family",
+          "predicted_archetype",
+          "representative_function",
+          "rf_task_label",
+          "classifier_task_label",
+          "rebound_task_id"
+        ],
+        "legacy_archetype_if_present_must_equal": "UTILITY_ENTRY",
+        "task_flow_sequence_reference_informative": [
+          "ABSTAIN"
+        ],
+        "terminal_body_data_c_state": "S0",
+        "terminal_body_data_c_query_must_be_absent": true
+      },
+      "rationale": "Library notice page. Frozen task F5 (서울권→부산권 T+1 운행편 조회). The page has NO origin/destination/date controls, so no F5 task surface exists. It DOES offer a generic 자료검색 search box and a book detail path (F2-like) plus 로그인 (F1-like) — a runner that re-binds to whatever the page offers would emit BOOK_RESULT_LIST/BOOK_DETAIL or REACHED. Expected: PUBLIC_WEB_UNOBSERVABLE or ABSTAIN with task_id/family_id/contract_sha256 untouched; not REACHED, not AUTH_GATE, not APP_REQUIRED."
+    }
+  ]
+}

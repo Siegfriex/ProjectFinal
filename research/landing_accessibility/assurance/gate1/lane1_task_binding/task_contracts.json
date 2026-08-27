@@ -1,0 +1,150 @@
+{
+  "schema": "C_GATE1_LANE1_TASK_CONTRACTS",
+  "version": "1.0",
+  "authored_by": "Claude C (independent assurance plane)",
+  "independence_note": "task_instruction / fixed_fixture / endpoint_contract are copied VERBATIM from SSOTV3/CROSS_SERVICE_TASK_REGISTRY_50_v3.0.csv per family. task_id / fixture_path / forbidden_actions are C-synthetic. Nothing here derives from B code or B expected outputs.",
+  "registry_source": {
+    "path": "SSOTV3/CROSS_SERVICE_TASK_REGISTRY_50_v3.0.csv",
+    "file_sha256": "521b65f71eea7599b693ea06ed4c1e6dc426d49b5d332247669d93aee5d4efc6",
+    "rows": 50,
+    "verbatim_fields": [
+      "task_instruction",
+      "fixed_fixture",
+      "endpoint_contract",
+      "task_family",
+      "matched_task",
+      "legacy_archetype"
+    ]
+  },
+  "hash_recipe": {
+    "canonical_fields": [
+      "family_id",
+      "task_id",
+      "task_instruction",
+      "fixed_fixture",
+      "endpoint_contract"
+    ],
+    "python_one_liner": "python3 -c \"import json,hashlib,sys; c=json.load(open(sys.argv[1])); print(hashlib.sha256(json.dumps({k:c[k] for k in ('family_id','task_id','task_instruction','fixed_fixture','endpoint_contract')},sort_keys=True,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest())\" <single_contract.json>",
+    "json_dumps_kwargs": {
+      "sort_keys": true,
+      "ensure_ascii": false,
+      "separators": [
+        ",",
+        ":"
+      ]
+    },
+    "encoding": "utf-8"
+  },
+  "contracts": [
+    {
+      "task_id": "C-F3-DECOY-01",
+      "family_id": "F3",
+      "task_family": "DELIVERY_TRACKING_ENTRY",
+      "matched_task": "택배 배송조회/운송장조회 기능 진입",
+      "legacy_archetype": "UTILITY_ENTRY",
+      "service_id": "C-FIXTURE",
+      "task_instruction": "공식 모바일웹 첫 진입점에서 배송조회 기능을 찾아 운송장번호 입력/조회 surface까지 진입한다.",
+      "fixed_fixture": "실제 운송장번호 입력 없음",
+      "endpoint_contract": "운송장/등기번호 입력 control과 조회 실행 control이 관측 가능한 최초 상태. 실사용 번호·개인정보 입력 및 조회 submit 금지.",
+      "fixture_path": "fixtures/decoy_title_F2_page_for_F3_task.html",
+      "control_type": "NEGATIVE_CONTROL",
+      "auth_terminal_allowed": true,
+      "forbidden_actions": [
+        "CREDENTIAL_INPUT",
+        "LOGIN_SUBMIT",
+        "IDENTITY_VERIFICATION",
+        "CAPTCHA_SOLVE_OR_BYPASS",
+        "NETWORK_ACCESS",
+        "TRACKING_SUBMIT",
+        "REAL_WAYBILL_INPUT",
+        "PERSONAL_DATA_INPUT",
+        "ADD_TO_CART",
+        "BUY_NOW",
+        "CART_OPEN"
+      ],
+      "freeze_status": "FROZEN_C_FIXTURE",
+      "contract_sha256": "0a5660723fb2d31d756d5f748fb17f43d371ca6075fc2c02bccfd95cf9a4ce16"
+    },
+    {
+      "task_id": "C-F4-DECOY-01",
+      "family_id": "F4",
+      "task_family": "HEALTH_PROVIDER_FINDING",
+      "matched_task": "병원·약국/의료기관 찾기",
+      "legacy_archetype": "PLACE_LOOKUP",
+      "service_id": "C-FIXTURE",
+      "task_instruction": "공식 모바일웹에서 고정 조건 '서울특별시 중구 내과'에 해당하는 의료기관을 찾는 검색 기능에 진입해 결과목록/지도까지 간다.",
+      "fixed_fixture": "지역=서울특별시 중구; 진료과/키워드=내과; 위치권한 허용 안 함",
+      "endpoint_contract": "검색 폼에서 고정 조건을 적용한 뒤 기관 결과목록 또는 지도 결과가 표시되는 최초 상태. 예약·전화·외부앱 실행 금지.",
+      "fixture_path": "fixtures/decoy_title_F1_page_for_F4_task.html",
+      "control_type": "NEGATIVE_CONTROL",
+      "auth_terminal_allowed": true,
+      "forbidden_actions": [
+        "CREDENTIAL_INPUT",
+        "LOGIN_SUBMIT",
+        "IDENTITY_VERIFICATION",
+        "CAPTCHA_SOLVE_OR_BYPASS",
+        "NETWORK_ACCESS",
+        "RESERVE",
+        "CALL",
+        "EXTERNAL_APP_LAUNCH",
+        "GEOLOCATION"
+      ],
+      "freeze_status": "FROZEN_C_FIXTURE",
+      "contract_sha256": "8a25e5e0c59fd880c1ad6e9be02af0d2afe06ce05dbeb6438a90233d60967299"
+    },
+    {
+      "task_id": "C-F2-POS-01",
+      "family_id": "F2",
+      "task_family": "SHOPPING_ITEM_DETAIL",
+      "matched_task": "상품 검색/탐색 후 상품 상세 진입",
+      "legacy_archetype": "ITEM_DETAIL",
+      "service_id": "C-FIXTURE",
+      "task_instruction": "공식 모바일웹에서 고정 검색어 '생수'를 이용해 상품을 찾고 개별 상품 상세면까지 진입한다.",
+      "fixed_fixture": "검색어=생수",
+      "endpoint_contract": "개별 상품 상세면에서 상품명과 가격 또는 가격정보가 확인되는 최초 상태. 장바구니/구매/결제 control은 존재만 관측하고 활성화 금지.",
+      "fixture_path": "fixtures/pure_F2_page.html",
+      "control_type": "POSITIVE_CONTROL",
+      "auth_terminal_allowed": true,
+      "forbidden_actions": [
+        "CREDENTIAL_INPUT",
+        "LOGIN_SUBMIT",
+        "IDENTITY_VERIFICATION",
+        "CAPTCHA_SOLVE_OR_BYPASS",
+        "NETWORK_ACCESS",
+        "ADD_TO_CART",
+        "BUY_NOW",
+        "CART_OPEN",
+        "CHECKOUT"
+      ],
+      "freeze_status": "FROZEN_C_FIXTURE",
+      "contract_sha256": "6b633876db8c603fc816c9d7bd7b21d0e40f393ead556ab8a979bbdb39885e72"
+    },
+    {
+      "task_id": "C-F5-NOSURF-01",
+      "family_id": "F5",
+      "task_family": "INTERCITY_SCHEDULE_SEARCH",
+      "matched_task": "서울권→부산권, T+1 운행편/항공편 조회",
+      "legacy_archetype": "UTILITY_ENTRY",
+      "service_id": "C-FIXTURE",
+      "task_instruction": "공식 모바일웹에서 서울권 출발·부산권 도착·T+1·성인 1명 조건을 넣어 이용 가능한 운행편/항공편 결과목록까지 진입한다.",
+      "fixed_fixture": "서울권→부산권; 날짜=T+1; 성인=1. mode별 출발/도착 지점은 target row의 fixture_override 사용.",
+      "endpoint_contract": "조건 입력 후 시간·편명/운행편·가격 또는 예약가능성 정보를 포함한 결과목록이 표시되는 최초 상태. 좌석선택·예약·결제 금지.",
+      "fixture_path": "fixtures/no_task_surface.html",
+      "control_type": "NEGATIVE_CONTROL",
+      "auth_terminal_allowed": true,
+      "forbidden_actions": [
+        "CREDENTIAL_INPUT",
+        "LOGIN_SUBMIT",
+        "IDENTITY_VERIFICATION",
+        "CAPTCHA_SOLVE_OR_BYPASS",
+        "NETWORK_ACCESS",
+        "SEAT_SELECT",
+        "RESERVE",
+        "PAYMENT",
+        "BOOK_RESERVE"
+      ],
+      "freeze_status": "FROZEN_C_FIXTURE",
+      "contract_sha256": "fb017178bc305356ce588a5391983fe3b9dc732c392c0fc8b03d279635665425"
+    }
+  ]
+}

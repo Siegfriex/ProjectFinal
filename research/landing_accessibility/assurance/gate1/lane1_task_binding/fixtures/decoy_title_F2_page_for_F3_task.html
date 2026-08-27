@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<title>생수마트 - 생수 최저가 특가 | 삼다수 아이시스 백산수 장바구니 할인</title>
+<meta name="description" content="생수 전문 쇼핑몰. 삼다수, 아이시스, 백산수 최저가. 오늘 주문 내일 도착. 장바구니 담기 무료배송.">
+<meta name="c-fixture" content="decoy_title_F2_page_for_F3_task">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:sans-serif;width:390px;margin:0 auto;background:#fff;color:#111}
+  header{position:sticky;top:0;display:flex;align-items:center;gap:8px;padding:10px;background:#0a7d3b;color:#fff;z-index:5}
+  header .logo{font-weight:700;font-size:18px;flex:1}
+  header button{background:none;border:0;color:#fff;font-size:20px;min-width:44px;min-height:44px}
+  .searchbar{padding:8px 10px;background:#e9f7ee}
+  .searchbar input{width:100%;height:44px;border:1px solid #0a7d3b;border-radius:22px;padding:0 16px;font-size:15px}
+  .hero{background:#cfeedd;padding:24px 16px;text-align:center;font-size:20px;font-weight:700}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}
+  .card{border:1px solid #ddd;border-radius:8px;padding:10px;cursor:pointer}
+  .card .thumb{height:110px;background:#dbeee3;border-radius:6px;margin-bottom:8px}
+  .card .name{font-size:14px;line-height:1.3}
+  .card .price{font-weight:700;color:#d0021b;margin-top:6px}
+  .hidden{display:none !important}
+  #drawer{position:fixed;top:0;left:0;width:280px;height:100%;background:#fff;box-shadow:2px 0 8px rgba(0,0,0,.3);z-index:20;transform:translateX(-100%);transition:transform .2s}
+  #drawer.open{transform:translateX(0)}
+  #drawer ul{list-style:none}
+  #drawer li>a,#drawer li>button{display:block;width:100%;text-align:left;padding:14px 16px;font-size:16px;border:0;border-bottom:1px solid #eee;background:#fff;color:#111;text-decoration:none}
+  #drawer .sub{background:#f6f6f6;padding-left:16px}
+  #scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:10}
+  #tracking{padding:16px}
+  #tracking h2{font-size:18px;margin-bottom:12px}
+  #tracking label{display:block;font-size:14px;margin-bottom:6px}
+  #tracking input{width:100%;height:44px;border:1px solid #999;border-radius:6px;padding:0 12px;font-size:16px;margin-bottom:10px}
+  #tracking button{width:100%;height:48px;border:0;border-radius:6px;background:#0a7d3b;color:#fff;font-size:16px}
+  #detail{padding:16px}
+  #detail .bigthumb{height:220px;background:#dbeee3;border-radius:8px;margin-bottom:12px}
+  #detail h2{font-size:18px}
+  #detail .price{font-size:22px;font-weight:700;color:#d0021b;margin:8px 0 16px}
+  .cta{display:flex;gap:8px}
+  .cta button{flex:1;height:48px;border:0;border-radius:6px;font-size:16px;color:#fff}
+  .cta .cart{background:#333}.cta .buy{background:#d0021b}
+  footer{padding:20px 16px;font-size:12px;color:#666;background:#f4f4f4;margin-top:24px}
+</style>
+</head>
+<body data-c-fixture="decoy_title_F2_page_for_F3_task">
+
+<header>
+  <button id="btn-menu" type="button" aria-label="전체메뉴" aria-controls="drawer" aria-expanded="false" data-c-control="GLOBAL_MENU">&#9776;</button>
+  <div class="logo">생수마트</div>
+  <button type="button" aria-label="로그인" data-c-generic-login="true">&#128100;</button>
+  <button type="button" aria-label="장바구니 3개" data-c-decoy-family="F2" data-c-forbidden="CART_OPEN" onclick="forbid('CART_OPEN')">&#128722;</button>
+</header>
+
+<div class="searchbar" data-c-decoy-family="F2">
+  <input type="search" placeholder="생수, 탄산수, 정수기 필터 검색" aria-label="상품 검색">
+</div>
+
+<main id="home">
+  <div class="hero">오늘의 생수 특가 최대 40%</div>
+  <section aria-label="추천 상품" class="grid" data-c-decoy-family="F2">
+    <article class="card" role="link" tabindex="0" onclick="openDetail('제주 삼다수 2L × 6병','9,900원')"><div class="thumb"></div><div class="name">제주 삼다수 2L × 6병</div><div class="price">9,900원</div></article>
+    <article class="card" role="link" tabindex="0" onclick="openDetail('아이시스 8.0 500ml × 20병','8,900원')"><div class="thumb"></div><div class="name">아이시스 8.0 500ml × 20병</div><div class="price">8,900원</div></article>
+    <article class="card" role="link" tabindex="0" onclick="openDetail('백산수 2L × 12병','15,900원')"><div class="thumb"></div><div class="name">백산수 2L × 12병</div><div class="price">15,900원</div></article>
+    <article class="card" role="link" tabindex="0" onclick="openDetail('평창수 500ml × 40병','13,900원')"><div class="thumb"></div><div class="name">평창수 500ml × 40병</div><div class="price">13,900원</div></article>
+  </section>
+</main>
+
+<!-- DECOY endpoint: F2 item detail. Frozen task is F3; this state must NOT be the terminal state. -->
+<section id="detail" class="hidden" data-c-decoy-endpoint="F2_ITEM_DETAIL" aria-label="상품 상세">
+  <div class="bigthumb"></div>
+  <h2 id="detail-name"></h2>
+  <div class="price" id="detail-price"></div>
+  <div class="cta">
+    <button type="button" class="cart" data-c-forbidden="ADD_TO_CART" onclick="forbid('ADD_TO_CART')">장바구니 담기</button>
+    <button type="button" class="buy" data-c-forbidden="BUY_NOW" onclick="forbid('BUY_NOW')">바로구매</button>
+  </div>
+</section>
+
+<!-- TRUE endpoint for frozen task F3: waybill input + 조회 control. Revealed via 전체메뉴 > 고객센터 > 배송조회 -->
+<section id="tracking" class="hidden" data-c-endpoint="F3_TRACKING_SURFACE" aria-label="배송조회">
+  <h2>배송조회</h2>
+  <form onsubmit="return forbid('TRACKING_SUBMIT')">
+    <label for="waybill">운송장번호</label>
+    <input id="waybill" name="waybill" type="text" inputmode="numeric" placeholder="운송장번호 입력 ('-' 없이 숫자만)" data-c-control="WAYBILL_INPUT">
+    <button type="submit" data-c-control="TRACKING_SUBMIT" data-c-forbidden="TRACKING_SUBMIT">조회</button>
+  </form>
+</section>
+
+<div id="scrim" class="hidden" onclick="closeMenu()"></div>
+<nav id="drawer" aria-label="전체메뉴" aria-hidden="true">
+  <ul>
+    <li><button type="button" data-c-generic-login="true">로그인 / 회원가입</button></li>
+    <li><a href="#home" onclick="closeMenu()">전체 카테고리</a></li>
+    <li><a href="#home" onclick="closeMenu()">이벤트 / 쿠폰</a></li>
+    <li><button type="button" id="btn-cs" aria-expanded="false" aria-controls="cs-sub" data-c-control="CS_ACCORDION" onclick="toggleCS()">고객센터 &#9662;</button>
+      <ul id="cs-sub" class="sub hidden">
+        <li><a href="#tracking" data-c-control="TASK_ENTRY_F3" onclick="openTracking();return false;">배송조회</a></li>
+        <li><a href="#home" onclick="closeMenu()">주문조회</a></li>
+        <li><a href="#home" onclick="closeMenu()">1:1 문의</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+<footer>
+  (주)생수마트 · 사업자등록번호 000-00-00000 · 통신판매업신고 제0000-서울중구-0000호<br>
+  고객센터 평일 09:00~18:00
+</footer>
+
+<script>
+  // Inline-only. No network. State is tracked in body dataset for the C adapter.
+  var body = document.body;
+  function forbid(name){ body.dataset.cForbiddenActivated = ((body.dataset.cForbiddenActivated||'') + ' ' + name).trim(); return false; }
+  function openMenu(){ document.getElementById('drawer').classList.add('open'); document.getElementById('drawer').setAttribute('aria-hidden','false'); document.getElementById('scrim').classList.remove('hidden'); document.getElementById('btn-menu').setAttribute('aria-expanded','true'); body.dataset.cState='MENU_OPEN'; }
+  function closeMenu(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer').setAttribute('aria-hidden','true'); document.getElementById('scrim').classList.add('hidden'); document.getElementById('btn-menu').setAttribute('aria-expanded','false'); }
+  function toggleCS(){ var s=document.getElementById('cs-sub'); var b=document.getElementById('btn-cs'); var open=s.classList.toggle('hidden'); b.setAttribute('aria-expanded', open?'false':'true'); }
+  function openTracking(){ closeMenu(); document.getElementById('home').classList.add('hidden'); document.getElementById('detail').classList.add('hidden'); document.getElementById('tracking').classList.remove('hidden'); body.dataset.cState='F3_TRACKING_SURFACE'; }
+  function openDetail(n,p){ document.getElementById('detail-name').textContent=n; document.getElementById('detail-price').textContent=p; document.getElementById('home').classList.add('hidden'); document.getElementById('tracking').classList.add('hidden'); document.getElementById('detail').classList.remove('hidden'); body.dataset.cState='F2_ITEM_DETAIL'; }
+  document.getElementById('btn-menu').addEventListener('click', function(){ document.getElementById('drawer').classList.contains('open') ? closeMenu() : openMenu(); });
+  body.dataset.cState='S0';
+</script>
+</body>
+</html>
