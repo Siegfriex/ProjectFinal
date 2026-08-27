@@ -732,6 +732,18 @@ def analyse(steps: list[dict], denom: dict) -> dict:
     rq1["mart_dismiss_succeeded_H4"] = succ(H4)
     rq1["mart_dismiss_succeeded_EFFECTIVE"] = succ(EFF)
     rq1["mart_dismiss_succeeded_ALL"] = succ(ev)
+    h1m = [r for r in H1 if r.get("mart_dismiss_succeeded") not in (None, "None")]
+    rq1["succeeded_flag_vs_no_change"] = {
+        "observation": ("H1_NO_EFFECT 는 픽셀도 DOM 바이트도 하나도 안 바뀐 step 이다. "
+                        "그런데 engine 의 dismiss_succeeded 는 그중 상당수를 1(성공)로 적었다."),
+        "n_H1_in_mart": len(h1m),
+        "succeeded_1": wl(sum(1 for r in h1m if int(r["mart_dismiss_succeeded"]) == 1), len(h1m)),
+        "why": ("engine 의 succeeded 는 `not present or viewport_overlap<=0 or not hittable` 로 "
+                "**시도 직후의 상태**를 재는 술어이지 **변화**를 재는 술어가 아니다. overlay 가 "
+                "원래부터 뷰포트 밖이거나 hit-test 최상위가 아니었으면 아무 일이 없어도 1 이 된다."),
+        "claim_kind": "OBSERVATION",
+        "not_a_defect_claim": ("이것이 결함인지 의도된 정의인지는 construct 판단이며 D 가 정하지 않는다."),
+    }
 
     return {"ev": ev, "H1": H1, "H2": H2, "H4": H4, "EFF": EFF,
             "cls": dict(cls), "replication": replication, "chain": chain, "rq1": rq1}
@@ -1024,18 +1036,26 @@ def verdicts(A: dict, rq2: dict, sens: dict) -> tuple[str, dict, dict]:
     }
     di = rq2["dom_insensitivity_direct_check"]
     flips = sum(v for k, v in di["H4_steps_flagged_changed_by_criterion"].items())
+    cv_test = P["H-13b2-DOM_INSENSITIVE"][0]
+    cv_sig = (cv_test.get("status") == "OK" and (cv_test.get("phi") or 0) > 0
+              and (cv_test.get("p_perm") or 1) < 0.05)
     hv["H-13b2-DOM_INSENSITIVE"] = {
         "statement": "DOM 비교 기준이 둔감해서 실제 변화를 못 잡았다",
         "decision_rule": ("(i) C1_BYTES 보다 민감한 기준으로 H4 가 '변화' 로 뒤집히면 SUPPORTED. "
-                          "(ii) 뒤집힘이 0 이면, page.content() 가 못 보는 내용(iframe/canvas/video)이 "
-                          "H4 다수에 있을 때만 PARTIALLY_SUPPORTED."),
+                          "(ii) 뒤집힘이 0 이면, page.content() 가 도달하지 못하는 내용(canvas/video "
+                          "프레임 · iframe 내부 문서)이 H4 에 **기저율보다 유의하게 몰려 있을 때만** "
+                          "PARTIALLY_SUPPORTED. 단순히 '절반 이상이 iframe 을 갖는다' 는 근거가 아니다 "
+                          "— 전체 step 의 iframe 보유율이 이미 그 수준이기 때문이다."),
         "criterion_flips_within_H4": di["H4_steps_flagged_changed_by_criterion"],
         "n_flips_total": flips,
         "H4_with_iframe": di["H4_with_iframe"], "H4_with_canvas_or_video": di["H4_with_canvas_or_video"],
+        "iframe_base_rate_all_steps": di["ALL_with_iframe"],
+        "iframe_enrichment_over_base_rate": round((di["H4_with_iframe"]["p"] or 0)
+                                                  - (di["ALL_with_iframe"]["p"] or 0), 4),
+        "canvas_or_video_association": cv_test,
         "sha_roundtrip_failures": di["sha_roundtrip_failures"],
         "verdict": ("SUPPORTED" if flips > 0 else
-                    "PARTIALLY_SUPPORTED" if (di["H4_with_iframe"]["p"] or 0) > 0.5 else
-                    "NOT_SUPPORTED"),
+                    "PARTIALLY_SUPPORTED" if cv_sig else "NOT_SUPPORTED"),
         "note": ("C1_BYTES 는 직렬화된 DOM 에 대해 가장 민감한 기준이다. 이 기준이 둔감할 수 있는 "
                  "영역은 오직 직렬화가 도달하지 못하는 곳(iframe 내부 문서·shadow DOM·canvas·video)이다."),
     }
