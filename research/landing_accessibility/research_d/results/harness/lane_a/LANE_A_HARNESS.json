@@ -1,0 +1,1364 @@
+{
+ "lane": "A",
+ "title": "Auth timing / Obstruction 분석 하네스 + 반례 탐지기",
+ "verdict": "READY_WITH_AMBIGUITY",
+ "generated_at_utc": "2026-08-27T17:52:44.921804+00:00",
+ "provenance": {
+  "base_sha": "7448184a811f5d7d8772f21488bb75418fde3313",
+  "branch": "claude-d/research-sandbox-v21",
+  "ssot_root": "/home/sieg/projects-wsl/ProjectFinal/SSOTV3",
+  "ssot_manifest_self_sha256": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+  "ssot_manifest_self_sha256_recomputed": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+  "data_status": "NO_MAIN50_REAL_DATA — outcome-independent 준비. 모든 입력은 이 파일 안의 합성 fixture."
+ },
+ "codebook_definitions_verbatim": {
+  "auth_gate_stage": {
+   "source": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4 Measurement Variables",
+   "text": "| auth_gate_stage | Flow | categorical | NONE/BEFORE_TASK_DISCOVERY/AFTER_TASK_SELECT/AT_ENDPOINT |"
+  },
+  "AUTH_GATE_token": {
+   "source": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §2 Canonical tokens",
+   "text": "| AUTH_GATE | 사전지정 task 경로에서 인증이 불가피해지는 상태에 도달한다 |"
+  },
+  "DISMISS_OBSTRUCTION_token": {
+   "source": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §2 Canonical tokens",
+   "text": "| DISMISS_OBSTRUCTION | task path 진행에 필수인 방해요소를 허용된 닫기 control로 제거한다 |"
+  },
+  "auth_contract": {
+   "source": "SSOTV3/00_SSOT_v3.0_CROSS_SERVICE_FLOW.md §6 Auth / Credential / Transaction 계약",
+   "text": "- landing에 generic login이 **존재**한다는 이유로 중단하지 않는다.\n- 사전지정 task path를 따라가다가 인증이 불가피해지는 최초 상태에서 `AUTH_GATE` terminal 허용.\n- `BEFORE_TASK_DISCOVERY / AFTER_TASK_SELECT / AT_ENDPOINT`를 구분.\n- credential 입력, login submit, 본인인증 수행, CAPTCHA 해결/우회 금지."
+  },
+  "auth_spec": {
+   "source": "SSOTV3/03_COLLECTION_MEASUREMENT_SPEC_v3.0.md §7 Auth",
+   "text": "- generic login 버튼 존재만으로 중단 금지.\n- task-specific path를 따라가다 auth가 불가피한 순간 `AUTH_GATE` terminal.\n- auth stage를 `BEFORE_TASK_DISCOVERY / AFTER_TASK_SELECT / AT_ENDPOINT`로 기록.\n- credential 입력·login submit·본인인증 금지."
+  },
+  "AUTH_GATE_glossary": {
+   "source": "SSOTV3/10_GLOSSARY_v3.0.md",
+   "text": "| AUTH_GATE | 사전지정 task path에서 인증이 불가피해지는 terminal. 로그인 버튼 단순 존재와 다름. |"
+  },
+  "fact_task_obstruction": {
+   "source": "SSOTV3/02_DATA_SCHEMA_v3.0.md §5 Task-path obstruction",
+   "text": "### `fact_task_obstruction`\n- `observation_id`\n- `interrupt_id`\n- `interrupt_type`\n- `overlay_coverage` — 보조 설명값\n- `task_control_occlusion` — primary\n- `dismiss_control_exists`\n- `dismiss_control_visible`\n- `dismiss_control_accessible_name`\n- `dismiss_required_for_task`\n- `dismiss_succeeded`\n\n`max_overlay_coverage`만으로 modal obstruction을 대표하지 않는다."
+  },
+  "obstruction_spec": {
+   "source": "SSOTV3/03_COLLECTION_MEASUREMENT_SPEC_v3.0.md §9 Obstruction",
+   "text": "popup/modal/banner/fixed/sticky 후보를 수집하되 primary obstruction은 **task-specific**으로 판정한다.\n- `task_control_occlusion`\n- `dismiss_required_for_task`\n- `forced_dismissal_count`\n\ngeometry overlap만으로 modal 의미를 확정하지 않는다."
+  },
+  "task_control_occlusion": {
+   "source": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4",
+   "text": "| task_control_occlusion | Obstruction | 0~1 | task-entry control bbox와 blocking obstruction의 실제 겹침 비율 |"
+  },
+  "forced_dismissal_count": {
+   "source": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4",
+   "text": "| forced_dismissal_count | Obstruction | count | task 진행에 실제 필요했던 dismissal 수 |"
+  },
+  "flow_split": {
+   "source": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §3 Task Flow vs Experienced Flow",
+   "text": "- `task_flow_sequence`: `DISMISS_OBSTRUCTION`을 제외한 서비스 자체 task navigation.\n- `experienced_flow_sequence`: 실제 진행에 필요했던 dismissal까지 포함."
+  },
+  "analysis_G_H": {
+   "source": "SSOTV3/05_ANALYSIS_PLAN_v3.0.md §2-G, §2-H",
+   "text": "### G. Auth\n- auth-gate occurrence\n- auth gate stage distribution\n\n### H. Obstruction\n- forced dismissal distribution\n- task-control occlusion"
+  },
+  "denominator_rule": {
+   "source": "SSOTV3/05_ANALYSIS_PLAN_v3.0.md §6 Missingness / denominator",
+   "text": "candidate 10 → eligible/frozen 10 → attempted 10 → evidence-bearing n → flow-evaluable n / 모든 분모를 단계별로 보고."
+  }
+ },
+ "implemented_variables": {
+  "auth_gate_stage": {
+   "domain": [
+    "NONE",
+    "BEFORE_TASK_DISCOVERY",
+    "AFTER_TASK_SELECT",
+    "AT_ENDPOINT"
+   ],
+   "out_of_domain_sentinel": "UNDETERMINED__NOT_IN_CODEBOOK_DOMAIN",
+   "source_fields": [
+    "fact_flow_step.auth_gate_detected",
+    "fact_flow_step.action_token",
+    "fact_flow_step.endpoint_signal_detected",
+    "fact_flow_observation.experienced_flow_sequence"
+   ],
+   "explicitly_excluded_inputs": [
+    "landing_login_control_present",
+    "landing_login_control_selector",
+    "landing_login_accessible_name",
+    "header_login_button_visible"
+   ],
+   "exclusion_rule": "landing 에 generic login 이 존재한다는 이유만으로 AUTH_GATE 가 아니다 (00 §6, 03 §7, 10 Glossary). project_auth_inputs() 가 해당 필드를 구조적으로 제거하고, 분류기가 그 필드에 닿으면 GUARD_BREACH defect 를 낸다.",
+   "policy": {
+    "task_select_tokens": [
+     "SELECT_FUNCTION"
+    ],
+    "use_endpoint_signal_for_at_endpoint": true,
+    "policy_id": "LANE_A_DEFAULT_v1",
+    "MUTANT_landing_login_counts_as_gate": false,
+    "MUTANT_ignore_endpoint_signal": false
+   }
+  },
+  "fact_task_obstruction": {
+   "fields_read": [
+    "interrupt_type",
+    "overlay_coverage",
+    "task_control_occlusion",
+    "dismiss_control_exists",
+    "dismiss_control_visible",
+    "dismiss_control_accessible_name",
+    "dismiss_required_for_task",
+    "dismiss_succeeded"
+   ],
+   "run_grain_field_read": [
+    "forced_dismissal_count"
+   ],
+   "primary": "task_control_occlusion",
+   "secondary_descriptive_only": "overlay_coverage",
+   "dismissal_outcome_domain": [
+    "NO_DISMISS_TARGET",
+    "DISMISS_FAILED",
+    "DISMISS_SUCCEEDED",
+    "DISMISS_OUTCOME_UNRECORDED",
+    "INCONSISTENT_DISMISS_RECORD",
+    "DISMISS_EXISTENCE_UNKNOWN"
+   ],
+   "inherited_three_way_distinction": {
+    "no_target": "NO_DISMISS_TARGET",
+    "attempted_but_failed": "DISMISS_FAILED",
+    "succeeded": "DISMISS_SUCCEEDED",
+    "inherited_from": "D legacy 코호트에서 확정된 '구분' 만 승계. 수치는 재사용하지 않는다(다른 코호트).",
+    "never_collapsed": true
+   },
+   "geometry_only_derivation": {
+    "status": "REFUSED_GEOMETRY_ONLY_DERIVATION",
+    "reason": "SSOTV3/03 §9 — geometry overlap만으로 modal 의미를 확정하지 않는다",
+    "action": "upstream 이 계산한 task_control_occlusion 을 pass-through 로만 사용"
+   }
+  }
+ },
+ "three_axis_labeling": {
+  "rule": "모든 카운터는 (1) 단위 (2) 모집단 (3) 원천 필드 세 축을 갖는다. 세 축이 없으면 ThreeAxisCounter 생성 자체가 ThreeAxisViolation 으로 실패하고, 비율도 만들 수 없다.",
+  "enforced_by": "ThreeAxisCounter.__post_init__ / ThreeAxisCounter.rate()",
+  "unit_domain": [
+   "service_task_run",
+   "flow_step",
+   "obstruction_interrupt",
+   "service_task_unit"
+  ],
+  "counters": [
+   {
+    "name": "auth_gate_occurrence",
+    "unit": "service_task_run",
+    "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain; UNDETERMINED 제외)",
+    "source_fields": [
+     "fact_flow_step.auth_gate_detected",
+     "fact_flow_observation.experienced_flow_sequence"
+    ],
+    "numerator": 4,
+    "denominator": 6,
+    "population_is_conditional": true,
+    "note": "분모에 UNDETERMINED 를 넣지 않는다. 05 §6 단계별 분모 규칙.",
+    "rate": 0.6666666666666666,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "service_task_run",
+     "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain; UNDETERMINED 제외)",
+     "source_fields": [
+      "fact_flow_step.auth_gate_detected",
+      "fact_flow_observation.experienced_flow_sequence"
+     ]
+    }
+   },
+   {
+    "name": "auth_stage_share__NONE",
+    "unit": "service_task_run",
+    "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain)",
+    "source_fields": [
+     "fact_flow_step.auth_gate_detected",
+     "fact_flow_step.action_token",
+     "fact_flow_step.endpoint_signal_detected"
+    ],
+    "numerator": 2,
+    "denominator": 6,
+    "population_is_conditional": true,
+    "note": "",
+    "rate": 0.3333333333333333,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "service_task_run",
+     "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain)",
+     "source_fields": [
+      "fact_flow_step.auth_gate_detected",
+      "fact_flow_step.action_token",
+      "fact_flow_step.endpoint_signal_detected"
+     ]
+    }
+   },
+   {
+    "name": "auth_stage_share__BEFORE_TASK_DISCOVERY",
+    "unit": "service_task_run",
+    "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain)",
+    "source_fields": [
+     "fact_flow_step.auth_gate_detected",
+     "fact_flow_step.action_token",
+     "fact_flow_step.endpoint_signal_detected"
+    ],
+    "numerator": 1,
+    "denominator": 6,
+    "population_is_conditional": true,
+    "note": "",
+    "rate": 0.16666666666666666,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "service_task_run",
+     "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain)",
+     "source_fields": [
+      "fact_flow_step.auth_gate_detected",
+      "fact_flow_step.action_token",
+      "fact_flow_step.endpoint_signal_detected"
+     ]
+    }
+   },
+   {
+    "name": "auth_stage_share__AFTER_TASK_SELECT",
+    "unit": "service_task_run",
+    "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain)",
+    "source_fields": [
+     "fact_flow_step.auth_gate_detected",
+     "fact_flow_step.action_token",
+     "fact_flow_step.endpoint_signal_detected"
+    ],
+    "numerator": 2,
+    "denominator": 6,
+    "population_is_conditional": true,
+    "note": "",
+    "rate": 0.3333333333333333,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "service_task_run",
+     "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain)",
+     "source_fields": [
+      "fact_flow_step.auth_gate_detected",
+      "fact_flow_step.action_token",
+      "fact_flow_step.endpoint_signal_detected"
+     ]
+    }
+   },
+   {
+    "name": "auth_stage_share__AT_ENDPOINT",
+    "unit": "service_task_run",
+    "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain)",
+    "source_fields": [
+     "fact_flow_step.auth_gate_detected",
+     "fact_flow_step.action_token",
+     "fact_flow_step.endpoint_signal_detected"
+    ],
+    "numerator": 1,
+    "denominator": 6,
+    "population_is_conditional": true,
+    "note": "",
+    "rate": 0.16666666666666666,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "service_task_run",
+     "population": "auth 판정 가능한 run 전체 (conditional_on: auth_gate_stage in codebook domain)",
+     "source_fields": [
+      "fact_flow_step.auth_gate_detected",
+      "fact_flow_step.action_token",
+      "fact_flow_step.endpoint_signal_detected"
+     ]
+    }
+   },
+   {
+    "name": "auth_stage_undetermined",
+    "unit": "service_task_run",
+    "population": "입력된 run 전체 (무조건)",
+    "source_fields": [
+     "fact_flow_step.auth_gate_detected",
+     "fact_flow_observation.experienced_flow_sequence"
+    ],
+    "numerator": 2,
+    "denominator": 8,
+    "population_is_conditional": false,
+    "note": "",
+    "rate": 0.25,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "service_task_run",
+     "population": "입력된 run 전체 (무조건)",
+     "source_fields": [
+      "fact_flow_step.auth_gate_detected",
+      "fact_flow_observation.experienced_flow_sequence"
+     ]
+    }
+   },
+   {
+    "name": "interrupt_with_dismiss_target",
+    "unit": "obstruction_interrupt",
+    "population": "fact_task_obstruction 행 전체 (무조건)",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_exists"
+    ],
+    "numerator": 4,
+    "denominator": 9,
+    "population_is_conditional": false,
+    "note": "",
+    "rate": 0.4444444444444444,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "fact_task_obstruction 행 전체 (무조건)",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_exists"
+     ]
+    }
+   },
+   {
+    "name": "dismissal_outcome__NO_DISMISS_TARGET",
+    "unit": "obstruction_interrupt",
+    "population": "fact_task_obstruction 행 전체 (무조건)",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_exists",
+     "fact_task_obstruction.dismiss_succeeded"
+    ],
+    "numerator": 2,
+    "denominator": 9,
+    "population_is_conditional": false,
+    "note": "무대상/실패/성공을 하나로 뭉개지 않는다.",
+    "rate": 0.2222222222222222,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "fact_task_obstruction 행 전체 (무조건)",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_exists",
+      "fact_task_obstruction.dismiss_succeeded"
+     ]
+    }
+   },
+   {
+    "name": "dismissal_outcome__DISMISS_FAILED",
+    "unit": "obstruction_interrupt",
+    "population": "fact_task_obstruction 행 전체 (무조건)",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_exists",
+     "fact_task_obstruction.dismiss_succeeded"
+    ],
+    "numerator": 1,
+    "denominator": 9,
+    "population_is_conditional": false,
+    "note": "무대상/실패/성공을 하나로 뭉개지 않는다.",
+    "rate": 0.1111111111111111,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "fact_task_obstruction 행 전체 (무조건)",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_exists",
+      "fact_task_obstruction.dismiss_succeeded"
+     ]
+    }
+   },
+   {
+    "name": "dismissal_outcome__DISMISS_SUCCEEDED",
+    "unit": "obstruction_interrupt",
+    "population": "fact_task_obstruction 행 전체 (무조건)",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_exists",
+     "fact_task_obstruction.dismiss_succeeded"
+    ],
+    "numerator": 2,
+    "denominator": 9,
+    "population_is_conditional": false,
+    "note": "무대상/실패/성공을 하나로 뭉개지 않는다.",
+    "rate": 0.2222222222222222,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "fact_task_obstruction 행 전체 (무조건)",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_exists",
+      "fact_task_obstruction.dismiss_succeeded"
+     ]
+    }
+   },
+   {
+    "name": "dismissal_outcome__DISMISS_OUTCOME_UNRECORDED",
+    "unit": "obstruction_interrupt",
+    "population": "fact_task_obstruction 행 전체 (무조건)",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_exists",
+     "fact_task_obstruction.dismiss_succeeded"
+    ],
+    "numerator": 1,
+    "denominator": 9,
+    "population_is_conditional": false,
+    "note": "무대상/실패/성공을 하나로 뭉개지 않는다.",
+    "rate": 0.1111111111111111,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "fact_task_obstruction 행 전체 (무조건)",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_exists",
+      "fact_task_obstruction.dismiss_succeeded"
+     ]
+    }
+   },
+   {
+    "name": "dismissal_outcome__INCONSISTENT_DISMISS_RECORD",
+    "unit": "obstruction_interrupt",
+    "population": "fact_task_obstruction 행 전체 (무조건)",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_exists",
+     "fact_task_obstruction.dismiss_succeeded"
+    ],
+    "numerator": 1,
+    "denominator": 9,
+    "population_is_conditional": false,
+    "note": "무대상/실패/성공을 하나로 뭉개지 않는다.",
+    "rate": 0.1111111111111111,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "fact_task_obstruction 행 전체 (무조건)",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_exists",
+      "fact_task_obstruction.dismiss_succeeded"
+     ]
+    }
+   },
+   {
+    "name": "dismissal_outcome__DISMISS_EXISTENCE_UNKNOWN",
+    "unit": "obstruction_interrupt",
+    "population": "fact_task_obstruction 행 전체 (무조건)",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_exists",
+     "fact_task_obstruction.dismiss_succeeded"
+    ],
+    "numerator": 2,
+    "denominator": 9,
+    "population_is_conditional": false,
+    "note": "무대상/실패/성공을 하나로 뭉개지 않는다.",
+    "rate": 0.2222222222222222,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "fact_task_obstruction 행 전체 (무조건)",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_exists",
+      "fact_task_obstruction.dismiss_succeeded"
+     ]
+    }
+   },
+   {
+    "name": "dismiss_success_rate",
+    "unit": "obstruction_interrupt",
+    "population": "conditional_on: dismiss_control_exists=True AND dismiss_succeeded is not null",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_exists",
+     "fact_task_obstruction.dismiss_succeeded"
+    ],
+    "numerator": 2,
+    "denominator": 3,
+    "population_is_conditional": true,
+    "note": "전체 interrupt 를 분모로 쓰면 '닫을 대상 없음' 이 실패로 섞인다.",
+    "rate": 0.6666666666666666,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "conditional_on: dismiss_control_exists=True AND dismiss_succeeded is not null",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_exists",
+      "fact_task_obstruction.dismiss_succeeded"
+     ]
+    }
+   },
+   {
+    "name": "dismiss_control_visible_given_exists",
+    "unit": "obstruction_interrupt",
+    "population": "conditional_on: dismiss_control_exists=True",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_visible"
+    ],
+    "numerator": 4,
+    "denominator": 4,
+    "population_is_conditional": true,
+    "note": "",
+    "rate": 1.0,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "conditional_on: dismiss_control_exists=True",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_visible"
+     ]
+    }
+   },
+   {
+    "name": "dismiss_control_named_given_exists",
+    "unit": "obstruction_interrupt",
+    "population": "conditional_on: dismiss_control_exists=True",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_control_accessible_name"
+    ],
+    "numerator": 3,
+    "denominator": 4,
+    "population_is_conditional": true,
+    "note": "",
+    "rate": 0.75,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "conditional_on: dismiss_control_exists=True",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_control_accessible_name"
+     ]
+    }
+   },
+   {
+    "name": "dismiss_required_for_task",
+    "unit": "obstruction_interrupt",
+    "population": "fact_task_obstruction 행 전체 (무조건)",
+    "source_fields": [
+     "fact_task_obstruction.dismiss_required_for_task"
+    ],
+    "numerator": 4,
+    "denominator": 9,
+    "population_is_conditional": false,
+    "note": "",
+    "rate": 0.4444444444444444,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "obstruction_interrupt",
+     "population": "fact_task_obstruction 행 전체 (무조건)",
+     "source_fields": [
+      "fact_task_obstruction.dismiss_required_for_task"
+     ]
+    }
+   },
+   {
+    "name": "run_with_forced_dismissal",
+    "unit": "service_task_run",
+    "population": "conditional_on: forced_dismissal_count is not null",
+    "source_fields": [
+     "fact_flow_observation.forced_dismissal_count"
+    ],
+    "numerator": 3,
+    "denominator": 6,
+    "population_is_conditional": true,
+    "note": "",
+    "rate": 0.5,
+    "rate_undefined_reason": null,
+    "three_axis": {
+     "unit": "service_task_run",
+     "population": "conditional_on: forced_dismissal_count is not null",
+     "source_fields": [
+      "fact_flow_observation.forced_dismissal_count"
+     ]
+    }
+   }
+  ],
+  "counter_values_disclaimer": "위 카운터의 수치는 합성 fixture 를 통과시킨 실행 증거일 뿐 어떤 실측 주장도 아니다."
+ },
+ "fixture_results": {
+  "synthetic_only": true,
+  "bidirectional_control": "각 stage/outcome 에 대해 성립 fixture 와 비성립 대조 fixture 를 함께 둔다 (A-F02↔A-F06, A-F01↔A-F07, O-F07↔O-F08/O-F09, CE1 탐지쌍↔미탐지쌍).",
+  "n_total": 27,
+  "n_pass": 27,
+  "n_fail": 0,
+  "results": [
+   {
+    "fixture_id": "A-F01_landing_login_present_but_task_path_unrelated",
+    "kind": "AUTH",
+    "polarity": "NEGATIVE",
+    "expected": "NONE",
+    "actual": "NONE",
+    "defects": [],
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "A-F02_auth_before_task_discovery",
+    "kind": "AUTH",
+    "polarity": "POSITIVE",
+    "expected": "BEFORE_TASK_DISCOVERY",
+    "actual": "BEFORE_TASK_DISCOVERY",
+    "defects": [],
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "A-F03_auth_after_task_select",
+    "kind": "AUTH",
+    "polarity": "POSITIVE",
+    "expected": "AFTER_TASK_SELECT",
+    "actual": "AFTER_TASK_SELECT",
+    "defects": [],
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "A-F04_auth_at_endpoint",
+    "kind": "AUTH",
+    "polarity": "POSITIVE",
+    "expected": "AT_ENDPOINT",
+    "actual": "AT_ENDPOINT",
+    "defects": [],
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "A-F05_token_flag_mismatch",
+    "kind": "AUTH",
+    "polarity": "NEGATIVE",
+    "expected": "UNDETERMINED__NOT_IN_CODEBOOK_DOMAIN",
+    "actual": "UNDETERMINED__NOT_IN_CODEBOOK_DOMAIN",
+    "defects": [
+     "AUTH_TOKEN_FLAG_MISMATCH(sequence_has_AUTH_GATE=True,step_auth_gate_detected=False)"
+    ],
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "A-F06_control_for_A_F02_no_auth_flag",
+    "kind": "AUTH",
+    "polarity": "NEGATIVE",
+    "expected": "NONE",
+    "actual": "NONE",
+    "defects": [],
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "A-F07_landing_login_present_and_real_gate_after_select",
+    "kind": "AUTH",
+    "polarity": "POSITIVE",
+    "expected": "AFTER_TASK_SELECT",
+    "actual": "AFTER_TASK_SELECT",
+    "defects": [],
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "A-F08_no_step_evidence",
+    "kind": "AUTH",
+    "polarity": "NEGATIVE",
+    "expected": "UNDETERMINED__NOT_IN_CODEBOOK_DOMAIN",
+    "actual": "UNDETERMINED__NOT_IN_CODEBOOK_DOMAIN",
+    "defects": [
+     "NO_STEP_EVIDENCE"
+    ],
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F01_no_dismiss_target",
+    "kind": "OBSTRUCTION",
+    "expected": {
+     "expected_outcome": "NO_DISMISS_TARGET"
+    },
+    "actual": {
+     "actual_outcome": "NO_DISMISS_TARGET",
+     "missing_flags": [
+      "MIXED_NULL_FALSE_ENCODING"
+     ],
+     "primary_field": "task_control_occlusion",
+     "primary_value": 0.44,
+     "secondary_overlay_coverage": 0.71
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F02_dismiss_attempted_and_failed",
+    "kind": "OBSTRUCTION",
+    "expected": {
+     "expected_outcome": "DISMISS_FAILED"
+    },
+    "actual": {
+     "actual_outcome": "DISMISS_FAILED",
+     "missing_flags": [],
+     "primary_field": "task_control_occlusion",
+     "primary_value": 0.52,
+     "secondary_overlay_coverage": 0.68
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F03_dismiss_succeeded",
+    "kind": "OBSTRUCTION",
+    "expected": {
+     "expected_outcome": "DISMISS_SUCCEEDED"
+    },
+    "actual": {
+     "actual_outcome": "DISMISS_SUCCEEDED",
+     "missing_flags": [],
+     "primary_field": "task_control_occlusion",
+     "primary_value": 0.5,
+     "secondary_overlay_coverage": 0.66
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F04_outcome_unrecorded",
+    "kind": "OBSTRUCTION",
+    "expected": {
+     "expected_outcome": "DISMISS_OUTCOME_UNRECORDED"
+    },
+    "actual": {
+     "actual_outcome": "DISMISS_OUTCOME_UNRECORDED",
+     "missing_flags": [
+      "MIXED_NULL_FALSE_ENCODING"
+     ],
+     "primary_field": "task_control_occlusion",
+     "primary_value": 0.0,
+     "secondary_overlay_coverage": 0.12
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F05_inconsistent_record",
+    "kind": "OBSTRUCTION",
+    "expected": {
+     "expected_outcome": "INCONSISTENT_DISMISS_RECORD"
+    },
+    "actual": {
+     "actual_outcome": "INCONSISTENT_DISMISS_RECORD",
+     "missing_flags": [],
+     "primary_field": "task_control_occlusion",
+     "primary_value": 0.1,
+     "secondary_overlay_coverage": 0.3
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F06_high_coverage_zero_task_occlusion",
+    "kind": "OBSTRUCTION",
+    "expected": {
+     "expected_outcome": "DISMISS_SUCCEEDED",
+     "expected_primary_value": 0.0
+    },
+    "actual": {
+     "actual_outcome": "DISMISS_SUCCEEDED",
+     "missing_flags": [],
+     "primary_field": "task_control_occlusion",
+     "primary_value": 0.0,
+     "secondary_overlay_coverage": 0.92
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F07_mixed_null_zero_same_row",
+    "kind": "OBSTRUCTION",
+    "expected": {
+     "expected_missing_flag": "MIXED_NULL_ZERO_ENCODING",
+     "expected_outcome": "DISMISS_EXISTENCE_UNKNOWN"
+    },
+    "actual": {
+     "actual_outcome": "DISMISS_EXISTENCE_UNKNOWN",
+     "missing_flags": [
+      "MIXED_NULL_ZERO_ENCODING"
+     ],
+     "primary_field": "task_control_occlusion",
+     "primary_value": null,
+     "secondary_overlay_coverage": 0.0
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F08_all_zero_consistent",
+    "kind": "OBSTRUCTION",
+    "expected": {
+     "expected_missing_flag_absent": "MIXED_NULL_ZERO_ENCODING",
+     "expected_outcome": "NO_DISMISS_TARGET"
+    },
+    "actual": {
+     "actual_outcome": "NO_DISMISS_TARGET",
+     "missing_flags": [
+      "ALL_NUMERIC_ZERO"
+     ],
+     "primary_field": "task_control_occlusion",
+     "primary_value": 0.0,
+     "secondary_overlay_coverage": 0.0
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F09_all_null_consistent",
+    "kind": "OBSTRUCTION",
+    "expected": {
+     "expected_missing_flag": "ALL_NUMERIC_NULL",
+     "expected_missing_flag_absent": "MIXED_NULL_ZERO_ENCODING",
+     "expected_outcome": "DISMISS_EXISTENCE_UNKNOWN"
+    },
+    "actual": {
+     "actual_outcome": "DISMISS_EXISTENCE_UNKNOWN",
+     "missing_flags": [
+      "ALL_NUMERIC_NULL"
+     ],
+     "primary_field": "task_control_occlusion",
+     "primary_value": null,
+     "secondary_overlay_coverage": null
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "CE1-F_auth_timing_only_detection",
+    "kind": "COUNTEREXAMPLE",
+    "expected": "정확히 {CE1-R1,CE1-R2} 한 쌍만 탐지 (다른 축이 다르거나 timing 이 같으면 미탐지)",
+    "actual": [
+     [
+      "CE1-R1",
+      "CE1-R2"
+     ]
+    ],
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F10_forced_count_without_required_interrupt",
+    "kind": "COUNTEREXAMPLE",
+    "expected": {
+     "verdict": "OBSTRUCTION_SIDE_NEGATIVE",
+     "defect": "FORCED_DISMISSAL_WITHOUT_REQUIRED_INTERRUPT"
+    },
+    "actual": {
+     "verdict": "OBSTRUCTION_SIDE_NEGATIVE",
+     "defects": [
+      "FORCED_DISMISSAL_WITHOUT_REQUIRED_INTERRUPT"
+     ]
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F11_required_and_succeeded",
+    "kind": "COUNTEREXAMPLE",
+    "expected": {
+     "verdict": "OBSTRUCTION_SIDE_POSITIVE",
+     "defect": null
+    },
+    "actual": {
+     "verdict": "OBSTRUCTION_SIDE_POSITIVE",
+     "defects": []
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F12_no_obstruction_input",
+    "kind": "COUNTEREXAMPLE",
+    "expected": {
+     "verdict": "OBSTRUCTION_SIDE_NEGATIVE",
+     "defect": null
+    },
+    "actual": {
+     "verdict": "OBSTRUCTION_SIDE_NEGATIVE",
+     "defects": []
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F13_required_but_no_dismiss_target",
+    "kind": "COUNTEREXAMPLE",
+    "expected": {
+     "verdict": "OBSTRUCTION_SIDE_REQUIRED_BUT_NOT_DISMISSED",
+     "defect": null
+    },
+    "actual": {
+     "verdict": "OBSTRUCTION_SIDE_REQUIRED_BUT_NOT_DISMISSED",
+     "defects": []
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F14_fdc_null_with_interrupts",
+    "kind": "COUNTEREXAMPLE",
+    "expected": {
+     "verdict": "UNDETERMINED",
+     "defect": "FORCED_DISMISSAL_COUNT_NULL_WITH_INTERRUPT_ROWS"
+    },
+    "actual": {
+     "verdict": "UNDETERMINED",
+     "defects": [
+      "FORCED_DISMISSAL_COUNT_NULL_WITH_INTERRUPT_ROWS"
+     ]
+    },
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "O-F15_geometry_only_derivation_refused",
+    "kind": "OBSTRUCTION",
+    "expected": "REFUSED_GEOMETRY_ONLY_DERIVATION",
+    "actual": "REFUSED_GEOMETRY_ONLY_DERIVATION",
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "X-F01_counter_without_three_axes_rejected",
+    "kind": "GUARD",
+    "expected": "ThreeAxisViolation",
+    "actual": "raised",
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "X-F02_conditional_population_must_name_condition",
+    "kind": "GUARD",
+    "expected": "ThreeAxisViolation",
+    "actual": "raised",
+    "status": "PASS"
+   },
+   {
+    "fixture_id": "X-F03_safety_scanner_catches_planted_forbidden_call",
+    "kind": "GUARD",
+    "expected": "planted=FAIL, clean=PASS",
+    "actual": {
+     "planted": "FAIL",
+     "clean": "PASS"
+    },
+    "status": "PASS"
+   }
+  ],
+  "mutation_testing": {
+   "baseline": {
+    "n_total": 27,
+    "n_pass": 27,
+    "n_fail": 0
+   },
+   "mutants": [
+    {
+     "mutant_id": "M1_landing_login_counts_as_auth_gate",
+     "description": "landing 의 generic login 존재를 AUTH_GATE 로 취급 (00 §6 위반)",
+     "expected_to_break": [
+      "A-F01_landing_login_present_but_task_path_unrelated"
+     ],
+     "actually_failed_fixtures": [
+      "A-F01_landing_login_present_but_task_path_unrelated",
+      "A-F06_control_for_A_F02_no_auth_flag",
+      "A-F07_landing_login_present_and_real_gate_after_select",
+      "A-F08_no_step_evidence"
+     ],
+     "caught": [
+      "A-F01_landing_login_present_but_task_path_unrelated"
+     ],
+     "missed": [],
+     "status": "DETECTED"
+    },
+    {
+     "mutant_id": "M2_collapse_no_target_and_failed",
+     "description": "'닫을 대상 없음' 과 '닫기 실패' 를 하나로 뭉갬",
+     "expected_to_break": [
+      "O-F01_no_dismiss_target",
+      "O-F08_all_zero_consistent"
+     ],
+     "actually_failed_fixtures": [
+      "O-F01_no_dismiss_target",
+      "O-F08_all_zero_consistent"
+     ],
+     "caught": [
+      "O-F01_no_dismiss_target",
+      "O-F08_all_zero_consistent"
+     ],
+     "missed": [],
+     "status": "DETECTED"
+    },
+    {
+     "mutant_id": "M3_overlay_coverage_as_primary",
+     "description": "보조 설명값 overlay_coverage 를 primary 로 승격 (02 §5 위반)",
+     "expected_to_break": [
+      "O-F06_high_coverage_zero_task_occlusion"
+     ],
+     "actually_failed_fixtures": [
+      "O-F06_high_coverage_zero_task_occlusion"
+     ],
+     "caught": [
+      "O-F06_high_coverage_zero_task_occlusion"
+     ],
+     "missed": [],
+     "status": "DETECTED"
+    },
+    {
+     "mutant_id": "M4_null_zero_conflation",
+     "description": "None 을 0 으로 간주해 결측 표현 불일치를 은폐",
+     "expected_to_break": [
+      "O-F07_mixed_null_zero_same_row"
+     ],
+     "actually_failed_fixtures": [
+      "O-F07_mixed_null_zero_same_row",
+      "O-F09_all_null_consistent"
+     ],
+     "caught": [
+      "O-F07_mixed_null_zero_same_row"
+     ],
+     "missed": [],
+     "status": "DETECTED"
+    },
+    {
+     "mutant_id": "M5_ignore_endpoint_signal",
+     "description": "endpoint_signal_detected 를 무시해 AT_ENDPOINT 를 AFTER_TASK_SELECT 로 오분류",
+     "expected_to_break": [
+      "A-F04_auth_at_endpoint"
+     ],
+     "actually_failed_fixtures": [
+      "A-F04_auth_at_endpoint"
+     ],
+     "caught": [
+      "A-F04_auth_at_endpoint"
+     ],
+     "missed": [],
+     "status": "DETECTED"
+    },
+    {
+     "mutant_id": "M6_dismiss_rate_denominator_all_interrupts",
+     "description": "dismiss_success_rate 분모를 전체 interrupt 로 바꿔 '닫을 대상 없음' 을 실패로 섞음",
+     "expected_to_break": [
+      "counter_invariant:dismiss_success_rate.denominator"
+     ],
+     "actually_failed_fixtures": [],
+     "caught": [
+      "counter_invariant:dismiss_success_rate.denominator"
+     ],
+     "missed": [],
+     "observed": {
+      "normal_denominator": 3,
+      "mutated_denominator": 9
+     },
+     "status": "DETECTED"
+    }
+   ],
+   "n_mutants": 6,
+   "n_detected": 6,
+   "revert_check": {
+    "n_total": 27,
+    "n_pass": 27,
+    "n_fail": 0,
+    "identical_to_baseline": true
+   },
+   "revert_mechanism": "mutant 는 frozen policy dataclass 의 플래그다. 소스 파일을 편집하지 않으므로 원복이 구조적으로 보장된다."
+  }
+ },
+ "counterexample_detectors": {
+  "CE-1_AUTH_TIMING_ONLY": {
+   "spec": "다른 축은 같은데 auth_gate_stage 만 다른 경우",
+   "implemented": true,
+   "other_axis_source": "CALLER_SUPPLIED other_axis_signature — Lane A 는 다른 축을 계산하지 않는다",
+   "run_on_fixtures": {
+    "detector_id": "CE-1_AUTH_TIMING_ONLY",
+    "definition": "other_axis_signature 가 동일한데 auth_gate_stage 만 다른 record 쌍",
+    "signature_source": "CALLER_SUPPLIED (Lane A 는 다른 축을 계산하지 않는다)",
+    "unit": "service_task_run pair",
+    "population": "other_axis_signature 가 제공된 run 전체 (conditional_on: signature present)",
+    "n_records_with_signature": 4,
+    "n_pairs_detected": 1,
+    "pairs": [
+     {
+      "signature": {
+       "entry_control_type": "HAMBURGER",
+       "entry_zone": "TOP_LEFT",
+       "menu_dependency": 1
+      },
+      "a": {
+       "flow_observation_id": "CE1-R1",
+       "auth_gate_stage": "NONE"
+      },
+      "b": {
+       "flow_observation_id": "CE1-R2",
+       "auth_gate_stage": "AFTER_TASK_SELECT"
+      }
+     }
+    ],
+    "per_record": [
+     {
+      "flow_observation_id": "CE1-R1",
+      "auth_gate_stage": "NONE",
+      "signature": {
+       "entry_zone": "TOP_LEFT",
+       "entry_control_type": "HAMBURGER",
+       "menu_dependency": 1
+      }
+     },
+     {
+      "flow_observation_id": "CE1-R2",
+      "auth_gate_stage": "AFTER_TASK_SELECT",
+      "signature": {
+       "entry_zone": "TOP_LEFT",
+       "entry_control_type": "HAMBURGER",
+       "menu_dependency": 1
+      }
+     },
+     {
+      "flow_observation_id": "CE1-R3",
+      "auth_gate_stage": "AFTER_TASK_SELECT",
+      "signature": {
+       "entry_zone": "BOTTOM",
+       "entry_control_type": "BOTTOM_NAV",
+       "menu_dependency": 0
+      }
+     },
+     {
+      "flow_observation_id": "CE1-R4",
+      "auth_gate_stage": "AFTER_TASK_SELECT",
+      "signature": {
+       "entry_zone": "BOTTOM",
+       "entry_control_type": "BOTTOM_NAV",
+       "menu_dependency": 0
+      }
+     },
+     {
+      "flow_observation_id": "CE1-R5",
+      "status": "SKIPPED_NO_SIGNATURE"
+     }
+    ]
+   }
+  },
+  "CE-2_OBSTRUCTION_INPUT_FOR_EXPERIENCED_FLOW": {
+   "spec": "modal 때문에 experienced flow 만 길어지는 경우 — obstruction 쪽 입력만 판정",
+   "implemented": true,
+   "scope_limit": "task_flow/experienced_flow 길이는 계산하지 않는다. Lane F 파일을 읽지 않았다.",
+   "verdict_domain": [
+    "OBSTRUCTION_SIDE_POSITIVE",
+    "OBSTRUCTION_SIDE_NEGATIVE",
+    "OBSTRUCTION_SIDE_REQUIRED_BUT_NOT_DISMISSED",
+    "UNDETERMINED"
+   ],
+   "run_on_fixtures": [
+    {
+     "detector_id": "CE-2_OBSTRUCTION_INPUT_FOR_EXPERIENCED_FLOW",
+     "flow_observation_id": "CE2-R1",
+     "verdict": "OBSTRUCTION_SIDE_NEGATIVE",
+     "forced_dismissal_count": 2,
+     "n_interrupts": 1,
+     "n_dismiss_required": 0,
+     "n_required_and_succeeded": 0,
+     "n_required_but_failed": 0,
+     "n_required_no_target": 0,
+     "defects": [
+      "FORCED_DISMISSAL_WITHOUT_REQUIRED_INTERRUPT"
+     ],
+     "not_computed_here": [
+      "task_flow_sequence 길이",
+      "experienced_flow_sequence 길이",
+      "두 길이의 차이"
+     ],
+     "handoff": "flow 길이 비교는 Lane F 가 수행한다. Lane A 는 obstruction 쪽 입력만 판정한다."
+    },
+    {
+     "detector_id": "CE-2_OBSTRUCTION_INPUT_FOR_EXPERIENCED_FLOW",
+     "flow_observation_id": "CE2-R2",
+     "verdict": "OBSTRUCTION_SIDE_POSITIVE",
+     "forced_dismissal_count": 1,
+     "n_interrupts": 1,
+     "n_dismiss_required": 1,
+     "n_required_and_succeeded": 1,
+     "n_required_but_failed": 0,
+     "n_required_no_target": 0,
+     "defects": [],
+     "not_computed_here": [
+      "task_flow_sequence 길이",
+      "experienced_flow_sequence 길이",
+      "두 길이의 차이"
+     ],
+     "handoff": "flow 길이 비교는 Lane F 가 수행한다. Lane A 는 obstruction 쪽 입력만 판정한다."
+    },
+    {
+     "detector_id": "CE-2_OBSTRUCTION_INPUT_FOR_EXPERIENCED_FLOW",
+     "flow_observation_id": "CE2-R3",
+     "verdict": "OBSTRUCTION_SIDE_NEGATIVE",
+     "forced_dismissal_count": 0,
+     "n_interrupts": 0,
+     "n_dismiss_required": 0,
+     "n_required_and_succeeded": 0,
+     "n_required_but_failed": 0,
+     "n_required_no_target": 0,
+     "defects": [],
+     "not_computed_here": [
+      "task_flow_sequence 길이",
+      "experienced_flow_sequence 길이",
+      "두 길이의 차이"
+     ],
+     "handoff": "flow 길이 비교는 Lane F 가 수행한다. Lane A 는 obstruction 쪽 입력만 판정한다."
+    },
+    {
+     "detector_id": "CE-2_OBSTRUCTION_INPUT_FOR_EXPERIENCED_FLOW",
+     "flow_observation_id": "CE2-R4",
+     "verdict": "OBSTRUCTION_SIDE_REQUIRED_BUT_NOT_DISMISSED",
+     "forced_dismissal_count": 0,
+     "n_interrupts": 1,
+     "n_dismiss_required": 1,
+     "n_required_and_succeeded": 0,
+     "n_required_but_failed": 0,
+     "n_required_no_target": 1,
+     "defects": [],
+     "not_computed_here": [
+      "task_flow_sequence 길이",
+      "experienced_flow_sequence 길이",
+      "두 길이의 차이"
+     ],
+     "handoff": "flow 길이 비교는 Lane F 가 수행한다. Lane A 는 obstruction 쪽 입력만 판정한다."
+    },
+    {
+     "detector_id": "CE-2_OBSTRUCTION_INPUT_FOR_EXPERIENCED_FLOW",
+     "flow_observation_id": "CE2-R5",
+     "verdict": "UNDETERMINED",
+     "forced_dismissal_count": null,
+     "n_interrupts": 1,
+     "n_dismiss_required": 1,
+     "n_required_and_succeeded": 1,
+     "n_required_but_failed": 0,
+     "n_required_no_target": 0,
+     "defects": [
+      "FORCED_DISMISSAL_COUNT_NULL_WITH_INTERRUPT_ROWS"
+     ],
+     "not_computed_here": [
+      "task_flow_sequence 길이",
+      "experienced_flow_sequence 길이",
+      "두 길이의 차이"
+     ],
+     "handoff": "flow 길이 비교는 Lane F 가 수행한다. Lane A 는 obstruction 쪽 입력만 판정한다."
+    }
+   ]
+  }
+ },
+ "missingness_encoding_detector": {
+  "purpose": "같은 행 안에서 어떤 필드는 0.0, 어떤 필드는 None 인 상태를 탐지해 보고 (legacy 마트 실사례 재발 감시)",
+  "flags": [
+   "MIXED_NULL_ZERO_ENCODING",
+   "MIXED_NULL_FALSE_ENCODING",
+   "ALL_NUMERIC_NULL",
+   "ALL_NUMERIC_ZERO",
+   "NULL_INTERRUPT_TYPE_WITH_NUMERIC_MAGNITUDE"
+  ],
+  "numeric_fields_interrupt": [
+   "overlay_coverage",
+   "task_control_occlusion"
+  ],
+  "numeric_fields_run": [
+   "forced_dismissal_count"
+  ],
+  "bool_fields": [
+   "dismiss_control_exists",
+   "dismiss_control_visible",
+   "dismiss_required_for_task",
+   "dismiss_succeeded"
+  ],
+  "behavior": "탐지·보고만 한다. 어느 인코딩이 옳은지 정하지 않는다(그건 새 조작화다)."
+ },
+ "ambiguous_definitions": [
+  {
+   "id": "AMB-A1",
+   "axis": "auth",
+   "issue": "BEFORE_TASK_DISCOVERY 와 AFTER_TASK_SELECT 의 경계인 'task select' 에 해당하는 token 집합이 열거돼 있지 않다.",
+   "ssot_ref": "04 §2 tokens / 04 §4 auth_gate_stage",
+   "affected": [
+    "SELECT_CATEGORY",
+    "SWITCH_TAB",
+    "INPUT_QUERY",
+    "SUBMIT_QUERY",
+    "OPEN_ITEM_DETAIL",
+    "OPEN_PLACE_DETAIL",
+    "SELECT_RESULT"
+   ],
+   "harness_behavior": "AuthStagePolicy.task_select_tokens 기본값 = ('SELECT_FUNCTION',) 만. 04 §2 가 SELECT_FUNCTION 을 '사전지정 task 기능 control 선택' 으로 정의한 문장에만 근거한다. 확장은 A 의 결정 없이 하지 않는다.",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-A2",
+   "axis": "auth",
+   "issue": "AT_ENDPOINT 의 판정 원천이 명시돼 있지 않다. 게다가 00 §4 F1 의 endpoint contract 는 'LOGIN/IDENTITY gate 가 불가피하게 나타나는 최초 상태' 자체를 endpoint 로 정의하므로 family 에 따라 AUTH_GATE 와 ENDPOINT 가 같은 상태일 수 있다.",
+   "ssot_ref": "00 §4 F1 endpoint / 04 §4 auth_gate_stage / 02 §4 fact_flow_step.endpoint_signal_detected",
+   "harness_behavior": "fact_flow_step.endpoint_signal_detected 를 원천으로 사용. family 별 규칙은 만들지 않았다.",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-A3",
+   "axis": "auth",
+   "issue": "auth_gate_stage 는 fact_flow_observation(=run) 단위인데, 분석단위는 service × frozen task 다. run 이 복수일 때 run→service_task_unit 집계 규칙이 없다.",
+   "ssot_ref": "02 §4 / 02 §8 identity / 05 §1",
+   "harness_behavior": "모든 카운터의 unit 을 service_task_run 으로 고정 표기. unit 변환을 하지 않았다.",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-A4",
+   "axis": "auth",
+   "issue": "auth_gate_stage 도메인에 '판정 불능' 값이 없다. endpoint_status 에는 ABSTAIN/EVIDENCE_DEFECT 가 있으나 auth_gate_stage 에는 없어서, 증거 없는 run 을 NONE 으로 적으면 '인증 게이트 없음' 이라는 허위 실측 주장이 된다.",
+   "ssot_ref": "04 §4 auth_gate_stage / 04 §4 endpoint_status",
+   "harness_behavior": "codebook 도메인 밖 sentinel 'UNDETERMINED__NOT_IN_CODEBOOK_DOMAIN' 을 하네스 내부에서만 사용하고 카운터 분모에서 분리했다. codebook 값으로 승격하지 않았다.",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-O1",
+   "axis": "obstruction",
+   "issue": "task_control_occlusion 정의가 'blocking obstruction' 과의 겹침이라고 하는데 'blocking' 의 판정 기준이 없다.",
+   "ssot_ref": "04 §4 task_control_occlusion / 03 §9",
+   "harness_behavior": "blocking 판정선을 만들지 않았다. upstream 이 준 task_control_occlusion 을 pass-through 하고, geometry 로부터의 재도출 요청은 REFUSED_GEOMETRY_ONLY_DERIVATION 으로 거부한다.",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-O2",
+   "axis": "obstruction",
+   "issue": "dismiss_succeeded 의 null/false 의미가 규정돼 있지 않다. null = 미시도/결과 미기록/해당없음 중 무엇인지, 그리고 dismiss_control_exists=False 이면서 dismiss_succeeded=False 인 행이 'false 기본값 채움' 인지 '시도했다 실패' 인지 구분할 수 없다. 이 구분이 무너지면 '닫을 대상 없음' 과 '닫기 실패' 가 뭉개진다.",
+   "ssot_ref": "02 §5",
+   "harness_behavior": "null 을 실패로도 성공으로도 접지 않고 별도 값 DISMISS_OUTCOME_UNRECORDED 로 분리 보존. dismiss_success_rate 분모에서 제외했다.",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-O3",
+   "axis": "obstruction",
+   "issue": "task_control_occlusion 이 02 §4(run 단위 fact_flow_observation)와 02 §5(interrupt 단위 fact_task_obstruction) 양쪽에 있는데 interrupt→run 집계 규칙이 없다. 02 §5 는 max 로 대표하는 것을 금지하지만 대체 집계자를 주지 않는다.",
+   "ssot_ref": "02 §4 / 02 §5",
+   "harness_behavior": "집계하지 않았다. interrupt 단위 값만 보고한다.",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-O4",
+   "axis": "obstruction",
+   "issue": "dismiss_required_for_task 의 판정 기준이 없다. '필요했다' 는 dismissal 없이도 진행 가능했는지의 반사실을 요구하는데 수집 절차상 그 대조는 관측되지 않는다.",
+   "ssot_ref": "02 §5 / 03 §9 / 04 §2 DISMISS_OBSTRUCTION",
+   "harness_behavior": "upstream 이 준 boolean 을 그대로 읽는다. 재도출·보정하지 않는다.",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-O5",
+   "axis": "obstruction",
+   "issue": "forced_dismissal_count 의 grain 이 문서 간 불일치. 02 §4 는 fact_flow_observation(run) 필드로 두는데 Lane A 지시문의 fact_task_obstruction 필드 목록에는 forced_dismissal_count 가 포함돼 있다. 또한 이 count 가 interrupt 행들과 어떻게 대응되는지(필요&성공만? 모든 시도?) 규정이 없다.",
+   "ssot_ref": "02 §4 / 02 §5 / 04 §4",
+   "harness_behavior": "run grain 으로만 읽고, interrupt 행과의 불일치는 판정하지 않고 defect 로 보고만 한다 (FORCED_DISMISSAL_WITHOUT_REQUIRED_INTERRUPT 등).",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-O6",
+   "axis": "obstruction",
+   "issue": "overlay_coverage 의 분모(viewport 면적 / document 면적 / 가시영역)가 규정돼 있지 않다.",
+   "ssot_ref": "02 §5 / 04 §4",
+   "harness_behavior": "보조 설명값으로만 pass-through 하고 어떤 판정에도 쓰지 않는다.",
+   "resolution_owner": "A"
+  },
+  {
+   "id": "AMB-O7",
+   "axis": "obstruction",
+   "issue": "'허용된 닫기 control' (04 §2 DISMISS_OBSTRUCTION) 의 허용 범위가 열거돼 있지 않다. dismiss_control_exists 가 X 버튼만인지, 배경 탭/ESC/'오늘 그만보기' 를 포함하는지 불명.",
+   "ssot_ref": "04 §2 DISMISS_OBSTRUCTION / 02 §5 dismiss_control_exists",
+   "harness_behavior": "control 종류를 판별하지 않는다. exists boolean 만 읽는다.",
+   "resolution_owner": "A"
+  }
+ ],
+ "safety_selfcheck": {
+  "status": "PASS",
+  "scanned": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/tools/v3_harness/lane_a_auth_obstruction.py",
+  "n_checked_patterns": 13,
+  "hits": [],
+  "network_access": "NONE",
+  "credential_input_or_login_submission_path": "ABSENT",
+  "captcha_path": "ABSENT",
+  "transaction_activation_path": "ABSENT",
+  "writes": "results/harness/lane_a/ 만"
+ },
+ "limitation": [
+  "MAIN50 실측 데이터가 없다. 모든 통과는 합성 fixture 에 대한 통과이며 실데이터 타당성 증거가 아니다.",
+  "합성 fixture 는 이 파일의 저자가 정의를 읽고 만든 것이므로, 정의 자체를 오독했다면 fixture 도 같이 틀린다. 변이 검사는 구현 오류를 잡지 실측 오독을 잡지 못한다.",
+  "auth_gate_stage 는 upstream 이 fact_flow_step.auth_gate_detected 를 정확히 기록한다는 것을 전제한다. 그 플래그 자체의 타당성은 Lane A 가 검증하지 않았다.",
+  "task_control_occlusion / dismiss_required_for_task / dismiss_succeeded 는 pass-through 다. upstream 판정이 틀리면 Lane A 산출도 틀린다.",
+  "CE-1 의 '다른 축' 은 호출자가 넘기는 signature 에 전적으로 의존한다. signature 구성이 부실하면 오탐이 난다.",
+  "CE-2 는 flow 길이를 계산하지 않으므로 'experienced flow 만 길어졌다' 를 확정하지 못한다. 입력 조건만 판정한다.",
+  "run→service_task_unit 집계를 하지 않았으므로 05 §1 의 분석단위로 바로 쓸 수 없다."
+ ],
+ "not_implemented": [
+  "task_flow_sequence / experienced_flow_sequence 길이·차이 계산 (Lane F 소관)",
+  "activation_depth / flow_step_count / menu_dependency / nav_container_depth",
+  "occlusion 구간화, 'blocking' 판정선, dismissal 필요 여부 임계 — 새 조작화 금지로 만들지 않았다",
+  "composite score / weighted index / threshold / cut-off",
+  "geometry 로부터의 occlusion 재도출 (명시적 REFUSED)",
+  "interrupt → run occlusion 집계자",
+  "run → service_task_unit auth stage 집계자",
+  "REAL 접속·수집, production/mart/raw evidence 접근 또는 수정",
+  "gold label / task gold 생성, holdout 접근, GO/NO-GO 판단",
+  "git 조작"
+ ]
+}

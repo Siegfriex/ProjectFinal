@@ -62,6 +62,18 @@
       "classification": "ORCHESTRATION_ONLY — 연구입력이 아니다",
       "why": "티켓 수신과 ACK 발행에만 쓴다. 티켓 안의 수치는 hypothesis 로만 받고 raw 에서 독립 재계산한다.",
       "read_only_except": "acks/*.D.json, tickets/D-*.json 만 D 가 쓴다"
+    },
+    {
+      "id": "MAIN50_MANIFEST_EXCEPTION",
+      "paths": [
+        "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+        "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.sha256.json"
+      ],
+      "granted_by": "T-A-V3-STEP1-002 D_006_ruling — A ruling (c)",
+      "why": "(a) SSOT 기준만 감사하면 D 는 실제로 쓰이는 문서가 아닌 문서를 감사하게 된다. SSOT 원문과 동결 manifest 가 갈라지는 것(endpoint laundering)을 잡는 것이 D 임무인데 가장 강한 방화벽이 가장 약한 감사를 만든다 — A 판정문 인용.",
+      "scope": "이 두 파일만. control/** 의 나머지 전부는 그대로 denied. 특히 label/ · pilot/ · r0/ · 평가 결과 일체.",
+      "lapse_condition": "이 매니페스트가 어떤 형태로든 평가 결과·라벨·holdout 유래 정보를 담게 되면 예외는 즉시 소멸한다. 현재 내용은 target id · URL · task · endpoint · fixture · forbidden action · stratum · 순서 · 예비명부뿐이며 그 어느 것도 결과가 아니다.",
+      "d_obligation": "읽을 때마다 lapse 조건 위반 여부를 확인하고, 위반이면 읽지 않고 C 에 보고한다."
     }
   ],
   "denied": [
