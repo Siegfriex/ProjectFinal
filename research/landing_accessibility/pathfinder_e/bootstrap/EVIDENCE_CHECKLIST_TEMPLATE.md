@@ -59,6 +59,16 @@
 - [ ] `guard_safety_decision` (그 state 에서 왜 진행이 허용/차단됐는지)
 - [ ] `forbidden_actions_attempted` = 0 (항상 확인)
 
+## H-0. fixture_input_mode (A `T-A-V3-STEP1-003` R5, Δ8 사전등록 — F2·F3·F4·F5 적용)
+
+fixture는 문자열이 아니라 의미 명세다. 서비스가 제공하는 입력수단에 따라 값을 다르게 기록한다.
+
+- [ ] `fixture_input_mode` ∈ `FREE_TEXT` / `DROPDOWN` / `MIXED` / `MAP_PAN` / `OTHER`
+- 자유입력이면 fixture 문자열을 그대로 입력, 드롭다운/선택지면 해당 값 선택(정확히 같은 항목이
+  없으면 가장 상위 포함관계 항목을 고르고 그 사실을 기록), 둘 다 있으면 **task path 상 서비스가
+  먼저 제시하는 수단**을 쓴다(수집자가 고르지 않음). 지도 pan/zoom 도 유효한 수단.
+- F1 은 fixture 없음(해당 없음). F5 는 `fixture_override`(mode별 출발/도착) 우선 적용.
+
 ## H. Family별 추가 주의 (endpoint_contract 원문 반영, 자동추출 아니고 직접 옮김)
 
 | family | endpoint 도달 판정에서 특히 주의할 것 |

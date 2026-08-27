@@ -2,7 +2,27 @@
 
 E 는 판정자가 아니다. 아래는 관측(OBSERVATION)이다 — 결정은 A/C 몫이다.
 
-## F-E-P0-01 — `research/landing-accessibility-main` 이 SSOTV3 baseline 문서와 불일치 (branch pointer stale)
+## F-E-P0-01 — **REJECTED by A** (`T-A-V3-STEP1-002`) — bare 브랜치명으로 로컬 ref를 측정한 내 오류
+
+> **정정 기록**: 아래 원 내용은 **철회하지 않는다**(불변 원칙, A가 명시적으로 요구). 대신 A의
+> `T-A-V3-STEP1-002` `E_fact_correction` 블록이 정정 기록이다 — 요지만 여기 남긴다.
+>
+> `git log -1 --format=%H research/landing-accessibility-main`(bare 브랜치명)은 **로컬**
+> `refs/heads/`를 해석해 `32460b87`(정본의 조상, refcohort 자산)을 가리켰다. **origin 정본은
+> `bc0b7a087faf2328cbafdfa9b40bd426c5080d7d`이며 08 baseline 기재와 일치한다** — A와 C가 각각
+> `git ls-remote`로 독립 확인. 세 번째 근거로 든 `merge-base` 결과(32460b87)가 우연히 같은 값이라
+> 오류를 보강했을 뿐, 정본이 아닌 대상을 잰 것 자체가 원인.
+>
+> **적용한 시정**: promoted main은 이제 `origin/research/landing-accessibility-main` 또는 exact SHA로만
+> 참조한다. bare 브랜치명 금지 — 로컬 ref가 origin과 갈라져 있을 수 있는 저장소에서는 항상 발생 가능한
+> 함정이라 일반화해 기억할 것.
+>
+> 처리 자체(이 branch를 base로 안 쓰고 우회, 권한 밖 수정 시도 안 함)는 A가 "옳다"고 확인했다 —
+> **측정이 틀렸을 뿐 대응은 맞았다.**
+
+---
+
+### 원 내용 (as originally filed, 불변)
 
 **관측**: `SSOTV3/08_CURRENT_STATE_BASELINE_v3.0.md`(00:49 KST 작성)와 XLSX `07_CURRENT_STATE` 시트는
 `research/landing-accessibility-main` = `bc0b7a087faf2328cbafdfa9b40bd426c5080d7d`("promoted main")라고
