@@ -435,43 +435,155 @@ def test_gate_reached_mpfed_null_is_separated_from_our_side_failures(
     }
 
 
-def test_fail_rate_is_fail_closed_for_real_data_until_canonical_table_frozen(
+def test_canonical_older_relevance_document_verifies_and_parses() -> None:
+    """정본 문서(LA-ORS-20260827)를 sha256 대조 후 파싱하고, 문서 §3 집계와 맞는지 본다."""
+    from analysis.older_relevance_registry import (
+        CANONICAL_DOC_SHA256,
+        EXPECTED_DOMAIN_COUNTS,
+        EXPECTED_OLDER_RELEVANT_PILOT_APPLIED,
+        EXPECTED_OLDER_RELEVANT_SUBTOTAL,
+        EXPECTED_TOTAL,
+        clear_canonical_older_relevance,
+        load_frozen_canonical,
+    )
+
+    clear_canonical_older_relevance()
+    canonical = load_frozen_canonical()  # sha256 불일치면 여기서 실패한다
+    try:
+        assert canonical.source_sha256 == CANONICAL_DOC_SHA256
+        assert canonical.doc_id == "LA-ORS-20260827"
+        assert len(canonical.tags) == EXPECTED_TOTAL == 33
+        assert len(canonical.older_relevant_ids()) == EXPECTED_OLDER_RELEVANT_SUBTOTAL == 22
+        assert (
+            len(canonical.pilot_applied_older_relevant_ids())
+            == EXPECTED_OLDER_RELEVANT_PILOT_APPLIED
+            == 12
+        )
+        counts: dict[str, int] = {}
+        for tag in canonical.tags.values():
+            counts[tag.older_relevance] = counts.get(tag.older_relevance, 0) + 1
+        assert counts == EXPECTED_DOMAIN_COUNTS
+        # 데이터 관측 이전 동결(outcome-blind)이라는 사실이 보존된다.
+        assert canonical.frozen_before_any_real_evidence is True
+        # 폐기된 픽스처 id는 정본에 없다.
+        assert canonical.relevance_of("2.4.7") is None
+    finally:
+        clear_canonical_older_relevance()
+
+
+def test_fail_rate_opens_for_real_data_once_canonical_is_frozen(
     marts: dict[str, pd.DataFrame],
 ) -> None:
-    """정본 older_relevance 표 미동결 상태에서 실제 데이터 FailRate 계산은 차단된다."""
-    import pytest as _pytest
+    """주입 후 non-synthetic source로 FailRate 계산이 **실제로 열린다**.
+
+    (지금까지는 차단만 테스트했다 — coordinator 지시로 개방 경로를 검증한다.)
+    """
     from analysis.eda.statistics import older_relevant_kwcag_fail_rate
     from analysis.older_relevance_registry import (
-        OlderRelevanceNotFrozenError,
-        canonical_mapping_sha256,
         clear_canonical_older_relevance,
-        freeze_canonical_older_relevance,
         is_frozen,
+        load_frozen_canonical,
     )
 
     criterion = marts["fact_criterion_result"]
     landing = marts["fact_landing_observation"]
 
     clear_canonical_older_relevance()
-    assert is_frozen() is False
-
-    # synthetic 경로는 그대로 돈다.
-    assert not older_relevant_kwcag_fail_rate(criterion, landing, source_kind="SYNTHETIC").empty
-
-    # 실제 데이터는 fail-closed로 막힌다.
-    with _pytest.raises(OlderRelevanceNotFrozenError):
-        older_relevant_kwcag_fail_rate(criterion, landing, source_kind="REAL_E001")
-
-    # 정본 표가 주입되면 통과한다.
-    mapping = {"1.1.1": "VISION", "2.1.1": "MOTOR"}
     try:
-        freeze_canonical_older_relevance(
-            mapping=mapping,
-            sha256=canonical_mapping_sha256(mapping),
-            source="test-injection",
-            frozen_at="2026-08-27T00:00:00Z",
-        )
-        assert not older_relevant_kwcag_fail_rate(criterion, landing, source_kind="REAL_E001").empty
+        load_frozen_canonical()
+        assert is_frozen() is True
+        result = older_relevant_kwcag_fail_rate(criterion, landing, source_kind="REAL_E001")
+        assert not result.empty
+        # 분모는 태깅 소계 22가 아니라 "판정된 것"이다 — 계약 §2 정합.
+        assert (result["n_eligible"] <= 12).all()
+        assert set(result.columns) >= {
+            "fail_rate",
+            "fail_rate_lower_bound",
+            "fail_rate_upper_bound",
+            "n_eligible",
+            "n_undetermined",
+            "undetermined_rate",
+        }
+    finally:
+        clear_canonical_older_relevance()
+
+
+def test_fail_rate_blocked_when_canonical_document_unavailable(
+    marts: dict[str, pd.DataFrame], monkeypatch
+) -> None:
+    """정본을 확보하지 못하면 실제 데이터 경로는 여전히 fail-closed로 막힌다."""
+    import analysis.older_relevance_registry as reg
+    import pytest as _pytest
+    from analysis.eda import statistics as stats_mod
+    from analysis.older_relevance_registry import (
+        OlderRelevanceNotFrozenError,
+        clear_canonical_older_relevance,
+    )
+
+    clear_canonical_older_relevance()
+
+    def _boom(**kwargs):
+        raise OlderRelevanceNotFrozenError("정본 문서를 읽을 수 없다(test)")
+
+    monkeypatch.setattr(reg, "load_frozen_canonical", _boom)
+    try:
+        with _pytest.raises(OlderRelevanceNotFrozenError):
+            stats_mod.older_relevant_kwcag_fail_rate(
+                marts["fact_criterion_result"],
+                marts["fact_landing_observation"],
+                source_kind="REAL_E001",
+            )
+        # synthetic 경로는 그대로 돈다.
+        assert not stats_mod.older_relevant_kwcag_fail_rate(
+            marts["fact_criterion_result"],
+            marts["fact_landing_observation"],
+            source_kind="SYNTHETIC",
+        ).empty
+    finally:
+        clear_canonical_older_relevance()
+
+
+def test_mart_drift_against_canonical_is_detected() -> None:
+    """C1 — mart의 older_relevance가 정본과 다르거나 표에 없는 id면 검출된다."""
+    from analysis.older_relevance_registry import (
+        check_mart_older_relevance_drift,
+        clear_canonical_older_relevance,
+        load_frozen_canonical,
+    )
+
+    clear_canonical_older_relevance()
+    try:
+        load_frozen_canonical()
+        # 1.1.1은 정본에서 OTHER다 — VISION으로 오면 OLDER_TAG_DRIFT.
+        findings = check_mart_older_relevance_drift(["1.1.1"], ["VISION"])
+        assert findings and findings[0]["code"] == "OLDER_TAG_DRIFT"
+        assert findings[0]["expected"] == "OTHER"
+
+        # 표에 없는 id는 SUSPECT_CRITERION_ID.
+        findings2 = check_mart_older_relevance_drift(["2.4.7"], ["COGNITIVE_NAVIGATION"])
+        assert findings2 and findings2[0]["code"] == "SUSPECT_CRITERION_ID"
+
+        # 정본과 일치하면 findings 없음.
+        assert check_mart_older_relevance_drift(["1.4.3"], ["VISION"]) == []
+    finally:
+        clear_canonical_older_relevance()
+
+
+def test_synthetic_fixture_matches_canonical_assignments() -> None:
+    """픽스처 배정값이 정본과 어긋나지 않는다 — 어긋나면 synthetic이 정본을 반증하게 된다."""
+    from analysis.marts.synthetic import SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE
+    from analysis.older_relevance_registry import (
+        check_mart_older_relevance_drift,
+        clear_canonical_older_relevance,
+        load_frozen_canonical,
+    )
+
+    clear_canonical_older_relevance()
+    try:
+        load_frozen_canonical()
+        ids = list(SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE)
+        vals = [SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE[i] for i in ids]
+        assert check_mart_older_relevance_drift(ids, vals) == []
     finally:
         clear_canonical_older_relevance()
 
@@ -480,10 +592,13 @@ def test_synthetic_fixture_has_no_nonexistent_kwcag_id() -> None:
     """2.4.7은 KWCAG 2.2에 없는 id다 — 픽스처에서도 제거돼야 한다."""
     from analysis.marts.synthetic import (
         CRITERION_IDS,
+        RETIRED_PRE_CANONICAL_FIXTURE_IDS,
         SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE,
     )
 
-    assert "2.4.7" not in CRITERION_IDS
-    assert "2.4.7" not in SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE
+    assert "2.4.7" in RETIRED_PRE_CANONICAL_FIXTURE_IDS
+    for retired in RETIRED_PRE_CANONICAL_FIXTURE_IDS:
+        assert retired not in CRITERION_IDS
+        assert retired not in SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE
     # 픽스처 목록과 criterion id 목록이 어긋나지 않는다.
     assert set(SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE) == set(CRITERION_IDS)

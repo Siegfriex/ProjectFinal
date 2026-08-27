@@ -17,8 +17,11 @@ from typing import Any
 
 from ..eda.statistics import DIRECTION_DEFINITION
 from ..marts.schema import TABLE_SCHEMAS
-from ..marts.synthetic import SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE_KNOWN_DEFECTS
-from ..older_relevance_registry import registry_status
+from ..older_relevance_registry import (
+    LIMITATIONS_REQUIRED_ITEMS,
+    NOT_AN_EXTERNAL_STANDARD_NOTICE,
+    registry_status,
+)
 from ..provenance import (
     INTERPRETATION_DISCIPLINE_NOTICE,
     ShadowProvenance,
@@ -284,6 +287,37 @@ def generate_final_results_summary(
     )
     lines.append("")
 
+    refusal = validity.get("access_refusal", {}) or {}
+    lines.append("## 자동 접근이 거절된 서비스")
+    lines.append("")
+    lines.append(
+        f"**{refusal.get('n_total', 0)}건은 자동 접근이 거절되어 진입 설계를 관측하지 못했다** "
+        f"(L1 `BLOCKED` {refusal.get('n_l1_blocked', 0)}건 · "
+        f"L0 `FAILED_ACCESS_BLOCKED` {refusal.get('n_l0_access_blocked', 0)}건)."
+    )
+    lines.append(
+        "- WAF·403은 **우리 자동화 도구에 대한 반응**이지 대상의 진입 설계가 아니다 — "
+        "위의 인증 벽(gate, 대상의 성질)과 **합산하지 않는다.**"
+    )
+    lines.append("- 이 건들에 대해 진입 마찰을 어느 방향으로도 주장하지 않는다 — 관측이 없다.")
+    lines.append("")
+
+    lines.append("## older-relevant 분모")
+    lines.append("")
+    lines.append(
+        f"- `EligibleOlderRelevant_i = 0`이라 `FailRate = NULL`인 서비스: "
+        f"**{eda09_summary.get('n_fail_rate_null_zero_eligible', 0)}건**"
+    )
+    lines.append(
+        "- 정본 태깅 소계 22는 **분모가 아니다** — 분모는 서비스마다 다르며 "
+        "older-relevant 중 `final_status ∈ {PASS, FAIL}`로 판정된 것의 수다."
+    )
+    lines.append(
+        "- 이 태깅은 **외부 표준이 아니라 본 연구진의 판정**이다(KWCAG에 공식 '고령자 관련' "
+        "지정 없음) — 상세는 `LIMITATIONS.md` §5."
+    )
+    lines.append("")
+
     lines.append("## 인증(WA certification)")
     lines.append("")
     lines.append(f"- {eda07_summary.get('descriptive_sentence', '(EDA-07 미실행)')}")
@@ -458,6 +492,24 @@ def generate_limitations(
         "표본에서 빠졌다는 이유로 서술에서 사라지지 않게 한다."
     )
     lines.append("")
+    refusal = validity.get("access_refusal", {}) or {}
+    lines.append("### 자동 접근 거절 — 진입 설계를 관측하지 못한 건")
+    lines.append("")
+    lines.append(
+        f"**{refusal.get('n_total', 0)}건은 자동 접근이 거절되어 진입 설계를 관측하지 못했다** "
+        f"(L1 `BLOCKED` {refusal.get('n_l1_blocked', 0)}건 · "
+        f"L0 `FAILED_ACCESS_BLOCKED` {refusal.get('n_l0_access_blocked', 0)}건)."
+    )
+    lines.append(
+        "- WAF·403 같은 반응은 **우리 자동화 도구에 대한 반응**이지 대상 서비스의 진입 "
+        "설계가 아니다. 그래서 gate(대표기능이 인증 벽 뒤에 있다 = 대상의 성질)와 "
+        "**합산하지 않는다** — 접근 거절을 진입 장벽으로 세면 대상이 하지 않은 설계를 "
+        "대상 탓으로 돌리게 된다."
+    )
+    lines.append(
+        "- 이 건들에 대해서는 진입 마찰을 **어느 방향으로도 주장하지 않는다** — 관측이 없다."
+    )
+    lines.append("")
 
     lines.append("## 4. 인증(certification) — NOT_CERTIFIED vs UNDETERMINED")
     lines.append("")
@@ -480,28 +532,42 @@ def generate_limitations(
     lines.append("")
 
     # ── older_relevance 정본 미동결 ──────────────────────────────────
-    lines.append("## 5. `older_relevance` 정본 미동결 — 실제 데이터 FailRate 계산 차단")
+    # ── older_relevance 정본 — 동결됨. 연구진 판정임을 반드시 명시한다 ────
+    status = registry_status()
+    lines.append("## 5. `older_relevance` 정본 배정 — **연구진 판정이지 외부 표준이 아니다**")
+    lines.append("")
+    lines.append(f"> **{NOT_AN_EXTERNAL_STANDARD_NOTICE}**")
+    lines.append("")
+    if status.get("frozen"):
+        lines.append(
+            f"- 정본: `{status['doc_id']}` · `{status['source_path']}` "
+            f"(control commit `{status['control_commit'][:12]}`, blob `{status['blob_sha'][:12]}`)"
+        )
+        lines.append(f"- 문서 `{status['source_sha256']}` · 매핑 `{status['mapping_sha256']}`")
+        lines.append(
+            f"- 동결 시각 {status['frozen_at']} — "
+            f"REAL TARGET evidence 0건 상태에서 동결(outcome-blind): "
+            f"`{status['frozen_before_any_real_evidence']}`"
+        )
+        lines.append(
+            f"- 배정: 전수 {status['criterion_count']}개 · 도메인별 {status['domain_counts']} · "
+            f"older-relevant 태깅 소계 {status['older_relevant_tagged_subtotal']} · "
+            f"그중 Pilot 실증 적용기회 확인 {status['older_relevant_pilot_applied']}"
+        )
+        lines.append(f"- **분모 정합**: {status['denominator_note']}")
+    else:
+        lines.append(f"- **정본 미주입** — {status.get('note')}")
     lines.append("")
     lines.append(
-        "`OlderRelevantKWCAGFailRate`의 **분모가 되는 older-relevant criterion 집합의 정본 표가 "
-        "아직 동결되지 않았다.** 현재 상태: "
-        f"`{registry_status()}`"
+        f"- **`EligibleOlderRelevant_i = 0`이라 `FailRate = NULL`인 서비스: "
+        f"{eda09_summary.get('n_fail_rate_null_zero_eligible', 0)}건** "
+        "(정본 §5-5 요구 보고 항목 — 0으로 대체하지 않고 NULL로 두고 건수를 보고한다)."
     )
     lines.append("")
-    lines.append(
-        "- `marts/synthetic.py`의 `SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE`는 **픽스처용이며 "
-        "정본이 아니다.** 알려진 오류: "
-        f"{list(SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE_KNOWN_DEFECTS)}"
-    )
-    lines.append(
-        "- 정본 표가 주입되기 전에 실제 데이터로 FailRate를 계산하려 하면 "
-        "`OlderRelevanceNotFrozenError`로 **fail-closed 차단**된다 "
-        "(`analysis/older_relevance_registry.py`). synthetic 경로만 통과한다."
-    )
-    lines.append(
-        "- 따라서 이 산출물의 모든 FailRate 수치는 **정본 분모가 아닌 픽스처 분모** 위에서 "
-        "계산된 것이며, 실제 서비스 판정으로 인용할 수 없다."
-    )
+    lines.append("### 정본 문서 §5가 요구한 필수 기재 5항목 (원문 그대로)")
+    lines.append("")
+    for i, item in enumerate(LIMITATIONS_REQUIRED_ITEMS, start=1):
+        lines.append(f"{i}. {item}")
     lines.append("")
 
     lines.append("## 6. 게이트 지위 — E000_FAST, `E000_V2_VALIDATED` 아님")

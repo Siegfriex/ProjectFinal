@@ -35,6 +35,7 @@ from analysis.deliverables import (
 from analysis.eda import RUNNERS
 from analysis.marts.builders import BUILDERS, write_mart
 from analysis.marts.synthetic import generate_synthetic_universe
+from analysis.older_relevance_registry import ensure_frozen
 from analysis.provenance import ShadowProvenance, file_sha256
 
 
@@ -49,6 +50,9 @@ def main() -> None:
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
+    # 정본 older_relevance 표를 로드해 둔다 — 산출물이 동결 상태(SHA·집계)를
+    # 기록하고, 픽스처가 정본과 어긋나면 드리프트 검사가 잡아낼 수 있게 한다.
+    ensure_frozen()
     provenance = ShadowProvenance(source_kind="EMPTY" if args.empty else "SYNTHETIC")
 
     if args.empty:

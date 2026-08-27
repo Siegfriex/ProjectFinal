@@ -63,6 +63,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats as scipy_stats
 
+from ..older_relevance_registry import registry_status
 from ..provenance import ShadowProvenance
 from .common import (
     EDAOutputPaths,
@@ -203,7 +204,12 @@ def _build_joint_frame(
         if col not in joint.columns:
             joint[col] = pd.NA
 
+    # 정본 문서 §5-5 — EligibleOlderRelevant_i = 0 이라 FailRate = NULL 인 서비스 건수.
+    n_eligible_num = pd.to_numeric(joint.get("n_eligible"), errors="coerce")
     meta = {
+        "n_fail_rate_null_zero_eligible": int(
+            (n_eligible_num.fillna(0) == 0).sum() if not joint.empty else 0
+        ),
         "n_undetermined_total": int(
             pd.to_numeric(joint["n_undetermined"], errors="coerce").fillna(0).sum()
         ),
@@ -425,6 +431,9 @@ def run_eda09(
     summary = {
         "n_services": len(joint),
         "joint_validity": validity_summary,
+        "older_relevance_registry": registry_status(),
+        # 정본 §5-5 — EligibleOlderRelevant_i = 0 이라 FailRate = NULL 인 서비스 건수.
+        "n_fail_rate_null_zero_eligible": meta.get("n_fail_rate_null_zero_eligible", 0),
         # 후보 4종 **전부**의 결측률 — 선택된 것만 적으면 선택 자체가 검증 불가능해진다.
         "secondary_candidate_missing_rate": meta.get("secondary_candidate_missing_rate", {}),
         "secondary_association_variable_selected": secondary_variable,

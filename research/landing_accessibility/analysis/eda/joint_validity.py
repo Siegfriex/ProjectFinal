@@ -62,8 +62,11 @@ _EXPLICIT_UNREACHABLE_ENDPOINT_STATUSES = frozenset(
 #: 끝을 못 봤다)이다. A2 §1.5.1상 endpoint 미도달이면 MPFED=NULL이라 J3에서
 #: 탈락하는 것은 같지만, **왜 탈락했는가**가 전혀 다르므로 사유를 분리한다.
 #:
-#: `BLOCKED`는 여기 넣지 않는다 — 접근 차단은 gate(진입 조건)가 아니라 거절이라
-#: 성격이 다르고, gate 집계를 부풀리면 "인증 벽 뒤 N건" 보고가 과대해진다.
+#: `BLOCKED`는 여기 넣지 않는다(Claude A 승인) — 접근 차단은 gate(진입 조건)가
+#: 아니라 **우리 도구에 대한 거절**이고, gate 집계를 부풀리면 "인증 벽 뒤 N건"
+#: 보고가 과대해진다. 다만 **지우지 않고** `ACCESS_REFUSED_MPFED_NULL`로 따로
+#: 세서 보고한다 — WAF·403은 대상의 진입 설계가 아니라 우리 도구에 대한
+#: 반응이므로, "진입 설계를 관측하지 못했다"로 기록해야 할 별개의 사실이다.
 GATE_ENDPOINT_STATUSES = frozenset(
     {"AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED", "CAPTCHA"}
 )
@@ -73,6 +76,7 @@ EXCLUSION_REASONS: tuple[str, ...] = (
     "TIMEOUT",
     "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
     "GATE_REACHED_MPFED_NULL",
+    "ACCESS_REFUSED_MPFED_NULL",
     "MPFED_NULL",
     "KWCAG_ALL_UNDETERMINED",
 )
@@ -84,6 +88,8 @@ EXCLUSION_REASON_IS_TARGET_PROPERTY: dict[str, bool] = {
     "TIMEOUT": False,
     "L1_NOT_ATTEMPTED_OR_UNRESOLVED": False,
     "GATE_REACHED_MPFED_NULL": True,
+    # WAF·403은 우리 도구에 대한 반응이지 대상의 진입 설계가 아니다 → 대상의 성질이 아니다.
+    "ACCESS_REFUSED_MPFED_NULL": False,
     "MPFED_NULL": False,
     "KWCAG_ALL_UNDETERMINED": False,
 }
@@ -96,6 +102,8 @@ _JOINT_VALIDITY_COLUMNS = [
     "exclusion_reason",
     # gate 종류를 남긴다 — "인증 벽 뒤 N건"을 endpoint_status별로 분해해 보고하기 위해서다.
     "endpoint_status",
+    # L0 단계 접근 거절(FAILED_ACCESS_BLOCKED)을 L1 BLOCKED와 함께 세기 위해 남긴다.
+    "measurement_status",
 ]
 
 
@@ -142,19 +150,38 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
 
         # 조건 1.
         if status in _TRANSPORT_FAILURE_STATUSES:
-            rows.append(_row(obs_id, wt_id, archetype, False, "TRANSPORT_FAILURE"))
+            rows.append(
+                _row(
+                    obs_id, wt_id, archetype, False, "TRANSPORT_FAILURE", measurement_status=status
+                )
+            )
             continue
         if status in _TIMEOUT_STATUSES:
-            rows.append(_row(obs_id, wt_id, archetype, False, "TIMEOUT"))
+            rows.append(_row(obs_id, wt_id, archetype, False, "TIMEOUT", measurement_status=status))
             continue
         if status != "MEASURED":
             # 스키마상 나머지 값은 없어야 하나, 방어적으로 TRANSPORT_FAILURE로 묶는다.
-            rows.append(_row(obs_id, wt_id, archetype, False, "TRANSPORT_FAILURE"))
+            rows.append(
+                _row(
+                    obs_id, wt_id, archetype, False, "TRANSPORT_FAILURE", measurement_status=status
+                )
+            )
             continue
 
         # 조건 2 — L1 종결상태 도달.
         if task_row is None:
-            rows.append(_row(obs_id, wt_id, archetype, False, "L1_NOT_ATTEMPTED_OR_UNRESOLVED"))
+            # task 행 자체가 없다 — endpoint_status도 없다(L1 미시도).
+            rows.append(
+                _row(
+                    obs_id,
+                    wt_id,
+                    archetype,
+                    False,
+                    "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
+                    None,
+                    measurement_status=status,
+                )
+            )
             continue
         endpoint_status = str(task_row.get("endpoint_status"))
         endpoint_reached = str(task_row.get("endpoint_reached")) == "1"
@@ -163,7 +190,17 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
         )
         if not explicit_terminal:
             # endpoint_status == UNRESOLVED (또는 알 수 없는 값) — 종결이 아니다.
-            rows.append(_row(obs_id, wt_id, archetype, False, "L1_NOT_ATTEMPTED_OR_UNRESOLVED"))
+            rows.append(
+                _row(
+                    obs_id,
+                    wt_id,
+                    archetype,
+                    False,
+                    "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
+                    endpoint_status,
+                    measurement_status=status,
+                )
+            )
             continue
 
         # 조건 3 — MPFED 산출 가능(NED·IED 둘 다 정의).
@@ -173,22 +210,42 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
         ied = task_row.get("IED")
         mpfed = task_row.get("MPFED")
         if pd.isna(ned) or pd.isna(ied) or pd.isna(mpfed):
-            reason = (
-                "GATE_REACHED_MPFED_NULL"
-                if endpoint_status in GATE_ENDPOINT_STATUSES
-                else "MPFED_NULL"
+            if endpoint_status in GATE_ENDPOINT_STATUSES:
+                reason = "GATE_REACHED_MPFED_NULL"
+            elif endpoint_status == "BLOCKED":
+                reason = "ACCESS_REFUSED_MPFED_NULL"
+            else:
+                reason = "MPFED_NULL"
+            rows.append(
+                _row(
+                    obs_id,
+                    wt_id,
+                    archetype,
+                    False,
+                    reason,
+                    endpoint_status,
+                    measurement_status=status,
+                )
             )
-            rows.append(_row(obs_id, wt_id, archetype, False, reason, endpoint_status))
             continue
 
         # 조건 4 — older-relevant KWCAG 기준 중 최소 1개가 UNDETERMINED 아님.
         n_older = int(older_n.get(obs_id, 0))
         all_undetermined = bool(older_undetermined_all.get(obs_id, True))
         if n_older == 0 or all_undetermined:
-            rows.append(_row(obs_id, wt_id, archetype, False, "KWCAG_ALL_UNDETERMINED"))
+            rows.append(
+                _row(
+                    obs_id,
+                    wt_id,
+                    archetype,
+                    False,
+                    "KWCAG_ALL_UNDETERMINED",
+                    measurement_status=status,
+                )
+            )
             continue
 
-        rows.append(_row(obs_id, wt_id, archetype, True, None))
+        rows.append(_row(obs_id, wt_id, archetype, True, None, measurement_status=status))
 
     return pd.DataFrame(rows, columns=_JOINT_VALIDITY_COLUMNS)
 
@@ -200,6 +257,7 @@ def _row(
     is_valid: bool,
     reason: str | None,
     endpoint_status: Any = None,
+    measurement_status: Any = None,
 ) -> dict[str, Any]:
     return {
         "observation_id": obs_id,
@@ -208,6 +266,7 @@ def _row(
         "is_joint_valid": is_valid,
         "exclusion_reason": reason,
         "endpoint_status": endpoint_status,
+        "measurement_status": measurement_status,
     }
 
 
@@ -223,6 +282,7 @@ def joint_validity_summary(validity: pd.DataFrame) -> dict[str, Any]:
             "n_excluded": 0,
             "excluded_by_reason": dict.fromkeys(EXCLUSION_REASONS, 0),
             "behind_gate": {"n_services": 0, "by_endpoint_status": {}},
+            "access_refusal": {"n_total": 0, "n_l1_blocked": 0, "n_l0_access_blocked": 0},
             "by_archetype": {},
         }
 
@@ -255,6 +315,14 @@ def joint_validity_summary(validity: pd.DataFrame) -> dict[str, Any]:
         else {}
     )
 
+    # **자동 접근이 거절된 건수** — WAF·403 같은 반응은 **우리 도구에 대한 반응**이지
+    # 대상의 진입 설계가 아니다(Claude A 판정). gate(대상의 성질)와 합산하지 않고,
+    # "N건은 자동 접근이 거절되어 진입 설계를 관측하지 못했다"로 따로 보고한다.
+    n_l1_blocked = int((excluded["exclusion_reason"] == "ACCESS_REFUSED_MPFED_NULL").sum())
+    n_l0_access_blocked = int(
+        (excluded["measurement_status"].astype(str) == "FAILED_ACCESS_BLOCKED").sum()
+    )
+
     return {
         "n_attempted": n_attempted,
         "n_joint_valid": n_valid,
@@ -268,6 +336,18 @@ def joint_validity_summary(validity: pd.DataFrame) -> dict[str, Any]:
                 "대표기능이 인증/결제/본인확인 벽 뒤에 있어 MPFED를 잴 수 없었던 서비스다. "
                 "joint-valid 표본에서는 빠지지만 이것은 **대상의 성질**이며 entry friction에 "
                 "관한 실질 관측이므로 별도로 보고한다 — transport/timeout(우리 쪽 사정)과 합산하지 않는다."
+            ),
+        },
+        "access_refusal": {
+            "n_total": n_l1_blocked + n_l0_access_blocked,
+            "n_l1_blocked": n_l1_blocked,
+            "n_l0_access_blocked": n_l0_access_blocked,
+            "note": (
+                "자동 접근이 거절되어 진입 설계를 관측하지 못한 건수다. L1 endpoint_status="
+                "BLOCKED와 L0 measurement_status=FAILED_ACCESS_BLOCKED를 함께 센다. "
+                "WAF·403은 **우리 도구에 대한 반응**이지 대상의 진입 설계가 아니므로 "
+                "gate(대상의 성질)와 합산하지 않는다 — 접근 거절을 진입 장벽으로 세면 "
+                "대상이 하지 않은 설계를 대상 탓으로 돌리게 된다."
             ),
         },
         "by_archetype": by_archetype,

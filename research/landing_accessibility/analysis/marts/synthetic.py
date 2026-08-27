@@ -48,55 +48,69 @@ from .schema import (
     OLDER_RELEVANCE,
 )
 
-#: fixture용 축소 집합 (실제 codebook 전체가 아니다).
+#: fixture용 축소 집합 — **정본 배정표(`LA-ORS-20260827`)에서 그대로 복사한 값**이다.
 #:
-#: **`2.4.7`은 제거됐다** — KWCAG 2.2에 존재하지 않는 id다(Claude A 확인). KWCAG
-#: 2.4는 2.4.1~2.4.4뿐이고 2.4.7(Focus Visible)은 WCAG 쪽 항목이라, 이 목록에
-#: 남겨두면 언젠가 실제 목록으로 오용된다. 존재하지 않는 id는 픽스처에서도 뺀다.
+#: 정본이 동결된 뒤(2026-08-27 12:25 KST) 이 픽스처를 정본에 **정렬**했다. 이전
+#: 픽스처(1.1.1/1.3.1/2.1.1/2.4.7/2.5.1/3.2.2 + 임의 도메인 배정)는 정본과
+#: 모순됐고 존재하지 않는 id(`2.4.7`)까지 들고 있었다 — 정본 문서 §4가 그 목록을
+#: "폐기된 목록, 분모로 쓸 수 없음"으로 명시했다.
+#:
+#: 구성: Pilot r4에서 적용기회가 확인된 older-relevant 12개 전부 + `OTHER` 4개.
+#: older-relevant 12개를 그대로 넣은 이유는 synthetic이 **실제 분모 크기(12 근방)를
+#: 재현**해야 분모 로직이 의미 있게 검증되기 때문이다.
+#:
+#: **그래도 이것은 여전히 픽스처다** — 33개 전수가 아니라 16개 부분집합이며,
+#: 실제 데이터의 분모를 정의하지 않는다. 실제 데이터 경로는
+#: `analysis/older_relevance_registry.py`가 정본 문서를 sha256 대조해 연다.
 CRITERION_IDS: tuple[str, ...] = (
+    # older-relevant · pilot_applied ✓ (12개 — 정본 §3의 실증 적용기회 집합)
+    "1.3.2",
+    "1.4.2",
+    "1.4.3",
+    "2.1.3",
+    "2.4.1",
+    "2.4.2",
+    "2.4.3",
+    "3.2.1",
+    "3.2.2",
+    "3.3.2",
+    "3.3.3",
+    "3.3.4",
+    # OTHER (4개 — 분모에서 제외되는 축이 실제로 제외되는지 확인하기 위해 섞는다)
     "1.1.1",
     "1.3.1",
     "2.1.1",
-    "2.5.1",
-    "3.2.2",
+    "4.1.1",
 )
 
-#: **이것은 픽스처용이며 정본이 아니다. 그리고 내용 자체가 검증되지 않았다.**
-#:
-#: `OlderRelevantKWCAGFailRate`의 분모가 되는 older-relevant criterion 집합의
-#: **정본 표는 아직 저장소 어디에도 동결돼 있지 않다**(Claude A governor 지적).
-#: 이 목록은 synthetic universe를 조립하기 위한 임시 배정일 뿐이며 실제 데이터의
-#: 분모를 정의하지 않는다 — 그래서 상수 이름 자체에 `SYNTHETIC_ONLY_...FIXTURE`를
-#: 박아 오용을 이름 단계에서 막는다.
-#:
-#: **Claude A가 확인한 이 목록의 알려진 오류** (픽스처라서 남겨두지만, 정본
-#: 판정으로 절대 인용하지 않는다):
-#:
-#: - `2.4.7`은 **KWCAG 2.2에 존재하지 않아 삭제했다** — WCAG 항목이 섞여 들어간 것.
-#: - `3.2.2`는 KWCAG에서 "찾기 쉬운 도움 정보"이며 WCAG의 On Input과 **다른 항목**이다
-#:   — 아래 배정된 `COGNITIVE_NAVIGATION`은 그 사실을 반영하지 않은 임의 배정이다.
-#: - `2.5.1`은 `NOT_AUTOMATABLE`이라 **적용 기회가 항상 0**이다 — 실제로는 분모에
-#:   기여하지 못하는데 이 픽스처는 기여하는 것처럼 행동한다.
-#:
-#: 정본은 A가 Pilot 코드북(`research/refcohort/codebook/kwcag22_criteria.json`,
-#: KWCAG 2.2 해설서 출처 33개 전수)에 `older_relevance` 태깅을 붙여 SHA와 함께
-#: 보낸다. `research/refcohort/`는 READ_ONLY라 이 lane이 쓰지 않는다.
-#:
-#: 실제 데이터 경로는 `analysis/older_relevance_registry.py`의 fail-closed
-#: 가드가 막는다: 정본 표를 주입하기 전에는 실제 데이터로 FailRate를 계산할 수 없다.
+#: **픽스처용 부분집합이며 정본이 아니다.** 다만 **값은 정본과 일치한다** —
+#: 정본 배정표에서 복사했고, `assert_no_mart_drift()`가 이를 기계적으로 검증한다.
+#: 정본 전체(33개)는 `older_relevance_registry.load_frozen_canonical()`이 문서에서
+#: 직접 파싱한다 — 이 상수를 정본 대용으로 쓰지 않는다.
 SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE: dict[str, str] = {
-    "1.1.1": "VISION",
-    "1.3.1": "VISION",
-    "2.1.1": "MOTOR",
-    "2.5.1": "MOTOR",  # 주의: 실제로는 NOT_AUTOMATABLE(적용 기회 0)
-    "3.2.2": "COGNITIVE_NAVIGATION",  # 주의: KWCAG 3.2.2 = "찾기 쉬운 도움 정보"
+    "1.3.2": "COGNITIVE_NAVIGATION",
+    "1.4.2": "COGNITIVE_NAVIGATION",
+    "1.4.3": "VISION",
+    "2.1.3": "MOTOR",
+    "2.4.1": "COGNITIVE_NAVIGATION",
+    "2.4.2": "COGNITIVE_NAVIGATION",
+    "2.4.3": "COGNITIVE_NAVIGATION",
+    "3.2.1": "COGNITIVE_NAVIGATION",
+    "3.2.2": "COGNITIVE_NAVIGATION",
+    "3.3.2": "COGNITIVE_NAVIGATION",
+    "3.3.3": "COGNITIVE_NAVIGATION",
+    "3.3.4": "COGNITIVE_NAVIGATION",
+    "1.1.1": "OTHER",
+    "1.3.1": "OTHER",
+    "2.1.1": "OTHER",
+    "4.1.1": "OTHER",
 }
-#: 픽스처 배정이 정본과 다르다는 것을 기계가 읽을 수 있게 남긴다.
-SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE_KNOWN_DEFECTS: tuple[str, ...] = (
-    "2.4.7 removed — KWCAG 2.2에 존재하지 않는 id (WCAG Focus Visible이 섞여 들어감)",
-    "3.2.2 — KWCAG에서는 '찾기 쉬운 도움 정보'이며 WCAG On Input과 다른 항목이다",
-    "2.5.1 — NOT_AUTOMATABLE이라 실제 적용 기회는 항상 0이다",
+#: 정본 문서 §4가 폐기 선언한 이전 픽스처 목록 — 되살아나지 않게 이름으로 남긴다.
+RETIRED_PRE_CANONICAL_FIXTURE_IDS: tuple[str, ...] = (
+    "2.4.7",  # KWCAG 2.2에 존재하지 않는 id (WCAG Focus Visible)
+    "2.5.1",  # NOT_AUTOMATABLE — 적용기회가 항상 0이라 분모에 기여하지 못한다
 )
+
 assert set(SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE.values()) <= set(OLDER_RELEVANCE)
 
 

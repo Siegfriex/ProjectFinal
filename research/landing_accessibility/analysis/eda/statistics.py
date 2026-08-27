@@ -23,7 +23,11 @@ import pandas as pd
 from scipy import stats as scipy_stats
 from statsmodels.stats.multitest import multipletests
 
-from ..older_relevance_registry import assert_older_relevance_frozen
+from ..older_relevance_registry import (
+    NON_AUTHORITATIVE_SOURCE_KINDS,
+    assert_no_mart_drift,
+    assert_older_relevance_frozen,
+)
 
 # ── 표본 크기 tier ──────────────────────────────────────────────────────────
 #: **Claude A(governor) 확정 규칙** (LA-TB-1630-20260827, 결과를 보기 전에 고정,
@@ -623,6 +627,14 @@ def older_relevant_kwcag_fail_rate(
     수 없다. synthetic 경로는 그대로 돈다.
     """
     assert_older_relevance_frozen(source_kind)
+    # 문서 §4 기계 판독 규약 — 실제 데이터에서는 mart의 older_relevance가 정본과
+    # 어긋나면(C1 OLDER_TAG_DRIFT / SUSPECT_CRITERION_ID) 계산을 진행하지 않는다.
+    # synthetic은 부분집합 픽스처라 이 강제에서 뺀다(값 자체는 정본과 일치시켰다).
+    if source_kind not in NON_AUTHORITATIVE_SOURCE_KINDS and not criterion.empty:
+        assert_no_mart_drift(
+            criterion["criterion_id"].astype(str).tolist(),
+            criterion["older_relevance"].astype(str).tolist(),
+        )
 
     empty_columns = [
         "web_target_id",
