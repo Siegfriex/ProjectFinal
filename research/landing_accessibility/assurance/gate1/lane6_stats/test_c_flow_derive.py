@@ -532,7 +532,14 @@ def test_validate_terminal_table():
     assert ok("ABSTAIN", "AMBIGUOUS_MULTIPLE_CANDIDATES")
     assert ok("ABSTAIN", "BUDGET_EXCEEDED")                    # Δ30 (T-A-V3-STEP1-027): budget exhaustion = no observation
     assert not ok("BLOCKED", "BUDGET_EXCEEDED")              # Δ30 combination is ABSTAIN-only
-    assert len(C.TERMINAL_REASONS) == 15                     # R11 13 + Δ30 BUDGET_EXCEEDED + Δ32 NO_TASK_CANDIDATE_FOUND
+    assert len(C.TERMINAL_REASONS) == 16                     # + Δ47 PATH_NOT_FOUND_BY_POLICY
+    assert ok("ABSTAIN", "PATH_NOT_FOUND_BY_POLICY") and not ok("BLOCKED", "PATH_NOT_FOUND_BY_POLICY")
+    from c_terminal_table import validate_policy_relative as _vp  # Δ43-R37 / Δ47
+    assert _vp("PATH_NOT_FOUND_BY_POLICY", True, "greedy_descent_with_declared_total_order") == []
+    assert _vp("PATH_NOT_FOUND_BY_POLICY", False, "greedy_descent_with_declared_total_order")   # must_flag
+    assert _vp("PATH_NOT_FOUND_BY_POLICY", True, None)                                            # must_flag
+    assert _vp("TIMEOUT", True, "x")                                                              # must_flag: axis mismatch
+    assert _vp("TIMEOUT", None, None) == []                                                       # must_not_flag
     assert ok("ABSTAIN", "NO_TASK_CANDIDATE_FOUND")           # Δ32 case 2 (observation)
     assert not ok("REACHED", "NO_TASK_CANDIDATE_FOUND")
     from c_terminal_table import validate_zero_depth as _vz  # Δ32-R29
