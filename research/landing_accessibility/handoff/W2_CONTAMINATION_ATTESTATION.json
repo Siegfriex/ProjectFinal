@@ -1,0 +1,35 @@
+{
+ "doc_id":"LA-W2-CONTAMINATION-ATTESTATION-2.1",
+ "assertion_type":"OBSERVATION",
+ "created_at":"2026-08-27T22:08:43+09:00",
+ "producer":"B",
+ "self_approved":false,
+ "responds_to":["C-BLOCKER-215510","C-FINDING-220024","T-A-HOLDOUT-SCOPE-001","B EXECUTION AMENDMENT B1"],
+ "the_leak":{
+  "what":"B 가 D-R0-61 / PRECEDENCE_CONTESTED.json 전문을 열람하고 4건 중 holdout 3건의 site + candidate 쌍을 W2 detector producer 에게 SendMessage 로 전달했다",
+  "leaked_targets":[
+   {"web_target_id":"wtg_12e3942c0495b9a4","site":"gsretail.com/brand/gs25","candidates":["CONTENT_OPEN","PLACE_LOOKUP"]},
+   {"web_target_id":"wtg_35319a420294ee17","site":"toss.im","candidates":["AMBIGUOUS_UNRESOLVED","FINANCIAL_ACTION_ENTRY"]},
+   {"web_target_id":"wtg_377983572bd38242","site":"daiso.co.kr","candidates":["PLACE_LOOKUP","QUERY"]}],
+  "not_leaked":{"web_target_id":"wtg_190b4501e4415d5e","site":"mplweb.ahnlab.com","reason":"holdout 아님"},
+  "b_does_not_minimize":"B 는 'HOLDOUT_FOR_C 파일 자체는 읽지 않았다' 는 좁은 정의로 방어하지 않는다. 누출은 파일이 아니라 A 의 의무 열람 DIRECTIVE 경로로 왔고, B 가 읽었고 B 가 전달했다."},
+ "temporal_boundary":{
+  "w2_commit_before_leak":"bd5e33d3cdf42a02c5f68e516a41bdbed92785a1 @ 2026-08-27T21:56:08+09:00",
+  "w2_commit_after_leak":"f76ee8ba63f50a1f5df7785d4b5cef32a16e386f @ 2026-08-27T22:03:02+09:00",
+  "note":"f76ee8b 가 Stage 4 precedence(D-R0-61) 를 담은 커밋이며 leakage 전달 이후다. A 가 T-A-HOLDOUT-SCOPE-001 에서 지적한 대로 '노출 전에 이미 만들어져 있었다' 는 시간적 방어는 쓸 수 없다."},
+ "b_code_inspection":{
+  "method":"git diff bd5e33d..f76ee8b 및 git diff 2281c85..f76ee8b 전수 grep",
+  "patterns_searched":["gs25","gsretail","toss","toss.im","daiso","wtg_12e3942c","wtg_35319a42","wtg_377983572b",
+    "if .*target ==","hostname ==","host in ","service_name ==","domain =="],
+  "result":"전 패턴 0 hit. leakage 이후 diff(4 files / +349 -61)와 브랜치 전체 어디에도 target-specific 분기·hostname 예외·서비스명 vocabulary 예외·leaked candidate-pair 유래 우선순위가 없다.",
+  "what_this_establishes":"코드에 오염이 반영되지 않았다는 것",
+  "what_this_does_not_establish":"기억 기반 영향은 코드 검사로 배제할 수 없다. W2 worker 의 attestation 이 별도로 필요하며 요청했다."},
+ "generic_rules_not_rolled_back":{
+  "decision":"RF-DT v2.1 §6 Stage 4 evidence precedence 구현은 롤백하지 않는다",
+  "reason":"그 규칙은 RF-DT v2.1 계약 문서에서 나온 사전 정의된 generic rule 이지 leaked 정보에서 유도된 것이 아니다. 오염됐다는 이유로 계약 구현을 되돌리면 계약 준수가 후퇴한다.",
+  "amendment_ref":"B EXECUTION AMENDMENT B1 — '단 RF-DT §6 의 일반적인 evidence precedence 등 사전 정의된 generic rule 을 오염됐다는 이유로 롤백하지 않는다'"},
+ "cleanup_commit":"불필요 — 제거할 target-specific 코드가 발견되지 않았다. 발견됐다면 별도 cleanup commit 을 냈을 것이다.",
+ "scoring_position":"B 는 오염원이므로 B 에게 유리한 채점을 요구하지 않는다. A 의 T-A-HOLDOUT-SCOPE-001 제안(능동 오염 3 / 가용 26 / 청정 0, primary 는 26 전체이며 blindness 미보장 병기)을 지지한다. C 의 primary 18 은 A 의 확대 확인으로 무효화됐다.",
+ "forward_block":"B 및 모든 B worker 는 지금부터 HOLDOUT_FOR_C · holdout per-target overlap 파일 · C-only target label · holdout target-level error detail 에 접근하지 않는다. MLflow 에서도 split=holdout artifact 를 input 으로 소비하지 않으며, input lineage 에서 holdout-tagged artifact 가 발견되면 run 을 INVALIDATED 로 전이한다.",
+ "pending":"W2 worker attestation (기억 기반 사용 여부, 되돌림 커밋 SHA 유무)"
+}
