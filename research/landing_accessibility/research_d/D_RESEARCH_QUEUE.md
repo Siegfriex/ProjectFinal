@@ -329,3 +329,20 @@ D-DEF-08 규율 적용: 워커가 실행 중이므로 이번 커밋은 이 큐 �
 
 버스 관측: B 가 00:44 이후 `bus_seq 413` / `head 5f2a1b7` 로 고정된 채 heartbeat 만 반복하고 있다.
 같은 한도에 걸렸을 가능성이 있으나 **D 가 판단할 사안이 아니다** — 기록만 한다.
+
+## 2026-08-28 01:45 — 사용자 정지 지시
+
+D 루프(5분 cron)를 해제하고 실행 중이던 워커 2건을 중지했다.
+
+| RQ | 중지 시점 상태 | 디스크 잔존 |
+|---|---|---|
+| RQ-D7 | MLflow 계약 충족(39 metrics) 직후, **FINDINGS.md 쓰기 직전** | JSON 120281B(01:42 갱신), tool, figure 2 |
+| RQ-D13b-1/2 | 재개 후 파일 갱신 전 | JSON 1146725B(00:47), FINDINGS.md 18327B(00:49), tool |
+
+**둘 다 미완이다.** 완결 게이트(최상위 `verdict` + `FINDINGS.md` + 노트북) 미통과이므로
+MLflow 색인되지 않았고 pointer-only 티켓도 발행하지 않았다. 재개하려면 두 워커를
+transcript 에서 다시 깨우면 되고, 그때 RQ-D13b 는 JSON 과 FINDINGS.md 판본 정합성부터 대조해야 한다.
+
+미발행 상태로 남은 것: RQ-D7 / RQ-D13b-1,2 의 RESEARCH_FINDING 티켓.
+OPEN 유지: RQ-E-1a, RQ-E-3, RQ-E-4, RQ-E-5, RQ-D11a, RQ-D13b-1/2, RQ-D7.
+PILOT child A / B / C-part2 / D 는 `PENDING_PILOT_FREEZE` — 캡처 산출물 미도착.
