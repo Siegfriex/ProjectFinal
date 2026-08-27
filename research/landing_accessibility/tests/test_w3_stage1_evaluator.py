@@ -486,13 +486,20 @@ class TestContrastMeasurementInconclusiveNeverCountsAsRealVerdict:
         assert outcome.outcome == VerdictState.UNDETERMINED
         assert outcome.outcome != VerdictState.FAIL
 
-    def test_near_identical_ratio_item_alone_is_undetermined_not_fail(self):
-        """전경·배경 동색 산출(ratio<=1.05) — 계산 신뢰 불가, FAIL 로 세면 안 된다."""
+    def test_near_identical_ratio_is_a_real_fail_not_measurement_inconclusive(self):
+        """`C-BLOCKER-234221` 시정 — `ratio<=1.05` 는 더 이상 '측정불가'가 아니다.
+        `fg_alpha=1`·`bg_resolved=True` 인데 `ratio=1.0` 인 항목은 '못 쟀다'가 아니라
+        '재보니 1.0이었다'는 측정 결과다(A: "흰 배경의 흰 글자는 측정 실패가 아니라
+        접근성 실패다", D-R0-78-3). 이건 정상적으로 FAIL 판정에 들어가야 한다 —
+        UNDETERMINED 로 지우면 진짜 접근성 실패를 지우는 것이다."""
         probe = _empty_probe()
-        probe["raw_features"]["contrast"] = [self._contrast_item(contrast_ratio=1.0)]
+        probe["raw_features"]["contrast"] = [self._contrast_item(fg_alpha=1, contrast_ratio=1.0)]
         outcome = sp.evaluate_criterion("1.4.3", probe)
-        assert outcome.outcome == VerdictState.UNDETERMINED
-        assert outcome.outcome != VerdictState.FAIL
+        assert outcome.outcome == VerdictState.FAIL
+        assert outcome.outcome != VerdictState.UNDETERMINED
+        exp = outcome.stage_trace["expectation"]
+        assert exp.matched_items[0]["item_verdict"] == "FAIL"
+        assert "MEASUREMENT_INCONCLUSIVE" not in {m["item_verdict"] for m in exp.matched_items}
 
     def test_real_fail_still_stands_alongside_inconclusive_items(self):
         """측정불가 항목과 진짜 결함 항목이 섞여 있으면, 측정불가는 세지 않되 진짜
@@ -526,6 +533,198 @@ class TestContrastMeasurementInconclusiveNeverCountsAsRealVerdict:
 
 
 # ── T-A-W3-SCHEMA-001 요구#1 — schema gap 4건 개별 재심사 결과 회귀 방지 ─────────────────
+# ── D-R0-78-1 확정 — PASS 는 전칭 주장이라 제외에 취약, FAIL 은 존재 주장이라 안 취약 ──
+class TestPassIsUniversalFailIsExistentialAcrossExpectations:
+    """`C-BLOCKER-234221` → `D-R0-78`. `D-R0-70-2` 훑기 대상: `EXPECTATION_FUNCS` 5개
+    전부에서 "측정불가 항목을 제외한 뒤 남은 게 전부 통과하면 PASS" 패턴을 찾는다.
+    발견된 2건(`1.4.3`·`2.1.3`)은 각각 검증하고, 나머지 3건(`1.4.2`·`2.4.2`·`3.3.2`)은
+    그런 제외 메커니즘 자체가 없음을 **대조군과 함께** 증명한다(`D-R0-76` 규율1 —
+    0건 보고를 코드만 읽고 하지 않는다)."""
+
+    # -- 1.4.3: 발견됨, 시정 확인 --
+    def test_1_4_3_pass_with_exclusion_becomes_undetermined(self):
+        probe = _empty_probe()
+        probe["raw_features"]["contrast"] = [
+            {
+                "text": "정상 텍스트",
+                "selector": "div.ok",
+                "bg_resolved": True,
+                "behind_image": False,
+                "fg_alpha": 1,
+                "contrast_ratio": 10.0,
+                "font_px": 16,
+                "font_weight": 400,
+            },
+            {
+                "text": "투명 텍스트",
+                "selector": "div.ghost",
+                "bg_resolved": True,
+                "behind_image": False,
+                "fg_alpha": 0,
+                "contrast_ratio": 10.0,
+                "font_px": 16,
+                "font_weight": 400,
+            },
+        ]
+        outcome = sp.evaluate_criterion("1.4.3", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.outcome != VerdictState.PASS
+        assert outcome.needs_semantic is True
+        assert "제외비율" in outcome.reason or "측정불가" in outcome.reason
+
+    def test_1_4_3_fail_with_exclusion_still_fails(self):
+        probe = _empty_probe()
+        probe["raw_features"]["contrast"] = [
+            {
+                "text": "나쁜 대비",
+                "selector": "div.bad",
+                "bg_resolved": True,
+                "behind_image": False,
+                "fg_alpha": 1,
+                "contrast_ratio": 1.5,
+                "font_px": 16,
+                "font_weight": 400,
+            },
+            {
+                "text": "투명 텍스트",
+                "selector": "div.ghost",
+                "bg_resolved": True,
+                "behind_image": False,
+                "fg_alpha": 0,
+                "contrast_ratio": 10.0,
+                "font_px": 16,
+                "font_weight": 400,
+            },
+        ]
+        outcome = sp.evaluate_criterion("1.4.3", probe)
+        assert outcome.outcome == VerdictState.FAIL
+
+    # -- 2.1.3: 훑기로 새로 발견됨, 시정 확인 --
+    def test_2_1_3_pass_with_size_unmeasurable_becomes_undetermined(self):
+        probe = _empty_probe()
+        probe["raw_features"]["target_size"] = [
+            {
+                "selector": "a.ok",
+                "tag": "a",
+                "role": None,
+                "width_css_px": 40.0,
+                "height_css_px": 40.0,
+                "min_side_css_px": 40.0,
+                "nearest_neighbor_gap_css_px": 10.0,
+            },
+            {
+                "selector": "a.zero",
+                "tag": "a",
+                "role": None,
+                "width_css_px": 0,
+                "height_css_px": 0,
+                "min_side_css_px": 0,
+                "nearest_neighbor_gap_css_px": None,
+            },
+        ]
+        outcome = sp.evaluate_criterion("2.1.3", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+        assert outcome.outcome != VerdictState.PASS
+        assert outcome.needs_semantic is True
+
+    def test_2_1_3_fail_with_size_unmeasurable_still_fails(self):
+        probe = _empty_probe()
+        probe["raw_features"]["target_size"] = [
+            {
+                "selector": "a.small",
+                "tag": "a",
+                "role": None,
+                "width_css_px": 5.0,
+                "height_css_px": 5.0,
+                "min_side_css_px": 5.0,
+                "nearest_neighbor_gap_css_px": 10.0,
+            },
+            {
+                "selector": "a.zero",
+                "tag": "a",
+                "role": None,
+                "width_css_px": 0,
+                "height_css_px": 0,
+                "min_side_css_px": 0,
+                "nearest_neighbor_gap_css_px": None,
+            },
+        ]
+        outcome = sp.evaluate_criterion("2.1.3", probe)
+        assert outcome.outcome == VerdictState.FAIL
+
+    def test_2_1_3_all_unmeasurable_is_undetermined(self):
+        probe = _empty_probe()
+        probe["raw_features"]["target_size"] = [
+            {
+                "selector": "a.zero",
+                "tag": "a",
+                "role": None,
+                "width_css_px": 0,
+                "height_css_px": 0,
+                "min_side_css_px": 0,
+                "nearest_neighbor_gap_css_px": None,
+            },
+        ]
+        outcome = sp.evaluate_criterion("2.1.3", probe)
+        assert outcome.outcome == VerdictState.UNDETERMINED
+
+    # -- 1.4.2: 대조군 — 제외 메커니즘이 없다는 것을 증명(0건 보고) --
+    def test_1_4_2_has_no_silent_drop_every_item_is_counted(self):
+        """대조군: muted/loop/controls 가 전혀 없는(전부 falsy 로 defaults) 항목도
+        조용히 빠지지 않고 FAIL 로 정확히 반영돼야 한다 — drop 메커니즘이 있다면 이
+        항목이 사라져서 남은 PASS 항목만으로 PASS 가 나올 것이다."""
+        probe = _empty_probe()
+        probe["raw_features"]["motion"]["autoplay_media"] = [
+            {
+                "selector": "video.controlled",
+                "tag": "video",
+                "muted": True,
+                "loop": False,
+                "controls": False,
+            },
+            {"selector": "video.bare", "tag": "video"},  # muted/loop/controls 필드 자체가 없음
+        ]
+        outcome = sp.evaluate_criterion("1.4.2", probe)
+        assert outcome.outcome == VerdictState.FAIL  # bare 항목이 살아있어야 FAIL 로 반영된다
+        exp = outcome.stage_trace["expectation"]
+        assert len(exp.matched_items) == 2, "항목이 조용히 드롭됐다 — 대조군 실패"
+        assert {m["selector"] for m in exp.matched_items} == {"video.controlled", "video.bare"}
+
+    # -- 2.4.2: 대조군 — 페이지 단일 후보, drop 자체가 구조적으로 불가능함을 증명 --
+    def test_2_4_2_has_no_silent_drop_single_page_candidate_always_evaluated(self):
+        probe = _empty_probe()
+        probe["raw_features"]["viewport"]["title"] = "제목"
+        outcome = sp.evaluate_criterion("2.4.2", probe)
+        exp = outcome.stage_trace["expectation"]
+        assert len(exp.matched_items) == 1, "페이지 후보가 사라졌다 — 대조군 실패"
+
+    # -- 3.3.2: 대조군 — has_name 여부와 무관하게 전 항목이 matched_items 에 남는다 --
+    def test_3_3_2_has_no_silent_drop_every_control_is_counted(self):
+        probe = _empty_probe()
+        probe["raw_features"]["accessible_name_sources"] = [
+            {
+                "tag": "input",
+                "aria_label": "이름 있음",
+                "aria_labelledby": None,
+                "title": None,
+                "labelled_by_for": False,
+                "visible_text": None,
+            },
+            {
+                "tag": "input",
+                "aria_label": None,
+                "aria_labelledby": None,
+                "title": None,
+                "labelled_by_for": False,
+                "visible_text": None,
+            },
+        ]
+        outcome = sp.evaluate_criterion("3.3.2", probe)
+        assert outcome.outcome == VerdictState.FAIL  # 이름 없는 두 번째 항목이 살아있어야 FAIL
+        exp = outcome.stage_trace["expectation"]
+        assert len(exp.matched_items) == 2, "이름 없는 항목이 조용히 드롭됐다 — 대조군 실패"
+
+
 class TestSchemaGapReassessment:
     @pytest.mark.parametrize("criterion_id", ["2.2.1", "2.5.4"])
     def test_truly_absent_signals_stay_absent_even_with_rich_probe(self, criterion_id):
