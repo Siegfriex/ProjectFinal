@@ -58,3 +58,30 @@
 |---|---|---|---|
 | **RQ-D11** | 원장(ledger) measured 집합과 evidence run 집합의 불일치가 E001 raw 에서도 관측되는가 — C-BLOCKER-220418 의 구조가 2026-08-27 05:14 w02 에서 실제로 발생했는지 독립 재현 | C-BLOCKER-220418 + RQ-D1 F1(SHORT 4건 duplicate launch) | OPEN |
 | **RQ-D12** | D 의 세 finding(cap 편향 / 품질 대리변수 / slot 불일치)이 서로 같은 소수 target 에 몰려 있는가 — 세 지표의 결합분포와 공통 원인 가설 | RQ-D8·D9·D10 교차 | OPEN |
+
+## Loop 갱신 2026-08-27 22:30
+
+| RQ | 상태 | 결과 |
+|---|---|---|
+| RQ-D13 | **DONE** | `results/RQ_D13_FINDINGS.md` **PARTIALLY_SUPPORTED** — 수집기 결함 가설 REFUTED. distinct 요청 URL 56/59, 퇴화 캡처 4건이 MEASURED/FAILED 로 분열, dismissal 33.1% 무효과, 측정벡터 중복 0건 |
+| RQ-D-RF-001-A | **DONE** | `results/RF001_A_FINDINGS.md` **NOT_SUPPORTED** — coverage 11/56, unsafe FP 0. 최대 발견은 DT 가 아니라 target URL 정의 문제 |
+| RQ-D-RF-001-C | **DONE** | `results/RF001_C_FINDINGS.md` **PARTIALLY_SUPPORTED** — bge-m3 macroF1 0.497, 단 prototype 문구 민감도가 결론을 뒤집는다 |
+| RQ-D-RF-001-B | RUNNING | TF-IDF (v1 코퍼스 기준) |
+| **RQ-D14** | **RUNNING** | frame validity — 수집 URL 이 기능 랜딩인가 기업/앱설치 랜딩인가. parent run `12dc99cc` @ LA_01_FRAME |
+
+### D 자체 결함 2건 (숨기지 않고 기록)
+
+| id | 결함 | 처리 |
+|---|---|---|
+| D-DEF-01 | 두 빌더가 `lxml.html.fromstring(read_bytes())` 로 바이트를 직접 넘겨 선언 charset(UTF-8)을 무시, 한글 title 6건 mojibake | `tools/html_decode.py` 로 시정. v1 보존, `_v2` 신규 산출. **D-VRC-001-A 를 C 에 철회**(`D-FACT_CORRECTION-001`) |
+| D-DEF-02 | 방화벽 스캐너가 토큰 hit 에 severity 를 적용하지 않아 선언문 7건을 거짓 FAIL 처리 | severity 3분류로 시정(접근호출=FAIL / 부정선언=WARN / 미분류=보수적 FAIL). 대조군 주입으로 탐지력 재확인 |
+
+### 신규 RQ
+
+| RQ | 질문 | 파생 근거 | 상태 |
+|---|---|---|---|
+| **RQ-D13a** | 빈 body 에서 overlay coverage 1.0 이 나오는 계산 경로 — exact SHA 코드로 확인 | RQ-D13 F2 | OPEN |
+| **RQ-D13b** | `dom_after.html` 로 dismissal 의 DOM 수준 효과 재판정 — 픽셀 무변화 82건 중 실제 무효과는 몇 건 | RQ-D13 F4 | OPEN |
+| **RQ-D13c** | `measurement_status` 를 가르는 규칙과 evidence 완결성의 관계 | RQ-D13 F2 | OPEN |
+| **RQ-D15** | v2 코퍼스(인코딩 시정) 기준 RF001-B/C 재실행 — 결론이 바뀌는가. **새 child run 으로만** | D-DEF-01 | OPEN |
+| **RQ-D16** | RF001-A/B/C 의 오류가 같은 target 에 몰리는가 (error taxonomy / falsification) = D-RF-001-E | RF001 parent reconcile | B 대기 |
