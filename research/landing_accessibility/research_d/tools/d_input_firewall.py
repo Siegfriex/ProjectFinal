@@ -79,6 +79,10 @@ NEG_WINDOW = 2   # 앞뒤 2줄까지 본다 (산문은 줄바꿈으로 끊긴다
 # JSON/노트북은 선언 블록이 한 항목당 한 줄로 펼쳐진다. 같은 블록 안을 보려면 창이 더 넓어야 한다.
 NEG_WINDOW_STRUCTURED = 10
 STRUCTURED_SUFFIX = (".json", ".ipynb", ".jsonl")
+# 리터럴 목록의 원소 줄 — 따옴표로 감싼 토큰과 쉼표뿐인 줄. 그 줄 자체에는 코드가 없으므로
+# 관련 문맥은 목록을 감싼 선언부에 있다. 파일 확장자와 무관하게 창을 넓힌다 (D-DEF-05 계열, 2회차).
+LIST_ELEMENT_RE = re.compile(r'^\s*[\"\'][^\"\']*[\"\']\s*,?\s*$')
+NEG_WINDOW_LIST_ELEMENT = 12
 
 
 def severity(hit: dict, text: str) -> str:
@@ -93,7 +97,13 @@ def severity(hit: dict, text: str) -> str:
         hit["context"] = cur.strip()[:300]
         hit["why"] = "같은 줄에 파일 접근 호출이 있다"
         return "FAIL"
-    win = NEG_WINDOW_STRUCTURED if f.endswith(STRUCTURED_SUFFIX) else NEG_WINDOW
+    if LIST_ELEMENT_RE.match(cur):
+        win = NEG_WINDOW_LIST_ELEMENT
+        hit["line_is_list_element"] = True
+    elif f.endswith(STRUCTURED_SUFFIX):
+        win = NEG_WINDOW_STRUCTURED
+    else:
+        win = NEG_WINDOW
     lo = max(0, line_no - 1 - win)
     hi = min(len(lines), line_no + win)
     ctx = " ".join(lines[lo:hi])

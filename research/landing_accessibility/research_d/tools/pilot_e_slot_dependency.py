@@ -649,8 +649,13 @@ def main() -> dict:
     j["dce"] = pd.to_numeric(j.dismiss_control_exists, errors="coerce")
     reached = j[(j.viewport_overlap > 0) & j.classification_status.notna()].copy()
 
-    ct_amb = pd.crosstab(reached.name_slot_empty, reached.classification_status).to_dict()
-    ct_dce = pd.crosstab(reached.name_slot_empty, reached.dce).to_dict()
+    def _strkeys(d: dict) -> dict:
+        return {str(int(k) if isinstance(k, float) and k == int(k) else k):
+                {str(int(kk) if isinstance(kk, float) and kk == int(kk) else kk): int(vv) for kk, vv in v.items()}
+                for k, v in d.items()}
+
+    ct_amb = _strkeys(pd.crosstab(reached.name_slot_empty, reached.classification_status).to_dict())
+    ct_dce = _strkeys(pd.crosstab(reached.name_slot_empty, reached.dce).to_dict())
     interrupt_grain = {
         "grain": "visible modal/overlay candidate that reached the text-rule branch (viewport_overlap>0)",
         "n": int(len(reached)),
