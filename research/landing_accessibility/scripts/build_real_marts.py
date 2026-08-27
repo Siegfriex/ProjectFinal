@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -268,6 +269,80 @@ def attribute_causes(results: list[dict[str, Any]]) -> dict[str, Any]:
                 "7 → 13으로 부풀려진다.** 미기록을 미기록으로 남긴 것이 그 왜곡을 막았다."
             ),
         },
+    }
+
+
+#: `A0 §21` 필수 산출물. 입력 SHA는 **새로 만들지 않고** 이미 확인된 값을 옮긴다.
+FROZEN_PLAN_SHA256 = "b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc"
+OLDER_RELEVANCE_REGISTRY_SHA256 = "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
+COLLECTOR_SHA_FULL = "222ef2c28ed5971b3c9f8b07120b7627d2617476"
+PROMOTED_MAIN_SHA = "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d"
+
+
+def _sha256_of(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _release_document_sha(dirs: list[str]) -> str | None:
+    """배치 provenance의 `release_document_sha256`(E001_RELEASE control SHA)."""
+    for d in dirs:
+        for path in sorted(Path(d).glob("batch_*.json")):
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            sha = (payload.get("provenance") or {}).get("release_document_sha256")
+            if sha:
+                return str(sha)
+    return None
+
+
+def build_frozen_mart_manifest(
+    out_dir: Path,
+    mart_files: list[str],
+    marts: dict[str, list[dict[str, Any]]],
+    markers: dict[str, Any],
+    release_sha: str | None = None,
+) -> dict[str, Any]:
+    """`FROZEN_MART_MANIFEST.json` — **이 통계가 어느 mart에서 나왔는가**를 증명한다.
+
+    파일 해시가 없으면 파일이 바뀌어도 알 수 없다. 그래서 각 mart 파일의 sha256과
+    row_count를 박고, 입력 SHA(collector·frozen_plan·older_relevance registry·
+    E001_RELEASE·promoted_main)를 함께 남긴다.
+
+    `MART_ACCEPTANCE §1-8`(manifest 해시 체인 검증) · `A0 §21`(필수 산출물).
+    """
+    files = []
+    for name in mart_files:
+        path = out_dir / f"{name}.json"
+        if not path.exists():
+            continue
+        files.append(
+            {
+                "file": path.name,
+                "sha256": f"sha256:{_sha256_of(path)}",
+                "row_count": len(marts.get(name, [])),
+            }
+        )
+
+    return {
+        "document_type": "FROZEN_MART_MANIFEST",
+        "frozen": True,
+        "snapshot_at": snapshot_now(),
+        "mart_files": files,
+        "input_shas": {
+            "collector": COLLECTOR_SHA_FULL,
+            "frozen_plan": FROZEN_PLAN_SHA256,
+            "older_relevance_registry": OLDER_RELEVANCE_REGISTRY_SHA256,
+            "e001_release_control": release_sha,
+            "promoted_main": PROMOTED_MAIN_SHA,
+        },
+        "analysis_cohort": markers.get("analysis_cohort"),
+        "batch_chain_verified_all_sources": markers.get("chain_verified_all_sources"),
+        "note": (
+            "각 mart 파일의 sha256이 여기 박혀 있으므로, 나중에 '이 통계가 어느 mart에서 "
+            "나왔는가'를 증명할 수 있다. 파일이 바뀌면 해시가 어긋난다."
+        ),
     }
 
 
@@ -725,8 +800,26 @@ def main() -> None:
 
     out = Path(args.out_dir)
     out.mkdir(parents=True, exist_ok=True)
+
+    # mart 파일을 먼저 쓴 뒤 해시를 계산해 manifest를 만든다.
+    for name, rows in marts.items():
+        (out / f"{name}.json").write_text(
+            json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8"
+        )
+    manifest = build_frozen_mart_manifest(
+        out, list(marts), marts, markers, release_sha=_release_document_sha(dirs)
+    )
+    manifest_path = out / "FROZEN_MART_MANIFEST.json"
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
     payload = {
-        "manifest": "REAL_RUN_SUMMARY",
+        # 이전의 `"manifest": "REAL_RUN_SUMMARY"`는 **문자열 라벨일 뿐인데 manifest
+        # 블록으로 오해됐다.** 오해 소지를 없애고 실제 manifest 파일을 가리킨다.
+        "document_type": "REAL_RUN_SUMMARY",
+        "frozen_mart_manifest_ref": {
+            "file": manifest_path.name,
+            "sha256": f"sha256:{_sha256_of(manifest_path)}",
+        },
         "snapshot_at": snapshot_now(),
         "grade": "PILOT / PRELIMINARY",
         "grade_note": (
