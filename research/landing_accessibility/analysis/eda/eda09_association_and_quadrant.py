@@ -75,7 +75,12 @@ from .common import (
     write_summary_json,
     write_table,
 )
-from .joint_validity import classify_joint_validity, joint_validity_summary
+from .depth_axis import DEPTH_NARRATIVE_CONSTRAINT, depth_axis_report
+from .joint_validity import (
+    GUARD_BLOCKED_COLUMNS,
+    classify_joint_validity,
+    joint_validity_summary,
+)
 from .statistics import (
     DIRECTION_DEFINITION,
     SECONDARY_ASSOCIATION_CANDIDATES,
@@ -115,6 +120,23 @@ _EMPTY_JOINT_COLUMNS = [
 #: Research Director 확정 — primary(A0)는 "raw structural depth ↔ barrier burden
 #: association"으로만 해석한다. difficulty causation 표현(예: "MPFED가 높을수록
 #: 더 어렵다")을 금지한다 — 상관은 인과가 아니다.
+#: **개정 1 §1.1** — 새 PRIMARY의 해석 범위. 동시발생이며 인과가 아니다.
+PRIMARY_COOCCURRENCE_CONSTRAINT = (
+    "초기 화면에서 표준 접근성 장벽이 많은 서비스가 초기 방해요소도 많은가 — "
+    "**동시발생(co-occurrence)**이다. **인과가 아니며 어느 쪽이 원인인지 말하지 않는다.** "
+    "원 연구질문 세 축 중 (A) 표준화 접근성 장벽과 (C) 초기 화면 방해요소의 동시발생을 "
+    "묻는다. **(B) 진입 깊이는 오늘 관측되지 않았다.**"
+)
+
+#: **격상 사유** — 이 질문은 원래 SECONDARY급이었다. "원래 이걸 물으려 했다"로
+#: 서술하면 안 된다(개정 1 §1.1 명시 요구).
+PRIMARY_ESCALATION_NOTE = (
+    "이 질문은 **원래 SECONDARY급이었다.** MPFED가 E000 6/6 전건 NULL로 산출되지 않아 "
+    "원 PRIMARY(`Spearman(MPFED, OlderRelevantKWCAGFailRate)`)가 계산 불가가 되면서 "
+    "**depth 축 소실에 따라 격상된 것**이다. '원래 이걸 물으려 했다'가 아니다 "
+    "(`LA-AC-AMD1-20260827` §1.1)."
+)
+
 PRIMARY_A0_INTERPRETATION_CONSTRAINT = (
     "raw structural depth ↔ barrier burden association으로만 해석한다. "
     "difficulty causation(예: '진입이 깊을수록 더 어렵다') 표현을 쓰지 않는다 — "
@@ -144,7 +166,12 @@ def _build_joint_frame(
     landing = marts.get("fact_landing_observation", pd.DataFrame())
 
     validity = classify_joint_validity(marts)
-    validity_summary = joint_validity_summary(validity)
+    validity_summary = joint_validity_summary(
+        validity,
+        guard_cols_present=any(
+            c in marts.get("fact_task_entry", pd.DataFrame()).columns for c in GUARD_BLOCKED_COLUMNS
+        ),
+    )
 
     if task.empty or landing.empty:
         return pd.DataFrame(columns=_EMPTY_JOINT_COLUMNS), {
@@ -318,6 +345,12 @@ def run_eda09(
             measurement_uncertainty_rationale=empty_mu_rationale,
         )
         kw_result = {"executed": False, "reason_not_executed": "빈 입력", "group_sizes": {}}
+        secondary_kw = {
+            "executed": False,
+            "reason_not_executed": "빈 입력",
+            "group_sizes": {},
+            "metric": "Kruskal-Wallis(OlderRelevantKWCAGFailRate ~ InteractionArchetype)",
+        }
         classification_rule: dict = {"n_classified": 0, "reason": "빈 입력"}
     else:
         # 의무 3 — undetermined_rate ↔ FailRate 교란 확인. 상관이 임계를 넘으면
@@ -327,22 +360,24 @@ def run_eda09(
         )
         # 축 1 — 표본 구성(leave-one-archetype-out). 축 2 — 측정 불확실성
         # (UNDETERMINED lower/upper bound FailRate에서 rho 부호 유지 여부).
+        # 개정 1 §1.1 — 새 PRIMARY: FailRate × obstruction 동시발생.
         primary = association_result(
-            joint["mpfed_mean"],
             joint["fail_rate"],
-            x_name="MPFED(joint-valid 서비스 평균)",
-            y_name="OlderRelevantKWCAGFailRate",
-            role="primary",
+            joint[secondary_variable],
+            x_name="OlderRelevantKWCAGFailRate",
+            y_name=f"{secondary_variable}(obstruction, §4.4 자동선택)",
+            role="primary_cooccurrence",
             assumption=(
-                "joint-valid 서비스(web_target_id)별 task 평균 MPFED × older_relevance≠OTHER 기준의 "
-                "fail rate(EligibleOlderRelevant=PASS/FAIL 판정된 것만 분모, NA 제외, UNDETERMINED는 "
-                "분모에서 제외하되 undetermined_rate로 별도 병기). 표본은 joint-valid로 제한된다."
+                "표본은 `l0_analyzable`(J1 L0완료 ∧ J4 older-relevant 최소 1건 판정가능)이다 — "
+                "**joint_valid(J3 MPFED 산출 포함)와 다른 계수**다. FailRate 분모는 "
+                "EligibleOlderRelevant(PASS/FAIL 판정된 것만), NA 제외, UNDETERMINED는 분모에서 "
+                "제외하되 undetermined_rate로 병기. obstruction 변수는 §4.4 결측률 자동선택이다."
             ),
             undetermined_n=meta["n_undetermined_total"],
-            interpretation_constraint=PRIMARY_A0_INTERPRETATION_CONSTRAINT,
-            sample_composition=_robust_direction_preserved(joint, "mpfed_mean", "fail_rate"),
+            interpretation_constraint=PRIMARY_COOCCURRENCE_CONSTRAINT,
+            sample_composition=_robust_direction_preserved(joint, "fail_rate", secondary_variable),
             measurement_uncertainty=sign_preserved_across_bounds(
-                joint["mpfed_mean"],
+                joint[secondary_variable],
                 joint["fail_rate"],
                 joint["fail_rate_lower_bound"],
                 joint["fail_rate_upper_bound"],
@@ -416,6 +451,18 @@ def run_eda09(
             kw_result = kruskal_wallis_gate(groups)
             if run_optional_pairwise:
                 kw_result["pairwise_dunn_fdr"] = kruskal_wallis_pairwise_dunn(groups)
+
+        # 개정 1 §1.3 — 새 SECONDARY: Kruskal-Wallis(FailRate ~ InteractionArchetype).
+        # 모문서 §4.6 그대로 — 실제 group n>=5인 archetype만, 남는 group이 2개 미만이면
+        # omnibus 자체를 돌리지 않는다(`kruskal_wallis_gate`가 그 가드를 이미 집행한다).
+        fail_groups = {
+            str(name): group["fail_rate"]
+            for name, group in joint.dropna(subset=["fail_rate", "archetype"]).groupby("archetype")
+        }
+        secondary_kw = kruskal_wallis_gate(fail_groups)
+        secondary_kw["metric"] = "Kruskal-Wallis(OlderRelevantKWCAGFailRate ~ InteractionArchetype)"
+        if run_optional_pairwise:
+            secondary_kw["pairwise_dunn_fdr"] = kruskal_wallis_pairwise_dunn(fail_groups)
         else:
             kw_result = {
                 "executed": False,
@@ -454,9 +501,24 @@ def run_eda09(
         "secondary_association_variable_selected": secondary_variable,
         "secondary_variable_selection": secondary_selection,
         "direction_definition": DIRECTION_DEFINITION,
+        # ── 개정 1 §1 — 현행 계약의 PRIMARY / SECONDARY ──
+        "contract_amendment": "LA-AC-AMD1-20260827",
         "primary_association": primary,
-        "primary_structure_adjusted_association": structure_adjusted,
-        "secondary_association": secondary,
+        "primary_escalation_note": PRIMARY_ESCALATION_NOTE,
+        "secondary_kruskal_wallis": secondary_kw,
+        # ── depth 축 — 결과로 보고한다(개정 1 §2) ──
+        "depth_axis": depth_axis_report(marts),
+        "depth_narrative_constraint": DEPTH_NARRATIVE_CONSTRAINT,
+        # ── 원 설계(depth 기반) 분석 — MPFED가 있을 때만 참고로 산출. 계약 PRIMARY 아님 ──
+        "retired_depth_associations": {
+            "status": "NOT_CONTRACT_PRIMARY_SINCE_AMENDMENT_1",
+            "reason": (
+                "MPFED 전건 NULL로 원 PRIMARY가 계산 불가가 되어 개정 1이 PRIMARY를 교체했다. "
+                "아래 값은 MPFED가 산출된 표본에서만 계산되는 참고치이며 계약 PRIMARY가 아니다."
+            ),
+            "mpfed_x_fail_rate": structure_adjusted,
+            "excess_depth_x_obstruction": secondary,
+        },
         "kruskal_wallis_mpfed_by_archetype": kw_result,
         "quadrant_classification_rule": classification_rule,
         "three_axes_not_combined_note": "KWCAG/entry friction/certification은 이 산출물에서도 단일 점수로 합치지 않는다.",

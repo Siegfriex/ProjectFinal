@@ -31,7 +31,11 @@ from .common import (
     write_summary_json,
     write_table,
 )
-from .joint_validity import classify_joint_validity, joint_validity_summary
+from .joint_validity import (
+    GUARD_BLOCKED_COLUMNS,
+    classify_joint_validity,
+    joint_validity_summary,
+)
 
 NAME = "eda05_entry_depth"
 STRATIFIED_ARCHETYPES = {"FINANCIAL_ACTION_ENTRY", "COMMUNICATION_ENTRY"}
@@ -130,7 +134,13 @@ def run_eda05(
             "censored_total": int(task["censored"].sum()),
             # 시도 N · joint-valid N · 제외 N을 제외 사유별로 분해(governor 지시) —
             # 총계만 주지 않는다.
-            "joint_validity": joint_validity_summary(validity),
+            "joint_validity": joint_validity_summary(
+                validity,
+                guard_cols_present=any(
+                    c in marts.get("fact_task_entry", pd.DataFrame()).columns
+                    for c in GUARD_BLOCKED_COLUMNS
+                ),
+            ),
         }
 
     csv_path, parquet_path = write_table(by_archetype, out_dir, NAME)

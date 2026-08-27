@@ -261,10 +261,15 @@ def generate_final_results_summary(
     lines.append("## 관측 범위")
     lines.append("")
     lines.append(
-        f"- 시도 {validity.get('n_attempted')}건 · joint-valid {validity.get('n_joint_valid')}건 · "
+        f"- 시도 {validity.get('n_attempted')}건 · **joint_valid_n "
+        f"{validity.get('n_joint_valid')}**건(원 설계 기준, depth 축 포함) · "
+        f"**l0_analyzable_n {validity.get('l0_analyzable_n')}**건(J1∧J4, 새 PRIMARY 표본) · "
         f"제외 {validity.get('n_excluded')}건"
     )
+    lines.append(f"  - {validity.get('counts_note', '')}")
     lines.append(f"- 제외 사유별: {validity.get('excluded_by_reason')}")
+    lines.append(f"- 제외 3범주별: {validity.get('excluded_by_category')}")
+    lines.append(f"  - {validity.get('guard_marker_note', '')}")
     lines.append("")
 
     lines.append("## 대표기능이 인증 벽 뒤에 있는 서비스")
@@ -325,6 +330,55 @@ def generate_final_results_summary(
         f"- claim 등급: `{eda07_summary.get('claim_grade', 'SUPPORTED_WITH_LIMITATION')}` — "
         "인증 관련 상관·집단비교·회귀는 만들지 않았다(관측 프레임에서 무분산)."
     )
+    lines.append("")
+
+    lines.append("## PRIMARY — 표준 장벽 × 초기 방해요소 동시발생")
+    lines.append("")
+    lines.append(f"> **격상 사유.** {eda09_summary.get('primary_escalation_note', '')}")
+    lines.append("")
+    primary = eda09_summary.get("primary_association", {}) or {}
+    lines.append(
+        f"- {primary.get('metric')} → effect={primary.get('effect')} "
+        f"(n={primary.get('n')}, claim_grade=`{primary.get('claim_grade')}`, "
+        f"headline_eligible={primary.get('headline_eligible')})"
+    )
+    lines.append(f"- 해석 범위: {primary.get('interpretation_constraint')}")
+    lines.append("")
+
+    secondary_kw = eda09_summary.get("secondary_kruskal_wallis", {}) or {}
+    lines.append("## SECONDARY — archetype별 FailRate 차이")
+    lines.append("")
+    lines.append(
+        f"- {secondary_kw.get('metric')} → executed={secondary_kw.get('executed')}, "
+        f"statistic={secondary_kw.get('statistic')}, p_value={secondary_kw.get('p_value')}"
+    )
+    lines.append(
+        f"- group n>=5만 포함 · 제외된 group: {secondary_kw.get('dropped_groups_below_min_n')}"
+    )
+    if secondary_kw.get("reason_not_executed"):
+        lines.append(f"- 미실행 사유: {secondary_kw['reason_not_executed']}")
+    lines.append("")
+
+    depth = eda09_summary.get("depth_axis", {}) or {}
+    lines.append("## depth 축 — 산출 실패를 결과로 보고한다")
+    lines.append("")
+    lines.append(
+        f"- `mpfed_available_n` / `attempted_n` = {depth.get('mpfed_available_n')} / "
+        f"{depth.get('attempted_n')} (산출률 {depth.get('mpfed_available_rate')})"
+    )
+    for reason, count in (depth.get("by_reason", {}) or {}).items():
+        lines.append(f"  - `{reason}`: {count}")
+    lines.append(f"- E-6b 발화 횟수: {depth.get('e6b_fired_count')}")
+    lines.append(f"  - {depth.get('marker_note')}")
+    lines.append("")
+    lines.append(f"> **서술 제약.** {eda09_summary.get('depth_narrative_constraint', '')}")
+    lines.append("")
+
+    lines.append("## 참고 — 원 설계(depth 기반) 분석의 지위")
+    lines.append("")
+    retired = eda09_summary.get("retired_depth_associations", {}) or {}
+    lines.append(f"- 상태: `{retired.get('status')}`")
+    lines.append(f"- {retired.get('reason')}")
     lines.append("")
 
     lines.append("## Association (전부 exploratory 이하 — 아래 등급 참조)")
@@ -575,6 +629,35 @@ def generate_limitations(
     undet = cw.get("undetermined_rate_by_window", {}) or {}
     arche = cw.get("archetype_distribution_by_window", {}) or {}
     confound = eda09_summary.get("undetermined_confounding", {}) or {}
+    lines.append("## 5-b. PRIMARY 격상 — depth 축 소실에 따른 것이다")
+    lines.append("")
+    lines.append(f"> {eda09_summary.get('primary_escalation_note', '')}")
+    lines.append("")
+    lines.append(
+        f"- 현행 PRIMARY: {(eda09_summary.get('primary_association') or {}).get('metric')} "
+        f"(계약 개정 `{eda09_summary.get('contract_amendment')}`)"
+    )
+    lines.append(
+        f"- 해석 범위: "
+        f"{(eda09_summary.get('primary_association') or {}).get('interpretation_constraint')}"
+    )
+    lines.append(
+        f"- **두 계수를 모두 보고한다** — `joint_valid_n`="
+        f"{validity.get('n_joint_valid')}(원 설계 기준) · `l0_analyzable_n`="
+        f"{validity.get('l0_analyzable_n')}(J1∧J4, 새 PRIMARY 표본). "
+        f"{validity.get('counts_note', '')}"
+    )
+    lines.append(
+        "- **A0 §6 등급 임계(GREEN 36 / YELLOW 28 / RED_USABLE 20)는 `joint_valid_n`에 대해 "
+        "정의된 값이다.** `l0_analyzable_n`에 그대로 적용하지 않는다 — 다른 것을 세는 값이다. "
+        "오늘 등급은 개시 시각 규칙에 따라 이미 `PILOT / PRELIMINARY`로 확정돼 있다."
+    )
+    lines.append(
+        "- J3(MPFED 산출)는 **완화하지 않았다.** `joint_valid_n`을 키우려고 정의를 바꾸는 것은 "
+        "결과에 맞춰 정의를 바꾸는 것이다."
+    )
+    lines.append("")
+
     lines.append("## 6. 수집 시각 구간 이질성 — AI cutoff 전/후")
     lines.append("")
     lines.append(

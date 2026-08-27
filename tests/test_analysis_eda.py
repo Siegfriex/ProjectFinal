@@ -297,12 +297,12 @@ def test_eda09_reports_both_axes_and_all_candidate_missing_rates(
     # 후보 4종 전부 기록 — 선택된 것만 적으면 선택이 검증 불가능해진다.
     assert set(summary["secondary_candidate_missing_rate"]) == set(SECONDARY_ASSOCIATION_PRIORITY)
 
-    for key in (
-        "primary_association",
-        "primary_structure_adjusted_association",
-        "secondary_association",
+    retired = summary["retired_depth_associations"]
+    for assoc in (
+        summary["primary_association"],
+        retired["mpfed_x_fail_rate"],
+        retired["excess_depth_x_obstruction"],
     ):
-        assoc = summary[key]
         axes = assoc["sign_stability"]["by_axis"]
         assert set(axes) == {"sample_composition", "measurement_uncertainty"}
         assert "sign_flip_axis" in assoc
@@ -310,9 +310,12 @@ def test_eda09_reports_both_axes_and_all_candidate_missing_rates(
         # association은 절대 GRADE A를 받지 않는다.
         assert assoc["claim_grade"] in ("B", "C", "UNSUPPORTED")
 
-    # secondary는 Y가 UNDETERMINED에 의존하지 않으므로 측정 불확실성 축이 미적용이다.
+    # 원 설계 secondary(ExcessDepth x obstruction)는 Y가 UNDETERMINED에 의존하지
+    # 않으므로 측정 불확실성 축이 구조적으로 미적용이다.
     assert (
-        summary["secondary_association"]["sign_stability"]["by_axis"]["measurement_uncertainty"]
+        summary["retired_depth_associations"]["excess_depth_x_obstruction"]["sign_stability"][
+            "by_axis"
+        ]["measurement_uncertainty"]
         == "NOT_APPLICABLE"
     )
 
@@ -729,3 +732,101 @@ def test_eda09_summary_carries_extension_obligations(
     assert "undetermined_confounding" in summary
     assert "downgrade_reasons" in summary["primary_association"]
     assert "claim_grade_before_confound_downgrade" in summary["primary_association"]
+
+
+# ── 계약 개정 1 (LA-AC-AMD1-20260827) ────────────────────────────────────
+
+
+def test_amendment1_primary_is_failrate_x_obstruction_with_escalation_note(
+    marts: dict[str, pd.DataFrame], tmp_path: Path
+) -> None:
+    """개정 1 §1.1 — PRIMARY는 FailRate x obstruction 동시발생이며 격상 사유를 명시한다."""
+    from analysis.eda.eda09_association_and_quadrant import run_eda09
+
+    summary = json.loads(run_eda09(marts, tmp_path / "amd1").summary_json_path.read_text())
+    assert summary["contract_amendment"] == "LA-AC-AMD1-20260827"
+
+    primary = summary["primary_association"]
+    assert primary["role"] == "primary_cooccurrence"
+    assert "OlderRelevantKWCAGFailRate" in primary["metric"]
+    assert "MPFED" not in primary["metric"]
+    # 동시발생이며 인과가 아니라고 명시한다.
+    assert "동시발생" in primary["interpretation_constraint"]
+    assert "인과가 아니" in primary["interpretation_constraint"]
+    # 격상 사유 — "원래 이걸 물으려 했다"로 쓰지 않는다.
+    note = summary["primary_escalation_note"]
+    assert "원래 SECONDARY급" in note
+    assert "depth 축 소실" in note
+
+    # 원 설계 depth 분석은 계약 PRIMARY가 아님이 명시된다.
+    assert summary["retired_depth_associations"]["status"] == (
+        "NOT_CONTRACT_PRIMARY_SINCE_AMENDMENT_1"
+    )
+
+
+def test_amendment1_secondary_is_kruskal_wallis_on_failrate(
+    marts: dict[str, pd.DataFrame], tmp_path: Path
+) -> None:
+    """개정 1 §1.3 — SECONDARY는 KW(FailRate ~ archetype), group n>=5만."""
+    from analysis.eda.eda09_association_and_quadrant import run_eda09
+    from analysis.eda.statistics import MIN_GROUP_N_FOR_TEST
+
+    summary = json.loads(run_eda09(marts, tmp_path / "amd1kw").summary_json_path.read_text())
+    kw = summary["secondary_kruskal_wallis"]
+    assert "OlderRelevantKWCAGFailRate ~ InteractionArchetype" in kw["metric"]
+    assert kw["min_group_n_for_test"] == MIN_GROUP_N_FOR_TEST == 5
+    # 남는 group이 2개 미만이면 omnibus를 돌리지 않는다.
+    if len(kw["groups_used"]) < 2:
+        assert kw["executed"] is False
+
+
+def test_amendment1_reports_both_counts_and_third_exclusion_category(
+    marts: dict[str, pd.DataFrame],
+) -> None:
+    """개정 1 §3·§4 — l0_analyzable_n 별도 계수 + 제외 3범주."""
+    from analysis.eda.joint_validity import (
+        EXCLUSION_CATEGORY,
+        classify_joint_validity,
+        joint_validity_summary,
+    )
+
+    summary = joint_validity_summary(classify_joint_validity(marts))
+
+    # 두 계수 모두 보고되고, 서로 다른 것을 센다.
+    assert "n_joint_valid" in summary
+    assert "l0_analyzable_n" in summary
+    assert "다른 것을 센다" in summary["counts_note"]
+
+    # J3를 완화하지 않았으므로 l0_analyzable_n >= joint_valid_n 이다.
+    assert summary["l0_analyzable_n"] >= summary["n_joint_valid"]
+
+    # 제3범주가 신설되고 3범주로 분해된다.
+    assert EXCLUSION_CATEGORY["L1_NOT_ATTEMPTED_GUARD"] == "OUR_TOOL_CONSTRAINT"
+    assert EXCLUSION_CATEGORY["GATE_REACHED_MPFED_NULL"] == "TARGET_PROPERTY"
+    assert EXCLUSION_CATEGORY["TRANSPORT_FAILURE"] == "OUR_CIRCUMSTANCE"
+    assert set(summary["excluded_by_category"]) == {
+        "OUR_CIRCUMSTANCE",
+        "TARGET_PROPERTY",
+        "OUR_TOOL_CONSTRAINT",
+    }
+    # 가드 표시가 없으면 0건이 "가드가 없었다"로 읽히지 않게 경고한다.
+    if not summary["guard_marker_columns_present"]:
+        assert "산출되지 않았다" in summary["guard_marker_note"]
+
+
+def test_amendment1_depth_axis_reported_as_result(marts: dict[str, pd.DataFrame]) -> None:
+    """개정 1 §2 — depth 축 산출 실패를 결과로 보고하고 서술 제약을 싣는다."""
+    from analysis.eda.depth_axis import depth_axis_report
+
+    report = depth_axis_report(marts)
+    assert "mpfed_available_n" in report
+    assert set(report["by_reason"]) == {
+        "guard_blocked_pre_scout",
+        "gate_kind_undetermined",
+        "scout_no_signal",
+        "endpoint_not_reached",
+    }
+    assert "e6b_fired_count" in report
+    # 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다.
+    assert "우리 도구의 도달 한계" in report["narrative_constraint"]
+    assert "고령자가 대표기능에 도달할 수 없다" in report["narrative_constraint"]

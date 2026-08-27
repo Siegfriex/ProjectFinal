@@ -75,11 +75,39 @@ EXCLUSION_REASONS: tuple[str, ...] = (
     "TRANSPORT_FAILURE",
     "TIMEOUT",
     "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
+    # `LA-AC-AMD1-20260827` §3 신설 — 제3범주(우리 도구의 제약).
+    "L1_NOT_ATTEMPTED_GUARD",
     "GATE_REACHED_MPFED_NULL",
     "ACCESS_REFUSED_MPFED_NULL",
     "MPFED_NULL",
     "KWCAG_ALL_UNDETERMINED",
 )
+
+#: **개정 1 §3** — 제외 사유를 3범주로 분리한다. 셋을 섞으면 셋 다 흐려진다.
+#:
+#: - `OUR_CIRCUMSTANCE`(우리 쪽 사정) — transport·timeout·l1_not_attempted.
+#:   일시적 실패이며 재수집으로 달라질 수 있다.
+#: - `TARGET_PROPERTY`(대상의 성질) — gate_reached_mpfed_null. 대표기능이 벽 뒤에
+#:   있다는 관측 결과다.
+#: - `OUR_TOOL_CONSTRAINT`(우리 도구의 제약) — l1_not_attempted_guard. 대상의
+#:   성질도 아니고 일시적 실패도 아니다. **안전 계약이 측정을 제약한 경우**이며
+#:   이 연구 설계의 구조적 한계다.
+EXCLUSION_CATEGORY: dict[str, str] = {
+    "TRANSPORT_FAILURE": "OUR_CIRCUMSTANCE",
+    "TIMEOUT": "OUR_CIRCUMSTANCE",
+    "L1_NOT_ATTEMPTED_OR_UNRESOLVED": "OUR_CIRCUMSTANCE",
+    "L1_NOT_ATTEMPTED_GUARD": "OUR_TOOL_CONSTRAINT",
+    "GATE_REACHED_MPFED_NULL": "TARGET_PROPERTY",
+    # WAF·403은 우리 도구에 대한 반응이지 대상의 진입 설계가 아니다.
+    "ACCESS_REFUSED_MPFED_NULL": "OUR_CIRCUMSTANCE",
+    "MPFED_NULL": "OUR_CIRCUMSTANCE",
+    "KWCAG_ALL_UNDETERMINED": "OUR_CIRCUMSTANCE",
+}
+
+#: `fact_task_entry`에 가드 차단이 표시되는 후보 컬럼. 엔진이 아직 이 컬럼을
+#: 내보내지 않을 수 있으므로 **관용적으로** 찾고, 없으면 0으로 세되 "아직
+#: 산출되지 않음"을 보고한다 — 없는 것을 0건으로 단정하지 않는다.
+GUARD_BLOCKED_COLUMNS: tuple[str, ...] = ("l1_guard_blocked", "guard_blocked_pre_scout")
 
 #: 위 사유가 **대상의 성질**인가(True) **우리 쪽 수집 사정**인가(False).
 #: 보고에서 이 둘을 합산하지 않기 위한 표다.
@@ -88,6 +116,8 @@ EXCLUSION_REASON_IS_TARGET_PROPERTY: dict[str, bool] = {
     "TIMEOUT": False,
     "L1_NOT_ATTEMPTED_OR_UNRESOLVED": False,
     "GATE_REACHED_MPFED_NULL": True,
+    # 안전 계약이 측정을 제약한 경우 — 대상의 성질이 아니다(제3범주).
+    "L1_NOT_ATTEMPTED_GUARD": False,
     # WAF·403은 우리 도구에 대한 반응이지 대상의 진입 설계가 아니다 → 대상의 성질이 아니다.
     "ACCESS_REFUSED_MPFED_NULL": False,
     "MPFED_NULL": False,
@@ -104,7 +134,35 @@ _JOINT_VALIDITY_COLUMNS = [
     "endpoint_status",
     # L0 단계 접근 거절(FAILED_ACCESS_BLOCKED)을 L1 BLOCKED와 함께 세기 위해 남긴다.
     "measurement_status",
+    # 개정 1 §4 — `l0_analyzable_n = J1 ∧ J4` 별도 계수용. joint-valid(J1~J4 전부)와
+    # **다른 것을 센다** — 새 PRIMARY(FailRate × obstruction)의 표본이다.
+    "j1_l0_complete",
+    "j4_kwcag_judgeable",
+    "l0_analyzable",
 ]
+
+
+def _guard_blocked(row: Any) -> bool:
+    """안전 가드가 Scout 이전에 차단했는가 (개정 1 §3 제3범주).
+
+    엔진이 아직 이 표시를 mart로 내보내지 않을 수 있으므로 여러 후보 컬럼을
+    관용적으로 본다. 표시가 없으면 `False` — **없는 것을 가드 차단으로 단정하지
+    않는다.** 대신 `joint_validity_summary()`가 "가드 표시 컬럼이 산출되지 않음"을
+    보고해서, 0건이 '가드가 없었다'는 뜻으로 오독되지 않게 한다.
+    """
+    if row is None:
+        return False
+    for col in GUARD_BLOCKED_COLUMNS:
+        try:
+            value = row.get(col)
+        except AttributeError:  # pragma: no cover
+            continue
+        if value is None:
+            continue
+        text = str(value).strip().upper()
+        if text in {"1", "TRUE", "GUARD", "GUARD_BLOCKED"}:
+            return True
+    return False
 
 
 def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
@@ -148,22 +206,48 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
             task_row = candidate.iloc[0] if isinstance(candidate, pd.DataFrame) else candidate
             archetype = task_row.get("interaction_archetype")
 
+        # ── 개정 1 §4 — J1·J4를 J2·J3와 **독립적으로** 먼저 평가한다.
+        # `l0_analyzable_n`은 새 PRIMARY의 표본이며 joint_valid_n과 다른 것을 센다.
+        j1 = status == "MEASURED"
+        n_older_obs = int(older_n.get(obs_id, 0))
+        j4 = bool(n_older_obs > 0 and not bool(older_undetermined_all.get(obs_id, True)))
+        l0_analyzable = bool(j1 and j4)
+        flags = {
+            "j1_l0_complete": j1,
+            "j4_kwcag_judgeable": j4,
+            "l0_analyzable": l0_analyzable,
+        }
+
         # 조건 1.
         if status in _TRANSPORT_FAILURE_STATUSES:
             rows.append(
                 _row(
-                    obs_id, wt_id, archetype, False, "TRANSPORT_FAILURE", measurement_status=status
+                    obs_id,
+                    wt_id,
+                    archetype,
+                    False,
+                    "TRANSPORT_FAILURE",
+                    measurement_status=status,
+                    **flags,
                 )
             )
             continue
         if status in _TIMEOUT_STATUSES:
-            rows.append(_row(obs_id, wt_id, archetype, False, "TIMEOUT", measurement_status=status))
+            rows.append(
+                _row(obs_id, wt_id, archetype, False, "TIMEOUT", measurement_status=status, **flags)
+            )
             continue
         if status != "MEASURED":
             # 스키마상 나머지 값은 없어야 하나, 방어적으로 TRANSPORT_FAILURE로 묶는다.
             rows.append(
                 _row(
-                    obs_id, wt_id, archetype, False, "TRANSPORT_FAILURE", measurement_status=status
+                    obs_id,
+                    wt_id,
+                    archetype,
+                    False,
+                    "TRANSPORT_FAILURE",
+                    measurement_status=status,
+                    **flags,
                 )
             )
             continue
@@ -171,15 +255,20 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
         # 조건 2 — L1 종결상태 도달.
         if task_row is None:
             # task 행 자체가 없다 — endpoint_status도 없다(L1 미시도).
+            # 개정 1 §3 — **안전 가드가 Scout 이전에 차단**한 경우는 제3범주로 분리한다.
+            # 대상의 성질도 아니고 일시적 실패도 아니며, 안전 계약이 측정을 제약한 것이다.
             rows.append(
                 _row(
                     obs_id,
                     wt_id,
                     archetype,
                     False,
-                    "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
+                    "L1_NOT_ATTEMPTED_GUARD"
+                    if _guard_blocked(obs)
+                    else "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
                     None,
                     measurement_status=status,
+                    **flags,
                 )
             )
             continue
@@ -196,9 +285,12 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
                     wt_id,
                     archetype,
                     False,
-                    "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
+                    "L1_NOT_ATTEMPTED_GUARD"
+                    if _guard_blocked(task_row)
+                    else "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
                     endpoint_status,
                     measurement_status=status,
+                    **flags,
                 )
             )
             continue
@@ -225,6 +317,7 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
                     reason,
                     endpoint_status,
                     measurement_status=status,
+                    **flags,
                 )
             )
             continue
@@ -241,11 +334,12 @@ def classify_joint_validity(marts: dict[str, pd.DataFrame]) -> pd.DataFrame:
                     False,
                     "KWCAG_ALL_UNDETERMINED",
                     measurement_status=status,
+                    **flags,
                 )
             )
             continue
 
-        rows.append(_row(obs_id, wt_id, archetype, True, None, measurement_status=status))
+        rows.append(_row(obs_id, wt_id, archetype, True, None, measurement_status=status, **flags))
 
     return pd.DataFrame(rows, columns=_JOINT_VALIDITY_COLUMNS)
 
@@ -258,8 +352,9 @@ def _row(
     reason: str | None,
     endpoint_status: Any = None,
     measurement_status: Any = None,
+    **flags: Any,
 ) -> dict[str, Any]:
-    return {
+    row = {
         "observation_id": obs_id,
         "web_target_id": wt_id,
         "archetype": archetype,
@@ -267,10 +362,17 @@ def _row(
         "exclusion_reason": reason,
         "endpoint_status": endpoint_status,
         "measurement_status": measurement_status,
+        "j1_l0_complete": False,
+        "j4_kwcag_judgeable": False,
+        "l0_analyzable": False,
     }
+    row.update(flags)
+    return row
 
 
-def joint_validity_summary(validity: pd.DataFrame) -> dict[str, Any]:
+def joint_validity_summary(
+    validity: pd.DataFrame, *, guard_cols_present: bool = False
+) -> dict[str, Any]:
     """시도 N · joint-valid N · 제외 N을 **제외 사유별로 분해**해서 낸다 — 총계만
     주지 않는다(governor 지시). archetype별 분해도 함께 낸다 — 이 archetype별
     joint-valid N이 `EXCESS_DEPTH_INCLUDE_MIN_N`(n>=5) 가드가 세는 바로 그 n이다.
@@ -281,6 +383,10 @@ def joint_validity_summary(validity: pd.DataFrame) -> dict[str, Any]:
             "n_joint_valid": 0,
             "n_excluded": 0,
             "excluded_by_reason": dict.fromkeys(EXCLUSION_REASONS, 0),
+            "l0_analyzable_n": 0,
+            "excluded_by_category": dict.fromkeys(
+                ("OUR_CIRCUMSTANCE", "TARGET_PROPERTY", "OUR_TOOL_CONSTRAINT"), 0
+            ),
             "behind_gate": {"n_services": 0, "by_endpoint_status": {}},
             "access_refusal": {"n_total": 0, "n_l1_blocked": 0, "n_l0_access_blocked": 0},
             "by_archetype": {},
@@ -323,9 +429,41 @@ def joint_validity_summary(validity: pd.DataFrame) -> dict[str, Any]:
         (excluded["measurement_status"].astype(str) == "FAILED_ACCESS_BLOCKED").sum()
     )
 
+    # 개정 1 §3 — 3범주 분해. 셋을 섞으면 셋 다 흐려진다.
+    excluded_by_category: dict[str, int] = {
+        "OUR_CIRCUMSTANCE": 0,
+        "TARGET_PROPERTY": 0,
+        "OUR_TOOL_CONSTRAINT": 0,
+    }
+    for reason, count in excluded_by_reason.items():
+        category = EXCLUSION_CATEGORY.get(reason)
+        if category:
+            excluded_by_category[category] += count
+
     return {
         "n_attempted": n_attempted,
         "n_joint_valid": n_valid,
+        # 개정 1 §4 — J1 ∧ J4. **joint_valid_n과 다른 것을 센다**(새 PRIMARY의 표본).
+        "l0_analyzable_n": int(validity["l0_analyzable"].sum()),
+        "counts_note": (
+            "`joint_valid_n`(원 설계 기준, depth 축 포함)과 `l0_analyzable_n`(J1∧J4, "
+            "새 PRIMARY 표본)은 **다른 것을 센다** — 둘 다 보고한다. 어느 하나만 내면 "
+            "오독이 생긴다. A0 §6 등급 임계(36/28/20)는 `joint_valid_n`에 대해 정의된 "
+            "값이며 `l0_analyzable_n`에 그대로 적용하지 않는다."
+        ),
+        "excluded_by_category": excluded_by_category,
+        "exclusion_category_map": dict(EXCLUSION_CATEGORY),
+        "guard_marker_columns_present": bool(guard_cols_present),
+        "guard_marker_note": (
+            "가드 차단 표시 컬럼(" + " / ".join(GUARD_BLOCKED_COLUMNS) + ")이 mart에 있다."
+            if guard_cols_present
+            else (
+                "가드 차단 표시 컬럼("
+                + " / ".join(GUARD_BLOCKED_COLUMNS)
+                + ")이 mart에 없다 — `L1_NOT_ATTEMPTED_GUARD` 0건은 '가드가 없었다'는 뜻이 "
+                "아니라 '표시가 산출되지 않았다'는 뜻이다."
+            )
+        ),
         "n_excluded": n_attempted - n_valid,
         "excluded_by_reason": excluded_by_reason,
         "excluded_reason_is_target_property": dict(EXCLUSION_REASON_IS_TARGET_PROPERTY),
