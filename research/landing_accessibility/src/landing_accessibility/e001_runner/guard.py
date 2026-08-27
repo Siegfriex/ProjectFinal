@@ -382,17 +382,37 @@ def assess_reachable_candidates(
 
     이 함수가 검증하지 못하는 것은 모듈 docstring 상단에 그대로 적어 두었다
     (`D-R0-17`).
+
+    `states`(evidence로 남는 전체 판정)는 **reachable 부분집합에 한정하지
+    않는다** — `DISABLED_OR_INERT`(hittable=False라 reachable 필터에서 애초에
+    빠지는 후보)·branching_limit 밖 후보도 여기 포함된다(C 의 W1 completion
+    감사 지적: 이 두 상태가 batch detail 에 전혀 노출되지 않아 채점 불가능했다).
+    **판정(blocking) 자체는 여전히 reachable 부분집합만 쓴다** — 가시성을
+    넓히는 것과 차단 범위를 넓히는 것은 다른 일이다.
     """
     reachable = _reachable_candidates(candidates, branching_limit=branching_limit)
-    states = [(c, classify_candidate_state(c)) for c in reachable]
+    reachable_selectors = {str(c.get("selector")) for c in reachable}
+
+    seen: set[str] = set()
+    states: list[tuple[dict[str, Any], CandidateActionState]] = []
+    for c in candidates:
+        if not isinstance(c, dict):
+            continue
+        sel = str(c.get("selector") or "")
+        if not sel or sel in seen:
+            continue
+        seen.add(sel)
+        states.append((c, classify_candidate_state(c)))
+
+    reachable_states = [(c, s) for c, s in states if str(c.get("selector")) in reachable_selectors]
 
     has_safe_alternative = any(
         s in (CandidateActionState.SAFE, CandidateActionState.AUTH_ENTRY_ALLOWED_CONDITIONALLY)
-        for _, s in states
+        for _, s in reachable_states
     )
     blocking: ActionRisk | None = None
     if not has_safe_alternative:
-        forbidden = [(c, s) for c, s in states if s in _HARD_FORBIDDEN_STATES]
+        forbidden = [(c, s) for c, s in reachable_states if s in _HARD_FORBIDDEN_STATES]
         if forbidden:
             c, s = forbidden[0]
             risk = classify_candidate(c)

@@ -158,9 +158,13 @@ def test_assess_reachable_candidates_blocks_only_when_every_reachable_candidate_
     assert "forbidden" in assessment.blocking.reason
 
 
-def test_assess_reachable_candidates_ignores_non_hittable_candidates():
+def test_assess_reachable_candidates_ignores_non_hittable_candidates_for_blocking():
     """옛 결함의 정확한 재현 방지 — DOM에 있지만 Scout가 애초에 클릭할 수 없는
-    (hittable=False) 후보는 reachable 판정에 들어가지 않는다."""
+    (hittable=False) 후보는 **차단 판정**(reachable_considered · blocking)에는
+    들어가지 않는다. 그래도 evidence 에서는 사라지지 않는다 — `DISABLED_OR_INERT`
+    로 `candidates` 목록에 남는다(C 의 W1 completion 감사 지적: 이 상태가 batch
+    detail 에 전혀 노출되지 않아 채점 불가능했다 — 아래에서 그 가시성을 확인한다).
+    """
     candidates = [
         _cand(selector="#hidden-login", accessible_name="로그인", hittable=False),
     ]
@@ -168,16 +172,30 @@ def test_assess_reachable_candidates_ignores_non_hittable_candidates():
     assert assessment.reachable_considered == 0
     assert assessment.blocking is None
 
+    states_by_selector = {c["selector"]: c["state"] for c in assessment.as_dict()["candidates"]}
+    assert states_by_selector["#hidden-login"] == CandidateActionState.DISABLED_OR_INERT.value
 
-def test_assess_reachable_candidates_respects_branching_limit():
-    """branching_limit 밖의 후보는 애초에 판정 대상이 아니다(Scout도 보지 않는다)."""
+
+def test_assess_reachable_candidates_respects_branching_limit_for_blocking_only():
+    """branching_limit 밖의 후보는 **차단 판정**(reachable_considered · blocking)
+    대상이 아니다(Scout도 그 후보를 첫 분기에서 보지 않는다) — 하지만 evidence
+    가시성에서는 빠지지 않는다: 존재는 여전히 `candidates` 목록에 남는다
+    (`D-R0-03` "존재와 행동을 구분" — 판정 범위를 넓히지 않으면서 가시성만
+    넓힌다).
+    """
     candidates = [
         _cand(selector=f"#c{i}", accessible_name="검색", dom_order=i) for i in range(2)
     ] + [_cand(selector="#late-buy", accessible_name="구매하기", dom_order=99)]
     assessment = assess_reachable_candidates(candidates, branching_limit=2)
     assert assessment.reachable_considered == 2
-    selectors = {c["selector"] for c in assessment.as_dict()["candidates"]}
-    assert "#late-buy" not in selectors
+
+    states_by_selector = {c["selector"]: c["state"] for c in assessment.as_dict()["candidates"]}
+    assert "#late-buy" in states_by_selector, (
+        "branching_limit 밖 후보가 evidence 에서 완전히 사라졌다 — 존재 관측 자체가 안 남는다"
+    )
+    assert states_by_selector["#late-buy"] == CandidateActionState.FORBIDDEN_TRANSACTION.value
+    # 그래도 차단 판정에는 영향을 주지 않는다 — 안전한 후보 2개가 reachable 이므로 막히지 않는다.
+    assert assessment.blocking is None
 
 
 # ══════════════════════════════════════════════════════════════════════════
