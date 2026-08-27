@@ -109,3 +109,64 @@ RQ-D14 child 실행 시점의 exact HEAD 에서 사전 스캔을 남기고, 결�
 **정직한 기록**: RQ-D14 worker 는 이 지시가 도착하기 전인 HEAD `de94051` 시점에 이미 기동됐다.
 위 PRE-RUN 스캔은 `git archive de94051` 로 그 시점 트리를 복원해 **소급 수행**한 것이다.
 "실행 전에 돌렸다" 가 아니라 "실행 시점의 트리를 사후에 복원해 검사했다" 가 정확한 서술이다.
+
+---
+
+# 상태 정리 2026-08-27 23:45 — 큐 표가 stale 했다
+
+앞선 표들이 완료된 RQ 를 OPEN 으로 남겨두고 있었다. 실제 상태로 갱신한다.
+루프가 이 표를 읽고 다음 작업을 고르므로 stale 하면 이미 끝난 일을 다시 한다.
+
+## 완료 (verdict 포함)
+
+| RQ | verdict | 한 줄 |
+|---|---|---|
+| RQ-D1 | SUPPORTED | 분모 사슬 66→59→56→31. F4 는 RQ-D13c 에서 **부분 정정됨** |
+| RQ-D8 | PARTIALLY_SUPPORTED | cap 절단 ITEM_DETAIL 편향, 단 크기 교란과 분리 불가 |
+| RQ-D9 | REFUTED | dom 크기는 품질 대리변수가 아니다. `dom_interactive_n` 권고 |
+| RQ-D10 | PARTIALLY_SUPPORTED | slot 시점 불일치 실재하나 6/58 국한 |
+| RQ-D11 | REFUTED(H1) | 원장 = evidence 완전 일치. 손실은 원장→mart |
+| RQ-D12 | REFUTED(H1) | 곤란 신호는 몰려 있지 않다. 부호 반대 신호 혼재 |
+| RQ-D12a | REFUTED(H1) | SPA 시점 아님. 구조빈약 73%가 진짜 빈약 |
+| RQ-D12a-2 | PARTIALLY_SUPPORTED | 겹침은 구성상 순환. 독립 증거 아님 |
+| RQ-D12a-3 | INCONCLUSIVE | 외생 증거만 쓰면 odds 방향 역전. 검정력 없음 |
+| RQ-D13 | PARTIALLY_SUPPORTED | 수집기 결함 아님. distinct URL 56/59 |
+| RQ-D13a | PARTIALLY_SUPPORTED | coverage 1.0 의 4/22 만 모달 |
+| RQ-D13a-1 | PARTIALLY_SUPPORTED | 방향 견고·크기 정의의존(0.182~0.455) |
+| RQ-D13b | PARTIALLY_SUPPORTED | 픽셀 무변화 82건 중 35.4%는 DOM 변화 |
+| RQ-D13c | SUPPORTED | `build_real_marts.py:48` `if l0:` — else 없음. **RQ-D1 F4 정정** |
+| RQ-D14 | PARTIALLY_SUPPORTED | RF001-A 의 관측은 확인, 추론은 반증 |
+| RQ-D3A | NOT_SUPPORTED | L0 numeric feature 로 archetype prior 구분 실패 |
+| RQ-D-RF-001 A/B/C | NOT_SUPPORTED / NOT_SUPPORTED / PARTIALLY | rule DT · TF-IDF · 임베딩 |
+| RQ-D-RF-002 A~F | SUPPORTED / PARTIALLY ×3 / NOT_SUPPORTED / PARTIALLY | **종결** |
+| D-SUP-01 | PARTIALLY_SUPPORTED | prior 경로 NOT_TESTABLE, prior-free 로 이전 |
+| D-SUP-02 | SUPPORTED | L1 출구는 거의 다 있고 판별력이 없다 |
+
+## 진행 중
+
+| RQ | 상태 |
+|---|---|
+| **RQ-D15** | **RUNNING** — v3 코퍼스(D-DEF-01 인코딩 + D-DEF-04 CSS 둘 다 시정) 기준 NLP 4실험 재현. verdict 격자로 결론 유지 여부 검증 |
+
+## 여전히 OPEN
+
+| RQ | 질문 | 왜 아직 안 했나 |
+|---|---|---|
+| **RQ-D6** | partial NED 보존 미구현이 detector 결함과 독립인가 | Axis B 는 NED 조차 0/31 이라 관측이 없다. 코드 경로 확인이 필요 |
+| **RQ-D7** | 분모 불일치가 planned association 추정에 주는 영향 상한 | Axis A 가 0행이라 association 자체가 계산 불가. 상한만 논증 가능 |
+| **RQ-D11a** | batch hash chain 재계산 무결성 검증 | RQ-D11 이 파일의 자기주장만 읽었다 |
+| **RQ-D13b-1** | H1_NO_EFFECT 53건에서 dismiss 대상이 그 시점에 실재했는가 | l0c 에 step 별 대상 selector 가 없다 |
+| **RQ-D13b-2** | H4_PIXEL_ONLY 37건의 픽셀 변화 원인 | |
+
+## D 자체 결함 (누적 5건, 전부 D 의 파싱·분류였고 수집기는 매번 결백)
+
+| id | 결함 | 발견 경로 | 시정 |
+|---|---|---|---|
+| D-DEF-01 | charset 무시 → mojibake 6/56 | worker 3기 지적, C 에 오귀속했다 **철회** | v2 |
+| D-DEF-02 | 방화벽 severity 미적용 → 거짓 FAIL 7건 | 자체 | v2 규칙 |
+| D-DEF-03 | dismiss 스키마 오독 | worker 지적, **broadcast 전 차단** | 빌더 분리 |
+| D-DEF-04 | `<style>`/`<script>` 텍스트 혼입 | worker 지적, **크기는 D 가 재측정**(4/56→2/56) | v3 |
+| D-DEF-05 | 기계가독 부정선언 미인식 → 거짓 FAIL 24건 | 자체 | 부정 키 + 구조화 창 확대 |
+
+**패턴**: 중간 표현을 D 가 만들고 D 가 분석하면 D 의 버그가 세상에 대한 발견처럼 보인다.
+D-DEF-01 은 그것을 broadcast 해 철회까지 갔고, 이후 셋은 broadcast 전에 잡았다.

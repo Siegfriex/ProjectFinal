@@ -127,7 +127,7 @@ def main() -> int:
         out.append(rec)
 
     cols = list(out[0].keys())
-    dest = RD / "results" / "D_TEXT_CORPUS_v2.csv"
+    dest = RD / "results" / "D_TEXT_CORPUS_v3.csv"
     with dest.open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=cols)
         w.writeheader()
