@@ -1,4 +1,25 @@
 {
+ "status": "HISTORICAL_METHOD_ASSURANCE",
+ "v2_diagnostic_allowed": false,
+ "real_target_allowed": false,
+ "changed_at": "2026-08-28T02:54:00+09:00",
+ "changed_by": "A (Authority Plane)",
+ "reason": "Director 가 2026-08-28 에 8-phase 를 3-STEP 으로 축약하며 지시했다 — 'DIAG-PILOT-001 12건은 더 이상 실행하지 않는다. HISTORICAL_METHOD_ASSURANCE 로 freeze 한다.' 이 문서는 그 지시를 반영한다.",
+ "detected_by": "A 평면 lane2 인벤토리. Director 지시 이후에도 이 문서가 문자 그대로 status=RELEASED 를 유지하고 있었다 — 의도는 종결인데 문서는 허가 상태였다. fail-open 이다.",
+ "why_this_matters": "firewall 은 이 문서의 status 와 allow flag 를 읽는다. 구동기가 없어서 실행이 안 되고 있을 뿐, 구동기가 생기면 이 문서가 허가한다. '지금 실행되지 않는다' 와 '실행이 금지돼 있다' 는 다르다. 이 세션의 반복 결함군(presence ≠ operative)의 또 한 사례이며, 이번에는 방향이 반대다 — 문서가 있는데 작동하지 않는 것이 아니라, 의도가 없는데 문서가 살아 있었다.",
+ "never_executed": "12 target 은 한 번도 실행되지 않았다. REAL_TARGET 접속 누적 0건. 이것은 실패나 미완이 아니라 경로 변경으로 실행이 불필요해진 것이다.",
+ "what_this_authorizes": "없음. 어떤 REAL_TARGET 접속도 허가하지 않는다.",
+ "preserved_assets": [
+  "engine firewall 의 V2_DIAGNOSTIC scope 구현 (@e2bb63e, 삭제 금지)",
+  "manifest 78f2e32a8fc1e732e405… → 정확히는 78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799 (control/pilot-manifest @54a0c7a4)",
+  "W1 guard wiring · fixture · exactly-once 계측",
+  "C 의 3방향 PASS 기록 (allow12/outside5/tamper2) 과 음성대조 2종",
+  "T-B-BLK-008 · T-B-BLK-009 의 분석 — 특히 '2층이 1층보다 약하면 독립 방어가 무의미하다' 는 지적은 V3 scope 에 승계됐다"
+ ],
+ "severed_link": "12 PASS → E001_FULL 59 GO 연결은 폐기됐다. E001_RELEASE.json 은 SUSPENDED 유지.",
+ "layer_firewall_note": "batch 2층(layer_firewall.py)은 V2_DIAGNOSTIC 을 끝내 알지 못한 채로 남는다. 그것이 이제 의도된 종결 상태다 — T-A-V3-STEP1-FREEZE C_BLK_009_ruling ②. W1 이 남긴 두 테스트는 삭제하지 않고 docstring 만 갱신한다.",
+ "revocation_lesson": "이 문서는 스스로 'pilot 종료 또는 C0 발생 시 A 가 status 를 변경한다' 고 적어 두었다. 그 조항이 있었는데도 Director 지시 후 12분간 RELEASED 로 남아 있었다. 조항의 존재가 집행이 아니다 — 회수는 자동으로 일어나지 않으며 누군가 실행해야 한다. A 의 lane 이 잡았다.",
+ "superseded_release": {
   "status": "RELEASED",
   "released_at": "2026-08-28T00:48:11+09:00",
   "released_by": "A (Authority Plane) — Director Phase Transition V2_DIAGNOSTIC_REAL_EVIDENCE_PILOT · D-R0-80",
@@ -13,33 +34,34 @@
   "scope_binding": "이 문서의 manifest_sha256 은 firewall 의 DIAGNOSTIC_PILOT_MANIFEST_SHA256 상수와 같아야 한다(D-R0-82 §4 요구 5). 다르면 scope 승인과 표본의 바인딩이 깨진 것이며 firewall 이 거부한다 — 표본이 조용히 바뀌는 것을 막는다.",
   "what_this_authorizes": "manifest 12 target 에 대한 REAL_TARGET 접속. 그 외 어떤 target 도 아니다.",
   "what_this_does_not_authorize": [
-    "E001_FULL 59 target — E001_RELEASE.json 은 같은 시각 SUSPENDED 로 정지됐다",
-    "canonical analysis — pilot evidence 는 C 검증 전 canonical 로 쓰지 않는다 (D-R0-80 §9)",
-    "W2 acceptance — W2 b28aaa5 는 NOT_PASSED freeze 유지",
-    "canonical Axis-B association — W2 acceptance 전까지 금지"
+   "E001_FULL 59 target — E001_RELEASE.json 은 같은 시각 SUSPENDED 로 정지됐다",
+   "canonical analysis — pilot evidence 는 C 검증 전 canonical 로 쓰지 않는다 (D-R0-80 §9)",
+   "W2 acceptance — W2 b28aaa5 는 NOT_PASSED freeze 유지",
+   "canonical Axis-B association — W2 acceptance 전까지 금지"
   ],
   "safety_unchanged": [
-    "credential 입력·login submit 절대 금지 (D-R0-03)",
-    "CAPTCHA 해결·우회 금지. active blocking challenge 만 terminal (D-R0-05/65)",
-    "거래 control 존재 관측만. 활성화 금지. 장바구니는 FORBIDDEN_TRANSACTION (D-R0-06 · T-A-W1-P2-DECIDED)",
-    "exactly-once — 억제는 launch 이전. 억제 실패는 C0 (D-R0-38/46/60)"
+   "credential 입력·login submit 절대 금지 (D-R0-03)",
+   "CAPTCHA 해결·우회 금지. active blocking challenge 만 terminal (D-R0-05/65)",
+   "거래 control 존재 관측만. 활성화 금지. 장바구니는 FORBIDDEN_TRANSACTION (D-R0-06 · T-A-W1-P2-DECIDED)",
+   "exactly-once — 억제는 launch 이전. 억제 실패는 C0 (D-R0-38/46/60)"
   ],
   "pass_criteria": "detector score 가 아니다. D-R0-31 systemic measurement mismatch 유무 + W1 safety/exactly-once 계약 준수 (D-R0-80 §4).",
   "launch_gates_at_release_time": {
-    "1_C_preflight": "1~6 MET @288025ff, 최종 SHA 재실행 조건부",
-    "2_W1_mask": "MET @4ec538b — 장바구니 FORBIDDEN_TRANSACTION · disabled DISABLED_OR_INERT 양방향",
-    "3_V2_DIAGNOSTIC_scope": "구현 MET @W1 e2bb63e. 구동기 배선은 T-B-BLK-008 로 미해결",
-    "note": "이 문서의 발행이 launch 승인이 아니다. firewall 이 scope 를 허가하는 조건일 뿐이며 launch 는 세 게이트가 모두 닫힌 뒤 A 가 별도로 판정한다."
+   "1_C_preflight": "1~6 MET @288025ff, 최종 SHA 재실행 조건부",
+   "2_W1_mask": "MET @4ec538b — 장바구니 FORBIDDEN_TRANSACTION · disabled DISABLED_OR_INERT 양방향",
+   "3_V2_DIAGNOSTIC_scope": "구현 MET @W1 e2bb63e. 구동기 배선은 T-B-BLK-008 로 미해결",
+   "note": "이 문서의 발행이 launch 승인이 아니다. firewall 이 scope 를 허가하는 조건일 뿐이며 launch 는 세 게이트가 모두 닫힌 뒤 A 가 별도로 판정한다."
   },
   "authority_refs": {
-    "promoted_main_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
-    "director_decision": "Phase Transition — V2_DIAGNOSTIC_REAL_EVIDENCE_PILOT · PARTIAL_READY_WITH_BLOCKER",
-    "a_decisions": [
-      "D-R0-80",
-      "D-R0-82",
-      "T-A-PILOT-EXEC-001"
-    ],
-    "manifest_ref": "control/pilot-manifest @ 54a0c7a4149adc17c086e398be83bc7c117a66b0"
+   "promoted_main_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+   "director_decision": "Phase Transition — V2_DIAGNOSTIC_REAL_EVIDENCE_PILOT · PARTIAL_READY_WITH_BLOCKER",
+   "a_decisions": [
+    "D-R0-80",
+    "D-R0-82",
+    "T-A-PILOT-EXEC-001"
+   ],
+   "manifest_ref": "control/pilot-manifest @ 54a0c7a4149adc17c086e398be83bc7c117a66b0"
   },
   "revocation": "pilot 종료 또는 C0 발생 시 A 가 status 를 변경한다. deadline 필드를 두지 않는다 — firewall 이 deadline 을 검사하지 않으므로 통제처럼 보이지만 통제가 아니다(E001_RELEASE 에서 실증됐다). 정지는 status 로만 한다."
+ }
 }
