@@ -5,7 +5,7 @@ Usage: python qa_claim.py --claims FINAL_RESULTS_SUMMARY.md [CLAIM_REGISTRY.md L
 Statuses per claim sentence: SUPPORTED / SUPPORTED_WITH_LIMITATION / EXPLORATORY_ONLY / UNSUPPORTED / MISMATCH. Final headline decision is A's.
 """
 from __future__ import annotations
-import argparse, json, pathlib, re, datetime
+import argparse, json, pathlib, re, datetime, sys
 KST = datetime.timezone(datetime.timedelta(hours=9)); now = lambda: datetime.datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00")
 
 FORBIDDEN = [  # (pattern, rule, note)
@@ -77,11 +77,13 @@ def main(a):
     canon = pathlib.Path(__file__).resolve().parent / "out" / "C_CANONICAL_NUMBERS.json"
     for f in (a.replay, a.recon, str(canon) if canon.is_file() else None):
         if f and pathlib.Path(f).is_file(): flatten_numbers(json.loads(pathlib.Path(f).read_text(encoding="utf-8")), ref)
-    rows = []
+    rows = []; files_expected = len(a.claims); files_scanned = 0; sentences_scanned = 0
     for cf in a.claims:
         p = pathlib.Path(cf)
-        if not p.is_file(): rows.append({"file": cf, "sentence": None, "status": "MISMATCH", "issues": ["file missing"]}); continue
+        if not p.is_file(): rows.append({"file": cf, "sentence": None, "status": "MISMATCH", "issues": ["FILE_MISSING — absence of target is not absence of violation (B 16:36 layer 4)"]}); continue
+        files_scanned += 1
         for s in sentences(p.read_text(encoding="utf-8")):
+            sentences_scanned += 1
             issues = []; status = "SUPPORTED"
             for pat, rule, note in FORBIDDEN:
                 if re.search(pat, s, re.I): issues.append(f"FORBIDDEN {rule}: {note}")
@@ -110,10 +112,13 @@ def main(a):
     out = pathlib.Path(a.out); out.parent.mkdir(parents=True, exist_ok=True)
     cnt = {}
     for r in rows: cnt[r["status"]] = cnt.get(r["status"], 0) + 1
-    md = [f"# QA_CLAIM_LEDGER (C) — {now()}", "", f"기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: {a.replay}, {a.recon}", "", f"집계: {cnt}", "", "| file | status | issues | sentence |", "|---|---|---|---|"]
+    scan_ok = (files_scanned == files_expected and sentences_scanned > 0)
+    if not scan_ok: cnt["SCAN_INVALID"] = cnt.get("SCAN_INVALID", 0) + 1
+    md = [f"# QA_CLAIM_LEDGER (C) — {now()}", "", f"기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: {a.replay}, {a.recon}", "", f"**scan coverage: files {files_scanned}/{files_expected} · sentences {sentences_scanned} · {'VALID' if scan_ok else 'INVALID — 0 hits does not mean CLEAN'}**", "", f"집계: {cnt}", "", "| file | status | issues | sentence |", "|---|---|---|---|"]
     for r in rows: md.append(f"| {r['file']} | **{r['status']}** | {'; '.join(r['issues']) or '-'} | {(r['sentence'] or '').replace('|','／')} |")
     md += ["", "> 최종 headline 판정은 A. C 는 §2 금지 스캔·grade 태그·N 병기·수치 일치만 판정한다. `NUMBER_NOT_IN_C_REPLAY` 는 A 가 인용하는 숫자가 C 재계산값 집합에 없다는 뜻이며, 반올림 차이일 수 있어 개별 확인 대상이다."]
-    out.write_text("\n".join(md), encoding="utf-8"); print(json.dumps(cnt, ensure_ascii=False)); print("written", out)
+    out.write_text("\n".join(md), encoding="utf-8"); print(json.dumps({"scan_files": f"{files_scanned}/{files_expected}", "sentences": sentences_scanned, "scan_valid": scan_ok, **cnt}, ensure_ascii=False)); print("written", out)
+    if not scan_ok: sys.exit(2)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--claims", nargs="+", required=True); ap.add_argument("--replay"); ap.add_argument("--recon"); ap.add_argument("--out", default="out/QA_CLAIM_LEDGER.md"); main(ap.parse_args())
