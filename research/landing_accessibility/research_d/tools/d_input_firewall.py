@@ -116,6 +116,15 @@ def severity(hit: dict, text: str) -> str:
     ref = hit.get("reference")
     if ref in _ALLOWED_EXACT:
         return "ALLOWED_BY_EXCEPTION"
+    # 허용목록은 저장소 상대경로다. D 도구가 같은 파일을 절대경로나 선행 `/` 형태로
+    # 적으면 문자열이 달라 예외가 안 걸린다 — 파일은 같은데 표기만 다르다.
+    # **꼬리가 허용 경로와 정확히 일치할 때만** 면제한다. 접두는 넓히지 않는다.
+    if isinstance(ref, str):
+        for a in _ALLOWED_EXACT:
+            if a.endswith("/**"):
+                continue
+            if ref.endswith("/" + a):
+                return "ALLOWED_BY_EXCEPTION"
     # allowlist 항목이 `.../**` 로 끝나면 그 디렉터리 접두만 면제한다.
     # 접두 매칭은 exact 매칭보다 넓으므로 `/**` 로 명시된 항목에만 적용한다.
     if isinstance(ref, str):
