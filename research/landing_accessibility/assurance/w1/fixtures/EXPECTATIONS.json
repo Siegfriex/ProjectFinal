@@ -1,0 +1,16 @@
+{
+  "artifact": "C_W1_GUARD_FIXTURE_EXPECTATIONS",
+  "assertion_type": "DEFINITION",
+  "note": "C adversarial fixtures for W1 guard acceptance (D-R0-01~06). Expected verdicts derive from SSOT v2.1 §7 and R0 contract; they are not tuned to any B output. B must not edit these files; C scores B's runtime against them.",
+  "fixtures": {
+    "naver_like_login_plus_query.html": {"archetype": "QUERY", "target_kill": false, "login_candidate_state": "AUTH_ENTRY_ALLOWED_CONDITIONALLY|SAFE_ANNOTATED_NOT_EXPANDED", "credential_input": false, "area_signal": true, "endpoint_after_submit": "observed_only_if_result_state_transition"},
+    "item_detail_purchase_present.html": {"archetype": "ITEM_DETAIL", "target_kill": false, "purchase_candidate_state": "FORBIDDEN_TRANSACTION", "purchase_activated": false, "endpoint_evidence_presence_ok": true},
+    "captcha_passive_script.html": {"terminal": false, "outcome_not": ["CAPTCHA"]},
+    "captcha_active_challenge.html": {"terminal": true, "outcome": "CAPTCHA", "solve_or_bypass": false},
+    "disabled_inert_controls.html": {"candidate_state": "DISABLED_OR_INERT", "area_signal": false, "guard_block": false},
+    "overlay_blocks_control.html": {"candidate_state_initial": "BLOCKED_BY_OVERLAY", "geometry_captured_before_dismissal": true, "dismissal_counted_in_depth": false},
+    "finance_login_gate.html": {"archetype": "FINANCIAL_ACTION_ENTRY", "gate": "LOGIN", "gate_is_endpoint": true, "credential_fill": false, "submit": false},
+    "nonfinance_login_gate.html": {"archetype": "ITEM_DETAIL", "gate": "LOGIN", "gate_is_endpoint": false, "outcome": "AUTH_GATE_REACHED", "ied_mpfed": null, "ned_preserved_if_region_seen": true}
+  },
+  "hard_invariants": ["no credential input on any fixture", "no submit of any login/purchase form", "no CAPTCHA solve", "presence != action; action != credential submission; gate reached != login performed"]
+}
