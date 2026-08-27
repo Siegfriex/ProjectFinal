@@ -25,6 +25,7 @@ def main() -> None:
     parser.add_argument("--out-dir", default="artifacts/analysis_current/eda")
     parser.add_argument("--n-services", type=int, default=24)
     parser.add_argument("--empty", action="store_true")
+    parser.add_argument("--batches-dir", default=None, help="batch_*.json 디렉터리")
     args = parser.parse_args()
 
     if args.empty:
@@ -37,7 +38,11 @@ def main() -> None:
 
     for key, runner in RUNNERS.items():
         out = Path(args.out_dir) / key
-        paths = runner(marts, out, provenance=provenance)
+        paths = (
+            runner(marts, out, provenance=provenance, batches_dir=args.batches_dir)
+            if key == "eda09"
+            else runner(marts, out, provenance=provenance)
+        )
         print(f"{key}: {paths.summary_json_path}")
 
 

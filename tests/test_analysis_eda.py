@@ -830,3 +830,78 @@ def test_amendment1_depth_axis_reported_as_result(marts: dict[str, pd.DataFrame]
     # 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다.
     assert "우리 도구의 도달 한계" in report["narrative_constraint"]
     assert "고령자가 대표기능에 도달할 수 없다" in report["narrative_constraint"]
+
+
+# ── 배치 결과에서 수집 마커 파생 (수집기 무변경) ─────────────────────────
+
+E000_BATCHES = (
+    "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/"
+    "claude_b_e000_real/artifacts/e000_fast_real/batches"
+)
+
+
+def test_batch_markers_reproduce_e000_actuals() -> None:
+    """E000 실측 재현 — 이 경로가 작동한다는 유일한 증거다.
+
+    기대: guard_blocked 3(LOGIN/PURCHASE/SIGNUP) · AUTH_GATE 2(E-6b 발화) · UNRESOLVED 1.
+    """
+    import pytest as _pytest
+    from analysis.eda.batch_results import derive_collection_markers
+
+    if not Path(E000_BATCHES).is_dir():
+        _pytest.skip("E000 배치 디렉터리가 이 환경에 없다")
+
+    m = derive_collection_markers(E000_BATCHES)
+    assert m["batches_found"] is True
+    assert m["n_results"] == 6
+    assert m["guard_blocked_n"] == 3
+    assert m["guard_blocked_by_category"] == {"LOGIN": 1, "PURCHASE": 1, "SIGNUP": 1}
+    assert m["e6b_fired_n"] == 2
+    assert m["e6b_value_corroborated_n"] == 2
+    assert m["outcome_counts"] == {
+        "ACCOUNT_ACTION_BLOCKED": 3,
+        "AUTH_GATE": 2,
+        "UNRESOLVED": 1,
+    }
+
+
+def test_batch_not_found_is_unknown_not_zero(tmp_path: Path) -> None:
+    """배치 미발견은 '확인 불가'이지 0건이 아니다."""
+    import pandas as pd
+    from analysis.eda.batch_results import derive_collection_markers
+    from analysis.eda.depth_axis import depth_axis_report
+
+    m = derive_collection_markers(tmp_path / "nope")
+    assert m["batches_found"] is False
+    assert m["guard_blocked_n"] is None
+    assert m["e6b_fired_n"] is None
+    assert "확인 불가" in m["note"]
+
+    marts = {
+        "fact_landing_observation": pd.DataFrame(),
+        "fact_task_entry": pd.DataFrame([{"MPFED": None, "endpoint_status": "X"}]),
+    }
+    report = depth_axis_report(marts)
+    assert report["by_reason"]["guard_blocked_pre_scout"] is None
+    assert report["e6b_fired_count"] is None
+    assert report["marker_source"] == "UNAVAILABLE"
+
+
+def test_depth_axis_uses_batch_markers_when_available() -> None:
+    """배치가 있으면 그 계수를 쓰고 출처를 명시한다."""
+    import pandas as pd
+    import pytest as _pytest
+    from analysis.eda.depth_axis import depth_axis_report
+
+    if not Path(E000_BATCHES).is_dir():
+        _pytest.skip("E000 배치 디렉터리가 이 환경에 없다")
+
+    marts = {
+        "fact_landing_observation": pd.DataFrame(),
+        "fact_task_entry": pd.DataFrame([{"MPFED": None, "endpoint_status": "AUTH_GATE_REACHED"}]),
+    }
+    report = depth_axis_report(marts, batches_dir=E000_BATCHES)
+    assert report["marker_source"] == "BATCH_RESULTS"
+    assert report["by_reason"]["guard_blocked_pre_scout"] == 3
+    assert report["by_reason"]["gate_kind_undetermined"] == 2
+    assert report["e6b_fired_count"] == 2

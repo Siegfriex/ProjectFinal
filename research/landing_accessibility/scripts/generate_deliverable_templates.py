@@ -44,6 +44,7 @@ def main() -> None:
     parser.add_argument("--out-dir", default="artifacts/analysis_current/deliverables")
     parser.add_argument("--n-services", type=int, default=24)
     parser.add_argument("--empty", action="store_true")
+    parser.add_argument("--batches-dir", default=None, help="batch_*.json 디렉터리")
     parser.add_argument("--branch", default="claude-b/analysis-current")
     parser.add_argument("--base-sha", default="397a10d")
     parser.add_argument("--commit-sha", default=None)
@@ -69,7 +70,11 @@ def main() -> None:
     source_shas: dict[str, str] = {}
     for key, runner in RUNNERS.items():
         eda_out = out_dir / "eda" / key
-        paths = runner(marts, eda_out, provenance=provenance)
+        paths = (
+            runner(marts, eda_out, provenance=provenance, batches_dir=args.batches_dir)
+            if key == "eda09"
+            else runner(marts, eda_out, provenance=provenance)
+        )
         eda_summaries[key] = json.loads(paths.summary_json_path.read_text())
         eda_markdown_paths[key] = paths.markdown_path
         source_shas[key] = file_sha256(paths.summary_json_path)
