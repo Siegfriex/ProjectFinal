@@ -1,8 +1,8 @@
-# QA_CLAIM_LEDGER (C) — 2026-08-27T16:36:11+09:00
+# QA_CLAIM_LEDGER (C) — 2026-08-27T16:38:33+09:00
 
 기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_STAT_REPLAY.json, /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_MART_RECONCILIATION.json
 
-**scan coverage: files 4/4 · sentences 398 · VALID**
+**scan coverage: files 4/4 · sentences 398 · retracted-phrase raw hits 2 · positive controls {"successor of '정직하게 거부' / '없는 codebook'": 7, "successor of '설계가 작동'": 9, "successor of 'wiring 고쳐도 신호 없다'": 5} · VALID**
 
 집계: {'SUPPORTED_WITH_LIMITATION': 38, 'MISMATCH': 1, 'SUPPORTED': 6}
 

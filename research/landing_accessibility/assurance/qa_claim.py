@@ -37,6 +37,8 @@ AXIS_C_CHECKS = [  # (trigger, required-companion, note)
 ]
 _FORBIDDEN_TAIL = None
 # CLAIM_GOVERNANCE rev 14:58: association NOT_COMPUTABLE, substitute_made=false → any association/GRADE B/C claim is out today
+# positive controls (A 16:38): each retracted phrase is paired with its successor phrase; retracted==0 AND successor==0 ⇒ scanner saw nothing ⇒ SCAN_INVALID
+POSITIVE_CONTROLS = [(r"정의는\s*존재했으나|전달되지\s*않았", "successor of '정직하게 거부' / '없는 codebook'"), (r"설계\s*의도가\s*아니라\s*결함|wiring\s*갭", "successor of '설계가 작동'"), (r"현재\s*구현\s*조건부|현재\s*collector/measurement\s*구현\s*하에서", "successor of 'wiring 고쳐도 신호 없다'")]
 RETRACTED = [  # A 16:29: 철회된 주장은 지목된 자리 외에도 남을 수 있다 — '제거 확인' 상시 항목
     (r"정직하게\s*거부|정직한\s*거부", "RETRACTED 16:25", "wiring 갭을 '거부' 로 서술한 문구는 철회됨 (E-6b 1건 한정 표현만 허용)"),
     (r"없는\s*codebook|codebook\s*(이|가)?\s*없", "RETRACTED 16:25", "정의는 CSV 59/59 존재 — 'codebook 부재' 전제는 철회됨(REC-B-4)"),
@@ -77,11 +79,11 @@ def main(a):
     canon = pathlib.Path(__file__).resolve().parent / "out" / "C_CANONICAL_NUMBERS.json"
     for f in (a.replay, a.recon, str(canon) if canon.is_file() else None):
         if f and pathlib.Path(f).is_file(): flatten_numbers(json.loads(pathlib.Path(f).read_text(encoding="utf-8")), ref)
-    rows = []; files_expected = len(a.claims); files_scanned = 0; sentences_scanned = 0
+    rows = []; files_expected = len(a.claims); files_scanned = 0; sentences_scanned = 0; corpus = []
     for cf in a.claims:
         p = pathlib.Path(cf)
         if not p.is_file(): rows.append({"file": cf, "sentence": None, "status": "MISMATCH", "issues": ["FILE_MISSING — absence of target is not absence of violation (B 16:36 layer 4)"]}); continue
-        files_scanned += 1
+        files_scanned += 1; corpus.append(p.read_text(encoding="utf-8"))
         for s in sentences(p.read_text(encoding="utf-8")):
             sentences_scanned += 1
             issues = []; status = "SUPPORTED"
@@ -112,12 +114,16 @@ def main(a):
     out = pathlib.Path(a.out); out.parent.mkdir(parents=True, exist_ok=True)
     cnt = {}
     for r in rows: cnt[r["status"]] = cnt.get(r["status"], 0) + 1
-    scan_ok = (files_scanned == files_expected and sentences_scanned > 0)
+    text_all = "\n".join(corpus)
+    retracted_hits = sum(len(re.findall(pat, text_all, re.I)) for pat, _, _ in RETRACTED)
+    controls = {note: len(re.findall(pat, text_all, re.I)) for pat, note in POSITIVE_CONTROLS}
+    control_ok = any(v > 0 for v in controls.values())
+    scan_ok = (files_scanned == files_expected and sentences_scanned > 0 and (control_ok or retracted_hits > 0))
     if not scan_ok: cnt["SCAN_INVALID"] = cnt.get("SCAN_INVALID", 0) + 1
-    md = [f"# QA_CLAIM_LEDGER (C) — {now()}", "", f"기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: {a.replay}, {a.recon}", "", f"**scan coverage: files {files_scanned}/{files_expected} · sentences {sentences_scanned} · {'VALID' if scan_ok else 'INVALID — 0 hits does not mean CLEAN'}**", "", f"집계: {cnt}", "", "| file | status | issues | sentence |", "|---|---|---|---|"]
+    md = [f"# QA_CLAIM_LEDGER (C) — {now()}", "", f"기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: {a.replay}, {a.recon}", "", f"**scan coverage: files {files_scanned}/{files_expected} · sentences {sentences_scanned} · retracted-phrase raw hits {retracted_hits} · positive controls {controls} · {'VALID' if scan_ok else 'INVALID — 0 hits does not mean CLEAN (no target, or scanner saw nothing)'}**", "", f"집계: {cnt}", "", "| file | status | issues | sentence |", "|---|---|---|---|"]
     for r in rows: md.append(f"| {r['file']} | **{r['status']}** | {'; '.join(r['issues']) or '-'} | {(r['sentence'] or '').replace('|','／')} |")
     md += ["", "> 최종 headline 판정은 A. C 는 §2 금지 스캔·grade 태그·N 병기·수치 일치만 판정한다. `NUMBER_NOT_IN_C_REPLAY` 는 A 가 인용하는 숫자가 C 재계산값 집합에 없다는 뜻이며, 반올림 차이일 수 있어 개별 확인 대상이다."]
-    out.write_text("\n".join(md), encoding="utf-8"); print(json.dumps({"scan_files": f"{files_scanned}/{files_expected}", "sentences": sentences_scanned, "scan_valid": scan_ok, **cnt}, ensure_ascii=False)); print("written", out)
+    out.write_text("\n".join(md), encoding="utf-8"); print(json.dumps({"scan_files": f"{files_scanned}/{files_expected}", "sentences": sentences_scanned, "retracted_raw_hits": retracted_hits, "positive_controls": controls, "scan_valid": scan_ok, **cnt}, ensure_ascii=False)); print("written", out)
     if not scan_ok: sys.exit(2)
 
 if __name__ == "__main__":
