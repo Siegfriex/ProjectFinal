@@ -1,0 +1,113 @@
+{
+  "artifact": "QA_BATCH_STREAM",
+  "generated_by": "C",
+  "generated_at": "2026-08-27T14:16:12+09:00",
+  "out_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03",
+  "worker": "worker_03",
+  "batch_file": "batch_0001_b0001.json",
+  "batch_file_sha256": "ebfccfccf3e576bd53ccc4ca155485ebd2d0d61494ba1d08f85ce5d0fdf046cb",
+  "rerun_after_change": false,
+  "verdict_cumulative": "MISMATCH",
+  "severity_max_cumulative": "C1",
+  "batch_targets": [
+    [
+      "wtg_8fd5d30f8b1d707b",
+      "AUTH_GATE",
+      "GATE_REACHED_MPFED_NULL"
+    ],
+    [
+      "wtg_a215c45b2cc585ca",
+      "AUTH_GATE",
+      "GATE_REACHED_MPFED_NULL"
+    ],
+    [
+      "wtg_c5285b96b598a08b",
+      "ACCOUNT_ACTION_BLOCKED",
+      "L1_NOT_ATTEMPTED_GUARD"
+    ],
+    [
+      "wtg_5ede56738376a8c5",
+      "ACCOUNT_ACTION_BLOCKED",
+      "L1_NOT_ATTEMPTED_GUARD"
+    ]
+  ],
+  "cumulative": {
+    "attempted_n": 4,
+    "joint_valid_j1_j3_n": 0,
+    "excluded_by_reason": {
+      "GATE_REACHED_MPFED_NULL": 2,
+      "L1_NOT_ATTEMPTED_GUARD": 2
+    },
+    "by_archetype": {
+      "FINANCIAL_ACTION_ENTRY": {
+        "attempted": 1,
+        "j1_j3_valid": 0
+      },
+      "UTILITY_ENTRY": {
+        "attempted": 1,
+        "j1_j3_valid": 0
+      },
+      "ITEM_DETAIL": {
+        "attempted": 1,
+        "j1_j3_valid": 0
+      },
+      "COMMUNICATION_ENTRY": {
+        "attempted": 1,
+        "j1_j3_valid": 0
+      }
+    },
+    "n_batches": 1,
+    "batch_hash_all_ok": true,
+    "outcomes": {
+      "AUTH_GATE": 2,
+      "ACCOUNT_ACTION_BLOCKED": 2
+    },
+    "orphan_evidence_runs": [
+      "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z"
+    ],
+    "run_accounting": {
+      "disk_runs": 6,
+      "referenced_by_batch": 4,
+      "retry_superseded": [],
+      "guard_blocked_l0": [],
+      "unsealed_in_progress": [
+        "e001_full-wtg_e296af221a5f7128-2026-08-27T051610954078Z"
+      ],
+      "orphan_unexplained": [
+        "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z"
+      ]
+    },
+    "mpfed_null_reason": {
+      "gate_kind_undetermined": 2,
+      "guard_blocked_pre_scout": 2
+    },
+    "mpfed_available_n": 0,
+    "e6b_fail_closed_fired_n": 2,
+    "quarantine": [
+      {
+        "run_id": "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z",
+        "class": "CONCURRENT_LAUNCH_SUPERSEDED",
+        "reason": "sealed REAL run not referenced by any batch; produced by a concurrent duplicate launch process (A 13:48: possibly duplicate launch command presentation)",
+        "limitations_sentence": "동시 이중 발사로 실제 호스트에 중복 요청이 나갔고, 그 run 은 분석에서 격리했다."
+      }
+    ]
+  },
+  "append_only": {
+    "batch_files": 1,
+    "runs": 5,
+    "changed_batches": [],
+    "changed_manifests": [],
+    "removed": []
+  },
+  "findings_batch": [
+    {
+      "severity": "C1",
+      "code": "ORPHAN_EVIDENCE_RUNS",
+      "msg": "1 sealed evidence runs referenced by no batch result and not explained by retry/guard",
+      "runs": [
+        "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z"
+      ]
+    }
+  ],
+  "findings_all_count": 1
+}

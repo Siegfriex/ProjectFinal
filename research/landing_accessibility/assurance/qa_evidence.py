@@ -331,10 +331,16 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
     # guard-blocked L0 run counts as explained ONLY if that target has no referenced run at all (executor dropped its L0 record)
     guard_blocked = [n for n in unref if n not in retry_superseded and any(r["target_id"] == _tid_of(n) and r["outcome"] == "ACCOUNT_ACTION_BLOCKED" and not r.get("evidence_run_id") for r in rows)]
     unsealed = [n for n in disk_runs if not (ev / n / "manifest.jsonl").is_file()]
-    orphan = [n for n in unref if n not in retry_superseded and n not in guard_blocked and n not in unsealed]
+    # runs sealed AFTER the last sealed batch belong to a batch still in progress — not orphans (yet)
+    last_commit = max((b.get("committed_at") or "" for b in batches), default="")
+    def _sealed_at(n):
+        try: return json.loads((ev / n / "run.json").read_text(encoding="utf-8")).get("sealed_at") or ""
+        except Exception: return ""
+    pending_batch = [n for n in unref if n not in unsealed and _sealed_at(n) > last_commit]
+    orphan = [n for n in unref if n not in retry_superseded and n not in guard_blocked and n not in unsealed and n not in pending_batch]
     if orphan: f.add("C1", "ORPHAN_EVIDENCE_RUNS", f"{len(orphan)} sealed evidence runs referenced by no batch result and not explained by retry/guard", runs=orphan[:20])
     if guard_blocked: f.add("C2", "GUARD_BLOCKED_L0_RUNS", f"{len(guard_blocked)} L0 runs from ACCOUNT_ACTION_BLOCKED targets (lineage note)", runs=guard_blocked[:10])
-    run_accounting = {"disk_runs": len(disk_runs), "referenced_by_batch": len(referenced), "retry_superseded": retry_superseded, "guard_blocked_l0": guard_blocked, "unsealed_in_progress": unsealed, "orphan_unexplained": orphan}
+    run_accounting = {"disk_runs": len(disk_runs), "referenced_by_batch": len(referenced), "retry_superseded": retry_superseded, "guard_blocked_l0": guard_blocked, "unsealed_in_progress": unsealed, "pending_batch_sealed": pending_batch, "orphan_unexplained": orphan}
     ao = append_only_check(out, batches, pathlib.Path(state) if state else None, f)
     # A 14:10 priority 4: no new target started after 14:45 KST hardstop
     for r in rows:
