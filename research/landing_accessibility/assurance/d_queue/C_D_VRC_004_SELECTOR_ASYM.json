@@ -1,0 +1,39 @@
+{
+ "artifact": "C_D_VRC_004_SELECTOR_ASYM_REPLICATION",
+ "d_finding": "D-F-SELECTOR-ASYM",
+ "d_sha": "6bdc87158dc10cf27c45f30e3998903a95815e8e",
+ "d_mlflow_run": "0930a4298ab046e7bd8518d49a12ccce",
+ "c_method": "lxml XPath over 56 frozen dom.html (probe 무관); 코드 셀렉터는 git grep exact SHA",
+ "verdict": "D_CONFIRMED",
+ "code": {
+  "2281c85": "l0_probe.js:317 3-selector / l1_engine.py:697 2-selector([role=combobox] 누락)",
+  "b28aaa5": "l0_probe.js:469 / l1_engine.py:1694 — 비대칭 유지",
+  "4bbbc22(integration)": "동일 — 비대칭 유지"
+ },
+ "dom_totals": {
+  "input[type=search]": 8,
+  "[role=searchbox]": 0,
+  "[role=combobox]": 3
+ },
+ "targets_any_selector": 10,
+ "engine_zero_probe_positive": [
+  {
+   "service": "YouTube",
+   "archetype": "CONTENT_OPEN",
+   "combobox_tag": "input"
+  },
+  {
+   "service": "Google",
+   "archetype": "QUERY",
+   "combobox_tag": "div"
+  },
+  {
+   "service": "롯데마트",
+   "archetype": "ITEM_DETAIL",
+   "combobox_tag": "input"
+  }
+ ],
+ "typing_blocked_query": 1,
+ "c_additional": "Google 의 combobox 는 <div>(input 아님) — engine 을 combobox 로 넓혀도 fill() 이 성립하는지는 별도 확인 필요(D 도 미확인이라고 명시). 12-target pilot 에 Google 은 없음(QUERY = 삼성 인터넷 브라우저·다음) → pilot 결과에 직접 영향 없음. full-59 QUERY 4 중 1 의 L1 타이핑 episode 가 구조적으로 불가",
+ "severity": "P2 (pilot 비차단 · full-59 이전 A 결정 항목)"
+}
