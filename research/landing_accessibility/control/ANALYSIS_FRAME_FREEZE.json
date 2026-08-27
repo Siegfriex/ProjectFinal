@@ -104,12 +104,38 @@
       "sum": 59
     },
 
-    "headline_implication": "depth 축 실패의 지배적 원인은 **(1) 가드 입도(25건, 우리 도구)** 와 **(2) archetype-endpoint 규칙 자체(11건, 우리 설계)** 다. gate 판별 실패(E-6b)는 1건에 불과하다. **셋을 뭉뚱그려 '측정기가 실패했다' 로 쓰면 원인이 흐려진다.**"
+    "headline_implication": "depth 축 실패의 지배적 원인은 **(1) 가드 입도(25건, 우리 도구)** 와 **(2) archetype-endpoint 규칙 자체(11건, 우리 설계)** 다. gate 판별 실패(E-6b)는 1건에 불과하다. **셋을 뭉뚱그려 '측정기가 실패했다' 로 쓰면 원인이 흐려진다.**",
+
+    "scout_ran_but_never_reached_endpoint": {
+      "scout_invoked_true_n": 31,
+      "of_59": 0.525,
+      "endpoint_reached_n": 0,
+      "decomposition": { "AUTH_GATE": 12, "UNRESOLVED": 18, "CAPTCHA": 1 },
+      "why_this_matters": "**'가드가 L1 을 못 돌게 해서 depth 가 없다' 는 설명은 절반만 맞다.** Scout 은 59건 중 31건(52.5%)에서 실제로 돌았고, **그 31건 중 endpoint 에 도달한 것은 0건**이다. 즉 L1 을 돌려도 대표기능 진입점에 닿지 못했다.",
+      "reporting_rule": "가드 차단(25)과 'Scout 은 돌았으나 미도달'(31)을 **분리해서** 보고한다. 전자만 강조하면 '가드만 고치면 측정된다' 로 오독된다 — **데이터는 그것을 지지하지 않는다.**",
+      "measured_by": "A · B 독립 계수 일치 (2026-08-27 14:28~14:30 KST)"
+    },
+
+    "endpoint_status_detail_inflation_quantified": {
+      "field": "endpoint_status_detail",
+      "labeled_depth_budget_exceeded": 12,
+      "actual_by_budget_reason": 7,
+      "inflation": "+71%",
+      "absorbed": "SCOUT_ERROR 3 + budget_reason 미기록분이 그 라벨로 흡수됐다",
+      "conclusion": "이 필드를 단독 근거로 썼다면 '깊이 예산 초과' 를 실제보다 71% 부풀려 보고할 뻔했다. **반드시 budget_reason 으로 분해한다.**",
+      "quantified_by": "B (A 가 발견, B 가 전수에서 정량화)"
+    }
   },
 
   "known_measurement_defect": {
     "id": "endpoint_status_detail_conflates_budget_and_error",
-    "finding": "`SCOUT_ERROR` 3건의 `endpoint_status_detail` 이 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED` 로 찍힌다. 실제 notes 는 'Page.evaluate: Execution context was destroyed' 로 **예산 소진이 아니라 기술적 실패**다.",
+    "finding": "`SCOUT_ERROR` 3건의 `endpoint_status_detail` 이 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED` 로 찍힌다. **예산 소진이 아니라 기술적 실패인데 라벨이 구분하지 못한다.**",
+    "correction_by_C": {
+      "what_A_wrote_wrong": "A 는 처음 이 항목을 적으면서 '실제 notes 는 Page.evaluate: Execution context was destroyed' 라고 **3건 전체에 대해** 썼다. **표본 1건을 보고 일반화한 것이다.**",
+      "actual": "C 가 raw 를 전수 확인한 결과 그 문자열을 가진 것은 **3건 중 1건뿐**이다. 나머지 2건의 notes 는 다르다.",
+      "correct_discriminator": "구분 근거는 notes 문자열이 아니라 **`budget_reason == 'SCOUT_ERROR'` 필드**다.",
+      "lesson": "오늘 A 가 표본을 전체로 일반화한 두 번째 사례다(첫 번째는 §1-2 판정 근거). **raw 를 읽었다는 것과 전수를 읽었다는 것은 다르다.**"
+    },
     "impact": "`endpoint_status_detail` 만 근거로 보고하면 기술 실패가 '깊이 예산 초과' 로 잘못 기술된다.",
     "handling": "보고는 `budget_reason` 으로 분해한다. **수집기는 고치지 않는다** — collector SHA 가 움직이면 이미 완료된 59건과 어긋난다. post-E001 backlog.",
     "found_by": "A (raw 분해 중 발견)"

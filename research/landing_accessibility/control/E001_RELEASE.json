@@ -100,7 +100,15 @@
     "expected_drift": "E000 → E001 의 collector SHA 변경은 **A 승인 하의 expected drift** 다. C 는 이를 결함(PROVENANCE_DRIFT C1)으로 잡지 않고 'expected drift, E000 reuse void' 로 기록한다.",
     "still_required": {
       "e001_worker_provenance_single": "E001 4워커 **간** provenance 는 반드시 단일이어야 한다. 워커끼리 다르면 C1 이다 (C 제기). 워크트리가 4개로 갈려 있어 실재하는 위험이다.",
-      "collector_sha_to_be_filled": "B 가 E001 경로를 커밋하면 그 SHA 를 이 문서에 기입하고 재발행한다. 그 전까지 `authority_refs.collector_sha` 의 a86b4c7 은 **E000 기준값**이며 E001 에 적용되지 않는다."
+      "collector_sha_to_be_filled": "(해소됨 — 아래 참조)",
+    "collector_sha_e001_resolved": {
+      "value": "222ef2c28ed5971b3c9f8b07120b7627d2617476",
+      "filled_at": "2026-08-27T14:33:00+09:00",
+      "note": "**수집 종료 후에 기입했다.** 수집 중에는 의도적으로 갱신하지 않았다 — firewall 이 launch 시점마다 이 문서를 읽고 document_sha256 을 검증하므로, 수집 중 문서를 고치면 나중에 뜨는 워커가 다른 해시를 보고 거부당한다. worker_01 은 돌고 worker_04 는 못 뜨는 상황이 조용히 생긴다.",
+      "e000_collector_sha": "a86b4c70cf4f245fc835a183930c7cd76a7adef5",
+      "why_different": "E001 실행 경로(load_scope_allowlist(E001_FULL) · run_e001_real.py)가 코드에 없어 신규 구현이 필요했다. A 승인 하의 expected drift 이며 batch-0 재사용은 무효다.",
+      "raised_by": "C 가 EXPECTED_DOC_LAG_DURING_COLLECTION 으로 기록하고, 수집 종료 후 미반영 시 C1 으로 올리도록 backlog 에 넣었다. 그 감시가 작동해 여기 기입됐다."
+    }
     },
     "e000_evidence_disposition": "E000 6건은 버리지 않는다. **별도 배치로 보존**하고 합산 시 provenance 를 구분한다. joint-valid 0 이므로 분석 표본 손실은 없으나, L0 축 기술통계에는 collector SHA 를 명시한 채 포함할지 A 가 mart 수용 시점에 판정한다."
   },
