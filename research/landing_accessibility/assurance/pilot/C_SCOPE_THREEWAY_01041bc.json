@@ -1,0 +1,87 @@
+{
+ "artifact": "C_SCOPE_THREEWAY_TEST",
+ "sut_head": "883a3e5dfb73fa4eee3a6c82aeb1128962f33c47",
+ "manifest_in_tree": true,
+ "network": "none",
+ "manifest_sha256": "78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799",
+ "manifest_sha_match": true,
+ "execution_scope_members": [
+  "E000_FAST",
+  "E001_FULL",
+  "V2_DIAGNOSTIC"
+ ],
+ "has_V2_DIAGNOSTIC": true,
+ "frozen_constant_sha": "78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799",
+ "release_path_constant": "research/landing_accessibility/control/V2_DIAGNOSTIC_RELEASE.json",
+ "results": {
+  "T0_loader": {
+   "ok": true,
+   "value": "TargetAllowlist(scope='V2_DIAGNOSTIC', source_path='/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/joint9/research/landing_accessibility/control/"
+  },
+  "T0_allowlist_n_ids": 12,
+  "T0_allowlist_sha": "78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799",
+  "T1_allow_12": {
+   "n": 12,
+   "allowed": 12,
+   "rejected": []
+  },
+  "T2_reject_outside": {
+   "a_e001_not_in_manifest": {
+    "ok": false,
+    "exc": "TargetNotAllowlistedError",
+    "msg": "target_id='wtg_49a5eca8b58f7270' 는 V2_DIAGNOSTIC allowlist 에 없다 (허용 12건, 정본 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/joint9/research/landing_accessibility/control/pilot/DIAGNOSTIC"
+   },
+   "b_non_e001": {
+    "ok": false,
+    "exc": "TargetNotAllowlistedError",
+    "msg": "url='https://example.org/' (host='example.org') 는 V2_DIAGNOSTIC allowlist 밖이다 — 동결된 target 목록 밖으로 나가는 항해는 차단된다."
+   },
+   "c_manifest_id_outside_url": {
+    "ok": false,
+    "exc": "TargetNotAllowlistedError",
+    "msg": "url='https://www.11st.co.kr/' (host='www.11st.co.kr') 는 V2_DIAGNOSTIC allowlist 밖이다 — 동결된 target 목록 밖으로 나가는 항해는 차단된다."
+   },
+   "d_manifest_url_foreign_id": {
+    "ok": false,
+    "exc": "TargetNotAllowlistedError",
+    "msg": "target_id='wtg_49a5eca8b58f7270' 는 V2_DIAGNOSTIC allowlist 에 없다 (허용 12건, 정본 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/joint9/research/landing_accessibility/control/pilot/DIAGNOSTIC"
+   },
+   "e_nothing_given": {
+    "ok": false,
+    "exc": "TargetNotAllowlistedError",
+    "msg": "V2_DIAGNOSTIC allowlist 검사에 target_id 도 url 도 주어지지 않았다 — 무엇을 여는지 모르는 채로 실제 수집을 시작하지 않는다."
+   }
+  },
+  "T4_full_navigation_first_target": {
+   "ok": false,
+   "exc": "ExecutionScopeBlockedError",
+   "msg": "REAL_TARGET scope=V2_DIAGNOSTIC 차단 — 릴리스 문서를 읽지 못했다 — git show 실패(rc=128): b\"fatal: path 'research/landing_accessibility/control/V2_DIAGNOSTIC_RELEASE.json' does not exist in 'origin/control/landing-orchestrator'\\n\" (fail-closed) (문서 origin"
+  },
+  "T4_scope_release_verdict": {
+   "ok": true,
+   "value": "ReleaseVerdict(scope='V2_DIAGNOSTIC', allowed=False, reason='릴리스 문서를 읽지 못했다 — git show 실패(rc=128): b\"fatal: path \\'research/landing_accessibility/control/V2_DIAGNOSTIC_RELEASE.json\\' does not exist in"
+  },
+  "T3_tamper_reject": {
+   "explicit_path": {
+    "ok": false,
+    "exc": "AllowlistUnavailableError",
+    "msg": "/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/joint9_tamper/research/landing_accessibility/control/pilot/DIAGNOSTIC_PILOT_MANIFEST.json 의 sha256"
+   },
+   "default_candidates": {
+    "ok": false,
+    "exc": "AllowlistUnavailableError",
+    "msg": "/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/joint9_tamper/research/landing_accessibility/control/pilot/DIAGNOSTIC_PILOT_MANIFEST.json 의 sha256"
+   }
+  },
+  "T3_tampered_sha": "1f95c770e3c3aa8650a5274ddf8ae173b3c92be677ad2132da1f9043eac2ac19"
+ },
+ "verdict": {
+  "T1_allow": "PASS",
+  "T2_reject": "PASS",
+  "T3_tamper": "PASS"
+ },
+ "overall_threeway": "PASS",
+ "T4_release_gate": "CLOSED (ExecutionScopeBlockedError)",
+ "applies_to_integration_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+ "tree_identity": "integration 01041bc tree 479831cf == C joint9 tree (byte-identical)"
+}
