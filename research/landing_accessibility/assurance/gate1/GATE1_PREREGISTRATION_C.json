@@ -2123,6 +2123,31 @@
    "authority_override": null,
    "notes": "worker 3 (545788d) 가 해결, C 본체 검토·등록. 결과를 본 뒤의 완화가 아니라 선행 fixture 구성 결함(SAFE 컨트롤 부재)에 대한 구현 해석",
    "follow_up": "B 어댑터 도착 후 실제 로그로 guard_events[] 별칭 매핑 확인"
+  },
+  {
+   "id": "P-75",
+   "variable": "GAP-05 off-viewport 컨트롤의 S0 occlusion 값 — null 인가 0.0 인가",
+   "status": "C_DECIDED",
+   "lane_sources": [
+    "lane3_sequence_dismiss_auth/EXPECTATIONS.json unoccluded_but_offscreen",
+    "lane3 README §9 GAP-04 null convention, §12"
+   ],
+   "lane_files_r2": [
+    "gate1/lane3_sequence_dismiss_auth/fixtures/unoccluded_but_offscreen.html",
+    "gate1/lane3_sequence_dismiss_auth/EXPECTATIONS.json"
+   ],
+   "divergent_case": "A 의 GAP-05 산문 예시는 '0% occluded 이나 off-viewport → not visible' 이라 S0 occlusion=0.0 으로 읽힐 수 있으나, GAP-04 필드 규칙(STEP1-012)은 관측되지 않은 수치를 null 로 둔다",
+   "resolution_r2": "S0 에서 뷰포트 밖이면 task_control_occlusion_s0=null(관측 없음), visible=false, fvss=S1; 0.0 은 관측된 상태(S1)의 step occlusion 과 all_steps 에만 기록. runner 가 S0 에 0.0 을 내면 이 fixture 에서 FAIL(돌연변이 대조 3/3 검출)",
+   "c_rules": [
+    "GAP-04 null convention",
+    "MIN-7 유사: 관측 없음에 값을 대입하지 않는다",
+    "P-22"
+   ],
+   "ssotv3_clause": "T-A-V3-STEP1-012 GAP-04/GAP-05",
+   "authority_ticket": "T-A-V3-STEP1-012",
+   "authority_override": null,
+   "notes": "worker 4 해결·C 본체 검토. 대안(폴드에 걸친 컨트롤)은 fvss=S0 인데 visible=false 가 되는 모순으로 기각",
+   "follow_up": "A 가 GAP-05 를 '0.0' 으로 명시 판정하면 세 키만 바꾼다"
   }
  ],
  "revision": {
@@ -2169,7 +2194,7 @@
  "counts": {
   "CONSISTENT": 54,
   "A_RULED": 14,
-  "C_DECIDED": 5,
+  "C_DECIDED": 6,
   "PROVISIONAL_PENDING_A": 1
  }
 }

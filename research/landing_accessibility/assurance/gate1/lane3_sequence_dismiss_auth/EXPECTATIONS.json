@@ -1337,11 +1337,98 @@
     "role": "button",
     "required": false
    }
+  },
+  "unoccluded_but_offscreen": {
+   "file": "fixtures/unoccluded_but_offscreen.html",
+   "family": "F3",
+   "control_role": "POSITIVE_CONTROL",
+   "rationale": "A T-A-V3-STEP1-012 GAP-05 companion of occluded_but_hittable (A's second example: '0 % occluded but off-viewport → not visible'): no overlay exists and nothing ever covers the F3 entry control (hit-test occlusion 0.0 wherever it is observed), but the control is laid out at y≈928px, below the 844px fold, and no scroll is performed at S0 → s0_task_control_visible=false. The two fields are independent in this direction too: a runner that infers visible=true from occlusion 0.0 / no overlay / DOM presence / the same-label trap text fails. S0 numerics follow the GAP-04 null convention (task_control_occlusion_s0=null because the control is not observed at S0, never 0.0); the 0.0 occlusion is recorded at the state where the control is observed (S1 after one scroll step, task_control_occlusion_all_steps=0.0, walker step occlusion 0.00). first_visible_scroll_state=S1 for any scroll step in [120,844] px (GAP-02). Single-token F3 path so the visible/occlusion question is isolated from depth.",
+   "initial_state": "LANDING",
+   "initial_terminal": "",
+   "task_flow_sequence": [
+    "SELECT_FUNCTION",
+    "ENDPOINT_REACHED"
+   ],
+   "experienced_flow_sequence": [
+    "SELECT_FUNCTION",
+    "ENDPOINT_REACHED"
+   ],
+   "endpoint_status": "REACHED",
+   "auth_gate_stage": "NONE",
+   "dismiss_required_for_task": false,
+   "task_control_occlusion_s0": null,
+   "task_control_occlusion_all_steps": 0.0,
+   "interrupt_type": "NONE",
+   "overlay_coverage_s0": 0.0,
+   "s0_task_control_visible": false,
+   "first_visible_scroll_state": "S1",
+   "first_visible_scroll_state_note": "GAP-02: S1 for any fixed scroll step in [120, 844] px; the control top is ≈928px and bottom ≈1018px (document ≈1434px, so the S1 offset is ≈590px and the control top lands at ≈338px). GAP-05: s0_task_control_visible=false is an S0 fact; occlusion at S1 is 0.0.",
+   "s0_path_entry_control": {
+    "token": "SELECT_FUNCTION",
+    "accessible_name": "배송조회",
+    "entry_control_type": "TEXT_BUTTON",
+    "visible": false,
+    "note": "occlusion undefined (null) at S0 because the control is outside the viewport — GAP-04; 0.0 at S1 with no [data-c-overlay] in the document"
+   },
+   "nav_container_type": "NONE",
+   "reveal_direction": "NONE",
+   "decoys_visible_at_s0": [
+    "TASK_LABEL_TEXT"
+   ],
+   "scroll_states_expected": [
+    "S0",
+    "S1"
+   ],
+   "integrity_probes": [],
+   "blocking_proof": null,
+   "walk": [
+    {
+     "state_before": "LANDING",
+     "action": "SCROLL",
+     "state_after": "LANDING",
+     "kind": "scroll",
+     "runner_must_record": false,
+     "value": 844,
+     "note": "surface step: recorded in fact_surface_state (S1), never as a flow step; after it the control is in the viewport, centre hit-testable, occlusion 0.0"
+    },
+    {
+     "state_before": "LANDING",
+     "action": "SELECT_FUNCTION",
+     "state_after": "ENDPOINT_TRACKING_FORM",
+     "kind": "click",
+     "runner_must_record": true
+    }
+   ],
+   "final_terminal": "ENDPOINT_REACHED",
+   "credential_check": "all [data-c-forbidden] inputs empty and body[data-c-forbidden-hit] absent; tracking-number input empty and 조회 not activated (F3 forbids the submit)",
+   "trap": "the S0 hero contains the plain text '배송조회는 아래에서 바로 할 수 있습니다' inside a <p data-c-decoy=\"TASK_LABEL_TEXT\">; a runner that binds the task control by text (or infers visible from occlusion 0.0 / no overlay / DOM presence) reports s0_task_control_visible=true here and fails",
+   "activation_depth_excluded_tokens": [
+    "SCROLL(not a token)",
+    "ENDPOINT_REACHED"
+   ],
+   "activation_depth": 1,
+   "flow_step_count": 1,
+   "menu_dependency": false,
+   "nav_container_depth": 0,
+   "forced_dismissal_count": 0,
+   "lossless_check": [
+    [
+     "LANDING",
+     "SELECT_FUNCTION",
+     "ENDPOINT_TRACKING_FORM"
+    ]
+   ],
+   "lossless_check_experienced_only_indices": [],
+   "lossless_terminal": {
+    "state": "ENDPOINT_TRACKING_FORM",
+    "terminal_token": "ENDPOINT_REACHED"
+   }
   }
  },
  "revision": {
   "r2": "2026-08-28 on claude-c/assurance-v21 after 67f473b: rule text aligned to A T-A-V3-STEP1-011 (P-06/P-09/P-13/P-14/P-17), T-A-V3-STEP1-012 (GAP-02/03/04/05) and C-DECISION_REQUEST-031138 (P-11/P-23/P-24). Only first_visible_scroll_state values changed (NONE → S0 for the three menu-hidden fixtures, NONE → null for the login wall); every other expected value is unchanged and was re-verified by walk_fixture.py.",
-  "r3": "2026-08-28 on claude-c/assurance-v21 after fe33eae: +3 fixtures — seq_conditional_date_picker / seq_conditional_date_freetext (STEP1-006 CONDITIONAL, Δ8-R5 fixture_input_mode; activation_depth 3 vs 2, flow_step_count 3 = 3) and occluded_but_hittable (STEP1-012 GAP-05 positive control: occlusion≈0.84, visible=true). Walker: select-kind steps, observed fixture_input_mode, depth_conditional_tokens re-derivation, pair check, union geometric cross-check. Values of the 8 r2 fixtures unchanged."
+  "r3": "2026-08-28 on claude-c/assurance-v21 after fe33eae: +3 fixtures — seq_conditional_date_picker / seq_conditional_date_freetext (STEP1-006 CONDITIONAL, Δ8-R5 fixture_input_mode; activation_depth 3 vs 2, flow_step_count 3 = 3) and occluded_but_hittable (STEP1-012 GAP-05 positive control: occlusion≈0.84, visible=true). Walker: select-kind steps, observed fixture_input_mode, depth_conditional_tokens re-derivation, pair check, union geometric cross-check. Values of the 8 r2 fixtures unchanged.",
+  "r4": "2026-08-28 on claude-c/assurance-v21 after 3cd6ce9: +1 fixture — unoccluded_but_offscreen (STEP1-012 GAP-05 companion: no overlay, control below the fold → s0_task_control_visible=false, task_control_occlusion_s0=null per GAP-04, occlusion 0.0 at S1, fvss=S1). No walker change (inViewport/hitCentre/occl already handle the off-viewport case). Values of the 11 r3 fixtures unchanged."
  },
  "conditional_pairs": [
   {
