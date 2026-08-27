@@ -234,7 +234,6 @@ def main() -> None:
     for item in args.batches_dir:
         dirs.extend(p.strip() for p in item.split(",") if p.strip())
 
-    results, _files = load_batch_results(dirs[0])
     all_results: list[dict[str, Any]] = []
     for d in dirs:
         rs, _ = load_batch_results(d)
