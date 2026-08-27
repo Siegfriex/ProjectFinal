@@ -3,7 +3,7 @@
  "version": 1,
  "plane": "Claude C (Independent Scientific Assurance)",
  "generated_on": "2026-08-28",
- "c_worktree_head": "04564a20051fddc7f904f7f0307bc5d611c4dfbb",
+ "c_worktree_head": "fe33eae3e923c137e7ae76d2664b51bed3c4eeb9 (+ uncommitted r2 edits of 2026-08-28)",
  "c_branch": "claude-c/assurance-v21",
  "c_gate1_tree": "5ba23c319dae7bbfb575bf530442754051d22378",
  "purpose": "Drive C's GATE verification from A's canonical ruling index (not from B's dispatch records): for each of the 40 rulings, which C artifact/script/prereg row verifies it, and what is missing.",
@@ -38,42 +38,36 @@
  "index_authority_sha": "774c81fe5183050221546b862e6d53fbc9223491",
  "delta_sha256": "e35bc1afb1a8f36bbb4b5ad37ac1d565254017fd10cc7da23c0349fc26198edf",
  "counts": {
-  "all_40": {
-   "NOT_DUE_YET": 9,
-   "UNCOVERED": 3,
-   "PARTIAL": 8,
+  "all_rows": {
+   "COVERED": 21,
    "COVERED_PENDING_ADAPTER": 16,
    "NOT_C": 2,
-   "COVERED": 2
+   "NOT_DUE_YET": 13,
+   "PARTIAL": 4
   },
-  "gate1_due_21": {
+  "gate1_due": {
+   "COVERED": 7,
    "COVERED_PENDING_ADAPTER": 16,
-   "PARTIAL": 4,
    "NOT_C": 1
   },
   "by_due": {
-   "STEP2": 3,
-   "STEP3": 3,
-   "상시": 10,
-   "GATE2": 1,
-   "GATE1": 21,
-   "GATE3": 2
-  }
+   "GATE1": 24,
+   "GATE2": 2,
+   "GATE3": 3,
+   "STEP2": 4,
+   "STEP3": 5,
+   "V3_PILOT_5_RELEASE": 1,
+   "상시": 17
+  },
+  "n_rows": 56,
+  "note": "recomputed 2026-08-28 over all 56 rows (earlier keys all_40 / gate1_due_21 referred to index v1)"
  },
- "uncovered": [
-  "Δ4",
-  "Δ6-a",
-  "Δ13-R17"
- ],
+ "uncovered": [],
  "partial": [
   "Δ5",
   "Δ6-b",
   "Δ7",
-  "Δ8-R5",
-  "Δ12-R15",
-  "Δ15-GAP06",
-  "Δ15-GAP05",
-  "Δ15-domax"
+  "Δ12-R15"
  ],
  "c_internal_defects_found_while_mapping": [
   "R11 table split inside C: lane5 ALLOWED_TERMINAL admits OTHER for every non-REACHED status; lane6 TERMINAL_ALLOWED admits OTHER only with ABSTAIN (Δ10-R11 row)",
@@ -193,10 +187,10 @@
    "requires": "promoted main 은 origin/ 접두 또는 exact SHA 로만 참조. bare 브랜치명 금지",
    "must_appear_in": "코드·티켓·결정문 전수",
    "C_check": [
-    "(no check script) grep over assurance/: 2 origin-prefixed refs; qa_base.py:25/38 remote_tip() uses `git ls-remote origin refs/heads/research/landing-accessibility-main` (remote tip, compliant in substance, bare string); bus_mirror_c/acks/T-E-FACT_CORRECTION-001.C.json applied Δ4 by hand"
+    "assurance/c_bus_scan.py --ref-lint: bare `research/landing-accessibility-main` (no origin/ or refs/remotes/origin/ prefix) in C *.py/*.md under assurance/ and in v3-era bus tickets; ls-remote lines ignored; sha-on-same-line annotated — last run 13 hits (qa_base.py:37-38 comment/remote_tip string; 11 in v3 tickets FC-001 / P0-002 / STEP1-002 / T-B-V3-P0-ACK-001 / T-E-COMPLETION-001 / T-E-FACT_CORRECTION-001, mostly quotations of the violation itself), report-only"
    ],
-   "coverage": "UNCOVERED",
-   "gap_note": "Add ref_discipline_lint (new script or c_bus_scan rule): scan C tree + v3-era tickets/ACKs/completions for 'research/landing-accessibility-main' not preceded by 'origin/' or 'refs/remotes/origin/' and not accompanied by a 40-hex SHA; whitelist `ls-remote origin refs/heads/…`; report hits as findings. Manual compliance is not a check."
+   "coverage": "COVERED",
+   "gap_note": "Report-only: hits are findings for triage (quotations of bare refs inside tickets that discuss the rule are expected). qa_base.py's remote_tip() string is compliant in substance (ls-remote) but its comment line trips the lint."
   },
   {
    "id": "Δ5",
@@ -218,10 +212,10 @@
    "requires": "E 를 enum 에 포함. E 의 REAL 티켓은 5필드 필수",
    "must_appear_in": "버스 티켓",
    "C_check": [
-    "c_bus_scan.py regex (A|B|C|D|E) strips E plane suffixes on ACK filenames (recognises E ACKs) — not an enum or field check; bus.py::is_for_c only"
+    "assurance/c_bus_scan.py::check_plane_enum (v3-era: from/to/cc ⊆ {A,B,C,D,E,DIRECTOR}; E ∈ from∪to and REAL-bearing → real_scope_id, release_doc, target_manifest_sha256, allowlist_ref, task_contract_sha256 required) — last run 0 enum violations, 3 E-REAL tickets with missing fields (T-A-V3-STEP1-FREEZE, T-E-COMPLETION-001, T-E-FACT_CORRECTION-001), report-only"
    ],
-   "coverage": "UNCOVERED",
-   "gap_note": "Add c_bus_scan v3-era rule: from/to/cc ⊆ {A,B,C,D,E,DIRECTOR}; when E ∈ from∪to and the ticket is REAL-bearing (scope/mode REAL or REAL request claim) require real_scope_id, release_doc, target_manifest_sha256, allowlist_ref, task_contract_sha256; any missing → SCHEMA_VIOLATION finding to A."
+   "coverage": "COVERED",
+   "gap_note": "Report-only; the 3 field-gap tickets are candidates for a SCHEMA_VIOLATION finding to A (E REAL scope is 0 per Δ6-b, so a REAL-bearing E ticket is itself notable)."
   },
   {
    "id": "Δ6-b",
@@ -323,12 +317,12 @@
    "requires": "fixture 는 의미 명세. fixture_input_mode 기록(FREE_TEXT/DROPDOWN/MIXED/MAP_PAN/OTHER)",
    "must_appear_in": "관측 행 필드",
    "C_check": [
-    "lane6_stats/c_flow_derive.py::derive(input_modes=…) / resolve_input_mode; compare_with_mart_row reads row.fixture_input_mode | depth_input_modes",
-    "lane6_stats/test_c_flow_derive.py::test_conditional_tokens_dropdown_vs_free_text",
-    "run_gate1.py item L6-recompute-compare (schema check: fixture_input_mode where a conditional token occurs); gate1_adapter_spec.md §3 lists fixture_input_mode"
+    "lane3_sequence_dismiss_auth/fixtures/seq_conditional_date_picker.html + seq_conditional_date_freetext.html (F5; SELECT_DATE via <select> → fixture_input_mode DROPDOWN → activation_depth 3 vs typed → FREE_TEXT → 2; flow_step_count 3 = 3) + EXPECTATIONS.json fixtures[*].fixture_input_mode / depth_conditional_tokens + token_sets.CONDITIONAL_SET + conditional_pairs",
+    "lane3_sequence_dismiss_auth/walk_fixture.py: __c.inputMode (mode OBSERVED on the control the service offers), cond_decision / derive(task, modes) (= lane6 resolve_input_mode), per-token decision + row-level mode equality, PAIR check (Δ depth exactly 1) — r3 run 11/11 + 1/1 pair PASS; mutation control (mode ignored / picker claimed FREE_TEXT) FAILS",
+    "lane6_stats/c_flow_derive.py::derive(input_modes=…) / resolve_input_mode; test_conditional_tokens_dropdown_vs_free_text; run_gate1.py L3-sequence-compare / L6-recompute-compare (fixture_input_mode schema check)"
    ],
-   "coverage": "PARTIAL",
-   "gap_note": "(1) No C browser fixture exercises a conditional token: lane3's 8 fixtures contain no SELECT_ORIGIN/SELECT_DESTINATION/SELECT_DATE (the names occur only in rule text), so B's recording of fixture_input_mode is never exercised on a fixture where DROPDOWN vs FREE_TEXT changes the answer — add a lane3 fixture pair (F5 date picker vs free-text date) with expected fixture_input_mode and activation_depth differing by 1. (2) lane1 EXPECTATIONS carries no expected fixture_input_mode (P-43 follow_up open). (3) 'service-first means, collector does not choose' has no check."
+   "coverage": "COVERED",
+   "gap_note": "(2) lane1 EXPECTATIONS carries no expected fixture_input_mode (P-43 follow_up open). (3) 'service-first means, collector does not choose' is exercised only as observation-equals-DOM in the walker. B-row comparison via the run_gate1 compare items still needs the adapter map (same standing as Δ15-GAP07); the C-side check itself runs offline with a positive control."
   },
   {
    "id": "Δ8-R6",
@@ -445,10 +439,10 @@
    "requires": "철회는 주장과 같은 근거를 요구. 발행 시 어떻게 알았는가, 수신 시 원 기록 대조",
    "must_appear_in": "버스 FACT_CORRECTION",
    "C_check": [
-    "(none) c_bus_scan.py has no content rule for FACT_CORRECTION/retraction tickets; bus.py::ack records ticket_sha256 only"
+    "assurance/c_bus_scan.py::check_fact_correction (FACT_CORRECTION / FACTUAL_CORRECTION / *-FC-* tickets without a how-known field: how_known / evidence / measurement / method / verified_against / how_*found* / how_it_surfaced / artifact_refs / what_is_actually_true / corrected_facts, top level or payload) — last run 24 all-era, 5 v3-era (C-FACT_CORRECTION-030523, T-A-V3-FC-002, T-A-V3-STEP1-014, T-A-V3-STEP1-019, T-B-V3-FINDING-007-SHANOTE), report-only"
    ],
-   "coverage": "UNCOVERED",
-   "gap_note": "Add c_bus_scan rule: FACT_CORRECTION tickets (incl. self-retractions) must carry a how_known field (원 기록 path + sha/line); C's ACK of a retraction must record verified_against (원 기록 대조 result) before acceptance; list retractions lacking either."
+   "coverage": "COVERED",
+   "gap_note": "Receiving side ('C's ACK of a retraction records verified_against') is not yet enforced in bus.py::ack — follow-up."
   },
   {
    "id": "Δ14-P06",
@@ -527,11 +521,12 @@
    "requires": "nav_container_type=최내곽 + nav_container_chain 병기",
    "must_appear_in": "관측 행 필드",
    "C_check": [
-    "lane2_label_reveal/measure_geometry.py:333-334 (chain = [nav_type]; len(chain) == nav_container_depth check) + EXPECTATIONS nav_container_chain on 14 fixtures",
+    "lane2_label_reveal/fixtures/drawer_nested_accordion.html (hamburger → fixed left drawer → in-flow accordion holding the control) + EXPECTATIONS nav_container_type=INLINE_EXPAND, nav_container_chain=[LEFT_DRAWER, INLINE_EXPAND], nav_container_depth=2, reveal_direction=INLINE, entry_observed_state=POST_REVEAL:INLINE_EXPAND",
+    "lane2_label_reveal/measure_geometry.py::opened_container / step_direction (one container per reveal step = outermost ancestor flipping to rendered, typed from its own geometry; innermost = nav_container_type; len(chain) == depth) — r3 run 16/16 PASS, 14 r2 values unchanged; mutation control (outer container / one-element chain) FAILS on 4 fields",
     "run_gate1.py item L2-surface-state-compare (nav_container_chain exact list)"
    ],
-   "coverage": "PARTIAL",
-   "gap_note": "Every C fixture is single-level (chain length ≤ 1, innermost == outermost), so 'innermost' vs 'outermost' and chain ordering are indistinguishable — a runner reporting the outer container passes. Add a nested reveal fixture (e.g. hamburger → accordion, depth 2, expected nav_container_type=INLINE_EXPAND, chain=[<drawer type>, INLINE_EXPAND]) and extend measure_geometry chain derivation beyond one step."
+   "coverage": "COVERED",
+   "gap_note": "B-row comparison via the run_gate1 compare items still needs the adapter map (same standing as Δ15-GAP07); the C-side check itself runs offline with a positive control."
   },
   {
    "id": "Δ15-GAP02",
@@ -582,11 +577,12 @@
    "requires": "s0_task_control_visible 과 occlusion 은 독립. 임계값 없음",
    "must_appear_in": "측정 코드",
    "C_check": [
-    "lane3_sequence_dismiss_auth/walk_fixture.py:116 s0_task_control_visible = inViewport ∧ hitCentre (r1 occlusion<0.5 threshold removed); lane2 measure_geometry hit_at_centre",
-    "lane3 fixture 2 (occl 1.0 at S0) and fixture 8 (below fold, occl null)"
+    "lane3_sequence_dismiss_auth/fixtures/occluded_but_hittable.html (two blocking sticky overlays cover ~84 % of the F3 entry control, 9 px centre slit hit-testable) + EXPECTATIONS s0_task_control_visible=true, task_control_occlusion_s0=[0.82,0.86] (measured hit-test 0.840 / geometric union 0.832), dismiss_required_for_task=false with blocking proof",
+    "lane3_sequence_dismiss_auth/walk_fixture.py: s0_task_control_visible = inViewport ∧ hitCentre (no threshold); per-step occlusion override; union geometric cross-check — r3 run PASS; mutation control (threshold runner: visible=false / occlusion 0.3) FAILS",
+    "lane2_label_reveal/measure_geometry.py hit_at_centre (shadow-aware)"
    ],
-   "coverage": "PARTIAL",
-   "gap_note": "No fixture with the discriminating case 'heavily occluded yet hit-testable → visible=true' (a runner applying an occlusion<0.5 threshold still passes all 8) nor 'occlusion 0.0 but off-viewport → visible=false' (fixture 8 has occlusion null, not 0.0). Add both to lane3."
+   "coverage": "COVERED",
+   "gap_note": "'occlusion 0.0 but off-viewport → visible=false' still has no fixture (fixture 8 has occlusion null, not 0.0). B-row comparison via the run_gate1 compare items still needs the adapter map (same standing as Δ15-GAP07); the C-side check itself runs offline with a positive control."
   },
   {
    "id": "Δ15-domax",
@@ -595,11 +591,12 @@
    "requires": "DOM/AX 불일치 시 어느 쪽도 우선 안 함. dom_ax_divergence 플래그",
    "must_appear_in": "관측 행 필드",
    "C_check": [
-    "lane2_label_reveal/measure_geometry.py:233 dom_ax_divergence = dom_exists != ax_exists; :335 compared; EXPECTATIONS false on all 14 fixtures",
+    "lane2_label_reveal/fixtures/dom_ax_divergence_positive.html (entry link inside an OPEN shadow root of a custom element) + EXPECTATIONS dom_ax_divergence=true, both channels recorded (naive light-DOM querySelector: not found; AX: link '배송조회')",
+    "lane2_label_reveal/measure_geometry.py::read_control dom_exists (JS_NAIVE, light DOM only) vs ax_exists (CDP AX node via backendNodeId through a probe attribute — pierces shadow roots); dom_channel_naive_light_dom / in_shadow_root recorded — r3 run 16/16 (15 false, 1 true); mutation control (false hard-coded) FAILS",
     "run_gate1.py item L2-surface-state-compare"
    ],
-   "coverage": "PARTIAL",
-   "gap_note": "No positive control: every fixture expects false, so a runner that hard-codes false passes. Add a fixture where DOM and AX disagree on control existence (e.g. control in DOM but aria-hidden / role=presentation → absent from AX) with expected dom_ax_divergence=true and both channels recorded."
+   "coverage": "COVERED",
+   "gap_note": "B-row comparison via the run_gate1 compare items still needs the adapter map (same standing as Δ15-GAP07); the C-side check itself runs offline with a positive control."
   },
   {
    "id": "Δ17-R18",
@@ -635,12 +632,12 @@
    "requires": "lane 경계를 가로지르는 경로는 양쪽 실물로 한 번 이상 실행. seam 1 수용기준은 guard 발화이지 AttributeError 소멸이 아님",
    "must_appear_in": "실물 연결 테스트 + 음성대조",
    "C_check": [
-    "lane4_safety_adapter/GATE1_SAFETY_PLAN.md (b) S4 — real runner in FIXTURE mode over 13 guard fixtures scored against forbidden_action_matrix.json, positive control (≥1 logged activation on 검색 submit: zero logging ≠ zero events) + negative controls (no over-block)",
-    "lane4_safety_adapter/adapter_interface_stub.py::score_forbidden_actions (SKIPPED, never PASS, until the action-log schema exists)",
-    "run_gate1.py items L4-S4-forbidden-matrix-score, L4-S2-two-layer-scope-probe (imports both real firewalls); gate1_adapter_spec.md §3 action_log.jsonl with refused:true entries + log_active marker"
+    "lane4_safety_adapter/forbidden_action_matrix.json: guard_fired_expected=true on finance_login_gate / nonfinance_login_gate (credential) and item_detail_purchase_present (cart/purchase), runner field guard_events[].refused==true (alias action_log[].refused); scoring_rule.guard_fired_positive_control (≥1 refused event on a never_activate control AND ≥1 allowed activation in the same live run; zero refused = positive control FAIL, never PASS by silence)",
+    "lane4_safety_adapter/GATE1_SAFETY_PLAN.md (b) 'Guard-fired positive control (Δ18-R20; T-A-V3-STEP1-016 acceptance_criterion)' pass rule + real-object seam-test list request",
+    "run_gate1.py items L4-S4-forbidden-matrix-score, L4-S2-two-layer-scope-probe; gate1_adapter_spec.md §3"
    ],
    "coverage": "COVERED_PENDING_ADAPTER",
-   "gap_note": "Needs runner_cmd_template + action-log schema. R20's acceptance is 'guard fires' on the real runner→guard seam: S4 asserts forbidden controls are never activated but does not assert a refusal event was logged — add to S4: ≥1 refused:true action_log entry on a fixture that tempts a forbidden action (positive control of the guard itself) with the allowed action passing in the same run (음성대조). Also request in B's COMPLETION the seam-test list (runner↔guard, runner↔evidence writer, runner↔L1/L2 firewall) with real-object test names."
+   "gap_note": "Needs runner_cmd_template + action-log schema. comparators/grade_lane4.py::grade_s4 must read guard_fired_expected (today every refused attempt is an ISOLATED FAIL — on the tempting fixtures that event is the positive control); comparators/ were frozen for this edit, so the grader change is a recorded follow-up, not done."
   },
   {
    "id": "Δ11",
@@ -699,8 +696,10 @@
    "must_appear_in": "버스 티켓",
    "authority": "Δ5",
    "verified_by": "C",
-   "coverage": "PARTIAL",
-   "C_check": "c_bus_scan.py: add check that FINDING tickets with finding_class VALIDITY_RISK carry priority ≤ P1 (v3-era) — to implement"
+   "coverage": "COVERED",
+   "C_check": [
+    "assurance/c_bus_scan.py::check_validity_risk (finding_class VALIDITY_RISK with priority ∉ {P0,P1} → below_p1; type VALIDITY_RISK_CANDIDATE below P1 listed as informational) — last run 0 below-P1, 2 informational (D-VALIDITY_RISK_CANDIDATE-001/-004, pre-v3)"
+   ]
   },
   {
    "id": "Δ2-skip",
@@ -759,8 +758,12 @@
    "must_appear_in": "색인 + delta + 티켓",
    "authority": "Δ21",
    "verified_by": "C",
-   "coverage": "PARTIAL",
-   "C_check": "index↔delta done (C-FINDING-040011); delta↔ticket cross-check to be added to c_bus_scan"
+   "coverage": "COVERED",
+   "C_check": [
+    "assurance/c_bus_scan.py::check_ruling_index — ruling tokens in v3-era A tickets resolved against V3_RULING_INDEX.json (git show origin/control/landing-orchestrator, v9) by id AND aliases[] (T-A-V3-STEP1-023), token-boundary matching, v9 alias_rules / Δ25 exclusion (lowercase single word ≤ 6 chars) reported as unsafe_aliases (T-B-V3-FINDING-007), alias collisions reported never resolved (T-B-V3-FINDING-006: D3-06 → Δ1-a/Δ1-b), empty-alias rows reported, sub-row resolution for bare section tokens; built-in controls (R21→Δ21, R20→Δ18-R20, STEP1↛Δ20, R15↛Δ20) refuse the main check on failure (T-B-V3-FINDING-005) — last run controls PASS, 2 unrecorded mentions (Δ26 in T-A-V3-STEP1-024; 'Δ8-ruling' in STEP1-013), delta headings without index row: Δ23, Δ24, Δ25, Δ26",
+    "index↔delta cross-check: C-FINDING-040011 (earlier)"
+   ],
+   "gap_note": "Report-only. Δ23–Δ26 have no index rows at index v9 (A index maintenance); collision D3-06 is A's to resolve."
   },
   {
    "id": "Δ8-R3a",
@@ -809,8 +812,13 @@
    "must_appear_in": "관측 행",
    "authority": "Δ22",
    "verified_by": "C",
-   "coverage": "COVERED_PENDING_ADAPTER",
-   "C_check": "lane5_evidence: driver_sha256 (aliases session_sha256/capture_stack_sha256) required alongside collector_sha256 on v3 rows — being added; comparator adapter must map both"
+   "coverage": "COVERED",
+   "C_check": [
+    "lane5_evidence/evidence_lineage_check.py: FIELD_ALIASES driver_sha256 ← (driver_sha256, session_sha256, capture_stack_sha256); STATE_REQUIRED / STEP_REQUIRED / FLOW_REQUIRED include driver_sha256 alongside collector_sha; hex check (D8)",
+    "lane5_evidence/EVIDENCE_CONTRACT_C.md §2/§3/§3b + §7.8; make_synthetic_evidence.py: good run 01 driver_sha256, run 02 alias session_sha256 (positive control), bad_lineage flow record without driver sha (negative control) — re-run COMPLETE / SYSTEMIC_DEFECT / SYSTEMIC_DEFECT (bad_lineage MISSING_FIELD 1→2); alias-removed scratch check gives MISSING_FIELD 2",
+    "run_gate1.py items L5-regen-fixtures, L5-fixture-good/bad_overwrite/bad_lineage (dry-run PASS)"
+   ],
+   "gap_note": "B-tree check (L5-runner-evidence-tree) needs the evidence root / adapter map; the comparator adapter must bind BOTH hashes on B's rows."
   },
   {
    "id": "Δ22-scrollfix",
@@ -844,5 +852,6 @@
  "delta_sections_without_index_row_observed_by_C": [
   "Δ25 (alias qualification, control 2625658)",
   "Δ26 (base_sha must resolve)"
- ]
+ ],
+ "revision_r2": "2026-08-28 worker pass on fe33eae: rows Δ8-R5, Δ15-GAP06, Δ15-GAP05, Δ15-domax, Δ4, Δ6-a, Δ13-R17, Δ5-vr, Δ21, Δ22-R22 → COVERED after the check was implemented AND run (walk_fixture 11/11 + pair, measure_geometry 16/16, c_bus_scan --ref-lint controls PASS, lane5 3 checks); Δ18-R20 stays COVERED_PENDING_ADAPTER (matrix + plan rule added; grade_lane4 follow-up). COVERED here means the C-side check runs offline with a positive control; B-row comparison still needs the adapter map where noted. Counts recomputed over all 56 rows."
 }
