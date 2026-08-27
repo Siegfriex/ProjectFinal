@@ -40,8 +40,11 @@ rows, errs = r["rows"], r["parse_errors"]
 print(f"=== D 수신 티켓 {len(rows)}건 (to+cc) · 스캔 {r['n_scanned']}파일 ===")
 for x in rows:
     print("  {prio:<3} {id:<34} {type:<20} from={from:<3} {chan:<3} expects={expects:<9} {ack}".format(
-        ack="ACKED" if x["acked"] else "** UNACKED **", **x))
+        ack={"ACKED":"ACKED","ACKED_SHA_UNRECORDED":"ACKED(sha 미기록)",
+             "CONTENT_CHANGED_AFTER_ACK":"** 내용변경 재ACK필요 **","UNACKED":"** UNACKED **"}[x["ack_state"]], **x))
 un = [x for x in rows if not x["acked"]]
+changed = [x for x in rows if x["ack_state"] == "CONTENT_CHANGED_AFTER_ACK"]
+nosha = [x for x in rows if x["ack_state"] == "ACKED_SHA_UNRECORDED"]
 print(f"\n=== 미ACK {len(un)}건 (P0 {sum(1 for x in un if x['prio']=='P0')} · "
       f"P1 {sum(1 for x in un if x['prio']=='P1')}) ===")
 for x in un:

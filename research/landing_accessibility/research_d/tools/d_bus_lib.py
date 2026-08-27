@@ -10,6 +10,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -49,13 +50,34 @@ def scan(bus_dir: str | Path, plane: str = "D") -> dict:
         if plane not in to and plane not in cc:
             continue
         tid = d.get("ticket_id") or f.name[:-5]
+        # [D-DEF-13] ACK 은 "그때 그 내용" 에 대한 것이다. 티켓이 사후에 덮이면
+        # ACK 파일 존재만 보는 판정은 새 내용을 영원히 ACKED 로 숨긴다.
+        # ACK 에 기록된 ticket_sha256 과 현재 파일 해시를 대조한다.
+        cur_sha = hashlib.sha256(f.read_bytes()).hexdigest()
+        ack_p = bus / "acks" / f"{tid}.{plane}.json"
+        if not ack_p.exists():
+            ack_state = "UNACKED"
+        else:
+            try:
+                a = json.loads(ack_p.read_text(encoding="utf-8"))
+            except Exception:
+                a = {}
+            rec = a.get("ticket_sha256")
+            if rec is None:
+                ack_state = "ACKED_SHA_UNRECORDED"       # 옛 ACK — 대조 불가
+            elif rec == cur_sha:
+                ack_state = "ACKED"
+            else:
+                ack_state = "CONTENT_CHANGED_AFTER_ACK"  # 재ACK 필요
         rows.append({
             "id": tid,
             "prio": d.get("priority", "-"),
             "type": d.get("type", "-"),
             "from": d.get("from", "-"),
             "chan": "to" if plane in to else "cc",
-            "acked": (bus / "acks" / f"{tid}.{plane}.json").exists(),
+            "acked": ack_state in ("ACKED", "ACKED_SHA_UNRECORDED"),
+            "ack_state": ack_state,
+            "ticket_sha256": cur_sha,
             "expects": d.get("expected_response", "-"),
         })
     rows.sort(key=lambda r: (str(r["prio"]), str(r["id"])))

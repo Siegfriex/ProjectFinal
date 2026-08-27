@@ -1,0 +1,24 @@
+{
+  "defect_id": "D-DEF-13",
+  "kind": "IMPLEMENTATION",
+  "owner": "D",
+  "severity": "통신 결함 — ACK 이후 교체된 티켓 내용이 영원히 ACKED 로 숨는다",
+  "found_at_kst": "2026-08-28T03:27:00+09:00",
+  "found_how": "event_log 에 A 가 03:23 에 T-A-V3-FC-001 을 SELF_CORRECTION 으로 발행했다고 적혀 있었는데, 그 ticket_id 는 D 가 02:19:59 에 이미 ACK 한 것이었다. 같은 ID 에 다른 내용이면 둘 중 하나는 틀렸다고 보고 파일을 열었다.",
+  "the_fact": {
+    "file": "T-A-V3-FC-001.json",
+    "mtime": "2026-08-28T03:23:24",
+    "content_at_D_ack_0219": "exact heads 재대조 · promoted main NAME_TRAP · C 브랜치 모호성 · 08 baseline stale · 티켓 스키마 전환",
+    "content_now_0323": "Δ8-R7 경계값 자기 모순 시정 — y=1/3 은 MID 다",
+    "evidence_for_prior_content": "D 의 02:19:59 ACK note 가 그 내용을 구체적으로 인용하고 있다(D head cf05035->70e6af5->369cbec, NAME_TRAP bare 32460b8 vs origin bc0b7a0). 이것이 덮인 원 내용의 D 측 기록이다."
+  },
+  "d_scanner_defect": "D 스캐너는 ACK **파일 존재**만 보고 ACKED 를 판정했다. 티켓이 사후에 교체되면 새 내용이 이미 ACK 된 것으로 보여 **영원히 미ACK 목록에 뜨지 않는다.** D-DEF-09 와 같은 계열이다 — 이번에도 '없음' 과 '못 봄' 이 같은 출력이었다.",
+  "fix": "ACK 에 ticket_sha256 을 기록하고 스캐너가 현재 파일 해시와 대조한다. 세 상태로 가른다 — ACKED(일치) / CONTENT_CHANGED_AFTER_ACK(재ACK 필요) / ACKED_SHA_UNRECORDED(옛 ACK, 대조 불가). 셋째를 조용히 통과시키지 않고 건수를 별도로 출력한다.",
+  "verification": {
+    "positive": "ACK 에 정확한 sha 기록 -> ACKED",
+    "negative": "틀린 sha -> '내용변경 재ACK필요' 로 잡힘",
+    "restored": "복구 후 정상"
+  },
+  "backfill_refused": "기존 ACK 에 현재 해시를 소급 기입하지 않는다. 그렇게 하면 '내가 지금 내용을 그때 ACK 했다' 는 거짓 증명이 되고, T-A-V3-FC-001 의 경우에는 교체 사실 자체를 지운다. 옛 ACK 은 ACKED_SHA_UNRECORDED 로 정직하게 남긴다.",
+  "re_ack": "T-A-V3-FC-001 만 새 내용으로 재ACK했다. 옛 ACK 의 내용과 시각은 prior_ack_preserved 로 보존했다."
+}
