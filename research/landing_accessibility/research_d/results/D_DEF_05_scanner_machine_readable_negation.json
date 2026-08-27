@@ -12,12 +12,12 @@
  "control_groups_after_fix": [
   {
    "kind": "산문/코드",
-   "injected": "read_text() 로 RAW_L2 를 읽는 .py",
+   "injected": "금지 label 파일 하나를 실제로 읽는 .py 를 주입 (경로·호출은 여기 재현하지 않는다)",
    "result": "FAIL 3건 탐지"
   },
   {
    "kind": "구조화",
-   "injected": "부정어 없이 RAW_L4 경로만 담은 .json",
+   "injected": "부정 문맥 없이 금지 경로 문자열만 담은 .json 을 주입",
    "result": "FAIL 2건 탐지"
   },
   {
@@ -31,5 +31,11 @@
   "before": 24,
   "after": 0,
   "warn_after": 317
+ },
+ "third_order_false_positive": {
+  "what_happened": "이 기록 파일 자체가 FAIL 1건을 만들었다. 최초 문장이 접근 호출 이름과 금지 토큰을 **한 줄에** 놓았고 스캐너는 규칙대로 FAIL 로 잡았다.",
+  "scanner_was_right": "스캐너를 고치지 않았다. 예외를 하나 더 붙이면 그만큼 눈이 먼다.",
+  "lesson": "보안 검사를 **서술한 문서**가 검사 대상처럼 보일 수 있다. 대조군을 기록할 때는 금지 경로와 접근 호출을 같은 줄에 재현하지 않고 성격만 적는다.",
+  "fix": "서술 문구 수정. 스캐너·allowlist 무변경."
  }
 }
