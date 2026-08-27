@@ -1,0 +1,97 @@
+{
+ "ticket_id": "T-A-V3-STEP1-004",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D",
+  "E"
+ ],
+ "cc": [
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "5a952f9d3385f97f3e463ac0eaac451a3e9b3604",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:02:00+09:00",
+ "completed_at_kst": null,
+ "scope": "HOLD 승격 규칙 · hard-stop 어휘 확장 · release 템플릿 · G-STEP1-A 판정",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "A-Gate lane 이 올린 5건 중 2건은 이미 해소됐고 3건을 지금 확정한다. HOLD 승격에 **개수 임계값을 만들지 않는다** — systemic 여부는 개수가 아니라 원인의 소재로 가른다.",
+ "R8_hold_escalation": {
+  "question": "site-level 실패가 몇 건 이상이면 systemic 으로 승격되는가. Director 는 범주만 주고 수치를 주지 않았다",
+  "ruling": "**개수 임계값을 만들지 않는다.**",
+  "why_not_count": [
+   "개수 기준은 '4건이니 하나만 더 참자'를 만든다. 판정이 수를 세는 일이 되면 판정자가 세는 사람이 된다",
+   "Director 는 이미 범주로 갈랐다 — systemic 8종과 site-level 5종. 범주 판정에 개수를 얹으면 두 기준이 충돌한다",
+   "같은 실패가 10건이어도 원인이 사이트 쪽이면 그것은 관측이지 결함이 아니다. 1건이어도 원인이 우리 계측기면 systemic 이다"
+  ],
+  "the_actual_test": "**원인이 우리 쪽에 있는가.** 판정 절차: 같은 실패 양식을 우리가 통제하는 fixture/대조군에서 재현할 수 있는가?",
+  "procedure": [
+   "① 실패를 관측하면 그 양식을 fixture 로 재현 시도한다",
+   "② fixture 에서 재현되면 → **systemic**. 원인이 계측기에 있다. 즉시 HOLD",
+   "③ fixture 에서 재현되지 않고 사이트마다 양상이 다르면 → **site-level**. terminal/missing 사유로 보존하고 계속",
+   "④ 재현 시도 자체가 불가능하면 재현 불가라고 기록한다. **판정을 미루는 것이 잘못 판정하는 것보다 낫다** — 그 target 은 ABSTAIN 이다"
+  ],
+  "who_judges": "C 다. B 도 E 도 자기 실패를 site-level 로 자가 분류하지 않는다 — 생산자가 자기 결함을 사이트 탓으로 돌릴 수 있는 경로를 열어두지 않는다",
+  "separate_reporting_floor": {
+   "what": "HOLD 조건이 아니라 **보고 제약**을 하나 사전등록한다",
+   "rule": "어느 family 의 evidence-bearing n 이 10 중 5 미만이면 C 가 finding 을 내고 A 가 그 family 를 기술통계 보고 대상으로 삼을지 판정한다",
+   "not_a_stop": "수집은 계속한다. 이것은 '멈춰라'가 아니라 '이 분모로 무엇을 말할 수 있는가'의 문제다",
+   "why_preregister": "관측 후에 정하면 결과를 보고 분모 기준을 맞추는 것이 된다. 지금은 접속 0건이므로 result-blind 다"
+  }
+ },
+ "R9_hard_stop_vocabulary_extended": {
+  "problem": "A-Gate lane 이 `target outside manifest` 와 `endpoint drift` 가 정본 6종 어디로 접히는지 공백이라고 지적했다",
+  "ruling": "**억지로 접지 않고 8종으로 확장한다.**",
+  "canonical_8": [
+   "wrong_scope",
+   "target_outside_manifest",
+   "forbidden_action",
+   "evidence_overwrite",
+   "duplicate_launch",
+   "task_contract_drift (endpoint drift 포함)",
+   "task_or_outcome_leakage",
+   "denominator_corruption"
+  ],
+  "why_extend_not_map": "서로 다른 실패 양식을 맞지 않는 통에 밀어 넣으면 나중에 '이건 wrong_scope 인가 아닌가'로 다투게 된다. 이름을 붙이는 편이 싸다",
+  "not_a_loosening": "**이 확장은 hard-stop 대상을 늘린다. 줄이지 않는다.** 6종에 애매하게 걸리던 것이 8종에서 명확히 걸린다",
+  "supersedes": "T-A-V3-P0-001 의 6종 목록. 이 8종이 정본이다",
+  "director_mapping": "Director 의 systemic 목록(scope leak · target outside manifest · duplicate launch · evidence overwrite · forbidden credential/transaction · task contract drift · endpoint drift · denominator corruption)과 일대일 대응한다. endpoint drift 는 task_contract_drift 안에 둔다 — endpoint 는 task contract 의 일부다"
+ },
+ "R10_release_template": {
+  "problem": "A 가 release 를 발행하고 A 가 그 release 의 근거를 판정한다. self-authority 구조다",
+  "ruling": "release 문서에 **전제조건 SHA 인용을 필수 필드로** 넣는다",
+  "required_fields": [
+   "`preconditions[]` — 이 release 가 근거로 삼는 각 completion/assurance 의 (ticket_id, plane, exact SHA, 판정)",
+   "`producer_sha` 와 `assurance_sha` 가 같은 대상을 가리키는지 명시",
+   "`manifest_sha256` 과 그 파일이 **이미 push 돼 있는 브랜치·SHA**",
+   "`what_this_authorizes` / `what_this_does_not_authorize`",
+   "`revocation` — 누가 어떤 조건에서 status 를 바꾸는가"
+  ],
+  "why": "self-authority 자체는 없앨 수 없다 — A 가 release 권한이다. 없앨 수 있는 것은 **근거가 사후에 복원되지 않는 것**이다. SHA 를 박아두면 나중에 누구든 그 시점에 무엇이 참이었는지 확인할 수 있다",
+  "retroactive": "기존 release 문서는 소급 개정하지 않는다. V3_PILOT_5 부터 적용한다",
+  "lesson_source": "V2_DIAGNOSTIC_RELEASE 가 Director 의 취소 지시 후 12분간 RELEASED 로 남아 있었다. 그 문서는 스스로 'A 가 status 를 변경한다'고 적어 뒀는데도 그랬다. **조항의 존재가 집행이 아니다**"
+ },
+ "G_STEP1_A_verdict": {
+  "lane_reported": "PENDING — 측정 시점에 매니페스트가 git untracked 였다",
+  "now": "해소됐다. 파일은 691926f8 로 push 됐고 이후 5a952f9d 까지 이어진다. C 가 C-ASSURANCE-024917 로 독립 확인했다 — 내용 registry MATCH, 해시 v3.0.2(body 81d55db9 / file ef4e19ad) 재계산 일치, supersedes 계보 확인",
+  "verdict": "**G-STEP1-A MET.**",
+  "lane_snapshot_note": "lane 산출은 측정 시점의 사실이다. 그 뒤 상태가 바뀐 것은 lane 의 오류가 아니다. 이것이 하트비트를 게이트 근거로 쓰지 않는 이유와 같은 구조다"
+ },
+ "resolved_since_lane_ran": {
+  "(3) manifest 미커밋": "해소 — 691926f8 push, C 독립 확인",
+  "(5) T-E-FACT_CORRECTION-001": "해소 — REJECTED 판정(T-A-V3-STEP1-002). E 가 bare 브랜치명을 rev-parse 해 로컬 ref 를 쟀다. origin 정본은 bc0b7a08 이며 A·C 각각 ls-remote 확인"
+ },
+ "REAL_scope_unchanged": {
+  "V3_PILOT_5": "미발행",
+  "V3_MAIN50": "미발행",
+  "E001_FULL": "SUSPENDED (allow flag 도 false 로 정합화)",
+  "V2_DIAGNOSTIC_12": "HISTORICAL_METHOD_ASSURANCE (RELEASED 에서 회수)",
+  "real_target_contact": "0건"
+ },
+ "decision_required": null,
+ "expected_response": "C: R8 판정 절차와 R9 8종을 GATE 검사에 편입. B·E: R9 어휘 채택. 전 평면: 접수"
+}

@@ -8,7 +8,8 @@
     "measured_at_02:51_re-check": "4e3ba3cf7f5e4247873431138b1ba48c7d554e1e",
     "verdict": "바뀌었다 — 지시문이 예견한 케이스가 이 측정 도중 실제로 발생. 이 워크트리(claude_a_control, 곧 A 의 실 작업 워크트리)에서 다른 프로세스가 이 lane 작업 도중 커밋 2건(691926f, 4e3ba3c)을 만들어 origin 까지 push 했다. 두 커밋 모두 author='Siegfriex' — 이 세션이 아닌 별도 프로세스(실제 A 세션 또는 그 자동화)의 작업으로 추정, 이 lane 은 그 커밋들을 만들지 않았다(git add/commit/push 0회 실행 — 아래 self_attestation 참조).",
     "cmd": "git rev-parse HEAD (2회, 02:44 와 02:51) + git ls-remote origin refs/heads/control/landing-orchestrator (2회) — 4값 모두 교차 일치, 원격이 로컬을 뒤따르는 게 아니라 이미 push 완료 상태(브랜치 'up to date with origin' 확인)",
-    "self_attestation": "이 lane 세션의 Bash 히스토리에 git add/commit/push/stash 호출 0건 — 오직 git status/diff/log/ls-remote/rev-parse/merge-base/rev-list/cat-file/branch 만 사용."
+    "self_attestation": "이 lane 세션의 Bash 히스토리에 git add/commit/push/stash 호출 0건 — 오직 git status/diff/log/ls-remote/rev-parse/merge-base/rev-list/cat-file/branch 만 사용.",
+    "collision_recurred": "이 보고서 작성 도중 최소 2회 재현: 1) 4e3ba3c 가 이 lane 의 미완성 초안을 편입, 2) 이 lane 이 Edit 로 갱신한 직후 세 번째 커밋 5a952f9('조작적 정의 7건 사전등록 — Δ8')가 다시 이 파일의 최신 편집본(anomalies 8건 포함)을 편입해 push 완료. 두 사례 모두 이 lane 의 편집 내용 자체는 손실되지 않았으나(git show HEAD:<path> 로 확인), 이 lane 이 완료를 선언하기도 전에 산출물이 이미 두 차례 타 프로세스의 커밋 이력에 올라갔다 — 산출 파일의 '소유'와 '커밋 시점 결정권'이 이 lane 에 있지 않다는 사실."
   },
   "heads": {
     "cmd": "git ls-remote origin (전수), 08:44:09 KST 실행",
