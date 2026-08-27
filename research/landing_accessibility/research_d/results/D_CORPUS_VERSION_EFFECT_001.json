@@ -1,0 +1,27 @@
+{
+  "record_id": "D-CORPUS_VERSION_EFFECT-001",
+  "kind": "OBSERVATION",
+  "authority": "NON_CANONICAL",
+  "plane": "D",
+  "created_at_kst": "2026-08-28T00:25:00+09:00",
+  "why": "RQ-D15 는 텍스트 코퍼스 v1→v2→v3(D-DEF-01 charset, D-DEF-04 CSS 제거) 각각에서 이전 D NLP 실험을 재실행했다. 결과는 REFUTED — 이전 판정 중 일부가 코퍼스 버전에 따라 뒤집힌다. 원 산출물은 수정하지 않는다(불변). 이 기록이 조건을 붙인다.",
+  "supersede_ticket_issued": false,
+  "supersede_note": "D 는 SUPERSEDE 를 발행하지 않는다. 이 파일은 D 내부 조건부여 기록이며, 판정 권한은 A 에 있다.",
+  "corpus_versions": {
+    "v1": "원본 (charset 미준수 → mojibake 6/56, CSS 혼입 2/56)",
+    "v2": "D-DEF-01 시정 (mojibake 0, CSS 2/56)",
+    "v3": "D-DEF-04 시정 (mojibake 0, CSS 0) — 4/56 target 변경, Google 118→57 token (-52%)"
+  },
+  "verdict_grid": {"n_rows": 21, "n_changed_v1_to_v2": 3, "n_changed_v2_to_v3": 3, "n_changed_v1_to_v3": 6},
+  "flipped_rows": [
+    {"row": "EXP1 H-C-length", "v1": "PARTIALLY_SUPPORTED", "v3": "NOT_SUPPORTED"},
+    {"row": "EXP2 RF001-B overall", "v1": "NOT_SUPPORTED", "v3": "PARTIALLY_SUPPORTED"},
+    {"row": "EXP2 H-RF001-B-TFIDF", "v1": "NOT_SUPPORTED", "v3": "PARTIALLY_SUPPORTED"},
+    {"row": "EXP2 H-B-null", "v1": "SUPPORTED", "v3": "REFUTED"},
+    {"row": "EXP4 H-SUP01-DOMAIN", "v1": "SUPPORTED", "v3": "PARTIALLY_SUPPORTED"},
+    {"row": "EXP4 H-SUP01-DOMAIN::brand_token_limb", "v1": "SUPPORTED", "v3": "REFUTED"}
+  ],
+  "stability_note": "EXP1 embedding macro_f1 는 v1→v3 델타 0.0118 로 fold SD 0.1142 안에 들어간다 — 수치는 안 움직였다. 판정이 뒤집힌 곳은 임계 근처 행이다. v2→v3 는 4/56 만 바뀌므로 prior_agreement 는 원리적으로 최대 0.0714 만 이동할 수 있다.",
+  "conditionality": "이 기록 이전에 D 가 낸 모든 텍스트 기반 수치는 '코퍼스 버전 v1(또는 v2) 조건부' 로 읽어야 한다. RF001-B / RF2-A~F / D-SUP-01 이 해당한다.",
+  "limitation": "코퍼스 버전 3개는 같은 원본 DOM 에서 파생됐으므로 재수집 변량은 포함하지 않는다. n=56 에서 판정경계 근처 행의 뒤집힘은 재추출 잡음과 구분되지 않을 수 있다."
+}

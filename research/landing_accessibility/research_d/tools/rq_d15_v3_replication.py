@@ -1467,7 +1467,20 @@ def make_figures(doc) -> dict:
 
     # 1) verdict grid
     grid = doc["verdict_grid"]["rows"]
-    labels = [g["row"] for g in grid]
+    # matplotlib 기본 폰트(DejaVu Sans)에는 한글 글리프가 없어 라벨이 tofu 로 찍힌다.
+    # 시스템 한글 폰트에 의존하지 않도록 그림 라벨만 ASCII 로 줄인다.
+    # (판정 값 자체는 원문 그대로이고, 한글 전문은 JSON 과 FINDINGS 표에 있다.)
+    ASCII_ROW = {
+        "EXP1 H-C-null (baseline 과 무차이)": "EXP1 H-C-null (no diff vs baseline)",
+        "EXP1 H-C-length (길이/도메인 어휘밀도를 재는 중)": "EXP1 H-C-length (measuring length/vocab density)",
+        "EXP1 H-C-prototype (문구 민감)": "EXP1 H-C-prototype (wording sensitive)",
+        "EXP3 H-C1 text_blob 전체가 최선": "EXP3 H-C1 (full text_blob is best)",
+        "EXP3 H-C2 primary controls·accessibility text 가 더 informative":
+            "EXP3 H-C2 (controls/a11y text more informative)",
+        "EXP3 H-C3 field 간 차이가 prototype 노이즈보다 작다":
+            "EXP3 H-C3 (field gap < prototype noise)",
+    }
+    labels = [ASCII_ROW.get(g["row"], g["row"]) for g in grid]
     M = np.array([[VC.get(g[v], 2) for v in VERSIONS] for g in grid], float)
     fig, ax = plt.subplots(figsize=(7.2, 0.42 * len(labels) + 1.8))
     im = ax.imshow(M, cmap="RdYlGn", vmin=0, vmax=4, aspect="auto")

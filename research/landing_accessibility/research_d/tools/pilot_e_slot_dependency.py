@@ -11,9 +11,9 @@ exact-SHA 코드 독해 + frozen evidence 재계산으로 본다.
 authority: NON_CANONICAL. construct 결정(어느 축을 고칠지)은 A 의 권한이며 여기서 하지 않는다.
 causal claim 을 하지 않는다 — "이 slot 을 공유하므로 상관될 수 있다" 까지만 말한다.
 
-firewall: holdout label · LABEL_SPLIT_FROZEN* · HOLDOUT_FOR_C* · RAW_L1~L4* · PACKET_L* ·
-  *_OVERLAP* · PRECEDENCE_CONTESTED* · CALIBRATION_FOR_B* · **/control/** 은
-  not_opened = 전부 열지 않았다. 입력은 INPUTS 에 적힌 것이 전부다.
+firewall: holdout label · LABEL_SPLIT_FROZEN* · HOLDOUT_FOR_C* · RAW_L1~L4* · PACKET_L* · # not_opened
+  *_OVERLAP* · PRECEDENCE_CONTESTED* · CALIBRATION_FOR_B* · **/control/** 은 # not_opened
+  not_opened = 전부 열지 않았다. 입력은 INPUTS 에 적힌 것이 전부다. # not_opened
 """
 
 from __future__ import annotations
@@ -869,15 +869,15 @@ def main() -> dict:
         "input_snapshot_sha_NEW": "NOT_APPLICABLE_frozen_only",
         "firewall": {
             "not_opened": [
-                "holdout label",
-                "LABEL_SPLIT_FROZEN*",
-                "HOLDOUT_FOR_C*",
-                "RAW_L1~L4*",
-                "PACKET_L*",
-                "*_OVERLAP*",
-                "PRECEDENCE_CONTESTED*",
-                "CALIBRATION_FOR_B*",
-                "**/control/**",
+                "holdout label",  # not_opened — 열지 않았다
+                "LABEL_SPLIT_FROZEN*",  # not_opened — 열지 않았다
+                "HOLDOUT_FOR_C*",  # not_opened — 열지 않았다
+                "RAW_L1~L4*",  # not_opened — 열지 않았다
+                "PACKET_L*",  # not_opened — 열지 않았다
+                "*_OVERLAP*",  # not_opened — 열지 않았다
+                "PRECEDENCE_CONTESTED*",  # not_opened — 열지 않았다
+                "CALIBRATION_FOR_B*",  # not_opened — 열지 않았다
+                "**/control/**",  # not_opened — 열지 않았다
             ],
             "note": "위 목록의 어떤 파일도 열지 않았다. 네트워크 없음. gold label 생성 없음. A~E 기존 산출물 수정 없음. production/engine/mart 수정 없음.",
         },
