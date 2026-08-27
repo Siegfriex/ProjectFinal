@@ -1,9 +1,9 @@
 {
   "artifact": "ASSURANCE_HANDOFF",
   "generated_by": "C (projectfinal-ba)",
-  "generated_at": "2026-08-27T16:30:46+09:00",
+  "generated_at": "2026-08-27T16:35:10+09:00",
   "branch": "claude-c/assurance-current",
-  "status": "FINAL_QA_MATCH__ERRATA_PENDING_1_RESIDUAL",
+  "status": "FINAL_ACCEPTED__C_QA_MATCH",
   "frozen_e001": {
     "collector_sha": "222ef2c28ed5971b3c9f8b07120b7627d2617476",
     "promoted_main": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
@@ -62,12 +62,15 @@
       "stage": "CLAIM/FINAL rev2",
       "verdict": "MATCH — 3 corrections verified, forbidden 0, numbers match",
       "time": "16:26"
+    },
+    {
+      "stage": "FINAL canonical 82f631f",
+      "verdict": "MATCH — RETRACTED 0, json/scripts 0, hashes ok, 12 A",
+      "time": "16:35"
     }
   ],
   "C0_total": 0,
-  "C1_open": [
-    "retracted claim residual: STATISTICAL_RESULTS.md:176 + REAL_RUN_SUMMARY.json:829 '없는 codebook … 정직하게 거부' (found by A 16:29 after C rev2b; errata path)"
-  ],
+  "C1_open": [],
   "C1_resolved": [
     "older-relevant registry unfrozen → LA-ORS-20260827",
     "AUTH_GATE §1.1 vs A2 → contract corrected",
@@ -81,7 +84,8 @@
     "AXIS_A_NOT_EVALUATED → A judged, contract not amended",
     "LIMITATIONS 9 mandated sentences → added",
     "FINAL_RESULTS_SUMMARY §1 docstring-as-fact → wiring gap + E-6b scoped (16:25)",
-    "§7 counterfactual → CURRENT_IMPLEMENTATION_CONDITIONAL (16:25)"
+    "§7 counterfactual → CURRENT_IMPLEMENTATION_CONDITIONAL (16:25)",
+    "retracted-claim residual (STATS:176/REAL_RUN_SUMMARY:829/build_real_marts.py) → fixed in 82f631f, C scan 0 residual"
   ],
   "research_conduct": {
     "duplicate_automated_requests_hosts": 7,
@@ -91,7 +95,8 @@
     "LOCALLY_FORGEABLE_TRACKING_REF_IN_FIREWALL_DOCUMENT_READ (post-E001 TOP)",
     "recovery: task-definition wiring (C-W) + real signal detector (C-D) + F-1 NED loss on UNRESOLVED route + F-2 CODEBOOK_PENDING guard not wired",
     "real_target_outcome_used field split",
-    "PROTOCOL_VERSION naming"
+    "PROTOCOL_VERSION naming",
+    "claim scanner: include generator scripts/ in RETRACTED scan; narrative SSOT (numbers have one, sentences don't)"
   ],
   "recovery_lane": {
     "status": "task1 CURRENT_IMPLEMENTATION_CAUSAL_AUDIT done; task3 partial-depth fixtures PASS4/FAIL3; tasks 2/4/5 await B outputs",
@@ -116,5 +121,6 @@
     "scanner: [A] tag, ✗ example rows, denominator phrasing, contract-citation context fixed",
     "cwd reset caused an unapplied patch once — reapplied with absolute paths",
     "rev2b rescan covered only the 2 named files and checked insertion, not removal of retracted claims — A caught residual in STATISTICAL_RESULTS.md/REAL_RUN_SUMMARY.json; scanner now has RETRACTED removal check as standing item"
-  ]
+  ],
+  "canonical": "claude-b/analysis-current@82f631f"
 }
