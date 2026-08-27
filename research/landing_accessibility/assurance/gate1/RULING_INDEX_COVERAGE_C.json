@@ -1215,9 +1215,108 @@
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 29
+  },
+  {
+   "id": "Δ40-R33",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**모호한 입력은 raise 다.** 두 형태 계약이 동시에 만족되어 어느 계약인지 결정되지 않는 상태는 `R32` 의 세 상태에 없는 네 번째 상태이며, 처리는 형태 위반과 같다. 우선순위 선언 + note 는 답이 아니다 — **도구가 무엇을 측정할지 스스로 정하면 note 로 무해해지지 않는다**",
+   "must_appear_in": "`_iter_states` 등 다형 입력을 읽는 이음매",
+   "C_check": "CI-19 r4: 두 키 공존(모호) 입력을 4번째 상태로 주입해 raise 를 기대; 선행 확인 3단계(기존 호출자 실측·의도 기록·'없음' 대조군)를 COMPLETION 에서 C 가 재실행",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 31
+  },
+  {
+   "id": "Δ40-exception",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "모호가 아닌 유일한 경우는 **계약이 두 키의 공존을 제3의 형태로 명시 정의한 때**뿐이다. 정의는 `R16` 으로 올려서 만들고 **구현으로 만들지 않는다**",
+   "must_appear_in": "계약 문서",
+   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 31
+  },
+  {
+   "id": "Δ40-precheck",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "raise 전환 전에 **두 키를 함께 넘기는 기존 호출자·fixture·테스트를 실측**한다. 있으면 의도한 형태를 기록하고 고친다. **없으면 '없음' 을 대조군으로 보인다**",
+   "must_appear_in": "B 의 전환 기록",
+   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 31
+  },
+  {
+   "id": "Δ40-R34",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**모집단 정의를 공유하면 정의의 결함은 독립 검증으로 잡히지 않는다.** 완전성 확인은 (a) 단위 안의 열거 일치 **와** (b) **단위 밖 반례 탐색** 을 모두 가져야 한다. (b) 가 없으면 C 의 확인은 B 의 필터 재실행이지 독립 확인이 아니다",
+   "must_appear_in": "C 의 완전성 확인 (CI-19)",
+   "C_check": "CI-19 r4 (b): 단위 밖 반례 탐색 — 선택적 키 접근 단위로 안 잡히는 R32 필요 이음매를 최소 1건 찾거나 '못 찾음' 을 방법과 함께 기록; (a) 단위 안 열거 일치만으로는 독립 확인 아님",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 31
+  },
+  {
+   "id": "Δ40-control-naming",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "대조는 **`must_flag` / `must_not_flag`** 로 적는다. 이 프로젝트에서 '양성대조' 가 두 뜻으로 쓰였으므로 **이름을 고르지 말고 버린다**",
+   "must_appear_in": "B 의 검사기 완료조건 · C 의 확인 절차",
+   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 31
+  },
+  {
+   "id": "Δ40-unit",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "`R30`/`R32` 적용 대상의 열거 단위는 **매개변수가 아니라 구조 입력 안의 선택적 키 접근**이다(B 정정 채택). 목록 문서는 단위를 **검사 가능한 술어**로 적고 '전수' 대신 **무엇의 전수인지** 적는다",
+   "must_appear_in": "docs/v3/R32_APPLICATION_POINTS.md",
+   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 31
+  },
+  {
+   "id": "Δ41-R35",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**대조 결과는 산출물 안에 있어야 한다.** 대조가 돌았는데 결과가 산출물에 없으면 읽는 쪽은 그 수치가 통제된 방법에서 나온 것인지 알 수 없다. 산출 파일은 대조 목록(must_flag/must_not_flag) · 각 결과 · **실행으로 실증된** 실패 시 동작 · 도구 경로와 커밋을 담는다",
+   "must_appear_in": "B W5P 산출 · C CI-19 산출 · D RECONCILIATION.json",
+   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 31
+  },
+  {
+   "id": "Δ41-R36",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**커밋 메시지와 docstring 도 주장이다.** 거기 적힌 도구 동작은 실행으로 실증되지 않으면 주장이며 다른 평면이 읽고 인용한다. 틀린 기록은 **고쳐 쓰지 않고 후속 기록으로 정정**한다 — 기록을 고치면 인용한 문서가 조용히 근거를 잃는다",
+   "must_appear_in": "각 평면의 커밋·문서 규율",
+   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 31
+  },
+  {
+   "id": "Δ41-limit",
+   "due": "STEP3",
+   "verified_by": "A",
+   "requires": "D 의 FINDING-008 재도출은 **교차 대조 로직**의 재실행이지 lane 측정의 재실행이 아니다. 53건 정의 모호성은 재계산되지 않았고 **전부 합성 fixture** 한계도 그대로다. NON_CANONICAL — 본연구 근거 아님",
+   "must_appear_in": "D 수치를 인용하는 모든 곳",
+   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "coverage": "NOT_C",
+   "gap_note": null,
+   "added_at_index_version": 31
   }
  ],
- "index_version": 29,
+ "index_version": 31,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1256,5 +1355,6 @@
  "index_sha256_v25": "da3c6b89e9312e40fa2ecd6cc72c0e53b7e475e2f2df56a967b61cfa16bd6ccd",
  "index_sha256_v26": "d40d947a4b0dcd6cbfdfb102cb2352bd4b847b49be3cafb713aa3e5ac5ffad7d",
  "index_sha256_v28": "92637d82e4206aef325ec9d0e09270459f513ee13507199dd920e1a918a7f43b",
- "index_sha256_v29": "e5737ef581516a647d7d9640a8b199704a99a632cf1b034d6336ed0c627e826a"
+ "index_sha256_v29": "e5737ef581516a647d7d9640a8b199704a99a632cf1b034d6336ed0c627e826a",
+ "index_sha256_v31": "d6a0c2a4e5ed645a75d229f6a4d05d2724ff52751fa9ffa6ef5e72c59bd97f09"
 }
