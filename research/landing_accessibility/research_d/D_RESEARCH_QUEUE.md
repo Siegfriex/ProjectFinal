@@ -263,3 +263,25 @@ D 는 `D-RESEARCH_FINDING-002` 부터 `to=[C]` 로 고쳤으면서 **정작 가�
 
 **앞으로의 규칙**: D 의 모든 research finding·evidence 는 **A 가 직접 물었을 때에도** `to=[C]` 로 간다.
 긴급성은 `priority` 필드로만 표현하고 경로로 표현하지 않는다.
+
+## 2026-08-28 00:26 갱신 — RQ-D15 / PILOT-E 종료, E 계열 개시
+
+| RQ | 질문 | 상태 | 산출 |
+|---|---|---|---|
+| RQ-D15 | v1/v2/v3 코퍼스에서 이전 D NLP 판정이 유지되는가 | **DONE — REFUTED** | `results/RQ_D15_v3_replication.json`, `D_CORPUS_VERSION_EFFECT_001.json`, 티켓 `D-RESEARCH_FINDING-003` |
+| RQ-D-PILOT-001-E | 세 축이 측정 공정에서 evidence slot 을 공유하는가 | **DONE — SUPPORTED** | `results/PILOT_E_slot_dependency.json`, 티켓 `D-RESEARCH_FINDING-004` |
+
+PILOT-E 가 낸 파생 RQ (전부 재수집 없이 착수 가능한 것부터):
+
+| RQ | 질문 | 상태 | 근거 |
+|---|---|---|---|
+| **RQ-E-1** | dismiss detector 의 `icon_only`(l0_probe.js:402) 조건을 끄면 Axis B activation pool 이 얼마나 회복되는가 | **RUNNING** | E-P1 HIGH, measurable_now=yes |
+| RQ-E-2 | Axis A evaluator 생산 후 `dom_aria_label_n` 층별 Axis C 확정률 차이가 유지되는가 | BLOCKED — Axis A 0행 | E-P2 |
+| RQ-E-3 | `hittable()` 을 중심점 1점→다점으로 바꾸면 Axis B 후보수와 Axis C `dismiss_control_visible` 이 같은 방향으로 움직이는가 | OPEN | E-P4 식별 |
+| RQ-E-4 | SSOT §8.1 의 `DOM_AX_ROLE` region signal 미구현이 Axis B 의 `declared_regions` 의존(실사이트 2/54)의 원인인가 | OPEN | 구조적 사실 (2) |
+| RQ-E-5 | AX tree 가 수집되지만 어느 축도 소비하지 않는다 — inert slot 의 범위 | OPEN | 구조적 사실 (2) |
+
+| **RQ-D13b-1/2** | dismissal DOM 효과: H1_NO_EFFECT 53건에 dismiss target 이 실재했는가 / H4_PIXEL_ONLY 37건의 원인 | **RUNNING** | RQ-D13b 파생 |
+
+파일럿 상태: A 가 00:14 에 `MANIFEST_REFROZEN` (v1 `4d3209ca` degenerate → v2 `78f2e32a…`). **캡처 산출물은 아직 없다.**
+PILOT child A / B / C-part2 / D 는 `PENDING_PILOT_FREEZE` 유지.

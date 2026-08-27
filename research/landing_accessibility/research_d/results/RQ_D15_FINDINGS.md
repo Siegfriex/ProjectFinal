@@ -2,8 +2,8 @@
 
 **VERDICT: REFUTED**
 
-`hypothesis_id` `H-D15-CORPUS-ROBUSTNESS` · MLflow run `229a338130744d4cb6016e2b5933505b`
-(experiment `LA_03_RF_MAPPING`) · seed `20260827` · 생성 `2026-08-28T00:14:06.223958+09:00`
+`hypothesis_id` `H-D15-CORPUS-ROBUSTNESS` · MLflow run `7b9f756a6fae48449611e1e62f049646`
+(experiment `LA_03_RF_MAPPING`) · seed `20260827` · 생성 `2026-08-28T00:23:51.740386+09:00`
 
 ---
 
@@ -62,9 +62,9 @@ v1→v3 에서 바뀐 칸 **6**.
 | `D_OBSERVATION_TABLE_v2.csv` | 59 | `c39c10f09f7a6a7603409550eb331612eb44634eb98ec387a604aa5221351e6b` | 37,431 |
 | `RQ_D14_frame_validity.json` | 56 | `ee4cc0e989ba72ed615293d51f41575e4308360e30bb4338eadfebcc2e739966` | 123,078 |
 
-코드 `tools/rq_d15_v3_replication.py` sha256 `390db903fd6cb46f82b9b5ad4be6c03b412c3591cf3b8002399bd5e6cb2167df`
-결과 `results/RQ_D15_v3_replication.json` sha256 `a776b1415a9880f940e2d0bb37736ed94b77fcb7c2e3e275bc25f785403688e9`
-노트북 `notebooks/d_research/RQ_D15_v3_replication.ipynb` sha256 `4f2510fd7103e099522b843b5b823cd1cc5f5b06bcb52c13040b07989415ae6c`
+코드 `tools/rq_d15_v3_replication.py` sha256 `c9fa47b9dacf154d9c85f0a612ec1bbe319ddef335942532ec8fd4ec788de917`
+결과 `results/RQ_D15_v3_replication.json` sha256 `24f2761e602abbaf1978f7c2f7032373592d4d6eb0bebb33ee472a1d7bb0dc7b`
+노트북 `notebooks/d_research/RQ_D15_v3_replication.ipynb` sha256 `8407748989dc4e064482ae901514aa2454198ecd7a64a6dfee557f83c457547d`
 
 ### 2.1 코퍼스 버전 차이 — **v2→v3 에서 바뀐 target 은 4/56 뿐이다**
 
@@ -539,7 +539,7 @@ n=56, 7 archetype 중 5개가 n<=5 (UTILITY 5 / COMMUNICATION 4 / PLACE 4 / QUER
 
 | 파일 | 용도 |
 |---|---|
-| `tools/rq_d15_v3_replication.py` | 재현 코드 (sha256 `390db903fd6cb46f…`) |
+| `tools/rq_d15_v3_replication.py` | 재현 코드 (sha256 `c9fa47b9dacf154d…`) |
 | `results/RQ_D15_v3_replication.json` | 결과 전문 |
 | `results/RQ_D15_FINDINGS.md` | 이 문서 |
 | `figures/RQ_D15_verdict_grid.png` | 판정 격자 |
@@ -548,7 +548,15 @@ n=56, 7 archetype 중 5개가 n<=5 (UTILITY 5 / COMMUNICATION 4 / PLACE 4 / QUER
 | `figures/RQ_D15_uncertainty.png` | fold 분포·permutation |
 | `notebooks/d_research/RQ_D15_v3_replication.ipynb` | Restart→Run All 검증된 노트북 |
 
-MLflow: experiment `LA_03_RF_MAPPING`, run `229a338130744d4cb6016e2b5933505b`,
+MLflow: experiment `LA_03_RF_MAPPING`, run `7b9f756a6fae48449611e1e62f049646`,
 `hypothesis_id=H-D15-CORPUS-ROBUSTNESS`, `authority_status=NON_CANONICAL`.
-**기존 MLflow run 은 하나도 수정하지 않았다.** 이 run 은 새 run 이다.
+**기존 D 의 MLflow run 은 하나도 수정하지 않았다.** 이 run 은 새 run 이다.
+
+이 세션에서 같은 코드로 만든 run 이 하나 더 있다: `229a338130744d4cb6016e2b5933505b`.
+그림 라벨을 ASCII 로 바꾸는 **표시용 수정**(matplotlib 기본 폰트에 한글 글리프가 없어 판정 격자
+행 라벨이 tofu 로 찍혔다)만 하고 전체를 다시 돌렸기 때문이다. 두 run 의 결과 JSON 을 최상위 키
+단위로 비교한 결과 **타임스탬프·run_id·경로 외에 다른 값은 없었다**(격자 21칸, 변경 6칸, verdict
+REFUTED 동일). 옛 run 은 지우지 않고 `run_status=SUPERSEDED` +
+`superseded_by=7b9f756a6fae48449611e1e62f049646` 로 표시해 두었다. **권위 있는 run 은
+`7b9f756a6fae48449611e1e62f049646` 다.**
 
