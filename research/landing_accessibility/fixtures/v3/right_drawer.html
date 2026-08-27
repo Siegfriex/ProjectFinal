@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+FIXTURE: right_drawer    W5E v3 offline fixture 7/13
+
+검증 대상 (`SSOTV3/04 §4`): 오른쪽 가장자리에서 열리는 drawer 안의 task 진입 control.
+nav_container_type=RIGHT_DRAWER · reveal_direction=RIGHT · entry_zone=DRAWER ·
+menu_dependency=true · nav_container_depth=1 · activation_depth=2.
+
+방향은 라벨이 아니라 **관측 가능한 신호 두 가지**로 성립한다.
+(1) drawer 가 오른쪽 가장자리(x 90..390)에 붙어 있다.
+(2) 열릴 때 translateX(100%) → 0 으로 움직여 진행 방향이 오른→왼쪽이다.
+
+대조짝: `left_drawer.html` — DOM 태그 시퀀스가 완전히 같고 CSS 의 앵커 가장자리와
+translateX 부호 **하나**만 다르다. 그 하나가 reveal_direction LEFT↔RIGHT 와
+nav_container_type LEFT_DRAWER↔RIGHT_DRAWER 를 가른다. entry_y_norm 은 같고
+entry_x_norm 만 달라진다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>오른쪽 drawer — W5E v3 픽스처</title>
+<style>
+ *{box-sizing:border-box}
+ [hidden]{display:none !important}
+ body{margin:0;width:390px;height:844px;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+ .hdr{margin:0;height:56px;line-height:56px;padding-left:16px;font-size:17px;
+      font-weight:600;border-bottom:1px solid #ddd}
+ .trigger{position:fixed;left:250px;top:8px;width:116px;height:40px;
+          border:1px solid #888;border-radius:6px;background:#fff;color:#111;font-size:14px}
+ .drawer{position:fixed;left:90px;top:56px;width:300px;height:788px;
+         background:#f4f6f9;box-shadow:-2px 0 0 #ccc;
+         transform:translateX(100%);transition:transform .2s linear}
+ .drawer.open{transform:translateX(0)}
+ .task{position:absolute;left:40px;top:24px;width:200px;height:48px;
+       border:0;border-radius:8px;background:#0b4f9e;color:#fff;font-size:16px}
+</style></head>
+<body data-fixture="right_drawer">
+<h1 class="hdr">시외버스 예매</h1>
+<button type="button" class="trigger" id="open" aria-expanded="false">전체메뉴</button>
+<nav class="drawer" id="drawer" hidden aria-label="전체메뉴">
+<button type="button" class="task" id="entry">운행정보 조회</button>
+</nav>
+<script>
+document.getElementById('open').addEventListener('click', function () {
+  var d = document.getElementById('drawer');
+  d.hidden = false;
+  this.setAttribute('aria-expanded', 'true');
+  requestAnimationFrame(function () { d.classList.add('open'); });
+});
+</script>
+</body></html>
