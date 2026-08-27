@@ -287,10 +287,23 @@ gate 종료 13건 중 **승격 계약이 실제로 걸리는 것은 `FINANCIAL_A
 
 ```
 정정 전   C-G 25 · C-W 59 · C-D 31 · C-E 12
-정정 후   C-G 25 · C-W 59 · C-D 31 · C-E  1
+정정 후   C-G 25 · C-W 59 · C-D 31 · C-E1 11 · C-E2 1
 ```
 
 **자릿수가 다르다.** 동급 우선순위로 두면 자원 배분이 왜곡된다.
+
+#### C 의 `C-E1`/`C-E2` 분리를 채택한다 — **성격이 다르다**
+
+내 초판 정정은 *"12 가 아니라 1"* 이라고만 했다. **C 의 분리가 더 정확하다:**
+
+| | n | 성격 | 처리 |
+|---|---|---|---|
+| **`C-E1`** | 11 | **설계 규칙.** archetype 이 gate 를 endpoint 로 인정하지 않는다 | **구현 결함이 아니다. 고칠 대상이 아니라 계약을 다시 볼 대상이다** |
+| **`C-E2`** | 1 | gate 판별 실패 (E-6b) | 구현 개선 대상 |
+
+**11건을 "결함" 으로 분류하면 다음 수행자가 고치려 든다.** 그건 `A2 §1.5.1` + `00_SSOT §3` 이
+정한 것이고, 바꾸려면 **measurement 계약 개정과 독립감사**를 거쳐야 한다.
+`§4-4`(region 도달 시 NED 보존 검토)와 같은 층위의 일이다.
 
 ### 3.4.2 4층위는 **중첩**이고 6종 outcome 표는 **분할**이다 — 합계가 다른 이유를 명시한다
 
@@ -405,13 +418,46 @@ detector                                              signal_type 을 읽지 않
 > 승격 0 이었으나, C 판정대로 그것은 **detector 가 상수 False 를 반환한 부수효과**이지
 > 가드가 작동한 것이 아니다. **정의가 채워지는 순간 가드 없는 승격 경로가 열린다.**
 
-### 복구 순서에 대한 함의
+### 복구 순서 — **`REC-B-8` 을 선행조건으로 격상한다 (정정)**
+
+> **이 절을 처음에는 "한 묶음으로 시정" 이라고 썼다. 부족하다. 순서가 있어야 한다.**
+
+**핵심은 이것이다 — 이건 "측정이 안 된다" 가 아니라 "틀린 측정이 나온다" 다.**
 
 ```
-잘못된 순서   REC-B-1~3 (wiring) 먼저  →  REC-B-6 로 NED 소실 재발
-                                        →  REC-B-7 로 PENDING 정의가 endpoint 로 승격
-올바른 순서   REC-B-1~3 · REC-B-6 · REC-B-7 을 **한 묶음으로** 시정한 뒤 R2 로
+오늘        default_task_definition() 이 정의를 None 으로 만들어 승격 경로에 도달하지 못했다
+            → 결과가 0 이었지만 **오염되지는 않았다**
+
+naive B1    정의 문자열이 들어오고 mapping_status 는 여전히 CODEBOOK_PENDING 인데
+            가드가 꺼져 있어 승격이 일어난다
+            → **오늘의 "정직한 0" 이 "근거 없는 값" 으로 바뀐다**
 ```
+
+**복구가 오늘의 산출물보다 나쁜 것을 만들 수 있다.** 이것이 순서를 강제하는 이유다.
+
+```
+선행   REC-B-8   mapping_frozen_allowed() 프로덕션 배선     ← 없으면 B1 이 오염을 만든다
+  ↓
+B1     REC-B-1~3 task definition wiring
+       REC-B-6   l1_engine area_index 대입 분기 (동시)
+  ↓
+B2     REC-B-5   실웹 signal detector          (B1 과 독립. 둘 다 필요)
+       REC-B-7   승격·Path Freeze 가드
+       REC-B-9   assign_depth_segments IED 라벨링
+```
+
+**Director 지시에 이미 있었다** — *"`mapping_status` 가 `CANDIDATE`/`AMBIGUOUS`/`CODEBOOK_PENDING`
+인 상태를 임의로 `FROZEN` 으로 승격하지 않는다."*
+**그 규칙을 강제할 게이트가 꺼져 있다는 것이 지금 확인된 것이다.**
+
+### `PHASE B4`(부분 depth 보존)의 대상 정정
+
+```
+✗  compute_depth()          — complete-case 가 아니다. 계약대로 동작한다 (B 확인)
+○  l1_engine 대입 분기      — REC-B-6. area_here 를 계산하고도 UNRESOLVED 경로에서 버린다
+```
+
+**Director 가정과 다르다.** 진짜 손실 지점은 `compute_depth` 위 단계다.
 
 **`R4`(partial-depth semantics)는 현재 `FAIL` 이다.** `GO_POST_E001_RECOVERY_REAL` 조건 미충족.
 
