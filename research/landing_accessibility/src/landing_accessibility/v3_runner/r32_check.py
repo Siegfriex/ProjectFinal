@@ -47,6 +47,20 @@
 
 실행:
     python -m landing_accessibility.v3_runner.r32_check
+
+`exit` 규약 (`Δ46-R39` · A `check_ruling_index.py` 와 같은 규약)
+    ``0``  통과 — 산출을 쓴다 (``status: PASS``)
+    ``1``  **검사가 돌았고 실패했다** — 산출을 쓴다 (``status: FAIL`` + 실패 목록)
+    ``2``  **검사가 돌지 않았다** — 산출을 **쓰지 않는다.** 통과로도 실패로도 읽지 마라
+
+**선언된 실패 동작** (`R35` 셋째 요소 — 이 선언대로 실증한다)
+    ``exit 1`` 에서 산출을 **지우지 않고 남긴다.** 감사 흔적이 목적이다 —
+    실패를 파일에서 지우면 "검사가 실패했다" 와 "검사를 안 돌렸다" 가 같아진다.
+    ``exit 2`` 에서는 산출을 **건드리지 않는다.** 돌지 않은 실행이 이전 산출을
+    덮으면 그 파일이 언제 것인지 알 수 없게 된다.
+    실증기: :mod:`landing_accessibility.v3_runner.r32_control_failure_demo`.
+    측정 대상은 ``exit`` 이 아니라 **산출 파일의 sha256 변화**다 (`Δ46-R40`) —
+    ``exit`` 은 파일에 남지 않는다.
 """
 
 from __future__ import annotations
@@ -116,6 +130,23 @@ _RESEARCH_ROOT = _PKG_ROOT.parent.parent
 
 def document_path() -> Path:
     return _RESEARCH_ROOT / "docs" / "v3" / "R32_APPLICATION_POINTS.md"
+
+
+def result_path() -> Path:
+    """`R35` 4요소를 담는 산출. 이 파일의 sha 변화가 실패 동작의 측정 대상이다."""
+    return _RESEARCH_ROOT / "docs" / "v3" / "R32_CHECK_RESULT.json"
+
+
+def demo_sidecar_path() -> Path:
+    """실증기(`r32_control_failure_demo`) 가 남기는 sidecar."""
+    return _RESEARCH_ROOT / "docs" / "v3" / "R32_FAILURE_DEMO.json"
+
+
+def tool_sha256(path: Path | None = None) -> str:
+    """이 검사기 소스의 sha256. `R40` — 실증은 이 값에 묶인다."""
+    import hashlib
+
+    return hashlib.sha256((path or _HERE).read_bytes()).hexdigest()
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -597,12 +628,18 @@ class _Reads(ast.NodeVisitor):
         self.generic_visit(node)
 
 
+#: sweep 에서 제외하는 파일. **측정 대상이 아니라 측정 도구**다 — 검사기가 자기
+#: 자신을 목록에 넣으면 목록이 "무엇을 쟀는가" 가 아니라 "무엇으로 쟀는가" 를 섞는다.
+#: (첫 실행에서 실증기가 표류 후보로 잡혔다. 그 표류 검사는 **정상 동작**이었다.)
+W5P_TOOLING = frozenset({"r32_check.py", "r32_control_failure_demo.py"})
+
+
 def sweep_candidates(root: Path | None = None) -> dict[str, str]:
     """`{point_id: 발견 경로}`. 문서와 독립적으로 코드에서 만든다."""
     root = root or V3_RUNNER_DIR
     out: dict[str, str] = {}
     for path in sorted(root.glob("*.py")):
-        if path.name == _HERE.name:
+        if path.name in W5P_TOOLING:
             continue
         tree = ast.parse(path.read_text(encoding="utf-8"))
         fns = {
@@ -886,21 +923,149 @@ def check(doc: Path | None = None, *, skip_oracle: bool = False) -> list[str]:
     return failures
 
 
+# ══════════════════════════════════════════════════════════════════════════
+# 산출 — `R35` 4요소
+# ══════════════════════════════════════════════════════════════════════════
+
+#: 이 검사기가 **선언한** 실패 동작. 실증기가 이 선언대로 동작함을 보인다 (`R35` ③).
+DECLARED_FAILURE_BEHAVIOUR = {
+    "0": "통과 — 산출을 쓴다 (status=PASS)",
+    "1": "검사가 돌았고 실패했다 — 산출을 쓴다 (status=FAIL). 지우지 않는다: 감사 흔적",
+    "2": "검사가 돌지 않았다 — 산출을 쓰지 않는다. 통과로도 실패로도 읽지 마라",
+}
+
+
+def build_result(failures: list[str], *, verdicts: dict[str, OracleResult]) -> dict[str, Any]:
+    """`R35` 4요소를 한 객체로. **시각·난수를 넣지 않는다** — sha 비교가 측정 수단이다."""
+    controls = []
+    for role, (pid, want) in sorted(CONTROLS.items()):
+        res = verdicts.get(pid)
+        controls.append(
+            {
+                "role": role,  # ① 대조 목록
+                "point_id": pid,
+                "expected": want,
+                "observed": res.verdict if res else None,
+                "passed": bool(res and res.verdict == want),  # ② 결과
+                "detail": res.detail if res else "오라클에 없다",
+            }
+        )
+    demo = _read_json(demo_sidecar_path())
+    current = tool_sha256()
+    return {
+        "schema": "w5p/r32-check-result/1",
+        "status": "PASS" if not failures else "FAIL",
+        "controls": controls,
+        "failures": failures,
+        # ③ 도구 경로
+        "tool": {
+            "module": "landing_accessibility.v3_runner.r32_check",
+            "path": _rel(_HERE),
+            "sha256": current,
+            "exit_codes": DECLARED_FAILURE_BEHAVIOUR,
+            "declared_failure_behaviour": (
+                "exit 1 은 산출을 남긴다(감사 흔적). exit 2 는 산출을 건드리지 않는다."
+            ),
+        },
+        # ④ 실패 시 동작의 실증 — `R40` 으로 도구 sha 에 묶인다
+        "failure_demonstration": {
+            "sidecar": _rel(demo_sidecar_path()),
+            "present": demo is not None,
+            "tool_sha256_at_demo": (demo or {}).get("tool_sha256"),
+            "valid_for_this_commit": bool(demo and demo.get("tool_sha256") == current),
+            "cases": [c["name"] for c in (demo or {}).get("cases", [])],
+        },
+    }
+
+
+def _rel(path: Path) -> str:
+    """research root 기준 상대경로. 밖이면 절대경로 그대로 (테스트 임시 경로 대비)."""
+    try:
+        return str(path.relative_to(_RESEARCH_ROOT))
+    except ValueError:
+        return str(path)
+
+
+def _read_json(path: Path) -> dict[str, Any] | None:
+    import json
+
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return loaded if isinstance(loaded, dict) else None
+
+
+def write_result(result: dict[str, Any], path: Path | None = None) -> Path:
+    import json
+
+    target = path or result_path()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return target
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="R32 적용 지점 목록 ↔ 코드 정합 검사")
     ap.add_argument("--doc", type=Path, default=None)
+    ap.add_argument(
+        "--out", type=Path, default=None, help="산출 경로 (기본: R32_CHECK_RESULT.json)"
+    )
+    ap.add_argument("--no-write", action="store_true", help="산출을 쓰지 않는다 (진단용)")
     ap.add_argument("--skip-oracle", action="store_true")
     ap.add_argument("--oracle-only", action="store_true")
     ns = ap.parse_args(argv)
+
     if ns.oracle_only:
-        for pid, res in sorted(oracle_verdicts().items()):
-            print(f"{res.verdict:22} {pid}\n{'':22} {res.detail}")
+        try:
+            for pid, res in sorted(oracle_verdicts().items()):
+                print(f"{res.verdict:22} {pid}\n{'':22} {res.detail}")
+        except Exception as exc:  # 검사가 돌지 않았다
+            return _did_not_run(exc)
         return 0
-    failures = check(ns.doc, skip_oracle=ns.skip_oracle)
+
+    # ── 검사가 **돌 수 있었는가** 와 **통과했는가** 를 분리한다 (`Δ46`) ──
+    try:
+        failures = check(ns.doc, skip_oracle=ns.skip_oracle)
+        verdicts = {} if ns.skip_oracle else oracle_verdicts()
+        result = build_result(failures, verdicts=verdicts)
+    except Exception as exc:
+        return _did_not_run(exc)
+
     for f in failures:
         print(f)
-    print(f"\n실패 {len(failures)}건")
+    if not ns.no_write:
+        # 선언대로: 실패해도 남긴다. 지우면 실패와 미실행이 같아진다.
+        print(f"산출 → {write_result(result, ns.out)}")
+    demo = result["failure_demonstration"]
+    if not demo["valid_for_this_commit"]:
+        print(
+            "경고: 실패 동작 실증이 현재 도구 sha 와 묶여 있지 않다 "
+            f"(sidecar={demo['tool_sha256_at_demo']}). r32_control_failure_demo 를 다시 돌려라.",
+            file=sys.stderr,
+        )
+    print(f"\n실패 {len(failures)}건 — status={result['status']}")
     return 1 if failures else 0
+
+
+def _did_not_run(exc: BaseException) -> int:
+    """`exit 2` — 검사가 돌지 않았다. **산출을 건드리지 않는다.**
+
+    `Δ46`: `exit 1` 은 "검사가 돌아서 실패했다" 와 같은 코드다. 미실행이 그 코드를
+    쓰면 미실행과 실패가 같은 출력이 된다 — 이 세션의 중심 결함이다.
+    """
+    import traceback
+
+    traceback.print_exc()
+    print(
+        f"\n검사가 돌지 않았다 ({type(exc).__name__}). "
+        "통과로도 실패로도 읽지 마라. 산출은 갱신되지 않았다.",
+        file=sys.stderr,
+    )
+    return 2
 
 
 if __name__ == "__main__":

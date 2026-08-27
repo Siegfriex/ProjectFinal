@@ -1,7 +1,8 @@
 # R32 적용 지점 — `v3_runner` 열거
 
 **정본**: `control/v3/V3_0_1_SUCCESSOR_DELTA.md` `Δ39`(R32 세 상태) ·
-`Δ40`(R33 네 번째 상태 · 열거 단위 채택 · 대조 명칭 · R34) · `Δ42`(산출 분리 순서).
+`Δ40`(R33 네 번째 상태 · 열거 단위 채택 · 대조 명칭 · R34) · `Δ42`(산출 분리 순서) ·
+`Δ46`(R35 4요소 · R40 실증-도구 sha 결속 · exit 규약).
 **검사기**: `src/landing_accessibility/v3_runner/r32_check.py` · `tests/test_w5p_r32_application_points.py`
 **레인**: W5P (Claude B) · **이 문서는 목록이다. 코드를 고치지 않았다.**
 
@@ -334,6 +335,68 @@ W5N 이 이미 그렇게 구현했다(`surface.py:437-443`). 빠진 것은 선�
 | 2. 구조 검사 | 67행 전부의 파일·함수·키 리터럴(또는 매개변수)이 **실재하는지** AST 로 확인 | 함수명·키가 바뀌거나 사라지면 실패 |
 | 3. 표류 검사 | AST sweep 을 **문서와 무관하게 다시** 돌려 후보를 재생성 | 코드에 있는데 목록에 없으면 실패 |
 | 대조군 | `must_flag`/`must_not_flag` 를 오라클 결과와 문서 기재 양쪽에서 확인 | 어긋나면 실패 (목록이 아니라 방법이 틀린 것) |
+
+### `exit` 규약 (`Δ46-R39`)
+
+| code | 뜻 | 산출 파일 |
+|---|---|---|
+| `0` | 통과 | 쓴다 (`status: PASS`) |
+| `1` | **검사가 돌았고 실패했다** | **쓴다** (`status: FAIL` + 실패 목록) |
+| `2` | **검사가 돌지 않았다** | **쓰지 않는다.** 통과로도 실패로도 읽지 마라 |
+
+`Δ46` 이 A 자신의 검사기에서 찾은 결함이 이것이다 — 예외가 `exit 1` 을 내면
+**미실행과 실패가 같은 출력**이 된다. 이 검사기도 처음엔 그랬고, 같은 규약으로 고쳤다.
+
+### `R35` 4요소 — `docs/v3/R32_CHECK_RESULT.json`
+
+| 요소 | 어디에 |
+|---|---|
+| ① 대조 목록 | `controls[].role` · `.point_id` · `.expected` |
+| ② 결과 | `controls[].observed` · `.passed` · 최상위 `status` |
+| ③ 도구 경로 | `tool.path` · `tool.sha256` · `tool.exit_codes` · `tool.declared_failure_behaviour` |
+| ④ 실패 시 동작의 실증 | `failure_demonstration` → `docs/v3/R32_FAILURE_DEMO.json` |
+
+**선언된 실패 동작**: `exit 1` 에서 산출을 **지우지 않고 남긴다**(감사 흔적 — 실패를
+파일에서 지우면 "실패했다" 와 "안 돌렸다" 가 같아진다). `exit 2` 에서는 산출을
+**건드리지 않는다**(돌지 않은 실행이 이전 산출을 덮으면 그 파일이 언제 것인지
+알 수 없다). `Δ46` 이 못 박은 대로 이 선언은 도구마다 다를 수 있고, 요구는
+**선언대로 실증하는 것**이다.
+
+### `R40` — 실증을 도구 sha 에 묶는다
+
+실증기 `v3_runner/r32_control_failure_demo.py` 가 **격리 사본**(tmpdir 로 복사한
+`src/` + `docs/`)에서 4 사례를 돌리고, 그때의 `r32_check.py` sha256 을 sidecar 에
+적는다. `R32_CHECK_RESULT.json` 의 `failure_demonstration.valid_for_this_commit` 은
+그 sha 가 현재 검사기와 같을 때만 참이다 — **검사기를 고치면 실증이 자동 무효가 되고,
+없는 실증이 있는 것으로 읽히지 않는다.**
+
+**측정 대상은 `exit` 이 아니라 산출 파일의 sha256 변화**다 (`Δ46`: "exit 은 파일에
+남지 않는다"). 각 사례는 산출을 미리 seed 해 두고 실행 뒤 sha 가 바뀌었는지를 잰다.
+
+| 사례 | 변형 | exit | 산출을 썼는가 | 대조군 |
+|---|---|---|---|---|
+| `clean` | 없음 | 0 | 예 (`PASS`) | must_flag ✓ · must_not_flag ✓ |
+| `list_row_deleted` | 목록 표에서 행 1개 삭제 (**데이터**) | 1 | 예 (`FAIL`) | 둘 다 ✓ — 행 삭제는 대조군을 깨지 않는다. 표류 검사가 잡는다 |
+| `must_flag_control_disabled_by_source_edit` | `_judge` 의 충돌 비교를 `False` 로 (**소스**) | 1 | 예 (`FAIL`) | **must_flag ✗** · must_not_flag ✓ |
+| `document_unparseable` | 부록 A 의 `point_id` 형식 파괴 (**데이터**) | 2 | **아니오** (seed 그대로) | 검사가 돌지 않아 대조군 없음 |
+
+**사례 이름은 실증한 것과 같다** (`R36` · `Δ46`). sidecar 의
+`observed.output_controls` · `output_failures` 가 이름을 뒷받침한다.
+
+- `must_flag_control_disabled_by_source_edit` 는 **소스 변형**이다. 데이터만으로는
+  대조군을 깨지 못한다 — 문서를 고치면 "문서 판정이 틀렸다" 로 잡힐 뿐 오라클의
+  대조군 자체는 통과한다. sidecar 가 `must_flag.passed=false`,
+  `must_not_flag.passed=true` 를 기록한다. 이 비대칭도 실증된 것이다 — 충돌 탐지를
+  무력화하면 `R32_VIOLATION` 이 `R32_OK` 로 바뀌므로 `must_flag` 만 깨진다.
+- `document_unparseable` 은 첫 판에서 **본문의 설명용 표**를 고쳐 파싱이 멀쩡히
+  돌았다. 이름이 실증한 것과 다를 뻔했고, 부록 A 의 행을 겨냥하도록 고쳤다.
+
+### 실증기 자신이 잡은 이 검사기의 결함 하나
+
+첫 실행에서 `clean` 이 실패했다 — 표류 검사가 **실증기 자신**(`r32_control_failure_demo.py::main::(PARAM:argv)`)
+을 목록에 없는 후보로 잡았다. 표류 검사는 정상 동작했고, 잘못은 sweep 범위였다.
+`W5P_TOOLING` 으로 **측정 도구 2개를 sweep 에서 제외**했다 — 검사기가 자기를 목록에
+넣으면 목록이 "무엇을 쟀는가" 와 "무엇으로 쟀는가" 를 섞는다.
 
 ---
 
