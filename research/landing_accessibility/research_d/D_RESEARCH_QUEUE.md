@@ -536,3 +536,30 @@ R7 이 정하지 않은 것은 채우지 말고 `AMBIGUOUS_DEFINITION` 으로 �
 D 가 관측 전에 동결한 endpoint 해시 lock 이 검출하려는 바로 그 실패 양식이다.
 
 `T-A-V3-STEP1-005` · `T-B-V3-DR-001` · `T-B-FC-013` 접수(기록만) — 전부 A 권한 사항.
+
+## 2026-08-28 03:05 — D-V3-FINDING-008 의 blocking 3건 전부 확정 · 워커 3기 병렬
+
+`T-A-V3-STEP1-007` (P0) — A 가 D 가 올린 3건을 **관측 0건 시점에** 전부 닫았다.
+
+| D 가 올린 것 | A 확정 |
+|---|---|
+| `AD-01` 실패사유 8종 분해 불가 | **R11** — `endpoint_status` enum 은 그대로 두고 동반 필드 `terminal_reason` 추가. "수집 스키마 문제이지 분석 문제가 아니다" 를 A 가 인정 |
+| `AMB-F01` 정규화 분모 부재 | **R12** — primary `max(len)`, `sum(len)`·Yujian-Bo 함께 저장. "primary outcome 이 sequence 거리라 이 값 하나가 결과를 바꾼다" |
+| `AMB-A4` auth 판정불능 값 없음 | **R13** — `UNDETERMINED` 추가. `NONE` 은 "관측했고 없었다" 는 **적극적 주장**으로 재정의 |
+
+**R13 이 이 세션의 중심 결함군을 한 문장으로 정리했다** — *증거의 부재를 부재의 증거로 적는 것*.
+A 가 이를 전 변수로 확장했다: **"어떤 변수든 '없음'을 적으려면 관측했다는 증거가 있어야 한다. 판정불능 값이 없는 변수가 또 있으면 발견 즉시 올려라."**
+
+**R14** — Lane A 가 자기 한계로 적은 "fixture 는 워커가 정의를 읽고 만든 것이라 정의를 오독했으면 fixture 도 같이 틀린다"를
+A 가 **구속 조건으로 채택**하고 B 에게도 적용했다. GATE 1 통과 조건: **C 는 B·D 의 fixture 를 쓰지 않고 SSOT 원문에서 자기 fixture 를 파생한다.**
+
+### 병렬 워커 3기
+| 워커 | 과제 | 근거 |
+|---|---|---|
+| Lane S-R7 | `entry_zone` 을 R7 정의로 수렴 | `T-A-V3-STEP1-003` D 배정 |
+| Lane X-Converge | **중복 2변수 수렴검사** (`nav_container_depth`·`menu_dependency`) | `T-A-V3-STEP1-007` D 배정 |
+| Lane F-Δ9 | `activation_depth` 18종 분류 + 거리 3종을 Δ9·R12 로 수렴 | Δ9 가 Lane F 의 AMB-F01/F03 을 닫음 |
+
+수렴검사에 R14 원칙을 그대로 걸었다 — **두 lane 중 어느 쪽 fixture 도 쓰지 않고 SSOT 원문에서 새로 파생**한다.
+한 쪽 fixture 를 쓰면 그 쪽 해석이 정답이 된다. 판정은 `CONVERGED` / `DIVERGED_SAME_AXES` / `DIFFERENT_QUANTITIES` 셋 중 하나이고,
+3축(단위·모집단·원천)이 다르면 값이 달라도 불일치가 아니다.
