@@ -17,7 +17,7 @@ FORBIDDEN = [  # (pattern, rule, note)
     (r"고령자\s*사용성이\s*향상", "§2.2", "금지 표현"),
     (r"인증제도가\s*놓쳤", "§2.3", "variance 0"),
     (r"인증\s*(때문에|덕분에|효과)", "§2.3", "비교 불성립"),
-    (r"(때문에|로 인해|초래|야기|원인|영향을\s*미친|효과가\s*있)", "§2.4", "인과표현 — 문맥 확인 필요"),
+    (r"(고령자|사용자|서비스|접근성|장벽|방해요소)[^.]{0,25}(때문에|로 인해|초래|야기|영향을\s*미친|효과가\s*있)", "§2.4", "인과표현(연구 대상) — 문맥 확인 필요"),
     (r"(종합\s*점수|composite\s*score|\bscore\b|점수)", "§2.4", "단일 종합점수/score 금지"),
     (r"(depth\s*(>=|≥)\s*3|3\s*이상이면)", "§2.4", "절대 cutoff 금지"),
     (r"측정기가?\s*(실패|작동하지\s*않|고장)", "§3", "원인 3종(가드 입도·archetype-endpoint 규칙·E-6b 구속) 분리 없이 뭉뚱그림 (A 14:31)"),
@@ -40,11 +40,11 @@ TODAY_RULES = [
     (r"(?=.*(Spearman|ρ|rho|순위\s*상관|Kruskal|association))(?=.*(=\s*-?\d|보였다|나타났|유의|p\s*[<=]|n\s*=\s*\d))", "rev14:58 §1", "오늘 association 없음 — 검정 이름은 계약 인용 맥락에서만; 결과처럼 읽히면 반려"),
     (r"(예산\s*(소진|초과)|깊이\s*예산|DEPTH_BUDGET_EXCEEDED)[^.]{0,25}(?<!\d)(10|12|13|15|16|18)\s*건", "rev14:58 축B", "예산 계수 흡수: 10=7+SCOUT_ERROR3 · 12=detail 필드 뭉침 · 13=7+미기록6 · 15/16/18 — 허용값은 7 · 2 · 9 뿐 (B 15:11)"),
     (r"GRADE\s*[BC]\b", "rev14:58 §1", "오늘 GRADE B/C 태그 자체가 무효 — A 또는 UNSUPPORTED 만"),
-    (r"축\s*A[^.]{0,20}(관측됨|측정됨|산출)", "rev14:58 §0", "축 A = NOT_EVALUATED (판정기 부재) 로만 서술"),
+    (r"축\s*A(는|가|은|:)?\s*(관측됨|측정됨|산출됨|산출되었|평가됨)", "rev14:58 §0", "축 A = NOT_EVALUATED (판정기 부재) 로만 서술"),
     (r"(KWCAG|접근성\s*장벽)[^.]{0,30}(FAIL\s*비율|비율\s*분포|median)", "rev14:58 §0", "KWCAG 판정 미수행 — FailRate 서술 불가"),
 ]
 HEDGE_N = r"(대부분|대다수|많은|거의\s*모든|majority|most)"
-GRADE = r"\[(GRADE\s*[ABC]|UNSUPPORTED|EXPLORATORY)[^\]]*\]|GRADE\s*[ABC]\b|\bgrade\s*[ABC]\b"
+GRADE = r"\[(GRADE\s*)?[ABC]\]|\[(UNSUPPORTED|EXPLORATORY)[^\]]*\]|GRADE\s*[ABC]\b|\bgrade\s*[ABC]\b"
 
 def sentences(text):
     text = re.sub(r"`[^`]*`", " ", text)
@@ -53,6 +53,7 @@ def sentences(text):
         if not p or p.startswith("#") or p.startswith("|--"): continue
         for s in re.split(r"(?<=[.!?。])\s+|(?<=다\.)\s*", p):
             s = s.strip("-*> ").strip()
+            if s.startswith("✗") or s.startswith("| ✗") or "✗ 금지" in s: continue  # document's own forbidden-example rows
             if len(s) > 12: yield s
 
 def numbers_in(s): return set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w.])", s))
@@ -85,7 +86,7 @@ def main(a):
             for trig, comp, note in AXIS_C_CHECKS:
                 if re.search(trig, s, re.I) and not re.search(comp, s, re.I): issues.append(f"AXIS_C: {note}")
             # A 14:21: '0건' must be written as 'N건 중 0건' — bare zero reads as 'not measured'
-            if re.search(r"(?<![\d/])0\s*건", s) and not re.search(r"\d+\s*건\s*(중|가운데|에서)\s*0\s*건|0\s*/\s*\d+|\d+\s*(건|개)[^.]{0,25}시도", s): issues.append("분모 없는 '0건' — 'N건 중 0건' 으로")
+            if re.search(r"(?<![\d/])0\s*건", s) and not re.search(r"\d+\s*(건|개)[^.]{0,40}0\s*건|0\s*/\s*\d+|\d+\s*(건|개)[^.]{0,25}시도", s): issues.append("분모 없는 '0건' — 'N건 중 0건' 으로")
             nums = numbers_in(s) - {"2026", "08", "27", "2", "1"}
             unmatched = sorted(n for n in nums if n not in ref and not re.match(r"^\d{1,2}$", n) is None and n not in ref)
             unmatched = sorted(n for n in nums if n not in ref)
