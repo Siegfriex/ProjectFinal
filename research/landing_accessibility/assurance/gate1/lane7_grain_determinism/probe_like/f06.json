@@ -1,0 +1,98 @@
+{
+ "_provenance": "HAND-AUTHORED by Claude C from the fixture HTML (simulates a probe emission; no B probe code used)",
+ "fixture": "f06_aria_modal_not_blocking_glass_no_pointer.html",
+ "state": "S0",
+ "viewport": {
+  "width": 390,
+  "height": 844
+ },
+ "task_control": {
+  "selector": "#task-entry",
+  "bbox": [
+   20,
+   300,
+   350,
+   48
+  ]
+ },
+ "_note": "P-24 divergent cases: (a) #tip-dialog is role=dialog aria-modal=true but neither overlaps nor intercepts the path control → signal ARIA_MODAL, required=False; (b) #glass overlaps the control geometrically (1.0) but has pointer-events:none → elementFromPoint falls through, hit-test 0.0, required=False; #glass has no dismiss control (population=all row with exists=False — the boundary README listed as untested)",
+ "path_control": {
+  "selector": "#task-entry",
+  "state": "S0",
+  "bbox": [
+   20,
+   300,
+   350,
+   48
+  ],
+  "_note": "current-state path control (= the frozen task-entry control here: it is the next path activation at S0). hit_grid = probe elementFromPoint emission, authored from fixture geometry and validated by validate_probe_like_playwright.py. #glass is pointer-events:none so elementFromPoint returns the control at every point; #tip-dialog (y 600..720) is outside the control",
+  "hit_grid": {
+   "grid": "9x9",
+   "sampling": "x=bx+(i+0.5)*bw/9, y=by+(j+0.5)*bh/9 (lane3 __c.occl); '.'=control or descendant, '-'=point outside viewport (dropped from denominator), letter=container hit",
+   "legend": {},
+   "rows": [
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    "........."
+   ]
+  }
+ },
+ "raw_features": {
+  "dismiss_control_candidates": [
+   {
+    "container_selector": "#glass",
+    "container_role": null,
+    "aria_modal": false,
+    "z_index": 600,
+    "bbox": [
+     0,
+     0,
+     390,
+     844
+    ],
+    "dom_order": 1,
+    "pointer_events": "none",
+    "blocking_proof": false,
+    "_blocking_proof_note": "centre click passes through the glass and activates the control → state changes ⇒ False",
+    "dismiss_control_candidates": []
+   },
+   {
+    "container_selector": "#tip-dialog",
+    "container_role": "dialog",
+    "aria_modal": true,
+    "z_index": 700,
+    "bbox": [
+     20,
+     600,
+     350,
+     120
+    ],
+    "dom_order": 2,
+    "blocking_proof": false,
+    "_blocking_proof_note": "centre click (195,324) is outside the dialog; the control activates → state changes ⇒ False",
+    "dismiss_control_candidates": [
+     {
+      "selector": "#tip-close",
+      "bbox": [
+       290,
+       608,
+       70,
+       40
+      ],
+      "visible": true,
+      "hittable": true,
+      "ax_exposed": true,
+      "accessible_name": "닫기",
+      "dom_order": 1
+     }
+    ]
+   }
+  ]
+ }
+}

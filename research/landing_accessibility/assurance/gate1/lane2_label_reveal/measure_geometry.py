@@ -5,6 +5,8 @@ Independent of B code. Opens each fixture via file:// with every non-file reques
 reads the entry control through THREE channels (CDP AX tree with name sources; Playwright
 aria_snapshot; DOM fallbacks), records bbox before/after the reveal toggle, infers the
 reveal direction purely from geometry, and compares against EXPECTATIONS.json.
+Zone derivation follows A T-A-V3-STEP1-003 R7 (terciles, [a,b), DRAWER > FLOATING > geometry);
+entry_observed_state / nav_container_chain / dom_ax_divergence / null convention follow A T-A-V3-STEP1-012.
 
 Exit 0 only if every fixture PASSes.
 """
@@ -58,6 +60,12 @@ JS_INFO = r"""
   while (n && n !== document.body) { const p = getComputedStyle(n).position; if (p === 'fixed' || p === 'absolute') { cont = n; break; } n = n.parentElement; }
   let contInfo = null;
   if (cont) { const cr = cont.getBoundingClientRect(); contInfo = {position: getComputedStyle(cont).position, x: cr.x, y: cr.y, width: cr.width, height: cr.height, cls: cont.className, id: cont.id, dataState: cont.getAttribute('data-state'), dataSide: cont.getAttribute('data-side'), ariaLabel: cont.getAttribute('aria-label')}; }
+  // R7 FLOATING: nearest self-or-ancestor whose computed position is fixed or sticky (no size cap)
+  let floatAnchor = null; n = el;
+  while (n && n !== document.body) { const p = getComputedStyle(n).position; if (p === 'fixed' || p === 'sticky') { const fr = n.getBoundingClientRect(); floatAnchor = {position: p, tag: n.tagName.toLowerCase(), id: n.id, cls: n.className, width: fr.width, height: fr.height, self: n === el}; break; } n = n.parentElement; }
+  // GAP-05: hit-testable at this state = elementFromPoint at the bbox centre is the control or a descendant
+  let hitAtCentre = false;
+  if (inViewport) { const t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); hitAtCentre = !!t && (t === el || el.contains(t)); }
   return {
     tag, type, role: el.getAttribute('role'), href: el.getAttribute('href'),
     innerText: rendered ? (el.innerText || '') : '', textContent: el.textContent || '',
@@ -66,7 +74,7 @@ JS_INFO = r"""
     imgAlts, svgTitles, hasIcon, rendered, inViewport,
     display: cs.display, visibility: cs.visibility, opacity: cs.opacity,
     bbox: {x: r.x, y: r.y, width: r.width, height: r.height},
-    container: contInfo, cls: el.className, id: el.id
+    container: contInfo, floatAnchor, hitAtCentre, cls: el.className, id: el.id
   };
 }
 """
@@ -130,15 +138,21 @@ def modality(vis, ax, info):
     return "ICON_ONLY_AX_NAMED" if norm(ax) else "ICON_ONLY_UNNAMED"
 
 def zone(info, in_reveal_container):
+    """A T-A-V3-STEP1-003 R7. Returns (entry_zone, entry_zone_band_R7, x_norm, y_norm); all None when the control is
+    not observed at this state (GAP-04: null, never 0)."""
+    if not (info["rendered"] and info["inViewport"]):
+        return None, None, None, None
     b = info["bbox"]; cx, cy = b["x"] + b["width"] / 2, b["y"] + b["height"] / 2
     xn, yn = cx / VW, cy / VH
-    c = info["container"]
-    if in_reveal_container and c and c["position"] in ("fixed", "absolute"): z = "DRAWER"
-    elif c and c["position"] == "fixed" and c["width"] < 0.9 * VW and c["height"] < 0.9 * VH: z = "FLOATING"
-    elif yn < 0.12: z = "TOP_LEFT" if xn < 1/3 else ("TOP_CENTER" if xn <= 2/3 else "TOP_RIGHT")
-    elif yn > 0.88: z = "BOTTOM"
-    else: z = "MID"
-    return z, round(xn, 3), round(yn, 3)
+    # geometry-only tercile band, [a, b)
+    if yn < 1/3: band = "TOP_LEFT" if xn < 1/3 else ("TOP_CENTER" if xn < 2/3 else "TOP_RIGHT")
+    elif yn < 2/3: band = "MID"
+    else: band = "BOTTOM"
+    # structural overrides: DRAWER > FLOATING > geometry
+    if in_reveal_container: z = "DRAWER"                                  # inside the reveal-requiring container (any nav_container_type)
+    elif info.get("floatAnchor"): z = "FLOATING"                          # self-or-ancestor computed position fixed|sticky, no size cap
+    else: z = band
+    return z, band, round(xn, 3), round(yn, 3)
 
 def infer_direction(before, after_info):
     """Geometry only. before = bbox dict or None (not laid out)."""
@@ -189,26 +203,34 @@ def settle_bbox(loc, min_ms=260, max_ms=2500):
         time.sleep(0.06)
     return loc.bounding_box()
 
+NOT_OBSERVED = "NOT_OBSERVED"
+
 def read_control(page, cdp, sel, in_reveal):
     loc = page.locator(sel).first
     info = loc.evaluate(JS_INFO)
     ax = cdp_ax(cdp, sel)
     pw_name, pw_line = aria_snapshot_name(loc)
-    ax_name = "" if (not info["rendered"]) else norm(ax["name"])   # not rendered => not exposed
-    vis, prov = visible_text(info)
-    src = classify_source(info, ax) if ax_name else "NONE"
-    z, xn, yn = zone(info, in_reveal)
+    observed = bool(info["rendered"] and info["inViewport"])          # GAP-04: not rendered / off-viewport => nothing observed at this state
+    ax_name = norm(ax["name"]) if observed else NOT_OBSERVED
+    vis, prov = visible_text(info) if observed else (NOT_OBSERVED, "NOT_OBSERVED")
+    src = (classify_source(info, ax) if ax_name else "NONE") if observed else NOT_OBSERVED
+    rel = label_relation(vis, ax_name) if observed else NOT_OBSERVED
+    z, band, xn, yn = zone(info, in_reveal)
     fallback = norm(info["ariaLabel"] or "") or norm(info["innerText"])
+    dom_exists = observed                                                 # DOM query found a rendered, in-viewport control
+    ax_exists = observed and not ax["ignored"] and ax["role"] is not None # AX tree exposes a node for it
     return {
-        "selector": sel, "visible_label_text": vis, "visible_text_provenance": prov,
+        "selector": sel, "observed": observed, "visible_label_text": vis, "visible_text_provenance": prov,
         "accessible_name": ax_name, "accessible_name_channel": "CDP Accessibility.getPartialAXTree",
         "ax_role": ax["role"], "ax_ignored": ax["ignored"], "ax_raw_sources": ax["sources"],
         "pw_aria_snapshot_name": pw_name, "pw_aria_snapshot_line": pw_line,
         "dom_fallback_name(ariaLabel|innerText)": fallback,
-        "accessible_name_source": src, "label_relation": label_relation(vis, ax_name),
-        "entry_control_type": control_type(info, vis), "entry_label_modality_of_control": modality(vis, ax_name, info),
-        "rendered": info["rendered"], "in_viewport": info["inViewport"], "bbox": info["bbox"],
-        "entry_zone": z, "entry_x_norm": xn, "entry_y_norm": yn, "container": info["container"], "_info": info,
+        "accessible_name_source": src, "label_relation": rel,
+        "entry_control_type": control_type(info, vis if observed else ""), "entry_label_modality_of_control": modality(vis if observed else "", ax_name if observed else "", info),
+        "rendered": info["rendered"], "in_viewport": info["inViewport"], "hit_at_centre": info["hitAtCentre"], "bbox": info["bbox"] if observed else None,
+        "entry_zone": z if observed else NOT_OBSERVED, "entry_zone_band_R7": band if observed else NOT_OBSERVED,
+        "entry_x_norm": xn, "entry_y_norm": yn, "container": info["container"], "float_anchor": info.get("floatAnchor"),
+        "dom_exists": dom_exists, "ax_exists": ax_exists, "dom_ax_divergence": dom_exists != ax_exists, "_info": info,
     }
 
 def cmp(field, got, exp, diffs):
@@ -231,9 +253,15 @@ def run_fixture(browser, fx):
     diffs = []; rec = {"fixture": name, "control_role": fx["control_role"]}
     steps = fx.get("reveal_steps", [])
     s0 = read_control(page, cdp, sel, in_reveal=False)
-    s0_visible = s0["rendered"] and s0["in_viewport"]
+    s0_visible = bool(s0["rendered"] and s0["in_viewport"] and s0["hit_at_centre"])   # GAP-05: bbox in S0 viewport AND hit-testable
     rec["s0"] = {k: v for k, v in s0.items() if k != "_info"}
     cmp("s0_task_control_visible", s0_visible, exp["s0_task_control_visible"], diffs)
+    if "s0_entry_x_norm" in exp:                                           # GAP-04: unobserved geometry is null, never 0
+        cmp("s0_entry_x_norm", s0["entry_x_norm"], exp["s0_entry_x_norm"], diffs)
+        cmp("s0_entry_y_norm", s0["entry_y_norm"], exp["s0_entry_y_norm"], diffs)
+    if not s0["observed"]:
+        for f in ("visible_label_text", "accessible_name", "accessible_name_source", "label_relation", "entry_zone"):
+            if s0[f] != NOT_OBSERVED: diffs.append(f"S0 null convention: {f}={s0[f]!r} for an unobserved control")
     cmp("visible_label_text", s0["visible_label_text"], exp["visible_label_text"], diffs)
     cmp("accessible_name", s0["accessible_name"], exp["accessible_name"], diffs)
     cmp("accessible_name_source", s0["accessible_name_source"], exp["accessible_name_source"], diffs)
@@ -289,12 +317,23 @@ def run_fixture(browser, fx):
     else:
         zone_src = s0
     menu_dep = 0 if s0_visible else (1 if steps else None)
+    nav_type = nav_type_from(direction, (rec.get("s1_after_reveal") and read_control(page, cdp, sel, True)["_info"]) or s0["_info"], steps)
     cmp("reveal_direction", direction, exp["reveal_direction"], diffs)
-    cmp("nav_container_type", nav_type_from(direction, (rec.get("s1_after_reveal") and read_control(page, cdp, sel, True)["_info"]) or s0["_info"], steps), exp["nav_container_type"], diffs)
+    cmp("nav_container_type", nav_type, exp["nav_container_type"], diffs)
     cmp("menu_dependency", menu_dep, exp["menu_dependency"], diffs)
     cmp("nav_container_depth", len(steps) if menu_dep else 0, exp["nav_container_depth"], diffs)
     cmp("entry_control_type", zone_src["entry_control_type"], exp["entry_control_type"], diffs)
     cmp("entry_zone", zone_src["entry_zone"], exp["entry_zone"], diffs)
+    cmp("entry_zone_band_R7", zone_src["entry_zone_band_R7"], exp["entry_zone_band_R7"], diffs)
+    # GAP-07: the row declares the state its entry_* facts come from
+    observed_state = "S0" if s0["observed"] else (f"POST_REVEAL:{nav_type}" if (steps and zone_src["observed"]) else "NOT_OBSERVED")
+    cmp("entry_observed_state", observed_state, exp["entry_observed_state"], diffs)
+    # GAP-06: innermost container type + outer->inner chain (single-level fixtures: one reveal step => one container)
+    chain = [nav_type] if (menu_dep and steps) else []
+    cmp("nav_container_chain", chain, exp["nav_container_chain"], diffs)
+    if len(chain) != (len(steps) if menu_dep else 0): diffs.append("nav_container_chain length != nav_container_depth")
+    cmp("dom_ax_divergence", zone_src["dom_ax_divergence"], exp["dom_ax_divergence"], diffs)
+    rec["entry_observed_state"] = observed_state; rec["nav_container_chain"] = chain
     if fx.get("naive_name_guess"):
         rec["naive_name_guess_observed"] = naive
         cmp("naive_name_guess(negative control must disagree with geometry)", naive, fx["naive_name_guess"], diffs)
@@ -316,9 +355,9 @@ def main():
                          rec["s0"]["accessible_name_source"], mod, rec["s0"]["label_relation"], zs["entry_control_type"],
                          "T" if rec["s0"]["rendered"] and rec["s0"]["in_viewport"] else "F", d,
                          "" if rec["dx"] is None else f"{rec['dx']:+.0f}", "" if rec["dy"] is None else f"{rec['dy']:+.0f}",
-                         zs["entry_zone"], f"{zs['entry_x_norm']:.2f},{zs['entry_y_norm']:.2f}", naive or "", rec["result"]])
+                         zs["entry_zone"], zs["entry_zone_band_R7"], f"{zs['entry_x_norm']:.2f},{zs['entry_y_norm']:.2f}", rec["entry_observed_state"], naive or "", rec["result"]])
         browser.close()
-    hdr = ["fixture", "ctl", "visible", "ax_name", "ax_src", "modality", "relation", "ctype", "s0", "dir", "dx", "dy", "zone", "x,y", "naive", "result"]
+    hdr = ["fixture", "ctl", "visible", "ax_name", "ax_src", "modality", "relation", "ctype", "s0", "dir", "dx", "dy", "zone(R7)", "band", "x,y", "observed_state", "naive", "result"]
     widths = [max(len(str(r[i])) for r in [hdr] + rows) for i in range(len(hdr))]
     lines = [" | ".join(str(c).ljust(w) for c, w in zip(r, widths)) for r in [hdr, ["-" * w for w in widths]] + rows]
     print("\n".join(lines))

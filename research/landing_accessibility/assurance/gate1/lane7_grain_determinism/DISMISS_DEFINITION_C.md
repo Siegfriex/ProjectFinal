@@ -4,7 +4,7 @@
 **Authority**: SSOTV3 `02_DATA_SCHEMA` §5 (`fact_task_obstruction`), `03_COLLECTION_MEASUREMENT_SPEC` §3, §9,
 `04_FLOW_CODEBOOK` §2 (`DISMISS_OBSTRUCTION`), §4 (`task_control_occlusion`, `forced_dismissal_count`), §7;
 `REFERENCE_DEFINITIONS.md` (`NAME_ABSENT` sentinel, "한 interrupt 당 정확히 1회"). Nothing here derives from B code.
-**Revision log**: v1 (pre-registration) → v1.1 after convergence run, see §8. Numbers were never edited to force convergence.
+**Revision log**: v1 (pre-registration) → v1.1 after convergence run, see §8 → **v1.2** after C's result-blind reconciliation with lane3 (`C-DECISION_REQUEST-031138` `c_decides_itself` P-23 / P-24, confirmed by A in `T-A-V3-STEP1-011`): `task_control_occlusion` primary = hit-test on the current-state path control, `dismiss_required_for_task` primary = blocking proof; the v1.1 geometric / aria-modal rules survive only as `occlusion_geom_crosscheck` and `dismiss_required_signal` (§4, §8 A8–A9). Numbers were never edited to force convergence.
 
 ## 1. Why three axes
 
@@ -20,7 +20,8 @@ A number reported without all three axes is not comparable. Every C table names 
 ## 2. Objects
 
 - **Viewport** V = (0,0,390,844) CSS px, state S0 (03 §1, §3). All geometry is S0 unless stated.
-- **Task control** T = the frozen task-entry control (03 §4). Fixtures mark it `data-c-control="task-entry"`; the probe carries `task_control.bbox`.
+- **Task control** T = the frozen task-entry control (03 §4). Fixtures mark it `data-c-control="task-entry"`; the probe carries `task_control.bbox`. Used only for the geometric cross-check.
+- **Path control** P = the control the frozen path activates next in the CURRENT state (lane3: the hamburger at S0 when the function is menu-hidden; here T itself, since every fixture's entry control is visible at S0). Fixtures mark it `data-c-path-control="S0"`; the probe carries `path_control.{bbox, hit_grid}` where `hit_grid` is the 9×9 `elementFromPoint` emission on P (lane3 sampling `x = bx + (i+0.5)·bw/9`, `y = by + (j+0.5)·bh/9`; out-of-viewport points dropped from the denominator). When no path control is defined the hit-test primary is `NULL` and only the geometric cross-check is reported.
 - **Interrupt container** = an element that is (a) `role=dialog|alertdialog`, or (b) positioned `fixed`/`sticky`, and is **not** an ancestor-or-self of T, and is not nested inside another container (outermost wins). Its rect = the element's own rect (a full-viewport backdrop root gives the full viewport). Document order defines `dom_order`.
 - **Dismiss control candidate** of a container = an element inside the container subtree (or outside with `aria-controls` = container id) whose tag/role is `button`, `a[href]`, `input[type=button|submit|image]`, `[role=button|link]`, **and** whose DOM naming string (first non-empty of `aria-label` → `aria-labelledby` text → subtree text incl. `img[alt]` → `title` → `value`), NFKC-normalised, case-folded, whitespace/`.`/`_`/`-` stripped, satisfies the **dismiss lexicon**:
   equals one of `닫기 닫음 창닫기 팝업닫기 레이어닫기 close dismiss closepopup x × ✕ ✖`, or contains `닫기`, `보지않`, `열지않`; **or** whose `id`/`class` matches `/(^|[-_ ])(close|dismiss|btn-?x)([-_ ]|$)/i`.
@@ -43,13 +44,17 @@ A number reported without all three axes is not comparable. Every C table names 
 
 | field | rule |
 |---|---|
-| `task_control_occlusion` | area(T ∩ container rect ∩ V) / area(T ∩ V), rounded to 3 dp (04 §4) |
-| `dismiss_required_for_task` | `task_control_occlusion > 0` **∨** container has `aria-modal="true"` (03 §9: geometry alone does not decide modal meaning; modal semantics block AT even without overlap) |
+| `task_control_occlusion` | **primary (P-23, lane3-compatible)**: fraction of the 9×9 grid points on the path control P whose topmost element (`elementFromPoint`; PROBE = the probe's `hit_grid`, DOM_AX = static stacking: highest `(z-index, dom_order)` pointer-receiving container containing the point, `pointer-events:none` containers fall through) lies in this container, 3 dp. `NULL` when P is undefined or outside V (04 §4 'actual overlap'; 03 §9). `0.0` = observed and unoccluded (GAP-04) |
+| `occlusion_geom_crosscheck` (aux) | the v1.1 geometry: area(T ∩ container rect ∩ V) / area(T ∩ V), 3 dp, on the frozen entry control T. Cross-check only — it is blind to `pointer-events:none` and to a P ≠ T |
+| `dismiss_required_for_task` | **primary (P-24, lane3-compatible)**: the **blocking proof** — a click at the centre of P while this container is present (higher-stacked containers already dismissed) leaves the state unchanged. PROBE = the executed proof (`blocking_proof`); DOM_AX = static prediction (centre of P inside the container rect ∧ container receives pointer events ∧ stacked above P). `NULL` when P is undefined. 03 §9: geometry alone does not decide modal meaning — and neither does `aria-modal`: presence ≠ operative (A STEP1-011) |
+| `dismiss_required_signal` (aux) | `+`-joined sorted set of the signals that are **recorded, never the verdict**: `ARIA_MODAL` (container has `aria-modal="true"`), `OCCLUSION_GT0` (hit-test primary > 0), `GEOM_OVERLAP_GT0` (geometric cross-check > 0); `NONE` if empty |
 | `dismiss_control_exists` | ≥ 1 candidate (any visibility) |
 | `dismiss_control_visible` | ≥ 1 candidate with `visible_s0`; `NULL` if `exists = False` |
 | `dismiss_control_accessible_name` | name of the **selected** candidate; `NULL` if `exists = False` |
 | `dismiss_control_hittable_s0` (aux) | selected candidate's `hittable_s0`; `NULL` if `exists = False` |
 | `selected_selector` (aux) | canonical selector of the selected candidate (`#id`; fixtures guarantee ids) |
+
+**Null convention** (A T-A-V3-STEP1-012 GAP-04): `NULL` = not observed (no path control, P outside V, empty population for `exists`/`visible`/`name`); `0.0` = observed and unoccluded; a row never mixes the two.
 
 **Selection rule** (deterministic): order candidates by (`visible_s0` desc, `ax_exposed` desc, `hittable_s0` desc, `dom_order` asc); take the first.
 **Dismissal order** of containers: `z-index` desc (missing = 0), then `dom_order` asc.
@@ -62,7 +67,9 @@ A number reported without all three axes is not comparable. Every C table names 
 | `dismiss_control_visible` | `NULL` if P empty; `False` if any container in P has `exists=False` or `visible=False`; else `True` |
 | `dismiss_control_accessible_name` | JSON list of per-container names in dismissal order (`NULL` entries for `exists=False`); `NULL` if P empty |
 | `dismiss_required_for_task` | ANY(required); **`False` (not NULL) if P empty** — equals `forced_dismissal_count > 0` for P=all |
-| `task_control_occlusion` (aux) | MAX over P; `0.0` if P empty |
+| `dismiss_required_signal` (aux) | union over P; `NONE` if P empty |
+| `task_control_occlusion` (aux) | fraction of grid points on P whose topmost element lies in ANY container of P (= lane3's per-state number for P=all; each point hits at most one container, so this is the sum of the container rows); `0.0` if P empty (observed, unoccluded); `NULL` if no path control |
+| `occlusion_geom_crosscheck` (aux) | MAX over P of the geometric cross-check; `0.0` if P empty |
 | `dismiss_control_hittable_s0` (aux) | same rule as `visible` (NULL / False if any container lacks a control or has a non-hittable selected control / True) |
 | `selected_selector` (aux) | JSON list of per-container selected selectors in dismissal order; `NULL` if P empty |
 
@@ -93,4 +100,7 @@ count is reported alongside.
 | A6 | Empty population at `unit=target` (f05): 0 vs NULL | pre-run, §5 | `exists/visible/name = NULL`, `required = False`, `occlusion = 0.0`; NULL rows leave numerator and denominator; the negative control (`--negative-control`, phantom container) shows the check distinguishes NULL from False |
 | A7 | Container geometry with CSS borders (f04 `border:1px`) — content-box adds 2px, shifts children by 1px; C's inline-CSS resolver ignores borders | Playwright validation run 1 (mismatches #2, #3) | not a definition issue: fixture hygiene (border → outline). Limitation of impl_B's layout subset is documented in README; on real DOMs geometry comes from the probe/AX, never from impl_B's resolver |
 
-Convergence verdict was PASS on the first run (27/27 rows); A4 and A7 were found by the *third* (browser) check, not by the two-impl convergence — a reminder that two independent implementations sharing one author's assumptions converge on those assumptions too.
+| A8 | Which control and which method for `task_control_occlusion` (v1.1 geometry on the frozen entry control T vs lane3 hit-test on the current-state path control P): lane3 fixture `seq_with_forced_dismissal` at S0 has T inside the closed drawer (area(T∩V)=0 → v1.1 undefined) while the hamburger is fully covered (lane3 → 1.0); a `pointer-events:none` overlay gives v1.1 > 0 and lane3 0 | GATE1_PREREGISTRATION_C P-23 (pre-run for f06) | §2 adds P; §4 makes the hit-test on P the primary and demotes geometry to `occlusion_geom_crosscheck`. Decided by C result-blind in `C-DECISION_REQUEST-031138` (measurement-method choice, C's authority; A confirmed STEP1-011). f06 `#glass` shows the split: hit 0.000 / geom 1.000 |
+| A9 | `dismiss_required_for_task` from `occlusion > 0 ∨ aria-modal` (v1.1) vs a blocking proof (lane3): an `aria-modal` dialog that neither overlaps nor intercepts P, or a backdrop that overlaps but has `pointer-events:none`, is "required" under v1.1 and not under the proof | GATE1_PREREGISTRATION_C P-24 (pre-run for f06) | §4 makes the blocking proof the primary and moves `aria-modal` / overlap into `dismiss_required_signal`. f06 `#tip-dialog` (signal `ARIA_MODAL`, required F) and `#glass` (signal `GEOM_OVERLAP_GT0`, required F) are the two divergent cases; the negative-control mutation "report `aria-modal` as the proof" is caught as DIFF |
+
+Convergence verdict was PASS on the first run (27/27 rows) and again after v1.2 (31/31 rows incl. f06); A4 and A7 were found by the *third* (browser) check, not by the two-impl convergence — a reminder that two independent implementations sharing one author's assumptions converge on those assumptions too. v1.2's `hit_grid` and `blocking_proof` probe inputs are therefore also browser-validated (`validate_probe_like_playwright.py`: real `elementFromPoint` grid and a real click at the centre of P per container in dismissal order).

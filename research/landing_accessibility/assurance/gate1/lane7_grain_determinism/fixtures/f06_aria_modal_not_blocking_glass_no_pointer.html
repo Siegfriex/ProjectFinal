@@ -1,16 +1,14 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>C fixture f01 — blocking modal with visible 닫기</title>
+<title>C fixture f06 — aria-modal dialog that does NOT block the path control + pointer-events:none glass that overlaps it (P-24 divergent cases a/b)</title>
 <style>body{margin:0;font-family:sans-serif} .hdr{padding:12px;background:#eee} .btn{display:block;background:#1a5;color:#fff;text-align:center;line-height:48px;text-decoration:none;border-radius:6px}</style>
 </head><body>
 <div class="hdr"><strong>C 택배</strong></div>
 <a id="task-entry" data-c-control="task-entry" data-c-path-control="S0" class="btn" href="#track" style="position:absolute;left:20px;top:300px;width:350px;height:48px">배송조회</a>
 <p style="position:absolute;left:20px;top:380px;width:350px">운송장 번호로 배송 현황을 확인하세요.</p>
-<div id="promo-modal" role="dialog" aria-modal="true" aria-labelledby="promo-title" style="position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.5)">
-  <div id="promo-panel" style="position:absolute;left:25px;top:222px;width:340px;height:400px;background:#fff;border-radius:8px">
-    <h2 id="promo-title" style="margin:16px">앱 설치 이벤트</h2>
-    <p style="margin:16px">앱에서 조회하면 포인트를 드립니다.</p>
-    <button id="promo-close" type="button" style="position:absolute;left:250px;top:10px;width:80px;height:40px" onclick="document.getElementById('promo-modal').remove()">닫기</button>
-  </div>
+<div id="glass" class="dim" style="position:fixed;inset:0;z-index:600;pointer-events:none;background:rgba(0,0,0,.1)"></div>
+<div id="tip-dialog" role="dialog" aria-modal="true" aria-labelledby="tip-title" style="position:fixed;left:20px;top:600px;width:350px;height:120px;z-index:700;background:#fff;outline:1px solid #999">
+  <h2 id="tip-title" style="margin:12px">도움말</h2>
+  <button id="tip-close" type="button" style="position:absolute;left:270px;top:8px;width:70px;height:40px" onclick="document.getElementById('tip-dialog').remove()">닫기</button>
 </div>
 </body></html>

@@ -1,30 +1,34 @@
-fixture | unit | pop | row | exists | visible | acc_name | required | occl | hittable | selected | A==B
-f01 | target | all | TARGET | T | T | ["닫기"] | T | 1.000 | T | ["#promo-close"] | ok
-f01 | target | blocking | TARGET | T | T | ["닫기"] | T | 1.000 | T | ["#promo-close"] | ok
-f01 | container | all | #promo-modal | T | T | 닫기 | T | 1.000 | T | #promo-close | ok
-f01 | container | blocking | #promo-modal | T | T | 닫기 | T | 1.000 | T | #promo-close | ok
-f01 | step | all | step0:#promo-modal | T | T | 닫기 | T | 1.000 | T | #promo-close | ok
-f01 | step | blocking | step0:#promo-modal | T | T | 닫기 | T | 1.000 | T | #promo-close | ok
-f02 | target | all | TARGET | T | F | ["NAME_ABSENT"] | T | 1.000 | F | ["#ad-close-ghost"] | ok
-f02 | target | blocking | TARGET | T | F | ["NAME_ABSENT"] | T | 1.000 | F | ["#ad-close-ghost"] | ok
-f02 | container | all | #ad-layer | T | F | NAME_ABSENT | T | 1.000 | F | #ad-close-ghost | ok
-f02 | container | blocking | #ad-layer | T | F | NAME_ABSENT | T | 1.000 | F | #ad-close-ghost | ok
-f02 | step | all | step0:#ad-layer | T | F | NAME_ABSENT | T | 1.000 | F | #ad-close-ghost | ok
-f02 | step | blocking | step0:#ad-layer | T | F | NAME_ABSENT | T | 1.000 | F | #ad-close-ghost | ok
-f03 | target | all | TARGET | T | F | ["닫기"] | T | 1.000 | F | ["#event-close"] | ok
-f03 | target | blocking | TARGET | T | F | ["닫기"] | T | 1.000 | F | ["#event-close"] | ok
-f03 | container | all | #event-layer | T | F | 닫기 | T | 1.000 | F | #event-close | ok
-f03 | container | blocking | #event-layer | T | F | 닫기 | T | 1.000 | F | #event-close | ok
-f03 | step | all | step0:#event-layer | T | F | 닫기 | T | 1.000 | F | #event-close | ok
-f03 | step | blocking | step0:#event-layer | T | F | 닫기 | T | 1.000 | F | #event-close | ok
-f04 | target | all | TARGET | T | T | ["닫기", "닫기"] | T | 0.583 | T | ["#notice-close", "#cookie-close"] | ok
-f04 | target | blocking | TARGET | T | T | ["닫기"] | T | 0.583 | T | ["#notice-close"] | ok
-f04 | container | all | #cookie-banner | T | T | 닫기 | F | 0.000 | T | #cookie-close | ok
-f04 | container | all | #notice-layer | T | T | 닫기 | T | 0.583 | T | #notice-close | ok
-f04 | container | blocking | #notice-layer | T | T | 닫기 | T | 0.583 | T | #notice-close | ok
-f04 | step | all | step0:#notice-layer | T | T | 닫기 | T | 0.583 | T | #notice-close | ok
-f04 | step | blocking | step0:#notice-layer | T | T | 닫기 | T | 0.583 | T | #notice-close | ok
-f05 | target | all | TARGET | NULL | NULL | NULL | F | 0.000 | NULL | NULL | ok
-f05 | target | blocking | TARGET | NULL | NULL | NULL | F | 0.000 | NULL | NULL | ok
+fixture | unit | pop | row | exists | visible | acc_name | required | signal | occl_hit | occl_geom | hittable | selected | A==B
+f01 | target | all | TARGET | T | T | ["닫기"] | T | ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | T | ["#promo-close"] | ok
+f01 | target | blocking | TARGET | T | T | ["닫기"] | T | ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | T | ["#promo-close"] | ok
+f01 | container | all | #promo-modal | T | T | 닫기 | T | ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | T | #promo-close | ok
+f01 | container | blocking | #promo-modal | T | T | 닫기 | T | ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | T | #promo-close | ok
+f01 | step | all | step0:#promo-modal | T | T | 닫기 | T | ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | T | #promo-close | ok
+f01 | step | blocking | step0:#promo-modal | T | T | 닫기 | T | ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | T | #promo-close | ok
+f02 | target | all | TARGET | T | F | ["NAME_ABSENT"] | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | ["#ad-close-ghost"] | ok
+f02 | target | blocking | TARGET | T | F | ["NAME_ABSENT"] | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | ["#ad-close-ghost"] | ok
+f02 | container | all | #ad-layer | T | F | NAME_ABSENT | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | #ad-close-ghost | ok
+f02 | container | blocking | #ad-layer | T | F | NAME_ABSENT | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | #ad-close-ghost | ok
+f02 | step | all | step0:#ad-layer | T | F | NAME_ABSENT | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | #ad-close-ghost | ok
+f02 | step | blocking | step0:#ad-layer | T | F | NAME_ABSENT | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | #ad-close-ghost | ok
+f03 | target | all | TARGET | T | F | ["닫기"] | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | ["#event-close"] | ok
+f03 | target | blocking | TARGET | T | F | ["닫기"] | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | ["#event-close"] | ok
+f03 | container | all | #event-layer | T | F | 닫기 | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | #event-close | ok
+f03 | container | blocking | #event-layer | T | F | 닫기 | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | #event-close | ok
+f03 | step | all | step0:#event-layer | T | F | 닫기 | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | #event-close | ok
+f03 | step | blocking | step0:#event-layer | T | F | 닫기 | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 1.000 | 1.000 | F | #event-close | ok
+f04 | target | all | TARGET | T | T | ["닫기", "닫기"] | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 0.556 | 0.583 | T | ["#notice-close", "#cookie-close"] | ok
+f04 | target | blocking | TARGET | T | T | ["닫기"] | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 0.556 | 0.583 | T | ["#notice-close"] | ok
+f04 | container | all | #cookie-banner | T | T | 닫기 | F | NONE | 0.000 | 0.000 | T | #cookie-close | ok
+f04 | container | all | #notice-layer | T | T | 닫기 | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 0.556 | 0.583 | T | #notice-close | ok
+f04 | container | blocking | #notice-layer | T | T | 닫기 | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 0.556 | 0.583 | T | #notice-close | ok
+f04 | step | all | step0:#notice-layer | T | T | 닫기 | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 0.556 | 0.583 | T | #notice-close | ok
+f04 | step | blocking | step0:#notice-layer | T | T | 닫기 | T | GEOM_OVERLAP_GT0+OCCLUSION_GT0 | 0.556 | 0.583 | T | #notice-close | ok
+f05 | target | all | TARGET | NULL | NULL | NULL | F | NONE | 0.000 | 0.000 | NULL | NULL | ok
+f05 | target | blocking | TARGET | NULL | NULL | NULL | F | NONE | 0.000 | 0.000 | NULL | NULL | ok
+f06 | target | all | TARGET | F | F | ["닫기", null] | F | ARIA_MODAL+GEOM_OVERLAP_GT0 | 0.000 | 1.000 | F | ["#tip-close", null] | ok
+f06 | target | blocking | TARGET | NULL | NULL | NULL | F | NONE | 0.000 | 0.000 | NULL | NULL | ok
+f06 | container | all | #glass | F | NULL | NULL | F | GEOM_OVERLAP_GT0 | 0.000 | 1.000 | NULL | NULL | ok
+f06 | container | all | #tip-dialog | T | T | 닫기 | F | ARIA_MODAL | 0.000 | 0.000 | T | #tip-close | ok
 
-mode=CONVERGE rows compared=27 identical=27 differing=0 per-unit={'target': 10, 'container': 9, 'step': 8} -> PASS
+mode=CONVERGE rows compared=31 identical=31 differing=0 per-unit={'target': 12, 'container': 11, 'step': 8} -> PASS

@@ -1,6 +1,6 @@
 {
  "schema": "C_GATE1_PREREGISTRATION",
- "version": "1.0",
+ "version": "1.1",
  "plane": "Claude C (Independent Scientific Assurance)",
  "base_commit": "d597c84",
  "branch": "claude-c/assurance-v21",
@@ -30,58 +30,13 @@
  "status_vocabulary": [
   "CONSISTENT",
   "RECONCILIATION_REQUIRED",
-  "PROVISIONAL_PENDING_A"
+  "PROVISIONAL_PENDING_A",
+  "C_DECIDED",
+  "A_RULED"
  ],
- "md_sha256": "988b8c4385fddffd4a22e9a472ec5d242465872da5cb1a19906a105773e78da4",
+ "md_sha256": "5f86adddcb7e8129861bd76df9b5b72abc7b0c0dbd46489b8e8be6db02ff7f95",
  "summary": {
-  "n_choices": 72,
-  "reconciliation_required": [
-   {
-    "id": "P-06",
-    "variable": "SWITCH_TAB as a reveal token (feeds menu_dependency and nav_container_depth)",
-    "divergent_case": "lane1 informative reference for C-F4-DECOY-01: SWITCH_TAB > SELECT_CATEGORY > SUBMIT_QUERY > ENDPOINT_REACHED → lane6 menu_dependency = 0 (menu_dependency_incl_tab = 1), nav_container_depth = 0; lane3 rule yields NO value ('undecided'); lane2 implicit rule → 0."
-   },
-   {
-    "id": "P-09",
-    "variable": "menu_dependency: basis of the derivation (S0-visibility-and-required-reveal vs any reveal token before terminal)",
-    "divergent_case": "SELECT_FUNCTION > OPEN_LOCAL_MENU > SELECT_DATE > SUBMIT_QUERY > ENDPOINT_REACHED (entry control visible at S0; a local menu is opened later inside the task form): lane2 rule → 0 (entry control did not need a reveal); lane3/lane6 → 1 (a reveal token precedes the terminal). Same split for a non-minimal recorded path that opens a menu although the function control was visible at S0 (04 §3 example with the function visible at S0: lane2 0, lane3/lane6 1)."
-   },
-   {
-    "id": "P-11",
-    "variable": "nav_container_depth: anchor ('task control 노출 전') and behaviour when SELECT_FUNCTION is absent",
-    "divergent_case": "(a) OPEN_GLOBAL_MENU > INPUT_QUERY > SUBMIT_QUERY > ENDPOINT_REACHED (search box lives inside the global menu; no SELECT_FUNCTION token): lane6 → 1 (anchor = INPUT_QUERY); lane3 rule has no anchor → undefined. (b) OPEN_GLOBAL_MENU > AUTH_GATE: lane6 → 1 with nav_anchor_found=False; lane3 → undefined. (c) A non-minimal path that opens a menu not required to expose the control: lane2 → 0 ('required'), lane3/lane6 → 1."
-   },
-   {
-    "id": "P-13",
-    "variable": "auth_gate_stage: what counts as task discovery / task select (BEFORE_TASK_DISCOVERY vs AFTER_TASK_SELECT boundary)",
-    "divergent_case": "(a) OPEN_GLOBAL_MENU > SELECT_CATEGORY > AUTH_GATE: lane6 → AFTER_TASK_SELECT (SELECT_CATEGORY is a task-select token); lane3 → no category applies (not BEFORE, because a reveal container WAS available without auth; not AFTER, because no SELECT_FUNCTION occurred). (b) OPEN_GLOBAL_MENU > AUTH_GATE (menu opens, its contents demand login): lane6 → BEFORE_TASK_DISCOVERY; lane3 → undefined for the same reason."
-   },
-   {
-    "id": "P-14",
-    "variable": "auth_gate_stage: AT_ENDPOINT boundary",
-    "divergent_case": "SELECT_FUNCTION > INPUT_QUERY > SUBMIT_QUERY > AUTH_GATE where the submit redirects straight to a login page (no results surface rendered): lane3 → AFTER_TASK_SELECT (no result-level token, no results surface); lane6 → AT_ENDPOINT (terminal AUTH_GATE after task-body tokens INPUT_QUERY/SUBMIT_QUERY). lane3 uses evidence beyond the sequence ('results surface rendered'); lane6 is sequence-only, so the same token string maps to two values."
-   },
-   {
-    "id": "P-17",
-    "variable": "endpoint_status: resolution from the sequence vs allowed partitions per fixture",
-    "divergent_case": "Runner output for C-F5-NOSURF-01 with task_flow_sequence = [ABSTAIN] and endpoint_status = PUBLIC_WEB_UNOBSERVABLE: lane1 → PASS (both statuses allowed); lane6 compare_with_mart_row → diff {B: PUBLIC_WEB_UNOBSERVABLE, C: ABSTAIN} because action_token=ABSTAIN resolves endpoint_status=ABSTAIN and only UNRESOLVED_FROM_SEQUENCE suppresses the comparison."
-   },
-   {
-    "id": "P-23",
-    "variable": "task_control_occlusion: measurement method (hit-test vs geometry) and measured control",
-    "divergent_case": "lane3 fixture seq_with_forced_dismissal at S0: lane3 measures the hamburger (path control of the current state) → 1.00 (hit) / 1.00 (geo); lane7 measures T = the SELECT_FUNCTION control, which is inside the closed drawer, so area(T ∩ V) = 0 → undefined. Also any overlay with pointer-events:none: lane3 hit-test → 0, lane7 geometry → > 0."
-   },
-   {
-    "id": "P-24",
-    "variable": "dismiss_required_for_task: blocking proof",
-    "divergent_case": "(a) A role=dialog aria-modal=true container that neither overlaps nor intercepts pointer events on the path control: lane7 → true; lane3 → false (blocking-proof click succeeds). (b) A backdrop with occlusion > 0 but pointer-events:none: lane7 → true (geometry > 0); lane3 → false. (c) lane3's proof requires an activation on the task control while the interrupt is present; lane7 requires no activation."
-   },
-   {
-    "id": "P-30",
-    "variable": "frozen synonym map: shape and identity entries",
-    "divergent_case": "visible='배송조회', accessible='택배조회': lane2 → SEMANTIC_EQUIV (pair present). lane6 → SEMANTIC_EQUIV only if the frozen map, once converted to form→key, contains the identity entry '배송조회'→'배송조회'; a naive conversion of lane2's map (forms only) leaves '배송조회' unmapped → DIFFERENT."
-   }
-  ],
+  "n_choices": 73,
   "provisional_pending_a": [
    "P-62"
   ],
@@ -170,7 +125,155 @@
     "id": "P-72",
     "authority_override": "SUPERSEDED_BY_R13"
    }
-  ]
+  ],
+  "reconciliation_required_r1": [
+   {
+    "id": "P-06",
+    "variable": "SWITCH_TAB as a reveal token (feeds menu_dependency and nav_container_depth)",
+    "divergent_case": "lane1 informative reference for C-F4-DECOY-01: SWITCH_TAB > SELECT_CATEGORY > SUBMIT_QUERY > ENDPOINT_REACHED → lane6 menu_dependency = 0 (menu_dependency_incl_tab = 1), nav_container_depth = 0; lane3 rule yields NO value ('undecided'); lane2 implicit rule → 0."
+   },
+   {
+    "id": "P-09",
+    "variable": "menu_dependency: basis of the derivation (S0-visibility-and-required-reveal vs any reveal token before terminal)",
+    "divergent_case": "SELECT_FUNCTION > OPEN_LOCAL_MENU > SELECT_DATE > SUBMIT_QUERY > ENDPOINT_REACHED (entry control visible at S0; a local menu is opened later inside the task form): lane2 rule → 0 (entry control did not need a reveal); lane3/lane6 → 1 (a reveal token precedes the terminal). Same split for a non-minimal recorded path that opens a menu although the function control was visible at S0 (04 §3 example with the function visible at S0: lane2 0, lane3/lane6 1)."
+   },
+   {
+    "id": "P-11",
+    "variable": "nav_container_depth: anchor ('task control 노출 전') and behaviour when SELECT_FUNCTION is absent",
+    "divergent_case": "(a) OPEN_GLOBAL_MENU > INPUT_QUERY > SUBMIT_QUERY > ENDPOINT_REACHED (search box lives inside the global menu; no SELECT_FUNCTION token): lane6 → 1 (anchor = INPUT_QUERY); lane3 rule has no anchor → undefined. (b) OPEN_GLOBAL_MENU > AUTH_GATE: lane6 → 1 with nav_anchor_found=False; lane3 → undefined. (c) A non-minimal path that opens a menu not required to expose the control: lane2 → 0 ('required'), lane3/lane6 → 1."
+   },
+   {
+    "id": "P-13",
+    "variable": "auth_gate_stage: what counts as task discovery / task select (BEFORE_TASK_DISCOVERY vs AFTER_TASK_SELECT boundary)",
+    "divergent_case": "(a) OPEN_GLOBAL_MENU > SELECT_CATEGORY > AUTH_GATE: lane6 → AFTER_TASK_SELECT (SELECT_CATEGORY is a task-select token); lane3 → no category applies (not BEFORE, because a reveal container WAS available without auth; not AFTER, because no SELECT_FUNCTION occurred). (b) OPEN_GLOBAL_MENU > AUTH_GATE (menu opens, its contents demand login): lane6 → BEFORE_TASK_DISCOVERY; lane3 → undefined for the same reason."
+   },
+   {
+    "id": "P-14",
+    "variable": "auth_gate_stage: AT_ENDPOINT boundary",
+    "divergent_case": "SELECT_FUNCTION > INPUT_QUERY > SUBMIT_QUERY > AUTH_GATE where the submit redirects straight to a login page (no results surface rendered): lane3 → AFTER_TASK_SELECT (no result-level token, no results surface); lane6 → AT_ENDPOINT (terminal AUTH_GATE after task-body tokens INPUT_QUERY/SUBMIT_QUERY). lane3 uses evidence beyond the sequence ('results surface rendered'); lane6 is sequence-only, so the same token string maps to two values."
+   },
+   {
+    "id": "P-17",
+    "variable": "endpoint_status: resolution from the sequence vs allowed partitions per fixture",
+    "divergent_case": "Runner output for C-F5-NOSURF-01 with task_flow_sequence = [ABSTAIN] and endpoint_status = PUBLIC_WEB_UNOBSERVABLE: lane1 → PASS (both statuses allowed); lane6 compare_with_mart_row → diff {B: PUBLIC_WEB_UNOBSERVABLE, C: ABSTAIN} because action_token=ABSTAIN resolves endpoint_status=ABSTAIN and only UNRESOLVED_FROM_SEQUENCE suppresses the comparison."
+   },
+   {
+    "id": "P-23",
+    "variable": "task_control_occlusion: measurement method (hit-test vs geometry) and measured control",
+    "divergent_case": "lane3 fixture seq_with_forced_dismissal at S0: lane3 measures the hamburger (path control of the current state) → 1.00 (hit) / 1.00 (geo); lane7 measures T = the SELECT_FUNCTION control, which is inside the closed drawer, so area(T ∩ V) = 0 → undefined. Also any overlay with pointer-events:none: lane3 hit-test → 0, lane7 geometry → > 0."
+   },
+   {
+    "id": "P-24",
+    "variable": "dismiss_required_for_task: blocking proof",
+    "divergent_case": "(a) A role=dialog aria-modal=true container that neither overlaps nor intercepts pointer events on the path control: lane7 → true; lane3 → false (blocking-proof click succeeds). (b) A backdrop with occlusion > 0 but pointer-events:none: lane7 → true (geometry > 0); lane3 → false. (c) lane3's proof requires an activation on the task control while the interrupt is present; lane7 requires no activation."
+   },
+   {
+    "id": "P-30",
+    "variable": "frozen synonym map: shape and identity entries",
+    "divergent_case": "visible='배송조회', accessible='택배조회': lane2 → SEMANTIC_EQUIV (pair present). lane6 → SEMANTIC_EQUIV only if the frozen map, once converted to form→key, contains the identity entry '배송조회'→'배송조회'; a naive conversion of lane2's map (forms only) leaves '배송조회' unmapped → DIFFERENT."
+   }
+  ],
+  "reconciliation_required": [],
+  "c_decided": [
+   {
+    "id": "P-11",
+    "ticket": "C-DECISION_REQUEST-031138",
+    "rule": "C decides (measurement-method choice, C's authority; C-DECISION_REQUEST-031138 c_decides_itself, A confirms in T-A-V3-STEP1-011 §C_self_decided_4_confirmed): nav_container_depth anchor = the first SELECT_FUNCTION or, when absent, the first task-body token (INPUT_QUERY / SELECT_CATEGORY / SELECT_ORIGIN / SELECT_DESTINATION / SELECT_DATE / SUBMIT_QUERY / SELECT_RESULT / OPEN_ITEM_DETAIL / OPEN_PLACE_DETAIL); reveals before the anchor are counted; no anchor → reveals before the terminal with nav_anchor_found=false (lane6 C-5 adopted). Divergent cases (a)/(b) → 1; (c) → 1 (sequence-based, consistent with P-09)."
+   },
+   {
+    "id": "P-23",
+    "ticket": "C-DECISION_REQUEST-031138",
+    "rule": "C decides (C-DECISION_REQUEST-031138): PRIMARY task_control_occlusion = fraction of a 9×9 `elementFromPoint` grid on the path control of the CURRENT state whose topmost element is not the control or a descendant (lane3 method, sampling (i+0.5)/9, out-of-viewport points dropped, null when the control is outside the viewport); the geometric T∩V overlap on the frozen entry control is `occlusion_geom_crosscheck` only. Divergent cases resolve as lane3: seq_with_forced_dismissal S0 → 1.0 on the hamburger; pointer-events:none overlay → 0."
+   },
+   {
+    "id": "P-24",
+    "ticket": "C-DECISION_REQUEST-031138",
+    "rule": "C decides (C-DECISION_REQUEST-031138; A credits it in T-A-V3-STEP1-011 as the exact application of presence ≠ operative): PRIMARY dismiss_required_for_task = the blocking proof — a click at the path control's centre while the interrupt is present leaves data-c-state unchanged (lane3); `aria-modal` and occlusion>0 / geometric overlap>0 are recorded as `dismiss_required_signal` and are never the verdict. Divergent cases: (a) aria-modal dialog that does not intercept → false (signal ARIA_MODAL); (b) pointer-events:none backdrop → false (signal GEOM_OVERLAP_GT0); (c) the proof requires the activation."
+   },
+   {
+    "id": "P-30",
+    "ticket": "C-DECISION_REQUEST-031138",
+    "rule": "C decides (C-DECISION_REQUEST-031138): the frozen synonym map shape is canonical → [forms] with identity implicit (lane2's `synonym_map_fixed` as it stands); lane6's lookup becomes bidirectional (a string matches if it is the canonical key or any listed form; both sides in the same group ⇒ SEMANTIC_EQUIV). Divergent case → SEMANTIC_EQUIV."
+   }
+  ],
+  "a_ruled_r2": [
+   {
+    "id": "P-06",
+    "ticket": "T-A-V3-STEP1-011",
+    "authority_override": "A_RULED_STEP1-011"
+   },
+   {
+    "id": "P-09",
+    "ticket": "T-A-V3-STEP1-011",
+    "authority_override": "A_RULED_STEP1-011"
+   },
+   {
+    "id": "P-13",
+    "ticket": "T-A-V3-STEP1-011",
+    "authority_override": "A_RULED_STEP1-011"
+   },
+   {
+    "id": "P-14",
+    "ticket": "T-A-V3-STEP1-011",
+    "authority_override": "A_RULED_STEP1-011"
+   },
+   {
+    "id": "P-17",
+    "ticket": "T-A-V3-STEP1-011",
+    "authority_override": "A_RULED_STEP1-011"
+   },
+   {
+    "id": "P-08",
+    "ticket": "T-A-V3-STEP1-012 GAP-03",
+    "authority_override": "CONFIRMED_BY_A_STEP1-012_GAP-03"
+   },
+   {
+    "id": "P-21",
+    "ticket": "T-A-V3-STEP1-012 GAP-02",
+    "authority_override": "SUPERSEDED_BY_A_STEP1-012_GAP-02"
+   },
+   {
+    "id": "P-22",
+    "ticket": "T-A-V3-STEP1-012 GAP-05",
+    "authority_override": "CONFIRMED_BY_A_STEP1-012_GAP-05"
+   },
+   {
+    "id": "P-25",
+    "ticket": "T-A-V3-STEP1-012 GAP-04",
+    "authority_override": "CONFIRMED_BY_A_STEP1-012_GAP-04"
+   },
+   {
+    "id": "P-33",
+    "ticket": "T-A-V3-STEP1-012 GAP-04",
+    "authority_override": "SUPERSEDED_BY_A_STEP1-012_GAP-04"
+   },
+   {
+    "id": "P-35",
+    "ticket": "T-A-V3-STEP1-012 GAP-06",
+    "authority_override": "EXTENDED_BY_A_STEP1-012_GAP-06"
+   },
+   {
+    "id": "P-38",
+    "ticket": "T-A-V3-STEP1-012 GAP-07",
+    "authority_override": "EXTENDED_BY_A_STEP1-012_GAP-07"
+   },
+   {
+    "id": "P-39",
+    "ticket": "T-A-V3-STEP1-012 GAP-04",
+    "authority_override": "CONFIRMED_BY_A_STEP1-012_GAP-04"
+   },
+   {
+    "id": "P-73",
+    "ticket": "T-A-V3-STEP1-012",
+    "authority_override": "A_RULED_STEP1-012"
+   }
+  ],
+  "status_counts": {
+   "CONSISTENT": 54,
+   "A_RULED": 14,
+   "C_DECIDED": 4,
+   "PROVISIONAL_PENDING_A": 1
+  }
  },
  "what_these_are_not": [
   "C's pre-registered comparison rules, frozen from SSOTV3 text and C fixtures before any B runner output or real-service observation was seen",
@@ -343,11 +446,14 @@
     "lane3",
     "lane6"
    ],
-   "status": "RECONCILIATION_REQUIRED",
+   "status": "A_RULED",
    "divergent_case": "lane1 informative reference for C-F4-DECOY-01: SWITCH_TAB > SELECT_CATEGORY > SUBMIT_QUERY > ENDPOINT_REACHED → lane6 menu_dependency = 0 (menu_dependency_incl_tab = 1), nav_container_depth = 0; lane3 rule yields NO value ('undecided'); lane2 implicit rule → 0.",
    "notes": "lane3 explicitly demands pre-registration before use; lane6 has pre-registered 'not a reveal' with the alternative reported. Adopting C-3 across lanes is the obvious closure but is NOT made here. A's STEP1-006 classifies SWITCH_TAB for activation_depth only (IN) and says nothing about reveal membership, so this row stays open.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "A_RULED_STEP1-011",
+   "follow_up": null,
+   "resolution_r2": "A accepts C's reading (T-A-V3-STEP1-011 P-06): SWITCH_TAB is NOT a reveal token — 04 §5's '등' is bounded by 'OPEN/REVEAL 계열'; a tab switch changes which panel is active and reveals no hidden control; nav_container_type has no tab value. Divergent case → menu_dependency 0, nav_container_depth 0; `menu_dependency_incl_tab` kept as the declared sensitivity. Axis separation: SWITCH_TAB stays IN for activation_depth (STEP1-006).",
+   "lane_files_r2": "lane3 EXPECTATIONS.menu_dependency + README §3 (r2); lane2 meta.menu_dependency_rule annotated; lane6 C-3 already matches (not edited here)",
+   "authority_ticket": "T-A-V3-STEP1-011"
   },
   {
    "id": "P-07",
@@ -396,11 +502,14 @@
     "lane3",
     "lane6"
    ],
-   "status": "CONSISTENT",
+   "status": "A_RULED",
    "divergent_case": null,
    "notes": "Equivalent (task_flow_sequence already excludes DISMISS_OBSTRUCTION). 04 §3 example → 3 under both; lane3 auth_gate_after_task_select → 2.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "CONFIRMED_BY_A_STEP1-012_GAP-03",
+   "follow_up": null,
+   "resolution_r2": "T-A-V3-STEP1-012 GAP-03 confirms lane3/lane6: flow_step_count excludes ENDPOINT_REACHED and ABSTAIN, includes AUTH_GATE (04 §5 names 'auth encounter' and nothing else; ENDPOINT_REACHED is a measurement marker, not task intent). Asymmetry with activation_depth (Δ9 excludes both) is by SSOT wording.",
+   "lane_files_r2": "lane3 EXPECTATIONS.flow_step_count annotated; all 8 fixture values comply (walker re-derives)",
+   "authority_ticket": "T-A-V3-STEP1-012"
   },
   {
    "id": "P-09",
@@ -425,11 +534,14 @@
     "lane3",
     "lane6"
    ],
-   "status": "RECONCILIATION_REQUIRED",
+   "status": "A_RULED",
    "divergent_case": "SELECT_FUNCTION > OPEN_LOCAL_MENU > SELECT_DATE > SUBMIT_QUERY > ENDPOINT_REACHED (entry control visible at S0; a local menu is opened later inside the task form): lane2 rule → 0 (entry control did not need a reveal); lane3/lane6 → 1 (a reveal token precedes the terminal). Same split for a non-minimal recorded path that opens a menu although the function control was visible at S0 (04 §3 example with the function visible at S0: lane2 0, lane3/lane6 1).",
    "notes": "04 §4 wording is sequence-based, which favours lane3/lane6; lane2's rule is the S0-surface reading. Both are cited; no pick is made here. On all 14 lane2 fixtures and all 8 lane3 fixtures the three rules agree.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "A_RULED_STEP1-011",
+   "follow_up": null,
+   "resolution_r2": "A accepts C's reading (T-A-V3-STEP1-011 P-09): menu_dependency is sequence-based — 1 iff a reveal token precedes the endpoint (04 §4 and §5 agree); the divergent case is 1. A records the real tension with 10_GLOSSARY ('task control이 바로 보이지 않고') and resolves it by hierarchy (04 = T3 frozen definition > 10 = T5 prose); the glossary's concept is carried by nav_container_depth and s0_task_control_visible, not by menu_dependency.",
+   "lane_files_r2": "lane3 EXPECTATIONS.menu_dependency (r2); lane2 meta.menu_dependency_rule annotated (all 14 lane2 fixture values identical under both readings)",
+   "authority_ticket": "T-A-V3-STEP1-011"
   },
   {
    "id": "P-10",
@@ -478,11 +590,14 @@
     "lane3",
     "lane6"
    ],
-   "status": "RECONCILIATION_REQUIRED",
+   "status": "C_DECIDED",
    "divergent_case": "(a) OPEN_GLOBAL_MENU > INPUT_QUERY > SUBMIT_QUERY > ENDPOINT_REACHED (search box lives inside the global menu; no SELECT_FUNCTION token): lane6 → 1 (anchor = INPUT_QUERY); lane3 rule has no anchor → undefined. (b) OPEN_GLOBAL_MENU > AUTH_GATE: lane6 → 1 with nav_anchor_found=False; lane3 → undefined. (c) A non-minimal path that opens a menu not required to expose the control: lane2 → 0 ('required'), lane3/lane6 → 1.",
    "notes": "Agreement on the 04 §3 example (1), lane3 fixture 1 (1, not 2), lane1 F3 reference OPEN_GLOBAL_MENU > EXPAND_ACCORDION > SELECT_FUNCTION > ENDPOINT_REACHED (2).",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "C_DECIDED_031138",
+   "follow_up": null,
+   "resolution_r2": "C decides (measurement-method choice, C's authority; C-DECISION_REQUEST-031138 c_decides_itself, A confirms in T-A-V3-STEP1-011 §C_self_decided_4_confirmed): nav_container_depth anchor = the first SELECT_FUNCTION or, when absent, the first task-body token (INPUT_QUERY / SELECT_CATEGORY / SELECT_ORIGIN / SELECT_DESTINATION / SELECT_DATE / SUBMIT_QUERY / SELECT_RESULT / OPEN_ITEM_DETAIL / OPEN_PLACE_DETAIL); reveals before the anchor are counted; no anchor → reveals before the terminal with nav_anchor_found=false (lane6 C-5 adopted). Divergent cases (a)/(b) → 1; (c) → 1 (sequence-based, consistent with P-09).",
+   "lane_files_r2": "lane3 EXPECTATIONS.nav_container_depth + README §3 + walker nav_depth() (fixture 1 stays 1); lane2 wording unchanged (values coincide); lane6 C-5 already the rule",
+   "authority_ticket": "C-DECISION_REQUEST-031138"
   },
   {
    "id": "P-12",
@@ -526,11 +641,14 @@
     "lane3",
     "lane6"
    ],
-   "status": "RECONCILIATION_REQUIRED",
+   "status": "A_RULED",
    "divergent_case": "(a) OPEN_GLOBAL_MENU > SELECT_CATEGORY > AUTH_GATE: lane6 → AFTER_TASK_SELECT (SELECT_CATEGORY is a task-select token); lane3 → no category applies (not BEFORE, because a reveal container WAS available without auth; not AFTER, because no SELECT_FUNCTION occurred). (b) OPEN_GLOBAL_MENU > AUTH_GATE (menu opens, its contents demand login): lane6 → BEFORE_TASK_DISCOVERY; lane3 → undefined for the same reason.",
    "notes": "Agreement: bare AUTH_GATE (lane3 auth_gate_before_discovery) → BEFORE_TASK_DISCOVERY under both; 04 §3 example → AFTER_TASK_SELECT under both.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "A_RULED_STEP1-011",
+   "follow_up": null,
+   "resolution_r2": "A fixes one positional rule (T-A-V3-STEP1-011 P-13/P-14; 00 §6 / 03 §7 give vocabulary only, a definition gap A must fill — R13 UNDETERMINED is for evidence absence, not definition gaps). task_specific_token_set = {SELECT_CATEGORY, SELECT_FUNCTION, INPUT_QUERY, SELECT_ORIGIN, SELECT_DESTINATION, SELECT_DATE, SUBMIT_QUERY, SELECT_RESULT, OPEN_ITEM_DETAIL, OPEN_PLACE_DETAIL}; general navigation (OPEN_GLOBAL_MENU / OPEN_LOCAL_MENU / SWITCH_TAB / EXPAND_ACCORDION / DISMISS_OBSTRUCTION) is not task-specific. BEFORE_TASK_DISCOVERY = no task-specific token before AUTH_GATE (so OPEN_GLOBAL_MENU > AUTH_GATE → BEFORE); AFTER_TASK_SELECT = ≥1 task-specific token before the gate, endpoint contract unmet (OPEN_GLOBAL_MENU > SELECT_CATEGORY > AUTH_GATE → AFTER). 04 §3 example → AFTER_TASK_SELECT.",
+   "lane_files_r2": "lane3 EXPECTATIONS.auth_gate_stage rewritten to the ticket text + walker derives the stage from the sequence and requires equality (8/8: login wall BEFORE, F1 select AFTER, F5 result AT_ENDPOINT, others NONE — no fixture value changed); lane6 C-6 TASK_SELECT_TOKENS must widen to the 10-token set (lane6 worker; not edited here)",
+   "authority_ticket": "T-A-V3-STEP1-011"
   },
   {
    "id": "P-14",
@@ -550,11 +668,14 @@
     "lane3",
     "lane6"
    ],
-   "status": "RECONCILIATION_REQUIRED",
+   "status": "A_RULED",
    "divergent_case": "SELECT_FUNCTION > INPUT_QUERY > SUBMIT_QUERY > AUTH_GATE where the submit redirects straight to a login page (no results surface rendered): lane3 → AFTER_TASK_SELECT (no result-level token, no results surface); lane6 → AT_ENDPOINT (terminal AUTH_GATE after task-body tokens INPUT_QUERY/SUBMIT_QUERY). lane3 uses evidence beyond the sequence ('results surface rendered'); lane6 is sequence-only, so the same token string maps to two values.",
    "notes": "Agreement: 04 §3 example → AFTER_TASK_SELECT (lane6 alt: AT_ENDPOINT, reported only as alternative); … > SELECT_RESULT > AUTH_GATE (lane3 auth_gate_at_endpoint) → AT_ENDPOINT under both; F3 SELECT_FUNCTION > AUTH_GATE → AFTER_TASK_SELECT under both. Per A R6 Q8 every value here is field-qualified: action_token=AUTH_GATE vs endpoint_status=AUTH_GATE.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "A_RULED_STEP1-011",
+   "follow_up": null,
+   "resolution_r2": "Same rule (T-A-V3-STEP1-011 P-14): AT_ENDPOINT only when the endpoint surface was rendered WITHOUT auth and the gate hits on accessing its content; SELECT_FUNCTION > INPUT_QUERY > SUBMIT_QUERY > AUTH_GATE with no results surface rendered → AFTER_TASK_SELECT (C/lane3 reading). One rule yields both P-13 and P-14 answers — not case-by-case. lane6's sequence-only 'terminal after task-body token = AT_ENDPOINT' is superseded; the extra evidence (surface rendered) is required.",
+   "lane_files_r2": "lane3 EXPECTATIONS/README (r2) incl. fixture flag endpoint_surface_rendered_without_auth on auth_gate_at_endpoint; lane6 C-6 AT_ENDPOINT rule to be replaced by the surface-rendered condition (lane6 worker; not edited here)",
+   "authority_ticket": "T-A-V3-STEP1-011"
   },
   {
    "id": "P-15",
@@ -637,11 +758,14 @@
     "lane3",
     "lane6"
    ],
-   "status": "RECONCILIATION_REQUIRED",
+   "status": "A_RULED",
    "divergent_case": "Runner output for C-F5-NOSURF-01 with task_flow_sequence = [ABSTAIN] and endpoint_status = PUBLIC_WEB_UNOBSERVABLE: lane1 → PASS (both statuses allowed); lane6 compare_with_mart_row → diff {B: PUBLIC_WEB_UNOBSERVABLE, C: ABSTAIN} because action_token=ABSTAIN resolves endpoint_status=ABSTAIN and only UNRESOLVED_FROM_SEQUENCE suppresses the comparison.",
    "notes": "Requires deciding whether action_token=ABSTAIN may co-occur with endpoint_status=PUBLIC_WEB_UNOBSERVABLE (A R1 names both as valid outcomes for a target that cannot perform the task). Field-qualified per A R6 Q8. A R11 (STEP1-007) adds terminal_reason (TASK_SURFACE_ABSENT vs NO_PUBLIC_MOBILE_WEB) and an endpoint_status × terminal_reason allowed-combination table that C verifies at GATE 1 — that table, once B publishes it, is where this row is closed; the endpoint_status enum itself is unchanged, so the lane1/lane6 split is still open today.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "A_RULED_STEP1-011",
+   "follow_up": null,
+   "resolution_r2": "A accepts C's layer separation (T-A-V3-STEP1-011 P-17): action_token=ABSTAIN and endpoint_status are different layers (R6 Q8 field qualification keeps them apart). A adds: endpoint_status=ABSTAIN ('we do not know' — multiple candidates / path undetermined) ≠ endpoint_status=PUBLIC_WEB_UNOBSERVABLE × terminal_reason=TASK_SURFACE_ABSENT ('we know the surface is absent'); mixing them over-counts absence (same logic as R13 NONE vs UNDETERMINED). The C-F5-NOSURF-01 case is therefore PUBLIC_WEB_UNOBSERVABLE × TASK_SURFACE_ABSENT with sequence [ABSTAIN]; lane6's mechanical ABSTAIN-token→ABSTAIN-status resolution must not be diffed against it. Closure against B's combination table remains pending.",
+   "lane_files_r2": "lane3 EXPECTATIONS.endpoint_status annotated (r2); lane1 NOSURF allowed pair already admits it; lane6 compare_with_mart_row suppression rule (lane6 worker; not edited here)",
+   "authority_ticket": "T-A-V3-STEP1-011"
   },
   {
    "id": "P-18",
@@ -733,11 +857,14 @@
    "lane_sources": [
     "lane3"
    ],
-   "status": "CONSISTENT",
+   "status": "A_RULED",
    "divergent_case": null,
    "notes": "Single definer. lane2 reports s0 only (all its hidden-control fixtures are menu-hidden → consistent with NONE).",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "SUPERSEDED_BY_A_STEP1-012_GAP-02",
+   "follow_up": null,
+   "resolution_r2": "T-A-V3-STEP1-012 GAP-02 supersedes lane3's 'NONE when scroll never exposes it': first_visible_scroll_state = the scroll state at which the control was FIRST observed; a control exposed by a reveal takes the scroll state where the reveal happened (usually S0); null ONLY when the control was never observed, with endpoint_status × terminal_reason carrying the reason. A also elevates the coverage gap: no lane3 fixture yields a scroll-only S1 except seq_typing_and_scroll_not_depth, so 03 §3 scroll capture is verified by one fixture only — GATE 1 must verify 03 §3 or list it under 'not verified'.",
+   "lane_files_r2": "lane3 EXPECTATIONS: fixtures 1–3 NONE → S0, login wall NONE → null; walker records the scroll state of the first step after which the control is in the viewport; README §7 (8/8 PASS)",
+   "authority_ticket": "T-A-V3-STEP1-012"
   },
   {
    "id": "P-22",
@@ -757,11 +884,14 @@
     "lane2",
     "lane3"
    ],
-   "status": "CONSISTENT",
+   "status": "A_RULED",
    "divergent_case": null,
    "notes": "Values agree on every fixture of both lanes. Untested edge: a control rendered inside the S0 viewport but fully covered by an overlay (lane3 'hittable' → false; lane2 has no such fixture and no wording). Flagged as a gap, not a contradiction.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "CONFIRMED_BY_A_STEP1-012_GAP-05",
+   "follow_up": null,
+   "resolution_r2": "T-A-V3-STEP1-012 GAP-05: s0_task_control_visible = bbox intersects the S0 viewport AND hit-testable at S0; NO occlusion threshold — the two variables are independent (90 % occluded but a hit-testable corner → visible; 0 % occluded but off-viewport → not visible). lane3's wording already said 'hittable'; its walker used occlusion < 0.5, which is a threshold and is replaced by a centre hit-test.",
+   "lane_files_r2": "lane3 EXPECTATIONS wording + walker hitCentre() (no value changed); lane2 measure_geometry.py hit-tests the centre for s0_task_control_visible (no value changed)",
+   "authority_ticket": "T-A-V3-STEP1-012"
   },
   {
    "id": "P-23",
@@ -781,11 +911,14 @@
     "lane3",
     "lane7"
    ],
-   "status": "RECONCILIATION_REQUIRED",
+   "status": "C_DECIDED",
    "divergent_case": "lane3 fixture seq_with_forced_dismissal at S0: lane3 measures the hamburger (path control of the current state) → 1.00 (hit) / 1.00 (geo); lane7 measures T = the SELECT_FUNCTION control, which is inside the closed drawer, so area(T ∩ V) = 0 → undefined. Also any overlay with pointer-events:none: lane3 hit-test → 0, lane7 geometry → > 0.",
    "notes": "Within the six lanes only lane3 defines this (CONSISTENT among them). lane7 is outside the brief but is a C pre-registration in the same namespace; the split (hit-test primary vs geometric primary; current-state path control vs frozen task-entry control) must be reconciled before either is used as PRIMARY. Not decided here.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "C_DECIDED_031138",
+   "follow_up": null,
+   "resolution_r2": "C decides (C-DECISION_REQUEST-031138): PRIMARY task_control_occlusion = fraction of a 9×9 `elementFromPoint` grid on the path control of the CURRENT state whose topmost element is not the control or a descendant (lane3 method, sampling (i+0.5)/9, out-of-viewport points dropped, null when the control is outside the viewport); the geometric T∩V overlap on the frozen entry control is `occlusion_geom_crosscheck` only. Divergent cases resolve as lane3: seq_with_forced_dismissal S0 → 1.0 on the hamburger; pointer-events:none overlay → 0.",
+   "lane_files_r2": "lane7 DISMISS_DEFINITION_C.md v1.2 §2/§4/§5/§8 A8; impl_a.py (probe `path_control.hit_grid`) / impl_b.py (`[data-c-path-control]`, static stacking hit-test); probe_like/*.json gained `path_control`; fixture f06 added; converge_check.py PASS 31/31 (f04: hit 0.556 vs geom 0.583 on the same fixture); validate_probe_like_playwright.py checks the grids against real elementFromPoint (39/39)",
+   "authority_ticket": "C-DECISION_REQUEST-031138"
   },
   {
    "id": "P-24",
@@ -805,11 +938,14 @@
     "lane3",
     "lane7"
    ],
-   "status": "RECONCILIATION_REQUIRED",
+   "status": "C_DECIDED",
    "divergent_case": "(a) A role=dialog aria-modal=true container that neither overlaps nor intercepts pointer events on the path control: lane7 → true; lane3 → false (blocking-proof click succeeds). (b) A backdrop with occlusion > 0 but pointer-events:none: lane7 → true (geometry > 0); lane3 → false. (c) lane3's proof requires an activation on the task control while the interrupt is present; lane7 requires no activation.",
    "notes": "Within the six lanes only lane3 defines it. lane7 cross-reference outside the brief. Both cite 03 §9 for opposite operationalisations; not decided here.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "C_DECIDED_031138",
+   "follow_up": null,
+   "resolution_r2": "C decides (C-DECISION_REQUEST-031138; A credits it in T-A-V3-STEP1-011 as the exact application of presence ≠ operative): PRIMARY dismiss_required_for_task = the blocking proof — a click at the path control's centre while the interrupt is present leaves data-c-state unchanged (lane3); `aria-modal` and occlusion>0 / geometric overlap>0 are recorded as `dismiss_required_signal` and are never the verdict. Divergent cases: (a) aria-modal dialog that does not intercept → false (signal ARIA_MODAL); (b) pointer-events:none backdrop → false (signal GEOM_OVERLAP_GT0); (c) the proof requires the activation.",
+   "lane_files_r2": "lane7 DISMISS_DEFINITION_C.md v1.2 §4 A9; impl_a (probe `blocking_proof`) / impl_b (static centre prediction); f06 exercises (a) and (b); negative control catches a probe that reports aria-modal as the proof; Playwright validator executes the 8 blocking proofs by real clicks",
+   "authority_ticket": "C-DECISION_REQUEST-031138"
   },
   {
    "id": "P-25",
@@ -824,11 +960,14 @@
    "lane_sources": [
     "lane3"
    ],
-   "status": "CONSISTENT",
+   "status": "A_RULED",
    "divergent_case": null,
    "notes": null,
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "CONFIRMED_BY_A_STEP1-012_GAP-04",
+   "follow_up": null,
+   "resolution_r2": "T-A-V3-STEP1-012 GAP-04: overlay_coverage / task_control_occlusion are null when not observed and 0.0 only when observed-and-unoccluded; a row never mixes conventions (D-V3-FINDING-002 precedent). lane3 fixtures 6 and 8 already carry null for the unobserved S0 path control.",
+   "lane_files_r2": "lane3 EXPECTATIONS.task_control_occlusion annotated; lane7 §4/§5 null convention line",
+   "authority_ticket": "T-A-V3-STEP1-012"
   },
   {
    "id": "P-26",
@@ -929,11 +1068,14 @@
     "lane2",
     "lane6"
    ],
-   "status": "RECONCILIATION_REQUIRED",
+   "status": "C_DECIDED",
    "divergent_case": "visible='배송조회', accessible='택배조회': lane2 → SEMANTIC_EQUIV (pair present). lane6 → SEMANTIC_EQUIV only if the frozen map, once converted to form→key, contains the identity entry '배송조회'→'배송조회'; a naive conversion of lane2's map (forms only) leaves '배송조회' unmapped → DIFFERENT.",
    "notes": "Mechanical, but it changes a value. One frozen map file with explicit identity entries (or a documented conversion) must be fixed before any real row is compared. Note '배송 조회' vs '배송조회' differ only by an internal space, which whitespace COLLAPSE does not remove — it is a genuine synonym entry, not a normalisation artefact.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "C_DECIDED_031138",
+   "follow_up": null,
+   "resolution_r2": "C decides (C-DECISION_REQUEST-031138): the frozen synonym map shape is canonical → [forms] with identity implicit (lane2's `synonym_map_fixed` as it stands); lane6's lookup becomes bidirectional (a string matches if it is the canonical key or any listed form; both sides in the same group ⇒ SEMANTIC_EQUIV). Divergent case → SEMANTIC_EQUIV.",
+   "lane_files_r2": "lane2 README ambiguity 7 + meta.synonym_map_shape sentence (expectations unchanged); lane6 lookup (lane6 worker; not edited here)",
+   "authority_ticket": "C-DECISION_REQUEST-031138"
   },
   {
    "id": "P-31",
@@ -986,11 +1128,14 @@
    "lane_sources": [
     "lane2"
    ],
-   "status": "CONSISTENT",
+   "status": "A_RULED",
    "divergent_case": null,
    "notes": "Cross-reference: lane7 encodes an unexposed node's name as the sentinel NAME_ABSENT (REFERENCE_DEFINITIONS.md), lane2 as \"\"; both mean 'not exposed'. An adapter must treat \"\", null and NAME_ABSENT as one class for S0 comparison.",
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "SUPERSEDED_BY_A_STEP1-012_GAP-04",
+   "follow_up": null,
+   "resolution_r2": "T-A-V3-STEP1-012 GAP-04 supersedes lane2's S0 encoding of a not-yet-rendered control (''/NONE/NONE): unobserved categorical/text fields are the explicit NOT_OBSERVED (never ''), unobserved numeric geometry is null (never 0); one row never mixes conventions. An observed-but-empty AX name (label_icon_only_unnamed) stays '' with source NONE — an observed absence. lane7's NAME_ABSENT for an existing-but-unexposed control is an explicit sentinel and complies.",
+   "lane_files_r2": "lane2 EXPECTATIONS (7 reveal fixtures: visible_label_text / accessible_name / accessible_name_source / label_relation → NOT_OBSERVED, s0_entry_x/y_norm → null) + meta.null_convention + measure_geometry.py (14/14 PASS)",
+   "authority_ticket": "T-A-V3-STEP1-012"
   },
   {
    "id": "P-34",
@@ -1034,11 +1179,14 @@
     "lane2",
     "lane3"
    ],
-   "status": "CONSISTENT",
+   "status": "A_RULED",
    "divergent_case": null,
    "notes": "lane3 states values consistent with lane2's rule; no second rule to conflict. Both lanes already keep direction out of the token (lane2 drawer fixtures use OPEN_GLOBAL_MENU + nav_container_type + reveal_direction), matching A.",
-   "authority_override": "CONFIRMED_BY_A_STEP1-006",
-   "follow_up": null
+   "authority_override": "EXTENDED_BY_A_STEP1-012_GAP-06",
+   "follow_up": null,
+   "resolution_r2": "T-A-V3-STEP1-012 GAP-06 extends: nav_container_type = the INNERMOST container directly holding the entry control (hamburger > accordion → INLINE_EXPAND, depth 2); new field nav_container_chain = outer→inner array (len == nav_container_depth; [] when NONE). Geometry-not-naming derivation (STEP1-006) unchanged.",
+   "lane_files_r2": "lane2 EXPECTATIONS: nav_container_chain added to all 14 fixtures (single-level: [type] or []) + meta.nav_container_chain_rule; measure_geometry.py checks it",
+   "authority_ticket": "T-A-V3-STEP1-012"
   },
   {
    "id": "P-36",
@@ -1067,7 +1215,9 @@
    "divergent_case": "Pre-ruling the two lanes differed (y=0.13 → lane2 MID, lane6 TOP_*; y=0.86 → lane2 MID, lane6 BOTTOM; lane6 x=2/3 → CENTER, lane2 → CENTER, R7 → TOP_RIGHT). Moot: both provisional sets are superseded by R7.",
    "notes": "Status CONSISTENT because A has ruled; C's provisional numbers are withdrawn, not reconciled. Raw x/y_norm remain the primary comparison (±0.02, P-38).",
    "authority_override": "SUPERSEDED_BY_A_R7",
-   "follow_up": "lane2 expected entry_zone values must be re-derived under R7 (from out/measure_result.json raw x/y): label_explicit_text (0.20,0.26) MID→TOP_LEFT; label_aria_labelledby_differs (0.17,0.26) MID→TOP_LEFT; label_pseudo_element_text (0.20,0.26) MID→TOP_LEFT; TOP_CENTER/TOP_RIGHT rows unchanged. lane6 ZONE_* constants → terciles with [a,b) boundaries (lane6 worker in progress; this document cites the ticket, not the lane file, as authority)."
+   "follow_up": "lane2 expected entry_zone values must be re-derived under R7 (from out/measure_result.json raw x/y): label_explicit_text (0.20,0.26) MID→TOP_LEFT; label_aria_labelledby_differs (0.17,0.26) MID→TOP_LEFT; label_pseudo_element_text (0.20,0.26) MID→TOP_LEFT; TOP_CENTER/TOP_RIGHT rows unchanged. lane6 ZONE_* constants → terciles with [a,b) boundaries (lane6 worker in progress; this document cites the ticket, not the lane file, as authority).",
+   "fact_correction_r2": "**FACT_CORRECTION T-A-V3-FC-001** (A, on D-V3-FACT_CORRECTION-001): the R7 sentence '정확히 1/3 인 점은 TOP 이자 TOP_CENTER' was wrong on the y axis; the band table is canonical with [a,b) on both axes — y = 1/3 → MID, y = 2/3 → BOTTOM; inside TOP x = 1/3 → TOP_CENTER, x = 2/3 → TOP_RIGHT. No cut-off value changes. lane2 fixture centres are not on a boundary (y boundaries 281.33 / 562.67 px; nearest centre 522 px → MID).",
+   "lane_files_r2": "r2 applied in lane2 (`EXPECTATIONS.json`, `measure_geometry.py`, 14/14 PASS): zones re-derived from r1 raw x/y under R7 — label_explicit_text / label_aria_labelledby_differs / label_pseudo_element_text MID→TOP_LEFT; label_icon_text / label_icon_only_ax_named / label_alt_title_value TOP_*→FLOATING (they sit inside a `position:fixed` header and R7 FLOATING has no size cap — this corrects the r1 follow-up sentence 'TOP_CENTER/TOP_RIGHT rows unchanged', which ignored the header); inline_expand MID→DRAWER; drawers/sheets/dropdown DRAWER unchanged; label_icon_only_unnamed FLOATING unchanged. C's one reading of R7 — FLOATING tested self-OR-ancestor — is declared in lane2 meta with the self-only alternative recorded per fixture as `entry_zone_band_R7`."
   },
   {
    "id": "P-37",
@@ -1096,7 +1246,9 @@
    "divergent_case": "Pre-ruling: lane2 top_dropdown fixture → DRAWER; lane6 drawer set omits TOP_DROPDOWN → band → MID. lane2 FLOATING needs a size cap (<0.9vw ∧ <0.9vh), lane6 has no definition, R7 has no size cap (any fixed/sticky out-of-flow box). Moot under R7.",
    "notes": "Precedence DRAWER > FLOATING > geometry was already common to lane2 and lane6 and is confirmed by R7.",
    "authority_override": "SUPERSEDED_BY_A_R7",
-   "follow_up": "Under R7's DRAWER wording ('the container that made menu_dependency=1') lane2's inline_expand (menu_dependency=1, INLINE_EXPAND) becomes DRAWER, not MID, and top_dropdown stays DRAWER; lane6's drawer set must become 'menu_dependency=1 container' (all reveal container types incl. TOP_DROPDOWN and INLINE_EXPAND) and is_floating must be computed from computed position fixed|sticky with no size cap. Lane owners re-derive; this document does not edit lane files."
+   "follow_up": "Under R7's DRAWER wording ('the container that made menu_dependency=1') lane2's inline_expand (menu_dependency=1, INLINE_EXPAND) becomes DRAWER, not MID, and top_dropdown stays DRAWER; lane6's drawer set must become 'menu_dependency=1 container' (all reveal container types incl. TOP_DROPDOWN and INLINE_EXPAND) and is_floating must be computed from computed position fixed|sticky with no size cap. Lane owners re-derive; this document does not edit lane files.",
+   "fact_correction_r2": "**FACT_CORRECTION T-A-V3-FC-001** (A, on D-V3-FACT_CORRECTION-001): the R7 sentence '정확히 1/3 인 점은 TOP 이자 TOP_CENTER' was wrong on the y axis; the band table is canonical with [a,b) on both axes — y = 1/3 → MID, y = 2/3 → BOTTOM; inside TOP x = 1/3 → TOP_CENTER, x = 2/3 → TOP_RIGHT. No cut-off value changes. lane2 fixture centres are not on a boundary (y boundaries 281.33 / 562.67 px; nearest centre 522 px → MID).",
+   "lane_files_r2": "r2 applied in lane2 (`EXPECTATIONS.json`, `measure_geometry.py`, 14/14 PASS): zones re-derived from r1 raw x/y under R7 — label_explicit_text / label_aria_labelledby_differs / label_pseudo_element_text MID→TOP_LEFT; label_icon_text / label_icon_only_ax_named / label_alt_title_value TOP_*→FLOATING (they sit inside a `position:fixed` header and R7 FLOATING has no size cap — this corrects the r1 follow-up sentence 'TOP_CENTER/TOP_RIGHT rows unchanged', which ignored the header); inline_expand MID→DRAWER; drawers/sheets/dropdown DRAWER unchanged; label_icon_only_unnamed FLOATING unchanged. C's one reading of R7 — FLOATING tested self-OR-ancestor — is declared in lane2 meta with the self-only alternative recorded per fixture as `entry_zone_band_R7`."
   },
   {
    "id": "P-38",
@@ -1121,11 +1273,14 @@
     "lane2",
     "lane6"
    ],
-   "status": "CONSISTENT",
+   "status": "A_RULED",
    "divergent_case": null,
    "notes": null,
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "EXTENDED_BY_A_STEP1-012_GAP-07",
+   "follow_up": null,
+   "resolution_r2": "T-A-V3-STEP1-012 GAP-07: entry_* geometry / label / AX facts are recorded at the state where the control FIRST became observable; every row declares it in the new field entry_observed_state ∈ {S0, S1, …, POST_REVEAL:<nav_container_type>}; s0_task_control_visible remains an S0 fact (false for reveal-gated). Raw x/y_norm remain primary (±0.02) and are compared at that state; at S0 they are null for a reveal-gated control (GAP-04).",
+   "lane_files_r2": "lane2 EXPECTATIONS: entry_observed_state on all 14 fixtures (7 × POST_REVEAL:<type>, 7 × S0) + meta.entry_observed_state_rule; measure_geometry.py derives and checks it",
+   "authority_ticket": "T-A-V3-STEP1-012"
   },
   {
    "id": "P-39",
@@ -1145,11 +1300,14 @@
     "lane1",
     "lane6"
    ],
-   "status": "CONSISTENT",
+   "status": "A_RULED",
    "divergent_case": null,
    "notes": null,
-   "authority_override": null,
-   "follow_up": null
+   "authority_override": "CONFIRMED_BY_A_STEP1-012_GAP-04",
+   "follow_up": null,
+   "resolution_r2": "T-A-V3-STEP1-012 GAP-04 applies R13's all-variable principle to entry_* and occlusion: None/null, never 0, for the unobserved; explicit UNDETERMINED / NOT_OBSERVED for categoricals. lane6 C-9 already does this for flow-derived fields.",
+   "lane_files_r2": "no lane6 edit here (other worker); lane2/lane3/lane7 aligned as in P-33 / P-25",
+   "authority_ticket": "T-A-V3-STEP1-012"
   },
   {
    "id": "P-40",
@@ -1912,6 +2070,74 @@
    "notes": "lane2's NONE values (accessible_name_source=NONE, label_relation=NONE at S0 for an unexposed control) are observed absences backed by the AX tree, so they satisfy R13's 'evidence of absence' requirement and are not superseded.",
    "authority_override": "SUPERSEDED_BY_R13",
    "follow_up": "lane3 rule and lane6 auth_gate_stage_from_sequence: NONE only when the path was observed to a terminal that is not action_token=AUTH_GATE with evidence (ENDPOINT_REACHED, or an evidence-bearing terminal on the frozen path); otherwise UNDETERMINED. lane1 C-F5-NOSURF-01 auth_gate_stage_allowed → [UNDETERMINED]. lane6 family_summary reports UNDETERMINED as its own category, never dropped from the denominator. R13's same-rule-elsewhere obligation: C reviews each categorical variable for a missing 'could not determine' value during GATE 1 and raises any found (none is added here without a case)."
+  },
+  {
+   "id": "P-73",
+   "variable": "dom_ax_divergence: DOM query vs AX tree disagreement on control existence",
+   "c_rules": [
+    {
+     "lane": "A",
+     "wording": "T-A-V3-STEP1-012 'DOM/AX divergence noted': when DOM query and AX tree disagree on control existence neither side wins; record both and set dom_ax_divergence=true."
+    },
+    {
+     "lane": "lane2",
+     "wording": "r2: dom_ax_divergence expected false on all 14 fixtures; measure_geometry.py records dom_exists / ax_exists at the observed state and flags XOR."
+    }
+   ],
+   "ssotv3_clause": "00 §8; T-A-V3-STEP1-012",
+   "lane_sources": [
+    "A",
+    "lane2"
+   ],
+   "status": "A_RULED",
+   "divergent_case": null,
+   "notes": "A runner reporting true on a C fixture is a finding to inspect, not an automatic FAIL.",
+   "authority_override": "A_RULED_STEP1-012",
+   "follow_up": null,
+   "resolution_r2": "new row added in r2",
+   "lane_files_r2": "lane2 EXPECTATIONS (field on all 14 fixtures) + meta.dom_ax_divergence_rule + measure_geometry.py",
+   "authority_ticket": "T-A-V3-STEP1-012"
   }
- ]
+ ],
+ "revision": {
+  "r2": {
+   "date": "2026-08-28",
+   "after_commit": "67f473b",
+   "tickets": [
+    "C-DECISION_REQUEST-031138",
+    "T-A-V3-STEP1-011",
+    "T-A-V3-STEP1-012",
+    "T-A-V3-FC-001"
+   ],
+   "lane_files_edited": {
+    "lane2": [
+     "EXPECTATIONS.json",
+     "measure_geometry.py",
+     "README.md"
+    ],
+    "lane3": [
+     "EXPECTATIONS.json",
+     "walk_fixture.py",
+     "README.md"
+    ],
+    "lane7": [
+     "DISMISS_DEFINITION_C.md",
+     "README.md",
+     "impl_a.py",
+     "impl_b.py",
+     "converge_check.py",
+     "validate_probe_like_playwright.py",
+     "probe_like/f01-f06.json",
+     "fixtures/f01-f05 (path-control marker)",
+     "fixtures/f06 (new)"
+    ],
+    "lane6": "not edited (other worker)"
+   },
+   "reruns": {
+    "lane2": "RESULT: 14/14 PASS, non-file requests aborted total=0",
+    "lane3": "RESULT: ALL PASS (8/8 fixtures)",
+    "lane7": "mode=CONVERGE rows compared=31 identical=31 differing=0 -> PASS; NEGCTRL_OK; checked=39 mismatches=0 -> PROBE_LIKE_VALIDATED"
+   }
+  }
+ }
 }

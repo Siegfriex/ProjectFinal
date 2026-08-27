@@ -9,9 +9,10 @@ sys.path.insert(0, str(HERE))
 import impl_a, impl_b
 
 PROBE = {"f01": "f01_blocking_modal_visible_close.html", "f02": "f02_overlay_control_hidden.html",
-         "f03": "f03_overlay_control_after_scroll.html", "f04": "f04_two_overlays_one_blocking.html", "f05": "f05_no_overlay.html"}
+         "f03": "f03_overlay_control_after_scroll.html", "f04": "f04_two_overlays_one_blocking.html", "f05": "f05_no_overlay.html",
+         "f06": "f06_aria_modal_not_blocking_glass_no_pointer.html"}
 FIELDS = ["dismiss_control_exists", "dismiss_control_visible", "dismiss_control_accessible_name", "dismiss_required_for_task",
-          "task_control_occlusion", "dismiss_control_hittable_s0", "selected_selector"]
+          "dismiss_required_signal", "task_control_occlusion", "occlusion_geom_crosscheck", "dismiss_control_hittable_s0", "selected_selector"]
 def short(v):
     if v is None:
         return "NULL"
@@ -28,6 +29,9 @@ MUTATIONS = {  # negative control: in-memory perturbations of the PROBE input th
     "f05": lambda p: p["raw_features"]["dismiss_control_candidates"].append(
         {"container_selector": "#phantom", "container_role": None, "aria_modal": False, "z_index": 1, "bbox": [0, 0, 10, 10],
          "dom_order": 9, "dismiss_control_candidates": []}),                                      # phantom container, no control
+    "f02": lambda p: p["raw_features"]["dismiss_control_candidates"][0].update(blocking_proof=False),   # probe claims the click got through
+    "f03": lambda p: p["path_control"]["hit_grid"]["rows"].__setitem__(8, "........."),               # probe claims one grid row hits the control
+    "f06": lambda p: p["raw_features"]["dismiss_control_candidates"][1].update(blocking_proof=True),    # probe reports aria-modal AS the proof (old lane7 rule)
 }
 
 
@@ -55,7 +59,7 @@ def main():
     (out / f"{tag}_rows_a.jsonl").write_text("\n".join(canon(A[k]) for k in sorted(A)) + "\n", encoding="utf-8")
     (out / f"{tag}_rows_b.jsonl").write_text("\n".join(canon(B[k]) for k in sorted(B)) + "\n", encoding="utf-8")
     keys = sorted(set(A) | set(B), key=lambda k: (k[0], ["target", "container", "step"].index(k[1]), k[2], k[3]))
-    hdr = ["fixture", "unit", "pop", "row", "exists", "visible", "acc_name", "required", "occl", "hittable", "selected", "A==B"]
+    hdr = ["fixture", "unit", "pop", "row", "exists", "visible", "acc_name", "required", "signal", "occl_hit", "occl_geom", "hittable", "selected", "A==B"]
     lines = [" | ".join(hdr)]
     n_ok = n_bad = 0
     diffs = []

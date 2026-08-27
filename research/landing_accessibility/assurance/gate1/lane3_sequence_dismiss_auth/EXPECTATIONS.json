@@ -44,22 +44,44 @@
  "derivation_rules_preregistered": {
   "task_flow_sequence": "experienced_flow_sequence with every DISMISS_OBSTRUCTION removed; order preserved; terminal token (ENDPOINT_REACHED|AUTH_GATE) kept as last element (codebook §3 example keeps AUTH_GATE).",
   "activation_depth": "count of tokens in ACTIVATION_SET. SUBMIT_QUERY IS counted (it is a button activation; 03 §6 exclusion list names only scroll, passive load, per-character typing, popup dismiss). INPUT_QUERY, DISMISS_OBSTRUCTION, AUTH_GATE, ENDPOINT_REACHED are not.",
-  "flow_step_count": "count of task_flow_sequence tokens excluding the pure terminal markers ENDPOINT_REACHED/ABSTAIN; AUTH_GATE IS counted because 04 §4 says 'auth encounter 포함'. Typing/submit counted. Scroll/dismiss never counted.",
-  "menu_dependency": "true iff any REVEAL_SET token precedes the terminal token. SWITCH_TAB is left undecided (not exercised by these fixtures) and must be pre-registered before use.",
-  "nav_container_depth": "count of REVEAL_SET tokens that precede SELECT_FUNCTION. SELECT_CATEGORY that navigates to a category page is a page transition, not a container reveal, so it does not add depth (fixture 1: depth 1, not 2).",
+  "flow_step_count": "count of task_flow_sequence tokens excluding the pure terminal markers ENDPOINT_REACHED and ABSTAIN; AUTH_GATE IS counted (04 §5 'auth encounter 포함'; A T-A-V3-STEP1-012 GAP-03 confirms: ENDPOINT_REACHED and ABSTAIN excluded, AUTH_GATE included). Typing/submit counted. Scroll/dismiss never counted.",
+  "menu_dependency": "true iff any REVEAL_SET token precedes the terminal token (sequence-based; A T-A-V3-STEP1-011 P-09: 04 §4/§5 wording wins over 10_GLOSSARY, nav_container_depth and s0_task_control_visible carry the 'task control not directly visible' concept). SWITCH_TAB is NOT a reveal token (A T-A-V3-STEP1-011 P-06; it stays in ACTIVATION_SET per STEP1-006); menu_dependency_incl_tab is the declared sensitivity.",
+  "nav_container_depth": "count of REVEAL_SET tokens that precede the anchor = the first SELECT_FUNCTION or, when absent, the first task-body token (INPUT_QUERY / SELECT_CATEGORY / SELECT_ORIGIN / SELECT_DESTINATION / SELECT_DATE / SUBMIT_QUERY / SELECT_RESULT / OPEN_ITEM_DETAIL / OPEN_PLACE_DETAIL); no anchor → count reveals before the terminal and flag nav_anchor_found=false (C-DECISION_REQUEST-031138 P-11, lane6 C-5 rule adopted). SELECT_CATEGORY navigating to a category page is a page transition, not a container reveal, so it adds no depth (fixture 1: depth 1, not 2 — unchanged under the anchor rule because the reveal precedes SELECT_CATEGORY as well).",
   "forced_dismissal_count": "count of DISMISS_OBSTRUCTION in experienced_flow_sequence; each must be paired with a fact_task_obstruction row with dismiss_required_for_task=true.",
-  "dismiss_required_for_task": "true iff the next frozen-path control is not hittable (hit-test at its center lands on the interrupt) until an allowed close control is activated. Geometric overlap alone is insufficient; a blocking_proof click must fail.",
-  "task_control_occlusion": "fraction of a uniform 9x9 sample grid inside the next-path-control bbox whose elementFromPoint is neither the control nor its descendant (hit-test); cross-checked with bbox-intersection against [data-c-overlay] elements. Measured against the path-entry control of the CURRENT state (hamburger at S0 when the task function is behind a menu).",
+  "dismiss_required_for_task": "true iff the next frozen-path control is not hittable (hit-test at its center lands on the interrupt) until an allowed close control is activated. Geometric overlap alone is insufficient; a blocking_proof click must fail. Primary across C lanes per C-DECISION_REQUEST-031138 P-24 (lane7 aligned: aria-modal / occlusion>0 are dismiss_required_signal, never the verdict).",
+  "task_control_occlusion": "fraction of a uniform 9x9 sample grid inside the next-path-control bbox whose elementFromPoint is neither the control nor its descendant (hit-test); cross-checked with bbox-intersection against [data-c-overlay] elements. Measured against the path-entry control of the CURRENT state (hamburger at S0 when the task function is behind a menu). Null convention (A T-A-V3-STEP1-012 GAP-04): null = not observed (control outside the viewport / no path control at S0); 0.0 = observed and unoccluded. Primary across C lanes per C-DECISION_REQUEST-031138 P-23 (lane7 aligned: geometry on the frozen entry control is occlusion_geom_crosscheck).",
   "overlay_coverage": "secondary only: overlay bbox area / viewport area. Non-zero coverage with occlusion 0 is NOT an obstruction (fixture 3).",
-  "s0_task_control_visible": "true iff the SELECT_FUNCTION control's bbox intersects the S0 viewport and it is hittable. A hamburger that leads to it does not count.",
-  "first_visible_scroll_state": "first scroll-only state Sk (scroll step chosen by runner within [120,844] px) whose viewport intersects the SELECT_FUNCTION control; 'NONE' when no scroll state exposes it (menu-hidden or login wall).",
+  "s0_task_control_visible": "true iff the SELECT_FUNCTION control's bbox intersects the S0 viewport AND it is hit-testable at S0 (elementFromPoint at its centre is the control or a descendant). No occlusion threshold — independent of task_control_occlusion (A T-A-V3-STEP1-012 GAP-05). A hamburger that leads to it does not count.",
+  "first_visible_scroll_state": "the scroll state Sk (scroll step chosen by runner within [120,844] px) at which the SELECT_FUNCTION control was FIRST observed; for a control exposed by a reveal it is the scroll state where the reveal happened (S0 in the menu-hidden fixtures); null ONLY when the control was never observed on the path (login wall), and then endpoint_status × terminal_reason carry the reason (A T-A-V3-STEP1-012 GAP-02).",
   "auth_gate_stage": {
-   "NONE": "no AUTH_GATE token.",
-   "BEFORE_TASK_DISCOVERY": "AUTH_GATE with no SELECT_FUNCTION before it: no task-specific control observable at any scroll state S0..Sn and no reveal container available without auth.",
-   "AFTER_TASK_SELECT": "AUTH_GATE occurs at/after SELECT_FUNCTION and before any result-level token (SELECT_RESULT/OPEN_ITEM_DETAIL/OPEN_PLACE_DETAIL) and before any task results surface is rendered. Position rule wins even if the gated action would have yielded the endpoint (e.g. F3 where the form itself is the endpoint).",
-   "AT_ENDPOINT": "AUTH_GATE occurs on a result-level activation after a task results surface was rendered without auth, OR the endpoint surface is rendered but the contract-required content (e.g. F5 time+price) is withheld behind auth."
+   "authority": "A T-A-V3-STEP1-011 P-13/P-14 (single positional rule; supersedes C's r1 wording, fixture values unchanged)",
+   "task_specific_token_set": [
+    "SELECT_CATEGORY",
+    "SELECT_FUNCTION",
+    "INPUT_QUERY",
+    "SELECT_ORIGIN",
+    "SELECT_DESTINATION",
+    "SELECT_DATE",
+    "SUBMIT_QUERY",
+    "SELECT_RESULT",
+    "OPEN_ITEM_DETAIL",
+    "OPEN_PLACE_DETAIL"
+   ],
+   "general_navigation_tokens_not_task_specific": [
+    "OPEN_GLOBAL_MENU",
+    "OPEN_LOCAL_MENU",
+    "SWITCH_TAB",
+    "EXPAND_ACCORDION",
+    "DISMISS_OBSTRUCTION"
+   ],
+   "NONE": "no AUTH_GATE token (observed to a non-auth terminal with evidence; otherwise UNDETERMINED per R13).",
+   "BEFORE_TASK_DISCOVERY": "no task-specific token precedes AUTH_GATE — only general navigation (OPEN_GLOBAL_MENU / OPEN_LOCAL_MENU / SWITCH_TAB / EXPAND_ACCORDION / DISMISS_OBSTRUCTION) or nothing at all. OPEN_GLOBAL_MENU > AUTH_GATE → BEFORE_TASK_DISCOVERY.",
+   "AFTER_TASK_SELECT": "at least one task-specific token precedes AUTH_GATE but the endpoint contract is not yet satisfied. OPEN_GLOBAL_MENU > SELECT_CATEGORY > AUTH_GATE → AFTER_TASK_SELECT; SELECT_FUNCTION > INPUT_QUERY > SUBMIT_QUERY > AUTH_GATE with no results surface ever rendered → AFTER_TASK_SELECT (04 §3 example → AFTER_TASK_SELECT).",
+   "AT_ENDPOINT": "the endpoint surface was rendered WITHOUT auth and the gate is hit when its content is accessed (e.g. F5 route list rendered, time/price behind login on SELECT_RESULT).",
+   "UNDETERMINED": "A T-A-V3-STEP1-007 R13: path not observed to an evidence-bearing terminal.",
+   "walker_check": "walk_fixture.py derives the stage from task_flow_sequence with this positional rule (AT_ENDPOINT additionally requires the fixture flag endpoint_surface_rendered_without_auth=true) and requires equality with the expected value on every fixture."
   },
-  "endpoint_status": "REACHED iff the family endpoint contract is satisfied in the final state; AUTH_GATE iff final token is AUTH_GATE; nothing else exercised here.",
+  "endpoint_status": "REACHED iff the family endpoint contract is satisfied in the final state; AUTH_GATE iff final token is AUTH_GATE; nothing else exercised here. A T-A-V3-STEP1-011 P-17: endpoint_status and action_token are separate layers (always field-qualified); a task surface that is absent is endpoint_status=PUBLIC_WEB_UNOBSERVABLE × terminal_reason=TASK_SURFACE_ABSENT ('we know it is absent'), endpoint_status=ABSTAIN is 'we do not know'.",
   "generic_login_rule": "presence of a login control/link anywhere on the page never produces AUTH_GATE; only a gate that the frozen task path enters counts (00 §6, 03 §7). Fixture 4 is the negative control.",
   "lossless": "runner's fact_flow_step rows, ordered by step_index, restricted to token-bearing rows, must equal lossless_check as (state_before,data-c-action,state_after) triples with state = body[data-c-state]; url_before/url_after must differ exactly where the fixture changes location.hash (every recorded step)."
  },
@@ -97,7 +119,7 @@
    "interrupt_type": "NONE",
    "overlay_coverage_s0": 0.0,
    "s0_task_control_visible": false,
-   "first_visible_scroll_state": "NONE",
+   "first_visible_scroll_state": "S0",
    "s0_path_entry_control": {
     "token": "OPEN_GLOBAL_MENU",
     "accessible_name": "전체메뉴",
@@ -208,7 +230,8 @@
    "lossless_terminal": {
     "state": "ENDPOINT_SCHEDULE",
     "terminal_token": "ENDPOINT_REACHED"
-   }
+   },
+   "first_visible_scroll_state_note": "GAP-02: menu-hidden control first observed after OPEN_GLOBAL_MENU performed at scroll state S0 → S0 (r1 said NONE)"
   },
   "seq_with_forced_dismissal": {
    "file": "fixtures/seq_with_forced_dismissal.html",
@@ -250,7 +273,7 @@
     "role": "button"
    },
    "s0_task_control_visible": false,
-   "first_visible_scroll_state": "NONE",
+   "first_visible_scroll_state": "S0",
    "s0_path_entry_control": {
     "token": "OPEN_GLOBAL_MENU",
     "accessible_name": "전체메뉴",
@@ -381,7 +404,8 @@
    "lossless_terminal": {
     "state": "ENDPOINT_SCHEDULE",
     "terminal_token": "ENDPOINT_REACHED"
-   }
+   },
+   "first_visible_scroll_state_note": "GAP-02: menu-hidden control first observed after OPEN_GLOBAL_MENU performed at scroll state S0 → S0 (r1 said NONE)"
   },
   "seq_non_blocking_banner": {
    "file": "fixtures/seq_non_blocking_banner.html",
@@ -426,7 +450,7 @@
     "required": false
    },
    "s0_task_control_visible": false,
-   "first_visible_scroll_state": "NONE",
+   "first_visible_scroll_state": "S0",
    "s0_path_entry_control": {
     "token": "OPEN_GLOBAL_MENU",
     "accessible_name": "전체메뉴",
@@ -544,7 +568,8 @@
    "lossless_terminal": {
     "state": "ENDPOINT_SCHEDULE",
     "terminal_token": "ENDPOINT_REACHED"
-   }
+   },
+   "first_visible_scroll_state_note": "GAP-02: menu-hidden control first observed after OPEN_GLOBAL_MENU performed at scroll state S0 → S0 (r1 said NONE)"
   },
   "auth_generic_login_present_no_gate": {
    "file": "fixtures/auth_generic_login_present_no_gate.html",
@@ -706,7 +731,7 @@
    "interrupt_type": "NONE",
    "overlay_coverage_s0": 0.0,
    "s0_task_control_visible": false,
-   "first_visible_scroll_state": "NONE",
+   "first_visible_scroll_state": null,
    "s0_path_entry_control": null,
    "scroll_states_expected": [
     "S0",
@@ -734,7 +759,8 @@
    "lossless_terminal": {
     "state": "LOGIN_WALL",
     "terminal_token": "AUTH_GATE"
-   }
+   },
+   "first_visible_scroll_state_note": "GAP-02: control never observed (login wall) → null; endpoint_status=AUTH_GATE × auth_gate_stage=BEFORE_TASK_DISCOVERY carry the reason"
   },
   "auth_gate_at_endpoint": {
    "file": "fixtures/auth_gate_at_endpoint.html",
@@ -854,7 +880,9 @@
    "lossless_terminal": {
     "state": "AUTH_GATE_SCHEDULE",
     "terminal_token": "AUTH_GATE"
-   }
+   },
+   "endpoint_surface_rendered_without_auth": true,
+   "endpoint_surface_note": "A T-A-V3-STEP1-011 AT_ENDPOINT condition: the F5 route list (results surface) is rendered without auth before the gate; the walker checks this flag against the derived stage."
   },
   "seq_typing_and_scroll_not_depth": {
    "file": "fixtures/seq_typing_and_scroll_not_depth.html",
@@ -972,5 +1000,8 @@
     "terminal_token": "ENDPOINT_REACHED"
    }
   }
+ },
+ "revision": {
+  "r2": "2026-08-28 on claude-c/assurance-v21 after 67f473b: rule text aligned to A T-A-V3-STEP1-011 (P-06/P-09/P-13/P-14/P-17), T-A-V3-STEP1-012 (GAP-02/03/04/05) and C-DECISION_REQUEST-031138 (P-11/P-23/P-24). Only first_visible_scroll_state values changed (NONE → S0 for the three menu-hidden fixtures, NONE → null for the login wall); every other expected value is unchanged and was re-verified by walk_fixture.py."
  }
 }
