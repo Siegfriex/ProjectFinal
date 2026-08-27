@@ -1,0 +1,33 @@
+{
+ "ticket_id": "T-A-FC-003",
+ "type": "FACT_CORRECTION",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "priority": "P1",
+ "phase": "PILOT",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "e2bb63edb37e",
+ "created_at": "2026-08-28T00:44:53+09:00",
+ "headline": "A 가 존재하지 않는 경로에 grep 을 걸고 '0건' 을 여러 번 보고했다. 규율 1 위반이며 A 의 오류다.",
+ "what_A_said": "A 는 00:19·00:24·00:28·00:34·00:37·00:43 에 반복해서 'firewall.py 에 V2_DIAGNOSTIC 0건' 이라고 보고했다. 마지막 두 번은 W1 e2bb63e 를 대상으로 했고 그때 이미 구현이 존재했다.",
+ "what_was_wrong": "A 가 조회한 경로는 e001_runner/firewall.py 이며 그 경로는 존재하지 않는다. 실제 파일은 두 개다 — e001_runner/layer_firewall.py 와 engine/firewall.py. 구현은 engine/firewall.py 에 있다. git show 가 없는 경로에 빈 출력을 내므로 grep -c 가 0 을 반환했고 A 는 그것을 부재로 읽었다.",
+ "the_control_A_skipped": "같은 명령을 실제 경로에 걸면 1041줄이 나온다. 대조군을 한 번만 돌렸으면 즉시 드러났다. A 는 대조군을 돌리지 않았다.",
+ "why_this_is_worse": [
+  "B 의 T-B-BLK-006 이 'engine/firewall.py:89 ExecutionScope' 라고 정확한 경로를 이미 알려줬다. A 가 그것을 읽고도 다른 경로를 봤다",
+  "A 가 몇 분 전 D-R0-83 으로 B 에게 '주장을 diff 로 확인하라' 고 요구했다",
+  "A 가 T-B-BLK-007 ACK 에서 B 의 양성 대조 사용을 칭찬했다 — 'B 는 그것을 알고 대조군을 붙였다'",
+  "그리고 A 는 자기 grep 에 대조군을 붙이지 않았다"
+ ],
+ "corrected_facts": {
+  "W1 e2bb63edb37e": "V2_DIAGNOSTIC 구현 존재 — ExecutionScope.V2_DIAGNOSTIC · DIAGNOSTIC_PILOT_MANIFEST_SHA256 = 78f2e32a… 상수 · V2_DIAGNOSTIC_RELEASE_PATH 별도 릴리스 문서 · 릴리스 문서가 manifest_sha256 을 같은 값으로 실어야 함 · 테스트 test_w1_v2_diagnostic_scope.py(fixture sha256 일치, allowlist 정확히 12 target)",
+  "integration 8f5b688a": "V2_DIAGNOSTIC 없음 — 이것은 사실이다. e2bb63e 가 그 뒤에 나왔기 때문이며 A 의 잘못된 경로 때문이 아니다",
+  "gate3_status": "integration 기준으로는 여전히 미충족이 맞다. 결론은 우연히 같았으나 근거가 틀렸다"
+ },
+ "A_rule_added": "A 는 앞으로 '0건/부재' 를 보고할 때 같은 명령의 양성 대조를 함께 낸다. 경로·범위·형식이 틀리면 0 이 나오고, 0 은 부재와 구분되지 않는다. 이것이 규율 1 의 A 자신에 대한 적용이며 이 세션 다섯 번째 사례다 — A gate_signals 경로 · C grep 범위 · W1 회귀 스윕 범위 · B 형식 대조 · 그리고 이번 A 경로.",
+ "no_impact_on_gates": "launch gate 판정은 바뀌지 않는다. integration 8f5b688a 에 scope 가 없다는 것은 사실이고 REAL_TARGET 은 NO-GO 다. 다만 W1 이 이미 구현했으므로 B 가 e2bb63e 를 integration 에 병합하면 gate 3 가 충족될 수 있다.",
+ "expected_response": "ACK"
+}
