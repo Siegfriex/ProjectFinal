@@ -25,13 +25,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import time
 from collections import deque
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from urllib.parse import unquote_plus
+from urllib.parse import unquote_plus, urlsplit
 
 from .depth import (
     DepthResult,
@@ -426,11 +427,17 @@ def _real_region_by_signal_type(raw: dict[str, Any], task: TaskDefinition) -> bo
     st = task.region_signal_type
     archetype = task.archetype
     if st is RegionSignalType.FORM_STRUCTURE:
-        # 검색 입력 존재는 QUERY/PLACE_LOOKUP 에서만 evidence 다 — 다른 archetype 이
-        # FORM_STRUCTURE 를 요청한다고 해서 "페이지 어딘가의 검색창"이 그 archetype 의
-        # 증거가 되지는 않는다(resolver 의 Stage 4 다중후보 판정에서 실제로 이 구분이
-        # 없으면 검색창 하나 때문에 모든 archetype 이 동시에 evidenced 로 잡힌다).
-        if archetype in (InteractionArchetype.QUERY, InteractionArchetype.PLACE_LOOKUP):
+        # `D-R0-74` NLP fallback 도입 과정에서 발견한 결함 시정 — **검색 입력 존재는 QUERY
+        # 만의 evidence 다.** 이전에는 PLACE_LOOKUP 도 같은 조건으로 evidenced 시켰다("place
+        # search control 또는 place list", RF-DT Branch P 원문)인데, 구조적으로 "이 검색창이
+        # 장소를 검색하는 것인지"를 구분할 신호가 없어 **모든** 검색창을 place evidence 로도
+        # 셌다. calibration 재진단(daangn.com/daum.net/google.com/lottemart 4건)에서 전부
+        # QUERY 진성인데 PLACE_LOOKUP 과 tier3 tie 가 나는 것으로 드러났다 — NLP fallback
+        # 이 그 tie 를 잘못 푼 게 아니라, **애초에 tie 가 아니어야 했다.** PLACE_LOOKUP 은
+        # 이제 `_place_region_evidence`(map control/주소 어휘/structured data, D-R0-67-2)
+        # 전용 신호만 쓴다 — 다른 archetype 이 FORM_STRUCTURE 를 요청한다고 해서 "페이지
+        # 어딘가의 검색창"이 그 archetype 의 증거가 되지는 않는다는 원칙 그대로다.
+        if archetype is InteractionArchetype.QUERY:
             return _search_control_ready(raw)
         return False
     if st is RegionSignalType.MEDIA_STATE:
@@ -443,7 +450,9 @@ def _real_region_by_signal_type(raw: dict[str, Any], task: TaskDefinition) -> bo
         if archetype is InteractionArchetype.ITEM_DETAIL:
             return _item_region_evidence(raw)
         if archetype is InteractionArchetype.PLACE_LOOKUP:
-            return _place_region_evidence(raw) or _search_control_ready(raw)
+            # 위 FORM_STRUCTURE 분기와 같은 이유로 `_search_control_ready` 를 더 이상
+            # 섞지 않는다 — `_place_region_evidence` 전용 신호만 쓴다.
+            return _place_region_evidence(raw)
         if archetype is InteractionArchetype.COMMUNICATION_ENTRY:
             return _communication_region_evidence(raw)
         if archetype is InteractionArchetype.CONTENT_OPEN:
@@ -813,12 +822,201 @@ class RepresentativeFunctionMapping:
         }
 
 
+# ── NLP fallback (`D-R0-74` · SSOT §6.5 · RF-DT §7) ─────────────────────────
+# label freeze(22:27) 이후 개방됐다. **deterministic ambiguity 이후에만** 호출된다 —
+# rule DT 가 evidence 없음(`AMBIGUOUS_UNRESOLVED` "evidence 없음" 경로) 으로 이미 abstain
+# 한 경우에는 이 fallback 을 태우지 않는다(호출부가 tier3 evidenced candidate 집합만 넘긴다).
+# fallback 은 **coverage 를 올리는 장치가 아니라 rule 이 이미 두 후보를 다 evidenced 했는데
+# 못 가른 ambiguity 를 푸는 장치**다(`D-R0-74-2`(5)) — evidence 없음을 매핑하면
+# `D-R0-67-3` 위반으로 되돌아간다.
+_EMBEDDING_MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
+_embedding_model_singleton: Any = None
+
+#: `D-R0-74-2`(4)/calibration 공백 — COMMUNICATION_ENTRY(calibration 0건)·UTILITY_ENTRY
+#: (calibration 1건)는 threshold 를 세울 근거가 없다. 이 둘이 낀 경합은 fallback 을 시도하지
+#: 않고 rule DT + abstain 으로 둔다(A 지시 그대로).
+_NLP_FALLBACK_EXCLUDED_ARCHETYPES = frozenset(
+    {InteractionArchetype.COMMUNICATION_ENTRY, InteractionArchetype.UTILITY_ENTRY}
+)
+
+#: RF-DT §5 branch 원문에서 뽑은 prototype 문장 — **calibration 라벨 텍스트를 그대로 옮기지
+#: 않는다**(그러면 calibration 을 프롬프트로 암기시키는 것과 같아진다). archetype 정의
+#: 자체(계약 문서)에서만 끌어온다.
+_ARCHETYPE_PROTOTYPES: dict[InteractionArchetype, str] = {
+    InteractionArchetype.QUERY: (
+        "자유 텍스트 검색어를 입력하고 제출해 결과 목록을 확인하는 검색 서비스"
+    ),
+    InteractionArchetype.CONTENT_OPEN: (
+        "기사나 콘텐츠 카드 목록에서 하나를 선택해 본문이나 영상을 여는 콘텐츠 서비스"
+    ),
+    InteractionArchetype.ITEM_DETAIL: (
+        "상품 카드 목록에서 하나를 선택해 가격과 상세정보를 확인하는 쇼핑 서비스"
+    ),
+    InteractionArchetype.PLACE_LOOKUP: (
+        "장소나 매장을 검색하거나 지도에서 위치 상세를 확인하는 서비스"
+    ),
+    InteractionArchetype.COMMUNICATION_ENTRY: (
+        "게시글이나 메시지 목록에 진입하거나 글쓰기를 시작하는 커뮤니티 서비스"
+    ),
+    InteractionArchetype.FINANCIAL_ACTION_ENTRY: (
+        "계좌조회·이체·결제 등 금융 기능이나 로그인·본인인증 절차에 진입하는 금융 서비스"
+    ),
+    InteractionArchetype.UTILITY_ENTRY: (
+        "특정 목적의 도구 기능면을 열고 값을 입력해 사용하는 유틸리티 서비스"
+    ),
+}
+
+#: `D-R0-74-2`(2) — calibration split(n=30, 라벨러 candidate_archetypes 사용)에서 실제로
+#: fallback 이 발화하는 경우를 셌더니 **0건**이었다(구 probe 코퍼스가 `repeated_structure`/
+#: `family_signals`/`utility_input_widgets`(전부 이번 세션 신규)를 갖고 있지 않아 tier3
+#: genuine tie 자체가 거의 안 생긴다 — 앞선 completion 에서 이미 보고한 confound 그대로다).
+#: 이 진단 과정에서 **rule 결함을 하나 더 찾았다**: PLACE_LOOKUP 이 QUERY 와 동일한 일반
+#: 검색창 신호를 공유해 daangn.com/daum.net/google.com/lottemart 4건이 가짜로 tier3-tied
+#: 됐다 — NLP fallback 이 그중 3건을 오답으로 풀었다(1/4 정답). 원인은 fallback 이 아니라
+#: **애초에 tie 가 아니어야 했던 rule**이었다(위 `_real_region_by_signal_type` 시정 참조).
+#: 시정 후 그 4건은 rule 만으로 유일 MAPPED 가 됐고, fallback 발화 건수는 0으로 줄었다.
+#: **따라서 이 threshold 는 calibration 발화 사례의 margin 분포에서 통계적으로 도출된 값이
+#: 아니다** — 표본이 0이라 그 산출은 불가능했다. 대신 `_nlp_fallback_resolve` 를 손으로
+#: 구성한 대조 텍스트(QUERY 문맥 vs CONTENT_OPEN 문맥, 명확히 구분되는 페이지)로 sanity
+#: check 한 margin 범위(0.12~0.37)를 참고해 **보수적인 기본값**을 둔다. threshold 를
+#: 낮춰 발화를 늘리는 시도는 하지 않았다(`D-R0-74-2`(5), coverage 를 위해 abstain 을
+#: 줄이지 않는다). calibration 코퍼스가 신규 raw feature 를 가진 채 재수집되면(REAL_TARGET
+#: GO 이후) 이 값을 다시 실측 근거로 정해야 한다 — 그때까지는 provisional 이다.
+NLP_FALLBACK_MARGIN_THRESHOLD = 0.10
+
+
+def _page_text_representation(raw: dict[str, Any]) -> str:
+    """RF-DT §7 — title · top headings · landmark labels · top control accessible name ·
+    대표 region 주변 visible label · form label · repeated card descriptor · URL path token.
+    `probe.json:raw_features` 만 읽는다(`dom.html`/`ax.json` 미사용, evidence_slots_used
+    와 같은 원칙)."""
+    parts: list[str] = []
+    viewport = raw.get("viewport", {}) or {}
+    if viewport.get("title"):
+        parts.append(str(viewport["title"]))
+    url = viewport.get("final_url") or ""
+    if url:
+        path = urlsplit(url).path
+        tokens = [t for t in re.split(r"[/\-_?=&.]+", path) if t]
+        parts.extend(tokens[:10])
+    headings: set[str] = set()
+    for c in raw.get("primary_action_candidates", [])[:60]:
+        if c.get("nearby_heading"):
+            headings.add(str(c["nearby_heading"]))
+    parts.extend(sorted(headings)[:10])
+    for row in raw.get("accessible_name_sources", [])[:60]:
+        name = row.get("aria_label") or row.get("visible_text")
+        if name:
+            parts.append(str(name))
+    for s in raw.get("region_signals", {}).get("search_inputs", [])[:5]:
+        if s.get("role"):
+            parts.append(str(s["role"]))
+    fam = raw.get("family_signals", {}) or {}
+    if fam.get("community_vocabulary_present"):
+        parts.append("게시판 커뮤니티")
+    if fam.get("address_vocabulary_present"):
+        parts.append("매장 위치 주소")
+    if fam.get("price_pattern_present"):
+        parts.append("가격 구매")
+    return " ".join(parts).strip()[:2000]
+
+
+def _load_embedding_model() -> Any:
+    """지연 로딩(모듈 임포트 시 로드하지 않는다 — 대부분의 판정은 fallback 을 안 탄다).
+    캐시된 로컬 가중치만 쓴다 — `HF_HUB_OFFLINE`/`TRANSFORMERS_OFFLINE` 로 네트워크 요청
+    자체를 차단한다(방어적 이중화, 이 lane 의 "네트워크 요청 금지" 원칙과 같은 근거).
+    """
+    global _embedding_model_singleton
+    if _embedding_model_singleton is not None:
+        return _embedding_model_singleton
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+    from sentence_transformers import SentenceTransformer
+
+    _embedding_model_singleton = SentenceTransformer(_EMBEDDING_MODEL_NAME)
+    return _embedding_model_singleton
+
+
+@dataclass(frozen=True)
+class NlpFallbackResult:
+    resolved: bool
+    archetype: InteractionArchetype | None
+    top1_score: float
+    top2_score: float
+    margin: float
+    ranked: tuple[tuple[str, float], ...]
+    reason: str
+
+
+def _nlp_fallback_resolve(
+    raw: dict[str, Any],
+    candidates: tuple[InteractionArchetype, ...],
+    *,
+    margin_threshold: float = NLP_FALLBACK_MARGIN_THRESHOLD,
+) -> NlpFallbackResult:
+    """`D-R0-74-2` 다섯 조건을 여기서 강제한다.
+
+    (3) 호출부(`resolve_representative_function`)가 tier3 로 이미 evidenced 된 candidate
+    **만** 넘긴다 — 이 함수 스스로 후보를 넓히지 않는다.
+    (4) 반환 archetype 은 `candidates` 안에서만 고른다(7종 밖으로 못 나간다, `candidates`
+    자체가 이미 닫힌 7종의 부분집합이므로 자동으로 만족한다).
+    (5) `candidates` 에 COMMUNICATION_ENTRY/UTILITY_ENTRY 가 있으면 즉시 abstain
+    (calibration 근거 없음). margin 이 threshold 미만이면 abstain — coverage 를 위해
+    threshold 를 낮추지 않는다.
+    """
+    if _NLP_FALLBACK_EXCLUDED_ARCHETYPES & set(candidates):
+        return NlpFallbackResult(
+            False,
+            None,
+            0.0,
+            0.0,
+            0.0,
+            (),
+            "COMMUNICATION_ENTRY/UTILITY_ENTRY 는 calibration 근거가 없어 fallback 대상에서 뺀다",
+        )
+    if len(candidates) < 2:
+        return NlpFallbackResult(
+            False, None, 0.0, 0.0, 0.0, (), "candidate 2개 미만 — fallback 불필요"
+        )
+
+    page_text = _page_text_representation(raw)
+    if not page_text.strip():
+        return NlpFallbackResult(
+            False, None, 0.0, 0.0, 0.0, (), "page text representation 이 비어있다"
+        )
+
+    try:
+        model = _load_embedding_model()
+    except Exception as exc:  # pragma: no cover - 모델 부재 환경 방어
+        return NlpFallbackResult(
+            False, None, 0.0, 0.0, 0.0, (), f"embedding model 로드 실패({exc}) — abstain"
+        )
+
+    proto_texts = [_ARCHETYPE_PROTOTYPES[a] for a in candidates]
+    embeddings = model.encode([page_text, *proto_texts], normalize_embeddings=True)
+    page_vec = embeddings[0]
+    scores = [float(page_vec @ embeddings[i + 1]) for i in range(len(candidates))]
+    ranked = sorted(zip(candidates, scores, strict=True), key=lambda x: x[1], reverse=True)
+    top1_a, top1_s = ranked[0]
+    top2_s = ranked[1][1] if len(ranked) > 1 else -1.0
+    margin = top1_s - top2_s
+    ranked_out = tuple((a.value, s) for a, s in ranked)
+    if margin >= margin_threshold:
+        return NlpFallbackResult(
+            True, top1_a, top1_s, top2_s, margin, ranked_out, "margin >= threshold"
+        )
+    return NlpFallbackResult(
+        False, None, top1_s, top2_s, margin, ranked_out, "margin < threshold — abstain"
+    )
+
+
 def resolve_representative_function(
     raw: dict[str, Any],
     candidates: list[InteractionArchetype],
     *,
     target_id: str = "",
     query_text: str = "고령자 접근성",
+    enable_nlp_fallback: bool = True,
 ) -> RepresentativeFunctionMapping:
     """`01 §6` Stage 4 — evidence precedence 를 **명시적으로** 적용해 유일 candidate 를 고른다.
 
@@ -947,8 +1145,52 @@ def resolve_representative_function(
             precedence_trace=tuple(trace),
         )
 
-    # tier 2 로도 못 가른다 — force-map 하지 않는다(D-R0-12). 경합한 candidate 전부를 남긴다.
-    trace.append("tier2 로도 못 가른다 — force-map 하지 않는다")
+    # tier 2 로도 못 가른다 — `D-R0-74` NLP fallback(label freeze 이후 개방)을 시도한다.
+    # **rule DT 가 이미 evidenced 한 candidate 집합만** 넘긴다(D-R0-74-2 조건 3) — evidence
+    # 없음으로 abstain 한 경우는 여기 도달하지도 않는다(그 경로는 위에서 이미 return 했다).
+    trace.append("tier2 로도 못 가른다 — NLP fallback 시도(D-R0-74)")
+    tied_archetypes = tuple(sorted(distinct_archetypes, key=lambda a: a.value))
+    if enable_nlp_fallback:
+        fallback = _nlp_fallback_resolve(raw, tied_archetypes)
+        trace.append(
+            f"nlp_fallback: resolved={fallback.resolved} margin={fallback.margin:.4f} "
+            f"threshold={NLP_FALLBACK_MARGIN_THRESHOLD} reason={fallback.reason} "
+            f"ranked={fallback.ranked}"
+        )
+        if fallback.resolved and fallback.archetype is not None:
+            winner = fallback.archetype
+            losers = sorted(
+                (a for a in distinct_archetypes if a is not winner), key=lambda a: a.value
+            )
+            winner_entry = next(e for e in evidenced if e[0] is winner)
+            _, signal_type, basis = winner_entry
+            return RepresentativeFunctionMapping(
+                MappingOutcome.MAPPED,
+                winner,
+                signal_type,
+                (
+                    f"NLP fallback (embedding margin={fallback.margin:.4f} >= "
+                    f"threshold={NLP_FALLBACK_MARGIN_THRESHOLD}) — {basis}"
+                ),
+                (basis, f"nlp_fallback_ranked={fallback.ranked}"),
+                (winner,),
+                target_id=target_id,
+                evidence_slots_used=(
+                    "probe.json:raw_features",
+                    "nlp_fallback:paraphrase-multilingual-MiniLM-L12-v2",
+                ),
+                runner_up=losers[0] if losers else None,
+                why_not_runner_up=(
+                    f"NLP fallback 이 {winner.value} 를 골랐다(margin={fallback.margin:.4f}) — "
+                    f"{[a.value for a in losers]} 는 tier3 evidence 는 있었지만 embedding "
+                    "similarity 가 더 낮았다"
+                ),
+                precedence_trace=tuple(trace),
+            )
+
+    # tier 2 도, fallback 도 못 가른다(또는 fallback 이 비활성) — force-map 하지 않는다
+    # (D-R0-12). 경합한 candidate 전부를 남긴다.
+    trace.append("fallback 으로도 못 가른다(또는 비활성) — force-map 하지 않는다")
     return RepresentativeFunctionMapping(
         MappingOutcome.AMBIGUOUS_UNRESOLVED,
         None,
@@ -957,8 +1199,8 @@ def resolve_representative_function(
         tuple(basis for _, _, basis in evidenced),
         tuple(candidates),
         unresolved_reason=(
-            "강한 candidate 2개 이상, tier2(primary surface)로도 가르지 못했다 — "
-            f"경합: {sorted(a.value for a in distinct_archetypes)}. force-map 하지 않는다."
+            "강한 candidate 2개 이상, tier2(primary surface)·NLP fallback 으로도 가르지 "
+            f"못했다 — 경합: {sorted(a.value for a in distinct_archetypes)}. force-map 하지 않는다."
         ),
         target_id=target_id,
         precedence_trace=tuple(trace),

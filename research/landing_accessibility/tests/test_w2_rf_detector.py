@@ -34,11 +34,13 @@ from landing_accessibility.engine.gate_classifier import (  # noqa: E402
 )
 from landing_accessibility.engine.l0_collector import PROBE_JS  # noqa: E402
 from landing_accessibility.engine.l1_engine import (  # noqa: E402
+    NLP_FALLBACK_MARGIN_THRESHOLD,
     MappingOutcome,
     Scout,
     ScoutBudget,
     TaskDefinition,
     _gate_basis_is_vocabulary_only,
+    _nlp_fallback_resolve,
     detect_area_signal,
     detect_endpoint_signal,
     gate_observed,
@@ -875,3 +877,144 @@ def test_is_enabled_helper_defaults_true_for_legacy_raw_without_enabled_field() 
     assert _is_enabled({"hittable": True}) is True
     assert _is_enabled({"hittable": True, "enabled": False}) is False
     assert _is_enabled({"hittable": True, "enabled": True}) is True
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 12) D-R0-74 — NLP fallback (deterministic ambiguity 이후에만, force-map 금지 유지)
+# ══════════════════════════════════════════════════════════════════════════
+pytestmark_embedding = pytest.mark.slow
+
+
+def _skip_if_no_embedding_model() -> None:
+    try:
+        import sentence_transformers  # noqa: F401
+    except Exception:
+        pytest.skip(
+            "sentence-transformers 미설치 환경 — fallback 은 abstain 으로 안전하게 후퇴한다"
+        )
+
+
+def test_nlp_fallback_resolves_a_clearly_distinguishable_query_vs_content_tie() -> None:
+    """`D-R0-74-2`(1) 시도 확인 — 명확히 구분되는 두 문맥에서 embedding margin 이 threshold
+    를 넘어 정확한 archetype 을 고르는지 sanity check 한다(calibration 에 fallback 발화
+    사례가 0건이라 이게 유일한 직접 검증 경로다 — 최종보고에 이 confound 을 명시한다)."""
+    _skip_if_no_embedding_model()
+    raw_query_like = {
+        "viewport": {
+            "title": "검색 - 무엇이든 검색해보세요",
+            "final_url": "https://example.com/search",
+        },
+        "primary_action_candidates": [],
+        "accessible_name_sources": [{"aria_label": "검색어 입력", "visible_text": None}],
+        "region_signals": {"search_inputs": [{"role": "searchbox"}]},
+    }
+    result = _nlp_fallback_resolve(raw_query_like, (A.QUERY, A.CONTENT_OPEN))
+    assert result.resolved is True
+    assert result.archetype is A.QUERY
+    assert result.margin >= NLP_FALLBACK_MARGIN_THRESHOLD
+
+
+def test_nlp_fallback_excludes_communication_and_utility_regardless_of_margin() -> None:
+    """`D-R0-74-2`(5) — calibration 공백(COMMUNICATION 0건·UTILITY 1건) archetype 은
+    margin 과 무관하게 즉시 abstain 한다."""
+    raw = {
+        "viewport": {"title": "글쓰기 게시판", "final_url": "https://example.com/write"},
+        "primary_action_candidates": [],
+        "accessible_name_sources": [],
+        "region_signals": {"search_inputs": []},
+    }
+    result = _nlp_fallback_resolve(raw, (A.COMMUNICATION_ENTRY, A.CONTENT_OPEN))
+    assert result.resolved is False
+    assert "calibration" in result.reason or "COMMUNICATION" in result.reason
+
+
+def test_nlp_fallback_abstains_below_margin_threshold() -> None:
+    """모호한(둘 다 비슷하게 점수가 나오는) 텍스트는 margin 미달로 abstain 해야 한다."""
+    _skip_if_no_embedding_model()
+    raw_ambiguous = {
+        "viewport": {"title": "서비스", "final_url": "https://example.com/"},
+        "primary_action_candidates": [],
+        "accessible_name_sources": [],
+        "region_signals": {"search_inputs": []},
+    }
+    result = _nlp_fallback_resolve(raw_ambiguous, (A.QUERY, A.CONTENT_OPEN), margin_threshold=0.99)
+    assert result.resolved is False
+    assert "threshold" in result.reason or "비어있다" in result.reason
+
+
+def test_resolver_fallback_never_fires_on_the_no_evidence_path() -> None:
+    """`evidence 없음`(0건 evidenced) 경로는 fallback 을 절대 타지 않는다 — margin 계산
+    조차 시도하지 않는다(precedence_trace 에 `nlp_fallback` 흔적이 없어야 한다)."""
+    raw = {
+        "region_signals": {"search_inputs": []},
+        "repeated_structure": {"hittable_list_item_link_count": 0},
+        "primary_action_candidates": [],
+    }
+    result = resolve_representative_function(
+        raw, [A.ITEM_DETAIL, A.FINANCIAL_ACTION_ENTRY], enable_nlp_fallback=True
+    )
+    assert result.outcome == MappingOutcome.AMBIGUOUS_UNRESOLVED
+    assert not any("nlp_fallback" in t for t in result.precedence_trace)
+
+
+def test_resolver_end_to_end_uses_fallback_when_tier2_cannot_break_a_genuine_tie() -> None:
+    """`D-R0-74-2`(3) — rule 이 두 candidate 를 진짜 evidenced 했고 tier2(top surface 없음)
+    로도 못 가른 경우에만 fallback 이 개입해 MAPPED 를 낸다. runner_up/why_not_runner_up/
+    evidence_slots_used 에 fallback 근거가 남아야 한다."""
+    _skip_if_no_embedding_model()
+    raw = {
+        "viewport": {
+            "title": "검색 - 무엇이든 검색해보세요",
+            "final_url": "https://example.com/search",
+        },
+        "region_signals": {
+            "search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]
+        },
+        "repeated_structure": {"hittable_list_item_link_count": 1},
+        "primary_action_candidates": [],  # top surface 없음 — tier2 가 못 가른다
+        "accessible_name_sources": [{"aria_label": "검색어 입력", "visible_text": None}],
+    }
+    result = resolve_representative_function(raw, [A.QUERY, A.CONTENT_OPEN])
+    assert result.outcome == MappingOutcome.MAPPED
+    assert result.archetype is A.QUERY
+    assert result.runner_up is A.CONTENT_OPEN
+    assert "NLP fallback" in (result.mapping_basis or "")
+    assert any("nlp_fallback" in s for s in result.evidence_slots_used)
+    assert any("nlp_fallback" in t for t in result.precedence_trace)
+
+
+def test_resolver_disabling_fallback_restores_pure_rule_dt_behavior() -> None:
+    """되돌릴 수 있는 구현 — `enable_nlp_fallback=False` 면 이전(rule-only) 동작 그대로
+    AMBIGUOUS_UNRESOLVED 로 남는다."""
+    raw = {
+        "viewport": {"title": "검색", "final_url": "https://example.com/search"},
+        "region_signals": {
+            "search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]
+        },
+        "repeated_structure": {"hittable_list_item_link_count": 1},
+        "primary_action_candidates": [],
+        "accessible_name_sources": [],
+    }
+    result = resolve_representative_function(
+        raw, [A.QUERY, A.CONTENT_OPEN], enable_nlp_fallback=False
+    )
+    assert result.outcome == MappingOutcome.AMBIGUOUS_UNRESOLVED
+    assert result.archetype is None
+
+
+def test_place_lookup_no_longer_shares_generic_search_control_with_query() -> None:
+    """`D-R0-74` 진단 중 발견한 rule 결함의 회귀 방지 — 일반 검색창(장소 어휘/지도 control
+    없음)만으로는 더 이상 PLACE_LOOKUP 이 evidenced 되지 않는다(daangn.com/daum.net/
+    google.com/lottemart 4건이 가짜로 tier3-tied 됐던 원인)."""
+    raw = {
+        "region_signals": {
+            "search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]
+        },
+        "family_signals": {},
+        "repeated_structure": {"hittable_list_item_link_count": 0},
+        "primary_action_candidates": [],
+    }
+    task = TaskDefinition("TPLQ", A.PLACE_LOOKUP, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    assert detect_area_signal(raw, task, ExecutionMode.REAL_TARGET) is False
+    query_task = TaskDefinition("TPLQ2", A.QUERY, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    assert detect_area_signal(raw, query_task, ExecutionMode.REAL_TARGET) is True
