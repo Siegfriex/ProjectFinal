@@ -177,6 +177,8 @@ def reconstruct_target(res: dict, batch: dict, out_dir: pathlib.Path, f: F, plan
         if rid and rid != l0.get("observation_id"): f.add("C0", "OBS_ID_MISMATCH", "observation_id != sha256(5 identity fields)[:32]", target_id=tid, observation_id=l0.get("observation_id"))
         if rid is None: f.add("C2", "OBS_ID_UNCHECKABLE", "identity inputs incomplete (protocol_version missing in l0 and run provenance)", target_id=tid)
         if prov.get("real_target_measurement") is False and batch.get("execution_mode") == "REAL_TARGET": f.add("C1", "PROVENANCE_REAL_FLAG", "REAL_TARGET batch but run provenance real_target_measurement=False", target_id=tid)
+        if batch.get("execution_mode") == "REAL_TARGET" and prov.get("status") == "SHADOW_PREPARATORY": f.add("C1", "REAL_RUN_LABELED_SHADOW", "REAL_TARGET batch but run.json status=SHADOW_PREPARATORY (real collection disguised as shadow; A 13:20 rule)", target_id=tid)
+        # NOTE: protocol_version string ('v2.0-pc-fixture-1') is NOT used to infer execution kind (A judgment 13:20) — only cross-run equality is checked.
     # L1
     tm = det.get("task_manifest") if isinstance(det.get("task_manifest"), dict) else {}
     te = tm or {k: det.get(k) for k in ("endpoint_status", "endpoint_status_detail", "endpoint_reached", "ned", "ied", "mpfed", "archetype", "steps", "auth_gate_before_endpoint", "forced_dismissal_count", "area_signal_status") if k in det}
