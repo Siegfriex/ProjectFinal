@@ -36,6 +36,9 @@ from landing_accessibility.engine.l0_collector import L0Observation  # noqa: E40
 from landing_accessibility.v3_runner.ax_join import (  # noqa: E402
     AX_JOIN_RELPATH,
     AX_JOIN_VERSION,
+    COLLECTOR_SHA256_METHOD,
+    COLLECTOR_SHA256_METHOD_NOTE_PREFIX,
+    COLLECTOR_SHA256_NOTE_PREFIX,
     COLLECTOR_SOURCE_FILES,
     DEFAULT_SELECTOR_FEATURES,
     AxJoinPayload,
@@ -45,6 +48,8 @@ from landing_accessibility.v3_runner.ax_join import (  # noqa: E402
     ax_join_relpath_for,
     build_ax_join_payload,
     collect_ax_join,
+    collector_provenance,
+    collector_provenance_notes,
     collector_sha256,
     index_ax_nodes,
     join_resolutions,
@@ -757,3 +762,74 @@ def test_a_reveal_gated_control_has_no_ax_node_until_it_is_revealed(tmp_path: Pa
 
     assert revealed["join_status"] == JoinStatus.JOINED
     assert revealed["ax_node"]["name"] == "운행정보 조회"
+
+
+# ── 11. Δ20 — collector_sha256 은 수집기 산출물 + 관측 행 둘 다에 ────────────
+def test_collector_provenance_names_the_combining_method() -> None:
+    """색인이 결합 방식을 정하지 않았다. W5I 가 정했고 그 방식이 값과 함께 실린다.
+
+    방식 식별자가 없으면 두 관측의 `collector_sha256` 이 다를 때 '수집기가 달랐다' 와
+    '합치는 방식이 달랐다' 를 사후에 가릴 수 없다.
+    """
+    prov = collector_provenance()
+    assert prov["collector_sha256"] == collector_sha256()["combined"]
+    assert prov["collector_sha256_method"] == COLLECTOR_SHA256_METHOD
+    assert set(prov["collector_sha256_files"]) == set(COLLECTOR_SOURCE_FILES)
+    assert prov["ax_join_version"] == AX_JOIN_VERSION
+
+
+def test_provenance_notes_carry_both_the_digest_and_the_method() -> None:
+    notes = collector_provenance_notes()
+    assert len(notes) == 2
+    digest = next(n for n in notes if n.startswith(COLLECTOR_SHA256_NOTE_PREFIX))
+    method = next(n for n in notes if n.startswith(COLLECTOR_SHA256_METHOD_NOTE_PREFIX))
+    assert digest.removeprefix(COLLECTOR_SHA256_NOTE_PREFIX) == collector_sha256()["combined"]
+    assert method.removeprefix(COLLECTOR_SHA256_METHOD_NOTE_PREFIX) == COLLECTOR_SHA256_METHOD
+
+
+def test_every_v3_observation_row_carries_the_collector_fingerprint(
+    joined_pair: dict[str, Any],
+) -> None:
+    """`Δ20` must_appear_in 의 '관측 행' 쪽. 행 하나도 빠지지 않는다."""
+    expected = collector_sha256()["combined"]
+    for name, obs in joined_pair["obs"].items():
+        row = obs.as_dict()
+        digests = [
+            n.removeprefix(COLLECTOR_SHA256_NOTE_PREFIX)
+            for n in row["notes"]
+            if n.startswith(COLLECTOR_SHA256_NOTE_PREFIX)
+        ]
+        assert digests == [expected], f"{name}: {row['notes']}"
+        assert any(n.startswith(COLLECTOR_SHA256_METHOD_NOTE_PREFIX) for n in row["notes"])
+
+
+def test_the_collector_artifact_carries_it_too(joined_pair: dict[str, Any]) -> None:
+    """`Δ20` must_appear_in 의 '수집기' 쪽 — 파일별 해시까지 남는다."""
+    for payload in joined_pair["payloads"].values():
+        assert payload["collector_sha256"]["combined"] == collector_sha256()["combined"]
+        for rel in COLLECTOR_SOURCE_FILES:
+            assert payload["collector_sha256"][rel]
+
+
+def test_legacy_rows_gain_no_fingerprint_note(
+    icon_only_pair: dict[str, Path], tmp_path: Path
+) -> None:
+    """가산성의 반대편 대조군 — 조인을 끄면 행은 base 와 같다."""
+    out = _collect(icon_only_pair["root"], ["icon_only_unnamed.html"], ax_join=False, tmp=tmp_path)
+    notes = out["obs"]["icon_only_unnamed.html"].notes
+    assert not [n for n in notes if n.startswith("COLLECTOR_SHA256")]
+    assert notes == []
+
+
+def test_the_fingerprint_survives_a_failed_observation(tmp_path: Path) -> None:
+    """항해가 실패해도 '어느 수집기가 낸 관측인가' 는 남아야 한다.
+
+    지문을 브라우저 열기 **전에** 붙이는 이유다. 실패한 행에 지문이 없으면 그 실패가
+    어느 수집기의 실패인지 사후에 말할 수 없다.
+    """
+    root = tmp_path / "fx"
+    root.mkdir()
+    out = _collect(root, ["does_not_exist.html"], ax_join=True, tmp=tmp_path / "ev")
+    obs = out["obs"]["does_not_exist.html"]
+    assert obs.measurement_status != "MEASURED"
+    assert any(n.startswith(COLLECTOR_SHA256_NOTE_PREFIX) for n in obs.notes), obs.notes

@@ -607,6 +607,13 @@ class L0Collector:
         self.run.open_observation(obs_id)
 
         notes: list[str] = []
+        # W5I / `Δ20` — 수집기 지문을 **관측 행 자체**에 남긴다. 브라우저를 열기 전에
+        # 붙이므로 항해가 실패해 `FAILED_*` 로 끝난 행에도 남는다. `ax_join` 이 켜진
+        # v3 수집에서만 늘어나므로 legacy 경로의 바이트는 바뀌지 않는다.
+        if self.ax_join:
+            from ..v3_runner.ax_join import collector_provenance_notes
+
+            notes.extend(collector_provenance_notes())
         status = MeasurementStatus.MEASURED
         paths: dict[str, str | None] = dict.fromkeys(
             ("dom", "ax", "screenshot_initial", "screenshot_fullpage", "computed_css", "probe"),

@@ -46,6 +46,25 @@ selector 를 재생성)을 쓰지 않은 이유는 명확하다 — 그 경로�
   `label_relation` / `entry_label_modality` 를 **계산하지 않는다**. 그것은 W5C 소유다.
   이 모듈은 W5C 가 계산할 수 있도록 입력을 공급할 뿐이다.
 
+## `collector_sha256` 을 어디에 싣는가 (`Δ20`)
+
+색인의 `must_appear_in` 은 **수집기 + 관측 행**이다. 두 곳 다 채웠다.
+
+- **수집기 산출물**: `l0a/ax_join.json` 이 파일별 sha256 과 `combined` 을 함께 싣는다.
+- **관측 행**: `ax_join` 을 켠 수집에서 `L0Observation.notes` 에
+  `COLLECTOR_SHA256=<combined>` 와 `COLLECTOR_SHA256_METHOD=<방식>` 두 줄이 붙는다.
+  브라우저를 열기 **전에** 붙으므로 조인이나 항해가 실패한 관측 행에도 남는다.
+- **v3 행 스키마**: `collector_provenance()` 가 병합용 dict 를 낸다. v3 관측 행 스키마는
+  W5F/W5H 소유라 W5I 가 그 파일을 고칠 수 없어 값과 함수만 공급한다.
+
+`notes` 를 쓴 이유는 하나다 — `L0Observation` 에 필드를 더하면 `as_dict()` 가
+`e001_runner/executor.py` 에서 그대로 직렬화돼 ledger 해시에 들어가므로 legacy 산출물의
+바이트가 바뀐다. 가산성이 깨진다. `notes` 는 이미 있는 필드이고 v3 경로에서만 늘어난다.
+
+합치는 방식(`COLLECTOR_SHA256_METHOD`)은 **색인이 정하지 않아 W5I 가 정했다** —
+relpath 사전순으로 `"<relpath>:<sha256(file)>\n"` 을 이어 붙인 바이트열의 sha256 이다.
+파일 하나만 바뀌어도 값이 바뀌고 열거 순서에 의존하지 않는다.
+
 ## 측정으로 확인한 경계 — reveal gating
 
 `hidden`(= `display:none`) 조상 안의 control 은 **Chrome AX tree 에 노드가 아예 없다.**
@@ -72,6 +91,9 @@ from typing import Any, Protocol
 __all__ = [
     "AX_JOIN_RELPATH",
     "AX_JOIN_VERSION",
+    "COLLECTOR_SHA256_METHOD",
+    "COLLECTOR_SHA256_METHOD_NOTE_PREFIX",
+    "COLLECTOR_SHA256_NOTE_PREFIX",
     "COLLECTOR_SOURCE_FILES",
     "DEFAULT_SELECTOR_FEATURES",
     "AxJoinEntry",
@@ -83,6 +105,8 @@ __all__ = [
     "ax_join_relpath_for",
     "build_ax_join_payload",
     "collect_ax_join",
+    "collector_provenance",
+    "collector_provenance_notes",
     "collector_sha256",
     "index_ax_nodes",
     "join_resolutions",
@@ -191,6 +215,50 @@ def collector_sha256(package_root: Path | None = None) -> dict[str, str]:
     joined = "".join(f"{rel}:{out[rel]}\n" for rel in sorted(out))
     out["combined"] = hashlib.sha256(joined.encode("utf-8")).hexdigest()
     return out
+
+
+#: `combined` 을 만드는 방식의 식별자. **A 의 판정 색인(`Δ20`)은 어느 파일들의 해시를
+#: 어떻게 합칠지를 정하지 않았다 — W5I 가 정했다.** 방식을 바꾸면 이 문자열도 바꾼다.
+#: 그래야 두 관측의 `collector_sha256` 이 다를 때 "수집기가 달랐다" 와 "합치는 방식이
+#: 달랐다" 를 사후에 가릴 수 있다.
+COLLECTOR_SHA256_METHOD = "sha256(concat(sorted('<relpath>:<sha256(file)>\\n')))/w5i-1"
+
+#: `L0Observation.notes` 에 실리는 접두사. 관측 **행 자체**가 지문을 갖게 하는 경로다
+#: (`Δ20` must_appear_in: 수집기 + 관측 행).
+COLLECTOR_SHA256_NOTE_PREFIX = "COLLECTOR_SHA256="
+COLLECTOR_SHA256_METHOD_NOTE_PREFIX = "COLLECTOR_SHA256_METHOD="
+
+
+def collector_provenance(package_root: Path | None = None) -> dict[str, Any]:
+    """v3 관측 행에 그대로 병합할 provenance 조각.
+
+    v3 관측 행 스키마를 소유한 lane(W5F `evidence.py`/`runner.py`, W5H `session.py`)이
+    이것을 행에 합치면 `Δ20` 의 "모든 v3 관측 행" 요구가 스키마 수준에서 충족된다.
+    W5I 는 그 파일들을 수정할 수 없으므로 **함수와 값**만 공급한다.
+    """
+    digests = collector_sha256(package_root)
+    return {
+        "collector_sha256": digests["combined"],
+        "collector_sha256_files": {k: v for k, v in digests.items() if k != "combined"},
+        "collector_sha256_method": COLLECTOR_SHA256_METHOD,
+        "ax_join_version": AX_JOIN_VERSION,
+    }
+
+
+def collector_provenance_notes(package_root: Path | None = None) -> list[str]:
+    """`L0Observation.notes` 에 넣을 두 줄.
+
+    `L0Observation` 에 **새 필드를 더할 수 없어서** 고른 경로다. `as_dict()` 는
+    `e001_runner/executor.py` 가 그대로 직렬화해 ledger 해시에 넣으므로, 필드를 하나
+    더하면 legacy 59 와 12 diagnostic 산출물의 바이트가 바뀐다 — 가산적이지 않다.
+    `notes` 는 이미 존재하는 list 필드이고, **`ax_join` 이 켜진 v3 수집에서만** 이 두
+    줄이 붙으므로 legacy 경로의 바이트는 한 글자도 바뀌지 않는다.
+    """
+    prov = collector_provenance(package_root)
+    return [
+        f"{COLLECTOR_SHA256_NOTE_PREFIX}{prov['collector_sha256']}",
+        f"{COLLECTOR_SHA256_METHOD_NOTE_PREFIX}{prov['collector_sha256_method']}",
+    ]
 
 
 # ── 자료구조 ─────────────────────────────────────────────────────────────────
