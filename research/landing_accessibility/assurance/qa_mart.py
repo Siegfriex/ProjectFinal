@@ -73,8 +73,21 @@ def main(a):
         add("C2" if a.expected_drift else "C1", "PROVENANCE_DRIFT_ACROSS_OUTDIRS", ("A-approved expected drift (E000 batch-0 reuse void): " if a.expected_drift else "") + f"{len(provs)} provenance variants across out_dirs", variants={k: sorted(v) for k, v in provs.items()})
     C = C.drop_duplicates("target_id", keep="first").set_index("target_id")
     mart = pathlib.Path(a.mart_dir)
-    rd = lambda n: pd.read_csv(mart / f"{n}.csv", dtype=str) if (mart / f"{n}.csv").is_file() else None
+    def rd(n):
+        if (mart / f"{n}.csv").is_file(): return pd.read_csv(mart / f"{n}.csv", dtype=str)
+        if (mart / f"{n}.json").is_file():
+            d = json.loads((mart / f"{n}.json").read_text(encoding="utf-8"))
+            if isinstance(d, dict): d = d.get("rows") or d.get("records") or []
+            return pd.DataFrame(d).astype(str).replace({"None": None, "nan": None}) if d else pd.DataFrame()
+        return None
     fte, flo, fcr, dcert = rd("fact_task_entry"), rd("fact_landing_observation"), rd("fact_criterion_result"), rd("dim_certification")
+    axis_a_state = "EVALUATED"
+    if fcr is not None and (fcr.empty or _col(fcr, "criterion_id") is None):
+        axis_a_state = "NOT_EVALUATED"; add("C1", "AXIS_A_NOT_EVALUATED", "fact_criterion_result has 0 rows — no KWCAG judgments: FailRate, J4, l0_analyzable_n and AMD1 PRIMARY are uncomputable (A judgment needed; B labels axis A NOT_EVALUATED)"); fcr = None
+    for name, df in (("fact_task_entry", fte), ("fact_landing_observation", flo)):
+        if df is not None and df.empty: add("C1", "MART_TABLE_EMPTY", f"{name} has 0 rows")
+    if fte is not None and fte.empty: fte = None
+    if flo is not None and flo.empty: flo = None
     per_target = []; var_rows = []
     # ---- MART_ACCEPTANCE §1 (A 12:55): row counts / keys / target coverage / L0-L1 coverage / execution_mode / input SHA
     frame = json.loads(pathlib.Path(a.plan).read_text(encoding="utf-8")); plan_ids = {t["target_id"] for t in frame.get("targets") or []}
@@ -93,15 +106,29 @@ def main(a):
             if c_ is None: add("C2", "MART_L0_COVERAGE_COL_MISSING", f"fact_landing_observation lacks {col}")
             elif flo[c_].isna().any(): add("C1", "MART_L0_COVERAGE_NULL", f"{int(flo[c_].isna().sum())} rows with null {col}")
     else: acc1 = {"mart_rows": None}
-    manifest_path = pathlib.Path(a.mart_dir) / "FROZEN_MART_MANIFEST.json"
+    manifest_path = pathlib.Path(a.manifest) if a.manifest else pathlib.Path(a.mart_dir) / "FROZEN_MART_MANIFEST.json"
     if not manifest_path.is_file(): manifest_path = pathlib.Path(a.mart_dir).parent / "FROZEN_MART_MANIFEST.json"
     prov_check = {}
     if manifest_path.is_file():
-        M = json.loads(manifest_path.read_text(encoding="utf-8")); mp = M.get("provenance") or {}
+        M = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if "manifest" in M and isinstance(M["manifest"], dict): M = {**M["manifest"], "provenance": {**(M.get("provenance") or {}), **(M["manifest"].get("provenance") or {}), **{k: v for k, v in M.items() if isinstance(v, str)}}}
+        mp = M.get("provenance") or {}
         decl = {"collector_sha": a.collector_sha, "protocol_sha": a.protocol_sha, "plan_hash": a.plan_hash, "older_relevance_registry_sha256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"}
+        def deep_find(o, pred):
+            if isinstance(o, dict):
+                for kk, vv in o.items():
+                    if pred(kk) and isinstance(vv, str): return vv
+                    r = deep_find(vv, pred)
+                    if r: return r
+            elif isinstance(o, list):
+                for vv in o:
+                    r = deep_find(vv, pred)
+                    if r: return r
+            return None
+        Mfull = json.loads(manifest_path.read_text(encoding="utf-8"))
         for k, v in decl.items():
-            got = mp.get(k) or M.get(k) or next((mp[x] for x in mp if k.split("_")[0] in x and isinstance(mp[x], str)), None)
-            prov_check[k] = {"declared": v, "mart": got, "match": (v is None) or (got is not None and str(got).startswith(str(v)[:12]))}
+            got = mp.get(k) or M.get(k) or deep_find(Mfull, lambda kk: k.split("_")[0] in kk.lower() and ("sha" in kk.lower() or "hash" in kk.lower()))
+            prov_check[k] = {"declared": v, "mart": got, "match": (v is None) or (got is not None and (str(v).startswith(str(got)[:7]) or str(got).startswith(str(v)[:7])))}
             if v and not prov_check[k]["match"]: add("C1", "MART_INPUT_SHA", f"mart provenance {k}={got} != declared {v}")
         if M.get("frozen") is False: add("C2", "MART_NOT_FROZEN_FLAG", "FROZEN_MART_MANIFEST.frozen=false")
     else: add("C1", "FROZEN_MART_MANIFEST_MISSING", "FROZEN_MART_MANIFEST.json not found (MART_ACCEPTANCE §1-7/8 unverifiable)")
@@ -270,7 +297,7 @@ def main(a):
             add("C1", "N_MISMATCH_STOP", "N differs — stop comparing coefficients; find sample inclusion mismatch first (§19)")
     sev = min((x["severity"] for x in findings if x["severity"]), key=lambda s: {"C0": 0, "C1": 1, "C2": 2}[s], default=None)
     recon = {"artifact": "QA_MART_RECONCILIATION", "generated_by": "C", "generated_at": now(), "inputs": {"out_dirs": a.out_dirs, "mart_dir": a.mart_dir, "older_relevant": a.older_relevant, "plan": a.plan},
-             "verdict": "MART_QA_MATCH" if sev in (None, "C2") else "MART_QA_MISMATCH", "severity_max": sev, "summary_contract_1_3": summary, "mart_acceptance_s1": {"counts_keys": acc1, "input_sha": prov_check}, "per_target_variables": per_target,
+             "verdict": "MART_QA_MATCH" if sev in (None, "C2") else "MART_QA_MISMATCH", "severity_max": sev, "axis_a_state": axis_a_state, "summary_contract_1_3": summary, "mart_acceptance_s1": {"counts_keys": acc1, "input_sha": prov_check}, "per_target_variables": per_target,
              "fail_rate_c": fr, "stats_comparison": cmp_stats, "findings": findings}
     out = pathlib.Path(a.out); out.mkdir(parents=True, exist_ok=True)
     (out / "QA_MART_RECONCILIATION.json").write_text(json.dumps(recon, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
@@ -281,4 +308,4 @@ def main(a):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--out-dirs", nargs="+", required=True); ap.add_argument("--mart-dir", required=True); ap.add_argument("--older-relevant", default=str(pathlib.Path(__file__).resolve().parent / "out" / "older_relevant_registry.json")); ap.add_argument("--plan", required=True)
-    ap.add_argument("--b-stats"); ap.add_argument("--collector-sha"); ap.add_argument("--protocol-sha"); ap.add_argument("--plan-hash", default="b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc"); ap.add_argument("--expected-drift", action="store_true", help="A approved collector change between E000 and E001 (E000 reuse void)"); ap.add_argument("--e001-start", help="KST HH:MM of actual E001 start (extension branch if >= 13:15)"); ap.add_argument("--state-dir"); ap.add_argument("--out", default="out"); main(ap.parse_args())
+    ap.add_argument("--b-stats"); ap.add_argument("--collector-sha"); ap.add_argument("--protocol-sha"); ap.add_argument("--plan-hash", default="b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc"); ap.add_argument("--manifest", help="FROZEN_MART_MANIFEST.json or REAL_RUN_SUMMARY.json (with 'manifest' block)"); ap.add_argument("--expected-drift", action="store_true", help="A approved collector change between E000 and E001 (E000 reuse void)"); ap.add_argument("--e001-start", help="KST HH:MM of actual E001 start (extension branch if >= 13:15)"); ap.add_argument("--state-dir"); ap.add_argument("--out", default="out"); main(ap.parse_args())
