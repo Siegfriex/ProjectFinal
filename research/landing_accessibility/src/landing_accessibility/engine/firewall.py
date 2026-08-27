@@ -552,6 +552,15 @@ class E001TargetRow:
     service_name_canonical: str | None = None
     endpoint_definition: str | None = None
     task_id: str | None = None
+    #: `T-A-W1-001` §2 (D-R0-07~09) — 이전에는 이 조인이 `representative_task_
+    #: candidate_shadow.csv`의 5필드 중 `endpoint_definition`·`task_id`만 옮기고
+    #: 나머지 셋을 읽고도 버렸다(그 결과가 `e001_runner.executor.
+    #: default_task_definition`의 하드코딩 `CODEBOOK_PENDING`이었다). CSV 자체에는
+    #: 71행 전건에 다섯 필드가 다 있다 — 여기서 놓치는 게 이 lineage 단절의 실제
+    #: 지점이었다.
+    region_definition: str | None = None
+    region_signal_type: str | None = None
+    endpoint_signal_type: str | None = None
 
 
 def _first_existing(candidates: tuple[Path, ...], what: str) -> Path:
@@ -720,6 +729,9 @@ def load_e001_full_targets(path: str | Path | None = None) -> tuple[E001TargetRo
                 service_name_canonical=(elig.get("service_name_canonical") or "").strip() or None,
                 endpoint_definition=(task.get("endpoint_definition") or "").strip() or None,
                 task_id=(task.get("task_id") or "").strip() or None,
+                region_definition=(task.get("region_definition") or "").strip() or None,
+                region_signal_type=(task.get("region_signal_type") or "").strip() or None,
+                endpoint_signal_type=(task.get("endpoint_signal_type") or "").strip() or None,
             )
         )
 

@@ -1,0 +1,54 @@
+<!doctype html>
+<!--
+FIXTURE: w1_query_login_purchase       T-A-W1-001 §1 candidate-level guard 회귀 픽스처
+
+검증 대상 (D-R0-01 · D-R0-03 · D-R0-06): 랜딩에 로그인 링크와 구매 버튼이
+**동시에** 있어도, 안전한 대안(검색 제출)이 reachable 이면 target 전체를 죽이지
+않는다 — 그리고 Scout 는 실제로 안전한 후보만 골라 endpoint 에 도달하고,
+"로그인"/"구매하기" 후보는 클릭되지 않는다(테스트가 click spy 로 직접 확인한다).
+
+검색 제출 버튼이 `data-primary-action="1"`(marked_primary) + DOM 최상단이므로
+`min4_sort_key`(marked_primary desc, dom_order asc)에서 항상 1순위다 — Scout의
+BFS 는 이 후보를 첫 branch 로 시도해 즉시 endpoint(QUERY_SUBMITTED)에 도달하고
+큐를 비우기 전에 종료한다. "로그인"/"구매하기"는 같은 branching set(랜딩 상태의
+reachable 후보) 안에 있어도 실제로 클릭될 기회를 얻지 못한다.
+
+옛 결함(guard.py:170-182 target-level kill)이라면 이 fixture는 "로그인" 또는
+"구매하기" 텍스트 매칭 하나로 L1 전체가 `ACCOUNT_ACTION_BLOCKED`가 됐을 것이다
+— 검색 후보가 안전하고 실제로 도달 가능한데도.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>검색+로그인+구매 — W1 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  input{width:100%;box-sizing:border-box;min-height:48px;font-size:16px;
+        border:1px solid #555;border-radius:6px;padding:0 12px}
+  button{margin-top:12px;min-width:88px;min-height:48px;font-size:16px;
+         background:#0b4f9e;color:#fff;border:0;border-radius:6px}
+  nav a{display:inline-block;min-height:48px;line-height:48px;margin-right:16px;font-size:14px}
+  #result{margin-top:16px;font-size:16px}
+  #buy-now{background:#a3260f}
+</style></head>
+<body data-fixture="w1_query_login_purchase" data-archetype="QUERY">
+<h1 style="font-size:20px">W1 후보 판정 픽스처</h1>
+<form id="q" data-region="SEARCH_INPUT_REGION" onsubmit="return dispatch(event)">
+  <label for="kw">검색어</label>
+  <input id="kw" name="kw" type="search" role="searchbox" placeholder="검색어를 입력하세요">
+  <button type="submit" data-primary-action="1">검색</button>
+</form>
+<nav>
+  <a href="./auth_login_gate.html">로그인</a>
+</nav>
+<button type="button" id="buy-now">구매하기</button>
+<div id="result" data-endpoint="QUERY_SUBMITTED" hidden>검색이 제출되었습니다.</div>
+<script>
+function dispatch(e){
+  e.preventDefault();
+  var r = document.getElementById('result');
+  r.hidden = false;
+  document.body.setAttribute('data-endpoint-reached','QUERY_SUBMITTED');
+  return false;
+}
+</script>
+</body></html>

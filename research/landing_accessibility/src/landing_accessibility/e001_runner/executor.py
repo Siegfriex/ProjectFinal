@@ -36,7 +36,7 @@ from landing_accessibility.engine.l0_collector import FixtureTarget, L0Collector
 from landing_accessibility.engine.l1_engine import Scout, ScoutBudget, TaskDefinition
 from landing_accessibility.engine.vocabulary import InteractionArchetype, RegionSignalType
 
-from .guard import screen_candidates
+from .guard import assess_reachable_candidates
 from .outcomes import TargetOutcome
 from .plan import TargetSpec
 
@@ -54,24 +54,45 @@ def _require_fixture(target: TargetSpec) -> str:
     return target.fixture_override
 
 
-def default_task_definition(target: TargetSpec) -> TaskDefinition:
-    """target의 archetype만으로 만들 수 있는 최소 `TaskDefinition`.
+def _resolve_signal_type(raw: str | None) -> RegionSignalType:
+    """CSV/JSON에서 온 signal type 문자열을 엔진 enum으로 옮긴다.
 
-    실제 서비스별 `region_definition`/`endpoint_definition`은 P-A endpoint
-    codebook이 동결하기 전에는 존재하지 않는다 (`A1 §1.8`). 그래서 여기서는
-    `RegionSignalType.CODEBOOK_PENDING`을 그대로 둔다 — 이 상태에서 Scout를
-    돌리면 QUERY를 제외한 모든 archetype은 area/endpoint 신호가 결코 성립하지
-    않고, gate가 없으면 예산 소진으로 `UNRESOLVED`에 도달한다. 그것이 **정직한
-    결과**다 — codebook 없이 endpoint를 만들어내지 않는다.
+    **값을 지어내지 않는다** — 비어 있거나(`None`/`""`) 이 엔진이 모르는 문자열이면
+    `CODEBOOK_PENDING`이다. `CODEBOOK_PENDING`은 **부재(미도달)**를 뜻하지 **거부**를
+    뜻하지 않는다(`D-R0-09`) — 상류 데이터가 실제로 아직 이 값을 정하지 못한
+    것이므로, 이 함수가 임의의 signal type을 골라 채워 넣으면 그게 오히려 조작이다.
+    """
+    if not raw:
+        return RegionSignalType.CODEBOOK_PENDING
+    try:
+        return RegionSignalType(raw)
+    except ValueError:
+        return RegionSignalType.CODEBOOK_PENDING
+
+
+def default_task_definition(target: TargetSpec) -> TaskDefinition:
+    """`target`에 실려 온 upstream task 필드로 `TaskDefinition`을 만든다.
+
+    `T-A-W1-001` §2 (D-R0-07~09) 시정 전에는 이 함수가 `region_definition=None`·
+    `endpoint_definition=None`·양쪽 signal_type=`CODEBOOK_PENDING`을 **인자와 무관한
+    상수**로 반환했다 — `target`이 실제로 무엇을 실어 왔는지 한 번도 보지 않았다.
+    그 결과 `representative_task_candidate_shadow.csv` 71행 전건이 다섯 필드를 갖고
+    있었는데도(상류에서는 안 끊겼다) 여기서 lineage가 끊겼다.
+
+    이제는 `target.task_id`/`region_definition`/`endpoint_definition`/
+    `region_signal_type`/`endpoint_signal_type`을 **있는 그대로** 옮긴다. 서비스별
+    정의가 실제로 아직 없는 target(P-A codebook 미동결)만 여전히
+    `CODEBOOK_PENDING`/`None`이다 — 그건 이 함수가 지어낸 게 아니라 `target` 자체가
+    그 값을 실어 온 것이다(`plan.py`→`firewall.py` 로더가 그대로 옮긴 CSV 원본값).
     """
     archetype = InteractionArchetype(target.interaction_archetype)
     return TaskDefinition(
-        task_id=f"task-{target.target_id}",
+        task_id=target.task_id or f"task-{target.target_id}",
         archetype=archetype,
-        region_definition=None,
-        endpoint_definition=None,
-        region_signal_type=RegionSignalType.CODEBOOK_PENDING,
-        endpoint_signal_type=RegionSignalType.CODEBOOK_PENDING,
+        region_definition=target.region_definition,
+        endpoint_definition=target.endpoint_definition,
+        region_signal_type=_resolve_signal_type(target.region_signal_type),
+        endpoint_signal_type=_resolve_signal_type(target.endpoint_signal_type),
     )
 
 
@@ -99,17 +120,30 @@ def run_l1_if_safe(
     가드가 걸리면 반환 dict의 `"outcome"`이 `ACCOUNT_ACTION_BLOCKED`이고
     `"scout_invoked"`는 `False`다 — 이 플래그가 "Scout를 아예 부르지 않았다"는
     증거이며, 테스트가 이 플래그와 함께 click spy로 실제 클릭 0회를 확인한다.
+
+    `T-A-W1-001` §1 시정: 판정은 이제 target-level이 아니라 candidate/state-level
+    이다(`guard.assess_reachable_candidates`) — Scout가 실제로 클릭을 시도할 가능성이
+    있는 후보(랜딩 상태에서 hittable하고 순위 안인 것)만 보고, 그중 안전한 대안이
+    하나라도 있으면 막지 않는다. 판정에 쓴 후보 전체는 `"candidate_action_mask"`에
+    evidence로 남는다(막혔든 안 막혔든).
     """
     l0 = run_l0(target, fixture_root=fixture_root, run=run)
-    candidates = l0.get("primary_action_candidates") or []
-
-    risk = screen_candidates(candidates)
-    if risk is not None:
+    resolved_budget = budget or ScoutBudget()
+    # `l0["primary_action_candidates"]`(저장용 curated 목록)에는 `hittable`이 없다
+    # (`l0_collector.PrimaryActionCandidate`는 랭킹 필드만 갖는다) — Scout가 실제로
+    # 보는 것과 같은 원본(raw probe) 후보 목록은 `raw_features`에 있다.
+    raw_candidates = (l0.get("raw_features") or {}).get("primary_action_candidates") or []
+    assessment = assess_reachable_candidates(
+        raw_candidates, branching_limit=resolved_budget.branching_limit
+    )
+    if assessment.blocking is not None:
+        risk = assessment.blocking
         return {
             "outcome": TargetOutcome.ACCOUNT_ACTION_BLOCKED.value,
             "scout_invoked": False,
             "blocked_category": risk.category,
             "blocked_reason": risk.reason,
+            "candidate_action_mask": assessment.as_dict(),
             "l0_observation_id": l0.get("observation_id"),
             "l0": l0,
         }
@@ -118,7 +152,7 @@ def run_l1_if_safe(
     resolved_task = task or default_task_definition(target)
     scout = Scout(
         fixture_root=fixture_root,
-        budget=budget or ScoutBudget(),
+        budget=resolved_budget,
         execution_mode=ExecutionMode.FIXTURE,
         run=run,
     )
@@ -129,6 +163,14 @@ def run_l1_if_safe(
     result["scout_invoked"] = True
     result["task_manifest"] = manifest.as_dict() if manifest is not None else None
     result["l0"] = l0
+    result["candidate_action_mask"] = assessment.as_dict()
+    # `T-A-W1-001` §2 — `l1_engine.TaskDefinition.mapping_frozen_allowed()`(W2 소유,
+    # 읽기전용)를 실행 경로에 배선한다(`D-R0-09` 게이트 요구). **막지 않는다** —
+    # `CODEBOOK_PENDING`은 부재이지 거부가 아니므로, 이 값은 evidence에 그대로
+    # 기록되는 신호일 뿐이다. 지금까지는 이 함수가 `tests/test_pc_fixture_engine.py`
+    # 밖에서 한 번도 불리지 않아 본수집 59건 전체가 `mapping_frozen_allowed=False`
+    # 인 채로 아무 저항 없이 진행됐다 — 그 사실을 이제 evidence에서 볼 수 있다.
+    result["mapping_frozen_allowed"] = resolved_task.mapping_frozen_allowed()
     return result
 
 

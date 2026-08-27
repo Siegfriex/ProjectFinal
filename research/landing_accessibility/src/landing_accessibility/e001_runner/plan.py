@@ -49,6 +49,16 @@ class TargetSpec:
     endpoint_definition: str | None = None
     service_name_canonical: str | None = None
     fixture_override: str | None = None
+    #: `T-A-W1-001` §2 (D-R0-07~09) — 상류 `representative_task_candidate_shadow.csv`
+    #: 5필드 중 나머지 셋. `endpoint_definition`은 위에 이미 있었다(P-B 조인이
+    #: 먼저 배선했다) — 여기서 채우는 건 그 옆 세 필드다. **문자열 그대로 보존한다**
+    #: (`RegionSignalType` enum 변환은 `executor.default_task_definition`이 한다) —
+    #: 이 모듈은 엔진 어휘를 import하지 않는다는 기존 원칙(`load_plan`은 어디에도
+    #: navigate하지 않는다는 원칙과 같은 층위의 원칙)을 지킨다.
+    task_id: str | None = None
+    region_definition: str | None = None
+    region_signal_type: str | None = None
+    endpoint_signal_type: str | None = None
 
     @classmethod
     def from_dict(cls, row: dict[str, Any]) -> TargetSpec:
@@ -66,6 +76,10 @@ class TargetSpec:
             endpoint_definition=row.get("endpoint_definition"),
             service_name_canonical=row.get("service_name_canonical"),
             fixture_override=row.get("fixture_override"),
+            task_id=row.get("task_id"),
+            region_definition=row.get("region_definition"),
+            region_signal_type=row.get("region_signal_type"),
+            endpoint_signal_type=row.get("endpoint_signal_type"),
         )
 
     def with_fixture_override(self, fixture_name: str) -> TargetSpec:

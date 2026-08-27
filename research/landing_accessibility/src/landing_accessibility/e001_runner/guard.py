@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any
 
 
@@ -182,11 +183,239 @@ def screen_candidates(candidates: list[dict[str, Any]]) -> ActionRisk | None:
     return None
 
 
+# ══════════════════════════════════════════════════════════════════════════
+# candidate/state-level guard — `T-A-W1-001` §1 (D-R0-01~06)
+# ══════════════════════════════════════════════════════════════════════════
+#
+# 위 `screen_candidates`는 남겨 두되(기존 호출부·테스트 호환), 실행기(`executor.py`
+# `real_executor.py`)는 이제 아래 `assess_reachable_candidates`를 쓴다. 차이:
+#
+#   기존 screen_candidates   후보 목록 아무 데서나 하나 걸리면 그 target 전체를 죽인다
+#                            (target-level kill, `D-R0-01`이 폐기하라고 명시한 그것).
+#   assess_reachable_candidates  Scout가 실제로 클릭을 시도할 가능성이 있는 후보
+#                            (hittable·랜딩 상태 첫 BFS 레벨 순위 안)만 판정 대상으로
+#                            좁히고, 그중 안전한 대안이 하나라도 있으면 막지 않는다.
+#
+# 왜 이게 전부가 아닌지(정직하게 밝힌다 — `D-R0-17`):
+#
+#   `l1_engine.Scout`는 W1 소유가 아니다(읽기전용, W2 소유). Scout의 `_activate()`는
+#   BFS로 열거한 후보를 그대로 클릭한다 — 이 모듈이 후보 하나만 골라 "이건 클릭하지
+#   마라"고 Scout에게 전달할 훅이 코드에 없다. 그래서 이 모듈이 실제로 할 수 있는
+#   것은 "Scout를 아예 만들지 말지"(launch 여부)뿐이고, 그 판단은 **랜딩 상태(첫 BFS
+#   레벨)의 재현된 후보 집합**으로만 내려진다. depth 2 이상에서 새로 나타나는 후보는
+#   이 pre-flight 판정 밖이다 — Scout 자신의 구조적 안전장치(비-QUERY 후보는 채우지
+#   않고 클릭만 함, gate 관측 즉시 확장 중단)가 그 나머지를 떠받친다.
+
+
+class CandidateActionState(StrEnum):
+    """SSOT `§7.5` / `R0_RECOVERY_CONTRACT_v2.1.md D-R0-02`의 9-state 닫힌 집합.
+
+    새 상태를 추가하지 않는다 — 이 집합 밖의 값이 필요해지면 그건 이 모듈이 아니라
+    계약(A) 이 먼저 바뀌어야 한다는 신호다.
+    """
+
+    SAFE = "SAFE"
+    AUTH_ENTRY_ALLOWED_CONDITIONALLY = "AUTH_ENTRY_ALLOWED_CONDITIONALLY"
+    FORBIDDEN_CREDENTIAL_INPUT = "FORBIDDEN_CREDENTIAL_INPUT"
+    FORBIDDEN_TRANSACTION = "FORBIDDEN_TRANSACTION"
+    FORBIDDEN_PERSONAL_DATA = "FORBIDDEN_PERSONAL_DATA"
+    FORBIDDEN_CAPTCHA_BYPASS = "FORBIDDEN_CAPTCHA_BYPASS"
+    DISABLED_OR_INERT = "DISABLED_OR_INERT"
+    BLOCKED_BY_OVERLAY = "BLOCKED_BY_OVERLAY"
+    UNKNOWN = "UNKNOWN"
+
+
+#: 클릭이 곧 금지행동 그 자체가 되는 상태 — reachable 후보가 전부 이 안에만 있으면
+#: (즉 안전한 대안이 하나도 없으면) Scout를 만들지 않는다.
+_HARD_FORBIDDEN_STATES: frozenset[CandidateActionState] = frozenset(
+    {
+        CandidateActionState.FORBIDDEN_CREDENTIAL_INPUT,
+        CandidateActionState.FORBIDDEN_TRANSACTION,
+        CandidateActionState.FORBIDDEN_PERSONAL_DATA,
+        CandidateActionState.FORBIDDEN_CAPTCHA_BYPASS,
+    }
+)
+
+#: `classify_candidate`의 `ActionCategory` → 9-state 매핑.
+#:
+#: `LOGIN`은 항상 `AUTH_ENTRY_ALLOWED_CONDITIONALLY`다 — "조건부"의 조건(archetype +
+#: chosen path가 실제로 도달했는가, `D-R0-04`)은 이 모듈의 책임이 아니다.
+#: `engine.depth.gate_outcome_from_decision`(`ENDPOINT_GATE_KINDS`, W2 소유·읽기전용)이
+#: 이미 그 조건을 구현한다 — 이 모듈이 같은 결정을 archetype 인자로 다시 내리면
+#: 두 판정이 갈릴 위험만 늘어난다. 이 모듈이 답하는 질문은 딱 하나, "클릭 자체가
+#: 안전한가"이며, 로그인 링크를 누르는 것은 `Scout._activate`가 어떤 필드도 채우지
+#: 않으므로(QUERY 검색창 제외) 항상 안전하다 — 위험한 것은 그다음 화면에서 자격증명을
+#: 입력·제출하는 것인데, 그건 Scout 구조상 애초에 일어나지 않는다(엔진 규칙 E-7).
+#:
+#: `SIGNUP`은 SSOT 9-state에 전용 자리가 없다. 회원가입 폼 "제출"은 여전히 금지
+#: 목록에 있어야 하므로(가드가 다루는 action 리스트를 줄이지 않는다, 계약 §1 말미)
+#: 결제·구매·예약확정과 같은 성격 — 클릭이 곧 계정 상태를 소비하는 종류 — 로 묶어
+#: `FORBIDDEN_TRANSACTION`에 넣는다. **이건 SSOT 문서가 명시한 매핑이 아니라 이
+#: 모듈의 모델링 결정이다** — A/C 검토에서 재논의될 수 있다.
+_CATEGORY_TO_STATE: dict[str, CandidateActionState] = {
+    ActionCategory.LOGIN: CandidateActionState.AUTH_ENTRY_ALLOWED_CONDITIONALLY,
+    ActionCategory.CREDENTIAL_FIELD: CandidateActionState.FORBIDDEN_CREDENTIAL_INPUT,
+    ActionCategory.OTP_ENTRY: CandidateActionState.FORBIDDEN_CREDENTIAL_INPUT,
+    ActionCategory.PAYMENT: CandidateActionState.FORBIDDEN_TRANSACTION,
+    ActionCategory.PURCHASE: CandidateActionState.FORBIDDEN_TRANSACTION,
+    ActionCategory.BOOKING_CONFIRM: CandidateActionState.FORBIDDEN_TRANSACTION,
+    ActionCategory.MESSAGE_SEND: CandidateActionState.FORBIDDEN_TRANSACTION,
+    ActionCategory.SIGNUP: CandidateActionState.FORBIDDEN_TRANSACTION,
+    ActionCategory.PERSONAL_DATA_ENTRY: CandidateActionState.FORBIDDEN_PERSONAL_DATA,
+    ActionCategory.CAPTCHA_BYPASS: CandidateActionState.FORBIDDEN_CAPTCHA_BYPASS,
+}
+
+
+def classify_candidate_state(candidate: dict[str, Any]) -> CandidateActionState:
+    """후보 하나를 9-state 마스크로 판정한다.
+
+    `D-R0-05` (CAPTCHA): DOM에 코드·문구가 있다는 사실만으로 terminal이 아니다 —
+    이 후보가 `hittable`(현재 상태에서 다른 요소에 가려지지 않고 실제로 눌릴 수
+    있음)일 때만 "active challenge"로 본다. `primary_action_candidates`는 probe가
+    이미 `visible` 요소만 담아 만들므로(`l0_probe.js`), 여기서는 `hittable`만 더
+    본다 — `hittable=False`(가려짐/비활성)면 CAPTCHA든 아니든 `DISABLED_OR_INERT`다.
+    """
+    if not isinstance(candidate, dict):
+        return CandidateActionState.UNKNOWN
+    if candidate.get("hittable") is False:
+        return CandidateActionState.DISABLED_OR_INERT
+    if candidate.get("blocked_by_overlay") is True or candidate.get("occluded") is True:
+        return CandidateActionState.BLOCKED_BY_OVERLAY
+
+    risk = classify_candidate(candidate)
+    if risk.blocked and risk.category is not None:
+        return _CATEGORY_TO_STATE.get(risk.category, CandidateActionState.UNKNOWN)
+
+    has_identity = any(
+        candidate.get(k)
+        for k in (
+            "accessible_name",
+            "visible_text",
+            "aria_label",
+            "selector",
+            "input_type",
+            "autocomplete",
+        )
+    )
+    return CandidateActionState.SAFE if has_identity else CandidateActionState.UNKNOWN
+
+
+def _reachable_candidates(
+    candidates: list[dict[str, Any]], *, branching_limit: int
+) -> list[dict[str, Any]]:
+    """`l1_engine.Scout._activation_candidates`가 **랜딩 상태에서** 분기시킬 후보와
+    같은 부분집합을 재현한다 — 같은 정렬 키(`min4_sort_key`), 같은 상한
+    (`branching_limit`). Scout 자체를 부르지 않는다(브라우저가 필요하다) — 정렬·
+    선별 **규칙만** 재사용한다(`l0_collector.min4_sort_key`는 공개 함수라 import는
+    읽기전용 원칙을 어기지 않는다 — 그 파일을 수정하지 않는다).
+
+    Scout의 `_activation_candidates`는 dismiss control selector도 제외하지만, 이
+    함수는 L0 관측 하나(`primary_action_candidates`만)만 받으므로 그 제외를 재현하지
+    않는다 — 안내문(닫기 버튼)이 텍스트 사전에 걸릴 일은 사실상 없고, 최악의 경우
+    top-N 구성이 약간 달라질 뿐이다(과소하게 보수적으로 판정하는 방향으로만 어긋난다).
+    """
+    from landing_accessibility.engine.l0_collector import min4_sort_key
+
+    reachable = [
+        c
+        for c in candidates
+        if isinstance(c, dict) and c.get("hittable") and c.get("selector")
+    ]
+    reachable.sort(key=min4_sort_key)
+    seen: set[str] = set()
+    out: list[dict[str, Any]] = []
+    for c in reachable:
+        sel = str(c["selector"])
+        if sel in seen:
+            continue
+        seen.add(sel)
+        out.append(c)
+        if len(out) >= branching_limit:
+            break
+    return out
+
+
+@dataclass(frozen=True)
+class CandidateAssessment:
+    """target 하나의 reachable 후보 전체에 대한 판정 — target-kill 대신 이걸 evidence로
+    남긴다(`D-R0-03` "존재와 행동을 구분": 위험 후보의 **존재**는 여기 기록되고,
+    **활성화**만 막힌다)."""
+
+    states: tuple[tuple[dict[str, Any], CandidateActionState], ...]
+    reachable_considered: int
+    blocking: ActionRisk | None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "reachable_considered": self.reachable_considered,
+            "candidates": [
+                {
+                    "selector": c.get("selector"),
+                    "text": c.get("accessible_name") or c.get("visible_text") or c.get("aria_label"),
+                    "state": state.value,
+                }
+                for c, state in self.states
+            ],
+            "blocking": (
+                {"category": self.blocking.category, "reason": self.blocking.reason}
+                if self.blocking is not None
+                else None
+            ),
+        }
+
+
+def assess_reachable_candidates(
+    candidates: list[dict[str, Any]], *, branching_limit: int = 4
+) -> CandidateAssessment:
+    """`D-R0-01` — target-level kill을 candidate/state-level 판정으로 대체한다.
+
+    판정 규칙:
+
+    - reachable 후보 중 하나라도 `SAFE` 이거나 `AUTH_ENTRY_ALLOWED_CONDITIONALLY`면
+      (Scout가 고를 수 있는 안전한 대안이 있으면) **막지 않는다.** 위험한 후보가
+      같은 목록에 있어도 evidence로만 남긴다(`D-R0-03`·`D-R0-06`: 구매/결제 control의
+      "존재 관측"은 허용, "활성화"만 금지 — 안전한 대안이 있는데 목록에 위험 후보가
+      섞여 있다는 이유만으로 target 전체를 죽이는 것은 D-R0-06이 금지하는 바로 그
+      "존재=활성화" 혼동이다).
+    - reachable 후보 **전부**가 hard-forbidden이면(안전한 대안이 전혀 없으면) 막는다
+      — 이 경우 Scout를 만들어도 첫 분기에서 금지 행동만 고를 수 있기 때문이다.
+
+    이 함수가 검증하지 못하는 것은 모듈 docstring 상단에 그대로 적어 두었다
+    (`D-R0-17`).
+    """
+    reachable = _reachable_candidates(candidates, branching_limit=branching_limit)
+    states = [(c, classify_candidate_state(c)) for c in reachable]
+
+    has_safe_alternative = any(
+        s in (CandidateActionState.SAFE, CandidateActionState.AUTH_ENTRY_ALLOWED_CONDITIONALLY)
+        for _, s in states
+    )
+    blocking: ActionRisk | None = None
+    if not has_safe_alternative:
+        forbidden = [(c, s) for c, s in states if s in _HARD_FORBIDDEN_STATES]
+        if forbidden:
+            c, s = forbidden[0]
+            risk = classify_candidate(c)
+            blocking = ActionRisk(
+                True,
+                risk.category,
+                f"reachable 후보 {len(reachable)}개 전부가 forbidden 이다 "
+                f"(state={s.value}) — 안전한 대안 없음: {risk.reason}",
+            )
+    return CandidateAssessment(
+        states=tuple(states), reachable_considered=len(reachable), blocking=blocking
+    )
+
+
 __all__ = [
     "AccountActionBlockedError",
     "ActionCategory",
     "ActionRisk",
+    "CandidateActionState",
+    "CandidateAssessment",
+    "assess_reachable_candidates",
     "assert_no_forbidden_action",
     "classify_candidate",
+    "classify_candidate_state",
     "screen_candidates",
 ]

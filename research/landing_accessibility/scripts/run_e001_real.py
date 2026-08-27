@@ -62,7 +62,14 @@ WORKER_CHOICES = tuple(w.removeprefix("worker_") for w in E001_WORKER_IDS)
 
 
 def _worker_plan(rows: tuple[E001TargetRow, ...], worker_id: str) -> list[TargetSpec]:
-    """frozen 순서를 유지한 채 이 워커에 배정된 target 만 남긴다."""
+    """frozen 순서를 유지한 채 이 워커에 배정된 target 만 남긴다.
+
+    `T-A-W1-001` §2 시정: 이전에는 `endpoint_definition`만 옮기고 `task_id`·
+    `region_definition`·`region_signal_type`·`endpoint_signal_type`을 여기서
+    떨어뜨렸다 — `E001TargetRow`(firewall.py)가 CSV에서 다섯 필드를 전부 읽어도,
+    `TargetSpec` 생성이 그중 넷을 버리면 lineage가 여기서 끊긴다. 이제 다섯 필드
+    전부를 옮긴다.
+    """
     return [
         TargetSpec(
             target_id=row.target_id,
@@ -71,6 +78,10 @@ def _worker_plan(rows: tuple[E001TargetRow, ...], worker_id: str) -> list[Target
             interaction_archetype=row.interaction_archetype,
             endpoint_definition=row.endpoint_definition,
             service_name_canonical=row.service_name_canonical,
+            task_id=row.task_id,
+            region_definition=row.region_definition,
+            region_signal_type=row.region_signal_type,
+            endpoint_signal_type=row.endpoint_signal_type,
         )
         for row in rows
         if row.worker_id == worker_id

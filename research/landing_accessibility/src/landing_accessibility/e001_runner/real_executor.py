@@ -39,7 +39,7 @@ from landing_accessibility.engine.l1_engine import Scout, ScoutBudget, TaskDefin
 from landing_accessibility.engine.vocabulary import InteractionArchetype
 
 from .executor import default_task_definition
-from .guard import screen_candidates
+from .guard import assess_reachable_candidates
 from .outcomes import TargetOutcome
 from .plan import TargetSpec
 
@@ -120,17 +120,25 @@ def run_l1_if_safe_real(
 
     가드가 걸리면 `"outcome"` 이 `ACCOUNT_ACTION_BLOCKED` 이고 `"scout_invoked"` 는
     `False` 다 — `Scout` 객체 자체가 만들어지지 않았다는 증거다.
+
+    `T-A-W1-001` §1 시정: FIXTURE 경로(`executor.run_l1_if_safe`)와 **완전히 같은**
+    candidate/state-level 판정(`guard.assess_reachable_candidates`)을 쓴다 —
+    target-level kill(`guard.screen_candidates`의 옛 호출 방식)을 여기서도 폐기한다.
     """
     l0 = run_l0_real(target, run=run, scope=scope, allowlist=allowlist)
-    candidates = l0.get("primary_action_candidates") or []
-
-    risk = screen_candidates(candidates)
-    if risk is not None:
+    resolved_budget = budget or ScoutBudget()
+    raw_candidates = (l0.get("raw_features") or {}).get("primary_action_candidates") or []
+    assessment = assess_reachable_candidates(
+        raw_candidates, branching_limit=resolved_budget.branching_limit
+    )
+    if assessment.blocking is not None:
+        risk = assessment.blocking
         return {
             "outcome": TargetOutcome.ACCOUNT_ACTION_BLOCKED.value,
             "scout_invoked": False,
             "blocked_category": risk.category,
             "blocked_reason": risk.reason,
+            "candidate_action_mask": assessment.as_dict(),
             "l0_observation_id": l0.get("observation_id"),
             "l0": l0,
         }
@@ -138,7 +146,7 @@ def run_l1_if_safe_real(
     resolved_task = task or default_task_definition(target)
     scout = Scout(
         fixture_root=None,
-        budget=budget or ScoutBudget(),
+        budget=resolved_budget,
         execution_mode=ExecutionMode.REAL_TARGET,
         execution_scope=scope,
         run=run,
@@ -152,6 +160,10 @@ def run_l1_if_safe_real(
     result["scout_invoked"] = True
     result["task_manifest"] = manifest.as_dict() if manifest is not None else None
     result["l0"] = l0
+    result["candidate_action_mask"] = assessment.as_dict()
+    # `T-A-W1-001` §2 — 실행 경로에 배선(`D-R0-09`). CODEBOOK_PENDING은 부재이지
+    # 거부가 아니므로 막지 않는다 — evidence에 남긴다.
+    result["mapping_frozen_allowed"] = resolved_task.mapping_frozen_allowed()
     return result
 
 
