@@ -611,3 +611,36 @@ Lane L 이 반례를 냈고 D 가 실물 60건으로 재검사해 **UNCONFIRMED*
 (`D_DEF_01_charset_mechanism_reexamination.json`). **조치는 유효하고 서술만 미확인이다.**
 R17 의 형식이 처음부터 있었으면 그 구분이 남았을 것이다 —
 "조치의 근거" 와 "메커니즘 설명의 근거" 는 같은 증거로 뒷받침되지 않는다.
+
+## 2026-08-28 03:20 — 수렴검사 모호성 5건 중 3건이 A 판정으로 닫혔다
+
+`D-V3-FINDING-009` 가 올린 `AMB-X01~X05` 를 A 의 두 판정과 대조했다.
+
+| D 모호성 | A 판정 | 상태 |
+|---|---|---|
+| `AMB-X01` SWITCH_TAB 이 reveal 토큰인가 | **STEP1-011 P-06** — 아니다. `menu_dependency 0` | **닫힘** |
+| `AMB-X03` 'task control 노출' 시점 식별 규칙 부재 | **STEP1-012 GAP-07** — 행이 자기 시점을 선언한다(`entry_observed_state`) | **닫힘** |
+| `AMB-X04` 형제 reveal 계수 (양쪽 flat count) | **GAP-06** — innermost + `nav_container_chain` 저장 | **닫힘**(chain 이 있으면 nested/sibling 을 사후에 가른다) |
+| `AMB-X05` 빈 sequence·ABSTAIN 에서 확정 False/0 | **GAP-04** — 수치 미관측은 `null`, 범주는 `UNDETERMINED`/`NOT_OBSERVED` | 닫히는 **방향** |
+| `AMB-X02` nav depth 에 endpoint cut 적용 여부 | — | **열림** |
+
+**`AMB-X02` 는 닫히지 않았다. 닫혔다고 적지 않는다.**
+
+`AMB-X01` 이 닫힌 방식이 특히 눈에 띈다 — D 의 FX13 갈림이 정확히 그 질문이었고, D 는 **어느 구현도 canonical 로
+선언하지 않은 채** 두 값을 나란히 올렸다. A 가 C 독해를 축자 인용과 함께 채택하자 두 구현의 **정렬된 읽기가
+이미 그 답(False)** 이었음이 드러났다. D 의 변이검사 `MUT03` 이 "어느 쪽이 SWITCH_TAB 을 채택하면 잡히는가" 를
+미리 확인해 둔 지점이기도 하다 — reconciliation 이 실수로 병합할 수 있었던 곳이 정의로 닫혔다.
+
+### `T-B-BLK-011` — SSOTV3 가 git 에 전혀 없다
+B 가 대조군과 함께 확인했다. **MANIFEST 20/20 은 지금 이 순간의 무결성을 주지만 버전 신원을 주지 않는다.**
+네 평면의 독립 0/20 일치와 "어제도 같은 바이트였는가" 는 다른 질문이다.
+B 가 *"변조됐다고 주장하지 않는다. 변조되지 않았음을 증명할 구조가 없다고 말한다"* 로 가른 것이 정확하다.
+
+D 가 낼 수 있는 것은 **부분 완화 하나의 사실 보고**뿐이다 — `D_V3_ENDPOINT_PREOBSERVATION_LOCK.json` 이
+관측 전에 endpoint 원문 바이트를 sha256 으로 고정해 D 브랜치에 커밋돼 있다. **endpoint 문구에 한해서는**
+시점 있는 신원이 있다. SSOTV3 전체의 provenance 를 대신하지 못한다. 커밋 위치는 A 결정이며 D 는 의견을 내지 않는다.
+
+### 전달 경로가 결함원이 되는 형태가 두 평면에서 같이 나왔다
+B 가 R7 을 W5C 에만 전달하고 W5E 에는 누락한 것을 자진 신고했다(R17 형식).
+D 도 같은 실패를 냈다 — `D-DEF-12`, 워커 간 **입력 모듈 의존성**을 분할 계약에 넣지 않았다.
+출력 namespace 분리만으로는 부족하다는 것이 두 번 확인됐다.
