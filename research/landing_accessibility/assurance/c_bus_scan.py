@@ -207,7 +207,7 @@ def shape_unsafe_alias(a: str) -> bool:
 ALIAS_CONTROL_CORPUS = (
     "This document describes a build pipeline. It has a cache, b-tree indexes, and c-style comments. Contact plane C for details. "
     "The coverage report is generated per manifest; each container runs one strategy and stores evidence under an auth token. "
-    "Skip the vr headset demo, the domax vendor call, and the scrollbar fix; the runbook lives in the wiki. "
+    "Please skip the vr headset demo, the domax vendor call, and the scrollbar fix; the runbook lives in the wiki. "
     "이 문단은 판정과 무관하다. 커버리지 보고서는 매니페스트별로 생성되고, 컨테이너는 하나의 전략을 실행하며 증거를 인증 토큰 아래에 저장한다. "
     "회의는 3층 회의실에서 열리고 자료는 공유 폴더에 있다. 예산은 다음 분기에 확정된다."
 )
