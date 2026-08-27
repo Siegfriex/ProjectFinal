@@ -1,0 +1,282 @@
+{
+  "cycle": "V2-C012",
+  "role": "orchestrator support executor — adversarial V2-C011 §5.4 `c-6-lapse-machine-check-bypassable-and-e001-half-unimplemented` 시정 ([DEBT_RECOMPUTE] 우회 8종 차단) + 승격 선행 원장 위생(조건 상태 전이)",
+  "branch": "control/landing-orchestrator",
+  "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/landing_orchestrator",
+  "prev_control_sha": "1852644ac9c7ab6ae2f2a1d7e220216c4db239f1",
+  "responds_to": [
+    "V2-C011 adversarial @ audit/landing-adversarial 0dfb6d5788631347d4d50793f25d3f689251e1bd (PASS, P0 0/P1 0/P2 3, blocking 0, target 48b4a3d9a05717c52ab891799b6203eb41cfc5f5) — §5.3 21종 주입 / §5.4 신규 P2 / §6.2 원장 위생 요구",
+    "V2-C011 ssot @ audit/landing-ssot 1dbc3067b2504dc392b5a909ef0617b0dea268a7 (PASS, target 동일)"
+  ],
+  "assignment": "감사가 [DEBT_RECOMPUTE] 를 원문 그대로 떼어내 21종을 주입한 결과 control 주장 13종은 전부 재현 차단됐으나 감사가 새로 만든 8종이 **전부 통과**했다. 그 8종을 닫고, 감사가 승격 선행조건으로 요구한 조건 상태 전이(C-1·C-5-1)를 수행한다.",
+  "audit_findings_addressed": {
+    "finding_id": "c-6-lapse-machine-check-bypassable-and-e001-half-unimplemented",
+    "severity": "P2",
+    "owner": "control",
+    "blocking_scope": "E001_V2 (C-3/C-4 실효 검사) — V2_SSOT_FROZEN 비차단",
+    "audit_report": "research/landing_accessibility/audit/adversarial/V2_C011.md §5.4 (0dfb6d5788631347d4d50793f25d3f689251e1bd)",
+    "holes_defined_by_audit": "H-1 ~ H-5 **다섯 개**",
+    "note_on_hole_numbering": "지시문은 'H-4·H-6·H-7·H-8 도 함께 닫아라' 고 했으나, **감사 원문에 H-6·H-7·H-8 은 존재하지 않는다.** §5.4 의 구멍 표는 H-1·H-2·H-3·H-4·H-5 다섯 행뿐이고 그 다섯이 우회 8종(N1~N7·N9)을 전부 설명한다. 없는 결함을 있다고 적지 않는다 — 이번 감사의 핵심 지적(원장이 실제보다 강하게 주장하지 말 것)은 과소 주장뿐 아니라 과대 주장 양쪽에 적용된다."
+  },
+  "what_i_did": {
+    "H-1": {
+      "hole": "조건 식별의 무결성 없음 — conditions ↔ conditions_status id 대조 없음 + due_before 정규화·화이트리스트 없음 (N2·N3·N4·N7)",
+      "fix": "스크립트에 하드코딩 정본 `_ABRR_CANON` 을 두고 (a) `conditions` 열거 · (b) `conditions_status` id · (c) 정본 — **세 집합의 정확 일치**를 강제한다. 한쪽에만 있는 id 는 양방향 차집합을 찍어 차단. 정규화는 strip + 내부공백 축약 + upper 이며 **정규화 후 충돌**(서로 다른 조건이 같아짐)이 생기면 그 자체로 차단이다. `due_before` 는 형식([A-Z0-9_]+ 또는 null) 검증 후 정본과 정확 대조한다.",
+      "effect": "N2(항목 삭제)는 집합 불일치로 즉시 차단. N3(소문자)·N7(뒤 공백)은 정규화로 **정본과 같아져** 실효 스캔에 정상 포착돼 lapse 로 차단. N4(null)는 정본 대비 형식/값 불일치로 차단."
+    },
+    "H-2": {
+      "hole": "owner 가 자기신고 필드 — owner=='control' 이면 audit_sha 면제인데 owner 는 공격자가 편집하는 같은 객체의 필드 (N1)",
+      "fix": "**면제 구조 자체를 폐지했다.** owner 는 더 이상 검증 강도를 정하지 않는다. SATISFIED 로 적힌 조건은 owner 와 무관하게 **전부 동일 강도**로 audit_sha 실검증을 받는다. owner 는 정본 대조 대상으로만 남는다.",
+      "why_uniform_was_possible": "면제의 실질 근거는 'C-1 은 control 소관이고 원장 문면 자체로 기계검증되므로 감사 근거가 있을 수 없다' 였다. 그 근거가 소멸했다 — adversarial V2-C011 §5.1 이 C-1 을 verdict=SATISFIED 로 독립 판정했으므로 C-1 에도 감사 SHA(0dfb6d5788631347d4d50793f25d3f689251e1bd)가 실재한다. 전부 동일 강도로 갈 수 있고, 그래서 그렇게 했다.",
+      "effect": "N1(owner 를 control 로 갈아끼움)은 정본 대조에서 차단되고, 설령 통과해도 audit_sha 부재로 다시 차단된다 — 이중."
+    },
+    "H-3": {
+      "hole": "조건 audit_sha 가 순수 truthiness — 40-hex·git 존재·감사 브랜치·보고서 판정 어느 것도 보지 않았다 (N5)",
+      "fix": "`verify_condition_audit_sha()` 신설. [AUDIT_ANCESTRY] 와 같은 강도로 네 가지를 본다 — (1) 40-hex 전체 SHA, (2) `git rev-parse <sha>^{commit}` 으로 커밋 resolve, (3) 원장이 선언한 `audit/landing-*` 브랜치 tip 의 **조상**(remote-tracking ref, 없으면 ls-remote), (4) **그 커밋의 감사 보고서 JSON 이 그 조건 id 를 실제로 긍정 판정했는지** — 보고서마다 자리가 다르므로(`condition_adjudications[]` · `acceptance_conditions_status.conditions[]` · `c_5_1_verdict`) 재귀로 훑고, 부정 어휘가 섞인 값은 긍정으로 세지 않는다(UNMET 이 MET 로 잡히지 않는다).",
+      "measured": "실측 통과 — C-1: 0dfb6d5 / V2_C011.json [verdict=SATISFIED] · C-2: 56f69f3 / V2_C008.json [state=MET] · C-5-1: 30093b4 / V2_C010.json [state=이행 (충족)]",
+      "effect": "N5(쓰레기 문자열 \"x\")는 40-hex 단계에서 차단."
+    },
+    "H-4": {
+      "hole": "gate 선언 표기가 접두 매칭 — ACHIEVED 로 시작하지 않는 어떤 문구도 실효를 발화시키지 않았다 (N6)",
+      "fix": "`gate_declared_achieved()` 신설. 선언값의 첫 토큰(`[A-Za-z0-9_]+`)을 **열거 어휘와 정확 대조**한다. achieved 어휘에 ACHIEVED·DECLARED·FROZEN·PROMOTED·PASS·TRUE·MET·COMPLETE… 를, not-achieved 어휘에 NOT_ACHIEVED·NOT_RUN·BLOCKED·PENDING·FAIL… 을 둔다. **어휘 밖 토큰은 '미선언' 으로 넘기지 않고 차단한다.** 트리거 게이트 **키의 부재도 차단**이다 (키를 지워 트리거를 잠재우는 경로).",
+      "effect": "N6('DECLARED / FROZEN — 선언 완료')은 DECLARED 가 achieved 어휘에 있으므로 실효가 정상 발화해 차단.",
+      "ledger_side": "그 결과 `gates.E001_V2` 키가 원장에 **없으면 차단**이 되므로 이번에 신설했다(값 NOT_RUN)."
+    },
+    "H-5": {
+      "hole": "E001_V2 절반이 아예 미구현 — 어휘 lapse_rule 은 C-3·C-4·C-5-② 를 E001_V2 에 묶는데 코드에는 due_before 비교도 gates 조회도 V2_SSOT_FROZEN 하나뿐이었다 (N9)",
+      "fix": "`_ABRR_CANON[*]['gate_required']` 로 **게이트별 필수 조건 집합을 명시적으로 코딩**했다 — 두 집합이 서로 다르므로 그 차이를 그대로 적었다: `V2_SSOT_FROZEN ← C-1 · C-2 · C-5-1` / `E001_V2 ← C-3 · C-4 · C-5-2`. 여기에 `due_before → 게이트` 사상(_DUE_BEFORE_GATE)을 **합집합**으로 더해 더 강한 쪽을 취한다. 필수 조건 id 가 conditions_status 에 **없으면 lapse 가 아니라 차단**이다(이름으로 지정된 조건은 존재해야 한다).",
+      "effect": "N9(gates.E001_V2=ACHIEVED + C-3/C-4 NOT_YET_DUE)는 E001_V2 분기에서 실효 발화 → 차단.",
+      "honest_note": "원장 `conditions_status` 의 C-5-2 는 `due_before=FINAL_REPORT` 인데 어휘 lapse_rule 문면은 C-5-② 를 E001_V2 절에 묶는다. 이 어긋남을 **덮지 않고** 더 엄격한 쪽(어휘 문면)을 코딩했다 — E001_V2 를 선언하려면 C-5-2 도 SATISFIED 여야 한다. `FINAL_REPORT` 는 원장 gates 의 키가 아니므로 C-5-2 의 due_before 경로는 현재 비활성이며, E001_V2 필수집합 쪽에서만 잡힌다."
+    },
+    "ledger_hygiene": {
+      "requested_by": "adversarial V2-C011 §6.2 — '원장 위생이며 새 결함 아님. 내 쪽에서 요구하는 마지막 한 줄'",
+      "C-1": "SATISFIED 유지 + **감사 근거 부착** `audit_sha = 0dfb6d5788631347d4d50793f25d3f689251e1bd` (V2-C011 §5.1 condition_adjudications verdict=SATISFIED). 종전에는 owner=control 면제로 audit_sha 없이 SATISFIED 였다 — H-2 폐지에 따라 동일 강도를 적용한 결과 근거를 실제로 붙여야 했고, 붙일 근거가 존재했다.",
+      "C-5-1": "NOT_SATISFIED → **SATISFIED**, `audit_sha = 30093b4927f9a6b0ecf301e001901da9978500a3` (adversarial V2-C010 `c_5_1_verdict` = '이행 (충족)'). V2-C010 시점에 NOT_SATISFIED 로 적은 판단은 옳았다(판정 감사가 origin 에 없었다). 이제 있다.",
+      "C-2": "이미 SATISFIED (V2-C008 `56f69f3b23eaa15b7eb0689c526eb617a12c813a`) — 건드리지 않았다.",
+      "C-3 · C-4 · C-5-2": "기한 미도래(NOT_YET_DUE) — 그대로 두었다.",
+      "C-6": "NOT_TRIGGERED 유지. evidence 를 두 트리거(V2_SSOT_FROZEN · E001_V2) 기준으로 다시 썼다.",
+      "derived": "`lapse_currently_armed` true → **false**, `lapse_armed_reason` 갱신, `conditions_transition_log` 신설, `open_blocking_total.accepted_residual_ids` · `exclusion_is_conditional` 문면 갱신, `gates.E001_V2` 신설.",
+      "effect_on_promotion": "감사가 공격 04 로 실측한 대로, 전이 전에 V2_SSOT_FROZEN 을 선언하면 C-6 실효가 발화해 승격이 차단된다. 전이 후 실측: 실효 발화 없음(lapsed=0), 수용 유효(accepted=1)."
+    },
+    "overclaim_correction": {
+      "why": "감사의 핵심 지적 — *'원장이 자기 기계검사에 대해 주장하는 것이 실제보다 강하다 — exec 가 두 번 철회한 것과 같은 부류이며 같은 기준을 적용했다.'* 그 주장 문면 자체를 고쳐야 한다.",
+      "what_changed": "`finding_state_vocabulary.ACCEPTED_BOUNDED_RESIDUAL_RISK.lapse_rule.machine_check` 를 **하는 것 / 하지 않는 것** 양쪽으로 다시 썼고, `machine_check_history` 에 V2-C010 판이 무엇을 주장했고 무엇이 실제였는지(8종 우회)를 남겼다. `open_blocking_total.lapse_machine_check_scope` 에도 같은 범위를 적었다."
+    }
+  },
+  "measured_not_assumed": {
+    "harness": "`promote_landing_main.sh` 의 (D) 판정부를 **한 글자도 바꾸지 않고** 마커로 떼어내 독립 모듈로 만들고 21종(+N8 = 22 주입)을 실제 원장 JSON 변조로 주입했다. 감사가 §5.3 에서 한 것과 같은 방식이다.",
+    "extraction_markers": "DR_HEAD_BEGIN/END · DR_D_BEGIN/DR_D_SKIP_BEGIN · DR_D_SKIP_END/DR_D_END · DR_D2_BEGIN/END — V2-C012 에서 스크립트에 명시했다(감사자가 같은 추출을 재현할 수 있게).",
+    "baseline_ledger_new": "V2-C012 전이 후 control 원장. 감사 기준 원장은 C-5-1=NOT_SATISFIED 였으므로 그 전제를 요구하는 공격(04·08·N1~N9)은 **변조 자체가 그 전제를 다시 만든다** — 감사 입력과 동일하다.",
+    "baseline_ledger_old": "회귀 대조군으로 `1852644` 원장 + V2-C010 판 코드를 같은 22종에 태웠다.",
+    "result_old_code": "차단 14 / 22 — 13종 + N8. **N1·N2·N3·N4·N5·N6·N7·N9 8종 통과.** 감사 §5.4 결과와 정확히 일치.",
+    "result_new_code": "차단 **22 / 22**. 기존 13종 회귀 없음, 감사의 8종 전건 차단, N8 유지.",
+    "clean_ledger_passes": "변조 없는 V2-C012 원장에서 (D) 판정부 통과 — residual_seen=1 · accepted=1 · lapsed=0. 조건 근거 3건 전부 실검증 통과.",
+    "regions_unchanged": "(A) pinned 보고서 · 원장 사이클 대조 구간, (B)/(C) v1 승계 구간, 합계 대조 구간은 V2-C010 판과 **바이트 무변경**(md5 대조 d2bd384a7d37)."
+  },
+  "attack_matrix": {
+    "total_injected": 22,
+    "audit_headline": "감사 표기 21종 = control 주장 13 + 감사 신규 8. N8 은 감사가 '정상 차단' 으로 별도 언급한 건이라 여기서는 22번째로 함께 태웠다.",
+    "blocked_by_V2_C010_code": 14,
+    "blocked_by_V2_C012_code": 22,
+    "cases": [
+      {
+        "case": "01",
+        "attack": "근거 필드 누락 (accepted_by_audit_sha 삭제)",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 이 ACCEPTED_BOUNDED_RESIDUAL_RISK 인데 'accepted_by_audit_sha' 근거가 없다 — 근거 없는 제외는 total 조작"
+      },
+      {
+        "case": "02",
+        "attack": "조용한 제외 (state=OPEN + counted_as_open=false, 근거 없음)",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 이 counted_as_open=false 인데 duplicate_of/superseded_by 근거가 없다 — 근거 없는 제외는 total 조작 경로다 ("
+      },
+      {
+        "case": "03",
+        "attack": "exclusion_line 삭제",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "open_blocking_total.exclusion_line 이 없다 — 제외가 무엇을 뜻하는지(CLOSED 가 아님) 적은 한 줄이 있어야 한다 (C-1)"
+      },
+      {
+        "case": "04",
+        "attack": "C-6 자동 실효 (gate ACHIEVED + C-5-1 미충족)",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "ACCEPTED_BOUNDED_RESIDUAL_RISK 수용이 **자동 실효**됐다 (C-6): 실효 트리거 게이트가 ACHIEVED 어휘로 선언됐는데 그 게이트 이전 조건이 미충족이다."
+      },
+      {
+        "case": "05",
+        "attack": "수용 보고서 위조 (다른 보고서 경로로 교체)",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 의 수용 판정 보고서를 읽을 수 없다: fed3e70ba8430e0fad4f27df11d2eca550f33d30:research/landing_accessi"
+      },
+      {
+        "case": "06",
+        "attack": "근거 없는 counted_as_open=false",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'prepush-hook-symlink-depends-on-control-worktree-lifetime' 이 counted_as_open=false 인데 duplicate_of/superseded_by 근거가 없다 — 근거 없는 제외는 total 조작 경로"
+      },
+      {
+        "case": "07",
+        "attack": "선례 제한 미기록 (i_reproduced_irreducibility=NO)",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 의 선례 제한 'i_reproduced_irreducibility' 이 YES 로 기록돼 있지 않다 — 직접 공격 재현 · 단일 차원 축소 · 지적 전 자진"
+      },
+      {
+        "case": "08",
+        "attack": "exec 소관 조건 자기승인 (C-5-1 SATISFIED, audit_sha 없음)",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 의 조건 C-5-1 가 SATISFIED 인데 audit_sha(None) 가 40-hex 전체 SHA 가 아니다 — truthiness 로 충족되지 않는다"
+      },
+      {
+        "case": "09",
+        "attack": "상태값 정의 삭제 (finding_state_vocabulary)",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 이 ACCEPTED_BOUNDED_RESIDUAL_RISK 인데 원장에 상태값 정의(v2_transition.finding_state_vocabulary.A"
+      },
+      {
+        "case": "10",
+        "attack": "제외 카운터 위조 (accepted_bounded_residual_risk=0)",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "선언된 accepted_bounded_residual_risk(0) != 원장 항목에서 센 ACCEPTED_BOUNDED_RESIDUAL_RISK 항목수(1)"
+      },
+      {
+        "case": "11",
+        "attack": "id 열거 삭제 (accepted_residual_ids=[])",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "open_blocking_total.accepted_residual_ids 가 1건으로 열거돼 있지 않다 ([]) — 카운터만 있고 id 열거가 없으면 '명시적으로 제외된 한 줄' 요건 미달이다"
+      },
+      {
+        "case": "12",
+        "attack": "blocking=true 로 되돌리되 excluded_from_total 유지",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 이 ACCEPTED_BOUNDED_RESIDUAL_RISK 인데 blocking=false / counted_as_open=false / excluded_f"
+      },
+      {
+        "case": "13",
+        "attack": "accepted_by_audit_branch 를 임의 브랜치로",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 의 accepted_by_audit_branch('agent/landing-v2-exec') 가 audit/landing-* 네임스페이스가 아니다 — 임의"
+      },
+      {
+        "case": "N1",
+        "attack": "C-5-1.owner exec→control + SATISFIED (audit_sha 없음)",
+        "V2_C010_code": "통과 (우회)",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 의 조건 C-5-1 owner('control') 가 정본('exec')과 다르다 — owner 는 공격자가 편집하는 같은 객체의 필드이므로 정본과 대조한다"
+      },
+      {
+        "case": "N2",
+        "attack": "conditions_status 에서 C-5-1 항목 자체를 삭제",
+        "V2_C010_code": "통과 (우회)",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 의 conditions 열거와 conditions_status 의 id 집합이 다르다 (H-1) — conditions 에만: ['C-5-1'] · cond"
+      },
+      {
+        "case": "N3",
+        "attack": "due_before 를 소문자로 (v2_ssot_frozen)",
+        "V2_C010_code": "통과 (우회)",
+        "V2_C012_code": "차단",
+        "blocked_by": "ACCEPTED_BOUNDED_RESIDUAL_RISK 수용이 **자동 실효**됐다 (C-6): 실효 트리거 게이트가 ACHIEVED 어휘로 선언됐는데 그 게이트 이전 조건이 미충족이다."
+      },
+      {
+        "case": "N4",
+        "attack": "due_before 를 null 로",
+        "V2_C010_code": "통과 (우회)",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 의 조건 C-5-1 due_before 가 정본과 다르다 — 원장 None (정규화 None) != 정본 'V2_SSOT_FROZEN'"
+      },
+      {
+        "case": "N5",
+        "attack": "조건 audit_sha 를 쓰레기 문자열 x 로",
+        "V2_C010_code": "통과 (우회)",
+        "V2_C012_code": "차단",
+        "blocked_by": "orchestrator_registered 의 'rc-6-r1-same-authorization-local-reexecution-unbounded' 의 조건 C-5-1 가 SATISFIED 인데 audit_sha('x') 가 40-hex 전체 SHA 가 아니다 — truthiness 로 충족되지 않는다."
+      },
+      {
+        "case": "N6",
+        "attack": "gate 선언을 'DECLARED / FROZEN — 선언 완료' 로",
+        "V2_C010_code": "통과 (우회)",
+        "V2_C012_code": "차단",
+        "blocked_by": "ACCEPTED_BOUNDED_RESIDUAL_RISK 수용이 **자동 실효**됐다 (C-6): 실효 트리거 게이트가 ACHIEVED 어휘로 선언됐는데 그 게이트 이전 조건이 미충족이다."
+      },
+      {
+        "case": "N7",
+        "attack": "due_before 뒤 공백 1개 ('V2_SSOT_FROZEN ')",
+        "V2_C010_code": "통과 (우회)",
+        "V2_C012_code": "차단",
+        "blocked_by": "ACCEPTED_BOUNDED_RESIDUAL_RISK 수용이 **자동 실효**됐다 (C-6): 실효 트리거 게이트가 ACHIEVED 어휘로 선언됐는데 그 게이트 이전 조건이 미충족이다."
+      },
+      {
+        "case": "N8",
+        "attack": "state='SATISFIED_PENDING_AUDIT'",
+        "V2_C010_code": "차단",
+        "V2_C012_code": "차단",
+        "blocked_by": "ACCEPTED_BOUNDED_RESIDUAL_RISK 수용이 **자동 실효**됐다 (C-6): 실효 트리거 게이트가 ACHIEVED 어휘로 선언됐는데 그 게이트 이전 조건이 미충족이다."
+      },
+      {
+        "case": "N9",
+        "attack": "gates.E001_V2 = ACHIEVED + C-3/C-4 미충족",
+        "V2_C010_code": "통과 (우회)",
+        "V2_C012_code": "차단",
+        "blocked_by": "ACCEPTED_BOUNDED_RESIDUAL_RISK 수용이 **자동 실효**됐다 (C-6): 실효 트리거 게이트가 ACHIEVED 어휘로 선언됐는데 그 게이트 이전 조건이 미충족이다."
+      }
+    ]
+  },
+  "still_not_blocked": {
+    "statement": "새 검사가 **막지 못하는 것**을 정직하게 적는다. 아래는 결함 등재가 아니라 이 기계검사의 정의역 밖이거나 의도적으로 남긴 자유도다.",
+    "L-1_older_report_does_not_veto": "조건 근거 검사는 audit_sha 커밋 트리의 감사 보고서 **전부**를 훑어 '그 조건을 긍정 판정한 자리가 하나라도 있는가' 를 본다. 같은 트리의 더 오래된 보고서가 그 조건을 부정 판정해도 veto 하지 않는다(신판이 구판을 대체하는 것이 정상이므로). 따라서 '그 조건을 긍정 판정한 적이 있는 감사 커밋' 을 고르는 자유는 남는다. 브랜치 조상 검사가 그 자유를 `audit/landing-*` 계보 안으로 가둘 뿐이다.",
+    "L-2_canon_is_this_file": "`_ABRR_CANON` 은 스크립트가 정본이다. 정본에 없는 id 의 ACCEPTED_BOUNDED_RESIDUAL_RISK 는 제외되지 않고 **차단**된다. 새 수용을 부여하려면 감사 판정과 함께 이 파일을 고쳐야 한다 — 의도된 마찰이며, control 이 스스로 정본을 고칠 수 있다는 뜻이기도 하다. 그 편집은 control 커밋으로 남고 감사 대상이다.",
+    "L-3_gate_vocabulary_is_a_list": "gate achieved 어휘는 열거다. 열거에 없는 새 표현(예: 한글만으로 쓴 선언)은 **차단**되므로 fail-open 은 아니지만, 선언 문구를 바꿀 때 이 목록도 함께 봐야 한다.",
+    "L-4_text_not_substance": "이 블록은 원장 **문면**을 검사한다. 조건의 실질 이행 여부는 감사 보고서가 판정한다. 기계검사는 그 판정이 실재하고 계보가 맞는지까지만 본다.",
+    "L-5_e001_v2_gate_not_yet_exercised": "E001_V2 실효 분기는 신설했고 N9 로 발화를 실측했으나, **실제 E001_V2 선언 국면을 통과한 적은 없다.** C-3/C-4 판정 자체는 기한 미도래다.",
+    "L-6_only_the_D_part_was_run": "재현은 (D) 판정부에 대해서만 했다. (A)/(C) 는 pinned 감사 보고서와 cycle 정합을 요구해 이 원장(audit_lag 가 V2-C010 에 머문다)에서는 구동되지 않는다. 그 구간은 바이트 무변경임을 대신 확인했다."
+  },
+  "open_blocking_total": {
+    "ledger_value_now": 3,
+    "unchanged_by_this_cycle": true,
+    "composition": "0(v1) + 3(V2-C009 ssot 신규) + 0(orchestrator) = 3 ┃ 명시적 제외 accepted_bounded_residual_risk = 1 (rc-6-r1)",
+    "why_not_recomputed": "이 사이클의 소관은 [DEBT_RECOMPUTE] 시정과 조건 상태 전이다. V2-C011 reconciliation(두 감사 보고서를 원장에 등재하고 total 을 다시 세는 것)은 **별건**이며 여기서 하지 않았다.",
+    "what_the_audits_say": "adversarial V2-C011 promotion_readiness 는 `control_open_blocking_total: 1` 로 적는다 — ssot V2-C011 1dbc3067b2504dc392b5a909ef0617b0dea268a7 가 V2-C009 신규 3건을 전건 CLOSED 판정하면서 3 → 1 로 내려간다는 것이다. 남는 1건은 ssot 신규 P2 (`min-4-dom-order-residual-attributed-to-min-8-…`)이며 E001_V2 클래스라 V2_SSOT_FROZEN 을 막지 않는다. **원장 문면은 아직 3 이다** — 그 차이는 control 의 V2-C011 reconciliation 이 아직 없기 때문이며, 이 사이클은 그것을 하지 않았다.",
+    "accepted_bounded_residual_risk": 1,
+    "lapse_state": "해제 — V2_SSOT_FROZEN 트리거 3조건(C-1·C-2·C-5-1) 전건 SATISFIED. E001_V2 트리거(C-3·C-4·C-5-2)는 기한 미도래."
+  },
+  "conditions_status_after": {
+    "C-1": "SATISFIED · owner control · due_before V2_SSOT_FROZEN · audit_sha 0dfb6d5788631347d4d50793f25d3f689251e1bd",
+    "C-2": "SATISFIED · owner exec · due_before V2_SSOT_FROZEN · audit_sha 56f69f3b23eaa15b7eb0689c526eb617a12c813a",
+    "C-3": "NOT_YET_DUE · owner exec/control · due_before E001_V2_EXECUTION",
+    "C-4": "NOT_YET_DUE · owner 두 감사 · due_before E001_V2_COMPLETION",
+    "C-5-1": "SATISFIED · owner exec · due_before V2_SSOT_FROZEN · audit_sha 30093b4927f9a6b0ecf301e001901da9978500a3",
+    "C-5-2": "NOT_YET_DUE · owner 연구자 · due_before FINAL_REPORT",
+    "C-6": "NOT_TRIGGERED · due_before null"
+  },
+  "files_changed": [
+    "research/landing_accessibility/scripts/promote_landing_main.sh — [DEBT_RECOMPUTE] (D) 판정부 재작성 + 추출 마커",
+    "research/landing_accessibility/control/state.json — 조건 상태 전이 + gates.E001_V2 신설 + machine_check 문면 정정",
+    "research/landing_accessibility/control/cycles/V2_C012_orchestrator.json — 이 파일"
+  ],
+  "not_done": [
+    "승격 스크립트 실행 — `--dry-run` 포함 **하지 않았다**. 오케스트레이터 소관이다.",
+    "V2-C011 reconciliation (audit_lag 갱신 · cycles[V2-C011] 등재 · open_blocking_total 재계산) — 별건이며 하지 않았다.",
+    "`gates.V2_SSOT_FROZEN` 선언 — 하지 않았다. 여전히 NOT_ACHIEVED 다.",
+    "다른 워크트리 쓰기 · `.git/hooks/` 수정 · Pilot 열람 · 실제 웹사이트 접속 — 전부 하지 않았다.",
+    "ssot·adversarial 신규 P2 중 control 소관이 아닌 건의 판정.",
+    "(A)/(C) 구간의 end-to-end 재구동 — pinned 보고서 정합을 요구하므로 이 원장에서는 불가. 바이트 무변경으로 대신했다."
+  ],
+  "handoff": {
+    "to_orchestrator": "이제 원장 문면상 V2_SSOT_FROZEN 실효 트리거 3조건이 전건 충족이다. 감사 §6.2 가 요구한 선행조건은 끝났다. 남은 것은 (1) V2-C011 reconciliation, (2) 두 감사 verdict/PASS 반영, (3) open_blocking_total 재계산, (4) 그 다음에 승격 판단이다. 승격 스크립트는 실행하지 않았다.",
+    "to_adversarial": "추출 마커를 스크립트에 명시했으니 §5.3 과 **같은 방식으로** 다시 떼어내 공격해 달라. 새로 남긴 자유도는 `still_not_blocked` 에 여섯 항목으로 적었다 — 특히 L-1(구판 부정 판정이 veto 하지 않는다)과 L-2(정본이 control 편집 대상이다)를 공격해 주면 좋겠다."
+  }
+}

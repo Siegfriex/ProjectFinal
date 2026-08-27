@@ -64,6 +64,8 @@
 #   10 [INSTALL_INTEGRITY]    verify_v2_docs.py 실호출 (exec 워크트리 기준, exit != 0 · 부재 모두 차단)
 #   11 [BLOCKING_DEBT]        원장의 open P0/P1 · v2_transition.open_blocking_total
 #   12 [DEBT_RECOMPUTE]       pinned 감사 보고서 + 원장 항목에서 blocking·cycle·target 독립 재계산·대조
+#                              + (V2-C012) 수용 조건의 id 정본 대조 · owner 면제 폐지 · audit_sha 실검증
+#                              · gate 어휘 열거 · V2_SSOT_FROZEN/E001_V2 **양쪽** C-6 실효 판정
 #                              + ACCEPTED_BOUNDED_RESIDUAL_RISK 명시적 제외 검증·건수 출력·C-6 자동 실효 (V2-C010)
 #   13 [AUDIT_VERDICT]        audit lag · target sha · verdict(state + 보고서 JSON) · 감사 SHA 핀
 #   reconciliation 검사는 **입력 검증**이므로 가장 앞 층(3·4)에 두고, 원장 bind 는 원장을 읽을 수 있게 된
@@ -577,15 +579,24 @@ note "[BLOCKING_DEBT] open P0/P1 = 0 · v2_transition.open_blocking_total = 0 OK
 #         (d) C-6-2 선례 제한 3요건 기록, (e) 선언된 제외 카운터·id 열거와의 일치
 #         로 검증하고 **제외 건수를 별도 출력**한다. 하나라도 없으면 차단이다 —
 #         근거 없는 제외로 total 을 낮추는 경로는 counted_as_open=false 쪽과 똑같이 막는다.
-#         또 C-6 **자동 실효**를 검사한다: gates.V2_SSOT_FROZEN 이 ACHIEVED 로 선언된 원장에서
-#         due_before=V2_SSOT_FROZEN 인 조건(C-1·C-2·C-5-①)이 하나라도 SATISFIED 가 아니면
-#         그 항목을 **다시 open blocking 으로 센다** (새 감사 finding 없이 수용이 실효되므로).
-#         control 소관이 아닌 조건을 SATISFIED 로 적으려면 audit_sha 근거가 있어야 한다.
+#         또 C-6 **자동 실효**를 검사한다 (V2-C012 에서 전면 재작성 — adversarial V2-C011 §5.4):
+#         두 트리거 게이트 각각에 대해 필수 조건 집합을 **명시적으로** 검사한다.
+#           gates.V2_SSOT_FROZEN 이 achieved 어휘로 선언 → C-1 · C-2 · C-5-1 전건 SATISFIED 요구
+#           gates.E001_V2       이 achieved 어휘로 선언 → C-3 · C-4 · C-5-2 전건 SATISFIED 요구
+#         하나라도 아니면 그 항목을 **다시 open blocking 으로 센다** (새 감사 finding 없이 실효되므로).
+#         조건 id 집합은 스크립트 하드코딩 정본과 정확히 일치해야 하고, SATISFIED 는 **owner 와 무관하게
+#         전부** audit_sha 실검증(40-hex · commit resolve · 감사 브랜치 조상 · 보고서 판정)을 요구한다.
+#         V2-C010 판의 owner=="control" 면제는 **폐지됐다** — owner 는 공격자가 편집하는 필드였다.
 #   (A)와 (B)와 (C)와 스칼라가 전부 일치하고 0 일 때만 통과한다. 하나라도 어긋나면 차단이다.
 #   중복계상 제외(counted_as_open=false)는 duplicate_of / superseded_by 근거가 있을 때만 허용한다 —
 #   근거 없는 조용한 제외로 total 을 낮추는 경로를 막는다.
 #   이 블록은 argv 만으로 독립 실행 가능하게 썼다 (감사자가 그대로 떼어내 공격할 수 있어야 한다).
+#   V2-C012 에서 추출 지점을 마커로 명시했다 — (D) 판정부만 떼어내려면
+#     DR_HEAD_BEGIN..DR_HEAD_END  +  DR_D_BEGIN..DR_D_SKIP_BEGIN  +  DR_D_SKIP_END..DR_D_END
+#     + 구동부(tally 호출 · obt 바인딩)  +  DR_D2_BEGIN..DR_D2_END
+#   를 이어 붙이면 된다. (A)/(C) 는 pinned 감사 보고서를 요구하므로 SKIP 구간에 넣었다.
 python3 - "$STATE" "$REPO" "$EXEC_SHA" "$ADV_SHA" "$SSOT_SHA" "$REC_SHA" <<'PY' || fail "blocking debt 독립 재계산 불일치"
+# ---8<--- DR_HEAD_BEGIN
 import json, re, subprocess, sys
 
 state_path, repo, exec_sha, adv_sha, ssot_sha, rec_sha = sys.argv[1:7]
@@ -611,17 +622,267 @@ al = s.get("audit_lag")
 v2 = s.get("v2_transition")
 if not isinstance(al, dict) or not isinstance(v2, dict):
     die("state.json 에 audit_lag / v2_transition 이 없다")
+# ---8<--- DR_HEAD_END
 
+# ---8<--- DR_D_BEGIN
 # --- (D) ACCEPTED_BOUNDED_RESIDUAL_RISK 준비 ---
+#
+# V2-C012 시정 — adversarial V2-C011 (0dfb6d5788631347d4d50793f25d3f689251e1bd) §5.4
+#   `c-6-lapse-machine-check-bypassable-and-e001-half-unimplemented`
+#
+#   감사는 이 블록을 원문 그대로 떼어내 21종을 주입했다. control 이 주장한 13종은 **전부 재현 차단**됐으나
+#   감사가 새로 만든 8종(N1~N7 · N9)은 **전부 통과**했다. 8종 전부가 C-6 자동 실효 트리거의 우회다.
+#   감사 원문이 이름 붙인 구멍은 **H-1~H-5 다섯 개**다 (H-6·H-7·H-8 은 원문에 존재하지 않는다).
+#
+#     H-1 조건 식별의 무결성 없음        N2 항목삭제 · N3 소문자 · N4 null · N7 뒤 공백 1개
+#     H-2 owner 가 자기신고 필드          N1 owner 를 "exec" → "control" 로 갈아끼움
+#     H-3 조건 audit_sha 가 truthiness    N5 쓰레기 문자열 "x"
+#     H-4 gate 선언이 접두 매칭           N6 "DECLARED / FROZEN — 선언 완료"
+#     H-5 E001_V2 절반이 미구현           N9 gates.E001_V2=ACHIEVED + C-3/C-4 미충족
+#
+#   아래가 그 다섯을 닫는다. 설계 원칙은 **fail-closed** 다 — 판단이 서지 않는 입력은 통과가 아니라 차단이다.
+#
+#   H-1 → _ABRR_CANON 하드코딩 정본과 `conditions` · `conditions_status` 의 **id 집합 정확 일치**를
+#         강제한다. 한쪽에만 있는 id 는 차단. 정규화는 strip + 내부공백 축약 + upper 이며,
+#         정규화 **후 충돌**(서로 다른 조건이 같아짐)이 생기면 그 자체로 차단이다.
+#         `due_before` 는 문자열/None 형식 검증 후 정본과 **정확 대조**한다 — 정본을 조용히 채택하지 않고,
+#         어긋나면 차단이다. 소문자·공백·null·임의값이 전부 여기서 죽는다.
+#   H-2 → **owner 기반 면제를 폐지했다.** owner 는 더 이상 검증 강도를 정하지 않는다.
+#         SATISFIED 로 적힌 조건은 owner 와 무관하게 **전부 동일 강도**로 audit_sha 근거를 요구한다.
+#         면제가 있던 실질 근거(C-1 은 control 소관이고 원장 문면 자체로 기계검증된다)는 소멸했다 —
+#         adversarial V2-C011 §5 가 C-1 을 독립 판정했으므로 C-1 에도 감사 근거가 실재한다.
+#         owner 는 정본 대조 대상으로만 남는다(H-1 경로). 자기신고가 검증을 약화시키는 구조 자체를 없앴다.
+#   H-3 → verify_condition_audit_sha() 가 [AUDIT_ANCESTRY] 와 **같은 강도**로 검증한다:
+#         (a) 40-hex, (b) git 에서 commit 으로 resolve, (c) 원장이 선언한 audit/landing-* 브랜치 tip 의 조상,
+#         (d) 그 커밋의 감사 보고서 JSON 이 **그 조건 id 를 실제로 긍정 판정**했는지.
+#   H-4 → gate_declared_achieved() 가 선언값의 첫 토큰을 열거 어휘와 **정확 대조**한다.
+#         접두 매칭을 쓰지 않으므로 "DECLARED"·"FROZEN"·"TRUE" 가 전부 achieved 로 잡히고,
+#         어휘 밖 토큰은 fail-open 이 아니라 **차단**이다. 트리거 게이트 키의 **부재도 차단**이다
+#         (키를 지워 트리거를 잠재우는 경로).
+#   H-5 → _ABRR_CANON[*]["gate_required"] 로 **게이트별 필수 조건 집합을 명시적으로** 코딩한다.
+#         어휘의 lapse_rule 이 요구하는 두 집합이 서로 다르므로 그 차이를 그대로 적는다:
+#             V2_SSOT_FROZEN ← C-1 · C-2 · C-5-1        (문서 조건)
+#             E001_V2        ← C-3 · C-4 · C-5-2        (산출물 조건)
+#         여기에 due_before → 게이트 사상(_DUE_BEFORE_GATE)을 **합집합**으로 더한다. 둘 중
+#         어느 경로로든 잡히면 실효다 — 더 강한 쪽을 취한다.
+#
+#   **정직한 한계 (원장이 자기 검사에 대해 실제보다 강하게 주장하지 않는다):**
+#     L-1 조건 근거 판정 검사는 audit_sha 커밋 트리의 감사 보고서 JSON **전부**를 훑어
+#         「그 id 를 긍정 판정한 자리가 하나라도 있는가」를 본다. 같은 트리의 **더 오래된** 보고서가
+#         그 조건을 부정 판정하고 있어도 veto 하지 않는다 (신판이 구판을 대체하는 것이 정상이므로).
+#         따라서 「그 조건을 긍정 판정한 적이 있는 감사 커밋」을 고르는 자유는 남는다.
+#         브랜치 조상 검사와 정본 대조가 그 자유를 audit/landing-* 계보 안으로 가둔다.
+#     L-2 `_ABRR_CANON` 은 **이 파일**이 정본이다. 새 수용을 부여하려면 감사 판정과 함께 여기에
+#         정본을 추가해야 한다 — 정본이 없는 id 의 ABRR 은 제외되지 않고 **차단**된다.
+#         이것은 의도된 마찰이다(원장 자기신고만으로 제외를 만들 수 없게 한다).
+#     L-3 `FINAL_REPORT` 는 원장 `gates` 에 선언된 키가 아니다. 따라서 C-5-2 의 due_before 경로는
+#         현재 **비활성**이며, C-5-2 는 gate_required 의 E001_V2 집합 쪽에서만 잡힌다.
+#         원장 lapse_rule 문면이 C-5-② 를 E001_V2 절에 묶었으므로 그 문면을 따랐고, 그쪽이 더 엄격하다.
+#     L-4 이 블록은 원장 **문면**을 검사한다. 조건의 실질 이행 자체는 감사 보고서가 판정한다.
 ABRR = "ACCEPTED_BOUNDED_RESIDUAL_RISK"
 residual_seen = []      # 원장에 있는 ABRR 항목 전부 (선언값 대조용)
 accepted_residual = []  # 그중 수용이 유효한 것 — 합계에서 제외
 lapsed_residual = []    # C-6 자동 실효로 open 복귀한 것
 pending_residual = []   # 아직 선언 전이라 유효하나 미충족 조건이 남은 것
+verified_residual = []  # 조건 근거(audit_sha) 실검증 결과 — 무엇을 근거로 SATISFIED 인지 출력한다
 VOCAB = (v2.get("finding_state_vocabulary") or {}).get(ABRR)
-_gate_decl = str((s.get("gates") or {}).get("V2_SSOT_FROZEN") or "").strip().upper()
-GATE_DECLARED_ACHIEVED = _gate_decl.startswith("ACHIEVED")
 
+# --- 조건 정본 (H-1 · H-2 · H-5) — 원장이 아니라 이 파일이 정본이다 ---
+_ABRR_CANON = {
+    "rc-6-r1-same-authorization-local-reexecution-unbounded": {
+        "granted_by": "adversarial fed3e70ba8430e0fad4f27df11d2eca550f33d30 §7 C-1..C-6",
+        # id -> (owner, due_before)   due_before None = 기한 개념이 없는 조건(C-6 은 실효 규칙 자신이다)
+        "conditions": {
+            "C-1":   ("control",      "V2_SSOT_FROZEN"),
+            "C-2":   ("exec",         "V2_SSOT_FROZEN"),
+            "C-3":   ("exec/control", "E001_V2_EXECUTION"),
+            "C-4":   ("두 감사",       "E001_V2_COMPLETION"),
+            "C-5-1": ("exec",         "V2_SSOT_FROZEN"),
+            "C-5-2": ("연구자",        "FINAL_REPORT"),
+            "C-6":   ("-",            None),
+        },
+        # 게이트별 필수 조건 집합 — 어휘 lapse_rule (C-6-1) 을 그대로 코딩한 것이다.
+        # 두 집합은 서로 다르다. 그 차이가 H-5 의 본체다.
+        "gate_required": {
+            "V2_SSOT_FROZEN": ("C-1", "C-2", "C-5-1"),
+            "E001_V2":        ("C-3", "C-4", "C-5-2"),
+        },
+    },
+}
+_DUE_BEFORE_GATE = {
+    "V2_SSOT_FROZEN":     "V2_SSOT_FROZEN",
+    "E001_V2_EXECUTION":  "E001_V2",
+    "E001_V2_COMPLETION": "E001_V2",
+    "FINAL_REPORT":       "FINAL_REPORT",
+}
+# --- gate 선언 어휘 (H-4) — 접두 매칭을 쓰지 않는다 ---
+_GATE_TOKEN_ACHIEVED = frozenset((
+    "ACHIEVED", "DECLARED", "FROZEN", "PROMOTED", "PROMOTED_VERIFIED", "PASS", "PASSED",
+    "TRUE", "YES", "MET", "SATISFIED", "COMPLETE", "COMPLETED", "DONE", "SET", "ON",
+))
+_GATE_TOKEN_NOT_ACHIEVED = frozenset((
+    "NOT_ACHIEVED", "NOT_DECLARED", "NOT_RUN", "NOT_YET", "NOT_MET", "NOT_SET", "NOT_FROZEN",
+    "UNACHIEVED", "BLOCKED", "PENDING", "DEFERRED", "IN_PROGRESS", "OPEN",
+    "FAIL", "FAILED", "FALSE", "NO", "INVALIDATED", "SUPERSEDED", "WITHDRAWN",
+))
+
+
+def norm_token(x):
+    """공백 정규화 + 대문자. 정규화가 서로 다른 값을 같게 만들 수 있으므로 호출부에서 충돌을 검사한다."""
+    return re.sub(r"\s+", " ", str(x)).strip().upper()
+
+
+def gate_declared_achieved(gate_name):
+    """H-4 — 게이트 선언값의 첫 토큰을 열거 어휘와 정확 대조한다.
+
+    키 부재 · 비문자열 · 어휘 밖 토큰은 전부 **차단**이다. '모르는 값 = 미선언' 으로 넘기면
+    실효 트리거를 임의 문구로 잠재울 수 있다(N6).
+    """
+    gates = s.get("gates")
+    if not isinstance(gates, dict):
+        die("state.json 에 gates 객체가 없다 — 게이트 선언 없이 C-6 실효를 판정할 수 없다 (fail-closed)")
+    if gate_name not in gates:
+        die("gates.%s 선언이 없다 — C-6 실효 트리거 게이트는 원장에 **명시적으로** 선언돼 있어야 한다. "
+            "키를 지워 트리거를 잠재우는 경로를 막는다 (fail-closed)" % gate_name)
+    raw = gates.get(gate_name)
+    if not isinstance(raw, str) or not raw.strip():
+        die("gates.%s(%r) 가 비어 있지 않은 문자열이 아니다 — 게이트 선언 어휘를 읽을 수 없다" % (gate_name, raw))
+    m = re.match(r"[A-Za-z0-9_]+", raw.strip().upper())
+    if not m:
+        die("gates.%s 선언(%r)에서 상태 토큰을 읽을 수 없다" % (gate_name, raw[:120]))
+    tok = m.group(0)
+    if tok in _GATE_TOKEN_NOT_ACHIEVED:
+        return False
+    if tok in _GATE_TOKEN_ACHIEVED:
+        return True
+    die("gates.%s 선언의 상태 토큰 %r 이 열거 어휘 밖이다 (원문 앞 120자: %r)\n"
+        "  achieved     = %s\n  not achieved = %s\n"
+        "  어휘 밖 값을 '미선언' 으로 통과시키지 않는다 — 접두 매칭 우회를 막는다 (H-4, fail-closed)"
+        % (gate_name, tok, raw[:120],
+           ", ".join(sorted(_GATE_TOKEN_ACHIEVED)), ", ".join(sorted(_GATE_TOKEN_NOT_ACHIEVED))))
+
+
+# --- 조건 audit_sha 실검증 (H-3) ---
+_AUDIT_TIPS = {}
+_REPORTS_AT = {}
+_ADJ_AFFIRM = ("SATISFIED", "MET", "FULFILLED", "이행", "충족")
+_ADJ_NEGATE = ("NOT_SATISFIED", "NOT SATISFIED", "UNSATISFIED", "UNMET", "NOT_MET", "NOT MET",
+               "NOT_YET_DUE", "NOT YET DUE", "NOT_TRIGGERED", "미충족", "미이행", "불충족", "미도래")
+
+
+def audit_branch_tips():
+    """원장이 선언한 감사 브랜치의 tip. [AUDIT_ANCESTRY] 와 같은 원천을 쓴다."""
+    if _AUDIT_TIPS:
+        return _AUDIT_TIPS
+    for key in ("latest_adversarial_audit_branch", "latest_ssot_audit_branch"):
+        br = al.get(key)
+        if not isinstance(br, str) or not re.match(r"^audit/landing-[A-Za-z0-9._/-]+$", br):
+            die("audit_lag.%s(%r) 가 audit/landing-* 네임스페이스가 아니다 — 조건 근거의 계보를 "
+                "확인할 기준 브랜치가 없다 (fail-closed)" % (key, br))
+        tip = ""
+        rp = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "--quiet",
+                             "refs/remotes/origin/%s^{commit}" % br], capture_output=True)
+        if rp.returncode == 0:
+            tip = rp.stdout.decode("utf-8", "replace").strip()
+        else:
+            lsr = subprocess.run(["git", "-C", repo, "ls-remote", "origin", "refs/heads/%s" % br],
+                                 capture_output=True)
+            if lsr.returncode == 0 and lsr.stdout.strip():
+                tip = lsr.stdout.decode("utf-8", "replace").split("\t", 1)[0].strip()
+        if not HEX40.match(tip or ""):
+            die("감사 브랜치 origin/%s 의 tip 을 확인할 수 없다 — 계보를 확인할 수 없는 근거로 조건을 "
+                "SATISFIED 로 적을 수 없다 (fail-closed)" % br)
+        _AUDIT_TIPS[br] = tip
+    return _AUDIT_TIPS
+
+
+def reports_at(sha):
+    """그 커밋 트리의 감사 보고서 JSON 전부. 경로를 원장이 고르게 두지 않는다."""
+    if sha in _REPORTS_AT:
+        return _REPORTS_AT[sha]
+    out = []
+    lt = subprocess.run(["git", "-C", repo, "ls-tree", "-r", "--name-only", sha,
+                         "research/landing_accessibility/audit/"], capture_output=True)
+    if lt.returncode == 0:
+        for path in lt.stdout.decode("utf-8", "replace").splitlines():
+            if not path.endswith(".json"):
+                continue
+            rr = subprocess.run(["git", "-C", repo, "show", "%s:%s" % (sha, path)], capture_output=True)
+            if rr.returncode != 0:
+                continue
+            try:
+                out.append((path, json.loads(rr.stdout.decode("utf-8", "replace"))))
+            except Exception:  # noqa: BLE001
+                continue
+    _REPORTS_AT[sha] = out
+    return out
+
+
+def adjudication_hits(node, want):
+    """보고서 어딘가에서 조건 want 를 **긍정 판정**한 자리를 찾는다.
+
+    보고서마다 자리가 다르다 — condition_adjudications[] · acceptance_conditions_status.conditions[] ·
+    c_5_1_verdict 처럼 조건 id 를 **키 이름**에 담은 필드까지 재귀로 훑는다.
+    부정 어휘가 섞인 값은 긍정으로 세지 않는다("UNMET" 이 "MET" 로 잡히는 것을 막는다).
+    """
+    alias = want.lower().replace("-", "_")
+    hits = []
+
+    def affirmative(blob):
+        t = norm_token(blob)
+        if any(n.upper() in t for n in _ADJ_NEGATE):
+            return False
+        return any(a.upper() in t for a in _ADJ_AFFIRM)
+
+    def walk(n, keyed):
+        if isinstance(n, dict):
+            if keyed or norm_token(n.get("id")) == want:
+                for vk in ("verdict", "state", "status", "result", "adjudication"):
+                    v = n.get(vk)
+                    if isinstance(v, str) and affirmative(v):
+                        hits.append("%s=%s" % (vk, v[:80]))
+            for k, v in n.items():
+                walk(v, alias in str(k).lower().replace("-", "_"))
+        elif isinstance(n, list):
+            for v in n:
+                walk(v, keyed)
+
+    walk(node, False)
+    return hits
+
+
+def verify_condition_audit_sha(where, cid, raw_sha):
+    """H-3 — 조건 근거 SHA 를 [AUDIT_ANCESTRY] 와 같은 강도로 검증한다."""
+    if not isinstance(raw_sha, str) or not HEX40.match(raw_sha.strip()):
+        die("%s 의 조건 %s 가 SATISFIED 인데 audit_sha(%r) 가 40-hex 전체 SHA 가 아니다 — "
+            "truthiness 로 충족되지 않는다. owner 와 무관하게 **모든** 조건에 같은 강도를 적용한다 "
+            "(H-2·H-3, self-approval 금지)" % (where, cid, raw_sha))
+    sha = raw_sha.strip()
+    rp = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "--quiet", "%s^{commit}" % sha],
+                        capture_output=True)
+    if rp.returncode != 0 or rp.stdout.decode("utf-8", "replace").strip() != sha:
+        die("%s 의 조건 %s audit_sha(%s) 가 이 저장소의 커밋으로 resolve 되지 않는다" % (where, cid, sha))
+    tips = audit_branch_tips()
+    on = [br for br, tip in sorted(tips.items())
+          if subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", sha, tip],
+                            capture_output=True).returncode == 0]
+    if not on:
+        die("%s 의 조건 %s audit_sha(%s) 가 원장이 선언한 감사 브랜치(%s) tip 의 조상이 아니다 — "
+            "감사 계보 밖 커밋은 조건 충족 근거가 아니다 (fail-closed)"
+            % (where, cid, sha, ", ".join("origin/%s" % b for b in sorted(tips))))
+    hits = []
+    for path, rep in reports_at(sha):
+        for h in adjudication_hits(rep, cid):
+            hits.append("%s [%s]" % (path.rsplit("/", 1)[-1], h))
+    if not hits:
+        die("%s 의 조건 %s audit_sha(%s) 커밋의 감사 보고서 어디에도 %s 를 긍정 판정한 자리가 없다 — "
+            "그 보고서가 **그 조건을 실제로 판정했는지**까지 본다. 계보만 맞는 임의 감사 커밋을 "
+            "근거로 붙일 수 없다 (H-3, fail-closed)" % (where, cid, sha, cid))
+    return "%s <= %s · %s" % (sha[:7], "/".join("origin/%s" % b for b in on), hits[0])
+
+# ---8<--- DR_D_SKIP_BEGIN
+#   (A)/(원장 사이클 대조) 구간. pinned 감사 보고서를 요구하므로 (D) 판정부만 떼어내 공격할 때는
+#   이 구간을 건너뛴다. DR_D_SKIP_END 까지가 그 범위다.
 cycle = al.get("latest_exec_cycle")
 if not isinstance(cycle, str) or not cycle:
     die("audit_lag.latest_exec_cycle 가 없다")
@@ -710,6 +971,7 @@ for auditor in ("adversarial", "ssot"):
         die("원장이 등재한 %s blocking finding 수(%d) != 보고서에서 센 수(%d) — 원장이 감사 보고서를 "
             "그대로 반영하지 않았다" % (auditor, reg_blocking, report_blocking[auditor]))
 
+# ---8<--- DR_D_SKIP_END
 # --- (B) 원장 항목에서 total 을 다시 센다 ---
 excluded = []
 
@@ -781,27 +1043,124 @@ def residual_in_force(f, label):
                 "지적 전 자진 등재 셋을 **전부** 만족하는 항목만 이 경로를 쓸 수 있다 (C-6-2)"
                 % (where, key))
 
-    # --- C-6 자동 실효 ---
+    # --- 조건 식별의 무결성 (H-1) + owner 자기신고 제거 (H-2) + 근거 실검증 (H-3)
+    #     + gate 어휘 (H-4) + 게이트별 조건 집합 (H-5) → C-6 자동 실효 ---
+    canon = _ABRR_CANON.get(fid)
+    if not isinstance(canon, dict):
+        die("%s 이 %s 인데 [DEBT_RECOMPUTE] 에 이 id 의 조건 정본(_ABRR_CANON)이 없다 — 정본이 없으면 "
+            "조건 집합·owner·기한이 전부 원장 자기신고가 된다. 새 수용을 부여하려면 감사 판정과 함께 "
+            "이 파일에 정본을 추가해야 한다 (fail-closed)" % (where, ABRR))
+    canon_conds = canon["conditions"]
+
+    decl = f.get("conditions")
+    if not isinstance(decl, list) or not decl:
+        die("%s 의 conditions 열거가 비어 있다 — 조건 없이 제외할 수 없다" % where)
+    decl_ids = [norm_token(x) for x in decl]
+    if any(not x or x == "NONE" for x in decl_ids):
+        die("%s 의 conditions 열거에 빈 id 가 있다 (%r)" % (where, decl))
+    if len(set(decl_ids)) != len(decl_ids):
+        die("%s 의 conditions 열거가 정규화(strip·공백축약·대문자) 후 충돌한다 (%r → %r) — "
+            "정규화로 서로 다른 조건이 같아지는 입력은 받지 않는다 (H-1, fail-closed)"
+            % (where, decl, decl_ids))
+
     cs = f.get("conditions_status")
     if not isinstance(cs, list) or not cs:
         die("%s 의 conditions_status 가 비어 있다 — 조건 이행 상태 없이 제외할 수 없다" % where)
-    unmet = []
     for c in cs:
         if not isinstance(c, dict):
             die("%s 의 conditions_status 원소가 객체가 아니다" % where)
-        st = str(c.get("state") or "").strip().upper()
-        if st == "SATISFIED" and str(c.get("owner") or "") != "control" and not c.get("audit_sha"):
-            die("%s 의 조건 %r 이 SATISFIED 인데 audit_sha 근거가 없다 (owner=%r) — control 소관이 "
-                "아닌 조건은 감사 근거 없이 충족으로 적을 수 없다 (self-approval 금지)"
-                % (where, c.get("id"), c.get("owner")))
-        if str(c.get("due_before") or "") == "V2_SSOT_FROZEN" and st != "SATISFIED":
-            unmet.append("%s=%s" % (c.get("id"), st or "?"))
+    cs_ids = [norm_token(c.get("id")) for c in cs]
+    if any(not x or x == "NONE" for x in cs_ids):
+        die("%s 의 conditions_status 에 id 없는 항목이 있다" % where)
+    if len(set(cs_ids)) != len(cs_ids):
+        die("%s 의 conditions_status id 가 정규화 후 충돌한다 (%r) — 정규화로 서로 다른 조건이 "
+            "같아지는 입력은 받지 않는다 (H-1, fail-closed)" % (where, cs_ids))
+
+    canon_set, decl_set, cs_set = set(canon_conds), set(decl_ids), set(cs_ids)
+    if decl_set != cs_set:
+        die("%s 의 conditions 열거와 conditions_status 의 id 집합이 다르다 (H-1) — "
+            "conditions 에만: %s · conditions_status 에만: %s\n"
+            "  한쪽에만 있는 id 는 차단이다. 항목을 지워 실효를 잠재우는 경로를 막는다 (fail-closed)"
+            % (where, sorted(decl_set - cs_set) or "없음", sorted(cs_set - decl_set) or "없음"))
+    if cs_set != canon_set:
+        die("%s 의 조건 id 집합이 [DEBT_RECOMPUTE] 정본과 다르다 (H-1) — "
+            "정본에만: %s · 원장에만: %s\n"
+            "  조건 집합은 원장이 아니라 이 파일이 정본이다. 개편하려면 감사 판정과 함께 정본을 "
+            "고쳐야 한다 (fail-closed)"
+            % (where, sorted(canon_set - cs_set) or "없음", sorted(cs_set - canon_set) or "없음"))
+
+    status = {}
+    evidence_note = []
+    for c in cs:
+        cid = norm_token(c.get("id"))
+        canon_owner, canon_due = canon_conds[cid]
+
+        # owner — **정본 대조만** 한다. 검증 강도를 정하지 않는다 (H-2).
+        got_owner = re.sub(r"\s+", " ", str(c.get("owner") or "")).strip()
+        if got_owner.casefold() != str(canon_owner).casefold():
+            die("%s 의 조건 %s owner(%r) 가 정본(%r)과 다르다 — owner 는 공격자가 편집하는 같은 객체의 "
+                "필드이므로 정본과 대조한다. 이 값은 더 이상 검증 강도를 정하지 않는다 (H-2, fail-closed)"
+                % (where, cid, got_owner, canon_owner))
+
+        # due_before — 형식 검증 후 정본과 정확 대조 (H-1)
+        raw_due = c.get("due_before")
+        if raw_due is None:
+            got_due = None
+        elif isinstance(raw_due, str):
+            got_due = norm_token(raw_due)
+            if not re.match(r"^[A-Z0-9_]+$", got_due):
+                die("%s 의 조건 %s due_before(%r) 가 기한 토큰 형식([A-Z0-9_]+)이 아니다 (H-1)"
+                    % (where, cid, raw_due))
+        else:
+            die("%s 의 조건 %s due_before(%r) 가 문자열도 null 도 아니다 (H-1)" % (where, cid, raw_due))
+        if got_due != canon_due:
+            die("%s 의 조건 %s due_before 가 정본과 다르다 — 원장 %r (정규화 %r) != 정본 %r\n"
+                "  소문자·앞뒤 공백·null·임의값으로 실효 스캔을 비껴가는 경로를 전부 막는다 "
+                "(H-1, fail-closed)" % (where, cid, raw_due, got_due, canon_due))
+
+        st = norm_token(c.get("state"))
+        if not st or st == "NONE":
+            die("%s 의 조건 %s 에 state 가 없다 — 상태 없는 조건은 충족으로 보지 않는다 (fail-closed)"
+                % (where, cid))
+        status[cid] = st
+
+        # SATISFIED 는 owner 와 무관하게 **전부 동일 강도**로 감사 근거를 요구한다 (H-2·H-3)
+        if st == "SATISFIED":
+            evidence_note.append("%s:%s" % (cid, verify_condition_audit_sha(where, cid, c.get("audit_sha"))))
+
+    # --- 실효 트리거 — 게이트별 필수 조건 집합(정본) ∪ due_before 사상 (H-5) ---
+    trigger = {}
+    for gate_name, req in canon["gate_required"].items():
+        trigger.setdefault(gate_name, set()).update(req)
+        missing = [x for x in req if x not in status]
+        if missing:
+            die("%s 의 실효 트리거 게이트 %s 가 요구하는 조건 %s 이 conditions_status 에 없다 — "
+                "어휘 lapse_rule 이 이름으로 지정한 조건은 **존재하고** 판정돼 있어야 한다 "
+                "(H-1·H-5, fail-closed)" % (where, gate_name, missing))
+    for cid in status:
+        g = _DUE_BEFORE_GATE.get(canon_conds[cid][1])
+        if g in trigger:
+            trigger[g].add(cid)
+
+    unmet, pending = [], []
+    for gate_name in sorted(trigger):
+        achieved = gate_declared_achieved(gate_name)   # 어휘 밖·키 부재는 여기서 차단된다 (H-4)
+        for cid in sorted(trigger[gate_name]):
+            if status.get(cid) == "SATISFIED":
+                continue
+            if achieved:
+                unmet.append("%s ← %s=%s" % (gate_name, cid, status.get(cid) or "?"))
+            else:
+                pending.append("%s ← %s=%s" % (gate_name, cid, status.get(cid) or "?"))
+
     if unmet:
-        if GATE_DECLARED_ACHIEVED:
-            lapsed_residual.append("%s [%s]" % (fid, ", ".join(unmet)))
-            return False
-        pending_residual.append("%s (미충족: %s — V2_SSOT_FROZEN 선언 시 자동 실효)"
-                                % (fid, ", ".join(unmet)))
+        lapsed_residual.append("%s [%s]" % (fid, "; ".join(unmet)))
+        return False
+    if pending:
+        pending_residual.append("%s (미충족: %s — 해당 게이트를 ACHIEVED 로 선언하는 순간 자동 실효)"
+                                % (fid, "; ".join(pending)))
+    if evidence_note:
+        verified_residual.append("%s — %s" % (fid, " · ".join(evidence_note)))
 
     accepted_residual.append("%s:%s" % (label, fid))
     return True
@@ -829,6 +1188,7 @@ def tally(items, label):
             continue
         n += 1
     return n
+# ---8<--- DR_D_END
 
 
 ledger = 0
@@ -985,6 +1345,7 @@ if not isinstance(obt, dict) or not isinstance(obt.get("total"), int):
     die("v2_transition.open_blocking_total.total 이 없거나 정수가 아니다")
 declared_total = obt["total"]
 
+# ---8<--- DR_D2_BEGIN
 # --- (D) 명시적 제외의 가시성 강제 — 조용히 사라지는 것을 금지한다 ---
 declared_acc = obt.get("accepted_bounded_residual_risk")
 declared_acc_ids = obt.get("accepted_residual_ids")
@@ -1008,10 +1369,11 @@ if residual_seen or declared_acc or declared_acc_ids:
         die("open_blocking_total.exclusion_line 이 없다 — 제외가 무엇을 뜻하는지(CLOSED 가 아님) 적은 "
             "한 줄이 있어야 한다 (C-1)")
 if lapsed_residual:
-    die("%s 수용이 **자동 실효**됐다 (C-6): gates.V2_SSOT_FROZEN 이 ACHIEVED 로 선언됐는데 "
-        "V2_SSOT_FROZEN 이전 조건이 미충족이다.\n  %s\n"
+    die("%s 수용이 **자동 실효**됐다 (C-6): 실효 트리거 게이트가 ACHIEVED 어휘로 선언됐는데 "
+        "그 게이트 이전 조건이 미충족이다.\n  %s\n"
         "  실효된 항목은 OPEN / blocking=true / counted_as_open=true 로 복귀해 다시 계상된다."
         % (ABRR, "\n  ".join(lapsed_residual)))
+# ---8<--- DR_D2_END
 
 breakdown = ("v1=%d, %s, orchestrator=%d, 제외(%s)=%d%s"
              % (v1_blocking, ", ".join("%s=%d" % (k, v) for k, v in per_cycle.items()), orch_blocking,
@@ -1036,6 +1398,8 @@ print("DEBT_RECOMPUTE 명시적 제외 — %s %d건%s"
          (": " + ", ".join(accepted_residual)) if accepted_residual else " (없음)"))
 for _p in pending_residual:
     print("DEBT_RECOMPUTE 경고 — 수용 조건 미충족 잔여: %s" % _p)
+for _v in verified_residual:
+    print("DEBT_RECOMPUTE 조건 근거 실검증 (40-hex · commit resolve · 감사 브랜치 조상 · 보고서 판정) — %s" % _v)
 PY
 note "[DEBT_RECOMPUTE] 보고서·원장 항목에서 독립 재계산 == 선언값 == 0 OK (ACCEPTED_BOUNDED_RESIDUAL_RISK 제외 건수는 위 출력에 별도 표시)"
 
