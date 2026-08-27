@@ -104,5 +104,43 @@
    }
   },
   "what_this_does_not_cover": "변형은 여전히 **내가 상상한 고장**만 잰다. B 의 워커는 11종을 돌렸고 D 는 도구당 2종이다. 더 촘촘한 변형이 더 많은 죽은 방향을 찾을 수 있다."
+ },
+ "remote_reachability_2026_08_28": {
+  "measured_at_kst": "2026-08-28T08:20:38+09:00",
+  "d_head": "99de245eff5cdac51daaf8969805335181fa948c",
+  "question": "D 가 인용한 커밋을 다른 평면이 조회할 수 있는가",
+  "why": "A 가 STEP1-025 에서 사각을 명시했다 — 'A 는 A 의 object store 에 있는 객체만 해석할 수 있다. 다른 평면의 미push 커밋은 해석 불가로 보인다.' 그때 D 것은 전부 push 돼 있어 물지 않았다. **물지 않은 것과 막혀 있는 것은 다르다.**",
+  "measurement": {
+   "D_ACK": {
+    "n": 94,
+    "REACHABLE": 73,
+    "NO_FIELD": 21,
+    "LOCAL_ONLY": 0,
+    "NOT_A_COMMIT": 0
+   },
+   "D_발행티켓": {
+    "n": 39,
+    "REACHABLE": 24,
+    "NO_FIELD": 15,
+    "LOCAL_ONLY": 0,
+    "NOT_A_COMMIT": 0
+   },
+   "NO_FIELD_는": "R18 이전 발행분이다. 소급 개정하지 않는다(STEP1-024 방침).",
+   "대조군": "가짜 sha 는 검출된다 · 현재 HEAD 는 origin 에서 도달 가능"
+  },
+  "gap_found": "**결과는 깨끗한데 가드가 그것을 강제하지 않았다.** push 전에 발행하면 다른 평면이 못 여는 sha 가 나간다.",
+  "fix": "`d_emit_ticket.check()` 에 원격 도달성 검사 추가 — `origin/claude-d/research-sandbox-v21` 의 조상이 아니면 발행을 막고 'push 하라' 고 낸다. 원격 ref 자체를 못 읽으면 통과시킨다(네트워크 문제를 티켓 결함으로 만들지 않는다).",
+  "second_dead_direction_found": {
+   "무엇": "처음 넣은 self_test 는 fixture 선정에 **검사 대상 함수를 썼다.** `_reachable_from_remote` 를 무력화하면 fixture 가 사라지고 그 SKIP 이 통과로 읽혔다 — 검사가 죽어도 대조군이 초록불이다.",
+   "시정": "fixture 를 독립 명령(`git merge-base --is-ancestor`)으로 고르고, fixture 를 못 세우면 **통과가 아니라 실패**로 낸다.",
+   "양방향_확인": {
+    "느슨(check 통과)": "FAIL",
+    "엄격(check 오류)": "FAIL",
+    "도달성검사 무력화": "FAIL",
+    "도달성검사 과잉": "FAIL",
+    "정상": "PASS"
+   },
+   "형태": "오늘 두 번째로 같은 것을 잡았다 — 오전엔 `reach()` 가 무조건 None 이어도 대조군이 통과했고, 지금은 fixture 가 사라져도 통과했다. **둘 다 '검사하지 않음' 이 '문제없음' 으로 읽히는 자리다.**"
+  }
  }
 }

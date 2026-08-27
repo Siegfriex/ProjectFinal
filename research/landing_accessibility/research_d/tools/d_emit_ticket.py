@@ -27,6 +27,9 @@ _PATHLIKE = re.compile(
     r"^(?:research|research_d|tools|results|notebooks|figures|SSOTV3)"
     r"[\w./\-]*\.(?:json|md|ipynb|py|csv|png|jsonl)$")
 
+D_BRANCH = "claude-d/research-sandbox-v21"
+D_REMOTE = f"origin/{D_BRANCH}"
+
 BUS = Path("/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2")
 _HEX40 = re.compile(r"[0-9a-f]{40}")
 # 측정을 담고 있음을 드러내는 키 이름. 보수적으로 넓게 잡는다 —
@@ -37,6 +40,20 @@ FORBIDDEN_TYPES = {"GO", "NO_GO", "NO-GO", "BLOCKER", "DIRECTIVE", "SUPERSEDE"}
 
 def _sh(*a: str) -> str:
     return subprocess.run(a, capture_output=True, text=True).stdout.strip()
+
+
+def _reachable_from_remote(sha: str) -> bool:
+    """sha 가 D 원격 브랜치에서 도달 가능한가. 원격 ref 를 못 읽으면 True 로 둔다.
+
+    원격을 못 읽는 것은 네트워크·설정 문제이지 티켓의 결함이 아니다.
+    거기서 막으면 **막을 이유가 없는 것을 막는다**. 다만 그 경우 검사를
+    한 것이 아니므로 self_test 가 그 상태를 드러낸다.
+    """
+    if subprocess.run(["git", "rev-parse", "--verify", D_REMOTE],
+                      capture_output=True).returncode != 0:
+        return True
+    return subprocess.run(["git", "merge-base", "--is-ancestor", sha, D_REMOTE],
+                          capture_output=True).returncode == 0
 
 
 def check(t: dict) -> list[str]:
@@ -53,6 +70,13 @@ def check(t: dict) -> list[str]:
     elif subprocess.run(["git", "cat-file", "-e", f"{bs}^{{commit}}"],
                         capture_output=True).returncode != 0:
         errs.append(f"base_sha 가 실재 커밋이 아니다: {bs}")
+    elif not _reachable_from_remote(bs):
+        # **다른 평면이 조회할 수 있어야 한다.** 로컬에만 있는 커밋을 base_sha 로
+        # 적으면 A 에게는 '해석 불가' 로 보인다 — A 가 STEP1-025 에서 그 사각을
+        # 명시했고("A 는 A 의 object store 에 있는 객체만 해석할 수 있다"),
+        # 그때는 D 것이 전부 push 돼 있어서 물지 않았다. 물지 않은 것과
+        # 막혀 있는 것은 다르다.
+        errs.append(f"base_sha 가 {D_REMOTE} 에서 도달 불가 — 먼저 push 하라: {bs}")
 
     if t.get("type") in FORBIDDEN_TYPES:
         errs.append(f"D 는 {t['type']} 를 발행하지 않는다 (NON_CANONICAL)")
@@ -136,16 +160,39 @@ def self_test() -> dict:
            "measurement": {"n": 1},           # 측정인데 measured_at_kst 없음 (R26)
            "evidence": ["results/__NO_SUCH_FILE__.json"]}  # 없는 경로
     # limitation 도 없다 → 최소 5종이 걸려야 한다
+    # 원격 도달 불가 fixture — 실재하는 커밋이되 D 브랜치 조상이 아닌 것.
+    # `origin/main` 을 쓴다(존재하지만 D 브랜치에 병합되지 않았다).
+    off = subprocess.run(["git", "rev-parse", "origin/main"],
+                         capture_output=True, text=True).stdout.strip()
+    unreachable = dict(good)
+    unreachable["ticket_id"] = "D-SELFTEST-UNREACHABLE"
+    # **fixture 선정에 검사 대상 함수를 쓰지 않는다.** 처음엔 그렇게 했는데,
+    # `_reachable_from_remote` 를 무력화하면 fixture 가 사라지고 그 SKIP 이
+    # 통과로 읽혔다 — 검사가 죽어도 대조군이 초록불이다.
+    # 독립 명령으로 고른다.
+    _is_anc = (off and len(off) == 40 and subprocess.run(
+        ["git", "merge-base", "--is-ancestor", off, D_REMOTE],
+        capture_output=True).returncode == 0)
+    if off and len(off) == 40 and not _is_anc:
+        unreachable["base_sha"] = off
+    else:
+        off = ""                      # 적당한 fixture 가 없다 — 아래에서 FAIL 로 낸다
+
     g, b = check(good), check(bad)
+    u = check(unreachable) if off else None
     expect = {"base_sha 가 실재": any("실재 커밋이 아니다" in e for e in b),
+              # fixture 를 못 세우면 **통과가 아니라 실패**다. 검사하지 않은 것을
+              # 검사해서 문제없음으로 적지 않는다.
+              "원격 도달성": (any("도달 불가" in e for e in u) if u is not None else False),
               "to=[C] 라우팅": any("to=[C]" in e for e in b),
               "limitation 필수": any("limitation" in e for e in b),
               "R26 measured_at": any("measured_at_kst" in e for e in b),
               "인용 경로 실재": any("인용 경로가" in e for e in b)}
-    ok = not g and all(expect.values())
+    ok = not g and all(v is True for v in expect.values())
     return {"verdict": "PASS" if ok else "FAIL",
             "good_fixture_errors": g,
             "bad_fixture_caught": expect,
+            "remote_reachability_fixture": off[:12] if off else None,
             "why": "대조군이 실패하면 발행하지 않는다 — 못 막는 가드의 '오류 0' 은 0 이 아니다"}
 
 
