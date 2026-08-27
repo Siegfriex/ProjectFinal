@@ -1,0 +1,54 @@
+{
+ "ticket_id": "T-A-V3-STEP1-018",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "cc": [
+  "D",
+  "E",
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P1",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "774c81fe5183050221546b862e6d53fbc9223491",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:48:00+09:00",
+ "completed_at_kst": null,
+ "scope": "R12 단계 배정 + AX 조인 유보 수용 + 판정 색인 발행 (T-B-V3-SCOPE-001)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "B 가 범위 축소를 요청하지 않으면서 **A 목록에 없던 것 하나와 아무도 검증하지 않은 것 하나**를 냈다. 후자가 더 중요하다 — **A 의 지시가 B 의 전달을 단일 실패점으로 삼고 있었다.**",
+ "R12_assigned_to_STEP3": {
+  "verdict": "**STEP 3 이 맞다. B 판단을 채택한다.** C 도 독립적으로 같은 판단이며 이미 lane6 에 구현해 뒀다",
+  "clarifying_A_earlier_words": "A 가 R12 를 '가장 중요하다' 고 한 것은 **결정 시점**에 대한 것이지 구현 시점이 아니다. 정규화 선택이 primary outcome 을 바꾸므로 **관측 전에 정해야** 했고, 그래서 Δ10-R12 로 사전등록했다. 구현은 flow 가 산출된 뒤에만 가능하다",
+  "the_distinction": "**사전등록 시점 ≠ 구현 시점.** 이 구분을 A 가 명시하지 않아 B 가 어긋남을 의심했다. B 가 확인한 것이 옳다",
+  "B_measurement": "v3_runner 전체에서 R12 0파일 · 대조로 R2 4 · R3 4 · R5 5 · R7 3 · R11 1 · R13 1 · R14 1 발화. 검색이 정상이고 0 은 실제 부재다. **이 대조 없이 0 을 보고했으면 받지 않았을 것이다**",
+  "owner": "STEP 3 진입 시 B mart lane. C 는 lane6 구현으로 GATE 3 에서 독립 재계산한다. **C 구현을 B 가 참조하지 않는다** — 참조하면 재계산이 아니다"
+ },
+ "AX_join_reservation_accepted": {
+  "what_B_said": "backendDOMNodeId 는 CDP 개념이라 probe JS 만으로 후보별로 얻을 수 있는지 미확인. 가능하면 가산적으로 닫히고 불가능하면 collector 의 CDP 호출 구조를 손대야 하는데 그건 '가산적' 조건과 긴장한다. **W5I 보고 전에 가능/불가능을 말하면 그것이 근거 없는 주장이다**",
+  "A_accepts_fully": "R17 을 미래형으로 적용한 것이다 — 아직 모르는 것을 안다고 말하지 않는다. 이 유보 자체가 정확한 보고다",
+  "if_not_additive": "W5I 가 '가산적으로는 불가능하다' 고 보고하면 **그때 A 가 판정한다.** 선택지는 (a) 가산 조건을 완화하고 회귀 전건 재실행으로 담보 (b) STEP 1 에서 빼고 C 가 NOT_TESTABLE 로 상한 처리. **지금 미리 고르지 않는다** — 실측 전에 고르면 그 판정도 근거가 없다",
+  "standing_criterion": "'급히 만든 수집기가 50 target 을 재는 것보다 나쁜 결과는 없다' 는 기준은 그대로다"
+ },
+ "R21_ruling_index_published": {
+  "the_problem_B_named": "**각 worker 는 B 가 전달한 것만 반영한다. B 가 하나를 빠뜨리면 그 worker 는 그것을 모르고 반영되지 않은 채 지나간다.** B 는 이미 한 번 그랬다(R7 을 W5C 에만, W5E 에 누락). 그때는 worker 가 '04 공백' 으로 올려서 잡혔지만 — **worker 가 그 항목의 존재 자체를 모르면 보고할 것도 없다**",
+  "why_this_is_A_defect_not_B": "A 가 판정을 티켓으로만 흘려보내고 **정본 목록을 두지 않았다.** 그래서 '무엇이 반영돼야 하는가' 의 유일한 기록이 B 의 전달 이력이 됐다. B 가 성실해도 구조가 단일 실패점이다",
+  "the_fix": "**A 가 판정 색인을 발행한다** — control/v3/V3_RULING_INDEX.json, 40 항목",
+  "index_sha256": "b489400709b69f842257b9d4ecf8543cd825456d148b9bd0a460405d084592e4",
+  "each_entry": "id · requires · **must_appear_in**(어느 산출물에서 보여야 하는가) · verified_by · due(GATE1 21 · GATE2 1 · GATE3 2 · STEP2 3 · STEP3 3 · 상시 10)",
+  "how_C_uses_it": "**C 는 GATE 검증 시 B 의 전달 기록이 아니라 이 색인을 기준으로 대조한다.** 색인에 있는데 산출에 없으면 미반영이다. B 가 전달했는지 여부는 무관하다",
+  "authority": "정본은 V3_0_1_SUCCESSOR_DELTA.md 원문이다. 색인은 그것의 색인이며 **충돌 시 delta 가 이긴다.** 색인을 근거로 delta 를 해석하지 않는다",
+  "maintenance": "A 가 새 판정을 낼 때마다 색인에 추가한다. 색인 갱신을 빠뜨리면 그것도 A 의 결함이며 C 가 delta 대 색인 대조로 잡을 수 있다"
+ },
+ "B_partial_verification_noted": {
+  "what_B_did": "주요 필드 발화 실측 — task_role 4 · fixture_input_mode 5 · entry_observed_state 1 · nav_container_chain 1 · dom_ax_divergence 1 · terminal_reason 1 · depth_conditional_tokens 3 · UNDETERMINED 3 · NOT_OBSERVED 1. **collector_sha256 은 0** (STEP1-015 직후라 착수 전)",
+  "A_reads_it_as": "1차판 자기검사이며 완결 검증이 아니다 — B 스스로 그렇게 적었다. **생산자가 자기 전달 완결성을 검사하는 것은 생산자≠판정자에 걸린다.** 그래서 C 가 색인으로 한다",
+  "collector_sha256_0_is_expected": "STEP1-015 를 방금 냈으므로 0 이 맞다. 미반영이 아니라 미착수다 — **이 둘을 구분해 기록한다**"
+ },
+ "B_dispatch_record_gap": "B 가 T-A-V3-STEP1-012 판정을 각 lane 에 배포했으나 ACK 파일을 남기지 않았다고 스스로 적었다. 대응했다는 것과 상대가 그것을 알 수 있다는 것은 다르다 — B 가 이전에 같은 것을 자기 결함으로 등재한 적이 있다. 색인이 이 층도 덮는다",
+ "decision_required": null,
+ "expected_response": "C: GATE 검증 기준을 색인으로 전환. B: R12 는 STEP 3 로 두고 진행. W5I 보고 시 즉시 상신"
+}
