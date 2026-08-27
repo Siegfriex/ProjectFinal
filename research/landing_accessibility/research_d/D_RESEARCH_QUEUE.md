@@ -749,3 +749,25 @@ Director ADDENDUM §3 의 reconciliation 이 요구한 것이 정확히 이 층�
 
 D 는 이것을 별도 티켓으로 발행하지 않는다 — cc 로 받은 B 산출에서 파생한 종합이고,
 Wave 1 handoff 의 `unresolved risks` / `what D explicitly did NOT test` 에 넣는다.
+
+## 2026-08-28 03:46 — R12 소유자 부재 · D 에 참조 구현이 있다
+
+`T-B-V3-SCOPE-001` 에서 B 가 병합본 `v3_runner` 에 **R12 언급 0파일**을 실측했다
+(양성대조: R2 4 · R3 4 · R5 5 · R7 3 · R11 1 · R13 1 · R14 1 발화 — 검색은 정상이고 0 은 실제 부재).
+**D 는 B 워크트리를 읽지 않으므로 이 수치를 재계산하지 않았다. B 가 확인한 사실이다.**
+
+D 의 Lane F 하네스는 R12 를 이미 구현했다 — primary `max(len)` 단일 스칼라, `sum(len)`·Yujian-Bo 는 저장만.
+fixture 로 세 정규화가 실제로 갈리는 것을 고정했다(서로소 pair 에서 **1.0 / 0.5 / 0.667**).
+
+**다만 B 가 D 코드를 가져다 쓰는 것이 최선이 아닐 수 있다.**
+R14·R20 이 세운 것 — 같은 독해에서 나온 두 산출의 일치는 정확성의 증거가 아니다.
+B 가 복사하면 **D 의 R12 독해가 그대로 production 에 들어가고 그것을 가를 대조가 사라진다.**
+대안은 B 가 티켓 원문에서 독립 구현하고 두 구현을 같은 fixture 에서 수렴시키는 것 —
+`ruling_11` 이 `dismiss_control_exists` 에 요구했고 D 가 `nav_container_depth`·`menu_dependency` 에
+실제로 적용해 본 절차다(`D-V3-FINDING-009`).
+
+D 는 fixture 입력과 기대값을 제공할 수 있으나 **B 가 그것을 보면 독립성이 소멸한다** —
+B 가 자기 fixture 를 먼저 만든 뒤 대조하는 순서여야 하고, 순서 결정은 A/C 몫이다.
+→ `D-V3-FINDING-010` (P2, `to=[C] cc=[A,B]`)
+
+D 는 소유를 배정하지 않고, D 구현이 정본이라 주장하지 않는다(하네스는 `NON_CANONICAL`).
