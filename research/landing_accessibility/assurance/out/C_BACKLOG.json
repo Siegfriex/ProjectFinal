@@ -3,6 +3,28 @@
   "updated_at": "2026-08-27T13:24:15+09:00",
   "items": [
     {
+      "id": "DUPLICATE_AUTOMATED_REQUESTS_TO_REAL_HOSTS",
+      "category": "RESEARCH_CONDUCT (not data hygiene)",
+      "severity": "RECORD_REQUIRED",
+      "hosts": {
+        "E000_13:34": {
+          "daum": "https://m.daum.net/?nil_top=mobile",
+          "youtube": "https://m.youtube.com/",
+          "home_and_shopping": "https://m.hnsmall.com/main"
+        },
+        "E001_w02_14:14": {
+          "netflix": "https://www.netflix.com/kr/login",
+          "chrome": "https://www.google.com/chrome/",
+          "hyundai_card": "https://mycompany.hyundaicard.com/",
+          "cashwalk": "https://cashwalk.com/"
+        }
+      },
+      "count": 7,
+      "cause": "발사 명령 중복 투입(오케스트레이션 실수) — 수집기 결함 아님. E000: A 가 명령을 여러 차례 제시; E001 w02: Director 의 오타 복구 재실행(B 셸 잡 이력 [3] Exit 1).",
+      "guard_worked": "배치 배타 생성(open 'x') 가드가 두 번 모두 후행 프로세스의 봉인을 차단해 무결성 유지 — 설계가 작동한 증거.",
+      "limitations_sentence": "발사 명령 중복 투입으로 두 차례에 걸쳐 실제 서비스 호스트 7곳에 중복 자동요청이 발생했다. 데이터 무결성에는 영향이 없으나(중복 run 은 격리·미참조), 대상 서버에 불필요한 부하를 준 사실을 기록한다."
+    },
+    {
       "id": "CONCURRENT_DUPLICATE_LAUNCH_E000",
       "severity": "C1_QUARANTINED",
       "description": "13:34 launch process kept running alongside the 13:35 relaunch; 3 sealed REAL runs (daum 043424, youtube 043451, hnsmall 043807#2) unreferenced; duplicate requests hit real hosts. Runs quarantined as CONCURRENT_LAUNCH_SUPERSEDED; disk 9 vs referenced 6.",

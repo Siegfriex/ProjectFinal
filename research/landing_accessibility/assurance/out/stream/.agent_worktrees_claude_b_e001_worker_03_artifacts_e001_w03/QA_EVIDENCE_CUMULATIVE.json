@@ -1,7 +1,7 @@
 {
   "artifact": "QA_STREAM_.agent_worktrees_claude_b_e001_worker_03_artifacts_e001_w03",
   "generated_by": "C",
-  "generated_at": "2026-08-27T14:16:12+09:00",
+  "generated_at": "2026-08-27T14:18:19+09:00",
   "out_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03",
   "plan": {
     "frozen_order_n": 59,
@@ -9,33 +9,39 @@
       "hana_bank",
       "adot_call",
       "baemin",
-      "instagram"
+      "instagram",
+      "naver_map",
+      "kb_starbanking",
+      "my_files",
+      "samsung_notes"
     ],
     "partition_worker": "worker_03"
   },
   "worker": "worker_03",
-  "verdict": "MISMATCH",
-  "severity_max": "C1",
-  "n_batches": 1,
+  "verdict": "MATCH",
+  "severity_max": "C2",
+  "n_batches": 2,
   "batch_hash_all_ok": true,
   "outcomes": {
-    "AUTH_GATE": 2,
-    "ACCOUNT_ACTION_BLOCKED": 2
+    "AUTH_GATE": 3,
+    "ACCOUNT_ACTION_BLOCKED": 4,
+    "SKIPPED_RETRY_EXHAUSTED": 1
   },
-  "attempted_n": 4,
+  "attempted_n": 8,
   "joint_valid_j1_j3_n": 0,
   "j4_pending": "requires fact_criterion_result + frozen older-relevant set",
   "excluded_by_reason": {
-    "GATE_REACHED_MPFED_NULL": 2,
-    "L1_NOT_ATTEMPTED_GUARD": 2
+    "GATE_REACHED_MPFED_NULL": 3,
+    "L1_NOT_ATTEMPTED_GUARD": 4,
+    "TRANSPORT_FAILURE": 1
   },
   "by_archetype": {
     "FINANCIAL_ACTION_ENTRY": {
-      "attempted": 1,
+      "attempted": 2,
       "j1_j3_valid": 0
     },
     "UTILITY_ENTRY": {
-      "attempted": 1,
+      "attempted": 3,
       "j1_j3_valid": 0
     },
     "ITEM_DETAIL": {
@@ -45,25 +51,24 @@
     "COMMUNICATION_ENTRY": {
       "attempted": 1,
       "j1_j3_valid": 0
+    },
+    "PLACE_LOOKUP": {
+      "attempted": 1,
+      "j1_j3_valid": 0
     }
   },
   "mpfed_null_reason": {
     "gate_kind_undetermined": 2,
-    "guard_blocked_pre_scout": 2
+    "guard_blocked_pre_scout": 4,
+    "gate_reached_non_endpoint_archetype": 1,
+    "l1_not_attempted": 1
   },
   "mpfed_available_n": 0,
   "e6b_fail_closed_fired_n": 2,
-  "quarantine": [
-    {
-      "run_id": "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z",
-      "class": "CONCURRENT_LAUNCH_SUPERSEDED",
-      "reason": "sealed REAL run not referenced by any batch; produced by a concurrent duplicate launch process (A 13:48: possibly duplicate launch command presentation)",
-      "limitations_sentence": "동시 이중 발사로 실제 호스트에 중복 요청이 나갔고, 그 run 은 분석에서 격리했다."
-    }
-  ],
+  "quarantine": [],
   "append_only": {
-    "batch_files": 1,
-    "runs": 5,
+    "batch_files": 2,
+    "runs": 8,
     "changed_batches": [],
     "changed_manifests": [],
     "removed": []
@@ -72,31 +77,33 @@
     "{\"authoritative\": true, \"base_sha\": \"397a10d\", \"protocol_version\": \"v2.0-pc-fixture-1\", \"real_target_measurement\": true, \"shadow_lane\": \"E001_RUNNER_L0L1_DEFAULT_FIX\", \"status\": \"REAL_TARGET_COLLECTION\"}"
   ],
   "protocol_versions": {
-    "v2.0-pc-fixture-1": 4
+    "v2.0-pc-fixture-1": 7
   },
-  "orphan_evidence_runs": [
-    "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z"
-  ],
+  "orphan_evidence_runs": [],
   "run_accounting": {
-    "disk_runs": 6,
-    "referenced_by_batch": 4,
-    "retry_superseded": [],
+    "disk_runs": 11,
+    "referenced_by_batch": 7,
+    "retry_superseded": [
+      "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051633333382Z",
+      "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z"
+    ],
     "guard_blocked_l0": [],
     "unsealed_in_progress": [
-      "e001_full-wtg_e296af221a5f7128-2026-08-27T051610954078Z"
+      "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051633333382Z",
+      "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z",
+      "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051814381396Z"
     ],
-    "orphan_unexplained": [
-      "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z"
-    ]
+    "pending_batch_sealed": [
+      "e001_full-wtg_95967b50683649f2-2026-08-27T051806340380Z"
+    ],
+    "orphan_unexplained": []
   },
   "findings": [
     {
-      "severity": "C1",
-      "code": "ORPHAN_EVIDENCE_RUNS",
-      "msg": "1 sealed evidence runs referenced by no batch result and not explained by retry/guard",
-      "runs": [
-        "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z"
-      ]
+      "severity": "C2",
+      "code": "L0_DETAIL_ABSENT_IN_BATCH",
+      "msg": "outcome SKIPPED_RETRY_EXHAUSTED: batch result carries no L0 record (lineage from batch→evidence run broken; see orphan_runs)",
+      "target_id": "wtg_2cd43b99c1ed87cf"
     }
   ],
   "rows": [
@@ -311,6 +318,201 @@
       "mpfed_null_reason": "guard_blocked_pre_scout",
       "j1_j3_valid": false,
       "exclusion_reason_c": "L1_NOT_ATTEMPTED_GUARD"
+    },
+    {
+      "target_id": "wtg_efda6e0b8457d63c",
+      "batch_index": 2,
+      "batch_id": "b0002",
+      "execution_mode": "REAL_TARGET",
+      "outcome": "AUTH_GATE",
+      "attempts": 1,
+      "error": "",
+      "scout_invoked": true,
+      "canonical_service_key": "naver_map",
+      "archetype_plan": "PLACE_LOOKUP",
+      "observation_id": "62a6d162da96601df7cb4b3d7a7dfa1c",
+      "evidence_run_id": "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z",
+      "measurement_status": "MEASURED",
+      "requested_url": "https://www.navercorp.com/service/map",
+      "protocol_version": "v2.0-pc-fixture-1",
+      "max_overlay_coverage": 1.0,
+      "max_primary_action_occlusion": 1.0,
+      "primary_action_visible_initial": 0,
+      "blocking_modal_count": 1,
+      "l0_present": true,
+      "run_status": "VERIFIED",
+      "run_entries": 21,
+      "l0a_missing": [],
+      "run_provenance": {
+        "base_sha": "397a10d",
+        "shadow_lane": "E001_RUNNER_L0L1_DEFAULT_FIX",
+        "protocol_version": "v2.0-pc-fixture-1",
+        "authoritative": true,
+        "real_target_measurement": true,
+        "status": "REAL_TARGET_COLLECTION"
+      },
+      "run_execution_mode": "REAL_TARGET",
+      "sealed_at": "2026-08-27T05:16:10.953295Z",
+      "collection_started_at": "2026-08-27T05:15:59.667322Z",
+      "observation_id_recomputed_ok": true,
+      "l1_present": true,
+      "endpoint_status": "AUTH_GATE_REACHED",
+      "endpoint_status_detail": null,
+      "endpoint_reached": 0,
+      "ned": null,
+      "ied": null,
+      "mpfed": null,
+      "archetype": "PLACE_LOOKUP",
+      "forced_dismissal_count": 0,
+      "area_signal_status": "NOT_OBSERVED",
+      "path_sha256": null,
+      "n_steps": 0,
+      "gate_step_idx": [],
+      "e6b_gate_kind_undetermined": false,
+      "mpfed_null_reason": "gate_reached_non_endpoint_archetype",
+      "j1_j3_valid": false,
+      "exclusion_reason_c": "GATE_REACHED_MPFED_NULL"
+    },
+    {
+      "target_id": "wtg_e296af221a5f7128",
+      "batch_index": 2,
+      "batch_id": "b0002",
+      "execution_mode": "REAL_TARGET",
+      "outcome": "ACCOUNT_ACTION_BLOCKED",
+      "attempts": 1,
+      "error": "target 'wtg_e296af221a5f7128': category=LOGIN reason=matched text: '로그인 로그인'",
+      "scout_invoked": false,
+      "canonical_service_key": "kb_starbanking",
+      "archetype_plan": "FINANCIAL_ACTION_ENTRY",
+      "observation_id": "4527fc528e92ba320f693940a4d181b9",
+      "evidence_run_id": "e001_full-wtg_e296af221a5f7128-2026-08-27T051610954078Z",
+      "measurement_status": "MEASURED",
+      "requested_url": "https://omoney.kbstar.com/quics?page=C021616",
+      "protocol_version": "v2.0-pc-fixture-1",
+      "max_overlay_coverage": 1.0,
+      "max_primary_action_occlusion": 1.0,
+      "primary_action_visible_initial": 1,
+      "blocking_modal_count": 7,
+      "l0_present": true,
+      "run_status": "VERIFIED",
+      "run_entries": 33,
+      "l0a_missing": [],
+      "run_provenance": {
+        "base_sha": "397a10d",
+        "shadow_lane": "E001_RUNNER_L0L1_DEFAULT_FIX",
+        "protocol_version": "v2.0-pc-fixture-1",
+        "authoritative": true,
+        "real_target_measurement": true,
+        "status": "REAL_TARGET_COLLECTION"
+      },
+      "run_execution_mode": "REAL_TARGET",
+      "sealed_at": "2026-08-27T05:16:20.500965Z",
+      "collection_started_at": "2026-08-27T05:16:10.954543Z",
+      "observation_id_recomputed_ok": true,
+      "l1_present": false,
+      "endpoint_status": null,
+      "endpoint_status_detail": null,
+      "endpoint_reached": null,
+      "ned": null,
+      "ied": null,
+      "mpfed": null,
+      "archetype": "FINANCIAL_ACTION_ENTRY",
+      "forced_dismissal_count": null,
+      "area_signal_status": null,
+      "path_sha256": null,
+      "e6b_gate_kind_undetermined": false,
+      "mpfed_null_reason": "guard_blocked_pre_scout",
+      "j1_j3_valid": false,
+      "exclusion_reason_c": "L1_NOT_ATTEMPTED_GUARD"
+    },
+    {
+      "target_id": "wtg_ed7b9bea21def8f8",
+      "batch_index": 2,
+      "batch_id": "b0002",
+      "execution_mode": "REAL_TARGET",
+      "outcome": "ACCOUNT_ACTION_BLOCKED",
+      "attempts": 1,
+      "error": "target 'wtg_ed7b9bea21def8f8': category=LOGIN reason=matched text: '로그인 로그인'",
+      "scout_invoked": false,
+      "canonical_service_key": "my_files",
+      "archetype_plan": "UTILITY_ENTRY",
+      "observation_id": "90a3f404f3934105c3728a2ee6dffcd4",
+      "evidence_run_id": "e001_full-wtg_ed7b9bea21def8f8-2026-08-27T051620501534Z",
+      "measurement_status": "MEASURED",
+      "requested_url": "https://www.samsungsvc.co.kr/solution/164886",
+      "protocol_version": "v2.0-pc-fixture-1",
+      "max_overlay_coverage": 0.0723,
+      "max_primary_action_occlusion": 1.0,
+      "primary_action_visible_initial": 0,
+      "blocking_modal_count": 1,
+      "l0_present": true,
+      "run_status": "VERIFIED",
+      "run_entries": 24,
+      "l0a_missing": [],
+      "run_provenance": {
+        "base_sha": "397a10d",
+        "shadow_lane": "E001_RUNNER_L0L1_DEFAULT_FIX",
+        "protocol_version": "v2.0-pc-fixture-1",
+        "authoritative": true,
+        "real_target_measurement": true,
+        "status": "REAL_TARGET_COLLECTION"
+      },
+      "run_execution_mode": "REAL_TARGET",
+      "sealed_at": "2026-08-27T05:16:33.332550Z",
+      "collection_started_at": "2026-08-27T05:16:20.501865Z",
+      "observation_id_recomputed_ok": true,
+      "l1_present": false,
+      "endpoint_status": null,
+      "endpoint_status_detail": null,
+      "endpoint_reached": null,
+      "ned": null,
+      "ied": null,
+      "mpfed": null,
+      "archetype": "UTILITY_ENTRY",
+      "forced_dismissal_count": null,
+      "area_signal_status": null,
+      "path_sha256": null,
+      "e6b_gate_kind_undetermined": false,
+      "mpfed_null_reason": "guard_blocked_pre_scout",
+      "j1_j3_valid": false,
+      "exclusion_reason_c": "L1_NOT_ATTEMPTED_GUARD"
+    },
+    {
+      "target_id": "wtg_2cd43b99c1ed87cf",
+      "batch_index": 2,
+      "batch_id": "b0002",
+      "execution_mode": "REAL_TARGET",
+      "outcome": "SKIPPED_RETRY_EXHAUSTED",
+      "attempts": 2,
+      "error": "EvidenceError: run e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z 에 산출물이 없다 — 관측 0건인 run 은 유효하지 않다 (07 §4)",
+      "scout_invoked": null,
+      "canonical_service_key": "samsung_notes",
+      "archetype_plan": "UTILITY_ENTRY",
+      "observation_id": null,
+      "evidence_run_id": null,
+      "measurement_status": null,
+      "requested_url": null,
+      "protocol_version": null,
+      "max_overlay_coverage": null,
+      "max_primary_action_occlusion": null,
+      "primary_action_visible_initial": null,
+      "blocking_modal_count": null,
+      "l0_present": false,
+      "l1_present": false,
+      "endpoint_status": null,
+      "endpoint_status_detail": null,
+      "endpoint_reached": null,
+      "ned": null,
+      "ied": null,
+      "mpfed": null,
+      "archetype": "UTILITY_ENTRY",
+      "forced_dismissal_count": null,
+      "area_signal_status": null,
+      "path_sha256": null,
+      "e6b_gate_kind_undetermined": false,
+      "mpfed_null_reason": "l1_not_attempted",
+      "j1_j3_valid": false,
+      "exclusion_reason_c": "TRANSPORT_FAILURE"
     }
   ]
 }
