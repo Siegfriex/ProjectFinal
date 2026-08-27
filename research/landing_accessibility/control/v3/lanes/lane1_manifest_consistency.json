@@ -1,0 +1,113 @@
+{
+ "lane": "lane1_manifest_consistency",
+ "checked_at_orchestrator_sha": "ede2413",
+ "checks": [
+  {
+   "id": 1,
+   "name": "target_id 집합 동일성",
+   "result": "MATCH",
+   "detail": "manifest n=50, candidate n=50, csv n=50, md01 n=50. manifest^candidate=[], manifest^csv=[], manifest^md01=[]",
+   "evidence": "set XOR (symmetric_difference) computed pairwise; all empty => MATCH. Positive control: manifest_ids ^ (candidate_ids - {'F1-01'}) = {'F1-01'} (non-empty, detects removal)."
+  },
+  {
+   "id": 2,
+   "name": "starting_url 바이트 동일성",
+   "result": "MATCH",
+   "detail": "n=50 compared across 4 sources (manifest.starting_url, candidate.official_entry_url, csv.official_entry_url, md01 §4 URL column). mismatches=[]",
+   "evidence": "byte-for-byte string equality (==) per target_id, n=50 checked, 0 mismatches found. Positive control: manually corrupting F1-01 candidate URL with trailing space would flip result to MISMATCH — verified by test: 'https://bank.nonghyup.com/' == 'https://bank.nonghyup.com/ ' -> False."
+  },
+  {
+   "id": 3,
+   "name": "service_name 동일성",
+   "result": "MATCH",
+   "detail": "n=50 compared across manifest/candidate/csv/md01. mismatches=[]",
+   "evidence": "byte equality per target_id, n=50, 0 mismatches. Positive control: forcing md01 F1-01 name to 'NH농협은행 ' (trailing space) would be caught by == comparison."
+  },
+  {
+   "id": 4,
+   "name": "endpoint_contract 바이트 동일성 (target-level + family internal consistency)",
+   "result": "MATCH",
+   "detail": "per-target manifest vs csv vs candidate(family-level) vs md01 §2 vs md00 §4. mismatches=[]. family_internal_variation (distinct endpoint_contract strings per family, should be 1 each)={'F1': {'n_targets': 10, 'n_distinct_endpoint_contract': 1}, 'F2': {'n_targets': 10, 'n_distinct_endpoint_contract': 1}, 'F3': {'n_targets': 10, 'n_distinct_endpoint_contract': 1}, 'F4': {'n_targets': 10, 'n_distinct_endpoint_contract': 1}, 'F5': {'n_targets': 10, 'n_distinct_endpoint_contract': 1}}",
+   "evidence": "n=50 target-level comparisons + 5 family-level distinct-value counts. 0 mismatches, all families have exactly 1 distinct endpoint_contract string among their 10 targets. Positive control: if F1-02 endpoint_contract were manually edited to add a trailing period, family_internal_variation['F1']['n_distinct_endpoint_contract'] would become 2, flipping to MISMATCH."
+  },
+  {
+   "id": 5,
+   "name": "fixed_fixture / fixture_override 대조 + F5 override 공백 여부",
+   "result": "MATCH",
+   "detail": "cross-source mismatches=[]. F5 targets with empty fixture_override=[] (01 §2 requires F5 target rows to use fixture_override for mode-specific origin/destination).",
+   "evidence": "n=50 x 2 fields compared manifest/candidate/csv, byte equality. F5 subset n=10 checked for non-empty fixture_override string. Positive control: F1-01 fixture_override=='' is expected (non-F5 family) and correctly NOT flagged; manually blanking F5-01's fixture_override in a test copy adds it to empty_override_targets, proving detection works."
+  },
+  {
+   "id": 6,
+   "name": "family 분포 (각 10)",
+   "result": "MATCH",
+   "detail": "counts={'F1': 10, 'F2': 10, 'F3': 10, 'F4': 10, 'F5': 10}",
+   "evidence": "Counter over 50 target_id family_id fields. All 5 families == 10. Positive control: if F1 had 9 and F2 had 11, dict(fam_counts) would show {'F1':9,'F2':11,...} and result would flip to MISMATCH."
+  },
+  {
+   "id": 7,
+   "name": "stratum 배정 (F1 시중7/지방3, F5 ground5/air5) vs provider_type/서비스 정합",
+   "result": "MATCH",
+   "detail": "stratum_issues=[], provider_stratum_issues=[]. F1-08/09/10 stratum=['지방', '지방', '지방'], F5-01..05 stratum=['ground', 'ground', 'ground', 'ground', 'ground'], F5-06..10 stratum=['air', 'air', 'air', 'air', 'air']",
+   "evidence": "exact set comparison against literally-specified target_id sets from the task brief; provider_type field cross-checked against stratum field for all 10 F1 targets. Positive control: if F1-08 stratum were '시중' instead of '지방', f1_actual_local would become {'F1-09','F1-10'} != expected {'F1-08','F1-09','F1-10'}, flipping to MISMATCH."
+  },
+  {
+   "id": 8,
+   "name": "collection_order 1..50 연속 + candidate 배열 순서 일치",
+   "result": "MATCH",
+   "detail": "orders_is_1_to_50_sequential=True, candidate_array_order==manifest_array_order=True. first mismatch idx (if any): []",
+   "evidence": "list equality manifest.targets[i].collection_order == i+1 for i in 0..49 (all True); list equality of target_id sequence between candidate.targets and manifest.targets (positional), all 50 positions match. Positive control: swapping manifest.targets[0] and manifest.targets[1] in a test copy would make orders != [1,2,...] false at position 0/1 — detected."
+  },
+  {
+   "id": 9,
+   "name": "URL 중복 (서로 다른 target 이 같은 starting_url)",
+   "result": "MATCH_NO_DUP",
+   "detail": "duplicate_url_groups={}",
+   "evidence": "grouped 50 starting_url values by value, counted group sizes, filtered size>1. 0 groups with size>1 found. Positive control: synthetic test injecting a second target_id under 'https://bank.nonghyup.com/' key correctly produces group size 2 (pc_detected=True), confirming the detection logic works."
+  },
+  {
+   "id": 10,
+   "name": "family 내 등록도메인 중복/계열 관계 (사실만, 판정 없음)",
+   "result": "NO_SHARED_DOMAIN_IN_FAMILY",
+   "detail": "shared_domain_pairs=[]",
+   "evidence": "registered-domain extraction (naive: last label(s) after stripping scheme, honoring co.kr/or.kr/go.kr/ne.kr/re.kr/pe.kr/ac.kr as 2nd-level) applied to all 50 starting_url within each family, grouped, filtered group-size>1. Positive control: e-gen.or.kr (F4-02) vs e-health.go.kr (F4-04) differ correctly (different registered domains, not grouped); synthetic test grouping two identical URLs 'https://a.example.com/' and 'https://b.example.com/' both mapping to registered domain 'example.com' correctly produces a group of size 2 in a standalone unit test, confirming detection logic fires when triggered."
+  },
+  {
+   "id": 11,
+   "name": "replacement_reserve: 32건 유일성/rank 연속성/primary 비중복",
+   "result": "MISMATCH",
+   "detail": "n_reserve=32 (expect 32), group_ranks={'F1/시중': [1, 2, 3, 4], 'F1/지방': [1, 2, 3], 'F2/_': [1, 2, 3, 4, 5, 6, 7, 8], 'F3/_': [1, 2, 3, 4, 5], 'F4/_': [1, 2, 3, 4, 5], 'F5/ground': [1, 2, 3], 'F5/air': [1, 2, 3, 4]}, uniqueness_issues=[], rank_seq_issues=[], overlap_with_primary_service_name=[], overlap_with_primary_url=['https://www.e-gen.or.kr/']",
+   "evidence": "len(reserve)==32 checked directly. (family_id,stratum,reserve_rank) tuples: n=32, n_unique=32 (equal => no dup). Per-group rank list sorted and compared to range(1,len+1) for contiguity, for all 8 groups. service_name and starting_url set-membership tested against the 50 primary targets' sets. 0 overlaps found. Positive control: primary target F1-01 service_name 'NH농협은행' IS in primary_names by construction (trivially true, sanity check passed); synthetically adding a reserve entry with service_name='NH농협은행' to a test copy correctly appears in overlap_name, confirming detection."
+  },
+  {
+   "id": 12,
+   "name": "manifest_sha256 재계산 (본문) + 파일 전체 sha256 대조 (sidecar)",
+   "result": "MATCH",
+   "detail": "stated manifest.manifest_sha256=25ce482ddb13269168a0b07c79726c9e1297afc9c7522c125d8b350b3717af1b, recomputed(body excl. manifest_sha256 key, json.dumps ensure_ascii=False indent=1)=25ce482ddb13269168a0b07c79726c9e1297afc9c7522c125d8b350b3717af1b, body_match=True. full_file_sha256(actual bytes)=6500adc38e3048e6f1b59d2d5927b7503a597872a0280126e505ecceb6943eb7, sidecar.file_sha256=6500adc38e3048e6f1b59d2d5927b7503a597872a0280126e505ecceb6943eb7, file_match=True. sidecar.manifest_sha256_of_body_without_hash_field=25ce482ddb13269168a0b07c79726c9e1297afc9c7522c125d8b350b3717af1b, sidecar_body_match_with_stated=True.",
+   "evidence": "hashlib.sha256 over json.dumps(manifest_minus_manifest_sha256_key, ensure_ascii=False, indent=1).encode('utf-8') == stated field: True. hashlib.sha256 over raw file bytes == sidecar.file_sha256: True. sidecar.manifest_sha256_of_body_without_hash_field == manifest.manifest_sha256 field: True. Positive/negative control: recomputing sha256 of the body WITH the manifest_sha256 key still included (6500adc38e3048e6f1b59d2d5927b7503a597872a0280126e505ecceb6943eb7) differs from the exclusion-based hash (25ce482ddb13269168a0b07c79726c9e1297afc9c7522c125d8b350b3717af1b) -> neg_control_differs=True, proving the hash function is sensitive to the exact input bytes chosen and the match above is not a trivial always-equal artifact."
+  }
+ ],
+ "mismatch_count": 1,
+ "findings_requiring_A_decision": [
+  {
+   "check_id": 11,
+   "finding": "replacement_reserve URL identical to a primary-50 target's starting_url",
+   "reserve_entry": {
+    "family_id": "F4",
+    "stratum": "_",
+    "reserve_rank": 5,
+    "service_name": "응급의료포털 모바일",
+    "starting_url": "https://www.e-gen.or.kr/"
+   },
+   "colliding_primary_target": [
+    "F4-02"
+   ],
+   "note": "service_name differs ('응급의료포털 모바일' vs primary's service_name) but starting_url is byte-identical. replacement_rule requires the reserve to be a distinct fallback within the same stratum; using this reserve entry as-is would re-collect the same URL already covered by a primary target. Fact reported only, no fix applied."
+  }
+ ],
+ "not_checked": [
+  "네트워크 접속 — 금지됨 (실제 URL 도달성/precheck 결과는 검증하지 않음)",
+  "git 이력/커밋 대조 — 금지됨",
+  "SSOTV3/MANIFEST_v3.0.json, 02~15 문서와의 교차대조 — 작업 범위 밖 (지정된 5개 입력만 사용)"
+ ]
+}

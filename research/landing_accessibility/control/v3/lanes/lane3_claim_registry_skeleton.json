@@ -1,0 +1,266 @@
+{
+  "registry_id": "LA-V3-CLAIM-REGISTRY-SKELETON-STEP3",
+  "status": "SKELETON_PRE_RESULT",
+  "created_by": "Claude A control worktree - documentation lane",
+  "orchestrator_head": "ede241321b5b8599161d95a59bc38034590283e8",
+  "purpose": "STEP 3 에서 A 가 claim 을 승인/반려할 때 쓰는 빈 틀. 결과가 없는 상태에서 만들었으므로 claim_text 는 전부 null 이다. 이 파일 자체는 어떤 REAL 실행권한도 부여하지 않는다.",
+  "ssot_authority_refs": [
+    "SSOTV3/00_SSOT_v3.0_CROSS_SERVICE_FLOW.md#0-north-star",
+    "SSOTV3/00_SSOT_v3.0_CROSS_SERVICE_FLOW.md#11-v3-claim-boundary",
+    "SSOTV3/05_ANALYSIS_PLAN_v3.0.md#2-primary-dimensions",
+    "SSOTV3/05_ANALYSIS_PLAN_v3.0.md#3-stfp",
+    "SSOTV3/05_ANALYSIS_PLAN_v3.0.md#4-family-level-summary",
+    "SSOTV3/05_ANALYSIS_PLAN_v3.0.md#6-missingness-denominator",
+    "SSOTV3/05_ANALYSIS_PLAN_v3.0.md#7-claim-language",
+    "SSOTV3/04_FLOW_CODEBOOK_v3.0.md#4-measurement-variables",
+    "SSOTV3/10_GLOSSARY_v3.0.md",
+    "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+    "research/landing_accessibility/control/method/METHODOLOGY_PRESERVED.md#2-truth-hierarchy",
+    "research/landing_accessibility/control/method/METHODOLOGY_PRESERVED.md#7-preregistration"
+  ],
+  "claim_type_enum": ["DEFINITION", "IMPLEMENTATION", "OBSERVATION", "ANALYSIS", "DECISION", "PROJECTION"],
+  "claim_type_rule": "유형 간 승격 금지. OBSERVATION 으로 등록된 slot 이 나중에 ANALYSIS 로, ANALYSIS 가 PROJECTION 으로 바뀌는 것은 결과를 보고 주장 강도를 올리는 것과 동일하다. 유형을 바꾸려면 이 slot 을 폐기하고 새 claim_id 로 새 slot 을 열어야 하며, 폐기 사유를 REAJDME 절차대로 기록한다.",
+  "axis_reference_note": "axis 필드는 05_ANALYSIS_PLAN_v3.0.md §2 의 A~H(Direct Discoverability..Obstruction) dimension 을 가리킨다. SSOT §3 의 Axis A(Standard Accessibility)/B(Task Entry Flow)/C(Obstruction) 구성과는 다른 명명체계이므로 혼동하지 않는다. 05 §2 dimension 은 axis_dim_* 접두어로 표기한다.",
+  "denominator_chain_stages": [
+    "candidate_10",
+    "eligible_frozen_10",
+    "attempted_10",
+    "evidence_bearing_n",
+    "flow_evaluable_n"
+  ],
+  "denominator_chain_source": "SSOTV3/05_ANALYSIS_PLAN_v3.0.md §6: 각 family 에서 candidate 10 → eligible/frozen 10 → attempted 10 → evidence-bearing n → flow-evaluable n. family 당 독립 n=10. 45 pair 는 distance-matrix cell 이지 표본 n 이 아니다 (SSOTV3 §4 표본 해석, 05 §1).",
+  "slots": [
+    {
+      "claim_id": "CLAIM-AXIS-A-DISCOVERABILITY",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "axis_dim_A_direct_discoverability",
+      "denominator": {
+        "stage": "flow_evaluable_n",
+        "unit": "service (per family, target n=10)",
+        "note": "s0_task_control_visible 단독은 evidence_bearing_n 만으로도 보고 가능하나, menu_dependency rate 는 endpoint 이전 action_sequence 전체가 있어야 하므로 이 slot 전체의 denominator 는 flow_evaluable_n 로 고정한다. evidence_bearing_n 과 flow_evaluable_n 을 나란히 병기하고 둘이 다르면 그 차이를 §6 chain 대로 설명한다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4 (s0_task_control_visible, first_visible_scroll_state, menu_dependency 정의)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "Flow Mart per-target row set (family×10) 의 s0_task_control_visible / first_visible_scroll_state / task_flow_sequence 필드", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"},
+        {"artifact": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.sha256.json", "kind": "T1_frame_identity_hash", "status": "AVAILABLE"}
+      ],
+      "independent_recompute": "C 는 원 스크린샷/DOM snapshot 에서 s0_task_control_visible 을 직접 재판정하고, action_sequence_raw 에서 menu_dependency 를 재도출한다(OPEN_GLOBAL_MENU/OPEN_LOCAL_MENU/EXPAND_ACCORDION 존재 여부). B 산출 rate 와 C 재계산 rate 가 다르면 승인 보류.",
+      "scope_limit": "family 당 n=10 기준 rate/분포만 보고한다. 59 나 12 diagnostic 결과를 이 rate 에 합산하지 않는다. scroll 은 activation depth 에 포함하지 않는다(04 §5).",
+      "forbidden_upgrade": "'S0 가시성이 낮았다/menu 의존도가 높았다' 를 '고령 사용자가 이 과업을 찾지 못했을 것이다/탐색 실패율이 X% 다' 로 승격 금지. 사람 실험 없이 실패율을 추정하지 않는다(SSOT §0 말하면 안 되는 것).",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-AXIS-B-SPATIAL",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "axis_dim_B_spatial",
+      "denominator": {
+        "stage": "evidence_bearing_n",
+        "unit": "service (per family, target n=10)",
+        "note": "entry_x_norm/entry_y_norm/entry_zone 은 task-entry control 이 식별된 시점(evidence_bearing)에 성립한다. flow 완주 여부와 무관하므로 evidence_bearing_n 을 denominator 로 쓰되, flow_evaluable_n 과 불일치 시 그 갭을 명시한다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4, §6 (entry_x_norm/entry_y_norm/entry_zone 정의, 원좌표 보존 규칙)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "Flow Mart per-target entry_x_norm/entry_y_norm/entry_zone 원자료", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"}
+      ],
+      "independent_recompute": "C 는 원 bbox 좌표에서 entry_x_norm/entry_y_norm 을 독립 재정규화하고 entry_zone 분류를 재적용한다. entropy/분산 등 family 수준 요약통계도 C 가 raw 좌표에서 재계산한다.",
+      "scope_limit": "family n=10 내부 좌표 분포/entropy 만 기술한다. 'service-pair spatial displacement' 는 family 당 45 개 pair distance 값(=distance matrix cell)이며 독립 표본 n=45 로 취급하지 않는다.",
+      "forbidden_upgrade": "'family 내 45 pair 의 평균 spatial displacement 가 X 였다' 를 'n=45 표본에서 유의미한 차이가 있었다'처럼 표본크기 n=45 통계로 승격 금지 — 독립 n 은 family 당 10 이다(05 §1, SSOT §4). 또한 'entry 위치가 서비스마다 달랐다' 를 '고령자가 위치를 못 외운다'는 인지 주장으로 승격 금지.",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-AXIS-C-LABEL-IDENTIFICATION",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "axis_dim_C_label_identification",
+      "denominator": {
+        "stage": "evidence_bearing_n",
+        "unit": "service (per family, target n=10)",
+        "note": "visible_label_text/accessible_name 은 task-entry control 이 식별되면 확정 가능. label_relation 계산에는 둘 다 필요하므로 두 값이 모두 존재하는 evidence_bearing_n 을 denominator 로 쓴다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4, §7 (visible_label_text/accessible_name/accessible_name_source/label_relation/entry_label_modality 정의, ICON_ONLY_AX_NAMED vs ICON_ONLY_UNNAMED 구분)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "Flow Mart per-target label 필드 (visible_label_text, accessible_name, accessible_name_source, label_relation, entry_label_modality)", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"}
+      ],
+      "independent_recompute": "C 는 브라우저 AX tree dump 에서 accessible_name 을 독립 재계산하고, 04 §5 의 고정 synonym map 기준으로 label_relation(MATCH/SEMANTIC_EQUIV/DIFFERENT/...) 을 재판정한다. embedding 유사도로 자동 병합된 값이 있으면 반려.",
+      "scope_limit": "label 형태의 unique count / rate 만 보고한다. semantic-equivalent 판정은 사전 고정 synonym map 범위 내에서만 인정한다.",
+      "forbidden_upgrade": "'label 형태가 family 내에서 N 가지로 갈렸다' 를 'WCAG 3.2.4(Consistent Identification) 위반이다'로 승격 금지 — cross-provider 비교는 WCAG 규범판정이 아니라 별도 구조적 연구축이다(SSOT §2, §0 말하면 안 되는 것). Axis A(KWCAG) 증거 없이 이 axis 단독으로 준수/위반 판정하지 않는다.",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-AXIS-D-CONTROL-REVEAL",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "axis_dim_D_control_reveal",
+      "denominator": {
+        "stage": "evidence_bearing_n",
+        "unit": "service (per family, target n=10)",
+        "note": "entry_control_type/nav_container_type/reveal_direction 은 control 식별 시점에 확정. nav_container_depth 는 reveal 이 있는 subset 에서만 의미가 있으므로, 이 slot 은 evidence_bearing_n 전체 분포 + reveal-dependent subset(menu_dependency=1) 의 depth 를 별도 병기한다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4 (entry_control_type/nav_container_type/reveal_direction/nav_container_depth 정의)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "Flow Mart per-target control/nav 필드", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"}
+      ],
+      "independent_recompute": "C 는 action_sequence_raw 에서 nav_container_type/reveal_direction/nav_container_depth 를 재도출하고, control type 분류(TEXT_LINK/ICON_ONLY/... )를 원 DOM/AX 증거로 재확인한다.",
+      "scope_limit": "categorical distribution 보고에 한정. reveal 이 없는 target(menu_dependency=0)의 nav_container_depth 는 0 으로 명시하고 결측과 구분한다.",
+      "forbidden_upgrade": "'control type/ reveal 방식이 서비스마다 달랐다' 를 '실제 조작 난이도가 높았다/사용성이 나빴다'는 usability 판정으로 승격 금지 — 사람 실험 없는 usability score 는 SSOT §11 금지 항목이다.",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-AXIS-E-FLOW-TOPOLOGY",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "axis_dim_E_flow_topology",
+      "denominator": {
+        "stage": "flow_evaluable_n",
+        "unit": "service (per family, target n=10)",
+        "note": "unique sequence signature, Levenshtein distance, LCS similarity 는 task_flow_sequence 가 종료상태(ENDPOINT_REACHED/AUTH_GATE/BLOCKED/ABSTAIN 등)까지 확정된 target 에서만 계산 가능 → flow_evaluable_n."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §2, §3 (canonical token, task_flow_sequence vs experienced_flow_sequence)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "Flow Mart per-target task_flow_sequence / experienced_flow_sequence / action_sequence_raw", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"},
+        {"artifact": "C 독립 재계산 distance/LCS 매트릭스", "kind": "T2_independent_recompute", "status": "PENDING"}
+      ],
+      "independent_recompute": "C 는 동일 raw action_sequence 에서 normalized Levenshtein distance 와 LCS similarity 를 독립 재계산하고 heatmap 셀 값을 B 산출과 대조한다. 값 불일치 시 원인(토큰화 규칙 상이/원자료 상이)을 규명하기 전 승인 보류.",
+      "scope_limit": "family 당 10 service 의 45 pairwise distance 값은 하나의 family-level distance matrix(분석단위)이며 독립표본 n=45 가 아니다. cross-family 로 이 매트릭스를 합산하지 않는다.",
+      "forbidden_upgrade": "family 내 45 pair distance 값을 '45 개 표본에서 유의미한 flow 차이가 있었다'는 문장으로 쓰는 것 금지 — 독립 n 은 10 이다(SSOT §4 표본 해석, 05 §1). 또한 'flow signature 가 다양했다' 를 '한 서비스에서 학습한 절차가 다른 서비스로 전이되지 않아 고령자가 실패했다'는 실측 전이실패 인과로 승격 금지 — 이는 STFP profile slot 의 secondary interpretation 범위조차 넘는다.",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-AXIS-F-DEPTH",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "axis_dim_F_depth",
+      "denominator": {
+        "stage": "flow_evaluable_n",
+        "unit": "service (per family, target n=10)",
+        "note": "activation_depth 는 state-changing activation 만 세는 파생값으로 flow 가 종료상태까지 확정돼야 median/IQR/range 계산이 유효하다. legacy NED/IED/MPFED 는 optional 부가 필드로만 병기."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4, §5 (activation_depth 정의·산출규칙)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "Flow Mart per-target activation_depth (+ optional NED/IED/MPFED compatibility fields)", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"}
+      ],
+      "independent_recompute": "C 는 action_sequence_raw 에서 scroll/typing/passive/dismiss 를 제외한 state-changing activation 만 다시 세어 activation_depth 를 재계산하고 median/IQR/range 를 재도출한다.",
+      "scope_limit": "family n=10 의 median/IQR/range 로만 보고. legacy NED/IED/MPFED 는 v3 본연구 효과크기 추정치가 아니며(SSOT §1-6, §10) 참고 병기로만 쓴다.",
+      "forbidden_upgrade": "'activation depth 중앙값이 family 간 달랐다' 를 '깊이가 깊은 서비스가 고령자에게 더 부담스럽다'는 인지부하 인과 주장으로 승격 금지. 12 diagnostic(NED/IED/MPFED) 결과를 본연구 main effect 로 오인해 인용 금지.",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-AXIS-G-AUTH",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "axis_dim_G_auth",
+      "denominator": {
+        "stage": "flow_evaluable_n",
+        "unit": "service (per family, target n=10)",
+        "note": "auth_gate_stage(NONE/BEFORE_TASK_DISCOVERY/AFTER_TASK_SELECT/AT_ENDPOINT) 분류는 flow 가 종료상태까지 확정돼야 최종값이 정해진다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/00_SSOT_v3.0_CROSS_SERVICE_FLOW.md §6 (Auth/Credential/Transaction 계약), SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4 (auth_gate_stage 정의)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "Flow Mart per-target auth_gate_stage / endpoint_status", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"}
+      ],
+      "independent_recompute": "C 는 action_sequence_raw 와 forbidden_actions 준수 로그를 대조해 AUTH_GATE 도달 시점을 재분류하고, generic login 존재와 AUTH_GATE terminal 을 혼동하지 않았는지 재확인한다.",
+      "scope_limit": "auth_gate_stage categorical distribution 보고에 한정. credential 입력/로그인 submit 은 애초에 금지된 행위이므로 그 이후 데이터는 존재하지 않는다.",
+      "forbidden_upgrade": "'AUTH_GATE 발생 시점이 서비스마다 달랐다' 를 '인증 절차가 고령자에게 실제 어려움/포기를 유발했다'는 행동 인과 주장으로 승격 금지 — 사람 실험 없는 실패율 추정은 SSOT §0 금지 항목.",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-AXIS-H-OBSTRUCTION",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "axis_dim_H_obstruction",
+      "denominator": {
+        "stage": "evidence_bearing_n",
+        "unit": "service (per family, target n=10)",
+        "note": "forced_dismissal_count/task_control_occlusion 은 초기 상태에서 관측 가능하므로 evidence_bearing_n 을 denominator 로 쓰되, endpoint_status 최종 분류(BLOCKED 포함)는 flow_evaluable_n 에서 재확인한다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/00_SSOT_v3.0_CROSS_SERVICE_FLOW.md §3 Axis C (Task-Path Obstruction), SSOTV3/04_FLOW_CODEBOOK_v3.0.md §4 (forced_dismissal_count/task_control_occlusion 정의)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "Flow Mart per-target forced_dismissal_count / task_control_occlusion / experienced_flow_sequence(DISMISS_OBSTRUCTION 포함)", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"}
+      ],
+      "independent_recompute": "C 는 bbox 겹침 비율(task_control_occlusion)을 원 스크린샷/DOM geometry 에서 독립 재계산하고, DISMISS_OBSTRUCTION 이 task path 진행에 실제 필요했는지(단순 max coverage 와 구분) 재판정한다.",
+      "scope_limit": "실제 task-control 가림/필수 dismissal 여부만 보고한다. popup 존재 자체만으로 obstruction 으로 세지 않는다(SSOT §3 Axis C 구분 원칙).",
+      "forbidden_upgrade": "'강제 dismissal/가림 비율이 서비스마다 달랐다' 를 'KWCAG/WCAG 접근성 위반이다'는 판정으로 승격 금지 — KWCAG criterion 증거(Axis A) 없이 이 axis 단독으로 위반 판정하지 않는다(05 §7 금지 항목).",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-STFP-PROFILE",
+      "claim_text": null,
+      "claim_type": "PROJECTION",
+      "axis": "cross_cutting_STFP_profile",
+      "denominator": {
+        "stage": "flow_evaluable_n",
+        "unit": "service (per family, target n=10), aggregated as 8-axis vector",
+        "note": "STFP profile 은 Spatial/Label/Control/Reveal/Sequence/Depth/Auth/Obstruction 8개 축을 분리 보고하는 vector 다. 각 축의 denominator 는 위 axis A~H slot 과 동일한 flow_evaluable_n/evidence_bearing_n 사슬을 따르며, vector 전체를 하나의 n 으로 뭉뚱그리지 않는다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/05_ANALYSIS_PLAN_v3.0.md §3 (STFP profile, 가중합 단일 score 금지)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "CLAIM-AXIS-A~H slot 들의 승인된 ANALYSIS 결과", "kind": "T2_derived_from_approved_axis_claims", "status": "PENDING (axis slot 승인 후에만 성립)"}
+      ],
+      "independent_recompute": "C 는 8개 축 각각의 분포/거리값을 axis slot 에서 독립 재계산한 값 그대로 사용하며, STFP slot 자체에서 새로운 가중치나 합산식을 도입하지 않는다. Gower/mixed distance 를 secondary visualization 으로 쓸 경우 C 가 동일 raw 에서 재현 가능해야 승인.",
+      "scope_limit": "가중합 단일 점수(예: '서비스 X 의 STFP 점수는 0.7') 생성을 절대 금지한다(SSOT §1-10, 05 §3). Gower/mixed distance 시각화는 규범적 threshold나 '고령자 부담 점수'로 해석하지 않는다.",
+      "forbidden_upgrade": "8축 profile 을 단일 숫자로 합산해 서비스/family 순위를 매기는 것 금지. STFP 를 '실제 인지부하 점수'로 재명명하거나 '고령자 usability 등급'으로 제시하는 것 금지 — STFP 는 구조적 재학습 요구의 proxy 이지 실제 인지부하 측정치가 아니다(10_GLOSSARY STFP 정의).",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-FAMILY-LEVEL-DESCRIPTIVE",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "cross_cutting_family_summary",
+      "denominator": {
+        "stage": "flow_evaluable_n (target ceiling: eligible_frozen_10)",
+        "unit": "family (5 families, 각 target n=10)",
+        "note": "family 별로 05 §4 의 median/IQR/range, categorical distribution+entropy, unique flow signature 수, pairwise matrix 를 n=10 고정 denominator 로 보고한다. n<10 이면 §6 chain 대로 몇 단계에서 몇 개가 빠졌는지 병기한다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/05_ANALYSIS_PLAN_v3.0.md §4 (family-level summary 규격)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json (family_id, task_families, targets — n=10×5 구조)", "kind": "T1_frame_identity", "status": "AVAILABLE"},
+        {"artifact": "Flow Mart family-level aggregation table", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"}
+      ],
+      "independent_recompute": "C 는 family 별 target 원자료에서 median/IQR/range/entropy 를 독립 재계산하고, FINAL_MAIN50_MANIFEST 의 target 목록과 대조해 분모(10)가 실제로 몇 개 target 의 evidence 로 채워졌는지 재확인한다.",
+      "scope_limit": "family 내부 기술통계에 한정한다. family 간 비교나 population-level generalization 은 이 slot 이 아니라 CLAIM-CROSS-FAMILY-COMPARISON slot 의 책임이다.",
+      "forbidden_upgrade": "'F1 family 10개 은행의 median activation depth 는 X' 를 '한국 은행권 전체 혹은 고령층 실제 이용경험이 X' 로 일반화 금지 — n=10 은 candidate frame 표본이지 모집단 대표표본이 아니다.",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-CROSS-FAMILY-COMPARISON",
+      "claim_text": null,
+      "claim_type": "ANALYSIS",
+      "axis": "cross_cutting_cross_family",
+      "denominator": {
+        "stage": "flow_evaluable_n per family, compared side-by-side (NOT pooled)",
+        "unit": "5 families × up to 10 services each",
+        "note": "family 간 비교는 각 family 의 독립 n=10(또는 실제 flow_evaluable n) 기술통계를 나란히 놓는 것이지, 5개 family 를 합쳐 n=50 표본으로 통계검정하지 않는다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/05_ANALYSIS_PLAN_v3.0.md §4 (\"작은 family n 을 과도하게 일반화하지 않는다\"), §7 claim language", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "5개 family 의 CLAIM-FAMILY-LEVEL-DESCRIPTIVE 승인 결과", "kind": "T2_derived_from_approved_family_claims", "status": "PENDING"}
+      ],
+      "independent_recompute": "C 는 family 별 요약통계가 동일 raw 에서 일관되게 계산됐는지 검증하고, cross-family 비교 문장이 family 를 pooling 한 유의성 검정(t-test 등 표본크기 50 가정)을 몰래 쓰지 않았는지 방법론적으로 재확인한다.",
+      "scope_limit": "기술통계 병기(예: 'F1 의 flow 다양성이 F3 보다 컸다는 관측') 수준에 한정한다. 통계적 유의성/추론통계 언어(p-value, 유의미한 차이) 사용을 원칙적으로 배제하거나, 쓰더라도 family n(≤10)을 표본크기로 명시한다.",
+      "forbidden_upgrade": "'F1 이 F5 보다 flow variation 이 컸다'를 '금융 서비스가 교통 서비스보다 고령자에게 구조적으로 더 어렵다'는 서열화된 인과/일반화 주장으로 승격 금지. family 간 비교를 5개 family 통합 n=50 표본으로 오인해 검정력을 과장하는 것 금지.",
+      "status": "SLOT_EMPTY"
+    },
+    {
+      "claim_id": "CLAIM-LIMITATIONS-MISSINGNESS",
+      "claim_text": null,
+      "claim_type": "OBSERVATION",
+      "axis": "cross_cutting_limitations_missingness",
+      "denominator": {
+        "stage": "candidate_10 -> eligible_frozen_10 -> attempted_10 -> evidence_bearing_n -> flow_evaluable_n (전 단계 사슬 자체가 보고 대상)",
+        "unit": "family × stage (5 families × 5 stages)",
+        "note": "이 slot 은 결과가 아니라 결과의 분모 사슬 자체를 보고한다. 각 family 마다 각 단계에서 몇 개가 빠졌는지, 왜 빠졌는지(precheck 탈락/evidence defect/replay 실패/ABSTAIN 등)를 05 §6, SSOT §9 수집경로 금지사항, §5 sensitivity 규칙과 함께 적는다."
+      },
+      "evidence_refs": [
+        {"artifact": "SSOTV3/05_ANALYSIS_PLAN_v3.0.md §5 (Sensitivity), §6 (Missingness/denominator)", "kind": "T3_frozen_definition", "status": "AVAILABLE"},
+        {"artifact": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json의 not_verified, replacement_reserve, mobile_web_eligibility=PRECHECK_REQUIRED 필드", "kind": "T1_frame_identity", "status": "AVAILABLE"},
+        {"artifact": "B 의 수집 로그 / endpoint_status 분포 (REACHED/AUTH_GATE/PUBLIC_WEB_UNOBSERVABLE/APP_REQUIRED/EVIDENCE_DEFECT/BLOCKED/ABSTAIN)", "kind": "T1_raw_evidence", "status": "PENDING_PRODUCTION_BY_B"}
+      ],
+      "independent_recompute": "C 는 각 family 의 target 목록을 원 manifest 와 대조해 candidate/eligible/attempted 카운트를 재확인하고, endpoint_status 로그에서 evidence_bearing_n/flow_evaluable_n 을 독립 재집계한다. B 보고 카운트와 불일치 시 승인 보류.",
+      "scope_limit": "결측/탈락 사실과 그 사유 분류(precheck 탈락 vs evidence defect vs ABSTAIN vs replacement)를 있는 그대로 기술한다. evidence defect 를 structural failure 로 재분류하지 않는다(05 §5). freeze 이후 target 교체는 보고하되 정당화하지 않는다.",
+      "forbidden_upgrade": "결측/탈락을 누락하고 '도달한 target 만으로' 전체 family 결론을 내리는 것(암묵적 survivorship) 금지. 반대로 결측률 자체를 '해당 서비스가 접근성이 나쁘다'는 판정으로 승격하는 것도 금지 — evidence defect 와 구조적 실패를 구분해야 한다.",
+      "status": "SLOT_EMPTY"
+    }
+  ]
+}
