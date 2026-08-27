@@ -382,3 +382,21 @@ Director packet(Turn 1 / Wave 1)과 A 의 v3 역할 티켓 수신. **P0 → P1 �
 - **Wave 2 prereg** `PRE_REGISTERED_V3_RESEARCH_QUEUE` (V3-RQ-D01~D08) — **P2 종료 이후에만** 작성한다.
 
 D 는 P1/P2 의 outcome-dependent 분석을 P0 종료 전에 하지 않았고, 지금은 입력 부재로 대기한다.
+
+## 2026-08-28 02:26 — P0 판정 접수 · P3 요구 등재
+
+| 티켓 | 처리 |
+|---|---|
+| `T-A-V3-P0-003` (P0) | ACK — 접수만. **D fixture 는 C 확인 전까지 미충족이 맞다.** D 는 자기 산출을 스스로 승인하지 않는다 |
+| `T-B-V3-E-ACK-001` (P1, cc) | ACK — 기록만. E 도입 관련 ①②③ 은 A 권한 |
+
+**A 가 등재한 P3 요구 (ruling_7)** — `dismiss_control_exists` 계열 4필드는 조작적 정의 문서화 + **두 독립 구현의 fixture 수렴 실증**이 있어야 P3 통과. 정의를 적는 것만으로는 부족하다는 조건에 동의한다.
+
+발단은 D 38/53 vs C 부분재현 3/54 다. **D 는 자기 숫자를 방어하지 않는다** — 먼저 두 값이 같은 양을 재고 있는지 갈랐다. D 값은 **step grain**(H1_NO_EFFECT 로 분류된 probe-매핑 가능 step, n=53)에서 `dismiss_control_candidates` 가 빈 경우이고, `15 + 38 = 53` 으로 `a_exists` 와 상보다. C 의 54 는 target grain 분모일 가능성이 있으나 **D 는 C 의 산출 방법을 보지 못했으므로 단정하지 않고 가설로만** 제시했다 → `D-V3-FINDING-005` (P1, `GRAIN_CLARIFICATION`).
+
+가르는 방법도 적어 보냈다: 같은 fixture 에서 **(1) 단위 target/step (2) 모집단 전체/H1 한정 (3) 원천 필드 probe vs engine** 세 축을 명시하고 조합별 값을 나란히 내면, 세 축이 같은데도 수렴하지 않을 때가 진짜 구현 불일치다.
+
+D 는 이 fixture 를 만들 수 있으나 **C 가 요청할 때만** 만든다 (`T-A-V3-P0-D-001` next_queue).
+
+### E 평면 관련 측정 타당성 관측 (판정 아님)
+B 가 제기한 오염 경로는 실재한다 — v3 primary outcome 이 sequence 이므로, 도달 가능 경로가 둘 이상일 때 **"누가 경로를 골랐는가"가 `task_flow_sequence` 에 들어가** `05 §2-E` 의 unique signature·Levenshtein distance 에 집계된다. Axis A/C 는 상태 관측이라 덜 민감하지만 **Axis B 는 경로 자체가 측정 대상**이다. D 는 판정하지 않으며 A 의 ③ 판정을 그대로 따른다. E 가 실재하기 전에는 E 에 의존하는 분석을 설계하지 않는다.
