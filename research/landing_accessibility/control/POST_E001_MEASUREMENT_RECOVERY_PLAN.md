@@ -164,7 +164,7 @@ TaskDefinition 이 None / CODEBOOK_PENDING 으로 고정
 **시정 방향이 완전히 달라진다.** codebook 을 **만들** 필요가 없다 — **연결만 하면 된다.**
 초판대로 갔으면 다음 수행자가 이미 있는 것을 다시 만들었을 것이다.
 
-#### C 의 관측이 이를 뒷받침한다 (recovery lane, 확정 전 예비)
+#### C 의 관측이 이를 뒷받침한다 — **§2.2.2 에서 코드로 확정됨 (`adb63fe`)**
 
 ```
 Scout 실행 31건의 task_id : 전부 `task-wtg_<id>` 합성, CSV `task_shadow_<key>` 와 일치 0/31
