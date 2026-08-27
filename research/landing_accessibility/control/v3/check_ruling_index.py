@@ -80,6 +80,12 @@ def run(idx, delta_text):
     if missing:
         fail.append(("required_field", missing))
 
+    # 7-a. 측정값 단일 출처 — 하위 블록에 last_run 이 있으면 사본이 갈린다 (Δ38)
+    dupmeas = [k for k, v in idx["self_check"].items()
+               if k != "last_run" and isinstance(v, dict) and "last_run" in v]
+    if dupmeas:
+        fail.append(("measurement_single_source", dupmeas))
+
     # 7. count 정합
     if idx.get("count") != len(rows):
         fail.append(("count_mismatch", {"count": idx.get("count"), "actual": len(rows)}))
@@ -159,6 +165,9 @@ def positive_control(idx, delta_text):
           lambda m: m["rulings"][0].__setitem__("requires", ""))
     probe("count_mismatch",
           lambda m: m.__setitem__("count", 99999))
+    probe("measurement_single_source",
+          lambda m: m["self_check"].setdefault("alias_rules_probe", {}).__setitem__(
+              "last_run", {"stale": True}))
 
     return {"per_check": results, "ok": all(results.values())}
 
@@ -182,7 +191,7 @@ def main():
         for k, v in fail:
             print(f"FAIL {k}: {v}")
         return 1
-    print("PASS — 7개 검사 전부 통과")
+    print(f"PASS — {len(pc['per_check'])}개 검사 전부 통과 (변이 probe 로 셈)")
     if "--write" in sys.argv:
         idx["self_check"]["last_run"] = {
             "at_kst": subprocess.run(["date", "+%Y-%m-%dT%H:%M:%S%z"], capture_output=True,
