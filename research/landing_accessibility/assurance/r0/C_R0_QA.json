@@ -85,10 +85,10 @@
       "assertion_type": "IMPLEMENTATION",
       "evidence": {
         "readers": "l1_engine.py:96-97 필드정의 · :100-105 mapping_frozen_allowed() · executor.py:73-74 상수대입 · vocabulary.py:335 스키마 표",
-        "call_graph": "mapping_frozen_allowed 호출부: 2281c85 트리 .py 50 파일 전수 grep → 정의 1건 외 0 hit (tests 포함해도 0 — B 감사문의 'tests/test_pc_fixture_engine.py:491-492' 호출은 2281c85 에서 확인되지 않음; 감사 원문의 그 위치 인용은 다른 SHA 이거나 stale)",
+        "call_graph": "mapping_frozen_allowed 호출부 @2281c85: research/landing_accessibility/ 하위 .py 50 파일 → 0 hit; **repo-root tests/test_pc_fixture_engine.py:491-492 에 2 hit (B 감사문 인용 정확)**. C 의 첫 스캔은 research/landing_accessibility/ 로 범위가 좁아 tests/ 를 놓쳤다 — C 자체 정정(FACT_CORRECTION). 프로덕션 호출부 0 이라는 결론은 불변.",
         "detectors_read_signal_type": false
       },
-      "note": "F-2 결론(프로덕션 미소비)은 강화된다: 테스트 호출조차 2281c85 에서는 0 이었다. 감사문 인용 위치는 FACT_CORRECTION 후보(P3)."
+      "note": "F-2 결론(프로덕션 미소비) CONFIRMED. 이전 판 '테스트 호출도 0(강화)' 는 C 스캔 범위 오류로 철회."
     },
     {
       "id": "S-14",
@@ -203,7 +203,6 @@
   "not_verified_by_this_audit": [
     "F-7 (gate 승격 규모 1건) 및 §4.1 depth segment 결함 — 미재계산",
     "P-A endpoint codebook 존재 여부 — A 소관",
-    "B 감사문이 인용한 tests/test_pc_fixture_engine.py:491-492 호출 — 2281c85 에서 0 hit (FACT_CORRECTION 후보)",
     "runtime 관측: 어떤 detector 도 실행하지 않았다. 코드 정적 확인 + 파일럿 raw 재집계만",
     "E000 9 관측 — 본 감사 범위 밖 (sensitivity-only)"
   ],
@@ -215,5 +214,8 @@
       "marker 경로([data-region]/[data-endpoint]) 실사이트 비활성화/제거 — B-N2 표본 실재 확인됨"
     ],
     "recommendation": "R0 GO 에 반하는 T1 모순 없음. 위 3건은 contract freeze 항목이지 blocker 가 아니다."
-  }
+  },
+  "c_self_corrections": [
+    "S-13: tests/ 는 repo root 에 있었다(2281c85). 스캔 대상 범위를 research/ 로 좁힌 결과 0 을 '강화' 로 읽었다 — 범위확장 오류. 결론 불변, 강화 문구 철회."
+  ]
 }

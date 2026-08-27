@@ -9,7 +9,7 @@
 | S-10 | CSV 에 task definition 59/59 | **CONFIRMED** + qualifier | CSV blob `48e2492e…` @9999857, frozen 59 조인 59/59 non-empty; **distinct 7/2/7/3 (archetype-level)**; UTILITY_ENTRY 6행 `region_signal_type=CODEBOOK_PENDING` |
 | S-11 | E001TargetRow 5필드 유실 · default_task_definition 하드코딩 | **CONFIRMED** | `firewall.py:543-554` 9필드 · `executor.py:68-75` 상수 4개 |
 | S-12 | detector 실사이트 구현 부재 (F-1) | **CONFIRMED** | `l0_probe.js:309/:334/:337` marker 생산 · `l1_engine.py:213-218/:223-231` marker 비교 · probe 58/58 재집계 `body_endpoint_reached` null; declared_regions 3건·declared_endpoints 1건 관측 |
-| S-13 | `*_signal_type` 프로덕션 reader 0 (F-2) | **CONFIRMED (강화)** | `mapping_frozen_allowed` 호출부 **tests 포함 0** @2281c85 (감사문 인용 tests:491-492 는 이 SHA 에 없음) |
+| S-13 | `*_signal_type` 프로덕션 reader 0 (F-2) | **CONFIRMED** | 프로덕션 호출부 0 @2281c85; 테스트 호출 repo-root `tests/test_pc_fixture_engine.py:491-492` 2건 실재 (C 첫 판의 '테스트도 0' 은 스캔 범위 오류로 철회) |
 | S-14 | guard 25/59 · LOGIN 19 · QUERY 5 | **CONFIRMED** | batches 16 파일 재집계: BLOCKED 25 (LOGIN 19/PURCHASE 3/SIGNUP 2/PAYMENT 1), QUERY 5 = BLOCKED 4 + RETRY_EXHAUSTED 1, scout 31 |
 | S-15 | 갭1·갭2 독립 | **CONFIRMED** | `l1_engine.py:213-214`, `:223-224` 조기반환; B1-only 비교대상 null/'1','2' → False; B2-only 조기반환 |
 | F-6 | signal_type = archetype 1:1 | CONFIRMED | 59행 재집계 |
