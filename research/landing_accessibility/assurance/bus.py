@@ -11,7 +11,7 @@ TICKETS = BUS / "tickets"
 COMPLETIONS = BUS / "completions"
 ACKS = BUS / "acks"
 EVENT_LOG = BUS / "event_log.jsonl"
-HB_STATE = pathlib.Path("/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/fc173ade-5c35-4cd6-9237-924eb6bba85e/scratchpad/hb_state.json")
+HB_STATE = pathlib.Path("/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/hb_state.json")
 KST = datetime.timezone(datetime.timedelta(hours=9))
 
 def now() -> str:

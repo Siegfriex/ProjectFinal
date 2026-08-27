@@ -1,0 +1,23 @@
+{
+  "artifact": "C_B_CLEAN0_VERIFICATION",
+  "verifies_ticket": "T-B-CLEAN0-001",
+  "target_sha": "4ae6df0a1e1dec76a642a1eeafd52bf7f04eff04",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "producer": "C",
+  "assertion_type": "OBSERVATION",
+  "production_modified": false,
+  "result_type": "MATCH_WITH_ONE_REFUTED_ITEM",
+  "severity_max": "P1",
+  "items": [
+    {"claim": "G1~G5 current-source 재현 좌표", "verdict": "MATCH"},
+    {"claim": "B-N1 probe.json 58건, 분포 57/1 · 55/3 · 48/9/1 · null 58", "verdict": "MATCH", "c_recount": {"declared_endpoints": {"0": 57, "2": 1}, "declared_regions": {"0": 55, "1": 3}, "search_inputs": {"0": 48, "1": 9, "2": 1}, "body_endpoint_reached_null": 58}},
+    {"claim": "B-N2 marker 위양성 조건 표본 실재", "verdict": "MATCH", "observed_values": {"data-region": ["sg", "ko_KR"], "data-endpoint": ["1", "2"]}},
+    {"claim": "B-N4 exactly-once 미구현 (idempotency/DUPLICATE_SUPPRESSED/lock 0)", "verdict": "MATCH"},
+    {"claim": "B-N5 .agent_bus git 추적 0", "verdict": "MATCH"},
+    {"claim": "§1.1 bc0b7a0 에 engine/e001_runner 부재, integration base = 2281c85", "verdict": "MATCH", "engine_files": {"bc0b7a0": 0, "2281c85": 16}},
+    {"claim": "코드 변경 0줄", "verdict": "MATCH", "diff_vs_base": ["handoff/B_CLEAN0_INVENTORY_v2.1.md", "handoff/ARTIFACT_RETENTION_MANIFEST_E001.json"]},
+    {"claim": "manifest 1,265 파일 / 791,908,794 bytes / run 60 / target-group 56", "verdict": "MATCH", "unit": "artifacts 루트 전체 (evidence-only 인 A manifest 와 단위 다름 — C_CLEAN0_AUDIT §3)"},
+    {"claim": "§4.1 w02 이중 run 4건 = retry 분기, 중복 발사 아님", "verdict": "REFUTED", "evidence": "batch_0001 attempts=1 전건; run B 가 run A sealed 이전에 시작(6~8초 교차, 4 target 연속); 이중 대상 = batch_0001 집합 전체 → worker_02 프로세스 2개 = duplicate launch. C 인계 research_conduct(w02 duplicate 4 quarantined)와 일치", "ticket": "C FACT_CORRECTION 발행"}
+  ],
+  "not_verified": ["E000 lane 3건 duplicate 재분류", "B manifest per-file sha 전수 대조 (A manifest 기준으로는 전건 재해시 일치; B 파일 해시는 표본 미대조)"]
+}
