@@ -74,6 +74,10 @@ def extract_text(p: pathlib.Path) -> str:
         return "\n".join(n.value for n in _ast.walk(tree) if isinstance(n, _ast.Constant) and isinstance(n.value, str) and len(n.value) > 3)
     return raw
 
+NEG_MARK = "SCANNER_NEGATIVE_CONTROL"
+# exact resolved paths only (no glob/prefix) — B 16:55
+NEGATIVE_CONTROL_FILES = {str((pathlib.Path(__file__).resolve().parent / "recovery/fixtures" / n)) for n in ("scanner_planted_violations.md", "scanner_planted_violations_gen.py.txt")}
+
 def sentences(text):
     text = re.sub(r"`[^`]*`", " ", text)
     for para in text.split("\n"):
@@ -103,12 +107,15 @@ def main(a):
         if any(ch in cf for ch in "*?["): targets += [str(x) for x in sorted(pathlib.Path().glob(cf))] if not cf.startswith("/") else [str(x) for x in sorted(pathlib.Path("/").glob(cf.lstrip("/")))]
         elif pathlib.Path(cf).is_dir(): targets += [str(x) for x in sorted(pathlib.Path(cf).iterdir()) if x.suffix in (".md", ".json", ".py") and x.name != "FROZEN_MART_MANIFEST.json"]
         else: targets.append(cf)
-    rows = []; files_expected = len(targets); files_scanned = 0; sentences_scanned = 0; corpus = []
+    rows = []; files_expected = len(targets); files_scanned = 0; sentences_scanned = 0; corpus = []; neg_ok = None; marker_leak = []
     if files_expected == 0: rows.append({"file": "(glob)", "sentence": None, "status": "MISMATCH", "issues": ["GLOB_EMPTY — no targets matched"]})
     for cf in targets:
         p = pathlib.Path(cf)
         if not p.is_file(): rows.append({"file": cf, "sentence": None, "status": "MISMATCH", "issues": ["FILE_MISSING — absence of target is not absence of violation (B 16:36 layer 4)"]}); continue
-        txt = extract_text(p); files_scanned += 1; corpus.append(txt)
+        txt = extract_text(p); files_scanned += 1
+        is_neg = str(p.resolve()) in NEGATIVE_CONTROL_FILES
+        if (NEG_MARK in p.read_text(encoding="utf-8", errors="replace")[:400]) and not is_neg: marker_leak.append(str(p))
+        if not is_neg: corpus.append(txt)
         for s in sentences(txt):
             sentences_scanned += 1
             issues = []; status = "SUPPORTED"
@@ -149,6 +156,9 @@ def main(a):
             elif any("NUMBER_NOT_IN" in i for i in issues): status = "MISMATCH"
             elif re.search(r"exploratory|EXPLORATORY|GRADE\s*C", s, re.I): status = "EXPLORATORY_ONLY"
             elif issues: status = "SUPPORTED_WITH_LIMITATION"
+            if is_neg:
+                if status in ("UNSUPPORTED", "MISMATCH"): neg_ok = True if neg_ok is None else neg_ok
+                continue  # negative-control sentences never enter the verdict ledger
             if is_claim or issues: rows.append({"file": p.name, "sentence": s[:240], "status": status, "issues": issues, "grade_tag": has_grade, "has_n": has_n})
     out = pathlib.Path(a.out); out.parent.mkdir(parents=True, exist_ok=True)
     cnt = {}
@@ -157,12 +167,14 @@ def main(a):
     retracted_hits = sum(len(re.findall(pat, text_all, re.I)) for pat, _, _ in RETRACTED)
     controls = {note: len(re.findall(pat, text_all, re.I)) for pat, note in POSITIVE_CONTROLS}
     control_ok = any(v > 0 for v in controls.values())
-    scan_ok = (files_scanned == files_expected and sentences_scanned > 0 and (control_ok or retracted_hits > 0))
+    if marker_leak: rows.append({"file": ";".join(marker_leak), "sentence": None, "status": "MISMATCH", "issues": ["NEG_CONTROL_MARKER_OUTSIDE_ALLOWLIST"]})
+    neg_files_in_run = [t for t in targets if str(pathlib.Path(t).resolve()) in NEGATIVE_CONTROL_FILES]
+    scan_ok = (files_scanned == files_expected and sentences_scanned > 0 and (control_ok or retracted_hits > 0) and not marker_leak and (neg_ok is True if neg_files_in_run else True))
     if not scan_ok: cnt["SCAN_INVALID"] = cnt.get("SCAN_INVALID", 0) + 1
     md = [f"# QA_CLAIM_LEDGER (C) — {now()}", "", f"기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: {a.replay}, {a.recon}", "", f"**scan coverage: files {files_scanned}/{files_expected} · sentences {sentences_scanned} · retracted-phrase raw hits {retracted_hits} · positive controls {controls} · {'VALID' if scan_ok else 'INVALID — 0 hits does not mean CLEAN (no target, or scanner saw nothing)'}**", "", f"집계: {cnt}", "", "| file | status | issues | sentence |", "|---|---|---|---|"]
     for r in rows: md.append(f"| {r['file']} | **{r['status']}** | {'; '.join(r['issues']) or '-'} | {(r['sentence'] or '').replace('|','／')} |")
     md += ["", "> 최종 headline 판정은 A. C 는 §2 금지 스캔·grade 태그·N 병기·수치 일치만 판정한다. `NUMBER_NOT_IN_C_REPLAY` 는 A 가 인용하는 숫자가 C 재계산값 집합에 없다는 뜻이며, 반올림 차이일 수 있어 개별 확인 대상이다."]
-    out.write_text("\n".join(md), encoding="utf-8"); print(json.dumps({"scan_files": f"{files_scanned}/{files_expected}", "sentences": sentences_scanned, "retracted_raw_hits": retracted_hits, "positive_controls": controls, "scan_valid": scan_ok, **cnt}, ensure_ascii=False)); print("written", out)
+    out.write_text("\n".join(md), encoding="utf-8"); print(json.dumps({"scan_files": f"{files_scanned}/{files_expected}", "sentences": sentences_scanned, "retracted_raw_hits": retracted_hits, "positive_controls": controls, "negative_control": ("caught" if neg_ok else ("NOT_CAUGHT" if neg_files_in_run else "not_run")), "marker_leak": marker_leak, "scan_valid": scan_ok, **cnt}, ensure_ascii=False)); print("written", out)
     if not scan_ok: sys.exit(2)
 
 if __name__ == "__main__":
