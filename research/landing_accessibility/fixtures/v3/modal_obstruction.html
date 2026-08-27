@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+FIXTURE: modal_obstruction    W5E v3 offline fixture 12/13
+
+검증 대상 (`SSOTV3/04 §3` · `§4` · `03 §9`): modal 이 task 진입 control 을 **가린다**.
+task control 은 S0 에 렌더되어 있으나 overlay 가 bbox 를 100% 덮으므로 직접 보이지 않고,
+진행하려면 dismissal 이 필요하다.
+task_control_occlusion=1.0 · forced_dismissal_count=1 · nav_container_type=NONE ·
+reveal_direction=NONE · menu_dependency=false · nav_container_depth=0 ·
+activation_depth=1 (dismiss 는 activation 에서 제외, `04 §5`).
+task_flow        = SELECT_FUNCTION > ENDPOINT_REACHED
+experienced_flow = DISMISS_OBSTRUCTION > SELECT_FUNCTION > ENDPOINT_REACHED  (`04 §3`)
+
+기하: overlay(0,96)-(390,296) ⊇ task(24,120)-(224,168) → 완전 포함.
+
+대조짝: `bottom_sheet.html` — **body 태그 시퀀스가 완전히 동일하다**. 차이는 overlay 가
+task control 을 담느냐(bottom_sheet) 가리느냐(여기)이고, 이것은 구조가 아니라
+task binding 으로만 갈린다 (`03 §9`).
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>모달 가림 — W5E v3 픽스처</title>
+<style>
+ *{box-sizing:border-box}
+ [hidden]{display:none !important}
+ body{margin:0;width:390px;height:844px;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+ .hdr{margin:0;height:56px;line-height:56px;padding-left:16px;font-size:17px;
+      font-weight:600;border-bottom:1px solid #ddd}
+ .task{position:fixed;left:24px;top:120px;width:200px;height:48px;
+       border:0;border-radius:8px;background:#0b4f9e;color:#fff;font-size:16px}
+ .overlay{position:fixed;left:0;top:96px;width:390px;height:200px;
+          background:#fffbe6;box-shadow:inset 0 0 0 1px #c9a227;z-index:10}
+ .promo{position:absolute;left:40px;top:34px;width:200px;height:48px;
+        border:1px solid #c9a227;border-radius:6px;background:#fff;color:#111;font-size:15px;z-index:11}
+ .close{position:absolute;left:260px;top:34px;width:90px;height:48px;
+        border:1px solid #888;border-radius:6px;background:#fff;color:#111;font-size:15px;z-index:11}
+</style></head>
+<body data-fixture="modal_obstruction">
+<h1 class="hdr">시외버스 예매</h1>
+<button type="button" class="task" id="entry">운행정보 조회</button>
+<div class="overlay" id="overlay" role="dialog" aria-label="이벤트 안내">
+<button type="button" class="promo" id="promo">이벤트 보기</button>
+<button type="button" class="close" id="close">닫기</button>
+</div>
+<script>
+document.getElementById('close').addEventListener('click', function () {
+  document.getElementById('overlay').hidden = true;
+});
+</script>
+</body></html>

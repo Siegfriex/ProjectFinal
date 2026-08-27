@@ -1,0 +1,39 @@
+<!doctype html>
+<!--
+FIXTURE: icon_only_ax_named    W5E v3 offline fixture 3/13
+
+검증 대상 (`SSOTV3/04 §4` · `§7`): 사람 화면에는 아이콘만 보이지만 `aria-label` 로
+accessible name 이 계산되는 control.
+entry_label_modality=ICON_ONLY_AX_NAMED · accessible_name_source=ARIA_LABEL ·
+label_relation=AX_ONLY(visible 문구 없음, AX 이름 있음).
+
+아이콘은 CSS 로 그린 빈 span 이라 **렌더된 문구가 한 글자도 없다** —
+visible_label_text 가 빈 문자열임이 글리프 해석에 의존하지 않는다.
+
+대조짝: `icon_only_unnamed.html` — `aria-label` 속성 유무 **하나**만 다르다.
+DOM 태그 시퀀스·CSS·좌표(left 318 / top 72 / 48x48)가 완전히 같다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>아이콘 전용(AX 이름 있음) — W5E v3 픽스처</title>
+<style>
+ *{box-sizing:border-box}
+ [hidden]{display:none !important}
+ body{margin:0;width:390px;height:844px;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+ .hdr{margin:0;height:56px;line-height:56px;padding-left:16px;font-size:17px;
+      font-weight:600;border-bottom:1px solid #ddd}
+ .note{margin:140px 16px 0;font-size:14px;color:#444;line-height:1.5}
+ .task{position:fixed;left:318px;top:72px;width:48px;height:48px;
+       border:1px solid #0b4f9e;border-radius:8px;background:#fff;color:#0b4f9e;
+       padding:0;line-height:0}
+ .ico{display:inline-block;width:20px;height:20px;
+      border:2px solid currentColor;border-radius:50%}
+</style></head>
+<body data-fixture="icon_only_ax_named">
+<h1 class="hdr">시외버스 예매</h1>
+<main class="page">
+<p class="note">우측 상단 진입 control 은 아이콘만 보이고 AX 이름을 가진다.</p>
+<button type="button" class="task" id="entry" aria-label="운행정보 조회"><span class="ico" aria-hidden="true"></span></button>
+</main>
+</body></html>

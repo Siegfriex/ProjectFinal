@@ -1,0 +1,49 @@
+<!doctype html>
+<!--
+FIXTURE: hamburger    W5E v3 offline fixture 5/13
+
+검증 대상 (`SSOTV3/04 §2` · `§4` · `§5`): task 진입 control 이 전역 햄버거 메뉴 **안에**
+있어 S0 에서는 보이지 않는다.
+s0_task_control_visible=false · nav_container_type=HAMBURGER · reveal_direction=TOP ·
+menu_dependency=true · nav_container_depth=1 · activation_depth=2
+(task_flow = OPEN_GLOBAL_MENU > SELECT_FUNCTION > ENDPOINT_REACHED).
+
+여기서 기록되는 entry_control_type 은 **패널 안 task control**(TEXT_BUTTON)이고
+햄버거 자체가 아니다 — 컨테이너는 nav_container_type 으로 따로 기록된다(`02 §3`).
+
+대조짝: `nested_menu.html` — 같은 햄버거 패널에 중간 단계(로컬 메뉴)가 한 겹 더 있다.
+그 한 겹이 nav_container_depth 1↔2 · activation_depth 2↔3 을 가른다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>햄버거 메뉴 안 — W5E v3 픽스처</title>
+<style>
+ *{box-sizing:border-box}
+ [hidden]{display:none !important}
+ body{margin:0;width:390px;height:844px;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+ .hdr{margin:0;height:56px;line-height:56px;padding-left:16px;font-size:17px;
+      font-weight:600;border-bottom:1px solid #ddd}
+ .trigger{position:fixed;left:334px;top:8px;width:40px;height:40px;
+          border:0;background:transparent;color:#111;padding:0;line-height:0}
+ .ico{display:inline-block;width:22px;height:14px;
+      border-top:2px solid currentColor;border-bottom:2px solid currentColor}
+ .panel{position:fixed;left:0;top:56px;width:390px;height:200px;
+        background:#f4f6f9;border-bottom:1px solid #ccc}
+ .task{position:fixed;left:20px;top:72px;width:200px;height:48px;
+       border:0;border-radius:8px;background:#0b4f9e;color:#fff;font-size:16px}
+</style></head>
+<body data-fixture="hamburger">
+<h1 class="hdr">시외버스 예매</h1>
+<button type="button" class="trigger" id="open" aria-label="전체메뉴 열기" aria-expanded="false"><span class="ico" aria-hidden="true"></span></button>
+<nav class="panel" id="panel" hidden aria-label="전체메뉴">
+<button type="button" class="task" id="entry">운행정보 조회</button>
+</nav>
+<script>
+document.getElementById('open').addEventListener('click', function () {
+  var p = document.getElementById('panel');
+  p.hidden = false;
+  this.setAttribute('aria-expanded', 'true');
+});
+</script>
+</body></html>

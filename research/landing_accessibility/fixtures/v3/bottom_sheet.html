@@ -1,0 +1,57 @@
+<!doctype html>
+<!--
+FIXTURE: bottom_sheet    W5E v3 offline fixture 8/13
+
+검증 대상 (`SSOTV3/04 §4` · `03 §9`): 아래에서 올라오는 sheet 가 **task 경로의 nav
+컨테이너**인 경우. sheet 를 여는 것이 task 진행에 필요한 reveal 이고, sheet 안에
+task 진입 control 이 들어 있다.
+nav_container_type=BOTTOM_SHEET · reveal_direction=BOTTOM · menu_dependency=true ·
+nav_container_depth=1 · activation_depth=2 · forced_dismissal_count=0 ·
+task_control_occlusion=0.0.
+
+대조짝: `modal_obstruction.html` — **body 태그 시퀀스가 완전히 동일하다**
+(h1 > button > div > button > button > script). 다른 것은 각 노드의 역할뿐이다:
+여기서는 overlay 가 task control 을 담고, 저기서는 overlay 가 task control 을 가린다.
+`03 §9` 의 "geometry overlap 만으로 modal 의미를 확정하지 않는다" 를 그대로 시험한다 —
+구조·기하가 같아도 task binding 이 다르면 판정이 달라져야 한다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>바텀시트 — W5E v3 픽스처</title>
+<style>
+ *{box-sizing:border-box}
+ [hidden]{display:none !important}
+ body{margin:0;width:390px;height:844px;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+ .hdr{margin:0;height:56px;line-height:56px;padding-left:16px;font-size:17px;
+      font-weight:600;border-bottom:1px solid #ddd}
+ .trigger{position:fixed;left:24px;top:120px;width:160px;height:48px;
+          border:1px solid #888;border-radius:6px;background:#fff;color:#111;font-size:15px}
+ .overlay{position:fixed;left:0;top:560px;width:390px;height:284px;
+          background:#f4f6f9;box-shadow:0 -2px 0 #ccc;
+          transform:translateY(100%);transition:transform .2s linear}
+ .overlay.open{transform:translateY(0)}
+ .task{position:absolute;left:40px;top:24px;width:200px;height:48px;
+       border:0;border-radius:8px;background:#0b4f9e;color:#fff;font-size:16px}
+ .close{position:absolute;left:260px;top:24px;width:90px;height:48px;
+        border:1px solid #888;border-radius:6px;background:#fff;color:#111;font-size:15px}
+</style></head>
+<body data-fixture="bottom_sheet">
+<h1 class="hdr">시외버스 예매</h1>
+<button type="button" class="trigger" id="open" aria-expanded="false">서비스 선택</button>
+<div class="overlay" id="overlay" hidden role="dialog" aria-label="서비스 선택">
+<button type="button" class="task" id="entry">운행정보 조회</button>
+<button type="button" class="close" id="close">닫기</button>
+</div>
+<script>
+document.getElementById('open').addEventListener('click', function () {
+  var o = document.getElementById('overlay');
+  o.hidden = false;
+  this.setAttribute('aria-expanded', 'true');
+  requestAnimationFrame(function () { o.classList.add('open'); });
+});
+document.getElementById('close').addEventListener('click', function () {
+  document.getElementById('overlay').hidden = true;
+});
+</script>
+</body></html>

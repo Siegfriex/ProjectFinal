@@ -1,0 +1,62 @@
+<!doctype html>
+<!--
+FIXTURE: evidence_defect    W5E v3 offline fixture 13/13
+
+검증 대상 (`SSOTV3/04 §4` endpoint_status=EVIDENCE_DEFECT · `03 §5` Freeze/Replay ·
+`03 §10` Evidence package): **관측 자체가 깨진 구조**.
+
+결함 기제: task 진입 control 이 `attachShadow({mode:'closed'})` 로 만든 closed shadow
+root 안에 있다. 사람 화면에는 `direct_text_button.html` 과 똑같은 자리
+(left 24 / top 120 / 160x48, 라벨 "운행정보 조회")에 렌더되지만,
+- document DOM 을 걷는 probe 에는 `<div id="host">` 가 **빈 노드**로만 보인다.
+- `host.shadowRoot` 가 `null` 이라 어떤 selector 도 그 control 을 가리킬 수 없다.
+- 따라서 `03 §5` 의 Freeze 가 요구하는 raw selector 를 만들 수 없고 replay 가 불가능하다.
+
+**이 fixture 는 개별 필드의 기대값을 주장하지 않는다.** DOM probe 와 AX probe 가
+closed shadow content 를 각각 어떻게 다루는지는 측정기(W5B/W5C/W5D) 구현의 문제이고,
+W5E 가 04 근거 없이 단정할 수 없다. 주장하는 것은 endpoint_status=EVIDENCE_DEFECT 하나이며,
+matrix 의 `not_asserted` 가 나머지를 명시한다.
+
+대조짝 없음: 13은 홀수라 상호 짝짓기에서 최소 1개가 남고, 이 fixture 의 자연스러운
+baseline 인 `direct_text_button.html` 은 label modality 대조(`icon_text`)에 이미 배타적으로
+배정돼 있다. 대신 matrix 의 `secondary_contrasts` 로 비대칭 대조를 선언한다 —
+보이는 affordance·좌표·라벨이 같고 closed shadow root 하나만 다르다.
+
+`data-evidence-defect` 속성은 **테스트의 기대값 표기일 뿐**이며 측정기가 읽으면
+조작화가 아니라 정답 열람이 된다 (부모 디렉터리 README 의 `data-gate-kind` 규약과 같다).
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>증거 결함(closed shadow root) — W5E v3 픽스처</title>
+<style>
+ *{box-sizing:border-box}
+ [hidden]{display:none !important}
+ body{margin:0;width:390px;height:844px;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+ .hdr{margin:0;height:56px;line-height:56px;padding-left:16px;font-size:17px;
+      font-weight:600;border-bottom:1px solid #ddd}
+ .note{margin:200px 16px 0;font-size:14px;color:#444;line-height:1.5}
+</style></head>
+<body data-fixture="evidence_defect" data-evidence-defect="CLOSED_SHADOW_ROOT">
+<h1 class="hdr">시외버스 예매</h1>
+<main class="page">
+<p class="note">진입 control 이 closed shadow root 안에 있어 document DOM probe 가 도달하지 못한다.</p>
+<div id="host"></div>
+</main>
+<script>
+(function () {
+  var host = document.getElementById('host');
+  var root = host.attachShadow({ mode: 'closed' });
+  var style = document.createElement('style');
+  style.textContent =
+    'button{position:fixed;left:24px;top:120px;width:160px;height:48px;border:0;' +
+    'border-radius:8px;background:#0b4f9e;color:#fff;font-size:16px;' +
+    'font-family:system-ui,-apple-system,sans-serif}';
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = '운행정보 조회';
+  root.appendChild(style);
+  root.appendChild(btn);
+})();
+</script>
+</body></html>
