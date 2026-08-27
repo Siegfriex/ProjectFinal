@@ -29,7 +29,7 @@ Self-test:  python3 c_terminal_table.py   (exit 0 iff the table's structural inv
 """
 from __future__ import annotations
 
-RULE_ID = "T-A-V3-STEP1-007 R11 + T-A-V3-STEP1-027 Δ30 (A ruling: companion field + 14-value enum [BUDGET_EXCEEDED added by Δ30] + OTHER needs note; combination table = C proposal, ABSTAIN × BUDGET_EXCEEDED = A ruled)"
+RULE_ID = "T-A-V3-STEP1-007 R11 + T-A-V3-STEP1-027 Δ30 (A ruling: companion field + 14-value enum [BUDGET_EXCEEDED added by Δ30] + OTHER needs note; combination table = C proposal; endpoint_status=ABSTAIN × terminal_reason=BUDGET_EXCEEDED = A ruled)"
 
 # endpoint_status enum (04_FLOW_CODEBOOK §4, unchanged by R11) — order as in SSOT
 ENDPOINT_STATUSES: tuple[str, ...] = (

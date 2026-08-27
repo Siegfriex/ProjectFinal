@@ -530,6 +530,9 @@ def test_validate_terminal_table():
     for tr in ("EVIDENCE_DEFECT", "REPLAY_BROKEN"):
         assert ok("EVIDENCE_DEFECT", tr), tr
     assert ok("ABSTAIN", "AMBIGUOUS_MULTIPLE_CANDIDATES")
+    assert ok("ABSTAIN", "BUDGET_EXCEEDED")                    # Δ30 (T-A-V3-STEP1-027): budget exhaustion = no observation
+    assert not ok("BLOCKED", "BUDGET_EXCEEDED")              # Δ30 combination is ABSTAIN-only
+    assert len(C.TERMINAL_REASONS) == 14                     # R11 13 + Δ30 BUDGET_EXCEEDED
     assert ok("ABSTAIN", "OTHER", "two equally plausible task controls; see screenshot")
     # unified C rule (gate1/c_terminal_table.py, shared with lane5): OTHER allowed with ANY non-REACHED status, note mandatory
     for es in sorted(C.ENDPOINT_STATUSES - {"REACHED"}):
