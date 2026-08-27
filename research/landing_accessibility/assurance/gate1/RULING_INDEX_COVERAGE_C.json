@@ -1,0 +1,689 @@
+{
+ "schema": "C_RULING_INDEX_COVERAGE",
+ "version": 1,
+ "plane": "Claude C (Independent Scientific Assurance)",
+ "generated_on": "2026-08-28",
+ "c_worktree_head": "04564a20051fddc7f904f7f0307bc5d611c4dfbb",
+ "c_branch": "claude-c/assurance-v21",
+ "c_gate1_tree": "5ba23c319dae7bbfb575bf530442754051d22378",
+ "purpose": "Drive C's GATE verification from A's canonical ruling index (not from B's dispatch records): for each of the 40 rulings, which C artifact/script/prereg row verifies it, and what is missing.",
+ "coverage_vocabulary": {
+  "COVERED": "a specific C check exists and runs without B output",
+  "COVERED_PENDING_ADAPTER": "a C comparator/expectation exists; it turns PASS/FAIL only once the GATE1_RUNBOOK_C.md §3 adapter map binds B's field/file names (until then NOT_TESTABLE in run_gate1.py)",
+  "PARTIAL": "a check exists for part of the ruling, or exists without a positive control that could distinguish a correct runner from a runner hard-coding the expected value",
+  "UNCOVERED": "no C check found",
+  "NOT_C": "verified_by is not C",
+  "NOT_DUE_YET": "due after GATE1 (STEP2/STEP3/GATE2/GATE3); seeds noted where they exist"
+ },
+ "inputs_read_only": [
+  "scratchpad V3_RULING_INDEX.json",
+  "origin/control/landing-orchestrator:research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md (git show)",
+  "gate1/GATE1_PREREGISTRATION_C.json (73 rows)",
+  "gate1/GATE1_RUNBOOK_C.md",
+  "gate1/gate1_adapter_spec.md",
+  "gate1/run_gate1.py (read only)",
+  "gate1/lane1..lane7 README/EXPECTATIONS/scripts",
+  "gate1/lane5_evidence/EVIDENCE_CONTRACT_C.md",
+  "gate1/lane4_safety_adapter/GATE1_SAFETY_PLAN.md",
+  "assurance/c_bus_scan.py",
+  "assurance/bus.py",
+  "assurance/qa_base.py (grep only)"
+ ],
+ "not_read": [
+  ".agent_worktrees/claude_b_*",
+  ".agent_worktrees/claude_d_*",
+  "network"
+ ],
+ "index_sha256": "b489400709b69f842257b9d4ecf8543cd825456d148b9bd0a460405d084592e4",
+ "index_authority_sha": "774c81fe5183050221546b862e6d53fbc9223491",
+ "delta_sha256": "e35bc1afb1a8f36bbb4b5ad37ac1d565254017fd10cc7da23c0349fc26198edf",
+ "counts": {
+  "all_40": {
+   "NOT_DUE_YET": 9,
+   "UNCOVERED": 3,
+   "PARTIAL": 8,
+   "COVERED_PENDING_ADAPTER": 16,
+   "NOT_C": 2,
+   "COVERED": 2
+  },
+  "gate1_due_21": {
+   "COVERED_PENDING_ADAPTER": 16,
+   "PARTIAL": 4,
+   "NOT_C": 1
+  },
+  "by_due": {
+   "STEP2": 3,
+   "STEP3": 3,
+   "상시": 10,
+   "GATE2": 1,
+   "GATE1": 21,
+   "GATE3": 2
+  }
+ },
+ "uncovered": [
+  "Δ4",
+  "Δ6-a",
+  "Δ13-R17"
+ ],
+ "partial": [
+  "Δ5",
+  "Δ6-b",
+  "Δ7",
+  "Δ8-R5",
+  "Δ12-R15",
+  "Δ15-GAP06",
+  "Δ15-GAP05",
+  "Δ15-domax"
+ ],
+ "c_internal_defects_found_while_mapping": [
+  "R11 table split inside C: lane5 ALLOWED_TERMINAL admits OTHER for every non-REACHED status; lane6 TERMINAL_ALLOWED admits OTHER only with ABSTAIN (Δ10-R11 row)",
+  "Field-name mismatch inside C: lane3 endpoint_surface_rendered_without_auth vs lane6/adapter-spec endpoint_surface_rendered_before_gate (Δ14-auth row)",
+  "lane5 FIELD_ALIASES lacks collector_sha256, the exact name in STEP1-015",
+  "bus.py::emit omits schema-required base_sha unless supplied (Δ5 row)",
+  "Δ7 hard-stop vocabulary: C uses STEP1-004 canonical 8, delta text names P0-001's 6 — resolution belongs to A"
+ ],
+ "index_vs_delta": {
+  "delta_items_absent_from_index": [
+   {
+    "delta": "Δ3",
+    "content": "08 baseline SHA table (3 stale heads corrected)",
+    "severity": "low",
+    "note": "informational; C pins exact SHAs anyway"
+   },
+   {
+    "delta": "Δ6-e",
+    "content": "C·D 의 E 사용 — E is an evidence-acquisition operator only; C recomputes E artifact hashes/raw evidence independently; B–E agreement is not independence",
+    "severity": "medium",
+    "note": "C-facing operative rule; propose index row verified_by C, due GATE2/상시"
+   },
+   {
+    "delta": "Δ11",
+    "content": "버스 구조 사실 — decisions live in ACK bodies (tools must inspect ACK content); v3-era ACK/completion without a ticket file is forbidden and C verifies; lane citations carry a timestamp",
+    "severity": "high",
+    "note": "delta says 'C 가 검증한다' yet no index row; C check exists: c_bus_scan.py::scan dangling_refs_v3_era (v3-era ACK/completion without ticket) — ACK-body inspection is not yet a c_bus_scan rule"
+   },
+   {
+    "delta": "Δ12 (C 추가 지시)",
+    "content": "GATE 1 에서 B 와 갈린 항목은 구현 결함이 아니라 해석 불일치 후보로 먼저 분류",
+    "severity": "medium",
+    "note": "covered by GATE1_RUNBOOK_C.md §5 (R14 interpretation-mismatch routing) but absent as an index row"
+   },
+   {
+    "delta": "Δ16",
+    "content": "SSOTV3 provenance snapshot (control/v3/ssot_snapshot/, 22 files) + honest limit",
+    "severity": "low",
+    "note": "A action; C re-verified 0/22 mismatch at cad8ad45 (GATE1_RUNBOOK_C.md §1.5)"
+   },
+   {
+    "delta": "Δ5 sub-rule",
+    "content": "finding_class: VALIDITY_RISK is issued at P1 or higher only",
+    "severity": "low",
+    "note": "not in the Δ5 index text"
+   },
+   {
+    "delta": "Δ2 item 3",
+    "content": "reserve order skipped ⇒ reason recorded and C verifies",
+    "severity": "low",
+    "note": "only implied by the Δ2 index text"
+   }
+  ],
+  "index_items_without_delta_anchor_or_conflicting": [
+   {
+    "index_id": "STEP1-015",
+    "issue": "not a Δ item; authority is ticket T-A-V3-STEP1-015 while index.source names the delta as 정본 — add a per-row authority field so non-delta rulings are traceable"
+   },
+   {
+    "index_id": "Δ7",
+    "issue": "index says 'hard stop 어휘 정본은 R9 8종'; delta Δ7 text says '정본은 T-A-V3-P0-001 의 6종'; C harness (run_gate1.py::HARD_STOP_8, runbook) uses STEP1-004 'R9 canonical 8'. index.source says delta wins on conflict — A must state whether STEP1-004 supersedes P0-001 (then the delta text is stale) or the index row is wrong"
+   }
+  ],
+  "identity": {
+   "index_sha256_recomputed": "b489400709b69f842257b9d4ecf8543cd825456d148b9bd0a460405d084592e4",
+   "index_sha256_expected": "b489400709b69f842257b9d4ecf8543cd825456d148b9bd0a460405d084592e4",
+   "index_matches_control_branch_copy": true,
+   "index_authority_sha": "774c81fe5183050221546b862e6d53fbc9223491",
+   "delta_read_from": "origin/control/landing-orchestrator @ adcdcb6050e96817be8645662c098b3221d4f90f (git show, no checkout)",
+   "delta_sha256": "e35bc1afb1a8f36bbb4b5ad37ac1d565254017fd10cc7da23c0349fc26198edf",
+   "delta_byte_identical_at_index_authority_sha": true,
+   "delta_last_change_commit": "31ffd5a9e104a6c899af3b310c3fc8322f47db01"
+  }
+ },
+ "rows": [
+  {
+   "id": "Δ1-a",
+   "due": "STEP2",
+   "verified_by": "C",
+   "requires": "F5 날짜 fixture — T+1 상대일자 + target 별 collection_date_kst·요일 기록 + 날짜 분산 사전등록 민감도",
+   "must_appear_in": "FINAL_MAIN50_MANIFEST.f5_date_rule · 관측 행의 collection_date_kst/query_date/dow/is_holiday",
+   "C_check": [
+    "(none) grep collection_date_kst/query_date/dow/is_holiday over gate1/ and assurance/*.py = 0 hits"
+   ],
+   "coverage": "NOT_DUE_YET",
+   "gap_note": "STEP2 prep: add a manifest/observation check (new lane6 or manifest_check script): FINAL_MAIN50_MANIFEST.f5_date_rule in {A,B}; under B all F5 rows share one collection_date_kst; query_date/dow/is_holiday present on every F5 row; date-variance sensitivity pre-registered."
+  },
+  {
+   "id": "Δ1-b",
+   "due": "STEP3",
+   "verified_by": "C",
+   "requires": "F1 시중7/지방3 층 사전등록. primary 분모 불변",
+   "must_appear_in": "manifest.strata · 분석 산출의 층별 병기",
+   "C_check": [
+    "(none) grep strata over gate1/ = 0 hits"
+   ],
+   "coverage": "NOT_DUE_YET",
+   "gap_note": "STEP3 prep: lane6 family_summary(F1) needs a strata sensitivity block keyed to manifest.strata (시중7/지방3) reported beside, never instead of, the primary denominators."
+  },
+  {
+   "id": "Δ2",
+   "due": "STEP2",
+   "verified_by": "C",
+   "requires": "replacement 순서명부 precheck 이전 동결·hash 포함·층 유지·소진 시 n<10",
+   "must_appear_in": "manifest.replacement_reserve · replacement_rule",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::_validate_replacement / denominator_chain(replaced=…) (reserve_rank positive int, 5 item keys, reason set closed) — seed only",
+    "lane6_stats/test_c_flow_derive.py::test_denominator_chain_replaced_k_explicit_and_reasons_closed"
+   ],
+   "coverage": "NOT_DUE_YET",
+   "gap_note": "STEP2 prep: add checks that (i) replacement follows reserve order (reserve_rank monotone; a skipped rank requires a recorded reason C reviews), (ii) the reserve list is inside the manifest hash and its freeze precedes the first precheck timestamp, (iii) exhausted reserve → family reported n<10, no ad-hoc addition."
+  },
+  {
+   "id": "Δ4",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "promoted main 은 origin/ 접두 또는 exact SHA 로만 참조. bare 브랜치명 금지",
+   "must_appear_in": "코드·티켓·결정문 전수",
+   "C_check": [
+    "(no check script) grep over assurance/: 2 origin-prefixed refs; qa_base.py:25/38 remote_tip() uses `git ls-remote origin refs/heads/research/landing-accessibility-main` (remote tip, compliant in substance, bare string); bus_mirror_c/acks/T-E-FACT_CORRECTION-001.C.json applied Δ4 by hand"
+   ],
+   "coverage": "UNCOVERED",
+   "gap_note": "Add ref_discipline_lint (new script or c_bus_scan rule): scan C tree + v3-era tickets/ACKs/completions for 'research/landing-accessibility-main' not preceded by 'origin/' or 'refs/remotes/origin/' and not accompanied by a 40-hex SHA; whitelist `ls-remote origin refs/heads/…`; report hits as findings. Manual compliance is not a check."
+  },
+  {
+   "id": "Δ5",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "v3 이후 티켓은 15 스키마. legacy type 매핑표. 소급 개정 금지",
+   "must_appear_in": "버스 티켓",
+   "C_check": [
+    "bus.py::emit (v3 fields ticket_id/type/from/to/created_at_kst/priority/claim_kind/scope/status; legacy kind→v3 type map incl. HARD_STOP_CANDIDATE→BLOCKER; legacy_type retained) — C's own issuance",
+    "c_bus_scan.py::scan content_changed_after_ack (ticket bytes changed after C's ACK = retroactive-edit detection, C-acked subset only)"
+   ],
+   "coverage": "PARTIAL",
+   "gap_note": "(1) bus.py::emit omits schema-required base_sha unless supplied in payload — add default; (2) c_bus_scan does not validate incoming v3-era tickets against 15 schema (required fields, type enum, legacy type used after cutoff without the mapping) — add a schema-validation pass with the Δ5 mapping table; (3) retroactive-edit detection covers only tickets C acked — extend to a mirror-wide hash ledger."
+  },
+  {
+   "id": "Δ6-a",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "E 를 enum 에 포함. E 의 REAL 티켓은 5필드 필수",
+   "must_appear_in": "버스 티켓",
+   "C_check": [
+    "c_bus_scan.py regex (A|B|C|D|E) strips E plane suffixes on ACK filenames (recognises E ACKs) — not an enum or field check; bus.py::is_for_c only"
+   ],
+   "coverage": "UNCOVERED",
+   "gap_note": "Add c_bus_scan v3-era rule: from/to/cc ⊆ {A,B,C,D,E,DIRECTOR}; when E ∈ from∪to and the ticket is REAL-bearing (scope/mode REAL or REAL request claim) require real_scope_id, release_doc, target_manifest_sha256, allowlist_ref, task_contract_sha256; any missing → SCHEMA_VIOLATION finding to A."
+  },
+  {
+   "id": "Δ6-b",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "E REAL scope 0. 어느 평면도 E 에 REAL 요청 불가",
+   "must_appear_in": "릴리스 문서 부재",
+   "C_check": [
+    "lane4_safety_adapter/two_layer_scope_probe.py (V3_MAIN50 / unknown / scope-less REAL denied at both layers regardless of requester; run_gate1.py L4-S2-two-layer-scope-probe) — mechanism level only"
+   ],
+   "coverage": "PARTIAL",
+   "gap_note": "Add bus-level check: any v3-era ticket with to∋E and a REAL scope is a violation while no E release doc exists; extend lane4 probe to enumerate release docs on control/landing-orchestrator and assert none binds an E scope."
+  },
+  {
+   "id": "Δ6-c",
+   "due": "GATE2",
+   "verified_by": "C",
+   "requires": "B 는 E route 를 실행 대본으로 재생하지 않는다. 갈리면 B 것이 task_flow_sequence",
+   "must_appear_in": "B replay 입력이 task_id+endpoint_contract 뿐임을 보이는 artifact · E_ROUTE_ID 는 lineage hint 로만",
+   "C_check": [
+    "GATE1_RUNBOOK_C.md §2(b) (locate where task_id/contract enter TargetSpec) and gate1_adapter_spec.md §2 (contract input = task_id + endpoint_contract only) — seeds",
+    "lane7_grain_determinism/ROUTE_POLICY_DETERMINISM_SPEC.md RP-10 (replay consumes frozen manifest only)",
+    "(none) grep E_ROUTE_ID over gate1/ = 0 hits"
+   ],
+   "coverage": "NOT_DUE_YET",
+   "gap_note": "GATE2 prep: add a check that B's replay input schema carries no route/selector/action fields beyond task_id + endpoint_contract; E_ROUTE_ID may exist only as a lineage-hint field; E-vs-B route divergence is filed as a FINDING, not a defect."
+  },
+  {
+   "id": "Δ6-d",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "Scout 의 결정론적 경로선택 정책 문서화·P4 이전 동결",
+   "must_appear_in": "B 의 정책 문서 + 결정론 테스트",
+   "C_check": [
+    "lane7_grain_determinism/ROUTE_POLICY_DETERMINISM_SPEC.md §2 RP-01..RP-12 (RP-02 ranking, RP-03 tie-break, RP-04 shortest-path, RP-05 stop conditions = Δ6-d's four elements; RP-11 policy sha)",
+    "lane7_grain_determinism/determinism_check.py (N=3 byte-identical task/experienced sequences + ordered control_selector list; policy-doc sha bound)",
+    "run_gate1.py items L7-route-policy-doc, L7-determinism-runner(-f01..f06), L7-determinism-posctrl / L7-determinism-negctrl (controls)"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map (flow.json name, runner template). Spec §Authority states the Δ6-d text was not in C's read set — re-pin the spec wording to Δ6-d (RP items already map). 'P4 이전 동결' is not checked: add a comparison of the policy-doc sha recorded in B's P3 COMPLETION against the doc at the P4 SHA."
+  },
+  {
+   "id": "Δ7",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "phase 자율전이는 REAL release 를 대체하지 않는다. hard stop 어휘 정본은 R9 8종",
+   "must_appear_in": "릴리스 발행 기록",
+   "C_check": [
+    "run_gate1.py::HARD_STOP_8 + evaluate (hard-stop vocabulary = STEP1-004 R9 canonical 8; any trigger ⇒ HARD_STOP verdict)",
+    "lane4_safety_adapter/two_layer_scope_probe.py + GATE1_SAFETY_PLAN.md (c) (REAL only when release doc RELEASED and manifest sha bound at both layers; run_gate1 L4-S2-*)"
+   ],
+   "coverage": "PARTIAL",
+   "gap_note": "(1) Vocabulary conflict to A: delta Δ7 text says the canonical hard-stop set is T-A-V3-P0-001's 6, the index says 'R9 8종', C's harness uses STEP1-004 canonical 8 — index.source says delta wins, so either the index row or STEP1-004 supersession must be stated; (2) no bus-side check that a REAL start cites a RELEASED release doc + manifest sha + explicit A GO rather than a phase transition — add a c_bus_scan rule for REAL-start claims."
+  },
+  {
+   "id": "Δ8-R1",
+   "due": "STEP2",
+   "verified_by": "C",
+   "requires": "replacement 5번째 사유 없음. 과업 의미 불일치는 TASK_COMPARABILITY_CONCERN finding + ABSTAIN",
+   "must_appear_in": "precheck 기록",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::REPLACEMENT_REASONS (4 values; _validate_replacement raises on a 5th)",
+    "lane6_stats/test_c_flow_derive.py:787 (TASK_COMPARABILITY_CONCERN rejected as a replacement reason)"
+   ],
+   "coverage": "NOT_DUE_YET",
+   "gap_note": "STEP2 prep: precheck-record check that TASK_COMPARABILITY_CONCERN appears only as a FINDING ticket + endpoint_status=ABSTAIN row, never in a replacement record."
+  },
+  {
+   "id": "Δ8-R2",
+   "due": "STEP3",
+   "verified_by": "C",
+   "requires": "진입 flow 지표는 AUTH_GATE 여부와 무관하게 산출. endpoint 의존 지표만 flow-evaluable n",
+   "must_appear_in": "분석 산출의 두 분모 분리",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::family_summary (denominators.entry_structure_n / endpoint_dependent_n, AUTH_GATE_IS_ENDPOINT_BY_FAMILY, ENTRY_STRUCTURE_VARS / ENDPOINT_DEPENDENT_VARS)",
+    "lane6_stats/test_c_flow_derive.py::test_family_summary_two_denominators_f1_vs_f2"
+   ],
+   "coverage": "NOT_DUE_YET",
+   "gap_note": "STEP3: compare B's analysis output for both denominators per family; C's reading 'F2–F5 AUTH_GATE stays inside the reach-rate denominator as not-reached' (lane6 README R2 row) must be confirmed by A before GATE 3."
+  },
+  {
+   "id": "Δ8-R3",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "task_role PRIMARY/SECONDARY_REPEATED. family 집계는 PRIMARY 만 + 필터 조건 문자열 기록",
+   "must_appear_in": "mart 스키마 + 집계 산출",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::_task_role_of / split_by_task_role / PRIMARY_FILTER_CONDITION (family_summary, pairwise_matrix, denominator_chain emit filter_condition literal; missing/unknown task_role raises), compare_with_mart_row carries task_role",
+    "lane6_stats/test_c_flow_derive.py::test_task_role_filter_and_secondary_summary",
+    "run_gate1.py item L6-recompute-compare (schema check: task_role on every row)"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map only. Aggregate-side filter-string check on B's family report is GATE 3 (P-41 follow_up)."
+  },
+  {
+   "id": "Δ8-R4",
+   "due": "STEP3",
+   "verified_by": "C",
+   "requires": "분모 사슬에 교체 이력 노출. k=0 도 명시",
+   "must_appear_in": "분석 산출",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::denominator_chain (CHAIN_STAGES incl. 'replaced', k=0 explicit, per-item 5 fields, by_reason)",
+    "lane6_stats/test_c_flow_derive.py::test_denominator_chain_replaced_k_explicit_and_reasons_closed",
+    "run_gate1.py item L6-denominator-chain (runs at GATE 1 on any runner-emitted chain; hard_stop=denominator_corruption)"
+   ],
+   "coverage": "NOT_DUE_YET",
+   "gap_note": "STEP3: feed A's freeze-manifest replacements into denominator_chain(replaced=…, rows=…) per family and diff against B's reported chain."
+  },
+  {
+   "id": "Δ8-R5",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "fixture 는 의미 명세. fixture_input_mode 기록(FREE_TEXT/DROPDOWN/MIXED/MAP_PAN/OTHER)",
+   "must_appear_in": "관측 행 필드",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::derive(input_modes=…) / resolve_input_mode; compare_with_mart_row reads row.fixture_input_mode | depth_input_modes",
+    "lane6_stats/test_c_flow_derive.py::test_conditional_tokens_dropdown_vs_free_text",
+    "run_gate1.py item L6-recompute-compare (schema check: fixture_input_mode where a conditional token occurs); gate1_adapter_spec.md §3 lists fixture_input_mode"
+   ],
+   "coverage": "PARTIAL",
+   "gap_note": "(1) No C browser fixture exercises a conditional token: lane3's 8 fixtures contain no SELECT_ORIGIN/SELECT_DESTINATION/SELECT_DATE (the names occur only in rule text), so B's recording of fixture_input_mode is never exercised on a fixture where DROPDOWN vs FREE_TEXT changes the answer — add a lane3 fixture pair (F5 date picker vs free-text date) with expected fixture_input_mode and activation_depth differing by 1. (2) lane1 EXPECTATIONS carries no expected fixture_input_mode (P-43 follow_up open). (3) 'service-first means, collector does not choose' has no check."
+  },
+  {
+   "id": "Δ8-R6",
+   "due": "GATE3",
+   "verified_by": "C",
+   "requires": "F1 auth 절단 사전등록 민감도. AUTH_GATE/ABSTAIN 필드 한정 의무",
+   "must_appear_in": "분석 산출·mart 컬럼",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::q8_bare_mentions / assert_field_qualified (R6 Q8 guard; self-checked by derive/family_summary/pairwise_matrix/denominator_chain/validate_terminal)",
+    "lane6_stats/test_c_flow_derive.py::test_q8_field_qualification_guard",
+    "family_summary by_endpoint_reached split (R6 Q1 truncation visibility)"
+   ],
+   "coverage": "NOT_DUE_YET",
+   "gap_note": "GATE3: run q8_bare_mentions over B's mart columns/reports (GATE1_PREREGISTRATION_C P-44 follow_up notes C's own lane READMEs still use bare AUTH_GATE in places); F1 auth-truncation sensitivity: family_summary(F1) must co-report the auth_gate_stage distribution and an F1 marker in cross-family depth tables (P-45 follow_up open)."
+  },
+  {
+   "id": "Δ8-R7",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "entry_zone 임계 — y 삼등분, TOP 안에서만 x 삼등분, [a,b) 두 축 균일, y=1/3→MID · y=2/3→BOTTOM · TOP 내 x=1/3→TOP_CENTER · x=2/3→TOP_RIGHT. DRAWER>FLOATING>기하. 원좌표 항상 저장",
+   "must_appear_in": "zone 유도 코드 + 경계 테스트",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::entry_zone / entry_zone_record (ZONE_TOP_Y=1/3, ZONE_BOTTOM_Y=2/3, x thirds inside TOP only, [a,b), DRAWER>FLOATING>geometry, raw x/y retained and required even under override)",
+    "lane6_stats/test_c_flow_derive.py::test_entry_zone_r7_thresholds_and_boundaries (exact boundary points y=1/3→MID, y=2/3→BOTTOM, x=1/3→TOP_CENTER, x=2/3→TOP_RIGHT)",
+    "lane2_label_reveal/measure_geometry.py::zone + EXPECTATIONS (14 fixtures, zone R7 + entry_zone_band_R7 sensitivity); run_gate1.py L2-measure-geometry / L2-surface-state-compare (raw x/y ±0.02 first, zone second)",
+    "compare_with_mart_row recomputes entry_zone from B's raw x/y"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map. B-side '경계 테스트' is only exercised if B rows hit a boundary — add synthetic boundary rows (x or y exactly 1/3 or 2/3) to L6-recompute-compare or require B's boundary-test names in the COMPLETION. compare_with_mart_row's DRAWER/FLOATING detection reads B fields entry_is_floating / entry_in_drawer — the adapter map must bind them (or derive from nav_container_chain)."
+  },
+  {
+   "id": "Δ9",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "activation_depth 18종 귀속 — IN 10 / OUT 5 / CONDITIONAL 3(fixture_input_mode 로 갈림). depth_conditional_tokens 근거 기록. 방향은 토큰 아님",
+   "must_appear_in": "flow 정규화 코드 + depth_conditional_tokens 필드",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::classify_token (ACTIVATION_RULE_ID STEP1-006: IN 10 / OUT 5 / CONDITIONAL 3), derive → depth_conditional_tokens (index/token/fixture_input_mode/decision/basis), raises on non-canonical tokens (direction-bearing OPEN_RIGHT_DRAWER rejected)",
+    "lane6_stats/test_c_flow_derive.py::test_classify_activation_tokens / test_classify_unknown_token_raises / test_conditional_tokens_dropdown_vs_free_text / test_derive_typing_and_submit_sequence",
+    "lane3 fixtures (SUBMIT_QUERY counted, INPUT_QUERY excluded: seq_typing_and_scroll_not_depth act_depth 2) + lane2 reveal_direction from geometry (direction is a variable, not a token)",
+    "run_gate1.py items L3-sequence-compare (derived counts recomputed by C), L6-recompute-compare"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map. depth_conditional_tokens presence on B rows is not in the L6 schema-check list (only fixture_input_mode is) — add 'present whenever a conditional token occurs and decisions equal C's'. Conditional-token browser fixture missing (see Δ8-R5)."
+  },
+  {
+   "id": "Δ10-R11",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "terminal_reason 13값 동반 필드. 모든 terminal 이 두 필드. OTHER 는 note 필수. 허용 조합표",
+   "must_appear_in": "관측 행 + 조합표",
+   "C_check": [
+    "lane5_evidence/EVIDENCE_CONTRACT_C.md §3b + evidence_lineage_check.py::check_flow (both fields on every flow record, 13-value enum, REACHED×non-null impossible, OTHER needs note, ALLOWED_TERMINAL table, MISSING_FIELD/SCHEMA_VIOLATION kinds); fixtures good/bad_overwrite/bad_lineage as controls",
+    "lane6_stats/c_flow_derive.py::validate_terminal / TERMINAL_ALLOWED + test_c_flow_derive.py::test_validate_terminal_table; compare_with_mart_row R11 diff",
+    "run_gate1.py items L5-runner-evidence-tree, L5-terminal-reason-table (B's table reconciled with C's), L6-recompute-compare"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "C-internal defect to fix before GATE 1: lane5 ALLOWED_TERMINAL admits OTHER for every non-REACHED status, lane6 TERMINAL_ALLOWED admits OTHER only with ABSTAIN — the same B row (e.g. BLOCKED×OTHER) passes lane5 and fails lane6 (runbook §6.3 lists the pair but the code is unreconciled). B's combination table is unpublished → L5-terminal-reason-table stays NOT_TESTABLE until the COMPLETION carries it."
+  },
+  {
+   "id": "Δ10-R12",
+   "due": "GATE3",
+   "verified_by": "C",
+   "requires": "sequence 거리 정규화 primary=max(len), sum(len)·Yujian-Bo 저장, 군집 시 YB 병기",
+   "must_appear_in": "**STEP 3 mart/분석**",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::seq_distance (levenshtein_norm = lev/max len PRIMARY; levenshtein_norm_sum; yujian_bo always stored), pairwise_matrix(for_clustering_or_mds=True → clustering_companion='yujian_bo')",
+    "lane6_stats/test_c_flow_derive.py::test_seq_distance_r12_three_normalisations"
+   ],
+   "coverage": "NOT_DUE_YET",
+   "gap_note": "GATE3: cell-by-cell comparison of all three matrices against B's family report; any clustering/MDS artifact from B must carry the Yujian-Bo companion."
+  },
+  {
+   "id": "Δ10-R13",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "auth_gate_stage 에 UNDETERMINED. NONE 은 적극적 주장. 전 변수 적용. UNDETERMINED 는 분모에서 빼지 않음",
+   "must_appear_in": "관측 행 + 집계",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::AUTH_GATE_STAGES (incl. UNDETERMINED), auth_gate_stage_from_sequence (NONE only for a fully observed gate-free path), derive → UNDETERMINED for ABSTAIN/incomplete; family_summary keeps UNDETERMINED/NOT_OBSERVED as explicit categories (n_unobserved_explicit, never dropped from n)",
+    "lane6_stats/test_c_flow_derive.py::test_auth_gate_stage_undetermined_vs_none / test_family_summary_missing_and_n_not_10 / test_gap04_null_convention",
+    "lane5_evidence/evidence_lineage_check.py::check_flow — AFFIRMATIVE_WITHOUT_EVIDENCE (NONE on EVIDENCE_DEFECT/ABSTAIN) and AUTH_GATE×NONE/UNDETERMINED violations",
+    "lane1 EXPECTATIONS auth_gate_stage_allowed=[NONE] only on reached fixtures; run_gate1.py L6-recompute-compare (auth_gate_stage ∈ AUTH_GATE_STAGES), L5-runner-evidence-tree"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map. '전 변수 적용': C has no inventory of B's mart variables that lack an undetermined value (ruling: raise immediately when found) — add to L6 schema checks: for every categorical column in B's fact_* schema assert an UNDETERMINED/NOT_OBSERVED member exists, list those without."
+  },
+  {
+   "id": "Δ10-R14",
+   "due": "GATE1",
+   "verified_by": "A",
+   "requires": "C 는 B·D 의 fixture 를 쓰지 않고 SSOT 원문에서 자기 fixture 를 파생",
+   "must_appear_in": "C 의 fixture 출처 기록",
+   "C_check": [
+    "provenance records A verifies: lane1/lane2/lane3/lane6/lane7 README independence statements; lane5_evidence/EVIDENCE_CONTRACT_C.md header; GATE1_PREREGISTRATION_C.json inputs_read_only / not_read / P-67 (CONFIRMED_BY_A_R14); GATE1_RUNBOOK_C.md header + report §2 independence statement (run_gate1.py::write_report)"
+   ],
+   "coverage": "NOT_C",
+   "gap_note": "verified_by A. C keeps the provenance statements current at each lane edit."
+  },
+  {
+   "id": "Δ12-R15",
+   "due": "상시",
+   "verified_by": "B·C·D·E",
+   "requires": "A 의 판정은 근거 원문을 축자 인용",
+   "must_appear_in": "A 결정문",
+   "C_check": [
+    "GATE1_PREREGISTRATION_C.json rows with authority_override cite ssotv3_clause next to the A ticket (P-06/P-09/P-13/P-14/P-17/P-21/P-22/P-25/P-33/P-35/P-38/P-39/P-73 …) = C re-reads the quoted clause",
+    "GATE1_RUNBOOK_C.md §5 (C-vs-B divergence → interpretation-mismatch finding to A, R14)"
+   ],
+   "coverage": "PARTIAL",
+   "gap_note": "No automated check that an A ruling ticket contains a verbatim quotation. Add c_bus_scan rule for A DIRECTIVE/ruling tickets after the v3 cutoff: require a non-empty verbatim-quote field with doc §; list rulings lacking one (delta itself flags Δ8-R1/Δ8-R2 as thin)."
+  },
+  {
+   "id": "Δ12-R16",
+   "due": "상시",
+   "verified_by": "A",
+   "requires": "A 판정 반론은 FACT_CORRECTION. 근거는 같은 원문 다른 독해",
+   "must_appear_in": "버스",
+   "C_check": [
+    "capability only: bus.py::emit(kind='FACT_CORRECTION') maps to v3 type FACT_CORRECTION; GATE1_PREREGISTRATION_C.json fact_correction_r2 fields record received FCs"
+   ],
+   "coverage": "NOT_C",
+   "gap_note": "verified_by A. No C action."
+  },
+  {
+   "id": "Δ13-R17",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "철회는 주장과 같은 근거를 요구. 발행 시 어떻게 알았는가, 수신 시 원 기록 대조",
+   "must_appear_in": "버스 FACT_CORRECTION",
+   "C_check": [
+    "(none) c_bus_scan.py has no content rule for FACT_CORRECTION/retraction tickets; bus.py::ack records ticket_sha256 only"
+   ],
+   "coverage": "UNCOVERED",
+   "gap_note": "Add c_bus_scan rule: FACT_CORRECTION tickets (incl. self-retractions) must carry a how_known field (원 기록 path + sha/line); C's ACK of a retraction must record verified_against (원 기록 대조 result) before acceptance; list retractions lacking either."
+  },
+  {
+   "id": "Δ14-P06",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "SWITCH_TAB 은 reveal 아님. menu_dependency_incl_tab 민감도 병기",
+   "must_appear_in": "flow 정규화 + 민감도 산출",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py C-3 reveal set excludes SWITCH_TAB; derive emits menu_dependency_incl_tab (test_c_flow_derive.py:240)",
+    "lane3_sequence_dismiss_auth/EXPECTATIONS.json menu_dependency (r2, REVEAL_SET without SWITCH_TAB); lane2 EXPECTATIONS meta.menu_dependency_rule (annotated)",
+    "lane1 EXPECTATIONS C-F4-DECOY-01 informative sequence with SWITCH_TAB (menu_dependency 0 / incl_tab 1)",
+    "run_gate1.py items L3-sequence-compare, L6-recompute-compare"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map. No lane3 browser fixture has SWITCH_TAB on the path (lane1's is informative only) — add one so B's menu_dependency=0 on a tab switch is exercised. Family-level '민감도 병기' (menu_dependency_incl_tab in family_summary) is a GATE 3 check — confirm ENTRY_STRUCTURE_VARS includes it."
+  },
+  {
+   "id": "Δ14-P09",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "menu_dependency 는 sequence 기반. 04 가 10 glossary 를 이긴다",
+   "must_appear_in": "flow 정규화",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py C-10 _before_terminal + menu_dependency (reveal token before ENDPOINT_REACHED; whole observed path if never reached), menu_dependency_alt_before_anchor sensitivity; test_derive_codebook_example / test_derive_nested_reveal_and_auth_positions",
+    "lane3_sequence_dismiss_auth/EXPECTATIONS.json menu_dependency (r2, P-09 text) + fixtures 1–3 (menu_dep 1); lane2 meta.menu_dependency_rule (14 values identical under both readings)",
+    "run_gate1.py items L3-sequence-compare, L6-recompute-compare"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map. The P-09 divergent case (function visible at S0, local menu opened later) exists only as a lane6 unit case — optional lane3 fixture."
+  },
+  {
+   "id": "Δ14-auth",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "auth_gate_stage 단일 위치규칙 — 과업 특이적 토큰 10종 기준",
+   "must_appear_in": "flow 정규화",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::auth_gate_stage_from_sequence (AUTH_STAGE_RULE_ID STEP1-011; task-specific 10-token set per C-6 table; AT_ENDPOINT only with endpoint_surface_rendered_before_gate=True) + test_p13_p14_auth_stage_rule_step1_011",
+    "lane3_sequence_dismiss_auth/walk_fixture.py::auth_stage (derives from sequence, requires equality) + fixtures auth_gate_before_discovery / auth_gate_after_task_select / auth_gate_at_endpoint; EXPECTATIONS.auth_gate_stage rewritten to the ticket text",
+    "run_gate1.py items L3-sequence-compare, L6-recompute-compare"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map. C-internal field-name mismatch: lane3 fixture flag endpoint_surface_rendered_without_auth vs lane6/adapter-spec endpoint_surface_rendered_before_gate — the adapter map must bind one B field to both."
+  },
+  {
+   "id": "Δ14-P17",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "ABSTAIN(모른다) 과 TASK_SURFACE_ABSENT(없다고 안다) 구분",
+   "must_appear_in": "조합표",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::validate_terminal / TERMINAL_ALLOWED (ABSTAIN→AMBIGUOUS_MULTIPLE_CANDIDATES|OTHER vs PUBLIC_WEB_UNOBSERVABLE→TASK_SURFACE_ABSENT); q8 guard keeps action_token=ABSTAIN a separate layer; test_validate_terminal_table (:520), test lines 210–212",
+    "lane5_evidence/EVIDENCE_CONTRACT_C.md §3b same split; lane1 EXPECTATIONS C-F5-NOSURF-01 endpoint_status_allowed=[PUBLIC_WEB_UNOBSERVABLE, ABSTAIN]",
+    "run_gate1.py items L1-binding-and-hash, L6-recompute-compare, L5-runner-evidence-tree"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map. lane1 NOSURF admits both statuses without an expected terminal_reason (lane1 EXPECTATIONS has no terminal_reason field) — add expected (endpoint_status, terminal_reason) pairs so 'know it is absent' vs 'do not know' is asserted on the fixture, not only in lane6 unit tests."
+  },
+  {
+   "id": "Δ15-GAP07",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "entry_observed_state 신규 필드 — 모든 행이 자기 시점 선언",
+   "must_appear_in": "관측 행 필드",
+   "C_check": [
+    "lane2_label_reveal/measure_geometry.py:330-331 (entry_observed_state = S0 | POST_REVEAL:<nav_type> | NOT_OBSERVED) + EXPECTATIONS entry_observed_state on 14 fixtures (7×S0, 7×POST_REVEAL:<type>); README §How the runner adapter compares",
+    "run_gate1.py item L2-surface-state-compare (entry_observed_state exact)"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map only."
+  },
+  {
+   "id": "Δ15-GAP06",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "nav_container_type=최내곽 + nav_container_chain 병기",
+   "must_appear_in": "관측 행 필드",
+   "C_check": [
+    "lane2_label_reveal/measure_geometry.py:333-334 (chain = [nav_type]; len(chain) == nav_container_depth check) + EXPECTATIONS nav_container_chain on 14 fixtures",
+    "run_gate1.py item L2-surface-state-compare (nav_container_chain exact list)"
+   ],
+   "coverage": "PARTIAL",
+   "gap_note": "Every C fixture is single-level (chain length ≤ 1, innermost == outermost), so 'innermost' vs 'outermost' and chain ordering are indistinguishable — a runner reporting the outer container passes. Add a nested reveal fixture (e.g. hamburger → accordion, depth 2, expected nav_container_type=INLINE_EXPAND, chain=[<drawer type>, INLINE_EXPAND]) and extend measure_geometry chain derivation beyond one step."
+  },
+  {
+   "id": "Δ15-GAP02",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "first_visible_scroll_state = 최초 관측 scroll state. 끝내 미관측만 NULL. **03 §3 scroll-only capture 검증 필수**",
+   "must_appear_in": "수집기 + GATE1 보고",
+   "C_check": [
+    "lane3 fixture seq_typing_and_scroll_not_depth (control below fold, fvss=S1) + walk_fixture.py:185-192 (fvss = scroll state of the first step after which the control is in viewport; null only if never observed) + EXPECTATIONS first_visible_scroll_state (fixture 6 null)",
+    "run_gate1.py item L3-scroll-capture-03s3 (coverage key scroll_capture_03_s3) + evaluate: verdict cannot be PASS unless VERIFIED; write_report §4/§5 prints NOT_VERIFIED_DECLARED otherwise",
+    "gate1_adapter_spec.md §3 (scroll-only states must be emitted even when the fixture fits one viewport)"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map (S1 fact_surface_state row). Single scroll fixture (n=1) — consider a second (control at S2) so S1 is not the only value the check can accept."
+  },
+  {
+   "id": "Δ15-GAP03",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "flow_step_count 에서 ENDPOINT_REACHED·ABSTAIN 제외, AUTH_GATE 포함",
+   "must_appear_in": "flow 정규화",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py C-4 flow_step_count (excludes ENDPOINT_REACHED/ABSTAIN, counts AUTH_GATE) + test_c_flow_derive.py::test_gap03_flow_step_count_terminals",
+    "lane3_sequence_dismiss_auth/EXPECTATIONS.json flow_step_count (8 fixtures; auth_gate_before_discovery → 1 i.e. AUTH_GATE counted)",
+    "run_gate1.py items L3-sequence-compare, L6-recompute-compare"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map only."
+  },
+  {
+   "id": "Δ15-GAP04",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "수치 미관측은 null(0 아님). occlusion=0.0 은 관측했고 안 가려짐. 한 행 안 결측 표현 일관",
+   "must_appear_in": "관측 행",
+   "C_check": [
+    "lane6_stats/c_flow_derive.py::NULL_CONVENTION_ID / UNOBSERVED_CATEGORICAL; derive None-never-0; family_summary raises on empty-string categorical; entry_zone_record → NOT_OBSERVED; test_gap04_null_convention (:233), test_derive_abstain_is_not_flow_evaluable",
+    "lane2 S0 rows of the 7 reveal fixtures (numeric null / NOT_OBSERVED, README fixtures table) + measure_geometry; lane3 fixtures 6/8 occlusion null vs fixture 1 = 0.0; lane7 f05 occl 0.0 observed-unoccluded",
+    "run_gate1.py items L2-surface-state-compare ('GAP-04 null convention'), L6-recompute-compare"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs adapter map. '한 행 안 결측 표현 일관' is asserted only for lane2 S0 rows — add a generic row-level mixing check (null numeric alongside '' or 0-for-unobserved in the same row) to the L6 schema checks."
+  },
+  {
+   "id": "Δ15-GAP05",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "s0_task_control_visible 과 occlusion 은 독립. 임계값 없음",
+   "must_appear_in": "측정 코드",
+   "C_check": [
+    "lane3_sequence_dismiss_auth/walk_fixture.py:116 s0_task_control_visible = inViewport ∧ hitCentre (r1 occlusion<0.5 threshold removed); lane2 measure_geometry hit_at_centre",
+    "lane3 fixture 2 (occl 1.0 at S0) and fixture 8 (below fold, occl null)"
+   ],
+   "coverage": "PARTIAL",
+   "gap_note": "No fixture with the discriminating case 'heavily occluded yet hit-testable → visible=true' (a runner applying an occlusion<0.5 threshold still passes all 8) nor 'occlusion 0.0 but off-viewport → visible=false' (fixture 8 has occlusion null, not 0.0). Add both to lane3."
+  },
+  {
+   "id": "Δ15-domax",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "DOM/AX 불일치 시 어느 쪽도 우선 안 함. dom_ax_divergence 플래그",
+   "must_appear_in": "관측 행 필드",
+   "C_check": [
+    "lane2_label_reveal/measure_geometry.py:233 dom_ax_divergence = dom_exists != ax_exists; :335 compared; EXPECTATIONS false on all 14 fixtures",
+    "run_gate1.py item L2-surface-state-compare"
+   ],
+   "coverage": "PARTIAL",
+   "gap_note": "No positive control: every fixture expects false, so a runner that hard-codes false passes. Add a fixture where DOM and AX disagree on control existence (e.g. control in DOM but aria-hidden / role=presentation → absent from AX) with expected dom_ax_divergence=true and both channels recorded."
+  },
+  {
+   "id": "Δ17-R18",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "모든 ACK 은 ticket_sha256 포함. 발행 전 경로 존재 확인",
+   "must_appear_in": "버스 ACK",
+   "C_check": [
+    "bus.py::ack — ticket_sha256 = sha256 of the ticket file bytes at ACK time",
+    "bus.py::emit — path-existence check before writing (os.link exclusive create; sequence suffix on collision)",
+    "c_bus_scan.py::scan — content_changed_after_ack (acked ticket_sha256 vs current bytes) + acked_sha_unrecorded_n"
+   ],
+   "coverage": "COVERED",
+   "gap_note": "None for C's own ACKs. Other planes' hash-less ACKs are counted, not failed (legacy 116+ remain by ruling)."
+  },
+  {
+   "id": "Δ17-R19",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "재ACK 은 덮지 않고 <ticket>.<plane>-N.json",
+   "must_appear_in": "버스 ACK",
+   "C_check": [
+    "bus.py::ack — writes <tid>.C.json, then <tid>.C-N.json on re-ACK (never overwrites)",
+    "c_bus_scan.py::scan — glob {tid}.{plane}*.json reads every re-ACK when binding hashes"
+   ],
+   "coverage": "COVERED",
+   "gap_note": "None."
+  },
+  {
+   "id": "Δ18-R20",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "lane 경계를 가로지르는 경로는 양쪽 실물로 한 번 이상 실행. seam 1 수용기준은 guard 발화이지 AttributeError 소멸이 아님",
+   "must_appear_in": "실물 연결 테스트 + 음성대조",
+   "C_check": [
+    "lane4_safety_adapter/GATE1_SAFETY_PLAN.md (b) S4 — real runner in FIXTURE mode over 13 guard fixtures scored against forbidden_action_matrix.json, positive control (≥1 logged activation on 검색 submit: zero logging ≠ zero events) + negative controls (no over-block)",
+    "lane4_safety_adapter/adapter_interface_stub.py::score_forbidden_actions (SKIPPED, never PASS, until the action-log schema exists)",
+    "run_gate1.py items L4-S4-forbidden-matrix-score, L4-S2-two-layer-scope-probe (imports both real firewalls); gate1_adapter_spec.md §3 action_log.jsonl with refused:true entries + log_active marker"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "Needs runner_cmd_template + action-log schema. R20's acceptance is 'guard fires' on the real runner→guard seam: S4 asserts forbidden controls are never activated but does not assert a refusal event was logged — add to S4: ≥1 refused:true action_log entry on a fixture that tempts a forbidden action (positive control of the guard itself) with the allowed action passing in the same run (음성대조). Also request in B's COMPLETION the seam-test list (runner↔guard, runner↔evidence writer, runner↔L1/L2 firewall) with real-object test names."
+  },
+  {
+   "id": "STEP1-015",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "AX 조인·scroll state 는 STEP 1 안. 가산적·회귀 전건 통과·collector_sha256 을 모든 v3 관측 행에 기록",
+   "must_appear_in": "수집기 + 관측 행",
+   "C_check": [
+    "lane5_evidence/EVIDENCE_CONTRACT_C.md §2/§3/§3b — collector_sha required on every state/step/flow record; evidence_lineage_check.py STATE_REQUIRED / STEP_REQUIRED / FLOW_REQUIRED + FIELD_ALIASES collector_sha ← (collector_sha, collector_git_sha, collector_version_sha), check_required (:301)",
+    "AX join: lane5 per-state 'ax' artifact required (ARTIFACT_ALIASES) + lane2 measure_geometry CDP Accessibility.getPartialAXTree; scroll state: run_gate1 L3-scroll-capture-03s3",
+    "run_gate1.py item L5-runner-evidence-tree"
+   ],
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": "(1) FIELD_ALIASES lacks the ruling's exact name collector_sha256 — add it (else MISSING_FIELD false positive); (2) '가산적·회귀 전건 통과' is not checked by C — add a SUT_STATIC item that runs B's regression suite at the SUT SHA in the scratchpad clone and records counts (R20 caveat: lane tests passing ≠ integrated), and a schema diff of B's mart at the SHA vs 02 §3–§4 for removed fields; (3) add an equality assertion collector_sha(256) == exact_sha of the SUT."
+  }
+ ]
+}
