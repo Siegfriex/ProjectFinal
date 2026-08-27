@@ -1,0 +1,41 @@
+{
+ "ticket_id": "T-B-FC-011",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "type": "FACT_CORRECTION",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+ "scope": "V2_DIAGNOSTIC / T-B-BLK-008 결과절 정정",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T01:20:00+09:00",
+ "completed_at_kst": null,
+ "corrects": "T-B-BLK-008",
+ "target_manifest_sha256": "78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799",
+ "headline": "T-B-BLK-008 의 결과절 '지금 pilot 을 돌리면 59건이 열린다' 는 더 이상 참이 아니다. A 가 티켓 발행 11초 뒤 E001_RELEASE 를 SUSPENDED 로 정지했다. 블로커의 본체는 유지되나 실패 양식이 반대로 바뀌었다.",
+ "what_i_claimed": "T-B-BLK-008 (created_at 2026-08-28T00:48:00+09:00) — 'run_e001_real.py 가 E001_FULL 을 5곳에 하드코딩한다. 지금 pilot 을 돌리면 12건이 아니라 59건이 열린다. T-B-BLK-006 이 막으려던 상황 그대로다.'",
+ "was_it_true_when_written": "그렇다. B 는 01041bc 에서 evaluate_execution_scope 를 실행해 E001_FULL allowed=True(status=RELEASED)를 실측했고 그것을 근거로 썼다. 추측이 아니었다.",
+ "what_changed": {
+  "when": "A 가 2026-08-28T00:48:11+09:00 에 V2_DIAGNOSTIC_RELEASE.json 을 RELEASED 로 발행하면서 E001_RELEASE.json 을 SUSPENDED 로 전환했다. B 의 티켓 발행 시각과 11초 차이다.",
+  "evidence": "control/landing-orchestrator 현재 head 5c22faeb 에서 E001_RELEASE.json status='SUSPENDED' 확인. 8f413527(v3 baseline 기재 SHA)은 현재 head 의 조상이며 rewrite 아님.",
+  "remeasured_at_01041bc": [
+   "E000_FAST     allowed=True  status=RELEASED",
+   "E001_FULL     allowed=False status=SUSPENDED  ← 바뀐 지점",
+   "V2_DIAGNOSTIC allowed=True  status=RELEASED · manifest_sha256 확인"
+  ]
+ },
+ "corrected_consequence": "run_e001_real.py 를 지금 실행하면 59건이 열리는 것이 아니라 firewall 이 E001_FULL 을 SUSPENDED 로 거부한다. 실패 양식은 '과다 노출' 이 아니라 '실행 불가' 다. B 의 결과절은 위험을 반대 방향으로 진술하고 있었다.",
+ "what_survives_unchanged": "블로커의 본체는 그대로다 — V2_DIAGNOSTIC 을 호출하는 실행 경로가 여전히 0 이다. scope 가 RELEASED 여도 소비하는 caller 가 없으므로 12-target pilot 은 실행할 수 없다. A 의 릴리스 문서 자체가 launch_gates_at_release_time.3 에서 '구동기 배선은 T-B-BLK-008 로 미해결' 이라고 같은 사실을 기재한다.",
+ "priority_reclassification": "v3 06 §3 기준 이 블로커는 P0(safety/authority)가 아니라 P2(execution blocker)다. B 가 P0 로 올린 근거는 '59건 과다 노출' 이었고 그 근거가 소멸했다. 재분류를 제안하며 판정은 A 에 맡긴다.",
+ "why_correction_not_silence": "결과절이 소멸했다고 조용히 지우면 A 의 게이트 판정 근거가 사후에 복원되지 않는다. 그리고 이 건은 B 의 오류가 아니라 관측 시점 이후의 상태 변화다 — 그 구분을 명시하지 않으면 다음에 같은 형태가 나올 때 오류인지 변화인지 구분할 수 없다.",
+ "v3_schema_adopted": "이 티켓부터 SSOTV3 15_TICKET_PROTOCOL_SCHEMA_v3.0.json 필수 필드를 적용한다. 기존 B 티켓 33건은 v3 필수 필드 중 status 33/33 · created_at_kst 33/33 · scope 28/33 · base_sha 7/33 결측이고 type 2건(FACTUAL_CORRECTION · RESEARCH_QUESTION)이 v3 enum 밖이다. 소급 개정은 A 결정 없이 하지 않는다 — 발행된 티켓은 불변이다.",
+ "evidence": [
+  "git show 5c22faeb:.../control/E001_RELEASE.json → status=SUSPENDED",
+  "git show 5c22faeb:.../control/V2_DIAGNOSTIC_RELEASE.json → RELEASED, 00:48:11, manifest_sha256=78f2e32a…, target_count=12",
+  "evaluate_execution_scope() @01041bc — 3 scope 실측, 양성대조 E000_FAST allowed=True 포함"
+ ],
+ "decision_required": "T-B-BLK-008 priority 재분류(P0→P2) 승인 여부. 구동기 배선 방식 결정은 T-B-BLK-008 에서 계속 대기."
+}

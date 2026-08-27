@@ -1,17 +1,17 @@
 {
  "agent": "B",
- "timestamp": "2026-08-28T01:45:20+09:00",
+ "timestamp": "2026-08-28T02:08:42+09:00",
  "phase": "PILOT",
- "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
- "branch": "claude-b/clean0-v21",
- "head_sha": "5f2a1b7aaafcc688b4c8b9fe5b68ba14010d8610",
+ "current_ticket_id": "T-B-FC-011 (발행) · T-B-BLK-008 (미해결)",
+ "branch": "claude-b/diag-pilot-integration",
+ "head_sha": "1aa18c6654d97a4ed81308dfb0a05f035debad56",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
  "work_state": "V1_HOLD_DECLARED_AWAITING_DIRECTOR",
  "blocker_ids": [],
- "last_bus_seq": 414,
+ "last_bus_seq": 447,
  "last_push_at": "2026-08-27T20:56:51+09:00",
  "next_action": "Director 판단 대기. B 는 HOLD 무관 항목만 진행한다. REAL_TARGET NO-GO.",
- "real_target": "NO-GO. 이 세션 실사이트 접속 0건. 피벗 지침이 와도 launch 는 gate 재판정 없이 하지 않는다.",
+ "real_target": "NO-GO 유지. 이 세션 실사이트 접속 0건. scope 는 RELEASED 지만 구동기가 없어 실행 불가하며, 가능해져도 gate 재판정 없이 launch 하지 않는다.",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
  "resolved": [
@@ -21,10 +21,10 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "5f2a1b7aaafcc688b4c8b9fe5b68ba14010d8610",
-  "A_control": "99377bb14277d359193c179a0ee692b9d09e8311",
-  "C_assurance_v21": "52df8a6426119ada709e11a249aa19ef8fe63b4f",
-  "at": "2026-08-28T01:45:20+09:00"
+  "B_clean0_v21": "1aa18c6654d97a4ed81308dfb0a05f035debad56",
+  "A_control": "5c22faebaeb6699049fc9af5646f8b492b6a4068",
+  "C_assurance_v21": "0efb76ff86a278202b0d30e0d91daca9de827fe4",
+  "at": "2026-08-28T02:08:42+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -164,7 +164,7 @@
   "D-R0-72 OverlayCoverage construct",
   "blind set 존재 여부 E000 6 (본 HOLD 직결)"
  ],
- "updated_at": "2026-08-28T01:05:00+09:00",
+ "updated_at": "2026-08-28T02:05:00+09:00",
  "launch_gate_status": {
   "1_C_preflight_v2_manifest": "MET — C-COMPLETION-001706 sampling 12/12, A 가 PREFLIGHT_1_TO_5_ACCEPTED. 6항(exactly-once)은 최종 SHA 대기",
   "2_W1_completion_mask_in_SHA": "PENDING — W1 4ec538b 수신·검산 완료(소유권 위반 0, ancestry 확인). integration 288025ff 에 편입해 push 했고 C 재확인 대기",
@@ -177,7 +177,7 @@
   "T-B-FC-010 — composition 에서 mask 를 fed031f 에 귀속시킨 거짓 진술 철회"
  ],
  "awaiting": "Director 피벗 지침",
- "state": "PIVOT_STANDBY",
+ "state": "PIVOT_STANDBY — v3 내재화 완료, Director 지침 대기",
  "state_note": "Director 가 피벗을 예고했고 향후 지침 대기를 지시했다. B 는 새 작업을 시작하지 않는다. 프로토콜·오케스트레이션 방식·검산 방법론은 전부 보존한다 — 폐기·완화·재해석하지 않는다.",
  "preserved_unchanged": [
   "A/B/C 3평면 + D 연구소 오케스트레이션 구조와 티켓·ACK·COMPLETION 규약",
@@ -193,5 +193,29 @@
   "launch_gates": "1 MET · 2 MET · 3 부분충족(allowlist 층 O, 구동기 층 X)",
   "open_P0": "T-B-BLK-008 — V2_DIAGNOSTIC 을 호출하는 구동기 없음(run_e001_real.py 가 E001_FULL 하드코딩 5곳) + V2_DIAGNOSTIC_RELEASE.json 미발행. A 결정 대기",
   "open_HOLD": "T-A-HOLD-001 — D-R0-32 게이트 실패. Director 3안 결정 대기. B 는 새 경로를 제안하지 않는다."
+ },
+ "ssot": "SSOTV3 (유일 SSOT). MANIFEST_v3.0.json 20 항목 sha256+bytes B 독립 재계산 불일치 0/20.",
+ "worktree": ".agent_worktrees/claude_b_verify (전용 검증 워크트리, D-R0-69 — worker 워크트리 불간섭)",
+ "artifact": [
+  "integration 01041bc213a2 — 669 passed / 0 failed (int4_verify.log sha256 1c5ab38aea23647120e365e7d8760a6904aacc5beddbda2c3fbf8ffcd6b1d0f4)",
+  "handoff/bus_mirror_b (417 파일) @claude-b/clean0-v21 1aa18c6",
+  "handoff/ARTIFACT_RETENTION_MANIFEST_E001.json — 1,265 파일 / 791,908,794 bytes"
+ ],
+ "next_gate": "T-B-BLK-008 해소 — V2_DIAGNOSTIC 을 소비하는 구동기 배선. v3 07 Phase V3-1 이 SSOT 본문에서 같은 지점을 지목한다. A 의 배선 방식 결정 대기.",
+ "decision_needed": [
+  "T-B-BLK-008 — 구동기 배선 방식 (B 는 신규 구동기 신설을 권고, E001_FULL 경로 무손상)",
+  "T-B-FC-011 — T-B-BLK-008 priority 재분류 P0→P2 승인 여부",
+  "v3 type enum 밖 값의 처리 — B 의 RESEARCH_QUESTION 1건. C 는 FINDING+payload.subtype 로 발신 중이며 B 도 A 결정 전까지 같은 관례를 따른다",
+  "T-A-HOLD-001 — D-R0-32 3안 (B 는 새 경로를 제안하지 않는다)"
+ ],
+ "v3_conformance": {
+  "ticket_schema": "T-B-FC-011 부터 적용(필수 결측 0 · enum 위반 0). 기존 33건은 소급 수정하지 않는다 — 발행 시점 기록이 사라진다. C·D 와 같은 입장.",
+  "heartbeat_sec_7": "8항목 충족 — artifact/next_gate/decision_needed 를 이번에 추가했다. C·D 도 같은 3~4항목이 부재였고 각각 시정했다.",
+  "known_gap": "기존 B 티켓 33건 v3 필수 결측 — status 33 · created_at_kst 33 · scope 28 · base_sha 7. type enum 밖 2건(FACTUAL_CORRECTION · RESEARCH_QUESTION)."
+ },
+ "scope_state_remeasured_at_01041bc": {
+  "E000_FAST": "allowed=True RELEASED",
+  "E001_FULL": "allowed=False SUSPENDED — A 가 00:48:11 에 정지. T-B-BLK-008 결과절이 이것으로 뒤집혔고 T-B-FC-011 로 정정했다.",
+  "V2_DIAGNOSTIC": "allowed=True RELEASED · manifest_sha256 78f2e32a 확인"
  }
 }
