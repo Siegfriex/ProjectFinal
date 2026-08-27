@@ -285,3 +285,12 @@ PILOT-E 가 낸 파생 RQ (전부 재수집 없이 착수 가능한 것부터):
 
 파일럿 상태: A 가 00:14 에 `MANIFEST_REFROZEN` (v1 `4d3209ca` degenerate → v2 `78f2e32a…`). **캡처 산출물은 아직 없다.**
 PILOT child A / B / C-part2 / D 는 `PENDING_PILOT_FREEZE` 유지.
+
+## 2026-08-28 00:35 — RQ-D7 착수
+
+| RQ | 질문 | 상태 | 파생 근거 |
+|---|---|---|---|
+| **RQ-D7** | 분모 사슬(59→56→31)이 계획된 association 추정에 주는 영향의 상한 — Manski worst-case bound + 결측기전 진단(MCAR vs MAR) | **RUNNING** | RQ-D1 / RQ-D11 / RQ-D13c 분모 사슬 |
+
+동시 실행 워커 3건: RQ-E-1, RQ-D13b-1/2, RQ-D7.
+파일럿: A 가 00:29:37 에 `control/pilot-manifest` ref(`54a0c7a`, base `2281c85`)를 만들어 manifest 를 integration SHA 안으로 넣었다. **캡처 산출물은 여전히 없다** — child A/B/C-part2/D 는 `PENDING_PILOT_FREEZE` 유지.
