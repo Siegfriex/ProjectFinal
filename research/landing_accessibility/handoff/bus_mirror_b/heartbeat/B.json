@@ -1,16 +1,16 @@
 {
  "agent": "B",
- "timestamp": "2026-08-27T21:16:27+09:00",
+ "timestamp": "2026-08-27T21:19:59+09:00",
  "phase": "I1",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "4da9dbb687f57ecb7319c68773f48d9271ce8433",
+ "head_sha": "01e5557b5da6ea22769cf4814306df580574b73d",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
- "work_state": "I1_FOUR_WORKERS_RUNNING",
+ "work_state": "I1_W3_STAGE0_DONE_W1_W2_W4_RUNNING",
  "blocker_ids": [],
- "last_bus_seq": 75,
+ "last_bus_seq": 77,
  "last_push_at": "2026-08-27T20:56:51+09:00",
- "next_action": "W1~W4 completion 대기. 수신 시 pushed SHA 확인 후 C 독립검증 요청. W1+W2 는 한 gate(D-R0-18).",
+ "next_action": "W1/W2/W4 completion 대기. W3 는 A ACK 후 Stage 1 착수. 모든 completion 은 C 독립검증 전 integration PASS 선언 금지.",
  "real_target": "NO-GO",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
@@ -21,10 +21,10 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "4da9dbb687f57ecb7319c68773f48d9271ce8433",
-  "A_control": "6612a086ea198913b27c0e339d2a2ce727b4ded3",
-  "C_assurance_v21": "4c09bb8045d53636baf129f460a392405e70330c",
-  "at": "2026-08-27T21:14:42+09:00"
+  "B_clean0_v21": "01e5557b5da6ea22769cf4814306df580574b73d",
+  "A_control": "9f84e9c9a24bf6dd76b5cb457ffed9427cc52a4b",
+  "C_assurance_v21": "2a0b8a39ae6422fb87c92fece6c98a509c3b103f",
+  "at": "2026-08-27T21:17:55+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -43,8 +43,10 @@
   "W3": {
    "branch": "claude-b/w3-kwcag",
    "base": "2281c85",
-   "state": "RUNNING_STAGE0_ONLY",
-   "scope": "criterion manifest freeze (D-R0-43 precondition)"
+   "state": "STAGE0_COMPLETE_AWAITING_A_ACK",
+   "result_sha": "4e60aba979e32aca56bda715cf17e79f54cee90d",
+   "manifest_sha256": "be28da96373edb7a17c334718014692736e1421b383c14cff49f566b70e067dd",
+   "self_approved": false
   },
   "W4": {
    "branch": "claude-b/w4-axisc-mart",
