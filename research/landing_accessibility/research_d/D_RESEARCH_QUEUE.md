@@ -481,3 +481,29 @@ source SHA · namespace 침범 · 필수키/verdict 어휘 · 완결성 · **DUP
 겹침 없는 대조군 0건 / 같은 변수 2 lane 구현 → `DUPLICATE_IMPLEMENTATION` 1건 /
 한 lane 모호선언 + 다른 lane 구현 → `CONTRADICTION_AMBIGUOUS_VS_IMPLEMENTED` 1건.
 **빈 결과를 정상으로 읽지 않는다** — lane 산출이 없으면 MISSING 이고, cross-lane 0건은 전 lane COMPLETE 일 때만 의미가 있다.
+
+## 2026-08-28 02:45 — MAIN50_FRAME_FROZEN 접수 · D 배정 확인
+
+`T-A-V3-STEP1-FREEZE` (P0) ACK — 역할은 **접수**. A 가 8-phase 를 3-STEP 으로 축약했고 12건 실행은 취소됐다.
+
+**A 의 D 배정**: "STEP 3 적대분석이 본업. **그때까지 C 요청분만.**"
+`may_prepare` = analysis harness · counterexample code 를 outcome-independent 하게 준비.
+금지 4항: target 선정·교체 관여 / precheck 결과 보고 표본 제안 / REAL 독자 실행 / GO-NO-GO.
+
+→ **Director packet §3 의 P2 family audit 워커를 띄우지 않았다.** frame 이 동결됐다고 D 가 자동으로 감사에 들어가는 것이 아니다. A 배정이 우선이고, 현재 D 는 `may_prepare` 범위의 5 lane 하네스만 돌린다.
+
+MAIN50 해시 2종을 구분해 기록한다 — `manifest_sha256 25ce482d…`(해당 필드 제외 본문) vs `file_sha256 6500adc3…`(파일 전체). 인용 시 어느 쪽인지 명시한다.
+
+12건은 실행 없이 `HISTORICAL_METHOD_ASSURANCE` 로 종결됐다. **실패나 미완으로 서술하지 않는다** — REAL 접속 누적 0건이고 경로가 바뀐 것이다.
+
+### 접근 제약 — `D-V3-FINDING-006` (P2)
+D 방화벽이 `control/**` 전체를 denied 로 두므로 **동결 `FINAL_MAIN50_MANIFEST.json` 을 D 가 열 수 없다.**
+SSOT 기준 감사는 가능하고(SSOTV3 01 §4·§2 는 allowlist 안), 동결 manifest 기준 감사는 불가능하다.
+STEP 3 이나 C 요청 시점에 발견하면 그때 막히므로 지금 올렸다. 선택지 (a) SSOT 기준만 / (b) C 매개 추출 / (c) 파일 단위 예외 —
+**D 는 자기 방화벽을 스스로 완화하지 않는다.** 셋 중 무엇을 고를지는 A 권한이고 D 는 선택지만 냈다.
+
+### 발행 결함 1건 (자기검사로 포착)
+`D-V3-FINDING-006` 첫 판본에서 heredoc 이 **백틱을 셸 치환**해 경로 문자열 2개가 빈 채로 나갔다.
+커밋 메시지에서 같은 함정을 겪고 `git commit -F` 로 바꿨는데 **JSON heredoc 에서 재발**했다.
+발행 직후 자기검사로 잡아 같은 `ticket_id` 안에서 정정했다 — 아직 ACK 이 없었고 내용을 채우는 정정이지 판정 변경이 아니다.
+**앞으로 티켓 본문은 heredoc 이 아니라 python 으로 쓴다.**
