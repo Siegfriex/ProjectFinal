@@ -1,47 +1,47 @@
 {
   "doc_id": "LA-PRECEDENCE-CONTESTED-2.1",
+  "version": 2,
   "assertion_type": "DECISION",
+  "supersedes": "v1 (9f39acf) — target id 를 담아 holdout 3건을 B 의무열람 경로에 노출했다",
+  "redaction_reason": "C-BLOCKER-215510 (P0). 이 문서는 B 가 반드시 읽는 DIRECTIVE 이므로 holdout 유래 per-target 정보를 담을 수 없다.",
   "registered_before_detector_scoring": true,
-  "source": "겹침 16건 inter-labeler 불일치 (OVERLAP_AGREEMENT_REPORT §3)",
   "rule": "RF-DT v2.1 §6 Stage 4 evidence precedence 를 labeler·detector·holdout 에 동일 적용한다. A 는 정답을 지정하지 않는다.",
-  "scoring": "holdout agreement 를 (a) 전체 (b) 이 4건 제외 두 값으로 보고한다.",
+  "scoring": "holdout agreement 를 (a) 26 전체 (b) 노출 8 제외 18 [primary] (c) 경합 제외 세 값으로 보고한다.",
   "lower_bound_caveat": "겹침이 16건뿐이므로 나머지 40건의 잠재 경합은 미측정. 4건은 하한이다.",
-  "cases": [
+  "contest_types": [
     {
-      "web_target_id": "wtg_12e3942c0495b9a4",
-      "site": "gsretail.com/brand/gs25",
+      "id": "PC-1",
+      "type": "단일 브랜드 콘텐츠 페이지에 유일한 기능형 control 이 장소검색 버튼인 경우",
       "candidates": [
         "CONTENT_OPEN",
         "PLACE_LOOKUP"
-      ],
-      "contest": "브랜드 콘텐츠 단일 페이지 vs 유일 기능형 control 인 '매장 찾기' 버튼"
+      ]
     },
     {
-      "web_target_id": "wtg_35319a420294ee17",
-      "site": "toss.im",
+      "id": "PC-2",
+      "type": "입력 control 이 전무한 마케팅 히어로에 기능별 링크 구조와 도메인 어휘만 밀집한 경우",
       "candidates": [
         "AMBIGUOUS_UNRESOLVED",
         "FINANCIAL_ACTION_ENTRY"
-      ],
-      "contest": "input 전무한 마케팅 히어로 + 금융기능별 링크 구조·어휘 밀집만으로 F 를 줄 것인가"
+      ]
     },
     {
-      "web_target_id": "wtg_377983572bd38242",
-      "site": "daiso.co.kr",
+      "id": "PC-3",
+      "type": "장소검색 위젯과 사이트 전역 검색폼이 공존해 primary surface 가 갈리는 경우",
       "candidates": [
         "PLACE_LOOKUP",
         "QUERY"
-      ],
-      "contest": "매장검색 위젯 vs 헤더 사이트 검색폼 — 어느 쪽이 primary surface 인가"
+      ]
     },
     {
-      "web_target_id": "wtg_190b4501e4415d5e",
-      "site": "mplweb.ahnlab.com",
+      "id": "PC-4",
+      "type": "도구 기능이 전부 커스텀 스킴이라 Branch U endpoint 가 웹에서 성립 불가하고 부차 콘텐츠 목록만 웹에서 열리는 경우",
       "candidates": [
         "UTILITY_ENTRY",
         "CONTENT_OPEN"
-      ],
-      "contest": "도구 기능이 전부 v3mobileplus:// 커스텀 스킴이라 Branch U endpoint 가 웹에서 성립 불가 vs 실제로 열리는 뉴스카드"
+      ]
     }
-  ]
+  ],
+  "target_ids": "REDACTED — C 전용 경로에만 보관 (bus + C 브랜치). 이 문서에는 담지 않는다.",
+  "irreversible_note": "v1(9f39acf)은 이미 push 됐고 되돌리지 않는다. 감사 이력을 지우는 것이 더 나쁘다. 노출은 발생한 사실로 등재하고 분모로 대응한다."
 }

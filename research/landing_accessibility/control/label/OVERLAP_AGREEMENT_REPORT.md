@@ -1,5 +1,10 @@
 # inter-labeler agreement — 겹침 16건 결과
 
+> **[REDACTED · C-BLOCKER-215510 P0]** 이 문서의 per-target 표에서 **holdout 8행을 가렸다.**
+> 원본은 holdout 라벨을 평문으로 담아 B 가 읽는 control 브랜치에 노출됐다.
+> 집계 수치(12/16 등)는 그대로 두되, **holdout 유래 per-target 정보는 C 전용 경로에만 둔다.**
+> 이미 push 된 이력(fd06761)은 되돌리지 않는다 — 감사 이력을 지우는 것이 더 나쁘다.
+
 **발행** Claude A · **작성** 2026-08-27T21:47:22+09:00 · **assertion_type** `ANALYSIS`
 **근거** `D-R0-54` (C-BLOCKER-211259 해소) · 겹침 라벨 `OVERLAP_L1~L4.jsonl`
 
@@ -14,18 +19,18 @@
 
 ```
 target           원 labeler / archetype              재라벨 labeler / archetype           일치
-wtg_0ee385d0c9   L2 ITEM_DETAIL                      L1 ITEM_DETAIL                       O
-wtg_12e3942c04   L4 CONTENT_OPEN                     L1 PLACE_LOOKUP                      X
-wtg_24e6654bfd   L2 QUERY                            L1 QUERY                             O
-wtg_35319a4202   L2 AMBIGUOUS_UNRESOLVED             L1 FINANCIAL_ACTION_ENTRY            X
+[REDACTED — holdout]
+[REDACTED — holdout]
+[REDACTED — holdout]
+[REDACTED — holdout]
 wtg_054d78ed18   L1 AMBIGUOUS_UNRESOLVED             L2 AMBIGUOUS_UNRESOLVED              O
 wtg_088809bf9b   L1 FINANCIAL_ACTION_ENTRY           L2 FINANCIAL_ACTION_ENTRY            O
 wtg_0f3bdb2bd0   L3 PLACE_LOOKUP                     L2 PLACE_LOOKUP                      O
 wtg_13ed070478   L1 AMBIGUOUS_UNRESOLVED             L2 AMBIGUOUS_UNRESOLVED              O
-wtg_377983572b   L2 PLACE_LOOKUP                     L3 QUERY                             X
-wtg_5ede567383   L2 COMMUNICATION_ENTRY              L3 COMMUNICATION_ENTRY               O
-wtg_9390ef32ad   L2 UTILITY_ENTRY                    L3 UTILITY_ENTRY                     O
-wtg_95967b5068   L2 FINANCIAL_ACTION_ENTRY           L3 FINANCIAL_ACTION_ENTRY            O
+[REDACTED — holdout]
+[REDACTED — holdout]
+[REDACTED — holdout]
+[REDACTED — holdout]
 wtg_190b4501e4   L1 UTILITY_ENTRY                    L4 CONTENT_OPEN                      X
 wtg_22ffba7a86   L1 ITEM_DETAIL                      L4 ITEM_DETAIL                       O
 wtg_46e5a43370   L1 QUERY                            L4 QUERY                             O
@@ -37,7 +42,7 @@ wtg_5beeafeac2   L3 CONTENT_OPEN                     L4 CONTENT_OPEN            
 ## §2 가장 중요한 결과 — slot 고정이 불일치를 실제로 해소했다
 
 ```
-wtg_95967b5068 (NH)   L2 FINANCIAL   ↔   L3 FINANCIAL      일치
+[REDACTED — holdout]
 ```
 
 **1라운드에서는 같은 dom 바이트에 대해 L2 `FINANCIAL`(HIGH) vs L3 `AMBIGUOUS`(LOW) 였다.**
