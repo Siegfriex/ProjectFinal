@@ -2,15 +2,15 @@
  "verification_id": "D-INPUT-FIREWALL-VERIFICATION",
  "scan_label": "current_worktree",
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
- "verdict": "PASS",
+ "verdict": "FAIL",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T03:20:24.707916+09:00",
- "d_head_sha": "2fed71db0508bc2cfac1beb6627ca674785ac748",
- "manifest_sha256": "94fd49e47ef551d1a4b77ffea43a2414081ca89411aa34610b5957c0062cc381",
- "scanned_files": 190,
+ "checked_at_kst": "2026-08-28T03:23:24.550112+09:00",
+ "d_head_sha": "0984e956a4110ff3e0525165912327947f396ec4",
+ "manifest_sha256": "8b70fe76738d53bb2b11eef8e6f770ebe8285f93872e1cb9f6ae10dab53777e5",
+ "scanned_files": 191,
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
  "verdict_rule": "FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
- "fail_count": 0,
+ "fail_count": 1,
  "warn_count": 387,
  "violations": [
   {
@@ -1613,6 +1613,16 @@
    "context": "## Label 경계선 (명시)  D는 `control/label/**` 및 holdout label 파일을 **열지 않았다**. 이 RQ가 답한 범위는:  > slot 불일치는 실재하고, raw artifact만으로 재현 가능하게 정량화되며,",
    "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
    "severity": "WARN"
+  },
+  {
+   "file": "research_d/results/D_V3_SSOT_SNAPSHOT_VERIFICATION.json",
+   "line": 4,
+   "reference": "research/landing_accessibility/control/v3/ssot_snapshot",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "{   \"checked_at_kst\": \"2026-08-28T03:24:00+09:00\",   \"exact_sha\": \"cad8ad452df507fd771842020dc45874d49a0f85\",   \"snapshot_path\": \"research/landing_accessibility/control/v3/ssot_snapshot\",   \"n_snapshot_files\": 22,   \"byte_mismatch_vs_SSOTV3_original\": [],   \"missing_in_original\": [],   \"manifest_rec",
+   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
+   "severity": "FAIL"
   },
   {
    "file": "research_d/results/RF2_D_hierarchical.json",
