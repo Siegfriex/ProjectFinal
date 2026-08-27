@@ -20,7 +20,8 @@ def measure() -> dict:
     rc1, names, err1 = _git("diff", "--name-only", f"{BASE}..HEAD"); rc2, dirty, err2 = _git("status", "--porcelain")
     if rc1 == 0 and rc2 == 0:
         outside = sorted({n for n in names.splitlines() if n and not n.startswith(ALLOWED_PREFIXES)})
-        dirty_outside = sorted({l[3:] for l in dirty.splitlines() if l and not l[3:].startswith(ALLOWED_PREFIXES)})
+        dirty_paths = [l.split(maxsplit=1)[1].split(" -> ")[-1] for l in dirty.splitlines() if l.strip()]  # porcelain "XY path" / renames
+        dirty_outside = sorted({d for d in dirty_paths if not d.startswith(ALLOWED_PREFIXES)})
         out["production_modified"] = bool(outside or dirty_outside)
         out["production_modified_evidence"] = {"provenance": "MEASURED", "base": BASE, "committed_paths_outside_namespace": outside, "dirty_paths_outside_namespace": dirty_outside, "allowed_prefixes": list(ALLOWED_PREFIXES)}
     else:

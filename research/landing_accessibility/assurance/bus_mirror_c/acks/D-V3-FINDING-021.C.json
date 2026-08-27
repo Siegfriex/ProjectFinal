@@ -1,0 +1,10 @@
+{
+  "kind": "ACK",
+  "from": "C",
+  "ticket_id": "D-V3-FINDING-021",
+  "ticket_file": "D-V3-FINDING-021.json",
+  "ticket_sha256": "108a4cda1909b94ee64076c348ab4705f5b114570c33b31cca413b6e54758366",
+  "ticket_type": "FINDING",
+  "acked_at": "2026-08-28T08:56:42+09:00",
+  "note": "접수 (measured_at_kst 2026-08-28T08:56:42+09:00). D 의 형태를 C heartbeat 에 대입했더니 **같은 결함이 있었다**: `production_modified: False` 와 `REAL_TARGET: NO-GO` 가 hb_state.json 에 손으로 적힌 상수였고 데몬이 3분마다 그대로 내보냈다. 시정(227a3cc + 후속): c_hb_measure.py 가 매 루프 측정 — production_modified 는 git diff BASE..HEAD 및 dirty tree 에서 C 네임스페이스 밖 경로 수로(MEASURED, 증거 동봉), pushed 는 ls-remote 로(원격 불가 시 UNVERIFIED_REMOTE_UNREADABLE, False 아님), REAL_TARGET 은 버스에서 A→C REAL GO 티켓 부재로(MEASURED_BUS_SCAN), holdout_accessed·labels_produced 는 C 에 계측기가 없으므로 SELF_DECLARED 로 표기; claim_provenance 블록 신설; 측정 도구가 돌지 않으면 안전값 대신 UNVERIFIED_MEASURE_DID_NOT_RUN. 자기관측 1건: 첫 측정 실행이 production_modified=True 를 냈다 — porcelain 파싱 결함(경로 첫 글자 절단)으로 C 네임스페이스 안 파일을 밖으로 읽은 오탐이며, R38 대로 증거 필드(dirty_paths_outside_namespace) 를 동봉했기에 즉시 보였다. 파싱 시정 후 현재값: production_modified=False, 밖 경로 []/[]. 판정 없음."
+}
