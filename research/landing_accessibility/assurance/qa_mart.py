@@ -148,11 +148,30 @@ def main(a):
     loao = st.leave_one_archetype_out([{"x": _num(r.get("mpfed")) or np.nan, "y": _num(r.get("fail_rate")) or np.nan, "archetype": r.get("archetype")} for r in rows if _num(r.get("mpfed")) is not None and _num(r.get("fail_rate")) is not None], "x", "y")
     lo, up = sp("mpfed", "fail_lower"), sp("mpfed", "fail_upper")
     direction = st.direction_stability(prim["rho"], loao, lo["rho"], up["rho"])
+    # COLLECTION_WINDOW_RULE §3 (A 12:48): heterogeneity checks — fire only if extension branch; always computed, flagged by --e001-start
+    import datetime as _dt
+    def _kst(ts):
+        try: return _dt.datetime.fromisoformat(str(ts).replace("Z", "+00:00")).astimezone(_dt.timezone(_dt.timedelta(hours=9)))
+        except Exception: return None
+    und = {t: fr.get(t, {}).get("undetermined_rate") for t in jv.index}
+    buckets = {}
+    for t, r in jv.iterrows():
+        k = _kst(r.get("sealed_at")); b = (k.strftime("%H:%M")[:4] + ("0" if k.minute < 30 else "3") + "0") if k else "UNKNOWN"
+        buckets.setdefault(b, []).append(und.get(t))
+    und_by_bucket = {b: {"n": len(v), "undetermined_rate_mean": (float(np.nanmean([x for x in v if x is not None])) if any(x is not None for x in v) else None)} for b, v in sorted(buckets.items())}
+    confound = st.spearman_tie_aware([np.nan if und.get(t) is None else und[t] for t in jv.index], [np.nan if fr.get(t, {}).get("fail_rate") is None else fr[t]["fail_rate"] for t in jv.index])
+    ext = bool(a.e001_start and a.e001_start >= "13:15")
+    confound_flag = confound["rho"] is not None and ((confound["p_value"] is not None and confound["p_value"] < 0.05) or abs(confound["rho"]) >= 0.3)
+    arch_by_bucket = {b: jv.loc[[t for t in jv.index if ((_kst(jv.loc[t, "sealed_at"]).strftime("%H:%M")[:4] + ("0" if _kst(jv.loc[t, "sealed_at"]).minute < 30 else "3") + "0") if _kst(jv.loc[t, "sealed_at"]) else "UNKNOWN") == b], "archetype"].value_counts().to_dict() for b in buckets}
+    window = {"e001_start_kst": a.e001_start, "extension_branch": ext, "undetermined_rate_by_sealed_at_bucket": und_by_bucket, "archetype_by_bucket": arch_by_bucket,
+              "confound_spearman_undetermined_rate_x_fail_rate": confound, "confound_flag": confound_flag,
+              "grade_demotion_required": bool(ext and confound_flag), "rule": ".agent_bus/landing_v2/COLLECTION_WINDOW_RULE.md §3 items 1-4"}
+    if ext and confound_flag: add("C1", "WINDOW_CONFOUND_GRADE_DEMOTION", f"extension branch + undetermined_rate correlated with fail_rate (rho={confound['rho']:.3f}, p={confound['p_value']}) — primary claim grade must drop one level")
     kw = st.kruskal_wallis({a_: g["mpfed"].astype(float).tolist() for a_, g in jv.groupby("archetype")})
     desc = {a_: st.describe_discrete(g["mpfed"].astype(float).tolist()) for a_, g in jv.groupby("archetype")}; desc["ALL"] = st.describe_discrete(jv["mpfed"].astype(float).tolist())
     stats = {"artifact": "QA_STAT_REPLAY", "generated_by": "C", "generated_at": now(), "n_joint_valid": int(len(jv)), "grade": grade, "archetype_medians": med, "descriptive": desc,
              "primary_spearman_mpfed_failrate": prim, "structure_adjusted_spearman_excess_failrate": adj, "secondary_selection": sec, "secondary_spearman_excess_obstruction": secr,
-             "leave_one_archetype_out": loao, "undet_bounds": {"lower_all_undet_pass": lo, "upper_all_undet_fail": up}, "direction_stability": direction, "kruskal_wallis": kw,
+             "leave_one_archetype_out": loao, "collection_window_heterogeneity": window, "undet_bounds": {"lower_all_undet_pass": lo, "upper_all_undet_fail": up}, "direction_stability": direction, "kruskal_wallis": kw,
              "note": "B code not imported; tie-aware Spearman = Pearson on average ranks; permutation two-sided seed 20260827 when n<30"}
     # ---- compare with B STATISTICAL_RESULTS if present
     bstats = pathlib.Path(a.b_stats) if a.b_stats else None; cmp_stats = []
@@ -183,4 +202,4 @@ def main(a):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--out-dirs", nargs="+", required=True); ap.add_argument("--mart-dir", required=True); ap.add_argument("--older-relevant", default=str(pathlib.Path(__file__).resolve().parent / "out" / "older_relevant_registry.json")); ap.add_argument("--plan", required=True)
-    ap.add_argument("--b-stats"); ap.add_argument("--state-dir"); ap.add_argument("--out", default="out"); main(ap.parse_args())
+    ap.add_argument("--b-stats"); ap.add_argument("--e001-start", help="KST HH:MM of actual E001 start (extension branch if >= 13:15)"); ap.add_argument("--state-dir"); ap.add_argument("--out", default="out"); main(ap.parse_args())

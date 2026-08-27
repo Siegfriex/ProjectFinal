@@ -170,6 +170,7 @@ def reconstruct_target(res: dict, batch: dict, out_dir: pathlib.Path, f: F, plan
         prov = (run.get("run_json") or {}).get("provenance") or {}
         row["run_provenance"] = {k: prov.get(k) for k in ("base_sha", "shadow_lane", "collector_sha", "protocol_sha", "protocol_version", "authoritative", "real_target_measurement", "status") if k in prov}
         row["run_execution_mode"] = (run.get("run_json") or {}).get("execution_mode")
+        row["sealed_at"] = (run.get("run_json") or {}).get("sealed_at"); row["collection_started_at"] = l0.get("collection_started_at")
         row["protocol_version"] = l0.get("protocol_version") or prov.get("protocol_version")
         rid = obs_id(l0.get("web_target_id"), l0.get("evidence_run_id"), l0.get("requested_url"), row["protocol_version"], l0.get("collection_started_at"))
         row["observation_id_recomputed_ok"] = (rid == l0.get("observation_id")) if rid else None
