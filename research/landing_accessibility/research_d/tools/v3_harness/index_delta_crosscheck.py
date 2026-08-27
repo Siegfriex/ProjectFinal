@@ -50,13 +50,28 @@ def main() -> int:
         ids = idx.resolve(t)
         (a_hit if ids else a_miss).append({"delta_head": t, "index_ids": ids})
 
-    # --- 방향 B: 색인 행 → delta 본문 ---
+    # --- 방향 B: 색인 행 → delta ---
+    # A 의 `self_check.index_to_delta_reachability` 는 **경로가 셋**이다:
+    #   (a) delta 절 헤더 · (b) 별칭 토큰경계 · (c) split_rows 부모 절
+    # D 의 첫 구현은 (b) 만 봤다. 그래서 A 는 0 을 보고 D 는 11 을 봤다 —
+    # **문서 차이가 아니라 검사 정의 차이다.** 셋을 다 구현하고 경로를 기록한다.
+    doc = json.loads(idx.path.read_text(encoding="utf-8"))
+    split = (doc.get("split_rows") or {}).get("map", {})
+    heads_set = set(heads)
     b_hit, b_miss = [], []
     for r in idx.rows:
         rid = r["id"]
-        p = idx.present(rid, text)
-        rec = {"index_id": rid, "tokens": idx.variants(rid), "present": p}
-        (b_hit if p else b_miss).append(rec)
+        via = None
+        if rid in heads_set:
+            via = "a_delta_section_header"
+        elif idx.present(rid, text):
+            via = "b_alias_token_boundary"
+        elif rid in split:
+            parent = split[rid]
+            if parent in heads_set or idx._hit(parent, text):
+                via = f"c_split_parent:{parent}"
+        rec = {"index_id": rid, "tokens": idx.variants(rid), "reachable_via": via}
+        (b_hit if via else b_miss).append(rec)
 
     # --- 대조군: 이 검사가 실제로 무언가를 보고 있는가 ---
     ctrl = {
@@ -64,6 +79,8 @@ def main() -> int:
         "index_rows": len(idx.rows),
         "positive_control": idx.present("Δ21", text),      # 반드시 True
         "negative_control": idx.present("Δ999-R99", text),  # 반드시 None
+        "reachability_control": ("Δ999-R99" not in set(heads)
+                                 and idx.present("Δ999-R99", text) is None),
     }
     ctrl["verdict"] = (
         "PASS" if (len(heads) >= 10 and len(idx.rows) >= 10
@@ -82,7 +99,11 @@ def main() -> int:
         "control": ctrl,
         "A_delta_head_to_index": {"n": len(heads), "resolved": len(a_hit),
                                   "UNRESOLVED": a_miss},
-        "B_index_row_to_delta": {"n": len(idx.rows), "present": len(b_hit),
+        "B_index_row_to_delta": {"n": len(idx.rows), "reachable": len(b_hit),
+                                 "rule": "A self_check.index_to_delta_reachability — (a)헤더 (b)별칭 토큰경계 (c)split_rows 부모",
+                                 "by_path": {k: sum(1 for x in b_hit
+                                                    if (x["reachable_via"] or "").startswith(k))
+                                             for k in ("a_", "b_", "c_")},
                                  "UNRESOLVED": b_miss},
         "dropped_aliases": idx.dropped,
         "ambiguous_tokens": {t: ids for t, ids in idx.owner.items() if len(ids) > 1},
@@ -95,7 +116,10 @@ def main() -> int:
     print(f"A) delta표제→색인  해결 {len(a_hit)}/{len(heads)}  미해결 {len(a_miss)}")
     for x in a_miss:
         print("   -", x["delta_head"])
-    print(f"B) 색인행→delta   검출 {len(b_hit)}/{len(idx.rows)}  미해결 {len(b_miss)}")
+    from collections import Counter
+    paths = Counter((x["reachable_via"] or "?").split(":")[0] for x in b_hit)
+    print(f"B) 색인행→delta   도달 {len(b_hit)}/{len(idx.rows)}  미도달 {len(b_miss)}")
+    print(f"   경로별: {dict(paths)}")
     for x in b_miss:
         print("   -", x["index_id"], x["tokens"])
     return 0 if ctrl["verdict"] == "PASS" else 3
