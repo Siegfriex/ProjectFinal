@@ -44,8 +44,10 @@ def main(a):
                 changed = key in seen
                 slug = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(root.relative_to(REPO)) if str(root).startswith(str(REPO)) else root.name)
                 worker = worker_of(root)
+                is_e000 = "e000" in str(root).lower()
+                plan_for_root = (a.plan_e000 if is_e000 and a.plan_e000 else (plan_targets or plan_master))
                 try:
-                    rep = run_qa(str(root), plan_targets or plan_master, worker, f"STREAM_{slug}", str(state_dir / f"{slug}.seen.json"), extra_plan_targets=(plan_master if plan_targets and plan_targets != plan_master else None))
+                    rep = run_qa(str(root), plan_for_root, None if is_e000 else worker, f"STREAM_{slug}", str(state_dir / f"{slug}.seen.json"), extra_plan_targets=(plan_master if plan_for_root != plan_master else None))
                     # patch: master plan supplies order/partition, targets plan supplies ids
                 except Exception as ex:
                     print(f"QA_ERROR {bf} {ex}", flush=True); seen[key] = h; continue
@@ -81,5 +83,5 @@ def main(a):
         time.sleep(a.interval)
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--roots", nargs="*", default=[]); ap.add_argument("--plan-master", required=True); ap.add_argument("--plan-targets"); ap.add_argument("--interval", type=int, default=15)
+    ap = argparse.ArgumentParser(); ap.add_argument("--roots", nargs="*", default=[]); ap.add_argument("--plan-master", required=True); ap.add_argument("--plan-targets"); ap.add_argument("--plan-e000", help="E000 plan view (order = E000_FAST order) used for out_dirs whose path contains 'e000'"); ap.add_argument("--interval", type=int, default=15)
     main(ap.parse_args())
