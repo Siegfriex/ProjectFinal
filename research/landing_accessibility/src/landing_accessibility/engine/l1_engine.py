@@ -213,21 +213,51 @@ _COMMERCE_VOCAB = re.compile(
     r"(구매하기|바로\s*구매|장바구니|담기|주문하기|결제하기|buy\s*now|add\s*to\s*cart|checkout)",
     re.IGNORECASE,
 )
-#: Branch U(UTILITY_ENTRY) 의 "primary control" — plain `<a>` navigation 과 구분한다.
-#: `<a>` 만으로 성립시키면 목적 없는 순환 링크(`unresolved_route` 류)가 "function surface"로
-#: 오판된다(P-C 회귀에서 실측). 실제로 조작 가능한 위젯만 candidate 로 인정한다.
-_UTILITY_CONTROL_TAGS = frozenset({"button", "input", "select", "textarea"})
+#: Branch U(UTILITY_ENTRY) 의 "single-purpose tool surface" 근거(`D-R0-67-1`, W2 rework).
+#: **`button`/`role=button` 을 뺐다** — 일반 control(버튼 하나) 존재만으로는 "도구 표면"의
+#: 증거가 되지 않는다(catch-all 이었다: C 진단 — 버튼만 있으면 archetype 을 안 가리고
+#: UTILITY_ENTRY 가 발화했다). 실제로 값을 입력받는 위젯(input/select/textarea)이 최소
+#: 하나 있어야 "이 화면이 뭔가를 입력받아 처리하는 도구"라는 최소한의 구조적 증거가 된다.
+#: 이 좁힘의 부작용: 입력 없이 버튼 하나로 끝나는 순수 단일 액션 도구(예: 다운로드 버튼
+#: 하나뿐인 페이지)는 이제 evidence 를 못 받는다 — `AMBIGUOUS_UNRESOLVED` 로 남는 것이
+#: 의도된 결과다(force-map 금지, `D-R0-12`).
+_UTILITY_TOOL_INPUT_TAGS = frozenset({"input", "select", "textarea"})
+
+#: `D-R0-67-2` family-specific structured-data 매칭. `@type` 문자열은 대소문자가 섞여
+#: 오므로(`Product`/`product`) 소문자로 비교한다.
+_ITEM_STRUCTURED_TYPES = frozenset({"product"})
+_PLACE_STRUCTURED_TYPES = frozenset({"localbusiness", "place"})
+_CONTENT_STRUCTURED_TYPES = frozenset({"article", "newsarticle", "blogposting"})
+_COMMUNICATION_STRUCTURED_TYPES = frozenset(
+    {"discussionforumposting", "comment", "socialmediaposting"}
+)
+
+
+def _is_enabled(candidate: dict[str, Any]) -> bool:
+    """`D-R0-70` — HITTABLE(기하학적 hit-test) 은 ENABLED(기능적으로 조작 가능함) 를
+    함의하지 않는다. `enabled` 필드가 raw 에 없으면(이번 세션 이전 probe 스냅샷과의
+    하위호환) True 로 취급한다 — 결측을 "비활성"으로 단정하지 않는다(규칙 N-3 계열 판단).
+    """
+    if "enabled" not in candidate:
+        return True
+    return bool(candidate.get("enabled"))
 
 
 def _hittable_primary_action_candidates(raw: dict[str, Any]) -> list[dict[str, Any]]:
-    return [c for c in raw.get("primary_action_candidates", []) if c.get("hittable")]
+    return [
+        c
+        for c in raw.get("primary_action_candidates", [])
+        if c.get("hittable") and _is_enabled(c)
+    ]
 
 
 def _search_control_ready(raw: dict[str, Any]) -> bool:
-    """Branch Q/P Region — FORM_STRUCTURE. marker 비의존, cap 없는 신호(`region_signals`)."""
+    """Branch Q/P Region — FORM_STRUCTURE. marker 비의존, cap 없는 신호(`region_signals`).
+    `D-R0-70` — `disabled` 검색 input(예: 로딩 중 비활성화된 검색창)은 region 성립에 안 쓴다.
+    """
     signals = raw.get("region_signals", {})
     return any(
-        s.get("visible") and s.get("in_form") and s.get("has_submit")
+        s.get("visible") and s.get("in_form") and s.get("has_submit") and _is_enabled(s)
         for s in signals.get("search_inputs", [])
     )
 
@@ -250,17 +280,30 @@ def _query_reflected_in_url(raw: dict[str, Any], task: TaskDefinition) -> bool:
 
 
 def _repeated_card_list_present(raw: dict[str, Any]) -> bool:
-    """Branch C/I/P/M Region — DOM_AX_ROLE. "content card/link list" 를 list-container
-    소속 여부로 판정한다(`l0_probe.js` `repeated_structure`, cap 없음, W2 신규).
-    heading 근접성(`nearby_heading`)은 작은 페이지에서 항상 참에 가까워 판별력이 없었다
-    (`depth_path_3` 류 픽스처로 실측 확인) — 그래서 이 신호는 그것을 쓰지 않는다.
+    """"content card/link list" 를 list-container 소속 여부로 판정한다(`l0_probe.js`
+    `repeated_structure`, cap 없음). heading 근접성(`nearby_heading`)은 작은 페이지에서
+    항상 참에 가까워 판별력이 없었다(`depth_path_3` 류 픽스처로 실측 확인) — 그래서 이
+    신호는 그것을 쓰지 않는다.
+
+    `D-R0-67-2` — 이 함수 **단독으로는 더 이상 Item/Place/Communication 의 region evidence
+    가 아니다.** family 별 전용 함수(`_item_region_evidence` 등)의 구성요소로만 쓰인다.
+    Content-like 만 이 신호를 단독으로도 충분한 evidence 로 받는다 — 다른 family 가 자기
+    신호로 못 채간 "순수 카드/링크 목록"의 residual 자리이기 때문이다(Stage2 원문이
+    Content-like 에 더 구체적인 구조 신호를 추가로 요구하지 않는다).
+
+    `D-R0-70` — `hittable_enabled_list_item_link_count`(enabled 를 요구)가 있으면 그걸
+    쓰고, 구 raw 스냅샷과의 호환을 위해 없으면 `hittable_list_item_link_count`로 폴백한다.
     """
-    return bool(raw.get("repeated_structure", {}).get("hittable_list_item_link_count", 0))
+    structure = raw.get("repeated_structure", {})
+    if "hittable_enabled_list_item_link_count" in structure:
+        return bool(structure.get("hittable_enabled_list_item_link_count", 0))
+    return bool(structure.get("hittable_list_item_link_count", 0))
 
 
 def _content_endpoint_real(raw: dict[str, Any]) -> bool:
-    """Branch C(CONTENT_OPEN)/M(COMMUNICATION_ENTRY 비-gate) Endpoint — DOM_AX_ROLE/MEDIA_STATE.
-    article body open 또는 main media playback start. 둘 다 marker 가 필요 없는 실신호다.
+    """Branch C(CONTENT_OPEN)/M(COMMUNICATION_ENTRY 비-gate, 최후 폴백) Endpoint —
+    DOM_AX_ROLE/MEDIA_STATE. article body open 또는 main media playback start. 둘 다
+    marker 가 필요 없는 실신호다.
     """
     signals = raw.get("endpoint_signals", {})
     return bool(signals.get("article_present")) or bool(signals.get("video_playing"))
@@ -268,8 +311,8 @@ def _content_endpoint_real(raw: dict[str, Any]) -> bool:
 
 def _commerce_control_present(raw: dict[str, Any]) -> bool:
     """Branch I(ITEM_DETAIL) Endpoint evidence 일부 — 거래 control 의 **존재**(D-R0-06,
-    활성화 아님). `accessible_name_sources`(cap 300)에서 결정적 어휘로 존재만 확인한다 —
-    가격 패턴/상품명 추출까지는 이번 pass 의 범위 밖이다(최종 보고의 gap 절 참조).
+    활성화 아님. 이 lane 에서 "존재"가 정당한 evidence 로 명시 허용된 유일한 자리다).
+    `accessible_name_sources`(cap 300)에서 결정적 어휘로 존재만 확인한다.
     """
     for row in raw.get("accessible_name_sources", []):
         name = " ".join(
@@ -280,14 +323,102 @@ def _commerce_control_present(raw: dict[str, Any]) -> bool:
     return False
 
 
-def _utility_primary_control_present(raw: dict[str, Any]) -> bool:
-    """Branch U(UTILITY_ENTRY) Region=Endpoint(D-R0-41) — DOM_AX_ROLE.
-    "function surface entry control" 이자 "primary control이 present/actionable".
+def _structured_data_types(raw: dict[str, Any]) -> set[str]:
+    """`D-R0-67-2` — `l0_probe.js`(`family_signals.structured_data_types`, JSON-LD `@type`)
+    를 소문자 집합으로 정규화한다. 결정적 구조 신호다(파싱된 스키마 값 그대로) — 어휘
+    추측이 아니다.
     """
-    for c in _hittable_primary_action_candidates(raw):
-        if c.get("tag") in _UTILITY_CONTROL_TAGS or c.get("role") == "button":
+    return {str(t).lower() for t in raw.get("family_signals", {}).get("structured_data_types", [])}
+
+
+def _utility_tool_surface_present(raw: dict[str, Any]) -> bool:
+    """Branch U(UTILITY_ENTRY) Region=Endpoint(`D-R0-41`) — DOM_AX_ROLE.
+    "function surface entry control" 이자 "primary control이 present/actionable".
+
+    `D-R0-67-1` 시정 — `primary_action_candidates`(제출/네비게이션 control 전용 쿼리)가
+    아니라 `l0_probe.js` 의 `utility_input_widgets`(값을 입력받는 위젯 전용 쿼리,
+    `type=search`/`submit`/`button`/`hidden` 제외)를 쓴다. 실제 입력 위젯
+    (`_UTILITY_TOOL_INPUT_TAGS`)이 hittable ∧ enabled 상태로 최소 하나 있어야 한다.
+    """
+    for c in raw.get("utility_input_widgets", []):
+        if c.get("tag") in _UTILITY_TOOL_INPUT_TAGS and c.get("hittable") and _is_enabled(c):
             return True
     return False
+
+
+def _item_region_evidence(raw: dict[str, Any]) -> bool:
+    """`D-R0-67-2` Item-like Region — Product structured data,
+    또는 (price pattern 또는 거래 control 존재) AND list-container 카드.
+    """
+    if _ITEM_STRUCTURED_TYPES & _structured_data_types(raw):
+        return True
+    if not _repeated_card_list_present(raw):
+        return False
+    fam = raw.get("family_signals", {})
+    return bool(fam.get("price_pattern_present")) or _commerce_control_present(raw)
+
+
+def _item_endpoint_evidence(raw: dict[str, Any]) -> bool:
+    """`D-R0-67-2` Item-like Endpoint — Product structured data,
+    또는 거래 control 존재 AND list-container 카드(상세면 문맥)."""
+    if _ITEM_STRUCTURED_TYPES & _structured_data_types(raw):
+        return True
+    return _commerce_control_present(raw) and _repeated_card_list_present(raw)
+
+
+def _place_region_evidence(raw: dict[str, Any]) -> bool:
+    """`D-R0-67-2` Place-like Region — LocalBusiness/Place structured data,
+    또는 map/place 검색 control, 또는 (주소 어휘 AND list-container 카드)."""
+    if _PLACE_STRUCTURED_TYPES & _structured_data_types(raw):
+        return True
+    fam = raw.get("family_signals", {})
+    if fam.get("map_control_present"):
+        return True
+    return bool(fam.get("address_vocabulary_present")) and _repeated_card_list_present(raw)
+
+
+def _place_endpoint_evidence(raw: dict[str, Any], task: TaskDefinition) -> bool:
+    """`D-R0-67-2` Place-like Endpoint — "place query submitted"(URL_PATTERN, 기존
+    `_query_reflected_in_url` 재사용) 또는 "place detail opened"(LocalBusiness/Place
+    structured data)."""
+    if _PLACE_STRUCTURED_TYPES & _structured_data_types(raw):
+        return True
+    return _query_reflected_in_url(raw, task)
+
+
+def _communication_region_evidence(raw: dict[str, Any]) -> bool:
+    """`D-R0-67-2` Communication-like Region — 게시판류 structured data,
+    또는 compose textarea 존재, 또는 (커뮤니티 어휘 AND list-container 카드)."""
+    if _COMMUNICATION_STRUCTURED_TYPES & _structured_data_types(raw):
+        return True
+    fam = raw.get("family_signals", {})
+    if fam.get("compose_textarea_present"):
+        return True
+    return bool(fam.get("community_vocabulary_present")) and _repeated_card_list_present(raw)
+
+
+def _communication_endpoint_evidence(raw: dict[str, Any]) -> bool:
+    """`D-R0-67-2` Communication-like Endpoint — "post/thread open" 근사(structured data
+    또는 article/video 폴백) 또는 "compose area entry"(textarea 존재, Branch M 원문
+    그대로)."""
+    if _COMMUNICATION_STRUCTURED_TYPES & _structured_data_types(raw):
+        return True
+    fam = raw.get("family_signals", {})
+    if fam.get("compose_textarea_present"):
+        return True
+    return _content_endpoint_real(raw)
+
+
+def _content_region_evidence(raw: dict[str, Any]) -> bool:
+    """`D-R0-67-2` Content-like Region — Article 계열 structured data 우선. 없으면
+    "순수 list"로 떨어지는 residual 자리다 — Item/Place/Communication 이 각자의 전용
+    신호로 못 채간 카드/링크 목록을 Content 가 받는다. 이렇게 해야 "공유 카드 신호 하나로
+    4개 archetype 이 동시 evidenced"(C 진단, 36/56)되던 구조가 깨진다 — 나머지 셋은 이제
+    자기 신호가 있어야 하고, Content 만 bare list 로 충분하다.
+    """
+    if _CONTENT_STRUCTURED_TYPES & _structured_data_types(raw):
+        return True
+    return _repeated_card_list_present(raw)
 
 
 def _real_region_by_signal_type(raw: dict[str, Any], task: TaskDefinition) -> bool:
@@ -308,10 +439,21 @@ def _real_region_by_signal_type(raw: dict[str, Any], task: TaskDefinition) -> bo
         return bool(raw.get("endpoint_signals", {}).get("video_playing"))
     if st is RegionSignalType.DOM_AX_ROLE:
         if archetype is InteractionArchetype.UTILITY_ENTRY:
-            return _utility_primary_control_present(raw)
+            return _utility_tool_surface_present(raw)
         if archetype is InteractionArchetype.QUERY:
             return _search_control_ready(raw)
-        return _repeated_card_list_present(raw)
+        if archetype is InteractionArchetype.ITEM_DETAIL:
+            return _item_region_evidence(raw)
+        if archetype is InteractionArchetype.PLACE_LOOKUP:
+            return _place_region_evidence(raw) or _search_control_ready(raw)
+        if archetype is InteractionArchetype.COMMUNICATION_ENTRY:
+            return _communication_region_evidence(raw)
+        if archetype is InteractionArchetype.CONTENT_OPEN:
+            return _content_region_evidence(raw)
+        # FINANCIAL_ACTION_ENTRY — `D-R0-67-2` 표에 4-family 에 없다. 공유 list 신호로도
+        # 대체하지 않는다(문서화된 gap, 최종 보고 참조) — gate 경로(로그인/본인인증)가 이
+        # archetype 의 주 실신호다.
+        return False
     # URL_PATTERN(region 전용 신호 미정의 — 문서화된 gap) · GATE_SIGNAL(gate 는 endpoint 전용
     # 축이다) · CODEBOOK_PENDING(정의 없음) — 전부 region 을 만들어내지 않는다.
     return False
@@ -322,21 +464,24 @@ def _real_endpoint_by_signal_type(raw: dict[str, Any], task: TaskDefinition) -> 
     st = task.endpoint_signal_type
     archetype = task.archetype
     if st in (RegionSignalType.FORM_STRUCTURE, RegionSignalType.URL_PATTERN):
+        if archetype is InteractionArchetype.PLACE_LOOKUP:
+            return _place_endpoint_evidence(raw, task)
         return _query_reflected_in_url(raw, task)
     if st is RegionSignalType.MEDIA_STATE:
         return bool(raw.get("endpoint_signals", {}).get("video_playing"))
     if st is RegionSignalType.DOM_AX_ROLE:
-        if archetype in (InteractionArchetype.QUERY, InteractionArchetype.PLACE_LOOKUP):
+        if archetype is InteractionArchetype.QUERY:
             return _query_reflected_in_url(raw, task)
-        if archetype in (
-            InteractionArchetype.CONTENT_OPEN,
-            InteractionArchetype.COMMUNICATION_ENTRY,
-        ):
+        if archetype is InteractionArchetype.PLACE_LOOKUP:
+            return _place_endpoint_evidence(raw, task)
+        if archetype is InteractionArchetype.CONTENT_OPEN:
             return _content_endpoint_real(raw)
+        if archetype is InteractionArchetype.COMMUNICATION_ENTRY:
+            return _communication_endpoint_evidence(raw)
         if archetype is InteractionArchetype.ITEM_DETAIL:
-            return _commerce_control_present(raw) and _repeated_card_list_present(raw)
+            return _item_endpoint_evidence(raw)
         if archetype is InteractionArchetype.UTILITY_ENTRY:
-            return _utility_primary_control_present(raw)
+            return _utility_tool_surface_present(raw)
         return False
     # GATE_SIGNAL — endpoint 는 Scout 의 별도 gate 경로(`obs.gate_present` → `detect_gate`)가
     # 처리한다. 여기서 True 를 내면 gate 판별을 우회하게 되므로 항상 False 다.

@@ -401,12 +401,19 @@ def test_resolver_tier2_favors_query_when_search_control_is_the_top_ranked_surfa
 def test_resolver_stays_ambiguous_when_tier2_cannot_break_a_tie_between_two_list_archetypes() -> (
     None
 ):
-    """두 후보가 **둘 다 list 계열**(CONTENT_OPEN·ITEM_DETAIL)이면 tier2(list vs 검색)로도
-    가를 수 없다 — 이 경우 top surface 가 있어도 force-map 하지 않고 `AMBIGUOUS_UNRESOLVED`
-    로 남는다. "이 페이지의 유일한 list 가 어느 archetype 의 것인가"는 이 lane 의 신호로
-    답할 수 없는 질문이다(candidate 쌍이 구체적으로 무엇이었는지는 명시하지 않는다 —
-    `D-R0-61` 경합 4건 중 3건이 사후에 holdout 으로 확인돼 그 구체값을 쓰지 않는다)."""
-    raw = {
+    """`D-R0-67-2` 시정 이후 — 공유 list 신호 하나만으로는 더 이상 여러 archetype 이
+    동시에 evidenced 되지 않는다(그게 이 rework 의 목적이다: CONTENT_OPEN 만 bare list 를
+    받는 residual 자리이므로, 아래처럼 순수 list 하나뿐이면 이제 **유일하게** CONTENT_OPEN
+    으로 MAPPED 된다 — 더 이상 ambiguous 가 아니다. 별도 assertion 으로 이 개선을 직접
+    확인한다).
+
+    이 테스트가 원래 검증하려던 것 — "두 candidate 가 각자의 **전용** family 신호로 진짜
+    evidenced 됐는데 tier2 로도 못 가르면 force-map 하지 않는다" — 은 ITEM_DETAIL(price
+    pattern)과 COMMUNICATION_ENTRY(compose textarea)를 각자의 신호로 evidence 시켜
+    재현한다. 둘 다 tier2 의 "list 계열" 집합에 속해 top surface 가 list 여도 가르지
+    못한다(candidate 쌍이 구체적으로 무엇이었는지는 특정 holdout 타깃 값을 쓰지 않는다 —
+    `D-R0-61` 경합 4건 중 3건이 사후에 holdout 으로 확인됐다)."""
+    bare_list_raw = {
         "region_signals": {"search_inputs": []},
         "repeated_structure": {"hittable_list_item_link_count": 3},
         "primary_action_candidates": [
@@ -419,10 +426,38 @@ def test_resolver_stays_ambiguous_when_tier2_cannot_break_a_tie_between_two_list
             },
         ],
     }
-    result = resolve_representative_function(raw, [A.CONTENT_OPEN, A.ITEM_DETAIL])
+    bare_list_result = resolve_representative_function(
+        bare_list_raw, [A.CONTENT_OPEN, A.ITEM_DETAIL]
+    )
+    assert bare_list_result.outcome == MappingOutcome.MAPPED
+    assert bare_list_result.archetype is A.CONTENT_OPEN, (
+        "D-R0-67-2 회귀 — bare list 만으로 ITEM_DETAIL 이 다시 co-evidence 되면 안 된다"
+    )
+
+    genuinely_contested_raw = {
+        "region_signals": {"search_inputs": []},
+        "repeated_structure": {"hittable_list_item_link_count": 3},
+        "family_signals": {
+            "structured_data_types": [],
+            "price_pattern_present": True,
+            "compose_textarea_present": True,
+        },
+        "primary_action_candidates": [
+            {
+                "selector": "a#card-1",
+                "hittable": True,
+                "marked_primary": False,
+                "dom_order": 0,
+                "in_list_container": True,
+            },
+        ],
+    }
+    result = resolve_representative_function(
+        genuinely_contested_raw, [A.ITEM_DETAIL, A.COMMUNICATION_ENTRY]
+    )
     assert result.outcome == MappingOutcome.AMBIGUOUS_UNRESOLVED
     assert result.archetype is None
-    assert set(result.candidate_archetypes) == {A.CONTENT_OPEN, A.ITEM_DETAIL}
+    assert set(result.candidate_archetypes) == {A.ITEM_DETAIL, A.COMMUNICATION_ENTRY}
 
 
 def test_utility_entry_custom_uri_scheme_control_is_not_counted_as_a_primary_control() -> None:

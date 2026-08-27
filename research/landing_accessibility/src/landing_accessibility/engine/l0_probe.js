@@ -71,6 +71,19 @@
   };
   const viewportBox = { x: 0, y: 0, w: VIEW_W, h: VIEW_H };
 
+  /* W2 · D-R0-70 — HITTABLE(기하학적 hit-test) 은 ENABLED(기능적으로 조작 가능함) 를
+     함의하지 않는다. `<input disabled>`/`<button disabled>` 도 `elementFromPoint` 에는
+     여전히 걸린다 — geometry 는 그대로지만 클릭이 무효다. `D-R0-02` 9상태 mask 의
+     `DISABLED_OR_INERT` 를 region/endpoint 판정이 실제로 소비하려면 이 신호가 있어야
+     한다(이전에는 어디에도 없었다). */
+  const enabled = (el) => {
+    if (!el) return false;
+    if (el.disabled) return false;
+    if (el.getAttribute('aria-disabled') === 'true') return false;
+    if (el.closest('[inert]')) return false;
+    return true;
+  };
+
   /* hit-test 최상위 대상이 그 요소(또는 그 후손)인가 — A1 §1.1 HITTABLE */
   const hittable = (el, b) => {
     if (!b || b.w <= 0 || b.h <= 0) return false;
@@ -335,6 +348,7 @@
         nearby_heading: heading,
         href: el.getAttribute('href'),
         marked_primary: el.hasAttribute('data-primary-action'),
+        enabled: enabled(el),
         // W2 · D-R0-61(PRECEDENCE_CONTESTED) — Stage 4 precedence #2
         // "public page primary interaction surface" 판정에 쓴다: MIN-4 로 정한 1위
         // candidate 가 list-container 소속인지(반복 카드/리스트 표면)를 알아야 경합하는
@@ -354,6 +368,24 @@
     push('primary_action_candidates', cands);
   }
 
+  /* ── utility 도구 입력 위젯 (W2 rework · D-R0-67-1) — `primary_action_candidates`
+     쿼리(`a[href],button,input[type=submit],input[type=button],...`)는 일반 데이터
+     입력용 `<input type=text|number|...>`/`<select>`/`<textarea>` 를 잡지 않는다(제출
+     버튼류만 잡는다). Branch U 의 "single-purpose tool surface" 는 버튼이 아니라 실제
+     "값을 입력받는 위젯"의 존재로 판정해야 하므로 별도 신호가 필요하다. `type=search` 는
+     QUERY 영역(`region_signals.search_inputs`)이 이미 다루므로 여기서는 제외한다. */
+  {
+    const q = 'input:not([type=hidden]):not([type=submit]):not([type=button])'
+      + ':not([type=search]),select,textarea';
+    push('utility_input_widgets', [...document.querySelectorAll(q)].filter(visible).map((el) => {
+      const b = box(el);
+      return {
+        selector: sel(el), tag: el.tagName.toLowerCase(), type: el.getAttribute('type'),
+        hittable: hittable(el, b), enabled: enabled(el), box: b,
+      };
+    }));
+  }
+
   /* ── 반복 카드/리스트 구조 신호 (02 §6 Stage2 "repeated card/list structures") — W2 신규.
      실사이트에서 archetype 의 Region(콘텐츠 카드/상품 카드/장소 목록/스레드 목록)을
      marker 없이 판정하려면 "list-like container 안의 hittable link" 라는 구조 신호가
@@ -369,6 +401,54 @@
       list_container_count: document.querySelectorAll(LIST_CONTAINER_SEL).length,
       list_item_link_count: inList.length,
       hittable_list_item_link_count: inList.filter((el) => hittable(el, box(el))).length,
+      // W2 · D-R0-70 — aria-disabled 링크(있다면)를 제외한 버전. 링크는 native `disabled`
+      // 를 가질 수 없어 `enabled()` 는 aria-disabled/inert 만 본다.
+      hittable_enabled_list_item_link_count: inList.filter(
+        (el) => hittable(el, box(el)) && enabled(el)).length,
+    });
+  }
+
+  /* ── family-specific 판별 신호 (W2 · D-R0-67-2) — RF-DT §4 Stage2 가 family 별로
+     이미 지정한 신호를 구현한다. `repeated_structure`(list-container 소속 링크) 하나로
+     Item/Place/Content/Communication 4개 archetype 을 전부 evidenced 시키면(공유 신호)
+     변별력이 없다(C 진단: 36/56 동시발화, tie-break PLACE_LOOKUP 22 로 쏠림). structured
+     data(JSON-LD)는 파싱 실패해도 판정하지 않는다 — 신호가 없는 것으로만 처리한다. */
+  {
+    const structuredDataTypes = [];
+    document.querySelectorAll('script[type="application/ld+json"]').forEach((s) => {
+      try {
+        const data = JSON.parse(s.textContent || '{}');
+        const collect = (item) => {
+          if (!item || typeof item !== 'object') return;
+          const t = item['@type'];
+          if (t) structuredDataTypes.push(...(Array.isArray(t) ? t : [t]));
+          if (Array.isArray(item['@graph'])) item['@graph'].forEach(collect);
+        };
+        (Array.isArray(data) ? data : [data]).forEach(collect);
+      } catch (e) { /* 파싱 실패 — 신호 없음으로 처리, 판정하지 않는다 */ }
+    });
+
+    const bodyText = T(document.body.innerText || '').slice(0, 4000);
+    const PRICE_PATTERN = /(₩\s?[\d,]{3,}|[\d,]{3,}\s?원)/;
+    const ADDRESS_VOCAB = /(서울|경기|인천|대구|대전|광주|부산|울산|세종|제주특별자치도|[가-힣]{1,4}(시|군|구)\s|[가-힣]{1,6}(동|로|길)\s?\d|매장\s?찾기|지점\s?찾기|가까운\s?매장|주소\s?검색)/;
+    const COMMUNITY_VOCAB = /(게시글|게시판|댓글\s?\d|답글|작성자|조회\s?\d|추천\s?\d|자유게시판|커뮤니티\s?홈|채팅방)/;
+    const MAP_CONTROL_VOCAB = /(지도|매장\s?찾기|위치\s?검색|장소\s?검색|내\s?주변)/;
+
+    const mapControlPresent = [...document.querySelectorAll('input,button,a')].some((el) => {
+      if (!visible(el)) return false;
+      const label = T(el.getAttribute('aria-label') || el.textContent
+        || el.getAttribute('placeholder') || '');
+      return MAP_CONTROL_VOCAB.test(label);
+    });
+
+    push('family_signals', {
+      structured_data_types: [...new Set(structuredDataTypes)],
+      price_pattern_present: PRICE_PATTERN.test(bodyText),
+      address_vocabulary_present: ADDRESS_VOCAB.test(bodyText),
+      community_vocabulary_present: COMMUNITY_VOCAB.test(bodyText),
+      compose_textarea_present: [...document.querySelectorAll('textarea')].some(
+        (el) => visible(el) && enabled(el)),
+      map_control_present: mapControlPresent,
     });
   }
 
@@ -393,7 +473,7 @@
         in_form: !!el.closest('form'),
         has_submit: !!(el.closest('form') && el.closest('form').querySelector(
           'button[type=submit],input[type=submit],button:not([type])')),
-        visible: visible(el), hittable: hittable(el, b), box: b,
+        visible: visible(el), hittable: hittable(el, b), enabled: enabled(el), box: b,
       };
     });
     push('region_signals', {
