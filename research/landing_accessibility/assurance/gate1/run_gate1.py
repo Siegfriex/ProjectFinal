@@ -10,6 +10,17 @@ Exit 0 ONLY on verdict PASS.
     run_gate1.py --sut <clone_root> --sha <sha> --out <dir>
                  [--runner-cmd '<template with {fixture} {contract} {out}>'] [--adapter-map MAP.json]
                  [--control-sha SHA] [--ssot-snapshot-sha SHA] [--ref-sha SHA] [--skip-browser] [--dry-run]
+                 [--compare-with <previous GATE1_VERDICT_C.json>]
+
+Input identity (Δ44-R38: measurement records carry input identity; sha fields are written by the tool, never by hand)
+  Every item carries `input_identity` — byte sha256 of the item's inputs, computed by this script at record time:
+  `fixtures_dir_manifest_sha256` (deterministic manifest of the lane's fixture files: sorted relative paths + per-file
+  sha256 → one aggregate sha; manifest text written to <out>/input_identity/), `expectations_file_sha256`,
+  `contracts_file_sha256`, `script_file_sha256` (the script the item executed). Top level `input_identity` adds
+  `run_gate1_file_sha256`, `comparators_dir_manifest_sha256`, and the ruling index / delta bytes actually read from A's
+  PUSHED branch `origin/control/landing-orchestrator` (fetched first; `control_ref_commit_sha`, `fetched_at_kst`;
+  fetch failure ⇒ UNAVAILABLE, never a fallback to the local branch — T-A-V3-FC-007).
+  `--compare-with` adds `compare_guard`: item-by-item comparison is refused for any item whose input shas differ.
 
 Item kinds
   C_INTERNAL   fixture self-validation / C-internal check — always runs (needs no SUT).
@@ -31,6 +42,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import hashlib
 import json
 import os
 import pathlib
@@ -50,6 +62,28 @@ LANES = {
     "lane6": HERE / "lane6_stats",
     "lane7": HERE / "lane7_grain_determinism",
 }
+ASSURANCE = HERE.parent                                            # .../assurance (lane4 guard fixtures live in w1/)
+# Δ44-R38 input identity: which files are "the inputs" of each lane's items (hashed by this tool, never by hand)
+LANE_INPUTS: dict[str, dict] = {
+    "lane1": {"fixtures_dir": "fixtures", "expectations_file": "EXPECTATIONS.json", "contracts_file": "task_contracts.json"},
+    "lane2": {"fixtures_dir": "fixtures", "expectations_file": "EXPECTATIONS.json"},
+    "lane3": {"fixtures_dir": "fixtures", "expectations_file": "EXPECTATIONS.json"},
+    "lane4": {"fixtures_from_matrix": "forbidden_action_matrix.json", "contracts_file": "forbidden_action_matrix.json"},
+    "lane5": {"fixtures_dir": "fixtures"},
+    "lane6": {},
+    "lane7": {"fixtures_dir": "fixtures", "expectations_dir": "probe_like"},
+}
+# ruling index / delta are read from what A has PUSHED (T-A-V3-FC-007), never from the local control branch
+MAIN_REPO = pathlib.Path("/home/sieg/projects-wsl/ProjectFinal")
+CONTROL_REMOTE, CONTROL_BRANCH = "origin", "control/landing-orchestrator"
+CONTROL_REF = f"{CONTROL_REMOTE}/{CONTROL_BRANCH}"
+RULING_INDEX_PATH = "research/landing_accessibility/control/v3/V3_RULING_INDEX.json"
+DELTA_PATH = "research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md"
+MANIFEST_RULE = ("lines '<posix relative path>\\t<sha256 hex of file bytes>\\n' sorted by path (bytewise), "
+                 "__pycache__/*.pyc excluded; aggregate = sha256 of the UTF-8 manifest text")
+ITEM_SHA_FIELDS = ("fixtures_dir_manifest_sha256", "expectations_file_sha256", "expectations_dir_manifest_sha256",
+                   "contracts_file_sha256", "script_file_sha256")
+TOP_SHA_FIELDS = ("run_gate1_file_sha256", "comparators_dir_manifest_sha256", "ruling_index_bytes_sha256", "delta_bytes_sha256")
 # comparators (gate1/comparators): turn runner output into PASS/FAIL/UNMAPPED items; a missing adapter-map row ⇒ UNMAPPED
 sys.path.insert(0, str(HERE / "comparators"))
 try:
@@ -111,6 +145,110 @@ def load_json(p: pathlib.Path):
         return None
 
 
+# ----------------------------------------------------------------------------------------------- input identity (Δ44-R38)
+def sha256_bytes(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest()
+
+
+def sha256_file(p: pathlib.Path) -> str | None:
+    try:
+        h = hashlib.sha256()
+        with open(p, "rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                h.update(chunk)
+        return h.hexdigest()
+    except OSError:
+        return None
+
+
+def _skip(p: pathlib.Path) -> bool:
+    return "__pycache__" in p.parts or p.suffix == ".pyc"
+
+
+def file_manifest(files: list[tuple[str, pathlib.Path]]) -> dict:
+    """Deterministic manifest over (relative posix path, absolute path): MANIFEST_RULE. Missing files are listed as MISSING."""
+    rows = sorted(files, key=lambda t: t[0].encode("utf-8"))
+    text = "".join(f"{rel}\t{sha256_file(p) or 'MISSING'}\n" for rel, p in rows)
+    return {"n_files": len(rows), "manifest_text": text, "manifest_sha256": sha256_bytes(text.encode("utf-8"))}
+
+
+def dir_manifest(root: pathlib.Path) -> dict:
+    if not root.is_dir():
+        return {"n_files": 0, "manifest_text": "", "manifest_sha256": None, "missing_dir": str(root)}
+    files = [(p.relative_to(root).as_posix(), p) for p in root.rglob("*") if p.is_file() and not _skip(p)]
+    return file_manifest(files)
+
+
+def lane_input_identity(lane: str, lane_dir: pathlib.Path | None, assurance: pathlib.Path) -> dict:
+    """Byte identity of one lane's fixtures / expectations / contracts. Every sha here is computed from file bytes now."""
+    spec = LANE_INPUTS.get(lane)
+    if spec is None or lane_dir is None:
+        return {"fixtures_dir": None, "fixtures_dir_manifest_sha256": None, "fixtures_n_files": 0,
+                "expectations_file": None, "expectations_file_sha256": None,
+                "contracts_file": None, "contracts_file_sha256": None, "note": f"no lane input spec for '{lane}'"}
+    out: dict = {}
+    if "fixtures_dir" in spec:
+        d = lane_dir / spec["fixtures_dir"]
+        m = dir_manifest(d)
+        out.update(fixtures_dir=str(d), fixtures_dir_manifest_sha256=m["manifest_sha256"], fixtures_n_files=m["n_files"],
+                   _fixtures_manifest_text=m["manifest_text"])
+    elif "fixtures_from_matrix" in spec:
+        mp = lane_dir / spec["fixtures_from_matrix"]
+        rels = [f.get("fixture") for f in (load_json(mp) or {}).get("fixtures", []) if f.get("fixture")]
+        m = file_manifest([(rel, (assurance / rel).resolve()) for rel in rels])
+        out.update(fixtures_dir=f"{assurance} (files listed in {mp.name})", fixtures_dir_manifest_sha256=m["manifest_sha256"],
+                   fixtures_n_files=m["n_files"], _fixtures_manifest_text=m["manifest_text"])
+    else:
+        out.update(fixtures_dir=None, fixtures_dir_manifest_sha256=None, fixtures_n_files=0)
+    for key in ("expectations_file", "contracts_file"):
+        if key in spec:
+            p = lane_dir / spec[key]
+            out[key] = str(p); out[f"{key}_sha256"] = sha256_file(p)
+        else:
+            out[key] = None; out[f"{key}_sha256"] = None
+    if "expectations_dir" in spec:
+        d = lane_dir / spec["expectations_dir"]; m = dir_manifest(d)
+        out.update(expectations_dir=str(d), expectations_dir_manifest_sha256=m["manifest_sha256"],
+                   expectations_dir_n_files=m["n_files"], _expectations_manifest_text=m["manifest_text"])
+    return out
+
+
+def control_identity(repo: pathlib.Path) -> dict:
+    """Fetch A's PUSHED control branch and hash the ruling index / delta bytes actually read from it (T-A-V3-FC-007).
+    Fetch failure ⇒ UNAVAILABLE; no fallback to the local branch."""
+    rec: dict = {"control_repo": str(repo), "control_ref": CONTROL_REF, "control_ref_commit_sha": None,
+                 "fetched_at_kst": None, "fetch_ok": False, "fetch_error": None,
+                 "ruling_index_path": RULING_INDEX_PATH, "ruling_index_bytes_sha256": "UNAVAILABLE", "ruling_index_bytes": None,
+                 "delta_path": DELTA_PATH, "delta_bytes_sha256": "UNAVAILABLE", "delta_bytes": None}
+    try:
+        r = subprocess.run(["git", "-C", str(repo), "fetch", "-q", CONTROL_REMOTE, CONTROL_BRANCH],
+                           capture_output=True, text=True, timeout=120)
+        rec["fetched_at_kst"] = now_kst()
+        if r.returncode != 0:
+            rec["fetch_error"] = f"rc={r.returncode}: {(r.stderr or r.stdout).strip()[:300]}"
+            return rec
+    except (OSError, subprocess.SubprocessError) as e:
+        rec["fetched_at_kst"] = now_kst(); rec["fetch_error"] = f"{type(e).__name__}: {e}"[:300]
+        return rec
+    rec["fetch_ok"] = True
+    rec["control_ref_commit_sha"] = git(repo, "rev-parse", "--verify", f"refs/remotes/{CONTROL_REF}^{{commit}}")
+    if not rec["control_ref_commit_sha"]:
+        rec["fetch_error"] = f"{CONTROL_REF} not resolvable after fetch"
+        return rec
+    for key, path in (("ruling_index", RULING_INDEX_PATH), ("delta", DELTA_PATH)):
+        try:
+            b = subprocess.check_output(["git", "-C", str(repo), "show", f"{rec['control_ref_commit_sha']}:{path}"],
+                                        stderr=subprocess.DEVNULL, timeout=60)
+            rec[f"{key}_bytes_sha256"] = sha256_bytes(b); rec[f"{key}_bytes"] = len(b)
+        except (OSError, subprocess.SubprocessError):
+            rec[f"{key}_bytes_sha256"] = "UNAVAILABLE"
+    return rec
+
+
+def _strip_private(d: dict) -> dict:
+    return {k: v for k, v in d.items() if not k.startswith("_")}
+
+
 class Ctx:
     def __init__(self, a: argparse.Namespace):
         self.sut = pathlib.Path(a.sut).resolve()
@@ -126,13 +264,25 @@ class Ctx:
         self.ref_sha = a.ref_sha
         self.items: list[dict] = []
         self.py = sys.executable
+        self.compare_with = a.compare_with
+
+    # -- Δ44-R38 input identity per item: hashed from bytes at record time (after the item's script finished; lane
+    #    scripts do not write into their fixture inputs except L5-regen-fixtures, which produces lane5's fixtures) ----
+    def input_identity(self, lane: str | None, script: pathlib.Path | None) -> dict:
+        ident = _strip_private(lane_input_identity(lane or "", LANES.get(lane or ""), ASSURANCE))
+        ident["script_file"] = str(script) if script else None
+        ident["script_file_sha256"] = sha256_file(script) if script else None
+        ident["hashed_at_kst"] = now_kst()
+        return ident
 
     # -- generic recorders ------------------------------------------------------------------------
     def add(self, **kw) -> dict:
+        script = kw.pop("_script", None)
         kw.setdefault("hard_stop", None)
         kw.setdefault("severity_if_fail", "SYSTEMIC")
         kw.setdefault("control_role", None)
         kw.setdefault("detail", {})
+        kw["input_identity"] = self.input_identity(kw.get("lane"), script)
         self.items.append(kw)
         return kw
 
@@ -142,7 +292,7 @@ class Ctx:
         """Run one existing lane script as a subprocess and grade it by exit code."""
         log = self.out / lane / f"{id}.log"
         base = dict(id=id, lane=lane, kind=kind, description=description, verifies=verifies,
-                    cmd=shell_cmd or " ".join([self.py, str(script), *args]), **meta)
+                    cmd=shell_cmd or " ".join([self.py, str(script), *args]), _script=script, **meta)
         if needs_browser and self.skip_browser:
             return self.add(**base, status="NOT_TESTABLE", reason="--skip-browser", detail={})
         if not script.exists():
@@ -573,8 +723,124 @@ def next_action(v: str) -> str:
     }[v]
 
 
+# ----------------------------------------------------------------------------------------------- input identity / compare guard
+def top_level_identity(c: Ctx) -> dict:
+    """Top-level input identity: this script, the comparators package, A's pushed ruling index + delta, per-lane inputs.
+    Manifest texts are written to <out>/input_identity/ so every aggregate sha can be recomputed by hand."""
+    idir = c.out / "input_identity"; idir.mkdir(parents=True, exist_ok=True)
+    comp = dir_manifest(HERE / "comparators")
+    (idir / "comparators_dir.manifest.txt").write_text(comp["manifest_text"], encoding="utf-8")
+    lanes = {}
+    for ln, d in LANES.items():
+        li = lane_input_identity(ln, d, ASSURANCE)
+        if li.get("_fixtures_manifest_text") is not None:
+            (idir / f"{ln}_fixtures_dir.manifest.txt").write_text(li["_fixtures_manifest_text"], encoding="utf-8")
+        if li.get("_expectations_manifest_text") is not None:
+            (idir / f"{ln}_expectations_dir.manifest.txt").write_text(li["_expectations_manifest_text"], encoding="utf-8")
+        lanes[ln] = _strip_private(li)
+    me = pathlib.Path(__file__).resolve()
+    return {"rule": "Δ44-R38: sha fields below are computed by run_gate1.py from bytes; never edited by hand; values with different input shas are not compared",
+            "hash_algorithm": "sha256", "manifest_rule": MANIFEST_RULE, "manifests_dir": str(idir),
+            "run_gate1_file": str(me), "run_gate1_file_sha256": sha256_file(me),
+            "comparators_dir": str(HERE / "comparators"), "comparators_dir_manifest_sha256": comp["manifest_sha256"],
+            "comparators_dir_n_files": comp["n_files"],
+            **control_identity(MAIN_REPO),
+            "field_glossary": {
+                "fixtures_dir_manifest_sha256": "aggregate sha256 of the manifest (path + per-file sha256) of the lane's fixture files",
+                "expectations_file_sha256": "sha256 of the lane's EXPECTATIONS.json bytes",
+                "expectations_dir_manifest_sha256": "lane7: manifest sha of probe_like/*.json (hand-authored expectations)",
+                "contracts_file_sha256": "sha256 of the lane's contracts JSON bytes (lane1 task_contracts.json, lane4 forbidden_action_matrix.json)",
+                "script_file_sha256": "sha256 of the script file the item executed (null: item ran no script)",
+                "run_gate1_file_sha256": "sha256 of this orchestrator's own bytes",
+                "comparators_dir_manifest_sha256": "manifest sha of gate1/comparators/ (graders used for runner items)",
+                "ruling_index_bytes_sha256": f"sha256 of `git show {CONTROL_REF}:{RULING_INDEX_PATH}` bytes at control_ref_commit_sha",
+                "delta_bytes_sha256": f"sha256 of `git show {CONTROL_REF}:{DELTA_PATH}` bytes at control_ref_commit_sha",
+                "control_ref_commit_sha": f"commit {CONTROL_REF} resolved to right after `git fetch` (A's pushed state, not the local branch)"},
+            "lanes": lanes}
+
+
+def compare_guard(c: Ctx, top: dict) -> dict:
+    """--compare-with: refuse item-by-item comparison for any item whose input shas differ from the previous verdict."""
+    policy = "Δ44-R38: values with different input shas are not compared; a refused item carries no claim of change or sameness"
+    if not c.compare_with:
+        return {"enabled": False, "policy": policy, "previous_verdict_file": None}
+    pp = pathlib.Path(c.compare_with)
+    prev = load_json(pp)
+    g: dict = {"enabled": True, "policy": policy, "previous_verdict_file": str(pp), "previous_file_sha256": sha256_file(pp)}
+    if not isinstance(prev, dict) or "items" not in prev:
+        g.update(usable=False, reason="previous verdict file unreadable or has no items[]", items={}, n_comparable=0, n_refused=0,
+                 refused_items=[], top_level_mismatched_fields=[], missing_in_previous=[], missing_in_current=[])
+        return g
+    ptop = prev.get("input_identity") or {}
+    top_mism = [k for k in TOP_SHA_FIELDS if ptop.get(k) != top.get(k)]
+    g["top_level_mismatched_fields"] = top_mism
+    g["top_level_identity_match"] = not top_mism
+    g["previous_control_ref_commit_sha"] = ptop.get("control_ref_commit_sha")
+    pitems = {i.get("id"): i for i in prev.get("items", []) if isinstance(i, dict)}
+    items, refused, comparable = {}, [], []
+    for it in c.items:
+        pid = pitems.get(it["id"])
+        if pid is None:
+            continue
+        pi, ci = pid.get("input_identity") or {}, it.get("input_identity") or {}
+        if not pi:
+            mism = ["<previous item has no input_identity>"]
+        else:
+            mism = [k for k in ITEM_SHA_FIELDS if pi.get(k) != ci.get(k)]
+        ok = not mism
+        rec = {"comparable": ok, "mismatched_input_sha_fields": mism, "previous_status": pid.get("status"), "current_status": it["status"],
+               "status_changed": (pid.get("status") != it["status"]) if ok else None,
+               "note": None if ok else "REFUSED: input shas differ — statuses are not compared (Δ44-R38)"}
+        items[it["id"]] = rec
+        (comparable if ok else refused).append(it["id"])
+    g.update(usable=True, items=items, n_comparable=len(comparable), n_refused=len(refused), refused_items=refused,
+             status_changed_items=[k for k, v in items.items() if v["status_changed"]],
+             missing_in_previous=[i["id"] for i in c.items if i["id"] not in pitems],
+             missing_in_current=[k for k in pitems if k not in {i["id"] for i in c.items}])
+    return g
+
+
+def identity_report_md(top: dict, guard: dict) -> str:
+    lanes = "\n".join(f"| {ln} | `{v.get('fixtures_dir_manifest_sha256')}` ({v.get('fixtures_n_files')} files) | `{v.get('expectations_file_sha256') or v.get('expectations_dir_manifest_sha256')}` | `{v.get('contracts_file_sha256')}` |"
+                      for ln, v in top["lanes"].items())
+    md = f"""
+## 8. Input identity (Δ44-R38 — sha fields written by run_gate1.py from bytes, never by hand)
+Manifest rule: {top['manifest_rule']}. Manifest texts: `{top['manifests_dir']}`.
+
+| what is hashed | sha256 |
+|---|---|
+| run_gate1.py bytes (`run_gate1_file_sha256`) | `{top['run_gate1_file_sha256']}` |
+| gate1/comparators/ manifest (`comparators_dir_manifest_sha256`, {top['comparators_dir_n_files']} files) | `{top['comparators_dir_manifest_sha256']}` |
+| control ref read (`control_ref`, A's pushed branch, fetched {top['fetched_at_kst']}, fetch_ok={top['fetch_ok']}) | `{top['control_ref']}` → commit `{top['control_ref_commit_sha']}` {('· fetch_error: ' + str(top['fetch_error'])) if top.get('fetch_error') else ''} |
+| `{top['ruling_index_path']}` bytes at that commit (`ruling_index_bytes_sha256`) | `{top['ruling_index_bytes_sha256']}` |
+| `{top['delta_path']}` bytes at that commit (`delta_bytes_sha256`) | `{top['delta_bytes_sha256']}` |
+
+| lane | fixtures_dir_manifest_sha256 | expectations (file sha / probe_like manifest sha) | contracts_file_sha256 |
+|---|---|---|---|
+{lanes}
+
+## 9. compare_guard
+"""
+    if not guard["enabled"]:
+        return md + "no `--compare-with` given — no item-by-item comparison with a previous verdict was attempted.\n"
+    if not guard.get("usable"):
+        return md + f"previous file `{guard['previous_verdict_file']}` unusable: {guard['reason']}\n"
+    ref = "\n".join(f"- `{k}`: refused — differing input sha fields {json.dumps(guard['items'][k]['mismatched_input_sha_fields'])}" for k in guard["refused_items"]) or "- (none)"
+    chg = "\n".join(f"- `{k}`: {guard['items'][k]['previous_status']} → {guard['items'][k]['current_status']}" for k in guard["status_changed_items"]) or "- (none)"
+    return md + f"""previous: `{guard['previous_verdict_file']}` (sha256 `{guard['previous_file_sha256']}`, control commit `{guard['previous_control_ref_commit_sha']}`)
+top-level identity match: {guard['top_level_identity_match']} (mismatched: {json.dumps(guard['top_level_mismatched_fields'])})
+comparable items: {guard['n_comparable']} · refused (input shas differ — NOT compared): {guard['n_refused']} · missing in previous: {json.dumps(guard['missing_in_previous'])} · missing in current: {json.dumps(guard['missing_in_current'])}
+
+Refused items:
+{ref}
+
+Status changes among comparable items:
+{chg}
+"""
+
+
 # ----------------------------------------------------------------------------------------------- report
-def write_report(c: Ctx, verdict: dict, shas: dict, path: pathlib.Path) -> None:
+def write_report(c: Ctx, verdict: dict, shas: dict, path: pathlib.Path, top: dict | None = None, guard: dict | None = None) -> None:
     def row(i: dict) -> str:
         r = i.get("reason") or ""
         hs = i.get("hard_stop") or ""
@@ -637,6 +903,8 @@ systemic (fixture-reproducible, R8 ②): `{json.dumps(verdict['systemic_defects'
 ## 7. Next automatic action
 {next_action(verdict['verdict'])}
 """
+    if top is not None and guard is not None:
+        md += identity_report_md(top, guard)
     path.write_text(md, encoding="utf-8")
 
 
@@ -654,6 +922,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--skip-browser", action="store_true", help="skip Playwright items (recorded NOT_TESTABLE)")
     ap.add_argument("--timeout", type=int, default=900)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--compare-with", default=None, help="previous GATE1_VERDICT_C.json: compare_guard refuses items whose input shas differ (Δ44-R38)")
     a = ap.parse_args(argv)
     if a.dry_run:
         a.sut = a.sut or str(C_WORKTREE)
@@ -688,11 +957,13 @@ def main(argv: list[str] | None = None) -> int:
     verdict = evaluate(c)
     if not shas["sut_matches_claim"] and not c.dry_run:
         verdict["warnings"] = [f"SUT HEAD {sut_head} does not match claimed --sha {c.sha}: verdict is about HEAD, not the claim"]
+    top = top_level_identity(c)
+    guard = compare_guard(c, top)
     doc = {"artifact": "GATE1_VERDICT_C", "runner": "run_gate1.py", "dry_run": c.dry_run, "shas": shas,
            "runner_cmd": c.runner_cmd, "adapter_map": c.adapter_map_path, **verdict,
-           "next_automatic_action": next_action(verdict["verdict"]), "items": c.items}
+           "next_automatic_action": next_action(verdict["verdict"]), "input_identity": top, "compare_guard": guard, "items": c.items}
     (c.out / "GATE1_VERDICT_C.json").write_text(json.dumps(doc, ensure_ascii=False, indent=1, default=str) + "\n", encoding="utf-8")
-    write_report(c, verdict, shas, c.out / "GATE1_REPORT_C.md")
+    write_report(c, verdict, shas, c.out / "GATE1_REPORT_C.md", top, guard)
     summary = {k: doc[k] for k in ("verdict", "exit_code", "counts", "n_items", "hard_stop_triggers_observed",
                                    "systemic_defects", "c_harness_defects", "not_testable_items", "coverage")}
     print(json.dumps(summary, ensure_ascii=False, indent=1))
