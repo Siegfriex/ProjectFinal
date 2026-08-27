@@ -1,0 +1,269 @@
+{
+  "cycle": "V2-C013",
+  "auditor": "ssot",
+  "target_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+  "prev_target_sha": "48b4a3d9a05717c52ab891799b6203eb41cfc5f5",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "control_sha": "17389a27006719a220304e27e921c8ceb8f14770",
+  "latest_adversarial_audit_sha": "0dfb6d5788631347d4d50793f25d3f689251e1bd",
+  "latest_adversarial_target_sha": "48b4a3d9a05717c52ab891799b6203eb41cfc5f5",
+  "latest_adversarial_verdict": "PASS (P0 0 / P1 0 / P2 3) — target does NOT match this audit's target",
+  "prior_ssot_audit_sha": "1dbc3067b2504dc392b5a909ef0617b0dea268a7",
+  "prior_ssot_audit_verdict": "PASS — P0 0 / P1 0 / P2 1",
+  "target_branch": "agent/landing-v2-exec",
+  "base_ref": "research/landing-accessibility-main",
+  "phase": "P0_V2_REFREEZE",
+  "gate": "V2_SSOT_FROZEN",
+  "audited_at": "2026-08-27",
+  "audit_type": "target-diff remediation verification (not a full re-audit)",
+  "fast_exit_reinterpretation": {
+    "applied": true,
+    "instruction_source": "orchestrator mid-task message",
+    "verdict_criteria": [
+      "Q1: authoritative contradiction between SSOT/A1/A2?",
+      "Q2: schema contradiction that makes measured values ambiguous in this target?",
+      "Q3: unresolved blocking that stops promotion despite PASS/PASS?",
+      "Q4: damage to original authority/source/pilot?"
+    ],
+    "non_blocking_alone_buckets": [
+      "BACKLOG_AFTER_COLLECTION",
+      "PRE_E001_NONBLOCKING",
+      "POST_E001_DEBT"
+    ],
+    "q1": "NO",
+    "q2": "NO — one description gap in MEASUREMENT_FAILED grain mapping, absorbed by existing FAILED_EVIDENCE_INCOMPLETE rule, not a new ambiguity",
+    "q3": "PARTIAL — PASS/PASS precondition itself not yet established (adversarial has not audited TARGET); _ABRR_CANON self-edit structure directly checked, not currently exploited",
+    "q4": "NO",
+    "findings_list_preserved": true,
+    "note": "scope of investigation not narrowed; only verdict criteria narrowed per instruction"
+  },
+  "verdict": "PASS",
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "blocking_v2_ssot_frozen": 0,
+    "blocking_e001_v2": 0,
+    "closed_this_cycle": 1,
+    "non_blocking_observations": 4
+  },
+  "diff_scope": {
+    "compared": "48b4a3d9a05717c52ab891799b6203eb41cfc5f5..bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "commits": 1,
+    "files_changed_count": 3,
+    "files_changed": [
+      "research/landing_accessibility/docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+      "research/landing_accessibility/docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+      "research/landing_accessibility/docs/v2/INSTALL_MANIFEST.json"
+    ],
+    "code_files_changed": 0,
+    "control_or_audit_paths_changed": 0,
+    "matches_declared_scope": true
+  },
+  "install_integrity": {
+    "verify_v2_docs_py": "PASS (17/17 OK)",
+    "method": "landing_v2_exec 워크트리(실제 git checkout @ bc0b7a0, working tree clean)에서 직접 실행 — git archive 스냅샷은 anchor 검사가 'git 미추적'으로 오탐 FAIL 하는 것을 확인하고 우회함",
+    "manifest_vs_actual": [
+      {
+        "file": "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+        "declared_bytes": 60039,
+        "actual_bytes": 60039,
+        "declared_sha256": "6efd3055d232afa03d61e03809d9ae2bb8647432be404e72c3adcd86da30ed16",
+        "actual_sha256": "6efd3055d232afa03d61e03809d9ae2bb8647432be404e72c3adcd86da30ed16",
+        "match": true
+      },
+      {
+        "file": "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+        "declared_bytes": 259173,
+        "actual_bytes": 259173,
+        "declared_sha256": "68b873d7a09d62a4a0d6308f2791a10a8abb066a088f0cd2c5a8eaa8d85685ed",
+        "actual_sha256": "68b873d7a09d62a4a0d6308f2791a10a8abb066a088f0cd2c5a8eaa8d85685ed",
+        "match": true
+      }
+    ],
+    "cycle_field": "V2-C011 -> V2-C012 (matches actual exec cycle)"
+  },
+  "invariants": {
+    "pilot_refcohort_unchanged_base_to_target": true,
+    "pilot_opened": false,
+    "state_parquet_unchanged_base_to_target": true,
+    "root_claude_md_unchanged_base_to_target": true,
+    "frozen_pack_00_to_05_unchanged_since_install": true,
+    "frozen_pack_last_touched_commit": "eb36d17 (설치 커밋)",
+    "e001_v2_started": false,
+    "baseline_sha_matches": "5a9015d1e95b15304aaf53a73efb475934610b82 (EXECUTION_AUTHORITY.md:165)"
+  },
+  "remediation_verification": [
+    {
+      "finding_id": "min-4-dom-order-residual-attributed-to-min-8-replay-which-min-8-says-it-does-not-detect",
+      "origin": "ssot V2-C011 G4 (P2, blocking E001_V2, not blocking V2_SSOT_FROZEN)",
+      "verdict": "CLOSED",
+      "three_required_sites": [
+        {
+          "site": "귀속 철회",
+          "where": "A1:434 (§2.6 잔여 블록), A1:308 (§2.5)",
+          "status": "SATISFIED",
+          "evidence": "'MIN-8 Replay 재현 검사가 잡는 사건이다' 삭제, 'MIN-8은 동결 이후 국면만 담당한다' / 'MIN-8 Replay는 이 위반을 받지 않는다(규칙 MIN-8 · §8)'로 교체"
+        },
+        {
+          "site": "탐지층 지명",
+          "where": "A1:308 §2.5 (MIN-4 경로 결정성 케이스 명명), A1:434 잔여 블록 (재귀속)",
+          "status": "SATISFIED",
+          "evidence": "기존 §2.5 케이스('동일 fixture를 두 번 돌려 같은 경로가 나오는가')에 이름만 부여. jitter 테스트(flip≠0)가 캐너리, 이 케이스가 재열거·경로비교로 진단·확정. 새 기구 없음. 내가 V2-C011에서 제시한 선택지 (ii)와 동일 형태"
+        },
+        {
+          "site": "MIN-8 동결 산출물 추가",
+          "where": "A1:520 (규칙 MIN-8 본문)",
+          "status": "SATISFIED",
+          "evidence": "'경로 step 열(step_index · selector · dom_order · 기대 state id)' — dom_order 추가 + 이유절('후보 순서를 모르면 무엇이 최소였는가를 재현 대조할 수 없다')"
+        }
+      ],
+      "attribution_validity_check": {
+        "detection_layer_can_actually_catch_residual": true,
+        "reasoning": "MIN-4 경로 결정성 케이스는 Scout를 실제로 두 번 재실행해 후보를 재열거하므로 dom_order 불안정이 경로 차이로 직접 드러난다. MIN-8 Replay(동결 selector 재생, 순서 재판정 없음)와 구조적으로 다른 층",
+          "scope_honesty": "§2.5는 02 §14 실패주입 목록 — P-C/P-D 엔진 검증(fixture 기반)이지 E001_V2 실 수집 런타임 감시가 아니다. TARGET 문서가 이 범위를 스스로 명시하며 숨기지 않는다. 실 수집 런타임 탐지는 path_sha256 비교(02 §12)가 별도로 담당 — 선택지 (i)"
+      },
+      "exhaustive_grep_min8_positive_claim": {
+        "method": "grep -rn MIN-8 A1 A2; grep -rn 'MIN-8.*잡는다|잡는다.*MIN-8' docs/v2/",
+        "a1_occurrences": 6,
+        "a2_occurrences": 0,
+        "positive_catches_statement_remaining": 0
+      },
+      "internal_consistency_check": {
+        "sites_compared": ["A1:308 §2.5", "A1:433-439 §2.6 잔여 블록", "A1:515-524 규칙 MIN-8", "A1:872 §8 금지 목록"],
+        "consistent": true,
+        "note": "§8 문장은 이번 diff가 손대지 않음(범용 서술이라 dom_order 특정 언급 불필요) — 무변경도 정합"
+      }
+    }
+  ],
+  "adversarial_new_p2_fix_observed_not_adjudicated": {
+    "id": "min-4-dom-order-not-bound-as-schema-field",
+    "origin": "adversarial V2-C011 (0dfb6d5) §3.5, new P2, blocking E001_V2 (not V2_SSOT_FROZEN)",
+    "requested_minimum_fix": "A1 §5.1 컬럼 표에 dom_order 행 1줄 + A2 §1.13 값 도메인/바인딩 표 반영",
+    "fix_present": true,
+    "evidence": "A1:713 fact_primary_action_candidate 컬럼 표에 dom_order 행 신설. A2 신설 '#### dom_order — tie-break 2차 키' 절 (값 도메인 표 5행: 컬럼/형/범위/NULL/유일성)",
+    "adjudication": "판정은 adversarial 레인 소관이므로 CLOSED로 적지 않는다"
+  },
+  "schema_binding_check": {
+    "jurisdiction_table_a1_0_3": "diff가 건드리지 않음. §5.1 -> A2 §1.13 (primary action candidate 필드군) 행 그대로",
+    "division_of_labor_respected": true,
+    "evidence": "A1 §5.1 신설 노트가 '값 도메인 선언과 스키마 바인딩 표 반영은 A2 §1.13 소관이며 이 문서에서 하지 않는다'로 스스로 관할을 넘김. A2 §1.13이 '관측 절차의 정본은 A1 §5.1이고 값 도메인은 이 절이 정본이다'로 대칭 확인",
+    "consistency_with_01_11": "일치 — 01 §11은 '결측을 0으로 치환 금지' 원칙과 5개 상태 어휘 예시일 뿐, 모든 컬럼이 NULL 허용해야 한다는 규칙이 아니다. dom_order NULL 불허는 이 원칙과 충돌하지 않는다",
+    "consistency_with_a2_1_14": "일치 — N-규율은 '수치 컬럼 NULL' vs '상태 컬럼 열거값' 구분. dom_order는 이 표의 직접 규율 대상 밖이며 area_css_px2와의 대비 근거로만 인용됨",
+    "measurement_failed_attribution_check": {
+      "consistent_with_a2_1_2": "대체로 일치하나 grain 서술 공백 있음",
+      "gap": "MEASUREMENT_FAILED 계열은 A2 §1.2에서 fact_landing_observation grain(measurement_status 컬럼)에 산다. dom_order는 더 낮은 grain(fact_primary_action_candidate, candidate당 값)이다. 어느 leaf 토큰으로 승격되는지, candidate 1건의 결손이 관측 전체를 FAILED로 만드는지 본문이 명시하지 않는다",
+      "severity_judgment": "not blocking (Q2=NO) — FAILED_EVIDENCE_INCOMPLETE 정의('evidence 5종 중 일부가 없거나 07_EVIDENCE_MANIFEST_CONTRACT 검증을 통과하지 못했다')가 이미 probe evidence 계약 위반을 포괄. 새 모호성이 아니라 미세한 생략",
+      "bucket": "documentation polish (FAST-EXIT non-blocking-alone bucket)"
+    }
+  },
+  "control_condition_transition_check": {
+    "control_sha": "17389a27006719a220304e27e921c8ceb8f14770",
+    "diff_scope": "control/state.json, control/cycles/V2_C012_orchestrator.json, scripts/promote_landing_main.sh only — docs/v2/ untouched",
+    "c1_transition": {
+      "from": "SATISFIED (owner-based exemption, no audit_sha)",
+      "to": "SATISFIED (audit_sha attached)",
+      "basis_sha": "0dfb6d5788631347d4d50793f25d3f689251e1bd",
+      "basis_is_ancestor_of_audit_branch": true,
+      "basis_report_verdict_check": "report §5 '판정 3 — C-1' explicitly states '이행' (satisfied)",
+      "correctly_attributed": true
+    },
+    "c5_1_transition": {
+      "from": "NOT_SATISFIED",
+      "to": "SATISFIED",
+      "basis_sha": "30093b4927f9a6b0ecf301e001901da9978500a3",
+      "basis_is_ancestor_of_audit_branch": true,
+      "basis_report_verdict_check": "report §4 '확인 2 — C-5-①: 이행' explicitly states '이행' (satisfied)",
+      "correctly_attributed": true
+    },
+    "document_ledger_consistency": {
+      "consistent": true,
+      "note": "이번 control 커밋이 A2 본문(EXC-5/RC-8)을 건드리지 않아, 내가 V2-C011에서 이미 직접 확인한 문면과 원장 전이 근거 사이에 새 어긋남 없음"
+    },
+    "open_blocking_total_staleness": {
+      "ledger_value": 3,
+      "reflects_reality": false,
+      "control_disclosed_explicitly": true,
+      "disclosure_evidence": "commit message: 'V2-C011 reconciliation 도 하지 않았다 — open_blocking_total 원장 문면은 3 그대로다'",
+      "judgment": "유보는 정직하고 옳다 — 두 감사가 아직 동일 target SHA를 판정하지 못했으므로 지금 재계산하면 미완성 reconciliation을 완성처럼 적는 꼴. 그러나 문면 3은 현재 사실(양 감사 G1/G2/G3 CLOSED 일치판정)과 어긋난 구판 스냅샷이며, PHASE_GATES §2 'reconciliation이 current' 요건은 지금 미충족",
+      "classified_as": "Q3 candidate — procedural precondition unmet, not a document defect, not counted in this audit's P-level findings"
+    },
+    "abrr_canon_self_edit_risk": {
+      "structural_risk_exists": true,
+      "risk_description": "control이 promote_landing_main.sh의 _ABRR_CANON(조건 정본)을 스스로 수정 가능 — 이론상 미래 사이클에 조건을 자신에게 유리하게 재정의할 위험",
+      "directly_checked_this_cycle": true,
+      "check_method": "_ABRR_CANON['rc-6-r1-…']['conditions']를 state.json conditions/conditions_status와 id·owner·due_before 1:1 대조",
+      "check_result": "6개 조건(C-1~C-6) id·owner·due_before 전항 일치. gate_required 매핑도 lapse_rule 문면과 일치. 이번 사이클 완화·추가 없음",
+      "current_exploitation": false,
+      "mitigation_disclosed_by_control": "control 자신이 L-2로 '그 편집은 control 커밋으로 남고 감사 대상이다'를 명시",
+      "carried_forward": "다음 사이클에 _ABRR_CANON diff가 있으면 다시 이 표로 대조해야 함 — 상시 점검 항목"
+    }
+  },
+  "condition_adjudications": {
+    "C-1": {
+      "owner": "control",
+      "status": "SATISFIED",
+      "audit_sha": "0dfb6d5788631347d4d50793f25d3f689251e1bd",
+      "verified_by_this_audit": true
+    },
+    "C-2": {
+      "owner": "exec",
+      "status": "SATISFIED",
+      "note": "V2-C009에서 SATISFIED, 이번 diff 무회귀(A2 §7 13항 C-2 문장 무변경)"
+    },
+    "C-3": { "status": "NOT_DUE", "due": "E001_V2 실행 이전" },
+    "C-4": { "status": "NOT_DUE", "due": "E001_V2 종료 시" },
+    "C-5-1": {
+      "owner": "exec",
+      "status": "SATISFIED",
+      "audit_sha": "30093b4927f9a6b0ecf301e001901da9978500a3",
+      "verified_by_this_audit": true
+    },
+    "C-5-2": { "status": "NOT_DUE", "due": "최종 산출물 보고 시점" },
+    "C-6": {
+      "status": "DOCUMENT_AXIS_DISARMED",
+      "effect": "C-1 · C-2 · C-5-①(문서) 셋 전건 SATISFIED, V2_SSOT_FROZEN 선언 시 문서 축 자동실효 사유 없음. 산출물 축(C-3·C-4·C-5-②)은 기한 미도래"
+    }
+  },
+  "promotion_readiness_checklist": {
+    "source": "PHASE_GATES.md §2 공통 통과조건",
+    "items": [
+      { "condition": "exec 산출물이 커밋되어 있다", "status": "MET", "evidence": "bc0b7a0, origin/agent/landing-v2-exec에 push 확인" },
+      { "condition": "두 감사가 exact same target SHA를 감사했다", "status": "NOT_MET", "evidence": "ssot=bc0b7a0(이 보고서), 최신 adversarial=48b4a3d(0dfb6d5). adversarial의 bc0b7a0 감사 없음" },
+      { "condition": "두 감사 모두 verdict = PASS", "status": "PARTIAL", "evidence": "ssot(bc0b7a0)=PASS. adversarial의 bc0b7a0 판정 없음 — 위 항목 선행 필요" },
+      { "condition": "해당 Gate의 blocking finding이 0건", "status": "SUBSTANTIVELY_MET_LEDGER_STALE", "evidence": "양 레인 실질판단상 V2_SSOT_FROZEN-blocking=0(내 G4 CLOSED, adversarial 신규 P2도 이 diff로 시정 관측됨-판정대기). state.json.open_blocking_total은 아직 3" },
+      { "condition": "orchestrator reconciliation이 current", "status": "NOT_MET", "evidence": "control 자기 disclosure — 'V2-C011 reconciliation 도 하지 않았다'" },
+      { "condition": "unaudited_cycle_depth <= 1", "status": "MET_AT_BOUNDARY", "evidence": "마지막 감사대상(48b4a3d) 이후 exec 커밋 bc0b7a0 1건뿐 — depth=1" },
+      { "condition": "Pilot diff = 0", "status": "MET", "evidence": "invariants.pilot_refcohort_unchanged_base_to_target" },
+      { "condition": "executor self-approval 없음", "status": "MET", "evidence": "diff_scope.control_or_audit_paths_changed = 0" },
+      { "condition": "E001_V2_STARTED = false", "status": "MET", "evidence": "invariants.e001_v2_started" }
+    ],
+    "can_declare_v2_ssot_frozen_now": false,
+    "blocking_reasons": [
+      "두 감사 exact same target SHA 미충족 (adversarial의 bc0b7a0 감사 대기)",
+      "orchestrator reconciliation 미최신화 (control 다음 사이클 작업)"
+    ],
+    "my_lane_blocking_remaining": 0
+  },
+  "findings": [],
+  "closed_findings": [
+    "min-4-dom-order-residual-attributed-to-min-8-replay-which-min-8-says-it-does-not-detect"
+  ],
+  "non_blocking_observations": [
+    "MEASUREMENT_FAILED grain 서술 공백 — schema_binding_check.measurement_failed_attribution_check 참조. documentation polish 버킷",
+    "_ABRR_CANON 자기편집 구조적 위험 — 이번 사이클 악용 없음, 직접 대조 완료. 상시 점검 항목으로 이월",
+    "adversarial 신규 P2 c-6-lapse-machine-check-bypassable-and-e001-half-unimplemented (control 소관) — 판정은 adversarial 레인 소관, 내가 대신 CLOSED로 적지 않음",
+    "adversarial 재현 방법론의 정직한 한계(L-1·L-3·L-6, control 자기 등재) — 읽었고 정직하게 등재됨을 확인. control 소관, 이번 diff 대상 아님"
+  ],
+  "not_done": [
+    "전면 재감사",
+    "실제 웹사이트 접속",
+    "Pilot 열람",
+    "다른 워크트리 쓰기",
+    "adversarial 소관 finding 판정",
+    "promote_landing_main.sh 코드 라인 단위 감사 (control/adversarial 소관 — _ABRR_CANON 데이터만 원장과 대조)",
+    "diff 범위 밖 절 재감사",
+    "C-3 · C-4 · C-5-② 판정 (기한 미도래)"
+  ],
+  "operational_note_for_control": "내 G4는 CLOSED다. V2_SSOT_FROZEN-blocking 클래스는 내 레인 기준 0이다. 그러나 open_blocking_total 원장 문면(3)은 실제(양 감사가 이미 G1/G2/G3 CLOSED 일치판정)와 어긋난 구판 스냅샷이다 — reconciliation은 두 감사가 같은 target SHA(bc0b7a0)를 판정한 뒤 재실행해야 current가 된다. adversarial이 bc0b7a0을 감사할 때까지 V2_SSOT_FROZEN 선언을 보류해야 한다."
+}
