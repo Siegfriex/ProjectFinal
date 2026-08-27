@@ -48,6 +48,22 @@ COMMERCE_PRIMARY = {"SHOPPING_COMMERCE"}
 COMMERCE_WIDE = {"SHOPPING_COMMERCE", "FINANCE_PAYMENT"}
 
 
+def _clean(o):
+    """JSON 유효성: NaN/Inf -> None, numpy 스칼라 -> python 스칼라."""
+    if isinstance(o, dict):
+        return {str(k): _clean(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [_clean(v) for v in o]
+    if isinstance(o, (np.integer,)):
+        return int(o)
+    if isinstance(o, (np.floating, float)):
+        f = float(o)
+        return None if (np.isnan(f) or np.isinf(f)) else f
+    if isinstance(o, (np.bool_,)):
+        return bool(o)
+    return o
+
+
 def sha256_file(p: Path) -> str:
     h = hashlib.sha256()
     with open(p, "rb") as f:
@@ -174,10 +190,19 @@ def denominator_chain(obs, landing, task, summary, ledger) -> dict:
         "step_2b_within_mart_covariate_missing": {
             "n_targets_in_landing_mart_without_probe": int((obs[obs.in_mart == 1].probe_present != 1).sum()),
             "wtg": sorted(obs.loc[(obs.in_mart == 1) & (obs.probe_present != 1), "wtg"]),
-            "delta_kind": "UNRECORDED_COVARIATE_MISSING",
-            "note": ("이 2건은 landing mart 에 행이 있으나 probe.json 이 없어 probe 파생 covariate "
-                     "(cap_*, modal_overlay_n, gate_*)가 전부 결측이다. 원장 outcome 에는 사유가 "
-                     "기록돼 있지 않다 — 위 두 제외층과 성격이 다르다."),
+            "delta_kind": "RECORDED_IN_MART_NOT_IN_LEDGER_OUTCOME",
+            "self_correction": ("초안에서 이 2건을 '사유가 기록되지 않은 결측' 이라고 썼다가 raw 를 "
+                                "직접 열어 시정했다. 사유는 기록돼 있다 — 아래 참조."),
+            "where_the_reason_is_recorded": {
+                "fact_landing_observation.measurement_status": "FAILED_EVIDENCE_INCOMPLETE",
+                "fact_landing_observation.probe_path": None,
+                "collector_l0.notes": ("Error: Page.evaluate: Execution context was destroyed, "
+                                       "most likely because of a navigation"),
+                "ledger_outcome": ("UNRESOLVED — 다른 16 target 과 같은 값이라 원장 outcome 만으로는 "
+                                   "이 2건을 구별할 수 없다. 구별은 mart 의 measurement_status 로만 된다."),
+            },
+            "note": ("landing mart 에 행이 있으나 probe.json 이 없어 probe 파생 covariate "
+                     "(cap_*, modal_overlay_n, gate_*)가 전부 결측이다."),
         },
         "set_consistency": {
             "fs_wtg_equals_obs_table_wtg": wtg_fs == wtg_obs,
@@ -230,6 +255,15 @@ def build_frame(obs, landing, task, ledger) -> pd.DataFrame:
         f[col] = [task_by.get(w, {}).get(k) for w in f.index]
     for c in ("task_auth_gate_before_endpoint", "task_endpoint_reached"):
         f[c] = pd.to_numeric(f[c], errors="coerce")
+    land_by = {r["web_target_id"].replace("wtg_", ""): r for r in landing}
+    for k, col in (("measurement_status", "mart_measurement_status"),
+                   ("probe_path", "mart_probe_path"),
+                   ("max_overlay_coverage", "mart_max_overlay_coverage"),
+                   ("max_primary_action_occlusion", "mart_max_primary_action_occlusion"),
+                   ("blocking_modal_count", "mart_blocking_modal_count"),
+                   ("primary_action_visible_initial", "mart_primary_action_visible_initial")):
+        f[col] = [land_by.get(w, {}).get(k) for w in f.index]
+    f["mart_evidence_incomplete"] = (f.mart_measurement_status == "FAILED_EVIDENCE_INCOMPLETE").astype(int)
     f["commerce_primary"] = f.prior_business_domain.isin(COMMERCE_PRIMARY).astype(int)
     f["commerce_wide"] = f.prior_business_domain.isin(COMMERCE_WIDE).astype(int)
     return f
@@ -394,7 +428,8 @@ def manski_bounds(x, y) -> dict:
     m_y1 = int(np.sum(~kx & ky & (y == 1)))     # Y=1, X 결측 -> a or c
     m_y0 = int(np.sum(~kx & ky & (y == 0)))     # Y=0, X 결측 -> b or d
     m_bb = int(np.sum(~kx & ~ky))               # 둘 다 결측 -> a|b|c|d
-    best = {"rd_min": None, "rd_max": None, "phi_min": None, "phi_max": None}
+    best = {"rd_min": None, "rd_max": None, "phi_min": None, "phi_max": None,
+            "ci_lo": None, "ci_hi": None}
     arg = {}
     for i in range(m_x1 + 1):
         for j in range(m_x0 + 1):
@@ -411,6 +446,11 @@ def manski_bounds(x, y) -> dict:
                                 rd, phi = _rd_phi(A, B, C, D)
                                 if rd is None:
                                     continue
+                                clo, chi = newcombe_rd(A, B, C, D)
+                                if best.get("ci_lo") is None or clo < best["ci_lo"]:
+                                    best["ci_lo"] = clo
+                                if best.get("ci_hi") is None or chi > best["ci_hi"]:
+                                    best["ci_hi"] = chi
                                 if best["rd_min"] is None or rd < best["rd_min"]:
                                     best["rd_min"] = rd; arg["rd_min"] = (A, B, C, D)
                                 if best["rd_max"] is None or rd > best["rd_max"]:
@@ -447,6 +487,17 @@ def manski_bounds(x, y) -> dict:
             "phi_upper": round(best["phi_max"], 4) if best["phi_max"] is not None else None,
             "excludes_null_rd0": bool(best["rd_min"] > 0 or best["rd_max"] < 0),
             "sign_identified": bool(best["rd_min"] > 0 or best["rd_max"] < 0),
+            "note": ("이 구간에는 표본오차가 들어 있지 않다 — 식별구간(identification region)이다. "
+                     "complete-case CI 보다 좁게 나올 수 있으나 서로 다른 종류의 불확실성이므로 "
+                     "폭을 직접 비교하면 안 된다. 둘을 합친 값은 아래 "
+                     "bound_with_sampling_uncertainty 를 보라."),
+        },
+        "bound_with_sampling_uncertainty": {
+            "rd_lower": round(best["ci_lo"], 4), "rd_upper": round(best["ci_hi"], 4),
+            "rd_width": round(best["ci_hi"] - best["ci_lo"], 4),
+            "method": ("모든 결측 배치에 대해 Newcombe 95% CI 를 구하고 그 합집합을 취한 보수적 구간. "
+                       "식별 불확실성 + 표본 불확실성을 함께 담는다."),
+            "excludes_null_rd0": bool(best["ci_lo"] > 0 or best["ci_hi"] < 0),
         },
         "width_ratio_bound_over_cc_ci": round((best["rd_max"] - best["rd_min"]) / (hi - lo), 3)
         if hi > lo else None,
@@ -606,6 +657,45 @@ def l1_canonical_ambiguity(obs: pd.DataFrame) -> dict:
             "per_target": out}
 
 
+def zero_coding_check(f: pd.DataFrame) -> dict:
+    """FAILED_EVIDENCE_INCOMPLETE 행에서 결측이 0.0 으로 코딩되는가 (raw 에서 직접 확인)."""
+    fail = f[f.mart_evidence_incomplete == 1]
+    rows = []
+    for w, r in fail.iterrows():
+        rows.append({
+            "wtg": w, "probe_path_is_null": r.mart_probe_path is None,
+            "probe_present_in_evidence": None if pd.isna(r.probe_present) else int(r.probe_present),
+            "mart_max_overlay_coverage": r.mart_max_overlay_coverage,
+            "mart_max_primary_action_occlusion": r.mart_max_primary_action_occlusion,
+            "mart_blocking_modal_count": r.mart_blocking_modal_count,
+            "mart_primary_action_visible_initial": r.mart_primary_action_visible_initial,
+            "ledger_outcome": r.ledger_outcome,
+        })
+    zero_coded = [x for x in rows if x["probe_path_is_null"] and x["mart_max_overlay_coverage"] == 0.0]
+    return {
+        "claim_kind": "OBSERVATION",
+        "n_measurement_status_failed": int(len(fail)),
+        "n_of_those_with_probe_absent": int(sum(1 for x in rows if x["probe_path_is_null"])),
+        "n_of_those_with_probe_present": int(sum(1 for x in rows if not x["probe_path_is_null"])),
+        "rows": rows,
+        "finding": (
+            "probe 가 없는 2행에서 max_overlay_coverage 와 max_primary_action_occlusion 이 "
+            "null 이 아니라 0.0 으로 들어간다. 같은 행의 primary_action_visible_initial 은 null 이다 — "
+            "한 행 안에서 결측 표현이 일관되지 않는다. fact_landing_observation 만 읽는 소비자는 "
+            "'가림 0%' 로 측정된 target 과 '측정 실패' 를 구별할 수 없다."),
+        "parsing_error_ruled_out": {
+            "checked": "collector 원장 detail.l0 을 직접 열었다",
+            "l0_max_overlay_coverage_for_probe_absent": 0.0,
+            "l0_probe_path_for_probe_absent": None,
+            "l0_notes": "Error: Page.evaluate: Execution context was destroyed, most likely because of a navigation",
+            "conclusion": ("0.0 은 mart 빌더가 만든 값이 아니라 collector 가 이미 0.0 으로 쓴 값이다. "
+                           "내 파싱 결함이 아니다."),
+        },
+        "n_zero_coded": len(zero_coded),
+        "scope_limit": "이 관측은 결함 판정이 아니다. 코딩이 의도된 것인지의 판단은 D 권한이 아니다.",
+    }
+
+
 # ------------------------------------------------------------- 8. figures
 def make_figures(bounds: dict, decomp: dict) -> list[str]:
     import matplotlib
@@ -643,7 +733,7 @@ def make_figures(bounds: dict, decomp: dict) -> list[str]:
         ax.bar(np.arange(len(keys)) + (si - 2) * w, vals, width=w, label=s.replace("_only", ""))
     ax.set_xticks(np.arange(len(keys))); ax.set_xticklabels(keys, fontsize=8)
     ax.set_ylabel("worst-case RD bound width"); ax.set_ylim(0, 2.05)
-    ax.set_title("RQ-D7  layer decomposition — 어느 층을 채우면 bound 가 좁아지는가", fontsize=10)
+    ax.set_title("RQ-D7  layer decomposition: which layer narrows the bound", fontsize=10)
     ax.legend(fontsize=6.5)
     fig.tight_layout(); p = FIG / "RQ_D7_layer_decomposition.png"; fig.savefig(p, dpi=150); plt.close(fig)
     paths.append(str(p))
@@ -713,6 +803,15 @@ def main() -> dict:
         BIN_COVS, CONT_COVS, CAT_COVS,
         "grain=target(56). 관측 covariate 가 전부 있으므로 이 층만 제대로 검정 가능하다.", rng)
 
+    diag["L2c_measurement_status_failed"] = diagnose_layer(
+        f[f.has_evidence == 1].assign(_i=f[f.has_evidence == 1].mart_evidence_incomplete), "_i",
+        "L2c target grain: landing mart 56 중 measurement_status=FAILED_EVIDENCE_INCOMPLETE 인 3",
+        [c for c in BIN_COVS if c != "probe_present"],
+        [c for c in CONT_COVS if c.startswith("dom_") or c in ("ax_bytes", "css_bytes")],
+        CAT_COVS,
+        ("3건 모두 collector note 가 'Page.evaluate: Execution context was destroyed' 로 동일하다. "
+         "n=3 이라 검정력은 없다. probe 부재(2)와 measurement_status 실패(3)는 서로 다른 집합이다."), rng)
+
     assoc_keys = ["a_cap_any_x_commerce", "b_modal_x_no_arialabel",
                   "c_taskrow_x_password_gate", "d_authgate_x_commerce"]
     bounds, decomp = {}, {}
@@ -721,6 +820,23 @@ def main() -> dict:
         b = manski_bounds(x, y); b["meta"] = meta; b["grain"] = "target (wtg), population n=59"
         bounds[k] = b
         decomp[k] = layer_decomposition(f, k)
+    # 민감도: measurement_status=FAILED 3건을 전부 결측으로 취급
+    fail_idx = np.array([w in set(f.index[f.mart_evidence_incomplete == 1]) for w in f.index])
+    for k in ("a_cap_any_x_commerce", "b_modal_x_no_arialabel", "c_taskrow_x_password_gate"):
+        x, y, meta = assoc_vectors(f, k)
+        x2, y2 = x.copy(), y.copy()
+        if meta["X"] not in ("prior_business_domain == SHOPPING_COMMERCE",
+                             "prior_business_domain == SHOPPING_COMMERCE (커머스 계열, 본 RQ 사전 고정)"):
+            x2[fail_idx] = np.nan
+        if k != "c_taskrow_x_password_gate":
+            y2[fail_idx] = np.nan
+        else:
+            x2[fail_idx] = np.nan
+        sb = manski_bounds(x2, y2)
+        sb["meta"] = dict(meta, role=("민감도: measurement_status=FAILED_EVIDENCE_INCOMPLETE 3건의 "
+                                      "evidence 파생 값을 전부 결측으로 취급"))
+        bounds[k + "_sensitivity_failed_as_missing"] = sb
+
     # 민감도: 커머스 광의 정의
     xs = f["commerce_wide"].to_numpy(float)
     bounds["a_sensitivity_commerce_wide"] = manski_bounds(xs, f["cap_any"].to_numpy(float))
@@ -734,41 +850,86 @@ def main() -> dict:
     n_sign_id = sum(1 for k in assoc_keys if bounds[k]["worst_case_bound"]["sign_identified"])
     sig_layers = [k for k, v in diag.items() if v["verdict"] == "ASSOCIATION_DETECTED"]
 
+    n_sign_id_sampling = sum(1 for k in assoc_keys
+                             if bounds[k]["bound_with_sampling_uncertainty"]["excludes_null_rd0"])
     hyp = {
         "H-D7-MCAR": {
-            "statement": "결측은 관측 공변량과 무관하다",
-            "verdict": "REFUTED",
-            "evidence": (f"L3(56 중 25)는 원장 ACCOUNT_ACTION_BLOCKED 집합과 "
-                         f"{'완전히 일치' if l3_mech['exact_set_match'] else '부분 일치'}한다 — "
-                         f"무작위가 아니라 결정론적 제외다. "
-                         f"BH-FDR 통과 covariate 를 가진 층: {sig_layers or '없음'}."),
-            "caveat": "L2(3)과 L2b(2)는 n 이 작아 MCAR 을 기각도 지지도 못한다.",
+            "statement": "결측은 관측 공변량과 무관하다 (complete-case 는 불편, bound 만 넓어진다)",
+            "verdict": "REFUTED_ON_MECHANISM_NOT_DETECTED_BY_COVARIATE_TESTS",
+            "mechanism_evidence": {
+                "L3": (f"56 중 task row 가 없는 25 target 은 원장 ACCOUNT_ACTION_BLOCKED 집합과 "
+                       f"{'정확히 일치' if l3_mech['exact_set_match'] else '불일치'}한다 "
+                       f"(교집합 밖 {len(l3_mech['in_l3_not_aab'])}/{len(l3_mech['in_aab_not_l3'])}건). "
+                       f"이 제외는 확률적이 아니라 결정론적이다 — guard 가 막은 target 은 scout 가 "
+                       f"돌지 않아 task detail 키가 없고 빌더가 행을 만들지 않는다."),
+                "L2": "3건 모두 원장 SKIPPED_RETRY_EXHAUSTED. 역시 결정론적 제외다.",
+                "L2b": "2건 모두 collector note 가 동일한 navigation 오류다.",
+            },
+            "covariate_test_evidence": {
+                "L3_n_significant_bh05": diag["L3_ledger_recorded_no_task_row"]["n_significant_bh05"],
+                "L3_smallest_q": min([t["q_bh"] for t in diag["L3_ledger_recorded_no_task_row"]["tests"]
+                                      if t["q_bh"] is not None] or [None]),
+                "L3_top_covariates": [t["covariate"] for t in
+                                      diag["L3_ledger_recorded_no_task_row"]["tests"][:4]],
+                "reading": ("BH-FDR 을 붙이면 L3 에서 유의한 covariate 가 **하나도 없다**. "
+                            "기전으로는 확실히 비무작위인데 45개 검정·n=56 에서는 검출되지 않는다. "
+                            "이것이 이 자료에서 covariate 기반 MCAR 검정의 검정력 한계다 — "
+                            "'유의한 covariate 가 없다' 를 MCAR 의 증거로 읽으면 안 된다는 "
+                            "구체적 반례를 이 RQ 안에서 확보했다."),
+            },
+            "where_covariate_tests_did_fire": {
+                "L2b": diag["L2b_unrecorded_probe_absent"]["significant_covariates"],
+                "caveat": ("flagged n=2 다. DOM 이 비어 있거나 극히 작다는 것과의 연관이며 "
+                           "navigation 중 execution context 파괴라는 기전과 정합하지만, "
+                           "n=2 에서의 BH 통과는 취약하다."),
+            },
         },
         "H-D7-MAR_OBSERVABLE": {
             "statement": "결측이 관측 공변량과 연관돼 있어 complete-case 가 편향된다",
-            "verdict": "SUPPORTED_FOR_L3_INCONCLUSIVE_FOR_L2_L2b",
-            "evidence": {"L3_significant_covariates":
-                         diag["L3_ledger_recorded_no_task_row"]["significant_covariates"],
-                         "L3_n_tests": diag["L3_ledger_recorded_no_task_row"]["n_tests_run"],
-                         "L2_significant_covariates":
-                         diag["L2_ledger_recorded_no_evidence"]["significant_covariates"],
-                         "L2_testable_covariates_only": ALWAYS_OBSERVED_CAT},
-            "note": ("편향 '방향' 은 주장하지 않는다. 연관이 있다는 것과 complete-case 가 얼마나 "
-                     "치우쳤는지는 다른 문제이며 후자는 bound 로만 말한다."),
+            "verdict": "PARTIALLY_SUPPORTED",
+            "supported_where": ("L2b(probe 부재 2건)에서 dom_body_empty·dom_bytes 등 10개 covariate 가 "
+                                "BH q<0.05 를 통과했다. L3 는 기전상 관측 가능한 변수"
+                                "(원장 outcome)로 완전히 설명되지만 그 outcome 은 covariate 가 아니라 "
+                                "선택 기전 자체다."),
+            "not_supported_where": ("L2(3건)는 DOM/probe covariate 가 정의상 결측이라 그 covariate 들과의 "
+                                    "연관을 검정할 수단이 없다. 여기서는 MAR 도 MCAR 도 판정 불가다."),
+            "bias_direction_claim": "하지 않는다. 편향의 방향과 크기는 bound 로만 말한다.",
+            "significant_by_layer": {k: v["significant_covariates"] for k, v in diag.items()},
         },
         "H-D7-BOUND_UNINFORMATIVE": {
-            "statement": "worst-case bound 가 너무 넓어 어떤 방향도 배제하지 못한다",
-            "verdict": "SUPPORTED_FOR_TASK_MART_OUTCOMES",
-            "evidence": {k: {"rd_width": bounds[k]["worst_case_bound"]["rd_width"],
-                             "sign_identified": bounds[k]["worst_case_bound"]["sign_identified"],
+            "statement": "31/59 결측률에서 worst-case bound 가 너무 넓어 어떤 방향도 배제하지 못한다",
+            "verdict": "SUPPORTED_ONLY_WHERE_THE_OUTCOME_LIVES_IN_THE_TASK_MART",
+            "evidence": {k: {"rd_width_identification_only": bounds[k]["worst_case_bound"]["rd_width"],
+                             "rd_width_with_sampling": bounds[k]["bound_with_sampling_uncertainty"]["rd_width"],
+                             "sign_identified_identification_only": bounds[k]["worst_case_bound"]["sign_identified"],
+                             "excludes_0_with_sampling": bounds[k]["bound_with_sampling_uncertainty"]["excludes_null_rd0"],
                              "n_missing": bounds[k]["missing_breakdown"]["n_missing_total"]}
                          for k in assoc_keys},
+            "reading": ("'31/59 결측률' 이라는 하나의 숫자는 association 마다 성립하지 않는다. 결과변수가 "
+                        "landing mart 에 있으면 실제 결측은 5/59 이고, task mart 에 있으면 28/59 다. "
+                        "전자는 폭 0.16~0.51, 후자는 0.93 이다."),
         },
         "H-D7-BOUND_INFORMATIVE": {
             "statement": "bound 가 귀무값 0 을 배제하는 association 이 하나라도 있다",
-            "verdict": "SUPPORTED" if n_sign_id else "REFUTED",
-            "n_sign_identified": n_sign_id,
-            "which": [k for k in assoc_keys if bounds[k]["worst_case_bound"]["sign_identified"]],
+            "verdict": ("SUPPORTED_FOR_IDENTIFICATION_REGION_ONLY"
+                        if n_sign_id and not n_sign_id_sampling else
+                        ("SUPPORTED" if n_sign_id_sampling else "REFUTED")),
+            "n_sign_identified_identification_only": n_sign_id,
+            "which_identification_only": [k for k in assoc_keys
+                                          if bounds[k]["worst_case_bound"]["sign_identified"]],
+            "n_excludes_0_after_adding_sampling_uncertainty": n_sign_id_sampling,
+            "which_after_sampling": [k for k in assoc_keys
+                                     if bounds[k]["bound_with_sampling_uncertainty"]["excludes_null_rd0"]],
+            "sharpest_case": {
+                "association": "a_cap_any_x_commerce",
+                "complete_case_newcombe95": bounds["a_cap_any_x_commerce"]["complete_case"]["rd_newcombe95"],
+                "identification_bound": [bounds["a_cap_any_x_commerce"]["worst_case_bound"]["rd_lower"],
+                                         bounds["a_cap_any_x_commerce"]["worst_case_bound"]["rd_upper"]],
+                "bound_plus_sampling": [bounds["a_cap_any_x_commerce"]["bound_with_sampling_uncertainty"]["rd_lower"],
+                                        bounds["a_cap_any_x_commerce"]["bound_with_sampling_uncertainty"]["rd_upper"]],
+                "reading": ("complete-case CI 는 0 을 배제하고 식별구간도 0 을 배제하지만, 둘을 합치면 "
+                            "0 을 배제하지 못한다. 이 association 을 깨는 것은 25건이 아니라 5건이다."),
+            },
         },
     }
 
@@ -791,16 +952,20 @@ def main() -> dict:
         "verdict": {
             "value": "PARTIALLY_SUPPORTED",
             "one_line": (
-                f"결측이 관측 공변량과 무관하다는 가정(MCAR)은 L3 에서 기각된다 — 25건은 원장 "
-                f"ACCOUNT_ACTION_BLOCKED 와 결정론적으로 일치한다. worst-case bound 는 "
-                f"association 별로 극단적으로 갈린다: 결측이 3~5건인 landing 기반 association 은 "
-                f"bound 폭 {bounds['a_cap_any_x_commerce']['worst_case_bound']['rd_width']}~"
-                f"{bounds['b_modal_x_no_arialabel']['worst_case_bound']['rd_width']} 로 "
-                f"complete-case CI 와 같은 자릿수지만, 결과가 task mart 인 association 은 결측 28건에서 "
-                f"폭 {bounds['d_authgate_x_commerce']['worst_case_bound']['rd_width']} 로 부호가 식별되지 않는다."),
-            "what_is_supported": "층별 bound 폭과 부호식별 여부, 그리고 L3 결측이 MCAR 이 아니라는 것.",
-            "what_is_not_supported": ("complete-case 편향의 방향과 크기, 인과 주장, 그리고 "
-                                      "어떤 bound 폭이 '충분히 좁은가' 라는 판단(A 권한)."),
+                "결측률은 하나의 숫자가 아니다 — 결과변수가 landing mart 에 있으면 실제 결측은 5/59, "
+                "task mart 에 있으면 28/59 이고, worst-case RD bound 폭은 각각 "
+                f"{bounds['a_cap_any_x_commerce']['worst_case_bound']['rd_width']}~"
+                f"{bounds['c_taskrow_x_password_gate']['worst_case_bound']['rd_width']} 와 "
+                f"{bounds['d_authgate_x_commerce']['worst_case_bound']['rd_width']} 다. "
+                "표본오차까지 합치면 검사한 4개 association 중 0 을 배제하는 것은 "
+                f"{n_sign_id_sampling}개다. L3(25건) 제외는 원장 ACCOUNT_ACTION_BLOCKED 와 "
+                "결정론적으로 일치하므로 MCAR 이 아니지만, BH-FDR 을 붙인 covariate 검정은 "
+                "그 비무작위성을 하나도 검출하지 못한다."),
+            "what_is_supported": ("층별 bound 폭·부호식별 여부, L3 제외가 결정론적이라는 것, 그리고 "
+                                  "covariate 기반 결측검정이 이 표본에서 알려진 비무작위성조차 "
+                                  "검출하지 못한다는 것."),
+            "what_is_not_supported": ("complete-case 편향의 방향과 크기, 인과 주장, 어떤 bound 폭이 "
+                                      "'충분히 좁은가' 라는 판단(A 권한), 그리고 무엇을 다시 모을지."),
         },
         "hypothesis_verdicts": hyp,
         "denominator_chain": chain,
@@ -819,6 +984,7 @@ def main() -> dict:
                                           "이 2건은 분모 사슬 서술에 들어 있지 않았다."),
         },
         "l3_mechanism_cross_check": l3_mech,
+        "mart_missing_value_coding": zero_coding_check(f),
         "missingness_diagnosis": diag,
         "bounds": bounds,
         "layer_decomposition": {
@@ -856,6 +1022,11 @@ def main() -> dict:
             "prior_business_domain 은 gold label 이 아니라 prior 다. (a)(d)의 X 는 prior 이므로 "
             "prior 자체의 오분류는 bound 에 반영돼 있지 않다.",
             "permutation p 는 20000 회 기준이며 최소 달성 가능 p 는 1/20001 이다.",
+            "bound_with_sampling_uncertainty 는 모든 결측 배치의 Newcombe 95% CI 합집합이다. "
+            "Imbens-Manski 구간보다 보수적이므로 실제 95% 구간은 이보다 좁다. 이 구간이 0 을 "
+            "배제하지 못한다는 것은 '배제된다' 보다 약한 진술로 읽어야 한다.",
+            "L3 에서 BH-FDR 유의 covariate 가 0 인 것은 MCAR 의 증거가 아니라 검정력 부족이다 — "
+            "같은 층의 기전(원장 outcome)은 결정론적으로 비무작위임을 보여준다.",
             "fact_criterion_result 는 0행이라 KWCAG 축 association 은 bound 계산 자체가 불가능하다 "
             "— 이 RQ 의 분모 사슬에는 그 축이 아예 없다.",
         ],
@@ -876,7 +1047,9 @@ def main() -> dict:
         "inputs": inputs,
         "code_path": str(Path(__file__).resolve()),
     }
-    OUT_JSON.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
+    doc = _clean(doc)
+    OUT_JSON.write_text(json.dumps(doc, ensure_ascii=False, indent=1, allow_nan=False),
+                        encoding="utf-8")
     return doc
 
 
@@ -952,6 +1125,7 @@ if __name__ == "__main__":
     d = main()
     rid = log_mlflow(d)
     d["mlflow_run_id"] = rid
-    OUT_JSON.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
+    OUT_JSON.write_text(json.dumps(_clean(d), ensure_ascii=False, indent=1, allow_nan=False),
+                        encoding="utf-8")
     print("mlflow_run_id:", rid)
     print("verdict:", d["verdict"]["one_line"])

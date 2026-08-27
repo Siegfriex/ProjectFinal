@@ -2,7 +2,7 @@
  "rq": "RQ-D7",
  "title": "mart 분모 축소(59 -> 56 -> 31)가 계획된 association 추정에 주는 영향의 상한",
  "claim_kind": "ANALYSIS",
- "generated_at_kst": "2026-08-28T00:43:53.791165+09:00",
+ "generated_at_kst": "2026-08-28T01:42:53.281557+09:00",
  "seed": 20260828,
  "n_permutations": 20000,
  "headline_terminology": {
@@ -14,68 +14,132 @@
  },
  "verdict": {
   "value": "PARTIALLY_SUPPORTED",
-  "one_line": "결측이 관측 공변량과 무관하다는 가정(MCAR)은 L3 에서 기각된다 — 25건은 원장 ACCOUNT_ACTION_BLOCKED 와 결정론적으로 일치한다. worst-case bound 는 association 별로 극단적으로 갈린다: 결측이 3~5건인 landing 기반 association 은 bound 폭 0.1597~0.2943 로 complete-case CI 와 같은 자릿수지만, 결과가 task mart 인 association 은 결측 28건에서 폭 0.9301 로 부호가 식별되지 않는다.",
-  "what_is_supported": "층별 bound 폭과 부호식별 여부, 그리고 L3 결측이 MCAR 이 아니라는 것.",
-  "what_is_not_supported": "complete-case 편향의 방향과 크기, 인과 주장, 그리고 어떤 bound 폭이 '충분히 좁은가' 라는 판단(A 권한)."
+  "one_line": "결측률은 하나의 숫자가 아니다 — 결과변수가 landing mart 에 있으면 실제 결측은 5/59, task mart 에 있으면 28/59 이고, worst-case RD bound 폭은 각각 0.1597~0.5138 와 0.9301 다. 표본오차까지 합치면 검사한 4개 association 중 0 을 배제하는 것은 0개다. L3(25건) 제외는 원장 ACCOUNT_ACTION_BLOCKED 와 결정론적으로 일치하므로 MCAR 이 아니지만, BH-FDR 을 붙인 covariate 검정은 그 비무작위성을 하나도 검출하지 못한다.",
+  "what_is_supported": "층별 bound 폭·부호식별 여부, L3 제외가 결정론적이라는 것, 그리고 covariate 기반 결측검정이 이 표본에서 알려진 비무작위성조차 검출하지 못한다는 것.",
+  "what_is_not_supported": "complete-case 편향의 방향과 크기, 인과 주장, 어떤 bound 폭이 '충분히 좁은가' 라는 판단(A 권한), 그리고 무엇을 다시 모을지."
  },
  "hypothesis_verdicts": {
   "H-D7-MCAR": {
-   "statement": "결측은 관측 공변량과 무관하다",
-   "verdict": "REFUTED",
-   "evidence": "L3(56 중 25)는 원장 ACCOUNT_ACTION_BLOCKED 집합과 완전히 일치한다 — 무작위가 아니라 결정론적 제외다. BH-FDR 통과 covariate 를 가진 층: ['L2b_unrecorded_probe_absent'].",
-   "caveat": "L2(3)과 L2b(2)는 n 이 작아 MCAR 을 기각도 지지도 못한다."
+   "statement": "결측은 관측 공변량과 무관하다 (complete-case 는 불편, bound 만 넓어진다)",
+   "verdict": "REFUTED_ON_MECHANISM_NOT_DETECTED_BY_COVARIATE_TESTS",
+   "mechanism_evidence": {
+    "L3": "56 중 task row 가 없는 25 target 은 원장 ACCOUNT_ACTION_BLOCKED 집합과 정확히 일치한다 (교집합 밖 0/0건). 이 제외는 확률적이 아니라 결정론적이다 — guard 가 막은 target 은 scout 가 돌지 않아 task detail 키가 없고 빌더가 행을 만들지 않는다.",
+    "L2": "3건 모두 원장 SKIPPED_RETRY_EXHAUSTED. 역시 결정론적 제외다.",
+    "L2b": "2건 모두 collector note 가 동일한 navigation 오류다."
+   },
+   "covariate_test_evidence": {
+    "L3_n_significant_bh05": 0,
+    "L3_smallest_q": 0.16087,
+    "L3_top_covariates": [
+     "cap_count",
+     "cap_any",
+     "cap_contrast",
+     "cap_accessible_name_sources"
+    ],
+    "reading": "BH-FDR 을 붙이면 L3 에서 유의한 covariate 가 **하나도 없다**. 기전으로는 확실히 비무작위인데 45개 검정·n=56 에서는 검출되지 않는다. 이것이 이 자료에서 covariate 기반 MCAR 검정의 검정력 한계다 — '유의한 covariate 가 없다' 를 MCAR 의 증거로 읽으면 안 된다는 구체적 반례를 이 RQ 안에서 확보했다."
+   },
+   "where_covariate_tests_did_fire": {
+    "L2b": [
+     "dom_body_empty",
+     "has_l0c",
+     "dom_bytes",
+     "ax_bytes",
+     "css_bytes",
+     "dom_element_n",
+     "dom_body_element_n",
+     "dom_interactive_n",
+     "dom_script_n",
+     "dom_body_text_len"
+    ],
+    "caveat": "flagged n=2 다. DOM 이 비어 있거나 극히 작다는 것과의 연관이며 navigation 중 execution context 파괴라는 기전과 정합하지만, n=2 에서의 BH 통과는 취약하다."
+   }
   },
   "H-D7-MAR_OBSERVABLE": {
    "statement": "결측이 관측 공변량과 연관돼 있어 complete-case 가 편향된다",
-   "verdict": "SUPPORTED_FOR_L3_INCONCLUSIVE_FOR_L2_L2b",
-   "evidence": {
-    "L3_significant_covariates": [],
-    "L3_n_tests": 45,
-    "L2_significant_covariates": [],
-    "L2_testable_covariates_only": [
-     "worker",
-     "prior_business_domain",
-     "prior_archetype",
-     "prior_mapping_status",
-     "prior_endpoint_signal_type",
-     "prior_region_signal_type"
-    ]
-   },
-   "note": "편향 '방향' 은 주장하지 않는다. 연관이 있다는 것과 complete-case 가 얼마나 치우쳤는지는 다른 문제이며 후자는 bound 로만 말한다."
+   "verdict": "PARTIALLY_SUPPORTED",
+   "supported_where": "L2b(probe 부재 2건)에서 dom_body_empty·dom_bytes 등 10개 covariate 가 BH q<0.05 를 통과했다. L3 는 기전상 관측 가능한 변수(원장 outcome)로 완전히 설명되지만 그 outcome 은 covariate 가 아니라 선택 기전 자체다.",
+   "not_supported_where": "L2(3건)는 DOM/probe covariate 가 정의상 결측이라 그 covariate 들과의 연관을 검정할 수단이 없다. 여기서는 MAR 도 MCAR 도 판정 불가다.",
+   "bias_direction_claim": "하지 않는다. 편향의 방향과 크기는 bound 로만 말한다.",
+   "significant_by_layer": {
+    "L1_dir_grain_excluded_from_mart": [],
+    "L1b_target_grain_duplicate_launch": [],
+    "L2_ledger_recorded_no_evidence": [],
+    "L2b_unrecorded_probe_absent": [
+     "dom_body_empty",
+     "has_l0c",
+     "dom_bytes",
+     "ax_bytes",
+     "css_bytes",
+     "dom_element_n",
+     "dom_body_element_n",
+     "dom_interactive_n",
+     "dom_script_n",
+     "dom_body_text_len"
+    ],
+    "L3_ledger_recorded_no_task_row": [],
+    "L2c_measurement_status_failed": []
+   }
   },
   "H-D7-BOUND_UNINFORMATIVE": {
-   "statement": "worst-case bound 가 너무 넓어 어떤 방향도 배제하지 못한다",
-   "verdict": "SUPPORTED_FOR_TASK_MART_OUTCOMES",
+   "statement": "31/59 결측률에서 worst-case bound 가 너무 넓어 어떤 방향도 배제하지 못한다",
+   "verdict": "SUPPORTED_ONLY_WHERE_THE_OUTCOME_LIVES_IN_THE_TASK_MART",
    "evidence": {
     "a_cap_any_x_commerce": {
-     "rd_width": 0.1597,
-     "sign_identified": true,
+     "rd_width_identification_only": 0.1597,
+     "rd_width_with_sampling": 0.5884,
+     "sign_identified_identification_only": true,
+     "excludes_0_with_sampling": false,
      "n_missing": 5
     },
     "b_modal_x_no_arialabel": {
-     "rd_width": 0.2943,
-     "sign_identified": false,
+     "rd_width_identification_only": 0.2943,
+     "rd_width_with_sampling": 0.6222,
+     "sign_identified_identification_only": false,
+     "excludes_0_with_sampling": false,
      "n_missing": 5
     },
     "c_taskrow_x_password_gate": {
-     "rd_width": 0.5138,
-     "sign_identified": false,
+     "rd_width_identification_only": 0.5138,
+     "rd_width_with_sampling": 0.9904,
+     "sign_identified_identification_only": false,
+     "excludes_0_with_sampling": false,
      "n_missing": 5
     },
     "d_authgate_x_commerce": {
-     "rd_width": 0.9301,
-     "sign_identified": false,
+     "rd_width_identification_only": 0.9301,
+     "rd_width_with_sampling": 1.2901,
+     "sign_identified_identification_only": false,
+     "excludes_0_with_sampling": false,
      "n_missing": 28
     }
-   }
+   },
+   "reading": "'31/59 결측률' 이라는 하나의 숫자는 association 마다 성립하지 않는다. 결과변수가 landing mart 에 있으면 실제 결측은 5/59 이고, task mart 에 있으면 28/59 다. 전자는 폭 0.16~0.51, 후자는 0.93 이다."
   },
   "H-D7-BOUND_INFORMATIVE": {
    "statement": "bound 가 귀무값 0 을 배제하는 association 이 하나라도 있다",
-   "verdict": "SUPPORTED",
-   "n_sign_identified": 1,
-   "which": [
+   "verdict": "SUPPORTED_FOR_IDENTIFICATION_REGION_ONLY",
+   "n_sign_identified_identification_only": 1,
+   "which_identification_only": [
     "a_cap_any_x_commerce"
-   ]
+   ],
+   "n_excludes_0_after_adding_sampling_uncertainty": 0,
+   "which_after_sampling": [],
+   "sharpest_case": {
+    "association": "a_cap_any_x_commerce",
+    "complete_case_newcombe95": [
+     0.1004,
+     0.5376
+    ],
+    "identification_bound": [
+     0.211,
+     0.3706
+    ],
+    "bound_plus_sampling": [
+     -0.0245,
+     0.5639
+    ],
+    "reading": "complete-case CI 는 0 을 배제하고 식별구간도 0 을 배제하지만, 둘을 합치면 0 을 배제하지 못한다. 이 association 을 깨는 것은 25건이 아니라 5건이다."
+   }
   }
  },
  "denominator_chain": {
@@ -209,8 +273,15 @@
     "64d30ef262d8782d",
     "ef06dc942ef3ccc9"
    ],
-   "delta_kind": "UNRECORDED_COVARIATE_MISSING",
-   "note": "이 2건은 landing mart 에 행이 있으나 probe.json 이 없어 probe 파생 covariate (cap_*, modal_overlay_n, gate_*)가 전부 결측이다. 원장 outcome 에는 사유가 기록돼 있지 않다 — 위 두 제외층과 성격이 다르다."
+   "delta_kind": "RECORDED_IN_MART_NOT_IN_LEDGER_OUTCOME",
+   "self_correction": "초안에서 이 2건을 '사유가 기록되지 않은 결측' 이라고 썼다가 raw 를 직접 열어 시정했다. 사유는 기록돼 있다 — 아래 참조.",
+   "where_the_reason_is_recorded": {
+    "fact_landing_observation.measurement_status": "FAILED_EVIDENCE_INCOMPLETE",
+    "fact_landing_observation.probe_path": null,
+    "collector_l0.notes": "Error: Page.evaluate: Execution context was destroyed, most likely because of a navigation",
+    "ledger_outcome": "UNRESOLVED — 다른 16 target 과 같은 값이라 원장 outcome 만으로는 이 2건을 구별할 수 없다. 구별은 mart 의 measurement_status 로만 된다."
+   },
+   "note": "landing mart 에 행이 있으나 probe.json 이 없어 probe 파생 covariate (cap_*, modal_overlay_n, gate_*)가 전부 결측이다."
   },
   "set_consistency": {
    "fs_wtg_equals_obs_table_wtg": true,
@@ -252,6 +323,54 @@
   },
   "cross_check_summary_guard_blocked_n": 25,
   "reading": "L3 제외는 무작위가 아니라 결정론적이다 — 원장이 ACCOUNT_ACTION_BLOCKED 로 기록한 target 은 scout 가 돌지 않아 task detail 키가 없고, 빌더가 task row 를 만들지 않는다. 사유가 기록된 제외다."
+ },
+ "mart_missing_value_coding": {
+  "claim_kind": "OBSERVATION",
+  "n_measurement_status_failed": 3,
+  "n_of_those_with_probe_absent": 2,
+  "n_of_those_with_probe_present": 1,
+  "rows": [
+   {
+    "wtg": "054d78ed187cdd9f",
+    "probe_path_is_null": false,
+    "probe_present_in_evidence": 1,
+    "mart_max_overlay_coverage": 0.1137,
+    "mart_max_primary_action_occlusion": 1.0,
+    "mart_blocking_modal_count": 1.0,
+    "mart_primary_action_visible_initial": 1.0,
+    "ledger_outcome": "UNRESOLVED"
+   },
+   {
+    "wtg": "64d30ef262d8782d",
+    "probe_path_is_null": true,
+    "probe_present_in_evidence": 0,
+    "mart_max_overlay_coverage": 0.0,
+    "mart_max_primary_action_occlusion": 0.0,
+    "mart_blocking_modal_count": 0.0,
+    "mart_primary_action_visible_initial": null,
+    "ledger_outcome": "UNRESOLVED"
+   },
+   {
+    "wtg": "ef06dc942ef3ccc9",
+    "probe_path_is_null": true,
+    "probe_present_in_evidence": 0,
+    "mart_max_overlay_coverage": 0.0,
+    "mart_max_primary_action_occlusion": 0.0,
+    "mart_blocking_modal_count": 0.0,
+    "mart_primary_action_visible_initial": null,
+    "ledger_outcome": "UNRESOLVED"
+   }
+  ],
+  "finding": "probe 가 없는 2행에서 max_overlay_coverage 와 max_primary_action_occlusion 이 null 이 아니라 0.0 으로 들어간다. 같은 행의 primary_action_visible_initial 은 null 이다 — 한 행 안에서 결측 표현이 일관되지 않는다. fact_landing_observation 만 읽는 소비자는 '가림 0%' 로 측정된 target 과 '측정 실패' 를 구별할 수 없다.",
+  "parsing_error_ruled_out": {
+   "checked": "collector 원장 detail.l0 을 직접 열었다",
+   "l0_max_overlay_coverage_for_probe_absent": 0.0,
+   "l0_probe_path_for_probe_absent": null,
+   "l0_notes": "Error: Page.evaluate: Execution context was destroyed, most likely because of a navigation",
+   "conclusion": "0.0 은 mart 빌더가 만든 값이 아니라 collector 가 이미 0.0 으로 쓴 값이다. 내 파싱 결함이 아니다."
+  },
+  "n_zero_coded": 2,
+  "scope_limit": "이 관측은 결함 판정이 아니다. 코딩이 의도된 것인지의 판단은 D 권한이 아니다."
  },
  "missingness_diagnosis": {
   "L1_dir_grain_excluded_from_mart": {
@@ -2636,6 +2755,420 @@
      "significant_bh05": false
     }
    ]
+  },
+  "L2c_measurement_status_failed": {
+   "layer": "L2c target grain: landing mart 56 중 measurement_status=FAILED_EVIDENCE_INCOMPLETE 인 3",
+   "indicator": "_i",
+   "universe_n": 56,
+   "n_flagged": 3,
+   "n_not_flagged": 53,
+   "note": "3건 모두 collector note 가 'Page.evaluate: Execution context was destroyed' 로 동일하다. n=3 이라 검정력은 없다. probe 부재(2)와 measurement_status 실패(3)는 서로 다른 집합이다.",
+   "n_tests_run": 29,
+   "n_degenerate_skipped": 1,
+   "n_significant_bh05": 0,
+   "significant_covariates": [],
+   "verdict": "NO_ASSOCIATION_DETECTED_BUT_UNDERPOWERED",
+   "tests": [
+    {
+     "stat": 0.5499,
+     "p": 0.01225,
+     "n": 56,
+     "n_x1": 4,
+     "n_y1": 3,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "dom_body_empty",
+     "kind": "binary",
+     "q_bh": 0.13973,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0755,
+     "p": 0.01431,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 0.0,
+     "median_0": 11.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_button_n",
+     "kind": "continuous",
+     "q_bh": 0.13973,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0755,
+     "p": 0.01475,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 0.0,
+     "median_0": 96.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_interactive_n",
+     "kind": "continuous",
+     "q_bh": 0.13973,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.4817,
+     "p": 0.0197,
+     "n": 56,
+     "n_x1": 51,
+     "n_y1": 3,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "has_l0c",
+     "kind": "binary",
+     "q_bh": 0.13973,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1132,
+     "p": 0.02644,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 391.0,
+     "median_0": 60996.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "ax_bytes",
+     "kind": "continuous",
+     "q_bh": 0.13973,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1195,
+     "p": 0.02891,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 0.0,
+     "median_0": 70.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_a_href_n",
+     "kind": "continuous",
+     "q_bh": 0.13973,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1447,
+     "p": 0.04154,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 3.0,
+     "median_0": 313341.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "css_bytes",
+     "kind": "continuous",
+     "q_bh": 0.16428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1509,
+     "p": 0.04532,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 0.0,
+     "median_0": 590.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_element_n",
+     "kind": "continuous",
+     "q_bh": 0.16428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1635,
+     "p": 0.05378,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 6072.0,
+     "median_0": 150613.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_bytes",
+     "kind": "continuous",
+     "q_bh": 0.16588,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1792,
+     "p": 0.0572,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 0.0,
+     "median_0": 1.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_input_n",
+     "kind": "continuous",
+     "q_bh": 0.16588,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1824,
+     "p": 0.06884,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 13.0,
+     "median_0": 615.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_element_n",
+     "kind": "continuous",
+     "q_bh": 0.18149,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.2013,
+     "p": 0.08717,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 0.0,
+     "median_0": 15934.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_text_len",
+     "kind": "continuous",
+     "q_bh": 0.21066,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3239,
+     "p": 0.3144,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 0.0,
+     "median_0": 7.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_role_n",
+     "kind": "continuous",
+     "q_bh": 0.65563,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3239,
+     "p": 0.31651,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 4.0,
+     "median_0": 23.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_script_n",
+     "kind": "continuous",
+     "q_bh": 0.65563,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4088,
+     "p": 0.6017,
+     "n1": 3,
+     "n0": 53,
+     "median_1": 0.0,
+     "median_0": 3.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_aria_label_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.2499,
+     "p": 0.60297,
+     "n": 56,
+     "levels": 4,
+     "level_counts_flagged": {
+      "w01": 2,
+      "w02": 1,
+      "w03": 0,
+      "w04": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "worker",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0413,
+     "p": 0.86571,
+     "n": 54,
+     "n_x1": 119,
+     "n_y1": 1,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "article_present",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1811,
+     "p": 1.0,
+     "n": 56,
+     "levels": 7,
+     "level_counts_flagged": {
+      "CONTENT_VIDEO": 0,
+      "FINANCE_PAYMENT": 1,
+      "MAP_MOBILITY": 0,
+      "PORTAL_SEARCH": 0,
+      "SHOPPING_COMMERCE": 2,
+      "SOCIAL_COMMUNICATION": 0,
+      "UTILITY_OTHER": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_business_domain",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1811,
+     "p": 1.0,
+     "n": 56,
+     "levels": 7,
+     "level_counts_flagged": {
+      "COMMUNICATION_ENTRY": 0,
+      "CONTENT_OPEN": 0,
+      "FINANCIAL_ACTION_ENTRY": 1,
+      "ITEM_DETAIL": 2,
+      "PLACE_LOOKUP": 0,
+      "QUERY": 0,
+      "UTILITY_ENTRY": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_archetype",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0978,
+     "p": 1.0,
+     "n": 56,
+     "levels": 3,
+     "level_counts_flagged": {
+      "DOM_AX_ROLE": 1,
+      "FORM_STRUCTURE": 0,
+      "URL_PATTERN": 2
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_endpoint_signal_type",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0745,
+     "p": 1.0,
+     "n": 56,
+     "levels": 2,
+     "level_counts_flagged": {
+      "CODEBOOK_PENDING": 0,
+      "DOM_AX_ROLE": 3
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_region_signal_type",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0695,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 11,
+     "n_y1": 1,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "body_scroll_locked",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0813,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 14,
+     "n_y1": 1,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_any",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.053,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 7,
+     "n_y1": 1,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_primary_action_candidates",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0773,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 13,
+     "n_y1": 1,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_accessible_name_sources",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0486,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 6,
+     "n_y1": 1,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_target_size",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0573,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 8,
+     "n_y1": 1,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_contrast",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0189,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 1,
+     "n_y1": 1,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_motion_animated_60",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.053,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 7,
+     "n_y1": 1,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_body_text_4000",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 56,
+     "reason": "degenerate",
+     "covariate": "prior_mapping_status",
+     "kind": "categorical",
+     "q_bh": null,
+     "significant_bh05": false
+    }
+   ]
   }
  },
  "bounds": {
@@ -2691,7 +3224,15 @@
     "phi_lower": 0.2275,
     "phi_upper": 0.4226,
     "excludes_null_rd0": true,
-    "sign_identified": true
+    "sign_identified": true,
+    "note": "이 구간에는 표본오차가 들어 있지 않다 — 식별구간(identification region)이다. complete-case CI 보다 좁게 나올 수 있으나 서로 다른 종류의 불확실성이므로 폭을 직접 비교하면 안 된다. 둘을 합친 값은 아래 bound_with_sampling_uncertainty 를 보라."
+   },
+   "bound_with_sampling_uncertainty": {
+    "rd_lower": -0.0245,
+    "rd_upper": 0.5639,
+    "rd_width": 0.5884,
+    "method": "모든 결측 배치에 대해 Newcombe 95% CI 를 구하고 그 합집합을 취한 보수적 구간. 식별 불확실성 + 표본 불확실성을 함께 담는다.",
+    "excludes_null_rd0": false
    },
    "width_ratio_bound_over_cc_ci": 0.365,
    "meta": {
@@ -2755,7 +3296,15 @@
     "phi_lower": -0.3807,
     "phi_upper": 0.1657,
     "excludes_null_rd0": false,
-    "sign_identified": false
+    "sign_identified": false,
+    "note": "이 구간에는 표본오차가 들어 있지 않다 — 식별구간(identification region)이다. complete-case CI 보다 좁게 나올 수 있으나 서로 다른 종류의 불확실성이므로 폭을 직접 비교하면 안 된다. 둘을 합친 값은 아래 bound_with_sampling_uncertainty 를 보라."
+   },
+   "bound_with_sampling_uncertainty": {
+    "rd_lower": -0.419,
+    "rd_upper": 0.2032,
+    "rd_width": 0.6222,
+    "method": "모든 결측 배치에 대해 Newcombe 95% CI 를 구하고 그 합집합을 취한 보수적 구간. 식별 불확실성 + 표본 불확실성을 함께 담는다.",
+    "excludes_null_rd0": false
    },
    "width_ratio_bound_over_cc_ci": 1.081,
    "meta": {
@@ -2819,7 +3368,15 @@
     "phi_lower": -0.1294,
     "phi_upper": 0.1673,
     "excludes_null_rd0": false,
-    "sign_identified": false
+    "sign_identified": false,
+    "note": "이 구간에는 표본오차가 들어 있지 않다 — 식별구간(identification region)이다. complete-case CI 보다 좁게 나올 수 있으나 서로 다른 종류의 불확실성이므로 폭을 직접 비교하면 안 된다. 둘을 합친 값은 아래 bound_with_sampling_uncertainty 를 보라."
+   },
+   "bound_with_sampling_uncertainty": {
+    "rd_lower": -0.482,
+    "rd_upper": 0.5084,
+    "rd_width": 0.9904,
+    "method": "모든 결측 배치에 대해 Newcombe 95% CI 를 구하고 그 합집합을 취한 보수적 구간. 식별 불확실성 + 표본 불확실성을 함께 담는다.",
+    "excludes_null_rd0": false
    },
    "width_ratio_bound_over_cc_ci": 0.659,
    "meta": {
@@ -2884,7 +3441,15 @@
     "phi_lower": -0.4499,
     "phi_upper": 0.4824,
     "excludes_null_rd0": false,
-    "sign_identified": false
+    "sign_identified": false,
+    "note": "이 구간에는 표본오차가 들어 있지 않다 — 식별구간(identification region)이다. complete-case CI 보다 좁게 나올 수 있으나 서로 다른 종류의 불확실성이므로 폭을 직접 비교하면 안 된다. 둘을 합친 값은 아래 bound_with_sampling_uncertainty 를 보라."
+   },
+   "bound_with_sampling_uncertainty": {
+    "rd_lower": -0.6326,
+    "rd_upper": 0.6576,
+    "rd_width": 1.2901,
+    "method": "모든 결측 배치에 대해 Newcombe 95% CI 를 구하고 그 합집합을 취한 보수적 구간. 식별 불확실성 + 표본 불확실성을 함께 담는다.",
+    "excludes_null_rd0": false
    },
    "width_ratio_bound_over_cc_ci": 1.476,
    "meta": {
@@ -2896,6 +3461,223 @@
     "why_added": "(a)(b)(c) 는 전부 L2/L2b 만 결측이라 3~5건 문제다. 56->31 의 25건이 실제로 무는 곳을 보여주려면 결과가 task mart 인 association 이 하나 필요하다."
    },
    "grain": "target (wtg), population n=59"
+  },
+  "a_cap_any_x_commerce_sensitivity_failed_as_missing": {
+   "complete_case": {
+    "table_a_x1y1": 11,
+    "table_b_x1y0": 13,
+    "table_c_x0y1": 3,
+    "table_d_x0y0": 26,
+    "n_complete": 53,
+    "p_y1_given_x1": 0.4583,
+    "wilson95_y1_given_x1": [
+     0.2789,
+     0.6493
+    ],
+    "p_y1_given_x0": 0.1034,
+    "wilson95_y1_given_x0": [
+     0.0358,
+     0.2639
+    ],
+    "risk_difference": 0.3549,
+    "rd_newcombe95": [
+     0.1142,
+     0.5574
+    ],
+    "rd_newcombe95_width": 0.4432,
+    "phi": 0.4007
+   },
+   "missing_breakdown": {
+    "x1_y_missing": 2,
+    "x0_y_missing": 4,
+    "y1_x_missing": 0,
+    "y0_x_missing": 0,
+    "both_missing": 0,
+    "n_missing_total": 6
+   },
+   "worst_case_bound": {
+    "rd_lower": 0.211,
+    "rd_upper": 0.4091,
+    "rd_width": 0.1981,
+    "rd_lower_witness_table": [
+     11,
+     15,
+     7,
+     26
+    ],
+    "rd_upper_witness_table": [
+     13,
+     13,
+     3,
+     30
+    ],
+    "phi_lower": 0.2275,
+    "phi_upper": 0.4568,
+    "excludes_null_rd0": true,
+    "sign_identified": true,
+    "note": "이 구간에는 표본오차가 들어 있지 않다 — 식별구간(identification region)이다. complete-case CI 보다 좁게 나올 수 있으나 서로 다른 종류의 불확실성이므로 폭을 직접 비교하면 안 된다. 둘을 합친 값은 아래 bound_with_sampling_uncertainty 를 보라."
+   },
+   "bound_with_sampling_uncertainty": {
+    "rd_lower": -0.0245,
+    "rd_upper": 0.5981,
+    "rd_width": 0.6226,
+    "method": "모든 결측 배치에 대해 Newcombe 95% CI 를 구하고 그 합집합을 취한 보수적 구간. 식별 불확실성 + 표본 불확실성을 함께 담는다.",
+    "excludes_null_rd0": false
+   },
+   "width_ratio_bound_over_cc_ci": 0.447,
+   "meta": {
+    "X": "prior_business_domain == SHOPPING_COMMERCE (커머스 계열, 본 RQ 사전 고정)",
+    "Y": "cap_any == 1 (측정 cap 절단이 하나라도 걸림)",
+    "derived_from": "RQ-D8",
+    "x_missing_source": "none — prior 표는 59 target 전부 보유",
+    "y_missing_source": "L2(3, 원장기록 제외) + L2b(2, probe 부재 covariate 결측)",
+    "role": "민감도: measurement_status=FAILED_EVIDENCE_INCOMPLETE 3건의 evidence 파생 값을 전부 결측으로 취급"
+   }
+  },
+  "b_modal_x_no_arialabel_sensitivity_failed_as_missing": {
+   "complete_case": {
+    "table_a_x1y1": 18,
+    "table_b_x1y0": 0,
+    "table_c_x0y1": 35,
+    "table_d_x0y0": 0,
+    "n_complete": 53,
+    "p_y1_given_x1": 1.0,
+    "wilson95_y1_given_x1": [
+     0.8241,
+     1.0
+    ],
+    "p_y1_given_x0": 1.0,
+    "wilson95_y1_given_x0": [
+     0.9011,
+     1.0
+    ],
+    "risk_difference": 0.0,
+    "rd_newcombe95": [
+     -0.1759,
+     0.0989
+    ],
+    "rd_newcombe95_width": 0.2748,
+    "phi": null
+   },
+   "missing_breakdown": {
+    "x1_y_missing": 0,
+    "x0_y_missing": 0,
+    "y1_x_missing": 0,
+    "y0_x_missing": 0,
+    "both_missing": 6,
+    "n_missing_total": 6
+   },
+   "worst_case_bound": {
+    "rd_lower": -0.25,
+    "rd_upper": 0.1463,
+    "rd_width": 0.3963,
+    "rd_lower_witness_table": [
+     18,
+     6,
+     35,
+     0
+    ],
+    "rd_upper_witness_table": [
+     18,
+     0,
+     35,
+     6
+    ],
+    "phi_lower": -0.4063,
+    "phi_upper": 0.2229,
+    "excludes_null_rd0": false,
+    "sign_identified": false,
+    "note": "이 구간에는 표본오차가 들어 있지 않다 — 식별구간(identification region)이다. complete-case CI 보다 좁게 나올 수 있으나 서로 다른 종류의 불확실성이므로 폭을 직접 비교하면 안 된다. 둘을 합친 값은 아래 bound_with_sampling_uncertainty 를 보라."
+   },
+   "bound_with_sampling_uncertainty": {
+    "rd_lower": -0.449,
+    "rd_upper": 0.2844,
+    "rd_width": 0.7334,
+    "method": "모든 결측 배치에 대해 Newcombe 95% CI 를 구하고 그 합집합을 취한 보수적 구간. 식별 불확실성 + 표본 불확실성을 함께 담는다.",
+    "excludes_null_rd0": false
+   },
+   "width_ratio_bound_over_cc_ci": 1.442,
+   "meta": {
+    "X": "dom_aria_label_n == 0",
+    "Y": "modal_overlay_n > 0",
+    "derived_from": "PILOT-E E-P2",
+    "x_missing_source": "L2(3) — DOM 이 없는 target",
+    "y_missing_source": "L2(3) + L2b(2) — probe 파생",
+    "role": "민감도: measurement_status=FAILED_EVIDENCE_INCOMPLETE 3건의 evidence 파생 값을 전부 결측으로 취급"
+   }
+  },
+  "c_taskrow_x_password_gate_sensitivity_failed_as_missing": {
+   "complete_case": {
+    "table_a_x1y1": 2,
+    "table_b_x1y0": 1,
+    "table_c_x0y1": 26,
+    "table_d_x0y0": 24,
+    "n_complete": 53,
+    "p_y1_given_x1": 0.6667,
+    "wilson95_y1_given_x1": [
+     0.2077,
+     0.9385
+    ],
+    "p_y1_given_x0": 0.52,
+    "wilson95_y1_given_x0": [
+     0.3851,
+     0.652
+    ],
+    "risk_difference": 0.1467,
+    "rd_newcombe95": [
+     -0.331,
+     0.4501
+    ],
+    "rd_newcombe95_width": 0.7811,
+    "phi": 0.0679
+   },
+   "missing_breakdown": {
+    "x1_y_missing": 0,
+    "x0_y_missing": 0,
+    "y1_x_missing": 3,
+    "y0_x_missing": 3,
+    "both_missing": 0,
+    "n_missing_total": 6
+   },
+   "worst_case_bound": {
+    "rd_lower": -0.2138,
+    "rd_upper": 0.3428,
+    "rd_width": 0.5566,
+    "rd_lower_witness_table": [
+     2,
+     4,
+     29,
+     24
+    ],
+    "rd_upper_witness_table": [
+     5,
+     1,
+     26,
+     27
+    ],
+    "phi_lower": -0.1294,
+    "phi_upper": 0.2075,
+    "excludes_null_rd0": false,
+    "sign_identified": false,
+    "note": "이 구간에는 표본오차가 들어 있지 않다 — 식별구간(identification region)이다. complete-case CI 보다 좁게 나올 수 있으나 서로 다른 종류의 불확실성이므로 폭을 직접 비교하면 안 된다. 둘을 합친 값은 아래 bound_with_sampling_uncertainty 를 보라."
+   },
+   "bound_with_sampling_uncertainty": {
+    "rd_lower": -0.482,
+    "rd_upper": 0.5309,
+    "rd_width": 1.0129,
+    "method": "모든 결측 배치에 대해 Newcombe 95% CI 를 구하고 그 합집합을 취한 보수적 구간. 식별 불확실성 + 표본 불확실성을 함께 담는다.",
+    "excludes_null_rd0": false
+   },
+   "width_ratio_bound_over_cc_ci": 0.713,
+   "meta": {
+    "X": "gate_password_input_n > 0",
+    "Y": "fact_task_entry 에 행이 존재",
+    "derived_from": "RQ-D6b",
+    "x_missing_source": "L2(3) + L2b(2)",
+    "y_missing_source": "none — 결측 자체가 결과변수라 59 전부 관측된다",
+    "caveat": "Y 는 mart 포함 여부다. '결측이 결과' 인 association 이므로 L3 은 이 추정치에서 결측층이 아니라 결과의 분포다.",
+    "role": "민감도: measurement_status=FAILED_EVIDENCE_INCOMPLETE 3건의 evidence 파생 값을 전부 결측으로 취급"
+   }
   },
   "a_sensitivity_commerce_wide": {
    "complete_case": {
@@ -2949,7 +3731,15 @@
     "phi_lower": 0.155,
     "phi_upper": 0.3358,
     "excludes_null_rd0": true,
-    "sign_identified": true
+    "sign_identified": true,
+    "note": "이 구간에는 표본오차가 들어 있지 않다 — 식별구간(identification region)이다. complete-case CI 보다 좁게 나올 수 있으나 서로 다른 종류의 불확실성이므로 폭을 직접 비교하면 안 된다. 둘을 합친 값은 아래 bound_with_sampling_uncertainty 를 보라."
+   },
+   "bound_with_sampling_uncertainty": {
+    "rd_lower": -0.0978,
+    "rd_upper": 0.4872,
+    "rd_width": 0.585,
+    "method": "모든 결측 배치에 대해 Newcombe 95% CI 를 구하고 그 합집합을 취한 보수적 구간. 식별 불확실성 + 표본 불확실성을 함께 담는다.",
+    "excludes_null_rd0": false
    },
    "width_ratio_bound_over_cc_ci": 0.403,
    "meta": {
@@ -3533,6 +4323,8 @@
   "worst-case bound 는 어떤 가정도 없는 상한이다. 실무적으로 그럴듯한 가정(예: 단조 결측)을 넣으면 좁아지지만 어떤 가정이 정당한지는 D 가 정하지 않는다.",
   "prior_business_domain 은 gold label 이 아니라 prior 다. (a)(d)의 X 는 prior 이므로 prior 자체의 오분류는 bound 에 반영돼 있지 않다.",
   "permutation p 는 20000 회 기준이며 최소 달성 가능 p 는 1/20001 이다.",
+  "bound_with_sampling_uncertainty 는 모든 결측 배치의 Newcombe 95% CI 합집합이다. Imbens-Manski 구간보다 보수적이므로 실제 95% 구간은 이보다 좁다. 이 구간이 0 을 배제하지 못한다는 것은 '배제된다' 보다 약한 진술로 읽어야 한다.",
+  "L3 에서 BH-FDR 유의 covariate 가 0 인 것은 MCAR 의 증거가 아니라 검정력 부족이다 — 같은 층의 기전(원장 outcome)은 결정론적으로 비무작위임을 보여준다.",
   "fact_criterion_result 는 0행이라 KWCAG 축 association 은 bound 계산 자체가 불가능하다 — 이 RQ 의 분모 사슬에는 그 축이 아예 없다."
  ],
  "not_answered_by_this_rq": "이 bound 폭이 계획된 분석에 충분한지, 무엇을 다시 모을지, 어떤 분모를 공식 분모로 삼을지는 답하지 않는다 — construct 와 결정은 A 권한이다.",
@@ -3612,5 +4404,6 @@
    }
   }
  },
- "code_path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/tools/rq_d7_denominator_bounds.py"
+ "code_path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/tools/rq_d7_denominator_bounds.py",
+ "mlflow_run_id": "e15528648d6d48e0a3cb9bf5afc5139e"
 }
