@@ -1,5 +1,13 @@
 # D Research Queue
 
+> **상태 어휘 (2026-08-28 정합)** — `RUNNING` 은 **실제 프로세스가 있을 때만** 쓴다.
+> 없으면 넷 중 하나다: `CLOSED_WITH_FINDING`(게이트 통과 + 티켓 발행) ·
+> `ARTIFACTS_PRESERVED_GATE_NOT_PASSED`(산출 보존, 완결 주장 없음) ·
+> `HALTED_INCOMPLETE_GATE`(산출 있음, 게이트 미통과) · `SUPERSEDED_BY_CHILDREN`.
+> 근거: `results/D_QUEUE_STATE_RECONCILIATION.json` (게이트 실행 결과 + 발행 티켓 대조).
+> 이전 표기는 9행이 `RUNNING` 이었고 워커는 0개였다.
+
+
 우선순위는 production critical path를 막지 않는 선에서, **분모·타당성에 영향이 큰 것**부터다.
 
 | RQ | 질문 | 상태 | 산출 |
@@ -8,9 +16,9 @@
 | RQ-D1b | LONG 3건의 종료 사유를 runner 로그에서 직접 확인 (timeout/WAF/navigation) | OPEN | — |
 | RQ-D1c | total-failure 3 target의 서비스 정체·archetype prior → 결측 편향 크기 | OPEN | — |
 | RQ-D2 | target-level guard 25건이 observability·archetype coverage를 얼마나 왜곡했는가. QUERY n=0의 원인 | OPEN | — |
-| RQ-D3 | Representative Function Mapping DT feasibility (rule DT가 어디까지 닫히는가) | **RUNNING** | RQ-D-RF-001 로 확장 |
+| RQ-D3 | Representative Function Mapping DT feasibility (rule DT가 어디까지 닫히는가) | **SUPERSEDED_BY_CHILDREN** | RQ-D-RF-001 로 확장 |
 | **RQ-D3A** | Learned DT 진단 — L0 numeric feature 가 archetype prior 를 되찾는가 | **DONE** | `results/RQ_D3A_learned_dt.json` **NOT_SUPPORTED** (logreg macroF1 0.271 vs stratified 0.235, CI 겹침) |
-| **RQ-D-RF-001** | RF mapping 다방법 병렬 공격 — parent run `2bf780a9` @ LA_03_RF_MAPPING | **RUNNING** | child A rule DT / B TF-IDF / C embedding prototype |
+| **RQ-D-RF-001** | RF mapping 다방법 병렬 공격 — parent run `2bf780a9` @ LA_03_RF_MAPPING | **SUPERSEDED_BY_CHILDREN** | child A rule DT / B TF-IDF / C embedding prototype |
 | RQ-D4 | URL_PATTERN / DOM_AX_ROLE / FORM_STRUCTURE endpoint signal feasibility | OPEN | — |
 | RQ-D5 | Axis C raw의 즉시 재사용 범위와 task-specific occlusion의 한계 | OPEN | — |
 | **RQ-D6** | partial NED 보존 미구현이 detector 결함과 독립인가 (RQ-D1 F6 파생) | OPEN | — |
@@ -66,8 +74,8 @@
 | RQ-D13 | **DONE** | `results/RQ_D13_FINDINGS.md` **PARTIALLY_SUPPORTED** — 수집기 결함 가설 REFUTED. distinct 요청 URL 56/59, 퇴화 캡처 4건이 MEASURED/FAILED 로 분열, dismissal 33.1% 무효과, 측정벡터 중복 0건 |
 | RQ-D-RF-001-A | **DONE** | `results/RF001_A_FINDINGS.md` **NOT_SUPPORTED** — coverage 11/56, unsafe FP 0. 최대 발견은 DT 가 아니라 target URL 정의 문제 |
 | RQ-D-RF-001-C | **DONE** | `results/RF001_C_FINDINGS.md` **PARTIALLY_SUPPORTED** — bge-m3 macroF1 0.497, 단 prototype 문구 민감도가 결론을 뒤집는다 |
-| RQ-D-RF-001-B | RUNNING | TF-IDF (v1 코퍼스 기준) |
-| **RQ-D14** | **RUNNING** | frame validity — 수집 URL 이 기능 랜딩인가 기업/앱설치 랜딩인가. parent run `12dc99cc` @ LA_01_FRAME |
+| RQ-D-RF-001-B | ARTIFACTS_PRESERVED_GATE_NOT_PASSED | TF-IDF (v1 코퍼스 기준) |
+| **RQ-D14** | **HALTED_INCOMPLETE_GATE** | frame validity — 수집 URL 이 기능 랜딩인가 기업/앱설치 랜딩인가. parent run `12dc99cc` @ LA_01_FRAME |
 
 ### D 자체 결함 2건 (숨기지 않고 기록)
 
@@ -146,7 +154,7 @@ RQ-D14 child 실행 시점의 exact HEAD 에서 사전 스캔을 남기고, 결�
 
 | RQ | 상태 |
 |---|---|
-| **RQ-D15** | **RUNNING** — v3 코퍼스(D-DEF-01 인코딩 + D-DEF-04 CSS 둘 다 시정) 기준 NLP 4실험 재현. verdict 격자로 결론 유지 여부 검증 |
+| **RQ-D15** | **ARTIFACTS_PRESERVED_GATE_NOT_PASSED** — v3 코퍼스(D-DEF-01 인코딩 + D-DEF-04 CSS 둘 다 시정) 기준 NLP 4실험 재현. verdict 격자로 결론 유지 여부 검증 |
 
 ## 여전히 OPEN
 
@@ -226,7 +234,7 @@ D 가 확인한 사실: `.agent_worktrees` 어디에도 pilot·diagnostic captur
 
 | child | 내용 | 상태 |
 |---|---|---|
-| **E** slot dependency matrix | 세 축이 공유하는 raw slot 과 correlated measurement error 위험 pair | **RUNNING** — frozen evidence + SSOT + exact-SHA 코드만 필요 |
+| **E** slot dependency matrix | 세 축이 공유하는 raw slot 과 correlated measurement error 위험 pair | **CLOSED_WITH_FINDING** — frozen evidence + SSOT + exact-SHA 코드만 필요 |
 | **C-part1** episode schema 감사 (RQ-D6a) | Scout 코드에 activation episode 기록 경로가 **존재하는가** | 착수 가능 — 다음 루프 |
 | A old-vs-new delta | 동일 target 의 old frozen vs new capture field-by-field | **PENDING_PILOT_FREEZE** |
 | B frame/target validity | new final URL·redirect chain 기준 3값 분류 | **PENDING_PILOT_FREEZE** |
@@ -275,13 +283,13 @@ PILOT-E 가 낸 파생 RQ (전부 재수집 없이 착수 가능한 것부터):
 
 | RQ | 질문 | 상태 | 근거 |
 |---|---|---|---|
-| **RQ-E-1** | dismiss detector 의 `icon_only`(l0_probe.js:402) 조건을 끄면 Axis B activation pool 이 얼마나 회복되는가 | **RUNNING** | E-P1 HIGH, measurable_now=yes |
+| **RQ-E-1** | dismiss detector 의 `icon_only`(l0_probe.js:402) 조건을 끄면 Axis B activation pool 이 얼마나 회복되는가 | **CLOSED_WITH_FINDING** | E-P1 HIGH, measurable_now=yes |
 | RQ-E-2 | Axis A evaluator 생산 후 `dom_aria_label_n` 층별 Axis C 확정률 차이가 유지되는가 | BLOCKED — Axis A 0행 | E-P2 |
 | RQ-E-3 | `hittable()` 을 중심점 1점→다점으로 바꾸면 Axis B 후보수와 Axis C `dismiss_control_visible` 이 같은 방향으로 움직이는가 | OPEN | E-P4 식별 |
 | RQ-E-4 | SSOT §8.1 의 `DOM_AX_ROLE` region signal 미구현이 Axis B 의 `declared_regions` 의존(실사이트 2/54)의 원인인가 | OPEN | 구조적 사실 (2) |
 | RQ-E-5 | AX tree 가 수집되지만 어느 축도 소비하지 않는다 — inert slot 의 범위 | OPEN | 구조적 사실 (2) |
 
-| **RQ-D13b-1/2** | dismissal DOM 효과: H1_NO_EFFECT 53건에 dismiss target 이 실재했는가 / H4_PIXEL_ONLY 37건의 원인 | **RUNNING** | RQ-D13b 파생 |
+| **RQ-D13b-1/2** | dismissal DOM 효과: H1_NO_EFFECT 53건에 dismiss target 이 실재했는가 / H4_PIXEL_ONLY 37건의 원인 | **CLOSED_WITH_FINDING** | RQ-D13b 파생 |
 
 파일럿 상태: A 가 00:14 에 `MANIFEST_REFROZEN` (v1 `4d3209ca` degenerate → v2 `78f2e32a…`). **캡처 산출물은 아직 없다.**
 PILOT child A / B / C-part2 / D 는 `PENDING_PILOT_FREEZE` 유지.
@@ -290,7 +298,7 @@ PILOT child A / B / C-part2 / D 는 `PENDING_PILOT_FREEZE` 유지.
 
 | RQ | 질문 | 상태 | 파생 근거 |
 |---|---|---|---|
-| **RQ-D7** | 분모 사슬(59→56→31)이 계획된 association 추정에 주는 영향의 상한 — Manski worst-case bound + 결측기전 진단(MCAR vs MAR) | **RUNNING** | RQ-D1 / RQ-D11 / RQ-D13c 분모 사슬 |
+| **RQ-D7** | 분모 사슬(59→56→31)이 계획된 association 추정에 주는 영향의 상한 — Manski worst-case bound + 결측기전 진단(MCAR vs MAR) | **CLOSED_WITH_FINDING** | RQ-D1 / RQ-D11 / RQ-D13c 분모 사슬 |
 
 동시 실행 워커 3건: RQ-E-1, RQ-D13b-1/2, RQ-D7.
 파일럿: A 가 00:29:37 에 `control/pilot-manifest` ref(`54a0c7a`, base `2281c85`)를 만들어 manifest 를 integration SHA 안으로 넣었다. **캡처 산출물은 여전히 없다** — child A/B/C-part2/D 는 `PENDING_PILOT_FREEZE` 유지.

@@ -1,0 +1,74 @@
+{
+ "artifact": "D_QUEUE_STATE_RECONCILIATION",
+ "supplements": "results/PIVOT_DEFERRED_LEGACY.json",
+ "produced_at_kst": "2026-08-28T08:13:12+09:00",
+ "measured_at_kst": "2026-08-28T08:13:12+09:00",
+ "d_head": "df4e6d5ce17ca707de43caa827df95dda82391ab",
+ "plane": "D",
+ "claim_kind": "OBSERVATION",
+ "why": "D 가 T-A-V3-FC-005·D-V3-FINDING-017 에서 '기록이 현재 상태를 말하지 않는다' 를 지적한 회차에, D 자신의 `D_RESEARCH_QUEUE.md` 가 9행을 RUNNING 으로 적고 있었다. 워커는 0개다.",
+ "method": "눈으로 정하지 않는다. `d_mlflow.gate()` 를 태우고 발행 티켓·PIVOT_DEFERRED_LEGACY 와 대조한다.",
+ "defect_1_stale_running": {
+  "무엇": "큐의 `RUNNING` 표기 9행이 전부 낡았다. 실행 중인 워커 0개이며 9행 전부 산출물이 존재한다.",
+  "왜_생겼나": "세션 한도로 워커가 죽거나 피벗으로 동결될 때 큐 표기를 갱신하지 않았다. 표기 어휘에 '멈춤' 이 없어 RUNNING 이 그대로 남았다.",
+  "행별_실측": {
+   "RQ-D7": {
+    "게이트": "PASS",
+    "실제": "CLOSED — D-V3-FINDING-002 (PIVOT_DEFERRED_LEGACY.closed_before_freeze)"
+   },
+   "RQ-D13b-1/2": {
+    "게이트": "PASS",
+    "실제": "CLOSED — D-V3-FINDING-003"
+   },
+   "RQ-E-1": {
+    "게이트": "PASS",
+    "실제": "CLOSED — D-RESEARCH_FINDING-005"
+   },
+   "E slot dependency (RQ-D-PILOT-001-E)": {
+    "게이트": "PASS",
+    "실제": "CLOSED — D-RESEARCH_FINDING-004"
+   },
+   "RQ-D15": {
+    "게이트": "PASS",
+    "실제": "PRESERVED_AS_AUDIT_HISTORY (명부 기재)"
+   },
+   "RQ-D14": {
+    "게이트": "미완: 노트북 없음",
+    "실제": "HALTED — 산출 있으나 게이트 미통과. 발행 티켓은 HOLD-EVIDENCE 2건뿐이며 FINDING 아님"
+   },
+   "RQ-D3 / RQ-D3A": {
+    "게이트": "미완: FINDINGS.md 없음",
+    "실제": "HALTED — 산출 있으나 게이트 미통과"
+   },
+   "RQ-D-RF-001 · -B": {
+    "게이트": "자체 산출 없음 (자식 RF001-A/B/C 로 수행됨)",
+    "실제": "자식으로 대체됨 — 부모 행은 표기만 남았다"
+   }
+  }
+ },
+ "defect_2_manifest_overstates": {
+  "무엇": "`PIVOT_DEFERRED_LEGACY.completed_and_preserved_as_audit_history` 가 RF001-A/B/C 를 '완결·보존' 으로 적었다. **게이트는 셋 다 미통과다** (노트북 없음).",
+  "게이트": {
+   "RF001-A": "미완: 노트북 없음",
+   "RF001-B": "미완: 노트북 없음",
+   "RF001-C": "미완: 노트북 없음"
+  },
+  "왜_중요한가": "'completed' 는 D 의 완결 게이트 통과를 함의하는 이름이다. 실제로는 **결과와 FINDINGS 는 있고 노트북이 없다** — D 규약의 3조건 중 2개다. 명부만 읽으면 3조건을 통과한 것으로 읽힌다.",
+  "정정_방식": "명부를 고쳐 쓰지 않는다. 이 보충 기록으로 좁힌다 — 고치면 그 시점에 무엇을 적었는지가 사라진다.",
+  "정확한_표현": "`ARTIFACTS_PRESERVED_GATE_NOT_PASSED` — 산출은 보존하되 완결을 주장하지 않는다."
+ },
+ "defect_3_freeze_manifest_incomplete": {
+  "무엇": "큐의 RUNNING 9행 중 명부에 이름이 있는 것은 3개뿐이다(RQ-D7·RQ-D13b-1/2·RQ-D15). 나머지 6개는 frozen 도 closed 도 preserved 도 아니었다.",
+  "귀결": "Director 지시는 '기존 unfinished RF/RQ queue 를 PIVOT_DEFERRED_LEGACY 로 freeze' 였다. **그 명부가 큐 전체를 덮지 않았다** — 6개의 지위가 정의되지 않은 채 남았다.",
+  "이_기록이_그것을_덮는다": "위 행별 실측이 6개 각각의 지위를 증거와 함께 정한다."
+ },
+ "status_vocabulary": {
+  "CLOSED_WITH_FINDING": "게이트 통과 + FINDING 티켓 발행",
+  "ARTIFACTS_PRESERVED_GATE_NOT_PASSED": "산출 보존, 완결 주장 없음",
+  "HALTED_INCOMPLETE_GATE": "산출 있음, 게이트 미통과, 재개는 A 지시 대기",
+  "SUPERSEDED_BY_CHILDREN": "부모 행이 자식 RQ 로 수행됨",
+  "규칙": "**RUNNING 은 실제 프로세스가 있을 때만 쓴다.** 없으면 위 넷 중 하나다."
+ },
+ "not_a_verdict": "D 자기 기록의 정정이다. 다른 평면의 산출을 판정하지 않는다.",
+ "limitation": "게이트는 파일 존재를 본다. 노트북이 있어도 Restart→Run All 을 실제로 돌린 기록은 별개이며 이 대조는 그것을 확인하지 않았다."
+}
