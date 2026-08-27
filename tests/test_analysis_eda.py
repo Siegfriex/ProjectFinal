@@ -905,3 +905,114 @@ def test_depth_axis_uses_batch_markers_when_available() -> None:
     assert report["by_reason"]["guard_blocked_pre_scout"] == 3
     assert report["by_reason"]["gate_kind_undetermined"] == 2
     assert report["e6b_fired_count"] == 2
+
+
+# ── 다중 배치 디렉터리(워커) 합산 ────────────────────────────────────────
+
+E001_WORKER_BATCHES = [
+    f"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/"
+    f"claude_b_e001_worker_{w}/artifacts/e001_w{w}/batches"
+    for w in ("01", "02", "03", "04")
+]
+
+
+def test_multi_source_keeps_per_worker_provenance() -> None:
+    """합산해도 워커별 출처를 잃지 않는다 — '특정 워커만 이상'을 볼 수 있어야 한다."""
+    import pytest as _pytest
+    from analysis.eda.batch_results import derive_collection_markers_multi
+
+    present = [d for d in E001_WORKER_BATCHES if Path(d).is_dir()]
+    if not present:
+        _pytest.skip("E001 워커 배치 디렉터리가 이 환경에 없다")
+
+    m = derive_collection_markers_multi(present)
+    assert m["n_sources"] == len(present)
+    by_source = {s["worker_id"]: s for s in m["by_source"]}
+    # 워커 id가 경로에서 복원되고 소스별 계수가 따로 남는다.
+    for worker_id, source in by_source.items():
+        assert worker_id.startswith("e001_w")
+        assert "guard_blocked_n" in source
+        assert "chain_ok" in source
+        assert source["batches_dir"].endswith("batches")
+    # 합산은 소스별 합과 일치한다.
+    if m["batches_found"]:
+        assert m["guard_blocked_n"] == sum(s["guard_blocked_n"] for s in m["by_source"])
+
+
+def test_hash_chains_verified_per_source_not_concatenated() -> None:
+    """각 워커의 체인은 독립이다 — 이어붙이지 않고 소스별로 검증한다."""
+    import pytest as _pytest
+    from analysis.eda.batch_results import derive_collection_markers_multi
+
+    present = [d for d in E001_WORKER_BATCHES if Path(d).is_dir()]
+    if not present:
+        _pytest.skip("E001 워커 배치 디렉터리가 이 환경에 없다")
+
+    m = derive_collection_markers_multi(present)
+    assert "chain_verified_all_sources" in m
+    assert "소스(워커)별로 독립 검증" in m["chain_note"]
+    # 워커가 각자 b0001부터 매기므로 체인이 이어붙여졌다면 전부 깨졌을 것이다.
+    assert m["chain_verified_all_sources"] is True
+    assert m["chain_errors"] == {}
+
+
+def test_e000_and_e001_not_auto_merged() -> None:
+    """collector가 다르므로 코호트 자동 합산은 거부된다 — 명시 플래그로만."""
+    import pytest as _pytest
+    from analysis.eda.batch_results import (
+        BatchCollectionError,
+        derive_collection_markers_multi,
+    )
+
+    present = [d for d in E001_WORKER_BATCHES if Path(d).is_dir()]
+    if not present or not Path(E000_BATCHES).is_dir():
+        _pytest.skip("E000/E001 배치 디렉터리가 이 환경에 없다")
+
+    with _pytest.raises(BatchCollectionError, match="execution_scope"):
+        derive_collection_markers_multi([*present, E000_BATCHES])
+
+    merged = derive_collection_markers_multi([*present, E000_BATCHES], allow_cross_cohort=True)
+    assert merged["cross_cohort_merged"] is True
+    assert set(merged["cohorts"]) == {"E000_FAST", "E001_FULL"}
+    # 코호트 간 재측정 target이 합산에 두 번 들어간다는 사실을 드러낸다.
+    assert merged["cross_cohort_repeated_n"] >= 1
+    assert "두 번" in merged["cross_cohort_note"]
+
+
+def test_double_collection_within_cohort_is_an_error(tmp_path: Path) -> None:
+    """같은 코호트에서 같은 target이 두 소스에 나오면 오류로 드러낸다."""
+    import pytest as _pytest
+    from analysis.eda.batch_results import (
+        BatchCollectionError,
+        derive_collection_markers_multi,
+    )
+
+    def _write(dirname: str, batch_id: str, targets: list[str]) -> Path:
+        d = tmp_path / dirname / "batches"
+        d.mkdir(parents=True)
+        (d / f"batch_0001_{batch_id}.json").write_text(
+            json.dumps(
+                {
+                    "batch_id": batch_id,
+                    "batch_index": 1,
+                    "batch_hash": "h1",
+                    "previous_batch_hash": None,
+                    "target_ids": targets,
+                    "results": [],
+                    "provenance": {"execution_scope": "E001_FULL"},
+                }
+            ),
+            encoding="utf-8",
+        )
+        return d
+
+    a = _write("wa", "b0001", ["tgt_1", "tgt_2"])
+    b = _write("wb", "b0001", ["tgt_2", "tgt_3"])  # tgt_2 중복 = 이중 수집
+
+    with _pytest.raises(BatchCollectionError, match="이중 수집"):
+        derive_collection_markers_multi([a, b])
+
+    # batch_id가 같은 것 자체는 정상이다(워커가 각자 b0001부터 매긴다).
+    c = _write("wc", "b0001", ["tgt_4"])
+    ok = derive_collection_markers_multi([a, c])
+    assert ok["n_sources"] == 2

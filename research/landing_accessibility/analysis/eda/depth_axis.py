@@ -16,6 +16,7 @@ E000 6/6에서 `MPFED`가 전건 NULL이었다. 원인 두 가지 모두 시정�
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 import pandas as pd
@@ -44,7 +45,10 @@ def _count_flag(frame: pd.DataFrame, columns: tuple[str, ...]) -> tuple[int, boo
 
 
 def depth_axis_report(
-    marts: dict[str, pd.DataFrame], *, batches_dir: str | None = None
+    marts: dict[str, pd.DataFrame],
+    *,
+    batches_dir: str | Sequence[str] | None = None,
+    allow_cross_cohort: bool = False,
 ) -> dict[str, Any]:
     """`mpfed_available_n` / 사유별 계수 / E-6b 발화 횟수를 낸다 (개정 1 §2 표).
 
@@ -77,7 +81,11 @@ def depth_axis_report(
     unresolved = mpfed.isna()
 
     # 1순위 — 배치 결과 JSON에서 파생(수집기 무변경). 2순위 — mart 컬럼(있으면).
-    markers = derive_collection_markers(batches_dir) if batches_dir else None
+    markers = (
+        derive_collection_markers(batches_dir, allow_cross_cohort=allow_cross_cohort)
+        if batches_dir
+        else None
+    )
     if markers and markers.get("batches_found"):
         guard_n = int(markers["guard_blocked_n"])
         e6b_n = int(markers["e6b_fired_n"])
@@ -116,8 +124,10 @@ def depth_axis_report(
         "marker_note": (
             (
                 "가드·E-6b 계수를 배치 결과 JSON에서 파생했다(수집기 무변경) — "
+                f"소스 {markers.get('n_sources_with_files')}개 · 코호트 {markers.get('cohorts')} · "
                 f"guard_blocked_by_category={markers.get('guard_blocked_by_category')}, "
-                f"e6b 값-보강 확인={markers.get('e6b_value_corroborated_n')}건."
+                f"e6b 값-보강 확인={markers.get('e6b_value_corroborated_n')}건. "
+                f"체인은 소스별 독립 검증(all_ok={markers.get('chain_verified_all_sources')})."
             )
             if marker_source == "BATCH_RESULTS"
             else (

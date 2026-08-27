@@ -56,6 +56,7 @@ joint-valid N·제외 N을 제외 사유별로 분해해 항상 병기한다.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -298,7 +299,8 @@ def run_eda09(
     *,
     provenance: ShadowProvenance | None = None,
     run_optional_pairwise: bool = False,
-    batches_dir: str | None = None,
+    batches_dir: str | Sequence[str] | None = None,
+    allow_cross_cohort: bool = False,
 ) -> EDAOutputPaths:
     provenance = provenance or ShadowProvenance()
     joint, meta = _build_joint_frame(marts, source_kind=provenance.source_kind)
@@ -508,7 +510,9 @@ def run_eda09(
         "primary_escalation_note": PRIMARY_ESCALATION_NOTE,
         "secondary_kruskal_wallis": secondary_kw,
         # ── depth 축 — 결과로 보고한다(개정 1 §2) ──
-        "depth_axis": depth_axis_report(marts, batches_dir=batches_dir),
+        "depth_axis": depth_axis_report(
+            marts, batches_dir=batches_dir, allow_cross_cohort=allow_cross_cohort
+        ),
         "depth_narrative_constraint": DEPTH_NARRATIVE_CONSTRAINT,
         # ── 원 설계(depth 기반) 분석 — MPFED가 있을 때만 참고로 산출. 계약 PRIMARY 아님 ──
         "retired_depth_associations": {
@@ -657,6 +661,16 @@ def run_eda09(
     )
 
 
+def _split_batches_dirs(raw: list[str] | None) -> list[str] | None:
+    """`--batches-dir`를 반복 지정 + 콤마 구분 양쪽으로 받는다."""
+    if not raw:
+        return None
+    out: list[str] = []
+    for item in raw:
+        out.extend(part.strip() for part in item.split(",") if part.strip())
+    return out or None
+
+
 def _main() -> None:
     from ..marts.synthetic import generate_synthetic_universe
 
@@ -664,8 +678,19 @@ def _main() -> None:
     parser.add_argument("--out-dir", default="artifacts/analysis_current/eda/eda09")
     parser.add_argument("--n-services", type=int, default=24)
     parser.add_argument("--run-optional-pairwise", action="store_true")
-    parser.add_argument("--batches-dir", default=None, help="batch_*.json 디렉터리")
+    parser.add_argument(
+        "--batches-dir",
+        action="append",
+        default=None,
+        help="batch_*.json 디렉터리. 반복 지정 가능하며 콤마 구분도 허용한다(워커별 디렉터리).",
+    )
+    parser.add_argument(
+        "--allow-cross-cohort",
+        action="store_true",
+        help="E000/E001처럼 execution_scope가 다른 배치를 명시적으로 합산한다(기본은 분리).",
+    )
     args = parser.parse_args()
+    batches_dirs = _split_batches_dirs(args.batches_dir)
 
     universe = generate_synthetic_universe(n_services=args.n_services).as_dict()
     marts = {name: pd.DataFrame(rows) for name, rows in universe.items()}
@@ -673,7 +698,8 @@ def _main() -> None:
         marts,
         args.out_dir,
         run_optional_pairwise=args.run_optional_pairwise,
-        batches_dir=args.batches_dir,
+        batches_dir=batches_dirs,
+        allow_cross_cohort=args.allow_cross_cohort,
     )
     print(f"EDA-09 done → {paths.summary_json_path}")
 

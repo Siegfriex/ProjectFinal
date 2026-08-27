@@ -39,16 +39,37 @@ from analysis.older_relevance_registry import ensure_frozen
 from analysis.provenance import ShadowProvenance, file_sha256
 
 
+def _split_batches_dirs(raw: list[str] | None) -> list[str] | None:
+    """`--batches-dir`를 반복 지정 + 콤마 구분 양쪽으로 받는다."""
+    if not raw:
+        return None
+    out: list[str] = []
+    for item in raw:
+        out.extend(part.strip() for part in item.split(",") if part.strip())
+    return out or None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", default="artifacts/analysis_current/deliverables")
     parser.add_argument("--n-services", type=int, default=24)
     parser.add_argument("--empty", action="store_true")
-    parser.add_argument("--batches-dir", default=None, help="batch_*.json 디렉터리")
+    parser.add_argument(
+        "--batches-dir",
+        action="append",
+        default=None,
+        help="batch_*.json 디렉터리. 반복 지정 가능하며 콤마 구분도 허용한다(워커별 디렉터리).",
+    )
+    parser.add_argument(
+        "--allow-cross-cohort",
+        action="store_true",
+        help="E000/E001처럼 execution_scope가 다른 배치를 명시적으로 합산한다(기본은 분리).",
+    )
     parser.add_argument("--branch", default="claude-b/analysis-current")
     parser.add_argument("--base-sha", default="397a10d")
     parser.add_argument("--commit-sha", default=None)
     args = parser.parse_args()
+    batches_dirs = _split_batches_dirs(args.batches_dir)
 
     out_dir = Path(args.out_dir)
     # 정본 older_relevance 표를 로드해 둔다 — 산출물이 동결 상태(SHA·집계)를
@@ -71,7 +92,13 @@ def main() -> None:
     for key, runner in RUNNERS.items():
         eda_out = out_dir / "eda" / key
         paths = (
-            runner(marts, eda_out, provenance=provenance, batches_dir=args.batches_dir)
+            runner(
+                marts,
+                eda_out,
+                provenance=provenance,
+                batches_dir=batches_dirs,
+                allow_cross_cohort=args.allow_cross_cohort,
+            )
             if key == "eda09"
             else runner(marts, eda_out, provenance=provenance)
         )
