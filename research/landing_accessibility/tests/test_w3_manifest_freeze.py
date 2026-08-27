@@ -1,9 +1,15 @@
-"""W3 — KWCAG criterion manifest freeze 무결성 검사 (Stage 0 ONLY).
+"""W3 — KWCAG criterion manifest freeze 무결성 검사.
 
 `T-A-W3-001` / `D-R0-43`: manifest freeze 이전에는 evaluator 구현을 시작하지 않는다.
-이 테스트는 **evaluator 판정을 검증하지 않는다** — Stage 1(Applicability/Required
-evidence slots/Expectation/Outcome)이 아직 존재하지 않기 때문이다. 여기서 보는 것은
-오직 `engine/kwcag/criterion_manifest.json` 이 A가 지정한 형태로 동결됐는가 뿐이다.
+이 테스트는 **evaluator 판정을 검증하지 않는다** — 그건 `test_w3_stage1_evaluator.py`
+의 몫이다. 여기서 보는 것은 오직 `engine/kwcag/criterion_manifest.json` 이 A가
+지정한 형태로 동결됐는가, 그리고 그 동결이 이후(Stage 1 착수 이후에도) 조용히
+바뀌지 않았는가 뿐이다.
+
+`D-R0-51`(A ACCEPT)로 Stage 1 착수가 허가됐으므로, "이 패키지에 .py 파일이
+`__init__.py` 하나뿐이어야 한다"던 예전 단정은 더 이상 유효하지 않다 —
+`test_manifest_is_pure_data_no_stage1_logic_embedded` 로 대체했다. manifest
+**자신**(JSON)은 여전히 순수 데이터여야 한다는, 원래 취지는 그대로 지킨다.
 
 검사 항목 (조정자 지시 그대로):
   1. 필수 필드(criterion_id · applicability · evidence_source · automation_grade · SHA)
@@ -158,11 +164,23 @@ def test_manifest_sha256_matches_freeze_record(freeze_record):
     assert freeze_record["other_count"] == EXPECTED_TOTAL - EXPECTED_OLDER_RELEVANT
 
 
-def test_no_evaluator_logic_leaked_into_stage0(manifest):
-    """Stage 1(Applicability/Required evidence slots/Expectation/Outcome 판정 함수)이
-    아직 존재하지 않아야 한다 — precondition D-R0-43 위반을 코드로 감지한다."""
-    kwcag_dir = kwcag_pkg.PACKAGE_DIR
-    py_files = sorted(p.name for p in kwcag_dir.glob("*.py"))
-    assert py_files == ["__init__.py"], f"Stage 0 인데 evaluator 구현 파일이 섞여 있다: {py_files}"
+def test_manifest_is_pure_data_no_stage1_logic_embedded(manifest):
+    """`D-R0-51`로 Stage 1 착수가 허가된 뒤에도, **manifest 파일 자체**(JSON)는
+    여전히 순수 데이터여야 한다 — 판정 로직이 JSON 문자열(eval 가능한 코드, 함수
+    표현 등)로 스며들면 D-R0-21 "네 단계가 독립 함수/데이터로 드러나야 한다"가
+    깨진다. Stage 1 로직은 `.py` 파일에만 있어야 한다(이 assertion 은 그 반대—
+    `.py` 파일에 있어야 할 것이 `.json` 에 숨어들지 않았는지를 본다)."""
+    import re
+
+    raw = kwcag_pkg.CRITERION_MANIFEST_PATH.read_text(encoding="utf-8")
+    suspicious_tokens = ("lambda", "def ", "eval(", "exec(", "__import__")
+    for token in suspicious_tokens:
+        assert token not in raw, f"manifest 에 실행 가능한 코드로 보이는 토큰이 있다: {token!r}"
+
+    # criterion_id 형식(N.N.N) 밖의 원본 키가 값 필드에 섞여 들어오지 않았는지도 같이 본다.
+    assert re.search(r'"criteria"\s*:\s*\[', raw), "criteria 배열 키가 없다"
+
+
+def test_stage0_known_gaps_still_documented(manifest):
     assert "known_gaps_left_empty" in manifest
-    assert manifest["known_gaps_left_empty"]["stage1_not_implemented"]
+    assert manifest["known_gaps_left_empty"]["stage1_status"]

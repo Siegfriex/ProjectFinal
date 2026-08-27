@@ -1,11 +1,17 @@
-"""W3 — KWCAG production evaluator, Stage 0 (criterion manifest freeze) ONLY.
+"""W3 — KWCAG production evaluator.
 
-`T-A-W3-001` / `D-R0-43` precondition: manifest freeze 이전에는 evaluator 구현을
-시작하지 않는다. 이 패키지는 현재 데이터(criterion_manifest.json)와 그 freeze
-기록(MANIFEST_FREEZE.json)만 담는다.
+Stage 0(criterion manifest freeze)은 `T-A-W3-001`/`D-R0-43` 하에 완료돼 A 가
+`D-R0-51` 로 ACCEPT 했다. Stage 1(evaluator: Applicability → Required evidence
+slots → Expectation → Outcome)은 그 ACK 이후 착수가 허가됐다(`D-R0-52` 경계 —
+구현 대상은 `applicability != OTHER` 인 22개뿐, `OTHER` 11개는 절대 건드리지
+않는다).
 
-`Applicability → Required evidence slots → Expectation → Outcome` 4단계 evaluator
-(Stage 1)는 A 의 ACK 이후 별도 커밋에서 추가한다 — 이 모듈은 그 로직을 갖지 않는다.
+- Stage 0 산출물: `criterion_manifest.json` · `criterion_manifest.sha256` ·
+  `MANIFEST_FREEZE.json` (데이터, 로직 없음).
+- Stage 1 산출물: `stage1_types.py`(공용 타입) · `stage1_evidence.py`
+  (Applicability + Required evidence slots) · `stage1_expectations.py`
+  (Expectation — 5개 criterion 만 실제 구현) · `stage1_pipeline.py`
+  (Outcome + 조립, `evaluate_criterion` 이 유일한 공개 진입점).
 """
 
 from __future__ import annotations
