@@ -1,6 +1,6 @@
 # STATISTICAL_RESULTS — E001
 
-**스냅샷** 2026-08-27T15:20:20+09:00 (Asia/Seoul)
+**스냅샷** 2026-08-27T15:30:50+09:00 (Asia/Seoul)
 **등급** PILOT / PRELIMINARY — 커버리지 100%가 등급을 올리지 않는다 — 결과가 예상보다 좋다는 이유로 사전 규칙을 뒤집는 것도 나쁠 때 뒤집는 것과 같은 실패다. 등급과 커버리지를 둘 다 보고한다.
 **mart manifest** `FROZEN_MART_MANIFEST.json` (`sha256:b65cf0c401649beb…`)
 
