@@ -342,9 +342,11 @@ def main() -> int:
     return 0 if out["verdict"] == "DRIFT_NONE" else (3 if not controls_ok else 1)
 
 
+import d_exit
+
 if __name__ == "__main__":
     import sys
     if "--extend-baseline" in sys.argv:
         print(json.dumps(extend_baseline(), ensure_ascii=False, indent=1))
         raise SystemExit(0)
-    raise SystemExit(main())
+    raise SystemExit(d_exit.run(main))

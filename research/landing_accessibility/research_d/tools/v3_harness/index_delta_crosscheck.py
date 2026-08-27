@@ -306,5 +306,9 @@ def main() -> int:
     return 0 if ctrl["verdict"] == "PASS" else 3
 
 
+import sys as _sys; from pathlib import Path as _P
+_sys.path.insert(0, str(_P(__file__).resolve().parents[1]))
+import d_exit
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(d_exit.run(main))

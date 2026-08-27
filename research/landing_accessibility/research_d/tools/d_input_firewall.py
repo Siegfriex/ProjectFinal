@@ -375,6 +375,10 @@ def main() -> int:
         "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
         "controls": controls,
         "r35": _r35_block(),
+        "exit_codes": {"0": "PASS", "2": "FAIL 또는 CONTROL_FAIL",
+                       "4": "검사가 돌지 않았다 — 통과로도 실패로도 읽지 마라",
+                       "note": "D 는 '돌지 않았다' 에 4 를 쓴다. A 는 2 를 쓰는데 "
+                               "D 의 2 는 이미 FAIL 이라 바꾸면 나간 산출의 의미가 소급해 달라진다."},
         "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
         "fail_count": len(fails),
         "warn_count": len(warns),
@@ -406,5 +410,7 @@ def main() -> int:
     return 0 if verdict == "PASS" else 2
 
 
+import d_exit
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(d_exit.run(main))

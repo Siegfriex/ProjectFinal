@@ -4,11 +4,11 @@
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
  "verdict": "PASS",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T08:47:41.260836+09:00",
- "d_head_sha": "60b0429766bc04db7554eb4fa80d35efe2c991fa",
+ "checked_at_kst": "2026-08-28T08:50:05.283940+09:00",
+ "d_head_sha": "948994d5878898155704205a6bca15a1fe5f946a",
  "manifest_sha256": "5321e4f19d990d70ae9bc89370bb134d85970ac5f7a12d2f2ca048743529de94",
- "scanned_files": 211,
- "scanned_corpus_sha256": "98880f9610d86dd7247dcd5f6444c7d469cf934e06956e291c005d182bf31799",
+ "scanned_files": 212,
+ "scanned_corpus_sha256": "afec6b41bf3bee9f9c0a0ce621fc9f4d64dbdf45f3ccf7a5a6003b044da6ba23",
  "corpus_identity_note": "scanned_files 는 개수이고 이것은 신원이다. 두 실행의 코퍼스 sha 가 다르면 FAIL 수를 비교하지 않는다 (R38).",
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
  "controls": {
@@ -110,8 +110,8 @@
   "rule": "Δ41-R35",
   "tool": {
    "path": "tools/d_input_firewall.py",
-   "sha256": "7cba551920c1fe546941bb2f2f8edc56cceec6425d596c1bba4d978f469678aa",
-   "commit": "60b0429766bc04db7554eb4fa80d35efe2c991fa"
+   "sha256": "6a8a7e2b82a46c723eae8f26bc3f99579ef5bad95e2929aeac98bb3bc2269ef3",
+   "commit": "948994d5878898155704205a6bca15a1fe5f946a"
   },
   "on_control_failure": {
    "behavior": "verdict=CONTROL_FAIL 로 기록하고 exit 2 — 지우지 않고 남긴다",
@@ -124,13 +124,19 @@
     "verdict_as_expected": true,
     "artifact_kept": true,
     "tool": "tools/d_input_firewall.py",
-    "tool_sha256": "7cba551920c1fe546941bb2f2f8edc56cceec6425d596c1bba4d978f469678aa",
+    "tool_sha256": "6a8a7e2b82a46c723eae8f26bc3f99579ef5bad95e2929aeac98bb3bc2269ef3",
     "why_this_mutation": "매처가 열리면 금지 경로가 전부 허용된다",
     "expected_behavior": "CONTROL_FAIL 로 기록하고 exit 2",
     "verdict": "PASS"
    },
    "valid_for_this_commit": true
   }
+ },
+ "exit_codes": {
+  "0": "PASS",
+  "2": "FAIL 또는 CONTROL_FAIL",
+  "4": "검사가 돌지 않았다 — 통과로도 실패로도 읽지 마라",
+  "note": "D 는 '돌지 않았다' 에 4 를 쓴다. A 는 2 를 쓰는데 D 의 2 는 이미 FAIL 이라 바꾸면 나간 산출의 의미가 소급해 달라진다."
  },
  "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
  "fail_count": 0,
