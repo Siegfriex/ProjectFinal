@@ -1,15 +1,15 @@
 {
  "agent": "A",
  "role": "AUTHORITY_RESEARCH_INTEGRATION_CLAIM_GOVERNOR",
- "timestamp_kst": "2026-08-28T02:12:00+09:00",
+ "timestamp_kst": "2026-08-28T02:18:00+09:00",
  "branch": "control/landing-orchestrator",
  "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_a_control",
- "head_sha": "5c22faebaeb6699049fc9af5646f8b492b6a4068 (커밋 직후 갱신 예정)",
+ "head_sha": "21e0a48668b3cdea2ba444d09969ada9fd1d5975",
  "protocol_version": "v3.0",
  "ssot": "SSOTV3 — AUTHORITY_CANDIDATE 채택. MANIFEST 20/20 A 재계산 일치, D 독립 일치",
  "wave": "WAVE_1 — P0→P1→P2 자율전이 (Director 중간승인 없음)",
  "phase": "P0 V3_CONTRACT_REFREEZE",
- "current_task": "P0 결정문 4종 발행 + 평면별 P0 티켓 6건 발행. B·C·D ACK 수렴 대기",
+ "current_task": "P0 ACK 수렴 — B·C 완료(ls-remote 독립확인), D 미도착. 팩 재계산 4평면 독립 일치 0/20",
  "artifact": [
   "control/v3/V3_REFREEZE_DECISION.md",
   "control/v3/V3_CURRENT_STATE_RECONCILIATION.md",
@@ -23,10 +23,11 @@
   "T-A-V3-P0-D-001",
   "T-A-V3-P0-B-001",
   "T-A-V3-SUPERSEDE-001",
-  "T-A-V3-FC-001"
+  "T-A-V3-FC-001",
+  "T-A-V3-P0-002"
  ],
  "blocker": "없음 — P0 는 NO_REAL 문서 phase. T-B-BLK-008 은 P1 대상으로 이월(P0→P2 재분류 승인)",
- "next_gate": "V3_CONTRACT_FROZEN — B·C·D ACK(각 exact head) + C audit CONFIRMED + D negative-control fixture 완결이 같은 exact state 를 가리킬 때",
+ "next_gate": "V3_CONTRACT_FROZEN — 잔여: D P0 ACK · D negative-control fixture 완결 · C 모순감사 verdict(T-A-V3-P0-C-001 task_1)",
  "decision_needed": "없음 — Director interrupt 3조건 미해당",
  "REAL_scope": {
   "E000_FAST": "RELEASED",
@@ -38,5 +39,11 @@
  },
  "real_target_contact": "0건",
  "D3_adjudication": "18 ACCEPT · 2 MODIFY (D3-06 · D3-08) · 0 REJECT — v3.0.1 successor delta 로 처리, 원본 무수정",
- "pack_modified_by_A": false
+ "pack_modified_by_A": false,
+ "head_sha_source": "git ls-remote 확인 — 자기보고 아님",
+ "P0_ack_matrix": {
+  "B": "claude-b/diag-pilot-integration@01041bc213a2e61f6cb224e469087d9a11324349 — 3항 충족",
+  "C": "claude-c/assurance-v21@f44ec67f0156e5aade7d309d7b6ef0fa3f0e097e — 3항 충족",
+  "D": "미도착 (@70e6af5dbeb015f6e1221b2c17839cfb2acd40fb, legacy RQ 0건 종결 후 대기)"
+ }
 }
