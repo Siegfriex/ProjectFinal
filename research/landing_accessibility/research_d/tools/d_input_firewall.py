@@ -134,6 +134,15 @@ def severity(hit: dict, text: str) -> str:
             d = a[:-3]                      # `/**` 를 떼어 디렉터리 경로만 남긴다
             if ref == d or ref.startswith(d + "/"):
                 return "ALLOWED_BY_EXCEPTION"
+            # 절대경로 표기도 같은 파일이다. 오늘 exact 예외에서 고친 것과 같은
+            # 비대칭이 `/**` 쪽에 남아 있었다 — 상대 `…/ssot_snapshot/a.json` 은
+            # 면제되고 절대 `/home/…/ssot_snapshot/a.json` 은 FAIL 이었다.
+            #
+            # 다만 디렉터리 접두는 파일 정확일치보다 넓으므로 **경로 구성요소가
+            # 2개 이상인 허용 디렉터리에만** 적용한다. 그래야 짧은 이름
+            # (`SSOTV3`)이 남의 트리에서 우연히 일치하지 않는다.
+            if d.count("/") >= 1 and ("/" + d + "/") in ref:
+                return "ALLOWED_BY_EXCEPTION"
     f = hit.get("file", "")
     line_no = hit.get("line")
     if not line_no:
@@ -222,6 +231,58 @@ OUT_NAME = "D_INPUT_FIREWALL_VERIFICATION.json"
 SCAN_LABEL = "current_worktree"
 
 
+def run_controls(denied) -> dict:
+    """매 실행 대조군 — 이 스캐너가 실제로 무언가를 막고 있는가.
+
+    이 도구에는 대조군이 없었다. `verdict=PASS · FAIL=0` 이 (a) 정말 위반이
+    없다 와 (b) **매처가 망가져 아무것도 안 걸린다** 를 같은 출력으로 낸다.
+    D 의 `holdout_accessed=false` 주장 전체가 이 도구에 실려 있는데도 그랬다.
+
+    B 가 T-B-V3-FINDING-010 에서 같은 형태를 잡았다 — `git diff --name-only HEAD`
+    를 쓴 단언이 커밋 후 항상 빈 값이라 **한 번도 무언가를 잡은 적이 없고,
+    깨진 적도 없어서 아무도 보지 않았다.** B 의 문장이 정확하다:
+    **조용한 통과는 실패보다 오래 산다.**
+
+    합성 경로로만 검사한다 — 파일을 만들지 않고 아무것도 읽지 않는다.
+    """
+    DENY = [
+        ("label 절대경로", "/home/x/research/landing_accessibility/control/label/LABELS_FROZEN.jsonl"),
+        ("holdout", "/home/x/research/landing_accessibility/control/label/HOLDOUT_FOR_C.json"),
+        ("split 동결", "/home/x/research/landing_accessibility/control/label/LABEL_SPLIT_FROZEN.json"),
+        ("control 기타", "/home/x/research/landing_accessibility/control/pilot/RESULT.json"),
+        ("허용파일과 이름만 같은 남의 파일", "/home/x/evil/V3_RULING_INDEX.json"),
+        ("짧은 허용 디렉터리명을 흉내낸 남의 트리", "/home/x/evil/SSOTV3/secret.json"),
+    ]
+    ALLOW = [
+        ("허용 예외 상대경로", "research/landing_accessibility/control/v3/V3_RULING_INDEX.json"),
+        ("허용 예외 절대경로", "/home/x/.agent_worktrees/claude_a_control/research/"
+                          "landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md"),
+        ("ssot_snapshot 하위 상대", "research/landing_accessibility/control/v3/ssot_snapshot/a.json"),
+        ("ssot_snapshot 하위 절대", "/home/x/.agent_worktrees/claude_a_control/research/"
+                              "landing_accessibility/control/v3/ssot_snapshot/a.json"),
+    ]
+    rows, ok = [], True
+    for name, ref in DENY:
+        got = severity({"reference": ref, "file": "control.py", "line": 1}, "")
+        good = got.startswith("FAIL")
+        ok &= good
+        rows.append({"kind": "DENY", "case": name, "got": got, "expected": "FAIL", "ok": good})
+    for name, ref in ALLOW:
+        got = severity({"reference": ref, "file": "control.py", "line": 1}, "")
+        good = got == "ALLOWED_BY_EXCEPTION"
+        ok &= good
+        rows.append({"kind": "ALLOW", "case": name, "got": got,
+                     "expected": "ALLOWED_BY_EXCEPTION", "ok": good})
+    # 금지 패턴 목록 자체가 비어버리면 위 DENY 가 전부 통과할 수 없다는 보장이 없다
+    n_denied = len(denied)
+    rows.append({"kind": "SANITY", "case": "금지 패턴 개수", "got": n_denied,
+                 "expected": ">=10", "ok": n_denied >= 10})
+    ok &= n_denied >= 10
+    return {"verdict": "PASS" if ok else "FAIL", "cases": rows,
+            "why": "대조군이 실패하면 스캔 결과를 PASS 로 내지 않는다 — "
+                   "못 막는 스캐너의 FAIL=0 은 0 이 아니다"}
+
+
 def main() -> int:
     global OUT_NAME, SCAN_LABEL
     args = sys.argv[1:]
@@ -239,6 +300,8 @@ def main() -> int:
     files = [p for p in RD.rglob("*") if p.is_file() and p.suffix in SCAN_SUFFIX]
     files += [p for p in NB_DIR.rglob("*") if p.is_file() and p.suffix in SCAN_SUFFIX]
 
+    controls = run_controls(denied)
+
     violations = []
     for p in files:
         violations.extend(scan_file(p, denied))
@@ -255,7 +318,8 @@ def main() -> int:
         v.setdefault("severity", "FAIL")
     fails = [v for v in violations if v["severity"] == "FAIL"]
     warns = [v for v in violations if v["severity"] == "WARN"]
-    verdict = "PASS" if not fails and not base_label_hits else "FAIL"
+    verdict = ("CONTROL_FAIL" if controls["verdict"] != "PASS"
+               else "PASS" if not fails and not base_label_hits else "FAIL")
     doc = {
         "verification_id": "D-INPUT-FIREWALL-VERIFICATION",
         "scan_label": SCAN_LABEL,
@@ -267,7 +331,8 @@ def main() -> int:
         "manifest_sha256": __import__("hashlib").sha256(MANIFEST.read_bytes()).hexdigest(),
         "scanned_files": len(files),
         "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
-        "verdict_rule": "FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
+        "controls": controls,
+        "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
         "fail_count": len(fails),
         "warn_count": len(warns),
         "violations": violations,
@@ -283,6 +348,11 @@ def main() -> int:
     out_dir = globals().get("OUT_DIR_OVERRIDE") or (RD / "results")
     out = out_dir / OUT_NAME
     out.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    bad = [c for c in controls["cases"] if not c["ok"]]
+    print(f"controls={controls['verdict']} ({len(controls['cases']) - len(bad)}"
+          f"/{len(controls['cases'])})")
+    for c in bad:
+        print(f"  ** CONTROL FAIL ** {c['kind']} {c['case']}: got={c['got']} expected={c['expected']}")
     print(f"verdict={verdict}  scanned={len(files)} files  FAIL={len(fails)} WARN={len(warns)}  "
           f"base_sha_label_paths={len(base_label_hits)}")
     for v in fails[:20]:

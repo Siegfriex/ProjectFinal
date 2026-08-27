@@ -4,12 +4,95 @@
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
  "verdict": "PASS",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T07:46:02.186956+09:00",
- "d_head_sha": "8a88a71f2897a41249670e1351715889e6b2cde3",
+ "checked_at_kst": "2026-08-28T07:48:59.735980+09:00",
+ "d_head_sha": "f983274db4436f682df641160fcb5e6b299d7b8c",
  "manifest_sha256": "5321e4f19d990d70ae9bc89370bb134d85970ac5f7a12d2f2ca048743529de94",
  "scanned_files": 207,
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
- "verdict_rule": "FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
+ "controls": {
+  "verdict": "PASS",
+  "cases": [
+   {
+    "kind": "DENY",
+    "case": "label 절대경로",
+    "got": "FAIL",
+    "expected": "FAIL",
+    "ok": true
+   },
+   {
+    "kind": "DENY",
+    "case": "holdout",
+    "got": "FAIL",
+    "expected": "FAIL",
+    "ok": true
+   },
+   {
+    "kind": "DENY",
+    "case": "split 동결",
+    "got": "FAIL",
+    "expected": "FAIL",
+    "ok": true
+   },
+   {
+    "kind": "DENY",
+    "case": "control 기타",
+    "got": "FAIL",
+    "expected": "FAIL",
+    "ok": true
+   },
+   {
+    "kind": "DENY",
+    "case": "허용파일과 이름만 같은 남의 파일",
+    "got": "FAIL",
+    "expected": "FAIL",
+    "ok": true
+   },
+   {
+    "kind": "DENY",
+    "case": "짧은 허용 디렉터리명을 흉내낸 남의 트리",
+    "got": "FAIL",
+    "expected": "FAIL",
+    "ok": true
+   },
+   {
+    "kind": "ALLOW",
+    "case": "허용 예외 상대경로",
+    "got": "ALLOWED_BY_EXCEPTION",
+    "expected": "ALLOWED_BY_EXCEPTION",
+    "ok": true
+   },
+   {
+    "kind": "ALLOW",
+    "case": "허용 예외 절대경로",
+    "got": "ALLOWED_BY_EXCEPTION",
+    "expected": "ALLOWED_BY_EXCEPTION",
+    "ok": true
+   },
+   {
+    "kind": "ALLOW",
+    "case": "ssot_snapshot 하위 상대",
+    "got": "ALLOWED_BY_EXCEPTION",
+    "expected": "ALLOWED_BY_EXCEPTION",
+    "ok": true
+   },
+   {
+    "kind": "ALLOW",
+    "case": "ssot_snapshot 하위 절대",
+    "got": "ALLOWED_BY_EXCEPTION",
+    "expected": "ALLOWED_BY_EXCEPTION",
+    "ok": true
+   },
+   {
+    "kind": "SANITY",
+    "case": "금지 패턴 개수",
+    "got": 15,
+    "expected": ">=10",
+    "ok": true
+   }
+  ],
+  "why": "대조군이 실패하면 스캔 결과를 PASS 로 내지 않는다 — 못 막는 스캐너의 FAIL=0 은 0 이 아니다"
+ },
+ "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
  "fail_count": 0,
  "warn_count": 387,
  "violations": [
