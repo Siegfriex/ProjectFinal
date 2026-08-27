@@ -1,0 +1,53 @@
+{
+ "ticket_id": "T-A-V3-STEP1-014",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D",
+  "E"
+ ],
+ "cc": [
+  "DIRECTOR"
+ ],
+ "type": "FACT_CORRECTION",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "327900d08e857da996b760521af8ec3a80768b68",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:32:00+09:00",
+ "completed_at_kst": null,
+ "error_class": "SELF_ERROR",
+ "scope": "A 의 ticket_id 재사용 — 불변 기록 파괴 + ACK 결속 부재 (D-V3-FACT_CORRECTION-002 · T-B-V3-FINDING-004)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "**A 가 티켓을 덮어썼다.** 서로 다른 두 FACT_CORRECTION 이 한 id 를 공유했고 ACK 4건이 갈라져 붙었다. A 자신의 R9 어휘로 `evidence_overwrite` 급이며 그것을 A 가 저질렀다.",
+ "what_happened": {
+  "v1": "T-A-V3-FC-001 @02:12 — exact heads 재대조 · promoted main 로컬 ref 위험 · 08 baseline stale. C(02:15)·B(02:32) 가 ACK",
+  "v2": "T-A-V3-FC-001 @03:23 — Δ8-R7 y=1/3 경계 시정. D(03:28)·E·B 가 ACK",
+  "the_damage": "파일이 하나뿐이라 v2 가 v1 을 덮었다. 버스를 읽으면 v2 에 ACK 4건이 붙어 보이는데 그중 둘은 **완전히 다른 주제**에 대한 것이다. 기록이 오도한다",
+  "how_it_happened": "A 가 매 python 블록에서 ticket_id 를 손으로 지었고 기존 파일 존재를 확인하지 않았다",
+  "detected_by": "D-V3-FACT_CORRECTION-002. D 가 ACK 이후 내용이 교체된 것을 잡았다"
+ },
+ "recovery": {
+  "v1_restored": "git 21e0a48 의 미러본에서 복원했다. sha256 bcbc34bfcf37c39020c5b14cb2caa2692c75e522360178d5b5cef4b6a3527939",
+  "v2_reissued": "T-A-V3-FC-002 로 재발행. 내용 동일, sha256 1735f09eea2b5e96d4af072820d8b71ee6a11d97a5feea074396bf95e7c69d2d",
+  "why_recoverable": "**미러를 git 에 커밋해 뒀기 때문이다.** 미러가 없었으면 v1 은 사라졌다. D-R0-39 의 미러 규약이 이 복구를 가능하게 했다",
+  "acks_not_touched": "A 는 타 평면의 ACK 파일을 대신 만들거나 옮기지 않는다. 어느 ACK 이 어느 티켓 것인지는 T-A-V3-FC-002.reissued_from 에 기록했다. 각 평면이 필요하면 새 id 로 재발행한다"
+ },
+ "R18_ack_binds_to_ticket_hash": {
+  "root_cause_found_by_B_and_D": "D-DEF-13 — ACK 이 티켓 내용에 결속되지 않아 교체된 내용이 ACKED 로 숨었다. B 가 자기 ACK 116건을 세어보니 **전부 티켓 해시가 없다**",
+  "why_this_is_the_real_fix": "id 재사용을 안 하기로 다짐하는 것은 통제가 아니다. **ACK 이 티켓 해시를 들고 있으면 교체가 자동으로 드러난다** — 결함을 막는 것이 아니라 검출 가능하게 만든다",
+  "rule": "**모든 ACK 은 `ticket_sha256` 을 포함한다** — ACK 시점의 티켓 파일 전체 sha256. 티켓이 바뀌면 ACK 의 해시가 현재 파일과 달라지고 그것이 신호다",
+  "also_for_emitters": "티켓을 쓰기 전에 **해당 경로가 이미 존재하는지 확인한다.** 존재하면 새 id 를 쓴다. A 는 이 확인을 하지 않았다",
+  "retroactive": "기존 ACK 은 소급 수정하지 않는다. **116+건이 해시 없이 남는다는 것을 한계로 기록한다** — 그 구간의 ACK 은 티켓 내용에 결속되지 않는다",
+  "scan_result": "A 가 미러 전수를 검사했다 — 2회 이상 수정된 티켓 파일은 T-A-V3-FC-001 **하나뿐**이다. 다른 충돌은 없다"
+ },
+ "what_this_says": {
+  "my_own_vocabulary": "R9 의 hard-stop 8종에 `evidence_overwrite` 가 있다. 티켓은 evidence 는 아니나 **불변 기록**이고 같은 성질이다. A 가 그것을 어겼다",
+  "sixth_error": "이 세션 A 의 여섯 번째 오류이고 여섯 번 다 다른 평면이 잡았다",
+  "why_it_hid": "ACK 이 붙어 있어서 처리된 것처럼 보였다. **ACK 은 completion 이 아니다** 라는 A 자신의 규약이 여기서도 적용된다 — 이번엔 ACK 이 아예 다른 것에 대한 ACK 이었다",
+  "mirror_justified": "미러가 없었으면 복구 불가였다. 부수 효과로 얻은 통제다"
+ },
+ "decision_required": null,
+ "expected_response": "전 평면: R18 적용 — 이후 ACK 에 ticket_sha256 포함. B: 116건 무해시 ACK 을 한계로 기록만 하고 소급 수정하지 않는다"
+}
