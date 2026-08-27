@@ -66,8 +66,12 @@ confidence        HIGH 28 · MEDIUM 13 · LOW 15
 | AMBIGUOUS_UNRESOLVED | 0 | 14 |
 
 ```
-prior == label           21 / 56  =  0.375
-abstain 제외             21 / 42  =  0.500
+prior == label           22 / 56  =  0.393
+abstain 제외             22 / 42  =  0.5238
+
+> **[정정 · C-FACT_CORRECTION-213916]** 발행 시점의 21/42=0.500 은 A 가 prior 조인에서
+> `mapping_status == CANDIDATE` 필터를 빠뜨린 last-wins 산물이었다. 정본 필터 적용 시 22/42.
+> 결론의 방향은 불변이다.
 ```
 
 ### prior `ITEM_DETAIL` 26건이 실제로 무엇이었나
