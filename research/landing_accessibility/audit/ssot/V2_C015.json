@@ -1,0 +1,265 @@
+{
+  "cycle": "V2-C015",
+  "auditor": "ssot",
+  "auditor_impl": "Claude",
+  "worktree": ".agent_worktrees/landing_ssot",
+  "branch": "audit/landing-ssot",
+  "audit_type": "FOCUSED_RE_ALIGNMENT",
+  "audit_scope_note": "지정 4개 항목만. A0 §16 P0 STOP RULE · §22 DO NOT DIG 준수 — 전면 재감사·신규 결함 탐색 확대·신규 거버넌스 요구 신설 없음.",
+  "phase": "P0_V2_REFREEZE",
+  "gate": "V2_SSOT_FROZEN",
+  "target_sha": {
+    "control": "b969adbd9b3f127dc82f77c9024d76d81b2bbd90",
+    "exec": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "exec_note": "불변 · 재감사 안 함"
+  },
+  "prev_ssot_target": {
+    "control": "a10663e893160ca33bd0f9d2b92a3c9867d22f40",
+    "report_sha": "dbdb047b667f72d8187b7043e55ab61c2dc1546d",
+    "cycle": "V2-C014"
+  },
+  "purpose": "내 lane 이 최종 control SHA b969adb 를 보지 못한 상태로 남지 않게 하는 것. PHASE_GATES §2 의 두 감사 target 정렬 공백 해소.",
+  "verdict": "PASS",
+  "counts": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 3,
+    "blocking": 0,
+    "blocking_v2_ssot_frozen": 0,
+    "blocking_e001_v2": 0,
+    "non_blocking_findings": 3
+  },
+  "fast_exit_adjudication": {
+    "A_evidence_integrity_destroyed": false,
+    "A_basis": "open_blocking_total 차감의 유일 근거가 독립 감사 판정이고, 그 판정을 adversarial 보고서 원문(cd717661:audit/adversarial/V2_C015.md §6)에서 직접 읽어 확인했다. ABRR 제외 1건은 9개 지점에서 병기 유지된다.",
+    "B_authority_bypass_canonical_promotion": false,
+    "B_basis": "게이트 미선언(gates.V2_SSOT_FROZEN 은 여전히 ACHIEVED 어휘가 아니다), 승격 미실행, 원장이 PROMOTABLE_PENDING_ORCHESTRATOR 로 오케스트레이터에게 명시 위임. docs/v2 권위문서 이번 델타 바이트 무변경.",
+    "C_measurement_semantics_contradiction": false,
+    "C_basis": "formula · formula_expanded · 개별 v2_cXXX 키 15개 · by_blocking_class 분해 · open_blocking_ids 길이가 전부 0 으로 정합. P2-1 은 산식 모순이 아니라 게이트 서술 stale 이며 오차 방향이 보수적(게이트를 닫는 쪽)이다.",
+    "conclusion": "세 범주 전건 해당 없음 → PASS · blocking 0. 비차단 발견 수는 verdict 에 영향 없음."
+  },
+  "item_adjudications": [
+    {
+      "item": 1,
+      "question": "open_blocking_total = 0 이 근거 있는가. 재계산이 실제 감사 판정과 일치하나.",
+      "verdict": "CONFIRMED_TRUE",
+      "verified_from_primary_source": true,
+      "primary_source_method": "git show cd7176616d8451d4c95cbce87926ec5db50f09b9:research/landing_accessibility/audit/adversarial/V2_C015.md — 오케스트레이터 주장이나 state.json 서술이 아니라 adversarial 보고서 원문을 감사 브랜치에서 직접 읽었다.",
+      "two_ids_explicitly_closed": true,
+      "id_findings": [
+        {
+          "id": "abrr-grant-branch-tip-resolved-from-locally-forgeable-tracking-ref",
+          "origin": "adversarial V2-C014 P0",
+          "adversarial_v2_c015_verdict_verbatim": "CLOSED",
+          "location_in_report": "§6 prior_findings_status — 명시 판정 표",
+          "basis_verbatim_excerpt": "§1 의 1a·1b 가 정확히 이 결함의 두 live exploit 이었고, 시정본에서 둘 다 차단됐다. 근본 원인(로컬 추적 ref 폴백 경로)이 코드에서 제거됐다 — 완화가 아니라 제거다."
+        },
+        {
+          "id": "abrr-accepted-by-audit-sha-not-ancestor-checked",
+          "origin": "adversarial V2-C013 P0",
+          "adversarial_v2_c015_verdict_verbatim": "CLOSED",
+          "location_in_report": "§6 prior_findings_status — 명시 판정 표",
+          "basis_verbatim_excerpt": "V2-C014 에서 REMEDIATION_INSUFFICIENT 로 판정했던 유일한 이유는 'ancestry 검사의 기준점인 tip 자체가 위조 가능'이었다. 그 전제가 §1 로 소멸했다. … 이 finding 이 보호하려던 성질(수용 근거는 진짜 감사 계보에서 온다)이 이제 실제로 성립한다."
+        }
+      ],
+      "adversarial_report_header_consistency": "머리표 Verdict=PASS blocking 0 · Finding count=P0 0/P1 0/P2 0 · 말미 재확인 3자 일치",
+      "recompute_consistency_checks": {
+        "steps_traced": "①~⑬ 전 단계를 각 단계가 인용한 감사 SHA 로 대조",
+        "self_approval_discipline_held": "⑨ 가 control V2-C015 시정 주장을 '감사 전' 으로 보고 2건 OPEN 유지 → 변화 없음 처리",
+        "deduction_basis_is_audit_only": "⑬ 에서만 cd717661 근거로 −2",
+        "open_blocking_ids_length_equals_total": true,
+        "total": 0,
+        "previous_total": 2,
+        "delta": -2,
+        "by_blocking_class_all_zero": true,
+        "per_cycle_keys_checked": "v2_c001~v2_c015 15개 키 + v1_inherited + orchestrator_registered 전부 0, formula_expanded 와 일치"
+      }
+    },
+    {
+      "item": 2,
+      "question": "accepted_bounded_residual_risk = 1 (rc-6-r1) 이 합계 밖 명시적 제외로 여전히 표시되는가. exclusion_line/exclusion_is_conditional 생존. C-6 가 V2_SSOT_FROZEN 선언으로 발동하지 않는가.",
+      "verdict": "CONFIRMED_TRUE",
+      "silently_disappeared": false,
+      "display_locations_count": 9,
+      "display_locations": [
+        "gates.accepted_bounded_residual_risk_register",
+        "open_blocking_total.formula (명시적 제외항 표기)",
+        "open_blocking_total.formula_expanded",
+        "open_blocking_total.accepted_bounded_residual_risk = 1",
+        "open_blocking_total.accepted_residual_ids (id + 수용 판정 SHA + 조건 이행 SHA)",
+        "open_blocking_total.by_blocking_class['accepted_bounded_residual_risk (합계 밖 · 명시적 제외)'] = 1",
+        "recomputation.steps ⑩ (나란히 표시)",
+        "recomputation.steps ⑬ (나란히 유지)",
+        "open_blocking_total.gate_satisfied_note (삭제가 아니다)"
+      ],
+      "exclusion_line_alive": true,
+      "exclusion_line_not_weakened": true,
+      "exclusion_is_conditional_alive": true,
+      "vocabulary_counting_rule_alive": true,
+      "vocabulary_gate_note_alive": "게이트 통과가 아니다. 이 상태로의 전이는 open_blocking_total 을 1 줄일 뿐 어떤 Gate 도 열지 않는다.",
+      "state_is_not_closed": "ACCEPTED_BOUNDED_RESIDUAL_RISK 유지 — CLOSED 아님",
+      "c6_lapse_on_v2_ssot_frozen_declaration": {
+        "triggers_lapse": false,
+        "trigger_i_conditions": {
+          "C-1": {"state": "SATISFIED", "sha": "0dfb6d5788631347d4d50793f25d3f689251e1bd", "note": "adversarial V2-C011 §5.1 condition_adjudications verdict=SATISFIED; ssot V2-C011 1dbc3067 도 독립 SATISFIED"},
+          "C-2": {"state": "SATISFIED", "sha": "56f69f3b23eaa15b7eb0689c526eb617a12c813a"},
+          "C-5-1": {"state": "SATISFIED", "sha": "30093b4", "note": "ssot V2-C010, state=이행(충족)"}
+        },
+        "all_three_satisfied": true,
+        "independent_cross_check": "adversarial cd717661 §2 가 무변조 실제 원장에 시정본 (D) 판정부를 구동 → accepted=['orchestrator_registered:rc-6-r1-…'], lapsed=[], 조건 근거 3건 실시간 tip 기준 조상검증 통과. §3 case C6 에서 V2_SSOT_FROZEN=ACHIEVED 선언 시나리오 미실효(PASSED) 재확인.",
+        "trigger_ii_status": "기한 미도래 — gates.E001_V2 = NOT_RUN"
+      }
+    },
+    {
+      "item": 3,
+      "question": "ssot V2-C014 P1 open-blocking-total-still-stale-since-v2-c010 이 실제로 닫혔는가.",
+      "verdict": "CLOSED",
+      "ledger_state_at_target": {
+        "state": "REMEDIATION_CLAIMED_PENDING_AUDIT",
+        "counted_as_open": true,
+        "blocking": false,
+        "note": "원장이 '미감사' 로 두고 self-approval 을 하지 않은 것은 올바른 처리다. 그 미감사 상태를 판정하는 것이 이 감사의 소관."
+      },
+      "requirements_verified": [
+        {"req": "재계산 수행", "met": true, "evidence": "recomputed_in_cycle=V2-C015 · recomputed_at=2026-08-27T11:05:00+09:00"},
+        {"req": "stale 구간 V2-C010→C015 전부 반영", "met": true, "evidence": "steps ①~⑬ 가 V2-C010 기준 직전 total 3 에서 출발해 감사 5건 단계별 가감. ① 이 이 P1 을 id 로 지목해 출발점으로 명시"},
+        {"req": "단계마다 감사 SHA 인용", "met": true, "evidence": "②1dbc3067 ③ssot V2-C011 ④bc1a6125 ⑤a97daeb2 ⑥2665d98b ⑦동 ⑧dbdb047b ⑬cd717661"},
+        {"req": "산식과 항목 열거 정합", "met": true, "evidence": "open_blocking_ids 길이 0 == total 0 (assert 명시); by_blocking_class 분해합 0"},
+        {"req": "2차 원천 교차확인", "met": true, "exceeds_requirement": true, "evidence": "independent_cross_check 가 각 보고서 counts 대 findings[] 실측 대조"},
+        {"req": "근거 없는 조용한 제외 없음", "met": true, "evidence": "counted_as_open_false_audit = '근거 없는 제외 0건'"}
+      ],
+      "count_impact": 0,
+      "count_impact_note": "원래 blocking=false 였으므로 open_blocking_total 영향 없음"
+    },
+    {
+      "item": 4,
+      "question": "exec bc0b7a0 불변 + EXECUTION_AUTHORITY.md/PHASE_GATES.md 와의 authority 모순 없음.",
+      "verdict": "CONFIRMED_TRUE",
+      "exec_immutable": true,
+      "exec_checks": {
+        "agent_landing_v2_exec_tip": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+        "matches_designated_exec_sha": true,
+        "delta_a10663e_to_b969adb_files": [
+          "research/landing_accessibility/control/P0_RELEASE.json",
+          "research/landing_accessibility/control/P0_STATUS.json",
+          "research/landing_accessibility/control/TIMEBOX_1630_EXECUTION_SSOT.md",
+          "research/landing_accessibility/control/cycles/V2_C015_reconciliation.json",
+          "research/landing_accessibility/control/state.json",
+          "research/landing_accessibility/scripts/promote_landing_main.sh"
+        ],
+        "exec_artifacts_changed_lines": 0,
+        "pilot_changed_lines": 0,
+        "docs_v2_changed_lines": 0,
+        "state_latest_exec_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+        "state_note_verbatim": "exec 는 V2-C012(bc0b7a0…)에서 멈춰 있다. V2-C013·V2-C014·V2-C015 는 control-only 사이클이며 exec 산출물을 전진시키지 않는다.",
+        "exec_reaudited": false
+      },
+      "authority_contradiction_found": false,
+      "authority_doc_location": "docs/v2/ 는 exec tip bc0b7a0 에 존재하며 이번 델타에서 바이트 무변경",
+      "authority_checks": [
+        {"rule": "PHASE_GATES §2 — open blocking = 0 (via 00 §15)", "control_state": "total=0 · gate_satisfied=true", "contradiction": false},
+        {"rule": "00_SSOT_v2.0 §15 — open blocking P0/P1/P2 = 0", "control_state": "by_blocking_class 전 클래스 0", "contradiction": false},
+        {"rule": "EXECUTION_AUTHORITY — E001_V2_STARTED=false", "control_state": "gates.E001_V2 = NOT_RUN", "contradiction": false},
+        {"rule": "ABRR 제외가 게이트를 열지 않는다", "control_state": "vocabulary 문장 생존", "contradiction": false},
+        {"rule": "self-approval 금지", "control_state": "recompute ⑨ 및 P1 PENDING_AUDIT 유지로 준수", "contradiction": false},
+        {"rule": "canonical promotion 권한", "control_state": "PROMOTABLE_PENDING_ORCHESTRATOR — 자동 승격 경로 없음", "contradiction": false}
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "gates-v2-ssot-frozen-narrative-stale-contradicts-recomputed-total",
+      "severity": "P2",
+      "blocking": false,
+      "counted_as_open": true,
+      "state": "OPEN",
+      "out_of_designated_scope": true,
+      "summary": "state.json gates.V2_SSOT_FROZEN 문자열이 V2-C010 시점 문면 그대로다 — 'open_blocking_total ≠ 0: 재계산 결과 3건', '최신 ssot verdict = FAIL' 이 같은 파일의 total=0 · gate_satisfied=true · 두 감사 PASS 와 어긋난다.",
+      "non_blocking_basis": "오차 방향이 실제보다 보수적이다 — 게이트를 여는 쪽이 아니라 닫는 쪽으로 틀렸다. 게이트는 아직 ACHIEVED 로 선언되지 않았고 따라서 C-6 트리거 (i) 도 발동한 바 없다. authority-bypass 도 측정 산식 모순도 아니다.",
+      "required_action": "오케스트레이터가 V2_SSOT_FROZEN 선언 시 이 문자열을 V2-C015 기준으로 재작성. 선언 전까지 방치해도 위험 없음.",
+      "owner": "orchestrator",
+      "due_before": "V2_SSOT_FROZEN 선언"
+    },
+    {
+      "id": "phase-gates-2-exact-same-target-sha-not-literally-satisfied-across-the-two-audits",
+      "severity": "P2",
+      "blocking": false,
+      "counted_as_open": true,
+      "state": "OPEN",
+      "out_of_designated_scope": true,
+      "summary": "PHASE_GATES.md L48 은 '두 감사가 exact same target SHA 를 감사했다' 를 요구하나 adversarial cd717661 @ control 418a91a / 본 ssot 감사 @ control b969adb 로 문언상 동일 SHA 가 아니다.",
+      "substantive_risk_eliminated": true,
+      "substantive_risk_basis": {
+        "promote_script_blob_418a91a": "a35e0bc6a70422e4df1baff0211f39fc6b4b7da0",
+        "promote_script_blob_b969adb": "a35e0bc6a70422e4df1baff0211f39fc6b4b7da0",
+        "identical": true,
+        "note": "adversarial 이 감사한 코드 표면이 b969adb 에서 바이트 동일하고, 418a91a→b969adb 델타는 control 원장/보고 JSON 4파일뿐이다. §2 가 막으려는 '두 감사가 서로 다른 산출물을 봤다' 는 사태는 발생하지 않았다.",
+        "structural_note": "b969adb 는 cd717661 을 인용하는 커밋이므로 구조상 adversarial 감사보다 뒤설 수밖에 없다 — 그 커밋에 대해 문언 그대로의 동일-SHA 요건은 구성상 충족 불가다."
+      },
+      "non_blocking_basis": "A0 §22 DO NOT DIG — 새 거버넌스 요구를 신설하지 않는다. 승격 미발생, 원장이 오케스트레이터에게 명시 위임 — bypass 없음.",
+      "required_action": "V2_SSOT_FROZEN 선언 전 오케스트레이터가 §2 L48 을 명시 판정하라. (a) blob 동일성을 근거로 '감사 표면 동일' 을 원장에 기록하거나 (b) adversarial 을 b969adb 에서 재확인. 이 감사가 그 판정을 대신하지 않는다.",
+      "owner": "orchestrator",
+      "due_before": "V2_SSOT_FROZEN 선언"
+    },
+    {
+      "id": "state-cites-superseded-ssot-audit-sha-dbdb047-for-v2-c015-gate",
+      "severity": "P2",
+      "blocking": false,
+      "counted_as_open": true,
+      "state": "OPEN",
+      "out_of_designated_scope": true,
+      "summary": "state.json gate_satisfied_note 와 promotion.status 가 '두 감사 모두 PASS' 의 ssot 근거로 dbdb047b667f72d8187b7043e55ab61c2dc1546d 를 인용하나 그것은 V2-C014 보고서이고 target 이 control a10663e 다 — b969adb 에 대한 ssot 판정이 아니었다(그 공백이 이 감사를 부른 이유다).",
+      "non_blocking_basis": "fail-closed 방향. promote_landing_main.sh [AUDIT_VERDICT] 가 argv 감사 SHA 를 audit_lag.latest_*_audit_sha 에 핀하므로 갱신 없이는 승격이 오히려 차단된다.",
+      "required_action": "이 보고서 커밋 SHA 로 갱신하고 audit_lag.latest_ssot_audit_sha 도 함께 이동.",
+      "owner": "orchestrator",
+      "due_before": "V2_SSOT_FROZEN 선언"
+    }
+  ],
+  "prior_findings_status": [
+    {
+      "id": "open-blocking-total-still-stale-since-v2-c010",
+      "origin": "ssot V2-C014 P1",
+      "verdict": "CLOSED",
+      "basis": "§3 — 재계산이 V2-C015 기준으로 실제 수행됐고 stale 구간 전부를 감사 SHA 인용과 함께 반영했다. 산식·id 목록·클래스 분해 정합 확인."
+    },
+    {
+      "id": "v2-audit-findings-ledger-missing-cycles-v2-c011-to-v2-c013",
+      "origin": "ssot V2-C014 P2",
+      "verdict": "CLOSED",
+      "basis": "c1706de 가 V2-C011/C012/C013/C014/C015 를 cycles[] 에 등재. v2_c011~c015_open_blocking 5개 키 존재·값 0 실측."
+    },
+    {
+      "id": "control-cycle-artifact-claims-audit-branch-tips-byte-unchanged-but-it-was-refactored",
+      "origin": "ssot V2-C014 P2",
+      "verdict": "OPEN_NONBLOCKING",
+      "basis": "이번 범위 밖."
+    },
+    {
+      "id": "min-4-dom-order-uniqueness-constraint-references-undefined-document-column",
+      "origin": "adversarial V2-C013 P2",
+      "verdict": "OPEN_NONBLOCKING",
+      "basis": "exec 무변경(bc0b7a0), PRE_E001_NONBLOCKING backlog."
+    },
+    {
+      "id": "rc-6-r1-same-authorization-local-reexecution-unbounded",
+      "verdict": "ACCEPTED_BOUNDED_RESIDUAL_RISK_MAINTAINED",
+      "not_closed": true,
+      "basis": "§2 — 합계 밖 명시적 제외 1건으로 존속. CLOSED 아님."
+    }
+  ],
+  "not_done": [
+    "exec 재감사",
+    "전면 재감사",
+    "신규 일관성 결함 탐색 확대",
+    "신규 거버넌스 요구 신설",
+    "promote_landing_main.sh 실행 (--dry-run 포함)",
+    "Pilot 열람/수정",
+    "다른 워크트리 쓰기",
+    ".git/hooks/ 수정",
+    "adversarial 소관 판정 (exploit 재현·fuzz)"
+  ],
+  "gate_impact": {
+    "v2_ssot_frozen_blocked_by_this_lane": false,
+    "statement": "내 소관에서 V2_SSOT_FROZEN 을 막는 것은 없다. control b969adb 에 대한 ssot 판정 공백이 이 보고서로 메워진다. 선언 전 P2-2·P2-3 은 오케스트레이터가 처리해야 한다."
+  }
+}
