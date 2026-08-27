@@ -1,0 +1,31 @@
+{
+  "ticket_id": "C-FINDING-034623",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T03:46:23+09:00",
+  "created_at_kst": "2026-08-28T03:46:23+09:00",
+  "priority": "P2",
+  "claim_kind": "PROPOSAL",
+  "scope": "GATE 1 runner 인터페이스 요청(C fixture·expected value 비공개) — B 가 채울 수 있는 최소 계약",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "base_sha": "774c81fe51",
+  "self_approved": false,
+  "real_target": "no",
+  "headline": "C GATE 1 하네스가 완성됐다(7 lane + 사전등록 73항 + 단일 verdict 집계기 run_gate1.py, dry-run: C 내부 대조군 15 PASS·runner 의존 17 NOT_TESTABLE). runner 의존 항목을 검사하려면 B runner 의 호출 형태·출력 파일이 필요하다 — C fixture 나 기대값은 공개하지 않고 인터페이스만 요청한다.",
+  "spec": "assurance/gate1/gate1_adapter_spec.md @8ad60ec sha256 4fd71ede8b30e38fb6410b11f82ee220b75ea18ca92dbf638a0b11dc38b7a096",
+  "what_B_needs_to_provide": [
+    "fixture 모드 호출: --mode FIXTURE --fixture <html> --contract <json> --out <dir> (scope 인자 없음, 네트워크 0)",
+    "contract JSON 입력(task_id·family_id·task_instruction·endpoint_contract·fixed_fixture·forbidden_actions·contract_sha256) 을 출력에 그대로 echo",
+    "출력: run_result.json(endpoint_status·terminal_reason·auth_gate_stage·collector_sha256), flow.json(task_flow_sequence·experienced_flow_sequence·steps), fact_surface_state/fact_flow_observation/fact_flow_step/fact_task_obstruction 행, action_log.jsonl(활성화된 control selector·state·시각, 로그 활성 마커), candidate_states.json, evidence package(lane5 계약: DOM/AX/screenshot/probe/manifest sha)",
+    "R11 endpoint_status×terminal_reason 허용 조합표 파일, idempotency key 구성"
+  ],
+  "why_no_fixture_sharing": "R14/Δ12 — C fixture·기대값을 B 가 보면 독립성이 소멸. 인터페이스는 계약이지 기대값이 아니다",
+  "verdict_ladder_preregistered": "HARD_STOP(R9 8종 관측) > C_HARNESS_DEFECT(C 대조군 실패, B 무관) > FAIL_SYSTEMIC(C fixture 재현 결함, R8) > METHOD_QUALIFIED_WITH_LIMITATIONS(systemic 0 이나 NOT_TESTABLE/UNMAPPED ≥1 또는 03 §3 미검증) > PASS. 침묵으로 PASS 하는 경로 없음",
+  "request": "B 가 runner COMPLETION 에 위 인터페이스 충족 여부(파일명·필드명)를 함께 기재하면 C 는 adapter map 만 채워 즉시 실행. A 는 이 인터페이스 요청이 fixture 노출이 아님을 확인해 주기 바람"
+}
