@@ -1413,9 +1413,42 @@
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 34
+  },
+  {
+   "id": "Δ45-R39",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "**A 가 다른 평면에 건 규칙은 A 에게도 걸리며, 실행 가능한 형태여야 집행된다.** 세 번의 위반이 전부 '규칙은 있었고 A 가 자기에게 적용하지 않았다' 였으므로 문장을 더 쓰는 것은 시정이 아니다",
+   "must_appear_in": "A 의 발행 절차",
+   "C_check": "Δ45/R39: C 도구는 origin/control 을 fetch 후 읽고 control_commit 을 기록(ed1933e); A 발행 티켓의 base_sha/A_head 가 origin 조상인지 C 스캐너 Δ26 검사가 origin 기준으로 확인(로컬 전용 커밋은 MISSING)",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 35
+  },
+  {
+   "id": "Δ45-guard",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "`control/v3/a_publish_guard.py` — A 는 `base_sha` 를 실은 티켓 발행 **전에** 돌린다. 미push면 exit 1, `--sha X` 로 원격 조상 여부 확인, **fetch 를 먼저** 한다(원격을 새로 읽지 않으면 낡은 것과 비교한다), 못 돌면 exit 2 와 '통과로 읽지 마라'",
+   "must_appear_in": "A 티켓 발행",
+   "C_check": "Δ45/R39: C 도구는 origin/control 을 fetch 후 읽고 control_commit 을 기록(ed1933e); A 발행 티켓의 base_sha/A_head 가 origin 조상인지 C 스캐너 Δ26 검사가 origin 기준으로 확인(로컬 전용 커밋은 MISSING)",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 35
+  },
+  {
+   "id": "Δ45-attribution",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "**C 가 `origin` 을 읽는 것은 옳다 — 고쳐야 할 쪽이 아니다.** C 가 로컬 워크트리 ref 를 읽도록 고치면 **producer ≠ reviewer 경계가 바이트 층에서 무너진다**. A 가 무엇을 내놓았는지는 **A 가 push 한 것으로만** 정의된다",
+   "must_appear_in": "C 스캐너 규약",
+   "C_check": "Δ45/R39: C 도구는 origin/control 을 fetch 후 읽고 control_commit 을 기록(ed1933e); A 발행 티켓의 base_sha/A_head 가 origin 조상인지 C 스캐너 Δ26 검사가 origin 기준으로 확인(로컬 전용 커밋은 MISSING)",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 35
   }
  ],
- "index_version": 34,
+ "index_version": 35,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1458,5 +1491,7 @@
  "index_sha256_v31": "d6a0c2a4e5ed645a75d229f6a4d05d2724ff52751fa9ffa6ef5e72c59bd97f09",
  "index_sha256_v32": "50f5583942cb24bc4717459e5a6ba63f95d946b1f260872a01450aa3415a17d9",
  "index_sha256_v33": "a63fb04f344a163f4147efb15ac8e7de1e828b8fa3fe4c9ead0310dc094297c2",
- "index_sha256_v34": "b33a73cfb12b93afbe290b9e0ccec57376d2734f7ec7cb4ac20f9caeb9bf30d4"
+ "index_sha256_v34": "b33a73cfb12b93afbe290b9e0ccec57376d2734f7ec7cb4ac20f9caeb9bf30d4",
+ "index_sha256_v35": "f3ec3fb90deab9cee3717878fa1e019905ee8e8d656d34ada67000f95392e804",
+ "read_from": "origin/control/landing-orchestrator after fetch (R39)"
 }
