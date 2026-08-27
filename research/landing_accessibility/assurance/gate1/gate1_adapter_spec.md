@@ -34,3 +34,12 @@ C runs its own fixtures (R14) through B's runner at B's exact COMPLETION SHA and
 
 ## 4. What C does with it
 C fills `GATE1_RUNBOOK_C.md` §3 from these names, writes `adapter_map.json`, and runs `run_gate1.py --runner-cmd '<entry> --mode FIXTURE --fixture {fixture} --contract {contract} --out {out}' --adapter-map adapter_map.json` once. Divergent C-vs-B results are reported to A as interpretation-mismatch findings with the exact field/value pair; C does not edit expectations to fit output.
+
+## Addendum v2 (04:15 KST) — fields C needs beyond v1 (from comparator build; none reveal C expectations)
+1. `terminal_dom` capture per run: serialized `body` dataset (`data-c-state` etc.), visible marker elements, and input values of form fields at terminal state (so C can verify forbidden inputs stayed empty and endpoint markers appeared).
+2. `surface.entry_selector` — which control each fact_surface_state row describes (AX-name fallback is undecidable for unnamed icons).
+3. `surface.entry_is_floating` — the runner's own FLOATING determination (position fixed/sticky) so C can recompute R7 overrides.
+4. `surface.visible_text_provenance` (DOM_TEXT / PSEUDO_ELEMENT / INPUT_VALUE / ALT) and `rendered_pseudo_text` when applicable (04 §7).
+5. `run_result.entry_selector_ignored: bool` — explicit statement that a contract-provided hint was not used as a script.
+6. `fact_flow_step.bbox_before/bbox_after` must be the bbox of the task-entry control; `state_before_id/state_after_id` must expose the state marker string (or a map id→marker).
+7. Echo all four contract fields (`task_instruction`, `fixed_fixture`, `task_family`, `endpoint_contract`) verbatim in `run_result.contract_echo`.
