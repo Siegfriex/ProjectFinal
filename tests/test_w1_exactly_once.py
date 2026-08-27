@@ -429,6 +429,139 @@ def test_concurrent_os_processes_fixture_path_launch_total_is_one(tmp_path):
         assert len(run_dirs) == 1, f"evidence run 디렉터리가 1개가 아니다: {run_dirs}"
 
 
+def _fixture_partition_process_worker(
+    lock_dir: str, out_root: str, barrier_path: str, results_dir: str, idx: int
+) -> None:
+    """`C-BLOCKER-220418` 재현 worker — **다중 target plan**을 `runner.run()`
+    전체 경로로 돌린다(단일 target `_run_l0_and_l1` 직접호출이 아니다). C가
+    관측한 사고는 정확히 이 조합에서만 드러났다: target 이 여러 개고, 프로세스
+    2개가 같은 `out_dir`(같은 ledger)을 공유할 때만 batch 봉인이 충돌한다.
+    """
+    sys.path.insert(0, SRC)
+    from landing_accessibility.e001_runner.batch import BatchRunner
+    from landing_accessibility.e001_runner.plan import TargetSpec
+
+    try:
+        runner = BatchRunner(
+            out_dir=Path(out_root),
+            fixture_root=RESEARCH / "fixtures",
+            lock_dir=lock_dir,
+            batch_size=10,
+        )
+        # frozen_collection_order 를 흉내낸다 — 두 프로세스가 **같은 순서**로
+        # 같은 target 목록을 돈다(실제 사고의 전제조건: 동일 plan 의 중복 기동).
+        plan = [
+            TargetSpec(
+                target_id=f"wt-partition-{n}",
+                canonical_service_key=f"partition_{n}",
+                official_url="https://example.com/never-opened",
+                interaction_archetype="QUERY",
+                fixture_override="search_dispatch.html",
+                task_id=f"task_partition_{n}",
+                endpoint_definition="QUERY_SUBMITTED",
+                endpoint_signal_type="URL_PATTERN",
+            )
+            for n in range(3)
+        ]
+        while not os.path.exists(barrier_path):
+            time.sleep(0.001)
+        manifests = runner.run(plan, execution_mode="FIXTURE")
+        summary = {
+            "idx": idx,
+            "manifests": [
+                {"target_ids": m.target_ids, "outcomes": [r["outcome"] for r in m.results]}
+                for m in manifests
+            ],
+        }
+        Path(results_dir, f"summary_{idx}.json").write_text(json.dumps(summary), encoding="utf-8")
+    except BaseException as exc:  # pragma: no cover - 진단용, 테스트가 직접 판독
+        Path(results_dir, f"error_{idx}.txt").write_text(f"{type(exc).__name__}: {exc}")
+        raise
+
+
+def test_concurrent_os_processes_fixture_path_ledger_matches_evidence_exactly(tmp_path):
+    """`C-BLOCKER-220418`(C 의 P1) — **evidence run 집합 == 원장 measured 집합**.
+
+    C 가 관측한 결함: 프로세스 2개가 같은 파티션(3 target)을 동시에 돌면 target
+    소유권이 쪼개지고, 각자 자기 batch 를 봉인하려다 하나는 `BatchOverwriteError`
+    로 죽어 그 프로세스가 **실제로 측정한** target 이 원장에서 사라진다(고아
+    evidence) — 살아남은 원장은 그 target 들을 `DUPLICATE_SUPPRESSED`로 기록해
+    evidence 실체와 원장이 서로 다른 사실을 말하게 된다(mart 분모 오염).
+
+    권고 (a)+(c) 적용 후: 어느 프로세스도 죽지 않고(`BatchOverwriteError` 없음),
+    억제된 target 은 sealed batch 에 섞이지 않으며(`suppressed_ledger.jsonl`로만
+    남는다), 원장에 measured 로 기록된 target 수는 evidence run 디렉터리 수와
+    정확히 같고, target 이 두 프로세스 모두에서 measured 로 중복 기록되는 일도
+    없다.
+    """
+    pytest.importorskip("playwright.sync_api")
+
+    lock_dir = tmp_path / "locks"
+    out_root = tmp_path / "out"
+    results_dir = tmp_path / "results"
+    lock_dir.mkdir()
+    out_root.mkdir()
+    results_dir.mkdir()
+    barrier_path = tmp_path / "GO"
+
+    procs = [
+        multiprocessing.Process(
+            target=_fixture_partition_process_worker,
+            args=(str(lock_dir), str(out_root), str(barrier_path), str(results_dir), i),
+        )
+        for i in range(2)
+    ]
+    for p in procs:
+        p.start()
+    barrier_path.write_text("go")
+    for p in procs:
+        p.join(timeout=90)
+
+    errors = list(results_dir.glob("error_*.txt"))
+    assert not errors, (
+        f"worker 프로세스가 죽었다(BatchOverwriteError 포함 여부 확인): "
+        f"{[e.read_text() for e in errors]}"
+    )
+
+    summaries = [json.loads(p.read_text()) for p in sorted(results_dir.glob("summary_*.json"))]
+    assert len(summaries) == 2, f"프로세스 2개 중 일부가 결과를 남기지 못했다: {summaries}"
+
+    measured_target_ids: list[str] = []
+    for s in summaries:
+        for m in s["manifests"]:
+            assert DUPLICATE_SUPPRESSED_OUTCOME not in m["outcomes"], (
+                f"억제된 target 이 sealed batch 에 섞여 들어갔다(권고 (a) 위반): {m}"
+            )
+            measured_target_ids.extend(m["target_ids"])
+
+    all_target_ids = [f"wt-partition-{n}" for n in range(3)]
+
+    # exactly-once — 같은 target 이 두 프로세스 모두에서 measured 로 기록되면 안 된다.
+    assert sorted(measured_target_ids) == sorted(set(measured_target_ids)), (
+        f"같은 target 이 두 프로세스 모두에서 measured 로 기록됐다: {measured_target_ids}"
+    )
+    # 데이터 손실 없음 — 모든 target 이 어딘가에서는 measured 로 기록돼야 한다.
+    assert set(all_target_ids) == set(measured_target_ids), (
+        f"측정되지 않고 사라진 target: {set(all_target_ids) - set(measured_target_ids)} "
+        f"(measured={sorted(measured_target_ids)})"
+    )
+
+    # 핵심 불변식 — evidence run 집합 == 원장 measured 집합.
+    evidence_root = out_root / "evidence"
+    evidence_dirs = (
+        [d.name for d in evidence_root.iterdir() if d.is_dir()] if evidence_root.is_dir() else []
+    )
+    assert len(evidence_dirs) == len(measured_target_ids), (
+        f"evidence run 디렉터리 수({len(evidence_dirs)})와 원장 measured 수"
+        f"({len(measured_target_ids)})가 다르다 — 불변식 위반: "
+        f"evidence={sorted(evidence_dirs)} measured={sorted(measured_target_ids)}"
+    )
+    for tid in measured_target_ids:
+        assert any(d.startswith(tid) for d in evidence_dirs), (
+            f"{tid} 가 measured 로 기록됐는데 그 evidence 디렉터리가 없다: {evidence_dirs}"
+        )
+
+
 def test_concurrent_os_processes_real_executor_launch_total_is_one(tmp_path):
     """`_real_executor` 전체(lock 획득 → `EvidenceRun.create` → launch)를 프로세스
     2개가 동시에 두드려도 **launch 총합이 1**이어야 한다 — 이게 2026-08-27 05:14

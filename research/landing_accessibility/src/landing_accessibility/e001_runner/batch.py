@@ -426,6 +426,7 @@ class BatchRunner:
         protocol_sha: str | None = None,
         lock_dir: Path | str | None = None,
         max_lock_attempts: int = DEFAULT_MAX_LOCK_ATTEMPTS,
+        abandon_partition_on_suppression: bool = True,
     ) -> None:
         self.out_dir = Path(out_dir)
         self.fixture_root = Path(fixture_root)
@@ -453,6 +454,13 @@ class BatchRunner:
         #: 상호배제가 성립하고, FIXTURE는 `out_dir` 아래로 기본값을 잡아야 서로
         #: 무관한 테스트/실행끼리 lock 파일이 공유 디렉터리를 오염시키지 않는다.
         self._lock_dir_override = lock_dir
+        # ── `C-BLOCKER-220418`(C 의 P1, A DECISION 대기) — 되돌릴 수 있는 스위치.
+        #: `True`(권고 (a)+(c), 기본값): 이 프로세스가 억제를 한 건이라도 만나면
+        #: 그 즉시 남은 target 을 전부 포기한다. `False`로 두면 옛 동작(target별로
+        #: 독립적으로 계속 진행)으로 되돌아간다 — A 가 C 의 (b)(프로세스별 고유
+        #: batch_id, `ledger.py` 변경 필요)를 택하면 이 스위치 자체가 무의미해지고
+        #: 그때 다시 갈아엎는다. 지금은 잠정 기본값이다.
+        self.abandon_partition_on_suppression = abandon_partition_on_suppression
 
     def _resolve_lock_dir(self, *, real: bool) -> Path:
         if self._lock_dir_override is not None:
@@ -468,6 +476,117 @@ class BatchRunner:
         if real:
             return self.ticket_id or "", self.run_id or ""
         return self.ticket_id or FIXTURE_DEFAULT_TICKET_ID, self.run_id or FIXTURE_DEFAULT_RUN_ID
+
+    # ── `C-BLOCKER-220418` 권고 (a) — 억제 로그를 measured 원장과 분리 ────────
+    def _record_suppressed(self, target: TargetSpec, result: TargetResult) -> None:
+        """억제된 target 을 `BatchLedger`(측정된 것만 다루는 단일 hash 체인)에
+        섞지 않고 이 `out_dir` 전용 별도 append-only JSONL 에 남긴다.
+
+        `BatchLedger.append`는 파일 **생성**을 배타적으로 가정한다(`ledger.py`,
+        소유 파일 아님이라 그 가정을 바꾸지 않는다) — 그래서 프로세스 2개가
+        각자 다른 target 을 실측하고 각자 batch 를 봉인하려 하면 하나만 이기고
+        나머지는 `BatchOverwriteError` 로 죽어, 죽은 쪽이 **실제로 측정한**
+        target 까지 원장에서 사라진다(고아 evidence, `C-BLOCKER-220418`).
+        억제된 target 을 애초에 `_seal_batch` 에 넘기지 않고(이 프로세스가
+        측정하지 않았으니 이 프로세스의 batch 에 들어갈 자격이 없다) 여기로
+        분리하면, `_seal_batch` 가 다루는 것은 항상 "이 프로세스가 실제로
+        측정한 것"뿐이다.
+        """
+        path = self.out_dir / "suppressed_ledger.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        entry = {
+            "ts": _utc_now_iso(),
+            "target_id": target.target_id,
+            "canonical_service_key": target.canonical_service_key,
+            "idempotency_key": result.detail.get("idempotency_key"),
+            "reason": result.detail.get("duplicate_suppressed_reason"),
+            "prior_lock_state": result.detail.get("prior_lock_state"),
+            "prior_attempts": result.detail.get("prior_attempts"),
+        }
+        # 한 줄(수백 바이트) append 는 POSIX 에서 원자적이다(`PIPE_BUF` 이내) —
+        # 여러 프로세스가 같은 파일에 동시에 append 해도 줄이 섞이지 않는다.
+        # `BatchLedger`처럼 파일 생성 자체의 배타성에 기대지 않는다.
+        line = json.dumps(entry, ensure_ascii=False, sort_keys=True)
+        with open(path, "a", encoding="utf-8") as handle:
+            handle.write(line + "\n")
+
+    def _run_batches_with_partition_abandon(
+        self,
+        plan: list[TargetSpec],
+        executor: TargetExecutor,
+        execution_mode_label: str,
+        *,
+        scope: object | None = None,
+    ) -> list[BatchManifest]:
+        """`C-BLOCKER-220418`(C 의 P1) — target 을 순회하되, exactly-once 억제를
+        한 건이라도 만나면 **이 프로세스는 파티션 전체를 포기**한다(권고 (a)+(c)).
+
+        ## 문제 — 접속 단위 억제는 성립하는데 원장 귀속이 갈린다
+
+        lock 은 target 단위로만 걸린다. 프로세스 2개가 동시에 같은 파티션(같은
+        `out_dir`)을 돌면, target 소유권이 프로세스 사이로 쪼개진다 — 이
+        프로세스가 실제로 측정한 target 과 저 프로세스가 실제로 측정한 target 이
+        겹치지 않는다. 예전 코드는 각 프로세스가 자기가 측정한 것 + 억제된 것을
+        **섞어서** 자기 batch 에 담아 `_seal_batch`(→`BatchLedger.append`, 단일
+        hash 체인)를 불렀다 — 두 프로세스가 동시에 `batch_0001`을 봉인하려
+        하면 하나만 이기고 나머지는 `BatchOverwriteError`로 죽는다. **죽은
+        프로세스가 실제로 측정한 target 은 evidence 디렉터리는 있는데(고아)
+        원장 어디에도 안 남고**, 살아남은 프로세스의 원장은 그 target 들을
+        `DUPLICATE_SUPPRESSED`로 기록한다 — evidence 실체와 원장의 "measured
+        집합"이 갈린다(mart 분모 오염, protocol §13 analysis denominator
+        corruption 계열).
+
+        ## 해법(잠정 기본값 — `self.abandon_partition_on_suppression`)
+
+        이 프로세스가 **어느 target에서든** 억제를 만나는 순간, 그 즉시 남은
+        target 을 전부 포기하고(더 시도하지 않는다) 그때까지 **이 프로세스가
+        실제로 측정한** target 만 batch 로 봉인한다. 억제된 target 은
+        `_record_suppressed`로 별도 파일에 남긴다. 이렇게 하면 이 프로세스의
+        batch 는 항상 "이 프로세스가 실제로 측정한 것"과 정확히 일치한다 —
+        C 가 요구한 불변식 `evidence run 집합 == 원장 measured 집합`이 이
+        프로세스 관점에서 깨지지 않는다.
+
+        frozen_collection_order(재정렬 금지)를 지키는 정상 배치라면 두 프로세스가
+        target 을 **같은 순서**로 시도하므로, 먼저 앞선 프로세스가 계속 이기고
+        뒤처진 프로세스는 첫 target 에서부터 즉시 억제돼 **아무것도 측정하지
+        못한 채** 물러난다 — 2026-08-27 05:14 사고(동일 plan 의 중복 기동)를
+        정확히 이 형태로 막는다. **완전한 해결은 아니다**: 두 프로세스가 서로
+        다른 순서로 target 을 시도하면(plan 순서 자체가 프로세스마다 다르면)
+        여전히 부분적으로 쪼개질 수 있다 — 이를 완전히 막으려면 C 의 (b)
+        (프로세스별 고유 batch_id + run 단위 체인 재정의, `ledger.py` 변경
+        필요)가 필요하고, 그건 A 의 결정 대상이라 여기서 구현하지 않았다.
+        """
+        manifests: list[BatchManifest] = []
+        for batch_index, batch_targets in enumerate(_chunk(plan, self.batch_size), start=1):
+            measured_targets: list[TargetSpec] = []
+            measured_results: list[TargetResult] = []
+            partition_abandoned = False
+            for t in batch_targets:
+                result = self._run_target_isolated(t, executor)
+                if (
+                    self.abandon_partition_on_suppression
+                    and result.outcome == DUPLICATE_SUPPRESSED_OUTCOME
+                ):
+                    self._record_suppressed(t, result)
+                    partition_abandoned = True
+                    break
+                measured_targets.append(t)
+                measured_results.append(result)
+
+            if measured_results:
+                manifest = self._seal_batch(
+                    batch_index,
+                    measured_targets,
+                    measured_results,
+                    execution_mode_label,
+                    scope=scope,
+                )
+                manifests.append(manifest)
+
+            if partition_abandoned:
+                break
+
+        return manifests
 
     # ── 진입점 ───────────────────────────────────────────────────────────
     def run(
@@ -501,13 +620,7 @@ class BatchRunner:
 
         validate_no_real_navigation_fields_required(plan)
         executor = target_executor or self._default_fixture_executor
-
-        manifests: list[BatchManifest] = []
-        for batch_index, batch_targets in enumerate(_chunk(plan, self.batch_size), start=1):
-            target_results = [self._run_target_isolated(t, executor) for t in batch_targets]
-            manifest = self._seal_batch(batch_index, batch_targets, target_results, "FIXTURE")
-            manifests.append(manifest)
-        return manifests
+        return self._run_batches_with_partition_abandon(plan, executor, "FIXTURE")
 
     # ── 실제 수집 배치 ───────────────────────────────────────────────────
     def _run_real(
@@ -543,15 +656,7 @@ class BatchRunner:
         validate_real_target_scope_allowlist(plan, scope=scope)
         self._real_scope = scope
         executor = target_executor or self._real_executor
-
-        manifests: list[BatchManifest] = []
-        for batch_index, batch_targets in enumerate(_chunk(plan, self.batch_size), start=1):
-            target_results = [self._run_target_isolated(t, executor) for t in batch_targets]
-            manifest = self._seal_batch(
-                batch_index, batch_targets, target_results, "REAL_TARGET", scope=scope
-            )
-            manifests.append(manifest)
-        return manifests
+        return self._run_batches_with_partition_abandon(plan, executor, "REAL_TARGET", scope=scope)
 
     # ── exactly-once — REAL/FIXTURE 공유 helper (`C-FINDING-214553`) ───────
     def _acquire_launch_lock(
