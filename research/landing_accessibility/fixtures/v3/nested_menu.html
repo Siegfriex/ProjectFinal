@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+FIXTURE: nested_menu    W5E v3 offline fixture 9/13
+
+검증 대상 (`SSOTV3/04 §2` · `§5`): 메뉴 안 메뉴 — reveal 이 2단이다.
+전역 햄버거 패널을 연 뒤(OPEN_GLOBAL_MENU) 그 안의 로컬 메뉴를 한 겹 더 펼쳐야
+(OPEN_LOCAL_MENU) task control 이 노출된다.
+nav_container_depth=2 · activation_depth=3
+(task_flow = OPEN_GLOBAL_MENU > OPEN_LOCAL_MENU > SELECT_FUNCTION > ENDPOINT_REACHED).
+
+대조짝: `hamburger.html` — 컨테이너 종류(HAMBURGER)·reveal 방향(TOP)·트리거·CSS 가 같고
+**중간 reveal 한 겹**만 더 있다. task control 의 y 좌표가 그 한 겹만큼 아래로 밀리는데,
+이는 중첩 자체의 기하학적 귀결이며 별도 조작이 아니다.
+
+주의(코드북 공백): `02 §3` 의 surface 행은 nav_container_type 을 값 하나로 기록하는데,
+중첩 시 어느 컨테이너를 기록하는지 `04` 가 정하지 않는다. 여기서는 최외곽(HAMBURGER)으로
+적었고 그 사실을 matrix 의 codebook_gaps 에 남겼다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>중첩 메뉴 — W5E v3 픽스처</title>
+<style>
+ *{box-sizing:border-box}
+ [hidden]{display:none !important}
+ body{margin:0;width:390px;height:844px;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+ .hdr{margin:0;height:56px;line-height:56px;padding-left:16px;font-size:17px;
+      font-weight:600;border-bottom:1px solid #ddd}
+ .trigger{position:fixed;left:334px;top:8px;width:40px;height:40px;
+          border:0;background:transparent;color:#111;padding:0;line-height:0}
+ .ico{display:inline-block;width:22px;height:14px;
+      border-top:2px solid currentColor;border-bottom:2px solid currentColor}
+ .panel{position:fixed;left:0;top:56px;width:390px;height:200px;
+        background:#f4f6f9;border-bottom:1px solid #ccc}
+ .cat{position:fixed;left:20px;top:72px;width:200px;height:48px;
+      border:1px solid #0b4f9e;border-radius:8px;background:#fff;color:#0b4f9e;font-size:16px}
+ .task{position:fixed;left:20px;top:128px;width:200px;height:48px;
+       border:0;border-radius:8px;background:#0b4f9e;color:#fff;font-size:16px}
+</style></head>
+<body data-fixture="nested_menu">
+<h1 class="hdr">시외버스 예매</h1>
+<button type="button" class="trigger" id="open" aria-label="전체메뉴 열기" aria-expanded="false"><span class="ico" aria-hidden="true"></span></button>
+<nav class="panel" id="panel" hidden aria-label="전체메뉴">
+<button type="button" class="cat" id="cat" aria-expanded="false">고속·시외</button>
+<div class="sub" id="sub" hidden>
+<button type="button" class="task" id="entry">운행정보 조회</button>
+</div>
+</nav>
+<script>
+document.getElementById('open').addEventListener('click', function () {
+  document.getElementById('panel').hidden = false;
+  this.setAttribute('aria-expanded', 'true');
+});
+document.getElementById('cat').addEventListener('click', function () {
+  document.getElementById('sub').hidden = false;
+  this.setAttribute('aria-expanded', 'true');
+});
+</script>
+</body></html>

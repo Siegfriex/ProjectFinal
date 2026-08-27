@@ -1,0 +1,36 @@
+<!doctype html>
+<!--
+FIXTURE: icon_text    W5E v3 offline fixture 2/13
+
+검증 대상 (`SSOTV3/04 §4`): 아이콘 + 텍스트 진입 control.
+entry_label_modality=ICON_TEXT · entry_control_type=ICON_TEXT.
+아이콘 span 은 `aria-hidden="true"` 라 accessible name 계산에 기여하지 않는다 —
+그래서 accessible_name 은 여전히 visible text 와 같고 label_relation=MATCH 다.
+(`04 §7`: visible text 와 AX computed name 을 별개로 저장한다.)
+
+대조짝: `direct_text_button.html` — button 안 아이콘 span **하나만** 다르다.
+좌표(left 24 / top 120 / 160x48)·라벨 문구·나머지 DOM 은 동일하다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>아이콘+텍스트 — W5E v3 픽스처</title>
+<style>
+ *{box-sizing:border-box}
+ [hidden]{display:none !important}
+ body{margin:0;width:390px;height:844px;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+ .hdr{margin:0;height:56px;line-height:56px;padding-left:16px;font-size:17px;
+      font-weight:600;border-bottom:1px solid #ddd}
+ .note{margin:76px 16px 0;font-size:14px;color:#444;line-height:1.5}
+ .task{position:fixed;left:24px;top:120px;width:160px;height:48px;
+       border:0;border-radius:8px;background:#0b4f9e;color:#fff;font-size:16px}
+ .ico{display:inline-block;width:16px;height:16px;vertical-align:-2px;
+      margin-right:6px;border:2px solid currentColor;border-radius:50%}
+</style></head>
+<body data-fixture="icon_text">
+<h1 class="hdr">시외버스 예매</h1>
+<main class="page">
+<p class="note">첫 화면에서 과업 진입 control 이 아이콘과 텍스트로 함께 보인다.</p>
+<button type="button" class="task" id="entry"><span class="ico" aria-hidden="true"></span>운행정보 조회</button>
+</main>
+</body></html>
