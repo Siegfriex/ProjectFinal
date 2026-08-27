@@ -1,0 +1,327 @@
+{
+ "cycle": "V2-C015",
+ "auditor": "adversarial",
+ "audit_type": "focused confirmation audit of control's V2-C015 remediation of adversarial V2-C014 P0 (abrr-grant-branch-tip-resolved-from-locally-forgeable-tracking-ref)",
+ "target_sha_control": "418a91ab9211fc4dae5268cc10a551c4219a0d24",
+ "target_branch_control": "control/landing-orchestrator",
+ "target_sha_exec": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+ "target_branch_exec": "agent/landing-v2-exec",
+ "prev_control_sha": "a10663e893160ca33bd0f9d2b92a3c9867d22f40",
+ "prev_adversarial_audit": "V2-C014 FAIL (P0 1 / P1 0 / P2 1) · 2665d98b6312571d4b401652888580cf1534e1f6",
+ "audit_branch": "audit/landing-adversarial",
+ "phase": "P0_V2_REFREEZE",
+ "gate": "V2_SSOT_FROZEN",
+ "verdict": "PASS",
+ "counts": {
+  "P0": 0,
+  "P1": 0,
+  "P2": 0,
+  "blocking": 0
+ },
+ "scope": {
+  "authority": "orchestrator, A0 §16 P0 STOP RULE",
+  "items": [
+   "1 my exploit (forged tracking ref + dangling commit) now blocked?",
+   "2 legitimate grant fed3e70 no regression (highest priority)",
+   "3 H-1..H-5 no regression (re-run the V2-C014 23-case suite)",
+   "4 fail-closed path does not break normal operation"
+  ],
+  "explicitly_not_done": [
+   "new attack-surface exploration",
+   "fuzz expansion / new mutation design",
+   "exec re-audit"
+  ],
+  "exec_reaudited": false,
+  "exec_note": "exec bc0b7a0 byte-unchanged and already audited in V2-C013; out of scope by instruction"
+ },
+ "fast_exit": {
+  "applied": true,
+  "blocking_categories_only": [
+   "A evidence-integrity break",
+   "B authority-bypass canonical-promotion",
+   "C measurement-semantics contradiction"
+  ],
+  "which_category_found": null
+ },
+ "diff_scope": {
+  "control_files": 2,
+  "control_changed": [
+   "research/landing_accessibility/scripts/promote_landing_main.sh (+28/-17)",
+   "research/landing_accessibility/control/TIMEBOX_1630_EXECUTION_SSOT.md (new, non-code)"
+  ],
+  "exec_files": 0,
+  "pilot_files": 0
+ },
+ "remediation_read_directly": {
+  "local_tracking_ref_rev_parse_path": "REMOVED entirely from _resolve_branch_tip()",
+  "single_tip_source": "git ls-remote origin refs/heads/<br>",
+  "on_empty_or_failure": "die() with no fallback (fail-closed)",
+  "object_availability": "git fetch --quiet origin refs/heads/<br> after tip resolution; fetch failure also dies",
+  "docstring_factual_error_corrected": true,
+  "matches_auditor_prescription": "exactly -- V2_C014.md §2.7 prescribed ls-remote as first-and-only source, die on remote absence, fetch, then merge-base; and correcting the '[AUDIT_ANCESTRY] 와 같은 원천·순서' misdescription"
+ },
+ "verification_method": {
+  "extraction": "Same as V2-C014: sliced the (D) block with the script's own DR_HEAD_BEGIN/END, DR_D_BEGIN, DR_D_SKIP_BEGIN/END, DR_D_END, DR_D2_BEGIN/END markers; zero bytes edited.",
+  "repo_arg": "/home/sieg/projects-wsl/ProjectFinal (identical to hardcoded REPO= at promote_landing_main.sh:91)",
+  "probe_objects": "Reused the SAME dangling commits from V2-C014 after confirming they still exist (git cat-file -t -> commit) and are still unreachable (git for-each-ref --contains -> 0 lines)"
+ },
+ "scope_item_results": {
+  "1_exploit_blocked": {
+   "result": "PASS -- all four variants blocked",
+   "variants": [
+    {
+     "id": "1a",
+     "name": "V2-C014 exploit A (forged tracking ref)",
+     "method": "git update-ref refs/remotes/origin/audit/landing-c014probe c64266f2813f7fa10b7fafc4fcd93f9e3a2a3812; accepted_by_audit_branch=audit/landing-c014probe (confirmed absent on origin via ls-remote)",
+     "outcome": "BLOCKED",
+     "die": "...tip 을 ls-remote 로 확인할 수 없다 — 로컬 원격추적 ref 로 폴백하지 않는다(위조 가능) ... (fail-closed)"
+    },
+    {
+     "id": "1b",
+     "name": "V2-C014 exploit B (L-2 combined end-to-end self-approval)",
+     "method": "_ABRR_CANON patched with invented id brand-new-p0-finding-self-exempted-c014 + invented finding + dangling grant 0b2cf39f97b01e01fb676856f833bcb96eb13379 + forged tracking ref audit/landing-c014probe2 + genuine per-condition C-1 evidence 0dfb6d5",
+     "outcome": "BLOCKED",
+     "note": "the complete self-approval bypass is closed"
+    },
+    {
+     "id": "1c",
+     "name": "T6 canonical tracking-ref poisoning",
+     "method": "repointed refs/remotes/origin/audit/landing-adversarial at the dangling commit",
+     "outcome": "BLOCKED",
+     "note": "ls-remote read the LIVE tip 2665d98b6312571d4b401652888580cf1534e1f6 and ignored the poisoned local ref -- exactly the intended behavior"
+    },
+    {
+     "id": "1d",
+     "name": "original V2-C013 exploit (plain dangling, no ref forgery)",
+     "method": "dangling commit injected as accepted_by_audit_sha only",
+     "outcome": "BLOCKED",
+     "die": "ancestry check"
+    }
+   ]
+  },
+  "2_legitimate_grant_no_regression": {
+   "result": "PASS",
+   "detail": "Unmodified real ledger -> RC=0, orch_blocking=0, rc-6-r1 accepted, lapsed=[]. All three condition evidences verified against the live tip: C-1:0dfb6d5 (V2_C011.json verdict=SATISFIED), C-2:56f69f3 (V2_C008.json state=MET), C-5-1:30093b4 (V2_C010.json state=이행). Promotion path is NOT blocked."
+  },
+  "3_h1_h5_no_regression": {
+   "result": "PASS",
+   "case_count": 23,
+   "matched": 23,
+   "regressions": 0,
+   "note": "Exact re-run of the V2-C014 suite against the fixed code; no new mutations designed. Die messages fire at the same points as in V2-C014 -- no drift in blocking reasons."
+  },
+  "4_fail_closed_does_not_break_normal_operation": {
+   "result": "PASS",
+   "bash_n": "OK",
+   "py_compile": "OK",
+   "d_block_completes": "RC=0",
+   "wall_time_seconds": 3.25,
+   "network_calls_measured_via_git_wrapper": {
+    "ls_remote": 3,
+    "fetch": 3,
+    "total_git_calls": 50
+   },
+   "bounded": "call count is proportional to the number of DISTINCT declared branches and capped by the _AUDIT_TIPS / _DECLARED_BRANCH_TIPS caches; no unbounded growth",
+   "no_new_dependency_class": "promotion already required network and already forbade offline passage -- [REC_REMOTE_AUTHORITY] lines 282/290 and [AUDIT_ANCESTRY] lines 489/493 both ls-remote+fetch and the script states '오프라인 통과 금지 — fail-closed'. This change introduces no new KIND of dependency."
+  }
+ },
+ "non_blocking_observations": [
+  {
+   "observation": "audit/landing-adversarial is resolved twice per run (once through _AUDIT_TIPS, once through _DECLARED_BRANCH_TIPS), costing 2 extra network round-trips (ls-remote + fetch).",
+   "assessment": "NOT a defect. The cache separation is the deliberate anti-contamination design I verified in V2-C014 §4.1. Correctness unaffected. Recorded only.",
+   "blocking": false
+  }
+ ],
+ "regression_check": {
+  "independently_rerun_by_auditor": true,
+  "case_count": 23,
+  "matched_expectation": 23,
+  "regressions": 0,
+  "cases": [
+   {
+    "case": "00-baseline",
+    "expect": "PASSED",
+    "got": "PASSED"
+   },
+   {
+    "case": "N0-compound bare collapse",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (C-6 lapse)"
+   },
+   {
+    "case": "N1-compound owner exec->control",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-2)"
+   },
+   {
+    "case": "N2 delete condition C-5-1",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-1)"
+   },
+   {
+    "case": "N3-compound due_before lowercase",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "N4 due_before null",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-1)"
+   },
+   {
+    "case": "N5 audit_sha garbage 'x'",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-3)"
+   },
+   {
+    "case": "N6-compound gate token 'DECLARED / FROZEN'",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-4)"
+   },
+   {
+    "case": "N7-compound due_before trailing space",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "N8-compound state SATISFIED_PENDING_AUDIT",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "N9 gates.E001_V2=ACHIEVED",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-5)"
+   },
+   {
+    "case": "06 counted_as_open=false without evidence",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "07 ABRR missing accepted_by_audit_sha",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "08 ABRR id absent from _ABRR_CANON",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "09 accepted_residual_ids emptied",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (DR_D2)"
+   },
+   {
+    "case": "10 exclusion_line removed",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (DR_D2)"
+   },
+   {
+    "case": "11 accepted counter mismatch",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (DR_D2)"
+   },
+   {
+    "case": "12 gates.V2_SSOT_FROZEN key deleted",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-4)"
+   },
+   {
+    "case": "13 superset condition C-7 added",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-1)"
+   },
+   {
+    "case": "14 vocabulary lapse_rule removed",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "15 precedent_limits_satisfied.i = NO",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (C-6-2)"
+   },
+   {
+    "case": "16 accepted_by_audit_report swapped",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "C6 declaration scenario V2_SSOT_FROZEN=ACHIEVED",
+    "expect": "PASSED (no lapse)",
+    "got": "PASSED"
+   }
+  ]
+ },
+ "prior_findings_status": [
+  {
+   "id": "abrr-grant-branch-tip-resolved-from-locally-forgeable-tracking-ref",
+   "from": "adversarial V2-C014",
+   "severity": "P0",
+   "adjudication": "CLOSED",
+   "blocking": false,
+   "reasoning": "Both live exploits that constituted this finding (forged-tracking-ref standalone, and the L-2 combined end-to-end self-approval) were re-run verbatim against 418a91a and BOTH are blocked. The root cause -- the local-tracking-ref fallback path -- was REMOVED from the code, not merely mitigated. The implementation matches the minimal remediation I prescribed in V2_C014.md §2.7 exactly (ls-remote as first-and-only source, die on remote absence, fetch for object availability), and the factually-incorrect docstring was corrected. Deducting this from the ledger is warranted."
+  },
+  {
+   "id": "abrr-accepted-by-audit-sha-not-ancestor-checked",
+   "from": "adversarial V2-C013",
+   "severity": "P0",
+   "adjudication": "CLOSED",
+   "blocking": false,
+   "reasoning": "In V2-C014 I refused to close this as REMEDIATION_INSUFFICIENT for exactly one reason: the ancestry check's reference point (the branch tip) was itself forgeable, so the security property the finding protected was not restored. That premise is now eliminated. The original exploit (variant 1d) and every successor variant (1a, 1b, 1c) are blocked, and the tip now comes from the live remote. The protected property -- grant evidence must come from genuine audit lineage -- actually holds. Deducting this from the ledger is warranted."
+  },
+  {
+   "id": "min-4-dom-order-uniqueness-constraint-references-undefined-document-column",
+   "from": "adversarial V2-C013",
+   "severity": "P2",
+   "adjudication": "OPEN (unchanged)",
+   "blocking": false,
+   "reasoning": "exec byte-unchanged at bc0b7a0; PRE_E001_NONBLOCKING backlog; outside this cycle's scope"
+  },
+  {
+   "id": "abrr-grant-report-scan-accepts-nested-grant-shaped-objects",
+   "from": "adversarial V2-C014",
+   "severity": "P2",
+   "adjudication": "OPEN (unchanged)",
+   "blocking": false,
+   "reasoning": "abrr_grant_hits() is byte-unchanged in this diff; measured non-exploitable in V2-C014 §4.3; outside this cycle's scope"
+  }
+ ],
+ "invariants": {
+  "pilot_files_changed": 0,
+  "exec_files_changed": 0,
+  "exec_tip": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+  "control_tip": "418a91ab9211fc4dae5268cc10a551c4219a0d24",
+  "abrr_canon_and_h1_h5_unchanged_in_diff": true
+ },
+ "artifacts_cleanup": {
+  "forged_tracking_refs_created": [
+   "refs/remotes/origin/audit/landing-c014probe",
+   "refs/remotes/origin/audit/landing-c014probe2",
+   "refs/remotes/origin/audit/landing-adversarial (temporarily repointed for variant 1c)"
+  ],
+  "all_deleted_or_restored": true,
+  "final_state_measured": "git for-each-ref 'refs/remotes/origin/audit/*' -> exactly 3: landing-adversarial=2665d98b6312571d4b401652888580cf1534e1f6, landing-adversarial-codex-c004=1d96a48665c4c5d81625982eaba351b0f0d38968, landing-ssot=dbdb047b667f72d8187b7043e55ab61c2dc1546d",
+  "cross_checked_against_live_origin": "all three values match `git ls-remote origin 'refs/heads/audit/*'` exactly -- no forged residue",
+  "dangling_probe_commits": [
+   "c64266f2813f7fa10b7fafc4fcd93f9e3a2a3812",
+   "0b2cf39f97b01e01fb676856f833bcb96eb13379"
+  ],
+  "dangling_probe_reachability": "git for-each-ref --contains -> 0 lines each; never pushed; eligible for natural gc"
+ },
+ "not_done": [
+  "new attack-surface exploration",
+  "fuzz expansion / new mutation design",
+  "exec re-audit",
+  "full re-audit",
+  "running promote_landing_main.sh itself (including --dry-run)",
+  "live website access",
+  "reading or modifying Pilot",
+  "writing to other worktrees",
+  ".git/hooks/ modification",
+  "ssot-scope adjudication",
+  "untracked draft V2_C004.{md,json}"
+ ]
+}
