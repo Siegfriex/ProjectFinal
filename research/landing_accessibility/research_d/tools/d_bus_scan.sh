@@ -24,6 +24,19 @@ print(f"  verdict          : {ctl['verdict']}")
 print(f"  positive control : {ctl['positive']['detected']}/{ctl['positive']['expected']} 검출")
 print(f"  negative control : {ctl['negative']['not_detected']}/{ctl['negative']['expected']} 미검출(과탐 0)")
 print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['expected']} 명시 오류")
+# --- D 자기 발행분 base_sha 상주 감사 (Δ26 / T-A-V3-STEP1-024) ---
+try:
+    from d_emit_ticket import audit_emitted
+    au = audit_emitted()
+    print(f"\n=== D 발행분 base_sha ({au['v3_era']} v3-era / {au['n']}) : {au['verdict']} ===")
+    for r in au["v3_era_non_resolving"]:
+        print(f"   {r['state']:<9} {r['file']}")
+    if au["verdict"] != "PASS":
+        errs.append({"file": "(D 발행분)", "error": "v3 이후 base_sha 해석 불가"})
+except Exception as _e:
+    print(f"\n=== D 발행분 base_sha : 검사 실패 {_e} ===")
+    errs.append({"file": "(D 발행분)", "error": f"base_sha 감사 실행 실패: {_e}"})
+
 if ctl["verdict"] != "PASS":
     print("  !! SCANNER VERDICT INVALID — 아래 결과를 신뢰하지 마라")
     for x in ctl["failures"]:
