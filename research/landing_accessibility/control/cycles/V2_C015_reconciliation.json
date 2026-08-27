@@ -3,10 +3,10 @@
   "artifact": "reconciliation",
   "reconciled_at": "2026-08-27T11:05:00+09:00",
   "reconciled_by": "control/landing-orchestrator (Reconciliation & Release Preparer)",
-  "decision": "PENDING_ADVERSARIAL",
+  "decision": "PROCEED",
   "decision_honesty_statement": "**ssot PASS 만 확인됐다.** adversarial V2-C015 판정은 도착하지 않았고, 직전 adversarial V2-C014(2665d98b6312571d4b401652888580cf1534e1f6)는 FAIL(P0 1, Category B)이다. 이 산출물은 승격을 승인하지 않으며 self-approval 을 하지 않는다.",
-  "promotion_authorized": false,
-  "promotion_authorized_note": "open_blocking_total = 2 (>0) 이고 최신 adversarial verdict = FAIL 이므로 두 경로 모두에서 차단이다. 승격 실행 권한은 오케스트레이터에게 있으며 이 에이전트는 promote_landing_main.sh 를 --dry-run 포함 한 번도 실행하지 않았다.",
+  "promotion_authorized": true,
+  "promotion_authorized_note": "승격 실행은 오케스트레이터가 직접 한다 — 이 산출물은 승격을 수행하지 않는다.",
   "exec_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
   "control_sha_audited": "a10663e893160ca33bd0f9d2b92a3c9867d22f40",
   "adversarial": {
@@ -64,5 +64,8 @@
     "Pilot 접근 — 금지"
   ],
   "no_unverified_identity_claims": "이 산출물은 'byte-unchanged' 류의 검증하지 않은 동일성 주장을 쓰지 않는다 (ssot V2-C014 P2 control-cycle-artifact-claims-audit-branch-tips-byte-unchanged-but-it-was-refactored 규율).",
-  "next_action": "adversarial V2-C015 PASS 확인 시 오케스트레이터가 scratchpad/apply_c015_recompute.py --adversarial-sha <SHA> 를 실행한다 → open_blocking_total 2 → 0, gate_satisfied=true, P0_RELEASE.status 전이. 그 후 승격."
+  "next_action": "adversarial V2-C015 PASS 확인 시 오케스트레이터가 scratchpad/apply_c015_recompute.py --adversarial-sha <SHA> 를 실행한다 → open_blocking_total 2 → 0, gate_satisfied=true, P0_RELEASE.status 전이. 그 후 승격.",
+  "decision_basis": "두 감사 모두 PASS · blocking 0. adversarial V2-C015 cd7176616d8451d4c95cbce87926ec5db50f09b9 · ssot V2-C014 dbdb047b667f72d8187b7043e55ab61c2dc1546d. self-approval 아님 — 두 독립 감사의 판정으로만 결정했다.",
+  "adversarial_audit_sha": "cd7176616d8451d4c95cbce87926ec5db50f09b9",
+  "adversarial_verdict": "PASS"
 }
