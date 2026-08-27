@@ -15,10 +15,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 from pathlib import Path
 
 BUS = Path("/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2")
+_HEX40 = re.compile(r"[0-9a-f]{40}")
 FORBIDDEN_TYPES = {"GO", "NO_GO", "NO-GO", "BLOCKER", "DIRECTIVE", "SUPERSEDE"}
 
 
@@ -51,7 +53,32 @@ def check(t: dict) -> list[str]:
         errs.append("claim_kind 누락")
     if not t.get("limitation") and not t.get("known_limitation"):
         errs.append("limitation 누락 — 한계 없는 보고는 발행하지 않는다")
+
+    # 본문 어디의 40자 hex 든 실재 커밋이어야 한다 (B 의 b_ticket_precheck 에서 채택).
+    # base_sha 만 보면 본문에 적은 증거 sha 의 조작·오타는 통과한다. B 가 실제로
+    # 축약 sha 에 0 을 채운 값을 발행했다(T-B-V3-FINDING-007-SHANOTE).
+    # `old_`·`_before` 는 **틀린 값을 증거로 보존한 필드**라 예외다 — 고치면 증거가 사라진다.
+    for path, val in _walk(t):
+        if not (isinstance(val, str) and _HEX40.fullmatch(val)):
+            continue
+        leaf = path.rsplit(".", 1)[-1]
+        if leaf.startswith("old_") or leaf.endswith("_before") or "superseded" in leaf:
+            continue
+        if subprocess.run(["git", "cat-file", "-e", f"{val}^{{commit}}"],
+                          capture_output=True).returncode != 0:
+            errs.append(f"본문 sha 가 실재 커밋이 아니다: {path} = {val}")
     return errs
+
+
+def _walk(o, p: str = ""):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            yield from _walk(v, f"{p}.{k}" if p else str(k))
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            yield from _walk(v, f"{p}[{i}]")
+    else:
+        yield p, o
 
 
 def emit(t: dict, *, dry_run: bool = False) -> dict:
