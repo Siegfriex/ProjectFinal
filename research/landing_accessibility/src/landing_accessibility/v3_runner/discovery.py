@@ -53,8 +53,9 @@ candidates`가 돌려주는 evidence용 랭킹에 적용되고, (2) Scout 자신
 
 from __future__ import annotations
 
+import dataclasses
 import sys
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
@@ -88,6 +89,12 @@ from landing_accessibility.engine.l1_engine import (  # noqa: E402
 from landing_accessibility.engine.vocabulary import (  # noqa: E402
     InteractionArchetype,
     RegionSignalType,
+)
+
+from .tiebreak import (  # noqa: E402
+    TASK_BINDING_CANDIDATE_SOURCE_ABSENT,
+    V3_TIEBREAK_TOTAL_ORDER,
+    v3_tiebreak_sort_key,
 )
 
 
@@ -208,8 +215,18 @@ class PathSelectionPolicy:
     sort_key: Callable[[dict[str, Any]], tuple[Any, ...]]
 
 
-#: 기본 정책 — `min4_sort_key`를 그대로 감싼다(재구현하지 않는다).
+#: **v2 정책** — `min4_sort_key`를 그대로 감싼다(재구현하지 않는다). 1차 키가
+#: `marked_primary` 라서 **v3 의 기본값이 아니다**(`Δ30` 이 그 키를 퇴역시켰다).
+#: v2 산출과 대조할 때만 명시적으로 주입해서 쓴다.
 MIN4_POLICY = PathSelectionPolicy(name="MIN-4", sort_key=min4_sort_key)
+
+#: **v3 기본 정책** (`Δ30`) — `(task_binding_candidate desc, dom_order asc, selector asc)`.
+#: `tiebreak.py` 가 정본이고 여기서는 감싸기만 한다. 1차 키 소스가 트리에 없다는 측정
+#: 사실은 `TASK_BINDING_CANDIDATE_SOURCE_ABSENT` 에 적혀 있다.
+V3_TIEBREAK_POLICY = PathSelectionPolicy(name="Δ30-V3-TIEBREAK", sort_key=v3_tiebreak_sort_key)
+
+#: `Δ30` 승계 이후 v3 경로선택의 기본값. **`MIN4_POLICY` 가 아니다.**
+DEFAULT_V3_PATH_POLICY = V3_TIEBREAK_POLICY
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -275,10 +292,34 @@ def _infer_fixture_input_mode(candidate: Mapping[str, Any]) -> FixtureInputMode 
 # TaskCandidate — discovery 결과 한 건
 # ══════════════════════════════════════════════════════════════════════════
 @dataclass(frozen=True)
-class TaskCandidate:
+class TaskCandidate(Mapping[str, Any]):
     """`discover_task_candidates`가 돌려주는 후보 하나. `raw`는 probe 원본을
     그대로 보존한다(존재 evidence, `D-R0-03`) — 이 dataclass 의 다른 필드는
     그 원본에서 뽑은 것일 뿐 새 관측이 아니다.
+
+    ## `Mapping` 인 이유 (`Δ32` P0 시정)
+
+    `runner.CandidateBinder.bind` 는 `Sequence[Mapping[str, Any]]` 를 선언하고,
+    `runner.ScoutStrategy.propose_next` 와 `V3Runner.run` 의 `candidates` 도 같은
+    타입이다 — **통합 소유자(W5F runner)가 세 자리에서 같은 계약을 선언**한다. 이
+    클래스가 평범한 dataclass 이던 동안 `MinPathScoutStrategy.propose_next` 의
+    `isinstance(c, Mapping)` 이 전건을 탈락시켰고, 결과는 예외도 refusal 도 없는
+    **깨끗한 0-activation 행**이었다(`Δ32` 측정).
+
+    **어느 쪽을 맞출지의 판단**: 선언된 계약(`Mapping`)이 이긴다. 근거 셋 —
+    ① 계약이 세 자리에 선언돼 있고 구현은 한 자리다. ② `Mapping` 이 더 넓은 구조적
+    타입이라 이 클래스가 그것을 만족해도 **어떤 소비자도 잃는 것이 없다**(dataclass
+    속성 접근 `c.selector` 는 그대로 살아 있고, W5D1 자신의 테스트가 그것을 쓴다).
+    ③ 반대로 `discover_task_candidates` 가 평범한 dict 를 내도록 바꾸면 `guard_state`
+    ·`usable`·`rank`·`fixture_input_mode` 같은 파생 판정이 **타입 없는 문자열 키로
+    흩어져** 소비자가 스키마를 다시 추측하게 된다 — 그건 계약을 넓히는 게 아니라 없애는
+    것이다.
+
+    Mapping view 는 `raw`(probe 원본) 키 위에 이 dataclass 의 필드를 덮어쓴 것이다.
+    `in_list_container` 처럼 dataclass 필드가 아닌 probe 신호도 그대로 읽힌다 —
+    `scout_strategy._classify_action_token` 이 그 키를 본다. `raw` 자신은 view 에
+    넣지 않는다(자기 중첩 방지). **값을 새로 만들지 않는다** — 이 view 는 표현 변경일
+    뿐 관측 추가가 아니다.
     """
 
     selector: str
@@ -304,6 +345,24 @@ class TaskCandidate:
     #: (`_infer_fixture_input_mode`), 신호가 없으면 `None`이다(추측하지 않는다).
     fixture_input_mode: FixtureInputMode | None
     raw: dict[str, Any] = field(repr=False)
+
+    # ── `Mapping` 구현 — 계약을 만족시키기 위한 읽기전용 view ──────────────
+    def _mapping_view(self) -> dict[str, Any]:
+        view: dict[str, Any] = dict(self.raw)
+        for f in dataclasses.fields(self):
+            if f.name == "raw":
+                continue
+            view[f.name] = getattr(self, f.name)
+        return view
+
+    def __getitem__(self, key: str) -> Any:
+        return self._mapping_view()[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._mapping_view())
+
+    def __len__(self) -> int:
+        return len(self._mapping_view())
 
 
 _USABLE_STATES = frozenset(
@@ -337,7 +396,7 @@ def discover_task_candidates(
     보장하는 선택**이다: Scout 자신도 그 두 raw feature 군을 전혀 보지 않으므로,
     거기 있는 요소를 후보로 냈어도 Scout 는 절대 클릭할 수 없다.
     """
-    resolved_policy = policy or MIN4_POLICY
+    resolved_policy = policy or DEFAULT_V3_PATH_POLICY
     raw_candidates = list(probe_state.get("primary_action_candidates") or [])
 
     ranked = sorted(raw_candidates, key=resolved_policy.sort_key)
@@ -410,7 +469,7 @@ def run_task_aware_scout(
     안전 계약이다(그 함수를 재구현하지 않고 같은 guard 함수를 그대로 쓴다).
     """
     resolved_budget = budget or ScoutBudget()
-    resolved_policy = policy or MIN4_POLICY
+    resolved_policy = policy or DEFAULT_V3_PATH_POLICY
     task_id = str(_tc_get(task_contract, "task_id") or "")
     fixture_name = str(
         _tc_get(task_contract, "fixture_json") or _tc_get(task_contract, "fixed_fixture") or ""
@@ -464,7 +523,11 @@ def run_task_aware_scout(
 
 
 __all__ = [
+    "DEFAULT_V3_PATH_POLICY",
     "MIN4_POLICY",
+    "TASK_BINDING_CANDIDATE_SOURCE_ABSENT",
+    "V3_TIEBREAK_POLICY",
+    "V3_TIEBREAK_TOTAL_ORDER",
     "FixtureInputMode",
     "PathSelectionPolicy",
     "TaskCandidate",

@@ -68,8 +68,15 @@ from dataclasses import dataclass
 from typing import Any
 
 from .contracts import TaskContract
-from .discovery import MIN4_POLICY, PathSelectionPolicy
-from .runner import CANONICAL_ACTION_TOKENS, FlowStep, PlannedAction, SurfaceObservation
+from .discovery import DEFAULT_V3_PATH_POLICY, PathSelectionPolicy
+from .runner import (
+    BRANCH_ELIGIBLE_TOKENS,
+    CANONICAL_ACTION_TOKENS,
+    CandidateBindingContractError,
+    FlowStep,
+    PlannedAction,
+    SurfaceObservation,
+)
 from .safety import ActivationSafetyGuard
 
 
@@ -128,6 +135,15 @@ def default_stop_policy(*, max_activations: int = 8) -> ScoutStopPolicy:
     )
 
 
+class ScoutBranchSetError(ValueError):
+    """`Δ30-branch` — 분기 후보로 낼 수 없는 `action_token` 이다.
+
+    `[Δ30 인용]` *"분기 후보 = `Δ9` 의 IN 10종 + CONDITIONAL 3종(control 활성화인 경우).
+    `INPUT_QUERY` · `DISMISS_OBSTRUCTION` · `AUTH_GATE` · `ENDPOINT_REACHED` · `ABSTAIN` 은
+    분기 대상이 아니다."* / *"popup 닫기를 분기 후보에 넣으면 닫기가 depth 로 세어진다."*
+    """
+
+
 # ══════════════════════════════════════════════════════════════════════════
 # candidate → action_token — 구조 신호만 쓴다(대표기능을 추론하지 않는다)
 # ══════════════════════════════════════════════════════════════════════════
@@ -153,10 +169,21 @@ def _classify_action_token(candidate: Mapping[str, Any]) -> str:
     """
     role = str(candidate.get("role") or "").strip().lower()
     if role == "tab":
-        return "SWITCH_TAB"
-    if candidate.get("in_list_container"):
-        return "SELECT_RESULT"
-    return "SELECT_FUNCTION"
+        token = "SWITCH_TAB"
+    elif candidate.get("in_list_container"):
+        token = "SELECT_RESULT"
+    else:
+        token = "SELECT_FUNCTION"
+    # `Δ30-branch` — **분기 대상 집합 = depth 집합**(`Δ9` IN 10 + CONDITIONAL 3).
+    # 이 함수가 `DISMISS_OBSTRUCTION` 같은 OUT 토큰을 내면 그 조작이 depth 로 세어진다.
+    # 지금은 셋 다 IN 집합 안이며, 그 사실을 이 자리에서 강제한다(현재 아무것도 그것을
+    # 붙들고 있지 않았다).
+    if token not in BRANCH_ELIGIBLE_TOKENS:
+        raise ScoutBranchSetError(
+            f"{token} 은 Δ30-branch 의 분기 대상 집합 밖이다 — 분기 후보로 내면 "
+            "그 조작이 activation_depth 로 세어진다 (Δ9 OUT 5종은 분기 대상이 아니다)"
+        )
+    return token
 
 
 def _to_planned_action(candidate: Mapping[str, Any]) -> PlannedAction:
@@ -200,7 +227,7 @@ class MinPathScoutStrategy:
         stop_policy: ScoutStopPolicy | None = None,
         safety_guard_factory: Callable[[TaskContract], ActivationSafetyGuard] | None = None,
     ) -> None:
-        self.policy = policy or MIN4_POLICY
+        self.policy = policy or DEFAULT_V3_PATH_POLICY
         self.stop_policy = stop_policy or default_stop_policy()
         self._safety_guard_factory = safety_guard_factory or (
             lambda contract: ActivationSafetyGuard(contract)
@@ -229,12 +256,26 @@ class MinPathScoutStrategy:
         if self.stop_policy.should_stop(contract, states, taken):
             return None
 
+        # `Δ32-R30` — 형태 위반을 **조용히 건너뛰지 않는다.** 예전에는 여기서
+        # `isinstance(c, Mapping)` 로 전건을 걸러 `None` 을 반환했고, runner 가 그것을
+        # 정상 종료로 읽어 "깨끗한 0-activation 행"이 나왔다. 계약 위반은 관측이 아니다.
+        offenders = [
+            (index, type(c).__name__)
+            for index, c in enumerate(candidates)
+            if not isinstance(c, Mapping)
+        ]
+        if offenders:
+            raise CandidateBindingContractError(
+                f"propose_next 가 Mapping 이 아닌 후보를 받았다 (총 {len(candidates)} 건 중 "
+                f"{len(offenders)} 건): {offenders[:5]}. Δ32 — 계측기 결함이지 관측이 아니다."
+            )
+
         taken_selectors = {s.control_selector for s in taken if s.control_selector}
         guard = self._guard_for(contract)
         observed_selectors = self._observed[self._contract_key(contract)]
 
         ranked = sorted(
-            (c for c in candidates if isinstance(c, Mapping) and c.get("selector")),
+            (c for c in candidates if c.get("selector")),
             # `PathSelectionPolicy.sort_key`는 `dict[str, Any]`로 타입돼 있다
             # (`discovery.py`, `min4_sort_key`와 시그니처를 맞췄다) — `candidates`는
             # `Mapping`(Protocol 계약)이라 `dict()`로 좁혀서 넘긴다. `min4_sort_key`
@@ -270,8 +311,10 @@ class MinPathScoutStrategy:
 
 
 __all__ = [
+    "BRANCH_ELIGIBLE_TOKENS",
     "CANONICAL_ACTION_TOKENS",
     "MinPathScoutStrategy",
+    "ScoutBranchSetError",
     "ScoutStopPolicy",
     "default_stop_policy",
 ]

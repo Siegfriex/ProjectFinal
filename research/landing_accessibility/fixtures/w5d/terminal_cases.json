@@ -5,7 +5,9 @@
     "competing 이 비어 있지 않은 case 는 '두 신호가 동시에 참일 때 하나로 합치지 않는다' 를 검정한다.",
     "R1 — 'TASK_COMPARABILITY_CONCERN' 은 terminal 이 아니라 finding 이다. 그런 target 은 frame 에 남고, 과업 수행이 불가능하면 endpoint_status=ABSTAIN 또는 endpoint_status=PUBLIC_WEB_UNOBSERVABLE 로 떨어진다.",
     "R6-Q8 — 값 AUTH_GATE / ABSTAIN 은 층을 명시해 쓴다. 이 파일에서는 JSON 키('terminal' / 'endpoint_status')가 층을 한정한다.",
-    "T-A-V3-STEP1-007 R11 — 각 case 의 expect 는 terminal_reason 도 갖는다. endpoint_status × terminal_reason 허용 조합표는 ALLOWED_ENDPOINT_STATUS_REASONS 가 정본이다."
+    "T-A-V3-STEP1-007 R11 — 각 case 의 expect 는 terminal_reason 도 갖는다. endpoint_status × terminal_reason 허용 조합표는 ALLOWED_ENDPOINT_STATUS_REASONS 가 정본이다.",
+    "Δ30 — terminal_reason 에 BUDGET_EXCEEDED(14번째) 추가. MIN-7: 예산 소진은 최소가 아니라 관측 없음이며 예산값을 대입하지 않는다.",
+    "Δ32 — terminal_reason 에 NO_TASK_CANDIDATE_FOUND(15번째) 추가. 페이지에 후보 control 이 실제로 없는 것은 관측이고, binder 계약 위반은 관측이 아니라 RunnerError 다. 두 사건은 같은 값이 되지 않는다."
   ],
   "cases": [
     {
@@ -499,6 +501,104 @@
         "resolution": "TERMINAL",
         "auth_gate_stage": "NONE",
         "competing_signals": []
+      }
+    },
+    {
+      "case_id": "budget_exceeded_is_absence_of_observation_not_a_minimum",
+      "note": "Δ30 / A1 §2.6 MIN-7 — 수집 예산을 소진해 멈췄다. 최소 activation 수가 아니라 관측 없음이다. 예산값(숫자)은 어디에도 대입하지 않는다.",
+      "signals": {
+        "evidence_complete": true,
+        "scout_budget_exhausted": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "ABSTAIN",
+        "resolution": "UNDETERMINED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "BUDGET_EXCEEDED"
+      }
+    },
+    {
+      "case_id": "budget_exceeded_does_not_override_a_real_terminal",
+      "note": "대조군 — 예산 소진과 terminal 관측이 함께 참이면 terminal 이 이긴다. 예산 소진 사실은 notes 로 남고 합쳐지지 않는다(MIN-7 은 관측을 덮지 않는다).",
+      "signals": {
+        "evidence_complete": true,
+        "scout_budget_exhausted": true,
+        "auth_required_to_proceed": true
+      },
+      "expect": {
+        "terminal": "AUTH_GATE",
+        "endpoint_status": "AUTH_GATE",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "AUTH_REQUIRED"
+      }
+    },
+    {
+      "case_id": "no_task_candidate_found_is_an_observation",
+      "note": "Δ32 — 형태는 멀쩡한데 페이지에 후보 control 이 실제로 0건이었다. 이것은 관측이며 binder 계약 위반(RunnerError)과 절대 같은 값이 되지 않는다.",
+      "signals": {
+        "evidence_complete": true,
+        "task_candidate_count": 0
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "ABSTAIN",
+        "resolution": "UNDETERMINED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "NO_TASK_CANDIDATE_FOUND"
+      }
+    },
+    {
+      "case_id": "no_task_candidate_found_precedes_budget_exceeded",
+      "note": "후보가 0건이면 예산을 다 썼다는 사실은 사유가 될 수 없다 — 누를 대상이 없었던 것이지 덜 본 것이 아니다.",
+      "signals": {
+        "evidence_complete": true,
+        "task_candidate_count": 0,
+        "scout_budget_exhausted": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "ABSTAIN",
+        "resolution": "UNDETERMINED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "NO_TASK_CANDIDATE_FOUND"
+      }
+    },
+    {
+      "case_id": "candidate_count_unobserved_is_not_zero",
+      "note": "음성대조 — task_candidate_count 미관측(None)은 관측된 0건과 다르다. 미관측은 NO_TASK_CANDIDATE_FOUND 를 내지 않는다(Δ10-R13 의 NONE ≠ UNDETERMINED).",
+      "signals": {
+        "evidence_complete": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "ABSTAIN",
+        "resolution": "UNDETERMINED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "OTHER"
+      }
+    },
+    {
+      "case_id": "candidate_bound_positive_control_reaches_endpoint",
+      "note": "Δ32-R29 양성대조 — 후보가 1건 이상 바인딩됐고 endpoint 도달 증거가 있으면 REACHED 가 통과한다. 0 건일 때만 거부된다.",
+      "signals": {
+        "evidence_complete": true,
+        "task_candidate_count": 1,
+        "endpoint_reached": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "REACHED",
+        "resolution": "NOT_TERMINAL_ENDPOINT_REACHED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": null
       }
     }
   ]

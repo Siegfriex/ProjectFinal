@@ -447,11 +447,13 @@ def test_layer_qualification_is_documented_and_used() -> None:
     assert EndpointStatus.ABSTAIN in set(TERMINAL_TO_ENDPOINT_STATUS.values())
 
 
-# ── R11 · terminal_reason 13값과 허용 조합표 ────────────────────────────────
-def test_all_thirteen_reasons_are_produced_by_the_fixture_suite(
+# ── R11 · terminal_reason 15값(R11 13 + Δ30 1 + Δ32 1)과 허용 조합표 ────────
+def test_all_fifteen_reasons_are_produced_by_the_fixture_suite(
     cases: dict[str, dict[str, Any]],
 ) -> None:
-    """13값 각각이 실제 입력에서 나온다. 한 값이라도 도달 불가면 어휘가 죽은 것이다."""
+    """15값 각각이 실제 입력에서 나온다. 한 값이라도 도달 불가면 어휘가 죽은 것이다.
+
+    `Δ10-R11` 13값 + `Δ30` `BUDGET_EXCEEDED` + `Δ32` `NO_TASK_CANDIDATE_FOUND`."""
     produced = {classify_terminal(_signals(c["signals"])).terminal_reason for c in cases.values()}
     produced.discard(None)
     missing = set(TerminalReason) - produced
@@ -601,7 +603,7 @@ def test_allowed_combinations_pass(status: EndpointStatus, reason: TerminalReaso
 
 
 def test_combination_table_covers_every_endpoint_status_and_reason() -> None:
-    """표에 구멍이 없다 — 7개 status 전부 등재, 13개 reason 전부 어딘가에서 허용."""
+    """표에 구멍이 없다 — 7개 status 전부 등재, 15개 reason 전부 어딘가에서 허용."""
     assert set(ALLOWED_ENDPOINT_STATUS_REASONS) == set(EndpointStatus)
     covered: set[TerminalReason] = set()
     for allowed in ALLOWED_ENDPOINT_STATUS_REASONS.values():
@@ -610,7 +612,8 @@ def test_combination_table_covers_every_endpoint_status_and_reason() -> None:
     assert not missing, (
         f"어느 status 에서도 허용되지 않는 reason: {sorted(r.value for r in missing)}"
     )
-    assert len(set(TerminalReason)) == 13
+    # `Δ10-R11` 13 + `Δ30` `BUDGET_EXCEEDED` + `Δ32` `NO_TASK_CANDIDATE_FOUND` = 15.
+    assert len(set(TerminalReason)) == 15
 
 
 def test_classifier_never_emits_an_invalid_combination(

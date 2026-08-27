@@ -67,6 +67,18 @@ from .evidence import (
     qualified_layer_text,
     sha256_of_bytes,
 )
+from .terminal import (
+    EndpointStatus as TerminalEndpointStatus,
+)
+from .terminal import (
+    TerminalReason,
+)
+from .terminal import (
+    validate_reached_requires_binding as terminal_validate_reached_requires_binding,
+)
+from .terminal import (
+    validate_status_reason as terminal_validate_status_reason,
+)
 
 # ---------------------------------------------------------------------------
 # RECONCILIATION SEAM — 닫혔다 (W5K, A 판정)
@@ -145,6 +157,22 @@ DEPTH_CONDITIONAL_TOKENS: frozenset[str] = frozenset(
     {"SELECT_ORIGIN", "SELECT_DESTINATION", "SELECT_DATE"}
 )
 
+#: `Δ30-branch` — **분기 대상 집합 = depth 집합.**
+#:
+#: `[Δ30 인용]` *"MIN-1 의 원리는 유지한다 — **분기 대상 집합 = depth 집합.** popup 닫기를
+#: 분기 후보에 넣으면 닫기가 depth 로 세어진다. 그러나 **집합의 내용은 v2.1 이 아니라
+#: `Δ9`** 다. … 분기 후보 = `Δ9` 의 IN 10종 + CONDITIONAL 3종(control 활성화인 경우).
+#: `INPUT_QUERY` · `DISMISS_OBSTRUCTION` · `AUTH_GATE` · `ENDPOINT_REACHED` · `ABSTAIN` 은
+#: 분기 대상이 아니다. **v2.1 과 달라지는 실질**: `SUBMIT_QUERY` 가 v3 에서는 분기 대상이다."*
+#:
+#: 파생이지 재입력이 아니다 — `Δ9` 표(`DEPTH_IN_TOKENS`·`DEPTH_CONDITIONAL_TOKENS`)를
+#: 그대로 합집합한다. 두 곳에 같은 목록을 적으면 한쪽만 바뀌는 날이 온다.
+BRANCH_ELIGIBLE_TOKENS: frozenset[str] = DEPTH_IN_TOKENS | DEPTH_CONDITIONAL_TOKENS
+
+#: 분기 대상이 **아닌** 토큰. `DEPTH_OUT_TOKENS` 와 같아야 한다 — Scout 가 이 중 하나를
+#: 제안하면 그 조작이 depth 로 세어진다(`Δ30-branch` 가 막는 것).
+BRANCH_INELIGIBLE_TOKENS: frozenset[str] = DEPTH_OUT_TOKENS
+
 #: `AUTH_GATE` step 에 남기는 provenance — 활성화가 아니라 마주친 상태임을 기록에 못박는다.
 AUTH_GATE_PROVENANCE = "ENCOUNTERED_STATE_NOT_USER_ACTIVATION"
 
@@ -222,6 +250,22 @@ class PathManifestHashMismatchError(RunnerError):
 
 class ProhibitedActionError(RunnerError):
     """`03 §7` · `§8` · `00 §4` — 계약이 금지한 조작을 실행하려 했다."""
+
+
+class CandidateBindingContractError(RunnerError):
+    """`Δ32` / `R30` — binder 가 `Sequence[Mapping[str, Any]]` 계약을 어겼다.
+
+    `[Δ32 인용]` 판정표: *"binder 가 후보를 냈는데 소비자가 전건 탈락시켰다 →
+    **계측기 결함** — 형태·계약 불일치 → **`RunnerError`. 항상 멈춘다**"* /
+    *"구성요소 간 계약 위반은 **결코 관측이 아니다.** 사이트에 대해 아무것도 말해주지 않는다."*
+
+    `[Δ32-R30 인용]` *"`isinstance(naive_binder, runner.CandidateBinder)` 가 **True 를
+    반환했다.** Protocol 은 메서드 **이름**만 본다. … lane 경계에서 Protocol 만족으로
+    충분하다고 보지 않는다. **반환값의 형태를 런타임에 검증**하고, 위반이면 `RunnerError` 다."*
+
+    이 예외는 관측 행을 만들지 않는다. `endpoint_status`/`terminal_reason` 어디에도
+    대응 값이 없어야 한다 — 있으면 계측기 결함이 사이트의 성질로 집계된다.
+    """
 
 
 class MissingDependencyError(RunnerError):
@@ -412,6 +456,12 @@ class V3RunResult:
     evidence_manifest_sha256: str | None = None
     evidence_run_dir: Path | None = None
     scout_budget_exhausted: bool = False
+    #: `Δ32` — binding 단계에서 실제로 바인딩된 후보 수. `None` 은 **미관측**(binder
+    #: 미주입)이고 `0` 은 **관측된 0건**이다. 둘을 합치면 분모를 복원할 수 없다.
+    task_candidate_count: int | None = None
+    #: `Δ10-R11`(13) + `Δ30`(`BUDGET_EXCEEDED`) + `Δ32`(`NO_TASK_CANDIDATE_FOUND`) = 15값.
+    #: 정본 어휘는 `terminal.TerminalReason` 이며 runner 는 자기가 아는 사유만 채운다.
+    terminal_reason: str | None = None
     #: `R3` — mart 의 모든 관측 행이 task_role 을 갖는다.
     task_role: str = TASK_ROLE_PRIMARY
     #: Δ9 — `(action_token, step_index, input_mode, included)` raw 근거.
@@ -436,6 +486,8 @@ class V3RunResult:
             "replay_status": self.replay_status.value,
             "replay_failure_reason": self.replay_failure_reason,
             "scout_budget_exhausted": self.scout_budget_exhausted,
+            "task_candidate_count": self.task_candidate_count,
+            "terminal_reason": self.terminal_reason,
             "path_manifest_sha256": self.path_manifest_sha256,
             "evidence_manifest_sha256": self.evidence_manifest_sha256,
             "comparison_scope": WITHIN_FAMILY_COMPARISON,
@@ -666,9 +718,16 @@ class V3Runner:
         states = self._capture_surface(contract, driver=driver, writer=writer)
 
         # 4. Task-specific Candidate Binding — task label 은 여기서 바뀌지 않는다
+        #
+        # `Δ32-R30` — Protocol 만족은 계약 만족이 아니다. 반환값의 **형태를 런타임에**
+        # 검증한다. 위반이면 여기서 멈추며, **위에서 이미 디스크에 쓴 surface evidence 는
+        # 그대로 남는다**(`_capture_surface` 가 이 줄보다 앞이고, 이 경로에 정리·삭제가
+        # 없다) — D-V3-FINDING-003 의 교훈: raw 가 남아야 되짚을 수 있다.
         candidates: Sequence[Mapping[str, Any]] = ()
+        task_candidate_count: int | None = None
         if self._binder is not None:
-            candidates = tuple(self._binder.bind(contract, states))
+            candidates = _validated_bound_candidates(self._binder.bind(contract, states))
+            task_candidate_count = len(candidates)
 
         # 5. Scout
         scout_steps, scout_modes, budget_exhausted = self._scout_path(
@@ -711,6 +770,7 @@ class V3Runner:
             seal_evidence_sha=seal.evidence_manifest_sha256,
             run_dir=seal.run_dir,
             budget_exhausted=budget_exhausted,
+            task_candidate_count=task_candidate_count,
             depth_records=depth_records,
         )
 
@@ -900,6 +960,7 @@ class V3Runner:
         seal_evidence_sha: str | None,
         run_dir: Path | None,
         budget_exhausted: bool,
+        task_candidate_count: int | None = None,
         depth_records: tuple[Mapping[str, Any], ...] = (),
     ) -> V3RunResult:
         """`00 §9 Flow Mart` — raw 는 그대로 싣고 derived 는 **전부 위임**한다.
@@ -912,6 +973,25 @@ class V3Runner:
             endpoint_status = self._terminal.classify(contract, steps)
             if endpoint_status is not None and endpoint_status not in ENDPOINT_STATUS_VALUES:
                 raise RunnerError(f"04 §4 밖의 endpoint_status 다: {endpoint_status!r}")
+
+        # `Δ32-R29` — 0 은 관측이 아니라 주장이다. 스키마가 조합을 거부한다.
+        terminal_validate_reached_requires_binding(
+            TerminalEndpointStatus(endpoint_status) if endpoint_status else None,
+            task_candidate_count=task_candidate_count,
+        )
+
+        # `Δ32` — 형태는 멀쩡한데 후보가 0건이었다. **관측이므로 기록한다**(계약 위반과
+        # 다른 값이다). 주입된 terminal classifier 가 더 강한 terminal(BLOCKED 등)을
+        # 관측했으면 그쪽이 이긴다 — 그 경우 이 사유를 덮어쓰지 않는다.
+        terminal_reason: str | None = None
+        if task_candidate_count == 0 and endpoint_status in (None, "ABSTAIN"):
+            endpoint_status = TerminalEndpointStatus.ABSTAIN.value
+            terminal_reason = TerminalReason.NO_TASK_CANDIDATE_FOUND.value
+            terminal_validate_status_reason(
+                TerminalEndpointStatus.ABSTAIN,
+                TerminalReason.NO_TASK_CANDIDATE_FOUND,
+                "binding 단계에서 관측된 task 후보 control 이 0건이었다 (Δ32)",
+            )
 
         derived_surface = (
             self._surface_measurer.measure(contract, states)
@@ -945,9 +1025,51 @@ class V3Runner:
             evidence_manifest_sha256=seal_evidence_sha,
             evidence_run_dir=run_dir,
             scout_budget_exhausted=budget_exhausted,
+            task_candidate_count=task_candidate_count,
+            terminal_reason=terminal_reason,
             task_role=contract.task_role,
             depth_conditional_tokens=depth_records,
         )
+
+
+def _validated_bound_candidates(produced: Any) -> tuple[Mapping[str, Any], ...]:
+    """`Δ32-R30` — `CandidateBinder.bind` **반환값의 형태**를 런타임에 검증한다.
+
+    Protocol `isinstance` 는 메서드 **이름**만 본다 — 계약 위반이 그 검사를 통과한다
+    (`Δ32` 측정: `isinstance(naive_binder, CandidateBinder) → True` 인데 반환은
+    `Mapping` 이 아니었고, 소비자가 전건 탈락시켜 **깨끗한 0-activation 행**이 나왔다).
+
+    거부 대상은 **형태**뿐이다. 후보가 0건인 것은 형태 위반이 아니라 **관측**이므로
+    여기서 거부하지 않는다 — 그쪽은 `terminal_reason=NO_TASK_CANDIDATE_FOUND` 로 간다.
+    두 사건이 같은 출력이 되면 분모를 복원할 수 없다.
+
+    Raises:
+        CandidateBindingContractError: 반환값이 시퀀스가 아니거나, 원소 중 하나라도
+            `Mapping` 이 아니다. **관측 행을 만들지 않고 멈춘다.**
+    """
+    if isinstance(produced, (Mapping, str, bytes)):
+        raise CandidateBindingContractError(
+            f"CandidateBinder.bind 가 Sequence[Mapping] 이 아니라 {type(produced).__name__} "
+            "를 반환했다 — Δ32-R30 계약 위반이며 관측이 아니다"
+        )
+    try:
+        items = tuple(produced)
+    except TypeError as exc:  # pragma: no cover - 방어
+        raise CandidateBindingContractError(
+            f"CandidateBinder.bind 반환값이 순회 불가다: {type(produced).__name__}"
+        ) from exc
+    offenders = [
+        (index, type(item).__name__)
+        for index, item in enumerate(items)
+        if not isinstance(item, Mapping)
+    ]
+    if offenders:
+        raise CandidateBindingContractError(
+            "CandidateBinder.bind 가 Mapping 이 아닌 후보를 반환했다 "
+            f"(총 {len(items)} 건 중 {len(offenders)} 건): {offenders[:5]}. "
+            "Δ32 — 계측기 결함이지 관측이 아니다. 조용한 0-activation 으로 흘리지 않는다."
+        )
+    return items
 
 
 def _validated_input_mode(mode: str | None) -> str | None:
@@ -1036,6 +1158,8 @@ def _empty_result(
 
 __all__ = [
     "AUTH_GATE_PROVENANCE",
+    "BRANCH_ELIGIBLE_TOKENS",
+    "BRANCH_INELIGIBLE_TOKENS",
     "CANONICAL_ACTION_TOKENS",
     "CROSS_FAMILY_COMPARISON",
     "DEPTH_CONDITIONAL_TOKENS",
@@ -1050,6 +1174,7 @@ __all__ = [
     "TASK_ROLE_VALUES",
     "WITHIN_FAMILY_COMPARISON",
     "CandidateBinder",
+    "CandidateBindingContractError",
     "ContractHashMismatchError",
     "ContractHasher",
     "DepthAttributor",

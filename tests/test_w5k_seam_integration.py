@@ -613,12 +613,15 @@ def _run_with_binder(tmp_path: Any, binder: Any, run_id: str) -> tuple[Any, _Scr
     return result, driver
 
 
-def test_seam3_dataclass_candidates_collapse_to_a_silent_zero(tmp_path: Any) -> None:
-    """**실측 고정** — 형이 안 맞으면 예외가 아니라 "성공 형태의 0건"이 나온다.
+def test_seam3_dataclass_candidates_no_longer_collapse_to_a_silent_zero(tmp_path: Any) -> None:
+    """**갱신된 실측 고정** (`Δ32` 시정, W5L) — 형 불일치가 사라졌다.
 
-    `discover_task_candidates` 는 `TaskCandidate`(dataclass)를 내고
-    `MinPathScoutStrategy.propose_next` 는 `isinstance(c, Mapping)` 으로 거른다.
-    전건 탈락 → `propose_next` 가 `None` → runner 는 정상 종료로 읽는다.
+    이 테스트는 W5K 시점에 *"형이 안 맞으면 예외가 아니라 성공 형태의 0건이 나온다"* 를
+    고정하고 있었다. 파일 상단 규약대로 **실패는 결함이 아니라 진전**이므로 값을 갱신한다.
+
+    시정 방향(`Δ32` 판정, W5L 구현): `runner.CandidateBinder.bind` 가 선언한
+    `Sequence[Mapping[str, Any]]` 계약이 이긴다 → `discovery.TaskCandidate` 가 `Mapping`
+    을 만족하도록 바뀌었다. dataclass 속성 접근은 그대로 살아 있다.
     """
     from landing_accessibility.v3_runner import discovery
 
@@ -626,17 +629,16 @@ def test_seam3_dataclass_candidates_collapse_to_a_silent_zero(tmp_path: Any) -> 
     assert isinstance(binder, runner.CandidateBinder), "Protocol 은 메서드 이름만 본다"
     produced = binder.bind(_contract(), ())
     assert len(produced) == 1
-    assert not isinstance(produced[0], Mapping)
     assert isinstance(produced[0], discovery.TaskCandidate)
+    assert isinstance(produced[0], Mapping), "Δ32 — 선언된 계약(Sequence[Mapping])을 만족한다"
+    assert produced[0].selector == "#go", "dataclass 접근을 잃지 않았다"
 
     result, driver = _run_with_binder(tmp_path, binder, "w5k-seam3-dataclass")
 
-    assert driver.activated == []
-    assert result.raw_steps == ()
-    assert result.refusal is None
-    assert result.phase_reached is runner.Phase.MART, (
-        "0건인데 성공 phase 로 끝난다는 것이 이 seam 의 관측 사실이다"
-    )
+    assert [a.control_selector for a in driver.activated] == ["#go", "#go"]
+    assert len(result.raw_steps) == 1
+    assert result.task_candidate_count == 1
+    assert result.phase_reached is runner.Phase.MART
 
 
 def test_seam3_mapping_control_shows_the_difference_is_the_type(tmp_path: Any) -> None:

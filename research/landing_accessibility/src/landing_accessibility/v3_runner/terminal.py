@@ -94,7 +94,8 @@ terminal 을 복원할 수 없고, 두 값을 **둘 다** 보존한다.
 
 ## 동반 필드 `terminal_reason` — `endpoint_status` 어휘는 안 바꾼다 (`T-A-V3-STEP1-007` R11)
 
-`endpoint_status` 는 7종 그대로 두고 **옆에 해상도를 둔다.** 13값이며 정본은
+`endpoint_status` 는 7종 그대로 두고 **옆에 해상도를 둔다.** `Δ10-R11` 13값 + `Δ30`
+`BUDGET_EXCEEDED` + `Δ32` `NO_TASK_CANDIDATE_FOUND` = **15값**이며 정본은
 `TerminalReason` 이다. 규칙 셋:
 
 1. **모든 terminal 관측은 `endpoint_status` 와 `terminal_reason` 을 둘 다 갖는다.**
@@ -114,7 +115,7 @@ terminal 을 복원할 수 없고, 두 값을 **둘 다** 보존한다.
 | `endpoint_status=APP_REQUIRED` | `APP_REQUIRED` |
 | `endpoint_status=EVIDENCE_DEFECT` | `EVIDENCE_DEFECT` · `TIMEOUT` |
 | `endpoint_status=BLOCKED` | `WAF_BLOCK` · `ACTIVE_CHALLENGE` |
-| `endpoint_status=ABSTAIN` | `FORBIDDEN_ACTION_REQUIRED` · `CONTROL_DISABLED_OR_INERT` · `REPLAY_BROKEN` · `AMBIGUOUS_MULTIPLE_CANDIDATES` · `OTHER` |
+| `endpoint_status=ABSTAIN` | `FORBIDDEN_ACTION_REQUIRED` · `CONTROL_DISABLED_OR_INERT` · `REPLAY_BROKEN` · `AMBIGUOUS_MULTIPLE_CANDIDATES` · `BUDGET_EXCEEDED`(Δ30) · `NO_TASK_CANDIDATE_FOUND`(Δ32) · `OTHER` |
 
 **[명세 공백 — A 판단 필요]** A 규칙 1 은 *모든 terminal 관측*에 대한 것인데
 `endpoint_status=REACHED` 는 terminal 관측이 아니다(`resolution` 이
@@ -200,7 +201,9 @@ __all__ = [
     "TerminalReasonNoteError",
     "TerminalResolution",
     "TerminalSignals",
+    "ZeroActivationClaimError",
     "classify_terminal",
+    "validate_reached_requires_binding",
     "validate_status_reason",
 ]
 
@@ -328,7 +331,8 @@ class TerminalResolution(StrEnum):
 
 
 class TerminalReason(StrEnum):
-    """`terminal_reason` 13값 — `T-A-V3-STEP1-007` (Δ10, R11).
+    """`terminal_reason` **15값** — `T-A-V3-STEP1-007` (Δ10, R11) 13값
+    + `Δ30` `BUDGET_EXCEEDED`(14) + `Δ32` `NO_TASK_CANDIDATE_FOUND`(15).
 
     ## 왜 이 축이 따로 있는가
 
@@ -406,6 +410,40 @@ class TerminalReason(StrEnum):
     OTHER = "OTHER"
     """위 어디에도 안 맞는다. **자유기술 note 가 반드시 함께 와야 한다.**"""
 
+    BUDGET_EXCEEDED = "BUDGET_EXCEEDED"
+    """**14번째 값** — `Δ30` 이 추가했다. `A1 §2.6` `MIN-7` 의 자리다.
+
+    `[Δ30 인용]` *"`Δ10-R11` 의 13값에 예산 소진이 없다. **`BUDGET_EXCEEDED` 를 추가한다**
+    (14값). 조합: `endpoint_status=ABSTAIN` × `terminal_reason=BUDGET_EXCEEDED`"*
+
+    **`MIN-7` — 예산 소진은 최소가 아니라 관측 없음이다.** 그래서 이 값은 terminal 8종
+    어디에도 매달리지 않는다(`terminal=None` · `resolution=UNDETERMINED`). 예산을 다 써서
+    멈춘 것은 사이트에 대한 진술이 아니라 **우리가 그만 본 것**이다.
+
+    `NO_SAFE_ROUTE_FOUND` 와 **다르다** — 그쪽은 허용 경로를 *소진*했다는 관측이고, 이쪽은
+    소진하지 못한 채 멈췄다는 사실이다. 둘을 합치면 "더 볼 게 없었다"와 "더 안 봤다"가
+    같은 값이 된다.
+
+    **`MIN-7` 후단: 예산값을 대입하지 않는다.** 이 값에 숫자가 붙지 않는 이유다 — 얼마짜리
+    예산이었는지는 manifest 의 수집 파라미터이지 관측 결과가 아니다.
+    """
+
+    NO_TASK_CANDIDATE_FOUND = "NO_TASK_CANDIDATE_FOUND"
+    """**15번째 값** — `Δ32` 가 추가했다. **페이지에 task 후보 control 이 실제로 없었다.**
+
+    `[Δ32 인용]` 판정표: *"페이지에 후보 control 이 실제로 없다 → **관측** →
+    `endpoint_status=ABSTAIN` × `terminal_reason=NO_TASK_CANDIDATE_FOUND` (15번째 값)"*
+
+    **binder 계약 위반과 절대 섞이지 않는다.** `[Δ32 인용]` *"구성요소 간 계약 위반은
+    **결코 관측이 아니다.** 사이트에 대해 아무것도 말해주지 않는다."* 형태 불일치로
+    후보가 전건 탈락한 것은 `RunnerError`(`runner.CandidateBindingContractError`)이며
+    관측 행 자체를 만들지 않는다. 이 값은 **형태가 멀쩡한 채로 0건이 관측된 경우만** 쓴다.
+
+    `AMBIGUOUS_MULTIPLE_CANDIDATES`(후보가 *여럿*이라 못 고름) · `TASK_SURFACE_ABSENT`
+    (그 *과업 surface* 자체가 채널에 없음)와도 다른 사건이다 — 셋을 합치면 분모를
+    복원할 수 없다.
+    """
+
 
 class TerminalCombinationError(ValueError):
     """`endpoint_status` × `terminal_reason` 이 허용 조합표 밖이다 — 불가능한 기록 시도."""
@@ -417,7 +455,7 @@ class TerminalReasonNoteError(ValueError):
 
 #: `endpoint_status` × `terminal_reason` **허용 조합표** (`T-A-V3-STEP1-007` R11).
 #:
-#: 7×13 격자에서 허용 칸만 열거한다. 나머지는 전부 불가능이며
+#: 7×15 격자에서 허용 칸만 열거한다. 나머지는 전부 불가능이며
 #: `validate_status_reason()` 이 `TerminalCombinationError` 로 거부한다.
 #: 예: `endpoint_status=REACHED` × `TIMEOUT` — 도달했는데 시간초과일 수 없다.
 #:
@@ -443,6 +481,10 @@ ALLOWED_ENDPOINT_STATUS_REASONS: dict[EndpointStatus, frozenset[TerminalReason |
             TerminalReason.CONTROL_DISABLED_OR_INERT,
             TerminalReason.REPLAY_BROKEN,
             TerminalReason.AMBIGUOUS_MULTIPLE_CANDIDATES,
+            # Δ30 — MIN-7. 예산 소진은 최소가 아니라 관측 없음이다.
+            TerminalReason.BUDGET_EXCEEDED,
+            # Δ32 — 페이지에 후보 control 이 실제로 없었다(관측). 계약 위반이 아니다.
+            TerminalReason.NO_TASK_CANDIDATE_FOUND,
             TerminalReason.OTHER,
         }
     ),
@@ -486,6 +528,41 @@ def validate_status_reason(
         raise TerminalCombinationError(
             f"불가능 조합: endpoint_status={endpoint_status.value} × terminal_reason={shown}. "
             f"허용: {sorted(r.value if r else 'None' for r in allowed)}"
+        )
+
+
+class ZeroActivationClaimError(ValueError):
+    """`Δ32-R29` — 후보 0건인데 `endpoint_status=REACHED` 를 주장했다.
+
+    `[Δ32-R29 인용]` *"**0 은 관측이 아니라 주장이다. 주장에는 근거가 필요하다.**"* /
+    *"**후보 0건은 어떤 경우에도 `endpoint_status=REACHED` 를 낼 수 없다.** 스키마가 그
+    조합을 거부한다."*
+    """
+
+
+def validate_reached_requires_binding(
+    endpoint_status: EndpointStatus | None,
+    *,
+    task_candidate_count: int | None,
+) -> None:
+    """`Δ32-R29` — `endpoint_status=REACHED` 는 **최소 하나의 바인딩된 후보**를 요구한다.
+
+    `task_candidate_count=None`(미관측)은 거부하지 않는다 — 미관측을 `0` 으로 접으면
+    그 자체가 `R13` 이 막는 "부재의 증거 없이 부재를 적는 것"이 된다. 거부 대상은
+    **관측된 0** 뿐이다.
+
+    Raises:
+        ZeroActivationClaimError: `REACHED` × `task_candidate_count == 0`.
+    """
+    if endpoint_status is not EndpointStatus.REACHED:
+        return
+    if task_candidate_count is None:
+        return
+    if task_candidate_count <= 0:
+        raise ZeroActivationClaimError(
+            "Δ32-R29 위반: 바인딩된 후보가 0건인데 endpoint_status=REACHED 를 주장했다. "
+            "0 은 관측이 아니라 주장이며 근거(① endpoint contract 충족 증거 "
+            "② 최소 하나의 바인딩된 후보)가 필요하다."
         )
 
 
@@ -599,6 +676,25 @@ class TerminalSignals:
 
     endpoint_reached: bool = False
     """사전정의 endpoint 가 충족됐다 (`04 §2 ENDPOINT_REACHED`)."""
+
+    scout_budget_exhausted: bool = False
+    """`Δ30` / `A1 §2.6 MIN-7` — 수집 예산(`MAX_ACTIVATIONS_PER_TASK` 등)을 소진해 멈췄다.
+
+    **관측 없음이지 최소가 아니다.** `permitted_routes_exhausted`(허용 경로를 *소진*했다)
+    와 다르다 — 그쪽은 관측이고 이쪽은 관측을 그만둔 것이다. 둘 다 참이면 terminal 관측이
+    앞서고, 이 사실은 `notes` 에 남는다(합치지 않는다)."""
+
+    task_candidate_count: int | None = None
+    """`Δ32` — binding 단계에서 **실제로 바인딩된 후보 수**. `None` 은 미관측(binder 미주입)
+    이며 `0`(관측했더니 후보가 없었다)과 다르다 — `Δ10-R13` 의 `NONE` ≠ `UNDETERMINED` 와
+    같은 구분이다.
+
+    `0` 이면 `endpoint_status=ABSTAIN` × `terminal_reason=NO_TASK_CANDIDATE_FOUND` 다.
+    **`0` 과 `endpoint_status=REACHED` 는 어떤 경우에도 함께 나올 수 없다**(`R29`) —
+    `validate_reached_requires_binding()` 이 거부한다.
+
+    형태 불일치로 후보가 탈락한 경우는 **이 필드로 오지 않는다.** 그건 계약 위반이라
+    관측 행을 만들지 않고 `RunnerError` 로 멈춘다(`Δ32`)."""
 
 
 @dataclass(frozen=True)
@@ -721,6 +817,15 @@ def classify_terminal(signals: TerminalSignals) -> TerminalOutcome:
     matched = _matched_terminals(signals)
     notes: list[str] = []
 
+    # `Δ32-R29` — 후보 0건 위에서 REACHED 를 주장할 수 없다. 산출 **전에** 거부한다.
+    if signals.endpoint_reached:
+        validate_reached_requires_binding(
+            EndpointStatus.REACHED, task_candidate_count=signals.task_candidate_count
+        )
+    if signals.scout_budget_exhausted and matched:
+        # MIN-7 — 예산 소진은 terminal 관측을 이기지 못한다. 그러나 지워지지도 않는다.
+        notes.append("scout_budget_exhausted_with_terminal_signal")
+
     if not matched:
         if signals.endpoint_reached:
             # `endpoint_status=REACHED` 는 terminal 관측이 아니므로 사유가 없다.
@@ -737,6 +842,49 @@ def classify_terminal(signals: TerminalSignals) -> TerminalOutcome:
             )
         if signals.evidence_complete is None:
             notes.append("evidence_complete_unobserved")
+
+        # `Δ32` — 후보 0건은 **관측**이다. 사유가 있으므로 `OTHER` 로 흘리지 않는다.
+        # 형태 불일치(계약 위반)는 여기까지 오지 않는다 — runner 가 먼저 멈춘다.
+        if signals.task_candidate_count == 0:
+            zero_note = signals.other_reason_note or (
+                "binding 단계에서 관측된 task 후보 control 이 0건이었다 "
+                "(형태 불일치가 아니라 관측 — Δ32)"
+            )
+            validate_status_reason(
+                EndpointStatus.ABSTAIN, TerminalReason.NO_TASK_CANDIDATE_FOUND, zero_note
+            )
+            return TerminalOutcome(
+                terminal=None,
+                endpoint_status=EndpointStatus.ABSTAIN,
+                terminal_reason=TerminalReason.NO_TASK_CANDIDATE_FOUND,
+                terminal_reason_note=zero_note,
+                resolution=TerminalResolution.UNDETERMINED,
+                auth_gate_stage=signals.auth_gate_stage,
+                challenge_kind=signals.challenge_kind,
+                notes=tuple(notes),
+            )
+
+        # `Δ30` / `MIN-7` — 예산을 다 써서 멈춘 것은 최소가 아니라 **관측 없음**이다.
+        # 예산값은 대입하지 않는다(MIN-7 후단).
+        if signals.scout_budget_exhausted:
+            budget_note = signals.other_reason_note or (
+                "수집 예산을 소진해 탐색을 멈췄다 — 최소 activation 수가 아니라 관측 없음이다 "
+                "(A1 §2.6 MIN-7)"
+            )
+            validate_status_reason(
+                EndpointStatus.ABSTAIN, TerminalReason.BUDGET_EXCEEDED, budget_note
+            )
+            return TerminalOutcome(
+                terminal=None,
+                endpoint_status=EndpointStatus.ABSTAIN,
+                terminal_reason=TerminalReason.BUDGET_EXCEEDED,
+                terminal_reason_note=budget_note,
+                resolution=TerminalResolution.UNDETERMINED,
+                auth_gate_stage=signals.auth_gate_stage,
+                challenge_kind=signals.challenge_kind,
+                notes=tuple(notes),
+            )
+
         # `endpoint_status=ABSTAIN` 을 사유 없이 내보내지 않는다 — 그게 A 가 막으려는
         # 해상도 손실이다. 어떤 terminal 신호도 관측되지 않았다는 것을 note 로 적는다.
         undetermined_note = signals.other_reason_note or (
