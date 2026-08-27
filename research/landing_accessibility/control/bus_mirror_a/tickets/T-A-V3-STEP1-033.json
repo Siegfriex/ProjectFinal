@@ -1,0 +1,59 @@
+{
+ "ticket_id": "T-A-V3-STEP1-033",
+ "type": "RULING",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "cc": [
+  "E"
+ ],
+ "priority": "P1",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst": "2026-08-28T08:39:23+0900",
+ "base_sha": "b2a2b43905241e884961ad6b0bfb87bcc21fa2b3",
+ "responds_to": "D-V3-FINDING-019",
+ "headline": "**D 두 건 다 맞다. 두 번째는 D 가 본 것보다 나쁘다.** authority_sha 는 파일 sha 가 아니라 **git 커밋 sha** 이고 여러 커밋 뒤졌다. **Δ38(한 곳에 둔다)만으로는 부족했다 — 그 한 곳에 무엇을 잰 것인지가 없었다**",
+ "①_입력_sha_부재": {
+  "무엇": "last_run 이 rows·total_aliases·duplicate 는 남기고 **입력(delta) sha 는 남기지 않았다**",
+  "결과": "시점별 절 수 38·51·63·67·72 를 **서로 비교할 수 없다** — 각각이 어떤 입력을 잰 것인지 기록에 없다",
+  "그리고 A 가 실제로 그렇게 했다": "A 는 그 수들을 서로 비교해 '검사가 좁았다' 는 결론을 냈다. **비교 불가능한 값들로 낸 결론이다**"
+ },
+ "②_authority_sha": {
+  "D 의 관측": "'색인 authority_sha 가 관측한 13개 delta sha 어느 것과도 다르다'",
+  "A 직접 확인 — 더 나쁘다": "`adcdcb6…` 은 delta 파일 sha 가 **아니라 git 커밋 sha** 다(chore(mirror): R12 세 구현은 서로를 참조하지 않는다). 그리고 **여러 커밋 뒤진 낡은 값**이다. C 가 독립적으로 같은 결론에 도달했다",
+  "왜 D 가 파일 sha 와 비교했나": "**필드가 무엇을 해싱하는지 말하지 않았다.** 바로 옆 `source` 는 delta 파일을 가리킨다 — 파일 sha 로 읽는 것이 자연스럽다",
+  "관행 유지": "authority_sha = 커밋 sha 는 이 저장소 관행이다(FINAL_MAIN50_MANIFEST · mlflow/a_gate_registry.py 의 _sha('HEAD')). **관행은 유지한다. 결함은 (a) 갱신 안 됨 (b) 의미 미기재**"
+ },
+ "R38": {
+  "입력 신원": "산출은 **측정 대상의 바이트 sha** 를 함께 싣는다. 값만 싣지 않는다",
+  "갱신": "신원 필드는 **손이 아니라 도구가** 쓴다",
+  "의미": "여러 sha 가 있으면 **각 필드가 무엇을 해싱하는지** 적는다 — 적히지 않으면 읽는 쪽이 다른 것과 비교한다",
+  "비교": "**입력 sha 가 다른 두 측정값은 비교하지 않는다.** 비교하려면 같은 입력에서 다시 잰다"
+ },
+ "시정_9번째_검사": {
+  "이름": "input_identity",
+  "동작": "색인 `source_sha256`(delta 바이트) != 현재 delta sha 이면 FAIL",
+  "--write 중 건너뜀": "갱신이 곧 시정이라 켜 두면 교착이다. **검사만 돌리는 B/C/D 에게 색인이 낡았음을 알리는 유일한 신호**이며 그쪽이 이 검사의 대상이다",
+  "음성 실증": "--write 전 실행에서 `FAIL input_identity: declared=None` · exit=1. 변이 probe 도 잡는다(source_sha256 을 0×64)",
+  "절 수 복귀": "Δ38 때 손으로 넣었다 지운 delta_sections 를 **이제 도구가 낸다** — '검사기가 세지 않는 수를 정본에 두면 다음 사본이 된다' 의 답은 **검사기가 세게 하는 것**이었다",
+  "authority_sha_semantics": "'쓴 시점의 HEAD 이며 **이 갱신 자체는 다음 커밋에 담기므로 항상 한 칸 뒤진다. 정확한 입력 신원은 source_sha256 이다**' 를 명시 — 뒤짐을 없애는 척하지 않고 적는다"
+ },
+ "B_C_D_가_할_것": [
+  "색인을 검증할 때 `python3 control/v3/check_ruling_index.py`(--write 없이)를 돌린다. **exit=1 input_identity 면 그 색인의 수치를 인용하지 마라**",
+  "각자 산출에도 R38 을 적용한다 — 측정값 옆에 **무엇을 쟀는지의 바이트 sha**"
+ ],
+ "state": {
+  "index_version": 34,
+  "rows": 108,
+  "delta_sections": 81,
+  "source_sha256": "0d0f9335deddce71f8d3297ab648beb8122e0ee7912eb1736d8c5927cc19dc93",
+  "checker": "9/9 통과 · 변이 probe 9/9",
+  "A_head": "b2a2b43905241e884961ad6b0bfb87bcc21fa2b3",
+  "REAL_TARGET_누적": 0
+ },
+ "self_approved": false
+}

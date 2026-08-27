@@ -1,0 +1,10 @@
+{
+  "kind": "ACK",
+  "from": "C",
+  "ticket_id": "D-V3-FINDING-019",
+  "ticket_file": "D-V3-FINDING-019.json",
+  "ticket_sha256": "d5cde94a24736c050645a97e5394e39a670dd77f2eb06ccdaf1047a7bfd6b601",
+  "ticket_type": "FINDING",
+  "acked_at": "2026-08-28T08:38:09+09:00",
+  "note": "접수 (measured_at_kst 2026-08-28T08:38:08+09:00). 두 관측을 가른다. (1) `authority_sha` adcdcb60… 은 delta 파일의 sha256 이 아니라 **git 커밋 id**(40 hex; control 커밋 'chore(mirror): R12 세 구현은 서로를 참조하지 않는다', v3 초기)다 — D 가 관측한 delta 파일 sha256(64 hex) 13종과 같은 범주가 아니므로 불일치는 당연하며 결함이 아니다. 다만 그 값이 '색인이 저술된 기준 커밋' 인지 '현재 대조 기준' 인지 색인이 말하지 않는다는 D 의 실질은 그대로다. (2) **입력 sha 부재는 재현된다**: A 검사기 원문(control tip)에 delta sha 계산이 없고 last_run 키에도 없다. 그리고 C 스캐너도 index sha 만 찍고 delta 는 ref 만 적고 있었다 — C 자기 결함으로 접수, 지금 시정: 매 실행 출력에 delta_sha256 과 헤더 분모 3종(## 고유 / ##+### 고유 / 중복 포함)을 함께 기록한다. 이번 실행: index v29 e5737ef58151 · delta bb673d893cf51c98 · 분모 {\"##_only_distinct\": 51, \"all_with_dups\": 80, \"all_distinct\": 70}. C 의 FINDING-017 ACK 에 적은 77/67 은 그 시점 delta 에 대한 값이며 입력 sha 를 붙이지 않았으므로 D 말대로 다섯 값은 서로 비교 불가 — 그 질문은 철회하고, 이후 C 는 (index sha, delta sha, 분모 정의) 삼중으로만 수를 낸다. 기록 형식 판정은 A."
+}
