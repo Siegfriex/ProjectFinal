@@ -1,46 +1,35 @@
 {
  "agent": "A",
- "timestamp": "2026-08-27T23:36:10+09:00",
- "phase": "V1",
- "current_ticket_id": "T-A-W1-P2-DECIDED",
+ "timestamp": "2026-08-28T00:18:21+09:00",
+ "phase": "PILOT",
+ "current_ticket_id": "T-A-PILOT-EXEC-001",
  "branch": "control/landing-orchestrator",
- "head_sha": "0f882444f522",
- "work_state": "GATE_W1W2_FAIL__AWAITING_NLP_FALLBACK__W4_ACCEPTED_W3_STAGE1_PARTIAL",
- "gates": {
-  "R0_GO": "GO",
-  "LABEL_FROZEN": "FROZEN",
-  "HOLDOUT_RECOVERY": "ACCEPTED (primary=clean 18)",
-  "W2_CONTAMINATION": "CLEAN_WITH_RESIDUAL_LIMIT",
-  "W4_ACCEPTANCE": "ACCEPT",
-  "W1_W2_JOINT_GATE": "FAIL",
-  "REAL_TARGET": "NO-GO"
+ "work_state": "PILOT_PREFLIGHT_LAUNCH_GATED",
+ "phase_status": "V2_DIAGNOSTIC_REAL_EVIDENCE_PILOT · PARTIAL_READY_WITH_BLOCKER",
+ "manifest": {
+  "sha256": "78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799",
+  "version": 2,
+  "n": 12
  },
- "a7_conditions": {
-  "1_holdout_recovery": "ACCEPTED",
-  "2_W1_C_PASS": "scope PASS, joint 대기",
-  "3_W2_clean18_validation": "FAIL — coverage 0.188 [0.066,0.430] vs 0.75",
-  "4_unsafe_endpoint_FP_0": "fixture 3/3 PASS, 실사이트 미검증",
-  "5_W3_C_validation": "Stage0 ACCEPT · Stage1 불변식 PASS, schema gap 4 미해결",
-  "6_W4_same_sha_C": "ACCEPT",
-  "7_A_explicit_GO": "미발행"
+ "launch_gates": {
+  "1_C_preflight": "1~5 MET, 6 PENDING",
+  "2_W1_mask": "4ec538b 확인, integration 포함 재확인 대기",
+  "3_V2_DIAGNOSTIC_scope": "D-R0-82 S1 구현 대기"
  },
- "blocker_ids": [
-  "W2 coverage 미달",
-  "W3 schema gap 4",
-  "W1 P2 2건(본 티켓으로 결정)",
-  "D-R0-70-2 훑기 미실시"
+ "w2_gate": "NOT_PASSED (b28aaa5) — HOLD 유지",
+ "real_target": "NO-GO until 3 gates",
+ "open_director_items": [
+  "A7 게이트 순서",
+  "D-R0-72 OverlayCoverage",
+  "blind set (E000 6)",
+  "W2 3선택지"
  ],
- "decisions_issued": "D-R0-51~76 (26 문서)",
- "control_commits": 37,
- "director_items": [
-  "A7 게이트 순서 — 평가 모집단을 REAL pilot 으로 교체할지",
-  "D-R0-72 OverlayCoverage construct (headline 변수)",
-  "blind set 존재 여부 (E000 6)"
+ "before_full59": [
+  "outcome 어휘 분리(inert vs account gate)",
+  "W3 D-R0-78 시정",
+  "D-R0-70-2 훑기"
  ],
- "bus_watch": "armed 20s",
- "last_push_at": "2026-08-27T23:36:10+09:00",
- "next_action": "W2 NLP fallback completion → C DOM replay 재채점 → joint gate 재판정",
- "real_target": "NO-GO",
- "heartbeat_note": "A 는 이벤트 구동이다. 조용한 구간에 타임스탬프가 지연될 수 있으나 정지가 아니다.",
- "process_lesson": "GO_NO_GO 성격 결정은 acks/ 에만 두지 않고 tickets/ 에도 발행한다 — 두 번 대기 상태가 발생했다."
+ "last_push_at": "2026-08-28T00:18:21+09:00",
+ "next_action": "integration SHA 도착 → C preflight 6 → launch 판정",
+ "heartbeat_note": "A 는 이벤트 구동이다. B/C heartbeat 의 work_state 가 phase transition 이후 갱신되지 않았으나 실제 작업은 pilot 경로로 진행 중이다."
 }
