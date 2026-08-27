@@ -1,0 +1,30 @@
+{
+ "ticket_id": "T-A-W1-P2-DECIDED",
+ "type": "DIRECTIVE",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "priority": "P1",
+ "phase": "V1",
+ "claim_kind": "DECISION",
+ "base_sha": "0f882444f522",
+ "created_at": "2026-08-27T23:36:10+09:00",
+ "title": "W1 9-state mask P2 2건 — 결정 완료. 장바구니 SAFE 는 P1 이다",
+ "why_this_ticket": "A 가 D-R0-75 §7 로 이미 결정했으나 acks/ 에 있었고 B heartbeat 가 여전히 'A 결정 대기' 다. 0.85 건과 같은 형태이므로 티켓으로 재고지한다. 새 결정이 아니다.",
+ "item_1_cart_SAFE": {
+  "priority": "P1 (P2 에서 상향)",
+  "decision": "장바구니·구매 control 을 SAFE 로 두지 않는다. D-R0-02 의 FORBIDDEN_TRANSACTION 으로 표시한다.",
+  "reason": "D-R0-06 은 거래 control 의 존재 관측만 허용하고 활성화를 금지한다. SAFE 로 두면 Scout 가 확장 대상으로 삼을 수 있다 — 안전 규칙에 닿으므로 P2 가 아니다.",
+  "note": "존재 관측은 그대로 허용된다. ITEM_DETAIL 의 endpoint evidence 로 쓰는 것도 그대로다 (D-R0-06). 바뀌는 것은 Scout 확장 가능 여부뿐이다."
+ },
+ "item_2_disabled_button_SAFE": {
+  "priority": "P2",
+  "decision": "disabled control 을 SAFE 로 두지 않는다. DISABLED_OR_INERT 로 표시한다.",
+  "reason": "D-R0-70 계열 여덟 번째다 — 존재를 작동으로 취급하는 형태. hittable 이 enabled 를 뜻하지 않는다.",
+  "scope": "D-R0-70-2 훑기 범위에 포함한다."
+ },
+ "verification": "D-R0-70-3 양방향 대조군으로 검증한다 — disabled control 만 있는 랜딩은 확장 대상이 되지 않아야 하고, enabled control 은 되어야 한다.",
+ "expected_response": "ACK"
+}
