@@ -90,23 +90,55 @@ NOTEBOOK_MAP = {
 
 
 def discover() -> list[dict]:
-    """results/ 에서 RQ 단위 산출을 찾는다. rq_id 는 파일명에서만 뽑는다."""
-    found: dict[str, dict] = {}
+    """results/ 에서 RQ 단위 산출을 찾는다. rq_id 는 파일명에서만 뽑는다.
 
-    def entry(rq_id: str) -> dict:
-        num = rq_id.split("-")[1]
-        return found.setdefault(rq_id, {
-            "rq_id": rq_id,
-            "md": RD / "results" / f"RQ_{num}_FINDINGS.md",
+    [D-DEF-06 시정] 이전 정규식 `RQ_(D\\d+)_` 는 숫자 뒤에 `_` 를 요구해
+    하위 RQ(RQ_D13A, RQ_D12A, RQ_D6B1 …)와 RF001/RF2/DSUP/PILOT 계열을 전부 놓쳤다.
+    36개 산출 중 10개만 색인되고 있었다. prefix 규칙(`<prefix>_FINDINGS.md`)으로 바꾼다.
+    """
+    import re as _re
+
+    # RQ 산출이 아닌 것 — 관측 테이블·결함기록·방화벽·부모런·사전등록
+    SKIP = _re.compile(
+        r"^(D_OBSERVATION_TABLE|D_DEF_|D_INPUT_|D_CORPUS_|D_DASHBOARD|D_FACT_"
+        r"|PILOT_PREREGISTRATION)|_PARENT_RUN\.json$"
+    )
+
+    def rq_id_of(prefix: str) -> str | None:
+        if m := _re.fullmatch(r"RQ_(D[0-9A-Za-z]+)", prefix):
+            return f"RQ-{m.group(1)}"
+        if m := _re.fullmatch(r"(RF001|RF2)_([A-Z])", prefix):
+            return f"{m.group(1)}-{m.group(2)}"
+        if m := _re.fullmatch(r"DSUP(\d+)", prefix):
+            return f"D-SUP-{m.group(1)}"
+        if prefix == "PILOT_E":
+            return "RQ-D-PILOT-001-E"
+        return None
+
+    def prefix_of(name: str) -> str | None:
+        stem = name.rsplit(".", 1)[0]
+        parts = stem.split("_")
+        # 가장 긴 것부터 시도해 `<prefix>_FINDINGS.md` 규칙과 맞는 지점을 찾는다
+        for k in range(min(3, len(parts)), 0, -1):
+            cand = "_".join(parts[:k])
+            if rq_id_of(cand):
+                return cand
+        return None
+
+    found: dict[str, dict] = {}
+    for f in sorted((RD / "results").glob("*.json")):
+        if SKIP.search(f.name):
+            continue
+        prefix = prefix_of(f.name)
+        if not prefix:
+            continue
+        rq = rq_id_of(prefix)
+        e = found.setdefault(rq, {
+            "rq_id": rq,
+            "md": RD / "results" / f"{prefix}_FINDINGS.md",
             "json": None,
         })
-
-    for f in sorted((RD / "results").glob("RQ_D*")):
-        m = re.match(r"RQ_(D\d+)_", f.name)
-        if not m:
-            continue
-        e = entry(f"RQ-{m.group(1)}")
-        if f.suffix == ".json" and e["json"] is None:
+        if e["json"] is None:
             e["json"] = f
     return list(found.values())
 

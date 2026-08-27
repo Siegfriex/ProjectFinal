@@ -1,0 +1,14 @@
+{
+  "defect_id": "D-DEF-06",
+  "kind": "IMPLEMENTATION",
+  "owner": "D",
+  "severity": "관측 결함 — 연구 판정에는 영향 없음, 관측성/재현성에 영향",
+  "found_at_kst": "2026-08-28T00:34:00+09:00",
+  "where": "research_d/tools/d_mlflow.py :: discover()",
+  "what": "산출 탐색 정규식이 `RQ_(D\\d+)_` 로 숫자 뒤에 밑줄을 요구했다. 하위 RQ(RQ_D13A, RQ_D12A, RQ_D6B1 …)는 숫자 뒤가 알파벳이라 매칭되지 않았고, RF001/RF2/DSUP/PILOT 계열은 glob(`RQ_D*`) 단계에서 이미 제외됐다.",
+  "impact": {"indexed_before": 10, "indexed_after": 33, "missed": 23, "note": "MLFLOW_RETENTION_MANIFEST.json 이 D 산출의 30%만 담고 있었다. 결과 파일과 판정은 전부 디스크와 git 에 온전히 있었으므로 어떤 수치도 바뀌지 않는다."},
+  "why_it_mattered": "MLflow 는 SSOT 도 실증 진리도 아니고 index 다. 그러나 index 가 30% 만 담으면 '무엇이 실행됐는가' 를 index 로 되짚을 수 없고, 없는 것과 색인되지 않은 것이 같은 출력으로 보인다.",
+  "fix": "prefix 규칙(`<prefix>_FINDINGS.md`)으로 교체하고 RQ-D 하위번호·RF001·RF2·DSUP·PILOT 계열을 모두 인식하도록 했다. RQ 산출이 아닌 것(관측 테이블·결함기록·방화벽 검증·부모런·사전등록)은 명시적 SKIP 목록으로 제외한다.",
+  "verification": {"idempotent": true, "evidence": "재실행 시 기존 10건이 '동일 result sha 이미 기록됨' 으로 skip 되고 신규 23건만 logged. 기존 run 은 덮어쓰지 않았다.", "manifest_after": {"runs": 33, "files": 1921, "bytes": 114800035}},
+  "not_fixed": "md_exists=False 인 8건(RQ-D3A·D6·D6A·D6B·D6B1·D12A2·D12A3·D13A1·D13C)은 FINDINGS.md 없이 JSON 만 있다. payload 가 JSON 으로 대체되므로 색인은 되지만 서술 문서는 없다 — 산출 규약의 문제이지 도구의 문제가 아니라 여기서 고치지 않는다."
+}
