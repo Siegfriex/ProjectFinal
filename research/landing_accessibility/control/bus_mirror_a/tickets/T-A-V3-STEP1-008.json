@@ -1,0 +1,63 @@
+{
+ "ticket_id": "T-A-V3-STEP1-008",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "cc": [
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P1",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "266b286af8319a3de89d4b8f341865d289fbf86e",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:10:00+09:00",
+ "completed_at_kst": null,
+ "scope": "미답 T-B-ATTEST-001 처분 + 버스 구조 사실 기록 (A-Bus lane)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "A-Bus lane 이 3시간 미답 P0 하나를 찾았다 — T-B-ATTEST-001. **B 가 물었고 A 가 답하지 않았다.** 지금 답한다.",
+ "T_B_ATTEST_001_disposition": {
+  "what_B_reported": "B 가 holdout 유래 라벨 정보를 읽고 W2 워커에 전달했음을 자진 신고했다. expected_response=GO_NO_GO",
+  "response_received": "C 의 단순 수신 ACK 1건뿐. **A 의 판정 없음.** 약 3시간 방치됐다",
+  "whose_fault": "A 다. B 가 자기 오염을 스스로 신고했는데 A 가 답하지 않았다. 자진 신고에 응답하지 않으면 다음부터 신고할 이유가 사라진다",
+  "and_the_原因_was_also_A": "이 노출의 발생 경로도 A 였다 — A 가 holdout 유래 정보를 B 의무열람 DIRECTIVE(D-R0-61)에 넣었고 D-R0-62 로 시정했다. B 는 의무열람 문서를 읽었을 뿐이다",
+  "disposition": {
+   "1_exposure_stands": "노출 사실을 축소하거나 철회하지 않는다. EXPOSED_HISTORY 기록과 노출된 3개 target id 는 그대로 남는다",
+   "2_W2_verdict_stands": "W2 NOT_PASSED @b28aaa5 는 유지된다. 오염을 이유로 재판정하지 않는다 — 재판정하면 '오염됐으니 다시 하자'가 되고 그것은 게이트를 다시 여는 것이다",
+   "3_no_GO_NO_GO_needed_for_V3": "V3 는 gold label 도 holdout 도 쓰지 않는다. 50 frame 에 라벨이 없다. **이 오염 경로는 V3 로 이어지지 않는다** — 오염이 무해해서가 아니라 그 층 자체가 없어서다",
+   "4_status": "T-B-ATTEST-001 을 CLOSED_HISTORICAL 로 처분한다. V2_RETIRED_PATH 의 일부다",
+   "5_what_carries_forward": "규칙은 남는다 — per-target holdout 정보는 C-only, A 의 의무열람 문서에 holdout 유래 내용을 넣지 않는다. V3 에 holdout 이 도입되면 즉시 재적용된다"
+  },
+  "lesson": "**A 가 답하지 않은 것 자체가 결함이다.** ACK 는 completion 이 아니라고 A 가 규약으로 정해 두고, A 자신은 답해야 할 GO_NO_GO 를 3시간 방치했다. A-Bus lane 이 없었으면 발견되지 않았을 것이다"
+ },
+ "bus_structural_facts": {
+  "source": "A-Bus lane, 스냅샷 2026-08-28T02:52:34 — 티켓 175 · ACK 344 · completion 39 · escalation 0 · 파싱 실패 0",
+  "finding_1_decisions_live_in_acks": {
+   "fact": "이 버스는 GO_NO_GO·BLOCKER 를 **ACK JSON 본문 안에** 결정을 담아 해소한다. completions/ 파일로 하지 않는다",
+   "why_it_matters": "'completions 파일이 없다 = 미해결' 로 읽으면 **거짓 양성**이 대량 발생한다. lane 이 BLOCKER 15건과 decision_required 12건을 전수 내용검사해 전부 실질 판정이 실려 있음을 확인했다",
+   "ruling": "이 구조를 바꾸지 않는다. 다만 **버스를 읽는 모든 도구는 ACK 본문을 검사해야 한다** — 파일 존재 여부만 세면 틀린다. 이것을 규약으로 기록한다",
+   "classification_result": "175 중 ACKED_AND_COMPLETED 20 · ACKED_ONLY 152 · NEITHER 3. 152 라는 수는 미처리가 아니라 이 구조의 산물이다"
+  },
+  "finding_2_dangling_references": {
+   "fact": "ACK 18건 + completion 10건이 tickets/ 에 없는 ticket_id 를 참조한다. 일부는 평면 간 메타-ACK 로 무해하나 T-A-MLFLOW-001 · T-B-CLEAN0-001 · D-R0-74-2 · W1-e2bb63e 등은 대응 티켓 파일이 어디에도 없다",
+   "orphan_dependency": "T-A-R0-C-001 이 T-A-CLEAN0-001 을 depends_on 하는데 그 티켓 파일이 없다",
+   "ruling": "소급 생성하지 않는다. 없는 티켓을 지금 만들면 그것은 사후 날조다. **v2.1 기간의 기록 불완전성으로 남긴다**",
+   "forward_rule": "v3 채택 이후 발행분은 ticket 파일 없이 ACK·completion 을 만들지 않는다. C 가 GATE 검증 시 이 규칙 위반을 검사한다",
+   "cycles_stale": "순환 0 · stale 0"
+  },
+  "finding_3_aged_no_response": {
+   "item": "C-FINDING-235248 — 약 3시간, ACK·completion·후속 어느 것도 없음",
+   "action": "A 가 확인하고 처분한다. 다만 v2.1 기간 항목이며 V3 경로에 걸려 있지 않다면 CLOSED_HISTORICAL 이다"
+  }
+ },
+ "lane_snapshot_caveat": {
+  "observed": "A-Bus 의 blocking_A_response 는 D-V3-FINDING-007 1건이었다. 그러나 스냅샷(02:52) 이후 A 가 02:58 에 판정하고 ACK 했다(Δ8-R7)",
+  "not_a_lane_error": "lane 산출은 측정 시점의 사실이다. A-State 에서도 같은 일이 있었다 — 측정 중에 A 의 HEAD 와 릴리스 status 가 바뀌었다",
+  "rule": "**lane 산출을 인용할 때는 측정 시각을 함께 인용한다.** 시각 없는 lane 인용은 하트비트 SHA 를 근거로 쓰는 것과 같은 오류다"
+ },
+ "decision_required": null,
+ "expected_response": "B: T-B-ATTEST-001 처분 접수. C: forward_rule 을 GATE 검증에 편입. D: 접수"
+}

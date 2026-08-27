@@ -1,0 +1,101 @@
+{
+ "ticket_id": "T-A-V3-STEP1-007",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D",
+  "E"
+ ],
+ "cc": [
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "266b286af8319a3de89d4b8f341865d289fbf86e",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:05:00+09:00",
+ "completed_at_kst": null,
+ "scope": "수집 스키마 확정 3건 — terminal_reason · sequence 거리 정규화 · auth_gate_stage UNDETERMINED (D-V3-FINDING-008)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "D 가 '수집 전에만 고칠 수 있는 것' 3건을 정확히 골라 올렸다. 사후 분석으로 못 메우는 것들이라 지금 확정한다. 셋 다 SSOT 원본을 고치지 않고 delta 로 확장한다.",
+ "R11_terminal_reason": {
+  "raised": "AD-01 — Director 의 실패 범주와 SSOT endpoint_status 7값이 일의적으로 대응하지 않는다. BLOCKED 가 WAF·challenge·timeout 을 삼키고, PUBLIC_WEB_UNOBSERVABLE 이 '공개 모바일웹 부재'와 '과업 surface 부재'를 삼킨다. disabled·inert·forbidden action 은 대응 값이 아예 없다",
+  "D_is_right": "수집기가 명시 signal 을 남기지 않으면 사후에 분해할 수 없다. **수집 스키마 문제이지 분석 문제가 아니다**",
+  "ruling": "`endpoint_status` enum 은 **바꾸지 않는다.** 동반 필드 `terminal_reason` 을 추가해 해상도를 올린다",
+  "why_companion_not_replace": "R5(fixture_input_mode) · R7(원좌표+파생 zone) 과 같은 처리다 — SSOT 값을 덮지 않고 옆에 해상도를 둔다. SSOT 호환이 유지되고 세부는 보존된다",
+  "terminal_reason_values": [
+   "TIMEOUT",
+   "WAF_BLOCK",
+   "ACTIVE_CHALLENGE",
+   "NO_PUBLIC_MOBILE_WEB",
+   "TASK_SURFACE_ABSENT",
+   "APP_REQUIRED",
+   "CONTROL_DISABLED_OR_INERT",
+   "FORBIDDEN_ACTION_REQUIRED",
+   "AUTH_REQUIRED",
+   "EVIDENCE_DEFECT",
+   "REPLAY_BROKEN",
+   "AMBIGUOUS_MULTIPLE_CANDIDATES",
+   "OTHER"
+  ],
+  "rules": [
+   "모든 terminal 관측은 `endpoint_status` 와 `terminal_reason` 을 **둘 다** 갖는다",
+   "`OTHER` 는 자유기술 note 필수. note 없는 OTHER 는 스키마 위반",
+   "`TASK_SURFACE_ABSENT` 는 채널은 있으나 그 과업이 없는 경우다 — Δ8-R1 의 NO_PUBLIC_MOBILE_WEB 읽기와 구분해 기록하되, precheck 단계의 교체 사유로는 여전히 NO_PUBLIC_MOBILE_WEB 하나만 쓴다. 기록 해상도와 교체 사유는 다른 층이다",
+   "`FORBIDDEN_ACTION_REQUIRED` 는 경로가 금지행위를 요구해 중단한 경우다. **금지행위를 하지 않았다는 기록이지 실패가 아니다**",
+   "`CONTROL_DISABLED_OR_INERT` 는 이 세션의 presence≠operative 결함군에 대응하는 값이다 — control 이 있는데 작동하지 않는 것을 '없음'으로 접지 않는다"
+  ],
+  "consistency": "endpoint_status × terminal_reason 의 허용 조합표를 B 가 runner 스키마에 명시하고 C 가 GATE 1 에서 검증한다. 불가능 조합(예: REACHED × TIMEOUT)은 스키마가 거부해야 한다"
+ },
+ "R12_sequence_distance_normalization": {
+  "raised": "AMB-F01 — normalized Levenshtein 의 정규화 분모가 codebook·analysis plan 어디에도 없다. 같은 pair 가 max(len) 1.0 / sum(len) 0.5 / Yujian-Bo 0.667 로 갈린다",
+  "why_this_is_the_most_important_of_the_three": "**v3 의 primary outcome 이 sequence 거리다.** 이 값 하나가 primary 결과를 바꾼다. 관측 후에 고르면 그것은 결과를 보고 지표를 고른 것이다",
+  "ruling": {
+   "primary": "`max(len(a), len(b))` 정규화",
+   "also_stored": [
+    "sum(len) 정규화",
+    "Yujian-Bo"
+   ],
+   "single_scalar": "primary 만 단일 보고에 쓴다"
+  },
+  "why_max_len": [
+   "값이 [0,1] 에 갇히고 1.0 이 '완전히 다름'을 뜻해 해석이 직관적이다",
+   "'normalized edit distance' 의 가장 흔한 관례라 독자가 놀라지 않는다",
+   "sum(len) 은 비어 있지 않은 두 열에서 결코 1 에 도달하지 못해 차이를 과소보고한다"
+  ],
+  "yujian_bo_as_declared_sensitivity": "Yujian-Bo 는 삼각부등식을 만족하는 **진짜 거리**다. 05 §2-E 가 cluster/heatmap 을 예고하므로, **군집·MDS 를 수행할 때는 Yujian-Bo 를 병기한다.** 지금 선언해 둔다 — 나중에 군집 결과가 마음에 안 들어 지표를 바꾸는 일이 없도록",
+  "store_all_three": "D 의 하네스가 이미 셋을 병기하고 단일 스칼라를 emit 하지 않는다. 그 처리를 유지한다. 셋 다 저장하고 primary 를 지정하는 것이지, 하나만 계산하는 것이 아니다",
+  "D_did_right": "D 가 단일 스칼라를 만들지 않고 세 후보를 병기한 채 A 에 올린 것이 옳다. 하나를 골랐다면 그것이 조용한 조작화 결정이 됐다"
+ },
+ "R13_auth_gate_stage_undetermined": {
+  "raised": "AMB-A4 — auth_gate_stage 에 판정불능 값이 없다. 증거 없는 run 을 NONE 으로 적으면 허위 실측 주장이 된다",
+  "ruling": "`auth_gate_stage` enum 을 delta 로 확장한다 — `UNDETERMINED` 추가",
+  "semantics": {
+   "NONE": "**관측했고, auth gate 가 없었다.** 이것은 적극적 주장이며 증거를 요구한다",
+   "UNDETERMINED": "판정할 수 없었다. 증거 부재·경로 미완·evidence defect 등",
+   "BEFORE_TASK_DISCOVERY / AFTER_TASK_SELECT / AT_ENDPOINT": "기존과 동일"
+  },
+  "why_this_matters": "이것이 이 세션의 중심 결함군이다 — **증거의 부재를 부재의 증거로 적는 것.** NONE 과 UNDETERMINED 를 구분하지 않으면 관측하지 못한 것이 '인증 없음'으로 집계되고, auth 발생률이 체계적으로 과소추정된다",
+  "same_rule_elsewhere": "이 원칙을 전 변수에 적용한다 — **어떤 변수든 '없음'을 적으려면 관측했다는 증거가 있어야 한다.** 관측하지 못했으면 판정불능 값을 쓴다. 판정불능 값이 없는 변수가 또 있으면 발견 즉시 올려라",
+  "aggregation": "UNDETERMINED 는 분모에서 빼지 말고 별도 범주로 보고한다. 빼면 그 자체가 selection 이다"
+ },
+ "D_reconciliation_endorsed": {
+  "what_D_did": "5 lane 전부 COMPLETE 인데도 cross-lane 중복 2건(nav_container_depth · menu_dependency, lane S 와 F)을 발견하고 **조용히 하나를 고르지 않고** RECONCILIATION_REQUIRED 로 올렸다",
+  "A_endorses": "정확히 Director ADDENDUM §3 이 요구한 처리다. 그리고 D 가 그 중복을 낭비가 아니라 **재료**로 본 것이 더 옳다 — ruling_11 이 요구한 '같은 fixture 에서 두 독립 구현의 수렴 실증' 이 우연히 생겼다",
+  "directive": "두 구현을 같은 fixture 에 투입해 수렴 검사를 돌려라. 수렴하면 ruling_11 의 요구가 그 변수에 대해 충족된 것이다. 갈리면 그때가 진짜 구현 불일치이고 정의를 다시 봐야 한다",
+  "d_def_11_credit": "D 가 reconcile 의 초기 '0건' 을 보고 **'검사 가능했는데 없음' 인지 '검사 자체가 안 됨' 인지** 확인하려고 산출 키 모양을 직접 열어본 것이 이 발견의 경로다. 이 세션이 반복해서 배운 것이 그것이다 — 0 은 두 가지를 뜻할 수 있다"
+ },
+ "R14_weakest_link_adopted": {
+  "D_self_report": "fixture 는 워커가 정의를 읽고 만든 것이라 정의를 오독했다면 fixture 도 같이 틀린다. 변이 검사는 구현 오류만 잡고 해석 오류는 못 잡는다 (lane A 자기 기술)",
+  "A_adopts_as_binding_limitation": "맞다. 그리고 이것은 B 에게도 똑같이 적용된다 — B 의 runner 와 B 의 fixture 가 같은 사람의 같은 독해에서 나오면 둘의 일치는 정확성의 증거가 아니다",
+  "GATE_1_requirement": "**C 는 B·D 의 fixture 를 쓰지 않고 SSOT 원문에서 자기 fixture 를 파생해 투입한다.** C 의 fixture 가 B 의 fixture 와 다른 결과를 내면 그것이 해석 불일치 신호다. 이것을 GATE 1 통과 조건에 넣는다",
+  "why": "변이 검사가 못 잡는 층을 사람의 독립 독해로만 잡을 수 있다"
+ },
+ "recording": "Δ10 으로 V3_0_1_SUCCESSOR_DELTA.md 에 기록. SSOTV3 원본 무수정.",
+ "preregistration_status": "REAL 접속 누적 0건. 셋 다 result-blind 확정이다.",
+ "remaining_50_ambiguities": "D 가 올린 53건 중 blocking 4건(AMB-S01 은 Δ8-R7 로 기해결)을 처리했다. 나머지 비-blocking 항목은 C 가 GATE 1 검증 중 실제로 걸리는 것만 A 에 올린다 — 전부를 선제적으로 정의하면 쓰이지 않을 정의를 만들게 된다",
+ "decision_required": null,
+ "expected_response": "B: terminal_reason · 거리 3종 · UNDETERMINED 를 runner 스키마에 반영. C: GATE 1 에 조합표 검증과 자체 fixture 파생 편입. D: 중복 2변수 수렴검사. E: 접수"
+}

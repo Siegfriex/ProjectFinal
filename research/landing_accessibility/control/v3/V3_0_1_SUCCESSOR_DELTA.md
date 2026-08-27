@@ -201,3 +201,72 @@ MID·BOTTOM 은 x 삼등분하지 않는다 (codebook 에 MID_LEFT 류가 없다
 **구조 우선**: `FLOATING`(position fixed/sticky, 일반 흐름 이탈)과 `DRAWER`(reveal 을 요구하는 nav_container 내부)는 기하보다 우선한다. 둘 다면 `DRAWER` 우선 — reveal 필요 여부가 사용자에게 더 큰 구조적 부담이다. override 가 걸려도 `entry_x_norm`/`entry_y_norm` 은 그대로 저장한다. **요약값이 원자료를 덮지 않는다.**
 
 임계값을 나중에 바꾸는 것은 재수집이 아니라 재도출이다. 그러나 **선언된 민감도로만** 허용하고 원 임계값 결과와 병기한다 — 결과를 보고 조용히 바꾸면 조작화 fitting 이다.
+
+## Δ9 — `activation_depth` 토큰 귀속 (신규)
+
+발행 `T-A-V3-STEP1-006`. 제기: `T-B-V3-DR-001` · `T-B-FC-013`. 관측 0건 시점.
+
+**충돌이 아니라 한 문장의 중의성이었다.** 03 §6 과 04 §5 의 제외 목록 어디에도 submit 이 없고, 03 의 포함 목록 `link/button/tab/menu open` 에 submit control 은 button 으로 들어간다. 모호함은 03 마지막 문장이 typing 과 submit 을 묶어 언급한 데서 왔다 — typing 이 depth 에서 빠지니 어딘가 남아야 한다는 말이지 submit 을 빼라는 말이 아니다.
+
+**일반 기준**: `activation_depth` 는 사용자가 control 을 **의도적으로 활성화해 상태 전이를 일으킨** 토큰의 수다. ① 의도적 조작인가 ② control 활성화인가 ③ 상태가 전이되는가.
+
+| 구분 | 토큰 |
+|---|---|
+| **포함 (10)** | OPEN_GLOBAL_MENU · OPEN_LOCAL_MENU · SWITCH_TAB · EXPAND_ACCORDION · SELECT_CATEGORY · SELECT_FUNCTION · **SUBMIT_QUERY** · SELECT_RESULT · OPEN_ITEM_DETAIL · OPEN_PLACE_DETAIL |
+| **제외 (5)** | INPUT_QUERY(타이핑) · DISMISS_OBSTRUCTION(명시 제외) · AUTH_GATE(활성화가 아니라 마주친 상태) · ENDPOINT_REACHED(종결 표지) · ABSTAIN(판정 유보) |
+| **조건부 (3)** | SELECT_ORIGIN · SELECT_DESTINATION · SELECT_DATE — `fixture_input_mode` 로 갈린다. picker/dropdown/calendar 활성화면 포함, 자유입력 타이핑이면 제외. `depth_conditional_tokens` 에 근거를 남긴다 |
+
+submit 을 빼면 검색어를 넣고 조회를 눌러야 진입하는 서비스와 control 을 바로 누르면 되는 서비스가 같은 depth 를 갖는다. **실재하는 구조 차이를 지우는 것이며 그것이 v3 가 재려는 차이다.** 3탭 달력과 텍스트 한 줄도 마찬가지다.
+
+이 규칙은 검색 기반 family(F2·F3·F5)의 depth 를 F1·F4 보다 높인다. 결함이 아니다 — 사실이다. 사전등록으로 기록한다.
+
+**방향은 토큰이 아니라 변수다**: `OPEN_RIGHT_DRAWER` 는 canonical 18종에 없다. `OPEN_GLOBAL_MENU`/`OPEN_LOCAL_MENU` + `nav_container_type=RIGHT_DRAWER` + `reveal_direction=RIGHT` 로 표현한다. 방향을 토큰에 넣으면 sequence signature 가 방향까지 포함해 갈라져 '같은 구조 다른 방향'과 '다른 구조'가 편집거리에서 구분되지 않는다. **상위 지시와 SSOT 가 다르면 SSOT 를 따른다.**
+
+## Δ10 — 수집 스키마 확정 3건 (신규)
+
+발행 `T-A-V3-STEP1-007`. 제기: `D-V3-FINDING-008` blocking. 셋 다 **수집 전에만 고칠 수 있는 것**이다.
+
+### Δ10-R11 `terminal_reason` 동반 필드
+
+`endpoint_status` 7값으로는 실패 사유가 분해되지 않는다 — `BLOCKED` 가 WAF·challenge·timeout 을, `PUBLIC_WEB_UNOBSERVABLE` 이 채널 부재와 과업 surface 부재를 삼킨다. disabled·inert·forbidden action 은 대응 값이 없다.
+
+enum 을 바꾸지 않고 동반 필드를 둔다. 13값: `TIMEOUT · WAF_BLOCK · ACTIVE_CHALLENGE · NO_PUBLIC_MOBILE_WEB · TASK_SURFACE_ABSENT · APP_REQUIRED · CONTROL_DISABLED_OR_INERT · FORBIDDEN_ACTION_REQUIRED · AUTH_REQUIRED · EVIDENCE_DEFECT · REPLAY_BROKEN · AMBIGUOUS_MULTIPLE_CANDIDATES · OTHER`
+
+모든 terminal 은 두 필드를 다 갖는다. `OTHER` 는 note 필수. 허용 조합표를 B 가 명시하고 C 가 검증한다 — 불가능 조합(`REACHED × TIMEOUT`)은 스키마가 거부한다.
+
+`CONTROL_DISABLED_OR_INERT` 는 `presence ≠ operative` 결함군에 대응한다 — control 이 있는데 작동하지 않는 것을 '없음'으로 접지 않는다.
+
+### Δ10-R12 sequence 거리 정규화
+
+**primary = `max(len(a), len(b))`.** sum(len) 과 Yujian-Bo 도 저장하되 단일 보고에는 primary 만 쓴다.
+
+같은 pair 가 정규화에 따라 1.0 / 0.5 / 0.667 로 갈린다. **v3 의 primary outcome 이 sequence 거리이므로 이 선택 하나가 primary 결과를 바꾼다.** 관측 후에 고르면 결과를 보고 지표를 고른 것이다.
+
+군집·MDS 를 수행할 때는 **Yujian-Bo 를 병기한다**(삼각부등식을 만족하는 진짜 거리). 지금 선언한다 — 나중에 군집 결과가 마음에 안 들어 지표를 바꾸는 일이 없도록.
+
+### Δ10-R13 `auth_gate_stage` = `UNDETERMINED` 추가
+
+- `NONE` = **관측했고, auth gate 가 없었다.** 적극적 주장이며 증거를 요구한다.
+- `UNDETERMINED` = 판정할 수 없었다.
+
+이것이 이 세션의 중심 결함군이다 — **증거의 부재를 부재의 증거로 적는 것.** 둘을 구분하지 않으면 관측하지 못한 것이 '인증 없음'으로 집계돼 auth 발생률이 체계적으로 과소추정된다.
+
+**전 변수에 적용한다**: 어떤 변수든 '없음'을 적으려면 관측했다는 증거가 있어야 한다. 판정불능 값이 없는 변수를 발견하면 즉시 올린다. `UNDETERMINED` 는 분모에서 빼지 않고 별도 범주로 보고한다 — 빼면 그 자체가 selection 이다.
+
+### Δ10-R14 fixture 해석 오류는 변이 검사가 못 잡는다
+
+D 자기 기술: fixture 는 워커가 정의를 읽고 만든 것이라 정의를 오독했으면 fixture 도 같이 틀린다. 변이 검사는 구현 오류만 잡는다.
+
+B 에게도 같다. **GATE 1 에서 C 는 B·D 의 fixture 를 쓰지 않고 SSOT 원문에서 자기 fixture 를 파생한다.** C 의 fixture 가 다른 결과를 내면 그것이 해석 불일치 신호다.
+
+## Δ11 — 버스 구조 사실 (신규)
+
+발행 `T-A-V3-STEP1-008`. 출처 A-Bus lane, 스냅샷 `2026-08-28T02:52:34`.
+
+**이 버스는 GO_NO_GO·BLOCKER 를 ACK JSON 본문 안에 결정을 담아 해소한다.** completions/ 파일로 하지 않는다. `completions 파일 없음 = 미해결` 로 읽으면 거짓 양성이 대량 발생한다 — BLOCKER 15건과 `decision_required` 12건 전수 내용검사에서 전부 실질 판정이 실려 있었다.
+
+구조를 바꾸지 않는다. 대신 **버스를 읽는 모든 도구는 ACK 본문을 검사한다.** 파일 존재만 세면 틀린다.
+
+v2.1 기간의 dangling reference(ACK 18 + completion 10)와 orphan dependency 1건은 **소급 생성하지 않는다** — 없는 티켓을 지금 만들면 사후 날조다. v3 이후 발행분은 ticket 파일 없이 ACK·completion 을 만들지 않으며 C 가 검증한다.
+
+**lane 산출을 인용할 때는 측정 시각을 함께 인용한다.** A-State 와 A-Bus 둘 다 측정 중에 대상이 바뀌는 것을 관측했다. 시각 없는 lane 인용은 하트비트 SHA 를 근거로 쓰는 것과 같은 오류다.

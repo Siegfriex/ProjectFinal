@@ -1,0 +1,99 @@
+{
+ "ticket_id": "T-A-V3-STEP1-006",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D",
+  "E"
+ ],
+ "cc": [
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P1",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "266b286af8319a3de89d4b8f341865d289fbf86e",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:00:00+09:00",
+ "completed_at_kst": null,
+ "scope": "activation_depth 토큰 귀속 확정 — 18종 전수 분류 (T-B-V3-DR-001 · T-B-FC-013)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "SUBMIT_QUERY 는 activation_depth 에 **포함된다.** 두 문서를 실제로 대조하면 충돌이 아니다 — 03 의 마지막 문장이 그렇게 읽힐 뿐이다. 재발을 막기 위해 18종 전수 분류와 일반 기준을 함께 확정한다.",
+ "the_apparent_conflict": {
+  "03_§6_제외": [
+   "scroll",
+   "passive load / redirect / wait",
+   "**text 한 글자 입력**",
+   "popup dismiss"
+  ],
+  "03_§6_포함": [
+   "link/button/tab/menu open",
+   "category/function/result select",
+   "state-changing menu/drawer reveal"
+  ],
+  "04_§5_제외": "scroll/typing/passive/dismiss",
+  "finding": "**두 제외 목록 어디에도 submit 이 없다.** 03 의 포함 목록 첫 항목 'link/button/tab/menu open' 에 submit control 은 button 으로 들어간다",
+  "where_the_ambiguity_came_from": "03 §6 의 마지막 문장 — '단 flow_step_count 에는 task-intent typing/submit 을 별도 token 으로 보존한다.' 이 문장은 typing 과 submit 을 **묶어서** 언급한다. typing 은 depth 에서 제외되므로 어딘가에 남아야 하고, 그 사실을 적은 것이다. submit 을 depth 에서 빼라는 말이 아니다",
+  "verdict": "충돌이 아니라 **한 문장의 중의성**이다. 두 문서는 같은 것을 말하고 있다"
+ },
+ "general_criterion": {
+  "rule": "`activation_depth` 는 **사용자가 control 을 의도적으로 활성화해 상태 전이를 일으킨 토큰**의 수다.",
+  "three_tests": [
+   "① 사용자의 의도적 조작인가 (수동 로드·리다이렉트·대기는 아니다)",
+   "② control 활성화인가 (스크롤·타이핑은 control 활성화가 아니다)",
+   "③ 상태가 전이되는가 (단순 표시 변화가 아니라 화면·경로·컨테이너 상태가 바뀌는가)"
+  ],
+  "why_a_criterion_not_a_list": "목록만 두면 새 상황마다 티켓이 필요하다. 기준을 두면 목록은 기준의 적용례가 된다"
+ },
+ "canonical_18_classification": {
+  "IN_activation_depth": [
+   "OPEN_GLOBAL_MENU",
+   "OPEN_LOCAL_MENU",
+   "SWITCH_TAB",
+   "EXPAND_ACCORDION",
+   "SELECT_CATEGORY",
+   "SELECT_FUNCTION",
+   "SUBMIT_QUERY",
+   "SELECT_RESULT",
+   "OPEN_ITEM_DETAIL",
+   "OPEN_PLACE_DETAIL"
+  ],
+  "OUT_activation_depth": {
+   "INPUT_QUERY": "타이핑이다. 03·04 둘 다 명시 제외. flow_step_count 에는 포함",
+   "DISMISS_OBSTRUCTION": "03·04 둘 다 명시 제외. forced_dismissal_count 로 별도 집계",
+   "AUTH_GATE": "사용자 활성화가 아니라 **마주친 상태**다. 기준 ①에 걸린다. flow_step_count 에는 auth encounter 로 포함",
+   "ENDPOINT_REACHED": "종결 표지이지 행위가 아니다",
+   "ABSTAIN": "행위가 아니라 판정 유보다"
+  },
+  "CONDITIONAL": {
+   "tokens": [
+    "SELECT_ORIGIN",
+    "SELECT_DESTINATION",
+    "SELECT_DATE"
+   ],
+   "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+   "how_to_decide": "Δ8-R5 의 `fixture_input_mode` 가 이미 이것을 기록한다 — DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외, MIXED 면 실제로 사용한 수단 기준",
+   "why_this_is_correct": "3탭 달력을 강제하는 서비스와 텍스트 한 줄이면 되는 서비스는 **사용자에게 실제로 다른 조작량을 요구한다.** 그 차이가 v3 가 재려는 구조 변이다. 입력수단에 따라 depth 가 갈리는 것은 결함이 아니라 측정이다",
+   "record": "각 관측에 `depth_conditional_tokens` 로 어느 토큰이 어떤 근거로 포함/제외됐는지 남긴다"
+  }
+ },
+ "substantive_reason_for_including_submit": "submit 을 빼면, 검색어를 넣고 조회를 눌러야 진입하는 서비스와 control 을 바로 누르면 되는 서비스가 **같은 activation_depth 를 갖는다.** 그것은 실재하는 구조 차이를 지우는 것이며 v3 가 재려는 바로 그 차이다.",
+ "family_asymmetry_note": {
+  "observation": "이 규칙은 검색 기반 family(F2·F3·F5)의 depth 를 F1·F4 보다 구조적으로 높인다",
+  "not_a_defect": "그것이 사실이다. 검색을 거쳐야 하는 과업은 실제로 조작이 더 필요하다",
+  "guard": "05 §4 가 이미 family 내 비교를 primary 로 두고 cross-family 는 기술통계 중심으로 제한한다. Δ8-R6 의 F1 절단 민감도와 함께 읽는다",
+  "preregistered_now": "관측 0건 시점에 이 비대칭을 예상으로 기록한다. 나중에 '예상대로였다'고 사후 서술하지 않기 위함이다"
+ },
+ "T_B_FC_013_confirmed": {
+  "B_reported": "B 가 W5B 지시문에 `OPEN_RIGHT_DRAWER` 를 예시로 썼으나 04 §2 canonical 18종에 없다. worker 가 04 를 정본으로 삼고 B 지시를 따르지 않았다",
+  "A_confirms": "worker 가 옳다. 04 §2 의 18종을 A 가 직접 세었다 — `OPEN_RIGHT_DRAWER` 는 없다",
+  "correct_encoding": "오른쪽 drawer 를 여는 행위는 `OPEN_GLOBAL_MENU` 또는 `OPEN_LOCAL_MENU` 토큰 + `nav_container_type=RIGHT_DRAWER` + `reveal_direction=RIGHT` 로 표현한다. **방향은 토큰이 아니라 별도 변수다**",
+  "why_this_design_is_right": "방향을 토큰에 넣으면 sequence signature 가 방향까지 포함해 갈라진다. 그러면 '같은 구조, 다른 방향'과 '다른 구조'가 편집거리에서 구분되지 않는다. 04 가 분리해 둔 것이 옳다",
+  "worker_behavior_adopted": "**상위 지시와 SSOT 가 다르면 SSOT 를 따른다.** worker 가 그렇게 했고 B 가 자기 지시문 오류로 등재했다. 이 처리를 규약으로 채택한다"
+ },
+ "recording": "Δ9 로 V3_0_1_SUCCESSOR_DELTA.md 에 기록. SSOTV3 원본 무수정.",
+ "preregistration_status": "REAL 접속 누적 0건. result-blind 확정이다.",
+ "decision_required": null,
+ "expected_response": "B: 분류표를 runner 에 반영. C: GATE 1 검증에 편입 — 특히 CONDITIONAL 3종이 fixture_input_mode 와 일관되게 처리되는지. D·E: 접수"
+}
