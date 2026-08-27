@@ -460,6 +460,36 @@ def main() -> int:
         })
     texts["NO_BRAND_DOMAIN"] = nb_texts
 
+    # ---- PLACEBO 제거 대조군 (사전등록 후 추가. 아래 POSTHOC_ADDITIONS 에 사유를 밝힌다)
+    # NO_BRAND_DOMAIN 의 예측 변화율은 '브랜드 토큰이 특별한가' 를 혼자서는 말해주지 못한다.
+    # 같은 개수의 임의 비브랜드 토큰을 지웠을 때의 변화율과 비교해야 해석된다.
+    def placebo_strip(text: str, blacklist: list[str], n_remove: int, r) -> str:
+        spans = [m.span() for m in TOK.finditer(text)]
+        toks = [text[a:b].lower() for a, b in spans]
+        bl = set(blacklist)
+        bl_hangul = [t for t in bl if HANGUL.search(t)]
+        elig = [i for i, t in enumerate(toks)
+                if t not in bl and not any(h in t for h in bl_hangul)]
+        k = min(int(n_remove), len(elig))
+        chosen = set(r.choice(elig, size=k, replace=False).tolist()) if k else set()
+        out, last = [], 0
+        for i, (a, b) in enumerate(spans):
+            if i in chosen:
+                out.append(text[last:a]); out.append(" "); last = b
+        out.append(text[last:])
+        s2 = "".join(out)
+        lines = [re.sub(r"[ \t]+", " ", ln).strip() for ln in s2.split("\n")]
+        return " \n ".join(ln for ln in lines if ln)
+
+    N_PLACEBO = 3
+    prng = np.random.default_rng(SEED + 101)
+    for rep_i in range(N_PLACEBO):
+        texts[f"_PLACEBO_{rep_i + 1}"] = [
+            placebo_strip(texts["FULL"][i], removal_audit[i]["blacklist_tokens"],
+                          removal_audit[i]["tokens_before"] - removal_audit[i]["tokens_after"],
+                          prng)
+            for i in range(n_rows)]
+
     # RF2-C 의 primary_controls 는 필드 집합이 CONTROL_ONLY 와 동일하나 결합 순서가 다르다.
     # 순서 차이가 결론을 흔드는지 보려고 replication 용으로만 하나 더 만든다(주 4종에는 넣지 않음).
     RF2C_ORDER = ["buttons", "aria_labels", "form_labels", "placeholders", "input_names"]
