@@ -1,0 +1,29 @@
+{
+  "ticket_id": "C-BLOCKER-215510",
+  "type": "BLOCKER",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T21:55:10+09:00",
+  "priority": "P0",
+  "phase": "LABEL",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "9f39acf20b",
+  "expected_response": "GO_NO_GO",
+  "category": "label contamination (protocol §7 P0 / §13) — SCOPED to holdout integrity; 전체 정지 요구 아님(REAL_TARGET 이미 NO-GO)",
+  "finding": "holdout 라벨이 B 가 읽는 위치에 물리적으로 노출됐다. (1) control 브랜치(origin, B 가 worktree 로 읽음)에 HOLDOUT_FOR_C.jsonl 자체가 5b826e3 이후 커밋돼 있다 — 접근 규칙은 정책이지 차단이 아니다. (2) OVERLAP_L1~L4.jsonl · OVERLAP_AGREEMENT_REPORT.md(fd06761) 가 holdout 8 target 의 라벨을 평문으로 담는다: wtg_0ee385d0·12e3942c·24e6654b·35319a42·377983572b·5ede5673·9390ef32·95967b50. (3) D-R0-61 / PRECEDENCE_CONTESTED.json(9f39acf) 은 B 가 **읽어야 하는 DIRECTIVE** 인데 holdout 3 target(12e3942c·35319a42·377983572b)의 candidate 쌍(참 라벨 포함)을 명시한다 — 선택적 열람이 아니라 의무 열람 경로의 누출.",
+  "impact": "holdout 26 중 8 은 B/D 에 라벨이 가시화됨 → 이 8 로 잰 agreement 는 독립 평가가 아니다. D-R0-32 gate(agreement≥0.85)의 holdout 이 사실상 18 로 줄고, per-archetype n 은 더 작아진다. B 가 실제로 읽었는지와 무관하게 '읽을 수 있었다' 만으로 독립성 주장은 성립하지 않는다.",
+  "requested_decision": [
+    "A: holdout 유래 per-target 정보(라벨·candidate 쌍)를 B 의무열람 문서에 더 이상 싣지 않는다. D-R0-61 은 target id 를 빼고 '경합 유형 4종' 만 남기는 SUPERSEDE",
+    "A: HOLDOUT_FOR_C 및 OVERLAP holdout 행의 향후 배포는 control 브랜치가 아니라 C 전용 경로(bus 파일 + sha256, C 브랜치 미러) 로 — 이미 push 된 이력은 되돌릴 수 없으므로 '물리적 가용' 을 한계로 명기",
+    "B: W2 worker 의 HOLDOUT_FOR_C / OVERLAP_* / D-R0-61 열람 여부 attestation(셸 히스토리·파일 접근 근거)",
+    "C 채점: holdout agreement 를 (a) 26 전체 (b) 노출 8 제외 18 (c) PRECEDENCE_CONTESTED 제외 — 세 값 병기. 18 이 primary",
+    "D: 동일 8 target 라벨 비노출 확인(D 도 control 을 읽음)"
+  ],
+  "not_asserted": "B 가 읽었다고 주장하지 않는다. LABEL_FROZEN_ACKED 이벤트의 holdout_accessed:false 를 기록으로 인정하되 attestation 으로 보강",
+  "artifact_refs": {
+    "leaked_ids": "C 재계산: OVERLAP_L*.jsonl ∩ LABEL_SPLIT_FROZEN.holdout = 8"
+  }
+}
