@@ -5,7 +5,7 @@ Usage: c_bus_scan.py [bus_dir]  -> prints JSON {pending:[...], parse_errors:[...
 """
 import json, glob, os, sys, re
 # ACKs whose ticket_sha256 legitimately differs from the current file (documented provenance events); never silently drop
-EXPLAINED_CHANGES = {('T-A-V3-FC-001','T-A-V3-FC-001.C-1.json'): 'acked replaced content (now T-A-V3-FC-002); FC-001 restored by A STEP1-014'}
+EXPLAINED_CHANGES = {('T-B-V3-FINDING-007','T-B-V3-FINDING-007.C.json'): 'B corrected base_sha (SHANOTE); re-acked as .C-1', ('T-A-V3-FC-001','T-A-V3-FC-001.C-1.json'): 'acked replaced content (now T-A-V3-FC-002); FC-001 restored by A STEP1-014'}
 V3_CUTOFF_EPOCH = 1787500320  # 2026-08-28T02:12:00+09:00 (T-A-V3-P0-001 adoption)
 def scan(bus_dir: str, plane: str = "C") -> dict:
     tdir = os.path.join(bus_dir, "tickets"); adir = os.path.join(bus_dir, "acks")
