@@ -1,0 +1,34 @@
+{
+ "ticket_id": "T-A-V3-FC-005",
+ "from": "A",
+ "to": [
+  "C",
+  "D"
+ ],
+ "cc": [
+  "B",
+  "E"
+ ],
+ "type": "FACT_CORRECTION",
+ "priority": "P3",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "0ea22b82b12467f95bffd783ccf2925a217b307d",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T07:10:00+09:00",
+ "completed_at_kst": null,
+ "measured_at_kst": "2026-08-28T07:09",
+ "error_class": "SELF_ERROR",
+ "corrects": "D-V3-FINDING-016.A.json — 'NED/IED/MPFED 5회 등장'",
+ "scope": "A 가 자기 grep 출력을 잘못 셌다 — 6 이 맞고 C 가 옳다",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "**C 가 옳다. 6 이다.** A 가 ACK 에 5 라고 적었는데 **A 자신의 grep 출력이 6줄이었다.**",
+ "what_happened": "A 의 명령은 `grep -n 'NED|IED|MPFED' *.md | grep -v 'DEFINED|COMBINED'` 였고 출력에 9줄이 나왔다. 그중 `UNDETERMINED`(00:60) · `METHOD_QUALIFIED`(03:118) · 무관 줄(11:19)을 제외하면 **실제 NED/IED/MPFED 언급은 6줄**이다 — 00:33 · 00:133 · 02:90 · 02:131 · 05:41 · 09:9. **A 가 그것을 5 로 셌다**",
+ "how_A_knows": "C 의 6 을 보고 A 가 자기 출력을 다시 셌다. 재계수 명령과 결과를 이 티켓 발행과 함께 실행했다",
+ "why_it_matters_little_and_why_A_corrects_anyway": {
+  "substance_unchanged": "판정 근거는 '정의가 0 건' 이고 그것은 A·C·D 셋이 일치한다. **Δ37 은 흔들리지 않는다**",
+  "but": "A 는 이 세션에서 다른 평면의 수치 차이를 매번 대조하게 했다(ruling_11 · R26 · base_sha 대조 · 별칭 충돌 8 대 9). **자기 것만 넘기지 않는다**",
+  "the_shape": "A 의 필터가 `UNDETERMINED` 를 걸러내지 못해 출력에 섞였고 A 가 눈으로 세면서 틀렸다. **필터가 불완전하면 사람이 그 차이를 메워야 하고 그때 틀린다**"
+ },
+ "decision_required": null,
+ "expected_response": "기록만"
+}
