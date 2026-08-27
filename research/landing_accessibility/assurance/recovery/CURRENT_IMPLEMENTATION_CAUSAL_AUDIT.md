@@ -10,7 +10,7 @@
 
 **이 커밋에서 Scout 은 59 타깃 전부에 대해 region_definition=None · endpoint_definition=None · signal_type=CODEBOOK_PENDING 으로 실행됐다.** 원천 CSV 에는 59/59 정의가 존재했으나 로더→TargetSpec→TaskDefinition 경로에서 떨어졌다. 따라서 **MPFED 가 non-NULL 이 될 수 있는 코드 경로는 gate 승격 경로(FINANCIAL/COMMUNICATION 의 LOGIN gate, A2 E-5) 하나뿐**이었고, 그 경로도 gate 종류 판별 UNDETERMINED(fail-closed) 로 0 이 됐다. 가드 입도와 E-6b 는 실재하지만 **그보다 앞선 층위(task wiring · signal detector)** 가 있다.
 
-## 1. Director 요구 계수 (59 target)
+## 1. Director 요구 계수 (모집단 = 동결 59; 전체 CSV 71행 기준은 endpoint_signal_type 42/20/9, region 63/8, mapping CANDIDATE 59 + AMBIGUOUS_UNRESOLVED 12)
 
 | 계수 | 값 | 출처 |
 |---|---|---|
@@ -35,8 +35,9 @@
 | C-G | **가드 입도** — L0 후보 텍스트에 LOGIN/PURCHASE/SIGNUP/PAYMENT 패턴이 하나라도 있으면 target 전체를 Scout 이전에 중단 | Scout 이전 | guard.py:170-182 `screen_candidates` → `AccountActionBlockedError`; TaskEntry 미생성 | 코드 확정 | 25 / 59 |
 | C-W | **task-definition wiring** — 로더가 region_definition·region_signal_type·endpoint_signal_type·mapping_status 를 읽지 않고(firewall.py:692-723, E001TargetRow :543-554), endpoint_definition 은 TargetSpec 까지 오지만 소비처가 없으며, `default_task_definition` 이 region/endpoint=None, signal_type=CODEBOOK_PENDING 을 **무조건** 넣는다(executor.py:67-75); batch.py:258 → real_executor.py:138 `task or default_task_definition(target)` 에서 항상 default | Scout 입력 | 위 인용 | 코드 확정 | **59 / 59** (Scout 실행 31 전건 포함) |
 | C-D | **signal detector** — `detect_area_signal` 은 region_definition None 이면 False(QUERY 만 search_inputs 예외, l1_engine.py:208-214), `detect_endpoint_signal` 은 endpoint_definition None 이면 False(:223-224); 정의가 있어도 probe 는 `[data-region]`·`[data-endpoint]`·`body[data-endpoint-reached]` 속성 동등 비교만(l0_probe.js:309-337) — fixture 전용 신호. `*_signal_type` 은 어디서도 읽지 않고 CODEBOOK_PENDING 분기 없음(`mapping_frozen_allowed` 호출 0) | 신호 해석 | 위 인용 | None→False 는 코드 확정; "실제 사이트에 data-* 속성 부재" 는 **추측**(0/31 탐지·27/31 무활성으로 뒷받침) | Scout 실행 31 전건 |
-| C-E | **endpoint 계약** — gate→endpoint 승격은 FINANCIAL{LOGIN, IDENTITY_VERIFICATION}·COMMUNICATION{LOGIN} 뿐(depth.py:35-45, 66-71); 그 외 archetype 및 종류 UNDETERMINED 는 AUTH_GATE_REACHED→NULL(코드 명칭은 E-6a; 계약 문서는 E-6b) | 계약/설계 | 위 인용 | 코드 확정 | gate 도달 12 중 승격 불가 11 · 판별 실패 1 |
+| C-E | **endpoint 계약** — 두 갈래로 나뉜다: **C-E1 설계 규칙**(승격 archetype 이 FINANCIAL·COMMUNICATION 뿐 → 그 외 archetype 의 gate 도달 11 은 판별을 개선해도 endpoint 가 될 수 없음, 구현 결함 아님) / **C-E2 gate 종류 판별**(FINANCIAL 1 이 UNDETERMINED → fail-closed). gate→endpoint 승격은 FINANCIAL{LOGIN, IDENTITY_VERIFICATION}·COMMUNICATION{LOGIN} 뿐(depth.py:35-45, 66-71); 그 외 archetype 및 종류 UNDETERMINED 는 AUTH_GATE_REACHED→NULL(코드 명칭은 E-6a; 계약 문서는 E-6b) | 계약/설계 | 위 인용 | 코드 확정 | C-E1 11(설계) · C-E2 **1**(구현 층위에서 유일하게 걸리는 건) — C-G/C-W/C-D 와 자릿수가 다르다 |
 
+**중첩 — 합산 금지:** 4층위는 서로 다른 단계의 원인이며 **상호배타 분할이 아니다**(59 ⊇ 25 + 31 + 3; C-W 59 는 전건). 합계를 만들지 마라. 상호배타 분할은 A 의 outcome 6종 표(합 59) 다.
 **독립성:** C-G 는 C-W/C-D 와 무관하게 발생한다(Scout 이전). C-W 는 C-D 의 입력을 비워 C-D 를 항상 False 로 만든다. C-E 는 C-W/C-D 가 모두 복구돼도 남는 계약 층위다.
 
 ## 3. MPFED 0/59 재분해 (현재 구현 기준)
