@@ -733,6 +733,32 @@ def analyse(steps: list[dict], denom: dict) -> dict:
     rq1["mart_dismiss_succeeded_EFFECTIVE"] = succ(EFF)
     rq1["mart_dismiss_succeeded_ALL"] = succ(ev)
     h1m = [r for r in H1 if r.get("mart_dismiss_succeeded") not in (None, "None")]
+    def overlay_kind(rows):
+        def root(r):
+            sel = r.get("overlay_selector") or ""
+            first = sel.split(">")[0]
+            return first.split("#")[0] or "?"
+        return {"root_tag": dict(Counter(root(r) for r in rows).most_common(12)),
+                "mart_final_label": dict(Counter(r.get("mart_final_label") or "NOT_IN_MART"
+                                                 for r in rows).most_common(12)),
+                "n": len(rows)}
+    rq1["overlay_kind_breakdown"] = {
+        "note": ("probe 는 dialog/role=dialog/aria-modal 뿐 아니라 position:fixed|sticky 이거나 "
+                 "z-index>=100 인 모든 요소를 overlay 후보 container 로 잡는다(l0_probe.js). "
+                 "따라서 '치울 대상' 에는 헤더·GNB·스킵메뉴 같은 페이지 가구가 섞인다. "
+                 "어떤 종류가 무대상 판정을 만들었는지 여기서 본다."),
+        "H1_NO_EFFECT": overlay_kind(H1), "H4_PIXEL_ONLY": overlay_kind(H4),
+        "EFFECTIVE": overlay_kind(EFF), "ALL": overlay_kind(ev),
+    }
+    present_rows = [r for r in H1 if r["probe_index_in_range"]
+                    and (r["target_visible"] or r["is_dialog_element"])]
+    rq1["present_ineffective_case_audit"] = {
+        "n": len(present_rows),
+        "control_absent_from_dom_at_step_time": sum(
+            1 for r in present_rows if r.get("control_in_dom_before_step") == 0),
+        "note": ("H1 중 '대상이 실재했다' 로 남는 사례를 개별 감사한다. probe 는 l0a 시점이므로 "
+                 "step 실행 시점에 그 control 이 DOM 에 없었다면 그 사례조차 무대상 쪽이다."),
+    }
     rq1["succeeded_flag_vs_no_change"] = {
         "observation": ("H1_NO_EFFECT 는 픽셀도 DOM 바이트도 하나도 안 바뀐 step 이다. "
                         "그런데 engine 의 dismiss_succeeded 는 그중 상당수를 1(성공)로 적었다."),
