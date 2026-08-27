@@ -1,0 +1,338 @@
+{
+  "cycle": "V2-C014",
+  "auditor": "ssot",
+  "audit_type": "control-change confirmation audit (not a full exec re-audit)",
+  "target_sha_exec": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+  "target_branch_exec": "agent/landing-v2-exec",
+  "target_sha_control": "a10663e893160ca33bd0f9d2b92a3c9867d22f40",
+  "target_branch_control": "control/landing-orchestrator",
+  "prev_control_sha": "17389a27006719a220304e27e921c8ceb8f14770",
+  "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+  "base_ref": "research/landing-accessibility-main",
+  "prior_ssot_audit_sha": "bc1a61252f7796cef8373e265dc1a254d7f41088",
+  "prior_ssot_audit_verdict": "PASS — P0 0 / P1 0 / P2 0 (target bc0b7a0, control 17389a2)",
+  "responds_to_adversarial": "a97daeb247ecbb2b5146e8b57319455e774c43a5 (V2_C013, FAIL — P0 1 / P1 0 / P2 1)",
+  "audit_branch": "audit/landing-ssot",
+  "phase": "P0_V2_REFREEZE",
+  "gate": "V2_SSOT_FROZEN",
+  "audited_at": "2026-08-27",
+  "verdict": "PASS",
+  "counts": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 6,
+    "blocking": 0,
+    "blocking_v2_ssot_frozen": 0,
+    "blocking_e001_v2": 0,
+    "non_blocking_observations": 3
+  },
+  "fast_exit": {
+    "applied": true,
+    "blocking_categories": [
+      "A — evidence-integrity destruction",
+      "B — authority-bypass canonical promotion",
+      "C — measurement-semantics contradiction"
+    ],
+    "adjudication": "None of the 7 findings falls into A, B, or C. S1 (stale open_blocking_total) is the closest to B but fails the test in the safe direction: the stale value is 3 > 0 with gate_satisfied=false, so it keeps promotion blocked rather than opening it. Verdict is PASS and this audit does not block promotion."
+  },
+  "primary_question": {
+    "question": "Does control's V2-C014 fix actually close adversarial V2-C013 §2's P0, with the same verification strength as H-3, or is it terminology-only?",
+    "answer": "It genuinely closes it on the ancestry axis. Verified by code comparison plus direct execution of the extracted functions.",
+    "evidence": [
+      "_resolve_branch_tip() is a verbatim extraction of the tip-resolution logic previously inlined in audit_branch_tips(): same source order (local refs/remotes/origin/<br>^{commit} -> ls-remote refs/heads/<br>), same HEX40 gate, same fail-closed die. Only the die message gained a `where` prefix. Both layers now call one implementation.",
+      "declared_branch_tip() is a thin wrapper differing only in cache dict. The cache split is justified: audit_branch_tips() short-circuits on `if _AUDIT_TIPS: return _AUDIT_TIPS`, so a shared dict populated first by a non-standard branch would skip resolution of the two canonical branches.",
+      "Branch namespace check on the top-level field was tightened from startswith('audit/landing-') to the same _AUDIT_BRANCH_NS regex H-3 uses.",
+      "MEASURED: git merge-base --is-ancestor fed3e70ba8430e0fad4f27df11d2eca550f33d30 refs/remotes/origin/audit/landing-adversarial -> 0 (YES). Legitimate grant still passes; no regression.",
+      "MEASURED: local remote-tracking refs match ls-remote exactly for both audit branches (origin/audit/landing-adversarial=a97daeb..., origin/audit/landing-ssot=bc1a612...), so the local-ref-first resolution order is not returning a stale tip in the current repo state."
+    ]
+  },
+  "abrr_grant_hits_verification": {
+    "control_claim": "adjudication_hits() could not be reused because its affirm vocabulary (SATISFIED/MET/...) never matches acceptance-grade vocabulary (ACCEPT_RECLASSIFY/ACCEPTED_BOUNDED_RESIDUAL_RISK), so reuse would amount to a permanent die().",
+    "claim_verified": true,
+    "method": "Extracted norm_token / abrr_grant_hits / adjudication_hits verbatim from a10663e's promote_landing_main.sh and ran them against the real grant document fed3e70:research/landing_accessibility/audit/adversarial/V2_C008_focused.json.",
+    "results": {
+      "abrr_grant_hits(real grant)": "['id=rc-6-r1-same-authorization-local-reexecution-unbounded verdict=ACCEPT_RECLASSIFY new_class=ACCEPTED_BOUNDED_RESIDUAL_RISK']",
+      "adjudication_hits(real grant)": "[] — confirms control's stated reason for re-instantiating the vocabulary",
+      "wrong new_class": "[] (blocked)",
+      "wrong id": "[] (blocked)",
+      "verdict='ACCEPT_RECLASSIFY_REJECTED' (affirm+negate in one field)": "[] (negation precedence works)",
+      "nested doc with REJECT at one site and ACCEPT_RECLASSIFY at another": "hit — reproduces control's self-disclosed L-7 residual (finding S7)"
+    },
+    "strength_vs_prior": "Strictly stronger than the replaced three-field top-level equality on one axis: new_class must match by exact normalized equality and verdict must both contain an affirm token and contain no negate token. Recursive scan is a superset of the old top-level-only comparison."
+  },
+  "residual_strength_asymmetries_vs_h3": [
+    {
+      "axis": "audit report path scope",
+      "h3": "reports_at() enumerates every .json under research/landing_accessibility/audit/ in the commit tree; its docstring states the design principle that the ledger must not choose the path",
+      "top_level": "accepted_by_audit_report is passed unvalidated to `git show <sha>:<path>` — no prefix, no extension, no subtree constraint",
+      "live_today": false,
+      "measurement": "17389a2 / a10663e / bc0b7a0 / 5a9015d are none of them ancestors of either audit branch tip, and `git ls-tree -r a97daeb research/landing_accessibility/control/` returns 0 entries — audit lineage and control/exec lineage are disjoint, so no control-authored file inside audit ancestry can be named as a grant report today",
+      "finding": "S4"
+    },
+    {
+      "axis": "audit branch set",
+      "h3": "pinned to audit_lag.latest_{adversarial,ssot}_audit_branch (2 branches)",
+      "top_level": "any origin branch matching ^audit/landing-[A-Za-z0-9._/-]+$, declared by the finding itself",
+      "affects_same_strength_claim": false,
+      "reason": "audit_branch_tips() applies the identical namespace-only regex to the ledger keys, so this residual is shared by H-3, not introduced by the top-level path. Repo-canonical scripts/hooks/pre-push blocks only force-push and deletion on audit/*; new-ref creation and ff push pass.",
+      "referral": "adversarial lane — attack-surface adjudication is not mine",
+      "finding": "S5"
+    }
+  ],
+  "open_blocking_total_stale": {
+    "verdict": "STALE — NOT recomputed in this cycle",
+    "recomputed_in_cycle": "V2-C010",
+    "recomputed_at": "2026-08-27T18:40:00+09:00",
+    "total": 3,
+    "gate_satisfied": false,
+    "cycles_behind": 4,
+    "evidence": "git diff 17389a2 a10663e -- research/landing_accessibility/control/state.json produces exactly two hunks, both inside v2_transition.finding_state_vocabulary.ACCEPTED_BOUNDED_RESIDUAL_RISK. The open_blocking_total block does not appear in the diff at all.",
+    "acknowledged_by_control": "V2_C014_orchestrator.json handoff.for_orchestrator item (1) explicitly defers cycle registration to a separate reconciliation procedure — deferred, not hidden.",
+    "prior_notice": "My own V2_C013.json operational_note_for_control already flagged the same staleness one cycle earlier.",
+    "blocking": false,
+    "fast_exit_category": "none — fails safe (3 > 0 keeps promotion blocked)",
+    "owner": "orchestrator (recomputation); this audit only adjudicates the fact, per instruction"
+  },
+  "machine_check_history_check": {
+    "v2_c011_overclaim_correction_recorded": true,
+    "array_length_before": 3,
+    "array_length_after": 6,
+    "new_entries": [
+      "index 3 — states plainly that adversarial V2-C011 §5.4's H-3 row claim ('top-level accepted_by_audit_sha does all four checks including audit-branch verification') was FALSE, and traces the causal chain: control took that false description as the target strength for H-3 and rebuilt only the per-condition check to that level, leaving the top-level field weak.",
+      "index 4 — adversarial V2-C013 (a97daeb) self-corrects and demonstrates the bypass with a git commit-tree dangling commit; also records the L-2 combined full self-approval bypass.",
+      "index 5 — V2-C014 remediation, with pre-fix pass / post-fix block reproduction and no-regression on the legitimate grant."
+    ],
+    "format_consistent_with_existing": true,
+    "format_notes": "Same as the three pre-existing entries: plain string elements in the same array, cycle label first, em dash, measured evidence embedded in the prose. No schema change.",
+    "ordering_observation": "The new V2-C011 correction is appended after the existing 'V2-C012 시정' entry, so the array reads C010 -> C011 -> C012 -> C011 -> C013 -> C014 by cycle label. Append-only by recording time and therefore defensible, but a label-skimming reader could misread the sequence. Logged as a non-blocking observation, not a finding.",
+    "ledger_prose_matches_code": true,
+    "ledger_prose_note": "grant_procedure.machine_check and lapse_rule.machine_check (c-2) now claim ancestry verification plus recursive negation-first content scan for the top-level fields. Both claims match the code. The two residual asymmetries (S4/S5) fall outside what those sentences assert, so the prose is not false."
+  },
+  "p2_backlog_check": {
+    "question": "Was V2-C013's new P2 (dom_order uniqueness references an undefined `document` column) recorded as PRE_E001_NONBLOCKING backlog, or did it vanish silently?",
+    "answer": "Recorded. It did NOT vanish.",
+    "where": "research/landing_accessibility/control/cycles/V2_C014_orchestrator.json -> p2_backlog_not_fixed (and again in not_done[5])",
+    "id": "min-4-dom-order-uniqueness-constraint-references-undefined-document-column",
+    "classification_recorded": "PRE_E001_NONBLOCKING",
+    "classification_matches_instruction": true,
+    "not_blocking": "V2_SSOT_FROZEN",
+    "backlog_owner_recorded": "exec (next exec cycle) — control records state only",
+    "next_cycle_target_recorded": true,
+    "fidelity_to_adversarial_original": "Verified against a97daeb:research/landing_accessibility/audit/adversarial/V2_C013.json p2_new — id, blocking=false, not_blocking scope, statement and remediation_minimal all carried over without distortion.",
+    "gap": "The id appears 0 times in control/state.json. The record lives only in the cycle artifact, not in the canonical ledger (v2_transition.v2_audit_findings). Registered as S2, not as a failure of this check."
+  },
+  "authority_consistency": {
+    "phase_gates_ss2_exact_same_target_sha": {
+      "exec_axis": "ALIGNED — adversarial V2-C013 and ssot V2-C013/V2-C014 all audit bc0b7a0",
+      "control_axis": "NOT_ALIGNED — adversarial a97daeb audited control 17389a2; this audit targets control a10663e, which adversarial has not yet audited",
+      "status": "NOT_MET"
+    },
+    "phase_gates_ss2_both_pass": "NOT_MET — latest adversarial verdict is FAIL (V2-C013). Its P0 is closed in code, but the CLOSED adjudication belongs to the adversarial lane and I do not write it on their behalf.",
+    "phase_gates_ss2_blocking_zero": "NOT_MET — ledger open_blocking_total.total = 3 (stale, S1)",
+    "phase_gates_ss2_pilot_diff_zero": "MET — measured: git diff --stat 17389a2 a10663e -- research/refcohort is empty",
+    "phase_gates_ss2_no_executor_self_approval": "MET — this commit's purpose is closing a self-approval path, and §2 confirms it is effective",
+    "phase_gates_ss3_promotion_guard_effective": "STRENGTHENED by this change",
+    "execution_authority_ss4_all_cycles_registered": "NOT_MET — v2_audit_findings.cycles ends at V2-C010 (both auditor fields null); V2-C011/C012/C013 absent. Finding S2.",
+    "execution_authority_ss4_sum_of_two_ledgers": "Rule unchanged; the v2-side input is stale (S1)",
+    "control_claude_md_no_v2_copy": "MET — docs/** diff 0, and docs/v2/ has 0 entries on the control branch tree (as that file itself declares)",
+    "control_claude_md_pilot_pin": "MET — declares research/refcohort-r1 @ 32460b8 READ_ONLY; current pilot HEAD is 32460b8",
+    "control_claude_md_check_order": "NOT_MET — §5 lists 9 labels; the script carries 13. [DEBT_RECOMPUTE] (the very check this cycle modified), [REC_RESOLVE], [REC_STATE_BIND], [REC_REMOTE_AUTHORITY] are absent. Finding S6.",
+    "control_claude_md_ledger_narrative": "NOT_MET — §6 describes v2_audit_findings as V2-C001/C002/C003 plus 2 orchestrator entries; the ledger runs to V2-C010. Finding S6."
+  },
+  "invariants": {
+    "pilot_refcohort_diff_control_prev_to_target": 0,
+    "pilot_opened": false,
+    "docs_diff_control_prev_to_target": 0,
+    "control_claude_md_diff": 0,
+    "exec_target_unchanged_since_my_v2_c013": true,
+    "docs_v2_absent_on_control_branch": true,
+    "e001_v2_started": false,
+    "authoritative_main_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+    "other_worktrees_written": false,
+    "dangling_objects_created_by_this_audit": 0
+  },
+  "findings": [
+    {
+      "id": "open-blocking-total-still-stale-since-v2-c010",
+      "severity": "P1",
+      "blocking": false,
+      "fast_exit_category": null,
+      "state": "OPEN",
+      "owner": "orchestrator",
+      "introduced_by_this_change": false,
+      "blocking_scope": "none — fails safe",
+      "statement": "v2_transition.open_blocking_total remains at recomputed_in_cycle='V2-C010' / total=3 / gate_satisfied=false and does not appear anywhere in the 17389a2..a10663e diff. Four cycles (V2-C011 through V2-C014) of audit results are unreflected, and open_blocking_ids' per-item notes ('exec V2-C010 claims remediation but pre-audit') are already contradicted by later cycles.",
+      "why_not_blocking": "The stale value is 3 > 0 with gate_satisfied=false, so [BLOCKING_DEBT]/[DEBT_RECOMPUTE] reading it keeps promotion blocked. Staleness here fails closed and opens no bypass — outside FAST-EXIT categories A/B/C.",
+      "why_p1_not_p2": "Second consecutive cycle unresolved; I raised it in V2_C013.operational_note_for_control. It is a precondition for any V2_SSOT_FROZEN adjudication.",
+      "control_disposition": "Explicitly deferred in V2_C014_orchestrator.json handoff.for_orchestrator item (1) — deferred, not concealed.",
+      "remediation": "Orchestrator reconciliation: recompute after adversarial audits control a10663e, so that both audits have judged the same target."
+    },
+    {
+      "id": "v2-audit-findings-ledger-missing-cycles-v2-c011-to-v2-c013",
+      "severity": "P2",
+      "blocking": false,
+      "fast_exit_category": null,
+      "state": "OPEN",
+      "owner": "orchestrator",
+      "introduced_by_this_change": false,
+      "statement": "EXECUTION_AUTHORITY.md §4 defines v2_transition.v2_audit_findings as the ledger of 'every cycle since V2-C001, registered and updated as cycles proceed'. The actual cycles[] array ends at V2-C010 with both auditor fields null; V2-C011, V2-C012 and V2-C013 have no entries. Consequently V2-C013's new P0 and new P2 are not registered as ledger findings — the P2 id returns 0 hits in state.json and the P0 id appears only twice inside machine_check prose.",
+      "not_a_disappearance": "Both are recorded accurately in control/cycles/V2_C014_orchestrator.json (p2_backlog_not_fixed, audit_finding_addressed).",
+      "remediation": "Register V2-C011/C012/C013 in v2_audit_findings.cycles during the next reconciliation, which is also the prerequisite for S1."
+    },
+    {
+      "id": "control-cycle-artifact-claims-audit-branch-tips-byte-unchanged-but-it-was-refactored",
+      "severity": "P2",
+      "blocking": false,
+      "fast_exit_category": null,
+      "state": "OPEN",
+      "owner": "control",
+      "introduced_by_this_change": true,
+      "functional_impact": "none — refactor verified behaviour-equivalent in §2.1",
+      "statement": "V2_C014_orchestrator.json what_i_did.diff_scope lists audit_branch_tips() among functions that are 'byte-unchanged', and the commit message repeats 'H-1~H-5 code is byte-unchanged, confirmed directly by diff'. The diff shows audit_branch_tips()'s body replaced (7 lines -> one _resolve_branch_tip() call) and its inline regex literal swapped for the _AUDIT_BRANCH_NS constant. The same file's measured_not_assumed.diff_scope_verification gives the correct unchanged set (_ABRR_CANON, gate_declared_achieved, verify_condition_audit_sha, adjudication_hits, tally) and omits audit_branch_tips() — the two sections contradict each other.",
+      "why_it_matters": "This cycle's own subject is correcting a self-description overclaim (V2-C011's H-3 row). The same class of imprecision surviving inside the correcting commit is worth recording.",
+      "secondary": "The commit message says regression coverage was '기존 26건' while state.json machine_check_history says '기존 28건'. attack_matrix.case_count=28 minus 2 new cases = 26, so the commit message is right and the state.json wording is loose.",
+      "remediation": "Correct what_i_did.diff_scope to match measured_not_assumed.diff_scope_verification."
+    },
+    {
+      "id": "abrr-grant-report-path-unconstrained-unlike-h3-reports-at",
+      "severity": "P2",
+      "blocking": false,
+      "fast_exit_category": null,
+      "state": "OPEN",
+      "owner": "control",
+      "introduced_by_this_change": false,
+      "live_today": false,
+      "statement": "residual_in_force() passes accepted_by_audit_report to `git show <a_sha>:<rep_path>` with no path validation of any kind. H-3's reports_at() by contrast enumerates every .json under research/landing_accessibility/audit/ in the commit tree, and its docstring states the design principle explicitly ('the ledger does not get to choose the path'). With ancestry now closed, the choice of which file counts as the audit adjudication still rests with the ledger.",
+      "measurement": "Not exploitable today: 17389a2/a10663e/bc0b7a0/5a9015d are none of them ancestors of either audit branch tip, and a97daeb's tree contains 0 files under research/landing_accessibility/control/. Audit lineage is disjoint from control/exec lineage.",
+      "risk_condition": "Becomes material if the lineages are ever merged (e.g. an audit branch rebased onto or merged from main).",
+      "remediation": "Constrain rep_path to ^research/landing_accessibility/audit/.*\\.json$, or better, reuse reports_at(a_sha) and scan the whole subtree — the latter is the true structural analogue of H-3."
+    },
+    {
+      "id": "accepted-by-audit-branch-namespace-only-no-lane-binding",
+      "severity": "P2",
+      "blocking": false,
+      "fast_exit_category": null,
+      "state": "OPEN",
+      "owner": "adversarial (attack-surface adjudication) / control (remediation)",
+      "introduced_by_this_change": false,
+      "affects_same_strength_claim": false,
+      "statement": "accepted_by_audit_branch is validated only against ^audit/landing-[A-Za-z0-9._/-]+$ and is bound to no audit lane. The repo-canonical scripts/hooks/pre-push blocks only force-push and deletion on refs/heads/audit/*; creating a new ref in that namespace and fast-forward pushing to it passes.",
+      "why_it_does_not_undercut_the_fix": "audit_branch_tips() applies the identical namespace-only regex to audit_lag.latest_{adversarial,ssot}_audit_branch, so this residual is shared with H-3 rather than specific to the top-level path. control's 'same strength as H-3' claim therefore stands; this records the ceiling of that strength, not a gap below it.",
+      "referral": "Whether this is a live attack surface is an adversarial-lane call. I do not adjudicate it."
+    },
+    {
+      "id": "control-claude-md-check-order-and-ledger-narrative-stale",
+      "severity": "P2",
+      "blocking": false,
+      "fast_exit_category": null,
+      "state": "OPEN",
+      "owner": "control",
+      "introduced_by_this_change": false,
+      "statement": "research/landing_accessibility/CLAUDE.md (control branch) is out of step with the artifacts it points at in two places. §5 gives 'current order' as 9 check labels; the script carries 13 — [DEBT_RECOMPUTE], [REC_RESOLVE], [REC_STATE_BIND], [REC_REMOTE_AUTHORITY] are missing, and [DEBT_RECOMPUTE] is precisely the check this cycle modified. §6 describes v2_audit_findings as V2-C001/C002/C003 plus 2 orchestrator entries, while the ledger runs to V2-C010.",
+      "irony": "The same §5 cites ssot V2-C003's control-state-and-promote-header-mislabel-verify-check-number, whose point was to name checks rather than number them — while the name list itself has fallen behind.",
+      "not_caused_by_this_diff": "CLAUDE.md is byte-unchanged in 17389a2..a10663e.",
+      "remediation": "Refresh §5's label list from the script and §6's cycle summary from the ledger, in the same reconciliation that resolves S1/S2."
+    },
+    {
+      "id": "abrr-grant-hits-has-no-precedence-among-conflicting-verdicts",
+      "severity": "P2",
+      "blocking": false,
+      "fast_exit_category": null,
+      "state": "OPEN_DISCLOSED",
+      "owner": "control",
+      "introduced_by_this_change": true,
+      "self_disclosed_by_control": true,
+      "disclosure_location": "V2_C014_orchestrator.json still_not_blocked.L-7_top_level_report_scan_assumes_flat_grant_docs_NEW",
+      "statement": "abrr_grant_hits() hits if any site in the document affirms the id, with no precedence between sites. A document carrying REJECT at one node and ACCEPT_RECLASSIFY at another for the same id yields a hit regardless of which is the draft and which is the conclusion.",
+      "independent_reproduction": "Ran the extracted function on {'a': {id, verdict:'REJECT', new_class:ABRR}, 'b': {id, verdict:'ACCEPT_RECLASSIFY', new_class:ABRR}} -> 1 hit.",
+      "assessment": "control disclosed this first and characterised it correctly as isomorphic to the L-1 residual adjudication_hits() (H-3) already carried. Live grant documents are flat today. Recorded as a confirmation, not as a demerit.",
+      "remediation": "Deferred with L-1. Any fix should treat both functions together."
+    }
+  ],
+  "non_blocking_observations": [
+    "machine_check_history is append-only by recording time, so cycle labels read C010 -> C011 -> C012 -> C011 -> C013 -> C014. Defensible, but a label-skimming reader could misread the sequence.",
+    "Regression case count is stated as 26 in the commit message and 28 in state.json machine_check_history. attack_matrix.case_count=28 with 2 genuinely new cases makes 26 the correct figure for pre-existing coverage; the state.json wording is loose. Folded into S3.",
+    "The new grant_procedure.machine_check text credits 'audit_branch_tips()/_resolve_branch_tip()' for the top-level reuse, but the top-level path actually calls declared_branch_tip(). Since both funnel into the same _resolve_branch_tip(), the sentence is imprecise rather than wrong. No finding."
+  ],
+  "closed_findings": [],
+  "adversarial_lane_referrals": [
+    "abrr-accepted-by-audit-sha-not-ancestor-checked (P0, adversarial V2-C013) — I confirmed it is closed at the code level (§2), but the CLOSED adjudication belongs to the adversarial lane and I do not write it on their behalf.",
+    "accepted-by-audit-branch-namespace-only-no-lane-binding (S5) — attack-surface adjudication."
+  ],
+  "promotion_readiness": {
+    "source": "PHASE_GATES.md §2 공통 통과조건",
+    "items": [
+      {
+        "condition": "exec 산출물이 커밋되어 있다",
+        "status": "MET",
+        "evidence": "bc0b7a0 on origin/agent/landing-v2-exec"
+      },
+      {
+        "condition": "두 감사가 exact same target SHA 를 감사했다",
+        "status": "NOT_MET",
+        "evidence": "exec axis aligned at bc0b7a0; control axis not — adversarial audited 17389a2, this audit targets a10663e"
+      },
+      {
+        "condition": "두 감사 모두 verdict = PASS",
+        "status": "NOT_MET",
+        "evidence": "latest adversarial (V2-C013) = FAIL; its P0 is closed in code but unadjudicated by that lane"
+      },
+      {
+        "condition": "해당 Gate 의 blocking finding 이 0건",
+        "status": "NOT_MET",
+        "evidence": "ledger open_blocking_total.total = 3 (stale — S1)"
+      },
+      {
+        "condition": "orchestrator reconciliation 이 current",
+        "status": "NOT_MET",
+        "evidence": "recomputed_in_cycle = V2-C010, four cycles behind (S1/S2)"
+      },
+      {
+        "condition": "unaudited_cycle_depth <= 1",
+        "status": "INDETERMINATE",
+        "evidence": "ledger says 1, but the value itself dates from V2-C010 (S2)"
+      },
+      {
+        "condition": "Pilot(research/refcohort/**) diff = 0",
+        "status": "MET",
+        "evidence": "measured — empty diff 17389a2..a10663e"
+      },
+      {
+        "condition": "executor self-approval 없음",
+        "status": "MET",
+        "evidence": "this commit closes a self-approval path; effectiveness verified in §2"
+      },
+      {
+        "condition": "E001_V2_STARTED = false",
+        "status": "MET",
+        "evidence": "v2_transition.e001_v2_started = false"
+      }
+    ],
+    "next_step": "adversarial audits control a10663e; then orchestrator reconciliation recomputes open_blocking_total and registers cycles V2-C011..V2-C014."
+  },
+  "not_done": [
+    "full re-audit of exec bc0b7a0 (out of scope — my V2_C013 already returned PASS on it)",
+    "recomputing open_blocking_total (orchestrator's job; per instruction I adjudicate the fact only)",
+    "CLOSED adjudication of adversarial-owned findings",
+    "executing promote_landing_main.sh, including --dry-run (push side-effect risk)",
+    "creating dangling commits to reproduce the exploit (avoided polluting the shared .git object store; verified control's reproduction by code comparison plus function-level execution instead)",
+    "writing to other worktrees, modifying .git/hooks/, opening Pilot, accessing live websites",
+    "attack-surface demonstration for S5 (adversarial lane)"
+  ],
+  "operational_note_for_control": "The P0 is genuinely closed — I checked the code rather than the prose, and the one claim that could have made this a cosmetic fix (reusing adjudication_hits() would have worked) turns out to be false in control's favour: adjudication_hits() returns [] on the real grant document, so a separate vocabulary was actually required. What this cycle did not do is arithmetic. open_blocking_total has now sat at its V2-C010 snapshot for four cycles, v2_audit_findings.cycles has no entries for V2-C011/C012/C013, and control CLAUDE.md §5 does not even list [DEBT_RECOMPUTE] — the check you just fixed. None of that opens a bypass, and the stale total keeps promotion blocked, so it does not touch my verdict. But V2_SSOT_FROZEN cannot be adjudicated on a ledger four cycles behind. The ordering is: adversarial audits a10663e, then one reconciliation resolves S1, S2 and S6 together.",
+  "scope_directive": {
+    "source": "Research Director A0 decision LA-TB-1630-20260827, relayed mid-task by the orchestrator",
+    "rules": [
+      "§18 P0 STOP RULE — no open-ended governance hardening or new vulnerability hunting after C014",
+      "§15 CUT LIST — 'open-ended governance hardening' cut today"
+    ],
+    "narrowed_scope": [
+      "authority delta consistency (EXECUTION_AUTHORITY / PHASE_GATES §2)",
+      "H-3 verification-strength code comparison",
+      "open_blocking_total staleness — fact adjudication only, no recomputation",
+      "V2-C013 P2 (document column) backlog record — presence only"
+    ],
+    "compliance": "All four are answered above (authority_consistency, primary_question + abrr_grant_hits_verification + residual_strength_asymmetries_vs_h3, open_blocking_total_stale, p2_backlog_check). Findings S1-S7 were already complete when the directive arrived; all are non-blocking, none is FAST-EXIT A/B/C, and none blocks promotion. No further defect hunting was performed after receipt. S4/S5 are recorded as structural residuals with no live path and are explicitly NOT proposed as hardening work for this release.",
+    "release_target": "P0_RELEASE 11:10 KST"
+  }
+}
