@@ -55,6 +55,25 @@ TODAY_RULES = [
 HEDGE_N = r"(대부분|대다수|많은|거의\s*모든|majority|most)"
 GRADE = r"\[(GRADE\s*)?[ABC]\]|\[(UNSUPPORTED|EXPLORATORY)[^\]]*\]|GRADE\s*[ABC]\b|\bgrade\s*[ABC]\b"
 
+def extract_text(p: pathlib.Path) -> str:
+    """md → raw; json → all string values (parsed, unescaped) joined; py → string literals only (ast)."""
+    raw = p.read_text(encoding="utf-8", errors="replace")
+    if p.suffix == ".json":
+        try: obj = json.loads(raw)
+        except Exception: return raw
+        out = []
+        def walk(o):
+            if isinstance(o, dict): [walk(v) for v in o.values()]
+            elif isinstance(o, list): [walk(v) for v in o]
+            elif isinstance(o, str) and len(o) > 3: out.append(o)
+        walk(obj); return "\n".join(out)
+    if p.suffix == ".py":
+        import ast as _ast
+        try: tree = _ast.parse(raw)
+        except Exception: return raw
+        return "\n".join(n.value for n in _ast.walk(tree) if isinstance(n, _ast.Constant) and isinstance(n.value, str) and len(n.value) > 3)
+    return raw
+
 def sentences(text):
     text = re.sub(r"`[^`]*`", " ", text)
     for para in text.split("\n"):
@@ -79,12 +98,18 @@ def main(a):
     canon = pathlib.Path(__file__).resolve().parent / "out" / "C_CANONICAL_NUMBERS.json"
     for f in (a.replay, a.recon, str(canon) if canon.is_file() else None):
         if f and pathlib.Path(f).is_file(): flatten_numbers(json.loads(pathlib.Path(f).read_text(encoding="utf-8")), ref)
-    rows = []; files_expected = len(a.claims); files_scanned = 0; sentences_scanned = 0; corpus = []
+    targets = []
     for cf in a.claims:
+        if any(ch in cf for ch in "*?["): targets += [str(x) for x in sorted(pathlib.Path().glob(cf))] if not cf.startswith("/") else [str(x) for x in sorted(pathlib.Path("/").glob(cf.lstrip("/")))]
+        elif pathlib.Path(cf).is_dir(): targets += [str(x) for x in sorted(pathlib.Path(cf).iterdir()) if x.suffix in (".md", ".json", ".py") and x.name != "FROZEN_MART_MANIFEST.json"]
+        else: targets.append(cf)
+    rows = []; files_expected = len(targets); files_scanned = 0; sentences_scanned = 0; corpus = []
+    if files_expected == 0: rows.append({"file": "(glob)", "sentence": None, "status": "MISMATCH", "issues": ["GLOB_EMPTY — no targets matched"]})
+    for cf in targets:
         p = pathlib.Path(cf)
         if not p.is_file(): rows.append({"file": cf, "sentence": None, "status": "MISMATCH", "issues": ["FILE_MISSING — absence of target is not absence of violation (B 16:36 layer 4)"]}); continue
-        files_scanned += 1; corpus.append(p.read_text(encoding="utf-8"))
-        for s in sentences(p.read_text(encoding="utf-8")):
+        txt = extract_text(p); files_scanned += 1; corpus.append(txt)
+        for s in sentences(txt):
             sentences_scanned += 1
             issues = []; status = "SUPPORTED"
             for pat, rule, note in FORBIDDEN:
