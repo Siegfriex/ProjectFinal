@@ -1,16 +1,16 @@
 {
  "agent": "B",
- "timestamp": "2026-08-27T21:33:34+09:00",
+ "timestamp": "2026-08-27T21:49:04+09:00",
  "phase": "I1",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "196563fd60ca63611274d41a416dad7909803863",
+ "head_sha": "e33a2e262e954cf3fe18e283f309361bb4c883c2",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
- "work_state": "I1_LABEL_FROZEN_W2_SEMANTIC_OPENED_W1_W2_W4_RUNNING",
+ "work_state": "I1_W4_REWORK_W1_LOCK_WIRING_W2_RUNNING_W3_STAGE1",
  "blocker_ids": [],
- "last_bus_seq": 99,
+ "last_bus_seq": 124,
  "last_push_at": "2026-08-27T20:56:51+09:00",
- "next_action": "W1/W2/W4 completion 대기. C 의 PAC 1건 차이 회신 대기. A 의 FINDING-001/002 결정 대기.",
+ "next_action": "A 의 T-B-BLK-003 결정 대기. W1 lock 배선 / W4 form-semantic 분리 / W2·W3 진행 중.",
  "real_target": "NO-GO",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
@@ -21,39 +21,38 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "196563fd60ca63611274d41a416dad7909803863",
-  "A_control": "0ff48a7286b327c58b6c0e710f0f9a0557534862",
-  "C_assurance_v21": "d77ee67c3eeb3a47ade12e828f58b0f515e5057f",
-  "at": "2026-08-27T21:31:00+09:00"
+  "B_clean0_v21": "e33a2e262e954cf3fe18e283f309361bb4c883c2",
+  "A_control": "7695383416bd6ea18f363aaa5286aade1227df24",
+  "C_assurance_v21": "ccdc08ed2124ea8a820b3340d67382b89bc2326b",
+  "at": "2026-08-27T21:47:22+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
   "W1": {
    "branch": "claude-b/w1-guard-wiring",
-   "base": "2281c85",
-   "state": "RUNNING",
-   "scope": "guard+wiring+exactly-once(D-R0-38)"
+   "wip_sha": "67d7d8a",
+   "state": "REWORK_FIXTURE_LOCK_WIRING",
+   "verified_by_C": "lock race PASS (3 proc x 3 key, 키당 proceed 1 / SUPPRESSED 2)",
+   "open": "FIXTURE 경로 lock 미배선 → exactly-once e2e 미증명 (C-FINDING-214553 P2)"
   },
   "W2": {
    "branch": "claude-b/w2-rf-detector",
-   "base": "2281c85",
+   "wip_sha": "1de537c",
    "state": "RUNNING",
-   "scope": "rule-DT + signal family + LABEL_FROZEN 후 semantic calibration(n=30) 개시. holdout 미접근."
+   "c_preaudit": "구조 계약 정합 — marker 게이팅 이중화·signal_type 실소비·Branch U·depth NULL 시정"
   },
   "W3": {
    "branch": "claude-b/w3-kwcag",
-   "base": "2281c85",
-   "state": "STAGE0_C_VERIFIED_MATCH_AWAITING_A_ACK",
-   "result_sha": "4e60aba979e32aca56bda715cf17e79f54cee90d",
-   "manifest_sha256": "be28da96373edb7a17c334718014692736e1421b383c14cff49f566b70e067dd",
-   "self_approved": false,
-   "c_verification": "C-FINDING-212001 MATCH + T-A-W3-001.C COMPLETION @ d8a6907"
+   "result_sha": "4e60aba",
+   "state": "STAGE1_RUNNING_AFTER_A_ACCEPT",
+   "scope": "evaluator 대상 = applicability != OTHER 인 22개 (D-R0-51 W3-D2)"
   },
   "W4": {
    "branch": "claude-b/w4-axisc-mart",
-   "base": "2281c85",
-   "state": "RUNNING",
-   "scope": "Axis C semantic + mart, task-level은 PENDING_TASK_BINDING"
+   "result_sha": "cf8dbd70",
+   "state": "REWORK_FORM_SEMANTIC_SPLIT",
+   "verified_by_C": "분모·duplicate·geometry 불변·cap 플래그 전건 일치",
+   "open": "의미 라벨 22/635 BANNER 붕괴 (C-FINDING-214214 P2 REWORK)"
   }
  },
  "resolved_add": "T-B-FC-003 종결 — C 자체 정정으로 PAC 7/58 확정, B/C 수치 완전 일치",
@@ -61,5 +60,8 @@
   "T-B-FINDING-001 DecisionCoverage 구조적 상한 (A 결정 대기)",
   "T-B-FINDING-002 probe hard cap 절단 (A 결정 대기, 수치 확정됨)"
  ],
- "d_layer": "T-B-RQ-D-001 발행 (비권위, 자동 소비 안 함)"
+ "d_layer": "T-B-RQ-D-001 발행 (비권위, 자동 소비 안 함)",
+ "open_blockers": [
+  "T-B-BLK-003 gate_observed 어휘단독 위양성 — C CONFIRMED, A DECISION 대기"
+ ]
 }
