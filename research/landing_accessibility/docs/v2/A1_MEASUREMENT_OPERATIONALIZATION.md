@@ -304,8 +304,8 @@ UNRESOLVED_DEPTH_BUDGET_EXCEEDED
 - endpoint 신호가 발화하지 않는 대상 → 예산이 실제로 발화하는가
 - 순환 navigation 대상 → `MAX_STATE_REVISITS`가 먼저 발화하는가
 - 예산 소진 관측이 `MPFED = 8`로 새지 않고 `NULL`로 저장되는가
-- **동일 길이 후보 경로가 둘 이상인 대상 → 같은 fixture를 두 번 돌려 같은 경로가 나오는가** (§2.6 규칙 MIN-4)
-- **동일 길이 후보를 `±0.01px` · `±0.05px` · `±0.5px` 선형 흔들림으로 교란했을 때 `±0.5px` 대역 flip 률이 `0%`인가** (§2.6 MIN-4) `[V2-C010b 시정]` — 2차 키가 `dom_order`이므로 **면적 잡음의 크기와 무관하게 0이어야 한다.** 0이 아니면 잡음이 아니라 DOM 비결정성이며 별개 사건이다(MIN-8). 위상 무작위화 반복(최소 `N=10000`), **부호 양쪽.** `+0.01`만 시험하면 정수 명목 면적에서 `−0.01`이 아래 버킷으로 떨어지는 경우를 놓친다(adversarial V2-C009 실측). fixture 는 정수 명목 면적(예: `200×40`)과 비정수 둘 다 포함해야 한다
+- **동일 길이 후보 경로가 둘 이상인 대상 → 같은 fixture를 두 번 돌려 같은 경로가 나오는가** (§2.6 규칙 MIN-4) — 이 케이스를 **`MIN-4 경로 결정성 케이스`** 라 부른다 `[V2-C012 시정]`. `dom_order` 불안정(런마다 다른 DOM 조립)을 받는 검사가 이것이며, Scout 층에서 실제로 두 번 열거하므로 후보 순서 변화가 경로 차이로 드러난다
+- **동일 길이 후보를 `±0.01px` · `±0.05px` · `±0.5px` 선형 흔들림으로 교란했을 때 `±0.5px` 대역 flip 률이 `0%`인가** (§2.6 MIN-4) `[V2-C010b 시정]` — 2차 키가 `dom_order`이므로 **면적 잡음의 크기와 무관하게 0이어야 한다.** 0이 아니면 잡음이 아니라 DOM 비결정성이다 — 그 위반은 **바로 위 `MIN-4 경로 결정성 케이스`가 받는다** `[V2-C012 시정]` (닫는 finding: `min-4-dom-order-residual-attributed-to-min-8-replay-which-min-8-says-it-does-not-detect`): 해당 대상을 그 케이스로 넘겨 두 런의 경로가 같은지 보고, 다르면 **DOM 비결정성으로 확정해 그 대상을 P-C 검증 결과에 표시**한다. **`MIN-8` Replay는 이 위반을 받지 않는다**(§2.6 규칙 MIN-8 · §8). 위상 무작위화 반복(최소 `N=10000`), **부호 양쪽.** `+0.01`만 시험하면 정수 명목 면적에서 `−0.01`이 아래 버킷으로 떨어지는 경우를 놓친다(adversarial V2-C009 실측). fixture 는 정수 명목 면적(예: `200×40`)과 비정수 둘 다 포함해야 한다
   — 결정적 fixture 재생만으로는 이 실패 양상이 드러나지 않는다. **jitter를 명시적으로 주입**해야 한다
 - **짧은 경로와 긴 경로가 같은 endpoint로 가는 대상 → 짧은 쪽이 선택되는가** (§2.6 규칙 MIN-2)
 
@@ -431,7 +431,12 @@ endpoint 경로는 열거되지 않는다.** 이 경우 `endpoint_reached = 0`�
 > 이 교체는 정의를 바꾸지 않는다.
 >
 > **잔여**: `dom_order`는 SPA가 런마다 DOM을 다르게 조립하면 달라진다. 그 경우는
-> 서브픽셀 잡음이 아니라 **실제 페이지 비결정성**이며, `MIN-8` Replay 재현 검사가 잡는 사건이다.
+> 서브픽셀 잡음이 아니라 **실제 페이지 비결정성**이다.
+> **이 잔여를 받는 검사는 §2.5의 `MIN-4 경로 결정성 케이스`(동일 fixture 2회 반복, Scout 층)다** `[V2-C012 시정]`
+> — 닫는 finding: `min-4-dom-order-residual-attributed-to-min-8-replay-which-min-8-says-it-does-not-detect`.
+> **`MIN-8` Replay는 이것을 잡지 않는다** — Replay는 동결된 selector 열을 그대로 밟으므로
+> 후보 순서가 달라져 더 짧은 경로가 생겨도 통과시킨다(규칙 MIN-8 · §8 금지 항목).
+> MIN-8은 **동결 이후 국면**만 담당한다.
 > 이 잔여는 닫혔다고 쓰지 않는다.
 >
 > **`area_css_px2`가 `NULL`인 후보** `[V2-C010 시정]` — probe(`l0_probe.js`)는 면적을 못 재면
@@ -513,9 +518,13 @@ Replay가 확인하는 것은 **경로 재현성**(같은 step 열이 같은 sta
 그 경로가 여전히 최소인지가 아니다. 대상이 바뀌어 더 짧은 경로가 생겨도 Replay는
 동결 경로를 그대로 밟고 통과시킨다. 최소성 재판정이 필요하면 그것은 Replay가 아니라
 **새 Scout**이며, `02` §12에 따라 새 evidence run이다.
+`dom_order`가 런마다 달라져 후보 순서가 바뀌는 사건도 여기에 해당한다 — **Replay가 아니라
+§2.5의 `MIN-4 경로 결정성 케이스`가 받는다** `[V2-C012 시정]`.
 
-동결 산출물은 최소한 다음을 담는다 — 경로 step 열(`step_index` · `selector` ·
+동결 산출물은 최소한 다음을 담는다 — 경로 step 열(`step_index` · `selector` · `dom_order` ·
 기대 state id) · 그 열의 `path_sha256` · 산출 당시의 예산값 · `NED`/`IED`/`MPFED`.
+`dom_order`를 함께 동결하는 이유는 규칙 MIN-4 때문이다 `[V2-C012 시정]` — 후보 순서를 모르면
+동결본만으로 "그 관측에서 무엇이 최소였는가"를 재현 대조할 수 없다.
 예산값을 함께 동결하는 이유는 규칙 MIN-5 때문이다. 예산이 바뀌면 "무엇에 대한 최소인가"가
 바뀌므로, 예산을 모르는 채로 남은 depth 값은 해석할 수 없다.
 
@@ -701,6 +710,7 @@ scout는 두 episode의 시작·종료를 기록해야 위 표를 채울 수 있
 | `task_id` | 어느 대표 task 기준의 랭킹인가 |
 | `rank` | 랭킹 순위 (1이 최상위) |
 | `selector` | 재현 가능한 selector |
+| `dom_order` | 해당 state의 후보 열거 내 **문서 순서 정수 인덱스**(0-based, probe 산출). §2.6 규칙 MIN-4 tie-break 2차 키의 입력값 `[V2-C012 시정]` |
 | `control_role` | AX role |
 | `accessible_name` | AX computed name |
 | `visible_text` | 가시 텍스트 |
@@ -715,6 +725,12 @@ scout는 두 episode의 시작·종료를 기록해야 위 표를 채울 수 있
 | `selection_confidence` | 선정 신뢰도 |
 | `ai_review_status` | `02` §6 `모호하면 AI review` 경유 여부 |
 | `evidence_package_id` | AI review를 탔다면 `fact_ai_adjudication` 연결 |
+
+> **`dom_order` 관측 절차** `[V2-C012 시정]` — 닫는 finding: `min-4-dom-order-not-bound-as-schema-field`.
+> probe(`l0_probe.js`)가 후보를 열거할 때 **그 열거 시점의 문서 순서**를 0-based 정수로 함께 낸다.
+> 관측값이 아니라 구조값이므로 `NULL`이 없고, 같은 state · 같은 문서 안에서 단조 증가한다.
+> 후보가 서로 다른 문서(iframe)에서 오면 값이 문서마다 다시 매겨지므로 3차 키 `selector`가 남아 있어야 한다(§2.6 MIN-4).
+> **값 도메인 선언과 스키마 바인딩 표 반영은 `A2` §1.13 소관이며 이 문서에서 하지 않는다.**
 
 저장 후보 수 기본값 `TOP_N_CANDIDATES = 5`. **P-C에서 동결.**
 `SELECTED`는 관측·task당 최대 1행이며, 0행이면 `primary_action_visible_initial = NULL`이다(`0`이 아니다).
