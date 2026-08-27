@@ -67,7 +67,16 @@ def emit(kind: str, payload: dict, to=("A", "B")) -> pathlib.Path:
         if not path.exists():
             break
         seq += 1
-    obj = {"ticket_id": tid, "type": kind, "from": "C", "to": list(to), "created_at": now(), **payload}
+    # SSOTV3 15_TICKET_PROTOCOL_SCHEMA — required: ticket_id/from/to[]/type/priority/claim_kind/base_sha/scope/status/created_at_kst
+    v3_type = {"FINDING": "FINDING", "BLOCKER": "BLOCKER", "FACT_CORRECTION": "FACT_CORRECTION", "COMPLETION": "COMPLETION",
+               "ASSURANCE": "ASSURANCE", "DECISION_REQUEST": "DECISION_REQUEST", "HARD_STOP_CANDIDATE": "BLOCKER"}.get(kind, kind)
+    obj = {"ticket_id": tid, "type": v3_type, "from": "C", "to": list(to), "created_at": now(), "created_at_kst": now(),
+           "priority": payload.get("priority", "P2"), "claim_kind": payload.get("claim_kind", "ASSURANCE"),
+           "scope": payload.get("scope", "UNSCOPED"), "status": payload.get("status", "OPEN"),
+           "task_family_id": payload.get("task_family_id"), "target_manifest_sha256": payload.get("target_manifest_sha256"),
+           "ssot": "SSOTV3", **payload}
+    if kind != v3_type:
+        obj["legacy_type"] = kind
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
     import os
