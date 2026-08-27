@@ -21,6 +21,9 @@ from pathlib import Path
 
 BUS = Path("/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2")
 _HEX40 = re.compile(r"[0-9a-f]{40}")
+# 측정을 담고 있음을 드러내는 키 이름. 보수적으로 넓게 잡는다 —
+# 측정이 아닌데 시각을 요구하는 쪽이, 측정인데 시각 없이 나가는 쪽보다 싸다.
+_MEASURE_KEYS = ("measurement", "실측", "measured", "재계산", "recount", "관측된_순서", "the_measurement")
 FORBIDDEN_TYPES = {"GO", "NO_GO", "NO-GO", "BLOCKER", "DIRECTIVE", "SUPERSEDE"}
 
 
@@ -53,6 +56,14 @@ def check(t: dict) -> list[str]:
         errs.append("claim_kind 누락")
     if not t.get("limitation") and not t.get("known_limitation"):
         errs.append("limitation 누락 — 한계 없는 보고는 발행하지 않는다")
+
+    # R26 (T-A-V3-STEP1-026): 측정을 담은 보고에는 측정 시각이 있어야 한다.
+    # A 대 D 의 base_sha 수 차이는 방법 차이가 아니라 **시각 차이**였다. 시각 없는
+    # 수치는 대조할 수 없고, 대조하면 없는 결함이 만들어진다.
+    if not t.get("measured_at_kst"):
+        m = [p for p, _ in _walk(t) if any(w in p.lower() for w in _MEASURE_KEYS)]
+        if m:
+            errs.append(f"measured_at_kst 누락 — R26. 측정 필드: {m[0]}")
 
     # 본문 어디의 40자 hex 든 실재 커밋이어야 한다 (B 의 b_ticket_precheck 에서 채택).
     # base_sha 만 보면 본문에 적은 증거 sha 의 조작·오타는 통과한다. B 가 실제로
