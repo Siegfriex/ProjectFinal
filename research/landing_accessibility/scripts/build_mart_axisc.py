@@ -146,6 +146,13 @@ from landing_accessibility.engine.l0_collector import classify_interrupt  # noqa
 from landing_accessibility.engine.vocabulary import ClassificationStatus  # noqa: E402
 
 MASTER_PLAN_PATH = RESEARCH / "shadow" / "e001_plan" / "E001_MASTER_PLAN.json"
+#: `D-R0-55` — A 가 analysis frame archetype(prior 기준이냐 관측 기준이냐)을 명시적으로
+#: 유보했다. 이 mart 는 어느 쪽으로도 확정하지 않고 둘 다 컬럼으로 남긴다.
+#: `prior_archetype` 은 Layer P(SSOT §6.1) 후보값 — RF-DT 의 실행 산출물이 아니라
+#: **읽기 전용으로 참조**하는 P-B prework 결과다(W1/A 소관, W4 는 만들지 않는다).
+PRIOR_ARCHETYPE_CSV_PATH = (
+    RESEARCH / "shadow" / "lane_b" / "state" / "representative_task_candidate_shadow.csv"
+)
 EVIDENCE_ROOT_GLOB = str(
     PROJECT_ROOT / ".agent_worktrees" / "claude_b_e001_worker_0*" / "artifacts" / "*" / "evidence"
 )
@@ -367,6 +374,27 @@ def load_attempted_population(master_plan_path: Path = MASTER_PLAN_PATH) -> dict
     return {wtg(_ATTEMPTED_NAME_ALIAS.get(name, name)): name for name in names}
 
 
+def load_prior_archetype(csv_path: Path = PRIOR_ARCHETYPE_CSV_PATH) -> dict[str, str]:
+    """`{wtg_id: interaction_archetype}` — `D-R0-55` prior 컬럼. Layer P(SSOT §6.1)
+    산출물을 **읽기 전용으로 참조**한다(W1/A 소관 CSV, W4 는 archetype 을 만들지 않는다).
+
+    `web_target_id` 로 직접 조인한다(이름 alias 추측이 필요 없다) — 이 CSV 는
+    `frozen_collection_order` 59 개 전원을 이미 `wtg_id` 로 커버한다(W4 확인: 59/59).
+    """
+    import csv as _csv
+
+    out: dict[str, str] = {}
+    if not csv_path.exists():
+        return out
+    with csv_path.open(newline="", encoding="utf-8-sig") as fh:
+        for row in _csv.DictReader(fh):
+            wid = row.get("web_target_id")
+            archetype = row.get("interaction_archetype")
+            if wid and archetype:
+                out[wid] = archetype
+    return out
+
+
 def build_population_rows(
     attempted: dict[str, str], run_dirs: list[RunDirInfo]
 ) -> list[dict[str, Any]]:
@@ -552,6 +580,10 @@ def axis_c_page_level_from_probe(raw_features: dict[str, Any]) -> dict[str, Any]
             "truncated": (n == cap) if n is not None else None,
         }
 
+    # `D-R0-53` DECISION-1 — `cap_hit_<key>` bool 플래그를 키별로 남긴다. 개수(`*_len`)와
+    # 함께 쓴다(코디네이터 지시): bool 만 있으면 cap 기준이 바뀔 때 재계산이 안 된다.
+    cap_hit_flags = {f"cap_hit_{k}": v["truncated"] for k, v in cap_flags.items()}
+
     return {
         "interrupt_count_visible": len(visible),
         "overlay_coverage": overlay_coverage,
@@ -562,11 +594,14 @@ def axis_c_page_level_from_probe(raw_features: dict[str, Any]) -> dict[str, Any]
         "dismiss_control_visible_count": visible_count,
         "modal_overlay_candidates_len": len(modal_candidates),
         "dismiss_control_candidates_len": len(dismiss_candidates),
-        # ── probe cap 절단 플래그. 항상 개수(`*_len`)를 먼저 남긴다 — bool 만 남기면
-        # cap 기준이 바뀔 때 재계산이 안 된다(B/C 대조 사례, 코디네이터 지시). ──
+        # ── probe cap 절단. 개수(`*_len`)와 `cap_hit_<key>` bool 을 함께 남긴다
+        # (`D-R0-53` DECISION-1). `D-R0-53` DECISION-2: 절단은 그 필드에 의존하는
+        # 지표만 UNDETERMINED 후보다 — 이 관측의 axis_c_valid 전체를 낮추지 않는다.
+        # modal_overlay_candidates/dismiss_control_candidates 는 cap 과 무관(최대 44)
+        # 이므로 OverlayCoverage 등 page-level geometry 는 절단 영향이 없다.
         "pac_len": cap_flags["primary_action_candidates"]["len"],
         "pac_truncated": cap_flags["primary_action_candidates"]["truncated"],
-        # C가 확인한 이름 — Axis C PrimaryActionOcclusion 함의(문서 상단)와 직결.
+        # `D-R0-53` DECISION-1 확정 이름 — Axis C PrimaryActionOcclusion 함의(문서 상단)와 직결.
         "probe_primary_action_n": cap_flags["primary_action_candidates"]["len"],
         "ans_len": cap_flags["accessible_name_sources"]["len"],
         "ans_truncated": cap_flags["accessible_name_sources"]["truncated"],
@@ -577,7 +612,9 @@ def axis_c_page_level_from_probe(raw_features: dict[str, Any]) -> dict[str, Any]
         "anim_len": cap_flags["animated_elements"]["len"],
         "anim_truncated": cap_flags["animated_elements"]["truncated"],
         "probe_cap_flags": cap_flags,
-        # ── slot 원자재 3종(F-A3.1) — 정의는 열어 둔다, bool 을 만들지 않는다 ──
+        **cap_hit_flags,
+        # ── slot 원자재 3종(F-A3.1, `D-R0-53` DECISION-1 이름 확정) — 정의는 열어
+        # 둔다, bool 을 만들지 않는다 ──
         "dom_body_empty": None,
         "dom_body_empty_status": "DEFINITION_PENDING_D_LAYER",
         "slot_disagreement": None,
@@ -612,25 +649,67 @@ def verify_overlay_fields_not_capped(rows: list[dict[str, Any]]) -> dict[str, An
     }
 
 
+_CAP_HIT_FIELDS_FOR_DESCRIPTIVE_STATS = (
+    "cap_hit_primary_action_candidates",
+    "cap_hit_accessible_name_sources",
+    "cap_hit_target_size",
+    "cap_hit_contrast",
+)
+
+
+def cap_hit_prior_archetype_distribution(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """**기술통계일 뿐이다 — 검정이 아니다**(A 결정, 코디네이터 지시).
+
+    cap 이 하나라도 걸린 관측(`cap_hit_*` 중 하나라도 True)의 `prior_archetype` 분포를
+    전체 `MEASURED` 관측의 분포와 나란히 낸다. **이 함수는 결론을 내지 않는다** —
+    "절단이 특정 archetype 에 몰려 비교가 왜곡된다" 같은 주장은 이 mart 의 소관이 아니다
+    (A 결정: 지금 그렇게 주장하지 않는다). 소비자가 스스로 판단하도록 분포만 남긴다.
+    """
+    measured = [r for r in rows if r["measurement_status"] == "MEASURED"]
+    cap_hit = [r for r in measured if any(r.get(f) for f in _CAP_HIT_FIELDS_FOR_DESCRIPTIVE_STATS)]
+
+    def _dist(subset: list[dict[str, Any]]) -> dict[str, int]:
+        out: dict[str, int] = {}
+        for r in subset:
+            key = r.get("prior_archetype") or "UNKNOWN"
+            out[key] = out.get(key, 0) + 1
+        return out
+
+    return {
+        "note": "DESCRIPTIVE_ONLY_NOT_A_TEST — 통계적 유의성 주장 없음, archetype 비교 왜곡 결론 없음",
+        "cap_hit_n": len(cap_hit),
+        "measured_n": len(measured),
+        "cap_hit_prior_archetype_counts": _dist(cap_hit),
+        "measured_prior_archetype_counts": _dist(measured),
+    }
+
+
 # ── 4. duplicate content capture — dom.html sha256 전수 스캔 (데이터 유도, 하드코딩 아님) ──
 
 
 def annotate_duplicate_capture_groups(rows: list[dict[str, Any]]) -> None:
     """`in_main_population` 행들의 `dom_sha256` 이 겹치면 같은 그룹으로 묶는다.
 
-    **삭제하지 않는다** — 그룹 표시만 남겨서 A 가 나중에 합칠지 말지 결정하게 한다
-    (F-A2). `duplicate_capture_group_size == 1` 이면 겹치는 상대가 없다는 뜻이다.
+    **삭제하지 않는다** — 그룹 표시만 남겨서 A 가 합칠지 말지 결정하게 한다(F-A2).
+    `duplicate_capture_group_size == 1` 이면 겹치는 상대가 없다는 뜻이다.
+
+    `D-R0-54`(`C-FINDING-212458` 처리) — A 가 **주분석 = 그룹당 1건으로 접기,
+    2건 계수는 감도분석으로 함께 낸다**를 채택했다. 그룹 내 `collapse_role` 로
+    표시한다: 대표(주분석에 남는 쪽)는 `service_name` 사전순으로 **결정적**으로
+    고른다(가장 이른 launch 처럼 임의성 없이 재현 가능해야 한다).
     """
     sha_to_indices: dict[str, list[int]] = {}
     for i, row in enumerate(rows):
         if not row.get("in_main_population"):
             row["duplicate_capture_group"] = None
             row["duplicate_capture_group_size"] = None
+            row["collapse_role"] = None
             continue
         sha = row.get("dom_sha256")
         if not sha:
             row["duplicate_capture_group"] = None
             row["duplicate_capture_group_size"] = None
+            row["collapse_role"] = "PRIMARY_REPRESENTATIVE"
             continue
         sha_to_indices.setdefault(sha, []).append(i)
 
@@ -639,12 +718,17 @@ def annotate_duplicate_capture_groups(rows: list[dict[str, Any]]) -> None:
         if len(idxs) > 1:
             group_counter += 1
             gid = f"DUPCAP-{group_counter:03d}"
+            representative_idx = min(idxs, key=lambda i: rows[i]["service_name"])
             for i in idxs:
                 rows[i]["duplicate_capture_group"] = gid
                 rows[i]["duplicate_capture_group_size"] = len(idxs)
+                rows[i]["collapse_role"] = (
+                    "PRIMARY_REPRESENTATIVE" if i == representative_idx else "COLLAPSED_IN_PRIMARY"
+                )
         else:
             rows[idxs[0]]["duplicate_capture_group"] = None
             rows[idxs[0]]["duplicate_capture_group_size"] = 1
+            rows[idxs[0]]["collapse_role"] = "PRIMARY_REPRESENTATIVE"
 
 
 # ── 5. 조립 ──────────────────────────────────────────────────────────────
@@ -653,11 +737,14 @@ def annotate_duplicate_capture_groups(rows: list[dict[str, Any]]) -> None:
 def build_mart_rows(
     attempted: dict[str, str] | None = None,
     run_dirs: list[RunDirInfo] | None = None,
+    prior_archetype: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
     if attempted is None:
         attempted = load_attempted_population()
     if run_dirs is None:
         run_dirs = discover_run_dirs()
+    if prior_archetype is None:
+        prior_archetype = load_prior_archetype()
 
     rows = build_population_rows(attempted, run_dirs)
     for row in rows:
@@ -667,6 +754,11 @@ def build_mart_rows(
         row["informative_missingness_name_hint"] = informative_missingness_name_hint(
             row["service_name"]
         )
+        # `D-R0-55` — prior/observed 둘 다 컬럼으로 남기고 어느 쪽도 "the" archetype 으로
+        # 확정하지 않는다. observed(Layer O, RF-DT 검증)는 task binding 이 끝나야 나온다.
+        row["prior_archetype"] = prior_archetype.get(row["web_target_id"])
+        row["observed_archetype"] = None
+        row["observed_archetype_status"] = "PENDING_TASK_BINDING"
 
         probe_path = row.get("probe_path")
         degenerate_reason = KNOWN_DEGENERATE_CAPTURE.get(row["service_name"])
@@ -743,6 +835,11 @@ def build_mart_rows(
                 "probe_cap_flags",
                 "dom_body_empty",
                 "slot_disagreement",
+                "cap_hit_primary_action_candidates",
+                "cap_hit_accessible_name_sources",
+                "cap_hit_target_size",
+                "cap_hit_contrast",
+                "cap_hit_animated_elements",
             ):
                 row[k] = None
             row["dom_body_empty_status"] = "DEFINITION_PENDING_D_LAYER"
@@ -756,6 +853,15 @@ def build_mart_rows(
         row.update(axis_c)
 
     annotate_duplicate_capture_groups(rows)
+
+    # `D-R0-54` 주분석 flag — axis_c_valid 이면서 duplicate_capture 그룹에서 접힌
+    # 쪽(COLLAPSED_IN_PRIMARY)이 아닌 행만 주분석 분모에 들어간다. 감도분석(uncollapsed)
+    # 은 axis_c_valid 그대로 쓰면 된다 — 별도 컬럼을 또 만들지 않는다.
+    for row in rows:
+        row["axis_c_valid_primary"] = (
+            bool(row.get("axis_c_valid")) and row.get("collapse_role") != "COLLAPSED_IN_PRIMARY"
+        )
+
     return rows
 
 
@@ -778,19 +884,14 @@ def compute_denominators(rows: list[dict[str, Any]]) -> dict[str, int]:
     )
     axis_c_valid = sum(1 for r in rows if r.get("axis_c_valid"))
     informative_missingness = sum(1 for r in rows if r.get("informative_missingness_candidate"))
+    duplicate_capture_groups = len(
+        {r["duplicate_capture_group"] for r in rows if r.get("duplicate_capture_group")}
+    )
 
-    # duplicate_capture 묶음 감도분석 — 두 값 다 계산해 둔다(A 가 고를 문제, W4 가 정하지 않음).
-    seen_groups: set[str] = set()
-    n_collapsed = 0
-    for r in rows:
-        if r["measurement_status"] != "MEASURED":
-            continue
-        g = r.get("duplicate_capture_group")
-        if g is None:
-            n_collapsed += 1
-        elif g not in seen_groups:
-            seen_groups.add(g)
-            n_collapsed += 1
+    # `D-R0-54` — 주분석은 duplicate_capture 그룹을 1건으로 접은 값이다(A 확정).
+    # uncollapsed(그룹을 안 접은, `measured`/`axis_c_valid` 그대로)는 감도분석으로
+    # **함께** 낸다 — 두 값 다 여기서 계산해 둔다.
+    axis_c_valid_primary = sum(1 for r in rows if r.get("axis_c_valid_primary"))
 
     return {
         "attempted": attempted,
@@ -799,11 +900,15 @@ def compute_denominators(rows: list[dict[str, Any]]) -> dict[str, int]:
         "excluded_duplicate_launch": excluded_duplicate_launch,
         "measured": measured,
         "failed_evidence_incomplete": failed_evidence_incomplete,
-        "axis_c_valid": axis_c_valid,
         "informative_missingness_candidates": informative_missingness,
+        "duplicate_capture_groups": duplicate_capture_groups,
+        # ── D-R0-54: primary = collapsed, sensitivity = uncollapsed. 이름에 명시한다. ──
+        "axis_c_valid_primary_collapsed": axis_c_valid_primary,
+        "axis_c_valid_sensitivity_uncollapsed": axis_c_valid,
+        # 하위호환 별칭(기존 이름 그대로도 유지 — 기존 소비자가 있을 수 있다).
+        "axis_c_valid": axis_c_valid,
         "measured_n_raw": measured,
-        "measured_n_collapsed_duplicate_capture": n_collapsed,
-        "duplicate_capture_groups": len(seen_groups),
+        "measured_n_collapsed_duplicate_capture": axis_c_valid_primary,
     }
 
 
@@ -828,6 +933,7 @@ def main() -> None:
 
     denominators = compute_denominators(rows)
     cap_check = verify_overlay_fields_not_capped(rows)
+    cap_hit_archetype_stats = cap_hit_prior_archetype_distribution(rows)
 
     manifest = {
         "mart": "axisc",
@@ -836,6 +942,32 @@ def main() -> None:
         "grain": "web_target_id (task-level pending W1/W2 binding)",
         "denominators": denominators,
         "overlay_cap_check": cap_check,
+        "cap_hit_prior_archetype_distribution": cap_hit_archetype_stats,
+        "decisions_applied": {
+            "D-R0-53_DECISION-1": (
+                "cap_hit_<key> bool + *_len 개수를 함께 저장 (dom_body_empty/"
+                "probe_primary_action_n/slot_disagreement 이름도 이 결정대로 확정)"
+            ),
+            "D-R0-53_DECISION-2": (
+                "cap 절단은 그 필드에 의존하는 지표만 UNDETERMINED 후보다 — 관측 전체를 "
+                "낮추지 않는다. modal_overlay_candidates/dismiss_control_candidates 는 "
+                f"cap 무관(관측 최대 {cap_check['modal_overlay_candidates_max_observed']}) "
+                "이므로 OverlayCoverage 등 page-level geometry 는 절단 영향이 없다 "
+                f"(safe_from_cap={cap_check['safe_from_cap']})."
+            ),
+            "D-R0-53_DECISION-3": "cap 상향 재수집을 이 mart 는 제안하지 않는다 — REAL_TARGET_GO 는 A 소관.",
+            "D-R0-54": (
+                "NH스마트뱅킹/NH콕뱅크 duplicate_capture_group — 주분석은 1건으로 접힘"
+                f"(axis_c_valid_primary_collapsed={denominators['axis_c_valid_primary_collapsed']}), "
+                f"2건 계수 감도분석을 함께 낸다(axis_c_valid_sensitivity_uncollapsed="
+                f"{denominators['axis_c_valid_sensitivity_uncollapsed']})."
+            ),
+            "D-R0-55": (
+                "analysis frame archetype(prior/observed) 결정을 A 가 유보 — 이 mart 는 "
+                "prior_archetype(Layer P, 읽기 전용 참조)과 observed_archetype"
+                "(PENDING_TASK_BINDING)을 각각 컬럼으로 남기고 어느 쪽도 확정하지 않는다."
+            ),
+        },
         "self_approved": False,
         "not_verified_by_this_gate": [
             "task-specific PrimaryActionOcclusion — task binding 미완료, 값 전부 NULL/PENDING_TASK_BINDING. "
@@ -850,6 +982,8 @@ def main() -> None:
             "이나 인과 판정이 아니다. 통계적 유의성 검정을 하지 않았다(코디네이터 지시: 해석은 A/C 몫)",
             "duplicate_capture_group — dom_sha256 일치만 근거. NH 쌍은 JS 렌더 이전 공용 SSR shell로 추정되나 "
             "W4 가 그 원인을 독립 검증하지 않았다",
+            "cap_hit_prior_archetype_distribution — 기술통계다. archetype 비교가 절단으로 왜곡된다는 결론을 "
+            "이 mart 는 내리지 않는다(A 결정).",
         ],
     }
     (args.out / "mart_axisc_manifest.json").write_text(
