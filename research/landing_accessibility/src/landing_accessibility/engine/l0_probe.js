@@ -435,7 +435,7 @@
     const MAP_CONTROL_VOCAB = /(지도|매장\s?찾기|위치\s?검색|장소\s?검색|내\s?주변)/;
 
     const mapControlPresent = [...document.querySelectorAll('input,button,a')].some((el) => {
-      if (!visible(el)) return false;
+      if (!visible(el) || !enabled(el)) return false;
       const label = T(el.getAttribute('aria-label') || el.textContent
         || el.getAttribute('placeholder') || '');
       return MAP_CONTROL_VOCAB.test(label);

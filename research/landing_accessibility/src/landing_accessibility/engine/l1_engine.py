@@ -730,11 +730,15 @@ def _top_ranked_primary_candidate(raw: dict[str, Any]) -> dict[str, Any] | None:
     `min4_sort_key`(`A1 §2.6` 규칙 MIN-4, `l0_collector`·`Scout._activation_candidates`
     와 **같은 전순서**)로 정한 1위 candidate. Scout 가 실제로 밟을 후보와 같은 순서를 써야
     resolver 의 "대표 표면"과 실제 activation 경로가 다른 이야기를 하지 않는다.
+
+    `D-R0-70` — `disabled` candidate 는 "표면"으로 인정하지 않는다(Scout 도 어차피 클릭이
+    무효인 control 을 경로로 잡지 않는다 — 여기서만 다르게 취급하면 resolver 의 판단과
+    실제 activation 이 어긋난다).
     """
     cands = [
         c
         for c in raw.get("primary_action_candidates", [])
-        if c.get("hittable") and c.get("selector")
+        if c.get("hittable") and c.get("selector") and _is_enabled(c)
     ]
     if not cands:
         return None
