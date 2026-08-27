@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass, field
+from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -157,15 +158,36 @@ class RealServiceTarget:
 
 @dataclass
 class InterruptRecord:
-    """`01 §5 fact_interrupt_element` 한 행 (fixture engine 산출)."""
+    """`01 §5 fact_interrupt_element` 한 행 (fixture engine 산출).
+
+    `C-FINDING-214214`/`D-R0-58-1` 시정 — `interrupt_form`(이 오버레이가 어떤 형태인가:
+    BLOCKING_MODAL/PROMOTION_MODAL/BANNER/…)과 `interrupt_semantic`(이 오버레이가 무엇을
+    하려는가: LOGIN_PROMPT/COOKIE_CONSENT/CHAT_WIDGET/APP_INSTALL_PROMPT/ADVERTISEMENT/…)은
+    **직교하는 축**이고 동시에 참일 수 있다(예: sticky 배너인 동시에 로그인 유도문구).
+    하나의 필드에 밀어 넣으면 반드시 하나가 죽는다 — 그래서 두 축을 별도 필드로 갖고,
+    각 축은 독립적인 `*_status`(`RESOLVED`/`UNRESOLVED`/`NOT_APPLICABLE`, `D-R0-58-1`
+    확정 어휘 — `l0_collector.InterruptAxisStatus`, 기존 `vocabulary.ClassificationStatus`
+    재사용 아님)를 갖는다. `classify_interrupt()`가 둘을 독립적으로 판정하며, 한쪽이
+    `RESOLVED` 됐다고 다른 쪽을 생략하거나 덮지 않는다.
+
+    옛 단일 필드(`classification_status`/`final_label`)는 이 dataclass 에서 제거했다 —
+    `vocabulary.py`의 `LEVEL_OF`/`_ENUMS` 표가 그 옛 이름을 여전히 등록해 두고 있지만
+    (`vocabulary.py` 는 읽기 전용, W4 가 수정하지 않음) 현재 그 표를 실제로 소비하는
+    호출부가 없다(`enum_for`/`validate` 호출처 0건, `grep` 확인). `interrupt_form`/
+    `interrupt_semantic`/`*_status` 4개 새 필드도 아직 그 표에 등록돼 있지 않다 — 나중에
+    wiring 할 때 이 이름들과 `InterruptAxisStatus` 어휘를 반영해야 한다. 이 사실을
+    completion 보고에 명시해 A 에게 확인받는다.
+    """
 
     interrupt_index: int
     selector: str
     candidate_sources: list[str]
     viewport_overlap_css_px2: float
     viewport_coverage: float
-    classification_status: str
-    final_label: str
+    interrupt_form: str
+    interrupt_form_status: str
+    interrupt_semantic: str
+    interrupt_semantic_status: str
     blocks_primary_action: int
     primary_action_occlusion: float | None
     dismiss_control_exists: int
@@ -255,53 +277,133 @@ def _overlap(a: dict[str, float] | None, b: dict[str, float] | None) -> float:
     return round(w * h, 2)
 
 
-def classify_interrupt(candidate: dict[str, Any]) -> tuple[ClassificationStatus, InterruptLabel]:
+#: `D-R0-58-2` provenance — 이 분류기의 버전. completion 보고와 mart manifest 가 인용한다.
+#: `v1` = 단일축(구조 우선, `cf8dbd70` — semantic 라벨이 BANNER 등에 붕괴하는 결함 있음).
+#: `v2` = 이 버전, form/semantic 독립 2축(`C-FINDING-214214`/`D-R0-58` 시정).
+CLASSIFY_INTERRUPT_VERSION = "interrupt-classifier-v2-form-semantic-split"
+
+
+class InterruptAxisStatus(StrEnum):
+    """`D-R0-58-1` 확정 어휘. `form`/`semantic` 각 축의 판정 상태 — 기존
+    `vocabulary.ClassificationStatus`(KWCAG adjudication 등 다른 맥락에서 이미 쓰이는
+    5종)를 재사용하지 않는다(A 지시). **이 enum 은 `vocabulary.py` 에 없다** —
+    `vocabulary.py` 는 읽기 전용이라 W4 가 그 파일에 새 enum 을 등록할 수 없다. 승격이
+    필요하면 A 에게 확인받는다(completion 보고에 명시).
+    """
+
+    RESOLVED = "RESOLVED"
+    UNRESOLVED = "UNRESOLVED"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
+
+
+#: 기존 `ClassificationStatus` → `InterruptAxisStatus` 대응(내부 판정 로직 재사용,
+#: 결과만 새 어휘로 옮긴다). `VLM_REVIEWED` 는 이 lane 에서 나오지 않지만(VLM 미구현)
+#: 표에는 넣어 둔다 — 나중에 VLM 을 붙일 때 결과가 `RESOLVED` 로 매핑되게.
+_AXIS_STATUS_MAP: dict[ClassificationStatus, InterruptAxisStatus] = {
+    ClassificationStatus.NOT_CLASSIFIED: InterruptAxisStatus.NOT_APPLICABLE,
+    ClassificationStatus.DETERMINISTIC: InterruptAxisStatus.RESOLVED,
+    ClassificationStatus.SEMANTIC_MODEL: InterruptAxisStatus.RESOLVED,
+    ClassificationStatus.VLM_REVIEWED: InterruptAxisStatus.RESOLVED,
+    ClassificationStatus.AMBIGUOUS: InterruptAxisStatus.UNRESOLVED,
+}
+
+
+@dataclass(frozen=True)
+class InterruptClassification:
+    """`C-FINDING-214214`/`D-R0-58-1` 확정 필드명 — `interrupt_form`(형태)과
+    `interrupt_semantic`(의도)은 **직교하는 축**이다("A"의 표현: 배타적 범주가 아니다).
+
+    ```
+    interrupt_form       이 오버레이가 어떤 형태인가      BLOCKING_MODAL / PROMOTION_MODAL / BANNER / …
+                          판정 근거 = geometry / DOM 구조
+    interrupt_semantic   이 오버레이가 무엇을 하려는가    LOGIN_PROMPT / COOKIE_CONSENT / CHAT_WIDGET / …
+                          판정 근거 = 텍스트 / 사전 / 모델
+    ```
+
+    "로그인 유도 sticky bar"는 `interrupt_form = BANNER` **이면서** `interrupt_semantic =
+    LOGIN_PROMPT` 다 — 한 필드에 밀어 넣으면 반드시 하나가 죽는다(이전 구현의 결함,
+    `cf8dbd70`). 두 축은 **서로 독립적으로** 계산되고, 한쪽이 `RESOLVED` 됐다고 다른
+    쪽을 생략하거나 비우지 않는다 — 각각 독립적으로 `UNRESOLVED`/`NOT_APPLICABLE` 이
+    될 수 있다.
+    """
+
+    interrupt_form: InterruptLabel
+    interrupt_form_status: InterruptAxisStatus
+    interrupt_semantic: InterruptLabel
+    interrupt_semantic_status: InterruptAxisStatus
+
+
+def classify_interrupt(candidate: dict[str, Any]) -> InterruptClassification:
     """`02 §5` 4차 의미분류 — `D-R0-25` 순서 `deterministic rule → text/NLP → VLM → abstain`.
 
-    이 lane 은 앞의 두 단계까지만 구현한다 (`W4` 범위). **VLM 은 붙이지 않는다** — 구조
-    신호로도 텍스트 어휘로도 확정하지 못하면 `AMBIGUOUS` + `UNKNOWN` 으로 abstain 한다
-    (`A2` 규칙 I-1). 억지로 라벨을 고르지 않는다.
+    `A`의 명시: 이 순서는 **확실성의 우선순위**이지 "하나가 다른 하나를 덮는다"는
+    뜻이 아니었다(`D-R0-25` 는 semantic → geometry 역방향만 막았지 geometry → semantic
+    방향을 막지 않았다 — 이전 구현은 그 열린 방향을 실수로 닫았다, `C-FINDING-214214`).
+    `interrupt_form`(구조 신호: `candidate_sources` 의 dialog/aria-modal/sticky/fixed)과
+    `interrupt_semantic`(텍스트 사전 `_LABEL_RULES`)은 **각자 독립적으로** 판정한다.
+    VLM 단계는 이 lane 에 없다(`W4` 범위) — 확정 못 하면 그 축만 `UNRESOLVED` 로
+    abstain 한다(`A2` 규칙 I-1). 억지로 라벨을 고르지 않는다.
 
-    | tier | 근거 | `classification_status` |
-    |---|---|---|
-    | 1 deterministic rule | `candidate_sources`(dialog/aria-modal/sticky/fixed) — 텍스트 불필요 | `DETERMINISTIC` |
-    | 2 text/NLP | `_LABEL_RULES` 어휘 사전 매칭 (`accessible_text`/`aria_label`) | `SEMANTIC_MODEL` |
-    | 3 VLM | 미구현 | — |
-    | 4 abstain | 위 어느 것도 확정하지 못함 | `AMBIGUOUS` / `UNKNOWN` |
+    | 축 | tier | 근거 | `*_status` |
+    |---|---|---|---|
+    | form | 1 deterministic rule | `candidate_sources` — 텍스트 불필요 | `RESOLVED` |
+    | form | abstain | 구조 신호 없음 | `UNRESOLVED` |
+    | semantic | 2 text/NLP | `_LABEL_RULES` 어휘 사전 매칭 | `RESOLVED` |
+    | semantic | abstain | 어휘 매칭 없음 | `UNRESOLVED` |
+    | 둘 다 | `viewport_overlap_css_px2 <= 0` | 애초에 판정 대상이 아님 | `NOT_APPLICABLE` |
 
-    구조 신호가 텍스트보다 **먼저** 온다 — `D-R0-22`가 다른 cascade(KWCAG evaluator)에
-    쓰는 것과 같은 일반 우선순위(`browser-native/AX → deterministic geometry/CSS →
-    semantic text/embedding`)를 여기서도 그대로 따른다.
+    **`PROMOTION_MODAL` 은 두 축 모두에서 나올 수 있는 유일한 값이다** — form 축에서는
+    "dialog 형태인데 전체 커버리지는 아님"(구조적 shape 추정), semantic 축에서는
+    "이벤트/할인/쿠폰 텍스트 매칭"(의도)이라는 **서로 다른 근거**로 같은 이름을 쓴다.
+    이것은 vocabulary 가 10종으로 닫혀 있고 form 전용 "작은 모달" 값이 따로 없어서
+    생기는 애매함이다 — **W4 가 임의로 정리하지 않고 그대로 남긴다.** A 가 별도 form
+    전용 값을 원하면 새 vocabulary 결정이 필요하다(`00 §8`, completion 보고에 명시).
 
     **불변조건 (`W4` 테스트로 증명)**: 이 함수는 `candidate` 의 이미 계산된 raw 필드
     (좌표·면적·overlap·coverage)를 읽기만 하고 절대 새로 만들거나 바꾸지 않는다 —
-    돌려주는 것은 `(status, label)` 두 값뿐이다. 호출부(`_build_interrupts`)의 geometry
-    계산(`_overlap`, `blocks_primary_action` 등)은 이 함수의 반환값과 무관하게 별도로
-    이뤄진다.
+    돌려주는 것은 `InterruptClassification` 하나뿐이다. 호출부(`_build_interrupts`)의
+    geometry 계산(`_overlap`, `blocks_primary_action` 등)은 이 함수의 반환값과 무관하게
+    별도로 이뤄진다. `CLASSIFY_INTERRUPT_VERSION` 이 이 버전을 식별한다.
     """
     if candidate.get("viewport_overlap_css_px2", 0) <= 0:
-        return ClassificationStatus.NOT_CLASSIFIED, InterruptLabel.UNKNOWN
+        na = InterruptAxisStatus.NOT_APPLICABLE
+        return InterruptClassification(InterruptLabel.UNKNOWN, na, InterruptLabel.UNKNOWN, na)
 
-    # ── tier 1 · deterministic rule — 구조 신호만, 텍스트 불필요 ────────────
+    # ── form 축 — 구조 신호만, 텍스트를 절대 참조하지 않는다 ────────────────
     sources = set(candidate.get("candidate_sources") or ())
     modal_like = {"dialog_element", "role_dialog", "aria_modal"} & sources
     if modal_like and candidate.get("viewport_coverage", 0) >= 0.5:
-        return ClassificationStatus.DETERMINISTIC, InterruptLabel.BLOCKING_MODAL
-    if modal_like:
-        return ClassificationStatus.DETERMINISTIC, InterruptLabel.PROMOTION_MODAL
-    if "position_sticky" in sources or "position_fixed" in sources:
-        return ClassificationStatus.DETERMINISTIC, InterruptLabel.BANNER
+        form_raw_status, form_label = (
+            ClassificationStatus.DETERMINISTIC,
+            InterruptLabel.BLOCKING_MODAL,
+        )
+    elif modal_like:
+        form_raw_status, form_label = (
+            ClassificationStatus.DETERMINISTIC,
+            InterruptLabel.PROMOTION_MODAL,
+        )
+    elif "position_sticky" in sources or "position_fixed" in sources:
+        form_raw_status, form_label = ClassificationStatus.DETERMINISTIC, InterruptLabel.BANNER
+    else:
+        form_raw_status, form_label = ClassificationStatus.AMBIGUOUS, InterruptLabel.UNKNOWN
 
-    # ── tier 2 · text/NLP — 구조로 확정 못했을 때만 어휘 사전으로 판단 ──────
+    # ── semantic 축 — 텍스트 사전만, 구조 신호를 절대 참조하지 않는다.
+    # form 이 확정됐다는 이유로 이 블록을 건너뛰지 않는다(C-FINDING-214214 핵심 시정). ──
     text = " ".join(
         str(x) for x in (candidate.get("accessible_text"), candidate.get("aria_label")) if x
     ).lower()
+    semantic_raw_status, semantic_label = ClassificationStatus.AMBIGUOUS, InterruptLabel.UNKNOWN
     for label, needles in _LABEL_RULES:
         if any(n.lower() in text for n in needles):
-            return ClassificationStatus.SEMANTIC_MODEL, label
+            semantic_raw_status, semantic_label = ClassificationStatus.SEMANTIC_MODEL, label
+            break
 
-    # ── tier 3 (VLM) 은 이 lane 에 없음 → tier 4 abstain ────────────────────
-    return ClassificationStatus.AMBIGUOUS, InterruptLabel.UNKNOWN
+    return InterruptClassification(
+        interrupt_form=form_label,
+        interrupt_form_status=_AXIS_STATUS_MAP[form_raw_status],
+        interrupt_semantic=semantic_label,
+        interrupt_semantic_status=_AXIS_STATUS_MAP[semantic_raw_status],
+    )
 
 
 class Min4ProbeContractError(ValueError):
@@ -645,7 +747,7 @@ class L0Collector:
         for idx, cand in enumerate(raw.get("modal_overlay_candidates", [])):
             if not cand.get("visible"):
                 continue
-            status, label = classify_interrupt(cand)
+            classification = classify_interrupt(cand)
             overlap = _overlap(cand.get("box"), primary_box)
             occlusion = (
                 round(overlap / selected.area_css_px2, 4)
@@ -681,8 +783,10 @@ class L0Collector:
                     candidate_sources=list(cand.get("candidate_sources") or []),
                     viewport_overlap_css_px2=float(cand.get("viewport_overlap_css_px2") or 0.0),
                     viewport_coverage=float(cand.get("viewport_coverage") or 0.0),
-                    classification_status=status.value,
-                    final_label=label.value,
+                    interrupt_form=classification.interrupt_form.value,
+                    interrupt_form_status=classification.interrupt_form_status.value,
+                    interrupt_semantic=classification.interrupt_semantic.value,
+                    interrupt_semantic_status=classification.interrupt_semantic_status.value,
                     blocks_primary_action=blocking,
                     primary_action_occlusion=occlusion,
                     dismiss_control_exists=exists,

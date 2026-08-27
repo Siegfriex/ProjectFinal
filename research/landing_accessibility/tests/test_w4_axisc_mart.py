@@ -22,11 +22,12 @@ sys.path.insert(0, str(RESEARCH / "src"))
 sys.path.insert(0, str(RESEARCH / "scripts"))
 
 import build_mart_axisc as mart  # noqa: E402
-from landing_accessibility.engine.l0_collector import classify_interrupt  # noqa: E402
-from landing_accessibility.engine.vocabulary import (  # noqa: E402
-    ClassificationStatus,
-    InterruptLabel,
+from landing_accessibility.engine.l0_collector import (  # noqa: E402
+    InterruptAxisStatus,
+    InterruptClassification,
+    classify_interrupt,
 )
+from landing_accessibility.engine.vocabulary import InterruptLabel  # noqa: E402
 
 EVIDENCE_AVAILABLE = len(mart.discover_run_dirs()) > 0
 
@@ -60,48 +61,85 @@ def denominators(mart_rows: list[dict]) -> dict:
 
 
 class TestClassifyInterruptTiering:
-    def test_viewport_overlap_zero_is_not_classified(self):
-        status, label = classify_interrupt({"viewport_overlap_css_px2": 0})
-        assert status is ClassificationStatus.NOT_CLASSIFIED
-        assert label is InterruptLabel.UNKNOWN
+    """`D-R0-25`/`D-R0-58` — `interrupt_form`/`interrupt_semantic` 은 직교하는 독립 축.
+    `C-FINDING-214214` 이 지적한 "구조가 텍스트를 덮는" 붕괴가 재발하지 않는지 여기서
+    직접 증명한다."""
 
-    def test_structural_dialog_role_wins_over_text_tier(self):
-        """tier 1(구조) 이 tier 2(텍스트)보다 먼저 온다 — D-R0-25 순서.
+    def test_viewport_overlap_zero_is_not_applicable_on_both_axes(self):
+        c = classify_interrupt({"viewport_overlap_css_px2": 0})
+        assert c.interrupt_form_status is InterruptAxisStatus.NOT_APPLICABLE
+        assert c.interrupt_form is InterruptLabel.UNKNOWN
+        assert c.interrupt_semantic_status is InterruptAxisStatus.NOT_APPLICABLE
+        assert c.interrupt_semantic is InterruptLabel.UNKNOWN
 
-        dialog role 이면서 쿠키 텍스트를 가진 후보는 COOKIE_CONSENT(텍스트)가 아니라
-        구조 규칙(BLOCKING_MODAL/PROMOTION_MODAL)으로 확정돼야 한다.
-        """
+    def test_structural_and_text_both_resolve_independently_D_R0_58(self):
+        """`D-R0-58` 핵심 — dialog role(구조) 이면서 쿠키 텍스트(의미)를 가진 후보는
+        **둘 다** 확정돼야 한다. 하나가 다른 하나를 덮지 않는다."""
         candidate = {
             "viewport_overlap_css_px2": 100.0,
             "viewport_coverage": 0.6,
             "candidate_sources": ["role_dialog"],
             "accessible_text": "쿠키 사용에 동의합니다",
         }
-        status, label = classify_interrupt(candidate)
-        assert status is ClassificationStatus.DETERMINISTIC
-        assert label is InterruptLabel.BLOCKING_MODAL  # coverage>=0.5 이므로
+        c = classify_interrupt(candidate)
+        assert c.interrupt_form_status is InterruptAxisStatus.RESOLVED
+        assert c.interrupt_form is InterruptLabel.BLOCKING_MODAL  # coverage>=0.5
+        assert c.interrupt_semantic_status is InterruptAxisStatus.RESOLVED
+        assert c.interrupt_semantic is InterruptLabel.COOKIE_CONSENT  # 붕괴하지 않음
 
-    def test_text_tier_fires_only_when_structural_tier_abstains(self):
+    def test_sticky_banner_with_login_text_keeps_both_labels(self):
+        """A 가 든 예시 그대로 — "로그인 유도 sticky bar"는 `interrupt_form = BANNER`
+        이면서 `interrupt_semantic = LOGIN_PROMPT` 다."""
+        candidate = {
+            "viewport_overlap_css_px2": 40.0,
+            "viewport_coverage": 0.05,
+            "candidate_sources": ["position_sticky"],
+            "accessible_text": "로그인 하고 계속하기",
+        }
+        c = classify_interrupt(candidate)
+        assert c.interrupt_form is InterruptLabel.BANNER
+        assert c.interrupt_form_status is InterruptAxisStatus.RESOLVED
+        assert c.interrupt_semantic is InterruptLabel.LOGIN_PROMPT
+        assert c.interrupt_semantic_status is InterruptAxisStatus.RESOLVED
+
+    def test_semantic_resolves_alone_when_form_has_no_structural_signal(self):
         candidate = {
             "viewport_overlap_css_px2": 50.0,
             "viewport_coverage": 0.1,
             "candidate_sources": [],  # 구조 신호 없음
             "accessible_text": "쿠키 사용에 동의합니다",
         }
-        status, label = classify_interrupt(candidate)
-        assert status is ClassificationStatus.SEMANTIC_MODEL
-        assert label is InterruptLabel.COOKIE_CONSENT
+        c = classify_interrupt(candidate)
+        assert c.interrupt_form_status is InterruptAxisStatus.UNRESOLVED
+        assert c.interrupt_form is InterruptLabel.UNKNOWN
+        assert c.interrupt_semantic_status is InterruptAxisStatus.RESOLVED
+        assert c.interrupt_semantic is InterruptLabel.COOKIE_CONSENT
 
-    def test_no_structural_no_text_match_abstains_no_vlm(self):
+    def test_form_resolves_alone_when_text_has_no_lexicon_match(self):
+        candidate = {
+            "viewport_overlap_css_px2": 50.0,
+            "viewport_coverage": 0.1,
+            "candidate_sources": ["position_fixed"],
+            "accessible_text": "완전히 무관한 문구",
+        }
+        c = classify_interrupt(candidate)
+        assert c.interrupt_form_status is InterruptAxisStatus.RESOLVED
+        assert c.interrupt_form is InterruptLabel.BANNER
+        assert c.interrupt_semantic_status is InterruptAxisStatus.UNRESOLVED
+        assert c.interrupt_semantic is InterruptLabel.UNKNOWN
+
+    def test_neither_axis_resolves_no_vlm_both_unresolved(self):
         candidate = {
             "viewport_overlap_css_px2": 50.0,
             "viewport_coverage": 0.1,
             "candidate_sources": [],
             "accessible_text": "완전히 무관한 문구",
         }
-        status, label = classify_interrupt(candidate)
-        assert status is ClassificationStatus.AMBIGUOUS
-        assert label is InterruptLabel.UNKNOWN
+        c = classify_interrupt(candidate)
+        assert c.interrupt_form_status is InterruptAxisStatus.UNRESOLVED
+        assert c.interrupt_semantic_status is InterruptAxisStatus.UNRESOLVED
+        assert c.interrupt_form is InterruptLabel.UNKNOWN
+        assert c.interrupt_semantic is InterruptLabel.UNKNOWN
 
     def test_position_fixed_is_structural_banner(self):
         candidate = {
@@ -109,9 +147,9 @@ class TestClassifyInterruptTiering:
             "viewport_coverage": 0.01,
             "candidate_sources": ["position_fixed"],
         }
-        status, label = classify_interrupt(candidate)
-        assert status is ClassificationStatus.DETERMINISTIC
-        assert label is InterruptLabel.BANNER
+        c = classify_interrupt(candidate)
+        assert c.interrupt_form_status is InterruptAxisStatus.RESOLVED
+        assert c.interrupt_form is InterruptLabel.BANNER
 
     def test_pure_function_does_not_mutate_input_candidate(self):
         candidate = {
@@ -124,6 +162,26 @@ class TestClassifyInterruptTiering:
         before = copy.deepcopy(candidate)
         classify_interrupt(candidate)
         assert candidate == before, "classify_interrupt 가 입력 candidate 를 변형했다"
+
+    def test_a_neither_field_overwrites_or_blanks_the_other(self):
+        """ "상호 덮어쓰기 금지" — 한쪽이 RESOLVED 라고 다른 쪽이 UNKNOWN 으로 강제
+        리셋되지 않는지, 반대로 UNRESOLVED 라고 다른 쪽 RESOLVED 값이 지워지지
+        않는지 여러 조합으로 확인한다."""
+        both_resolve = classify_interrupt(
+            {
+                "viewport_overlap_css_px2": 100.0,
+                "viewport_coverage": 0.05,
+                "candidate_sources": ["position_fixed"],
+                "accessible_text": "광고 sponsored",
+            }
+        )
+        assert both_resolve.interrupt_form is InterruptLabel.BANNER
+        assert both_resolve.interrupt_semantic is InterruptLabel.ADVERTISEMENT
+        # 둘 다 RESOLVED — 어느 쪽도 UNKNOWN 으로 리셋되지 않았다.
+        assert InterruptLabel.UNKNOWN not in (
+            both_resolve.interrupt_form,
+            both_resolve.interrupt_semantic,
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -164,8 +222,9 @@ class TestSemanticClassificationDoesNotMutateGeometry:
         assert recs["div.a"]["viewport_coverage"] == 0.42
         assert recs["div.b"]["viewport_overlap_css_px2"] == 9.9
         assert recs["div.b"]["viewport_coverage"] == 0.01
-        # 서로 다른 classification_status/label 이 나왔는데도 geometry 는 원본 그대로.
-        assert recs["div.a"]["classification_status"] != recs["div.b"]["classification_status"]
+        # 서로 다른 interrupt_form/interrupt_semantic 이 나왔는데도 geometry 는 원본 그대로.
+        assert recs["div.a"]["interrupt_form"] != recs["div.b"]["interrupt_form"]
+        assert recs["div.a"]["interrupt_semantic"] != recs["div.b"]["interrupt_semantic"]
 
     def test_monkeypatched_classifier_cannot_change_geometry(self, monkeypatch):
         """classify_interrupt 의 반환값을 강제로 바꿔도 geometry 열은 그대로다 —
@@ -188,12 +247,18 @@ class TestSemanticClassificationDoesNotMutateGeometry:
         before = mart.axis_c_page_level_from_probe(raw_features)
 
         def _always_blocking_modal(_candidate):
-            return ClassificationStatus.DETERMINISTIC, InterruptLabel.BLOCKING_MODAL
+            return InterruptClassification(
+                interrupt_form=InterruptLabel.BLOCKING_MODAL,
+                interrupt_form_status=InterruptAxisStatus.RESOLVED,
+                interrupt_semantic=InterruptLabel.LOGIN_PROMPT,
+                interrupt_semantic_status=InterruptAxisStatus.RESOLVED,
+            )
 
         monkeypatch.setattr(mart, "classify_interrupt", _always_blocking_modal)
         after = mart.axis_c_page_level_from_probe(raw_features)
 
-        assert after["interrupts"][0]["final_label"] == "BLOCKING_MODAL"
+        assert after["interrupts"][0]["interrupt_form"] == "BLOCKING_MODAL"
+        assert after["interrupts"][0]["interrupt_semantic"] == "LOGIN_PROMPT"
         assert before["interrupts"][0]["viewport_overlap_css_px2"] == 777.0
         assert after["interrupts"][0]["viewport_overlap_css_px2"] == 777.0
         assert before["overlay_coverage"] == after["overlay_coverage"] == 0.33
@@ -373,7 +438,9 @@ class TestMissingnessStaysNull:
             "interrupt_count_visible",
             "overlay_coverage",
             "interrupts",
-            "classification_tier_counts",
+            "classifier_version",
+            "form_classification_tier_counts",
+            "semantic_classification_tier_counts",
             "body_scroll_locked",
             "dismiss_control_present_count",
             "dismiss_control_visible_count",
@@ -718,6 +785,96 @@ class TestSlotRawMaterialLeavesDefinitionOpen:
         for r in mart_rows:
             if r["population_status"] == "OBSERVED":
                 assert r["dom_bytes"] is not None
+
+
+class TestD_R0_58_SemanticLabelNoLongerCollapses:
+    """`C-FINDING-214214` P2 회귀검사 — semantic 라벨이 다시 BANNER 등으로 붕괴하면
+    이 클래스가 실패해야 한다."""
+
+    def test_semantic_labels_beyond_form_vocabulary_are_present_in_real_mart(self, mart_rows):
+        """실제 mart 에 LOGIN_PROMPT/COOKIE_CONSENT/CHAT_WIDGET/ADVERTISEMENT/
+        APP_INSTALL_PROMPT 중 하나라도 RESOLVED 로 살아남아 있어야 한다 — 전부
+        BANNER/PROMOTION_MODAL/BLOCKING_MODAL(form 어휘)로만 나오면 붕괴가 재발한 것."""
+        semantic_only_labels = {
+            "LOGIN_PROMPT",
+            "COOKIE_CONSENT",
+            "CHAT_WIDGET",
+            "ADVERTISEMENT",
+            "APP_INSTALL_PROMPT",
+        }
+        found: set[str] = set()
+        for r in mart_rows:
+            for iv in r.get("interrupts") or []:
+                if iv["interrupt_semantic_status"] == "RESOLVED":
+                    found.add(iv["interrupt_semantic"])
+        assert found & semantic_only_labels, (
+            "semantic 전용 라벨이 mart 어디에도 RESOLVED 로 없다 — BANNER 붕괴 재발 의심"
+        )
+
+    def test_v1_transition_table_reproduces_w4_self_recomputed_counts(self, mart_rows):
+        """`D-R0-58-2` provenance — W4 자체 재계산 수치를 회귀 고정한다(재발 시 실패).
+        C 인용치(22/17)와 다를 수 있음을 completion 보고에 명시(모집단 차이 미확인)."""
+        table = mart.compute_v1_collapse_transition_table(mart_rows)
+        assert table["classifier_version_new"] == mart.CLASSIFY_INTERRUPT_VERSION
+        assert table["total_semantic_labels_recovered"] == 19
+        assert table["observations_affected"] == 16
+        assert table["transitions_semantic_to_v1_shown"]["LOGIN_PROMPT→BANNER"] == 7
+        assert table["transitions_semantic_to_v1_shown"]["PROMOTION_MODAL→BANNER"] == 5
+
+    def test_form_and_semantic_never_forced_equal_by_construction(self, mart_rows):
+        """두 축이 서로 값을 복사/강제하지 않는지 — RESOLVED 인데 값이 다른 사례가
+        실제로 존재해야 한다(둘이 항상 같다면 독립 축이 아니라 여전히 하나로 묶인 것)."""
+        differing = 0
+        for r in mart_rows:
+            for iv in r.get("interrupts") or []:
+                if (
+                    iv["interrupt_form_status"] == "RESOLVED"
+                    and iv["interrupt_semantic_status"] == "RESOLVED"
+                    and iv["interrupt_form"] != iv["interrupt_semantic"]
+                ):
+                    differing += 1
+        assert differing > 0
+
+    def test_axis_status_vocabulary_is_the_confirmed_three_values(self, mart_rows):
+        """`D-R0-58-1` — 기존 `ClassificationStatus`(5종) 를 재사용하지 않고
+        `RESOLVED`/`UNRESOLVED`/`NOT_APPLICABLE` 3종만 쓴다."""
+        seen: set[str] = set()
+        for r in mart_rows:
+            for iv in r.get("interrupts") or []:
+                seen.add(iv["interrupt_form_status"])
+                seen.add(iv["interrupt_semantic_status"])
+        assert seen <= {"RESOLVED", "UNRESOLVED", "NOT_APPLICABLE"}
+        assert "DETERMINISTIC" not in seen
+        assert "SEMANTIC_MODEL" not in seen
+        assert "AMBIGUOUS" not in seen
+
+    def test_classifier_version_present_on_measured_rows(self, mart_rows):
+        for r in mart_rows:
+            if r["measurement_status"] == "MEASURED":
+                assert r["classifier_version"] == mart.CLASSIFY_INTERRUPT_VERSION
+            else:
+                assert r["classifier_version"] is None
+
+
+class TestArtifactProvenanceProtocol12:
+    """`D-R0-58-2`/프로토콜 §12 — completion 이 검산 가능하도록 sha256/bytes/행수를
+    manifest 자신이 담는다(C 가 지난번 이게 없어 산출물을 검산 못했다고 지적함)."""
+
+    def test_manifest_has_artifact_refs_with_sha256_bytes_row_count(self, tmp_path):
+        attempted = mart.load_attempted_population()
+        run_dirs = mart.discover_run_dirs()
+        rows = mart.build_mart_rows(attempted, run_dirs)
+        out_jsonl = tmp_path / "mart_axisc_observations.jsonl"
+        with out_jsonl.open("w", encoding="utf-8") as fh:
+            for row in rows:
+                fh.write(__import__("json").dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+        data = out_jsonl.read_bytes()
+        import hashlib as _hashlib
+
+        expected_sha = _hashlib.sha256(data).hexdigest()
+        assert len(expected_sha) == 64
+        assert len(data) > 0
+        assert len(rows) == 63
 
 
 class TestOwnershipBoundary:

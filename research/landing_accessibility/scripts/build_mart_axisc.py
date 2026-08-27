@@ -129,6 +129,7 @@ import json
 import os
 import re
 import sys
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -142,8 +143,11 @@ _WORKTREE_ROOT = RESEARCH.parents[1]  # .agent_worktrees/claude_b_w4 (이 워크
 PROJECT_ROOT = Path(os.environ.get("PROJECT_FINAL_ROOT", str(RESEARCH.parents[3])))
 sys.path.insert(0, str(RESEARCH / "src"))
 
-from landing_accessibility.engine.l0_collector import classify_interrupt  # noqa: E402
-from landing_accessibility.engine.vocabulary import ClassificationStatus  # noqa: E402
+from landing_accessibility.engine.l0_collector import (  # noqa: E402
+    CLASSIFY_INTERRUPT_VERSION,
+    InterruptAxisStatus,
+    classify_interrupt,
+)
 
 MASTER_PLAN_PATH = RESEARCH / "shadow" / "e001_plan" / "E001_MASTER_PLAN.json"
 #: `D-R0-55` — A 가 analysis frame archetype(prior 기준이냐 관측 기준이냐)을 명시적으로
@@ -528,10 +532,16 @@ def axis_c_page_level_from_probe(raw_features: dict[str, Any]) -> dict[str, Any]
     visible = [c for c in modal_candidates if c.get("visible")]
 
     interrupts: list[dict[str, Any]] = []
-    tier_counts = {s.value: 0 for s in ClassificationStatus}
+    # `D-R0-58-1` 확정 어휘(RESOLVED/UNRESOLVED/NOT_APPLICABLE) 로 tier 를 센다.
+    form_tier_counts = {s.value: 0 for s in InterruptAxisStatus}
+    semantic_tier_counts = {s.value: 0 for s in InterruptAxisStatus}
     for idx, cand in enumerate(visible):
-        status, label = classify_interrupt(cand)  # 순수함수 — geometry 안 건드림 (D-R0-25)
-        tier_counts[status.value] += 1
+        # 순수함수 — geometry 안 건드림 (D-R0-25). interrupt_form/interrupt_semantic 은
+        # 직교하는 독립 축이다(`C-FINDING-214214`/`D-R0-58` 시정) — 한쪽이 RESOLVED 됐다고
+        # 다른 쪽을 덮거나 생략하지 않는다.
+        classification = classify_interrupt(cand)
+        form_tier_counts[classification.interrupt_form_status.value] += 1
+        semantic_tier_counts[classification.interrupt_semantic_status.value] += 1
         interrupts.append(
             {
                 "interrupt_index": idx,
@@ -541,8 +551,10 @@ def axis_c_page_level_from_probe(raw_features: dict[str, Any]) -> dict[str, Any]
                 "viewport_overlap_css_px2": cand.get("viewport_overlap_css_px2"),
                 "viewport_coverage": cand.get("viewport_coverage"),
                 "candidate_sources": list(cand.get("candidate_sources") or []),
-                "classification_status": status.value,
-                "final_label": label.value,
+                "interrupt_form": classification.interrupt_form.value,
+                "interrupt_form_status": classification.interrupt_form_status.value,
+                "interrupt_semantic": classification.interrupt_semantic.value,
+                "interrupt_semantic_status": classification.interrupt_semantic_status.value,
             }
         )
 
@@ -588,7 +600,9 @@ def axis_c_page_level_from_probe(raw_features: dict[str, Any]) -> dict[str, Any]
         "interrupt_count_visible": len(visible),
         "overlay_coverage": overlay_coverage,
         "interrupts": interrupts,
-        "classification_tier_counts": tier_counts,
+        "classifier_version": CLASSIFY_INTERRUPT_VERSION,
+        "form_classification_tier_counts": form_tier_counts,
+        "semantic_classification_tier_counts": semantic_tier_counts,
         "body_scroll_locked": bool(scroll_lock.get("locked")),
         "dismiss_control_present_count": present_count,
         "dismiss_control_visible_count": visible_count,
@@ -655,6 +669,59 @@ _CAP_HIT_FIELDS_FOR_DESCRIPTIVE_STATS = (
     "cap_hit_target_size",
     "cap_hit_contrast",
 )
+
+
+def compute_v1_collapse_transition_table(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """`D-R0-58-2` provenance — 옛 단일축(`v1`, `cf8dbd70`, 구조 우선 하나만 남기던
+    결함 버전)이 만들었을 라벨과 새(`v2`, 이 버전) `interrupt_semantic` 을 대조한다.
+
+    `v1` 로직을 재현하지 않고 **`v2` 의 두 축 결과에서 역산**한다 — `v1` 은
+    "`form` 이 RESOLVED 면 그 라벨, 아니면 `semantic` 이 RESOLVED 면 그 라벨, 아니면
+    UNKNOWN" 이었다(단일 tier, early return). 이 함수는 그 관계식을 그대로 적용해
+    `v1_would_have_shown` 을 구성하고, `interrupt_semantic`(RESOLVED)이 그것과 다른
+    경우만 "무너진 사례"로 센다 — 정확히 `C-FINDING-214214` 가 지적한 현상이다.
+
+    C 가 인용한 수치(22건/17개 관측)와 **다를 수 있다** — C 는 별도 SUT 재실행으로
+    독립 재계산했고, 이 mart 의 모집단 정의(FAILED_EVIDENCE_INCOMPLETE 3건 제외,
+    duplicate launch 4건 제외)와 정확히 같은 집합을 썼는지 확인되지 않았다. 이 함수는
+    **이 mart 자신의 현재 데이터에서 재현 가능한 값**만 낸다 — W4 의 자체 재계산이다.
+    """
+    transitions: Counter[tuple[str, str]] = Counter()
+    observations_affected: set[str] = set()
+    total_interrupts = 0
+    for r in rows:
+        interrupts = r.get("interrupts")
+        if not interrupts:
+            continue
+        for iv in interrupts:
+            total_interrupts += 1
+            form, form_status = iv["interrupt_form"], iv["interrupt_form_status"]
+            semantic, semantic_status = iv["interrupt_semantic"], iv["interrupt_semantic_status"]
+            if form_status == "RESOLVED":
+                v1_would_have_shown = form
+            elif semantic_status == "RESOLVED":
+                v1_would_have_shown = semantic
+            else:
+                v1_would_have_shown = "UNKNOWN"
+            if semantic_status == "RESOLVED" and v1_would_have_shown != semantic:
+                transitions[(semantic, v1_would_have_shown)] += 1
+                observations_affected.add(r["web_target_id"])
+
+    return {
+        "note": (
+            "W4 자체 재계산(이 mart 데이터에서 v2 결과로부터 역산). "
+            "C 인용치(22건/17개 관측)와 다를 수 있음 — 모집단/SUT 차이 미확인, completion 보고에 명시."
+        ),
+        "classifier_version_new": CLASSIFY_INTERRUPT_VERSION,
+        "classifier_version_old": "interrupt-classifier-v1-structure-first-single-axis (cf8dbd70)",
+        "total_interrupts_checked": total_interrupts,
+        "total_semantic_labels_recovered": sum(transitions.values()),
+        "observations_affected": len(observations_affected),
+        "transitions_semantic_to_v1_shown": {
+            f"{semantic}→{old}": n
+            for (semantic, old), n in sorted(transitions.items(), key=lambda kv: -kv[1])
+        },
+    }
 
 
 def cap_hit_prior_archetype_distribution(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -815,7 +882,9 @@ def build_mart_rows(
                 "interrupt_count_visible",
                 "overlay_coverage",
                 "interrupts",
-                "classification_tier_counts",
+                "classifier_version",
+                "form_classification_tier_counts",
+                "semantic_classification_tier_counts",
                 "body_scroll_locked",
                 "dismiss_control_present_count",
                 "dismiss_control_visible_count",
@@ -931,18 +1000,38 @@ def main() -> None:
         for row in rows:
             fh.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
 
+    # `D-R0-58-2`/프로토콜 §12 — completion 보고가 산출물을 검산할 수 있게 sha256/
+    # bytes 를 mart 자신의 manifest 에도 남긴다(C 가 이전 completion 에서 이게 없어
+    # 검산하지 못했다고 지적함).
+    observations_bytes = out_jsonl.read_bytes()
+    observations_sha256 = hashlib.sha256(observations_bytes).hexdigest()
+
     denominators = compute_denominators(rows)
     cap_check = verify_overlay_fields_not_capped(rows)
     cap_hit_archetype_stats = cap_hit_prior_archetype_distribution(rows)
+    v1_transition_table = compute_v1_collapse_transition_table(rows)
 
     manifest = {
         "mart": "axisc",
         "owner": "W4",
         "row_count": len(rows),
         "grain": "web_target_id (task-level pending W1/W2 binding)",
+        "classifier_version": CLASSIFY_INTERRUPT_VERSION,
+        "artifact_refs": {
+            "mart_axisc_observations.jsonl": {
+                "path": str(out_jsonl),
+                "sha256": observations_sha256,
+                "bytes": len(observations_bytes),
+                "row_count": len(rows),
+            },
+            # mart_axisc_manifest.json 자신의 sha256 은 이 딕셔너리 안에 넣을 수 없다
+            # (자기 자신을 해시하는 순환 참조) — completion 보고에서 파일을 쓴 뒤
+            # `sha256sum` 으로 별도 보고한다.
+        },
         "denominators": denominators,
         "overlay_cap_check": cap_check,
         "cap_hit_prior_archetype_distribution": cap_hit_archetype_stats,
+        "v1_to_v2_semantic_label_transition_table": v1_transition_table,
         "decisions_applied": {
             "D-R0-53_DECISION-1": (
                 "cap_hit_<key> bool + *_len 개수를 함께 저장 (dom_body_empty/"
