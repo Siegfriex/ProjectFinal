@@ -24,7 +24,16 @@ FORBIDDEN = [  # (pattern, rule, note)
     (r"E-?6b[^.]{0,40}(8\s*건|8회)[^.]{0,40}(원인|때문)", "§3", "E-6b 발화 8 ≠ 구속 1 — 발화 횟수를 원인 계수로 쓰지 말 것"),
     (r"가드(만|를)\s*(고치|정밀화|완화)[^.]{0,30}(측정된다|산출된다|살아난다|해결)", "counterfactual", "반사실 과잉확정(긍정): 회복 상한 0~8, 무작위 배정 아님 (A 14:38)"),
     (r"가드(는|가)\s*(아무|전혀)?\s*(영향|관계)\s*(없|무관)", "counterfactual", "반사실 과잉확정(부정): 비무작위 배정 한계 문장 필요 (A 14:38)"),
+    (r"(고령자가|사용자가)[^.]{0,20}(방해요소|팝업|모달|오버레이)[^.]{0,20}(닫지\s*못|닫을\s*수\s*없)", "axis-C", "자동화 dismissal 결과 ≠ 사용자 행동 (A 14:45)"),
+    (r"닫을\s*수\s*없는\s*(방해요소|팝업|모달)[^.]{0,10}\d+\s*건", "axis-C", "'시각적 닫기 컨트롤 미탐지 상태에서 ESC/배경클릭으로 닫힘' 으로 서술"),
 ]
+AXIS_C_CHECKS = [  # (trigger, required-companion, note)
+    (r"(방해요소|interrupt|overlay)[^.]{0,30}(유형|분류|label)[^.]{0,30}(분포|비율)", r"UNKNOWN|미분류", "final_label 분포는 UNKNOWN(110/235, 47%) 병기 필수 (A 14:45)"),
+    (r"(overlay\s*coverage|OverlayCoverage|오버레이\s*(면적|비율))[^.]{0,40}(median|중앙값)", r"q3|IQR|사분위|1\.0|전면", "median 단독 인용 금지 — q3=1.0, 22/56 전면 (A 14:45)"),
+    (r"축\s*C[^.]{0,20}(측정됨|관측됨|측정되었)", r"미분류|UNKNOWN|47\s*%", "축 C = raw 실측 235 + 분류 47% 미분류 로 서술 (A 14:45)"),
+    (r"(exists\s*=\s*0|닫기\s*컨트롤이?\s*없)[^.]{0,40}102", r"38|컨트롤이\s*있[^.]{0,10}실패", "102 만 강조 금지 — (exists=1, succeeded=0) 38 병기 (A 14:45)"),
+]
+_FORBIDDEN_TAIL = None
 HEDGE_N = r"(대부분|대다수|많은|거의\s*모든|majority|most)"
 GRADE = r"\[(GRADE\s*[ABC]|UNSUPPORTED|EXPLORATORY)[^\]]*\]|GRADE\s*[ABC]\b|\bgrade\s*[ABC]\b"
 
@@ -61,6 +70,8 @@ def main(a):
             has_grade = bool(re.search(GRADE, s, re.I)); has_n = bool(re.search(r"\b[nNmM]\s*=\s*\d+|\d+\s*건|\d+\s*/\s*\d+|\d+\s*개", s))
             is_claim = bool(re.search(r"(비율|분포|상관|median|IQR|ρ|rho|Spearman|Kruskal|산출|탐지|관측됐|관측되|FAIL|UNDETERMINED|N\s*=)", s))
             if re.search(HEDGE_N, s) and not has_n: issues.append("§2.5 N/분모 없는 일반화")
+            for trig, comp, note in AXIS_C_CHECKS:
+                if re.search(trig, s, re.I) and not re.search(comp, s, re.I): issues.append(f"AXIS_C: {note}")
             # A 14:21: '0건' must be written as 'N건 중 0건' — bare zero reads as 'not measured'
             if re.search(r"(?<![\d/])0\s*건", s) and not re.search(r"\d+\s*건\s*(중|가운데|에서)\s*0\s*건|0\s*/\s*\d+|\d+\s*(건|개)\s*(을|를)?\s*시도", s): issues.append("분모 없는 '0건' — 'N건 중 0건' 으로")
             nums = numbers_in(s) - {"2026", "08", "27", "2", "1"}
