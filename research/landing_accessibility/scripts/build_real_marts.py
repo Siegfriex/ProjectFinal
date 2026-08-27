@@ -327,9 +327,70 @@ def _load_archetype_by_target(csv_path: str | None) -> dict[str, str]:
     return mapping
 
 
+#: 축 B의 서술 제약과 같은 원리 — 우리가 관측한 것은 **자동화 도구의 dismissal
+#: 결과**이지 사용자 행동이 아니다.
+DISMISSAL_NARRATIVE_CONSTRAINT = (
+    "○ 닫기 컨트롤이 관측되지 않은 상태에서 ESC/backdrop 경로로 해제된 건이 N건이다. "
+    "✗ '고령자가 못 닫는다' / '사용자가 닫기 어렵다'로 쓰지 않는다 — "
+    "**우리가 관측한 것은 자동화 도구의 dismissal 결과이지 사용자 행동이 아니다.**"
+)
+
+#: interrupt 분류기도 결정론 규칙만 돌고 semantic 단계가 없다 — 축 A·B와 같은
+#: skeleton 구조다. 이걸 안 적으면 오늘 유일한 실측 축이 실제보다 강해 보인다.
+AXIS_C_CLASSIFICATION_INCOMPLETE_NOTE = (
+    "축 C는 **'완전 측정'이 아니라 'raw 실측 + 분류 절반 미완'**이다. interrupt "
+    "분류기도 결정론 규칙만 돌고 semantic/VLM 단계가 없어(축 A·B와 같은 skeleton "
+    "구조) `final_label`의 최대 범주가 `UNKNOWN`이다. 유형 분포를 인용할 때 UNKNOWN을 "
+    "각주로 빼면 실측 강도가 과대표시된다."
+)
+
+_DISMISSAL_PATH_LABELS: dict[tuple[str, str], str] = {
+    ("0", "1"): "닫기 컨트롤 미관측 · 해제됨 (ESC/backdrop 경로)",
+    ("1", "1"): "닫기 컨트롤 관측 · 해제됨",
+    ("1", "0"): "닫기 컨트롤 관측 · 해제 실패",
+    ("0", "0"): "닫기 컨트롤 미관측 · 해제 안 됨",
+}
+
+
+def _describe_distribution(values: list[float]) -> dict[str, Any]:
+    """전체 사분위 + 이봉 여부. **median 단독 인용을 막기 위해** 항상 함께 낸다."""
+    import statistics as st
+
+    if not values:
+        return {"n": 0}
+    sv = sorted(values)
+    q = st.quantiles(sv, n=4) if len(sv) > 1 else [sv[0], sv[0], sv[0]]
+    low = sum(1 for v in sv if v < 0.25)
+    mid = sum(1 for v in sv if 0.25 <= v < 0.75)
+    high = sum(1 for v in sv if v >= 0.75)
+    # 양 끝에 질량이 몰리고 가운데가 비면 이봉이다.
+    bimodal = bool(low and high and mid < min(low, high) / 4)
+    out: dict[str, Any] = {
+        "n": len(sv),
+        "min": round(sv[0], 4),
+        "q1": round(q[0], 4),
+        "median": round(q[1], 4),
+        "q3": round(q[2], 4),
+        "max": round(sv[-1], 4),
+        "iqr": round(q[2] - q[0], 4),
+        "mass_below_0_25": low,
+        "mass_0_25_to_0_75": mid,
+        "mass_at_or_above_0_75": high,
+        "bimodal": bimodal,
+    }
+    if len(sv) >= 10:
+        out["deciles"] = [round(v, 4) for v in st.quantiles(sv, n=10)]
+    if bimodal:
+        out["bimodal_note"] = (
+            f"**이봉 분포다** — 낮은 쪽 {low}건 · 가운데 {mid}건 · 높은 쪽 {high}건으로 "
+            "가운데가 비어 있다. **median 단독 인용은 오도한다**: 중앙값은 어느 봉도 "
+            "대표하지 않는다. 사분위 전체와 양쪽 질량을 함께 읽어야 한다."
+        )
+    return out
+
+
 def describe_axis_c(marts: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
     """축 C(초기 화면 방해요소) 기술통계 — **오늘 유일하게 실측된 축**이다."""
-    import statistics as st
 
     landing = marts["fact_landing_observation"]
     interrupts = marts["fact_interrupt_element"]
@@ -343,33 +404,19 @@ def describe_axis_c(marts: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
                     out.append(float(v))
         return out
 
-    def _stats(values: list[float]) -> dict[str, Any]:
-        if not values:
-            return {"n": 0, "median": None, "q1": None, "q3": None, "iqr": None}
-        sv = sorted(values)
-        q1, med, q3 = (
-            st.quantiles(sv, n=4)[0] if len(sv) > 1 else sv[0],
-            st.median(sv),
-            st.quantiles(sv, n=4)[2] if len(sv) > 1 else sv[0],
-        )
-        return {
-            "n": len(sv),
-            "median": round(med, 4),
-            "q1": round(q1, 4),
-            "q3": round(q3, 4),
-            "iqr": round(q3 - q1, 4),
-            "min": round(sv[0], 4),
-            "max": round(sv[-1], 4),
-        }
+    _stats = _describe_distribution
 
     per_obs: dict[str, int] = {}
     labels: dict[str, int] = {}
+    dismissal_paths: dict[tuple[str, str], int] = {}
     blocks = dismiss_exists = dismiss_visible = dismiss_ok = 0
     for row in interrupts:
         obs = str(row.get("observation_id"))
         per_obs[obs] = per_obs.get(obs, 0) + 1
         label = str(row.get("final_label") or "UNLABELED")
         labels[label] = labels.get(label, 0) + 1
+        key = (str(row.get("dismiss_control_exists")), str(row.get("dismiss_succeeded")))
+        dismissal_paths[key] = dismissal_paths.get(key, 0) + 1
         if str(row.get("blocks_primary_action")) == "1":
             blocks += 1
         if str(row.get("dismiss_control_exists")) == "1":
@@ -378,6 +425,14 @@ def describe_axis_c(marts: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
             dismiss_visible += 1
         if str(row.get("dismiss_succeeded")) == "1":
             dismiss_ok += 1
+
+    total_interrupts = len(interrupts) or 1
+    # UNKNOWN을 **맨 위에** 둔다 — 최대 범주를 각주로 빼지 않는다.
+    ordered_labels = sorted(labels.items(), key=lambda kv: (kv[0] != "UNKNOWN", -kv[1]))
+    label_table = [
+        {"label": k, "n": v, "pct": round(v / total_interrupts * 100, 1)} for k, v in ordered_labels
+    ]
+    unknown_n = labels.get("UNKNOWN", 0)
 
     counts = [float(per_obs.get(str(o.get("observation_id")), 0)) for o in landing]
     return {
@@ -390,14 +445,30 @@ def describe_axis_c(marts: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         "max_primary_action_occlusion": _stats(_num(landing, "max_primary_action_occlusion")),
         "overlay_coverage_per_interrupt": _stats(_num(interrupts, "overlay_coverage")),
         "blocking_modal_count": _stats(_num(landing, "blocking_modal_count")),
-        "interrupt_final_label": labels,
+        # UNKNOWN이 표 맨 위에 온다(최대 범주).
+        "interrupt_final_label_table": label_table,
+        "interrupt_final_label_unknown_n": unknown_n,
+        "interrupt_final_label_unknown_pct": round(unknown_n / total_interrupts * 100, 1),
+        "classification_incomplete_note": AXIS_C_CLASSIFICATION_INCOMPLETE_NOTE,
         "blocks_primary_action_n": blocks,
         "dismiss_control_exists_n": dismiss_exists,
         "dismiss_control_visible_n": dismiss_visible,
         "dismiss_succeeded_n": dismiss_ok,
+        # 총계만 내면 사라지는 구조 — 서로 다른 네 사실이다.
+        "dismissal_paths": [
+            {
+                "dismiss_control_exists": k[0],
+                "dismiss_succeeded": k[1],
+                "n": v,
+                "label": _DISMISSAL_PATH_LABELS.get(k, "기타/미기록"),
+            }
+            for k, v in sorted(dismissal_paths.items(), key=lambda kv: -kv[1])
+        ],
+        "dismissal_narrative_constraint": DISMISSAL_NARRATIVE_CONSTRAINT,
         "note": (
             "축 C는 L0 관측만으로 성립하므로 depth 축 소실과 무관하게 실측됐다. "
-            "이것이 오늘 유일하게 데이터가 있는 축이다."
+            "이것이 오늘 유일하게 데이터가 있는 축이다 — 다만 분류는 절반이 미완이다"
+            "(`classification_incomplete_note` 참조)."
         ),
     }
 
