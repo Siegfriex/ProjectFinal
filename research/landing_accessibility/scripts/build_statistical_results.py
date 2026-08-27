@@ -546,6 +546,16 @@ def render_markdown(data: dict[str, Any], mart_dir: Path) -> str:
         "association 기반 상위 등급은 계산 대상 자체가 없어 존재하지 않는다."
     )
     add("")
+    add("### 오늘 결론의 핵심")
+    add("")
+    add(f"> {summary['analysis_axes']['axis_b_honest_refusal']}")
+    add("")
+    add(
+        "**우리가 값을 못 얻은 것이 아니라, 값을 만들어내지 않기로 한 설계가 작동한 "
+        "것이다.** 이 구분이 오늘 산출물 전체의 성격을 정한다 — 빈 자리는 실패의 흔적이 "
+        "아니라 측정되지 않은 것을 측정된 것처럼 만들지 않은 결과다."
+    )
+    add("")
 
     add("## 1. 축 C — 초기 화면 방해요소 (기술통계)")
     add("")
@@ -568,7 +578,14 @@ def render_markdown(data: dict[str, Any], mart_dir: Path) -> str:
         add(f"  - {block['principle']}")
     add("")
 
-    add("## 2. 축 B — 진입 깊이 미산출의 원인 분해")
+    add("## 2. 축 B — 진입 깊이 미산출의 원인 분해 (관측 outcome 층위)")
+    add("")
+    add(f"{summary['cause_attribution']['layer_note']}")
+    add("")
+    add(
+        "**아래 6종을 '원인의 전부'로 읽지 않는다.** 각 관측이 어떤 결과로 끝났는가를 "
+        "가른 분해이며, 왜 그 결과에 도달했는가는 한 층 아래다."
+    )
     add("")
     for c in data["axis_b"]:
         add(f"- **[{c['grade']}]** {c['claim']}")
@@ -585,7 +602,16 @@ def render_markdown(data: dict[str, Any], mart_dir: Path) -> str:
     add(f"- {recovery['finding']}")
     add(f"- 회복 상한: {recovery['honest_range']} — {recovery['honest_range_note']}")
     add(f"- **적용 범위**: {recovery['scope_condition']}")
+    add(f"- 라벨: `{recovery['counterfactual_label']}`")
     add(f"- **추론 한계**: {recovery['inference_limit']}")
+    add("")
+    deeper = summary["cause_attribution"]["deeper_layer_under_audit"]
+    add("### 더 아래 층 — 감사 중")
+    add("")
+    add(f"- 상태: `{deeper['status']}` · lane `{deeper['lane']}`")
+    for gap in deeper["observed_gaps"]:
+        add(f"  - {gap}")
+    add(f"- {deeper['consequence_if_confirmed']}")
     add("")
     add(
         "- 이 결과는 **가드 입도를 정밀화하면 달라질 수 있다**(post-E001 backlog 등재). "

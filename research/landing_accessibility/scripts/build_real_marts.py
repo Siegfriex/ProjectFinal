@@ -219,10 +219,33 @@ def attribute_causes(results: list[dict[str, Any]]) -> dict[str, Any]:
             "**발화 횟수를 원인으로 쓰면 과대평가다.**"
         ),
         "auth_gate_by_archetype": auth_gate_by_archetype,
+        # **이 표는 outcome 층위의 분해다.** 완결된 원인 설명이 아니다.
+        "layer": "OBSERVABLE_OUTCOME",
         "attribution_note": (
             "'측정기가 실패했다'로 뭉뚱그리지 않는다 — 도구 입도(가드) / 계약 설계"
             "(archetype-endpoint 규칙) / 판별 실패(E-6b)는 성격이 다르고 시정 방향도 다르다."
         ),
+        "layer_note": (
+            "**이 6종은 관측 가능한 outcome 층위의 분해이며, 원인 설명의 완결이 아니다.** "
+            "각 관측이 '어떤 결과로 끝났는가'를 가른 것이지 '왜 그 층에 도달했는가'까지 "
+            "내려간 것이 아니다. 그 아래 층 — task definition이 측정기에 전달되는가 · "
+            "probe가 실사이트에서 볼 신호가 있는가 — 은 post-E001 recovery lane에서 "
+            "**별도 감사 중**이며, 그 결과에 따라 이 분해가 '그 위에 더 근본적인 원인이 "
+            "있었다'로 재해석될 수 있다(`LIMITATIONS.md` §11)."
+        ),
+        "deeper_layer_under_audit": {
+            "status": "AUDIT_IN_PROGRESS",
+            "lane": "claude-b/measurement-recovery",
+            "observed_gaps": [
+                "task definition wiring — CODEBOOK_PENDING 고정으로 Scout에 전달되지 않는다",
+                "실웹 signal detector — probe가 보는 data-region/data-endpoint 속성은 "
+                "fixture가 심는 것이며 실사이트에는 없다",
+            ],
+            "consequence_if_confirmed": (
+                "wiring을 고쳐도 probe가 실사이트에서 볼 신호가 없다 — 원인이 이 표보다 "
+                "한 층 더 아래에 있다는 뜻이다. **이 표가 틀린 것이 아니라 층이 다른 것이다.**"
+            ),
+        },
         "independently_verified": True,
         "verification_status": {
             "independently_verified": True,
@@ -459,6 +482,7 @@ def analyze_depth_recovery(
             "그마저 gate 종류 판별이 되어야 하며, AUTH_GATE 12건 중 8건에서 E-6b가 "
             "발화했다(판별 실패율 2/3). **상한에 가까울 근거는 없다.**"
         ),
+        "counterfactual_label": "CURRENT_IMPLEMENTATION_CONDITIONAL_COUNTERFACTUAL",
         "scope_condition": (
             "**이 결론은 현재 collector/measurement 구현 하에서만 성립한다.** "
             "task definition이 `CODEBOOK_PENDING`으로 고정된 상태를 전제한 값이므로, "
