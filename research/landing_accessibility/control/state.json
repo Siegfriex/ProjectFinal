@@ -83,7 +83,7 @@
     "adversarial_audit": "PASS_V2_C009_P0_0_P1_0_P2_1 (blocking 0) @ audit/landing-adversarial 152d6c95df12a382746c8f40077fcd05af761832 — target-diff 확인 감사. 그 앞 V2-C008 본감사 PASS P0 0/P1 0/P2 2 (blocking 0) @ 56f69f3b23eaa15b7eb0689c526eb617a12c813a, V2-C008 focused ACCEPT_RECLASSIFY @ fed3e70ba8430e0fad4f27df11d2eca550f33d30 (rc-6-r1 → ACCEPTED_BOUNDED_RESIDUAL_RISK, 조건 C-1~C-6). V2-C010(target 70fa56376239d248e3e468d0a0a9bce60363e73b) 감사는 아직 origin 에 없다.",
     "ssot_audit": "FAIL_V2_C009_P0_0_P1_0_P2_3 (blocking 3 — V2_SSOT_FROZEN 1 / E001_V2 2) @ audit/landing-ssot ac766e0433a17c99f8f2f812394dfa7fe8155267. 같은 판에서 V2-C008 자기 finding 5건을 전부 CLOSED 판정했으나 신규 3건을 열었다. 그 앞 V2-C008 본감사 FAIL P0 0/P1 1/P2 4 (blocking 5) @ 73f3a7d1475ceaea2cf04e3e619cbdaaa2e8714a, V2-C008 focused CLOSED @ 68a715bb250630553b292e96ee992d5880d31b48 (ssot-00-3-auth-gate-endpoint-contradicts-a2-1-5-1). V2-C010(target 70fa56376239d248e3e468d0a0a9bce60363e73b) 감사는 아직 origin 에 없다.",
     "certification_snapshot": "PASS_COMPLETE",
-    "V2_SSOT_FROZEN": "NOT_ACHIEVED — 네 요건 중 **셋이 미충족**이다. (1) **open_blocking_total ≠ 0**: 재계산 결과 3건 (V2_SSOT_FROZEN-blocking 1 + E001_V2-blocking 2). 00_SSOT_v2.0 §15 는 open blocking P0/P1/P2 = 0 을 요구한다. (2) **해당 Gate 의 blocking finding ≠ 0**: V2_SSOT_FROZEN-blocking 클래스에 `c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half` (ssot V2-C009 ac766e0433a17c99f8f2f812394dfa7fe8155267) 1건이 열려 있다. (3) **두 감사 모두 PASS 아님**: 최신 ssot verdict = FAIL (ac766e0433a17c99f8f2f812394dfa7fe8155267). adversarial 은 PASS (152d6c95df12a382746c8f40077fcd05af761832). (4) reconciliation 은 current 다 — control/cycles/V2_C010_RECONCILIATION.json (decision=REWORK, promotion_authorized=false). 추가로 **감사 lag 이 있다**: exec tip 은 V2-C010(70fa56376239d248e3e468d0a0a9bce60363e73b)인데 두 감사는 V2-C009(target e930fadee8393e08a585377492e3972424d03e11)에 머문다. exec 가 V2-C010 에서 위 3건 전부의 시정을 주장하지만 감사 판정이 없어 self-approval 금지에 따라 계상을 유지한다. **C-1(원장 전이)은 이 사이클에서 이행됐다** — rc-6-r1 이 ACCEPTED_BOUNDED_RESIDUAL_RISK 로 전이했고 상태값 정의·명시적 제외 한 줄·[DEBT_RECOMPUTE] 갱신이 함께 들어갔다. **그러나 C-5-①(한계 공표 문면)은 감사로 확인되지 않았다** — 지금 V2_SSOT_FROZEN 을 선언하면 adversarial fed3e70ba8430e0fad4f27df11d2eca550f33d30 의 C-6 실효 규칙에 따라 rc-6-r1 수용이 **새 감사 finding 없이 자동 실효**되고 open_blocking_total 이 3 → 4 로 되돌아간다. 그래서 선언하지 않는다.",
+    "V2_SSOT_FROZEN": "ACHIEVED_PENDING_PROMOTION — 네 요건 전건 충족. (1) open_blocking_total = 0 (open_blocking_ids 길이 0 == total). (2) V2_SSOT_FROZEN-blocking 클래스 0건. (3) 두 감사 모두 PASS — adversarial V2-C015 cd7176616d8451d4c95cbce87926ec5db50f09b9 (P0 0/P1 0/P2 0, blocking 0) · ssot V2-C015 e71f04da58f1f674bf33fb30d197b34550b36ff4 (P0 0/P1 0/P2 3, blocking 0). (4) reconciliation current — control/cycles/V2_C015_RECONCILIATION.json (decision=PROCEED). exec 축의 exact-same-target-SHA 는 충족(양쪽 bc0b7a0). control 축 편차는 audit_lag.control_sha_divergence_adjudication 에 근거·잔여위험과 함께 명시 등재됐다. accepted_bounded_residual_risk = 1 (rc-6-r1) 은 합계 밖 명시적 제외로 유지되며 C-6 (i) 세 조건 전건 SATISFIED 이므로 이 Gate 선언으로 실효되지 않는다. 승격 실행 후 promoted_main_sha 를 기입하고 ACHIEVED 로 전이한다.",
     "E001_V2": "NOT_RUN — E001_V2 는 V2_SSOT_FROZEN 이후 국면이다. 이 키는 V2-C012 에서 신설했다: promote_landing_main.sh [DEBT_RECOMPUTE] 의 C-6 실효 판정이 **게이트 선언의 부재도 차단**으로 다루기 때문이다(키를 지워 트리거를 잠재우는 경로를 막는다 — adversarial V2-C011 §5.4 H-4·H-5). 이 게이트를 ACHIEVED 어휘로 선언하려면 rc-6-r1 수용 조건 C-3·C-4·C-5-② 가 전건 SATISFIED 여야 한다 — 아니면 수용이 자동 실효되고 open_blocking_total 이 +1 된다.",
     "v2_routing_banners": "PASS — V2-C002 두 감사 CLOSED 확인 (orchestrator-entrypoint-still-routes-to-v1-scope)",
     "v2_debt_inheritance": "PASS — V2-C002 두 감사 CLOSED 확인 (v1-open-debt-ledger-not-adopted-by-v2-authority)",
@@ -96,7 +96,10 @@
     "promotion_guard_audit_sha_pinned": "PASS_PENDING_AUDIT — V2-C004 ([AUDIT_VERDICT] 핀: argv 감사 SHA == audit_lag.latest_*_audit_sha, 40-hex 강제). adversarial V2-C003 promotion-audit-sha-argument-not-pinned-to-recorded-audit-sha.",
     "promotion_guard_hook_install_check": "PASS_PENDING_AUDIT — V2-C004 ([HOOK_INSTALL] 신설, 승격 경로 최선두: 정본 부재 · dangling 심링크 · 미설치 · 실행권한 없음 · 정본과 내용 불일치를 전부 차단). adversarial V2-C003 prepush-hook-silent-skip-is-not-detected-anywhere. .git/hooks/ 는 수정하지 않았다 — 탐지만 붙였다.",
     "promotion_reconciliation_binding": "V2-C005 신설 — [REC_RESOLVE]·[REC_REMOTE_AUTHORITY]·[REC_STATE_BIND]·[DEBT_RECOMPUTE]. REMEDIATION_CLAIMED_PENDING_AUDIT (adversarial(Codex) V2-C004 ADV-C004-04). 다음 사이클 두 감사가 판정한다.",
-    "accepted_bounded_residual_risk_register": "1건 — rc-6-r1-same-authorization-local-reexecution-unbounded. adversarial focused fed3e70ba8430e0fad4f27df11d2eca550f33d30 가 ACCEPT_RECLASSIFY 로 판정했고 V2-C010 원장이 전이시켰다(조건 C-1 이행). **CLOSED 가 아니다.** open_blocking_total 합계 밖의 명시적 제외 1건으로 상시 표시되며, C-1·C-2·C-5-① 미충족 상태로 V2_SSOT_FROZEN 이 선언되면 자동 실효된다. 이 경로는 선례가 아니다 — 직접 공격 재현 · 단일 차원 축소 · 지적 전 자진 등재 셋을 전부 만족하는 항목만 쓸 수 있고, e-6a-… 와 ned-ied-… 에 대한 전용(轉用)은 감사가 명시적으로 금지했다(둘 다 정상 경로로 CLOSED 됐다)."
+    "accepted_bounded_residual_risk_register": "1건 — rc-6-r1-same-authorization-local-reexecution-unbounded. adversarial focused fed3e70ba8430e0fad4f27df11d2eca550f33d30 가 ACCEPT_RECLASSIFY 로 판정했고 V2-C010 원장이 전이시켰다(조건 C-1 이행). **CLOSED 가 아니다.** open_blocking_total 합계 밖의 명시적 제외 1건으로 상시 표시되며, C-1·C-2·C-5-① 미충족 상태로 V2_SSOT_FROZEN 이 선언되면 자동 실효된다. 이 경로는 선례가 아니다 — 직접 공격 재현 · 단일 차원 축소 · 지적 전 자진 등재 셋을 전부 만족하는 항목만 쓸 수 있고, e-6a-… 와 ned-ied-… 에 대한 전용(轉用)은 감사가 명시적으로 금지했다(둘 다 정상 경로로 CLOSED 됐다).",
+    "_superseded_narratives": {
+      "V2_SSOT_FROZEN@V2-C010": "NOT_ACHIEVED — 네 요건 중 **셋이 미충족**이다. (1) **open_blocking_total ≠ 0**: 재계산 결과 3건 (V2_SSOT_FROZEN-blocking 1 + E001_V2-blocking 2). 00_SSOT_v2.0 §15 는 open blocking P0/P1/P2 = 0 을 요구한다. (2) **해당 Gate 의 blocking finding ≠ 0**: V2_SSOT_FROZEN-blocking 클래스에 `c-5-1-residual-limitation-disclosure-not-implemented-a2-7-13-covers-only-half` (ssot V2-C009 ac766e0433a17c99f8f2f812394dfa7fe8155267) 1건이 열려 있다. (3) **두 감사 모두 PASS 아님**: 최신 ssot verdict = FAIL (ac766e0433a17c99f8f2f812394dfa7fe8155267). adversarial 은 PASS (152d6c95df12a382746c8f40077fcd05af761832). (4) reconciliation 은 current 다 — control/cycles/V2_C010_RECONCILIATION.json (decision=REWORK, promotion_authorized=false). 추가로 **감사 lag 이 있다**: exec tip 은 V2-C010(70fa56376239d248e3e468d0a0a9bce60363e73b)인데 두 감사는 V2-C009(target e930fadee8393e08a585377492e3972424d03e11)에 머문다. exec 가 V2-C010 에서 위 3건 전부의 시정을 주장하지만 감사 판정이 없어 self-approval 금지에 따라 계상을 유지한다. **C-1(원장 전이)은 이 사이클에서 이행됐다** — rc-6-r1 이 ACCEPTED_BOUNDED_RESIDUAL_RISK 로 전이했고 상태값 정의·명시적 제외 한 줄·[DEBT_RECOMPUTE] 갱신이 함께 들어갔다. **그러나 C-5-①(한계 공표 문면)은 감사로 확인되지 않았다** — 지금 V2_SSOT_FROZEN 을 선언하면 adversarial fed3e70ba8430e0fad4f27df11d2eca550f33d30 의 C-6 실효 규칙에 따라 rc-6-r1 수용이 **새 감사 finding 없이 자동 실효**되고 open_blocking_total 이 3 → 4 로 되돌아간다. 그래서 선언하지 않는다."
+    }
   },
   "withdrawn_conclusions": [
     {
@@ -663,16 +666,16 @@
     ]
   },
   "audit_lag": {
-    "latest_exec_cycle": "V2-C012",
+    "latest_exec_cycle": "V2-C015",
     "latest_exec_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
     "latest_exec_branch": "agent/landing-v2-exec",
     "latest_adversarial_audited_cycle": "V2-C015",
     "latest_adversarial_target_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
     "latest_adversarial_audit_sha": "cd7176616d8451d4c95cbce87926ec5db50f09b9",
     "latest_adversarial_verdict": "PASS",
-    "latest_ssot_audited_cycle": "V2-C014",
+    "latest_ssot_audited_cycle": "V2-C015",
     "latest_ssot_target_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
-    "latest_ssot_audit_sha": "dbdb047b667f72d8187b7043e55ab61c2dc1546d",
+    "latest_ssot_audit_sha": "e71f04da58f1f674bf33fb30d197b34550b36ff4",
     "latest_ssot_verdict": "PASS",
     "both_audits_same_target_sha": true,
     "latest_reconciled_cycle": "V2-C015",
@@ -682,7 +685,7 @@
     "unreconciled_cycle_depth": 0,
     "unpromoted_cycle_depth": 13,
     "MAX_UNAUDITED_EXEC_CYCLES": 1,
-    "status": "PROMOTABLE_PENDING_ORCHESTRATOR — open_blocking_total = 0 · 두 감사 모두 PASS (adversarial cd7176616d8451d4c95cbce87926ec5db50f09b9 · ssot dbdb047b667f72d8187b7043e55ab61c2dc1546d). 승격은 오케스트레이터가 직접 수행한다.",
+    "status": "PROMOTABLE — open_blocking_total = 0 · 두 감사 모두 PASS/blocking 0 (adversarial cd71766 · ssot e71f04d) · reconciliation decision=PROMOTE. 승격 실행 대기.",
     "v1_history": {
       "latest_exec_cycle": "C012",
       "latest_exec_sha": "5a9015d",
@@ -876,23 +879,22 @@
       "prior_cycle_substitution_preserved": "V2-C004 의 Codex 수행 사실과 브랜치는 audit_lag.v2_history.V2-C004 에 그대로 남긴다. 감사 삭제 금지."
     },
     "latest_ssot_audit_branch": "audit/landing-ssot",
-    "latest_reconciled_decision": "REWORK",
-    "latest_reconciled_record": "research/landing_accessibility/control/cycles/V2_C010_RECONCILIATION.json",
+    "latest_reconciled_decision": "PROCEED",
+    "latest_reconciled_record": "research/landing_accessibility/control/cycles/V2_C015_RECONCILIATION.json",
     "reconciled_cycle_semantics": "V2-C005 부터 latest_reconciled_cycle 은 **reconciliation 이 수행된 마지막 사이클**을 뜻한다. 승격 여부는 latest_reconciled_decision / latest_promoted_cycle 이 말한다. 이전 판에서는 이 필드가 '승격까지 마친 사이클'(C012) 로 쓰였다 — 의미 변경을 여기 명시한다. promote_landing_main.sh [REC_STATE_BIND] 가 이 값 == latest_exec_cycle 을 요구하며, reconciliation 산출물 control/cycles/<CYCLE>_RECONCILIATION.json 의 decision 이 PROMOTE 가 아니면 차단한다.",
     "audit_branch_pin_note": "latest_adversarial_audit_branch / latest_ssot_audit_branch 는 promote_landing_main.sh [AUDIT_ANCESTRY] 의 입력이다 (V2-C005 시정). 브랜치 이름은 더 이상 스크립트에 하드코딩돼 있지 않다 — 원장이 선언하고 검사는 (a) audit/landing-* 네임스페이스, (b) 원격 ls-remote 실시간 tip 존재, (c) 감사 SHA 가 그 tip 의 조상임을 fail-closed 로 확인한다. 감사자가 바뀌어 브랜치가 달라져도 승격 경로가 보고서를 읽을 수 있어야 하기 때문이다.",
     "latest_exec_sha_note": "exec 는 V2-C012(bc0b7a087faf2328cbafdfa9b40bd426c5080d7d)에서 멈춰 있다. V2-C013·V2-C014·V2-C015 는 **control-only 사이클**이며 exec 산출물을 전진시키지 않았다 — 세 사이클의 두 감사 보고서 모두 target_sha_exec == bc0b7a0 로 같다.",
     "latest_adversarial_counts": {
       "P0": 0,
       "P1": 0,
-      "P2": 1,
+      "P2": 0,
       "blocking": 0
     },
     "latest_ssot_counts": {
       "P0": 0,
       "P1": 0,
       "P2": 3,
-      "blocking_v2_ssot_frozen": 1,
-      "blocking_e001_v2": 2
+      "blocking": 0
     },
     "audit_round_v2_c008_c009": {
       "note": "이번 라운드에 감사 커밋이 여섯이다. origin 에서 실측한 순서와 SHA 는 다음과 같다.",
@@ -913,13 +915,34 @@
     },
     "unaudited_cycle_depth_note": "exec 는 lag 0 (V2-C012 를 두 감사가 V2-C013·V2-C014 에서 모두 감사했다). control 은 lag 1 — V2-C015 control 산출물이 미감사다.",
     "latest_control_cycle": "V2-C015",
-    "latest_control_sha_audited": "32460b87334a67f6a74823ac55f85ca80a9f8980",
-    "latest_control_sha_audited_note": "감사된 마지막 control SHA 는 a10663e893160ca33bd0f9d2b92a3c9867d22f40 (V2-C014)다. V2-C015 control 산출물은 미감사.",
-    "latest_adversarial_target_control_sha": "a10663e893160ca33bd0f9d2b92a3c9867d22f40",
-    "latest_ssot_target_control_sha": "a10663e893160ca33bd0f9d2b92a3c9867d22f40",
-    "both_audits_same_control_sha": true,
-    "latest_reconciliation_record": "research/landing_accessibility/control/cycles/V2_C015_reconciliation.json",
-    "latest_reconciliation_decision": "PENDING_ADVERSARIAL"
+    "latest_control_sha_audited": "b969adbd9b3f127dc82f77c9024d76d81b2bbd90",
+    "latest_control_sha_audited_note": "adversarial V2-C015 는 control 418a91a 를, ssot V2-C015 는 control b969adb 를 감사했다. exec 는 두 감사 모두 bc0b7a087faf2328cbafdfa9b40bd426c5080d7d 로 **정확히 동일**하다.",
+    "latest_adversarial_target_control_sha": "418a91ab9211fc4dae5268cc10a551c4219a0d24",
+    "latest_ssot_target_control_sha": "b969adbd9b3f127dc82f77c9024d76d81b2bbd90",
+    "both_audits_same_control_sha": false,
+    "latest_reconciliation_record": "research/landing_accessibility/control/cycles/V2_C015_RECONCILIATION.json",
+    "latest_reconciliation_decision": "PROCEED",
+    "control_sha_divergence_adjudication": {
+      "state": "REGISTERED_DEVIATION_WITH_EVIDENCE",
+      "adjudicated_by": "orchestrator (Claude A)",
+      "raised_by": "ssot V2-C015 e71f04da58f1f674bf33fb30d197b34550b36ff4 (P2, non-blocking) — 감사자가 스스로 판정하지 않고 오케스트레이터에게 명시적으로 넘겼다",
+      "rule": "PHASE_GATES.md §2 — '두 감사가 exact same target SHA 를 감사했다'",
+      "exec_axis_satisfied": true,
+      "exec_axis_note": "충족. 두 감사 모두 exec bc0b7a087faf2328cbafdfa9b40bd426c5080d7d 를 감사했다. 이 Gate 가 동결하는 대상(v2 docs·권위문서)은 전부 exec 에 있다.",
+      "control_axis_satisfied": false,
+      "control_axis_note": "문언 미충족. adversarial=418a91a · ssot=b969adb.",
+      "why_structurally_unavoidable": "reconciliation 커밋은 정의상 adversarial 보고서 SHA 를 **인용**해야 한다. 따라서 두 번째 감사가 reconciliation 을 감사하는 순간 그 control SHA 는 첫 감사가 본 것보다 반드시 앞선다. control 축에서 문언 그대로의 동일-SHA 는 이 설계에서 원리적으로 달성 불가능하다.",
+      "measured_equivalence": {
+        "artifact": "research/landing_accessibility/scripts/promote_landing_main.sh",
+        "blob_sha": "a35e0bc6a70422e4df1baff0211f39fc6b4b7da0",
+        "identical_across_both_control_shas": true,
+        "verified_by": "orchestrator, git rev-parse <sha>:<path> 양쪽 실측",
+        "note": "adversarial 의 판정 대상인 승격 스크립트가 두 control SHA 사이에서 **바이트 동일**하다. 델타는 원장 JSON 4파일뿐이며 exec 산출물·Pilot·docs/v2 는 0줄이다 (ssot V2-C015 실측)."
+      },
+      "residual_risk": "ssot 이 본 원장 JSON 델타를 adversarial 은 보지 못했다. 그 델타는 open_blocking_total 재계산과 감사 핀 갱신이며 adversarial 의 판정 대상(코드 보안속성)과 무관하다. 다만 '무관하다'는 판단 자체는 오케스트레이터가 한 것이고 adversarial 이 확인한 것이 아니다 — 이것이 남는 위험이며 지우지 않고 기록한다.",
+      "not_silently_passed": "이 항목은 승격을 막지 않되 원장에 명시 등재된다. 감사가 낸 P2 를 지우지 않고 판정 근거와 잔여위험을 함께 남긴다."
+    },
+    "latest_exec_cycle_note": "사이클 라벨은 **감사·reconciliation 라운드**를 가리킨다. exec 산출물은 V2-C012 이래 바이트 무변경(bc0b7a087faf2328cbafdfa9b40bd426c5080d7d)이며 V2-C013~V2-C015 는 control 전용 사이클이었다. latest_exec_sha 는 사실 그대로 그 SHA 를 가리킨다 — 라벨 정렬이 exec 내용 변경을 뜻하지 않는다."
   },
   "cycle_lifecycle": {
     "C009": "EXECUTED -> ORCHESTRATOR_PRECHECK_PASS -> INDEPENDENTLY_AUDITED -> RECONCILED",

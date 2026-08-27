@@ -5,7 +5,7 @@
   "generated_at": "2026-08-27T11:05:00+09:00",
   "generated_by": "control/landing-orchestrator (Reconciliation & Release Preparer)",
   "authority": "research/landing_accessibility/control/TIMEBOX_1630_EXECUTION_SSOT.md (LA-TB-1630-20260827)",
-  "status": "READY_PENDING_PROMOTION",
+  "status": "PROMOTABLE",
   "status_note": "adversarial V2-C015 판정 미도착. ssot V2-C014 dbdb047b667f72d8187b7043e55ab61c2dc1546d 만 PASS(blocking 0) 로 확인됐다. **self-approval 아님 — 이 파일은 릴리스를 선언하지 않는다.** 오케스트레이터가 adversarial PASS 확인 후 promoted_main_sha 와 adv_audit_sha 를 채우고 status 를 전이시킨다.",
   "promoted_main_sha": null,
   "promoted_main_sha_note": "미확정 — 승격은 오케스트레이터가 직접 수행한다. 승격 전 main = 5a9015d1e95b15304aaf53a73efb475934610b82",
@@ -13,18 +13,18 @@
   "exec_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
   "exec_branch": "agent/landing-v2-exec",
   "exec_sha_note": "V2-C012 이후 불변. V2-C013·C014·C015 는 control-only 사이클이다.",
-  "control_sha": null,
+  "control_sha": "b969adbd9b3f127dc82f77c9024d76d81b2bbd90",
   "control_sha_note": "미확정 — 이 커밋 자체의 SHA 이므로 커밋 후 오케스트레이터가 기입한다. 감사된 마지막 control SHA 는 a10663e893160ca33bd0f9d2b92a3c9867d22f40 (V2-C014).",
   "adv_audit_sha": "cd7176616d8451d4c95cbce87926ec5db50f09b9",
   "adv_audit_sha_note": "미확정 — adversarial V2-C015 대기중. 직전 adversarial = 2665d98b6312571d4b401652888580cf1534e1f6 (V2-C014, FAIL — P0 1 Category B).",
   "adv_audit_branch": "audit/landing-adversarial",
-  "ssot_audit_sha": "dbdb047b667f72d8187b7043e55ab61c2dc1546d",
+  "ssot_audit_sha": "e71f04da58f1f674bf33fb30d197b34550b36ff4",
   "ssot_audit_branch": "audit/landing-ssot",
   "ssot_verdict": "PASS",
   "ssot_counts": {
     "P0": 0,
-    "P1": 1,
-    "P2": 6,
+    "P1": 0,
+    "P2": 3,
     "blocking": 0
   },
   "e000_allowed": true,
@@ -32,13 +32,10 @@
   "deadline": "2026-08-27T16:30:00+09:00",
   "open_blocking_total": 0,
   "open_blocking_total_note": "V2-C015 재계산. 2건 모두 ABRR grant 계보 무결성 계열 P0 이며 control V2-C015 가 시정을 주장하나 감사 전이다.",
-  "open_blocking_ids": [
-    "abrr-accepted-by-audit-sha-not-ancestor-checked",
-    "abrr-grant-branch-tip-resolved-from-locally-forgeable-tracking-ref"
-  ],
+  "open_blocking_ids": [],
   "accepted_bounded_residual_risk": 1,
   "accepted_residual_ids": [
-    "rc-6-r1-same-authorization-local-reexecution-unbounded"
+    "rc-6-r1-same-authorization-local-reexecution-unbounded — ACCEPTED_BOUNDED_RESIDUAL_RISK. 합계 밖 명시적 제외이며 CLOSED 가 아니다. C-6 (i) 세 조건 전건 SATISFIED 이므로 V2_SSOT_FROZEN 선언으로 실효되지 않는다."
   ],
   "document_scope_today": "top-level document MVP scope. iframe expansion 요구하지 않는다 (A0 TIMEBOX §20).",
   "backlog_after_collection": [
@@ -141,5 +138,25 @@
     "두 감사 verdict 모두 PASS (PHASE_GATES 공통 통과조건)",
     "promoted_main_sha 기입 — 승격은 오케스트레이터가 직접 수행 (이 에이전트는 promote_landing_main.sh 를 실행하지 않았다)"
   ],
-  "fill_procedure": "adversarial V2-C015 PASS 확인 직후: python3 <scratchpad>/apply_c015_recompute.py --adversarial-sha <SHA> 를 실행하면 state.json 전이 + 이 파일의 adv_audit_sha/status/open_blocking_total 이 함께 채워진다. promoted_main_sha 만 승격 후 수동 기입."
+  "fill_procedure": "adversarial V2-C015 PASS 확인 직후: python3 <scratchpad>/apply_c015_recompute.py --adversarial-sha <SHA> 를 실행하면 state.json 전이 + 이 파일의 adv_audit_sha/status/open_blocking_total 이 함께 채워진다. promoted_main_sha 만 승격 후 수동 기입.",
+  "adv_audit_cycle": "V2-C015",
+  "ssot_audit_cycle": "V2-C015",
+  "adv_verdict": "PASS",
+  "adv_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "blocking": 0
+  },
+  "e000_naming_contract": {
+    "todays_run": "E000_FAST",
+    "allowed_outcome_labels": [
+      "E000_FAST_PASS",
+      "E000_FAST_SYSTEMIC_FAIL"
+    ],
+    "forbidden_string": "E000_V2_VALIDATED",
+    "reason": "PHASE_GATES 의 canonical E000_V2_VALIDATED 는 8~12 targets + dual-audit 계약이다. 오늘의 6-target 은 A0 timebox 예외이며 그 Gate 를 닫지 않는다 — Gate 는 열린 채 남는다.",
+    "limitations_sentence_required": "오늘의 6-target E000_FAST 는 production collector/evidence-chain smoke validation 이며 PHASE_GATES 의 canonical E000_V2_VALIDATED 를 대체하지 않는다."
+  },
+  "stale_notes_currentized": "이전 중간상태의 'adversarial 대기중' · 'ssot V2-C014' · 'open P0 2건' 서술을 현재 감사 결과로 갱신했다. 새 cycle 을 만들지 않았다 — release artifact reconciliation 이다."
 }

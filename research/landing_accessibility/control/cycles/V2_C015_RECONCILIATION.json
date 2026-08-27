@@ -1,0 +1,85 @@
+{
+  "schema": "landing-accessibility-reconciliation-v1",
+  "cycle": "V2-C015",
+  "artifact": "reconciliation",
+  "reconciled_at": "2026-08-27T11:30:00+09:00",
+  "reconciled_by": "control/landing-orchestrator — orchestrator (Claude A)",
+
+  "decision": "PROMOTE",
+  "promotion_authorized": true,
+  "decision_basis": "두 독립감사가 모두 PASS / blocking 0 을 냈고, open_blocking_total 재계산이 0 이며, 재계산의 유일한 차감근거가 감사의 명시적 CLOSED 판정이다. self-approval 없음 — 오케스트레이터는 어떤 finding 도 스스로 닫지 않았다.",
+
+  "target_exec_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+  "target_exec_branch": "agent/landing-v2-exec",
+  "target_exec_cycle_of_origin": "V2-C012",
+  "exec_unchanged_note": "exec 산출물은 V2-C012 이래 바이트 무변경이다. V2-C013~V2-C015 는 control 전용 사이클(승격 게이트 스크립트 하드닝)이었다. 사이클 라벨 V2-C015 는 **감사·reconciliation 라운드**를 가리키며, exec 는 그 라운드에 불변인 채로 참여했다. latest_exec_sha 는 사실 그대로 bc0b7a0 을 가리킨다.",
+
+  "control_sha_reconciled": "b969adbd9b3f127dc82f77c9024d76d81b2bbd90",
+
+  "adversarial": {
+    "cycle": "V2-C015",
+    "audit_sha": "cd7176616d8451d4c95cbce87926ec5db50f09b9",
+    "audit_branch": "audit/landing-adversarial",
+    "verdict": "PASS",
+    "counts": { "P0": 0, "P1": 0, "P2": 0, "blocking": 0 },
+    "target_exec_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "target_control_sha": "418a91ab9211fc4dae5268cc10a551c4219a0d24",
+    "report": "research/landing_accessibility/audit/adversarial/V2_C015.md"
+  },
+
+  "ssot": {
+    "cycle": "V2-C015",
+    "audit_sha": "e71f04da58f1f674bf33fb30d197b34550b36ff4",
+    "audit_branch": "audit/landing-ssot",
+    "verdict": "PASS",
+    "counts": { "P0": 0, "P1": 0, "P2": 3, "blocking": 0 },
+    "target_exec_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "target_control_sha": "b969adbd9b3f127dc82f77c9024d76d81b2bbd90",
+    "report": "research/landing_accessibility/audit/ssot/V2_C015.md"
+  },
+
+  "open_blocking_total": 0,
+  "open_blocking_ids": [],
+  "accepted_bounded_residual_risk": 1,
+  "accepted_residual_ids": [
+    "rc-6-r1-same-authorization-local-reexecution-unbounded — ACCEPTED_BOUNDED_RESIDUAL_RISK. 합계 밖 **명시적 제외**이며 CLOSED 가 아니다. 결함은 그대로 존재하고 blocking 원장에서 운영통제 원장으로 옮겨졌을 뿐이다. C-6 (i) 세 조건(C-1 0dfb6d5 · C-2 56f69f3 · C-5-① 30093b4) 전건 SATISFIED 이므로 V2_SSOT_FROZEN 선언으로 실효되지 않는다. ssot V2-C015 가 9개 지점에서 병기 생존을 실측 확인했다."
+  ],
+
+  "closed_this_cycle": [
+    {
+      "id": "abrr-accepted-by-audit-sha-not-ancestor-checked",
+      "opened_by": "adversarial V2-C013 a97daeb247ecbb2b5146e8b57319455e774c43a5",
+      "closed_by": "adversarial V2-C015 cd7176616d8451d4c95cbce87926ec5db50f09b9",
+      "closure_note": "V2-C014 에서 REMEDIATION_INSUFFICIENT 로 되돌렸던 유일한 사유가 '조상검사의 기준점인 tip 자체가 위조 가능' 이었고, V2-C015 시정으로 그 전제가 소멸했다."
+    },
+    {
+      "id": "abrr-grant-branch-tip-resolved-from-locally-forgeable-tracking-ref",
+      "opened_by": "adversarial V2-C014 2665d98b6312571d4b401652888580cf1534e1f6",
+      "closed_by": "adversarial V2-C015 cd7176616d8451d4c95cbce87926ec5db50f09b9",
+      "closure_note": "근본 원인(로컬 추적 ref 폴백 경로)이 완화가 아니라 코드에서 제거됐다. exploit 4변형 전부 차단 실측."
+    }
+  ],
+
+  "self_approval_check": {
+    "orchestrator_closed_any_finding": false,
+    "note": "차감 2건 모두 adversarial V2-C015 보고서 §6 prior_findings_status 의 명시적 CLOSED 판정이 유일 근거다. ssot V2-C015 가 그 보고서 원문을 독립적으로 꺼내 읽고 판정 존재를 확인했다(오케스트레이터 주장에 의존하지 않음)."
+  },
+
+  "exact_same_target_sha": {
+    "exec_axis": "충족 — 두 감사 모두 bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "control_axis": "문언 미충족 — adversarial 418a91a · ssot b969adb",
+    "adjudication": "REGISTERED_DEVIATION_WITH_EVIDENCE. 근거·잔여위험은 state.json audit_lag.control_sha_divergence_adjudication 에 등재. 승격 스크립트 blob 이 두 SHA 사이 바이트 동일(a35e0bc6a70422e4df1baff0211f39fc6b4b7da0)이며 델타는 원장 JSON 4파일뿐이다.",
+    "raised_by": "ssot V2-C015 (P2, non-blocking) — 감사자가 판정을 오케스트레이터에게 명시적으로 넘겼다"
+  },
+
+  "verification_performed": [
+    "adversarial/ssot 보고서 JSON 을 origin 에서 git show 로 직접 파싱해 verdict·counts·prior_findings_status 확인",
+    "재계산 스크립트가 원격 tip 조상검증·verdict PASS·두 id 명시언급·counts.blocking==0 을 통과해야만 쓰도록 fail-closed 구현, 잘못된 SHA 와 FAIL verdict 거부를 실측 확인",
+    "승격 사전조건 실측: 훅 심링크 유효(core.hooksPath unset) · Pilot diff 0 · exec 워크트리 clean @ bc0b7a0",
+    "promote_landing_main.sh blob 을 두 control SHA 에서 각각 rev-parse 해 바이트 동일 확인"
+  ],
+
+  "backlog_after_collection_note": "비차단 이월 항목은 P0_RELEASE.json 의 backlog_after_collection 에 등재돼 있다. ssot V2-C015 가 낸 P2 3건 중 오케스트레이터 소관 2건(감사 핀 갱신 · gates 서술 stale)은 이 커밋에서 처리했고, 나머지 1건(exact-same-SHA 문언)은 위 adjudication 으로 처리했다.",
+
+  "next_action": "promote_landing_main.sh 를 --dry-run 으로 먼저 실행하고, 통과 시 실제 승격 후 P0_RELEASE.json 의 promoted_main_sha 를 기입해 push 한다."
+}
