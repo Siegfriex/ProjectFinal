@@ -29,17 +29,17 @@ Self-test:  python3 c_terminal_table.py   (exit 0 iff the table's structural inv
 """
 from __future__ import annotations
 
-RULE_ID = "T-A-V3-STEP1-007 R11 (A ruling: companion field + 13-value enum + OTHER needs note; combination table = C proposal)"
+RULE_ID = "T-A-V3-STEP1-007 R11 + T-A-V3-STEP1-027 Δ30 (A ruling: companion field + 14-value enum [BUDGET_EXCEEDED added by Δ30] + OTHER needs note; combination table = C proposal, ABSTAIN × BUDGET_EXCEEDED = A ruled)"
 
 # endpoint_status enum (04_FLOW_CODEBOOK §4, unchanged by R11) — order as in SSOT
 ENDPOINT_STATUSES: tuple[str, ...] = (
     "REACHED", "AUTH_GATE", "PUBLIC_WEB_UNOBSERVABLE", "APP_REQUIRED", "EVIDENCE_DEFECT", "BLOCKED", "ABSTAIN",
 )
-# terminal_reason 13 values (R11 verbatim order)
+# terminal_reason 14 values (R11 verbatim order + Δ30 BUDGET_EXCEEDED)
 TERMINAL_REASONS: tuple[str, ...] = (
     "TIMEOUT", "WAF_BLOCK", "ACTIVE_CHALLENGE", "NO_PUBLIC_MOBILE_WEB", "TASK_SURFACE_ABSENT", "APP_REQUIRED",
     "CONTROL_DISABLED_OR_INERT", "FORBIDDEN_ACTION_REQUIRED", "AUTH_REQUIRED", "EVIDENCE_DEFECT",
-    "REPLAY_BROKEN", "AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER",
+    "REPLAY_BROKEN", "AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER", "BUDGET_EXCEEDED",
 )
 # auth_gate_stage incl. UNDETERMINED (R13)
 AUTH_GATE_STAGES: tuple[str, ...] = ("NONE", "BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "UNDETERMINED")
@@ -56,7 +56,7 @@ _SPECIFIC: dict[str, frozenset[str]] = {
     "EVIDENCE_DEFECT": frozenset({"EVIDENCE_DEFECT", "REPLAY_BROKEN"}),
     "BLOCKED": frozenset({"TIMEOUT", "WAF_BLOCK", "ACTIVE_CHALLENGE", "CONTROL_DISABLED_OR_INERT",
                           "FORBIDDEN_ACTION_REQUIRED"}),
-    "ABSTAIN": frozenset({"AMBIGUOUS_MULTIPLE_CANDIDATES"}),
+    "ABSTAIN": frozenset({"AMBIGUOUS_MULTIPLE_CANDIDATES", "BUDGET_EXCEEDED"}),  # Δ30: 예산 소진 = 관측 없음 (MIN-7)
 }
 # THE table: allowed non-null terminal_reason values per endpoint_status (OTHER on every non-REACHED status).
 TERMINAL_ALLOWED: dict[str, frozenset[str]] = {
@@ -82,7 +82,7 @@ def validate_pair(endpoint_status: str | None, terminal_reason: str | None, note
         if es is not None and es != "REACHED":
             v.append(f"terminal_reason missing for endpoint_status={es} (R11: both fields are mandatory)")
     elif tr not in TERMINAL_REASONS:
-        v.append(f"terminal_reason={tr} not in R11 13-value enum")
+        v.append(f"terminal_reason={tr} not in R11/Δ30 14-value enum")
     if es in TERMINAL_ALLOWED and tr is not None and tr in TERMINAL_REASONS and tr not in TERMINAL_ALLOWED[es]:
         if es == "REACHED":
             v.append(f"impossible combination REACHED × terminal_reason={tr} (REACHED admits null only)")
