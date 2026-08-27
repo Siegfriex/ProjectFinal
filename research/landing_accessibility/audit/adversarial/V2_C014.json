@@ -1,0 +1,340 @@
+{
+ "cycle": "V2-C014",
+ "auditor": "adversarial",
+ "audit_type": "confirmation audit of control's V2-C014 remediation of adversarial V2-C013 P0 (abrr-accepted-by-audit-sha-not-ancestor-checked)",
+ "target_sha_exec": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+ "target_branch_exec": "agent/landing-v2-exec",
+ "target_sha_control": "a10663e893160ca33bd0f9d2b92a3c9867d22f40",
+ "target_branch_control": "control/landing-orchestrator",
+ "prev_control_sha": "17389a27006719a220304e27e921c8ceb8f14770",
+ "prev_adversarial_audit": "V2-C013 FAIL (P0 1 / P1 0 / P2 1) · a97daeb247ecbb2b5146e8b57319455e774c43a5",
+ "audit_branch": "audit/landing-adversarial",
+ "phase": "P0_V2_REFREEZE",
+ "gate": "V2_SSOT_FROZEN",
+ "scope": {
+  "exec_reaudited": false,
+  "exec_note": "exec bc0b7a0 was already audited in V2-C013 and is byte-unchanged; per orchestrator instruction it was NOT re-audited. Only the control delta 17389a2..a10663e and its interactions were audited.",
+  "scope_reduction_received_midaudit": {
+   "authority": "Research Director A0, LA-TB-1630-20260827, new doc §18 P0 STOP RULE",
+   "effect": "original instruction item 4 (open-ended fresh-eyes adversarial search / new exploratory attack generation) CANCELLED",
+   "confirmed_scope": [
+    "1 C013 dangling-grant exploit blocked?",
+    "2 legitimate grant fed3e70 no regression",
+    "3 H-1..H-5 no regression",
+    "4 exec bc0b7a0 unchanged",
+    "5 authority delta consistency"
+   ],
+   "how_applied": "The P0 below was DIRECTLY REPRODUCED while executing scope items 1 and 3 (= original instruction items 2 and 3: replay the C013 dangling-commit exploit, and re-attempt the L-2 combined end-to-end bypass exactly as in V2-C013). It is therefore IN SCOPE, and additionally falls under the STOP RULE's explicit carve-out for directly-reproduced Category A/B/C systemic blockers. Findings that came from the CANCELLED item 4 are recorded as NON-BLOCKING only and were not pursued further (see md §4)."
+  }
+ },
+ "fast_exit": {
+  "applied": true,
+  "blocking_categories_only": [
+   "A measurement-evidence integrity break",
+   "B canonical-promotion bypass via FAIL/stale/wrong authority (including open paths)",
+   "C authoritative measurement-semantics contradiction"
+  ],
+  "which_category_found": "B",
+  "category_b_finding_id": "abrr-grant-branch-tip-resolved-from-locally-forgeable-tracking-ref"
+ },
+ "verdict": "FAIL",
+ "counts": {
+  "P0": 1,
+  "P1": 0,
+  "P2": 1,
+  "blocking": 1
+ },
+ "blocking_note": "One new P0 (Category B). The V2-C014 remediation blocks the LITERAL V2-C013 exploit but does not restore the security property it protected: the declared audit-branch tip is resolved from refs/remotes/origin/<br>, a purely LOCAL ref writable by every agent via `git update-ref` with no push, credentials or network. One extra `git update-ref` reproduces the full V2-C013 §2.3 self-approval bypass end-to-end.",
+ "diff_scope": {
+  "control_files": 3,
+  "control_changed": [
+   "research/landing_accessibility/scripts/promote_landing_main.sh (+142/-25)",
+   "research/landing_accessibility/control/state.json",
+   "research/landing_accessibility/control/cycles/V2_C014_orchestrator.json"
+  ],
+  "exec_files": 0,
+  "pilot_files": 0
+ },
+ "verification_method": {
+  "extraction": "Sliced promote_landing_main.sh's (D) block using its own DR_HEAD_BEGIN/END, DR_D_BEGIN, DR_D_SKIP_BEGIN/END, DR_D_END, DR_D2_BEGIN/END markers -- zero bytes of the script edited, sed/python slicing only. (A)/(C) pinned-report regions skipped exactly as control's own comment prescribes.",
+  "driver": "Executed the extracted namespace, then tally(v2_audit_findings.orchestrator_registered.findings) against a scratch copy of the REAL control/state.json at a10663e, then ran the DR_D2 visibility/lapse code in the same namespace. repo argument = /home/sieg/projects-wsl/ProjectFinal, identical to the hardcoded REPO= at promote_landing_main.sh:91.",
+  "baseline": "Unmodified real ledger PASSES and emits the three genuine condition-evidence verifications (C-1:0dfb6d5, C-2:56f69f3, C-5-1:30093b4), all confirmed ancestors of origin/audit/landing-adversarial."
+ },
+ "scope_item_results": {
+  "1_c013_exploit_blocked": "PARTIAL -- literal replay BLOCKED, but the same end-to-end outcome is reproducible with one additional `git update-ref` (see p0)",
+  "2_legitimate_grant_no_regression": "PASS -- baseline case 00 passes; fed7e70 grant accepted unchanged",
+  "3_h1_h5_no_regression": "PASS -- 23/23 independently re-run cases matched expectation",
+  "4_exec_unchanged": "PASS -- ls-remote origin refs/heads/agent/landing-v2-exec = bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+  "5_authority_delta_consistent": "PASS -- remote control tip == local control worktree HEAD == a10663e; audit_lag pins byte-unchanged in this diff; delta is control-only, exec stationary"
+ },
+ "findings": [
+  {
+   "id": "abrr-grant-branch-tip-resolved-from-locally-forgeable-tracking-ref",
+   "severity": "P0",
+   "fast_exit_category": "B",
+   "state": "OPEN",
+   "blocking": true,
+   "blocking_scope": "V2_SSOT_FROZEN and all future ACCEPTED_BOUNDED_RESIDUAL_RISK grants",
+   "introduced_by_this_diff": "partially -- the local-ref-first resolution order pre-existed in audit_branch_tips() since V2-C012, but V2-C014 extracted it into _resolve_branch_tip() and newly applied it to the top-level accepted_by_audit_branch field, where (unlike the two canonical audit branches) nothing else in the script ever ls-remotes or fetches it.",
+   "statement": "residual_in_force()'s new ancestry check resolves the tip of the finding-declared accepted_by_audit_branch through _resolve_branch_tip(), which reads `git rev-parse refs/remotes/origin/<br>^{commit}` FIRST and, on success, never calls ls-remote. refs/remotes/origin/** is a purely local ref namespace writable by any agent with ordinary local git write access via `git update-ref` -- no push, no credentials, no network. Therefore an attacker fabricates a dangling commit containing a forged verdict JSON, fabricates refs/remotes/origin/audit/landing-<anything> pointing at it, declares that branch in accepted_by_audit_branch, and the ancestry check passes trivially (the forged commit is its own tip). This is the IDENTICAL threat model to V2-C013's P0.",
+   "live_exploit_A_standalone": {
+    "fake_commit_sha": "c64266f2813f7fa10b7fafc4fcd93f9e3a2a3812",
+    "fake_commit_parent": "a97daeb247ecbb2b5146e8b57319455e774c43a5",
+    "fake_commit_path": "research/landing_accessibility/audit/adversarial/FAKE_GRANT_C014.json",
+    "construction": "git hash-object -w + git mktree (tree grafting) + git commit-tree; no ref created or moved",
+    "reachability_check": "git for-each-ref --contains=c64266f2... -> 0 lines; git branch -a --contains -> 0 lines (confirmed)",
+    "ancestor_check_vs_real_branch": "git merge-base --is-ancestor c64266f2... origin/audit/landing-adversarial -> NOT-ANCESTOR (confirmed)",
+    "step_1_literal_c013_replay": "injected as accepted_by_audit_sha with the ORIGINAL branch/report -> BLOCKED by the new check (die: '... origin/audit/landing-adversarial 의 실시간 tip(a97daeb...) 의 조상이 아니다'). The V2-C013 literal exploit is closed.",
+    "step_2_one_extra_update_ref": "git update-ref refs/remotes/origin/audit/landing-c014probe c64266f2...  (verified NOT on origin: `git ls-remote origin refs/heads/audit/landing-c014probe` -> empty)",
+    "step_3_result": "ledger declares accepted_by_audit_branch=audit/landing-c014probe + accepted_by_audit_sha=c64266f2... + accepted_by_audit_report=FAKE_GRANT_C014.json -> (D) block ran to completion, RC=0, forged grant ACCEPTED."
+   },
+   "live_exploit_B_l2_combined_end_to_end": {
+    "description": "Exact re-run of V2-C013 §2.3 (the full self-approval bypass), which control claims is now closed.",
+    "step_1": "patched _ABRR_CANON in the extracted harness with a wholly invented id 'brand-new-p0-finding-self-exempted-c014' (exercising L-2: control can edit the canon)",
+    "step_2": "registered that id in orchestrator_registered.findings as ACCEPTED_BOUNDED_RESIDUAL_RISK with top-level evidence = second dangling commit 0b2cf39f97b01e01fb676856f833bcb96eb13379 (for-each-ref --contains -> 0 lines, confirmed) and accepted_by_audit_branch = audit/landing-c014probe2 (forged local tracking ref, NOT on origin)",
+    "step_3": "per-condition evidence (C-1) reused the GENUINE ancestor-valid 0dfb6d5788631347d4d50793f25d3f689251e1bd -- H-3 passed honestly",
+    "step_4": "visibility counters (accepted_bounded_residual_risk=2, accepted_residual_ids) updated self-consistently",
+    "outcome": "(D) block ran to completion with NO error. RC=0. orch_blocking=0. Output line: \"verified: brand-new-p0-finding-self-exempted-c014 — C-1:0dfb6d5 <= origin/audit/landing-adversarial\". An invented P0 finding, granted by an invented audit adjudication on a branch that does not exist on origin, was excluded from open_blocking_total. SAME RESULT AS V2-C013 §2.3."
+   },
+   "scope_limitation_measured_honestly": {
+    "T6_canonical_tracking_ref_poisoning": "BLOCKED end-to-end. Poisoning refs/remotes/origin/audit/landing-adversarial itself defeats the (D) block in isolation (measured, RC=0), but [AUDIT_ANCESTRY] runs earlier in the same script and does `git fetch origin refs/heads/$br`, which opportunistically restores the tracking ref -- measured directly: poisoned -> fetch -> rev-parse returned the genuine a97daeb. So this variant is NOT live in a full promotion run.",
+    "T4_h3_via_audit_lag_branch_rename": "BLOCKED end-to-end. Renaming audit_lag.latest_adversarial_audit_branch to a forged branch defeats H-3 in isolation (measured, RC=0), but [AUDIT_ANCESTRY] ls-remotes those two branches and fails closed when absent on origin.",
+    "exploit_A_and_B": "LIVE end-to-end. accepted_by_audit_branch is a per-finding field read ONLY by residual_in_force(); grep of the whole 1630-line script shows all 6 occurrences are inside that function / its comments / the required-field list, and the only two `git fetch` calls in the script cover the control branch (line 290) and the two canonical audit branches (line 493). The default refspec is +refs/heads/*:refs/remotes/origin/* and remote.origin.prune is unset, so a forged tracking ref for a branch absent from origin is never created, refreshed, or pruned by any fetch."
+   },
+   "decisive_evidence_the_correct_pattern_is_already_in_the_same_file": {
+    "reference_implementation": "[AUDIT_ANCESTRY], promote_landing_main.sh lines 444-499 (present since V2-C005)",
+    "what_it_does": "line 489 `line=$(git ls-remote origin refs/heads/$br)`; fails closed if empty ('감사 브랜치가 원격에 없다'); tip taken from the ls-remote output; line 493 `git fetch origin refs/heads/$br`; then merge-base --is-ancestor. It NEVER consults refs/remotes/origin/<br>.",
+    "its_own_comment_lines_452_453": "'원격에 실재해야 한다 — **ls-remote 실시간 tip** 을 쓴다. 로컬 origin/… 추적 ref 는 stale 할 수 있고, 감사 보고서가 아직 push 되지 않았다 를 통과시키면 안 된다.'",
+    "the_misdescription": "_resolve_branch_tip()'s docstring claims it uses '[AUDIT_ANCESTRY]/H-3 과 같은 원천·순서 (로컬 원격추적 ref 우선 → ls-remote)'. [AUDIT_ANCESTRY] does not use the local tracking ref at all. The function misdescribes the very reference implementation it cites and is strictly weaker than it. The new die message says '실시간 tip' and the ledger's new machine_check says '원격 브랜치 tip' -- both false, and this is the same overclaim failure mode the ledger itself corrected in V2-C012.",
+    "control_claim_refuted": "control/cycles/V2_C014_orchestrator.json l2_risk_reassessment.residual_risk_still_honest asserts '남는 유일한 경로는 진짜 감사 계보 안의, 그 조건을 실제로 긍정 판정한 커밋 뿐이며 — 이는 정의상 진짜 감사 판정이다.' live_exploit_B refutes this. still_not_blocked.L-7 discloses only the recursion nesting residual; the tip-resolution forgeability is disclosed NOWHERE."
+   },
+   "minimal_remediation": "In _resolve_branch_tip(), invert the order to match [AUDIT_ANCESTRY] lines 489-495: (1) `git ls-remote origin refs/heads/<br>` as the FIRST and ONLY tip source, die immediately if the branch is absent on origin; (2) `git fetch origin refs/heads/<br>` to guarantee object availability; (3) merge-base --is-ancestor against the ls-remote tip. No new algorithm is needed -- the correct code and the reason for it are already in the same file. Also correct the docstring / die message / ledger machine_check wording ('실시간 tip', '같은 원천·순서', '원격 브랜치 tip') to match what the code actually does."
+  },
+  {
+   "id": "abrr-grant-report-scan-accepts-nested-grant-shaped-objects",
+   "severity": "P2",
+   "fast_exit_category": null,
+   "state": "OPEN",
+   "blocking": false,
+   "classification": "PRE_E001_NONBLOCKING",
+   "provenance": "found while executing the SUBSEQUENTLY CANCELLED instruction item 4; recorded as non-blocking only, not pursued further, does not affect the verdict",
+   "statement": "abrr_grant_hits() replaced the previous strict TOP-LEVEL 3-way equality (adj['id']==fid and verdict=='ACCEPT_RECLASSIFY' and new_class==ABRR) with a full-document recursive scan. This is strictly a LOOSENING: any object at any depth whose id/verdict/new_class match now counts as a grant, and accepted_by_audit_report is attacker-chosen, so any JSON file readable at the declared sha is a candidate. The negation vocabulary (_ABRR_ADJ_NEGATE) inspects only verdict and new_class of the same object -- sibling annotations such as {\"outcome\":\"blocked\"} or {\"fabricated\":true} do not neutralize a hit.",
+   "currently_exploitable": "NO (measured). Recursively scanned every research/landing_accessibility/**.json in the tree of origin/audit/landing-adversarial's tip for grant-shaped objects (ACCEPT_RECLASSIFY and new_class==ABRR and no negation vocabulary): exactly 1 hit, and it is the legitimate top-level adjudication in V2_C008_focused.json.",
+   "why_it_matters": "Self-inflicted footgun: the moment an adversarial auditor records an attack payload in a report as a JSON OBJECT rather than a string, that report itself becomes live grant evidence. My own V2_C013.json was safe only incidentally -- it stored the forged payload as a string (fake_commit_content). _ABRR_CANON (L-2) still gates which ids can be granted, so this alone cannot mint a new acceptance. control's still_not_blocked.L-7 discloses only the nesting-order residual, not this angle.",
+   "minimal_remediation": "Restrict recursive hits to the top-level object or to an allowlist of container keys (condition_adjudications / prior_findings_status / findings), or widen the negation check to the serialized form of the whole matched object."
+  }
+ ],
+ "regression_check": {
+  "independently_rerun_by_auditor": true,
+  "case_count": 23,
+  "matched_expectation": 23,
+  "regressions": 0,
+  "note": "Run against the POST-fix code (a10663e) with mutations injected into a copy of the real ledger. Corroborates control's '28 cases, 0 regressions' claim on the overlapping subset; control's case list and mine agree wherever they overlap.",
+  "cases": [
+   {
+    "case": "00-baseline",
+    "expect": "PASSED",
+    "got": "PASSED"
+   },
+   {
+    "case": "N0-compound bare collapse (C-5-1 NOT_SATISFIED + V2_SSOT_FROZEN=ACHIEVED)",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (C-6 lapse)"
+   },
+   {
+    "case": "N1-compound owner exec->control",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-2)"
+   },
+   {
+    "case": "N2 delete condition C-5-1 from both lists",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-1)"
+   },
+   {
+    "case": "N3-compound due_before lowercase",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "N4 due_before null",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-1)"
+   },
+   {
+    "case": "N5 audit_sha garbage 'x'",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-3)"
+   },
+   {
+    "case": "N6-compound gate token 'DECLARED / FROZEN — 선언 완료'",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-4)"
+   },
+   {
+    "case": "N7-compound due_before trailing space",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "N8-compound state SATISFIED_PENDING_AUDIT",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "N9 gates.E001_V2=ACHIEVED with C-3/C-4/C-5-2 genuinely NOT_YET_DUE",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-5)"
+   },
+   {
+    "case": "06 counted_as_open=false without duplicate_of/superseded_by",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "07 ABRR missing accepted_by_audit_sha",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "08 ABRR id absent from _ABRR_CANON",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "09 accepted_residual_ids emptied",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (DR_D2)"
+   },
+   {
+    "case": "10 exclusion_line removed",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (DR_D2)"
+   },
+   {
+    "case": "11 accepted_bounded_residual_risk counter mismatch",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (DR_D2)"
+   },
+   {
+    "case": "12 gates.V2_SSOT_FROZEN key deleted",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-4)"
+   },
+   {
+    "case": "13 superset condition C-7 added",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (H-1)"
+   },
+   {
+    "case": "14 finding_state_vocabulary lapse_rule removed",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "15 precedent_limits_satisfied.i = NO",
+    "expect": "BLOCKED",
+    "got": "BLOCKED (C-6-2)"
+   },
+   {
+    "case": "16 accepted_by_audit_report swapped to an unrelated real report",
+    "expect": "BLOCKED",
+    "got": "BLOCKED"
+   },
+   {
+    "case": "C6 declaration scenario: V2_SSOT_FROZEN=ACHIEVED on the real ledger",
+    "expect": "PASSED (no lapse)",
+    "got": "PASSED"
+   }
+  ],
+  "fresh_eyes_probes_from_cancelled_item_4": [
+   {
+    "probe": "cache cross-contamination between _AUDIT_TIPS and _DECLARED_BRANCH_TIPS",
+    "result": "NO ISSUE -- the two dicts are separate and never reference each other; control's stated reason (short-circuit contamination) is correct"
+   },
+   {
+    "probe": "accepted_by_audit_branch = 'audit/landing-does-not-exist-anywhere'",
+    "result": "BLOCKED (fail-closed)"
+   },
+   {
+    "probe": "accepted_by_audit_branch = 'audit/landing-x/../../heads/main' (regex permits / and .)",
+    "result": "BLOCKED (fail-closed; git refname rules reject '..', ls-remote no match)"
+   },
+   {
+    "probe": "cross-branch mismatch: real sha fed3e70 + real but wrong branch audit/landing-adversarial-codex-c004",
+    "result": "BLOCKED -- matches control's NEW-cross-branch-mismatch case"
+   },
+   {
+    "probe": "_AUDIT_BRANCH_NS regex replacing startswith('audit/landing-')",
+    "result": "STRENGTHENING, not a regression"
+   }
+  ]
+ },
+ "prior_findings_status": [
+  {
+   "id": "abrr-accepted-by-audit-sha-not-ancestor-checked",
+   "from": "adversarial V2-C013 §2",
+   "severity": "P0",
+   "adjudication": "NOT CLOSED — REMEDIATION_INSUFFICIENT",
+   "reasoning": "The literal defect statement ('never calls merge-base --is-ancestor') is factually remediated: the ancestry check now exists and blocks the exact V2-C013 dangling-commit replay (measured, §2.1). However the security property the finding protected -- that ACCEPTED_BOUNDED_RESIDUAL_RISK grant evidence must come from real audit lineage -- is NOT restored, because the ancestry check's reference point (the branch tip) is itself forgeable by the same actor under the same threat model. The end-to-end outcome of V2-C013 §2.3 (an invented finding self-exempted by an invented adjudication) was reproduced verbatim (measured, live_exploit_B). Marking this CLOSED would repeat exactly the V2-C011 §5.4 error I corrected in V2-C013: crediting a check with a strength it does not have.",
+   "successor_finding": "abrr-grant-branch-tip-resolved-from-locally-forgeable-tracking-ref"
+  },
+  {
+   "id": "min-4-dom-order-uniqueness-constraint-references-undefined-document-column",
+   "from": "adversarial V2-C013 §3.3",
+   "severity": "P2",
+   "adjudication": "OPEN (unchanged)",
+   "blocking": false,
+   "reasoning": "exec is byte-unchanged at bc0b7a0 this cycle and control recorded it as PRE_E001_NONBLOCKING backlog without fixing it (control not_done). Not re-litigated; not counted in this cycle's new-finding counts."
+  },
+  {
+   "id": "min-4-dom-order-not-bound-as-schema-field",
+   "from": "adversarial V2-C011",
+   "adjudication": "CLOSED (V2-C013 §3.1), unchanged"
+  },
+  {
+   "id": "min-4-dom-order-residual-attributed-to-min-8",
+   "from": "adversarial V2-C011",
+   "adjudication": "CLOSED (V2-C013 §3.2), unchanged"
+  },
+  {
+   "id": "c-6-lapse-machine-check-bypassable-and-e001-half-unimplemented",
+   "from": "adversarial V2-C011",
+   "adjudication": "CLOSED (V2-C013 §1), reconfirmed by this cycle's 23/23 regression run"
+  }
+ ],
+ "invariants": {
+  "pilot_files_changed": 0,
+  "exec_files_changed": 0,
+  "exec_tip_matches_audited_sha": true,
+  "control_remote_tip_equals_local_head": true,
+  "audit_lag_pins_unchanged_in_diff": true,
+  "canon_and_h1_h5_functions_byte_unchanged": true
+ },
+ "artifacts_cleanup": {
+  "dangling_commits_created": [
+   "c64266f2813f7fa10b7fafc4fcd93f9e3a2a3812",
+   "0b2cf39f97b01e01fb676856f833bcb96eb13379"
+  ],
+  "dangling_commits_reachability_after_test": "git for-each-ref --contains -> 0 lines each (re-verified after testing); never pushed; eligible for natural gc",
+  "forged_tracking_refs_created": [
+   "refs/remotes/origin/audit/landing-c014probe",
+   "refs/remotes/origin/audit/landing-c014probe2",
+   "refs/remotes/origin/audit/landing-adversarial (temporarily repointed, T6 only)"
+  ],
+  "forged_tracking_refs_after_test": "all deleted / restored; final `git for-each-ref refs/remotes/origin/audit/*` shows exactly the 3 genuine refs at their genuine tips (verified)"
+ },
+ "not_done": [
+  "re-audit of exec bc0b7a0 (already audited in V2-C013, unchanged, out of scope by instruction)",
+  "full re-audit",
+  "running promote_landing_main.sh itself (including --dry-run)",
+  "live website access",
+  "reading or modifying Pilot (research/refcohort)",
+  "writing to other worktrees",
+  ".git/hooks/ modification",
+  "untracked draft V2_C004.{md,json} (prior-cycle residue, untouched)",
+  "ssot-scope adjudication",
+  "further pursuit of the cancelled item-4 findings beyond non-blocking registration",
+  "git gc of the dangling probe commits (shared object store in concurrent use; no immediate action needed)"
+ ]
+}
