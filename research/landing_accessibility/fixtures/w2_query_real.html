@@ -1,0 +1,27 @@
+<!doctype html>
+<!--
+FIXTURE: w2_query_real
+검증 대상 (W2 · D-R0-14): QUERY Endpoint("질의가 실제 제출되어 결과 state로 전환된 순간")가
+`data-endpoint`/`body[data-endpoint-reached]` marker 없이, **실제 제출한 질의문이 URL에
+반영됐는지**(URL_PATTERN)만으로 성립하는가. JS 로 상태를 흉내내지 않고 진짜 HTML
+`<form method=get>` GET 제출을 쓴다 — Scout 가 검색창에 `task.query_text`를 채우고 제출
+버튼을 클릭하면 브라우저가 `w2_query_result.html?q=<encoded query_text>` 로 실제 이동한다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>검색 — W2 실신호 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  input{width:100%;box-sizing:border-box;min-height:48px;font-size:16px;
+        border:1px solid #555;border-radius:6px;padding:0 12px}
+  button{margin-top:12px;min-width:88px;min-height:48px;font-size:16px;
+         background:#0b4f9e;color:#fff;border:0;border-radius:6px}
+</style></head>
+<body data-fixture="w2_query_real">
+<h1 style="font-size:20px">W2 실신호 검색</h1>
+<form method="get" action="./w2_query_result.html">
+  <label for="kw">검색어</label>
+  <input id="kw" name="q" type="search" role="searchbox" placeholder="검색어를 입력하세요">
+  <button type="submit">검색</button>
+</form>
+</body></html>

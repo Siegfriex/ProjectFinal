@@ -1,0 +1,30 @@
+<!doctype html>
+<!--
+FIXTURE: captcha_hidden_iframe_only
+검증 대상 (W2 · C-BLOCKER-221347 · D-R0-05 · D-R0-65): **양성 대조군** — 숨겨진/비활성
+reCAPTCHA iframe(display:none, invisible v3 배지)만 있고 어떤 visible/active challenge 도
+없는 상품목록류 랜딩. 이건 실제로 흔하다(쿠팡류 커머스 랜딩이 invisible reCAPTCHA v3 를
+백그라운드에 심어 둔다).
+
+기대: `classify_gate_kind` 가 CAPTCHA 로 RESOLVED 하지 않는다. `gate_observed()` 도
+이 iframe 만으로는 True 가 되지 않는다(구조 신호로 세지 않는다) — 그래서 Scout 는 이 state 를
+gate 로 취급하지 않고 다음 후보를 계속 탐색해야 한다. 0-step CAPTCHA terminal 로 잘리면
+안 된다("아무것도 terminal 로 만들지 않는 구현"이 아니라, 실제로 이 케이스는 terminal 이
+아니어야 하는 것이 맞다 — 음성 픽스처(`captcha_visible_active_challenge.html`)가 반대
+방향을 검증한다).
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>상품목록 (숨김 reCAPTCHA) — W2 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  a{display:block;min-height:48px;line-height:48px}
+  .grecaptcha-badge{visibility:hidden;display:none}
+</style></head>
+<body data-fixture="captcha_hidden_iframe_only">
+<h1 style="font-size:20px">오늘의 상품</h1>
+<ul><li><a href="./w2_real_content_article.html">상품 목록 계속 보기</a></li></ul>
+<!-- invisible v3 배지 iframe — 화면에 어떤 도전과제도 표시하지 않는다 -->
+<iframe class="grecaptcha-badge" src="./stub-google-recaptcha-api.html"
+        title="reCAPTCHA" style="display:none;width:0;height:0;border:0"></iframe>
+</body></html>

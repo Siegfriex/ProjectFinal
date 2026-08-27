@@ -1,0 +1,23 @@
+<!doctype html>
+<!--
+FIXTURE: w2_partial_depth_a
+검증 대상 (W2 · D-R0-20 · depth.py:212-215 결함 시정): CONTENT_OPEN region 이 synthetic
+marker 없이 실제 DOM 구조(`<ul><li><a>` list-container 소속 링크)로 성립하지만, endpoint
+(`<article>` 또는 재생 중 video)는 이 순환 경로 어디에도 없다.
+
+`data-region` / `data-endpoint` 속성을 이 fixture 쌍 전체에서 **의도적으로 쓰지 않는다** —
+region 관측이 marker 가 아니라 `repeated_structure`(l0_probe.js, W2 신규) 실신호만으로
+성립함을 증명해야 하기 때문이다.
+
+예산이 발화해 UNRESOLVED 로 끝나야 하고, 그 상황에서도 NED 는 보존되고(region 관측 지점) IED
+/MPFED 는 NULL 이어야 하며(D-R0-20), region 관측 이후 계속된 step 들은 `depth_segment=IED` 가
+아니라 `UNASSIGNED` 여야 한다 — 이전 구현은 MPFED(NULL)를 `step_count` 로 대체해서 그 step
+들을 잘못 `IED` 로 라벨링했다.
+-->
+<html lang="ko"><head><meta charset="utf-8"><title>목록 A — W2 픽스처</title>
+<style>body{margin:0;padding:16px;font-family:system-ui,sans-serif}
+a{display:block;min-height:48px;line-height:48px}</style></head>
+<body data-fixture="w2_partial_depth_a" data-archetype="CONTENT_OPEN">
+<h1 style="font-size:20px">목록 A</h1>
+<ul><li><a href="./w2_partial_depth_b.html">목록 B 로</a></li></ul>
+</body></html>
