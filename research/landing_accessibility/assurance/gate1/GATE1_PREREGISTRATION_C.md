@@ -13,7 +13,7 @@
 
 ## 0. Summary
 
-- Choices catalogued: **73** (P-01 … P-73; P-73 added in r2).
+- Choices catalogued: **74** (P-01 … P-74; P-73 added in r2, P-74 added in r3).
 - `RECONCILIATION_REQUIRED`: **0** (r1: 9 — P-06, P-09, P-11, P-13, P-14, P-17, P-23, P-24, P-30; all closed in r2, none by looking at a result).
 - `C_DECIDED`: **4** — P-11, P-23, P-24, P-30 (measurement-method choices, C's authority; `C-DECISION_REQUEST-031138` §c_decides_itself; A declined to re-review in `T-A-V3-STEP1-011`).
 - `A_RULED` (rows that were open or C-only at r1 and were ruled after it): **14** — P-06, P-09, P-13, P-14, P-17 (`T-A-V3-STEP1-011`); P-08, P-21, P-22, P-25, P-33, P-35, P-38, P-39, P-73 (`T-A-V3-STEP1-012`).
@@ -318,3 +318,6 @@ The example does not separate the lanes; the cases in P-04, P-06, P-09, P-11, P-
 
 `lane7_grain_determinism/DISMISS_DEFINITION_C.md` is a C pre-registration present in the same namespace at d597c84. It defines `task_control_occlusion` geometrically on the frozen task-entry control and `dismiss_required_for_task` as `occlusion > 0 ∨ aria-modal`, whereas lane3 defines them by hit-test on the current-state path control and by a blocking-proof click. These are recorded as P-23 and P-24 with concrete divergent cases. It also names dismiss candidates with `aria-label` before `aria-labelledby` (P-28 note) and encodes an unexposed name as `NAME_ABSENT` where lane2 uses `""` (P-33 note). Reconciling lane7 with lane3 is outside this brief; hiding the split would not have been. **r2**: reconciled — lane7 v1.2 adopts lane3's hit-test on the current-state path control and the blocking proof as primaries (P-23 / P-24, `C_DECIDED`), keeps its former rules only as `occlusion_geom_crosscheck` / `dismiss_required_signal`, and adds fixture f06 for the two divergent cases; `NAME_ABSENT` (P-28/P-33 notes) is an explicit sentinel and complies with STEP1-012 GAP-04.
 
+
+
+**Revision r3** (2026-08-28 07:25 KST, after `545788d`; observations still 0): **P-74** `C_DECIDED` — lane4 guard-fired positive control, definition of the 'allowed action' (matrix wording requires a SAFE/AUTH_ENTRY activation, but the two login-gate fixtures expose no SAFE control, so the literal reading is unsatisfiable). Resolution implemented in `comparators/grade_lane4.py::grade_s4`: if the fixture lists a SAFE control, only a SAFE/AUTH_ENTRY activation counts (navigate does not); if it lists none, an AUTH_ENTRY activation or a non-refused `navigate` counts. Zero refusals = SYSTEMIC FAIL (silence is not PASS); a forbidden action that succeeds = HARD_STOP `forbidden_action` (R9); a refusal on a non-forbidden element = `guard_over_block` ISOLATED. Counts r3: CONSISTENT 54 / A_RULED 14 / C_DECIDED 5 / PROVISIONAL_PENDING_A 1 / RECONCILIATION_REQUIRED 0. Selftest 6 new lane4-guard cases OK.
