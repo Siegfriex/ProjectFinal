@@ -1446,9 +1446,53 @@
    "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 35
+  },
+  {
+   "id": "Δ46-R40",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**실패 시 동작의 실증은 도구 sha 에 묶는다.** 별도 실증기가 **격리 사본**에서 변형 실행하고 sidecar 에 **그때의 도구 sha256** 을 남기며, 산출은 그 sha 가 현재 도구와 같을 때만 `valid_for_this_commit: true`. 측정 대상은 **exit 이 아니라 산출 파일의 sha 변화** — **exit 은 파일에 남지 않는다**",
+   "must_appear_in": "대조를 완료조건으로 거는 모든 도구",
+   "C_check": "Δ46/R40: C 하네스에 '대조 실패 시 무기록' 실증을 도구 sha 에 묶는 sidecar 를 R38 작업 후 추가 예정(D-020 C ACK 에서 접수) — 현재 C 도구 중 r32_inventory 는 selftest S3 로 실증만, sidecar 없음 → PARTIAL",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 36
+  },
+  {
+   "id": "Δ46-declared",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "`R35` 셋째 요소는 **'산출을 쓰지 않는다' 를 일률로 요구하지 않는다.** 실패 동작은 도구마다 다르다(방화벽은 지우지 않고 `CONTROL_FAIL` 로 기록하고 exit 2 — 감사 흔적 보존). **각 도구가 선언한 실패 동작을 그 선언대로 실증한다**",
+   "must_appear_in": "각 도구의 sidecar",
+   "C_check": "Δ46/R40: C 하네스에 '대조 실패 시 무기록' 실증을 도구 sha 에 묶는 sidecar 를 R38 작업 후 추가 예정(D-020 C ACK 에서 접수) — 현재 C 도구 중 r32_inventory 는 selftest S3 로 실증만, sidecar 없음 → PARTIAL",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 36
+  },
+  {
+   "id": "Δ46-exit2",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**미실행과 실패는 다른 exit 이어야 한다.** 크래시는 `exit 2` + '검사가 돌지 않았다. 통과로도 실패로도 읽지 마라'. `exit 1` 은 '검사가 돌아서 실패' 전용이다 — 같으면 **미실행과 실패가 같은 출력**이 된다",
+   "must_appear_in": "A 의 검사기·가드 · 각 평면 도구",
+   "C_check": "Δ46/R40: C 하네스에 '대조 실패 시 무기록' 실증을 도구 sha 에 묶는 sidecar 를 R38 작업 후 추가 예정(D-020 C ACK 에서 접수) — 현재 C 도구 중 r32_inventory 는 selftest S3 로 실증만, sidecar 없음 → PARTIAL",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 36
+  },
+  {
+   "id": "Δ46-casename",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**대조 사례의 이름도 주장이다**(`R36`). 이름이 실증한 것과 다르면 sidecar 를 읽는 쪽이 **없는 실증을 있는 것으로** 읽는다. A 가 크래시를 `positive_control_fail` 로 이름 붙였던 것이 실례다",
+   "must_appear_in": "모든 대조 sidecar",
+   "C_check": "Δ46/R40: C 하네스에 '대조 실패 시 무기록' 실증을 도구 sha 에 묶는 sidecar 를 R38 작업 후 추가 예정(D-020 C ACK 에서 접수) — 현재 C 도구 중 r32_inventory 는 selftest S3 로 실증만, sidecar 없음 → PARTIAL",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 36
   }
  ],
- "index_version": 35,
+ "index_version": 36,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1493,5 +1537,6 @@
  "index_sha256_v33": "a63fb04f344a163f4147efb15ac8e7de1e828b8fa3fe4c9ead0310dc094297c2",
  "index_sha256_v34": "b33a73cfb12b93afbe290b9e0ccec57376d2734f7ec7cb4ac20f9caeb9bf30d4",
  "index_sha256_v35": "f3ec3fb90deab9cee3717878fa1e019905ee8e8d656d34ada67000f95392e804",
- "read_from": "origin/control/landing-orchestrator after fetch (R39)"
+ "read_from": "origin/control/landing-orchestrator after fetch (R39)",
+ "index_sha256_v36": "c751759319ddd3ee86024336bb6d7f5bea8d436dc7d5a3257b0b2acd1a23b3eb"
 }
