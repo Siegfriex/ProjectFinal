@@ -75,16 +75,54 @@ BASE_ENGINE_SHA256 = {
 }
 
 
-def test_this_lane_does_not_touch_the_engine() -> None:
-    """가산성의 가장 강한 형태 — 기존 수집기가 **바이트 동일**이다.
+#: `BASE_ENGINE_SHA256` 의 기준 커밋. sha 동등성 검사가 가산 검사로 좁혀진 뒤에도
+#: **비교 기준이 어디인지**는 남아야 한다. `HEAD` 를 쓰면 커밋 뒤에 diff 가 비어
+#: 조용히 통과한다.
+ENGINE_SHA_BASE_COMMIT = "7c5ae70"
 
-    "기존 출력이 안 변한다" 를 회귀 수로 논증할 필요가 없다. 입력이 그대로면 출력도
-    그대로다. 이 테스트가 깨지면 이 lane 이 소유하지 않은 파일을 고쳤다는 뜻이다.
+
+def test_this_lane_does_not_touch_the_engine() -> None:
+    """engine 변경은 **가산만** 허용된다 (`Δ36` ④ 로 다시 좁힘 — 지운 것이 아니다).
+
+    ## 무엇이 바뀌었나
+
+    원래 주장은 *"기존 수집기가 **바이트 동일**이다"* 였고 근거는 sha256 이었다.
+    `Δ36` ④ 가 **다른 lane(W5O)에** `l0_probe.js` 가산을 명시적으로 허용했다 —
+    `[Δ36 인용]` *"`l0_probe.js` 에 구조 신호를 추가하는 것은 `Δ20` 이 이미 허용한
+    범주다(가산적·회귀 전건 통과·포착 스택 신원 기록)."*
+
+    그래서 sha 동등성은 더 이상 참이 아니다. 하지만 이 테스트가 **실제로 지키려던 것**
+    — *"입력이 그대로면 기존 출력도 그대로다"* — 는 그대로 지킬 수 있다:
+    `git diff --numstat` 의 **삭제 열이 0** 이면 기존 줄이 하나도 지워지거나 바뀌지
+    않았다는 뜻이고, 그러면 기존 키의 출력은 정의상 같다.
+
+    `l0_collector.py` 는 **여전히 바이트 동일**을 요구한다 — W5O 가 그 파일은 고치지
+    않았고(가산조차 필요 없었다: `raw_features` 가 probe 산출을 키 필터 없이 그대로
+    통과시킨다), 그 사실이 여기서 회귀로 고정된다.
     """
+    import subprocess
+
     engine = RESEARCH / "src" / "landing_accessibility" / "engine"
-    for name, expected in BASE_ENGINE_SHA256.items():
-        actual = hashlib.sha256((engine / name).read_bytes()).hexdigest()
-        assert actual == expected, f"{name} 이 base 와 다르다 — 이 lane 은 engine 을 고치지 않는다"
+    for name, base_sha in BASE_ENGINE_SHA256.items():
+        relative = f"research/landing_accessibility/src/landing_accessibility/engine/{name}"
+        proc = subprocess.run(
+            ["git", "diff", "--numstat", ENGINE_SHA_BASE_COMMIT, "--", relative],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        out = proc.stdout.strip()
+        if not out:
+            # 변경이 아예 없다 — 가장 강한 형태. sha 도 그 값이어야 한다(양성 대조).
+            actual = hashlib.sha256((engine / name).read_bytes()).hexdigest()
+            assert actual == base_sha, f"{name}: git 은 무변경인데 sha 가 다르다"
+            continue
+        added, deleted, _ = out.split("\t", 2)
+        assert deleted == "0", (
+            f"{name} 에서 {deleted} 줄이 삭제/변경됐다 — engine 변경은 **가산만** "
+            f"허용된다 (Δ20 · Δ36 ④). 추가: {added}"
+        )
 
 
 def test_this_lane_ships_no_second_enumerator() -> None:

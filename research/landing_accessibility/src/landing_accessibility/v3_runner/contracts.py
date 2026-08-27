@@ -197,3 +197,18 @@ class FlowStep:
     #:    ``activation_depth`` 가 조용히 ``None`` 으로 접힌다 — 그것은 결측이 아니라
     #:    배선 누락이다 (W5K SEAM 2).
     input_mode: str | None = None
+    #: `Δ36` ④ (A) — 이 step 의 ``action_token`` 이 **구조 신호로 확정된 값인가**.
+    #: ``"DETERMINED"`` / ``"UNDETERMINED"`` 두 값이며 정본 어휘는
+    #: ``runner.TOKEN_DETERMINACY_VALUES`` 다.
+    #:
+    #: ``UNDETERMINED`` 는 "토큰을 못 정했다" 가 아니라 **"구조 신호가 여러 토큰 사이를
+    #: 가르지 못했다"** 는 관측이다. ``action_token`` 에는 보수적 canonical 값이 그대로
+    #: 들어 있고(안전 검사·분기 집합 검사가 그것을 요구한다), 달라지는 것은
+    #: ``flow.normalize_flow`` 가 그 경로의 ``activation_depth`` 를 산출하지 않는다는
+    #: 것이다 — `Δ36` *"분류 불가한 토큰이 남으면 그 target 의 activation_depth 는
+    #: 산출하지 않고 UNDETERMINED 다"*.
+    #:
+    #: 기본값이 ``DETERMINED`` 인 이유: 손으로 토큰을 지정한 호출부(테스트·replay 계약)는
+    #: 확정 지정이다. 추론으로 얻은 토큰만
+    #: ``scout_strategy._classify_action_token_with_determinacy`` 가 낮춘다.
+    token_determinacy: str = "DETERMINED"

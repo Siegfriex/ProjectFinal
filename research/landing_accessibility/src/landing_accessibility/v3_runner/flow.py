@@ -150,6 +150,7 @@ from dataclasses import dataclass
 # 로컬 정의 제거를 여기서 수행한다. `input_mode` 는 이 lane 이 추가했고 A 가 승인해
 # 정본에 반영됐다 — 필드 이름·순서는 그대로다.
 from .contracts import FlowStep
+from .runner import TOKEN_DETERMINACY_DETERMINED
 
 __all__ = [
     "ACTION_ABSTAIN",
@@ -346,6 +347,10 @@ class FlowNormalization:
     #: CONDITIONAL 3종의 관측별 귀속 판정 기록 (A Δ9). 비어 있으면 그 run에
     #: CONDITIONAL 토큰이 없었다는 뜻이다.
     depth_conditional_tokens: tuple[DepthConditionalRecord, ...] = ()
+    #: A Δ36 ④ / Δ37 과 같은 규율 — `activation_depth is None` 의 **사유**.
+    #: 사유 없는 `None` 은 "못 쟀다" 로 읽히고, 사유가 있어야 "재지 않기로 했다"
+    #: 또는 "확정 불능이었다" 가 된다. 값이 나온 run 에서는 `None` 이다.
+    activation_depth_undetermined_reason: str | None = None
 
 
 # `auth_gate_stage` 값 (04 §4). action_token 층과 문자열이 겹치지 않는
@@ -415,6 +420,9 @@ def normalize_flow(steps: Sequence[FlowStep]) -> FlowNormalization:
             forced_dismissal_count=None,
             auth_gate_stage=AUTH_STAGE_UNDETERMINED,
             depth_conditional_tokens=conditional_records,
+            activation_depth_undetermined_reason=(
+                "빈 sequence 또는 action_token=ABSTAIN — 확정 경로가 아니다 (KL-03/KL-04)"
+            ),
         )
 
     endpoint_idx = _first_endpoint_index(steps)
@@ -428,8 +436,29 @@ def normalize_flow(steps: Sequence[FlowStep]) -> FlowNormalization:
     # CONDITIONAL 3종은 입력수단으로 따로 판정한다(Δ9). 한 건이라도 판정
     # 불능이면 합계가 확정되지 않으므로 None이다 — 모르는 것을 0으로 세면
     # 그 자체가 과소측정이다.
-    if any(rec.included_in_activation_depth is None for rec in conditional_records):
+    #
+    # A Δ36 ④ — 세 번째 산출 불능 경로. 토큰 자체가 구조 신호로 확정되지 않았으면
+    # 그 경로의 depth 는 산출하지 않는다. 부분값이나 0 을 내지 않는다.
+    # `[Δ36 인용]` *"분류 불가한 토큰이 남으면 그 target 의 activation_depth 는
+    # 산출하지 않고 UNDETERMINED 다."*
+    undetermined_steps = tuple(
+        s.step_index
+        for s in steps
+        if getattr(s, "token_determinacy", TOKEN_DETERMINACY_DETERMINED)
+        != TOKEN_DETERMINACY_DETERMINED
+    )
+    activation_depth_undetermined_reason: str | None = None
+    if undetermined_steps:
         activation_depth: int | None = None
+        activation_depth_undetermined_reason = (
+            f"step_index={list(undetermined_steps)} 의 action_token 이 구조 신호로 "
+            "확정되지 않았다 — 확정되지 않은 토큰을 센 depth 는 허위 정밀도다 (Δ36 ④)"
+        )
+    elif any(rec.included_in_activation_depth is None for rec in conditional_records):
+        activation_depth = None
+        activation_depth_undetermined_reason = (
+            "CONDITIONAL 토큰의 activation_depth 귀속이 판정 불능이다 (Δ9 / KL-16)"
+        )
     else:
         activation_depth = sum(1 for t in experienced if t in ACTIVATION_TOKENS) + sum(
             1 for rec in conditional_records if rec.included_in_activation_depth
@@ -446,10 +475,20 @@ def normalize_flow(steps: Sequence[FlowStep]) -> FlowNormalization:
     # endpoint 신호가 없으면(gate terminal·중단) 관측된 sequence 전체가
     # "endpoint 전"이다 — gate 이전 reveal이 그대로 잡힌다(R2).
     endpoint_cut = len(experienced) if endpoint_idx is None else endpoint_idx
-    menu_dependency = _menu_dependency(experienced[:endpoint_cut], has_terminal)
+    # A Δ36 ④ — 토큰 신원이 확정되지 않았으면 **부정 주장**을 할 수 없다.
+    # "reveal 이 없었다"(False)는 모든 토큰이 무엇인지 알아야 할 수 있는 말이다.
+    # 반대로 reveal 을 실제로 **봤다**(True)는 양성 관측이라 그대로 산다 — Δ10 이
+    # `has_terminal` 로 한 처리와 같은 비대칭이다.
+    tokens_determined = not undetermined_steps
+    menu_dependency = _menu_dependency(
+        experienced[:endpoint_cut], has_terminal and tokens_determined
+    )
 
     # 04 §5: nav_container_depth = task control 노출 전 nested reveal 수.
-    nav_container_depth = _nav_container_depth(experienced, has_terminal)
+    # 신원 미확정 토큰이 섞이면 그 수를 셀 수 없다 — 미확정 토큰이 reveal 일 수도 있다.
+    nav_container_depth = (
+        _nav_container_depth(experienced, has_terminal) if tokens_determined else None
+    )
 
     # 03 §9 / 04 §4: task 진행에 실제 필요했던 dismissal 수.
     # action_token=DISMISS_OBSTRUCTION의 정의 자체가 "task path 진행에 필수인
@@ -468,6 +507,7 @@ def normalize_flow(steps: Sequence[FlowStep]) -> FlowNormalization:
         forced_dismissal_count=forced_dismissal_count,
         auth_gate_stage=auth_gate_stage,
         depth_conditional_tokens=conditional_records,
+        activation_depth_undetermined_reason=activation_depth_undetermined_reason,
     )
 
 

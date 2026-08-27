@@ -55,7 +55,7 @@ from __future__ import annotations
 
 import dataclasses
 import sys
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
@@ -164,9 +164,21 @@ def bind_task_definition(task_contract: TaskContract) -> TaskDefinition:
     `region_definition`은 V3 계약에 대응 개념이 없다(V3 는 endpoint_contract
     만 갖는다, `03 §4`) — `None`으로 둔다. `TaskDefinition.mapping_frozen_
     allowed()`는 그래서 `region_signal_type`이 채워지지 않는 한 `False`이고,
-    NED(영역 도달 최소 activation 수)는 이 경로에서 항상 `NULL`이 된다 —
-    지어내지 않는다(`D-R0-09`와 같은 원칙). endpoint_contract 는 존재하므로
-    IED/MPFED 산출 경로(`detect_endpoint_signal`)는 그대로 동작한다.
+    `NED` 는 이 경로에서 항상 `NULL`이 된다 — 지어내지 않는다(`D-R0-09`와 같은
+    원칙). endpoint_contract 는 존재하므로 v2 engine 의 IED/MPFED 산출 경로
+    (`detect_endpoint_signal`)는 그대로 동작한다.
+
+    .. note:: **`NED`/`IED`/`MPFED` 라는 이름의 뜻 — v2.1 의 것이고 v3 의 주장이 아니다.**
+
+       **v2.1 에서** 이 이름들은 *"영역/endpoint 도달에 필요한 최소 activation 수"* 를
+       뜻했다. 그 정의는 v2.1 의 것이며 **v3 는 그 주장을 하지 않는다** (`Δ36` ① —
+       v3 의 탐색은 탐욕적 하강이고 최소성을 주장하지 않는다). `SSOTV3` 21 파일 어디에도
+       이 세 이름의 정의가 없다(A 실측, `Δ37`).
+
+       그래서 `Δ37` 이 판정했다 — v3 관측 행은 이 컬럼을 **`NULL`** 로 두고
+       `legacy_depth_null_reason` 을 함께 싣는다(`runner.LEGACY_DEPTH_NULL_REASON`).
+       위 문장의 "최소" 는 **v2.1 의 정의를 인용한 것**이지 v3 산출에 대한 진술이
+       아니다 — 이 서술을 지우면 왜 `NULL` 인지가 코드에서 사라진다.
     """
     archetype_raw = _tc_get(task_contract, "legacy_archetype") or _tc_get(
         task_contract, "archetype"
@@ -213,17 +225,29 @@ class PathSelectionPolicy:
 
     name: str
     sort_key: Callable[[dict[str, Any]], tuple[Any, ...]]
+    #: `Δ36` part4 — 선언된 전순서. path manifest 의 `candidate_nomination_rule` 이
+    #: 이 값을 읽는다(`runner._observed_nomination_rule`). 비어 있으면 runner 는
+    #: `NOT_OBSERVABLE_FROM_INJECTED_IMPLEMENTATION` 을 적는다 — 지어내지 않는다.
+    total_order: tuple[str, ...] = ()
 
 
 #: **v2 정책** — `min4_sort_key`를 그대로 감싼다(재구현하지 않는다). 1차 키가
 #: `marked_primary` 라서 **v3 의 기본값이 아니다**(`Δ30` 이 그 키를 퇴역시켰다).
 #: v2 산출과 대조할 때만 명시적으로 주입해서 쓴다.
-MIN4_POLICY = PathSelectionPolicy(name="MIN-4", sort_key=min4_sort_key)
+MIN4_POLICY = PathSelectionPolicy(
+    name="MIN-4",
+    sort_key=min4_sort_key,
+    total_order=("marked_primary desc", "dom_order asc", "selector asc"),
+)
 
 #: **v3 기본 정책** (`Δ30`) — `(task_binding_candidate desc, dom_order asc, selector asc)`.
 #: `tiebreak.py` 가 정본이고 여기서는 감싸기만 한다. 1차 키 소스가 트리에 없다는 측정
 #: 사실은 `TASK_BINDING_CANDIDATE_SOURCE_ABSENT` 에 적혀 있다.
-V3_TIEBREAK_POLICY = PathSelectionPolicy(name="Δ30-V3-TIEBREAK", sort_key=v3_tiebreak_sort_key)
+V3_TIEBREAK_POLICY = PathSelectionPolicy(
+    name="Δ30-V3-TIEBREAK",
+    sort_key=v3_tiebreak_sort_key,
+    total_order=V3_TIEBREAK_TOTAL_ORDER,
+)
 
 #: `Δ30` 승계 이후 v3 경로선택의 기본값. **`MIN4_POLICY` 가 아니다.**
 DEFAULT_V3_PATH_POLICY = V3_TIEBREAK_POLICY
@@ -432,6 +456,55 @@ def discover_task_candidates(
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# `Δ36` ② — v3 는 v2 의 전순서로 고른 경로를 받지 않는다
+# ══════════════════════════════════════════════════════════════════════════
+class V3PathOrderDivergenceError(RuntimeError):
+    """`Δ36` ② — v2 Scout 의 내부 전순서가 v3 의 전순서와 **갈리는** 후보 집합이다.
+
+    ## 왜 예외인가 — 고칠 수 있는 자리가 여기뿐이다
+
+    `[Δ36 인용]` *"`min4_sort_key` 의 1차 키를 바꾸면 v2 BFS 분기 순서가 바뀌어 v2 산출의
+    재현성이 깨진다. 건드리지 않는다."* / *"v3 의 경로 선택은 v3 의 tiebreak 을 쓴다. …
+    시정 방향은 v2 변경이 아니라 **v3 가 자기 것을 쓰게 하는 것**이다."*
+
+    **B 실측**: `Scout._activation_candidates` 는 `@staticmethod` 이고 `min4_sort_key` 를
+    본문에서 직접 부른다 — 인자로도 속성으로도 주입점이 없다. 그래서 "v3 가 자기 것을
+    쓰게" 하는 방법은 두 가지뿐이다: (a) `l1_engine.py` 를 고친다 → `Δ36` 이 금지했다,
+    (b) **v3 가 v2 순서로 고른 경로를 받지 않는다** → 이것이다.
+
+    `[Δ36 인용]` *"`ruling_10` 위반 여부: **발산이 남으면 위반이다.**"* 그래서 조용히
+    통과시키지 않는다. 발산하지 않는 후보 집합에서는 이 예외가 나지 않고 `Scout` 가
+    그대로 돈다 — 두 순서가 같을 때 v2 경로를 쓰는 것은 v3 순서를 쓰는 것과 같다.
+
+    ## 관측 손실이 아니다
+
+    이 예외가 나도 `discover_task_candidates` 의 후보 열거와 guard 판정은 **이미 끝나
+    있고**, 호출부가 그것을 받는다. 잃는 것은 v2 순서로 밟은 경로 하나뿐이다.
+    """
+
+
+def path_order_divergence(
+    raw_candidates: Sequence[Mapping[str, Any]],
+    *,
+    policy: PathSelectionPolicy,
+) -> tuple[list[str], list[str]] | None:
+    """v2 전순서와 v3 전순서가 이 후보 집합에서 **갈리는가**. 갈리면 두 순서를 돌려준다.
+
+    비교는 `selector` 열로 한다 — 두 정렬이 실제로 다른 후보를 1위로 올리는지가
+    질문이고, 키 튜플의 모양이 아니다.
+
+    `None` 이면 두 순서가 같다. 그때는 v2 Scout 을 타도 v3 가 골랐을 경로와 같은
+    경로가 나온다 — `Δ36` 이 막는 발산이 성립하지 않는다.
+    """
+    usable = [dict(c) for c in raw_candidates if c.get("selector")]
+    if len(usable) < 2:
+        return None
+    v2_order = [str(c["selector"]) for c in sorted(usable, key=min4_sort_key)]
+    v3_order = [str(c["selector"]) for c in sorted(usable, key=policy.sort_key)]
+    return None if v2_order == v3_order else (v2_order, v3_order)
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # Scout 바인딩 — freeze(l1_engine.py) 를 읽기전용으로 호출한다
 # ══════════════════════════════════════════════════════════════════════════
 @dataclass(frozen=True)
@@ -504,6 +577,21 @@ def run_task_aware_scout(
             manifest=None,
         )
 
+    # `Δ36` ② — v2 Scout 의 하드코딩된 `min4_sort_key` 가 v3 전순서와 갈리는 후보
+    # 집합이면 여기서 멈춘다. Scout 를 만들기 **전에** 본다 — 만든 뒤에 보면 이미 v2
+    # 순서로 분기한 뒤다.
+    divergence = path_order_divergence(raw_candidates, policy=resolved_policy)
+    if divergence is not None:
+        v2_order, v3_order = divergence
+        raise V3PathOrderDivergenceError(
+            f"task_id={task_id!r} fixture={fixture_name!r} 의 후보 집합에서 v2 Scout 의 "
+            f"전순서와 v3 전순서({resolved_policy.name})가 갈린다. "
+            f"v2(min4)={v2_order[:5]} / v3={v3_order[:5]}. "
+            "Scout 내부 tie-break 은 l1_engine.py 에 하드코딩돼 있어 주입할 수 없고, "
+            "그 파일은 v2 재현성 때문에 고치지 않는다 (Δ36 ②). v3 는 v2 순서로 고른 "
+            "경로를 자기 산출로 받지 않는다 — 발산이 남으면 ruling_10 위반이다."
+        )
+
     scout = Scout(
         fixture_root=fixture_root,
         budget=resolved_budget,
@@ -534,7 +622,9 @@ __all__ = [
     "TaskContract",
     "TaskContractLike",
     "TaskDiscoveryResult",
+    "V3PathOrderDivergenceError",
     "bind_task_definition",
     "discover_task_candidates",
+    "path_order_divergence",
     "run_task_aware_scout",
 ]

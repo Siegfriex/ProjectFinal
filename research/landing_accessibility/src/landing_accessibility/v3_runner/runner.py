@@ -68,6 +68,9 @@ from .evidence import (
     sha256_of_bytes,
 )
 from .terminal import (
+    ALLOWED_ENDPOINT_STATUS_REASONS as _ALLOWED_ENDPOINT_STATUS_REASONS,
+)
+from .terminal import (
     EndpointStatus as TerminalEndpointStatus,
 )
 from .terminal import (
@@ -79,6 +82,12 @@ from .terminal import (
 from .terminal import (
     validate_status_reason as terminal_validate_status_reason,
 )
+
+
+def terminal_allowed_reasons(status: TerminalEndpointStatus) -> frozenset[TerminalReason | None]:
+    """`Δ36` ③ — 조합표를 **읽기만** 한다. 정본은 `terminal.py` 이고 여기서 재구현하지 않는다."""
+    return _ALLOWED_ENDPOINT_STATUS_REASONS[status]
+
 
 # ---------------------------------------------------------------------------
 # RECONCILIATION SEAM — 닫혔다 (W5K, A 판정)
@@ -214,6 +223,122 @@ ENDPOINT_STATUS_VALUES: frozenset[str] = frozenset(
 
 PATH_MANIFEST_VERSION = "v3.0"
 
+# ---------------------------------------------------------------------------
+# `Δ36` ① — 탐색 방식은 산출에 **기재**되고, "최소" 는 주장하지 않는다
+# ---------------------------------------------------------------------------
+
+#: `Δ36` ① 축자. path manifest 의 **필수 필드**이며 값은 이 문자열 그대로다.
+#:
+#: `[Δ36 인용]` *"탐욕적 하강 + 선언된 전순서는 결정성과 균일성을 만족한다. 최소성만
+#: 만족하지 못한다. 그리고 v3 는 최소성을 주장하지 않는다."* / *"산출 표기 —
+#: `search_strategy: "greedy_descent_with_declared_total_order"` 를 path manifest 에
+#: **필수 기재**"*
+#:
+#: `V3Runner._scout_path` 가 실제로 하는 일이 이것이다 — `while` 단일 경로에서 매 회
+#: 랭킹 1위 하나를 받아 내려간다. 되돌아가지 않고 폭을 열지 않는다.
+SEARCH_STRATEGY = "greedy_descent_with_declared_total_order"
+
+#: `Δ43`(`T-A-V3-FC-006`) — `SSOTV3 03 §5` **개정본**. 원본 `03 §5` 는 Scout 을
+#: *"최소 허용 path 를 발견한다"* 로 정의했고, `Δ36` ① 의 면제 근거("v3 는 최소성을
+#: 주장하지 않는다")가 그 정본 문장과 어긋났다. `Δ43` 이 **면제 결론은 유지하고 근거를
+#: 교체하며 정본을 명시 개정**했다.
+#:
+#: **`03 §5` 를 인용하는 곳은 이 개정본을 함께 인용한다** (`Δ43` 인용 규칙).
+#: SSOTV3 원본 파일과 `ssot_snapshot/` 은 이 저장소에서 고치지 않는다 — 개정은 delta 가
+#: 갖고, 코드는 delta 를 인용한다.
+SSOT_03_S5_SCOUT_REVISED = (
+    "03 §5 Scout(Δ43 개정본) — 사전지정 task endpoint 까지 **선언된 결정론적 정책이 "
+    "발견한** 허용 path 를 찾는다. **최소성을 주장하지 않는다.** path manifest 에 "
+    "search_strategy 를 필수 기재한다. **경로 미발견은 경로 부재가 아니며** "
+    "policy_relative: true 로 기록한다. 각 activation 마다 before/after evidence 를 "
+    "저장한다."
+)
+
+# ---------------------------------------------------------------------------
+# `Δ43` / `R37` — 경로 미발견은 경로 부재가 아니다
+# ---------------------------------------------------------------------------
+
+#: 탐색 국면이 어떻게 끝났는가. `terminal_reason` 과 **다른 축**이다 — 이 축이 없으면
+#: "정책이 못 찾았다" 가 "후보가 없었다"·"도달하지 못했다" 와 같은 출력으로 접힌다.
+#:
+#: `[Δ43 인용]` *"탐욕적 하강은 경로가 존재해도 막다른 곳에 빠질 수 있다. 그때 산출은
+#: '찾지 못했다' 이고 이것은 **'없다' 가 아니다**."* / *"이 실패는 분기가 넓은 서비스에서
+#: 더 자주 나므로 **구조와 상관된 편향**이다."*
+PATH_DISCOVERY_NOT_ATTEMPTED = "NOT_ATTEMPTED"
+#: 탐색할 후보가 **애초에 없었다**(`Δ32` `NO_TASK_CANDIDATE_FOUND`). 이것은 페이지에
+#: 대한 관측이지 우리 정책에 대한 사실이 아니므로 `policy_relative` 가 아니다 —
+#: 이 값을 따로 두지 않으면 후보 부재가 "정책이 못 찾았다" 로 접힌다.
+PATH_DISCOVERY_NO_CANDIDATES = "NO_CANDIDATES_TO_SEARCH"
+PATH_DISCOVERY_PATH_FOUND = "PATH_FOUND"
+PATH_DISCOVERY_POLICY_DID_NOT_FIND = "POLICY_DID_NOT_FIND_PATH"
+PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET = "POLICY_STOPPED_ON_BUDGET"
+PATH_DISCOVERY_VALUES: frozenset[str] = frozenset(
+    {
+        PATH_DISCOVERY_NOT_ATTEMPTED,
+        PATH_DISCOVERY_NO_CANDIDATES,
+        PATH_DISCOVERY_PATH_FOUND,
+        PATH_DISCOVERY_POLICY_DID_NOT_FIND,
+        PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET,
+    }
+)
+
+#: 정책에 상대적인 결과 — **사이트에 대한 진술이 아니라 우리 정책에 대한 진술**이다.
+#: 분석에서 성공 분모에 흡수하면 편향이 사라진 것처럼 보인다 (`Δ43` 3항).
+POLICY_RELATIVE_OUTCOMES: frozenset[str] = frozenset(
+    {PATH_DISCOVERY_POLICY_DID_NOT_FIND, PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET}
+)
+
+#: `R37` 어휘 — `terminal_reason=OTHER` 의 의무 note. **"경로가 없다" 로 쓰지 않는다.**
+PATH_NOT_FOUND_NOTE = (
+    "선언된 정책이 허용 경로를 찾지 못했다 (R37). 이것은 사이트에 그런 경로가 "
+    "부재한다는 관측이 아니라 이 정책이 찾지 못했다는 사실이며, "
+    f"search_strategy={SEARCH_STRATEGY} 에 상대적이다."
+)
+
+#: `R37` 2항 — 산출에 나타나면 안 되는 어휘. 부재 주장을 금지한다.
+#: `[Δ43 인용]` *"산출 어디에도 '경로가 없다' 로 쓰지 마라. '선언된 정책이 찾지 못했다' 다."*
+PATH_ABSENCE_CLAIM_TERMS: tuple[str, ...] = (
+    "경로가 없다",
+    "경로 없음",
+    "경로가 존재하지 않",
+    "경로 부재다",
+    "NO_PATH",
+    "PATH_ABSENT",
+    "PATH_DOES_NOT_EXIST",
+)
+
+#: `Δ36` ④ — 이 step 의 `action_token` 이 구조 신호로 **확정**됐는가.
+#: `UNDETERMINED` 가 하나라도 섞이면 그 경로의 `activation_depth` 를 산출하지 않는다
+#: (`flow.normalize_flow`). 부분값이나 `0` 을 내지 않는다.
+TOKEN_DETERMINACY_DETERMINED = "DETERMINED"
+TOKEN_DETERMINACY_UNDETERMINED = "UNDETERMINED"
+TOKEN_DETERMINACY_VALUES: frozenset[str] = frozenset(
+    {TOKEN_DETERMINACY_DETERMINED, TOKEN_DETERMINACY_UNDETERMINED}
+)
+
+#: 탐색 파라미터를 **실제로 쓰지 않았을 때** 적는 값. 값을 지어내지 않고, 빈 문자열도
+#: `None` 도 쓰지 않는다 — 안 쓴 것과 못 본 것이 같은 출력이 되면 안 된다 (`Δ15-GAP04`).
+SEARCH_PARAMETER_UNUSED = "NOT_USED_IN_THIS_RUN"
+#: 주입된 구현이 그 값을 노출하지 않아 **관측하지 못했다**. 미사용과 다른 사실이다.
+SEARCH_PARAMETER_UNOBSERVED = "NOT_OBSERVABLE_FROM_INJECTED_IMPLEMENTATION"
+
+# ---------------------------------------------------------------------------
+# `Δ37` — legacy `NED`/`IED`/`MPFED` 는 v3 에서 `NULL` 이고, 사유가 함께 나간다
+# ---------------------------------------------------------------------------
+
+#: `02 §7` 이 compatibility 로 요구한 legacy depth 컬럼. **컬럼은 남기고 값만 비운다.**
+LEGACY_DEPTH_COLUMNS: tuple[str, ...] = ("NED", "IED", "MPFED")
+
+#: `Δ37` 축자 문구. 이 문자열을 다시 쓰지 않는다 — 정본은 A 의 델타 문서다.
+#:
+#: `[Δ37 인용]` *"`NULL` 만 두면 '못 쟀다' 로 읽힌다. 사유가 있어야 '재지 않기로 했다'
+#: 가 된다 — `R13` 의 `NONE` 대 `UNDETERMINED` 와 같은 구분이다."*
+LEGACY_DEPTH_NULL_REASON = (
+    "v3 search_strategy=greedy_descent_with_declared_total_order. "
+    "NED/IED/MPFED 의 유일한 정의는 v2.1 의 최소성 주장이며 v3 는 그 주장을 하지 "
+    "않는다 (Δ36)."
+)
+
 
 class Phase(StrEnum):
     """`00 §9` 수집 경로의 단계. 어디까지 갔는지가 결과에 남는다."""
@@ -272,6 +397,33 @@ class MissingDependencyError(RunnerError):
     """fail-closed — 필수 경계 구현이 주입되지 않았다."""
 
 
+class PathManifestContractError(RunnerError):
+    """`Δ36` ① — path manifest 가 `search_strategy` 를 기재하지 않았다.
+
+    무엇을 탐색했는지 모르면 무엇을 못 봤는지도 모른다 (`Δ36` part4). 그래서 이것은
+    선택 필드가 아니라 **계약**이고, 없으면 해시를 뜨기 전에 멈춘다.
+    """
+
+
+class LegacyDepthNullReasonError(RunnerError):
+    """`Δ37` — legacy depth 컬럼이 사유 없이 `NULL` 로 나가려 했다.
+
+    `02 §7` 의 compatibility 요구는 **컬럼의 존재**다. `Δ37` 이 지키지 않기로 한 것은
+    값이고, 그 값이 거짓이기 때문에 넣지 않는 것이 지키는 것이다. 다만 사유가 없으면
+    "재지 않기로 했다" 가 "못 쟀다" 와 같은 출력이 되므로 그 경우는 행을 만들지 않는다.
+    """
+
+
+class TerminalSeamError(RunnerError):
+    """`Δ36` ③ — terminal 판정이 `endpoint_status` 만 건네고 사유 축을 흘렸다.
+
+    `Δ10-R11` 이 *"모든 terminal 이 `endpoint_status` 와 `terminal_reason` 을 둘 다
+    갖는다"* 고 정했다. `terminal_reason=None` 으로 나가는 terminal 은 그 스키마
+    위반이며, 조합표(`terminal.ALLOWED_ENDPOINT_STATUS_REASONS`)가 사유를 하나로
+    좁혀 주지 못하는 `endpoint_status` 를 문자열 하나로만 받으면 여기서 멈춘다.
+    """
+
+
 # ---------------------------------------------------------------------------
 # 다른 lane 과의 경계 — Protocol 로만 붙는다
 # ---------------------------------------------------------------------------
@@ -304,7 +456,12 @@ class CandidateBinder(Protocol):
 
 @runtime_checkable
 class ScoutStrategy(Protocol):
-    """`03 §5` Scout — 다음 activation 하나를 제안한다. 끝이면 `None`."""
+    """`03 §5` Scout (`Δ43` 개정본 — `SSOT_03_S5_SCOUT_REVISED`) — 다음 activation
+    하나를 제안한다. 끝이면 `None`.
+
+    `03 §5` 는 `Δ43` 이 개정했다 — `SSOT_03_S5_SCOUT_REVISED` 를 함께 읽어라.
+    **`None` 은 "경로가 없다" 가 아니라 "이 정책이 더 낼 후보가 없다" 다** (`R37`).
+    """
 
     def propose_next(
         self,
@@ -368,11 +525,36 @@ class DepthAttributor(Protocol):
     ) -> Sequence[Mapping[str, Any]]: ...
 
 
+@dataclass(frozen=True)
+class TerminalVerdict:
+    """`Δ36` ③ — terminal 판정의 **두 축**을 함께 건넨다.
+
+    이전 Protocol 은 `endpoint_status` 문자열 하나만 반환했다. `terminal.classify_terminal`
+    은 `BUDGET_EXCEEDED` 같은 사유를 실제로 내고 있었는데 그 축이 이 이음매에서 잘려,
+    예산 소진 run 이 `terminal_reason=None` 으로 나갔다 — `Δ10-R11` 스키마 위반이다.
+
+    `[Δ36 인용]` *"판정: Protocol 반환 형태를 바꿔 사유 축이 건너오게 한다."*
+    """
+
+    endpoint_status: str | None
+    terminal_reason: str | None = None
+    #: `terminal_reason=OTHER` 의 의무 note. 조합 검증(`terminal.validate_status_reason`)
+    #: 이 이 값을 본다.
+    terminal_reason_note: str | None = None
+
+
 @runtime_checkable
 class TerminalClassifier(Protocol):
-    """W5D `terminal.py` — `04 §4 endpoint_status`. runner 가 직접 판정하지 않는다."""
+    """W5D `terminal.py` — `04 §4 endpoint_status` + `terminal_reason`.
 
-    def classify(self, contract: TaskContract, steps: Sequence[FlowStep]) -> str | None: ...
+    `TerminalVerdict` 를 반환한다. 하위호환으로 문자열 하나도 받되(`_coerce_terminal_verdict`)
+    **조합표가 사유를 유일하게 좁혀 주는 status 에 한한다** — `ABSTAIN` 처럼 사유가 여럿인
+    status 를 문자열로만 주면 `TerminalSeamError` 다. 사유를 지어내지 않는다.
+    """
+
+    def classify(
+        self, contract: TaskContract, steps: Sequence[FlowStep]
+    ) -> TerminalVerdict | str | None: ...
 
 
 # ---------------------------------------------------------------------------
@@ -401,6 +583,11 @@ class PlannedAction:
     control_role: str | None = None
     control_visible_text: str | None = None
     control_accessible_name: str | None = None
+    #: `Δ36` ④ — 이 `action_token` 이 **구조 신호로 확정된 값인가**.
+    #: 기본값이 `DETERMINED` 인 이유: 이 필드가 없던 시절의 호출부(테스트 포함)는
+    #: 토큰을 직접 지정했고 그건 확정 지정이다. 추론으로 얻은 토큰만
+    #: `scout_strategy._classify_action_token_with_determinacy` 가 낮춘다.
+    token_determinacy: str = TOKEN_DETERMINACY_DETERMINED
 
     def as_record(self) -> dict[str, Any]:
         return {
@@ -409,6 +596,7 @@ class PlannedAction:
             "control_role": self.control_role,
             "control_visible_text": self.control_visible_text,
             "control_accessible_name": self.control_accessible_name,
+            "token_determinacy": self.token_determinacy,
         }
 
 
@@ -462,10 +650,35 @@ class V3RunResult:
     #: `Δ10-R11`(13) + `Δ30`(`BUDGET_EXCEEDED`) + `Δ32`(`NO_TASK_CANDIDATE_FOUND`) = 15값.
     #: 정본 어휘는 `terminal.TerminalReason` 이며 runner 는 자기가 아는 사유만 채운다.
     terminal_reason: str | None = None
+    #: `Δ36` ③ — `terminal_reason=OTHER` 의 의무 note, 그리고 사유의 자유기술 근거.
+    terminal_reason_note: str | None = None
+    #: `Δ43`/`R37` — 탐색 국면이 **어떻게 끝났는가**. `terminal_reason` 과 다른 축이며,
+    #: 이 축이 "정책이 못 찾았다" 를 "후보가 없었다"·"도달 실패" 와 갈라 놓는다.
+    path_discovery_outcome: str = PATH_DISCOVERY_NOT_ATTEMPTED
     #: `R3` — mart 의 모든 관측 행이 task_role 을 갖는다.
     task_role: str = TASK_ROLE_PRIMARY
     #: Δ9 — `(action_token, step_index, input_mode, included)` raw 근거.
     depth_conditional_tokens: tuple[Mapping[str, Any], ...] = ()
+
+    @property
+    def policy_relative(self) -> bool | None:
+        """`Δ43`/`R37` — 이 terminal 이 **사이트가 아니라 우리 정책**에 대한 진술인가.
+
+        - `True` — 선언된 정책이 경로를 찾지 못했거나 예산을 소진했다. 사이트에 대해
+          아무것도 주장하지 않는다.
+        - `False` — 사이트에 대한 관측이다(`REACHED`·`AUTH_GATE`·`BLOCKED`·
+          `NO_TASK_CANDIDATE_FOUND` …).
+        - `None` — terminal 자체가 없다. `False` 로 접지 않는다 — 부재를 "사이트 관측
+          이었다" 로 승격시키는 것이 이 필드가 막으려는 일이다.
+
+        `[Δ43 인용]` *"성공 분모에 흡수하면 편향이 사라진 것처럼 보인다."* 분석이 이
+        범주를 **따로** 셀 수 있으려면 스키마가 먼저 갈라 놓아야 한다.
+        """
+        if self.path_discovery_outcome in POLICY_RELATIVE_OUTCOMES:
+            return True
+        if self.endpoint_status is None:
+            return None
+        return False
 
     def as_mart_record(self) -> dict[str, Any]:
         """`02 §4 fact_flow_observation` 의 raw 부분을 mart 행으로 낸다.
@@ -488,6 +701,18 @@ class V3RunResult:
             "scout_budget_exhausted": self.scout_budget_exhausted,
             "task_candidate_count": self.task_candidate_count,
             "terminal_reason": self.terminal_reason,
+            "terminal_reason_note": self.terminal_reason_note,
+            # `Δ43`/`R37` — 미발견 terminal 에도 **실린다**(A 명시). 이 두 값이 없으면
+            # 소비자가 '정책 상대적 실패' 를 '사이트의 성질' 로 읽는다.
+            "search_strategy": SEARCH_STRATEGY,
+            "path_discovery_outcome": self.path_discovery_outcome,
+            "policy_relative": self.policy_relative,
+            # `Δ37` — legacy compatibility 컬럼은 **존재하고 값은 비어 있다**.
+            # `02 §7` 이 요구한 것은 컬럼이고, 그 이름의 유일한 정의(v2.1 최소성 주장)를
+            # v3 는 하지 않는다(`Δ36`). 값은 activation_depth · nav_container_depth 가 담는다.
+            **dict.fromkeys(LEGACY_DEPTH_COLUMNS),
+            # 사유 없는 NULL 은 "못 쟀다" 로 읽힌다. 이 한 줄이 "재지 않기로 했다" 로 만든다.
+            "legacy_depth_null_reason": LEGACY_DEPTH_NULL_REASON,
             "path_manifest_sha256": self.path_manifest_sha256,
             "evidence_manifest_sha256": self.evidence_manifest_sha256,
             "comparison_scope": WITHIN_FAMILY_COMPARISON,
@@ -502,6 +727,11 @@ class V3RunResult:
                     "control_role": step.control_role,
                     "control_visible_text": step.control_visible_text,
                     "control_accessible_name": step.control_accessible_name,
+                    # `Δ36` ④ — 확정성이 행까지 온다. 여기서 떨어뜨리면 소비자가
+                    # 추론된 토큰과 확정된 토큰을 구분할 수 없다.
+                    "token_determinacy": getattr(
+                        step, "token_determinacy", TOKEN_DETERMINACY_DETERMINED
+                    ),
                     "bbox_before": list(step.bbox_before) if step.bbox_before else None,
                     "url_before": step.url_before,
                     "url_after": step.url_after,
@@ -518,6 +748,13 @@ class V3RunResult:
         assert_layer_qualified(record)
         assert_coordinates_preserved(record)
         assert_depth_attribution_evidenced(record["depth_conditional_tokens"])
+        # `Δ37` — NULL + 사유 있음(재지 않기로 했다)과 NULL + 사유 없음(못 쟀다)이
+        # 같은 출력이 되지 않게 막는 자리. 사유를 빼면 여기서 행이 만들어지지 않는다.
+        assert_legacy_depth_null_reasoned(record)
+        # `Δ43`/`R37` — 미발견이 부재로 적히지 않았는가, 그리고 미발견 terminal 이
+        # policy_relative + search_strategy 를 **둘 다** 실었는가.
+        assert_no_path_absence_claim(record)
+        assert_path_discovery_declared(record)
         return record
 
 
@@ -527,9 +764,32 @@ class V3RunResult:
 
 
 def build_path_manifest(
-    *, key: ObservationKey, contract: TaskContract, steps: Sequence[FlowStep]
+    *,
+    key: ObservationKey,
+    contract: TaskContract,
+    steps: Sequence[FlowStep],
+    search_parameters: Mapping[str, Any] | None = None,
+    candidate_nomination_rule: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """`03 §5 Freeze` — normalized action token + raw selector/evidence 를 manifest 화."""
+    """`03 §5 Freeze`(`Δ43` 개정본, `SSOT_03_S5_SCOUT_REVISED`) — normalized action
+    token + raw selector/evidence 를 manifest 화.
+
+    `Δ36` ① · part4 로 세 필드가 **필수**가 됐다:
+
+    - `search_strategy` — `SEARCH_STRATEGY` 고정 문자열. "최소" 를 주장하지 않고
+      **무엇을 했는지** 를 적는다.
+    - `search_parameters` — 이 run 이 **실제로 쓴** 탐색 파라미터. 지어내지 않는다.
+      호출부가 주지 않으면 `NOT_OBSERVABLE_FROM_INJECTED_IMPLEMENTATION` 이다
+      (미사용 `NOT_USED_IN_THIS_RUN` 과 다른 값이다).
+    - `candidate_nomination_rule` — 후보 지명 규칙. 같은 이유로 지어내지 않는다.
+
+    `[Δ36 인용]` *"파라미터 기재 요구는 남는다. 무엇을 탐색했는지 모르면 무엇을 못
+    봤는지도 모른다."*
+
+    `Δ30-budget` 의 나머지 4 파라미터는 **여기서 값을 정하지 않는다** — `[Δ36 인용]`
+    *"P4 이후로 미룬다."* 안 쓴 파라미터를 그럴듯한 기본값으로 채우면 그것이 곧
+    "실측 근거" 로 읽힌다.
+    """
     return {
         "path_manifest_version": PATH_MANIFEST_VERSION,
         "observation_id": key.observation_id(),
@@ -539,10 +799,27 @@ def build_path_manifest(
         "task_contract_hash": contract.task_contract_hash,
         "endpoint_contract_hash": contract.endpoint_contract_hash,
         "task_role": contract.task_role,
+        # `Δ36` ① — 필수. 없으면 `assert_search_strategy_declared` 가 해시 전에 막는다.
+        "search_strategy": SEARCH_STRATEGY,
+        "search_parameters": (
+            dict(search_parameters)
+            if search_parameters is not None
+            else {"observation": SEARCH_PARAMETER_UNOBSERVED}
+        ),
+        "candidate_nomination_rule": (
+            dict(candidate_nomination_rule)
+            if candidate_nomination_rule is not None
+            else {"observation": SEARCH_PARAMETER_UNOBSERVED}
+        ),
         "steps": [
             {
                 "step_index": step.step_index,
                 "action_token": step.action_token,
+                # `Δ36` ④ — freeze 를 넘어 replay 까지 확정성이 살아 있어야 한다.
+                # 여기서 빠지면 replay 산출의 depth 가 조용히 확정값이 된다.
+                "token_determinacy": getattr(
+                    step, "token_determinacy", TOKEN_DETERMINACY_DETERMINED
+                ),
                 "state_before_id": step.state_before_id,
                 "state_after_id": step.state_after_id,
                 "control_selector": step.control_selector,
@@ -557,7 +834,35 @@ def build_path_manifest(
     }
 
 
+def assert_search_strategy_declared(manifest: Mapping[str, Any]) -> None:
+    """`Δ36` ① — path manifest 는 `search_strategy` 를 **반드시** 싣는다.
+
+    부재도 빈 문자열도 다른 값도 거부한다. 이 검사가 없으면 "기재하기로 했다" 가
+    코드에 남지 않고 관행으로만 남는다.
+
+    Raises:
+        PathManifestContractError: 필드 부재 또는 선언값 불일치.
+    """
+    declared = manifest.get("search_strategy")
+    if declared is None:
+        raise PathManifestContractError(
+            "path manifest 에 search_strategy 가 없다 — Δ36 ① 이 필수 기재로 정했다. "
+            f"기대값: {SEARCH_STRATEGY!r}"
+        )
+    if declared != SEARCH_STRATEGY:
+        raise PathManifestContractError(
+            f"path manifest 의 search_strategy 가 선언과 다르다: {declared!r} "
+            f"(선언: {SEARCH_STRATEGY!r}). 탐색 방식을 바꿨으면 Δ36 ① 의 문자열도 바꾼다."
+        )
+
+
 def path_manifest_sha256(manifest: Mapping[str, Any]) -> str:
+    """`Δ36` ① — 기재 없는 manifest 는 **해시를 뜨기 전에** 거부한다.
+
+    해시가 곧 freeze 신원이므로, 이 자리를 지나면 기재 없는 manifest 가 evidence
+    manifest 와 이어져 버린다. 그 뒤에 검사하면 이미 늦다.
+    """
+    assert_search_strategy_declared(manifest)
     return sha256_of_bytes(canonical_json_bytes(dict(manifest)))
 
 
@@ -730,12 +1035,21 @@ class V3Runner:
             task_candidate_count = len(candidates)
 
         # 5. Scout
-        scout_steps, scout_modes, budget_exhausted = self._scout_path(
+        scout_steps, scout_modes, budget_exhausted, path_discovery = self._scout_path(
             contract, driver=driver, writer=writer, states=states, candidates=candidates
         )
 
         # 6. Path Freeze
-        manifest = build_path_manifest(key=key, contract=contract, steps=scout_steps)
+        manifest = build_path_manifest(
+            key=key,
+            contract=contract,
+            steps=scout_steps,
+            # `Δ36` part4 — **실제로 쓰인** 값만. 안 쓴 파라미터는 지어내지 않는다.
+            search_parameters=self._observed_search_parameters(),
+            candidate_nomination_rule=self._observed_nomination_rule(
+                task_candidate_count=task_candidate_count
+            ),
+        )
         manifest_sha = path_manifest_sha256(manifest)
 
         # 7. Deterministic Replay — 여기서부터 self._scout 는 참조되지 않는다
@@ -772,6 +1086,7 @@ class V3Runner:
             budget_exhausted=budget_exhausted,
             task_candidate_count=task_candidate_count,
             depth_records=depth_records,
+            path_discovery=path_discovery,
         )
 
     def replay(
@@ -817,7 +1132,60 @@ class V3Runner:
             run_dir=None,
             budget_exhausted=False,
             depth_records=self._depth_conditional_records(contract, steps, modes),
+            # replay 국면에는 탐색이 없다 — 못 찾은 것이 아니라 **찾지 않은 것**이다.
+            path_discovery=PATH_DISCOVERY_NOT_ATTEMPTED,
         )
+
+    # -- `Δ36` part4 — 탐색 파라미터/지명 규칙 관측 -------------------------
+
+    def _observed_search_parameters(self) -> dict[str, Any]:
+        """이 run 이 **실제로 쓴** 탐색 파라미터. 값을 만들지 않는다.
+
+        - `max_activations` 는 `_scout_path` 가 매 회 실제로 비교하는 값이다.
+        - 주입된 strategy 가 자기 정책 이름을 노출하지 않으면
+          `NOT_OBSERVABLE_FROM_INJECTED_IMPLEMENTATION` 이다 — 기본값을 가져다 적으면
+          그것이 곧 "이 run 이 그 값을 썼다" 는 거짓 진술이 된다.
+        - scout 자체가 없으면 `NOT_USED_IN_THIS_RUN` 이다. 미관측과 다른 사실이다.
+        """
+        params: dict[str, Any] = {
+            "search_strategy": SEARCH_STRATEGY,
+            "runner_max_activations": self._budget.max_activations,
+        }
+        if self._scout is None:
+            params["scout_strategy"] = SEARCH_PARAMETER_UNUSED
+            params["path_selection_policy"] = SEARCH_PARAMETER_UNUSED
+            params["stop_policy"] = SEARCH_PARAMETER_UNUSED
+            return params
+        params["scout_strategy"] = type(self._scout).__name__
+        policy = getattr(self._scout, "policy", None)
+        params["path_selection_policy"] = (
+            str(getattr(policy, "name", "") or "") or SEARCH_PARAMETER_UNOBSERVED
+        )
+        stop_policy = getattr(self._scout, "stop_policy", None)
+        params["stop_policy"] = (
+            str(getattr(stop_policy, "name", "") or "") or SEARCH_PARAMETER_UNOBSERVED
+        )
+        return params
+
+    def _observed_nomination_rule(self, *, task_candidate_count: int | None) -> dict[str, Any]:
+        """후보 지명 규칙 — 누가 후보를 냈고 어떤 전순서로 줄 세웠는가.
+
+        `task_candidate_count=None` 은 binder 미주입(미관측)이고 `0` 은 관측된 0건이다
+        (`Δ32`). 둘을 합치면 분모를 복원할 수 없어 여기서도 가르지 않고 그대로 싣는다.
+        """
+        rule: dict[str, Any] = {
+            "binder": (
+                type(self._binder).__name__ if self._binder is not None else SEARCH_PARAMETER_UNUSED
+            ),
+            "bound_candidate_count": task_candidate_count,
+        }
+        policy = getattr(self._scout, "policy", None) if self._scout is not None else None
+        declared = getattr(policy, "total_order", None)
+        rule["declared_total_order"] = list(declared) if declared else SEARCH_PARAMETER_UNOBSERVED
+        rule["path_selection_policy"] = (
+            str(getattr(policy, "name", "") or "") or SEARCH_PARAMETER_UNOBSERVED
+        )
+        return rule
 
     # -- 단계 구현 -----------------------------------------------------------
 
@@ -845,19 +1213,36 @@ class V3Runner:
         writer: EvidenceRunWriter,
         states: Sequence[SurfaceObservation],
         candidates: Sequence[Mapping[str, Any]],
-    ) -> tuple[tuple[FlowStep, ...], tuple[str | None, ...], bool]:
-        """`03 §5 Scout` — 각 activation 마다 before/after evidence 를 저장한다."""
+    ) -> tuple[tuple[FlowStep, ...], tuple[str | None, ...], bool, str]:
+        """`03 §5 Scout` (`Δ43` 개정본 — `SSOT_03_S5_SCOUT_REVISED`) — 각 activation
+        마다 before/after evidence 를 저장한다.
+
+        `[Δ43 개정본 인용]` `SSOT_03_S5_SCOUT_REVISED` — *"선언된 결정론적 정책이 발견한
+        허용 path 를 찾는다. **최소성을 주장하지 않는다.** … **경로 미발견은 경로 부재가
+        아니며** `policy_relative: true` 로 기록한다."*
+
+        네 번째 반환값이 `R37` 의 축이다 — **왜 멈췄는가**. 이 값이 없으면 "정책이 못
+        찾았다" 가 "도달하지 못했다" 와 같은 출력으로 접힌다.
+        """
         if self._scout is None:
-            return (), (), False
+            return (), (), False, PATH_DISCOVERY_NOT_ATTEMPTED
+        if self._binder is not None and not candidates:
+            # binder 가 돌았고 후보가 0건이었다 — **탐색할 것이 없었다.** 정책이 못
+            # 찾은 것이 아니다(`Δ32` 가 이 사건에 `NO_TASK_CANDIDATE_FOUND` 를 준다).
+            return (), (), False, PATH_DISCOVERY_NO_CANDIDATES
         steps: list[FlowStep] = []
         modes: list[str | None] = []
         exhausted = False
+        outcome = PATH_DISCOVERY_POLICY_DID_NOT_FIND
         while True:
             if len(steps) >= self._budget.max_activations:
                 exhausted = True
+                outcome = PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET
                 break
             action = self._scout.propose_next(contract, states, candidates, tuple(steps))
             if action is None:
+                # 정책이 더 낼 후보가 없다. **경로가 없다는 뜻이 아니다** — 이 정책이
+                # 찾지 못했다는 뜻이다 (`R37`). 탐욕적 하강은 되돌아가지 않는다.
                 break
             self._assert_action_allowed(contract, action)
             transition = driver.activate(action)
@@ -867,8 +1252,11 @@ class V3Runner:
             steps.append(_to_flow_step(len(steps), action, transition))
             modes.append(_validated_input_mode(transition.input_mode))
             if transition.endpoint_signal_detected or transition.auth_gate_detected:
+                # terminal 신호에 닿았다 — 정책이 경로를 찾았다. 그 terminal 이
+                # `REACHED` 인지 `AUTH_GATE` 인지는 이 축이 정하지 않는다.
+                outcome = PATH_DISCOVERY_PATH_FOUND
                 break
-        return tuple(steps), tuple(modes), exhausted
+        return tuple(steps), tuple(modes), exhausted, outcome
 
     def _replay_steps(
         self,
@@ -892,6 +1280,11 @@ class V3Runner:
                 control_role=record.get("control_role"),
                 control_visible_text=record.get("control_visible_text"),
                 control_accessible_name=record.get("control_accessible_name"),
+                # `Δ36` ④ — freeze 당시의 확정성을 replay 가 그대로 재생한다. 여기서
+                # 기본값으로 되돌리면 replay 산출의 depth 만 조용히 확정값이 된다.
+                token_determinacy=str(
+                    record.get("token_determinacy") or TOKEN_DETERMINACY_DETERMINED
+                ),
             )
             self._assert_action_allowed(contract, action)
             transition = driver.activate(action)
@@ -962,17 +1355,32 @@ class V3Runner:
         budget_exhausted: bool,
         task_candidate_count: int | None = None,
         depth_records: tuple[Mapping[str, Any], ...] = (),
+        path_discovery: str = PATH_DISCOVERY_NOT_ATTEMPTED,
     ) -> V3RunResult:
         """`00 §9 Flow Mart` — raw 는 그대로 싣고 derived 는 **전부 위임**한다.
 
         경계 구현이 없으면 그 자리는 `None` 이다. runner 안에 대체 계산이 없다
         (`09 D3-05` — 산출 불능을 0/FAIL 로 바꾸지 않는다).
         """
+        # `Δ36` ③ — 사유 축이 이 이음매를 건너온다. 이전에는 `endpoint_status` 문자열
+        # 하나만 받아 `terminal.classify_terminal` 이 낸 `BUDGET_EXCEEDED` 가 여기서
+        # 잘렸고, 예산 소진 run 이 `terminal_reason=None` 으로 나갔다(`Δ10-R11` 위반).
         endpoint_status: str | None = None
+        terminal_reason: str | None = None
+        terminal_reason_note: str | None = None
         if replay_status is not ReplayStatus.REPLAY_BROKEN and self._terminal is not None:
-            endpoint_status = self._terminal.classify(contract, steps)
+            verdict = _coerce_terminal_verdict(self._terminal.classify(contract, steps))
+            if verdict is not None:
+                endpoint_status = verdict.endpoint_status
+                terminal_reason = verdict.terminal_reason
+                terminal_reason_note = verdict.terminal_reason_note
             if endpoint_status is not None and endpoint_status not in ENDPOINT_STATUS_VALUES:
                 raise RunnerError(f"04 §4 밖의 endpoint_status 다: {endpoint_status!r}")
+            terminal_validate_status_reason(
+                TerminalEndpointStatus(endpoint_status) if endpoint_status else None,
+                TerminalReason(terminal_reason) if terminal_reason else None,
+                terminal_reason_note,
+            )
 
         # `Δ32-R29` — 0 은 관측이 아니라 주장이다. 스키마가 조합을 거부한다.
         terminal_validate_reached_requires_binding(
@@ -983,14 +1391,53 @@ class V3Runner:
         # `Δ32` — 형태는 멀쩡한데 후보가 0건이었다. **관측이므로 기록한다**(계약 위반과
         # 다른 값이다). 주입된 terminal classifier 가 더 강한 terminal(BLOCKED 등)을
         # 관측했으면 그쪽이 이긴다 — 그 경우 이 사유를 덮어쓰지 않는다.
-        terminal_reason: str | None = None
         if task_candidate_count == 0 and endpoint_status in (None, "ABSTAIN"):
             endpoint_status = TerminalEndpointStatus.ABSTAIN.value
             terminal_reason = TerminalReason.NO_TASK_CANDIDATE_FOUND.value
+            terminal_reason_note = "binding 단계에서 관측된 task 후보 control 이 0건이었다 (Δ32)"
             terminal_validate_status_reason(
                 TerminalEndpointStatus.ABSTAIN,
                 TerminalReason.NO_TASK_CANDIDATE_FOUND,
-                "binding 단계에서 관측된 task 후보 control 이 0건이었다 (Δ32)",
+                terminal_reason_note,
+            )
+
+        # `Δ36` ③ + `Δ30`/`MIN-7` — 예산을 다 써서 멈춘 것은 **관측 없음**이며 사유가
+        # 있는 사건이다. 사유 없이 나가면 `Δ10-R11` 위반이고, 더 강한 terminal 을 이미
+        # 관측했으면 그쪽이 이긴다(덮어쓰지 않는다).
+        #
+        # **`MIN-7` 후단은 그대로다 — 예산값을 숫자로 대입하지 않는다.** 아래 어디에도
+        # `self._budget.max_activations` 가 값으로 들어가지 않는다. 그 수는 탐색
+        # 파라미터로 path manifest 에만 남는다.
+        if budget_exhausted and terminal_reason is None and endpoint_status in (None, "ABSTAIN"):
+            endpoint_status = TerminalEndpointStatus.ABSTAIN.value
+            terminal_reason = TerminalReason.BUDGET_EXCEEDED.value
+            terminal_reason_note = (
+                "수집 예산을 소진해 탐색을 멈췄다 — activation 수에 대한 주장이 아니라 "
+                "관측 없음이다 (A1 §2.6 MIN-7)"
+            )
+            terminal_validate_status_reason(
+                TerminalEndpointStatus.ABSTAIN,
+                TerminalReason.BUDGET_EXCEEDED,
+                terminal_reason_note,
+            )
+
+        # `Δ43` / `R37` — **선언된 정책이 허용 경로를 찾지 못했다.** 이것은 사이트에
+        # 경로가 부재한다는 관측이 **아니다**. 더 강한 terminal 을 이미 관측했으면
+        # 그쪽이 이긴다 — 이 사유는 아무 사유도 없을 때만 채운다.
+        #
+        # `NO_TASK_CANDIDATE_FOUND`(후보가 0건이었다) 와 **다른 값**이다: 저쪽은 페이지에
+        # 대한 관측이고 이쪽은 우리 정책에 대한 사실이다. 둘을 합치면 분기가 넓은
+        # 서비스에서 더 자주 나는 이 실패가 사이트의 성질로 집계된다.
+        if (
+            path_discovery == PATH_DISCOVERY_POLICY_DID_NOT_FIND
+            and terminal_reason is None
+            and endpoint_status is None
+        ):
+            endpoint_status = TerminalEndpointStatus.ABSTAIN.value
+            terminal_reason = TerminalReason.OTHER.value
+            terminal_reason_note = PATH_NOT_FOUND_NOTE
+            terminal_validate_status_reason(
+                TerminalEndpointStatus.ABSTAIN, TerminalReason.OTHER, terminal_reason_note
             )
 
         derived_surface = (
@@ -1027,6 +1474,8 @@ class V3Runner:
             scout_budget_exhausted=budget_exhausted,
             task_candidate_count=task_candidate_count,
             terminal_reason=terminal_reason,
+            terminal_reason_note=terminal_reason_note,
+            path_discovery_outcome=path_discovery,
             task_role=contract.task_role,
             depth_conditional_tokens=depth_records,
         )
@@ -1072,6 +1521,155 @@ def _validated_bound_candidates(produced: Any) -> tuple[Mapping[str, Any], ...]:
     return items
 
 
+def _validated_token_determinacy(value: str | None) -> str:
+    """`Δ36` ④ — 어휘 밖 값을 조용히 통과시키지 않는다.
+
+    `None` 은 `DETERMINED` 로 접지 **않는다** — 부재를 확정으로 승격시키는 것이
+    이 필드가 막으려는 바로 그 일이다. 부재는 `UNDETERMINED` 다.
+    """
+    if value is None:
+        return TOKEN_DETERMINACY_UNDETERMINED
+    if value not in TOKEN_DETERMINACY_VALUES:
+        raise RunnerError(
+            f"token_determinacy 어휘 밖이다: {value!r} — 허용: {sorted(TOKEN_DETERMINACY_VALUES)}"
+        )
+    return value
+
+
+def _coerce_terminal_verdict(produced: Any) -> TerminalVerdict | None:
+    """`Δ36` ③ — terminal 판정 반환값을 두 축으로 정규화한다.
+
+    문자열 하나를 받는 경로를 남겨 두되, **조합표가 사유를 유일하게 좁혀 주는
+    `endpoint_status` 에 한한다.** `ABSTAIN` 처럼 허용 사유가 여럿인 status 를 문자열로만
+    주면 사유를 고를 근거가 없고, 하나를 골라 적으면 그게 곧 지어내기다 —
+    `TerminalSeamError` 로 멈춘다.
+
+    `REACHED` 는 허용 사유가 `{None}` 하나뿐이므로(`_REACHED_REASON_GAP`) 문자열만으로도
+    두 축이 결정된다.
+    """
+    if produced is None:
+        return None
+    if isinstance(produced, TerminalVerdict):
+        return produced
+    if not isinstance(produced, str):
+        raise TerminalSeamError(
+            f"TerminalClassifier.classify 가 TerminalVerdict/str/None 이 아니라 "
+            f"{type(produced).__name__} 를 반환했다 (Δ36 ③)"
+        )
+    status = produced
+    if status not in ENDPOINT_STATUS_VALUES:
+        raise RunnerError(f"04 §4 밖의 endpoint_status 다: {status!r}")
+    allowed = terminal_allowed_reasons(TerminalEndpointStatus(status))
+    if len(allowed) != 1:
+        raise TerminalSeamError(
+            f"endpoint_status={status} 는 허용 terminal_reason 이 "
+            f"{sorted(r.value if r else 'None' for r in allowed)} 로 여럿이다 — 문자열 하나로는 "
+            "사유 축이 결정되지 않는다. TerminalVerdict 로 두 축을 함께 건네라 (Δ36 ③). "
+            "여기서 하나를 골라 적으면 Δ10-R11 이 요구한 사유가 아니라 지어낸 값이 된다."
+        )
+    only = next(iter(allowed))
+    return TerminalVerdict(
+        endpoint_status=status, terminal_reason=only.value if only is not None else None
+    )
+
+
+class PathAbsenceClaimError(RunnerError):
+    """`Δ43`/`R37` — 산출이 "경로가 없다" 라고 썼다. 우리가 아는 것은 그것이 아니다."""
+
+
+def assert_no_path_absence_claim(payload: Any, *, path: str = "$") -> None:
+    """`R37` 2항 — 산출 어디에도 **경로 부재를 주장하는 어휘가 없다.**
+
+    `[Δ43 인용]` *"산출 어디에도 '경로가 없다' 로 쓰지 마라. **'선언된 정책이 찾지
+    못했다'** 다."*
+
+    탐욕적 하강은 되돌아가지 않으므로, 경로가 실재해도 못 찾을 수 있다. 그 실패를
+    부재로 적으면 **분기가 넓은 서비스일수록 더 자주 "경로가 없는 서비스" 가 된다** —
+    구조와 상관된 편향이 사이트의 성질로 둔갑한다.
+
+    Raises:
+        PathAbsenceClaimError: 문자열 값 어딘가에 부재 주장 어휘가 있다.
+    """
+    if isinstance(payload, str):
+        for term in PATH_ABSENCE_CLAIM_TERMS:
+            if term in payload:
+                raise PathAbsenceClaimError(
+                    f"{path} 에 경로 부재 주장 어휘가 있다: {term!r}. R37 — 우리가 아는 "
+                    "것은 '선언된 정책이 찾지 못했다' 이지 '경로가 없다' 가 아니다."
+                )
+        return
+    if isinstance(payload, Mapping):
+        for key, value in payload.items():
+            assert_no_path_absence_claim(key, path=f"{path}.<key>")
+            assert_no_path_absence_claim(value, path=f"{path}.{key}")
+        return
+    if isinstance(payload, (list, tuple)):
+        for index, value in enumerate(payload):
+            assert_no_path_absence_claim(value, path=f"{path}[{index}]")
+
+
+def assert_path_discovery_declared(record: Mapping[str, Any]) -> None:
+    """`Δ43`/`R37` 1항 — 미발견 terminal 은 `policy_relative` 와 `search_strategy` 를
+    **함께** 싣는다. 하나만 있으면 다른 하나를 복원할 수 없다.
+
+    Raises:
+        RunnerError: 어휘 밖 `path_discovery_outcome`, 또는 정책 상대적 결과인데
+            `policy_relative` 가 참이 아니거나 `search_strategy` 가 없다.
+    """
+    outcome = record.get("path_discovery_outcome")
+    if outcome is None:
+        return
+    if outcome not in PATH_DISCOVERY_VALUES:
+        raise RunnerError(
+            f"path_discovery_outcome 어휘 밖이다: {outcome!r} — 허용: {sorted(PATH_DISCOVERY_VALUES)}"
+        )
+    if outcome not in POLICY_RELATIVE_OUTCOMES:
+        return
+    if record.get("policy_relative") is not True:
+        raise RunnerError(
+            f"path_discovery_outcome={outcome} 인데 policy_relative 가 True 가 아니다 "
+            "(R37 1항) — 정책 상대적 실패가 사이트의 성질로 집계된다"
+        )
+    if record.get("search_strategy") != SEARCH_STRATEGY:
+        raise RunnerError(
+            f"path_discovery_outcome={outcome} 인데 search_strategy 가 없다/다르다 "
+            "(R37 1항) — 어떤 정책이 못 찾았는지 모르면 그 실패를 해석할 수 없다"
+        )
+
+
+def assert_legacy_depth_null_reasoned(record: Mapping[str, Any]) -> None:
+    """`Δ37` — legacy depth 컬럼이 `NULL` 인데 **사유가 없으면** 거부한다.
+
+    `[Δ37 인용]` *"`NULL` 만 두면 '못 쟀다' 로 읽힌다. 사유가 있어야 '재지 않기로 했다'
+    가 된다 — `R13` 의 `NONE` 대 `UNDETERMINED` 와 같은 구분이다."*
+
+    이 검사가 없으면 두 사건이 **같은 출력**이 된다. 그래서 이 함수의 존재 자체가
+    `Δ37` 이행의 핵심이고, 사유를 빼면 여기서 행이 만들어지지 않는다.
+
+    Raises:
+        LegacyDepthNullReasonError: `NED`/`IED`/`MPFED` 중 하나라도 컬럼에 있는데
+            `legacy_depth_null_reason` 이 없거나 비었다. 또는 컬럼에 값이 들어 있다
+            (v3 는 그 이름으로 값을 주장하지 않는다).
+    """
+    present = [name for name in LEGACY_DEPTH_COLUMNS if name in record]
+    if not present:
+        return
+    non_null = [name for name in present if record[name] is not None]
+    if non_null:
+        raise LegacyDepthNullReasonError(
+            f"v3 관측 행이 legacy depth 컬럼에 값을 넣었다: {non_null}. Δ37 — 그 이름의 "
+            "유일한 정의는 v2.1 의 최소성 주장이고 v3 는 그 주장을 하지 않는다. "
+            "값은 activation_depth · nav_container_depth 가 담는다."
+        )
+    reason = record.get("legacy_depth_null_reason")
+    if not isinstance(reason, str) or not reason.strip():
+        raise LegacyDepthNullReasonError(
+            f"legacy depth 컬럼 {present} 가 NULL 인데 legacy_depth_null_reason 이 없다. "
+            "Δ37 — 사유 없는 NULL 은 '못 쟀다' 로 읽힌다. 재지 않기로 한 것이면 그 사실이 "
+            "행에 있어야 한다."
+        )
+
+
 def _validated_input_mode(mode: str | None) -> str | None:
     """Δ9 어휘 밖의 입력수단은 받지 않는다. 관측 못 한 것은 `None` 그대로 둔다."""
     if mode is None:
@@ -1101,6 +1699,8 @@ def _to_flow_step(index: int, action: PlannedAction, transition: RawTransition) 
         # CONDITIONAL 3종을 전부 판정 불능으로 접는다. 값이 존재하는 것과 판정 지점에
         # 도달하는 것은 다른 사실이고, 여기가 그 둘을 잇는 유일한 지점이다.
         input_mode=_validated_input_mode(transition.input_mode),
+        # `Δ36` ④ — 토큰 확정성은 판정이 아니라 **관측 조건**이므로 step 에 실린다.
+        token_determinacy=_validated_token_determinacy(action.token_determinacy),
     )
 
 
@@ -1168,10 +1768,27 @@ __all__ = [
     "ELIGIBILITY_PROCEEDABLE",
     "ELIGIBILITY_VALUES",
     "ENDPOINT_STATUS_VALUES",
+    "LEGACY_DEPTH_COLUMNS",
+    "LEGACY_DEPTH_NULL_REASON",
+    "PATH_ABSENCE_CLAIM_TERMS",
+    "PATH_DISCOVERY_NOT_ATTEMPTED",
+    "PATH_DISCOVERY_PATH_FOUND",
+    "PATH_DISCOVERY_POLICY_DID_NOT_FIND",
+    "PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET",
+    "PATH_DISCOVERY_VALUES",
+    "PATH_NOT_FOUND_NOTE",
+    "POLICY_RELATIVE_OUTCOMES",
     "PREREGISTERED_DEPTH_ASYMMETRY",
     "PRIMARY_TASK_FILTER_EXPR",
+    "SEARCH_PARAMETER_UNOBSERVED",
+    "SEARCH_PARAMETER_UNUSED",
+    "SEARCH_STRATEGY",
+    "SSOT_03_S5_SCOUT_REVISED",
     "TASK_ROLE_PRIMARY",
     "TASK_ROLE_VALUES",
+    "TOKEN_DETERMINACY_DETERMINED",
+    "TOKEN_DETERMINACY_UNDETERMINED",
+    "TOKEN_DETERMINACY_VALUES",
     "WITHIN_FAMILY_COMPARISON",
     "CandidateBinder",
     "CandidateBindingContractError",
@@ -1181,8 +1798,11 @@ __all__ = [
     "EligibilityChecker",
     "FlowNormalizer",
     "FlowStep",
+    "LegacyDepthNullReasonError",
     "MissingDependencyError",
     "ObstructionAnalyzer",
+    "PathAbsenceClaimError",
+    "PathManifestContractError",
     "PathManifestHashMismatchError",
     "Phase",
     "PlannedAction",
@@ -1198,8 +1818,14 @@ __all__ = [
     "SurfaceObservation",
     "TaskContract",
     "TerminalClassifier",
+    "TerminalSeamError",
+    "TerminalVerdict",
     "V3RunResult",
     "V3Runner",
+    "assert_legacy_depth_null_reasoned",
+    "assert_no_path_absence_claim",
+    "assert_path_discovery_declared",
+    "assert_search_strategy_declared",
     "build_family_aggregate",
     "build_path_manifest",
     "path_manifest_sha256",

@@ -44,7 +44,8 @@ runner 의 이 버그와 **독립적으로** 올바르다: `propose_next` 자체
 
 ## 정책 두 개 — 둘 다 주입 가능, 둘 다 기본값은 v2 MIN 규칙의 v3 판본
 
-1. `PathSelectionPolicy`(`discovery.py`) — 후보 랭킹. 기본 `MIN4_POLICY`.
+1. `PathSelectionPolicy`(`discovery.py`) — 후보 랭킹. 기본은 `Δ30` 이후
+   `DEFAULT_V3_PATH_POLICY`(= `V3_TIEBREAK_POLICY`)이며 `MIN4_POLICY` 가 아니다.
 2. `ScoutStopPolicy`(이 파일) — 중단 조건. 기본 `default_stop_policy()`가
    MIN-3(직전 step 이 이미 terminal 신호를 냈으면 중단)·MIN-7(strategy 자체
    예산 초과) 을 흉내 낸다. **v3 승계가 확정되지 않았다** — 그래서 하드코딩하지
@@ -72,6 +73,9 @@ from .discovery import DEFAULT_V3_PATH_POLICY, PathSelectionPolicy
 from .runner import (
     BRANCH_ELIGIBLE_TOKENS,
     CANONICAL_ACTION_TOKENS,
+    DEPTH_IN_TOKENS,
+    TOKEN_DETERMINACY_DETERMINED,
+    TOKEN_DETERMINACY_UNDETERMINED,
     CandidateBindingContractError,
     FlowStep,
     PlannedAction,
@@ -111,8 +115,9 @@ def _min3_min7_should_stop(
     activation 직후 같은 조건으로 이미 loop 를 끊는다(하드코딩, 이 파일 밖) —
     이 검사는 그 판단이 **strategy 자신에게도** 보이게 하는 중복 방어선이다.
 
-    MIN-7 — `len(taken) >= max_activations`면 "최소가 아니라 관측 없음"으로
-    멈춘다. `runner.py`도 `self._budget.max_activations`로 자기 예산을 이미
+    MIN-7 — `len(taken) >= max_activations`면 "관측 없음"으로 멈춘다(예산 소진은
+    activation 수에 대한 주장이 아니다 — `Δ36` ① 이 v3 산출·docstring 에서 그 주장의
+    어휘를 금지했다). `runner.py`도 `self._budget.max_activations`로 자기 예산을 이미
     강제한다 — 이 값은 그것과 **독립된, strategy 자체의** 예산이다(더 보수적인
     값을 넣고 싶을 때 runner 를 고치지 않고 여기서 조일 수 있다).
     """
@@ -147,48 +152,147 @@ class ScoutBranchSetError(ValueError):
 # ══════════════════════════════════════════════════════════════════════════
 # candidate → action_token — 구조 신호만 쓴다(대표기능을 추론하지 않는다)
 # ══════════════════════════════════════════════════════════════════════════
-def _classify_action_token(candidate: Mapping[str, Any]) -> str:
-    """`04 §2` canonical action token 중 **구조적으로 확실히 가를 수 있는 것만**
-    가른다. 나머지는 전부 `SELECT_FUNCTION`으로 보수적으로 묶는다.
+#: `Δ36 ④` — 구조 신호 하나로 **유일한** 토큰이 정해지는 경우. 여기 드는 후보만
+#: `token_determinacy=DETERMINED` 다.
+STRUCTURALLY_DETERMINED_TOKENS: frozenset[str] = frozenset(
+    {
+        "SWITCH_TAB",
+        "SUBMIT_QUERY",
+        "OPEN_GLOBAL_MENU",
+        "OPEN_LOCAL_MENU",
+        "EXPAND_ACCORDION",
+    }
+)
 
-    **known limitation** — `OPEN_GLOBAL_MENU`/`OPEN_LOCAL_MENU`/`EXPAND_ACCORDION`
-    /`SELECT_CATEGORY`/`INPUT_QUERY`/`SELECT_ORIGIN`/`SELECT_DESTINATION`/
-    `SELECT_DATE`/`SUBMIT_QUERY`/`OPEN_ITEM_DETAIL`/`OPEN_PLACE_DETAIL`을
-    가르려면 라벨/문구 의미 해석(예: "지도"→지도 위젯, "다음"→날짜 선택)이
-    필요한데, 그건 대표기능 추론과 같은 형태의 위험이다(`T-A-V3-SUPERSEDE-001`).
-    `discover_task_candidates`의 candidate source(`primary_action_candidates`)
-    에는 그걸 구조적으로(라벨 없이) 가를 신호(예: `aria-haspopup`, 상위
-    `<nav>`/`<form>` 소속 여부)가 애초에 없다 — `l0_probe.js` 읽기전용이라
-    이 함수가 신호를 지어내지 않는다. `SELECT_FUNCTION`으로 묶는 근거:
-    v3 는 task 가 이미 동결돼 들어오므로("사전지정 task 기능 control을
-    선택한다") 이 기본값은 허위 정밀도보다 안전하다.
+#: `Δ36 ④` — 구조 신호가 **여러 토큰 사이를 가르지 못하는** 자리. 값을 내되
+#: `token_determinacy=UNDETERMINED` 로 표시하고, 그 경로의 `activation_depth` 는
+#: 산출하지 않는다(`flow.normalize_flow`). 어느 하나로 확정해 적으면 허위 정밀도다.
+STRUCTURALLY_UNDETERMINED_TOKENS: frozenset[str] = frozenset(
+    {
+        "SELECT_FUNCTION",
+        "SELECT_CATEGORY",
+        "SELECT_RESULT",
+        "OPEN_ITEM_DETAIL",
+        "OPEN_PLACE_DETAIL",
+    }
+)
 
-    `role=tab`(ARIA 의미가 명시적)과 `in_list_container`(l0_probe.js 가 이미
-    구조적으로 판정해 candidate 에 실어 주는 값, 라벨 해석이 아니다) 두 개만
-    구조적으로 확실하다.
+#: 두 집합을 합치면 `Δ9` IN 10종이어야 한다. 한쪽만 고치는 날을 막는 파생 검사다.
+assert STRUCTURALLY_DETERMINED_TOKENS | STRUCTURALLY_UNDETERMINED_TOKENS == DEPTH_IN_TOKENS
+
+#: `aria-haspopup` 이 팝업 소유를 뜻하는 값들(ARIA 1.2). `"false"`/부재는 아니다.
+_HASPOPUP_TRUE: frozenset[str] = frozenset({"true", "menu", "listbox", "tree", "grid", "dialog"})
+
+
+def _classify_action_token_with_determinacy(candidate: Mapping[str, Any]) -> tuple[str, str]:
+    """`04 §2` canonical action token + `Δ36 ④` 판정 확정성.
+
+    반환 2튜플은 `(action_token, token_determinacy)` 다. `token_determinacy` 가
+    `UNDETERMINED` 면 그 step 을 포함한 경로의 `activation_depth` 를 산출하지 않는다
+    (`flow.normalize_flow`) — `Δ36` *"분류 불가한 토큰이 남으면 그 target 의
+    `activation_depth` 는 산출하지 않고 `UNDETERMINED` 다"*.
+
+    ## 구조 신호만 쓴다 — 라벨/문구는 읽지 않는다
+
+    `Δ20` 이 허용한 범주로 `l0_probe.js` 에 **가산**한 신호(`aria_haspopup`
+    ·`aria_expanded`·`has_aria_controls`·`submit_control`·`in_nav_landmark`
+    ·`in_tablist`·`in_disclosure`)만 본다. 전부 DOM/ARIA 속성이거나 HTML 명세가
+    정한 파생이며, "지도"→지도 위젯 같은 의미 해석은 하나도 없다
+    (`T-A-V3-SUPERSEDE-001` 이 퇴역시킨 대표기능 추론의 재발 방지).
+
+    ## 확정되는 5종
+
+    | 신호 | 토큰 | 근거 |
+    |---|---|---|
+    | `role=tab` · `in_tablist` | `SWITCH_TAB` | ARIA `tab` 은 다른 토큰과 겹치지 않는다 |
+    | `submit_control` | `SUBMIT_QUERY` | HTML 명세의 제출 control 정의 |
+    | `aria-haspopup` + nav/banner landmark | `OPEN_GLOBAL_MENU` | 팝업 소유 + 전역 landmark |
+    | `aria-haspopup`, landmark 밖 | `OPEN_LOCAL_MENU` | 팝업 소유 + 지역 |
+    | `aria-expanded`(+`aria-controls`/`details`), haspopup 없음 | `EXPAND_ACCORDION` | disclosure 패턴 |
+
+    ## 확정되지 **않는** 5종 — 값을 내되 확정으로 적지 않는다
+
+    - `in_list_container` 는 `SELECT_RESULT` · `OPEN_ITEM_DETAIL` ·
+      `OPEN_PLACE_DETAIL` **셋 사이를 가르지 못한다.** 셋을 가르려면 그 리스트가
+      결과 목록인지 상품 목록인지 장소 목록인지를 읽어야 하고 그건 의미 해석이다.
+    - 신호가 하나도 없는 control 은 `SELECT_FUNCTION` 과 `SELECT_CATEGORY` 사이를
+      가르지 못한다. 이전 구현은 이 자리를 `SELECT_FUNCTION` 으로 **확정**해 적었다 —
+      `Δ36` 이 "한계가 아니라 틀린 측정" 이라고 판정한 자리가 여기다.
+
+    토큰 자체는 이전과 같은 값을 낸다(안전 검사·분기 집합 검사가 canonical token 을
+    요구하므로 값을 비우지 않는다). 달라진 것은 **그 값이 확정인지 아닌지가 기록된다**
+    는 것이고, 확정이 아니면 depth 가 산출되지 않는다.
     """
     role = str(candidate.get("role") or "").strip().lower()
-    if role == "tab":
+    haspopup = str(candidate.get("aria_haspopup") or "").strip().lower()
+    expanded = candidate.get("aria_expanded")
+    determined = False
+
+    if role == "tab" or candidate.get("in_tablist"):
         token = "SWITCH_TAB"
+        determined = True
+    elif candidate.get("submit_control"):
+        token = "SUBMIT_QUERY"
+        determined = True
+    elif haspopup in _HASPOPUP_TRUE:
+        # ARIA: `aria-haspopup` 은 이 control 이 메뉴/팝업을 소유한다는 뜻이다.
+        # 전역/지역은 그 control 이 놓인 landmark 로 가른다.
+        token = "OPEN_GLOBAL_MENU" if candidate.get("in_nav_landmark") else "OPEN_LOCAL_MENU"
+        determined = True
+    elif expanded is not None and candidate.get("controls_is_nav_landmark") is True:
+        # `aria-controls` 가 nav landmark 를 가리킨다 — 여는 대상이 메뉴임이 명시적이다.
+        token = "OPEN_GLOBAL_MENU"
+        determined = True
+    elif expanded is not None and (
+        candidate.get("in_disclosure") or candidate.get("controls_is_nav_landmark") is False
+    ):
+        # `<details>` 안이거나 `aria-controls` 가 landmark 가 아닌 것을 가리킨다 →
+        # disclosure 다. 메뉴 열기가 아님이 구조로 확정된다.
+        token = "EXPAND_ACCORDION"
+        determined = True
+    elif expanded is not None:
+        # `aria-expanded` 만 있고 대상 링크가 없다. ARIA 상 **무언가를 연다는 것은
+        # 확정**이지만(그래서 reveal 토큰을 낸다 — `menu_dependency` 가 이 사실을 본다),
+        # 그것이 전역메뉴인지 지역메뉴인지 아코디언인지는 **가를 근거가 없다.**
+        # 그래서 확정으로 적지 않는다.
+        token = "EXPAND_ACCORDION"
     elif candidate.get("in_list_container"):
         token = "SELECT_RESULT"
     else:
         token = "SELECT_FUNCTION"
+
     # `Δ30-branch` — **분기 대상 집합 = depth 집합**(`Δ9` IN 10 + CONDITIONAL 3).
     # 이 함수가 `DISMISS_OBSTRUCTION` 같은 OUT 토큰을 내면 그 조작이 depth 로 세어진다.
-    # 지금은 셋 다 IN 집합 안이며, 그 사실을 이 자리에서 강제한다(현재 아무것도 그것을
-    # 붙들고 있지 않았다).
+    # 그 사실을 이 자리에서 강제한다(현재 아무것도 그것을 붙들고 있지 않았다).
     if token not in BRANCH_ELIGIBLE_TOKENS:
         raise ScoutBranchSetError(
             f"{token} 은 Δ30-branch 의 분기 대상 집합 밖이다 — 분기 후보로 내면 "
             "그 조작이 activation_depth 로 세어진다 (Δ9 OUT 5종은 분기 대상이 아니다)"
         )
-    return token
+    # 확정 여부는 **어떤 신호가 발화했는가**로 정해진다. 토큰 이름으로 되짚지 않는다 —
+    # 같은 토큰이 확정 경로로도 미확정 경로로도 나올 수 있다(`aria-expanded` 단독).
+    determinacy = TOKEN_DETERMINACY_DETERMINED if determined else TOKEN_DETERMINACY_UNDETERMINED
+    if determined and token not in STRUCTURALLY_DETERMINED_TOKENS:  # pragma: no cover - 방어
+        raise ScoutBranchSetError(
+            f"{token} 을 확정으로 냈는데 STRUCTURALLY_DETERMINED_TOKENS 밖이다 — 두 곳이 어긋났다"
+        )
+    return token, determinacy
+
+
+def _classify_action_token(candidate: Mapping[str, Any]) -> str:
+    """`_classify_action_token_with_determinacy` 의 토큰 축만. 확정성은 버려진다.
+
+    기존 호출부/테스트가 이 시그니처를 쓴다. **새 코드는 2튜플 쪽을 써라** — 여기서
+    확정성을 떨어뜨리면 `Δ36 ④` 가 막으려는 허위 정밀도가 그대로 돌아온다.
+    """
+    return _classify_action_token_with_determinacy(candidate)[0]
 
 
 def _to_planned_action(candidate: Mapping[str, Any]) -> PlannedAction:
+    token, determinacy = _classify_action_token_with_determinacy(candidate)
     return PlannedAction(
-        action_token=_classify_action_token(candidate),
+        action_token=token,
+        token_determinacy=determinacy,
         control_selector=str(candidate.get("selector") or "") or None,
         control_role=(str(candidate.get("role")) if candidate.get("role") else None)
         or (str(candidate.get("tag")) if candidate.get("tag") else None),
@@ -211,7 +315,7 @@ class MinPathScoutStrategy:
 
     1. `stop_policy.should_stop(...)`이 참이면 `None`(요구 3).
     2. `policy.sort_key`로 candidate 를 랭킹한다(요구 1, `discovery.
-       PathSelectionPolicy` 재사용, 기본 MIN-4).
+       PathSelectionPolicy` 재사용, 기본 `Δ30` v3 전순서 — `MIN4_POLICY` 가 아니다).
     3. 이미 `taken`(같은 selector)인 candidate 는 건너뛴다(요구 2 — 재제안 금지).
     4. `ActivationSafetyGuard.observe()`로 **존재를 항상 기록**(`D-R0-06`)하고,
        `.evaluate()`가 막는 candidate 는 제안하지 않는다(요구 4 — 제안 **전에**
@@ -313,6 +417,8 @@ class MinPathScoutStrategy:
 __all__ = [
     "BRANCH_ELIGIBLE_TOKENS",
     "CANONICAL_ACTION_TOKENS",
+    "STRUCTURALLY_DETERMINED_TOKENS",
+    "STRUCTURALLY_UNDETERMINED_TOKENS",
     "MinPathScoutStrategy",
     "ScoutBranchSetError",
     "ScoutStopPolicy",

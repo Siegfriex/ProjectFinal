@@ -889,7 +889,24 @@ def test_app_required_stops_before_evidence_run(tmp_path: Path) -> None:
 
 
 def test_scout_budget_exhaustion_is_recorded_not_converted_to_a_number(tmp_path: Path) -> None:
-    """예산에 걸린 관측은 "N" 이 아니라 "N 회 안에서는 관측되지 않았다" 다."""
+    """예산에 걸린 관측은 "N" 이 아니라 "N 회 안에서는 관측되지 않았다" 다.
+
+    ## `Δ36` ③ 으로 **다시 좁힌** 테스트다 — 지운 것이 아니다
+
+    이 테스트는 `endpoint_status is None` 을 핀하고 있었다. `Δ36` ③ 이 그 핀을
+    무효로 만들었다 — `Δ10-R11` 이 *"모든 terminal 이 `endpoint_status` 와
+    `terminal_reason` 을 둘 다 갖는다"* 고 정했고, `terminal_reason=None` 으로
+    나가는 terminal 은 그 스키마 위반이기 때문이다.
+
+    그래서 **주장을 지우지 않고 좁힌다**: 이 테스트가 지키려던 것은
+    `endpoint_status` 가 비어 있다는 사실이 아니라 **`MIN-7` 후단 — 예산값을 숫자로
+    대입하지 않는다** 였다. 그 주장은 아래에서 더 강하게 검사된다(예산값 `2` 가 산출
+    어디에도 값으로 들어가지 않는다). 새로 추가된 것은 사유 축이 실제로 건너왔다는
+    확인이다.
+
+    `[Δ36 인용]` *"기존 테스트가 `endpoint_status is None` 을 핀하고 있다 — `Δ31` 대로
+    지우지 않고 다시 좁힌다."*
+    """
     plan = [PlannedAction("SELECT_CATEGORY") for _ in range(5)]
     runner = make_runner(
         tmp_path,
@@ -900,8 +917,21 @@ def test_scout_budget_exhaustion_is_recorded_not_converted_to_a_number(tmp_path:
     driver = FakeDriver(transitions=[ok_transition(index) for index in range(6)])
     result = runner.run(make_contract(), driver=driver, run_id="run-0401")
     assert result.scout_budget_exhausted is True
-    assert result.endpoint_status is None
     assert len(result.path_manifest["steps"]) == 2  # type: ignore[index]
+
+    # (1) `Δ36` ③ — 사유 축이 이음매를 건너왔다. 두 축이 **둘 다** 있다 (Δ10-R11).
+    assert result.endpoint_status == "ABSTAIN"
+    assert result.terminal_reason == "BUDGET_EXCEEDED"
+    assert result.terminal_reason_note
+
+    # (2) `MIN-7` 후단 — **예산값을 숫자로 대입하지 않는다.** 이 테스트의 원래 주장이며
+    #     여기서 더 좁아진다: 예산값 2 가 산출 스칼라 어디에도 값으로 들어가지 않는다.
+    record = result.as_mart_record()
+    for key in ("endpoint_status", "terminal_reason", "scout_budget_exhausted"):
+        assert record[key] != 2
+    assert "max_activations=2" not in (result.terminal_reason_note or "")
+    # 예산값이 남는 유일한 자리는 **탐색 파라미터 기재**다 (Δ36 part4). 관측값이 아니다.
+    assert result.path_manifest["search_parameters"]["runner_max_activations"] == 2  # type: ignore[index]
 
 
 # ---------------------------------------------------------------------------

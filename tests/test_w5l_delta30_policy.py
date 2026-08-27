@@ -669,7 +669,16 @@ def test_delta32_the_two_branches_never_produce_the_same_output(tmp_path: Path) 
         _contract(), driver=driver, task_id="W5L-C", run_id="w5l-c"
     )
     assert healthy.task_candidate_count == 1
-    assert healthy.terminal_reason is None
+    # `Δ43`/`R37` 로 **다시 좁힌다** — 지운 것이 아니다.
+    #
+    # 이 줄은 `terminal_reason is None` 을 핀했다. 그 값이 여기서 지키려던 것은
+    # "(b) 의 `NO_TASK_CANDIDATE_FOUND` 와 같은 출력이 아니다" 였다. `R37` 이후
+    # 이 run 은 사유를 갖는다 — 선언된 정책이 endpoint 까지 가지 못했기 때문이다.
+    # 그것은 **후보 부재와 다른 사건**이고, 그 구분이 이 테스트의 주장이다.
+    assert healthy.terminal_reason != "NO_TASK_CANDIDATE_FOUND"
+    assert healthy.path_discovery_outcome == "POLICY_DID_NOT_FIND_PATH"
+    assert healthy.policy_relative is True  # 사이트가 아니라 우리 정책에 대한 진술
+    assert observed.policy_relative is False  # 후보 0건은 페이지에 대한 관측이다
     assert [a.control_selector for a in driver.activated] == ["#go", "#go"]
     assert len(healthy.raw_steps) == 1
 
@@ -680,7 +689,9 @@ def test_delta32_unobserved_candidate_count_is_not_zero(tmp_path: Path) -> None:
         _contract(), driver=_ScriptedDriver(), task_id="W5L-N", run_id="w5l-n"
     )
     assert result.task_candidate_count is None
-    assert result.terminal_reason is None
+    # `Δ43`/`R37` 로 다시 좁힘 — 사유가 붙되 **후보 부재가 아니다**. 이 테스트의 주장은
+    # `None`(미관측) ≠ `0`(관측된 0건) 이고 그것은 그대로 참이다.
+    assert result.terminal_reason != "NO_TASK_CANDIDATE_FOUND"
 
 
 def test_delta32_no_task_candidate_found_is_distinct_from_its_neighbours() -> None:

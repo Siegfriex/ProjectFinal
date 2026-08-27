@@ -46,6 +46,7 @@ from landing_accessibility.v3_runner.evidence import INPUT_MODE_VALUES  # noqa: 
 from landing_accessibility.v3_runner.runner import (  # noqa: E402
     DEPTH_CONDITIONAL_TOKENS,
     ELIGIBILITY_PROCEEDABLE,
+    SEARCH_STRATEGY,
     PlannedAction,
     RawTransition,
     SessionDriver,
@@ -733,17 +734,53 @@ class TestNoStructuralPathToForbiddenActions:
         assert ast.unparse(calls[0].args[1]) == "SAFE_PROBE_TEXT"
 
     def test_planned_action_has_no_field_that_could_carry_a_secret(self) -> None:
-        """호출자가 비밀번호를 **건네줄 자리 자체가 없다** (W5F 소유 dataclass)."""
+        """호출자가 비밀번호를 **건네줄 자리 자체가 없다** (W5F 소유 dataclass).
+
+        ## `Δ36` ④ 로 **다시 좁힌** 테스트다 — 지운 것이 아니다
+
+        이 테스트는 필드 집합의 **동등성**을 핀했다. `Δ36` ④ 가 W5F 소유 dataclass 에
+        `token_determinacy`(값 어휘 2종: `DETERMINED`/`UNDETERMINED`)를 더했고, 그
+        순간 이 테스트는 "비밀을 담을 자리가 없다" 가 아니라 "필드가 늘지 않았다" 를
+        검사하는 테스트가 됐다 — 그건 이 테스트가 지키려던 주장이 아니다.
+
+        그래서 주장을 **그대로 두고 더 강하게** 만든다:
+
+        1. 원래의 5필드가 **여전히 전부 있다**(축소 금지).
+        2. 새로 는 필드는 `_SECRET_FREE_EXTRA_FIELDS` 에 **명시적으로 열거된 것만**
+           허용한다 — 모르는 필드가 조용히 생기면 실패한다.
+        3. 열거된 새 필드는 **닫힌 어휘를 갖는다**(자유문자열이 아니다). 자유입력
+           문자열 필드는 비밀을 담을 수 있고, 닫힌 어휘 필드는 담을 수 없다.
+        """
         import dataclasses
 
-        names = {f.name for f in dataclasses.fields(PlannedAction)}
-        assert names == {
+        from landing_accessibility.v3_runner.runner import TOKEN_DETERMINACY_VALUES
+
+        original = {
             "action_token",
             "control_selector",
             "control_role",
             "control_visible_text",
             "control_accessible_name",
         }
+        #: 새로 허용된 필드 → 그 필드의 **닫힌 어휘**. 자유입력이면 여기 못 들어온다.
+        secret_free_extra: dict[str, frozenset[str]] = {
+            "token_determinacy": TOKEN_DETERMINACY_VALUES,
+        }
+
+        names = {f.name for f in dataclasses.fields(PlannedAction)}
+        assert original <= names, "원래 필드가 사라졌다 — 축소는 다른 문제다"
+        unexpected = names - original - set(secret_free_extra)
+        assert not unexpected, f"열거되지 않은 필드가 생겼다: {sorted(unexpected)}"
+        for field_name, vocabulary in secret_free_extra.items():
+            assert vocabulary, f"{field_name} 의 어휘가 비었다 — 닫힌 집합이 아니다"
+            # 어휘 밖 값은 산출 경로에서 거부된다 → 자유문자열을 실어 나를 수 없다.
+            from landing_accessibility.v3_runner.runner import (
+                RunnerError,
+                _validated_token_determinacy,
+            )
+
+            with pytest.raises(RunnerError):
+                _validated_token_determinacy("hunter2")
 
     @pytest.mark.parametrize(
         "banned",
@@ -1068,7 +1105,11 @@ class TestRunnerIntegration:
         )
         driver = driver_factory()
         driver.capture_surface(make_contract("hamburger"))
+        # `Δ36` ① — path manifest 는 `search_strategy` 를 **필수**로 싣는다. 이 줄이
+        # 없으면 `path_manifest_sha256` 이 해시를 뜨기 전에 거부한다(그 거부를 확인하는
+        # 음성대조는 `tests/test_w5o_delta36_delta37.py` 에 있다).
         manifest = {
+            "search_strategy": SEARCH_STRATEGY,
             "steps": [{"action_token": "SELECT_FUNCTION", "control_selector": "#nope"}],
         }
         result = runner.replay(
@@ -1087,6 +1128,9 @@ class TestRunnerIntegration:
 # ═══════════════════════════════════════════════════════════════════════════
 
 ENGINE = RESEARCH / "src" / "landing_accessibility" / "engine"
+
+#: W5O(`Δ36`) lane base. `HEAD` 를 쓰면 커밋 뒤에 diff 가 비어 검사가 조용히 통과한다.
+LANE_BASE_COMMIT = "5b6b00a5de884a861fc9ebb9ffbf96c1734b3e9a"
 
 
 class TestAxNodeJoinIsAbsent:
@@ -1141,7 +1185,23 @@ class TestScrollEnumerationIsMineNotTheEngines:
     """scroll 열거는 이 드라이버 안에 있다 — 소유 밖 파일을 고치지 않았다."""
 
     def test_engine_files_are_byte_identical_to_base(self) -> None:
-        """`l0_collector.py` · `l0_probe.js` 를 건드리지 않았음을 해시로 고정한다."""
+        """engine 파일에 **삭제·변경이 0** 이다 (`Δ36` ④ 로 다시 좁힘).
+
+        ## 왜 "바이트 동일" 이 아니라 "가산 전용" 인가 — 지운 것이 아니다
+
+        원래 주장은 *"이 lane 이 engine 을 고치지 않았다"* 였고, 검사는 `git diff` 가
+        비어 있는가였다. `Δ36` ④ 가 **다른 lane(W5O)에** `l0_probe.js` 가산을
+        명시적으로 허용했다 — `[Δ36 인용]` *"`l0_probe.js` 에 구조 신호를 추가하는
+        것은 `Δ20` 이 이미 허용한 범주다(가산적·회귀 전건 통과·포착 스택 신원 기록)."*
+
+        그래서 파일 단위 "무변경" 은 더 이상 참이 아니지만, 이 테스트가 실제로 지키려던
+        것 — **기존 수집기의 출력이 변하지 않는다** — 은 그대로 지킬 수 있고 오히려 더
+        정확하게 검사된다: `git diff --numstat` 의 **삭제 열이 0** 이면 기존 줄이 하나도
+        지워지거나 바뀌지 않았다는 뜻이고, 그러면 입력이 같을 때 기존 키의 출력도 같다.
+
+        비교 기준은 `HEAD` 가 아니라 **lane base 커밋**이다. `HEAD` 는 커밋 뒤에 움직여
+        검사가 조용히 통과해 버린다.
+        """
         import subprocess
 
         for relative in (
@@ -1149,13 +1209,20 @@ class TestScrollEnumerationIsMineNotTheEngines:
             "research/landing_accessibility/src/landing_accessibility/engine/l0_probe.js",
         ):
             proc = subprocess.run(
-                ["git", "diff", "--name-only", "HEAD", "--", relative],
+                ["git", "diff", "--numstat", LANE_BASE_COMMIT, "--", relative],
                 cwd=REPO,
                 capture_output=True,
                 text=True,
                 check=False,
             )
-            assert proc.stdout.strip() == "", f"{relative} 가 수정됐다"
+            out = proc.stdout.strip()
+            if not out:
+                continue  # 변경 자체가 없다 — 가장 강한 형태
+            added, deleted, _ = out.split("\t", 2)
+            assert deleted == "0", (
+                f"{relative} 에서 {deleted} 줄이 삭제/변경됐다 — engine 변경은 "
+                f"가산만 허용된다 (Δ20 · Δ36 ④). 추가: {added}"
+            )
 
     def test_scroll_enumeration_lives_in_the_driver(self) -> None:
         node = function_node("capture_surface")

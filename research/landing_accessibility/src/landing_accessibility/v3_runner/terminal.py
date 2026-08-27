@@ -416,7 +416,8 @@ class TerminalReason(StrEnum):
     `[Δ30 인용]` *"`Δ10-R11` 의 13값에 예산 소진이 없다. **`BUDGET_EXCEEDED` 를 추가한다**
     (14값). 조합: `endpoint_status=ABSTAIN` × `terminal_reason=BUDGET_EXCEEDED`"*
 
-    **`MIN-7` — 예산 소진은 최소가 아니라 관측 없음이다.** 그래서 이 값은 terminal 8종
+    **`MIN-7` — 예산 소진은 관측 없음이며 activation 수에 대한 주장이 아니다.**
+    (`Δ36` ① 이 v3 산출·docstring 에서 그 주장의 어휘 자체를 금지했다.) 그래서 이 값은 terminal 8종
     어디에도 매달리지 않는다(`terminal=None` · `resolution=UNDETERMINED`). 예산을 다 써서
     멈춘 것은 사이트에 대한 진술이 아니라 **우리가 그만 본 것**이다.
 
@@ -481,7 +482,7 @@ ALLOWED_ENDPOINT_STATUS_REASONS: dict[EndpointStatus, frozenset[TerminalReason |
             TerminalReason.CONTROL_DISABLED_OR_INERT,
             TerminalReason.REPLAY_BROKEN,
             TerminalReason.AMBIGUOUS_MULTIPLE_CANDIDATES,
-            # Δ30 — MIN-7. 예산 소진은 최소가 아니라 관측 없음이다.
+            # Δ30 — MIN-7. 예산 소진은 관측 없음이며 activation 수 주장이 아니다 (Δ36 ①).
             TerminalReason.BUDGET_EXCEEDED,
             # Δ32 — 페이지에 후보 control 이 실제로 없었다(관측). 계약 위반이 아니다.
             TerminalReason.NO_TASK_CANDIDATE_FOUND,
@@ -680,7 +681,8 @@ class TerminalSignals:
     scout_budget_exhausted: bool = False
     """`Δ30` / `A1 §2.6 MIN-7` — 수집 예산(`MAX_ACTIVATIONS_PER_TASK` 등)을 소진해 멈췄다.
 
-    **관측 없음이지 최소가 아니다.** `permitted_routes_exhausted`(허용 경로를 *소진*했다)
+    **관측 없음이며 activation 수에 대한 주장이 아니다** (`Δ36` ①).
+    `permitted_routes_exhausted`(허용 경로를 *소진*했다)
     와 다르다 — 그쪽은 관측이고 이쪽은 관측을 그만둔 것이다. 둘 다 참이면 terminal 관측이
     앞서고, 이 사실은 `notes` 에 남는다(합치지 않는다)."""
 
@@ -864,12 +866,12 @@ def classify_terminal(signals: TerminalSignals) -> TerminalOutcome:
                 notes=tuple(notes),
             )
 
-        # `Δ30` / `MIN-7` — 예산을 다 써서 멈춘 것은 최소가 아니라 **관측 없음**이다.
-        # 예산값은 대입하지 않는다(MIN-7 후단).
+        # `Δ30` / `MIN-7` — 예산을 다 써서 멈춘 것은 **관측 없음**이며 activation 수에
+        # 대한 주장이 아니다 (`Δ36` ①). 예산값은 대입하지 않는다(MIN-7 후단).
         if signals.scout_budget_exhausted:
             budget_note = signals.other_reason_note or (
-                "수집 예산을 소진해 탐색을 멈췄다 — 최소 activation 수가 아니라 관측 없음이다 "
-                "(A1 §2.6 MIN-7)"
+                "수집 예산을 소진해 탐색을 멈췄다 — activation 수에 대한 주장이 아니라 "
+                "관측 없음이다 (A1 §2.6 MIN-7)"
             )
             validate_status_reason(
                 EndpointStatus.ABSTAIN, TerminalReason.BUDGET_EXCEEDED, budget_note

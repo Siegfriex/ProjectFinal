@@ -341,6 +341,30 @@
         const h = n.querySelector ? n.querySelector('h1,h2,h3,h4,h5,h6') : null;
         if (h) { heading = T(h.textContent).slice(0, 80); break; }
       }
+      // A Δ36 ④ (Δ20 이 허용한 가산적 구조 신호) — Δ9 IN 10종을 라벨 해석 없이 가르기
+      // 위한 신호다. 값은 전부 DOM/ARIA 속성이거나 HTML 명세가 정한 파생이며, 문구·의미
+      // 해석은 하나도 없다. 기존 키는 한 줄도 바꾸지 않는다(삭제 0).
+      const tagLower = el.tagName.toLowerCase();
+      const typeLower = (el.getAttribute('type') || '').toLowerCase();
+      // HTML 명세: `<button>` 의 type 기본값은 submit 이고, form 소속일 때만 제출이 된다.
+      // `<input type=submit|image>` 도 제출 control 이다. 라벨을 읽지 않는다.
+      const inForm = !!el.closest('form');
+      // `aria-controls` 는 이 control 이 **무엇을** 여닫는지에 대한 명시적 구조 링크다.
+      // 대상의 역할이 nav/menu 면 메뉴 열기, 그 밖이면 disclosure(아코디언)다.
+      // id 를 못 찾으면 null 이다 — 추측하지 않는다.
+      let controlsRole = null, controlsIsNavLandmark = null;
+      const controlsId = el.getAttribute('aria-controls');
+      if (controlsId) {
+        const t = document.getElementById(controlsId.split(/\s+/)[0]);
+        if (t) {
+          controlsRole = t.getAttribute('role') || t.tagName.toLowerCase();
+          controlsIsNavLandmark =
+            t.tagName.toLowerCase() === 'nav' || t.getAttribute('role') === 'navigation';
+        }
+      }
+      const submitControl =
+        (tagLower === 'input' && (typeLower === 'submit' || typeLower === 'image'))
+        || (tagLower === 'button' && (typeLower === 'submit' || (typeLower === '' && inForm)));
       return {
         selector: sel(el), tag: el.tagName.toLowerCase(), role: el.getAttribute('role'),
         aria_label: el.getAttribute('aria-label'),
@@ -363,6 +387,22 @@
         dom_order,
         viewport_visible: intersectArea(b, viewportBox) > 0,
         hittable: hittable(el, b),
+        // ── A Δ36 ④ 가산 신호 (구조값만) ────────────────────────────────────
+        // `aria-haspopup` 이 있으면 이 control 은 메뉴/팝업을 연다(ARIA 명세). 어떤
+        // 메뉴인지는 묻지 않는다 — nav/banner landmark 소속이면 전역, 아니면 지역이다.
+        aria_haspopup: el.getAttribute('aria-haspopup'),
+        // `aria-expanded` 는 있는데 `aria-haspopup` 이 없으면 disclosure(아코디언)다.
+        aria_expanded: el.getAttribute('aria-expanded'),
+        has_aria_controls: el.hasAttribute('aria-controls'),
+        controls_role: controlsRole,
+        controls_is_nav_landmark: controlsIsNavLandmark,
+        input_type: el.getAttribute('type'),
+        in_form: inForm,
+        submit_control: submitControl,
+        in_nav_landmark: !!el.closest('nav,[role=navigation],header,[role=banner]'),
+        in_tablist: !!el.closest('[role=tablist]'),
+        in_disclosure: tagLower === 'summary' || !!el.closest('details'),
+        in_menu_container: !!el.closest('[role=menu],[role=menubar]'),
       };
     });
     push('primary_action_candidates', cands);
