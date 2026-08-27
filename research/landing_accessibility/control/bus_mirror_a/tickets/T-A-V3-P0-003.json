@@ -1,0 +1,94 @@
+{
+ "ticket_id": "T-A-V3-P0-003",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "2e826a578caab32e2629c59b361aa37f409f36ac",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:24:00+09:00",
+ "completed_at_kst": null,
+ "scope": "P0 판정 4건 + V3_CONTRACT_FROZEN 선행조건 명시",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "P0 exit 4조건 중 3개 충족. D fixture 는 제출됐으나 아직 D 자기보고다 — 생산자≠판정자를 지키기 위해 C 확인 후 FROZEN 을 선언한다. 게이트를 통과시키려고 내가 세운 조건을 사후에 바꾸지 않는다.",
+ "exit_status": {
+  "1_plane_ACK": {
+   "verdict": "충족",
+   "B": "T-B-V3-P0-ACK-001 · claude-b/diag-pilot-integration@01041bc213a2e61f6cb224e469087d9a11324349",
+   "C": "T-A-V3-P0-001.C · claude-c/assurance-v21@f44ec67f→f5f70085 (감사 시점)",
+   "D": "T-A-V3-P0-001.D · claude-d/research-sandbox-v21@369cbec7ab624b33eff9e0809bc90c919fc59dc8",
+   "method": "전부 ls-remote 실측 대조"
+  },
+  "2_C_audit": {
+   "verdict": "충족",
+   "ticket": "C-ASSURANCE-022040",
+   "task_1": "CONFIRMED — 폐기 0",
+   "task_2": "20/20 MATCH · 권위경계 MATCH · Δ1-b F1 시중7/지방3 재계산 MATCH · Δ4 C 코드 bare 0건",
+   "negative_control": "§0 비보존 8종 전부 강등 확인 · main critical path 잔존 0"
+  },
+  "3_D_fixture": {
+   "verdict": "미충족 — 제출됨, 미확인",
+   "submitted": "D-V3-RELIABILITY-001 @369cbec",
+   "results": "known_positive 4/4 · known_negative 과탐 0/4 · malformed 3/3 명시보고",
+   "why_not_yet": "D 자기보고다. C 가 T-A-V3-P0-D-001 ACK 에서 'D 의 실행 로그·exact SHA 기준으로 확인한다'고 명시했고 그 확인이 아직 없다"
+  },
+  "4_A_decision": {
+   "verdict": "충족",
+   "docs": "control/v3/ 5종 @21e0a48"
+  }
+ },
+ "audited_surface_unchanged": {
+  "concern": "C 는 A@21e0a48 를 감사했는데 A 현재 head 는 2e826a57 이다. '같은 exact state' 가 깨졌는가",
+  "measurement": "git diff --name-only 21e0a48..2e826a57 → bus_mirror_a 5파일만. control/v3/ diff 공집합",
+  "verdict": "감사 대상 표면은 byte 불변이다. C 의 verdict 는 2e826a57 에서도 유효하다. 미러 파일은 감사 대상이 아니다"
+ },
+ "ruling_4_D_to_A_direct_exception": {
+  "raised_by": "C-ASSURANCE-022040 task_1 완화 1건 — 06 §4 / 15 x_v3_routing_notes 의 'A explicit request 예외' 가 METHODOLOGY §1 'A 가 D 를 직접 읽지 않는다' 를 완화한다",
+  "A_ruling": "예외를 허용하되 사전·기록 형식을 지금 고정한다.",
+  "format": [
+   "예외는 A 가 티켓으로 **먼저** 요청해야 성립한다. 사후 정당화 금지",
+   "D 의 직접 전달은 payload 에 routing_exception=<A 요청 티켓 id> 를 반드시 포함",
+   "직접 전달분도 cc=C 를 유지한다 — C 가 보지 못하는 D 산출은 만들지 않는다",
+   "A 는 예외 요청 티켓에 '왜 C 경유로는 안 되는가'를 적는다"
+  ],
+  "why": "방화벽의 목적은 D 의 비권위 산출이 검증 없이 canonical 로 새는 것을 막는 것이다. cc=C 를 유지하면 목적이 보존된다. 예외 자체를 없애면 A 가 D 에게 질문할 경로가 사라진다",
+  "C_finding_accepted": "C 가 이것을 '폐기'가 아니라 '완화'로 분류하고 hard stop 후보가 아니라고 판정한 것이 옳다"
+ },
+ "ruling_5_out_of_manifest_file": {
+  "detected_by": "C-ASSURANCE-022040 task_2_observation_P2",
+  "file": "SSOTV3/THREE_TURN_RUNBOOK.md · 3169B · sha256 34f14e13231eb88b156427035d149da718c36584aa64b9973781a965c2eb9b60 · mtime 2026-08-28T02:11 · owner sieg",
+  "A_verified": "A 가 직접 읽었다. 내용은 3-Turn Wave 운영계획(Wave1 P0~P2 / Wave2 P3~P5 / Wave3 P6~P7), 자동전이 4조건, Director interrupt 3조건, partial failure policy 다. Director 가 A 에게 주입한 Master Directive 와 동일 계열이며 **construct/task family/endpoint 를 하나도 바꾸지 않는다**",
+  "classification": "PACK 권위 **밖** 운영 runbook. 매니페스트에 등재하지 않는다",
+  "why_not_registered": "매니페스트는 Director 가 준 bytes 다. A 가 항목을 추가하면 팩 해시가 A 의 손을 타고, '무엇이 Director 가 준 것인가'가 소멸한다. 20/20 무결성은 그대로 유지된다(A 재검증 완료)",
+  "recorded": "sha256 을 여기 남긴다 — 이후 내용이 바뀌면 대조로 검출된다",
+  "substantive_note": "runbook 의 partial failure policy 는 A 의 Δ2 와 정합한다 — 'P5 실행 중 실패한 target 은 표본 교체 금지, 실패/결측 사유로 보존'. 교체는 P2 freeze 이전에만 가능하다는 점이 양쪽에서 일치한다",
+  "correction_to_A": "A 는 02:06 검증 시 '매니페스트 밖 파일 = MANIFEST 자기참조 1건'이라고 기재했다. 그 시점(02:06)에는 참이었고 runbook 은 02:11 에 생겼다. 현재 진술은 '매니페스트 밖 2건'이다"
+ },
+ "ruling_6_created_at_is_not_evidence": {
+  "raised_by": "T-B-INFO-001 — B 가 손으로 적은 created_at 34건 중 6건이 60초 초과 편차, 최대 2541초",
+  "A_ruling": "created_at_kst 는 발신자가 적은 **주장**이며 T6 이다. 어떤 게이트도 이것을 순서 증거로 쓰지 않는다.",
+  "ordering_evidence": [
+   "파일 mtime",
+   "event_log.jsonl 기입 순서",
+   "git commit time / ancestry"
+  ],
+  "schema_unchanged": "15 스키마의 created_at_kst 필수 요구는 유지한다 — 발신자가 언제라고 주장했는지도 기록 가치가 있다. 바뀌는 것은 그것의 **지위**다",
+  "self_application": "A 도 이 규칙에 걸린다. A 가 T-A-V3-FC-001 에서 'Director 표는 01:5x 하트비트 시점 채취'라고 추론한 근거는 타임스탬프가 아니라 조상관계(T1)였다. 타임스탬프였다면 그 진술을 철회해야 한다",
+  "credit": "B 가 자기 절차 결함으로 등재한 것이다. 스스로 잰 결함이 규약이 됐다"
+ },
+ "ruling_7_C_D_numeric_dispute": {
+  "fact": "D-V3-FINDING-003 의 'dismiss control 0개' 를 D 는 38/53, C 부분재현은 3/54 로 얻었다. 분모도 다르다. C 는 engine _dismiss_blockers 기준 정의 불일치로 진단하고 D_INCONCLUSIVE 로 두었다",
+  "A_does_not_adjudicate_the_number": "legacy 코호트 연구이고 D→C 라우팅이다. A 가 숫자를 판정하지 않는다",
+  "but_this_is_a_P3_requirement": "두 유능한 평면이 같은 동결 DOM 에서 'control 이 0개인가'를 물어 3 대 38 을 얻었다. 그렇다면 dismiss_control_exists 는 **조작적으로 미정의**다 — 그런데 v3 02 §5 가 그 필드를 obstruction 판정의 기초로 쓴다",
+  "P3_requirement_registered": "dismiss_control_exists 계열 4필드는 (a) 조작적 정의를 문서화하고 (b) 두 독립 구현이 같은 fixture 에서 수렴함을 실증해야 P3 를 통과한다. 정의를 적는 것만으로는 부족하다 — 수렴을 보여야 한다",
+  "note": "A 의 ruling_3(P3 입력 등록)은 이 숫자에 의존하지 않았다. 필요한 것은 '닫을 대상 없음 / 닫기 실패 / 닫기 성공'의 구분이며 C·D 둘 다 그 구분이 필요하다는 데 동의한다"
+ },
+ "frozen_precondition": "C 가 D-V3-RELIABILITY-001 을 exact SHA 369cbec 기준으로 독립 확인하면 A 가 즉시 V3_CONTRACT_FROZEN 을 선언하고 P1 로 자동전이한다. B 는 그 사이 dedicated caller offline 구현을 계속한다 — 대기하지 않는다",
+ "decision_required": null,
+ "expected_response": "C: D fixture 확인 verdict. B·D: 접수만"
+}
