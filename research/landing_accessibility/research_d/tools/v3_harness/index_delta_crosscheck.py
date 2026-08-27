@@ -36,6 +36,7 @@ def main() -> int:
     import hashlib
     delta_sha = hashlib.sha256(DELTA.read_bytes()).hexdigest()
 
+    doc0 = json.loads(idx.path.read_text(encoding="utf-8"))
     heads = []
     seen = set()
     for m in HEAD.finditer(text):
@@ -45,21 +46,51 @@ def main() -> int:
             heads.append(t)
 
     # --- 방향 A: delta 표제 → 색인 행 ---
+    # A 의 `self_check.delta_section_coverage` 규칙: **delta 의 모든 ruling 절이
+    # 색인에 대응 행을 가져야 한다. 컨테이너 절은 예외이며 `container_sections`
+    # 에 명시된 것뿐.** D 는 그 예외를 적용하지 않아 컨테이너 13개가 계속
+    # `미해결` 로 나왔다 — 방향 B 에서 A 의 3경로를 하나만 구현했던 것과
+    # 같은 실수다. 상대 문서의 결함이 아니라 내 규칙 미적용이었다.
+    #
+    # 커버 판정은 세 가지다: 별칭 조회 · 자식 행 존재 · 컨테이너 선언.
+    # (`Δ28` 은 자식 `Δ28-R26` 으로 커버된다 — 원시 id 대조만 하면 오탐이 난다.)
+    containers = set((doc0.get("container_sections") or {}).get("list", []))
+    split_map = (doc0.get("split_rows") or {}).get("map", {})
+    child_prefix = {r["id"].split("-")[0] for r in idx.rows if "-" in r["id"]}
+
+    def cover(t):
+        ids = idx.resolve(t)
+        if ids:
+            return {"via": "alias_or_id", "index_ids": ids}
+        if t in child_prefix:
+            kids = [r["id"] for r in idx.rows if r["id"].startswith(t + "-")]
+            return {"via": "child_rows", "index_ids": kids}
+        # `split_rows` 가 선언한 부모 절 — 자식이 색인에 있으면 충족이다.
+        # `Δ10-R13a` 는 `Δ10-R13` + `a` 라서 `t + "-"` 접두로는 안 걸린다.
+        # 접두를 추론해 만들지 않고 **A 가 선언한 map 의 값**을 쓴다.
+        kids = sorted(k for k, v in split_map.items() if v == t and k in
+                      {r["id"] for r in idx.rows})
+        if kids:
+            return {"via": "declared_split_parent", "index_ids": kids}
+        if t in containers:
+            return {"via": "declared_container", "index_ids": []}
+        return None
+
     a_hit, a_miss = [], []
     for t in heads:
-        ids = idx.resolve(t)
-        (a_hit if ids else a_miss).append({"delta_head": t, "index_ids": ids})
+        c = cover(t)
+        (a_hit if c else a_miss).append({"delta_head": t, **(c or {"via": None})})
 
     # --- 방향 B: 색인 행 → delta ---
     # A 의 `self_check.index_to_delta_reachability` 는 **경로가 셋**이다:
     #   (a) delta 절 헤더 · (b) 별칭 토큰경계 · (c) split_rows 부모 절
     # D 의 첫 구현은 (b) 만 봤다. 그래서 A 는 0 을 보고 D 는 11 을 봤다 —
     # **문서 차이가 아니라 검사 정의 차이다.** 셋을 다 구현하고 경로를 기록한다.
-    doc = json.loads(idx.path.read_text(encoding="utf-8"))
-    split = (doc.get("split_rows") or {}).get("map", {})
+    split = (doc0.get("split_rows") or {}).get("map", {})
     heads_set = set(heads)
     # 판별 대조군의 가짜 자식 id — delta 해시에서 파생한다 (아래 설명 참조).
     _probe = f"Δ15-P{delta_sha[:10]}"
+    _fake_head = f"Δ9{delta_sha[:6]}"     # 방향 A 용 — 존재하지 않는 절 표제
 
     def reach(rid, tokens):
         """A 가 선언한 세 경로만. 대조군도 이 함수를 탄다 (D-DEF-09)."""
@@ -94,6 +125,16 @@ def main() -> int:
         #   authority/부모 상속 규칙 → 도달
         # 이 도구는 선언된 규칙을 구현하므로 미도달이어야 한다. 도달로 나오면
         # 구현이 조용히 넓어진 것이다.
+        # 방향 A 대조군 — 커버 판정이 열린 채 망가지면 미커버 0 이 계속 나오고
+        # 그건 지금의 정상 출력과 같다. 존재하지 않는 delta 표제가 커버로
+        # 나오면 안 된다. id 는 delta 해시에서 파생한다(고정 문자열을 쓰면
+        # 그 id 를 적는 순간 죽는다 — C-FINDING-075215).
+        "coverage_control": {
+            "fake_head": _fake_head,
+            "absent_from_index": not idx.resolve(_fake_head),
+            "cover_result": (cover(_fake_head) or {}).get("via"),
+            "expected": None,
+        },
         "discriminating_control": {
             # id 를 **문서 내용에서 파생**한다. 고정 문자열을 쓰면 그 id 를
             # 어딘가에 적는 순간 대조군이 죽는다 — A 의 probe `Δ90001` 이
@@ -117,7 +158,9 @@ def main() -> int:
                    and ctrl["negative_control"] is None
                    and ctrl["discriminating_control"]["parent_section_exists"]
                    and ctrl["discriminating_control"]["probe_absent_from_delta"]
-                   and ctrl["discriminating_control"]["reach_result"] is None)
+                   and ctrl["discriminating_control"]["reach_result"] is None
+                   and ctrl["coverage_control"]["absent_from_index"]
+                   and ctrl["coverage_control"]["cover_result"] is None)
         else "FAIL"
     )
 
@@ -130,8 +173,13 @@ def main() -> int:
                   "authority_sha": idx.authority_sha, "rows": len(idx.rows)},
         "delta": {"path": str(DELTA), "sha256": delta_sha},
         "control": ctrl,
-        "A_delta_head_to_index": {"n": len(heads), "resolved": len(a_hit),
-                                  "UNRESOLVED": a_miss},
+        "A_delta_head_to_index": {"n": len(heads), "covered": len(a_hit),
+                                  "rule": "A self_check.delta_section_coverage — 별칭/자식행/선언된 컨테이너",
+                                  "by_path": {k: sum(1 for x in a_hit if x["via"] == k)
+                                              for k in ("alias_or_id", "child_rows",
+                                                        "declared_split_parent",
+                                                        "declared_container")},
+                                  "UNCOVERED": a_miss},
         "B_index_row_to_delta": {"n": len(idx.rows), "reachable": len(b_hit),
                                  "rule": "A self_check.index_to_delta_reachability — (a)헤더 (b)별칭 토큰경계 (c)split_rows 부모",
                                  "by_path": {k: sum(1 for x in b_hit
@@ -147,10 +195,15 @@ def main() -> int:
         json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     dc = ctrl["discriminating_control"]
     print(f"control={ctrl['verdict']} heads={len(heads)} rows={len(idx.rows)}")
+    cc = ctrl["coverage_control"]
+    print(f"   커버대조군 {cc['fake_head']}: 색인부재={cc['absent_from_index']} "
+          f"커버={cc['cover_result']} (기대 None)")
     print(f"   판별대조군 {dc['fake_child']}: 부재={dc['probe_absent_from_delta']} "
           f"부모절존재={dc['parent_section_exists']} 도달={dc['reach_result']} "
           f"(기대 None — 선언 규칙 구현)")
-    print(f"A) delta표제→색인  해결 {len(a_hit)}/{len(heads)}  미해결 {len(a_miss)}")
+    from collections import Counter as _C
+    print(f"A) delta표제→색인  커버 {len(a_hit)}/{len(heads)}  미커버 {len(a_miss)}")
+    print(f"   경로별: {dict(_C(x['via'] for x in a_hit))}")
     for x in a_miss:
         print("   -", x["delta_head"])
     from collections import Counter
