@@ -1,0 +1,75 @@
+{
+  "artifact": "C_W2_JOINT_HOLDOUT_EVAL_v4_nlp_fallback",
+  "sut": "joint6 ae3dd49 = W1 ef7db33 + W2 b28aaa5 (NLP fallback, enable_nlp_fallback=True)",
+  "input": "probe_v2_joint5 (probe.js 불변)",
+  "model": "paraphrase-multilingual-MiniLM-L12-v2 로컬 캐시(HF_HUB_OFFLINE=1)",
+  "aggregates": {
+    "v4_prior_only_nlp/26_full_exposed": {
+      "coverage": 0.45,
+      "agreement": 0.556,
+      "macro": 0.438,
+      "force_map": 1,
+      "evaluated": 20
+    },
+    "v4_prior_only_nlp/23_partial_exclusion": {
+      "coverage": 0.444,
+      "agreement": 0.625,
+      "macro": 0.562,
+      "force_map": 1,
+      "evaluated": 18
+    },
+    "v4_prior_only_nlp/18_clean_primary": {
+      "coverage": 0.538,
+      "agreement": 0.571,
+      "macro": 0.542,
+      "force_map": 1,
+      "evaluated": 13
+    },
+    "v4_prior_only_nlp/calibration_30_reference": {
+      "coverage": 0.318,
+      "agreement": 0.714,
+      "macro": 0.5,
+      "force_map": 2,
+      "evaluated": 22
+    },
+    "v4_all7_nlp/26_full_exposed": {
+      "coverage": 0.75,
+      "agreement": 0.133,
+      "macro": 0.143,
+      "force_map": 4,
+      "evaluated": 20
+    },
+    "v4_all7_nlp/23_partial_exclusion": {
+      "coverage": 0.722,
+      "agreement": 0.077,
+      "macro": 0.143,
+      "force_map": 4,
+      "evaluated": 18
+    },
+    "v4_all7_nlp/18_clean_primary": {
+      "coverage": 0.692,
+      "agreement": 0.111,
+      "macro": 0.2,
+      "force_map": 4,
+      "evaluated": 13
+    },
+    "v4_all7_nlp/calibration_30_reference": {
+      "coverage": 0.545,
+      "agreement": 0.333,
+      "macro": 0.25,
+      "force_map": 4,
+      "evaluated": 22
+    }
+  },
+  "fallback_firing": {
+    "prior_only": "0/56 발화 — 단일 후보라 ambiguity 자체가 없음 → v3 과 동일 수치",
+    "all7": "16/56 발화(resolved 8 / abstain 8) → PLACE_LOOKUP 25, coverage 0.69~0.75 로 상승하나 agreement 0.11~0.13, force-map 4"
+  },
+  "gate_D_R0_32": "FAIL 지속 — prior_only: agree 0.571/0.625/0.556, cov 0.538/0.444/0.45 · all7: cov 는 18 에서 0.692(미달), agree 0.11",
+  "reading": [
+    "계약대로 fallback 은 deterministic ambiguity 뒤에만 발화 → Layer P 가 1후보를 주는 정상 경로에서는 발화 0 → coverage 문제(37/56 'evidence 없음')는 fallback 으로 해결되지 않는다. 병목은 tier3 evidence 부재(degenerate/SPA/비랜딩 URL 포함)다.",
+    "Layer O 조건에서 fallback 은 coverage 를 올리지만 틀린 매핑(agreement 0.11)이라 D-RF002 의 confidence trap 실현 — abstain 규율이 없으면 coverage 게이트를 '통과시키는' 최단경로가 정확히 이것.",
+    "threshold 0.10 은 calibration 발화 0건이라 통계적 도출 불가(B 자인) — provisional 값으로 gate 판정에 사용 불가(P2)."
+  ],
+  "hold_assessment": "D-R0-74-3 HOLD 조건 도달로 판단(C). R1/R2 판정: prior 조건에서 'evidence 없음' 37/56 은 detector 규칙 부족(R1)과 DOM 정보 부족(R2) 이 혼재 — 라벨러도 14/56 abstain, 나머지 23 는 라벨러는 매핑했으나 detector 는 evidence 없음 → 이 23 이 R1 의 상한. per-target 목록 C-only."
+}
