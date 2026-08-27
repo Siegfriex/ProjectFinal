@@ -1,0 +1,168 @@
+{
+ "rq": "RQ-D6b",
+ "claim_kind": "OBSERVATION",
+ "title": "QUERY 는 Scout 이 실행되기 전에 전부 LOGIN guard 로 차단됐다",
+ "derived_from": "RQ-D6a 의 부수관측(TEXT_INPUT episode 0건) · RQ-D1 F9(QUERY n=0)",
+ "competing_hypotheses": {
+  "H1_NO_SEARCH_INPUT": "QUERY target 에 검색 입력 control 이 애초에 관측되지 않았다",
+  "H2_NOT_ATTEMPTED": "control 은 있었으나 Scout 이 타이핑을 시도하지 않았다",
+  "H3_GUARD_BLOCKED": "guard 가 Scout 실행 전에 막았다",
+  "H4_SELECTOR_MISMATCH": "probe 와 engine 이 다른 셀렉터로 검색창을 찾아 engine 이 못 찾았다"
+ },
+ "code_fact": {
+  "sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "l1_engine.py:695-712": "_perform_activation 안에서만 TEXT_INPUT 이 생성된다. archetype 이 QUERY 일 때 `input[type=search],[role=searchbox]` 를 찾아 fill 한 뒤 click 한다. 즉 **activation 이 시도돼야만 타이핑이 일어난다** — Scout 이 안 돌면 타이핑도 없다.",
+  "note": "셀렉터가 두 개로 하드코딩돼 있어 H4 는 원리적으로 가능하나, 이 표본에서는 검정할 기회조차 없었다(아래)."
+ },
+ "per_target_QUERY": [
+  {
+   "wtg": "9390ef32addf32bf",
+   "service": "Chrome",
+   "in_mart": true,
+   "search_inputs_n": "0",
+   "dom_input_n": "0",
+   "scout_invoked": false,
+   "blocked_category": "LOGIN",
+   "blocked_reason": "matched text: '시작하려면 로그인하세요. 시작하려면 로그인하세요.'",
+   "n_steps": 0,
+   "text_input_episode_count": null,
+   "outcome": "ACCOUNT_ACTION_BLOCKED"
+  },
+  {
+   "wtg": "91b952863c62993d",
+   "service": "다음",
+   "in_mart": true,
+   "search_inputs_n": "1",
+   "dom_input_n": "5",
+   "scout_invoked": false,
+   "blocked_category": "LOGIN",
+   "blocked_reason": "matched text: '로그인 로그인'",
+   "n_steps": 0,
+   "text_input_episode_count": null,
+   "outcome": "ACCOUNT_ACTION_BLOCKED"
+  },
+  {
+   "wtg": "bbdefa2950f49882",
+   "service": "Google",
+   "in_mart": true,
+   "search_inputs_n": "1",
+   "dom_input_n": "7",
+   "scout_invoked": false,
+   "blocked_category": "LOGIN",
+   "blocked_reason": "matched text: '로그인 로그인'",
+   "n_steps": 0,
+   "text_input_episode_count": null,
+   "outcome": "ACCOUNT_ACTION_BLOCKED"
+  },
+  {
+   "wtg": "6d5510a695d0a614",
+   "service": "네이버",
+   "in_mart": true,
+   "search_inputs_n": "2",
+   "dom_input_n": "9",
+   "scout_invoked": false,
+   "blocked_category": "LOGIN",
+   "blocked_reason": "matched text: '로그인 로그인'",
+   "n_steps": 0,
+   "text_input_episode_count": null,
+   "outcome": "ACCOUNT_ACTION_BLOCKED"
+  },
+  {
+   "wtg": "ff3ee504792f6cfc",
+   "service": "삼성 인터넷 브라우저",
+   "in_mart": false,
+   "search_inputs_n": "",
+   "dom_input_n": "",
+   "scout_invoked": null,
+   "blocked_category": null,
+   "blocked_reason": "",
+   "n_steps": 0,
+   "text_input_episode_count": null,
+   "outcome": "SKIPPED_RETRY_EXHAUSTED"
+  }
+ ],
+ "answer": {
+  "verdict_h3": "**SUPPORTED — QUERY 전부가 H3 다.**",
+  "detail": "attempted 59 기준 QUERY 5건 중 **4건이 scout_invoked=False, blocked_category=LOGIN** 이고, 나머지 1건(삼성 인터넷 브라우저)은 in_mart=False 로 evidence 자체가 없다(RQ-D11 의 SKIPPED_RETRY_EXHAUSTED 3건 중 하나). 따라서 **QUERY attempted 5건 중 Scout 이 실행된 것은 0건**이다 — 4건은 guard, 1건은 수집 실패다. 타이핑·activation·TEXT_INPUT episode 가 원리적으로 불가능했다.",
+  "h1_refuted": "검색 입력 control 은 관측됐다 — 다음 1 · 네이버 2 · Google 1 (Chrome 만 0).",
+  "h2_h4_not_testable": "Scout 이 실행되지 않아 시도 여부·셀렉터 일치 여부를 검정할 기회가 없었다. NOT_TESTABLE 이지 REFUTED 가 아니다.",
+  "precision_note": "1차 서술은 '5건 전부 scout_invoked=False' 였다. 부정확하다 — 5번째는 False 가 아니라 None(관측 없음)이다. 결론(Scout 실행 0건)은 같지만 원인이 둘로 갈린다. 시정했다."
+ },
+ "guard_by_archetype_scout_false": {
+  "ITEM_DETAIL": {
+   "blocked": 10,
+   "of_total": 26
+  },
+  "FINANCIAL_ACTION_ENTRY": {
+   "blocked": 6,
+   "of_total": 11
+  },
+  "COMMUNICATION_ENTRY": {
+   "blocked": 2,
+   "of_total": 4
+  },
+  "UTILITY_ENTRY": {
+   "blocked": 3,
+   "of_total": 6
+  },
+  "QUERY": {
+   "blocked": 4,
+   "of_total": 5
+  }
+ },
+ "blocked_category_all": {
+  "null": 34,
+  "LOGIN": 19,
+  "PURCHASE": 3,
+  "SIGNUP": 2,
+  "PAYMENT": 1
+ },
+ "connects_to_ssot": "SSOT 00 §2 G1 은 '파일럿에서 target-level guard 25/59, LOGIN 19건이 확인됐고 QUERY 5건은 Scout 전 진입이 막혔다' 고 적었다. D 가 target 단위로 독립 재현했다 — SSOT 의 QUERY 5건 서술과 일치한다.",
+ "why_it_matters": "QUERY 의 depth 데이터 부재는 detector 약점이 아니라 **구 target-level LOGIN guard 의 직접 결과**다. v2.1 복구 원칙(G1: target-level kill 폐기 → candidate/state-level mask)이 가장 크게 영향을 주는 archetype 이 QUERY 다.",
+ "verdict": "SUPPORTED",
+ "limitations": [
+  "guard 판정 코드를 읽지 않았다. blocked_reason 의 matched text 만 봤다.",
+  "H4(셀렉터 불일치)는 이 표본에서 검정 불가다. guard 가 풀린 뒤에야 볼 수 있다.",
+  "QUERY n=5 (attempted) / n=4 (in_mart) 로 작다. 비율 해석 금지."
+ ],
+ "followup": "RQ-D6b-1: guard 가 candidate-level 로 바뀐 뒤 QUERY 에서 engine 의 검색창 셀렉터가 실제로 매칭되는가 (H4 검정)",
+ "guard_block_rate_by_archetype": {
+  "QUERY": {
+   "blocked": 4,
+   "of": 5,
+   "rate": 0.8,
+   "note": "최고. 나머지 1건은 evidence 부재"
+  },
+  "FINANCIAL_ACTION_ENTRY": {
+   "blocked": 6,
+   "of": 11,
+   "rate": 0.545
+  },
+  "COMMUNICATION_ENTRY": {
+   "blocked": 2,
+   "of": 4,
+   "rate": 0.5
+  },
+  "UTILITY_ENTRY": {
+   "blocked": 3,
+   "of": 6,
+   "rate": 0.5
+  },
+  "ITEM_DETAIL": {
+   "blocked": 10,
+   "of": 26,
+   "rate": 0.385
+  },
+  "PLACE_LOOKUP": {
+   "blocked": 0,
+   "of": 4,
+   "rate": 0.0
+  },
+  "CONTENT_OPEN": {
+   "blocked": 0,
+   "of": 4,
+   "rate": 0.0
+  },
+  "caveat": "n 이 4~26 이다. QUERY 0.80 은 5건 중 4건이며 Wilson CI 가 매우 넓다. 순위를 세게 읽지 마라."
+ }
+}

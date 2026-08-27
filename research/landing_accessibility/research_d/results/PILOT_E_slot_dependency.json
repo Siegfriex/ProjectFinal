@@ -1,0 +1,837 @@
+{
+  "schema": "PILOT_E_slot_dependency/1",
+  "verdict": "SUPPORTED",
+  "child_id": "D-PILOT-E",
+  "rq_id": "RQ-D-PILOT-001",
+  "hypothesis_id": "H-PILOT-E-SLOT-DEPENDENCY",
+  "model_or_rule_version": "PILOT_E_v1",
+  "seed": 20260827,
+  "generated_at_kst": "2026-08-28T00:10:18.372728+09:00",
+  "plane": "D",
+  "authority": "NON_CANONICAL",
+  "claim_kind": "ANALYSIS",
+  "split": "none",
+  "go_nogo_decision": "NOT_IN_SCOPE — D 는 GO/NO-GO 와 threshold 를 내지 않는다",
+  "construct_authority_note": "어느 축을 어떻게 고칠지는 A 의 권한이다. 이 문서는 위치와 메커니즘만 보고한다.",
+  "causal_claim": "none — 모든 문장은 '공유하므로 상관될 수 있다' 형태다",
+  "research_question": "Axis A(KWCAG) · Axis B(depth) · Axis C(obstruction) 이 공유하는 raw evidence slot 은 무엇이며, 그 공유가 planned association 에서 correlated measurement error 를 만들 수 있는 pair 는 어디인가",
+  "ssot_premise": {
+    "source": "/home/sieg/projects-wsl/ProjectFinal/SSOTV2/00_SSOT_v2.1_POST_PILOT_RECOVERY.md",
+    "sha256": "1a4f6e75ccf70b2eaeddcad43c27c2cb5b3c93db1520760aa1850c63524a4ea3",
+    "sections_read": [
+      "§3",
+      "§4",
+      "§5",
+      "§8",
+      "§9",
+      "§10",
+      "§11",
+      "§12",
+      "§15",
+      "§16"
+    ],
+    "premise": "§3 세 축을 독립 측정축으로 규정. §3 말미 · §16 단일 composite 합산 금지.",
+    "finding": "정의 수준의 독립은 유지되나, **측정 공정 수준에서는 다수의 slot 이 공유된다.**"
+  },
+  "code_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "code_read": [
+    "engine/l0_probe.js",
+    "engine/l0_collector.py",
+    "engine/l1_engine.py (Axis B 소비지점 확인용)",
+    "engine/depth.py (endpoint_status 매핑 확인용)",
+    "engine/gate_classifier.py (gate 신호 소비 확인용)"
+  ],
+  "code_read_method": "git show <sha>:<path> — 읽기 전용. 실행하지 않았다.",
+  "axis_a_status": {
+    "state": "0_rows_proxy_only",
+    "fact_criterion_result_rows": 0,
+    "evaluator_module_at_sha": "ABSENT — engine/ 파일목록에 KWCAG/criterion evaluator 모듈이 없다",
+    "consequence": "Axis A 는 이 문서 전체에서 **proxy 로만** 다룬다. 모든 Axis A 수치에 proxy 표기가 붙는다."
+  },
+  "axis_b_status": {
+    "state": "depth_all_null",
+    "note": "RQ-D6: NED/IED/MPFED 가 59/59 전부 None. endpoint_reached 31/31 = 0.",
+    "consequence": "Axis B 를 결과변수로 하는 상관은 계산되지 않는다. E-P1 은 탐색공간 축소량으로만 잰다."
+  },
+  "inputs": [
+    {
+      "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_OBSERVATION_TABLE_v2.csv",
+      "sha256": "c39c10f09f7a6a7603409550eb331612eb44634eb98ec387a604aa5221351e6b"
+    },
+    {
+      "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/fact_landing_observation.json",
+      "sha256": "4ed58b66e002d25ce324efa720462bef45dec2826b68ab7babbb3335cb06fa8c"
+    },
+    {
+      "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/fact_interrupt_element.json",
+      "sha256": "caebf1a4344a0b96d793b2f14418c14ece7c3ebef788e8eb7033eb678093dbf6"
+    },
+    {
+      "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/fact_task_entry.json",
+      "sha256": "61bb7051045ab27ddc5b8105728b64c3f0df1c69c3f278d14087789fbcad0064"
+    },
+    {
+      "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/fact_criterion_result.json",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "/home/sieg/projects-wsl/ProjectFinal/SSOTV2/00_SSOT_v2.1_POST_PILOT_RECOVERY.md",
+      "sha256": "1a4f6e75ccf70b2eaeddcad43c27c2cb5b3c93db1520760aa1850c63524a4ea3"
+    },
+    {
+      "path": "raw L0 probe.json (E001 evidence, read-only)",
+      "n_files": 54
+    }
+  ],
+  "input_snapshot_sha_NEW": "NOT_APPLICABLE_frozen_only",
+  "firewall": {
+    "not_opened": [
+      "holdout label",
+      "LABEL_SPLIT_FROZEN*",
+      "HOLDOUT_FOR_C*",
+      "RAW_L1~L4*",
+      "PACKET_L*",
+      "*_OVERLAP*",
+      "PRECEDENCE_CONTESTED*",
+      "CALIBRATION_FOR_B*",
+      "**/control/**"
+    ],
+    "note": "위 목록의 어떤 파일도 열지 않았다. 네트워크 없음. gold label 생성 없음. A~E 기존 산출물 수정 없음. production/engine/mart 수정 없음."
+  },
+  "slot_axis_matrix": [
+    {
+      "slot": "aria-label (DOM attribute)",
+      "captured_at": "l0_probe.js:173 accessible_name_sources.aria_label; :206 overlay aria_modal 인접 :216 overlay aria_label; :288 primary_action_candidates.aria_label; :350/:360/:364 gate_signals 가 aria-label 을 읽음; :394 dismiss control accessible_name_source",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "KWCAG accessible-name 계열 criterion (레이블 제공 / 대체 텍스트 / 명확한 지시사항)",
+        "evidence": "SSOT 00 §9 '각 criterion 은 raw evidence 와 exact evaluator version 을 연결한다' + §9 자동화 우선순위 1 browser-native/AX. @2281c85 engine/ 에 KWCAG evaluator 모듈이 **없다** (engine/ 파일목록에 kwcag/criterion evaluator 부재; fact_criterion_result.json = 0행)."
+      },
+      "axis_b": {
+        "status": "CONSUMED",
+        "consumer": "TaskStep.accessible_name; endpoint_status(gate 경유); activation 후보 제외(dismiss 경유)",
+        "evidence": "l0_collector.py:353 accessible_name=aria_label or visible_text; l1_engine.py:505-506 동일식; l0_probe.js:360/:364 identity/otp count 가 aria-label 매칭 → gate_classifier.py:89 _IDENTITY_STRUCTURAL → depth.gate_outcome → endpoint_status; l1_engine.py:346-357 dismiss selector 집합에 든 후보를 activation 후보에서 제외"
+      },
+      "axis_c": {
+        "status": "CONSUMED",
+        "consumer": "interrupt 의미분류(final_label); dismiss_control_exists/visible/accessible_name",
+        "evidence": "l0_collector.py:267-272 classify_interrupt 가 accessible_text+aria_label 을 _LABEL_RULES 에 넣음; l0_probe.js:394 name=aria-label||title||textContent → :400 matches_close_vocabulary, :402 icon_only → :409 filter; l0_collector.py:669-671 dismiss_control_accessible_name"
+      }
+    },
+    {
+      "slot": "accessible name (AX tree, CDP computed)",
+      "captured_at": "l0_collector.py:404-434 _ax_tree (Accessibility.getFullAXTree); :505 l0a/ax.json 저장; :424-426 name / name_computed 로 NAME_ABSENT 와 NULL 구분 보존",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "SSOT §9 자동화 우선순위 1(browser-native/AX) 이 지정한 Axis A 1차 증거",
+        "evidence": "SSOT 00 §5 L0 evidence 목록 'Accessibility Tree via browser/CDP'; §9. 소비 코드 부재(위와 동일)."
+      },
+      "axis_b": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "l1_engine.py:317-331 _observe 는 PROBE_JS 재평가 + page.content() 만 쓴다. ax.json 을 읽는 경로가 없다. SSOT §8.1 은 DOM_AX_ROLE region signal 을 요구하므로 이는 SSOT 대비 **미구현 gap** 이다."
+      },
+      "axis_c": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "l0_collector.py:258-282 classify_interrupt 는 probe raw feature 만 본다."
+      }
+    },
+    {
+      "slot": "visible text (textContent / innerText)",
+      "captured_at": "l0_probe.js:117 contrast 텍스트노드; :179 accessible_name_sources.visible_text; :214 overlay accessible_text; :289 primary_action_candidates.visible_text; :332 body.innerText(4000자 상한) → :353 gate_signals.visible_text; :394 dismiss name fallback",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "명도대비 대상 텍스트, 레이블/대체텍스트 criterion",
+        "evidence": "l0_probe.js:111 '임계값 비교 없음' — verdict 층이 분리되어 있고 @SHA 에 존재하지 않는다."
+      },
+      "axis_b": {
+        "status": "CONSUMED",
+        "consumer": "TaskStep.accessible_name fallback; gate 종류 판별 → endpoint_status",
+        "evidence": "l0_collector.py:353-354; l1_engine.py:505-506; gate_classifier.py:70-88 _LOGIN_TEXT/_IDENTITY_TEXT/_CARRIER_TEXT 정규식이 :111 GateSignals.text(=probe gate_signals.visible_text) 에 걸림 → depth.py:48-75 gate_outcome → endpoint_status"
+      },
+      "axis_c": {
+        "status": "CONSUMED",
+        "consumer": "interrupt final_label; dismiss control 어휘매칭",
+        "evidence": "l0_collector.py:114-121 _LABEL_RULES + :267-272; l0_probe.js:394/:400"
+      }
+    },
+    {
+      "slot": "title attribute",
+      "captured_at": "l0_probe.js:175 accessible_name_sources.title; :394 dismiss name 2순위; :107 document.title(viewport 메타)",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "accessible name 계산 소스",
+        "evidence": "SSOT §9. 소비 코드 부재."
+      },
+      "axis_b": {
+        "status": "CONSUMED_INDIRECT",
+        "consumer": "activation 후보 제외 (title 로 이름이 생긴 control 이 dismiss 로 잡히면 Axis B 후보에서 빠진다)",
+        "evidence": "l0_probe.js:394 name 에 title 포함 → :400/:409 dismiss 후보 확정 → l1_engine.py:346-357 제외. primary_action_candidates 자체에는 title 필드가 없다(l0_probe.js:286-302)."
+      },
+      "axis_c": {
+        "status": "CONSUMED",
+        "consumer": "dismiss_control accessible_name_source",
+        "evidence": "l0_probe.js:394"
+      }
+    },
+    {
+      "slot": "AX role (CDP)",
+      "captured_at": "l0_collector.py:414-418 role 추출, :416 role in (None,'none','InlineTextBox') 제외; :505 ax.json",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "role/name/state 기반 criterion",
+        "evidence": "SSOT §5 · §9. 소비 코드 부재."
+      },
+      "axis_b": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "SSOT §8.1 이 DOM_AX_ROLE 를 region signal type 으로 명시했으나 l1_engine.py:201-218 detect_area_signal 은 region_signals(declared_regions / search_inputs) 만 읽는다. AX role 경로 미구현."
+      },
+      "axis_c": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "소비 코드 부재."
+      }
+    },
+    {
+      "slot": "DOM role attribute / tagName",
+      "captured_at": "l0_probe.js:143-144 target_size 질의; :158 role; :169-172 accessible_name_sources 질의; :225 [role=dialog],[role=alertdialog]; :277-278 primary action 질의; :287 role; :393 dismiss 질의",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "target size / name 대상 집합 정의",
+        "evidence": "l0_probe.js:143-144 는 Axis A 의 target_size raw feature 대상 집합을 role 로 고른다. 판정층 부재."
+      },
+      "axis_b": {
+        "status": "CONSUMED",
+        "consumer": "activation 후보 집합; TaskStep.control_role",
+        "evidence": "l0_probe.js:277-278 [role=button],[role=link],[role=tab] 포함; l0_collector.py:352 control_role=role or tag; l1_engine.py:504"
+      },
+      "axis_c": {
+        "status": "CONSUMED",
+        "consumer": "modal 후보 sources; dismiss control 집합",
+        "evidence": "l0_probe.js:224-226 dialog_element/role_dialog/aria_modal; l0_collector.py:275-279 modal_like; l0_probe.js:393"
+      }
+    },
+    {
+      "slot": "URL / final_url",
+      "captured_at": "l0_probe.js:94 · :108 final_url; l0_collector.py:498 final_url=page.url; :557",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "관측 provenance (criterion 판정의 대상 식별)",
+        "evidence": "SSOT §5 manifest/hash provenance. 판정 소비 없음."
+      },
+      "axis_b": {
+        "status": "CONSUMED",
+        "consumer": "state_key(상태전이 식별); TaskStep.url; replay 검증",
+        "evidence": "l1_engine.py:194-197 state_key(url,dom); :502 step url; :522 expected_url_tail; :790 replay 대조. SSOT §8.1 URL_PATTERN."
+      },
+      "axis_c": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "소비 코드 부재."
+      }
+    },
+    {
+      "slot": "form structure (form / submit / autocomplete / label[for])",
+      "captured_at": "l0_probe.js:180 labelled_by_for; :316-326 search_inputs(in_form, has_submit); :344-345 autocompleteCount; :354-372 gate 구조신호; :413 form[method=dialog]",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "레이블 제공 criterion (label[for] / autocomplete)",
+        "evidence": "l0_probe.js:180 이 그 자리를 만들어 두었으나 판정층 부재."
+      },
+      "axis_b": {
+        "status": "CONSUMED",
+        "consumer": "QUERY archetype 의 area_signal; gate 구조신호 → endpoint_status",
+        "evidence": "l1_engine.py:208-212 (visible ∧ in_form ∧ has_submit); gate_classifier.py:69 _LOGIN_STRUCTURAL · :89 _IDENTITY_STRUCTURAL ← l0_probe.js:354-372"
+      },
+      "axis_c": {
+        "status": "CONSUMED_PARTIAL",
+        "consumer": "dismiss method DIALOG_CLOSE 경로",
+        "evidence": "l0_probe.js:393 form[method=dialog] button · :413 has_form_method_dialog → l0_collector.py:707-712 DIALOG_CLOSE"
+      }
+    },
+    {
+      "slot": "geometry (getBoundingClientRect box / viewport coverage)",
+      "captured_at": "l0_probe.js:31-36 box(); :46-52 intersectArea/viewportBox; :147-164 target_size; :218-219 viewport_overlap/coverage; l0_collector.py:88-95 computed_css box",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "target size(2.5.x 계열) criterion, 명도대비 대상의 위치",
+        "evidence": "l0_probe.js:141 'target size raw feature — CSS px, DPR 곱하지 않음'; :7 '가져오지 않은 것: KWCAG 임계값 비교(required)'. SSOT §9 자동화 우선순위 2(deterministic geometry/CSS)."
+      },
+      "axis_b": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "l0_collector.py:304-316 min4_sort_key 가 area_css_px2 를 tie-break 키에서 **의도적으로 제외** ([V2-C010b 시정]: '관측 잡음이 있는 면적을 정렬 키로 쓰면 순서가 잡음을 따라간다'). l1_engine.py 전체에 box/coverage/area 참조 없음(grep 확인)."
+      },
+      "axis_c": {
+        "status": "CONSUMED",
+        "consumer": "OverlayCoverage, PrimaryActionOcclusion, blocks_primary_action, max_overlay_coverage",
+        "evidence": "l0_collector.py:250-255 _overlap; :627-637 occlusion/blocking; :575-577 max_overlay_coverage; :582 max_primary_action_occlusion. SSOT §10."
+      }
+    },
+    {
+      "slot": "hittability (document.elementFromPoint)",
+      "captured_at": "l0_probe.js:54-62 hittable(); :220 overlay hittable; :301 primary action hittable; :313/:324 region hittable; :406 dismiss control hittable; l0_collector.py:98-111 _DISMISS_STATE_JS",
+      "axis_a": {
+        "status": "UNKNOWN",
+        "consumer": null,
+        "evidence": "SSOT §9 는 criterion 별 required evidence slot 을 evaluator 가 선언하라고만 하고 목록을 고정하지 않았다. evaluator 가 없으므로 Axis A 가 hittability 를 요구하는지 알 수 없다 — 추측으로 채우지 않는다."
+      },
+      "axis_b": {
+        "status": "CONSUMED",
+        "consumer": "activation 후보 필터, area_signal(HITTABLE), forced_dismissal 실행 가능성",
+        "evidence": "l1_engine.py:354 c.get('hittable') 필터; :202 'PRESENT ∧ HITTABLE ∧ NO_FURTHER_ACTIVATION'; :726 dismiss blocker 도 hittable 만 클릭. SSOT §8.1."
+      },
+      "axis_c": {
+        "status": "CONSUMED",
+        "consumer": "dismiss_control_visible, best control 선택, dismiss_succeeded",
+        "evidence": "l0_collector.py:641-643 best=첫 hittable; :652 visible_flag 에 hittable 포함; :701 control 선택; :723-726 dismiss 성공판정"
+      }
+    },
+    {
+      "slot": "z-index / position (fixed·sticky)",
+      "captured_at": "l0_probe.js:195-199 z/fixed/backdrop 후보조건; :209-211; :227-231 body * 스캔; :386-390 dismiss 컨테이너 스캔",
+      "axis_a": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "SSOT §9 에 해당 요구 없음."
+      },
+      "axis_b": {
+        "status": "CONSUMED_INDIRECT",
+        "consumer": "activation 후보 제외 집합의 **경계**를 정한다",
+        "evidence": "l0_probe.js:386-390 이 fixed/sticky/z>=100 컨테이너 전부를 dismiss 스캔 대상으로 삼고, 그 안에서 나온 selector 가 l1_engine.py:346-357 에서 Axis B 후보를 깎는다."
+      },
+      "axis_c": {
+        "status": "CONSUMED",
+        "consumer": "modal/overlay 후보 자격, BANNER 라벨",
+        "evidence": "l0_probe.js:199 '!sources.length && !fixed && !(z>=100) → return'; l0_collector.py:280-281 position_sticky/fixed → BANNER"
+      }
+    },
+    {
+      "slot": "body scroll lock",
+      "captured_at": "l0_probe.js:235-244 body_scroll_lock{body_overflow, body_position, html_overflow, locked}",
+      "axis_a": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "SSOT §9 에 해당 요구 없음."
+      },
+      "axis_b": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "SSOT §3 · §8.2 가 scroll 을 depth 합산에서 제외한다. l1_engine.py 는 body_scroll_lock 을 읽지 않는다(grep 확인)."
+      },
+      "axis_c": {
+        "status": "CONSUMED",
+        "consumer": "blocks_primary_action, SSOT §3 Axis C 핵심 5요소 중 하나",
+        "evidence": "l0_collector.py:620 scroll_locked; :636 (scroll_locked ∧ coverage>=0.5) → blocking. SSOT §3 Axis C 'body scroll lock'."
+      }
+    },
+    {
+      "slot": "dismiss control (Axis C 파생이면서 Axis B 입력)",
+      "captured_at": "l0_probe.js:377-418 dismiss_control_candidates (컨테이너별 목록)",
+      "axis_a": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "SSOT §9 에 해당 요구 없음."
+      },
+      "axis_b": {
+        "status": "CONSUMED",
+        "consumer": "activation 후보 집합에서의 **제외**; forced_dismissal_count",
+        "evidence": "l1_engine.py:346-357 dismiss_selectors 에 든 selector 를 후보에서 뺀다(주석 :337-339 'popup 의 닫기 control 은 후보가 아니다'); :717-735 _dismiss_blockers → forced_dismissal_count. SSOT §3 'popup dismissal 은 depth 에 합산하지 않음'."
+      },
+      "axis_c": {
+        "status": "CONSUMED",
+        "consumer": "dismiss_control_exists/visible/accessible_name/width/height, dismiss_persistence_hint, dismiss_succeeded, dismiss_failure_mode",
+        "evidence": "l0_collector.py:639-674; :679-748. SSOT §3 Axis C 'dismiss control presence/visibility/actionability'."
+      }
+    },
+    {
+      "slot": "computed CSS (color / background / contrast / font)",
+      "captured_at": "l0_probe.js:64-89 lum/effectiveBg/contrastRatio; :111-139 contrast raw feature; l0_collector.py:69-96 _COMPUTED_CSS_PROPERTIES + _COMPUTED_CSS_JS → :508-510 computed_css.json",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "명도대비 criterion",
+        "evidence": "l0_probe.js:5-8 '가져온 것: 상대휘도/명도대비 산식 … 가져오지 않은 것: KWCAG 임계값 비교(required), large_text 분류, 판정 문자열'; :111 '임계값 비교 없음'. 판정층 @SHA 부재."
+      },
+      "axis_b": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "l1_engine.py 에 color/contrast/font 참조 없음(grep 확인)."
+      },
+      "axis_c": {
+        "status": "CONSUMED_PARTIAL",
+        "consumer": "가시성(display/visibility/opacity) 판정만. 색/대비는 쓰지 않는다.",
+        "evidence": "l0_probe.js:38-44 visible(); l0_collector.py:624 'if not cand.get(\"visible\"): continue'; :648-651 dismiss_control_visible"
+      }
+    },
+    {
+      "slot": "screenshot (viewport / full-page / dismiss before-after)",
+      "captured_at": "l0_collector.py:512-517 screen_initial/screen_fullpage; :692-695 · :739-743 l0c before/after",
+      "axis_a": {
+        "status": "PLANNED_ONLY",
+        "consumer": "SSOT §9 자동화 우선순위 4 (VLM) 및 5 (Human Final)",
+        "evidence": "SSOT §5 'viewport screenshot / full-page screenshot'; §9. 소비 코드 부재."
+      },
+      "axis_b": {
+        "status": "NOT_CONSUMED",
+        "consumer": null,
+        "evidence": "l1_engine.py:124 TaskStep.screenshot_path 는 provenance 필드이며 어떤 판정에도 들어가지 않는다."
+      },
+      "axis_c": {
+        "status": "PROVENANCE_ONLY",
+        "consumer": null,
+        "consumer_note": "dismiss before/after 증거로 저장되지만 dismiss_succeeded 는 화면이 아니라 _DISMISS_STATE_JS 로 판정한다",
+        "evidence": "l0_collector.py:723-726 판정은 DOM 상태로; 스크린샷은 :693 · :739 저장만"
+      }
+    }
+  ],
+  "matrix_summary": {
+    "n_slots": 15,
+    "status_counts": {
+      "CONSUMED": 16,
+      "CONSUMED_PARTIAL": 2,
+      "CONSUMED_INDIRECT": 2,
+      "PLANNED_ONLY": 11,
+      "NOT_CONSUMED": 12,
+      "UNKNOWN": 1,
+      "PROVENANCE_ONLY": 1
+    },
+    "shared_realized_ge2_axes": [
+      "aria-label (DOM attribute)",
+      "visible text (textContent / innerText)",
+      "title attribute",
+      "DOM role attribute / tagName",
+      "form structure (form / submit / autocomplete / label[for])",
+      "hittability (document.elementFromPoint)",
+      "z-index / position (fixed·sticky)",
+      "dismiss control (Axis C 파생이면서 Axis B 입력)"
+    ],
+    "n_shared_realized": 8,
+    "shared_including_planned_axis_a_ge2": [
+      "aria-label (DOM attribute)",
+      "visible text (textContent / innerText)",
+      "title attribute",
+      "DOM role attribute / tagName",
+      "URL / final_url",
+      "form structure (form / submit / autocomplete / label[for])",
+      "geometry (getBoundingClientRect box / viewport coverage)",
+      "hittability (document.elementFromPoint)",
+      "z-index / position (fixed·sticky)",
+      "dismiss control (Axis C 파생이면서 Axis B 입력)",
+      "computed CSS (color / background / contrast / font)"
+    ],
+    "n_shared_including_planned": 11,
+    "single_axis_or_none": [
+      "accessible name (AX tree, CDP computed)",
+      "AX role (CDP)",
+      "body scroll lock",
+      "screenshot (viewport / full-page / dismiss before-after)"
+    ]
+  },
+  "shared_slot_mechanisms": [
+    {
+      "pair_id": "E-P1",
+      "pair": "Axis C → Axis B (dismiss control 이 activation 후보를 깎는다)",
+      "shared_slots": [
+        "dismiss control",
+        "aria-label",
+        "title",
+        "visible text",
+        "hittability",
+        "z-index/position"
+      ],
+      "mechanism": "l0_probe.js:391-409 는 fixed/sticky/z>=100 컨테이너 안의 button/link 중 matches_close_vocabulary(:400) 또는 icon_only(:402) 인 것을 dismiss control 후보로 남긴다. l1_engine.py:346-357 은 그 selector 집합을 Axis B 의 activation 후보에서 뺀다. 따라서 Axis C 의 dismiss detector 가 false positive 를 내면 Axis B 의 탐색공간이 그만큼 줄고, false negative 를 내면 Axis B 가 닫기버튼을 activation 으로 밟는다.",
+      "direction": "same",
+      "direction_note": "이름 slot(aria-label/title/visible text)이 빈약해지면 icon_only(:402) 가 더 자주 참이 되어 dismiss 후보가 **늘고**(Axis C 과탐), 같은 증가분이 Axis B 후보에서 **빠진다**. 즉 두 축의 오차가 같은 원인에서 같은 부호로 생긴다 — Axis C 는 장애물을 과대, Axis B 는 깊이를 과대.",
+      "measurable_now": "yes",
+      "measurable_note": "probe raw feature 로 제외 수를 그대로 재계산할 수 있다. Axis A 는 실측이 없어 proxy 로만.",
+      "risk_level": "HIGH",
+      "what_would_falsify_it": "제외된 후보가 전부 실제 닫기 control 로 확인되면(즉 href 없는 순수 close control), 그리고 제외 후에도 activation pool 이 비지 않으면 이 pair 의 실효 위험은 사라진다."
+    },
+    {
+      "pair_id": "E-P2",
+      "pair": "Axis A ↔ Axis C (accessible name slot 공유)",
+      "shared_slots": [
+        "aria-label",
+        "visible text",
+        "title",
+        "DOM role"
+      ],
+      "mechanism": "Axis A 의 name 계열 criterion(SSOT §9)과 Axis C 의 두 산출 — interrupt final_label (l0_collector.py:267-272) 및 dismiss_control_* (l0_probe.js:394-402) — 이 **같은 세 문자열 소스**를 읽는다. 페이지가 접근가능한 이름을 제공하지 않으면 Axis A 는 FAIL 방향, Axis C 는 '분류불가/닫기control 없음' 방향으로 동시에 움직인다.",
+      "direction": "same",
+      "direction_note": "같은 방향으로 '나쁨' 이 커진다. 다만 Axis C 쪽 결과는 두 갈래다: (a) 이름이 없어 어휘매칭 실패 → dismiss_control_exists=0 (장애물이 더 나빠 보임), (b) 이름이 없고 아이콘만 있어 icon_only 발동 → dismiss 후보 과탐 (장애물이 덜 나빠 보임). 두 갈래가 같은 slot 결핍에서 갈라지므로 Axis C 오차의 부호가 페이지마다 뒤집힐 수 있다 — 이것이 이 pair 를 단순한 same 이 아니라 'same-in-cause, mixed-in-sign' 로 만든다.",
+      "measurable_now": "proxy_only",
+      "measurable_note": "fact_criterion_result 0행 → Axis A 실측 없음. dom_aria_label_n==0 을 proxy 로만 쓴다.",
+      "risk_level": "HIGH",
+      "what_would_falsify_it": "Axis A evaluator 가 생산된 뒤, aria-label 빈약 층과 충분 층에서 Axis C 의 분류확정률·dismiss_control_exists 가 차이 없음이 확인되면 반박된다."
+    },
+    {
+      "pair_id": "E-P3",
+      "pair": "Axis A ↔ Axis B (accessible name + form structure + gate 텍스트)",
+      "shared_slots": [
+        "aria-label",
+        "visible text",
+        "form structure",
+        "DOM role"
+      ],
+      "mechanism": "Axis B 의 endpoint_status 는 gate 종류 판별에 의존하고(depth.py:48-75), 그 판별 입력은 gate_classifier.py:70-88 의 텍스트 정규식 + :69/:89 의 구조신호다. 구조신호 중 identity_number_input_count 와 otp_input_count 는 l0_probe.js:357-364 에서 **aria-label 을 직접 읽는다**. 즉 로그인/본인인증 화면이 접근가능한 이름을 주지 않으면 Axis A 는 FAIL 방향, Axis B 는 gate UNDETERMINED → endpoint 미승격 방향으로 함께 움직인다.",
+      "direction": "same",
+      "direction_note": "gate_classifier 는 모호하면 UNDETERMINED 로 abstain 하고(:22-23, :29-36) endpoint 로 올리지 않는다. 따라서 이름 slot 결핍 → Axis A FAIL↑ 와 Axis B '깊이 미확정/미도달'↑ 가 같은 방향이다.",
+      "measurable_now": "no",
+      "measurable_note": "Axis A 0행이고 Axis B 도 NED/IED/MPFED 가 59/59 전부 None(RQ-D6)이라 **양쪽 다 변량이 없다**. endpoint_status 만 31행 있으나 endpoint_reached 는 31/31 이 0 이다.",
+      "risk_level": "MEDIUM_UNMEASURED",
+      "what_would_falsify_it": "gate 판별이 aria-label 없이 password/tel autocomplete 같은 브라우저-네이티브 구조신호만으로 동일한 판별을 낸다면(예: aria-label 필드를 ablation 해도 gate_kind 분포가 불변) 반박된다."
+    },
+    {
+      "pair_id": "E-P4",
+      "pair": "Axis B ↔ Axis C (hittability 공유)",
+      "shared_slots": [
+        "hittability",
+        "z-index/position"
+      ],
+      "mechanism": "hittable() 은 요소 중심점의 elementFromPoint 결과가 그 요소(또는 그 후손/조상)인지로 정의된다(l0_probe.js:54-62). 오버레이가 떠 있으면 그 아래의 모든 control 이 hittable=false 가 된다. Axis B 는 hittable 인 후보만 activation 대상으로 삼고(l1_engine.py:354), Axis C 는 hittable 로 dismiss_control_visible 과 dismiss_succeeded 를 정한다(l0_collector.py:641-643, :652, :723-726). 같은 오버레이가 두 축의 값을 동시에 결정한다.",
+      "direction": "same",
+      "direction_note": "오버레이가 hit-test 를 가로채면 Axis C 는 '장애물 있음' 을, Axis B 는 '후보 없음/경로 못 감' 을 동시에 기록한다. 이 상관은 **실체적 상관(진짜 장애물이 진짜로 경로를 막는다)과 측정오차 상관(중심점 한 점 hit-test 의 실패)이 같은 자리에서 겹친다** — 둘을 이 자료로는 못 가른다.",
+      "measurable_now": "partial",
+      "measurable_note": "hittable 분포는 잴 수 있으나 Axis B 산출(NED/MPFED)이 전부 None 이라 결과쪽 변량이 없다.",
+      "risk_level": "MEDIUM",
+      "what_would_falsify_it": "중심점 hit-test 대신 다점 hit-test(예: 요소 내 5점)로 바꿨을 때 Axis B 후보수와 Axis C dismiss_control_visible 이 서로 다른 방향으로 움직이면, 공유는 있어도 오차상관은 측정방식의 산물이 아니라는 뜻이 된다."
+    },
+    {
+      "pair_id": "E-P5",
+      "pair": "Axis A ↔ Axis C (geometry 공유)",
+      "shared_slots": [
+        "geometry (box/coverage)"
+      ],
+      "mechanism": "Axis A 의 target size raw feature(l0_probe.js:147-164)와 Axis C 의 OverlayCoverage/PrimaryActionOcclusion(l0_collector.py:250-255, :627-637)이 같은 getBoundingClientRect 산출을 쓴다. 레이아웃이 아직 안정되지 않은 상태에서 캡처되면(SETTLE_MS=400, l0_collector.py:63) 두 축의 기하값이 같은 시점 오차를 공유한다.",
+      "direction": "unknown",
+      "direction_note": "레이아웃 미안정의 부호가 정해져 있지 않다 — 늦게 뜨는 배너는 coverage 를 과소, collapse 전 컨테이너는 과대로 만든다. 방향을 정하려면 시점별 재캡처가 필요한데 frozen evidence 는 단일 시점뿐이다.",
+      "measurable_now": "no",
+      "measurable_note": "단일 시점 캡처라 시점 오차의 부호를 식별할 수 없다. Axis A 는 0행.",
+      "risk_level": "LOW_UNMEASURED",
+      "what_would_falsify_it": "동일 target 을 여러 SETTLE_MS 로 재수집해 두 축의 기하값이 서로 다른 시점민감도를 보이면 반박."
+    }
+  ],
+  "risk_pair_table": [
+    {
+      "pair_id": "E-P1",
+      "pair": "Axis C → Axis B (dismiss control 이 activation 후보를 깎는다)",
+      "shared_slots": [
+        "dismiss control",
+        "aria-label",
+        "title",
+        "visible text",
+        "hittability",
+        "z-index/position"
+      ],
+      "direction": "same",
+      "measurable_now": "yes",
+      "risk_level": "HIGH",
+      "what_would_falsify_it": "제외된 후보가 전부 실제 닫기 control 로 확인되면(즉 href 없는 순수 close control), 그리고 제외 후에도 activation pool 이 비지 않으면 이 pair 의 실효 위험은 사라진다."
+    },
+    {
+      "pair_id": "E-P2",
+      "pair": "Axis A ↔ Axis C (accessible name slot 공유)",
+      "shared_slots": [
+        "aria-label",
+        "visible text",
+        "title",
+        "DOM role"
+      ],
+      "direction": "same",
+      "measurable_now": "proxy_only",
+      "risk_level": "HIGH",
+      "what_would_falsify_it": "Axis A evaluator 가 생산된 뒤, aria-label 빈약 층과 충분 층에서 Axis C 의 분류확정률·dismiss_control_exists 가 차이 없음이 확인되면 반박된다."
+    },
+    {
+      "pair_id": "E-P3",
+      "pair": "Axis A ↔ Axis B (accessible name + form structure + gate 텍스트)",
+      "shared_slots": [
+        "aria-label",
+        "visible text",
+        "form structure",
+        "DOM role"
+      ],
+      "direction": "same",
+      "measurable_now": "no",
+      "risk_level": "MEDIUM_UNMEASURED",
+      "what_would_falsify_it": "gate 판별이 aria-label 없이 password/tel autocomplete 같은 브라우저-네이티브 구조신호만으로 동일한 판별을 낸다면(예: aria-label 필드를 ablation 해도 gate_kind 분포가 불변) 반박된다."
+    },
+    {
+      "pair_id": "E-P4",
+      "pair": "Axis B ↔ Axis C (hittability 공유)",
+      "shared_slots": [
+        "hittability",
+        "z-index/position"
+      ],
+      "direction": "same",
+      "measurable_now": "partial",
+      "risk_level": "MEDIUM",
+      "what_would_falsify_it": "중심점 hit-test 대신 다점 hit-test(예: 요소 내 5점)로 바꿨을 때 Axis B 후보수와 Axis C dismiss_control_visible 이 서로 다른 방향으로 움직이면, 공유는 있어도 오차상관은 측정방식의 산물이 아니라는 뜻이 된다."
+    },
+    {
+      "pair_id": "E-P5",
+      "pair": "Axis A ↔ Axis C (geometry 공유)",
+      "shared_slots": [
+        "geometry (box/coverage)"
+      ],
+      "direction": "unknown",
+      "measurable_now": "no",
+      "risk_level": "LOW_UNMEASURED",
+      "what_would_falsify_it": "동일 target 을 여러 SETTLE_MS 로 재수집해 두 축의 기하값이 서로 다른 시점민감도를 보이면 반박."
+    }
+  ],
+  "quantification": {
+    "EP1_axisC_to_axisB_searchspace": {
+      "grain": "target (in_mart==1, probe 보유) 및 그 안의 hittable primary_action_candidate",
+      "n_targets_with_probe": 54,
+      "n_targets_expected": 56,
+      "n_hittable_candidates": 854,
+      "n_removed_from_axis_b_pool": 57,
+      "removal_rate": 0.0667,
+      "removal_rate_wilson95": [
+        0.0519,
+        0.0855
+      ],
+      "n_targets_affected": 31,
+      "n_targets_pool_emptied_by_exclusion": 5,
+      "pool_emptied_wilson95": [
+        0.0402,
+        0.1991
+      ],
+      "removal_basis": {
+        "icon_only": 35,
+        "close_vocabulary": 22
+      },
+      "removed_candidate_name_slot": {
+        "none_title_or_glyph": 23,
+        "aria_label": 18,
+        "visible_text": 16
+      },
+      "n_removed_with_href": 27,
+      "href_share_wilson95": [
+        0.3499,
+        0.6008
+      ],
+      "interpretation": "Axis C 의 dismiss detector 산출이 Axis B 의 탐색공간을 직접 깎는다. 이것은 통계적 상관이 아니라 l1_engine.py:346-357 의 결정적 코드경로다. 제외분 중 href 를 가진(=실제 네비게이션) 후보가 있다는 것이 과탐 위험의 신호다 — 다만 href 보유가 곧 오분류라는 뜻은 아니다(닫기 역할의 앵커도 존재한다)."
+    },
+    "axis_a_proxy_interrupt_grain": {
+      "grain": "visible modal/overlay candidate that reached the text-rule branch (viewport_overlap>0)",
+      "n": 166,
+      "n_all_visible_overlays": 235,
+      "mart_interrupt_rows": 235,
+      "proxy_definition": "name_slot_empty = overlay 의 accessible_text 와 aria_label 이 **둘 다** 비어 있음. l0_collector.py:267-269 가 두 필드를 이어붙여 _LABEL_RULES 에 넣으므로, 이 조건은 'Axis C 의 의미분류가 읽을 이름 slot 이 없다' 와 정확히 같다. **Axis A 의 proxy 이지 Axis A 측정치가 아니다.**",
+      "crosstab_classification_status": {
+        "AMBIGUOUS": {
+          "0": 23,
+          "1": 15
+        },
+        "DETERMINISTIC": {
+          "0": 95,
+          "1": 33
+        }
+      },
+      "crosstab_dismiss_control_exists": {
+        "0": {
+          "0": 51,
+          "1": 38
+        },
+        "1": {
+          "0": 67,
+          "1": 10
+        }
+      },
+      "phi_name_empty_vs_AMBIGUOUS": {
+        "phi": 0.1269,
+        "perm_p": 0.0693,
+        "n": 166,
+        "n_perm": 20000
+      },
+      "phi_name_empty_vs_label_UNKNOWN": {
+        "phi": 0.1269,
+        "perm_p": 0.0663,
+        "n": 166,
+        "n_perm": 20000
+      },
+      "phi_name_empty_vs_no_dismiss_control": {
+        "phi": 0.3268,
+        "perm_p": 0.0001,
+        "n": 166,
+        "n_perm": 20000
+      }
+    },
+    "axis_a_proxy_target_grain": {
+      "grain": "target (in_mart==1)",
+      "n": 56,
+      "proxy_definition": "proxyA_poor = (dom_aria_label_n == 0). '접근성 표면 빈약' 의 **proxy 이며 Axis A 측정치가 아니다.** Axis A 는 fact_criterion_result 0행이므로 실측이 존재하지 않는다.",
+      "n_proxyA_poor": 20,
+      "proxyA_poor_rate": 0.3571,
+      "proxyA_poor_wilson95": [
+        0.2446,
+        0.4881
+      ],
+      "phi_tests": {
+        "axisB_has_task_entry": {
+          "phi": 0.0696,
+          "perm_p": 0.7716,
+          "n": 56,
+          "n_perm": 20000
+        },
+        "axisB_auth_gate_before_endpoint": {
+          "phi": 0.0256,
+          "perm_p": 0.8491,
+          "n": 31,
+          "n_perm": 20000
+        },
+        "axisB_forced_dismissal_gt0": {
+          "phi": -0.169,
+          "perm_p": 0.3688,
+          "n": 56,
+          "n_perm": 20000
+        },
+        "axisC_blocking_modal_gt0": {
+          "phi": 0.0301,
+          "perm_p": 0.7972,
+          "n": 56,
+          "n_perm": 20000
+        },
+        "axisC_primary_action_visible_initial": {
+          "phi": 0.0598,
+          "perm_p": 0.7253,
+          "n": 54,
+          "n_perm": 20000
+        },
+        "axisC_body_scroll_locked": {
+          "phi": -0.065,
+          "perm_p": 0.5143,
+          "n": 54,
+          "n_perm": 20000
+        }
+      },
+      "rank_tests": {
+        "axisC_max_overlay_coverage": {
+          "n_poor": 20,
+          "n_ok": 36,
+          "median_poor": 0.1536,
+          "median_ok": 0.119,
+          "mannwhitney_u_p": 0.9718,
+          "spearman_rho": 0.006,
+          "spearman_p": 0.9653,
+          "low_n_flag": false
+        },
+        "axisC_deterministic_rate": {
+          "n_poor": 18,
+          "n_ok": 33,
+          "median_poor": 0.5,
+          "median_ok": 0.6667,
+          "mannwhitney_u_p": 0.011,
+          "spearman_rho": -0.3609,
+          "spearman_p": 0.0093,
+          "low_n_flag": false
+        },
+        "axisC_dismiss_exists_rate": {
+          "n_poor": 18,
+          "n_ok": 33,
+          "median_poor": 0.3333,
+          "median_ok": 0.5,
+          "mannwhitney_u_p": 0.2372,
+          "spearman_rho": -0.1686,
+          "spearman_p": 0.237,
+          "low_n_flag": false
+        },
+        "axisC_n_interrupts": {
+          "n_poor": 18,
+          "n_ok": 33,
+          "median_poor": 4.0,
+          "median_ok": 3.0,
+          "mannwhitney_u_p": 0.7649,
+          "spearman_rho": 0.0437,
+          "spearman_p": 0.7607,
+          "low_n_flag": false
+        },
+        "axisC_max_primary_action_occlusion": {
+          "n_poor": 20,
+          "n_ok": 36,
+          "median_poor": 1.0,
+          "median_ok": 1.0,
+          "mannwhitney_u_p": 0.5305,
+          "spearman_rho": 0.086,
+          "spearman_p": 0.5285,
+          "low_n_flag": false
+        },
+        "axisB_activation_pool_size": {
+          "n_poor": 18,
+          "n_ok": 36,
+          "median_poor": 1.5,
+          "median_ok": 5.0,
+          "mannwhitney_u_p": 0.1996,
+          "spearman_rho": -0.1774,
+          "spearman_p": 0.1993,
+          "low_n_flag": false
+        },
+        "axisB_n_excluded_by_dismiss": {
+          "n_poor": 18,
+          "n_ok": 36,
+          "median_poor": 0.0,
+          "median_ok": 1.0,
+          "mannwhitney_u_p": 0.0694,
+          "spearman_rho": -0.2507,
+          "spearman_p": 0.0675,
+          "low_n_flag": false
+        }
+      }
+    }
+  },
+  "counterexamples": {
+    "code_level": [
+      {
+        "slot": "geometry (box / area_css_px2)",
+        "claim": "Axis C 가 강하게 소비하는 slot 인데 Axis B 는 **의도적으로** 소비하지 않는다",
+        "evidence": "l0_collector.py:304-316 min4_sort_key 독스트링: '`area_css_px2`는 tie-break 키에서 제외한다 [V2-C010b 시정] — 관측 잡음이 있는 면적을 정렬 키로 쓰면 어떤 양자화를 거쳐도 순서가 잡음을 따라간다'. l1_engine.py 전체에 box/coverage/area 참조 없음.",
+        "why_it_counts": "공유 slot 이 있어도 소비 지점을 끊으면 축이 독립적으로 움직인다는 **존재증명**이다. 이 프로젝트는 이미 한 번 그 결정을 내렸고 코드에 근거가 남아 있다.",
+        "caveat": "'독립적으로 움직인다' 를 실측으로 보인 것이 아니라 소비경로 부재로 보인 것이다. Axis B 산출이 전부 None 이라 실측 대조가 불가능하다."
+      },
+      {
+        "slot": "body scroll lock",
+        "claim": "Axis C 의 핵심 5요소 중 하나인데 Axis B 는 SSOT 수준에서 배제되어 있다",
+        "evidence": "SSOT 00 §3 Axis B 'scroll, text typing, redirect, passive wait, popup dismissal 은 depth 에 합산하지 않음'; l1_engine.py 에 body_scroll_lock 참조 없음; l0_collector.py:620/:636 은 Axis C 만.",
+        "why_it_counts": "SSOT 정의 자체가 공유를 끊은 사례. 코드가 그 정의를 지키고 있다.",
+        "caveat": "단 forced_dismissal_count(l1_engine.py:717-735)는 여전히 Axis C 산출을 경유하므로 Axis B 가 obstruction 과 완전히 무관하지는 않다."
+      },
+      {
+        "slot": "URL / final_url",
+        "claim": "Axis B 가 강하게 소비하는데 Axis C 는 전혀 읽지 않는다",
+        "evidence": "l1_engine.py:194-197 · :502 · :522 · :790 vs l0_collector.py 의 Axis C 경로(:602-677)에 URL 참조 없음.",
+        "why_it_counts": "한 축 전용 slot 이 존재한다는 것 — 모든 slot 이 공유되는 것은 아니다.",
+        "caveat": "공유가 없으므로 '공유가 있는데 독립' 이라는 요구된 형태의 반례는 아니다. 부분적 반례로만 센다."
+      }
+    ],
+    "empirical": {
+      "question": "Axis A proxy 가 빈약(dom_aria_label_n==0)한데 Axis C 의 분류확정률이 중앙값 이상인 target 이 있는가",
+      "n_proxyA_poor_with_interrupts": 18,
+      "n_high_deterministic_rate_ge_0.6667": 3,
+      "wilson95": [
+        0.0584,
+        0.3922
+      ],
+      "reading": "빈약해도 Axis C 가 잘 확정되는 target 이 존재한다 — 공유가 곧 결정론적 동반붕괴는 아니다. 다만 이것은 '두 축이 독립' 의 증거가 아니라 '상관이 완전하지 않다' 의 증거다. Axis A 실측이 없어 진짜 독립성 검정은 불가능하다."
+    },
+    "verdict": "코드 수준 반례는 **찾았다** (geometry, body scroll lock). 실측 수준의 완전한 반례는 **찾지 못했다** — Axis A 0행 · Axis B 전부 None 이라 '두 축이 독립적으로 움직이는지' 를 관측할 결과변량 자체가 없기 때문이다."
+  },
+  "not_answered_by_this_rq": [
+    "Axis A 의 실제 측정오차와 Axis B/C 오차의 상관은 **추정 불가**다. fact_criterion_result 가 0행이고 @2281c85 engine/ 에 KWCAG evaluator 모듈 자체가 없다. 이 RQ 는 '어디서 생길 수 있는가' 까지만 답한다.",
+    "Axis B 의 핵심 산출(NED/IED/MPFED)이 59/59 전부 None 이므로(RQ-D6) Axis B 를 결과변수로 하는 어떤 상관도 이 자료에서 계산되지 않는다. E-P1 의 위험은 **탐색공간 축소량**으로만 잰다.",
+    "공유 slot 이 실제로 오차를 상관시키는지 vs 실체적 연관(진짜 나쁜 페이지가 세 축 모두 나쁘다)인지 이 자료로는 가르지 못한다. 가르려면 slot 을 ablation 한 재수집이 필요하다.",
+    "어느 축을 어떻게 고쳐야 하는지는 정하지 않는다 — construct 는 A 의 권한이다 (NON_CANONICAL).",
+    "인과 주장 없음. 모든 문장은 '공유하므로 상관될 수 있다' 형태다."
+  ],
+  "limitation": "Axis A 는 실측 0행이므로 모든 Axis A 수치가 proxy 다(dom_aria_label_n==0, overlay name slot 공백). Axis B 는 NED/IED/MPFED 가 전부 None 이라 결과변수로 쓸 수 없다. 따라서 이 RQ 는 실제 오차상관을 추정하지 못하고 '공유 지점과 메커니즘' 까지만 확정한다. 공유가 실체적 연관인지 측정오차 상관인지도 가르지 못한다 — 그것은 slot ablation 재수집을 요구한다.",
+  "further_research_questions": [
+    "RQ-E-1: dismiss detector 의 icon_only(l0_probe.js:402) 조건을 끄면 Axis B activation pool 이 얼마나 회복되는가 (ablation, 재수집 없이 probe 재계산으로 가능).",
+    "RQ-E-2: Axis A evaluator 가 생산된 뒤 dom_aria_label_n 층별로 Axis C 분류확정률 차이가 유지되는가 (E-P2 확증/반증).",
+    "RQ-E-3: hittable() 을 중심점 1점에서 다점으로 바꾸면 Axis B 후보수와 Axis C dismiss_control_visible 이 같은 방향으로 움직이는가 (E-P4 식별).",
+    "RQ-E-4: SSOT §8.1 이 요구한 DOM_AX_ROLE region signal 이 미구현인 것이 Axis B 의 declared_regions 의존(실사이트 2/54)을 만든 원인인가.",
+    "RQ-E-5: AX tree 가 수집되지만 어느 축도 소비하지 않는다 — Axis A evaluator 를 AX 우선(SSOT §9 우선순위 1)으로 두면 Axis B/C 와의 slot 공유가 줄어드는가."
+  ]
+}
