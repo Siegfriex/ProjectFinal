@@ -60,23 +60,37 @@ def denied_hit(text_path: str, patterns: list[dict]) -> str | None:
     return None
 
 
-# 산문에서 "열지 않았다" 류의 경계선 서술은 참조가 아니다. FAIL 이 아니라 WARN 으로 낮춘다.
-NEGATION_MARKERS = ("열지 않", "미열람", "않았다", "금지", "not open", "did not read",
-                    "차단", "제외", "접근하지 않", "no access", "forbidden")
+# "열지 않았다" 류의 경계선 선언은 참조가 아니다. 단 파일 접근 호출 옆에 있으면 선언이 아니다.
+NEGATION_MARKERS = ("열지 않", "미열람", "미접근", "않았다", "않는다", "금지", "not open",
+                    "did not read", "차단", "제외", "접근하지 않", "no access", "forbidden",
+                    "미생산", "미접속", "denied", "경계")
+# 실제 파일 접근을 시사하는 토큰. 같은 줄에 있으면 선언으로 보지 않는다.
+ACCESS_MARKERS = ("open(", "read_text", "read_bytes", "json.load", "loads(", "Path(",
+                  "glob(", "rglob(", "iterdir", "DictReader", "np.load", "pd.read",
+                  "cat ", "head ", "tail ", "grep ")
+NEG_WINDOW = 2   # 앞뒤 2줄까지 본다 (산문은 줄바꿈으로 끊긴다)
 
 
 def severity(hit: dict, text: str) -> str:
-    """실행/데이터 파일의 참조는 FAIL, 산문의 경계선 서술은 WARN."""
-    f = hit.get("file", "")
-    if not f.endswith(".md"):
-        return "FAIL"
+    """파일 접근 호출 옆이면 FAIL. 부정 선언 문맥이면 WARN. 둘 다 아니면 보수적으로 FAIL."""
     line_no = hit.get("line")
-    if line_no:
-        lines = text.splitlines()
-        ctx = " ".join(lines[max(0, line_no - 2):line_no + 1])
-        if any(m in ctx for m in NEGATION_MARKERS):
-            hit["context"] = ctx.strip()[:300]
-            return "WARN"
+    if not line_no:
+        return "FAIL"
+    lines = text.splitlines()
+    cur = lines[line_no - 1] if line_no - 1 < len(lines) else ""
+    if any(a in cur for a in ACCESS_MARKERS):
+        hit["context"] = cur.strip()[:300]
+        hit["why"] = "같은 줄에 파일 접근 호출이 있다"
+        return "FAIL"
+    lo = max(0, line_no - 1 - NEG_WINDOW)
+    hi = min(len(lines), line_no + NEG_WINDOW)
+    ctx = " ".join(lines[lo:hi])
+    if any(m in ctx for m in NEGATION_MARKERS):
+        hit["context"] = ctx.strip()[:300]
+        hit["why"] = "부정 선언 문맥 — 참조가 아니라 경계선 서술"
+        return "WARN"
+    hit["context"] = ctx.strip()[:300]
+    hit["why"] = "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL"
     return "FAIL"
 
 
@@ -105,6 +119,8 @@ def scan_file(p: Path, denied: list[dict]) -> list[dict]:
                 hits.append({"file": str(p.relative_to(RD.parent)), "line": line,
                              "reference": tok, "denied_pattern": f"token:{tok}",
                              "kind": "DENIED_NAME_TOKEN"})
+    for h in hits:
+        h["severity"] = severity(h, text)
     return hits
 
 
