@@ -1,0 +1,218 @@
+{
+ "artifact": "C_GATE1_TWO_LAYER_SCOPE_PROBE",
+ "repo_root": "/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/joint10",
+ "network": "none",
+ "browser": "none",
+ "sut_head": "e02eee4b46b83bafc4576f4f96e8ef540ec37ae9",
+ "layers": {
+  "layer1_engine_firewall": {
+   "module": "landing_accessibility.engine.firewall",
+   "imported": true,
+   "error": null,
+   "file": "/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/joint10/research/landing_accessibility/src/landing_accessibility/engine/firewall.py"
+  },
+  "layer2_batch_layer_firewall": {
+   "module": "landing_accessibility.e001_runner.layer_firewall",
+   "imported": true,
+   "error": null,
+   "file": "/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/joint10/research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py"
+  }
+ },
+ "rows": [
+  {
+   "scope": "E000_FAST",
+   "l1": {
+    "allowed": true,
+    "outcome": "ALLOW",
+    "reason": "e000_allowed=true · status=RELEASED · promoted_main_sha 확인",
+    "doc": "origin/control/landing-orchestrator:research/landing_accessibility/control/P0_RELEASE.json",
+    "exc": null
+   },
+   "l1_binding": "origin/control/landing-orchestrator:research/landing_accessibility/control/P0_RELEASE.json",
+   "l2": {
+    "allowed": true,
+    "outcome": "PASS",
+    "reason": "returned 'REAL_TARGET'",
+    "exc": null
+   },
+   "l2_binding": "origin/control/landing-orchestrator:research/landing_accessibility/control/P0_RELEASE.json flag=e000_allowed",
+   "both_deny": false,
+   "agree": true
+  },
+  {
+   "scope": "E001_FULL",
+   "l1": {
+    "allowed": false,
+    "outcome": "DENY",
+    "reason": "status 가 RELEASED 가 아니다: 'SUSPENDED'",
+    "doc": "origin/control/landing-orchestrator:research/landing_accessibility/control/E001_RELEASE.json",
+    "exc": null
+   },
+   "l1_binding": "origin/control/landing-orchestrator:research/landing_accessibility/control/E001_RELEASE.json",
+   "l2": {
+    "allowed": false,
+    "outcome": "BLOCK(exc)",
+    "reason": "E001 배치 러너 층 firewall: 릴리스 문서를 이 레이어가 직접 확인했으나 승인 조건(status=RELEASED · promoted_main_sha · e001_allowed=true)이",
+    "exc": "BatchRealTargetBlockedError"
+   },
+   "l2_binding": "origin/control/landing-orchestrator:research/landing_accessibility/control/E001_RELEASE.json flag=e001_allowed",
+   "both_deny": true,
+   "agree": true
+  },
+  {
+   "scope": "V2_DIAGNOSTIC",
+   "l1": {
+    "allowed": true,
+    "outcome": "ALLOW",
+    "reason": "v2_diagnostic_allowed=true · status=RELEASED · promoted_main_sha 확인 · manifest_sha256 확인",
+    "doc": "origin/control/landing-orchestrator:research/landing_accessibility/control/V2_DIAGNOSTIC_RELEASE.json",
+    "exc": null
+   },
+   "l1_binding": "origin/control/landing-orchestrator:research/landing_accessibility/control/V2_DIAGNOSTIC_RELEASE.json",
+   "l2": {
+    "allowed": false,
+    "outcome": "BLOCK(exc)",
+    "reason": "E001 배치 러너 층 firewall: 이 레이어가 아는 실제 수집 scope 는 ['E000_FAST', 'E001_FULL'] 뿐이다 — 받은 값: 'V2_DIAGNOSTIC'.",
+    "exc": "BatchRealTargetBlockedError"
+   },
+   "l2_binding": null,
+   "both_deny": false,
+   "agree": false
+  },
+  {
+   "scope": "V3_MAIN50",
+   "l1": {
+    "allowed": false,
+    "outcome": "DENY(exc)",
+    "reason": "execution_scope 는 닫힌 집합이다: ['E000_FAST', 'E001_FULL', 'V2_DIAGNOSTIC']. 받은 값: 'V3_MAIN50'",
+    "doc": null,
+    "exc": "UnknownExecutionScopeError"
+   },
+   "l1_binding": null,
+   "l2": {
+    "allowed": false,
+    "outcome": "BLOCK(exc)",
+    "reason": "E001 배치 러너 층 firewall: 이 레이어가 아는 실제 수집 scope 는 ['E000_FAST', 'E001_FULL'] 뿐이다 — 받은 값: 'V3_MAIN50'.",
+    "exc": "BatchRealTargetBlockedError"
+   },
+   "l2_binding": null,
+   "both_deny": true,
+   "agree": true
+  },
+  {
+   "scope": "unknown",
+   "l1": {
+    "allowed": false,
+    "outcome": "DENY(exc)",
+    "reason": "execution_scope 는 닫힌 집합이다: ['E000_FAST', 'E001_FULL', 'V2_DIAGNOSTIC']. 받은 값: 'unknown'",
+    "doc": null,
+    "exc": "UnknownExecutionScopeError"
+   },
+   "l1_binding": null,
+   "l2": {
+    "allowed": false,
+    "outcome": "BLOCK(exc)",
+    "reason": "E001 배치 러너 층 firewall: 이 레이어가 아는 실제 수집 scope 는 ['E000_FAST', 'E001_FULL'] 뿐이다 — 받은 값: 'unknown'.",
+    "exc": "BatchRealTargetBlockedError"
+   },
+   "l2_binding": null,
+   "both_deny": true,
+   "agree": true
+  }
+ ],
+ "mode_rows": [
+  {
+   "mode": "FIXTURE",
+   "scope": null,
+   "l2": {
+    "allowed": true,
+    "outcome": "PASS",
+    "reason": "returned 'FIXTURE'",
+    "exc": null
+   },
+   "l1": {
+    "outcome": "PASS",
+    "reason": "<ExecutionMode.FIXTURE: 'FIXTURE'>",
+    "exc": null,
+    "allowed": true
+   }
+  },
+  {
+   "mode": "SHADOW_DRY_RUN",
+   "scope": null,
+   "l2": {
+    "allowed": true,
+    "outcome": "PASS",
+    "reason": "returned 'SHADOW_DRY_RUN'",
+    "exc": null
+   },
+   "l1": {
+    "outcome": "PASS",
+    "reason": "<ExecutionMode.SHADOW_DRY_RUN: 'SHADOW_DRY_RUN'>",
+    "exc": null,
+    "allowed": true
+   }
+  },
+  {
+   "mode": "REAL_TARGET",
+   "scope": null,
+   "l2": {
+    "allowed": false,
+    "outcome": "BLOCK(exc)",
+    "reason": "E001 배치 러너 층 firewall: scope 없는 REAL_TARGET 은 이 레이어에서 독립적으로 hard block 된다. 무제한 실제 수집 경로는 열리지 않는다. 이 검사는 landin",
+    "exc": "BatchRealTargetBlockedError"
+   },
+   "l1": {
+    "outcome": "BLOCK(exc)",
+    "reason": "scope 없는 REAL_TARGET 은 hard FAIL 이다 — 무제한 실제 수집 경로는 이 연구에서 열리지 않는다 (PHASE_GATES §4.5). 실제 수집은 승인된 ExecutionSco",
+    "exc": "RealTargetBlockedError",
+    "allowed": false
+   }
+  },
+  {
+   "mode": "FIXTURE",
+   "scope": "E000_FAST",
+   "l2": {
+    "allowed": false,
+    "outcome": "BLOCK(exc)",
+    "reason": "E001 배치 러너 층 firewall: execution_scope 는 REAL_TARGET 에서만 쓴다 — mode='FIXTURE' scope='E000_FAST'.",
+    "exc": "BatchRealTargetBlockedError"
+   },
+   "l1": {
+    "outcome": "BLOCK(exc)",
+    "reason": "execution_scope 는 REAL_TARGET 에서만 의미가 있다: mode=FIXTURE scope='E000_FAST' — 모드와 범위를 섞어 쓰지 않는다.",
+    "exc": "FirewallError",
+    "allowed": false
+   }
+  },
+  {
+   "mode": "BOGUS_MODE",
+   "scope": null,
+   "l2": {
+    "allowed": false,
+    "outcome": "BLOCK(exc)",
+    "reason": "E001 배치 러너 층 firewall: 알 수 없는 execution_mode 'BOGUS_MODE' — 허용 집합은 ['FIXTURE', 'SHADOW_DRY_RUN'] 뿐이다. 닫힌 집합 밖의",
+    "exc": "BatchRealTargetBlockedError"
+   },
+   "l1": {
+    "outcome": "BLOCK(exc)",
+    "reason": "execution_mode 는 닫힌 집합이다: ['FIXTURE', 'REAL_TARGET', 'SHADOW_DRY_RUN']. 받은 값: 'BOGUS_MODE' (A2 규칙 S-3 — UNKNOW",
+    "exc": "UnknownExecutionModeError",
+    "allowed": false
+   }
+  }
+ ],
+ "layer2_mentions_manifest_sha": false,
+ "layer2_manifest_sha_hits": [],
+ "layer2_imports_layer1": false,
+ "layer2_known_real_scopes": [
+  "E000_FAST",
+  "E001_FULL"
+ ],
+ "layer1_known_scopes": [
+  "E000_FAST",
+  "E001_FULL",
+  "V2_DIAGNOSTIC"
+ ],
+ "layer1_frozen_manifest_sha": "78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799"
+}

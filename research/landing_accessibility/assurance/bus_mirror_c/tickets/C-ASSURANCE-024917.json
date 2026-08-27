@@ -1,0 +1,51 @@
+{
+  "ticket_id": "C-ASSURANCE-024917",
+  "type": "ASSURANCE",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T02:49:17+09:00",
+  "created_at_kst": "2026-08-28T02:49:17+09:00",
+  "priority": "P1",
+  "claim_kind": "ASSURANCE",
+  "scope": "MAIN50_FRAME_FROZEN 독립 재계산 (v3.0.2 @control 691926f8) + lane4 2층 방화벽 관측",
+  "status": "DONE",
+  "task_family_id": null,
+  "target_manifest_sha256": "81d55db916866550…(v3.0.2 body sha, 전체값은 파일 manifest_sha256 필드와 동일)",
+  "ssot": "SSOTV3",
+  "base_sha": "691926f8b8",
+  "self_approved": false,
+  "real_target": "no",
+  "headline": "FINAL_MAIN50_MANIFEST.json v3.0.2 가 origin control 691926f8 에 실재(T-B-BLK-010 해소). 내용은 SSOTV3 registry 와 MATCH. 단 T-A-V3-STEP1-FREEZE 가 기재한 해시(25ce482d/6500adc3)는 superseded v3.0.1 값이며 현재 파일은 81d55db9(body)/ef4e19ad(file) — B·D·E 가 인용 중인 25ce482d 를 정정할 FACT_CORRECTION 또는 supersede 티켓 필요.",
+  "recompute": {
+    "file_sha256": "ef4e19ad2cf5da62…",
+    "manifest_sha256_body_indent1": "81d55db916866550… == 파일 내 manifest_sha256 필드 (자기정합)",
+    "ticket_claimed": "25ce482d(manifest)/6500adc3(file) — 파일 supersedes 필드가 이를 v3.0.1 로 명시",
+    "targets": "50, 순서 = registry 순서(재정렬 0), service/url/task/endpoint/fixture 필드 불일치 0",
+    "pilot_5": "F1-01 F2-01 F3-01 F4-01 F5-01",
+    "strata": "F1 시중7/지방3 · F5 ground5/air5 · F2/F3/F4 단일층",
+    "replacement_reserve": "31 (티켓 기재 32 와 불일치 — supersedes.reason 참조, A 확인 요망)",
+    "f5_date_rule": "T+1 유지 + collection_date_kst·요일 기록 + 민감도 — Δ1-a 의 두 선택지 밖 제3안임을 A 가 명시했음(A_changed_its_mind). C 는 사전등록 시점(관측 전)이므로 규율 위반 아님으로 판단, 단 Δ1-a 를 v3.0.2 delta 로 개정 기록 필요"
+  },
+  "downstream_citations_stale": [
+    "T-A-V3-STEP1-FREEZE.target_manifest_sha256",
+    "D-V3-FINDING-006.target_manifest_sha256",
+    "T-B-BLK-010.target_manifest_sha256",
+    "E ROUTE_WORK_MANIFEST(추정)"
+  ],
+  "lane4_two_layer_observation": {
+    "probe_at_joint10_e02eee4": "L1 V2_DIAGNOSTIC ALLOW(manifest 78f2e32a 검증) / L2 BLOCK(scope 미등록) — T-B-BLK-009 소스 확인; L2 는 L1 import 0·manifest sha 언급 0",
+    "policy_question_for_A": "E000_FAST 는 두 층 모두 ALLOW(RELEASED) — 00 §13 '유효 REAL 은 V2_DIAGNOSTIC 12 뿐' 과 런타임 상태가 다르다. 코드 결함 아닌 정책 정합 문제: E000_FAST 를 SUSPEND 할지 A 결정",
+    "runner_pattern_note": "run_v2_diagnostic_pilot.py --check-only 는 L1 만 조회해 exit 0 이나 BatchRunner 는 L2 를 먼저 호출해 차단 — V3 runner 의 --check-only 는 두 층 모두 조회해야 함(GATE 1 pass 조건에 포함)",
+    "l2_weaker_than_l1": "L2 promoted_main_sha 검사는 길이≥7 문자열이면 통과('PENDING' 통과), L1 은 hex≥7 요구 — V3 scope 를 L2 에 추가할 때 함께 시정 필요"
+  },
+  "mlflow": {
+    "run_id": "1a443be6b3eb4ab2a12e3051c0228d5d",
+    "experiment": "LA_01_FRAME"
+  },
+  "artifacts": [
+    "assurance/gate1/lane4_safety_adapter/GATE1_SAFETY_PLAN.md",
+    "assurance/gate1/lane4_safety_adapter/two_layer_scope_probe_joint10.json"
+  ]
+}
