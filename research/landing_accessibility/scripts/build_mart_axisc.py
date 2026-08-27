@@ -209,6 +209,61 @@ def _get_nested(d: dict[str, Any], path: tuple[str, ...]) -> Any:
     return cur
 
 
+#: `D-R0-72` — Axis C 분자(OverlayCoverage) construct 시정. D 발견 → C replication
+#: (`D_CONFIRMED`) → A 결정을 거쳤다. 이 버전 문자열을 모든 mart 행에 남긴다
+#: (`D-R0-72-3`) — 구 canonical(`82f631f`)과 이 필드가 있는 행을 **직접 비교하지
+#: 않는다**. 같은 raw geometry 에 다른 필터를 적용한 것이지 재측정이 아니다
+#: (`D-R0-58-3` 와 같은 규칙 — 전이표로 처리했던 것과 동일 원리).
+GEOMETRY_RULE_VERSION = "obstruction-construct-v2-D-R0-72"
+
+
+#: `D-R0-72-1` 확정 — 분자에서 제외할 "가릴 수 없는 요소" 3조건(OR). 셋 중 하나만
+#: 성립해도 이 후보는 `occlusion_eligible = False` 다.
+def _occlusion_eligible(candidate: dict[str, Any]) -> bool:
+    """`D-R0-72-1`: `z_index < 0` · `pointer_events == 'none'` · `hittable == False`
+    는 전부 "가릴 수 없는 요소" 신호다 — 이미 probe 가 저장한 스칼라만 읽는다
+    (재계산 아님, `D-R0-24` 정신 그대로)."""
+    z = candidate.get("z_index")
+    if isinstance(z, (int, float)) and z < 0:
+        return False
+    if candidate.get("pointer_events") == "none":
+        return False
+    return bool(candidate.get("hittable"))
+
+
+#: `D-R0-72-2` 확정 4값 + `OTHER`(W4 가 추가한 5번째 — 아래 함수 docstring 참고, A 확인 필요).
+_MODAL_LIKE_SOURCES = {"dialog_element", "role_dialog", "aria_modal", "backdrop_like"}
+
+
+def _overlay_source(candidate: dict[str, Any]) -> str:
+    """`D-R0-72-2` — `MODAL`/`FIXED`/`STICKY`/`BEHIND` 는 A 확정값이다. **`OTHER`는
+    W4 가 추가한 5번째 값이다** — 확정된 4값 밖(예: `high_z_index` 만 있고 dialog/
+    fixed/sticky 어느 것도 아닌 절대위치 요소)이 실측 데이터의 37%(86/235, 이 mart
+    전수 스캔)를 차지해서 만들지 않을 수 없었다. **이것은 W4 의 판단이고 A 확인이
+    필요하다** — completion 보고에 명시한다.
+
+    우선순위(배타적, 위에서부터): `BEHIND`(z_index<0, 가장 근본적인 "못 가림" 신호를
+    형태 분류에도 반영) → `MODAL`(dialog_element/role_dialog/aria_modal/backdrop_like)
+    → `FIXED`(position_fixed) → `STICKY`(position_sticky) → `OTHER`.
+
+    `D-R0-58` 의 form/semantic 분리와 같은 처방이다 — 하지만 이건 **분류축 추가**일
+    뿐 배제와는 무관하다: `fixed`/`sticky` 는 여기 값이 나와도 분자에서 빠지지
+    않는다(`_occlusion_eligible` 이 그 판단을 별도로 한다) — A 의 명시: "sticky
+    header 는 실제로 콘텐츠를 가리므로 방해가 맞다."
+    """
+    z = candidate.get("z_index")
+    if isinstance(z, (int, float)) and z < 0:
+        return "BEHIND"
+    sources = set(candidate.get("candidate_sources") or ())
+    if sources & _MODAL_LIKE_SOURCES:
+        return "MODAL"
+    if "position_fixed" in sources:
+        return "FIXED"
+    if "position_sticky" in sources:
+        return "STICKY"
+    return "OTHER"
+
+
 #: 이름 패턴 기반 **약한 힌트**일 뿐이다 — RF-DT archetype 판정이 아니다(W1/A 소관).
 #: informative-missingness 분포를 서술하는 용도로만 쓴다(해석·인과 주장 없음).
 _FINANCIAL_NAME_NEEDLES = ("bank", "card", "pay", "wallet", "himart", "cok")
@@ -535,6 +590,14 @@ def axis_c_page_level_from_probe(raw_features: dict[str, Any]) -> dict[str, Any]
     # `D-R0-58-1` 확정 어휘(RESOLVED/UNRESOLVED/NOT_APPLICABLE) 로 tier 를 센다.
     form_tier_counts = {s.value: 0 for s in InterruptAxisStatus}
     semantic_tier_counts = {s.value: 0 for s in InterruptAxisStatus}
+    overlay_source_counts: dict[str, int] = {
+        "MODAL": 0,
+        "FIXED": 0,
+        "STICKY": 0,
+        "BEHIND": 0,
+        "OTHER": 0,
+    }
+    overlay_source_max_coverage: dict[str, float] = dict.fromkeys(overlay_source_counts, 0.0)
     for idx, cand in enumerate(visible):
         # 순수함수 — geometry 안 건드림 (D-R0-25). interrupt_form/interrupt_semantic 은
         # 직교하는 독립 축이다(`C-FINDING-214214`/`D-R0-58` 시정) — 한쪽이 RESOLVED 됐다고
@@ -542,23 +605,63 @@ def axis_c_page_level_from_probe(raw_features: dict[str, Any]) -> dict[str, Any]
         classification = classify_interrupt(cand)
         form_tier_counts[classification.interrupt_form_status.value] += 1
         semantic_tier_counts[classification.interrupt_semantic_status.value] += 1
+
+        # `D-R0-72` — overlay_source 는 배제와 무관한 별도 분류축이다(`D-R0-72-2`).
+        # occlusion_eligible 이 분자 포함/배제를 결정한다(`D-R0-72-1`). 둘 다
+        # 이미 저장된 스칼라(z_index/pointer_events/hittable)만 읽는다 — 재계산 아님.
+        source = _overlay_source(cand)
+        eligible = _occlusion_eligible(cand)
+        coverage = cand.get("viewport_coverage") or 0.0
+        overlay_source_counts[source] += 1
+        overlay_source_max_coverage[source] = max(overlay_source_max_coverage[source], coverage)
+
         interrupts.append(
             {
                 "interrupt_index": idx,
                 "selector": cand.get("selector"),
-                # 아래 두 값은 probe.js 가 수집 시점에 이미 계산해 저장한 스칼라의
+                # 아래 값들은 probe.js 가 수집 시점에 이미 계산해 저장한 스칼라의
                 # 그대로 복사본이다 — 여기서 다시 계산하지 않는다.
                 "viewport_overlap_css_px2": cand.get("viewport_overlap_css_px2"),
                 "viewport_coverage": cand.get("viewport_coverage"),
                 "candidate_sources": list(cand.get("candidate_sources") or []),
+                "z_index": cand.get("z_index"),
+                "pointer_events": cand.get("pointer_events"),
+                "hittable": bool(cand.get("hittable")),
                 "interrupt_form": classification.interrupt_form.value,
                 "interrupt_form_status": classification.interrupt_form_status.value,
                 "interrupt_semantic": classification.interrupt_semantic.value,
                 "interrupt_semantic_status": classification.interrupt_semantic_status.value,
+                # `D-R0-72`
+                "overlay_source": source,
+                "occlusion_eligible": eligible,
             }
         )
 
-    overlay_coverage = max((c.get("viewport_coverage") or 0.0) for c in visible) if visible else 0.0
+    # `D-R0-72-1`/`D-R0-72-3` — 세 가지 분자 변형을 함께 남긴다. `overlay_coverage`
+    # (헤드라인 값)는 이제 construct-valid 정의(occlusion_eligible 만)다 — 구 canonical
+    # (`82f631f`)과 **직접 비교하지 않는다**. `overlay_coverage_legacy_v1_unfiltered`
+    # 가 canonical 과 비교 가능한 옛 정의(전수 재확인: canonical 대비 mismatch 0,
+    # C 검증)를 그대로 보존한다. `overlay_coverage_excluding_behind_only`(`D-R0-72-4`
+    # 사전등록 요구)는 z_index<0 만 뺀 중간값이다.
+    eligible_candidates = [c for c in visible if _occlusion_eligible(c)]
+    not_behind_candidates = [
+        c
+        for c in visible
+        if not (isinstance(c.get("z_index"), (int, float)) and c.get("z_index") < 0)
+    ]
+    overlay_coverage = (
+        max((c.get("viewport_coverage") or 0.0) for c in eligible_candidates)
+        if eligible_candidates
+        else 0.0
+    )
+    overlay_coverage_legacy_v1_unfiltered = (
+        max((c.get("viewport_coverage") or 0.0) for c in visible) if visible else 0.0
+    )
+    overlay_coverage_excluding_behind_only = (
+        max((c.get("viewport_coverage") or 0.0) for c in not_behind_candidates)
+        if not_behind_candidates
+        else 0.0
+    )
 
     dismiss_candidates = raw_features.get("dismiss_control_candidates") or []
     present_count = 0
@@ -599,6 +702,12 @@ def axis_c_page_level_from_probe(raw_features: dict[str, Any]) -> dict[str, Any]
     return {
         "interrupt_count_visible": len(visible),
         "overlay_coverage": overlay_coverage,
+        "overlay_coverage_legacy_v1_unfiltered": overlay_coverage_legacy_v1_unfiltered,
+        "overlay_coverage_excluding_behind_only": overlay_coverage_excluding_behind_only,
+        "geometry_rule_version": GEOMETRY_RULE_VERSION,
+        "occlusion_eligible_count": len(eligible_candidates),
+        "overlay_source_counts": overlay_source_counts,
+        "overlay_source_max_coverage": overlay_source_max_coverage,
         "interrupts": interrupts,
         "classifier_version": CLASSIFY_INTERRUPT_VERSION,
         "form_classification_tier_counts": form_tier_counts,
@@ -721,6 +830,57 @@ def compute_v1_collapse_transition_table(rows: list[dict[str, Any]]) -> dict[str
             f"{semantic}→{old}": n
             for (semantic, old), n in sorted(transitions.items(), key=lambda kv: -kv[1])
         },
+    }
+
+
+def compute_overlay_source_prereg_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """`D-R0-72-4` 사전등록 — overlay_source 별 분포 + BEHIND 제외 전후 값을 함께 낸다.
+
+    joint figure 를 이 mart 가 그리지 않는다 — 그 그림을 그리는 쪽이 point size 캡션에
+    쓸 수 있도록 "무엇을 재는 값인지"를 여기 문자열로 명시해 둔다(`D-R0-72-4` 세 번째
+    항목). 세 변형 중 `overlay_coverage`(construct-valid, `D-R0-72-1` 적용)가 권장값이고,
+    `overlay_coverage_legacy_v1_unfiltered` 는 구 canonical(`82f631f`) 비교 전용이며
+    이 mart 의 다른 값과 섞어 새로 비교하지 않는다(`D-R0-72-3`).
+    """
+    measured = [r for r in rows if r["measurement_status"] == "MEASURED"]
+    source_totals: dict[str, int] = {}
+    for r in measured:
+        counts = r.get("overlay_source_counts") or {}
+        for k, v in counts.items():
+            source_totals[k] = source_totals.get(k, 0) + v
+
+    v1_vs_v2_differ = sum(
+        1 for r in measured if r["overlay_coverage"] != r["overlay_coverage_legacy_v1_unfiltered"]
+    )
+    behind_exclusion_changes_value = sum(
+        1
+        for r in measured
+        if r["overlay_coverage_excluding_behind_only"] != r["overlay_coverage_legacy_v1_unfiltered"]
+    )
+
+    return {
+        "geometry_rule_version": GEOMETRY_RULE_VERSION,
+        "measured_n": len(measured),
+        "candidate_source_totals_across_all_measured_rows": source_totals,
+        "row_count_where_v2_construct_valid_differs_from_legacy_v1": v1_vs_v2_differ,
+        "row_count_where_excluding_behind_only_differs_from_legacy_v1": behind_exclusion_changes_value,
+        "field_definitions_for_figure_captions": {
+            "overlay_coverage": (
+                "권장값. construct-valid(D-R0-72-1): z_index<0 OR pointer_events=='none' "
+                "OR NOT hittable 인 후보를 분자에서 제외한 뒤의 max viewport_coverage. "
+                "joint figure 의 point size 후보로 쓸 때는 이 값을 쓴다."
+            ),
+            "overlay_coverage_legacy_v1_unfiltered": (
+                "구 정의(D-R0-72 이전). 전체 visible 후보의 max viewport_coverage — "
+                "가릴 수 없는 요소(z_index<0 등)도 포함됨. canonical(82f631f)과 비교 가능한 "
+                "유일한 값 — 새 값과 섞어 비교 금지."
+            ),
+            "overlay_coverage_excluding_behind_only": (
+                "감도분석용 중간값. z_index<0(BEHIND)만 제외하고 pointer_events/hittable "
+                "필터는 적용하지 않음 — BEHIND 배제의 단독 효과를 보기 위한 것."
+            ),
+        },
+        "not_a_test": "이 요약은 기술통계다. archetype/서비스별 해석이나 결론을 담지 않는다.",
     }
 
 
@@ -881,6 +1041,12 @@ def build_mart_rows(
             for k in (
                 "interrupt_count_visible",
                 "overlay_coverage",
+                "overlay_coverage_legacy_v1_unfiltered",
+                "overlay_coverage_excluding_behind_only",
+                "geometry_rule_version",
+                "occlusion_eligible_count",
+                "overlay_source_counts",
+                "overlay_source_max_coverage",
                 "interrupts",
                 "classifier_version",
                 "form_classification_tier_counts",
@@ -1010,6 +1176,7 @@ def main() -> None:
     cap_check = verify_overlay_fields_not_capped(rows)
     cap_hit_archetype_stats = cap_hit_prior_archetype_distribution(rows)
     v1_transition_table = compute_v1_collapse_transition_table(rows)
+    overlay_source_prereg = compute_overlay_source_prereg_summary(rows)
 
     manifest = {
         "mart": "axisc",
@@ -1032,6 +1199,7 @@ def main() -> None:
         "overlay_cap_check": cap_check,
         "cap_hit_prior_archetype_distribution": cap_hit_archetype_stats,
         "v1_to_v2_semantic_label_transition_table": v1_transition_table,
+        "overlay_source_prereg_summary": overlay_source_prereg,
         "decisions_applied": {
             "D-R0-53_DECISION-1": (
                 "cap_hit_<key> bool + *_len 개수를 함께 저장 (dom_body_empty/"
@@ -1056,6 +1224,16 @@ def main() -> None:
                 "prior_archetype(Layer P, 읽기 전용 참조)과 observed_archetype"
                 "(PENDING_TASK_BINDING)을 각각 컬럼으로 남기고 어느 쪽도 확정하지 않는다."
             ),
+            "D-R0-72": (
+                "Axis C 분자(OverlayCoverage) construct 시정(D 발견→C replication D_CONFIRMED→A 결정). "
+                "overlay_coverage(헤드라인)는 이제 occlusion_eligible(z_index>=0 AND pointer_events!='none' "
+                "AND hittable) 후보만의 max coverage다. overlay_coverage_legacy_v1_unfiltered 가 구 "
+                "canonical(82f631f) 비교 가능한 옛 정의를 보존한다 — 새 값과 직접 비교 금지(D-R0-72-3, "
+                "geometry_rule_version 필드로 구분). overlay_source(MODAL/FIXED/STICKY/BEHIND, + W4 추가 "
+                "OTHER — A 확인 필요)는 배제와 무관한 별도 분류축(D-R0-72-2) — fixed/sticky 는 여전히 "
+                "분자에 남는다. 실측 재현: hana_bank 1.0→0.064, instagram 1.0→0.0806 (coordinator 예시와 "
+                "일치 확인), 53건 중 11건(21%)에서 legacy 값과 차이 발생."
+            ),
         },
         "self_approved": False,
         "not_verified_by_this_gate": [
@@ -1073,6 +1251,17 @@ def main() -> None:
             "W4 가 그 원인을 독립 검증하지 않았다",
             "cap_hit_prior_archetype_distribution — 기술통계다. archetype 비교가 절단으로 왜곡된다는 결론을 "
             "이 mart 는 내리지 않는다(A 결정).",
+            "overlay_source='OTHER'(D-R0-72-2) — MODAL/FIXED/STICKY/BEHIND 4값 밖의 W4 추가 카테고리. "
+            "high_z_index 만 있고 dialog/fixed/sticky 어느 것도 아닌 절대위치 요소가 여기 들어간다 "
+            "(실측 235건 중 86건, 37%) — A 확인 필요, W4 가 임의로 4값에 강제 편입하지 않았다.",
+            "fixed/sticky 의 실제 가림 여부 — 기하만으로 판정 불가(A 인정). occlusion_eligible 은 "
+            "'가릴 수 없음'의 3개 필요조건만 걸러내고, '실제로 대표기능을 가리는가'는 "
+            "PrimaryActionOcclusion(PENDING_TASK_BINDING)의 몫으로 남겨 흉내내지 않았다.",
+            "primary_action_visible_initial(PrimaryActionCandidate.viewport_visible) — l0_probe.js 원문"
+            "확인 결과 순수 bbox-교차 판정(intersectArea(b, viewportBox) > 0)이고 z-index/occlusion 을 "
+            "전혀 고려하지 않는다. OverlayCoverage 분자와 같은 '존재(geometric bounds)≠기능(실제 보임)' "
+            "형태다(D-R0-70-2 sweep 후보) — 이번 D-R0-72 범위 밖이라 W4 는 고치지 않고 A 에게 플래그만 "
+            "한다.",
         ],
     }
     (args.out / "mart_axisc_manifest.json").write_text(

@@ -239,6 +239,8 @@ class TestSemanticClassificationDoesNotMutateGeometry:
                     "viewport_overlap_css_px2": 777.0,
                     "viewport_coverage": 0.33,
                     "candidate_sources": [],
+                    # D-R0-72-1: occlusion_eligible 이려면 hittable=True 여야 분자에 든다.
+                    "hittable": True,
                 }
             ],
             "dismiss_control_candidates": [],
@@ -281,6 +283,8 @@ class TestSemanticClassificationDoesNotMutateGeometry:
                     "viewport_overlap_css_px2": 5.0,
                     "viewport_coverage": 0.02,
                     "candidate_sources": ["position_fixed"],
+                    # D-R0-72-1: occlusion_eligible 이려면 hittable=True 여야 분자에 든다.
+                    "hittable": True,
                 }
             ],
             "dismiss_control_candidates": [
@@ -875,6 +879,153 @@ class TestArtifactProvenanceProtocol12:
         assert len(expected_sha) == 64
         assert len(data) > 0
         assert len(rows) == 63
+
+
+class TestD_R0_72_OverlayConstructFix:
+    """`D-R0-72` — Axis C 분자(OverlayCoverage)가 '기하학적 겹침'이 아니라 '방해'를
+    재도록 시정한다. D 발견 → C replication(D_CONFIRMED) → A 결정."""
+
+    def _candidate(self, **overrides):
+        base = {
+            "selector": "div.x",
+            "visible": True,
+            "viewport_overlap_css_px2": 100.0,
+            "viewport_coverage": 0.5,
+            "candidate_sources": [],
+            "z_index": 10,
+            "pointer_events": "auto",
+            "hittable": True,
+        }
+        base.update(overrides)
+        return base
+
+    def test_negative_z_index_excluded_from_numerator_D_R0_72_1(self):
+        raw = {
+            "modal_overlay_candidates": [self._candidate(z_index=-9999)],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        result = mart.axis_c_page_level_from_probe(raw)
+        assert result["overlay_coverage"] == 0.0  # 배제됨
+        assert result["overlay_coverage_legacy_v1_unfiltered"] == 0.5  # 옛 정의는 그대로 포함
+        assert result["interrupts"][0]["occlusion_eligible"] is False
+        assert result["interrupts"][0]["overlay_source"] == "BEHIND"
+
+    def test_pointer_events_none_excluded_from_numerator(self):
+        raw = {
+            "modal_overlay_candidates": [self._candidate(pointer_events="none")],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        result = mart.axis_c_page_level_from_probe(raw)
+        assert result["overlay_coverage"] == 0.0
+        assert result["overlay_coverage_legacy_v1_unfiltered"] == 0.5
+        assert result["interrupts"][0]["occlusion_eligible"] is False
+
+    def test_not_hittable_excluded_from_numerator(self):
+        raw = {
+            "modal_overlay_candidates": [self._candidate(hittable=False)],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        result = mart.axis_c_page_level_from_probe(raw)
+        assert result["overlay_coverage"] == 0.0
+        assert result["interrupts"][0]["occlusion_eligible"] is False
+
+    def test_eligible_candidate_is_included(self):
+        raw = {
+            "modal_overlay_candidates": [self._candidate()],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        result = mart.axis_c_page_level_from_probe(raw)
+        assert result["overlay_coverage"] == 0.5
+        assert result["overlay_coverage"] == result["overlay_coverage_legacy_v1_unfiltered"]
+        assert result["interrupts"][0]["occlusion_eligible"] is True
+
+    def test_fixed_and_sticky_are_not_excluded_A_explicit_instruction(self):
+        """A 의 명시: sticky/fixed 는 실제로 가리므로 방해가 맞다 — `overlay_source`
+        분류는 배제와 무관하다."""
+        raw = {
+            "modal_overlay_candidates": [
+                self._candidate(selector="div.fixed", candidate_sources=["position_fixed"]),
+                self._candidate(selector="div.sticky", candidate_sources=["position_sticky"]),
+            ],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        result = mart.axis_c_page_level_from_probe(raw)
+        for iv in result["interrupts"]:
+            assert iv["occlusion_eligible"] is True
+        sources = {iv["selector"]: iv["overlay_source"] for iv in result["interrupts"]}
+        assert sources["div.fixed"] == "FIXED"
+        assert sources["div.sticky"] == "STICKY"
+        assert result["overlay_coverage"] == 0.5  # 둘 다 남아 있다
+
+    def test_overlay_source_modal_and_other(self):
+        raw = {
+            "modal_overlay_candidates": [
+                self._candidate(selector="div.modal", candidate_sources=["role_dialog"]),
+                self._candidate(selector="div.other", candidate_sources=[]),
+            ],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        result = mart.axis_c_page_level_from_probe(raw)
+        sources = {iv["selector"]: iv["overlay_source"] for iv in result["interrupts"]}
+        assert sources["div.modal"] == "MODAL"
+        assert sources["div.other"] == "OTHER"
+
+    def test_geometry_rule_version_present(self):
+        raw = {
+            "modal_overlay_candidates": [self._candidate()],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        result = mart.axis_c_page_level_from_probe(raw)
+        assert result["geometry_rule_version"] == mart.GEOMETRY_RULE_VERSION
+        assert "D-R0-72" in mart.GEOMETRY_RULE_VERSION
+
+    def test_excluding_behind_only_keeps_pointer_events_and_hittable_unfiltered(self):
+        """D-R0-72-4 사전등록 중간값 — BEHIND 만 뺀 값은 pointer_events/hittable 배제를
+        적용하지 않는다."""
+        raw = {
+            "modal_overlay_candidates": [self._candidate(hittable=False)],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        result = mart.axis_c_page_level_from_probe(raw)
+        assert result["overlay_coverage"] == 0.0  # full construct filter — 배제됨
+        assert result["overlay_coverage_excluding_behind_only"] == 0.5  # BEHIND 만 뺀 값은 포함
+
+    def test_real_mart_reproduces_coordinator_examples(self, mart_rows):
+        """hana_bank/instagram 예시가 이 mart 에서 실제로 재현되는지 확인한다
+        (coordinator 가 인용한 값과 대조)."""
+        by_name = {r["service_name"]: r for r in mart_rows}
+        if "hana_bank" in by_name:
+            r = by_name["hana_bank"]
+            if r["measurement_status"] == "MEASURED":
+                assert r["overlay_coverage_legacy_v1_unfiltered"] == 1.0
+                assert r["overlay_coverage"] < r["overlay_coverage_legacy_v1_unfiltered"]
+        if "instagram" in by_name:
+            r = by_name["instagram"]
+            if r["measurement_status"] == "MEASURED":
+                assert r["overlay_coverage_legacy_v1_unfiltered"] == 1.0
+                assert r["overlay_coverage"] < r["overlay_coverage_legacy_v1_unfiltered"]
+
+    def test_manifest_never_compares_new_value_directly_to_canonical_sha(self):
+        """`D-R0-72-3` — canonical `82f631f` 재계산/직접비교 금지. 소스에 그 SHA 를
+        "비교"나 "against" 문맥으로 하드코딩하지 않았는지 약하게 확인한다(주석 인용은
+        허용, 실제 비교 로직 없음을 함수 목록으로 확인)."""
+        assert not hasattr(mart, "compare_to_canonical")
+        assert not hasattr(mart, "recompute_canonical")
+
+    def test_overlay_source_prereg_summary_is_descriptive_only(self, mart_rows):
+        summary = mart.compute_overlay_source_prereg_summary(mart_rows)
+        assert summary["geometry_rule_version"] == mart.GEOMETRY_RULE_VERSION
+        assert summary["measured_n"] == 53
+        assert "field_definitions_for_figure_captions" in summary
+        assert summary["not_a_test"]
 
 
 class TestOwnershipBoundary:
