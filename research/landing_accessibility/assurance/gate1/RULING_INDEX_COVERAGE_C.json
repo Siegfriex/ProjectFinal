@@ -1380,9 +1380,42 @@
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 33
+  },
+  {
+   "id": "Δ44-R38",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**측정 기록은 입력의 신원을 담는다.** 산출은 측정 대상의 **바이트 sha** 를 함께 싣고, 신원 필드는 **손이 아니라 도구가** 쓴다. 여러 sha 가 있으면 **각 필드가 무엇을 해싱하는지** 적는다. **입력 sha 가 다른 두 측정값은 비교하지 않는다**",
+   "must_appear_in": "모든 측정 산출 · self_check.last_run",
+   "C_check": "v34 신규 — C 스캐너는 매 실행에 (index sha, delta sha, 헤더 분모 3종, measured_at_kst) 를 함께 기록(D-019 후속, be1808f/25735e0); 로컬 control ref 를 정본으로 읽음",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 34
+  },
+  {
+   "id": "Δ44-check9",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "`check_ruling_index.py` 의 9번째 검사 `input_identity` — 색인의 `source_sha256` 이 현재 delta 바이트 sha 와 다르면 FAIL. **`--write` 중에는 건너뛴다**(갱신이 곧 시정이라 교착). 검사만 돌리는 B/C/D 에게 **색인이 낡았음을 알리는 유일한 신호**다",
+   "must_appear_in": "check_ruling_index.py · B/C/D 의 색인 검증",
+   "C_check": "v34 신규 — C 스캐너는 매 실행에 (index sha, delta sha, 헤더 분모 3종, measured_at_kst) 를 함께 기록(D-019 후속, be1808f/25735e0); 로컬 control ref 를 정본으로 읽음",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 34
+  },
+  {
+   "id": "Δ44-semantics",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "`authority_sha` 는 **쓴 시점의 git HEAD** 이며 **이 갱신 자체는 다음 커밋에 담기므로 항상 한 칸 뒤진다** — `authority_sha_semantics` 에 명시한다. **정확한 입력 신원은 `source_sha256`(delta 바이트)** 이고 그쪽을 인용한다",
+   "must_appear_in": "색인 · 색인을 인용하는 곳",
+   "C_check": "v34 신규 — C 스캐너는 매 실행에 (index sha, delta sha, 헤더 분모 3종, measured_at_kst) 를 함께 기록(D-019 후속, be1808f/25735e0); 로컬 control ref 를 정본으로 읽음",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 34
   }
  ],
- "index_version": 33,
+ "index_version": 34,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1424,5 +1457,6 @@
  "index_sha256_v29": "e5737ef581516a647d7d9640a8b199704a99a632cf1b034d6336ed0c627e826a",
  "index_sha256_v31": "d6a0c2a4e5ed645a75d229f6a4d05d2724ff52751fa9ffa6ef5e72c59bd97f09",
  "index_sha256_v32": "50f5583942cb24bc4717459e5a6ba63f95d946b1f260872a01450aa3415a17d9",
- "index_sha256_v33": "a63fb04f344a163f4147efb15ac8e7de1e828b8fa3fe4c9ead0310dc094297c2"
+ "index_sha256_v33": "a63fb04f344a163f4147efb15ac8e7de1e828b8fa3fe4c9ead0310dc094297c2",
+ "index_sha256_v34": "b33a73cfb12b93afbe290b9e0ccec57376d2734f7ec7cb4ac20f9caeb9bf30d4"
 }
