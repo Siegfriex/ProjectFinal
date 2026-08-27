@@ -1,10 +1,10 @@
-# QA_CLAIM_LEDGER (C) — 2026-08-27T16:42:01+09:00
+# QA_CLAIM_LEDGER (C) — 2026-08-27T16:42:30+09:00
 
 기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_STAT_REPLAY.json, /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_MART_RECONCILIATION.json
 
 **scan coverage: files 25/25 · sentences 4331 · retracted-phrase raw hits 4 · positive controls {"successor of '정직하게 거부' / '없는 codebook'": 13, "successor of '설계가 작동'": 19, "successor of 'wiring 고쳐도 신호 없다'": 10} · VALID**
 
-집계: {'SUPPORTED_WITH_LIMITATION': 182, 'SUPPORTED': 6, 'UNSUPPORTED': 1}
+집계: {'SUPPORTED_WITH_LIMITATION': 182, 'SUPPORTED': 6}
 
 | file | status | issues | sentence |
 |---|---|---|---|
@@ -188,7 +188,6 @@
 | build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 본 연구 계약이 대표기능 endpoint로 인정하지 않는 archetype에서 gate에 도달해 진입 깊이가 정의상 산출되지 않은 경우가 |
 | build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | gate 종류 판별이 UNDETERMINED로 떨어져 fail-closed 규칙이 endpoint 승격을 거부한 발화가 |
 | build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | 분모 없는 '0건' — 'N건 중 0건' 으로 | 개 중 현행 WA 인증 join 3요건 충족은 0건이었다. |
-| extract_remediation_cases.py | **UNSUPPORTED** | FORBIDDEN §2.4: 단일 종합점수/score 금지 | 세 축(KWCAG/entry friction/certification)을 단일 점수로 합치지 않는 원칙과 같은 |
 | extract_remediation_cases.py | **SUPPORTED_WITH_LIMITATION** | 분모 없는 '0건' — 'N건 중 0건' 으로 | 게이트를 통과한 사례가 0건인 것은 실패가 아니라 사실이다. |
 | generate_deliverable_templates.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 산출물 템플릿 생성 CLI — 목표 3, end-to-end. |
 | generate_deliverable_templates.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | marts 빌드 → EDA-03~09 실행 →   → Markdown/JSON 산출물 |

@@ -112,7 +112,7 @@ def main(a):
         for s in sentences(txt):
             sentences_scanned += 1
             issues = []; status = "SUPPORTED"
-            META = re.search(r"않는다|않았다|금지|반려|패턴|규칙|허용|예:|✗|○|assert|forbidden|scan|스캔|목록", s)
+            META = re.search(r"않는|않은|않았|금지|반려|패턴|규칙|원칙|허용|예:|✗|○|assert|forbidden|scan|스캔|목록", s)
             # pattern-list entries inside generators/json: the bare forbidden phrase as a short standalone string
             if p.suffix in (".py", ".json") and len(s) < 45 and any(re.search(pat, s, re.I) for pat, _, _ in FORBIDDEN): META = True
             for pat, rule, note in ([] if META else FORBIDDEN):
