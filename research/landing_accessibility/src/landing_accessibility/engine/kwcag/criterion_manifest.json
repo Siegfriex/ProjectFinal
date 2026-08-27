@@ -3,7 +3,7 @@
   "ticket": "T-A-W3-001",
   "precondition": "D-R0-43 — manifest freeze 이전에는 evaluator 구현을 시작하지 않는다",
   "stage": "Stage 0 — criterion manifest freeze ONLY. Stage 1 (evaluator: Applicability/Required evidence slots/Expectation/Outcome) 구현은 A의 ACK 이후.",
-  "frozen_at_utc": "2026-08-27T12:16:44Z",
+  "frozen_at_utc": "2026-08-27T12:45:24Z",
   "criterion_count": 33,
   "required_fields": [
     "criterion_id",
@@ -17,7 +17,7 @@
     "applicability": "older-relevant 배정 도메인 태그 원문값 (VISION/MOTOR/COGNITIVE_NAVIGATION/OTHER). 값 그대로가 곧 이 연구의 older-relevant subset 소속 여부를 정한다 — applicability != 'OTHER' 인 22개가 §2/§3의 'older-relevant 소계'다. 원본 밖에서 새로 판단하지 않았다.",
     "evidence_source": "research/refcohort/codebook/kwcag22_criteria.json 의 per-criterion 'detector' 필드를 그대로 옮겼다. OLDER_RELEVANT_KWCAG_SUBSET.md 자체에는 이 열이 없다 — 그 문서가 '정본 기준표'로 지정한 코드북에서만 가져왔다. automation_grade == NOT_AUTOMATABLE 인 8개는 코드북에도 detector 가 없어 null 이다 (추정으로 채우지 않았다).",
     "automation_grade": "research/refcohort/codebook/kwcag22_criteria.json 의 'automation' 값 (AUTO_DECIDABLE/AUTO_FLAG_ONLY/NOT_AUTOMATABLE). OLDER_RELEVANT_KWCAG_SUBSET.md §2의 약칭 'auto' 열(DEC/FLAG/N/A)과 33건 전수 교차검증해 drift 0건을 확인했다 (drift 발견 시 이 필드 대신 코드북 원문값을 우선하고 §_automation_grade_abbrev_in_source_doc 에 두 값을 남기도록 설계했으나 실제로는 불일치가 없었다).",
-    "SHA": "이 criterion 의 applicability(older_relevance) 태깅이 동결된 원본 문서의 git commit SHA. 전 rows 동일값 — 단일 동결 이벤트(research/landing_accessibility/control/OLDER_RELEVANT_KWCAG_SUBSET.md, LA-ORS-20260827)에서 나왔다."
+    "SHA": "두 값을 함께 기록한다: (1) 이 criterion 의 applicability(older_relevance) 태깅이 동결된 원본 문서의 git commit SHA(계보), (2) 그 문서 내용 자체의 sha256(내용 동일성 — A의 D-R0-51 결정으로 이게 우선한다). 전 rows 동일값 — 단일 동결 이벤트(LA-ORS-20260827)에서 나왔다. commit SHA 는 'SHA' 필드에, document sha256 은 'DOC_SHA256' 필드에 각각 담는다 (다른 자료형/다른 해시라 한 필드에 섞지 않았다)."
   },
   "provenance": {
     "older_relevant_subset_doc": {
@@ -25,7 +25,9 @@
       "commit_sha": "333119e6821166cbba7c950203098f199f0fdc13",
       "commit_subject": "control: older-relevant KWCAG subset 동결 + 수집창 13:50 조정",
       "commit_date": "2026-08-27T12:29:45+09:00",
-      "note": "이 커밋은 이 worktree 의 base(2281c853950d0c475c5d2c1678680b971c2804f4)의 ancestor가 아니다 — 다른 브랜치(control/landing-orchestrator, handoff/landing-a-20260827)에만 존재한다. `git show <sha>:<path>` 로 읽기만 했고 이 worktree 로 merge/cherry-pick 하지 않았다."
+      "note": "이 커밋은 이 worktree 의 base(2281c853950d0c475c5d2c1678680b971c2804f4)의 ancestor가 아니다 — 다른 브랜치(control/landing-orchestrator, handoff/landing-a-20260827)에만 존재한다. `git show <sha>:<path>` 로 읽기만 했고 이 worktree 로 merge/cherry-pick 하지 않았다.",
+      "document_sha256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e",
+      "document_sha256_note": "A(D-R0-51, C안 채택) 지시 — commit sha(333119e) 대신/병기로 문서 내용 sha256을 쓴다. C가 333119e = 084eff5 = 9f84e9c 세 지점에서 문서 sha256이 동일함을 확인해 '이 worktree 밖 개정' 우려를 닫았다. 내용 동일성이 확인되면 계보(어느 브랜치 커밋인지)는 부차적이다."
     },
     "kwcag22_criteria_codebook": {
       "path": "research/refcohort/codebook/kwcag22_criteria.json",
@@ -52,7 +54,16 @@
     "excluded_count": 0,
     "reviewed_but_kept_with_honest_null": {
       "note": "5개 필수 필드 전부가 원본에서 확인 가능한 값으로 채워진 33개는 전부 criteria 에 남겼다. evidence_source 가 null 인 8개는 '채울 수 없음'이 아니라 정본 코드북(kwcag22_criteria.json) 자체가 그 criterion 에 detector 를 'None'으로 명시한 경우다 — automation_grade=NOT_AUTOMATABLE 과 논리적으로 짝이 맞는 정직한 null이며, applicability/automation_grade/SHA/criterion_id 4개 필드는 이 8개도 모두 채워져 있다. 그래서 '필드 미충족으로 제외' 대상이 아니라고 판단해 배제하지 않았다 — 이 판단 자체는 self_approved=false 로, A/C 검증을 요청한다.",
-      "ids": ["1.3.3", "1.4.1", "1.4.4", "2.3.1", "2.4.4", "2.5.1", "2.5.2", "3.3.1"]
+      "ids": [
+        "1.3.3",
+        "1.4.1",
+        "1.4.4",
+        "2.3.1",
+        "2.4.4",
+        "2.5.1",
+        "2.5.2",
+        "3.3.1"
+      ]
     }
   },
   "self_approved": false,
@@ -69,7 +80,8 @@
       "_older_relevance_rationale_ko": "주된 수혜자가 시각장애인이며 노화 특이적이지 않다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": "alt 존재는 기계 판정, 적절성은 사람 검토"
+      "_codebook_note": "alt 존재는 기계 판정, 적절성은 사람 검토",
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "1.2.1",
@@ -83,7 +95,8 @@
       "_older_relevance_rationale_ko": "노인성 난청은 실재하나 어휘에 청각 도메인이 없고 본 프로토콜이 청각 접근을 측정하지 않는다 (§1 한계)",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "1.3.1",
@@ -97,7 +110,8 @@
       "_older_relevance_rationale_ko": "스크린리더 표 탐색 문제로 노화 특이적이지 않다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "1.3.2",
@@ -111,7 +125,8 @@
       "_older_relevance_rationale_ko": "읽기 순서 혼란은 처리속도·작업기억 저하에서 직접 증폭된다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "1.3.3",
@@ -125,7 +140,8 @@
       "_older_relevance_rationale_ko": "지시 해석 부담은 처리속도 저하에 직접 대응",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "N/A",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "1.4.1",
@@ -139,7 +155,8 @@
       "_older_relevance_rationale_ko": "색 변별력 저하는 잘 확립된 노화 변화다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "N/A",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "1.4.2",
@@ -153,7 +170,8 @@
       "_older_relevance_rationale_ko": "예기치 않은 자동 재생은 주의 전환·방해로 작용한다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "1.4.3",
@@ -167,7 +185,8 @@
       "_older_relevance_rationale_ko": "핵심. 대비 감도 저하는 가장 잘 확립된 노화 시각 변화다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "1.4.4",
@@ -181,7 +200,8 @@
       "_older_relevance_rationale_ko": "시각적 경계 식별은 대비 감도 저하에 직접 대응",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "N/A",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.1.1",
@@ -195,7 +215,8 @@
       "_older_relevance_rationale_ko": "모바일웹 L0/L1 에서 키보드 경로는 주된 고령 사용 경로가 아니다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.1.2",
@@ -209,7 +230,8 @@
       "_older_relevance_rationale_ko": "동상",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.1.3",
@@ -223,7 +245,8 @@
       "_older_relevance_rationale_ko": "핵심. 터치 타깃 크기·간격은 미세운동 정밀도 저하에 직접 대응",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.1.4",
@@ -237,7 +260,8 @@
       "_older_relevance_rationale_ko": "모바일웹 L0/L1 에서 문자 단축키 노출이 주변적이다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.2.1",
@@ -251,7 +275,8 @@
       "_older_relevance_rationale_ko": "처리속도 저하에 직접 대응. 시간제한은 고령 사용자에게 불균형하게 작용한다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.2.2",
@@ -265,7 +290,8 @@
       "_older_relevance_rationale_ko": "움직이는 콘텐츠는 읽기 속도·주의 유지에 직접 간섭한다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.3.1",
@@ -279,7 +305,8 @@
       "_older_relevance_rationale_ko": "주 목적이 광과민성 발작 예방으로 노화 특이적이지 않다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "N/A",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.4.1",
@@ -293,7 +320,8 @@
       "_older_relevance_rationale_ko": "반복 탐색 부담은 작업기억·인내 자원을 소모한다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.4.2",
@@ -307,7 +335,8 @@
       "_older_relevance_rationale_ko": "현재 위치 파악은 방향감각 유지의 기본 단서다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.4.3",
@@ -321,7 +350,8 @@
       "_older_relevance_rationale_ko": "핵심. 모호한 링크는 추측 부담을 만들고 이는 처리속도 저하에서 증폭된다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.4.4",
@@ -335,7 +365,8 @@
       "_older_relevance_rationale_ko": "일관된 위치는 학습·기억 부담을 줄인다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "N/A",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.5.1",
@@ -349,7 +380,8 @@
       "_older_relevance_rationale_ko": "핵심. 다중 포인터·경로 제스처는 떨림·관절 가동범위 제약에 직접 걸린다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "N/A",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.5.2",
@@ -363,7 +395,8 @@
       "_older_relevance_rationale_ko": "핵심. 의도치 않은 활성화 취소는 떨림 보상 경로다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "N/A",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.5.3",
@@ -377,7 +410,8 @@
       "_older_relevance_rationale_ko": "음성입력 사용자 대상으로 노화 특이적이지 않다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "2.5.4",
@@ -391,7 +425,8 @@
       "_older_relevance_rationale_ko": "기기를 흔들거나 기울이는 조작은 미세운동·악력 제약에 걸린다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "3.1.1",
@@ -405,7 +440,8 @@
       "_older_relevance_rationale_ko": "스크린리더 발음 정확성 문제로 노화 특이적이지 않다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "3.2.1",
@@ -419,7 +455,8 @@
       "_older_relevance_rationale_ko": "핵심. 예기치 않은 맥락 변화는 방향감각 상실을 직접 유발한다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "3.2.2",
@@ -433,7 +470,8 @@
       "_older_relevance_rationale_ko": "막혔을 때 도움 경로 탐색 부담은 고령 사용자에게 크다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "3.3.1",
@@ -447,7 +485,8 @@
       "_older_relevance_rationale_ko": "오류 복구는 작업기억·처리속도 부담이 집중되는 지점이다",
       "_pilot_applied_raw": null,
       "_automation_grade_abbrev_in_source_doc": "N/A",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "3.3.2",
@@ -461,7 +500,8 @@
       "_older_relevance_rationale_ko": "입력 목적 파악은 기억 부담 감소에 직접 기여한다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "3.3.3",
@@ -475,7 +515,8 @@
       "_older_relevance_rationale_ko": "핵심. 기억 의존 인증은 작업기억 저하에 정면으로 걸린다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "FLAG",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "3.3.4",
@@ -489,7 +530,8 @@
       "_older_relevance_rationale_ko": "핵심. 같은 정보 재입력 요구는 작업기억 부담을 직접 늘린다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "4.1.1",
@@ -503,7 +545,8 @@
       "_older_relevance_rationale_ko": "보조기술 파싱 안정성 문제로 노화 특이적이지 않다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     },
     {
       "criterion_id": "4.2.1",
@@ -517,7 +560,8 @@
       "_older_relevance_rationale_ko": "포괄 조항이며 특정 기능 변화에 대응하지 않는다",
       "_pilot_applied_raw": "✓",
       "_automation_grade_abbrev_in_source_doc": "DEC",
-      "_codebook_note": null
+      "_codebook_note": null,
+      "DOC_SHA256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
     }
   ]
 }
