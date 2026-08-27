@@ -1,0 +1,35 @@
+{
+ "defect_id": "D-DEF-05",
+ "claim_kind": "IMPLEMENTATION",
+ "title": "방화벽 스캐너가 기계가독 부정선언을 못 읽어 FAIL 24건을 냈다",
+ "trigger": "RF2-F 산출물 통합 직후 스캔이 PASS -> FAIL(24) 로 뒤집혔다",
+ "what_actually_happened": "RF2-F worker 가 자기 산출물(py/json/ipynb)에 firewall.not_opened = [금지경로 목록] 을 **기계가독 형태로** 남겼다. 스캐너의 NEGATION_MARKERS 는 한국어 산문 표현만 담고 있어 'not_opened' 를 부정으로 못 읽었고, JSON 배열이라 각 토큰이 별도 줄에 있어 +-2줄 창 안에 부정어가 없었다. 24건 전부 **거짓 양성**이다.",
+ "why_this_matters": "이번 FAIL 은 '워커가 금지경로를 열었다' 가 아니라 '워커가 안 열었다고 **잘 기록했는데** 스캐너가 그 기록을 못 읽었다' 는 뜻이다. 규율을 잘 지킨 산출물일수록 더 많이 걸린다 — 탐지기가 규율을 벌하는 방향으로 작동했다.",
+ "fix": {
+  "1": "NEGATION_MARKERS 에 기계가독 키 추가 — not_opened / not_accessed / never_accessed / not_read / denied_paths / forbidden_paths / firewall / holdout_accessed / labels_produced / real_target",
+  "2": "구조화 포맷(.json/.ipynb/.jsonl)의 부정문맥 창을 +-2줄에서 +-10줄로 확대. 선언 블록이 한 항목당 한 줄로 펼쳐지기 때문이다"
+ },
+ "control_groups_after_fix": [
+  {
+   "kind": "산문/코드",
+   "injected": "read_text() 로 RAW_L2 를 읽는 .py",
+   "result": "FAIL 3건 탐지"
+  },
+  {
+   "kind": "구조화",
+   "injected": "부정어 없이 RAW_L4 경로만 담은 .json",
+   "result": "FAIL 2건 탐지"
+  },
+  {
+   "kind": "제거 후",
+   "injected": "없음",
+   "result": "PASS"
+  }
+ ],
+ "residual_risk": "창을 10줄로 넓혔으므로 '같은 JSON 안에 부정 선언이 있고 10줄 안에 실제 참조도 있는' 경우를 WARN 으로 낮출 수 있다. 구조화 대조군이 여전히 잡는 것을 확인했으나 이 조합은 시험하지 않았다.",
+ "count": {
+  "before": 24,
+  "after": 0,
+  "warn_after": 317
+ }
+}

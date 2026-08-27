@@ -65,16 +65,25 @@ def denied_hit(text_path: str, patterns: list[dict]) -> str | None:
 # "열지 않았다" 류의 경계선 선언은 참조가 아니다. 단 파일 접근 호출 옆에 있으면 선언이 아니다.
 NEGATION_MARKERS = ("열지 않", "미열람", "미접근", "않았다", "않는다", "금지", "not open",
                     "did not read", "차단", "제외", "접근하지 않", "no access", "forbidden",
-                    "미생산", "미접속", "denied", "경계")
+                    "미생산", "미접속", "denied", "경계",
+                    # 기계가독 선언 키 — worker 가 JSON/노트북에 구조화해 남기는 형태.
+                    # 한국어 부정어가 없어 1차 규칙이 전부 FAIL 로 잡았다 (D-DEF-05).
+                    "not_opened", "not_accessed", "never_accessed", "not_read",
+                    "denied_paths", "forbidden_paths", "firewall", "holdout_accessed",
+                    "labels_produced", "real_target")
 # 실제 파일 접근을 시사하는 토큰. 같은 줄에 있으면 선언으로 보지 않는다.
 ACCESS_MARKERS = ("open(", "read_text", "read_bytes", "json.load", "loads(", "Path(",
                   "glob(", "rglob(", "iterdir", "DictReader", "np.load", "pd.read",
                   "cat ", "head ", "tail ", "grep ")
 NEG_WINDOW = 2   # 앞뒤 2줄까지 본다 (산문은 줄바꿈으로 끊긴다)
+# JSON/노트북은 선언 블록이 한 항목당 한 줄로 펼쳐진다. 같은 블록 안을 보려면 창이 더 넓어야 한다.
+NEG_WINDOW_STRUCTURED = 10
+STRUCTURED_SUFFIX = (".json", ".ipynb", ".jsonl")
 
 
 def severity(hit: dict, text: str) -> str:
     """파일 접근 호출 옆이면 FAIL. 부정 선언 문맥이면 WARN. 둘 다 아니면 보수적으로 FAIL."""
+    f = hit.get("file", "")
     line_no = hit.get("line")
     if not line_no:
         return "FAIL"
@@ -84,8 +93,9 @@ def severity(hit: dict, text: str) -> str:
         hit["context"] = cur.strip()[:300]
         hit["why"] = "같은 줄에 파일 접근 호출이 있다"
         return "FAIL"
-    lo = max(0, line_no - 1 - NEG_WINDOW)
-    hi = min(len(lines), line_no + NEG_WINDOW)
+    win = NEG_WINDOW_STRUCTURED if f.endswith(STRUCTURED_SUFFIX) else NEG_WINDOW
+    lo = max(0, line_no - 1 - win)
+    hi = min(len(lines), line_no + win)
     ctx = " ".join(lines[lo:hi])
     if any(m in ctx for m in NEGATION_MARKERS):
         hit["context"] = ctx.strip()[:300]
