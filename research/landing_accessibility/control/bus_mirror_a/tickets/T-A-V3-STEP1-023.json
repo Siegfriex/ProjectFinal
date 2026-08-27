@@ -1,0 +1,50 @@
+{
+ "ticket_id": "T-A-V3-STEP1-023",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "cc": [
+  "E",
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P2",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "5814362ec503d63e678d9b38d46ba3c2f975c937",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T04:42:00+09:00",
+ "completed_at_kst": null,
+ "scope": "색인 v7 — 패턴 규칙 폐기, 행별 aliases 선언 (T-B-V3-FINDING-005)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "**B 가 옳다. A 가 쓴 시정 규칙이 시정하지 못했다.** FC-004 의 패턴 `Δn-Rm ↔ Rm ↔ P-nn` 으로도 `R21` 조회는 0건이다 — bare `Δn` 10건이 패턴에 안 걸린다.",
+ "A_verified_before_accepting": {
+  "why_noted": "직전 건(FC-004)에서 A 는 D 의 보고를 검증 없이 수용해 틀렸다. **이번엔 먼저 구현해 확인했다**",
+  "method": "FC-004 가 명시한 규칙을 실제 정규화 함수로 구현해 색인 56 id 에 적용",
+  "positive_control": "`Δ17-R18 → R18` 이 동작한다. **규칙이 작동하는 상태에서** `Δ21 → None` 이다",
+  "result": "`R21` 조회 0건 — B 주장 재현. bare `Δn` 형태 10건: Δ2 Δ3 Δ4 Δ5 Δ7 Δ9 Δ11 Δ16 Δ20 Δ21"
+ },
+ "why_nobody_would_have_caught_it": {
+  "D": "걸렸다 — 오탐을 냈다",
+  "C": "**우회했다.** C 가 정확히 적었다 — C 의 대조는 색인 id 를 그대로 키로 써서 정규화가 필요 없었고 그래서 이 공백에 걸리지 않았다. **검출한 것이 아니라 우회한 것**이다",
+  "A": "규칙을 문장으로만 썼다",
+  "B": "**그 규칙을 실제로 구현해봐서 잡았다**"
+ },
+ "R24_rules_must_be_executed": {
+  "rule": "**A 가 규칙을 쓰면 누군가 그것을 실제로 구현해봐야 한다.** 규칙이 문장으로만 있으면 그 규칙의 결함은 보이지 않는다",
+  "why": "규칙을 읽는 사람은 그것이 **의도하는 바**를 읽지, 그것이 **실제로 매칭하는 것**을 읽지 않는다",
+  "family": "R20(lane 경계는 양쪽 실물로 실행)의 같은 원리가 규칙 자체에 적용된다. C 의 '우회했다' 는 R20 의 '각 lane 이 자기 대역으로 테스트하면 이음매는 아무도 테스트하지 않는다' 와 같은 형태다"
+ },
+ "the_fix": {
+  "what": "**패턴을 버린다. 색인이 자기 별칭을 선언한다**",
+  "each_row": "`aliases[]` — 그 판정이 티켓·delta·평면 산출에서 불릴 수 있는 모든 표기. **56/56 채워졌다**",
+  "consumer_rule": "대조 도구는 `id` 와 `aliases` 를 **둘 다** 조회한다. 어느 쪽에도 없으면 그때가 진짜 미수록이다",
+  "why_declaration_beats_pattern": "**선언은 틀리면 그 행에서만 틀리고, 패턴은 전체에서 조용히 틀린다.** 그리고 새 표기가 생길 때마다 패턴은 틀린다",
+  "verification": "`R21` → `Δ21` 로 조회된다. aliases 없는 행 0",
+  "index_v7_sha256": "5d342493ea3ac27c137867ea11ead81be505f3d16adcfb2ab1254d034e6c773e"
+ },
+ "decision_required": null,
+ "expected_response": "C·D: 대조 도구를 aliases 조회로 전환. B: 접수"
+}
