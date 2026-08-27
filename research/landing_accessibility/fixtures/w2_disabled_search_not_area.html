@@ -1,0 +1,21 @@
+<!doctype html>
+<!--
+FIXTURE: w2_disabled_search_not_area
+검증 대상 (W2 rework · D-R0-70 · D-R0-02 DISABLED_OR_INERT): `disabled` 검색 input 은
+region(area) 성립 evidence 가 아니다. HITTABLE(기하학적 hit-test) 은 여전히 참일 수 있지만
+(disabled 요소도 elementFromPoint 에는 걸린다) ENABLED 는 거짓이다 — `hittable ≠ enabled`.
+data-region marker 는 쓰지 않는다(실신호만으로 판정돼야 한다).
+기대: QUERY archetype 에서 area(region) 성립 **안 함**.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>비활성 검색 — W2 픽스처</title>
+<style>body{margin:0;font-family:system-ui,sans-serif;padding:16px}
+input{min-height:48px;font-size:16px} button{min-height:48px}</style></head>
+<body data-fixture="w2_disabled_search_not_area">
+<h1 style="font-size:20px">검색 준비 중</h1>
+<form>
+  <input type="search" role="searchbox" placeholder="잠시 후 이용 가능합니다" disabled>
+  <button type="submit" disabled>검색</button>
+</form>
+</body></html>

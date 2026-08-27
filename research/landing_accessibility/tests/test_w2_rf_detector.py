@@ -767,3 +767,111 @@ def test_gate_structural_signal_no_longer_keys_on_bare_iframe_presence() -> None
     assert _gate_structural_signal_present(only_iframe) is False
     active_challenge = GateSignals(captcha_iframe_count=0, captcha_challenge_active=True)
     assert _gate_structural_signal_present(active_challenge) is True
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 9) D-R0-67-1 — UTILITY catch-all 시정 (single-purpose tool surface 요구)
+# ══════════════════════════════════════════════════════════════════════════
+def test_utility_entry_requires_a_real_input_widget_not_a_bare_button() -> None:
+    """`w2_real_utility_button_only.html` — 버튼 하나뿐이고 입력 위젯이 없다. UTILITY_ENTRY
+    로 force-map 되면 안 된다(region/endpoint 둘 다 성립 안 함)."""
+    task = TaskDefinition("TUB", A.UTILITY_ENTRY, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    entry, _ = _scout().scout(
+        web_target_id="wt-utility-button-only",
+        entry_fixture="w2_real_utility_button_only.html",
+        task=task,
+    )
+    assert entry.endpoint_status == "UNRESOLVED"
+    assert (entry.ned, entry.ied, entry.mpfed) == (None, None, None)
+
+
+def test_utility_entry_with_a_real_input_widget_still_succeeds() -> None:
+    """`w2_real_utility.html` — 양성 대조(회귀 재확인). 실제 `<input>` 이 있으면 여전히
+    성립해야 한다(`utility_input_widgets` 신규 신호 경유)."""
+    task = TaskDefinition("TU2B", A.UTILITY_ENTRY, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    entry, _ = _scout().scout(
+        web_target_id="wt-utility-input-widget", entry_fixture="w2_real_utility.html", task=task
+    )
+    assert entry.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
+    assert (entry.ned, entry.ied, entry.mpfed) == (0, 0, 0)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 10) D-R0-67-2 — family-specific 판별 신호 (공유 카드 신호 대체 아님)
+# ══════════════════════════════════════════════════════════════════════════
+def test_item_detail_evidenced_by_product_structured_data_without_marker() -> None:
+    """`w2_item_structured_data.html` — Product JSON-LD 만으로 ITEM_DETAIL evidence."""
+    task = TaskDefinition("TID", A.ITEM_DETAIL, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    entry, _ = _scout().scout(
+        web_target_id="wt-item-structured", entry_fixture="w2_item_structured_data.html", task=task
+    )
+    assert entry.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
+    assert (entry.ned, entry.ied, entry.mpfed) == (0, 0, 0)
+
+
+def test_place_lookup_evidenced_by_map_control_without_marker() -> None:
+    """`w2_place_map_control.html` — "지도에서 매장 찾기" control 만으로 PLACE_LOOKUP region."""
+    raw = _probe_raw("w2_place_map_control.html")
+    task = TaskDefinition("TPL", A.PLACE_LOOKUP, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    assert detect_area_signal(raw, task, ExecutionMode.REAL_TARGET) is True
+
+
+def test_communication_entry_evidenced_by_compose_textarea_without_marker() -> None:
+    """`w2_communication_compose.html` — 실 `<textarea>` 만으로 COMMUNICATION_ENTRY 성립."""
+    task = TaskDefinition("TCE", A.COMMUNICATION_ENTRY, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    entry, _ = _scout().scout(
+        web_target_id="wt-comm-compose", entry_fixture="w2_communication_compose.html", task=task
+    )
+    assert entry.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
+    assert (entry.ned, entry.ied, entry.mpfed) == (0, 0, 0)
+
+
+def test_family_signals_do_not_cross_contaminate_other_archetypes() -> None:
+    """음성 대조 — Product structured data 만 있는 페이지는 PLACE_LOOKUP/COMMUNICATION_ENTRY
+    의 evidence 가 아니다(family 신호가 서로 새지 않는다)."""
+    raw = _probe_raw("w2_item_structured_data.html")
+    place_task = TaskDefinition("TX1", A.PLACE_LOOKUP, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    comm_task = TaskDefinition(
+        "TX2", A.COMMUNICATION_ENTRY, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE
+    )
+    assert detect_area_signal(raw, place_task, ExecutionMode.REAL_TARGET) is False
+    assert detect_area_signal(raw, comm_task, ExecutionMode.REAL_TARGET) is False
+
+
+def test_bare_list_alone_no_longer_evidences_item_place_or_communication() -> None:
+    """`D-R0-67-2` 회귀 방지 — `w2_real_content_list.html`(순수 `<ul><li><a>` 목록, 상품/
+    장소/커뮤니티 신호 전혀 없음)은 이제 CONTENT_OPEN 만 evidence 를 받는다."""
+    raw = _probe_raw("w2_real_content_list.html")
+    for archetype in (A.ITEM_DETAIL, A.PLACE_LOOKUP, A.COMMUNICATION_ENTRY):
+        task = TaskDefinition("TX3", archetype, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+        assert detect_area_signal(raw, task, ExecutionMode.REAL_TARGET) is False, archetype
+    content_task = TaskDefinition("TX4", A.CONTENT_OPEN, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    assert detect_area_signal(raw, content_task, ExecutionMode.REAL_TARGET) is True
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 11) D-R0-70 — HITTABLE ≠ ENABLED (presence≠operative, 다섯 번째 사례)
+# ══════════════════════════════════════════════════════════════════════════
+def test_disabled_search_input_does_not_count_as_area_observed() -> None:
+    """`w2_disabled_search_not_area.html` — coordinator 가 명시한 신규 관측의 직접 재현.
+    disabled 검색 input + button 만 있는 랜딩은 area OBSERVED 로 계수되면 안 된다."""
+    raw = _probe_raw("w2_disabled_search_not_area.html")
+    task = TaskDefinition("TDS", A.QUERY, None, None, R.FORM_STRUCTURE, R.FORM_STRUCTURE)
+    assert detect_area_signal(raw, task, ExecutionMode.REAL_TARGET) is False
+
+
+def test_enabled_search_input_still_counts_as_area_observed() -> None:
+    """양성 대조 — 동일 구조에서 `disabled` 만 뺀 픽스처는 여전히 area 성립해야 한다.
+    한 방향만 보면 '아무것도 성립시키지 않는' 구현도 통과한다(D-R0-65-3) — 이 쌍이 그걸 막는다."""
+    raw = _probe_raw("w2_enabled_search_is_area.html")
+    task = TaskDefinition("TES", A.QUERY, None, None, R.FORM_STRUCTURE, R.FORM_STRUCTURE)
+    assert detect_area_signal(raw, task, ExecutionMode.REAL_TARGET) is True
+
+
+def test_is_enabled_helper_defaults_true_for_legacy_raw_without_enabled_field() -> None:
+    """`enabled` 필드가 없는 구 raw 스냅샷은 결측을 '비활성'으로 단정하지 않는다(하위호환)."""
+    from landing_accessibility.engine.l1_engine import _is_enabled
+
+    assert _is_enabled({"hittable": True}) is True
+    assert _is_enabled({"hittable": True, "enabled": False}) is False
+    assert _is_enabled({"hittable": True, "enabled": True}) is True

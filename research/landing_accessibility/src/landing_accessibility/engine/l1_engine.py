@@ -245,9 +245,7 @@ def _is_enabled(candidate: dict[str, Any]) -> bool:
 
 def _hittable_primary_action_candidates(raw: dict[str, Any]) -> list[dict[str, Any]]:
     return [
-        c
-        for c in raw.get("primary_action_candidates", [])
-        if c.get("hittable") and _is_enabled(c)
+        c for c in raw.get("primary_action_candidates", []) if c.get("hittable") and _is_enabled(c)
     ]
 
 
@@ -280,7 +278,7 @@ def _query_reflected_in_url(raw: dict[str, Any], task: TaskDefinition) -> bool:
 
 
 def _repeated_card_list_present(raw: dict[str, Any]) -> bool:
-    """"content card/link list" 를 list-container 소속 여부로 판정한다(`l0_probe.js`
+    """ "content card/link list" 를 list-container 소속 여부로 판정한다(`l0_probe.js`
     `repeated_structure`, cap 없음). heading 근접성(`nearby_heading`)은 작은 페이지에서
     항상 참에 가까워 판별력이 없었다(`depth_path_3` 류 픽스처로 실측 확인) — 그래서 이
     신호는 그것을 쓰지 않는다.
