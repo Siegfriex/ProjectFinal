@@ -40,7 +40,10 @@ RF embedding signal 은 **representative interaction semantics**(검색 제출·
 ## 2. 먼저 확인해야 하는 구조적 사실 — prior 기반 판별은 원리적으로 불가능하다
 
 D orchestrator 가 전달한 사실을 `D_OBSERVATION_TABLE_v2.csv` (`in_mart==1`, 56행) 원본에서
-**독립 재확인**했다. 선행 지적은 D-RF2-D worker.
+**독립 재확인**했다(교차표·엔트로피·MI 를 이 run 의 코드가 직접 계산했다 — 결과 JSON
+`label_identifiability`). 선행 지적은 D-RF2-D worker, 독립 확인은 D orchestrator
+(`results/D_FACT_01_prior_domain_bijection.md`, 이 run 은 읽지도 수정하지도 않았고 원 CSV 에서
+직접 재계산했다).
 
 ```
 prior_business_domain  →  prior_archetype        n

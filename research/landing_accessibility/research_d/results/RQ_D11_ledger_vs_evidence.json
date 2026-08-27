@@ -1,0 +1,296 @@
+{
+ "rq": "RQ-D11",
+ "title": "E001 원장의 measured 집합과 evidence run 집합이 일치하는가",
+ "derived_from": "C-BLOCKER-220418 (W1 fixture e2e 에서 관측된 원장 귀속 분열)",
+ "c_claim_not_taken_as_fact": "C 는 이 구조가 '2026-08-27 05:14 w02 형태에서 정확히 재발할 구조' 라고 썼다. D 는 그 주장을 hypothesis 로만 받고 E001 batch 파일과 evidence 디렉터리에서 독립 재계산했다.",
+ "competing_hypotheses": {
+  "H1_OCCURRED": "E001 에서 원장과 evidence 가 어긋난 target 이 있다",
+  "H2_CONSISTENT": "두 소스가 일치한다 — fixture 에서만 나타난 구조다",
+  "H3_PARTIAL": "일부 worker 에서만 어긋난다"
+ },
+ "not_measured_outcomes": [
+  "SUPPRESS*",
+  "DUPLICATE*",
+  "SKIPPED*",
+  "*RETRY_EXHAUSTED*",
+  "ABORT*"
+ ],
+ "classification_correction": "1차 실행에서 SKIPPED_RETRY_EXHAUSTED 를 '측정됨' 으로 분류해 ghost 3건이 나왔다. 원장은 그 3건을 정직하게 retry 소진으로 기록했고 결함이 아니었다. 분류를 시정했고 시정 전 수치도 남긴다.",
+ "pre_correction_totals": {
+  "orphan": 0,
+  "ghost": 3,
+  "suppressed_but_measured": 0
+ },
+ "definitions": {
+  "ORPHAN": "evidence 디렉터리는 있는데 원장에 target 행이 없다",
+  "GHOST": "원장은 측정됨으로 기록했는데 sealed evidence 가 없다",
+  "SUPPRESSED_BUT_MEASURED": "원장은 억제/중복으로 기록했는데 sealed evidence 가 있다"
+ },
+ "grain": "web_target_group per worker",
+ "totals": {
+  "orphan": 0,
+  "ghost": 0,
+  "suppressed_but_measured": 0,
+  "total_mismatch": 0
+ },
+ "per_worker": {
+  "w01": {
+   "batch_files": 4,
+   "chain": [
+    {
+     "batch_id": "b0001",
+     "index": 1,
+     "committed_at": "2026-08-27T05:15:38.433394Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": null,
+     "hash": "c4dfc853b902dd4a2cd564dd29c28a74d663cbfd5539a0150439709156478ab4"
+    },
+    {
+     "batch_id": "b0002",
+     "index": 2,
+     "committed_at": "2026-08-27T05:19:44.857734Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": "c4dfc853b902dd4a2cd564dd29c28a74d663cbfd5539a0150439709156478ab4",
+     "hash": "65fb209621d0bb5195df15ec5bdb7ab3ee18c86cc94c291c576b8e8d9dde819c"
+    },
+    {
+     "batch_id": "b0003",
+     "index": 3,
+     "committed_at": "2026-08-27T05:23:53.442049Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": "65fb209621d0bb5195df15ec5bdb7ab3ee18c86cc94c291c576b8e8d9dde819c",
+     "hash": "d31786caad620106de04d03094ee3055d741401ddf3962256dcb85273004d09e"
+    },
+    {
+     "batch_id": "b0004",
+     "index": 4,
+     "committed_at": "2026-08-27T05:25:18.074670Z",
+     "target_count": 3,
+     "result_count": 3,
+     "prev": "d31786caad620106de04d03094ee3055d741401ddf3962256dcb85273004d09e",
+     "hash": "2d6e955b81288d7e45fc2d9c92af11b32c34c828889165438b96873f4e9ff436"
+    }
+   ],
+   "ledger_targets": 15,
+   "evidence_targets": 15,
+   "outcome_distribution": {
+    "ACCOUNT_ACTION_BLOCKED": 5,
+    "AUTH_GATE": 5,
+    "UNRESOLVED": 5
+   },
+   "ledger_only": [],
+   "evidence_only_ORPHAN": [],
+   "measured_in_ledger": 15,
+   "has_sealed_evidence": 15,
+   "ledger_measured_but_no_evidence": [],
+   "evidence_but_ledger_suppressed": [],
+   "targets_with_multiple_evidence_dirs": {},
+   "targets_with_multiple_ledger_rows": {}
+  },
+  "w02": {
+   "batch_files": 4,
+   "chain": [
+    {
+     "batch_id": "b0001",
+     "index": 1,
+     "committed_at": "2026-08-27T05:15:06.366610Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": null,
+     "hash": "5d949e4cf28fce95963bf8232eeb4df3f0f933aa664be0e90f0958487521c9b2"
+    },
+    {
+     "batch_id": "b0002",
+     "index": 2,
+     "committed_at": "2026-08-27T05:20:51.137035Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": "5d949e4cf28fce95963bf8232eeb4df3f0f933aa664be0e90f0958487521c9b2",
+     "hash": "2f991a8a9379d0fbb72db0327ab61de673ff7857b18c444200445450b1f65682"
+    },
+    {
+     "batch_id": "b0003",
+     "index": 3,
+     "committed_at": "2026-08-27T05:22:18.510123Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": "2f991a8a9379d0fbb72db0327ab61de673ff7857b18c444200445450b1f65682",
+     "hash": "17b163d9675349ead83bca8a04e2b15b4aab997ba462698bd05a41bc11939255"
+    },
+    {
+     "batch_id": "b0004",
+     "index": 4,
+     "committed_at": "2026-08-27T05:22:58.002585Z",
+     "target_count": 3,
+     "result_count": 3,
+     "prev": "17b163d9675349ead83bca8a04e2b15b4aab997ba462698bd05a41bc11939255",
+     "hash": "82a2dd3c2eade8d64949597dd7e9aa21f804e1e48f68c8948f3d43428294ed3c"
+    }
+   ],
+   "ledger_targets": 15,
+   "evidence_targets": 15,
+   "outcome_distribution": {
+    "CAPTCHA": 1,
+    "ACCOUNT_ACTION_BLOCKED": 7,
+    "AUTH_GATE": 3,
+    "UNRESOLVED": 3,
+    "SKIPPED_RETRY_EXHAUSTED": 1
+   },
+   "ledger_only": [],
+   "evidence_only_ORPHAN": [],
+   "measured_in_ledger": 14,
+   "has_sealed_evidence": 14,
+   "ledger_measured_but_no_evidence": [],
+   "evidence_but_ledger_suppressed": [],
+   "targets_with_multiple_evidence_dirs": {
+    "13ed070478ef62c3": [
+     "e001_full-wtg_13ed070478ef62c3-2026-08-27T051430493325Z",
+     "e001_full-wtg_13ed070478ef62c3-2026-08-27T051438065577Z"
+    ],
+    "9390ef32addf32bf": [
+     "e001_full-wtg_9390ef32addf32bf-2026-08-27T051440847025Z",
+     "e001_full-wtg_9390ef32addf32bf-2026-08-27T051447096710Z"
+    ],
+    "b728911c9782edb8": [
+     "e001_full-wtg_b728911c9782edb8-2026-08-27T051447794738Z",
+     "e001_full-wtg_b728911c9782edb8-2026-08-27T051454743475Z"
+    ],
+    "e1fadb214cde51c0": [
+     "e001_full-wtg_e1fadb214cde51c0-2026-08-27T051500365784Z",
+     "e001_full-wtg_e1fadb214cde51c0-2026-08-27T051506647716Z"
+    ],
+    "ff3ee504792f6cfc": [
+     "e001_full-wtg_ff3ee504792f6cfc-2026-08-27T051918096922Z",
+     "e001_full-wtg_ff3ee504792f6cfc-2026-08-27T052004684632Z"
+    ]
+   },
+   "targets_with_multiple_ledger_rows": {}
+  },
+  "w03": {
+   "batch_files": 4,
+   "chain": [
+    {
+     "batch_id": "b0001",
+     "index": 1,
+     "committed_at": "2026-08-27T05:15:59.654643Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": null,
+     "hash": "92b6b8e0eb97d98f4828fcd38ac983e4617414ce54b5bfd3ee04a8abb93b35bf"
+    },
+    {
+     "batch_id": "b0002",
+     "index": 2,
+     "committed_at": "2026-08-27T05:18:06.304826Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": "92b6b8e0eb97d98f4828fcd38ac983e4617414ce54b5bfd3ee04a8abb93b35bf",
+     "hash": "49e74cf781dc5180a1516f251d8ceef2a587ee7238a6b9c073af42b662f77b7b"
+    },
+    {
+     "batch_id": "b0003",
+     "index": 3,
+     "committed_at": "2026-08-27T05:20:12.644927Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": "49e74cf781dc5180a1516f251d8ceef2a587ee7238a6b9c073af42b662f77b7b",
+     "hash": "7f0a0bff41dc4cf718c5f85f48e0a1fb1c084faadef2ddcd86836341be999d59"
+    },
+    {
+     "batch_id": "b0004",
+     "index": 4,
+     "committed_at": "2026-08-27T05:26:48.426557Z",
+     "target_count": 3,
+     "result_count": 3,
+     "prev": "7f0a0bff41dc4cf718c5f85f48e0a1fb1c084faadef2ddcd86836341be999d59",
+     "hash": "1e3f3788397ca8d43e585976d6ef6258d4ba9cf8fb0c98c7b1e8c76766fb15ea"
+    }
+   ],
+   "ledger_targets": 15,
+   "evidence_targets": 15,
+   "outcome_distribution": {
+    "AUTH_GATE": 3,
+    "ACCOUNT_ACTION_BLOCKED": 6,
+    "SKIPPED_RETRY_EXHAUSTED": 2,
+    "UNRESOLVED": 4
+   },
+   "ledger_only": [],
+   "evidence_only_ORPHAN": [],
+   "measured_in_ledger": 13,
+   "has_sealed_evidence": 13,
+   "ledger_measured_but_no_evidence": [],
+   "evidence_but_ledger_suppressed": [],
+   "targets_with_multiple_evidence_dirs": {
+    "2cd43b99c1ed87cf": [
+     "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051633333382Z",
+     "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z"
+    ],
+    "dd5061eb74e2d4d4": [
+     "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051814381396Z",
+     "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051901043748Z"
+    ]
+   },
+   "targets_with_multiple_ledger_rows": {}
+  },
+  "w04": {
+   "batch_files": 4,
+   "chain": [
+    {
+     "batch_id": "b0001",
+     "index": 1,
+     "committed_at": "2026-08-27T05:22:27.900579Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": null,
+     "hash": "e8c6d71967876441f5ff054fc06e3fccf03ac1b93ab6f2a92ea08dbb97e899f6"
+    },
+    {
+     "batch_id": "b0002",
+     "index": 2,
+     "committed_at": "2026-08-27T05:23:17.684969Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": "e8c6d71967876441f5ff054fc06e3fccf03ac1b93ab6f2a92ea08dbb97e899f6",
+     "hash": "ee30019ea877df7f3f4eb45fe3e9b70d51400c28248e1009305475c433958617"
+    },
+    {
+     "batch_id": "b0003",
+     "index": 3,
+     "committed_at": "2026-08-27T05:27:37.339902Z",
+     "target_count": 4,
+     "result_count": 4,
+     "prev": "ee30019ea877df7f3f4eb45fe3e9b70d51400c28248e1009305475c433958617",
+     "hash": "58e47f9c19569249bf960e5492552f7885da74166c7005514052d315d5b88f24"
+    },
+    {
+     "batch_id": "b0004",
+     "index": 4,
+     "committed_at": "2026-08-27T05:28:04.101554Z",
+     "target_count": 2,
+     "result_count": 2,
+     "prev": "58e47f9c19569249bf960e5492552f7885da74166c7005514052d315d5b88f24",
+     "hash": "b637ccb2881aa87194fb615f572e8fcd47c0e88281dafdefe725d555e4a51ce5"
+    }
+   ],
+   "ledger_targets": 14,
+   "evidence_targets": 14,
+   "outcome_distribution": {
+    "ACCOUNT_ACTION_BLOCKED": 7,
+    "UNRESOLVED": 6,
+    "AUTH_GATE": 1
+   },
+   "ledger_only": [],
+   "evidence_only_ORPHAN": [],
+   "measured_in_ledger": 14,
+   "has_sealed_evidence": 14,
+   "ledger_measured_but_no_evidence": [],
+   "evidence_but_ledger_suppressed": [],
+   "targets_with_multiple_evidence_dirs": {},
+   "targets_with_multiple_ledger_rows": {}
+  }
+ },
+ "verdict": "REFUTED"
+}
