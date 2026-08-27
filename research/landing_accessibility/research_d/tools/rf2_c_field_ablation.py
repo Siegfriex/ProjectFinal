@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import os
 import sys
 from datetime import datetime, timedelta, timezone
@@ -181,6 +182,43 @@ def build_rep(df: pd.DataFrame, fields: list[str]) -> list[str]:
         parts = [c.iloc[i] for c in cols if c.iloc[i]]
         out.append(" \n ".join(parts))
     return out
+
+
+
+# ---------------------------------------------------------------- post-hoc
+# POST-HOC / EXPLORATORY (사전 등록 아님, 결과를 본 뒤 추가한 confound 진단).
+# prototype 문구도 임계값도 바꾸지 않는다. 새 표현(brand-masked)을 하나 더 볼 뿐이다.
+# 동기: prior_archetype 은 business domain prior 에서 왔고 business domain 은 service
+# identity 에서 왔다. title 이 이기는 것이 "상호작용 의미" 때문인지 "브랜드 식별" 때문인지
+# 분리하지 않으면 순환이다.
+STOP_HOST = {"www", "com", "co", "kr", "net", "org", "m", "mobile", "go", "or", "https", "http"}
+
+
+def brand_terms(service: str, url: str) -> list[str]:
+    """service 명과 URL host 토큰에서 브랜드 식별 문자열을 만든다."""
+    out = set()
+    service = service if isinstance(service, str) else ""
+    url = url if isinstance(url, str) else ""
+    sv = service.strip()
+    if len(sv) >= 2:
+        out.add(sv.lower())
+        out.add(sv.replace(" ", "").lower())
+        for w in sv.split():
+            if len(w) >= 2:
+                out.add(w.lower())
+    host = re.sub(r"^https?://", "", (url or "")).split("/")[0]
+    for t in re.split(r"[.\-]", host):
+        t = t.strip().lower()
+        if len(t) >= 2 and t not in STOP_HOST:
+            out.add(t)
+    return sorted(out, key=len, reverse=True)
+
+
+def mask_brand(text: str, terms: list[str]) -> str:
+    low = text
+    for t in terms:
+        low = re.sub(re.escape(t), " ", low, flags=re.IGNORECASE)
+    return re.sub(r"[ \t]{2,}", " ", low).strip()
 
 
 # ---------------------------------------------------------------- statistics
@@ -565,6 +603,56 @@ def main() -> int:
         import torch, gc
         gc.collect(); torch.cuda.empty_cache()
 
+    # ---- POST-HOC: brand-name masking confound diagnostic -------------------
+    print("[post-hoc] brand-masked PRIMARY grid …", flush=True)
+    terms = [brand_terms(df2["prior_service"].iloc[i], df2["prior_url"].iloc[i])
+             for i in range(n)]
+    dfm = df2.copy()
+    for f in BASE_FIELDS:
+        col = dfm[f].fillna("").astype(str)
+        dfm[f] = [mask_brand(col.iloc[i], terms[i]) for i in range(n)]
+    model = load_model(PRIMARY_MODEL)
+    mcfg = MODELS[PRIMARY_MODEL]
+    Pm = encode(model, [PROTO_SETS[PRIMARY_PROTO][a] for a in ARCHETYPES],
+                mcfg["proto_prefix"], mcfg["batch"])
+    masked = {}
+    for rname, fs in REPS.items():
+        if REP_GROUP[rname] == "loo":
+            continue
+        txts = build_rep(dfm, fs)
+        empty = np.array([not t.strip() for t in txts])
+        D = np.zeros((n, Pm.shape[1]), dtype=np.float32)
+        idx = np.where(~empty)[0]
+        if len(idx):
+            D[idx] = encode(model, [txts[i] for i in idx], mcfg["doc_prefix"], mcfg["batch"])
+        r = evaluate(D @ Pm.T, empty, y)
+        r.pop("_yhat")
+        masked[rname] = {"macro_f1": r["macro_f1"],
+                         "prior_agreement_all56": r["prior_agreement_all56"],
+                         "n_agree_all56": r["n_agree_all56"],
+                         "n_empty": r["n_empty"],
+                         "delta_macro_f1_vs_unmasked": round(
+                             r["macro_f1"] - prim[rname]["macro_f1"], 4),
+                         "delta_prior_agreement_vs_unmasked": round(
+                             r["prior_agreement_all56"]
+                             - prim[rname]["prior_agreement_all56"], 4)}
+    del model
+    import torch, gc
+    gc.collect(); torch.cuda.empty_cache()
+    brand_diag = {
+        "status": "POST_HOC_EXPLORATORY — 사전 등록 항목이 아니다. prototype 문구/임계값은 "
+                  "바뀌지 않았고 brand-masked 표현을 추가로 평가했을 뿐이다.",
+        "rationale": ("prior_archetype 은 business domain prior 에서, business domain 은 "
+                      "service identity 에서 왔다. title 이 이기는 것이 상호작용 의미 때문인지 "
+                      "브랜드 식별 때문인지 분리하지 않으면 순환 논증이다."),
+        "masking": "prior_service 문자열 변형 + URL host 토큰(www/com/co/kr 등 제외)을 "
+                   "대소문자 무시로 모든 field 에서 제거",
+        "n_targets": n,
+        "example_terms": {str(df2["prior_service"].iloc[i]): terms[i] for i in range(3)},
+        "results": masked,
+        "brand_masked_ranking": sorted(masked, key=lambda r: -masked[r]["macro_f1"])[:8],
+    }
+
     # ---- 반례 --------------------------------------------------------------
     blob_yh = prim["text_blob__ALL"]["yhat"]
     best_ctrl = max(["primary_controls", "first_screen_interaction", "accessibility_text"],
@@ -643,6 +731,7 @@ def main() -> int:
         "ablation_leave_one_field_out": ablation,
         "prototype_stability": stability,
         "v1_vs_v2_encoding_fix": v1v2,
+        "posthoc_brand_masking": brand_diag,
         "counterexamples": counter,
         "counterexample_reference": {"blob": "text_blob__ALL", "controls": best_ctrl},
         "hypotheses": {

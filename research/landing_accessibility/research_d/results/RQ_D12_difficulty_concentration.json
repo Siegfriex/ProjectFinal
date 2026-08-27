@@ -1,0 +1,851 @@
+{
+ "rq": "RQ-D12",
+ "title": "D 의 측정곤란 신호들이 같은 target 에 몰려 있는가",
+ "competing_hypotheses": {
+  "H1_SINGLE_LATENT": "하나의 '어려운 target' 요인이 대부분 설명",
+  "H2_INDEPENDENT": "신호들이 서로 다른 축, 독립에 가까움",
+  "H3_CLUSTERED_PAIRS": "몇 쌍만 묶이고 나머지는 독립"
+ },
+ "why_it_matters": "H1 이면 소수 제외로 품질이 오르고 missingness 를 한 요인으로 모델링할 수 있다. H2 면 각 문제를 따로 고쳐야 하고 어떤 제외도 나머지를 낫게 하지 않는다.",
+ "grain": "target (in_mart==1)",
+ "n": 56,
+ "seed": 20260827,
+ "flag_definitions": {
+  "cap_truncated": "probe 배열이 하드 cap 에 도달 (D_OBSERVATION_TABLE_v2.cap_any==1)",
+  "low_structural_richness": "dom_interactive_n 이 in_mart 표본의 하위 25% (D9 권고 proxy)",
+  "slot_mismatch": "D10 의 slot_disagreement_score >= 1",
+  "degenerate_or_dup": "D13 의 퇴화 캡처이거나 동일 요청 URL 중복 쌍",
+  "overlay_construct_mismatch": "D13a 에서 최대 overlay 요소가 모달이 아님 (H2_GENERIC*)",
+  "frame_not_functional": "D14 identity_class 가 FUNCTIONAL_LANDING 이 아님",
+  "rule_abstain": "RF001-A rule DT 가 유일 leaf 를 못 만듦 (leaf != MAPPED)"
+ },
+ "low_richness_q25_threshold": 28,
+ "prevalence": {
+  "cap_truncated": 14,
+  "low_structural_richness": 15,
+  "slot_mismatch": 6,
+  "degenerate_or_dup": 4,
+  "overlay_construct_mismatch": 47,
+  "frame_not_functional": 29,
+  "rule_abstain": 45
+ },
+ "pairwise": {
+  "cap_truncated|low_structural_richness": {
+   "phi": -0.2561,
+   "jaccard": 0.0357,
+   "both": 1
+  },
+  "cap_truncated|slot_mismatch": {
+   "phi": 0.0667,
+   "jaccard": 0.1111,
+   "both": 2
+  },
+  "cap_truncated|degenerate_or_dup": {
+   "phi": -0.1601,
+   "jaccard": 0.0,
+   "both": 0
+  },
+  "cap_truncated|overlay_construct_mismatch": {
+   "phi": 0.0281,
+   "jaccard": 0.2449,
+   "both": 12
+  },
+  "cap_truncated|frame_not_functional": {
+   "phi": -0.3508,
+   "jaccard": 0.075,
+   "both": 3
+  },
+  "cap_truncated|rule_abstain": {
+   "phi": -0.4411,
+   "jaccard": 0.1346,
+   "both": 7
+  },
+  "low_structural_richness|slot_mismatch": {
+   "phi": 0.4423,
+   "jaccard": 0.3125,
+   "both": 5
+  },
+  "low_structural_richness|degenerate_or_dup": {
+   "phi": 0.4585,
+   "jaccard": 0.2667,
+   "both": 4
+  },
+  "low_structural_richness|overlay_construct_mismatch": {
+   "phi": -0.1745,
+   "jaccard": 0.2157,
+   "both": 11
+  },
+  "low_structural_richness|frame_not_functional": {
+   "phi": 0.0994,
+   "jaccard": 0.2571,
+   "both": 9
+  },
+  "low_structural_richness|rule_abstain": {
+   "phi": 0.299,
+   "jaccard": 0.3333,
+   "both": 15
+  },
+  "slot_mismatch|degenerate_or_dup": {
+   "phi": 0.3523,
+   "jaccard": 0.25,
+   "both": 2
+  },
+  "slot_mismatch|overlay_construct_mismatch": {
+   "phi": 0.1516,
+   "jaccard": 0.1277,
+   "both": 6
+  },
+  "slot_mismatch|frame_not_functional": {
+   "phi": -0.0124,
+   "jaccard": 0.0938,
+   "both": 3
+  },
+  "slot_mismatch|rule_abstain": {
+   "phi": 0.0259,
+   "jaccard": 0.1087,
+   "both": 5
+  },
+  "degenerate_or_dup|overlay_construct_mismatch": {
+   "phi": -0.2562,
+   "jaccard": 0.0408,
+   "both": 2
+  },
+  "degenerate_or_dup|frame_not_functional": {
+   "phi": -0.0099,
+   "jaccard": 0.0645,
+   "both": 2
+  },
+  "degenerate_or_dup|rule_abstain": {
+   "phi": 0.1371,
+   "jaccard": 0.0889,
+   "both": 4
+  },
+  "overlay_construct_mismatch|frame_not_functional": {
+   "phi": 0.1616,
+   "jaccard": 0.52,
+   "both": 26
+  },
+  "overlay_construct_mismatch|rule_abstain": {
+   "phi": 0.0284,
+   "jaccard": 0.7037,
+   "both": 38
+  },
+  "frame_not_functional|rule_abstain": {
+   "phi": 0.3325,
+   "jaccard": 0.5745,
+   "both": 27
+  }
+ },
+ "strongest_pairs": [
+  {
+   "pair": "low_structural_richness|degenerate_or_dup",
+   "phi": 0.4585,
+   "jaccard": 0.2667,
+   "both": 4
+  },
+  {
+   "pair": "low_structural_richness|slot_mismatch",
+   "phi": 0.4423,
+   "jaccard": 0.3125,
+   "both": 5
+  },
+  {
+   "pair": "cap_truncated|rule_abstain",
+   "phi": -0.4411,
+   "jaccard": 0.1346,
+   "both": 7
+  },
+  {
+   "pair": "slot_mismatch|degenerate_or_dup",
+   "phi": 0.3523,
+   "jaccard": 0.25,
+   "both": 2
+  },
+  {
+   "pair": "cap_truncated|frame_not_functional",
+   "phi": -0.3508,
+   "jaccard": 0.075,
+   "both": 3
+  },
+  {
+   "pair": "frame_not_functional|rule_abstain",
+   "phi": 0.3325,
+   "jaccard": 0.5745,
+   "both": 27
+  }
+ ],
+ "flag_count_distribution": {
+  "0": 1,
+  "1": 5,
+  "2": 11,
+  "3": 29,
+  "4": 6,
+  "5": 2,
+  "6": 2
+ },
+ "n_targets_ge3_flags": 39,
+ "permutation_test": {
+  "B": 5000,
+  "observed_n_ge3": 39,
+  "p_n_ge3": 0.0652,
+  "observed_variance_of_flag_count": 1.2653,
+  "p_variance": 0.2012,
+  "null_hypothesis": "각 flag 의 개수를 유지한 채 target 에 무작위 배정"
+ },
+ "most_flagged_targets": [
+  {
+   "wtg": "95967b50683649f2",
+   "service": "NH스마트뱅킹",
+   "archetype": "FINANCIAL_ACTION_ENTRY",
+   "n_flags": 6,
+   "flags": [
+    "low_structural_richness",
+    "slot_mismatch",
+    "degenerate_or_dup",
+    "overlay_construct_mismatch",
+    "frame_not_functional",
+    "rule_abstain"
+   ]
+  },
+  {
+   "wtg": "fb3d1841dddfd982",
+   "service": "NH콕뱅크",
+   "archetype": "FINANCIAL_ACTION_ENTRY",
+   "n_flags": 6,
+   "flags": [
+    "low_structural_richness",
+    "slot_mismatch",
+    "degenerate_or_dup",
+    "overlay_construct_mismatch",
+    "frame_not_functional",
+    "rule_abstain"
+   ]
+  },
+  {
+   "wtg": "49a5eca8b58f7270",
+   "service": "11번가",
+   "archetype": "ITEM_DETAIL",
+   "n_flags": 5,
+   "flags": [
+    "cap_truncated",
+    "low_structural_richness",
+    "slot_mismatch",
+    "overlay_construct_mismatch",
+    "rule_abstain"
+   ]
+  },
+  {
+   "wtg": "d5ae5426eac23877",
+   "service": "모니모",
+   "archetype": "FINANCIAL_ACTION_ENTRY",
+   "n_flags": 5,
+   "flags": [
+    "low_structural_richness",
+    "slot_mismatch",
+    "overlay_construct_mismatch",
+    "frame_not_functional",
+    "rule_abstain"
+   ]
+  },
+  {
+   "wtg": "054d78ed187cdd9f",
+   "service": "쿠팡이츠",
+   "archetype": "ITEM_DETAIL",
+   "n_flags": 4,
+   "flags": [
+    "low_structural_richness",
+    "overlay_construct_mismatch",
+    "frame_not_functional",
+    "rule_abstain"
+   ]
+  },
+  {
+   "wtg": "5ede56738376a8c5",
+   "service": "Instagram",
+   "archetype": "COMMUNICATION_ENTRY",
+   "n_flags": 4,
+   "flags": [
+    "low_structural_richness",
+    "overlay_construct_mismatch",
+    "frame_not_functional",
+    "rule_abstain"
+   ]
+  },
+  {
+   "wtg": "65f15ce8fee25b24",
+   "service": "밴드",
+   "archetype": "COMMUNICATION_ENTRY",
+   "n_flags": 4,
+   "flags": [
+    "low_structural_richness",
+    "overlay_construct_mismatch",
+    "frame_not_functional",
+    "rule_abstain"
+   ]
+  },
+  {
+   "wtg": "be1e6feb78e5ef03",
+   "service": "emart24",
+   "archetype": "ITEM_DETAIL",
+   "n_flags": 4,
+   "flags": [
+    "cap_truncated",
+    "overlay_construct_mismatch",
+    "frame_not_functional",
+    "rule_abstain"
+   ]
+  },
+  {
+   "wtg": "c5285b96b598a08b",
+   "service": "배달의민족",
+   "archetype": "ITEM_DETAIL",
+   "n_flags": 4,
+   "flags": [
+    "low_structural_richness",
+    "overlay_construct_mismatch",
+    "frame_not_functional",
+    "rule_abstain"
+   ]
+  },
+  {
+   "wtg": "e7bb158c1c8d9fe7",
+   "service": "마켓컬리",
+   "archetype": "ITEM_DETAIL",
+   "n_flags": 4,
+   "flags": [
+    "low_structural_richness",
+    "slot_mismatch",
+    "overlay_construct_mismatch",
+    "rule_abstain"
+   ]
+  }
+ ],
+ "clean_targets_n": 1,
+ "restricted_analysis": {
+  "note": "prevalence >= 60% 인 flag 는 거의 모두에게 붙어 집중도를 부풀린다. 제외한 분석.",
+  "flags_used": [
+   "cap_truncated",
+   "low_structural_richness",
+   "slot_mismatch",
+   "degenerate_or_dup",
+   "frame_not_functional"
+  ],
+  "flag_count_distribution": {
+   "0": 11,
+   "1": 28,
+   "2": 13,
+   "3": 2,
+   "4": 2
+  },
+  "observed_variance": 0.8469,
+  "p_variance": 0.3834,
+  "clean_targets_n": 11
+ },
+ "verdict": "REFUTED",
+ "per_target_flags": {
+  "054d78ed187cdd9f": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "088809bf9b31bc6a": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "0ee385d0c964e560": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 1,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 0
+  },
+  "0f3bdb2bd0bb891e": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "12e3942c0495b9a4": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "13ed070478ef62c3": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 0,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "190b4501e4415d5e": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "22ffba7a86ea9919": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 0
+  },
+  "24e6654bfd1ab85b": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "35319a420294ee17": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "377983572bd38242": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 0
+  },
+  "46e5a43370f75308": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "49a5eca8b58f7270": {
+   "cap_truncated": 1,
+   "low_structural_richness": 1,
+   "slot_mismatch": 1,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "4feab7e61bf642e8": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 0
+  },
+  "51484a735cdb487b": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 0,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "517b8047eb5be716": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "5beeafeac2e27eae": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "5c614fc99631ce5e": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 0
+  },
+  "5ede56738376a8c5": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "60d4d22e3809f780": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "64d30ef262d8782d": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 1,
+   "overlay_construct_mismatch": 0,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "65f15ce8fee25b24": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "699a5e2f3f410152": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "6d5510a695d0a614": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "7f6f1aa6dd218d4d": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 0,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "8195b68ac17e42a3": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "888d37f34b5d3aaa": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "88cb7f1e54f26500": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 0
+  },
+  "8fd5d30f8b1d707b": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "91b952863c62993d": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "9390ef32addf32bf": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "95967b50683649f2": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 1,
+   "degenerate_or_dup": 1,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "95e22b9aff7196b3": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 0,
+   "frame_not_functional": 0,
+   "rule_abstain": 0
+  },
+  "a215c45b2cc585ca": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 0,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "b728911c9782edb8": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "b8b226f9fe32539a": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "bbdefa2950f49882": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "be1e6feb78e5ef03": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "c5285b96b598a08b": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "ccb9754c97fa7341": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 0
+  },
+  "ccd84811932b237b": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "cdce1ffd6b1b1e24": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "d5ae5426eac23877": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 1,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "dd2cec4c1fa2beec": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "e1fadb214cde51c0": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "e296af221a5f7128": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 0,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "e67be79550661604": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "e7bb158c1c8d9fe7": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 1,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "ea031f85e857140e": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 0
+  },
+  "ed7b9bea21def8f8": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "ef06dc942ef3ccc9": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 1,
+   "overlay_construct_mismatch": 0,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "efda6e0b8457d63c": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 0
+  },
+  "f322b894ee95c181": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 0,
+   "frame_not_functional": 0,
+   "rule_abstain": 0
+  },
+  "f9fbd771ffcdbd42": {
+   "cap_truncated": 0,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  },
+  "fb3d1841dddfd982": {
+   "cap_truncated": 0,
+   "low_structural_richness": 1,
+   "slot_mismatch": 1,
+   "degenerate_or_dup": 1,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 1,
+   "rule_abstain": 1
+  },
+  "fdce1294fac3dfdb": {
+   "cap_truncated": 1,
+   "low_structural_richness": 0,
+   "slot_mismatch": 0,
+   "degenerate_or_dup": 0,
+   "overlay_construct_mismatch": 1,
+   "frame_not_functional": 0,
+   "rule_abstain": 1
+  }
+ }
+}

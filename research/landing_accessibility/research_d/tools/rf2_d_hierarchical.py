@@ -515,6 +515,65 @@ def main() -> dict:
     S = {name: evaluate(name, rows, n)
          for name in ["flat", "hier_rule", "hier_strict", "hier_sem", "hier_sem_m02"]}
 
+    # ---------------- "계층이 문제를 쉽게 만든 것 아닌가" 에 대한 직접 검사
+    # (a) Level 1 다수결 기준선: 항상 가장 흔한 primitive 를 찍었을 때의 prior primitive 일치율.
+    #     PLACE/COMM 은 primitive 2 개에 속하므로 다중 credit 을 그대로 적용한다.
+    def prim_majority(subset: list[dict]) -> dict:
+        best = None
+        for p in LEVEL1:
+            k = sum(1 for r in subset if p in PRIOR_PRIMITIVES[r["prior_archetype"]])
+            if best is None or k > best[1]:
+                best = (p, k)
+        lo_, hi_ = wilson(best[1], len(subset)) if subset else (float("nan"),) * 2
+        return {"primitive": best[0], "k": best[1], "n": len(subset),
+                "rate": best[1] / len(subset) if subset else float("nan"), "ci": [lo_, hi_]}
+
+    l1_res = [r for r in rows if r["l1_prim"] is not None]
+    _k1 = sum(1 for r in l1_res if r["l1_prim"] in PRIOR_PRIMITIVES[r["prior_archetype"]])
+    # (b) Level 1 의 후보 제약이 실제로 정보를 더하는가:
+    #     동일한 16 건에서 (i) 계층 없이 7-way semantic argmax vs (ii) L1 제약 후 argmax
+    sem_unres_on_l1 = sum(1 for r in l1_res if r["flat_sem_pred"] == r["prior_archetype"])
+    sem_res_on_l1 = sum(1 for r in l1_res if r["hier_sem_pred"] == r["prior_archetype"])
+    b_s = sum(1 for r in l1_res if r["flat_sem_pred"] == r["prior_archetype"]
+              and r["hier_sem_pred"] != r["prior_archetype"])
+    c_s = sum(1 for r in l1_res if r["flat_sem_pred"] != r["prior_archetype"]
+              and r["hier_sem_pred"] == r["prior_archetype"])
+    try:
+        from scipy.stats import binomtest as _bt
+        p_s = float(_bt(min(b_s, c_s), b_s + c_s, 0.5).pvalue) if (b_s + c_s) > 0 else float("nan")
+    except Exception:
+        p_s = float("nan")
+
+    easiness = {
+        "question": "계층이 좋아 보이는 것이 단지 Level 1 이 class 를 뭉쳐 문제를 쉽게 만든 것 아닌가",
+        "rule_1_never_compare_l1_to_7way": (
+            "L1 은 4-way(그나마 2 개 archetype 은 primitive 2 개에 중복 소속)이고 최종은 7-way 다. "
+            "분모와 class 수가 달라 직접 비교하지 않았다."),
+        "l1_majority_baseline_all56": prim_majority(rows),
+        "l1_majority_baseline_on_l1_resolved": prim_majority(l1_res),
+        "l1_observed_agreement_on_l1_resolved": {
+            "k": _k1, "n": len(l1_res),
+            "rate": (_k1 / len(l1_res)) if l1_res else float("nan"),
+            "ci": list(wilson(_k1, len(l1_res))) if l1_res else [float("nan")] * 2},
+        "candidate_restriction_test": {
+            "note": ("동일한 Level-1 통과 16 건에서, 계층 없이 7-way semantic argmax 를 한 경우와 "
+                     "Level 1 이 후보를 좁힌 뒤 argmax 를 한 경우의 prior 일치를 짝지어 비교한다. "
+                     "계층이 정보를 더한다면 제약 쪽이 더 높아야 한다."),
+            "n": len(l1_res),
+            "unrestricted_7way_agree": sem_unres_on_l1,
+            "l1_restricted_agree": sem_res_on_l1,
+            "discordant_unrestricted_only": b_s,
+            "discordant_restricted_only": c_s,
+            "mcnemar_exact_p": p_s},
+        "l2_conditional_coverage_is_an_artifact": (
+            "hier_rule 의 Level 2 조건부 coverage 가 1.0 인 것은 L2 가 쉬워서가 아니다. "
+            "L1_QUERY_SUBMISSION 의 L2 판별식(QUERY = 검색표면 ∧ ¬장소, PLACE = 장소)은 "
+            "상호배타적으로 선언되어 있어 L1 이 통과하면 반드시 정확히 하나가 발화한다. "
+            "L1_UTILITY_TOOL_ENTRY 는 member 가 1 개라 L2 가 항상 참이다. "
+            "즉 L2 는 abstain 하지 않도록 정의된 구간을 포함하며, 그 대가가 "
+            "L2 prior_agreement 저하로 나타난다."),
+    }
+
     # ---------------- Level 1 자체 지표
     l1_resolved = [r for r in rows if r["l1_prim"] is not None]
     n_l1 = len(l1_resolved)
@@ -627,8 +686,76 @@ def main() -> dict:
         },
     }
 
+    # ---------------- 판정 (규칙·정의는 실행 전에 고정, 판정 문구만 결과에 대응)
+    verdicts = {
+        "H-D1_HIERARCHY_HELPS": {
+            "verdict": "PARTIALLY_SUPPORTED",
+            "why": ("문자 그대로의 조건 중 'coverage 를 올린다' 만 아주 약하게 충족한다 "
+                    f"(flat {S['flat']['n_mapped']}/{n} → hier {S['hier_rule']['n_mapped']}/{n}, "
+                    "Wilson CI 가 거의 완전히 겹친다). 그러나 늘어난 2 건은 **둘 다 prior 와 불일치**해서 "
+                    "prior_agreement 는 전혀 오르지 않았고(overall 5/56 → 5/56), coverage 내부 "
+                    "agreement 는 오히려 내려갔다(5/14 → 5/16). 두 구조가 **같이 매핑한 14 건에서는 "
+                    "예측이 100% 동일**하다(both_mapped_diff=0). 즉 계층은 같은 coverage 구간에서 "
+                    "정보를 전혀 더하지 않는다."),
+        },
+        "H-D2_LEVEL1_IS_EASY": {
+            "verdict": "REFUTED",
+            "why": ("Level 1 은 쉽지 않다. 56 건 중 16 건(28.6%)에서만 유일 primitive 가 닫히고 "
+                    "40 건은 L1 에서 막힌다(multi 15 · none 19 · S0 6). 게다가 닫힌 16 건에서의 "
+                    "prior primitive 일치는 9/16=0.5625 로, 항상 L1_OBJECT_OPENING 이라고 찍는 "
+                    "다수결 기준선 13/16=0.8125 **보다 낮다**. 'Level 2 가 어렵다' 는 후반부는 "
+                    "성립하지만(L2 통과 16 건 중 prior 일치 5), Level 2 조건부 coverage 1.0 은 "
+                    "L2 판별식을 상호배타적으로 선언한 **정의상 산물**이지 L2 가 쉽다는 증거가 아니다."),
+        },
+        "H-D3_NO_GAIN": {
+            "verdict": "SUPPORTED",
+            "why": ("동일 최종 7-way output 기준으로 두 구조는 실질적으로 같다. 교집합 14 건 예측 동일, "
+                    "flat 전용 매핑 0 건, hier 전용 매핑 2 건(둘 다 prior 불일치), "
+                    "McNemar 짝 불일치 b=0 c=0. 계층 구조는 정보를 늘리지 않았다. "
+                    "오히려 L1 후보 제약은 semantic arm 에서 동일 16 건 기준 9/16 → 6/16 으로 "
+                    "**낮췄다**(불일치 4:1, exact p=0.375 — 방향은 음, 유의하지는 않음)."),
+        },
+    }
+    doc_verdict = "NOT_SUPPORTED"
+
     doc = {
-        "verdict": "PENDING",
+        "verdict": doc_verdict,
+        "verdict_scope": ("H-RF2-D-HIERARCHY = '계층 구조가 관측 evidence 와 더 잘 맞는다' 에 대한 판정. "
+                          "REFUTED 가 아니라 NOT_SUPPORTED 인 이유: n=56, class 5 개가 n≤5, "
+                          "prior 가 gold 가 아니어서 '계층이 나쁘다' 를 확증할 검정력이 없다. "
+                          "방향은 일관되게 '이득 없음~약한 손해' 다."),
+        "hypothesis_verdicts": verdicts,
+        "limitation": (
+            "1) prior_archetype 은 gold label 이 아니라 business-domain 에서 유도된 prior 이며, "
+            "이 데이터에서 prior_archetype 은 prior_business_domain 과 1:1 로 붙어 있다. 따라서 "
+            "prior_agreement 는 '규칙이 도메인 prior 를 재현하는가' 에 가깝고 '옳은가' 가 아니다. "
+            "2) 입력이 landing snapshot 1 장이라 SSOT §5 의 endpoint(상태전이)를 관측할 수 없어 "
+            "모든 E 를 'endpoint-enabling control 존재' 로 강등했다 — coverage 를 낙관적으로 올리는 강등이다. "
+            "3) n=56, 7 class 중 5 개가 n≤5 라 per-class Wilson CI 가 거의 [0,1] 폭이다. "
+            "4) Level 1 정의는 SSOT §5 endpoint 절에서 유도했지만 primitive 경계 자체는 이 실험의 "
+            "DEFINITION 이며 독립 검증을 받지 않았다. 다른 primitive 분할이면 결론이 달라질 수 있다. "
+            "5) L2 semantic 은 calibration split 없이 prototype 과 margin 임계 0.02 를 사전 선언만 했다. "
+            "이 임계는 운영 threshold 가 아니다."),
+        "production_implication": (
+            "SSOT 01 §5 의 flat branch tree 를 계층 구조로 바꿀 근거가 이 데이터에는 없다. "
+            "SSOT 를 바꾸지 말 것. 병목은 구조가 아니라 evidence 다 — landing snapshot 은 "
+            "representative function 이 아니라 '랜딩 페이지가 지금 제공하는 affordance' 만 담고 있고, "
+            "그 둘은 체계적으로 다르다(쇼핑·콘텐츠 서비스의 랜딩에서 가장 뚜렷한 컨트롤이 검색창이라 "
+            "L1 이 QUERY_SUBMISSION 으로 흡수한다). 또한 SSOT §5 branch tree 는 primitive 위의 "
+            "분할이 아니다 — PLACE_LOOKUP 과 COMMUNICATION_ENTRY 가 primitive 2 개에 걸쳐 있어, "
+            "계층을 강제하면 flat 이 확정하던 건까지 잃는다(hier_strict 에서 3 건 손실)."),
+        "next_questions": [
+            "RQ-a: representative function 은 landing snapshot 이 아니라 1-hop 전이 후의 상태에서만 "
+            "관측 가능한가? (endpoint 강등을 풀 수 있는 최소 수집 단위는 무엇인가)",
+            "RQ-b: L1 이 QUERY_SUBMISSION 으로 흡수하는 현상은 '검색창 우선' 이라는 랜딩 디자인 "
+            "관행의 측정인가, 매핑 규칙의 결함인가? 두 가설을 가르는 관측은 무엇인가.",
+            "RQ-c: SSOT §5 를 primitive 분할이 되도록 재정의하면(PLACE_LOOKUP 을 "
+            "PLACE_QUERY / PLACE_DETAIL 로 쪼개는 등) 계층 손실이 사라지는가? "
+            "이는 7 archetype 변경이므로 A 결정 사항이며 D 는 제안만 한다.",
+            "RQ-d: 계층 없이 7-way semantic argmax 가 강제매핑 기준 29/56 를 얻는 것과 "
+            "규칙이 5/56 에 그치는 것의 차이는 '규칙이 abstain 하기 때문' 인가 "
+            "'규칙 predicate 이 틀렸기 때문' 인가.",
+        ],
         "hypothesis_id": "H-RF2-D-HIERARCHY",
         "child_id": "D-RF2-D", "rq_id": "RQ-D-RF-002", "parent_run_id": PARENT,
         "rule_version": RULE_VERSION, "seed": SEED,
@@ -660,6 +787,7 @@ def main() -> dict:
                                for name in ["hier_rule", "hier_sem", "hier_sem_m02"]},
         "structures": S,
         "structure_delta_flat_vs_hier": delta,
+        "hierarchy_easiness_check": easiness,
         "hypotheses": hyp,
         "predicate_firing_counts": dict(sorted(pred_fire.items())),
         "embedding_info": einfo,
@@ -704,6 +832,235 @@ def to_jsonable(o):
     return str(o)
 
 
+# ======================================================================================
+# Figures (전부 영문 라벨 — 한글 폰트 의존 회피)
+# ======================================================================================
+def figures(doc: dict) -> list[Path]:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    FIGDIR.mkdir(parents=True, exist_ok=True)
+    out = []
+    S, rows, n = doc["structures"], doc["rows"], doc["n_observed"]
+    order = ["flat", "hier_rule", "hier_strict", "hier_sem", "hier_sem_m02"]
+    lbl = {"flat": "S1 flat rule", "hier_rule": "S2 hier rule",
+           "hier_strict": "S2s hier strict", "hier_sem": "S3 hier+semantic",
+           "hier_sem_m02": "S3m hier+sem margin.02"}
+
+    # --- Fig 1: 세 구조 비교 (동일 7-way output 기준)
+    fig, ax = plt.subplots(1, 2, figsize=(13, 4.6))
+    x = np.arange(len(order))
+    cov = [S[k]["coverage"] for k in order]
+    ce = np.array([[S[k]["coverage"] - S[k]["coverage_ci"][0] for k in order],
+                   [S[k]["coverage_ci"][1] - S[k]["coverage"] for k in order]])
+    ax[0].bar(x, cov, color="#4C78A8", yerr=ce, capsize=4)
+    for i, k in enumerate(order):
+        ax[0].text(i, cov[i] + 0.02, f"{S[k]['n_mapped']}/{n}", ha="center", fontsize=9)
+    ax[0].set_xticks(x); ax[0].set_xticklabels([lbl[k] for k in order], rotation=18, ha="right")
+    ax[0].set_ylabel("coverage (mapped / 56)"); ax[0].set_ylim(0, 0.65)
+    ax[0].set_title("Coverage on the SAME final 7-way output (Wilson 95%)")
+
+    ag = [S[k]["prior_agreement_within_coverage"] for k in order]
+    ae = np.array([[ag[i] - S[k]["prior_agreement_within_coverage_ci"][0] for i, k in enumerate(order)],
+                   [S[k]["prior_agreement_within_coverage_ci"][1] - ag[i] for i, k in enumerate(order)]])
+    ax[1].bar(x, ag, color="#F58518", yerr=ae, capsize=4)
+    for i, k in enumerate(order):
+        ax[1].text(i, ag[i] + 0.02, S[k]["prior_agreement_within_coverage_fraction"],
+                   ha="center", fontsize=9)
+    ax[1].set_xticks(x); ax[1].set_xticklabels([lbl[k] for k in order], rotation=18, ha="right")
+    ax[1].set_ylabel("prior_agreement within coverage"); ax[1].set_ylim(0, 1.05)
+    ax[1].set_title("prior_agreement | mapped  (NOT accuracy: prior is not gold)")
+    fig.tight_layout()
+    p = FIGDIR / "RF2_D_structure_comparison.png"; fig.savefig(p, dpi=140); plt.close(fig); out.append(p)
+
+    # --- Fig 2: 어디서 정보를 잃는가
+    stages = ["S0_UNDETERMINED", "ABSTAIN_L1_NONE", "ABSTAIN_L1_MULTI",
+              "ABSTAIN_L2_MULTI", "ABSTAIN_L2_NONE", "MAPPED"]
+    colors = ["#999999", "#B279A2", "#9D755D", "#E45756", "#EECA3B", "#54A24B"]
+    fig, ax = plt.subplots(1, 2, figsize=(13, 4.6))
+    hb = [S["hier_rule"]["outcome_counts"].get(s, 0) for s in stages]
+    fb = [S["flat"]["outcome_counts"].get(s, 0) for s in
+          ["S0_UNDETERMINED", "ABSTAIN_NO_BRANCH", "ABSTAIN_MULTI_BRANCH", "MAPPED"]]
+    ax[0].bar(["S0\nundetermined", "no strong\nbranch", "multi strong\nbranch", "MAPPED"], fb,
+              color=["#999999", "#B279A2", "#9D755D", "#54A24B"])
+    for i, v in enumerate(fb):
+        ax[0].text(i, v + 0.5, str(v), ha="center")
+    ax[0].set_title("S1 flat: where the 56 targets are lost"); ax[0].set_ylabel("targets")
+    ax[1].bar([s.replace("ABSTAIN_", "").replace("_", "\n") for s in stages], hb, color=colors)
+    for i, v in enumerate(hb):
+        ax[1].text(i, v + 0.5, str(v), ha="center")
+    ax[1].set_title("S2 hierarchical: Level 1 is the bottleneck, not Level 2")
+    fig.tight_layout()
+    p = FIGDIR / "RF2_D_information_loss.png"; fig.savefig(p, dpi=140); plt.close(fig); out.append(p)
+
+    # --- Fig 3: Level 1 confusion (prior archetype × assigned primitive)
+    prims = list(LEVEL1) + ["ABSTAIN_L1_MULTI", "ABSTAIN_L1_NONE", "S0_UNDETERMINED"]
+    M = np.zeros((len(ARCHETYPES), len(prims)))
+    for r in rows:
+        j = prims.index(r["l1_prim"] or r["l1_outcome"])
+        M[ARCHETYPES.index(r["prior_archetype"]), j] += 1
+    fig, ax = plt.subplots(figsize=(10, 5.2))
+    im = ax.imshow(M, cmap="Blues")
+    ax.set_xticks(range(len(prims)))
+    ax.set_xticklabels([p.replace("L1_", "").replace("ABSTAIN_L1_", "abst:") for p in prims],
+                       rotation=25, ha="right", fontsize=8)
+    ax.set_yticks(range(len(ARCHETYPES)))
+    ax.set_yticklabels([f"{a} (n={doc['prior_class_counts'][a]})" for a in ARCHETYPES], fontsize=8)
+    for i in range(M.shape[0]):
+        for j in range(M.shape[1]):
+            if M[i, j]:
+                ax.text(j, i, int(M[i, j]), ha="center", va="center",
+                        color="white" if M[i, j] > M.max() * .6 else "black", fontsize=9)
+    ax.set_title("Level 1 outcome by prior archetype\n"
+                 "(prior is a prior, not gold; PLACE/COMM belong to 2 primitives)")
+    fig.colorbar(im, ax=ax, shrink=.8)
+    fig.tight_layout()
+    p = FIGDIR / "RF2_D_level1_confusion.png"; fig.savefig(p, dpi=140); plt.close(fig); out.append(p)
+
+    # --- Fig 4: per-class recall vs prior, 3 구조, Wilson CI
+    fig, ax = plt.subplots(figsize=(11, 5))
+    show = ["flat", "hier_rule", "hier_sem"]
+    w = 0.26
+    for si, k in enumerate(show):
+        ys, los, his = [], [], []
+        for a in ARCHETYPES:
+            pc = S[k]["per_class"][a]
+            v = pc["recall_vs_prior"]
+            v = 0.0 if v is None or (isinstance(v, float) and np.isnan(v)) else v
+            ci = pc["recall_ci"]
+            lo = 0.0 if ci[0] is None or np.isnan(ci[0]) else ci[0]
+            hi = 0.0 if ci[1] is None or np.isnan(ci[1]) else ci[1]
+            ys.append(v); los.append(max(v - lo, 0)); his.append(max(hi - v, 0))
+        ax.bar(np.arange(7) + (si - 1) * w, ys, w, label=lbl[k],
+               yerr=[los, his], capsize=3, alpha=.9)
+    ax.set_xticks(range(7))
+    ax.set_xticklabels([f"{a}\nn={doc['prior_class_counts'][a]}" for a in ARCHETYPES], fontsize=7.5)
+    ax.set_ylabel("recall vs prior (NOT accuracy)"); ax.set_ylim(0, 1.05); ax.legend()
+    ax.set_title("Per-class recall vs prior with Wilson 95% CI — 5 of 7 classes have n<=5")
+    fig.tight_layout()
+    p = FIGDIR / "RF2_D_per_class.png"; fig.savefig(p, dpi=140); plt.close(fig); out.append(p)
+    return out
+
+
+HIERARCHY_DEFINITION = """\
+D-RF2-D — Level 1 interaction primitive 정의와 SSOT 근거
+=======================================================
+정의 시점: 데이터를 보기 전. 근거: SSOT 01 `LA-RFDT-2.1` §5 Stage 3 각 branch 의 **Endpoint 절**.
+
+§5 원문 Endpoint 를 그대로 읽으면 7 branch 는 네 종류의 서로 다른 상태전이 위에 있다.
+
+  Branch Q  "질의가 실제 제출되어 결과 state로 전환된 순간"           → L1_QUERY_SUBMISSION
+  Branch P  "place query submitted"                                 → L1_QUERY_SUBMISSION
+  Branch C  "article body open" / "main media playback start"       → L1_OBJECT_OPENING
+  Branch I  "거래 대상 한 건의 상세면에 들어가 핵심정보를 보는"          → L1_OBJECT_OPENING
+  Branch P  "place detail opened"                                   → L1_OBJECT_OPENING
+  Branch M  "post/thread open"                                      → L1_OBJECT_OPENING
+  Branch M  "compose area entry" / "actual login gate"              → L1_AUTH_ACTION_ENTRY
+  Branch F  "finance function surface open" / "LOGIN/IDENTITY gate" → L1_AUTH_ACTION_ENTRY
+  Branch U  "function surface 열림 + primary control actionable"     → L1_UTILITY_TOOL_ENTRY
+
+Level 1 (4 primitive) → Level 2 (member archetype)
+  L1_QUERY_SUBMISSION    → QUERY, PLACE_LOOKUP
+  L1_OBJECT_OPENING      → CONTENT_OPEN, ITEM_DETAIL, PLACE_LOOKUP, COMMUNICATION_ENTRY
+  L1_AUTH_ACTION_ENTRY   → FINANCIAL_ACTION_ENTRY, COMMUNICATION_ENTRY
+  L1_UTILITY_TOOL_ENTRY  → UTILITY_ENTRY
+
+정의에서 바로 따라오는 구조적 사실 (결과가 아니다):
+  PLACE_LOOKUP 은 primitive 2 개, COMMUNICATION_ENTRY 도 primitive 2 개에 속한다.
+  → SSOT §5 branch tree 는 interaction primitive 위의 **분할(partition)이 아니다.**
+
+최종 output 공간은 frozen 7 archetype + ABSTAIN 그대로다. primitive 는 leaf 가 아니다.
+새 class 를 만들지 않았고 7 archetype 을 바꾸지 않았다.
+prior_archetype 은 gold label 이 아니라 prior 이며 accuracy 가 아니라 prior_agreement 로만 부른다.
+"""
+
+
+def log_mlflow(doc: dict, figs: list[Path]) -> str:
+    sys.path.insert(0, str(RD / "tools"))
+    import mlflow
+    import mlflow_contract as C
+
+    S, L1 = doc["structures"], doc["level1"]
+    with C.research_run(
+            experiment="LA_03_RF_MAPPING",
+            run_name="D-RF2-D hierarchical interaction architecture",
+            plane="D", agent_id="D", subagent_id="worker/D-RF2-D",
+            objective="interaction primitive 를 먼저 구분하는 계층이 관측 evidence 와 더 잘 맞는가",
+            method="flat rule vs hierarchical rule vs hierarchical+semantic, 동일 7-way output 기준 비교",
+            dataset_grain="target (in_mart==1), n=56",
+            n_expected=59, n_observed=doc["n_observed"],
+            hypothesis_id="H-RF2-D-HIERARCHY",
+            competing_hypothesis=("H-D1 계층이 돕는다 / H-D2 Level1 은 쉽고 Level2 가 어렵다 / "
+                                  "H-D3 실질 차이 없음"),
+            claim_kind="ANALYSIS", ticket_id="NONE", phase="I1", split="none",
+            parent_run_id=PARENT,
+            result_path=OUT_JSON,
+            model_or_rule_version=RULE_VERSION, seed=SEED,
+            code_path=Path(__file__),
+            notebook="RF2_D_hierarchical.ipynb",
+            limitation=doc["limitation"],
+            extra_params={"level1_primitives": "4 (QUERY_SUBMISSION/OBJECT_OPENING/"
+                                               "AUTH_ACTION_ENTRY/UTILITY_TOOL_ENTRY)",
+                          "final_output_space": "frozen 7 archetype + ABSTAIN (unchanged)",
+                          "embedding_model": EMB_MODEL,
+                          "semantic_margin_threshold": 0.02},
+            extra_tags={"mlflow.parentRunId": PARENT, "rq_id": "RQ-D-RF-002",
+                        "child_id": "D-RF2-D",
+                        "construct_changed": "false",
+                        "archetypes_modified": "false"}) as run:
+        m = {}
+        for k, s in S.items():
+            m[f"{k}/n_mapped"] = s["n_mapped"]
+            m[f"{k}/coverage"] = s["coverage"]
+            m[f"{k}/coverage_ci_lo"] = s["coverage_ci"][0]
+            m[f"{k}/coverage_ci_hi"] = s["coverage_ci"][1]
+            m[f"{k}/abstention_rate"] = s["abstention_rate"]
+            m[f"{k}/prior_agreement_within_coverage"] = (
+                s["prior_agreement_within_coverage"]
+                if not np.isnan(s["prior_agreement_within_coverage"]) else -1.0)
+            m[f"{k}/prior_agreement_overall"] = s["prior_agreement_overall"]
+            for a in ARCHETYPES:
+                pc = s["per_class"][a]
+                m[f"{k}/recall/{a}"] = (pc["recall_vs_prior"]
+                                        if pc["recall_vs_prior"] is not None
+                                        and not np.isnan(pc["recall_vs_prior"]) else -1.0)
+        m["level1/coverage"] = L1["l1_coverage"]
+        m["level1/abstention"] = L1["l1_abstention"]
+        m["level1/prior_primitive_agreement"] = L1["l1_prior_primitive_agreement"]
+        m["level1/majority_baseline_on_resolved"] = (
+            doc["hierarchy_easiness_check"]["l1_majority_baseline_on_l1_resolved"]["rate"])
+        for name, blk in doc["level2_conditional"].items():
+            m[f"level2/{name}/coverage_conditional"] = blk["level2_coverage_conditional"]
+            m[f"level2/{name}/prior_agreement"] = blk["prior_agreement_within_level2_coverage"]
+        crt = doc["hierarchy_easiness_check"]["candidate_restriction_test"]
+        m["restriction_test/unrestricted_7way_agree"] = crt["unrestricted_7way_agree"]
+        m["restriction_test/l1_restricted_agree"] = crt["l1_restricted_agree"]
+        m["delta/n_hier_only_mapped"] = len(doc["structure_delta_flat_vs_hier"]["hier_only_mapped"])
+        m["delta/n_flat_only_mapped"] = len(doc["structure_delta_flat_vs_hier"]["flat_only_mapped"])
+        m["delta/n_both_mapped_diff"] = len(doc["structure_delta_flat_vs_hier"]["both_mapped_diff"])
+        mlflow.log_metrics({k: float(v) for k, v in m.items()})
+
+        mlflow.log_text(HIERARCHY_DEFINITION, "hierarchy_definition.txt")
+        mlflow.log_text(json.dumps(to_jsonable(doc["hypothesis_verdicts"]),
+                                   ensure_ascii=False, indent=1), "hypothesis_verdicts.json")
+        mlflow.log_text(json.dumps(to_jsonable(doc["hierarchy_easiness_check"]),
+                                   ensure_ascii=False, indent=1), "hierarchy_easiness_check.json")
+        mlflow.log_text(json.dumps(to_jsonable(doc["structures"]),
+                                   ensure_ascii=False, indent=1), "structures.json")
+        mlflow.log_text(json.dumps(to_jsonable(doc["predicate_firing_counts"]),
+                                   ensure_ascii=False, indent=1), "predicate_firing_counts.json")
+        mlflow.log_text(json.dumps(PROTO, ensure_ascii=False, indent=1), "prototypes.json")
+        mlflow.log_artifact(str(OUT_JSON), "results")
+        for f in figs:
+            mlflow.log_artifact(str(f), "figures")
+        fm = RD / "results" / "RF2_D_FINDINGS.md"
+        if fm.exists():
+            mlflow.log_artifact(str(fm), "results")
+        C.finish(verdict=doc["verdict"], limitation=doc["limitation"])
+        return run.info.run_id
+
+
 if __name__ == "__main__":
     doc = main()
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
@@ -719,4 +1076,14 @@ if __name__ == "__main__":
     print("L1:", doc["level1"]["l1_outcome_counts"])
     print("L1 agree:", doc["level1"]["l1_prior_primitive_agreement_fraction"])
     print("predicates:", doc["predicate_firing_counts"])
+    print("easiness:", json.dumps(to_jsonable(
+        {k: v for k, v in doc["hierarchy_easiness_check"].items()
+         if k.startswith("l1_majority") or k == "candidate_restriction_test"}),
+        ensure_ascii=False))
+    figs = figures(doc)
+    for f in figs:
+        print("fig:", f)
     print("written:", OUT_JSON)
+    if "--no-mlflow" not in sys.argv:
+        # run_id 는 파일로 새로 만들지 않는다 (허용 파일 목록 밖). stdout 으로만 흘린다.
+        print("mlflow run_id:", log_mlflow(doc, figs))

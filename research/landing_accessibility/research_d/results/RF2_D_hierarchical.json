@@ -1,12 +1,35 @@
 {
- "verdict": "PENDING",
+ "verdict": "NOT_SUPPORTED",
+ "verdict_scope": "H-RF2-D-HIERARCHY = '계층 구조가 관측 evidence 와 더 잘 맞는다' 에 대한 판정. REFUTED 가 아니라 NOT_SUPPORTED 인 이유: n=56, class 5 개가 n≤5, prior 가 gold 가 아니어서 '계층이 나쁘다' 를 확증할 검정력이 없다. 방향은 일관되게 '이득 없음~약한 손해' 다.",
+ "hypothesis_verdicts": {
+  "H-D1_HIERARCHY_HELPS": {
+   "verdict": "PARTIALLY_SUPPORTED",
+   "why": "문자 그대로의 조건 중 'coverage 를 올린다' 만 아주 약하게 충족한다 (flat 14/56 → hier 16/56, Wilson CI 가 거의 완전히 겹친다). 그러나 늘어난 2 건은 **둘 다 prior 와 불일치**해서 prior_agreement 는 전혀 오르지 않았고(overall 5/56 → 5/56), coverage 내부 agreement 는 오히려 내려갔다(5/14 → 5/16). 두 구조가 **같이 매핑한 14 건에서는 예측이 100% 동일**하다(both_mapped_diff=0). 즉 계층은 같은 coverage 구간에서 정보를 전혀 더하지 않는다."
+  },
+  "H-D2_LEVEL1_IS_EASY": {
+   "verdict": "REFUTED",
+   "why": "Level 1 은 쉽지 않다. 56 건 중 16 건(28.6%)에서만 유일 primitive 가 닫히고 40 건은 L1 에서 막힌다(multi 15 · none 19 · S0 6). 게다가 닫힌 16 건에서의 prior primitive 일치는 9/16=0.5625 로, 항상 L1_OBJECT_OPENING 이라고 찍는 다수결 기준선 13/16=0.8125 **보다 낮다**. 'Level 2 가 어렵다' 는 후반부는 성립하지만(L2 통과 16 건 중 prior 일치 5), Level 2 조건부 coverage 1.0 은 L2 판별식을 상호배타적으로 선언한 **정의상 산물**이지 L2 가 쉽다는 증거가 아니다."
+  },
+  "H-D3_NO_GAIN": {
+   "verdict": "SUPPORTED",
+   "why": "동일 최종 7-way output 기준으로 두 구조는 실질적으로 같다. 교집합 14 건 예측 동일, flat 전용 매핑 0 건, hier 전용 매핑 2 건(둘 다 prior 불일치), McNemar 짝 불일치 b=0 c=0. 계층 구조는 정보를 늘리지 않았다. 오히려 L1 후보 제약은 semantic arm 에서 동일 16 건 기준 9/16 → 6/16 으로 **낮췄다**(불일치 4:1, exact p=0.375 — 방향은 음, 유의하지는 않음)."
+  }
+ },
+ "limitation": "1) prior_archetype 은 gold label 이 아니라 business-domain 에서 유도된 prior 이며, 이 데이터에서 prior_archetype 은 prior_business_domain 과 1:1 로 붙어 있다. 따라서 prior_agreement 는 '규칙이 도메인 prior 를 재현하는가' 에 가깝고 '옳은가' 가 아니다. 2) 입력이 landing snapshot 1 장이라 SSOT §5 의 endpoint(상태전이)를 관측할 수 없어 모든 E 를 'endpoint-enabling control 존재' 로 강등했다 — coverage 를 낙관적으로 올리는 강등이다. 3) n=56, 7 class 중 5 개가 n≤5 라 per-class Wilson CI 가 거의 [0,1] 폭이다. 4) Level 1 정의는 SSOT §5 endpoint 절에서 유도했지만 primitive 경계 자체는 이 실험의 DEFINITION 이며 독립 검증을 받지 않았다. 다른 primitive 분할이면 결론이 달라질 수 있다. 5) L2 semantic 은 calibration split 없이 prototype 과 margin 임계 0.02 를 사전 선언만 했다. 이 임계는 운영 threshold 가 아니다.",
+ "production_implication": "SSOT 01 §5 의 flat branch tree 를 계층 구조로 바꿀 근거가 이 데이터에는 없다. SSOT 를 바꾸지 말 것. 병목은 구조가 아니라 evidence 다 — landing snapshot 은 representative function 이 아니라 '랜딩 페이지가 지금 제공하는 affordance' 만 담고 있고, 그 둘은 체계적으로 다르다(쇼핑·콘텐츠 서비스의 랜딩에서 가장 뚜렷한 컨트롤이 검색창이라 L1 이 QUERY_SUBMISSION 으로 흡수한다). 또한 SSOT §5 branch tree 는 primitive 위의 분할이 아니다 — PLACE_LOOKUP 과 COMMUNICATION_ENTRY 가 primitive 2 개에 걸쳐 있어, 계층을 강제하면 flat 이 확정하던 건까지 잃는다(hier_strict 에서 3 건 손실).",
+ "next_questions": [
+  "RQ-a: representative function 은 landing snapshot 이 아니라 1-hop 전이 후의 상태에서만 관측 가능한가? (endpoint 강등을 풀 수 있는 최소 수집 단위는 무엇인가)",
+  "RQ-b: L1 이 QUERY_SUBMISSION 으로 흡수하는 현상은 '검색창 우선' 이라는 랜딩 디자인 관행의 측정인가, 매핑 규칙의 결함인가? 두 가설을 가르는 관측은 무엇인가.",
+  "RQ-c: SSOT §5 를 primitive 분할이 되도록 재정의하면(PLACE_LOOKUP 을 PLACE_QUERY / PLACE_DETAIL 로 쪼개는 등) 계층 손실이 사라지는가? 이는 7 archetype 변경이므로 A 결정 사항이며 D 는 제안만 한다.",
+  "RQ-d: 계층 없이 7-way semantic argmax 가 강제매핑 기준 29/56 를 얻는 것과 규칙이 5/56 에 그치는 것의 차이는 '규칙이 abstain 하기 때문' 인가 '규칙 predicate 이 틀렸기 때문' 인가."
+ ],
  "hypothesis_id": "H-RF2-D-HIERARCHY",
  "child_id": "D-RF2-D",
  "rq_id": "RQ-D-RF-002",
  "parent_run_id": "ae754858ba3a4be391e5f811640d3fd8",
  "rule_version": "RF2D_HIER_v1",
  "seed": 20260827,
- "generated_at_kst": "2026-08-27T22:48:52.111336+09:00",
+ "generated_at_kst": "2026-08-27T22:53:33.293743+09:00",
  "final_output_space": [
   "QUERY",
   "CONTENT_OPEN",
@@ -1023,6 +1046,49 @@
    ]
   ],
   "both_mapped_diff": []
+ },
+ "hierarchy_easiness_check": {
+  "question": "계층이 좋아 보이는 것이 단지 Level 1 이 class 를 뭉쳐 문제를 쉽게 만든 것 아닌가",
+  "rule_1_never_compare_l1_to_7way": "L1 은 4-way(그나마 2 개 archetype 은 primitive 2 개에 중복 소속)이고 최종은 7-way 다. 분모와 class 수가 달라 직접 비교하지 않았다.",
+  "l1_majority_baseline_all56": {
+   "primitive": "L1_OBJECT_OPENING",
+   "k": 37,
+   "n": 56,
+   "rate": 0.6607142857142857,
+   "ci": [
+    0.5299945300394356,
+    0.770800276006185
+   ]
+  },
+  "l1_majority_baseline_on_l1_resolved": {
+   "primitive": "L1_OBJECT_OPENING",
+   "k": 13,
+   "n": 16,
+   "rate": 0.8125,
+   "ci": [
+    0.5699111903190984,
+    0.9340840093010817
+   ]
+  },
+  "l1_observed_agreement_on_l1_resolved": {
+   "k": 9,
+   "n": 16,
+   "rate": 0.5625,
+   "ci": [
+    0.3317855639420428,
+    0.7690134759819932
+   ]
+  },
+  "candidate_restriction_test": {
+   "note": "동일한 Level-1 통과 16 건에서, 계층 없이 7-way semantic argmax 를 한 경우와 Level 1 이 후보를 좁힌 뒤 argmax 를 한 경우의 prior 일치를 짝지어 비교한다. 계층이 정보를 더한다면 제약 쪽이 더 높아야 한다.",
+   "n": 16,
+   "unrestricted_7way_agree": 9,
+   "l1_restricted_agree": 6,
+   "discordant_unrestricted_only": 4,
+   "discordant_restricted_only": 1,
+   "mcnemar_exact_p": 0.375
+  },
+  "l2_conditional_coverage_is_an_artifact": "hier_rule 의 Level 2 조건부 coverage 가 1.0 인 것은 L2 가 쉬워서가 아니다. L1_QUERY_SUBMISSION 의 L2 판별식(QUERY = 검색표면 ∧ ¬장소, PLACE = 장소)은 상호배타적으로 선언되어 있어 L1 이 통과하면 반드시 정확히 하나가 발화한다. L1_UTILITY_TOOL_ENTRY 는 member 가 1 개라 L2 가 항상 참이다. 즉 L2 는 abstain 하지 않도록 정의된 구간을 포함하며, 그 대가가 L2 prior_agreement 저하로 나타난다."
  },
  "hypotheses": {
   "H-D1_HIERARCHY_HELPS": {
