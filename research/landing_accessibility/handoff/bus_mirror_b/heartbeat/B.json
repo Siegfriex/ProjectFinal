@@ -1,16 +1,16 @@
 {
  "agent": "B",
- "timestamp": "2026-08-27T21:57:37+09:00",
+ "timestamp": "2026-08-27T22:17:36+09:00",
  "phase": "I1",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "03e09086a1c66beb4f8510ef69571abafd98b5c0",
+ "head_sha": "8afe25cfad6153028069e805bf49cbff4c4d9ec7",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
- "work_state": "I1_P0_CONTAMINATION_SELF_REPORTED",
+ "work_state": "I1_ALL_FOUR_SUBMITTED_TWO_IN_REWORK",
  "blocker_ids": [],
- "last_bus_seq": 141,
+ "last_bus_seq": 193,
  "last_push_at": "2026-08-27T20:56:51+09:00",
- "next_action": "W2 attestation 수신 → A GO_NO_GO 대기. 병행: MLflow observability 계약 착수.",
+ "next_action": "W1/W2 rework 완료 → 새 SHA completion → C same-SHA 검증 → W1+W2 joint gate. REAL_TARGET NO-GO 유지.",
  "real_target": "NO-GO",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
@@ -21,39 +21,36 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "03e09086a1c66beb4f8510ef69571abafd98b5c0",
-  "A_control": "2dd84408407d05c2d7c9cc962289c1490656a9f4",
-  "C_assurance_v21": "2b9595fa7c0c484326e056059d2839123cb7bd6e",
-  "at": "2026-08-27T21:57:14+09:00"
+  "B_clean0_v21": "8afe25cfad6153028069e805bf49cbff4c4d9ec7",
+  "A_control": "fa59db52301398561fde846c10f7c6b23442ad79",
+  "C_assurance_v21": "4f5db16d52699a33bdb36df6261c93c0e08fab00",
+  "at": "2026-08-27T22:16:51+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
   "W1": {
    "branch": "claude-b/w1-guard-wiring",
-   "wip_sha": "67d7d8a",
-   "state": "REWORK_FIXTURE_LOCK_WIRING",
-   "verified_by_C": "lock race PASS (3 proc x 3 key, 키당 proceed 1 / SUPPRESSED 2)",
-   "open": "D-R0-60 FIXTURE/SHADOW lock 배선 (exactly-once e2e 증명 경로)"
+   "result_sha": "860e4e808d42a3edff055ee06e38c13082b32f64",
+   "state": "REWORK",
+   "open": "C-BLOCKER-220418 원장 귀속 분열",
+   "c": "W1_C_VERIFIED_PARTIAL_P1"
   },
   "W2": {
    "branch": "claude-b/w2-rf-detector",
-   "wip_sha": "1de537c",
-   "state": "RUNNING",
-   "c_preaudit": "구조 계약 정합 — marker 게이팅 이중화·signal_type 실소비·Branch U·depth NULL 시정",
-   "scope": "rule-DT + Stage4 precedence 명시구현 + signal family + semantic calibration + G1-b gate_observed (D-R0-59-2)"
+   "result_sha": "f76ee8ba63f50a1f5df7785d4b5cef32a16e386f",
+   "state": "REWORK",
+   "open": "C-BLOCKER-221347 CAPTCHA 판별 역전",
+   "contamination": "CLEARED_WITH_RESIDUAL_LIMIT"
   },
   "W3": {
    "branch": "claude-b/w3-kwcag",
-   "result_sha": "4e60aba",
-   "state": "STAGE1_RUNNING_AFTER_A_ACCEPT",
-   "scope": "evaluator 대상 = applicability != OTHER 인 22개 (D-R0-51 W3-D2)"
+   "result_sha": "94cbf8b610a9386267e3cbeb3057319a57a15634",
+   "state": "SUBMITTED_AWAITING_C"
   },
   "W4": {
    "branch": "claude-b/w4-axisc-mart",
-   "result_sha": "cf8dbd70",
-   "state": "REWORK_FORM_SEMANTIC_SPLIT",
-   "verified_by_C": "분모·duplicate·geometry 불변·cap 플래그 전건 일치",
-   "open": "D-R0-58 rework — interrupt_form/interrupt_semantic 분리 + classifier_version + 전이표"
+   "result_sha": "b27794feccc4ab07efd87aaad54bf648798fa293",
+   "state": "C_VERIFIED_MATCH"
   }
  },
  "resolved_add": "T-B-BLK-003 → D-R0-59 GO_ACCEPTED (W2 scope 편입, gate 계약 확정)",
@@ -63,7 +60,8 @@
  ],
  "d_layer": "T-B-RQ-D-001 발행 (비권위, 자동 소비 안 함)",
  "open_blockers": [
-  "C-BLOCKER-215510 P0 label contamination — B 가 오염원. T-B-ATTEST-001 로 자진 보고. W2 attestation 대기"
+  "C-BLOCKER-220418 (W1)",
+  "C-BLOCKER-221347 (W2)"
  ],
  "joint_gate_condition": "W1+W2 는 G1-a 와 G1-b 를 함께 해소해야 통과 (D-R0-59-4 + D-R0-18)",
  "verified_by_C_independently": [
@@ -82,5 +80,15 @@
   ],
   "holdout_file_accessed": false,
   "note": "누출은 파일이 아니라 A 의 의무열람 DIRECTIVE 경로로 왔다"
+ },
+ "mlflow": {
+  "tracking": "http://127.0.0.1:5000",
+  "runs": {
+   "B-orch": "776e7d3f6aa9461e8fff6a77f2838ca2",
+   "W1": "a38f4dc6e42a4ff0bcf9cf6aa81565ba",
+   "W2": "d3aa2889913e4888bd32dcc96457f984",
+   "W3": "4504934159b34750a442b3e115516e9f",
+   "W4": "e5e46c901c584873bf82e3b17beb4328"
+  }
  }
 }
