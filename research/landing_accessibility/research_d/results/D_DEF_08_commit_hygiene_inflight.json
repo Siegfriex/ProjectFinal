@@ -1,0 +1,18 @@
+{
+  "defect_id": "D-DEF-08",
+  "kind": "IMPLEMENTATION",
+  "owner": "D",
+  "severity": "provenance 결함 — 데이터 손실 없음, 커밋 메시지와 내용의 대응이 깨짐",
+  "found_at_kst": "2026-08-28T00:45:00+09:00",
+  "where": "D 의 루프 절차 (git add -A)",
+  "what": "D-DEF-07 커밋(9a97aeb)을 `git add -A` 로 만들면서, 그 시점에 워커가 쓰는 중이던 RQ-D7 / RQ-D13b12 의 미완 산출과 도구·figure 가 함께 담겼다. 커밋 메시지는 MLflow 색인 시정만 말한다.",
+  "same_family_as": "D-DEF-07 — '아직 쓰이는 중인 산출을 확정된 것처럼 기록한다' 는 같은 실수가 MLflow index 와 git 두 곳에서 났다. 한쪽만 고쳤다.",
+  "impact": {
+    "data_loss": false,
+    "note": "워커가 파일을 계속 쓰므로 최종본은 이후 커밋에 담긴다. 문제는 9a97aeb 를 근거로 인용하면 RQ-D7 / RQ-D13b12 의 중간본을 가리키게 된다는 것이다.",
+    "tickets_affected": "없음 — D-RESEARCH_FINDING-005 는 ef79d7a 를 가리키며 그 커밋에는 RQ-E-1 확정 산출만 들어 있다"
+  },
+  "not_fixed_by_rewrite": "히스토리를 고쳐 쓰지 않는다. 잘못 담긴 커밋도 남기고 이 기록으로 표시한다 — run 을 지우지 않은 것과 같은 이유다.",
+  "practice_change": "워커가 실행 중인 동안에는 `git add -A` 를 쓰지 않는다. 확정된 파일 경로만 명시적으로 stage 한다. 워커 산출은 완결 게이트(최상위 verdict + FINDINGS.md)를 통과한 뒤에만 stage 한다.",
+  "detection": "커밋 직후 `git show --stat` 으로 담긴 파일이 메시지와 맞는지 확인한다."
+}
