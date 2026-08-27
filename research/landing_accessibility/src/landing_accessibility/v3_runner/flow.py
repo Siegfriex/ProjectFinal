@@ -146,6 +146,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+# SEAM 2 (W5K, A 판정) — `FlowStep` 의 정본은 `contracts.py` 다. KL-01 이 예고한
+# 로컬 정의 제거를 여기서 수행한다. `input_mode` 는 이 lane 이 추가했고 A 가 승인해
+# 정본에 반영됐다 — 필드 이름·순서는 그대로다.
+from .contracts import FlowStep
+
 __all__ = [
     "ACTION_ABSTAIN",
     "ACTION_AUTH_GATE",
@@ -293,41 +298,6 @@ TASK_ENGAGEMENT_TOKENS: frozenset[str] = (
 # ══════════════════════════════════════════════════════════════════════════
 # 2. 입력 계약 — 02 §4 `fact_flow_step` 투영
 # ══════════════════════════════════════════════════════════════════════════
-@dataclass(frozen=True)
-class FlowStep:
-    """raw 관측 한 step. v3 02 §4 `fact_flow_step` 투영.
-
-    `action_token` 필드값은 04 §2 canonical 18종 중 하나이며 **action_token
-    층**의 값이다(R6-Q8).
-
-    NOTE(KL-01): 이 dataclass의 정본 위치는 `v3_runner/contracts.py`(W5A 소유)다.
-    W5B는 그 파일을 만들지 않으므로 여기에 로컬 정의를 둔다. contracts.py가
-    올라오면 이 정의를 지우고 그쪽을 import해야 한다 — 필드 이름·순서는
-    W5B 티켓에 명시된 계약 그대로다.
-    """
-
-    step_index: int
-    action_token: str
-    state_before_id: str
-    state_after_id: str
-    control_selector: str | None
-    control_role: str | None
-    control_visible_text: str | None
-    control_accessible_name: str | None
-    bbox_before: tuple[float, float, float, float] | None
-    url_before: str
-    url_after: str
-    auth_gate_detected: bool
-    endpoint_signal_detected: bool
-    #: Δ8-R5 `fixture_input_mode`의 step 단위 값. CONDITIONAL 3종의 depth
-    #: 귀속 판정에만 쓴다. `None`은 미기록 → 판정 불능이다(KL-16).
-    #:
-    #: 관측 단위가 아니라 **step 단위**로 받는 이유: 한 flow 안에서 출발지는
-    #: dropdown, 날짜는 calendar인 경우가 실재하고 관측 단위 스칼라 하나로는
-    #: 그걸 표현할 수 없다. 기본값이 있어 기존 호출부는 그대로 동작한다.
-    input_mode: str | None = None
-
-
 @dataclass(frozen=True)
 class DepthConditionalRecord:
     """CONDITIONAL 토큰 한 건의 depth 귀속 판정 기록 (A Δ9 요구).
