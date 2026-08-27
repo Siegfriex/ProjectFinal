@@ -431,12 +431,99 @@ def resolve_sign_flip_axis(
     }
 
 
+# ── 의무 3 — undetermined_rate ↔ FailRate 교란 확인 및 강등 ─────────────────
+#: **결과를 보기 전에 고정한 임계값** (Claude A 확정 연장분기 의무 3).
+#:
+#: `undetermined_rate`가 `OlderRelevantKWCAGFailRate`와 상관이 있으면, FailRate의
+#: 변동이 **대상의 접근성 차이가 아니라 판정이 얼마나 남았는가**를 부분적으로
+#: 반영한다. 그것은 교란이며 primary claim을 그대로 둘 수 없다.
+#:
+#: `|rho| >= 0.3`을 임계로 삼는 근거: Spearman 0.3은 행동데이터에서 관례적인
+#: "moderate" 경계이고 공유 분산 약 9%에 해당한다 — 이 정도면 Y축이 실제로 밀린다.
+#: 그 미만은 우리 N에서 추정 자체가 불안정해 강등 근거로 쓰기 어렵다.
+#: n 조건은 `SPEARMAN_HEADLINE_MIN_N`(=10)과 같은 값을 쓴다 — 그보다 작은 표본의
+#: 상관으로 강등을 정하면 강등 자체가 잡음이 된다.
+CONFOUND_RHO_THRESHOLD = 0.3
+CONFOUND_MIN_N = SPEARMAN_HEADLINE_MIN_N
+
+#: 강등 사다리 — 한 단계씩 낮춘다(B→C, C→UNSUPPORTED). `UNSUPPORTED`가 바닥이다.
+_GRADE_LADDER: tuple[str, ...] = ("B", "C", "UNSUPPORTED")
+
+
+def downgrade_one_step(grade: str) -> str:
+    """claim grade를 한 단계 낮춘다. 바닥(`UNSUPPORTED`)이면 그대로."""
+    try:
+        idx = _GRADE_LADDER.index(grade)
+    except ValueError:
+        return grade
+    return _GRADE_LADDER[min(idx + 1, len(_GRADE_LADDER) - 1)]
+
+
+def assess_undetermined_confounding(
+    undetermined_rate: pd.Series, fail_rate: pd.Series
+) -> dict[str, Any]:
+    """`undetermined_rate`와 `OlderRelevantKWCAGFailRate`의 상관을 계산한다 (의무 3).
+
+    상관이 임계를 넘으면 `confounded=True` — 호출자는 primary claim grade를 한
+    단계 강등해야 한다. 표본이 `CONFOUND_MIN_N` 미만이거나 한쪽이 상수면 검정하지
+    않고 `tested=False`로 둔다(강등 근거로 쓰기엔 잡음이 크다). **그 경우에도
+    "교란이 없다"고 쓰지 않는다** — 그 사실 자체를 결과에 남긴다.
+    """
+    frame = pd.DataFrame(
+        {
+            "u": pd.to_numeric(undetermined_rate, errors="coerce"),
+            "f": pd.to_numeric(fail_rate, errors="coerce"),
+        }
+    ).dropna()
+    n = len(frame)
+    result: dict[str, Any] = {
+        "n": n,
+        "rho_threshold": CONFOUND_RHO_THRESHOLD,
+        "min_n": CONFOUND_MIN_N,
+        "tested": False,
+        "spearman_rho": None,
+        "p_value": None,
+        "confounded": False,
+    }
+    if n < CONFOUND_MIN_N or frame["u"].nunique() < 2 or frame["f"].nunique() < 2:
+        result["reason_not_tested"] = (
+            f"n={n} < {CONFOUND_MIN_N}이거나 한쪽이 상수라 상관을 계산하지 않았다 — "
+            "교란이 없다는 뜻이 아니다."
+        )
+        return result
+
+    rho, pvalue = scipy_stats.spearmanr(frame["u"], frame["f"])
+    confounded = bool(abs(float(rho)) >= CONFOUND_RHO_THRESHOLD)
+    result.update(
+        {
+            "tested": True,
+            "spearman_rho": float(rho),
+            "p_value": float(pvalue),
+            "confounded": confounded,
+        }
+    )
+    result["interpretation"] = (
+        (
+            "undetermined_rate가 FailRate와 상관돼 있다 — FailRate의 변동이 대상의 접근성 "
+            "차이가 아니라 **판정이 얼마나 남았는가**를 부분적으로 반영한다. 교란이므로 "
+            "primary claim grade를 한 단계 강등한다."
+        )
+        if confounded
+        else (
+            f"|rho| < {CONFOUND_RHO_THRESHOLD}로 교란의 증거가 임계 미만이다 — "
+            "교란이 없음을 증명한 것은 아니다."
+        )
+    )
+    return result
+
+
 def assign_association_claim_grade(
     *,
     n: int,
     executed: bool,
     sample_composition: SignStability,
     measurement_uncertainty: SignStability,
+    undetermined_confounded: bool = False,
 ) -> str:
     """**Research Director 확정 claim grade + Claude A §2.1 두 축 강등 규칙**
     (LA-TB-1630-20260827).
@@ -451,14 +538,23 @@ def assign_association_claim_grade(
       측정 불확실성) 중 어느 하나라도** 부호가 뒤집혔거나 확인되지 않았다.
     - `B`: `n >= 10`이고 **두 축 모두** 부호가 유지됐다(또는 그 축이 구조적으로
       적용되지 않는다).
+
+    **의무 3 추가 강등** — `undetermined_confounded=True`(= `undetermined_rate`가
+    FailRate와 상관)면 위에서 정해진 등급을 **한 단계 더 낮춘다**(B→C,
+    C→UNSUPPORTED). 강등 사유는 호출자가 `downgrade_reasons`로 기록한다.
     """
     if not executed:
         return "UNSUPPORTED"
-    if n < SPEARMAN_HEADLINE_MIN_N:
-        return "C"
-    if not (_axis_ok(sample_composition) and _axis_ok(measurement_uncertainty)):
-        return "C"
-    return "B"
+    if n < SPEARMAN_HEADLINE_MIN_N or not (
+        _axis_ok(sample_composition) and _axis_ok(measurement_uncertainty)
+    ):
+        grade = "C"
+    else:
+        grade = "B"
+    # 의무 3 — 판정 잔여(undetermined) 교란이 확인되면 한 단계 더 강등한다.
+    if undetermined_confounded:
+        grade = downgrade_one_step(grade)
+    return grade
 
 
 def sign_preserved_across_bounds(
@@ -517,6 +613,7 @@ def association_result(
     measurement_uncertainty: SignStability = None,
     sample_composition_rationale: str | None = None,
     measurement_uncertainty_rationale: str | None = None,
+    undetermined_confounding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Spearman association 결과를 `effect`+`n`+`missing_n`+`undetermined_n`+
     `claim_grade`+`sign_stability` 구조로 낸다.
@@ -554,12 +651,54 @@ def association_result(
         rho, pvalue, method = _spearman_with_method(paired["x"], paired["y"])
         effect = {"spearman_rho": rho, "p_value": pvalue, "p_value_method": method}
 
-    claim_grade = assign_association_claim_grade(
+    confounding = undetermined_confounding or {}
+    confounded = bool(confounding.get("confounded"))
+    grade_before_confound = assign_association_claim_grade(
         n=n,
         executed=executed,
         sample_composition=sample_composition,
         measurement_uncertainty=measurement_uncertainty,
     )
+    claim_grade = assign_association_claim_grade(
+        n=n,
+        executed=executed,
+        sample_composition=sample_composition,
+        measurement_uncertainty=measurement_uncertainty,
+        undetermined_confounded=confounded,
+    )
+
+    # 어느 사유로 강등됐는지 기계 판독 가능하게 남긴다 (`sign_flip_axis`와 같은 방식).
+    downgrade_reasons: list[dict[str, Any]] = []
+    if executed and n < SPEARMAN_HEADLINE_MIN_N:
+        downgrade_reasons.append(
+            {
+                "code": "BELOW_MIN_N",
+                "detail": f"pairwise-complete n={n} < {SPEARMAN_HEADLINE_MIN_N}",
+            }
+        )
+    if executed and not (_axis_ok(sample_composition) and _axis_ok(measurement_uncertainty)):
+        downgrade_reasons.append(
+            {
+                "code": "SIGN_INSTABILITY",
+                "detail": "두 민감도 축 중 하나 이상에서 rho 부호가 뒤집혔거나 확인 불가",
+                "sample_composition": sample_composition,
+                "measurement_uncertainty": measurement_uncertainty,
+            }
+        )
+    if confounded:
+        downgrade_reasons.append(
+            {
+                "code": "UNDETERMINED_RATE_CONFOUNDING",
+                "detail": (
+                    "undetermined_rate가 OlderRelevantKWCAGFailRate와 상관돼 있어 한 단계 강등했다 "
+                    f"(|rho| >= {CONFOUND_RHO_THRESHOLD})."
+                ),
+                "spearman_rho": confounding.get("spearman_rho"),
+                "n": confounding.get("n"),
+                "grade_before": grade_before_confound,
+                "grade_after": claim_grade,
+            }
+        )
     sign_stability = resolve_sign_flip_axis(
         sample_composition=sample_composition,
         measurement_uncertainty=measurement_uncertainty,
@@ -588,6 +727,10 @@ def association_result(
         # governor §2.1 — 두 축 각각의 판정 + 어느 축에서 뒤집혔는지.
         "sign_stability": sign_stability,
         "sign_flip_axis": sign_stability["sign_flip_axis"],
+        # 의무 3 — 교란 확인 결과와 강등 사유(어느 사유로 내려갔는지 판독 가능하게).
+        "undetermined_confounding": undetermined_confounding,
+        "claim_grade_before_confound_downgrade": grade_before_confound,
+        "downgrade_reasons": downgrade_reasons,
     }
 
 

@@ -602,3 +602,130 @@ def test_synthetic_fixture_has_no_nonexistent_kwcag_id() -> None:
         assert retired not in SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE
     # 픽스처 목록과 criterion id 목록이 어긋나지 않는다.
     assert set(SYNTHETIC_ONLY_OLDER_RELEVANT_FIXTURE) == set(CRITERION_IDS)
+
+
+# ── 연장분기 의무 1·2·3·4 ─────────────────────────────────────────────────
+
+
+def test_undetermined_confounding_downgrades_primary_one_step() -> None:
+    """의무 3 — 교란이 확인되면 claim grade가 한 단계 강등되고 사유가 기록된다."""
+    import pandas as pd
+    from analysis.eda.statistics import (
+        CONFOUND_RHO_THRESHOLD,
+        assess_undetermined_confounding,
+        association_result,
+        downgrade_one_step,
+    )
+
+    assert downgrade_one_step("B") == "C"
+    assert downgrade_one_step("C") == "UNSUPPORTED"
+    assert downgrade_one_step("UNSUPPORTED") == "UNSUPPORTED"
+
+    # 완전 상관 → 교란.
+    u = pd.Series([i * 0.05 for i in range(20)])
+    f = pd.Series([i * 0.04 for i in range(20)])
+    confound = assess_undetermined_confounding(u, f)
+    assert confound["tested"] is True
+    assert abs(confound["spearman_rho"]) >= CONFOUND_RHO_THRESHOLD
+    assert confound["confounded"] is True
+
+    x = pd.Series(range(1, 21))
+    y = pd.Series([i * 0.05 for i in range(1, 21)])
+    res = association_result(
+        x,
+        y,
+        x_name="X",
+        y_name="Y",
+        role="primary",
+        assumption="t",
+        sample_composition=True,
+        measurement_uncertainty=True,
+        undetermined_confounding=confound,
+    )
+    assert res["claim_grade_before_confound_downgrade"] == "B"
+    assert res["claim_grade"] == "C"  # 한 단계 강등
+    codes = [r["code"] for r in res["downgrade_reasons"]]
+    assert "UNDETERMINED_RATE_CONFOUNDING" in codes
+
+    # 교란이 없으면 강등하지 않는다.
+    clean = assess_undetermined_confounding(pd.Series([1, 2, 3] * 7), pd.Series([3, 1, 2] * 7))
+    res2 = association_result(
+        x,
+        y,
+        x_name="X",
+        y_name="Y",
+        role="primary",
+        assumption="t",
+        sample_composition=True,
+        measurement_uncertainty=True,
+        undetermined_confounding=clean,
+    )
+    if not clean["confounded"]:
+        assert res2["claim_grade"] == "B"
+        assert "UNDETERMINED_RATE_CONFOUNDING" not in [r["code"] for r in res2["downgrade_reasons"]]
+
+
+def test_collection_window_splits_on_sealed_at_and_reports(
+    marts: dict[str, pd.DataFrame],
+) -> None:
+    """의무 1·2 — sealed_at 기준 구간별 undetermined_rate 분해."""
+    from analysis.eda.collection_window import (
+        AI_CUTOFF_ISO,
+        WINDOW_POST,
+        WINDOW_PRE,
+        assign_window,
+        collection_window_report,
+    )
+
+    assert assign_window("2026-08-27T13:30:00+09:00") == WINDOW_PRE
+    assert assign_window("2026-08-27T14:30:00+09:00") == WINDOW_POST
+    assert assign_window(None) == "SEALED_AT_MISSING"
+
+    report = collection_window_report(marts)
+    assert report["cutoff"] == AI_CUTOFF_ISO
+    assert "sealed_at" in report["sealed_at_source"]
+    assert report["observations_by_window"]
+
+    undet = report["undetermined_rate_by_window"]
+    assert set(undet["by_window"]) <= {WINDOW_PRE, WINDOW_POST, "SEALED_AT_MISSING"}
+    assert undet["verdict"] in {
+        "DIFFERS_BY_WINDOW",
+        "NO_SIGNIFICANT_DIFFERENCE",
+        "NOT_ENOUGH_DATA",
+    }
+    # 유의하게 다르면 반드시 "처리 순서에 기인"으로 귀속한다.
+    if undet["verdict"] == "DIFFERS_BY_WINDOW":
+        assert "처리 순서에 기인" in undet["attribution"]
+
+
+def test_archetype_bias_is_checked_never_asserted_without_data(
+    marts: dict[str, pd.DataFrame],
+) -> None:
+    """의무 4 — 확인하지 않고 '편향 없음'이라고 쓰지 않는다."""
+    from analysis.eda.collection_window import collection_window_report
+
+    arche = collection_window_report(marts)["archetype_distribution_by_window"]
+    assert arche["verdict"] in {"BIAS_DETECTED", "CHECKED_NO_BIAS_DETECTED", "NOT_ENOUGH_DATA"}
+    # 분포는 실제로 계산돼 기록된다.
+    assert isinstance(arche["by_window"], dict)
+    if arche["verdict"] == "NOT_ENOUGH_DATA":
+        # 표본 부족을 "편향 없음"으로 쓰지 않는다.
+        assert "편향이 없다는 뜻이 아니다" in arche.get("reason_not_tested", "")
+        assert arche["tested"] is False
+    else:
+        assert arche["tested"] is True
+
+
+def test_eda09_summary_carries_extension_obligations(
+    marts: dict[str, pd.DataFrame], tmp_path: Path
+) -> None:
+    """산출물이 의무 1·2·3·4 결과를 전부 담는다."""
+    from analysis.eda.eda09_association_and_quadrant import run_eda09
+
+    summary = json.loads(run_eda09(marts, tmp_path / "eda09_ext").summary_json_path.read_text())
+    assert "collection_window" in summary
+    assert "undetermined_rate_by_window" in summary["collection_window"]
+    assert "archetype_distribution_by_window" in summary["collection_window"]
+    assert "undetermined_confounding" in summary
+    assert "downgrade_reasons" in summary["primary_association"]
+    assert "claim_grade_before_confound_downgrade" in summary["primary_association"]

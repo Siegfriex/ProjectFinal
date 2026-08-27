@@ -570,7 +570,72 @@ def generate_limitations(
         lines.append(f"{i}. {item}")
     lines.append("")
 
-    lines.append("## 6. 게이트 지위 — E000_FAST, `E000_V2_VALIDATED` 아님")
+    # ── 연장분기 의무 1·2·3·4 — 수집 시각 구간 이질성 ──────────────────
+    cw = eda09_summary.get("collection_window", {}) or {}
+    undet = cw.get("undetermined_rate_by_window", {}) or {}
+    arche = cw.get("archetype_distribution_by_window", {}) or {}
+    confound = eda09_summary.get("undetermined_confounding", {}) or {}
+    lines.append("## 6. 수집 시각 구간 이질성 — AI cutoff 전/후")
+    lines.append("")
+    lines.append(
+        f"E001 수집이 연장되면 **{cw.get('cutoff')} AI cutoff 이후 봉인된 관측은 대상의 성질이 "
+        "아니라 처리 순서 때문에 AI 판정을 덜 받는다.** 이질적 측정이므로 구간을 나눠 보고한다. "
+        f"시각 원천: `{cw.get('sealed_at_source')}`."
+    )
+    lines.append("")
+    lines.append(f"- 구간별 관측 수: {cw.get('observations_by_window', {})}")
+    lines.append(f"- 구간별 `undetermined_rate`: {undet.get('by_window', {})}")
+    lines.append(
+        f"- 구간 차이 검정: `{undet.get('verdict')}` "
+        f"(p={undet.get('p_value')}, alpha={undet.get('alpha')})"
+    )
+    if undet.get("reason_not_tested"):
+        lines.append(f"  - {undet['reason_not_tested']}")
+    if undet.get("attribution"):
+        lines.append(f"  - {undet['attribution']}")
+    lines.append("")
+    lines.append("### archetype 편향 — 확인했는가 (단정 금지)")
+    lines.append("")
+    lines.append(f"- 구간별 archetype 분포: {arche.get('by_window', {})}")
+    lines.append(f"- 판정: `{arche.get('verdict')}` (p={arche.get('p_value')})")
+    if arche.get("reason_not_tested"):
+        lines.append(f"  - {arche['reason_not_tested']}")
+    if arche.get("note"):
+        lines.append(f"  - {arche['note']}")
+    lines.append(
+        "  - interleave 순서 때문에 편향이 없을 것으로 **예상**했으나, 예상을 근거로 "
+        "단정하지 않고 실제로 계산했다. `NOT_ENOUGH_DATA`는 **편향 없음이 아니라 "
+        "확인 불가**를 뜻한다."
+    )
+    lines.append("")
+    lines.append("### `undetermined_rate` 교란 확인 및 강등")
+    lines.append("")
+    lines.append(
+        f"- `Spearman(undetermined_rate, OlderRelevantKWCAGFailRate)` = "
+        f"{confound.get('spearman_rho')} (n={confound.get('n')}, "
+        f"임계 |rho| >= {confound.get('rho_threshold')}, 최소 n={confound.get('min_n')})"
+    )
+    lines.append(f"- 교란 판정: **{confound.get('confounded')}**")
+    if confound.get("reason_not_tested"):
+        lines.append(f"  - {confound['reason_not_tested']}")
+    if confound.get("interpretation"):
+        lines.append(f"  - {confound['interpretation']}")
+    primary_assoc = eda09_summary.get("primary_association", {}) or {}
+    if primary_assoc.get("downgrade_reasons"):
+        lines.append(
+            f"- primary claim grade: "
+            f"`{primary_assoc.get('claim_grade_before_confound_downgrade')}` → "
+            f"`{primary_assoc.get('claim_grade')}`"
+        )
+        for reason in primary_assoc["downgrade_reasons"]:
+            lines.append(f"  - `{reason.get('code')}`: {reason.get('detail')}")
+    lines.append(
+        "- 임계값(|rho| >= 0.3, n >= 10)은 **결과를 보기 전에 코드에 고정**했다 "
+        "(`statistics.CONFOUND_RHO_THRESHOLD`) — 근거는 그 상수의 주석에 있다."
+    )
+    lines.append("")
+
+    lines.append("## 7. 게이트 지위 — E000_FAST, `E000_V2_VALIDATED` 아님")
     lines.append("")
     lines.append(
         "이번 타임박스(LA-TB-1630-20260827)는 **6개 타깃 스모크 검증(`E000_FAST`)** 이며, "

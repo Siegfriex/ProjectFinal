@@ -166,6 +166,11 @@ def generate_synthetic_universe(n_services: int = 24, *, seed: int = 20260827) -
                 "observation_id": observation_id,
                 "web_target_id": web_target_id,
                 "audit_date": "2026-08-27",
+                # evidence run 봉인 시각 (`EvidenceRun.run_record()['sealed_at']`).
+                # 연장분기 의무 1·2·4가 이 값으로 AI cutoff 전/후 구간을 나눈다.
+                # 약 1/4을 cutoff(14:00) 이후로 두어 구간 분해 경로가 실제로 돌게 한다.
+                "evidence_run_id": f"RUN-{i:04d}",
+                "sealed_at": _synthetic_sealed_at(i, n_services),
                 "protocol_version": "v2.0-synthetic",
                 "requested_url": None,
                 "final_url": None,
@@ -410,6 +415,20 @@ def generate_synthetic_universe(n_services: int = 24, *, seed: int = 20260827) -
         fact_ai_adjudication=adjudication_rows,
         dim_certification=certification_rows,
     )
+
+
+def _synthetic_sealed_at(index: int, n_services: int) -> str:
+    """synthetic evidence run 봉인 시각 — 결정적으로 cutoff 전/후에 배분한다.
+
+    실제 수집처럼 시각 순서대로 봉인되며, 마지막 약 1/4이 AI cutoff(14:00 KST)
+    이후로 떨어진다. interleave를 모사해 archetype이 시각에 걸쳐 고르게 퍼지도록
+    두므로(archetype은 `i % 7`로 순환한다) 의무 4의 편향 확인이 "편향 없음"을
+    **실제로 계산해서** 확인하는 경로를 타게 된다.
+    """
+    # 13:00 시작, 관측당 4분 — n_services=60이면 13:00~16:56에 퍼진다.
+    total_minutes = 13 * 60 + 4 * index
+    hour, minute = divmod(total_minutes, 60)
+    return f"2026-08-27T{hour:02d}:{minute:02d}:00+09:00"
 
 
 def _certification_row(web_target_id: str, rng: random.Random) -> dict[str, Any]:

@@ -65,6 +65,7 @@ from scipy import stats as scipy_stats
 
 from ..older_relevance_registry import registry_status
 from ..provenance import ShadowProvenance
+from .collection_window import collection_window_report
 from .common import (
     EDAOutputPaths,
     excess_depth,
@@ -79,6 +80,7 @@ from .statistics import (
     DIRECTION_DEFINITION,
     SECONDARY_ASSOCIATION_CANDIDATES,
     SPEARMAN_HEADLINE_MIN_N,
+    assess_undetermined_confounding,
     association_result,
     classify_quadrant,
     kruskal_wallis_gate,
@@ -318,6 +320,11 @@ def run_eda09(
         kw_result = {"executed": False, "reason_not_executed": "빈 입력", "group_sizes": {}}
         classification_rule: dict = {"n_classified": 0, "reason": "빈 입력"}
     else:
+        # 의무 3 — undetermined_rate ↔ FailRate 교란 확인. 상관이 임계를 넘으면
+        # primary/구조보정 claim grade가 한 단계 강등된다(사유는 downgrade_reasons에).
+        confounding = assess_undetermined_confounding(
+            joint.get("undetermined_rate", pd.Series(dtype=float)), joint["fail_rate"]
+        )
         # 축 1 — 표본 구성(leave-one-archetype-out). 축 2 — 측정 불확실성
         # (UNDETERMINED lower/upper bound FailRate에서 rho 부호 유지 여부).
         primary = association_result(
@@ -341,6 +348,7 @@ def run_eda09(
                 joint["fail_rate_upper_bound"],
             ),
             measurement_uncertainty_rationale=_FAIL_RATE_MU_RATIONALE,
+            undetermined_confounding=confounding,
         )
         structure_adjusted = association_result(
             joint["excess_depth_mean"],
@@ -361,6 +369,7 @@ def run_eda09(
                 joint["fail_rate_upper_bound"],
             ),
             measurement_uncertainty_rationale=_FAIL_RATE_MU_RATIONALE,
+            undetermined_confounding=confounding,
         )
         secondary_mu, secondary_mu_rationale = resolve_measurement_uncertainty_axis(
             joint, x_col="excess_depth_mean", variable=secondary_variable
@@ -434,6 +443,12 @@ def run_eda09(
         "older_relevance_registry": registry_status(),
         # 정본 §5-5 — EligibleOlderRelevant_i = 0 이라 FailRate = NULL 인 서비스 건수.
         "n_fail_rate_null_zero_eligible": meta.get("n_fail_rate_null_zero_eligible", 0),
+        # 연장분기 의무 1·2·4 — 수집 시각 구간별 undetermined_rate 분해 + archetype 편향 확인.
+        "collection_window": collection_window_report(marts),
+        # 연장분기 의무 3 — undetermined_rate ↔ FailRate 교란 확인.
+        "undetermined_confounding": (
+            primary.get("undetermined_confounding") if isinstance(primary, dict) else None
+        ),
         # 후보 4종 **전부**의 결측률 — 선택된 것만 적으면 선택 자체가 검증 불가능해진다.
         "secondary_candidate_missing_rate": meta.get("secondary_candidate_missing_rate", {}),
         "secondary_association_variable_selected": secondary_variable,
