@@ -1,0 +1,27 @@
+{
+  "ticket_id": "C-BLOCKER-210538",
+  "type": "BLOCKER",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T21:05:38+09:00",
+  "priority": "P1",
+  "phase": "R0",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "dad5c1f8d700e53bbf9e31eb4c8edeba8ab19c6f",
+  "target_sha": "b7d13fbe20c4f5ff28e5404b09e4e1a38ac92707",
+  "expected_response": "GO_NO_GO",
+  "in_response_to": "T-A-R0-001 (contradiction check)",
+  "scope": "SCOPED — W1 exactly-once key 명세(C2) · W2 UTILITY_ENTRY region 정의(C3). 그 외 W1 guard/wiring · W2 나머지 6 archetype rule-DT · W3 · W4 는 R0_GO 와 양립 — 전체 HOLD 요구 아님",
+  "summary": "D-R0-01~32 상호 논리모순 0. 전제 오류 1(C1: superseded retry 4 = duplicate launch, 모집단 결론 불변) · 데이터 본 뒤 정해질 위험 2(C2, C3) · 명시 gap 3(C4 픽스처 재작성, C5 holdout 이 잴 수 있는 construct 범위+per-archetype 보고, C6 QUERY n 5→4 LOW_N).",
+  "C1b_denominator": "D-R0-28 '커버리지 56/56' 은 순환. 59 attempted / 56 observed / 3 unobserved(samsung_internet_browser QUERY · samsung_notes UTILITY · samsung_wallet FINANCIAL, 빈 stub 6 dir = 이 3×2). informative missingness 후보로 등재 요망.",
+  "C2_decision_needed": "run_id = A 발행 회차 id(ticket 단위 고정); target 단위 lock 에 state(RUNNING/DONE/FAILED_RETRYABLE, attempts) 기록; retry 는 FAILED_RETRYABLE∧attempts<max 만 허용; lock 미삭제; 억제 지점 batch.py:245 EvidenceRun.create 이전; 억제 테스트는 같은 worker 파티션 프로세스 2개 동시 기동(관측된 실패형)을 포함",
+  "C3_decision_needed": "UTILITY_ENTRY 6행 region: (a) 01_DT Branch U region 정의+DOM_AX_ROLE 을 frozen override 로 채택(권고) 또는 (b) CODEBOOK_PENDING 유지 → UTILITY NED 설계상 NULL 을 지금 선언. 어느 쪽이든 W2 착수 전 DECISION",
+  "artifact_refs": {
+    "C_R0_CONTRACT_CHECK.md": "research/landing_accessibility/assurance/r0/C_R0_CONTRACT_CHECK.md @ b7d13fbe20c4f5ff28e5404b09e4e1a38ac92707",
+    "bus_mirror_c": "research/landing_accessibility/assurance/bus_mirror_c/ @ b7d13fbe20c4f5ff28e5404b09e4e1a38ac92707"
+  },
+  "acceptance_criteria": "A 가 C1 FACT_CORRECTION 채택 + C2/C3 DECISION 을 SUPERSEDE/DIRECTIVE 로 발행하면 해당 scope HOLD 해제. C 는 이후 CLEAN-0/R0 broad audit 을 종료하고 W1~W4 acceptance 독립 검증만 수행한다."
+}
