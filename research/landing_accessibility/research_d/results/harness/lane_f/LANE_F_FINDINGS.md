@@ -1,17 +1,17 @@
 # LANE F — Flow Topology / Depth 하네스 결과
 
 - **verdict**: `READY_WITH_AMBIGUITY`
-- 생성: 2026-08-27T17:53:30.718054+00:00
+- 생성: 2026-08-27T18:18:09.033827+00:00
 - 데이터: **합성 fixture 전용**. REAL 접속·MAIN50·mart/raw evidence·gold·holdout 없음.
 - 독립단위: `service × frozen task` (family n=10). **이 run 의 45 pair 는 distance matrix 의 cell 이며 n=45 가 아니다.**
 
 
 ## 1. 검증 요약
 
-- fixture check: 202/202 pass
-- mutation test: 7/7 개 변이가 fixture 에 잡힘, 미검출 []
+- fixture check: 304/304 pass
+- mutation test: 11/11 개 변이가 fixture 에 잡힘, 미검출 []
 - 원복 증명(restore proof) 실패 check: 0
-- 미해결 정의 모호성: 11건 → verdict 상한이 `READY_WITH_AMBIGUITY`
+- 미해결 정의 모호성: 10건 → verdict 상한이 `READY_WITH_AMBIGUITY`
 
 ## 2. 반례 탐지기 3종
 
@@ -81,9 +81,7 @@
 
 | id | 변수 | 미결 쟁점 | severity |
 |---|---|---|---|
-| AMB-F01 | `normalized Levenshtein distance` | 정규화 분모가 정의되지 않았다. max(len(a),len(b)) 인가, len(a)+len(b) 인가, 아니면 Yujian-Bo 2d/(|a|+|b|+d) 인가? | HIGH |
 | AMB-F02 | `LCS similarity` | LCS 길이를 무엇으로 나눠 similarity 로 만드는지 정의되지 않았다. L/max(len), L/min(len), 2L/(|a|+|b|) 중 어느 것인가? | HIGH |
-| AMB-F03 | `activation_depth` | AUTH_GATE / ENDPOINT_REACHED / ABSTAIN 이 'state-changing activation token' 에 포함되는가? 제외 목록(scroll/typing/passive/dismiss)에 없으므로 문자 그대로 읽으면 포함이고, '도달한다/충족된다/판정하지 않는다' 라는 토큰 정의상 사용자의 activation 이 아니므로 의미상 읽으면 제외다. | HIGH |
 | AMB-F04 | `flow_step_count` | (a) 어느 sequence 위에서 세는가 — task_flow_sequence 인가 experienced_flow_sequence 인가? DISMISS_OBSTRUCTION 은 포함/제외 어느 목록에도 없다. (b) ENDPOINT_REACHED / ABSTAIN 이 'task-intent action token' 인가? | HIGH |
 | AMB-F05 | `menu_dependency` | reveal token 집합이 열려 있다('등', '계열'). SWITCH_TAB 이 reveal token 인가? nav_container_type 에는 TOP_DROPDOWN/INLINE_EXPAND 가 있어 tab 전환이 container reveal 로 읽힐 여지가 있다. | HIGH |
 | AMB-F06 | `nav_container_depth` | token sequence 만으로는 계산 불가능하다. 'task control 노출' 시점을 표시하는 token 이 canonical 18 에 없다. 또한 §5 는 'nested reveal', §4 는 'menu/drawer expansion' 이라 두 문구가 nesting 요구 여부에서 어긋난다. | HIGH |
@@ -92,6 +90,7 @@
 | AMB-F09 | `menu_dependency 'endpoint 전' 경계` | ENDPOINT_REACHED 가 없는 terminal(AUTH_GATE / ABSTAIN / BLOCKED)에서 'endpoint 전' prefix 는 어디까지인가? | LOW |
 | AMB-F10 | `빈 sequence 의 normalized distance` | 두 sequence 가 모두 빈 경우 분모가 0 이다. 0.0(완전 동일)으로 볼 것인가 undefined 로 볼 것인가? | LOW |
 | AMB-F11 | `task_flow vs experienced_flow 의 구조적 관계` | §3 예시는 experienced = task + dismissal 삽입 관계를 보이지만, 'DISMISS_OBSTRUCTION 을 제거하면 반드시 task_flow 와 같아야 한다'를 규범으로 명시하지 않았다. | MEDIUM |
+| AMB-F12 | `activation_depth CONDITIONAL 3종 × fixture_input_mode` | Δ9 는 DROPDOWN/MAP_PAN→포함, FREE_TEXT→제외, MIXED→'실제로 사용한 수단 기준' 만 정했다. (a) `OTHER` 는 어느 쪽인가? (b) MIXED 에서 '실제로 사용한 수단'을 토큰 단위로 기록하는 필드가 R5 스키마(`fixture_input_mode` 단일 값)에 없다. (c) fixture_input_mode 가 아예 기록되지 않은 관측의 CONDITIONAL 토큰은 어떻게 처리하는가? | HIGH |
 
 가장 중요한 것은 **AMB-F01 정규화 분모**다. codebook·analysis plan 어디에도 분모가 없다. 하네스는 `max(len)` / `sum(len)` / Yujian-Bo 세 후보값을 병기만 하며 단일 스칼라를 emit 하지 않는다. 같은 pair 가 1.0 / 0.5 / 0.667 로 갈린다(BND04·BND06).
 

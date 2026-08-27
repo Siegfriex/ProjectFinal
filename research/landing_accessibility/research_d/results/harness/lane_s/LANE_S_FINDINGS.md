@@ -74,7 +74,7 @@ MAIN50 실측이 없으므로 결과 독립적으로, `04_FLOW_CODEBOOK_v3.0.md`
 > First run of the suite reported positive 35/35, negative 21/21 but mutation 9/10: M02 ('missing coordinate coerced to 0.0') ESCAPED. Cause was a defect in this harness, not in the fixtures — normalize_center() guarded missing inputs with early `return`s, so the primitive `_coord_or_none` never saw a None and the corruption was unreachable. normalize_center() was restructured to route every exit path, missing ones included, through `_coord_or_none`; M02 is now caught. This is the concrete payoff of mutation testing here: the pass-only view (56/56 fixtures green) would have shipped a dead guard.
 
 
-## 6. AMBIGUOUS_DEFINITION (13)
+## 6. AMBIGUOUS_DEFINITION (17)
 
 SSOTV3 가 정하지 않아 **내가 채우지 않은** 것들. 소유자가 결정해야 한다.
 
@@ -83,18 +83,21 @@ SSOTV3 가 정하지 않아 **내가 채우지 않은** 것들. 소유자가 결
 - 문제: 04 §6 fixes NO numeric boundary for the zone bands. No x cut (LEFT|CENTER|RIGHT) and no y cut (TOP|MID|BOTTOM) appears anywhere in SSOTV3 (grep over 00-15 returns nothing). entry_zone therefore cannot be derived from (x_norm, y_norm) without new operationalization.
 - Lane S 처리: classify_zone_geometric() REQUIRES an injected ZonePolicy and ships NO default. Fixtures use FIXTURE_ONLY_ZONE_POLICY, which the code refuses to apply to non-fixture data. Collected entry_zone values are validated + tabulated, never recomputed.
 - 소유자: A (SSOT) — must freeze boundaries or declare entry_zone collector-coded only.
+- **해소: RESOLVED by T-A-V3-STEP1-003 R7 (successor delta Δ8). Cuts frozen at 1/3 and 2/3 on both axes, half-open bands. SSOTV3 04 §6 itself is still silent — the authority is the ticket, not the SSOT original.** (출처 `T-A-V3-STEP1-003 R7`)
 
 ### AMB-S02 — `entry_zone`
 
 - 문제: FLOATING and DRAWER are in the same enum as five viewport-region labels but are containment/positioning STATES, not regions. A control can simultaneously be inside a drawer and at the top-right of the viewport. No precedence rule is given.
 - Lane S 처리: Geometry emits only the 5-region subset. State categories are pass-through only, and zone-vs-geometry cross-checks are skipped (reported as SKIPPED_STATE_ZONE) for them.
 - 소유자: A (SSOT).
+- **해소: RESOLVED by R7 `structural_overrides`: FLOATING/DRAWER outrank geometry and DRAWER outranks FLOATING. Geometry still never emits them; `classify_zone_r7` applies the precedence from separately collected structural inputs.** (출처 `T-A-V3-STEP1-003 R7`)
 
 ### AMB-S03 — `entry_zone`
 
 - 문제: Taxonomy is asymmetric: the TOP band is split three ways on x, MID and BOTTOM are not. Whether MID/BOTTOM ignore x, or whether TOP_* also covers non-top controls, is unstated.
 - Lane S 처리: Implemented as: x is consulted only inside the TOP band. This follows the enum literally but is an inference, so it is registered here rather than presented as settled.
 - 소유자: A (SSOT).
+- **해소: RESOLVED by R7 `thresholds.MID_BOTTOM`: the x thirds apply inside the TOP band only. Lane S's earlier inference was correct, but it was an inference until R7.** (출처 `T-A-V3-STEP1-003 R7`)
 
 ### AMB-S04 — `entry_x_norm / entry_y_norm`
 
@@ -156,11 +159,38 @@ SSOTV3 가 정하지 않아 **내가 채우지 않은** 것들. 소유자가 결
 - Lane S 처리: The detector takes a REQUIRED `label_key_fn` injected by the caller. Lane S ships only `identity_label_key` (raw byte-exact, no normalization) so that Lane L's normalizer can be plugged in unchanged. Lane S reports the control_type divergence side only.
 - 소유자: L (label normalization).
 
-가장 무거운 것은 **AMB-S01** 이다. `entry_zone` 은 04 §4 에서 Geometry categorical 로 선언돼 있지만
-04 §6 은 좌표를 보존하라고만 하고 **x/y 절단값을 하나도 주지 않는다**. SSOTV3 00~15 전체 grep 에서도
-절단값은 나오지 않는다. 따라서 좌표에서 zone 을 유도하는 것은 현재 불가능하고, 이 하네스는 유도를
-거부한다(`UnresolvedDefinition`). fixture 에서 쓴 1/3 등분 정책은 기계 동작 확인용이며 제안이 아니다 —
-`FIXTURE_ONLY_NOT_SSOT` 로 태그돼 있고 fixture 밖에서 쓰면 예외를 던진다.
+### AMB-S14 — `entry_zone (R7 boundary_rule)`
+
+- 문제: R7 contradicts itself on the y axis. `thresholds.y_bands` says `1/3 ≤ y < 2/3 → MID` and `boundary_rule` says `경계값은 하한 포함·상한 배제([a, b))로 통일한다` — both put y=1/3 in MID. The same `boundary_rule` sentence then adds `정확히 1/3 인 점은 TOP 이자 TOP_CENTER 다`, which puts y=1/3 in TOP. The x axis is unaffected: x=1/3 is TOP_CENTER under either reading.
+- Lane S 처리: Implemented the inequality table + the general half-open rule (y=1/3 → MID) because two of the three statements agree and the third contradicts the rule it is appended to. The alternative reading is computed side by side in `r7_boundary_example_contrast()` and every diverging point is listed. This lane does NOT decide which reading is A's intent.
+- 소유자: A — the contradiction is inside R7 itself.
+
+### AMB-S15 — `entry_zone = FLOATING (R7 structural_overrides.FLOATING)`
+
+- 문제: R7 defines FLOATING as `computed position 이 fixed 또는 sticky 이고 일반 흐름에서 벗어나 viewport 에 고정된 경우`. Whether the second clause is an independent observable or a restatement of the first is unstated, and it matters: `position: sticky` stays in normal flow and is viewport-fixed only while stuck, so under the strict reading a sticky header scrolled to its unstuck state is NOT FLOATING.
+- Lane S 처리: Both clauses are required inputs. When the position clause is satisfied but the flow/viewport clause is unobserved the result is AMBIGUOUS_FLOATING_UNDETERMINED — no zone, no guess. If A rules the second clause a restatement, the fix is one predicate.
+- 소유자: A (ruling) / B (collector — decides whether the flow clause is even captured).
+
+### AMB-S16 — `entry_zone = DRAWER (R7 structural_overrides.DRAWER)`
+
+- 문제: R7 identifies the DRAWER container as `menu_dependency=1 을 만든 그 container`. It does not say what to do when a control is observed inside a reveal-requiring container while menu_dependency=0 — the two observations cannot both hold under R7's own wording, and R7 gives no precedence between them.
+- Lane S 처리: Reported as AMBIGUOUS_DRAWER_UNDETERMINED with the inconsistency named. Neither input is trusted over the other and no zone is emitted. Because DRAWER outranks FLOATING, an unresolved DRAWER also blocks a confirmed FLOATING from being returned.
+- 소유자: A (ruling) / B (collector — may be a collection defect rather than a definition gap).
+
+### AMB-S17 — `entry_x_norm / entry_y_norm outside [0,1] under R7`
+
+- 문제: R7 freezes cut values but does not regulate coordinates outside the unit interval, which AMB-S04 already showed are reachable (control partially off-screen, or below the fold in state Sn). `y ≥ 2/3 → BOTTOM` read literally would swallow y=9.9 into BOTTOM; whether that is intended, or whether such a row should be excluded, is unstated.
+- Lane S 처리: Coordinates are still never clamped (AMB-S04 behaviour preserved). When an out-of-unit coordinate is one R7 actually CONSULTS in that band, the result is AMBIGUOUS_OUT_OF_UNIT_RANGE and no zone is emitted. When the out-of-unit axis is one R7 does not consult (x in MID/BOTTOM), the zone stands and the fact is flagged as OK_UNCONSULTED_AXIS_OUT_OF_RANGE rather than dropped.
+- 소유자: A (SSOT) / B (collector).
+
+**AMB-S01/S02/S03 은 닫혔다.** 이 셋은 `entry_zone` 에 x/y 절단값이 없다는 문제였고,
+`D-V3-FINDING-007` 로 올라가 A 가 `T-A-V3-STEP1-003` R7 로 확정했다. 그래서 Lane S 는 이제
+좌표에서 zone 을 **유도한다** — `classify_zone_r7()`. 확정은 관측 0건 상태에서 이뤄졌다.
+자세한 내용은 `LANE_S_R7_CONVERGENCE.json` / `LANE_S_R7_FINDINGS.md`.
+
+절단값이 없던 시절 fixture 에서 쓰던 1/3 등분 정책(`FIXTURE_ONLY_NOT_SSOT`)은 **그대로 뒀다**.
+R7 정책과 같은 입력에서 같은 답을 주는지 확인하는 대조군이며, 여전히 fixture 밖에서 쓰면 예외를 던진다.
+남은 모호성은 AMB-S04~S13 과, R7 이 새로 남긴 AMB-S14~S17 이다.
 
 ## 7. 반례 탐지기
 
@@ -185,7 +215,7 @@ SSOTV3 가 정하지 않아 **내가 채우지 않은** 것들. 소유자가 결
 
 ## 8. 하지 않은 것
 
-- entry_zone boundary values — SSOTV3 freezes none; Lane S must not invent them (AMB-S01).
+- entry_zone boundary values as an invention of this lane — SSOTV3 freezes none, and the cuts now used come from T-A-V3-STEP1-003 R7, not from Lane S (AMB-S01 resolved; see r7_convergence).
 - FLOATING / DRAWER derivation — state categories with no geometric rule (AMB-S02).
 - Any threshold, cut-off, or composite/weighted 'friction' score (05 §3 prohibits it).
 - Label normalization, synonym mapping, label_relation — Lane L owns 04 §5 (AMB-S13).

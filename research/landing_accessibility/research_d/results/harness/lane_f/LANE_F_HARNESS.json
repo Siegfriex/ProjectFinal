@@ -3,17 +3,17 @@
   "lane": "F — Flow Topology / Depth",
   "verdict": "READY_WITH_AMBIGUITY",
   "verdict_basis": {
-    "fixture_checks_total": 202,
+    "fixture_checks_total": 304,
     "fixture_checks_failed": 0,
     "failed_check_ids": [],
-    "mutants_total": 7,
-    "mutants_caught": 7,
+    "mutants_total": 11,
+    "mutants_caught": 11,
     "mutants_uncaught": [],
     "restore_proof_failed_checks": 0,
-    "open_ambiguities": 11,
+    "open_ambiguities": 10,
     "rule": "READY only if zero open ambiguities; ambiguities are raised, not filled, so the highest achievable verdict here is READY_WITH_AMBIGUITY."
   },
-  "generated_at_utc": "2026-08-27T17:53:30.718054+00:00",
+  "generated_at_utc": "2026-08-27T18:18:09.033827+00:00",
   "provenance": {
     "ssot_dir": "/home/sieg/projects-wsl/ProjectFinal/SSOTV3",
     "ssot_file_sha256": {
@@ -88,6 +88,30 @@
     "no_composite_score": {
       "source": "05_ANALYSIS_PLAN_v3.0.md §3",
       "text": "가중합 단일 score 생성 금지. Secondary visualization으로 Gower/mixed distance를 쓸 수 있으나 규범적 threshold나 '고령자 부담 점수'로 해석 금지."
+    },
+    "delta9_general_criterion": {
+      "source": "T-A-V3-STEP1-006 .general_criterion",
+      "text": "rule: `activation_depth` 는 **사용자가 control 을 의도적으로 활성화해 상태 전이를 일으킨 토큰**의 수다.\n① 사용자의 의도적 조작인가 (수동 로드·리다이렉트·대기는 아니다)\n② control 활성화인가 (스크롤·타이핑은 control 활성화가 아니다)\n③ 상태가 전이되는가 (단순 표시 변화가 아니라 화면·경로·컨테이너 상태가 바뀌는가)"
+    },
+    "delta9_submit_query": {
+      "source": "T-A-V3-STEP1-006 .headline / .the_apparent_conflict / .substantive_reason_for_including_submit",
+      "text": "headline: SUBMIT_QUERY 는 activation_depth 에 **포함된다.** 두 문서를 실제로 대조하면 충돌이 아니다 — 03 의 마지막 문장이 그렇게 읽힐 뿐이다.\nfinding: **두 제외 목록 어디에도 submit 이 없다.** 03 의 포함 목록 첫 항목 'link/button/tab/menu open' 에 submit control 은 button 으로 들어간다\nsubstantive_reason: submit 을 빼면, 검색어를 넣고 조회를 눌러야 진입하는 서비스와 control 을 바로 누르면 되는 서비스가 **같은 activation_depth 를 갖는다.** 그것은 실재하는 구조 차이를 지우는 것이며 v3 가 재려는 바로 그 차이다."
+    },
+    "delta9_conditional": {
+      "source": "T-A-V3-STEP1-006 .canonical_18_classification.CONDITIONAL",
+      "text": "tokens: SELECT_ORIGIN / SELECT_DESTINATION / SELECT_DATE\nrule: **입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다\nhow_to_decide: Δ8-R5 의 `fixture_input_mode` 가 이미 이것을 기록한다 — DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외, MIXED 면 실제로 사용한 수단 기준\nrecord: 각 관측에 `depth_conditional_tokens` 로 어느 토큰이 어떤 근거로 포함/제외됐는지 남긴다"
+    },
+    "delta9_family_asymmetry": {
+      "source": "T-A-V3-STEP1-006 .family_asymmetry_note",
+      "text": "이 규칙은 검색 기반 family(F2·F3·F5)의 depth 를 F1·F4 보다 구조적으로 높인다. 그것이 사실이다. 관측 0건 시점에 이 비대칭을 예상으로 기록한다 — 나중에 '예상대로였다'고 사후 서술하지 않기 위함이다."
+    },
+    "tb_fc_013": {
+      "source": "T-A-V3-STEP1-006 .T_B_FC_013_confirmed",
+      "text": "`OPEN_RIGHT_DRAWER` 는 04 §2 canonical 18종에 없다. 오른쪽 drawer 를 여는 행위는 `OPEN_GLOBAL_MENU` 또는 `OPEN_LOCAL_MENU` 토큰 + `nav_container_type=RIGHT_DRAWER` + `reveal_direction=RIGHT` 로 표현한다. **방향은 토큰이 아니라 별도 변수다**\n**상위 지시와 SSOT 가 다르면 SSOT 를 따른다.**"
+    },
+    "r12_sequence_distance_normalization": {
+      "source": "T-A-V3-STEP1-007 .R12_sequence_distance_normalization",
+      "text": "ruling: primary = `max(len(a), len(b))` 정규화. also_stored = [sum(len) 정규화, Yujian-Bo]. single_scalar: primary 만 단일 보고에 쓴다\nwhy_max_len: 값이 [0,1] 에 갇히고 1.0 이 '완전히 다름'을 뜻해 해석이 직관적이다 / 'normalized edit distance' 의 가장 흔한 관례 / sum(len) 은 비어 있지 않은 두 열에서 결코 1 에 도달하지 못해 차이를 과소보고한다\nyujian_bo_as_declared_sensitivity: **군집·MDS 를 수행할 때는 Yujian-Bo 를 병기한다.**\nstore_all_three: 셋 다 저장하고 primary 를 지정하는 것이지, 하나만 계산하는 것이 아니다"
     }
   },
   "canonical_tokens": {
@@ -152,6 +176,7 @@
           "derived_values_interpretable": true,
           "reason": null
         },
+        "fixture_input_mode": null,
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": true,
@@ -170,6 +195,28 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 3,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": null,
+          "depth_conditional_tokens": [],
+          "delta9_experienced_base_value": 3,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 4,
             "activation_only": 3
@@ -178,21 +225,18 @@
             "literal_all_but_excluded": 4,
             "activation_only": 3
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": null,
-          "ambiguity_active": true,
-          "ambiguity_ids": [
+          "closed_ambiguity_ids": [
             "AMB-F03"
-          ]
+          ],
+          "ambiguity_active": false,
+          "ambiguity_ids": []
         },
         "flow_step_count": {
           "readings": {
@@ -256,6 +300,7 @@
           "derived_values_interpretable": true,
           "reason": null
         },
+        "fixture_input_mode": null,
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": false,
@@ -274,6 +319,28 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 3,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": null,
+          "depth_conditional_tokens": [],
+          "delta9_experienced_base_value": 3,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 4,
             "activation_only": 3
@@ -282,21 +349,18 @@
             "literal_all_but_excluded": 4,
             "activation_only": 3
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": null,
-          "ambiguity_active": true,
-          "ambiguity_ids": [
+          "closed_ambiguity_ids": [
             "AMB-F03"
-          ]
+          ],
+          "ambiguity_active": false,
+          "ambiguity_ids": []
         },
         "flow_step_count": {
           "readings": {
@@ -358,6 +422,7 @@
           "derived_values_interpretable": true,
           "reason": null
         },
+        "fixture_input_mode": null,
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": true,
@@ -376,6 +441,28 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 3,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": null,
+          "depth_conditional_tokens": [],
+          "delta9_experienced_base_value": 3,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 4,
             "activation_only": 3
@@ -384,21 +471,18 @@
             "literal_all_but_excluded": 4,
             "activation_only": 3
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": null,
-          "ambiguity_active": true,
-          "ambiguity_ids": [
+          "closed_ambiguity_ids": [
             "AMB-F03"
-          ]
+          ],
+          "ambiguity_active": false,
+          "ambiguity_ids": []
         },
         "flow_step_count": {
           "readings": {
@@ -460,6 +544,7 @@
           "derived_values_interpretable": true,
           "reason": null
         },
+        "fixture_input_mode": null,
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": false,
@@ -479,6 +564,28 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 3,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": null,
+          "depth_conditional_tokens": [],
+          "delta9_experienced_base_value": 3,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 4,
             "activation_only": 3
@@ -487,21 +594,18 @@
             "literal_all_but_excluded": 4,
             "activation_only": 3
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": null,
-          "ambiguity_active": true,
-          "ambiguity_ids": [
+          "closed_ambiguity_ids": [
             "AMB-F03"
-          ]
+          ],
+          "ambiguity_active": false,
+          "ambiguity_ids": []
         },
         "flow_step_count": {
           "readings": {
@@ -564,6 +668,7 @@
           "derived_values_interpretable": true,
           "reason": null
         },
+        "fixture_input_mode": null,
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": true,
@@ -582,6 +687,28 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 3,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": null,
+          "depth_conditional_tokens": [],
+          "delta9_experienced_base_value": 3,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 4,
             "activation_only": 3
@@ -590,21 +717,18 @@
             "literal_all_but_excluded": 4,
             "activation_only": 3
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": null,
-          "ambiguity_active": true,
-          "ambiguity_ids": [
+          "closed_ambiguity_ids": [
             "AMB-F03"
-          ]
+          ],
+          "ambiguity_active": false,
+          "ambiguity_ids": []
         },
         "flow_step_count": {
           "readings": {
@@ -666,6 +790,7 @@
           "derived_values_interpretable": true,
           "reason": null
         },
+        "fixture_input_mode": null,
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": true,
@@ -684,6 +809,28 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 3,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": null,
+          "depth_conditional_tokens": [],
+          "delta9_experienced_base_value": 3,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 4,
             "activation_only": 3
@@ -692,21 +839,18 @@
             "literal_all_but_excluded": 4,
             "activation_only": 3
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": null,
-          "ambiguity_active": true,
-          "ambiguity_ids": [
+          "closed_ambiguity_ids": [
             "AMB-F03"
-          ]
+          ],
+          "ambiguity_active": false,
+          "ambiguity_ids": []
         },
         "flow_step_count": {
           "readings": {
@@ -768,6 +912,7 @@
           "derived_values_interpretable": true,
           "reason": null
         },
+        "fixture_input_mode": null,
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": true,
@@ -786,6 +931,28 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 3,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": null,
+          "depth_conditional_tokens": [],
+          "delta9_experienced_base_value": 3,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 4,
             "activation_only": 3
@@ -794,21 +961,18 @@
             "literal_all_but_excluded": 4,
             "activation_only": 3
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": null,
-          "ambiguity_active": true,
-          "ambiguity_ids": [
+          "closed_ambiguity_ids": [
             "AMB-F03"
-          ]
+          ],
+          "ambiguity_active": false,
+          "ambiguity_ids": []
         },
         "flow_step_count": {
           "readings": {
@@ -874,6 +1038,7 @@
           "derived_values_interpretable": true,
           "reason": null
         },
+        "fixture_input_mode": "DROPDOWN",
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": false,
@@ -892,6 +1057,65 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 5,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": "DROPDOWN",
+          "depth_conditional_tokens": [
+            {
+              "index": 0,
+              "token": "SELECT_ORIGIN",
+              "classification": "CONDITIONAL",
+              "fixture_input_mode": "DROPDOWN",
+              "effective_mode": "DROPDOWN",
+              "basis": "fixture_input_mode (Δ8-R5)",
+              "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+              "decision": "IN",
+              "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+              "ambiguity_ids": []
+            },
+            {
+              "index": 1,
+              "token": "SELECT_DESTINATION",
+              "classification": "CONDITIONAL",
+              "fixture_input_mode": "DROPDOWN",
+              "effective_mode": "DROPDOWN",
+              "basis": "fixture_input_mode (Δ8-R5)",
+              "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+              "decision": "IN",
+              "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+              "ambiguity_ids": []
+            },
+            {
+              "index": 2,
+              "token": "SELECT_DATE",
+              "classification": "CONDITIONAL",
+              "fixture_input_mode": "DROPDOWN",
+              "effective_mode": "DROPDOWN",
+              "basis": "fixture_input_mode (Δ8-R5)",
+              "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+              "decision": "IN",
+              "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+              "ambiguity_ids": []
+            }
+          ],
+          "delta9_experienced_base_value": 5,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 6,
             "activation_only": 5
@@ -900,21 +1124,18 @@
             "literal_all_but_excluded": 6,
             "activation_only": 5
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": null,
-          "ambiguity_active": true,
-          "ambiguity_ids": [
+          "closed_ambiguity_ids": [
             "AMB-F03"
-          ]
+          ],
+          "ambiguity_active": false,
+          "ambiguity_ids": []
         },
         "flow_step_count": {
           "readings": {
@@ -972,6 +1193,7 @@
           "derived_values_interpretable": false,
           "reason": "AMB-F07 — ABSTAIN declares an undetermined path; counts/distances involving it are computed but must not be read as determinate."
         },
+        "fixture_input_mode": null,
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": true,
@@ -991,6 +1213,28 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 1,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": null,
+          "depth_conditional_tokens": [],
+          "delta9_experienced_base_value": 1,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 2,
             "activation_only": 1
@@ -999,20 +1243,18 @@
             "literal_all_but_excluded": 2,
             "activation_only": 1
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": null,
-          "ambiguity_active": true,
+          "closed_ambiguity_ids": [
+            "AMB-F03"
+          ],
+          "ambiguity_active": false,
           "ambiguity_ids": [
-            "AMB-F03",
             "AMB-F07"
           ]
         },
@@ -1067,6 +1309,7 @@
           "derived_values_interpretable": true,
           "reason": null
         },
+        "fixture_input_mode": null,
         "menu_dependency": {
           "readings": {
             "reveal_set_explicit3": false,
@@ -1086,6 +1329,28 @@
           ]
         },
         "activation_depth": {
+          "delta9_ruling": "T-A-V3-STEP1-006",
+          "value": 0,
+          "value_withheld_reason": null,
+          "bounds_when_unresolved": null,
+          "unresolved_conditional_count": 0,
+          "fixture_input_mode": null,
+          "depth_conditional_tokens": [],
+          "delta9_experienced_base_value": 0,
+          "delta9_base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION",
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "conditional_tokens": [
+            "SELECT_ORIGIN",
+            "SELECT_DESTINATION",
+            "SELECT_DATE"
+          ],
+          "open_tokens": [],
           "readings": {
             "literal_all_but_excluded": 0,
             "activation_only": 0
@@ -1094,21 +1359,18 @@
             "literal_all_but_excluded": 0,
             "activation_only": 0
           },
+          "readings_note": "AMB-F03 이 열려 있던 시절의 두 읽기 기록이다. Δ9 가 `activation_only` 쪽으로 확정했으므로 더 이상 병기 대상이 아니며, 감사 추적과 회귀 고정을 위해서만 남긴다.",
           "base_invariant": true,
-          "determined_exclusions": [
-            "INPUT_QUERY",
-            "DISMISS_OBSTRUCTION"
-          ],
-          "open_tokens": [
+          "superseded_open_tokens": [
             "AUTH_GATE",
             "ENDPOINT_REACHED",
             "ABSTAIN"
           ],
-          "value": 0,
-          "ambiguity_active": false,
-          "ambiguity_ids": [
+          "closed_ambiguity_ids": [
             "AMB-F03"
-          ]
+          ],
+          "ambiguity_active": false,
+          "ambiguity_ids": []
         },
         "flow_step_count": {
           "readings": {
@@ -1155,6 +1417,20 @@
         },
         "pass": true,
         "note": ""
+      },
+      {
+        "check_id": "SYN01_menu_category::activation_depth_delta9_value",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN01_menu_category::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
       },
       {
         "check_id": "SYN01_menu_category::flow_step_count_readings",
@@ -1249,6 +1525,20 @@
         "note": ""
       },
       {
+        "check_id": "SYN02_search_item::activation_depth_delta9_value",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN02_search_item::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
+      },
+      {
         "check_id": "SYN02_search_item::flow_step_count_readings",
         "expected": {
           "base=task|terminal=incl": 5,
@@ -1339,6 +1629,20 @@
         },
         "pass": true,
         "note": ""
+      },
+      {
+        "check_id": "SYN03_tab_accordion::activation_depth_delta9_value",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN03_tab_accordion::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
       },
       {
         "check_id": "SYN03_tab_accordion::flow_step_count_readings",
@@ -1433,6 +1737,20 @@
         "note": ""
       },
       {
+        "check_id": "SYN04_tab_auth_terminal::activation_depth_delta9_value",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
+      },
+      {
         "check_id": "SYN04_tab_auth_terminal::flow_step_count_readings",
         "expected": {
           "base=task|terminal=incl": 4,
@@ -1523,6 +1841,20 @@
         },
         "pass": true,
         "note": ""
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::activation_depth_delta9_value",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
       },
       {
         "check_id": "SYN05_modal_then_menu::flow_step_count_readings",
@@ -1617,6 +1949,20 @@
         "note": ""
       },
       {
+        "check_id": "SYN06_no_modal_twin::activation_depth_delta9_value",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
+      },
+      {
         "check_id": "SYN06_no_modal_twin::flow_step_count_readings",
         "expected": {
           "base=task|terminal=incl": 4,
@@ -1707,6 +2053,20 @@
         },
         "pass": true,
         "note": ""
+      },
+      {
+        "check_id": "SYN07_reordered::activation_depth_delta9_value",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN07_reordered::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
       },
       {
         "check_id": "SYN07_reordered::flow_step_count_readings",
@@ -1801,6 +2161,20 @@
         "note": ""
       },
       {
+        "check_id": "SYN08_transport_slots::activation_depth_delta9_value",
+        "expected": 5,
+        "actual": 5,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN08_transport_slots::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
+      },
+      {
         "check_id": "SYN08_transport_slots::flow_step_count_readings",
         "expected": {
           "base=task|terminal=incl": 6,
@@ -1893,6 +2267,20 @@
         "note": ""
       },
       {
+        "check_id": "SYN09_abstain::activation_depth_delta9_value",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN09_abstain::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
+      },
+      {
         "check_id": "SYN09_abstain::flow_step_count_readings",
         "expected": {
           "base=task|terminal=incl": 2,
@@ -1983,6 +2371,20 @@
         },
         "pass": true,
         "note": ""
+      },
+      {
+        "check_id": "SYN10_empty::activation_depth_delta9_value",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "Δ9 (T-A-V3-STEP1-006) 분류표에 의한 단일 값"
+      },
+      {
+        "check_id": "SYN10_empty::activation_depth_delta9_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 DISMISS_OBSTRUCTION 을 OUT 으로 두므로 depth 는 task/experienced base 에 불변이어야 한다"
       },
       {
         "check_id": "SYN10_empty::flow_step_count_readings",
@@ -2204,6 +2606,20 @@
         "note": ""
       },
       {
+        "check_id": "BND01_both_empty::R12_primary_equals_by_max_len",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "R12 (T-A-V3-STEP1-007): primary 정규화 = max(len(a),len(b))"
+      },
+      {
+        "check_id": "BND01_both_empty::R12_lcs_has_no_primary",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F02 는 R12 가 다루지 않았다 — LCS similarity 는 여전히 단일 스칼라를 emit 하지 않는다"
+      },
+      {
         "check_id": "BND02_empty_vs_len1::levenshtein_raw",
         "expected": 1,
         "actual": 1,
@@ -2258,6 +2674,20 @@
         "actual": 0.0,
         "pass": true,
         "note": ""
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::R12_primary_equals_by_max_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": "R12 (T-A-V3-STEP1-007): primary 정규화 = max(len(a),len(b))"
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::R12_lcs_has_no_primary",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F02 는 R12 가 다루지 않았다 — LCS similarity 는 여전히 단일 스칼라를 emit 하지 않는다"
       },
       {
         "check_id": "BND03_len1_identical::levenshtein_raw",
@@ -2316,6 +2746,20 @@
         "note": ""
       },
       {
+        "check_id": "BND03_len1_identical::R12_primary_equals_by_max_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": "R12 (T-A-V3-STEP1-007): primary 정규화 = max(len(a),len(b))"
+      },
+      {
+        "check_id": "BND03_len1_identical::R12_lcs_has_no_primary",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F02 는 R12 가 다루지 않았다 — LCS similarity 는 여전히 단일 스칼라를 emit 하지 않는다"
+      },
+      {
         "check_id": "BND04_len1_different::levenshtein_raw",
         "expected": 1,
         "actual": 1,
@@ -2370,6 +2814,20 @@
         "actual": 0.0,
         "pass": true,
         "note": ""
+      },
+      {
+        "check_id": "BND04_len1_different::R12_primary_equals_by_max_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": "R12 (T-A-V3-STEP1-007): primary 정규화 = max(len(a),len(b))"
+      },
+      {
+        "check_id": "BND04_len1_different::R12_lcs_has_no_primary",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F02 는 R12 가 다루지 않았다 — LCS similarity 는 여전히 단일 스칼라를 emit 하지 않는다"
       },
       {
         "check_id": "BND05_fully_identical_len4::levenshtein_raw",
@@ -2428,6 +2886,20 @@
         "note": ""
       },
       {
+        "check_id": "BND05_fully_identical_len4::R12_primary_equals_by_max_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": "R12 (T-A-V3-STEP1-007): primary 정규화 = max(len(a),len(b))"
+      },
+      {
+        "check_id": "BND05_fully_identical_len4::R12_lcs_has_no_primary",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F02 는 R12 가 다루지 않았다 — LCS similarity 는 여전히 단일 스칼라를 emit 하지 않는다"
+      },
+      {
         "check_id": "BND06_fully_disjoint_len3::levenshtein_raw",
         "expected": 3,
         "actual": 3,
@@ -2482,6 +2954,20 @@
         "actual": 0.0,
         "pass": true,
         "note": ""
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::R12_primary_equals_by_max_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": "R12 (T-A-V3-STEP1-007): primary 정규화 = max(len(a),len(b))"
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::R12_lcs_has_no_primary",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F02 는 R12 가 다루지 않았다 — LCS similarity 는 여전히 단일 스칼라를 emit 하지 않는다"
       },
       {
         "check_id": "BND07_prefix_vs_extension::levenshtein_raw",
@@ -2540,6 +3026,20 @@
         "note": ""
       },
       {
+        "check_id": "BND07_prefix_vs_extension::R12_primary_equals_by_max_len",
+        "expected": 0.3333333333,
+        "actual": 0.3333333333,
+        "pass": true,
+        "note": "R12 (T-A-V3-STEP1-007): primary 정규화 = max(len(a),len(b))"
+      },
+      {
+        "check_id": "BND07_prefix_vs_extension::R12_lcs_has_no_primary",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F02 는 R12 가 다루지 않았다 — LCS similarity 는 여전히 단일 스칼라를 emit 하지 않는다"
+      },
+      {
         "check_id": "INV01_unknown_token::valid",
         "expected": false,
         "actual": false,
@@ -2585,6 +3085,20 @@
         "check_id": "INV04_all_canonical::valid",
         "expected": true,
         "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "INV05_open_right_drawer::valid",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "T-B-FC-013 (Δ9 확인): 방향은 토큰이 아니다. 오른쪽 drawer 는 OPEN_GLOBAL_MENU/OPEN_LOCAL_MENU + nav_container_type=RIGHT_DRAWER + reveal_direction=RIGHT 로 적는다. Lane F 는 토큰 목록 밖 값을 스키마 오류로 보고한다"
+      },
+      {
+        "check_id": "INV05_open_right_drawer::reason",
+        "expected": "NOT_IN_CANONICAL_18",
+        "actual": "NOT_IN_CANONICAL_18",
         "pass": true,
         "note": ""
       },
@@ -2694,6 +3208,540 @@
         "note": "task identical, experienced differs — but NOT by a dismissal. Must land in the non-attributable bucket, not in D3 positives. (Also trips TASK_EXPERIENCED_INCONSISTENT.)"
       },
       {
+        "check_id": "DELTA9::classifies_exactly_18",
+        "expected": [
+          "ABSTAIN",
+          "AUTH_GATE",
+          "DISMISS_OBSTRUCTION",
+          "ENDPOINT_REACHED",
+          "EXPAND_ACCORDION",
+          "INPUT_QUERY",
+          "OPEN_GLOBAL_MENU",
+          "OPEN_ITEM_DETAIL",
+          "OPEN_LOCAL_MENU",
+          "OPEN_PLACE_DETAIL",
+          "SELECT_CATEGORY",
+          "SELECT_DATE",
+          "SELECT_DESTINATION",
+          "SELECT_FUNCTION",
+          "SELECT_ORIGIN",
+          "SELECT_RESULT",
+          "SUBMIT_QUERY",
+          "SWITCH_TAB"
+        ],
+        "actual": [
+          "ABSTAIN",
+          "AUTH_GATE",
+          "DISMISS_OBSTRUCTION",
+          "ENDPOINT_REACHED",
+          "EXPAND_ACCORDION",
+          "INPUT_QUERY",
+          "OPEN_GLOBAL_MENU",
+          "OPEN_ITEM_DETAIL",
+          "OPEN_LOCAL_MENU",
+          "OPEN_PLACE_DETAIL",
+          "SELECT_CATEGORY",
+          "SELECT_DATE",
+          "SELECT_DESTINATION",
+          "SELECT_FUNCTION",
+          "SELECT_ORIGIN",
+          "SELECT_RESULT",
+          "SUBMIT_QUERY",
+          "SWITCH_TAB"
+        ],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "DELTA9::in_out_conditional_sizes",
+        "expected": [
+          10,
+          5,
+          3
+        ],
+        "actual": [
+          10,
+          5,
+          3
+        ],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "DELTA9::submit_query_is_IN",
+        "expected": "IN",
+        "actual": "IN",
+        "pass": true,
+        "note": "T-A-V3-STEP1-006 headline"
+      },
+      {
+        "check_id": "DELTA9::auth_gate_is_OUT",
+        "expected": "OUT",
+        "actual": "OUT",
+        "pass": true,
+        "note": "'사용자 활성화가 아니라 마주친 상태' — 기준 ①"
+      },
+      {
+        "check_id": "DELTA9::endpoint_reached_is_OUT",
+        "expected": "OUT",
+        "actual": "OUT",
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "DELTA9::abstain_is_OUT",
+        "expected": "OUT",
+        "actual": "OUT",
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "DELTA9::input_query_is_OUT",
+        "expected": "OUT",
+        "actual": "OUT",
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "DELTA9::dismiss_is_OUT",
+        "expected": "OUT",
+        "actual": "OUT",
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "DELTA9::slot_tokens_are_CONDITIONAL",
+        "expected": [
+          "CONDITIONAL",
+          "CONDITIONAL",
+          "CONDITIONAL"
+        ],
+        "actual": [
+          "CONDITIONAL",
+          "CONDITIONAL",
+          "CONDITIONAL"
+        ],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "DELTA9::no_direction_token_in_table",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "T-B-FC-013 — 방향은 토큰이 아니다"
+      },
+      {
+        "check_id": "DELTA9::flow_step_count_list_not_unified",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth 의 제외목록과 flow_step_count 의 포함목록은 통합하지 않는다"
+      },
+      {
+        "check_id": "DELTA9::submit_in_depth_and_in_step_count",
+        "expected": [
+          true,
+          true
+        ],
+        "actual": [
+          true,
+          true
+        ],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "CD01_dropdown::value",
+        "expected": 5,
+        "actual": 5,
+        "pass": true,
+        "note": "picker 로 세 값을 정한다 -> CONDITIONAL 3종 모두 포함. 2(hard) + 3 = 5"
+      },
+      {
+        "check_id": "CD01_dropdown::unresolved_count",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "CD01_dropdown::bounds",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "보류할 때는 값을 채우지 않고 구간만 보고한다"
+      },
+      {
+        "check_id": "CD01_dropdown::conditional_record_complete",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 record: 어느 토큰이 어떤 근거로 포함/제외됐는지 전부 남긴다"
+      },
+      {
+        "check_id": "CD02_free_text::value",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "note": "자유입력란 타이핑 -> 세 토큰 모두 제외. SUBMIT_QUERY + SELECT_RESULT 만 남아 2. **같은 token 열이 입력수단 때문에 5 와 2 로 갈린다 — 이것이 Δ9 가 재려는 조작량 차이다**"
+      },
+      {
+        "check_id": "CD02_free_text::unresolved_count",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "CD02_free_text::bounds",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "보류할 때는 값을 채우지 않고 구간만 보고한다"
+      },
+      {
+        "check_id": "CD02_free_text::conditional_record_complete",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 record: 어느 토큰이 어떤 근거로 포함/제외됐는지 전부 남긴다"
+      },
+      {
+        "check_id": "CD03_map_pan::value",
+        "expected": 5,
+        "actual": 5,
+        "pass": true,
+        "note": "지도 pan/zoom 도 control 활성화다 (Δ9: DROPDOWN/MAP_PAN 계열이면 포함)"
+      },
+      {
+        "check_id": "CD03_map_pan::unresolved_count",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "CD03_map_pan::bounds",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "보류할 때는 값을 채우지 않고 구간만 보고한다"
+      },
+      {
+        "check_id": "CD03_map_pan::conditional_record_complete",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 record: 어느 토큰이 어떤 근거로 포함/제외됐는지 전부 남긴다"
+      },
+      {
+        "check_id": "CD04_mixed_means_unrecorded::value",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "Δ9 는 MIXED 를 '실제로 사용한 수단 기준'으로 정했는데 R5 스키마에 그 수단을 담을 토큰별 필드가 없다 -> AMB-F12. 값을 채우지 않고 보류하고 구간만 보고한다"
+      },
+      {
+        "check_id": "CD04_mixed_means_unrecorded::unresolved_count",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "CD04_mixed_means_unrecorded::bounds",
+        "expected": {
+          "min_all_unresolved_excluded": 2,
+          "max_all_unresolved_included": 5
+        },
+        "actual": {
+          "min_all_unresolved_excluded": 2,
+          "max_all_unresolved_included": 5
+        },
+        "pass": true,
+        "note": "보류할 때는 값을 채우지 않고 구간만 보고한다"
+      },
+      {
+        "check_id": "CD04_mixed_means_unrecorded::conditional_record_complete",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 record: 어느 토큰이 어떤 근거로 포함/제외됐는지 전부 남긴다"
+      },
+      {
+        "check_id": "CD05_mixed_means_recorded::value",
+        "expected": 4,
+        "actual": 4,
+        "pass": true,
+        "note": "실제 사용 수단이 토큰별로 기록되면 MIXED 도 확정된다: 출발지·도착지는 picker(포함), 날짜는 타이핑(제외) -> 2+2=4"
+      },
+      {
+        "check_id": "CD05_mixed_means_recorded::unresolved_count",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "CD05_mixed_means_recorded::bounds",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "보류할 때는 값을 채우지 않고 구간만 보고한다"
+      },
+      {
+        "check_id": "CD05_mixed_means_recorded::conditional_record_complete",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 record: 어느 토큰이 어떤 근거로 포함/제외됐는지 전부 남긴다"
+      },
+      {
+        "check_id": "CD06_mode_absent::value",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "fixture_input_mode 미기록. 부재를 FREE_TEXT 로도 DROPDOWN 으로도 채우지 않는다 (R13 원칙)"
+      },
+      {
+        "check_id": "CD06_mode_absent::unresolved_count",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "CD06_mode_absent::bounds",
+        "expected": {
+          "min_all_unresolved_excluded": 2,
+          "max_all_unresolved_included": 5
+        },
+        "actual": {
+          "min_all_unresolved_excluded": 2,
+          "max_all_unresolved_included": 5
+        },
+        "pass": true,
+        "note": "보류할 때는 값을 채우지 않고 구간만 보고한다"
+      },
+      {
+        "check_id": "CD06_mode_absent::conditional_record_complete",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 record: 어느 토큰이 어떤 근거로 포함/제외됐는지 전부 남긴다"
+      },
+      {
+        "check_id": "CD07_mode_other::value",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "Δ9 는 OTHER 를 판정하지 않았다 -> AMB-F12"
+      },
+      {
+        "check_id": "CD07_mode_other::unresolved_count",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "CD07_mode_other::bounds",
+        "expected": {
+          "min_all_unresolved_excluded": 2,
+          "max_all_unresolved_included": 5
+        },
+        "actual": {
+          "min_all_unresolved_excluded": 2,
+          "max_all_unresolved_included": 5
+        },
+        "pass": true,
+        "note": "보류할 때는 값을 채우지 않고 구간만 보고한다"
+      },
+      {
+        "check_id": "CD07_mode_other::conditional_record_complete",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "Δ9 record: 어느 토큰이 어떤 근거로 포함/제외됐는지 전부 남긴다"
+      },
+      {
+        "check_id": "CD08_no_conditional_token_present::value",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "CONDITIONAL 토큰이 없으면 fixture_input_mode 부재는 depth 에 아무 영향이 없다 — AMB-F12 를 필요 이상으로 번지게 하지 않는다"
+      },
+      {
+        "check_id": "CD08_no_conditional_token_present::unresolved_count",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "CD08_no_conditional_token_present::bounds",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "보류할 때는 값을 채우지 않고 구간만 보고한다"
+      },
+      {
+        "check_id": "CD08_no_conditional_token_present::conditional_record_complete",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "Δ9 record: 어느 토큰이 어떤 근거로 포함/제외됐는지 전부 남긴다"
+      },
+      {
+        "check_id": "CD::dropdown_vs_free_text_differ",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "같은 token 열이 입력수단에 따라 갈리는 것은 결함이 아니라 측정이다 (Δ9 why_this_is_correct)"
+      },
+      {
+        "check_id": "SQE01_search_then_submit::delta9_depth",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "note": "검색어를 넣고 조회를 눌러야 결과에 진입하는 경로"
+      },
+      {
+        "check_id": "SQE01_search_then_submit::depth_if_submit_excluded",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": "반사실 — Δ9 가 배제한 읽기. 어떤 관측에도 emit 되지 않는다"
+      },
+      {
+        "check_id": "SQE02_press_directly::delta9_depth",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": "control 을 바로 누르면 되는 경로. submit 을 빼면 SQE01 과 **구별되지 않는다**"
+      },
+      {
+        "check_id": "SQE02_press_directly::depth_if_submit_excluded",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": "반사실 — Δ9 가 배제한 읽기. 어떤 관측에도 emit 되지 않는다"
+      },
+      {
+        "check_id": "SQE03_family_SYN02::delta9_depth",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "family fixture SYN02 의 task_flow. 수렴 전 이 하네스는 4/3 두 읽기를 병기하고 value 를 보류했다"
+      },
+      {
+        "check_id": "SQE03_family_SYN02::depth_if_submit_excluded",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "note": "반사실 — Δ9 가 배제한 읽기. 어떤 관측에도 emit 되지 않는다"
+      },
+      {
+        "check_id": "SQE04_slot_search_SYN08::delta9_depth",
+        "expected": 5,
+        "actual": 5,
+        "pass": true,
+        "note": "slot + submit 경로. F2·F3·F5 의 구조적 depth 우위(Δ9 family_asymmetry_note)가 여기서 나온다"
+      },
+      {
+        "check_id": "SQE04_slot_search_SYN08::depth_if_submit_excluded",
+        "expected": 4,
+        "actual": 4,
+        "pass": true,
+        "note": "반사실 — Δ9 가 배제한 읽기. 어떤 관측에도 emit 되지 않는다"
+      },
+      {
+        "check_id": "SQE::delta9_distinguishes_search_from_direct",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "submit 을 포함하면 검색 경유 서비스와 직접 진입 서비스가 다른 depth 를 갖는다"
+      },
+      {
+        "check_id": "SQE::excluding_submit_collapses_them",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "submit 을 빼면 실재하는 구조 차이가 지워진다 — Δ9 substantive_reason_for_including_submit"
+      },
+      {
+        "check_id": "R12::primary_key_is_by_max_len",
+        "expected": "by_max_len",
+        "actual": "by_max_len",
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "R12::three_normalizations_all_stored",
+        "expected": [
+          "by_max_len",
+          "by_sum_len",
+          "yujian_bo_2d_over_sum_plus_d"
+        ],
+        "actual": [
+          "by_max_len",
+          "by_sum_len",
+          "yujian_bo_2d_over_sum_plus_d"
+        ],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "R12::three_normalizations_disagree_on_same_pair",
+        "expected": [
+          1.0,
+          0.5,
+          0.6666666667
+        ],
+        "actual": [
+          1.0,
+          0.5,
+          0.6666666667
+        ],
+        "pass": true,
+        "note": "서로소 len3-len3 pair 에서 세 정규화가 1.0 / 0.5 / 0.667 로 갈린다"
+      },
+      {
+        "check_id": "R12::primary_is_the_max_len_value",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "R12::also_stored_excludes_primary",
+        "expected": [
+          "by_sum_len",
+          "yujian_bo_2d_over_sum_plus_d"
+        ],
+        "actual": [
+          "by_sum_len",
+          "yujian_bo_2d_over_sum_plus_d"
+        ],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "R12::lcs_similarity_still_has_no_primary",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F02 는 열려 있다"
+      },
+      {
+        "check_id": "R12::zero_denominator_still_undefined",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F10 — R12 는 0/0 을 다루지 않았다. 0.0 으로 채우지 않는다"
+      },
+      {
         "check_id": "FAMILY::pair_cell_count",
         "expected": 45,
         "actual": 45,
@@ -2720,6 +3768,34 @@
         "actual": 20,
         "pass": true,
         "note": "on the experienced base SYN05 separates from SYN01/SYN06 -> +2. AMB-F08 is live."
+      },
+      {
+        "check_id": "FAMILY::D1_positives_delta9_task_base",
+        "expected": 18,
+        "actual": 18,
+        "pass": true,
+        "note": "Δ9 단일값 기준. 7 fixture 가 depth 3 에서 동률 -> C(7,2)=21 셀에서 동일 signature 3 셀을 뺀 18"
+      },
+      {
+        "check_id": "FAMILY::D1_positives_delta9_experienced_base",
+        "expected": 20,
+        "actual": 20,
+        "pass": true,
+        "note": "experienced base 에서 SYN05 가 SYN01/SYN06 과 갈린다 -> +2. AMB-F08 은 여전히 열려 있다"
+      },
+      {
+        "check_id": "FAMILY::D1_delta9_matches_activation_only_reading",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "Δ9 는 기존 두 읽기 중 activation_only 를 확정한 것이므로 이 family 에서는 같은 셀 집합이 나와야 한다"
+      },
+      {
+        "check_id": "FAMILY::D1_delta9_indeterminate_cells",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "family fixture 는 SYN08 에 fixture_input_mode 를 명시했으므로 보류 셀이 없다"
       },
       {
         "check_id": "FAMILY::D1_tier2_count",
@@ -3111,6 +4187,29 @@
           "invalid_tokens": [],
           "abstain_present": true
         }
+      },
+      {
+        "id": "INV05_open_right_drawer",
+        "sequence": [
+          "OPEN_RIGHT_DRAWER",
+          "SELECT_FUNCTION"
+        ],
+        "expect_valid": false,
+        "result": {
+          "label": "INV05_open_right_drawer",
+          "length": 2,
+          "valid": false,
+          "invalid_tokens": [
+            {
+              "index": 0,
+              "token": "OPEN_RIGHT_DRAWER",
+              "reason": "NOT_IN_CANONICAL_18",
+              "case_insensitive_match": null,
+              "note": null
+            }
+          ],
+          "abstain_present": false
+        }
       }
     ],
     "unique_task_flow_signatures": {
@@ -3278,8 +4377,9 @@
         "target": "activation_depth",
         "breaks": "04 §5 / 03 §6 — popup dismiss must be excluded from depth",
         "caught": true,
-        "failed_check_count": 1,
+        "failed_check_count": 2,
         "sample_failed_checks": [
+          "SYN05_modal_then_menu::activation_depth_delta9_base_invariant",
           "SYN05_modal_then_menu::activation_depth_base_invariant"
         ]
       },
@@ -3303,7 +4403,7 @@
         "target": "levenshtein",
         "breaks": "05 §2-E — edit distance must be order/content sensitive",
         "caught": true,
-        "failed_check_count": 13,
+        "failed_check_count": 17,
         "sample_failed_checks": [
           "dist::SYN01_menu_category|SYN07_reordered|task::levenshtein_raw",
           "dist::SYN02_search_item|SYN04_tab_auth_terminal|task::levenshtein_raw",
@@ -3328,7 +4428,7 @@
         "target": "_div",
         "breaks": "AMB-F10 — 0/0 must not be reported as 0.0 (would read as 'identical flows')",
         "caught": true,
-        "failed_check_count": 7,
+        "failed_check_count": 9,
         "sample_failed_checks": [
           "BND01_both_empty::lev_by_max_len",
           "BND01_both_empty::lev_by_sum_len",
@@ -3343,14 +4443,14 @@
         "target": "_sig",
         "breaks": "04 §3 — task_flow and experienced_flow must stay separate",
         "caught": true,
-        "failed_check_count": 6,
+        "failed_check_count": 7,
         "sample_failed_checks": [
           "DC09_D3_pos_modal_one_side::D3",
           "DC13_D3_nonattributable::D3_NONATTRIB",
           "FAMILY::D1_positives_activation_only_task_base",
           "FAMILY::D1_positives_literal_task_base",
-          "FAMILY::D1_negatives_count",
-          "FAMILY::D3_positives"
+          "FAMILY::D1_positives_delta9_task_base",
+          "FAMILY::D1_negatives_count"
         ]
       },
       {
@@ -3366,6 +4466,63 @@
           "BND04_len1_different::lcs_over_max_len",
           "BND04_len1_different::lcs_over_min_len",
           "BND04_len1_different::lcs_dice"
+        ]
+      },
+      {
+        "mutant_id": "MUT08_depth_excludes_submit_query",
+        "target": "activation_depth",
+        "breaks": "Δ9 (T-A-V3-STEP1-006) — SUBMIT_QUERY 는 activation_depth 에 포함된다. 빼면 검색을 거쳐야 진입하는 서비스와 바로 누르는 서비스가 같은 depth 를 갖는다",
+        "caught": true,
+        "failed_check_count": 15,
+        "sample_failed_checks": [
+          "SYN02_search_item::activation_depth_delta9_value",
+          "SYN08_transport_slots::activation_depth_delta9_value",
+          "CD01_dropdown::value",
+          "CD02_free_text::value",
+          "CD03_map_pan::value",
+          "CD04_mixed_means_unrecorded::bounds"
+        ]
+      },
+      {
+        "mutant_id": "MUT09_conditional_always_included",
+        "target": "activation_depth",
+        "breaks": "Δ9 CONDITIONAL — SELECT_ORIGIN/DESTINATION/DATE 는 fixture_input_mode 에 따라 갈린다. 무조건 포함하면 FREE_TEXT 로 타이핑한 값이 activation 으로 집계된다",
+        "caught": true,
+        "failed_check_count": 19,
+        "sample_failed_checks": [
+          "CD01_dropdown::conditional_record_complete",
+          "CD02_free_text::value",
+          "CD02_free_text::conditional_record_complete",
+          "CD03_map_pan::conditional_record_complete",
+          "CD04_mixed_means_unrecorded::value",
+          "CD04_mixed_means_unrecorded::unresolved_count"
+        ]
+      },
+      {
+        "mutant_id": "MUT10_auth_gate_counts_as_activation",
+        "target": "activation_depth",
+        "breaks": "Δ9 — AUTH_GATE 는 '사용자 활성화가 아니라 마주친 상태'다 (기준 ①)",
+        "caught": true,
+        "failed_check_count": 4,
+        "sample_failed_checks": [
+          "SYN04_tab_auth_terminal::activation_depth_delta9_value",
+          "FAMILY::D1_positives_delta9_task_base",
+          "FAMILY::D1_positives_delta9_experienced_base",
+          "FAMILY::D1_delta9_matches_activation_only_reading"
+        ]
+      },
+      {
+        "mutant_id": "MUT11_distance_primary_is_sum_len",
+        "target": "R12_PRIMARY_NORMALIZATION",
+        "breaks": "R12 (T-A-V3-STEP1-007) — primary 는 max(len) 정규화다. sum(len) 은 비어 있지 않은 두 열에서 결코 1 에 도달하지 못해 차이를 과소보고한다",
+        "caught": true,
+        "failed_check_count": 5,
+        "sample_failed_checks": [
+          "BND04_len1_different::R12_primary_equals_by_max_len",
+          "BND06_fully_disjoint_len3::R12_primary_equals_by_max_len",
+          "BND07_prefix_vs_extension::R12_primary_equals_by_max_len",
+          "R12::primary_key_is_by_max_len",
+          "R12::primary_is_the_max_len_value"
         ]
       },
       {
@@ -4035,7 +5192,361 @@
           "b": "SYN06_no_modal_twin",
           "reason": "identical task_flow_sequence"
         }
-      ]
+      ],
+      "delta9_predicate": "activation_depth_delta9[a] == activation_depth_delta9[b] (both determinate) AND ordered_tokens[a] != ordered_tokens[b]",
+      "positives_delta9_by_base": {
+        "task": 18,
+        "experienced": 20
+      },
+      "positives_delta9_detail": {
+        "task": [
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN02_search_item",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN03_tab_accordion",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN04_tab_auth_terminal",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN03_tab_accordion",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN04_tab_auth_terminal",
+            "delta9_depth": 3,
+            "levenshtein_raw": 5,
+            "levenshtein_normalized_primary": 1.0,
+            "lcs_length": 0,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN05_modal_then_menu",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN06_no_modal_twin",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN04_tab_auth_terminal",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN05_modal_then_menu",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN06_no_modal_twin",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN05_modal_then_menu",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN06_no_modal_twin",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN05_modal_then_menu",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN06_no_modal_twin",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 3,
+            "interpretable": true
+          }
+        ],
+        "experienced": [
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN02_search_item",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN03_tab_accordion",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN04_tab_auth_terminal",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN05_modal_then_menu",
+            "delta9_depth": 3,
+            "levenshtein_raw": 1,
+            "levenshtein_normalized_primary": 0.2,
+            "lcs_length": 4,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN03_tab_accordion",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN04_tab_auth_terminal",
+            "delta9_depth": 3,
+            "levenshtein_raw": 5,
+            "levenshtein_normalized_primary": 1.0,
+            "lcs_length": 0,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN05_modal_then_menu",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN06_no_modal_twin",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN04_tab_auth_terminal",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN05_modal_then_menu",
+            "delta9_depth": 3,
+            "levenshtein_raw": 4,
+            "levenshtein_normalized_primary": 0.8,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN06_no_modal_twin",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN05_modal_then_menu",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.6,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN06_no_modal_twin",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 3,
+            "levenshtein_normalized_primary": 0.75,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN05_modal_then_menu",
+            "b": "SYN06_no_modal_twin",
+            "delta9_depth": 3,
+            "levenshtein_raw": 1,
+            "levenshtein_normalized_primary": 0.2,
+            "lcs_length": 4,
+            "interpretable": true
+          },
+          {
+            "a": "SYN05_modal_then_menu",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.4,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN06_no_modal_twin",
+            "b": "SYN07_reordered",
+            "delta9_depth": 3,
+            "levenshtein_raw": 2,
+            "levenshtein_normalized_primary": 0.5,
+            "lcs_length": 3,
+            "interpretable": true
+          }
+        ]
+      },
+      "delta9_indeterminate_cells": []
     },
     "D2_distance_positive_depth_tie": {
       "detector_id": "D2_DISTANCE_POSITIVE_DEPTH_TIE",
@@ -5621,16 +7132,6 @@
   },
   "ambiguous_definitions": [
     {
-      "id": "AMB-F01",
-      "variable": "normalized Levenshtein distance",
-      "source": "05_ANALYSIS_PLAN_v3.0.md §2-E ('normalized Levenshtein distance'), §8 ('service×service normalized edit-distance heatmap')",
-      "question": "정규화 분모가 정의되지 않았다. max(len(a),len(b)) 인가, len(a)+len(b) 인가, 아니면 Yujian-Bo 2d/(|a|+|b|+d) 인가?",
-      "why_it_matters": "세 후보는 같은 pair에 대해 서로 다른 값을 준다 (예: 서로소 len3-len3 → 1.0 / 0.5 / 0.667). heatmap 색과 pair 순위가 달라진다.",
-      "harness_behaviour": "정하지 않는다. distance_profile()이 세 후보값을 나란히 반환하고, 단일 'normalized' 스칼라는 emit 하지 않는다.",
-      "needs_ruling_from": "SSOT owner (A)",
-      "severity": "HIGH"
-    },
-    {
       "id": "AMB-F02",
       "variable": "LCS similarity",
       "source": "05_ANALYSIS_PLAN_v3.0.md §2-E ('LCS similarity')",
@@ -5641,22 +7142,13 @@
       "severity": "HIGH"
     },
     {
-      "id": "AMB-F03",
-      "variable": "activation_depth",
-      "source": "04_FLOW_CODEBOOK_v3.0.md §5 / §4; 03 §6",
-      "question": "AUTH_GATE / ENDPOINT_REACHED / ABSTAIN 이 'state-changing activation token' 에 포함되는가? 제외 목록(scroll/typing/passive/dismiss)에 없으므로 문자 그대로 읽으면 포함이고, '도달한다/충족된다/판정하지 않는다' 라는 토큰 정의상 사용자의 activation 이 아니므로 의미상 읽으면 제외다.",
-      "why_it_matters": "거의 모든 sequence 가 terminal token 을 하나 갖는다. 두 읽기는 depth 를 상수 1(또는 2)만큼 다르게 만든다. 절대값 비교와 median/IQR 보고가 바뀐다.",
-      "harness_behaviour": "두 읽기(literal_all_but_excluded / activation_only)를 모두 계산. 두 값이 일치할 때만 단일 primary 를 emit 한다.",
-      "needs_ruling_from": "SSOT owner (A)",
-      "severity": "HIGH"
-    },
-    {
       "id": "AMB-F04",
       "variable": "flow_step_count",
       "source": "04_FLOW_CODEBOOK_v3.0.md §5 / §4",
       "question": "(a) 어느 sequence 위에서 세는가 — task_flow_sequence 인가 experienced_flow_sequence 인가? DISMISS_OBSTRUCTION 은 포함/제외 어느 목록에도 없다. (b) ENDPOINT_REACHED / ABSTAIN 이 'task-intent action token' 인가?",
       "why_it_matters": "(a) base 선택이 곧 dismissal 포함 여부다. modal 이 있는 서비스의 step count 가 통째로 달라진다. (b) terminal token 포함 여부가 모든 값을 +1 시킨다.",
       "harness_behaviour": "base(task|experienced) × terminal(incl|excl) 4조합을 모두 emit. 단일 primary 는 4값이 모두 같을 때만.",
+      "delta9_did_not_close_this": "Δ9 는 activation_depth 만 확정했다. DISMISS_OBSTRUCTION 을 'forced_dismissal_count 로 별도 집계'한다고 적었으나 그것은 별도 변수의 존재를 말한 것이지 flow_step_count 의 base 를 정한 문장이 아니다. ENDPOINT_REACHED / ABSTAIN 이 'task-intent action token' 인지도 여전히 미정이다. **열린 채로 둔다.**",
       "needs_ruling_from": "SSOT owner (A)",
       "severity": "HIGH"
     },
@@ -5685,6 +7177,7 @@
       "variable": "ABSTAIN token 취급",
       "source": "04_FLOW_CODEBOOK_v3.0.md §2 (ABSTAIN), §4 endpoint_status(ABSTAIN)",
       "question": "ABSTAIN 이 sequence 안에 들어왔을 때 (a) derived count 에 세는가, (b) 그 sequence 를 distance/ signature 모집단에 넣는가, (c) 넣는다면 ABSTAIN 을 하나의 심볼로 취급하는가 wildcard 로 취급하는가?",
+      "delta9_partial_closure": "(a) 는 activation_depth 에 한해 닫혔다 — Δ9 가 ABSTAIN 을 OUT 으로 확정했다('행위가 아니라 판정 유보'). 그러나 flow_step_count 에서의 취급(AMB-F04 (b))과 (b)·(c) 는 Δ9·R12 어디에도 없다. **부분 폐쇄이며 항목은 열린 채로 둔다.**",
       "why_it_matters": "ABSTAIN 은 '경로 불확정' 선언이다. 이를 일반 token 으로 세면 불확정 경로가 확정 depth 값을 갖게 되고, distance 행렬에 확정값처럼 들어간다.",
       "harness_behaviour": "임의 판단하지 않는다. abstain_present=True 를 표시하고, derived 값은 include/exclude 두 읽기를 병기하며, 이 observation 이 들어간 모든 distance cell 에 interpretable=false 를 찍는다. 값 자체는 계산해 두되 해석 가능으로 표시하지 않는다.",
       "needs_ruling_from": "SSOT owner (A)",
@@ -5729,6 +7222,16 @@
       "harness_behaviour": "불변식을 강제하지 않는다. 위반을 TASK_EXPERIENCED_INCONSISTENT 로 '보고'만 하고 어느 쪽도 수정하지 않는다.",
       "needs_ruling_from": "SSOT owner (A)",
       "severity": "MEDIUM"
+    },
+    {
+      "id": "AMB-F12",
+      "variable": "activation_depth CONDITIONAL 3종 × fixture_input_mode",
+      "source": "T-A-V3-STEP1-006 .canonical_18_classification.CONDITIONAL.how_to_decide + Δ8-R5 (T-A-V3-STEP1-003)",
+      "question": "Δ9 는 DROPDOWN/MAP_PAN→포함, FREE_TEXT→제외, MIXED→'실제로 사용한 수단 기준' 만 정했다. (a) `OTHER` 는 어느 쪽인가? (b) MIXED 에서 '실제로 사용한 수단'을 토큰 단위로 기록하는 필드가 R5 스키마(`fixture_input_mode` 단일 값)에 없다. (c) fixture_input_mode 가 아예 기록되지 않은 관측의 CONDITIONAL 토큰은 어떻게 처리하는가?",
+      "why_it_matters": "CONDITIONAL 3종이 모두 등장하는 F2/F3 경로에서 activation_depth 가 최대 3 만큼 갈린다. 예: [SO,SD,SDATE,SQ,SR,ER] 은 DROPDOWN 이면 5, FREE_TEXT 면 2 다.",
+      "harness_behaviour": "채우지 않는다. OTHER·기록없음·수단미기록 MIXED 는 전부 `UNRESOLVED` 로 두고 activation_depth value 를 **보류**(None)한 뒤 `bounds_when_unresolved` 로 min(전부 제외)/max(전부 포함) 만 보고한다. 부재를 특정 수단으로 채우면 그것이 새 조작화다 (R13 의 '없음을 적으려면 관측 증거가 있어야 한다' 원칙과 같은 층).",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
     }
   ],
   "not_implemented": [

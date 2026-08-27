@@ -1,6 +1,6 @@
 {
   "verdict": "READY_WITH_AMBIGUITY",
-  "verdict_basis": "All fixtures and all mutations pass, so the implemented calculators are verified; the verdict is not plain READY because 13 definitions the lane was asked to implement are unresolved in SSOTV3, AMB-S01 (entry_zone has no frozen boundary) being blocking for zone derivation.",
+  "verdict_basis": "All fixtures and all mutations pass, so the implemented calculators are verified; the verdict is not plain READY because 17 definitions the lane was asked to implement are unresolved in SSOTV3, and AMB-S14..S17 recording what T-A-V3-STEP1-003 R7 left open after it closed AMB-S01/S02/S03. entry_zone derivation is no longer blocked — see r7_convergence.",
   "lane": "S — Spatial / Control-form / Menu-Reveal",
   "generated_by": "tools/v3_harness/lane_s_spatial_control_reveal.py",
   "base_sha": "7448184a811f5d7d8772f21488bb75418fde3313",
@@ -149,7 +149,14 @@
     "x_center_max": 0.6666666666666666,
     "source": "FIXTURE_ONLY_NOT_SSOT",
     "note": "Equal thirds. Chosen ONLY to exercise classifier mechanics on synthetic fixtures. This is NOT an SSOT boundary and must never be used to code real observations.",
-    "boundary_rule": "lower band is half-open [prev, cut); a value exactly on a cut goes to the UPPER band"
+    "boundary_rule": "lower band is half-open [prev, cut); a value exactly on a cut goes to the UPPER band",
+    "authority_ticket": null,
+    "authority_key": null,
+    "decided_at_kst": null,
+    "preregistration": null,
+    "observations_at_decision": null,
+    "recorded_in": null,
+    "ssot_original_modified": null
   },
   "ssot_zone_policy": null,
   "fixture_results": {
@@ -842,21 +849,30 @@
       "variable": "entry_zone",
       "issue": "04 §6 fixes NO numeric boundary for the zone bands. No x cut (LEFT|CENTER|RIGHT) and no y cut (TOP|MID|BOTTOM) appears anywhere in SSOTV3 (grep over 00-15 returns nothing). entry_zone therefore cannot be derived from (x_norm, y_norm) without new operationalization.",
       "lane_s_action": "classify_zone_geometric() REQUIRES an injected ZonePolicy and ships NO default. Fixtures use FIXTURE_ONLY_ZONE_POLICY, which the code refuses to apply to non-fixture data. Collected entry_zone values are validated + tabulated, never recomputed.",
-      "owner": "A (SSOT) — must freeze boundaries or declare entry_zone collector-coded only."
+      "owner": "A (SSOT) — must freeze boundaries or declare entry_zone collector-coded only.",
+      "resolution": "RESOLVED by T-A-V3-STEP1-003 R7 (successor delta Δ8). Cuts frozen at 1/3 and 2/3 on both axes, half-open bands. SSOTV3 04 §6 itself is still silent — the authority is the ticket, not the SSOT original.",
+      "resolution_source": "T-A-V3-STEP1-003 R7",
+      "resolution_preregistered": "관측 0건 상태에서 사전등록됨 — ticket.preregistration_status: 'REAL 접속 누적 0건. 어떤 flow 도 관측되지 않았다. 따라서 이 확정들은 전부 result-blind 다.'"
     },
     {
       "id": "AMB-S02",
       "variable": "entry_zone",
       "issue": "FLOATING and DRAWER are in the same enum as five viewport-region labels but are containment/positioning STATES, not regions. A control can simultaneously be inside a drawer and at the top-right of the viewport. No precedence rule is given.",
       "lane_s_action": "Geometry emits only the 5-region subset. State categories are pass-through only, and zone-vs-geometry cross-checks are skipped (reported as SKIPPED_STATE_ZONE) for them.",
-      "owner": "A (SSOT)."
+      "owner": "A (SSOT).",
+      "resolution": "RESOLVED by R7 `structural_overrides`: FLOATING/DRAWER outrank geometry and DRAWER outranks FLOATING. Geometry still never emits them; `classify_zone_r7` applies the precedence from separately collected structural inputs.",
+      "resolution_source": "T-A-V3-STEP1-003 R7",
+      "resolution_preregistered": "관측 0건 상태에서 사전등록됨 — ticket.preregistration_status: 'REAL 접속 누적 0건. 어떤 flow 도 관측되지 않았다. 따라서 이 확정들은 전부 result-blind 다.'"
     },
     {
       "id": "AMB-S03",
       "variable": "entry_zone",
       "issue": "Taxonomy is asymmetric: the TOP band is split three ways on x, MID and BOTTOM are not. Whether MID/BOTTOM ignore x, or whether TOP_* also covers non-top controls, is unstated.",
       "lane_s_action": "Implemented as: x is consulted only inside the TOP band. This follows the enum literally but is an inference, so it is registered here rather than presented as settled.",
-      "owner": "A (SSOT)."
+      "owner": "A (SSOT).",
+      "resolution": "RESOLVED by R7 `thresholds.MID_BOTTOM`: the x thirds apply inside the TOP band only. Lane S's earlier inference was correct, but it was an inference until R7.",
+      "resolution_source": "T-A-V3-STEP1-003 R7",
+      "resolution_preregistered": "관측 0건 상태에서 사전등록됨 — ticket.preregistration_status: 'REAL 접속 누적 0건. 어떤 flow 도 관측되지 않았다. 따라서 이 확정들은 전부 result-blind 다.'"
     },
     {
       "id": "AMB-S04",
@@ -927,6 +943,35 @@
       "issue": "Label equivalence (unicode/whitespace normalization, synonym map) is defined in 04 §5 for `label_relation` and is Lane L's deliverable, not Lane S's.",
       "lane_s_action": "The detector takes a REQUIRED `label_key_fn` injected by the caller. Lane S ships only `identity_label_key` (raw byte-exact, no normalization) so that Lane L's normalizer can be plugged in unchanged. Lane S reports the control_type divergence side only.",
       "owner": "L (label normalization)."
+    },
+    {
+      "id": "AMB-S14",
+      "variable": "entry_zone (R7 boundary_rule)",
+      "issue": "R7 contradicts itself on the y axis. `thresholds.y_bands` says `1/3 ≤ y < 2/3 → MID` and `boundary_rule` says `경계값은 하한 포함·상한 배제([a, b))로 통일한다` — both put y=1/3 in MID. The same `boundary_rule` sentence then adds `정확히 1/3 인 점은 TOP 이자 TOP_CENTER 다`, which puts y=1/3 in TOP. The x axis is unaffected: x=1/3 is TOP_CENTER under either reading.",
+      "lane_s_action": "Implemented the inequality table + the general half-open rule (y=1/3 → MID) because two of the three statements agree and the third contradicts the rule it is appended to. The alternative reading is computed side by side in `r7_boundary_example_contrast()` and every diverging point is listed. This lane does NOT decide which reading is A's intent.",
+      "owner": "A — the contradiction is inside R7 itself."
+    },
+    {
+      "id": "AMB-S15",
+      "variable": "entry_zone = FLOATING (R7 structural_overrides.FLOATING)",
+      "issue": "R7 defines FLOATING as `computed position 이 fixed 또는 sticky 이고 일반 흐름에서 벗어나 viewport 에 고정된 경우`. Whether the second clause is an independent observable or a restatement of the first is unstated, and it matters: `position: sticky` stays in normal flow and is viewport-fixed only while stuck, so under the strict reading a sticky header scrolled to its unstuck state is NOT FLOATING.",
+      "lane_s_action": "Both clauses are required inputs. When the position clause is satisfied but the flow/viewport clause is unobserved the result is AMBIGUOUS_FLOATING_UNDETERMINED — no zone, no guess. If A rules the second clause a restatement, the fix is one predicate.",
+      "owner": "A (ruling) / B (collector — decides whether the flow clause is even captured)."
+    },
+    {
+      "id": "AMB-S16",
+      "variable": "entry_zone = DRAWER (R7 structural_overrides.DRAWER)",
+      "issue": "R7 identifies the DRAWER container as `menu_dependency=1 을 만든 그 container`. It does not say what to do when a control is observed inside a reveal-requiring container while menu_dependency=0 — the two observations cannot both hold under R7's own wording, and R7 gives no precedence between them.",
+      "lane_s_action": "Reported as AMBIGUOUS_DRAWER_UNDETERMINED with the inconsistency named. Neither input is trusted over the other and no zone is emitted. Because DRAWER outranks FLOATING, an unresolved DRAWER also blocks a confirmed FLOATING from being returned.",
+      "second_gap": "R7 also does not say what an UNOBSERVED structural field means. This lane treats 'no signal at all' as 'the override does not fire' — otherwise every row missing these fields would be AMBIGUOUS and R7 would be inoperable, which contradicts R7's own `수집은 진행한다`. Only POSITIVE evidence (in_reveal_required=True, or computed_position in {fixed, sticky}) blocks geometry. That line is this lane's, not R7's; `override_eval.structural_inputs_observed` records per-field whether the input was ever collected so the choice is auditable and reversible.",
+      "owner": "A (ruling) / B (collector — may be a collection defect rather than a definition gap)."
+    },
+    {
+      "id": "AMB-S17",
+      "variable": "entry_x_norm / entry_y_norm outside [0,1] under R7",
+      "issue": "R7 freezes cut values but does not regulate coordinates outside the unit interval, which AMB-S04 already showed are reachable (control partially off-screen, or below the fold in state Sn). `y ≥ 2/3 → BOTTOM` read literally would swallow y=9.9 into BOTTOM; whether that is intended, or whether such a row should be excluded, is unstated.",
+      "lane_s_action": "Coordinates are still never clamped (AMB-S04 behaviour preserved). When an out-of-unit coordinate is one R7 actually CONSULTS in that band, the result is AMBIGUOUS_OUT_OF_UNIT_RANGE and no zone is emitted. When the out-of-unit axis is one R7 does not consult (x in MID/BOTTOM), the zone stands and the fact is flagged as OK_UNCONSULTED_AXIS_OUT_OF_RANGE rather than dropped.",
+      "owner": "A (SSOT) / B (collector)."
     }
   ],
   "counterexample_detectors": [
@@ -971,7 +1016,7 @@
   ],
   "limitation": "MAIN50 measurement data does not exist yet (A freeze pending, REAL unpublished). Every result in this file comes from synthetic fixtures with pre-planted answers; nothing here is an empirical finding about any service. The harness has never been executed against a real observation row, so schema-drift between this implementation and B's emitted columns is unverified. The single largest blocker is AMB-S01: entry_zone is listed as a Geometry variable but SSOTV3 defines no boundary, so zone derivation is inoperable until A freezes one or declares entry_zone collector-coded only; the fixture-only equal-thirds policy exercises mechanics and is not a proposal. Fixture coverage is structural, not distributional: fixtures confirm the calculators recover planted answers and reject planted non-cases, but say nothing about behaviour on real coordinate distributions, real Korean label strings, or real sequence lengths. Mutation testing covers ten single-primitive corruptions; a mutation the fixtures do not cover would go unnoticed.",
   "not_implemented": [
-    "entry_zone boundary values — SSOTV3 freezes none; Lane S must not invent them (AMB-S01).",
+    "entry_zone boundary values as an invention of this lane — SSOTV3 freezes none, and the cuts now used come from T-A-V3-STEP1-003 R7, not from Lane S (AMB-S01 resolved; see r7_convergence).",
     "FLOATING / DRAWER derivation — state categories with no geometric rule (AMB-S02).",
     "Any threshold, cut-off, or composite/weighted 'friction' score (05 §3 prohibits it).",
     "Label normalization, synonym mapping, label_relation — Lane L owns 04 §5 (AMB-S13).",
@@ -990,5 +1035,10 @@
     "no read or write of other lanes' files",
     "no git add/commit/push",
     "no gold label, no holdout access, no GO/NO-GO"
-  ]
+  ],
+  "r7_convergence": {
+    "verdict": "CONVERGED_WITH_AMBIGUITY",
+    "artifact": "results/harness/lane_s/LANE_S_R7_CONVERGENCE.json",
+    "note": "entry_zone derivation is no longer refused: T-A-V3-STEP1-003 R7 froze the cuts. AMB-S01/S02/S03 above carry their resolutions; AMB-S14..S17 are what R7 left open."
+  }
 }

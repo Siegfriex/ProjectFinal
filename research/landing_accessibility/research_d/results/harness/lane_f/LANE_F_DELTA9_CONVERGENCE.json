@@ -1,0 +1,1319 @@
+{
+  "artifact": "LANE_F_DELTA9_CONVERGENCE",
+  "lane": "F — Flow Topology / Depth",
+  "task": "Lane F 를 Δ9(activation_depth 18종 전수 분류)와 R12(sequence 거리 정규화)로 수렴",
+  "verdict": "CONVERGED_WITH_AMBIGUITY",
+  "verdict_basis": {
+    "rule": "CONVERGED 는 열린 모호성이 0 일 때만. Δ9·R12 는 AMB-F01·AMB-F03 을 닫았고 AMB-F12 를 새로 드러냈으므로 상한은 CONVERGED_WITH_AMBIGUITY 다.",
+    "fixture_checks_total": 304,
+    "fixture_checks_failed": 0,
+    "failed_check_ids": [],
+    "pre_delta9_regression_clean": true,
+    "mutants_total": 11,
+    "mutants_uncaught": [],
+    "restore_proof_failed_checks": 0,
+    "open_ambiguities": 10,
+    "closed_ambiguities": 2
+  },
+  "generated_at_utc": "2026-08-27T18:18:09.079305+00:00",
+  "authority": {
+    "delta9_ticket": "T-A-V3-STEP1-006",
+    "delta9_ticket_path": "/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2/tickets/T-A-V3-STEP1-006.json",
+    "r12_ticket": "T-A-V3-STEP1-007",
+    "r12_ticket_path": "/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2/tickets/T-A-V3-STEP1-007.json",
+    "ssot": "/home/sieg/projects-wsl/ProjectFinal/SSOTV3/04_FLOW_CODEBOOK_v3.0.md",
+    "ssot_sha256": {
+      "MANIFEST_v3.0.json": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+      "03_COLLECTION_MEASUREMENT_SPEC_v3.0.md": "13bb8b52abf3117638e2dd20107c0f4fd11b4f776b8163ead9a3714b0815b6e9",
+      "04_FLOW_CODEBOOK_v3.0.md": "aaae54bfb174b3d5f1da7dc0673bb8e1e1d846136012de09fd8ffb476dab0e43",
+      "05_ANALYSIS_PLAN_v3.0.md": "dfdeaa795322ca8088ab8fb09445f4ee35769107fa0badd2837558fda08b314c"
+    },
+    "ssot_unmodified": "SSOTV3 원본은 읽기만 했다. Δ9·Δ10 은 delta 로 기록되며 원본을 고치지 않는다.",
+    "base_sha": "ce97273129b404774736ec566603b9e2b969ecdf"
+  },
+  "delta9_verbatim": {
+    "general_criterion": {
+      "source": "T-A-V3-STEP1-006 .general_criterion",
+      "rule": "`activation_depth` 는 **사용자가 control 을 의도적으로 활성화해 상태 전이를 일으킨 토큰**의 수다.",
+      "three_tests": [
+        "① 사용자의 의도적 조작인가 (수동 로드·리다이렉트·대기는 아니다)",
+        "② control 활성화인가 (스크롤·타이핑은 control 활성화가 아니다)",
+        "③ 상태가 전이되는가 (단순 표시 변화가 아니라 화면·경로·컨테이너 상태가 바뀌는가)"
+      ],
+      "why_a_criterion_not_a_list": "목록만 두면 새 상황마다 티켓이 필요하다. 기준을 두면 목록은 기준의 적용례가 된다"
+    },
+    "submit_query": {
+      "source": "T-A-V3-STEP1-006 .headline / .the_apparent_conflict / .substantive_reason_for_including_submit",
+      "text": "headline: SUBMIT_QUERY 는 activation_depth 에 **포함된다.** 두 문서를 실제로 대조하면 충돌이 아니다 — 03 의 마지막 문장이 그렇게 읽힐 뿐이다.\nfinding: **두 제외 목록 어디에도 submit 이 없다.** 03 의 포함 목록 첫 항목 'link/button/tab/menu open' 에 submit control 은 button 으로 들어간다\nsubstantive_reason: submit 을 빼면, 검색어를 넣고 조회를 눌러야 진입하는 서비스와 control 을 바로 누르면 되는 서비스가 **같은 activation_depth 를 갖는다.** 그것은 실재하는 구조 차이를 지우는 것이며 v3 가 재려는 바로 그 차이다."
+    },
+    "canonical_18_classification": {
+      "IN_activation_depth": [
+        "OPEN_GLOBAL_MENU",
+        "OPEN_LOCAL_MENU",
+        "SWITCH_TAB",
+        "EXPAND_ACCORDION",
+        "SELECT_CATEGORY",
+        "SELECT_FUNCTION",
+        "SUBMIT_QUERY",
+        "SELECT_RESULT",
+        "OPEN_ITEM_DETAIL",
+        "OPEN_PLACE_DETAIL"
+      ],
+      "OUT_activation_depth": {
+        "INPUT_QUERY": "타이핑이다. 03·04 둘 다 명시 제외. flow_step_count 에는 포함",
+        "DISMISS_OBSTRUCTION": "03·04 둘 다 명시 제외. forced_dismissal_count 로 별도 집계",
+        "AUTH_GATE": "사용자 활성화가 아니라 **마주친 상태**다. 기준 ①에 걸린다. flow_step_count 에는 auth encounter 로 포함",
+        "ENDPOINT_REACHED": "종결 표지이지 행위가 아니다",
+        "ABSTAIN": "행위가 아니라 판정 유보다"
+      },
+      "CONDITIONAL": {
+        "tokens": [
+          "SELECT_ORIGIN",
+          "SELECT_DESTINATION",
+          "SELECT_DATE"
+        ],
+        "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+        "how_to_decide": "Δ8-R5 의 fixture_input_mode — DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외, MIXED 면 실제로 사용한 수단 기준",
+        "record": "각 관측에 depth_conditional_tokens 로 남긴다"
+      }
+    },
+    "conditional": {
+      "source": "T-A-V3-STEP1-006 .canonical_18_classification.CONDITIONAL",
+      "text": "tokens: SELECT_ORIGIN / SELECT_DESTINATION / SELECT_DATE\nrule: **입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다\nhow_to_decide: Δ8-R5 의 `fixture_input_mode` 가 이미 이것을 기록한다 — DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외, MIXED 면 실제로 사용한 수단 기준\nrecord: 각 관측에 `depth_conditional_tokens` 로 어느 토큰이 어떤 근거로 포함/제외됐는지 남긴다"
+    },
+    "family_asymmetry": {
+      "source": "T-A-V3-STEP1-006 .family_asymmetry_note",
+      "text": "이 규칙은 검색 기반 family(F2·F3·F5)의 depth 를 F1·F4 보다 구조적으로 높인다. 그것이 사실이다. 관측 0건 시점에 이 비대칭을 예상으로 기록한다 — 나중에 '예상대로였다'고 사후 서술하지 않기 위함이다."
+    },
+    "T_B_FC_013_confirmed": {
+      "source": "T-A-V3-STEP1-006 .T_B_FC_013_confirmed",
+      "text": "`OPEN_RIGHT_DRAWER` 는 04 §2 canonical 18종에 없다. 오른쪽 drawer 를 여는 행위는 `OPEN_GLOBAL_MENU` 또는 `OPEN_LOCAL_MENU` 토큰 + `nav_container_type=RIGHT_DRAWER` + `reveal_direction=RIGHT` 로 표현한다. **방향은 토큰이 아니라 별도 변수다**\n**상위 지시와 SSOT 가 다르면 SSOT 를 따른다.**"
+    }
+  },
+  "r12_verbatim": {
+    "source": "T-A-V3-STEP1-007 .R12_sequence_distance_normalization",
+    "text": "ruling: primary = `max(len(a), len(b))` 정규화. also_stored = [sum(len) 정규화, Yujian-Bo]. single_scalar: primary 만 단일 보고에 쓴다\nwhy_max_len: 값이 [0,1] 에 갇히고 1.0 이 '완전히 다름'을 뜻해 해석이 직관적이다 / 'normalized edit distance' 의 가장 흔한 관례 / sum(len) 은 비어 있지 않은 두 열에서 결코 1 에 도달하지 못해 차이를 과소보고한다\nyujian_bo_as_declared_sensitivity: **군집·MDS 를 수행할 때는 Yujian-Bo 를 병기한다.**\nstore_all_three: 셋 다 저장하고 primary 를 지정하는 것이지, 하나만 계산하는 것이 아니다"
+  },
+  "token_classification_table": [
+    {
+      "token": "OPEN_GLOBAL_MENU",
+      "codebook_definition_04_§2": "전역 햄버거/전체메뉴를 연다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "OPEN_LOCAL_MENU",
+      "codebook_definition_04_§2": "과업 영역 내부 메뉴/더보기를 연다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "SWITCH_TAB",
+      "codebook_definition_04_§2": "탭을 전환한다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "EXPAND_ACCORDION",
+      "codebook_definition_04_§2": "접힌 영역을 펼친다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "SELECT_CATEGORY",
+      "codebook_definition_04_§2": "과업 관련 카테고리/서비스군을 선택한다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "SELECT_FUNCTION",
+      "codebook_definition_04_§2": "사전지정 task 기능 control을 선택한다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "INPUT_QUERY",
+      "codebook_definition_04_§2": "검색어/번호/키워드를 입력한다",
+      "delta9_activation_depth": "OUT",
+      "delta9_reason": "타이핑이다. 03·04 둘 다 명시 제외. flow_step_count 에는 포함",
+      "flow_step_count": "포함 (Δ9 OUT 사유문: 'flow_step_count 에는 포함'; 04 §5 'typing ... 포함')",
+      "harness_behaviour": "무조건 제외"
+    },
+    {
+      "token": "SELECT_ORIGIN",
+      "codebook_definition_04_§2": "출발지를 선택한다",
+      "delta9_activation_depth": "CONDITIONAL",
+      "delta9_reason": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "fixture_input_mode 로 결정. DROPDOWN/MAP_PAN→포함, FREE_TEXT→제외, MIXED(수단 기록시)→그 수단, 그 외/미기록→UNRESOLVED 로 value 보류"
+    },
+    {
+      "token": "SELECT_DESTINATION",
+      "codebook_definition_04_§2": "도착지를 선택한다",
+      "delta9_activation_depth": "CONDITIONAL",
+      "delta9_reason": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "fixture_input_mode 로 결정. DROPDOWN/MAP_PAN→포함, FREE_TEXT→제외, MIXED(수단 기록시)→그 수단, 그 외/미기록→UNRESOLVED 로 value 보류"
+    },
+    {
+      "token": "SELECT_DATE",
+      "codebook_definition_04_§2": "날짜를 선택한다",
+      "delta9_activation_depth": "CONDITIONAL",
+      "delta9_reason": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "fixture_input_mode 로 결정. DROPDOWN/MAP_PAN→포함, FREE_TEXT→제외, MIXED(수단 기록시)→그 수단, 그 외/미기록→UNRESOLVED 로 value 보류"
+    },
+    {
+      "token": "SUBMIT_QUERY",
+      "codebook_definition_04_§2": "검색/조회 control을 실행한다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "포함 (04 §5 'typing/submit/auth encounter 포함'; 03 §6 'task-intent typing/submit 을 별도 token 으로 보존')",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "SELECT_RESULT",
+      "codebook_definition_04_§2": "결과 목록에서 항목을 선택한다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "OPEN_ITEM_DETAIL",
+      "codebook_definition_04_§2": "상품 상세를 연다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "OPEN_PLACE_DETAIL",
+      "codebook_definition_04_§2": "장소/기관 상세를 연다",
+      "delta9_activation_depth": "IN",
+      "delta9_reason": "Δ9 general_criterion 3검사를 모두 통과한다: 의도적 조작 · control 활성화 · 상태 전이. 03 §6 포함목록 'link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal' 의 적용례다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 계수"
+    },
+    {
+      "token": "DISMISS_OBSTRUCTION",
+      "codebook_definition_04_§2": "task path 진행에 필수인 방해요소를 허용된 닫기 control로 제거한다",
+      "delta9_activation_depth": "OUT",
+      "delta9_reason": "03·04 둘 다 명시 제외. forced_dismissal_count 로 별도 집계",
+      "flow_step_count": "미정 — Δ9 는 'forced_dismissal_count 로 별도 집계'라고만 적었다. flow_step_count base(task|experienced) 는 AMB-F04 로 열려 있다",
+      "harness_behaviour": "무조건 제외"
+    },
+    {
+      "token": "AUTH_GATE",
+      "codebook_definition_04_§2": "사전지정 task 경로에서 인증이 불가피해지는 상태에 도달한다",
+      "delta9_activation_depth": "OUT",
+      "delta9_reason": "사용자 활성화가 아니라 **마주친 상태**다. 기준 ①에 걸린다. flow_step_count 에는 auth encounter 로 포함",
+      "flow_step_count": "포함 (Δ9 OUT 사유문: 'flow_step_count 에는 auth encounter 로 포함')",
+      "harness_behaviour": "무조건 제외"
+    },
+    {
+      "token": "ENDPOINT_REACHED",
+      "codebook_definition_04_§2": "사전정의 endpoint가 충족된다",
+      "delta9_activation_depth": "OUT",
+      "delta9_reason": "종결 표지이지 행위가 아니다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 제외"
+    },
+    {
+      "token": "ABSTAIN",
+      "codebook_definition_04_§2": "증거 부족/다중 후보/경로 불확정으로 억지 판정하지 않는다",
+      "delta9_activation_depth": "OUT",
+      "delta9_reason": "행위가 아니라 판정 유보다",
+      "flow_step_count": "미정 (AMB-F04) — Δ9 는 flow_step_count 를 확정하지 않았다",
+      "harness_behaviour": "무조건 제외"
+    }
+  ],
+  "direction_is_not_a_token": {
+    "ruling": {
+      "example_rejected_token": "OPEN_RIGHT_DRAWER",
+      "correct_encoding": "OPEN_GLOBAL_MENU 또는 OPEN_LOCAL_MENU 토큰 + nav_container_type=RIGHT_DRAWER + reveal_direction=RIGHT",
+      "why": "방향을 토큰에 넣으면 sequence signature 가 방향까지 포함해 갈라진다. 그러면 '같은 구조, 다른 방향'과 '다른 구조'가 편집거리에서 구분되지 않는다",
+      "lane_f_obligation": "토큰 목록 밖 값은 스키마 오류로 보고한다 (validate_sequence -> NOT_IN_CANONICAL_18). nav_container_type / reveal_direction 자체는 Lane S 소관이며 여기서 계산하지 않는다",
+      "adopted_protocol": "상위 지시와 SSOT 가 다르면 SSOT 를 따른다"
+    },
+    "lane_f_check": [
+      {
+        "id": "INV05_open_right_drawer",
+        "sequence": [
+          "OPEN_RIGHT_DRAWER",
+          "SELECT_FUNCTION"
+        ],
+        "expect_valid": false,
+        "result": {
+          "label": "INV05_open_right_drawer",
+          "length": 2,
+          "valid": false,
+          "invalid_tokens": [
+            {
+              "index": 0,
+              "token": "OPEN_RIGHT_DRAWER",
+              "reason": "NOT_IN_CANONICAL_18",
+              "case_insensitive_match": null,
+              "note": null
+            }
+          ],
+          "abstain_present": false
+        }
+      }
+    ],
+    "confirmed": true,
+    "note": "Lane F 는 canonical 18 밖의 값을 NOT_IN_CANONICAL_18 스키마 오류로 보고한다. nav_container_type / reveal_direction 자체는 Lane S 소관이라 여기서 계산하지 않는다."
+  },
+  "submit_query_effect": {
+    "ruling": "SUBMIT_QUERY 는 activation_depth 에 포함된다 (T-A-V3-STEP1-006 headline).",
+    "what_lane_f_did_before": "이 하네스는 수렴 전에도 SUBMIT_QUERY 를 제외하지 않았다 — 제외목록은 (INPUT_QUERY, DISMISS_OBSTRUCTION) 뿐이었다. 따라서 **Δ9 의 submit 조항 자체는 Lane F 의 계수를 바꾸지 않는다.** Lane F 에서 실제로 값을 바꾼 것은 같은 티켓의 AMB-F03 확정(AUTH_GATE/ENDPOINT_REACHED/ABSTAIN 을 OUT 으로) 이며, 그것이 '두 읽기 병기 + value 보류'를 '단일 값'으로 바꿨다. 과대주장을 피하기 위해 이 사실을 먼저 적는다.",
+    "rows": [
+      {
+        "case_id": "SQE01_search_then_submit",
+        "sequence": [
+          "INPUT_QUERY",
+          "SUBMIT_QUERY",
+          "SELECT_RESULT",
+          "ENDPOINT_REACHED"
+        ],
+        "signature": "INPUT_QUERY > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": null,
+        "pre_convergence_readings_AMB_F03": {
+          "literal_all_but_excluded": 3,
+          "activation_only": 2
+        },
+        "pre_convergence_emitted_value": null,
+        "pre_convergence_state": "두 읽기가 갈려 value 를 보류(None)했다",
+        "post_convergence_delta9_value": 2,
+        "counterfactual_submit_excluded": 1,
+        "delta_from_excluding_submit": 1,
+        "why": "검색어를 넣고 조회를 눌러야 결과에 진입하는 경로"
+      },
+      {
+        "case_id": "SQE02_press_directly",
+        "sequence": [
+          "SELECT_RESULT",
+          "ENDPOINT_REACHED"
+        ],
+        "signature": "SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": null,
+        "pre_convergence_readings_AMB_F03": {
+          "literal_all_but_excluded": 2,
+          "activation_only": 1
+        },
+        "pre_convergence_emitted_value": null,
+        "pre_convergence_state": "두 읽기가 갈려 value 를 보류(None)했다",
+        "post_convergence_delta9_value": 1,
+        "counterfactual_submit_excluded": 1,
+        "delta_from_excluding_submit": 0,
+        "why": "control 을 바로 누르면 되는 경로. submit 을 빼면 SQE01 과 **구별되지 않는다**"
+      },
+      {
+        "case_id": "SQE03_family_SYN02",
+        "sequence": [
+          "INPUT_QUERY",
+          "SUBMIT_QUERY",
+          "SELECT_RESULT",
+          "OPEN_ITEM_DETAIL",
+          "ENDPOINT_REACHED"
+        ],
+        "signature": "INPUT_QUERY > SUBMIT_QUERY > SELECT_RESULT > OPEN_ITEM_DETAIL > ENDPOINT_REACHED",
+        "fixture_input_mode": null,
+        "pre_convergence_readings_AMB_F03": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "pre_convergence_emitted_value": null,
+        "pre_convergence_state": "두 읽기가 갈려 value 를 보류(None)했다",
+        "post_convergence_delta9_value": 3,
+        "counterfactual_submit_excluded": 2,
+        "delta_from_excluding_submit": 1,
+        "why": "family fixture SYN02 의 task_flow. 수렴 전 이 하네스는 4/3 두 읽기를 병기하고 value 를 보류했다"
+      },
+      {
+        "case_id": "SQE04_slot_search_SYN08",
+        "sequence": [
+          "SELECT_ORIGIN",
+          "SELECT_DESTINATION",
+          "SELECT_DATE",
+          "SUBMIT_QUERY",
+          "SELECT_RESULT",
+          "ENDPOINT_REACHED"
+        ],
+        "signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": "DROPDOWN",
+        "pre_convergence_readings_AMB_F03": {
+          "literal_all_but_excluded": 6,
+          "activation_only": 5
+        },
+        "pre_convergence_emitted_value": null,
+        "pre_convergence_state": "두 읽기가 갈려 value 를 보류(None)했다",
+        "post_convergence_delta9_value": 5,
+        "counterfactual_submit_excluded": 4,
+        "delta_from_excluding_submit": 1,
+        "why": "slot + submit 경로. F2·F3·F5 의 구조적 depth 우위(Δ9 family_asymmetry_note)가 여기서 나온다"
+      }
+    ],
+    "structural_claim": {
+      "claim": "submit 을 빼면 검색을 거쳐야 진입하는 서비스와 바로 누르는 서비스가 같은 depth 를 갖는다",
+      "search_path": "INPUT_QUERY > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+      "direct_path": "SELECT_RESULT > ENDPOINT_REACHED",
+      "delta9_depths": {
+        "search": 2,
+        "direct": 1
+      },
+      "delta9_distinguishes": true,
+      "counterfactual_depths": {
+        "search": 1,
+        "direct": 1
+      },
+      "counterfactual_collapses_them": true,
+      "verdict": "Δ9 의 주장이 fixture 에서 그대로 재현된다"
+    },
+    "preregistered_family_asymmetry": "이 규칙은 검색 기반 family(F2·F3·F5)의 depth 를 F1·F4 보다 구조적으로 높인다. 그것이 사실이다. 관측 0건 시점에 이 비대칭을 예상으로 기록한다 — 나중에 '예상대로였다'고 사후 서술하지 않기 위함이다."
+  },
+  "conditional_input_mode_effect": {
+    "ruling": "tokens: SELECT_ORIGIN / SELECT_DESTINATION / SELECT_DATE\nrule: **입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다\nhow_to_decide: Δ8-R5 의 `fixture_input_mode` 가 이미 이것을 기록한다 — DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외, MIXED 면 실제로 사용한 수단 기준\nrecord: 각 관측에 `depth_conditional_tokens` 로 어느 토큰이 어떤 근거로 포함/제외됐는지 남긴다",
+    "fixture_input_mode_enum": [
+      "FREE_TEXT",
+      "DROPDOWN",
+      "MIXED",
+      "MAP_PAN",
+      "OTHER"
+    ],
+    "resolution_map_ruled_by_delta9": {
+      "DROPDOWN": "IN",
+      "MAP_PAN": "IN",
+      "FREE_TEXT": "OUT"
+    },
+    "unruled_modes": [
+      "MIXED (토큰별 실제 사용 수단이 기록되지 않은 경우)",
+      "OTHER",
+      "미기록(None)"
+    ],
+    "rows": [
+      {
+        "case_id": "CD01_dropdown",
+        "signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": "DROPDOWN",
+        "conditional_token_modes": null,
+        "activation_depth_value": 5,
+        "unresolved_conditional_count": 0,
+        "bounds_when_unresolved": null,
+        "depth_conditional_tokens": [
+          {
+            "index": 0,
+            "token": "SELECT_ORIGIN",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "DROPDOWN",
+            "effective_mode": "DROPDOWN",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "IN",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          },
+          {
+            "index": 1,
+            "token": "SELECT_DESTINATION",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "DROPDOWN",
+            "effective_mode": "DROPDOWN",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "IN",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          },
+          {
+            "index": 2,
+            "token": "SELECT_DATE",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "DROPDOWN",
+            "effective_mode": "DROPDOWN",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "IN",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          }
+        ],
+        "why": "picker 로 세 값을 정한다 -> CONDITIONAL 3종 모두 포함. 2(hard) + 3 = 5"
+      },
+      {
+        "case_id": "CD02_free_text",
+        "signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": "FREE_TEXT",
+        "conditional_token_modes": null,
+        "activation_depth_value": 2,
+        "unresolved_conditional_count": 0,
+        "bounds_when_unresolved": null,
+        "depth_conditional_tokens": [
+          {
+            "index": 0,
+            "token": "SELECT_ORIGIN",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "FREE_TEXT",
+            "effective_mode": "FREE_TEXT",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "OUT",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          },
+          {
+            "index": 1,
+            "token": "SELECT_DESTINATION",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "FREE_TEXT",
+            "effective_mode": "FREE_TEXT",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "OUT",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          },
+          {
+            "index": 2,
+            "token": "SELECT_DATE",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "FREE_TEXT",
+            "effective_mode": "FREE_TEXT",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "OUT",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          }
+        ],
+        "why": "자유입력란 타이핑 -> 세 토큰 모두 제외. SUBMIT_QUERY + SELECT_RESULT 만 남아 2. **같은 token 열이 입력수단 때문에 5 와 2 로 갈린다 — 이것이 Δ9 가 재려는 조작량 차이다**"
+      },
+      {
+        "case_id": "CD03_map_pan",
+        "signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": "MAP_PAN",
+        "conditional_token_modes": null,
+        "activation_depth_value": 5,
+        "unresolved_conditional_count": 0,
+        "bounds_when_unresolved": null,
+        "depth_conditional_tokens": [
+          {
+            "index": 0,
+            "token": "SELECT_ORIGIN",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "MAP_PAN",
+            "effective_mode": "MAP_PAN",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "IN",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          },
+          {
+            "index": 1,
+            "token": "SELECT_DESTINATION",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "MAP_PAN",
+            "effective_mode": "MAP_PAN",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "IN",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          },
+          {
+            "index": 2,
+            "token": "SELECT_DATE",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "MAP_PAN",
+            "effective_mode": "MAP_PAN",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "IN",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          }
+        ],
+        "why": "지도 pan/zoom 도 control 활성화다 (Δ9: DROPDOWN/MAP_PAN 계열이면 포함)"
+      },
+      {
+        "case_id": "CD04_mixed_means_unrecorded",
+        "signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": "MIXED",
+        "conditional_token_modes": null,
+        "activation_depth_value": null,
+        "unresolved_conditional_count": 3,
+        "bounds_when_unresolved": {
+          "min_all_unresolved_excluded": 2,
+          "max_all_unresolved_included": 5
+        },
+        "depth_conditional_tokens": [
+          {
+            "index": 0,
+            "token": "SELECT_ORIGIN",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "MIXED",
+            "effective_mode": "MIXED",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "UNRESOLVED",
+            "ambiguity_ids": [
+              "AMB-F12"
+            ],
+            "reason": "Δ9: MIXED 는 '실제로 사용한 수단 기준'이다. 그 수단이 이 관측에 기록되지 않았다 — R5 의 fixture_input_mode 는 관측 단위 단일 값이라 토큰별 수단을 담지 못한다"
+          },
+          {
+            "index": 1,
+            "token": "SELECT_DESTINATION",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "MIXED",
+            "effective_mode": "MIXED",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "UNRESOLVED",
+            "ambiguity_ids": [
+              "AMB-F12"
+            ],
+            "reason": "Δ9: MIXED 는 '실제로 사용한 수단 기준'이다. 그 수단이 이 관측에 기록되지 않았다 — R5 의 fixture_input_mode 는 관측 단위 단일 값이라 토큰별 수단을 담지 못한다"
+          },
+          {
+            "index": 2,
+            "token": "SELECT_DATE",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "MIXED",
+            "effective_mode": "MIXED",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "UNRESOLVED",
+            "ambiguity_ids": [
+              "AMB-F12"
+            ],
+            "reason": "Δ9: MIXED 는 '실제로 사용한 수단 기준'이다. 그 수단이 이 관측에 기록되지 않았다 — R5 의 fixture_input_mode 는 관측 단위 단일 값이라 토큰별 수단을 담지 못한다"
+          }
+        ],
+        "why": "Δ9 는 MIXED 를 '실제로 사용한 수단 기준'으로 정했는데 R5 스키마에 그 수단을 담을 토큰별 필드가 없다 -> AMB-F12. 값을 채우지 않고 보류하고 구간만 보고한다"
+      },
+      {
+        "case_id": "CD05_mixed_means_recorded",
+        "signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": "MIXED",
+        "conditional_token_modes": {
+          "0": "DROPDOWN",
+          "1": "DROPDOWN",
+          "2": "FREE_TEXT"
+        },
+        "activation_depth_value": 4,
+        "unresolved_conditional_count": 0,
+        "bounds_when_unresolved": null,
+        "depth_conditional_tokens": [
+          {
+            "index": 0,
+            "token": "SELECT_ORIGIN",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "MIXED",
+            "effective_mode": "DROPDOWN",
+            "basis": "conditional_token_modes[0] (MIXED 에서 실제로 사용한 수단)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "IN",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          },
+          {
+            "index": 1,
+            "token": "SELECT_DESTINATION",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "MIXED",
+            "effective_mode": "DROPDOWN",
+            "basis": "conditional_token_modes[1] (MIXED 에서 실제로 사용한 수단)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "IN",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          },
+          {
+            "index": 2,
+            "token": "SELECT_DATE",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "MIXED",
+            "effective_mode": "FREE_TEXT",
+            "basis": "conditional_token_modes[2] (MIXED 에서 실제로 사용한 수단)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "OUT",
+            "reason": "Δ9 how_to_decide: DROPDOWN/MAP_PAN 계열이면 포함, FREE_TEXT 면 제외",
+            "ambiguity_ids": []
+          }
+        ],
+        "why": "실제 사용 수단이 토큰별로 기록되면 MIXED 도 확정된다: 출발지·도착지는 picker(포함), 날짜는 타이핑(제외) -> 2+2=4"
+      },
+      {
+        "case_id": "CD06_mode_absent",
+        "signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": null,
+        "conditional_token_modes": null,
+        "activation_depth_value": null,
+        "unresolved_conditional_count": 3,
+        "bounds_when_unresolved": {
+          "min_all_unresolved_excluded": 2,
+          "max_all_unresolved_included": 5
+        },
+        "depth_conditional_tokens": [
+          {
+            "index": 0,
+            "token": "SELECT_ORIGIN",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": null,
+            "effective_mode": null,
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "UNRESOLVED",
+            "ambiguity_ids": [
+              "AMB-F12"
+            ],
+            "reason": "fixture_input_mode 미기록. 부재를 특정 수단으로 채우지 않는다 (T-A-V3-STEP1-007 R13: '없음'을 적으려면 관측했다는 증거가 있어야 한다)"
+          },
+          {
+            "index": 1,
+            "token": "SELECT_DESTINATION",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": null,
+            "effective_mode": null,
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "UNRESOLVED",
+            "ambiguity_ids": [
+              "AMB-F12"
+            ],
+            "reason": "fixture_input_mode 미기록. 부재를 특정 수단으로 채우지 않는다 (T-A-V3-STEP1-007 R13: '없음'을 적으려면 관측했다는 증거가 있어야 한다)"
+          },
+          {
+            "index": 2,
+            "token": "SELECT_DATE",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": null,
+            "effective_mode": null,
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "UNRESOLVED",
+            "ambiguity_ids": [
+              "AMB-F12"
+            ],
+            "reason": "fixture_input_mode 미기록. 부재를 특정 수단으로 채우지 않는다 (T-A-V3-STEP1-007 R13: '없음'을 적으려면 관측했다는 증거가 있어야 한다)"
+          }
+        ],
+        "why": "fixture_input_mode 미기록. 부재를 FREE_TEXT 로도 DROPDOWN 으로도 채우지 않는다 (R13 원칙)"
+      },
+      {
+        "case_id": "CD07_mode_other",
+        "signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "fixture_input_mode": "OTHER",
+        "conditional_token_modes": null,
+        "activation_depth_value": null,
+        "unresolved_conditional_count": 3,
+        "bounds_when_unresolved": {
+          "min_all_unresolved_excluded": 2,
+          "max_all_unresolved_included": 5
+        },
+        "depth_conditional_tokens": [
+          {
+            "index": 0,
+            "token": "SELECT_ORIGIN",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "OTHER",
+            "effective_mode": "OTHER",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "UNRESOLVED",
+            "ambiguity_ids": [
+              "AMB-F12"
+            ],
+            "reason": "Δ9 는 fixture_input_mode=OTHER 에 대해 판정하지 않았다"
+          },
+          {
+            "index": 1,
+            "token": "SELECT_DESTINATION",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "OTHER",
+            "effective_mode": "OTHER",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "UNRESOLVED",
+            "ambiguity_ids": [
+              "AMB-F12"
+            ],
+            "reason": "Δ9 는 fixture_input_mode=OTHER 에 대해 판정하지 않았다"
+          },
+          {
+            "index": 2,
+            "token": "SELECT_DATE",
+            "classification": "CONDITIONAL",
+            "fixture_input_mode": "OTHER",
+            "effective_mode": "OTHER",
+            "basis": "fixture_input_mode (Δ8-R5)",
+            "rule": "**입력수단에 따라 갈린다.** picker/dropdown/calendar 처럼 control 을 활성화해야 값이 정해지면 activation_depth 에 **포함**한다. 자유입력란에 타이핑했다면 타이핑이므로 **제외**하고 flow_step_count 에만 넣는다",
+            "decision": "UNRESOLVED",
+            "ambiguity_ids": [
+              "AMB-F12"
+            ],
+            "reason": "Δ9 는 fixture_input_mode=OTHER 에 대해 판정하지 않았다"
+          }
+        ],
+        "why": "Δ9 는 OTHER 를 판정하지 않았다 -> AMB-F12"
+      },
+      {
+        "case_id": "CD08_no_conditional_token_present",
+        "signature": "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "fixture_input_mode": null,
+        "conditional_token_modes": null,
+        "activation_depth_value": 3,
+        "unresolved_conditional_count": 0,
+        "bounds_when_unresolved": null,
+        "depth_conditional_tokens": [],
+        "why": "CONDITIONAL 토큰이 없으면 fixture_input_mode 부재는 depth 에 아무 영향이 없다 — AMB-F12 를 필요 이상으로 번지게 하지 않는다"
+      }
+    ],
+    "same_sequence_splits": {
+      "sequence": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+      "DROPDOWN": 5,
+      "FREE_TEXT": 2,
+      "reading": "입력수단에 따라 depth 가 갈리는 것은 결함이 아니라 측정이다 (Δ9 why_this_is_correct)"
+    }
+  },
+  "distance_three_way": {
+    "ruling": "ruling: primary = `max(len(a), len(b))` 정규화. also_stored = [sum(len) 정규화, Yujian-Bo]. single_scalar: primary 만 단일 보고에 쓴다\nwhy_max_len: 값이 [0,1] 에 갇히고 1.0 이 '완전히 다름'을 뜻해 해석이 직관적이다 / 'normalized edit distance' 의 가장 흔한 관례 / sum(len) 은 비어 있지 않은 두 열에서 결코 1 에 도달하지 못해 차이를 과소보고한다\nyujian_bo_as_declared_sensitivity: **군집·MDS 를 수행할 때는 Yujian-Bo 를 병기한다.**\nstore_all_three: 셋 다 저장하고 primary 를 지정하는 것이지, 하나만 계산하는 것이 아니다",
+    "primary": "by_max_len",
+    "also_stored": [
+      "by_sum_len",
+      "yujian_bo_2d_over_sum_plus_d"
+    ],
+    "single_scalar_rule": "단일 보고에는 primary 만 쓴다. 나머지 둘은 저장되지만 스칼라로 emit 되지 않는다.",
+    "worked_example_from_the_ticket": {
+      "pair": "BND04 / BND06 — 서로소 pair",
+      "by_max_len": 1.0,
+      "by_sum_len": 0.5,
+      "yujian_bo": 0.6666666667,
+      "note": "R12 가 AMB-F01 을 제기할 때 든 바로 그 1.0 / 0.5 / 0.667 이다"
+    },
+    "rows": [
+      {
+        "pair_id": "BND04_len1_different",
+        "a": "SELECT_FUNCTION",
+        "b": "SELECT_RESULT",
+        "levenshtein_raw": 1,
+        "by_max_len_PRIMARY": 1.0,
+        "by_sum_len_stored": 0.5,
+        "yujian_bo_stored": 0.6666666667,
+        "three_values_agree": false,
+        "single_reported_scalar": 1.0,
+        "emitted_primary_key": "by_max_len",
+        "lcs_similarity_primary": null
+      },
+      {
+        "pair_id": "BND06_fully_disjoint_len3",
+        "a": "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION",
+        "b": "INPUT_QUERY > SUBMIT_QUERY > SELECT_RESULT",
+        "levenshtein_raw": 3,
+        "by_max_len_PRIMARY": 1.0,
+        "by_sum_len_stored": 0.5,
+        "yujian_bo_stored": 0.6666666667,
+        "three_values_agree": false,
+        "single_reported_scalar": 1.0,
+        "emitted_primary_key": "by_max_len",
+        "lcs_similarity_primary": null
+      },
+      {
+        "pair_id": "BND07_prefix_vs_extension",
+        "a": "OPEN_GLOBAL_MENU > SELECT_FUNCTION",
+        "b": "OPEN_GLOBAL_MENU > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "levenshtein_raw": 1,
+        "by_max_len_PRIMARY": 0.3333333333,
+        "by_sum_len_stored": 0.2,
+        "yujian_bo_stored": 0.3333333333,
+        "three_values_agree": false,
+        "single_reported_scalar": 0.3333333333,
+        "emitted_primary_key": "by_max_len",
+        "lcs_similarity_primary": null
+      },
+      {
+        "pair_id": "BND01_both_empty",
+        "a": "",
+        "b": "",
+        "levenshtein_raw": 0,
+        "by_max_len_PRIMARY": null,
+        "by_sum_len_stored": null,
+        "yujian_bo_stored": null,
+        "three_values_agree": true,
+        "single_reported_scalar": null,
+        "emitted_primary_key": "by_max_len",
+        "lcs_similarity_primary": null
+      },
+      {
+        "pair_id": "FAM_SYN01_vs_SYN07",
+        "a": "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "b": "SELECT_CATEGORY > OPEN_GLOBAL_MENU > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "levenshtein_raw": 2,
+        "by_max_len_PRIMARY": 0.5,
+        "by_sum_len_stored": 0.25,
+        "yujian_bo_stored": 0.4,
+        "three_values_agree": false,
+        "single_reported_scalar": 0.5,
+        "emitted_primary_key": "by_max_len",
+        "lcs_similarity_primary": null
+      }
+    ],
+    "lcs_similarity_still_open": {
+      "ambiguity_id": "AMB-F02",
+      "state": "R12 는 Levenshtein 정규화만 확정했다. LCS similarity 는 세 후보(over_max_len / over_min_len / dice)를 그대로 병기하고 primary 를 emit 하지 않는다."
+    },
+    "zero_denominator_still_open": {
+      "ambiguity_id": "AMB-F10",
+      "state": "두 열이 모두 비면 max(len)=0 이라 primary 도 정의되지 않는다. R12 는 이 경우를 다루지 않았다. 0.0 으로 채우지 않고 None 을 반환한다."
+    },
+    "declared_sensitivity": "군집·MDS 를 수행할 때는 Yujian-Bo 를 병기한다 (R12). 이 하네스는 clustering 을 구현하지 않으므로 그 조항은 미이행 상태로 남는다."
+  },
+  "mutation_results": [
+    {
+      "mutant_id": "MUT01_depth_counts_dismissal",
+      "target": "activation_depth",
+      "breaks": "04 §5 / 03 §6 — popup dismiss must be excluded from depth",
+      "caught": true,
+      "failed_check_count": 2,
+      "sample_failed_checks": [
+        "SYN05_modal_then_menu::activation_depth_delta9_base_invariant",
+        "SYN05_modal_then_menu::activation_depth_base_invariant"
+      ]
+    },
+    {
+      "mutant_id": "MUT02_menu_dependency_always_true",
+      "target": "menu_dependency",
+      "breaks": "04 §5 — reveal token must actually be present",
+      "caught": true,
+      "failed_check_count": 8,
+      "sample_failed_checks": [
+        "SYN02_search_item::menu_dependency_readings",
+        "SYN02_search_item::menu_dependency_value",
+        "SYN04_tab_auth_terminal::menu_dependency_readings",
+        "SYN04_tab_auth_terminal::menu_dependency_value",
+        "SYN08_transport_slots::menu_dependency_readings",
+        "SYN08_transport_slots::menu_dependency_value"
+      ]
+    },
+    {
+      "mutant_id": "MUT03_levenshtein_length_only",
+      "target": "levenshtein",
+      "breaks": "05 §2-E — edit distance must be order/content sensitive",
+      "caught": true,
+      "failed_check_count": 17,
+      "sample_failed_checks": [
+        "dist::SYN01_menu_category|SYN07_reordered|task::levenshtein_raw",
+        "dist::SYN02_search_item|SYN04_tab_auth_terminal|task::levenshtein_raw",
+        "BND04_len1_different::levenshtein_raw",
+        "BND04_len1_different::lev_by_max_len",
+        "BND04_len1_different::lev_by_sum_len",
+        "BND04_len1_different::lev_yujian_bo"
+      ]
+    },
+    {
+      "mutant_id": "MUT04_flow_step_count_drops_typing",
+      "target": "flow_step_count",
+      "breaks": "04 §5 — typing/submit/auth are INCLUDED in flow_step_count (this is exactly where it differs from activation_depth; unifying the two lists is the failure mode being guarded)",
+      "caught": true,
+      "failed_check_count": 1,
+      "sample_failed_checks": [
+        "SYN02_search_item::flow_step_count_readings"
+      ]
+    },
+    {
+      "mutant_id": "MUT05_zero_denominator_as_zero",
+      "target": "_div",
+      "breaks": "AMB-F10 — 0/0 must not be reported as 0.0 (would read as 'identical flows')",
+      "caught": true,
+      "failed_check_count": 9,
+      "sample_failed_checks": [
+        "BND01_both_empty::lev_by_max_len",
+        "BND01_both_empty::lev_by_sum_len",
+        "BND01_both_empty::lev_yujian_bo",
+        "BND01_both_empty::lcs_over_max_len",
+        "BND01_both_empty::lcs_over_min_len",
+        "BND01_both_empty::lcs_dice"
+      ]
+    },
+    {
+      "mutant_id": "MUT06_signature_collapse",
+      "target": "_sig",
+      "breaks": "04 §3 — task_flow and experienced_flow must stay separate",
+      "caught": true,
+      "failed_check_count": 7,
+      "sample_failed_checks": [
+        "DC09_D3_pos_modal_one_side::D3",
+        "DC13_D3_nonattributable::D3_NONATTRIB",
+        "FAMILY::D1_positives_activation_only_task_base",
+        "FAMILY::D1_positives_literal_task_base",
+        "FAMILY::D1_positives_delta9_task_base",
+        "FAMILY::D1_negatives_count"
+      ]
+    },
+    {
+      "mutant_id": "MUT07_lcs_length_blind",
+      "target": "lcs_length",
+      "breaks": "05 §2-E — LCS must reflect shared content; tier2 (LCS==0) depends on it",
+      "caught": true,
+      "failed_check_count": 12,
+      "sample_failed_checks": [
+        "dist::SYN01_menu_category|SYN07_reordered|task::lcs_length",
+        "dist::SYN02_search_item|SYN04_tab_auth_terminal|task::lcs_length",
+        "BND04_len1_different::lcs_length",
+        "BND04_len1_different::lcs_over_max_len",
+        "BND04_len1_different::lcs_over_min_len",
+        "BND04_len1_different::lcs_dice"
+      ]
+    },
+    {
+      "mutant_id": "MUT08_depth_excludes_submit_query",
+      "target": "activation_depth",
+      "breaks": "Δ9 (T-A-V3-STEP1-006) — SUBMIT_QUERY 는 activation_depth 에 포함된다. 빼면 검색을 거쳐야 진입하는 서비스와 바로 누르는 서비스가 같은 depth 를 갖는다",
+      "caught": true,
+      "failed_check_count": 15,
+      "sample_failed_checks": [
+        "SYN02_search_item::activation_depth_delta9_value",
+        "SYN08_transport_slots::activation_depth_delta9_value",
+        "CD01_dropdown::value",
+        "CD02_free_text::value",
+        "CD03_map_pan::value",
+        "CD04_mixed_means_unrecorded::bounds"
+      ]
+    },
+    {
+      "mutant_id": "MUT09_conditional_always_included",
+      "target": "activation_depth",
+      "breaks": "Δ9 CONDITIONAL — SELECT_ORIGIN/DESTINATION/DATE 는 fixture_input_mode 에 따라 갈린다. 무조건 포함하면 FREE_TEXT 로 타이핑한 값이 activation 으로 집계된다",
+      "caught": true,
+      "failed_check_count": 19,
+      "sample_failed_checks": [
+        "CD01_dropdown::conditional_record_complete",
+        "CD02_free_text::value",
+        "CD02_free_text::conditional_record_complete",
+        "CD03_map_pan::conditional_record_complete",
+        "CD04_mixed_means_unrecorded::value",
+        "CD04_mixed_means_unrecorded::unresolved_count"
+      ]
+    },
+    {
+      "mutant_id": "MUT10_auth_gate_counts_as_activation",
+      "target": "activation_depth",
+      "breaks": "Δ9 — AUTH_GATE 는 '사용자 활성화가 아니라 마주친 상태'다 (기준 ①)",
+      "caught": true,
+      "failed_check_count": 4,
+      "sample_failed_checks": [
+        "SYN04_tab_auth_terminal::activation_depth_delta9_value",
+        "FAMILY::D1_positives_delta9_task_base",
+        "FAMILY::D1_positives_delta9_experienced_base",
+        "FAMILY::D1_delta9_matches_activation_only_reading"
+      ]
+    },
+    {
+      "mutant_id": "MUT11_distance_primary_is_sum_len",
+      "target": "R12_PRIMARY_NORMALIZATION",
+      "breaks": "R12 (T-A-V3-STEP1-007) — primary 는 max(len) 정규화다. sum(len) 은 비어 있지 않은 두 열에서 결코 1 에 도달하지 못해 차이를 과소보고한다",
+      "caught": true,
+      "failed_check_count": 5,
+      "sample_failed_checks": [
+        "BND04_len1_different::R12_primary_equals_by_max_len",
+        "BND06_fully_disjoint_len3::R12_primary_equals_by_max_len",
+        "BND07_prefix_vs_extension::R12_primary_equals_by_max_len",
+        "R12::primary_key_is_by_max_len",
+        "R12::primary_is_the_max_len_value"
+      ]
+    },
+    {
+      "mutant_id": "RESTORE_PROOF",
+      "target": null,
+      "breaks": "n/a — verifies every mutation was reverted",
+      "caught": null,
+      "failed_check_count": 0,
+      "sample_failed_checks": []
+    }
+  ],
+  "regression": {
+    "base_sha_of_frozen_set": "ce97273129b404774736ec566603b9e2b969ecdf",
+    "pre_delta9_check_count": 202,
+    "frozen_id_list_sha256": "8db2dbacbe2b9825e010cd49096349258d63210d14ff1b9378869073f9c33649",
+    "frozen_id_list_sha256_matches_recorded": true,
+    "still_present": 202,
+    "missing_after_convergence": [],
+    "failing_after_convergence": [],
+    "regression_clean": true,
+    "checks_added_by_convergence": 102,
+    "added_check_ids": [
+      "BND01_both_empty::R12_lcs_has_no_primary",
+      "BND01_both_empty::R12_primary_equals_by_max_len",
+      "BND02_empty_vs_len1::R12_lcs_has_no_primary",
+      "BND02_empty_vs_len1::R12_primary_equals_by_max_len",
+      "BND03_len1_identical::R12_lcs_has_no_primary",
+      "BND03_len1_identical::R12_primary_equals_by_max_len",
+      "BND04_len1_different::R12_lcs_has_no_primary",
+      "BND04_len1_different::R12_primary_equals_by_max_len",
+      "BND05_fully_identical_len4::R12_lcs_has_no_primary",
+      "BND05_fully_identical_len4::R12_primary_equals_by_max_len",
+      "BND06_fully_disjoint_len3::R12_lcs_has_no_primary",
+      "BND06_fully_disjoint_len3::R12_primary_equals_by_max_len",
+      "BND07_prefix_vs_extension::R12_lcs_has_no_primary",
+      "BND07_prefix_vs_extension::R12_primary_equals_by_max_len",
+      "CD01_dropdown::bounds",
+      "CD01_dropdown::conditional_record_complete",
+      "CD01_dropdown::unresolved_count",
+      "CD01_dropdown::value",
+      "CD02_free_text::bounds",
+      "CD02_free_text::conditional_record_complete",
+      "CD02_free_text::unresolved_count",
+      "CD02_free_text::value",
+      "CD03_map_pan::bounds",
+      "CD03_map_pan::conditional_record_complete",
+      "CD03_map_pan::unresolved_count",
+      "CD03_map_pan::value",
+      "CD04_mixed_means_unrecorded::bounds",
+      "CD04_mixed_means_unrecorded::conditional_record_complete",
+      "CD04_mixed_means_unrecorded::unresolved_count",
+      "CD04_mixed_means_unrecorded::value",
+      "CD05_mixed_means_recorded::bounds",
+      "CD05_mixed_means_recorded::conditional_record_complete",
+      "CD05_mixed_means_recorded::unresolved_count",
+      "CD05_mixed_means_recorded::value",
+      "CD06_mode_absent::bounds",
+      "CD06_mode_absent::conditional_record_complete",
+      "CD06_mode_absent::unresolved_count",
+      "CD06_mode_absent::value",
+      "CD07_mode_other::bounds",
+      "CD07_mode_other::conditional_record_complete",
+      "CD07_mode_other::unresolved_count",
+      "CD07_mode_other::value",
+      "CD08_no_conditional_token_present::bounds",
+      "CD08_no_conditional_token_present::conditional_record_complete",
+      "CD08_no_conditional_token_present::unresolved_count",
+      "CD08_no_conditional_token_present::value",
+      "CD::dropdown_vs_free_text_differ",
+      "DELTA9::abstain_is_OUT",
+      "DELTA9::auth_gate_is_OUT",
+      "DELTA9::classifies_exactly_18",
+      "DELTA9::dismiss_is_OUT",
+      "DELTA9::endpoint_reached_is_OUT",
+      "DELTA9::flow_step_count_list_not_unified",
+      "DELTA9::in_out_conditional_sizes",
+      "DELTA9::input_query_is_OUT",
+      "DELTA9::no_direction_token_in_table",
+      "DELTA9::slot_tokens_are_CONDITIONAL",
+      "DELTA9::submit_in_depth_and_in_step_count",
+      "DELTA9::submit_query_is_IN",
+      "FAMILY::D1_delta9_indeterminate_cells",
+      "FAMILY::D1_delta9_matches_activation_only_reading",
+      "FAMILY::D1_positives_delta9_experienced_base",
+      "FAMILY::D1_positives_delta9_task_base",
+      "INV05_open_right_drawer::reason",
+      "INV05_open_right_drawer::valid",
+      "R12::also_stored_excludes_primary",
+      "R12::lcs_similarity_still_has_no_primary",
+      "R12::primary_is_the_max_len_value",
+      "R12::primary_key_is_by_max_len",
+      "R12::three_normalizations_all_stored",
+      "R12::three_normalizations_disagree_on_same_pair",
+      "R12::zero_denominator_still_undefined",
+      "SQE01_search_then_submit::delta9_depth",
+      "SQE01_search_then_submit::depth_if_submit_excluded",
+      "SQE02_press_directly::delta9_depth",
+      "SQE02_press_directly::depth_if_submit_excluded",
+      "SQE03_family_SYN02::delta9_depth",
+      "SQE03_family_SYN02::depth_if_submit_excluded",
+      "SQE04_slot_search_SYN08::delta9_depth",
+      "SQE04_slot_search_SYN08::depth_if_submit_excluded",
+      "SQE::delta9_distinguishes_search_from_direct",
+      "SQE::excluding_submit_collapses_them",
+      "SYN01_menu_category::activation_depth_delta9_base_invariant",
+      "SYN01_menu_category::activation_depth_delta9_value",
+      "SYN02_search_item::activation_depth_delta9_base_invariant",
+      "SYN02_search_item::activation_depth_delta9_value",
+      "SYN03_tab_accordion::activation_depth_delta9_base_invariant",
+      "SYN03_tab_accordion::activation_depth_delta9_value",
+      "SYN04_tab_auth_terminal::activation_depth_delta9_base_invariant",
+      "SYN04_tab_auth_terminal::activation_depth_delta9_value",
+      "SYN05_modal_then_menu::activation_depth_delta9_base_invariant",
+      "SYN05_modal_then_menu::activation_depth_delta9_value",
+      "SYN06_no_modal_twin::activation_depth_delta9_base_invariant",
+      "SYN06_no_modal_twin::activation_depth_delta9_value",
+      "SYN07_reordered::activation_depth_delta9_base_invariant",
+      "SYN07_reordered::activation_depth_delta9_value",
+      "SYN08_transport_slots::activation_depth_delta9_base_invariant",
+      "SYN08_transport_slots::activation_depth_delta9_value",
+      "SYN09_abstain::activation_depth_delta9_base_invariant",
+      "SYN09_abstain::activation_depth_delta9_value",
+      "SYN10_empty::activation_depth_delta9_base_invariant",
+      "SYN10_empty::activation_depth_delta9_value"
+    ],
+    "total_checks_now": 304,
+    "note": "202/202 이 사라지지 않고 그대로 통과하는지를 id 단위로 확인한다. 기대값도 바꾸지 않았다."
+  },
+  "ambiguities_closed": [
+    {
+      "id": "AMB-F01",
+      "variable": "normalized Levenshtein distance",
+      "question": "정규화 분모가 정의되지 않았다. max(len(a),len(b)) 인가, len(a)+len(b) 인가, 아니면 Yujian-Bo 2d/(|a|+|b|+d) 인가?",
+      "closed_by": "T-A-V3-STEP1-007 .R12_sequence_distance_normalization",
+      "ruling": "primary = max(len(a), len(b)) 정규화. sum(len) 과 Yujian-Bo 는 함께 저장하되 단일 보고에는 primary 만 쓴다.",
+      "harness_behaviour_before": "세 후보를 병기하고 단일 'normalized' 스칼라를 emit 하지 않았다.",
+      "harness_behaviour_after": "세 후보를 여전히 전부 저장하고, `levenshtein_normalized_primary` 단일 스칼라를 by_max_len 으로 emit 한다.",
+      "residual": "군집·MDS 를 수행할 때 Yujian-Bo 를 병기하라는 R12 의 선언적 민감도 조항은 clustering 을 구현하지 않은 이 하네스의 범위 밖이다 (NOT_IMPLEMENTED 에 그대로 남는다)."
+    },
+    {
+      "id": "AMB-F03",
+      "variable": "activation_depth",
+      "question": "AUTH_GATE / ENDPOINT_REACHED / ABSTAIN 이 'state-changing activation token' 에 포함되는가?",
+      "closed_by": "T-A-V3-STEP1-006 .general_criterion + .canonical_18_classification",
+      "ruling": "셋 다 OUT. AUTH_GATE 는 '사용자 활성화가 아니라 마주친 상태'라 기준 ①에 걸리고, ENDPOINT_REACHED 는 '종결 표지이지 행위가 아니'며, ABSTAIN 은 '행위가 아니라 판정 유보'다. 즉 Δ9 는 기존 두 읽기 중 `activation_only` 쪽을 확정했다.",
+      "harness_behaviour_before": "literal_all_but_excluded / activation_only 두 읽기를 병기하고, 둘이 갈리면 value=None 으로 보류했다.",
+      "harness_behaviour_after": "Δ9 분류표로 단일 값을 emit 한다. 두 읽기 기록은 `readings` 에 감사 추적용으로만 남는다.",
+      "residual": "AUTH_GATE 가 flow_step_count 에 auth encounter 로 포함된다는 것은 Δ9 가 재확인했다. `auth_gate_stage`(NONE/BEFORE_TASK_DISCOVERY/... + R13 UNDETERMINED) 판정은 Lane A 소관이며 여기서 구현하지 않는다."
+    }
+  ],
+  "ambiguities_still_open": [
+    {
+      "id": "AMB-F02",
+      "variable": "LCS similarity",
+      "source": "05_ANALYSIS_PLAN_v3.0.md §2-E ('LCS similarity')",
+      "question": "LCS 길이를 무엇으로 나눠 similarity 로 만드는지 정의되지 않았다. L/max(len), L/min(len), 2L/(|a|+|b|) 중 어느 것인가?",
+      "why_it_matters": "길이가 다른 sequence pair에서 값이 크게 갈린다. prefix pair([A,B] vs [A,B,C])는 0.667 / 1.0 / 0.8.",
+      "harness_behaviour": "세 후보를 나란히 반환. 단일 similarity 스칼라 없음.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F04",
+      "variable": "flow_step_count",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5 / §4",
+      "question": "(a) 어느 sequence 위에서 세는가 — task_flow_sequence 인가 experienced_flow_sequence 인가? DISMISS_OBSTRUCTION 은 포함/제외 어느 목록에도 없다. (b) ENDPOINT_REACHED / ABSTAIN 이 'task-intent action token' 인가?",
+      "why_it_matters": "(a) base 선택이 곧 dismissal 포함 여부다. modal 이 있는 서비스의 step count 가 통째로 달라진다. (b) terminal token 포함 여부가 모든 값을 +1 시킨다.",
+      "harness_behaviour": "base(task|experienced) × terminal(incl|excl) 4조합을 모두 emit. 단일 primary 는 4값이 모두 같을 때만.",
+      "delta9_did_not_close_this": "Δ9 는 activation_depth 만 확정했다. DISMISS_OBSTRUCTION 을 'forced_dismissal_count 로 별도 집계'한다고 적었으나 그것은 별도 변수의 존재를 말한 것이지 flow_step_count 의 base 를 정한 문장이 아니다. ENDPOINT_REACHED / ABSTAIN 이 'task-intent action token' 인지도 여전히 미정이다. **열린 채로 둔다.**",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F05",
+      "variable": "menu_dependency",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5 ('... 등 reveal token'), §4 ('OPEN/REVEAL 계열 token')",
+      "question": "reveal token 집합이 열려 있다('등', '계열'). SWITCH_TAB 이 reveal token 인가? nav_container_type 에는 TOP_DROPDOWN/INLINE_EXPAND 가 있어 tab 전환이 container reveal 로 읽힐 여지가 있다.",
+      "why_it_matters": "탭 기반 진입 서비스의 menu dependency rate(§2-A primary metric)가 통째로 뒤집힌다.",
+      "harness_behaviour": "explicit3 / incl_switch_tab 두 읽기를 모두 emit. 일치할 때만 단일 primary.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F06",
+      "variable": "nav_container_depth",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5 ('task control 노출 전 nested reveal 수'), §4 ('task control 노출 전 menu/drawer expansion 수')",
+      "question": "token sequence 만으로는 계산 불가능하다. 'task control 노출' 시점을 표시하는 token 이 canonical 18 에 없다. 또한 §5 는 'nested reveal', §4 는 'menu/drawer expansion' 이라 두 문구가 nesting 요구 여부에서 어긋난다.",
+      "why_it_matters": "값 자체가 정의되지 않으므로 임의 규칙(예: '첫 SELECT_FUNCTION 이전')을 넣으면 그것이 새 조작화가 된다.",
+      "harness_behaviour": "단일 값을 emit 하지 않는다. 후보 계산 3종을 candidate 로만 병기하고 not_implemented 에 등재한다. fact_flow_step 의 nav_container_type/reveal 증거가 sequence 와 함께 들어와야 계산 가능.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F07",
+      "variable": "ABSTAIN token 취급",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §2 (ABSTAIN), §4 endpoint_status(ABSTAIN)",
+      "question": "ABSTAIN 이 sequence 안에 들어왔을 때 (a) derived count 에 세는가, (b) 그 sequence 를 distance/ signature 모집단에 넣는가, (c) 넣는다면 ABSTAIN 을 하나의 심볼로 취급하는가 wildcard 로 취급하는가?",
+      "delta9_partial_closure": "(a) 는 activation_depth 에 한해 닫혔다 — Δ9 가 ABSTAIN 을 OUT 으로 확정했다('행위가 아니라 판정 유보'). 그러나 flow_step_count 에서의 취급(AMB-F04 (b))과 (b)·(c) 는 Δ9·R12 어디에도 없다. **부분 폐쇄이며 항목은 열린 채로 둔다.**",
+      "why_it_matters": "ABSTAIN 은 '경로 불확정' 선언이다. 이를 일반 token 으로 세면 불확정 경로가 확정 depth 값을 갖게 되고, distance 행렬에 확정값처럼 들어간다.",
+      "harness_behaviour": "임의 판단하지 않는다. abstain_present=True 를 표시하고, derived 값은 include/exclude 두 읽기를 병기하며, 이 observation 이 들어간 모든 distance cell 에 interpretable=false 를 찍는다. 값 자체는 계산해 두되 해석 가능으로 표시하지 않는다.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F08",
+      "variable": "distance base sequence",
+      "source": "05_ANALYSIS_PLAN_v3.0.md §2-E, §8",
+      "question": "sequence signature / Levenshtein / LCS 를 task_flow_sequence 위에서 계산하는가 experienced_flow_sequence 위에서 계산하는가? §2-E 는 base 를 말하지 않는다.",
+      "why_it_matters": "정확히 detector 3(modal 로 experienced 만 길어지는 경우)이 이 선택에서 나타났다 사라진다.",
+      "harness_behaviour": "두 base 모두에서 계산해 병기한다. primary base 를 고르지 않는다.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "AMB-F09",
+      "variable": "menu_dependency 'endpoint 전' 경계",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5",
+      "question": "ENDPOINT_REACHED 가 없는 terminal(AUTH_GATE / ABSTAIN / BLOCKED)에서 'endpoint 전' prefix 는 어디까지인가?",
+      "why_it_matters": "endpoint 미도달 observation 이 menu dependency 분모/분자에 어떻게 들어가는지가 §2-A rate 에 영향.",
+      "harness_behaviour": "ENDPOINT_REACHED 가 있으면 그 앞까지, 없으면 sequence 전체를 prefix 로 본 값과 그 사실(endpoint_token_present)을 함께 emit. 두 해석의 값이 다를 수 있는 경우를 flag.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "LOW"
+    },
+    {
+      "id": "AMB-F10",
+      "variable": "빈 sequence 의 normalized distance",
+      "source": "05_ANALYSIS_PLAN_v3.0.md §2-E",
+      "question": "두 sequence 가 모두 빈 경우 분모가 0 이다. 0.0(완전 동일)으로 볼 것인가 undefined 로 볼 것인가?",
+      "why_it_matters": "flow-evaluable 하지 않은 unit 이 heatmap 에서 '완벽히 동일'로 보이면 오독된다.",
+      "harness_behaviour": "0/0 을 0.0 으로 채우지 않는다. None + reason=ZERO_DENOMINATOR 로 반환한다. raw levenshtein=0, raw lcs=0 은 그대로 보고.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "LOW"
+    },
+    {
+      "id": "AMB-F11",
+      "variable": "task_flow vs experienced_flow 의 구조적 관계",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §3",
+      "question": "§3 예시는 experienced = task + dismissal 삽입 관계를 보이지만, 'DISMISS_OBSTRUCTION 을 제거하면 반드시 task_flow 와 같아야 한다'를 규범으로 명시하지 않았다.",
+      "why_it_matters": "이 불변식을 강제하면 데이터 결함 탐지가 되고, 강제하지 않으면 두 sequence 가 독립적으로 어긋나도 통과한다.",
+      "harness_behaviour": "불변식을 강제하지 않는다. 위반을 TASK_EXPERIENCED_INCONSISTENT 로 '보고'만 하고 어느 쪽도 수정하지 않는다.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "AMB-F12",
+      "variable": "activation_depth CONDITIONAL 3종 × fixture_input_mode",
+      "source": "T-A-V3-STEP1-006 .canonical_18_classification.CONDITIONAL.how_to_decide + Δ8-R5 (T-A-V3-STEP1-003)",
+      "question": "Δ9 는 DROPDOWN/MAP_PAN→포함, FREE_TEXT→제외, MIXED→'실제로 사용한 수단 기준' 만 정했다. (a) `OTHER` 는 어느 쪽인가? (b) MIXED 에서 '실제로 사용한 수단'을 토큰 단위로 기록하는 필드가 R5 스키마(`fixture_input_mode` 단일 값)에 없다. (c) fixture_input_mode 가 아예 기록되지 않은 관측의 CONDITIONAL 토큰은 어떻게 처리하는가?",
+      "why_it_matters": "CONDITIONAL 3종이 모두 등장하는 F2/F3 경로에서 activation_depth 가 최대 3 만큼 갈린다. 예: [SO,SD,SDATE,SQ,SR,ER] 은 DROPDOWN 이면 5, FREE_TEXT 면 2 다.",
+      "harness_behaviour": "채우지 않는다. OTHER·기록없음·수단미기록 MIXED 는 전부 `UNRESOLVED` 로 두고 activation_depth value 를 **보류**(None)한 뒤 `bounds_when_unresolved` 로 min(전부 제외)/max(전부 포함) 만 보고한다. 부재를 특정 수단으로 채우면 그것이 새 조작화다 (R13 의 '없음을 적으려면 관측 증거가 있어야 한다' 원칙과 같은 층).",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    }
+  ],
+  "out_of_scope_here": [
+    {
+      "item": "R13 auth_gate_stage UNDETERMINED",
+      "owner": "Lane A",
+      "why": "R13 은 auth_gate_stage enum 확장이다. Lane F 는 token 열만 다루며 auth_gate_stage 를 산출하지 않는다(NOT_IMPLEMENTED 에 기존 등재). **Lane F 소관은 AUTH_GATE 토큰의 depth 귀속뿐이고, 그것은 Δ9 가 OUT 으로 확정했다.**"
+    },
+    {
+      "item": "nav_container_type / reveal_direction",
+      "owner": "Lane S",
+      "why": "T-B-FC-013 이 방향을 별도 변수로 확정했으나 그 변수들은 Lane F 의 산출물이 아니다."
+    },
+    {
+      "item": "cross-lane 중복 변수 수렴검사 (nav_container_depth · menu_dependency)",
+      "owner": "다른 워커",
+      "why": "converge_dup_vars.py 는 이 작업의 수정 대상이 아니다. 읽지도 쓰지도 않았다."
+    }
+  ],
+  "limitation": [
+    "REAL 접속 0건. MAIN50 미수집. 여기의 모든 수치는 합성 fixture 산출물이며 어떤 서비스에 대한 관측도 아니다.",
+    "**Δ9 의 submit 조항은 Lane F 의 계수를 바꾸지 않았다.** Lane F 는 수렴 전에도 SUBMIT_QUERY 를 제외하지 않았기 때문이다. 값을 바꾼 것은 같은 티켓의 AMB-F03 확정이다. submit_query_effect 표의 '수렴 전' 열은 그 사실을 드러내기 위한 것이지 Lane F 가 submit 을 빼고 있었다는 뜻이 아니다.",
+    "fixture 는 워커가 티켓을 읽고 만든 것이다. 티켓을 오독했다면 fixture 도 같이 틀린다. 변이 검사는 구현 오류만 잡고 해석 오류는 못 잡는다 (R14 weakest-link, A 가 구속력 있는 한계로 채택).",
+    "AMB-F12 는 이 수렴 과정에서 **새로 드러난** 모호성이다. Δ9 가 CONDITIONAL 규칙을 세우면서 OTHER·미기록·수단미기록 MIXED 를 남겼다. 채우지 않고 올린다.",
+    "AMB-F02(LCS similarity 분모)·F04(flow_step_count base/terminal)·F05(reveal token 집합)·F06(nav_container_depth)·F07(b)(c)·F08(distance base)·F09·F10·F11 은 Δ9·R12 가 다루지 않았다. 닫히지 않았다.",
+    "R12 의 '군집·MDS 시 Yujian-Bo 병기' 조항은 clustering 미구현이라 이 하네스에서 이행되지 않는다.",
+    "family n=10 이 독립단위다. 이 run 의 45 pair 는 distance matrix 의 cell 이며 n=45 가 아니다.",
+    "본 하네스는 GO/NO-GO 를 내지 않는다. verdict 는 계산기가 Δ9·R12 로 수렴했는지에 대한 것이지 연구 결론이 아니다."
+  ],
+  "pair_cell_warning": "family n=10 is the independent unit. The 45 unordered pairs are distance-matrix CELLS for description/visualization only — never n=45, never a rate denominator, never an inferential sample. (05_ANALYSIS_PLAN_v3.0 §1: '동일 family의 45 pair는 distance matrix의 cell이지 독립 표본 n=45가 아니다.')"
+}

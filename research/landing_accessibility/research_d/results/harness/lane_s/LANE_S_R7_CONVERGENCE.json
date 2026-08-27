@@ -1,0 +1,1704 @@
+{
+  "verdict": "CONVERGED_WITH_AMBIGUITY",
+  "verdict_basis": "Lane S now derives entry_zone from R7 and only from R7: 37 boundary fixtures and 39 precedence fixtures pass, 10/10 R7 mutations are caught, the pre-existing suite still passes (56/56), and the embedded R7 text is byte-identical to the ticket. The verdict is not plain CONVERGED because R7 leaves 4 questions open (AMB-S14..S17), one of which (AMB-S14) is a contradiction inside R7's own boundary_rule.",
+  "lane": "S — Spatial / Control-form / Menu-Reveal",
+  "task": "Lane S-R7 convergence — replace Lane S's refusal to derive entry_zone with A's frozen operational definition, without inventing anything R7 did not settle.",
+  "generated_by": "tools/v3_harness/lane_s_spatial_control_reveal.py",
+  "base_sha": "7448184a811f5d7d8772f21488bb75418fde3313",
+  "data_status": "NO_REAL_DATA — REAL 접속 누적 0건; synthetic fixtures only",
+  "r7_verbatim": {
+    "raised_by": "D-V3-FINDING-007 (P1, blocking) — C 독립 확인: SSOTV3 전체 grep 에서 entry_zone 은 값 열거뿐이고 x/y 절단값·임계값 문자열 0건",
+    "is_it_blocking": "**수집에는 blocking 이 아니다.** 04 §6 이 'Normalized center (x,y) 를 보존하고 zone 은 요약값으로만 쓴다. 좌표 원자료를 버리지 않는다'고 이미 정했다. 원좌표가 남으면 zone 은 언제든 재도출 가능하며 재수집이 필요 없다",
+    "ruling": "수집은 진행한다. entry_x_norm · entry_y_norm 을 **항상** 저장한다. zone 임계값은 관측 0건인 지금 확정한다 — 나중에 정하면 데이터에 맞춘 것이 된다",
+    "thresholds.y_bands": "y < 1/3 → TOP · 1/3 ≤ y < 2/3 → MID · y ≥ 2/3 → BOTTOM",
+    "thresholds.x_within_TOP": "x < 1/3 → TOP_LEFT · 1/3 ≤ x < 2/3 → TOP_CENTER · x ≥ 2/3 → TOP_RIGHT",
+    "thresholds.MID_BOTTOM": "x 삼등분을 적용하지 않는다. MID · BOTTOM 그대로 둔다 — 04 codebook 의 값 목록에 MID_LEFT 류가 없다",
+    "thresholds.coordinate_basis": "control bbox 중심을 viewport(390×844 CSS px)로 정규화. scroll 상태와 무관하게 **그 state 의 viewport 기준**이다",
+    "structural_overrides.precedence": "FLOATING 과 DRAWER 는 기하보다 **우선한다**. 구조적 값이지 위치값이 아니기 때문이다",
+    "structural_overrides.FLOATING": "computed position 이 fixed 또는 sticky 이고 일반 흐름에서 벗어나 viewport 에 고정된 경우",
+    "structural_overrides.DRAWER": "control 이 reveal 을 요구하는 nav_container 안에 있는 경우 (menu_dependency=1 을 만든 그 container)",
+    "structural_overrides.both": "둘 다 해당하면 DRAWER 가 우선한다 — reveal 필요 여부가 사용자에게 더 큰 구조적 부담이다",
+    "structural_overrides.record_anyway": "override 가 적용돼도 entry_x_norm/entry_y_norm 은 그대로 저장한다. 요약값이 원자료를 덮지 않는다",
+    "boundary_rule": "경계값은 하한 포함·상한 배제(`[a, b)`)로 통일한다. 정확히 1/3 인 점은 TOP 이자 TOP_CENTER 다",
+    "later_changes": "zone 은 파생값이므로 임계값을 나중에 바꾸는 것은 재수집이 아니라 재도출이다. 그러나 **선언된 민감도로만 허용한다** — 결과를 보고 조용히 바꾸면 그것이 조작화 fitting 이다. 원 임계값 결과와 병기해야 한다",
+    "D_and_C_note": "D 의 lane S 와 C 의 lane6 이 각자 잠정 임계값을 두고 있었다. 이제 둘 다 이 정의로 수렴한다. C 가 '잠정 선택(SSOT 아님)'으로 표기하고 A 결정 전 primary 로 쓰지 않은 처리가 옳다"
+  },
+  "r7_transcription_check": {
+    "ticket_path": "/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2/tickets/T-A-V3-STEP1-003.json",
+    "ticket_key": "R7_entry_zone_operational_definition",
+    "ticket_file_present": true,
+    "ticket_sha256": "ea09d3985c71a52b779253bc7c9a6336d5926038c9a83d2c2759264f46e9878d",
+    "sha256_matches_transcription_time": true,
+    "verbatim_match": true,
+    "mismatched_keys": [],
+    "missing_keys": [],
+    "extra_keys": []
+  },
+  "policy_provenance": {
+    "authoritative_policy": {
+      "y_top_max": 0.3333333333333333,
+      "y_mid_max": 0.6666666666666666,
+      "x_left_max": 0.3333333333333333,
+      "x_center_max": 0.6666666666666666,
+      "source": "T-A-V3-STEP1-003 R7",
+      "note": "A-frozen. y bands 1/3·2/3; x thirds INSIDE the TOP band only; MID/BOTTOM are not split on x. Structural overrides DRAWER > FLOATING > geometry. Raw entry_x_norm / entry_y_norm are stored even when an override applies.",
+      "boundary_rule": "lower band is half-open [prev, cut); a value exactly on a cut goes to the UPPER band",
+      "authority_ticket": "T-A-V3-STEP1-003",
+      "authority_key": "R7_entry_zone_operational_definition",
+      "decided_at_kst": "2026-08-28T02:58:00+09:00",
+      "preregistration": "관측 0건 상태에서 사전등록됨 — ticket.preregistration_status: 'REAL 접속 누적 0건. 어떤 flow 도 관측되지 않았다. 따라서 이 확정들은 전부 result-blind 다.'",
+      "observations_at_decision": 0,
+      "recorded_in": "V3_0_1_SUCCESSOR_DELTA.md Δ8 (SSOTV3 원본은 수정하지 않는다)",
+      "ssot_original_modified": false
+    },
+    "control_policy_retained_unchanged": {
+      "y_top_max": 0.3333333333333333,
+      "y_mid_max": 0.6666666666666666,
+      "x_left_max": 0.3333333333333333,
+      "x_center_max": 0.6666666666666666,
+      "source": "FIXTURE_ONLY_NOT_SSOT",
+      "note": "Equal thirds. Chosen ONLY to exercise classifier mechanics on synthetic fixtures. This is NOT an SSOT boundary and must never be used to code real observations.",
+      "boundary_rule": "lower band is half-open [prev, cut); a value exactly on a cut goes to the UPPER band",
+      "authority_ticket": null,
+      "authority_key": null,
+      "decided_at_kst": null,
+      "preregistration": null,
+      "observations_at_decision": null,
+      "recorded_in": null,
+      "ssot_original_modified": null
+    },
+    "ssot_original_carries_no_cuts": true,
+    "why_two_policies_exist": "The pre-R7 fixture-only policy is NOT deleted. It is the control group: keeping it lets the two operationalizations be compared on identical inputs instead of assumed equivalent.",
+    "preregistration": "관측 0건 상태에서 사전등록됨 — ticket.preregistration_status: 'REAL 접속 누적 0건. 어떤 flow 도 관측되지 않았다. 따라서 이 확정들은 전부 result-blind 다.'",
+    "decided_at_kst": "2026-08-28T02:58:00+09:00",
+    "observations_at_decision": 0,
+    "recorded_in": "V3_0_1_SUCCESSOR_DELTA.md Δ8 (SSOTV3 원본은 수정하지 않는다)",
+    "result_blind": true
+  },
+  "implementation": {
+    "entrypoint": "classify_zone_r7(x_norm, y_norm, *, computed_position, out_of_flow_fixed_to_viewport, in_reveal_required_nav_container, menu_dependency)",
+    "resolution_order": [
+      "DRAWER (structural)",
+      "FLOATING (structural)",
+      "geometry"
+    ],
+    "geometry": "y bands via r7_y_band(); x thirds via r7_top_x_zone(), consulted in the TOP band only",
+    "raw_coordinates": "entry_x_norm / entry_y_norm are echoed unchanged on every path, override paths included (R7 record_anyway)",
+    "statuses": [
+      "OK",
+      "OK_UNCONSULTED_AXIS_OUT_OF_RANGE",
+      "MISSING_COORDINATES",
+      "AMBIGUOUS_OUT_OF_UNIT_RANGE",
+      "AMBIGUOUS_FLOATING_UNDETERMINED",
+      "AMBIGUOUS_DRAWER_UNDETERMINED"
+    ],
+    "statuses_are_not_zone_values": "None of the status strings is a member of ENTRY_ZONE_ENUM; a status never leaks into the entry_zone column.",
+    "no_new_thresholds": "The only cut values in the R7 path are R7's own 1/3 and 2/3. No tolerance, epsilon, score, or weight was introduced."
+  },
+  "boundary_fixtures": {
+    "passed": 37,
+    "total": 37,
+    "cases": [
+      {
+        "fixture": "R7-B y=1/3 EXACT (x=0.10)",
+        "kind": "r7_boundary",
+        "expected": [
+          "MID",
+          "OK"
+        ],
+        "observed": [
+          "MID",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "R7 thresholds.y_bands `1/3 ≤ y < 2/3 → MID` + boundary_rule `[a, b)`. R7's own example clause would say TOP_LEFT here — AMB-S14."
+      },
+      {
+        "fixture": "R7-B y=2/3 EXACT (x=0.10)",
+        "kind": "r7_boundary",
+        "expected": [
+          "BOTTOM",
+          "OK"
+        ],
+        "observed": [
+          "BOTTOM",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "`y ≥ 2/3 → BOTTOM`"
+      },
+      {
+        "fixture": "R7-B y just below 1/3",
+        "kind": "r7_boundary",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "`y < 1/3 → TOP`"
+      },
+      {
+        "fixture": "R7-B y just above 1/3",
+        "kind": "r7_boundary",
+        "expected": [
+          "MID",
+          "OK"
+        ],
+        "observed": [
+          "MID",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B y just below 2/3",
+        "kind": "r7_boundary",
+        "expected": [
+          "MID",
+          "OK"
+        ],
+        "observed": [
+          "MID",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B y just above 2/3",
+        "kind": "r7_boundary",
+        "expected": [
+          "BOTTOM",
+          "OK"
+        ],
+        "observed": [
+          "BOTTOM",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B x=1/3 EXACT (y=0.10, TOP band)",
+        "kind": "r7_boundary",
+        "expected": [
+          "TOP_CENTER",
+          "OK"
+        ],
+        "observed": [
+          "TOP_CENTER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "`1/3 ≤ x < 2/3 → TOP_CENTER`. Here the inequality table and R7's example clause AGREE."
+      },
+      {
+        "fixture": "R7-B x=2/3 EXACT (y=0.10, TOP band)",
+        "kind": "r7_boundary",
+        "expected": [
+          "TOP_RIGHT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_RIGHT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "`x ≥ 2/3 → TOP_RIGHT`"
+      },
+      {
+        "fixture": "R7-B x just below 1/3",
+        "kind": "r7_boundary",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B x just above 1/3",
+        "kind": "r7_boundary",
+        "expected": [
+          "TOP_CENTER",
+          "OK"
+        ],
+        "observed": [
+          "TOP_CENTER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B x just below 2/3",
+        "kind": "r7_boundary",
+        "expected": [
+          "TOP_CENTER",
+          "OK"
+        ],
+        "observed": [
+          "TOP_CENTER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B x just above 2/3",
+        "kind": "r7_boundary",
+        "expected": [
+          "TOP_RIGHT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_RIGHT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B x=1/3 EXACT in MID band -> plain MID",
+        "kind": "r7_boundary",
+        "expected": [
+          "MID",
+          "OK"
+        ],
+        "observed": [
+          "MID",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "R7 thresholds.MID_BOTTOM: `x 삼등분을 적용하지 않는다`. MID_CENTER does not exist."
+      },
+      {
+        "fixture": "R7-B x=2/3 EXACT in BOTTOM band -> plain BOTTOM",
+        "kind": "r7_boundary",
+        "expected": [
+          "BOTTOM",
+          "OK"
+        ],
+        "observed": [
+          "BOTTOM",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B the exact point (1/3, 1/3)",
+        "kind": "r7_boundary",
+        "expected": [
+          "MID",
+          "OK"
+        ],
+        "observed": [
+          "MID",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "The point R7's example clause names. Inequality table -> MID; example clause -> TOP_CENTER. AMB-S14."
+      },
+      {
+        "fixture": "R7-B corner (0.0, 0.0)",
+        "kind": "r7_boundary",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B corner (1.0, 0.0)",
+        "kind": "r7_boundary",
+        "expected": [
+          "TOP_RIGHT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_RIGHT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B corner (0.0, 1.0)",
+        "kind": "r7_boundary",
+        "expected": [
+          "BOTTOM",
+          "OK"
+        ],
+        "observed": [
+          "BOTTOM",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "x is not consulted in BOTTOM"
+      },
+      {
+        "fixture": "R7-B corner (1.0, 1.0)",
+        "kind": "r7_boundary",
+        "expected": [
+          "BOTTOM",
+          "OK"
+        ],
+        "observed": [
+          "BOTTOM",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B out-of-range x slightly negative, TOP band",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "pass": true,
+        "notes": "x IS consulted in TOP; R7 does not define out-of-unit behaviour (AMB-S17). Not filled in here."
+      },
+      {
+        "fixture": "R7-B out-of-range x slightly >1, TOP band",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "pass": true,
+        "notes": "x IS consulted in TOP; R7 does not define out-of-unit behaviour (AMB-S17). Not filled in here."
+      },
+      {
+        "fixture": "R7-B out-of-range x far negative, TOP band",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "pass": true,
+        "notes": "x IS consulted in TOP; R7 does not define out-of-unit behaviour (AMB-S17). Not filled in here."
+      },
+      {
+        "fixture": "R7-B out-of-range y slightly negative",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "pass": true,
+        "notes": "y is consulted in every band (AMB-S17)."
+      },
+      {
+        "fixture": "R7-B out-of-range y slightly >1",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "pass": true,
+        "notes": "y is consulted in every band (AMB-S17)."
+      },
+      {
+        "fixture": "R7-B out-of-range y far above 1",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+        ],
+        "pass": true,
+        "notes": "y is consulted in every band (AMB-S17)."
+      },
+      {
+        "fixture": "R7-B out-of-range x, MID band (x never consulted)",
+        "kind": "r7_boundary",
+        "expected": [
+          "MID",
+          "OK_UNCONSULTED_AXIS_OUT_OF_RANGE"
+        ],
+        "observed": [
+          "MID",
+          "OK_UNCONSULTED_AXIS_OUT_OF_RANGE"
+        ],
+        "pass": true,
+        "notes": "The out-of-unit axis is not read by R7 in this band, so the zone stands; the fact is flagged rather than dropped."
+      },
+      {
+        "fixture": "R7-B out-of-range x, BOTTOM band (x never consulted)",
+        "kind": "r7_boundary",
+        "expected": [
+          "BOTTOM",
+          "OK_UNCONSULTED_AXIS_OUT_OF_RANGE"
+        ],
+        "observed": [
+          "BOTTOM",
+          "OK_UNCONSULTED_AXIS_OUT_OF_RANGE"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B both coordinates MISSING",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          "MISSING_COORDINATES"
+        ],
+        "observed": [
+          null,
+          "MISSING_COORDINATES"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B x MISSING only",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          "MISSING_COORDINATES"
+        ],
+        "observed": [
+          null,
+          "MISSING_COORDINATES"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B y MISSING only",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          "MISSING_COORDINATES"
+        ],
+        "observed": [
+          null,
+          "MISSING_COORDINATES"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B record_anyway raw coords preserved (plain geometry)",
+        "kind": "r7_boundary",
+        "expected": [
+          0.1,
+          0.1
+        ],
+        "observed": [
+          0.1,
+          0.1
+        ],
+        "pass": true,
+        "notes": "R7 record_anyway: 요약값이 원자료를 덮지 않는다"
+      },
+      {
+        "fixture": "R7-B record_anyway raw coords preserved (unconsulted out-of-range)",
+        "kind": "r7_boundary",
+        "expected": [
+          1.4,
+          0.5
+        ],
+        "observed": [
+          1.4,
+          0.5
+        ],
+        "pass": true,
+        "notes": "R7 record_anyway: 요약값이 원자료를 덮지 않는다"
+      },
+      {
+        "fixture": "R7-B record_anyway raw coords preserved (ambiguous out-of-range)",
+        "kind": "r7_boundary",
+        "expected": [
+          -0.001,
+          0.1
+        ],
+        "observed": [
+          -0.001,
+          0.1
+        ],
+        "pass": true,
+        "notes": "R7 record_anyway: 요약값이 원자료를 덮지 않는다"
+      },
+      {
+        "fixture": "R7-B record_anyway raw coords preserved (missing)",
+        "kind": "r7_boundary",
+        "expected": [
+          null,
+          null
+        ],
+        "observed": [
+          null,
+          null
+        ],
+        "pass": true,
+        "notes": "R7 record_anyway: 요약값이 원자료를 덮지 않는다"
+      },
+      {
+        "fixture": "R7-B MID/BOTTOM never gain an x split",
+        "kind": "r7_boundary",
+        "expected": [
+          "BOTTOM",
+          "MID",
+          "TOP_CENTER",
+          "TOP_LEFT",
+          "TOP_RIGHT"
+        ],
+        "observed": [
+          "BOTTOM",
+          "MID",
+          "TOP_CENTER",
+          "TOP_LEFT",
+          "TOP_RIGHT"
+        ],
+        "pass": true,
+        "notes": "51x51 sweep of the unit square emits exactly the 5 geometric labels"
+      },
+      {
+        "fixture": "R7-B geometry alone never emits FLOATING/DRAWER",
+        "kind": "r7_boundary",
+        "expected": [],
+        "observed": [],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-B every emitted label is in the 04 §4 enum",
+        "kind": "r7_boundary",
+        "expected": [
+          "VALID"
+        ],
+        "observed": [
+          "VALID"
+        ],
+        "pass": true,
+        "notes": ""
+      }
+    ]
+  },
+  "precedence_fixtures": {
+    "passed": 39,
+    "total": 39,
+    "cases": [
+      {
+        "fixture": "R7-P no override -> geometry TOP_LEFT",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P no override -> geometry BOTTOM",
+        "kind": "r7_precedence",
+        "expected": [
+          "BOTTOM",
+          "OK"
+        ],
+        "observed": [
+          "BOTTOM",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P geometry TOP_LEFT + FLOATING(fixed) -> FLOATING",
+        "kind": "r7_precedence",
+        "expected": [
+          "FLOATING",
+          "OK"
+        ],
+        "observed": [
+          "FLOATING",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "`FLOATING 과 DRAWER 는 기하보다 우선한다`"
+      },
+      {
+        "fixture": "R7-P geometry BOTTOM + FLOATING(sticky) -> FLOATING",
+        "kind": "r7_precedence",
+        "expected": [
+          "FLOATING",
+          "OK"
+        ],
+        "observed": [
+          "FLOATING",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P geometry TOP_LEFT + DRAWER -> DRAWER",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          "OK"
+        ],
+        "observed": [
+          "DRAWER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P geometry BOTTOM + DRAWER -> DRAWER",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          "OK"
+        ],
+        "observed": [
+          "DRAWER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P FLOATING and DRAWER both -> DRAWER (TOP geometry)",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          "OK"
+        ],
+        "observed": [
+          "DRAWER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "`둘 다 해당하면 DRAWER 가 우선한다`"
+      },
+      {
+        "fixture": "R7-P FLOATING and DRAWER both -> DRAWER (BOTTOM geometry)",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          "OK"
+        ],
+        "observed": [
+          "DRAWER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P precedence order is literally DRAWER before FLOATING",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          "FLOATING"
+        ],
+        "observed": [
+          "DRAWER",
+          "FLOATING"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P position static -> not FLOATING",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "R7's first FLOATING clause fails, so the second cannot carry it alone"
+      },
+      {
+        "fixture": "R7-P position relative -> not FLOATING",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P sticky but NOT fixed to viewport -> not FLOATING",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "R7 states FLOATING as a conjunction"
+      },
+      {
+        "fixture": "R7-P container present but no reveal required -> not DRAWER",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P sticky, flow-clause UNKNOWN -> undetermined not guessed",
+        "kind": "r7_precedence",
+        "expected": [
+          null,
+          "AMBIGUOUS_FLOATING_UNDETERMINED"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_FLOATING_UNDETERMINED"
+        ],
+        "pass": true,
+        "notes": "AMB-S15"
+      },
+      {
+        "fixture": "R7-P fixed, flow-clause UNKNOWN -> undetermined not guessed",
+        "kind": "r7_precedence",
+        "expected": [
+          null,
+          "AMBIGUOUS_FLOATING_UNDETERMINED"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_FLOATING_UNDETERMINED"
+        ],
+        "pass": true,
+        "notes": "AMB-S15"
+      },
+      {
+        "fixture": "R7-P in reveal container, menu_dependency UNKNOWN -> undetermined",
+        "kind": "r7_precedence",
+        "expected": [
+          null,
+          "AMBIGUOUS_DRAWER_UNDETERMINED"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_DRAWER_UNDETERMINED"
+        ],
+        "pass": true,
+        "notes": "AMB-S16"
+      },
+      {
+        "fixture": "R7-P in reveal container but menu_dependency=0 -> inconsistent, not DRAWER",
+        "kind": "r7_precedence",
+        "expected": [
+          null,
+          "AMBIGUOUS_DRAWER_UNDETERMINED"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_DRAWER_UNDETERMINED"
+        ],
+        "pass": true,
+        "notes": "R7 defines the DRAWER container as the one that produced menu_dependency=1; these inputs contradict each other (AMB-S16)"
+      },
+      {
+        "fixture": "R7-P DRAWER confirmed outranks an UNDETERMINED FLOATING",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          "OK"
+        ],
+        "observed": [
+          "DRAWER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P confirmed FLOATING must NOT overtake an undetermined DRAWER",
+        "kind": "r7_precedence",
+        "expected": [
+          null,
+          "AMBIGUOUS_DRAWER_UNDETERMINED"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_DRAWER_UNDETERMINED"
+        ],
+        "pass": true,
+        "notes": "DRAWER outranks FLOATING, so while DRAWER is open the answer is not yet known to be FLOATING"
+      },
+      {
+        "fixture": "R7-P same, with BOTTOM geometry underneath",
+        "kind": "r7_precedence",
+        "expected": [
+          null,
+          "AMBIGUOUS_DRAWER_UNDETERMINED"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_DRAWER_UNDETERMINED"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P undetermined DRAWER is reported as blocking, not as absence",
+        "kind": "r7_precedence",
+        "expected": true,
+        "observed": true,
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P DRAWER ruled OUT lets a confirmed FLOATING through",
+        "kind": "r7_precedence",
+        "expected": [
+          "FLOATING",
+          "OK"
+        ],
+        "observed": [
+          "FLOATING",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "the chain only stops while the higher rung is OPEN"
+      },
+      {
+        "fixture": "R7-P unobserved structural fields are reported, not assumed",
+        "kind": "r7_precedence",
+        "expected": {
+          "computed_position": false,
+          "out_of_flow_fixed_to_viewport": false,
+          "in_reveal_required_nav_container": false,
+          "menu_dependency": false
+        },
+        "observed": {
+          "computed_position": false,
+          "out_of_flow_fixed_to_viewport": false,
+          "in_reveal_required_nav_container": false,
+          "menu_dependency": false
+        },
+        "pass": true,
+        "notes": "geometry answers when nothing points at an override, but the consumer can see that the structural inputs were never collected (AMB-S16)"
+      },
+      {
+        "fixture": "R7-P DRAWER with out-of-range coordinates still DRAWER",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          "OK"
+        ],
+        "observed": [
+          "DRAWER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "override precedes geometry, so the out-of-unit question never arises"
+      },
+      {
+        "fixture": "R7-P FLOATING with MISSING coordinates still FLOATING",
+        "kind": "r7_precedence",
+        "expected": [
+          "FLOATING",
+          "OK"
+        ],
+        "observed": [
+          "FLOATING",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P record_anyway holds under an override",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          0.9,
+          0.9
+        ],
+        "observed": [
+          "DRAWER",
+          0.9,
+          0.9
+        ],
+        "pass": true,
+        "notes": "`override 가 적용돼도 entry_x_norm/entry_y_norm 은 그대로 저장한다`"
+      },
+      {
+        "fixture": "R7-P override basis is labelled, not silent",
+        "kind": "r7_precedence",
+        "expected": "STRUCTURAL_OVERRIDE",
+        "observed": "STRUCTURAL_OVERRIDE",
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P geometry basis is labelled, not silent",
+        "kind": "r7_precedence",
+        "expected": "GEOMETRY",
+        "observed": "GEOMETRY",
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P menu_dependency=1 (int) reads as the bool True",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          "OK"
+        ],
+        "observed": [
+          "DRAWER",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "R7 structural_overrides.DRAWER says `menu_dependency=1`"
+      },
+      {
+        "fixture": "R7-P menu_dependency=0 (int) reads as the bool False",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P non-boolean 2 never becomes True",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "unparseable structural input stays MISSING, so DRAWER simply does not fire — it is never coerced into firing"
+      },
+      {
+        "fixture": "R7-P non-boolean '1' never becomes True",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "unparseable structural input stays MISSING, so DRAWER simply does not fire — it is never coerced into firing"
+      },
+      {
+        "fixture": "R7-P non-boolean 'true' never becomes True",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "unparseable structural input stays MISSING, so DRAWER simply does not fire — it is never coerced into firing"
+      },
+      {
+        "fixture": "R7-P non-boolean 1.0 never becomes True",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "unparseable structural input stays MISSING, so DRAWER simply does not fire — it is never coerced into firing"
+      },
+      {
+        "fixture": "R7-P non-boolean [] never becomes True",
+        "kind": "r7_precedence",
+        "expected": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "observed": [
+          "TOP_LEFT",
+          "OK"
+        ],
+        "pass": true,
+        "notes": "unparseable structural input stays MISSING, so DRAWER simply does not fire — it is never coerced into firing"
+      },
+      {
+        "fixture": "R7-P truthy garbage in the FLOATING flow clause stays undetermined",
+        "kind": "r7_precedence",
+        "expected": [
+          null,
+          "AMBIGUOUS_FLOATING_UNDETERMINED"
+        ],
+        "observed": [
+          null,
+          "AMBIGUOUS_FLOATING_UNDETERMINED"
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P no status string is a member of the 04 §4 entry_zone enum",
+        "kind": "r7_precedence",
+        "expected": [],
+        "observed": [],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P r7_zone() accessor agrees with the full result",
+        "kind": "r7_precedence",
+        "expected": [
+          "DRAWER",
+          "BOTTOM",
+          null
+        ],
+        "observed": [
+          "DRAWER",
+          "BOTTOM",
+          null
+        ],
+        "pass": true,
+        "notes": ""
+      },
+      {
+        "fixture": "R7-P independent re-derivation of R7 disagrees nowhere",
+        "kind": "r7_precedence",
+        "expected": [
+          0,
+          true
+        ],
+        "observed": [
+          0,
+          true
+        ],
+        "pass": true,
+        "notes": "`_r7_independent_reference()` shares no code with `classify_zone_r7()`; it found the FLOATING/DRAWER precedence defect that 60 green fixtures and 8 caught mutations had missed"
+      }
+    ]
+  },
+  "policy_comparison": {
+    "question": "Do the pre-R7 FIXTURE_ONLY_NOT_SSOT equal-thirds policy and the A-frozen R7 policy return the same entry_zone on the same input?",
+    "method": "Both policies evaluated on an identical point set. No merging; the fixture policy is left in the module untouched as the control.",
+    "policies": {
+      "control": {
+        "y_top_max": 0.3333333333333333,
+        "y_mid_max": 0.6666666666666666,
+        "x_left_max": 0.3333333333333333,
+        "x_center_max": 0.6666666666666666,
+        "source": "FIXTURE_ONLY_NOT_SSOT",
+        "note": "Equal thirds. Chosen ONLY to exercise classifier mechanics on synthetic fixtures. This is NOT an SSOT boundary and must never be used to code real observations.",
+        "boundary_rule": "lower band is half-open [prev, cut); a value exactly on a cut goes to the UPPER band",
+        "authority_ticket": null,
+        "authority_key": null,
+        "decided_at_kst": null,
+        "preregistration": null,
+        "observations_at_decision": null,
+        "recorded_in": null,
+        "ssot_original_modified": null
+      },
+      "treatment": {
+        "y_top_max": 0.3333333333333333,
+        "y_mid_max": 0.6666666666666666,
+        "x_left_max": 0.3333333333333333,
+        "x_center_max": 0.6666666666666666,
+        "source": "T-A-V3-STEP1-003 R7",
+        "note": "A-frozen. y bands 1/3·2/3; x thirds INSIDE the TOP band only; MID/BOTTOM are not split on x. Structural overrides DRAWER > FLOATING > geometry. Raw entry_x_norm / entry_y_norm are stored even when an override applies.",
+        "boundary_rule": "lower band is half-open [prev, cut); a value exactly on a cut goes to the UPPER band",
+        "authority_ticket": "T-A-V3-STEP1-003",
+        "authority_key": "R7_entry_zone_operational_definition",
+        "decided_at_kst": "2026-08-28T02:58:00+09:00",
+        "preregistration": "관측 0건 상태에서 사전등록됨 — ticket.preregistration_status: 'REAL 접속 누적 0건. 어떤 flow 도 관측되지 않았다. 따라서 이 확정들은 전부 result-blind 다.'",
+        "observations_at_decision": 0,
+        "recorded_in": "V3_0_1_SUCCESSOR_DELTA.md Δ8 (SSOTV3 원본은 수정하지 않는다)",
+        "ssot_original_modified": false
+      }
+    },
+    "cut_values_identical": true,
+    "n_points": 1733,
+    "n_agree": 1717,
+    "n_diverge": 16,
+    "by_point_class": {
+      "unit_grid": {
+        "agree": 1681,
+        "diverge": 0
+      },
+      "on_cut": {
+        "agree": 20,
+        "diverge": 0
+      },
+      "cut_neighbour": {
+        "agree": 8,
+        "diverge": 0
+      },
+      "out_of_unit_range": {
+        "agree": 8,
+        "diverge": 16
+      }
+    },
+    "divergences": [
+      {
+        "x": -5.0,
+        "y": 0.1,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_LEFT",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.1,
+        "y": -5.0,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_LEFT",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.5,
+        "y": -5.0,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_CENTER",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.9,
+        "y": -5.0,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_RIGHT",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": -0.001,
+        "y": 0.1,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_LEFT",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.1,
+        "y": -0.001,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_LEFT",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.5,
+        "y": -0.001,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_CENTER",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.9,
+        "y": -0.001,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_RIGHT",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 1.001,
+        "y": 0.1,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_RIGHT",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.1,
+        "y": 1.001,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "BOTTOM",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.5,
+        "y": 1.001,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "BOTTOM",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.9,
+        "y": 1.001,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "BOTTOM",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 3.7,
+        "y": 0.1,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "TOP_RIGHT",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.1,
+        "y": 3.7,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "BOTTOM",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.5,
+        "y": 3.7,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "BOTTOM",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      },
+      {
+        "x": 0.9,
+        "y": 3.7,
+        "point_class": "out_of_unit_range",
+        "fixture_only_policy": "BOTTOM",
+        "r7_policy": null,
+        "r7_status": "AMBIGUOUS_OUT_OF_UNIT_RANGE"
+      }
+    ],
+    "in_range_agreement": {
+      "n_points": 1709,
+      "n_agree": 1709,
+      "n_diverge": 0
+    },
+    "divergence_summary": "The two policies carry IDENTICAL cut values (1/3, 2/3 on both axes) and the same half-open band rule, so inside [0,1] they agree everywhere — 1709/1709 in-range points, the exact cuts and their nextafter neighbours included. They diverge only where the fixture policy answers a question R7 did not settle: out-of-unit coordinates, which the fixture policy classifies by extrapolating its inequalities and R7 leaves as AMBIGUOUS_OUT_OF_UNIT_RANGE. Where the out-of-unit axis is one R7 does not consult (x in MID/BOTTOM) the two agree again. The fixture policy also cannot express the structural overrides at all (AMB-S02), so FLOATING/DRAWER inputs are outside the comparable domain — agreement here is agreement on geometry, not on entry_zone as a whole.",
+    "r7_internal_consistency_crosscheck": {
+      "claim": "classify_zone_r7() and classify_zone_geometric(policy=R7_ZONE_POLICY) agree on every in-range grid point; R7's dedicated primitives have not drifted from the generic classifier.",
+      "n_checked": 1681,
+      "n_drift": 0,
+      "drift": []
+    },
+    "boundary_example_clause_contrast": {
+      "ambiguity_id": "AMB-S14",
+      "reading_A": "R7 thresholds tables + `경계값은 하한 포함·상한 배제([a, b))로 통일한다` -> a value on a cut goes UPWARD (y=1/3 -> MID). IMPLEMENTED.",
+      "reading_B": "R7 `정확히 1/3 인 점은 TOP 이자 TOP_CENTER 다` -> y=1/3 would be TOP. NOT implemented; recorded. Applied only to the point the clause names, not generalized into a `(a, b]` convention.",
+      "why_A": "Two of R7's three statements (the y inequality table and the general half-open rule) give MID at y=1/3; only the trailing example gives TOP, and that example contradicts the general rule it is appended to. The x axis is unaffected — both readings give TOP_CENTER at x=1/3. Note the clause is self-inconsistent even on its own terms: to make y=1/3 TOP the cut must belong DOWNWARD, but to make x=1/3 TOP_CENTER the cut must belong UPWARD.",
+      "resolution_owner": "A — the ambiguity is inside R7 itself and this lane must not pick.",
+      "probes": [
+        {
+          "x": 0.1,
+          "y": 0.3333333333333333,
+          "reading_A_inequality_table": "MID",
+          "reading_B_example_clause": "TOP_LEFT",
+          "same": false
+        },
+        {
+          "x": 0.3333333333333333,
+          "y": 0.3333333333333333,
+          "reading_A_inequality_table": "MID",
+          "reading_B_example_clause": "TOP_CENTER",
+          "same": false
+        },
+        {
+          "x": 0.9,
+          "y": 0.3333333333333333,
+          "reading_A_inequality_table": "MID",
+          "reading_B_example_clause": "TOP_RIGHT",
+          "same": false
+        },
+        {
+          "x": 0.3333333333333333,
+          "y": 0.1,
+          "reading_A_inequality_table": "TOP_CENTER",
+          "reading_B_example_clause": "TOP_CENTER",
+          "same": true
+        },
+        {
+          "x": 0.6666666666666666,
+          "y": 0.1,
+          "reading_A_inequality_table": "TOP_RIGHT",
+          "reading_B_example_clause": "TOP_RIGHT",
+          "same": true
+        },
+        {
+          "x": 0.1,
+          "y": 0.6666666666666666,
+          "reading_A_inequality_table": "BOTTOM",
+          "reading_B_example_clause": "BOTTOM",
+          "same": true
+        },
+        {
+          "x": 0.6666666666666666,
+          "y": 0.6666666666666666,
+          "reading_A_inequality_table": "BOTTOM",
+          "reading_B_example_clause": "BOTTOM",
+          "same": true
+        },
+        {
+          "x": 0.1,
+          "y": 0.1,
+          "reading_A_inequality_table": "TOP_LEFT",
+          "reading_B_example_clause": "TOP_LEFT",
+          "same": true
+        },
+        {
+          "x": 0.9,
+          "y": 0.9,
+          "reading_A_inequality_table": "BOTTOM",
+          "reading_B_example_clause": "BOTTOM",
+          "same": true
+        },
+        {
+          "x": 0.5,
+          "y": 0.5,
+          "reading_A_inequality_table": "MID",
+          "reading_B_example_clause": "MID",
+          "same": true
+        }
+      ],
+      "n_probes_diverging": 3
+    }
+  },
+  "independent_crosscheck": {
+    "method": "`_r7_independent_reference()` re-derives R7 from the ticket prose with its own hard-coded cuts and shares no primitive, policy object, or helper with `classify_zone_r7()`. Both are swept over the same inputs.",
+    "why": "Fixtures and mutations written alongside an implementation share its blind spots. A second derivation does not.",
+    "n_inputs_checked": 7839,
+    "n_disagreements": 0,
+    "disagreements": [],
+    "disagreements_truncated": false
+  },
+  "mutation_results": {
+    "caught": 10,
+    "total": 10,
+    "cases": [
+      {
+        "mutation_id": "R7-M01",
+        "target_primitive": "_r7_band_test",
+        "mutation": "half-open `[a, b)` flipped to `(a, b]` — a value ON a cut falls into the LOWER band (R7 reading B forced everywhere)",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 6,
+        "example_failing_fixtures": [
+          "R7-B y=1/3 EXACT (x=0.10)",
+          "R7-B y=2/3 EXACT (x=0.10)",
+          "R7-B x=1/3 EXACT (y=0.10, TOP band)",
+          "R7-B x=2/3 EXACT (y=0.10, TOP band)",
+          "R7-B the exact point (1/3, 1/3)"
+        ],
+        "exception_under_mutation": null
+      },
+      {
+        "mutation_id": "R7-M02",
+        "target_primitive": "_r7_x_split_applies",
+        "mutation": "x thirds applied to MID and BOTTOM too, inventing MID_LEFT-style labels R7 explicitly refuses",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 16,
+        "example_failing_fixtures": [
+          "R7-B y=1/3 EXACT (x=0.10)",
+          "R7-B y=2/3 EXACT (x=0.10)",
+          "R7-B y just above 1/3",
+          "R7-B y just below 2/3",
+          "R7-B y just above 2/3"
+        ],
+        "exception_under_mutation": null
+      },
+      {
+        "mutation_id": "R7-M03",
+        "target_primitive": "_r7_precedence_order",
+        "mutation": "structural overrides ignored — geometry always answers",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 24,
+        "example_failing_fixtures": [
+          "R7-P geometry TOP_LEFT + FLOATING(fixed) -> FLOATING",
+          "R7-P geometry BOTTOM + FLOATING(sticky) -> FLOATING",
+          "R7-P geometry TOP_LEFT + DRAWER -> DRAWER",
+          "R7-P geometry BOTTOM + DRAWER -> DRAWER",
+          "R7-P FLOATING and DRAWER both -> DRAWER (TOP geometry)"
+        ],
+        "exception_under_mutation": null
+      },
+      {
+        "mutation_id": "R7-M04",
+        "target_primitive": "_r7_precedence_order",
+        "mutation": "precedence reversed — FLOATING beats DRAWER, contradicting `둘 다 해당하면 DRAWER 가 우선한다`",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 9,
+        "example_failing_fixtures": [
+          "R7-P FLOATING and DRAWER both -> DRAWER (TOP geometry)",
+          "R7-P FLOATING and DRAWER both -> DRAWER (BOTTOM geometry)",
+          "R7-P precedence order is literally DRAWER before FLOATING",
+          "R7-P DRAWER confirmed outranks an UNDETERMINED FLOATING",
+          "R7-P confirmed FLOATING must NOT overtake an undetermined DRAWER"
+        ],
+        "exception_under_mutation": null
+      },
+      {
+        "mutation_id": "R7-M05",
+        "target_primitive": "_r7_range_ok",
+        "mutation": "out-of-unit coordinates silently classified instead of left AMBIGUOUS",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 10,
+        "example_failing_fixtures": [
+          "R7-B out-of-range x slightly negative, TOP band",
+          "R7-B out-of-range x slightly >1, TOP band",
+          "R7-B out-of-range x far negative, TOP band",
+          "R7-B out-of-range y slightly negative",
+          "R7-B out-of-range y slightly >1"
+        ],
+        "exception_under_mutation": null
+      },
+      {
+        "mutation_id": "R7-M06",
+        "target_primitive": "_r7_pick_axes",
+        "mutation": "x and y axes swapped",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 16,
+        "example_failing_fixtures": [
+          "R7-B y=1/3 EXACT (x=0.10)",
+          "R7-B y=2/3 EXACT (x=0.10)",
+          "R7-B y just above 1/3",
+          "R7-B y just below 2/3",
+          "R7-B y just above 2/3"
+        ],
+        "exception_under_mutation": null
+      },
+      {
+        "mutation_id": "R7-M07",
+        "target_primitive": "_r7_cuts",
+        "mutation": "y and x cut pairs swapped (1/3 and 2/3 exchanged between axes is invisible, so the y cuts are pushed to 0.5/0.75)",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 6,
+        "example_failing_fixtures": [
+          "R7-B y=1/3 EXACT (x=0.10)",
+          "R7-B y=2/3 EXACT (x=0.10)",
+          "R7-B y just above 1/3",
+          "R7-B y just above 2/3",
+          "R7-B the exact point (1/3, 1/3)"
+        ],
+        "exception_under_mutation": null
+      },
+      {
+        "mutation_id": "R7-M08",
+        "target_primitive": "_r7_cuts",
+        "mutation": "equal thirds replaced by halves — the classic 'looked fine on a coarse grid' error",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 11,
+        "example_failing_fixtures": [
+          "R7-B y=1/3 EXACT (x=0.10)",
+          "R7-B y just above 1/3",
+          "R7-B y just below 2/3",
+          "R7-B x=1/3 EXACT (y=0.10, TOP band)",
+          "R7-B x just above 1/3"
+        ],
+        "exception_under_mutation": null
+      },
+      {
+        "mutation_id": "R7-M09",
+        "target_primitive": "_r7_truth",
+        "mutation": "structural inputs read with plain Python truthiness, so unparseable values silently fire an override",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 9,
+        "example_failing_fixtures": [
+          "R7-P sticky, flow-clause UNKNOWN -> undetermined not guessed",
+          "R7-P fixed, flow-clause UNKNOWN -> undetermined not guessed",
+          "R7-P unobserved structural fields are reported, not assumed",
+          "R7-P non-boolean 2 never becomes True",
+          "R7-P non-boolean '1' never becomes True"
+        ],
+        "exception_under_mutation": null
+      },
+      {
+        "mutation_id": "R7-M10",
+        "target_primitive": "_r7_truth",
+        "mutation": "structural inputs collapsed to MISSING, so overrides never fire and geometry always answers",
+        "baseline_all_passed": true,
+        "caught": true,
+        "n_fixtures_failed_under_mutation": 20,
+        "example_failing_fixtures": [
+          "R7-P geometry TOP_LEFT + FLOATING(fixed) -> FLOATING",
+          "R7-P geometry BOTTOM + FLOATING(sticky) -> FLOATING",
+          "R7-P geometry TOP_LEFT + DRAWER -> DRAWER",
+          "R7-P geometry BOTTOM + DRAWER -> DRAWER",
+          "R7-P FLOATING and DRAWER both -> DRAWER (TOP geometry)"
+        ],
+        "exception_under_mutation": null
+      }
+    ],
+    "restored_after_mutation": true,
+    "restored_fixture_count": 76
+  },
+  "defects_found_during_convergence": [
+    {
+      "found_by": "an independent re-derivation of R7 from the ticket prose, sharing no code with this harness, swept over 161k input combinations",
+      "defect": "r7_structural_override() walked the precedence chain looking only for a TRUE flag. With in_reveal_required_nav_container=True but menu_dependency unobserved (DRAWER unresolved) and computed_position=fixed with the flow clause True (FLOATING confirmed), it returned FLOATING.",
+      "why_it_was_wrong": "R7 ranks DRAWER above FLOATING. While DRAWER is open the answer is not yet known to be FLOATING, so returning FLOATING was this lane silently resolving R7's precedence with a guess. 20 input combinations were affected.",
+      "fix": "The chain now stops at the first rung that is confirmed OR unresolvable; a confirmed lower value can only be returned once the higher one is ruled OUT.",
+      "regression_guard": [
+        "R7-P confirmed FLOATING must NOT overtake an undetermined DRAWER",
+        "R7-P same, with BOTTOM geometry underneath",
+        "R7-P undetermined DRAWER is reported as blocking, not as absence",
+        "R7-P DRAWER ruled OUT lets a confirmed FLOATING through"
+      ],
+      "lesson": "The R7 fixtures were 60/60 green and all 8 mutations were caught while this defect was live. Mutation testing corrupts the primitives the fixtures already exercise; it cannot find a case the fixtures never thought to ask about. Only the independent re-derivation did."
+    }
+  ],
+  "regression": {
+    "what": "The Lane S fixture suite as it stood before the R7 convergence, re-run unchanged.",
+    "baseline_at_base_sha": {
+      "positive": 35,
+      "negative": 21,
+      "mutation_caught": 10,
+      "source": "LANE_S_HARNESS.json at 21d7c9e4"
+    },
+    "positive_passed": 35,
+    "positive_total": 35,
+    "negative_passed": 21,
+    "negative_total": 21,
+    "mutation_caught": 10,
+    "mutation_total": 10,
+    "restored_after_mutation": true,
+    "total_passed": 56,
+    "total": 56,
+    "all_passed": true,
+    "baseline_comparison": "unchanged — positive 35/35, negative 21/21, mutation 10/10, identical to the pre-R7 baseline"
+  },
+  "remaining_ambiguities": [
+    {
+      "id": "AMB-S14",
+      "variable": "entry_zone (R7 boundary_rule)",
+      "issue": "R7 contradicts itself on the y axis. `thresholds.y_bands` says `1/3 ≤ y < 2/3 → MID` and `boundary_rule` says `경계값은 하한 포함·상한 배제([a, b))로 통일한다` — both put y=1/3 in MID. The same `boundary_rule` sentence then adds `정확히 1/3 인 점은 TOP 이자 TOP_CENTER 다`, which puts y=1/3 in TOP. The x axis is unaffected: x=1/3 is TOP_CENTER under either reading.",
+      "lane_s_action": "Implemented the inequality table + the general half-open rule (y=1/3 → MID) because two of the three statements agree and the third contradicts the rule it is appended to. The alternative reading is computed side by side in `r7_boundary_example_contrast()` and every diverging point is listed. This lane does NOT decide which reading is A's intent.",
+      "owner": "A — the contradiction is inside R7 itself."
+    },
+    {
+      "id": "AMB-S15",
+      "variable": "entry_zone = FLOATING (R7 structural_overrides.FLOATING)",
+      "issue": "R7 defines FLOATING as `computed position 이 fixed 또는 sticky 이고 일반 흐름에서 벗어나 viewport 에 고정된 경우`. Whether the second clause is an independent observable or a restatement of the first is unstated, and it matters: `position: sticky` stays in normal flow and is viewport-fixed only while stuck, so under the strict reading a sticky header scrolled to its unstuck state is NOT FLOATING.",
+      "lane_s_action": "Both clauses are required inputs. When the position clause is satisfied but the flow/viewport clause is unobserved the result is AMBIGUOUS_FLOATING_UNDETERMINED — no zone, no guess. If A rules the second clause a restatement, the fix is one predicate.",
+      "owner": "A (ruling) / B (collector — decides whether the flow clause is even captured)."
+    },
+    {
+      "id": "AMB-S16",
+      "variable": "entry_zone = DRAWER (R7 structural_overrides.DRAWER)",
+      "issue": "R7 identifies the DRAWER container as `menu_dependency=1 을 만든 그 container`. It does not say what to do when a control is observed inside a reveal-requiring container while menu_dependency=0 — the two observations cannot both hold under R7's own wording, and R7 gives no precedence between them.",
+      "lane_s_action": "Reported as AMBIGUOUS_DRAWER_UNDETERMINED with the inconsistency named. Neither input is trusted over the other and no zone is emitted. Because DRAWER outranks FLOATING, an unresolved DRAWER also blocks a confirmed FLOATING from being returned.",
+      "second_gap": "R7 also does not say what an UNOBSERVED structural field means. This lane treats 'no signal at all' as 'the override does not fire' — otherwise every row missing these fields would be AMBIGUOUS and R7 would be inoperable, which contradicts R7's own `수집은 진행한다`. Only POSITIVE evidence (in_reveal_required=True, or computed_position in {fixed, sticky}) blocks geometry. That line is this lane's, not R7's; `override_eval.structural_inputs_observed` records per-field whether the input was ever collected so the choice is auditable and reversible.",
+      "owner": "A (ruling) / B (collector — may be a collection defect rather than a definition gap)."
+    },
+    {
+      "id": "AMB-S17",
+      "variable": "entry_x_norm / entry_y_norm outside [0,1] under R7",
+      "issue": "R7 freezes cut values but does not regulate coordinates outside the unit interval, which AMB-S04 already showed are reachable (control partially off-screen, or below the fold in state Sn). `y ≥ 2/3 → BOTTOM` read literally would swallow y=9.9 into BOTTOM; whether that is intended, or whether such a row should be excluded, is unstated.",
+      "lane_s_action": "Coordinates are still never clamped (AMB-S04 behaviour preserved). When an out-of-unit coordinate is one R7 actually CONSULTS in that band, the result is AMBIGUOUS_OUT_OF_UNIT_RANGE and no zone is emitted. When the out-of-unit axis is one R7 does not consult (x in MID/BOTTOM), the zone stands and the fact is flagged as OK_UNCONSULTED_AXIS_OUT_OF_RANGE rather than dropped.",
+      "owner": "A (SSOT) / B (collector)."
+    }
+  ],
+  "ambiguities_closed_by_r7": [
+    {
+      "id": "AMB-S01",
+      "resolution": "RESOLVED by T-A-V3-STEP1-003 R7 (successor delta Δ8). Cuts frozen at 1/3 and 2/3 on both axes, half-open bands. SSOTV3 04 §6 itself is still silent — the authority is the ticket, not the SSOT original."
+    },
+    {
+      "id": "AMB-S02",
+      "resolution": "RESOLVED by R7 `structural_overrides`: FLOATING/DRAWER outrank geometry and DRAWER outranks FLOATING. Geometry still never emits them; `classify_zone_r7` applies the precedence from separately collected structural inputs."
+    },
+    {
+      "id": "AMB-S03",
+      "resolution": "RESOLVED by R7 `thresholds.MID_BOTTOM`: the x thirds apply inside the TOP band only. Lane S's earlier inference was correct, but it was an inference until R7."
+    }
+  ],
+  "limitation": "R7 was frozen with REAL observations at zero, and this convergence was built the same way: no MAIN50 coordinate has ever been measured, so every number here comes from synthetic fixtures with answers planted by construction. That makes the boundary and precedence behaviour verifiable and the DISTRIBUTIONAL behaviour entirely unknown — nothing here says how often real controls land on or near a cut, how often FLOATING/DRAWER fire, or how often coordinates leave [0,1]. Three of R7's inputs (computed_position, the out-of-flow/viewport-fixed clause, in_reveal_required_nav_container) are collector-supplied and this lane cannot verify that B will emit them; if they arrive missing, entry_zone will be AMBIGUOUS rather than wrong, which is the intended failure mode but is still a gap. The fixture-only equal-thirds policy is retained purely as a control and must never code a real observation. Mutation coverage is ten single-primitive corruptions of the R7 path, and a second independent derivation of R7 agrees on every one of ~7.8k swept inputs — but both are still checks of ONE reading of R7's text. If AMB-S14 is resolved the other way, every green result above is green against the wrong reading, and the agreement of the two derivations would not have caught it: they were written from the same reading.",
+  "prohibitions_observed": [
+    "nothing R7 left unsettled was filled in — four open questions went to AMB-S14..S17",
+    "no threshold, cut-off, epsilon, or composite score beyond R7's own 1/3 and 2/3",
+    "the pre-R7 FIXTURE_ONLY_NOT_SSOT policy was kept, not deleted or merged",
+    "no REAL access, no candidate URL, no control/ read beyond nothing at all",
+    "no other lane's file read or written",
+    "no git add/commit/push",
+    "no gold label, no holdout, no GO/NO-GO"
+  ]
+}
