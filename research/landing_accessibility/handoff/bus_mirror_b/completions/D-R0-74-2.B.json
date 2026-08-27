@@ -1,0 +1,78 @@
+{
+ "ticket_id": "D-R0-74-2",
+ "type": "COMPLETION",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "priority": "P1",
+ "phase": "V1",
+ "claim_kind": "IMPLEMENTATION",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "result_sha": "b28aaa5cad736082a6a76c0ca6a9f6be330bbcfb",
+ "branch": "claude-b/w2-rf-detector",
+ "supersedes_result_sha": "a7f305fd560721e4fc1712478e7975b1fcd5e0f8",
+ "self_approved": false,
+ "created_at": "2026-08-27T23:41:02+09:00",
+ "expected_response": "GO_NO_GO",
+ "headline": "NLP fallback 을 계약대로 밟았다. coverage 는 해결되지 않았다 — D-R0-74-3 HOLD 조건 도달 판단을 A 에 요청한다.",
+ "changed_files": [
+  "engine/l1_engine.py",
+  "tests/test_w2_rf_detector.py (신규 7건)"
+ ],
+ "tests": "test_w2_rf_detector.py 47 전건 pass. 전체 486 passed / 0 failed. ruff·mypy clean",
+ "artifact_refs": {
+  "git_external": "없음",
+  "model": "paraphrase-multilingual-MiniLM-L12-v2 (로컬 캐시 전용)"
+ },
+ "five_conditions": {
+  "cond1_attempted": "시도했고 구현 완료. _nlp_fallback_resolve 를 resolve_representative_function 에 enable_nlp_fallback=True 로 배선",
+  "cond2_threshold_calibration_only": "calibration 30 만 사용, holdout 미열람. **다만 calibration 에서 fallback 발화 사례가 0건이라 threshold 를 통계적으로 도출할 수 없었다** — 아래 참조",
+  "cond3_after_deterministic_ambiguity": "tier2 가 못 가른 뒤에만 호출된다. 'evidence 없음' 경로는 fallback 자체를 타지 않음을 테스트로 확인",
+  "cond4_seven_archetypes": "0건 이탈. fallback 은 호출부가 넘긴 candidates(rule 이 evidenced 한 부분집합) 안에서만 고르며 그 밖을 반환할 코드 경로가 없다. test_resolver_never_returns_an_archetype_outside_the_seven 로 회귀 확인",
+  "cond5_no_force_map": "abstain 감소 0건. fallback 발화가 0건이므로 구조적으로 줄일 수 없었고, 위양성이 드러난 시점에 threshold 를 낮춰 발화를 늘리는 시도를 하지 않았다"
+ },
+ "b_verification": {
+  "remote_sha": "확인 — origin = b28aaa5",
+  "ancestry": "확인 — a7f305fd IS ancestor",
+  "file_ownership": "확인 — l1_engine.py 와 tests/test_w2_ 밖 변경 0건",
+  "offline_enforced": "확인 — l1_engine.py:932-933 이 HF_HUB_OFFLINE/TRANSFORMERS_OFFLINE 을 강제한다. 네트워크 요청 경로 없음",
+  "threshold_marked_provisional": "확인 — 코드 주석에 'provisional 이다' 와 재수집 후 실측 재설정 필요가 명시돼 있다"
+ },
+ "the_decisive_finding": {
+  "what_happened": "첫 진단에서 fallback 이 calibration 에서 4건 발화했고 그중 3/4 이 오답이었다(daangn·daum·google·lottemart, 전부 PLACE_LOOKUP 오판)",
+  "root_cause": "fallback 이 아니라 rule 결함이었다 — _real_region_by_signal_type 이 PLACE_LOOKUP 과 QUERY 에 **동일한 일반 검색창 신호를 공유**시켰다. 즉 애초에 '가짜 tie' 였고 fallback 은 존재하지 않는 경합을 풀려다 틀린 것이다",
+  "fix": "PLACE_LOOKUP 을 _place_region_evidence 전용 신호만 쓰도록 시정. 그 4건은 rule 만으로 즉시 유일-MAPPED 가 됐고 fallback 발화가 4→0 으로 줄었다",
+  "b_note": "이것이 C 가 관측한 'tie-break 이 PLACE_LOOKUP 22 로 쏠림' 의 원인일 가능성이 있다. C 의 same-SHA 재채점에서 확인 요청한다"
+ },
+ "abstain_attribution": {
+  "rule_only_after_fix": "25/30 abstain",
+  "rule_plus_fallback": "25/30 abstain (변화 없음 — 발화 0건)",
+  "before_fix": "29/30 abstain",
+  "critical": "29→25 는 **fallback 성과가 아니라 rule 결함 시정 덕분이다**. W2 가 이를 분리해 적었고 B 도 그렇게 기재한다. fallback 성과로 인용하면 안 된다"
+ },
+ "threshold_status": {
+  "value": "NLP_FALLBACK_MARGIN_THRESHOLD = 0.10",
+  "derivation": "calibration 발화 표본 0건이라 margin 분포에서 도출 불가. 손으로 구성한 대조 텍스트 sanity check 의 관측 범위(0.12~0.37)를 참고한 보수적 기본값",
+  "status": "provisional — calibration-validated 가 아니다. 코드 주석과 W2 보고 양쪽에 명시됨",
+  "b_position": "B 는 이 값을 근거로 어떤 성능 주장도 하지 않는다. 신규 raw feature 를 가진 코퍼스로 재수집된 뒤에야 실측 근거로 정할 수 있다"
+ },
+ "b_assessment_on_D_R0_74_3": {
+  "a_prereg": "D-R0-74-3 — 'D-R0-13 경로를 계약대로 밟은 뒤에도 게이트 미달이면 HOLD 하고 Director 판단을 요청한다'",
+  "b_reading": "계약 경로는 밟혔다. fallback 은 구현됐고 5조건을 지켰으며 일곱 archetype 을 벗어나지 않았다. 그러나 **coverage 는 해결되지 않았다** — calibration 발화 0건이므로 fallback 이 abstain 을 결정으로 바꾼 사례가 없다",
+  "why_zero": "두 겹이다 — (1) 구 probe 코퍼스에 이번 세션 신규 raw feature 가 없어 tier3 genuine tie 자체가 잘 생기지 않는다 (2) 실제로 생겼던 4건은 rule 결함이 만든 가짜 tie 였고 시정하니 사라졌다",
+  "b_does_not_declare": "B 는 HOLD 여부를 선언하지 않는다. A 가 D-R0-74-3 조건 도달을 판정한다. 다만 B 판단으로는 'fallback 이 coverage 를 해결하면 이 질문이 사라질 수 있다'(D-R0-76)는 경로가 이번 결과로 닫혔을 가능성이 높다",
+  "b_will_not": "threshold 를 낮춰 발화를 만들어내지 않는다. 그것이 D-R0-74-2(5) 와 D-R0-67-3 이 막은 것이다"
+ },
+ "not_verified_by_this_gate": [
+  "fallback 정확도가 calibration 으로 검증되지 않았다 — 발화 표본 0건",
+  "threshold 0.10 은 provisional 이며 실측 근거가 없다",
+  "합성 sanity check 는 실사이트 성립을 증명하지 않는다",
+  "PLACE_LOOKUP 결함 시정이 C 의 'PLACE_LOOKUP 22 쏠림' 을 해소하는지 미확인 — C 재채점 대상",
+  "VLM 미구현 (지시대로 skip)",
+  "REAL_TARGET 미실행"
+ ],
+ "next_dependency": "C 가 b28aaa5 에서 DOM replay 재채점 → A 의 D-R0-74-3 판정",
+ "producer": "B"
+}
