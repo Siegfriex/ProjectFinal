@@ -1,0 +1,169 @@
+{
+ "rq": "RQ-D6b-1",
+ "claim_kind": "IMPLEMENTATION",
+ "title": "probe 와 engine 이 검색창을 다른 셀렉터로 찾는다 — engine 은 [role=combobox] 를 못 본다",
+ "derived_from": "RQ-D6b 의 H4 (그때는 NOT_TESTABLE 로 남겼다)",
+ "why_now_testable": "H4 는 'Scout 이 실행되지 않아 검정 불가' 라고 했으나, 셀렉터 매칭 자체는 frozen DOM 정적 질의로 검정할 수 있다. Scout 실행 여부와 무관하다. RQ-D6b 의 NOT_TESTABLE 판정은 **너무 넓었다** — 시정한다.",
+ "code_facts_at_sha": {
+  "sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "l0_probe.js:317-318": "probe: `input[type=search], [role=searchbox], [role=combobox]` — **3개**",
+  "l1_engine.py:698": "engine: `input[type=search],[role=searchbox]` — **2개. [role=combobox] 누락**",
+  "consequence": "probe 는 검색창이 있다고 보고하는데 engine 은 같은 페이지에서 못 찾는 경우가 생긴다."
+ },
+ "method": "frozen dom.html 에 세 셀렉터를 직접 XPath 질의. probe 보고와 독립.",
+ "grain": "target (in_mart==1, search_inputs_n>0), n=10",
+ "per_target": [
+  {
+   "service": "코스트코",
+   "archetype": "ITEM_DETAIL",
+   "wtg": "22ffba7a86ea9919",
+   "input_type_search": 1,
+   "role_searchbox": 0,
+   "role_combobox": 0,
+   "engine_selector_matches": 1,
+   "probe_selector_matches": 1,
+   "engine_can_type": true,
+   "archetype_requires_typing": false
+  },
+  {
+   "service": "다음",
+   "archetype": "QUERY",
+   "wtg": "91b952863c62993d",
+   "input_type_search": 1,
+   "role_searchbox": 0,
+   "role_combobox": 0,
+   "engine_selector_matches": 1,
+   "probe_selector_matches": 1,
+   "engine_can_type": true,
+   "archetype_requires_typing": true
+  },
+  {
+   "service": "CJ온스타일",
+   "archetype": "ITEM_DETAIL",
+   "wtg": "4feab7e61bf642e8",
+   "input_type_search": 1,
+   "role_searchbox": 0,
+   "role_combobox": 0,
+   "engine_selector_matches": 1,
+   "probe_selector_matches": 1,
+   "engine_can_type": true,
+   "archetype_requires_typing": false
+  },
+  {
+   "service": "네이버",
+   "archetype": "QUERY",
+   "wtg": "6d5510a695d0a614",
+   "input_type_search": 2,
+   "role_searchbox": 0,
+   "role_combobox": 0,
+   "engine_selector_matches": 2,
+   "probe_selector_matches": 2,
+   "engine_can_type": true,
+   "archetype_requires_typing": true
+  },
+  {
+   "service": "메가커피",
+   "archetype": "ITEM_DETAIL",
+   "wtg": "ea031f85e857140e",
+   "input_type_search": 1,
+   "role_searchbox": 0,
+   "role_combobox": 0,
+   "engine_selector_matches": 1,
+   "probe_selector_matches": 1,
+   "engine_can_type": true,
+   "archetype_requires_typing": false
+  },
+  {
+   "service": "YouTube",
+   "archetype": "CONTENT_OPEN",
+   "wtg": "24e6654bfd1ab85b",
+   "input_type_search": 0,
+   "role_searchbox": 0,
+   "role_combobox": 1,
+   "engine_selector_matches": 0,
+   "probe_selector_matches": 1,
+   "engine_can_type": false,
+   "archetype_requires_typing": false
+  },
+  {
+   "service": "당근",
+   "archetype": "COMMUNICATION_ENTRY",
+   "wtg": "46e5a43370f75308",
+   "input_type_search": 1,
+   "role_searchbox": 0,
+   "role_combobox": 0,
+   "engine_selector_matches": 1,
+   "probe_selector_matches": 1,
+   "engine_can_type": true,
+   "archetype_requires_typing": false
+  },
+  {
+   "service": "롯데마트",
+   "archetype": "ITEM_DETAIL",
+   "wtg": "88cb7f1e54f26500",
+   "input_type_search": 0,
+   "role_searchbox": 0,
+   "role_combobox": 1,
+   "engine_selector_matches": 0,
+   "probe_selector_matches": 1,
+   "engine_can_type": false,
+   "archetype_requires_typing": false
+  },
+  {
+   "service": "Google",
+   "archetype": "QUERY",
+   "wtg": "bbdefa2950f49882",
+   "input_type_search": 0,
+   "role_searchbox": 0,
+   "role_combobox": 1,
+   "engine_selector_matches": 0,
+   "probe_selector_matches": 1,
+   "engine_can_type": false,
+   "archetype_requires_typing": true
+  },
+  {
+   "service": "카카오맵",
+   "archetype": "PLACE_LOOKUP",
+   "wtg": "f322b894ee95c181",
+   "input_type_search": 1,
+   "role_searchbox": 0,
+   "role_combobox": 0,
+   "engine_selector_matches": 1,
+   "probe_selector_matches": 1,
+   "engine_can_type": true,
+   "archetype_requires_typing": false
+  }
+ ],
+ "counts": {
+  "targets_with_search_input": 10,
+  "engine_selector_matches_zero": 3,
+  "gap_services": [
+   "YouTube",
+   "롯데마트",
+   "Google"
+  ],
+  "role_totals": {
+   "input_type_search": 8,
+   "role_searchbox": 0,
+   "role_combobox": 3
+  }
+ },
+ "precision": {
+  "raw_gap": "3/10 target 에서 engine 셀렉터가 0개를 매칭한다 (Google · YouTube · 롯데마트).",
+  "but_typing_is_query_only": "engine 은 archetype 이 QUERY 일 때만 타이핑한다(l1_engine.py:697). 따라서 YouTube(CONTENT_OPEN)·롯데마트(ITEM_DETAIL)는 이 gap 이 타이핑을 막지 않는다 — 그 archetype 은 애초에 타이핑하지 않는다.",
+  "archetype_relevant_gap": "**Google 1건**이 유일하게 archetype 정의상 타이핑이 필요한데 engine 이 검색창을 못 찾는 경우다. QUERY 4건 중 1건.",
+  "do_not_overclaim": "'3 target 이 막힌다' 로 쓰면 과장이다. 셀렉터 비대칭은 3건, 타이핑 차단은 1건이다."
+ },
+ "answer": {
+  "h4_verdict": "**SUPPORTED** — 셀렉터 비대칭은 실재하고 정적으로 확인된다.",
+  "second_blocker": "Google 은 LOGIN guard 가 풀려도 여전히 타이핑할 수 없다. **guard 뒤에 두 번째 차단이 숨어 있었다.**",
+  "generality": "비대칭 자체는 QUERY 를 넘어선 일관성 결함이다 — probe 와 engine 이 같은 개념을 다르게 정의한다."
+ },
+ "verdict": "SUPPORTED",
+ "limitations": [
+  "combobox 요소가 실제로 타이핑 가능한 입력인지 확인하지 않았다. role 만 봤다.",
+  "engine 이 combobox 를 못 찾았을 때 무엇을 하는지는 코드상 `boxes` 가 비면 타이핑을 건너뛰고 click 만 한다 — 실행 관측은 없다.",
+  "n=10 (search_inputs 보유 target). QUERY 는 그중 3건뿐이다.",
+  "guard 가 풀린 실제 실행에서 이 예측이 맞는지는 pilot 에서만 확인된다."
+ ]
+}
