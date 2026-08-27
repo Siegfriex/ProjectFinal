@@ -383,8 +383,18 @@ def test_collector_refuses_a_real_target_in_fixture_mode() -> None:
 def test_account_action_guard_blocks_before_scout_is_constructed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # ── 계약변경 (`T-A-W1-001` §1 · G1-a · `D-R0-01` target-level kill 폐기 ·
+    #    `D-R0-71`로 이 파일이 W1 scope 에 편입) ──────────────────────────────
+    # 폐기된 계약: "로그인 텍스트가 붙은 후보가 하나라도 있으면 Scout 를 절대
+    # 만들지 않는다"(target-level kill). 새 계약은 candidate/state-level 판정
+    # (`guard.assess_reachable_candidates`)이다 — 이 mock 후보는 `hittable` 신호가
+    # 없다(L0 가 실제로 클릭 후보로 고려하지 않는 요소라는 뜻). reachable 판정에서
+    # 제외되면 reachable 후보가 0개가 되고, 안전한 대안도 forbidden 후보도 없는
+    # 빈 집합은 막지 않는다. 그래서 이제는 **Scout 가 실제로 구성된다**는 것을
+    # 검증한다 — exploding mock 의 극성을 뒤집어 "생성되면 실패"가 아니라
+    # "생성돼야 함"을 신호로 잡는다(구조는 그대로 유지: mock 이 호출되면 예외로
+    # 알린다).
     from landing_accessibility.e001_runner import real_executor
-    from landing_accessibility.e001_runner.outcomes import TargetOutcome
 
     monkeypatch.setattr(
         real_executor,
@@ -397,23 +407,26 @@ def test_account_action_guard_blocks_before_scout_is_constructed(
         },
     )
 
-    def exploding_scout(*_a: object, **_k: object) -> None:
-        raise AssertionError("가드가 막았어야 하는데 Scout 가 만들어졌다")
+    class ScoutConstructedSignal(Exception):
+        """`Scout(...)` 가 실제로 호출됐다는 신호 — 이 테스트는 그 사실만 본다."""
 
-    monkeypatch.setattr(real_executor, "Scout", exploding_scout)
+    def scout_constructed(*_a: object, **_k: object) -> None:
+        raise ScoutConstructedSignal(
+            "Scout 가 구성됐다 — G1-a 폐기로 guard 가 이 target 을 더 이상 막지 않는다"
+        )
 
-    result = real_executor.run_l1_if_safe_real(
-        TargetSpec(
-            target_id="wtg_x",
-            canonical_service_key="x",
-            official_url="https" + "://example.com/",
-            interaction_archetype="QUERY",
-        ),
-        run=None,  # type: ignore[arg-type]
-    )
-    assert result["outcome"] == TargetOutcome.ACCOUNT_ACTION_BLOCKED.value
-    assert result["scout_invoked"] is False
-    assert result["l0"]["observation_id"] == "obs-1"
+    monkeypatch.setattr(real_executor, "Scout", scout_constructed)
+
+    with pytest.raises(ScoutConstructedSignal):
+        real_executor.run_l1_if_safe_real(
+            TargetSpec(
+                target_id="wtg_x",
+                canonical_service_key="x",
+                official_url="https" + "://example.com/",
+                interaction_archetype="QUERY",
+            ),
+            run=None,  # type: ignore[arg-type]
+        )
 
 
 # ── 8. 실제 수집 provenance ──────────────────────────────────────────────────

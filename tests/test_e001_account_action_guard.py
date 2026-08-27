@@ -96,8 +96,17 @@ def _login_target() -> TargetSpec:
 
 
 def test_l1_executor_blocks_before_scout_is_ever_constructed(tmp_path, monkeypatch):
-    """`Scout.scout`를 감시한다 — 호출되면 즉시 실패시킨다. 가드가 걸린 target은
-    이 감시를 절대 트리거하지 않아야 한다(코드 경로 자체가 실행되지 않았다는 증거).
+    """`Scout.scout`를 감시한다.
+
+    ── 계약변경 (`T-A-W1-001` §1 · G1-a · `D-R0-01` target-level kill 폐기 ·
+       `D-R0-71`로 이 파일이 W1 scope 에 편입) ────────────────────────────
+    폐기된 계약: "`_login_target()`(`auth_login_gate.html` + `FINANCIAL_ACTION_
+    ENTRY`)은 Scout 를 절대 만들지 않는다". 새 계약에서 `LOGIN` candidate 는
+    `AUTH_ENTRY_ALLOWED_CONDITIONALLY`(안전한 대안)이므로 guard 를 통과한다 —
+    이 fixture 자신의 헤더 주석이 이미 이 archetype 에서 `FUNCTION_ENDPOINT_
+    REACHED`를 기대값으로 적어 뒀다. 이제는 `Scout.scout`가 **실제로 호출된다**
+    는 것과, landing 자체가 gate 라 **0-activation** 으로 종료된다는 것(재시도
+    없이 1회 만에 끝남)을 검증한다.
     """
     scout_calls: list[str] = []
     original_scout = Scout.scout
@@ -113,10 +122,12 @@ def test_l1_executor_blocks_before_scout_is_ever_constructed(tmp_path, monkeypat
         [_login_target()], execution_mode="FIXTURE", target_executor=runner.l1_executor
     )
 
-    assert scout_calls == [], "가드가 걸렸는데 Scout.scout 이 호출됐다 — 클릭 경로가 살아있다"
+    assert scout_calls == [_login_target().target_id], (
+        "guard 가 여전히 target-level kill 을 하고 있다 — Scout.scout 이 호출되지 않았다"
+    )
     result = manifests[0].results[0]
-    assert result["outcome"] == TargetOutcome.ACCOUNT_ACTION_BLOCKED.value
-    assert result["attempts"] == 1, "가드 위반은 재시도 대상이 아니다"
+    assert result["outcome"] == TargetOutcome.MEASURED.value
+    assert result["attempts"] == 1, "guard 를 통과했으므로 재시도 없이 1회에 끝난다"
 
 
 def test_l1_executor_does_not_click_any_forbidden_selector(tmp_path, monkeypatch):

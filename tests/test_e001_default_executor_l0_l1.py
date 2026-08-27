@@ -93,9 +93,17 @@ def _query_target() -> TargetSpec:
 
 # ── 1. 기본 경로에서도 계정 행동 가드가 Scout 생성 자체를 막는다 ────────────────
 def test_default_run_blocks_before_scout_is_ever_constructed(tmp_path, monkeypatch):
-    """`target_executor`를 **아무것도 넘기지 않는다** — 이것이 이번 시정의 핵심
-    검증 대상이다: 이전에는 이 경로가 L0만 돌아 애초에 클릭이 없었지만, 이제는
-    L1이 기본으로 켜지므로 가드가 실제로 발화해야 한다.
+    """`target_executor`를 **아무것도 넘기지 않는다** — 기본 경로에서 L0+L1 이
+    함께 켜진다는 것을 검증한다.
+
+    ── 계약변경 (`T-A-W1-001` §1 · G1-a · `D-R0-01` target-level kill 폐기 ·
+       `D-R0-71`로 이 파일이 W1 scope 에 편입) ────────────────────────────
+    폐기된 계약: "`_login_target()`(`auth_login_gate.html` + `FINANCIAL_ACTION_
+    ENTRY`)은 기본 경로에서도 Scout 를 절대 만들지 않는다". `LOGIN` candidate 는
+    이제 `AUTH_ENTRY_ALLOWED_CONDITIONALLY`(안전한 대안)라 guard 를 통과한다 —
+    fixture 헤더 주석이 이미 이 archetype 에서 `FUNCTION_ENDPOINT_REACHED`를
+    기대값으로 적어 뒀다. `Scout.scout`가 실제로 호출된다는 것과, landing 자체가
+    gate 라 0-activation 으로 재시도 없이 1회 만에 끝난다는 것을 검증한다.
     """
     scout_calls: list[str] = []
     original_scout = Scout.scout
@@ -109,10 +117,12 @@ def test_default_run_blocks_before_scout_is_ever_constructed(tmp_path, monkeypat
     runner = BatchRunner(out_dir=tmp_path / "out", fixture_root=FIXTURES, batch_size=5)
     manifests = runner.run([_login_target()], execution_mode="FIXTURE")
 
-    assert scout_calls == [], "기본 경로인데 가드가 걸린 target에서 Scout.scout 이 호출됐다"
+    assert scout_calls == [_login_target().target_id], (
+        "기본 경로인데 Scout.scout 이 호출되지 않았다 — guard 가 여전히 target-level kill 을 한다"
+    )
     result = manifests[0].results[0]
-    assert result["outcome"] == TargetOutcome.ACCOUNT_ACTION_BLOCKED.value
-    assert result["attempts"] == 1, "가드 위반은 재시도 대상이 아니다"
+    assert result["outcome"] == TargetOutcome.MEASURED.value
+    assert result["attempts"] == 1, "guard 를 통과했으므로 재시도 없이 1회에 끝난다"
 
 
 def test_default_run_does_not_click_any_forbidden_selector(tmp_path, monkeypatch):
@@ -253,9 +263,11 @@ def test_default_run_isolates_gate_and_guard_targets_without_stopping_the_batch(
     assert len(manifests) == 1
     results = {r["target_id"]: r for r in manifests[0].results}
     assert set(results) == {t.target_id for t in targets}
-    assert (
-        results[_login_target().target_id]["outcome"] == TargetOutcome.ACCOUNT_ACTION_BLOCKED.value
-    )
+    # 계약변경 (G1-a · `D-R0-01` target-level kill 폐기 · `D-R0-71`로 W1 scope 편입):
+    # `_login_target()`은 이제 guard 를 통과해 `MEASURED`로 끝난다(위 두 테스트와
+    # 같은 근거) — 배치가 멈추지 않고 3개 target 전부를 낸다는 이 테스트의 진짜
+    # 취지(`len(manifests) == 1`, `set(results) == 전체`)는 그대로다.
+    assert results[_login_target().target_id]["outcome"] == TargetOutcome.MEASURED.value
     assert results[_identity_target().target_id]["outcome"] == TargetOutcome.AUTH_GATE.value
 
     ledger_check = runner.ledger.verify_chain()
@@ -277,8 +289,12 @@ def test_l1_executor_alias_is_identical_to_default_path(tmp_path):
         [_login_target()], execution_mode="FIXTURE", target_executor=runner_explicit.l1_executor
     )
 
+    # 계약변경 (G1-a · `D-R0-01` target-level kill 폐기 · `D-R0-71`로 W1 scope
+    # 편입): `_login_target()`은 이제 guard 를 통과해 `MEASURED`로 끝난다 — 이
+    # 테스트의 진짜 취지("두 경로가 서로 같은 outcome을 낸다")는 그대로다. 바뀐
+    # 것은 그 공통 outcome 값뿐이다.
     assert (
         manifests_default[0].results[0]["outcome"]
         == manifests_explicit[0].results[0]["outcome"]
-        == TargetOutcome.ACCOUNT_ACTION_BLOCKED.value
+        == TargetOutcome.MEASURED.value
     )
