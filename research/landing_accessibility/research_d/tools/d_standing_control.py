@@ -152,6 +152,82 @@ def check_index_delta(prev: dict | None) -> dict:
     return now
 
 
+# ------------------------------------------- 5. pack 밖 운영 문서 (Δ7 판정)
+def check_out_of_pack_docs() -> dict:
+    """A 가 매니페스트 밖으로 분류한 문서를 delta 에 못박힌 sha 로 감시한다.
+
+    `SSOTV3/THREE_TURN_RUNBOOK.md` 는 Δ7 판정으로 매니페스트에 등재되지 않는다
+    ('pack 권위 밖 운영 runbook'). 그래서 SSOTV3 매니페스트 대조가 이 파일을
+    보지 않고, **아무것도 이 파일을 보지 않는다.** 운영 조항으로 채택된 문서다.
+
+    기준값은 여기에 적지 않고 **delta 원문에서 읽는다** — A 가 다시 못박으면
+    따라간다. D 가 자기 사본을 들고 있으면 그 사본이 또 하나의 진리가 된다.
+    """
+    dl = (CTRL_V3 / "V3_0_1_SUCCESSOR_DELTA.md").read_text(encoding="utf-8")
+    import re
+    sec = re.search(r"^## Δ7 .*?(?=^## Δ8 )", dl, re.M | re.S)
+    if not sec:
+        return {"checked": 0, "verdict": "NO_RULING_SECTION",
+                "why": "delta 에서 Δ7 절을 찾지 못했다 — 기준값이 없으므로 판정하지 않는다"}
+    m = re.search(r"`(THREE_TURN_RUNBOOK[\w./\-]*|SSOTV3/[\w./\-]+)`.*?sha256\s*`([0-9a-f]{64})`",
+                  sec.group(0), re.S)
+    if not m:
+        return {"checked": 0, "verdict": "NO_PINNED_SHA",
+                "why": "Δ7 절에 못박힌 sha256 이 없다 — 판정하지 않는다"}
+    rel = m.group(1).split("SSOTV3/")[-1]
+    want = m.group(2)
+    f = SSOT / rel
+    if not f.exists():
+        return {"file": rel, "verdict": "FILE_MISSING", "pinned": want}
+    b = f.read_bytes()
+    got = _sha(b)
+    return {"file": rel, "pinned_in_delta": want, "current": got,
+            "match": got == want, "checked": 1,
+            "control": {"detected": _sha(_mutate(b)) != want},
+            "control_ok": _sha(_mutate(b)) != want,
+            "classification": "Δ7 — pack 권위 밖 운영 runbook. 매니페스트 대상 아님",
+            "why_watched": "매니페스트가 안 보고 다른 무엇도 안 본다. 운영 조항으로 채택된 문서다."}
+
+
+def extend_baseline() -> dict:
+    """신규 발행분만 기준선에 편입한다. **기존 항목의 해시는 갱신하지 않는다.**
+
+    갱신하면 드리프트가 지워진다 — 바뀐 티켓을 기준선에 다시 새겨 넣으면
+    '바뀌지 않았다' 가 되어 버린다. 그래서 여기서는 `added` 만 처리하고,
+    이미 기준선에 있는 id 는 해시가 달라도 손대지 않는다(그건 DRIFT 로 남는다).
+
+    자동으로 돌리지 않는다. 발행 후 명시적으로 호출한다 — 자동이면 방금 바뀐
+    티켓도 '새 것' 으로 편입될 여지가 생긴다.
+    """
+    rec_p = RESULTS / "D_EMITTED_TICKET_INTEGRITY.json"
+    rec = json.loads(rec_p.read_text(encoding="utf-8"))
+    base = rec["tickets"]
+    chk = check_emitted_tickets()
+    if chk["drift"] or chk["removed"]:
+        return {"extended": False,
+                "why": "드리프트나 삭제가 있는 상태에서는 기준선을 넓히지 않는다",
+                "drift": chk["drifted"], "removed": chk["removed"]}
+    added = chk["added"]
+    if not added:
+        return {"extended": False, "why": "신규 없음", "n": len(base)}
+
+    ts = subprocess.run(["date", "-Iseconds"], capture_output=True,
+                        text=True).stdout.strip()
+    for tid in added:
+        p = BUS / "tickets" / f"{tid}.json"
+        d = json.loads(p.read_text(encoding="utf-8"))
+        base[tid] = {"sha256": _sha(p.read_bytes()), "bytes": p.stat().st_size,
+                     "type": d.get("type"), "priority": d.get("priority")}
+    rec["n_tickets"] = len(base)
+    rec["last_checked_kst"] = ts
+    rec.setdefault("baseline_extensions", []).append(
+        {"at": ts, "added": sorted(added),
+         "note": "신규 발행분만 편입. 기존 항목 해시는 갱신하지 않는다.",
+         "tool": "tools/d_standing_control.py extend_baseline()"})
+    rec_p.write_text(json.dumps(rec, ensure_ascii=False, indent=1), encoding="utf-8")
+    return {"extended": True, "added": sorted(added), "n": len(base)}
+
+
 def main() -> int:
     log_p = RESULTS / "D_STANDING_CONTROL_DRIFT_LOG.jsonl"
     prev = None
@@ -171,13 +247,18 @@ def main() -> int:
            "ssotv3": check_ssotv3(),
            "endpoint_lock": check_endpoint_lock(),
            "emitted_tickets": check_emitted_tickets(),
-           "index_delta": check_index_delta(prev)}
+           "index_delta": check_index_delta(prev),
+           "out_of_pack_docs": check_out_of_pack_docs()}
 
     controls_ok = all(out[k].get("control_ok") for k in
                       ("ssotv3", "endpoint_lock", "emitted_tickets"))
+    oop = out["out_of_pack_docs"]
+    if oop.get("checked"):
+        controls_ok = controls_ok and oop.get("control_ok", False)
     drifted = (out["ssotv3"]["mismatch"] or out["ssotv3"]["missing"]
                or out["endpoint_lock"]["drift"]
-               or out["emitted_tickets"]["drift"] or out["emitted_tickets"]["removed"])
+               or out["emitted_tickets"]["drift"] or out["emitted_tickets"]["removed"]
+               or (oop.get("checked") and not oop.get("match")))
     out["control_verdict"] = "PASS" if controls_ok else "FAIL"
     out["verdict"] = ("CONTROL_FAIL" if not controls_ok
                       else "DRIFT_NONE" if not drifted else "DRIFT")
@@ -200,6 +281,12 @@ def main() -> int:
         print(f"                  added: {', '.join(t['added'])}")
     def _fmt(c):
         return "비교불가" if not c["comparable"] else ("변경됨" if c["changed"] else "동일")
+    if oop.get("checked"):
+        print(f"pack 밖 문서     : {oop['file']} {'일치' if oop['match'] else '** 불일치 **'} "
+              f"(Δ7 못박음 {oop['pinned_in_delta'][:16]}) "
+              f"| 변형대조 {'검출' if oop['control_ok'] else '** 미검출 **'}")
+    else:
+        print(f"pack 밖 문서     : {oop.get('verdict')} — {oop.get('why','')}")
     print(f"색인/delta      : v{i['index_version']} {i['index_sha'][:16]} "
           f"색인={_fmt(i['index'])} delta={_fmt(i['delta'])}")
     if i["index"]["comparable"] and i["index"]["changed"]:
@@ -210,4 +297,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    import sys
+    if "--extend-baseline" in sys.argv:
+        print(json.dumps(extend_baseline(), ensure_ascii=False, indent=1))
+        raise SystemExit(0)
     raise SystemExit(main())
