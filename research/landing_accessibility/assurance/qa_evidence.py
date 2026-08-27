@@ -314,7 +314,8 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
     def _tid_of(run_name):
         m = re.search(r"-(wt[g_-][A-Za-z0-9_-]+?)-\d{4}-\d{2}-\d{2}T", run_name); return m.group(1) if m else None
     retry_superseded = [n for n in unref if attempts_by_tid.get(_tid_of(n), 0) > 1]
-    guard_blocked = [n for n in unref if n not in retry_superseded and any(r["target_id"] == _tid_of(n) and r["outcome"] == "ACCOUNT_ACTION_BLOCKED" for r in rows)]
+    # guard-blocked L0 run counts as explained ONLY if that target has no referenced run at all (executor dropped its L0 record)
+    guard_blocked = [n for n in unref if n not in retry_superseded and any(r["target_id"] == _tid_of(n) and r["outcome"] == "ACCOUNT_ACTION_BLOCKED" and not r.get("evidence_run_id") for r in rows)]
     unsealed = [n for n in disk_runs if not (ev / n / "manifest.jsonl").is_file()]
     orphan = [n for n in unref if n not in retry_superseded and n not in guard_blocked and n not in unsealed]
     if orphan: f.add("C1", "ORPHAN_EVIDENCE_RUNS", f"{len(orphan)} sealed evidence runs referenced by no batch result and not explained by retry/guard", runs=orphan[:20])
