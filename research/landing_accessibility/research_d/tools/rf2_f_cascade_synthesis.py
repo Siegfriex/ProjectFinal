@@ -443,7 +443,30 @@ def target_property_sets(rows):
         }
 
     sem_high = [r for r in und if r["E_sem_margin"] >= sorted(x["E_sem_margin"] for x in rows)[22]]
+    # E 의 함정: semantic 이 가장 확신하는 미확정 target 이 곧 표면부재 target 인가?
+    sh = {r["wtg"] for r in sem_high}
+    pa = {r["wtg"] for r in principled}
+    co = {r["wtg"] for r in capture_only}
+    trap = {
+        "question": ("rule 이 전부 실패했는데 semantic margin 이 높은 target 은 "
+                     "semantic 을 더해야 하는 target 인가, 아니면 브랜드면인가?"),
+        "n_semantic_confident_but_no_rule_fires": len(sh),
+        "of_which_surface_absent": len(sh & pa),
+        "of_which_capture_defect_only": len(sh & co),
+        "of_which_genuinely_definition_ambiguous": len(sh - pa - co),
+        "surface_absent_services": sorted(rows[i]["service"] for i in range(len(rows))
+                                          if rows[i]["wtg"] in (sh & pa)),
+        "genuine_services": sorted(rows[i]["service"] for i in range(len(rows))
+                                   if rows[i]["wtg"] in (sh - pa - co)),
+        "reading": ("**이것이 이 종합에서 가장 불편한 관측이다.** semantic 이 가장 확신하는 미확정 target 의 "
+                    "대다수가 표면부재(브랜드면·앱설치면·미렌더) target 이다. E 가 이미 경고한 것과 같다 — "
+                    "브랜드면의 텍스트는 그 서비스의 **업종**을 강하게 말해 주므로 semantic 이 잘 맞는데, "
+                    "그것은 대표기능을 식별한 것이 아니다(D-FACT-01). "
+                    "따라서 '규칙이 실패한 곳에 semantic 을 붙이면 coverage 가 는다' 는 처방은 "
+                    "**정확히 붙이면 안 되는 곳에 붙는다.**"),
+    }
     return {
+        "semantic_confidence_trap": trap,
         "deterministically_identifiable_union": describe(det_any, "적어도 한 rule 구현이 유일 후보를 낸 target"),
         "undetermined_by_every_rule_implementation": describe(und, "세 rule 구현 모두 확정 실패"),
         "needs_semantic_evidence": describe(
@@ -624,6 +647,11 @@ def build_candidates(rows, agg, curves, leak, sem_gate):
             {"child": "D-RF2-B", "evidence": ("prior 를 되찾는 신호의 상당 부분이 페이지 규모 축일 수 있다 — "
                                               "16 feature 의 제1성분(33% 분산)이 규모이고 상위 feature "
                                               "`accessible_name_richness`(MI 0.264)는 domain 의미가 없는 구조량이다.")},
+            {"child": "D-RF2-F", "evidence": (
+                "**semantic confidence trap.** 규칙이 전부 실패했는데 semantic margin 이 높은 14건 중 "
+                "10건이 표면부재(브랜드면·앱설치면·미렌더) target 이다. 즉 이 후보의 2단계가 열어 주는 "
+                "coverage 는 **정확히 열면 안 되는 곳에서** 열린다 — 브랜드면 텍스트가 업종을 강하게 "
+                "말해 주기 때문이지 대표기능을 드러내기 때문이 아니다.")},
         ],
         "observed_coverage_in_this_cohort": {
             "rule_stage_only": {"n": A_det, "coverage": round(A_det / n, 4)},
@@ -1205,6 +1233,16 @@ def synthesis_answers(rows, mult, props, curves, leak):
             "where_semantic_does_not_help": "T03_MULTI_STRONG_CANDIDATE (n=6): rule 0.50 → semantic 0.67 불일치 (악화)",
             "where_semantic_is_misleading": ("T05_GENERIC_BRAND_LANDING — semantic 이 잘 맞지만 그건 업종을 맞힌 것이다. "
                                              "E: 표면부재 유형을 먼저 abstain 시키면 같은 coverage 에서 지표가 오히려 낮아진다."),
+            "semantic_confidence_trap": props["semantic_confidence_trap"],
+            "corrected_answer": (
+                "위 trap 을 반영하면 Q3 의 답은 좁아진다. rule 이 전부 실패했는데 semantic margin 이 높은 "
+                f"{props['semantic_confidence_trap']['n_semantic_confident_but_no_rule_fires']}건 중 "
+                f"{props['semantic_confidence_trap']['of_which_surface_absent']}건이 **표면부재 target** 이고 "
+                f"진짜로 정의상 애매해서 semantic 이 필요한 것은 "
+                f"{props['semantic_confidence_trap']['of_which_genuinely_definition_ambiguous']}건뿐이다"
+                f"({props['semantic_confidence_trap']['genuine_services']}). "
+                "**즉 'semantic evidence 를 더해야 하는 target' 은 이 코호트에서 극소수다.** "
+                "semantic 이 열어 주는 coverage 의 대부분은 대표기능이 아니라 업종을 읽어서 열린다."),
         },
         "Q4_principled_abstain": {
             "count_lower_bound": props["principled_abstain_surface_absent"]["n"],
@@ -1258,7 +1296,10 @@ def smallest_sufficient(rows, curves, props):
             "그리고 identity 로 좁힐수록 C 가 경고한 순환 — title/url 이 브랜드를 읽고 브랜드→업종→archetype 을 "
             "되짚는 경로 — 이 강해진다. C 의 브랜드 마스킹에서 `url_tokens` 0.361→0.138, `title` 0.559→0.357 이다. "
             "**따라서 최소 충분구조는 '가장 작다'와 '가장 순환적이다'가 같은 방향이다.** "
-            "독립 label 없이 이 구조를 채택하면 업종 분류기를 대표기능 detector 라고 부르게 된다."),
+            "독립 label 없이 이 구조를 채택하면 업종 분류기를 대표기능 detector 라고 부르게 된다. "
+            "더 구체적으로: 규칙이 전부 실패했는데 semantic 이 확신하는 14건 중 10건이 표면부재 target 이다"
+            "(`synthesis_questions.Q3...semantic_confidence_trap`). semantic 단계가 벌어들이는 coverage 의 "
+            "상당 부분이 **대표 기능면이 아닌 페이지에서** 나온다."),
         "minimum_viable_stack": [
             {"stage": 1, "name": "Stage-0 renderability", "kind": "deterministic",
              "why": "SSOT §2 가 이미 확정을 금지한다. 이 코호트 56 중 5건이 여기서 걸린다.",
@@ -1297,6 +1338,16 @@ def counterexamples(rows, mult):
                         "QUERY 로 닫았는데 prior 는 ITEM_DETAIL 이다. 합의는 타당성이 아니라 "
                         "'랜딩에서 검색창이 가장 완결된 affordance' 라는 같은 편향의 공유일 수 있다."),
         })
+    out.append({
+        "kind": "이 종합 자신의 결론에 대한 반례 — semantic-only 가 이기는 이유가 나쁜 이유다",
+        "detail": ("D-RF2-F: 규칙이 전부 실패했는데 semantic margin 이 높은 14건 중 10건이 표면부재 target"
+                   "(Chrome · GS25 · NH스마트뱅킹 · NH콕뱅크 · emart24 · 디바이스 케어 · 롯데하이마트 · "
+                   "마켓컬리 · 신한 SOL뱅크 · 캐시워크)이다."),
+        "reading": ("§'가장 작은 충분구조' 가 semantic-only 로 기운 근거는 coverage×prior_agreement 곡선인데, "
+                    "그 곡선이 좋아지는 구간의 상당 부분이 브랜드면이다. "
+                    "**이 반례는 이 문서가 semantic-only 를 추천하지 않는 이유이기도 하다** — "
+                    "D 는 후보를 제시하고 대가를 적을 뿐 순위를 매기지 않는다."),
+    })
     out.append({
         "kind": "semantic 이 규칙보다 항상 나은 것은 아니다",
         "detail": "D-RF2-E: T03_MULTI_STRONG_CANDIDATE 6건에서 semantic 불일치 0.67 > rule 0.50",

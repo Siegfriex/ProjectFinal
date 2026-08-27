@@ -1,0 +1,43 @@
+{
+ "rq": "RQ-D13c",
+ "claim_kind": "IMPLEMENTATION",
+ "title": "mart 빌더가 SKIPPED_RETRY_EXHAUSTED 행을 어디서 떨어뜨리는가",
+ "derived_from": "RQ-D11 F3 (손실은 원장->mart 사이)",
+ "corrects": "RQ-D1 F4 의 '3 target 이 조용히 사라진다' — **부분적으로 틀렸다**",
+ "code_at_exact_sha": {
+  "sha": "82f631f1e6bd3708bc8f95f0b8edcd90e22cef0d",
+  "file": "research/landing_accessibility/scripts/build_real_marts.py",
+  "L48": "`l0 = detail.get('l0') or {}` 다음 `if l0:` — else 절이 없다. l0 블록이 없으면 landing row 를 만들지 않는다",
+  "L94": "`if detail.get('task_observation_id') or detail.get('endpoint_status'):` — else 절이 없다. 둘 다 없으면 task row 를 만들지 않는다",
+  "L140": "`elif outcome == 'SKIPPED_RETRY_EXHAUSTED': skipped += 1` — **같은 스크립트가 이 outcome 을 알고 세고 있다**"
+ },
+ "key_correction": {
+  "my_original_claim": "RQ-D1 F4: 3 target 이 mart 에서 조용히 사라지고 NO_EVIDENCE 행조차 없다",
+  "what_is_actually_true": "3 target 은 REAL_RUN_SUMMARY.collection_markers 에 **정확히 기록돼 있다**",
+  "evidence": {
+   "analysis_sample.archetype_unknown_by_outcome.SKIPPED_RETRY_EXHAUSTED": 3,
+   "by_source_skipped_retry_exhausted_n": [
+    0,
+    1,
+    2,
+    0
+   ],
+   "matches_RQ_D11_ledger": "w02 1 · w03 2 = 3, RQ-D11 의 원장 집계와 정확히 일치"
+  },
+  "narrower_true_statement": "3 target 은 **fact_landing_observation 에만** 행이 없다. mart 전체에서 사라진 것이 아니다.",
+  "why_it_matters": "빌더는 outcome 을 모르지 않는다. 요약에는 기록하고 fact table 에는 안 넣는다. fact table 이 observation 키 기반이고 observation 이 없으므로 설계상 일관된 선택이다. 문제는 '조용한 누락' 이 아니라 **두 산출물의 분모가 다르다** 는 것이다 — fact_landing_observation 만 읽는 소비자는 56 을 보고 요약은 59 를 안다."
+ },
+ "denominators": {
+  "fact_landing_observation_rows": 56,
+  "fact_task_entry_rows": 31,
+  "summary_knows_attempted": 59,
+  "gap_landing": 3,
+  "gap_task": 25
+ },
+ "verdict": "SUPPORTED",
+ "production_implication": "P2: fact_landing_observation 만 읽는 분석은 분모 56 을 쓰고 요약은 59 를 안다. 어느 쪽이 옳은지는 분석 단위 정의 문제이며 A 의 권한이다. D 는 '두 분모가 다르고 그 차이가 문서화되지 않았다' 까지만 보고한다.",
+ "limitations": [
+  "빌더 코드를 읽었을 뿐 실행해 재현하지 않았다.",
+  "다른 mart 산출물(CLAIM_REGISTRY·STATISTICAL_RESULTS)이 어느 분모를 쓰는지 확인하지 않았다."
+ ]
+}
