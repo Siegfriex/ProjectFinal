@@ -345,6 +345,7 @@ no outcome-conditioned reselection
 | 시각 | 변경 | 데이터 관측 이후인가 | 사유 |
 |---|---|---|---|
 | 2026-08-27 11:40 | 최초 동결 | **아니오 — REAL TARGET 수집 0건 상태** | A0 지시에 따른 사전 동결 |
+| 2026-08-27 13:55 | **개정 1 — PRIMARY/SECONDARY 재구성.** `MPFED` 전건 NULL 로 원 PRIMARY `Spearman(MPFED, FailRate)` 계산 불가. 새 PRIMARY = `Spearman(FailRate, obstruction 1종)`, SECONDARY = `KW(FailRate ~ archetype)`. 제외 사유 제3범주 `l1_not_attempted_guard` 신설. `l0_analyzable_n`(J1∧J4) 신설 — **J3 는 완화하지 않았고 `joint_valid_n` 도 그대로 보고한다.** **전문은 `ANALYSIS_CONTRACT_AMENDMENT_1.md` (`LA-AC-AMD1-20260827`).** 이 표만 읽는 사람도 PRIMARY 가 바뀐 사실을 알 수 있도록 여기 등재한다. | **부분적으로 예 — 정직하게 적는다.** E000 6건은 **관측했다.** 다만 개정의 근거는 결과값이 아니라 "`MPFED` 가 산출되지 않는다" 는 **측정 가능성** 사실이다. A 는 `FailRate`·obstruction 값을 열람하지 않았다고 **주장**하나 **이는 검증 불가능한 진술이며, 그 값들은 E000 batch result 에 열람 가능한 상태로 존재했다**(C 기록). 구조적 반증 근거는 §0 참조. | 계약에 PRIMARY 가 없는 상태로 E001 데이터를 받으면 데이터를 본 뒤 PRIMARY 를 고르게 된다. |
 | 2026-08-27 12:15 | **§1.1 정정** — "로그인 벽이라는 이유만으로 joint-valid 에서 제거하지 않는다" 는 초판 문장이 실제 계수 규칙과 어긋났다. A2 §1.5.1(endpoint 미도달 → MPFED NULL → J3 탈락)이 지배함을 명시하고, 별도 제외 사유 `gate_reached_mpfed_null` 신설 + 그 수를 결과로 보고할 의무 + 선택편향의 `LIMITATIONS` 기재 의무를 추가했다. §1.3 제외 사유 목록에 해당 항목과 "우리 쪽 사정 / 대상의 성질" 구분을 표기했다. | **아니오 — REAL TARGET 수집 0건 상태** | 독립 검산자(C, `projectfinal-ba`)가 결과 이전에 계약 내부 모순을 지적했다. **joint-valid 판정 규칙 자체는 바꾸지 않았다** — A2 가 원래 정하던 것을 계약이 잘못 서술했던 것이고, 서술을 사실에 맞췄다. 계수 결과는 정정 전후가 동일하다. |
 
 > 이후 어떤 변경도 이 표에 한 줄을 남긴다. **"데이터 관측 이후인가" 열을 반드시 채운다.**

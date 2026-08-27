@@ -83,11 +83,26 @@
   },
 
   "batch_zero_reuse": {
-    "allowed": true,
+    "SUPERSEDED_AT": "2026-08-27T13:58:00+09:00",
+    "SUPERSEDED_NOTE": "**이 블록은 무효다.** 아래 `batch_zero_reuse_revised` 를 따른다. E001 실행 경로(`load_scope_allowlist(E001_FULL)` · `run_e001_real.py`)가 코드에 없어 신규 구현이 필요하고, 그로 인해 collector SHA 가 반드시 바뀐다. C 가 문서와 코드의 값 불일치를 지적해 정정했다.",
+    "allowed": false,
     "condition_met": "collector SHA · protocol version · target frame · task frame · measurement schema 가 E000 과 동일하게 유지되는 한 유효하다 (TIMEBOX §7·§9).",
     "e000_batches": ["batch_0001_b0001", "batch_0002_b0002"],
     "e000_targets": 6,
-    "requirement": "E001 은 반드시 collector_sha a86b4c7 로 돌아야 한다. 다르면 재사용이 깨지고 C 가 PROVENANCE_DRIFT 로 잡는다."
+    "requirement": "(무효) 이 요구는 E001 실행 경로가 이미 존재한다는 전제 위에 있었다. 그 전제가 틀렸다."
+  },
+
+  "batch_zero_reuse_revised": {
+    "allowed": false,
+    "decided_at": "2026-08-27T13:58:00+09:00",
+    "reason": "E001 실행 경로가 코드에 없다 — `engine/firewall.py load_scope_allowlist()` 가 `E000_FAST` 만 처리하고 `E001_FULL` 이면 `AllowlistUnavailableError` 를 던지며, E001 실행 스크립트 자체가 없다. 신규 구현이 필요하고 **collector SHA 가 반드시 바뀐다.**",
+    "consequence": "E000 6 observations 를 E001 batch-0 으로 canonical reuse 할 수 없다 (TIMEBOX §7 조건 미충족).",
+    "expected_drift": "E000 → E001 의 collector SHA 변경은 **A 승인 하의 expected drift** 다. C 는 이를 결함(PROVENANCE_DRIFT C1)으로 잡지 않고 'expected drift, E000 reuse void' 로 기록한다.",
+    "still_required": {
+      "e001_worker_provenance_single": "E001 4워커 **간** provenance 는 반드시 단일이어야 한다. 워커끼리 다르면 C1 이다 (C 제기). 워크트리가 4개로 갈려 있어 실재하는 위험이다.",
+      "collector_sha_to_be_filled": "B 가 E001 경로를 커밋하면 그 SHA 를 이 문서에 기입하고 재발행한다. 그 전까지 `authority_refs.collector_sha` 의 a86b4c7 은 **E000 기준값**이며 E001 에 적용되지 않는다."
+    },
+    "e000_evidence_disposition": "E000 6건은 버리지 않는다. **별도 배치로 보존**하고 합산 시 provenance 를 구분한다. joint-valid 0 이므로 분석 표본 손실은 없으나, L0 축 기술통계에는 collector SHA 를 명시한 채 포함할지 A 가 mart 수용 시점에 판정한다."
   },
 
   "depth_axis_finding": {
