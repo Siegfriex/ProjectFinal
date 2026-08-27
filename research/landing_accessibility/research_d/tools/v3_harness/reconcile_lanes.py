@@ -229,6 +229,10 @@ def main() -> int:
         "missing_lanes": missing,
         "incomplete_lanes": incomplete,
         "cross_lane_issues": issues,
+        # **산출물이 자기 대조 결과를 싣는다.** 대조는 돌았는데 결과가 산출에
+        # 없으면, 읽는 쪽은 그 수치가 통제된 방법에서 나왔는지 알 수 없다.
+        # B 가 T-B-V3-RECON-004 에서 목록 산출의 완료 조건으로 건 것이다.
+        "controls": ctl,
         "note": ("빈 결과를 정상으로 읽지 않는다. lane 산출이 없으면 MISSING 이고 verdict 는 NOT_READY 다. "
                  "cross_lane_issues 가 비었다는 것은 lane 이 전부 COMPLETE 일 때만 의미가 있다."),
     }
