@@ -1367,3 +1367,35 @@ A 가 `Δ30-branch` 에서 "**v2.1 과 달리 `SUBMIT_QUERY` 는 분기 대상�
 ### D 의 우려가 해소됐다
 
 B 실측: `V3Runner.run` 이 `3. _capture_surface`(즉시 디스크 기록) → `4. binder.bind` 순서다. **`Δ32` (a) 로 멈춰도 `s000/dom.html` 이 남는다.** 계약 위반으로 중단해도 raw 증거는 잔존한다.
+
+## Δ37 — legacy `NED`/`IED`/`MPFED` 는 v3 에서 `NULL` 이다 (D-V3-FINDING-016)
+
+D 가 `Δ36` 의 귀결을 짚었다 — **A 가 '최소' 어휘를 금지했는데 v3 가 그 이름들을 그대로 낸다면 이름이 금지된 주장을 한다.**
+
+**A 실측**(양성대조 포함): SSOTV3 21 파일에서 `NED`/`IED`/`MPFED` 는 **5회 등장하고 전부 "legacy compatibility" 또는 "derived scalar" 이며 정의가 한 번도 없다.** 대조로 `activation_depth` 는 `02` 와 `04` 에 정의돼 있다.
+
+> **그 이름들의 유일한 정의는 v2.1 의 것이고, 그것은 최소성 주장이다.**
+
+### 판정 — `NULL`
+
+v3 관측 행은 legacy `NED`·`IED`·`MPFED` 컬럼을 **`NULL` 로 둔다.**
+
+1. 그 이름의 유일한 정의가 최소성 주장인데 **`Δ36` 이 v3 는 그 주장을 하지 않는다고 확정했다**
+2. 탐욕적 하강으로 얻은 값을 `NED` 라는 이름의 컬럼에 넣으면 **`ruling_11` 의 오류 그대로다 — 같은 이름, 다른 양**
+3. 값은 v3 자신의 정의된 필드(`activation_depth` · `nav_container_depth`)가 담는다
+
+**`02 §7` 의 compatibility 요구는 지켜진다** — 컬럼은 존재한다. 지켜지지 않는 것은 값이고, **그 값이 거짓이기 때문에 넣지 않는 것이 지키는 것이다.**
+
+`Δ32-R29` 와 같은 규율이다 — **의미를 충족할 수 없는 필드에 값을 넣지 않는다.**
+
+### 사유를 행에 남긴다
+
+`legacy_depth_null_reason` 을 기록한다:
+
+> `v3 search_strategy=greedy_descent_with_declared_total_order. NED/IED/MPFED 의 유일한 정의는 v2.1 의 최소성 주장이며 v3 는 그 주장을 하지 않는다 (Δ36).`
+
+**`NULL` 만 두면 '못 쟀다' 로 읽힌다.** 사유가 있어야 '재지 않기로 했다' 가 된다 — `R13` 의 `NONE` 대 `UNDETERMINED` 와 같은 구분이다.
+
+### legacy 59 와의 비교는 STEP 3 의 분석 선택이다
+
+v3 `activation_depth` 와 v2.1 `NED` 를 비교하고 싶으면 **탐색 방식 차이를 명시한 채** 분석 단계에서 한다. 스키마가 그 비교를 미리 참으로 만들어 주지 않는다.
