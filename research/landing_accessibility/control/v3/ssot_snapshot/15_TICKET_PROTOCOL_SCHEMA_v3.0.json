@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProjectFinal v3 Ticket",
+  "type": "object",
+  "required": [
+    "ticket_id",
+    "from",
+    "to",
+    "type",
+    "priority",
+    "claim_kind",
+    "base_sha",
+    "scope",
+    "status",
+    "created_at_kst"
+  ],
+  "properties": {
+    "ticket_id": {
+      "type": "string"
+    },
+    "from": {
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "DIRECTOR"
+      ]
+    },
+    "to": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "DIRECTOR"
+        ]
+      },
+      "minItems": 1
+    },
+    "cc": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "DIRECTOR"
+        ]
+      }
+    },
+    "type": {
+      "enum": [
+        "DIRECTIVE",
+        "IMPLEMENTATION",
+        "BLOCKER",
+        "FINDING",
+        "ASSURANCE",
+        "FACT_CORRECTION",
+        "DECISION_REQUEST",
+        "COMPLETION"
+      ]
+    },
+    "priority": {
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    "claim_kind": {
+      "enum": [
+        "AUTHORITY",
+        "IMPLEMENTATION",
+        "OBSERVATION",
+        "ANALYSIS",
+        "ASSURANCE",
+        "PROPOSAL"
+      ]
+    },
+    "base_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "task_family_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "target_manifest_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "payload": {
+      "type": "object"
+    },
+    "decision_required": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "enum": [
+        "OPEN",
+        "ACKED",
+        "RUNNING",
+        "BLOCKED",
+        "DONE",
+        "RETRACTED",
+        "SUPERSEDED"
+      ]
+    },
+    "created_at_kst": {
+      "type": "string"
+    },
+    "completed_at_kst": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true,
+  "x_v3_routing_notes": {
+    "D_FINDING": "D findings route to C with A cc unless A explicitly requested direct delivery.",
+    "REAL": "REAL execution requires release + manifest hash + allowlist + final navigation guard.",
+    "FRAME": "Task/target/endpoint changes after evidence observation require a new frame/version, not silent edit."
+  }
+}

@@ -337,3 +337,82 @@ B 의 근거가 옳은 종류다 — `w5d1` 문자열은 B 가 그 메시지에�
 이 세션은 자기정정을 반복해서 칭찬했다. A 가 그렇게 했다. 그 유인에는 실패 양식이 있다 — **과잉 정정**. 자기신고가 보상받는 환경에서는 확실하지 않은 것도 신고하는 쪽으로 기울고, 신고 자체가 신뢰 신호가 되면 검증 없이 수용된다.
 
 칭찬의 대상은 "자기정정을 했다"가 아니라 **"근거를 갖춘 자기정정을 했다"** 이다. 규율을 약화하는 것이 아니라 근거 요구를 양방향으로 동일하게 적용한다.
+
+## Δ14 — C 사전등록 5건 판정 (신규)
+
+발행 `T-A-V3-STEP1-011`. 제기 `C-DECISION_REQUEST-031138`. **5건 전부 C 의 독해 채택.**
+
+| id | 판정 | 근거 |
+|---|---|---|
+| P-06 | `SWITCH_TAB` 은 reveal 아님 → `menu_dependency` 0 | 04 §5 기준은 `OPEN/REVEAL 계열`. 탭 control 은 이미 보였고 전환은 숨은 control 을 드러내지 않는다. `nav_container_type` 에 tab 없음. `menu_dependency_incl_tab` 민감도 병기 |
+| P-09 | sequence 기반 → 1 | 04 §4·§5 두 곳이 `endpoint 이전에 존재하는지` 로 일치 |
+| P-13 | `AFTER_TASK_SELECT` | 아래 단일 규칙 |
+| P-14 | `AFTER_TASK_SELECT` | 아래 단일 규칙 |
+| P-17 | `PUBLIC_WEB_UNOBSERVABLE × TASK_SURFACE_ABSENT`, token 은 별개 층 | 04 §2 / §4, Δ8-R6 Q8 |
+
+### P-09 의 실재하는 긴장 — 덮지 않고 기록한다
+
+`10_GLOSSARY` 는 다르게 읽힌다: "Menu Dependency | **task control이 바로 보이지 않고** reveal/menu action이 필요한지."
+
+**04 codebook 이 이긴다** — 04 는 frozen 정의(T3), 10 은 산문(T5). 그리고 glossary 가 가리키는 개념은 다른 변수가 이미 담는다: `nav_container_depth`(task control 노출 전 reveal 수), `s0_task_control_visible`(최초 viewport 가시성). 두 개념을 한 변수에 접으면 둘 다 흐려진다.
+
+10 을 근거로 다르게 읽는 것은 **정당한 R16 반론**이다.
+
+### auth_gate_stage 단일 위치 규칙 (P-13·P-14 를 함께 푼다)
+
+00 §6 과 03 §7 은 어휘만 주고 경계 규칙이 없다. A 가 메운다.
+
+- `BEFORE_TASK_DISCOVERY` — `AUTH_GATE` 이전에 과업 특이적 토큰이 **하나도 없다**. 일반 navigation(`OPEN_*_MENU` · `SWITCH_TAB` · `EXPAND_ACCORDION` · `DISMISS_OBSTRUCTION`)만 있거나 아무것도 없음
+- `AFTER_TASK_SELECT` — 과업 특이적 토큰이 **하나 이상** 선행하나 endpoint contract 미충족
+- `AT_ENDPOINT` — endpoint surface 가 **인증 없이 렌더된 뒤** 그 내용 접근에서 gate
+
+과업 특이적 토큰 10종: `SELECT_CATEGORY · SELECT_FUNCTION · INPUT_QUERY · SELECT_ORIGIN · SELECT_DESTINATION · SELECT_DATE · SUBMIT_QUERY · SELECT_RESULT · OPEN_ITEM_DETAIL · OPEN_PLACE_DETAIL`
+
+세 단계가 재는 것은 **사용자가 과업 의도를 표현할 기회를 얻기 전에 막혔는가**다. 하나의 규칙이 두 사례의 답을 낸다 — 사례별 판단이 아니다.
+
+`ABSTAIN`(모른다)과 `TASK_SURFACE_ABSENT`(없다고 안다)를 구분한다. R13 의 `NONE` 대 `UNDETERMINED` 와 같은 논리다.
+
+## Δ15 — 04 codebook 공백 6건 판정 (신규)
+
+발행 `T-A-V3-STEP1-012`. 제기 `T-B-V3-DR-002`.
+
+### GAP-07 이 핵심 — 행이 자기 시점을 선언한다
+
+reveal-gated control 은 S0 에 존재하지 않으므로 S0 좌표가 없다. 한 시점을 전제로 두면 어떤 행은 그 전제를 어기고 **그것이 조용히 남는다.**
+
+→ `entry_*` 기하는 control 이 최초 관측 가능해진 state 기준. 신규 필드 **`entry_observed_state`**(`S0`/`S1`.../`POST_REVEAL:<container>`)로 모든 행이 자기 시점을 선언한다. 어기는 개념 자체가 사라진다.
+
+`s0_task_control_visible` 은 별개 변수로 남는다(reveal-gated 면 false).
+
+### 나머지 5건
+
+| GAP | 판정 |
+|---|---|
+| 06 | `nav_container_type` = **가장 안쪽** 컨테이너(control 을 직접 담는 것). 바깥은 `nav_container_depth` 가 이미 센다. 신규 `nav_container_chain` 병기 |
+| 02 | `first_visible_scroll_state` = 최초 관측된 scroll state(reveal 이면 그 reveal 시점). **끝내 미관측일 때만 NULL** |
+| 03 | `flow_step_count` 에서 `ENDPOINT_REACHED`·`ABSTAIN` **제외**, `AUTH_GATE` 포함 — 04 §5 가 `auth encounter` 만 이름 붙였다 |
+| 04 | 수치 미관측은 **`null`, 0 아님**. `occlusion=0.0` 은 "관측했고 안 가려졌다" |
+| 05 | **임계값을 만들지 않는다** — visible 과 occlusion 은 독립 변수다 |
+
+**GAP-05 를 임계값 없이 푸는 것이 핵심**: 90% 가려져도 hit-testable 이면 보이는 것이고, 0% 가려져도 viewport 밖이면 안 보이는 것이다. 파생 관계를 만들면 없는 인과를 스키마에 새긴다.
+
+**GAP-02 커버리지 승격**: fixture 13종이 전부 한 뷰포트에 들어가 S1 이 생기지 않는다 → `03 §3` scroll-only surface capture 가 이 집합으로 검증 불가. GATE 1 은 검증하거나 **미검증을 명시**해야 통과한다. 명세 한 절이 통째로 미검증인 채 통과하면 그 사실이 복원되지 않는다.
+
+**DOM/AX 불일치**: 어느 쪽도 우선하지 않는다. 둘 다 기록하고 `dom_ax_divergence` 플래그. 한쪽을 정본으로 삼으면 divergence 가 데이터에서 사라지는데, 그것은 **보조기술 사용자와 시각 사용자가 다른 화면을 보고 있다는 관측이므로 버릴 것이 아니라 결과다.**
+
+## Δ16 — SSOTV3 provenance (신규)
+
+발행 `T-A-V3-STEP1-013`. 제기 `T-B-BLK-011`(W5A 발견, B 대조군 확인).
+
+**측정**: `git log --all -- SSOTV3` 0건 · `git ls-files SSOTV3` 0건 · 전 원격 브랜치 `ls-tree` 0건 · gitignore 대상 아님. 양성대조 — 같은 방법이 `control/v3/` 6종을 찾아내고 `research/landing_accessibility` 는 620 커밋에 있다. **0 은 실제 부재다.**
+
+B 의 논증이 A 의 `ruling_5` 를 그대로 되돌린다:
+
+> A: "매니페스트는 Director 가 준 bytes 다. A 가 항목을 추가하면 팩 해시가 A 의 손을 타고 무엇이 Director 가 준 것인가가 소멸한다."
+> B: 그 논증은 팩이 고정돼 있다는 전제 위에 선다. 지금 팩은 git 밖에 있어 **누구의 손도 타지 않았다는 것을 증명할 수단이 없다.**
+
+**조치**: `control/v3/ssot_snapshot/` 에 22 파일을 바이트 그대로 기록했다. 원본은 건드리지 않았다 — **기록은 수정이 아니다.** 복사 불일치 0, 매니페스트 불일치 0.
+
+**정직한 한계**: 이 커밋은 **지금부터의** provenance 를 준다. 01:52부터 지금까지 바이트가 바뀌지 않았음을 증명하지 못한다. 그 구간의 증거는 (a) mtime 이 20 파일에서 `01:52:49~50` 으로 동일하고 `THREE_TURN_RUNBOOK.md` 만 `02:11:06` (b) manifest 자체 해시 `1735c956…` 를 A(02:06)·B·C·D 가 서로 다른 시각에 독립 계산해 전부 같은 값을 얻었다는 것뿐이다. **파일과 매니페스트를 함께 바꾸면 이 검사들은 통과하므로 변조가 없었다는 증명이 아니라 변조 창을 좁히는 정황이다.**
+
+같은 결함군의 세 번째다 — `T-B-BLK-007`(manifest 가 A 브랜치에만), `T-B-BLK-010`(FINAL_MAIN50 이 A 워크트리에만), `T-B-BLK-011`(SSOT 전체가 git 밖). 매번 B 가 잡았다.
