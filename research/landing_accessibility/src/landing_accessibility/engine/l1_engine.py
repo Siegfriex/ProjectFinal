@@ -25,11 +25,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import time
 from collections import deque
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from urllib.parse import unquote
 
 from .depth import (
     DepthResult,
@@ -197,19 +199,188 @@ def state_key(url: str, dom: str) -> str:
     return f"{url.rsplit('/', 1)[-1]}:{digest}"
 
 
-# ── 신호 판정 (결정적 1단계, `A1 §1.6`) ──────────────────────────────────────
-def detect_area_signal(raw: dict[str, Any], task: TaskDefinition) -> bool:
-    """`A1 §1.1` — PRESENT ∧ HITTABLE ∧ NO_FURTHER_ACTIVATION.
+# ── 실사이트 신호 원자(atom) — D-R0-14 · D-R0-16 ─────────────────────────────
+# 전부 `raw_features`(probe.json, 렌더 후 상태)만 읽는다. `dom.html`/`ax.json` 스냅샷은
+# 별도 시점에 캡처된 evidence slot 이라 이 함수들의 입력이 아니다 — LABEL_FROZEN 이후
+# Director 가 지적한 NH 쌍(F-A3.1: L2/L3 라벨 불일치 원인 = 서로 다른 evidence slot 열람)과
+# 같은 실수를 이 lane 이 반복하지 않기 위함이다. 전부 **존재(exists) 판정**이다 — 개수 임계값
+# 판정이 아니다: `primary_action_candidates`(cap 200)·`accessible_name_sources`(cap 300) 는
+# 실측 n=58 중 각 7/58·13/58 이 cap 에 도달했다(`T-B-FINDING-002`) — "전부 스캔해야 성립"하는
+# 판정 방식은 절단된 관측에서 무너진다. `exists`는 cap 안에 하나라도 있으면 성립하므로 절단에
+# 상대적으로 강건하다(완전한 면역은 아니다 — cap 안에 전혀 없는데 cap 밖에만 있는 극단값은
+# 여전히 위음성일 수 있다. `observation_truncation_caveats`가 그 잔여 위험을 note 로 남긴다).
+_COMMERCE_VOCAB = re.compile(
+    r"(구매하기|바로\s*구매|장바구니|담기|주문하기|결제하기|buy\s*now|add\s*to\s*cart|checkout)",
+    re.IGNORECASE,
+)
+#: Branch U(UTILITY_ENTRY) 의 "primary control" — plain `<a>` navigation 과 구분한다.
+#: `<a>` 만으로 성립시키면 목적 없는 순환 링크(`unresolved_route` 류)가 "function surface"로
+#: 오판된다(P-C 회귀에서 실측). 실제로 조작 가능한 위젯만 candidate 로 인정한다.
+_UTILITY_CONTROL_TAGS = frozenset({"button", "input", "select", "textarea"})
 
-    scroll 만으로 도달 가능하면 NO_FURTHER_ACTIVATION 을 만족한다 (`02 §9` 가 scroll 을
-    activation 에서 제외하므로). 그래서 viewport 밖이어도 hittable 이면 성립으로 본다.
+
+def _hittable_primary_action_candidates(raw: dict[str, Any]) -> list[dict[str, Any]]:
+    return [c for c in raw.get("primary_action_candidates", []) if c.get("hittable")]
+
+
+def _search_control_ready(raw: dict[str, Any]) -> bool:
+    """Branch Q/P Region — FORM_STRUCTURE. marker 비의존, cap 없는 신호(`region_signals`)."""
+    signals = raw.get("region_signals", {})
+    return any(
+        s.get("visible") and s.get("in_form") and s.get("has_submit")
+        for s in signals.get("search_inputs", [])
+    )
+
+
+def _query_reflected_in_url(raw: dict[str, Any], task: TaskDefinition) -> bool:
+    """Branch Q/P Endpoint(query submitted) — URL_PATTERN.
+
+    "자동완성 노출만으로 endpoint 처리하지 않는다"(RF-DT §5 Branch Q) — 대신 **실제로
+    제출한 값**이 URL 에 반영됐는지를 본다. 서비스별 파라미터 이름(`?q=`/`?query=`/...)을
+    추측하지 않는다 — business prior 를 쓰지 않는다는 Layer O 원칙 그대로다.
+    """
+    if not task.query_text:
+        return False
+    url = raw.get("viewport", {}).get("final_url") or ""
+    if "?" not in url:
+        return False
+    return task.query_text in unquote(url)
+
+
+def _repeated_card_list_present(raw: dict[str, Any]) -> bool:
+    """Branch C/I/P/M Region — DOM_AX_ROLE. "content card/link list" 를 list-container
+    소속 여부로 판정한다(`l0_probe.js` `repeated_structure`, cap 없음, W2 신규).
+    heading 근접성(`nearby_heading`)은 작은 페이지에서 항상 참에 가까워 판별력이 없었다
+    (`depth_path_3` 류 픽스처로 실측 확인) — 그래서 이 신호는 그것을 쓰지 않는다.
+    """
+    return bool(raw.get("repeated_structure", {}).get("hittable_list_item_link_count", 0))
+
+
+def _content_endpoint_real(raw: dict[str, Any]) -> bool:
+    """Branch C(CONTENT_OPEN)/M(COMMUNICATION_ENTRY 비-gate) Endpoint — DOM_AX_ROLE/MEDIA_STATE.
+    article body open 또는 main media playback start. 둘 다 marker 가 필요 없는 실신호다.
+    """
+    signals = raw.get("endpoint_signals", {})
+    return bool(signals.get("article_present")) or bool(signals.get("video_playing"))
+
+
+def _commerce_control_present(raw: dict[str, Any]) -> bool:
+    """Branch I(ITEM_DETAIL) Endpoint evidence 일부 — 거래 control 의 **존재**(D-R0-06,
+    활성화 아님). `accessible_name_sources`(cap 300)에서 결정적 어휘로 존재만 확인한다 —
+    가격 패턴/상품명 추출까지는 이번 pass 의 범위 밖이다(최종 보고의 gap 절 참조).
+    """
+    for row in raw.get("accessible_name_sources", []):
+        name = " ".join(
+            filter(None, [row.get("aria_label"), row.get("visible_text"), row.get("title")])
+        )
+        if _COMMERCE_VOCAB.search(name):
+            return True
+    return False
+
+
+def _utility_primary_control_present(raw: dict[str, Any]) -> bool:
+    """Branch U(UTILITY_ENTRY) Region=Endpoint(D-R0-41) — DOM_AX_ROLE.
+    "function surface entry control" 이자 "primary control이 present/actionable".
+    """
+    for c in _hittable_primary_action_candidates(raw):
+        if c.get("tag") in _UTILITY_CONTROL_TAGS or c.get("role") == "button":
+            return True
+    return False
+
+
+def _real_region_by_signal_type(raw: dict[str, Any], task: TaskDefinition) -> bool:
+    """`D-R0-16` — `task.region_signal_type` 이 실제로 어떤 신호 계열을 쓸지 결정한다.
+    이전에는 이 필드가 `mapping_frozen_allowed()`(테스트 전용) 밖에서 읽히지 않았다.
+    """
+    st = task.region_signal_type
+    archetype = task.archetype
+    if st is RegionSignalType.FORM_STRUCTURE:
+        return _search_control_ready(raw)
+    if st is RegionSignalType.MEDIA_STATE:
+        return bool(raw.get("endpoint_signals", {}).get("video_playing"))
+    if st is RegionSignalType.DOM_AX_ROLE:
+        if archetype is InteractionArchetype.UTILITY_ENTRY:
+            return _utility_primary_control_present(raw)
+        if archetype is InteractionArchetype.QUERY:
+            return _search_control_ready(raw)
+        return _repeated_card_list_present(raw)
+    # URL_PATTERN(region 전용 신호 미정의 — 문서화된 gap) · GATE_SIGNAL(gate 는 endpoint 전용
+    # 축이다) · CODEBOOK_PENDING(정의 없음) — 전부 region 을 만들어내지 않는다.
+    return False
+
+
+def _real_endpoint_by_signal_type(raw: dict[str, Any], task: TaskDefinition) -> bool:
+    """`D-R0-16` — endpoint 판정도 동일하게 `task.endpoint_signal_type` 을 소비한다."""
+    st = task.endpoint_signal_type
+    archetype = task.archetype
+    if st in (RegionSignalType.FORM_STRUCTURE, RegionSignalType.URL_PATTERN):
+        return _query_reflected_in_url(raw, task)
+    if st is RegionSignalType.MEDIA_STATE:
+        return bool(raw.get("endpoint_signals", {}).get("video_playing"))
+    if st is RegionSignalType.DOM_AX_ROLE:
+        if archetype in (InteractionArchetype.QUERY, InteractionArchetype.PLACE_LOOKUP):
+            return _query_reflected_in_url(raw, task)
+        if archetype in (InteractionArchetype.CONTENT_OPEN, InteractionArchetype.COMMUNICATION_ENTRY):
+            return _content_endpoint_real(raw)
+        if archetype is InteractionArchetype.ITEM_DETAIL:
+            return _commerce_control_present(raw) and _repeated_card_list_present(raw)
+        if archetype is InteractionArchetype.UTILITY_ENTRY:
+            return _utility_primary_control_present(raw)
+        return False
+    # GATE_SIGNAL — endpoint 는 Scout 의 별도 gate 경로(`obs.gate_present` → `detect_gate`)가
+    # 처리한다. 여기서 True 를 내면 gate 판별을 우회하게 되므로 항상 False 다.
+    # CODEBOOK_PENDING — 정의가 없다. endpoint 를 만들어내지 않는다(force-map 금지).
+    return False
+
+
+#: `TaskEntry.archetype` → 이 archetype 의 판정에 관련된 raw feature 키(truncation 추적 대상).
+_TRUNCATION_RELEVANT_KEYS: dict[InteractionArchetype, tuple[str, ...]] = {
+    InteractionArchetype.ITEM_DETAIL: ("primary_action_candidates", "accessible_name_sources"),
+    InteractionArchetype.CONTENT_OPEN: ("primary_action_candidates",),
+    InteractionArchetype.COMMUNICATION_ENTRY: ("primary_action_candidates",),
+    InteractionArchetype.PLACE_LOOKUP: ("primary_action_candidates",),
+    InteractionArchetype.FINANCIAL_ACTION_ENTRY: ("primary_action_candidates",),
+    InteractionArchetype.UTILITY_ENTRY: ("primary_action_candidates",),
+    InteractionArchetype.QUERY: (),
+}
+
+
+def observation_truncation_caveats(raw: dict[str, Any], task: TaskDefinition) -> list[str]:
+    """이 archetype 의 판정에 쓴 raw feature 가 실제로 절단됐는지 `probe_truncation`
+    (`l0_probe.js` W2 신규)에서 확인한다.
+
+    B 의 n=58 전수 재집계(`T-B-FINDING-002`): `primary_action_candidates` 7/58,
+    `accessible_name_sources` 13/58 이 cap 에 도달했고 대형 커머스/포털에 편중됐다
+    — ITEM_DETAIL 이 동결 59건 중 최다(26건) 집단이라 위음성 위험이 특히 크다.
+    cap 은 여기서 올리지 않는다(A 결정 사항, 재수집 필요). 대신 "신호 없음"을 "확인된
+    부재"로 단정하지 않도록 이 caveat 을 `TaskEntry.notes` 에 남긴다.
+    """
+    trunc = raw.get("probe_truncation", {}) or {}
+    hit: list[str] = []
+    for key in _TRUNCATION_RELEVANT_KEYS.get(task.archetype, ()):
+        info = trunc.get(key) or {}
+        if info.get("truncated"):
+            hit.append(f"{key}(cap={info.get('cap')}, matched={info.get('matched')})")
+    if not hit:
+        return []
+    return [
+        "OBSERVATION_TRUNCATED: "
+        + "; ".join(hit)
+        + " — 신호 미검출을 확인된 부재로 단정하지 않는다 "
+        "(T-B-FINDING-002, cap 상향은 A 결정 사항이며 이 lane 이 임의로 올리지 않았다)"
+    ]
+
+
+# ── marker 경로(legacy) — FIXTURE 전용, D-R0-42 ─────────────────────────────
+def _marker_region_match(raw: dict[str, Any], task: TaskDefinition) -> bool:
+    """`[data-region]` synthetic marker. **FIXTURE 실행에서만** 참여한다.
+
+    REAL_TARGET 에서는 이 함수 자체가 호출되지 않는다(아래 `detect_area_signal` 참조) —
+    `l0_probe.js` 도 그 모드에서 이 marker 를 절대 읽지 않으므로(D-R0-42), `raw` 에 이
+    필드가 들어 있더라도(예: 방어적 이중화가 깨진 가상의 상황) 이 함수는 FIXTURE 경로
+    바깥에서 절대 소비되지 않는다.
     """
     signals = raw.get("region_signals", {})
-    if task.archetype is InteractionArchetype.QUERY:
-        return any(
-            s.get("visible") and s.get("in_form") and s.get("has_submit")
-            for s in signals.get("search_inputs", [])
-        )
     if task.region_definition is None:
         return False
     return any(
@@ -218,8 +389,8 @@ def detect_area_signal(raw: dict[str, Any], task: TaskDefinition) -> bool:
     )
 
 
-def detect_endpoint_signal(raw: dict[str, Any], task: TaskDefinition) -> bool:
-    """`02 §7` 의 endpoint. 이 lane 은 **새 endpoint 를 만들지 않는다** (`A1 §1.1`)."""
+def _marker_endpoint_match(raw: dict[str, Any], task: TaskDefinition) -> bool:
+    """`[data-endpoint]` / `data-endpoint-reached` synthetic marker. FIXTURE 전용(D-R0-42)."""
     if task.endpoint_definition is None:
         return False
     signals = raw.get("endpoint_signals", {})
@@ -229,6 +400,45 @@ def detect_endpoint_signal(raw: dict[str, Any], task: TaskDefinition) -> bool:
         e.get("endpoint") == task.endpoint_definition and e.get("visible")
         for e in signals.get("declared_endpoints", [])
     )
+
+
+# ── 신호 판정 (결정적 1단계, `A1 §1.6`) ──────────────────────────────────────
+def detect_area_signal(
+    raw: dict[str, Any],
+    task: TaskDefinition,
+    execution_mode: ExecutionMode = ExecutionMode.FIXTURE,
+) -> bool:
+    """`A1 §1.1` — PRESENT ∧ HITTABLE ∧ NO_FURTHER_ACTIVATION.
+
+    scroll 만으로 도달 가능하면 NO_FURTHER_ACTIVATION 을 만족한다 (`02 §9` 가 scroll 을
+    activation 에서 제외하므로). 그래서 viewport 밖이어도 hittable 이면 성립으로 본다.
+
+    `D-R0-14`/`D-R0-16` — 실 DOM/AX 신호(`_real_region_by_signal_type`)가 1순위다.
+    `D-R0-42` — `[data-region]` marker 경로는 `execution_mode is REAL_TARGET` 이면
+    **절대 평가되지 않는다**(단락 평가로 호출 자체가 생략된다). FIXTURE/SHADOW_DRY_RUN
+    에서만 legacy fallback 으로 OR 결합한다 — 기존 marker 기반 fixture 회귀를 깨지 않는다.
+    """
+    if _real_region_by_signal_type(raw, task):
+        return True
+    if execution_mode is ExecutionMode.REAL_TARGET:
+        return False
+    return _marker_region_match(raw, task)
+
+
+def detect_endpoint_signal(
+    raw: dict[str, Any],
+    task: TaskDefinition,
+    execution_mode: ExecutionMode = ExecutionMode.FIXTURE,
+) -> bool:
+    """`02 §7` 의 endpoint. 이 lane 은 **새 endpoint 를 만들지 않는다** (`A1 §1.1`).
+
+    `detect_area_signal` 과 같은 게이팅 규약을 따른다 — 자세한 설명은 그쪽 docstring.
+    """
+    if _real_endpoint_by_signal_type(raw, task):
+        return True
+    if execution_mode is ExecutionMode.REAL_TARGET:
+        return False
+    return _marker_endpoint_match(raw, task)
 
 
 def gate_observed(raw: dict[str, Any]) -> bool:
@@ -254,6 +464,164 @@ def detect_gate(raw: dict[str, Any]) -> GateKindDecision:
     판별기가 그것을 읽으면 조작화가 아니라 정답 열람이 된다.
     """
     return classify_gate_kind(GateSignals.from_raw(raw))
+
+
+# ── RF-DT Stage 4 — multi-candidate resolver (`01 §6` · D-R0-10~13) ────────────
+class MappingOutcome:
+    """`01 §9` DT leaf 의 두 결과. **문서에 정의된 두 값 밖으로 나가지 않는다.**
+
+    `EXCLUDED`(§9 세 번째 leaf 종류)는 이 lane 의 자원이 아니다 — "research-scope exclusion
+    reason이 evidence로 확인된 경우에만" 이며, 그 판단은 W2 detector 가 아니라 P-A 코드북/A 의
+    권한이다. 이 lane 은 MAPPED 와 AMBIGUOUS_UNRESOLVED 만 낸다.
+    """
+
+    MAPPED = "MAPPED"
+    AMBIGUOUS_UNRESOLVED = "AMBIGUOUS_UNRESOLVED"
+
+
+#: `resolve_representative_function` 이 후보를 검증할 때 시도하는 signal family 순서.
+#: `01 §6` evidence precedence 의 "DOM/AX/form state change" 층 안에서, 더 결정적인 신호를
+#: 먼저 본다 — FORM_STRUCTURE(검색창처럼 조작 가능한 구조)가 DOM_AX_ROLE(카드/리스트 존재)
+#: 보다 강한 신호이기 때문이다. URL_PATTERN 은 이 시점(활성화 전 랜딩)엔 아직 반영될 게
+#: 없어(질의를 제출하지 않았다) 사실상 발화하지 않지만, 완전성을 위해 순서에는 둔다.
+_RESOLVER_SIGNAL_ORDER: tuple[RegionSignalType, ...] = (
+    RegionSignalType.FORM_STRUCTURE,
+    RegionSignalType.DOM_AX_ROLE,
+    RegionSignalType.URL_PATTERN,
+)
+
+
+@dataclass(frozen=True)
+class RepresentativeFunctionMapping:
+    """`01 §9` DT leaf output 의 부분집합 — W2 detector 가 낼 수 있는 필드만 채운다.
+
+    `region_definition`/`endpoint_definition`(서비스별 문자열)은 P-A codebook 의 권한이라
+    (`TaskDefinition` docstring 참조) 여기서 만들지 않는다 — `region_signal_type` 까지만
+    이 lane 의 산출물이다. `decision_trace`/`forbidden_continuation`/`target_id` 도 마찬가지로
+    상류(A/P-A) 조립을 기다린다. **force-map 은 절대 하지 않는다** — 유일 후보가 아니면
+    `AMBIGUOUS_UNRESOLVED` 다.
+
+    `evidence_slots_used` — LABEL_FROZEN 이후 Director 지적(F-A3.1, NH 쌍 라벨 불일치의
+    원인 = 라벨러가 서로 다른 evidence slot 을 읽음)에 대한 대응. 이 resolver 는 **오직
+    `probe.json`(`raw_features`, 렌더 후 상태)만 읽는다** — `dom.html`/`ax.json` 스냅샷은
+    읽지 않는다. 그 사실을 판정마다 명시적으로 남긴다.
+    """
+
+    outcome: str
+    archetype: InteractionArchetype | None
+    region_signal_type: RegionSignalType | None
+    mapping_basis: str
+    evidence_refs: tuple[str, ...]
+    candidate_archetypes: tuple[InteractionArchetype, ...]
+    evidence_slots_used: tuple[str, ...] = ("probe.json:raw_features",)
+    unresolved_reason: str | None = None
+    target_id: str = ""
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "outcome": self.outcome,
+            "archetype": self.archetype.value if self.archetype else None,
+            "region_signal_type": self.region_signal_type.value if self.region_signal_type else None,
+            "mapping_basis": self.mapping_basis,
+            "evidence_refs": list(self.evidence_refs),
+            "candidate_archetypes": [a.value for a in self.candidate_archetypes],
+            "evidence_slots_used": list(self.evidence_slots_used),
+            "unresolved_reason": self.unresolved_reason,
+            "target_id": self.target_id,
+        }
+
+
+def resolve_representative_function(
+    raw: dict[str, Any],
+    candidates: list[InteractionArchetype],
+    *,
+    target_id: str = "",
+    query_text: str = "고령자 접근성",
+) -> RepresentativeFunctionMapping:
+    """`01 §6` Stage 4 — evidence precedence 로 유일 candidate 를 고른다.
+
+    `D-R0-10`~`D-R0-13`:
+
+    - 유일 candidate 에게 evidence 가 있다 → `MAPPED`.
+    - 강한 candidate 가 2개 이상 → `AMBIGUOUS_UNRESOLVED` (`D-R0-13`: LABEL_FROZEN 이후에도
+      COMMUNICATION_ENTRY(calibration 0건)·UTILITY_ENTRY(1건) 는 semantic threshold 를 세울
+      근거가 없다 — 이 두 archetype 이 경합에 낀 ambiguity 는 rule DT 로만 처리하고 여기서
+      force-resolve 하지 않는다).
+    - evidence 없음 → `AMBIGUOUS_UNRESOLVED`.
+    - **force-map 절대 금지.**
+
+    `raw` 는 후보들이 공유하는 **하나의 관측**(보통 landing state)이다 — 이 함수는 archetype 별
+    실제 `TaskDefinition` 을 만들지 않고, 각 후보를 evidence 검증용 probe `TaskDefinition` 으로
+    감싸 `_real_region_by_signal_type`(runtime detector 와 **같은** 원자 함수)를 재사용한다.
+    """
+    if not candidates:
+        return RepresentativeFunctionMapping(
+            MappingOutcome.AMBIGUOUS_UNRESOLVED,
+            None,
+            None,
+            "",
+            (),
+            (),
+            unresolved_reason="후보가 없다 — Stage 1 candidate generation 결과가 비어 있다",
+            target_id=target_id,
+        )
+
+    evidenced: list[tuple[InteractionArchetype, RegionSignalType, str]] = []
+    for archetype in candidates:
+        for signal_type in _RESOLVER_SIGNAL_ORDER:
+            probe_task = TaskDefinition(
+                task_id=f"resolver-probe:{archetype.value}",
+                archetype=archetype,
+                region_definition=None,
+                endpoint_definition=None,
+                region_signal_type=signal_type,
+                endpoint_signal_type=signal_type,
+                query_text=query_text,
+            )
+            if _real_region_by_signal_type(raw, probe_task):
+                evidenced.append((archetype, signal_type, f"{signal_type.value} evidence observed"))
+                break
+
+    if not evidenced:
+        return RepresentativeFunctionMapping(
+            MappingOutcome.AMBIGUOUS_UNRESOLVED,
+            None,
+            None,
+            "",
+            (),
+            tuple(candidates),
+            unresolved_reason=(
+                "evidence 없음 — 관측된 DOM/AX/Form/URL 구조가 어떤 candidate 도 뒷받침하지 않는다"
+            ),
+            target_id=target_id,
+        )
+
+    distinct_archetypes = {a for a, _, _ in evidenced}
+    if len(distinct_archetypes) > 1:
+        return RepresentativeFunctionMapping(
+            MappingOutcome.AMBIGUOUS_UNRESOLVED,
+            None,
+            None,
+            "",
+            tuple(basis for _, _, basis in evidenced),
+            tuple(candidates),
+            unresolved_reason=(
+                "강한 candidate 2개 이상 — NLP fallback 은 이 두 archetype 조합에 쓰지 않는다"
+                f"(경합: {sorted(a.value for a in distinct_archetypes)}). force-map 하지 않는다."
+            ),
+            target_id=target_id,
+        )
+
+    archetype, signal_type, basis = evidenced[0]
+    return RepresentativeFunctionMapping(
+        MappingOutcome.MAPPED,
+        archetype,
+        signal_type,
+        f"observed interaction structure ({signal_type.value}) — {basis}",
+        (basis,),
+        (archetype,),
+        target_id=target_id,
+    )
 
 
 @dataclass
@@ -316,15 +684,19 @@ class Scout:
 
     def _observe(self, page: Page, task: TaskDefinition) -> _StateObservation:
         page.wait_for_timeout(SETTLE_MS)
-        probe = page.evaluate(PROBE_JS)
+        # `execution_mode.value` 를 probe 에 넘긴다 — REAL_TARGET 이면 `l0_probe.js` 가
+        # marker 3종(`[data-region]`/`[data-endpoint]`/`data-endpoint-reached`) querySelectorAll
+        # /getAttribute 호출 자체를 건너뛴다(D-R0-42, Director 지시). `L0Collector` 는 이 인자
+        # 없이 `PROBE_JS`를 호출하므로(그쪽은 W4 소유, 손대지 않는다) 그 경로의 동작은 그대로다.
+        probe = page.evaluate(PROBE_JS, self.execution_mode.value)
         raw = probe["raw_features"]
         dom = page.content()
         return _StateObservation(
             state_id=state_key(page.url, dom),
             url=page.url,
             raw=raw,
-            area=detect_area_signal(raw, task),
-            endpoint=detect_endpoint_signal(raw, task),
+            area=detect_area_signal(raw, task, self.execution_mode),
+            endpoint=detect_endpoint_signal(raw, task, self.execution_mode),
             gate=detect_gate(raw),
             gate_present=gate_observed(raw),
             dom=dom,
@@ -434,6 +806,16 @@ class Scout:
         endpoint_index: int | None = None
         landing_gate_detected = 0
         notes: list[str] = []
+        last_obs: _StateObservation | None = None
+        # `D-R0-20` partial depth 보존 — endpoint/gate 를 예산 안에서 못 찾아도, 탐색한
+        # 어느 경로에서 region 이 관측됐다면 그 지점을 기억해 둔다. 종료까지 endpoint 가
+        # 안 나오면(terminal 이 끝내 None) 이 값으로 NED 를 채운다. IED/MPFED 는 여전히
+        # NULL(m 을 모르므로) — `assign_depth_segments` 는 그 나머지 step 을 `UNASSIGNED`로
+        # 라벨링한다(depth.py 결함 시정). 이전 구현은 endpoint/gate 를 찾은 경로에서만
+        # area_index 를 채워서, 못 찾은 경우 region 이 실제로 관측됐어도 조용히 버려졌다
+        # — area 신호가 전부 marker 뿐이던 때는 한 번도 발화하지 않았을 결함이다.
+        partial_area_index: int | None = None
+        partial_area_steps: list[TaskStep] = []
 
         with sync_playwright() as pw:
             browser = pw.chromium.launch(headless=True)
@@ -534,6 +916,15 @@ class Scout:
                         landing_endpoint, steps, "endpoint_signal_detected"
                     )
                     gate_here = (obs.gate if obs.gate_present else None) if steps else landing_gate
+                    last_obs = obs
+
+                    # `D-R0-20` partial depth — endpoint/gate 가 이 prefix 에서 안 나와도
+                    # region 이 관측됐다면 기록해 둔다. 탐색이 끝내 terminal 을 못 찾으면
+                    # (전부 UNRESOLVED) 이 값이 최종 NED 가 된다. 마지막으로 관측된 경로를
+                    # 쓴다 — BFS 가 계속 더 깊이 탐색하며 최신 관측을 갱신한다.
+                    if area_here is not None:
+                        partial_area_index = area_here
+                        partial_area_steps = steps
 
                     if endpoint_here is not None:
                         terminal = (EndpointStatus.FUNCTION_ENDPOINT_REACHED, None)
@@ -604,8 +995,21 @@ class Scout:
                 if budget_reason
                 else EndpointStatusDetail.UNRESOLVED_NO_SIGNAL
             )
+            # `D-R0-20` partial depth 보존 — endpoint/gate 를 못 찾았어도 region 이 어딘가에서
+            # 관측됐다면 NED 는 버리지 않는다. `depth.compute_depth` 가 `area_step_index` 로
+            # `AreaSignalStatus.OBSERVED`(NED 有 · IED/MPFED NULL) 를 낸다.
+            if partial_area_index is not None:
+                area_index = partial_area_index
+                best_steps = partial_area_steps
+                notes.append(
+                    f"partial depth 보존: region 이 activation {partial_area_index} 에서 관측됐으나 "
+                    "endpoint/gate 는 예산 안에서 관측되지 않았다 (D-R0-20)"
+                )
         else:
             status, detail = terminal
+
+        if last_obs is not None:
+            notes.extend(observation_truncation_caveats(last_obs.raw, task))
 
         depth = compute_depth(
             archetype=task.archetype,
@@ -817,6 +1221,8 @@ __all__ = [
     "AreaSignalStatus",
     "BudgetExhausted",
     "DepthResult",
+    "MappingOutcome",
+    "RepresentativeFunctionMapping",
     "ReplayBroken",
     "Scout",
     "ScoutBudget",
@@ -829,6 +1235,8 @@ __all__ = [
     "detect_endpoint_signal",
     "detect_gate",
     "gate_observed",
+    "observation_truncation_caveats",
     "replay",
+    "resolve_representative_function",
     "state_key",
 ]

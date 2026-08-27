@@ -208,11 +208,20 @@ def assign_depth_segments(step_count: int, depth: DepthResult) -> list[DepthSegm
 
     저장된 step 신호(`area_signal_detected` · `endpoint_signal_detected`)만으로
     제3자가 재계산 가능해야 한다 (`A2` 규칙 D-1) — 그래서 이 함수는 저장값만 입력으로 받는다.
+
+    `W2` 결함 시정 — `MPFED = NULL`(endpoint 미도달, `D-R0-20` partial depth)인데도
+    이전 구현은 `m = depth.mpfed if ... else step_count`로 **NULL을 상한값으로 대체**해서
+    region 관측 이후의 step 을 `IED`로 잘못 라벨링했다. `IED`는 `m`(MPFED)이 확정된
+    경우에만 정의된다 — `m`이 없으면 `k` 이후 step은 `UNASSIGNED`다 (금지 전이 X-5의
+    step-라벨 버전: NULL을 다른 값으로 채우지 않는다).
     """
     if depth.area_signal_status is AreaSignalStatus.NOT_OBSERVED:
         return [DepthSegment.UNASSIGNED] * step_count
     k = depth.ned if depth.ned is not None else 0
-    m = depth.mpfed if depth.mpfed is not None else step_count
+    if depth.mpfed is None:
+        # endpoint 가 확정되지 않았다 — k 이후를 IED 로 채울 근거(m)가 없다.
+        return [DepthSegment.NED if i <= k else DepthSegment.UNASSIGNED for i in range(1, step_count + 1)]
+    m = depth.mpfed
     out: list[DepthSegment] = []
     for i in range(1, step_count + 1):
         if i <= k:

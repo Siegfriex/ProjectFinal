@@ -1,0 +1,16 @@
+<!doctype html>
+<!--
+FIXTURE: w2_real_content_list
+검증 대상 (W2 · D-R0-14 · D-R0-16): CONTENT_OPEN Region("content card/link list가 노출")이
+synthetic marker(`data-region`) 없이 실제 `<ul><li><a>` list-container 구조만으로 성립하고,
+Endpoint("article body open")가 `data-endpoint` marker 없이 실제 `<article>` 태그의 존재
+(`endpoint_signals.article_present`, l0_probe.js 기존 실신호)만으로 성립하는가.
+경로: w2_real_content_list(region, k=0) → w2_real_content_article(endpoint, m=1)
+-->
+<html lang="ko"><head><meta charset="utf-8"><title>목록 — W2 실신호 픽스처</title>
+<style>body{margin:0;padding:16px;font-family:system-ui,sans-serif}
+a{display:block;min-height:48px;line-height:48px}</style></head>
+<body data-fixture="w2_real_content_list">
+<h1 style="font-size:20px">오늘의 기사</h1>
+<ul><li><a href="./w2_real_content_article.html">기사 본문 열기</a></li></ul>
+</body></html>

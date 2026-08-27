@@ -7,10 +7,30 @@
      - KWCAG 임계값 비교(`required`), large_text 분류, 판정 문자열.
        그것은 02 §4 가 분리하라고 한 verdict 층의 일이다.
 
-   출력의 모든 수치는 CSS px 이며 devicePixelRatio 를 곱하지 않는다 (A1 §3.2). */
-() => {
+   출력의 모든 수치는 CSS px 이며 devicePixelRatio 를 곱하지 않는다 (A1 §3.2).
+
+   ## execution_mode 인자 (W2 · D-R0-42 · Director 지시)
+
+   `data-region` / `data-endpoint` / `data-endpoint-reached` 세 marker 신호는 REAL_TARGET
+   모드에서 **읽기 시도 자체가 일어나지 않는다** — 코드를 지우는 게 아니라 호출을
+   `execution_mode === 'REAL_TARGET'` 분기로 완전히 건너뛴다. 기존 호출부(`l0_collector.py`)는
+   인자를 넘기지 않으므로 `execution_mode === undefined` 가 되어 기존 동작(FIXTURE 취급)이
+   그대로 유지된다 — 이 인자 추가는 후방호환이다.
+
+   ## probe_truncation (W2 · T-B-FINDING-002 대응)
+
+   `primary_action_candidates`/`accessible_name_sources`/`target_size`/`motion` 스캔/`contrast`
+   텍스트노드/`gate_signals.visible_text` 는 전부 하드 cap 을 갖는다(성능·페이로드 상한).
+   B 의 n=58 전수 재집계: 7/58 이 `primary_action_candidates` cap(200)에, 13/58 이
+   `accessible_name_sources` cap(300)에 정확히 도달했고 전부 대형 커머스/포털이었다.
+   cap 자체는 여기서 올리지 않는다(A 결정 사항, 재수집 필요) — 대신 각 cap 도달 여부를
+   `probe_truncation` 에 남겨, 하류 판정기가 "신호 없음"과 "절단으로 못 봤을 수 있음"을
+   구분할 수 있게 한다. */
+(execution_mode) => {
   const VIEW_W = window.innerWidth;
   const VIEW_H = window.innerHeight;
+  const REAL_TARGET_MODE = execution_mode === 'REAL_TARGET';
+  const truncation = {};
   const T = (s) => (s || '').replace(/\s+/g, ' ').trim();
 
   const sel = (el) => {
@@ -110,12 +130,14 @@
 
   /* ── contrast raw feature (02 §4) — 임계값 비교 없음 ── */
   {
+    const CONTRAST_CAP = 400;
     const res = [];
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    let node, seen = 0;
-    while ((node = walker.nextNode()) && seen < 400) {
+    let node, seen = 0, cappedExtra = false;
+    while ((node = walker.nextNode())) {
       const t = T(node.nodeValue); if (t.length < 2) continue;
       const el = node.parentElement; if (!el || !visible(el)) continue;
+      if (seen >= CONTRAST_CAP) { cappedExtra = true; break; }
       const cs = getComputedStyle(el);
       const fg = parseColor(cs.color); if (!fg) continue;
       const bg = effectiveBg(el);
@@ -136,13 +158,20 @@
       seen++;
     }
     push('contrast', res);
+    /* W2 · T-B-FINDING-002 — cap 도달 여부만 남긴다(cap 자체는 올리지 않는다, A 결정 사항). */
+    truncation.contrast = { cap: CONTRAST_CAP, matched: res.length, truncated: cappedExtra };
   }
 
   /* ── target size raw feature (02 §4) — CSS px, DPR 곱하지 않음 ── */
   {
+    const TARGET_SIZE_CAP = 300;
     const q = 'a[href],button,input:not([type=hidden]),select,textarea,'
       + '[role=button],[role=link],[role=checkbox],[role=radio],[role=tab]';
-    const ctrls = [...document.querySelectorAll(q)].filter(visible).slice(0, 300);
+    const allTargets = [...document.querySelectorAll(q)].filter(visible);
+    const ctrls = allTargets.slice(0, TARGET_SIZE_CAP);
+    truncation.target_size = {
+      cap: TARGET_SIZE_CAP, matched: allTargets.length, truncated: allTargets.length > TARGET_SIZE_CAP,
+    };
     const boxes = ctrls.map((el) => ({ el, b: box(el) })).filter((x) => x.b && x.b.w > 0);
     push('target_size', boxes.map(({ el, b }, i) => {
       let gap = null;
@@ -166,9 +195,14 @@
 
   /* ── accessible name raw feature — 이름의 "원천"만 남기고 계산된 이름은 AX tree 가 준다 ── */
   {
+    const NAME_SOURCE_CAP = 300;
     const q = 'a[href],button,input:not([type=hidden]),select,textarea,img,'
       + '[role=button],[role=link],[role=img],[role=checkbox],[role=radio],[role=tab]';
-    push('accessible_name_sources', [...document.querySelectorAll(q)].slice(0, 300).map((el) => ({
+    const allNamed = [...document.querySelectorAll(q)];
+    truncation.accessible_name_sources = {
+      cap: NAME_SOURCE_CAP, matched: allNamed.length, truncated: allNamed.length > NAME_SOURCE_CAP,
+    };
+    push('accessible_name_sources', allNamed.slice(0, NAME_SOURCE_CAP).map((el) => ({
       selector: sel(el), tag: el.tagName.toLowerCase(), role: el.getAttribute('role'),
       aria_label: el.getAttribute('aria-label'),
       aria_labelledby: el.getAttribute('aria-labelledby'),
@@ -245,8 +279,13 @@
 
   /* ── motion signal (02 §3) ── */
   {
+    const MOTION_SCAN_CAP = 3000;
+    const allBodyEls = [...document.querySelectorAll('body *')];
+    truncation.motion_scan = {
+      cap: MOTION_SCAN_CAP, matched: allBodyEls.length, truncated: allBodyEls.length > MOTION_SCAN_CAP,
+    };
     const animated = [];
-    [...document.querySelectorAll('body *')].slice(0, 3000).forEach((el) => {
+    allBodyEls.slice(0, MOTION_SCAN_CAP).forEach((el) => {
       const cs = getComputedStyle(el);
       const name = cs.animationName;
       if (name && name !== 'none') {
@@ -274,9 +313,15 @@
 
   /* ── primary action candidate (02 §6 · A1 §5.1) ── */
   {
+    const PRIMARY_ACTION_CAP = 200;
     const q = 'a[href],button,input[type=submit],input[type=button],'
       + '[role=button],[role=link],[role=tab],nav a';
-    const cands = [...document.querySelectorAll(q)].filter(visible).slice(0, 200).map((el, dom_order) => {
+    const allPrimary = [...document.querySelectorAll(q)].filter(visible);
+    truncation.primary_action_candidates = {
+      cap: PRIMARY_ACTION_CAP, matched: allPrimary.length,
+      truncated: allPrimary.length > PRIMARY_ACTION_CAP,
+    };
+    const cands = allPrimary.slice(0, PRIMARY_ACTION_CAP).map((el, dom_order) => {
       const b = box(el);
       let heading = null, n = el;
       for (let d = 0; d < 6 && n; d++, n = n.parentElement) {
@@ -304,9 +349,31 @@
     push('primary_action_candidates', cands);
   }
 
-  /* ── 영역진입 control 신호 (A1 §1.1 PRESENT / HITTABLE) ── */
+  /* ── 반복 카드/리스트 구조 신호 (02 §6 Stage2 "repeated card/list structures") — W2 신규.
+     실사이트에서 archetype 의 Region(콘텐츠 카드/상품 카드/장소 목록/스레드 목록)을
+     marker 없이 판정하려면 "list-like container 안의 hittable link" 라는 구조 신호가
+     필요하다. 단순 nav 링크 나열과 구분하기 위해 list container(ul/ol/[role=list] 등)
+     소속 여부로만 좁힌다 — heading 근접성(`nearby_heading`)은 작은 페이지에서 거의 항상
+     참이 되어 판별력이 없다(실측으로 확인). cap 을 두지 않는다(신규 신호이므로 절단 위험을
+     새로 만들지 않는다). */
   {
-    const regions = [...document.querySelectorAll('[data-region]')].map((el) => {
+    const LIST_CONTAINER_SEL = 'ul,ol,[role=list],[role=listbox],[role=menu],[role=feed]';
+    const links = [...document.querySelectorAll('a[href],[role=link]')].filter(visible);
+    const inList = links.filter((el) => el.closest(LIST_CONTAINER_SEL));
+    push('repeated_structure', {
+      list_container_count: document.querySelectorAll(LIST_CONTAINER_SEL).length,
+      list_item_link_count: inList.length,
+      hittable_list_item_link_count: inList.filter((el) => hittable(el, box(el))).length,
+    });
+  }
+
+  /* ── 영역진입 control 신호 (A1 §1.1 PRESENT / HITTABLE) ──
+     `[data-region]` marker 경로 — D-R0-42 · Director 지시: REAL_TARGET 모드에서는
+     이 querySelectorAll 자체를 호출하지 않는다(읽기 시도 자체가 없다). FIXTURE 회귀
+     스위트만 이 경로를 쓴다. 실사이트 판정은 `search_inputs`(FORM_STRUCTURE, marker
+     비의존, 항상 계산)와 `repeated_structure`/`endpoint_signals`(DOM_AX_ROLE)가 맡는다. */
+  {
+    const regions = REAL_TARGET_MODE ? [] : [...document.querySelectorAll('[data-region]')].map((el) => {
       const b = box(el);
       return {
         selector: sel(el), region: el.getAttribute('data-region'),
@@ -324,19 +391,29 @@
         visible: visible(el), hittable: hittable(el, b), box: b,
       };
     });
-    push('region_signals', { declared_regions: regions, search_inputs: searchInputs });
+    push('region_signals', {
+      declared_regions: regions, search_inputs: searchInputs, marker_path_disabled: REAL_TARGET_MODE,
+    });
   }
 
-  /* ── endpoint / gate 원시 신호 — 판정은 L1 엔진이 archetype 별로 한다 ── */
+  /* ── endpoint / gate 원시 신호 — 판정은 L1 엔진이 archetype 별로 한다 ──
+     `[data-endpoint]` · `data-endpoint-reached` marker 경로도 REAL_TARGET 모드에서
+     querySelectorAll/getAttribute 호출 자체를 건너뛴다(위와 같은 이유, 같은 계약). */
   {
-    const text = T(document.body.innerText || '').slice(0, 4000);
+    const GATE_TEXT_CAP = 4000;
+    const fullText = T(document.body.innerText || '');
+    const text = fullText.slice(0, GATE_TEXT_CAP);
+    truncation.gate_visible_text = {
+      cap: GATE_TEXT_CAP, matched: fullText.length, truncated: fullText.length > GATE_TEXT_CAP,
+    };
     push('endpoint_signals', {
-      declared_endpoints: [...document.querySelectorAll('[data-endpoint]')].map((el) => ({
+      declared_endpoints: REAL_TARGET_MODE ? [] : [...document.querySelectorAll('[data-endpoint]')].map((el) => ({
         selector: sel(el), endpoint: el.getAttribute('data-endpoint'), visible: visible(el),
       })),
-      body_endpoint_reached: document.body.getAttribute('data-endpoint-reached'),
+      body_endpoint_reached: REAL_TARGET_MODE ? null : document.body.getAttribute('data-endpoint-reached'),
       article_present: document.querySelectorAll('article').length,
       video_playing: [...document.querySelectorAll('video')].some((v) => !v.paused && !v.ended),
+      marker_path_disabled: REAL_TARGET_MODE,
     });
     /* gate 종류 판별의 입력. 판별 자체는 gate_classifier 가 하고, probe 는 신호만 낸다.
        `data-gate-kind` 는 fixture 의 **기대값 메타데이터**이며 판별 입력이 아니다 —
@@ -416,6 +493,10 @@
     });
     push('dismiss_control_candidates', perContainer);
   }
+
+  /* W2 · T-B-FINDING-002 — cap 도달 여부의 정본. 하류(`l1_engine.detect_*`)가 "신호 없음"과
+     "cap 때문에 못 봤을 수 있음"을 구분하는 데 쓴다. cap 수치 자체는 여기서 바꾸지 않는다. */
+  push('probe_truncation', truncation);
 
   return out;
 }
