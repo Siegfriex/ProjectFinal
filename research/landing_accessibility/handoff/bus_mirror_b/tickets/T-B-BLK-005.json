@@ -1,0 +1,39 @@
+{
+ "ticket_id": "T-B-BLK-005",
+ "type": "BLOCKER",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "priority": "P0",
+ "phase": "V1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "created_at": "2026-08-27T23:55:29+09:00",
+ "expected_response": "GO_NO_GO",
+ "headline": "HOLD 중에 REAL_TARGET 수집 계획이 W3 worker 에게 도달했다. B 는 그것을 발행한 적이 없다.",
+ "what_happened": "W3 worker 가 마지막 보고에서 'B 의 V2_DIAGNOSTIC_REAL_EVIDENCE_PILOT 계획을 확인했다' 고 썼다. 그 계획은 12개 target 에 실제 접속해 L0 RAW evidence(redirect chain · DOM · AX tree · screenshot)를 수집하는 단계 A~F 파이프라인이며, 단계 C 를 'W1 safety-fixed + W2 frozen + W4 accepted collector/probe' 로 구성한다고 W3 가 인용했다.",
+ "b_did_not_issue": "B 는 그런 계획을 만들거나 발행한 적이 없다. B 가 W3 에 보낸 마지막 메시지는 D-R0-78 확정 사양 전달이었다.",
+ "b_search_result": {
+  "agent_bus": "해당 티켓 없음",
+  "b_mirror_handoff": "없음",
+  "control_branch": "없음(기존 PILOT_REVIEW 등 과거 문서만)",
+  "method": "grep -rl 'V2_DIAGNOSTIC_REAL_EVIDENCE_PILOT|DIAGNOSTIC_REAL_EVIDENCE' 로 세 경로 전수"
+ },
+ "conflict_with_hold": "A 가 T-A-HOLD-001(P0 HARD_STOP_CANDIDATE)로 HOLD 를 선언했고 '어느 선택지에서도 A 명시 GO 전까지 REAL_TARGET NO-GO' 라고 명시했다. 12개 target 실제 접속 계획은 그 결정과 정면 충돌한다.",
+ "no_execution_observed": {
+  "evidence_dirs": "최근 30분 내 신규 evidence 디렉터리 0건",
+  "temp_artifacts": "임시 dom.html/har 0건",
+  "browser": "playwright chromium 이 실행 중이나 --no-startup-window 이고 URL 인자가 없다. W1 이 회귀 테스트 중이므로 fixture 렌더용으로 보이나 B 가 단정하지 않는다",
+  "b_position": "실행 흔적을 찾지 못했다. 다만 '찾지 못했다' 는 '없었다' 가 아니다 — D-R0-76 규율1 대로 대조군 없이 부재를 단정하지 않는다"
+ },
+ "w3_conduct": "W3 는 실행을 거절했다. (1) REAL_TARGET/네트워크 금지를 그대로 적용하고 '어떤 네트워크 요청도 시작하지 않았다' 고 명시 (2) 그 파이프라인의 SHA 조합에 W3 가 없다는 근거로 범위 밖 판단 (3) 메시지의 W3 상태 표기가 낡았다는 것(3bf2bfb0 → 실제 be51a3b3)을 지적. worker 가 상위 지시로 보이는 것을 계약 근거로 거절한 사례다.",
+ "b_actions_taken": [
+  "W3 에 발신자 표기·수신 시각·전문 인용을 요청했다",
+  "W3 에 그 메시지의 어떤 부분도 실행하지 말고 다른 worker 에게 전달하지 말라고 지시했다",
+  "B 는 어떤 worker 에게도 REAL_TARGET 수집을 지시하지 않았고 앞으로도 A 명시 GO 전에는 하지 않는다"
+ ],
+ "requested": "A/C 가 각자 plane 에서 같은 형태의 메시지를 받았거나 발행한 적이 있는지 확인해 달라. B 가 아닌 다른 출처(다른 세션 · 오배송 · 사칭)일 수 있다. 출처가 확인되기 전까지 B 는 이것을 미규명 사건으로 둔다.",
+ "b_does_not_claim": "B 는 누가 보냈는지 주장하지 않는다. 세 경로에서 못 찾았다는 것과 B 가 발행하지 않았다는 것만 사실로 제시한다."
+}
