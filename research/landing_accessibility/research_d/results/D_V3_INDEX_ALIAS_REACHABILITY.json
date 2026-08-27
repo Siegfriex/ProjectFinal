@@ -1,0 +1,78 @@
+{
+ "artifact": "D_V3_INDEX_ALIAS_REACHABILITY",
+ "produced_at_kst": "2026-08-28T07:07:54+09:00",
+ "plane": "D",
+ "claim_kind": "OBSERVATION",
+ "not_a_verdict": "D 는 색인을 고치라고 판정하지 않는다. 조치는 A 소관이다.",
+ "pinned": {
+  "index_version": 9,
+  "index_sha256": "e26e8714a62053a74b643edbb38e4be49cc1a4b230a2d61ca2edd4948de29154",
+  "delta_sha256": "38fa18da56233f705168b114c1e3966055a6097b8578d9094ac5eba40c032668",
+  "index_rows": 56,
+  "note": "색인은 이 세션 중 v8→v9 로 움직였다. 위 sha 시점의 관측이다."
+ },
+ "question": "A 의 소비자 규칙(`id 와 aliases 를 둘 다 조회한다. 어느 쪽에도 없으면 그때가 진짜 미수록이다`)을 그대로 구현하면 무엇이 나오는가",
+ "measurement": {
+  "unreachable_rows": 9,
+  "denominator": 56,
+  "ids": [
+   "Δ10-R13a",
+   "Δ14-auth",
+   "Δ15-GAP06",
+   "Δ15-GAP03",
+   "Δ15-GAP04",
+   "Δ15-domax",
+   "Δ12-C",
+   "Δ5-vr",
+   "Δ2-skip"
+  ]
+ },
+ "mechanism_1_synthetic_id_only": {
+  "rows": [
+   "Δ12-C",
+   "Δ14-auth",
+   "Δ15-domax",
+   "Δ2-skip",
+   "Δ5-vr"
+  ],
+  "what": "검색 가능한 유일한 토큰이 A 가 색인용으로 지은 합성 id 다. 나머지 별칭은 서술문(`DOM/AX 불일치`)이라 토큰 검색에 못 쓴다.",
+  "delta_has_the_content": "있다. 다른 이름으로 적혀 있다 (예: Δ15-domax → delta 는 `dom_ax_divergence`)"
+ },
+ "mechanism_2_notation_mismatch": {
+  "rows": [
+   "Δ10-R13a",
+   "Δ15-GAP03",
+   "Δ15-GAP04",
+   "Δ15-GAP06"
+  ],
+  "GAP": "delta Δ15 의 `| GAP | 판정 |` 표는 id 를 bare `06`/`02`/`03`/`04`/`05` 로 적는다. GAP-02·05·07 은 표 밖 산문에 `GAP-0n` 으로도 나와서 우연히 걸렸고, 03·04·06 은 표에만 있어 안 걸린다.",
+  "R13a": "delta 표제는 `### Δ10-R13` (접미 없음). 색인은 R13a/R13b 로 분할했고 별칭에 `Δ10-R13` 이 없다."
+ },
+ "why_A_self_check_does_not_catch_it": {
+  "A_covers": [
+   "alias_uniqueness — 한 별칭이 한 행에 대응하는가",
+   "prose_false_positive — 무관한 영문에 걸리는가"
+  ],
+  "A_does_not_cover": "도달성 — 선언한 별칭 중 **하나라도 정본(delta)에 실제로 나타나는가**",
+  "relation": "Δ24-R25 `선언도 검사한다` 와 같은 층이다. 검사 항목이 하나 더 있다는 관측이지 R25 반박이 아니다."
+ },
+ "consequence": "A 규칙을 그대로 구현한 대조 도구는 이 9행을 `진짜 미수록` 으로 보고한다. 그 보고는 틀렸다 — 9건 전부 delta 에 내용이 있다.",
+ "controls": {
+  "positive": "Δ21↔R21 검출 True",
+  "negative": "Δ999-R99 → None(UNKNOWN)",
+  "sanity": "색인 56행·delta 표제 50건 로드 확인. 0이면 본 검사 중단하도록 구현"
+ },
+ "D_own_defect": {
+  "id": "D-DEF-15",
+  "what": "D 가 D-DEF-14b 시정으로 넣은 `Δn ↔ Rn` 은 발명한 규칙이었고 bare Δn 10행 중 8행에서 다른 판정과 충돌했다.",
+  "independent_measurement": "D 재측정 8건 = A 실측 8건 (B 는 9건, 차이는 Δ3 — Δ8-R3 이 R3a/R3b 로 분할돼 R3 이 무주인). D 는 A 수치를 지지한다.",
+  "root_cause": "무충돌 사례 단 하나(Δ21)에서 일반화했다. 그 하나가 규칙을 만든 동기였다.",
+  "remedy": "tools/v3_harness/ruling_id_norm.py 를 v3 으로 재작성 — 추론 제거, 색인 aliases 조회만. 음성대조 6건은 전부 v2 가 실제로 틀린 형태로 채웠다(v2 가 통과해버리는 대조는 검사가 아니다).",
+  "already_recorded_by_A": "delta Δ24"
+ },
+ "tools": [
+  "tools/v3_harness/ruling_id_norm.py",
+  "tools/v3_harness/ruling_id_norm_selftest.py",
+  "tools/v3_harness/index_delta_crosscheck.py"
+ ]
+}
