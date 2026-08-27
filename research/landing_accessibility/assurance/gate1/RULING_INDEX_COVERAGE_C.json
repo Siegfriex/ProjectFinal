@@ -1233,7 +1233,7 @@
    "verified_by": "C",
    "requires": "모호가 아닌 유일한 경우는 **계약이 두 키의 공존을 제3의 형태로 명시 정의한 때**뿐이다. 정의는 `R16` 으로 올려서 만들고 **구현으로 만들지 않는다**",
    "must_appear_in": "계약 문서",
-   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "C_check": "CI-19 r4: 두 키 공존을 제3 형태로 정의한 계약이 delta/SSOTV3 에 없음을 C 가 grep 으로 확인한 뒤 raise 를 기대",
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 31
@@ -1244,7 +1244,7 @@
    "verified_by": "C",
    "requires": "raise 전환 전에 **두 키를 함께 넘기는 기존 호출자·fixture·테스트를 실측**한다. 있으면 의도한 형태를 기록하고 고친다. **없으면 '없음' 을 대조군으로 보인다**",
    "must_appear_in": "B 의 전환 기록",
-   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "C_check": "CI-19 r4 (i): A 3단계 선행 확인을 COMPLETION SHA 에서 C 가 재실행(호출자·fixture·테스트 중 두 키 동시 전달 실측, '없음' 은 대조군으로)",
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 31
@@ -1266,7 +1266,7 @@
    "verified_by": "C",
    "requires": "대조는 **`must_flag` / `must_not_flag`** 로 적는다. 이 프로젝트에서 '양성대조' 가 두 뜻으로 쓰였으므로 **이름을 고르지 말고 버린다**",
    "must_appear_in": "B 의 검사기 완료조건 · C 의 확인 절차",
-   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "C_check": "C 하네스 표기 must_flag/must_not_flag 전환(RUNBOOK CI-19 r4)",
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 31
@@ -1277,7 +1277,7 @@
    "verified_by": "C",
    "requires": "`R30`/`R32` 적용 대상의 열거 단위는 **매개변수가 아니라 구조 입력 안의 선택적 키 접근**이다(B 정정 채택). 목록 문서는 단위를 **검사 가능한 술어**로 적고 '전수' 대신 **무엇의 전수인지** 적는다",
    "must_appear_in": "docs/v3/R32_APPLICATION_POINTS.md",
-   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
+   "C_check": "CI-19 r3/r4: 단위 = 구조 입력 안의 선택적 키 접근(AST 술어); '전수' 대신 모집단 명시",
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 31
@@ -1288,8 +1288,8 @@
    "verified_by": "C",
    "requires": "**대조 결과는 산출물 안에 있어야 한다.** 대조가 돌았는데 결과가 산출물에 없으면 읽는 쪽은 그 수치가 통제된 방법에서 나온 것인지 알 수 없다. 산출 파일은 대조 목록(must_flag/must_not_flag) · 각 결과 · **실행으로 실증된** 실패 시 동작 · 도구 경로와 커밋을 담는다",
    "must_appear_in": "B W5P 산출 · C CI-19 산출 · D RECONCILIATION.json",
-   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
-   "coverage": "COVERED_PENDING_ADAPTER",
+   "C_check": "COVERED: run_gate1.py 의 GATE1_VERDICT_C.json 은 lane별 컨트롤(must_flag/must_not_flag 결과)·harness 경로·commit sha 를 동봉; c_bus_scan 출력도 controls 배열 동봉. COMPLETION 접수 시 B 산출물에도 같은 요구(CI-12 와 결합)",
+   "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 31
   },
@@ -1299,8 +1299,8 @@
    "verified_by": "C",
    "requires": "**커밋 메시지와 docstring 도 주장이다.** 거기 적힌 도구 동작은 실행으로 실증되지 않으면 주장이며 다른 평면이 읽고 인용한다. 틀린 기록은 **고쳐 쓰지 않고 후속 기록으로 정정**한다 — 기록을 고치면 인용한 문서가 조용히 근거를 잃는다",
    "must_appear_in": "각 평면의 커밋·문서 규율",
-   "C_check": "Δ40 계열 — RUNBOOK CI-19 r4 참조",
-   "coverage": "COVERED_PENDING_ADAPTER",
+   "C_check": "COVERED(관행): C 의 발행 기록 정정은 후속 기록(재ACK .C-n, FACT_CORRECTION, self_correction 블록 + sha_before)으로만 하며 커밋 메시지는 고쳐 쓰지 않는다. 예외 1건 기록: C-FINDING-074834 는 ACK 0건 상태에서 제자리 시정(sha_before 기록) — 이후로는 후속 기록 원칙",
+   "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 31
   },
