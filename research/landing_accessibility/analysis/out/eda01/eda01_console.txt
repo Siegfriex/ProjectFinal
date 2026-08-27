@@ -1,0 +1,348 @@
+
+==============================================================================
+0. SHAPES
+==============================================================================
+panel_registry           rows=   17 cols=26
+source_ranking_rows      rows=  261 cols=16
+service_master           rows=   81 cols=24
+source_membership        rows=  142 cols=7
+entity_alias_map         rows=   82 cols=8
+web_target_group         rows=   68 cols=17
+resolved source rows = 261  unmatched service_id = 0
+
+==============================================================================
+1. GRAIN OF source_ranking_rows -- what is a 'source row'?
+==============================================================================
+dup (panel_id, entity_name_raw, metric_name) = 0
+dup (panel_id, service_id) = 0
+sum of distinct entities over 17 panels = 142
+sum of panel_registry.rows_extracted   = 142
+sum(rows_extracted * n_metrics)        = 261
+len(source_ranking_rows)               = 261
+=> grain(source_ranking_rows) = panel x entity x metric, NOT panel x entity.
+   The 142 (entity,panel) memberships expand to 261 rows via 1..4 metrics per panel.
+
+==============================================================================
+2. PANEL-LEVEL N AND COMPOSITION
+==============================================================================
+panel_id figure_id domain         axis_type  source_section  period_axis  rows_expected  rows_extracted  entities  n_metrics  source_rows row_count_verification  row_count_ok   exp_vs_extr extraction_confidence
+fig01_t1     fig01    APP     SERVICE_BRAND               1    HALF_YEAR             15              15        15          1           15         DECLARED_TOP_N          True         MATCH                  HIGH
+fig01_t2     fig01    APP     SERVICE_BRAND               1    HALF_YEAR             15              15        15          1           15         DECLARED_TOP_N          True         MATCH                  HIGH
+fig02_t1     fig02    APP     SERVICE_BRAND               2    HALF_YEAR             15              15        15          4           60         DECLARED_TOP_N          True         MATCH                  HIGH
+fig03_t1     fig03    APP     SERVICE_BRAND               3    HALF_YEAR             10              10        10          2           20         DECLARED_TOP_N          True         MATCH                  HIGH
+fig04_t1     fig04    APP     SERVICE_BRAND               1    HALF_YEAR           <NA>               5         5          2           10      VISUAL_COUNT_ONLY          <NA> EXPECTED_NULL                  HIGH
+fig04_t2     fig04    APP     SERVICE_BRAND               1    HALF_YEAR           <NA>               5         5          1            5      VISUAL_COUNT_ONLY          <NA> EXPECTED_NULL                  HIGH
+fig05_t1     fig05    APP     SERVICE_BRAND               2    HALF_YEAR           <NA>               3         3          3            9      VISUAL_COUNT_ONLY          <NA> EXPECTED_NULL                  HIGH
+fig05_t2     fig05    APP     SERVICE_BRAND               2    HALF_YEAR           <NA>               3         3          1            3      VISUAL_COUNT_ONLY          <NA> EXPECTED_NULL                  HIGH
+fig06_t1     fig06 RETAIL     SERVICE_BRAND               1    HALF_YEAR             15              15        15          1           15         DECLARED_TOP_N          True         MATCH                  HIGH
+fig06_t2     fig06 RETAIL     SERVICE_BRAND               1    HALF_YEAR             15              15        15          1           15         DECLARED_TOP_N          True         MATCH                  HIGH
+fig07_t1     fig07 RETAIL INDUSTRY_CATEGORY               2 SINGLE_MONTH             10              10        10          3           30         DECLARED_TOP_N          True         MATCH                  HIGH
+fig08_t1     fig08 RETAIL     SERVICE_BRAND               3    HALF_YEAR             10              10        10          3           30         DECLARED_TOP_N          True         MATCH                  HIGH
+fig09_t1     fig09 RETAIL     SERVICE_BRAND               4    HALF_YEAR              5               5         5          2           10         DECLARED_TOP_N          True         MATCH                  HIGH
+fig10_t1     fig10 RETAIL     SERVICE_BRAND               1    HALF_YEAR           <NA>               5         5          2           10      VISUAL_COUNT_ONLY          <NA> EXPECTED_NULL                  HIGH
+fig10_t2     fig10 RETAIL     SERVICE_BRAND               1    HALF_YEAR           <NA>               5         5          1            5      VISUAL_COUNT_ONLY          <NA> EXPECTED_NULL                  HIGH
+fig11_t1     fig11 RETAIL     SERVICE_BRAND               2    HALF_YEAR           <NA>               3         3          2            6      VISUAL_COUNT_ONLY          <NA> EXPECTED_NULL                  HIGH
+fig11_t2     fig11 RETAIL     SERVICE_BRAND               2    HALF_YEAR           <NA>               3         3          1            3      VISUAL_COUNT_ONLY          <NA> EXPECTED_NULL                  HIGH
+
+rows_expected NULL panels: 8 -> ['fig04_t1', 'fig04_t2', 'fig05_t1', 'fig05_t2', 'fig10_t1', 'fig10_t2', 'fig11_t1', 'fig11_t2']
+rows_expected != rows_extracted (where both present): 0
+row_count_verification: {'DECLARED_TOP_N': 9, 'VISUAL_COUNT_ONLY': 8}
+extraction_confidence: {'HIGH': 17}
+unreadable: {'[]': 8, '["두 패널 모두 이미지에 순위 숫자(1,2,3…) 표기가 없다. rank는 이미지의 좌→우 배열 순서(값 내림차순)를 그대로 옮긴 것이다.", "패널 1의 현대카드와 하나은행은 모두 35.0%로 동일 표기이며, 어느 쪽이 상위인지 구분 표기는 없다(배열 순서만 존재).", "하나은행 항목의 아이콘은 \'1Q 하나원큐\'로 표기되어 있으나 라벨 텍스트는 \'하나은행\'이다. 라벨 텍스트를 entity_name으로 사용했다.", "조사 표본 규모(패널 수 등) 표기는 이미지에 없다. 기간 표기는 제목 옆 배지 \'25년 하반기\'와 각주의 \'(25년 7월 ~ 12월)\'뿐이다."]': 2, '["제목은 \'순 결제추정금액이 많이 성장한\' 브랜드를 말하지만, 이미지에는 성장률(전년 동기간 대비 %) 수치가 전혀 표기돼 있지 않다. 표시된 값은 세대 비율과 1인당 평균 결제금액 두 가지뿐이라 성장률 값은 추출할 수 없다.", "브랜드별 순위 번호(1,2,3)는 이미지에 표기돼 있지 않다. rows[].rank는 차트 내 좌→우 배치 순서로 부여한 값이다.", "도넛 차트/막대 차트 형식이라 순위표(TOP N) 자체가 존재하지 않는다 (rows_expected는 표시된 브랜드 수 3으로 설정)."]': 2, '["두 번째 패널 3위 브랜드명이 이미지에 \'현대홈쇼핑/현대Hmallord\'로 표기돼 있음 — 원문 표기 그대로 옮김(첫 번째 패널에서는 \'현대홈쇼핑/현대Hmall\'). 원자료 오탈자로 보이나 추측 보정하지 않음.", "두 패널 모두 이미지에 순위 숫자 표기는 없음. rank는 이미지의 좌→우 배열(내림차순) 순서를 그대로 부여함.", "제목에 TOP N 표기가 없어 rows_expected는 이미지에 실제로 그려진 브랜드 수(5)로 기록함."]': 2, '["10위 삼성 계산기: 막대 내 분할값 21.7 + 13.8 = 35.5 이나 합계 표기는 35.4% 로 되어 있음(이미지 표기 그대로 기록)."]': 1, '["2위 홈앤쇼핑의 50대 구간 라벨이 원본 이미지에서 글리프가 서로 포개진 상태로 렌더링됨. 확대 판독 결과 \'34.4\'로 읽었고 합계 78.6 − 60대 이상 44.2 = 34.4 로 정합하나, 라벨 자체는 육안상 모호함."]': 1, '["성장률(%) 컬럼은 이미지에 1위(인터넷 쇼핑, +10.1%), 5위(여행/교통, +15.9%), 10위(배달, +19.5%) 세 행에만 배지로 표기되어 있고 나머지 7개 행에는 표기가 없어 null 처리함"]': 1}
+domain: {'RETAIL': 9, 'APP': 8} | axis_type: {'SERVICE_BRAND': 16, 'INDUSTRY_CATEGORY': 1} | period_axis: {'HALF_YEAR': 16, 'SINGLE_MONTH': 1}
+n_metrics distribution: {1: 8, 2: 5, 3: 3, 4: 1}
+source_section: {1: 8, 2: 6, 3: 2, 4: 1}
+panel_scope prefix: {'SUBSET': 8, 'FULL': 4, 'THRESHOLD': 4, 'AGGREGATE': 1}
+
+==============================================================================
+2b. METRIC / UNIT VOCABULARY (row level)
+==============================================================================
+distinct metric_name = 23 | distinct unit = 9
+{
+"점유율 - 50대": 25,
+"점유율 - 60대 이상": 25,
+"사용자 평균": 15,
+"사용시간 평균": 15,
+"점유율 합계": 15,
+"사용자": 15,
+"인덱스": 15,
+"총 결제횟수 평균": 15,
+"그 외 세대 비율": 13,
+"성장률": 13,
+"액티브시니어+ 세대 비율": 13,
+"성장률*": 10,
+"사용자 비율*": 10,
+"25년 12월 합산 순 결제추정금액": 10,
+"24년 12월 합산 순 결제추정금액": 10,
+"점유율 합계 (50대 이상)": 10,
+"1인당 평균 실행횟수": 8,
+"순 결제추정금액 성장률*": 5,
+"세대 비율*": 5,
+"액티브시니어+ 세대 1인당 평균 결제금액": 5,
+"25년 하반기 월간 사용자 평균": 3,
+"24년 하반기 월간 사용자 평균": 3,
+"1인당 평균 결제금액": 3
+}
+unit: {"%": 144, "만 명": 30, "십억 원": 20, "인덱스(쿠팡=100)": 15, "백만 분": 15, "백만 회": 15, "회": 8, "만 원": 8, "만명": 6}
+value NULL rows = 7 -> panels ['fig07_t1'] metric ['성장률']
+value_label NULL rows = 7
+
+==============================================================================
+3. ENTITY REPEAT APPEARANCE
+==============================================================================
+entities = 81
+panel appearance count distribution: {1: 45, 2: 17, 3: 15, 4: 2, 5: 2}
+  1 panel only: 45 | >=2 panels: 36
+figure appearance count distribution: {1: 56, 2: 20, 3: 5}
+source-row count per entity distribution: {1: 22, 2: 16, 3: 16, 4: 6, 5: 3, 6: 10, 7: 5, 8: 2, 9: 1}
+appearance count: median 1.0 mean 1.753 max 5
+
+entities appearing in >= 3 panels:
+                                   canonical_key           name  domain      axis_type  panels  figures  source_rows
+service_id                                                                                                          
+svc_46e5a43370f75308                    danggeun             당근     APP  SERVICE_BRAND       5        3            8
+svc_517b8047eb5be716        nonghyup_hanaro_mart        농협하나로마트  RETAIL  SERVICE_BRAND       5        3            8
+svc_d5ae5426eac23877                      monimo            모니모     APP  SERVICE_BRAND       4        3            9
+svc_22ffba7a86ea9919                      costco           코스트코  RETAIL  SERVICE_BRAND       4        3            6
+svc_088809bf9b31bc6a                samsung_card           삼성카드     APP  SERVICE_BRAND       3        2            7
+svc_8fd5d30f8b1d707b                   hana_bank           하나은행     APP  SERVICE_BRAND       3        2            7
+svc_b728911c9782edb8                hyundai_card           현대카드     APP  SERVICE_BRAND       3        2            7
+svc_e1fadb214cde51c0                    cashwalk           캐시워크     APP  SERVICE_BRAND       3        3            7
+svc_fb3d1841dddfd982                 nh_cok_bank          NH콕뱅크     APP  SERVICE_BRAND       3        2            7
+svc_0f3bdb2bd0bb891e                    top_mart            탑마트  RETAIL  SERVICE_BRAND       3        2            6
+svc_112f591a0d47a8d8                 gmarket_app            G마켓     APP  SERVICE_BRAND       3        2            6
+svc_353f07b932464b82  hyundai_homeshopping_hmall  현대홈쇼핑/현대Hmall  RETAIL  SERVICE_BRAND       3        2            6
+svc_49a5eca8b58f7270                        11st           11번가     APP  SERVICE_BRAND       3        2            6
+svc_4feab7e61bf642e8                  cj_onstyle         CJ온스타일  RETAIL  SERVICE_BRAND       3        2            6
+svc_5c614fc99631ce5e           home_and_shopping           홈앤쇼핑  RETAIL  SERVICE_BRAND       3        2            6
+svc_95e22b9aff7196b3             ns_homeshopping          NS홈쇼핑  RETAIL  SERVICE_BRAND       3        2            6
+svc_e268b0ad5a2d6ece      gs_homeshopping_gsshop  GS홈쇼핑/GS Shop  RETAIL  SERVICE_BRAND       3        2            6
+svc_ff3ee504792f6cfc    samsung_internet_browser    삼성 인터넷 브라우저     APP  SERVICE_BRAND       3        2            6
+svc_e22ebedb0e6c205f              coupang_retail             쿠팡  RETAIL  SERVICE_BRAND       3        2            4
+
+appearance count x domain:
+domain  APP  RETAIL
+panels             
+1        18      27
+2        10       7
+3         8       7
+4         1       1
+5         1       1
+appearance count x axis_type:
+axis_type  INDUSTRY_CATEGORY  SERVICE_BRAND
+panels                                     
+1                         10             35
+2                          0             17
+3                          0             15
+4                          0              2
+5                          0              2
+
+==============================================================================
+4. PANEL-NORMALIZED RANK
+==============================================================================
+Definition (this analysis):
+  For panel p with N_p = number of distinct entities in p, and raw rank r in 1..N_p,
+     norm_rank = (r - 1) / (N_p - 1)        in [0,1], 0 = top of panel, 1 = bottom
+     rank_pct  = r / N_p                    in (0,1], share-of-panel position
+  norm_rank is UNDEFINED when N_p == 1 (no panel here has N_p == 1).
+  Rationale: panels differ in N (3,5,10,15) so raw rank is not comparable across panels.
+  This is descriptive only -- it does NOT mean an entity is 'more important'.
+
+rank integrity per panel: rank set == 1..N_p for every panel: True
+memberships = 142
+norm_rank describe:
+count    142.0000
+mean       0.5000
+std        0.3297
+min        0.0000
+25%        0.2222
+50%        0.5000
+75%        0.7778
+max        1.0000
+norm_rank by domain (median / IQR):
+        count  mean    std  min    25%  50%    75%  max
+domain                                                 
+APP      71.0   0.5  0.329  0.0  0.218  0.5  0.782  1.0
+RETAIL   71.0   0.5  0.333  0.0  0.222  0.5  0.778  1.0
+NOTE: because every panel's ranks are exactly 1..N_p, norm_rank is uniform BY
+      CONSTRUCTION within each panel. Its distribution is a property of the panel
+      size mix, not of the entities. Only the ENTITY-level aggregate below carries
+      per-entity information.
+
+entity best_norm_rank describe:
+count    81.0000
+mean      0.4639
+std       0.3423
+min       0.0000
+25%       0.1429
+50%       0.5000
+75%       0.7778
+max       1.0000
+entities with best_norm_rank == 0 (rank 1 in at least one panel): 13
+                      best_norm_rank  mean_norm_rank  best_raw_rank  panels     name  domain
+service_id                                                                                  
+svc_46e5a43370f75308             0.0        0.661905              1       5       당근     APP
+svc_22ffba7a86ea9919             0.0        0.339286              1       4     코스트코  RETAIL
+svc_d5ae5426eac23877             0.0        0.169643              1       4      모니모     APP
+svc_112f591a0d47a8d8             0.0        0.203704              1       3      G마켓     APP
+svc_0f3bdb2bd0bb891e             0.0        0.555556              1       3      탑마트  RETAIL
+svc_fb3d1841dddfd982             0.0        0.107143              1       3    NH콕뱅크     APP
+svc_4feab7e61bf642e8             0.0        0.361111              1       3   CJ온스타일  RETAIL
+svc_e22ebedb0e6c205f             0.0        0.333333              1       3       쿠팡  RETAIL
+svc_95e22b9aff7196b3             0.0        0.333333              1       3    NS홈쇼핑  RETAIL
+svc_24e6654bfd1ab85b             0.0        0.035714              1       2  YouTube     APP
+svc_699a5e2f3f410152             0.0        0.035714              1       2     카카오톡     APP
+svc_91b952863c62993d             0.0        0.000000              1       1       다음     APP
+svc_bc65e77baaea207c             0.0        0.000000              1       1   인터넷 쇼핑  RETAIL
+
+==============================================================================
+5. SOURCE DOMAIN CROSSING
+==============================================================================
+service_master.domain: {'RETAIL': 43, 'APP': 38}
+axis_type x domain (entity level):
+domain             APP  RETAIL
+axis_type                     
+INDUSTRY_CATEGORY    0      10
+SERVICE_BRAND       38      33
+
+stored vs reconstructed (mismatch counts):
+  appears_in_app_panels      vs rec_app_panels  : mismatch 0
+  appears_in_retail_panels   vs rec_ret_panels  : mismatch 0
+  app_row_count              vs rec_app_rows    : mismatch 0
+  retail_row_count           vs rec_ret_rows    : mismatch 0
+  alias_count                vs rec_alias       : mismatch 0
+
+IMPORTANT: app_row_count / retail_row_count count SOURCE ROWS (metric-expanded).
+  sum(app_row_count) = 137 sum(retail_row_count) = 124 total = 261
+  sum(appears_in_app_panels) = 71 sum(appears_in_retail_panels) = 71 total = 142
+
+entities with rows in BOTH domains: 0
+  -> 0 by construction: `domain` is part of the entity identity key,
+     so an APP row and a RETAIL row can never land on the same service_id.
+  Cross-domain identity therefore only exists ABOVE the entity level:
+  canonical NAME present in both domains: 1 -> ['쿠팡']
+  web_target_key spanning both domains: 3 -> ['coupang', 'gmarket', 'naver']
+  service_name_canonical: 81 rows / 80 distinct
+  canonical_service_key : 81 rows / 81 distinct
+
+==============================================================================
+6. ALIAS STRUCTURE
+==============================================================================
+alias rows = 82 | distinct service_id = 81
+aliases per entity: {1: 80, 2: 1}
+match_basis: {'EXACT': 81, 'REVIEWED': 1}
+join key (entity_name_raw, domain, axis_type) duplicates in alias map: 0
+entity_name_raw alone -- duplicated values: ['쿠팡']
+
+multi-alias entity/entities:
+            alias_id           service_id  entity_name_raw domain         panel_ids match_basis
+als_6d3c1dd941c60431 svc_353f07b932464b82    현대홈쇼핑/현대Hmall RETAIL fig08_t1,fig10_t1       EXACT
+als_374ed3de3bfe9b79 svc_353f07b932464b82 현대홈쇼핑/현대Hmallord RETAIL          fig10_t2    REVIEWED
+reviewer_note: fig10.png 하단 막대차트 라벨을 4배 확대 판독한 결과 원문이 실제로 '현대홈쇼핑/현대Hmallord' 로 렌더링돼 있음을 확인했다(판독 오류 아님, 발행물 오타). 원자료 entity_name_raw 는 보정하지 않고 별칭으로만 흡수한다.
+
+(service_id,panel_id) sets -- alias explode: 142 | join derived: 142 | source_membership: 142
+all three identical: True
+source_membership.rank vs derived rank mismatch: 0
+source_membership.n_metrics vs panel_registry.n_metrics mismatch: 0
+
+==============================================================================
+7. WEB TARGET GROUP STRUCTURE
+==============================================================================
+groups = 68 | distinct web_target_group_id = 68
+member_count distribution: {1: 65, 2: 3}
+sum(member_count) = 71
+grouping_status (GROUP level): {'SINGLETON_PENDING_URL_REVIEW': 65, 'CANDIDATE_PENDING_URL_REVIEW': 3}
+service_master.web_target_grouping_status (ENTITY level): {'SINGLETON_PENDING_URL_REVIEW': 65, None: 10, 'CANDIDATE_PENDING_URL_REVIEW': 6}
+service_master.web_target_group_id nonnull = 71 | null = 10 | distinct groups referenced = 68
+group ids in web_target_group but not referenced by any entity: 0
+group ids referenced by entities but absent from web_target_group: 0
+
+hypothesis flags:
+  expected_url_relationship_is_hypothesis True = 3 | notnull = 68
+  expected_url_relationship_confirmed_by_url True = 0
+  web_target_url nonnull = 0 | url_evidence nonnull = 0
+  expected_url_relationship values: {'UNKNOWN': 65, 'SAME_LANDING_EXPECTED': 3}
+
+multi-member groups (the 3 hypotheses):
+----------------------------------------------------------------------
+group_id : wtg_5b8c59f6fd9839f7 | key: coupang | members: coupang_app,coupang_retail | domains: APP,RETAIL
+relation : SAME_LANDING_EXPECTED | status: CANDIDATE_PENDING_URL_REVIEW
+basis    : A1 원문이 APP 패널(fig01_t1 rank7 / fig01_t2 rank10)과 RETAIL 패널(fig06_t1 rank1 / fig06_t2 rank1 / fig09_t1 rank5)에서 같은 문자열 '쿠팡' 을 썼다. 표기가 문자 단위로 동일한 유일한 후보다.
+falsifier: 두 measurement_entity 의 official_landing_url 이 서로 다른 PSL 등록도메인으로 확정되면 SPLIT 한다.
+risk     : 표기 동일성은 랜딩 동일성의 증거가 아니다. 같은 브랜드가 앱 소개 페이지와 커머스 랜딩을 따로 두는 경우 두 entity 의 URL 이 갈릴 수 있다.
+----------------------------------------------------------------------
+group_id : wtg_f9fbd771ffcdbd42 | key: gmarket | members: gmarket_app,gmarket_auction | domains: APP,RETAIL
+relation : SAME_LANDING_EXPECTED | status: CANDIDATE_PENDING_URL_REVIEW
+basis    : RETAIL 표기 'G마켓/옥션'(fig06_t1 rank10)이 APP 표기 'G마켓'(fig03_t1 rank2 / fig05_t1 rank1 / fig05_t2 rank2)을 접두로 포함한다.
+falsifier: RETAIL entity 의 랜딩이 APP entity 와 다른 등록도메인 또는 다른 경로로 확정되면 SPLIT 한다.
+risk     : 세 후보 중 가장 약하다. RETAIL 측정 단위가 두 브랜드의 합산이고, 슬래시 뒤의 '옥션' 이 별도 랜딩을 가지면 하나의 URL 로 귀결되지 않는다. 또한 'G마켓/옥션' 은 933 본문 텍스트 계층에 없고 figure 판독 계층에만 있다.
+----------------------------------------------------------------------
+group_id : wtg_6d5510a695d0a614 | key: naver | members: naver_naverpay,naver_app | domains: RETAIL,APP
+relation : SAME_LANDING_EXPECTED | status: CANDIDATE_PENDING_URL_REVIEW
+basis    : RETAIL 표기 '네이버/네이버페이'(fig06_t1 rank2 / fig06_t2 rank7)가 APP 표기 '네이버'(fig01_t1 rank4 / fig01_t2 rank3)를 접두로 포함한다. 문자열 포함 관계가 그룹핑의 유일한 신호다.
+falsifier: RETAIL entity 의 랜딩이 APP entity 와 다른 등록도메인 또는 다른 경로로 확정되면 SPLIT 한다.
+risk     : 슬래시 뒤의 '네이버페이' 가 독립 서비스 랜딩을 가질 수 있다. 그 경우 이 그룹은 해체된다.
+----------------------------------------------------------------------
+singleton grouping_basis sample: {'{"evidence_layer": "A1_SOURCE_LABEL", "note": "다른 measurement_entity 와 묶을 원문 근거가 없다. 단독 web_target 후보.", "rule": "NO_SHARED_SOURCE_LABEL_SIGNAL", "shared_signal": null, "signal_kind": null, "url_evidence": null}': 65}
+
+==============================================================================
+8. INDUSTRY_CATEGORY AXIS -- THE 10 EXCLUDED ENTITIES
+==============================================================================
+count = 10
+          service_id            canonical_service_key service_name_canonical domain web_eligibility_status web_target_group_id  appears_in_retail_panels  retail_row_count
+svc_2af5cef408b64669       industry_convenience_store                    편의점 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+svc_412589798229c678                industry_delivery                     배달 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+svc_903a71c3a24e4116 industry_department_store_outlet                백화점/아울렛 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+svc_7e16a52529c5b629             industry_electronics                   전자기기 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+svc_92e05e8212e443a2                    industry_food                     식품 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+svc_c23db7aed7ecd624           industry_food_beverage                    식음료 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+svc_77c78a1555cf28ae           industry_home_shopping                    홈쇼핑 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+svc_bc65e77baaea207c       industry_internet_shopping                 인터넷 쇼핑 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+svc_b6a2bad4a8d88e77            industry_offline_mart                오프라인 마트 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+svc_a6b8f11674c80b5f        industry_travel_transport                  여행/교통 RETAIL EXCLUDED_INDUSTRY_AXIS                None                         1                 3
+
+all 10 come from which panels?
+  panels: ['fig07_t1'] | source rows: 30 | distinct entities: 10
+  fig07_t1 axis_type = INDUSTRY_CATEGORY | domain = RETAIL | period_axis = SINGLE_MONTH
+  fig07_t1 table_title  : 업종별 액티브시니어+ 세대 순 결제추정금액* TOP10
+  fig07_t1 panel_scope  : AGGREGATE: 24~25년 12월 월간 순 결제추정금액 50억 원 초과 브랜드를 업종으로 집계 (브랜드 축 아님)
+  fig07_t1 universe_def : * 액티브시니어+ 세대 업종별 순 결제추정금액 : 24~25년 12월 액티브시니어+ 세대 월간 순 결제추정금액이 50억 원이 넘는 리테일 브랜드를 업종별로 분류하여 각 업종별 리테일 브랜드의 순 결제추정금액 합을 산출
+
+Are these entities EXCLUSIVE to fig07_t1? True
+Does any SERVICE_BRAND entity also appear in fig07_t1? 0
+web_eligibility_status of the 10: ['EXCLUDED_INDUSTRY_AXIS']
+web_eligibility_basis (verbatim): ["fig07_t1 의 축은 표 헤더가 '업종' 인 업종 카테고리다. 브랜드가 아니므로 웹 수집 대상에서 제외한다."]
+web_target_group_id null for all 10: True
+
+Observation: fig07_t1 is the only panel whose axis_type is INDUSTRY_CATEGORY;
+its 10 row labels are industry buckets (edible/appliance/delivery/... categories),
+not brands, and the panel_scope says brands were AGGREGATED into industries.
+They therefore have no web landing of their own -- no URL can be assigned.
+
+==============================================================================
+9. WHAT IS ACTUALLY MAPPABLE (P-A A4/A5 and P-B input counts)
+==============================================================================
+total entities                       = 81
+  minus INDUSTRY_CATEGORY (excluded) = 10
+  SERVICE_BRAND entities             = 71
+     by domain: {'APP': 38, 'RETAIL': 33}
+web_eligibility_status: {'NOT_ASSESSED': 71, 'EXCLUDED_INDUSTRY_AXIS': 10}
+review_decision (raw column): {None: 74, 'KEEP_SEPARATE': 6, 'MERGE': 1}
+needs_human_review: {False: 81}
+canonicalization_basis: {'원문 표기 1종만 존재 — 별칭 병합 없이 1:1 대응.': 57, "fig07_t1 의 축은 표 헤더가 '업종' 인 업종 카테고리다. 브랜드가 아니므로 웹 수집 대상에서 제외한다.": 10, '원문이 한 셀에 슬래시로 묶어 표기한 단일 측정 단위 — 분해하지 않고 그대로 1개 entity 로 둔다.': 3, 'APP 도메인은 앱 사용자·사용시간을, RETAIL 도메인은 카드 결제추정금액을 잰다. 원문 표기가 같아도 측정 대상이 다르므로 measurement_entity 로는 별개다.': 2, "APP 도메인 원문은 'G마켓', RETAIL 도메인 원문은 'G마켓/옥션' 으로 표기가 다르다. 측정 대상(앱 사용자 vs 옥션 합산 결제)이 달라 별개 entity 로 둔다.": 1, "APP 도메인 원문은 '네이버', RETAIL 도메인 원문은 '네이버/네이버페이' 로 표기가 다르다. 앱 사용자와 네이버페이 결제는 다른 측정 대상이므로 별개 entity 로 둔다.": 1, "fig04 아이콘은 '1Q 하나원큐' 지만 라벨 텍스트가 '하나은행' 이다. 원문 라벨 표기를 따른다.": 1, "원문이 '쿠팡'(fig06_t1/t2) 과 '쿠팡이츠'(fig06_t2) 를 같은 표에 별도 행으로 올렸다. 별개 측정 대상이다.": 1, "원문이 'TikTok' 과 'TikTok Lite' 를 별도 행으로 올렸다(fig01_t2 동시 등장). 별개 앱이다.": 1, "원문이 '이마트'(fig06_t1) 와 'emart24'(fig06_t2) 를 별도 행으로 표기했다. 편의점 브랜드로 별개 entity 다.": 1, "슬래시 묶음 표기이자 APP 의 'G마켓' 과 다른 원문 표기. 원문 단위를 측정 단위로 보고 별개 entity 로 둔다.": 1, "fig10_t2 의 '현대홈쇼핑/현대Hmallord' 와 같은 브랜드다. 같은 그림 안의 동일 5개 브랜드 세트이고 로고 이미지도 동일하며, 발행처 태그 목록에도 '현대홈쇼핑/현대Hmall' 만 실려 있다. 'ord' 는 원문(발행물) 자체의 렌더링 오타로 확인되어 별칭으로 흡수했다.": 1, "슬래시 묶음 표기이자 APP 의 '네이버' 와 다른 원문 표기. 결제 기준 측정 단위로 별개 entity 로 둔다.": 1}
+
+web target group cardinality bounds (P-B):
+  groups today                       = 68
+  if all 3 SAME_LANDING hypotheses HOLD  -> web targets = 68
+  if all 3 hypotheses are FALSIFIED (SPLIT) -> web targets = 71
+  so the P-B target count lies in [ 68 , 71 ]
+
+mapping load for representative task (SSOT §6: 1 task per measurement entity):
+  entities needing a representative task = 71
+  of which appear in >= 2 panels          = 36
+  of which appear in exactly 1 panel      = 35
+  entities in a multi-member web target group = 6
+
+wrote entity_structure.csv / panel_summary.csv / membership_normalized_rank.csv
+
+figures written: ['fig1_panel_composition.png', 'fig2_entity_panel_appearance.png', 'fig3_best_norm_rank_ecdf.png']
