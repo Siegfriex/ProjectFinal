@@ -19,6 +19,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from ..eda.statistics import DIRECTION_DEFINITION
 from ..provenance import ShadowProvenance, file_sha256, write_provenance_sidecar
 
 # 아래 마트 목록/컬럼 헬퍼는 로컬에서만 참조한다 — 순환 import를 피하기 위해
@@ -104,15 +105,22 @@ def build_collection_coverage(
     - `certification_variance` (dict) — `{"has_variance": bool, "mode": str}`.
     - `provenance` (dict)
     """
+    import pandas as pd
+
     from ..eda.common import decision_coverage, evidence_completeness, has_variance
 
+    # `.get()`이 None을 낼 수 있으므로 빈 DataFrame으로 정규화한다 — 아래 표현식이
+    # 전부 "빈 표"라는 하나의 경우만 다루면 되게 한다(Optional 인덱싱 없음).
     landing = marts.get("fact_landing_observation")
     criterion = marts.get("fact_criterion_result")
     certification = marts.get("dim_certification")
+    landing = pd.DataFrame() if landing is None else landing
+    criterion = pd.DataFrame() if criterion is None else criterion
+    certification = pd.DataFrame() if certification is None else certification
 
-    landing_empty = landing is None or landing.empty
-    criterion_empty = criterion is None or criterion.empty
-    certification_empty = certification is None or certification.empty
+    landing_empty = landing.empty
+    criterion_empty = criterion.empty
+    certification_empty = certification.empty
 
     coverage: dict[str, Any] = {
         "manifest": "COLLECTION_COVERAGE",
@@ -205,15 +213,39 @@ def build_statistical_results_json(
         "shadow_lane": provenance.shadow_lane,
         "claim_grade_system_note": (
             "A=정의/기술통계/직접 관측(evidence lineage complete). "
-            "B=association/inferential + min-N(>=10) 충족 + robustness(leave-one-archetype-out) "
-            "방향 유지. C=exploratory/low-N/sensitivity-dependent(반드시 exploratory로 명시). "
+            "B=association/inferential + min-N(>=10) 충족 + **두 민감도 축(표본 구성 · "
+            "측정 불확실성) 모두**에서 방향 유지. C=exploratory/low-N/sensitivity-dependent "
+            "(어느 한 축이라도 부호가 뒤집히거나 확인 불가 — 반드시 exploratory로 명시). "
             "UNSUPPORTED=표본/측정으로 말할 수 없음. headline은 A 또는 robust B만 허용한다."
         ),
+        # Claude A(governor) §2.1 확정 — 결론의 방향 조작화.
+        "direction_definition": DIRECTION_DEFINITION,
+        "sign_stability_axes": {
+            "sample_composition": (
+                "leave-one-archetype-out — 표본 구성을 흔든다 (robustness, A0 §15)"
+            ),
+            "measurement_uncertainty": (
+                "UNDETERMINED lower(전부 PASS, FailRate 최소)/upper(전부 FAIL, FailRate 최대) "
+                "bound — 측정 불확실성을 흔든다 (ANALYSIS_CONTRACT §2.1)"
+            ),
+        },
+        # 각 association의 sign_flip_axis: "sample_composition" | "measurement_uncertainty" | null.
+        "sign_flip_axis_by_association": {
+            role: (eda09.get(key) or {}).get("sign_flip_axis")
+            for role, key in (
+                ("primary", "primary_association"),
+                ("primary_structure_adjusted", "primary_structure_adjusted_association"),
+                ("secondary", "secondary_association"),
+            )
+        },
         "primary_association": eda09.get("primary_association"),
         "primary_structure_adjusted_association": eda09.get(
             "primary_structure_adjusted_association"
         ),
         "secondary_association": eda09.get("secondary_association"),
+        # §4.4 — 후보 4종 전부의 결측률 + 선택 규칙 + 동률 tie-break 기록.
+        "secondary_variable_selection": eda09.get("secondary_variable_selection"),
+        "secondary_candidate_missing_rate": eda09.get("secondary_candidate_missing_rate", {}),
         "kruskal_wallis_mpfed_by_archetype": eda09.get("kruskal_wallis_mpfed_by_archetype"),
         "quadrant_classification": eda09.get("quadrant_classification_rule"),
         "archetype_descriptive": eda05.get("by_archetype", {}),

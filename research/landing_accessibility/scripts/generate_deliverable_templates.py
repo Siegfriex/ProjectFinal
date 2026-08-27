@@ -85,6 +85,7 @@ def main() -> None:
         eda_summaries.get("eda05", {}),
         eda_summaries.get("eda07", {}),
         out_dir,
+        eda09_summary=eda_summaries.get("eda09", {}),
         provenance=provenance,
     )
 

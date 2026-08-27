@@ -84,12 +84,69 @@ def sample_size_tier(n: int) -> SampleSizeTier:
 #:    결과여야지 상관계수를 보고 정하면 안 된다.
 SECONDARY_ASSOCIATION_VARIABLE = "max_overlay_coverage"
 SECONDARY_ASSOCIATION_VARIABLE_FALLBACK = "blocking_modal_count"
-SECONDARY_ASSOCIATION_CANDIDATES: tuple[str, ...] = (
+
+#: **동률 시 사전 고정 우선순위** (Claude A governor 확정 §4.4 — 계약에 적힌
+#: 나열 순서 그대로: `OverlayCoverage` → `PrimaryActionOcclusion` →
+#: `blocking_modal_count` → `forced_dismissal_count`).
+#:
+#: 결측률이 같을 때 **상관계수를 보고 고르면 그 순간 p-hacking이다.** 그래서
+#: tie-break는 데이터와 무관한 이 고정 순서로만 깬다. 이 튜플의 순서 자체가
+#: 사전등록물이며, 결과를 본 뒤 바꾸지 않는다.
+SECONDARY_ASSOCIATION_PRIORITY: tuple[str, ...] = (
     "max_overlay_coverage",
-    "blocking_modal_count",
     "max_primary_action_occlusion",
+    "blocking_modal_count",
     "forced_dismissal_count",
 )
+
+#: 후보 4종 전부 — **선택된 것만이 아니라 전부의 결측률을 산출물에 기록한다**
+#: (governor 지시: 선택된 것만 적으면 선택 자체가 검증 불가능해진다).
+SECONDARY_ASSOCIATION_CANDIDATES: tuple[str, ...] = SECONDARY_ASSOCIATION_PRIORITY
+
+
+def select_secondary_association_variable(
+    missing_rates: dict[str, float | None],
+) -> dict[str, Any]:
+    """§4.4 secondary 변수 자동선택 — **결측률 최소, 동률이면 사전 고정 우선순위**.
+
+    상관계수는 이 함수에 입력조차 되지 않는다 — 구조적으로 p-hacking이 불가능하다.
+    선택 결과와 함께 **후보 4종 전부의 결측률**과 tie-break 발동 여부를 돌려줘서,
+    선택 자체가 산출물에서 재검증 가능하게 한다.
+
+    결측률이 `None`인(=계산할 표본조차 없던) 후보는 선택 대상에서 제외한다.
+    전부 `None`이면 사전등록 1순위(`SECONDARY_ASSOCIATION_VARIABLE`)로 되돌아간다.
+    """
+    ranked = [
+        (name, missing_rates.get(name))
+        for name in SECONDARY_ASSOCIATION_PRIORITY
+        if missing_rates.get(name) is not None
+    ]
+    if not ranked:
+        return {
+            "selected": SECONDARY_ASSOCIATION_VARIABLE,
+            "selection_rule": "no_candidate_measurable_fell_back_to_preregistered_first",
+            "candidate_missing_rates": dict(missing_rates),
+            "priority_order": list(SECONDARY_ASSOCIATION_PRIORITY),
+            "tie_break_applied": False,
+            "tied_candidates": [],
+        }
+
+    best_rate = min(rate for _, rate in ranked)  # type: ignore[type-var]
+    tied = [name for name, rate in ranked if rate == best_rate]
+    # 우선순위 튜플에서 먼저 나오는 것을 고른다 — `ranked`가 이미 그 순서라 첫 원소다.
+    selected = tied[0]
+    return {
+        "selected": selected,
+        "selection_rule": (
+            "lowest_missing_rate_then_preregistered_priority_order "
+            "(상관계수는 선택에 입력되지 않는다 — p-hacking 구조적 차단)"
+        ),
+        "candidate_missing_rates": dict(missing_rates),
+        "priority_order": list(SECONDARY_ASSOCIATION_PRIORITY),
+        "selected_missing_rate": best_rate,
+        "tie_break_applied": len(tied) > 1,
+        "tied_candidates": tied,
+    }
 
 
 # ── Association — primary/secondary, effect+N+missing_N+UNDET_N 병기 ─────────
@@ -133,10 +190,86 @@ def _spearman_with_method(x: pd.Series, y: pd.Series) -> tuple[float, float, str
     return float(rho), float(pvalue), "asymptotic_t"
 
 
+# ── 결론의 방향 = Spearman rho 부호. 두 민감도 축에서 각각 판정 ────────────────
+#: **Claude A(governor) §2.1 조작화 확정** (LA-TB-1630-20260827).
+DIRECTION_DEFINITION = (
+    "결론의 방향 = 해당 association의 Spearman rho 부호. "
+    "두 민감도 축(표본 구성 · 측정 불확실성) 각각에서 판정."
+)
+
+#: 부호 안정성을 재는 두 축. 하나만 쓰면 "표본을 흔들어도 안 뒤집힌다"까지만
+#: 말하고 "측정 불확실성(UNDETERMINED)을 흔들어도 안 뒤집힌다"는 말하지 못한다.
+SIGN_STABILITY_AXES: tuple[str, ...] = ("sample_composition", "measurement_uncertainty")
+
+#: 축별 판정값 의미:
+#:   True            — bound/부분표본 전부에서 부호 유지
+#:   False           — 어느 한 곳에서라도 부호가 뒤집힘
+#:   None            — 적용 대상인데 평가 불가(표본 부족 등) → 확인 안 됨으로 취급, 강등
+#:   "NOT_APPLICABLE"— 그 축이 이 association에 구조적으로 적용되지 않음(강등 없음).
+#:                     예: secondary(ExcessDepth × obstruction)는 Y가 UNDETERMINED에
+#:                     의존하지 않으므로 measurement_uncertainty 축이 없다.
+SignStability = bool | None | str
+
+
+def _axis_ok(value: SignStability) -> bool:
+    """그 축이 GRADE B를 막지 않는가. `True`와 `NOT_APPLICABLE`만 통과다."""
+    return value is True or value == "NOT_APPLICABLE"
+
+
+def resolve_sign_flip_axis(
+    *, sample_composition: SignStability, measurement_uncertainty: SignStability
+) -> dict[str, Any]:
+    """어느 축에서 부호가 뒤집혔는지 판정한다 (governor 지시 3항).
+
+    `sign_flip_axis`는 계약이 명명한 3값(`"sample_composition"` ·
+    `"measurement_uncertainty"` · `null`)만 갖는다. 두 축이 동시에 뒤집힌 경우엔
+    측정 불확실성 쪽을 대표값으로 올리고(더 근본적인 결손이다), 전체 목록은
+    `sign_flip_axes`에 남긴다 — 정보를 잃지 않기 위해서다.
+    """
+    flipped = []
+    if sample_composition is False:
+        flipped.append("sample_composition")
+    if measurement_uncertainty is False:
+        flipped.append("measurement_uncertainty")
+
+    if "measurement_uncertainty" in flipped:
+        primary_axis: str | None = "measurement_uncertainty"
+    elif "sample_composition" in flipped:
+        primary_axis = "sample_composition"
+    else:
+        primary_axis = None
+
+    unevaluated = [
+        axis
+        for axis, value in (
+            ("sample_composition", sample_composition),
+            ("measurement_uncertainty", measurement_uncertainty),
+        )
+        if value is None
+    ]
+
+    return {
+        "definition": DIRECTION_DEFINITION,
+        "by_axis": {
+            "sample_composition": sample_composition,
+            "measurement_uncertainty": measurement_uncertainty,
+        },
+        "sign_flip_axis": primary_axis,
+        "sign_flip_axes": flipped,
+        "unevaluated_axes": unevaluated,
+        "both_axes_preserved": _axis_ok(sample_composition) and _axis_ok(measurement_uncertainty),
+    }
+
+
 def assign_association_claim_grade(
-    *, n: int, executed: bool, robust_direction_preserved: bool | None
+    *,
+    n: int,
+    executed: bool,
+    sample_composition: SignStability,
+    measurement_uncertainty: SignStability,
 ) -> str:
-    """**Research Director 확정 claim grade 시스템** (LA-TB-1630-20260827).
+    """**Research Director 확정 claim grade + Claude A §2.1 두 축 강등 규칙**
+    (LA-TB-1630-20260827).
 
     association/inferential 결과는 절대 `GRADE A`를 받지 않는다(A는 정의·
     기술통계·직접 관측 전용) — association은 `B`(robust) 또는 `C`(exploratory)
@@ -144,17 +277,60 @@ def assign_association_claim_grade(
     exploratory로 명시한다(이 등급 문자열 자체가 그 명시다).
 
     - `UNSUPPORTED`: 실행 자체가 안 됐다(표본 부족으로 상관 계산 불가).
-    - `C`: `n < SPEARMAN_HEADLINE_MIN_N`(=10)이거나, robustness 방향이 확인되지
-      않았거나(`robust_direction_preserved is not True`) 뒤집혔다.
-    - `B`: `n >= 10`이고 robustness(leave-one-archetype-out 등) 부호가 유지됐다.
+    - `C`: `n < SPEARMAN_HEADLINE_MIN_N`(=10)이거나, **두 민감도 축(표본 구성 ·
+      측정 불확실성) 중 어느 하나라도** 부호가 뒤집혔거나 확인되지 않았다.
+    - `B`: `n >= 10`이고 **두 축 모두** 부호가 유지됐다(또는 그 축이 구조적으로
+      적용되지 않는다).
     """
     if not executed:
         return "UNSUPPORTED"
     if n < SPEARMAN_HEADLINE_MIN_N:
         return "C"
-    if robust_direction_preserved is not True:
+    if not (_axis_ok(sample_composition) and _axis_ok(measurement_uncertainty)):
         return "C"
     return "B"
+
+
+def sign_preserved_across_bounds(
+    x: pd.Series,
+    y_point: pd.Series,
+    y_lower: pd.Series,
+    y_upper: pd.Series,
+) -> SignStability:
+    """**측정 불확실성 축** — UNDETERMINED lower/upper bound 각각에서 Spearman rho
+    부호가 점추정과 같은지 판정한다 (ANALYSIS_CONTRACT §2.1).
+
+    `y_lower` = UNDETERMINED를 전부 PASS로 본 FailRate(최소),
+    `y_upper` = 전부 FAIL로 본 FailRate(최대). 두 bound 모두에서 부호가 유지돼야
+    `True`다 — 한쪽이라도 뒤집히면 "측정 불확실성 안에서 결론의 방향이 바뀐다"는
+    뜻이므로 `False`다.
+
+    점추정 rho가 0이거나 유한하지 않으면 부호 자체가 정의되지 않아 `None`(확인 불가).
+    """
+    frame = pd.DataFrame(
+        {
+            "x": pd.to_numeric(x, errors="coerce"),
+            "point": pd.to_numeric(y_point, errors="coerce"),
+            "lower": pd.to_numeric(y_lower, errors="coerce"),
+            "upper": pd.to_numeric(y_upper, errors="coerce"),
+        }
+    ).dropna()
+    if len(frame) < 3:
+        return None
+
+    point_rho = scipy_stats.spearmanr(frame["x"], frame["point"]).statistic
+    if not np.isfinite(point_rho) or point_rho == 0:
+        return None
+    point_sign = point_rho > 0
+
+    for bound in ("lower", "upper"):
+        rho = scipy_stats.spearmanr(frame["x"], frame[bound]).statistic
+        if not np.isfinite(rho):
+            return None
+        # bound에서 rho=0이면 부호가 사라진 것이므로 "유지됐다"고 말할 수 없다.
+        if rho == 0 or (rho > 0) != point_sign:
+            return False
+    return True
 
 
 def association_result(
@@ -167,16 +343,23 @@ def association_result(
     assumption: str,
     undetermined_n: int = 0,
     interpretation_constraint: str | None = None,
-    robust_direction_preserved: bool | None = None,
+    sample_composition: SignStability = None,
+    measurement_uncertainty: SignStability = None,
 ) -> dict[str, Any]:
     """Spearman association 결과를 `effect`+`n`+`missing_n`+`undetermined_n`+
-    `claim_grade` 구조로 낸다.
+    `claim_grade`+`sign_stability` 구조로 낸다.
 
     p-value만 내지 않는다 — `effect`에 rho·p_value·`p_value_method`를 함께 담고,
     `n`(짝 지어 쓸 수 있었던 표본)과 `missing_n`(둘 중 하나라도 결측이라 뺀 표본)을
     구분해 명시한다. `undetermined_n`은 호출자가 넘긴다 — 이 값이 association의
     입력 자체(예: OlderRelevantKWCAGFailRate 분자·분모)에서 이미 제외된
     UNDETERMINED 건수이며, association 함수 스스로는 verdict_state를 모르기 때문이다.
+
+    `sample_composition` / `measurement_uncertainty` — **결론의 방향(= Spearman rho
+    부호)을 두 민감도 축에서 각각 판정한 결과** (Claude A governor §2.1 확정).
+    전자는 leave-one-archetype-out(표본 구성), 후자는 UNDETERMINED lower/upper
+    bound(측정 불확실성)다. **어느 한 축이라도 뒤집히면 `claim_grade`가 C로
+    강등된다** — 뒤집힌 축은 `sign_stability.sign_flip_axis`에 명시된다.
 
     `n < SPEARMAN_HEADLINE_MIN_N`(=10, Research Director 확정)이면 `headline_eligible
     =False`이고 `claim_grade="C"`(exploratory) — p-value를 headline으로 인용하지 않는다.
@@ -200,7 +383,13 @@ def association_result(
         effect = {"spearman_rho": rho, "p_value": pvalue, "p_value_method": method}
 
     claim_grade = assign_association_claim_grade(
-        n=n, executed=executed, robust_direction_preserved=robust_direction_preserved
+        n=n,
+        executed=executed,
+        sample_composition=sample_composition,
+        measurement_uncertainty=measurement_uncertainty,
+    )
+    sign_stability = resolve_sign_flip_axis(
+        sample_composition=sample_composition, measurement_uncertainty=measurement_uncertainty
     )
 
     return {
@@ -215,10 +404,15 @@ def association_result(
         "reason_not_executed": None
         if executed
         else f"짝지어진 표본 n={n} < 3 — 상관을 계산할 수 없다",
-        "headline_eligible": bool(executed and n >= SPEARMAN_HEADLINE_MIN_N),
+        # headline은 A 또는 **robust B**만 허용한다 — association은 A를 못 받으므로
+        # 사실상 grade B일 때만 headline이다. n>=10만으로는 부족하다: 두 민감도 축
+        # 중 하나라도 뒤집히면 grade가 C로 내려가고 headline 자격도 함께 사라진다.
+        "headline_eligible": claim_grade == "B",
         "claim_grade": claim_grade,
         "interpretation_constraint": interpretation_constraint,
-        "robust_direction_preserved": robust_direction_preserved,
+        # governor §2.1 — 두 축 각각의 판정 + 어느 축에서 뒤집혔는지.
+        "sign_stability": sign_stability,
+        "sign_flip_axis": sign_stability["sign_flip_axis"],
     }
 
 

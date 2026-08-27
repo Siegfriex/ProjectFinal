@@ -12,26 +12,33 @@ TIMEBOX EXECUTION SSOT(LA-TB-1630-20260827) 목표 2 + Claude A(governor)가 결
    표현 금지** (`PRIMARY_A0_INTERPRETATION_CONSTRAINT`).
 2. **구조보정 분석**: `Spearman(ExcessDepth, OlderRelevantKWCAGFailRate)` —
    archetype 보정된 depth로 같은 Y를 다시 본다(role=`primary_structure_adjusted`).
-3. **Secondary**: `Spearman(ExcessDepth, <사전등록 obstruction 변수>)`. 변수는
-   `statistics.SECONDARY_ASSOCIATION_VARIABLE`(=`max_overlay_coverage`, 결측
-   완결성 기준으로 **데이터를 보기 전에** 고정 — `statistics.py` 참조).
+3. **Secondary**: `Spearman(ExcessDepth, <obstruction 변수>)`. 변수는 §4.4
+   자동선택 — **결측률이 가장 낮은 후보**를 고르고, 동률이면 사전 고정 우선순위
+   (`OverlayCoverage` → `PrimaryActionOcclusion` → `blocking_modal_count` →
+   `forced_dismissal_count`)로 깬다. **상관계수는 선택에 입력조차 되지 않는다**
+   (동률에서 상관을 보고 고르면 그 순간 p-hacking이다). 후보 4종 **전부**의
+   결측률을 산출물에 기록한다 — 선택된 것만 적으면 선택이 검증 불가능해진다.
 4. **Spearman 최소 N**: pairwise-complete n<`SPEARMAN_HEADLINE_MIN_N`(=10)이면
    `claim_grade="C"`(exploratory)로 강등하고 p-value를 headline으로 인용하지
    않는다. tie가 많은 이산 MPFED에도 유효한 tie-aware Spearman을 쓰고, n이
    작으면(< 30) permutation p-value로 전환한다(`p_value_method` 필드에 기록).
-5. **claim grade**: association은 `B`(n>=10 및 leave-one-archetype-out 부호
-   유지) 또는 `C`(그 외) 또는 `UNSUPPORTED`(실행 불가)만 받는다 — `A`는 정의·
-   기술통계 전용이라 association에는 절대 부여하지 않는다.
-6. **Kruskal-Wallis**: archetype별 MPFED 비교. `statistics.kruskal_wallis_gate`가
+5. **결론의 방향 = Spearman rho 부호. 두 민감도 축에서 각각 판정** (governor
+   §2.1 확정): `sample_composition`(leave-one-archetype-out — 표본 구성을
+   흔든다, A0 §15) · `measurement_uncertainty`(UNDETERMINED lower=전부 PASS /
+   upper=전부 FAIL bound — 측정 불확실성을 흔든다, ANALYSIS_CONTRACT §2.1).
+6. **claim grade**: association은 `B`(n>=10 **및 두 축 모두** 부호 유지) 또는
+   `C`(어느 한 축이라도 뒤집히거나 확인 불가) 또는 `UNSUPPORTED`(실행 불가)만
+   받는다 — `A`는 정의·기술통계 전용이라 association에는 절대 부여하지 않는다.
+   뒤집힌 축은 `sign_flip_axis`로 명시한다.
+7. **Kruskal-Wallis**: archetype별 MPFED 비교. `statistics.kruskal_wallis_gate`가
    **joint-valid n>=5**인 archetype만 포함한다(governor 확정값). pairwise/Dunn/FDR은
    `run_eda09(..., run_optional_pairwise=True)`를 줘야만 도는 별도 옵션이다.
-4. **Joint quadrant 분류**: X=ExcessDepth, Y=OlderRelevantKWCAGFailRate,
-   size=OverlayCoverage(사전등록 secondary 변수와 같은 것을 쓴다), facet=
-   InteractionArchetype. `statistics.classify_quadrant`가 Y median=0일 때
-   barrier_absent/present 이분법으로 자동 전환한다. **WA 인증(certification)은
-   이 joint figure의 색·모양·범례 어디에도 인코딩하지 않는다** — `certified_current`가
-   관측 프레임 전체에서 무분산(governor 확인: CERTIFIED 0건)이라, variance 없는
-   축을 시각 인코딩하면 그 자체가 오도다.
+8. **Joint quadrant 분류**: X=ExcessDepth, Y=OlderRelevantKWCAGFailRate,
+   size=OverlayCoverage, facet=InteractionArchetype. `statistics.classify_quadrant`가
+   Y median=0일 때 barrier_absent/present 이분법으로 자동 전환한다. **WA
+   인증(certification)은 이 joint figure의 색·모양·범례 어디에도 인코딩하지
+   않는다** — `certified_current`가 관측 프레임 전체에서 무분산(governor 확인:
+   CERTIFIED 0건)이라, variance 없는 축을 시각 인코딩하면 그 자체가 오도다.
 
 **joint-valid 제한**: 이 스크립트가 다루는 표본(primary association·quadrant)은
 `joint_validity.classify_joint_validity()`가 정한 joint-valid 관측으로 제한한다
@@ -68,14 +75,16 @@ from .common import (
 )
 from .joint_validity import classify_joint_validity, joint_validity_summary
 from .statistics import (
+    DIRECTION_DEFINITION,
     SECONDARY_ASSOCIATION_CANDIDATES,
-    SECONDARY_ASSOCIATION_VARIABLE,
     SPEARMAN_HEADLINE_MIN_N,
     association_result,
     classify_quadrant,
     kruskal_wallis_gate,
     kruskal_wallis_pairwise_dunn,
     older_relevant_kwcag_fail_rate,
+    select_secondary_association_variable,
+    sign_preserved_across_bounds,
 )
 
 NAME = "eda09_association_and_quadrant"
@@ -110,9 +119,12 @@ PRIMARY_A0_INTERPRETATION_CONSTRAINT = (
 
 
 def _build_joint_frame(marts: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, dict]:
-    """joint-valid 관측으로 제한된 서비스별 joint frame. obstruction 후보 4종은
-    전부 aggregate해 남긴다(사전등록 변수 재확인·fallback 전환 근거용) — 실제
-    검정에 쓰는 것은 `SECONDARY_ASSOCIATION_VARIABLE` 하나뿐이다.
+    """joint-valid 관측으로 제한된 서비스별 joint frame.
+
+    obstruction 후보 4종은 **전부** aggregate하고 **전부의 결측률**을 meta에
+    남긴다 — §4.4 자동선택(결측률 최소 · 동률 시 사전 고정 우선순위)의 입력이자,
+    그 선택이 산출물에서 재검증 가능하게 하는 근거다. 실제 secondary 검정에
+    쓰이는 것은 그중 선택된 하나뿐이지만, 선택되지 않은 3종의 결측률도 기록한다.
     """
     task = marts.get("fact_task_entry", pd.DataFrame()).copy()
     criterion = marts.get("fact_criterion_result", pd.DataFrame())
@@ -198,8 +210,8 @@ def _build_joint_frame(marts: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, di
 
 
 def _robust_direction_preserved(joint: pd.DataFrame, x_col: str, y_col: str) -> bool | None:
-    """leave-one-archetype-out으로 Spearman 부호가 안정적인지 확인한다 —
-    `assign_association_claim_grade`의 `robust_direction_preserved` 입력.
+    """**표본 구성 축(sample_composition)** — leave-one-archetype-out으로 Spearman
+    부호가 안정적인지 확인한다 (A0 §15 robustness).
 
     전체표본 rho의 부호를, archetype 하나씩 빼고 다시 계산한 rho들이 전부
     유지하면 `True`. 부호가 하나라도 뒤집히면 `False`. archetype 열이 없거나
@@ -246,6 +258,13 @@ def run_eda09(
     task = marts.get("fact_task_entry", pd.DataFrame())
     validity_summary = meta.get("joint_validity", {})
 
+    # §4.4 — secondary 변수 자동선택(결측률 최소, 동률이면 사전 고정 우선순위).
+    # 상관계수는 이 선택에 입력되지 않는다.
+    secondary_selection = select_secondary_association_variable(
+        meta.get("secondary_candidate_missing_rate", {})
+    )
+    secondary_variable = secondary_selection["selected"]
+
     if joint.empty:
         primary = association_result(
             pd.Series(dtype=float),
@@ -268,14 +287,16 @@ def run_eda09(
             pd.Series(dtype=float),
             pd.Series(dtype=float),
             x_name="ExcessDepth",
-            y_name=SECONDARY_ASSOCIATION_VARIABLE,
+            y_name=secondary_variable,
             role="secondary",
             assumption="빈 입력",
+            measurement_uncertainty="NOT_APPLICABLE",
         )
         kw_result = {"executed": False, "reason_not_executed": "빈 입력", "group_sizes": {}}
         classification_rule: dict = {"n_classified": 0, "reason": "빈 입력"}
     else:
-        primary_robust = _robust_direction_preserved(joint, "mpfed_mean", "fail_rate")
+        # 축 1 — 표본 구성(leave-one-archetype-out). 축 2 — 측정 불확실성
+        # (UNDETERMINED lower/upper bound FailRate에서 rho 부호 유지 여부).
         primary = association_result(
             joint["mpfed_mean"],
             joint["fail_rate"],
@@ -289,10 +310,13 @@ def run_eda09(
             ),
             undetermined_n=meta["n_undetermined_total"],
             interpretation_constraint=PRIMARY_A0_INTERPRETATION_CONSTRAINT,
-            robust_direction_preserved=primary_robust,
-        )
-        structure_adjusted_robust = _robust_direction_preserved(
-            joint, "excess_depth_mean", "fail_rate"
+            sample_composition=_robust_direction_preserved(joint, "mpfed_mean", "fail_rate"),
+            measurement_uncertainty=sign_preserved_across_bounds(
+                joint["mpfed_mean"],
+                joint["fail_rate"],
+                joint["fail_rate_lower_bound"],
+                joint["fail_rate_upper_bound"],
+            ),
         )
         structure_adjusted = association_result(
             joint["excess_depth_mean"],
@@ -305,24 +329,32 @@ def run_eda09(
                 "archetype 구성에 끌려가는지 확인하는 구조보정 분석이다."
             ),
             undetermined_n=meta["n_undetermined_total"],
-            robust_direction_preserved=structure_adjusted_robust,
-        )
-        secondary_robust = _robust_direction_preserved(
-            joint, "excess_depth_mean", SECONDARY_ASSOCIATION_VARIABLE
+            sample_composition=_robust_direction_preserved(joint, "excess_depth_mean", "fail_rate"),
+            measurement_uncertainty=sign_preserved_across_bounds(
+                joint["excess_depth_mean"],
+                joint["fail_rate"],
+                joint["fail_rate_lower_bound"],
+                joint["fail_rate_upper_bound"],
+            ),
         )
         secondary = association_result(
             joint["excess_depth_mean"],
-            joint[SECONDARY_ASSOCIATION_VARIABLE],
+            joint[secondary_variable],
             x_name="ExcessDepth(joint-valid 서비스 평균)",
-            y_name=f"{SECONDARY_ASSOCIATION_VARIABLE}(사전등록, 결측 완결성 기준 선택)",
+            y_name=f"{secondary_variable}(자동선택: 결측률 최소 · 동률 시 사전 고정 우선순위)",
             role="secondary",
             assumption=(
                 "ExcessDepth = MPFED - archetype median (00 §7) — archetype 보정 없는 raw MPFED로 "
                 "task를 직접 비교하지 않는다는 원칙을 여기서도 지킨다. obstruction 변수는 "
                 "joint-valid 요건에 넣지 않는다(secondary라서 요건에 넣으면 primary 표본이 깎인다) — "
-                "대신 결측률을 candidate_missing_rate로 항상 병기한다."
+                "대신 후보 4종 전부의 결측률을 candidate_missing_rate로 항상 병기한다."
             ),
-            robust_direction_preserved=secondary_robust,
+            sample_composition=_robust_direction_preserved(
+                joint, "excess_depth_mean", secondary_variable
+            ),
+            # Y(obstruction)가 UNDETERMINED 판정에 의존하지 않는다 — 측정 불확실성
+            # 축이 구조적으로 적용되지 않는 association이다(강등 사유가 아니다).
+            measurement_uncertainty="NOT_APPLICABLE",
         )
 
         if not task.empty:
@@ -368,8 +400,11 @@ def run_eda09(
     summary = {
         "n_services": len(joint),
         "joint_validity": validity_summary,
+        # 후보 4종 **전부**의 결측률 — 선택된 것만 적으면 선택 자체가 검증 불가능해진다.
         "secondary_candidate_missing_rate": meta.get("secondary_candidate_missing_rate", {}),
-        "secondary_association_variable_selected": SECONDARY_ASSOCIATION_VARIABLE,
+        "secondary_association_variable_selected": secondary_variable,
+        "secondary_variable_selection": secondary_selection,
+        "direction_definition": DIRECTION_DEFINITION,
         "primary_association": primary,
         "primary_structure_adjusted_association": structure_adjusted,
         "secondary_association": secondary,
@@ -455,20 +490,34 @@ def run_eda09(
         f"- 서비스(web_target) 행 수(joint-valid 기준): {summary['n_services']}",
         f"- joint-valid: 시도 {validity_summary.get('n_attempted')}건 중 "
         f"{validity_summary.get('n_joint_valid')}건 (제외 사유별: {validity_summary.get('excluded_by_reason')}).",
+        f"- **{DIRECTION_DEFINITION}**",
         f"- Primary A0: Spearman(MPFED, OlderRelevantKWCAGFailRate) = {primary['effect']} "
         f"(n={primary['n']}, missing_n={primary['missing_n']}, undetermined_n={primary['undetermined_n']}, "
         f"claim_grade={primary['claim_grade']}, headline_eligible={primary['headline_eligible']})",
         f"  - 해석 제약: {primary['interpretation_constraint']}",
+        f"  - 부호 안정성 두 축: {primary['sign_stability']['by_axis']} "
+        f"→ sign_flip_axis={primary['sign_flip_axis']}",
         f"- 구조보정: Spearman(ExcessDepth, OlderRelevantKWCAGFailRate) = {structure_adjusted['effect']} "
         f"(n={structure_adjusted['n']}, claim_grade={structure_adjusted['claim_grade']}, "
         f"headline_eligible={structure_adjusted['headline_eligible']})",
-        f"- Secondary 변수 선택(사전등록, 결측 완결성 기준): `{SECONDARY_ASSOCIATION_VARIABLE}` "
-        f"— 후보별 결측률: {summary.get('secondary_candidate_missing_rate')}",
-        f"- Secondary: Spearman(ExcessDepth, {SECONDARY_ASSOCIATION_VARIABLE}) = {secondary['effect']} "
+        f"  - 부호 안정성 두 축: {structure_adjusted['sign_stability']['by_axis']} "
+        f"→ sign_flip_axis={structure_adjusted['sign_flip_axis']}",
+        f"- Secondary 변수 자동선택: `{secondary_variable}` "
+        f"(tie_break_applied={secondary_selection['tie_break_applied']}, "
+        f"동률후보={secondary_selection['tied_candidates']})",
+        f"  - 후보 4종 **전부**의 결측률: {summary.get('secondary_candidate_missing_rate')}",
+        f"  - 동률 시 사전 고정 우선순위: {secondary_selection['priority_order']} "
+        "(상관계수는 선택에 입력되지 않는다 — p-hacking 구조적 차단)",
+        f"- Secondary: Spearman(ExcessDepth, {secondary_variable}) = {secondary['effect']} "
         f"(n={secondary['n']}, missing_n={secondary['missing_n']}, undetermined_n={secondary['undetermined_n']}, "
         f"claim_grade={secondary['claim_grade']}, headline_eligible={secondary['headline_eligible']})",
-        "- claim grade 규칙(Research Director 확정): B=n>=10 & leave-one-archetype-out 부호 유지, "
-        "C=그 외(exploratory, p-value headline 금지), UNSUPPORTED=실행 불가. association은 A를 받지 않는다.",
+        f"  - 부호 안정성 두 축: {secondary['sign_stability']['by_axis']} "
+        f"→ sign_flip_axis={secondary['sign_flip_axis']} "
+        "(Y가 UNDETERMINED에 의존하지 않아 측정 불확실성 축은 구조적으로 미적용)",
+        "- claim grade 규칙(Research Director + governor §2.1 확정): "
+        "B=n>=10 & **두 축(표본 구성 · 측정 불확실성) 모두** 부호 유지, "
+        "C=그 외(어느 한 축이라도 뒤집히거나 확인 불가 — exploratory, p-value headline 금지), "
+        "UNSUPPORTED=실행 불가. association은 A를 받지 않는다.",
         f"- Kruskal-Wallis(archetype별 MPFED, joint-valid n>=5만 포함): "
         f"executed={kw_result.get('executed')}, statistic={kw_result.get('statistic')}, "
         f"p_value={kw_result.get('p_value')}",

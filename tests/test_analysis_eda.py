@@ -154,3 +154,202 @@ def test_no_arbitrary_depth_threshold_language_in_markdown(
     paths = run_eda05(marts, tmp_path / "eda05_threshold")
     markdown = paths.markdown_path.read_text()
     assert ">= N" not in markdown or "쓰지 않는다" in markdown
+
+
+# ── governor §2.1 — 결론의 방향 = Spearman rho 부호, 두 축에서 각각 판정 ────────
+
+
+def test_sign_preserved_across_bounds_detects_measurement_uncertainty_flip() -> None:
+    """측정 불확실성 축 — UNDETERMINED bound 사이에서 부호가 뒤집히면 False."""
+    from analysis.eda.statistics import sign_preserved_across_bounds
+
+    x = pd.Series([1, 2, 3, 4, 5])
+    # 점추정에서는 양의 상관, upper bound(전부 FAIL)에서는 음의 상관으로 뒤집힌다.
+    y_point = pd.Series([0.1, 0.2, 0.3, 0.4, 0.5])
+    y_lower = pd.Series([0.1, 0.2, 0.3, 0.4, 0.5])
+    y_upper = pd.Series([0.9, 0.7, 0.5, 0.3, 0.1])
+    assert sign_preserved_across_bounds(x, y_point, y_lower, y_upper) is False
+
+    # 두 bound 모두 부호가 유지되면 True.
+    stable_upper = pd.Series([0.2, 0.3, 0.4, 0.5, 0.6])
+    assert sign_preserved_across_bounds(x, y_point, y_lower, stable_upper) is True
+
+
+def test_claim_grade_downgrades_when_either_axis_flips() -> None:
+    """두 축 모두 유지 → B. 어느 한 축이라도 뒤집히면 → C (governor 강등 규칙)."""
+    from analysis.eda.statistics import assign_association_claim_grade
+
+    common = {"n": 20, "executed": True}
+    assert (
+        assign_association_claim_grade(
+            **common, sample_composition=True, measurement_uncertainty=True
+        )
+        == "B"
+    )
+    assert (
+        assign_association_claim_grade(
+            **common, sample_composition=False, measurement_uncertainty=True
+        )
+        == "C"
+    )
+    assert (
+        assign_association_claim_grade(
+            **common, sample_composition=True, measurement_uncertainty=False
+        )
+        == "C"
+    )
+    # 평가 불가(None)도 "확인 안 됨"이므로 강등한다.
+    assert (
+        assign_association_claim_grade(
+            **common, sample_composition=True, measurement_uncertainty=None
+        )
+        == "C"
+    )
+    # 구조적으로 적용되지 않는 축은 강등 사유가 아니다.
+    assert (
+        assign_association_claim_grade(
+            **common, sample_composition=True, measurement_uncertainty="NOT_APPLICABLE"
+        )
+        == "B"
+    )
+
+
+def test_sign_flip_axis_names_the_axis_that_flipped() -> None:
+    """산출물이 '어느 축에서 뒤집혔는지'를 명시해야 한다 (governor 지시 3항)."""
+    from analysis.eda.statistics import resolve_sign_flip_axis
+
+    assert (
+        resolve_sign_flip_axis(sample_composition=True, measurement_uncertainty=True)[
+            "sign_flip_axis"
+        ]
+        is None
+    )
+    assert (
+        resolve_sign_flip_axis(sample_composition=False, measurement_uncertainty=True)[
+            "sign_flip_axis"
+        ]
+        == "sample_composition"
+    )
+    assert (
+        resolve_sign_flip_axis(sample_composition=True, measurement_uncertainty=False)[
+            "sign_flip_axis"
+        ]
+        == "measurement_uncertainty"
+    )
+    both = resolve_sign_flip_axis(sample_composition=False, measurement_uncertainty=False)
+    assert both["sign_flip_axis"] == "measurement_uncertainty"
+    assert set(both["sign_flip_axes"]) == {"sample_composition", "measurement_uncertainty"}
+
+
+def test_secondary_variable_tie_break_uses_preregistered_priority_not_correlation() -> None:
+    """§4.4 — 결측률 동률이면 사전 고정 우선순위로 깬다(상관 크기로 고르지 않는다)."""
+    from analysis.eda.statistics import (
+        SECONDARY_ASSOCIATION_PRIORITY,
+        select_secondary_association_variable,
+    )
+
+    assert SECONDARY_ASSOCIATION_PRIORITY == (
+        "max_overlay_coverage",
+        "max_primary_action_occlusion",
+        "blocking_modal_count",
+        "forced_dismissal_count",
+    )
+
+    # 전부 동률 → 우선순위 1위.
+    tied = dict.fromkeys(SECONDARY_ASSOCIATION_PRIORITY, 0.1)
+    result = select_secondary_association_variable(tied)
+    assert result["selected"] == "max_overlay_coverage"
+    assert result["tie_break_applied"] is True
+
+    # 결측률이 낮은 쪽이 우선순위보다 강하다.
+    uneven = {
+        "max_overlay_coverage": 0.4,
+        "max_primary_action_occlusion": 0.4,
+        "blocking_modal_count": 0.0,
+        "forced_dismissal_count": 0.9,
+    }
+    result2 = select_secondary_association_variable(uneven)
+    assert result2["selected"] == "blocking_modal_count"
+    assert result2["tie_break_applied"] is False
+
+    # 2·3위가 동률이면 우선순위상 앞선 PrimaryActionOcclusion.
+    partial_tie = {
+        "max_overlay_coverage": 0.5,
+        "max_primary_action_occlusion": 0.2,
+        "blocking_modal_count": 0.2,
+        "forced_dismissal_count": 0.9,
+    }
+    result3 = select_secondary_association_variable(partial_tie)
+    assert result3["selected"] == "max_primary_action_occlusion"
+
+
+def test_eda09_reports_both_axes_and_all_candidate_missing_rates(
+    tmp_path: Path, marts: dict[str, pd.DataFrame]
+) -> None:
+    """산출물이 두 축 판정 + 후보 4종 전부의 결측률을 담아야 한다."""
+    from analysis.eda.eda09_association_and_quadrant import run_eda09
+    from analysis.eda.statistics import SECONDARY_ASSOCIATION_PRIORITY
+
+    paths = run_eda09(marts, tmp_path / "eda09_axes")
+    summary = json.loads(paths.summary_json_path.read_text())
+
+    assert "Spearman rho 부호" in summary["direction_definition"]
+    # 후보 4종 전부 기록 — 선택된 것만 적으면 선택이 검증 불가능해진다.
+    assert set(summary["secondary_candidate_missing_rate"]) == set(SECONDARY_ASSOCIATION_PRIORITY)
+
+    for key in (
+        "primary_association",
+        "primary_structure_adjusted_association",
+        "secondary_association",
+    ):
+        assoc = summary[key]
+        axes = assoc["sign_stability"]["by_axis"]
+        assert set(axes) == {"sample_composition", "measurement_uncertainty"}
+        assert "sign_flip_axis" in assoc
+        assert assoc["sign_flip_axis"] in (None, "sample_composition", "measurement_uncertainty")
+        # association은 절대 GRADE A를 받지 않는다.
+        assert assoc["claim_grade"] in ("B", "C", "UNSUPPORTED")
+
+    # secondary는 Y가 UNDETERMINED에 의존하지 않으므로 측정 불확실성 축이 미적용이다.
+    assert (
+        summary["secondary_association"]["sign_stability"]["by_axis"]["measurement_uncertainty"]
+        == "NOT_APPLICABLE"
+    )
+
+
+def test_headline_eligibility_follows_grade_not_just_sample_size() -> None:
+    """headline은 A 또는 robust B만 — 축이 뒤집혀 C로 강등되면 headline 자격도 사라진다."""
+    import pandas as pd
+    from analysis.eda.statistics import association_result
+
+    x = pd.Series(range(1, 21))
+    y = pd.Series([i * 0.05 for i in range(1, 21)])
+
+    robust = association_result(
+        x,
+        y,
+        x_name="X",
+        y_name="Y",
+        role="primary",
+        assumption="t",
+        sample_composition=True,
+        measurement_uncertainty=True,
+    )
+    assert robust["claim_grade"] == "B"
+    assert robust["headline_eligible"] is True
+
+    # n은 충분(20)하지만 측정 불확실성 축에서 부호가 뒤집힌 경우.
+    flipped = association_result(
+        x,
+        y,
+        x_name="X",
+        y_name="Y",
+        role="primary",
+        assumption="t",
+        sample_composition=True,
+        measurement_uncertainty=False,
+    )
+    assert flipped["n"] >= 10
+    assert flipped["claim_grade"] == "C"
+    assert flipped["headline_eligible"] is False
+    assert flipped["sign_flip_axis"] == "measurement_uncertainty"

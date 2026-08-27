@@ -15,6 +15,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from ..eda.statistics import DIRECTION_DEFINITION
 from ..marts.schema import TABLE_SCHEMAS
 from ..provenance import (
     INTERPRETATION_DISCIPLINE_NOTICE,
@@ -235,9 +236,10 @@ def generate_limitations(
     eda07_summary: dict[str, Any],
     out_dir: str | Path,
     *,
+    eda09_summary: dict[str, Any] | None = None,
     provenance: ShadowProvenance | None = None,
 ) -> Path:
-    """`LIMITATIONS.md` — Claude A(governor) 확정 지시 2건을 반드시 담는다
+    """`LIMITATIONS.md` — Claude A(governor) 확정 지시를 반드시 담는다
     (LA-TB-1630-20260827, 결과를 보기 전에 고정):
 
     1. archetype별 **실제 joint-valid n**과 어느 archetype이 low-n이었는지 표로
@@ -247,8 +249,12 @@ def generate_limitations(
     3. 오늘 도는 게이트가 `E000_FAST`이며 완료 상태값은 `E000_FAST_PASS`라는
        것 — `PHASE_GATES.md`의 `E000_V2_VALIDATED`(8~12타깃+두 독립감사)는
        오늘 충족되지 않는다. 이 문자열을 이 산출물이 닫힌 것처럼 오독되게 쓰지 않는다.
+    4. **§2.1 결론의 방향 조작화** — 방향 = 해당 association의 Spearman rho
+       부호이며, **두 민감도 축(표본 구성 · 측정 불확실성) 각각에서 판정**한다.
+       어느 축에서 뒤집혔는지(`sign_flip_axis`)를 association별로 명시한다.
     """
     provenance = provenance or ShadowProvenance()
+    eda09_summary = eda09_summary or {}
     lines = ["# LIMITATIONS", "", f"`shadow_lane={provenance.shadow_lane}`", ""]
 
     lines.append("## 1. Archetype 최소 N 규칙 (Claude A governor 확정, 결과 확인 전 고정)")
@@ -286,7 +292,59 @@ def generate_limitations(
     lines.append(f"- 제외 사유별: {validity.get('excluded_by_reason')}")
     lines.append("")
 
-    lines.append("## 2. 인증(certification) — NOT_CERTIFIED vs UNDETERMINED")
+    # ── §2.1 결론의 방향 조작화 (Claude A governor 확정) ──────────────────
+    lines.append("## 2. 결론의 방향 — 두 민감도 축에서 각각 판정 (§2.1)")
+    lines.append("")
+    lines.append(f"**{DIRECTION_DEFINITION}**")
+    lines.append("")
+    lines.append("| 축 | 무엇을 흔드나 | 근거 조항 |")
+    lines.append("|---|---|---|")
+    lines.append(
+        "| `sample_composition` | 표본 구성 (leave-one-archetype-out) | robustness (A0 §15) |"
+    )
+    lines.append(
+        "| `measurement_uncertainty` | 측정 불확실성 (UNDETERMINED lower=전부 PASS / "
+        "upper=전부 FAIL bound) | ANALYSIS_CONTRACT §2.1 |"
+    )
+    lines.append("")
+    lines.append(
+        "강등 규칙: **두 축 모두 부호 유지 → GRADE B 가능. 어느 한 축이라도 bound/부분표본 "
+        "사이에서 부호가 뒤집히거나 확인 불가 → GRADE C 이하로 강등.**"
+    )
+    lines.append("")
+    lines.append(
+        "| association | rho | n | claim_grade | sample_composition | measurement_uncertainty | sign_flip_axis |"
+    )
+    lines.append("|---|---|---|---|---|---|---|")
+    _association_keys = (
+        ("primary (A0)", "primary_association"),
+        ("구조보정", "primary_structure_adjusted_association"),
+        ("secondary", "secondary_association"),
+    )
+    _any_association = False
+    for label, key in _association_keys:
+        assoc = eda09_summary.get(key) or {}
+        if not assoc:
+            continue
+        _any_association = True
+        axes = (assoc.get("sign_stability", {}) or {}).get("by_axis", {}) or {}
+        rho = (assoc.get("effect", {}) or {}).get("spearman_rho")
+        lines.append(
+            f"| {label} | {rho} | {assoc.get('n')} | `{assoc.get('claim_grade')}` | "
+            f"{axes.get('sample_composition')} | {axes.get('measurement_uncertainty')} | "
+            f"`{assoc.get('sign_flip_axis')}` |"
+        )
+    if not _any_association:
+        lines.append("| _(현재 EDA-09 산출 없음)_ | | | | | | |")
+    lines.append("")
+    lines.append(
+        "`NOT_APPLICABLE` = 그 축이 이 association에 구조적으로 적용되지 않는다 "
+        "(예: secondary는 Y가 obstruction 변수라 UNDETERMINED 판정에 의존하지 않는다) — "
+        "강등 사유가 아니다. `None`(null) = 적용 대상인데 평가 불가 → 확인 안 됨으로 취급해 강등한다."
+    )
+    lines.append("")
+
+    lines.append("## 3. 인증(certification) — NOT_CERTIFIED vs UNDETERMINED")
     lines.append("")
     lines.append(f"- {eda07_summary.get('descriptive_sentence', '(EDA-07 미실행)')}")
     breakdown = eda07_summary.get("match_status_breakdown", {}) or {}
@@ -306,7 +364,7 @@ def generate_limitations(
     )
     lines.append("")
 
-    lines.append("## 3. 게이트 지위 — E000_FAST, `E000_V2_VALIDATED` 아님")
+    lines.append("## 4. 게이트 지위 — E000_FAST, `E000_V2_VALIDATED` 아님")
     lines.append("")
     lines.append(
         "이번 타임박스(LA-TB-1630-20260827)는 **6개 타깃 스모크 검증(`E000_FAST`)** 이며, "
