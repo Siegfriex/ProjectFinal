@@ -317,9 +317,7 @@ def _reachable_candidates(
     from landing_accessibility.engine.l0_collector import min4_sort_key
 
     reachable = [
-        c
-        for c in candidates
-        if isinstance(c, dict) and c.get("hittable") and c.get("selector")
+        c for c in candidates if isinstance(c, dict) and c.get("hittable") and c.get("selector")
     ]
     reachable.sort(key=min4_sort_key)
     seen: set[str] = set()
@@ -351,7 +349,9 @@ class CandidateAssessment:
             "candidates": [
                 {
                     "selector": c.get("selector"),
-                    "text": c.get("accessible_name") or c.get("visible_text") or c.get("aria_label"),
+                    "text": c.get("accessible_name")
+                    or c.get("visible_text")
+                    or c.get("aria_label"),
                     "state": state.value,
                 }
                 for c, state in self.states
@@ -413,8 +413,8 @@ __all__ = [
     "ActionRisk",
     "CandidateActionState",
     "CandidateAssessment",
-    "assess_reachable_candidates",
     "assert_no_forbidden_action",
+    "assess_reachable_candidates",
     "classify_candidate",
     "classify_candidate_state",
     "screen_candidates",

@@ -75,14 +75,18 @@ def test_load_e001_full_targets_preserves_five_field_lineage_for_59_of_59():
     missing_endpoint_definition = [r.target_id for r in rows if r.endpoint_definition is None]
 
     assert missing["task_id"] == [], f"task_id 누락: {missing['task_id']}"
-    assert missing["region_definition"] == [], f"region_definition 누락: {missing['region_definition']}"
+    assert missing["region_definition"] == [], (
+        f"region_definition 누락: {missing['region_definition']}"
+    )
     assert missing["region_signal_type"] == [], (
         f"region_signal_type 누락: {missing['region_signal_type']}"
     )
     assert missing["endpoint_signal_type"] == [], (
         f"endpoint_signal_type 누락: {missing['endpoint_signal_type']}"
     )
-    assert missing_endpoint_definition == [], f"endpoint_definition 누락: {missing_endpoint_definition}"
+    assert missing_endpoint_definition == [], (
+        f"endpoint_definition 누락: {missing_endpoint_definition}"
+    )
 
 
 def test_task_wiring_lineage_survives_targetspec_and_taskdefinition_for_59_of_59():

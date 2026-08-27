@@ -87,7 +87,9 @@ def test_lock_file_is_never_deleted_and_records_state(tmp_path):
     assert decision.lock_path.is_file()
 
     lock.mark_done(key)
-    assert decision.lock_path.is_file(), "lock 을 삭제하면 두 번째 프로세스가 lock 부재를 본다(D-R0-46)"
+    assert decision.lock_path.is_file(), (
+        "lock 을 삭제하면 두 번째 프로세스가 lock 부재를 본다(D-R0-46)"
+    )
     payload = json.loads(decision.lock_path.read_text(encoding="utf-8"))
     assert payload["state"] == LockState.DONE
     assert payload["attempts"] == 1
@@ -164,9 +166,7 @@ def test_concurrent_threads_only_one_acquire_proceeds(tmp_path):
 # ══════════════════════════════════════════════════════════════════════════
 # 3. 동시성 — 진짜 프로세스 2개 (2026-08-27 05:14 사고 재현)
 # ══════════════════════════════════════════════════════════════════════════
-def _lock_only_process_worker(
-    lock_dir: str, barrier_path: str, marker_dir: str, idx: int
-) -> None:
+def _lock_only_process_worker(lock_dir: str, barrier_path: str, marker_dir: str, idx: int) -> None:
     sys.path.insert(0, SRC)
     from landing_accessibility.e001_runner.batch import IdempotencyKey, TargetLock
 
@@ -348,7 +348,6 @@ def _fixture_path_process_worker(
     from landing_accessibility.e001_runner.batch import BatchRunner
     from landing_accessibility.e001_runner.plan import TargetSpec
 
-    lock = None
     try:
         runner = BatchRunner(
             out_dir=Path(out_root),

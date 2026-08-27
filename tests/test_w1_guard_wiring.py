@@ -112,9 +112,7 @@ def test_classify_candidate_state_credential_field_input_type():
 
 # ── D-R0-05 CAPTCHA: active(hittable) 만 terminal, passive(비-hittable)는 아니다 ──
 def test_classify_candidate_state_active_captcha_is_forbidden():
-    state = classify_candidate_state(
-        _cand(accessible_name="reCAPTCHA 확인", hittable=True)
-    )
+    state = classify_candidate_state(_cand(accessible_name="reCAPTCHA 확인", hittable=True))
     assert state is CandidateActionState.FORBIDDEN_CAPTCHA_BYPASS
 
 
@@ -146,7 +144,7 @@ def test_assess_reachable_candidates_does_not_block_when_safe_alternative_exists
     assessment = assess_reachable_candidates(candidates, branching_limit=4)
     assert assessment.blocking is None
     assert assessment.reachable_considered == 2
-    states = dict((c["selector"], c["state"]) for c in assessment.as_dict()["candidates"])
+    states = {c["selector"]: c["state"] for c in assessment.as_dict()["candidates"]}
     assert states["#buy-now"] == CandidateActionState.FORBIDDEN_TRANSACTION.value
 
 
@@ -394,16 +392,16 @@ def test_finance_archetype_reaches_login_page_without_entering_credentials(tmp_p
     monkeypatch.setattr(Page, "fill", spy_fill)
 
     runner = BatchRunner(out_dir=tmp_path / "out", fixture_root=FIXTURES, batch_size=5)
-    manifests = runner.run(
-        [_login_gate_target("FINANCIAL_ACTION_ENTRY")], execution_mode="FIXTURE"
-    )
+    manifests = runner.run([_login_gate_target("FINANCIAL_ACTION_ENTRY")], execution_mode="FIXTURE")
 
     result = manifests[0].results[0]
     assert result["outcome"] != TargetOutcome.ACCOUNT_ACTION_BLOCKED.value, (
         "옛 결함 — 로그인 후보 존재만으로 target 이 죽었다면 여기서 재현된다"
     )
     detail = result["detail"]
-    assert detail.get("scout_invoked") is True, "Scout 가 로그인 페이지에 도달하지 못했다(생성조차 안 됨)"
+    assert detail.get("scout_invoked") is True, (
+        "Scout 가 로그인 페이지에 도달하지 못했다(생성조차 안 됨)"
+    )
     assert detail["endpoint_status"] == "FUNCTION_ENDPOINT_REACHED"
     assert detail["endpoint_status_detail"] == "ENDPOINT_VIA_AUTH_GATE"
 
@@ -415,9 +413,7 @@ def test_finance_archetype_reaches_login_page_without_entering_credentials(tmp_p
 
 
 @pytest.mark.parametrize("archetype", ["ITEM_DETAIL", "QUERY", "CONTENT_OPEN"])
-def test_non_finance_non_communication_archetype_gate_does_not_become_endpoint(
-    tmp_path, archetype
-):
+def test_non_finance_non_communication_archetype_gate_does_not_become_endpoint(tmp_path, archetype):
     """수용기준 3(반대편) — 같은 로그인 gate라도 `FINANCIAL_ACTION_ENTRY`/
     `COMMUNICATION_ENTRY`가 **아닌** archetype에서는 endpoint로 승격되지 않는다
     (`ENDPOINT_GATE_KINDS`, 엔진 소유·읽기전용 — 이 테스트는 guard가 그 판정을
