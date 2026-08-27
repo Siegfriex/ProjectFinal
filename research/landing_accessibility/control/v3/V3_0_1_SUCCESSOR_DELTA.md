@@ -194,7 +194,9 @@ y ≥ 2/3          → BOTTOM
 
 TOP 안:  x < 1/3 → TOP_LEFT · 1/3 ≤ x < 2/3 → TOP_CENTER · x ≥ 2/3 → TOP_RIGHT
 MID·BOTTOM 은 x 삼등분하지 않는다 (codebook 에 MID_LEFT 류가 없다)
-경계는 하한 포함·상한 배제 [a, b)
+경계는 하한 포함·상한 배제 [a, b) — 두 축에 균일하게 적용한다
+         y = 1/3 → MID · y = 2/3 → BOTTOM
+         TOP 안에서 x = 1/3 → TOP_CENTER · x = 2/3 → TOP_RIGHT
 좌표 기준 = control bbox 중심 / viewport 390×844, 해당 state 기준
 ```
 
