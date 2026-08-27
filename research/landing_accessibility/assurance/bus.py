@@ -59,8 +59,21 @@ def emit(kind: str, payload: dict, to=("A", "B")) -> pathlib.Path:
     """Unsolicited C→A/B ticket (e.g. SYSTEMIC_HARD_STOP_CANDIDATE)."""
     TICKETS.mkdir(parents=True, exist_ok=True)
     stamp = datetime.datetime.now(KST).strftime("%H%M%S")
-    obj = {"ticket_id": f"C-{kind}-{stamp}", "type": kind, "from": "C", "to": list(to), "created_at": now(), **payload}
-    p = _write(TICKETS / f"{obj['ticket_id']}.json", obj); _log("TICKET_EMIT", ticket_id=obj["ticket_id"], type=kind); return p
+    # ticket files are immutable: never overwrite — add a sequence suffix on same-second collisions
+    seq = 0
+    while True:
+        tid = f"C-{kind}-{stamp}" + (f"-{seq}" if seq else "")
+        path = TICKETS / f"{tid}.json"
+        if not path.exists():
+            break
+        seq += 1
+    obj = {"ticket_id": tid, "type": kind, "from": "C", "to": list(to), "created_at": now(), **payload}
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
+    import os
+    os.link(tmp, path)  # fails if path appeared meanwhile — exclusive create
+    tmp.unlink()
+    _log("TICKET_EMIT", ticket_id=tid, type=kind); return path
 
 def hb(**fields) -> None:
     st = json.loads(HB_STATE.read_text(encoding="utf-8")) if HB_STATE.exists() else {"agent": "C"}

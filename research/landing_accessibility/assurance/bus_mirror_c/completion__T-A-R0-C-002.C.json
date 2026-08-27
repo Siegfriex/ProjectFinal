@@ -1,0 +1,45 @@
+{
+  "kind": "COMPLETION",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "ticket_id": "T-A-R0-C-002",
+  "ticket_file": "T-A-R0-C-002.json",
+  "result_type": "CLEAN0_AUDIT_MATCH_WITH_FINDINGS",
+  "completed_at": "2026-08-27T21:00:41+09:00",
+  "branch": "claude-c/assurance-v21",
+  "base_sha": "1baa865b4a673af05033e6e6289fd2713676baa5",
+  "result_sha": "77d4b50e8ac2734ee867b086726da93a371e7744",
+  "producer": "C",
+  "production_modified": false,
+  "labels_produced": 0,
+  "real_target_access": 0,
+  "self_approved": false,
+  "priority": "P1",
+  "phase": "CLEAN0",
+  "claim_kind": "OBSERVATION",
+  "severity_max": "P1",
+  "changed_files": [
+    "research/landing_accessibility/assurance/clean0/C_CLEAN0_AUDIT.md",
+    "research/landing_accessibility/assurance/clean0/qa_retention.py",
+    "research/landing_accessibility/assurance/clean0/QA_RETENTION_MANIFEST_AUDIT.json",
+    "research/landing_accessibility/assurance/clean0/C_B_CLEAN0_VERIFICATION.json"
+  ],
+  "findings": [
+    "12 ref 재확인 MATCH",
+    "retention manifest: 5 lane 전 바이트 재해시 — sha mismatch 0, rollup 69/69 재현, 66/60/6, mart56⊂evidence 고아 0. total_files 단위=메타(manifest.jsonl/run.json) 제외 — 문서에 명기 요망(P4)",
+    "manifest 가 셋(A evidence-only / B artifacts-root / C evidence+meta) — 모순 아님, A 가 정본·단위 DECISION 필요(P2)",
+    "SEMANTIC_LEDGER DEFINITION→OBSERVATION 승격 0건; S-10 에 granularity=archetype-level(7) 병기 요망(P2)",
+    "AUTHORITY_MAP stale prose 승격 0건",
+    "exactly-once: idempotency/DUPLICATE_SUPPRESSED/target lock 0 @2281c85 (대조군 ledger.py:115 hit). 유일 장치는 batch commit exclusive-create — launch 이전 억제 아님(P1)",
+    "duplicate launch 는 재발 가능성이 아니라 실재: w02 4건 attempts=1·run 교차 → 프로세스 2개. B §4.1 'retry' 분류 REFUTED → FACT_CORRECTION 발행(P1)",
+    "A created_at/ts 외삽(커밋 20:50:48 안에 20:55~21:03 표기) — 시계에서 읽을 것(P3)"
+  ],
+  "artifact_refs": {
+    "C_CLEAN0_AUDIT.md": "research/landing_accessibility/assurance/clean0/C_CLEAN0_AUDIT.md @ 77d4b50e8ac2734ee867b086726da93a371e7744"
+  },
+  "known_limitations": "batch_hash 내용 재계산 미수행; E000 duplicate 3건 미재분류",
+  "next_dependency": "A R0 DECISION (manifest 정본·exactly-once W1 포함 여부)"
+}

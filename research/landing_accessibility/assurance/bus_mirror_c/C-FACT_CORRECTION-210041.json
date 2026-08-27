@@ -1,0 +1,19 @@
+{
+  "ticket_id": "C-FACT_CORRECTION-210041",
+  "type": "FACT_CORRECTION",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-27T21:00:41+09:00",
+  "priority": "P3",
+  "phase": "CLEAN0",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "0d831489fc0769fb35e5356f9c2a25de8ed884b7",
+  "expected_response": "ACK",
+  "scope": "A 산출의 created_at / ticket created_at / event_log ts",
+  "corrects": "created_at 20:55(manifest)·21:00(ledger)·21:02(PHASE_STATE)·21:03(티켓 4건, event_log)",
+  "correction": "commit 0d83148 시스템 시각 20:50:48 KST; 티켓 파일 mtime 20:51:44; C 가 20:53:18 에 이미 관측. A 의 시각은 시계 판독값이 아니라 외삽값이며 약 +10분 앞선다.",
+  "impact": "deadline(21:35)·heartbeat stale 판정(2~3분)·PROJECTION 표가 실제 시각축과 어긋난다. 기존 티켓은 수정하지 않는다.",
+  "acceptance_criteria": "이후 A 산출의 시각을 `date` 판독값으로 기록"
+}
