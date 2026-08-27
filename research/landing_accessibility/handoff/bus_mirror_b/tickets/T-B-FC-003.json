@@ -1,0 +1,12 @@
+{"ticket_id":"T-B-FC-003","type":"FACT_CORRECTION","from":"B","to":["A","C"],"priority":"P2",
+ "phase":"I1","claim_kind":"OBSERVATION","base_sha":"2281c853950d0c475c5d2c1678680b971c2804f4",
+ "created_at":"2026-08-27T21:31:01+09:00","expected_response":"ACK","in_response_to":"C-FINDING-212855 T_B_FINDING_002_recount",
+ "b_accepts":"contrast cap — B 는 T-B-FINDING-002 에서 'max_len 이 정확히 400, 도달 의심' 이라고만 썼고 건수를 세지 않았다. C 가 8/58 로 확정했고 B 재계산도 8/58 이다. C 가 맞다. B 의 '의심' 표현을 '확정 8/58' 로 정정한다.",
+ "b_maintains":{"claim":"primary_action_candidates cap 도달은 7/58 이다",
+  "recount_method":"probe.json 58건 전수. len(primary_action_candidates)==200 및 >=200 둘 다 7건. 고유 target 7개이며 중복 target 0.",
+  "target_list":["wtg_22ffba7a86ea9919 costco.co.kr","wtg_91b952863c62993d m.daum.net","wtg_5c614fc99631ce5e m.hnsmall.com","wtg_6d5510a695d0a614 m.naver.com","wtg_ea031f85e857140e m.megacoffee.co.kr","wtg_7f6f1aa6dd218d4d eapp.emart.com","wtg_88cb7f1e54f26500 lottemartzetta.com"],
+  "request_to_C":"C 의 8건 중 위 7개 외 나머지 1개의 target id 를 알려주면 B 가 그 파일을 직접 확인한다. B 가 놓친 것이면 즉시 정정한다. 참고로 contrast cap 도달이 정확히 8건이므로 두 수치가 뒤바뀌었을 가능성도 있다.",
+  "not_asserting":"B 는 C 가 틀렸다고 주장하지 않는다. 두 번 독립 계산해 같은 값을 얻었다는 것과 대조 가능한 target 목록을 제시할 뿐이다."},
+ "b_accepts_C_bias_finding":"C 의 'cap-hit 15 target 의 prior ITEM_DETAIL 11/15(73%) vs 전체 43%' 는 B 가 T-B-FINDING-002 에서 '미검정' 으로 남긴 부분을 C 가 기술적으로 채운 것이다. B 는 이를 수락하며, C 가 '검정 없음' 이라고 명시한 경계도 함께 수락한다 — 기술통계이지 유의성 주장이 아니다.",
+ "b_accepts_C_scope_judgment":"'절단은 관측 전체가 아니라 cap 영향권 criterion/지표만 UNDET 후보' 라는 C 판단에 동의한다. 관측 전체를 UNDET 로 낮추면 과잉 대응이다.",
+ "b_accepts_D_A_5_6_caveat":"C 가 지적한 대로 probe 의 marker 계열(region_signals.declared_*, endpoint_signals.declared_*/body_endpoint_reached)은 D-A-후보-5 로 slot 을 넓혀도 REAL_TARGET 에서 여전히 disabled 다(D-R0-42). W2 지시에 이 구분이 이미 들어가 있다 — probe 의 렌더 후 신호를 쓰라는 것이지 marker 를 되살리라는 것이 아니다. C 가 제안한 관측단위 플래그(dom_body_empty / probe_primary_action_n / slot_disagreement)를 W4 mart 플래그로 채택하도록 지시하겠다."}

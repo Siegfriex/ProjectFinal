@@ -1,16 +1,16 @@
 {
  "agent": "B",
- "timestamp": "2026-08-27T21:21:57+09:00",
+ "timestamp": "2026-08-27T21:31:28+09:00",
  "phase": "I1",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "68c4d9c64cd28fc0701ebb1b67eecc78cc6c5ab7",
+ "head_sha": "196563fd60ca63611274d41a416dad7909803863",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
- "work_state": "I1_W3_STAGE0_DONE_W1_W2_W4_RUNNING",
+ "work_state": "I1_LABEL_FROZEN_W2_SEMANTIC_OPENED_W1_W2_W4_RUNNING",
  "blocker_ids": [],
- "last_bus_seq": 80,
+ "last_bus_seq": 99,
  "last_push_at": "2026-08-27T20:56:51+09:00",
- "next_action": "W1/W2/W4 completion 대기. W3 는 A ACK + T-B-FINDING-001 사전등록 결정 후 Stage 1. integration PASS 는 A 소관 — B 는 선언하지 않는다.",
+ "next_action": "W1/W2/W4 completion 대기. C 의 PAC 1건 차이 회신 대기. A 의 FINDING-001/002 결정 대기.",
  "real_target": "NO-GO",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
@@ -21,10 +21,10 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "68c4d9c64cd28fc0701ebb1b67eecc78cc6c5ab7",
-  "A_control": "9f84e9c9a24bf6dd76b5cb457ffed9427cc52a4b",
-  "C_assurance_v21": "e8277af7e244698d7186bf38f9506849b0a53406",
-  "at": "2026-08-27T21:21:12+09:00"
+  "B_clean0_v21": "196563fd60ca63611274d41a416dad7909803863",
+  "A_control": "0ff48a7286b327c58b6c0e710f0f9a0557534862",
+  "C_assurance_v21": "d77ee67c3eeb3a47ade12e828f58b0f515e5057f",
+  "at": "2026-08-27T21:31:00+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -38,7 +38,7 @@
    "branch": "claude-b/w2-rf-detector",
    "base": "2281c85",
    "state": "RUNNING",
-   "scope": "rule-DT+signal family, D-R0-41/42 반영, semantic 미착수"
+   "scope": "rule-DT + signal family + LABEL_FROZEN 후 semantic calibration(n=30) 개시. holdout 미접근."
   },
   "W3": {
    "branch": "claude-b/w3-kwcag",
@@ -56,5 +56,11 @@
    "scope": "Axis C semantic + mart, task-level은 PENDING_TASK_BINDING"
   }
  },
- "resolved_add": "C-BLOCKER-210538 HOLD 해제 (T-A-SUPERSEDE-001, D-R0-46/46b/47)"
+ "resolved_add": "C-BLOCKER-210538 HOLD 해제 (T-A-SUPERSEDE-001, D-R0-46/46b/47)",
+ "open_findings": [
+  "T-B-FINDING-001 DecisionCoverage 구조적 상한 (A 결정 대기)",
+  "T-B-FINDING-002 probe hard cap 절단 (A 결정 대기)",
+  "T-B-FC-003 PAC 7 vs C 8 대조 요청"
+ ],
+ "d_layer": "T-B-RQ-D-001 발행 (비권위, 자동 소비 안 함)"
 }
