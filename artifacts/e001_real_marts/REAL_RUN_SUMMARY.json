@@ -2,13 +2,13 @@
   "document_type": "REAL_RUN_SUMMARY",
   "manifest": {
     "path": "FROZEN_MART_MANIFEST.json",
-    "sha256": "sha256:656b5ac3e077579c969a8045e810a3131210e85fa8bc0d19ce426bca0d6f7be3",
+    "sha256": "sha256:72de5d267c330225a3003559a6588d092f60fb8253b60fede0a5ce4f8f1a97d0",
     "document_type": "FROZEN_MART_MANIFEST"
   },
   "frozen_mart_manifest_ref": {
     "file": "FROZEN_MART_MANIFEST.json",
     "path": "FROZEN_MART_MANIFEST.json",
-    "sha256": "sha256:656b5ac3e077579c969a8045e810a3131210e85fa8bc0d19ce426bca0d6f7be3",
+    "sha256": "sha256:72de5d267c330225a3003559a6588d092f60fb8253b60fede0a5ce4f8f1a97d0",
     "note": "`manifest` 키와 동일한 참조다. mart 파일별 sha256·row_count는 그 파일에 있다."
   },
   "input_shas": {
@@ -20,12 +20,12 @@
     "promoted_main_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
     "note": "MART_ACCEPTANCE §1-7 입력 SHA. 이 블록은 FROZEN_MART_MANIFEST.json과 REAL_RUN_SUMMARY.json 양쪽에 동일하게 실린다."
   },
-  "snapshot_at": "2026-08-27T16:25:42+09:00",
+  "snapshot_at": "2026-08-27T16:30:38+09:00",
   "grade": "PILOT / PRELIMINARY",
   "grade_note": "커버리지 100%가 등급을 올리지 않는다 — 결과가 예상보다 좋다는 이유로 사전 규칙을 뒤집는 것도 나쁠 때 뒤집는 것과 같은 실패다. 등급과 커버리지를 둘 다 보고한다.",
   "collection_markers": {
     "batches_found": true,
-    "snapshot_at": "2026-08-27T16:25:42+09:00",
+    "snapshot_at": "2026-08-27T16:30:38+09:00",
     "analysis_cohort": "E001_FULL",
     "analysis_collector_sha": "222ef2c",
     "analysis_sample": {
@@ -814,6 +814,7 @@
     "unified_finding": "**세 축이 서로 다른 단계에서 막혔다.** 축 A — **판정기 부재**(criterion evaluator가 없다). 축 B — **입력 미연결**(task definition이 `CODEBOOK_PENDING`으로 고정돼 판정기가 쓸 입력이 연결되지 않았다). 축 C — **판정기 미완**(semantic 단계 없이 결정론 규칙만 돈다). 세 축을 한 문장으로 뭉뚱그리면(예: '수집기는 만들어졌고 판정기는 만들어지지 않았다') 축 B가 틀린 서술이 된다 — 축 B의 판정기는 존재하며, 쓸 입력이 없었다.",
     "axis_b_predetermined": "**MPFED 0/59는 수집을 돌리기 전에 구조적으로 확정돼 있었다.** `e001_runner/executor.py`의 `default_task_definition()`이 `CODEBOOK_PENDING`을 그대로 두며(그 docstring은 정의가 존재하지 않는다고 적었으나 **감사 O-1/O-2가 그 전제를 뒤집었다** — 정의는 원천 CSV에 71/71 존재했고 행 변환에서 탈락했다), **그 상태에서 Scout를 돌리면 QUERY를 제외한 모든 archetype은 area/endpoint 신호가 결코 성립하지 않는다.** 유일한 예외인 QUERY 5건은 **전부 Scout 이전에 차단됐다**(4건 `ACCOUNT_ACTION_BLOCKED` scout_invoked=false, 1건 `SKIPPED_RETRY_EXHAUSTED`). **충분원인이 둘이고 서로 겹치지 않으므로** MPFED가 산출될 경로는 애초에 없었다.",
     "axis_b_honest_refusal": "**정의는 존재했으나 실행 경로에 전달되지 않았다(wiring 갭).** 그 상태에서 코드는 값을 만들어내지 않았다. 별도로, gate 종류가 판별되지 않은 1건에서는 fail-closed 규칙이 endpoint 승격을 실제로 **거부**했다.",
+    "axis_b_honest_refusal_note": "키 이름은 초기 서술의 잔재다. 내용은 wiring 갭 + 실제 거부 1건의 분리다.",
     "axis_b_refusal_vs_nonarrival": {
       "actual_refusal": {
         "n": 1,
@@ -826,7 +827,7 @@
       },
       "note": "둘을 한 단어로 묶지 않는다. 참인 것(1건의 실제 거부)을 지우는 것도 거짓을 쓰는 것과 같은 부정확이다."
     },
-    "methodological_conclusion": "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** 이것은 대상 서비스에 대한 진술이 아니라 **이 측정 접근에 대한 진술**이다 — 우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다. 그리고 **세 축이 서로 다른 단계에서 막혔다** — 판정기 부재(A) · 입력 미연결(B) · 판정기 미완(C)(`unified_finding`). 축 B는 수집 전에 구조적으로 확정돼 있었으며(`axis_b_predetermined`), 코드는 없는 codebook을 채우는 대신 정직하게 거부했다(`axis_b_honest_refusal`)."
+    "methodological_conclusion": "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** 이것은 대상 서비스에 대한 진술이 아니라 **이 측정 접근에 대한 진술**이다 — 우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다. 그리고 **세 축이 서로 다른 단계에서 막혔다** — 판정기 부재(A) · 입력 미연결(B) · 판정기 미완(C)(`unified_finding`). 축 B는 수집 전에 구조적으로 확정돼 있었으며(`axis_b_predetermined`), **정의는 존재했으나 실행 경로에 전달되지 않은 상태에서 코드는 값을 만들어내지 않았다**(`axis_b_honest_refusal`)."
   },
   "association_slots": {
     "primary": {

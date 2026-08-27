@@ -869,6 +869,11 @@ def build_analysis_axes(axis_c: dict[str, Any], causes: dict[str, Any]) -> dict[
         "unified_finding": UNIFIED_SKELETON_FINDING,
         "axis_b_predetermined": AXIS_B_PREDETERMINED_FINDING,
         "axis_b_honest_refusal": AXIS_B_HONEST_REFUSAL_NOTE,
+        # 키 이름을 바꾸면 참조가 깨지므로 이름은 두고 불일치를 명시한다.
+        # 이름만 보고 내용을 추론하는 실수를 오늘 `manifest` 키로 이미 한 번 했다.
+        "axis_b_honest_refusal_note": (
+            "키 이름은 초기 서술의 잔재다. 내용은 wiring 갭 + 실제 거부 1건의 분리다."
+        ),
         "axis_b_refusal_vs_nonarrival": AXIS_B_REFUSAL_VS_NONARRIVAL,
         "methodological_conclusion": (
             "**안전 계약을 유지하는 자동 관측이 이 프레임의 대표기능 진입점에 닿지 못한다.** "
@@ -876,8 +881,9 @@ def build_analysis_axes(axis_c: dict[str, Any], causes: dict[str, Any]) -> dict[
             "우리가 관측한 것은 우리 도구의 도달 한계이지 사용자의 도달 한계가 아니다. "
             "그리고 **세 축이 서로 다른 단계에서 막혔다** — 판정기 부재(A) · 입력 "
             "미연결(B) · 판정기 미완(C)(`unified_finding`). 축 B는 수집 전에 구조적으로 "
-            "확정돼 있었으며(`axis_b_predetermined`), 코드는 없는 codebook을 채우는 대신 "
-            "정직하게 거부했다(`axis_b_honest_refusal`)."
+            "확정돼 있었으며(`axis_b_predetermined`), **정의는 존재했으나 실행 경로에 "
+            "전달되지 않은 상태에서 코드는 값을 만들어내지 않았다**"
+            "(`axis_b_honest_refusal`)."
         ),
     }
 
