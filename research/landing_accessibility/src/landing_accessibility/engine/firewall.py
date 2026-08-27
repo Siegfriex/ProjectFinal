@@ -60,7 +60,16 @@ P0_GATE_NAME = "V2_SSOT_FROZEN"
 #: 이 상수는 **감사용 표식**이며 허가 판정의 근거가 아니다. 실제 판정은
 #: `evaluate_execution_scope()`가 런타임에 릴리스 문서를 읽어 내린다. 이 값을 전이시키는
 #: 커밋 SHA 가 `P0_RELEASE.json.firewall_gate_status_commit_sha` 에 바인딩된다.
-P0_GATE_STATUS = "OPEN"
+#:
+#: 2026-08-27 `OPEN` → `CLOSED`. 근거: `control/P0_RELEASE.json` status=RELEASED,
+#: promoted_main_sha=bc0b7a087faf2328cbafdfa9b40bd426c5080d7d
+#: (`research/landing-accessibility-main` 실제 승격, 이전 tip 5a9015d1).
+#: **이 전이만으로는 아무것도 열리지 않는다** — 허가는 `evaluate_execution_scope()` 가
+#: 그 문서를 런타임에 읽어 내리고, 이 상수를 되돌려도 그 판정은 바뀌지 않는다.
+#: 이 값이 여는 것은 감사 경로 하나뿐이다: 이 커밋의 SHA 가 릴리스 문서의
+#: `firewall_gate_status_commit_sha` 에 바인딩되어 "승인 없이 수집이 시작되지 않았다" 의
+#: 기계적 증거가 된다.
+P0_GATE_STATUS = "CLOSED"
 
 #: `PHASE_GATES.md §4.4` — 이 코드가 속한 lane.
 SHADOW_LANE = "LANE_C"
