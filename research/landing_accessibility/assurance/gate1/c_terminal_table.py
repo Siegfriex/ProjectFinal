@@ -29,17 +29,17 @@ Self-test:  python3 c_terminal_table.py   (exit 0 iff the table's structural inv
 """
 from __future__ import annotations
 
-RULE_ID = "T-A-V3-STEP1-007 R11 + T-A-V3-STEP1-027 Δ30 (A ruling: companion field + 14-value enum [BUDGET_EXCEEDED added by Δ30] + OTHER needs note; combination table = C proposal; endpoint_status=ABSTAIN × terminal_reason=BUDGET_EXCEEDED = A ruled)"
+RULE_ID = "T-A-V3-STEP1-007 R11 + T-A-V3-STEP1-027 Δ30 (A ruling: companion field + 15-value enum [BUDGET_EXCEEDED by Δ30, NO_TASK_CANDIDATE_FOUND by Δ32] + OTHER needs note; combination table = C proposal; endpoint_status=ABSTAIN × terminal_reason=BUDGET_EXCEEDED = A ruled)"
 
 # endpoint_status enum (04_FLOW_CODEBOOK §4, unchanged by R11) — order as in SSOT
 ENDPOINT_STATUSES: tuple[str, ...] = (
     "REACHED", "AUTH_GATE", "PUBLIC_WEB_UNOBSERVABLE", "APP_REQUIRED", "EVIDENCE_DEFECT", "BLOCKED", "ABSTAIN",
 )
-# terminal_reason 14 values (R11 verbatim order + Δ30 BUDGET_EXCEEDED)
+# terminal_reason 15 values (R11 verbatim order + Δ30 BUDGET_EXCEEDED + Δ32 NO_TASK_CANDIDATE_FOUND)
 TERMINAL_REASONS: tuple[str, ...] = (
     "TIMEOUT", "WAF_BLOCK", "ACTIVE_CHALLENGE", "NO_PUBLIC_MOBILE_WEB", "TASK_SURFACE_ABSENT", "APP_REQUIRED",
     "CONTROL_DISABLED_OR_INERT", "FORBIDDEN_ACTION_REQUIRED", "AUTH_REQUIRED", "EVIDENCE_DEFECT",
-    "REPLAY_BROKEN", "AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER", "BUDGET_EXCEEDED",
+    "REPLAY_BROKEN", "AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER", "BUDGET_EXCEEDED", "NO_TASK_CANDIDATE_FOUND",
 )
 # auth_gate_stage incl. UNDETERMINED (R13)
 AUTH_GATE_STAGES: tuple[str, ...] = ("NONE", "BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "UNDETERMINED")
@@ -56,7 +56,7 @@ _SPECIFIC: dict[str, frozenset[str]] = {
     "EVIDENCE_DEFECT": frozenset({"EVIDENCE_DEFECT", "REPLAY_BROKEN"}),
     "BLOCKED": frozenset({"TIMEOUT", "WAF_BLOCK", "ACTIVE_CHALLENGE", "CONTROL_DISABLED_OR_INERT",
                           "FORBIDDEN_ACTION_REQUIRED"}),
-    "ABSTAIN": frozenset({"AMBIGUOUS_MULTIPLE_CANDIDATES", "BUDGET_EXCEEDED"}),  # Δ30: 예산 소진 = 관측 없음 (MIN-7)
+    "ABSTAIN": frozenset({"AMBIGUOUS_MULTIPLE_CANDIDATES", "BUDGET_EXCEEDED", "NO_TASK_CANDIDATE_FOUND"}),  # Δ30 MIN-7 · Δ32 후보 실제 부재(관측); 계약 위반은 RunnerError 이지 행이 아니다
 }
 # THE table: allowed non-null terminal_reason values per endpoint_status (OTHER on every non-REACHED status).
 TERMINAL_ALLOWED: dict[str, frozenset[str]] = {
@@ -82,7 +82,7 @@ def validate_pair(endpoint_status: str | None, terminal_reason: str | None, note
         if es is not None and es != "REACHED":
             v.append(f"terminal_reason missing for endpoint_status={es} (R11: both fields are mandatory)")
     elif tr not in TERMINAL_REASONS:
-        v.append(f"terminal_reason={tr} not in R11/Δ30 14-value enum")
+        v.append(f"terminal_reason={tr} not in R11/Δ30/Δ32 15-value enum")
     if es in TERMINAL_ALLOWED and tr is not None and tr in TERMINAL_REASONS and tr not in TERMINAL_ALLOWED[es]:
         if es == "REACHED":
             v.append(f"impossible combination REACHED × terminal_reason={tr} (REACHED admits null only)")
@@ -126,3 +126,21 @@ if __name__ == "__main__":
     probs = selftest()
     print("c_terminal_table selftest:", "OK" if not probs else probs)
     sys.exit(0 if not probs else 1)
+
+
+# ---------------------------------------------------------------- Δ32-R29 (T-A-V3-STEP1-028): zero is a claim, not an observation
+def validate_zero_depth(activation_depth, endpoint_status, candidates_bound, endpoint_evidence_present) -> list[str]:
+    """R29: ``activation_depth=0`` together with ``endpoint_status=REACHED`` needs BOTH (1) endpoint-contract evidence
+    and (2) at least one actually-bound candidate. Zero bound candidates can never yield REACHED (schema rejects).
+    Pure; returns a list of violations (empty = OK)."""
+    v: list[str] = []
+    es = None if endpoint_status is None else str(endpoint_status).strip().upper()
+    try:
+        cb = int(candidates_bound) if candidates_bound is not None else None
+    except (TypeError, ValueError):
+        cb = None
+    if es == "REACHED" and (cb is None or cb < 1):
+        v.append("R29: endpoint_status=REACHED with candidates_bound=%r — zero/unknown bound candidates can never be REACHED" % (candidates_bound,))
+    if activation_depth == 0 and es == "REACHED" and not endpoint_evidence_present:
+        v.append("R29: activation_depth=0 × endpoint_status=REACHED without endpoint-contract evidence")
+    return v

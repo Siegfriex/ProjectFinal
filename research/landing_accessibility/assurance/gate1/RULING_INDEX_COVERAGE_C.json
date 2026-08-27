@@ -378,7 +378,8 @@
     "lane5_evidence/EVIDENCE_CONTRACT_C.md §3b + evidence_lineage_check.py::check_flow (both fields on every flow record, 13-value enum, REACHED×non-null impossible, OTHER needs note, ALLOWED_TERMINAL table, MISSING_FIELD/SCHEMA_VIOLATION kinds); fixtures good/bad_overwrite/bad_lineage as controls",
     "lane6_stats/c_flow_derive.py::validate_terminal / TERMINAL_ALLOWED + test_c_flow_derive.py::test_validate_terminal_table; compare_with_mart_row R11 diff",
     "run_gate1.py items L5-runner-evidence-tree, L5-terminal-reason-table (B's table reconciled with C's), L6-recompute-compare",
-    "v13/Δ30: 14값 — c_terminal_table.py 에 BUDGET_EXCEEDED 추가, 조합 endpoint_status=ABSTAIN×terminal_reason=BUDGET_EXCEEDED, lane6 validate_terminal 상속(test 14값)"
+    "v13/Δ30: 14값 — c_terminal_table.py 에 BUDGET_EXCEEDED 추가, 조합 endpoint_status=ABSTAIN×terminal_reason=BUDGET_EXCEEDED, lane6 validate_terminal 상속(test 14값)",
+    "v15/Δ32: 15값 NO_TASK_CANDIDATE_FOUND(ABSTAIN 전용) 반영"
    ],
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": "C-internal defect to fix before GATE 1: lane5 ALLOWED_TERMINAL admits OTHER for every non-REACHED status, lane6 TERMINAL_ALLOWED admits OTHER only with ABSTAIN — the same B row (e.g. BLOCKED×OTHER) passes lane5 and fails lane6 (runbook §6.3 lists the pair but the code is unreconciled). B's combination table is unpublished → L5-terminal-reason-table stays NOT_TESTABLE until the COMPLETION carries it."
@@ -1005,9 +1006,53 @@
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 14
+  },
+  {
+   "id": "Δ32",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "후보 전건 탈락은 **원인으로 가른다** — 계약·형태 불일치는 `RunnerError`(항상 멈춤), 페이지에 후보가 실제로 없으면 `ABSTAIN × NO_TASK_CANDIDATE_FOUND`(terminal_reason 15번째 값). **계약 위반은 관측이 아니다**",
+   "must_appear_in": "runner 구현 + 조합표",
+   "C_check": "RUNBOOK CI-8: 계약 위반은 RunnerError(행 없음), 후보 실제 부재는 ABSTAIN×NO_TASK_CANDIDATE_FOUND — C 는 engine log↔row 교차로 예외 경로에서 나온 행이 없는지 확인; c_terminal_table 15값",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 15
+  },
+  {
+   "id": "Δ32-R29",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**`activation_depth=0` 은 근거를 요구한다.** `REACHED` 와 함께 나오려면 endpoint 충족 증거 + 최소 1개 후보 바인딩이 둘 다 참이어야 한다. **후보 0건은 어떤 경우에도 REACHED 를 낼 수 없다** — 스키마가 거부한다",
+   "must_appear_in": "runner 스키마 · 관측 행",
+   "C_check": "RUNBOOK CI-8: 계약 위반은 RunnerError(행 없음), 후보 실제 부재는 ABSTAIN×NO_TASK_CANDIDATE_FOUND — C 는 engine log↔row 교차로 예외 경로에서 나온 행이 없는지 확인; c_terminal_table 15값",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 15
+  },
+  {
+   "id": "Δ32-R30",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**구조적 타입 검사는 계약을 검사하지 않는다.** Protocol 은 메서드 이름만 본다. lane 경계에서 반환값 형태를 런타임 검증하고 위반이면 RunnerError",
+   "must_appear_in": "seam 구현",
+   "C_check": "RUNBOOK CI-8: 계약 위반은 RunnerError(행 없음), 후보 실제 부재는 ABSTAIN×NO_TASK_CANDIDATE_FOUND — C 는 engine log↔row 교차로 예외 경로에서 나온 행이 없는지 확인; c_terminal_table 15값",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 15
+  },
+  {
+   "id": "Δ32-safety",
+   "due": "V3_PILOT_5_RELEASE",
+   "verified_by": "A",
+   "requires": "`credential`·`실제 개인정보` guard 미발화 구멍이 열린 채로 **V3_PILOT_5 를 release 하지 않는다.** 차단 9종이 텍스트 문구 기준이라는 한계도 기재한다",
+   "must_appear_in": "V3_PILOT_5 릴리스 전제조건",
+   "C_check": "RUNBOOK CI-8: 계약 위반은 RunnerError(행 없음), 후보 실제 부재는 ABSTAIN×NO_TASK_CANDIDATE_FOUND — C 는 engine log↔row 교차로 예외 경로에서 나온 행이 없는지 확인; c_terminal_table 15값",
+   "coverage": "NOT_C",
+   "gap_note": null,
+   "added_at_index_version": 15
   }
  ],
- "index_version": 14,
+ "index_version": 15,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1023,5 +1068,6 @@
  "index_sha256_v12": "5e03c7bc40cac0ec6b33cac3a0ae7e4981388f7af0978bd1bd395680655c3318",
  "changelog_vs_delta_note_C": "색인 corrected_by v9 문구 '길이3 미만 금지' 는 delta Δ25 본문(소문자 단일어 ≤6 배제, R1/Δ2 유지)과 다르다 — delta 가 권위, C 는 Δ25 본문을 구현했다(관측)",
  "index_sha256_v13": "b4a86d91fd50a67f007178b4135b8dd79ec4cd73b043426536aac88055fee865",
- "index_sha256_v14": "341d7f12bcb50e568c7cfc3ea805f956d3022bbd72419dfec61f2752586d9833"
+ "index_sha256_v14": "341d7f12bcb50e568c7cfc3ea805f956d3022bbd72419dfec61f2752586d9833",
+ "index_sha256_v15": "0faec91c912810e7254e9234455d0ae2ce1e4885f770f504d5b31dd442784b40"
 }
