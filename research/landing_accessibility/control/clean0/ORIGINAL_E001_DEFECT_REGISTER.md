@@ -92,6 +92,21 @@ D-R0-59 수정 후    어휘 단독 gate 가 사라진다
                    파일럿 수치와 직접 비교하지 않는다 (D-R0-58-3 과 같은 규칙)
 ```
 
+## §5b 추가 등재 — CAPTCHA 판정 (D-R0-65, C-BLOCKER-221347)
+
+`gate_classifier` 가 CAPTCHA terminal 을 `captcha iframe 존재` 로 판별한다.
+`D-R0-05` 는 *"현재 chosen path 를 막는 visible/active challenge"* 를 요구한다 — 반대다.
+
+```
+파일럿 CAPTCHA   1건 (wtg_13ed0704 netflix login)
+지위             같은 경로로 판정됐을 가능성 — 재확인 대상
+주장하지 않는다   그 1건이 실제로 iframe 단독으로 판정됐다는 것. 개별 basis 미확인
+판정             ORIGINAL_E001 불변
+```
+
+**이 target 은 이미 세 장부에 있다** — frame 결함(로그인 URL) · duplicate launch 4건 ·
+CAPTCHA 판정 후보. 한 관측이 서로 다른 결함 셋에 걸린 사례다.
+
 ## §6 검증하지 않은 것
 
 ```
