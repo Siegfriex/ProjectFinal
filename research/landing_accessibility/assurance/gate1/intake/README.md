@@ -42,6 +42,41 @@ check on `x`, `getattr(x, k, d)`, `x or {}`/`[]`/`()`/`dict()`/`None`, and param
 
 Selftest additionally proves the refusal path: tampering either of the two task-fixed controls makes the tool exit 2 and write nothing.
 
+## Δ46 — declared failure behaviour, demonstrated on a mutated copy and bound to the tool sha (R40 / Δ46-declared / Δ46-exit2 / Δ46-casename)
+`../control_failure_demo_c.py` (never touches the live tools) copies `r32_inventory.py` + `fixtures_py/` and `../../c_bus_scan.py` into isolated
+temp dirs, applies one mutation per case, runs the copy as a subprocess and measures the **declared** behaviour — for r32 the sha256 of a
+pre-seeded `--out` sentinel before/after (R40: exit codes do not survive in files), for the scanner its stdout JSON block. Results go to the
+sidecar `../CONTROL_FAILURE_DEMOS_C.json` together with the sha256 of the **live** tool at demo time. Both tools read the sidecar and emit
+`failure_behaviour_demo.valid_for_this_commit` = (sidecar tool sha == own sha now) AND (all own cases PASS); any edit to a tool flips it to
+`false` (`reason: TOOL_CHANGED_SINCE_DEMO`) until the demonstrator is re-run. Case names say what they demonstrate (Δ46-casename):
+
+| case | tool | mutation | declared behaviour measured |
+|---|---|---|---|
+| `r32_writes_file_when_controls_pass` | r32 | none (baseline / must_not_flag) | exit 0, sentinel sha changes, written doc carries `failure_behaviour_demo` |
+| `r32_writes_no_file_when_control_fails` | r32 | `ctrl_must_flag_ax_node.py` made to raise → `must_flag/task_control_ax_node_silent_none` FAILs | exit 2, sentinel sha unchanged |
+| `r32_exits_3_and_writes_no_file_when_target_unusable` | r32 | empty `--target` | exit 3, sentinel sha unchanged |
+| `r32_exits_2_did_not_run_on_crash` | r32 | exception injected after the controls | exit 2 + "did not run — read neither as pass nor fail", sentinel unchanged |
+| `scanner_emits_index_numbers_when_controls_pass` | scanner | none (baseline) | exit 0, `ruling_record_gaps.status=OK`, all `MAIN_CHECK_KEYS` present, summary counters numeric |
+| `scanner_refuses_index_numbers_when_control_fails` | scanner | `R21` appended to the Δ33 control corpus → `positive R21→Δ21` and `Δ33 negative` FAIL | exit 2, status `CONTROLS_FAILED_MAIN_CHECK_REFUSED`, no `MAIN_CHECK_KEYS`, summary counters `n/a` (never 0) |
+| `scanner_exits_2_did_not_run_on_crash` | scanner | exception injected in `main` | exit 2 + did-not-run message, no JSON on stdout |
+
+The demonstrator carries its own controls (`demonstrator_controls` in the sidecar, run on a scratch copy of the layout): no sidecar ⇒ both tools
+`false/NO_SIDECAR` (must_flag); after the demo ⇒ `true` (must_not_flag); one comment line appended to each tool ⇒ `false/TOOL_CHANGED_SINCE_DEMO`
+(must_flag); demo re-run ⇒ `true` (must_not_flag). Limitation: the mutations are the ones C imagined; PASS means the declared behaviour held under
+these mutations, not under every defect.
+
+### Exit codes — mapping to A's convention (Δ46-exit2: `0` pass · `1` ran and failed · `2` did not run)
+| r32 exit | meaning | A-convention class |
+|---|---|---|
+| 0 | controls passed, inventory written / printed | 0 |
+| 2 | a control FAILed **or** an uncaught exception — nothing written; "did not run — read neither as pass nor fail" | 2 |
+| 3 | target unusable (not a dir / no `.py` / unparsable) — nothing written; kept distinct from 2 because the cause is the target, not the tool | 2 (did not run) |
+| — | r32 has **no exit 1**: the inventory is a report and makes no pass/fail claim about the target, so "ran and failed" has no referent | 1 unused |
+
+`c_bus_scan.py`: `0` ran, controls passed (findings are report-only, in the JSON) · `1` ran and FAILED (`PARSE_ERRORS_PRESENT`: malformed bus JSON; `selftest` failure) ·
+`2` did not run (ruling-index controls failed / index unavailable → main check refused, or uncaught exception) · `3` usage error. Before Δ46 an uncaught
+exception in either tool produced Python's default exit 1 — the same code A's convention reads as "ran and failed"; both now wrap `main` and exit 2 with the message.
+
 ## Ambiguities resolved (recorded so the diff against B can be read)
 1. `**kwargs` reads match the (a) predicate textually but are routed to (b) `KWARGS_READ` only — a kwargs bag is a call convention, not a lane-boundary structural input.
 2. `.get` on a call's return value (`_lookup(x).get(k)`, or `y = load(x); y.get(k)`) is (b) `GET_ON_CALL_RETURN` even when a root is an argument: the object read is a return value. Struct constructors (`dict(x)`) and methods on the root (`x.copy()`, `x.get()`) stay in (a).

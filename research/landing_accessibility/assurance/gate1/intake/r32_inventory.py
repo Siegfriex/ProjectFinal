@@ -17,6 +17,15 @@ unusable (not a directory / no .py files / unparsable file). Exit 0 = output wri
 
 This tool is built and frozen without reading any B document (Δ42 ordering, step 1). It never imports the
 target; it only parses it.
+
+Δ46 declared failure behaviour (R40 / Δ46-declared) — demonstrated on a MUTATED COPY by ../control_failure_demo_c.py,
+never on this file: control failure ⇒ exit 2 and the --out file is NOT written (a pre-existing file at --out is left
+byte-identical); target unusable ⇒ exit 3 and nothing written; an uncaught exception ⇒ exit 2 + "did not run — read
+neither as pass nor fail" and nothing written. Exit-code mapping to A's convention (Δ46-exit2: 0 pass · 1 ran-and-failed ·
+2 did-not-run): r32 0 ≡ A 0; r32 2 ≡ A 2 (controls failed = the tool cannot be trusted, so it did not run); r32 3 is also
+did-not-run but keeps its own code because the cause is the target, not the tool; r32 has NO exit 1 — the inventory is a
+report and makes no pass/fail claim about the target. The output carries `failure_behaviour_demo.valid_for_this_commit`,
+true only when the sidecar ../CONTROL_FAILURE_DEMOS_C.json recorded this file's current sha256 and all its cases PASSed.
 """
 from __future__ import annotations
 
@@ -35,6 +44,9 @@ from typing import Any
 HERE = pathlib.Path(__file__).resolve().parent
 DEFAULT_FIXTURES = HERE / "fixtures_py"
 KST = _dt.timezone(_dt.timedelta(hours=9), "KST")
+DEMO_SIDECAR = HERE.parent / "CONTROL_FAILURE_DEMOS_C.json"   # Δ46/R40: written by ../control_failure_demo_c.py; read-only here
+TOOL_REL = "gate1/intake/r32_inventory.py"
+DID_NOT_RUN_MSG = "r32_inventory: did not run — read neither as pass nor fail (exit 2)"
 
 RAISES = "RAISES"
 SILENT_DEFAULT = "SILENT_DEFAULT"
@@ -96,6 +108,39 @@ TERMINATORS = (ast.Return, ast.Raise, ast.Continue, ast.Break)
 # ---- helpers -------------------------------------------------------------------------------------------------------
 def now_kst() -> str:
     return _dt.datetime.now(KST).isoformat(timespec="seconds")
+
+
+def failure_demo_binding(tool_path: pathlib.Path = pathlib.Path(__file__), sidecar: pathlib.Path = DEMO_SIDECAR, tool_rel: str = TOOL_REL) -> dict[str, Any]:
+    """R40 binding: valid_for_this_commit iff the sidecar's tool sha256 (recorded at demo time) == this file's sha256 now and all demo cases PASSed."""
+    now = hashlib.sha256(tool_path.read_bytes()).hexdigest()
+    out: dict[str, Any] = {"rule": "Δ46/R40: failure behaviour demonstrated on a mutated copy by gate1/control_failure_demo_c.py; binding = tool sha256",
+                           "sidecar": str(sidecar), "tool_sha256_now": now, "sidecar_present": sidecar.is_file(), "sidecar_tool_sha256": None,
+                           "sha_match": False, "cases": [], "demo_all_pass": False, "valid_for_this_commit": False, "reason": None}
+    if not sidecar.is_file():
+        out["reason"] = "NO_SIDECAR: demonstration never run (or not for this checkout)"
+        return out
+    try:
+        sc = json.loads(sidecar.read_text(encoding="utf-8"))
+        cases = [c for c in sc.get("cases", []) if c.get("tool_path") == tool_rel]
+    except Exception as e:
+        out["reason"] = f"SIDECAR_UNREADABLE: {type(e).__name__}: {e}"[:160]
+        return out
+    out["sidecar_measured_at_kst"] = sc.get("measured_at_kst")
+    out["sidecar_sha256"] = hashlib.sha256(sidecar.read_bytes()).hexdigest()
+    out["cases"] = [{"case_name": c.get("case_name"), "result": c.get("result")} for c in cases]
+    shas = sorted({c.get("tool_sha256_at_demo") for c in cases})
+    if not cases:
+        out["reason"] = "NO_CASES_FOR_THIS_TOOL"
+        return out
+    if len(shas) != 1:
+        out["reason"] = f"SIDECAR_INCONSISTENT: {len(shas)} distinct tool shas for one tool"
+        return out
+    out["sidecar_tool_sha256"] = shas[0]
+    out["sha_match"] = shas[0] == now
+    out["demo_all_pass"] = all(c.get("result") == "PASS" for c in cases)
+    out["valid_for_this_commit"] = out["sha_match"] and out["demo_all_pass"]
+    out["reason"] = "OK" if out["valid_for_this_commit"] else ("TOOL_CHANGED_SINCE_DEMO: re-run gate1/control_failure_demo_c.py" if not out["sha_match"] else "DEMO_CASE_FAILED")
+    return out
 
 
 def git_info(root: pathlib.Path) -> dict[str, Any] | None:
@@ -860,6 +905,7 @@ def build(target: pathlib.Path, fixtures_dir: pathlib.Path, include_private: boo
         "counts": scan["counts"], "per_file": scan["per_file"], "functions": scan["functions"], "parse_errors": scan["parse_errors"],
         "controls": controls, "controls_all_pass": True, "fixtures_dir": str(fixtures_dir),
         "ordering_record": "built without reading docs/v3/R32_APPLICATION_POINTS.md or any B out-of-unit note (Δ42 step 1)",
+        "failure_behaviour_demo": failure_demo_binding(),
     }
     return 0, out, controls
 
@@ -901,4 +947,11 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2: an uncaught exception is "did not run", never exit 1 (which A's convention reads as "ran and failed")
+        import traceback
+        traceback.print_exc()
+        print(DID_NOT_RUN_MSG, file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

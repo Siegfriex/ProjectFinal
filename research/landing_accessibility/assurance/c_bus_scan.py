@@ -32,11 +32,22 @@ Report-only checks added 2026-08-28 (RULING_INDEX_COVERAGE_C rows Δ6-a / Δ4 / 
   selftest   `c_bus_scan.py selftest` builds a temp bus: ticket X + acks/X.C-1.json (R19 re-ACK → NOT dangling), acks/Y.C.json without a ticket
              (dangling), and base_sha classification cases (absent / 'origin/nonexistent-ref' / 40-hex fake / real short / real full).
 
+  Δ46 declared failure behaviour (R40 / Δ46-declared) — demonstrated by gate1/control_failure_demo_c.py on a MUTATED COPY, never here:
+             if any built-in ruling-index control FAILs, `ruling_record_gaps.status` = CONTROLS_FAILED_MAIN_CHECK_REFUSED, the block carries only
+             diagnostics (index identity, the control table, alias diagnostics that are inputs to the controls) and NONE of MAIN_CHECK_KEYS,
+             and the summary line prints `n/a` (not 0) for every main-check counter; exit 2. The sidecar gate1/CONTROL_FAILURE_DEMOS_C.json records
+             the tool sha256 at demo time; `failure_behaviour_demo.valid_for_this_commit` is true only when that sha equals this file's sha now
+             AND every demo case for this tool PASSed — editing this file invalidates the demonstration until the demonstrator is re-run.
+  exit codes (Δ46-exit2, same convention as A's check_ruling_index.py / a_publish_guard.py):
+             0 = ran, controls passed (all findings are report-only and live in the JSON) · 1 = ran and FAILED (scan status PARSE_ERRORS_PRESENT:
+             the bus holds malformed JSON; `selftest` failure) · 2 = DID NOT RUN — controls failed / index unavailable (main check refused) OR an
+             uncaught exception ("did not run — read neither as pass nor fail") · 3 = usage error (unknown flag).
+
 Usage: c_bus_scan.py [bus_dir] [--ref-lint] [--assurance-root DIR] [--repo DIR] [--index-ref REF] [--index-file PATH]
        -> prints JSON {pending, parse_errors, dangling_refs_v3_era, content_changed_after_ack, plane_enum, ref_lint, fact_correction_how_known,
-                       validity_risk_priority, ruling_record_gaps, base_sha_unresolvable, summary, status}
-Last run (2026-08-28, index v10 sha256 5d916bc0ebfb @ origin/control/landing-orchestrator c11d6460, --ref-lint, exit 0; `selftest` OK):
-  SUMMARY: scanned=234 pending=2 parse_errors=0 dangling=1 changed_after_ack=1 plane_enum_violations=0 e_real_field_gaps=3 ref_lint_hits=13 fact_correction_missing_how_known=25 validity_risk_below_p1=0 vrc_type_below_p1=2 ruling_unrecorded_mentions=1 resolved_by_subrows=14 alias_collisions=1 unsafe_aliases=0 empty_alias_rows=0 delta_headings_without_index_row=1 base_sha[no_field/not_sha/missing/ok_abbrev/ok]=5/0/0/11/78 controls=PASS
+                       validity_risk_priority, ruling_record_gaps, base_sha_unresolvable, failure_behaviour_demo, summary, status}
+Last run (2026-08-28 08:5x KST, --ref-lint, exit 0; `selftest` OK; gate1/control_failure_demo_c.py 7/7 cases + 4/4 binding controls PASS):
+  SUMMARY: scanned=270 pending=2 parse_errors=0 dangling=1 changed_after_ack=1 plane_enum_violations=0 e_real_field_gaps=3 ref_lint_hits=13 fact_correction_missing_how_known=32 validity_risk_below_p1=0 vrc_type_below_p1=2 ruling_unrecorded_mentions=2 resolved_by_subrows=20 alias_collisions=1 unsafe_aliases=0 empty_alias_rows=0 delta_headings_without_index_row=0 base_sha[no_field/not_sha/missing/ok_abbrev/ok]=5/0/0/11/114 controls=PASS demo_valid_for_this_commit=True
 """
 import json, glob, os, sys, re, hashlib, subprocess, pathlib, collections
 # ACKs whose ticket_sha256 legitimately differs from the current file (documented provenance events); never silently drop
@@ -64,6 +75,38 @@ def fetch_control(repo: str) -> dict:
 DEFAULT_INDEX_REF = CONTROL_REF + ":research/landing_accessibility/control/v3/V3_RULING_INDEX.json"
 DEFAULT_DELTA_REF = CONTROL_REF + ":research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md"
 ASSURANCE_ROOT = pathlib.Path(__file__).resolve().parent
+# Δ46/R40: sidecar written by gate1/control_failure_demo_c.py (isolated mutated copies); this tool only READS it and compares shas.
+DEMO_SIDECAR = ASSURANCE_ROOT / "gate1" / "CONTROL_FAILURE_DEMOS_C.json"
+TOOL_REL = "c_bus_scan.py"
+# keys of the ruling-index block that exist ONLY when the main check ran (controls passed). Declared: never emitted on refusal.
+MAIN_CHECK_KEYS = ("a_tickets_v3_era", "tokens_mentioned", "index_to_delta_reachability", "unrecorded_mentions", "resolved_only_via_unsafe_alias",
+                   "section_mentions_resolved_by_subrows", "index_rows_unmentioned_in_A_tickets", "delta_headings_without_index_row", "delta_sha256",
+                   "delta_heading_counts")
+DID_NOT_RUN_MSG = "c_bus_scan: did not run — read neither as pass nor fail (exit 2)"
+
+def failure_demo_binding(tool_path: pathlib.Path = pathlib.Path(__file__), sidecar: pathlib.Path = DEMO_SIDECAR, tool_rel: str = TOOL_REL) -> dict:
+    """R40 binding: valid_for_this_commit iff the sidecar's tool sha256 (recorded at demo time) == this file's sha256 now and all demo cases PASSed."""
+    now = hashlib.sha256(tool_path.read_bytes()).hexdigest()
+    out = {"rule": "Δ46/R40: failure behaviour demonstrated on a mutated copy by gate1/control_failure_demo_c.py; binding = tool sha256", "sidecar": str(sidecar),
+           "tool_sha256_now": now, "sidecar_present": sidecar.is_file(), "sidecar_tool_sha256": None, "sha_match": False, "cases": [], "demo_all_pass": False,
+           "valid_for_this_commit": False, "reason": None}
+    if not sidecar.is_file():
+        out["reason"] = "NO_SIDECAR: demonstration never run (or not for this checkout)"; return out
+    try:
+        sc = json.loads(sidecar.read_text(encoding="utf-8"))
+        cases = [c for c in sc.get("cases", []) if c.get("tool_path") == tool_rel]
+    except Exception as e:
+        out["reason"] = f"SIDECAR_UNREADABLE: {type(e).__name__}: {e}"[:160]; return out
+    out["sidecar_measured_at_kst"] = sc.get("measured_at_kst"); out["sidecar_sha256"] = hashlib.sha256(sidecar.read_bytes()).hexdigest()
+    shas = sorted({c.get("tool_sha256_at_demo") for c in cases})
+    out["cases"] = [{"case_name": c.get("case_name"), "result": c.get("result")} for c in cases]
+    if not cases: out["reason"] = "NO_CASES_FOR_THIS_TOOL"; return out
+    if len(shas) != 1: out["reason"] = f"SIDECAR_INCONSISTENT: {len(shas)} distinct tool shas for one tool"; return out
+    out["sidecar_tool_sha256"] = shas[0]; out["sha_match"] = shas[0] == now
+    out["demo_all_pass"] = all(c.get("result") == "PASS" for c in cases)
+    out["valid_for_this_commit"] = out["sha_match"] and out["demo_all_pass"]
+    out["reason"] = "OK" if out["valid_for_this_commit"] else ("TOOL_CHANGED_SINCE_DEMO: re-run gate1/control_failure_demo_c.py" if not out["sha_match"] else "DEMO_CASE_FAILED")
+    return out
 
 def _ts(d: dict) -> str:
     return str(d.get("created_at_kst") or d.get("created_at") or "")
@@ -438,24 +481,35 @@ def main(argv: list) -> int:
     res["validity_risk_priority"] = check_validity_risk(tickets)
     res["ruling_record_gaps"] = check_ruling_index(tickets, repo, index_ref, index_file, DEFAULT_DELTA_REF)
     res["base_sha_unresolvable"] = check_base_sha(tickets, repo)
+    res["failure_behaviour_demo"] = failure_demo_binding()
     rg = res["ruling_record_gaps"]
     ctl = "PASS" if rg.get("status") == "OK" else rg.get("status")
+    ran = rg.get("status") == "OK"          # declared: on refusal no main-check number is emitted — `n/a`, never 0
+    def _n(key, *, dict_=False):
+        return len(rg.get(key, {} if dict_ else [])) if ran else "n/a"
     res["summary"] = ("SUMMARY: scanned={scanned} pending={p} parse_errors={pe} dangling={dg} changed_after_ack={ch} plane_enum_violations={pv} e_real_field_gaps={eg} "
                       "ref_lint_hits={rl} fact_correction_missing_how_known={fc} validity_risk_below_p1={vr} vrc_type_below_p1={vrc} ruling_unrecorded_mentions={ru} "
                       "resolved_by_subrows={rs} alias_collisions={ac} unsafe_aliases={ua} empty_alias_rows={ea} delta_headings_without_index_row={dh} "
-                      "base_sha[no_field/not_sha/missing/ok_abbrev/ok]={bc} controls={ctl}").format(
+                      "base_sha[no_field/not_sha/missing/ok_abbrev/ok]={bc} controls={ctl} demo_valid_for_this_commit={dv}").format(
         scanned=res["scanned"], p=len(res["pending"]), pe=len(res["parse_errors"]), dg=len(res["dangling_refs_v3_era"]), ch=len(res["content_changed_after_ack"]),
         pv=len(res["plane_enum"]["violations"]), eg=len(res["plane_enum"]["e_real_field_gaps"]), rl=len(res["ref_lint"].get("hits", [])) if do_lint else "skipped",
         fc=len(res["fact_correction_how_known"]["missing_how_known"]), vr=len(res["validity_risk_priority"]["below_p1"]),
-        vrc=len(res["validity_risk_priority"]["informational_type_VALIDITY_RISK_CANDIDATE_below_p1"]), ru=len(rg.get("unrecorded_mentions", [])),
-        rs=len(rg.get("section_mentions_resolved_by_subrows", [])), ac=len(rg.get("alias_collisions", {})), ua=len(rg.get("unsafe_aliases", [])),
-        ea=len(rg.get("empty_alias_rows", [])), dh=len(rg.get("delta_headings_without_index_row", [])),
-        bc="/".join(str(res["base_sha_unresolvable"]["counts"][c]) for c in BASE_SHA_CLASSES), ctl=ctl)
+        vrc=len(res["validity_risk_priority"]["informational_type_VALIDITY_RISK_CANDIDATE_below_p1"]), ru=_n("unrecorded_mentions"),
+        rs=_n("section_mentions_resolved_by_subrows"), ac=_n("alias_collisions", dict_=True), ua=_n("unsafe_aliases"),
+        ea=_n("empty_alias_rows"), dh=_n("delta_headings_without_index_row"),
+        bc="/".join(str(res["base_sha_unresolvable"]["counts"][c]) for c in BASE_SHA_CLASSES), ctl=ctl, dv=res["failure_behaviour_demo"]["valid_for_this_commit"])
     print(json.dumps(res, ensure_ascii=False, indent=1))
     print(res["summary"], file=sys.stderr)
     if rg.get("status", "OK") != "OK":
-        print(f"REFUSED: ruling-index controls failed or index unavailable ({rg.get('status')}) — Δ21 main check not run", file=sys.stderr); return 2
+        print(f"REFUSED: ruling-index controls failed or index unavailable ({rg.get('status')}) — Δ21 main check not run (exit 2 = did not run)", file=sys.stderr); return 2
+    if res["status"] != "OK":
+        print(f"FAILED: scan ran, bus status {res['status']} (exit 1 = ran and failed)", file=sys.stderr); return 1
     return 0
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    try:
+        _rc = main(sys.argv[1:])
+    except Exception:                       # Δ46-exit2: an uncaught exception is NOT a failure verdict — it is "did not run"
+        import traceback; traceback.print_exc()
+        print(DID_NOT_RUN_MSG, file=sys.stderr); _rc = 2
+    sys.exit(_rc)

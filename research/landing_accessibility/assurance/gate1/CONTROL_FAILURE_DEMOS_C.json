@@ -1,0 +1,408 @@
+{
+ "artifact": "CONTROL_FAILURE_DEMOS_C",
+ "plane": "C",
+ "ruling_refs": [
+  "Δ46-R40",
+  "Δ46-declared",
+  "Δ46-exit2",
+  "Δ46-casename",
+  "R35",
+  "R36"
+ ],
+ "measured_at_kst": "2026-08-28T08:56:57+09:00",
+ "assurance_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance",
+ "demonstrator": "gate1/control_failure_demo_c.py",
+ "demonstrator_sha256": "235d43cd64b704dda3784b841a214aecf1f72a707bda69dfb79cf6813c2c769b",
+ "method": "each tool copied (with its fixtures) into an isolated temp dir; one mutation per case; run as a subprocess; r32 measured by the sha256 of a pre-seeded --out sentinel before/after (R40: exit codes do not survive in files); scanner measured by its stdout JSON block. Live tools are never modified. The sidecar records the LIVE tool sha256 at demo time; the tools compare it to their own sha at run time.",
+ "declared_failure_behaviour": {
+  "c_bus_scan.py": "any ruling-index control FAIL ⇒ ruling_record_gaps.status=CONTROLS_FAILED_MAIN_CHECK_REFUSED, none of MAIN_CHECK_KEYS emitted, summary main-check counters `n/a`, exit 2; uncaught exception ⇒ exit 2 + 'did not run — read neither as pass nor fail', no JSON",
+  "gate1/intake/r32_inventory.py": "any control FAIL ⇒ exit 2 and --out NOT written (pre-existing file left byte-identical); target unusable ⇒ exit 3, not written; uncaught exception ⇒ exit 2 + did-not-run message, not written"
+ },
+ "exit_semantics": {
+  "c_bus_scan.py": "0 ran, controls passed · 1 ran and FAILED (PARSE_ERRORS_PRESENT / selftest fail) · 2 DID NOT RUN (controls failed or crash) · 3 usage",
+  "gate1/intake/r32_inventory.py": "0 written · 2 DID NOT RUN (controls failed or crash; nothing written) · 3 target unusable (nothing written) · no exit 1: inventory makes no pass/fail claim",
+  "A_convention": "0 pass · 1 ran and failed · 2 did not run — read neither as pass nor fail (Δ46-exit2)"
+ },
+ "tool_sha256_at_demo": {
+  "c_bus_scan.py": "575c624f19ebcb322846597d9174f29d454b422f5e92b3641dd237c2d4ba40dc",
+  "gate1/intake/r32_inventory.py": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355"
+ },
+ "cases": [
+  {
+   "tool_path": "c_bus_scan.py",
+   "tool_sha256_at_demo": "575c624f19ebcb322846597d9174f29d454b422f5e92b3641dd237c2d4ba40dc",
+   "case_name": "scanner_emits_index_numbers_when_controls_pass",
+   "mutation": {
+    "applied": false,
+    "description": "none (unmutated copy)",
+    "mutated_copy_sha256": "575c624f19ebcb322846597d9174f29d454b422f5e92b3641dd237c2d4ba40dc"
+   },
+   "expected": {
+    "exit": 0,
+    "ruling_record_gaps.status": "OK",
+    "main_check_keys": "all present",
+    "summary_counters": "numbers"
+   },
+   "observed": {
+    "exit": 0,
+    "stdout_is_json": true,
+    "stderr_tail": [
+     "SUMMARY: scanned=1 pending=1 parse_errors=0 dangling=0 changed_after_ack=0 plane_enum_violations=0 e_real_field_gaps=0 ref_lint_hits=skipped fact_correction_missing_how_known=0 validity_risk_below_p1=0 vrc_type_below_p1=0 ruling_unrecorded_mentions=0 resolved_by_subrows=0 alias_collisions=1 unsafe_aliases=0 empty_alias_rows=0 delta_headings_without_index_row=0 base_sha[no_field/not_sha/missing/ok_abbrev/ok]=0/0/0/0/1 controls=PASS demo_valid_for_this_commit=False"
+    ],
+    "ruling_record_gaps.status": "OK",
+    "failed_controls": [],
+    "main_check_keys_present": [
+     "a_tickets_v3_era",
+     "tokens_mentioned",
+     "index_to_delta_reachability",
+     "unrecorded_mentions",
+     "resolved_only_via_unsafe_alias",
+     "section_mentions_resolved_by_subrows",
+     "index_rows_unmentioned_in_A_tickets",
+     "delta_headings_without_index_row",
+     "delta_sha256",
+     "delta_heading_counts"
+    ],
+    "summary": "SUMMARY: scanned=1 pending=1 parse_errors=0 dangling=0 changed_after_ack=0 plane_enum_violations=0 e_real_field_gaps=0 ref_lint_hits=skipped fact_correction_missing_how_known=0 validity_risk_below_p1=0 vrc_type_below_p1=0 ruling_unrecorded_mentions=0 resolved_by_subrows=0 alias_collisions=1 unsafe_aliases=0 empty_alias_rows=0 delta_headings_without_index_row=0 base_sha[no_field/not_sha/missing/ok_abbrev/ok]=0/0/0/0/1 controls=PASS demo_valid_for_this_commit=False",
+    "failure_behaviour_demo.reason_in_copy": "NO_SIDECAR: demonstration never run (or not for this checkout)"
+   },
+   "checks": {
+    "exit_0": true,
+    "status_OK": true,
+    "all_main_check_keys_present": true,
+    "summary_counters_are_numbers": true
+   },
+   "result": "PASS",
+   "measured_at_kst": "2026-08-28T08:56:56+09:00"
+  },
+  {
+   "tool_path": "c_bus_scan.py",
+   "tool_sha256_at_demo": "575c624f19ebcb322846597d9174f29d454b422f5e92b3641dd237c2d4ba40dc",
+   "case_name": "scanner_refuses_index_numbers_when_control_fails",
+   "mutation": {
+    "applied": true,
+    "description": "'\"회의는 3층 회의실에서 열리고 자료는 공유 폴더에 있다. 예산은 다음 분기에 확정된다.\"' -> '\"회의는 3층 회의실에서 열리고 자료는 공유 폴더에 있다. 예산은 다음 분기에 확정된다. R21 \"'",
+    "file": "c_bus_scan.py",
+    "mutated_copy_sha256": "1ed4ba2d30c43a182935f31991ef0fde026a1b1bccfe0716ef77ca1cfea38b49"
+   },
+   "expected": {
+    "exit": 2,
+    "ruling_record_gaps.status": "CONTROLS_FAILED_MAIN_CHECK_REFUSED",
+    "main_check_keys": "none emitted",
+    "summary_counters": "n/a (never 0)"
+   },
+   "observed": {
+    "exit": 2,
+    "stdout_is_json": true,
+    "stderr_tail": [
+     "SUMMARY: scanned=1 pending=1 parse_errors=0 dangling=0 changed_after_ack=0 plane_enum_violations=0 e_real_field_gaps=0 ref_lint_hits=skipped fact_correction_missing_how_known=0 validity_risk_below_p1=0 vrc_type_below_p1=0 ruling_unrecorded_mentions=n/a resolved_by_subrows=n/a alias_collisions=n/a unsafe_aliases=n/a empty_alias_rows=n/a delta_headings_without_index_row=n/a base_sha[no_field/not_sha/missing/ok_abbrev/ok]=0/0/0/0/1 controls=CONTROLS_FAILED_MAIN_CHECK_REFUSED demo_valid_for_this_commit=False",
+     "REFUSED: ruling-index controls failed or index unavailable (CONTROLS_FAILED_MAIN_CHECK_REFUSED) — Δ21 main check not run (exit 2 = did not run)"
+    ],
+    "ruling_record_gaps.status": "CONTROLS_FAILED_MAIN_CHECK_REFUSED",
+    "failed_controls": [
+     "positive R21→Δ21",
+     "Δ33 negative: real ruling names do not fire in corpus"
+    ],
+    "main_check_keys_present": [],
+    "summary": "SUMMARY: scanned=1 pending=1 parse_errors=0 dangling=0 changed_after_ack=0 plane_enum_violations=0 e_real_field_gaps=0 ref_lint_hits=skipped fact_correction_missing_how_known=0 validity_risk_below_p1=0 vrc_type_below_p1=0 ruling_unrecorded_mentions=n/a resolved_by_subrows=n/a alias_collisions=n/a unsafe_aliases=n/a empty_alias_rows=n/a delta_headings_without_index_row=n/a base_sha[no_field/not_sha/missing/ok_abbrev/ok]=0/0/0/0/1 controls=CONTROLS_FAILED_MAIN_CHECK_REFUSED demo_valid_for_this_commit=False",
+    "failure_behaviour_demo.reason_in_copy": "NO_SIDECAR: demonstration never run (or not for this checkout)"
+   },
+   "checks": {
+    "exit_2": true,
+    "status_CONTROLS_FAILED_MAIN_CHECK_REFUSED": true,
+    "a_control_actually_failed": true,
+    "no_main_check_key_emitted": true,
+    "summary_counters_are_n/a": true
+   },
+   "result": "PASS",
+   "measured_at_kst": "2026-08-28T08:56:56+09:00"
+  },
+  {
+   "tool_path": "c_bus_scan.py",
+   "tool_sha256_at_demo": "575c624f19ebcb322846597d9174f29d454b422f5e92b3641dd237c2d4ba40dc",
+   "case_name": "scanner_exits_2_did_not_run_on_crash",
+   "mutation": {
+    "applied": true,
+    "description": "'res = scan(bus)' -> \"res = scan(bus)\\n    raise RuntimeError('injected crash (control_failure_demo_c)')\"",
+    "file": "c_bus_scan.py",
+    "mutated_copy_sha256": "18ceda168005c24323710f08c396991e9ad53e9aa18a885de212bbabbdb6ee3e"
+   },
+   "expected": {
+    "exit": 2,
+    "stderr": "did not run — read neither as pass nor fail",
+    "stdout": "no JSON"
+   },
+   "observed": {
+    "exit": 2,
+    "stdout_is_json": false,
+    "stderr_tail": [
+     "    raise RuntimeError('injected crash (control_failure_demo_c)')",
+     "RuntimeError: injected crash (control_failure_demo_c)",
+     "c_bus_scan: did not run — read neither as pass nor fail (exit 2)"
+    ]
+   },
+   "checks": {
+    "exit_2": true,
+    "did_not_run_message_on_stderr": true,
+    "no_json_on_stdout": true
+   },
+   "result": "PASS",
+   "measured_at_kst": "2026-08-28T08:56:56+09:00"
+  },
+  {
+   "tool_path": "gate1/intake/r32_inventory.py",
+   "tool_sha256_at_demo": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355",
+   "case_name": "r32_writes_file_when_controls_pass",
+   "mutation": {
+    "applied": false,
+    "description": "none (unmutated copy)",
+    "mutated_copy_sha256": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355"
+   },
+   "expected": {
+    "exit": 0,
+    "output": "sha changes (written)"
+   },
+   "observed": {
+    "exit": 0,
+    "output_sha_before": "8d9095f10ab4ab584af8960ab698deccb16f536ba2d19707a4945205d5cdf5ee",
+    "output_sha_after": "150ad38e28bfa4bdfe51e7829f64de5fd2f55e2b58a77b2ab2ea29758e93d9dc",
+    "output_changed": true,
+    "failed_control_lines": [],
+    "stderr_tail": [
+     "  PASS must_flag/get_chain_listed_in_both               sites=2 flagged=2 oou=1  in-unit GET flagged=[\"'raw_features'\", \"'envelope'\"], out_of_unit GET_CHAIN=1",
+     "  PASS must_flag/derived_alias_get                      sites=1 flagged=1 oou=1  GET['scroll_states'] handling=['SILENT_DEFAULT'] (need SILENT_DEFAULT)",
+     "r32_inventory: wrote /tmp/cfd_r32_zj6qeurv/r32_inventory_C.json — target_sha=None functions=17 sites=18 flagged=12 out_of_unit=6"
+    ],
+    "written_doc_keys_sample": [
+     "tool",
+     "controls_all_pass",
+     "failure_behaviour_demo"
+    ],
+    "failure_behaviour_demo.reason_in_copy": "NO_SIDECAR: demonstration never run (or not for this checkout)"
+   },
+   "checks": {
+    "exit_0": true,
+    "output_changed": true,
+    "written_doc_has_binding_block": true
+   },
+   "result": "PASS",
+   "measured_at_kst": "2026-08-28T08:56:57+09:00"
+  },
+  {
+   "tool_path": "gate1/intake/r32_inventory.py",
+   "tool_sha256_at_demo": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355",
+   "case_name": "r32_writes_no_file_when_control_fails",
+   "mutation": {
+    "applied": true,
+    "description": "fixture 'if node is None:\\n        return None' -> \"if node is None:\\n        raise TypeError('ax_node missing')\"",
+    "file": "fixtures_py/ctrl_must_flag_ax_node.py",
+    "mutated_copy_sha256": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355"
+   },
+   "expected": {
+    "exit": 2,
+    "output": "sha unchanged (not written)",
+    "control": "must_flag/task_control_ax_node_silent_none FAIL"
+   },
+   "observed": {
+    "exit": 2,
+    "output_sha_before": "8d9095f10ab4ab584af8960ab698deccb16f536ba2d19707a4945205d5cdf5ee",
+    "output_sha_after": "8d9095f10ab4ab584af8960ab698deccb16f536ba2d19707a4945205d5cdf5ee",
+    "output_changed": false,
+    "failed_control_lines": [
+     "FAIL must_flag/task_control_ax_node_silent_none       sites=3 flagged=0 oou=0  GET['ax_node'] handling=['RAISES'] (need SILENT_DEFAULT)"
+    ],
+    "stderr_tail": [
+     "  PASS must_flag/get_chain_listed_in_both               sites=2 flagged=2 oou=1  in-unit GET flagged=[\"'raw_features'\", \"'envelope'\"], out_of_unit GET_CHAIN=1",
+     "  PASS must_flag/derived_alias_get                      sites=1 flagged=1 oou=1  GET['scroll_states'] handling=['SILENT_DEFAULT'] (need SILENT_DEFAULT)",
+     "r32_inventory: CONTROL FAILURE — inventory not reported, nothing written (exit 2)"
+    ]
+   },
+   "checks": {
+    "exit_2": true,
+    "output_unchanged": true,
+    "must_flag_ax_node_control_FAILed": true
+   },
+   "result": "PASS",
+   "measured_at_kst": "2026-08-28T08:56:57+09:00"
+  },
+  {
+   "tool_path": "gate1/intake/r32_inventory.py",
+   "tool_sha256_at_demo": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355",
+   "case_name": "r32_exits_3_and_writes_no_file_when_target_unusable",
+   "mutation": {
+    "applied": false,
+    "description": "none (unmutated copy)",
+    "mutated_copy_sha256": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355"
+   },
+   "expected": {
+    "exit": 3,
+    "output": "sha unchanged (not written)"
+   },
+   "observed": {
+    "exit": 3,
+    "output_sha_before": "8d9095f10ab4ab584af8960ab698deccb16f536ba2d19707a4945205d5cdf5ee",
+    "output_sha_after": "8d9095f10ab4ab584af8960ab698deccb16f536ba2d19707a4945205d5cdf5ee",
+    "output_changed": false,
+    "failed_control_lines": [],
+    "stderr_tail": [
+     "r32_inventory: target error: no .py files under /tmp/cfd_r32_phdnn5mb/empty_target"
+    ]
+   },
+   "checks": {
+    "exit_3": true,
+    "output_unchanged": true
+   },
+   "result": "PASS",
+   "measured_at_kst": "2026-08-28T08:56:57+09:00"
+  },
+  {
+   "tool_path": "gate1/intake/r32_inventory.py",
+   "tool_sha256_at_demo": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355",
+   "case_name": "r32_exits_2_did_not_run_on_crash",
+   "mutation": {
+    "applied": true,
+    "description": "'scan = scan_tree(target, include_private)\\n    git = git_info(target)' -> \"raise RuntimeError('injected crash (control_failure_demo_c)')\\n    scan = scan_tree(target,\"",
+    "file": "r32_inventory.py",
+    "mutated_copy_sha256": "c0a3806d6ab5c74b44ef672c28054dac02202f22a0af8552c6c50a9dd8f426ab"
+   },
+   "expected": {
+    "exit": 2,
+    "output": "sha unchanged (not written)",
+    "stderr": "did not run — read neither as pass nor fail"
+   },
+   "observed": {
+    "exit": 2,
+    "output_sha_before": "8d9095f10ab4ab584af8960ab698deccb16f536ba2d19707a4945205d5cdf5ee",
+    "output_sha_after": "8d9095f10ab4ab584af8960ab698deccb16f536ba2d19707a4945205d5cdf5ee",
+    "output_changed": false,
+    "failed_control_lines": [],
+    "stderr_tail": [
+     "    raise RuntimeError('injected crash (control_failure_demo_c)')",
+     "RuntimeError: injected crash (control_failure_demo_c)",
+     "r32_inventory: did not run — read neither as pass nor fail (exit 2)"
+    ]
+   },
+   "checks": {
+    "exit_2": true,
+    "output_unchanged": true,
+    "did_not_run_message_on_stderr": true
+   },
+   "result": "PASS",
+   "measured_at_kst": "2026-08-28T08:56:57+09:00"
+  }
+ ],
+ "all_cases_pass": true,
+ "limitation": "mutations are the ones C imagined (one control-failure path per tool + one crash + r32 exit 3); a PASS here says the declared behaviour held under these mutations, not under every possible defect",
+ "demonstrator_controls": {
+  "what": "demonstrator binding controls on a scratch layout copy (live layout untouched)",
+  "steps": [
+   {
+    "step": "before_any_demo",
+    "kind": "must_flag",
+    "expect": "valid false, reason NO_SIDECAR",
+    "observed": {
+     "c_bus_scan.py": {
+      "exit": 0,
+      "valid_for_this_commit": false,
+      "sha_match": false,
+      "demo_all_pass": false,
+      "reason": "NO_SIDECAR: demonstration never run (or not for this checkout)",
+      "tool_sha256_now": "575c624f19ebcb322846597d9174f29d454b422f5e92b3641dd237c2d4ba40dc",
+      "sidecar_tool_sha256": null
+     },
+     "gate1/intake/r32_inventory.py": {
+      "exit": 0,
+      "valid_for_this_commit": false,
+      "sha_match": false,
+      "demo_all_pass": false,
+      "reason": "NO_SIDECAR: demonstration never run (or not for this checkout)",
+      "tool_sha256_now": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355",
+      "sidecar_tool_sha256": null
+     }
+    },
+    "pass": true
+   },
+   {
+    "step": "after_demo",
+    "kind": "must_not_flag",
+    "expect": "valid true",
+    "demo_all_cases_pass": true,
+    "observed": {
+     "c_bus_scan.py": {
+      "exit": 0,
+      "valid_for_this_commit": true,
+      "sha_match": true,
+      "demo_all_pass": true,
+      "reason": "OK",
+      "tool_sha256_now": "575c624f19ebcb322846597d9174f29d454b422f5e92b3641dd237c2d4ba40dc",
+      "sidecar_tool_sha256": "575c624f19ebcb322846597d9174f29d454b422f5e92b3641dd237c2d4ba40dc"
+     },
+     "gate1/intake/r32_inventory.py": {
+      "exit": 0,
+      "valid_for_this_commit": true,
+      "sha_match": true,
+      "demo_all_pass": true,
+      "reason": "OK",
+      "tool_sha256_now": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355",
+      "sidecar_tool_sha256": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355"
+     }
+    },
+    "pass": true
+   },
+   {
+    "step": "after_mutating_tools",
+    "kind": "must_flag",
+    "expect": "valid false, reason TOOL_CHANGED_SINCE_DEMO",
+    "observed": {
+     "c_bus_scan.py": {
+      "exit": 0,
+      "valid_for_this_commit": false,
+      "sha_match": false,
+      "demo_all_pass": true,
+      "reason": "TOOL_CHANGED_SINCE_DEMO: re-run gate1/control_failure_demo_c.py",
+      "tool_sha256_now": "e30f73b786ad52abe15276bca9c538e5ec2524392f8e392cd120f016a3ecf80d",
+      "sidecar_tool_sha256": "575c624f19ebcb322846597d9174f29d454b422f5e92b3641dd237c2d4ba40dc"
+     },
+     "gate1/intake/r32_inventory.py": {
+      "exit": 0,
+      "valid_for_this_commit": false,
+      "sha_match": false,
+      "demo_all_pass": true,
+      "reason": "TOOL_CHANGED_SINCE_DEMO: re-run gate1/control_failure_demo_c.py",
+      "tool_sha256_now": "2220dfbb9f4f9b2e4db7c3775a02f459b3d28a024b9e2fd976d2bb5bd0576923",
+      "sidecar_tool_sha256": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355"
+     }
+    },
+    "pass": true
+   },
+   {
+    "step": "after_rerunning_demo",
+    "kind": "must_not_flag",
+    "expect": "valid true",
+    "demo_all_cases_pass": true,
+    "observed": {
+     "c_bus_scan.py": {
+      "exit": 0,
+      "valid_for_this_commit": true,
+      "sha_match": true,
+      "demo_all_pass": true,
+      "reason": "OK",
+      "tool_sha256_now": "e30f73b786ad52abe15276bca9c538e5ec2524392f8e392cd120f016a3ecf80d",
+      "sidecar_tool_sha256": "e30f73b786ad52abe15276bca9c538e5ec2524392f8e392cd120f016a3ecf80d"
+     },
+     "gate1/intake/r32_inventory.py": {
+      "exit": 0,
+      "valid_for_this_commit": true,
+      "sha_match": true,
+      "demo_all_pass": true,
+      "reason": "OK",
+      "tool_sha256_now": "2220dfbb9f4f9b2e4db7c3775a02f459b3d28a024b9e2fd976d2bb5bd0576923",
+      "sidecar_tool_sha256": "2220dfbb9f4f9b2e4db7c3775a02f459b3d28a024b9e2fd976d2bb5bd0576923"
+     }
+    },
+    "pass": true
+   }
+  ],
+  "all_pass": true
+ }
+}
