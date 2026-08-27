@@ -1,0 +1,218 @@
+{
+ "cycle": "V2-C013",
+ "auditor": "adversarial",
+ "audit_type": "DEBT_RECOMPUTE bypass re-injection (8 species) + P2 remediation verification (dom_order schema binding, C-6 machine-check) + new bypass search",
+ "target_sha_exec": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+ "target_branch_exec": "agent/landing-v2-exec",
+ "target_sha_control": "17389a27006719a220304e27e921c8ceb8f14770",
+ "target_branch_control": "control/landing-orchestrator",
+ "prev_target_sha_exec": "48b4a3d9a05717c52ab891799b6203eb41cfc5f5",
+ "prev_control_sha": "1852644ac9c7ab6ae2f2a1d7e220216c4db239f1",
+ "base_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+ "prev_adversarial_audit": "V2-C011 PASS (P2 3) · 0dfb6d5788631347d4d50793f25d3f689251e1bd",
+ "audit_branch": "audit/landing-adversarial",
+ "phase": "P0_V2_REFREEZE",
+ "gate": "V2_SSOT_FROZEN",
+ "fast_exit_reinterpretation": {
+  "applied": true,
+  "issued_by": "orchestrator, mid-audit message",
+  "rule": "P0-blocking limited to three categories only: A=measurement evidence integrity break (open path to overwrite/swap/drop/select canonical results), B=canonical promotion bypass via FAIL/stale/wrong authority (including open paths around observation identity/manifest/append-only during REAL_TARGET execution), C=authoritative measurement semantics contradiction (a single observed value not being uniquely determined, including NED/IED/MPFED/endpoint semantics vs actual collector implementation). Documentation polish / extra mutation tests / branch protection / manifest coverage expansion / future hardening / redundant provenance / accepted bounded residual risk / post-E001 debt / stylistic inconsistency are NOT standalone FAIL grounds -- classify as BACKLOG_AFTER_COLLECTION / PRE_E001_NONBLOCKING / POST_E001_DEBT instead.",
+  "special_note_applied": "P-C l1_engine.py:339 dom_order/tie-break mismatch with A1 §2.6 MIN-4 is a KNOWN, already-deferred item (PHASE_GATES §4.7 shadow reconciliation, post-P0) per orchestrator's explicit instruction -- NOT counted as P0, classified POST_E001_DEBT, not re-litigated here.",
+  "which_category_found": "B",
+  "category_b_finding_id": "abrr-accepted-by-audit-sha-not-ancestor-checked"
+ },
+ "verdict": "FAIL",
+ "counts": {
+  "P0": 1,
+  "P1": 0,
+  "P2": 1,
+  "blocking": 1
+ },
+ "blocking_note": "New P0 (abrr-accepted-by-audit-sha-not-ancestor-checked) blocks V2_SSOT_FROZEN -- it is a live, empirically-demonstrated open bypass in the exact mechanism ([DEBT_RECOMPUTE]) that gates whether rc-6-r1's exclusion (and any future ACCEPTED_BOUNDED_RESIDUAL_RISK grant) is legitimate. New P2 (dom_order document-column gap) is non-blocking, PRE_E001_NONBLOCKING.",
+ "diff_scope": {
+  "exec_files": 3,
+  "exec_code_files": 0,
+  "exec_changed": [
+   "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+   "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+   "docs/v2/INSTALL_MANIFEST.json"
+  ],
+  "control_files": 3,
+  "control_changed": [
+   "control/cycles/V2_C012_orchestrator.json",
+   "control/state.json",
+   "scripts/promote_landing_main.sh"
+  ],
+  "summary": "exec: dom_order schema binding (A1 §5.1 column + A2 §1.13 value domain) + MIN-8 misattribution reroute to new 'MIN-4 경로 결정성 케이스'. control: [DEBT_RECOMPUTE] (D) block rewrite (H-1..H-5) + C-1/C-5-1 ledger condition transition + gates.E001_V2 introduction."
+ },
+ "verification_method": {
+  "extraction": "Sliced promote_landing_main.sh's (D) block using its own DR_HEAD_BEGIN/END, DR_D_BEGIN, DR_D_SKIP_BEGIN/END, DR_D_END, DR_D2_BEGIN/END markers -- zero bytes of the script edited, only sed/python slicing. Skipped (A) pinned-report and (C) v1-ledger cross-check regions exactly as control's own commit message specifies (those require pinned exec/adv/ssot SHAs unrelated to this cycle's scope).",
+  "driver": "Executed the extracted function/canon definitions in a namespace, then called tally(orchestrator_registered.findings, 'orchestrator_registered') directly against a scratch copy of the REAL control/state.json (17389a27, from the control worktree), then ran the DR_D2 visibility-enforcement/lapse-check code in the same namespace. repo argument = /home/sieg/projects-wsl/ProjectFinal, identical to the hardcoded REPO= value at promote_landing_main.sh:91.",
+  "case_count": 42,
+  "case_pass_rate": "42/42 matched expectation (after correcting harness setup bugs found along the way -- see harness_corrections)",
+  "harness_corrections": [
+   "Initial extraction regex matched marker names inside an explanatory comment line (which lists all marker names together) instead of the actual '# ---8<--- MARKER' delimiter lines, collapsing all slices to empty -- fixed by requiring the line to start with '# ---8<---'.",
+   "Attack case 06 (counted_as_open=false with no duplicate_of/superseded_by) targets an item that is now genuinely CLOSED/non-blocking in the current real ledger, so the guard it originally hit is unreachable via literal replay (the tally() loop short-circuits on blocking!=True or closed() before reaching the counted_as_open check) -- redone as a synthetic regression probe (force state=OPEN, blocking=True) to actually exercise the guard.",
+   "N3/N6/N7/N8 literal replays are vacuous against the CURRENT real ledger because control's V2-C012 transition made C-1/C-2/C-5-1 genuinely SATISFIED with valid ancestor-checked evidence -- there is nothing left to hide. Added compound variants (force the target condition back to NOT_SATISFIED, then layer the historical obfuscation attempt on top) to actually re-test whether H-1/H-4/H-5 still catch an unmet condition trying to evade detection. All 5 compound variants blocked."
+  ]
+ },
+ "attack_matrix_literal": [
+  {"case": "01", "attack": "accepted_by_audit_sha field deleted", "result": "차단"},
+  {"case": "02", "attack": "silent exclusion (state=OPEN + counted_as_open=false, no evidence)", "result": "차단"},
+  {"case": "03", "attack": "exclusion_line deleted", "result": "차단"},
+  {"case": "04", "attack": "gate ACHIEVED + C-5-1 forced NOT_SATISFIED (real C-6 auto-lapse)", "result": "차단"},
+  {"case": "05", "attack": "accepted_by_audit_report swapped to an unrelated real report path", "result": "차단"},
+  {"case": "06", "attack": "counted_as_open=false with no dup/superseded evidence (synthetic regression probe)", "result": "차단"},
+  {"case": "07", "attack": "precedent_limits_satisfied.i_reproduced_irreducibility=NO", "result": "차단"},
+  {"case": "08", "attack": "C-5-1 self-approved SATISFIED with no audit_sha", "result": "차단"},
+  {"case": "09", "attack": "finding_state_vocabulary.ACCEPTED_BOUNDED_RESIDUAL_RISK deleted", "result": "차단"},
+  {"case": "10", "attack": "accepted_bounded_residual_risk counter set to 0", "result": "차단"},
+  {"case": "11", "attack": "accepted_residual_ids emptied", "result": "차단"},
+  {"case": "12", "attack": "blocking reverted to true while excluded_from_total stays true", "result": "차단"},
+  {"case": "13", "attack": "accepted_by_audit_branch set to a non-audit namespace branch", "result": "차단"},
+  {"case": "N1-literal", "attack": "C-5-1.owner exec→control", "result": "차단", "note": "H-2 canon-comparison fires unconditionally"},
+  {"case": "N2-literal", "attack": "C-5-1 removed from conditions_status", "result": "차단", "note": "H-1 set-equality fires unconditionally"},
+  {"case": "N3-literal", "attack": "due_before lowercased ('v2_ssot_frozen')", "result": "통과 (vacuous)", "note": "normalizes to exact canon match -- legitimate, not a bypass; and current ledger has nothing unmet to hide. See N3-compound."},
+  {"case": "N4-literal", "attack": "due_before set to null", "result": "차단", "note": "H-1 format check fires unconditionally (None != canon)"},
+  {"case": "N5-literal", "attack": "audit_sha set to garbage string 'x'", "result": "차단", "note": "H-3 40-hex check fires unconditionally"},
+  {"case": "N6-literal", "attack": "gate token set to 'DECLARED / FROZEN — 선언 완료'", "result": "통과 (vacuous)", "note": "declaring achieved when all 3 required conditions are genuinely satisfied is correct behavior, not a bypass. See N6-compound."},
+  {"case": "N7-literal", "attack": "due_before trailing space", "result": "통과 (vacuous)", "note": "same as N3-literal. See N7-compound."},
+  {"case": "N8-literal", "attack": "C-1.state = 'SATISFIED_PENDING_AUDIT'", "result": "통과 (vacuous)", "note": "gate not declared achieved in baseline -> falls into 'pending' bucket, not 'lapsed'. See N8-compound."},
+  {"case": "N9-literal", "attack": "gates.E001_V2 = ACHIEVED", "result": "차단", "note": "C-3/C-4/C-5-2 are genuinely NOT_YET_DUE in the real ledger -- fires regardless of anything else"}
+ ],
+ "attack_matrix_compound": [
+  {"case": "N1-compound", "attack": "gate ACHIEVED + C-5-1 forced NOT_SATISFIED + owner exec→control on top", "result": "차단"},
+  {"case": "N3-compound", "attack": "gate ACHIEVED + C-5-1 forced NOT_SATISFIED + due_before lowercased on top", "result": "차단", "why": "H-5's hardcoded gate_required set membership is independent of the ledger's due_before text -- normalizing due_before cannot remove a condition from the trigger set"},
+  {"case": "N6-compound", "attack": "C-5-1 forced NOT_SATISFIED + gate token 'DECLARED / FROZEN — 선언 완료'", "result": "차단"},
+  {"case": "N7-compound", "attack": "gate ACHIEVED + C-5-1 forced NOT_SATISFIED + due_before trailing space on top", "result": "차단"},
+  {"case": "N8-compound", "attack": "gate ACHIEVED + C-1.state='SATISFIED_PENDING_AUDIT' + audit_sha removed", "result": "차단"}
+ ],
+ "attack_matrix_new_probes": [
+  {"case": "L2a-new-id-no-canon", "attack": "rc-6-r1's id field renamed to a brand-new string with no _ABRR_CANON entry", "result": "차단"},
+  {"case": "SUP1-extra-condition-id", "attack": "conditions_status gets an extra condition id not in canon (superset attack)", "result": "차단"},
+  {"case": "WS1-tab-suffix-literal / WS2-nbsp-suffix-literal", "attack": "due_before with trailing tab / actual U+00A0 NBSP", "result": "통과 (vacuous, same reason as N3/N7 literal)"},
+  {"case": "WS1-compound / WS2-compound", "attack": "same, combined with C-5-1 forced NOT_SATISFIED + gate ACHIEVED", "result": "차단 (양쪽 다)"},
+  {"case": "HOMO1-cyrillic-due_before", "attack": "due_before spelled with Cyrillic homoglyph characters (С for C), combined with real break", "result": "차단", "why": "regex [A-Z0-9_]+ is ASCII-only; homoglyphs fail the format check"},
+  {"case": "OWN1-fullwidth-owner", "attack": "owner set to fullwidth Unicode characters (ｅｘｅｃ)", "result": "차단"},
+  {"case": "H3a-audit_sha-wrong-condition-report", "attack": "C-5-1.audit_sha reused from a REAL, ancestor-valid commit (56f69f3, V2-C008) whose report never discusses C-5-1", "result": "차단", "why": "adjudication_hits() finds no affirmative hit for C-5-1 in that commit's report tree"},
+  {"case": "H3b-negative-verdict-commit-as-evidence", "attack": "C-5-1.audit_sha reused from a REAL, ancestor-valid commit (ac766e04, ssot V2-C009) that NEGATES the related tracker finding", "result": "차단"},
+  {"case": "H4a-unknown-token-not-in-either-list", "attack": "gates.V2_SSOT_FROZEN = 'ESTABLISHED' (plausible-looking but unlisted token)", "result": "차단"},
+  {"case": "H4b-gate-value-non-string", "attack": "gates.V2_SSOT_FROZEN set to a dict instead of a string", "result": "차단"},
+  {"case": "H5a-e001-unknown-token", "attack": "gates.E001_V2 = 'STARTED'", "result": "차단"},
+  {"case": "CMP1-owner+due_before+no_sha", "attack": "owner + due_before + missing audit_sha mutated simultaneously", "result": "차단"}
+ ],
+ "new_finding_p0": {
+  "id": "abrr-accepted-by-audit-sha-not-ancestor-checked",
+  "severity": "P0",
+  "fast_exit_category": "B",
+  "state": "OPEN",
+  "blocking": true,
+  "blocking_scope": "V2_SSOT_FROZEN (via rc-6-r1's exclusion validity) and all future ACCEPTED_BOUNDED_RESIDUAL_RISK grants",
+  "introduced_by_this_diff": false,
+  "pre_existing_since": "V2-C005/C006 era (the top-level accepted_by_audit_sha/accepted_by_audit_branch/accepted_by_audit_report validation block in residual_in_force(), NOT touched by V2-C012's H-1..H-5 rewrite)",
+  "statement": "residual_in_force()'s TOP-LEVEL grant-evidence check (accepted_by_audit_sha/accepted_by_audit_branch/accepted_by_audit_report -- distinct from V2-C012's NEW per-condition audit_sha check, H-3) verifies only (a) 40-hex format, (b) that `git show <sha>:<report_path>` succeeds, (c) that the resulting JSON's id/verdict/new_class fields match. It never calls merge-base --is-ancestor (or anything equivalent) to confirm the sha is actually reachable from the declared audit branch. Since `git show` succeeds for ANY commit object present in the local repository regardless of ref reachability, and promote_landing_main.sh:91 hardcodes REPO=/home/sieg/projects-wsl/ProjectFinal (the SAME shared .git object store used by every worktree under this project, per CLAUDE.md's worktree-sharing convention), any agent with ordinary local git write access (i.e. every role: exec, control, adversarial, ssot, shadow-lane agents) can fabricate a dangling, never-pushed commit containing a spoofed audit-report JSON and have it accepted as legitimate grant evidence.",
+  "self_correction": "My own V2-C011 §5.4 H-3 row claimed the top-level accepted_by_audit_sha check 'does all four things' including '감사 브랜치 확인' (branch/ancestor verification). That claim was FALSE -- I did not verify it empirically at the time. control's H-3 commit message explicitly benchmarks the new per-condition check against 'the same strength as [AUDIT_ANCESTRY]/accepted_by_audit_sha', i.e. control built H-3 assuming the top-level mechanism already had ancestor verification (trusting my incorrect V2-C011 description), and correctly replicated 40-hex/commit-resolve/report-content checks for the new per-condition field -- but never revisited the pre-existing top-level field to see whether it, too, needed the ancestor check it was credited with already having. I correct that overclaim here.",
+  "live_exploit_1_standalone": {
+   "description": "Reused rc-6-r1's existing top-level accepted_by_audit_sha with a fabricated dangling commit.",
+   "fake_commit_sha": "c7f48598a66f494e3cbfb78ff52b644c9576ee51",
+   "fake_commit_parent": "0dfb6d5788631347d4d50793f25d3f689251e1bd",
+   "fake_commit_content_path": "research/landing_accessibility/audit/adversarial/FAKE_GRANT.json",
+   "fake_commit_content": "{\"id\": \"rc-6-r1-same-authorization-local-reexecution-unbounded\", \"verdict\": \"ACCEPT_RECLASSIFY\", \"new_class\": \"ACCEPTED_BOUNDED_RESIDUAL_RISK\", \"note\": \"FABRICATED for V2-C013 adversarial live-exploit test\"}",
+   "construction_method": "git commit-tree with a hand-built tree (via git hash-object -w + git mktree, walking the real base commit's tree and grafting one new blob in at the target path) -- no branch ref ever created or moved.",
+   "ancestor_check_result": "git merge-base --is-ancestor c7f48598... origin/audit/landing-adversarial -> NOT an ancestor (confirmed)",
+   "reachability_check_result": "git for-each-ref --contains=c7f48598... -> empty (confirmed: reachable from no ref at all)",
+   "outcome": "residual_in_force() for rc-6-r1 accepted this as valid top-level grant evidence -- case 'EXPLOIT-dangling-audit-sha' PASSED (통과) when it should have been blocked (차단)."
+  },
+  "live_exploit_2_control_for_H3": {
+   "description": "Same dangling-commit trick, but applied to the NEWER per-condition audit_sha (H-3) instead, as a control to prove H-3 itself correctly implements ancestor-checking (and is thus NOT the same vulnerability).",
+   "fake_commit_sha": "0b7496dc75c08477770dd143f95ab9809ac4489c",
+   "outcome": "BLOCKED -- 'audit_sha(...) 가 원장이 선언한 감사 브랜치(...) tip 의 조상이 아니다' -- confirms H-3 works as designed and the gap is specific to the OLDER top-level mechanism."
+  },
+  "live_exploit_3_combined_with_L2": {
+   "description": "Full end-to-end self-approval bypass: fabricate a brand-new _ABRR_CANON entry (simulating control's own canon-editing capability, L-2's scenario) for a wholly invented finding id, register a new orchestrator_registered.findings entry for that id with the dangling-commit grant as top-level evidence, reuse REAL ancestor-valid evidence for the one per-condition requirement (C-1, genuinely satisfied, to pass H-3 honestly), and keep the visibility bookkeeping (accepted_bounded_residual_risk counter, accepted_residual_ids) self-consistent -- exactly what a competent attacker would do.",
+   "fabricated_finding_id": "brand-new-p0-finding-self-exempted",
+   "fake_commit_sha": "ccbe3fec625312f939e7ac03b7714fd86f9f6193",
+   "fake_commit_content_path": "research/landing_accessibility/audit/adversarial/FAKE_GRANT2.json",
+   "canon_patch": "_ABRR_CANON['brand-new-p0-finding-self-exempted'] = {conditions: {'C-1': ('control','V2_SSOT_FROZEN')}, gate_required: {'V2_SSOT_FROZEN': ('C-1',)}}",
+   "outcome": "The ENTIRE (D) block (residual_in_force + tally + DR_D2 visibility/lapse checks) ran with ZERO errors. A wholly fabricated finding, with a wholly fabricated audit verdict that no real adversarial or ssot lane ever wrote, was accepted as a legitimate ACCEPTED_BOUNDED_RESIDUAL_RISK exclusion and would silently keep the ledger's own internal counters consistent.",
+   "significance": "This directly answers the orchestrator's question about whether L-2 (canon self-editability) is a real hole: L-2 ALONE is not exploitable (control's reasoning that 'a real grant is still required' is correct in isolation) -- but L-2 COMBINED with this P0 constitutes a complete, working self-approval bypass of the entire ACCEPTED_BOUNDED_RESIDUAL_RISK safety mechanism."
+  },
+  "production_relevance": "promote_landing_main.sh:91 hardcodes REPO=\"/home/sieg/projects-wsl/ProjectFinal\" -- the exact repository used for this test, and the exact shared .git object store that every worktree (.agent_worktrees/*) in this project writes into per CLAUDE.md's worktree-sharing model. This is not a contrived lab condition.",
+  "remediation_minimal": "Apply audit_branch_tips() + merge-base --is-ancestor (H-3's existing implementation, unchanged) to the top-level accepted_by_audit_sha/accepted_by_audit_branch check in residual_in_force(), the same way H-3 already does for per-condition audit_sha. Estimated change: ~3 lines, reusing existing helper functions.",
+  "housekeeping_note": "The 4 dangling commits created during this audit's live-exploit demonstrations (c7f48598..., 0b7496dc..., ccbe3fec..., plus FAKE_COND.json's carrier commit) are unreferenced by any ref (confirmed via git for-each-ref --contains) and were never pushed. They are inert and eligible for `git gc --prune=now` cleanup once the fix lands; no action required to neutralize them since they were never reachable to begin with."
+ },
+ "l_series_adjudication": {
+  "L-1": {
+   "control_claim": "condition-evidence check scans ALL audit-report JSONs in the audit_sha commit's tree and accepts if ANY affirms the id; an OLDER report in the same tree negating it does not veto.",
+   "verdict": "Accurately disclosed. No live exploit path found against the CURRENT real conditions (C-1/C-2/C-5-1) -- their current audit_sha values (0dfb6d5/56f69f3/30093b4) are the genuine, non-superseded, non-contradicted verdicts. Left as a theoretical residual, not escalated to a finding: exploiting it would require an actual historical case of a stale/retracted affirmative verdict for one of the three gate-required conditions, which does not currently exist in this project's history."
+  },
+  "L-2": {
+   "control_claim": "_ABRR_CANON lives in the script, which control can edit; new grants still require a real ACCEPT_RECLASSIFY verdict, so this is 'intended friction', not a hole.",
+   "verdict": "Standalone claim is textually accurate. However its safety argument depends entirely on 'a real ACCEPT_RECLASSIFY verdict' being unforgeable -- and §new_finding_p0 shows it is forgeable. live_exploit_3_combined_with_L2 demonstrates the combination working end to end. Judgment: L-2 is a real hole once combined with the P0 above; not a hole in isolation."
+  }
+ },
+ "p2_verification": [
+  {
+   "id": "min-4-dom-order-not-bound-as-schema-field",
+   "opened_in": "V2-C011 (mine)",
+   "verdict": "CLOSED",
+   "evidence": {
+    "a1_5_1_column_row": "present, right after `selector`, with an observation-procedure note (probe-derived, structural not observed, no NULL, monotonic within a document, re-starts per iframe document)",
+    "a2_1_13_value_domain_table": "present -- type Int64, range >=0, NULL disallowed with rationale, uniqueness (observation_id, document)",
+    "min_8_freeze_artifact_list": "dom_order added -- exceeds the original ask (which left this to P-C's discretion)",
+    "install_manifest_hash_recheck": "A1: bytes=60039 sha256=6efd3055d232afa03d61e03809d9ae2bb8647432be404e72c3adcd86da30ed16 (recomputed, matches). A2: bytes=259173 sha256=68b873d7a09d62a4a0d6308f2791a10a8abb066a088f0cd2c5a8eaa8d85685ed (recomputed, matches)."
+   }
+  },
+  {
+   "id": "min-4-dom-order-residual-attributed-to-min-8-replay-which-min-8-says-it-does-not-detect",
+   "opened_in": "V2-C011 §5.5 (mine, independent-arrival agreement with ssot)",
+   "verdict": "CLOSED",
+   "evidence": "A1:308 and A1:433-439 both rerouted to a newly-named 'MIN-4 경로 결정성 케이스' (the pre-existing §2.5 same-fixture-twice case, Scout-layer). MIN-8's own text gained an explicit negative scoping statement ('MIN-8은 이것을 잡지 않는다 ... 동결 이후 국면만 담당한다'). Full-file grep for all 5 MIN-8 occurrences in the target A1 confirms zero remaining affirmative 'MIN-8 catches this' attributions."
+  }
+ ],
+ "p2_new": {
+  "id": "min-4-dom-order-uniqueness-constraint-references-undefined-document-column",
+  "severity": "P2",
+  "blocking": false,
+  "blocking_scope": "A2 §1.13 self-consistency · A1 §5.1 column table completeness · future P-C multi-document/iframe candidate handling",
+  "not_blocking": "V2_SSOT_FROZEN",
+  "introduced_by_this_diff": true,
+  "statement": "A2 §1.13's new dom_order uniqueness constraint says 'unique within (observation_id, document)' and adds an 'iframe boundary' paragraph, but no column named document/document_id/frame_id/frame_url exists anywhere in fact_primary_action_candidate's A1 §5.1 column table, nor anywhere else in the entire 00~02 pack. A full-text search for iframe/frame_id/frame_url across 00_SSOT/01_DATA_SPEC/02_COLLECTION_MEASUREMENT_SPEC returns zero hits outside these two new sentences -- multi-document/iframe candidate handling is not a concept that exists anywhere else in the specification.",
+  "why_it_matters": "The uniqueness constraint, as literally written, is not checkable against the actual schema: there is no stored field to key the constraint on, and selector alone does not disambiguate documents (two candidates in different iframes could share an identical selector string).",
+  "remediation_minimal": "Add a document-scope column (e.g. document_index or frame_id, 0-based, 0=top document) to A1 §5.1's column table and point A2 §1.13's uniqueness constraint at it, OR explicitly scope the current spec to single-document pages and narrow the uniqueness constraint to (observation_id) alone until iframe support is designed."
+ },
+ "invariants": {
+  "pilot_diff_lines": 0,
+  "pilot_files_opened": 0,
+  "pack_00_05_and_manifest_this_cycle": "unchanged (checked PREV..TARGET = 48b4a3d..bc0b7a0, matching methodology used in V2-C011)",
+  "self_approval_paths_in_exec_diff": 0,
+  "root_claude_md_state_parquet_evidence": 0,
+  "verify_v2_docs": "PASS -- independent git-archive snapshot of bc0b7a0, 17/17 OK",
+  "install_manifest_hash_recompute": "A1 and A2 bytes+sha256 directly recomputed, 0 mismatches",
+  "quality_gates": "inherited (0 code diff on exec side)",
+  "c6_declaration_scenario": {
+   "method": "Copy of the REAL committed control/state.json (17389a27), gates.V2_SSOT_FROZEN mutated to 'ACHIEVED', (D) block driven against the copy. Production promotion script body was NOT executed (no --dry-run, no apply).",
+   "result": "PASS (no lapse fires) -- C-1/C-2/C-5-1 are genuinely SATISFIED with ancestor-valid evidence (0dfb6d5/56f69f3/30093b4, each confirmed via merge-base --is-ancestor against origin/audit/landing-adversarial).",
+   "caveat": "This factual result is undermined in confidence, not falsified, by the new P0: the CURRENT ledger's grant is genuine, but the mechanism that is supposed to guarantee genuineness going forward has a demonstrated hole."
+  }
+ },
+ "promotion_readiness": {
+  "my_lane_blocking_remaining": 1,
+  "my_lane_detail": "8-species DEBT_RECOMPUTE bypass: CLOSED (42/42 cases). Both V2-C011 P2s (dom_order schema binding, MIN-8 misattribution): CLOSED. New: 1 P0 (accepted_by_audit_sha ancestor gap, live-exploited) + 1 P2 (undefined document column, non-blocking).",
+  "statement": "My lane now has exactly one blocking item, and it is new: a previously-undetected (across V2-C005 through V2-C012, 8 audit cycles touching this exact mechanism) gap in the promotion script's self-approval-prevention logic, directly and empirically exploited. Everything else I was asked to re-verify is clean.",
+  "gate_verdict": "V2_SSOT_FROZEN should not be declared until abrr-accepted-by-audit-sha-not-ancestor-checked is fixed -- the fix is small (H-3's existing ancestor-check code, reused) and control already has the reference implementation next to the gap."
+ },
+ "not_done": [
+  "full re-audit",
+  "real website access",
+  "Pilot review",
+  "writes to other worktrees",
+  ".git/hooks/ modification",
+  "execution of the promotion script body (including --dry-run) -- C-6 scenario was tested via the isolated (D) block against a ledger copy only",
+  "untracked draft V2_C004.{md,json} -- left untouched",
+  "ssot-lane adjudications",
+  "P-C l1_engine.py dom_order non-implementation -- classified POST_E001_DEBT per orchestrator instruction, not re-litigated"
+ ],
+ "counts_note": "P0=1 and P2=1 are both newly opened by this audit; the 3 P2s I opened in V2-C011 (8-species bypass, dom_order schema binding, MIN-8 misattribution) are all CLOSED and not double-counted.",
+ "same_cycle_ssot": "not checked this cycle -- ssot lane adjudication out of my scope"
+}
