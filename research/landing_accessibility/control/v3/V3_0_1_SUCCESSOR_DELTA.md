@@ -91,6 +91,7 @@ v3 채택 이후 발행분부터 15 스키마를 적용한다. 기존 type 의 �
 | `VALIDITY_RISK_CANDIDATE` | `FINDING` | `finding_class: VALIDITY_RISK` · P1 이상 |
 | `RESEARCH_QUESTION` | `FINDING` | `finding_class: OPEN_QUESTION` |
 | `MART_READY` · `STATS_READY` · `FINAL_READY` | `COMPLETION` | `readiness_class` |
+| `STATUS` | `FINDING` | `finding_class: STATUS_REPORT` |
 
 `VALIDITY_RISK_CANDIDATE` 를 `FINDING` 으로 접으면서 우선순위를 잃지 않도록, `finding_class: VALIDITY_RISK` 는 **P1 이상으로만** 발행한다. D 의 `open_question_for_A` 에 대한 답이다.
 
@@ -609,3 +610,13 @@ B 가 자기 패턴을 등재했다 — 이번 세션에 worker 지시문에 틀
 ### W5H 의 반박이 R16 의 worker→coordinator 방향 작동 사례다
 
 W5H 는 B 의 중간 지시를 그대로 따르지 않고 "coordinator 의 정정 ①은 성립하지 않는다"고 명시하고 **대조군으로 보였다**. A 가 R16 으로 세운 "같은 원문 다른 독해면 FACT_CORRECTION" 이 평면 내부에서도 작동한다.
+
+### Δ5 추가 — `STATUS` (C 관측, 2026-08-28)
+
+B 가 `T-B-V3-RESUME-001` 에 `type=STATUS` 를 썼고 C 가 enum 밖임을 잡았다(비차단).
+
+진행 보고는 finding 도 completion 도 아니다 — 무엇을 발견한 것도, 무엇을 끝낸 것도 아니다. 그러나 **새 type 을 만들지 않는다**: `VALIDITY_RISK_CANDIDATE` · `ADDENDUM` 을 접었던 것과 같은 규칙을 적용해 `FINDING` + `finding_class: STATUS_REPORT` 로 접는다.
+
+`STATUS_REPORT` 는 **결정을 요구하지 않는다** — `decision_required` 가 비어 있어야 하고, 비어 있지 않으면 그것은 status 가 아니라 `DECISION_REQUEST` 다.
+
+소급 개정하지 않는다. `T-B-V3-RESUME-001` 은 발행 시점 기록으로 남는다.
