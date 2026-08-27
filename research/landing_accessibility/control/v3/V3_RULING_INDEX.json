@@ -1,11 +1,11 @@
 {
  "index": "V3_RULING_INDEX",
- "version": 12,
+ "version": 13,
  "purpose": "A 가 발행한 모든 조작적 정의·계약 요구의 정본 목록. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(T-B-V3-SCOPE-001).",
  "how_to_use": "C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 목록**을 기준으로 대조한다. 목록에 있는데 산출에 없으면 미반영이다.",
  "source": "control/v3/V3_0_1_SUCCESSOR_DELTA.md — 이 목록은 그 문서의 색인이며 정본은 그 문서다. 충돌 시 delta 원문이 이긴다.",
  "authority_sha": "adcdcb6050e96817be8645662c098b3221d4f90f",
- "count": 63,
+ "count": 68,
  "rulings": [
   {
    "id": "Δ1-a",
@@ -234,7 +234,7 @@
   },
   {
    "id": "Δ10-R11",
-   "requires": "terminal_reason 13값 동반 필드. 모든 terminal 이 두 필드. OTHER 는 note 필수. 허용 조합표",
+   "requires": "terminal_reason **14값**(Δ30 으로 BUDGET_EXCEEDED 추가) 동반 필드. 모든 terminal 이 두 필드. OTHER 는 note 필수. 허용 조합표",
    "must_appear_in": "관측 행 + 조합표",
    "verified_by": "C",
    "due": "GATE1",
@@ -771,9 +771,73 @@
    "must_appear_in": "A 의 불일치 판정문",
    "verified_by": "B+C+D",
    "due": "상시"
+  },
+  {
+   "id": "Δ30",
+   "requires": "Scout 경로선택 정책 — MIN-1~MIN-7 승계. 폭우선 열거·탐욕하강 금지·최소성은 부분격자 안에서만·k와 m은 같은 경로에서·예산 소진은 관측 없음",
+   "must_appear_in": "B 의 Scout 구현 + 정책 문서",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ30",
+   "aliases": [
+    "MIN-1",
+    "MIN-2",
+    "MIN-3",
+    "MIN-4",
+    "MIN-5",
+    "MIN-6",
+    "MIN-7",
+    "Δ30"
+   ]
+  },
+  {
+   "id": "Δ30-branch",
+   "requires": "분기 대상 집합 = Δ9 의 IN 10 + CONDITIONAL 3. INPUT_QUERY·DISMISS_OBSTRUCTION·AUTH_GATE·ENDPOINT_REACHED·ABSTAIN 은 분기 대상 아님. **v2.1 과 달리 SUBMIT_QUERY 는 분기 대상이다**",
+   "must_appear_in": "Scout 구현",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ30",
+   "aliases": [
+    "Δ30-branch"
+   ]
+  },
+  {
+   "id": "Δ30-tiebreak",
+   "requires": "tie-break 전순서 = `task_binding_candidate desc, dom_order asc, selector asc`. **점수를 키로 쓰지 않는다** — 집합 소속과 구조값만. marked_primary 는 v3 에 없다",
+   "must_appear_in": "Scout 구현 + 결정성 테스트",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ30",
+   "aliases": [
+    "MIN-4",
+    "Δ30-tiebreak"
+   ]
+  },
+  {
+   "id": "Δ30-budget",
+   "requires": "수집 파라미터 `BRANCHING_LIMIT=4`(승계) 외 4종은 **B 가 실측 근거와 함께 제안하고 A 가 P4 이전 동결**. manifest 기재 필수 — 값 없이는 '무엇에 대한 최소인가'를 말할 수 없다",
+   "must_appear_in": "FINAL manifest",
+   "verified_by": "A",
+   "due": "V3_PILOT_5_RELEASE",
+   "authority": "Δ30",
+   "aliases": [
+    "Δ30-budget"
+   ]
+  },
+  {
+   "id": "Δ30-claim",
+   "requires": "보고에 '최소 경로를 찾았다'로 쓰지 않는다. 쓸 수 있는 문장은 'BRANCHING_LIMIT·후보 지명 규칙·즉시종료 규칙 아래에서 관측된 최소 activation 수'",
+   "must_appear_in": "claim registry · 최종 보고",
+   "verified_by": "C",
+   "due": "GATE3",
+   "authority": "Δ30",
+   "aliases": [
+    "MIN-5",
+    "Δ30-claim"
+   ]
   }
  ],
- "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안) | v9: 기계적 접미사 별칭 제거 + 토큰경계 매칭 + 길이3 미만 금지 (T-B-V3-FINDING-007) | v10: Δ23~Δ26·R24·R25 누락 5행 추가 + container_sections 명시 + delta 절 커버리지 검사 상주 (D-V3-FINDING-012). **A 의 Δ21 위반 네 번째** | v11: Δ28-R26 추가 (delta 기록과 색인 추가를 함께 — Δ21/Δ27 자기적용) | v12: Δ29 추가 + R26 보강 (D-V3-FACT_CORRECTION-003 — A 의 Δ28 이 너무 관대했다)",
+ "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안) | v9: 기계적 접미사 별칭 제거 + 토큰경계 매칭 + 길이3 미만 금지 (T-B-V3-FINDING-007) | v10: Δ23~Δ26·R24·R25 누락 5행 추가 + container_sections 명시 + delta 절 커버리지 검사 상주 (D-V3-FINDING-012). **A 의 Δ21 위반 네 번째** | v11: Δ28-R26 추가 (delta 기록과 색인 추가를 함께 — Δ21/Δ27 자기적용) | v12: Δ29 추가 + R26 보강 (D-V3-FACT_CORRECTION-003 — A 의 Δ28 이 너무 관대했다) | v13: Δ30 Scout 정책 승계 5행 + terminal_reason 14값 (T-B-V3-BLK-013)",
  "maintenance_rule": "A 가 판정을 낼 때 **delta 기록과 색인 추가를 함께** 한다. 티켓만 발행하면 정본이 전달 이력에 의존한다. C 는 색인↔delta 와 delta↔티켓 양방향을 대조한다.",
  "coverage_denominator": {
   "rule": "커버리지 분모는 **색인의 전체 행 수**다. 구조적으로 제외되는 행을 두지 않는다",
