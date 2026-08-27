@@ -1,0 +1,41 @@
+{
+  "status": "SHADOW_PREPARATORY",
+  "base_sha": "d5f1da5652953542d5c8be377026cc3293f2075a",
+  "shadow_lane": "LANE_C",
+  "branch": "agent/landing-pc-fixture",
+  "worktree": ".agent_worktrees/landing_pc_fixture",
+  "created_before_p0_close": true,
+  "authoritative": false,
+  "real_target_outcome_used": false,
+  "fixture_only": true,
+  "real_target_measurement": false,
+  "requires_post_p0_reconciliation": true,
+  "phase": "P-C",
+  "gate": "L0_L1_ENGINE_READY",
+  "gate_status": "NOT_CLAIMED",
+  "authority": [
+    "docs/v2/PHASE_GATES.md §4",
+    "docs/v2/02_COLLECTION_MEASUREMENT_SPEC_v2.0.md",
+    "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+    "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+    "docs/07_EVIDENCE_MANIFEST_CONTRACT.md"
+  ],
+  "pilot_reuse": {
+    "mode": "SELECTIVE_FUNCTION_PORT",
+    "file_import": false,
+    "ported": [
+      "상대휘도/명도대비 산식 (probe.js lum/contrast)",
+      "유효 배경색 상승 탐색 (effectiveBg)",
+      "안정 selector 생성 (sel)",
+      "가시성 판정 (visible)",
+      "CDP 기반 AX tree 취득 방식"
+    ],
+    "deliberately_not_ported": [
+      "KWCAG 임계값 비교 (required) — 02 §4 가 verdict 층으로 분리하라고 요구한다",
+      "large_text 분류 — 임계값이 들어간 파생값이다",
+      "criteria.py 의 판정 함수 전체"
+    ]
+  },
+  "result_status": "SYNTHETIC_FIXTURE_ENGINE_TEST_ONLY",
+  "not_a_research_finding": "이 lane 이 내는 PASS/FAIL 은 fixture 에 대한 engine test 결과이며 실제 서비스에 대한 research finding 이 아니다"
+}
