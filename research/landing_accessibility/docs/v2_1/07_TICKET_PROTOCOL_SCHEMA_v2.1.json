@@ -1,0 +1,54 @@
+{
+  "schema_id": "LA-TICKET-2.1",
+  "required": [
+    "ticket_id",
+    "type",
+    "from",
+    "to",
+    "priority",
+    "phase",
+    "claim_kind",
+    "base_sha",
+    "created_at",
+    "expected_response"
+  ],
+  "fields": {
+    "ticket_id": "globally unique immutable id",
+    "type": ["DIRECTIVE", "WORK_REQUEST", "ACK", "COMPLETION", "FINDING", "BLOCKER", "FACT_CORRECTION", "GO_NO_GO", "HARD_STOP_CANDIDATE", "SUPERSEDE", "HANDOFF"],
+    "from": "A | B | C | worker-id",
+    "to": "single recipient or list",
+    "priority": "P0 | P1 | P2 | P3 | P4",
+    "phase": "CLEAN0 | R0 | LABEL | I1 | V1 | PILOT | FULL | MART | STATS | FINAL",
+    "claim_kind": "DEFINITION | IMPLEMENTATION | OBSERVATION | ANALYSIS | DECISION | PROJECTION",
+    "base_sha": "exact git sha this ticket assumes",
+    "target_sha": "exact artifact/code sha to verify when known",
+    "scope": "target/service/file/phase scope",
+    "supersedes_ticket_id": "required when changing a prior directive",
+    "depends_on": "ticket ids",
+    "artifact_refs": "paths + hashes + run ids",
+    "acceptance_criteria": "closed conditions",
+    "expected_response": "ACK | COMPLETION | FINDING | GO_NO_GO",
+    "deadline": "optional timestamp",
+    "idempotency_key": "required for real-target execution",
+    "created_at": "KST ISO8601"
+  },
+  "exactly_once": {
+    "real_execution_key": "ticket_id + run_id + target_id + collector_sha + protocol_sha",
+    "duplicate_behavior": "do not launch; emit DUPLICATE_SUPPRESSED"
+  },
+  "truth_precedence": [
+    "exact artifact/runtime/code at SHA",
+    "independently reproducible computation",
+    "frozen data definition/codebook/schema",
+    "current SSOT/accepted decision",
+    "prose docs/docstrings/comments",
+    "agent narrative/inference"
+  ],
+  "execution_priority": [
+    "P0 safety/evidence/contract corruption",
+    "P1 measurement validity",
+    "P2 production/throughput",
+    "P3 statistics/narrative",
+    "P4 polish/housekeeping"
+  ]
+}

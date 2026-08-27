@@ -1,0 +1,31 @@
+{
+  "doc_id": "LA-PHASE-STATE",
+  "purpose": "프로토콜 §16 투명성 목표 — GitHub 만 보고 현재 상태를 알 수 있게 하는 A 의 미러. bus 는 로컬 transport 로 남는다.",
+  "updated_at_kst": "2026-08-27T21:02:00+09:00",
+  "phase": "CLEAN0",
+  "phase_window_kst": "20:43 ~ 21:08 (25분)",
+  "ssot": "research/landing_accessibility/docs/v2_1/  (SSOTV2 11개 문서팩)",
+  "planes": {
+    "A": {"branch": "control/landing-orchestrator", "base_sha": "084eff541836c2e16418b96bd230c1d58bcda663", "worktree": ".agent_worktrees/claude_a_control", "state": "CLEAN0_IN_PROGRESS"},
+    "B": {"branch": "claude-b/measurement-recovery", "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4", "state": "NOT_STARTED_THIS_SESSION"},
+    "C": {"branch": "claude-c/assurance-current", "base_sha": "1baa865b4a673af05033e6e6289fd2713676baa5", "state": "NOT_STARTED_THIS_SESSION"},
+    "LABELER": {"branch": "label/e001-independent-*", "state": "NOT_SPAWNED"}
+  },
+  "authoritative_landing_main": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+  "canonical_result": {"branch": "claude-b/analysis-current", "sha": "82f631f1e6bd3708bc8f95f0b8edcd90e22cef0d", "grade": "PILOT / PRELIMINARY", "status": "FINAL_ACCEPTED — recovery 가 대체하지 않는다"},
+  "gates": {
+    "REAL_TARGET": "NO-GO",
+    "REAL_TARGET_conditions": ["B 구현 completion", "C assurance PASS (same SHA)", "A 명시적 GO"],
+    "offline_frozen_dom_replay": "ALLOWED (n=56 파일, E000 은 sensitivity-only)",
+    "next_gate": "R0 — Recovery Contract Freeze"
+  },
+  "open_blockers": ["G1", "G2", "G3", "G3b", "G4", "G5", "BUS-F1", "ISSUE-A-001", "TRAP-01"],
+  "raw_artifacts_outside_git": {
+    "manifest": "control/clean0/ARTIFACT_RETENTION_MANIFEST.json",
+    "E001_evidence_dirs": 66,
+    "E001_distinct_observations": 60,
+    "E001_total_bytes": 753676839,
+    "read_only": true
+  },
+  "next_action": "R0 티켓 발행 → C 가 2281c85 감사 독립 재현 → A R0 GO/NO-GO"
+}

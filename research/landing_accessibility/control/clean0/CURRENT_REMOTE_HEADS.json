@@ -1,0 +1,43 @@
+{
+  "doc_id": "LA-CLEAN0-REMOTE-HEADS-20260827T2043",
+  "assertion_type": "OBSERVATION",
+  "captured_at_kst": "2026-08-27T20:43:00+09:00",
+  "method": "git ls-remote origin 'refs/heads/*' — full refs, no pattern inference",
+  "heads": {
+    "refs/heads/main": "a835d5d8b06a15d5a75dee9ba34a3654555fc930",
+    "refs/heads/research/landing-accessibility-main": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "refs/heads/agent/landing-v2-exec": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "refs/heads/control/landing-orchestrator": "084eff541836c2e16418b96bd230c1d58bcda663",
+    "refs/heads/claude-b/analysis-current": "82f631f1e6bd3708bc8f95f0b8edcd90e22cef0d",
+    "refs/heads/claude-b/measurement-recovery": "2281c853950d0c475c5d2c1678680b971c2804f4",
+    "refs/heads/claude-b/integration-current": "397a10de0ac341595f47f499ed89d17170a15432",
+    "refs/heads/claude-c/assurance-current": "1baa865b4a673af05033e6e6289fd2713676baa5",
+    "refs/heads/handoff/landing-a-20260827": "7c8facebe95ec3793756a82d809be37ca17b6b6e",
+    "refs/heads/handoff/landing-b-20260827": "66aa655400f872197e64390522225823e93b5628",
+    "refs/heads/handoff/landing-c-20260827": "3d84741656ce08991ceb06572b2b242470f1f9e3",
+    "refs/heads/research/refcohort-r1": "32460b87334a67f6a74823ac55f85ca80a9f8980"
+  },
+  "baseline_reconciliation": {
+    "source": "docs/v2_1/08_CURRENT_STATE_BASELINE_v2.1.md",
+    "verdict": "ALL_8_BASELINE_SHAS_MATCH_REMOTE_EXACTLY",
+    "notes": "08번 문서의 8개 SHA를 remote full ref로 1:1 대조했고 전건 일치. 문서 baseline을 권위로 쓰지 않고 재확인한 결과다."
+  },
+  "traps_found": [
+    {
+      "id": "TRAP-01",
+      "assertion_type": "OBSERVATION",
+      "severity": "P1",
+      "statement": "로컬 브랜치 research/landing-accessibility-main = 32460b87 이고 원격 동명 브랜치 = bc0b7a08 이다. 두 값은 다르다.",
+      "relation": "merge-base(bc0b7a08, 32460b87) = 32460b87 → 로컬은 원격의 조상이다. fork가 아니라 STALE(뒤처짐)이다.",
+      "consequence": "브랜치 이름으로 로컬 체크아웃하면 research/landing_accessibility/ 자체가 없는 트리를 얻는다. 실제로 이 세션 시작 시 primary worktree(research/refcohort-r1@32460b8)에서 control 디렉터리 조회가 ENOENT였다.",
+      "rule": "landing 계열 파일 조회는 반드시 exact SHA 또는 bc0b7a08이 체크아웃된 워크트리(.agent_worktrees/landing_v2_exec)에서 한다."
+    },
+    {
+      "id": "TRAP-02",
+      "assertion_type": "OBSERVATION",
+      "severity": "P2",
+      "statement": "refs/heads/main = a835d5d8 은 authoritative main이 아니다. a835d5d8 은 bc0b7a08 의 조상이다.",
+      "rule": "authoritative landing main = bc0b7a08. origin/main 을 연구 기준선으로 쓰지 않는다."
+    }
+  ]
+}
