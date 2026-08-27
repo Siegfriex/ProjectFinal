@@ -312,7 +312,8 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
         for i in idx.ids:
             if token_in(text, i): resolved_rows.add(i)
     delta = git_show(repo, delta_ref) or ""
-    heads = re.findall(r"^##+\s+(Δ\d+(?:-[A-Za-z0-9]+)?)\b", delta, re.M)
+    # v21: delta headings include `### Rn` sub-headings (resolve via alias); id may carry inner hyphens; token-bounded end
+    heads = [h.strip() for h in re.findall(r"^#{2,3}\s+(Δ\d+(?:-[A-Za-z0-9\-]+)?|R\d+)(?![0-9A-Za-z_-])", delta, re.M)]
     heads_without_row = sorted({h for h in heads if not idx.resolve(h) and not idx.resolve_by_subrows(h)})
     # (g) Δ21/STEP1-029 index→delta reachability: a row is reachable iff (a) its id is a delta heading, (b) any id/alias token
     # appears in the delta body (token-bounded, C's single boundary regex — Δ33 specificity, no shape filter), or
@@ -321,9 +322,13 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
     def _tok_delta(t: str) -> bool:
         return re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", delta) is not None
     def _reachable(row: dict) -> str | None:
+        """v21 declared 4-path rule: (a) id heading (b) authority heading (c) id/alias token in body (d) split_rows parent.
+        Order matters for the 'anchor-only' report: content-specific paths (a)(c) are tried before parent anchors (b)(d)."""
         rid = row["id"]
         if rid in heads: return "heading"
         if any(_tok_delta(t) for t in [rid] + list(row.get("aliases") or [])): return "token"
+        auth = row.get("authority") or ""
+        if auth and auth in heads: return "authority_heading"
         parent = split_map.get(rid)
         if parent and (parent in heads or _tok_delta(parent)): return "split_parent"
         return None
@@ -336,10 +341,13 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
                       {"control": "negative: Δ21 reachable", "result": "PASS" if reach.get("Δ21") else "FAIL"},
                       # D-V3-FINDING-015: a fake CHILD whose parent section exists discriminates the declared (split_rows-only) rule
                       # from an all-hyphen-ids-inherit rule; under C's declared-rule implementation it must be unreachable.
-                      {"control": "discriminating: fake child Δ15-NOSUCH (parent Δ15 exists) unreachable under declared rule", "result": "PASS" if _reachable({"id": "Δ15-NOSUCH", "aliases": []}) is None else "FAIL"}]
+                      {"control": "discriminating: fake child Δ15-NOSUCH without authority → unreachable", "result": "PASS" if _reachable({"id": "Δ15-NOSUCH", "aliases": []}) is None else "FAIL"},
+                      {"control": "documented: fake child Δ15-NOSUCH with authority=Δ15 → reachable via parent anchor under v21 rule (shows the rule's blind spot)", "result": "AS_DOCUMENTED" if _reachable({"id": "Δ15-NOSUCH", "aliases": [], "authority": "Δ15"}) == "authority_heading" else "UNEXPECTED"}]
     out.update({"status": "OK", "a_tickets_v3_era": len(a_tickets), "tokens_mentioned": len(mentions),
-                "index_to_delta_reachability": {"rule": "heading | token(id/alias, boundary) | split_rows parent (STEP1-029)", "split_rows_declared": len(split_map),
+                "index_to_delta_reachability": {"rule": "v21: id heading | id/alias token | authority heading | split_rows parent (STEP1-029 + D-V3-FINDING-015)", "split_rows_declared": len(split_map),
                                                 "unreachable_rows": unreachable_rows, "reached_only_via_split_parent": sorted(k for k, v in reach.items() if v == "split_parent"),
+                                                "reached_only_via_parent_anchor": sorted(k for k, v in reach.items() if v in ("authority_heading", "split_parent")),
+                                                "note": "rows in reached_only_via_parent_anchor satisfy the v21 rule but have no row-specific token in the delta (D-V3-FINDING-015 caveat) — reported, not a defect",
                                                 "controls": reach_controls},
                 "unrecorded_mentions": unrecorded, "resolved_only_via_unsafe_alias": via_unsafe, "section_mentions_resolved_by_subrows": via_sub,
                 "index_rows_unmentioned_in_A_tickets": sorted(set(idx.ids) - resolved_rows),
