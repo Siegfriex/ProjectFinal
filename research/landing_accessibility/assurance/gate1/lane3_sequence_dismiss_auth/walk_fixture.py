@@ -73,12 +73,12 @@ def nav_depth(task):
     idx = [i for i, t in enumerate(task) if t == "SELECT_FUNCTION"] or [i for i, t in enumerate(task) if t in TASK_SPECIFIC]
     return sum(t in REVEAL for t in (task[:idx[0]] if idx else task))
 
-def auth_stage(task, endpoint_surface_rendered_without_auth=False):
+def auth_stage(task, endpoint_surface_rendered_before_gate=False):
     """A T-A-V3-STEP1-011 single positional rule (GAP: 00 §6 / 03 §7 give vocabulary only)."""
     if "AUTH_GATE" not in task: return "NONE"
     before = task[:task.index("AUTH_GATE")]
     if not any(t in TASK_SPECIFIC for t in before): return "BEFORE_TASK_DISCOVERY"
-    return "AT_ENDPOINT" if endpoint_surface_rendered_without_auth else "AFTER_TASK_SELECT"
+    return "AT_ENDPOINT" if endpoint_surface_rendered_before_gate else "AFTER_TASK_SELECT"
 
 def derive(task):
     return dict(activation_depth=sum(t in ACT for t in task),
@@ -214,7 +214,7 @@ def walk_one(browser, name, f):
     chk(f["forced_dismissal_count"] == f["experienced_flow_sequence"].count("DISMISS_OBSTRUCTION"), "forced_dismissal_count mismatch")
     chk(f["dismiss_required_for_task"] == (f["forced_dismissal_count"] > 0), "dismiss_required_for_task mismatch")
     chk(("AUTH_GATE" in f["task_flow_sequence"]) == (f["auth_gate_stage"] != "NONE"), "auth_gate_stage vs token mismatch")
-    st_rule = auth_stage(f["task_flow_sequence"], f.get("endpoint_surface_rendered_without_auth", False))
+    st_rule = auth_stage(f["task_flow_sequence"], f.get("endpoint_surface_rendered_before_gate", False))
     chk(f["auth_gate_stage"] == st_rule, f"EXPECTATIONS auth_gate_stage={f['auth_gate_stage']} but A STEP1-011 positional rule gives {st_rule}")
     ctx.close()
     rec["fails"] = fails

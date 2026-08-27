@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C-Lane3 fixture: F5 intercity schedule, date typed as FREE_TEXT (STEP1-006 CONDITIONAL SELECT_DATE → OUT)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;font-family:sans-serif;background:#fff;color:#111}
+  header{position:sticky;top:0;height:56px;display:flex;align-items:center;padding:6px 8px;border-bottom:1px solid #ddd;background:#fff;z-index:10}
+  header .logo{flex:1;text-align:center;font-weight:700;font-size:18px}
+  button,a,select,input{font:inherit;cursor:pointer}
+  [data-screen]{display:none;padding:16px}
+  [data-screen].on{display:block}
+  .hero{height:220px;background:#e8f0fe;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .quick button{padding:18px 4px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:16px}
+  label{display:block;margin:12px 0 4px;font-size:14px}
+  input{width:100%;padding:12px;font-size:16px;border:1px solid #888;border-radius:8px}
+  .static{padding:12px;border:1px solid #ddd;border-radius:8px;background:#f6f6f6}
+  .primary{width:100%;padding:14px;margin-top:16px;background:#1a56db;color:#fff;border:0;border-radius:8px;font-size:16px}
+  .err{color:#b00020;font-size:14px;margin-top:8px;min-height:18px}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  td,th{border-bottom:1px solid #ddd;padding:10px 6px;text-align:left;font-size:15px}
+  h1{font-size:20px;margin-bottom:12px}
+</style>
+</head>
+<body data-c-state="LANDING" data-c-fixture="seq_conditional_date_freetext" data-c-family="F5" data-c-terminal="">
+<header>
+  <div style="width:44px"></div>
+  <div class="logo">C고속</div>
+  <div style="width:44px"></div>
+</header>
+
+<section data-screen="LANDING" class="on">
+  <div class="hero">서울 ↔ 부산 매일 운행</div>
+  <div class="quick">
+    <button data-c-action="SELECT_FUNCTION" data-c-task-control="1" data-c-path="1" onclick="selectFunction()">운행편 조회</button>
+    <button onclick="noop('예매확인')">예매확인</button>
+    <button onclick="noop('터미널')">터미널</button>
+  </div>
+</section>
+
+<section data-screen="FORM">
+  <h1>운행편 조회</h1>
+  <label>출발지</label><div class="static">서울경부</div>
+  <label>도착지</label><div class="static">부산</div>
+  <label for="date">날짜</label>
+  <!-- service-first: the SERVICE asks for a typed date; the collector records the mode it observed (FREE_TEXT) -->
+  <input id="date" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" data-c-action="SELECT_DATE" data-c-path="1" aria-label="날짜 입력" oninput="onDate(this)">
+  <label>인원</label><div class="static">성인 1</div>
+  <button class="primary" data-c-action="SUBMIT_QUERY" data-c-path="1" onclick="submitQuery()">조회</button>
+  <div class="err" id="err" aria-live="polite"></div>
+</section>
+
+<section data-screen="SCHEDULE" data-c-endpoint="REACHED">
+  <h1>서울경부 → 부산 시간표</h1>
+  <table>
+    <thead><tr><th>출발</th><th>등급</th><th>요금</th></tr></thead>
+    <tbody>
+      <tr><td>06:00</td><td>우등</td><td>34,000원</td></tr>
+      <tr><td>07:00</td><td>일반</td><td>25,000원</td></tr>
+      <tr><td>08:00</td><td>프리미엄</td><td>44,000원</td></tr>
+    </tbody>
+  </table>
+  <button style="margin-top:16px;padding:12px" data-c-forbidden="RESERVE" onclick="forbidden('RESERVE')">예매하기 (금지 control)</button>
+</section>
+
+<script>
+(function(){
+  const B=document.body, T=window.__cTransitions=[];
+  window.cGo=function(action,state,screen,terminal){
+    const before=B.dataset.cState;
+    B.dataset.cState=state;
+    if(screen){document.querySelectorAll('[data-screen]').forEach(s=>s.classList.toggle('on',s.dataset.screen===screen));window.scrollTo(0,0);}
+    if(terminal!==undefined)B.dataset.cTerminal=terminal;
+    location.hash=state;
+    T.push({before,action,after:state});
+  };
+  window.noop=function(n){T.push({before:B.dataset.cState,action:'NOOP:'+n,after:B.dataset.cState});};
+  window.forbidden=function(n){T.push({before:B.dataset.cState,action:'FORBIDDEN_ACTIVATED:'+n,after:B.dataset.cState});B.dataset.cForbiddenHit=(parseInt(B.dataset.cForbiddenHit||'0')+1);};
+  window.selectFunction=function(){cGo('SELECT_FUNCTION','FORM','FORM');};
+  window.onDate=function(el){
+    const v=el.value.trim(), s=B.dataset.cState;
+    if(v&&s==='FORM')cGo('SELECT_DATE','FORM_DATED');
+    else if(!v&&s==='FORM_DATED')cGo('DATE_CLEARED','FORM');
+  };
+  window.submitQuery=function(){
+    if(B.dataset.cState!=='FORM_DATED'){document.getElementById('err').textContent='날짜를 입력하세요.';T.push({before:B.dataset.cState,action:'SUBMIT_QUERY_REJECTED',after:B.dataset.cState});return;}
+    cGo('SUBMIT_QUERY','ENDPOINT_SCHEDULE','SCHEDULE','ENDPOINT_REACHED');
+  };
+})();
+</script>
+</body>
+</html>

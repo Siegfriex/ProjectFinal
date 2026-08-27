@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C fixture drawer_nested_accordion</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100%;font-family:system-ui,-apple-system,sans-serif;background:#fff;color:#111;font-size:15px}
+header.top{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#fff;border-bottom:1px solid #ddd;z-index:50}
+.logo{font-weight:700;font-size:18px}
+.hgroup{display:flex;align-items:center;gap:6px}
+main{padding:64px 16px 90px}
+.promo{background:#fff4d6;border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px}
+.hero{background:#f2f4f8;border-radius:12px;padding:20px;margin-bottom:16px}
+.hero h1{font-size:20px;margin-bottom:12px}
+button,.btn{font:inherit;border:1px solid #888;background:#fff;border-radius:8px;padding:10px 14px;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;gap:6px;color:#111;text-decoration:none;line-height:1.2}
+.icon-btn{width:44px;height:44px;padding:0;justify-content:center;border-color:#bbb}
+svg.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.card{border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:10px}
+.card h2{font-size:15px;margin-bottom:6px}
+.card p{font-size:13px;color:#555}
+.card a{color:#1e5eff}
+footer.bottomnav{position:fixed;bottom:0;left:0;right:0;height:60px;display:flex;border-top:1px solid #ddd;background:#fff;z-index:50}
+.bottomnav a{flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:#333;text-decoration:none}
+.menu-list{list-style:none;margin-top:8px}
+.menu-list li{border-bottom:1px solid #eee}
+.menu-list a{display:block;padding:14px 8px;color:#111;text-decoration:none}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90}
+[hidden]{display:none !important}
+.drawer{position:fixed;top:0;bottom:0;width:80vw;max-width:320px;background:#fff;z-index:100;padding:16px;overflow:auto;visibility:hidden;transition:transform .2s ease,visibility 0s linear .2s}
+.drawer.is-open{visibility:visible;transition:transform .2s ease,visibility 0s}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.drawer{left:0;transform:translateX(-100%)} .drawer.is-open{transform:translateX(0)}
+/* accordion INSIDE the drawer (in-flow, position static): the entry control is held by this innermost container */
+.acc{width:100%;justify-content:space-between;border:0;padding:6px 0;font-weight:600}
+.acc-panel{padding-top:6px}
+</style>
+</head>
+<body data-c-fixture="drawer_nested_accordion">
+<header class="top">
+  <div class="hgroup"><button type="button" class="icon-btn" data-c-toggle="menu" aria-label="전체메뉴" aria-controls="menu" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button><span class="logo">C-택배</span></div>
+  <div class="hgroup"><button type="button" class="icon-btn" aria-label="검색"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button><button type="button" class="btn">로그인</button></div>
+</header><main><div class="promo">여름 무료배송 이벤트 진행 중</div>
+<section class="hero"><h1>택배 서비스</h1><p>운송장 번호로 배송 현황을 확인하세요.</p></section>
+<section class="card"><h2>주문내역</h2><p>최근 주문 3건 · <a href="#orders">전체보기</a></p></section>
+<section class="card"><h2>배송정책 안내</h2><p>도서산간 지역은 1~2일 추가 소요됩니다. <a href="#policy">자세히</a></p></section>
+<section class="card"><h2>고객센터</h2><p>평일 09:00~18:00 · <a href="#cs">문의하기</a></p></section>
+</main><div class="scrim" hidden></div><nav id="menu" class="drawer" data-c-drawer data-state="closed" aria-label="전체메뉴" data-side="left">
+  <div class="drawer-head"><span class="logo">전체메뉴</span><button type="button" class="btn" data-c-close>닫기</button></div>
+  <button type="button" class="acc" data-c-toggle="acc" aria-controls="acc-panel" aria-expanded="false">배송 서비스 <span class="chev" aria-hidden="true">▾</span></button>
+  <div id="acc-panel" class="acc-panel" data-c-drawer data-state="closed" hidden>
+    <ul class="menu-list">
+      <li><a href="#track" data-c-target="entry">배송조회</a></li>
+      <li><a href="#reserve">택배 예약</a></li>
+      <li><a href="#returns">반품/교환</a></li>
+    </ul>
+  </div>
+  <ul class="menu-list">
+    <li><a href="#notice">공지사항</a></li>
+    <li><a href="#orders">주문내역</a></li>
+    <li><a href="#cs">고객센터</a></li>
+  </ul>
+</nav>
+<footer class="bottomnav">
+  <a href="#home">홈</a><a href="#cat">카테고리</a><a href="#cart">장바구니</a><a href="#my">마이</a>
+</footer>
+<script>
+(function(){
+  var btn=document.querySelector('[data-c-toggle=menu]');
+  var panel=document.getElementById(btn.getAttribute('aria-controls'));
+  var scrim=document.querySelector('.scrim');
+  function set(open){
+    panel.classList.toggle('is-open',open);
+    panel.setAttribute('data-state',open?'open':'closed');
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    if(scrim) scrim.hidden=!open;
+    document.body.setAttribute('data-c-menu',open?'open':'closed');
+  }
+  btn.addEventListener('click',function(){set(panel.getAttribute('data-state')!=='open')});
+  Array.prototype.forEach.call(document.querySelectorAll('[data-c-close]'),function(c){c.addEventListener('click',function(){set(false)})});
+  if(scrim) scrim.addEventListener('click',function(){set(false)});
+  set(false);
+  var acc=document.querySelector('[data-c-toggle=acc]');
+  var accPanel=document.getElementById(acc.getAttribute('aria-controls'));
+  function setAcc(open){
+    accPanel.hidden=!open;
+    accPanel.setAttribute('data-state',open?'open':'closed');
+    acc.setAttribute('aria-expanded',open?'true':'false');
+  }
+  acc.addEventListener('click',function(){setAcc(accPanel.hidden)});
+  setAcc(false);
+})();
+</script>
+</body>
+</html>

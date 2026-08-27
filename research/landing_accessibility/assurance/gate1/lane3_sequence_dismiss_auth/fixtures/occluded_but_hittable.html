@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C-Lane3 fixture: F3 tracking entry 85% covered by a fixed promo banner, exposed bottom strip hit-testable (STEP1-012 GAP-05: visible and occlusion are independent, no threshold)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;font-family:sans-serif;background:#fff;color:#111}
+  header{position:sticky;top:0;height:56px;display:flex;align-items:center;padding:6px 8px;border-bottom:1px solid #ddd;background:#fff;z-index:10}
+  header .logo{flex:1;text-align:center;font-weight:700;font-size:18px}
+  button,a,input{font:inherit;cursor:pointer}
+  [data-screen]{display:none;padding:8px 16px 16px}
+  [data-screen].on{display:block}
+  .entry{display:block;width:100%;height:90px;border:1px solid #888;border-radius:8px;background:#fff;font-size:18px}
+  .hero{height:220px;background:#e8f0fe;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-top:16px}
+  .list button{display:block;width:100%;text-align:left;padding:14px 12px;margin-top:8px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:16px}
+  label{display:block;margin:12px 0 4px;font-size:14px}
+  input{width:100%;padding:12px;font-size:16px;border:1px solid #888;border-radius:8px}
+  .primary{width:100%;padding:14px;margin-top:16px;background:#1a56db;color:#fff;border:0;border-radius:8px;font-size:16px}
+  h1{font-size:20px;margin-bottom:12px}
+  /* fixed promo banner: covers y ∈ [0, 140.5) → the 90px entry control at y ∈ [64, 154) is covered for 76.5px = 85% of its area;
+     its bottom strip y ∈ [140.5, 154) stays exposed and hit-testable. The banner is NOT a blocking interrupt (the exposed strip works). */
+  .banner{position:fixed;left:0;right:0;top:0;height:140.5px;background:#fff8e1;border-bottom:1px solid #f0c000;z-index:50;display:flex;align-items:center;padding:0 12px;gap:8px}
+  .banner span{flex:1;font-size:14px}
+  .banner button{padding:8px 10px;border:1px solid #999;border-radius:6px;background:#fff}
+</style>
+</head>
+<body data-c-state="LANDING" data-c-fixture="occluded_but_hittable" data-c-family="F3" data-c-terminal="">
+
+<div class="banner" role="region" aria-label="앱 설치 안내" data-c-overlay="banner" data-c-interrupt="banner">
+  <span>앱에서 배송 알림을 받아보세요</span>
+  <button data-c-decoy="DISMISS_NOT_REQUIRED" onclick="closeBanner()">배너 닫기</button>
+</div>
+<header>
+  <div style="width:44px"></div>
+  <div class="logo">C택배</div>
+  <div style="width:44px"></div>
+</header>
+
+<section data-screen="LANDING" class="on">
+  <button class="entry" data-c-action="SELECT_FUNCTION" data-c-task-control="1" data-c-path="1" onclick="selectFunction()">배송조회</button>
+  <div class="hero">빠르고 안전한 배송</div>
+  <div class="list">
+    <button onclick="noop('예약접수')">예약접수</button>
+    <button onclick="noop('고객센터')">고객센터</button>
+  </div>
+</section>
+
+<section data-screen="TRACK" data-c-endpoint="REACHED">
+  <h1>배송조회</h1>
+  <label for="no">운송장 번호</label>
+  <input id="no" inputmode="numeric" placeholder="운송장 번호 입력" data-c-forbidden="TRACKING_NUMBER" oninput="forbidden('TRACKING_NUMBER')">
+  <button class="primary" data-c-forbidden="TRACKING_QUERY_SUBMIT" onclick="forbidden('TRACKING_QUERY_SUBMIT')">조회</button>
+</section>
+
+<script>
+(function(){
+  const B=document.body, T=window.__cTransitions=[];
+  window.cGo=function(action,state,screen,terminal){
+    const before=B.dataset.cState;
+    B.dataset.cState=state;
+    if(screen){document.querySelectorAll('[data-screen]').forEach(s=>s.classList.toggle('on',s.dataset.screen===screen));window.scrollTo(0,0);}
+    if(terminal!==undefined)B.dataset.cTerminal=terminal;
+    location.hash=state;
+    T.push({before,action,after:state});
+  };
+  window.noop=function(n){T.push({before:B.dataset.cState,action:'NOOP:'+n,after:B.dataset.cState});};
+  window.forbidden=function(n){T.push({before:B.dataset.cState,action:'FORBIDDEN_ACTIVATED:'+n,after:B.dataset.cState});B.dataset.cForbiddenHit=(parseInt(B.dataset.cForbiddenHit||'0')+1);};
+  window.closeBanner=function(){document.querySelector('.banner').remove();T.push({before:B.dataset.cState,action:'DISMISS_NOT_REQUIRED',after:B.dataset.cState});};
+  window.selectFunction=function(){if(B.dataset.cState!=='LANDING')return;cGo('SELECT_FUNCTION','ENDPOINT_TRACKING_FORM','TRACK','ENDPOINT_REACHED');};
+})();
+</script>
+</body>
+</html>

@@ -1184,27 +1184,20 @@ def assert_field_qualified(obj: Any, path: str = "") -> None:
 # T-A-V3-STEP1-007 R11: terminal_reason companion field + endpoint_status × terminal_reason table
 # ============================================================================
 
-ENDPOINT_STATUSES: frozenset[str] = frozenset({
-    "REACHED", "AUTH_GATE", "BLOCKED", "PUBLIC_WEB_UNOBSERVABLE", "APP_REQUIRED", "EVIDENCE_DEFECT", "ABSTAIN",
-})
-TERMINAL_REASONS: frozenset[str] = frozenset({
-    "TIMEOUT", "WAF_BLOCK", "ACTIVE_CHALLENGE", "NO_PUBLIC_MOBILE_WEB", "TASK_SURFACE_ABSENT", "APP_REQUIRED",
-    "CONTROL_DISABLED_OR_INERT", "FORBIDDEN_ACTION_REQUIRED", "AUTH_REQUIRED", "EVIDENCE_DEFECT", "REPLAY_BROKEN",
-    "AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER",
-})
-# C PRE-REGISTERED PROPOSAL (to be compared against B's runner schema at GATE 1 — R11 "consistency"):
-# allowed terminal_reason values per endpoint_status. None = no terminal_reason (only REACHED).
+# The enums and the allowed combination table live in ONE C module shared with lane5 (gate1/c_terminal_table.py):
+# OTHER is allowed with any non-REACHED endpoint_status but ALWAYS needs a non-empty note. C PRE-REGISTERED PROPOSAL,
+# to be compared against B's runner schema at GATE 1 (R11 "consistency") — see the module docstring.
+import pathlib as _pl
+import sys as _sys
+_sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1]))
+import c_terminal_table as _T  # noqa: E402
+ENDPOINT_STATUSES: frozenset[str] = frozenset(_T.ENDPOINT_STATUSES)
+TERMINAL_REASONS: frozenset[str] = frozenset(_T.TERMINAL_REASONS)
+# lane6 view of the table: None (= no terminal_reason) is the only admissible value for REACHED.
 TERMINAL_ALLOWED: dict[str, frozenset[str | None]] = {
-    "REACHED": frozenset({None}),
-    "AUTH_GATE": frozenset({"AUTH_REQUIRED"}),
-    "BLOCKED": frozenset({"TIMEOUT", "WAF_BLOCK", "ACTIVE_CHALLENGE", "CONTROL_DISABLED_OR_INERT",
-                          "FORBIDDEN_ACTION_REQUIRED"}),
-    "PUBLIC_WEB_UNOBSERVABLE": frozenset({"NO_PUBLIC_MOBILE_WEB", "TASK_SURFACE_ABSENT"}),
-    "APP_REQUIRED": frozenset({"APP_REQUIRED"}),
-    "EVIDENCE_DEFECT": frozenset({"EVIDENCE_DEFECT", "REPLAY_BROKEN"}),
-    "ABSTAIN": frozenset({"AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER"}),
+    es: (frozenset({None}) if es == "REACHED" else rs) for es, rs in _T.TERMINAL_ALLOWED.items()
 }
-TERMINAL_RULE_ID = "T-A-V3-STEP1-007 R11 (A ruling: companion field; combination table = C proposal)"
+TERMINAL_RULE_ID = _T.RULE_ID
 
 
 def validate_terminal(endpoint_status: str | None, terminal_reason: str | None, note: str | None = None) -> dict[str, Any]:
@@ -1213,30 +1206,17 @@ def validate_terminal(endpoint_status: str | None, terminal_reason: str | None, 
     Returns {ok, endpoint_status, terminal_reason, note, violations}. Never raises — violations are listed
     so a GATE 1/3 checker can collect them; use ``assert_terminal`` for a raising variant.
     Rules: endpoint_status ∈ ENDPOINT_STATUSES; terminal_reason ∈ TERMINAL_REASONS (None only for REACHED);
-    the pair must be in TERMINAL_ALLOWED (C proposal, e.g. REACHED × TIMEOUT is impossible);
-    OTHER requires a non-empty free-text note (note-less OTHER is a schema violation).
+    the pair must be in TERMINAL_ALLOWED (C proposal shared with lane5 via gate1/c_terminal_table.py, e.g. REACHED ×
+    TIMEOUT is impossible); OTHER is allowed with any non-REACHED status but requires a non-empty free-text note
+    (note-less OTHER is a schema violation).
     T-A-V3-STEP1-011 P-17 layer separation: ``endpoint_status=ABSTAIN`` (we do NOT know — multiple candidates /
     undetermined path) is distinct from ``endpoint_status=PUBLIC_WEB_UNOBSERVABLE × terminal_reason=
     TASK_SURFACE_ABSENT`` (we KNOW the surface is absent); the table keeps them apart, and
     ``action_token=ABSTAIN`` (what the sequence did) is a different layer from endpoint_status (the result).
     """
-    v: list[str] = []
     es = None if endpoint_status is None else str(endpoint_status).strip().upper()
     tr = None if terminal_reason is None else str(terminal_reason).strip().upper()
-    if es is None:
-        v.append("endpoint_status missing (R11: every terminal observation carries endpoint_status)")
-    elif es not in ENDPOINT_STATUSES:
-        v.append(f"endpoint_status={es} not in the 7-value SSOT enum (04 §4)")
-    if tr is None:
-        if es != "REACHED":
-            v.append(f"terminal_reason missing for endpoint_status={es} (R11: both fields are mandatory)")
-    elif tr not in TERMINAL_REASONS:
-        v.append(f"terminal_reason={tr} not in R11 enum")
-    if es in TERMINAL_ALLOWED and (tr is None or tr in TERMINAL_REASONS) and tr not in TERMINAL_ALLOWED[es]:
-        v.append(f"endpoint_status={es} × terminal_reason={tr} not an allowed combination "
-                     f"(C proposal allows {sorted(x or 'None' for x in TERMINAL_ALLOWED[es])})")
-    if tr == "OTHER" and not (note and str(note).strip()):
-        v.append("terminal_reason=OTHER requires a non-empty note (R11)")
+    v = _T.validate_pair(es, tr, note)                      # single table + single rule set (shared with lane5)
     out = {"ok": not v, "endpoint_status": es, "terminal_reason": tr, "note": note, "violations": v,
            "rule": TERMINAL_RULE_ID}
     assert_field_qualified(out, "validate_terminal")

@@ -7,7 +7,7 @@ never overwritten. Rules are fixed in `EVIDENCE_CONTRACT_C.md`; this directory i
 ## Files
 | file | role |
 |---|---|
-| `EVIDENCE_CONTRACT_C.md` | contract: required files/fields (state, step, flow), hash chain, append-only rule, defect catalogue + severities, R11 combination table, pre-registered ambiguity resolutions |
+| `EVIDENCE_CONTRACT_C.md` | contract: required files/fields (state, step, flow), hash chain, append-only rule, defect catalogue + severities, R11 combination table (source: `../c_terminal_table.py`), pre-registered ambiguity resolutions |
 | `evidence_lineage_check.py` | runner-agnostic checker (stdlib only). Discovery heuristics D1–D7 in its docstring |
 | `make_synthetic_evidence.py` | regenerates the three synthetic fixtures (sets mtimes; re-run after a fresh checkout) |
 | `fixtures/{good,bad_overwrite,bad_lineage}/` | synthetic trees, 1 service-task, 3 states × 2 steps × 1 flow record per run; `fixtures/report_*.json` = checker output |
@@ -22,10 +22,10 @@ python3 evidence_lineage_check.py <REAL_EVIDENCE_ROOT> [--path-manifest <path_ma
 Exit 0 ⇔ no systemic defect (`COMPLETE` or `COMPLETE_WITH_ISOLATED_DEFECTS`); 2 ⇔ `SYSTEMIC_DEFECT`; 3 usage error.
 `ROOT/path_manifest.json` is auto-detected when the flag is omitted; without any path manifest a `<manifest>.sha256` sidecar is required.
 
-## Results (fixtures regenerated, then checked)
+## Results (fixtures regenerated, then checked — re-run 2026-08-28 after the R11 table unification (`gate1/c_terminal_table.py`) and the `collector_sha256` alias; verdicts and counts unchanged)
 | fixture | injected condition | verdict | exit | defects |
 |---|---|---|---|---|
-| `good` | none. Run 01 REACHED×null×auth NONE; run 02 = re-collection under a NEW run_id, ABSTAIN×OTHER+note×UNDETERMINED (R11/R13 positives) | COMPLETE | 0 | — |
+| `good` | none. Run 01 REACHED×null×auth NONE; run 02 = re-collection under a NEW run_id, ABSTAIN×OTHER+note×UNDETERMINED (R11/R13 positives), collector hash written as `collector_sha256` (T-A-V3-STEP1-015 exact name; alias positive control — with the alias removed from `FIELD_ALIASES` the same tree gives COMPLETE_WITH_ISOLATED_DEFECTS, MISSING_FIELD 2) | COMPLETE | 0 | — |
 | `bad_overwrite` | `S1/screenshot.png` rewritten after manifest seal; flow REACHED×OTHER without note | SYSTEMIC_DEFECT | 2 | HASH_MISMATCH 1, OVERWRITE_DETECTED 1 (systemic), SCHEMA_VIOLATION 2 |
 | `bad_lineage` | step 1 → `S9` (absent); `S2/screenshot.png` deleted; `service_id`="Coupang Mobile App"; flow EVIDENCE_DEFECT without terminal_reason, auth NONE | SYSTEMIC_DEFECT | 2 | DISPLAY_NAME_AS_ID 12 (6 systemic on spine), LINEAGE_BREAK 1, MISSING_ARTIFACT 1, MISSING_FIELD 1, AFFIRMATIVE_WITHOUT_EVIDENCE 1 |
 
@@ -43,9 +43,9 @@ freeze ⇒ MANIFEST_SHA_UNBOUND; same state identity re-declared with new hashes
 ```json
 {"checker": "evidence_lineage_check.py", "contract": "EVIDENCE_CONTRACT_C.md", "root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures/bad_overwrite", "path_manifest": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures/bad_overwrite/path_manifest.json", "n_manifests": 1, "n_states": 3, "n_steps": 2, "n_flows": 1, "n_unknown_records": 0, "n_artifacts_checked": 15, "counts_by_kind": {"HASH_MISMATCH": 1, "OVERWRITE_DETECTED": 1, "SCHEMA_VIOLATION": 2}, "systemic": true, "verdict": "SYSTEMIC_DEFECT", "path_manifest_autodetected": false, "defects": [
   {"kind": "HASH_MISMATCH", "severity": "isolated", "path": "svc_coupang_m/T07_search_product/run_20260828T000000Z_01/S1/screenshot.png", "detail": "screenshot: manifest=315ad8df2d79.. actual=a02aa6665eb9.."},
-  {"kind": "OVERWRITE_DETECTED", "severity": "systemic", "path": "svc_coupang_m/T07_search_product/run_20260828T000000Z_01/S1/screenshot.png", "detail": "screenshot rewritten after manifest seal (artifact mtime 1787853938 > manifest mtime 1787853888)"},
-  {"kind": "SCHEMA_VIOLATION", "severity": "isolated", "path": "svc_coupang_m/T07_search_product/run_20260828T000000Z_01/evidence_manifest.jsonl#5", "detail": "impossible combination REACHED x terminal_reason='OTHER'"},
-  {"kind": "SCHEMA_VIOLATION", "severity": "isolated", "path": "svc_coupang_m/T07_search_product/run_20260828T000000Z_01/evidence_manifest.jsonl#5", "detail": "terminal_reason=OTHER without non-empty terminal_note (R11)"}
+  {"kind": "OVERWRITE_DETECTED", "severity": "systemic", "path": "svc_coupang_m/T07_search_product/run_20260828T000000Z_01/S1/screenshot.png", "detail": "screenshot rewritten after manifest seal (artifact mtime 1787857828 > manifest mtime 1787857778)"},
+  {"kind": "SCHEMA_VIOLATION", "severity": "isolated", "path": "svc_coupang_m/T07_search_product/run_20260828T000000Z_01/evidence_manifest.jsonl#5", "detail": "impossible combination REACHED × terminal_reason=OTHER (REACHED admits null only)"},
+  {"kind": "SCHEMA_VIOLATION", "severity": "isolated", "path": "svc_coupang_m/T07_search_product/run_20260828T000000Z_01/evidence_manifest.jsonl#5", "detail": "terminal_reason=OTHER requires a non-empty note (R11)"}
 ]}
 ```
 
@@ -75,4 +75,5 @@ freeze ⇒ MANIFEST_SHA_UNBOUND; same state identity re-declared with new hashes
 - Extend `FIELD_ALIASES` / `ARTIFACT_ALIASES` / `STEP_HASH_FIELDS` at the top of the checker with B's actual names; if B's path manifest
   uses other keys than `runs[].evidence_manifest` / `evidence_manifest_sha256`, add them in `load_path_manifest`.
 - Separate state/step/flow files need nothing (records are classified by shape, D3); absolute artifact paths need one rule in D4.
-- R11 combination table: B has not published its table; `ALLOWED_TERMINAL` is C's pre-registered one. A differing B table is a finding.
+- R11 combination table: B has not published its table; `ALLOWED_TERMINAL` is C's pre-registered one — the single object `gate1/c_terminal_table.py::TERMINAL_ALLOWED` shared with lane6 (OTHER allowed with any non-REACHED status, note mandatory). A differing B table is a finding.
+- `FIELD_ALIASES.collector_sha` already accepts `collector_sha256` (T-A-V3-STEP1-015 exact name), `collector_git_sha`, `collector_version_sha`.

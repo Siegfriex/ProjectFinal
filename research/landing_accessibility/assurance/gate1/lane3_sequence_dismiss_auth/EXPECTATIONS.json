@@ -79,7 +79,7 @@
    "AFTER_TASK_SELECT": "at least one task-specific token precedes AUTH_GATE but the endpoint contract is not yet satisfied. OPEN_GLOBAL_MENU > SELECT_CATEGORY > AUTH_GATE → AFTER_TASK_SELECT; SELECT_FUNCTION > INPUT_QUERY > SUBMIT_QUERY > AUTH_GATE with no results surface ever rendered → AFTER_TASK_SELECT (04 §3 example → AFTER_TASK_SELECT).",
    "AT_ENDPOINT": "the endpoint surface was rendered WITHOUT auth and the gate is hit when its content is accessed (e.g. F5 route list rendered, time/price behind login on SELECT_RESULT).",
    "UNDETERMINED": "A T-A-V3-STEP1-007 R13: path not observed to an evidence-bearing terminal.",
-   "walker_check": "walk_fixture.py derives the stage from task_flow_sequence with this positional rule (AT_ENDPOINT additionally requires the fixture flag endpoint_surface_rendered_without_auth=true) and requires equality with the expected value on every fixture."
+   "walker_check": "walk_fixture.py derives the stage from task_flow_sequence with this positional rule (AT_ENDPOINT additionally requires the fixture flag endpoint_surface_rendered_before_gate=true) and requires equality with the expected value on every fixture."
   },
   "endpoint_status": "REACHED iff the family endpoint contract is satisfied in the final state; AUTH_GATE iff final token is AUTH_GATE; nothing else exercised here. A T-A-V3-STEP1-011 P-17: endpoint_status and action_token are separate layers (always field-qualified); a task surface that is absent is endpoint_status=PUBLIC_WEB_UNOBSERVABLE × terminal_reason=TASK_SURFACE_ABSENT ('we know it is absent'), endpoint_status=ABSTAIN is 'we do not know'.",
   "generic_login_rule": "presence of a login control/link anywhere on the page never produces AUTH_GATE; only a gate that the frozen task path enters counts (00 §6, 03 §7). Fixture 4 is the negative control.",
@@ -881,7 +881,7 @@
     "state": "AUTH_GATE_SCHEDULE",
     "terminal_token": "AUTH_GATE"
    },
-   "endpoint_surface_rendered_without_auth": true,
+   "endpoint_surface_rendered_before_gate": true,
    "endpoint_surface_note": "A T-A-V3-STEP1-011 AT_ENDPOINT condition: the F5 route list (results surface) is rendered without auth before the gate; the walker checks this flag against the derived stage."
   },
   "seq_typing_and_scroll_not_depth": {

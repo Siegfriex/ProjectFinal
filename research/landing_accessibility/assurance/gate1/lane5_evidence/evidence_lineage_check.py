@@ -20,7 +20,8 @@ Discovery heuristics (documented so they can be pre-registered):
       endpoint_status is present or (flow_observation_id present and no state_index); a STATE if state_index or
       observation_id is present; otherwise UNKNOWN (counted, not a defect).
   D7  T-A-V3-STEP1-007 R11/R13: every FLOW record carries endpoint_status AND terminal_reason (null only for REACHED),
-      auth_gate_stage (incl. UNDETERMINED); allowed endpoint_status x terminal_reason table = ALLOWED_TERMINAL below.
+      auth_gate_stage (incl. UNDETERMINED); allowed endpoint_status x terminal_reason table = ALLOWED_TERMINAL
+      (= gate1/c_terminal_table.py TERMINAL_ALLOWED, the single C table shared with lane6; OTHER needs a note).
   D4  artifact paths are resolved relative to the manifest's directory, then relative to ROOT.
   D5  identity spine = (service_id, task_id, run_id); state identity = spine + attempt_id + state_index;
       observation_id must be globally unique.
@@ -52,7 +53,7 @@ FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "step_index":            ("step_index", "step"),
     "url":                   ("url", "page_url"),
     "captured_at":           ("captured_at", "timestamp", "ts", "observed_at"),
-    "collector_sha":         ("collector_sha", "collector_git_sha", "collector_version_sha"),
+    "collector_sha":         ("collector_sha", "collector_sha256", "collector_git_sha", "collector_version_sha"),  # collector_sha256 = exact name in T-A-V3-STEP1-015
     "protocol_sha":          ("protocol_sha", "protocol_git_sha", "ssot_sha"),
     "task_contract_sha256":  ("task_contract_sha256", "task_contract_sha"),
     "endpoint_contract_sha256": ("endpoint_contract_sha256", "endpoint_contract_sha"),
@@ -68,22 +69,16 @@ FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "terminal_note":         ("terminal_note", "terminal_reason_note", "note"),
     "auth_gate_stage":       ("auth_gate_stage",),
 }
-# ---- T-A-V3-STEP1-007 R11/R13 (endpoint_status enum from 04_FLOW_CODEBOOK; terminal_reason 13 values from ticket)
-ENDPOINT_STATUS = ("REACHED", "AUTH_GATE", "PUBLIC_WEB_UNOBSERVABLE", "APP_REQUIRED", "EVIDENCE_DEFECT", "BLOCKED", "ABSTAIN")
-TERMINAL_REASON = ("TIMEOUT", "WAF_BLOCK", "ACTIVE_CHALLENGE", "NO_PUBLIC_MOBILE_WEB", "TASK_SURFACE_ABSENT", "APP_REQUIRED",
-                   "CONTROL_DISABLED_OR_INERT", "FORBIDDEN_ACTION_REQUIRED", "AUTH_REQUIRED", "EVIDENCE_DEFECT",
-                   "REPLAY_BROKEN", "AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER")
-AUTH_GATE_STAGE = ("NONE", "BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "UNDETERMINED")
-ALLOWED_TERMINAL: dict[str, frozenset] = {   # C's pre-registered combination table (OTHER allowed for any non-REACHED)
-    "REACHED": frozenset(),                  # terminal_reason MUST be null
-    "AUTH_GATE": frozenset({"AUTH_REQUIRED", "OTHER"}),
-    "PUBLIC_WEB_UNOBSERVABLE": frozenset({"NO_PUBLIC_MOBILE_WEB", "TASK_SURFACE_ABSENT", "OTHER"}),
-    "APP_REQUIRED": frozenset({"APP_REQUIRED", "OTHER"}),
-    "EVIDENCE_DEFECT": frozenset({"EVIDENCE_DEFECT", "REPLAY_BROKEN", "OTHER"}),
-    "BLOCKED": frozenset({"WAF_BLOCK", "ACTIVE_CHALLENGE", "TIMEOUT", "CONTROL_DISABLED_OR_INERT",
-                          "FORBIDDEN_ACTION_REQUIRED", "OTHER"}),
-    "ABSTAIN": frozenset({"AMBIGUOUS_MULTIPLE_CANDIDATES", "OTHER"}),
-}
+# ---- T-A-V3-STEP1-007 R11/R13 — the endpoint_status / terminal_reason / auth_gate_stage enums and the allowed
+# combination table live in ONE C module shared with lane6 (gate1/c_terminal_table.py). ALLOWED_TERMINAL is an alias
+# of that table (same object): OTHER allowed with any non-REACHED status, note mandatory (C proposal, compared with
+# B's schema at GATE 1 — see the module docstring).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import c_terminal_table as _T  # noqa: E402
+ENDPOINT_STATUS = _T.ENDPOINT_STATUSES
+TERMINAL_REASON = _T.TERMINAL_REASONS
+AUTH_GATE_STAGE = _T.AUTH_GATE_STAGES
+ALLOWED_TERMINAL: dict[str, frozenset] = _T.TERMINAL_ALLOWED
 NO_EVIDENCE_STATUSES = frozenset({"EVIDENCE_DEFECT", "ABSTAIN"})   # R13: NONE here is an affirmative claim without evidence
 FLOW_REQUIRED = ("flow_observation_id", "service_id", "task_id", "run_id", "attempt_id", "endpoint_status",
                  "auth_gate_stage", "captured_at", "collector_sha", "protocol_sha", "task_contract_sha256",
@@ -243,14 +238,12 @@ def check_flow(rec: dict, where: str, rep: Report) -> None:
     if ag is not None and ag not in AUTH_GATE_STAGE:
         rep.add("SCHEMA_VIOLATION", where, f"auth_gate_stage={ag!r} not in enum (incl. UNDETERMINED)")
     if es is not None:
-        if es == "REACHED":
-            if tr is not None:
-                rep.add("SCHEMA_VIOLATION", where, f"impossible combination REACHED x terminal_reason={tr!r}")
-        elif tr is None:
+        if es != "REACHED" and tr is None:
             rep.add("MISSING_FIELD", where, f"terminal record (endpoint_status={es}) lacks terminal_reason (R11)")
-        elif tr in TERMINAL_REASON and tr not in ALLOWED_TERMINAL[es]:
-            rep.add("SCHEMA_VIOLATION", where, f"combination {es} x {tr} not in allowed table")
-    if tr == "OTHER" and not (isinstance(note, str) and note.strip()):
+        elif tr is None or tr in TERMINAL_REASON:
+            for msg in _T.validate_pair(es, tr, note):          # one table for lane5 and lane6
+                rep.add("SCHEMA_VIOLATION", where, msg)
+    elif tr == "OTHER" and not (isinstance(note, str) and note.strip()):
         rep.add("SCHEMA_VIOLATION", where, "terminal_reason=OTHER without non-empty terminal_note (R11)")
     if ag == "NONE" and es in NO_EVIDENCE_STATUSES:
         rep.add("AFFIRMATIVE_WITHOUT_EVIDENCE", where,

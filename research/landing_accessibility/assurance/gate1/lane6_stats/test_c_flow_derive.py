@@ -531,6 +531,15 @@ def test_validate_terminal_table():
         assert ok("EVIDENCE_DEFECT", tr), tr
     assert ok("ABSTAIN", "AMBIGUOUS_MULTIPLE_CANDIDATES")
     assert ok("ABSTAIN", "OTHER", "two equally plausible task controls; see screenshot")
+    # unified C rule (gate1/c_terminal_table.py, shared with lane5): OTHER allowed with ANY non-REACHED status, note mandatory
+    for es in sorted(C.ENDPOINT_STATUSES - {"REACHED"}):
+        assert ok(es, "OTHER", "annotated"), es
+        assert not ok(es, "OTHER"), es
+        assert not ok(es, "OTHER", ""), es
+    assert not ok("REACHED", "OTHER", "annotated")           # REACHED admits null only
+    import c_terminal_table as T
+    assert C.TERMINAL_ALLOWED == {es: (frozenset({None}) if es == "REACHED" else rs) for es, rs in T.TERMINAL_ALLOWED.items()}
+    assert T.selftest() == []
     # every R11 value is reachable from at least one endpoint_status
     covered = set().union(*(s - {None} for s in C.TERMINAL_ALLOWED.values()))
     assert covered == C.TERMINAL_REASONS

@@ -2,7 +2,8 @@
 """Generate three SYNTHETIC V3 evidence trees for GATE 1 (offline) checker validation.
 
   good/           1 service-task: run 01 = 3 states (S0..S2), 2 steps, REACHED; run 02 = legitimate re-collection under a new
-                  run_id, ABSTAIN x terminal_reason=OTHER (+note) x auth_gate_stage=UNDETERMINED. Hashes consistent, path manifest bound
+                  run_id, ABSTAIN x terminal_reason=OTHER (+note) x auth_gate_stage=UNDETERMINED, collector hash written as
+                  collector_sha256 (T-A-V3-STEP1-015 exact name). Hashes consistent, path manifest bound
   bad_overwrite/  run 01 only, S1/screenshot.png rewritten AFTER the manifest was sealed; flow record REACHED x OTHER (no note)
   bad_lineage/    step 1 references state S9 (absent), S2 screenshot missing,
                   service_id is a display name ("Coupang Mobile App") instead of an id; flow record EVIDENCE_DEFECT with
@@ -75,8 +76,11 @@ def artifact_bytes(kind: str, k: int) -> bytes:
 
 
 def flow_record(service_id: str, run_id: str, n_steps: int, *, endpoint_status: str, terminal_reason,
-                auth_gate_stage: str, terminal_note: str | None = None, omit_terminal_reason: bool = False) -> dict:
-    """fact_flow_observation (02 §4) + R11/R13 fields. One per run."""
+                auth_gate_stage: str, terminal_note: str | None = None, omit_terminal_reason: bool = False,
+                collector_field: str = "collector_sha") -> dict:
+    """fact_flow_observation (02 §4) + R11/R13 fields. One per run.
+    collector_field: source name of the collector hash — "collector_sha" (C canonical) or "collector_sha256"
+    (exact name in T-A-V3-STEP1-015; accepted through FIELD_ALIASES)."""
     r = {
         "record_kind": "flow",
         "flow_observation_id": f"{service_id}.{TASK_ID}.{run_id}.{ATTEMPT_ID}.flow",
@@ -85,7 +89,7 @@ def flow_record(service_id: str, run_id: str, n_steps: int, *, endpoint_status: 
         "flow_step_count": n_steps, "activation_depth": n_steps, "forced_dismissal_count": 0,
         "path_manifest_path": "path_manifest.json",
         "captured_at": datetime(2026, 8, 28, 0, 0, 30, tzinfo=timezone.utc).isoformat(),
-        "collector_sha": COLLECTOR_SHA, "protocol_sha": PROTOCOL_SHA,
+        collector_field: COLLECTOR_SHA, "protocol_sha": PROTOCOL_SHA,
         "task_contract_sha256": TASK_CONTRACT_SHA, "endpoint_contract_sha256": ENDPOINT_CONTRACT_SHA,
     }
     if terminal_note is not None:
@@ -96,7 +100,7 @@ def flow_record(service_id: str, run_id: str, n_steps: int, *, endpoint_status: 
 
 
 def build(root: Path, *, service_id: str = SERVICE_ID, run_id: str = RUN_ID, n_states: int = 3,
-          base_time: datetime | None = None) -> tuple[Path, list[dict], list[dict]]:
+          base_time: datetime | None = None, collector_field: str = "collector_sha") -> tuple[Path, list[dict], list[dict]]:
     """Write states + steps + manifest. Returns (manifest_path, state_records, step_records)."""
     base_time = base_time or datetime(2026, 8, 28, 0, 0, 0, tzinfo=timezone.utc)
     run_dir = root / service_id / TASK_ID / run_id
@@ -120,7 +124,7 @@ def build(root: Path, *, service_id: str = SERVICE_ID, run_id: str = RUN_ID, n_s
             "state_index": f"S{k}",
             "url": URLS[k % len(URLS)],
             "captured_at": (base_time + timedelta(seconds=5 * k)).isoformat(),
-            "collector_sha": COLLECTOR_SHA,
+            collector_field: COLLECTOR_SHA,
             "protocol_sha": PROTOCOL_SHA,
             "task_contract_sha256": TASK_CONTRACT_SHA,
             "endpoint_contract_sha256": ENDPOINT_CONTRACT_SHA,
@@ -149,7 +153,7 @@ def build(root: Path, *, service_id: str = SERVICE_ID, run_id: str = RUN_ID, n_s
             "screenshot_sha256_before": b["artifacts"]["screenshot"]["sha256"],
             "screenshot_sha256_after": a["artifacts"]["screenshot"]["sha256"],
             "captured_at": (base_time + timedelta(seconds=5 * i + 3)).isoformat(),
-            "collector_sha": COLLECTOR_SHA, "protocol_sha": PROTOCOL_SHA,
+            collector_field: COLLECTOR_SHA, "protocol_sha": PROTOCOL_SHA,
             "task_contract_sha256": TASK_CONTRACT_SHA, "endpoint_contract_sha256": ENDPOINT_CONTRACT_SHA,
         })
     return run_dir / "evidence_manifest.jsonl", states, steps
@@ -189,10 +193,12 @@ def main() -> int:
     mpath, states, steps = build(root)
     write_manifest(mpath, states, steps, flow_record(SERVICE_ID, RUN_ID, len(steps), endpoint_status="REACHED",
                                                      terminal_reason=None, auth_gate_stage="NONE"))
-    mpath2, states2, steps2 = build(root, run_id=RUN_ID_2, n_states=1)
+    # run 02 writes the collector hash under the T-A-V3-STEP1-015 exact name collector_sha256 (FIELD_ALIASES positive control:
+    # a checker lacking the alias would report MISSING_FIELD collector_sha on every run-02 record)
+    mpath2, states2, steps2 = build(root, run_id=RUN_ID_2, n_states=1, collector_field="collector_sha256")
     write_manifest(mpath2, states2, steps2, flow_record(
         SERVICE_ID, RUN_ID_2, 0, endpoint_status="ABSTAIN", terminal_reason="OTHER", auth_gate_stage="UNDETERMINED",
-        terminal_note="two equally plausible search entry controls; replay not attempted"))
+        terminal_note="two equally plausible search entry controls; replay not attempted", collector_field="collector_sha256"))
     write_path_manifest(root, [(mpath, SERVICE_ID, RUN_ID), (mpath2, SERVICE_ID, RUN_ID_2)])
     for p in root.rglob("*"):
         if p.is_file() and p.name not in ("evidence_manifest.jsonl", "path_manifest.json"):

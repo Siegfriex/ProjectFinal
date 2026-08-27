@@ -2,6 +2,11 @@
 """Ticket bus helpers for Claude C (read tickets, write ACK/completions, heartbeat state).
 
 Ticket files are never modified. ACK and results go to completions/ as separate files.
+
+emit() refuses to write a schema-invalid ticket: SSOTV3 15_TICKET_PROTOCOL_SCHEMA requires base_sha (Δ5, 40-hex
+or >=7-hex git object id) — a payload without it raises ValueError BEFORE any file is created (RULING_INDEX_COVERAGE_C
+Δ5 defect: emit used to omit base_sha silently). Selftest that shows the refusal without touching the real bus:
+    python3 bus.py selftest      # redirects TICKETS/EVENT_LOG to a temp dir, expects ValueError, then one valid emit
 """
 from __future__ import annotations
 import json, hashlib, sys, datetime, pathlib
@@ -60,8 +65,13 @@ def complete(ticket: dict, result_type: str, payload: dict, to=("A", "B")) -> pa
            "result_type": result_type, "completed_at": now(), **payload}
     p = _write(COMPLETIONS / f"{tid}.C.json", obj); _log("COMPLETION", ticket_id=tid, result_type=result_type, severity_max=payload.get("severity_max")); return p
 
+BASE_SHA_RE = __import__("re").compile(r"^[0-9a-f]{7,40}$")
+
 def emit(kind: str, payload: dict, to=("A", "B")) -> pathlib.Path:
-    """Unsolicited C→A/B ticket (e.g. SYSTEMIC_HARD_STOP_CANDIDATE)."""
+    """Unsolicited C→A/B ticket (e.g. SYSTEMIC_HARD_STOP_CANDIDATE). Raises ValueError if payload lacks a valid base_sha."""
+    bs = payload.get("base_sha")
+    if not (isinstance(bs, str) and BASE_SHA_RE.match(bs.strip().lower())):
+        raise ValueError(f"emit refused: base_sha is mandatory (15 schema / Δ5) and must be a 7-40 hex git sha; got {bs!r}")
     TICKETS.mkdir(parents=True, exist_ok=True)
     stamp = datetime.datetime.now(KST).strftime("%H%M%S")
     # ticket files are immutable: never overwrite — add a sequence suffix on same-second collisions
@@ -103,3 +113,16 @@ if __name__ == "__main__":
     elif cmd == "list":
         for p in sorted(TICKETS.glob("*.json")):
             t = load_ticket(p.name); print(p.name, "FOR_C" if is_for_c(t) else "-", t.get("type") or t.get("kind"))
+    elif cmd == "selftest":
+        # base_sha refusal, demonstrated against a temp dir — the real bus is never written
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix="bus_selftest_") as td:
+            TICKETS = pathlib.Path(td) / "tickets"; EVENT_LOG = pathlib.Path(td) / "event_log.jsonl"
+            try:
+                emit("FINDING", {"headline": "no base_sha"}); print("FAIL: emit wrote a ticket without base_sha"); sys.exit(1)
+            except ValueError as e:
+                print("refused as expected:", e)
+            assert not list(TICKETS.glob("*.json")) if TICKETS.exists() else True, "a file was created despite refusal"
+            p = emit("FINDING", {"headline": "ok", "base_sha": "0123abcd"}); d = json.loads(p.read_text(encoding="utf-8"))
+            assert d["base_sha"] == "0123abcd" and p.parent == TICKETS, "valid emit did not land in the temp dir"
+            print("valid emit wrote", p.name, "in temp dir only; selftest OK")

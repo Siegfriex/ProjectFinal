@@ -36,24 +36,25 @@ pytest result line (`python -m pytest test_c_flow_derive.py`): **`30 passed in 0
 | STEP1-003 **R6 Q8** field qualification | guard above; `derive` violation strings now say `action_token=AUTH_GATE`; `unique_signatures` emits `signature_counts` | Signatures (`A>B>AUTH_GATE`) and single-token signatures are treated as action_token sequences under the `signature*` keys — C's reading of "층을 명시". |
 | STEP1-003 **R7** entry_zone | thresholds y<1/3 TOP · [1/3,2/3) MID · ≥2/3 BOTTOM; x thirds within TOP only; `[a,b)`; DRAWER > FLOATING > geometry; x/y validated even under an override (record_anyway) | Previously C-7 let an override skip coordinate validation; R7 says x/y are *always* stored, so a missing coordinate now raises even for DRAWER/FLOATING. |
 | STEP1-006 **canonical_18** | IN = 10 tokens (incl. SWITCH_TAB, SUBMIT_QUERY); OUT = INPUT_QUERY / DISMISS_OBSTRUCTION / AUTH_GATE / ENDPOINT_REACHED / ABSTAIN; CONDITIONAL = SELECT_ORIGIN / SELECT_DESTINATION / SELECT_DATE via `input_modes` (DROPDOWN / MAP_PAN → IN, FREE_TEXT → OUT); `depth_conditional_tokens` recorded | PICKER / CALENDAR accepted as aliases of the control class (A names picker/calendar as examples; R5 enum has only DROPDOWN/MAP_PAN). Token-level MIXED / OTHER / missing → `UNRESOLVED`: counted OUT in the primary value, a violation is recorded, and `_conditional_all_in/_all_out` bounds are reported — derive never raises on data. **SWITCH_TAB is IN activation_depth (A) but remains NOT a reveal token for menu_dependency / nav_container_depth (C-3)** — the ticket classifies activation only, and a tab switch does not reveal a container. |
-| STEP1-007 **R11** terminal_reason | 13-value enum; `validate_terminal` with the C-proposal table below; OTHER needs a note; `compare_with_mart_row` flags impossible pairs | Table is a **C proposal** (ticket says B declares it in the runner schema and C verifies at GATE 1); OTHER is allowed only with ABSTAIN in this proposal — to be reconciled against B's table. |
+| STEP1-007 **R11** terminal_reason | 13-value enum; `validate_terminal` with the C-proposal table below (single source `gate1/c_terminal_table.py`, shared with lane5); OTHER needs a note; `compare_with_mart_row` flags impossible pairs | Table is a **C proposal** (ticket says B declares it in the runner schema and C verifies at GATE 1). Unified 2026-08-28: OTHER is allowed with **any non-REACHED** status and always needs a note (lane5 and lane6 previously disagreed — RULING_INDEX_COVERAGE_C C-internal defect); to be reconciled against B's table. |
 | STEP1-007 **R12** distance normalisation | primary `levenshtein_norm` (max len); `levenshtein_norm_sum` and `yujian_bo` always stored; `for_clustering_or_mds` flag → `clustering_companion="yujian_bo"` | — |
 | STEP1-011 **P-06/P-09/P-13/P-14/P-17** | all five C readings accepted; P-13/P-14 fix the auth-stage rule (see C-6 and the five-items table) | relay discrepancy on the task-specific set — ticket text followed (see note under the five-items table) |
 | STEP1-012 **GAP-03 / GAP-04** | GAP-03 confirms C-4; GAP-04 null convention applied to derive / family_summary / entry_zone_record (see C-9) | `forced_dismissal_count` on an empty experienced sequence is a real observed 0 (the obstruction layer was observed empty), not an unobserved value — C states this because GAP-04 forbids mixing null representations in one row |
 | STEP1-007 **R13** auth_gate_stage UNDETERMINED | `NONE` only when the path is fully observed (ENDPOINT_REACHED last, or `endpoint_reached=True` evidence); no terminal / ABSTAIN / `endpoint_reached=False` → `UNDETERMINED`; derive emits `UNDETERMINED` (a category, not None) for ABSTAIN so it stays in the denominator | A sequence whose last token is neither ENDPOINT_REACHED nor AUTH_GATE nor ABSTAIN is treated as incomplete → UNDETERMINED. |
 
 ### R11 endpoint_status × terminal_reason — C pre-registered proposal (compare with B's schema at GATE 1)
+Source of truth: `gate1/c_terminal_table.py` (`TERMINAL_ALLOWED`, `validate_pair`) — imported by this module and by lane5's checker; the table below is a rendering of it.
 | endpoint_status | allowed terminal_reason |
 |---|---|
-| REACHED | *(none — any terminal_reason is invalid)* |
-| AUTH_GATE | AUTH_REQUIRED |
-| BLOCKED | TIMEOUT · WAF_BLOCK · ACTIVE_CHALLENGE · CONTROL_DISABLED_OR_INERT · FORBIDDEN_ACTION_REQUIRED |
-| PUBLIC_WEB_UNOBSERVABLE | NO_PUBLIC_MOBILE_WEB · TASK_SURFACE_ABSENT |
-| APP_REQUIRED | APP_REQUIRED |
-| EVIDENCE_DEFECT | EVIDENCE_DEFECT · REPLAY_BROKEN |
+| REACHED | *(none — any terminal_reason is invalid, incl. OTHER)* |
+| AUTH_GATE | AUTH_REQUIRED · OTHER (note mandatory) |
+| BLOCKED | TIMEOUT · WAF_BLOCK · ACTIVE_CHALLENGE · CONTROL_DISABLED_OR_INERT · FORBIDDEN_ACTION_REQUIRED · OTHER (note mandatory) |
+| PUBLIC_WEB_UNOBSERVABLE | NO_PUBLIC_MOBILE_WEB · TASK_SURFACE_ABSENT · OTHER (note mandatory) |
+| APP_REQUIRED | APP_REQUIRED · OTHER (note mandatory) |
+| EVIDENCE_DEFECT | EVIDENCE_DEFECT · REPLAY_BROKEN · OTHER (note mandatory) |
 | ABSTAIN | AMBIGUOUS_MULTIPLE_CANDIDATES · OTHER (note mandatory) |
 
-Every one of the 13 R11 values is reachable from exactly one endpoint_status; both fields are mandatory for every non-REACHED terminal.
+Every one of the 12 specific R11 values is reachable from exactly one endpoint_status; OTHER is reachable from every non-REACHED status and always carries a note; both fields are mandatory for every non-REACHED terminal. Test coverage: `test_validate_terminal_table` (unified OTHER rule asserted for all six non-REACHED statuses + `c_terminal_table.selftest()`).
 
 ### STEP1-006 activation_depth membership (18 canonical tokens)
 | class | tokens |

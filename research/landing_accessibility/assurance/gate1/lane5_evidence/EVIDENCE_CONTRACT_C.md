@@ -23,7 +23,7 @@ Required artifact files, each referenced from the manifest with `path` + `sha256
 | `control_facts` | selected control facts |
 
 Required manifest fields per state record: `observation_id, service_id, task_id, run_id, attempt_id, state_index (S<n>),
-url, captured_at (ISO-8601), collector_sha, protocol_sha, task_contract_sha256, endpoint_contract_sha256, artifacts{kind:{path,sha256}}`.
+url, captured_at (ISO-8601), collector_sha (accepted source names: collector_sha, collector_sha256 [T-A-V3-STEP1-015 exact name], collector_git_sha, collector_version_sha), protocol_sha, task_contract_sha256, endpoint_contract_sha256, artifacts{kind:{path,sha256}}`.
 
 ## 3. Per-STEP record (02 §4 `fact_flow_step`)
 Required fields: `flow_observation_id, service_id, task_id, run_id, attempt_id, step_index, action_token,
@@ -38,9 +38,11 @@ captured_at, collector_sha, protocol_sha, task_contract_sha256, endpoint_contrac
 `endpoint_status` ∈ {REACHED, AUTH_GATE, PUBLIC_WEB_UNOBSERVABLE, APP_REQUIRED, EVIDENCE_DEFECT, BLOCKED, ABSTAIN} (unchanged, R11); `terminal_reason` ∈ 13 values {TIMEOUT, WAF_BLOCK, ACTIVE_CHALLENGE, NO_PUBLIC_MOBILE_WEB, TASK_SURFACE_ABSENT, APP_REQUIRED,
 CONTROL_DISABLED_OR_INERT, FORBIDDEN_ACTION_REQUIRED, AUTH_REQUIRED, EVIDENCE_DEFECT, REPLAY_BROKEN, AMBIGUOUS_MULTIPLE_CANDIDATES, OTHER}.
 `auth_gate_stage` ∈ {NONE, BEFORE_TASK_DISCOVERY, AFTER_TASK_SELECT, AT_ENDPOINT, UNDETERMINED}; NONE = "observed, no gate" (affirmative).
-Allowed `endpoint_status × terminal_reason` (C's pre-registered table; OTHER allowed with any non-REACHED status):
-REACHED→∅ (must be null) · AUTH_GATE→AUTH_REQUIRED · PUBLIC_WEB_UNOBSERVABLE→NO_PUBLIC_MOBILE_WEB|TASK_SURFACE_ABSENT · APP_REQUIRED→APP_REQUIRED ·
-EVIDENCE_DEFECT→EVIDENCE_DEFECT|REPLAY_BROKEN · BLOCKED→WAF_BLOCK|ACTIVE_CHALLENGE|TIMEOUT|CONTROL_DISABLED_OR_INERT|FORBIDDEN_ACTION_REQUIRED · ABSTAIN→AMBIGUOUS_MULTIPLE_CANDIDATES.
+Allowed `endpoint_status × terminal_reason` (C's pre-registered table, single source `gate1/c_terminal_table.py` shared with lane6; **OTHER allowed with
+any non-REACHED status and always requires a non-empty `terminal_note`** — unified across lane5/lane6 on 2026-08-28):
+REACHED→∅ (must be null; REACHED×OTHER impossible) · AUTH_GATE→AUTH_REQUIRED|OTHER · PUBLIC_WEB_UNOBSERVABLE→NO_PUBLIC_MOBILE_WEB|TASK_SURFACE_ABSENT|OTHER ·
+APP_REQUIRED→APP_REQUIRED|OTHER · EVIDENCE_DEFECT→EVIDENCE_DEFECT|REPLAY_BROKEN|OTHER · BLOCKED→WAF_BLOCK|ACTIVE_CHALLENGE|TIMEOUT|CONTROL_DISABLED_OR_INERT|FORBIDDEN_ACTION_REQUIRED|OTHER ·
+ABSTAIN→AMBIGUOUS_MULTIPLE_CANDIDATES|OTHER. The table is a C proposal to be compared with B's runner schema at GATE 1 (R11); a differing B table is a finding, not a C edit.
 Consistency: `AUTH_GATE` requires `auth_gate_stage` ∉ {NONE, UNDETERMINED}; `EVIDENCE_DEFECT`/`ABSTAIN` with `auth_gate_stage=NONE` is an affirmative claim without evidence.
 
 ## 4. Hash chain (02 §8 "path manifest ↔ evidence manifest linked by hash"; 03 §10 "manifest SHA")
