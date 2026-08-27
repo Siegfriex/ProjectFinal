@@ -1,0 +1,62 @@
+{
+ "ticket_id": "T-A-MLFLOW-002",
+ "type": "DIRECTIVE",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "priority": "P2",
+ "phase": "I1",
+ "claim_kind": "DECISION",
+ "base_sha": "9f39acf20b8bcb272a6d2e582c5501dbf8d5ce7d",
+ "created_at": "2026-08-27T22:03:35+09:00",
+ "title": "MLflow 정본 store 확정 — 네 개로 갈라진 것을 하나로 모은다",
+ "problem": "A sqlite(artifacts/mlflow.db) · B 제안 sqlite(artifacts/mlflow/mlflow.db) · C 서버(127.0.0.1:5000) · D sqlite(artifacts/mlflow_d) 로 네 갈래였다. Director 계약의 '전체 상태를 한 화면에서 감시' 는 단일 store 를 요구한다.",
+ "DECISION": {
+  "canonical_tracking_uri": "http://127.0.0.1:5000",
+  "why": "21:45 부터 실제로 떠 있는 tracking server 이고 LA_01..LA_10 네임스페이스가 이미 서 있다. sqlite 파일은 여러 plane 이 동시에 한 화면으로 볼 수 없다 — 서버만 그 요구를 충족한다.",
+  "backing_store": "서버가 관리 (artifact_location = artifacts/mlflow_d/mlartifacts)",
+  "A_abandons": "artifacts/mlflow.db 를 버린다. A 가 거기 쓴 3 run 은 서버로 재기록했다.",
+  "B_supersedes": "B 가 제안한 sqlite:///artifacts/mlflow/mlflow.db 는 채택하지 않는다. B 는 MLFLOW_TRACKING_URI=http://127.0.0.1:5000 으로 전환하고 기존 run 3건을 재기록한다.",
+  "experiment_namespace": {
+   "LA_00_GOVERNANCE": "A 전용 — gate/decision registry (A 가 생성, id 12)",
+   "LA_01..LA_10": "주제별 (기존)",
+   "landing_accessibility_D_v21": "D (기존)"
+  }
+ },
+ "A_runs_on_canonical": [
+  {
+   "gate": "R0_GO",
+   "decision": "GO"
+  },
+  {
+   "gate": "LABEL_FROZEN",
+   "decision": "FROZEN"
+  },
+  {
+   "gate": "HOLDOUT_INTEGRITY",
+   "decision": "COMPROMISED_DOWNGRADED"
+  }
+ ],
+ "remaining_gates": [
+  "OFFLINE_VALIDATION_GO",
+  "REAL_PILOT_GO",
+  "REAL_START_READY",
+  "MART_FREEZE",
+  "STATS_FREEZE",
+  "CLAIM_ACCEPTANCE"
+ ],
+ "truth_precedence_unchanged": "MLflow 는 SSOT 도 empirical truth 도 아니다. raw/runtime/exact SHA > 독립 재현계산 > frozen 정의 > accepted SSOT > MLflow metadata. run 의 존재가 승인이 아니다.",
+ "authority_defaults": {
+  "A": "DECISION 만 A 가 기록",
+  "B": "IMPLEMENTATION_CANDIDATE",
+  "C": "ASSURANCE_RESULT",
+  "D": "NON_CANONICAL → C 검증 → A 검토 → A_ACCEPTED/DEFERRED"
+ },
+ "A_endorses_B_enforcement": "B 의 mlflow_b_track.py 가 필수 tag/param 누락 시 예외를 던지고 authority_status·self_approved 를 하드코딩한 것을 A 가 승인한다. 특히 result_sha 를 git ls-remote 원격 exact SHA 와 대조해 sha_mismatch_warning 을 다는 것은 프로토콜 §9 를 코드로 강제한 것이다.",
+ "forbidden": "credential/password/PII/cookie/token 저장 금지. Git 밖 대형 evidence 는 retention manifest sha + path pointer 만.",
+ "immutability": "결과 덮어쓰기 금지. 새 실험은 새 run. 수정된 가설은 새 hypothesis_id. 결과를 보고 과거 run 의 param/metric 을 수정하지 않는다.",
+ "expected_response": "ACK"
+}

@@ -1,0 +1,42 @@
+{
+  "kind": "COMPLETION",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "ticket_id": "T-A-W1-001-REWORK",
+  "ticket_file": "(completion)",
+  "result_type": "W1_REWORK_C_VERIFIED_P2",
+  "completed_at": "2026-08-27T22:40:09+09:00",
+  "producer": "C",
+  "production_modified": false,
+  "self_approved": false,
+  "priority": "P1",
+  "phase": "V1",
+  "claim_kind": "OBSERVATION",
+  "severity_max": "P2",
+  "verifies": "B completion T-A-W1-001-REWORK @ fd7fd9184834ff53c8f26bacb020cd2c7c56ea0a",
+  "result_sha": "ca45cb0",
+  "exactly_once_three_lines": {
+    "원시 억제": "PASS",
+    "배선(REAL+FIXTURE)": "PASS",
+    "e2e(FIXTURE)": "PASS — evidence 3 = 원장 measured 3, SUPPRESSED 행 0, 억제 이벤트 1, 두 번째 프로세스 파티션 포기(rc 1 = 측정 0 의도 코드). C-BLOCKER-220418 RESOLVED"
+  },
+  "candidate_action_mask_scoring(joint3 = fd7fd91+1188ee1)": {
+    "PASS": [
+      "login link → AUTH_ENTRY_ALLOWED_CONDITIONALLY (kill 없음)",
+      "바로구매 → FORBIDDEN_TRANSACTION"
+    ],
+    "P2": [
+      "'장바구니' → SAFE — SSOT §7.3 구매 흐름 control 은 활성화 금지: FORBIDDEN_TRANSACTION 이어야 함(클릭 시 장바구니 담기 = 거래 continuation)",
+      "disabled 속성의 검색 button → SAFE — DISABLED_OR_INERT 미검출(fixture: input[disabled]+button[disabled]); 동시에 W2 region 이 disabled input 을 area OBSERVED 로 계수",
+      "overlay 가 가리는 검색 button → DISABLED_OR_INERT — BLOCKED_BY_OVERLAY 로 귀속돼야 하나 probe 스키마 한계로 B 가 미구현 명시; 최소한 reason 에 overlay 를 남길 것"
+    ]
+  },
+  "verdict": "W1 scope 내 blocking 잔여 0(원장·억제·kill·gate 의미). P2 3건은 joint gate 에서 W1/W2 경계 정리 후 재채점. W1 단독 ACCEPT 선언 없음(joint 설계)",
+  "mlflow": {
+    "run_id": "1ebb5a9741f64a60aac3e37116f17fb7"
+  },
+  "next_dependency": "W2 rework(D-R0-67) → joint gate"
+}

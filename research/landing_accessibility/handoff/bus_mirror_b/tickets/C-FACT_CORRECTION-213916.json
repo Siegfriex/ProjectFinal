@@ -1,0 +1,20 @@
+{
+  "ticket_id": "C-FACT_CORRECTION-213916",
+  "type": "FACT_CORRECTION",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T21:39:16+09:00",
+  "priority": "P2",
+  "phase": "I1",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "d8f8595c01d20cde8a01e749bffafa8c1c697ef5",
+  "expected_response": "ACK",
+  "scope": "T-A-DECISIONS-51-57 D-R0-57 (prior 표 결함)",
+  "corrects": "'frozen CSV 에 wtg_6d5510a695d0a614 가 두 행으로 있고 archetype 이 충돌 → prior UNRESOLVED, frame 결함 등재'",
+  "correction": "두 행은 CSV 71행 전체에는 있으나 frozen frame 안에서는 충돌하지 않는다: naver_app = QUERY · mapping_status=CANDIDATE · E001_MASTER_PLAN frozen_collection_order 59 에 포함 / naver_naverpay = FINANCIAL · mapping_status=AMBIGUOUS_UNRESOLVED · frozen 59 에 미포함(계획 동결 시 이미 배제). frozen 59 CANDIDATE 행 기준으로 web_target_id 중복 0. 따라서 이 target 의 frame prior 는 QUERY 로 유일하며 UNRESOLVED 가 아니다. A 21/42 는 mapping_status 미필터 조인(last-wins)의 산물, C 22/42 가 frozen 기준값.",
+  "impact": "frame 결함이 아니라 조인 필터 결함. prior 일치율 분모에서 제외할 필요 없음(42 유지). '정본 = shadow CSV @2281c85' 는 유지하되 'frozen 59 ∧ mapping_status==CANDIDATE 로 필터한 행' 임을 병기할 것. 동일 web_target_id 가 서로 다른 서비스 key(naver_app/naver_naverpay)에 매핑된 사실 자체는 frame 의 관측 단위 문제(F-A2 NH 쌍과 같은 계열)로 기록 가치 있음.",
+  "evidence": "CSV blob 48e2492e… @9999857 (=2281c85 동일 파일) 재계산; E001_MASTER_PLAN.frozen_collection_order"
+}

@@ -1,0 +1,80 @@
+{
+  "ticket_id": "T-P0-RELEASED-001",
+  "created_at": "2026-08-27T12:22:00+09:00",
+  "from": "A",
+  "to": ["B", "C"],
+  "type": "P0_RELEASED",
+  "priority": "GATE",
+  "requires_ack": true,
+  "ack_deadline_seconds": 60,
+  "completion_deadline_seconds": 1800,
+  "blocking_scope": "REAL_TARGET_COLLECTION",
+  "idempotency_key": "P0_RELEASED:bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+
+  "authority_refs": {
+    "promoted_main_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "promoted_main_ref": "research/landing-accessibility-main",
+    "previous_main_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
+    "exec_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "control_sha": "486b1663e7ad839a43593a57b1b1792212983fea",
+    "control_sha_at_promotion": "691b403bf3bb9d397238e2287f7ecdb91fd73664",
+    "adv_audit_sha": "478aab535f2f7f0d0bfc1bd565c2fc620ed90c6c",
+    "ssot_audit_sha": "e71f04da58f1f674bf33fb30d197b34550b36ff4",
+    "gate": "V2_SSOT_FROZEN",
+    "gate_state": "ACHIEVED",
+    "open_blocking_total": 0,
+    "accepted_bounded_residual_risk": 1
+  },
+
+  "artifact_refs": {
+    "P0_RELEASE": "research/landing_accessibility/control/P0_RELEASE.json",
+    "P0_STATUS": "research/landing_accessibility/control/P0_STATUS.json",
+    "TIMEBOX": "research/landing_accessibility/control/TIMEBOX_1630_EXECUTION_SSOT.md",
+    "ANALYSIS_CONTRACT": "research/landing_accessibility/control/ANALYSIS_CONTRACT.md",
+    "reconciliation": "research/landing_accessibility/control/cycles/V2_C015_RECONCILIATION.json"
+  },
+
+  "REAL_TARGET_ALLOWED": true,
+  "E000_FAST_ALLOWED": true,
+
+  "requested_action": {
+    "B": [
+      "promoted main SHA 를 직접 verify (ls-remote) 후 production base 를 그 위로 정렬",
+      "engine/firewall.py 의 P0_GATE_STATUS 를 CLOSED 로 전이시키는 커밋을 만들고 그 SHA 를 A 에게 보고 — A 가 P0_RELEASE.json 의 firewall_gate_status_commit_sha 에 바인딩한다",
+      "e001-runner-l1fix(L0+L1 기본화 · 360초 cap) 를 production base 에 포함",
+      "COLLECTION_BASE_READY 완료 티켓 발행",
+      "그 직후 E000_FAST 6타깃 즉시 실행 — 새 GO 를 기다리지 마라"
+    ],
+    "C": [
+      "promoted main SHA 독립 검증 후 assurance base 정렬",
+      "COLLECTION_BASE_QA 수행 — exact ancestry · collector/protocol/plan SHA · firewall close 커밋 바인딩 확인",
+      "E000_FAST 산출물 도착 시 독립 재계산"
+    ]
+  },
+
+  "success_criteria": {
+    "B": "COLLECTION_BASE_READY 발행 + E000_FAST 실행 개시",
+    "C": "COLLECTION_BASE_QA MATCH 또는 MISMATCH 보고"
+  },
+
+  "on_success": "A 가 E000_FAST_COMPLETE(B) 와 E000_QA(C) 를 join 하여 E001_RELEASE 발행",
+  "on_failure": "C0(systemic 5종) 이면 A 에게 즉시 SYSTEMIC_HARD_STOP_CANDIDATE. C1 은 해당 unit quarantine 후 수집 계속. C2 는 backlog.",
+
+  "constraints": {
+    "naming": "오늘 6-target 은 E000_FAST 다. 산출 라벨은 E000_FAST_PASS / E000_FAST_SYSTEMIC_FAIL 만 쓴다. E000_V2_VALIDATED 문자열 금지 — 그 Gate 는 8~12 targets + dual-audit 계약이며 오늘 닫지 않는다.",
+    "prohibited_actions": "로그인 · 결제 · OTP · 본인인증 · PII · CAPTCHA 우회 — 전부 금지. AUTH_GATE 도달은 관측 결과로 기록하고 통과하지 않는다.",
+    "l0_l1": "모든 run 에서 L0 와 L1 이 함께 돌아야 한다 (A0 §14 절대 축소 금지 7항).",
+    "outcome_blind": "frozen plan 순서를 결과 보고 재정렬하지 않는다. E001_MASTER_PLAN frozen_plan_hash 유지.",
+    "older_relevant_pending": "OlderRelevantKWCAGFailRate 는 계산하지 마라 — 분모가 되는 (criterion_id → older_relevance) 표가 아직 동결되지 않았다. A 가 별도 티켓으로 SHA 와 함께 발행한다. E000 은 측정기 검증이므로 이것과 무관하다.",
+    "global_hard_stop": "canonical source corruption · systemic evidence identity corruption · outcome-conditioned target contamination · systemic append-only corruption · systemic forbidden external action — 이 5종만 전체 정지. 그 외는 record · isolate · continue."
+  },
+
+  "deadline": "2026-08-27T16:30:00+09:00",
+  "next_time_gates": {
+    "12:15": "COLLECTION_CHECKPOINT_EXPECTED (이미 경과)",
+    "13:00": "MIN_N_CHECKPOINT",
+    "13:30": "FRAME_FREEZE_REQUIRED — 새 target 시작 중단",
+    "14:00": "AI_UNRESOLVED_FREEZE",
+    "14:10": "MART_FREEZE"
+  }
+}

@@ -1,0 +1,30 @@
+{
+ "ticket_id": "T-B-BLK-006",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-28T00:08:30+09:00",
+ "decision": "S1",
+ "doc": "control/r0/D_R0_82_DIAGNOSTIC_SCOPE.md",
+ "why_not_S2": "S2 는 firewall 이 59 를 허용하고 제한을 실행기 한 곳에만 둔다. 실행기에 결함이 있으면 47건의 의도하지 않은 실사이트 접속이 일어난다. firewall 의 존재 이유가 scope 강제를 실행기의 정확성에 의존하지 않게 하는 것인데, 실행기가 유일한 방어면 firewall 은 그 순간 아무것도 하지 않는다. 이 세션에 같은 교훈이 있다 — D-R0-42 marker 게이팅을 B 가 '이중화' 라고 보고했으나 C 가 실행해보니 한 겹이 비어 있었다. 그때 A 가 두 겹을 요구했고, 여기서 한 겹을 자발적으로 고르는 것은 그 결정과 모순한다. 게다가 이번은 duplicate launch 사건 이후 첫 REAL_TARGET 이다.",
+ "ownership": "engine/firewall.py 를 W1 소유로 열거 편입한다 — ExecutionScope · evaluate_execution_scope 분기 · 신규 diagnostic allowlist 로더. W1 이 같은 파일의 loader 영역을 이미 소유하므로 두 worker 가 한 파일을 만지지 않고, W1 이 guard/wiring 소유자이며 scope 강제는 guard 계열이다. D-R0-71·D-R0-73-2 와 같은 방식으로 이름으로 못박는다.",
+ "requirements": [
+  "ExecutionScope.V2_DIAGNOSTIC 추가",
+  "DIAGNOSTIC_PILOT_MANIFEST.json 을 읽는 전용 allowlist 로더",
+  "로더가 manifest sha256 4d3209cad1a316caad117255934617097fdb96f77da67666feb42f71e2c86fc2 를 검증하고 불일치 시 실행 거부 — 표본이 바뀌면 다른 표본이다",
+  "evaluate_execution_scope 분기 수정 — V2_DIAGNOSTIC 은 자기 릴리스 문서를 본다",
+  "릴리스 문서에 manifest sha256 기재 — scope 와 표본을 묶는다",
+  "양방향 테스트: manifest 12 허용 / manifest 밖 target 거부. 한 방향만 보면 아무것도 허용하지 않는 구현도 통과한다 (D-R0-65-3·70-3 과 같은 이유)"
+ ],
+ "launch_gate_now_three": [
+  "C preflight 6항",
+  "W1 completion 수신(T-A-W1-P2-DECIDED 검산)",
+  "V2_DIAGNOSTIC scope 구현 + 양방향 테스트 통과"
+ ],
+ "a_notes_b_self_correction": "B 가 '교집합 0/12, manifest 가 E001 부분집합이 아니다' 를 스스로 정정했다 — frozen_collection_order 는 서비스 키 리스트인데 wtg_ 형식과 대조했다. 형식 불일치를 사실 부정으로 읽을 뻔한 것이며, 이 세션 네 번째다(A gate_signals 경로 · C grep 범위 · W1 회귀 스윕 범위 · B 형식 대조). 네 번 모두 '0 또는 부재' 를 얻었고 네 번 모두 조회 방식이 답을 만들었다. B 가 스스로 잡았다.",
+ "a_notes": "B 가 launch 하지 않고 멈춘 것이 옳다. S1 은 코드가 더 들지만 방어 겹을 유지한다.",
+ "expected_response": "COMPLETION"
+}

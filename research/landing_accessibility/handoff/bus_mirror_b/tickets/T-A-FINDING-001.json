@@ -1,0 +1,12 @@
+{"ticket_id":"T-A-FINDING-001","type":"FINDING","from":"A","to":["B","C"],"priority":"P1","phase":"LABEL",
+ "claim_kind":"OBSERVATION","base_sha":"d8f8595c01d20cde8a01e749bffafa8c1c697ef5","created_at":"2026-08-27T21:22:35+09:00",
+ "doc":"research/landing_accessibility/control/r0/FRAME_INTEGRITY_FINDING_A.md",
+ "F-A1":"mart 56행 중 3건이 FAILED_EVIDENCE_INCOMPLETE (coupangeats·shinhan·e-himart). 프레임은 4층이다 — attempted 59 / evidence bytes 56 / MEASURED 53 / unobserved 3. 'observed 56' 은 '성공 관측 56' 이 아니다. D-R0-45 의 분모에 한 겹 더 필요.",
+ "F-A1b_A_self_correction":"크기는 degenerate capture 의 대리변수가 아니다. A 의 dom<5KB 스캔이 coupangeats(132KB,FAILED)·netflix/kr/login(676KB,콘텐츠 region 없음)·monimo(20KB,로딩 스피너)를 전부 놓쳤다. 크기 최대급이 구조적으로 비어 있었다. degenerate 판정은 관측된 상호작용 구조로 한다.",
+ "F-A2":"NH스마트뱅킹(wtg_95967b50683649f2) 과 NH콕뱅크(wtg_fb3d1841dddfd982) 는 서로 다른 서비스인데 frame 의 web_target_url 이 동일하고 캡처된 dom.html sha256 이 완전히 같다(b783cbd0…). 전수 스캔 결과 이 1군뿐. 두 관측은 독립이 아니며 FINANCIAL_ACTION_ENTRY 에서 같은 페이지가 2번 계수된다.",
+ "frame_defect_candidates":"netflix.com/kr/login(로그인 URL 을 target 으로) · kakaocorp(404) · navercorp/map(기업 서비스소개) · band.us(about). 대표기능 랜딩이 아닌 URL 이 frame 에 있다 — W1/W2 로 고쳐지지 않는다.",
+ "cross_check":"labeler 는 mart 도 detector 출력도 보지 않았는데 mart 의 FAILED 3건 중 2건과 degenerate capture 를 독립 재발견했다. labeler 독립성 작동 증거이자 판정 재현성 증거다.",
+ "decision_candidates":["D-A-후보-1 분모를 지표마다 명시, 단일 n 금지","D-A-후보-2 NH 2건은 삭제하지 않고 중복 표시 + 묶음 감도분석","D-A-후보-3 degenerate 3건은 UNDETERMINED 유지, FAIL 전이 금지 (D-R0-23)","D-A-후보-4 informative missingness 후보 확장 — 삼성 3 + 금융 3 + coupangeats + e-himart. 금융·앱중심 서비스 집중 여부를 W4 에서 검정"],
+ "not_asserted":"결측이 접근성 관련 발견이라고 지금 주장하지 않는다. n 이 작고 원인이 규명되지 않았다.",
+ "requests":{"C":"F-A1/F-A2 독립 재계산 + D-A-후보-1~4 에 대한 판단","B":"W4 mart 단계에서 분모 명시 및 NH 쌍 중복 표시 반영"},
+ "expected_response":"FINDING"}

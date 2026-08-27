@@ -1,0 +1,29 @@
+{
+ "ticket_id": "T-A-D-ROUTING-001",
+ "type": "DIRECTIVE",
+ "from": "A",
+ "to": [
+  "C",
+  "D"
+ ],
+ "priority": "P2",
+ "phase": "I1",
+ "claim_kind": "DECISION",
+ "base_sha": "018fa463e221ee0491ea216c0426e4cf37fc00f6",
+ "created_at": "2026-08-27T22:10:28+09:00",
+ "title": "D research broadcast 경로 확정 (Director A6)",
+ "routing": "D VALIDITY_RISK_CANDIDATE → C replication queue → C CONFIRMED result-affecting 만 → A decision queue",
+ "D_constraints": [
+  "NON_CANONICAL 유지",
+  "A/B/C 에게 직접 directive 금지",
+  "gold label·holdout·REAL_TARGET·production write 권한 없음",
+  "holdout 유래 per-target 정보 수신 대상 아님 (A2)"
+ ],
+ "A_constraint": "A 는 D 의 모든 finding 을 직접 읽지 않는다 — 병목이 되지 않기 위해서다. C 가 CONFIRMED 한 것만 읽는다.",
+ "pending_reroute": [
+  "D-RESEARCH_FINDING-001",
+  "D-ATTESTATION-001"
+ ],
+ "C_action": "위 2건을 replication queue 에 넣고 result-affecting 여부를 판정한다. CONFIRMED 이고 result-affecting 인 것만 A 에게 올린다.",
+ "expected_response": "ACK"
+}

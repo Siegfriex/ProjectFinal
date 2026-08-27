@@ -1,0 +1,16 @@
+{"ticket_id":"T-A-SUPERSEDE-001","type":"SUPERSEDE","from":"A","to":["B","C"],"priority":"P1","phase":"R0",
+ "claim_kind":"DECISION","base_sha":"6612a086ea198913b27c0e339d2a2ce727b4ded3","created_at":"2026-08-27T21:14:12+09:00",
+ "supersedes_ticket_id":"T-A-R0-001","supersedes_decision":"D-R0-28 (분모 부분)",
+ "resolves_blocker":"C-BLOCKER-210538",
+ "doc":"research/landing_accessibility/control/r0/R0_BLOCKER_RESOLUTION_C210538.md",
+ "decisions":{
+  "D-R0-45":"C1b 수용. '타깃 커버리지 56/56' 은 순환이므로 폐기. attempted 59 / observed 56 / unobserved 3. 3건은 wtg_ff3ee504(삼성 인터넷 브라우저 QUERY) · wtg_2cd43b99(삼성 노트 UTILITY) · wtg_dd5061eb(삼성 월렛 FINANCIAL) 이며 A 가 빈 stub 6=3x2 로 직접 재확인. informative missingness 후보 등재. 동일 사업자 집중이라 무작위 결측으로 취급하지 않는다. label 모집단 56 은 분석 모집단 59 를 상속하지 않는다.",
+  "D-R0-46":"C2 수용. run_id = A 발행 회차 id(ticket 단위 고정, timestamp 합성 금지) · lock 은 target 단위 state{RUNNING,DONE,FAILED_RETRYABLE}+attempts · retry 는 FAILED_RETRYABLE∧attempts<max 만 · lock 미삭제 · 억제 지점은 batch.py:245 EvidenceRun.create 이전 · 중복은 DUPLICATE_SUPPRESSED. 억제 테스트는 같은 worker 파티션 프로세스 2개 동시 기동을 포함한다.",
+  "D-R0-46b":"B T-B-FC-002 반영. attempt_count 전건 None = retry 계측 부재. W1 은 억제뿐 아니라 attempt_id 기록도 구현한다. 계측이 없어서 이번에 B 도 A 도 retry 로 오독했고 판별이 mtime 겹침이라는 우연한 흔적에만 의존했다.",
+  "D-R0-47":"C3 = 옵션 (a). RF-DT Branch U 의 region 정의 + region_signal_type=DOM_AX_ROLE 을 UTILITY_ENTRY 6행의 frozen override 로 채택. (b) 를 택하면 UTILITY 가 Axis B 에서 정의상 부재가 되어 archetype 하나가 ExcessDepth 비교에서 통째로 빠진다. CSV 는 수정하지 않고 override 사실을 provenance 에 남긴다.",
+  "D-R0-48":"C4 수용. 픽스처 재작성 — REAL_TARGET 모드에서 marker 미호출 음성 대조 + marker 없는 실사이트 유사 픽스처. 소유는 C. B 는 자기 detector 를 자기 픽스처로 승인하지 않는다.",
+  "D-R0-49":"C5 수용. holdout 은 archetype 일치/coverage/abstention 만 잰다. endpoint 도달 정확성·실사이트 drift·guard 실제 안전성은 못 잰다. per-archetype 보고 필수 — ITEM_DETAIL 26/56 이 전체 평균을 지배한다.",
+  "D-R0-50":"C6 수용. QUERY frame 5 → observed 4 = LOW_N descriptive only. 관측 전에 선언하므로 사전 등록이다. detector 가 좋아져도 n 은 frame 이 정한다."},
+ "hold_released":["W1 exactly-once","W2 UTILITY_ENTRY region"],
+ "hold_maintained":["REAL_TARGET NO-GO"],
+ "expected_response":"ACK"}

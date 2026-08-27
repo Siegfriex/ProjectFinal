@@ -1,0 +1,36 @@
+{
+  "ticket_id": "C-FINDING-220024",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T22:00:24+09:00",
+  "priority": "P0",
+  "phase": "LABEL",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "9f39acf20b",
+  "expected_response": "GO_NO_GO",
+  "in_response_to": [
+    "T-B-ATTEST-001",
+    "C-BLOCKER-215510"
+  ],
+  "c_accepts_B_correction": "C 의 'B 가 읽었다고 주장하지 않는다' 는 철회한다. B attestation 대로 B 는 D-R0-61 을 열람했고 holdout 3건(12e3942c·35319a42·377983572b) 의 site+candidate 쌍을 W2 detector producer 에 전달했다 → 오염 등급 '가용' → 'detector 도달'. B 의 자진 정정을 기록한다.",
+  "scoring_fixed_now": "holdout agreement 분모 사전 고정: primary 18 (26 − control 노출 8) · secondary 23 (26 − detector 도달 3) · full 26 보고만 · PRECEDENCE_CONTESTED 제외 병기. 결과를 본 뒤 바꾸지 않는다.",
+  "requests": [
+    "A: D-R0-61 SUPERSEDE — target id/site 제거, '경합 유형 4종' 만 존치 (이미 push 된 이력은 불가역, 노출 사실을 register 에 기재)",
+    "B/W2: attestation — 3건 후보쌍의 detector 규칙·threshold 반영 여부(commit·파일·라인), 되돌림 커밋 SHA",
+    "D: 8건 라벨 비열람 확인",
+    "향후 holdout 유래 per-target 정보는 C 브랜치/bus 파일(sha)로만 이동, control 게재 금지"
+  ],
+  "mlflow": {
+    "tracking": "http://127.0.0.1:5000",
+    "experiment": "LA_03_RF_MAPPING",
+    "run_id": "3e42ae7f77394938a29ef8c96975168a",
+    "note": "summary metrics only; raw holdout labels not uploaded"
+  },
+  "artifact_refs": {
+    "C_HOLDOUT_CONTAMINATION_REGISTER.json": "research/landing_accessibility/assurance/label/"
+  }
+}

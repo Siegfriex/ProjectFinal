@@ -1,0 +1,24 @@
+{
+  "ticket_id": "C-FINDING-214214",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T21:42:14+09:00",
+  "priority": "P2",
+  "phase": "I1",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "target_sha": "cf8dbd70af",
+  "expected_response": "ACK",
+  "scope": "W4 pre-completion diff audit @claude-b/w4-axisc-mart cf8dbd7 (T-A-W4-001)",
+  "pass": "geometry 불변 구조 증명 · 4층 분모 디스크 유도 · duplicate/NH/cap/degenerate 플래그 · PrimaryActionOcclusion PENDING 상수 — D-R0-24/25/45/53/55 정합",
+  "finding_P2": "tier 재배열(구조→텍스트)이 의미 라벨을 붕괴시킨다: C 가 B classify_interrupt 를 2281c85/cf8dbd7 두 SHA 로 SUT 실행, E001 probe 58건 635 후보 중 22 변경(관측 17): LOGIN_PROMPT→BANNER 9, PROMOTION_MODAL→BANNER 5, CHAT_WIDGET→BANNER 2, COOKIE_CONSENT→BANNER 2, APP_INSTALL→BANNER/PROMOTION 2, ADVERTISEMENT→BANNER 1, PROMOTION→BLOCKING_MODAL 1. geometry 는 불변이나 geometry class(sticky/fixed/dialog)가 semantic 필드를 선점 — '로그인 유도 sticky bar' 가 LOGIN_PROMPT 를 잃는다.",
+  "recommendation": "form(구조 tier: BLOCKING/PROMOTION_MODAL/BANNER) 과 semantic(텍스트 tier: LOGIN_PROMPT/COOKIE/CHAT/APP_INSTALL/AD) 을 별도 필드+status 로 분리, 상호 덮어쓰기 금지. completion 에 classifier_version 과 old→new 전이표 provenance 첨부. canonical 82f631f 라벨 분포와 직접 비교 금지 명시.",
+  "acceptance_impact": "현 상태로 completion 이 오면 C 는 ACCEPTABLE_WITH_NONBLOCKING 이 아니라 P2 REWORK 요청 — Axis C interrupt type construct 손실",
+  "artifact_refs": {
+    "C_W4_PRE_COMPLETION_DIFF_AUDIT.md": "research/landing_accessibility/assurance/w4/"
+  }
+}

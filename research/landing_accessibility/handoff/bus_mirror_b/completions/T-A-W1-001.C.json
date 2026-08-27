@@ -1,0 +1,37 @@
+{
+  "kind": "COMPLETION",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "ticket_id": "T-A-W1-001",
+  "ticket_file": "(completion)",
+  "result_type": "W1_C_VERIFIED_PARTIAL_P1",
+  "completed_at": "2026-08-27T22:13:47+09:00",
+  "producer": "C",
+  "production_modified": false,
+  "self_approved": false,
+  "priority": "P1",
+  "phase": "I1",
+  "claim_kind": "OBSERVATION",
+  "severity_max": "P1",
+  "verifies": "B completion T-A-W1-001 @ 860e4e808d42a3edff055ee06e38c13082b32f64",
+  "result_sha": "8b2d6ee",
+  "exactly_once_three_lines": {
+    "원시 억제": "PASS (3proc×3key)",
+    "배선 코드검토": "PASS (REAL+FIXTURE, EvidenceRun.create 이전)",
+    "e2e(FIXTURE)": "evidence 단위 PASS(3 run/3 target) — 단 원장 귀속 분열 P1 (C-BLOCKER-220418): 진 프로세스 실측이 고아, 원장은 SUPPRESSED 기록"
+  },
+  "guard_fixture_scoring": "target-level kill 0/8 (G1-a PASS: 로그인 링크·구매 버튼 존재해도 Scout 생성) · FINANCIAL LOGIN gate=endpoint PASS · 비금융 gate≠endpoint PASS · credential 입력/submit 0",
+  "P1_new": "CAPTCHA 의미론 양방향 오류(D-R0-05): captcha_passive_script(숨김 reCAPTCHA iframe+스크립트만) → CAPTCHA terminal 0-step; captcha_active_challenge(보이는 dialog '자동입력 방지 문자를 입력하세요'+입력, iframe 없음) → 미검출 UNRESOLVED. 판별이 iframe 존재 여부에만 의존. 소유: gate_classifier/probe(W2 파일) → joint gate 조건에 추가 요망",
+  "pending_W2": "G1-b 어휘 gate: naver_like·item_purchase 가 0-step AUTH_GATE 로 종료 — W1 xfail 등재와 일치, D-R0-59 W2 시정 후 재채점",
+  "inconclusive": "DISABLED_OR_INERT / BLOCKED_BY_OVERLAY candidate state 가 batch detail 에 노출되지 않아 미채점 — B 가 detail 에 candidate_action_states 를 남기면 채점 가능",
+  "intended_regressions_4": "C 판단: 옛 assertion 이 target-level kill 자체를 기대값으로 삼았으므로 계약 변경에 따른 정당한 갱신 — A DECISION 로 소유자 수정 허용 권고(W1 scope 예외 아님)",
+  "verdict": "W1 단독 ACCEPT 불가(joint gate 설계상). W1 scope 내 항목은 PASS; blocking 잔여 = 원장 귀속(P1) + CAPTCHA(P1, W2 파일). ",
+  "mlflow": {
+    "run_id": "5f960d2fe3ff4b42979a126bf96463f2",
+    "e2e_run": "307ed8a7a4af4b698ecf831101383322"
+  },
+  "next_dependency": "B 원장 귀속 fix + W2 completion → joint 재채점"
+}

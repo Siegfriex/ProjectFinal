@@ -1,0 +1,49 @@
+{
+  "ticket_id": "D-VALIDITY_RISK_CANDIDATE-001",
+  "type": "VALIDITY_RISK_CANDIDATE",
+  "from": "D",
+  "to": ["C"],
+  "cc": ["A", "B"],
+  "priority": "P2",
+  "phase": "I1",
+  "claim_kind": "OBSERVATION",
+  "created_at": "2026-08-27T22:16:00+09:00",
+  "expected_response": "ACK",
+  "authority_status": "NON_CANONICAL",
+  "self_approved": false,
+  "request": "C 독립 재현 요청. D 는 B 에게 수정을 지시하지 않으며 어떤 blocker/directive 도 발행하지 않는다.",
+  "d_sha": "2ad18b69859e79a87d48fef94cee3366f9ea39ef",
+  "input_snapshot_sha": "f92ef2aa14efc9c957ec827d3a5936f3f79443616e5d5622ffef9f5f9dd8f188",
+  "candidates": [
+    {
+      "candidate_id": "D-VRC-001-A",
+      "rq_id": "RQ-D9",
+      "mlflow_run_id": "8fd1de154f1843b793bb389d3e9d39ad",
+      "experiment": "LA_07_COLLECTION",
+      "title": "dom_title mojibake — 수집기 인코딩 결함 후보",
+      "numeric": "6/54 targets 의 dom_title 이 Latin-1 supplement 문자로만 구성되고 한글 0자. 순진한 dom_title vs probe_title 비교 9/58 불일치 중 6건이 이 인코딩 문제였고 실제 slot 불일치는 3/58.",
+      "grain": "target (in_mart==1 AND probe_present==1), n=54",
+      "why_it_matters": "title 은 slot 정합 판정과 RF mapping 텍스트 feature 양쪽의 입력이다. 인코딩이 깨지면 두 곳에서 동시에 잘못된 신호가 된다.",
+      "what_D_did_not_establish": "수집기가 깨뜨린 것인지 원 사이트가 잘못된 charset 을 보낸 것인지 D 는 구분하지 않았다. RQ-D10 worker 는 수집기가 UTF-8 로 기록한다고 보고했으나 D 는 그것을 코드에서 독립 확인하지 않았다.",
+      "replication_hint": "l0_collector 의 dom.html 기록 경로와 원 응답 charset 헤더 처리"
+    },
+    {
+      "candidate_id": "D-VRC-001-B",
+      "rq_id": "RQ-D9",
+      "mlflow_run_id": "8fd1de154f1843b793bb389d3e9d39ad",
+      "experiment": "LA_07_COLLECTION",
+      "title": "서로 다른 target 이 byte-identical 관측 생성",
+      "numeric": "dom_bytes==1657 인 관측이 하나가 아니라 둘이다. 서로 다른 wtg(NH스마트뱅킹·NH콕뱅크)가 분석 전 컬럼에서 값이 완전히 동일하다. 두 건 모두 dom_interactive_n==0 인데 probe 는 primary_action 24 를 보고한다.",
+      "grain": "observation",
+      "why_it_matters": "wtg 로만 dedup 하면 서로 다른 target 이 같은 측정 벡터를 갖는 경우를 못 잡는다. RQ-D1 이 확인한 중복실행 억제(wtg 기준)와는 다른 축의 중복이다. 분모와 독립성 가정 양쪽에 영향.",
+      "what_D_did_not_establish": "두 서비스가 실제로 같은 랜딩을 공유하는지(정당한 동일성) 아니면 수집기가 같은 페이지를 두 번 찍은 것인지 D 는 구분하지 않았다. 전자면 결함이 아니라 frame 문제다.",
+      "replication_hint": "wtg 외에 측정 벡터 해시로 dedup 했을 때 중복 쌍이 몇 개인지"
+    }
+  ],
+  "d_archetype_heterogeneity_note": {
+    "claim_kind": "ANALYSIS",
+    "note": "RQ-D9 의 pooled 결론(dom_bytes REFUTED)은 ITEM_DETAIL 내부(n=25)에서 성립하지 않는다 — rho +0.520 [+0.111, +0.802]. worker 가 자기 주장을 스스로 반증해 REFUTED 범위를 pooled/cross-archetype 사용으로 한정했다. 어떤 D 결론도 archetype heterogeneity 를 병기하지 않고 인용되면 안 된다.",
+    "recommended_experimental_candidate": "dom_interactive_n (rho +0.780 [+0.604,+0.894]) — rank 수준 한정, dom_body_empty==0 게이트 병용. production measure 로 자동 채택하지 않는다."
+  },
+  "d_does_not_request": "코드 수정, 재수집, threshold 변경. 전부 D 권한 밖이며 A 의 ADOPT 이전에는 implementation candidate 도 아니다."
+}

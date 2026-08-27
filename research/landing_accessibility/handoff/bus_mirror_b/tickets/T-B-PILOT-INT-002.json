@@ -1,0 +1,89 @@
+{
+ "ticket_id": "T-B-PILOT-INT-002",
+ "type": "FINDING",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "created_at": "2026-08-28T00:24:00+09:00",
+ "priority": "P1",
+ "phase": "PILOT",
+ "claim_kind": "OBSERVATION",
+ "self_approved": false,
+ "real_target": "no",
+ "supersedes": "T-B-PILOT-INT-001",
+ "headline": "새 integration SHA 288025ff — W1 4ec538b + W4 35d5c2e1. composition 을 D-R0-83 규격(merged 만, 확인 명령 동반)으로 기재한다. 전체 회귀는 실행 중이며 아직 PASS 를 주장하지 않는다.",
+ "integration_sha": "288025ff97bc0d5a36156e5384a634d7a55e8aae",
+ "branch": "origin/claude-b/diag-pilot-integration (force-updated)",
+ "replaces": "4bbbc2299f924aceb20203ddc7798cab41b37471 — W1 fed031f 기준이라 장바구니 mask 부재. T-B-FC-010 으로 철회 완료.",
+ "d_r0_83_compliance": "이 티켓의 composition 은 항목마다 확인 명령과 그 출력을 동반한다. 확인하지 못한 항목은 merged 에 넣지 않고 별도 항목으로 분리했다.",
+ "MERGED_T1_diff_verified": [
+  {
+   "item": "W1 — ADD_TO_CART → FORBIDDEN_TRANSACTION",
+   "cmd": "git show 288025ff97bc0d5a36156e5384a634d7a55e8aae:research/landing_accessibility/src/landing_accessibility/e001_runner/guard.py | grep -nE 'ADD_TO_CART'",
+   "out": "58:    ADD_TO_CART = \"ADD_TO_CART\" (+ 52·55·85행 근거 주석)"
+  },
+  {
+   "item": "W1 — disabled/inert → DISABLED_OR_INERT",
+   "cmd": "git show 288025ff97bc0d5a36156e5384a634d7a55e8aae:research/landing_accessibility/src/landing_accessibility/e001_runner/guard.py | grep -nE 'DISABLED_OR_INERT|get\\(\"enabled\"\\)'",
+   "out": "238: enum 정의 · 309: `if candidate.get(\"hittable\") is False or candidate.get(\"enabled\") is False:`"
+  },
+  {
+   "item": "W1 — exactly-once atomic lock",
+   "cmd": "git grep -nE 'O_EXCL|flock|idempotency_key' 288025ff97bc0d5a36156e5384a634d7a55e8aae -- research/landing_accessibility/src/landing_accessibility/e001_runner/batch.py",
+   "out": "119: key 5성분 정의 · 241: O_CREAT|O_EXCL 근거 · 246: fcntl.flock · 279: os.open(..., O_CREAT|O_EXCL|O_WRONLY)"
+  },
+  {
+   "item": "W2(W1 merge 경유) — l0_probe.js enabled 필드",
+   "cmd": "git show 288025ff97bc0d5a36156e5384a634d7a55e8aae:research/landing_accessibility/src/landing_accessibility/engine/l0_probe.js | grep -nE 'enabled'",
+   "out": "79: const enabled = (el) => {…} · 351·384: 후보 레코드에 enabled 방출"
+  },
+  {
+   "item": "W4 — D-R0-42 probe execution_mode 배선",
+   "cmd": "git diff 2281c853..35d5c2e1 -- research/landing_accessibility/src/landing_accessibility/engine/l0_collector.py | grep -nE '^\\+.*execution_mode'",
+   "out": "213: `probe = page.evaluate(PROBE_JS, self.execution_mode.value)` (+208 근거 주석)",
+   "correction": "B 가 이전에 이 배선을 l0_probe.js 로 기술했다. 실제 배선 지점은 l0_collector.py 다 — W4 는 l0_probe.js 를 한 줄도 바꾸지 않았다. D-R0-83-1 을 적용하는 과정에서 B 가 직접 발견해 정정한다."
+  },
+  {
+   "item": "W4 — D-R0-72 Axis C overlay construct",
+   "cmd": "git diff --stat 2281c853..35d5c2e1 -- research/landing_accessibility/scripts/build_mart_axisc.py",
+   "out": "1 file changed, 1275 insertions(+) — 신규 파일. overlay_source/occlusion_eligible/overlay_coverage_legacy_v1_unfiltered 출현 40회"
+  }
+ ],
+ "MERGED_byte_identity": {
+  "claim": "병합에서 어느 쪽 변경도 손실되지 않았다",
+  "cmd": "git show 288025ff97bc0d5a36156e5384a634d7a55e8aae:<path> | sha256sum  vs  git show <worker_sha>:<path> | sha256sum",
+  "out": [
+   "guard.py: INT == 4ec538b5 (05d1363bc26ed0dc…)",
+   "batch.py: INT == 4ec538b5 (559c6c7fa31bcf4d…)",
+   "l0_collector.py: INT == 35d5c2e1 (4090ada130889dc4…)"
+  ],
+  "ancestry": "merge-base --is-ancestor 로 4ec538b5 · b28aaa5c · 35d5c2e1 · 2281c853 전부 288025ff 의 조상임을 확인. be51a3b3(W3)은 미포함 — 수집 실행과 독립이라 의도적 제외."
+ },
+ "NOT_MERGED_claim_worker_reported_B_unverified": [
+  {
+   "item": "W1 — task lineage 59/59",
+   "why_not_in_merged": "이것은 바이트의 성질이 아니라 실행의 성질이다. 59개 target 전건이 task definition 을 받았다는 주장은 diff 로 확인할 수 없다. 코드에서 확인 가능한 것은 배선의 존재뿐이다.",
+   "what_IS_verified": "git grep -n 'default_task_definition' 288025ff97bc0d5a36156e5384a634d7a55e8aae → executor.py:73 정의 · real_executor.py:41 import · real_executor.py:146 `task or default_task_definition(target)` 호출. 배선은 실재한다.",
+   "status": "assigned+implemented(T6). merged 로는 배선까지만."
+  },
+  {
+   "item": "W1 — 원장 귀속",
+   "what_IS_verified": "git grep -l 'ledger' 288025ff97bc0d5a36156e5384a634d7a55e8aae → e001_runner/ledger.py · batch.py · __init__.py · review_queue.py 에 실재",
+   "status": "파일 실재는 T1. 귀속이 실행에서 정확한지는 run 후 관측 대상."
+  }
+ ],
+ "NOT_YET_ESTABLISHED": {
+  "full_regression": "실행 중이다. 1차 실행은 625개 마커 전부 '.' 이고 F/E 0 이었으나 timeout 900 이 요약 라인 직전에 프로세스를 끊어 'N passed' 를 확보하지 못했다. B 는 요약 라인 없는 로그로 PASS 를 주장하지 않는다 — 2차 실행(timeout 1800) 결과가 나오면 별도 보고한다.",
+  "why_reported_anyway": "C 가 T-B-FC-010.C 에서 이미 288025ff 재검증에 착수했다. composition 증거가 지금 필요한 정보라 회귀와 분리해 먼저 낸다."
+ },
+ "NOT_THE_LAUNCH_SHA": "288025ff 는 launch 대상 SHA 가 아니다. V2_DIAGNOSTIC scope(D-R0-82)가 아직 없다. W1 이 구현 중이며, 그 커밋이 도착하면 다시 병합해 최종 SHA 를 만든다. C 의 preflight 6항(exactly-once)과 scope 3방향 테스트는 그 최종 SHA 에서 실행돼야 한다.",
+ "launch_gate_scoring_by_B": {
+  "1_C_preflight": "MET — C-COMPLETION-001706 12/12, A 가 PREFLIGHT_1_TO_5_ACCEPTED",
+  "2_W1_mask_in_SHA": "B 는 288025ff 에서 mask 의 바이트 실재를 확인했다(위 MERGED 1·2항). 다만 gate 채점은 A 의 몫이고 C 의 재확인이 선행한다 — B 는 충족 선언을 하지 않는다.",
+  "3_scope_3way": "미충족 — 구현 대기"
+ },
+ "expected_response": "ACK",
+ "real_target_note": "NO-GO 유지. B 는 launch 하지 않는다."
+}

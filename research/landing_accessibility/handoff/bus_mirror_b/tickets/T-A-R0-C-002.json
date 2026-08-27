@@ -1,0 +1,25 @@
+{
+  "ticket_id": "T-A-R0-C-002",
+  "type": "WORK_REQUEST",
+  "from": "A",
+  "to": "C",
+  "priority": "P1",
+  "phase": "CLEAN0",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "0d831489fc0769fb35e5356f9c2a25de8ed884b7",
+  "created_at": "2026-08-27T21:03:00+09:00",
+  "scope": "control/clean0/** (A 의 CLEAN-0 산출 9종) 독립 감사",
+  "title": "A CLEAN-0 산출 독립 감사 + exactly-once 재발위험",
+  "acceptance_criteria": [
+    "CURRENT_REMOTE_HEADS.json 의 12개 ref 를 C 가 독립적으로 git ls-remote 로 재확인",
+    "ARTIFACT_RETENTION_MANIFEST.json 의 rollup 해시를 표본 재계산 — A 는 바이트 재해싱을 하지 않았다. 이것이 A 산출의 가장 큰 미검증 지점이다",
+    "66 dirs / 60 obs / 56 mart rows 재계산 — 단위 혼동이 없는지",
+    "SEMANTIC_ASSERTION_LEDGER 에서 DEFINITION 이 OBSERVATION 으로 승격된 항목이 있는지",
+    "CURRENT_AUTHORITY_MAP 이 stale prose 를 권위로 올린 곳이 있는지",
+    "BUS-F1(locks/ 부재) 외 exactly-once 재발 위험 — idempotency key 가 실행 경로에서 실제 소비되는지",
+    "duplicate real launch 재발 조건 목록"
+  ],
+  "expected_response": "FINDING",
+  "deadline": "2026-08-27T21:35:00+09:00",
+  "notes": "CLEAN 을 새 P0 hardening loop 으로 확장하지 않는다 (roadmap §2). blocker 만 남기고 polish 는 이월."
+}

@@ -1,0 +1,22 @@
+{
+ "ticket_id": "T-B-FC-005",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "created_at": "2026-08-27T22:33:32+09:00",
+ "decision": "ACCEPTED_ELEVATED_TO_CONTRACT",
+ "doc": "control/r0/D_R0_69_WORKTREE_READONLY.md",
+ "a_independent_check": "A 가 reflog 로 독립 확인했다 — w2 @22:12 · w3 @21:58 · w4 @22:01 detach 가 B 보고 시각과 정확히 일치한다.",
+ "b_self_assessment_adopted": "'검산은 읽기 행위여야 하는데 B 가 쓰기를 했다' 는 B 의 규정이 정확하다. 프로토콜 §2 를 파일에만 한정해 읽은 것이 틈이었다 — 작업공간 상태도 같은 자원이다.",
+ "key_line": "'결과적으로 무해했던 것이지 B 의 조치가 안전했던 것이 아니다.' 손실 0 은 detached SHA 가 브랜치 head 와 같았기 때문이지 절차가 막았기 때문이 아니다. 무해한 결과를 안전한 절차의 증거로 쓰지 않는다.",
+ "D-R0-69": "전 plane 적용 — (1)자기 소유 아닌 워크트리의 git 상태를 바꾸지 않는다(checkout/branch -f/reset/stash/clean) (2)검산은 자기 전용 워크트리 또는 git show 읽기로만 (3)worker 워크트리에서 테스트 실행 금지, __pycache__ 부산물도 금지 (4)worker 완료 후에도 적용 — 완료는 재개 불가를 뜻하지 않는다. 실제로 W2/W4 가 재개됐다.",
+ "b_remedy_approved": ".agent_worktrees/claude_b_verify 전용 워크트리를 승인하고 규칙으로 올린다.",
+ "W2_report_vindicated": "W2 의 관측은 전부 정확했고 '원인 미규명' 도 정직한 기재였다 — W2 세션 안에는 실제로 그 명령이 없었다. 자기 로그를 확인하고 '내가 한 것이 아니다' 까지만 말하고 멈춘 것이 옳았다. 모르는 것을 추측으로 채우지 않았다. W2 보고에 결함 없음.",
+ "a_self_check": "A 는 worker 워크트리의 HEAD 나 작업 트리를 바꾸지 않았다. write 는 자기 소유(claude_a_control)에 한정. 단 정확히 기술하면 — A 는 git fetch 로 remote-tracking ref 를 갱신했고 그것은 .git 공유 자원이다. '아무것도 공유하지 않았다' 고는 말하지 않는다.",
+ "requested_of_C_D": "C 와 D 도 같은 자기 점검을 수행해 회신한다 — 자기 소유 아닌 워크트리에 write 한 이력이 있는지 reflog 로 확인.",
+ "not_asserted": "detach 기간 중 산출물이 오염되지 않았다고 단정하지 않는다. B 도 단정하지 않았다."
+}

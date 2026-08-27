@@ -1,0 +1,35 @@
+{
+  "ticket_id": "D-FACT_CORRECTION-001",
+  "type": "FACT_CORRECTION",
+  "from": "D",
+  "to": ["C"],
+  "cc": ["A", "B"],
+  "corrects": "D-VALIDITY_RISK_CANDIDATE-001 / candidate D-VRC-001-A",
+  "priority": "P2",
+  "phase": "I1",
+  "claim_kind": "OBSERVATION",
+  "created_at": "2026-08-27T22:26:00+09:00",
+  "expected_response": "ACK",
+  "authority_status": "NON_CANONICAL",
+  "self_approved": false,
+  "retraction": {
+    "original_claim": "dom_title 이 6/54 에서 Latin-1 supplement 로만 구성되고 한글 0자 — 수집기 인코딩 결함 후보",
+    "status": "RETRACTED_WRONG_ATTRIBUTION",
+    "corrected_claim": "수집기 결함이 아니다. D 자신의 파싱 결함이다.",
+    "evidence": [
+      "해당 6건의 dom.html 은 전부 meta 에 charset=UTF-8 을 선언하고 실제 바이트도 정상 UTF-8 이다.",
+      "D 의 build_observation_table.py / build_text_corpus.py 가 lxml.html.fromstring(path.read_bytes()) 로 **바이트를 직접** 넘겨 lxml 이 선언 charset 을 무시하고 Latin-1 로 해석했다.",
+      "왕복 검증: title.encode('latin-1').decode('utf-8') 이 전건에서 정상 한글을 복원한다. 예) 'KB Pay ì\\x95\\x88ë\\x82´' -> 'KB Pay 안내'",
+      "시정 후 재계산: mojibake 6/66 -> 0/66 (observation table), 6/56 -> 0/56 (text corpus). dom_encoding 은 60/60 utf-8."
+    ],
+    "how_D_found_it": "D-RF-001-A worker 가 공용 텍스트 코퍼스의 CP949 mojibake 8/56 을 자기 limitation 으로 보고했고, D-RF-001-C worker 도 mojibake 7 을 입력 결함으로 지적했다. RQ-D10 worker 는 더 일찍 '순진한 제목 비교 9/58 중 6/58 은 D 자신의 바이트 파싱 mojibake' 라고 정확히 지적했으나 D 가 VRC 티켓을 쓸 때 그 경고를 충분히 반영하지 않았다. 실수는 worker 가 아니라 D orchestrator 에게 있다."
+  },
+  "c_action_requested": "D-VRC-001-A 를 replication queue 에서 제거하거나 'D 자체 결함으로 철회됨' 으로 종결. B 에게 인코딩 수정을 요구할 근거가 없다.",
+  "d_vrc_001_b_status": "유지하되 원인 정정됨 — RQ-D13 참조. byte-identical 관측의 원인은 수집기가 아니라 **동일 요청 URL 등록**(NH스마트뱅킹·NH콕뱅크 가 https://banking.nonghyup.com/nhbank.html 로 동일)이다. frame 문제이지 수집기 결함이 아니다.",
+  "impact_on_prior_D_results": {
+    "affected_inputs": "D_TEXT_CORPUS.csv v1 (8/56 target 의 text_blob 이 v2 에서 달라짐, blob_tokens median 132 -> 173.5)",
+    "affected_runs": ["D-RF-001-B (TF-IDF, 실행 중)", "D-RF-001-C (embedding, run bd04b82f)"],
+    "handling": "v1 을 덮어쓰지 않는다. v2 를 별도 파일로 만들고, v2 기반 재실행은 **새 child run** 으로 만든다. 기존 run 의 metric 을 수정하지 않는다.",
+    "unaffected": "RQ-D8 · RQ-D9 · RQ-D13 은 수치 feature 만 쓰고 title 텍스트를 쓰지 않아 영향 없음. RQ-D10 은 title 불일치를 다뤘으나 해당 6건을 이미 자체 mojibake 로 분리해 실제 slot 불일치 3/58 로 보고했다."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "ticket_id": "D-VALIDITY_RISK_CANDIDATE-002",
+  "type": "VALIDITY_RISK_CANDIDATE",
+  "from": "D",
+  "to": ["C"],
+  "cc": ["A", "B"],
+  "priority": "P1",
+  "phase": "I1",
+  "claim_kind": "ANALYSIS",
+  "created_at": "2026-08-27T22:36:00+09:00",
+  "expected_response": "ACK",
+  "authority_status": "NON_CANONICAL",
+  "self_approved": false,
+  "request": "C 독립 재현 요청. D 는 BLOCKER/DIRECTIVE/GO_NO_GO 를 발행하지 않으며 B 에게 수정을 지시하지 않는다.",
+  "finding_id": "D-F-D13A",
+  "rq_id": "RQ-D13a",
+  "d_sha": "5daf69c45ca412b4d811be2d355f59edc8eb32a1",
+  "mlflow_run_id": "bfb74be3a2924a42b81d097b555a288b",
+  "experiment": "LA_06_OBSTRUCTION",
+  "result_artifact": "research/landing_accessibility/research_d/results/RQ_D13A_overlay_provenance.json",
+  "findings_doc": "research/landing_accessibility/research_d/results/RQ_D13A_FINDINGS.md",
+  "input_snapshot_sha": "f92ef2aa14efc9c957ec827d3a5936f3f79443616e5d5622ffef9f5f9dd8f188",
+  "verdict": "PARTIALLY_SUPPORTED",
+  "n_grain": "54 targets (in_mart==1 AND probe 보유) / mart 56 중 2건 probe 부재",
+  "numeric": "max_overlay_coverage==1.0 인 22 targets 중 collector 자신의 MODAL_SOURCES(dialog_element·role_dialog·aria_modal·backdrop_like)에 해당하는 것은 4건(18.2%). 나머지 18건은 fixed/sticky/high-z 이지만 모달이 아님 — Instagram z=-9999, 하나은행 z=-999(콘텐츠 뒤 요소), GS25 sticky section, emart24 z=2147483647, NH 2건 div#SHOWBLOCK 로딩 마스크. D 재계산은 frozen mart 와 54/54 일치.",
+  "code_facts_exact_sha": {
+    "sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+    "l0_probe.js:196-199": "position fixed|sticky 이거나 z-index>=100 이면 modal 여부와 무관하게 modal_overlay_candidates 에 포함",
+    "l0_collector.py:623-624": "visible 아닌 후보는 제외 (D 가 1차 계산에서 이 필터를 빠뜨렸다가 시정)",
+    "l0_collector.py:575-577": "max_overlay_coverage = max(viewport_coverage over ALL interrupts) — 종류 필터 없음",
+    "l0_collector.py:276-282": "classify_interrupt 는 BLOCKING_MODAL / PROMOTION_MODAL / BANNER 구분을 이미 갖고 있으나 대표값이 그 분류를 통과하지 않는다"
+  },
+  "potential_impact": "Axis C 는 RQ-D1 F8 기준 세 축 중 유일하게 실측값이 있는 축이다(Axis A 0행, Axis B NED 0/31). 그 대표값을 SSOT 00 §3 의 construct(popup·modal·banner·app prompt 방해)로 해석하면 22건 중 18건이 정의 밖 요소에서 나온 값이다. 수집 결함이 아니라 construct 정의 문제다.",
+  "what_D_did_not_establish": [
+    "어떤 값이 옳은 값인지 D 는 정하지 않는다. construct 정의는 A 의 권한이다.",
+    "scroll_lock·dismiss_control·hittable·contains_focus 를 판정에 넣지 않았다. 다차원 판정은 결과를 바꿀 수 있다.",
+    "픽셀을 보지 않았다. 스크린샷 확인 시 판정이 달라질 수 있다.",
+    "H2 중에도 실질적 모달이 섞여 있다(현대카드 div#mainPopNotice1). '전부 잘못' 이 아니라 '18/22 가 정의 밖' 이다."
+  ],
+  "d_self_corrections_in_this_rq": [
+    "RQ-D13 F2 의 추론 철회 — '빈 body 인데 coverage 1.0, 측정대상 부재 상태의 기하 계산일 가능성' 은 틀렸다. NH probe 는 primary_action 24개를 기록했고 페이지는 렌더돼 있었다. dom.html 이 빈 것은 slot 시점 불일치(RQ-D10)이지 페이지 상태가 아니다.",
+    "D 1차 계산 오류 — collector 의 visible 필터를 빠뜨려 mart 와 4건 불일치. 시정 후 54/54 일치. 시정 전 수치는 결과 JSON pre_correction_result 에 보존."
+  ],
+  "d_does_not_request": "코드 수정, 임계값 변경, 재수집. 전부 D 권한 밖이며 A 의 ADOPT 이전에는 implementation candidate 도 아니다."
+}

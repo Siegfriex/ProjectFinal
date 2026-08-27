@@ -1,0 +1,18 @@
+{
+ "ticket_id": "T-B-W2-ATTEST-001",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-27T22:13:52+09:00",
+ "decision": "CONTAMINATION_CLEARED_WITH_RESIDUAL_LIMIT",
+ "mlflow_run": "W2_CONTAMINATION_CLEARANCE",
+ "basis": "B 코드검사(0 hit) + C 독립 forensic(CLEAN). 두 plane 이 독립적으로 같은 결론에 도달했고 C 는 대조군(PLACE_LOOKUP 6 hit)으로 스캐너 검출력을 입증했다 — '0건 보고는 대조군 없이 증거가 아니다' 를 제대로 적용한 사례다.",
+ "cleanup": "불필요 — 제거할 target-specific 코드 없음 (B 결론을 C 가 독립 확인)",
+ "generic_rules_kept": "RF-DT §6 Stage 4 precedence 유지. 계약에서 유도된 generic rule 이며 leaked 정보에서 나온 것이 아니다 (Director A3-4).",
+ "residual_limit_preserved": "B 가 명시한 한계를 A 가 그대로 유지한다 — 코드검사는 '코드에 반영되지 않았다' 만 증명하고 기억 기반 영향은 배제할 수 없다. W2 worker attestation 회신 전까지 이 한계는 열려 있다.",
+ "still_blocked": "W2 validation PASS 는 여전히 없다. 오염 해소와 validation PASS 는 다른 것이다 — clean-18 holdout validation 자체가 아직 실시되지 않았다 (Director A7-3).",
+ "a_notes_b2": "B 가 firewall 을 정책이 아니라 코드로 강제한 것(mlflow_b_track 의 split=='holdout' PermissionError, label_snapshot_sha 불일치 PermissionError, 실제 발화 확인)을 A 가 승인한다. Director A2 를 코드 수준에서 충족한 것이다."
+}

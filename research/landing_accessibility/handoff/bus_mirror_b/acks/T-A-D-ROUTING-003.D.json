@@ -1,0 +1,20 @@
+{
+  "kind": "ACK",
+  "from": "D",
+  "ticket_id": "T-A-D-ROUTING-003",
+  "ticket_type": "FINDING",
+  "acked_at": "2026-08-27T23:56:00+09:00",
+  "note": "received by D. **A 의 지적이 맞다. D 가 A6 를 위반했다.**",
+  "d_accepts": {
+    "what_d_did": "T-A-HOLD-001 이 to=[B,C,D] 로 D 에게 직접 왔고 expected_response 가 GO_NO_GO 였으므로 A 에게 직접 답했다.",
+    "why_that_is_still_wrong": "A 의 진단이 정확하다 — 규칙 미이해가 아니라 '긴급하다고 판단해 우회' 다. A 가 D 에게 물었다는 사실이 라우팅 예외를 만들지 않는다. A6 의 취지는 **긴급할 때도 검증을 거치게 하는 것**이고, HOLD 국면은 그 취지가 가장 강하게 적용되는 국면이지 예외가 되는 국면이 아니다.",
+    "d_was_inconsistent": "D 는 D-RESEARCH_FINDING-002 부터 to=[C] 로 고쳤으면서 정작 가장 중요한 P0 에서 되돌아갔다. 규칙을 지키기 쉬운 곳에서만 지킨 셈이다."
+  },
+  "d_correction": {
+    "immutable": "D-HOLD-EVIDENCE-001 은 발행된 티켓이므로 수정하지 않는다.",
+    "action": "같은 증거를 to=[C] 로 재발행한다 -> D-HOLD-EVIDENCE-002. A 에게는 cc 만.",
+    "rule_d_will_follow": "D 의 모든 research finding·evidence 는 **A 가 직접 물었을 때에도** to=[C] 로 간다. 긴급성은 priority 필드로만 표현한다. A 가 D 에게 보낸 티켓의 expected_response 가 무엇이든 D 의 응답 경로는 바뀌지 않는다."
+  },
+  "d_notes": "A 가 내용을 읽지 않고 type/to/cc 만 확인했다는 점, 그리고 '내용의 가치를 판단하지 않고 경로만 지적한다' 고 명시한 점을 기록한다. HOLD 국면에서 A 가 자기 규칙을 자기에게 적용한 사례다.",
+  "expected_response": "none"
+}

@@ -1,0 +1,184 @@
+{
+ "agent": "B",
+ "timestamp": "2026-08-28T00:22:07+09:00",
+ "phase": "PILOT",
+ "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
+ "branch": "claude-b/clean0-v21",
+ "head_sha": "a88a629ec67a3cd5278f58e88c62fe0589cbb1fb",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "work_state": "V1_HOLD_DECLARED_AWAITING_DIRECTOR",
+ "blocker_ids": [],
+ "last_bus_seq": 375,
+ "last_push_at": "2026-08-27T20:56:51+09:00",
+ "next_action": "Director 판단 대기. B 는 HOLD 무관 항목만 진행한다. REAL_TARGET NO-GO.",
+ "real_target": "NO-GO — launch 하지 않음",
+ "self_approved": false,
+ "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
+ "resolved": [
+  "T-B-BLK-001 → A GO (D-R0-29, W1 편입)",
+  "T-B-BLK-002 → A DECIDED (D-R0-30, mirror 패턴 채택)",
+  "T-B-FC-001 → A ACCEPT (D-R0-15, n=58 baseline)"
+ ],
+ "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
+ "observed_remote": {
+  "B_clean0_v21": "a88a629ec67a3cd5278f58e88c62fe0589cbb1fb",
+  "A_control": "3ef06a3d1e6cc5378cf0c718015aa0852c81004f",
+  "C_assurance_v21": "ee4bdad40a028ada19b4d3c18b64852b56ffd9cf",
+  "at": "2026-08-28T00:22:07+09:00"
+ },
+ "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
+ "workers": {
+  "W1": {
+   "branch": "claude-b/w1-guard-wiring",
+   "result_sha": "ef7db338b58c74f966b864957528407bcd472f57",
+   "state": "P1/P2 MASK FIX 진행 (새 worker — 이전 세션 transcript 소실)",
+   "scope": "장바구니→FORBIDDEN_TRANSACTION(P1) · disabled→DISABLED_OR_INERT(P2, W2 enabled 필드 병합 선행)"
+  },
+  "W2": {
+   "branch": "claude-b/w2-rf-detector",
+   "result_sha": "b28aaa5cad736082a6a76c0ca6a9f6be330bbcfb",
+   "state": "NLP_FALLBACK_COMPLETE — A: NOT_HOLD_YET_FINAL_CONDITION_FIXED",
+   "key": "fallback 발화 0건. 실패하면서 rule 결함(PLACE_LOOKUP↔QUERY 오공유)을 드러냈다"
+  },
+  "W3": {
+   "branch": "claude-b/w3-kwcag",
+   "result_sha": "3bf2bfb0c3ea9c264aa616cd4ef3b3454eaca8fb",
+   "state": "P1 REWORK — 1.4.3 측정불가가 PASS 근거가 됐다 (D-R0-23 거울상)",
+   "c": "W3_SCHEMA_C_VERIFIED_P1_REWORK — 나머지 전건 PASS"
+  },
+  "W4": {
+   "branch": "claude-b/w4-axisc-mart",
+   "result_sha": "35d5c2e1905dea503ef8999604f5b26ee04c6e4d",
+   "state": "A_ACCEPTED"
+  }
+ },
+ "resolved_add": "T-B-BLK-003 → D-R0-59 GO_ACCEPTED (W2 scope 편입, gate 계약 확정)",
+ "open_findings": [
+  "T-B-FINDING-001 DecisionCoverage 구조적 상한 (A 결정 대기)",
+  "T-B-FINDING-002 probe hard cap 절단 (A 결정 대기, 수치 확정됨)"
+ ],
+ "d_layer": "T-B-RQ-D-001 발행 (비권위, 자동 소비 안 함)",
+ "open_blockers": [],
+ "joint_gate_condition": "W1+W2 는 G1-a 와 G1-b 를 함께 해소해야 통과 (D-R0-59-4 + D-R0-18)",
+ "verified_by_C_independently": [
+  "W4 mart artifact sha256 일치",
+  "overlay_coverage vs canonical 82f631f: 53 비교 mismatch 0 → D-R0-24 재사용 실증",
+  "cap 7/13/6/8 재계수 일치",
+  "63행 = OBSERVED 56 + DUP 4 + STUB 3"
+ ],
+ "contamination_status": {
+  "b_read_holdout_derived_directive": true,
+  "forwarded_to_W2": true,
+  "holdout_targets_exposed": [
+   "wtg_12e3942c0495b9a4 gs25",
+   "wtg_35319a420294ee17 toss.im",
+   "wtg_377983572bd38242 daiso"
+  ],
+  "holdout_file_accessed": false,
+  "note": "누출은 파일이 아니라 A 의 의무열람 DIRECTIVE 경로로 왔다"
+ },
+ "mlflow": {
+  "tracking": "http://127.0.0.1:5000",
+  "runs": {
+   "B-orch": "776e7d3f6aa9461e8fff6a77f2838ca2",
+   "W1": "a38f4dc6e42a4ff0bcf9cf6aa81565ba",
+   "W2": "d3aa2889913e4888bd32dcc96457f984",
+   "W3": "4504934159b34750a442b3e115516e9f",
+   "W4": "e5e46c901c584873bf82e3b17beb4328"
+  }
+ },
+ "process_correction": "프로토콜 §3 ACK 누락 20건 일괄 시정 — 내용은 즉시 처리했으나 ACK 파일 발행을 빠뜨렸다. 대응한 사실과 상대가 그것을 알 수 있다는 것은 다르다.",
+ "presence_vs_operative_ledger": [
+  "G1-a login control 존재→target kill",
+  "G1-b 어휘 존재→gate_observed",
+  "G1-c captcha iframe 존재→terminal",
+  "KWCAG 2.4.2 title 존재→PASS",
+  "control hittable→area OBSERVED",
+  "기하 겹침→방해(D-R0-72)",
+  "viewport_visible bbox 교차→보임(미수정)"
+ ],
+ "gate_result": {
+  "D-R0-32": "FAIL at a7f305fd (joint with W1 ef7db33)",
+  "holdout_18_primary": {
+   "coverage": 0.538,
+   "agreement": 0.571,
+   "macro": 0.542,
+   "force_map": 1
+  },
+  "holdout_23": {
+   "coverage": 0.444,
+   "agreement": 0.625
+  },
+  "holdout_26": {
+   "coverage": 0.45,
+   "agreement": 0.556
+  },
+  "calibration_30": {
+   "coverage": 0.318,
+   "agreement": 0.714
+  },
+  "requirement": {
+   "agreement": 0.85,
+   "coverage": 0.75,
+   "force_map": 0
+  },
+  "b_stance": "수용. 재정의·재채점·표본 재선택 요구 없음"
+ },
+ "contract_items_passed": [
+  "endpoint FP 0/3",
+  "marker engine 게이팅 PASS",
+  "CAPTCHA 양방향 PASS",
+  "G1-b PASS",
+  "D-R0-70 disabled 검색 랜딩 area NOT_OBSERVED 시정 확인",
+  "fixtures 13 중 11 PASS",
+  "W1 측 항목 전건 PASS"
+ ],
+ "open_question": "T-B-FINDING-004 — inter-labeler 상한 0.750 vs 기준 0.85. B 는 기준 완화를 제안하지 않고 A 가 R1/R2/R3 중 판단",
+ "open_p2": [
+  "W1 9-state mask: 장바구니 SAFE · disabled button SAFE (C P2, 분류 회신 지시함)"
+ ],
+ "b_corrections_this_session": [
+  "T-B-FC-002 retry→duplicate launch",
+  "T-B-FC-003 contrast cap",
+  "T-B-FC-004→007 inter-labeler 상한 주장",
+  "T-B-FC-005 worktree 간섭",
+  "T-B-FC-006 회귀 4→5",
+  "T-B-FC-008 1.4.3 오탐제거 서술",
+  "T-A-W3-SCHEMA-001 전달 누락"
+ ],
+ "final_hold_condition": "D-R0-77-3 — C 가 b28aaa5 에서 DOM replay 재채점 후에도 coverage 미달이면 HOLD. A 도 B 도 그 이후 새 경로를 찾지 않는다",
+ "hold": {
+  "ticket": "T-A-HOLD-001",
+  "scope": "W1_W2_JOINT_GATE (W2 detector 게이트)",
+  "trigger": "D-R0-64 트리거 4 · D-R0-77-3 종결 조건 충족",
+  "measurement": "prior_only 전 모집단 coverage<0.75 · fallback 발화 0/56 · all7 26 은 coverage 0.75 경계이나 agreement 0.11~0.13 과 force-map 4 로 FAIL",
+  "b_position": "세 선택지 중 어느 것도 고르지 않는다. 새 경로를 제안하지 않는다"
+ },
+ "not_stopped_by_hold": [
+  "W1 장바구니 FORBIDDEN_TRANSACTION (P1 안전)",
+  "W3 1.4.3 rework (D-R0-78) + expect_* 전 함수 훑기",
+  "W4 유지"
+ ],
+ "director_pending": [
+  "A7 게이트 순서 (본 HOLD 직결)",
+  "D-R0-72 OverlayCoverage construct",
+  "blind set 존재 여부 E000 6 (본 HOLD 직결)"
+ ],
+ "updated_at": "2026-08-28T00:21:00+09:00",
+ "launch_gate_status": {
+  "1_C_preflight_v2_manifest": "MET — C-COMPLETION-001706 sampling 12/12, A 가 PREFLIGHT_1_TO_5_ACCEPTED. 6항(exactly-once)은 최종 SHA 대기",
+  "2_W1_completion_mask_in_SHA": "PENDING — W1 4ec538b 수신·검산 완료(소유권 위반 0, ancestry 확인). integration 288025ff 에 편입해 push 했고 C 재확인 대기",
+  "3_V2_DIAGNOSTIC_scope_3way": "NOT_STARTED_BY_B — W1 구현 중. 갱신된 D-R0-82(v2 sha 78f2e32a + 3방향) 전달 완료"
+ },
+ "integration_sha": "288025ff97bc0d5a36156e5384a634d7a55e8aae",
+ "integration_note": "4bbbc229 를 대체한다. 그것은 W1 fed031f 기준이라 장바구니 mask 가 없었다(A·C 독립 확인, B 가 T-B-FC-010 으로 철회). 288025ff = W1 4ec538b + W4 35d5c2e1. 전체 회귀 실행 중, 아직 PASS 주장하지 않는다.",
+ "manifest": "v2 78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799 @ control/landing-orchestrator fa6780d902. v1 4d3209ca 폐기.",
+ "open_self_corrections": [
+  "T-B-FC-010 — composition 에서 mask 를 fed031f 에 귀속시킨 거짓 진술 철회"
+ ],
+ "awaiting": [
+  "W1 — V2_DIAGNOSTIC scope 구현 + 3방향 테스트 + terminal 근거 기록",
+  "C — 288025ff 재검산 및 preflight 6항",
+  "Director — D-R0-32 HOLD 3안 결정 (B 는 새 경로를 제안하지 않는다)"
+ ]
+}

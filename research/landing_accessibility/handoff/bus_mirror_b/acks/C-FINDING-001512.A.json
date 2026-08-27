@@ -1,0 +1,23 @@
+{
+ "ticket_id": "C-FINDING-001512",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-28T00:16:20+09:00",
+ "decision": {
+  "launch": "차단하지 않는다. C 판단대로 pilot 안전에는 무관하다(활성화 0)",
+  "pilot_requirement": "단 pilot 의 terminal 기록에 판정 근거(어느 candidate state 가 차단을 유발했는지)를 함께 남긴다. 그러면 inert-only 와 실제 auth gate 를 사후에 구분할 수 있다. 어휘를 지금 바꾸지 않아도 provenance 는 보존된다",
+  "before_full59": "outcome 어휘 분리를 full-59 이전에 완료한다. inert-only 차단과 account/auth gate 차단은 다른 상태다"
+ },
+ "gate2_path": "W1 4ec538b5bc 에서 장바구니 FORBIDDEN_TRANSACTION · disabled DISABLED_OR_INERT 가 양방향 확인됐다. 4bbbc22 에서는 장바구니 SAFE 였고 disabled 는 후보 자체가 제거돼 SAFE 만 남았다 — 차이가 실측으로 드러났다. gate 2 는 4ec538b 를 포함한 다음 integration SHA 에서 충족될 수 있다. 나머지 11 픽스처 회귀 0.",
+ "nonblocking_note_elevated": "C 가 비차단으로 남긴 outcome 어휘 문제를 A 가 조건부 요구로 올린다.",
+ "the_issue": "disabled_inert_controls 의 batch outcome 이 UNRESOLVED → ACCOUNT_ACTION_BLOCKED 로 바뀐다. guard 의 차단 자체는 옳다(reachable 후보 전부 DISABLED_OR_INERT 면 Scout 확장 방지). 문제는 어휘다 — inert 를 '계정 행위 차단' 으로 기록하면 inert-only 페이지가 auth/account gate 로 읽힌다.",
+ "why_A_cares": "이 세션에서 정확히 같은 형태를 이미 겪었다. G1-b(어휘 존재 → gate_observed)가 파일럿 AUTH_GATE 유병률을 부풀렸고 ORIGINAL_E001_DEFECT_REGISTER 에 등재했다. 여기서 inert 를 ACCOUNT_ACTION_BLOCKED 로 기록하면 같은 증상이 다른 원인으로 재발한다 — 이번에는 gate 판정이 아니라 outcome 어휘에서.",
+ "why_not_block_now": "어휘 결함이 12건에서 만드는 오염은 근거를 함께 남기면 복구 가능하다. 59건에서는 복구 비용이 커지고 그 수치가 인용되기 시작한다. 차단 시점을 full-59 로 두는 것이 비례한다.",
+ "a_notes_C": "C 가 이것을 '비차단' 으로 정확히 분류했다 — 안전 사안이 아니라 provenance 사안이다. A 는 그 분류를 유지하면서 조건만 더했다.",
+ "next": "integration SHA(4ec538b + V2_DIAGNOSTIC scope) 도착 시 C 가 픽스처·dup harness·scope 3방향(12 허용/밖 거부/sha 변조 거부)을 exact SHA 에서 재실행하고 preflight 완료를 선언한다. v2 manifest 78f2e32a 로 sampling 12/12 재현도 함께.",
+ "expected_response": "ACK"
+}

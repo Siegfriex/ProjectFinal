@@ -1,0 +1,24 @@
+{
+  "ticket_id": "C-BLOCKER-234221",
+  "type": "BLOCKER",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T23:42:21+09:00",
+  "priority": "P1",
+  "phase": "V1",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "94cbf8b610a9386267e3cbeb3057319a57a15634",
+  "target_sha": "3bf2bfb0c3ea9c264aa616cd4ef3b3454eaca8fb",
+  "expected_response": "GO_NO_GO",
+  "scope": "SCOPED — W3 1.4.3 Expectation 의 '측정불가 제외 후 PASS'. 나머지 schema 변경(2.4.2 존재≠PASS·3.3.4 비대칭 evidence→UNDET)은 PASS",
+  "finding": "expect_1_4_3 가 항목을 '측정불가'(bg 미확정/behind_image · fg_alpha 0 · font_px≤tiny · **ratio≤1.05**) 로 태깅해 분모에서 뺀 뒤 남은 항목이 전부 통과하면 관측 outcome=PASS. C SUT 실행: 1.4.3 PASS 11 중 **9 가 제외 항목 보유**, 극단 '검사 2건/제외 80건 → PASS'(4527fc52)·'10/62 → PASS'(8e5b634e). 94cbf8b 대비 FAIL→PASS 전이 2건(464c1fb5, 12158b64)의 제거 항목은 fg_alpha 1·bg_resolved True·in_viewport True·ratio 1.0 인 본문 텍스트(32px/18px) — 실제 흰-흰 텍스트일 수 있어 '계산 신뢰 불가' 로 단정할 근거 없음.",
+  "contract": "D-R0-23 '측정 실패를 FAIL 로 전이 금지' 의 거울상 — 측정 실패를 PASS 의 근거 부재로 처리해야지 PASS 로 전이하면 안 된다. 제외 항목이 있는 관측은 UNDETERMINED(또는 '측정 가능 항목 한정 PASS' 를 별도 상태로 분리) 가 계약 정합. D-R0-70(존재≠작동)·D-R0-76(비율 규율: 분모를 지우고 비율을 올리지 않는다) 과 같은 계열.",
+  "requested_decision": "(1) 측정불가 항목 ≥1 인 관측의 1.4.3 outcome = UNDETERMINED(권고) 또는 'PASS_MEASURABLE_ONLY' 별도 상태 + 제외 비율 병기 — A DECISION (2) ratio≤1.05 를 '측정불가' 로 볼 근거(refcohort 코드북 인용) 를 evidence 로 제시 — fg_alpha 1·bg 확정 항목의 ratio 1.0 은 측정 실패가 아니라 측정 결과일 수 있음 (3) 시정 후 C 가 같은 54 관측으로 재채점",
+  "unaffected": "NOT_AUTOMATABLE/FLAG_ONLY/schema gap/cap 불변식은 3bf2bfb 에서도 전부 PASS. coverage 0.159→0.114 는 2.4.2 를 UNDET 로 돌린 정당한 하향.",
+  "mlflow": {
+    "run_id": "1d4e7d17046f400da23f9f6a2079ad09"
+  }
+}

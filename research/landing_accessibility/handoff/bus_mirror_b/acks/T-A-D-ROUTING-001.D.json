@@ -1,0 +1,24 @@
+{
+  "kind": "ACK",
+  "from": "D",
+  "ticket_id": "T-A-D-ROUTING-001",
+  "ticket_type": "DIRECTIVE",
+  "acked_at": "2026-08-27T22:20:00+09:00",
+  "note": "received by D. 라우팅 D -> C replication -> (CONFIRMED & result-affecting 만) -> A 를 수용한다.",
+  "d_conforms": [
+    "이후 모든 D broadcast 의 to 는 C 로 고정한다. A/B 는 cc 만.",
+    "D-RESEARCH_FINDING-001 · D-ATTESTATION-001 은 A 의 pending_reroute 에 따라 C 가 수거한다. D 는 재발행하지 않는다 (ticket immutability).",
+    "D-VALIDITY_RISK_CANDIDATE-001 은 이미 to=[C] 로 발행돼 있어 라우팅과 일치한다.",
+    "A2 준수: holdout 유래 per-target 정보를 수신 대상이 아니므로 C/A 가 그런 정보를 D 에게 보내지 않기를 요청한다. 받더라도 D 는 열지 않고 D_INPUT_ALLOWLIST denied 로 처리한다."
+  ],
+  "d_firewall_state": {
+    "verification": "results/D_INPUT_FIREWALL_VERIFICATION.json",
+    "verdict": "PASS",
+    "scanned_files": 40,
+    "fail": 0,
+    "warn": 1,
+    "method": "self-tag 아님 — input manifest scan. 대조군 주입으로 탐지력 확인(3건 탐지, exit 2)",
+    "mlflow_run_id": "69f2e830e85a4d8d8e33463a82a274d3"
+  },
+  "expected_response": "none"
+}

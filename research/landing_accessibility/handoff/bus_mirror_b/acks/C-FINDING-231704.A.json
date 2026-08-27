@@ -1,0 +1,19 @@
+{
+ "ticket_id": "C-FINDING-231704",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-27T23:19:17+09:00",
+ "decision": "NO_HOLD_YET_CONTRACT_PATH_REMAINS",
+ "doc": "control/r0/D_R0_74_SHARED_SLOT_AND_GATE.md",
+ "A_shared_slot": "사전등록한다 — 두 축이 공유하는 evidence slot 목록 등재(accessible_name_sources: aria_label·visible_text·title, dom_title) · planned association 에 'accessible-name 기반 criterion 제외' 감도분석 추가 · 연관 관측 시 감도분석 결과 병기, 감도분석에서 연관이 사라지면 도구 인공물 가능성 명시. 이것을 근거로 detector 설계를 지금 바꾸지 않는다 — RF-DT §4 가 accessible name 을 signal 로 명시하므로 빼는 것도 계약 변경이다. 공유를 없애는 대신 드러내고 감도분석으로 다룬다.",
+ "why_it_matters": "이 연구의 headline 은 축 사이의 연관인데 두 축이 같은 slot 을 쓰면 측정오차가 상관한다. 접근성 이름이 부실한 사이트는 Axis A 에서 FAIL 하고 Axis B 에서 detector 가 commerce control 을 못 찾아 archetype/depth 가 달라진다 — 사이트의 성질이 아니라 도구의 성질이다.",
+ "B_gate": "C 가 기준을 바꾸지 않은 것이 옳다. A 도 바꾸지 않는다. 그러나 지금은 HOLD 가 아니다 — 시도되지 않은 계약 경로가 남아 있다. D-R0-13 / SSOT §6.5 / RF-DT §7 의 NLP fallback 은 label freeze 이후로 유보돼 있었고 freeze 는 22:27 에 끝났다. calibration 30 은 이미 B 에게 공개됐다. 'rule-only 로 0.85 에 도달할 수 없다' 는 rule-only 가 계약의 전부일 때만 게이트 미달의 결론이 된다.",
+ "D-R0-74-2": "W2 요구 — (1)NLP fallback 구현·시도 여부 회신. 미시도면 D-R0-13 경로를 밟는다 (2)threshold 는 calibration split 에서만. holdout 미열람 (3)fallback 은 deterministic ambiguity 이후에만 작동. rule 이 유일 leaf 를 만든 경우를 덮어쓰지 않는다 (4)출력은 일곱 archetype 밖으로 나가지 않고 불확실하면 abstain (5)force-map 금지는 fallback 에도 적용. fallback 은 coverage 를 올리는 장치가 아니라 ambiguity 를 푸는 장치다 — fallback 으로 abstain 을 줄이면 D-R0-67-3 위반이지 개선이 아니다.",
+ "D-R0-74-3_hold_condition": "D-R0-13 경로를 계약대로 밟은 뒤에도 게이트 미달이면 HOLD 하고 Director 판단을 요청한다. 그때의 선택지를 지금 적어둔다 — (a)SSOT §18 PARTIAL_READY_WITH_BLOCKER (b)게이트 하향(D-R0-12/56 충돌을 명시적으로 해소해야 함) (c)archetype 의존 분석 축소 (d)Human Final 5건을 라벨 확정에 사용. 그때 만들면 결과를 본 뒤 만든 선택지가 된다.",
+ "a_self_check": "A 가 'HOLD 를 피하려고 이유를 찾는 것인가' 를 스스로 물었다. NLP fallback 은 SSOT §6.5/RF-DT §7 에 이미 있으므로 변경이 아니라 미실행이고 트리거에 해당하지 않는다. 다만 A 는 fallback 이 미시도라고 단정하지 않는다 — B 회신으로 확인한다. 이미 시도됐고 그래도 미달이면 이 결정의 전제가 무너지고 그때 HOLD 한다.",
+ "d_value_not_used": "D 의 rule 0.232 는 D 조작화이며 C 가 production 채점과 구분했다. A 는 D 값을 결정 근거로 쓰지 않는다."
+}
