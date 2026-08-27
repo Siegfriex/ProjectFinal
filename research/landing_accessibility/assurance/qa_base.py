@@ -90,6 +90,10 @@ def run(ticket: dict) -> dict:
     if plan_txt is None: add("C1", "PLAN_MISSING", "E001 master plan not readable at plan_sha")
     else:
         plan = json.loads(plan_txt); order = plan.get("frozen_collection_order") or []
+        def plan_hash(d, key):  # rule fixed by B in scripts/verify_plan_hash.py (09cd47a); independently re-derived by C
+            import hashlib as _h; return _h.sha256(json.dumps({k: v for k, v in d.items() if k != key}, ensure_ascii=False, indent=2, sort_keys=False).encode("utf-8")).hexdigest()
+        if plan.get("frozen_plan_hash_candidate") and plan_hash(plan, "frozen_plan_hash_candidate") != plan["frozen_plan_hash_candidate"]:
+            add("C1", "PLAN_HASH_MISMATCH", "E001 master plan frozen_plan_hash_candidate does not reproduce")
         assign = ((plan.get("worker_partition") or {}).get("assignments") or {})
         allk = [k for v in assign.values() for k in v]
         rep["plan"] = {"order_n": len(order), "workers": len(assign), "assigned_n": len(allk), "hash_candidate": plan.get("frozen_plan_hash_candidate"), "status": plan.get("status")}
@@ -108,6 +112,10 @@ def run(ticket: dict) -> dict:
         if not (5 <= len(ids) <= 6): add("C1", "E000_N", f"E000_FAST has {len(ids)} targets (expected 5-6)")
         if e.get("accessibility_result_used") or e.get("certification_used"): add("C1", "E000_OUTCOME_USED", "E000 plan used outcome/certification")
         if len(e.get("targets") or []) != len(ids): add("C1", "E000_TARGETS_VS_IDS", "targets[] length != selected ids")
+        if e.get("fast_plan_hash_candidate") and plan_hash(e, "fast_plan_hash_candidate") != e["fast_plan_hash_candidate"]: add("C1", "E000_HASH_MISMATCH", "E000_FAST fast_plan_hash_candidate does not reproduce")
+        par = e.get("parent_plan") or {}
+        if par.get("commit_sha") and not exists(par["commit_sha"]): add("C1", "E000_PARENT_COMMIT_UNKNOWN", "parent plan commit_sha not found")
+        rep.setdefault("e000", {})["parent_hash_verifiable"] = False  # placeholder-hash construction; lineage rests on parent_plan.commit_sha only
     # worker consistency
     workers = p.get("workers") or {}
     wt = {}
