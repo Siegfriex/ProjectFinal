@@ -40,7 +40,33 @@ class ShadowProvenance:
     created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     created_before_p0_close: bool = True
     authoritative: bool = False
+    #: 분석의 종속·독립 변수값(접근성 판정 결과)을 쓰지 않았다. 유지된다.
     real_target_outcome_used: bool = False
+    #: **신설** — 실제 REAL TARGET 산출물을 **읽기는 했다**. "읽지 않았다"와
+    #: "읽었으나 결과값은 쓰지 않았다"는 다른 진술이고, 후자가 사실이므로 후자를
+    #: 적는다. 아무것도 적지 않으면 독자는 전자를 추론한다 (Claude A 판정).
+    real_target_artifacts_read: bool = True
+    #: 무엇을 읽었고 **무엇을 읽지 않았는지**를 함께 적는다 — "읽었다"만 적으면
+    #: 이번엔 반대로 과대 경고가 된다.
+    real_target_artifacts_read_detail: dict[str, Any] = field(
+        default_factory=lambda: {
+            "what": "<out_dir>/batches/batch_*.json 의 results[].detail",
+            "fields": [
+                "blocked_category",
+                "blocked_reason",
+                "scout_invoked",
+                "endpoint_status",
+                "endpoint_status_detail",
+                "auth_gate_observed",
+                "notes",
+            ],
+            "not_read_for_analysis_input": (
+                "KWCAG verdict · OlderRelevantKWCAGFailRate · obstruction 측정값 — "
+                "즉 분석의 종속·독립 변수값은 이 경로로 읽지 않았다"
+            ),
+            "purpose": "가드 차단·E-6b 발화 계수 파생 (수집 역학 정보)",
+        }
+    )
     requires_post_p0_reconciliation: bool = True
     shadow_lane: str = SHADOW_LANE
     fixture_only: bool = True
