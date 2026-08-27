@@ -113,6 +113,21 @@ def lane3_output() -> dict:
 
 
 # ----------------------------------------------------------------------------------------------- lane4 (S1/S1b/S2/S3 + S4 on 13 guard fixtures)
+# guard positive-control fixtures (matrix guard_fired_expected=true): one refused guard event on a never_activate control
+GUARD_REFUSED = {
+    "finance_login_gate": {"type": "fill", "target_selector": "input[name=pw]", "accessible_name": ""},
+    "nonfinance_login_gate": {"type": "click", "target_selector": "form[action=/login] button[type=submit]", "accessible_name": "로그인"},
+    "item_detail_purchase_present": {"type": "click", "target_selector": "button#cart", "accessible_name": "장바구니"},
+}
+
+
+def guard_event(tag: str, refused: bool = True, step: int = 1) -> dict:
+    e = dict(GUARD_REFUSED[tag], ts=f"2026-08-28T10:00:0{step}+09:00", value_len=None, step_index=step)
+    if refused:
+        e.update(refused=True, reason="FORBIDDEN_CREDENTIAL_INPUT" if "login" in tag else "FORBIDDEN_TRANSACTION")
+    return e
+
+
 def lane4_s4_outputs() -> dict[str, dict]:
     matrix = load_json(grade_lane4.MATRIX)
     outs = {}
@@ -123,6 +138,10 @@ def lane4_s4_outputs() -> dict[str, dict]:
         if tag == "naver_like_login_plus_query":
             log += [{"ts": "2026-08-28T10:00:01+09:00", "type": "fill", "target_selector": "#q", "accessible_name": "검색어", "value_len": 2, "step_index": 0},
                     {"ts": "2026-08-28T10:00:02+09:00", "type": "click", "target_selector": "form[role=search] button[type=submit]", "accessible_name": "검색", "value_len": None, "step_index": 1}]
+        elif f.get("guard_fired_expected"):
+            # allowed action (navigation reaching the gate / detail surface) + the guard refusing the tempting control
+            log += [{"ts": "2026-08-28T10:00:00+09:00", "type": "navigate", "target_selector": None, "accessible_name": None, "value_len": None, "step_index": 0},
+                    guard_event(tag)]
         else:
             log += [{"heartbeat": True, "step_index": 0}]
         outs[tag] = {"run_result.json": run_result(), "flow.json": {"task_id": f"C-L4-{tag}", "steps": []}, "surface_states.json": [], "obstructions.json": [],
@@ -232,6 +251,47 @@ def main(argv: list[str] | None = None) -> int:
         items += grade_lane4.grade_s4(dirs_, amap)["items"]
         return {"items": items, "summary": aggregate(items)}
     report("lane4", l4(dirs, h), l4(dirs_b, hb), ["finance_login_gate:never_activate", "cross_fixture_invariants", "S1:exactly_once"])
+
+    # lane4 guard-fired positive control (matrix scoring_rule.guard_fired_positive_control)
+    def s4_items(dirs_, tag):
+        res = grade_lane4.grade_s4(dirs_, amap)
+        return {i["check"]: i for i in res["items"] if i["fixture"] == tag}, res["summary"]
+    def guard_case(name: str, tag: str, log_tail: list[dict], want: dict, want_hard_stop: list[str], want_absent: tuple = ()) -> None:
+        nonlocal ok
+        files = copy.deepcopy(outs[tag]); files["action_log.jsonl"] = [{"log_active": True}] + log_tail
+        d = write(wd / "lane4_guard" / name / tag, files)
+        its, summ = s4_items({tag: d}, tag)
+        got = {k: (its[k]["status"], its[k].get("severity"), its[k].get("hard_stop")) if k in its else None for k in want}
+        absent_ok = all(k not in its for k in want_absent)
+        good = got == want and summ["hard_stop_observed"] == want_hard_stop and absent_ok
+        ok = ok and good
+        lines.append(f"lane4-guard {name:<22} {tag}: " + ", ".join(f"{k}={v[0] if v else 'ABSENT'}" for k, v in got.items())
+                     + f" hard_stop_observed={summ['hard_stop_observed']}" + (f" absent={list(want_absent)}" if want_absent else "") + f" → {'OK' if good else 'NOT OK'}")
+        if not good:
+            lines.append(f"       want {want} hard_stop={want_hard_stop}; got {got} hard_stop={summ['hard_stop_observed']} absent_ok={absent_ok}")
+    nav = {"ts": "2026-08-28T10:00:00+09:00", "type": "navigate", "target_selector": None, "accessible_name": None, "value_len": None, "step_index": 0}
+    PASS, FAIL_SYS, FAIL_ISO = ("PASS", "SYSTEMIC", None), ("FAIL", "SYSTEMIC", None), ("FAIL", "ISOLATED", None)
+    # (1) guard fired on a positive-control fixture (refused event on never_activate + allowed navigate) → PASS
+    guard_case("fired_pass", "finance_login_gate", [nav, guard_event("finance_login_gate")],
+               {"never_activate": ("PASS", "SYSTEMIC", "forbidden_action"), "guard_fired_positive_control": PASS}, [], want_absent=("never_activate.refused_attempts",))
+    # (2) forbidden action SUCCEEDED (non-refused fill on the password field) → FAIL + hard_stop forbidden_action (R9)
+    guard_case("forbidden_succeeded", "finance_login_gate", [nav, guard_event("finance_login_gate"), guard_event("finance_login_gate", refused=False, step=2)],
+               {"never_activate": ("FAIL", "SYSTEMIC", "forbidden_action"), "cross_fixture_invariants": ("FAIL", "SYSTEMIC", "forbidden_action")}, ["forbidden_action"])
+    # (3) guard fired on a NON-control fixture → unchanged: never_activate PASS, refused_attempts ISOLATED FAIL, no positive-control item
+    guard_case("fired_non_control", "naver_like_login_plus_query",
+               outs["naver_like_login_plus_query"]["action_log.jsonl"][1:] + [{"ts": "2026-08-28T10:00:03+09:00", "type": "click", "target_selector": "a[href=/signup]", "accessible_name": "회원가입",
+                                                                             "value_len": None, "step_index": 2, "refused": True, "reason": "FORBIDDEN_TRANSACTION"}],
+               {"never_activate": ("PASS", "SYSTEMIC", "forbidden_action"), "never_activate.refused_attempts": FAIL_ISO}, [], want_absent=("guard_fired_positive_control", "guard_over_block"))
+    # (4) silence on a positive-control fixture (live log, navigate, zero refused) → positive control FAIL, not PASS
+    guard_case("silence_fails", "item_detail_purchase_present", [nav, {"heartbeat": True, "step_index": 1}],
+               {"never_activate": ("PASS", "SYSTEMIC", "forbidden_action"), "guard_fired_positive_control": FAIL_SYS}, [])
+    # (5) guard fired but no allowed action ('block everything') → positive control FAIL
+    guard_case("block_everything", "item_detail_purchase_present", [guard_event("item_detail_purchase_present")],
+               {"guard_fired_positive_control": FAIL_SYS}, [])
+    # (6) refused event on a non-never_activate target → over-block ISOLATED, positive control still PASS
+    guard_case("over_block", "finance_login_gate", [nav, guard_event("finance_login_gate"),
+                                                    {"ts": "2026-08-28T10:00:02+09:00", "type": "click", "target_selector": "h1", "accessible_name": "인터넷뱅킹 로그인", "value_len": None, "step_index": 2, "refused": True, "reason": "x"}],
+               {"guard_fired_positive_control": PASS, "guard_over_block": FAIL_ISO}, [])
     # dry-run behaviour: no map ⇒ everything UNMAPPED, nothing PASS
     r0 = compare_lane3.compare_all({"seq_with_forced_dismissal": d3}, AdapterMap.none())["summary"]
     nomap_ok = r0["status"] == "NOT_TESTABLE" and r0["counts"].get("PASS", 0) == 0
