@@ -55,12 +55,11 @@ gold 가 아니어서 "계층이 **나쁘다**"를 확증할 검정력이 없다
 
 | 파일 | 행 | sha256 |
 |---|---|---|
-| `results/D_OBSERVATION_TABLE_v2.csv` | 66행 중 `in_mart==1` **56행** | `82c86d33dcaad61b7d9e9c1ff70d84b2b2a2b7f3ea67c07f4c3e4b1a41f7d2fd`* |
-| `results/D_TEXT_CORPUS_v2.csv` | 56행 | (JSON `inputs[]` 에 기록) |
-| `SSOTV2/01_REPRESENTATIVE_FUNCTION_MAPPING_DT_v2.1.md` | 규칙 원문 §5 · §6 | (JSON `inputs[]` 에 기록) |
+| `results/D_OBSERVATION_TABLE_v2.csv` | 66행 중 `in_mart==1` **56행** | `c39c10f09f7a6a7603409550eb331612eb44634eb98ec387a604aa5221351e6b` |
+| `results/D_TEXT_CORPUS_v2.csv` | 56행 | `bf6bb772faa45541c780c75f5cbffa856783a34661a84e3de27a9eb5da4ea36a` |
+| `SSOTV2/01_REPRESENTATIVE_FUNCTION_MAPPING_DT_v2.1.md` | 규칙 원문 §5 · §6 | `191ee182219e96398a11283bdb49b5b37a3d9e1acd5aa2d55d85946a346b37e8` |
 
-\* 정확한 sha256 값은 `results/RF2_D_hierarchical.json` 의 `inputs[]` 이 정본이다.
-이 표는 사람이 읽는 요약이다.
+sha256 의 정본은 `results/RF2_D_hierarchical.json` 의 `inputs[]` 이다.
 
 raw evidence(`dom.html`, `probe.json`)를 다시 파싱하지 않았다. D 공용 빌더 산출물만 소비했다.
 
@@ -228,10 +227,10 @@ Level 1 은 S2 와 **동일한 rule**. Level 2 만 텍스트 유사도 순위로
 
 | 구조 | mapped | coverage (Wilson 95%) | abstention | prior_agreement \| coverage (Wilson 95%) | prior_agreement overall |
 |---|---:|---|---:|---|---|
-| **S1 flat rule** | 14 | **0.250** [0.155, 0.376] | 0.750 | **5/14 = 0.357** [0.163, 0.613] | 5/56 = 0.089 |
-| **S2 hier rule** | 16 | **0.286** [0.183, 0.415] | 0.714 | **5/16 = 0.3125** [0.142, 0.556] | 5/56 = 0.089 |
+| **S1 flat rule** | 14 | **0.250** [0.155, 0.376] | 0.750 | **5/14 = 0.357** [0.163, 0.612] | 5/56 = 0.089 |
+| **S2 hier rule** | 16 | **0.286** [0.184, 0.415] | 0.714 | **5/16 = 0.3125** [0.142, 0.556] | 5/56 = 0.089 |
 | S2s hier strict | 11 | 0.196 [0.113, 0.318] | 0.804 | 4/11 = 0.364 [0.152, 0.646] | 4/56 = 0.071 |
-| **S3 hier + semantic** | 16 | **0.286** [0.183, 0.415] | 0.714 | **6/16 = 0.375** [0.185, 0.614] | 6/56 = 0.107 |
+| **S3 hier + semantic** | 16 | **0.286** [0.184, 0.415] | 0.714 | **6/16 = 0.375** [0.185, 0.614] | 6/56 = 0.107 |
 | S3m hier + sem margin.02 | 9 | 0.161 [0.087, 0.278] | 0.839 | 5/9 = 0.556 [0.267, 0.811] | 5/56 = 0.089 |
 
 **모든 CI 가 서로 완전히 겹친다.** 어떤 구조도 다른 구조와 구별되지 않는다.
@@ -240,7 +239,7 @@ Level 1 은 S2 와 **동일한 rule**. Level 2 만 텍스트 유사도 순위로
 
 | 지표 | 분모 | 값 |
 |---|---|---|
-| Level 1 coverage | **56 (전체 target)** | 16/56 = **0.286** [0.183, 0.415] |
+| Level 1 coverage | **56 (전체 target)** | 16/56 = **0.286** [0.184, 0.415] |
 | Level 1 abstention | 56 | 40/56 = 0.714 (`L1_MULTI` 15 · `L1_NONE` 19 · `S0` 6) |
 | Level 2 coverage (S2 rule) | **16 (= Level 1 이 유일 primitive 를 확정한 target)** | 16/16 = **1.000** [0.806, 1.000] |
 | Level 2 abstention (S2 rule) | 16 | 0/16 = 0.000 |
@@ -250,7 +249,7 @@ Level 1 은 S2 와 **동일한 rule**. Level 2 만 텍스트 유사도 순위로
 | Level 2 coverage (S3m margin .02) | 16 | 9/16 = 0.5625 [0.332, 0.769] |
 | Level 2 prior_agreement (S3m) | 9 | 5/9 = 0.556 [0.267, 0.811] |
 | 전체 coverage (S2) | 56 | 16/56 = 0.286 |
-| 전체 prior_agreement (S2) | 56 | 5/56 = 0.089 [0.039, 0.192] |
+| 전체 prior_agreement (S2) | 56 | 5/56 = 0.089 [0.039, 0.193] |
 
 > **Level 2 조건부 coverage 1.000 을 "Level 2 는 쉽다"로 읽으면 안 된다.** 이것은 판별식을
 > 상호배타적으로 선언한 **정의상 산물**이다. `L1_QUERY_SUBMISSION` 의 두 판별식은
@@ -355,7 +354,7 @@ Level 1 은 4-way 이고(게다가 2 archetype 은 primitive 2개에 중복 소�
 
 | 지표 | 값 (Wilson 95%) |
 |---|---|
-| L1 이 확정한 16건에서의 prior primitive 일치 | **9/16 = 0.5625** [0.335, 0.766] |
+| L1 이 확정한 16건에서의 prior primitive 일치 | **9/16 = 0.5625** [0.332, 0.769] |
 | 같은 16건에서 "항상 `L1_OBJECT_OPENING`" 다수결 기준선 | **13/16 = 0.8125** [0.570, 0.934] |
 | 전체 56건에서의 같은 다수결 기준선 | 37/56 = 0.661 [0.530, 0.771] |
 

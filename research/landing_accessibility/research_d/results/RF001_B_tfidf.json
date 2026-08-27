@@ -2,7 +2,7 @@
  "child_id": "D-RF-001-B",
  "rq_id": "RQ-D-RF-001",
  "title": "TF-IDF + linear baseline for archetype PRIOR recovery",
- "generated_at_kst": "2026-08-27T22:46:40.463143+09:00",
+ "generated_at_kst": "2026-08-27T22:58:47.106386+09:00",
  "verdict": "NOT_SUPPORTED",
  "hypothesis_verdicts": {
   "H-RF001-B-TFIDF": "NOT_SUPPORTED",
@@ -58,7 +58,50 @@
     ]
    }
   ],
-  "note": "동일 텍스트가 두 target 에 나타나면 CV 에서 train/test 를 가로질러 새어 나간다."
+  "note": "동일 텍스트가 두 target 에 나타나면 CV 에서 train/test 를 가로질러 새어 나간다.",
+  "collection_artifacts": {
+   "mojibake": {
+    "definition": "text_blob 문자 중 U+0080-U+00FF 비율. UTF-8 을 Latin-1 로 잘못 읽으면 급증한다.",
+    "n_docs_over_5pct": 8,
+    "n_docs_over_20pct": 8,
+    "n_docs": 56,
+    "affected_services": [
+     "KB Pay",
+     "디바이스 케어",
+     "V3 Mobile Plus",
+     "메가커피",
+     "탑마트",
+     "하나은행",
+     "내 파일",
+     "YouTube"
+    ],
+    "mean_share_by_class": {
+     "COMMUNICATION_ENTRY": 0.002577319587628866,
+     "CONTENT_OPEN": 0.2060931899641577,
+     "FINANCIAL_ACTION_ENTRY": 0.1251495104289325,
+     "ITEM_DETAIL": 0.05276428870543319,
+     "PLACE_LOOKUP": 0.0010038069771394437,
+     "QUERY": 0.0,
+     "UTILITY_ENTRY": 0.4465048815838008
+    }
+   },
+   "css_text_leakage": {
+    "definition": "본문 추출물에 섞인 CSS 키워드 토큰 수 (style 블록이 텍스트로 들어온 흔적).",
+    "n_docs_with_hits": 4,
+    "n_docs": 56,
+    "median_hits_when_present": 6.0,
+    "mean_hits_by_class": {
+     "COMMUNICATION_ENTRY": 0.0,
+     "CONTENT_OPEN": 0.0,
+     "FINANCIAL_ACTION_ENTRY": 0.0,
+     "ITEM_DETAIL": 0.5,
+     "PLACE_LOOKUP": 0.0,
+     "QUERY": 7.0,
+     "UTILITY_ENTRY": 0.0
+    }
+   },
+   "interpretation": "상위 계수 토큰에서 CONTENT_OPEN·UTILITY_ENTRY 는 거의 전적으로 mojibake 조각으로, QUERY 는 부분적으로 CSS 토큰으로 분리되고 있다. 이는 archetype 신호가 아니라 수집·파싱 아티팩트다."
+  }
  },
  "design": {
   "seed": 20260827,
@@ -4254,6 +4297,7 @@
   "브랜드 제거는 문자열 치환이라 '다음/하나/현대' 같은 일반어 동형이의어까지 지운다 — de-leak 결과는 보수적(과소평가) 방향이다.",
   "동일 URL/동일 텍스트 중복이 존재하면 CV 폴드를 가로지르는 누출이 남는다.",
   "fold 는 30개지만 표본은 56개뿐이라 fold 점수들은 독립이 아니다. percentile 구간을 정식 신뢰구간처럼 읽으면 안 된다.",
+  "코퍼스에 인코딩 깨짐(mojibake)과 CSS 텍스트 혼입이 있어, 일부 class 의 분리는 내용이 아니라 수집 아티팩트를 학습한 결과다 — data_integrity.collection_artifacts 참조.",
   "인과 주장 없음. 어떤 토큰이 archetype 을 '만든다'는 해석은 불가."
  ],
  "production_implication": [

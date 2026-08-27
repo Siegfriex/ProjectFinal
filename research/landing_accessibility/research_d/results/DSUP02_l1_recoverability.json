@@ -1,0 +1,7652 @@
+{
+ "rq": "D-SUP-02",
+ "title": "shallow L1 functional-entry recoverability of CORPORATE_OR_APP / UNDETERMINED landings",
+ "inquiry_kind": "DIRECTOR_SUPPLEMENTAL",
+ "depends_on": "RQ-D14",
+ "hypothesis_id": "H-SUP02-L1-RECOVERABILITY",
+ "competing_hypotheses": {
+  "H1": "대상 target 대부분은 L1 안에서 기능면으로 회복 가능한 후보를 갖는다",
+  "H2": "대상 target 대부분은 관측 가능한 기능 출구가 없다",
+  "H3": "frozen evidence 만으로는 판정이 불가능하다"
+ },
+ "model_or_rule_version": "DSUP02_L1_v1",
+ "seed": 20260827,
+ "analysis_unit": "target (wtg)",
+ "n_expected": 56,
+ "n_observed": 56,
+ "strata": {
+  "target_classes": [
+   "CORPORATE_OR_APP_LANDING",
+   "UNDETERMINED"
+  ],
+  "control_class": "FUNCTIONAL_LANDING",
+  "n_target": 29,
+  "n_control": 27
+ },
+ "inputs": {
+  "strata": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/RQ_D14_frame_validity.json",
+  "observation_table": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_OBSERVATION_TABLE_v2.csv",
+  "evidence_root_template": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_{ww}/artifacts/e001_{w}/evidence/{run_dir}/{obs}/l0a",
+  "ssot_region_reference": "/home/sieg/projects-wsl/ProjectFinal/SSOTV2/01_REPRESENTATIVE_FUNCTION_MAPPING_DT_v2.1.md §5"
+ },
+ "missing": {
+  "n_missing_targets": 0,
+  "probe_absent": [
+   "64d30ef262d8782d",
+   "ef06dc942ef3ccc9"
+  ],
+  "dom_parse_fail": []
+ },
+ "definitions": {
+  "candidate": "\n=== shallow L1 functional-entry candidate — 조작화 정의 (전문) ===\n\n[유도 근거] SSOTV2/01_REPRESENTATIVE_FUNCTION_MAPPING_DT_v2.1.md §5 Stage 3 branch tree 는\n7개 archetype 각각에 대해 **Region** 을 다음과 같이 정의한다 (원문 요지):\n\n  Q QUERY                : \"검색 입력 control 이 사용 가능한 상태로 노출\"\n  C CONTENT_OPEN         : \"content card/link list 가 노출\"\n  I ITEM_DETAIL          : \"individual item/product card or link list\"\n  P PLACE_LOOKUP         : \"place search control 또는 place list\"\n  M COMMUNICATION_ENTRY  : \"thread/post list 또는 compose-entry control\"\n  F FINANCIAL_ACTION_ENTRY: \"balance/transfer/payment/auth function entry control\"\n  U UTILITY_ENTRY        : \"function surface entry control\"\n\n즉 SSOT 에서 Region 은 **기능 면(surface) 또는 그 면을 여는 entry control** 이다.\nD-SUP-02 는 이 7개 Region 정의의 **합집합(union)** 을 archetype 을 특정하지 않은 채 쓴다.\n\n[정의] target T 의 frozen L0-A evidence 안에서 관측된 어떤 노드 x 가 아래 (a)·(b)·(c) 를\n모두 만족하면 x 는 T 의 **shallow L1 functional-entry candidate** 다.\n\n  (a) FORM — x 는 다음 중 하나다.\n      (a1) 이동형 링크: <a href> 이거나 AX role ∈ {link}, 그리고 href 가 존재\n      (a2) 조작형 control: AX role ∈ {button, searchbox, combobox, textbox, menuitem,\n           tab, checkbox, radio, slider, spinbutton} 이거나 DOM 태그가\n           <button> / <input type=search|text|submit> / [role=button] / [role=searchbox]\n      (a3) probe slot 이 이미 후보로 표기한 노드:\n           raw_features.primary_action_candidates[] · raw_features.region_signals.search_inputs[]\n\n  (b) FUNCTION VOCABULARY — x 의 **표면 문자열** 중 하나 이상이 아래 7개 region 어휘군\n      (REGION_VOCAB) 중 하나에 매칭된다. 표면 문자열은\n        visible_text / anchor text / AX accessible name / aria-label / title / alt /\n        placeholder / nearby_heading / href 의 path+query (percent-decode 후)\n      이다. href path 매칭은 path segment 또는 query key/value 에 대해 수행한다.\n      예외 (b*): FORM 이 (a2) 의 searchbox/combobox/input[type=search] 이거나 probe\n      region_signals.search_inputs 항목이면, SSOT Q-Region 정의(\"검색 입력 control 이\n      사용 가능한 상태로 노출\")가 **control 존재 자체로 충족**되므로 어휘 매칭 없이 통과한다.\n\n  (c) EXCLUSION — x 가 아래 EXCLUSION RULES 중 어느 하나에도 걸리지 않는다.\n\n[shallow / L1 의 뜻]\n  - \"shallow\" : L0-A 랜딩 화면에서 **직접 보이는/노출된** 노드만 본다. 하위 페이지를\n    크롤하지 않고, 어떤 후보도 실행하지 않는다.\n  - \"L1\"      : 그 후보를 한 번 누르면 도달할 **다음 한 면** 을 뜻한다. 실제 도달 여부는\n    검증하지 않는다 (이 inquiry 는 그것을 답하지 않는다).\n  - 따라서 \"candidate\" 는 **존재 주장(existence claim)** 이지 도달 주장(reachability claim)이\n    아니다.\n\n[중복 제거] 후보는 (정규화 표면 문자열, 정규화 href) 쌍으로 dedup 한다. 같은 노드가 세 slot\n(dom/ax/probe) 에서 모두 관측되면 후보 1개이며, slot provenance 는 집합으로 보존한다.\n",
+  "exclusions": "\n=== EXCLUSION RULES (전문) ===\n아래 규칙은 **어휘 매칭보다 먼저** 적용된다 (예: \"뉴스룸\" 은 E4 에 걸리므로 C 어휘 \"뉴스\" 로\n승격되지 않는다). 규칙은 결과를 보기 전에 고정되었고 결과를 본 뒤 수정하지 않았다.\n\nE1 APP_INSTALL — 앱 설치/스토어 이동\n    표면어: 앱 다운로드, 앱다운로드, 앱설치, 앱 설치, 앱으로 보기, 앱에서 보기, 앱으로보기,\n            앱 열기, 앱열기, 앱에서 열기, 앱으로 이동, 앱 실행, app store, google play,\n            play 스토어, 플레이스토어, 원스토어, 갤럭시 스토어, 갤럭시스토어, appstore,\n            download the app, get the app\n    host  : play.google.com, apps.apple.com, itunes.apple.com, onelink.me, app.link,\n            appsflyer.com, adjust.com, onestore.co.kr, galaxystore.samsung.com, applink\n\nE2 EXTERNAL_SNS — 외부 소셜/공유\n    표면어: 페이스북, 인스타그램, 인스타, 유튜브, 트위터, 카카오스토리, 카카오채널,\n            카카오톡 채널, 네이버 밴드, 밴드, 링크드인, 틱톡, 구글플러스, 공유하기, 공유,\n            url 복사, 링크 복사, sns, facebook, instagram, twitter, youtube, tiktok,\n            linkedin, threads, share\n    host  : facebook.com, instagram.com, twitter.com, x.com, youtube.com, youtu.be,\n            tiktok.com, linkedin.com, threads.net, band.us, pf.kakao.com, story.kakao.com,\n            blog.naver.com, post.naver.com, cafe.naver.com, plus.google.com\n\nE3 LEGAL_POLICY — 약관·정책·메타\n    표면어: 이용약관, 약관, 개인정보, 개인정보처리방침, 개인정보취급방침, 청소년보호,\n            저작권, 이메일무단수집, 이메일 무단수집, 사이트맵, 웹접근성, 접근성 정책,\n            법적고지, 면책, terms, privacy, policy, legal, copyright, sitemap,\n            accessibility, cookie\n\nE4 CORPORATE_IR_RECRUIT — 기업소개·IR·채용·홍보·제휴\n    표면어: 회사소개, 회사 소개, 기업소개, 기업 소개, 회사정보, 기업정보, 브랜드스토리,\n            브랜드 스토리, 연혁, 비전, 미션, 경영이념, ceo, 윤리경영, 지속가능경영, esg,\n            기업지배구조, 사회공헌, 오시는 길, 찾아오시는, 채용, 인재채용, 인재상, 인사제도,\n            직무소개, 채용안내, 투자정보, ir, 주가정보, 공시, 보도자료, 뉴스룸, 홍보센터,\n            광고문의, 제휴문의, 입점문의, 입점 문의, 파트너 신청, 배달파트너, 가맹문의,\n            about us, about, company, corporate, careers, career, recruit, investor,\n            investors, press, newsroom, sustainability\n    path  : /about, /company, /corporate, /ir, /careers, /recruit, /press, /newsroom, /esg\n\nE5 SUPPORT_META — 고객지원 메타면 (대표기능 Region 이 아니라 support surface)\n    표면어: 고객센터, 고객 센터, 고객지원, 자주묻는질문, 자주 묻는 질문, faq, 공지사항,\n            이용안내, 사이트 이용안내, 도움말, help, support center, notice, announcement\n\nE6 UI_CHROME — 페이지 내부 UI 조작 (기능면 진입이 아님)\n    표면어: 닫기, 열기, 펼치기, 접기, 이전, 다음, 확인, 취소, 뒤로가기, 이전화면, 나중에,\n            상단으로, 페이지 상단으로 이동, 맨 위로, 메뉴, 전체메뉴, 사이드 메뉴, 메뉴 열기,\n            메뉴 닫기, 전체삭제, 검색어 지우기, 검색어 삭제, 검색어 삭제하기, 검색영역 닫기,\n            지우기, 삭제, 배너, 이전 배너, 다음 배너, 자동재생, 정지, 재생, 스킵,\n            본문 바로가기, 콘텐츠 바로가기, 새창, 새 창, 팝업 닫기, 오늘 하루,\n            close, open, prev, previous, next, skip, back, menu, toggle, more,\n            expand, collapse, scroll to top\n    ※ '홈' '언어전환(EN/KO/English/한국어)' 도 여기 포함한다.\n\nE7 NON_NAVIGATIONAL_HREF — href 가 기능면을 지시하지 않음\n    scheme ∈ {mailto, tel, sms, javascript, data, blob} 이거나 href ∈ {\"\", \"#\"}.\n    단 (a2) 조작형 control 은 href 없이도 후보가 될 수 있으므로 이 규칙은 (a1) 에만 적용한다.\n\nE8 OFF_HOST — 서비스 밖 host\n    href 의 registrable domain (eTLD+1 근사) 이 landing 의 registrable domain 과 다르고,\n    그 domain 문자열이 RQ-D14 의 a_matched_alias (해당 target 의 알려진 서비스 별칭) 를\n    포함하지 않으면 제외한다. 즉 같은 서비스의 다른 서브도메인·형제 도메인은 후보로 남는다.\n\nE9 AUTH_ONLY (WEAK 로 분리, primary count 에 포함하지 않음)\n    표면어: 로그인, 로그아웃, 회원가입, 가입하기, 마이페이지, 마이, 내정보, login, logout,\n            sign in, signin, sign up, signup, join, my page, mypage, account(단독)\n    사유: SSOT F-Region 은 auth function entry control 을 Region 으로 인정하지만, 동시에\n    \"로그인 버튼 존재만으로 endpoint 처리하지 않는다\"(§5 Branch M) 고 못박는다. 로그인은\n    거의 모든 랜딩에 있어 판별력이 없으므로 primary count 에서 빼고 WEAK 클래스로 따로 세어\n    민감도 분석에만 쓴다.\n",
+  "verdict_rule": "\n=== 3값 판정 규칙 (사전 고정 — 결과를 본 뒤 바꾸지 않았다) ===\n\n입력: target 당 후보 개수 n_cand (E1~E9 통과, dedup 후), evidence 가용성 플래그.\n\nR0  evidence 부재 : dom.html · ax.json · probe.json 이 **모두** 없으면 → AMBIGUOUS\n                    (reason = EVIDENCE_ABSENT)\nR1  퇴화 캡처     : D 가 확인한 퇴화 관측 (computed_css 3 bytes AND dom_body_empty==1) 이면\n                    후보 개수와 무관하게 → AMBIGUOUS (reason = DEGENERATE_CAPTURE)\n                    ※ 이 규칙을 끈 \"퇴화 포함\" 버전을 반드시 병기한다 (R1 만 무력화).\nR2  후보 ≥ 1      : → RECOVERABLE_WITHIN_L1\nR3  후보 == 0     : → NO_FUNCTIONAL_EXIT_OBSERVED\n\n우선순위: R0 > R1 > R2 > R3.\n\n사전 고정 민감도 임계 (primary 는 R2 의 ≥1 이다. 아래는 보고용이며 primary 를 대체하지 않는다):\n  S1  n_cand >= 3\n  S2  n_cand_visible_hittable >= 1\n      (probe primary_action_candidates 중 viewport_visible==true AND hittable==true 인 후보)\n  S3  WEAK(E9 auth) 후보를 primary 에 포함시켰을 때의 n_cand >= 1\n",
+  "region_vocab": {
+   "Q_QUERY": {
+    "text": [
+     "검색",
+     "검색하기",
+     "통합검색",
+     "통합 검색",
+     "찾아보기",
+     "검색창",
+     "search",
+     "find",
+     "query"
+    ],
+    "path": [
+     "search",
+     "find",
+     "query",
+     "q",
+     "src",
+     "sch"
+    ]
+   },
+   "C_CONTENT": {
+    "text": [
+     "뉴스",
+     "기사",
+     "속보",
+     "영상",
+     "동영상",
+     "방송",
+     "프로그램",
+     "다시보기",
+     "콘텐츠",
+     "컨텐츠",
+     "웹툰",
+     "만화",
+     "소설",
+     "음악",
+     "라디오",
+     "드라마",
+     "예능",
+     "클립",
+     "매거진",
+     "칼럼",
+     "연재",
+     "포토",
+     "사진",
+     "갤러리",
+     "스포츠",
+     "연예",
+     "시사",
+     "경제",
+     "정치",
+     "사회",
+     "생활",
+     "문화",
+     "news",
+     "article",
+     "video",
+     "watch",
+     "vod",
+     "program",
+     "episode",
+     "series",
+     "webtoon",
+     "comic",
+     "novel",
+     "music",
+     "radio",
+     "photo",
+     "gallery",
+     "magazine",
+     "column",
+     "clip",
+     "live"
+    ],
+    "path": [
+     "news",
+     "article",
+     "articles",
+     "video",
+     "videos",
+     "watch",
+     "vod",
+     "program",
+     "programs",
+     "episode",
+     "series",
+     "webtoon",
+     "comic",
+     "novel",
+     "music",
+     "radio",
+     "photo",
+     "gallery",
+     "magazine",
+     "clip",
+     "live",
+     "contents",
+     "content"
+    ]
+   },
+   "I_ITEM": {
+    "text": [
+     "상품",
+     "제품",
+     "쇼핑",
+     "카테고리",
+     "베스트",
+     "기획전",
+     "신상품",
+     "세일",
+     "특가",
+     "할인",
+     "장바구니",
+     "스토어",
+     "몰",
+     "구매",
+     "주문",
+     "랭킹",
+     "브랜드관",
+     "전체보기",
+     "카탈로그",
+     "가격",
+     "판매",
+     "product",
+     "products",
+     "goods",
+     "item",
+     "items",
+     "shop",
+     "shopping",
+     "store",
+     "category",
+     "categories",
+     "best",
+     "bestseller",
+     "sale",
+     "deal",
+     "deals",
+     "cart",
+     "mall",
+     "order",
+     "catalog",
+     "ranking",
+     "price",
+     "buy"
+    ],
+    "path": [
+     "product",
+     "products",
+     "goods",
+     "item",
+     "items",
+     "shop",
+     "shopping",
+     "category",
+     "categories",
+     "best",
+     "sale",
+     "deal",
+     "cart",
+     "mall",
+     "order",
+     "catalog",
+     "ranking",
+     "prd",
+     "gds"
+    ]
+   },
+   "P_PLACE": {
+    "text": [
+     "지도",
+     "길찾기",
+     "길 찾기",
+     "매장찾기",
+     "매장 찾기",
+     "센터찾기",
+     "센터 찾기",
+     "지점",
+     "지점찾기",
+     "영업점",
+     "대리점",
+     "주변",
+     "내 주변",
+     "현위치",
+     "위치",
+     "지역",
+     "장소",
+     "가까운",
+     "서비스센터",
+     "map",
+     "maps",
+     "place",
+     "places",
+     "location",
+     "locations",
+     "branch",
+     "branches",
+     "store locator",
+     "directions",
+     "nearby",
+     "around"
+    ],
+    "path": [
+     "map",
+     "maps",
+     "place",
+     "places",
+     "location",
+     "branch",
+     "branches",
+     "store-locator",
+     "storelocator",
+     "directions",
+     "nearby",
+     "shopfind",
+     "findstore",
+     "center"
+    ]
+   },
+   "M_COMMUNICATION": {
+    "text": [
+     "게시판",
+     "커뮤니티",
+     "카페",
+     "댓글",
+     "글쓰기",
+     "글 쓰기",
+     "작성하기",
+     "톡",
+     "채팅",
+     "채팅하기",
+     "메시지",
+     "쪽지",
+     "문의하기",
+     "1:1문의",
+     "1:1 문의",
+     "1대1 문의",
+     "상담",
+     "상담하기",
+     "전문상담",
+     "원격상담",
+     "수어상담",
+     "후기",
+     "리뷰",
+     "질문",
+     "묻고답하기",
+     "토론",
+     "피드",
+     "board",
+     "community",
+     "forum",
+     "post",
+     "posts",
+     "thread",
+     "write",
+     "chat",
+     "message",
+     "messages",
+     "comment",
+     "review",
+     "reviews",
+     "qna",
+     "q&a",
+     "ask",
+     "inquiry",
+     "feed"
+    ],
+    "path": [
+     "board",
+     "community",
+     "forum",
+     "post",
+     "posts",
+     "thread",
+     "write",
+     "chat",
+     "message",
+     "comment",
+     "review",
+     "reviews",
+     "qna",
+     "inquiry",
+     "counsel",
+     "consult",
+     "feed",
+     "bbs"
+    ]
+   },
+   "F_FINANCE": {
+    "text": [
+     "이체",
+     "송금",
+     "계좌",
+     "잔액",
+     "잔액조회",
+     "결제",
+     "즉시결제",
+     "납부",
+     "청구",
+     "청구서",
+     "요금조회",
+     "카드",
+     "대출",
+     "예금",
+     "적금",
+     "펀드",
+     "환전",
+     "보험",
+     "투자",
+     "주식",
+     "충전",
+     "포인트",
+     "간편결제",
+     "출금",
+     "입금",
+     "거래내역",
+     "이용내역",
+     "명세서",
+     "본인인증",
+     "본인확인",
+     "transfer",
+     "remit",
+     "remittance",
+     "account",
+     "balance",
+     "pay",
+     "payment",
+     "payments",
+     "billing",
+     "bill",
+     "card",
+     "cards",
+     "loan",
+     "deposit",
+     "savings",
+     "fund",
+     "invest",
+     "investment",
+     "stock",
+     "exchange",
+     "insurance",
+     "wallet",
+     "point",
+     "settlement"
+    ],
+    "path": [
+     "transfer",
+     "remit",
+     "account",
+     "accounts",
+     "balance",
+     "pay",
+     "payment",
+     "billing",
+     "bill",
+     "card",
+     "cards",
+     "loan",
+     "deposit",
+     "savings",
+     "fund",
+     "invest",
+     "stock",
+     "exchange",
+     "insurance",
+     "wallet",
+     "point"
+    ]
+   },
+   "U_UTILITY": {
+    "text": [
+     "예약",
+     "예약하기",
+     "예매",
+     "예매하기",
+     "신청",
+     "신청하기",
+     "접수",
+     "발급",
+     "발급하기",
+     "조회",
+     "조회하기",
+     "배송조회",
+     "주문조회",
+     "주문/배송 조회",
+     "계산",
+     "계산기",
+     "요금",
+     "요금안내",
+     "요금조회",
+     "등록",
+     "등록하기",
+     "충전하기",
+     "견적",
+     "견적내기",
+     "진단",
+     "추천",
+     "설정",
+     "확인서",
+     "증명서",
+     "발권",
+     "체크인",
+     "티켓",
+     "수리",
+     "서비스 예약",
+     "출장서비스",
+     "예약 조회",
+     "유지보수",
+     "자가수리",
+     "보증등록",
+     "reservation",
+     "reserve",
+     "booking",
+     "book",
+     "apply",
+     "application",
+     "request",
+     "issue",
+     "calculate",
+     "calculator",
+     "estimate",
+     "register",
+     "registration",
+     "track",
+     "tracking",
+     "checkin",
+     "check-in",
+     "ticket",
+     "quote",
+     "repair",
+     "service"
+    ],
+    "path": [
+     "reserve",
+     "reservation",
+     "booking",
+     "book",
+     "apply",
+     "application",
+     "request",
+     "issue",
+     "calculator",
+     "estimate",
+     "register",
+     "track",
+     "tracking",
+     "checkin",
+     "ticket",
+     "quote",
+     "repair",
+     "service",
+     "services",
+     "delivery",
+     "order-status"
+    ]
+   }
+  },
+  "weak_auth_vocab": [
+   "로그인",
+   "로그아웃",
+   "회원가입",
+   "가입하기",
+   "마이페이지",
+   "마이",
+   "내정보",
+   "내 정보",
+   "login",
+   "logout",
+   "sign in",
+   "signin",
+   "sign up",
+   "signup",
+   "join",
+   "my page",
+   "mypage"
+  ]
+ },
+ "results": {
+  "primary_degenerate_isolated": {
+   "target_29": {
+    "n": 29,
+    "RECOVERABLE_WITHIN_L1": {
+     "k": 24,
+     "rate": 0.8276,
+     "wilson95": [
+      0.6545,
+      0.924
+     ]
+    },
+    "NO_FUNCTIONAL_EXIT_OBSERVED": {
+     "k": 3,
+     "rate": 0.1034,
+     "wilson95": [
+      0.0358,
+      0.2639
+     ]
+    },
+    "AMBIGUOUS": {
+     "k": 2,
+     "rate": 0.069,
+     "wilson95": [
+      0.0191,
+      0.2196
+     ]
+    }
+   },
+   "control_27": {
+    "n": 27,
+    "RECOVERABLE_WITHIN_L1": {
+     "k": 25,
+     "rate": 0.9259,
+     "wilson95": [
+      0.7663,
+      0.9794
+     ]
+    },
+    "NO_FUNCTIONAL_EXIT_OBSERVED": {
+     "k": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.1246
+     ]
+    },
+    "AMBIGUOUS": {
+     "k": 2,
+     "rate": 0.0741,
+     "wilson95": [
+      0.0206,
+      0.2337
+     ]
+    }
+   },
+   "all_56": {
+    "n": 56,
+    "RECOVERABLE_WITHIN_L1": {
+     "k": 49,
+     "rate": 0.875,
+     "wilson95": [
+      0.7637,
+      0.9381
+     ]
+    },
+    "NO_FUNCTIONAL_EXIT_OBSERVED": {
+     "k": 3,
+     "rate": 0.0536,
+     "wilson95": [
+      0.0184,
+      0.1461
+     ]
+    },
+    "AMBIGUOUS": {
+     "k": 4,
+     "rate": 0.0714,
+     "wilson95": [
+      0.0281,
+      0.1698
+     ]
+    }
+   },
+   "by_identity_class": {
+    "CORPORATE_OR_APP_LANDING": {
+     "n": 3,
+     "RECOVERABLE_WITHIN_L1": {
+      "k": 3,
+      "rate": 1.0,
+      "wilson95": [
+       0.4385,
+       1.0
+      ]
+     },
+     "NO_FUNCTIONAL_EXIT_OBSERVED": {
+      "k": 0,
+      "rate": 0.0,
+      "wilson95": [
+       0.0,
+       0.5615
+      ]
+     },
+     "AMBIGUOUS": {
+      "k": 0,
+      "rate": 0.0,
+      "wilson95": [
+       0.0,
+       0.5615
+      ]
+     }
+    },
+    "FUNCTIONAL_LANDING": {
+     "n": 27,
+     "RECOVERABLE_WITHIN_L1": {
+      "k": 25,
+      "rate": 0.9259,
+      "wilson95": [
+       0.7663,
+       0.9794
+      ]
+     },
+     "NO_FUNCTIONAL_EXIT_OBSERVED": {
+      "k": 0,
+      "rate": 0.0,
+      "wilson95": [
+       0.0,
+       0.1246
+      ]
+     },
+     "AMBIGUOUS": {
+      "k": 2,
+      "rate": 0.0741,
+      "wilson95": [
+       0.0206,
+       0.2337
+      ]
+     }
+    },
+    "UNDETERMINED": {
+     "n": 26,
+     "RECOVERABLE_WITHIN_L1": {
+      "k": 21,
+      "rate": 0.8077,
+      "wilson95": [
+       0.6212,
+       0.9149
+      ]
+     },
+     "NO_FUNCTIONAL_EXIT_OBSERVED": {
+      "k": 3,
+      "rate": 0.1154,
+      "wilson95": [
+       0.04,
+       0.2898
+      ]
+     },
+     "AMBIGUOUS": {
+      "k": 2,
+      "rate": 0.0769,
+      "wilson95": [
+       0.0214,
+       0.2414
+      ]
+     }
+    }
+   }
+  },
+  "degenerate_included": {
+   "target_29": {
+    "n": 29,
+    "RECOVERABLE_WITHIN_L1": {
+     "k": 26,
+     "rate": 0.8966,
+     "wilson95": [
+      0.7361,
+      0.9642
+     ]
+    },
+    "NO_FUNCTIONAL_EXIT_OBSERVED": {
+     "k": 3,
+     "rate": 0.1034,
+     "wilson95": [
+      0.0358,
+      0.2639
+     ]
+    },
+    "AMBIGUOUS": {
+     "k": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.117
+     ]
+    }
+   },
+   "control_27": {
+    "n": 27,
+    "RECOVERABLE_WITHIN_L1": {
+     "k": 25,
+     "rate": 0.9259,
+     "wilson95": [
+      0.7663,
+      0.9794
+     ]
+    },
+    "NO_FUNCTIONAL_EXIT_OBSERVED": {
+     "k": 2,
+     "rate": 0.0741,
+     "wilson95": [
+      0.0206,
+      0.2337
+     ]
+    },
+    "AMBIGUOUS": {
+     "k": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.1246
+     ]
+    }
+   },
+   "all_56": {
+    "n": 56,
+    "RECOVERABLE_WITHIN_L1": {
+     "k": 51,
+     "rate": 0.9107,
+     "wilson95": [
+      0.8074,
+      0.9613
+     ]
+    },
+    "NO_FUNCTIONAL_EXIT_OBSERVED": {
+     "k": 5,
+     "rate": 0.0893,
+     "wilson95": [
+      0.0387,
+      0.1926
+     ]
+    },
+    "AMBIGUOUS": {
+     "k": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0642
+     ]
+    }
+   },
+   "by_identity_class": {
+    "CORPORATE_OR_APP_LANDING": {
+     "n": 3,
+     "RECOVERABLE_WITHIN_L1": {
+      "k": 3,
+      "rate": 1.0,
+      "wilson95": [
+       0.4385,
+       1.0
+      ]
+     },
+     "NO_FUNCTIONAL_EXIT_OBSERVED": {
+      "k": 0,
+      "rate": 0.0,
+      "wilson95": [
+       0.0,
+       0.5615
+      ]
+     },
+     "AMBIGUOUS": {
+      "k": 0,
+      "rate": 0.0,
+      "wilson95": [
+       0.0,
+       0.5615
+      ]
+     }
+    },
+    "FUNCTIONAL_LANDING": {
+     "n": 27,
+     "RECOVERABLE_WITHIN_L1": {
+      "k": 25,
+      "rate": 0.9259,
+      "wilson95": [
+       0.7663,
+       0.9794
+      ]
+     },
+     "NO_FUNCTIONAL_EXIT_OBSERVED": {
+      "k": 2,
+      "rate": 0.0741,
+      "wilson95": [
+       0.0206,
+       0.2337
+      ]
+     },
+     "AMBIGUOUS": {
+      "k": 0,
+      "rate": 0.0,
+      "wilson95": [
+       0.0,
+       0.1246
+      ]
+     }
+    },
+    "UNDETERMINED": {
+     "n": 26,
+     "RECOVERABLE_WITHIN_L1": {
+      "k": 23,
+      "rate": 0.8846,
+      "wilson95": [
+       0.7102,
+       0.96
+      ]
+     },
+     "NO_FUNCTIONAL_EXIT_OBSERVED": {
+      "k": 3,
+      "rate": 0.1154,
+      "wilson95": [
+       0.04,
+       0.2898
+      ]
+     },
+     "AMBIGUOUS": {
+      "k": 0,
+      "rate": 0.0,
+      "wilson95": [
+       0.0,
+       0.1287
+      ]
+     }
+    }
+   }
+  },
+  "control_contrast": {
+   "target_recoverable_rate": 0.8276,
+   "control_recoverable_rate": 0.9259,
+   "rate_difference": -0.0983,
+   "note": "대조군 없이 대상군 비율만 보면 무의미하다. 두 비율의 차이가 판별력이다."
+  },
+  "slot_provenance": {
+   "candidate_level_counts": {
+    "dom": 2780,
+    "probe": 2433,
+    "ax": 1898
+   },
+   "candidate_level_slot_exclusive": {
+    "probe": 1858,
+    "dom": 1919,
+    "ax": 1508
+   },
+   "target_level_slot_contributed": {
+    "dom": 45,
+    "probe": 50,
+    "ax": 42
+   },
+   "targets_with_probe_only_candidates": [
+    "95967b50683649f2",
+    "fb3d1841dddfd982",
+    "a215c45b2cc585ca",
+    "5beeafeac2e27eae",
+    "65f15ce8fee25b24"
+   ],
+   "targets_with_dom_only_candidates": [],
+   "dedup_caveat": "cross-slot dedup 은 (표면문자열, href) 로 하는데 같은 노드라도 slot 마다 표면문자열 구성이 달라(probe 는 nearby_heading 을 붙이고 ax 는 computed name 을 쓴다) 병합이 잘 되지 않는다. 따라서 candidate_level_slot_exclusive 는 **상한(과대추정)** 이다. slot 기여 판단은 target_level 지표와 targets_with_probe_only_candidates 로 하라."
+  },
+  "sensitivity": {
+   "target_29": {
+    "S1_ge3": {
+     "n": 29,
+     "k": 22,
+     "rate": 0.7586,
+     "wilson95": [
+      0.5789,
+      0.8778
+     ]
+    },
+    "S2_visible_hittable_ge1": {
+     "n": 29,
+     "k": 12,
+     "rate": 0.4138,
+     "wilson95": [
+      0.2551,
+      0.5926
+     ]
+    },
+    "S3_with_weak_auth_ge1": {
+     "n": 29,
+     "k": 26,
+     "rate": 0.8966,
+     "wilson95": [
+      0.7361,
+      0.9642
+     ]
+    }
+   },
+   "control_27": {
+    "S1_ge3": {
+     "n": 27,
+     "k": 25,
+     "rate": 0.9259,
+     "wilson95": [
+      0.7663,
+      0.9794
+     ]
+    },
+    "S2_visible_hittable_ge1": {
+     "n": 27,
+     "k": 14,
+     "rate": 0.5185,
+     "wilson95": [
+      0.3399,
+      0.6926
+     ]
+    },
+    "S3_with_weak_auth_ge1": {
+     "n": 27,
+     "k": 25,
+     "rate": 0.9259,
+     "wilson95": [
+      0.7663,
+      0.9794
+     ]
+    }
+   },
+   "all_56": {
+    "S1_ge3": {
+     "n": 56,
+     "k": 47,
+     "rate": 0.8393,
+     "wilson95": [
+      0.7219,
+      0.9131
+     ]
+    },
+    "S2_visible_hittable_ge1": {
+     "n": 56,
+     "k": 26,
+     "rate": 0.4643,
+     "wilson95": [
+      0.3402,
+      0.593
+     ]
+    },
+    "S3_with_weak_auth_ge1": {
+     "n": 56,
+     "k": 51,
+     "rate": 0.9107,
+     "wilson95": [
+      0.8074,
+      0.9613
+     ]
+    }
+   }
+  },
+  "candidate_count_distribution": {
+   "target_29": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    2,
+    3,
+    16,
+    18,
+    19,
+    23,
+    23,
+    29,
+    30,
+    32,
+    44,
+    45,
+    45,
+    46,
+    46,
+    50,
+    50,
+    58,
+    66,
+    86,
+    92,
+    139,
+    160
+   ],
+   "control_27": [
+    0,
+    0,
+    6,
+    6,
+    13,
+    18,
+    19,
+    20,
+    27,
+    32,
+    32,
+    36,
+    58,
+    73,
+    92,
+    100,
+    106,
+    192,
+    221,
+    238,
+    243,
+    329,
+    345,
+    370,
+    468,
+    839,
+    1160
+   ]
+  },
+  "region_class_totals": {
+   "target_29": {
+    "F_FINANCE": 18,
+    "P_PLACE": 14,
+    "U_UTILITY": 22,
+    "I_ITEM": 19,
+    "C_CONTENT": 16,
+    "M_COMMUNICATION": 13,
+    "Q_QUERY": 13
+   },
+   "control_27": {
+    "C_CONTENT": 19,
+    "I_ITEM": 20,
+    "U_UTILITY": 19,
+    "Q_QUERY": 22,
+    "F_FINANCE": 14,
+    "P_PLACE": 14,
+    "M_COMMUNICATION": 17
+   }
+  }
+ },
+ "counterexamples": {
+  "functional_landing_without_candidate": [
+   {
+    "wtg": "64d30ef262d8782d",
+    "service": "신한 SOL뱅크",
+    "n_candidates": 0,
+    "verdict": "AMBIGUOUS",
+    "slots_status": {
+     "dom": "OK",
+     "ax": "OK",
+     "probe": "ABSENT"
+    },
+    "exclusion_hits": {}
+   },
+   {
+    "wtg": "ef06dc942ef3ccc9",
+    "service": "롯데하이마트",
+    "n_candidates": 0,
+    "verdict": "AMBIGUOUS",
+    "slots_status": {
+     "dom": "OK",
+     "ax": "OK",
+     "probe": "ABSENT"
+    },
+    "exclusion_hits": {}
+   }
+  ],
+  "corporate_or_undetermined_with_rich_candidates": [
+   {
+    "wtg": "be1e6feb78e5ef03",
+    "service": "emart24",
+    "identity_class": "UNDETERMINED",
+    "n_candidates": 160,
+    "region_class_hits": {
+     "I_ITEM": 112,
+     "U_UTILITY": 34,
+     "Q_QUERY": 4,
+     "P_PLACE": 9,
+     "C_CONTENT": 10,
+     "F_FINANCE": 4,
+     "M_COMMUNICATION": 4
+    },
+    "top_candidates": [
+     {
+      "text": "1+1 콘돔)레드컨테이너홍콩가는티켓 6,000",
+      "href": "/goods/event?category_seq=1",
+      "role": "a",
+      "regions": [
+       "I_ITEM",
+       "U_UTILITY"
+      ],
+      "terms": [
+       "I_ITEM:path:goods",
+       "U_UTILITY:text:티켓"
+      ],
+      "slots": [
+       "dom",
+       "probe"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "chef's lineup 스타 셰프들 비법을 담은 일상 미식",
+      "href": "https://emart24.co.kr/goods/pl?search=&category_seq=&base_category_seq=401&align=",
+      "role": "a",
+      "regions": [
+       "I_ITEM",
+       "Q_QUERY"
+      ],
+      "terms": [
+       "I_ITEM:path:goods",
+       "Q_QUERY:path:search"
+      ],
+      "slots": [
+       "dom",
+       "probe"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "성수 310 내 집 앞 성수 감성, 성수 310",
+      "href": "https://emart24.co.kr/goods/pl?search=&category_seq=&base_category_seq=241&align=",
+      "role": "a",
+      "regions": [
+       "I_ITEM",
+       "Q_QUERY"
+      ],
+      "terms": [
+       "I_ITEM:path:goods",
+       "Q_QUERY:path:search"
+      ],
+      "slots": [
+       "dom",
+       "probe"
+      ],
+      "search_ctrl": false
+     }
+    ]
+   },
+   {
+    "wtg": "dd2cec4c1fa2beec",
+    "service": "롯데백화점",
+    "identity_class": "UNDETERMINED",
+    "n_candidates": 139,
+    "region_class_hits": {
+     "F_FINANCE": 6,
+     "I_ITEM": 135,
+     "C_CONTENT": 3,
+     "U_UTILITY": 5,
+     "Q_QUERY": 2,
+     "P_PLACE": 2
+    },
+    "top_candidates": [
+     {
+      "text": "부가부 베이비페어 최대 혜택 최대 10% + 5% 상당 카드 할인",
+      "href": "https://www.lotteon.com/display/planV2/planDetail/105107?mall_no=2",
+      "role": "a",
+      "regions": [
+       "F_FINANCE",
+       "I_ITEM"
+      ],
+      "terms": [
+       "F_FINANCE:text:카드",
+       "I_ITEM:path:mall",
+       "I_ITEM:text:할인"
+      ],
+      "slots": [
+       "ax",
+       "dom"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "스포츠/레저",
+      "href": "https://www.lotteon.com/display/shop/seltDpShop/50553?mall_no=2",
+      "role": "a",
+      "regions": [
+       "C_CONTENT",
+       "I_ITEM"
+      ],
+      "terms": [
+       "C_CONTENT:text:스포츠",
+       "I_ITEM:path:shop"
+      ],
+      "slots": [
+       "ax",
+       "dom"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "썸머 메이크업 추천 롯데 단독 금액대 혜택",
+      "href": "https://www.lotteon.com/display/planV2/planDetail/107049?mall_no=2",
+      "role": "a",
+      "regions": [
+       "I_ITEM",
+       "U_UTILITY"
+      ],
+      "terms": [
+       "I_ITEM:path:mall",
+       "U_UTILITY:text:추천"
+      ],
+      "slots": [
+       "ax",
+       "dom"
+      ],
+      "search_ctrl": false
+     }
+    ]
+   },
+   {
+    "wtg": "377983572bd38242",
+    "service": "다이소",
+    "identity_class": "UNDETERMINED",
+    "n_candidates": 92,
+    "region_class_hits": {
+     "I_ITEM": 76,
+     "Q_QUERY": 14,
+     "P_PLACE": 2,
+     "C_CONTENT": 56,
+     "U_UTILITY": 2
+    },
+    "top_candidates": [
+     {
+      "text": "매장 검색",
+      "href": "/cs/shop",
+      "role": "a",
+      "regions": [
+       "I_ITEM",
+       "Q_QUERY"
+      ],
+      "terms": [
+       "I_ITEM:path:shop",
+       "Q_QUERY:text:검색"
+      ],
+      "slots": [
+       "dom",
+       "probe"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "매장찾기 검색어 입력",
+      "href": "",
+      "role": "textbox",
+      "regions": [
+       "P_PLACE",
+       "Q_QUERY"
+      ],
+      "terms": [
+       "P_PLACE:text:매장찾기",
+       "Q_QUERY:text:검색"
+      ],
+      "slots": [
+       "ax",
+       "probe"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "자세히 보기",
+      "href": "https://www.daiso.co.kr/brand/daiso_news/117513?btype=product",
+      "role": "a",
+      "regions": [
+       "C_CONTENT",
+       "I_ITEM"
+      ],
+      "terms": [
+       "C_CONTENT:path:news",
+       "I_ITEM:path:product"
+      ],
+      "slots": [
+       "ax",
+       "dom"
+      ],
+      "search_ctrl": false
+     }
+    ]
+   },
+   {
+    "wtg": "e67be79550661604",
+    "service": "CU",
+    "identity_class": "UNDETERMINED",
+    "n_candidates": 86,
+    "region_class_hits": {
+     "C_CONTENT": 17,
+     "I_ITEM": 68,
+     "U_UTILITY": 6,
+     "F_FINANCE": 2,
+     "M_COMMUNICATION": 3,
+     "P_PLACE": 3,
+     "Q_QUERY": 1
+    },
+    "top_candidates": [
+     {
+      "text": "생활편의 서비스",
+      "href": "/service/index.do?category=service&depth3=4&sf=N",
+      "role": "a",
+      "regions": [
+       "C_CONTENT",
+       "I_ITEM",
+       "U_UTILITY"
+      ],
+      "terms": [
+       "C_CONTENT:text:생활",
+       "I_ITEM:path:category",
+       "U_UTILITY:path:service"
+      ],
+      "slots": [
+       "dom"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "제휴카드",
+      "href": "/service/credit_info.do?category=service&depth2=2&sf=N",
+      "role": "a",
+      "regions": [
+       "F_FINANCE",
+       "I_ITEM",
+       "U_UTILITY"
+      ],
+      "terms": [
+       "F_FINANCE:text:카드",
+       "I_ITEM:path:category",
+       "U_UTILITY:path:service"
+      ],
+      "slots": [
+       "dom"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "거래상담",
+      "href": "/enter/info_01.do?category=enter&sf=N",
+      "role": "a",
+      "regions": [
+       "I_ITEM",
+       "M_COMMUNICATION"
+      ],
+      "terms": [
+       "I_ITEM:path:category",
+       "M_COMMUNICATION:text:상담"
+      ],
+      "slots": [
+       "dom",
+       "probe"
+      ],
+      "search_ctrl": false
+     }
+    ]
+   },
+   {
+    "wtg": "35319a420294ee17",
+    "service": "토스",
+    "identity_class": "UNDETERMINED",
+    "n_candidates": 66,
+    "region_class_hits": {
+     "F_FINANCE": 52,
+     "M_COMMUNICATION": 5,
+     "U_UTILITY": 53,
+     "I_ITEM": 16
+    },
+    "top_candidates": [
+     {
+      "text": "다른 투자자들과 실시간으로 의견을 나누며 시야를 넓혀요. 이제 투자는 나만의 고민이 아닌, 함께 성장하는 경험이 돼요.",
+      "href": "/service/securities#4",
+      "role": "a",
+      "regions": [
+       "F_FINANCE",
+       "M_COMMUNICATION",
+       "U_UTILITY"
+      ],
+      "terms": [
+       "F_FINANCE:text:투자",
+       "M_COMMUNICATION:text:커뮤니티",
+       "U_UTILITY:path:service"
+      ],
+      "slots": [
+       "probe"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "수백만 명이 모여있는 토스증권 커뮤니티 다른 투자자들과 실시간으로 의견을 나누며 시야를 넓혀요. 이제 투자는 나만의 고민이 아닌, 함께 성장하는 경험이 돼요.",
+      "href": "/service/securities#4",
+      "role": "a",
+      "regions": [
+       "F_FINANCE",
+       "M_COMMUNICATION",
+       "U_UTILITY"
+      ],
+      "terms": [
+       "F_FINANCE:text:투자",
+       "M_COMMUNICATION:text:커뮤니티",
+       "U_UTILITY:path:service"
+      ],
+      "slots": [
+       "dom"
+      ],
+      "search_ctrl": false
+     },
+     {
+      "text": "수백만 명이 모여있는 토스증권 커뮤니티 다른 투자자들과 실시간으로 의견을 나누며 시야를 넓혀요. 이제 투자는 나만의 고민이 아닌, 함께 성장하는 경험이 돼요.",
+      "href": "https://toss.im/service/securities#4",
+      "role": "link",
+      "regions": [
+       "F_FINANCE",
+       "M_COMMUNICATION",
+       "U_UTILITY"
+      ],
+      "terms": [
+       "F_FINANCE:text:투자",
+       "M_COMMUNICATION:text:커뮤니티",
+       "U_UTILITY:path:service"
+      ],
+      "slots": [
+       "ax"
+      ],
+      "search_ctrl": false
+     }
+    ]
+   }
+  ]
+ },
+ "per_target": [
+  {
+   "wtg": "ccd84811932b237b",
+   "service": "카카오T",
+   "identity_class": "CORPORATE_OR_APP_LANDING",
+   "prior_archetype": "PLACE_LOOKUP",
+   "url": "https://www.kakaomobility.com/service-kakaot",
+   "base_registrable": "kakaomobility.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_ccd84811932b237b-2026-08-27T051433717695Z",
+   "observation_id": "6048d2c51a6201fe4da86d9d3fedd3b0",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 160,
+   "n_candidates": 45,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 3,
+   "candidate_slot_provenance": {
+    "dom": 15,
+    "probe": 17,
+    "ax": 14
+   },
+   "candidate_slot_exclusive": {
+    "probe": 16,
+    "dom": 14,
+    "ax": 14
+   },
+   "region_class_hits": {
+    "F_FINANCE": 1,
+    "P_PLACE": 1,
+    "U_UTILITY": 43
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 54,
+    "NO_FUNCTION_VOCAB": 28,
+    "E5_SUPPORT_META": 4,
+    "E1_APP_INSTALL": 3,
+    "E3_LEGAL_POLICY": 14,
+    "E4_CORPORATE_IR_RECRUIT": 8
+   },
+   "top_candidates": [
+    {
+     "text": "선불충전금 현황",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "F_FINANCE"
+     ],
+     "terms": [
+      "F_FINANCE:text:충전"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "개인(위치)정보처리방침",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "P_PLACE"
+     ],
+     "terms": [
+      "P_PLACE:text:위치"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "괌택시",
+     "href": "/service-kakaot/guam-taxi",
+     "role": "a",
+     "regions": [
+      "U_UTILITY"
+     ],
+     "terms": [
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=45>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "0f3bdb2bd0bb891e",
+   "service": "탑마트",
+   "identity_class": "CORPORATE_OR_APP_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.seowon.com/",
+   "base_registrable": "seowon.com",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_0f3bdb2bd0bb891e-2026-08-27T052428749107Z",
+   "observation_id": "c1f91d326831821ca8478001f6a43872",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 278,
+   "n_candidates": 44,
+   "n_candidates_visible_hittable": 1,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 25,
+    "dom": 15,
+    "ax": 5
+   },
+   "candidate_slot_exclusive": {
+    "probe": 24,
+    "dom": 14,
+    "ax": 5
+   },
+   "region_class_hits": {
+    "I_ITEM": 28,
+    "U_UTILITY": 13,
+    "P_PLACE": 2,
+    "C_CONTENT": 5,
+    "M_COMMUNICATION": 2,
+    "F_FINANCE": 4
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 118,
+    "E7_NON_NAVIGATIONAL_HREF": 11,
+    "E4_CORPORATE_IR_RECRUIT": 16,
+    "E5_SUPPORT_META": 8,
+    "E6_UI_CHROME": 8,
+    "E2_EXTERNAL_SNS": 11,
+    "E8_OFF_HOST": 12,
+    "E3_LEGAL_POLICY": 12
+   },
+   "top_candidates": [
+    {
+     "text": "+ 더보기",
+     "href": "/shopping/eventBoardList",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:path:shopping",
+      "I_ITEM:text:상품",
+      "U_UTILITY:text:추천"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "2026.08.12 ~ 2026.09.11 농산 선물세트 사전예약 > 보러가기",
+     "href": "/shopping/eventBoardDetail/1102",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:path:shopping",
+      "U_UTILITY:text:예약"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "2026.08.12 ~ 2026.09.11 농산 선물세트 사전예약 > 보러가기",
+     "href": "/shopping/eventBoardDetail/1102",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:path:shopping",
+      "U_UTILITY:text:예약"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=44>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "12e3942c0495b9a4",
+   "service": "GS25",
+   "identity_class": "CORPORATE_OR_APP_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.gsretail.com/brand/gs25",
+   "base_registrable": "gsretail.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_12e3942c0495b9a4-2026-08-27T052024022613Z",
+   "observation_id": "d32eb11bdfeb7cb7dd51d7afbf77a579",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 391,
+   "n_candidates": 32,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 17,
+    "probe": 25,
+    "ax": 6
+   },
+   "candidate_slot_exclusive": {
+    "dom": 2,
+    "ax": 5,
+    "probe": 10
+   },
+   "region_class_hits": {
+    "F_FINANCE": 8,
+    "I_ITEM": 16,
+    "C_CONTENT": 6,
+    "M_COMMUNICATION": 6,
+    "P_PLACE": 3,
+    "U_UTILITY": 1
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 40,
+    "NO_FUNCTION_VOCAB": 115,
+    "E7_NON_NAVIGATIONAL_HREF": 36,
+    "E4_CORPORATE_IR_RECRUIT": 97,
+    "E2_EXTERNAL_SNS": 9,
+    "E1_APP_INSTALL": 18,
+    "E8_OFF_HOST": 3,
+    "E3_LEGAL_POLICY": 9,
+    "E5_SUPPORT_META": 8
+   },
+   "top_candidates": [
+    {
+     "text": "온라인몰 편의점 결제",
+     "href": "",
+     "role": "tab",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM"
+     ],
+     "terms": [
+      "F_FINANCE:text:결제",
+      "I_ITEM:text:몰"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "이사회 의장 인사말",
+     "href": "/investors/message-from-chairman",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "C_CONTENT:text:사회",
+      "M_COMMUNICATION:path:message"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "상품 입점 상담",
+     "href": "/instore/partnership",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "I_ITEM:text:상품",
+      "M_COMMUNICATION:text:상담"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=32>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "88cb7f1e54f26500",
+   "service": "롯데마트",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://lottemartzetta.com/",
+   "base_registrable": "lottemartzetta.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_88cb7f1e54f26500-2026-08-27T052737415965Z",
+   "observation_id": "ba31bc6ece7073097c42a7bb788321b9",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 2073,
+   "n_candidates": 1160,
+   "n_candidates_visible_hittable": 9,
+   "n_weak_auth_candidates": 5,
+   "candidate_slot_provenance": {
+    "dom": 541,
+    "ax": 527,
+    "probe": 194
+   },
+   "candidate_slot_exclusive": {
+    "dom": 442,
+    "ax": 522,
+    "probe": 96
+   },
+   "region_class_hits": {
+    "C_CONTENT": 13,
+    "I_ITEM": 1147,
+    "U_UTILITY": 118,
+    "Q_QUERY": 7,
+    "F_FINANCE": 49,
+    "P_PLACE": 4
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 146,
+    "E6_UI_CHROME": 263,
+    "E1_APP_INSTALL": 8,
+    "E4_CORPORATE_IR_RECRUIT": 4,
+    "E5_SUPPORT_META": 7,
+    "E3_LEGAL_POLICY": 9,
+    "E7_NON_NAVIGATIONAL_HREF": 6,
+    "E2_EXTERNAL_SNS": 6
+   },
+   "top_candidates": [
+    {
+     "text": "[사전예약, 9/6~9/10 배송일선택] 엘지 생활의 품격 기프트 3호",
+     "href": "/products/OS8809949558397/details",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "I_ITEM:path:products",
+      "U_UTILITY:text:예약"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "[사전예약, 9/6~9/10 배송일선택] 엘지 생활의 품격 기프트 3호",
+     "href": "https://lottemartzetta.com/products/OS8809949558397/details",
+     "role": "link",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "I_ITEM:path:products",
+      "U_UTILITY:text:예약"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "[사전예약, 9/6~9/10 배송일선택] 엘지생활건강 k자개 올케어세트 (set)",
+     "href": "/products/OS8800335707818/details",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "I_ITEM:path:products",
+      "U_UTILITY:text:예약"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=1160>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "ea031f85e857140e",
+   "service": "메가커피",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://m.megacoffee.co.kr/",
+   "base_registrable": "megacoffee.co.kr",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_ea031f85e857140e-2026-08-27T052222679178Z",
+   "observation_id": "b4d5c5bb364ef0d292e584df234e5cdb",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 2457,
+   "n_candidates": 839,
+   "n_candidates_visible_hittable": 11,
+   "n_weak_auth_candidates": 6,
+   "candidate_slot_provenance": {
+    "dom": 554,
+    "probe": 191,
+    "ax": 265
+   },
+   "candidate_slot_exclusive": {
+    "dom": 384,
+    "ax": 263,
+    "probe": 22
+   },
+   "region_class_hits": {
+    "I_ITEM": 817,
+    "Q_QUERY": 18,
+    "M_COMMUNICATION": 51,
+    "U_UTILITY": 11,
+    "C_CONTENT": 2
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 17,
+    "NO_FUNCTION_VOCAB": 275,
+    "E7_NON_NAVIGATIONAL_HREF": 41,
+    "E5_SUPPORT_META": 4,
+    "E3_LEGAL_POLICY": 4
+   },
+   "top_candidates": [
+    {
+     "text": "",
+     "href": "/goods/goods_search.php?adUrl=https%3A%2F%2Fmegacoffee.co.kr%2Fgoods%2Fgoods_view.php%3FgoodsNo%3D1000026996&keyword=%EC%A2%85%EC%9D%B4%EC%B",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "I_ITEM:path:goods",
+      "Q_QUERY:path:search"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "",
+     "href": "/goods/goods_search.php?adUrl=https%3A%2F%2Fmegacoffee.co.kr%2Fgoods%2Fgoods_view.php%3FgoodsNo%3D1000026996&keyword=민트라벨%25초당&x=0&y=0&recen",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "I_ITEM:path:goods",
+      "Q_QUERY:path:search"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "[증정] 카페57 베이스 7종 2개세트 구매시, 동일상품 1개 증정",
+     "href": "/goods/event_sale.php?sno=3715",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "I_ITEM:path:goods",
+      "I_ITEM:text:상품",
+      "M_COMMUNICATION:text:카페"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=839>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "95e22b9aff7196b3",
+   "service": "NS홈쇼핑",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.nsmall.com/",
+   "base_registrable": "nsmall.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_95e22b9aff7196b3-2026-08-27T052750064924Z",
+   "observation_id": "02b4c4a78d5f06a7c7b8a04c5f2b5213",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 847,
+   "n_candidates": 468,
+   "n_candidates_visible_hittable": 2,
+   "n_weak_auth_candidates": 1,
+   "candidate_slot_provenance": {
+    "dom": 176,
+    "ax": 176,
+    "probe": 130
+   },
+   "candidate_slot_exclusive": {
+    "dom": 167,
+    "ax": 170,
+    "probe": 122
+   },
+   "region_class_hits": {
+    "C_CONTENT": 11,
+    "I_ITEM": 458,
+    "M_COMMUNICATION": 9,
+    "Q_QUERY": 4
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 330,
+    "E7_NON_NAVIGATIONAL_HREF": 7,
+    "E6_UI_CHROME": 15,
+    "E3_LEGAL_POLICY": 5,
+    "E5_SUPPORT_META": 1,
+    "E1_APP_INSTALL": 1
+   },
+   "top_candidates": [
+    {
+     "text": "1정에 94원! 5중 복합 기능성! 광동생활건강 뼈건강엔 칼마디k 아연 프리미엄 120정 3개 5% 33,900 원 35,900원",
+     "href": "/goods/36129658",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "I_ITEM:path:goods"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "1정에 94원! 5중 복합 기능성! 광동생활건강 뼈건강엔 칼마디k 아연 프리미엄 120정 3개 5% 33,900원 35,900원",
+     "href": "https://m.nsmall.com/goods/36129658",
+     "role": "link",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "I_ITEM:path:goods"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "1정에 94원! 5중 복합 기능성!광동생활건강 뼈건강엔 칼마디k 아연 프리미엄 120정 3개5%33,900원35,900원",
+     "href": "/goods/36129658",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "I_ITEM:path:goods"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=468>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "6d5510a695d0a614",
+   "service": "네이버",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "QUERY",
+   "url": "https://m.naver.com/",
+   "base_registrable": "naver.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_6d5510a695d0a614-2026-08-27T051845477422Z",
+   "observation_id": "23653d37b79fab28fdc08239fa32a749",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 1238,
+   "n_candidates": 370,
+   "n_candidates_visible_hittable": 12,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 146,
+    "dom": 248,
+    "probe": 121
+   },
+   "candidate_slot_exclusive": {
+    "dom": 114,
+    "probe": 96,
+    "ax": 19
+   },
+   "region_class_hits": {
+    "C_CONTENT": 300,
+    "I_ITEM": 23,
+    "M_COMMUNICATION": 29,
+    "F_FINANCE": 21,
+    "U_UTILITY": 47,
+    "P_PLACE": 3,
+    "Q_QUERY": 18
+   },
+   "exclusion_hits": {
+    "E7_NON_NAVIGATIONAL_HREF": 18,
+    "E6_UI_CHROME": 39,
+    "E5_SUPPORT_META": 28,
+    "NO_FUNCTION_VOCAB": 415,
+    "E2_EXTERNAL_SNS": 44,
+    "E3_LEGAL_POLICY": 12,
+    "E4_CORPORATE_IR_RECRUIT": 98
+   },
+   "top_candidates": [
+    {
+     "text": "스타벅스 블랙 글레이즈드 라떼 출시전 먹어본 후기 w.가격 칼로리",
+     "href": "https://in.naver.com/rladbrud8791/contents/internal/988914864963232",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "C_CONTENT:path:contents",
+      "I_ITEM:text:가격",
+      "M_COMMUNICATION:text:후기"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "interior minister orders nationwide review of missing person cases after jeju scandal",
+     "href": "https://n.news.naver.com/article/044/0000288793?type=editn",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "C_CONTENT:path:article",
+      "I_ITEM:text:order",
+      "M_COMMUNICATION:text:review"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "카드론 28조원으로 급증…급전 몰린 서민 노린 불법 대출도 기승",
+     "href": "https://n.news.naver.com/article/123/0002389125?type=editn",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "F_FINANCE",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:path:article",
+      "F_FINANCE:text:카드",
+      "I_ITEM:text:몰"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=370>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "91b952863c62993d",
+   "service": "다음",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "QUERY",
+   "url": "https://m.daum.net/?nil_top=mobile",
+   "base_registrable": "daum.net",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_91b952863c62993d-2026-08-27T051526470750Z",
+   "observation_id": "9ec9d90c8ec79dc72f69b3c2fdbc8337",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 1124,
+   "n_candidates": 345,
+   "n_candidates_visible_hittable": 3,
+   "n_weak_auth_candidates": 10,
+   "candidate_slot_provenance": {
+    "probe": 180,
+    "ax": 76,
+    "dom": 157
+   },
+   "candidate_slot_exclusive": {
+    "probe": 169,
+    "dom": 99,
+    "ax": 12
+   },
+   "region_class_hits": {
+    "C_CONTENT": 240,
+    "M_COMMUNICATION": 22,
+    "P_PLACE": 37,
+    "I_ITEM": 33,
+    "U_UTILITY": 20,
+    "F_FINANCE": 12,
+    "Q_QUERY": 37
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 391,
+    "E6_UI_CHROME": 97,
+    "E7_NON_NAVIGATIONAL_HREF": 67,
+    "E5_SUPPORT_META": 23,
+    "E8_OFF_HOST": 52,
+    "E3_LEGAL_POLICY": 38,
+    "E2_EXTERNAL_SNS": 4,
+    "E4_CORPORATE_IR_RECRUIT": 4
+   },
+   "top_candidates": [
+    {
+     "text": "희상 네팔 대홍수 네팔 대홍수… 부디 기적이 일어나길 바랍니다 네팔과 중국 티베트 접경 지역을 덮친 대규모 홍수로 수많은 사람들이 목숨을 잃고,",
+     "href": "https://agorax.daum.net/content/01a04019-3597-7402-982f-82bf52376877",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "M_COMMUNICATION",
+      "P_PLACE"
+     ],
+     "terms": [
+      "C_CONTENT:path:content",
+      "C_CONTENT:text:뉴스",
+      "M_COMMUNICATION:text:커뮤니티",
+      "P_PLACE:text:지역"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "81조 몰린 스테이블코인, 수수료무료에 점유율 '출렁' 한스경제",
+     "href": "https://v.daum.net/v/20260826144636771?x_trkm=t",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:경제",
+      "I_ITEM:text:몰"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "8개월 공백 인천경제청장, 인천지역의 이해도가 필수항목 인천일보",
+     "href": "https://v.daum.net/v/20260827114002919",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "P_PLACE"
+     ],
+     "terms": [
+      "C_CONTENT:text:경제",
+      "P_PLACE:text:지역"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=345>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "088809bf9b31bc6a",
+   "service": "삼성카드",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://www.samsungcard.com/",
+   "base_registrable": "samsungcard.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_088809bf9b31bc6a-2026-08-27T052011572224Z",
+   "observation_id": "d2310fab51ea781ea00323f4fad792fd",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 822,
+   "n_candidates": 329,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 184,
+    "dom": 165
+   },
+   "candidate_slot_exclusive": {
+    "probe": 164,
+    "dom": 145
+   },
+   "region_class_hits": {
+    "C_CONTENT": 9,
+    "F_FINANCE": 307,
+    "I_ITEM": 49,
+    "U_UTILITY": 142,
+    "M_COMMUNICATION": 5,
+    "Q_QUERY": 3
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 242,
+    "E4_CORPORATE_IR_RECRUIT": 37,
+    "NO_FUNCTION_VOCAB": 114,
+    "E7_NON_NAVIGATIONAL_HREF": 39,
+    "E3_LEGAL_POLICY": 16,
+    "E1_APP_INSTALL": 3,
+    "E5_SUPPORT_META": 6
+   },
+   "top_candidates": [
+    {
+     "text": "hot 국민행복 삼성카드 v2 쇼핑, 보육, 생활요금 7% 결제일할인연회비 없는 행복한 카드",
+     "href": "/home/card/cardinfo/PGHPPCCCardCardinfoDetails001?code=AAP1688&webViewFirstPage=true&click=UHPPCO0101M0_card_PGHPPCCCardCardinfoDetails001_P",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "F_FINANCE",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "F_FINANCE:path:card",
+      "F_FINANCE:text:결제",
+      "I_ITEM:path:prd",
+      "I_ITEM:text:쇼핑",
+      "U_UTILITY:text:요금"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "디지털매거진상품",
+     "href": "/personal/services/UHPPAS0401M0.jsp?codeDv=smartMgz&click=gnb_apply_smartMgz",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "F_FINANCE",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:매거진",
+      "F_FINANCE:text:카드",
+      "I_ITEM:text:상품",
+      "U_UTILITY:path:apply"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "4대 사회보험",
+     "href": "/personal/services/rglr-stlm/sclinsr/UHPPPS2301M0.jsp?click=gnb_apply_chg_insur",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:사회",
+      "F_FINANCE:text:카드",
+      "U_UTILITY:path:apply"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=329>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "22ffba7a86ea9919",
+   "service": "코스트코",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.costco.co.kr/",
+   "base_registrable": "costco.co.kr",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_22ffba7a86ea9919-2026-08-27T051919414067Z",
+   "observation_id": "e63ab5fcbe13f1449fdce925831381c8",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 2174,
+   "n_candidates": 243,
+   "n_candidates_visible_hittable": 3,
+   "n_weak_auth_candidates": 2,
+   "candidate_slot_provenance": {
+    "dom": 134,
+    "ax": 69,
+    "probe": 60
+   },
+   "candidate_slot_exclusive": {
+    "dom": 115,
+    "ax": 66,
+    "probe": 43
+   },
+   "region_class_hits": {
+    "F_FINANCE": 19,
+    "I_ITEM": 95,
+    "M_COMMUNICATION": 12,
+    "U_UTILITY": 14,
+    "C_CONTENT": 111,
+    "P_PLACE": 4,
+    "Q_QUERY": 6
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 159,
+    "NO_FUNCTION_VOCAB": 1595,
+    "E5_SUPPORT_META": 14,
+    "E8_OFF_HOST": 11,
+    "E4_CORPORATE_IR_RECRUIT": 37,
+    "E2_EXTERNAL_SNS": 13,
+    "E3_LEGAL_POLICY": 10,
+    "E7_NON_NAVIGATIONAL_HREF": 2,
+    "E1_APP_INSTALL": 1
+   },
+   "top_candidates": [
+    {
+     "text": "소스락 치킨스톡 3g x 80 / 최소구매 2",
+     "href": "/Foods/SaucesCondiments/CondimentsSpices/Sauce-ROK-Chicken-Stock-Tablet-3g-x-80-Min-2/p/662382",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "F_FINANCE:path:stock",
+      "I_ITEM:text:구매",
+      "M_COMMUNICATION:text:톡"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "소스락 치킨스톡 3g x 80 / 최소구매 2",
+     "href": "https://www.costco.co.kr/Foods/SaucesCondiments/CondimentsSpices/Sauce-ROK-Chicken-Stock-Tablet-3g-x-80-Min-2/p/662382",
+     "role": "link",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "F_FINANCE:path:stock",
+      "I_ITEM:text:구매",
+      "M_COMMUNICATION:text:톡"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "buyer's pick | 추천 아이템 >",
+     "href": "/c/BuyersPick",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:buy",
+      "U_UTILITY:text:추천"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=243>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "b728911c9782edb8",
+   "service": "현대카드",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://mycompany.hyundaicard.com/",
+   "base_registrable": "hyundaicard.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_b728911c9782edb8-2026-08-27T051447794738Z",
+   "observation_id": "4c8ec7f188a2d35e875b78ad404357f5",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 676,
+   "n_candidates": 238,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 2,
+   "candidate_slot_provenance": {
+    "probe": 139,
+    "ax": 57,
+    "dom": 56
+   },
+   "candidate_slot_exclusive": {
+    "probe": 136,
+    "dom": 42,
+    "ax": 46
+   },
+   "region_class_hits": {
+    "I_ITEM": 27,
+    "M_COMMUNICATION": 26,
+    "U_UTILITY": 102,
+    "F_FINANCE": 145,
+    "C_CONTENT": 12,
+    "Q_QUERY": 1
+   },
+   "exclusion_hits": {
+    "E4_CORPORATE_IR_RECRUIT": 64,
+    "E6_UI_CHROME": 29,
+    "E7_NON_NAVIGATIONAL_HREF": 43,
+    "NO_FUNCTION_VOCAB": 237,
+    "E5_SUPPORT_META": 8,
+    "E3_LEGAL_POLICY": 12,
+    "E8_OFF_HOST": 3,
+    "E1_APP_INSTALL": 6
+   },
+   "top_candidates": [
+    {
+     "text": "방문판매 직원 조회",
+     "href": "/cs/vs/CSVS1001.do?_method=l",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "M_COMMUNICATION",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:판매",
+      "M_COMMUNICATION:text:상담",
+      "U_UTILITY:text:조회"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "moma bookstore",
+     "href": "https://dive.hyundaicard.com/web/momabookstore/spaceMain.hdc",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:store",
+      "U_UTILITY:text:book"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "내게 맞는 카드 찾기 servicedetail/2_카드발급조회&내게맞는카드찾기",
+     "href": "https://www.hyundaicard.com/officiallounge",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "U_UTILITY:text:발급"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=238>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "0ee385d0c964e560",
+   "service": "홈플러스",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://mfront.homeplus.co.kr/",
+   "base_registrable": "homeplus.co.kr",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_0ee385d0c964e560-2026-08-27T052001613003Z",
+   "observation_id": "08efe1f76321b8f079a32b7849b9aee3",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 591,
+   "n_candidates": 221,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 26,
+    "ax": 41,
+    "probe": 175
+   },
+   "candidate_slot_exclusive": {
+    "dom": 13,
+    "ax": 33,
+    "probe": 160
+   },
+   "region_class_hits": {
+    "F_FINANCE": 4,
+    "I_ITEM": 216,
+    "U_UTILITY": 5,
+    "Q_QUERY": 1,
+    "P_PLACE": 3
+   },
+   "exclusion_hits": {
+    "E1_APP_INSTALL": 4,
+    "E6_UI_CHROME": 67,
+    "NO_FUNCTION_VOCAB": 166,
+    "E5_SUPPORT_META": 12,
+    "E7_NON_NAVIGATIONAL_HREF": 3,
+    "E3_LEGAL_POLICY": 8
+   },
+   "top_candidates": [
+    {
+     "text": "3천원 할인 6만원 이상 삼성카드",
+     "href": "/p/samsungcard",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "I_ITEM:text:할인"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "3천원 할인 6만원 이상 삼성카드 삼성카드 6만원 3천원",
+     "href": "https://mfront.homeplus.co.kr/p/samsungcard",
+     "role": "link",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "I_ITEM:text:할인"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "3천원 할인6만원 이상삼성카드",
+     "href": "/p/samsungcard",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "I_ITEM:text:할인"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=221>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "5c614fc99631ce5e",
+   "service": "홈앤쇼핑",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://m.hnsmall.com/main",
+   "base_registrable": "hnsmall.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_5c614fc99631ce5e-2026-08-27T052203828777Z",
+   "observation_id": "625eb4232c8fa1864b9796395b29abbd",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 1306,
+   "n_candidates": 192,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 1,
+   "candidate_slot_provenance": {
+    "ax": 69,
+    "dom": 108,
+    "probe": 73
+   },
+   "candidate_slot_exclusive": {
+    "probe": 29,
+    "dom": 50,
+    "ax": 55
+   },
+   "region_class_hits": {
+    "I_ITEM": 176,
+    "Q_QUERY": 3,
+    "C_CONTENT": 18,
+    "U_UTILITY": 6,
+    "M_COMMUNICATION": 2
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 47,
+    "NO_FUNCTION_VOCAB": 235,
+    "E7_NON_NAVIGATIONAL_HREF": 755,
+    "E3_LEGAL_POLICY": 4,
+    "E5_SUPPORT_META": 2,
+    "E2_EXTERNAL_SNS": 1
+   },
+   "top_candidates": [
+    {
+     "text": "검색하기",
+     "href": "https://m.hnsmall.com/category/planshop/2026087072?trackingarea=60000015^8000678^1443537",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "I_ITEM:path:category",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "방송알림설정",
+     "href": "https://m.hnsmall.com/display/myBroadAlarm",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:방송",
+      "U_UTILITY:text:설정"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "[대한민국 조리기능장 노하우] 김선영의 황태구이 간장맛 200g x 4팩 + 김선영의 황태구이 고추장맛 200g x 4팩",
+     "href": "/goods/view/82471824?trackingarea=60000016^8000621^1284238",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:방송",
+      "I_ITEM:path:goods"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=192>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "4feab7e61bf642e8",
+   "service": "CJ온스타일",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://display.cjonstyle.com/nfront/search/searchAllList/",
+   "base_registrable": "cjonstyle.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_4feab7e61bf642e8-2026-08-27T051506415041Z",
+   "observation_id": "8cf29ed21e923beb69e662083a68c87d",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 444,
+   "n_candidates": 106,
+   "n_candidates_visible_hittable": 7,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 89,
+    "dom": 7,
+    "probe": 14
+   },
+   "candidate_slot_exclusive": {
+    "ax": 87,
+    "probe": 12,
+    "dom": 5
+   },
+   "region_class_hits": {
+    "Q_QUERY": 96,
+    "U_UTILITY": 2,
+    "P_PLACE": 2,
+    "I_ITEM": 8
+   },
+   "exclusion_hits": {
+    "E7_NON_NAVIGATIONAL_HREF": 183,
+    "E6_UI_CHROME": 12,
+    "NO_FUNCTION_VOCAB": 120,
+    "E5_SUPPORT_META": 2,
+    "E4_CORPORATE_IR_RECRUIT": 2,
+    "E3_LEGAL_POLICY": 10
+   },
+   "top_candidates": [
+    {
+     "text": "추천 검색어 안내",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "Q_QUERY",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "Q_QUERY:text:검색",
+      "U_UTILITY:text:추천"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "16 위 닌텐도스위치2",
+     "href": "https://display.cjonstyle.com/nfront/search/searchAllList/#",
+     "role": "link",
+     "regions": [
+      "P_PLACE",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "P_PLACE:text:위치",
+      "Q_QUERY:path:search"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "추천 검색어 안내",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "Q_QUERY",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "Q_QUERY:text:검색",
+      "U_UTILITY:text:추천"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=106>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "fdce1294fac3dfdb",
+   "service": "신세계백화점",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.shinsegae.com/index.do",
+   "base_registrable": "shinsegae.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_fdce1294fac3dfdb-2026-08-27T052245153346Z",
+   "observation_id": "464c1fb557417122dcdc85c11989f21c",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 679,
+   "n_candidates": 100,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 3,
+   "candidate_slot_provenance": {
+    "dom": 57,
+    "probe": 34,
+    "ax": 9
+   },
+   "candidate_slot_exclusive": {
+    "dom": 57,
+    "probe": 34,
+    "ax": 9
+   },
+   "region_class_hits": {
+    "M_COMMUNICATION": 5,
+    "P_PLACE": 3,
+    "U_UTILITY": 26,
+    "F_FINANCE": 15,
+    "C_CONTENT": 17,
+    "I_ITEM": 46,
+    "Q_QUERY": 2
+   },
+   "exclusion_hits": {
+    "E7_NON_NAVIGATIONAL_HREF": 171,
+    "NO_FUNCTION_VOCAB": 323,
+    "E4_CORPORATE_IR_RECRUIT": 17,
+    "E5_SUPPORT_META": 4,
+    "E3_LEGAL_POLICY": 14,
+    "E6_UI_CHROME": 30,
+    "E1_APP_INSTALL": 1
+   },
+   "top_candidates": [
+    {
+     "text": "상담실 안내",
+     "href": "/service/voc/service-center.do",
+     "role": "a",
+     "regions": [
+      "M_COMMUNICATION",
+      "P_PLACE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "M_COMMUNICATION:text:상담",
+      "P_PLACE:path:center",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "ssg pay",
+     "href": "/service/membership/ssg-pay.do",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:path:pay",
+      "F_FINANCE:text:pay",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "vip 카드",
+     "href": "/service/vipclub/vip-card.do",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:path:card",
+      "F_FINANCE:text:카드",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=100>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "e7bb158c1c8d9fe7",
+   "service": "마켓컬리",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.kurly.com/main",
+   "base_registrable": "kurly.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_e7bb158c1c8d9fe7-2026-08-27T052414424401Z",
+   "observation_id": "2db5f2caa74db3010ac5540015a13723",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 378,
+   "n_candidates": 92,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 1,
+   "candidate_slot_provenance": {
+    "probe": 78,
+    "dom": 6,
+    "ax": 8
+   },
+   "candidate_slot_exclusive": {
+    "probe": 78,
+    "dom": 6,
+    "ax": 8
+   },
+   "region_class_hits": {
+    "I_ITEM": 82,
+    "M_COMMUNICATION": 1,
+    "U_UTILITY": 6,
+    "F_FINANCE": 5,
+    "Q_QUERY": 1
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 222,
+    "E1_APP_INSTALL": 4,
+    "E4_CORPORATE_IR_RECRUIT": 13,
+    "E3_LEGAL_POLICY": 4,
+    "E2_EXTERNAL_SNS": 12,
+    "E7_NON_NAVIGATIONAL_HREF": 9,
+    "E6_UI_CHROME": 10,
+    "E8_OFF_HOST": 3,
+    "E5_SUPPORT_META": 1
+   },
+   "top_candidates": [
+    {
+     "text": "대량주문 문의하기",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "I_ITEM:text:주문",
+      "M_COMMUNICATION:text:문의하기"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "🛒지금 가장 많이 담는 특가전체보기꼭 담아야 할 추천 특가템 최대 50% off",
+     "href": "/collections/sale231107",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:특가",
+      "U_UTILITY:text:추천"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "🛒지금 가장 많이 담는 특가전체보기꼭 담아야 할 추천 특가템 최대 50% off",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:특가",
+      "U_UTILITY:text:추천"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=92>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "46e5a43370f75308",
+   "service": "당근",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "url": "https://www.daangn.com/kr/",
+   "base_registrable": "daangn.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_46e5a43370f75308-2026-08-27T051542990241Z",
+   "observation_id": "dec9f65686074aa3540f1133649f594f",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 292,
+   "n_candidates": 73,
+   "n_candidates_visible_hittable": 10,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 29,
+    "probe": 36,
+    "ax": 28
+   },
+   "candidate_slot_exclusive": {
+    "ax": 24,
+    "dom": 13,
+    "probe": 19
+   },
+   "region_class_hits": {
+    "C_CONTENT": 7,
+    "M_COMMUNICATION": 46,
+    "Q_QUERY": 28
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 12,
+    "NO_FUNCTION_VOCAB": 112,
+    "E4_CORPORATE_IR_RECRUIT": 15,
+    "E2_EXTERNAL_SNS": 12,
+    "E7_NON_NAVIGATIONAL_HREF": 12,
+    "E8_OFF_HOST": 9,
+    "E5_SUPPORT_META": 4,
+    "E3_LEGAL_POLICY": 19
+   },
+   "top_candidates": [
+    {
+     "text": "동네생활",
+     "href": "/kr/community/",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "M_COMMUNICATION:path:community"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "동네친구",
+     "href": "/kr/community/s/?search=%EB%8F%99%EB%84%A4%EC%B9%9C%EA%B5%AC",
+     "role": "a",
+     "regions": [
+      "M_COMMUNICATION",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "M_COMMUNICATION:path:community",
+      "Q_QUERY:path:search"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "투표",
+     "href": "/kr/community/s/?search=%ED%88%AC%ED%91%9C",
+     "role": "a",
+     "regions": [
+      "M_COMMUNICATION",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "M_COMMUNICATION:path:community",
+      "Q_QUERY:path:search"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=73>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "49a5eca8b58f7270",
+   "service": "11번가",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.11st.co.kr/",
+   "base_registrable": "11st.co.kr",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_49a5eca8b58f7270-2026-08-27T051532092010Z",
+   "observation_id": "73cc6defeda190331a5789b458b17578",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 351,
+   "n_candidates": 58,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 58,
+    "dom": 2
+   },
+   "candidate_slot_exclusive": {
+    "probe": 56
+   },
+   "region_class_hits": {
+    "F_FINANCE": 6,
+    "I_ITEM": 23,
+    "M_COMMUNICATION": 3,
+    "C_CONTENT": 6,
+    "Q_QUERY": 23,
+    "P_PLACE": 2
+   },
+   "exclusion_hits": {
+    "E7_NON_NAVIGATIONAL_HREF": 11,
+    "E6_UI_CHROME": 60,
+    "E2_EXTERNAL_SNS": 4,
+    "NO_FUNCTION_VOCAB": 206,
+    "E1_APP_INSTALL": 3,
+    "E5_SUPPORT_META": 1,
+    "E3_LEGAL_POLICY": 2
+   },
+   "top_candidates": [
+    {
+     "text": "마하링크 usb c 고속충전 케이블가격정보할인율17%1,480원판매자평점 및 리뷰만족도 : 90%리뷰 수26ad",
+     "href": "https://m.11st.co.kr/products/m/8702050283",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "F_FINANCE:text:충전",
+      "I_ITEM:path:products",
+      "I_ITEM:text:할인",
+      "M_COMMUNICATION:text:리뷰"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "마하링크 usb c 고속충전 케이블가격정보할인율17%1,480원판매자평점 및 리뷰만족도 : 90%리뷰 수26ad",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "F_FINANCE:text:충전",
+      "I_ITEM:text:할인",
+      "M_COMMUNICATION:text:리뷰"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "플레이 전체보기",
+     "href": "https://play.11st.co.kr/",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:live",
+      "I_ITEM:text:전체보기"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=58>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "8fd5d30f8b1d707b",
+   "service": "하나은행",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://banking.hanabank.com/",
+   "base_registrable": "hanabank.com",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_8fd5d30f8b1d707b-2026-08-27T051524503998Z",
+   "observation_id": "cd955f4d5cf0ab69d409061c42ed02cf",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 265,
+   "n_candidates": 36,
+   "n_candidates_visible_hittable": 2,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 8,
+    "probe": 31,
+    "ax": 1
+   },
+   "candidate_slot_exclusive": {
+    "probe": 28,
+    "dom": 4
+   },
+   "region_class_hits": {
+    "F_FINANCE": 22,
+    "M_COMMUNICATION": 6,
+    "U_UTILITY": 9,
+    "C_CONTENT": 3,
+    "P_PLACE": 2
+   },
+   "exclusion_hits": {
+    "E2_EXTERNAL_SNS": 9,
+    "E1_APP_INSTALL": 8,
+    "E6_UI_CHROME": 22,
+    "NO_FUNCTION_VOCAB": 84,
+    "E7_NON_NAVIGATIONAL_HREF": 42,
+    "E5_SUPPORT_META": 2,
+    "E8_OFF_HOST": 50,
+    "E3_LEGAL_POLICY": 5
+   },
+   "top_candidates": [
+    {
+     "text": "계좌조회",
+     "href": "/m/inquiry/index.do?acctType=DEP",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "M_COMMUNICATION",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:계좌",
+      "M_COMMUNICATION:path:inquiry",
+      "U_UTILITY:text:조회"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "계좌조회",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:계좌",
+      "U_UTILITY:text:조회"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "하나전세대출 신청하면, 청년 전세사기 out!",
+     "href": "/cont/event/new/event01/1527276_152465.jsp",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:대출",
+      "U_UTILITY:text:신청"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=36>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "8195b68ac17e42a3",
+   "service": "세븐일레븐",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://m.7-eleven.co.kr",
+   "base_registrable": "7-eleven.co.kr",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_8195b68ac17e42a3-2026-08-27T052455939111Z",
+   "observation_id": "3387fa0447f1f1db0ba255d9e7c5446b",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 184,
+   "n_candidates": 32,
+   "n_candidates_visible_hittable": 1,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 19,
+    "dom": 11,
+    "ax": 3
+   },
+   "candidate_slot_exclusive": {
+    "probe": 19,
+    "dom": 10,
+    "ax": 2
+   },
+   "region_class_hits": {
+    "C_CONTENT": 6,
+    "I_ITEM": 16,
+    "P_PLACE": 7,
+    "M_COMMUNICATION": 4,
+    "F_FINANCE": 2,
+    "U_UTILITY": 1
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 54,
+    "E7_NON_NAVIGATIONAL_HREF": 47,
+    "E6_UI_CHROME": 10,
+    "E8_OFF_HOST": 9,
+    "E5_SUPPORT_META": 8,
+    "E1_APP_INSTALL": 1,
+    "E3_LEGAL_POLICY": 5,
+    "E2_EXTERNAL_SNS": 15
+   },
+   "top_candidates": [
+    {
+     "text": "고정형 영상정보처리기기 운영·관리 방침",
+     "href": "http://www.7-eleven.co.kr/util/videoPolicy.asp?mobile",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:영상",
+      "I_ITEM:text:product"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "매장찾기",
+     "href": "/store/storeSearch2.asp",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "P_PLACE"
+     ],
+     "terms": [
+      "I_ITEM:text:product",
+      "P_PLACE:text:매장찾기"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "세븐카페",
+     "href": "/product/7cafe.asp",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "I_ITEM:path:product",
+      "M_COMMUNICATION:text:카페"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=32>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "service": "현대백화점",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://thehyundaiseoul.ehyundai.com/",
+   "base_registrable": "ehyundai.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_ccb9754c97fa7341-2026-08-27T052409538843Z",
+   "observation_id": "d1266c2d142d2487d6c946860befe7d1",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 398,
+   "n_candidates": 32,
+   "n_candidates_visible_hittable": 2,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 9,
+    "dom": 9,
+    "probe": 19
+   },
+   "candidate_slot_exclusive": {
+    "ax": 6,
+    "dom": 6,
+    "probe": 17
+   },
+   "region_class_hits": {
+    "C_CONTENT": 18,
+    "I_ITEM": 22,
+    "U_UTILITY": 15,
+    "Q_QUERY": 2,
+    "P_PLACE": 2
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 90,
+    "NO_FUNCTION_VOCAB": 219,
+    "E4_CORPORATE_IR_RECRUIT": 8,
+    "E2_EXTERNAL_SNS": 24,
+    "E8_OFF_HOST": 9,
+    "E7_NON_NAVIGATIONAL_HREF": 3,
+    "E3_LEGAL_POLICY": 8
+   },
+   "top_candidates": [
+    {
+     "text": "shopping news shopping news 2/5",
+     "href": "https://thehyundaiseoul.ehyundai.com/issue-diary/27b1bafb-69cd-4474-bd5d-27b037497c58",
+     "role": "link",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:news",
+      "I_ITEM:text:shop",
+      "U_UTILITY:path:issue"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "쇼핑뉴스 alt.1 alt.1 4 / 5",
+     "href": "/issue-diary/cd334d69-7443-4643-af99-7c0c29f751f5",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:뉴스",
+      "I_ITEM:text:쇼핑",
+      "U_UTILITY:path:issue"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "쇼핑뉴스 shopping news shopping news 2 / 5",
+     "href": "/issue-diary/27b1bafb-69cd-4474-bd5d-27b037497c58",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:뉴스",
+      "I_ITEM:text:쇼핑",
+      "U_UTILITY:path:issue"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=32>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "e296af221a5f7128",
+   "service": "KB스타뱅킹",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://omoney.kbstar.com/quics?page=C021616",
+   "base_registrable": "kbstar.com",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_e296af221a5f7128-2026-08-27T051610954078Z",
+   "observation_id": "4527fc528e92ba320f693940a4d181b9",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 345,
+   "n_candidates": 27,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 9,
+    "probe": 19,
+    "ax": 6
+   },
+   "candidate_slot_exclusive": {
+    "ax": 6,
+    "probe": 12,
+    "dom": 2
+   },
+   "region_class_hits": {
+    "I_ITEM": 3,
+    "U_UTILITY": 6,
+    "P_PLACE": 6,
+    "Q_QUERY": 5,
+    "C_CONTENT": 3,
+    "M_COMMUNICATION": 6,
+    "F_FINANCE": 2
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 87,
+    "E7_NON_NAVIGATIONAL_HREF": 20,
+    "NO_FUNCTION_VOCAB": 152,
+    "E5_SUPPORT_META": 10,
+    "E3_LEGAL_POLICY": 12,
+    "E4_CORPORATE_IR_RECRUIT": 8,
+    "E2_EXTERNAL_SNS": 15,
+    "E8_OFF_HOST": 4
+   },
+   "top_candidates": [
+    {
+     "text": "보호금융상품등록부",
+     "href": "/quics?page=C023000",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:상품",
+      "U_UTILITY:text:등록"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "보호금융상품등록부",
+     "href": "https://omoney.kbstar.com/quics?page=C023000",
+     "role": "link",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:상품",
+      "U_UTILITY:text:등록"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "보호금융상품등록부",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:상품",
+      "U_UTILITY:text:등록"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=27>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "f9fbd771ffcdbd42",
+   "service": "G마켓",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://m.gmarket.co.kr/",
+   "base_registrable": "gmarket.co.kr",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_f9fbd771ffcdbd42-2026-08-27T052359250628Z",
+   "observation_id": "1eefe03ba28fc62e02a18fd4b30f090e",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 136,
+   "n_candidates": 20,
+   "n_candidates_visible_hittable": 6,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 8,
+    "probe": 13,
+    "ax": 7
+   },
+   "candidate_slot_exclusive": {
+    "probe": 8,
+    "ax": 4,
+    "dom": 1
+   },
+   "region_class_hits": {
+    "I_ITEM": 12,
+    "Q_QUERY": 5,
+    "F_FINANCE": 2,
+    "C_CONTENT": 3,
+    "M_COMMUNICATION": 1
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 29,
+    "E1_APP_INSTALL": 4,
+    "NO_FUNCTION_VOCAB": 57,
+    "E5_SUPPORT_META": 4,
+    "E7_NON_NAVIGATIONAL_HREF": 1,
+    "E3_LEGAL_POLICY": 8
+   },
+   "top_candidates": [
+    {
+     "text": "신상💙쿠크다스 초코케이크맛 특가",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "I_ITEM:text:특가",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "신상💙쿠크다스 초코케이크맛 특가",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "I_ITEM:text:특가",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "신상💙쿠크다스 초코케이크맛 특가 검색",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "I_ITEM:text:특가",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=20>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "bbdefa2950f49882",
+   "service": "Google",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "QUERY",
+   "url": "https://www.google.com/?hl=ko",
+   "base_registrable": "google.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_bbdefa2950f49882-2026-08-27T052227951656Z",
+   "observation_id": "6d3d8552dd778770d684c600298370fe",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 110,
+   "n_candidates": 19,
+   "n_candidates_visible_hittable": 5,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 12,
+    "dom": 9,
+    "ax": 7
+   },
+   "candidate_slot_exclusive": {
+    "probe": 6,
+    "dom": 5,
+    "ax": 2
+   },
+   "region_class_hits": {
+    "C_CONTENT": 1,
+    "Q_QUERY": 13,
+    "U_UTILITY": 6
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 27,
+    "NO_FUNCTION_VOCAB": 33,
+    "E4_CORPORATE_IR_RECRUIT": 2,
+    "E8_OFF_HOST": 3,
+    "E7_NON_NAVIGATIONAL_HREF": 4,
+    "E5_SUPPORT_META": 2,
+    "E3_LEGAL_POLICY": 8
+   },
+   "top_candidates": [
+    {
+     "text": ".b4ycbb{height:24px;width:24px;vertical-align:middle}",
+     "href": "",
+     "role": "link",
+     "regions": [
+      "C_CONTENT",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "C_CONTENT:text:사진",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "검색 설정",
+     "href": "https://www.google.com/preferences?hl=ko&fg=1",
+     "role": "menuitem",
+     "regions": [
+      "Q_QUERY",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "Q_QUERY:text:검색",
+      "U_UTILITY:text:설정"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "검색 설정",
+     "href": "",
+     "role": "menuitem",
+     "regions": [
+      "Q_QUERY",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "Q_QUERY:text:검색",
+      "U_UTILITY:text:설정"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=19>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "f322b894ee95c181",
+   "service": "카카오맵",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "PLACE_LOOKUP",
+   "url": "https://m.map.kakao.com/",
+   "base_registrable": "kakao.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_f322b894ee95c181-2026-08-27T051859903516Z",
+   "observation_id": "9632c315136c647d651c7933ef5ce209",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 159,
+   "n_candidates": 18,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 5,
+    "dom": 8,
+    "probe": 13
+   },
+   "candidate_slot_exclusive": {
+    "dom": 4,
+    "probe": 8,
+    "ax": 1
+   },
+   "region_class_hits": {
+    "P_PLACE": 10,
+    "U_UTILITY": 1,
+    "Q_QUERY": 6,
+    "I_ITEM": 3,
+    "M_COMMUNICATION": 1
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 60,
+    "E7_NON_NAVIGATIONAL_HREF": 23,
+    "E1_APP_INSTALL": 12,
+    "E6_UI_CHROME": 30,
+    "E5_SUPPORT_META": 6,
+    "E8_OFF_HOST": 2
+   },
+   "top_candidates": [
+    {
+     "text": "지도 설정 레이어",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "P_PLACE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "P_PLACE:text:지도",
+      "U_UTILITY:text:설정"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "이 지역 재검색",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "P_PLACE",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "P_PLACE:text:지역",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "검색어 입력",
+     "href": "",
+     "role": "input",
+     "regions": [
+      "P_PLACE",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "P_PLACE:text:장소",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": true
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=18>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "517b8047eb5be716",
+   "service": "농협하나로마트",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.nhhanaro.co.kr/",
+   "base_registrable": "nhhanaro.co.kr",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_517b8047eb5be716-2026-08-27T052347442544Z",
+   "observation_id": "ca14be534d2cf67c5de89912f5336a17",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 96,
+   "n_candidates": 13,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 5,
+    "probe": 8
+   },
+   "candidate_slot_exclusive": {
+    "dom": 5,
+    "probe": 8
+   },
+   "region_class_hits": {
+    "I_ITEM": 5,
+    "P_PLACE": 1,
+    "C_CONTENT": 7
+   },
+   "exclusion_hits": {
+    "E7_NON_NAVIGATIONAL_HREF": 25,
+    "NO_FUNCTION_VOCAB": 43,
+    "E6_UI_CHROME": 8,
+    "E2_EXTERNAL_SNS": 3,
+    "E8_OFF_HOST": 3,
+    "E1_APP_INSTALL": 1
+   },
+   "top_candidates": [
+    {
+     "text": "농축협 브랜드상품",
+     "href": "/mbshome/mbs/nahh007/subview.do?id=nahh007_030100000000",
+     "role": "a",
+     "regions": [
+      "I_ITEM"
+     ],
+     "terms": [
+      "I_ITEM:text:상품"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "농축협 브랜드상품",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "I_ITEM"
+     ],
+     "terms": [
+      "I_ITEM:text:상품"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "농협하나로pb상품",
+     "href": "/mbshome/mbs/nahh007/subview.do?id=nahh007_030200000000",
+     "role": "a",
+     "regions": [
+      "I_ITEM"
+     ],
+     "terms": [
+      "I_ITEM:text:상품"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=13>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "13ed070478ef62c3",
+   "service": "Netflix",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "CONTENT_OPEN",
+   "url": "https://www.netflix.com/kr/login",
+   "base_registrable": "netflix.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_13ed070478ef62c3-2026-08-27T051430493325Z",
+   "observation_id": "90d4646b3105c57c0fa3af7419d663a0",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 105,
+   "n_candidates": 6,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 3,
+    "probe": 4,
+    "ax": 1
+   },
+   "candidate_slot_exclusive": {
+    "dom": 1,
+    "probe": 2,
+    "ax": 1
+   },
+   "region_class_hits": {
+    "U_UTILITY": 3,
+    "Q_QUERY": 2
+   },
+   "exclusion_hits": {
+    "E2_EXTERNAL_SNS": 25,
+    "NO_FUNCTION_VOCAB": 36,
+    "E6_UI_CHROME": 19,
+    "E7_NON_NAVIGATIONAL_HREF": 5,
+    "E8_OFF_HOST": 3,
+    "E5_SUPPORT_META": 2,
+    "E3_LEGAL_POLICY": 7
+   },
+   "top_candidates": [
+    {
+     "text": "apply",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "U_UTILITY"
+     ],
+     "terms": [
+      "U_UTILITY:text:apply"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "설정 저장",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "U_UTILITY"
+     ],
+     "terms": [
+      "U_UTILITY:text:설정"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "쿠키 목록 검색",
+     "href": "",
+     "role": "input",
+     "regions": [
+      "Q_QUERY"
+     ],
+     "terms": [
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=6>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "24e6654bfd1ab85b",
+   "service": "YouTube",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "CONTENT_OPEN",
+   "url": "https://m.youtube.com/",
+   "base_registrable": "youtube.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_24e6654bfd1ab85b-2026-08-27T051911281696Z",
+   "observation_id": "3fd7812f9fcd0bfe4d52db57870990e0",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 43,
+   "n_candidates": 6,
+   "n_candidates_visible_hittable": 3,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 1,
+    "dom": 1,
+    "probe": 6
+   },
+   "candidate_slot_exclusive": {
+    "probe": 5
+   },
+   "region_class_hits": {
+    "Q_QUERY": 5
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 8,
+    "E6_UI_CHROME": 10,
+    "E2_EXTERNAL_SNS": 15
+   },
+   "top_candidates": [
+    {
+     "text": "음성으로 검색",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "Q_QUERY"
+     ],
+     "terms": [
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "shorts",
+     "href": "",
+     "role": "tab",
+     "regions": [
+      "Q_QUERY"
+     ],
+     "terms": [
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "ytm-mobile-topbar-renderer#header-bar>header>yt-searchbox>div:nth-of-type(1)>div>div:nth-o",
+     "href": "",
+     "role": "searchbox",
+     "regions": [
+      "Q_QUERY"
+     ],
+     "terms": [
+      "Q_QUERY:text:search"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": true
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=6>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "64d30ef262d8782d",
+   "service": "신한 SOL뱅크",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://bank.shinhan.com/",
+   "base_registrable": "shinhan.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_64d30ef262d8782d-2026-08-27T052019238305Z",
+   "observation_id": "3b57d74f6b1eef71a4a87c6877dde53f",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "ABSENT"
+   },
+   "degenerate_capture": true,
+   "n_nodes_scanned": 0,
+   "n_candidates": 0,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {},
+   "candidate_slot_exclusive": {},
+   "region_class_hits": {},
+   "exclusion_hits": {},
+   "top_candidates": [],
+   "zero_candidate_audit": [],
+   "verdict": "AMBIGUOUS",
+   "verdict_reason": "DEGENERATE_CAPTURE",
+   "verdict_degenerate_included": "NO_FUNCTIONAL_EXIT_OBSERVED",
+   "sensitivity": {
+    "S1_ge3": false,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": false
+   }
+  },
+  {
+   "wtg": "ef06dc942ef3ccc9",
+   "service": "롯데하이마트",
+   "identity_class": "FUNCTIONAL_LANDING",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.e-himart.co.kr/",
+   "base_registrable": "e-himart.co.kr",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_ef06dc942ef3ccc9-2026-08-27T052218606458Z",
+   "observation_id": "40fe007c836712d89aa67537b1570262",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "ABSENT"
+   },
+   "degenerate_capture": true,
+   "n_nodes_scanned": 0,
+   "n_candidates": 0,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {},
+   "candidate_slot_exclusive": {},
+   "region_class_hits": {},
+   "exclusion_hits": {},
+   "top_candidates": [],
+   "zero_candidate_audit": [],
+   "verdict": "AMBIGUOUS",
+   "verdict_reason": "DEGENERATE_CAPTURE",
+   "verdict_degenerate_included": "NO_FUNCTIONAL_EXIT_OBSERVED",
+   "sensitivity": {
+    "S1_ge3": false,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": false
+   }
+  },
+  {
+   "wtg": "be1e6feb78e5ef03",
+   "service": "emart24",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://emart24.co.kr/",
+   "base_registrable": "emart24.co.kr",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_be1e6feb78e5ef03-2026-08-27T052150258471Z",
+   "observation_id": "fa84f0a25e53ed2d4df5a16b50bc6072",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 754,
+   "n_candidates": 160,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 1,
+   "candidate_slot_provenance": {
+    "dom": 73,
+    "probe": 73,
+    "ax": 49
+   },
+   "candidate_slot_exclusive": {
+    "probe": 39,
+    "ax": 48,
+    "dom": 38
+   },
+   "region_class_hits": {
+    "I_ITEM": 112,
+    "U_UTILITY": 34,
+    "Q_QUERY": 4,
+    "P_PLACE": 9,
+    "C_CONTENT": 10,
+    "F_FINANCE": 4,
+    "M_COMMUNICATION": 4
+   },
+   "exclusion_hits": {
+    "E1_APP_INSTALL": 4,
+    "E2_EXTERNAL_SNS": 22,
+    "NO_FUNCTION_VOCAB": 346,
+    "E8_OFF_HOST": 80,
+    "E4_CORPORATE_IR_RECRUIT": 17,
+    "E5_SUPPORT_META": 12,
+    "E6_UI_CHROME": 14,
+    "E7_NON_NAVIGATIONAL_HREF": 16,
+    "E3_LEGAL_POLICY": 9
+   },
+   "top_candidates": [
+    {
+     "text": "1+1 콘돔)레드컨테이너홍콩가는티켓 6,000",
+     "href": "/goods/event?category_seq=1",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:path:goods",
+      "U_UTILITY:text:티켓"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "chef's lineup 스타 셰프들 비법을 담은 일상 미식",
+     "href": "https://emart24.co.kr/goods/pl?search=&category_seq=&base_category_seq=401&align=",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "I_ITEM:path:goods",
+      "Q_QUERY:path:search"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "성수 310 내 집 앞 성수 감성, 성수 310",
+     "href": "https://emart24.co.kr/goods/pl?search=&category_seq=&base_category_seq=241&align=",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "I_ITEM:path:goods",
+      "Q_QUERY:path:search"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=160>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "dd2cec4c1fa2beec",
+   "service": "롯데백화점",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.lotteon.com:443/p/display/main/ellotte?mall_no=2",
+   "base_registrable": "lotteon.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_dd2cec4c1fa2beec-2026-08-27T052353473212Z",
+   "observation_id": "a9d3b29eef8d88a038451757fb1f01f4",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 368,
+   "n_candidates": 139,
+   "n_candidates_visible_hittable": 8,
+   "n_weak_auth_candidates": 2,
+   "candidate_slot_provenance": {
+    "ax": 59,
+    "dom": 56,
+    "probe": 75
+   },
+   "candidate_slot_exclusive": {
+    "probe": 70,
+    "ax": 13,
+    "dom": 10
+   },
+   "region_class_hits": {
+    "F_FINANCE": 6,
+    "I_ITEM": 135,
+    "C_CONTENT": 3,
+    "U_UTILITY": 5,
+    "Q_QUERY": 2,
+    "P_PLACE": 2
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 42,
+    "E7_NON_NAVIGATIONAL_HREF": 19,
+    "E1_APP_INSTALL": 2,
+    "NO_FUNCTION_VOCAB": 81,
+    "E4_CORPORATE_IR_RECRUIT": 4,
+    "E5_SUPPORT_META": 4,
+    "E3_LEGAL_POLICY": 16,
+    "E8_OFF_HOST": 2
+   },
+   "top_candidates": [
+    {
+     "text": "부가부 베이비페어 최대 혜택 최대 10% + 5% 상당 카드 할인",
+     "href": "https://www.lotteon.com/display/planV2/planDetail/105107?mall_no=2",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "I_ITEM:path:mall",
+      "I_ITEM:text:할인"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "스포츠/레저",
+     "href": "https://www.lotteon.com/display/shop/seltDpShop/50553?mall_no=2",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:스포츠",
+      "I_ITEM:path:shop"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "썸머 메이크업 추천 롯데 단독 금액대 혜택",
+     "href": "https://www.lotteon.com/display/planV2/planDetail/107049?mall_no=2",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:path:mall",
+      "U_UTILITY:text:추천"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=139>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "377983572bd38242",
+   "service": "다이소",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.daiso.co.kr/",
+   "base_registrable": "daiso.co.kr",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_377983572bd38242-2026-08-27T052101270894Z",
+   "observation_id": "f6be8e16939c0548539163729075455c",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 723,
+   "n_candidates": 92,
+   "n_candidates_visible_hittable": 5,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 75,
+    "probe": 22,
+    "ax": 62
+   },
+   "candidate_slot_exclusive": {
+    "ax": 5,
+    "dom": 11,
+    "probe": 11
+   },
+   "region_class_hits": {
+    "I_ITEM": 76,
+    "Q_QUERY": 14,
+    "P_PLACE": 2,
+    "C_CONTENT": 56,
+    "U_UTILITY": 2
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 197,
+    "E4_CORPORATE_IR_RECRUIT": 149,
+    "E5_SUPPORT_META": 16,
+    "E6_UI_CHROME": 39,
+    "E7_NON_NAVIGATIONAL_HREF": 2,
+    "E2_EXTERNAL_SNS": 130,
+    "E1_APP_INSTALL": 4,
+    "E3_LEGAL_POLICY": 6,
+    "E8_OFF_HOST": 9
+   },
+   "top_candidates": [
+    {
+     "text": "매장 검색",
+     "href": "/cs/shop",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "I_ITEM:path:shop",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "매장찾기 검색어 입력",
+     "href": "",
+     "role": "textbox",
+     "regions": [
+      "P_PLACE",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "P_PLACE:text:매장찾기",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "ax",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "자세히 보기",
+     "href": "https://www.daiso.co.kr/brand/daiso_news/117513?btype=product",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:path:news",
+      "I_ITEM:path:product"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=92>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "e67be79550661604",
+   "service": "CU",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://cu.bgfretail.com/",
+   "base_registrable": "bgfretail.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_e67be79550661604-2026-08-27T052317699723Z",
+   "observation_id": "d0e57e46c6df02aa27a2893db31d85c6",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 467,
+   "n_candidates": 86,
+   "n_candidates_visible_hittable": 1,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 28,
+    "probe": 47,
+    "ax": 22
+   },
+   "candidate_slot_exclusive": {
+    "dom": 18,
+    "ax": 21,
+    "probe": 37
+   },
+   "region_class_hits": {
+    "C_CONTENT": 17,
+    "I_ITEM": 68,
+    "U_UTILITY": 6,
+    "F_FINANCE": 2,
+    "M_COMMUNICATION": 3,
+    "P_PLACE": 3,
+    "Q_QUERY": 1
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 166,
+    "E7_NON_NAVIGATIONAL_HREF": 125,
+    "E4_CORPORATE_IR_RECRUIT": 2,
+    "E5_SUPPORT_META": 6,
+    "E8_OFF_HOST": 30,
+    "E2_EXTERNAL_SNS": 3,
+    "E3_LEGAL_POLICY": 4,
+    "E6_UI_CHROME": 9
+   },
+   "top_candidates": [
+    {
+     "text": "생활편의 서비스",
+     "href": "/service/index.do?category=service&depth3=4&sf=N",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "I_ITEM:path:category",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "제휴카드",
+     "href": "/service/credit_info.do?category=service&depth2=2&sf=N",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "I_ITEM:path:category",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "거래상담",
+     "href": "/enter/info_01.do?category=enter&sf=N",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "I_ITEM:path:category",
+      "M_COMMUNICATION:text:상담"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=86>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "35319a420294ee17",
+   "service": "토스",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://toss.im/",
+   "base_registrable": "toss.im",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_35319a420294ee17-2026-08-27T051947549087Z",
+   "observation_id": "5b96caa0d265bc1d4f4a39676a583825",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 136,
+   "n_candidates": 66,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 30,
+    "dom": 19,
+    "ax": 18
+   },
+   "candidate_slot_exclusive": {
+    "probe": 29,
+    "dom": 18,
+    "ax": 18
+   },
+   "region_class_hits": {
+    "F_FINANCE": 52,
+    "M_COMMUNICATION": 5,
+    "U_UTILITY": 53,
+    "I_ITEM": 16
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 46,
+    "E4_CORPORATE_IR_RECRUIT": 6,
+    "E6_UI_CHROME": 15,
+    "E1_APP_INSTALL": 1
+   },
+   "top_candidates": [
+    {
+     "text": "다른 투자자들과 실시간으로 의견을 나누며 시야를 넓혀요. 이제 투자는 나만의 고민이 아닌, 함께 성장하는 경험이 돼요.",
+     "href": "/service/securities#4",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "M_COMMUNICATION",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:투자",
+      "M_COMMUNICATION:text:커뮤니티",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "수백만 명이 모여있는 토스증권 커뮤니티 다른 투자자들과 실시간으로 의견을 나누며 시야를 넓혀요. 이제 투자는 나만의 고민이 아닌, 함께 성장하는 경험이 돼요.",
+     "href": "/service/securities#4",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "M_COMMUNICATION",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:투자",
+      "M_COMMUNICATION:text:커뮤니티",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "수백만 명이 모여있는 토스증권 커뮤니티 다른 투자자들과 실시간으로 의견을 나누며 시야를 넓혀요. 이제 투자는 나만의 고민이 아닌, 함께 성장하는 경험이 돼요.",
+     "href": "https://toss.im/service/securities#4",
+     "role": "link",
+     "regions": [
+      "F_FINANCE",
+      "M_COMMUNICATION",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:투자",
+      "M_COMMUNICATION:text:커뮤니티",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=66>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "e1fadb214cde51c0",
+   "service": "캐시워크",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "UTILITY_ENTRY",
+   "url": "https://cashwalk.com/",
+   "base_registrable": "cashwalk.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_e1fadb214cde51c0-2026-08-27T051500365784Z",
+   "observation_id": "14fba63a4decbe8f5f5108bd04ceb4a2",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 521,
+   "n_candidates": 58,
+   "n_candidates_visible_hittable": 2,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 40,
+    "dom": 16,
+    "ax": 6
+   },
+   "candidate_slot_exclusive": {
+    "probe": 38,
+    "dom": 14,
+    "ax": 4
+   },
+   "region_class_hits": {
+    "I_ITEM": 16,
+    "M_COMMUNICATION": 24,
+    "U_UTILITY": 4,
+    "C_CONTENT": 3,
+    "F_FINANCE": 10,
+    "Q_QUERY": 12,
+    "P_PLACE": 2
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 45,
+    "NO_FUNCTION_VOCAB": 186,
+    "E8_OFF_HOST": 169,
+    "E7_NON_NAVIGATIONAL_HREF": 6,
+    "E1_APP_INSTALL": 11,
+    "E4_CORPORATE_IR_RECRUIT": 10,
+    "E3_LEGAL_POLICY": 8,
+    "E5_SUPPORT_META": 2
+   },
+   "top_candidates": [
+    {
+     "text": "추천수",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "I_ITEM",
+      "M_COMMUNICATION",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:베스트",
+      "M_COMMUNICATION:text:커뮤니티",
+      "U_UTILITY:text:추천"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "댓글수",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "I_ITEM",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "I_ITEM:text:베스트",
+      "M_COMMUNICATION:text:커뮤니티"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "동네 생활",
+     "href": "/local/community",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "M_COMMUNICATION"
+     ],
+     "terms": [
+      "C_CONTENT:text:생활",
+      "M_COMMUNICATION:path:community"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=58>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "60d4d22e3809f780",
+   "service": "티맵",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "PLACE_LOOKUP",
+   "url": "https://www.tmapmobility.com/",
+   "base_registrable": "tmapmobility.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_60d4d22e3809f780-2026-08-27T051555382392Z",
+   "observation_id": "db501b7ce9f1ebf2e72266bce773db17",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 204,
+   "n_candidates": 50,
+   "n_candidates_visible_hittable": 8,
+   "n_weak_auth_candidates": 4,
+   "candidate_slot_provenance": {
+    "dom": 13,
+    "probe": 24,
+    "ax": 15
+   },
+   "candidate_slot_exclusive": {
+    "dom": 11,
+    "ax": 15,
+    "probe": 22
+   },
+   "region_class_hits": {
+    "P_PLACE": 15,
+    "U_UTILITY": 21,
+    "F_FINANCE": 4,
+    "C_CONTENT": 19,
+    "Q_QUERY": 1
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 51,
+    "E6_UI_CHROME": 24,
+    "E4_CORPORATE_IR_RECRUIT": 28,
+    "E5_SUPPORT_META": 8,
+    "E3_LEGAL_POLICY": 20,
+    "E2_EXTERNAL_SNS": 12,
+    "E8_OFF_HOST": 3
+   },
+   "top_candidates": [
+    {
+     "text": "티맵 서비스",
+     "href": "/service/place",
+     "role": "a",
+     "regions": [
+      "P_PLACE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "P_PLACE:path:place",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "어디갈까",
+     "href": "/service/place/where",
+     "role": "a",
+     "regions": [
+      "P_PLACE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "P_PLACE:path:place",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "어디갈까",
+     "href": "https://www.tmapmobility.com/service/place/where",
+     "role": "link",
+     "regions": [
+      "P_PLACE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "P_PLACE:path:place",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=50>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "efda6e0b8457d63c",
+   "service": "네이버지도",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "PLACE_LOOKUP",
+   "url": "https://www.navercorp.com/service/map",
+   "base_registrable": "navercorp.com",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_efda6e0b8457d63c-2026-08-27T051559666954Z",
+   "observation_id": "62a6d162da96601df7cb4b3d7a7dfa1c",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 581,
+   "n_candidates": 50,
+   "n_candidates_visible_hittable": 1,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 29,
+    "ax": 10,
+    "probe": 23
+   },
+   "candidate_slot_exclusive": {
+    "dom": 20,
+    "ax": 6,
+    "probe": 15
+   },
+   "region_class_hits": {
+    "I_ITEM": 8,
+    "P_PLACE": 12,
+    "Q_QUERY": 12,
+    "U_UTILITY": 22,
+    "M_COMMUNICATION": 5,
+    "C_CONTENT": 3,
+    "F_FINANCE": 2
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 88,
+    "NO_FUNCTION_VOCAB": 242,
+    "E4_CORPORATE_IR_RECRUIT": 97,
+    "E1_APP_INSTALL": 10,
+    "E8_OFF_HOST": 12,
+    "E2_EXTERNAL_SNS": 11,
+    "E5_SUPPORT_META": 4,
+    "E3_LEGAL_POLICY": 13
+   },
+   "top_candidates": [
+    {
+     "text": "5,400만+ 유저를 고객으로 네이버 광고 검색 상품",
+     "href": "/service/map",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "P_PLACE",
+      "Q_QUERY",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:상품",
+      "P_PLACE:path:map",
+      "Q_QUERY:text:검색",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "5,400만+ 유저를 고객으로 네이버 광고 검색 상품",
+     "href": "/service/advertisement",
+     "role": "a",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:상품",
+      "Q_QUERY:text:검색",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "5,400만+ 유저를 고객으로 네이버 광고 검색 상품 5,400만+ 유저를 고객으로 네이버 광고 검색 상품",
+     "href": "https://www.navercorp.com/service/advertisement",
+     "role": "link",
+     "regions": [
+      "I_ITEM",
+      "Q_QUERY",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "I_ITEM:text:상품",
+      "Q_QUERY:text:검색",
+      "U_UTILITY:path:service"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=50>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "cdce1ffd6b1b1e24",
+   "service": "디바이스 케어",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "UTILITY_ENTRY",
+   "url": "https://www.samsungsvc.co.kr/solution/42404",
+   "base_registrable": "samsungsvc.co.kr",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_cdce1ffd6b1b1e24-2026-08-27T051543952104Z",
+   "observation_id": "97957fe19feffd3c4c7cd1a7821d1e15",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 414,
+   "n_candidates": 46,
+   "n_candidates_visible_hittable": 1,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 5,
+    "probe": 32,
+    "dom": 11
+   },
+   "candidate_slot_exclusive": {
+    "ax": 4,
+    "probe": 31,
+    "dom": 9
+   },
+   "region_class_hits": {
+    "C_CONTENT": 4,
+    "I_ITEM": 15,
+    "F_FINANCE": 1,
+    "U_UTILITY": 18,
+    "M_COMMUNICATION": 9,
+    "Q_QUERY": 3,
+    "P_PLACE": 3
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 62,
+    "NO_FUNCTION_VOCAB": 58,
+    "E7_NON_NAVIGATIONAL_HREF": 202,
+    "E2_EXTERNAL_SNS": 24,
+    "E4_CORPORATE_IR_RECRUIT": 7,
+    "E5_SUPPORT_META": 2,
+    "E3_LEGAL_POLICY": 4
+   },
+   "top_candidates": [
+    {
+     "text": "동영상 가이드 안내 유용한 제품 동영상 정보를 이용해 보세요.",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:영상",
+      "I_ITEM:text:제품"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "영수증/명세서 발급",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:명세서",
+      "U_UTILITY:text:발급"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "유용한 제품 동영상정보를 이용해 보세요.",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:영상",
+      "I_ITEM:text:제품"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=46>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "7f6f1aa6dd218d4d",
+   "service": "이마트",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://store.emart.com/",
+   "base_registrable": "emart.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_7f6f1aa6dd218d4d-2026-08-27T052339082037Z",
+   "observation_id": "69c77cbd03fd98f0835c4552c81a6e78",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 768,
+   "n_candidates": 46,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 42,
+    "dom": 11
+   },
+   "candidate_slot_exclusive": {
+    "probe": 35,
+    "dom": 4
+   },
+   "region_class_hits": {
+    "F_FINANCE": 6,
+    "I_ITEM": 39,
+    "C_CONTENT": 1,
+    "U_UTILITY": 3,
+    "M_COMMUNICATION": 2
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 68,
+    "E7_NON_NAVIGATIONAL_HREF": 278,
+    "NO_FUNCTION_VOCAB": 242,
+    "E5_SUPPORT_META": 2,
+    "E3_LEGAL_POLICY": 2,
+    "E1_APP_INSTALL": 1
+   },
+   "top_candidates": [
+    {
+     "text": "가을 햇꽃게 (100g)할인율 50%정상가1,980원판매가990원최대할인가행사카드 50%할인",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "I_ITEM:text:상품"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "돼지고기 특수부위 전품목신세계포인트 30%할인",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM"
+     ],
+     "terms": [
+      "F_FINANCE:text:포인트",
+      "I_ITEM:text:상품"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "제스프리 골드키위 (팩)할인율 46%정상가14,980원판매가7,980원최대할인가만족도5.0 (4,747) 신세계포인트 7천원할인",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "I_ITEM"
+     ],
+     "terms": [
+      "F_FINANCE:text:포인트",
+      "I_ITEM:text:상품"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=46>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "ed7b9bea21def8f8",
+   "service": "내 파일",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "UTILITY_ENTRY",
+   "url": "https://www.samsungsvc.co.kr/solution/164886",
+   "base_registrable": "samsungsvc.co.kr",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_ed7b9bea21def8f8-2026-08-27T051620501534Z",
+   "observation_id": "90a3f404f3934105c3728a2ee6dffcd4",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 418,
+   "n_candidates": 45,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 5,
+    "probe": 31,
+    "dom": 11
+   },
+   "candidate_slot_exclusive": {
+    "ax": 4,
+    "probe": 30,
+    "dom": 9
+   },
+   "region_class_hits": {
+    "C_CONTENT": 4,
+    "I_ITEM": 15,
+    "F_FINANCE": 1,
+    "U_UTILITY": 17,
+    "M_COMMUNICATION": 9,
+    "Q_QUERY": 3,
+    "P_PLACE": 3
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 68,
+    "NO_FUNCTION_VOCAB": 57,
+    "E7_NON_NAVIGATIONAL_HREF": 202,
+    "E2_EXTERNAL_SNS": 24,
+    "E4_CORPORATE_IR_RECRUIT": 7,
+    "E5_SUPPORT_META": 2,
+    "E3_LEGAL_POLICY": 4
+   },
+   "top_candidates": [
+    {
+     "text": "동영상 가이드 안내 유용한 제품 동영상 정보를 이용해 보세요.",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:영상",
+      "I_ITEM:text:제품"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "영수증/명세서 발급",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:명세서",
+      "U_UTILITY:text:발급"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "유용한 제품 동영상정보를 이용해 보세요.",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:영상",
+      "I_ITEM:text:제품"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=45>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "9390ef32addf32bf",
+   "service": "Chrome",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "QUERY",
+   "url": "https://www.google.com/chrome/",
+   "base_registrable": "google.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_9390ef32addf32bf-2026-08-27T051440847025Z",
+   "observation_id": "6c8dac6c12346e336d1cd6c5f643aa00",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 306,
+   "n_candidates": 30,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 20,
+    "dom": 12,
+    "ax": 5
+   },
+   "candidate_slot_exclusive": {
+    "probe": 17,
+    "dom": 8,
+    "ax": 1
+   },
+   "region_class_hits": {
+    "F_FINANCE": 8,
+    "Q_QUERY": 2,
+    "C_CONTENT": 4,
+    "I_ITEM": 7,
+    "U_UTILITY": 10
+   },
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 162,
+    "E6_UI_CHROME": 40,
+    "E3_LEGAL_POLICY": 8,
+    "E2_EXTERNAL_SNS": 19,
+    "E8_OFF_HOST": 4,
+    "E5_SUPPORT_META": 6
+   },
+   "top_candidates": [
+    {
+     "text": "카드 뒤집기",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "F_FINANCE",
+      "Q_QUERY"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "확장 프로그램",
+     "href": "https://chromewebstore.google.com/category/extensions",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "I_ITEM"
+     ],
+     "terms": [
+      "C_CONTENT:text:프로그램",
+      "I_ITEM:path:category"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "chrome의 안전 설정이란 무엇인가요?",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "U_UTILITY"
+     ],
+     "terms": [
+      "U_UTILITY:text:설정"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=30>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "b8b226f9fe32539a",
+   "service": "KB Pay",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://mbiz.kbcard.com/CXEHMSVCD0012.cms",
+   "base_registrable": "kbcard.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_b8b226f9fe32539a-2026-08-27T051538490284Z",
+   "observation_id": "d86d805765201b40e226089ec78d2857",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 104,
+   "n_candidates": 29,
+   "n_candidates_visible_hittable": 1,
+   "n_weak_auth_candidates": 1,
+   "candidate_slot_provenance": {
+    "probe": 16,
+    "dom": 13,
+    "ax": 2
+   },
+   "candidate_slot_exclusive": {
+    "probe": 15,
+    "dom": 12,
+    "ax": 1
+   },
+   "region_class_hits": {
+    "F_FINANCE": 29,
+    "U_UTILITY": 8
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 15,
+    "E7_NON_NAVIGATIONAL_HREF": 12,
+    "NO_FUNCTION_VOCAB": 39,
+    "E5_SUPPORT_META": 2,
+    "E3_LEGAL_POLICY": 4
+   },
+   "top_candidates": [
+    {
+     "text": "기업공용카드 등록 시 유의사항",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "U_UTILITY:text:등록"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "기업카드 등록",
+     "href": "#tabCont1_2",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "U_UTILITY:text:등록"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "기업카드 등록",
+     "href": "https://mbiz.kbcard.com/CXEHMSVCD0012.cms#tabCont1_2",
+     "role": "link",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:카드",
+      "U_UTILITY:text:등록"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=29>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "95967b50683649f2",
+   "service": "NH스마트뱅킹",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://banking.nonghyup.com/nhbank.html",
+   "base_registrable": "nonghyup.com",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_95967b50683649f2-2026-08-27T051806340380Z",
+   "observation_id": "bd2af5f2a0b5a346827b67410dc1e9c0",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": true,
+   "n_nodes_scanned": 89,
+   "n_candidates": 23,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 23
+   },
+   "candidate_slot_exclusive": {
+    "probe": 23
+   },
+   "region_class_hits": {
+    "F_FINANCE": 12,
+    "U_UTILITY": 14,
+    "M_COMMUNICATION": 1,
+    "I_ITEM": 2,
+    "P_PLACE": 2
+   },
+   "exclusion_hits": {
+    "E7_NON_NAVIGATIONAL_HREF": 13,
+    "NO_FUNCTION_VOCAB": 28,
+    "E5_SUPPORT_META": 5,
+    "E6_UI_CHROME": 15,
+    "E3_LEGAL_POLICY": 2
+   },
+   "top_candidates": [
+    {
+     "text": "계좌조회",
+     "href": "#none",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:계좌",
+      "U_UTILITY:text:조회"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "계좌조회",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:계좌",
+      "U_UTILITY:text:조회"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "너도나도 환전신청",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:환전",
+      "U_UTILITY:text:신청"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "AMBIGUOUS",
+   "verdict_reason": "DEGENERATE_CAPTURE",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "fb3d1841dddfd982",
+   "service": "NH콕뱅크",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://banking.nonghyup.com/nhbank.html",
+   "base_registrable": "nonghyup.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_fb3d1841dddfd982-2026-08-27T052309990475Z",
+   "observation_id": "c2e1baae1578361765af1810431815b0",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": true,
+   "n_nodes_scanned": 89,
+   "n_candidates": 23,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 23
+   },
+   "candidate_slot_exclusive": {
+    "probe": 23
+   },
+   "region_class_hits": {
+    "F_FINANCE": 12,
+    "U_UTILITY": 14,
+    "M_COMMUNICATION": 1,
+    "I_ITEM": 2,
+    "P_PLACE": 2
+   },
+   "exclusion_hits": {
+    "E7_NON_NAVIGATIONAL_HREF": 13,
+    "NO_FUNCTION_VOCAB": 28,
+    "E5_SUPPORT_META": 5,
+    "E6_UI_CHROME": 15,
+    "E3_LEGAL_POLICY": 2
+   },
+   "top_candidates": [
+    {
+     "text": "계좌조회",
+     "href": "#none",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:계좌",
+      "U_UTILITY:text:조회"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "계좌조회",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:계좌",
+      "U_UTILITY:text:조회"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "너도나도 환전신청",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "F_FINANCE",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "F_FINANCE:text:환전",
+      "U_UTILITY:text:신청"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "AMBIGUOUS",
+   "verdict_reason": "DEGENERATE_CAPTURE",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "888d37f34b5d3aaa",
+   "service": "롯데홈쇼핑",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.lottehomeshopping.com/user/main/index.lotte",
+   "base_registrable": "lottehomeshopping.com",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_888d37f34b5d3aaa-2026-08-27T052012699280Z",
+   "observation_id": "8e5b634eafffe38c5e8105b29c23f82d",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 334,
+   "n_candidates": 19,
+   "n_candidates_visible_hittable": 1,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "dom": 8,
+    "ax": 3,
+    "probe": 8
+   },
+   "candidate_slot_exclusive": {
+    "dom": 8,
+    "ax": 3,
+    "probe": 8
+   },
+   "region_class_hits": {
+    "C_CONTENT": 13,
+    "U_UTILITY": 4,
+    "I_ITEM": 3
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 114,
+    "NO_FUNCTION_VOCAB": 73,
+    "E7_NON_NAVIGATIONAL_HREF": 60,
+    "E4_CORPORATE_IR_RECRUIT": 34,
+    "E5_SUPPORT_META": 10,
+    "E2_EXTERNAL_SNS": 21,
+    "E3_LEGAL_POLICY": 1,
+    "E8_OFF_HOST": 2
+   },
+   "top_candidates": [
+    {
+     "text": "조직문화",
+     "href": "https://www.lottehomeshopping.com/user/apply/culture.lotte",
+     "role": "a",
+     "regions": [
+      "C_CONTENT",
+      "U_UTILITY"
+     ],
+     "terms": [
+      "C_CONTENT:text:문화",
+      "U_UTILITY:path:apply"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "lotte homeshopping",
+     "href": "https://www.lottehomeshopping.com/",
+     "role": "link",
+     "regions": [
+      "I_ITEM"
+     ],
+     "terms": [
+      "I_ITEM:text:shop"
+     ],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "news",
+     "href": "https://www.lottehomeshopping.com/user/pr/news.lotte",
+     "role": "a",
+     "regions": [
+      "C_CONTENT"
+     ],
+     "terms": [
+      "C_CONTENT:path:news",
+      "C_CONTENT:text:news"
+     ],
+     "slots": [
+      "dom"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=19>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "190b4501e4415d5e",
+   "service": "V3 Mobile Plus",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "UTILITY_ENTRY",
+   "url": "https://mplweb.ahnlab.com/mplweb/v3mp/main_android.do",
+   "base_registrable": "ahnlab.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_190b4501e4415d5e-2026-08-27T052051203323Z",
+   "observation_id": "f7d7f8aace4852a658b62b3c074723bf",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 201,
+   "n_candidates": 18,
+   "n_candidates_visible_hittable": 1,
+   "n_weak_auth_candidates": 2,
+   "candidate_slot_provenance": {
+    "ax": 6,
+    "dom": 9,
+    "probe": 13
+   },
+   "candidate_slot_exclusive": {
+    "dom": 2,
+    "ax": 2,
+    "probe": 7
+   },
+   "region_class_hits": {
+    "U_UTILITY": 6,
+    "C_CONTENT": 7,
+    "I_ITEM": 5
+   },
+   "exclusion_hits": {
+    "E7_NON_NAVIGATIONAL_HREF": 4,
+    "NO_FUNCTION_VOCAB": 69,
+    "E8_OFF_HOST": 52,
+    "E3_LEGAL_POLICY": 16,
+    "E6_UI_CHROME": 16
+   },
+   "top_candidates": [
+    {
+     "text": "",
+     "href": "https://www.ahnlabad.com/track.click?zone=490085&ad=9ec587084a244ce9be93c5111c079b1f_2191",
+     "role": "a",
+     "regions": [
+      "U_UTILITY"
+     ],
+     "terms": [
+      "U_UTILITY:path:track"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "",
+     "href": "https://www.ahnlabad.com/track.click?zone=21&ad=554e405caaa34cfb80324d21adf25a05_3005",
+     "role": "a",
+     "regions": [
+      "U_UTILITY"
+     ],
+     "terms": [
+      "U_UTILITY:path:track"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "보안뉴스",
+     "href": "https://mplweb.ahnlab.com/mplweb/v3mp/news_android.do?dist=11",
+     "role": "a",
+     "regions": [
+      "C_CONTENT"
+     ],
+     "terms": [
+      "C_CONTENT:path:news",
+      "C_CONTENT:text:뉴스"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=18>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "699a5e2f3f410152",
+   "service": "카카오톡",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "url": "https://www.kakaocorp.com/page/detail/10810?lang=ENG",
+   "base_registrable": "kakaocorp.com",
+   "worker": "w02",
+   "run_dir": "e001_full-wtg_699a5e2f3f410152-2026-08-27T051537329346Z",
+   "observation_id": "3a2d2b6d24d1dfb459991701d4a84752",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 237,
+   "n_candidates": 16,
+   "n_candidates_visible_hittable": 1,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 4,
+    "dom": 11,
+    "probe": 7
+   },
+   "candidate_slot_exclusive": {
+    "dom": 7,
+    "ax": 2,
+    "probe": 3
+   },
+   "region_class_hits": {
+    "F_FINANCE": 1,
+    "U_UTILITY": 7,
+    "C_CONTENT": 2,
+    "M_COMMUNICATION": 4,
+    "Q_QUERY": 2
+   },
+   "exclusion_hits": {
+    "E6_UI_CHROME": 38,
+    "NO_FUNCTION_VOCAB": 94,
+    "E4_CORPORATE_IR_RECRUIT": 39,
+    "E3_LEGAL_POLICY": 28,
+    "E5_SUPPORT_META": 2,
+    "E8_OFF_HOST": 3
+   },
+   "top_candidates": [
+    {
+     "text": "account & support",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "F_FINANCE"
+     ],
+     "terms": [
+      "F_FINANCE:text:account"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "kakao service",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "U_UTILITY"
+     ],
+     "terms": [
+      "U_UTILITY:text:service"
+     ],
+     "slots": [
+      "ax",
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "news",
+     "href": "",
+     "role": "button",
+     "regions": [
+      "C_CONTENT"
+     ],
+     "terms": [
+      "C_CONTENT:text:news"
+     ],
+     "slots": [
+      "dom",
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=16>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": true,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "c5285b96b598a08b",
+   "service": "배달의민족",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://baemin.com/",
+   "base_registrable": "baemin.com",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_c5285b96b598a08b-2026-08-27T051548001919Z",
+   "observation_id": "12158b645bfa072640414a4f8ea5d66e",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 74,
+   "n_candidates": 3,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 1,
+    "dom": 1,
+    "probe": 2
+   },
+   "candidate_slot_exclusive": {
+    "probe": 2
+   },
+   "region_class_hits": {
+    "I_ITEM": 3
+   },
+   "exclusion_hits": {
+    "E1_APP_INSTALL": 4,
+    "E8_OFF_HOST": 3,
+    "NO_FUNCTION_VOCAB": 36,
+    "E2_EXTERNAL_SNS": 15,
+    "E6_UI_CHROME": 4,
+    "E3_LEGAL_POLICY": 4,
+    "E7_NON_NAVIGATIONAL_HREF": 3,
+    "E5_SUPPORT_META": 1
+   },
+   "top_candidates": [
+    {
+     "text": "기업용 상품권 구매하기",
+     "href": "https://gift-pc.baemin.com/buy-gift-certificates",
+     "role": "a",
+     "regions": [
+      "I_ITEM"
+     ],
+     "terms": [
+      "I_ITEM:text:상품"
+     ],
+     "slots": [
+      "ax",
+      "dom"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "기업용 상품권 구매하기",
+     "href": "https://gift-pc.baemin.com/buy-gift-certificates",
+     "role": "a",
+     "regions": [
+      "I_ITEM"
+     ],
+     "terms": [
+      "I_ITEM:text:상품"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "기업용 상품권 구매하기",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "I_ITEM"
+     ],
+     "terms": [
+      "I_ITEM:text:상품"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=3>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": true,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "a215c45b2cc585ca",
+   "service": "에이닷 전화",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "UTILITY_ENTRY",
+   "url": "https://a.sktelecom.com/",
+   "base_registrable": "sktelecom.com",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_a215c45b2cc585ca-2026-08-27T051541867878Z",
+   "observation_id": "e1427608966cc0638cb3ad44607d1fe5",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 22,
+   "n_candidates": 2,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 2
+   },
+   "candidate_slot_exclusive": {
+    "probe": 2
+   },
+   "region_class_hits": {
+    "Q_QUERY": 1,
+    "I_ITEM": 1
+   },
+   "exclusion_hits": {
+    "E1_APP_INSTALL": 10,
+    "E8_OFF_HOST": 2,
+    "E3_LEGAL_POLICY": 4,
+    "NO_FUNCTION_VOCAB": 4
+   },
+   "top_candidates": [
+    {
+     "text": "검색",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "Q_QUERY"
+     ],
+     "terms": [
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    },
+    {
+     "text": "애플 스토어에서 다운로드",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "I_ITEM"
+     ],
+     "terms": [
+      "I_ITEM:text:스토어"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=2>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": false,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "5beeafeac2e27eae",
+   "service": "TikTok",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "CONTENT_OPEN",
+   "url": "https://www.tiktok.com/",
+   "base_registrable": "tiktok.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_5beeafeac2e27eae-2026-08-27T051453834882Z",
+   "observation_id": "7c57141de14aaef201e4ff2ffae77b57",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 118,
+   "n_candidates": 1,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 1
+   },
+   "candidate_slot_exclusive": {
+    "probe": 1
+   },
+   "region_class_hits": {
+    "Q_QUERY": 1
+   },
+   "exclusion_hits": {
+    "E1_APP_INSTALL": 4,
+    "E2_EXTERNAL_SNS": 55,
+    "NO_FUNCTION_VOCAB": 41,
+    "E6_UI_CHROME": 17
+   },
+   "top_candidates": [
+    {
+     "text": "검색",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "Q_QUERY"
+     ],
+     "terms": [
+      "Q_QUERY:text:검색"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=1>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": false,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "65f15ce8fee25b24",
+   "service": "밴드",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "url": "https://www.band.us/",
+   "base_registrable": "band.us",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_65f15ce8fee25b24-2026-08-27T051425554381Z",
+   "observation_id": "500967c024fafa02666ab74f9750be84",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 82,
+   "n_candidates": 1,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "probe": 1
+   },
+   "candidate_slot_exclusive": {
+    "probe": 1
+   },
+   "region_class_hits": {
+    "U_UTILITY": 1
+   },
+   "exclusion_hits": {
+    "E2_EXTERNAL_SNS": 48,
+    "E1_APP_INSTALL": 12,
+    "E6_UI_CHROME": 7,
+    "NO_FUNCTION_VOCAB": 12,
+    "E3_LEGAL_POLICY": 2
+   },
+   "top_candidates": [
+    {
+     "text": "쿠키 설정",
+     "href": "",
+     "role": "a",
+     "regions": [
+      "U_UTILITY"
+     ],
+     "terms": [
+      "U_UTILITY:text:설정"
+     ],
+     "slots": [
+      "probe"
+     ],
+     "search_ctrl": false
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=1>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": false,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "5ede56738376a8c5",
+   "service": "Instagram",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "url": "https://www.instagram.com/",
+   "base_registrable": "instagram.com",
+   "worker": "w03",
+   "run_dir": "e001_full-wtg_5ede56738376a8c5-2026-08-27T051555247726Z",
+   "observation_id": "7cd83a1ad79cddcb0de40f71cf319a85",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 22,
+   "n_candidates": 1,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {
+    "ax": 1
+   },
+   "candidate_slot_exclusive": {
+    "ax": 1
+   },
+   "region_class_hits": {},
+   "exclusion_hits": {
+    "E2_EXTERNAL_SNS": 12,
+    "NO_FUNCTION_VOCAB": 7,
+    "E1_APP_INSTALL": 1,
+    "E6_UI_CHROME": 1
+   },
+   "top_candidates": [
+    {
+     "text": "표시 언어 변경",
+     "href": "",
+     "role": "combobox",
+     "regions": [],
+     "terms": [],
+     "slots": [
+      "ax"
+     ],
+     "search_ctrl": true
+    }
+   ],
+   "zero_candidate_audit": null,
+   "verdict": "RECOVERABLE_WITHIN_L1",
+   "verdict_reason": "n_cand=1>=1",
+   "verdict_degenerate_included": "RECOVERABLE_WITHIN_L1",
+   "sensitivity": {
+    "S1_ge3": false,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": true
+   }
+  },
+  {
+   "wtg": "054d78ed187cdd9f",
+   "service": "쿠팡이츠",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://www.coupangeats.com/",
+   "base_registrable": "coupangeats.com",
+   "worker": "w01",
+   "run_dir": "e001_full-wtg_054d78ed187cdd9f-2026-08-27T051944913397Z",
+   "observation_id": "07ca02fc2c5ec2fee799ccab6971acad",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 68,
+   "n_candidates": 0,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {},
+   "candidate_slot_exclusive": {},
+   "region_class_hits": {},
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 12,
+    "E4_CORPORATE_IR_RECRUIT": 40,
+    "E1_APP_INSTALL": 14,
+    "E6_UI_CHROME": 2
+   },
+   "top_candidates": [],
+   "zero_candidate_audit": [
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "배달 파트너 신청하기 반가워요 즐겁고 안전한 배달 함께 해요"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "브랜드 스토리 보러가기 >"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": ""
+    },
+    {
+     "dropped_by": "E1_APP_INSTALL",
+     "href": "#elementor-action%3Aaction%3Dpopup%3Aopen%26settings%3DeyJpZCI6IjU0NzQiLCJ0b2dnbGUiOmZhbHNlfQ%3D%3D",
+     "role": "a",
+     "slot": "dom",
+     "surface": "앱 다운로드"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "#elementor-action%3Aaction%3Dpopup%3Aopen%26settings%3DeyJpZCI6IjU0NTIiLCJ0b2dnbGUiOnRydWV9",
+     "role": "a",
+     "slot": "dom",
+     "surface": ""
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "#sec01",
+     "role": "a",
+     "slot": "dom",
+     "surface": ""
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://store.coupangeats.com/",
+     "role": "a",
+     "slot": "dom",
+     "surface": "사장님 입점 문의하기 1600-9827 쿠팡이츠로 매출을 올려보세요"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://ces.coupangeats.com/",
+     "role": "link",
+     "slot": "ax",
+     "surface": "쿠팡이츠 배달 파트너 신청하기 반가워요 즐겁고 안전한 배달 함께 해요"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://www.coupangeats.com/about/",
+     "role": "a",
+     "slot": "probe",
+     "surface": "브랜드 스토리 보러가기 쿠팡이츠의 이야기 조금 더 자세히 알아볼까요"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://www.coupangeats.com/about/",
+     "role": "a",
+     "slot": "probe",
+     "surface": "브랜드 스토리 보러가기 >"
+    },
+    {
+     "dropped_by": "E1_APP_INSTALL",
+     "href": "https://share.coupangeats.com/pKV6Df0vMrb",
+     "role": "a",
+     "slot": "dom",
+     "surface": "앱 다운로드"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "https://www.coupangeats.com/",
+     "role": "a",
+     "slot": "dom",
+     "surface": ""
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "사장님 입점 문의하기 1600-9827 쿠팡이츠로 매출을 올려보세요"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://ces.coupangeats.com/",
+     "role": "a",
+     "slot": "dom",
+     "surface": "배달 파트너 신청하기 반가워요 즐겁고 안전한 배달 함께 해요"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "https://www.coupangeats.com",
+     "role": "a",
+     "slot": "probe",
+     "surface": ""
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "배달파트너 신청"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://store.coupangeats.com/",
+     "role": "link",
+     "slot": "ax",
+     "surface": "사장님 입점 문의하기 1600-9827 쿠팡이츠로 매출을 올려보세요"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "dom",
+     "surface": "menu toggle"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://www.coupangeats.com/about/",
+     "role": "a",
+     "slot": "dom",
+     "surface": "브랜드 스토리"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://store.coupangeats.com/",
+     "role": "a",
+     "slot": "dom",
+     "surface": "사장님 입점 문의"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "https://www.coupangeats.com/",
+     "role": "link",
+     "slot": "ax",
+     "surface": "logo"
+    },
+    {
+     "dropped_by": "E1_APP_INSTALL",
+     "href": "#down",
+     "role": "a",
+     "slot": "dom",
+     "surface": "앱 다운로드"
+    },
+    {
+     "dropped_by": "E1_APP_INSTALL",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "앱 다운로드"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://ces.coupangeats.com/",
+     "role": "a",
+     "slot": "dom",
+     "surface": "배달파트너 신청"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://www.coupangeats.com/about/",
+     "role": "a",
+     "slot": "dom",
+     "surface": "브랜드 스토리 보러가기 쿠팡이츠의 이야기 조금 더 자세히 알아볼까요"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://www.coupangeats.com/about/",
+     "role": "a",
+     "slot": "dom",
+     "surface": "브랜드 스토리 보러가기 >"
+    },
+    {
+     "dropped_by": "E1_APP_INSTALL",
+     "href": "https://www.coupangeats.com/#elementor-action%3Aaction%3Dpopup%3Aopen%26settings%3DeyJpZCI6IjU0NzQiL",
+     "role": "link",
+     "slot": "ax",
+     "surface": "앱 다운로드"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "#elementor-action%3Aaction%3Dpopup%3Aopen%26settings%3DeyJpZCI6IjU0NTIiLCJ0b2dnbGUiOnRydWV9",
+     "role": "a",
+     "slot": "probe",
+     "surface": ""
+    },
+    {
+     "dropped_by": "E1_APP_INSTALL",
+     "href": "#elementor-action%3Aaction%3Dpopup%3Aopen%26settings%3DeyJpZCI6IjU0NzQiLCJ0b2dnbGUiOmZhbHNlfQ%3D%3D",
+     "role": "a",
+     "slot": "probe",
+     "surface": "앱 다운로드"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "사장님 입점 문의"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://www.coupangeats.com/about/",
+     "role": "link",
+     "slot": "ax",
+     "surface": "제목 없음 브랜드 스토리 보러가기 쿠팡이츠의 이야기 조금 더 자세히 알아볼까요"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "https://www.coupangeats.com/#elementor-action%3Aaction%3Dpopup%3Aopen%26settings%3DeyJpZCI6IjU0NTIiL",
+     "role": "link",
+     "slot": "ax",
+     "surface": ""
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://store.coupangeats.com/",
+     "role": "a",
+     "slot": "probe",
+     "surface": "사장님 입점 문의하기 1600-9827 쿠팡이츠로 매출을 올려보세요"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "https://www.coupangeats.com",
+     "role": "a",
+     "slot": "dom",
+     "surface": ""
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://ces.coupangeats.com/",
+     "role": "a",
+     "slot": "probe",
+     "surface": "배달 파트너 신청하기 반가워요 즐겁고 안전한 배달 함께 해요"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "브랜드 스토리"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "https://www.coupangeats.com/about/",
+     "role": "link",
+     "slot": "ax",
+     "surface": "브랜드 스토리 보러가기 >"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "menu toggle"
+    },
+    {
+     "dropped_by": "E4_CORPORATE_IR_RECRUIT",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "브랜드 스토리 보러가기 쿠팡이츠의 이야기 조금 더 자세히 알아볼까요"
+    }
+   ],
+   "verdict": "NO_FUNCTIONAL_EXIT_OBSERVED",
+   "verdict_reason": "n_cand=0",
+   "verdict_degenerate_included": "NO_FUNCTIONAL_EXIT_OBSERVED",
+   "sensitivity": {
+    "S1_ge3": false,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": false
+   }
+  },
+  {
+   "wtg": "51484a735cdb487b",
+   "service": "컴포즈커피",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "ITEM_DETAIL",
+   "url": "https://composecoffee.com/",
+   "base_registrable": "composecoffee.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_51484a735cdb487b-2026-08-27T052231789159Z",
+   "observation_id": "fe4869d78ce4af45bbe4eef640522d52",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 22,
+   "n_candidates": 0,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {},
+   "candidate_slot_exclusive": {},
+   "region_class_hits": {},
+   "exclusion_hits": {
+    "E7_NON_NAVIGATIONAL_HREF": 1,
+    "E6_UI_CHROME": 14,
+    "NO_FUNCTION_VOCAB": 7
+   },
+   "top_candidates": [],
+   "zero_candidate_audit": [
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "확인"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "본문으로 이동하기"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "창업 홈페이지"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "https://composecoffee.com/composefranchise",
+     "role": "a",
+     "slot": "dom",
+     "surface": "창업 홈페이지"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "https://composecoffee.com/composefranchise",
+     "role": "link",
+     "slot": "ax",
+     "surface": "창업 홈페이지"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "input",
+     "slot": "probe",
+     "surface": ""
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "https://composecoffee.com/index1",
+     "role": "a",
+     "slot": "dom",
+     "surface": "브랜드 홈페이지"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "브랜드 홈페이지"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "dom",
+     "surface": "취소"
+    },
+    {
+     "dropped_by": "E7_NON_NAVIGATIONAL_HREF",
+     "href": "",
+     "role": "a",
+     "slot": "dom",
+     "surface": "본문으로 이동하기"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "새로고침"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "dom",
+     "surface": "닫기"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "dom",
+     "surface": "확인"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "https://composecoffee.com/index1",
+     "role": "link",
+     "slot": "ax",
+     "surface": "브랜드 홈페이지"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "https://composecoffee.com/",
+     "role": "link",
+     "slot": "ax",
+     "surface": "본문으로 이동하기"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "https://composecoffee.com/composefranchise",
+     "role": "a",
+     "slot": "probe",
+     "surface": "창업 홈페이지"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "취소"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "https://composecoffee.com/index1",
+     "role": "a",
+     "slot": "probe",
+     "surface": "브랜드 홈페이지"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "input",
+     "slot": "dom",
+     "surface": "영어 단어 입력"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "button",
+     "slot": "dom",
+     "surface": "새로고침"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "닫기"
+    }
+   ],
+   "verdict": "NO_FUNCTIONAL_EXIT_OBSERVED",
+   "verdict_reason": "n_cand=0",
+   "verdict_degenerate_included": "NO_FUNCTIONAL_EXIT_OBSERVED",
+   "sensitivity": {
+    "S1_ge3": false,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": false
+   }
+  },
+  {
+   "wtg": "d5ae5426eac23877",
+   "service": "모니모",
+   "identity_class": "UNDETERMINED",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "url": "https://www.monimo.com/",
+   "base_registrable": "monimo.com",
+   "worker": "w04",
+   "run_dir": "e001_full-wtg_d5ae5426eac23877-2026-08-27T052302742466Z",
+   "observation_id": "89146aa39a5c3f02ebdd9f69ebbd4486",
+   "slots_status": {
+    "dom": "OK",
+    "ax": "OK",
+    "probe": "OK"
+   },
+   "degenerate_capture": false,
+   "n_nodes_scanned": 33,
+   "n_candidates": 0,
+   "n_candidates_visible_hittable": 0,
+   "n_weak_auth_candidates": 0,
+   "candidate_slot_provenance": {},
+   "candidate_slot_exclusive": {},
+   "region_class_hits": {},
+   "exclusion_hits": {
+    "NO_FUNCTION_VOCAB": 14,
+    "E6_UI_CHROME": 3,
+    "E1_APP_INSTALL": 8,
+    "E3_LEGAL_POLICY": 4,
+    "E7_NON_NAVIGATIONAL_HREF": 2,
+    "E5_SUPPORT_META": 2
+   },
+   "top_candidates": [],
+   "zero_candidate_audit": [
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "공동인증서"
+    },
+    {
+     "dropped_by": "E3_LEGAL_POLICY",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "이용약관"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": ""
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "모니모 소개"
+    },
+    {
+     "dropped_by": "E1_APP_INSTALL",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "google play"
+    },
+    {
+     "dropped_by": "E7_NON_NAVIGATIONAL_HREF",
+     "href": "tel:1588-8700",
+     "role": "a",
+     "slot": "probe",
+     "surface": "1588-8700"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "1588-7882"
+    },
+    {
+     "dropped_by": "E7_NON_NAVIGATIONAL_HREF",
+     "href": "tel:15887882",
+     "role": "a",
+     "slot": "probe",
+     "surface": "1588-7882"
+    },
+    {
+     "dropped_by": "E1_APP_INSTALL",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "앱 다운로드"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "go top"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "a",
+     "slot": "probe",
+     "surface": "1588-8700"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "삼성금융네트웍스"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "내게 딱 맞는 금융"
+    },
+    {
+     "dropped_by": "NO_FUNCTION_VOCAB",
+     "href": "",
+     "role": "button",
+     "slot": "dom",
+     "surface": ""
+    },
+    {
+     "dropped_by": "E5_SUPPORT_META",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "고객센터"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "ax",
+     "surface": "이전 페이지로 가기"
+    },
+    {
+     "dropped_by": "E6_UI_CHROME",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "gnb 열기"
+    },
+    {
+     "dropped_by": "E5_SUPPORT_META",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "공지사항"
+    },
+    {
+     "dropped_by": "E3_LEGAL_POLICY",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "개인정보처리방침"
+    },
+    {
+     "dropped_by": "E1_APP_INSTALL",
+     "href": "",
+     "role": "button",
+     "slot": "probe",
+     "surface": "app store"
+    }
+   ],
+   "verdict": "NO_FUNCTIONAL_EXIT_OBSERVED",
+   "verdict_reason": "n_cand=0",
+   "verdict_degenerate_included": "NO_FUNCTIONAL_EXIT_OBSERVED",
+   "sensitivity": {
+    "S1_ge3": false,
+    "S2_visible_hittable_ge1": false,
+    "S3_with_weak_auth_ge1": false
+   }
+  }
+ ],
+ "not_answered_by_this_inquiry": [
+  "후보가 실제로 작동하는지 — 어떤 후보도 클릭하지 않았다 (live navigation 없음).",
+  "후보가 어느 archetype 의 Region 인지 — 정하지 않는다. region_class_hits 는 다중 라벨 힌트일 뿐 archetype 판정이 아니다.",
+  "대표기능 gold label — 생성하지 않았다.",
+  "frame 을 고쳐야 하는지 — A 의 권한이다."
+ ],
+ "verdict": "SUPPORTED",
+ "verdict_basis": "대상군에서 shallow L1 후보가 압도적으로 관측됐다. 다만 대조군도 같은 수준이므로 이 지표는 존재 주장만 지지하고 판별력은 없다.",
+ "limitation": "후보는 존재 주장이지 도달 주장이 아니다. 어휘 사전은 연구자가 만든 것이고 상한 없는 재현율을 주장하지 않는다. 제외 규칙(특히 E5 고객지원·E9 auth)은 보수적으로 설계돼 후보를 과소계수하는 방향이며, 그래도 대상군이 거의 전부 RECOVERABLE 이면 그 결론은 보수적 방향에서 안전하다. probe primary_action_candidates 는 200개에서 절단(cap)된 target 이 7개 있어 후보 개수의 상단이 censored 다 (≥1 규칙에는 영향 없음). CORPORATE_OR_APP_LANDING stratum 은 n=3 이라 Wilson CI 가 매우 넓다 — 과해석 금지.",
+ "firewall_note": "holdout label · LABEL_SPLIT_FROZEN* · HOLDOUT_FOR_C* · RAW_L1~L4* · PACKET_L* · *_OVERLAP* · PRECEDENCE_CONTESTED* · CALIBRATION_FOR_B* · **/control/** · B/C 의 target-level holdout error report 는 **열지 않았다**. 이 분석은 l0a slot 3개 파일(dom.html/ax.json/probe.json)과 research_d/results 만 읽었다."
+}
