@@ -1,0 +1,69 @@
+{
+  "_about": {
+    "id": "Δ22-scrollfix",
+    "purpose": "커밋된 스크롤 fixture. GATE 1 이 S1..Sn 을 재현 가능하게 검증하는 대상이다.",
+    "why": [
+      "fixtures/v3 13종은 13/13 이 body{overflow:hidden} 이고 scrollHeight==clientHeight==844 라",
+      "그 집합으로는 scroll 경로가 영원히 검증되지 않는다 — 열거 코드가 있어도 그렇다.",
+      "W5H 는 런타임 임시 파일로 대조했으므로 재현할 대상이 남지 않는다."
+    ],
+    "enumerator": "이 lane 은 열거 구현을 갖지 않는다. 정본은 W5H v3_runner/session.py::FixtureSessionDriver.capture_surface 이며, 이 fixture 는 그 구동기의 **입력**이다.",
+    "judgement": "first_observed_state 의 판정 정본은 W5C v3_runner/surface.py::measure_surface 다. 아래 controls.first_observed_state 는 **병합 시점에 그 구현이 재현해야 할 기대값**이고, 이 브랜치의 테스트는 그것을 판정하지 않는다 — fixture 의 **기하**(문서 y 위치·렌더 여부)만 실측한다.",
+    "viewport_css_px": [390, 844],
+    "measured_with": "chromium headless, L0Collector._new_context 공통 모바일 컨텍스트 (03 §1)",
+    "scroll_policy_note": "보폭 수치는 이 파일이 정하지 않는다. W5H ScrollPolicy(step_ratio=1.0, max_states=8) 를 그대로 쓴다. 아래 expected_scroll_offsets 는 step=innerHeight 기준 실측값이다.",
+    "control_pair": "scroll_reveal_control = 양성(스크롤됨, S0..S3) · scroll_single_state = 음성(스크롤 안 됨, S0 하나). 둘 다 있어야 검사가 동작하는지 알 수 있다."
+  },
+  "fixtures": {
+    "scroll_reveal_control.html": {
+      "validates": "양성 대조군 — 문서가 실제로 스크롤되어 S0..S3 4단계가 나고, 마크업이 같은 세 control 이 S0 · S1 · 끝내 미관측(NULL) 으로 갈린다.",
+      "sha256": "e3b0a07533cc7c29b5e93eedcc5aa3e0aacbdf9262b6d80ce0cc3bd07ec69759",
+      "scrolls": true,
+      "document_scroll_height_css_px": 2616,
+      "viewport_inner_height_css_px": 844,
+      "max_scroll_y_css_px": 1772,
+      "expected_scroll_states": 4,
+      "expected_state_indices": ["S0", "S1", "S2", "S3"],
+      "expected_scroll_offsets_css_px": [0, 844, 1688, 1772],
+      "controls": {
+        "button#ctl-s0": {
+          "first_observed_state": "S0",
+          "rendered": true,
+          "means": "최초 viewport 안에서 이미 보였다",
+          "geometry": "offset 0 에서 viewport 와 교차한다"
+        },
+        "button#ctl-s1": {
+          "first_observed_state": "S1",
+          "rendered": true,
+          "means": "접힌 아래에 있었고 스크롤해서 봤다 — S0 만 찍으면 아래 NULL 과 구분되지 않는다",
+          "geometry": "offset 0 에서는 viewport 밖, offset 844 에서 교차한다"
+        },
+        "button#ctl-never": {
+          "first_observed_state": null,
+          "rendered": false,
+          "means": "열거한 모든 state 에서 끝내 관측하지 못했다 (Δ15 GAP-02 의 유일한 NULL)",
+          "geometry": "display:none 이라 어느 offset 에서도 렌더되지 않는다"
+        }
+      }
+    },
+    "scroll_single_state.html": {
+      "validates": "음성 대조군 — 한 화면에 들어가는 문서는 scrollTo 를 불러도 움직이지 않고 S0 하나만 낸다.",
+      "sha256": "cc5ce96942305b7503abd7b12db5d8184a4c87bff1c60e616a5a247a838bb8b0",
+      "scrolls": false,
+      "document_scroll_height_css_px": 844,
+      "viewport_inner_height_css_px": 844,
+      "max_scroll_y_css_px": 0,
+      "expected_scroll_states": 1,
+      "expected_state_indices": ["S0"],
+      "expected_scroll_offsets_css_px": [0],
+      "controls": {
+        "button#ctl-s0": {
+          "first_observed_state": "S0",
+          "rendered": true,
+          "means": "S0 하나만 나오고 그 안에서 보인다",
+          "geometry": "offset 0 에서 viewport 와 교차한다"
+        }
+      }
+    }
+  }
+}

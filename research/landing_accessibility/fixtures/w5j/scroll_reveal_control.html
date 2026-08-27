@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>W5J scroll state 대조군</title>
+<!--
+FIXTURE: scroll_reveal_control
+검증 대상: SSOTV3 03 §3 "고정 scroll 정책으로 S1...Sn 을 만들고 task-entry control 의
+최초 관측 state 를 기록한다" 와 Δ15 GAP-02 "NULL 은 끝내 미관측일 때뿐".
+
+이 fixture 의 요점은 **세 control 이 마크업상 서로 같다는 것**이다. 세 개 모두
+`<button class="cta" data-role="cta">` 이고 텍스트 길이·클래스·속성이 같다. 다른 것은
+문서 안의 세로 위치와 `display` 뿐이다. 그래서 세 값이 갈리면 그 원인은 마크업 차이가
+아니라 **scroll state 열거** 다.
+
+  #ctl-s0     — 최초 viewport(844 CSS px) 안.        기대 first_observed_state = "S0"
+  #ctl-s1     — 문서 y 약 1100px. S0 밖, S1 안.      기대 first_observed_state = "S1"
+  #ctl-never  — display:none. 어느 state 에서도      기대 first_observed_state = None
+                probe 의 가시 목록에 들어가지 않는다.
+
+base SHA 7c5ae70 의 수집기(S0 만 찍음)에서는 #ctl-s1 과 #ctl-never 가 **구분되지
+않는다** — 둘 다 "S0 에 없음" 으로만 보인다. 그 구분이 이 lane 의 존재 이유다.
+
+대역 합은 2600px 이고 실측 document.documentElement.scrollHeight 는 **2616px** 이다
+(문단 기본 margin 이 마지막 대역 밖으로 밀린다 — 값은 브라우저에서 잰 것을 쓴다).
+viewport 844 에서 최대 scroll 위치는 2616-844 = **1772** 이고, 보폭 844 로 걸으면
+offset 열은 0 / 844 / 1688 / 1772 → **S0..S3, 4단계**다. 이 수치의 기계 판독본은
+expectations.json 이고 tests/test_w5j_scroll_state.py 가 실제 브라우저에서 재확인한다.
+실사이트를 참조하지 않는다. 외부 리소스를 하나도 불러오지 않는다.
+-->
+<style>
+  body { margin: 0; font-family: sans-serif; }
+  .band { padding: 0; }
+  .cta {
+    display: inline-block; margin: 0; padding: 12px 20px;
+    font-size: 16px; border: 1px solid #333; background: #fff; color: #111;
+  }
+  #ctl-never { display: none; }
+  .filler { color: #444; padding: 0 16px; }
+</style>
+</head>
+<body>
+
+<!-- ── S0 대역: 문서 y 0 ~ 844 ──────────────────────────────────────────── -->
+<div class="band" style="height: 844px;">
+  <h1 style="margin:0;padding:16px;font-size:20px">최초 화면</h1>
+  <p class="filler">S0 에서 보이는 영역이다.</p>
+  <button class="cta" id="ctl-s0" data-role="cta">지금 신청하기</button>
+</div>
+
+<!-- ── S1 대역: 문서 y 844 ~ 1688. control 은 약 y=1100 ─────────────────── -->
+<div class="band" style="height: 844px;">
+  <div style="height: 256px"></div>
+  <h2 style="margin:0;padding:0 16px;font-size:18px">접힌 아래</h2>
+  <p class="filler">S0 viewport 밖이다. 스크롤해야 보인다.</p>
+  <button class="cta" id="ctl-s1" data-role="cta">지금 신청하기</button>
+</div>
+
+<!-- ── 나머지 대역: 문서를 2600px 까지 채운다 ───────────────────────────── -->
+<div class="band" style="height: 912px;">
+  <p class="filler">문서 하단.</p>
+  <button class="cta" id="ctl-never" data-role="cta">지금 신청하기</button>
+</div>
+
+</body>
+</html>
