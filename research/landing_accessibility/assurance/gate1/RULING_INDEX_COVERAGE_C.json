@@ -303,20 +303,6 @@
    "gap_note": "STEP3: compare B's analysis output for both denominators per family; C's reading 'F2–F5 AUTH_GATE stays inside the reach-rate denominator as not-reached' (lane6 README R2 row) must be confirmed by A before GATE 3."
   },
   {
-   "id": "Δ8-R3",
-   "due": "GATE1",
-   "verified_by": "C",
-   "requires": "task_role PRIMARY/SECONDARY_REPEATED. family 집계는 PRIMARY 만 + 필터 조건 문자열 기록",
-   "must_appear_in": "mart 스키마 + 집계 산출",
-   "C_check": [
-    "lane6_stats/c_flow_derive.py::_task_role_of / split_by_task_role / PRIMARY_FILTER_CONDITION (family_summary, pairwise_matrix, denominator_chain emit filter_condition literal; missing/unknown task_role raises), compare_with_mart_row carries task_role",
-    "lane6_stats/test_c_flow_derive.py::test_task_role_filter_and_secondary_summary",
-    "run_gate1.py item L6-recompute-compare (schema check: task_role on every row)"
-   ],
-   "coverage": "COVERED_PENDING_ADAPTER",
-   "gap_note": "Needs adapter map only. Aggregate-side filter-string check on B's family report is GATE 3 (P-41 follow_up)."
-  },
-  {
    "id": "Δ8-R4",
    "due": "STEP3",
    "verified_by": "C",
@@ -414,21 +400,6 @@
    ],
    "coverage": "NOT_DUE_YET",
    "gap_note": "GATE3: cell-by-cell comparison of all three matrices against B's family report; any clustering/MDS artifact from B must carry the Yujian-Bo companion."
-  },
-  {
-   "id": "Δ10-R13",
-   "due": "GATE1",
-   "verified_by": "C",
-   "requires": "auth_gate_stage 에 UNDETERMINED. NONE 은 적극적 주장. 전 변수 적용. UNDETERMINED 는 분모에서 빼지 않음",
-   "must_appear_in": "관측 행 + 집계",
-   "C_check": [
-    "lane6_stats/c_flow_derive.py::AUTH_GATE_STAGES (incl. UNDETERMINED), auth_gate_stage_from_sequence (NONE only for a fully observed gate-free path), derive → UNDETERMINED for ABSTAIN/incomplete; family_summary keeps UNDETERMINED/NOT_OBSERVED as explicit categories (n_unobserved_explicit, never dropped from n)",
-    "lane6_stats/test_c_flow_derive.py::test_auth_gate_stage_undetermined_vs_none / test_family_summary_missing_and_n_not_10 / test_gap04_null_convention",
-    "lane5_evidence/evidence_lineage_check.py::check_flow — AFFIRMATIVE_WITHOUT_EVIDENCE (NONE on EVIDENCE_DEFECT/ABSTAIN) and AUTH_GATE×NONE/UNDETERMINED violations",
-    "lane1 EXPECTATIONS auth_gate_stage_allowed=[NONE] only on reached fixtures; run_gate1.py L6-recompute-compare (auth_gate_stage ∈ AUTH_GATE_STAGES), L5-runner-evidence-tree"
-   ],
-   "coverage": "COVERED_PENDING_ADAPTER",
-   "gap_note": "Needs adapter map. '전 변수 적용': C has no inventory of B's mart variables that lack an undetermined value (ruling: raise immediately when found) — add to L6 schema checks: for every categorical column in B's fact_* schema assert an UNDETERMINED/NOT_OBSERVED member exists, list those without."
   },
   {
    "id": "Δ10-R14",
@@ -804,9 +775,50 @@
    "verified_by": "C",
    "coverage": "PARTIAL",
    "C_check": "index↔delta done (C-FINDING-040011); delta↔ticket cross-check to be added to c_bus_scan"
+  },
+  {
+   "id": "Δ8-R3a",
+   "due": "GATE1",
+   "requires": "task_role 필드 PRIMARY/SECONDARY_REPEATED 가 mart 스키마에 존재하고 관측 행에 실린다",
+   "must_appear_in": "mart 스키마 · 관측 행",
+   "authority": "Δ8",
+   "verified_by": "C",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "C_check": "lane6 c_flow_derive: task_role mandatory (raises if missing); comparators check runner rows carry task_role ∈ {PRIMARY, SECONDARY_REPEATED}"
+  },
+  {
+   "id": "Δ8-R3b",
+   "due": "STEP3",
+   "requires": "family-level 집계가 task_role='PRIMARY' 로만 필터하고 **적용된 필터 조건 문자열**을 산출에 남긴다",
+   "must_appear_in": "집계 산출",
+   "authority": "Δ8",
+   "verified_by": "C",
+   "coverage": "NOT_DUE_YET",
+   "C_check": "GATE 3: lane6 family_summary/pairwise/denominator_chain emit filter_condition=\"task_role == 'PRIMARY'\" literal; C compares B mart aggregation filter string"
+  },
+  {
+   "id": "Δ10-R13a",
+   "due": "GATE1",
+   "requires": "auth_gate_stage 에 UNDETERMINED 값이 존재하고 NONE 은 '관측했고 없었다'는 적극적 주장으로 구현된다. 전 변수에 판정불능 값 존재",
+   "must_appear_in": "관측 행 · 스키마",
+   "authority": "Δ10-R13",
+   "verified_by": "C",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "C_check": "lane6 auth_gate_stage UNDETERMINED (NONE requires fully observed path) + lane5 AFFIRMATIVE_WITHOUT_EVIDENCE + GAP-04 null convention checks"
+  },
+  {
+   "id": "Δ10-R13b",
+   "due": "STEP3",
+   "requires": "UNDETERMINED 를 분모에서 빼지 않고 별도 범주로 보고한다",
+   "must_appear_in": "집계 산출",
+   "authority": "Δ10-R13",
+   "verified_by": "C",
+   "coverage": "NOT_DUE_YET",
+   "C_check": "GATE 3: lane6 family_summary reports UNDETERMINED as its own category, not dropped from denominator — verify B aggregation does the same"
   }
  ],
- "index_version": 3,
+ "index_version": 4,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
- "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365"
+ "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
+ "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1"
 }
