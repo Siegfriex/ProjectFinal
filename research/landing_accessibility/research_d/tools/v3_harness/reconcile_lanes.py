@@ -199,6 +199,43 @@ def run_controls() -> dict:
                    "'교차 문제 0 건' 은 0 이 아니다 (D-DEF-11)"}
 
 
+def _r35_block(tool_file: str, demo_key: str) -> dict:
+    """Δ41-R35 — 산출물이 담아야 하는 넷 중 (3)(4).
+
+    (3) **실행으로 실증된** 실패 시 동작. 실증은 `control_failure_demo.py` 가
+        따로 수행하고 그때의 **도구 sha** 를 함께 남긴다. 여기서는 그 sha 가
+        지금 도구와 같은지 확인한다 — 다르면 `valid_for_this_commit=False`
+        이고, **없는 실증을 있는 것으로 읽지 않는다.**
+    (4) 도구 경로와 커밋.
+    """
+    import hashlib as _h, json as _j, subprocess as _s
+    from pathlib import Path as _P
+    rd = _P(__file__).resolve().parents[2]
+    tp = rd / tool_file
+    cur = _h.sha256(tp.read_bytes()).hexdigest() if tp.exists() else None
+    demo_p = rd / "results" / "CONTROL_FAILURE_DEMOS.json"
+    demo = None
+    if demo_p.exists():
+        try:
+            demo = _j.loads(demo_p.read_text(encoding="utf-8"))["demos"].get(demo_key)
+        except Exception:
+            demo = None
+    return {
+        "rule": "Δ41-R35 — 대조 목록 · 각 결과 · 실행으로 실증된 실패 시 동작 · 도구 경로와 커밋",
+        "tool": {"path": tool_file,
+                 "sha256": cur,
+                 "commit": _s.run(["git", "rev-parse", "HEAD"], capture_output=True,
+                                  text=True).stdout.strip()},
+        "on_control_failure": {
+            "behavior": "대조군 실패 시 exit 3 이며 산출 파일을 쓰지 않는다",
+            "demonstrated_in": "results/CONTROL_FAILURE_DEMOS.json",
+            "demonstration": demo,
+            "valid_for_this_commit": bool(demo and demo.get("tool_sha256") == cur
+                                          and demo.get("verdict") == "PASS"),
+        },
+    }
+
+
 def main() -> int:
     ctl = run_controls()
     if ctl["verdict"] != "PASS":
@@ -235,6 +272,7 @@ def main() -> int:
         # 없으면, 읽는 쪽은 그 수치가 통제된 방법에서 나왔는지 알 수 없다.
         # B 가 T-B-V3-RECON-004 에서 목록 산출의 완료 조건으로 건 것이다.
         "controls": ctl,
+        "r35": _r35_block("tools/v3_harness/reconcile_lanes.py", "reconcile_lanes"),
         "note": ("빈 결과를 정상으로 읽지 않는다. lane 산출이 없으면 MISSING 이고 verdict 는 NOT_READY 다. "
                  "cross_lane_issues 가 비었다는 것은 lane 이 전부 COMPLETE 일 때만 의미가 있다."),
     }

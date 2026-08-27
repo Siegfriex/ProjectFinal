@@ -30,6 +30,43 @@ DELTA = Path(
 HEAD = re.compile(r"^#{2,4}\s*((?:Δ\d+[a-z]?(?:-[A-Za-z0-9]+)?)|(?:R\d+)|(?:P-?\d+)|(?:GAP-?\d+))\b", re.M)
 
 
+def _r35_block(tool_file: str, demo_key: str) -> dict:
+    """Δ41-R35 — 산출물이 담아야 하는 넷 중 (3)(4).
+
+    (3) **실행으로 실증된** 실패 시 동작. 실증은 `control_failure_demo.py` 가
+        따로 수행하고 그때의 **도구 sha** 를 함께 남긴다. 여기서는 그 sha 가
+        지금 도구와 같은지 확인한다 — 다르면 `valid_for_this_commit=False`
+        이고, **없는 실증을 있는 것으로 읽지 않는다.**
+    (4) 도구 경로와 커밋.
+    """
+    import hashlib as _h, json as _j, subprocess as _s
+    from pathlib import Path as _P
+    rd = _P(__file__).resolve().parents[2]
+    tp = rd / tool_file
+    cur = _h.sha256(tp.read_bytes()).hexdigest() if tp.exists() else None
+    demo_p = rd / "results" / "CONTROL_FAILURE_DEMOS.json"
+    demo = None
+    if demo_p.exists():
+        try:
+            demo = _j.loads(demo_p.read_text(encoding="utf-8"))["demos"].get(demo_key)
+        except Exception:
+            demo = None
+    return {
+        "rule": "Δ41-R35 — 대조 목록 · 각 결과 · 실행으로 실증된 실패 시 동작 · 도구 경로와 커밋",
+        "tool": {"path": tool_file,
+                 "sha256": cur,
+                 "commit": _s.run(["git", "rev-parse", "HEAD"], capture_output=True,
+                                  text=True).stdout.strip()},
+        "on_control_failure": {
+            "behavior": "대조군 실패 시 exit 3 이며 산출 파일을 쓰지 않는다",
+            "demonstrated_in": "results/CONTROL_FAILURE_DEMOS.json",
+            "demonstration": demo,
+            "valid_for_this_commit": bool(demo and demo.get("tool_sha256") == cur
+                                          and demo.get("verdict") == "PASS"),
+        },
+    }
+
+
 def main() -> int:
     idx = Index()
     text = DELTA.read_text(encoding="utf-8")
@@ -121,6 +158,14 @@ def main() -> int:
     ctrl = {
         "delta_heads_found": len(heads),
         "index_rows": len(idx.rows),
+        "naming": "Δ40 — must_flag / must_not_flag ('양성/음성' 은 두 뜻으로 쓰여 버린다)",
+        "expectations": {
+            "positive_control": "must_flag — 실재하는 id 는 검출돼야 한다",
+            "negative_control": "must_not_flag — 색인에 없는 id 는 None(UNKNOWN)",
+            "discriminating_control": "must_not_flag — 부모 절이 있는 가짜 자식은 미도달",
+            "coverage_control": "must_not_flag — 없는 절 표제는 커버 아님",
+            "positive_reach_control": "must_flag — 선언된 경로로 실제 도달하는 행",
+        },
         "positive_control": idx.present("Δ21", text),      # 반드시 True
         "negative_control": idx.present("Δ999-R99", text),  # 반드시 None
         # --- 판별 대조군 ---
@@ -202,6 +247,7 @@ def main() -> int:
                   "authority_sha": idx.authority_sha, "rows": len(idx.rows)},
         "delta": {"path": str(DELTA), "sha256": delta_sha},
         "control": ctrl,
+        "r35": _r35_block("tools/v3_harness/index_delta_crosscheck.py", "index_delta_crosscheck"),
         "A_delta_head_to_index": {"n": len(heads), "covered": len(a_hit),
                                   "rule": "A self_check.delta_section_coverage — 별칭/자식행/선언된 컨테이너",
                                   "by_path": {k: sum(1 for x in a_hit if x["via"] == k)
@@ -220,6 +266,19 @@ def main() -> int:
         "claim_kind": "OBSERVATION",
         "not_a_verdict": "D 는 색인·delta 를 고치라고 판정하지 않는다. 미해결 항목은 A 판정 대상이다.",
     }
+    # [Δ41-R35 시정] 대조군이 실패하면 **산출을 쓰지 않는다.**
+    # 이전 판본은 ctrl 을 계산해 넣고도 파일을 먼저 썼고, exit 3 만 냈다.
+    # 실패한 대조 아래 나온 수치가 디스크에 남으면 다음에 읽는 쪽은 그것을
+    # 정상 산출과 구분하지 못한다 — reconcile_lanes 는 이미 막고 있었는데
+    # 이 도구는 아니었다. control_failure_demo.py 가 그 차이를 잡았다.
+    if ctrl["verdict"] != "PASS":
+        print("!! 대조군 실패 — 산출을 쓰지 않는다")
+        for k in ("positive_control", "negative_control"):
+            print(f"   {k}: {ctrl.get(k)}")
+        print(f"   discriminating: {ctrl['discriminating_control']}")
+        print(f"   positive_reach: {ctrl['positive_reach_control']}")
+        return 3
+
     Path("results/D_V3_INDEX_DELTA_CROSSCHECK_v3resolver.json").write_text(
         json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     dc = ctrl["discriminating_control"]

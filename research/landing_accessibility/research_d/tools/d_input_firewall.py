@@ -288,6 +288,34 @@ def run_controls(denied) -> dict:
                    "못 막는 스캐너의 FAIL=0 은 0 이 아니다"}
 
 
+def _r35_block() -> dict:
+    """Δ41-R35 (3)(4). 방화벽은 실패 시 **쓰지 않는** 것이 아니라
+    `verdict=CONTROL_FAIL` 로 **기록하고** exit 2 한다 — 감사 흔적을 남기는 쪽이
+    맞다고 보기 때문이다. 실증도 그 의미로 잰다."""
+    import hashlib as _h, json as _j, subprocess as _s
+    from pathlib import Path as _P
+    tp = _P(__file__).resolve()
+    rd = tp.parents[1]
+    cur = _h.sha256(tp.read_bytes()).hexdigest()
+    demo_p = rd / "results" / "CONTROL_FAILURE_DEMOS.json"
+    demo = None
+    if demo_p.exists():
+        try:
+            demo = _j.loads(demo_p.read_text(encoding="utf-8"))["demos"].get("d_input_firewall")
+        except Exception:
+            demo = None
+    return {"rule": "Δ41-R35",
+            "tool": {"path": "tools/d_input_firewall.py", "sha256": cur,
+                     "commit": _s.run(["git", "rev-parse", "HEAD"], capture_output=True,
+                                      text=True).stdout.strip()},
+            "on_control_failure": {
+                "behavior": "verdict=CONTROL_FAIL 로 기록하고 exit 2 — 지우지 않고 남긴다",
+                "demonstrated_in": "results/CONTROL_FAILURE_DEMOS.json",
+                "demonstration": demo,
+                "valid_for_this_commit": bool(demo and demo.get("tool_sha256") == cur
+                                              and demo.get("verdict") == "PASS")}}
+
+
 def main() -> int:
     global OUT_NAME, SCAN_LABEL
     args = sys.argv[1:]
@@ -337,6 +365,7 @@ def main() -> int:
         "scanned_files": len(files),
         "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
         "controls": controls,
+        "r35": _r35_block(),
         "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
         "fail_count": len(fails),
         "warn_count": len(warns),

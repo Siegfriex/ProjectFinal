@@ -1,7 +1,7 @@
 {
  "reconciliation_id": "D_V3_LANE_RECONCILIATION",
  "verdict": "RECONCILIATION_REQUIRED",
- "orchestrator_head": "99806b8d8accf1b4c3a078bf89bb8b49ec4ac3e9",
+ "orchestrator_head": "43640ea88a506f3fdb15836240a2f30f867c7064",
  "orchestrator_dirty": true,
  "lanes": [
   {
@@ -140,6 +140,35 @@
   ],
   "naming": "Δ40 — must_flag / must_not_flag ('양성/음성' 은 두 뜻으로 쓰여 버린다)",
   "why": "대조군이 실패하면 목록을 내지 않는다 — 못 잡는 대조기의 '교차 문제 0 건' 은 0 이 아니다 (D-DEF-11)"
+ },
+ "r35": {
+  "rule": "Δ41-R35 — 대조 목록 · 각 결과 · 실행으로 실증된 실패 시 동작 · 도구 경로와 커밋",
+  "tool": {
+   "path": "tools/v3_harness/reconcile_lanes.py",
+   "sha256": "fce23ce052b826464bc22552bed3d9bde27239e01303f45805f6925fd8191c2d",
+   "commit": "43640ea88a506f3fdb15836240a2f30f867c7064"
+  },
+  "on_control_failure": {
+   "behavior": "대조군 실패 시 exit 3 이며 산출 파일을 쓰지 않는다",
+   "demonstrated_in": "results/CONTROL_FAILURE_DEMOS.json",
+   "demonstration": {
+    "demonstrated": true,
+    "mutation": "def _names(container) -> list[str]: → def _names(container) -> list[str]:\n    return []  # MUTATIO",
+    "exit_code": 3,
+    "exit_as_expected": true,
+    "first_output_line": "!! 대조군 실패 — RECONCILIATION 을 쓰지 않는다",
+    "guarded_files_unchanged": true,
+    "guarded_files": [
+     "results/harness/RECONCILIATION.json"
+    ],
+    "tool": "tools/v3_harness/reconcile_lanes.py",
+    "tool_sha256": "fce23ce052b826464bc22552bed3d9bde27239e01303f45805f6925fd8191c2d",
+    "why_this_mutation": "D-DEF-11 재현 — 이름 추출이 실패하면 겹침이 있어도 0 건이 된다",
+    "expect_exit": 3,
+    "verdict": "PASS"
+   },
+   "valid_for_this_commit": true
+  }
  },
  "note": "빈 결과를 정상으로 읽지 않는다. lane 산출이 없으면 MISSING 이고 verdict 는 NOT_READY 다. cross_lane_issues 가 비었다는 것은 lane 이 전부 COMPLETE 일 때만 의미가 있다."
 }

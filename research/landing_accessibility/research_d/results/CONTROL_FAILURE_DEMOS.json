@@ -1,0 +1,54 @@
+{
+ "artifact": "D_CONTROL_FAILURE_DEMOS",
+ "measured_at_kst": "2026-08-28T08:41:39+09:00",
+ "d_head": "43640ea88a506f3fdb15836240a2f30f867c7064",
+ "rule": "Δ41-R35 — 실행으로 실증된 실패 시 동작",
+ "demos": {
+  "d_input_firewall": {
+   "demonstrated": true,
+   "mutation": "def severity(hit: dict, text: str) -> str: → def severity(hit: dict, text: str) -> str:\n    return \"ALLOW",
+   "exit_code": 2,
+   "recorded_verdict": "CONTROL_FAIL",
+   "verdict_as_expected": true,
+   "artifact_kept": true,
+   "tool": "tools/d_input_firewall.py",
+   "tool_sha256": "ac7fb58ad74d1631b7b3f14a724fb053c8b2164581c3a39174f63023533e30ef",
+   "why_this_mutation": "매처가 열리면 금지 경로가 전부 허용된다",
+   "expected_behavior": "CONTROL_FAIL 로 기록하고 exit 2",
+   "verdict": "PASS"
+  },
+  "reconcile_lanes": {
+   "demonstrated": true,
+   "mutation": "def _names(container) -> list[str]: → def _names(container) -> list[str]:\n    return []  # MUTATIO",
+   "exit_code": 3,
+   "exit_as_expected": true,
+   "first_output_line": "!! 대조군 실패 — RECONCILIATION 을 쓰지 않는다",
+   "guarded_files_unchanged": true,
+   "guarded_files": [
+    "results/harness/RECONCILIATION.json"
+   ],
+   "tool": "tools/v3_harness/reconcile_lanes.py",
+   "tool_sha256": "fce23ce052b826464bc22552bed3d9bde27239e01303f45805f6925fd8191c2d",
+   "why_this_mutation": "D-DEF-11 재현 — 이름 추출이 실패하면 겹침이 있어도 0 건이 된다",
+   "expect_exit": 3,
+   "verdict": "PASS"
+  },
+  "index_delta_crosscheck": {
+   "demonstrated": true,
+   "mutation": "def reach(rid, tokens): → def reach(rid, tokens):\n        return None  # MUTATION",
+   "exit_code": 3,
+   "exit_as_expected": true,
+   "first_output_line": "!! 대조군 실패 — 산출을 쓰지 않는다",
+   "guarded_files_unchanged": true,
+   "guarded_files": [
+    "results/D_V3_INDEX_DELTA_CROSSCHECK_v3resolver.json"
+   ],
+   "tool": "tools/v3_harness/index_delta_crosscheck.py",
+   "tool_sha256": "f05a7f1c0a6943dd6fcad027a4a07e97ff9afd472f7e6f8cb5c07f2bd04373bc",
+   "why_this_mutation": "도달 판정이 무조건 미도달이 되면 전 행이 '미도달' 로 보고된다",
+   "expect_exit": 3,
+   "verdict": "PASS"
+  }
+ },
+ "verdict": "PASS"
+}

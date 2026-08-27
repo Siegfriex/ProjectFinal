@@ -1,20 +1,28 @@
 {
  "tool": "tools/v3_harness/index_delta_crosscheck.py",
  "resolver": "ruling_id_norm v3 — 색인 aliases 조회, 추론 없음",
- "checked_at_kst": "2026-08-28T08:20:57+09:00",
+ "checked_at_kst": "2026-08-28T08:41:39+09:00",
  "index": {
-  "version": 29,
-  "sha256": "e5737ef581516a647d7d9640a8b199704a99a632cf1b034d6336ed0c627e826a",
-  "authority_sha": "adcdcb6050e96817be8645662c098b3221d4f90f",
-  "rows": 90
+  "version": 35,
+  "sha256": "f3ec3fb90deab9cee3717878fa1e019905ee8e8d656d34ada67000f95392e804",
+  "authority_sha": "b8e490bb5b8c97f75fa518df6c9c3f3615eb0830",
+  "rows": 111
  },
  "delta": {
   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_a_control/research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md",
-  "sha256": "bb673d893cf51c98b6c008db3ebf27ea5250c92e762520c75f0adbe599d81848"
+  "sha256": "4246897abf19c8b2d35101fe9f8f9be5d6dec3a3cb020a005f925b11189e3bcc"
  },
  "control": {
-  "delta_heads_found": 72,
-  "index_rows": 90,
+  "delta_heads_found": 85,
+  "index_rows": 111,
+  "naming": "Δ40 — must_flag / must_not_flag ('양성/음성' 은 두 뜻으로 쓰여 버린다)",
+  "expectations": {
+   "positive_control": "must_flag — 실재하는 id 는 검출돼야 한다",
+   "negative_control": "must_not_flag — 색인에 없는 id 는 None(UNKNOWN)",
+   "discriminating_control": "must_not_flag — 부모 절이 있는 가짜 자식은 미도달",
+   "coverage_control": "must_not_flag — 없는 절 표제는 커버 아님",
+   "positive_reach_control": "must_flag — 선언된 경로로 실제 도달하는 행"
+  },
   "positive_control": true,
   "negative_control": null,
   "positive_reach_control": {
@@ -30,13 +38,13 @@
    }
   },
   "coverage_control": {
-   "fake_head": "Δ9bb673d",
+   "fake_head": "Δ9424689",
    "absent_from_index": true,
    "cover_result": null,
    "expected": null
   },
   "discriminating_control": {
-   "fake_child": "Δ15-Pbb673d893c",
+   "fake_child": "Δ15-P4246897abf",
    "probe_absent_from_delta": true,
    "parent_section_exists": true,
    "reach_result": null,
@@ -45,25 +53,54 @@
   },
   "verdict": "PASS"
  },
+ "r35": {
+  "rule": "Δ41-R35 — 대조 목록 · 각 결과 · 실행으로 실증된 실패 시 동작 · 도구 경로와 커밋",
+  "tool": {
+   "path": "tools/v3_harness/index_delta_crosscheck.py",
+   "sha256": "f05a7f1c0a6943dd6fcad027a4a07e97ff9afd472f7e6f8cb5c07f2bd04373bc",
+   "commit": "43640ea88a506f3fdb15836240a2f30f867c7064"
+  },
+  "on_control_failure": {
+   "behavior": "대조군 실패 시 exit 3 이며 산출 파일을 쓰지 않는다",
+   "demonstrated_in": "results/CONTROL_FAILURE_DEMOS.json",
+   "demonstration": {
+    "demonstrated": true,
+    "mutation": "def reach(rid, tokens): → def reach(rid, tokens):\n        return None  # MUTATION",
+    "exit_code": 3,
+    "exit_as_expected": true,
+    "first_output_line": "!! 대조군 실패 — 산출을 쓰지 않는다",
+    "guarded_files_unchanged": true,
+    "guarded_files": [
+     "results/D_V3_INDEX_DELTA_CROSSCHECK_v3resolver.json"
+    ],
+    "tool": "tools/v3_harness/index_delta_crosscheck.py",
+    "tool_sha256": "f05a7f1c0a6943dd6fcad027a4a07e97ff9afd472f7e6f8cb5c07f2bd04373bc",
+    "why_this_mutation": "도달 판정이 무조건 미도달이 되면 전 행이 '미도달' 로 보고된다",
+    "expect_exit": 3,
+    "verdict": "PASS"
+   },
+   "valid_for_this_commit": true
+  }
+ },
  "A_delta_head_to_index": {
-  "n": 72,
-  "covered": 72,
+  "n": 85,
+  "covered": 85,
   "rule": "A self_check.delta_section_coverage — 별칭/자식행/선언된 컨테이너",
   "by_path": {
-   "alias_or_id": 58,
-   "child_rows": 13,
+   "alias_or_id": 65,
+   "child_rows": 19,
    "declared_split_parent": 1,
    "declared_container": 0
   },
   "UNCOVERED": []
  },
  "B_index_row_to_delta": {
-  "n": 90,
-  "reachable": 77,
+  "n": 111,
+  "reachable": 88,
   "rule": "A self_check.index_to_delta_reachability — (a)헤더 (b)별칭 토큰경계 (c)split_rows 부모",
   "by_path": {
    "a_": 35,
-   "b_": 42,
+   "b_": 53,
    "c_": 0
   },
   "UNRESOLVED": [
@@ -161,6 +198,76 @@
     "index_id": "Δ39-scroll",
     "tokens": [
      "Δ39-scroll"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ40-exception",
+    "tokens": [
+     "Δ40-exception"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ40-precheck",
+    "tokens": [
+     "Δ40-precheck"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ40-unit",
+    "tokens": [
+     "Δ40-unit"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ41-limit",
+    "tokens": [
+     "Δ41-limit"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ42-order",
+    "tokens": [
+     "Δ42-order"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ42-interpret",
+    "tokens": [
+     "Δ42-interpret"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ43-amend",
+    "tokens": [
+     "Δ43-amend"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ43-pilot",
+    "tokens": [
+     "Δ43-pilot"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ43-basis",
+    "tokens": [
+     "Δ43-basis"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ45-attribution",
+    "tokens": [
+     "Δ45-attribution"
     ],
     "reachable_via": null
    }
