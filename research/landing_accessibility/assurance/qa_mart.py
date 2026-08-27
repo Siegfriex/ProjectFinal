@@ -164,6 +164,14 @@ def main(a):
                "gate_reached_mpfed_null_n": int((attempted["exclusion_reason_c"] == "GATE_REACHED_MPFED_NULL").sum()),
                "gate_reached_by_archetype": attempted.loc[attempted["exclusion_reason_c"] == "GATE_REACHED_MPFED_NULL", "archetype"].value_counts().to_dict(),
                "by_archetype": {a_: {"attempted": int(len(g)), "joint_valid": int(g["joint_valid"].sum())} for a_, g in attempted.groupby(attempted["archetype"].fillna("UNKNOWN"))}}
+    # AMD1 §4: l0_analyzable_n = J1 (L0 complete) ∧ J4 (>=1 older-relevant decided)
+    L0_FAIL = {"NOT_EXECUTED", "TIMEOUT", "TRANSPORT_FAILURE", "L0_NOT_MEASURED", "L0_EVIDENCE_INCOMPLETE", "ACCESS_REFUSAL"}
+    C["j1_l0_complete"] = ~C["exclusion_reason_c"].isin(L0_FAIL) & (C["measurement_status"] == "MEASURED") & (C["run_status"] == "VERIFIED")
+    C["l0_analyzable"] = C["j1_l0_complete"] & (C["j4"].fillna(False) if fr else False)
+    summary["l0_analyzable_n"] = int(attempted.index.isin(C.index[C["l0_analyzable"]]).sum())
+    summary["l0_complete_n"] = int(attempted.index.isin(C.index[C["j1_l0_complete"]]).sum())
+    summary["eligible_older_relevant_zero_n"] = sum(1 for t in attempted.index if fr.get(t) and fr[t]["eligible_older_relevant"] == 0)
+    la = C.loc[C["l0_analyzable"] & (C["outcome"] != "PLANNED_NOT_EXECUTED")].copy()
     jv = attempted[attempted["joint_valid"]].copy()
     grade = "GREEN" if len(jv) >= 36 else "YELLOW" if len(jv) >= 28 else "RED_USABLE" if len(jv) >= 20 else "PRELIMINARY"
     summary["grade"] = grade
@@ -204,10 +212,29 @@ def main(a):
               "grade_demotion_required": bool(ext and confound_flag), "rule": ".agent_bus/landing_v2/COLLECTION_WINDOW_RULE.md §3 items 1-4"}
     if ext and confound_flag: add("C1", "WINDOW_CONFOUND_GRADE_DEMOTION", f"extension branch + undetermined_rate correlated with fail_rate (rho={confound['rho']:.3f}, p={confound['p_value']}) — primary claim grade must drop one level")
     kw = st.kruskal_wallis({a_: g["mpfed"].astype(float).tolist() for a_, g in jv.groupby("archetype")})
+    # ---- AMD1 §1: new PRIMARY Spearman(FailRate, obstruction[min-missingness]) on l0_analyzable sample; SECONDARY KW(FailRate ~ archetype)
+    OBS = {"OverlayCoverage": "max_overlay_coverage", "PrimaryActionOcclusion": "max_primary_action_occlusion", "blocking_modal_count": "blocking_modal_count", "forced_dismissal_count": "forced_dismissal_count"}
+    la["fail_rate"] = [fr.get(t, {}).get("fail_rate") for t in la.index]; la["fail_lower"] = [fr.get(t, {}).get("bound_lower_all_undet_pass") for t in la.index]; la["fail_upper"] = [fr.get(t, {}).get("bound_upper_all_undet_fail") for t in la.index]
+    la_rows = la.reset_index().to_dict("records")
+    sec2 = st.select_secondary_by_missingness([{k: _num(r.get(v)) for k, v in OBS.items()} for r in la_rows]); sk2 = OBS[sec2["selected"]]
+    def sp2(xk, yk):
+        x = [np.nan if _num(r.get(xk)) is None else _num(r.get(xk)) for r in la_rows]; y = [np.nan if _num(r.get(yk)) is None else _num(r.get(yk)) for r in la_rows]
+        n = sum(1 for a_, b_ in zip(x, y) if not (np.isnan(a_) or np.isnan(b_)))
+        return st.spearman_tie_aware(x, y, permutations=(9999 if n < 30 else 0), seed=20260827)
+    prim2 = sp2("fail_rate", sk2); lo2, up2 = sp2("fail_lower", sk2), sp2("fail_upper", sk2)
+    loao2 = st.leave_one_archetype_out([{"x": _num(r.get("fail_rate")), "y": _num(r.get(sk2)), "archetype": r.get("archetype")} for r in la_rows if _num(r.get("fail_rate")) is not None and _num(r.get(sk2)) is not None], "x", "y")
+    dir2 = st.direction_stability(prim2["rho"], loao2, lo2["rho"], up2["rho"])
+    kw2 = st.kruskal_wallis({a_: [v for v in g["fail_rate"].tolist() if v is not None] for a_, g in la.groupby("archetype")})
+    desc2 = {"fail_rate_by_archetype": {a_: st.describe_discrete([v for v in g["fail_rate"].tolist() if v is not None]) for a_, g in la.groupby("archetype")}, "fail_rate_all": st.describe_discrete([v for v in la["fail_rate"].tolist() if v is not None]),
+             "obstruction": {k: st.describe_discrete([_num(r.get(v)) for r in la_rows if _num(r.get(v)) is not None]) for k, v in OBS.items()},
+             "eligible_older_relevant": st.describe_discrete([fr[t]["eligible_older_relevant"] for t in la.index if t in fr]), "undetermined_rate": st.describe_discrete([fr[t]["undetermined_rate"] for t in la.index if t in fr and fr[t]["undetermined_rate"] is not None])}
+    amd1 = {"contract": "ANALYSIS_CONTRACT_AMENDMENT_1 (LA-AC-AMD1-20260827)", "sample": "l0_analyzable (J1∧J4)", "l0_analyzable_n": int(len(la)),
+            "primary_spearman_failrate_obstruction": prim2, "obstruction_selection": sec2, "undet_bounds": {"lower": lo2, "upper": up2}, "leave_one_archetype_out": loao2, "direction_stability": dir2,
+            "secondary_kw_failrate_by_archetype": kw2, "descriptive": desc2, "headline_allowed": prim2["headline_allowed"] and not dir2["direction_flipped"], "grade_cap": dir2["grade_cap"]}
     desc = {a_: st.describe_discrete(g["mpfed"].astype(float).tolist()) for a_, g in jv.groupby("archetype")}; desc["ALL"] = st.describe_discrete(jv["mpfed"].astype(float).tolist())
     stats = {"artifact": "QA_STAT_REPLAY", "generated_by": "C", "generated_at": now(), "n_joint_valid": int(len(jv)), "grade": grade, "archetype_medians": med, "descriptive": desc,
              "primary_spearman_mpfed_failrate": prim, "structure_adjusted_spearman_excess_failrate": adj, "secondary_selection": sec, "secondary_spearman_excess_obstruction": secr,
-             "leave_one_archetype_out": loao, "collection_window_heterogeneity": window, "undet_bounds": {"lower_all_undet_pass": lo, "upper_all_undet_fail": up}, "direction_stability": direction, "kruskal_wallis": kw,
+             "leave_one_archetype_out": loao, "collection_window_heterogeneity": window, "amendment_1": amd1, "undet_bounds": {"lower_all_undet_pass": lo, "upper_all_undet_fail": up}, "direction_stability": direction, "kruskal_wallis": kw,
              "note": "B code not imported; tie-aware Spearman = Pearson on average ranks; permutation two-sided seed 20260827 when n<30"}
     # ---- compare with B STATISTICAL_RESULTS if present
     bstats = pathlib.Path(a.b_stats) if a.b_stats else None; cmp_stats = []
