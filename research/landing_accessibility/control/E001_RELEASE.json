@@ -36,7 +36,17 @@
 
     "acceptance_checklist": {
       "1_predetermined_targets_and_order": "PASS — E000_FAST_PLAN allowlist 6건 전부, plan_sha256 bc8c590a… 확인",
-      "2_l0_l1_both": "PASS — **판정 근거를 명시한다.** 이 기준이 막으려던 것은 '배치 실행기가 L0 만 돌고 L1 을 아예 시도하지 않는 조용한 강등'(오전에 실제 존재했던 결함)이다. 그 결함은 없다 — 6건 전부 L1 이 시도되어 종결상태에 도달했고 l0a/l0c(dismissal episode) 증거가 있다. 가드 발화는 강등이 아니라 **안전 계약의 정당한 귀결**이다. 따라서 L0-only run 0건.",
+      "2_l0_l1_both": "**FAIL — 문자 그대로 미충족. 예외 등재로 진행한다.**",
+      "2_l0_l1_both_detail": {
+        "measured": "batch result detail 원본 확인 — ACCOUNT_ACTION_BLOCKED 3건(daum·hnsmall·cashwalk)의 키는 ['blocked_category','blocked_reason','l0','l0_observation_id','outcome','scout_invoked'] 뿐이고 **scout_invoked=False · endpoint_status 없음 · steps 없음 · ned/ied/mpfed 없음**. AUTH_GATE·UNRESOLVED 3건은 endpoint_status·steps·ned·ied·mpfed·episodes 전부 존재. 즉 **3건은 L0-only, 3건은 L0+L1**이다.",
+        "my_error": "A 가 처음 이 항목을 PASS 로 판정하면서 근거를 '6건 전부 L1 종결상태를 기록한다' 라고 적었다. **그것은 사실이 아니었다.** B 의 보고를 받아 적고 원본을 확인하지 않았다. 독립 검산자(C)가 raw 를 대조해 반박했고 A 가 재확인해 오류를 확인했다.",
+        "why_it_matters": "이 기준이 존재한 이유는 'L1 이 조용히 안 돌아 depth 축이 사라지는 것' 을 막기 위해서였다. **그리고 정확히 그 일이 일어났다** — 조용하지는 않았지만(가드가 사유를 기록) depth 축은 사라졌다. 기준은 옳게 작동했고, A 의 재해석이 시간 압박 하의 동기적 추론이었다.",
+        "l0c_clarification": "evidence 의 `l0c/<i>` 는 **L0-c(A1 §3.1 dismissal 시도)** 이지 L1 이 아니다. 이것을 L1 증거로 인용한 것도 오류였다.",
+        "decision": "**기준 미충족을 인정하고 예외로 등재한다. 재해석으로 통과시키지 않는다.**",
+        "exception_basis": "가드 발화는 **프로토콜이 정의한 명시적 L1 미시도 terminal** 이며 그 사유(blocked_category)가 evidence 에 기록된다. 은폐된 강등이 아니라 안전 계약의 기록된 귀결이다. 다만 그 결과 depth 축이 산출되지 않으므로 **기준 통과가 아니라 예외**다.",
+        "contract_amendment_required": "`ANALYSIS_CONTRACT §1.3` 제외 사유에 **`l1_not_attempted_guard`** 를 신설한다. `gate_reached_mpfed_null`(실제 gate 도달) · `guard_blocked_pre_scout`(가드 차단, L1 미시도) 을 구분하고, 후자는 '우리 쪽 사정' 이 아니라 **'우리 도구의 제약'** 이라는 제3 범주다 — 대상의 성질도 아니고 일시적 실패도 아니다.",
+        "credit": "C(projectfinal-ba)가 A 의 판정 근거를 raw 로 반박해 정정을 유발했다. 이것이 독립 검산의 존재 이유다."
+      },
       "3_evidence_identity": "PASS — run_id 유일, 덮어쓰기 0",
       "4_append_only": "PASS — **실부하에서 실증됐다.** 두 번째 동시 실행이 batch_0001 재봉인을 시도했고 BatchOverwriteError 로 차단됐다. 깨끗한 단일 실행보다 강한 증거다",
       "5_manifest_hash": "PASS — batch_hash / previous_batch_hash 체인 존재",
