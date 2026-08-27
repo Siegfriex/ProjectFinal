@@ -2,11 +2,11 @@
  "child_id": "D-RF-001-B",
  "rq_id": "RQ-D-RF-001",
  "title": "TF-IDF + linear baseline for archetype PRIOR recovery",
- "generated_at_kst": "2026-08-27T22:33:14.306623+09:00",
- "verdict": "PARTIALLY_SUPPORTED",
+ "generated_at_kst": "2026-08-27T22:46:40.463143+09:00",
+ "verdict": "NOT_SUPPORTED",
  "hypothesis_verdicts": {
-  "H-RF001-B-TFIDF": "PARTIALLY_SUPPORTED",
-  "H-B-null": "REFUTED",
+  "H-RF001-B-TFIDF": "NOT_SUPPORTED",
+  "H-B-null": "SUPPORTED",
   "H-B-leak": "SUPPORTED"
  },
  "target_semantics": {
@@ -1258,7 +1258,35 @@
    "ci_includes_most_frequent_mean": false
   }
  },
+ "judgment_basis": {
+  "rule": "fold macro F1 의 95% percentile 하한(p2_5)이 stratified baseline 평균(0.155)보다 위면 '분리된다'로 본다. 사전 선언 primary 와, E 대조군을 제외한 정당한 text featureset(A/B/C/D) 중 사후 최댓값을 둘 다 본다.",
+  "stratified_baseline_mean": 0.15453648125917033,
+  "most_frequent_baseline_mean": 0.09052851909994768,
+  "why_not_majority_headline": "most_frequent 는 7 class 중 6개에서 recall 0 이라 macro F1 이 구조적으로 0.09 에 묶인다. 이 대비 lift 는 rigged 비교이므로 헤드라인으로 쓰지 않는다.",
+  "primary_separates": false,
+  "best_legit_separates": false,
+  "brand_only_control_separates": true,
+  "deleak_separates": false
+ },
  "best_config_post_hoc": {
+  "key": "A_blob_full.char_wb.logreg",
+  "summary": {
+   "n_folds": 30,
+   "mean": 0.33021805273008087,
+   "std": 0.10544196747734307,
+   "median": 0.3257575757575758,
+   "min": 0.13506493506493505,
+   "max": 0.5523809523809524,
+   "p2_5": 0.14371635610766045,
+   "p97_5": 0.5178571428571428
+  },
+  "lift_vs_stratified": 0.17568157147091054,
+  "lift_vs_most_frequent": 0.23968953363013318,
+  "ci_includes_stratified_mean": true,
+  "scope": "featureset A/B/C/D 16셀 중 최댓값 (E 대조군 제외)",
+  "caveat": "16셀 중 최대값이므로 selection bias 가 있다. 사전 선언 primary 와 병기한다."
+ },
+ "best_config_including_control": {
   "key": "E_brand_only.char_wb.linsvc",
   "summary": {
    "n_folds": 30,
@@ -1270,10 +1298,8 @@
    "p2_5": 0.16790616246498602,
    "p97_5": 0.5611484067311133
   },
-  "lift_vs_stratified": 0.20832735352421713,
-  "lift_vs_most_frequent": 0.27233531568343977,
-  "ci_includes_stratified_mean": false,
-  "caveat": "20셀 중 최대값이므로 selection bias 가 있다. 판정은 사전 선언 primary 로 한다."
+  "note": "20셀 전체 최댓값. 이것이 E_brand_only(브랜드 토큰만) 라면 그 자체가 H-B-leak 의 직접 증거다.",
+  "is_brand_only_control": true
  },
  "primary_result": {
   "key": "A_blob_full.word.logreg",
@@ -1399,7 +1425,24 @@
    "n_permutations": 200,
    "null_mean": 0.10991324668131904,
    "null_p97_5": 0.1856828040834252
-  }
+  },
+  "best_legit_text": {
+   "config": "A_blob_full.char_wb.logreg",
+   "score": 0.34336219336219337,
+   "p_value": 0.004975124378109453,
+   "n_permutations": 200,
+   "null_mean": 0.11667863711621282,
+   "null_p97_5": 0.21589712918660292
+  },
+  "brand_only_control": {
+   "config": "E_brand_only.char_wb.linsvc",
+   "score": 0.3290605130941266,
+   "p_value": 0.009950248756218905,
+   "n_permutations": 200,
+   "null_mean": 0.12473667480444782,
+   "null_p97_5": 0.24956480319400487
+  },
+  "note": "label permutation 200회, StratifiedKFold(3). p 는 '무작위 라벨에서 이 점수 이상이 나올 비율'이다. n=56 에서 검정력은 매우 낮다."
  },
  "per_class": {
   "primary": {

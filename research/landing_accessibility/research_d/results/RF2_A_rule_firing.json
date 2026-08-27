@@ -1,0 +1,6246 @@
+{
+ "schema": "RF2_A_rule_firing/1",
+ "rule_version": "RF2A_FIRING_v1",
+ "seed": 20260827,
+ "generated_at_kst": "2026-08-27T22:47:45.607958+09:00",
+ "research_question": "RQ-D-RF-002 / D-RF2-A — deterministic evidence 가 어떤 archetype 후보를 동시에 발화시키는가",
+ "hypothesis_id": "H-RF2-A-FIRING-COOCCURRENCE",
+ "competing_hypothesis": "H-A1 list-family collapse / H-A2 UTILITY catch-all / H-A3 no-evidence dominant",
+ "firewall_note": "holdout label / LABEL_SPLIT_FROZEN / HOLDOUT_FOR_C / RAW_L1~L4 / PACKET_L* / *_OVERLAP* / PRECEDENCE_CONTESTED / CALIBRATION_FOR_B / control/ 어떤 파일도 열지 않았다.",
+ "inputs": {
+  "observation_table": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_OBSERVATION_TABLE_v2.csv",
+   "sha256": "c39c10f09f7a6a7603409550eb331612eb44634eb98ec387a604aa5221351e6b",
+   "rows": 66,
+   "rows_in_mart": 56
+  },
+  "text_corpus": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_TEXT_CORPUS_v2.csv",
+   "sha256": "bf6bb772faa45541c780c75f5cbffa856783a34661a84e3de27a9eb5da4ea36a",
+   "rows": 56
+  }
+ },
+ "analysis_unit": "target (wtg), in_mart==1",
+ "n": 56,
+ "n_expected": 56,
+ "missing_text_corpus_n": 0,
+ "missing_text_corpus_wtg": [],
+ "firing_definition": "[FIRING LEVEL DEFINITION — RF2A_FIRING_v1, 결과 관측 전 확정]\n\nSSOT 01_REPRESENTATIVE_FUNCTION_MAPPING_DT_v2.1 §5 는 각 branch 를 REGION evidence 와\nENDPOINT evidence 두 층으로 정의한다. 그 이층 구조를 그대로 3값 firing level 로 쓴다.\n\n  STRONG : REGION evidence ∧ ENDPOINT evidence 가 모두 발화.\n           = SSOT §6 \"강한 후보(strong candidate)\" 에 해당.\n  WEAK   : REGION 또는 ENDPOINT 중 정확히 하나만 발화.\n           = 후보로 올라오지만 §6 resolver 를 통과시킬 수 없는 부분증거.\n  NONE   : 둘 다 발화하지 않음.\n\n  WEAK+  : WEAK 또는 STRONG (= 어떤 형태로든 발화).\n\n이 정의는 정적 DOM/텍스트 증거만으로 판정한다. SSOT §5 의 ENDPOINT 는 원래 \"상태 전이가\n실제로 일어난 순간\"이지만 D 는 조작 없는 landing 단일 상태만 관측하므로, ENDPOINT 는\n**전이를 성립시키는 구조의 presence evidence** 로 조작화한다 (SSOT §5 Branch I 가 명시적으로\n허용하는 \"transaction control 의 존재\", §8 \"control presence → endpoint evidence 로 사용 가능\"\n과 동일한 완화). 이 완화는 endpoint 발화를 과대추정하는 방향이며 limitation 에 기재한다.\n\n분석단위 = target (in_mart==1), N=56. 어떤 target 도 force-map 하지 않는다.\nabstention(=모든 archetype NONE) 은 실패가 아니라 결과다.\n",
+ "rule_text": "[RULE SPEC — RF2A_FIRING_v1 · SSOT §5 Stage 3 branch tree 를 정적 증거로 조작화]\n\n공통 표기\n  CTRL(x)  = buttons|aria_labels|nav_links|form_labels 중 하나라도 어휘 x 매치\n  NAV(x)   = title|headings|landmarks|nav_links 중 하나라도 어휘 x 매치\n  ANY(x)   = 11개 surface 필드(title,headings,landmarks,nav_links,buttons,aria_labels,\n             placeholders,form_labels,input_names,card_texts,url_tokens) 중 하나라도 매치\n  CARD     = card_texts 필드가 비어있지 않음 (반복 card/list 구조 존재)\n  DOM_DEAD = dom_body_empty==1 또는 dom_body_text_len < 200 (증거 없음 상태)\n\nDOM_DEAD 인 target 은 모든 branch 에서 NONE 으로 고정한다 (force-map 금지).\n\nBranch Q — QUERY (SSOT §5 Branch Q)\n  REGION   : search_inputs_n >= 1  OR  ANY(search) on placeholders|input_names\n  ENDPOINT : (form_labels 비어있지 않음 또는 input_names 비어있지 않음)\n             OR CTRL(search_submit)  OR  url_tokens ~ search|query|q=|find\n\nBranch C — CONTENT_OPEN (SSOT §5 Branch C)\n  REGION   : CARD  AND  ANY(content)\n  ENDPOINT : article_present == 1  OR  CTRL(media_play)  OR  NAV(media_play)\n\nBranch I — ITEM_DETAIL (SSOT §5 Branch I)\n  REGION   : CARD  AND  (ANY(item) OR ANY(price))\n  ENDPOINT : ANY(price)  AND  CTRL(txn_control)\n             (SSOT: item name + price + transaction control 의 '존재')\n\nBranch P — PLACE_LOOKUP (SSOT §5 Branch P)\n  REGION   : ANY(place)  AND  (CARD OR CTRL(place) OR search_inputs_n >= 1)\n  ENDPOINT : ANY(place_detail)  OR  (ANY(place) AND search_inputs_n >= 1)\n             OR url_tokens ~ map|place|store|location|branch\n\nBranch M — COMMUNICATION_ENTRY (SSOT §5 Branch M)\n  REGION   : ANY(comm)  AND  (CARD OR CTRL(comm))\n  ENDPOINT : CTRL(compose)  OR  gate_password_input_n >= 1\n             (SSOT: 로그인 control '존재'만으로는 endpoint 아님. 실제 login gate 도달 =\n              password input 이 DOM 에 존재하는 상태로만 인정)\n\nBranch F — FINANCIAL_ACTION_ENTRY (SSOT §5 Branch F)\n  REGION   : CTRL(finance)  OR  NAV(finance)\n  ENDPOINT : gate_password_input_n >= 1\n             OR url_tokens ~ bank|card|pay|loan|insur|fin|invest|securit\n             OR NAV(finance) AND CTRL(auth_gate)\n\nBranch U — UTILITY_ENTRY (SSOT §5 Branch U)\n  REGION   : CTRL(utility) OR NAV(utility)\n  ENDPOINT : n_primary_action_candidates >= 1\n\nFIRING LEVEL: 위 정의 참조. STRONG = REGION ∧ ENDPOINT, WEAK = 정확히 하나, NONE = 없음.\n",
+ "signal_lexicon": {
+  "search": "검색|찾기|찾아|search|query|keyword|키워드",
+  "search_submit": "검색|search|submit|조회하기|찾기",
+  "content": "뉴스|기사|칼럼|매거진|콘텐츠|영상|동영상|방송|웹툰|웹소설|시리즈|에피소드|news|article|story|video|clip|episode|magazine|content|feed|피드",
+  "media_play": "재생|플레이|시청|듣기|보기|play|watch|player|listen|스트리밍|streaming",
+  "item": "상품|제품|브랜드|쇼핑|스토어|판매|베스트|신상|기획전|특가|할인|product|item|goods|shop|store|sale|deal|brand",
+  "price": "\\d[\\d,]*\\s*원|₩\\s*\\d|\\d+\\s*%",
+  "txn_control": "장바구니|카트|구매|주문|결제|담기|바로구매|찜|위시|배송|cart|buy|order|checkout|purchase|basket|wishlist",
+  "place": "지도|위치|장소|주소|매장|지점|점포|영업점|대리점|길찾기|주변|인근|근처|map|place|location|store\\s*locator|branch|address|directions|찾아오시는",
+  "place_detail": "영업시간|운영시간|전화번호|오시는\\s*길|상세보기|층별|안내도|opening\\s*hours|tel|phone|floor",
+  "comm": "게시판|커뮤니티|댓글|후기|리뷰|피드백|문의|상담|채팅|메시지|톡|알림|쪽지|board|community|comment|review|thread|post|chat|message|inbox|dm|forum",
+  "compose": "글쓰기|글\\s*작성|작성하기|등록하기|올리기|문의하기|댓글\\s*달기|보내기|write|compose|reply|답글|new\\s*post|send",
+  "finance": "이체|송금|계좌|잔액|잔고|예금|적금|대출|보험|카드|결제|납부|환전|청약|펀드|주식|증권|금융|가입|한도|명세서|청구|이용내역|포인트|마일리지|bank|account|balance|transfer|payment|loan|insurance|card|finance|pay",
+  "auth_gate": "로그인|로그아웃|본인인증|본인확인|공동인증|금융인증|간편인증|인증서|비밀번호|login|log\\s*in|sign\\s*in|signin|auth|certificate|password",
+  "utility": "신청|발급|접수|예약|예매|등록|납부|계산|조회|변경|해지|취소|확인|발권|증명|apply|issue|reserve|booking|book|calculator|register|renew|submit|서비스\\s*신청"
+ },
+ "archetype_prior_n": {
+  "ITEM_DETAIL": 26,
+  "FINANCIAL_ACTION_ENTRY": 10,
+  "UTILITY_ENTRY": 5,
+  "COMMUNICATION_ENTRY": 4,
+  "PLACE_LOOKUP": 4,
+  "QUERY": 4,
+  "CONTENT_OPEN": 3
+ },
+ "firing_matrix": {
+  "054d78ed187cdd9f": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "088809bf9b31bc6a": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "12e3942c0495b9a4": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "22ffba7a86ea9919": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "5beeafeac2e27eae": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "STRONG",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "60d4d22e3809f780": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "64d30ef262d8782d": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "NONE"
+  },
+  "65f15ce8fee25b24": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "8195b68ac17e42a3": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "91b952863c62993d": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "b8b226f9fe32539a": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "ccd84811932b237b": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "cdce1ffd6b1b1e24": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "dd2cec4c1fa2beec": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "e7bb158c1c8d9fe7": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "13ed070478ef62c3": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "STRONG",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "190b4501e4415d5e": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "377983572bd38242": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "4feab7e61bf642e8": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "5c614fc99631ce5e": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "STRONG",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "699a5e2f3f410152": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "6d5510a695d0a614": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "9390ef32addf32bf": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "b728911c9782edb8": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "be1e6feb78e5ef03": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "e1fadb214cde51c0": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "ea031f85e857140e": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "ef06dc942ef3ccc9": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "NONE"
+  },
+  "fdce1294fac3dfdb": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "STRONG",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "0ee385d0c964e560": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "STRONG",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "0f3bdb2bd0bb891e": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "35319a420294ee17": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "STRONG",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "517b8047eb5be716": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "5ede56738376a8c5": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "888d37f34b5d3aaa": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "8fd5d30f8b1d707b": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "95967b50683649f2": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "NONE"
+  },
+  "a215c45b2cc585ca": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "c5285b96b598a08b": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "e296af221a5f7128": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "ed7b9bea21def8f8": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "efda6e0b8457d63c": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "24e6654bfd1ab85b": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "46e5a43370f75308": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "49a5eca8b58f7270": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "51484a735cdb487b": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "7f6f1aa6dd218d4d": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "STRONG",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "88cb7f1e54f26500": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "STRONG",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "STRONG",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "95e22b9aff7196b3": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "STRONG",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "bbdefa2950f49882": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "ccb9754c97fa7341": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "STRONG",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "d5ae5426eac23877": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "e67be79550661604": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "WEAK",
+   "COMMUNICATION_ENTRY": "WEAK",
+   "FINANCIAL_ACTION_ENTRY": "STRONG",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "f322b894ee95c181": {
+   "QUERY": "STRONG",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "STRONG",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "STRONG"
+  },
+  "f9fbd771ffcdbd42": {
+   "QUERY": "WEAK",
+   "CONTENT_OPEN": "WEAK",
+   "ITEM_DETAIL": "WEAK",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "WEAK",
+   "UTILITY_ENTRY": "WEAK"
+  },
+  "fb3d1841dddfd982": {
+   "QUERY": "NONE",
+   "CONTENT_OPEN": "NONE",
+   "ITEM_DETAIL": "NONE",
+   "PLACE_LOOKUP": "NONE",
+   "COMMUNICATION_ENTRY": "NONE",
+   "FINANCIAL_ACTION_ENTRY": "NONE",
+   "UTILITY_ENTRY": "NONE"
+  }
+ },
+ "per_target": {
+  "054d78ed187cdd9f": {
+   "wtg": "054d78ed187cdd9f",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "쿠팡이츠",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item",
+      "card_repeat AND lex:price"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@nav"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "088809bf9b31bc6a": {
+   "wtg": "088809bf9b31bc6a",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "삼성카드",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "url:finance",
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "12e3942c0495b9a4": {
+   "wtg": "12e3942c0495b9a4",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "GS25",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "lex:place_detail"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "22ffba7a86ea9919": {
+   "wtg": "22ffba7a86ea9919",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "코스트코",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "lex:place_detail",
+      "lex:place AND search_inputs_n>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "5beeafeac2e27eae": {
+   "wtg": "5beeafeac2e27eae",
+   "prior_archetype": "CONTENT_OPEN",
+   "prior_business_domain": "CONTENT_VIDEO",
+   "prior_service": "TikTok",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [
+      "password_gate_reached"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "password_gate_reached"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "60d4d22e3809f780": {
+   "wtg": "60d4d22e3809f780",
+   "prior_archetype": "PLACE_LOOKUP",
+   "prior_business_domain": "MAP_MOBILITY",
+   "prior_service": "티맵",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "url:place"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "64d30ef262d8782d": {
+   "wtg": "64d30ef262d8782d",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "신한 SOL뱅크",
+   "dom_dead": true,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    }
+   }
+  },
+  "65f15ce8fee25b24": {
+   "wtg": "65f15ce8fee25b24",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "prior_business_domain": "SOCIAL_COMMUNICATION",
+   "prior_service": "밴드",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@nav"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "8195b68ac17e42a3": {
+   "wtg": "8195b68ac17e42a3",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "세븐일레븐",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "91b952863c62993d": {
+   "wtg": "91b952863c62993d",
+   "prior_archetype": "QUERY",
+   "prior_business_domain": "PORTAL_SEARCH",
+   "prior_service": "다음",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1",
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "article_present",
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "lex:place AND search_inputs_n>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "b8b226f9fe32539a": {
+   "wtg": "b8b226f9fe32539a",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "KB Pay",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "url:finance"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "ccd84811932b237b": {
+   "wtg": "ccd84811932b237b",
+   "prior_archetype": "PLACE_LOOKUP",
+   "prior_business_domain": "MAP_MOBILITY",
+   "prior_service": "카카오T",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "cdce1ffd6b1b1e24": {
+   "wtg": "cdce1ffd6b1b1e24",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "prior_service": "디바이스 케어",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "dd2cec4c1fa2beec": {
+   "wtg": "dd2cec4c1fa2beec",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "롯데백화점",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "e7bb158c1c8d9fe7": {
+   "wtg": "e7bb158c1c8d9fe7",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "마켓컬리",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "13ed070478ef62c3": {
+   "wtg": "13ed070478ef62c3",
+   "prior_archetype": "CONTENT_OPEN",
+   "prior_business_domain": "CONTENT_VIDEO",
+   "prior_service": "Netflix",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [
+      "password_gate_reached"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "password_gate_reached"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "190b4501e4415d5e": {
+   "wtg": "190b4501e4415d5e",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "prior_service": "V3 Mobile Plus",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@nav"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "377983572bd38242": {
+   "wtg": "377983572bd38242",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "다이소",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "lex:place_detail"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "4feab7e61bf642e8": {
+   "wtg": "4feab7e61bf642e8",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "CJ온스타일",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1",
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control",
+      "url:search"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "5c614fc99631ce5e": {
+   "wtg": "5c614fc99631ce5e",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "홈앤쇼핑",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item",
+      "card_repeat AND lex:price"
+     ],
+     "endpoint": [
+      "lex:price AND lex:txn_control@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "699a5e2f3f410152": {
+   "wtg": "699a5e2f3f410152",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "prior_business_domain": "SOCIAL_COMMUNICATION",
+   "prior_service": "카카오톡",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "article_present"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "6d5510a695d0a614": {
+   "wtg": "6d5510a695d0a614",
+   "prior_archetype": "QUERY",
+   "prior_business_domain": "PORTAL_SEARCH",
+   "prior_service": "네이버",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1",
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item",
+      "card_repeat AND lex:price"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "9390ef32addf32bf": {
+   "wtg": "9390ef32addf32bf",
+   "prior_archetype": "QUERY",
+   "prior_business_domain": "PORTAL_SEARCH",
+   "prior_service": "Chrome",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "b728911c9782edb8": {
+   "wtg": "b728911c9782edb8",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "현대카드",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "url:finance",
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "be1e6feb78e5ef03": {
+   "wtg": "be1e6feb78e5ef03",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "emart24",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "e1fadb214cde51c0": {
+   "wtg": "e1fadb214cde51c0",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "prior_service": "캐시워크",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item",
+      "card_repeat AND lex:price"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "ea031f85e857140e": {
+   "wtg": "ea031f85e857140e",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "메가커피",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1",
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "ef06dc942ef3ccc9": {
+   "wtg": "ef06dc942ef3ccc9",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "롯데하이마트",
+   "dom_dead": true,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    }
+   }
+  },
+  "fdce1294fac3dfdb": {
+   "wtg": "fdce1294fac3dfdb",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "신세계백화점",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [
+      "password_gate_reached"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "password_gate_reached"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "0ee385d0c964e560": {
+   "wtg": "0ee385d0c964e560",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "홈플러스",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item",
+      "card_repeat AND lex:price"
+     ],
+     "endpoint": [
+      "lex:price AND lex:txn_control@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "0f3bdb2bd0bb891e": {
+   "wtg": "0f3bdb2bd0bb891e",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "탑마트",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "35319a420294ee17": {
+   "wtg": "35319a420294ee17",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "토스",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item",
+      "card_repeat AND lex:price"
+     ],
+     "endpoint": [
+      "lex:price AND lex:txn_control@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "517b8047eb5be716": {
+   "wtg": "517b8047eb5be716",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "농협하나로마트",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "5ede56738376a8c5": {
+   "wtg": "5ede56738376a8c5",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "prior_business_domain": "SOCIAL_COMMUNICATION",
+   "prior_service": "Instagram",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "article_present"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "888d37f34b5d3aaa": {
+   "wtg": "888d37f34b5d3aaa",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "롯데홈쇼핑",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [
+      "lex:place_detail"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "8fd5d30f8b1d707b": {
+   "wtg": "8fd5d30f8b1d707b",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "하나은행",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "url:finance"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "95967b50683649f2": {
+   "wtg": "95967b50683649f2",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "NH스마트뱅킹",
+   "dom_dead": true,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    }
+   }
+  },
+  "a215c45b2cc585ca": {
+   "wtg": "a215c45b2cc585ca",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "prior_service": "에이닷 전화",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "article_present",
+      "lex:media_play@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [
+      "lex:place_detail"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "c5285b96b598a08b": {
+   "wtg": "c5285b96b598a08b",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "배달의민족",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "article_present",
+      "lex:media_play@nav"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "e296af221a5f7128": {
+   "wtg": "e296af221a5f7128",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "KB스타뱅킹",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@nav"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "ed7b9bea21def8f8": {
+   "wtg": "ed7b9bea21def8f8",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "prior_service": "내 파일",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "efda6e0b8457d63c": {
+   "wtg": "efda6e0b8457d63c",
+   "prior_archetype": "PLACE_LOOKUP",
+   "prior_business_domain": "MAP_MOBILITY",
+   "prior_service": "네이버지도",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "url:place"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "24e6654bfd1ab85b": {
+   "wtg": "24e6654bfd1ab85b",
+   "prior_archetype": "CONTENT_OPEN",
+   "prior_business_domain": "CONTENT_VIDEO",
+   "prior_service": "YouTube",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1",
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "46e5a43370f75308": {
+   "wtg": "46e5a43370f75308",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "prior_business_domain": "SOCIAL_COMMUNICATION",
+   "prior_service": "당근",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1",
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@nav"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "lex:place AND search_inputs_n>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "49a5eca8b58f7270": {
+   "wtg": "49a5eca8b58f7270",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "11번가",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "article_present"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "51484a735cdb487b": {
+   "wtg": "51484a735cdb487b",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "컴포즈커피",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "7f6f1aa6dd218d4d": {
+   "wtg": "7f6f1aa6dd218d4d",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "이마트",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item",
+      "card_repeat AND lex:price"
+     ],
+     "endpoint": [
+      "lex:price AND lex:txn_control@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "url:place"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "88cb7f1e54f26500": {
+   "wtg": "88cb7f1e54f26500",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "롯데마트",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1",
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item",
+      "card_repeat AND lex:price"
+     ],
+     "endpoint": [
+      "lex:price AND lex:txn_control@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "lex:place AND search_inputs_n>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [
+      "lex:compose@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "95e22b9aff7196b3": {
+   "wtg": "95e22b9aff7196b3",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "NS홈쇼핑",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item",
+      "card_repeat AND lex:price"
+     ],
+     "endpoint": [
+      "lex:price AND lex:txn_control@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "bbdefa2950f49882": {
+   "wtg": "bbdefa2950f49882",
+   "prior_archetype": "QUERY",
+   "prior_business_domain": "PORTAL_SEARCH",
+   "prior_service": "Google",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@control",
+      "lex:media_play@nav"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "lex:compose@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "ccb9754c97fa7341": {
+   "wtg": "ccb9754c97fa7341",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "현대백화점",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [
+      "card_repeat AND lex:content"
+     ],
+     "endpoint": [
+      "lex:media_play@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "lex:place_detail"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "d5ae5426eac23877": {
+   "wtg": "d5ae5426eac23877",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "모니모",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "e67be79550661604": {
+   "wtg": "e67be79550661604",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "CU",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@nav"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [
+      "lex:comm AND (card_repeat|comm@control)"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control",
+      "lex:finance@nav"
+     ],
+     "endpoint": [
+      "lex:finance@nav AND lex:auth_gate@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control",
+      "lex:utility@nav"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "f322b894ee95c181": {
+   "wtg": "f322b894ee95c181",
+   "prior_archetype": "PLACE_LOOKUP",
+   "prior_business_domain": "MAP_MOBILITY",
+   "prior_service": "카카오맵",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [
+      "search_inputs_n>=1",
+      "lex:search@placeholder/input_name"
+     ],
+     "endpoint": [
+      "form_or_input_present",
+      "lex:search_submit@control"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "article_present",
+      "lex:media_play@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [
+      "lex:place AND (card_repeat|place@control|search_input)"
+     ],
+     "endpoint": [
+      "lex:place AND search_inputs_n>=1",
+      "url:place"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [
+      "lex:utility@control"
+     ],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "STRONG",
+     "blocked_by": null
+    }
+   }
+  },
+  "f9fbd771ffcdbd42": {
+   "wtg": "f9fbd771ffcdbd42",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "prior_service": "G마켓",
+   "dom_dead": false,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [
+      "lex:search_submit@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [
+      "lex:media_play@control"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "ITEM_DETAIL": {
+     "region": [
+      "card_repeat AND lex:item"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": null
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [
+      "lex:finance@control"
+     ],
+     "endpoint": [],
+     "level": "WEAK",
+     "blocked_by": null
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [
+      "n_primary_action_candidates>=1"
+     ],
+     "level": "WEAK",
+     "blocked_by": null
+    }
+   }
+  },
+  "fb3d1841dddfd982": {
+   "wtg": "fb3d1841dddfd982",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "prior_service": "NH콕뱅크",
+   "dom_dead": true,
+   "firing": {
+    "QUERY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "CONTENT_OPEN": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "ITEM_DETAIL": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "PLACE_LOOKUP": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "COMMUNICATION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    },
+    "UTILITY_ENTRY": {
+     "region": [],
+     "endpoint": [],
+     "level": "NONE",
+     "blocked_by": "DOM_DEAD"
+    }
+   }
+  }
+ },
+ "candidate_count_distribution": {
+  "strong": {
+   "0": 13,
+   "1": 13,
+   "2": 11,
+   "3": 12,
+   "4": 5,
+   "5": 1,
+   "7": 1
+  },
+  "weakplus": {
+   "0": 4,
+   "1": 2,
+   "2": 2,
+   "3": 5,
+   "4": 16,
+   "5": 8,
+   "6": 7,
+   "7": 12
+  },
+  "strong_mean": 1.8393,
+  "weakplus_mean": 4.4821,
+  "denominator": 56
+ },
+ "evidence_buckets": {
+  "strong_level": {
+   "no_evidence": {
+    "n": 13,
+    "denominator": 56,
+    "rate": 0.2321,
+    "wilson95": [
+     0.141,
+     0.3577
+    ]
+   },
+   "single_candidate": {
+    "n": 13,
+    "denominator": 56,
+    "rate": 0.2321,
+    "wilson95": [
+     0.141,
+     0.3577
+    ]
+   },
+   "multi_candidate": {
+    "n": 30,
+    "denominator": 56,
+    "rate": 0.5357,
+    "wilson95": [
+     0.407,
+     0.6598
+    ]
+   }
+  },
+  "weakplus_level": {
+   "no_evidence": {
+    "n": 4,
+    "denominator": 56,
+    "rate": 0.0714,
+    "wilson95": [
+     0.0281,
+     0.1698
+    ]
+   },
+   "single_candidate": {
+    "n": 2,
+    "denominator": 56,
+    "rate": 0.0357,
+    "wilson95": [
+     0.0098,
+     0.1212
+    ]
+   },
+   "multi_candidate": {
+    "n": 50,
+    "denominator": 56,
+    "rate": 0.8929,
+    "wilson95": [
+     0.7853,
+     0.95
+    ]
+   }
+  }
+ },
+ "cooccurrence_matrix": {
+  "archetypes": [
+   "QUERY",
+   "CONTENT_OPEN",
+   "ITEM_DETAIL",
+   "PLACE_LOOKUP",
+   "COMMUNICATION_ENTRY",
+   "FINANCIAL_ACTION_ENTRY",
+   "UTILITY_ENTRY"
+  ],
+  "strong": [
+   [
+    20,
+    9,
+    1,
+    7,
+    2,
+    8,
+    14
+   ],
+   [
+    9,
+    16,
+    3,
+    6,
+    2,
+    7,
+    12
+   ],
+   [
+    1,
+    3,
+    6,
+    2,
+    1,
+    3,
+    2
+   ],
+   [
+    7,
+    6,
+    2,
+    11,
+    1,
+    2,
+    8
+   ],
+   [
+    2,
+    2,
+    1,
+    1,
+    4,
+    1,
+    4
+   ],
+   [
+    8,
+    7,
+    3,
+    2,
+    1,
+    14,
+    13
+   ],
+   [
+    14,
+    12,
+    2,
+    8,
+    4,
+    13,
+    32
+   ]
+  ],
+  "weakplus": [
+   [
+    37,
+    28,
+    26,
+    22,
+    24,
+    26,
+    37
+   ],
+   [
+    28,
+    38,
+    28,
+    22,
+    23,
+    24,
+    38
+   ],
+   [
+    26,
+    28,
+    34,
+    21,
+    25,
+    24,
+    34
+   ],
+   [
+    22,
+    22,
+    21,
+    27,
+    18,
+    16,
+    27
+   ],
+   [
+    24,
+    23,
+    25,
+    18,
+    30,
+    24,
+    30
+   ],
+   [
+    26,
+    24,
+    24,
+    16,
+    24,
+    33,
+    33
+   ],
+   [
+    37,
+    38,
+    34,
+    27,
+    30,
+    33,
+    52
+   ]
+  ],
+  "denominator": 56
+ },
+ "cooccurrence_pairs": {
+  "strong": [
+   {
+    "pair": "Q-C",
+    "a": "QUERY",
+    "b": "CONTENT_OPEN",
+    "both_n": 9,
+    "a_n": 20,
+    "b_n": 16,
+    "union_n": 27,
+    "jaccard": 0.3333,
+    "cond_b_given_a": 0.45,
+    "cond_a_given_b": 0.5625,
+    "rate_of_N": 0.1607,
+    "wilson95_of_N": [
+     0.0869,
+     0.2781
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-I",
+    "a": "QUERY",
+    "b": "ITEM_DETAIL",
+    "both_n": 1,
+    "a_n": 20,
+    "b_n": 6,
+    "union_n": 25,
+    "jaccard": 0.04,
+    "cond_b_given_a": 0.05,
+    "cond_a_given_b": 0.1667,
+    "rate_of_N": 0.0179,
+    "wilson95_of_N": [
+     0.0032,
+     0.0945
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-P",
+    "a": "QUERY",
+    "b": "PLACE_LOOKUP",
+    "both_n": 7,
+    "a_n": 20,
+    "b_n": 11,
+    "union_n": 24,
+    "jaccard": 0.2917,
+    "cond_b_given_a": 0.35,
+    "cond_a_given_b": 0.6364,
+    "rate_of_N": 0.125,
+    "wilson95_of_N": [
+     0.0619,
+     0.2363
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-M",
+    "a": "QUERY",
+    "b": "COMMUNICATION_ENTRY",
+    "both_n": 2,
+    "a_n": 20,
+    "b_n": 4,
+    "union_n": 22,
+    "jaccard": 0.0909,
+    "cond_b_given_a": 0.1,
+    "cond_a_given_b": 0.5,
+    "rate_of_N": 0.0357,
+    "wilson95_of_N": [
+     0.0098,
+     0.1212
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-F",
+    "a": "QUERY",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 8,
+    "a_n": 20,
+    "b_n": 14,
+    "union_n": 26,
+    "jaccard": 0.3077,
+    "cond_b_given_a": 0.4,
+    "cond_a_given_b": 0.5714,
+    "rate_of_N": 0.1429,
+    "wilson95_of_N": [
+     0.0742,
+     0.2574
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-U",
+    "a": "QUERY",
+    "b": "UTILITY_ENTRY",
+    "both_n": 14,
+    "a_n": 20,
+    "b_n": 32,
+    "union_n": 38,
+    "jaccard": 0.3684,
+    "cond_b_given_a": 0.7,
+    "cond_a_given_b": 0.4375,
+    "rate_of_N": 0.25,
+    "wilson95_of_N": [
+     0.1552,
+     0.3769
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "C-I",
+    "a": "CONTENT_OPEN",
+    "b": "ITEM_DETAIL",
+    "both_n": 3,
+    "a_n": 16,
+    "b_n": 6,
+    "union_n": 19,
+    "jaccard": 0.1579,
+    "cond_b_given_a": 0.1875,
+    "cond_a_given_b": 0.5,
+    "rate_of_N": 0.0536,
+    "wilson95_of_N": [
+     0.0184,
+     0.1461
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "C-P",
+    "a": "CONTENT_OPEN",
+    "b": "PLACE_LOOKUP",
+    "both_n": 6,
+    "a_n": 16,
+    "b_n": 11,
+    "union_n": 21,
+    "jaccard": 0.2857,
+    "cond_b_given_a": 0.375,
+    "cond_a_given_b": 0.5455,
+    "rate_of_N": 0.1071,
+    "wilson95_of_N": [
+     0.05,
+     0.2147
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "C-M",
+    "a": "CONTENT_OPEN",
+    "b": "COMMUNICATION_ENTRY",
+    "both_n": 2,
+    "a_n": 16,
+    "b_n": 4,
+    "union_n": 18,
+    "jaccard": 0.1111,
+    "cond_b_given_a": 0.125,
+    "cond_a_given_b": 0.5,
+    "rate_of_N": 0.0357,
+    "wilson95_of_N": [
+     0.0098,
+     0.1212
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "C-F",
+    "a": "CONTENT_OPEN",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 7,
+    "a_n": 16,
+    "b_n": 14,
+    "union_n": 23,
+    "jaccard": 0.3043,
+    "cond_b_given_a": 0.4375,
+    "cond_a_given_b": 0.5,
+    "rate_of_N": 0.125,
+    "wilson95_of_N": [
+     0.0619,
+     0.2363
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "C-U",
+    "a": "CONTENT_OPEN",
+    "b": "UTILITY_ENTRY",
+    "both_n": 12,
+    "a_n": 16,
+    "b_n": 32,
+    "union_n": 36,
+    "jaccard": 0.3333,
+    "cond_b_given_a": 0.75,
+    "cond_a_given_b": 0.375,
+    "rate_of_N": 0.2143,
+    "wilson95_of_N": [
+     0.1271,
+     0.3382
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "I-P",
+    "a": "ITEM_DETAIL",
+    "b": "PLACE_LOOKUP",
+    "both_n": 2,
+    "a_n": 6,
+    "b_n": 11,
+    "union_n": 15,
+    "jaccard": 0.1333,
+    "cond_b_given_a": 0.3333,
+    "cond_a_given_b": 0.1818,
+    "rate_of_N": 0.0357,
+    "wilson95_of_N": [
+     0.0098,
+     0.1212
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "I-M",
+    "a": "ITEM_DETAIL",
+    "b": "COMMUNICATION_ENTRY",
+    "both_n": 1,
+    "a_n": 6,
+    "b_n": 4,
+    "union_n": 9,
+    "jaccard": 0.1111,
+    "cond_b_given_a": 0.1667,
+    "cond_a_given_b": 0.25,
+    "rate_of_N": 0.0179,
+    "wilson95_of_N": [
+     0.0032,
+     0.0945
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "I-F",
+    "a": "ITEM_DETAIL",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 3,
+    "a_n": 6,
+    "b_n": 14,
+    "union_n": 17,
+    "jaccard": 0.1765,
+    "cond_b_given_a": 0.5,
+    "cond_a_given_b": 0.2143,
+    "rate_of_N": 0.0536,
+    "wilson95_of_N": [
+     0.0184,
+     0.1461
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "I-U",
+    "a": "ITEM_DETAIL",
+    "b": "UTILITY_ENTRY",
+    "both_n": 2,
+    "a_n": 6,
+    "b_n": 32,
+    "union_n": 36,
+    "jaccard": 0.0556,
+    "cond_b_given_a": 0.3333,
+    "cond_a_given_b": 0.0625,
+    "rate_of_N": 0.0357,
+    "wilson95_of_N": [
+     0.0098,
+     0.1212
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "P-M",
+    "a": "PLACE_LOOKUP",
+    "b": "COMMUNICATION_ENTRY",
+    "both_n": 1,
+    "a_n": 11,
+    "b_n": 4,
+    "union_n": 14,
+    "jaccard": 0.0714,
+    "cond_b_given_a": 0.0909,
+    "cond_a_given_b": 0.25,
+    "rate_of_N": 0.0179,
+    "wilson95_of_N": [
+     0.0032,
+     0.0945
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "P-F",
+    "a": "PLACE_LOOKUP",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 2,
+    "a_n": 11,
+    "b_n": 14,
+    "union_n": 23,
+    "jaccard": 0.087,
+    "cond_b_given_a": 0.1818,
+    "cond_a_given_b": 0.1429,
+    "rate_of_N": 0.0357,
+    "wilson95_of_N": [
+     0.0098,
+     0.1212
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "P-U",
+    "a": "PLACE_LOOKUP",
+    "b": "UTILITY_ENTRY",
+    "both_n": 8,
+    "a_n": 11,
+    "b_n": 32,
+    "union_n": 35,
+    "jaccard": 0.2286,
+    "cond_b_given_a": 0.7273,
+    "cond_a_given_b": 0.25,
+    "rate_of_N": 0.1429,
+    "wilson95_of_N": [
+     0.0742,
+     0.2574
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "M-F",
+    "a": "COMMUNICATION_ENTRY",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 1,
+    "a_n": 4,
+    "b_n": 14,
+    "union_n": 17,
+    "jaccard": 0.0588,
+    "cond_b_given_a": 0.25,
+    "cond_a_given_b": 0.0714,
+    "rate_of_N": 0.0179,
+    "wilson95_of_N": [
+     0.0032,
+     0.0945
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "M-U",
+    "a": "COMMUNICATION_ENTRY",
+    "b": "UTILITY_ENTRY",
+    "both_n": 4,
+    "a_n": 4,
+    "b_n": 32,
+    "union_n": 32,
+    "jaccard": 0.125,
+    "cond_b_given_a": 1.0,
+    "cond_a_given_b": 0.125,
+    "rate_of_N": 0.0714,
+    "wilson95_of_N": [
+     0.0281,
+     0.1698
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "F-U",
+    "a": "FINANCIAL_ACTION_ENTRY",
+    "b": "UTILITY_ENTRY",
+    "both_n": 13,
+    "a_n": 14,
+    "b_n": 32,
+    "union_n": 33,
+    "jaccard": 0.3939,
+    "cond_b_given_a": 0.9286,
+    "cond_a_given_b": 0.4062,
+    "rate_of_N": 0.2321,
+    "wilson95_of_N": [
+     0.141,
+     0.3577
+    ],
+    "list_family_pair": false
+   }
+  ],
+  "weakplus": [
+   {
+    "pair": "Q-C",
+    "a": "QUERY",
+    "b": "CONTENT_OPEN",
+    "both_n": 28,
+    "a_n": 37,
+    "b_n": 38,
+    "union_n": 47,
+    "jaccard": 0.5957,
+    "cond_b_given_a": 0.7568,
+    "cond_a_given_b": 0.7368,
+    "rate_of_N": 0.5,
+    "wilson95_of_N": [
+     0.3733,
+     0.6267
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-I",
+    "a": "QUERY",
+    "b": "ITEM_DETAIL",
+    "both_n": 26,
+    "a_n": 37,
+    "b_n": 34,
+    "union_n": 45,
+    "jaccard": 0.5778,
+    "cond_b_given_a": 0.7027,
+    "cond_a_given_b": 0.7647,
+    "rate_of_N": 0.4643,
+    "wilson95_of_N": [
+     0.3402,
+     0.593
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-P",
+    "a": "QUERY",
+    "b": "PLACE_LOOKUP",
+    "both_n": 22,
+    "a_n": 37,
+    "b_n": 27,
+    "union_n": 42,
+    "jaccard": 0.5238,
+    "cond_b_given_a": 0.5946,
+    "cond_a_given_b": 0.8148,
+    "rate_of_N": 0.3929,
+    "wilson95_of_N": [
+     0.2758,
+     0.5237
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-M",
+    "a": "QUERY",
+    "b": "COMMUNICATION_ENTRY",
+    "both_n": 24,
+    "a_n": 37,
+    "b_n": 30,
+    "union_n": 43,
+    "jaccard": 0.5581,
+    "cond_b_given_a": 0.6486,
+    "cond_a_given_b": 0.8,
+    "rate_of_N": 0.4286,
+    "wilson95_of_N": [
+     0.3077,
+     0.5586
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-F",
+    "a": "QUERY",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 26,
+    "a_n": 37,
+    "b_n": 33,
+    "union_n": 44,
+    "jaccard": 0.5909,
+    "cond_b_given_a": 0.7027,
+    "cond_a_given_b": 0.7879,
+    "rate_of_N": 0.4643,
+    "wilson95_of_N": [
+     0.3402,
+     0.593
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "Q-U",
+    "a": "QUERY",
+    "b": "UTILITY_ENTRY",
+    "both_n": 37,
+    "a_n": 37,
+    "b_n": 52,
+    "union_n": 52,
+    "jaccard": 0.7115,
+    "cond_b_given_a": 1.0,
+    "cond_a_given_b": 0.7115,
+    "rate_of_N": 0.6607,
+    "wilson95_of_N": [
+     0.53,
+     0.7708
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "C-I",
+    "a": "CONTENT_OPEN",
+    "b": "ITEM_DETAIL",
+    "both_n": 28,
+    "a_n": 38,
+    "b_n": 34,
+    "union_n": 44,
+    "jaccard": 0.6364,
+    "cond_b_given_a": 0.7368,
+    "cond_a_given_b": 0.8235,
+    "rate_of_N": 0.5,
+    "wilson95_of_N": [
+     0.3733,
+     0.6267
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "C-P",
+    "a": "CONTENT_OPEN",
+    "b": "PLACE_LOOKUP",
+    "both_n": 22,
+    "a_n": 38,
+    "b_n": 27,
+    "union_n": 43,
+    "jaccard": 0.5116,
+    "cond_b_given_a": 0.5789,
+    "cond_a_given_b": 0.8148,
+    "rate_of_N": 0.3929,
+    "wilson95_of_N": [
+     0.2758,
+     0.5237
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "C-M",
+    "a": "CONTENT_OPEN",
+    "b": "COMMUNICATION_ENTRY",
+    "both_n": 23,
+    "a_n": 38,
+    "b_n": 30,
+    "union_n": 45,
+    "jaccard": 0.5111,
+    "cond_b_given_a": 0.6053,
+    "cond_a_given_b": 0.7667,
+    "rate_of_N": 0.4107,
+    "wilson95_of_N": [
+     0.2917,
+     0.5412
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "C-F",
+    "a": "CONTENT_OPEN",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 24,
+    "a_n": 38,
+    "b_n": 33,
+    "union_n": 47,
+    "jaccard": 0.5106,
+    "cond_b_given_a": 0.6316,
+    "cond_a_given_b": 0.7273,
+    "rate_of_N": 0.4286,
+    "wilson95_of_N": [
+     0.3077,
+     0.5586
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "C-U",
+    "a": "CONTENT_OPEN",
+    "b": "UTILITY_ENTRY",
+    "both_n": 38,
+    "a_n": 38,
+    "b_n": 52,
+    "union_n": 52,
+    "jaccard": 0.7308,
+    "cond_b_given_a": 1.0,
+    "cond_a_given_b": 0.7308,
+    "rate_of_N": 0.6786,
+    "wilson95_of_N": [
+     0.5482,
+     0.786
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "I-P",
+    "a": "ITEM_DETAIL",
+    "b": "PLACE_LOOKUP",
+    "both_n": 21,
+    "a_n": 34,
+    "b_n": 27,
+    "union_n": 40,
+    "jaccard": 0.525,
+    "cond_b_given_a": 0.6176,
+    "cond_a_given_b": 0.7778,
+    "rate_of_N": 0.375,
+    "wilson95_of_N": [
+     0.2601,
+     0.5059
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "I-M",
+    "a": "ITEM_DETAIL",
+    "b": "COMMUNICATION_ENTRY",
+    "both_n": 25,
+    "a_n": 34,
+    "b_n": 30,
+    "union_n": 39,
+    "jaccard": 0.641,
+    "cond_b_given_a": 0.7353,
+    "cond_a_given_b": 0.8333,
+    "rate_of_N": 0.4464,
+    "wilson95_of_N": [
+     0.3239,
+     0.5759
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "I-F",
+    "a": "ITEM_DETAIL",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 24,
+    "a_n": 34,
+    "b_n": 33,
+    "union_n": 43,
+    "jaccard": 0.5581,
+    "cond_b_given_a": 0.7059,
+    "cond_a_given_b": 0.7273,
+    "rate_of_N": 0.4286,
+    "wilson95_of_N": [
+     0.3077,
+     0.5586
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "I-U",
+    "a": "ITEM_DETAIL",
+    "b": "UTILITY_ENTRY",
+    "both_n": 34,
+    "a_n": 34,
+    "b_n": 52,
+    "union_n": 52,
+    "jaccard": 0.6538,
+    "cond_b_given_a": 1.0,
+    "cond_a_given_b": 0.6538,
+    "rate_of_N": 0.6071,
+    "wilson95_of_N": [
+     0.4763,
+     0.7242
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "P-M",
+    "a": "PLACE_LOOKUP",
+    "b": "COMMUNICATION_ENTRY",
+    "both_n": 18,
+    "a_n": 27,
+    "b_n": 30,
+    "union_n": 39,
+    "jaccard": 0.4615,
+    "cond_b_given_a": 0.6667,
+    "cond_a_given_b": 0.6,
+    "rate_of_N": 0.3214,
+    "wilson95_of_N": [
+     0.214,
+     0.4518
+    ],
+    "list_family_pair": true
+   },
+   {
+    "pair": "P-F",
+    "a": "PLACE_LOOKUP",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 16,
+    "a_n": 27,
+    "b_n": 33,
+    "union_n": 44,
+    "jaccard": 0.3636,
+    "cond_b_given_a": 0.5926,
+    "cond_a_given_b": 0.4848,
+    "rate_of_N": 0.2857,
+    "wilson95_of_N": [
+     0.1842,
+     0.4148
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "P-U",
+    "a": "PLACE_LOOKUP",
+    "b": "UTILITY_ENTRY",
+    "both_n": 27,
+    "a_n": 27,
+    "b_n": 52,
+    "union_n": 52,
+    "jaccard": 0.5192,
+    "cond_b_given_a": 1.0,
+    "cond_a_given_b": 0.5192,
+    "rate_of_N": 0.4821,
+    "wilson95_of_N": [
+     0.3567,
+     0.6099
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "M-F",
+    "a": "COMMUNICATION_ENTRY",
+    "b": "FINANCIAL_ACTION_ENTRY",
+    "both_n": 24,
+    "a_n": 30,
+    "b_n": 33,
+    "union_n": 39,
+    "jaccard": 0.6154,
+    "cond_b_given_a": 0.8,
+    "cond_a_given_b": 0.7273,
+    "rate_of_N": 0.4286,
+    "wilson95_of_N": [
+     0.3077,
+     0.5586
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "M-U",
+    "a": "COMMUNICATION_ENTRY",
+    "b": "UTILITY_ENTRY",
+    "both_n": 30,
+    "a_n": 30,
+    "b_n": 52,
+    "union_n": 52,
+    "jaccard": 0.5769,
+    "cond_b_given_a": 1.0,
+    "cond_a_given_b": 0.5769,
+    "rate_of_N": 0.5357,
+    "wilson95_of_N": [
+     0.407,
+     0.6598
+    ],
+    "list_family_pair": false
+   },
+   {
+    "pair": "F-U",
+    "a": "FINANCIAL_ACTION_ENTRY",
+    "b": "UTILITY_ENTRY",
+    "both_n": 33,
+    "a_n": 33,
+    "b_n": 52,
+    "union_n": 52,
+    "jaccard": 0.6346,
+    "cond_b_given_a": 1.0,
+    "cond_a_given_b": 0.6346,
+    "rate_of_N": 0.5893,
+    "wilson95_of_N": [
+     0.4588,
+     0.7083
+    ],
+    "list_family_pair": false
+   }
+  ]
+ },
+ "list_family_analysis": {
+  "strong": {
+   "list_family_pairs": {
+    "pairs": [
+     "C-I",
+     "C-P",
+     "C-M",
+     "I-P",
+     "I-M",
+     "P-M"
+    ],
+    "jaccard": {
+     "mean": 0.1451,
+     "median": 0.1222,
+     "min": 0.0714,
+     "max": 0.2857,
+     "n_pairs": 6
+    },
+    "cofire_rate_of_N": {
+     "mean": 0.0447,
+     "median": 0.0357,
+     "min": 0.0179,
+     "max": 0.1071,
+     "n_pairs": 6
+    },
+    "detail": [
+     {
+      "pair": "C-I",
+      "a": "CONTENT_OPEN",
+      "b": "ITEM_DETAIL",
+      "both_n": 3,
+      "a_n": 16,
+      "b_n": 6,
+      "union_n": 19,
+      "jaccard": 0.1579,
+      "cond_b_given_a": 0.1875,
+      "cond_a_given_b": 0.5,
+      "rate_of_N": 0.0536,
+      "wilson95_of_N": [
+       0.0184,
+       0.1461
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "C-P",
+      "a": "CONTENT_OPEN",
+      "b": "PLACE_LOOKUP",
+      "both_n": 6,
+      "a_n": 16,
+      "b_n": 11,
+      "union_n": 21,
+      "jaccard": 0.2857,
+      "cond_b_given_a": 0.375,
+      "cond_a_given_b": 0.5455,
+      "rate_of_N": 0.1071,
+      "wilson95_of_N": [
+       0.05,
+       0.2147
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "C-M",
+      "a": "CONTENT_OPEN",
+      "b": "COMMUNICATION_ENTRY",
+      "both_n": 2,
+      "a_n": 16,
+      "b_n": 4,
+      "union_n": 18,
+      "jaccard": 0.1111,
+      "cond_b_given_a": 0.125,
+      "cond_a_given_b": 0.5,
+      "rate_of_N": 0.0357,
+      "wilson95_of_N": [
+       0.0098,
+       0.1212
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "I-P",
+      "a": "ITEM_DETAIL",
+      "b": "PLACE_LOOKUP",
+      "both_n": 2,
+      "a_n": 6,
+      "b_n": 11,
+      "union_n": 15,
+      "jaccard": 0.1333,
+      "cond_b_given_a": 0.3333,
+      "cond_a_given_b": 0.1818,
+      "rate_of_N": 0.0357,
+      "wilson95_of_N": [
+       0.0098,
+       0.1212
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "I-M",
+      "a": "ITEM_DETAIL",
+      "b": "COMMUNICATION_ENTRY",
+      "both_n": 1,
+      "a_n": 6,
+      "b_n": 4,
+      "union_n": 9,
+      "jaccard": 0.1111,
+      "cond_b_given_a": 0.1667,
+      "cond_a_given_b": 0.25,
+      "rate_of_N": 0.0179,
+      "wilson95_of_N": [
+       0.0032,
+       0.0945
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "P-M",
+      "a": "PLACE_LOOKUP",
+      "b": "COMMUNICATION_ENTRY",
+      "both_n": 1,
+      "a_n": 11,
+      "b_n": 4,
+      "union_n": 14,
+      "jaccard": 0.0714,
+      "cond_b_given_a": 0.0909,
+      "cond_a_given_b": 0.25,
+      "rate_of_N": 0.0179,
+      "wilson95_of_N": [
+       0.0032,
+       0.0945
+      ],
+      "list_family_pair": true
+     }
+    ]
+   },
+   "control_pairs": {
+    "pairs": [
+     "Q-C",
+     "Q-I",
+     "Q-P",
+     "Q-M",
+     "Q-F",
+     "Q-U",
+     "C-F",
+     "C-U",
+     "I-F",
+     "I-U",
+     "P-F",
+     "P-U",
+     "M-F",
+     "M-U",
+     "F-U"
+    ],
+    "jaccard": {
+     "mean": 0.213,
+     "median": 0.2286,
+     "min": 0.04,
+     "max": 0.3939,
+     "n_pairs": 15
+    },
+    "cofire_rate_of_N": {
+     "mean": 0.1107,
+     "median": 0.125,
+     "min": 0.0179,
+     "max": 0.25,
+     "n_pairs": 15
+    }
+   }
+  },
+  "weakplus": {
+   "list_family_pairs": {
+    "pairs": [
+     "C-I",
+     "C-P",
+     "C-M",
+     "I-P",
+     "I-M",
+     "P-M"
+    ],
+    "jaccard": {
+     "mean": 0.5478,
+     "median": 0.5183,
+     "min": 0.4615,
+     "max": 0.641,
+     "n_pairs": 6
+    },
+    "cofire_rate_of_N": {
+     "mean": 0.4077,
+     "median": 0.4018,
+     "min": 0.3214,
+     "max": 0.5,
+     "n_pairs": 6
+    },
+    "detail": [
+     {
+      "pair": "C-I",
+      "a": "CONTENT_OPEN",
+      "b": "ITEM_DETAIL",
+      "both_n": 28,
+      "a_n": 38,
+      "b_n": 34,
+      "union_n": 44,
+      "jaccard": 0.6364,
+      "cond_b_given_a": 0.7368,
+      "cond_a_given_b": 0.8235,
+      "rate_of_N": 0.5,
+      "wilson95_of_N": [
+       0.3733,
+       0.6267
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "C-P",
+      "a": "CONTENT_OPEN",
+      "b": "PLACE_LOOKUP",
+      "both_n": 22,
+      "a_n": 38,
+      "b_n": 27,
+      "union_n": 43,
+      "jaccard": 0.5116,
+      "cond_b_given_a": 0.5789,
+      "cond_a_given_b": 0.8148,
+      "rate_of_N": 0.3929,
+      "wilson95_of_N": [
+       0.2758,
+       0.5237
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "C-M",
+      "a": "CONTENT_OPEN",
+      "b": "COMMUNICATION_ENTRY",
+      "both_n": 23,
+      "a_n": 38,
+      "b_n": 30,
+      "union_n": 45,
+      "jaccard": 0.5111,
+      "cond_b_given_a": 0.6053,
+      "cond_a_given_b": 0.7667,
+      "rate_of_N": 0.4107,
+      "wilson95_of_N": [
+       0.2917,
+       0.5412
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "I-P",
+      "a": "ITEM_DETAIL",
+      "b": "PLACE_LOOKUP",
+      "both_n": 21,
+      "a_n": 34,
+      "b_n": 27,
+      "union_n": 40,
+      "jaccard": 0.525,
+      "cond_b_given_a": 0.6176,
+      "cond_a_given_b": 0.7778,
+      "rate_of_N": 0.375,
+      "wilson95_of_N": [
+       0.2601,
+       0.5059
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "I-M",
+      "a": "ITEM_DETAIL",
+      "b": "COMMUNICATION_ENTRY",
+      "both_n": 25,
+      "a_n": 34,
+      "b_n": 30,
+      "union_n": 39,
+      "jaccard": 0.641,
+      "cond_b_given_a": 0.7353,
+      "cond_a_given_b": 0.8333,
+      "rate_of_N": 0.4464,
+      "wilson95_of_N": [
+       0.3239,
+       0.5759
+      ],
+      "list_family_pair": true
+     },
+     {
+      "pair": "P-M",
+      "a": "PLACE_LOOKUP",
+      "b": "COMMUNICATION_ENTRY",
+      "both_n": 18,
+      "a_n": 27,
+      "b_n": 30,
+      "union_n": 39,
+      "jaccard": 0.4615,
+      "cond_b_given_a": 0.6667,
+      "cond_a_given_b": 0.6,
+      "rate_of_N": 0.3214,
+      "wilson95_of_N": [
+       0.214,
+       0.4518
+      ],
+      "list_family_pair": true
+     }
+    ]
+   },
+   "control_pairs": {
+    "pairs": [
+     "Q-C",
+     "Q-I",
+     "Q-P",
+     "Q-M",
+     "Q-F",
+     "Q-U",
+     "C-F",
+     "C-U",
+     "I-F",
+     "I-U",
+     "P-F",
+     "P-U",
+     "M-F",
+     "M-U",
+     "F-U"
+    ],
+    "jaccard": {
+     "mean": 0.5814,
+     "median": 0.5778,
+     "min": 0.3636,
+     "max": 0.7308,
+     "n_pairs": 15
+    },
+    "cofire_rate_of_N": {
+     "mean": 0.4917,
+     "median": 0.4643,
+     "min": 0.2857,
+     "max": 0.6786,
+     "n_pairs": 15
+    }
+   }
+  },
+  "family": [
+   "CONTENT_OPEN",
+   "ITEM_DETAIL",
+   "PLACE_LOOKUP",
+   "COMMUNICATION_ENTRY"
+  ],
+  "jaccard_gap_strong": -0.0679,
+  "jaccard_gap_weakplus": -0.0336
+ },
+ "specificity": {
+  "strong": {
+   "level": "STRONG",
+   "per_archetype": {
+    "QUERY": {
+     "fired_n": 20,
+     "fire_rate": 0.3571,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.2446,
+      0.4881
+     ],
+     "mean_cofired": 2.05,
+     "sole_n": 4,
+     "sole_share": 0.2,
+     "wilson95_sole_share": [
+      0.0807,
+      0.416
+     ]
+    },
+    "CONTENT_OPEN": {
+     "fired_n": 16,
+     "fire_rate": 0.2857,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.1842,
+      0.4148
+     ],
+     "mean_cofired": 2.4375,
+     "sole_n": 0,
+     "sole_share": 0.0,
+     "wilson95_sole_share": [
+      0.0,
+      0.1936
+     ]
+    },
+    "ITEM_DETAIL": {
+     "fired_n": 6,
+     "fire_rate": 0.1071,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.05,
+      0.2147
+     ],
+     "mean_cofired": 2.0,
+     "sole_n": 1,
+     "sole_share": 0.1667,
+     "wilson95_sole_share": [
+      0.0301,
+      0.5635
+     ]
+    },
+    "PLACE_LOOKUP": {
+     "fired_n": 11,
+     "fire_rate": 0.1964,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.1134,
+      0.3184
+     ],
+     "mean_cofired": 2.3636,
+     "sole_n": 1,
+     "sole_share": 0.0909,
+     "wilson95_sole_share": [
+      0.0162,
+      0.3774
+     ]
+    },
+    "COMMUNICATION_ENTRY": {
+     "fired_n": 4,
+     "fire_rate": 0.0714,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.0281,
+      0.1698
+     ],
+     "mean_cofired": 2.75,
+     "sole_n": 0,
+     "sole_share": 0.0,
+     "wilson95_sole_share": [
+      0.0,
+      0.4899
+     ]
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "fired_n": 14,
+     "fire_rate": 0.25,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.1552,
+      0.3769
+     ],
+     "mean_cofired": 2.4286,
+     "sole_n": 0,
+     "sole_share": 0.0,
+     "wilson95_sole_share": [
+      0.0,
+      0.2153
+     ]
+    },
+    "UTILITY_ENTRY": {
+     "fired_n": 32,
+     "fire_rate": 0.5714,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.4414,
+      0.6923
+     ],
+     "mean_cofired": 1.6562,
+     "sole_n": 7,
+     "sole_share": 0.2188,
+     "wilson95_sole_share": [
+      0.1102,
+      0.3876
+     ]
+    }
+   }
+  },
+  "weakplus": {
+   "level": "WEAK+",
+   "per_archetype": {
+    "QUERY": {
+     "fired_n": 37,
+     "fire_rate": 0.6607,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.53,
+      0.7708
+     ],
+     "mean_cofired": 4.4054,
+     "sole_n": 0,
+     "sole_share": 0.0,
+     "wilson95_sole_share": [
+      0.0,
+      0.0941
+     ]
+    },
+    "CONTENT_OPEN": {
+     "fired_n": 38,
+     "fire_rate": 0.6786,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.5482,
+      0.786
+     ],
+     "mean_cofired": 4.2895,
+     "sole_n": 0,
+     "sole_share": 0.0,
+     "wilson95_sole_share": [
+      0.0,
+      0.0918
+     ]
+    },
+    "ITEM_DETAIL": {
+     "fired_n": 34,
+     "fire_rate": 0.6071,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.4763,
+      0.7242
+     ],
+     "mean_cofired": 4.6471,
+     "sole_n": 0,
+     "sole_share": 0.0,
+     "wilson95_sole_share": [
+      0.0,
+      0.1015
+     ]
+    },
+    "PLACE_LOOKUP": {
+     "fired_n": 27,
+     "fire_rate": 0.4821,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.3567,
+      0.6099
+     ],
+     "mean_cofired": 4.6667,
+     "sole_n": 0,
+     "sole_share": 0.0,
+     "wilson95_sole_share": [
+      0.0,
+      0.1246
+     ]
+    },
+    "COMMUNICATION_ENTRY": {
+     "fired_n": 30,
+     "fire_rate": 0.5357,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.407,
+      0.6598
+     ],
+     "mean_cofired": 4.8,
+     "sole_n": 0,
+     "sole_share": 0.0,
+     "wilson95_sole_share": [
+      -0.0,
+      0.1135
+     ]
+    },
+    "FINANCIAL_ACTION_ENTRY": {
+     "fired_n": 33,
+     "fire_rate": 0.5893,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.4588,
+      0.7083
+     ],
+     "mean_cofired": 4.4545,
+     "sole_n": 0,
+     "sole_share": 0.0,
+     "wilson95_sole_share": [
+      0.0,
+      0.1043
+     ]
+    },
+    "UTILITY_ENTRY": {
+     "fired_n": 52,
+     "fire_rate": 0.9286,
+     "denominator": 56,
+     "wilson95_fire_rate": [
+      0.8302,
+      0.9719
+     ],
+     "mean_cofired": 3.8269,
+     "sole_n": 2,
+     "sole_share": 0.0385,
+     "wilson95_sole_share": [
+      0.0106,
+      0.1298
+     ]
+    }
+   }
+  }
+ },
+ "utility_catchall": {
+  "definition": "다른 6개 archetype 이 모두 non-STRONG 인 target 중 UTILITY 가 STRONG 인 비율 (= UTILITY 만 남는 구제 발화율)",
+  "targets_with_no_other_strong": 20,
+  "utility_strong_among_them": 7,
+  "rescue_rate": 0.35,
+  "wilson95": [
+   0.1812,
+   0.5671
+  ],
+  "utility_fire_rate_weakplus": 0.9286,
+  "utility_fire_rate_strong": 0.5714
+ },
+ "post_hoc_sensitivity": {
+  "label": "POST_HOC_DESCRIPTIVE — 사전등록 판정기준이 아니다",
+  "hub_excluded": [
+   "QUERY",
+   "UTILITY_ENTRY"
+  ],
+  "strong": {
+   "list_family_mean_jaccard": 0.1451,
+   "control_no_hub_pairs": [
+    "C-F",
+    "I-F",
+    "P-F",
+    "M-F"
+   ],
+   "control_no_hub_mean_jaccard": 0.1566,
+   "gap": -0.0116
+  },
+  "weakplus": {
+   "list_family_mean_jaccard": 0.5478,
+   "control_no_hub_pairs": [
+    "C-F",
+    "I-F",
+    "P-F",
+    "M-F"
+   ],
+   "control_no_hub_mean_jaccard": 0.5119,
+   "gap": 0.0358
+  },
+  "hub_degree": {
+   "QUERY": {
+    "strong_partner_sum": 41,
+    "weakplus_partner_sum": 163,
+    "strong_partners_nonzero": 6,
+    "weakplus_partners_nonzero": 6
+   },
+   "CONTENT_OPEN": {
+    "strong_partner_sum": 39,
+    "weakplus_partner_sum": 163,
+    "strong_partners_nonzero": 6,
+    "weakplus_partners_nonzero": 6
+   },
+   "ITEM_DETAIL": {
+    "strong_partner_sum": 12,
+    "weakplus_partner_sum": 158,
+    "strong_partners_nonzero": 6,
+    "weakplus_partners_nonzero": 6
+   },
+   "PLACE_LOOKUP": {
+    "strong_partner_sum": 26,
+    "weakplus_partner_sum": 126,
+    "strong_partners_nonzero": 6,
+    "weakplus_partners_nonzero": 6
+   },
+   "COMMUNICATION_ENTRY": {
+    "strong_partner_sum": 11,
+    "weakplus_partner_sum": 144,
+    "strong_partners_nonzero": 6,
+    "weakplus_partners_nonzero": 6
+   },
+   "FINANCIAL_ACTION_ENTRY": {
+    "strong_partner_sum": 34,
+    "weakplus_partner_sum": 147,
+    "strong_partners_nonzero": 6,
+    "weakplus_partners_nonzero": 6
+   },
+   "UTILITY_ENTRY": {
+    "strong_partner_sum": 53,
+    "weakplus_partner_sum": 199,
+    "strong_partners_nonzero": 6,
+    "weakplus_partners_nonzero": 6
+   }
+  }
+ },
+ "shared_signal_profile": {
+  "QUERY": {
+   "fired_n": 37,
+   "exclusive_n": 0,
+   "exclusivity": 0.0,
+   "wilson95_exclusivity": [
+    0.0,
+    0.0941
+   ],
+   "cofire_partners": {
+    "CONTENT_OPEN": 28,
+    "ITEM_DETAIL": 26,
+    "PLACE_LOOKUP": 22,
+    "COMMUNICATION_ENTRY": 24,
+    "FINANCIAL_ACTION_ENTRY": 26,
+    "UTILITY_ENTRY": 37
+   },
+   "top_signals": {
+    "endpoint:lex:search_submit@control": 31,
+    "endpoint:form_or_input_present": 29,
+    "region:lex:search@placeholder/input_name": 18,
+    "region:search_inputs_n>=1": 10,
+    "endpoint:url:search": 1
+   }
+  },
+  "CONTENT_OPEN": {
+   "fired_n": 38,
+   "exclusive_n": 0,
+   "exclusivity": 0.0,
+   "wilson95_exclusivity": [
+    0.0,
+    0.0918
+   ],
+   "cofire_partners": {
+    "QUERY": 28,
+    "ITEM_DETAIL": 28,
+    "PLACE_LOOKUP": 22,
+    "COMMUNICATION_ENTRY": 23,
+    "FINANCIAL_ACTION_ENTRY": 24,
+    "UTILITY_ENTRY": 38
+   },
+   "top_signals": {
+    "region:card_repeat AND lex:content": 24,
+    "endpoint:lex:media_play@control": 23,
+    "endpoint:lex:media_play@nav": 16,
+    "endpoint:article_present": 7
+   }
+  },
+  "ITEM_DETAIL": {
+   "fired_n": 34,
+   "exclusive_n": 0,
+   "exclusivity": 0.0,
+   "wilson95_exclusivity": [
+    0.0,
+    0.1015
+   ],
+   "cofire_partners": {
+    "QUERY": 26,
+    "CONTENT_OPEN": 28,
+    "PLACE_LOOKUP": 21,
+    "COMMUNICATION_ENTRY": 25,
+    "FINANCIAL_ACTION_ENTRY": 24,
+    "UTILITY_ENTRY": 34
+   },
+   "top_signals": {
+    "region:card_repeat AND lex:item": 34,
+    "region:card_repeat AND lex:price": 9,
+    "endpoint:lex:price AND lex:txn_control@control": 6
+   }
+  },
+  "PLACE_LOOKUP": {
+   "fired_n": 27,
+   "exclusive_n": 0,
+   "exclusivity": 0.0,
+   "wilson95_exclusivity": [
+    0.0,
+    0.1246
+   ],
+   "cofire_partners": {
+    "QUERY": 22,
+    "CONTENT_OPEN": 22,
+    "ITEM_DETAIL": 21,
+    "COMMUNICATION_ENTRY": 18,
+    "FINANCIAL_ACTION_ENTRY": 16,
+    "UTILITY_ENTRY": 27
+   },
+   "top_signals": {
+    "region:lex:place AND (card_repeat|place@control|search_input)": 25,
+    "endpoint:lex:place_detail": 6,
+    "endpoint:lex:place AND search_inputs_n>=1": 5,
+    "endpoint:url:place": 4
+   }
+  },
+  "COMMUNICATION_ENTRY": {
+   "fired_n": 30,
+   "exclusive_n": 0,
+   "exclusivity": 0.0,
+   "wilson95_exclusivity": [
+    -0.0,
+    0.1135
+   ],
+   "cofire_partners": {
+    "QUERY": 24,
+    "CONTENT_OPEN": 23,
+    "ITEM_DETAIL": 25,
+    "PLACE_LOOKUP": 18,
+    "FINANCIAL_ACTION_ENTRY": 24,
+    "UTILITY_ENTRY": 30
+   },
+   "top_signals": {
+    "region:lex:comm AND (card_repeat|comm@control)": 29,
+    "endpoint:password_gate_reached": 3,
+    "endpoint:lex:compose@control": 2
+   }
+  },
+  "FINANCIAL_ACTION_ENTRY": {
+   "fired_n": 33,
+   "exclusive_n": 0,
+   "exclusivity": 0.0,
+   "wilson95_exclusivity": [
+    0.0,
+    0.1043
+   ],
+   "cofire_partners": {
+    "QUERY": 26,
+    "CONTENT_OPEN": 24,
+    "ITEM_DETAIL": 24,
+    "PLACE_LOOKUP": 16,
+    "COMMUNICATION_ENTRY": 24,
+    "UTILITY_ENTRY": 33
+   },
+   "top_signals": {
+    "region:lex:finance@control": 24,
+    "region:lex:finance@nav": 23,
+    "endpoint:lex:finance@nav AND lex:auth_gate@control": 13,
+    "endpoint:url:finance": 4,
+    "endpoint:password_gate_reached": 3
+   }
+  },
+  "UTILITY_ENTRY": {
+   "fired_n": 52,
+   "exclusive_n": 2,
+   "exclusivity": 0.0385,
+   "wilson95_exclusivity": [
+    0.0106,
+    0.1298
+   ],
+   "cofire_partners": {
+    "QUERY": 37,
+    "CONTENT_OPEN": 38,
+    "ITEM_DETAIL": 34,
+    "PLACE_LOOKUP": 27,
+    "COMMUNICATION_ENTRY": 30,
+    "FINANCIAL_ACTION_ENTRY": 33
+   },
+   "top_signals": {
+    "endpoint:n_primary_action_candidates>=1": 52,
+    "region:lex:utility@control": 29,
+    "region:lex:utility@nav": 18
+   }
+  }
+ },
+ "structurally_shared_signals": {
+  "password_gate_reached": [
+   "COMMUNICATION_ENTRY",
+   "FINANCIAL_ACTION_ENTRY"
+  ]
+ },
+ "prior_agreement": {
+  "note": "prior_archetype 은 gold label 이 아니라 business-domain prior 다. 아래 지표는 accuracy 가 아니라 prior_agreement 다.",
+  "prior_in_strong_set": {
+   "n": 17,
+   "denominator": 56,
+   "rate": 0.3036,
+   "wilson95": [
+    0.199,
+    0.4334
+   ]
+  },
+  "prior_in_weakplus_set": {
+   "n": 43,
+   "denominator": 56,
+   "rate": 0.7679,
+   "wilson95": [
+    0.6423,
+    0.859
+   ]
+  },
+  "unique_strong_equals_prior": {
+   "n": 1,
+   "denominator": 56,
+   "rate": 0.0179,
+   "wilson95": [
+    0.0032,
+    0.0945
+   ]
+  },
+  "per_prior_class": {
+   "COMMUNICATION_ENTRY": {
+    "n": 4,
+    "prior_in_strong_set_n": 0,
+    "rate": 0.0,
+    "wilson95": [
+     0.0,
+     0.4899
+    ],
+    "mean_n_strong": 2.25,
+    "mean_n_weakplus": 3.75
+   },
+   "CONTENT_OPEN": {
+    "n": 3,
+    "prior_in_strong_set_n": 0,
+    "rate": 0.0,
+    "wilson95": [
+     0.0,
+     0.5615
+    ],
+    "mean_n_strong": 2.0,
+    "mean_n_weakplus": 3.6667
+   },
+   "FINANCIAL_ACTION_ENTRY": {
+    "n": 10,
+    "prior_in_strong_set_n": 3,
+    "rate": 0.3,
+    "wilson95": [
+     0.1078,
+     0.6032
+    ],
+    "mean_n_strong": 0.9,
+    "mean_n_weakplus": 2.7
+   },
+   "ITEM_DETAIL": {
+    "n": 26,
+    "prior_in_strong_set_n": 5,
+    "rate": 0.1923,
+    "wilson95": [
+     0.0851,
+     0.3788
+    ],
+    "mean_n_strong": 1.8462,
+    "mean_n_weakplus": 5.0769
+   },
+   "PLACE_LOOKUP": {
+    "n": 4,
+    "prior_in_strong_set_n": 3,
+    "rate": 0.75,
+    "wilson95": [
+     0.3006,
+     0.9544
+    ],
+    "mean_n_strong": 2.25,
+    "mean_n_weakplus": 4.0
+   },
+   "QUERY": {
+    "n": 4,
+    "prior_in_strong_set_n": 3,
+    "rate": 0.75,
+    "wilson95": [
+     0.3006,
+     0.9544
+    ],
+    "mean_n_strong": 2.75,
+    "mean_n_weakplus": 5.0
+   },
+   "UTILITY_ENTRY": {
+    "n": 5,
+    "prior_in_strong_set_n": 3,
+    "rate": 0.6,
+    "wilson95": [
+     0.2307,
+     0.8824
+    ],
+    "mean_n_strong": 2.2,
+    "mean_n_weakplus": 6.0
+   }
+  }
+ },
+ "hypothesis_verdicts": {
+  "H-A1_LIST_FAMILY_COLLAPSE": {
+   "criterion": "list-family 4개 내부 6쌍의 평균 Jaccard 동시발화가 나머지 15쌍의 평균보다 크면 collapse 근거. STRONG·WEAK+ 두 수준 모두 확인.",
+   "list_family_mean_jaccard_strong": 0.1451,
+   "control_mean_jaccard_strong": 0.213,
+   "list_family_mean_jaccard_weakplus": 0.5478,
+   "control_mean_jaccard_weakplus": 0.5814,
+   "mechanism_shared_card_region_hits": {
+    "CONTENT_OPEN": 24,
+    "ITEM_DETAIL": 43,
+    "PLACE_LOOKUP": 25,
+    "COMMUNICATION_ENTRY": 29
+   },
+   "mechanism_criterion_met": true,
+   "differential_criterion_met": false,
+   "jaccard_gap_strong": -0.0679,
+   "jaccard_gap_weakplus": -0.0336,
+   "verdict": "PARTIALLY_SUPPORTED",
+   "verdict_note": "기전(4개 branch 가 반복 card 구조를 region 근거로 공유)은 확인됐다. 그러나 '이 4개가 서로 특히 안 나뉜다'는 차별적 주장은 성립하지 않는다 — family 내부 동시발화는 나머지 쌍보다 오히려 낮다. 비분리성은 list-family 국소 문제가 아니라 7개 전체의 전역 문제다."
+  },
+  "H-A2_UTILITY_CATCHALL": {
+   "criterion": "UTILITY 의 sole_share(단독 발화 비율)가 최저 수준이고 rescue_rate 가 낮지 않으면 catch-all. 발화율이 가장 높은 것만으로는 부족하다.",
+   "utility": {
+    "fired_n": 52,
+    "fire_rate": 0.9286,
+    "denominator": 56,
+    "wilson95_fire_rate": [
+     0.8302,
+     0.9719
+    ],
+    "mean_cofired": 3.8269,
+    "sole_n": 2,
+    "sole_share": 0.0385,
+    "wilson95_sole_share": [
+     0.0106,
+     0.1298
+    ]
+   },
+   "rescue": {
+    "definition": "다른 6개 archetype 이 모두 non-STRONG 인 target 중 UTILITY 가 STRONG 인 비율 (= UTILITY 만 남는 구제 발화율)",
+    "targets_with_no_other_strong": 20,
+    "utility_strong_among_them": 7,
+    "rescue_rate": 0.35,
+    "wilson95": [
+     0.1812,
+     0.5671
+    ],
+    "utility_fire_rate_weakplus": 0.9286,
+    "utility_fire_rate_strong": 0.5714
+   },
+   "dilution_criterion_met": false,
+   "rescue_criterion_met": true,
+   "rescue_chance_baseline": 0.1429,
+   "rescue_baseline_note": "1/7 = 7개 archetype 균등 우연. 이 baseline 수치는 결과 관측 후 명시했다(POST_HOC_SPECIFIED_THRESHOLD). rescue_rate 자체와 '낮지 않으면 catch-all' 이라는 방향은 사전등록돼 있었다.",
+   "post_hoc_specified_threshold": true,
+   "sole_share_strong_by_archetype": {
+    "QUERY": 0.2,
+    "CONTENT_OPEN": 0.0,
+    "ITEM_DETAIL": 0.1667,
+    "PLACE_LOOKUP": 0.0909,
+    "COMMUNICATION_ENTRY": 0.0,
+    "FINANCIAL_ACTION_ENTRY": 0.0,
+    "UTILITY_ENTRY": 0.2188
+   },
+   "fire_rate_weakplus_by_archetype": {
+    "QUERY": 0.6607,
+    "CONTENT_OPEN": 0.6786,
+    "ITEM_DETAIL": 0.6071,
+    "PLACE_LOOKUP": 0.4821,
+    "COMMUNICATION_ENTRY": 0.5357,
+    "FINANCIAL_ACTION_ENTRY": 0.5893,
+    "UTILITY_ENTRY": 0.9286
+   },
+   "verdict": "PARTIALLY_SUPPORTED",
+   "verdict_note": "UTILITY 는 '아무 데나 섞여 들어가 희석되는' 형태가 아니라 '가장 자주 켜지고, 다른 게 다 꺼졌을 때 유일하게 남는' 형태다. STRONG 단독발화 비율은 오히려 7개 중 최고이고, 다른 6개가 모두 non-STRONG 인 target 20건 중 7건에서 UTILITY 만 STRONG 이다."
+  },
+  "H-A3_NO_EVIDENCE_DOMINANT": {
+   "criterion": "STRONG 수준에서 no_evidence 비율 > multi_candidate 비율이면 지지.",
+   "no_evidence_rate_strong": 0.2321,
+   "multi_candidate_rate_strong": 0.5357,
+   "no_evidence_rate_weakplus": 0.0714,
+   "multi_candidate_rate_weakplus": 0.8929,
+   "criterion_met_strong": false,
+   "criterion_met_weakplus": false,
+   "verdict": "REFUTED",
+   "verdict_note": "지배적 실패는 증거 부재가 아니라 다중후보다. 증거가 전혀 없는 target 은 WEAK+ 기준 4/56 이고 그 4건은 모두 DOM_DEAD(본문 텍스트 200자 미만)다. RF001-A 의 abstention 40/56 은 '증거 없음' 이 아니라 SSOT §6 resolver 가 다중 강후보를 강제매핑하지 않은 결과로 읽힌다."
+  }
+ },
+ "verdict": "SUPPORTED",
+ "verdict_criterion": "STRONG 수준 multi_candidate 비율 > single_candidate 비율 이면 '현재 결정적 증거는 archetype 을 유일하게 지목하지 못한다'가 지지된다.",
+ "verdict_note": "STRONG 후보 평균 1.8393개, WEAK+ 평균 4.4821개. multi=30/56, single=13/56, none=13/56."
+}

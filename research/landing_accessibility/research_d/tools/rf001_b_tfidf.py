@@ -325,6 +325,21 @@ def main() -> int:
         pipe_d, Xd, y, scoring="f1_macro", cv=StratifiedKFold(3, shuffle=True, random_state=SEED),
         n_permutations=200, random_state=SEED, n_jobs=1)
 
+    def perm_for(fs_name, vec_kind, model_kind):
+        Xx = np.array(featuresets[fs_name], dtype=object)
+        pp = Pipeline([("v", make_vec(vec_kind)), ("c", make_clf(model_kind))])
+        sc, null, pv = permutation_test_score(
+            pp, Xx, y, scoring="f1_macro",
+            cv=StratifiedKFold(3, shuffle=True, random_state=SEED),
+            n_permutations=200, random_state=SEED, n_jobs=1)
+        return {"config": f"{fs_name}.{vec_kind}.{model_kind}", "score": float(sc),
+                "p_value": float(pv), "n_permutations": 200,
+                "null_mean": float(np.mean(null)),
+                "null_p97_5": float(np.percentile(null, 97.5))}
+
+    perm_best_text = perm_for("A_blob_full", "char_wb", "logreg")
+    perm_brand_only = perm_for("E_brand_only", "char_wb", "linsvc")
+
     # --- top coefficient tokens per class (full-data fit, word analyzer) ------
     def top_tokens(docs, topk=15):
         vec = make_vec("word")
@@ -453,30 +468,43 @@ def main() -> int:
     figs["brand_ablation"] = str(p4)
 
     # --- verdict --------------------------------------------------------------
-    best_key = max((k for k in configs if configs[k]["summary"].get("n_folds")),
-                   key=lambda k: configs[k]["summary"]["mean"])
+    # E_brand_only 는 모델 후보가 아니라 leak 상한 대조군이다. H-RF001-B 판정에서 제외한다.
+    LEGIT = ("A_blob_full", "B_title_head_nav", "C_blob_no_url", "D_deleak")
+    legit_keys = [k for k in configs
+                  if configs[k]["featureset"] in LEGIT and configs[k]["summary"].get("n_folds")]
+    best_key = max(legit_keys, key=lambda k: configs[k]["summary"]["mean"])
     best = configs[best_key]
-    beats = not best["ci_includes_stratified_mean"] and best["summary"]["p2_5"] > strat_mean
-    primary_beats = (not configs[PRIMARY]["ci_includes_stratified_mean"]
-                     and configs[PRIMARY]["summary"]["p2_5"] > strat_mean)
+    best_any_key = max((k for k in configs if configs[k]["summary"].get("n_folds")),
+                       key=lambda k: configs[k]["summary"]["mean"])
+
+    def separates(k):
+        """fold macro F1 의 95% percentile 하한이 stratified baseline 평균보다 위인가."""
+        return bool(configs[k]["summary"]["p2_5"] > strat_mean)
+
+    beats = separates(best_key)                       # 사후 최댓값(정당한 text feature 한정)
+    primary_beats = separates(PRIMARY)                # 사전 선언 primary
     deleak_beats = leak["deleak_still_above_stratified"]
+    brand_only_keys = [k for k in configs if configs[k]["featureset"] == "E_brand_only"]
+    brand_only_separates = any(separates(k) for k in brand_only_keys)
 
-    if beats and deleak_beats and leak["deleak_retention_frac"] and leak["deleak_retention_frac"] > 0.7:
+    # H-RF001-B: 텍스트만으로 prior 를 baseline 보다 유의하게 되찾는가
+    if primary_beats and beats:
         verdict = "SUPPORTED"
-    elif beats and deleak_beats:
-        verdict = "PARTIALLY_SUPPORTED"
-    elif beats and not deleak_beats:
-        verdict = "PARTIALLY_SUPPORTED"
-    elif not beats:
-        verdict = "NOT_SUPPORTED"
+    elif beats and not primary_beats:
+        verdict = "PARTIALLY_SUPPORTED"   # 사후 선택 셀에서만 분리 -> selection bias 경고와 함께
     else:
-        verdict = "INCONCLUSIVE"
+        verdict = "NOT_SUPPORTED"
 
-    h_null = "REFUTED" if beats else "NOT_SUPPORTED"
-    if deleak_beats and leak["deleak_retention_frac"] and leak["deleak_retention_frac"] > 0.7:
-        h_leak = "NOT_SUPPORTED"
-    elif not deleak_beats:
+    # H-B-null: baseline 과 구분되지 않는다
+    h_null = "REFUTED" if beats else "SUPPORTED"
+
+    # H-B-leak: 잘 맞는 부분은 브랜드 암기다
+    if brand_only_separates and not deleak_beats:
         h_leak = "SUPPORTED"
+    elif deleak_beats and leak["deleak_retention_frac"] and leak["deleak_retention_frac"] > 0.7:
+        h_leak = "NOT_SUPPORTED"
+    elif not beats and not brand_only_separates:
+        h_leak = "NOT_TESTABLE"   # 되찾은 신호 자체가 없어 leak 여부를 물을 대상이 없다
     else:
         h_leak = "PARTIALLY_SUPPORTED"
 
@@ -530,11 +558,32 @@ def main() -> int:
         },
         "baselines": base,
         "configs": configs,
+        "judgment_basis": {
+            "rule": ("fold macro F1 의 95% percentile 하한(p2_5)이 stratified baseline 평균"
+                     "(0.155)보다 위면 '분리된다'로 본다. 사전 선언 primary 와, E 대조군을 제외한 "
+                     "정당한 text featureset(A/B/C/D) 중 사후 최댓값을 둘 다 본다."),
+            "stratified_baseline_mean": strat_mean,
+            "most_frequent_baseline_mean": mf_mean,
+            "why_not_majority_headline": ("most_frequent 는 7 class 중 6개에서 recall 0 이라 "
+                                          "macro F1 이 구조적으로 0.09 에 묶인다. 이 대비 lift 는 "
+                                          "rigged 비교이므로 헤드라인으로 쓰지 않는다."),
+            "primary_separates": primary_beats,
+            "best_legit_separates": beats,
+            "brand_only_control_separates": brand_only_separates,
+            "deleak_separates": deleak_beats,
+        },
         "best_config_post_hoc": {"key": best_key, **{k: best[k] for k in
                                                      ("summary", "lift_vs_stratified",
                                                       "lift_vs_most_frequent",
                                                       "ci_includes_stratified_mean")},
-                                 "caveat": "20셀 중 최대값이므로 selection bias 가 있다. 판정은 사전 선언 primary 로 한다."},
+                                 "scope": "featureset A/B/C/D 16셀 중 최댓값 (E 대조군 제외)",
+                                 "caveat": "16셀 중 최대값이므로 selection bias 가 있다. 사전 선언 primary 와 병기한다."},
+        "best_config_including_control": {
+            "key": best_any_key,
+            "summary": configs[best_any_key]["summary"],
+            "note": ("20셀 전체 최댓값. 이것이 E_brand_only(브랜드 토큰만) 라면 "
+                     "그 자체가 H-B-leak 의 직접 증거다."),
+            "is_brand_only_control": configs[best_any_key]["featureset"] == "E_brand_only"},
         "primary_result": {"key": PRIMARY, **configs[PRIMARY],
                            "beats_stratified_by_ci": primary_beats},
         "deleak_primary_result": {"key": DELEAK_PRIMARY, **configs[DELEAK_PRIMARY]},
@@ -548,6 +597,10 @@ def main() -> int:
                        "p_value": float(perm_p_d), "n_permutations": 200,
                        "null_mean": float(np.mean(perm_scores_d)),
                        "null_p97_5": float(np.percentile(perm_scores_d, 97.5))},
+            "best_legit_text": perm_best_text,
+            "brand_only_control": perm_brand_only,
+            "note": ("label permutation 200회, StratifiedKFold(3). p 는 '무작위 라벨에서 이 "
+                     "점수 이상이 나올 비율'이다. n=56 에서 검정력은 매우 낮다."),
         },
         "per_class": {"primary": per_class_primary, "deleak_primary": per_class_deleak,
                       "note": "Wilson CI 의 n 은 class support(독립 표본 수)이고 반복수로 부풀리지 않았다."},
@@ -590,7 +643,10 @@ def main() -> int:
     print(f"primary {PRIMARY} mean={configs[PRIMARY]['summary']['mean']:.3f} "
           f"[{configs[PRIMARY]['summary']['p2_5']:.3f},{configs[PRIMARY]['summary']['p97_5']:.3f}] "
           f"stratified={strat_mean:.3f} mf={mf_mean:.3f}")
-    print(f"best(post-hoc) {best_key} mean={best['summary']['mean']:.3f}")
+    print(f"best legit(post-hoc, A-D) {best_key} mean={best['summary']['mean']:.3f} "
+          f"p2.5={best['summary']['p2_5']:.3f} separates={beats}")
+    print(f"best incl control {best_any_key} mean={configs[best_any_key]['summary']['mean']:.3f}")
+    print(f"perm p best_legit={perm_best_text['p_value']:.4f} brand_only={perm_brand_only['p_value']:.4f}")
     print(f"deleak {DELEAK_PRIMARY} mean={configs[DELEAK_PRIMARY]['summary']['mean']:.3f} "
           f"retention={leak['deleak_retention_frac']}")
     print(f"brand_only word logreg = {leak['brand_only_macro_f1_word_logreg']:.3f}")
@@ -642,6 +698,8 @@ def main() -> int:
             "n_observed": float(n), "min_class_n": float(doc["inputs"]["min_class_n"]),
             "permutation_p_primary": float(perm_p),
             "permutation_p_deleak": float(perm_p_d),
+            "permutation_p_best_legit_text": float(perm_best_text["p_value"]),
+            "permutation_p_brand_only_control": float(perm_brand_only["p_value"]),
             "leak.deleak_retention_frac": float(leak["deleak_retention_frac"] or 0.0),
             "leak.deleak_drop_abs": float(leak["deleak_drop_abs"]),
             "leak.brand_only_macro_f1": float(leak["brand_only_macro_f1_word_logreg"]),
