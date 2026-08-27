@@ -34,6 +34,13 @@ AXIS_C_CHECKS = [  # (trigger, required-companion, note)
     (r"(exists\s*=\s*0|닫기\s*컨트롤이?\s*없)[^.]{0,40}102", r"38|컨트롤이\s*있[^.]{0,10}실패", "102 만 강조 금지 — (exists=1, succeeded=0) 38 병기 (A 14:45)"),
 ]
 _FORBIDDEN_TAIL = None
+# CLAIM_GOVERNANCE rev 14:58: association NOT_COMPUTABLE, substitute_made=false → any association/GRADE B/C claim is out today
+TODAY_RULES = [
+    (r"(Spearman|ρ\s*=|rho\s*=|순위\s*상관|상관(계수|을|이)\s*보|Kruskal|association)", "rev14:58 §1", "오늘 association 없음 — GRADE B/C claim 존재 불가 (substitute_made=false)"),
+    (r"GRADE\s*[BC]\b", "rev14:58 §1", "오늘 GRADE B/C 태그 자체가 무효 — A 또는 UNSUPPORTED 만"),
+    (r"축\s*A[^.]{0,20}(관측됨|측정됨|산출)", "rev14:58 §0", "축 A = NOT_EVALUATED (판정기 부재) 로만 서술"),
+    (r"(KWCAG|접근성\s*장벽)[^.]{0,30}(FAIL\s*비율|비율\s*분포|median)", "rev14:58 §0", "KWCAG 판정 미수행 — FailRate 서술 불가"),
+]
 HEDGE_N = r"(대부분|대다수|많은|거의\s*모든|majority|most)"
 GRADE = r"\[(GRADE\s*[ABC]|UNSUPPORTED|EXPLORATORY)[^\]]*\]|GRADE\s*[ABC]\b|\bgrade\s*[ABC]\b"
 
@@ -70,6 +77,8 @@ def main(a):
             has_grade = bool(re.search(GRADE, s, re.I)); has_n = bool(re.search(r"\b[nNmM]\s*=\s*\d+|\d+\s*건|\d+\s*/\s*\d+|\d+\s*개", s))
             is_claim = bool(re.search(r"(비율|분포|상관|median|IQR|ρ|rho|Spearman|Kruskal|산출|탐지|관측됐|관측되|FAIL|UNDETERMINED|N\s*=)", s))
             if re.search(HEDGE_N, s) and not has_n: issues.append("§2.5 N/분모 없는 일반화")
+            for pat, rule, note in TODAY_RULES:
+                if re.search(pat, s, re.I): issues.append(f"FORBIDDEN {rule}: {note}")
             for trig, comp, note in AXIS_C_CHECKS:
                 if re.search(trig, s, re.I) and not re.search(comp, s, re.I): issues.append(f"AXIS_C: {note}")
             # A 14:21: '0건' must be written as 'N건 중 0건' — bare zero reads as 'not measured'
