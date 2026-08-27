@@ -167,3 +167,37 @@ runbook 의 "A 는 같은 Wave 내부 phase 사이에서 Director 추가 승인�
 **hard stop 어휘**: runbook 과 `T-A-V3-P0-001` 의 어휘가 다르나 일대일 대응한다(scope leak↔wrong scope · task contract drift↔task/outcome leakage · evidence mutation↔evidence overwrite). **정본은 `T-A-V3-P0-001` 의 6종**이다. B·C 가 이미 같은 판단을 했다.
 
 **partial failure policy 정합**: runbook 의 "P5 실행 중 실패한 target 은 표본 교체 금지, 실패/결측 사유로 보존"은 Δ2 및 v3 01 §1 · 05 §5 와 같은 방향이며 모순 없다.
+
+## Δ8 — 조작적 정의 7건 사전등록 (신규)
+
+발행 `T-A-V3-STEP1-003` @ A `4e3ba3cf` · **REAL 접속 누적 0건 시점**. 전부 result-blind 다.
+제기: 6건 A 평면 A-Contract lane · 1건 D-V3-FINDING-007(C 독립 확인).
+
+| # | 항목 | 확정 |
+|---|---|---|
+| R1 | replacement 사유 커버리지 | **5번째 사유를 만들지 않는다.** 과업 의미 불일치는 교체 사유가 아니라 `TASK_COMPARABILITY_CONCERN` finding + ABSTAIN. 결측을 결측으로 보고하는 것이 표본을 바꾸는 것보다 정직하다 |
+| R2 | `AUTH_GATE` 의 분모 지위 | 성공/실패가 아니라 terminal 관측값. **진입 flow 지표는 AUTH_GATE 여부와 무관하게 산출**하고 endpoint 의존 지표만 flow-evaluable n 을 쓴다. 빼면 '인증이 일찍 걸리는 서비스'가 진입구조 분석에서 사라진다 |
+| R3 | secondary task 격리 | `task_role` = PRIMARY / SECONDARY_REPEATED. family 집계는 PRIMARY 만. 필터 조건 문자열을 산출에 남긴다 |
+| R4 | 분모 사슬의 교체 이력 | `candidate 10 → [replaced k, 사유별] → frozen 10 → attempted → evidence-bearing → flow-evaluable`. k=0 도 명시 |
+| R5 | fixture 입력수단 | fixture 는 문자열이 아니라 **의미 명세**. 서비스가 먼저 제시하는 수단을 쓰고 `fixture_input_mode`(FREE_TEXT/DROPDOWN/MIXED/MAP_PAN/OTHER)를 기록. 절차의 모호함을 관측 변수로 바꾼다 |
+| R6 | F1 분산 비대칭 · 이름 충돌 | F1 auth 절단을 사전등록 민감도로 등록. `AUTH_GATE`/`ABSTAIN` 은 개명하지 않고 **필드 한정 의무화**(`endpoint_status=` / `action_token=`), C 가 GATE 3 에서 검사 |
+| R7 | `entry_zone` 조작적 정의 | 아래 |
+
+### Δ8-R7 `entry_zone` 임계값
+
+수집에는 blocking 이 아니다 — 04 §6 이 원좌표 보존을 정했고, 원좌표가 남으면 zone 은 재도출 가능하다.
+
+```
+y < 1/3          → TOP        (TOP 안에서만 x 삼등분)
+1/3 ≤ y < 2/3    → MID
+y ≥ 2/3          → BOTTOM
+
+TOP 안:  x < 1/3 → TOP_LEFT · 1/3 ≤ x < 2/3 → TOP_CENTER · x ≥ 2/3 → TOP_RIGHT
+MID·BOTTOM 은 x 삼등분하지 않는다 (codebook 에 MID_LEFT 류가 없다)
+경계는 하한 포함·상한 배제 [a, b)
+좌표 기준 = control bbox 중심 / viewport 390×844, 해당 state 기준
+```
+
+**구조 우선**: `FLOATING`(position fixed/sticky, 일반 흐름 이탈)과 `DRAWER`(reveal 을 요구하는 nav_container 내부)는 기하보다 우선한다. 둘 다면 `DRAWER` 우선 — reveal 필요 여부가 사용자에게 더 큰 구조적 부담이다. override 가 걸려도 `entry_x_norm`/`entry_y_norm` 은 그대로 저장한다. **요약값이 원자료를 덮지 않는다.**
+
+임계값을 나중에 바꾸는 것은 재수집이 아니라 재도출이다. 그러나 **선언된 민감도로만** 허용하고 원 임계값 결과와 병기한다 — 결과를 보고 조용히 바꾸면 조작화 fitting 이다.

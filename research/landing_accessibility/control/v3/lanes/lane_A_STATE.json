@@ -4,9 +4,11 @@
   "method": "git ls-remote + sha256 재계산 — 자기보고(heartbeat) 미사용. 모든 명령은 본문 note 필드에 병기.",
   "orchestrator_head": {
     "given_task_value": "ede241321b5b8599161d95a59bc38034590283e8",
-    "measured_local_HEAD": "ede241321b5b8599161d95a59bc38034590283e8",
-    "measured_remote_control_landing_orchestrator": "ede241321b5b8599161d95a59bc38034590283e8",
-    "verdict_note": "3자 일치, 변경 없음. cmd: git rev-parse HEAD; git ls-remote origin refs/heads/control/landing-orchestrator"
+    "measured_at_task_start_02:44": "ede241321b5b8599161d95a59bc38034590283e8 — 3자(로컬/원격/지시문) 일치, 이 시점엔 변경 없음",
+    "measured_at_02:51_re-check": "4e3ba3cf7f5e4247873431138b1ba48c7d554e1e",
+    "verdict": "바뀌었다 — 지시문이 예견한 케이스가 이 측정 도중 실제로 발생. 이 워크트리(claude_a_control, 곧 A 의 실 작업 워크트리)에서 다른 프로세스가 이 lane 작업 도중 커밋 2건(691926f, 4e3ba3c)을 만들어 origin 까지 push 했다. 두 커밋 모두 author='Siegfriex' — 이 세션이 아닌 별도 프로세스(실제 A 세션 또는 그 자동화)의 작업으로 추정, 이 lane 은 그 커밋들을 만들지 않았다(git add/commit/push 0회 실행 — 아래 self_attestation 참조).",
+    "cmd": "git rev-parse HEAD (2회, 02:44 와 02:51) + git ls-remote origin refs/heads/control/landing-orchestrator (2회) — 4값 모두 교차 일치, 원격이 로컬을 뒤따르는 게 아니라 이미 push 완료 상태(브랜치 'up to date with origin' 확인)",
+    "self_attestation": "이 lane 세션의 Bash 히스토리에 git add/commit/push/stash 호출 0건 — 오직 git status/diff/log/ls-remote/rev-parse/merge-base/rev-list/cat-file/branch 만 사용."
   },
   "heads": {
     "cmd": "git ls-remote origin (전수), 08:44:09 KST 실행",
@@ -104,6 +106,15 @@
       "measured_remote_head": "f388b6adef6a0590c5a7cc6522885ccc043c6770",
       "drift_commits": 0,
       "note": "일치. D 는 heartbeat 에 remote_head_sha 필드를 별도로 자기검증 기록."
+    },
+    {
+      "agent": "A (자기 자신, 참고용 — 지시문은 B/C/D/E 를 대상으로 했으나 측정 도중 A 자신에서도 동일 패턴 관측)",
+      "reported_head_sha": "ede241321b5b8599161d95a59bc38034590283e8",
+      "heartbeat_file_timestamp_kst": "2026-08-28T02:28:00+09:00 (파일 재조회 시각 02:51 에도 갱신 안 됨)",
+      "measured_actual_repo_head_at_02:51": "4e3ba3cf7f5e4247873431138b1ba48c7d554e1e",
+      "drift_commits": 2,
+      "relation": "ede2413 IS ancestor of 4e3ba3c (2 commits) — fast-forward, A 자신의 워크트리에서 발생",
+      "note": "heartbeats/A.json 은 'head_sha_source: git ls-remote 확인 — 자기보고 아님' 이라고 명시하지만, 그 확인이 이루어진 시각(02:28) 이후 같은 워크트리에서 커밋 2건이 발생해 파일이 갱신되지 않은 채로 남았다. B/C 에서 관측된 것과 동일한 '하트비트가 실제보다 뒤처짐' 패턴이 A 자신에게도 실측 도중 재현됐다 — 지시문이 예상한 현상의 직접 증거."
     },
     {
       "agent": "E",
@@ -206,24 +217,27 @@
   "releases": {
     "search_cmd": "find research/landing_accessibility/control -iname '*RELEASE*.json'",
     "E001_RELEASE.json": {
-      "status": "SUSPENDED",
-      "top_level_real_target_allowed": true,
+      "status_first_read_~02:45": "SUSPENDED, top_level real_target_allowed=true (필드 간 불일치)",
+      "status_second_read_02:51_after_concurrent_commit": "SUSPENDED, top_level real_target_allowed=false",
       "nested_allow_flags": {
         "batch_zero_reuse.allowed": false,
         "batch_zero_reuse_revised.allowed": false
       },
       "matches_expectation": true,
-      "note": "status=SUSPENDED 는 기대와 일치. 단 최상위 real_target_allowed 필드는 true 로 기록돼 있음 — status 와 별개 필드이며 이 lane 은 판정하지 않고 사실만 병기."
+      "note": "status=SUSPENDED 는 두 시점 모두 기대와 일치. 그러나 최상위 real_target_allowed 필드가 첫 조회(true)와 두번째 조회(false) 사이에 값이 바뀌었다 — 이 lane 이 읽는 도중 커밋 4e3ba3c 가 바로 이 필드 간 불일치를 시정한 것으로 확인됨(해당 커밋 메시지: 'status=SUSPENDED 인데 allow flag 는 true 였다' 시정). 즉 이 lane 의 1차 관측이 시정 대상 그 자체를 실측으로 포착했다."
     },
     "P0_RELEASE.json": {
       "status": "RELEASED",
       "top_level_real_target_allowed": true,
-      "note": "지시문에 '?'로 표기된 값 — 실측 결과 RELEASED."
+      "note": "지시문에 '?'로 표기된 값 — 실측 결과 RELEASED. 두 시점 조회 모두 동일, 이 파일은 concurrent commit 대상이 아니었음."
     },
     "V2_DIAGNOSTIC_RELEASE.json": {
-      "status": "RELEASED",
-      "top_level_real_target_allowed": true,
-      "matches_expectation": true
+      "status_first_read_~02:45": "RELEASED, real_target_allowed=true",
+      "status_second_read_02:51_after_concurrent_commit": "HISTORICAL_METHOD_ASSURANCE, v2_diagnostic_allowed=false, real_target_allowed=false",
+      "matches_expectation_at_task_issue_time": true,
+      "matches_current_state": false,
+      "note": "측정 도중 상태 자체가 바뀐 사례. 최초 실측(RELEASED)은 지시문의 기대와 일치했으나, 같은 lane 작업 시간 내에 커밋 4e3ba3c 가 이 문서를 status=HISTORICAL_METHOD_ASSURANCE 로 재작성했다(구 RELEASED 블록은 superseded_release 키로 보존). '현재 사실'은 두번째 값이다. 원본 문서가 self-declare 한 회수 조항('pilot 종료 시 A 가 status 를 변경한다')이 이 lane 의 관측 시각과 실제 회수 실행 시각 사이 12분 간 미집행 상태였다는 것이 커밋 메시지에 명시돼 있다.",
+      "worktree_collision_finding": "이 문서를 바꾼 커밋(4e3ba3c)은 이 lane 이 지시받은 산출 파일 자체(research/landing_accessibility/control/v3/lanes/lane_A_STATE.json, 이 lane 이 먼저 Write 로 생성한 미완성 초안)도 같은 커밋에 편입해 이미 origin 에 push 했다 — git log --oneline -1 -- <이 파일 경로> => 4e3ba3c, git diff HEAD -- <이 파일 경로> => 0줄(현재 작업본과 커밋본이 동일). 즉 이 워크트리는 이 lane 전용이 아니라 실제 A 세션(또는 그 자동화)과 동시에 쓰기 접근되고 있으며, 그 프로세스가 이 lane 의 미완성 산출물을 자신의 커밋에 add -A 로 쓸어담아 push 했다. 이 lane 은 그 시점 이후 파일을 계속 갱신해(Edit) 이 최종 버전을 만들었으나, 그 결과 현재 origin 의 4e3ba3c 커밋에 들어있는 lane_A_STATE.json 은 이 최종본이 아니라 그 시점의 중간 초안이다 — 이 lane 스스로는 git add/commit/push 를 전혀 실행하지 않았다(금지 준수)."
     },
     "other_release_files_found": [
       "research/landing_accessibility/control/label/RELEASE_HASHES.json (status/allow 필드 없음 — 해시 목록 전용 스키마, release-status 문서 아님)"
@@ -232,6 +246,9 @@
     "v3_release_positive_control": "동일 find 패턴이 E001/P0/V2_DIAGNOSTIC 3건을 정상 매칭했으므로(위 목록), V3 관련 RELEASE 파일 0건 보고가 검색 로직 실패로 인한 미탐이 아님을 확인. repo 루트 및 .agent_worktrees 전체에서도 '*V3*RELEASE*' 패턴 0건."
   },
   "anomalies": [
+    "orchestrator exact HEAD 가 이 lane 측정 도중 실제로 바뀌었다: 지시문 값/최초 실측값 ede2413... → 02:51 재확인 4e3ba3c... (2 commits, origin 에 이미 push 완료). A 자신의 heartbeats/A.json 도 ede2413... 을 그대로 유지해 A 자기 자신에게서도 '하트비트가 실제보다 뒤처짐' 패턴이 실측 도중 재현됨.",
+    "워크트리 쓰기 충돌: 이 lane 의 지정 산출 경로(control/v3/lanes/lane_A_STATE.json) 자체가 이 lane 작업 도중 다른 프로세스의 커밋(4e3ba3c)에 편입돼 이미 origin 에 push 됐다 — 이 lane 은 git add/commit/push 를 실행한 적이 없음(자기증명 기록됨). 이 워크트리가 이 lane 전용이 아니라는 뜻.",
+    "V2_DIAGNOSTIC_RELEASE.json 의 status 가 이 lane 의 측정 시간 내에 RELEASED → HISTORICAL_METHOD_ASSURANCE 로 실제로 바뀌었다(같은 커밋 4e3ba3c). 최초 실측은 지시문 기대와 일치했으나 '현재 사실'은 다르다.",
     "B heartbeat/A.json 아님, B.json: branch='claude-b/diag-pilot-integration' 인데 head_sha='ba04a339...'는 실제로 claude-b/clean0-v21 의 원격 head 이며 diag-pilot-integration 실제 원격 head(7c5ae70)와 조상관계가 없는 별개 커밋 — event_log 최근 5회 HEARTBEAT 모두 동일값 반복(지속적, 1회성 아님).",
     "C heartbeat: 자기보고 head_sha(1af327c, short)가 실제 원격 claude-c/assurance-v21 head(5e05da9)보다 6커밋 뒤처짐. fast-forward 관계(rewrite 아님).",
     "claude-e/pathfinder-v3 는 원격(origin)에 전혀 존재하지 않음 — git ls-remote 전체 출력에 claude-e 접두 0건. 로컬 브랜치는 heartbeat 값과 일치하나 미푸시 상태.",
