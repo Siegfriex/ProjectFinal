@@ -34,8 +34,15 @@ from landing_accessibility.engine.firewall import (  # noqa: E402
 FIXTURES = RESEARCH / "fixtures"
 
 
-def test_p0_gate_is_open_so_real_target_is_never_permitted() -> None:
-    assert p0_closed() is False
+def test_unlimited_real_target_is_never_permitted_even_after_the_gate_closed() -> None:
+    """P0 게이트 상수가 CLOSED 로 전이돼도 **무제한** REAL_TARGET 은 열리지 않는다.
+
+    2026-08-27 승격으로 `P0_GATE_STATUS` 는 `CLOSED` 다. 그럼에도
+    `real_target_permitted()` 는 영구히 `False` 다 — 실제 수집은 승인된
+    `ExecutionScope` 를 통해 범위가 좁혀진 상태로만 일어나고, 그 판정은 이 상수가
+    아니라 런타임 릴리스 문서가 내린다 (`test_e000_real_target_scope_gate.py`).
+    """
+    assert p0_closed() is True
     assert real_target_permitted() is False
 
 
@@ -106,7 +113,9 @@ def test_firewall_state_reports_no_real_target_measurement() -> None:
     assert state["real_target_permitted"] is False
     assert state["real_target_measurement"] is False
     assert state["fixture_only"] is True
-    assert state["p0_gate_status"] == "OPEN"
+    # scope 를 주지 않은 스냅샷은 언제나 fixture-only 다. 게이트 상수는 2026-08-27
+    # 승격으로 CLOSED 이며, 그 전이가 이 스냅샷의 다른 값을 바꾸지 않는다는 것이 요점이다.
+    assert state["p0_gate_status"] == "CLOSED"
 
 
 def test_engine_source_contains_no_network_scheme_literals() -> None:
