@@ -1,0 +1,72 @@
+{
+  "manifest": "INTEGRATION_READY",
+  "authority_note": "SHADOW 정책의 정의부는 docs/v2/PHASE_GATES.md §4다. 이 파일은 그 절을 가리킬 뿐 정책표를 복제하지 않는다.",
+  "producer": "Claude B (Parallel Delivery Orchestrator worker) -- WORKER-INTEGRATION-CURRENT",
+  "branch": "claude-b/integration-current",
+  "commit_sha": "9eb44de007915dda187d0c703eb356ea6f333762",
+  "base_authority_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+  "base_authority_note": "agent/landing-v2-exec @ bc0b7a0 (V2-C012, dom_order 잔여 귀속 정정 + 스키마 바인딩) -- confirmed via `git fetch --all --prune` + `git log origin/agent/landing-v2-exec` immediately before starting work that this was the current exec tip, no newer commits existed",
+  "pa_sha": "0f46203",
+  "pa_branch": "agent/landing-pa-shadow",
+  "pb_sha": "9999857",
+  "pb_branch": "agent/landing-pb-prework",
+  "pc_sha": "0c36c95",
+  "pc_branch": "agent/landing-pc-fixture",
+  "merge_method": "clean git merge (--no-ff, --no-commit then commit) of each lane onto bc0b7a0, sequentially P-C then P-B then P-A -- zero textual conflicts in any of the three merges (verified: no overlapping files touched between bc0b7a0's own C008-C012 src additions and any of the three lanes)",
+  "cr002_status": "RESOLVED",
+  "cr002_summary": "pilot_mapping.py mapping_status FSM violated A2 §1.9 (DRAFT never advanced to CANDIDATE for RULE/SOURCE_CONTEXT-resolved rows; abstained rows jumped DRAFT->AMBIGUOUS_UNRESOLVED skipping the only FSM-legal edge). A2 §1.9 re-read fresh at bc0b7a0, confirmed unchanged since the original CR. Fix re-applied independently in this branch (byte-identical to the prior integration-prep-c007 session's fix): resolved rows now CANDIDATE, abstained rows keep AMBIGUOUS_UNRESOLVED plus a new mapping_status_history field. Mechanically verified against the FSM transition graph for all 15 pilot rows -- 0 violations. Cross-validated against P-B's independent implementation (same terminal value set, no coordination). Details: handoff/CR_002_RESOLUTION.json",
+  "cr003_status": "RESOLVED",
+  "cr003_summary": "P-A/P-B provenance block shape drift (source_frame_sha dict-vs-scalar, codebook_sha prefix-vs-bare). PHASE_GATES §4.3 re-confirmed to leave format unspecified. Canonical schema selected using the current exec authority's own precedent (bc0b7a0 authority_manifest.py: 'sha256:'-prefixed digests): both fields now 'sha256:'-prefixed everywhere; source_frame_sha canonical shape is dict[filename, sha256:hex]. P-A gained the prefix (values unchanged). P-B's scalar (a copy of base_sha that verified nothing) was replaced with real per-file hashes of the 3 files run_lane_b.py actually reads -- 2 of 3 cross-validate byte-identical against P-A's independently recorded hashes for the same files. No research semantics changed. Details: handoff/CR_003_RESOLUTION.json",
+  "cr001_status": "RESOLVED_AS_DESIGN_ISSUE_NOT_TAMPERING",
+  "cr001_summary": "SHADOW_MANIFEST.json self-hash mismatch on mapping_run_manifest.json -- confirmed design issue (that file embeds non-reproducible timestamps/absolute paths), not tampering; pilot_mapping.jsonl itself reproduces byte-identical. Applied CR-001's own recommendation: excluded that one file from the fixed artifact_sha256 table, documented in a new non_reproducible_artifacts key. Remaining 26 entries recomputed and self-verified (0 mismatches). No past artifact rewritten -- only this integration's own regenerated manifest. Details: handoff/CR_001_RESOLUTION.json",
+  "dom_order_status": "RECONCILED_AND_FIXED",
+  "dom_order_summary": "Authority re-read fresh in this worktree (A1 §2.5/§2.6 MIN-4/MIN-5/MIN-8/§5.1, A2 §1.13) -- not from memory of any prior session. Confirmed current definition: tie-break total order (marked_primary desc, dom_order asc, selector asc), area_css_px2 permanently excluded from tie-break (quantization abandoned V2-C010b), dom_order is Int64 >=0 0-based monotonic per-document with NO NULL allowed (probe defect if missing, not a legitimate NULL), Freeze output must store dom_order per step, MIN-8 Replay does NOT catch dom_order drift by design (only a fresh repeated Scout run does, per A1 §2.5 'MIN-4 경로 결정성 케이스'). Checked EXECUTION_AUTHORITY.md line 129 as instructed -- no dom_order/sort clause exists there currently (grep returns zero matches); reported as-is rather than force-fit. P-C's fixture engine (0c36c95) predated the entire area->dom_order pivot and still used the original pre-C008 (marked_primary, area_css_px2 or 0.0) scheme with no dom_order field anywhere in probe or collector -- did NOT match current authority. Fixed in l0_probe.js (emits dom_order), l0_collector.py (PrimaryActionCandidate.dom_order field + shared min4_sort_key(), NULL raises Min4ProbeContractError), l1_engine.py (Scout._activation_candidates reuses the same min4_sort_key -- closes a latent two-source-of-truth risk between candidate storage and path enumeration; Freeze output/TaskManifest.path now includes dom_order per step; replay() deliberately left untouched, matching MIN-8's documented scope). New fixture fixtures/dom_order_tiebreak.html (3 equal-area unmarked sibling cards, isolating dom_order as the sole decision factor) + 3 new tests proving document-order assignment, repeated-collection stability, and Scout repeated-run path/path_sha256 determinism (fresh Scout twice, not Replay, per A1 §2.5). Details: handoff/DOM_ORDER_RECONCILIATION.json",
+  "test_counts": {
+    "pytest_total_passed": 316,
+    "pytest_total_failed": 0,
+    "pytest_scope": "tests/ (289) + research/landing_accessibility/analysis/mapping/test_analysis_interface.py (24) + 3 new dom_order tests included in the 289",
+    "failure_injection_cases": "65/65 PASS (registry() length confirmed = 65, all cases behave as specified per test_pc_failure_injection.py::test_every_case_behaves_as_specified)",
+    "baseline_comparison": {
+      "claude-b/pc-regression-c007_baseline": "263 tests + 65/65 failure injection (P-C alone, on the older C007 base)",
+      "this_branch": "316 tests (P-C + P-A's 24 analysis tests + 3 new dom_order tests, on the current bc0b7a0/C012 base) + 65/65 failure injection -- meets and exceeds the baseline floor"
+    },
+    "ruff_check": "pass (research/landing_accessibility + tests, all files touched by this work)",
+    "ruff_format_check": "pass except 1 pre-existing unrelated finding (shadow/lane_b/docs/C013_SALVAGE_LEDGER.md embedded python code-block comment spacing -- present in original agent/landing-pb-prework@9999857 before this branch touched anything, not part of this task's scope, not fixed)",
+    "mypy": "clean on every file this task modified (l0_probe.js n/a, l0_collector.py, l1_engine.py, failure_injection.py, pilot_mapping.py, tests/test_pc_fixture_engine.py, tests/test_pc_evidence_identity.py all individually verified). 22 pre-existing errors remain in files this task did NOT touch (analysis/eda/eda00_frame_provenance.py x12 [P-A], tests/test_registry_snapshot.py x2, tests/test_pc_transitions_and_review.py x1, tests/test_pc_depth_and_vocabulary.py x1, tests/test_pc_evidence_identity.py x3 [pre-existing lines unrelated to this task's edit in the same file], tests/test_pc_fixture_engine.py x3 [pre-existing TaskEntry.ned/ied Optional-arithmetic line, unrelated to this task's edit]) -- cross-lane mypy debt surfaced by combining P-A+P-B+P-C+bc0b7a0's own src evolution for the first time on this base. Flagged as OPEN_ISSUE, not fixed (out of this task's 5 goals, would require substantial unrelated work)."
+  },
+  "authority_drift_fixes_incidental_to_regression": {
+    "note": "2 pre-existing P-C tests asserted the OLD buggy behavior of evidence_manifest.verify_run() (mode/status derived directly from the require_files flag) that bc0b7a0's own C008-C012 evolution had already fixed (closing finding verify-run-mislabels-mode-and-symlink-bypasses-relpath-guard) -- the tests' premise (raw file absent) didn't match what the test helpers actually did (write a real raw file), so they were exercising the WRONG scenario and coincidentally matching the old buggy label. Fixed both to construct a genuine manifest-only-clone (raw file actually deleted) so they test the real 'structure-only, not counted as VERIFIED' scenario against the current correct implementation: tests/test_pc_evidence_identity.py::test_structure_only_verification_is_not_counted_as_verified, research/landing_accessibility/src/landing_accessibility/engine/failure_injection.py::_c_manifest_only_mode_not_verified (case C-12)."
+  },
+  "contamination_check": {
+    "reference": "PHASE_GATES §4.6",
+    "pa_read_accessibility_outcome": "PASS -- NOT_FOUND. pilot_mapping.py's own open()-wrapping denylist guard fired against sources/certification/certification_registry.parquet (guard_selftest.verdict = GUARD_WORKS), contamination_check.verdict = CLEAN, re-verified by rerunning pilot_mapping.py in this tree",
+    "pb_used_kwcag_popup_mpfed_certification_for_target_task_selection": "PASS -- NOT_FOUND. LANE_B_SHADOW_MANIFEST.json contamination_check: accessibility_verdict_rows=0, forbidden_token_hits=[], clean=true",
+    "pc_modified_final_target_list": "PASS -- NOT_FOUND. grep for to_parquet/state writes across src/landing_accessibility/engine/**: 0 hits. P-C is fixture_only=True by construction, operates only on local fixtures/**",
+    "real_target_evidence_generated": "PASS -- NOT_FOUND. No evidence/ directories anywhere in the tree; firewall.py enforces REAL_TARGET as a hard FAIL unconditionally pre-P0 (PHASE_GATES §4.5); FW-1..FW-7 firewall injection cases all pass in the 65/65 failure-injection run"
+  },
+  "real_target": false,
+  "real_target_outcome_used": false,
+  "provenance": {
+    "reference": "PHASE_GATES §4.3 (canonical schema per CR-003 resolution -- 'sha256:'-prefixed digests)",
+    "status": "SHADOW_PREPARATORY",
+    "base_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "created_at": "2026-08-27T01:45:00Z",
+    "created_before_p0_close": true,
+    "authoritative": false,
+    "real_target_outcome_used": false,
+    "requires_post_p0_reconciliation": true,
+    "shadow_lane": "INTEGRATION_CURRENT"
+  },
+  "ready_for_e000": false,
+  "ready_for_e000_reasoning": [
+    "P0 (V2_SSOT_FROZEN) has not closed as of bc0b7a0 -- V2-C012 (dom_order 귀속 정정) was still pending its own reconciliation pass per the exec lane's own commit history at the time this branch was cut. E000 launch requires the READY_FOR_E001_V2 stop point / Director GO after P0 closure, per PHASE_GATES and this repo's own CLAUDE.md ('본수집 전에 READY_FOR_E001_V2에서 반드시 정지').",
+    "This branch is, by its own provenance block, SHADOW_PREPARATORY / authoritative=false / requires_post_p0_reconciliation=true -- it is infrastructure and reconciliation work done AHEAD of P0 closing, not a promotion candidate that unblocks E000 by itself.",
+    "All 4 contamination checks PASS and all quality gates (pytest/ruff/mypy-on-touched-files) are green, so from a pure code-readiness standpoint this branch does not itself block E000 -- but readiness for E000 is gated by P0/Director authority, not by this branch's internal test health, which is why the answer is false rather than true."
+  ],
+  "open_issues": [
+    "22 pre-existing cross-lane mypy errors in files this task did not touch (see test_counts.mypy above) -- not fixed, flagged for a future pass",
+    "1 pre-existing ruff-format finding in shadow/lane_b/docs/C013_SALVAGE_LEDGER.md (P-B's own authored markdown code-block spacing) -- not fixed, out of scope, predates this branch",
+    "area_css_px2's own NULL-coercion in PrimaryActionCandidate storage (`or 0.0`) was deliberately left unchanged -- A1 §2.6 does say area_css_px2 storage should preserve NULL, but that is a distinct clause (A2 규칙 C-2 denominator preservation) not explicitly named in this task's dom_order scope, and several existing tests assert area_css_px2 as a bare float. Flagged in handoff/DOM_ORDER_RECONCILIATION.json for a future pass.",
+    "run_fixture_engine.py end-to-end CLI entrypoint was not separately invoked -- but its underlying engine (L0Collector, Scout, replay) WAS exercised extensively via real Playwright browser runs in the pytest suite (289 tests in tests/, including the 3 new dom_order tests), which is a stronger check than the prior integration-prep-c007 session had (that session explicitly skipped browser-driven execution and checked only mypy/ruff/import)."
+  ]
+}
