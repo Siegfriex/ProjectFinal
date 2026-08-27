@@ -74,6 +74,12 @@ evidence  distinct web_target_group  56
 
 ### 정정 내용
 
+> **[정정 · D-R0-45 / T-A-FC-001]** 아래 두 문장은 **둘 다 틀렸다.**
+> ① `superseded retry` 가 아니라 **duplicate launch** 다 (C 가 raw 로 반박, B 도 독립 재확인).
+> ② `타깃 커버리지는 56/56` 은 **순환**이다 — 분자와 분모를 같은 관측집합에서 뽑았다.
+> 정정된 분모: **attempted 59 / observed 56 / unobserved 3** (삼성 인터넷 브라우저 QUERY ·
+> 삼성 노트 UTILITY · 삼성 월렛 FINANCIAL, 빈 stub 6 = 이 3×2). 원문은 발행 시점 상태로 보존한다.
+
 **고아 4건은 "제외된 4개 타깃"이 아니다. mart 에 이미 들어간 4개 타깃의 superseded retry run 이다.**
 
 - `mart 밖` — 참 (observation 단위)

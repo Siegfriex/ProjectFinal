@@ -1,8 +1,8 @@
 {
   "doc_id": "LA-PHASE-STATE",
   "purpose": "프로토콜 §16 투명성 목표 — GitHub 만 보고 현재 상태를 알 수 있게 하는 A 의 미러. bus 는 로컬 transport 로 남는다.",
-  "updated_at_kst": "2026-08-27T21:07:49+09:00",
-  "phase": "I1 + LABEL (R0_GO 발효)",
+  "updated_at_kst": "",
+  "phase": "I1 + LABEL",
   "phase_window_kst": "CLEAN0 20:42~20:52 완료 · R0 20:52~ 진행",
   "ssot": "research/landing_accessibility/docs/v2_1/  (SSOTV2 11개 문서팩)",
   "planes": {
@@ -10,13 +10,13 @@
       "branch": "control/landing-orchestrator",
       "base_sha": "084eff541836c2e16418b96bd230c1d58bcda663",
       "worktree": ".agent_worktrees/claude_a_control",
-      "state": "R0_GO_ISSUED_DIRECTOR_RECONCILED",
+      "state": "C-BLOCKER-210538 RESOLVED · labelers running",
       "head_sha": "PENDING_COMMIT"
     },
     "B": {
       "branch": "claude-b/clean0-v21",
       "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
-      "state": "R0_GO_RECEIVED — W1~W4 배정",
+      "state": "SCOPED_HOLD 해제 — W1~W4 진행",
       "head_sha": "f52367e224661fd0a82193f0f404b2ba4946b14f",
       "self_approved": false,
       "accepted_sha": "4ae6df0a1e1dec76a642a1eeafd52bf7f04eff04"
@@ -24,8 +24,8 @@
     "C": {
       "branch": "claude-c/assurance-v21",
       "base_sha": "1baa865b4a673af05033e6e6289fd2713676baa5",
-      "state": "CLEAN0+R0 QA 완료 — 구현 diff 감사 대기",
-      "head_sha": "77d4b50e8ac2734ee867b086726da93a371e7744",
+      "state": "broad audit 종료 → W1~W4 acceptance 검증 전환",
+      "head_sha": "83849c7bb220dbfe85704ccf35430892310e572b",
       "pushed": true
     },
     "LABELER": {
@@ -79,7 +79,7 @@
     },
     "target_coverage": "56/56 web_target_group — superseded retry 4건은 타깃 누락이 아니다"
   },
-  "next_action": "labeler 4~6 배치 → label SHA256 freeze → calibration/holdout split 동결",
+  "next_action": "labeler 4 완료 → 통합 → label SHA256 freeze → B calibration 공개 / C holdout 인계",
   "resolved_this_phase": [
     "BUS-F1",
     "ISSUE-A-001",
@@ -108,5 +108,28 @@
     "E001": "1265 files / 791908794 bytes / run 60 / wtg 56",
     "A_index": "control/clean0/ARTIFACT_RETENTION_MANIFEST.json (evidence-only, 메타 제외) — 보조"
   },
-  "operating_rule": "D-R0-44 — CLEAN loop 종료. C0 또는 결과를 바꾸는 C1 만 blocking. 나머지 backlog."
+  "operating_rule": "D-R0-44 — CLEAN loop 종료. C0 또는 결과를 바꾸는 C1 만 blocking. 나머지 backlog.",
+  "population_frame": {
+    "attempted": 59,
+    "observed": 56,
+    "unobserved": 3,
+    "unobserved_detail": [
+      "wtg_ff3ee504792f6cfc 삼성 인터넷 브라우저 QUERY",
+      "wtg_2cd43b99c1ed87cf 삼성 노트 UTILITY_ENTRY",
+      "wtg_dd5061eb74e2d4d4 삼성 월렛 FINANCIAL_ACTION_ENTRY"
+    ],
+    "note": "D-R0-45 — '56/56' 폐기. 커버리지 분모는 attempted 59. 3건은 informative missingness 후보이며 동일 사업자 집중이라 무작위 결측으로 취급하지 않는다.",
+    "label_population": "56 (증거 있는 것만 라벨 가능). 분석 모집단 59 를 상속하지 않는다."
+  },
+  "label": {
+    "split_sha256": "dbe4ed0f2cf715b653f2541946f474fdf3e1497de4fa507232e161c65bed48df",
+    "calibration": 30,
+    "holdout": 26,
+    "frozen_before_labels": true,
+    "labelers_running": 4
+  },
+  "preregistered": {
+    "QUERY": "frame 5 / observed 4 → LOW_N descriptive only (D-R0-50, 관측 전 선언)",
+    "ITEM_DETAIL": "26/56 — 전체 평균 지배 위험. holdout 은 per-archetype 보고 필수 (D-R0-49)"
+  }
 }
