@@ -1,10 +1,10 @@
-# QA_CLAIM_LEDGER (C) — 2026-08-27T16:41:34+09:00
+# QA_CLAIM_LEDGER (C) — 2026-08-27T16:42:01+09:00
 
 기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_STAT_REPLAY.json, /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_MART_RECONCILIATION.json
 
 **scan coverage: files 25/25 · sentences 4331 · retracted-phrase raw hits 4 · positive controls {"successor of '정직하게 거부' / '없는 codebook'": 13, "successor of '설계가 작동'": 19, "successor of 'wiring 고쳐도 신호 없다'": 10} · VALID**
 
-집계: {'SUPPORTED_WITH_LIMITATION': 182, 'UNSUPPORTED': 9, 'SUPPORTED': 6}
+집계: {'SUPPORTED_WITH_LIMITATION': 182, 'SUPPORTED': 6, 'UNSUPPORTED': 1}
 
 | file | status | issues | sentence |
 |---|---|---|---|
@@ -67,8 +67,6 @@
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용은 오도한다**: 중앙값은 어느 봉도 대표하지 않는다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 유형 분포를 인용할 때 UNKNOWN을 각주로 빼면 실측 강도가 과대표시된다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 102건만 강조하면   38건 — **닫기 컨트롤이 탐지됐는데도 해제에 실패한 경우** — 이 가려진다. |
-| REAL_RUN_SUMMARY.json | **UNSUPPORTED** | FORBIDDEN axis-C: 자동화 dismissal 결과 ≠ 사용자 행동 (A 14:45) | 고령자가 이 방해요소를 닫지 못한다 |
-| REAL_RUN_SUMMARY.json | **UNSUPPORTED** | FORBIDDEN axis-C: '시각적 닫기 컨트롤 미탐지 상태에서 ESC/배경클릭으로 닫힘' 으로 서술 | 닫을 수 없는 방해요소가 102건이다 |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 시각적 닫기 컨트롤이 탐지되지 않은 상태에서 ESC/배경클릭으로 닫힌 경우가 102건이다 |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 충분원인이 둘이고 서로 겹치지 않으므로** MPFED가 산출될 경로는 애초에 없었다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | gate kind가 UNDETERMINED로 **도달**했고 fail-closed 규칙이 승격을 막았다. |
@@ -125,8 +123,6 @@
 | build_canonical_entities.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 판정 분포 MERGE 1 / KEEP_SEPARATE 6 / UNRESOLVED 0. |
 | build_final_and_registry.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | ·   — A0 §21 필수 산출물. |
 | build_final_and_registry.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 이미 검증된 산출물에서 값을 읽어 문서화만 한다. |
-| build_final_and_registry.py | **UNSUPPORTED** | FORBIDDEN §2.1: 도구 한계→대상 성질 | 고령자가 대표기능에 도달할 수 없다 |
-| build_final_and_registry.py | **UNSUPPORTED** | FORBIDDEN §2.1: 가드는 단어 존재만 탐지 | 대표기능이 로그인 뒤에 있다 |
 | build_final_and_registry.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 이 구분이 오늘 산출물 전체의 성격을 정한다. |
 | build_final_and_registry.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 0** — J3(MPFED 산출)이 충족되지 않았다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | E001 실측 배치에서 mart를 빌드하고 원인 귀속을 산출한다. |
@@ -144,8 +140,6 @@
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용을 막기 위해** 항상 함께 낸다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 102건만 강조하면   38건 — **닫기 컨트롤이 탐지됐는데도 해제에 실패한 경우** — 이 가려진다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 오늘 산출물 4종 — 축 A/B/C + 방법론적 결론. |
-| build_real_marts.py | **UNSUPPORTED** | FORBIDDEN axis-C: 자동화 dismissal 결과 ≠ 사용자 행동 (A 14:45) | 고령자가 이 방해요소를 닫지 못한다 |
-| build_real_marts.py | **UNSUPPORTED** | FORBIDDEN axis-C: '시각적 닫기 컨트롤 미탐지 상태에서 ESC/배경클릭으로 닫힘' 으로 서술 | 닫을 수 없는 방해요소가 102건이다 |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | gate kind가 UNDETERMINED로 **도달**했고 fail-closed 규칙이 승격을 막았다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median과 q3는 규약과 무관하게 동일하다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
@@ -169,8 +163,6 @@
 | build_source_rows_from_journal.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 절대경로를 산출물에 적으면 실행 위치가 산출물의 일부가 되어 재실행 바이트 동일성이 성립하지 않는다(C011 P2 idempotency-claim-false-journal-path-absolute). |
 | build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | STATS 산출물 —  (2026-08-27 14:58 개정본) 기준. |
 | build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 불가능하다는 사실을 보고하는 것이 오늘의 통계 산출물이다**(A 명시). |
-| build_statistical_results.py | **UNSUPPORTED** | FORBIDDEN §2.1: 도구 한계→대상 성질 | 고령자가 대표기능에 도달할 수 없다 |
-| build_statistical_results.py | **UNSUPPORTED** | FORBIDDEN §2.1: 가드는 단어 존재만 탐지 | 대표기능이 로그인 뒤에 있다 |
 | build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 반려 패턴이 산출물에 들어갔다. |
 | build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 오류를 먼저 적고, 그것이 산출물에 남지 않은 경위를 나중에 적는다. |
 | build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | "이 단계의 산출물을 만드는 코드가 실재하는가" |
