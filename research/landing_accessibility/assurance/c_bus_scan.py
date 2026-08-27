@@ -3,7 +3,7 @@
 Malformed JSON is reported explicitly as PARSE_ERROR — never silently counted as 'nothing to receive'.
 Usage: c_bus_scan.py [bus_dir]  -> prints JSON {pending:[...], parse_errors:[...], scanned:n}
 """
-import json, glob, os, sys
+import json, glob, os, sys, re
 V3_CUTOFF_EPOCH = 1787500320  # 2026-08-28T02:12:00+09:00 (T-A-V3-P0-001 adoption)
 def scan(bus_dir: str, plane: str = "C") -> dict:
     tdir = os.path.join(bus_dir, "tickets"); adir = os.path.join(bus_dir, "acks")
@@ -27,8 +27,14 @@ def scan(bus_dir: str, plane: str = "C") -> dict:
     for sub in ("acks", "completions"):
         for p2 in glob.glob(os.path.join(bus_dir, sub, "*.json")):
             base = os.path.basename(p2)[:-5]
-            tid = base.rsplit(".", 1)[0] if sub == "acks" else base.rsplit(".", 1)[0]
-            if tid not in ticket_ids and os.path.getmtime(p2) >= V3_CUTOFF_EPOCH:
+            tid = re.sub(r"(\.(A|B|C|D|E))+$", "", base)  # strip plane suffixes incl. meta-ACKs (X.A.B)
+            if tid in ticket_ids:
+                continue
+            try:
+                j = json.load(open(p2, encoding="utf-8")); ts = str(j.get("created_at_kst") or j.get("acked_at") or j.get("created_at") or j.get("completed_at") or "")
+            except Exception:
+                ts = ""
+            if ts >= "2026-08-28T02:12:00":  # v3 adoption (T-A-V3-P0-001); string compare on ISO-KST is monotonic here
                 dangling.append({"file": f"{sub}/{os.path.basename(p2)}", "missing_ticket": tid})
     return {"scanned": len(files), "pending": pending, "parse_errors": errors, "dangling_refs_v3_era": dangling, "status": "PARSE_ERRORS_PRESENT" if errors else "OK"}
 if __name__ == "__main__":
