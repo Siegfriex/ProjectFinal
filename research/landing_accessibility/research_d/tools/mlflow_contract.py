@@ -91,6 +91,22 @@ def evidence_manifest_sha() -> str:
     return "NONE"
 
 
+def _holdout_accessed_from_scan() -> str:
+    """D amendment D1: holdout_accessed 는 self-tag 가 아니라 input manifest scan 결과다.
+
+    스캔 결과 파일이 없거나 FAIL 이면 'UNVERIFIED' / 'true' 를 반환한다. 모르면 false 라고
+    쓰지 않는다.
+    """
+    v = RD / "results" / "D_INPUT_FIREWALL_VERIFICATION.json"
+    if not v.exists():
+        return "UNVERIFIED_NO_SCAN"
+    try:
+        doc = json.loads(v.read_text(encoding="utf-8"))
+    except Exception:
+        return "UNVERIFIED_SCAN_UNREADABLE"
+    return "false" if doc.get("verdict") == "PASS" else "true"
+
+
 def ensure_experiments() -> dict[str, str]:
     mlflow.set_tracking_uri(TRACKING_URI)
     out = {}
@@ -118,7 +134,8 @@ def research_run(*, experiment: str, run_name: str, plane: str, objective: str, 
                  model_or_rule_version: str = "NONE", label_snapshot_sha: str = "NONE",
                  evidence_status: str = "EVIDENCE_BACKED", real_target: str = "no",
                  authority_status: str | None = None, extra_tags: dict | None = None,
-                 extra_params: dict | None = None, seed=None):
+                 extra_params: dict | None = None, seed=None, code_path: Path | str | None = None,
+                 limitation: str | None = None, notebook: str | None = None):
     """계약을 만족하는 run 을 연다. 필수 항목이 빠지면 열지 않는다."""
     if experiment not in EXPERIMENTS:
         raise ContractViolation(f"unknown experiment: {experiment}")
@@ -152,8 +169,16 @@ def research_run(*, experiment: str, run_name: str, plane: str, objective: str, 
         "worktree_dirty": str(bool(git("status", "--porcelain"))),
         "started_at_kst": datetime.now(KST).isoformat(),
         "verdict": "PENDING",
-        "labels_produced": "false", "holdout_accessed": "false", "production_modified": "false",
+        "labels_produced": "false", "production_modified": "false",
+        # holdout_accessed 는 self-tag 가 아니라 방화벽 스캔 결과에서 온다.
+        "holdout_accessed": _holdout_accessed_from_scan(),
+        "holdout_verification": "tools/d_input_firewall.py manifest scan",
+        "code_sha": (hashlib.sha256(Path(code_path).read_bytes()).hexdigest()
+                     if code_path and Path(code_path).exists() else "NONE"),
+        "notebook": notebook or "NONE",
     }
+    if limitation:
+        tags["limitation_summary"] = limitation[:480]
     if competing_hypothesis:
         tags["competing_hypothesis"] = competing_hypothesis[:480]
     if extra_tags:

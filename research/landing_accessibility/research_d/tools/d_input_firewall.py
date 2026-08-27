@@ -1,0 +1,179 @@
+"""D 입력 방화벽 — holdout_accessed=false 를 self-tag 가 아니라 스캔으로 검증한다.
+
+A 의 P0 holdout contamination(T-A-HOLDOUT-SCOPE-001) 이후 D 가 스스로 좁힌 경계다.
+D 가 소유한 모든 코드·노트북·결과 파일에서 경로 문자열을 뽑아 allowlist/denylist 로
+분류하고, denied 가 하나라도 있으면 FAIL 을 낸다.
+
+self-report 가 아니다. 파일 내용에서 실제 참조를 찾는다.
+
+usage: d_input_firewall.py [--json]
+"""
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+import sys
+from datetime import datetime, timedelta, timezone
+from fnmatch import fnmatch
+from pathlib import Path
+
+RD = Path(__file__).resolve().parents[1]
+NB_DIR = RD.parent / "notebooks" / "d_research"
+REPO = Path("/home/sieg/projects-wsl/ProjectFinal")
+MANIFEST = RD / "D_INPUT_ALLOWLIST.json"
+KST = timezone(timedelta(hours=9))
+
+# 파일 안에서 경로처럼 보이는 문자열
+PATH_RE = re.compile(r"[A-Za-z0-9_./\-*{}]*(?:/[A-Za-z0-9_.\-*{}]+)+")
+# denylist 는 파일명 토큰으로도 검사한다 (경로 없이 이름만 등장하는 경우)
+NAME_TOKENS = ("HOLDOUT_FOR_C", "HOLDOUT_CUSTODY", "LABELS_FROZEN", "LABEL_SPLIT_FROZEN",
+               "RAW_L1", "RAW_L2", "RAW_L3", "RAW_L4", "PACKET_L", "PRECEDENCE_CONTESTED",
+               "CALIBRATION_FOR_B", "_OVERLAP")
+# D 자신의 제약 선언·방화벽 정의는 '참조' 가 아니다. 이 파일들은 토큰 검사에서 제외한다.
+SELF_DECLARATION_FILES = {"D_INPUT_ALLOWLIST.json", "d_input_firewall.py",
+                          "D_INPUT_FIREWALL_VERIFICATION.json"}
+
+SCAN_SUFFIX = (".py", ".ipynb", ".md", ".json", ".csv", ".sh", ".txt", ".jsonl")
+
+
+def git(*a: str) -> str:
+    return subprocess.run(["git", *a], cwd=RD, capture_output=True, text=True).stdout.strip()
+
+
+def load_manifest() -> dict:
+    return json.loads(MANIFEST.read_text(encoding="utf-8"))
+
+
+def denied_hit(text_path: str, patterns: list[dict]) -> str | None:
+    for d in patterns:
+        pat = d["pattern"]
+        if fnmatch(text_path, pat) or fnmatch(f"**/{text_path}", pat):
+            return pat
+        core = pat.strip("*/")
+        if core and core in text_path:
+            return pat
+        # 부분 경로도 잡는다: 'control/label/**' 은 문서에 'control/label/' 로만 등장할 수 있다.
+        segs = [x for x in core.split("/") if x and "*" not in x]
+        if len(segs) >= 2 and "/".join(segs[-2:]) in text_path:
+            return pat
+    return None
+
+
+# 산문에서 "열지 않았다" 류의 경계선 서술은 참조가 아니다. FAIL 이 아니라 WARN 으로 낮춘다.
+NEGATION_MARKERS = ("열지 않", "미열람", "않았다", "금지", "not open", "did not read",
+                    "차단", "제외", "접근하지 않", "no access", "forbidden")
+
+
+def severity(hit: dict, text: str) -> str:
+    """실행/데이터 파일의 참조는 FAIL, 산문의 경계선 서술은 WARN."""
+    f = hit.get("file", "")
+    if not f.endswith(".md"):
+        return "FAIL"
+    line_no = hit.get("line")
+    if line_no:
+        lines = text.splitlines()
+        ctx = " ".join(lines[max(0, line_no - 2):line_no + 1])
+        if any(m in ctx for m in NEGATION_MARKERS):
+            hit["context"] = ctx.strip()[:300]
+            return "WARN"
+    return "FAIL"
+
+
+def scan_file(p: Path, denied: list[dict]) -> list[dict]:
+    hits = []
+    try:
+        text = p.read_text(encoding="utf-8", errors="replace")
+    except Exception as e:
+        return [{"file": str(p), "kind": "UNREADABLE", "detail": str(e)}]
+    self_decl = p.name in SELF_DECLARATION_FILES
+    for m in PATH_RE.finditer(text):
+        cand = m.group(0)
+        if len(cand) < 6:
+            continue
+        pat = denied_hit(cand, denied)
+        if pat and not self_decl:
+            line = text[:m.start()].count("\n") + 1
+            hits.append({"file": str(p.relative_to(RD.parent)), "line": line,
+                         "reference": cand[:200], "denied_pattern": pat, "kind": "DENIED_PATH"})
+    if not self_decl:
+        for h in hits:
+            h["severity"] = severity(h, text)
+        for tok in NAME_TOKENS:
+            for m in re.finditer(re.escape(tok), text):
+                line = text[:m.start()].count("\n") + 1
+                hits.append({"file": str(p.relative_to(RD.parent)), "line": line,
+                             "reference": tok, "denied_pattern": f"token:{tok}",
+                             "kind": "DENIED_NAME_TOKEN"})
+    return hits
+
+
+def existence_check(denied: list[dict]) -> list[dict]:
+    """D 워크트리 안에 금지 파일이 물리적으로 존재하는지."""
+    out = []
+    root = RD.parents[2]
+    for tok in NAME_TOKENS:
+        for p in root.rglob(f"*{tok}*"):
+            if p.is_file() and p.name not in SELF_DECLARATION_FILES:
+                out.append({"path": str(p), "kind": "DENIED_FILE_PRESENT", "token": tok})
+    return out
+
+
+def main() -> int:
+    man = load_manifest()
+    denied = man["denied"]
+    files = [p for p in RD.rglob("*") if p.is_file() and p.suffix in SCAN_SUFFIX]
+    files += [p for p in NB_DIR.rglob("*") if p.is_file() and p.suffix in SCAN_SUFFIX]
+
+    violations = []
+    for p in files:
+        violations.extend(scan_file(p, denied))
+    violations.extend(existence_check(denied))
+
+    # base SHA 에 label 경로가 있는지 (조상 관계 확인)
+    base_label = subprocess.run(
+        ["git", "ls-tree", "-r", "--name-only", "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d"],
+        cwd=REPO, capture_output=True, text=True).stdout
+    base_label_hits = [l for l in base_label.splitlines()
+                       if re.search(r"label|holdout", l, re.I)]
+
+    for v in violations:
+        v.setdefault("severity", "FAIL")
+    fails = [v for v in violations if v["severity"] == "FAIL"]
+    warns = [v for v in violations if v["severity"] == "WARN"]
+    verdict = "PASS" if not fails and not base_label_hits else "FAIL"
+    doc = {
+        "verification_id": "D-INPUT-FIREWALL-VERIFICATION",
+        "verdict": verdict,
+        "claim_kind": "OBSERVATION",
+        "checked_at_kst": datetime.now(KST).isoformat(),
+        "d_head_sha": git("rev-parse", "HEAD"),
+        "manifest_sha256": __import__("hashlib").sha256(MANIFEST.read_bytes()).hexdigest(),
+        "scanned_files": len(files),
+        "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
+        "verdict_rule": "FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
+        "fail_count": len(fails),
+        "warn_count": len(warns),
+        "violations": violations,
+        "base_sha_label_paths": base_label_hits,
+        "base_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+        "self_declaration_files_excluded": sorted(SELF_DECLARATION_FILES),
+        "residual_risk": ("파일시스템 접근 로그가 아니라 산출물 정적 스캔이다. worker 프로세스가 "
+                          "읽고 아무 흔적을 남기지 않았을 가능성은 이 방법으로 배제되지 않는다. "
+                          "다만 금지 파일이 D 워크트리에 존재하지 않고 D base 가 노출 커밋의 "
+                          "조상이 아니므로 상대경로 접근 경로는 없다."),
+    }
+    out = RD / "results" / "D_INPUT_FIREWALL_VERIFICATION.json"
+    out.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(f"verdict={verdict}  scanned={len(files)} files  FAIL={len(fails)} WARN={len(warns)}  "
+          f"base_sha_label_paths={len(base_label_hits)}")
+    for v in fails[:20]:
+        print("  FAIL", v["file"], v.get("line"), v["reference"][:80])
+    for v in warns[:20]:
+        print("  WARN", v["file"], v.get("line"), v["reference"][:60], "|", v.get("context", "")[:90])
+    print(f"wrote {out}")
+    return 0 if verdict == "PASS" else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

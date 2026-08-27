@@ -1,0 +1,2026 @@
+{
+ "document_type": "D_DASHBOARD",
+ "version": "DASHBOARD_v1",
+ "authority": "NON_CANONICAL — D plane 산출물. GO 권한 없음.",
+ "generated_at_kst": "2026-08-27T22:10:32.220009+09:00",
+ "reproduce": ".venv/bin/python research_d/tools/d_dashboard.py",
+ "truth_precedence": [
+  "T1 raw artifact / runtime evidence / exact code SHA",
+  "T2 독립 재현계산",
+  "T3 frozen definition / codebook / schema / frozen mart",
+  "T4 accepted SSOT / decision / agent bus 기록",
+  "T5 MLflow metadata / prose / agent narrative (가장 약함)"
+ ],
+ "truth_precedence_note": "MLflow run 이 존재한다는 사실만으로 결과가 승인되지 않는다. 표의 tier 열이 그 수치를 얼마나 믿어도 되는지를 말한다.",
+ "absence_vocabulary": {
+  "NOT_AVAILABLE": "계산에 필요한 입력이 아직 산출되지 않았다.",
+  "NOT_EVALUATED": "평가기가 실행되지 않았다. 0을 '0% 실패'로 읽으면 안 된다.",
+  "NONE_YET": "일어날 수 있는 일이지만 아직 일어나지 않았다."
+ },
+ "inputs": {
+  "mlflow_tracking_uri": "http://127.0.0.1:5000",
+  "mlflow_probe_status": "OK",
+  "agent_bus": "/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2",
+  "frozen_mart": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts",
+  "d_results": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results"
+ },
+ "sections": {
+  "ops": {
+   "summary": "phase=I1 · active MLflow runs A/B/C/D = 0/0/0/1 · open P0 11 · open P1 6 · unpushed agents 2/4",
+   "active_runs_by_plane": {
+    "A": {
+     "value": 0,
+     "grain": "MLflow runs with tag run_status=RUNNING",
+     "tier": "T5",
+     "denominator": 47,
+     "denominator_grain": "total MLflow runs"
+    },
+    "B": {
+     "value": 0,
+     "grain": "MLflow runs with tag run_status=RUNNING",
+     "tier": "T5",
+     "denominator": 47,
+     "denominator_grain": "total MLflow runs"
+    },
+    "C": {
+     "value": 0,
+     "grain": "MLflow runs with tag run_status=RUNNING",
+     "tier": "T5",
+     "denominator": 47,
+     "denominator_grain": "total MLflow runs"
+    },
+    "D": {
+     "value": 1,
+     "grain": "MLflow runs with tag run_status=RUNNING",
+     "tier": "T5",
+     "denominator": 47,
+     "denominator_grain": "total MLflow runs"
+    }
+   },
+   "active_runs_untagged_plane": {
+    "value": 0,
+    "grain": "runs with no plane tag (계약 미적용 run)",
+    "tier": "T5"
+   },
+   "active_runs_detail": [
+    {
+     "experiment": "LA_03_RF_MAPPING",
+     "run_name": "RQ-D-RF-001",
+     "run_id": "2bf780a9efca4562bdf63a7c165514cc",
+     "plane": "D",
+     "tag_run_status": "RUNNING",
+     "lifecycle_status": "RUNNING",
+     "rq_id": "RQ-D-RF-001",
+     "agent": "D/D-self"
+    }
+   ],
+   "active_runs_caveat": "run_status 는 tag 이므로 프로세스가 죽어도 RUNNING 으로 남는다. 이것은 프로세스 생존 증거가 아니라 '누가 run 을 닫지 않았는가' 다.",
+   "phase_by_agent": {
+    "A": {
+     "phase": "I1",
+     "work_state": "ALL_DECISIONS_ISSUED_AWAITING_W1_W4_COMPLETIONS",
+     "claimed_head_sha": "9f39acf20b8bcb272a6d2e582c5501dbf8d5ce7d",
+     "branch": "control/landing-orchestrator",
+     "blocker_ids": [
+      "G1-a(W1)",
+      "G1-b(W2)",
+      "G2(W1)",
+      "G3(W2)",
+      "G3b(W2)",
+      "G4(W3 S1)",
+      "G5(W4 rework)",
+      "TRAP-01"
+     ],
+     "heartbeat_age_seconds": 996,
+     "timestamp": "2026-08-27T21:53:56+09:00",
+     "tier": "T4"
+    },
+    "B": {
+     "phase": "I1",
+     "work_state": "I1_P0_CONTAMINATION_SELF_REPORTED",
+     "claimed_head_sha": "95650b2f574a02c4c4e988786f0485924d3e8cab",
+     "branch": "claude-b/clean0-v21",
+     "blocker_ids": [],
+     "heartbeat_age_seconds": 11,
+     "timestamp": "2026-08-27T22:10:19+09:00",
+     "tier": "T4"
+    },
+    "C": {
+     "phase": "I1",
+     "work_state": "HOLDOUT_EXPOSURE_CORRECTED_TO_26__BLIND_PILOT_HOLDOUT_PROPOSED",
+     "claimed_head_sha": "b7d13fbe20c4f5ff28e5404b09e4e1a38ac92707",
+     "branch": "claude-c/assurance-v21",
+     "blocker_ids": [
+      "C-BLOCKER-220418(P1 ledger 귀속)",
+      "C-BLOCKER-215510(P0, A D-R0-62 로 처리 중)"
+     ],
+     "heartbeat_age_seconds": 128,
+     "timestamp": "2026-08-27T22:08:24+09:00",
+     "tier": "T4"
+    },
+    "D": {
+     "phase": "I1",
+     "work_state": "RESEARCHING",
+     "claimed_head_sha": "2ad18b69859e79a87d48fef94cee3366f9ea39ef",
+     "branch": "claude-d/research-sandbox-v21",
+     "blocker_ids": [],
+     "heartbeat_age_seconds": 175,
+     "timestamp": "2026-08-27T22:07:37.028087+09:00",
+     "tier": "T4"
+    }
+   },
+   "current_phase": "I1",
+   "open_p0": {
+    "value": 11,
+    "grain": "P0 tickets with >=1 recipient not ACKed/completed",
+    "tier": "T4",
+    "denominator": 41,
+    "denominator_grain": "P0+P1 tickets on bus"
+   },
+   "open_p1": {
+    "value": 6,
+    "grain": "P1 tickets with >=1 recipient not ACKed/completed",
+    "tier": "T4",
+    "denominator": 41,
+    "denominator_grain": "P0+P1 tickets on bus"
+   },
+   "open_tickets": [
+    {
+     "ticket_id": "T-A-LABEL-PREP-001",
+     "priority": "P0",
+     "type": "DIRECTIVE",
+     "from": "A",
+     "to": [
+      "B",
+      "C"
+     ],
+     "awaiting_response_from": [
+      "B"
+     ],
+     "created_at": "2026-08-27T21:03:00+09:00",
+     "expected_response": "ACK",
+     "headline": "독립 Labeler 조직 예고 — label 생산 금지 고지"
+    },
+    {
+     "ticket_id": "C-BLOCKER-215510",
+     "priority": "P0",
+     "type": "BLOCKER",
+     "from": "C",
+     "to": [
+      "A",
+      "B"
+     ],
+     "awaiting_response_from": [
+      "A",
+      "B"
+     ],
+     "created_at": "2026-08-27T21:55:10+09:00",
+     "expected_response": "GO_NO_GO",
+     "headline": "label contamination (protocol §7 P0 / §13) — SCOPED to holdout integrity; 전체 정지 요구 아님(REAL_TARGET 이미 NO-GO)"
+    },
+    {
+     "ticket_id": "T-B-ATTEST-001",
+     "priority": "P0",
+     "type": "FACT_CORRECTION",
+     "from": "B",
+     "to": [
+      "A",
+      "C"
+     ],
+     "awaiting_response_from": [
+      "A"
+     ],
+     "created_at": "2026-08-27T21:57:03+09:00",
+     "expected_response": "GO_NO_GO",
+     "headline": ""
+    },
+    {
+     "ticket_id": "C-FINDING-220024",
+     "priority": "P0",
+     "type": "FINDING",
+     "from": "C",
+     "to": [
+      "A",
+      "B"
+     ],
+     "awaiting_response_from": [
+      "A",
+      "B"
+     ],
+     "created_at": "2026-08-27T22:00:24+09:00",
+     "expected_response": "GO_NO_GO",
+     "headline": ""
+    },
+    {
+     "ticket_id": "T-A-HOLDOUT-SCOPE-001",
+     "priority": "P0",
+     "type": "FACT_CORRECTION",
+     "from": "A",
+     "to": [
+      "B",
+      "C",
+      "D"
+     ],
+     "awaiting_response_from": [
+      "D"
+     ],
+     "created_at": "2026-08-27T22:03:35+09:00",
+     "expected_response": "GO_NO_GO",
+     "headline": "C 가 C-FINDING-220024 에서 분모를 사전 고정했는데 그 입력이 틀렸다. 결과가 나오기 전에 정정한다."
+    },
+    {
+     "ticket_id": "C-FACT_CORRECTION-220511",
+     "priority": "P0",
+     "type": "FACT_CORRECTION",
+     "from": "C",
+     "to": [
+      "A",
+      "B"
+     ],
+     "awaiting_response_from": [
+      "A",
+      "B"
+     ],
+     "created_at": "2026-08-27T22:05:11+09:00",
+     "expected_response": "ACK",
+     "headline": ""
+    },
+    {
+     "ticket_id": "D-ATTESTATION-001",
+     "priority": "P0",
+     "type": "FACT_CORRECTION",
+     "from": "D",
+     "to": [
+      "A"
+     ],
+     "awaiting_response_from": [
+      "A"
+     ],
+     "created_at": "2026-08-27T22:10:00+09:00",
+     "expected_response": null,
+     "headline": ""
+    },
+    {
+     "ticket_id": "C-FINDING-221007",
+     "priority": "P0",
+     "type": "FINDING",
+     "from": "C",
+     "to": [
+      "A",
+      "B"
+     ],
+     "awaiting_response_from": [
+      "A",
+      "B"
+     ],
+     "created_at": "2026-08-27T22:10:07+09:00",
+     "expected_response": "ACK",
+     "headline": ""
+    },
+    {
+     "ticket_id": "T-B-W2-ATTEST-001",
+     "priority": "P0",
+     "type": "FACT_CORRECTION",
+     "from": "B",
+     "to": [
+      "A",
+      "C"
+     ],
+     "awaiting_response_from": [
+      "A"
+     ],
+     "created_at": "2026-08-27T22:10:08+09:00",
+     "expected_response": "ACK",
+     "headline": ""
+    },
+    {
+     "ticket_id": "T-A-DIRECTOR-A1-A7",
+     "priority": "P0",
+     "type": "DIRECTIVE",
+     "from": "A",
+     "to": [
+      "B",
+      "C",
+      "D"
+     ],
+     "awaiting_response_from": [
+      "B",
+      "C",
+      "D"
+     ],
+     "created_at": "2026-08-27T22:10:28+09:00",
+     "expected_response": "ACK",
+     "headline": ""
+    },
+    {
+     "ticket_id": "T-A-W2-RECOVERY-001",
+     "priority": "P0",
+     "type": "WORK_REQUEST",
+     "from": "A",
+     "to": [
+      "B"
+     ],
+     "awaiting_response_from": [
+      "B"
+     ],
+     "created_at": "2026-08-27T22:10:28+09:00",
+     "expected_response": "COMPLETION",
+     "headline": "W2 오염 복구 attestation + diff (Director A3)"
+    },
+    {
+     "ticket_id": "C-FACT_CORRECTION-210136",
+     "priority": "P1",
+     "type": "FACT_CORRECTION",
+     "from": "C",
+     "to": [
+      "A",
+      "B"
+     ],
+     "awaiting_response_from": [
+      "A",
+      "B"
+     ],
+     "created_at": "2026-08-27T21:01:36+09:00",
+     "expected_response": "ACK",
+     "headline": ""
+    },
+    {
+     "ticket_id": "T-A-FINDING-001",
+     "priority": "P1",
+     "type": "FINDING",
+     "from": "A",
+     "to": [
+      "B",
+      "C"
+     ],
+     "awaiting_response_from": [
+      "B"
+     ],
+     "created_at": "2026-08-27T21:22:35+09:00",
+     "expected_response": "FINDING",
+     "headline": ""
+    },
+    {
+     "ticket_id": "C-FINDING-212458",
+     "priority": "P1",
+     "type": "FINDING",
+     "from": "C",
+     "to": [
+      "A",
+      "B"
+     ],
+     "awaiting_response_from": [
+      "B"
+     ],
+     "created_at": "2026-08-27T21:24:58+09:00",
+     "expected_response": "GO_NO_GO",
+     "headline": ""
+    },
+    {
+     "ticket_id": "T-A-DECISIONS-51-57",
+     "priority": "P1",
+     "type": "DIRECTIVE",
+     "from": "A",
+     "to": [
+      "B",
+      "C"
+     ],
+     "awaiting_response_from": [
+      "B"
+     ],
+     "created_at": "2026-08-27T21:37:21+09:00",
+     "expected_response": "ACK",
+     "headline": ""
+    },
+    {
+     "ticket_id": "T-B-FINDING-003",
+     "priority": "P1",
+     "type": "FINDING",
+     "from": "B",
+     "to": [
+      "A",
+      "C"
+     ],
+     "awaiting_response_from": [
+      "A"
+     ],
+     "created_at": "2026-08-27T22:01:01+09:00",
+     "expected_response": "ACK",
+     "headline": "D-R0-60 의 e2e 요구가 실제 결함을 잡았다 — DUPLICATE_SUPPRESSED 가 표준 파이프라인에서 MEASURED 로 접혔다"
+    },
+    {
+     "ticket_id": "C-BLOCKER-220418",
+     "priority": "P1",
+     "type": "BLOCKER",
+     "from": "C",
+     "to": [
+      "A",
+      "B"
+     ],
+     "awaiting_response_from": [
+      "A",
+      "B"
+     ],
+     "created_at": "2026-08-27T22:04:18+09:00",
+     "expected_response": "GO_NO_GO",
+     "headline": "C e2e(프로세스 2개, 같은 out dir) @860e4e8: evidence run 3/3 target · lock 3 DONE · 억제 이벤트 5 → 접속 단위 exactly-once 성립. 그러나 두 프로세스가 target 을 **나눠 가졌다**: proc1 이 content 를 측정하고 query/unresolved 는 억제됨(proc1 로그 S"
+    }
+   ],
+   "ticket_parse_errors": [],
+   "open_definition": "open = 티켓의 to[] 수신자 중 acks/ 나 completions/ 에 <ticket_id>.<recipient>.json 이 없는 사람이 하나라도 있는 것. 내용상 해소 여부는 판단하지 않는다 — 파일 존재만 본다.",
+   "remote_exact_shas": [
+    {
+     "plane": "A",
+     "branch": "control/landing-orchestrator",
+     "exact_sha": "4298172da12c80759deb9a9d4ea231197de3893f",
+     "tier": "T1"
+    },
+    {
+     "plane": "B",
+     "branch": "claude-b/clean0-v21",
+     "exact_sha": "95650b2f574a02c4c4e988786f0485924d3e8cab",
+     "tier": "T1"
+    },
+    {
+     "plane": "B",
+     "branch": "claude-b/analysis-current",
+     "exact_sha": "82f631f1e6bd3708bc8f95f0b8edcd90e22cef0d",
+     "tier": "T1"
+    },
+    {
+     "plane": "B",
+     "branch": "claude-b/w1-guard-wiring",
+     "exact_sha": "860e4e808d42a3edff055ee06e38c13082b32f64",
+     "tier": "T1"
+    },
+    {
+     "plane": "B",
+     "branch": "claude-b/w2-rf-detector",
+     "exact_sha": "f76ee8ba63f50a1f5df7785d4b5cef32a16e386f",
+     "tier": "T1"
+    },
+    {
+     "plane": "B",
+     "branch": "claude-b/w3-kwcag",
+     "exact_sha": "94cbf8b610a9386267e3cbeb3057319a57a15634",
+     "tier": "T1"
+    },
+    {
+     "plane": "B",
+     "branch": "claude-b/w4-axisc-mart",
+     "exact_sha": "b27794feccc4ab07efd87aaad54bf648798fa293",
+     "tier": "T1"
+    },
+    {
+     "plane": "C",
+     "branch": "claude-c/assurance-v21",
+     "exact_sha": "8b2d6ee481e3b69eab7113c725d2b55c2afa9d7c",
+     "tier": "T1"
+    },
+    {
+     "plane": "C",
+     "branch": "claude-c/assurance-current",
+     "exact_sha": "1baa865b4a673af05033e6e6289fd2713676baa5",
+     "tier": "T1"
+    },
+    {
+     "plane": "D",
+     "branch": "claude-d/research-sandbox-v21",
+     "exact_sha": "2ad18b69859e79a87d48fef94cee3366f9ea39ef",
+     "tier": "T1"
+    },
+    {
+     "plane": "-",
+     "branch": "research/landing-accessibility-main",
+     "exact_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+     "tier": "T1"
+    },
+    {
+     "plane": "-",
+     "branch": "agent/landing-v2-exec",
+     "exact_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+     "tier": "T1"
+    }
+   ],
+   "remote_sha_probe_status": "OK",
+   "sha_note": "branch name 은 상태가 아니다. 여기 있는 것은 git ls-remote 로 읽은 origin 의 exact SHA 이며, heartbeat 가 주장하는 head_sha 와 다를 수 있다.",
+   "heartbeat_vs_origin": [
+    {
+     "agent": "A",
+     "branch": "control/landing-orchestrator",
+     "claimed_head_sha": "9f39acf20b8bcb272a6d2e582c5501dbf8d5ce7d",
+     "origin_exact_sha": "4298172da12c80759deb9a9d4ea231197de3893f",
+     "matches_origin": false
+    },
+    {
+     "agent": "B",
+     "branch": "claude-b/clean0-v21",
+     "claimed_head_sha": "95650b2f574a02c4c4e988786f0485924d3e8cab",
+     "origin_exact_sha": "95650b2f574a02c4c4e988786f0485924d3e8cab",
+     "matches_origin": true
+    },
+    {
+     "agent": "C",
+     "branch": "claude-c/assurance-v21",
+     "claimed_head_sha": "b7d13fbe20c4f5ff28e5404b09e4e1a38ac92707",
+     "origin_exact_sha": "8b2d6ee481e3b69eab7113c725d2b55c2afa9d7c",
+     "matches_origin": false
+    },
+    {
+     "agent": "D",
+     "branch": "claude-d/research-sandbox-v21",
+     "claimed_head_sha": "2ad18b69859e79a87d48fef94cee3366f9ea39ef",
+     "origin_exact_sha": "2ad18b69859e79a87d48fef94cee3366f9ea39ef",
+     "matches_origin": true
+    }
+   ],
+   "unpushed_agents": {
+    "value": 2,
+    "grain": "agents whose heartbeat head_sha != origin exact SHA",
+    "tier": "T1",
+    "denominator": 4,
+    "denominator_grain": "agents comparable"
+   },
+   "subagents_by_status": {
+    "completed": {
+     "value": 3,
+     "grain": "D subagent runs",
+     "tier": "T4",
+     "denominator": 3,
+     "denominator_grain": "registry records"
+    }
+   },
+   "subagents_detail": [
+    {
+     "rq_id": "RQ-D8",
+     "status": "completed",
+     "verdict": "PARTIALLY_SUPPORTED",
+     "tokens": 108682,
+     "duration_min": 13.84,
+     "files": 4
+    },
+    {
+     "rq_id": "RQ-D10",
+     "status": "completed",
+     "verdict": "PARTIALLY_SUPPORTED",
+     "tokens": 135147,
+     "duration_min": 13.21,
+     "files": 5
+    },
+    {
+     "rq_id": "RQ-D9",
+     "status": "completed",
+     "verdict": "REFUTED",
+     "tokens": 126190,
+     "duration_min": 20.39,
+     "files": 6
+    }
+   ],
+   "subagent_total_tokens": {
+    "value": 370019,
+    "grain": "tokens spent by D subagents",
+    "tier": "T4"
+   },
+   "section_status": "OK"
+  },
+  "data": {
+   "denominator_chain": {
+    "observation_dirs": {
+     "value": 66,
+     "grain": "observation dirs (raw evidence)",
+     "tier": "T2"
+    },
+    "attempted": {
+     "value": 59,
+     "grain": "attempted targets",
+     "tier": "T2",
+     "denominator": 66,
+     "denominator_grain": "observation dirs"
+    },
+    "evidence_complete": {
+     "value": 56,
+     "grain": "evidence-bearing targets",
+     "tier": "T2",
+     "denominator": 59,
+     "denominator_grain": "attempted targets"
+    },
+    "in_landing_mart": {
+     "value": 56,
+     "grain": "targets with a landing mart row",
+     "tier": "T3",
+     "denominator": 59,
+     "denominator_grain": "attempted targets"
+    },
+    "measured": {
+     "value": 53,
+     "grain": "landing rows measurement_status=MEASURED",
+     "tier": "T3",
+     "denominator": 56,
+     "denominator_grain": "landing mart rows"
+    },
+    "in_task_mart": {
+     "value": 31,
+     "grain": "targets with a task mart row",
+     "tier": "T3",
+     "denominator": 56,
+     "denominator_grain": "landing mart targets"
+    }
+   },
+   "silently_dropped": {
+    "value": 3,
+    "grain": "attempted targets with zero mart presence",
+    "tier": "T2",
+    "denominator": 59,
+    "denominator_grain": "attempted targets"
+   },
+   "silently_dropped_wtg": [
+    "2cd43b99c1ed87cf",
+    "dd5061eb74e2d4d4",
+    "ff3ee504792f6cfc"
+   ],
+   "landing_without_task_row": {
+    "value": 25,
+    "grain": "landing targets with no task row (target-level guard block)",
+    "tier": "T3",
+    "denominator": 56,
+    "denominator_grain": "landing mart targets"
+   },
+   "joint_valid": {
+    "value": 0,
+    "grain": "observations with Axis A + Axis B(NED) + Axis C all non-null",
+    "tier": "T3",
+    "denominator": 56,
+    "denominator_grain": "landing mart rows"
+   },
+   "joint_valid_why_zero": "Axis A 는 0행이고 Axis B 의 NED 는 31 task rows 전부 null 이다. 교집합은 정의상 0 이며, 이것은 '세 축이 모두 실패했다'가 아니라 '두 축이 아직 산출되지 않았다'는 뜻이다.",
+   "joint_valid_axis_c_only": {
+    "value": 56,
+    "grain": "observations with Axis C only",
+    "tier": "T3",
+    "denominator": 56,
+    "denominator_grain": "landing mart rows"
+   },
+   "missingness": {
+    "landing_mart_rows_56": {
+     "max_overlay_coverage": {
+      "missing": 0,
+      "total": 56,
+      "missing_rate": 0.0
+     },
+     "max_primary_action_occlusion": {
+      "missing": 0,
+      "total": 56,
+      "missing_rate": 0.0
+     },
+     "primary_action_visible_initial": {
+      "missing": 2,
+      "total": 56,
+      "missing_rate": 0.0357
+     },
+     "blocking_modal_count": {
+      "missing": 0,
+      "total": 56,
+      "missing_rate": 0.0
+     }
+    },
+    "task_mart_rows_31": {
+     "NED": {
+      "missing": 31,
+      "total": 31,
+      "missing_rate": 1.0
+     },
+     "IED": {
+      "missing": 31,
+      "total": 31,
+      "missing_rate": 1.0
+     },
+     "MPFED": {
+      "missing": 31,
+      "total": 31,
+      "missing_rate": 1.0
+     },
+     "endpoint_status": {
+      "missing": 0,
+      "total": 31,
+      "missing_rate": 0.0
+     },
+     "interaction_archetype": {
+      "missing": 0,
+      "total": 31,
+      "missing_rate": 0.0
+     }
+    },
+    "interrupt_rows_235": {
+     "overlay_coverage": {
+      "missing": 0,
+      "total": 235,
+      "missing_rate": 0.0
+     },
+     "primary_action_occlusion": {
+      "missing": 0,
+      "total": 235,
+      "missing_rate": 0.0
+     },
+     "final_label": {
+      "missing": 0,
+      "total": 235,
+      "missing_rate": 0.0
+     }
+    },
+    "structural_missingness": {
+     "attempted_targets_absent_from_all_marts": 3,
+     "landing_targets_absent_from_task_mart": 25,
+     "note": "행 안의 null 보다 '행 자체가 없는 것'이 더 크다. 3 attempted targets 는 mart 어디에도 없고, 25 landing targets 는 task mart 에 없다. mart 를 분모로 쓰면 이 결측이 보이지 않는다."
+    },
+    "tier": "T3"
+   },
+   "mart_provenance": {
+    "snapshot_at": "2026-08-27T16:25:42+09:00",
+    "files": [
+     {
+      "file": "fact_landing_observation.json",
+      "declared_row_count": 56,
+      "actual_row_count": 56,
+      "declared_sha256": "4ed58b66e002d25ce324efa720462bef45dec2826b68ab7babbb3335cb06fa8c",
+      "actual_sha256": "4ed58b66e002d25ce324efa720462bef45dec2826b68ab7babbb3335cb06fa8c",
+      "hash_match": true
+     },
+     {
+      "file": "fact_task_entry.json",
+      "declared_row_count": 31,
+      "actual_row_count": 31,
+      "declared_sha256": "61bb7051045ab27ddc5b8105728b64c3f0df1c69c3f278d14087789fbcad0064",
+      "actual_sha256": "61bb7051045ab27ddc5b8105728b64c3f0df1c69c3f278d14087789fbcad0064",
+      "hash_match": true
+     },
+     {
+      "file": "fact_interrupt_element.json",
+      "declared_row_count": 235,
+      "actual_row_count": 235,
+      "declared_sha256": "caebf1a4344a0b96d793b2f14418c14ece7c3ebef788e8eb7033eb678093dbf6",
+      "actual_sha256": "caebf1a4344a0b96d793b2f14418c14ece7c3ebef788e8eb7033eb678093dbf6",
+      "hash_match": true
+     },
+     {
+      "file": "fact_criterion_result.json",
+      "declared_row_count": 0,
+      "actual_row_count": 0,
+      "declared_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "actual_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash_match": true
+     },
+     {
+      "file": "dim_certification.json",
+      "declared_row_count": 0,
+      "actual_row_count": 0,
+      "declared_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "actual_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash_match": true
+     }
+    ],
+    "all_hashes_match": true,
+    "tier": "T3"
+   },
+   "summary": "66 observation dirs → 59 attempted targets → 56 evidence-bearing → 53 MEASURED landing rows → 31 task rows. joint-valid(A+B+C) = 0 / 56 landing rows — Axis A 0행 · Axis B NED 전량 null 이기 때문.",
+   "section_status": "OK"
+  },
+  "rf_detector": {
+   "runs_in_LA_03_RF_MAPPING": {
+    "value": 8,
+    "grain": "MLflow runs in LA_03_RF_MAPPING",
+    "tier": "T5"
+   },
+   "run_index": [
+    {
+     "run_name": "D-RF-001-C embedding_prototype",
+     "run_id": "bd04b82fa1104cd3a93283b40f2dd5cb",
+     "plane": "D",
+     "run_status": "COMPLETED",
+     "verdict": "PARTIALLY_SUPPORTED",
+     "metric_keys": [
+      "baseline.length_only_loo.macro_f1",
+      "baseline.length_only_loo.prior_agreement",
+      "baseline.majority.macro_f1",
+      "baseline.majority.prior_agreement",
+      "baseline.stratified.macro_f1_mean",
+      "baseline.stratified.macro_f1_p95",
+      "baseline.stratified.prior_agreement_mean",
+      "bge-m3.A_SSOT_DEF.beats_stratified_p95",
+      "bge-m3.A_SSOT_DEF.macro_f1",
+      "bge-m3.A_SSOT_DEF.macro_f1_p_vs_stratified",
+      "bge-m3.A_SSOT_DEF.margin_median",
+      "bge-m3.A_SSOT_DEF.n_distinct_predicted_classes",
+      "bge-m3.A_SSOT_DEF.prior_agreement",
+      "bge-m3.A_SSOT_DEF.top2_prior_agreement",
+      "bge-m3.A_SSOT_DEF.weighted_f1",
+      "bge-m3.B_USER_BEHAVIOR.beats_stratified_p95",
+      "bge-m3.B_USER_BEHAVIOR.macro_f1",
+      "bge-m3.B_USER_BEHAVIOR.macro_f1_p_vs_stratified",
+      "bge-m3.B_USER_BEHAVIOR.margin_median",
+      "bge-m3.B_USER_BEHAVIOR.n_distinct_predicted_classes",
+      "bge-m3.B_USER_BEHAVIOR.prior_agreement",
+      "bge-m3.B_USER_BEHAVIOR.top2_prior_agreement",
+      "bge-m3.B_USER_BEHAVIOR.weighted_f1",
+      "bge-m3.C_TERSE_LABEL.beats_stratified_p95",
+      "bge-m3.C_TERSE_LABEL.macro_f1",
+      "bge-m3.C_TERSE_LABEL.macro_f1_p_vs_stratified",
+      "bge-m3.C_TERSE_LABEL.margin_median",
+      "bge-m3.C_TERSE_LABEL.n_distinct_predicted_classes",
+      "bge-m3.C_TERSE_LABEL.prior_agreement",
+      "bge-m3.C_TERSE_LABEL.top2_prior_agreement",
+      "bge-m3.C_TERSE_LABEL.weighted_f1",
+      "e5-small.A_SSOT_DEF.beats_stratified_p95",
+      "e5-small.A_SSOT_DEF.macro_f1",
+      "e5-small.A_SSOT_DEF.macro_f1_p_vs_stratified",
+      "e5-small.A_SSOT_DEF.margin_median",
+      "e5-small.A_SSOT_DEF.n_distinct_predicted_classes",
+      "e5-small.A_SSOT_DEF.prior_agreement",
+      "e5-small.A_SSOT_DEF.top2_prior_agreement",
+      "e5-small.A_SSOT_DEF.weighted_f1",
+      "e5-small.B_USER_BEHAVIOR.beats_stratified_p95",
+      "e5-small.B_USER_BEHAVIOR.macro_f1",
+      "e5-small.B_USER_BEHAVIOR.macro_f1_p_vs_stratified",
+      "e5-small.B_USER_BEHAVIOR.margin_median",
+      "e5-small.B_USER_BEHAVIOR.n_distinct_predicted_classes",
+      "e5-small.B_USER_BEHAVIOR.prior_agreement",
+      "e5-small.B_USER_BEHAVIOR.top2_prior_agreement",
+      "e5-small.B_USER_BEHAVIOR.weighted_f1",
+      "e5-small.C_TERSE_LABEL.beats_stratified_p95",
+      "e5-small.C_TERSE_LABEL.macro_f1",
+      "e5-small.C_TERSE_LABEL.macro_f1_p_vs_stratified",
+      "e5-small.C_TERSE_LABEL.margin_median",
+      "e5-small.C_TERSE_LABEL.n_distinct_predicted_classes",
+      "e5-small.C_TERSE_LABEL.prior_agreement",
+      "e5-small.C_TERSE_LABEL.top2_prior_agreement",
+      "e5-small.C_TERSE_LABEL.weighted_f1",
+      "minilm.A_SSOT_DEF.beats_stratified_p95",
+      "minilm.A_SSOT_DEF.macro_f1",
+      "minilm.A_SSOT_DEF.macro_f1_p_vs_stratified",
+      "minilm.A_SSOT_DEF.margin_median",
+      "minilm.A_SSOT_DEF.n_distinct_predicted_classes",
+      "minilm.A_SSOT_DEF.prior_agreement",
+      "minilm.A_SSOT_DEF.top2_prior_agreement",
+      "minilm.A_SSOT_DEF.weighted_f1",
+      "minilm.B_USER_BEHAVIOR.beats_stratified_p95",
+      "minilm.B_USER_BEHAVIOR.macro_f1",
+      "minilm.B_USER_BEHAVIOR.macro_f1_p_vs_stratified",
+      "minilm.B_USER_BEHAVIOR.margin_median",
+      "minilm.B_USER_BEHAVIOR.n_distinct_predicted_classes",
+      "minilm.B_USER_BEHAVIOR.prior_agreement",
+      "minilm.B_USER_BEHAVIOR.top2_prior_agreement",
+      "minilm.B_USER_BEHAVIOR.weighted_f1",
+      "minilm.C_TERSE_LABEL.beats_stratified_p95",
+      "minilm.C_TERSE_LABEL.macro_f1",
+      "minilm.C_TERSE_LABEL.macro_f1_p_vs_stratified",
+      "minilm.C_TERSE_LABEL.margin_median",
+      "minilm.C_TERSE_LABEL.n_distinct_predicted_classes",
+      "minilm.C_TERSE_LABEL.prior_agreement",
+      "minilm.C_TERSE_LABEL.top2_prior_agreement",
+      "minilm.C_TERSE_LABEL.weighted_f1",
+      "primary.length_strat_perm_macro_f1_p",
+      "primary.macro_f1",
+      "primary.macro_f1_minus_majority",
+      "primary.macro_f1_minus_stratified_mean",
+      "primary.per_class.COMMUNICATION_ENTRY.f1",
+      "primary.per_class.COMMUNICATION_ENTRY.precision",
+      "primary.per_class.COMMUNICATION_ENTRY.recall",
+      "primary.per_class.COMMUNICATION_ENTRY.support",
+      "primary.per_class.CONTENT_OPEN.f1",
+      "primary.per_class.CONTENT_OPEN.precision",
+      "primary.per_class.CONTENT_OPEN.recall",
+      "primary.per_class.CONTENT_OPEN.support",
+      "primary.per_class.FINANCIAL_ACTION_ENTRY.f1",
+      "primary.per_class.FINANCIAL_ACTION_ENTRY.precision",
+      "primary.per_class.FINANCIAL_ACTION_ENTRY.recall",
+      "primary.per_class.FINANCIAL_ACTION_ENTRY.support",
+      "primary.per_class.ITEM_DETAIL.f1",
+      "primary.per_class.ITEM_DETAIL.precision",
+      "primary.per_class.ITEM_DETAIL.recall",
+      "primary.per_class.ITEM_DETAIL.support",
+      "primary.per_class.PLACE_LOOKUP.f1",
+      "primary.per_class.PLACE_LOOKUP.precision",
+      "primary.per_class.PLACE_LOOKUP.recall",
+      "primary.per_class.PLACE_LOOKUP.support",
+      "primary.per_class.QUERY.f1",
+      "primary.per_class.QUERY.precision",
+      "primary.per_class.QUERY.recall",
+      "primary.per_class.QUERY.support",
+      "primary.per_class.UTILITY_ENTRY.f1",
+      "primary.per_class.UTILITY_ENTRY.precision",
+      "primary.per_class.UTILITY_ENTRY.recall",
+      "primary.per_class.UTILITY_ENTRY.support",
+      "primary.prior_agreement",
+      "primary.signal_survives_length_control",
+      "primary.spearman_tokens_margin",
+      "primary.spearman_tokens_top1sim",
+      "prototype_sensitivity.any_verdict_flip",
+      "prototype_sensitivity.macro_f1_range_9cfg",
+      "prototype_sensitivity.n_beating_stratified_p95"
+     ]
+    },
+    {
+     "run_name": "C_W2_contamination_forensic_f76ee8b",
+     "run_id": "cd21911d67644f208aa87852e8394948",
+     "plane": "C",
+     "run_status": "FINISHED",
+     "verdict": null,
+     "metric_keys": [
+      "fixtures_with_holdout_sites",
+      "leaked_id_hits",
+      "positive_control_hits",
+      "target_specific_conditionals",
+      "thresholds_added"
+     ]
+    },
+    {
+     "run_name": "C_holdout_contamination_register_v2_full_exposure",
+     "run_id": "dceb4d4bee3046ea843103d6f60641d7",
+     "plane": "C",
+     "run_status": "FINISHED",
+     "verdict": null,
+     "metric_keys": [
+      "active_contamination",
+      "available_to_B_D",
+      "clean",
+      "holdout_n",
+      "primary_n",
+      "secondary_n"
+     ]
+    },
+    {
+     "run_name": "C_holdout_contamination_register",
+     "run_id": "3e42ae7f77394938a29ef8c96975168a",
+     "plane": "C",
+     "run_status": "FINISHED",
+     "verdict": null,
+     "metric_keys": [
+      "exposed_in_control",
+      "forwarded_to_detector",
+      "holdout_n",
+      "primary_holdout_n",
+      "secondary_holdout_n"
+     ]
+    },
+    {
+     "run_name": "C_LABEL_freeze_and_overlap_verification",
+     "run_id": "a4da185cddef48f88e8bbddf74081975",
+     "plane": "C",
+     "run_status": "FINISHED",
+     "verdict": null,
+     "metric_keys": [
+      "abstain",
+      "cal",
+      "cal_hold_overlap",
+      "frozen_rows",
+      "hold",
+      "holdout_labels_exposed_in_control",
+      "overlap_agree",
+      "overlap_both_mapped_agree",
+      "overlap_both_mapped_n",
+      "overlap_n",
+      "prior_agreement_den",
+      "prior_agreement_num",
+      "raw_vs_frozen_diff"
+     ]
+    },
+    {
+     "run_name": "RQ-D-RF-001",
+     "run_id": "2bf780a9efca4562bdf63a7c165514cc",
+     "plane": "D",
+     "run_status": "RUNNING",
+     "verdict": "PENDING",
+     "metric_keys": []
+    },
+    {
+     "run_name": "RQ-D3A",
+     "run_id": "7b7369b3d77d40749285f58a4bc91da2",
+     "plane": "D",
+     "run_status": "COMPLETED",
+     "verdict": "NOT_SUPPORTED",
+     "metric_keys": [
+      "baseline_majority_macro_f1",
+      "baseline_stratified_macro_f1",
+      "best_ci95_contains_stratified_mean",
+      "class_counts.COMMUNICATION_ENTRY",
+      "class_counts.CONTENT_OPEN",
+      "class_counts.FINANCIAL_ACTION_ENTRY",
+      "class_counts.ITEM_DETAIL",
+      "class_counts.PLACE_LOOKUP",
+      "class_counts.QUERY",
+      "class_counts.UTILITY_ENTRY",
+      "lift_over_majority_macro_f1",
+      "lift_over_stratified_macro_f1",
+      "min_class_n",
+      "n",
+      "n_features",
+      "seed"
+     ]
+    },
+    {
+     "run_name": "RQ-D3A",
+     "run_id": "a8be833fd1fa46cbb98b47b8b83867ad",
+     "plane": "D",
+     "run_status": "SUPERSEDED",
+     "verdict": "PENDING",
+     "metric_keys": [
+      "baseline_majority_macro_f1",
+      "baseline_stratified_macro_f1",
+      "best_ci95_contains_stratified_mean",
+      "class_counts.COMMUNICATION_ENTRY",
+      "class_counts.CONTENT_OPEN",
+      "class_counts.FINANCIAL_ACTION_ENTRY",
+      "class_counts.ITEM_DETAIL",
+      "class_counts.PLACE_LOOKUP",
+      "class_counts.QUERY",
+      "class_counts.UTILITY_ENTRY",
+      "lift_over_majority_macro_f1",
+      "lift_over_stratified_macro_f1",
+      "min_class_n",
+      "n",
+      "n_features",
+      "seed"
+     ]
+    }
+   ],
+   "calibration_coverage": {
+    "value": 30,
+    "grain": "calibration-split labeled targets",
+    "tier": "T5",
+    "denominator": 56,
+    "denominator_grain": "frozen labeled targets"
+   },
+   "calibration_coverage_source": "MLflow run C_LABEL_freeze_and_overlap_verification (a4da185cddef48f88e8bbddf74081975) — plane C, 라벨 분할 크기",
+   "holdout_coverage": {
+    "value": 26,
+    "grain": "holdout-split labeled targets",
+    "tier": "T5",
+    "denominator": 56,
+    "denominator_grain": "frozen labeled targets"
+   },
+   "holdout_coverage_source": "MLflow run C_holdout_contamination_register_v2_full_exposure (dceb4d4bee3046ea843103d6f60641d7) — plane C. **분할 크기만** 읽었다. D 는 holdout 라벨 내용을 열지 않는다.",
+   "holdout_scope_boundary": "holdout 은 C 영역이다. D 는 LABEL_SPLIT_FROZEN.json 과 control/label/** 를 열지 않는다. 여기 있는 값은 C 가 MLflow 에 남긴 요약 metric 이며, D 가 라벨을 읽어 센 값이 아니다.",
+   "macro_f1": {
+    "value": "NOT_AVAILABLE",
+    "grain": "-",
+    "tier": "T5",
+    "why_absent": "RF detector 의 macro F1 을 담은 run 이 없다. W2(claude-b/w2-rf-detector)는 RUNNING 이고 attestation 대기 중이라 아직 평가 run 을 내지 않았다. LA_03_RF_MAPPING 의 RQ-D3A macro F1 은 detector 가 아니라 L0 feature 분리가능성 baseline 이므로 detector 성능으로 전용하지 않는다."
+   },
+   "abstention": {
+    "value": 14,
+    "grain": "abstained label rows (labeler abstention, not detector abstention)",
+    "tier": "T5",
+    "denominator": 56,
+    "denominator_grain": "frozen labeled targets"
+   },
+   "abstention_caveat": "이 값은 **라벨러**의 abstain 이다(run C_LABEL_freeze_and_overlap_verification). detector 의 abstention rate 가 아니다. 둘을 같은 칸에 놓으면 안 되므로 grain 에 명시했다.",
+   "unsafe_fp": {
+    "value": "NOT_AVAILABLE",
+    "grain": "-",
+    "tier": "T5",
+    "why_absent": "unsafe false positive 를 세려면 detector 예측과 gold label 을 대조해야 한다. detector 평가 run 이 없고, gold label 대조는 C 영역이다 — D 가 계산할 수 없다."
+   },
+   "d_rf_runs": [
+    {
+     "run_name": "D-RF-001-C embedding_prototype",
+     "rq_id": "RQ-D-RF-001",
+     "verdict": "PARTIALLY_SUPPORTED",
+     "run_status": "COMPLETED",
+     "macro_f1_baselines": {
+      "bge-m3.A_SSOT_DEF.macro_f1": 0.49695087521174475,
+      "bge-m3.A_SSOT_DEF.macro_f1_p_vs_stratified": 4.999750012499375e-05,
+      "bge-m3.B_USER_BEHAVIOR.macro_f1": 0.3549323385268086,
+      "bge-m3.B_USER_BEHAVIOR.macro_f1_p_vs_stratified": 0.00014999250037498125,
+      "bge-m3.C_TERSE_LABEL.macro_f1": 0.4633237133237133,
+      "bge-m3.C_TERSE_LABEL.macro_f1_p_vs_stratified": 4.999750012499375e-05,
+      "e5-small.A_SSOT_DEF.macro_f1": 0.44265553994877305,
+      "e5-small.A_SSOT_DEF.macro_f1_p_vs_stratified": 4.999750012499375e-05,
+      "e5-small.B_USER_BEHAVIOR.macro_f1": 0.19819179284617075,
+      "e5-small.B_USER_BEHAVIOR.macro_f1_p_vs_stratified": 0.1055947202639868,
+      "e5-small.C_TERSE_LABEL.macro_f1": 0.37137624280481424,
+      "e5-small.C_TERSE_LABEL.macro_f1_p_vs_stratified": 9.99950002499875e-05,
+      "minilm.A_SSOT_DEF.macro_f1": 0.49191284905570626,
+      "minilm.A_SSOT_DEF.macro_f1_p_vs_stratified": 4.999750012499375e-05,
+      "minilm.B_USER_BEHAVIOR.macro_f1": 0.4876107766648071,
+      "minilm.B_USER_BEHAVIOR.macro_f1_p_vs_stratified": 4.999750012499375e-05,
+      "minilm.C_TERSE_LABEL.macro_f1": 0.42155463584035013,
+      "minilm.C_TERSE_LABEL.macro_f1_p_vs_stratified": 4.999750012499375e-05,
+      "baseline.majority.macro_f1": 0.09059233449477352,
+      "baseline.stratified.macro_f1_mean": 0.1386583465101761,
+      "baseline.stratified.macro_f1_p95": 0.22104006280874922,
+      "baseline.length_only_loo.macro_f1": 0.25214040475124216,
+      "primary.macro_f1": 0.49695087521174475,
+      "primary.macro_f1_minus_stratified_mean": 0.35829252870156864,
+      "primary.macro_f1_minus_majority": 0.4063585407169712,
+      "primary.length_strat_perm_macro_f1_p": 4.999750012499375e-05,
+      "prototype_sensitivity.macro_f1_range_9cfg": 0.298759082365574
+     }
+    },
+    {
+     "run_name": "RQ-D-RF-001",
+     "rq_id": "RQ-D-RF-001",
+     "verdict": "PENDING",
+     "run_status": "RUNNING",
+     "macro_f1_baselines": {}
+    },
+    {
+     "run_name": "RQ-D3A",
+     "rq_id": "RQ-D3A",
+     "verdict": "NOT_SUPPORTED",
+     "run_status": "COMPLETED",
+     "macro_f1_baselines": {
+      "baseline_majority_macro_f1": 0.09041591320072333,
+      "baseline_stratified_macro_f1": 0.23476602762317048,
+      "lift_over_majority_macro_f1": 0.18052425773944764,
+      "lift_over_stratified_macro_f1": 0.0361741433170005
+     }
+    },
+    {
+     "run_name": "RQ-D3A",
+     "rq_id": "RQ-D3A",
+     "verdict": "PENDING",
+     "run_status": "SUPERSEDED",
+     "macro_f1_baselines": {
+      "baseline_majority_macro_f1": 0.09041591320072333,
+      "baseline_stratified_macro_f1": 0.23476602762317048,
+      "lift_over_majority_macro_f1": 0.18052425773944764,
+      "lift_over_stratified_macro_f1": 0.0361741433170005
+     }
+    }
+   ],
+   "summary": "detector 성능(macro F1 · abstention · unsafe FP)은 전부 NOT_AVAILABLE — W2 detector 평가 run 이 아직 없다. 분할 크기(cal/hold)만 C 의 라벨 run 에서 읽힌다.",
+   "section_status": "OK"
+  },
+  "kwcag": {
+   "criterion_rows": {
+    "value": 0,
+    "grain": "criterion result rows in frozen mart",
+    "tier": "T3"
+   },
+   "decidable_count": {
+    "value": "NOT_EVALUATED",
+    "grain": "-",
+    "tier": "T3",
+    "why_absent": "fact_criterion_result.json 이 0행이다(파일 2 bytes = []). 평가기가 돌아서 '위반 없음'을 낸 것이 아니라 **평가가 실행되지 않았다**. W3(claude-b/w3-kwcag) Stage 1 evaluator 가 아직 산출 전이다."
+   },
+   "decision_coverage": {
+    "value": "NOT_EVALUATED",
+    "grain": "-",
+    "tier": "T3",
+    "why_absent": "fact_criterion_result.json 이 0행이다(파일 2 bytes = []). 평가기가 돌아서 '위반 없음'을 낸 것이 아니라 **평가가 실행되지 않았다**. W3(claude-b/w3-kwcag) Stage 1 evaluator 가 아직 산출 전이다."
+   },
+   "undet": {
+    "value": "NOT_EVALUATED",
+    "grain": "-",
+    "tier": "T3",
+    "why_absent": "fact_criterion_result.json 이 0행이다(파일 2 bytes = []). 평가기가 돌아서 '위반 없음'을 낸 것이 아니라 **평가가 실행되지 않았다**. W3(claude-b/w3-kwcag) Stage 1 evaluator 가 아직 산출 전이다."
+   },
+   "criterion_level_failures": {
+    "value": "NOT_EVALUATED",
+    "grain": "-",
+    "tier": "T3",
+    "why_absent": "fact_criterion_result.json 이 0행이다(파일 2 bytes = []). 평가기가 돌아서 '위반 없음'을 낸 것이 아니라 **평가가 실행되지 않았다**. W3(claude-b/w3-kwcag) Stage 1 evaluator 가 아직 산출 전이다."
+   },
+   "misreading_guard": "0행을 '0% 실패' 또는 '전부 통과'로 읽으면 안 된다. 분자도 분모도 존재하지 않는다. 비율은 정의되지 않는다.",
+   "dim_certification_rows": {
+    "value": 0,
+    "grain": "certification dimension rows",
+    "tier": "T3"
+   },
+   "summary": "Axis A = NOT_EVALUATED. criterion 0행 / 56 landing rows — 비율은 정의되지 않는다.",
+   "section_status": "OK"
+  },
+  "depth": {
+   "task_rows": {
+    "value": 31,
+    "grain": "task entry rows in frozen mart",
+    "tier": "T3"
+   },
+   "ned_available": {
+    "value": "NOT_AVAILABLE",
+    "grain": "-",
+    "tier": "T3",
+    "why_absent": "NED 는 31 task rows 전부 null 이다. 값이 '깊이 0'인 것이 아니라 필드가 채워진 적이 없다 — endpoint detector 미배선."
+   },
+   "ied_available": {
+    "value": "NOT_AVAILABLE",
+    "grain": "-",
+    "tier": "T3",
+    "why_absent": "IED 는 31 task rows 전부 null 이다. 값이 '깊이 0'인 것이 아니라 필드가 채워진 적이 없다 — endpoint detector 미배선."
+   },
+   "mpfed_available": {
+    "value": "NOT_AVAILABLE",
+    "grain": "-",
+    "tier": "T3",
+    "why_absent": "MPFED 는 31 task rows 전부 null 이다. 값이 '깊이 0'인 것이 아니라 필드가 채워진 적이 없다 — endpoint detector 미배선."
+   },
+   "endpoint_reach": {
+    "value": 31,
+    "grain": "task rows with endpoint_reached=true",
+    "tier": "T3",
+    "denominator": 31,
+    "denominator_grain": "task rows"
+   },
+   "endpoint_status_distribution": {
+    "UNRESOLVED": {
+     "value": 18,
+     "grain": "task rows",
+     "tier": "T3",
+     "denominator": 31,
+     "denominator_grain": "task rows"
+    },
+    "AUTH_GATE_REACHED": {
+     "value": 11,
+     "grain": "task rows",
+     "tier": "T3",
+     "denominator": 31,
+     "denominator_grain": "task rows"
+    },
+    "CAPTCHA": {
+     "value": 1,
+     "grain": "task rows",
+     "tier": "T3",
+     "denominator": 31,
+     "denominator_grain": "task rows"
+    },
+    "PAYMENT_GATE_REACHED": {
+     "value": 1,
+     "grain": "task rows",
+     "tier": "T3",
+     "denominator": 31,
+     "denominator_grain": "task rows"
+    }
+   },
+   "auth_gate_before_endpoint": {
+    "value": 31,
+    "grain": "task rows where an auth gate was met before any endpoint",
+    "tier": "T3",
+    "denominator": 31,
+    "denominator_grain": "task rows"
+   },
+   "budget_reason_distribution": {
+    "None": 19,
+    "MAX_SCOUT_WALL_CLOCK_S": 7,
+    "SCOUT_ERROR": 3,
+    "MAX_CONSECUTIVE_NO_STATE_CHANGE": 2
+   },
+   "archetype_distribution": {
+    "ITEM_DETAIL": 16,
+    "PLACE_LOOKUP": 4,
+    "FINANCIAL_ACTION_ENTRY": 4,
+    "CONTENT_OPEN": 3,
+    "COMMUNICATION_ENTRY": 2,
+    "UTILITY_ENTRY": 2
+   },
+   "absent_archetype": {
+    "value": [
+     "QUERY"
+    ],
+    "why": "frozen archetype 7종 중 QUERY 만 task mart 에 0행이다. archetype coverage 6/7.",
+    "tier": "T2"
+   },
+   "endpoint_reach_reading": "endpoint_reached=0/31 은 '도달 실패 관측 31건'이 아니라 '31 task rows 중 도달을 기록한 행이 없다'다. UNRESOLVED 18 은 왜 끝났는지가 기록되지 않은 행이라 실패 사유로 셀 수 없다.",
+   "summary": "NED/IED/MPFED 전부 0 / 31 task rows — 세 depth 지표 모두 NOT_AVAILABLE. endpoint_reached 31 / 31 task rows. UNRESOLVED 18 행은 종료 사유 미기록.",
+   "section_status": "OK"
+  },
+  "axis_c": {
+   "overlay_coverage_available": {
+    "value": 56,
+    "grain": "landing rows with non-null max_overlay_coverage",
+    "tier": "T3",
+    "denominator": 56,
+    "denominator_grain": "landing mart rows"
+   },
+   "overlay_coverage_median": {
+    "value": 0.1318,
+    "grain": "median of max_overlay_coverage over landing rows",
+    "tier": "T3"
+   },
+   "overlay_coverage_max": {
+    "value": 1.0,
+    "grain": "max of max_overlay_coverage",
+    "tier": "T3"
+   },
+   "semantic_classified_rate": {
+    "value": 0.5319,
+    "grain": "share of interrupt elements with classification_status=DETERMINISTIC",
+    "tier": "T3",
+    "denominator": 235,
+    "denominator_grain": "interrupt element rows"
+   },
+   "semantic_classification_status": {
+    "DETERMINISTIC": {
+     "value": 125,
+     "grain": "interrupt element rows",
+     "tier": "T3",
+     "denominator": 235,
+     "denominator_grain": "interrupt element rows"
+    },
+    "NOT_CLASSIFIED": {
+     "value": 69,
+     "grain": "interrupt element rows",
+     "tier": "T3",
+     "denominator": 235,
+     "denominator_grain": "interrupt element rows"
+    },
+    "AMBIGUOUS": {
+     "value": 41,
+     "grain": "interrupt element rows",
+     "tier": "T3",
+     "denominator": 235,
+     "denominator_grain": "interrupt element rows"
+    }
+   },
+   "final_label_distribution": {
+    "UNKNOWN": 110,
+    "BANNER": 88,
+    "LOGIN_PROMPT": 13,
+    "PROMOTION_MODAL": 11,
+    "COOKIE_CONSENT": 4,
+    "APP_INSTALL_PROMPT": 3,
+    "CHAT_WIDGET": 2,
+    "ADVERTISEMENT": 2,
+    "BLOCKING_MODAL": 2
+   },
+   "unknown_label_share": {
+    "value": 0.4681,
+    "grain": "share of interrupt elements labeled UNKNOWN",
+    "tier": "T3",
+    "denominator": 235,
+    "denominator_grain": "interrupt element rows"
+   },
+   "task_bound_occlusion_available": {
+    "value": "NOT_AVAILABLE",
+    "grain": "-",
+    "tier": "T3",
+    "why_absent": "max_primary_action_occlusion 은 56/56 landing rows 에 값이 있으나 **task binding 없이** 계산됐다. task 가 정한 primary action 이 아니라 page 휴리스틱으로 고른 요소를 가린 비율이므로, task-bound occlusion 으로는 쓸 수 없다."
+   },
+   "page_level_occlusion_available": {
+    "value": 56,
+    "grain": "landing rows with non-null max_primary_action_occlusion (PAGE-LEVEL ONLY)",
+    "tier": "T3",
+    "denominator": 56,
+    "denominator_grain": "landing mart rows"
+   },
+   "occlusion_validity_scope": "primary_action_occlusion 은 **page-level 로만 유효하다**. task 별 primary action 이 결정되기 전에 계산된 값이므로 task-bound 해석을 붙이면 안 된다.",
+   "interrupt_rows": {
+    "value": 235,
+    "grain": "interrupt element rows",
+    "tier": "T3"
+   },
+   "observations_with_interrupts": {
+    "value": 51,
+    "grain": "distinct observations appearing in interrupt mart",
+    "tier": "T3",
+    "denominator": 56,
+    "denominator_grain": "landing mart rows"
+   },
+   "blocks_primary_action": {
+    "value": 235,
+    "grain": "interrupt rows flagged blocks_primary_action (page-level)",
+    "tier": "T3",
+    "denominator": 235,
+    "denominator_grain": "interrupt element rows"
+   },
+   "dismiss_control_exists": {
+    "value": 235,
+    "grain": "interrupt rows with a dismiss control detected",
+    "tier": "T3",
+    "denominator": 235,
+    "denominator_grain": "interrupt element rows"
+   },
+   "summary": "overlay coverage 56/56 landing rows 가용 · semantic DETERMINISTIC 125/235 interrupt rows (0.5319) · task-bound occlusion 은 NOT_AVAILABLE (page-level 값만 존재).",
+   "section_status": "OK"
+  },
+  "d_research": {
+   "queue_states": {
+    "DONE": {
+     "value": 5,
+     "grain": "research questions",
+     "tier": "T5",
+     "denominator": 15,
+     "denominator_grain": "RQs in D_RESEARCH_QUEUE.md"
+    },
+    "OPEN": {
+     "value": 9,
+     "grain": "research questions",
+     "tier": "T5",
+     "denominator": 15,
+     "denominator_grain": "RQs in D_RESEARCH_QUEUE.md"
+    },
+    "RUNNING": {
+     "value": 1,
+     "grain": "research questions",
+     "tier": "T5",
+     "denominator": 15,
+     "denominator_grain": "RQs in D_RESEARCH_QUEUE.md"
+    }
+   },
+   "open_research_questions": {
+    "value": 9,
+    "grain": "OPEN research questions",
+    "tier": "T5",
+    "denominator": 15,
+    "denominator_grain": "RQs in queue"
+   },
+   "queue_rows": [
+    {
+     "rq_id": "RQ-D1",
+     "state": "DONE",
+     "question": "E001 파일럿 failure anatomy 재구성"
+    },
+    {
+     "rq_id": "RQ-D1b",
+     "state": "OPEN",
+     "question": "LONG 3건의 종료 사유를 runner 로그에서 직접 확인 (timeout/WAF/navigation)"
+    },
+    {
+     "rq_id": "RQ-D1c",
+     "state": "OPEN",
+     "question": "total-failure 3 target의 서비스 정체·archetype prior → 결측 편향 크기"
+    },
+    {
+     "rq_id": "RQ-D2",
+     "state": "OPEN",
+     "question": "target-level guard 25건이 observability·archetype coverage를 얼마나 왜곡했는가. QUERY n=0의 원인"
+    },
+    {
+     "rq_id": "RQ-D3",
+     "state": "RUNNING",
+     "question": "Representative Function Mapping DT feasibility (rule DT가 어디까지 닫히는가)"
+    },
+    {
+     "rq_id": "RQ-D3A",
+     "state": "DONE",
+     "question": "Learned DT 진단 — L0 numeric feature 가 archetype prior 를 되찾는가"
+    },
+    {
+     "rq_id": "RQ-D4",
+     "state": "OPEN",
+     "question": "URL_PATTERN / DOM_AX_ROLE / FORM_STRUCTURE endpoint signal feasibility"
+    },
+    {
+     "rq_id": "RQ-D5",
+     "state": "OPEN",
+     "question": "Axis C raw의 즉시 재사용 범위와 task-specific occlusion의 한계"
+    },
+    {
+     "rq_id": "RQ-D6",
+     "state": "OPEN",
+     "question": "partial NED 보존 미구현이 detector 결함과 독립인가 (RQ-D1 F6 파생)"
+    },
+    {
+     "rq_id": "RQ-D7",
+     "state": "OPEN",
+     "question": "mart의 조용한 분모 손실(59→56→31)이 계획된 association 추정에 주는 영향 상한"
+    },
+    {
+     "rq_id": "RQ-D8",
+     "state": "DONE",
+     "question": "`T-B-RQ-D-001 Q1` — l0_probe cap 절단이 interaction_archetype에 편향돼 있는가. ExcessDepth의 same-archetype median baseli"
+    },
+    {
+     "rq_id": "RQ-D9",
+     "state": "DONE",
+     "question": "`T-B-RQ-D-001 Q2` — dom.html 크기 · probe 신호 풍부도 · cap 도달의 관계 구조. 관측품질 대리변수는 무엇이 될 수 있고 무엇이 될 수 없는가"
+    },
+    {
+     "rq_id": "RQ-D10",
+     "state": "DONE",
+     "question": "`T-B-RQ-D-001 Q3` — evidence slot 간 시점 불일치(dom/ax = SPA shell vs probe = 렌더 후)를 raw에서 정량화하고 관측단위 지표로 정의할 수 있는가"
+    },
+    {
+     "rq_id": "RQ-D11",
+     "state": "OPEN",
+     "question": "원장(ledger) measured 집합과 evidence run 집합의 불일치가 E001 raw 에서도 관측되는가 — C-BLOCKER-220418 의 구조가 2026-08-27 05:14 w02"
+    },
+    {
+     "rq_id": "RQ-D12",
+     "state": "OPEN",
+     "question": "D 의 세 finding(cap 편향 / 품질 대리변수 / slot 불일치)이 서로 같은 소수 target 에 몰려 있는가 — 세 지표의 결합분포와 공통 원인 가설 | RQ-D8·D9·D10 교차"
+    }
+   ],
+   "experiments_running": {
+    "value": 1,
+    "grain": "D-plane MLflow runs with run_status=RUNNING",
+    "tier": "T5",
+    "denominator": 11,
+    "denominator_grain": "D-plane runs"
+   },
+   "experiments_running_detail": [
+    {
+     "run_name": "RQ-D-RF-001",
+     "run_id": "2bf780a9efca4562bdf63a7c165514cc",
+     "rq_id": "RQ-D-RF-001",
+     "hypothesis_id": "H-RF001-MULTIMETHOD"
+    }
+   ],
+   "verdicts_all_planes": {
+    "PARTIALLY_SUPPORTED": 3,
+    "REFUTED": 2,
+    "PENDING": 1,
+    "NOT_SUPPORTED": 1,
+    "SUPPORTED": 1
+   },
+   "verdicts_d_plane": {
+    "PARTIALLY_SUPPORTED": 3,
+    "REFUTED": 2,
+    "PENDING": 1,
+    "NOT_SUPPORTED": 1,
+    "SUPPORTED": 1
+   },
+   "supported": {
+    "value": 4,
+    "grain": "D runs with SUPPORTED or PARTIALLY_SUPPORTED",
+    "tier": "T5",
+    "denominator": 8,
+    "denominator_grain": "D runs with a settled verdict"
+   },
+   "refuted": {
+    "value": 3,
+    "grain": "D runs with REFUTED or NOT_SUPPORTED",
+    "tier": "T5",
+    "denominator": 8,
+    "denominator_grain": "D runs with a settled verdict"
+   },
+   "inconclusive": {
+    "value": 0,
+    "grain": "D runs with INCONCLUSIVE or NOT_TESTABLE",
+    "tier": "T5",
+    "denominator": 8,
+    "denominator_grain": "D runs with a settled verdict"
+   },
+   "pending": {
+    "value": 1,
+    "grain": "D runs still PENDING",
+    "tier": "T5",
+    "denominator": 8,
+    "denominator_grain": "D runs with a settled verdict"
+   },
+   "verdict_note": "verdict 는 D 자신이 붙인 tag 다(T5). C 검증을 통과했다는 뜻이 아니다. D run 의 authority_status 는 전부 NON_CANONICAL 이다.",
+   "latest_high_impact_finding": {
+    "rq_id": "RQ-D-RF-001",
+    "run_name": "D-RF-001-C embedding_prototype",
+    "run_id": "bd04b82fa1104cd3a93283b40f2dd5cb",
+    "verdict": "PARTIALLY_SUPPORTED",
+    "hypothesis_id": "H-RF001-C-EMBED-PROTOTYPE",
+    "started_at_kst": "2026-08-27T22:10:30.277297+09:00",
+    "limitation": "n=56 에 7 class, 5개 class 가 n<=5 라 per-class 추정의 Wilson CI 가 거의 [0,1] 폭이다. target 은 gold label 이 아니라 business-domain prior 이므로 불일치가 모델 오류인지 prior 오류인지 이 실험은 구분할 수 없다. 입력 DOM 품질 결함(중복 blob 2건, 인코딩 깨짐 의심 7건, 토큰 12 이하 사실상 URL only 6건)이 상한을 누른다. MiniLM 은 max_seq_length=128 이라 긴 blob 이 잘린다.",
+    "selection_rule": "plane=D · run_status=COMPLETED · verdict!=PENDING 중 start_time 최대",
+    "tier": "T5"
+   },
+   "claim_ledger": {
+    "total": {
+     "value": 10,
+     "grain": "claims audited by D (다른 plane 의 주장을 D 가 재계산한 것)",
+     "tier": "T2"
+    },
+    "by_verdict": {
+     "SUPPORTED": {
+      "value": 4,
+      "grain": "audited claims",
+      "tier": "T2",
+      "denominator": 10,
+      "denominator_grain": "audited claims"
+     },
+     "PARTIALLY_SUPPORTED": {
+      "value": 3,
+      "grain": "audited claims",
+      "tier": "T2",
+      "denominator": 10,
+      "denominator_grain": "audited claims"
+     },
+     "REFUTED": {
+      "value": 2,
+      "grain": "audited claims",
+      "tier": "T2",
+      "denominator": 10,
+      "denominator_grain": "audited claims"
+     },
+     "NOT_SUPPORTED": {
+      "value": 1,
+      "grain": "audited claims",
+      "tier": "T2",
+      "denominator": 10,
+      "denominator_grain": "audited claims"
+     }
+    },
+    "refuted_claims": [
+     {
+      "claim_id": "CL-008",
+      "source": "SSOTV2/02 §6",
+      "claim": "replay 모집단 = mart referenced 56",
+      "d_result": "누락 3건 = LONG 재시도실패 3건과 동일 집합",
+      "verdict": "REFUTED"
+     },
+     {
+      "claim_id": "CL-009",
+      "source": "SSOTV2/08",
+      "claim": "control/landing-orchestrator = 084eff54",
+      "d_result": "실측 d8f8595c",
+      "verdict": "REFUTED"
+     },
+     {
+      "claim_id": "CL-010",
+      "source": "Research Director",
+      "claim": "SSOTV2가 단일 SSOT",
+      "d_result": "전부 untracked (?? SSOTV2/)",
+      "verdict": "NOT_SUPPORTED"
+     }
+    ]
+   },
+   "summary": "OPEN RQ 9 / 15 queue rows · D runs running 1 · supported 4 / refuted 3 / inconclusive 0 (settled D verdicts 8)",
+   "section_status": "OK"
+  },
+  "c_assurance": {
+   "match_status_mlflow": {
+    "MATCH": {
+     "value": 5,
+     "grain": "C-plane MLflow runs",
+     "tier": "T5",
+     "denominator": 14,
+     "denominator_grain": "C-plane runs"
+    },
+    "MATCH_WITH_NONBLOCKING_DIFFERENCE": {
+     "value": 5,
+     "grain": "C-plane MLflow runs",
+     "tier": "T5",
+     "denominator": 14,
+     "denominator_grain": "C-plane runs"
+    },
+    "SYSTEMIC_MISMATCH": {
+     "value": 2,
+     "grain": "C-plane MLflow runs",
+     "tier": "T5",
+     "denominator": 14,
+     "denominator_grain": "C-plane runs"
+    },
+    "RESULT_AFFECTING_MISMATCH": {
+     "value": 2,
+     "grain": "C-plane MLflow runs",
+     "tier": "T5",
+     "denominator": 14,
+     "denominator_grain": "C-plane runs"
+    }
+   },
+   "match": {
+    "value": 5,
+    "grain": "C runs with match_status=MATCH",
+    "tier": "T5",
+    "denominator": 14,
+    "denominator_grain": "C-plane runs"
+   },
+   "mismatch": {
+    "value": 4,
+    "grain": "C runs with a result-affecting or systemic mismatch",
+    "tier": "T5",
+    "denominator": 14,
+    "denominator_grain": "C-plane runs"
+   },
+   "c_run_index": [
+    {
+     "run_name": "C_W2_contamination_forensic_f76ee8b",
+     "run_id": "cd21911d67644f208aa87852e8394948",
+     "match_status": "MATCH",
+     "severity": "P0",
+     "difference": "none"
+    },
+    {
+     "run_name": "C_W4_rework_final_replay_b27794f",
+     "run_id": "e8933400be8a4522bcdcb783332f5257",
+     "match_status": "MATCH_WITH_NONBLOCKING_DIFFERENCE",
+     "severity": "P3",
+     "difference": "transition table population: C 22/635(all candidates) · C 20/192(mart obs, overlap>0) · B 19/234(mart interrupts) — 1 residual, nonblocking"
+    },
+    {
+     "run_name": "C_D_F_Q1_cap_bias_replication",
+     "run_id": "b699853e829243eab2e5c9fc12612fae",
+     "match_status": "MATCH",
+     "severity": "P3",
+     "difference": "none"
+    },
+    {
+     "run_name": "C_holdout_contamination_register_v2_full_exposure",
+     "run_id": "dceb4d4bee3046ea843103d6f60641d7",
+     "match_status": "SYSTEMIC_MISMATCH",
+     "severity": "P0",
+     "difference": "holdout independence unrecoverable; C prior 18-primary withdrawn"
+    },
+    {
+     "run_name": "C_W1_e2e_ledger_attribution_split",
+     "run_id": "307ed8a7a4af4b698ecf831101383322",
+     "match_status": "RESULT_AFFECTING_MISMATCH",
+     "severity": "P1",
+     "difference": "loser-process ledger seal crashes; winner-measured targets recorded as DUPLICATE_SUPPRESSED in the only sealed batch"
+    },
+    {
+     "run_name": "C_W4_rework_form_semantic_precheck",
+     "run_id": "9ed4fc56374b41b794699e6ce7f13650",
+     "match_status": "MATCH_WITH_NONBLOCKING_DIFFERENCE",
+     "severity": "P3",
+     "difference": "semantic vocab reuses PROMOTION_MODAL name (P3)"
+    },
+    {
+     "run_name": "C_holdout_contamination_register",
+     "run_id": "3e42ae7f77394938a29ef8c96975168a",
+     "match_status": "SYSTEMIC_MISMATCH",
+     "severity": "P0",
+     "difference": "holdout independence assumption violated for 8 (3 reached detector producer)"
+    },
+    {
+     "run_name": "C_gate_observed_vocab_fp_verification",
+     "run_id": "5ab022d516794dd5a64b994def5fa483",
+     "match_status": "MATCH",
+     "severity": "P1",
+     "difference": "regex also includes english terms; 8/12 zero-step new"
+    },
+    {
+     "run_name": "C_W1_exactly_once_race_and_e2e",
+     "run_id": "92927bd9b8724c768a77b754f4ef72bb",
+     "match_status": "MATCH_WITH_NONBLOCKING_DIFFERENCE",
+     "severity": "P3",
+     "difference": "proc2 post-hoc BatchOverwriteError rc=1 (P3)"
+    },
+    {
+     "run_name": "C_W4_axisc_artifact_and_classifier_diff",
+     "run_id": "dfdc9ab1107a4a1fbf0ab45cd23bb44b",
+     "match_status": "RESULT_AFFECTING_MISMATCH",
+     "severity": "P2",
+     "difference": "semantic labels 22/635 collapsed to BANNER (D-R0-58 rework)"
+    },
+    {
+     "run_name": "C_LABEL_freeze_and_overlap_verification",
+     "run_id": "a4da185cddef48f88e8bbddf74081975",
+     "match_status": "MATCH_WITH_NONBLOCKING_DIFFERENCE",
+     "severity": "P0",
+     "difference": "L2 decision_trace empty 3; holdout exposure P0 raised separately"
+    },
+    {
+     "run_name": "C_W3_stage0_manifest_verification",
+     "run_id": "0c6baeecc5e94dd7af7c8d2c84c03272",
+     "match_status": "MATCH",
+     "severity": "P2",
+     "difference": "SHA field is commit sha not content sha (P3)"
+    },
+    {
+     "run_name": "C_R0_QA_recovery_audit_replay",
+     "run_id": "f63bb74d7c8c4147811f6ee7de3903f6",
+     "match_status": "MATCH",
+     "severity": "P2",
+     "difference": "S-10 qualifier archetype-level 7 distinct; S-13 self-correction"
+    },
+    {
+     "run_name": "C_CLEAN0_retention_manifest_rehash",
+     "run_id": "1e3e73c28b5a4443898aa127b89736f1",
+     "match_status": "MATCH_WITH_NONBLOCKING_DIFFERENCE",
+     "severity": "P4",
+     "difference": "total_files unit: A excludes manifest.jsonl/run.json"
+    }
+   ],
+   "c_completions": {
+    "value": 12,
+    "grain": "completion records authored by C",
+    "tier": "T4"
+   },
+   "c_severity_max_distribution": {
+    "P2": {
+     "value": 4,
+     "grain": "C completions",
+     "tier": "T4",
+     "denominator": 12,
+     "denominator_grain": "C completions"
+    },
+    "P1": {
+     "value": 3,
+     "grain": "C completions",
+     "tier": "T4",
+     "denominator": 12,
+     "denominator_grain": "C completions"
+    },
+    "C2": {
+     "value": 2,
+     "grain": "C completions",
+     "tier": "T4",
+     "denominator": 12,
+     "denominator_grain": "C completions"
+    },
+    "C1": {
+     "value": 1,
+     "grain": "C completions",
+     "tier": "T4",
+     "denominator": 12,
+     "denominator_grain": "C completions"
+    },
+    "P3": {
+     "value": 1,
+     "grain": "C completions",
+     "tier": "T4",
+     "denominator": 12,
+     "denominator_grain": "C completions"
+    },
+    "None": {
+     "value": 1,
+     "grain": "C completions",
+     "tier": "T4",
+     "denominator": 12,
+     "denominator_grain": "C completions"
+    }
+   },
+   "c1": {
+    "value": 1,
+    "grain": "C completions with severity_max=C1",
+    "tier": "T4",
+    "denominator": 12,
+    "denominator_grain": "C completions"
+   },
+   "c0": {
+    "value": "NONE_YET",
+    "grain": "-",
+    "tier": "T4",
+    "why_absent": "severity_max=C0 인 C completion 이 아직 없다. 관측된 어휘는 C1/C2 와 P0~P4 다."
+   },
+   "c_completion_index": [
+    {
+     "ticket_id": "FINAL_READY-161836-d4cddb",
+     "result_type": "CLAIM_QA_MATCH",
+     "verdict": "CLAIM_QA_MATCH",
+     "severity_max": "C2",
+     "completed_at": "2026-08-27T16:35:10+09:00"
+    },
+    {
+     "ticket_id": "MART_READY-145415-cc76cf",
+     "result_type": "MART_QA_MATCH",
+     "verdict": "MART_QA_MATCH",
+     "severity_max": "C1",
+     "completed_at": "2026-08-27T15:06:02+09:00"
+    },
+    {
+     "ticket_id": "STATS_READY-152106-227315",
+     "result_type": "STATS_QA_MATCH",
+     "verdict": "STATS_QA_MATCH",
+     "severity_max": "C2",
+     "completed_at": "2026-08-27T15:35:24+09:00"
+    },
+    {
+     "ticket_id": "T-A-R0-C-001",
+     "result_type": "R0_QA_CONFIRMED_6_OF_6",
+     "verdict": null,
+     "severity_max": "P2",
+     "completed_at": "2026-08-27T21:00:41+09:00"
+    },
+    {
+     "ticket_id": "T-A-R0-C-002",
+     "result_type": "CLEAN0_AUDIT_MATCH_WITH_FINDINGS",
+     "verdict": null,
+     "severity_max": "P1",
+     "completed_at": "2026-08-27T21:00:41+09:00"
+    },
+    {
+     "ticket_id": "T-A-W3-001",
+     "result_type": "W3_STAGE0_C_VERIFIED_MATCH",
+     "verdict": null,
+     "severity_max": "P2",
+     "completed_at": "2026-08-27T21:20:39+09:00"
+    },
+    {
+     "ticket_id": "T-A-W4-001-REWORK",
+     "result_type": "W4_REWORK_C_VERIFIED_MATCH",
+     "verdict": "ACCEPTABLE_WITH_NONBLOCKING — D-R0-58 HOLD 해제 가능(A 판정)",
+     "severity_max": "P3",
+     "completed_at": "2026-08-27T22:08:32+09:00"
+    },
+    {
+     "ticket_id": "T-A-W4-001",
+     "result_type": "W4_C_VERIFIED_MATCH_WITH_P2_REWORK",
+     "verdict": null,
+     "severity_max": "P2",
+     "completed_at": "2026-08-27T21:44:30+09:00"
+    },
+    {
+     "ticket_id": "T-B-CLEAN0-001",
+     "result_type": "B_CLEAN0_VERIFIED_MATCH_8_REFUTED_1",
+     "verdict": null,
+     "severity_max": "P1",
+     "completed_at": "2026-08-27T21:00:41+09:00"
+    },
+    {
+     "ticket_id": "T-B-FC-001",
+     "result_type": "FACT_CORRECTION_CONFIRMED",
+     "verdict": "B 전수 수치 정확히 일치. n=14 표는 표본. W2 marker 경로 제거/비활성화 요구에 C 동의 — adversarial fixture 대상으로 채택",
+     "severity_max": "P2",
+     "completed_at": "2026-08-27T21:00:41+09:00"
+    },
+    {
+     "ticket_id": "T-B-FINDING-001",
+     "result_type": "C_CONCURS_P1",
+     "verdict": null,
+     "severity_max": "P1",
+     "completed_at": "2026-08-27T21:23:14+09:00"
+    },
+    {
+     "ticket_id": "T-P0-RELEASED-001",
+     "result_type": "P0_RELEASED_C_VERIFIED",
+     "verdict": null,
+     "severity_max": null,
+     "completed_at": "2026-08-27T12:23:37+09:00"
+    }
+   ],
+   "c_tickets_open_by_priority": {
+    "P1": 7,
+    "P3": 7,
+    "P2": 5,
+    "P0": 4
+   },
+   "c_tickets_total": {
+    "value": 23,
+    "grain": "tickets authored by C on the bus",
+    "tier": "T4"
+   },
+   "reproduced_d_findings": {
+    "value": "NONE_YET",
+    "grain": "-",
+    "tier": "T4",
+    "why_absent": "bus 전체(acks/completions/C 티켓)에서 C 가 작성한 파일 중 RQ-D 를 언급한 것이 0건이다. D 는 D-RESEARCH_FINDING 을 방금 발행했고 C 는 W1/W2/W4 acceptance 검증 중이다 — 재현 요청이 C 큐에 도달했지만 아직 처리되지 않았다는 뜻이다."
+   },
+   "asymmetry_note": "C 가 D 를 재현하지 않았다는 것은 D 결과가 틀렸다는 뜻도, 맞다는 뜻도 아니다. D run 은 전부 authority_status=NON_CANONICAL 이며 C 검증 없이는 그대로 남는다.",
+   "summary": "C MLflow runs 14 — MATCH 5 / MATCH_WITH_NONBLOCKING_DIFFERENCE 5 / result-affecting+systemic mismatch 4. C completions 12 (severity C1 1 · C0 없음). reproduced D findings: NONE_YET",
+   "section_status": "OK"
+  }
+ },
+ "metrics_logged_to_mlflow": {
+  "ops.active_runs.A": 0.0,
+  "ops.active_runs.B": 0.0,
+  "ops.active_runs.C": 0.0,
+  "ops.active_runs.D": 1.0,
+  "ops.open_p0": 11.0,
+  "ops.open_p1": 6.0,
+  "ops.p0p1_total": 41.0,
+  "ops.unpushed_agents": 2.0,
+  "ops.branches_tracked": 12.0,
+  "ops.subagents.completed": 3.0,
+  "ops.subagent_tokens_total": 370019.0,
+  "data.observation_dirs": 66.0,
+  "data.attempted": 59.0,
+  "data.evidence_complete": 56.0,
+  "data.in_landing_mart": 56.0,
+  "data.measured": 53.0,
+  "data.in_task_mart": 31.0,
+  "data.silently_dropped": 3.0,
+  "data.landing_without_task_row": 25.0,
+  "data.joint_valid": 0.0,
+  "data.axis_c_only": 56.0,
+  "data.mart_hashes_all_match": 1.0,
+  "missing.task_mart_rows_31.NED": 1.0,
+  "missing.task_mart_rows_31.IED": 1.0,
+  "missing.task_mart_rows_31.MPFED": 1.0,
+  "missing.task_mart_rows_31.endpoint_status": 0.0,
+  "missing.task_mart_rows_31.interaction_archetype": 0.0,
+  "missing.landing_mart_rows_56.max_overlay_coverage": 0.0,
+  "missing.landing_mart_rows_56.max_primary_action_occlusion": 0.0,
+  "missing.landing_mart_rows_56.primary_action_visible_initial": 0.0357,
+  "missing.landing_mart_rows_56.blocking_modal_count": 0.0,
+  "missing.interrupt_rows_235.overlay_coverage": 0.0,
+  "missing.interrupt_rows_235.primary_action_occlusion": 0.0,
+  "missing.interrupt_rows_235.final_label": 0.0,
+  "rf.calibration_coverage": 30.0,
+  "rf.holdout_coverage": 26.0,
+  "rf.abstention": 14.0,
+  "rf.runs_in_experiment": 8.0,
+  "rf.metrics_not_available": 2.0,
+  "kwcag.criterion_rows": 0.0,
+  "kwcag.not_evaluated": 1.0,
+  "depth.task_rows": 31.0,
+  "depth.ned_available": 0.0,
+  "depth.mpfed_available": 0.0,
+  "depth.ied_available": 0.0,
+  "depth.endpoint_reach": 31.0,
+  "depth.endpoint_status.UNRESOLVED": 18.0,
+  "depth.endpoint_status.AUTH_GATE_REACHED": 11.0,
+  "depth.endpoint_status.CAPTCHA": 1.0,
+  "depth.endpoint_status.PAYMENT_GATE_REACHED": 1.0,
+  "depth.auth_gate_before_endpoint": 31.0,
+  "axisc.overlay_available": 56.0,
+  "axisc.overlay_median": 0.1318,
+  "axisc.semantic_classified_rate": 0.5319,
+  "axisc.unknown_label_share": 0.4681,
+  "axisc.page_level_occlusion_available": 56.0,
+  "axisc.task_bound_occlusion_available": 0.0,
+  "axisc.interrupt_rows": 235.0,
+  "axisc.observations_with_interrupts": 51.0,
+  "dres.open_rq": 9.0,
+  "dres.experiments_running": 1.0,
+  "dres.supported": 4.0,
+  "dres.refuted": 3.0,
+  "dres.inconclusive": 0.0,
+  "dres.pending": 1.0,
+  "dres.claims_audited": 10.0,
+  "dres.claims_refuted": 3.0,
+  "cassure.match": 5.0,
+  "cassure.mismatch": 4.0,
+  "cassure.completions": 12.0,
+  "cassure.severity_c1": 1.0,
+  "cassure.reproduced_d_findings": 0.0,
+  "dashboard.sections_ok": 8.0,
+  "dashboard.sections_total": 8.0
+ },
+ "mlflow_run_id": "ab758ce3b7be4134b87cc175784a2e05"
+}

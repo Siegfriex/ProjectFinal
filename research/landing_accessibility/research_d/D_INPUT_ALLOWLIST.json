@@ -1,0 +1,84 @@
+{
+  "manifest_id": "D-INPUT-ALLOWLIST-v2.1",
+  "authority": "D plane self-imposed firewall. A 의 P0 holdout contamination(T-A-HOLDOUT-SCOPE-001) 이후 강화.",
+  "principle": "raw unlabeled evidence 와 calibration-safe data 만 연구입력으로 허용한다. A control 전체를 무비판적으로 읽지 않는다.",
+  "verification": "holdout_accessed=false 는 self-tag 가 아니라 tools/d_input_firewall.py 의 manifest scan 으로 검증한다.",
+  "allowed": [
+    {
+      "id": "RAW_EVIDENCE_E001",
+      "glob": ".agent_worktrees/claude_b_e001_worker_0*/artifacts/e001_w0*/evidence/**",
+      "kind": "raw unlabeled runtime evidence",
+      "why": "dom/ax/css/probe/screenshot. label 이 붙어 있지 않다.",
+      "read_only": true
+    },
+    {
+      "id": "FROZEN_MART_E001",
+      "glob": ".agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/**",
+      "kind": "frozen mart (fact_*.json)",
+      "why": "측정 산출. gold label 이 아니다.",
+      "read_only": true
+    },
+    {
+      "id": "TASK_CANDIDATE_PRIOR",
+      "path": ".agent_worktrees/claude_b_recovery/research/landing_accessibility/shadow/lane_b/state/representative_task_candidate_shadow.csv",
+      "blob_sha": "2f65fdd96beef96fef848bf4e0b0438f50463566",
+      "source_commit": "2281c853950d0c475c5d2c1678680b971c2804f4",
+      "source_commit_time_kst": "2026-08-27T15:40:58+09:00",
+      "kind": "business-domain prior (NOT gold label)",
+      "why": "노출 커밋 5b826e3(21:26:25)보다 5h45m 앞선 blob. labeler 산출이 아니라 B shadow lane 의 prior 표다. D 의 target 변수 prior_archetype 의 유일한 출처.",
+      "read_only": true
+    },
+    {
+      "id": "SSOT_V21",
+      "glob": "SSOTV2/**",
+      "kind": "frozen research contract",
+      "why": "정의와 조작화. 관측값이 아니다.",
+      "read_only": true
+    },
+    {
+      "id": "D_OWN_SCOPE",
+      "glob": "research/landing_accessibility/research_d/** , research/landing_accessibility/notebooks/d_research/**",
+      "kind": "D 자신의 산출",
+      "read_only": false
+    },
+    {
+      "id": "CODE_AT_EXACT_SHA",
+      "method": "git show <sha>:research/landing_accessibility/src/landing_accessibility/engine/*",
+      "kind": "exact-SHA source code",
+      "why": "IMPLEMENTATION claim 의 T1 근거. 실행하지 않고 읽기만 한다.",
+      "read_only": true
+    },
+    {
+      "id": "AGENT_BUS",
+      "glob": ".agent_bus/landing_v2/{tickets,acks,completions,heartbeats,event_log.jsonl}",
+      "kind": "orchestration transport",
+      "classification": "ORCHESTRATION_ONLY — 연구입력이 아니다",
+      "why": "티켓 수신과 ACK 발행에만 쓴다. 티켓 안의 수치는 hypothesis 로만 받고 raw 에서 독립 재계산한다.",
+      "read_only_except": "acks/*.D.json, tickets/D-*.json 만 D 가 쓴다"
+    }
+  ],
+  "denied": [
+    {"pattern": "research/landing_accessibility/control/label/**", "reason": "labeler 산출 전체. calibration 파일 포함 — D 는 label 을 전혀 쓰지 않으므로 전면 차단이 안전하다."},
+    {"pattern": "**/HOLDOUT_FOR_C*", "reason": "holdout 그 자체"},
+    {"pattern": "**/HOLDOUT_CUSTODY*", "reason": "holdout 관리 기록"},
+    {"pattern": "**/LABELS_FROZEN*", "reason": "56행 중 holdout 26행을 split 필드까지 포함 (T-A-HOLDOUT-SCOPE-001)"},
+    {"pattern": "**/LABEL_SPLIT_FROZEN*", "reason": "split 배정 — 어느 target 이 holdout 인지 드러남"},
+    {"pattern": "**/RAW_L2*", "reason": "15행 전부 holdout (A recount)"},
+    {"pattern": "**/RAW_L4*", "reason": "11행 전부 holdout (A recount)"},
+    {"pattern": "**/RAW_L1*", "reason": "labeler 원본 label rows. calibration 이라도 D 는 label 을 쓰지 않는다."},
+    {"pattern": "**/RAW_L3*", "reason": "동일"},
+    {"pattern": "**/PACKET_L*", "reason": "labeler 패킷"},
+    {"pattern": "**/*_OVERLAP*", "reason": "overlap 파일의 holdout label"},
+    {"pattern": "**/PRECEDENCE_CONTESTED*", "reason": "per-target label/candidate pair — D amendment 명시 금지"},
+    {"pattern": "**/CALIBRATION_FOR_B*", "reason": "B 전용 calibration. D 는 detector producer 가 아니므로 필요 없다."},
+    {"pattern": "research/landing_accessibility/control/r0/D_R0_6*", "reason": "holdout-derived target-level directive"},
+    {"pattern": "research/landing_accessibility/control/**", "reason": "A control 전체. 무비판적 연구입력 금지 — 필요한 사실은 raw 에서 독립 재계산한다."}
+  ],
+  "note_on_control_head": {
+    "checked_at_kst": "2026-08-27T22:12",
+    "control_head": "018fa463e221ee0491ea216c0426e4cf37fc00f6",
+    "observation": "이 head 의 control/label/ 에는 LABELS_FROZEN.jsonl · RAW_L2.jsonl · RAW_L4.jsonl · HOLDOUT_FOR_C 가 파일명 목록에 없다. RAW_L1/RAW_L3/CALIBRATION_FOR_B 는 있다. 파일명만 확인했고 내용은 열지 않았다.",
+    "claim_kind": "OBSERVATION",
+    "caveat": "현재 head 에 없다는 것이 과거 노출을 되돌리지 않는다. 노출 커밋 5b826e3 은 히스토리에 남는다."
+  }
+}

@@ -1,0 +1,2407 @@
+{
+ "child_id": "D-RF-001-C",
+ "rq_id": "RQ-D-RF-001",
+ "hypothesis_id": "H-RF001-C-EMBED-PROTOTYPE",
+ "verdict": "PARTIALLY_SUPPORTED",
+ "hypothesis_verdicts": {
+  "H-RF001-C-EMBED-PROTOTYPE": "PARTIALLY_SUPPORTED",
+  "H-C-null (baseline 과 무차이)": "REFUTED",
+  "H-C-length (길이/도메인 어휘밀도를 재는 중)": "PARTIALLY_SUPPORTED",
+  "H-C-prototype (문구 민감)": "SUPPORTED"
+ },
+ "generated_at_kst": "2026-08-27T22:10:26.363240+09:00",
+ "seed": 20260827,
+ "n_expected": 59,
+ "n_observed": 56,
+ "analysis_unit": "target state (in_mart==1), 1 row = 1 web target",
+ "target_variable": {
+  "field": "prior_archetype",
+  "warning": "gold label 이 아니라 business-domain prior 다. 지표는 accuracy 가 아니라 prior_agreement.",
+  "class_counts": {
+   "QUERY": 4,
+   "CONTENT_OPEN": 3,
+   "ITEM_DETAIL": 26,
+   "PLACE_LOOKUP": 4,
+   "COMMUNICATION_ENTRY": 4,
+   "FINANCIAL_ACTION_ENTRY": 10,
+   "UTILITY_ENTRY": 5
+  },
+  "n_classes_with_support_le_5": 5
+ },
+ "learning": "none (zero-shot). 어떤 파라미터도 prior 로 적합하지 않았다.",
+ "representation": "D_TEXT_CORPUS.text_blob (SSOT 01 §7 Text representation 그대로)",
+ "input_quality": {
+  "n_rows": 56,
+  "dom_found_n": 56,
+  "duplicate_blob_n": 2,
+  "duplicate_blob_services": [
+   "NH스마트뱅킹",
+   "NH콕뱅크"
+  ],
+  "mojibake_suspect_n": 7,
+  "mojibake_services": [
+   "KB Pay",
+   "V3 Mobile Plus",
+   "YouTube",
+   "내 파일",
+   "디바이스 케어",
+   "메가커피",
+   "탑마트"
+  ],
+  "near_url_only_n(<=12 tokens)": 6,
+  "near_url_only_services": [
+   "NH스마트뱅킹",
+   "NH콕뱅크",
+   "YouTube",
+   "롯데하이마트",
+   "신한 SOL뱅크",
+   "하나은행"
+  ],
+  "blob_tokens": {
+   "min": 5.0,
+   "p25": 43.0,
+   "median": 132.0,
+   "p75": 311.75,
+   "max": 945.0,
+   "mean": 190.85714285714286
+  }
+ },
+ "models": {
+  "bge-m3": {
+   "hf": "BAAI/bge-m3",
+   "batch": 4,
+   "doc_prefix": "",
+   "proto_prefix": "",
+   "max_seq": null,
+   "max_seq_length": 8192,
+   "dim": 1024,
+   "doc_subword_len_median": 546.0,
+   "doc_subword_len_max": 2907,
+   "n_docs_truncated": 0
+  },
+  "e5-small": {
+   "hf": "intfloat/multilingual-e5-small",
+   "batch": 16,
+   "doc_prefix": "passage: ",
+   "proto_prefix": "query: ",
+   "max_seq": null,
+   "max_seq_length": 512,
+   "dim": 384,
+   "doc_subword_len_median": 546.0,
+   "doc_subword_len_max": 2907,
+   "n_docs_truncated": 30
+  },
+  "minilm": {
+   "hf": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+   "batch": 16,
+   "doc_prefix": "",
+   "proto_prefix": "",
+   "max_seq": null,
+   "max_seq_length": 128,
+   "dim": 384,
+   "doc_subword_len_median": 546.0,
+   "doc_subword_len_max": 2907,
+   "n_docs_truncated": 48
+  }
+ },
+ "prototype_sets": {
+  "A_SSOT_DEF": {
+   "QUERY": "사용자가 검색 입력창에 자유 텍스트 질의를 입력하고 제출하여 검색 결과 목록 상태로 전환하는 것이 대표행동이다. 검색 입력 control, 검색 form, 검색 제출 버튼이 대표 표면이다. search box, search form, submit query, search results.",
+   "CONTENT_OPEN": "이미 존재하는 기사, 영상, 콘텐츠 한 건을 목록에서 선택해 본문을 열거나 재생을 시작하는 것이 대표행동이다. 콘텐츠 카드 목록, 기사 본문, 미디어 재생이 대표 표면이다. article body, news, video playback, content card list.",
+   "ITEM_DETAIL": "거래 대상 상품 한 건의 상세면에 들어가 상품명, 가격, 거래 control 의 존재를 확인하는 것이 대표행동이다. 반복되는 상품 카드 목록과 상품 상세 문서가 대표 표면이다. product name, price, cart, order, shopping mall, item detail page.",
+   "PLACE_LOOKUP": "장소를 질의하거나 특정 장소의 상세면을 여는 것이 대표행동이다. 장소 검색 control, 장소 목록, 지도, 주소, 장소 상세 패널이 대표 표면이다. map, place search, address, location, route, navigation.",
+   "COMMUNICATION_ENTRY": "사람 사이의 게시물, 스레드, 메시지를 교환하는 공간에 진입하는 것이 대표행동이다. 스레드 목록, 게시글 목록, 글쓰기 진입 control, 실제 로그인 gate 가 대표 표면이다. message, chat, post, thread, community, social feed, comment.",
+   "FINANCIAL_ACTION_ENTRY": "금융처리 기능의 시작면을 열거나 그 기능을 시작하기 위해 필요한 실제 로그인 및 본인인증 gate 까지 진입하는 것이 대표행동이다. 잔액 조회, 이체, 송금, 결제, 카드, 보험, 인증 기능 진입 control 이 대표 표면이다. bank, transfer, payment, balance, card, insurance, login, identity verification.",
+   "UTILITY_ENTRY": "특정 목적의 도구 기능면을 열고 첫 primary control 을 사용할 수 있는 상태로 만드는 것이 대표행동이다. 단일 목적 기능 진입 control 과 그 기능 화면이 대표 표면이다. utility tool, service function, apply, reserve, issue, lookup, settings."
+  },
+  "B_USER_BEHAVIOR": {
+   "QUERY": "나는 궁금한 것을 검색창에 입력하고 검색 버튼을 눌러 결과 목록을 본다.",
+   "CONTENT_OPEN": "나는 목록에서 기사나 영상 하나를 골라 눌러서 읽거나 본다.",
+   "ITEM_DETAIL": "나는 사고 싶은 물건 하나를 눌러 상세 화면에서 가격과 정보를 확인한다.",
+   "PLACE_LOOKUP": "나는 가려는 장소를 찾아보고 그 장소의 위치와 상세 정보를 확인한다.",
+   "COMMUNICATION_ENTRY": "나는 다른 사람이 올린 글이나 메시지를 보러 대화 공간에 들어간다.",
+   "FINANCIAL_ACTION_ENTRY": "나는 은행이나 카드 업무를 시작하려고 로그인 화면까지 들어간다.",
+   "UTILITY_ENTRY": "나는 필요한 기능 하나를 열어서 바로 쓸 수 있는 상태까지 간다."
+  },
+  "C_TERSE_LABEL": {
+   "QUERY": "검색 질의 search query",
+   "CONTENT_OPEN": "콘텐츠 열람 content open article video",
+   "ITEM_DETAIL": "상품 상세 item detail product price",
+   "PLACE_LOOKUP": "장소 조회 place lookup map location",
+   "COMMUNICATION_ENTRY": "커뮤니케이션 진입 communication message post",
+   "FINANCIAL_ACTION_ENTRY": "금융 기능 진입 financial action bank payment",
+   "UTILITY_ENTRY": "도구 기능 진입 utility function tool"
+  }
+ },
+ "prototype_provenance": "SSOT 00 §4 archetype 목록과 SSOT 01 §5 Stage-3 branch 정의문에서만 유도했다. D_TEXT_CORPUS 를 읽고 문구를 조정하지 않았고, 결과를 본 뒤에도 수정하지 않았다.",
+ "baselines": {
+  "majority": {
+   "rule": "always ITEM_DETAIL (n=26/56)",
+   "prior_agreement": 0.4642857142857143,
+   "prior_agreement_fraction": "26/56",
+   "macro_f1": 0.09059233449477352,
+   "weighted_f1": 0.29442508710801396
+  },
+  "stratified": {
+   "prior_agreement_mean": 0.27338571428571423,
+   "prior_agreement_sd": 0.05420226345509879,
+   "prior_agreement_p95": 0.35714285714285715,
+   "prior_agreement_ci95": [
+    0.16071428571428573,
+    0.375
+   ],
+   "macro_f1_mean": 0.1386583465101761,
+   "macro_f1_sd": 0.04525362460905974,
+   "macro_f1_p95": 0.22104006280874922,
+   "macro_f1_ci95": [
+    0.0647054859679721,
+    0.2380986119144011
+   ],
+   "n_draws": 20000,
+   "rule": "관측 class marginal 에서 예측을 무작위 추출. 판정 기준선(JUDGMENT BASELINE)."
+  }
+ },
+ "configs": {
+  "bge-m3|A_SSOT_DEF": {
+   "model": "bge-m3",
+   "prototype_set": "A_SSOT_DEF",
+   "prior_agreement": 0.6607142857142857,
+   "prior_agreement_fraction": "37/56",
+   "prior_agreement_wilson95": [
+    0.5299945300394356,
+    0.770800276006185
+   ],
+   "macro_f1": 0.49695087521174475,
+   "weighted_f1": 0.6487859966120836,
+   "top2_prior_agreement": 0.8035714285714286,
+   "top2_fraction": "45/56",
+   "n_distinct_predicted_classes": 6,
+   "predicted_class_counts": {
+    "QUERY": 7,
+    "CONTENT_OPEN": 2,
+    "ITEM_DETAIL": 19,
+    "PLACE_LOOKUP": 8,
+    "COMMUNICATION_ENTRY": 7,
+    "FINANCIAL_ACTION_ENTRY": 13,
+    "UTILITY_ENTRY": 0
+   },
+   "margin_median": 0.01900172279956952,
+   "margin_p10": 0.001092455227458794,
+   "margin_p90": 0.059957086651467456,
+   "top1_sim_median": 0.48122437043129623,
+   "vs_stratified": {
+    "macro_f1_delta": 0.35829252870156864,
+    "macro_f1_p_vs_stratified_predictor": 4.999750012499375e-05,
+    "macro_f1_gt_stratified_p95": true,
+    "prior_agreement_delta": 0.38732857142857147,
+    "prior_agreement_p_vs_stratified_predictor": 4.999750012499375e-05
+   },
+   "vs_majority": {
+    "macro_f1_delta": 0.4063585407169712,
+    "prior_agreement_delta": 0.1964285714285714
+   },
+   "label_permutation_test": {
+    "macro_f1_p": 4.999750012499375e-05,
+    "prior_agreement_p": 4.999750012499375e-05,
+    "macro_f1_null_mean": 0.13027223602484472,
+    "n_permutations": 20000
+   },
+   "beats_judgment_baseline": true
+  },
+  "bge-m3|B_USER_BEHAVIOR": {
+   "model": "bge-m3",
+   "prototype_set": "B_USER_BEHAVIOR",
+   "prior_agreement": 0.5892857142857143,
+   "prior_agreement_fraction": "33/56",
+   "prior_agreement_wilson95": [
+    0.4587759684344199,
+    0.7083322571464805
+   ],
+   "macro_f1": 0.3549323385268086,
+   "weighted_f1": 0.5491302757662205,
+   "top2_prior_agreement": 0.7857142857142857,
+   "top2_fraction": "44/56",
+   "n_distinct_predicted_classes": 6,
+   "predicted_class_counts": {
+    "QUERY": 3,
+    "CONTENT_OPEN": 0,
+    "ITEM_DETAIL": 24,
+    "PLACE_LOOKUP": 3,
+    "COMMUNICATION_ENTRY": 1,
+    "FINANCIAL_ACTION_ENTRY": 21,
+    "UTILITY_ENTRY": 4
+   },
+   "margin_median": 0.02285574974263338,
+   "margin_p10": 0.0042089159705375745,
+   "margin_p90": 0.0644745800368848,
+   "top1_sim_median": 0.496749736057551,
+   "vs_stratified": {
+    "macro_f1_delta": 0.2162739920166325,
+    "macro_f1_p_vs_stratified_predictor": 0.00014999250037498125,
+    "macro_f1_gt_stratified_p95": true,
+    "prior_agreement_delta": 0.31590000000000007,
+    "prior_agreement_p_vs_stratified_predictor": 4.999750012499375e-05
+   },
+   "vs_majority": {
+    "macro_f1_delta": 0.26434000403203506,
+    "prior_agreement_delta": 0.125
+   },
+   "label_permutation_test": {
+    "macro_f1_p": 4.999750012499375e-05,
+    "prior_agreement_p": 4.999750012499375e-05,
+    "macro_f1_null_mean": 0.13081808324189892,
+    "n_permutations": 20000
+   },
+   "beats_judgment_baseline": true
+  },
+  "bge-m3|C_TERSE_LABEL": {
+   "model": "bge-m3",
+   "prototype_set": "C_TERSE_LABEL",
+   "prior_agreement": 0.5892857142857143,
+   "prior_agreement_fraction": "33/56",
+   "prior_agreement_wilson95": [
+    0.4587759684344199,
+    0.7083322571464805
+   ],
+   "macro_f1": 0.4633237133237133,
+   "weighted_f1": 0.592111592111592,
+   "top2_prior_agreement": 0.7678571428571429,
+   "top2_fraction": "43/56",
+   "n_distinct_predicted_classes": 7,
+   "predicted_class_counts": {
+    "QUERY": 7,
+    "CONTENT_OPEN": 3,
+    "ITEM_DETAIL": 28,
+    "PLACE_LOOKUP": 5,
+    "COMMUNICATION_ENTRY": 4,
+    "FINANCIAL_ACTION_ENTRY": 5,
+    "UTILITY_ENTRY": 4
+   },
+   "margin_median": 0.031111757321181766,
+   "margin_p10": 0.0054991069397895,
+   "margin_p90": 0.11000968629096747,
+   "top1_sim_median": 0.4574127805210053,
+   "vs_stratified": {
+    "macro_f1_delta": 0.3246653668135372,
+    "macro_f1_p_vs_stratified_predictor": 4.999750012499375e-05,
+    "macro_f1_gt_stratified_p95": true,
+    "prior_agreement_delta": 0.31590000000000007,
+    "prior_agreement_p_vs_stratified_predictor": 4.999750012499375e-05
+   },
+   "vs_majority": {
+    "macro_f1_delta": 0.3727313788289398,
+    "prior_agreement_delta": 0.125
+   },
+   "label_permutation_test": {
+    "macro_f1_p": 4.999750012499375e-05,
+    "prior_agreement_p": 4.999750012499375e-05,
+    "macro_f1_null_mean": 0.13819551707551708,
+    "n_permutations": 20000
+   },
+   "beats_judgment_baseline": true
+  },
+  "e5-small|A_SSOT_DEF": {
+   "model": "e5-small",
+   "prototype_set": "A_SSOT_DEF",
+   "prior_agreement": 0.5,
+   "prior_agreement_fraction": "28/56",
+   "prior_agreement_wilson95": [
+    0.3733173879858031,
+    0.626682612014197
+   ],
+   "macro_f1": 0.44265553994877305,
+   "weighted_f1": 0.5288793412101682,
+   "top2_prior_agreement": 0.6071428571428571,
+   "top2_fraction": "34/56",
+   "n_distinct_predicted_classes": 6,
+   "predicted_class_counts": {
+    "QUERY": 4,
+    "CONTENT_OPEN": 22,
+    "ITEM_DETAIL": 13,
+    "PLACE_LOOKUP": 3,
+    "COMMUNICATION_ENTRY": 5,
+    "FINANCIAL_ACTION_ENTRY": 9,
+    "UTILITY_ENTRY": 0
+   },
+   "margin_median": 0.004307379729833083,
+   "margin_p10": 0.0006088776826209119,
+   "margin_p90": 0.01457574551437002,
+   "top1_sim_median": 0.8248049567867836,
+   "vs_stratified": {
+    "macro_f1_delta": 0.30399719343859694,
+    "macro_f1_p_vs_stratified_predictor": 4.999750012499375e-05,
+    "macro_f1_gt_stratified_p95": true,
+    "prior_agreement_delta": 0.22661428571428577,
+    "prior_agreement_p_vs_stratified_predictor": 9.99950002499875e-05
+   },
+   "vs_majority": {
+    "macro_f1_delta": 0.3520632054539995,
+    "prior_agreement_delta": 0.0357142857142857
+   },
+   "label_permutation_test": {
+    "macro_f1_p": 4.999750012499375e-05,
+    "prior_agreement_p": 4.999750012499375e-05,
+    "macro_f1_null_mean": 0.11209435280967987,
+    "n_permutations": 20000
+   },
+   "beats_judgment_baseline": true
+  },
+  "e5-small|B_USER_BEHAVIOR": {
+   "model": "e5-small",
+   "prototype_set": "B_USER_BEHAVIOR",
+   "prior_agreement": 0.25,
+   "prior_agreement_fraction": "14/56",
+   "prior_agreement_wilson95": [
+    0.15517054686489593,
+    0.3769264215085832
+   ],
+   "macro_f1": 0.19819179284617075,
+   "weighted_f1": 0.2930008777704631,
+   "top2_prior_agreement": 0.6785714285714286,
+   "top2_fraction": "38/56",
+   "n_distinct_predicted_classes": 4,
+   "predicted_class_counts": {
+    "QUERY": 46,
+    "CONTENT_OPEN": 0,
+    "ITEM_DETAIL": 5,
+    "PLACE_LOOKUP": 0,
+    "COMMUNICATION_ENTRY": 0,
+    "FINANCIAL_ACTION_ENTRY": 4,
+    "UTILITY_ENTRY": 1
+   },
+   "margin_median": 0.0061011274026479545,
+   "margin_p10": 0.0016528165276421536,
+   "margin_p90": 0.017928417985181633,
+   "top1_sim_median": 0.83971693662391,
+   "vs_stratified": {
+    "macro_f1_delta": 0.05953344633599464,
+    "macro_f1_p_vs_stratified_predictor": 0.1055947202639868,
+    "macro_f1_gt_stratified_p95": false,
+    "prior_agreement_delta": -0.023385714285714232,
+    "prior_agreement_p_vs_stratified_predictor": 0.7213639318034099
+   },
+   "vs_majority": {
+    "macro_f1_delta": 0.10759945835139723,
+    "prior_agreement_delta": -0.2142857142857143
+   },
+   "label_permutation_test": {
+    "macro_f1_p": 4.999750012499375e-05,
+    "prior_agreement_p": 4.999750012499375e-05,
+    "macro_f1_null_mean": 0.05886765371955235,
+    "n_permutations": 20000
+   },
+   "beats_judgment_baseline": false
+  },
+  "e5-small|C_TERSE_LABEL": {
+   "model": "e5-small",
+   "prototype_set": "C_TERSE_LABEL",
+   "prior_agreement": 0.5178571428571429,
+   "prior_agreement_fraction": "29/56",
+   "prior_agreement_wilson95": [
+    0.39010383921346037,
+    0.6433178059027198
+   ],
+   "macro_f1": 0.37137624280481424,
+   "weighted_f1": 0.5220957613814756,
+   "top2_prior_agreement": 0.7142857142857143,
+   "top2_fraction": "40/56",
+   "n_distinct_predicted_classes": 5,
+   "predicted_class_counts": {
+    "QUERY": 22,
+    "CONTENT_OPEN": 3,
+    "ITEM_DETAIL": 26,
+    "PLACE_LOOKUP": 1,
+    "COMMUNICATION_ENTRY": 0,
+    "FINANCIAL_ACTION_ENTRY": 4,
+    "UTILITY_ENTRY": 0
+   },
+   "margin_median": 0.00942192813583731,
+   "margin_p10": 0.0011042742973324526,
+   "margin_p90": 0.022383245531863716,
+   "top1_sim_median": 0.8577734869898491,
+   "vs_stratified": {
+    "macro_f1_delta": 0.23271789629463813,
+    "macro_f1_p_vs_stratified_predictor": 9.99950002499875e-05,
+    "macro_f1_gt_stratified_p95": true,
+    "prior_agreement_delta": 0.24447142857142867,
+    "prior_agreement_p_vs_stratified_predictor": 4.999750012499375e-05
+   },
+   "vs_majority": {
+    "macro_f1_delta": 0.28078390831004074,
+    "prior_agreement_delta": 0.0535714285714286
+   },
+   "label_permutation_test": {
+    "macro_f1_p": 4.999750012499375e-05,
+    "prior_agreement_p": 4.999750012499375e-05,
+    "macro_f1_null_mean": 0.10969426216640504,
+    "n_permutations": 20000
+   },
+   "beats_judgment_baseline": true
+  },
+  "minilm|A_SSOT_DEF": {
+   "model": "minilm",
+   "prototype_set": "A_SSOT_DEF",
+   "prior_agreement": 0.5892857142857143,
+   "prior_agreement_fraction": "33/56",
+   "prior_agreement_wilson95": [
+    0.4587759684344199,
+    0.7083322571464805
+   ],
+   "macro_f1": 0.49191284905570626,
+   "weighted_f1": 0.606186670472385,
+   "top2_prior_agreement": 0.7321428571428571,
+   "top2_fraction": "41/56",
+   "n_distinct_predicted_classes": 7,
+   "predicted_class_counts": {
+    "QUERY": 1,
+    "CONTENT_OPEN": 12,
+    "ITEM_DETAIL": 18,
+    "PLACE_LOOKUP": 4,
+    "COMMUNICATION_ENTRY": 3,
+    "FINANCIAL_ACTION_ENTRY": 16,
+    "UTILITY_ENTRY": 2
+   },
+   "margin_median": 0.05089406586831635,
+   "margin_p10": 0.011155231679201315,
+   "margin_p90": 0.1649607920766721,
+   "top1_sim_median": 0.3223661534443625,
+   "vs_stratified": {
+    "macro_f1_delta": 0.35325450254553015,
+    "macro_f1_p_vs_stratified_predictor": 4.999750012499375e-05,
+    "macro_f1_gt_stratified_p95": true,
+    "prior_agreement_delta": 0.31590000000000007,
+    "prior_agreement_p_vs_stratified_predictor": 4.999750012499375e-05
+   },
+   "vs_majority": {
+    "macro_f1_delta": 0.40132051456093276,
+    "prior_agreement_delta": 0.125
+   },
+   "label_permutation_test": {
+    "macro_f1_p": 4.999750012499375e-05,
+    "prior_agreement_p": 4.999750012499375e-05,
+    "macro_f1_null_mean": 0.12771180593216308,
+    "n_permutations": 20000
+   },
+   "beats_judgment_baseline": true
+  },
+  "minilm|B_USER_BEHAVIOR": {
+   "model": "minilm",
+   "prototype_set": "B_USER_BEHAVIOR",
+   "prior_agreement": 0.6071428571428571,
+   "prior_agreement_fraction": "34/56",
+   "prior_agreement_wilson95": [
+    0.4763340279739064,
+    0.7241958427231739
+   ],
+   "macro_f1": 0.4876107766648071,
+   "weighted_f1": 0.6312083503331973,
+   "top2_prior_agreement": 0.7857142857142857,
+   "top2_fraction": "44/56",
+   "n_distinct_predicted_classes": 7,
+   "predicted_class_counts": {
+    "QUERY": 4,
+    "CONTENT_OPEN": 4,
+    "ITEM_DETAIL": 17,
+    "PLACE_LOOKUP": 3,
+    "COMMUNICATION_ENTRY": 6,
+    "FINANCIAL_ACTION_ENTRY": 9,
+    "UTILITY_ENTRY": 13
+   },
+   "margin_median": 0.05839139519456124,
+   "margin_p10": 0.01741795062639305,
+   "margin_p90": 0.14532149949619194,
+   "top1_sim_median": 0.36149580167297013,
+   "vs_stratified": {
+    "macro_f1_delta": 0.348952430154631,
+    "macro_f1_p_vs_stratified_predictor": 4.999750012499375e-05,
+    "macro_f1_gt_stratified_p95": true,
+    "prior_agreement_delta": 0.33375714285714286,
+    "prior_agreement_p_vs_stratified_predictor": 4.999750012499375e-05
+   },
+   "vs_majority": {
+    "macro_f1_delta": 0.39701844217003357,
+    "prior_agreement_delta": 0.1428571428571428
+   },
+   "label_permutation_test": {
+    "macro_f1_p": 4.999750012499375e-05,
+    "prior_agreement_p": 4.999750012499375e-05,
+    "macro_f1_null_mean": 0.13446284576335635,
+    "n_permutations": 20000
+   },
+   "beats_judgment_baseline": true
+  },
+  "minilm|C_TERSE_LABEL": {
+   "model": "minilm",
+   "prototype_set": "C_TERSE_LABEL",
+   "prior_agreement": 0.44642857142857145,
+   "prior_agreement_fraction": "25/56",
+   "prior_agreement_wilson95": [
+    0.323867212521653,
+    0.5758678521298068
+   ],
+   "macro_f1": 0.42155463584035013,
+   "weighted_f1": 0.4409429855858427,
+   "top2_prior_agreement": 0.5178571428571429,
+   "top2_fraction": "29/56",
+   "n_distinct_predicted_classes": 7,
+   "predicted_class_counts": {
+    "QUERY": 2,
+    "CONTENT_OPEN": 5,
+    "ITEM_DETAIL": 7,
+    "PLACE_LOOKUP": 10,
+    "COMMUNICATION_ENTRY": 10,
+    "FINANCIAL_ACTION_ENTRY": 16,
+    "UTILITY_ENTRY": 6
+   },
+   "margin_median": 0.07534797750899144,
+   "margin_p10": 0.010754306238644568,
+   "margin_p90": 0.1907962071599289,
+   "top1_sim_median": 0.40197665920473474,
+   "vs_stratified": {
+    "macro_f1_delta": 0.282896289330174,
+    "macro_f1_p_vs_stratified_predictor": 4.999750012499375e-05,
+    "macro_f1_gt_stratified_p95": true,
+    "prior_agreement_delta": 0.17304285714285722,
+    "prior_agreement_p_vs_stratified_predictor": 0.0020998950052497373
+   },
+   "vs_majority": {
+    "macro_f1_delta": 0.3309623013455766,
+    "prior_agreement_delta": -0.01785714285714285
+   },
+   "label_permutation_test": {
+    "macro_f1_p": 4.999750012499375e-05,
+    "prior_agreement_p": 4.999750012499375e-05,
+    "macro_f1_null_mean": 0.11860937158080016,
+    "n_permutations": 20000
+   },
+   "beats_judgment_baseline": true
+  }
+ },
+ "e5_prefix_ablation": {
+  "e5-small-symmetric|A_SSOT_DEF": {
+   "prior_agreement": 0.44642857142857145,
+   "prior_agreement_fraction": "25/56",
+   "macro_f1": 0.3871044515911159,
+   "delta_macro_f1_vs_asymmetric": -0.05555108835765715
+  },
+  "e5-small-symmetric|B_USER_BEHAVIOR": {
+   "prior_agreement": 0.125,
+   "prior_agreement_fraction": "7/56",
+   "macro_f1": 0.08634222919937205,
+   "delta_macro_f1_vs_asymmetric": -0.1118495636467987
+  },
+  "e5-small-symmetric|C_TERSE_LABEL": {
+   "prior_agreement": 0.4642857142857143,
+   "prior_agreement_fraction": "26/56",
+   "macro_f1": 0.34314765694076044,
+   "delta_macro_f1_vs_asymmetric": -0.0282285858640538
+  }
+ },
+ "primary": {
+  "config": "bge-m3|A_SSOT_DEF",
+  "preregistered": true,
+  "model": "bge-m3",
+  "prototype_set": "A_SSOT_DEF",
+  "prior_agreement": 0.6607142857142857,
+  "prior_agreement_fraction": "37/56",
+  "prior_agreement_wilson95": [
+   0.5299945300394356,
+   0.770800276006185
+  ],
+  "macro_f1": 0.49695087521174475,
+  "weighted_f1": 0.6487859966120836,
+  "top2_prior_agreement": 0.8035714285714286,
+  "top2_fraction": "45/56",
+  "n_distinct_predicted_classes": 6,
+  "predicted_class_counts": {
+   "QUERY": 7,
+   "CONTENT_OPEN": 2,
+   "ITEM_DETAIL": 19,
+   "PLACE_LOOKUP": 8,
+   "COMMUNICATION_ENTRY": 7,
+   "FINANCIAL_ACTION_ENTRY": 13,
+   "UTILITY_ENTRY": 0
+  },
+  "margin_median": 0.01900172279956952,
+  "margin_p10": 0.001092455227458794,
+  "margin_p90": 0.059957086651467456,
+  "top1_sim_median": 0.48122437043129623,
+  "vs_stratified": {
+   "macro_f1_delta": 0.35829252870156864,
+   "macro_f1_p_vs_stratified_predictor": 4.999750012499375e-05,
+   "macro_f1_gt_stratified_p95": true,
+   "prior_agreement_delta": 0.38732857142857147,
+   "prior_agreement_p_vs_stratified_predictor": 4.999750012499375e-05
+  },
+  "vs_majority": {
+   "macro_f1_delta": 0.4063585407169712,
+   "prior_agreement_delta": 0.1964285714285714
+  },
+  "label_permutation_test": {
+   "macro_f1_p": 4.999750012499375e-05,
+   "prior_agreement_p": 4.999750012499375e-05,
+   "macro_f1_null_mean": 0.13027223602484472,
+   "n_permutations": 20000
+  },
+  "beats_judgment_baseline": true,
+  "per_class": {
+   "QUERY": {
+    "support": 4,
+    "n_predicted": 7,
+    "tp": 2,
+    "fp": 5,
+    "fn": 2,
+    "recall": 0.5,
+    "recall_wilson95": [
+     0.15003898911025654,
+     0.8499610108897435
+    ],
+    "recall_fraction": "2/4",
+    "precision": 0.2857142857142857,
+    "precision_wilson95": [
+     0.08221892398160159,
+     0.641065548235854
+    ],
+    "precision_fraction": "2/7",
+    "f1": 0.36363636363636365
+   },
+   "CONTENT_OPEN": {
+    "support": 3,
+    "n_predicted": 2,
+    "tp": 1,
+    "fp": 1,
+    "fn": 2,
+    "recall": 0.3333333333333333,
+    "recall_wilson95": [
+     0.06149194469958657,
+     0.792340399257282
+    ],
+    "recall_fraction": "1/3",
+    "precision": 0.5,
+    "precision_wilson95": [
+     0.0945312057016527,
+     0.9054687942983473
+    ],
+    "precision_fraction": "1/2",
+    "f1": 0.4
+   },
+   "ITEM_DETAIL": {
+    "support": 26,
+    "n_predicted": 19,
+    "tp": 18,
+    "fp": 1,
+    "fn": 8,
+    "recall": 0.6923076923076923,
+    "recall_wilson95": [
+     0.5001174167329109,
+     0.8349868440702216
+    ],
+    "recall_fraction": "18/26",
+    "precision": 0.9473684210526315,
+    "precision_wilson95": [
+     0.7536126882691799,
+     0.9906480059407847
+    ],
+    "precision_fraction": "18/19",
+    "f1": 0.7999999999999999
+   },
+   "PLACE_LOOKUP": {
+    "support": 4,
+    "n_predicted": 8,
+    "tp": 3,
+    "fp": 5,
+    "fn": 1,
+    "recall": 0.75,
+    "recall_wilson95": [
+     0.30064184250845644,
+     0.9544127392056013
+    ],
+    "recall_fraction": "3/4",
+    "precision": 0.375,
+    "precision_wilson95": [
+     0.13684428579133334,
+     0.6942576054553528
+    ],
+    "precision_fraction": "3/8",
+    "f1": 0.5
+   },
+   "COMMUNICATION_ENTRY": {
+    "support": 4,
+    "n_predicted": 7,
+    "tp": 3,
+    "fp": 4,
+    "fn": 1,
+    "recall": 0.75,
+    "recall_wilson95": [
+     0.30064184250845644,
+     0.9544127392056013
+    ],
+    "recall_fraction": "3/4",
+    "precision": 0.42857142857142855,
+    "precision_wilson95": [
+     0.1582198552140127,
+     0.7495416355251391
+    ],
+    "precision_fraction": "3/7",
+    "f1": 0.5454545454545454
+   },
+   "FINANCIAL_ACTION_ENTRY": {
+    "support": 10,
+    "n_predicted": 13,
+    "tp": 10,
+    "fp": 3,
+    "fn": 0,
+    "recall": 1.0,
+    "recall_wilson95": [
+     0.7224672000430039,
+     1.0
+    ],
+    "recall_fraction": "10/10",
+    "precision": 0.7692307692307693,
+    "precision_wilson95": [
+     0.4974362404691201,
+     0.918204712834123
+    ],
+    "precision_fraction": "10/13",
+    "f1": 0.8695652173913044
+   },
+   "UTILITY_ENTRY": {
+    "support": 5,
+    "n_predicted": 0,
+    "tp": 0,
+    "fp": 0,
+    "fn": 5,
+    "recall": 0.0,
+    "recall_wilson95": [
+     0.0,
+     0.4344824648984954
+    ],
+    "recall_fraction": "0/5",
+    "precision": 0.0,
+    "precision_wilson95": [
+     null,
+     null
+    ],
+    "precision_fraction": "0/0",
+    "f1": 0.0
+   }
+  },
+  "confusion_matrix": {
+   "rows_true": [
+    "QUERY",
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "COMMUNICATION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "cols_pred": [
+    "QUERY",
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "COMMUNICATION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "matrix": [
+    [
+     2,
+     0,
+     1,
+     1,
+     0,
+     0,
+     0
+    ],
+    [
+     1,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     2,
+     1,
+     18,
+     3,
+     2,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     3,
+     0,
+     1,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     1,
+     3,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     10,
+     0
+    ],
+    [
+     2,
+     0,
+     0,
+     0,
+     1,
+     2,
+     0
+    ]
+   ]
+  },
+  "margin_coverage_curve": [
+   {
+    "margin_threshold": 0.0,
+    "coverage_n": 56,
+    "coverage": 1.0,
+    "abstain_n": 0,
+    "abstention_rate": 0.0,
+    "prior_agreement_covered": 0.6607142857142857,
+    "prior_agreement_fraction": "37/56",
+    "wilson95": [
+     0.5299945300394356,
+     0.770800276006185
+    ]
+   },
+   {
+    "margin_threshold": 0.000153,
+    "coverage_n": 56,
+    "coverage": 1.0,
+    "abstain_n": 0,
+    "abstention_rate": 0.0,
+    "prior_agreement_covered": 0.6607142857142857,
+    "prior_agreement_fraction": "37/56",
+    "wilson95": [
+     0.5299945300394356,
+     0.770800276006185
+    ]
+   },
+   {
+    "margin_threshold": 0.000388,
+    "coverage_n": 54,
+    "coverage": 0.9642857142857143,
+    "abstain_n": 2,
+    "abstention_rate": 0.03571428571428571,
+    "prior_agreement_covered": 0.6666666666666666,
+    "prior_agreement_fraction": "36/54",
+    "wilson95": [
+     0.5336096359794976,
+     0.77758583464717
+    ]
+   },
+   {
+    "margin_threshold": 0.00044,
+    "coverage_n": 54,
+    "coverage": 0.9642857142857143,
+    "abstain_n": 2,
+    "abstention_rate": 0.03571428571428571,
+    "prior_agreement_covered": 0.6666666666666666,
+    "prior_agreement_fraction": "36/54",
+    "wilson95": [
+     0.5336096359794976,
+     0.77758583464717
+    ]
+   },
+   {
+    "margin_threshold": 0.000841,
+    "coverage_n": 53,
+    "coverage": 0.9464285714285714,
+    "abstain_n": 3,
+    "abstention_rate": 0.05357142857142857,
+    "prior_agreement_covered": 0.6792452830188679,
+    "prior_agreement_fraction": "36/53",
+    "wilson95": [
+     0.5451852014580785,
+     0.7890778592302945
+    ]
+   },
+   {
+    "margin_threshold": 0.000872,
+    "coverage_n": 52,
+    "coverage": 0.9285714285714286,
+    "abstain_n": 4,
+    "abstention_rate": 0.07142857142857142,
+    "prior_agreement_covered": 0.6923076923076923,
+    "prior_agreement_fraction": "36/52",
+    "wilson95": [
+     0.5573041117202363,
+     0.8008527205282527
+    ]
+   },
+   {
+    "margin_threshold": 0.00099,
+    "coverage_n": 50,
+    "coverage": 0.8928571428571429,
+    "abstain_n": 6,
+    "abstention_rate": 0.10714285714285714,
+    "prior_agreement_covered": 0.68,
+    "prior_agreement_fraction": "34/50",
+    "wilson95": [
+     0.5418970268853772,
+     0.7924178374154187
+    ]
+   },
+   {
+    "margin_threshold": 0.001195,
+    "coverage_n": 50,
+    "coverage": 0.8928571428571429,
+    "abstain_n": 6,
+    "abstention_rate": 0.10714285714285714,
+    "prior_agreement_covered": 0.68,
+    "prior_agreement_fraction": "34/50",
+    "wilson95": [
+     0.5418970268853772,
+     0.7924178374154187
+    ]
+   },
+   {
+    "margin_threshold": 0.001795,
+    "coverage_n": 48,
+    "coverage": 0.8571428571428571,
+    "abstain_n": 8,
+    "abstention_rate": 0.14285714285714285,
+    "prior_agreement_covered": 0.6875,
+    "prior_agreement_fraction": "33/48",
+    "wilson95": [
+     0.5466692858071349,
+     0.8005431655559956
+    ]
+   },
+   {
+    "margin_threshold": 0.002349,
+    "coverage_n": 48,
+    "coverage": 0.8571428571428571,
+    "abstain_n": 8,
+    "abstention_rate": 0.14285714285714285,
+    "prior_agreement_covered": 0.6875,
+    "prior_agreement_fraction": "33/48",
+    "wilson95": [
+     0.5466692858071349,
+     0.8005431655559956
+    ]
+   },
+   {
+    "margin_threshold": 0.002375,
+    "coverage_n": 46,
+    "coverage": 0.8214285714285714,
+    "abstain_n": 10,
+    "abstention_rate": 0.17857142857142858,
+    "prior_agreement_covered": 0.6739130434782609,
+    "prior_agreement_fraction": "31/46",
+    "wilson95": [
+     0.5296773241587847,
+     0.7913405669302707
+    ]
+   },
+   {
+    "margin_threshold": 0.002761,
+    "coverage_n": 45,
+    "coverage": 0.8035714285714286,
+    "abstain_n": 11,
+    "abstention_rate": 0.19642857142857142,
+    "prior_agreement_covered": 0.6888888888888889,
+    "prior_agreement_fraction": "31/45",
+    "wilson95": [
+     0.5433519441912874,
+     0.8047130073856616
+    ]
+   },
+   {
+    "margin_threshold": 0.002986,
+    "coverage_n": 45,
+    "coverage": 0.8035714285714286,
+    "abstain_n": 11,
+    "abstention_rate": 0.19642857142857142,
+    "prior_agreement_covered": 0.6888888888888889,
+    "prior_agreement_fraction": "31/45",
+    "wilson95": [
+     0.5433519441912874,
+     0.8047130073856616
+    ]
+   },
+   {
+    "margin_threshold": 0.004005,
+    "coverage_n": 43,
+    "coverage": 0.7678571428571429,
+    "abstain_n": 13,
+    "abstention_rate": 0.23214285714285715,
+    "prior_agreement_covered": 0.7209302325581395,
+    "prior_agreement_fraction": "31/43",
+    "wilson95": [
+     0.5730897131449144,
+     0.8325338621583093
+    ]
+   },
+   {
+    "margin_threshold": 0.00454,
+    "coverage_n": 42,
+    "coverage": 0.75,
+    "abstain_n": 14,
+    "abstention_rate": 0.25,
+    "prior_agreement_covered": 0.7380952380952381,
+    "prior_agreement_fraction": "31/42",
+    "wilson95": [
+     0.5893126929053372,
+     0.8469735971414541
+    ]
+   },
+   {
+    "margin_threshold": 0.005271,
+    "coverage_n": 41,
+    "coverage": 0.7321428571428571,
+    "abstain_n": 15,
+    "abstention_rate": 0.26785714285714285,
+    "prior_agreement_covered": 0.7560975609756098,
+    "prior_agreement_fraction": "31/41",
+    "wilson95": [
+     0.6065666377366419,
+     0.8617499726378682
+    ]
+   },
+   {
+    "margin_threshold": 0.005606,
+    "coverage_n": 40,
+    "coverage": 0.7142857142857143,
+    "abstain_n": 16,
+    "abstention_rate": 0.2857142857142857,
+    "prior_agreement_covered": 0.775,
+    "prior_agreement_fraction": "31/40",
+    "wilson95": [
+     0.6249690325386307,
+     0.8768390867822251
+    ]
+   },
+   {
+    "margin_threshold": 0.006575,
+    "coverage_n": 39,
+    "coverage": 0.6964285714285714,
+    "abstain_n": 17,
+    "abstention_rate": 0.30357142857142855,
+    "prior_agreement_covered": 0.7948717948717948,
+    "prior_agreement_fraction": "31/39",
+    "wilson95": [
+     0.6446603198252325,
+     0.892202817709247
+    ]
+   },
+   {
+    "margin_threshold": 0.007177,
+    "coverage_n": 38,
+    "coverage": 0.6785714285714286,
+    "abstain_n": 18,
+    "abstention_rate": 0.32142857142857145,
+    "prior_agreement_covered": 0.7894736842105263,
+    "prior_agreement_fraction": "30/38",
+    "wilson95": [
+     0.6365422052072769,
+     0.8892520815868338
+    ]
+   },
+   {
+    "margin_threshold": 0.00828,
+    "coverage_n": 38,
+    "coverage": 0.6785714285714286,
+    "abstain_n": 18,
+    "abstention_rate": 0.32142857142857145,
+    "prior_agreement_covered": 0.7894736842105263,
+    "prior_agreement_fraction": "30/38",
+    "wilson95": [
+     0.6365422052072769,
+     0.8892520815868338
+    ]
+   },
+   {
+    "margin_threshold": 0.009283,
+    "coverage_n": 37,
+    "coverage": 0.6607142857142857,
+    "abstain_n": 19,
+    "abstention_rate": 0.3392857142857143,
+    "prior_agreement_covered": 0.8108108108108109,
+    "prior_agreement_fraction": "30/37",
+    "wilson95": [
+     0.6579530306614338,
+     0.9052002127122014
+    ]
+   },
+   {
+    "margin_threshold": 0.009672,
+    "coverage_n": 35,
+    "coverage": 0.625,
+    "abstain_n": 21,
+    "abstention_rate": 0.375,
+    "prior_agreement_covered": 0.8285714285714286,
+    "prior_agreement_fraction": "29/35",
+    "wilson95": [
+     0.673177176968002,
+     0.918973599477046
+    ]
+   },
+   {
+    "margin_threshold": 0.012413,
+    "coverage_n": 34,
+    "coverage": 0.6071428571428571,
+    "abstain_n": 22,
+    "abstention_rate": 0.39285714285714285,
+    "prior_agreement_covered": 0.8529411764705882,
+    "prior_agreement_fraction": "29/34",
+    "wilson95": [
+     0.6987194350031204,
+     0.9355055855643157
+    ]
+   },
+   {
+    "margin_threshold": 0.012632,
+    "coverage_n": 33,
+    "coverage": 0.5892857142857143,
+    "abstain_n": 23,
+    "abstention_rate": 0.4107142857142857,
+    "prior_agreement_covered": 0.8787878787878788,
+    "prior_agreement_fraction": "29/33",
+    "wilson95": [
+     0.7267449482460724,
+     0.951838386915831
+    ]
+   },
+   {
+    "margin_threshold": 0.013244,
+    "coverage_n": 33,
+    "coverage": 0.5892857142857143,
+    "abstain_n": 23,
+    "abstention_rate": 0.4107142857142857,
+    "prior_agreement_covered": 0.8787878787878788,
+    "prior_agreement_fraction": "29/33",
+    "wilson95": [
+     0.7267449482460724,
+     0.951838386915831
+    ]
+   },
+   {
+    "margin_threshold": 0.014257,
+    "coverage_n": 31,
+    "coverage": 0.5535714285714286,
+    "abstain_n": 25,
+    "abstention_rate": 0.44642857142857145,
+    "prior_agreement_covered": 0.8709677419354839,
+    "prior_agreement_fraction": "27/31",
+    "wilson95": [
+     0.7114759373921489,
+     0.9486571562643353
+    ]
+   },
+   {
+    "margin_threshold": 0.016677,
+    "coverage_n": 30,
+    "coverage": 0.5357142857142857,
+    "abstain_n": 26,
+    "abstention_rate": 0.4642857142857143,
+    "prior_agreement_covered": 0.9,
+    "prior_agreement_fraction": "27/30",
+    "wilson95": [
+     0.7437891741623459,
+     0.965400111260696
+    ]
+   },
+   {
+    "margin_threshold": 0.018254,
+    "coverage_n": 29,
+    "coverage": 0.5178571428571429,
+    "abstain_n": 27,
+    "abstention_rate": 0.48214285714285715,
+    "prior_agreement_covered": 0.896551724137931,
+    "prior_agreement_fraction": "26/29",
+    "wilson95": [
+     0.736149189045501,
+     0.9641851086576365
+    ]
+   },
+   {
+    "margin_threshold": 0.019002,
+    "coverage_n": 27,
+    "coverage": 0.48214285714285715,
+    "abstain_n": 29,
+    "abstention_rate": 0.5178571428571429,
+    "prior_agreement_covered": 0.8888888888888888,
+    "prior_agreement_fraction": "24/27",
+    "wilson95": [
+     0.7194219917684523,
+     0.9614796517258462
+    ]
+   },
+   {
+    "margin_threshold": 0.020776,
+    "coverage_n": 26,
+    "coverage": 0.4642857142857143,
+    "abstain_n": 30,
+    "abstention_rate": 0.5357142857142857,
+    "prior_agreement_covered": 0.8846153846153846,
+    "prior_agreement_fraction": "23/26",
+    "wilson95": [
+     0.7102409678330736,
+     0.9599675537731915
+    ]
+   },
+   {
+    "margin_threshold": 0.022076,
+    "coverage_n": 26,
+    "coverage": 0.4642857142857143,
+    "abstain_n": 30,
+    "abstention_rate": 0.5357142857142857,
+    "prior_agreement_covered": 0.8846153846153846,
+    "prior_agreement_fraction": "23/26",
+    "wilson95": [
+     0.7102409678330736,
+     0.9599675537731915
+    ]
+   },
+   {
+    "margin_threshold": 0.023245,
+    "coverage_n": 24,
+    "coverage": 0.42857142857142855,
+    "abstain_n": 32,
+    "abstention_rate": 0.5714285714285714,
+    "prior_agreement_covered": 0.9166666666666666,
+    "prior_agreement_fraction": "22/24",
+    "wilson95": [
+     0.7415119780151488,
+     0.976841184709182
+    ]
+   },
+   {
+    "margin_threshold": 0.023593,
+    "coverage_n": 23,
+    "coverage": 0.4107142857142857,
+    "abstain_n": 33,
+    "abstention_rate": 0.5892857142857143,
+    "prior_agreement_covered": 0.9130434782608695,
+    "prior_agreement_fraction": "21/23",
+    "wilson95": [
+     0.7320401891885147,
+     0.9758199955222812
+    ]
+   },
+   {
+    "margin_threshold": 0.030209,
+    "coverage_n": 23,
+    "coverage": 0.4107142857142857,
+    "abstain_n": 33,
+    "abstention_rate": 0.5892857142857143,
+    "prior_agreement_covered": 0.9130434782608695,
+    "prior_agreement_fraction": "21/23",
+    "wilson95": [
+     0.7320401891885147,
+     0.9758199955222812
+    ]
+   },
+   {
+    "margin_threshold": 0.031314,
+    "coverage_n": 22,
+    "coverage": 0.39285714285714285,
+    "abstain_n": 34,
+    "abstention_rate": 0.6071428571428571,
+    "prior_agreement_covered": 0.9090909090909091,
+    "prior_agreement_fraction": "20/22",
+    "wilson95": [
+     0.7218505315285401,
+     0.9747045710158079
+    ]
+   },
+   {
+    "margin_threshold": 0.032733,
+    "coverage_n": 20,
+    "coverage": 0.35714285714285715,
+    "abstain_n": 36,
+    "abstention_rate": 0.6428571428571429,
+    "prior_agreement_covered": 0.9,
+    "prior_agreement_fraction": "18/20",
+    "wilson95": [
+     0.698966354713263,
+     0.9721335187937312
+    ]
+   },
+   {
+    "margin_threshold": 0.033292,
+    "coverage_n": 20,
+    "coverage": 0.35714285714285715,
+    "abstain_n": 36,
+    "abstention_rate": 0.6428571428571429,
+    "prior_agreement_covered": 0.9,
+    "prior_agreement_fraction": "18/20",
+    "wilson95": [
+     0.698966354713263,
+     0.9721335187937312
+    ]
+   },
+   {
+    "margin_threshold": 0.034746,
+    "coverage_n": 19,
+    "coverage": 0.3392857142857143,
+    "abstain_n": 37,
+    "abstention_rate": 0.6607142857142857,
+    "prior_agreement_covered": 0.8947368421052632,
+    "prior_agreement_fraction": "17/19",
+    "wilson95": [
+     0.6860591728291703,
+     0.9706414397090339
+    ]
+   },
+   {
+    "margin_threshold": 0.035745,
+    "coverage_n": 17,
+    "coverage": 0.30357142857142855,
+    "abstain_n": 39,
+    "abstention_rate": 0.6964285714285714,
+    "prior_agreement_covered": 0.8823529411764706,
+    "prior_agreement_fraction": "15/17",
+    "wilson95": [
+     0.6566364939883214,
+     0.9671202262450672
+    ]
+   },
+   {
+    "margin_threshold": 0.036582,
+    "coverage_n": 17,
+    "coverage": 0.30357142857142855,
+    "abstain_n": 39,
+    "abstention_rate": 0.6964285714285714,
+    "prior_agreement_covered": 0.8823529411764706,
+    "prior_agreement_fraction": "15/17",
+    "wilson95": [
+     0.6566364939883214,
+     0.9671202262450672
+    ]
+   },
+   {
+    "margin_threshold": 0.043404,
+    "coverage_n": 16,
+    "coverage": 0.2857142857142857,
+    "abstain_n": 40,
+    "abstention_rate": 0.7142857142857143,
+    "prior_agreement_covered": 0.875,
+    "prior_agreement_fraction": "14/16",
+    "wilson95": [
+     0.6397717272780264,
+     0.9650225122661897
+    ]
+   },
+   {
+    "margin_threshold": 0.043619,
+    "coverage_n": 15,
+    "coverage": 0.26785714285714285,
+    "abstain_n": 41,
+    "abstention_rate": 0.7321428571428571,
+    "prior_agreement_covered": 0.8666666666666667,
+    "prior_agreement_fraction": "13/15",
+    "wilson95": [
+     0.6211801716108313,
+     0.9626387409070136
+    ]
+   },
+   {
+    "margin_threshold": 0.044334,
+    "coverage_n": 13,
+    "coverage": 0.23214285714285715,
+    "abstain_n": 43,
+    "abstention_rate": 0.7678571428571429,
+    "prior_agreement_covered": 0.8461538461538461,
+    "prior_agreement_fraction": "11/13",
+    "wilson95": [
+     0.5776536897362775,
+     0.9567418216536066
+    ]
+   },
+   {
+    "margin_threshold": 0.046949,
+    "coverage_n": 13,
+    "coverage": 0.23214285714285715,
+    "abstain_n": 43,
+    "abstention_rate": 0.7678571428571429,
+    "prior_agreement_covered": 0.8461538461538461,
+    "prior_agreement_fraction": "11/13",
+    "wilson95": [
+     0.5776536897362775,
+     0.9567418216536066
+    ]
+   },
+   {
+    "margin_threshold": 0.047266,
+    "coverage_n": 12,
+    "coverage": 0.21428571428571427,
+    "abstain_n": 44,
+    "abstention_rate": 0.7857142857142857,
+    "prior_agreement_covered": 0.9166666666666666,
+    "prior_agreement_fraction": "11/12",
+    "wilson95": [
+     0.6461200887821221,
+     0.9851349055999992
+    ]
+   },
+   {
+    "margin_threshold": 0.047518,
+    "coverage_n": 10,
+    "coverage": 0.17857142857142858,
+    "abstain_n": 46,
+    "abstention_rate": 0.8214285714285714,
+    "prior_agreement_covered": 0.9,
+    "prior_agreement_fraction": "9/10",
+    "wilson95": [
+     0.5958499731235556,
+     0.9821237869108473
+    ]
+   },
+   {
+    "margin_threshold": 0.048457,
+    "coverage_n": 10,
+    "coverage": 0.17857142857142858,
+    "abstain_n": 46,
+    "abstention_rate": 0.8214285714285714,
+    "prior_agreement_covered": 0.9,
+    "prior_agreement_fraction": "9/10",
+    "wilson95": [
+     0.5958499731235556,
+     0.9821237869108473
+    ]
+   },
+   {
+    "margin_threshold": 0.051719,
+    "coverage_n": 8,
+    "coverage": 0.14285714285714285,
+    "abstain_n": 48,
+    "abstention_rate": 0.8571428571428571,
+    "prior_agreement_covered": 0.875,
+    "prior_agreement_fraction": "7/8",
+    "wilson95": [
+     0.5291118177025582,
+     0.9775825085573836
+    ]
+   },
+   {
+    "margin_threshold": 0.057561,
+    "coverage_n": 8,
+    "coverage": 0.14285714285714285,
+    "abstain_n": 48,
+    "abstention_rate": 0.8571428571428571,
+    "prior_agreement_covered": 0.875,
+    "prior_agreement_fraction": "7/8",
+    "wilson95": [
+     0.5291118177025582,
+     0.9775825085573836
+    ]
+   },
+   {
+    "margin_threshold": 0.058962,
+    "coverage_n": 7,
+    "coverage": 0.125,
+    "abstain_n": 49,
+    "abstention_rate": 0.875,
+    "prior_agreement_covered": 1.0,
+    "prior_agreement_fraction": "7/7",
+    "wilson95": [
+     0.6456695648259365,
+     1.0
+    ]
+   },
+   {
+    "margin_threshold": 0.060952,
+    "coverage_n": 5,
+    "coverage": 0.08928571428571429,
+    "abstain_n": 51,
+    "abstention_rate": 0.9107142857142857,
+    "prior_agreement_covered": 1.0,
+    "prior_agreement_fraction": "5/5",
+    "wilson95": [
+     0.5655175351015046,
+     1.0000000000000002
+    ]
+   },
+   {
+    "margin_threshold": 0.062063,
+    "coverage_n": 5,
+    "coverage": 0.08928571428571429,
+    "abstain_n": 51,
+    "abstention_rate": 0.9107142857142857,
+    "prior_agreement_covered": 1.0,
+    "prior_agreement_fraction": "5/5",
+    "wilson95": [
+     0.5655175351015046,
+     1.0000000000000002
+    ]
+   },
+   {
+    "margin_threshold": 0.069162,
+    "coverage_n": 4,
+    "coverage": 0.07142857142857142,
+    "abstain_n": 52,
+    "abstention_rate": 0.9285714285714286,
+    "prior_agreement_covered": 1.0,
+    "prior_agreement_fraction": "4/4",
+    "wilson95": [
+     0.5101091634281154,
+     1.0
+    ]
+   },
+   {
+    "margin_threshold": 0.078152,
+    "coverage_n": 2,
+    "coverage": 0.03571428571428571,
+    "abstain_n": 54,
+    "abstention_rate": 0.9642857142857143,
+    "prior_agreement_covered": 1.0,
+    "prior_agreement_fraction": "2/2",
+    "wilson95": [
+     0.34238022740097807,
+     1.0
+    ]
+   },
+   {
+    "margin_threshold": 0.087271,
+    "coverage_n": 1,
+    "coverage": 0.017857142857142856,
+    "abstain_n": 55,
+    "abstention_rate": 0.9821428571428571,
+    "prior_agreement_covered": 1.0,
+    "prior_agreement_fraction": "1/1",
+    "wilson95": [
+     0.20654931430031861,
+     1.0
+    ]
+   }
+  ],
+  "threshold_declared": null,
+  "threshold_note": "SSOT 01 §7 은 threshold 를 independent label calibration split 에서 정하라고 규정한다. 이 worker 는 gold label 과 holdout 에 접근할 수 없으므로 임계를 선언하지 않고 곡선만 제출한다."
+ },
+ "prototype_sensitivity": {
+  "per_model": {
+   "bge-m3": {
+    "macro_f1_by_set": {
+     "A_SSOT_DEF": 0.49695087521174475,
+     "B_USER_BEHAVIOR": 0.3549323385268086,
+     "C_TERSE_LABEL": 0.4633237133237133
+    },
+    "macro_f1_range": 0.14201853668493614,
+    "prior_agreement_by_set": {
+     "A_SSOT_DEF": 0.6607142857142857,
+     "B_USER_BEHAVIOR": 0.5892857142857143,
+     "C_TERSE_LABEL": 0.5892857142857143
+    },
+    "prior_agreement_range": 0.0714285714285714,
+    "beats_stratified_p95_by_set": {
+     "A_SSOT_DEF": true,
+     "B_USER_BEHAVIOR": true,
+     "C_TERSE_LABEL": true
+    },
+    "verdict_flips_across_sets": false
+   },
+   "e5-small": {
+    "macro_f1_by_set": {
+     "A_SSOT_DEF": 0.44265553994877305,
+     "B_USER_BEHAVIOR": 0.19819179284617075,
+     "C_TERSE_LABEL": 0.37137624280481424
+    },
+    "macro_f1_range": 0.2444637471026023,
+    "prior_agreement_by_set": {
+     "A_SSOT_DEF": 0.5,
+     "B_USER_BEHAVIOR": 0.25,
+     "C_TERSE_LABEL": 0.5178571428571429
+    },
+    "prior_agreement_range": 0.2678571428571429,
+    "beats_stratified_p95_by_set": {
+     "A_SSOT_DEF": true,
+     "B_USER_BEHAVIOR": false,
+     "C_TERSE_LABEL": true
+    },
+    "verdict_flips_across_sets": true
+   },
+   "minilm": {
+    "macro_f1_by_set": {
+     "A_SSOT_DEF": 0.49191284905570626,
+     "B_USER_BEHAVIOR": 0.4876107766648071,
+     "C_TERSE_LABEL": 0.42155463584035013
+    },
+    "macro_f1_range": 0.07035821321535612,
+    "prior_agreement_by_set": {
+     "A_SSOT_DEF": 0.5892857142857143,
+     "B_USER_BEHAVIOR": 0.6071428571428571,
+     "C_TERSE_LABEL": 0.44642857142857145
+    },
+    "prior_agreement_range": 0.16071428571428564,
+    "beats_stratified_p95_by_set": {
+     "A_SSOT_DEF": true,
+     "B_USER_BEHAVIOR": true,
+     "C_TERSE_LABEL": true
+    },
+    "verdict_flips_across_sets": false
+   }
+  },
+  "pairwise_kappa": {
+   "bge-m3|A_SSOT_DEF~B_USER_BEHAVIOR": {
+    "cohen_kappa": 0.4768577494692144,
+    "raw_prediction_agreement": 0.6071428571428571
+   },
+   "bge-m3|A_SSOT_DEF~C_TERSE_LABEL": {
+    "cohen_kappa": 0.44370860927152306,
+    "raw_prediction_agreement": 0.5714285714285714
+   },
+   "bge-m3|B_USER_BEHAVIOR~C_TERSE_LABEL": {
+    "cohen_kappa": 0.36778115501519754,
+    "raw_prediction_agreement": 0.5357142857142857
+   },
+   "e5-small|A_SSOT_DEF~B_USER_BEHAVIOR": {
+    "cohen_kappa": 0.11609961417046649,
+    "raw_prediction_agreement": 0.19642857142857142
+   },
+   "e5-small|A_SSOT_DEF~C_TERSE_LABEL": {
+    "cohen_kappa": 0.2476007677543186,
+    "raw_prediction_agreement": 0.375
+   },
+   "e5-small|B_USER_BEHAVIOR~C_TERSE_LABEL": {
+    "cohen_kappa": 0.17896865520728014,
+    "raw_prediction_agreement": 0.48214285714285715
+   },
+   "minilm|A_SSOT_DEF~B_USER_BEHAVIOR": {
+    "cohen_kappa": 0.5221101629169899,
+    "raw_prediction_agreement": 0.6071428571428571
+   },
+   "minilm|A_SSOT_DEF~C_TERSE_LABEL": {
+    "cohen_kappa": 0.4636015325670499,
+    "raw_prediction_agreement": 0.5535714285714286
+   },
+   "minilm|B_USER_BEHAVIOR~C_TERSE_LABEL": {
+    "cohen_kappa": 0.3933507657825925,
+    "raw_prediction_agreement": 0.48214285714285715
+   }
+  },
+  "global": {
+   "macro_f1_min": 0.19819179284617075,
+   "macro_f1_max": 0.49695087521174475,
+   "macro_f1_range_all_9_configs": 0.298759082365574,
+   "n_configs_beating_stratified_p95": 8,
+   "n_configs": 9,
+   "any_verdict_flip": true
+  }
+ },
+ "length_confound": {
+  "per_config": {
+   "bge-m3|A_SSOT_DEF": {
+    "spearman_tokens_vs_top1sim": {
+     "rho": -0.06870268170623278,
+     "p_approx": 0.6128178570154097
+    },
+    "spearman_tokens_vs_margin": {
+     "rho": 0.24527882782284896,
+     "p_approx": 0.0629962094024481
+    },
+    "tokens_correct_vs_incorrect_mannwhitney": {
+     "U": 433.0,
+     "z": 1.4105148856800478,
+     "p_normal_approx": 0.15838770418447146,
+     "rank_biserial": 0.2318634423897581,
+     "n_x": 37,
+     "n_y": 19
+    },
+    "tokens_median_correct": 177.0,
+    "tokens_median_incorrect": 81.0,
+    "prior_agreement_by_length_tertile": {
+     "T1_short": {
+      "n": 19,
+      "prior_agreement": 0.5263157894736842,
+      "fraction": "10/19",
+      "wilson95": [
+       0.3170780924094051,
+       0.7267019484264752
+      ],
+      "token_range": [
+       5.0,
+       66.0
+      ]
+     },
+     "T2_mid": {
+      "n": 18,
+      "prior_agreement": 0.6666666666666666,
+      "fraction": "12/18",
+      "wilson95": [
+       0.4374946729086293,
+       0.8372122525198084
+      ],
+      "token_range": [
+       73.0,
+       238.0
+      ]
+     },
+     "T3_long": {
+      "n": 19,
+      "prior_agreement": 0.7894736842105263,
+      "fraction": "15/19",
+      "wilson95": [
+       0.5666572155062037,
+       0.9149232336884794
+      ],
+      "token_range": [
+       243.0,
+       945.0
+      ]
+     }
+    },
+    "length_stratified_permutation": {
+     "macro_f1_p": 4.999750012499375e-05,
+     "macro_f1_null_mean": 0.13392216418846853,
+     "macro_f1_null_p95": 0.20163749294184075,
+     "signal_survives_length_control": true,
+     "n_permutations": 20000,
+     "note": "길이 tertile 안에서만 라벨을 섞어 길이-라벨 연관을 보존한 귀무분포"
+    }
+   },
+   "bge-m3|B_USER_BEHAVIOR": {
+    "spearman_tokens_vs_top1sim": {
+     "rho": 0.054312717030449695,
+     "p_approx": 0.6893735844513162
+    },
+    "spearman_tokens_vs_margin": {
+     "rho": 0.1084545318676003,
+     "p_approx": 0.42272436858575935
+    },
+    "tokens_correct_vs_incorrect_mannwhitney": {
+     "U": 347.5,
+     "z": -0.5329995200115807,
+     "p_normal_approx": 0.5940339125698038,
+     "rank_biserial": -0.08432147562582348,
+     "n_x": 33,
+     "n_y": 23
+    },
+    "tokens_median_correct": 118.0,
+    "tokens_median_incorrect": 200.0,
+    "prior_agreement_by_length_tertile": {
+     "T1_short": {
+      "n": 19,
+      "prior_agreement": 0.5789473684210527,
+      "fraction": "11/19",
+      "wilson95": [
+       0.36275903529758824,
+       0.7685810872100527
+      ],
+      "token_range": [
+       5.0,
+       66.0
+      ]
+     },
+     "T2_mid": {
+      "n": 18,
+      "prior_agreement": 0.6666666666666666,
+      "fraction": "12/18",
+      "wilson95": [
+       0.4374946729086293,
+       0.8372122525198084
+      ],
+      "token_range": [
+       73.0,
+       238.0
+      ]
+     },
+     "T3_long": {
+      "n": 19,
+      "prior_agreement": 0.5263157894736842,
+      "fraction": "10/19",
+      "wilson95": [
+       0.3170780924094051,
+       0.7267019484264752
+      ],
+      "token_range": [
+       243.0,
+       945.0
+      ]
+     }
+    },
+    "length_stratified_permutation": {
+     "macro_f1_p": 4.999750012499375e-05,
+     "macro_f1_null_mean": 0.13090266183892912,
+     "macro_f1_null_p95": 0.2021476117328652,
+     "signal_survives_length_control": true,
+     "n_permutations": 20000,
+     "note": "길이 tertile 안에서만 라벨을 섞어 길이-라벨 연관을 보존한 귀무분포"
+    }
+   },
+   "bge-m3|C_TERSE_LABEL": {
+    "spearman_tokens_vs_top1sim": {
+     "rho": 0.2404252055331549,
+     "p_approx": 0.06873671873303833
+    },
+    "spearman_tokens_vs_margin": {
+     "rho": 0.39081913563635107,
+     "p_approx": 0.001808084771671492
+    },
+    "tokens_correct_vs_incorrect_mannwhitney": {
+     "U": 492.0,
+     "z": 1.8738264375407132,
+     "p_normal_approx": 0.06095435123547022,
+     "rank_biserial": 0.29644268774703564,
+     "n_x": 33,
+     "n_y": 23
+    },
+    "tokens_median_correct": 177.0,
+    "tokens_median_incorrect": 101.0,
+    "prior_agreement_by_length_tertile": {
+     "T1_short": {
+      "n": 19,
+      "prior_agreement": 0.42105263157894735,
+      "fraction": "8/19",
+      "wilson95": [
+       0.23141891278994736,
+       0.6372409647024118
+      ],
+      "token_range": [
+       5.0,
+       66.0
+      ]
+     },
+     "T2_mid": {
+      "n": 18,
+      "prior_agreement": 0.7222222222222222,
+      "fraction": "13/18",
+      "wilson95": [
+       0.49127343434326215,
+       0.8750024662279883
+      ],
+      "token_range": [
+       73.0,
+       238.0
+      ]
+     },
+     "T3_long": {
+      "n": 19,
+      "prior_agreement": 0.631578947368421,
+      "fraction": "12/19",
+      "wilson95": [
+       0.4103953316000549,
+       0.8085048725793464
+      ],
+      "token_range": [
+       243.0,
+       945.0
+      ]
+     }
+    },
+    "length_stratified_permutation": {
+     "macro_f1_p": 4.999750012499375e-05,
+     "macro_f1_null_mean": 0.14571932539682542,
+     "macro_f1_null_p95": 0.22994227994227995,
+     "signal_survives_length_control": true,
+     "n_permutations": 20000,
+     "note": "길이 tertile 안에서만 라벨을 섞어 길이-라벨 연관을 보존한 귀무분포"
+    }
+   },
+   "e5-small|A_SSOT_DEF": {
+    "spearman_tokens_vs_top1sim": {
+     "rho": 0.16211782056351348,
+     "p_approx": 0.22732104138235254
+    },
+    "spearman_tokens_vs_margin": {
+     "rho": -0.21564438750478737,
+     "p_approx": 0.10462396668276952
+    },
+    "tokens_correct_vs_incorrect_mannwhitney": {
+     "U": 291.0,
+     "z": -1.655240370418304,
+     "p_normal_approx": 0.09787574921503728,
+     "rank_biserial": -0.25765306122448983,
+     "n_x": 28,
+     "n_y": 28
+    },
+    "tokens_median_correct": 99.0,
+    "tokens_median_incorrect": 208.5,
+    "prior_agreement_by_length_tertile": {
+     "T1_short": {
+      "n": 19,
+      "prior_agreement": 0.5789473684210527,
+      "fraction": "11/19",
+      "wilson95": [
+       0.36275903529758824,
+       0.7685810872100527
+      ],
+      "token_range": [
+       5.0,
+       66.0
+      ]
+     },
+     "T2_mid": {
+      "n": 18,
+      "prior_agreement": 0.5,
+      "fraction": "9/18",
+      "wilson95": [
+       0.29031021501114634,
+       0.7096897849888536
+      ],
+      "token_range": [
+       73.0,
+       238.0
+      ]
+     },
+     "T3_long": {
+      "n": 19,
+      "prior_agreement": 0.42105263157894735,
+      "fraction": "8/19",
+      "wilson95": [
+       0.23141891278994736,
+       0.6372409647024118
+      ],
+      "token_range": [
+       243.0,
+       945.0
+      ]
+     }
+    },
+    "length_stratified_permutation": {
+     "macro_f1_p": 4.999750012499375e-05,
+     "macro_f1_null_mean": 0.11510783077657516,
+     "macro_f1_null_p95": 0.18260972945183473,
+     "signal_survives_length_control": true,
+     "n_permutations": 20000,
+     "note": "길이 tertile 안에서만 라벨을 섞어 길이-라벨 연관을 보존한 귀무분포"
+    }
+   },
+   "e5-small|B_USER_BEHAVIOR": {
+    "spearman_tokens_vs_top1sim": {
+     "rho": 0.15155606501762992,
+     "p_approx": 0.25986079695053244
+    },
+    "spearman_tokens_vs_margin": {
+     "rho": -0.20559533853880108,
+     "p_approx": 0.12263900089439961
+    },
+    "tokens_correct_vs_incorrect_mannwhitney": {
+     "U": 384.0,
+     "z": 1.703144804140771,
+     "p_normal_approx": 0.08854097303226993,
+     "rank_biserial": 0.30612244897959173,
+     "n_x": 14,
+     "n_y": 42
+    },
+    "tokens_median_correct": 243.0,
+    "tokens_median_incorrect": 110.5,
+    "prior_agreement_by_length_tertile": {
+     "T1_short": {
+      "n": 19,
+      "prior_agreement": 0.05263157894736842,
+      "fraction": "1/19",
+      "wilson95": [
+       0.00935199405921523,
+       0.24638731173082004
+      ],
+      "token_range": [
+       5.0,
+       66.0
+      ]
+     },
+     "T2_mid": {
+      "n": 18,
+      "prior_agreement": 0.2777777777777778,
+      "fraction": "5/18",
+      "wilson95": [
+       0.12499753377201173,
+       0.5087265656567379
+      ],
+      "token_range": [
+       73.0,
+       238.0
+      ]
+     },
+     "T3_long": {
+      "n": 19,
+      "prior_agreement": 0.42105263157894735,
+      "fraction": "8/19",
+      "wilson95": [
+       0.23141891278994736,
+       0.6372409647024118
+      ],
+      "token_range": [
+       243.0,
+       945.0
+      ]
+     }
+    },
+    "length_stratified_permutation": {
+     "macro_f1_p": 4.999750012499375e-05,
+     "macro_f1_null_mean": 0.0599745709896862,
+     "macro_f1_null_p95": 0.10053982883475972,
+     "signal_survives_length_control": true,
+     "n_permutations": 20000,
+     "note": "길이 tertile 안에서만 라벨을 섞어 길이-라벨 연관을 보존한 귀무분포"
+    }
+   },
+   "e5-small|C_TERSE_LABEL": {
+    "spearman_tokens_vs_top1sim": {
+     "rho": 0.3804282822837666,
+     "p_approx": 0.0025040424216671298
+    },
+    "spearman_tokens_vs_margin": {
+     "rho": 0.1058568185294542,
+     "p_approx": 0.43404950290278643
+    },
+    "tokens_correct_vs_incorrect_mannwhitney": {
+     "U": 468.5,
+     "z": 1.262721489993419,
+     "p_normal_approx": 0.20668928815711118,
+     "rank_biserial": 0.19667943805874843,
+     "n_x": 29,
+     "n_y": 27
+    },
+    "tokens_median_correct": 200.0,
+    "tokens_median_incorrect": 109.0,
+    "prior_agreement_by_length_tertile": {
+     "T1_short": {
+      "n": 19,
+      "prior_agreement": 0.42105263157894735,
+      "fraction": "8/19",
+      "wilson95": [
+       0.23141891278994736,
+       0.6372409647024118
+      ],
+      "token_range": [
+       5.0,
+       66.0
+      ]
+     },
+     "T2_mid": {
+      "n": 18,
+      "prior_agreement": 0.5,
+      "fraction": "9/18",
+      "wilson95": [
+       0.29031021501114634,
+       0.7096897849888536
+      ],
+      "token_range": [
+       73.0,
+       238.0
+      ]
+     },
+     "T3_long": {
+      "n": 19,
+      "prior_agreement": 0.631578947368421,
+      "fraction": "12/19",
+      "wilson95": [
+       0.4103953316000549,
+       0.8085048725793464
+      ],
+      "token_range": [
+       243.0,
+       945.0
+      ]
+     }
+    },
+    "length_stratified_permutation": {
+     "macro_f1_p": 4.999750012499375e-05,
+     "macro_f1_null_mean": 0.1249467870225013,
+     "macro_f1_null_p95": 0.19529042386185244,
+     "signal_survives_length_control": true,
+     "n_permutations": 20000,
+     "note": "길이 tertile 안에서만 라벨을 섞어 길이-라벨 연관을 보존한 귀무분포"
+    }
+   },
+   "minilm|A_SSOT_DEF": {
+    "spearman_tokens_vs_top1sim": {
+     "rho": 0.36296207812859993,
+     "p_approx": 0.004204172313397869
+    },
+    "spearman_tokens_vs_margin": {
+     "rho": 0.17633688304599746,
+     "p_approx": 0.18802812947128
+    },
+    "tokens_correct_vs_incorrect_mannwhitney": {
+     "U": 430.0,
+     "z": 0.8411398675182757,
+     "p_normal_approx": 0.4002695829238352,
+     "rank_biserial": 0.13306982872200268,
+     "n_x": 33,
+     "n_y": 23
+    },
+    "tokens_median_correct": 148.0,
+    "tokens_median_incorrect": 112.0,
+    "prior_agreement_by_length_tertile": {
+     "T1_short": {
+      "n": 19,
+      "prior_agreement": 0.5263157894736842,
+      "fraction": "10/19",
+      "wilson95": [
+       0.3170780924094051,
+       0.7267019484264752
+      ],
+      "token_range": [
+       5.0,
+       66.0
+      ]
+     },
+     "T2_mid": {
+      "n": 18,
+      "prior_agreement": 0.6111111111111112,
+      "fraction": "11/18",
+      "wilson95": [
+       0.3861904159747411,
+       0.7969475343108842
+      ],
+      "token_range": [
+       73.0,
+       238.0
+      ]
+     },
+     "T3_long": {
+      "n": 19,
+      "prior_agreement": 0.631578947368421,
+      "fraction": "12/19",
+      "wilson95": [
+       0.4103953316000549,
+       0.8085048725793464
+      ],
+      "token_range": [
+       243.0,
+       945.0
+      ]
+     }
+    },
+    "length_stratified_permutation": {
+     "macro_f1_p": 4.999750012499375e-05,
+     "macro_f1_null_mean": 0.1585108323819038,
+     "macro_f1_null_p95": 0.24467913039341613,
+     "signal_survives_length_control": true,
+     "n_permutations": 20000,
+     "note": "길이 tertile 안에서만 라벨을 섞어 길이-라벨 연관을 보존한 귀무분포"
+    }
+   },
+   "minilm|B_USER_BEHAVIOR": {
+    "spearman_tokens_vs_top1sim": {
+     "rho": 0.1704578475965089,
+     "p_approx": 0.20365451104393362
+    },
+    "spearman_tokens_vs_margin": {
+     "rho": -0.008305846594335605,
+     "p_approx": 0.9513294527085263
+    },
+    "tokens_correct_vs_incorrect_mannwhitney": {
+     "U": 367.0,
+     "z": -0.11744782231931734,
+     "p_normal_approx": 0.906505189537226,
+     "rank_biserial": -0.018716577540106916,
+     "n_x": 34,
+     "n_y": 22
+    },
+    "tokens_median_correct": 134.5,
+    "tokens_median_incorrect": 125.5,
+    "prior_agreement_by_length_tertile": {
+     "T1_short": {
+      "n": 19,
+      "prior_agreement": 0.5789473684210527,
+      "fraction": "11/19",
+      "wilson95": [
+       0.36275903529758824,
+       0.7685810872100527
+      ],
+      "token_range": [
+       5.0,
+       66.0
+      ]
+     },
+     "T2_mid": {
+      "n": 18,
+      "prior_agreement": 0.6666666666666666,
+      "fraction": "12/18",
+      "wilson95": [
+       0.4374946729086293,
+       0.8372122525198084
+      ],
+      "token_range": [
+       73.0,
+       238.0
+      ]
+     },
+     "T3_long": {
+      "n": 19,
+      "prior_agreement": 0.5789473684210527,
+      "fraction": "11/19",
+      "wilson95": [
+       0.36275903529758824,
+       0.7685810872100527
+      ],
+      "token_range": [
+       243.0,
+       945.0
+      ]
+     }
+    },
+    "length_stratified_permutation": {
+     "macro_f1_p": 4.999750012499375e-05,
+     "macro_f1_null_mean": 0.15060467920909695,
+     "macro_f1_null_p95": 0.23511700069664748,
+     "signal_survives_length_control": true,
+     "n_permutations": 20000,
+     "note": "길이 tertile 안에서만 라벨을 섞어 길이-라벨 연관을 보존한 귀무분포"
+    }
+   },
+   "minilm|C_TERSE_LABEL": {
+    "spearman_tokens_vs_top1sim": {
+     "rho": -0.3226633409486753,
+     "p_approx": 0.012242777762129009
+    },
+    "spearman_tokens_vs_margin": {
+     "rho": -0.2668808650558535,
+     "p_approx": 0.041853354351645944
+    },
+    "tokens_correct_vs_incorrect_mannwhitney": {
+     "U": 400.5,
+     "z": 0.214284238777711,
+     "p_normal_approx": 0.8303254082194551,
+     "rank_biserial": 0.0335483870967741,
+     "n_x": 25,
+     "n_y": 31
+    },
+    "tokens_median_correct": 144.0,
+    "tokens_median_incorrect": 125.0,
+    "prior_agreement_by_length_tertile": {
+     "T1_short": {
+      "n": 19,
+      "prior_agreement": 0.47368421052631576,
+      "fraction": "9/19",
+      "wilson95": [
+       0.2732980515735248,
+       0.6829219075905949
+      ],
+      "token_range": [
+       5.0,
+       66.0
+      ]
+     },
+     "T2_mid": {
+      "n": 18,
+      "prior_agreement": 0.2777777777777778,
+      "fraction": "5/18",
+      "wilson95": [
+       0.12499753377201173,
+       0.5087265656567379
+      ],
+      "token_range": [
+       73.0,
+       238.0
+      ]
+     },
+     "T3_long": {
+      "n": 19,
+      "prior_agreement": 0.5789473684210527,
+      "fraction": "11/19",
+      "wilson95": [
+       0.36275903529758824,
+       0.7685810872100527
+      ],
+      "token_range": [
+       243.0,
+       945.0
+      ]
+     }
+    },
+    "length_stratified_permutation": {
+     "macro_f1_p": 4.999750012499375e-05,
+     "macro_f1_null_mean": 0.14296566528709387,
+     "macro_f1_null_p95": 0.22314590171733029,
+     "signal_survives_length_control": true,
+     "n_permutations": 20000,
+     "note": "길이 tertile 안에서만 라벨을 섞어 길이-라벨 연관을 보존한 귀무분포"
+    }
+   }
+  },
+  "length_only_classifier_loo": {
+   "rule": "LOO nearest-class-mean on log1p(blob_tokens) — 길이만으로 얼마나 되는가",
+   "prior_agreement": 0.25,
+   "prior_agreement_fraction": "14/56",
+   "macro_f1": 0.25214040475124216,
+   "beats_stratified_p95": true
+  },
+  "tokens_by_true_archetype": {
+   "QUERY": {
+    "n": 4,
+    "tokens_median": 337.0
+   },
+   "CONTENT_OPEN": {
+    "n": 3,
+    "tokens_median": 56.0
+   },
+   "ITEM_DETAIL": {
+    "n": 26,
+    "tokens_median": 179.0
+   },
+   "PLACE_LOOKUP": {
+    "n": 4,
+    "tokens_median": 191.0
+   },
+   "COMMUNICATION_ENTRY": {
+    "n": 4,
+    "tokens_median": 105.0
+   },
+   "FINANCIAL_ACTION_ENTRY": {
+    "n": 10,
+    "tokens_median": 25.0
+   },
+   "UTILITY_ENTRY": {
+    "n": 5,
+    "tokens_median": 37.0
+   }
+  }
+ },
+ "assertions": [
+  {
+   "type": "STATISTICAL",
+   "claim": "PRIMARY config 의 macro F1 이 stratified 귀무 95퍼센타일을 넘는다",
+   "value": 0.49695087521174475,
+   "reference": 0.22104006280874922,
+   "holds": true
+  },
+  {
+   "type": "STATISTICAL",
+   "claim": "9개 config 중 stratified p95 를 넘은 수",
+   "value": 8,
+   "reference": 9,
+   "holds": true
+  },
+  {
+   "type": "ROBUSTNESS",
+   "claim": "prototype 문구를 바꿔도 기준선 통과 판정이 뒤집히지 않는다",
+   "value": false,
+   "holds": false
+  },
+  {
+   "type": "CONFOUND",
+   "claim": "길이 tertile 내 순열 통제 후에도 PRIMARY 신호가 남는다",
+   "value": true,
+   "holds": true
+  },
+  {
+   "type": "SCOPE",
+   "claim": "예측이 7 archetype 밖으로 나가지 않았다",
+   "value": true,
+   "holds": true
+  },
+  {
+   "type": "PROCESS",
+   "claim": "gold label 미생산 · holdout 미열람 · threshold 미선언",
+   "value": true,
+   "holds": true
+  }
+ ],
+ "limitation": "n=56 에 7 class, 5개 class 가 n<=5 라 per-class 추정의 Wilson CI 가 거의 [0,1] 폭이다. target 은 gold label 이 아니라 business-domain prior 이므로 불일치가 모델 오류인지 prior 오류인지 이 실험은 구분할 수 없다. 입력 DOM 품질 결함(중복 blob 2건, 인코딩 깨짐 의심 7건, 토큰 12 이하 사실상 URL only 6건)이 상한을 누른다. MiniLM 은 max_seq_length=128 이라 긴 blob 이 잘린다."
+}
