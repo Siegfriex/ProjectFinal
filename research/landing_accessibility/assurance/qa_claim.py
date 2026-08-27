@@ -20,6 +20,8 @@ FORBIDDEN = [  # (pattern, rule, note)
     (r"(때문에|로 인해|초래|야기|원인|영향을\s*미친|효과가\s*있)", "§2.4", "인과표현 — 문맥 확인 필요"),
     (r"(종합\s*점수|composite\s*score|\bscore\b|점수)", "§2.4", "단일 종합점수/score 금지"),
     (r"(depth\s*(>=|≥)\s*3|3\s*이상이면)", "§2.4", "절대 cutoff 금지"),
+    (r"측정기가?\s*(실패|작동하지\s*않|고장)", "§3", "원인 3종(가드 입도·archetype-endpoint 규칙·E-6b 구속) 분리 없이 뭉뚱그림 (A 14:31)"),
+    (r"E-?6b[^.]{0,40}(8\s*건|8회)[^.]{0,40}(원인|때문)", "§3", "E-6b 발화 8 ≠ 구속 1 — 발화 횟수를 원인 계수로 쓰지 말 것"),
 ]
 HEDGE_N = r"(대부분|대다수|많은|거의\s*모든|majority|most)"
 GRADE = r"\[(GRADE\s*[ABC]|UNSUPPORTED|EXPLORATORY)[^\]]*\]|GRADE\s*[ABC]\b|\bgrade\s*[ABC]\b"

@@ -207,14 +207,20 @@ def reconstruct_target(res: dict, batch: dict, out_dir: pathlib.Path, f: F, plan
     # A 13:48: mpfed_null_reason breakdown + E-6b fail-closed counter
     notes = " ".join(str(n) for n in ((te.get("notes") or []) + (det.get("notes") or []))) if (te or det) else ""
     row["e6b_gate_kind_undetermined"] = ("gate 판별: UNDETERMINED" in notes)
-    row["gate_kind_resolved"] = ("gate 판별: RESOLVED" in notes)  # A 14:20: RESOLVED(확정) vs UNDETERMINED(fail-closed) 로그 구분 = 측정기 신뢰성 증거
+    row["gate_kind_resolved"] = ("gate 판별: RESOLVED" in notes)
+    # A 14:31: E-6b *binding* = fired AND archetype where gate→endpoint promotion was possible (A2 §1.5.1a: FINANCIAL_ACTION_ENTRY, COMMUNICATION_ENTRY)
+    row["e6b_binding"] = bool(row["e6b_gate_kind_undetermined"] and (row.get("archetype") in ("FINANCIAL_ACTION_ENTRY", "COMMUNICATION_ENTRY")))
+    row["budget_reason"] = te.get("budget_reason") if te else None  # A 14:20: RESOLVED(확정) vs UNDETERMINED(fail-closed) 로그 구분 = 측정기 신뢰성 증거
     if row["mpfed"] is None:
         if row["outcome"] == "ACCOUNT_ACTION_BLOCKED": row["mpfed_null_reason"] = "guard_blocked_pre_scout"
         elif row["endpoint_status"] in ("AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED") and row["e6b_gate_kind_undetermined"]: row["mpfed_null_reason"] = "gate_kind_undetermined"
         elif row["endpoint_status"] in ("AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED"): row["mpfed_null_reason"] = "gate_reached_non_endpoint_archetype"
         elif row["endpoint_status"] == "CAPTCHA": row["mpfed_null_reason"] = "captcha_resolved"
         elif row["endpoint_status"] == "UNRESOLVED" and "NO_SIGNAL" in str(row.get("endpoint_status_detail") or ""): row["mpfed_null_reason"] = "scout_no_signal"
-        elif row["endpoint_status"] == "UNRESOLVED": row["mpfed_null_reason"] = "endpoint_not_reached"
+        elif row["endpoint_status"] == "UNRESOLVED" and row.get("budget_reason") == "SCOUT_ERROR": row["mpfed_null_reason"] = "scout_error_technical"  # A 14:31: detail says budget exceeded but it is a technical failure
+        elif row["endpoint_status"] == "UNRESOLVED" and row.get("budget_reason") == "MAX_SCOUT_WALL_CLOCK_S": row["mpfed_null_reason"] = "scout_wall_clock_budget"
+        elif row["endpoint_status"] == "UNRESOLVED" and row.get("budget_reason") == "MAX_CONSECUTIVE_NO_STATE_CHANGE": row["mpfed_null_reason"] = "scout_no_state_change"
+        elif row["endpoint_status"] == "UNRESOLVED": row["mpfed_null_reason"] = "endpoint_not_reached:" + str(row.get("budget_reason"))
         elif not row["l1_present"]: row["mpfed_null_reason"] = "l1_not_attempted"
         else: row["mpfed_null_reason"] = "other:" + str(row["endpoint_status"])
     else: row["mpfed_null_reason"] = None
@@ -372,13 +378,16 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
     mpfed_null_reasons = Counter(r.get("mpfed_null_reason") for r in attempted if r.get("mpfed_null_reason"))
     e6b_fired_n = sum(1 for r in attempted if r.get("e6b_gate_kind_undetermined"))
     gate_resolved_n = sum(1 for r in attempted if r.get("gate_kind_resolved"))
+    e6b_binding_n = sum(1 for r in attempted if r.get("e6b_binding"))
+    unresolved_by_budget = Counter((r.get("budget_reason"), r.get("endpoint_status_detail")) for r in attempted if r.get("endpoint_status") == "UNRESOLVED")
+    auth_gate_by_arch = Counter(r.get("archetype") for r in attempted if r.get("outcome") == "AUTH_GATE")
     quarantine = [{"run_id": n, "class": "CONCURRENT_LAUNCH_SUPERSEDED", "reason": "sealed REAL run not referenced by any batch; produced by a concurrent duplicate launch process (A 13:48: possibly duplicate launch command presentation)", "limitations_sentence": "동시 이중 발사로 실제 호스트에 중복 요청이 나갔고, 그 run 은 분석에서 격리했다."} for n in orphan]
     sev = f.worst()
     verdict = "MATCH" if sev in (None, "C2") else ("MISMATCH" if sev == "C1" else "SYSTEMIC_HARD_STOP_CANDIDATE")
     return {"artifact": f"QA_{label}", "generated_by": "C", "generated_at": now(), "out_dir": str(out), "plan": plan_path, "worker": worker,
             "verdict": verdict, "severity_max": sev, "n_batches": len(batches), "batch_hash_all_ok": all(b["_hash_ok"] for b in batches) if batches else None,
             "outcomes": dict(outcomes), "attempted_n": len(attempted), "joint_valid_j1_j3_n": len(jv), "j4_pending": "requires fact_criterion_result + frozen older-relevant set",
-            "excluded_by_reason": dict(excl), "by_archetype": dict(by_arch), "mpfed_null_reason": dict(mpfed_null_reasons), "mpfed_available_n": sum(1 for r in attempted if r.get("mpfed") is not None), "e6b_fail_closed_fired_n": e6b_fired_n, "gate_kind_resolved_n": gate_resolved_n, "quarantine": quarantine, "plan": plan_rep, "append_only": ao,
+            "excluded_by_reason": dict(excl), "by_archetype": dict(by_arch), "mpfed_null_reason": dict(mpfed_null_reasons), "mpfed_available_n": sum(1 for r in attempted if r.get("mpfed") is not None), "e6b_fail_closed_fired_n": e6b_fired_n, "e6b_binding_n": e6b_binding_n, "gate_kind_resolved_n": gate_resolved_n, "unresolved_by_budget_reason": {f"{k[0]}|{k[1]}": v for k, v in unresolved_by_budget.items()}, "auth_gate_by_archetype": dict(auth_gate_by_arch), "quarantine": quarantine, "plan": plan_rep, "append_only": ao,
             "provenance_variants": list(provs), "protocol_versions": dict(protos), "orphan_evidence_runs": orphan, "run_accounting": run_accounting,
             "findings": f.items, "rows": rows}
 
