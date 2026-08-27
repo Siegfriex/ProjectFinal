@@ -279,6 +279,41 @@ COLLECTOR_SHA_FULL = "222ef2c28ed5971b3c9f8b07120b7627d2617476"
 PROMOTED_MAIN_SHA = "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d"
 
 
+def build_input_shas(dirs: list[str]) -> dict[str, Any]:
+    """`MART_ACCEPTANCE §1-7`이 요구하는 입력 SHA 세트.
+
+    필드명은 **C(assurance)가 찾는 이름**을 쓴다 — `plan_hash` ·
+    `older_relevance_registry_sha256`. 이름이 다르면 있는 값도 못 찾는다.
+    이 블록은 `FROZEN_MART_MANIFEST.json`과 `REAL_RUN_SUMMARY.json` **양쪽에**
+    실린다 — 검증자가 어느 파일을 열든 찾을 수 있어야 한다.
+    """
+    return {
+        "collector_sha": COLLECTOR_SHA_FULL,
+        "plan_hash": FROZEN_PLAN_SHA256,
+        "older_relevance_registry_sha256": OLDER_RELEVANCE_REGISTRY_SHA256,
+        "protocol_version": _protocol_version(dirs),
+        "e001_release_control_sha256": _release_document_sha(dirs),
+        "promoted_main_sha": PROMOTED_MAIN_SHA,
+        "note": (
+            "MART_ACCEPTANCE §1-7 입력 SHA. 이 블록은 FROZEN_MART_MANIFEST.json과 "
+            "REAL_RUN_SUMMARY.json 양쪽에 동일하게 실린다."
+        ),
+    }
+
+
+def _protocol_version(dirs: list[str]) -> str | None:
+    for d in dirs:
+        for path in sorted(Path(d).glob("batch_*.json")):
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            value = (payload.get("provenance") or {}).get("protocol_version")
+            if value:
+                return str(value)
+    return None
+
+
 def _sha256_of(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -302,7 +337,7 @@ def build_frozen_mart_manifest(
     mart_files: list[str],
     marts: dict[str, list[dict[str, Any]]],
     markers: dict[str, Any],
-    release_sha: str | None = None,
+    input_shas: dict[str, Any],
 ) -> dict[str, Any]:
     """`FROZEN_MART_MANIFEST.json` — **이 통계가 어느 mart에서 나왔는가**를 증명한다.
 
@@ -330,13 +365,7 @@ def build_frozen_mart_manifest(
         "frozen": True,
         "snapshot_at": snapshot_now(),
         "mart_files": files,
-        "input_shas": {
-            "collector": COLLECTOR_SHA_FULL,
-            "frozen_plan": FROZEN_PLAN_SHA256,
-            "older_relevance_registry": OLDER_RELEVANCE_REGISTRY_SHA256,
-            "e001_release_control": release_sha,
-            "promoted_main": PROMOTED_MAIN_SHA,
-        },
+        "input_shas": input_shas,
         "analysis_cohort": markers.get("analysis_cohort"),
         "batch_chain_verified_all_sources": markers.get("chain_verified_all_sources"),
         "note": (
@@ -806,9 +835,8 @@ def main() -> None:
         (out / f"{name}.json").write_text(
             json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8"
         )
-    manifest = build_frozen_mart_manifest(
-        out, list(marts), marts, markers, release_sha=_release_document_sha(dirs)
-    )
+    input_shas = build_input_shas(dirs)
+    manifest = build_frozen_mart_manifest(out, list(marts), marts, markers, input_shas)
     manifest_path = out / "FROZEN_MART_MANIFEST.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -818,8 +846,12 @@ def main() -> None:
         "document_type": "REAL_RUN_SUMMARY",
         "frozen_mart_manifest_ref": {
             "file": manifest_path.name,
+            "path": str(manifest_path),
             "sha256": f"sha256:{_sha256_of(manifest_path)}",
+            "note": "mart 파일별 sha256·row_count는 이 파일에 있다.",
         },
+        # C(assurance)가 이 파일에서 입력 SHA를 찾으므로 manifest와 **양쪽에** 싣는다.
+        "input_shas": input_shas,
         "snapshot_at": snapshot_now(),
         "grade": "PILOT / PRELIMINARY",
         "grade_note": (
