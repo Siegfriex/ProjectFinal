@@ -15,6 +15,7 @@ evidence 파일을 다시 파싱하지 않는다(같은 값이 이미 배치에 
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -338,10 +339,8 @@ def describe_axis_c(marts: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         for row in rows:
             v = row.get(key)
             if v is not None and str(v) not in {"", "None", "nan"}:
-                try:
+                with contextlib.suppress(TypeError, ValueError):
                     out.append(float(v))
-                except (TypeError, ValueError):
-                    pass
         return out
 
     def _stats(values: list[float]) -> dict[str, Any]:
