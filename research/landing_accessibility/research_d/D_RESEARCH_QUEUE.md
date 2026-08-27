@@ -644,3 +644,34 @@ D 가 낼 수 있는 것은 **부분 완화 하나의 사실 보고**뿐이다 �
 B 가 R7 을 W5C 에만 전달하고 W5E 에는 누락한 것을 자진 신고했다(R17 형식).
 D 도 같은 실패를 냈다 — `D-DEF-12`, 워커 간 **입력 모듈 의존성**을 분할 계약에 넣지 않았다.
 출력 namespace 분리만으로는 부족하다는 것이 두 번 확인됐다.
+
+## 2026-08-28 03:25 — 워커 3기 전부 완결 · BLK-011 재대조 · R16 첫 FACT_CORRECTION
+
+| 워커 | verdict | 요지 |
+|---|---|---|
+| Lane S-R7 | `CONVERGED_WITH_AMBIGUITY` | 경계 37/37 · precedence 39/39 · 변이 10/10 · 기존 66건 무손상. **AMB-S14 = R7 자기모순** |
+| Lane F-Δ9 | `CONVERGED_WITH_AMBIGUITY` | 회귀 202/202 무손상(+102 = 304/304) · 변이 11/11. AMB-F01·F03 닫힘 |
+| Lane X-Converge | `DIFFERENT_QUANTITIES` | `menu_dependency` CONVERGED, `nav_container_depth` 축 불일치 |
+
+### `D-V3-FACT_CORRECTION-001` — R16 하에 D 의 첫 반론
+`thresholds.y_bands`(`1/3 ≤ y < 2/3 → MID`)와 `boundary_rule`("정확히 1/3 인 점은 TOP")이 **y=1/3 에서 다르다.**
+x 축은 두 진술이 일치한다. **D 가 티켓 원문을 직접 열어 확인했고 어느 쪽도 canonical 로 선언하지 않았다.**
+boundary_rule 이 x 만 말하려던 것일 수 있으나 문면은 축을 한정하지 않는다 — **의도를 추정하지 않는다.**
+라우팅은 A6 대로 `to=[C] cc=[A]`.
+
+### 변이검사가 못 잡은 결함을 독립 재도출이 잡았다 — R14 실증
+Lane S 에서 precedence 결함(DRAWER 미결 + FLOATING 확정 → FLOATING 반환, 20 입력조합)이
+**fixture 60/60 green · 변이 8/8 검출 상태에서 살아 있었다.**
+잡은 것은 티켓 원문에서 코드 공유 없이 두 번째로 구현한 대조뿐이다.
+**변이검사는 fixture 가 이미 묻는 것만 건드린다.** D 의 5 lane 전체가 같은 한계를 갖는다.
+
+### BLK-011 재대조
+A 가 SSOTV3 를 `control/v3/ssot_snapshot/` 에 커밋(`cad8ad45`)해 해소했고 전 평면에 재대조를 지시했다.
+D 독립 재계산: **스냅샷 22 파일 vs 원본 바이트 불일치 0 · 매니페스트 20/20 · self-sha `1735c956…` 일치 · lapse CLEAN.**
+방화벽 예외는 **A 지시를 granted_by 로** 확장했고(스스로 넓힌 것이 아니다), 스캐너의 디렉터리 예외 매칭을
+`/**` 항목에 한해 슬래시 경계로 정확히 비교하도록 고쳐 **위장 형제 디렉터리(`ssot_snapshot_evil`)는 계속 막히는 것**을 대조군으로 확인했다.
+
+A 의 honest_limit 에 동의한다 — **지금부터의 provenance 이지 01:52 이후 불변의 증명이 아니다.**
+파일과 매니페스트를 함께 바꾸면 이 검사들은 전부 통과한다. **변조 창을 좁히는 정황이지 증명이 아니다.**
+
+**열린 결정 2건**: `AMB-S14`(y=1/3) · `AMB-X02`(nav depth 에 endpoint cut 적용 여부).
