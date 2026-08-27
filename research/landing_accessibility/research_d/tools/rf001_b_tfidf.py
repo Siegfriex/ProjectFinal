@@ -380,7 +380,7 @@ def main() -> int:
             np.array(base["most_frequent"]["fold_scores"])] + \
            [np.array(configs[k]["fold_scores"]) for k in order]
     labels = ["BASE stratified", "BASE most_frequent"] + order
-    bp = ax.boxplot(data, vert=False, labels=labels, showmeans=True, widths=0.6)
+    ax.boxplot(data, orientation="horizontal", tick_labels=labels, showmeans=True, widths=0.6)
     for i, d in enumerate(data):
         ax.scatter(d, np.full(d.size, i + 1) + np.random.RandomState(SEED).normal(0, .06, d.size),
                    s=6, alpha=.35, color="tab:blue")
