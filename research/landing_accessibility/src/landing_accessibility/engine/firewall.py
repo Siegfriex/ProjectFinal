@@ -95,10 +95,21 @@ class ExecutionScope(StrEnum):
       `e001_allowed == true` 로 **런타임에 확인될 때만** 열린다 (A 의 별도 릴리스
       티켓). 문서가 없거나 조건이 하나라도 어긋나면 차단이다 — P0_RELEASE 하나로는
       절대 열리지 않는다.
+    - `V2_DIAGNOSTIC` — `D-R0-82` (`T-B-BLK-006` 시정). 12-target REAL diagnostic
+      pilot. `DIAGNOSTIC_PILOT_MANIFEST.json`의 동결된 12 target **만** —
+      `E001_FULL`의 59 target 나머지 47은 이 scope로 열리지 않는다.
+      `control/V2_DIAGNOSTIC_RELEASE.json`이 `status == RELEASED` ·
+      `promoted_main_sha` · `v2_diagnostic_allowed == true`로 런타임에 확인되는
+      것에 더해, 그 문서 자신이 `manifest_sha256`을
+      `DIAGNOSTIC_PILOT_MANIFEST_SHA256`과 **동일하게** 싣고 있어야 한다 — scope
+      승인과 표본을 묶는 바인딩이다(표본이 조용히 바뀐 릴리스 문서로 다른 12
+      target을 여는 것을 막는다). `E001_FULL`처럼 다른 scope의 릴리스 문서를
+      대신 보지 않는다 — 자기 문서만 본다.
     """
 
     E000_FAST = "E000_FAST"
     E001_FULL = "E001_FULL"
+    V2_DIAGNOSTIC = "V2_DIAGNOSTIC"
 
 
 #: P0 종료 전 허용되는 모드.
@@ -116,6 +127,9 @@ REAL_TARGET_URL_SCHEMES: frozenset[str] = frozenset({"https", "http"})
 P0_RELEASE_REF = "origin/control/landing-orchestrator"
 P0_RELEASE_PATH = "research/landing_accessibility/control/P0_RELEASE.json"
 E001_RELEASE_PATH = "research/landing_accessibility/control/E001_RELEASE.json"
+#: `D-R0-82` §4.5 — `V2_DIAGNOSTIC`은 자기 릴리스 문서를 본다(E001_RELEASE.json을
+#: 대신 보지 않는다).
+V2_DIAGNOSTIC_RELEASE_PATH = "research/landing_accessibility/control/V2_DIAGNOSTIC_RELEASE.json"
 
 #: 릴리스 문서에서 "승인됨" 으로 인정하는 유일한 status 값.
 RELEASE_STATUS_RELEASED = "RELEASED"
@@ -202,6 +216,34 @@ E001_WORKER_IDS: tuple[str, ...] = ("worker_01", "worker_02", "worker_03", "work
 
 #: eligibility CSV 에서 실제 수집을 허용하는 유일한 상태.
 E001_ELIGIBLE_STATUS = "ELIGIBLE_WEB"
+
+# ── V2_DIAGNOSTIC allowlist (`D-R0-82` — 12-target REAL diagnostic pilot) ────────
+#: `DIAGNOSTIC_PILOT_MANIFEST.json` 의 정본 후보 경로. `T-B-BLK-007`(A, S-b) —
+#: A 가 `control/pilot-manifest@54a0c7a4` 를 worker base(`2281c853`) 계열에
+#: 커밋해 **트리 안**으로 편입했다(integration `8f5b688a`). 그래서 `_plan_
+#: candidates`(이 워크트리 안 → 메인 저장소 순, `E001_MASTER_PLAN_CANDIDATES`와
+#: 같은 규칙)**만** 쓴다 — A 지시대로 트리 **밖** 경로(다른 브랜치를 체크아웃한
+#: sibling 워크트리 등)는 후보에 넣지 않는다. `git show`로 다른 브랜치를 읽는
+#: 코드도 넣지 않는다 — 저장소 루트 기준 상대경로로 평범하게 파일을 연다.
+DIAGNOSTIC_PILOT_MANIFEST_CANDIDATES: tuple[Path, ...] = _plan_candidates(
+    "control", "pilot", "DIAGNOSTIC_PILOT_MANIFEST.json"
+)
+
+#: `DIAGNOSTIC_PILOT_MANIFEST.json` 원본 바이트의 sha256 — `DIAGNOSTIC_PILOT_MANIFEST
+#: .sha256.json` 이 동결한 값과 같다. `D-R0-82` §4 요구 3 — "표본이 바뀌면 다른
+#: 표본이다": 로더가 이 값과 재계산이 다르면 **실행을 거부한다**(파일을 조용히
+#: 신뢰하지 않는다).
+#:
+#: v2 (`fa6780d902`, A `C-COMPLETION-001151.A` GO_NO_GO, decision=F1_OPTION_II_
+#: REFREEZE). v1(`4d3209ca…`)은 **폐기**됐다 — v1 의 evidence-poor "degenerate 6"
+#: 집합이 labeler 산출에서 유래해 "gold label 미참조" 주장이 lineage 로 거짓이었다.
+#: v2 는 evidence-poor 를 관측 전용 3규칙(R1 unobserved · R2
+#: measurement_status!=MEASURED · R3 dom.html sha256 중복)으로만 재정의했고,
+#: CONTENT_OPEN 표본이 TikTok(`wtg_5beeaf…`) → Netflix(`wtg_13ed070478ef62c3`)로
+#: 바뀌었다(나머지 11 은 동일).
+DIAGNOSTIC_PILOT_MANIFEST_SHA256 = (
+    "78f2e32a8fc1e732e485debc41ccdec618a63a832813de83e19a2cf50b51b799"
+)
 
 
 class FirewallError(RuntimeError):
@@ -349,7 +391,11 @@ def _looks_like_sha(value: object) -> bool:
 
 
 def _evaluate_release_document(
-    doc: ReleaseDocument, *, scope: ExecutionScope, allow_flag: str
+    doc: ReleaseDocument,
+    *,
+    scope: ExecutionScope,
+    allow_flag: str,
+    expected_manifest_sha256: str | None = None,
 ) -> ReleaseVerdict:
     def verdict(
         allowed: bool,
@@ -410,9 +456,24 @@ def _evaluate_release_document(
             release_status=status_str,
             promoted_main_sha=str(promoted),
         )
+    # `D-R0-82` §4 요구 5 — 릴리스 문서에 manifest sha256 을 기재해 scope 와 표본을
+    # 묶는다. `expected_manifest_sha256` 이 주어지지 않은 scope(E000_FAST·E001_FULL)
+    # 는 이 분기를 타지 않는다 — 기존 판정은 한 글자도 바뀌지 않는다.
+    if expected_manifest_sha256 is not None:
+        manifest_sha = data.get("manifest_sha256")
+        if manifest_sha != expected_manifest_sha256:
+            return verdict(
+                False,
+                f"manifest_sha256 이 릴리스 문서에 없거나 기대값과 다르다 — "
+                f"기대 {expected_manifest_sha256}, 문서 {manifest_sha!r}. scope 승인과 "
+                "표본을 묶는 바인딩이 깨졌다 — 표본이 조용히 바뀌었을 수 있다(D-R0-82 §4).",
+                release_status=status_str,
+                promoted_main_sha=str(promoted),
+            )
     return verdict(
         True,
-        f"{allow_flag}=true · status={RELEASE_STATUS_RELEASED} · promoted_main_sha 확인",
+        f"{allow_flag}=true · status={RELEASE_STATUS_RELEASED} · promoted_main_sha 확인"
+        + (" · manifest_sha256 확인" if expected_manifest_sha256 is not None else ""),
         release_status=status_str,
         promoted_main_sha=str(promoted),
     )
@@ -438,13 +499,32 @@ def resolve_execution_scope(value: object) -> ExecutionScope:
 def evaluate_execution_scope(
     scope: object, *, repo_dir: Path | None = None, use_cache: bool = True
 ) -> ReleaseVerdict:
-    """scope 하나가 지금 실제 수집을 허가받았는지 **런타임에** 판정한다."""
+    """scope 하나가 지금 실제 수집을 허가받았는지 **런타임에** 판정한다.
+
+    `D-R0-82` §4 요구 4 시정 — 이전에는 `E000_FAST`가 아니면 **전부**
+    `E001_RELEASE.json`을 봤다(`V2_DIAGNOSTIC`에도 그 문서가 적용됐다는 뜻이다).
+    이제 `V2_DIAGNOSTIC`은 자기 릴리스 문서(`V2_DIAGNOSTIC_RELEASE_PATH`)를 본다
+    — `E001_FULL`만 여전히 `E001_RELEASE.json`으로 떨어진다(else 분기).
+    """
     resolved = resolve_execution_scope(scope)
     if resolved is ExecutionScope.E000_FAST:
         doc = read_release_document(
             ref=P0_RELEASE_REF, path=P0_RELEASE_PATH, repo_dir=repo_dir, use_cache=use_cache
         )
         return _evaluate_release_document(doc, scope=resolved, allow_flag="e000_allowed")
+    if resolved is ExecutionScope.V2_DIAGNOSTIC:
+        doc = read_release_document(
+            ref=P0_RELEASE_REF,
+            path=V2_DIAGNOSTIC_RELEASE_PATH,
+            repo_dir=repo_dir,
+            use_cache=use_cache,
+        )
+        return _evaluate_release_document(
+            doc,
+            scope=resolved,
+            allow_flag="v2_diagnostic_allowed",
+            expected_manifest_sha256=DIAGNOSTIC_PILOT_MANIFEST_SHA256,
+        )
     doc = read_release_document(
         ref=P0_RELEASE_REF, path=E001_RELEASE_PATH, repo_dir=repo_dir, use_cache=use_cache
     )
@@ -772,12 +852,85 @@ def load_e001_full_allowlist(path: str | Path | None = None) -> TargetAllowlist:
     return allowlist
 
 
+# ── V2_DIAGNOSTIC allowlist ───────────────────────────────────────────────────
+def load_v2_diagnostic_allowlist(path: str | Path | None = None) -> TargetAllowlist:
+    """`DIAGNOSTIC_PILOT_MANIFEST.json`(12-target 표본)에서 `V2_DIAGNOSTIC`
+    allowlist 를 만든다.
+
+    `D-R0-82` §4 요구 2·3 — manifest 원본 바이트의 sha256 이
+    `DIAGNOSTIC_PILOT_MANIFEST_SHA256`(동결값)과 다르면 **실행을 거부한다**.
+    E001 loader(`load_e001_master_plan`)가 계획 해시를 재계산해 대조하는 것과
+    같은 자세다 — 표본이 바뀌면 다른 표본이므로, 파일을 조용히 신뢰하지 않는다.
+    """
+    candidates = (Path(path),) if path is not None else DIAGNOSTIC_PILOT_MANIFEST_CANDIDATES
+    chosen = next((c for c in candidates if c.is_file()), None)
+    if chosen is None:
+        raise AllowlistUnavailableError(
+            "V2_DIAGNOSTIC allowlist 정본(DIAGNOSTIC_PILOT_MANIFEST.json)을 찾지 못했다: "
+            f"{[str(c) for c in candidates]} — allowlist 없이 실제 수집을 시작하지 않는다."
+        )
+    key = f"V2_DIAGNOSTIC::{chosen}"
+    if path is None and key in _ALLOWLIST_CACHE:
+        return _ALLOWLIST_CACHE[key]
+
+    raw = chosen.read_bytes()
+    digest = hashlib.sha256(raw).hexdigest()
+    if digest != DIAGNOSTIC_PILOT_MANIFEST_SHA256:
+        raise AllowlistUnavailableError(
+            f"{chosen} 의 sha256 이 동결값과 다르다 — 기대 {DIAGNOSTIC_PILOT_MANIFEST_SHA256}, "
+            f"실제 {digest}. 표본이 바뀌면 다른 표본이다(D-R0-82 §4 요구 3) — 실행을 거부한다."
+        )
+    data = json.loads(raw.decode("utf-8"))
+    if not isinstance(data, dict):
+        raise AllowlistUnavailableError(f"{chosen} 이 객체가 아니다")
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise AllowlistUnavailableError(f"{chosen} 에 targets 배열이 없다")
+
+    ids: set[str] = set()
+    urls: set[str] = set()
+    hosts: set[str] = set()
+    for row in targets:
+        if not isinstance(row, dict):
+            continue
+        target_id = row.get("web_target_id")
+        if target_id:
+            ids.add(str(target_id))
+        url = row.get("url")
+        if url:
+            urls.add(str(url))
+            host = urlparse(str(url)).netloc.lower()
+            if host:
+                hosts.add(host)
+    if not ids:
+        raise AllowlistUnavailableError(
+            f"{chosen} 의 targets 에서 web_target_id 를 하나도 못 읽었다"
+        )
+
+    # `canonical_service_keys` 는 채우지 않는다 — manifest 스키마에 그 필드가 없다
+    # (`service` 는 사람이 읽는 한국어 표기이지 P-B 의 canonical_service_key 어휘가
+    # 아니다). 없는 데이터를 지어내 채우면 그게 곧 조작이다.
+    allowlist = TargetAllowlist(
+        scope=ExecutionScope.V2_DIAGNOSTIC.value,
+        source_path=str(chosen),
+        plan_sha256=digest,
+        target_ids=frozenset(ids),
+        official_urls=frozenset(urls),
+        hosts=frozenset(hosts),
+    )
+    if path is None:
+        _ALLOWLIST_CACHE[key] = allowlist
+    return allowlist
+
+
 def load_scope_allowlist(scope: object, *, path: str | Path | None = None) -> TargetAllowlist:
     resolved = resolve_execution_scope(scope)
     if resolved is ExecutionScope.E000_FAST:
         return load_e000_fast_allowlist(path)
     if resolved is ExecutionScope.E001_FULL:
         return load_e001_full_allowlist(path)
+    if resolved is ExecutionScope.V2_DIAGNOSTIC:
+        return load_v2_diagnostic_allowlist(path)
     raise AllowlistUnavailableError(
         f"{resolved.value} 의 allowlist 정본이 아직 없다 — 이 scope 는 실행할 수 없다."
     )
@@ -1006,6 +1159,8 @@ def firewall_state(scope: object | None = None) -> dict[str, object]:
 
 
 __all__ = [
+    "DIAGNOSTIC_PILOT_MANIFEST_CANDIDATES",
+    "DIAGNOSTIC_PILOT_MANIFEST_SHA256",
     "E000_FAST_PLAN_CANDIDATES",
     "E001_RELEASE_PATH",
     "FIXTURE_URL_SCHEMES",
@@ -1016,6 +1171,7 @@ __all__ = [
     "P0_RELEASE_REF",
     "REAL_TARGET_URL_SCHEMES",
     "SHADOW_LANE",
+    "V2_DIAGNOSTIC_RELEASE_PATH",
     "AllowlistUnavailableError",
     "ExecutionMode",
     "ExecutionScope",
@@ -1037,6 +1193,7 @@ __all__ = [
     "firewall_state",
     "load_e000_fast_allowlist",
     "load_scope_allowlist",
+    "load_v2_diagnostic_allowlist",
     "p0_closed",
     "read_release_document",
     "real_target_permitted",

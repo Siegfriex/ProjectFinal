@@ -242,6 +242,11 @@ def test_assess_reachable_candidates_blocks_when_every_reachable_candidate_is_di
     assert assessment.blocking is not None
     assert assessment.blocking.category is None, "disabled 는 forbidden 어휘 카테고리가 아니다"
     assert "DISABLED_OR_INERT" in assessment.blocking.reason
+    # A `C-FINDING-001512.A` — category 는 없어도 blocking_state 는 있어야 한다.
+    # 이게 없으면 "위험해서 막힘"과 "아무것도 조작 불가능해서 막힘"이 outcome
+    # 레코드에서 구분되지 않는다.
+    assert assessment.blocking.blocking_state == CandidateActionState.DISABLED_OR_INERT.value
+    assert assessment.as_dict()["blocking"]["state"] == CandidateActionState.DISABLED_OR_INERT.value
 
     states_by_selector = {c["selector"]: c["state"] for c in assessment.as_dict()["candidates"]}
     assert states_by_selector["#next"] == CandidateActionState.DISABLED_OR_INERT.value
@@ -274,6 +279,7 @@ def test_assess_reachable_candidates_cart_candidate_alone_is_blocked_but_does_no
     assessment = assess_reachable_candidates(candidates, branching_limit=4)
     assert assessment.blocking is not None
     assert assessment.blocking.category == "ADD_TO_CART"
+    assert assessment.blocking.blocking_state == CandidateActionState.FORBIDDEN_TRANSACTION.value
 
 
 def test_assess_reachable_candidates_cart_present_does_not_block_other_safe_candidates():
@@ -539,6 +545,55 @@ def test_non_finance_non_communication_archetype_gate_does_not_become_endpoint(t
     )
 
 
+def test_content_open_login_landing_reaches_gate_but_never_fills_or_submits_credentials(
+    tmp_path, monkeypatch
+):
+    """`D-R0-03` 재확인 — A `C-COMPLETION-001151.A`(V2_DIAGNOSTIC manifest v2 요청).
+    diagnostic manifest 의 CONTENT_OPEN 표본이 Netflix
+    (`wtg_13ed070478ef62c3`, `https://www.netflix.com/kr/login`)로 바뀌었다 —
+    entry URL **자체가 로그인 페이지**다. A 원문: "로그인 폼 도달 자체는 gate
+    observation 이지 금지가 아니다. credential 입력·login submit 절대 금지."
+
+    이 테스트는 그 정확한 경계를 `auth_login_gate.html`(landing 자체가 gate인
+    fixture, Netflix 시나리오와 구조적으로 동일 — entry 화면이 곧 로그인 화면)
+    + `CONTENT_OPEN` archetype으로 재현한다. guard/Scout 는 URL을 보고 분기하지
+    않는다(구조적 판단, `engine/l1_engine.py` 규칙 E-7) — 그래서 이 fixture
+    테스트가 곧 Netflix 시나리오에 대한 답이다: 로그인 화면에 **도달**은 하되
+    (`AUTH_GATE_REACHED`), `Page.fill`도 `Page.click`도 0회다.
+    """
+    from playwright.sync_api import Page
+
+    click_calls: list[str] = []
+    fill_calls: list[str] = []
+    original_click = Page.click
+    original_fill = Page.fill
+
+    def spy_click(self, selector, *args, **kwargs):
+        click_calls.append(selector)
+        return original_click(self, selector, *args, **kwargs)
+
+    def spy_fill(self, selector, *args, **kwargs):
+        fill_calls.append(selector)
+        return original_fill(self, selector, *args, **kwargs)
+
+    monkeypatch.setattr(Page, "click", spy_click)
+    monkeypatch.setattr(Page, "fill", spy_fill)
+
+    runner = BatchRunner(out_dir=tmp_path / "out", fixture_root=FIXTURES, batch_size=5)
+    manifests = runner.run([_login_gate_target("CONTENT_OPEN")], execution_mode="FIXTURE")
+
+    result = manifests[0].results[0]
+    assert result["outcome"] != TargetOutcome.ACCOUNT_ACTION_BLOCKED.value
+    detail = result["detail"]
+    assert detail.get("scout_invoked") is True, "Scout 가 로그인 landing 에 도달하지 못했다"
+    assert detail["endpoint_status"] == "AUTH_GATE_REACHED", (
+        f"CONTENT_OPEN 에서 로그인 gate 관측(D-R0-03)이 아니라 다른 판정이 나왔다: {detail}"
+    )
+
+    assert fill_calls == [], f"자격증명 필드가 채워졌다(절대 금지 위반): {fill_calls}"
+    assert click_calls == [], f"로그인 제출이 클릭됐다(절대 금지 위반): {click_calls}"
+
+
 def test_scout_scout_is_actually_invoked_for_the_login_and_purchase_fixture(tmp_path, monkeypatch):
     """더 낮은 층 — `Scout.scout` 자체가 호출됐다는 것을 spy로 직접 증명한다
     (기존 회귀 테스트들과 같은 패턴, `tests/test_e001_default_executor_l0_l1.py` 참고)."""
@@ -636,6 +691,10 @@ def test_cart_only_landing_is_blocked_before_scout_is_constructed(tmp_path, monk
     detail = result["detail"]
     assert detail.get("scout_invoked") is False
     assert detail.get("blocked_category") == "ADD_TO_CART"
+    # A `C-FINDING-001512.A` — outcome(ACCOUNT_ACTION_BLOCKED) 하나가 서로 다른
+    # 근거(위험해서 vs 아무것도 조작 불가능해서)를 뭉뚱그리지 않도록, 이 차단을
+    # 유발한 candidate state 를 terminal 레코드에 별도 필드로 남긴다.
+    assert detail.get("blocked_state") == "FORBIDDEN_TRANSACTION"
     assert scout_calls == [], (
         f"Scout 가 생성됐다 — 안전한 대안이 없는데도 막히지 않았다: {scout_calls}"
     )
@@ -716,6 +775,15 @@ def test_disabled_only_landing_does_not_become_expansion_target(tmp_path, monkey
     assert mask is not None
     states_by_text = {c["text"]: c["state"] for c in mask["candidates"]}
     assert states_by_text.get("다음") == "DISABLED_OR_INERT"
+
+    # A `C-FINDING-001512.A` 비차단 메모 — 이 fixture 는 outcome 이
+    # ACCOUNT_ACTION_BLOCKED 지만 `blocked_category` 는 없다(disabled 는 forbidden
+    # 어휘가 아니다) — `blocked_state` 만으로 "위험해서 막힌 게 아니라 아무것도
+    # 조작 가능하지 않아서 막혔다"를 사후에 구분할 수 있어야 한다. 새 outcome enum
+    # 은 만들지 않는다(SSOT 9-state 변경은 A 결정 사항, full-59 이전으로 유예됨) —
+    # 지금은 이 필드로 근거(provenance)만 보존한다.
+    assert detail.get("blocked_category") is None
+    assert detail.get("blocked_state") == "DISABLED_OR_INERT"
 
 
 def test_enabled_only_landing_becomes_expansion_target(tmp_path, monkeypatch):

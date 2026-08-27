@@ -1,0 +1,219 @@
+{
+  "assertion_type": "DECISION",
+  "doc_id": "LA-DIAG-PILOT-MANIFEST-2.1",
+  "evidence_poor_rule_OBSERVATION_ONLY": {
+    "R1_unobserved": "E001 evidence 디렉터리 중 manifest.jsonl 이 없는 빈 stub 의 wtg",
+    "R2_status_not_measured": "fact_landing_observation.measurement_status != MEASURED",
+    "R3_dom_bytes_duplicate": "l0a/dom.html sha256 이 둘 이상의 관측에서 동일한 wtg",
+    "note": "세 규칙 모두 frozen artifact 만으로 재현 가능하다. labeler 산출을 참조하지 않는다."
+  },
+  "frozen_before_run": true,
+  "n": 12,
+  "phase": "V2_DIAGNOSTIC_REAL_EVIDENCE_PILOT",
+  "purpose": "evidence sufficiency / collector integrity / representative-surface observability 검증. W2 performance acceptance pilot 이 아니다.",
+  "quota": {
+    "COMMUNICATION_ENTRY": 1,
+    "CONTENT_OPEN": 1,
+    "FINANCIAL_ACTION_ENTRY": 2,
+    "ITEM_DETAIL": 3,
+    "PLACE_LOOKUP": 2,
+    "QUERY": 2,
+    "UTILITY_ENTRY": 1
+  },
+  "sampling_rule": [
+    "모집단 = frozen frame 59 (shadow CSV @2281c85 ∧ mapping_status==CANDIDATE)",
+    "층화 = prior interaction_archetype (frame 정의, gold label 아님)",
+    "정렬 = sha256(SEED + '|' + web_target_id) 오름차순. 난수 없음",
+    "규칙1 quota>=2 archetype 은 evidence-poor 1건 우선",
+    "규칙2 나머지는 NORMAL 에서 정렬 순",
+    "규칙3 NORMAL 부족 시 POOR 에서 정렬 순",
+    "split membership 미참조 · LABELS_FROZEN 및 RAW_L*/OVERLAP_* 미참조"
+  ],
+  "seed": "LA-DIAG-PILOT-2026-08-27-V2",
+  "selection_trace": [
+    {
+      "archetype": "COMMUNICATION_ENTRY",
+      "pool": 4,
+      "poor_in_pool": 0,
+      "quota": 1,
+      "selected": [
+        "wtg_699a5e2f3f410152"
+      ]
+    },
+    {
+      "archetype": "CONTENT_OPEN",
+      "pool": 3,
+      "poor_in_pool": 0,
+      "quota": 1,
+      "selected": [
+        "wtg_13ed070478ef62c3"
+      ]
+    },
+    {
+      "archetype": "FINANCIAL_ACTION_ENTRY",
+      "pool": 11,
+      "poor_in_pool": 4,
+      "quota": 2,
+      "selected": [
+        "wtg_95967b50683649f2",
+        "wtg_35319a420294ee17"
+      ]
+    },
+    {
+      "archetype": "ITEM_DETAIL",
+      "pool": 26,
+      "poor_in_pool": 2,
+      "quota": 3,
+      "selected": [
+        "wtg_ef06dc942ef3ccc9",
+        "wtg_ea031f85e857140e",
+        "wtg_517b8047eb5be716"
+      ]
+    },
+    {
+      "archetype": "PLACE_LOOKUP",
+      "pool": 4,
+      "poor_in_pool": 0,
+      "quota": 2,
+      "selected": [
+        "wtg_efda6e0b8457d63c",
+        "wtg_60d4d22e3809f780"
+      ]
+    },
+    {
+      "archetype": "QUERY",
+      "pool": 5,
+      "poor_in_pool": 1,
+      "quota": 2,
+      "selected": [
+        "wtg_ff3ee504792f6cfc",
+        "wtg_91b952863c62993d"
+      ]
+    },
+    {
+      "archetype": "UTILITY_ENTRY",
+      "pool": 6,
+      "poor_in_pool": 1,
+      "quota": 1,
+      "selected": [
+        "wtg_190b4501e4415d5e"
+      ]
+    }
+  ],
+  "status": "PARTIAL_READY_WITH_BLOCKER",
+  "supersedes": {
+    "reason": "C-COMPLETION-001151 F1 — v1 의 'degenerate 6' 집합이 labeler 보고에서 유래해 'gold label 미참조' 주장이 lineage 로 거짓이었다. C 는 11/12 만 재현했다. 재현 불가능한 표본은 동결된 것이 아니다.",
+    "v1_sha256": "4d3209cad1a316caad117255934617097fdb96f77da67666feb42f71e2c86fc2"
+  },
+  "targets": [
+    {
+      "evidence_class": "NORMAL",
+      "order_key": "2afb371e3c7a1ec0",
+      "poor_rule": null,
+      "prior_archetype": "COMMUNICATION_ENTRY",
+      "service": "카카오톡",
+      "url": "https://www.kakaocorp.com/page/detail/10810?lang=ENG",
+      "web_target_id": "wtg_699a5e2f3f410152"
+    },
+    {
+      "evidence_class": "NORMAL",
+      "order_key": "73f0a9f214b7de6e",
+      "poor_rule": null,
+      "prior_archetype": "CONTENT_OPEN",
+      "service": "Netflix",
+      "url": "https://www.netflix.com/kr/login",
+      "web_target_id": "wtg_13ed070478ef62c3"
+    },
+    {
+      "evidence_class": "POOR",
+      "order_key": "036aae8d3e6ffc2b",
+      "poor_rule": "R3_dom_bytes_duplicate",
+      "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+      "service": "NH스마트뱅킹",
+      "url": "https://banking.nonghyup.com/nhbank.html",
+      "web_target_id": "wtg_95967b50683649f2"
+    },
+    {
+      "evidence_class": "NORMAL",
+      "order_key": "0cbfcd80d47c0d18",
+      "poor_rule": null,
+      "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+      "service": "토스",
+      "url": "https://toss.im/",
+      "web_target_id": "wtg_35319a420294ee17"
+    },
+    {
+      "evidence_class": "POOR",
+      "order_key": "336d0ee5e4ef29da",
+      "poor_rule": "R2_status_not_measured",
+      "prior_archetype": "ITEM_DETAIL",
+      "service": "롯데하이마트",
+      "url": "https://www.e-himart.co.kr/",
+      "web_target_id": "wtg_ef06dc942ef3ccc9"
+    },
+    {
+      "evidence_class": "NORMAL",
+      "order_key": "1ca9437e89d041a2",
+      "poor_rule": null,
+      "prior_archetype": "ITEM_DETAIL",
+      "service": "메가커피",
+      "url": "https://m.megacoffee.co.kr/",
+      "web_target_id": "wtg_ea031f85e857140e"
+    },
+    {
+      "evidence_class": "NORMAL",
+      "order_key": "2117a2a62a84914b",
+      "poor_rule": null,
+      "prior_archetype": "ITEM_DETAIL",
+      "service": "농협하나로마트",
+      "url": "https://www.nhhanaro.co.kr/",
+      "web_target_id": "wtg_517b8047eb5be716"
+    },
+    {
+      "evidence_class": "NORMAL",
+      "order_key": "01086478ee3aa746",
+      "poor_rule": null,
+      "prior_archetype": "PLACE_LOOKUP",
+      "service": "네이버지도",
+      "url": "https://www.navercorp.com/service/map",
+      "web_target_id": "wtg_efda6e0b8457d63c"
+    },
+    {
+      "evidence_class": "NORMAL",
+      "order_key": "0c60412f7da998c1",
+      "poor_rule": null,
+      "prior_archetype": "PLACE_LOOKUP",
+      "service": "티맵",
+      "url": "https://www.tmapmobility.com/",
+      "web_target_id": "wtg_60d4d22e3809f780"
+    },
+    {
+      "evidence_class": "POOR",
+      "order_key": "0e034128f660b3c3",
+      "poor_rule": "R1_unobserved",
+      "prior_archetype": "QUERY",
+      "service": "삼성 인터넷 브라우저",
+      "url": "https://www.samsung.com/sec/apps/samsung-browser/",
+      "web_target_id": "wtg_ff3ee504792f6cfc"
+    },
+    {
+      "evidence_class": "NORMAL",
+      "order_key": "05ed85de9614f94b",
+      "poor_rule": null,
+      "prior_archetype": "QUERY",
+      "service": "다음",
+      "url": "https://m.daum.net/?nil_top=mobile",
+      "web_target_id": "wtg_91b952863c62993d"
+    },
+    {
+      "evidence_class": "NORMAL",
+      "order_key": "013bbfe1f33efd70",
+      "poor_rule": null,
+      "prior_archetype": "UTILITY_ENTRY",
+      "service": "V3 Mobile Plus",
+      "url": "https://mplweb.ahnlab.com/mplweb/v3mp/main_android.do",
+      "web_target_id": "wtg_190b4501e4415d5e"
+    }
+  ],
+  "version": 2
+}

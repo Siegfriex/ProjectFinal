@@ -141,6 +141,20 @@ class ActionRisk:
     blocked: bool
     category: str | None
     reason: str | None
+    #: `T-A-W1-P2-DECIDED` 후속(A `C-FINDING-001512.A`, 2026-08-28) — 이 차단을
+    #: 유발한 `CandidateActionState.value`. `classify_candidate`(텍스트/타입 단독
+    #: 판정)는 이 필드를 모른다 — 항상 `None`이다. `assess_reachable_candidates`가
+    #: target-level 차단을 구성할 때만 채운다. 목적: `ACCOUNT_ACTION_BLOCKED`
+    #: outcome 하나가 서로 다른 근거(예: `DISABLED_OR_INERT` — 아무것도 조작
+    #: 가능하지 않아서 vs `FORBIDDEN_TRANSACTION`/`FORBIDDEN_CREDENTIAL_INPUT` —
+    #: 위험해서)를 뭉뚱그리면, `D-R0-65` terminal 어휘 해석에서 inert-only 랜딩이
+    #: 실제 auth/account gate 와 구분되지 않는다(이 세션의 `G1-b` — 어휘 존재만으로
+    #: gate_observed 를 발화시켜 AUTH_GATE 유병률을 부풀린 결함 — 과 같은 형태가
+    #: outcome 어휘에서 재발하는 것). **outcome enum 을 새로 만들지 않는다** — SSOT
+    #: 9-state 변경은 A 결정 사항이며, A 가 명시적으로 full-59 이전으로 미뤘다. 지금은
+    #: 근거(provenance)만 별도 필드로 보존한다 — 사후에 이 필드로 구분할 수 있으면
+    #: 어휘를 지금 분리하지 않아도 정보가 소실되지 않는다.
+    blocking_state: str | None = None
 
 
 def classify_candidate(candidate: dict[str, Any]) -> ActionRisk:
@@ -386,7 +400,11 @@ class CandidateAssessment:
                 for c, state in self.states
             ],
             "blocking": (
-                {"category": self.blocking.category, "reason": self.blocking.reason}
+                {
+                    "category": self.blocking.category,
+                    "reason": self.blocking.reason,
+                    "state": self.blocking.blocking_state,
+                }
                 if self.blocking is not None
                 else None
             ),
@@ -458,17 +476,24 @@ def assess_reachable_candidates(
                 risk.category,
                 f"reachable 후보 {len(reachable)}개 전부가 forbidden 이다 "
                 f"(state={s.value}) — 안전한 대안 없음: {risk.reason}",
+                blocking_state=s.value,
             )
         elif reachable_states and all(
             s is CandidateActionState.DISABLED_OR_INERT for _, s in reachable_states
         ):
             # `T-A-W1-P2-DECIDED` §2 — 위험해서가 아니라 조작 가능한 후보가 하나도
             # 없어서 막는다. `risk.category`는 없다(disabled 는 forbidden 어휘가 아니다).
+            # `blocking_state=DISABLED_OR_INERT`가 바로 이 차단과 hard-forbidden 차단
+            # (`FORBIDDEN_TRANSACTION` 등)을 outcome 레코드에서 구분하는 근거다
+            # (A `C-FINDING-001512.A`) — `ACCOUNT_ACTION_BLOCKED`는 두 경우 모두
+            # 재사용되지만, 이 필드로 사후에 "아무것도 조작 불가능해서"와 "위험해서"를
+            # 가를 수 있다.
             blocking = ActionRisk(
                 True,
                 None,
                 f"reachable 후보 {len(reachable)}개 전부가 DISABLED_OR_INERT 이다 — "
                 "조작 가능한(hittable 이면서 enabled 인) 대안 없음 (D-R0-70-3)",
+                blocking_state=CandidateActionState.DISABLED_OR_INERT.value,
             )
     return CandidateAssessment(
         states=tuple(states), reachable_considered=len(reachable), blocking=blocking
