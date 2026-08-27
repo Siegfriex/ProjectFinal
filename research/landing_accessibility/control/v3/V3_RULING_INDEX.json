@@ -1,11 +1,11 @@
 {
  "index": "V3_RULING_INDEX",
- "version": 13,
+ "version": 14,
  "purpose": "A 가 발행한 모든 조작적 정의·계약 요구의 정본 목록. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(T-B-V3-SCOPE-001).",
  "how_to_use": "C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 목록**을 기준으로 대조한다. 목록에 있는데 산출에 없으면 미반영이다.",
  "source": "control/v3/V3_0_1_SUCCESSOR_DELTA.md — 이 목록은 그 문서의 색인이며 정본은 그 문서다. 충돌 시 delta 원문이 이긴다.",
  "authority_sha": "adcdcb6050e96817be8645662c098b3221d4f90f",
- "count": 68,
+ "count": 71,
  "rulings": [
   {
    "id": "Δ1-a",
@@ -835,9 +835,44 @@
     "MIN-5",
     "Δ30-claim"
    ]
+  },
+  {
+   "id": "Δ31",
+   "requires": "일시적 부재를 기대값으로 동결한 테스트는 **지우지 않고 그 lane 자신의 diff 로 다시 좁힌다.** 파일의 절대 상태를 재면 다른 lane 의 승인된 변경까지 잡는다",
+   "must_appear_in": "B 의 회귀 테스트",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ31",
+   "aliases": [
+    "Δ31"
+   ]
+  },
+  {
+   "id": "Δ31-R27",
+   "requires": "**skip 은 통과가 아니다.** B 의 COMPLETION 은 skip 전건을 사유와 함께 열거한다. C 는 사유가 설명되지 않은 skip 을 PASS 로 세지 않고 NOT_TESTABLE 로 분류한다",
+   "must_appear_in": "B COMPLETION · C GATE 보고",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ31",
+   "aliases": [
+    "R27",
+    "Δ31-R27"
+   ]
+  },
+  {
+   "id": "Δ31-R28",
+   "requires": "**도구의 출력 억제가 무결과를 만든다.** 회귀·검색 결과를 근거로 쓸 때 출력이 억제되지 않았음을 함께 보인다(예: 터미널 요약 + junitxml 두 독립 출처)",
+   "must_appear_in": "측정을 담은 모든 보고",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ31",
+   "aliases": [
+    "R28",
+    "Δ31-R28"
+   ]
   }
  ],
- "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안) | v9: 기계적 접미사 별칭 제거 + 토큰경계 매칭 + 길이3 미만 금지 (T-B-V3-FINDING-007) | v10: Δ23~Δ26·R24·R25 누락 5행 추가 + container_sections 명시 + delta 절 커버리지 검사 상주 (D-V3-FINDING-012). **A 의 Δ21 위반 네 번째** | v11: Δ28-R26 추가 (delta 기록과 색인 추가를 함께 — Δ21/Δ27 자기적용) | v12: Δ29 추가 + R26 보강 (D-V3-FACT_CORRECTION-003 — A 의 Δ28 이 너무 관대했다) | v13: Δ30 Scout 정책 승계 5행 + terminal_reason 14값 (T-B-V3-BLK-013)",
+ "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안) | v9: 기계적 접미사 별칭 제거 + 토큰경계 매칭 + 길이3 미만 금지 (T-B-V3-FINDING-007) | v10: Δ23~Δ26·R24·R25 누락 5행 추가 + container_sections 명시 + delta 절 커버리지 검사 상주 (D-V3-FINDING-012). **A 의 Δ21 위반 네 번째** | v11: Δ28-R26 추가 (delta 기록과 색인 추가를 함께 — Δ21/Δ27 자기적용) | v12: Δ29 추가 + R26 보강 (D-V3-FACT_CORRECTION-003 — A 의 Δ28 이 너무 관대했다) | v13: Δ30 Scout 정책 승계 5행 + terminal_reason 14값 (T-B-V3-BLK-013) | v14: Δ31 계열 3행 (T-B-V3-FINDING-008)",
  "maintenance_rule": "A 가 판정을 낼 때 **delta 기록과 색인 추가를 함께** 한다. 티켓만 발행하면 정본이 전달 이력에 의존한다. C 는 색인↔delta 와 delta↔티켓 양방향을 대조한다.",
  "coverage_denominator": {
   "rule": "커버리지 분모는 **색인의 전체 행 수**다. 구조적으로 제외되는 행을 두지 않는다",
