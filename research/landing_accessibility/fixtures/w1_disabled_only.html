@@ -1,0 +1,20 @@
+<!doctype html>
+<!--
+FIXTURE: w1_disabled_only    T-A-W1-P2-DECIDED §2 (D-R0-70-3) 대조군 — 방향 1
+
+검증 대상: disabled control **만** reachable 후보인 랜딩은 guard가 Scout를
+아예 만들지 않아야 한다. 이 버튼은 `hittable=True`다(가려지지 않고 화면에
+보임) — 그런데도 HTML `disabled` 속성 때문에 `enabled=False`다. hittable은
+occlusion(가려짐) 판정일 뿐 조작 가능성 판정이 아니다(`D-R0-70` 계열 여덟 번째:
+존재를 작동으로 취급하는 형태). `w1_enabled_only.html`과 구조가 완전히 같고
+`disabled` 속성 유무만 다르다 — 짝을 이루는 대조군이다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>disabled-only — W1 D-R0-70-3 픽스처</title>
+</head>
+<body data-fixture="w1_disabled_only" data-archetype="UTILITY_ENTRY">
+<h1 style="font-size:20px">비활성 control만 있는 랜딩</h1>
+<button type="button" id="next" disabled
+        onclick="document.body.setAttribute('data-endpoint-reached','NEXT_REACHED')">다음</button>
+</body></html>

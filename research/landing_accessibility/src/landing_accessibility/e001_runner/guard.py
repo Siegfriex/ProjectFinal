@@ -49,6 +49,13 @@ class ActionCategory:
     PERSONAL_DATA_ENTRY = "PERSONAL_DATA_ENTRY"
     CAPTCHA_BYPASS = "CAPTCHA_BYPASS"
     CREDENTIAL_FIELD = "CREDENTIAL_FIELD"
+    #: `T-A-W1-P2-DECIDED` §1 — 장바구니 담기. `D-R0-06`은 거래 control의 **존재 관측**만
+    #: 허용하고 **활성화**를 금지한다 — SAFE로 두면 Scout가 클릭 후보로 확장할 수 있어
+    #: 안전 규칙에 직접 닿는다. 어휘는 `engine.l1_engine._COMMERCE_VOCAB`(W2 소유·읽기전용,
+    #: ITEM_DETAIL endpoint existence 판정용)이 이미 쓰는 것과 같은 항목("장바구니"/"담기")을
+    #: 그대로 재사용한다 — 같은 실사이트 문구를 이 모듈과 그쪽이 서로 다르게 인식할 이유가
+    #: 없다.
+    ADD_TO_CART = "ADD_TO_CART"
 
 
 #: 텍스트(accessible_name/visible_text/aria_label) 기반 탐지 사전.
@@ -73,6 +80,14 @@ _FORBIDDEN_TEXT_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
             r"(구매하기|구매확정|주문하기|주문완료|바로\s*구매|buy\s*now|place\s*order)",
             re.IGNORECASE,
         ),
+    ),
+    (
+        # `T-A-W1-P2-DECIDED` §1 — 장바구니. `engine.l1_engine._COMMERCE_VOCAB`(W2 소유·
+        # 읽기전용)와 같은 어휘("장바구니"/"담기")를 쓴다 — 그쪽은 존재 관측(endpoint
+        # evidence)에, 이쪽은 activation 차단에 쓰지만 같은 실사이트 문구를 서로 다르게
+        # 인식하면 안 된다.
+        ActionCategory.ADD_TO_CART,
+        re.compile(r"(장바구니|담기|add\s*to\s*cart|add\s*to\s*bag)", re.IGNORECASE),
     ),
     (
         ActionCategory.BOOKING_CONFIRM,
@@ -261,6 +276,10 @@ _CATEGORY_TO_STATE: dict[str, CandidateActionState] = {
     ActionCategory.BOOKING_CONFIRM: CandidateActionState.FORBIDDEN_TRANSACTION,
     ActionCategory.MESSAGE_SEND: CandidateActionState.FORBIDDEN_TRANSACTION,
     ActionCategory.SIGNUP: CandidateActionState.FORBIDDEN_TRANSACTION,
+    # `T-A-W1-P2-DECIDED` §1 — 장바구니 담기도 결제·구매·예약확정과 같은 성격(클릭이 곧
+    # 계정 상태를 소비하는 종류)이다. SSOT 9-state 에 전용 자리가 없으므로 SIGNUP과
+    # 같은 이유로 FORBIDDEN_TRANSACTION 에 묶는다.
+    ActionCategory.ADD_TO_CART: CandidateActionState.FORBIDDEN_TRANSACTION,
     ActionCategory.PERSONAL_DATA_ENTRY: CandidateActionState.FORBIDDEN_PERSONAL_DATA,
     ActionCategory.CAPTCHA_BYPASS: CandidateActionState.FORBIDDEN_CAPTCHA_BYPASS,
 }
@@ -274,10 +293,20 @@ def classify_candidate_state(candidate: dict[str, Any]) -> CandidateActionState:
     있음)일 때만 "active challenge"로 본다. `primary_action_candidates`는 probe가
     이미 `visible` 요소만 담아 만들므로(`l0_probe.js`), 여기서는 `hittable`만 더
     본다 — `hittable=False`(가려짐/비활성)면 CAPTCHA든 아니든 `DISABLED_OR_INERT`다.
+
+    `T-A-W1-P2-DECIDED` §2 (`D-R0-70` 계열 여덟 번째) — `hittable`은 occlusion(가려짐)
+    판정일 뿐 HTML `disabled`/`aria-disabled`/`inert` 판정이 아니다. `hittable=True`인
+    채로 `disabled`인 control(예: 로딩 중 비활성화된 버튼)이 이전에는 `SAFE`로
+    떨어졌다 — "존재를 작동으로 취급하는" 바로 그 형태다. W2가 `l0_probe.js`에 실은
+    `enabled` 필드(`el.disabled`/`aria-disabled`/`inert` 종합, `D-R0-70`)를 쓴다.
+    `"enabled"` 키가 아예 없으면(이 세션 이전 probe 스냅샷과의 하위호환) 결측을
+    "비활성"으로 단정하지 않는다 — `enabled is False`(명시적으로 False)일 때만
+    `DISABLED_OR_INERT`다. 이 판단은 `engine.l1_engine._is_enabled`(W2 소유·읽기전용)
+    가 같은 필드에 내리는 "결측 시 True" 취급과 일관된다.
     """
     if not isinstance(candidate, dict):
         return CandidateActionState.UNKNOWN
-    if candidate.get("hittable") is False:
+    if candidate.get("hittable") is False or candidate.get("enabled") is False:
         return CandidateActionState.DISABLED_OR_INERT
     if candidate.get("blocked_by_overlay") is True or candidate.get("occluded") is True:
         return CandidateActionState.BLOCKED_BY_OVERLAY
@@ -379,6 +408,14 @@ def assess_reachable_candidates(
       "존재=활성화" 혼동이다).
     - reachable 후보 **전부**가 hard-forbidden이면(안전한 대안이 전혀 없으면) 막는다
       — 이 경우 Scout를 만들어도 첫 분기에서 금지 행동만 고를 수 있기 때문이다.
+    - reachable 후보가 하나 이상 있는데 **전부** `DISABLED_OR_INERT`면 막는다
+      (`T-A-W1-P2-DECIDED` §2, `D-R0-70-3` 대조군). 이건 hard-forbidden과 성격이
+      다르다 — 위험해서가 아니라 **아무것도 실제로 조작 가능하지 않아서** 막는다.
+      `_reachable_candidates`는 Scout의 실제 branching 후보 선정(`hittable`+`selector`
+      만 보고 `enabled`는 안 본다, `l1_engine.Scout._activation_candidates` 참조)을
+      그대로 재현하므로, 여기서 막지 않으면 Scout는 disabled control 하나를 유일한
+      후보 삼아 "확장"을 시도하게 된다 — `DISABLED_OR_INERT`를 evidence 로만 남기고
+      SAFE 취급하지 않는 것의 목적 자체(존재≠작동)가 이 지점에서 완성된다.
 
     이 함수가 검증하지 못하는 것은 모듈 docstring 상단에 그대로 적어 두었다
     (`D-R0-17`).
@@ -421,6 +458,17 @@ def assess_reachable_candidates(
                 risk.category,
                 f"reachable 후보 {len(reachable)}개 전부가 forbidden 이다 "
                 f"(state={s.value}) — 안전한 대안 없음: {risk.reason}",
+            )
+        elif reachable_states and all(
+            s is CandidateActionState.DISABLED_OR_INERT for _, s in reachable_states
+        ):
+            # `T-A-W1-P2-DECIDED` §2 — 위험해서가 아니라 조작 가능한 후보가 하나도
+            # 없어서 막는다. `risk.category`는 없다(disabled 는 forbidden 어휘가 아니다).
+            blocking = ActionRisk(
+                True,
+                None,
+                f"reachable 후보 {len(reachable)}개 전부가 DISABLED_OR_INERT 이다 — "
+                "조작 가능한(hittable 이면서 enabled 인) 대안 없음 (D-R0-70-3)",
             )
     return CandidateAssessment(
         states=tuple(states), reachable_considered=len(reachable), blocking=blocking

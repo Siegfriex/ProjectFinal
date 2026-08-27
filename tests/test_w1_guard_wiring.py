@@ -73,6 +73,11 @@ def _cand(**kw: object) -> dict[str, object]:
         ("예약 확정", CandidateActionState.FORBIDDEN_TRANSACTION),
         ("메시지 전송", CandidateActionState.FORBIDDEN_TRANSACTION),
         ("회원가입", CandidateActionState.FORBIDDEN_TRANSACTION),
+        # `T-A-W1-P2-DECIDED` §1 — 장바구니. D-R0-06 은 존재 관측만 허용하고
+        # 활성화는 금지한다 — SAFE 로 두면 Scout 가 확장 대상으로 삼을 수 있다.
+        ("장바구니 담기", CandidateActionState.FORBIDDEN_TRANSACTION),
+        ("담기", CandidateActionState.FORBIDDEN_TRANSACTION),
+        ("Add to Cart", CandidateActionState.FORBIDDEN_TRANSACTION),
         ("검색", CandidateActionState.SAFE),
         ("상품 상세 확인", CandidateActionState.SAFE),
     ],
@@ -129,6 +134,30 @@ def test_classify_candidate_state_passive_captcha_mention_is_not_forbidden():
 def test_classify_candidate_state_unknown_when_no_identity():
     assert classify_candidate_state({"hittable": True}) is CandidateActionState.UNKNOWN
     assert classify_candidate_state("not-a-dict") is CandidateActionState.UNKNOWN  # type: ignore[arg-type]
+
+
+# ── `T-A-W1-P2-DECIDED` §2 (D-R0-70 계열 여덟 번째) — hittable(occlusion) ≠ enabled ──
+def test_classify_candidate_state_disabled_but_hittable_is_not_safe():
+    """`enabled=False`인 candidate(HTML `disabled`/`aria-disabled`/`inert`)는
+    `hittable=True`(가려지지 않고 화면에 보임)이어도 `SAFE`가 아니라
+    `DISABLED_OR_INERT`다 — hittable은 occlusion 판정일 뿐 조작 가능성 판정이
+    아니다."""
+    state = classify_candidate_state(_cand(accessible_name="다음", hittable=True, enabled=False))
+    assert state is CandidateActionState.DISABLED_OR_INERT
+    assert state is not CandidateActionState.SAFE
+
+
+def test_classify_candidate_state_enabled_true_is_safe():
+    state = classify_candidate_state(_cand(accessible_name="다음", hittable=True, enabled=True))
+    assert state is CandidateActionState.SAFE
+
+
+def test_classify_candidate_state_missing_enabled_key_defaults_safe():
+    """`enabled` 필드가 없으면(이 세션 이전 probe 스냅샷과의 하위호환) 결측을
+    "비활성"으로 단정하지 않는다 — `l1_engine._is_enabled`의 "결측 시 True" 취급과
+    일관된다."""
+    state = classify_candidate_state(_cand(accessible_name="다음", hittable=True))
+    assert state is CandidateActionState.SAFE
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -196,6 +225,71 @@ def test_assess_reachable_candidates_respects_branching_limit_for_blocking_only(
     assert states_by_selector["#late-buy"] == CandidateActionState.FORBIDDEN_TRANSACTION.value
     # 그래도 차단 판정에는 영향을 주지 않는다 — 안전한 후보 2개가 reachable 이므로 막히지 않는다.
     assert assessment.blocking is None
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 2-b. 순수 함수 — `D-R0-70-3` 양방향 대조군: disabled-only vs enabled
+# ══════════════════════════════════════════════════════════════════════════
+def test_assess_reachable_candidates_blocks_when_every_reachable_candidate_is_disabled():
+    """대조군 방향 1 — disabled control **만** 있는 랜딩은 확장 대상이 되지
+    않아야 한다. `hittable=True`(가려지지 않음)이지만 `enabled=False`인 후보
+    하나뿐이면, 그건 hard-forbidden이 아니라(위험한 어휘가 아니다) "조작 가능한
+    대안이 없어서" 막힌다 — `D-R0-70` 계열: hittable이 enabled를 뜻하지 않는다."""
+    candidates = [
+        _cand(selector="#next", accessible_name="다음", dom_order=0, enabled=False),
+    ]
+    assessment = assess_reachable_candidates(candidates, branching_limit=4)
+    assert assessment.blocking is not None
+    assert assessment.blocking.category is None, "disabled 는 forbidden 어휘 카테고리가 아니다"
+    assert "DISABLED_OR_INERT" in assessment.blocking.reason
+
+    states_by_selector = {c["selector"]: c["state"] for c in assessment.as_dict()["candidates"]}
+    assert states_by_selector["#next"] == CandidateActionState.DISABLED_OR_INERT.value
+
+
+def test_assess_reachable_candidates_does_not_block_when_enabled_candidate_exists():
+    """대조군 방향 2 — enabled control이 있는 랜딩은 확장 대상이 되어야 한다.
+    disabled 후보가 같은 목록에 섞여 있어도(존재 관측은 남는다) 막지 않는다."""
+    candidates = [
+        _cand(selector="#next", accessible_name="다음", dom_order=0, enabled=False),
+        _cand(selector="#detail", accessible_name="상세보기", dom_order=1, enabled=True),
+    ]
+    assessment = assess_reachable_candidates(candidates, branching_limit=4)
+    assert assessment.blocking is None
+
+    states_by_selector = {c["selector"]: c["state"] for c in assessment.as_dict()["candidates"]}
+    assert states_by_selector["#next"] == CandidateActionState.DISABLED_OR_INERT.value
+    assert states_by_selector["#detail"] == CandidateActionState.SAFE.value
+
+
+def test_assess_reachable_candidates_cart_candidate_alone_is_blocked_but_does_not_revert_to_target_kill():
+    """장바구니 담기 control **하나만** reachable이면(안전한 대안이 전혀 없으면)
+    막는다 — `G1-a` target-level kill이 아니라 candidate/state-level 판정이
+    같은 결론에 도달한 것이다. 아래
+    `test_assess_reachable_candidates_cart_present_does_not_block_other_safe_candidates`
+    가 반대 방향(안전한 대안이 있으면 막지 않는다)을 확인한다."""
+    candidates = [
+        _cand(selector="#add-to-cart", accessible_name="장바구니 담기", dom_order=0),
+    ]
+    assessment = assess_reachable_candidates(candidates, branching_limit=4)
+    assert assessment.blocking is not None
+    assert assessment.blocking.category == "ADD_TO_CART"
+
+
+def test_assess_reachable_candidates_cart_present_does_not_block_other_safe_candidates():
+    """장바구니 담기 control이 있어도, 같은 랜딩에 다른 SAFE 후보가 있으면
+    target 전체를 죽이지 않는다(`D-R0-06`) — 장바구니 후보만 evidence로 남고
+    제외될 뿐, Scout는 나머지 SAFE 후보로 계속 진행할 수 있어야 한다."""
+    candidates = [
+        _cand(selector="#add-to-cart", accessible_name="장바구니 담기", dom_order=0),
+        _cand(selector="#detail", accessible_name="상세보기", dom_order=1),
+    ]
+    assessment = assess_reachable_candidates(candidates, branching_limit=4)
+    assert assessment.blocking is None
+
+    states_by_selector = {c["selector"]: c["state"] for c in assessment.as_dict()["candidates"]}
+    assert states_by_selector["#add-to-cart"] == CandidateActionState.FORBIDDEN_TRANSACTION.value
+    assert states_by_selector["#detail"] == CandidateActionState.SAFE.value
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -321,36 +415,31 @@ def test_login_candidate_present_does_not_trigger_target_level_kill(tmp_path, mo
     )
     assert states_by_text.get("구매하기") == "FORBIDDEN_TRANSACTION"
 
-    # guard는 금지 후보를 클릭하지 않았다 — 클릭이 0건이든(아래 xfail 참고)
-    # 몇 건이든, "구매하기"/로그인 gate 페이지가 클릭된 적은 없다.
+    # guard는 금지 후보를 클릭하지 않았다 — "구매하기"/로그인 gate 페이지가
+    # 클릭된 적은 없다(아래 테스트가 검색 후보는 실제로 클릭됨을 별도로 증명한다).
     assert not any("buy-now" in sel for sel in click_calls)
     assert not any("auth_login_gate" in sel for sel in click_calls)
 
 
-@pytest.mark.xfail(
-    reason=(
-        "T-B-BLK-003 — engine.gate_classifier의 gate_observed()가 landing 본문 "
-        "전체(l0_probe.js:332 document.body.innerText)에서 '로그인'/'회원가입' "
-        "어휘를 한 번만 찾아도 activation 0회에서 gate=True로 판정한다(login_basis "
-        "가 비어있지 않으면 됨, MIN_BASIS_FOR_RESOLVE 미충족이어도 gate_observed는 "
-        "True). 그래서 이 fixture(검색+로그인+구매, 실제 한국 서비스 랜딩의 전형)는 "
-        "QUERY archetype인데도 검색 후보를 한 번도 클릭해보지 못하고 랜딩에서 "
-        "AUTH_GATE_REACHED로 끝난다 — D-R0-03('login control 존재는 terminal이 "
-        "아니다')·D-R0-04('chosen path가 실제로 도달했을 때만 gate observation') "
-        "위반. B의 L0-a 랜딩 probe 58건 재현 결과: 로그인 어휘 매칭 28건(48%), 그중 "
-        "24건은 password_input 없이 어휘만으로 gate가 성립(google.com/chrome이 "
-        "'비밀번호' 텍스트로 걸리는 등 위양성 포함). l1_engine.py·l0_probe.js는 "
-        "W2 소유·읽기전용이라 W1이 고칠 수 없다 — A/C/W2에 통보됨."
-    ),
-    strict=False,
-)
 def test_query_search_candidate_actually_gets_clicked_despite_login_text_present(
     tmp_path, monkeypatch
 ):
     """**guard가 아니라 엔진의 정직한 최종 동작**을 검증한다 — 안전한 검색 후보가
     존재하고 guard가 막지 않았다면, Scout는 실제로 그 후보를 시도해서 endpoint에
-    도달**해야 한다**. 지금은 그렇지 않다(위 xfail 사유) — 이 테스트가 초록불이
-    되는 순간이 `T-B-BLK-003`이 고쳐졌다는 뜻이다.
+    도달**해야 한다**.
+
+    `T-B-BLK-003` 갱신(`fed031f`, `origin/claude-b/w2-rf-detector@b28aaa5` 병합) —
+    이전에는 `xfail`이었다: `engine.l1_engine.gate_observed()`가 구조 신호 없이
+    로그인/회원가입 **어휘만으로도** gate=True를 냈다(`landing 본문 전체 innerText`
+    스캔, `login_basis` 비어있지 않으면 충분). 그래서 이 fixture(검색+로그인+구매)는
+    QUERY archetype인데도 검색 후보를 한 번도 클릭하지 못하고 랜딩에서
+    `AUTH_GATE_REACHED`로 끝났다 — `D-R0-03`·`D-R0-04` 위반.
+
+    W2가 `D-R0-59-1`(`gate_observed 어휘단독 위양성 시정`)로 `_gate_structural_signal_present`
+    를 추가해 **구조 신호(password_input/otp_input/captcha_challenge_active 등)가
+    최소 하나 없으면 어휘만으로는 gate가 성립하지 않게** 고쳤다(`l1_engine.py`,
+    W2 소유·읽기전용). 이 fixture는 구조 신호가 전혀 없는 순수 어휘 케이스라 이제
+    XPASS로 전환됐다 — `xfail` 마커를 남겨 두면 그 자체가 오래된 정보가 된다.
     """
     from playwright.sync_api import Page
 
@@ -469,3 +558,196 @@ def test_scout_scout_is_actually_invoked_for_the_login_and_purchase_fixture(tmp_
     assert scout_calls == [target.target_id], (
         f"옛 결함이면 이 target 은 target-kill 되어 Scout.scout 이 호출되지 않았다: {scout_calls}"
     )
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 4. 엔진 통합 — `T-A-W1-P2-DECIDED` 양방향 대조군 (D-R0-06 장바구니 · D-R0-70-3 disabled)
+# ══════════════════════════════════════════════════════════════════════════
+def _cart_only_target() -> TargetSpec:
+    return TargetSpec(
+        target_id="wt-w1-cart-only",
+        canonical_service_key="w1_cart_only",
+        official_url="https://example.com/never-opened",
+        interaction_archetype="ITEM_DETAIL",
+        fixture_override="w1_cart_only.html",
+    )
+
+
+def _cart_with_safe_alt_target() -> TargetSpec:
+    return TargetSpec(
+        target_id="wt-w1-cart-with-safe-alt",
+        canonical_service_key="w1_cart_with_safe_alt",
+        official_url="https://example.com/never-opened",
+        interaction_archetype="QUERY",
+        fixture_override="w1_cart_with_safe_alt.html",
+        task_id="task_wt_w1_cart_with_safe_alt",
+        endpoint_definition="QUERY_SUBMITTED",
+        endpoint_signal_type="URL_PATTERN",
+    )
+
+
+def _disabled_only_target() -> TargetSpec:
+    return TargetSpec(
+        target_id="wt-w1-disabled-only",
+        canonical_service_key="w1_disabled_only",
+        official_url="https://example.com/never-opened",
+        interaction_archetype="UTILITY_ENTRY",
+        fixture_override="w1_disabled_only.html",
+        task_id="task_wt_w1_disabled_only",
+        endpoint_definition="NEXT_REACHED",
+        endpoint_signal_type="DOM_AX_ROLE",
+    )
+
+
+def _enabled_only_target() -> TargetSpec:
+    return TargetSpec(
+        target_id="wt-w1-enabled-only",
+        canonical_service_key="w1_enabled_only",
+        official_url="https://example.com/never-opened",
+        interaction_archetype="UTILITY_ENTRY",
+        fixture_override="w1_enabled_only.html",
+        task_id="task_wt_w1_enabled_only",
+        endpoint_definition="NEXT_REACHED",
+        endpoint_signal_type="DOM_AX_ROLE",
+    )
+
+
+def test_cart_only_landing_is_blocked_before_scout_is_constructed(tmp_path, monkeypatch):
+    """`D-R0-06` 대조군 방향 1 — 장바구니 담기 control **만** 있는 랜딩(안전한
+    대안 없음)은 guard가 막는다. `Scout.scout`가 아예 호출되지 않는다는 것을
+    spy로 직접 증명한다 — `G1-a`의 target-level kill로 되돌아간 게 아니라(판정은
+    여전히 candidate-level이다), 이 특정 랜딩에서는 그 판정이 "안전한 대안 없음"
+    으로 귀결됐을 뿐이다.
+    """
+    scout_calls: list[str] = []
+    original_scout = Scout.scout
+
+    def spy_scout(self, **kwargs):
+        scout_calls.append(kwargs.get("web_target_id", "?"))
+        return original_scout(self, **kwargs)
+
+    monkeypatch.setattr(Scout, "scout", spy_scout)
+
+    runner = BatchRunner(out_dir=tmp_path / "out", fixture_root=FIXTURES, batch_size=5)
+    manifests = runner.run([_cart_only_target()], execution_mode="FIXTURE")
+
+    result = manifests[0].results[0]
+    assert result["outcome"] == TargetOutcome.ACCOUNT_ACTION_BLOCKED.value
+    detail = result["detail"]
+    assert detail.get("scout_invoked") is False
+    assert detail.get("blocked_category") == "ADD_TO_CART"
+    assert scout_calls == [], (
+        f"Scout 가 생성됐다 — 안전한 대안이 없는데도 막히지 않았다: {scout_calls}"
+    )
+
+    # `D-R0-06` — 존재 관측은 evidence 로 남는다(막는 건 활성화뿐).
+    mask = detail.get("candidate_action_mask")
+    assert mask is not None
+    states_by_text = {c["text"]: c["state"] for c in mask["candidates"]}
+    assert states_by_text.get("장바구니 담기") == "FORBIDDEN_TRANSACTION"
+
+
+def test_cart_candidate_present_but_other_safe_candidate_lets_scout_proceed(tmp_path, monkeypatch):
+    """`D-R0-06` 대조군 방향 2 — 장바구니 담기 control이 있어도 다른 SAFE 후보
+    (검색)가 있으면 target 전체가 죽지 않고, Scout가 실제로 그 안전한 후보만
+    클릭해 endpoint에 도달한다. 장바구니 버튼은 클릭 후보 집합 안에 있어도
+    실제로 클릭되지 않는다 — click spy로 증명한다.
+    """
+    from playwright.sync_api import Page
+
+    click_calls: list[str] = []
+    original_click = Page.click
+
+    def spy_click(self, selector, *args, **kwargs):
+        click_calls.append(selector)
+        return original_click(self, selector, *args, **kwargs)
+
+    monkeypatch.setattr(Page, "click", spy_click)
+
+    runner = BatchRunner(out_dir=tmp_path / "out", fixture_root=FIXTURES, batch_size=5)
+    manifests = runner.run([_cart_with_safe_alt_target()], execution_mode="FIXTURE")
+
+    result = manifests[0].results[0]
+    assert result["outcome"] != TargetOutcome.ACCOUNT_ACTION_BLOCKED.value, (
+        f"장바구니 버튼 존재만으로 target 이 죽었다(D-R0-06 위반): {result}"
+    )
+    detail = result["detail"]
+    assert detail.get("scout_invoked") is True, "Scout 가 아예 호출되지 않았다"
+    assert detail["endpoint_status"] == "FUNCTION_ENDPOINT_REACHED", (
+        f"안전한 검색 경로가 실제로 도달하지 못했다: {detail}"
+    )
+
+    mask = detail.get("candidate_action_mask")
+    assert mask is not None
+    states_by_text = {c["text"]: c["state"] for c in mask["candidates"]}
+    assert states_by_text.get("장바구니 담기") == "FORBIDDEN_TRANSACTION"
+
+    assert len(click_calls) >= 1, "검색 제출조차 클릭되지 않았다"
+    assert not any("add-to-cart" in sel for sel in click_calls), (
+        f"장바구니 버튼이 실제로 클릭됐다: {click_calls}"
+    )
+
+
+def test_disabled_only_landing_does_not_become_expansion_target(tmp_path, monkeypatch):
+    """`D-R0-70-3` 대조군 방향 1 — disabled control **만** 있는 랜딩은 확장
+    대상이 되지 않아야 한다. `Scout.scout`가 아예 호출되지 않는다는 것을 spy로
+    직접 증명한다."""
+    scout_calls: list[str] = []
+    original_scout = Scout.scout
+
+    def spy_scout(self, **kwargs):
+        scout_calls.append(kwargs.get("web_target_id", "?"))
+        return original_scout(self, **kwargs)
+
+    monkeypatch.setattr(Scout, "scout", spy_scout)
+
+    runner = BatchRunner(out_dir=tmp_path / "out", fixture_root=FIXTURES, batch_size=5)
+    manifests = runner.run([_disabled_only_target()], execution_mode="FIXTURE")
+
+    result = manifests[0].results[0]
+    assert result["outcome"] == TargetOutcome.ACCOUNT_ACTION_BLOCKED.value
+    detail = result["detail"]
+    assert detail.get("scout_invoked") is False
+    assert scout_calls == [], (
+        f"Scout 가 생성됐다 — disabled control 만 있는데도 확장 대상이 됐다: {scout_calls}"
+    )
+
+    mask = detail.get("candidate_action_mask")
+    assert mask is not None
+    states_by_text = {c["text"]: c["state"] for c in mask["candidates"]}
+    assert states_by_text.get("다음") == "DISABLED_OR_INERT"
+
+
+def test_enabled_only_landing_becomes_expansion_target(tmp_path, monkeypatch):
+    """`D-R0-70-3` 대조군 방향 2 — `w1_disabled_only.html`과 구조가 완전히 같고
+    `disabled` 속성만 없는 랜딩은 실제로 확장 대상이 된다: Scout가 생성되고,
+    그 control을 실제로 클릭해 endpoint에 도달한다."""
+    from playwright.sync_api import Page
+
+    click_calls: list[str] = []
+    original_click = Page.click
+
+    def spy_click(self, selector, *args, **kwargs):
+        click_calls.append(selector)
+        return original_click(self, selector, *args, **kwargs)
+
+    monkeypatch.setattr(Page, "click", spy_click)
+
+    runner = BatchRunner(out_dir=tmp_path / "out", fixture_root=FIXTURES, batch_size=5)
+    manifests = runner.run([_enabled_only_target()], execution_mode="FIXTURE")
+
+    result = manifests[0].results[0]
+    assert result["outcome"] != TargetOutcome.ACCOUNT_ACTION_BLOCKED.value
+    detail = result["detail"]
+    assert detail.get("scout_invoked") is True, "Scout 가 아예 호출되지 않았다"
+    assert detail["endpoint_status"] == "FUNCTION_ENDPOINT_REACHED", (
+        f"활성 control 이 실제로 클릭되어 endpoint 에 도달하지 못했다: {detail}"
+    )
+    assert any("next" in sel for sel in click_calls), (
+        f"활성 control 이 실제로 클릭되지 않았다: {click_calls}"
+    )
+
+    mask = detail.get("candidate_action_mask")
+    assert mask is not None
+    states_by_text = {c["text"]: c["state"] for c in mask["candidates"]}
+    assert states_by_text.get("다음") == "SAFE"

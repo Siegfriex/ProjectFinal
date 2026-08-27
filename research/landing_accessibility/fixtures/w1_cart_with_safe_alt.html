@@ -1,0 +1,41 @@
+<!doctype html>
+<!--
+FIXTURE: w1_cart_with_safe_alt    T-A-W1-P2-DECIDED §1 (D-R0-06) 대조군 — 안전한 대안 있음
+
+검증 대상: 장바구니 담기 control의 **존재**가 target 전체를 죽이지 않고, Scout가
+실제로 안전한 검색 후보를 클릭해 endpoint에 도달한다 — "장바구니 담기" 버튼은
+클릭 후보 집합 안에 있어도 실제로 클릭되지 않는다(`D-R0-06`: 존재 관측은 허용,
+활성화는 금지). `w1_query_purchase_no_login.html`과 같은 골격이고 "구매하기"
+대신 "장바구니 담기"로 바꿔 `ADD_TO_CART` 카테고리를 정확히 검사한다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>검색+장바구니 — W1 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  input{width:100%;box-sizing:border-box;min-height:48px;font-size:16px;
+        border:1px solid #555;border-radius:6px;padding:0 12px}
+  button{margin-top:12px;min-width:88px;min-height:48px;font-size:16px;
+         background:#0b4f9e;color:#fff;border:0;border-radius:6px}
+  #result{margin-top:16px;font-size:16px}
+  #add-to-cart{background:#a3260f}
+</style></head>
+<body data-fixture="w1_cart_with_safe_alt" data-archetype="QUERY">
+<h1 style="font-size:20px">W1 후보 판정 픽스처(장바구니 버튼만)</h1>
+<form id="q" data-region="SEARCH_INPUT_REGION" onsubmit="return dispatch(event)">
+  <label for="kw">검색어</label>
+  <input id="kw" name="kw" type="search" role="searchbox" placeholder="검색어를 입력하세요">
+  <button type="submit" data-primary-action="1">검색</button>
+</form>
+<button type="button" id="add-to-cart">장바구니 담기</button>
+<div id="result" data-endpoint="QUERY_SUBMITTED" hidden>검색이 제출되었습니다.</div>
+<script>
+function dispatch(e){
+  e.preventDefault();
+  var r = document.getElementById('result');
+  r.hidden = false;
+  document.body.setAttribute('data-endpoint-reached','QUERY_SUBMITTED');
+  return false;
+}
+</script>
+</body></html>
