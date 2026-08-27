@@ -141,6 +141,17 @@ class LockState:
 #: (같은 프로세스 안에서의 1회 재시도)과는 다른 축이다.
 DEFAULT_MAX_LOCK_ATTEMPTS = 3
 
+#: FIXTURE/SHADOW 배치가 `ticket_id`/`run_id`를 넘기지 않았을 때 쓰는 기본값
+#: (`C-FINDING-214553` — C의 독립 감사가 지적한 구멍: lock 이 REAL_TARGET 경로에만
+#: 배선돼 있어 FIXTURE 로는 "네트워크 없이 프로세스 2개 동시 기동 → 억제 1건"을
+#: end-to-end 로 증명할 방법이 없었다). **REAL_TARGET 과 같은 코드 경로**를 태우되,
+#: 기존 FIXTURE 테스트 수십 개를 깨뜨리지 않기 위해 값을 강제하지 않고 안전한
+#: 기본값으로 채운다 — lock 디렉터리 자체가 `out_dir`(테스트마다 고유) 아래로
+#: 기본 스코프되므로(`_resolve_lock_dir`), 이 상수 값이 고정이어도 서로 다른
+#: 테스트끼리 lock 파일이 충돌하지 않는다.
+FIXTURE_DEFAULT_TICKET_ID = "FIXTURE"
+FIXTURE_DEFAULT_RUN_ID = "FIXTURE_DEFAULT_ROUND"
+
 #: `_seal_batch`의 `TargetOutcome(...)` 캐스팅 대상이 **아니다** — `outcomes.py`는
 #: 이 티켓의 소유 파일이 아니므로(소유권 경계) 새 닫힌-집합 값을 그쪽에 추가하지
 #: 않는다. 이 상수는 **batch 오케스트레이션 레벨에서만** 의미를 갖는 exactly-once
@@ -436,7 +447,27 @@ class BatchRunner:
         self.collector_sha = collector_sha
         self.protocol_sha = protocol_sha or _default_protocol_sha()
         self.max_lock_attempts = max_lock_attempts
-        self._lock = TargetLock(lock_dir)
+        #: 명시적으로 준 값만 저장한다 — 실제 디렉터리는 모드별로 다르게 기본값을
+        #: 잡는다(`_resolve_lock_dir`). REAL_TARGET은 저장소 공유 transport
+        #: (`.agent_bus/landing_v2/locks/`)로 기본값을 잡아야 프로세스가 달라도
+        #: 상호배제가 성립하고, FIXTURE는 `out_dir` 아래로 기본값을 잡아야 서로
+        #: 무관한 테스트/실행끼리 lock 파일이 공유 디렉터리를 오염시키지 않는다.
+        self._lock_dir_override = lock_dir
+
+    def _resolve_lock_dir(self, *, real: bool) -> Path:
+        if self._lock_dir_override is not None:
+            return Path(self._lock_dir_override)
+        return _default_lock_dir() if real else (self.out_dir / "locks")
+
+    def _target_lock(self, *, real: bool) -> TargetLock:
+        return TargetLock(self._resolve_lock_dir(real=real))
+
+    def _idempotency_components(self, *, real: bool) -> tuple[str, str]:
+        """`(ticket_id, run_id)` — REAL_TARGET은 명시값을 요구하고(호출부에서
+        검사), FIXTURE/SHADOW는 안전한 기본값으로 채운다(`C-FINDING-214553`)."""
+        if real:
+            return self.ticket_id or "", self.run_id or ""
+        return self.ticket_id or FIXTURE_DEFAULT_TICKET_ID, self.run_id or FIXTURE_DEFAULT_RUN_ID
 
     # ── 진입점 ───────────────────────────────────────────────────────────
     def run(
@@ -495,8 +526,13 @@ class BatchRunner:
         exactly-once(`D-R0-38`, blocking acceptance criterion): `ticket_id`/`run_id`
         (수집 회차 id) 없이는 여기서 즉시 실패한다 — 브라우저를 한 번도 켜지 않고.
         idempotency key 의 필수 성분이 없는 채로 REAL_TARGET 을 진행시키지 않는다.
+        **이 검사는 기본 executor(`self._real_executor`, lock 을 실제로 소비하는
+        경로)가 쓰일 때만 발화한다** — 호출부가 `target_executor` 를 직접 주입하면
+        그 executor 는 이 lock 을 아예 거치지 않으므로(예: firewall/allowlist
+        자체를 검증하는 기존 테스트들이 그렇다), 그 경우까지 ticket_id/run_id 를
+        강제하면 exactly-once 와 무관한 테스트를 부수는 결합이 생긴다.
         """
-        if not self.ticket_id or not self.run_id:
+        if target_executor is None and (not self.ticket_id or not self.run_id):
             raise ExactlyOnceConfigError(
                 "REAL_TARGET 배치는 ticket_id 와 run_id(A가 발행하는 수집 회차 id)가 "
                 "있어야 한다 — exactly-once idempotency key(D-R0-46)의 필수 성분이다. "
@@ -517,6 +553,57 @@ class BatchRunner:
             manifests.append(manifest)
         return manifests
 
+    # ── exactly-once — REAL/FIXTURE 공유 helper (`C-FINDING-214553`) ───────
+    def _acquire_launch_lock(
+        self, target: TargetSpec, *, real: bool
+    ) -> tuple[TargetLock, IdempotencyKey, str | None, dict[str, Any] | None]:
+        """launch(=evidence run 생성/브라우저 기동) **직전**에 lock 을 소비한다.
+
+        `real=True`면 REAL_TARGET 성분(명시적 `ticket_id`/`run_id`, 공유
+        `.agent_bus/landing_v2/locks/`)을, `real=False`면 FIXTURE 기본 성분
+        (`FIXTURE_DEFAULT_TICKET_ID`/`FIXTURE_DEFAULT_RUN_ID`, `out_dir` 아래
+        lock 디렉터리)을 쓴다 — 코드 경로는 완전히 같다.
+
+        반환: `(lock, key, attempt_id, suppressed_result)`. 억제되면
+        `attempt_id is None`이고 `suppressed_result`가 그대로 executor의 반환값이
+        된다 — 호출부는 `suppressed_result is not None`이면 즉시 그것을 돌려주고
+        launch(=evidence run 생성) 코드를 실행하지 않는다.
+        """
+        ticket_id, run_id = self._idempotency_components(real=real)
+        lock = self._target_lock(real=real)
+        key = IdempotencyKey(
+            ticket_id=ticket_id,
+            run_id=run_id,
+            target_id=target.target_id,
+            collector_sha=self.collector_sha,
+            protocol_sha=self.protocol_sha,
+        )
+        decision = lock.acquire(key, max_attempts=self.max_lock_attempts)
+        if not decision.proceed:
+            _append_bus_event(
+                lock.lock_dir.parent / "event_log.jsonl",
+                {
+                    "ts": _utc_now_iso(),
+                    "agent": "B",
+                    "event": DUPLICATE_SUPPRESSED_OUTCOME,
+                    "idempotency_key": key.canonical(),
+                    "target_id": target.target_id,
+                    "reason": decision.reason,
+                },
+            )
+            suppressed = {
+                "outcome": DUPLICATE_SUPPRESSED_OUTCOME,
+                "scout_invoked": False,
+                "idempotency_key": key.canonical(),
+                "duplicate_suppressed_reason": decision.reason,
+                "prior_lock_state": decision.prior_state,
+                "prior_attempts": decision.prior_attempts,
+            }
+            return lock, key, None, suppressed
+
+        attempt_id = decision.attempt_id or f"{target.target_id}-{uuid.uuid4().hex[:12]}"
+        return lock, key, attempt_id, None
+
     def _real_executor(self, target: TargetSpec) -> dict[str, Any]:
         """실제 수집 executor — L0 + L1 을 함께 수행한다 (L0-only run 을 만들지 않는다).
 
@@ -533,38 +620,13 @@ class BatchRunner:
 
         scope = self._real_scope or ExecutionScope.E000_FAST
 
-        key = IdempotencyKey(
-            ticket_id=self.ticket_id or "",
-            run_id=self.run_id or "",
-            target_id=target.target_id,
-            collector_sha=self.collector_sha,
-            protocol_sha=self.protocol_sha,
-        )
-        decision = self._lock.acquire(key, max_attempts=self.max_lock_attempts)
-        if not decision.proceed:
-            _append_bus_event(
-                self._lock.lock_dir.parent / "event_log.jsonl",
-                {
-                    "ts": _utc_now_iso(),
-                    "agent": "B",
-                    "event": DUPLICATE_SUPPRESSED_OUTCOME,
-                    "idempotency_key": key.canonical(),
-                    "target_id": target.target_id,
-                    "reason": decision.reason,
-                },
-            )
-            return {
-                "outcome": DUPLICATE_SUPPRESSED_OUTCOME,
-                "scout_invoked": False,
-                "idempotency_key": key.canonical(),
-                "duplicate_suppressed_reason": decision.reason,
-                "prior_lock_state": decision.prior_state,
-                "prior_attempts": decision.prior_attempts,
-            }
+        lock, key, attempt_id, suppressed = self._acquire_launch_lock(target, real=True)
+        if suppressed is not None:
+            return suppressed
 
         # 이 지점을 지나야만 evidence 디렉터리가 생기고, 그 아래에서만 브라우저가
         # 뜬다 — lock 획득이 곧 "실사이트 접속 이전 억제 지점"이다(`D-R0-38`).
-        attempt_id = decision.attempt_id or f"{target.target_id}-{uuid.uuid4().hex[:12]}"
+        assert attempt_id is not None
         run = EvidenceRun.create(
             self.out_dir / "evidence",
             attempt_id,
@@ -580,18 +642,18 @@ class BatchRunner:
             # transient 실패(예외로 샌 것)는 재실행 가능 상태로 남긴다 — lock 을
             # 지우지 않는다. 이후 재실행이 같은 key 로 들어오면 `acquire()`가
             # FAILED_RETRYABLE + attempts<max 조건에서만 통과시킨다.
-            self._lock.mark_failed_retryable(key)
+            lock.mark_failed_retryable(key)
             run.seal()
             raise
         run.seal()
         result["attempt_id"] = attempt_id
         result["idempotency_key"] = key.canonical()
         if _is_retryable_engine_failure(result):
-            self._lock.mark_failed_retryable(key)
+            lock.mark_failed_retryable(key)
         else:
             # 가드 차단(`ACCOUNT_ACTION_BLOCKED`)도 여기 포함된다 — 그건 정책
             # 위반이지 transient 실패가 아니다(`retry.py`의 기존 원칙과 동일).
-            self._lock.mark_done(key)
+            lock.mark_done(key)
         return result
 
     # ── target 하나 ──────────────────────────────────────────────────────
@@ -656,6 +718,19 @@ class BatchRunner:
 
         if retry_outcome.succeeded:
             value = retry_outcome.value if isinstance(retry_outcome.value, dict) else {}
+            if value.get("outcome") == DUPLICATE_SUPPRESSED_OUTCOME:
+                # `outcomes.map_engine_result`(닫힌 `TargetOutcome` 집합, W1 소유
+                # 파일 아님)는 `DUPLICATE_SUPPRESSED`를 모른다 — 그대로 넘기면
+                # measurement_status/endpoint_status 가 둘 다 없어 조용히
+                # `MEASURED`로 접힌다(`map_engine_result`의 fallthrough). exactly-once
+                # 신호가 `BatchRunner.run()` 표준 경로를 거치는 순간 사라지는 것을
+                # 막기 위해 여기서 먼저 가로챈다.
+                return TargetResult(
+                    target_id=target.target_id,
+                    outcome=DUPLICATE_SUPPRESSED_OUTCOME,
+                    attempts=retry_outcome.attempts,
+                    detail=value,
+                )
             outcome = map_engine_result(value)
             return TargetResult(
                 target_id=target.target_id,
@@ -685,22 +760,47 @@ class BatchRunner:
         가드는 조금도 약해지지 않는다: `executor.run_l1_if_safe`가 내부에서
         `guard.screen_candidates`로 L0 후보를 먼저 스크린하고, 걸리면 `Scout`
         객체 자체를 만들지 않는다 — 이 메서드는 그 계약을 그대로 물려받는다.
+
+        exactly-once(`C-FINDING-214553` — C의 독립 감사): 이전에는 lock 이
+        `_real_executor`(REAL_TARGET)에만 배선돼 있어, 네트워크 없이 "프로세스
+        2개 동시 기동 → 억제 1건"을 end-to-end 로 증명할 경로가 FIXTURE 쪽에
+        없었다. 이제 이 메서드도 `_real_executor`와 **같은** `_acquire_launch_lock`
+        을 `EvidenceRun.create` 이전에 태운다 — 코드 경로가 같으므로 lock 자체의
+        정확성(원자적 획득·상태·retry 조건)은 `TargetLock` 하나로 양쪽 다 보장된다.
+        `ticket_id`/`run_id`를 명시하지 않은 기존 호출부는 `FIXTURE_DEFAULT_*`
+        기본값으로 채워진다 — 강제 실패시키지 않는다(FIXTURE 는 REAL_TARGET 처럼
+        "blocking acceptance criterion" 대상이 아니다).
         """
         from landing_accessibility.engine.evidence import EvidenceRun
 
         from .executor import run_l1_if_safe
 
-        run_id = f"e001-{target.target_id}-{_utc_now_iso().replace(':', '').replace('.', '')}"
+        lock, key, attempt_id, suppressed = self._acquire_launch_lock(target, real=False)
+        if suppressed is not None:
+            return suppressed
+
+        assert attempt_id is not None
         run = EvidenceRun.create(
             self.out_dir / "evidence",
-            run_id,
+            attempt_id,
             execution_mode=ExecutionMode.FIXTURE,
             provenance=ShadowProvenance(
                 base_sha=E001_RUNNER_BASE_SHA, shadow_lane=E001_RUNNER_SHADOW_LANE
             ),
         )
-        result = run_l1_if_safe(target, fixture_root=self.fixture_root, run=run)
+        try:
+            result = run_l1_if_safe(target, fixture_root=self.fixture_root, run=run)
+        except Exception:
+            lock.mark_failed_retryable(key)
+            run.seal()
+            raise
         run.seal()
+        result["attempt_id"] = attempt_id
+        result["idempotency_key"] = key.canonical()
+        if _is_retryable_engine_failure(result):
+            lock.mark_failed_retryable(key)
+        else:
+            lock.mark_done(key)
         return result
 
     def _default_fixture_executor(self, target: TargetSpec) -> dict[str, Any]:

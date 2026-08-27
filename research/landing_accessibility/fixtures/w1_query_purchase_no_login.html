@@ -1,0 +1,44 @@
+<!doctype html>
+<!--
+FIXTURE: w1_query_purchase_no_login    T-A-W1-001 §1 candidate-level guard 회귀 픽스처
+
+검증 대상 (D-R0-06): 구매 control의 **존재**가 target 전체를 죽이지 않고, Scout가
+실제로 안전한 검색 후보를 클릭해 endpoint에 도달한다 — "구매하기" 버튼은 클릭
+후보 집합 안에 있어도 실제로 클릭되지 않는다.
+
+`w1_query_login_purchase.html`과 달리 이 fixture는 **"로그인" 어휘를 전혀 포함하지
+않는다** — `engine.gate_classifier`(W2 소유·읽기전용)가 페이지 전체 visible_text
+에서 로그인 어휘를 스캔해 landing 자체를 gate로 판정하는 것과 이 테스트의 관심사
+(guard의 candidate-level 판정)가 서로 얽히지 않게 분리했다.
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>검색+구매 — W1 픽스처</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff;padding:16px}
+  input{width:100%;box-sizing:border-box;min-height:48px;font-size:16px;
+        border:1px solid #555;border-radius:6px;padding:0 12px}
+  button{margin-top:12px;min-width:88px;min-height:48px;font-size:16px;
+         background:#0b4f9e;color:#fff;border:0;border-radius:6px}
+  #result{margin-top:16px;font-size:16px}
+  #buy-now{background:#a3260f}
+</style></head>
+<body data-fixture="w1_query_purchase_no_login" data-archetype="QUERY">
+<h1 style="font-size:20px">W1 후보 판정 픽스처(구매 버튼만)</h1>
+<form id="q" data-region="SEARCH_INPUT_REGION" onsubmit="return dispatch(event)">
+  <label for="kw">검색어</label>
+  <input id="kw" name="kw" type="search" role="searchbox" placeholder="검색어를 입력하세요">
+  <button type="submit" data-primary-action="1">검색</button>
+</form>
+<button type="button" id="buy-now">구매하기</button>
+<div id="result" data-endpoint="QUERY_SUBMITTED" hidden>검색이 제출되었습니다.</div>
+<script>
+function dispatch(e){
+  e.preventDefault();
+  var r = document.getElementById('result');
+  r.hidden = false;
+  document.body.setAttribute('data-endpoint-reached','QUERY_SUBMITTED');
+  return false;
+}
+</script>
+</body></html>

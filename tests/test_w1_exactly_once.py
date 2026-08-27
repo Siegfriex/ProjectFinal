@@ -336,6 +336,100 @@ def _real_executor_process_worker(
     runner._real_executor(target)
 
 
+def _fixture_path_process_worker(
+    lock_dir: str, out_root: str, barrier_path: str, results_dir: str, idx: int
+) -> None:
+    """`C-FINDING-214553` — FIXTURE 경로에도 REAL_TARGET과 **같은** lock이
+    배선됐다는 것을 네트워크 없이 증명하는 worker. 실제 `_run_l0_and_l1`(=
+    `_default_fixture_executor`/`l1_executor`가 수렴하는 그 메서드, mock 없음)을
+    그대로 부른다 — playwright는 로컬 fixture 파일만 연다(네트워크 접속 없음).
+    """
+    sys.path.insert(0, SRC)
+    from landing_accessibility.e001_runner.batch import BatchRunner
+    from landing_accessibility.e001_runner.plan import TargetSpec
+
+    lock = None
+    try:
+        runner = BatchRunner(
+            out_dir=Path(out_root),
+            fixture_root=RESEARCH / "fixtures",
+            lock_dir=lock_dir,
+        )
+        target = TargetSpec(
+            target_id="wt-fixture-exactly-once",
+            canonical_service_key="fixture_eo_test",
+            official_url="https://example.com/never-opened",
+            interaction_archetype="QUERY",
+            fixture_override="search_dispatch.html",
+            # endpoint_definition을 실어 줘야 Scout가 검색 제출 1회 만에 끝난다
+            # (없으면 예산을 다 쓸 때까지 재시도해 이 테스트가 느려진다).
+            task_id="task_wt_fixture_exactly_once",
+            endpoint_definition="QUERY_SUBMITTED",
+            endpoint_signal_type="URL_PATTERN",
+        )
+        while not os.path.exists(barrier_path):
+            time.sleep(0.001)
+        result = runner._run_l0_and_l1(target)
+        Path(results_dir, f"result_{idx}.json").write_text(
+            json.dumps({"outcome": result.get("outcome"), "idx": idx}), encoding="utf-8"
+        )
+    except BaseException as exc:  # pragma: no cover - 진단용, 테스트가 직접 판독
+        Path(results_dir, f"error_{idx}.txt").write_text(f"{type(exc).__name__}: {exc}")
+        raise
+
+
+def test_concurrent_os_processes_fixture_path_launch_total_is_one(tmp_path):
+    """`C-FINDING-214553`(C의 독립 감사) — lock이 REAL_TARGET 경로에만 배선돼
+    있으면 REAL_TARGET은 접속 금지라 e2e로 못 돌리고 FIXTURE는 lock을 안 타서
+    증명이 안 됐다. 이제 FIXTURE 경로(`_run_l0_and_l1`)도 REAL과 같은
+    `_acquire_launch_lock`을 타므로, **네트워크 전혀 없이** "같은 worker 파티션
+    프로세스 2개 동시 기동 → evidence run 디렉터리 1개 / `DUPLICATE_SUPPRESSED`
+    1건"을 end-to-end로 증명할 수 있다.
+    """
+    pytest.importorskip("playwright.sync_api")
+
+    lock_dir = tmp_path / "locks"
+    out_root = tmp_path / "out"
+    results_dir = tmp_path / "results"
+    lock_dir.mkdir()
+    out_root.mkdir()
+    results_dir.mkdir()
+    barrier_path = tmp_path / "GO"
+
+    procs = [
+        multiprocessing.Process(
+            target=_fixture_path_process_worker,
+            args=(str(lock_dir), str(out_root), str(barrier_path), str(results_dir), i),
+        )
+        for i in range(2)
+    ]
+    for p in procs:
+        p.start()
+    barrier_path.write_text("go")
+    for p in procs:
+        p.join(timeout=60)
+
+    errors = list(results_dir.glob("error_*.txt"))
+    assert not errors, f"worker 프로세스가 죽었다: {[e.read_text() for e in errors]}"
+
+    outcomes = [
+        json.loads(p.read_text())["outcome"] for p in sorted(results_dir.glob("result_*.json"))
+    ]
+    assert len(outcomes) == 2, f"프로세스 2개 중 일부가 결과를 남기지 못했다: {outcomes}"
+    suppressed_count = sum(1 for o in outcomes if o == DUPLICATE_SUPPRESSED_OUTCOME)
+    launched_count = sum(1 for o in outcomes if o != DUPLICATE_SUPPRESSED_OUTCOME)
+    assert launched_count == 1 and suppressed_count == 1, (
+        f"FIXTURE 경로 동시 기동인데 launch/suppress 분포가 1/1 이 아니다: {outcomes}"
+    )
+
+    # evidence run 디렉터리도 실제로 1개만 생겼다 — "코드는 맞는데 산출물은 2개"
+    # 같은 residual 이 없는지까지 확인한다.
+    evidence_root = out_root / "evidence"
+    if evidence_root.is_dir():
+        run_dirs = [d for d in evidence_root.iterdir() if d.is_dir()]
+        assert len(run_dirs) == 1, f"evidence run 디렉터리가 1개가 아니다: {run_dirs}"
+
+
 def test_concurrent_os_processes_real_executor_launch_total_is_one(tmp_path):
     """`_real_executor` 전체(lock 획득 → `EvidenceRun.create` → launch)를 프로세스
     2개가 동시에 두드려도 **launch 총합이 1**이어야 한다 — 이게 2026-08-27 05:14
