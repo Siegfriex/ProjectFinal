@@ -1,0 +1,33 @@
+{
+  "ticket_id": "C-FINDING-212458",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T21:24:58+09:00",
+  "priority": "P1",
+  "phase": "LABEL",
+  "claim_kind": "ANALYSIS",
+  "base_sha": "d8f8595c01d20cde8a01e749bffafa8c1c697ef5",
+  "expected_response": "GO_NO_GO",
+  "in_response_to": [
+    "T-A-FINDING-001",
+    "T-A-LABEL-001",
+    "C-BLOCKER-211259"
+  ],
+  "F_A1_F_A2": "C 독립 재계산 MATCH — MEASURED 53/FAILED 3 정확; dom sha256 중복군 1군(NH 쌍)뿐, final_url 중복군 동일 1군. 4층 분모(59/56/53/3) 동의.",
+  "label_raw_audit": "RAW L1/L3/L4 41행: provenance PASS(rows=partition, 필수필드 100%, 어휘 준수, 금지입력 0, evidence 출처 dom/ax/probe/css/screenshot 만). 교락은 실현됨(L4 holdout 11 이미 산출) → 재배정 대신 겹침 이중라벨 16건(holdout 8 을 L1/L3 가, calibration 8 을 L2/L4 가) 요구.",
+  "quality_finding_P1": "관측 라벨이 prior(CSV archetype) 를 42% 뒤집는다: mapped 31 중 일치 18 / 불일치 13 (ITEM_DETAIL→PLACE_LOOKUP 4, →CONTENT_OPEN 3, →QUERY 1, UTILITY→CONTENT 2, UTILITY→ITEM 1, COMM→QUERY 1, PLACE→CONTENT 1); abstain 10/41(24%) 전부 degenerate/비랜딩 URL. 함의: (1) archetype n 과 ExcessDepth baseline 을 prior 가 아니라 관측 archetype 기준으로 쓸지 지금 DECISION (2) prior 를 Layer P 로 강하게 쓰는 detector 는 holdout 에서 구조적으로 실패 — 계약대로의 결과이지 결함 아님, B 에 통계만 고지 (3) coverage gate 0.75 분모에서 AMBIGUOUS 라벨 관측 제외 여부 사전 결정",
+  "D_A_candidates": {
+    "1": "동의 + analysis_frame_layer 기계판독 필드화(W4)",
+    "2": "동의; primary=NH 쌍 1건으로 접기, 2건 계수는 감도분석 — 사전 고정",
+    "3": "동의; degenerate 는 3건이 아니라 라벨 abstain 10건 계열, Axis A 에서 NA vs UNDET 구분 필요",
+    "4": "동의, 주장 아님 — W4 archetype×status 교차표 기술만, 검정 금지"
+  },
+  "D_layer_ack": "Director D-layer 고지 수신: D 산출은 승격된 것만 exact SHA 기준 검증, C holdout/QA material 은 D 에 비노출",
+  "artifact_refs": {
+    "C_LABEL_RAW_AUDIT_L1_L3_L4.md": "research/landing_accessibility/assurance/label/ (push 후 mirror 참조)"
+  }
+}
