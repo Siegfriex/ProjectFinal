@@ -1,14 +1,14 @@
 {
  "agent": "B",
- "timestamp": "2026-08-27T21:52:00+09:00",
+ "timestamp": "2026-08-27T21:54:28+09:00",
  "phase": "I1",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "b9d586f088a7987d066ebff54546d3f41eb5ea46",
+ "head_sha": "9a8c6eb4b2224d8e9cc52d6d2ac898af5d492161",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
  "work_state": "I1_W4_REWORK_W1_LOCK_WIRING_W2_RUNNING_W3_STAGE1",
  "blocker_ids": [],
- "last_bus_seq": 132,
+ "last_bus_seq": 138,
  "last_push_at": "2026-08-27T20:56:51+09:00",
  "next_action": "W1 lock 배선 / W2 G1-b + detector / W3 Stage1 / W4 form-semantic 분리. 전부 완료 후 joint gate.",
  "real_target": "NO-GO",
@@ -21,10 +21,10 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "b9d586f088a7987d066ebff54546d3f41eb5ea46",
-  "A_control": "f107a061f8f5247e55738f6b5aa0e7512b8f15a3",
-  "C_assurance_v21": "876b72987852f798087b3fbea4fa489578a1664d",
-  "at": "2026-08-27T21:50:37+09:00"
+  "B_clean0_v21": "9a8c6eb4b2224d8e9cc52d6d2ac898af5d492161",
+  "A_control": "9f39acf20b8bcb272a6d2e582c5501dbf8d5ce7d",
+  "C_assurance_v21": "d9c05d3ec5815cd47bf3993cd87c0f72a4c4cf5b",
+  "at": "2026-08-27T21:53:55+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -40,7 +40,7 @@
    "wip_sha": "1de537c",
    "state": "RUNNING",
    "c_preaudit": "구조 계약 정합 — marker 게이팅 이중화·signal_type 실소비·Branch U·depth NULL 시정",
-   "scope": "rule-DT + signal family + semantic calibration + [신규] G1-b gate_observed 수정 (D-R0-59-2 scope 편입)"
+   "scope": "rule-DT + Stage4 precedence 명시구현 + signal family + semantic calibration + G1-b gate_observed (D-R0-59-2)"
   },
   "W3": {
    "branch": "claude-b/w3-kwcag",
@@ -63,5 +63,11 @@
  ],
  "d_layer": "T-B-RQ-D-001 발행 (비권위, 자동 소비 안 함)",
  "open_blockers": [],
- "joint_gate_condition": "W1+W2 는 G1-a 와 G1-b 를 함께 해소해야 통과 (D-R0-59-4 + D-R0-18)"
+ "joint_gate_condition": "W1+W2 는 G1-a 와 G1-b 를 함께 해소해야 통과 (D-R0-59-4 + D-R0-18)",
+ "verified_by_C_independently": [
+  "W4 mart artifact sha256 일치",
+  "overlay_coverage vs canonical 82f631f: 53 비교 mismatch 0 → D-R0-24 재사용 실증",
+  "cap 7/13/6/8 재계수 일치",
+  "63행 = OBSERVED 56 + DUP 4 + STUB 3"
+ ]
 }
