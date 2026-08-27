@@ -134,6 +134,25 @@ def main(a):
             prov_check[k] = {"declared": v, "mart": got, "match": (v is None) or (got is not None and (str(v).startswith(str(got)[:7]) or str(got).startswith(str(v)[:7])))}
             if v and not prov_check[k]["match"]: add("C1", "MART_INPUT_SHA", f"mart provenance {k}={got} != declared {v}")
         if M.get("frozen") is False: add("C2", "MART_NOT_FROZEN_FLAG", "FROZEN_MART_MANIFEST.frozen=false")
+        # §1-8: re-hash mart files against manifest sha256 / row_count
+        import hashlib as _h
+        files = Mfull.get("mart_files") or Mfull.get("files") or (Mfull.get("tables") if isinstance(Mfull.get("tables"), list) else [])
+        if isinstance(files, dict): files = [{"file": k, **(v if isinstance(v, dict) else {"sha256": v})} for k, v in files.items()]
+        hash_check = []
+        for fe in files or []:
+            fn = fe.get("file") or fe.get("path") or fe.get("name"); declared = str(fe.get("sha256") or "").replace("sha256:", "")
+            fp = pathlib.Path(a.mart_dir) / pathlib.Path(str(fn)).name
+            if not fp.is_file(): hash_check.append({"file": fn, "status": "MISSING"}); add("C1", "MART_FILE_MISSING", f"manifest lists {fn} but file absent"); continue
+            got = _h.sha256(fp.read_bytes()).hexdigest(); ok = (got == declared)
+            rc = fe.get("row_count"); rows_actual = None
+            try:
+                dd = json.loads(fp.read_text(encoding="utf-8")); rows_actual = len(dd) if isinstance(dd, list) else len(dd.get("rows") or [])
+            except Exception: pass
+            hash_check.append({"file": fn, "sha256_match": ok, "row_count_declared": rc, "row_count_actual": rows_actual})
+            if not ok: add("C1", "MART_FILE_HASH_MISMATCH", f"{fn}: sha256 {got[:12]} != manifest {declared[:12]}")
+            if rc is not None and rows_actual is not None and int(rc) != rows_actual: add("C1", "MART_FILE_ROWCOUNT_MISMATCH", f"{fn}: rows {rows_actual} != manifest {rc}")
+        prov_check["_file_hashes"] = hash_check
+        if not files: add("C2", "MART_MANIFEST_NO_FILE_HASHES", "manifest lists no per-file sha256 (§1-8 unverifiable at file level)")
     else: add("C1", "FROZEN_MART_MANIFEST_MISSING", "FROZEN_MART_MANIFEST.json not found (MART_ACCEPTANCE §1-7/8 unverifiable)")
     # ---- task entry reconciliation (NED/IED/MPFED/archetype/endpoint)
     if fte is not None:
