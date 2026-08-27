@@ -194,7 +194,8 @@ B 는 calibration 만 사용하고 holdout 을 찾거나 읽지 않는다. C 가
 
 ```
 주모집단   n = 56   observation 이자 web_target_group (여기서는 1:1, 확인됨)
-제외       superseded retry 4 observation (타깃 누락 아님 — 커버리지 56/56)
+제외       duplicate launch 4 observation   ← [D-R0-45] 'superseded retry' 철회
+커버리지   attempted 59 / observed 56 / unobserved 3   ← [D-R0-45] '56/56' 은 순환, 폐기
 제외       빈 stub 디렉터리 6
 sensitivity-only   E000 9 observation / 6 고유 타깃 — 주 결과와 미합산
 ```

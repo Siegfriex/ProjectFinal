@@ -136,7 +136,9 @@ C 가 중복 발사 fixture 를 심어 억제를 검증한다 (음성 대조)
 ### ORIGINAL_E001 에 대한 함의
 
 w02 의 4 duplicate run 은 **격리 상태로 유지**한다 (mart 밖). ORIGINAL_E001 판정은 바뀌지 않는다 —
-mart 56 은 duplicate 를 포함하지 않으며 타깃 커버리지 56/56 도 그대로다.
+mart 56 은 duplicate 를 포함하지 않는다.
+**[D-R0-45 정정]** 같은 문장에 있던 `타깃 커버리지 56/56` 은 **철회한다** — 분자와 분모를
+같은 관측집합에서 뽑은 순환이었다. 정정: attempted 59 / observed 56 / unobserved 3.
 **바뀌는 것은 원인 규명이지 결과값이 아니다.**
 
 ## D-R0-36 — integration base 는 bc0b7a08 이 아니다 (C 검증 item[5], P1)
