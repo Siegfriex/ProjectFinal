@@ -1,0 +1,2445 @@
+{
+  "lane": "L",
+  "artifact": "LANE_L_HARNESS",
+  "generated_by": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/tools/v3_harness/lane_l_label_ax.py",
+  "base_sha": "7448184a811f5d7d8772f21488bb75418fde3313",
+  "ssot_manifest_sha256": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+  "verdict": "READY_WITH_AMBIGUITY",
+  "verdict_basis": {
+    "all_fixture_checks_green": true,
+    "fixture_pass": 60,
+    "fixture_total": 60,
+    "counterexample_checks_pass": 9,
+    "counterexample_checks_total": 9,
+    "swap_symmetry_pass": 30,
+    "swap_symmetry_total": 30,
+    "mutation_killed": 12,
+    "mutation_total": 12,
+    "open_ambiguities": 10,
+    "note": "READY is withheld because the codebook under-specifies the points in ambiguous_definitions; every one of them changes real output. The calculator runs and is self-consistent, but the primary readings are D's literal reading, not an A ruling."
+  },
+  "codebook_definitions_verbatim": {
+    "source_file": "/home/sieg/projects-wsl/ProjectFinal/SSOTV3/04_FLOW_CODEBOOK_v3.0.md",
+    "sha256": "aaae54bfb174b3d5f1da7dc0673bb8e1e1d846136012de09fd8ffb476dab0e43",
+    "section_4_variable_rows": [],
+    "section_5_label_relation_rule": "- `label_relation`: Unicode normalize + whitespace normalize 후 exact; 사전 고정 synonym map으로 semantic-equivalent를 별도 표시. embedding similarity만으로 자동 merge 금지.",
+    "section_7_accessible_name": "visible text와 AX computed name을 별개로 저장. CSS는 주로 표시/위치/visibility를 결정하며 accessible name 자체는 DOM/ARIA/AX naming computation의 결과다. pseudo-element text가 의미있는 label이면 rendered evidence로 별도 provenance를 남긴다.",
+    "ssot_00_section_8": "`visible_label_text` = 사용자가 화면에서 실제 보는 rendered text.  \n`accessible_name` = browser AX tree가 계산한 보조기술용 이름.\n\n반드시 둘을 분리하고 `accessible_name_source`, `label_relation`, `entry_label_modality`를 저장한다. `ICON_ONLY_AX_NAMED`와 `ICON_ONLY_UNNAMED`를 구분한다."
+  },
+  "implemented_variables": {
+    "count": 5,
+    "variables": [
+      {
+        "name": "visible_label_text",
+        "role": "pass-through + state classification (MISSING/EMPTY/PRESENT) + normalization; never merged with accessible_name"
+      },
+      {
+        "name": "accessible_name",
+        "role": "pass-through + state classification; this module does NOT run AX naming computation (04 §7 assigns it to the browser)"
+      },
+      {
+        "name": "accessible_name_source",
+        "role": "derived, evidence-first attribution over the frozen 9-member enum; unresolved instead of guessed"
+      },
+      {
+        "name": "label_relation",
+        "role": "derived, 6-member enum, normalize+exact, synonym-map-only semantic equivalence"
+      },
+      {
+        "name": "entry_label_modality",
+        "role": "derived, 5-member enum, ICON_ONLY_AX_NAMED vs ICON_ONLY_UNNAMED separated by AX name state"
+      }
+    ],
+    "input_only_fields": [
+      {
+        "name": "entry_control_type",
+        "note": "consumed opaquely by CE-2; this lane defines no control-type taxonomy and reads no other lane's file"
+      }
+    ],
+    "enum_coverage": {
+      "label_relation": {
+        "enum": [
+          "MATCH",
+          "SEMANTIC_EQUIV",
+          "DIFFERENT",
+          "VISIBLE_ONLY",
+          "AX_ONLY",
+          "NONE"
+        ],
+        "exercised": [
+          "AX_ONLY",
+          "DIFFERENT",
+          "MATCH",
+          "NONE",
+          "VISIBLE_ONLY"
+        ],
+        "unexercised": [
+          "SEMANTIC_EQUIV"
+        ]
+      },
+      "accessible_name_source": {
+        "enum": [
+          "VISIBLE_TEXT",
+          "ARIA_LABEL",
+          "ARIA_LABELLEDBY",
+          "LABEL",
+          "ALT",
+          "TITLE",
+          "VALUE",
+          "MIXED",
+          "NONE"
+        ],
+        "exercised": [
+          "ALT",
+          "ARIA_LABEL",
+          "ARIA_LABELLEDBY",
+          "LABEL",
+          "MIXED",
+          "NONE",
+          "TITLE",
+          "VALUE",
+          "VISIBLE_TEXT"
+        ],
+        "unexercised": []
+      },
+      "entry_label_modality": {
+        "enum": [
+          "EXPLICIT_TEXT",
+          "ICON_TEXT",
+          "ICON_ONLY_AX_NAMED",
+          "ICON_ONLY_UNNAMED",
+          "HIDDEN_UNTIL_REVEAL"
+        ],
+        "exercised": [
+          "EXPLICIT_TEXT",
+          "HIDDEN_UNTIL_REVEAL",
+          "ICON_ONLY_AX_NAMED",
+          "ICON_ONLY_UNNAMED",
+          "ICON_TEXT"
+        ],
+        "unexercised": []
+      }
+    },
+    "enum_coverage_note": "label_relation.SEMANTIC_EQUIV is deliberately unexercised by the main fixture set: the shipped synonym map is empty, so the member is unreachable until A authors one. Its code path is proved separately in fixture_results.synonym_map_code_path using a TEST_ONLY map."
+  },
+  "fixture_results": {
+    "positive_and_negative": {
+      "total": 60,
+      "passed": 60,
+      "failed": [],
+      "cases": [
+        {
+          "fixture_id": "REL-01-identical-ko",
+          "visible_repr": "'검색'",
+          "ax_repr": "'검색'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT",
+            "NONE"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-02-plain-different-ko",
+          "visible_repr": "'검색'",
+          "ax_repr": "'메뉴 열기'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH",
+            "SEMANTIC_EQUIV"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-03-leading-trailing-space",
+          "visible_repr": "'  검색  '",
+          "ax_repr": "'검색'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-04-internal-runs",
+          "visible_repr": "'검색   하기'",
+          "ax_repr": "'검색 하기'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-05-nbsp",
+          "visible_repr": "'검색\\xa0하기'",
+          "ax_repr": "'검색 하기'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-06-ideographic-space",
+          "visible_repr": "'검색\\u3000하기'",
+          "ax_repr": "'검색 하기'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-07-tab-newline",
+          "visible_repr": "'검색\\t\\n하기'",
+          "ax_repr": "'검색 하기'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-08-nfc-vs-nfd",
+          "visible_repr": "'검색'",
+          "ax_repr": "'검색'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-09-nfd-both",
+          "visible_repr": "'검색'",
+          "ax_repr": "'검색'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-10-fullwidth-vs-ascii",
+          "visible_repr": "'ＳＥＡＲＣＨ'",
+          "ax_repr": "'SEARCH'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": true,
+          "diverging_readings": [
+            "nfkc"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-11-fullwidth-digits",
+          "visible_repr": "'１２３'",
+          "ax_repr": "'123'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": true,
+          "diverging_readings": [
+            "nfkc"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-12-case-differs",
+          "visible_repr": "'Search'",
+          "ax_repr": "'search'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": true,
+          "diverging_readings": [
+            "casefolded"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-13-case-same",
+          "visible_repr": "'Search'",
+          "ax_repr": "'Search'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-14-zwsp-inside",
+          "visible_repr": "'검\\u200b색'",
+          "ax_repr": "'검색'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": true,
+          "diverging_readings": [
+            "zero_width_stripped"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-15-bom-prefix",
+          "visible_repr": "'\\ufeff검색'",
+          "ax_repr": "'검색'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": true,
+          "diverging_readings": [
+            "zero_width_stripped"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-16-zwsp-only-visible",
+          "visible_repr": "'\\u200b'",
+          "ax_repr": "'검색'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "AX_ONLY",
+            "MATCH"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "AX_ONLY",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": true,
+          "diverging_readings": [
+            "zero_width_stripped"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-17-visible-only",
+          "visible_repr": "'검색'",
+          "ax_repr": "''",
+          "expected": "VISIBLE_ONLY",
+          "expected_reason": null,
+          "got": "VISIBLE_ONLY",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH",
+            "NONE",
+            "AX_ONLY"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "EMPTY",
+          "readings": {
+            "primary": {
+              "label_relation": "VISIBLE_ONLY",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "VISIBLE_ONLY",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "VISIBLE_ONLY",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "VISIBLE_ONLY",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-18-ax-only",
+          "visible_repr": "''",
+          "ax_repr": "'검색'",
+          "expected": "AX_ONLY",
+          "expected_reason": null,
+          "got": "AX_ONLY",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH",
+            "NONE",
+            "VISIBLE_ONLY"
+          ],
+          "visible_state": "EMPTY",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "AX_ONLY",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "AX_ONLY",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "AX_ONLY",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "AX_ONLY",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-19-both-empty-strings",
+          "visible_repr": "''",
+          "ax_repr": "''",
+          "expected": "NONE",
+          "expected_reason": null,
+          "got": "NONE",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH",
+            "VISIBLE_ONLY",
+            "AX_ONLY"
+          ],
+          "visible_state": "EMPTY",
+          "ax_state": "EMPTY",
+          "readings": {
+            "primary": {
+              "label_relation": "NONE",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "NONE",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "NONE",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "NONE",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-20-whitespace-only-both",
+          "visible_repr": "'   '",
+          "ax_repr": "'\\t'",
+          "expected": "NONE",
+          "expected_reason": null,
+          "got": "NONE",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH",
+            "DIFFERENT"
+          ],
+          "visible_state": "EMPTY",
+          "ax_state": "EMPTY",
+          "readings": {
+            "primary": {
+              "label_relation": "NONE",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "NONE",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "NONE",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "NONE",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-21-visible-missing",
+          "visible_repr": "None",
+          "ax_repr": "'검색'",
+          "expected": null,
+          "expected_reason": "VISIBLE_UNOBSERVED",
+          "got": null,
+          "got_reason": "VISIBLE_UNOBSERVED",
+          "must_not_be": [
+            "AX_ONLY",
+            "NONE"
+          ],
+          "visible_state": "MISSING",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": null,
+              "undeterminable_reason": "VISIBLE_UNOBSERVED"
+            },
+            "nfkc": {
+              "label_relation": null,
+              "undeterminable_reason": "VISIBLE_UNOBSERVED"
+            },
+            "zero_width_stripped": {
+              "label_relation": null,
+              "undeterminable_reason": "VISIBLE_UNOBSERVED"
+            },
+            "casefolded": {
+              "label_relation": null,
+              "undeterminable_reason": "VISIBLE_UNOBSERVED"
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-22-ax-missing",
+          "visible_repr": "'검색'",
+          "ax_repr": "None",
+          "expected": null,
+          "expected_reason": "AX_UNOBSERVED",
+          "got": null,
+          "got_reason": "AX_UNOBSERVED",
+          "must_not_be": [
+            "VISIBLE_ONLY",
+            "NONE"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "MISSING",
+          "readings": {
+            "primary": {
+              "label_relation": null,
+              "undeterminable_reason": "AX_UNOBSERVED"
+            },
+            "nfkc": {
+              "label_relation": null,
+              "undeterminable_reason": "AX_UNOBSERVED"
+            },
+            "zero_width_stripped": {
+              "label_relation": null,
+              "undeterminable_reason": "AX_UNOBSERVED"
+            },
+            "casefolded": {
+              "label_relation": null,
+              "undeterminable_reason": "AX_UNOBSERVED"
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-23-both-missing",
+          "visible_repr": "None",
+          "ax_repr": "None",
+          "expected": null,
+          "expected_reason": "BOTH_UNOBSERVED",
+          "got": null,
+          "got_reason": "BOTH_UNOBSERVED",
+          "must_not_be": [
+            "NONE",
+            "MATCH"
+          ],
+          "visible_state": "MISSING",
+          "ax_state": "MISSING",
+          "readings": {
+            "primary": {
+              "label_relation": null,
+              "undeterminable_reason": "BOTH_UNOBSERVED"
+            },
+            "nfkc": {
+              "label_relation": null,
+              "undeterminable_reason": "BOTH_UNOBSERVED"
+            },
+            "zero_width_stripped": {
+              "label_relation": null,
+              "undeterminable_reason": "BOTH_UNOBSERVED"
+            },
+            "casefolded": {
+              "label_relation": null,
+              "undeterminable_reason": "BOTH_UNOBSERVED"
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-24-visible-missing-ax-empty",
+          "visible_repr": "None",
+          "ax_repr": "''",
+          "expected": null,
+          "expected_reason": "VISIBLE_UNOBSERVED",
+          "got": null,
+          "got_reason": "VISIBLE_UNOBSERVED",
+          "must_not_be": [
+            "NONE"
+          ],
+          "visible_state": "MISSING",
+          "ax_state": "EMPTY",
+          "readings": {
+            "primary": {
+              "label_relation": null,
+              "undeterminable_reason": "VISIBLE_UNOBSERVED"
+            },
+            "nfkc": {
+              "label_relation": null,
+              "undeterminable_reason": "VISIBLE_UNOBSERVED"
+            },
+            "zero_width_stripped": {
+              "label_relation": null,
+              "undeterminable_reason": "VISIBLE_UNOBSERVED"
+            },
+            "casefolded": {
+              "label_relation": null,
+              "undeterminable_reason": "VISIBLE_UNOBSERVED"
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-25-visible-empty-ax-missing",
+          "visible_repr": "''",
+          "ax_repr": "None",
+          "expected": null,
+          "expected_reason": "AX_UNOBSERVED",
+          "got": null,
+          "got_reason": "AX_UNOBSERVED",
+          "must_not_be": [
+            "NONE"
+          ],
+          "visible_state": "EMPTY",
+          "ax_state": "MISSING",
+          "readings": {
+            "primary": {
+              "label_relation": null,
+              "undeterminable_reason": "AX_UNOBSERVED"
+            },
+            "nfkc": {
+              "label_relation": null,
+              "undeterminable_reason": "AX_UNOBSERVED"
+            },
+            "zero_width_stripped": {
+              "label_relation": null,
+              "undeterminable_reason": "AX_UNOBSERVED"
+            },
+            "casefolded": {
+              "label_relation": null,
+              "undeterminable_reason": "AX_UNOBSERVED"
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-26-no-synonym-merge",
+          "visible_repr": "'조회'",
+          "ax_repr": "'검색'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "SEMANTIC_EQUIV",
+            "MATCH"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-27-near-miss-not-merged",
+          "visible_repr": "'검색하기'",
+          "ax_repr": "'검색'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH",
+            "SEMANTIC_EQUIV"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-28-substring-not-merged",
+          "visible_repr": "'검색'",
+          "ax_repr": "'통합 검색'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH",
+            "SEMANTIC_EQUIV"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-29-nfd-plus-whitespace",
+          "visible_repr": "'  검색\\xa0하기 '",
+          "ax_repr": "'검색 하기'",
+          "expected": "MATCH",
+          "expected_reason": null,
+          "got": "MATCH",
+          "got_reason": null,
+          "must_not_be": [
+            "DIFFERENT"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "MATCH",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-30-emoji-icon-text",
+          "visible_repr": "'🔍'",
+          "ax_repr": "'검색'",
+          "expected": "DIFFERENT",
+          "expected_reason": null,
+          "got": "DIFFERENT",
+          "got_reason": null,
+          "must_not_be": [
+            "MATCH"
+          ],
+          "visible_state": "PRESENT",
+          "ax_state": "PRESENT",
+          "readings": {
+            "primary": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "nfkc": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "zero_width_stripped": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            },
+            "casefolded": {
+              "label_relation": "DIFFERENT",
+              "undeterminable_reason": null
+            }
+          },
+          "normalization_sensitive": false,
+          "diverging_readings": [],
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-01-aria-label",
+          "expected": "ARIA_LABEL",
+          "expected_reason": null,
+          "got": "ARIA_LABEL",
+          "got_reason": null,
+          "matched_sources": [
+            "ARIA_LABEL"
+          ],
+          "ambiguous": false,
+          "derivation": "UNIQUE_VALUE_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-02-visible-text",
+          "expected": "VISIBLE_TEXT",
+          "expected_reason": null,
+          "got": "VISIBLE_TEXT",
+          "got_reason": null,
+          "matched_sources": [
+            "VISIBLE_TEXT"
+          ],
+          "ambiguous": false,
+          "derivation": "UNIQUE_VALUE_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-03-alt",
+          "expected": "ALT",
+          "expected_reason": null,
+          "got": "ALT",
+          "got_reason": null,
+          "matched_sources": [
+            "ALT"
+          ],
+          "ambiguous": false,
+          "derivation": "UNIQUE_VALUE_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-04-title-only",
+          "expected": "TITLE",
+          "expected_reason": null,
+          "got": "TITLE",
+          "got_reason": null,
+          "matched_sources": [
+            "TITLE"
+          ],
+          "ambiguous": false,
+          "derivation": "UNIQUE_VALUE_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-05-value",
+          "expected": "VALUE",
+          "expected_reason": null,
+          "got": "VALUE",
+          "got_reason": null,
+          "matched_sources": [
+            "VALUE"
+          ],
+          "ambiguous": false,
+          "derivation": "UNIQUE_VALUE_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-06-label",
+          "expected": "LABEL",
+          "expected_reason": null,
+          "got": "LABEL",
+          "got_reason": null,
+          "matched_sources": [
+            "LABEL"
+          ],
+          "ambiguous": false,
+          "derivation": "UNIQUE_VALUE_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-07-labelledby",
+          "expected": "ARIA_LABELLEDBY",
+          "expected_reason": null,
+          "got": "ARIA_LABELLEDBY",
+          "got_reason": null,
+          "matched_sources": [
+            "ARIA_LABELLEDBY"
+          ],
+          "ambiguous": false,
+          "derivation": "UNIQUE_VALUE_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-08-tie-aria-label-wins",
+          "expected": "ARIA_LABEL",
+          "expected_reason": null,
+          "got": "ARIA_LABEL",
+          "got_reason": null,
+          "matched_sources": [
+            "ARIA_LABEL",
+            "TITLE",
+            "VISIBLE_TEXT"
+          ],
+          "ambiguous": true,
+          "derivation": "PRECEDENCE_TIEBREAK",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-09-mixed-concat",
+          "expected": "MIXED",
+          "expected_reason": null,
+          "got": "MIXED",
+          "got_reason": null,
+          "matched_sources": [
+            "LABEL",
+            "TITLE"
+          ],
+          "ambiguous": false,
+          "derivation": "CONCATENATION_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-10-none-empty-no-candidates",
+          "expected": "NONE",
+          "expected_reason": null,
+          "got": "NONE",
+          "got_reason": null,
+          "matched_sources": [],
+          "ambiguous": false,
+          "derivation": "EMPTY_NAME_NO_CANDIDATE",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-11-empty-with-candidates",
+          "expected": null,
+          "expected_reason": "EMPTY_NAME_WITH_CANDIDATES",
+          "got": null,
+          "got_reason": "EMPTY_NAME_WITH_CANDIDATES",
+          "matched_sources": [
+            "ARIA_LABEL"
+          ],
+          "ambiguous": false,
+          "derivation": null,
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-12-ax-missing",
+          "expected": null,
+          "expected_reason": "AX_NAME_UNOBSERVED",
+          "got": null,
+          "got_reason": "AX_NAME_UNOBSERVED",
+          "matched_sources": [],
+          "ambiguous": false,
+          "derivation": null,
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-13-candidates-missing",
+          "expected": null,
+          "expected_reason": "CANDIDATES_UNOBSERVED",
+          "got": null,
+          "got_reason": "CANDIDATES_UNOBSERVED",
+          "matched_sources": [],
+          "ambiguous": false,
+          "derivation": null,
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-14-not-attributable",
+          "expected": null,
+          "expected_reason": "NAME_NOT_ATTRIBUTABLE",
+          "got": null,
+          "got_reason": "NAME_NOT_ATTRIBUTABLE",
+          "matched_sources": [],
+          "ambiguous": false,
+          "derivation": null,
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-15-normalized-match",
+          "expected": "ARIA_LABEL",
+          "expected_reason": null,
+          "got": "ARIA_LABEL",
+          "got_reason": null,
+          "matched_sources": [
+            "ARIA_LABEL"
+          ],
+          "ambiguous": false,
+          "derivation": "UNIQUE_VALUE_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "SRC-16-nfd-candidate",
+          "expected": "ARIA_LABEL",
+          "expected_reason": null,
+          "got": "ARIA_LABEL",
+          "got_reason": null,
+          "matched_sources": [
+            "ARIA_LABEL"
+          ],
+          "ambiguous": false,
+          "derivation": "UNIQUE_VALUE_MATCH",
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-01-explicit-text",
+          "expected": "EXPLICIT_TEXT",
+          "expected_reason": null,
+          "got": "EXPLICIT_TEXT",
+          "got_reason": null,
+          "inputs": {
+            "visible_state": "PRESENT",
+            "ax_state": "PRESENT",
+            "has_icon": false,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-02-icon-text",
+          "expected": "ICON_TEXT",
+          "expected_reason": null,
+          "got": "ICON_TEXT",
+          "got_reason": null,
+          "inputs": {
+            "visible_state": "PRESENT",
+            "ax_state": "PRESENT",
+            "has_icon": true,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-03-icon-only-ax-named",
+          "expected": "ICON_ONLY_AX_NAMED",
+          "expected_reason": null,
+          "got": "ICON_ONLY_AX_NAMED",
+          "got_reason": null,
+          "inputs": {
+            "visible_state": "EMPTY",
+            "ax_state": "PRESENT",
+            "has_icon": true,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-04-icon-only-unnamed-empty-ax",
+          "expected": "ICON_ONLY_UNNAMED",
+          "expected_reason": null,
+          "got": "ICON_ONLY_UNNAMED",
+          "got_reason": null,
+          "inputs": {
+            "visible_state": "EMPTY",
+            "ax_state": "EMPTY",
+            "has_icon": true,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-05-icon-only-ax-missing",
+          "expected": null,
+          "expected_reason": "AX_NAME_UNOBSERVED",
+          "got": null,
+          "got_reason": "AX_NAME_UNOBSERVED",
+          "inputs": {
+            "visible_state": "EMPTY",
+            "ax_state": "MISSING",
+            "has_icon": true,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-06-hidden-until-reveal",
+          "expected": "HIDDEN_UNTIL_REVEAL",
+          "expected_reason": null,
+          "got": "HIDDEN_UNTIL_REVEAL",
+          "got_reason": null,
+          "inputs": {
+            "visible_state": "EMPTY",
+            "ax_state": "PRESENT",
+            "has_icon": true,
+            "requires_reveal": true
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-07-hidden-dominates-text",
+          "expected": "HIDDEN_UNTIL_REVEAL",
+          "expected_reason": null,
+          "got": "HIDDEN_UNTIL_REVEAL",
+          "got_reason": null,
+          "inputs": {
+            "visible_state": "PRESENT",
+            "ax_state": "PRESENT",
+            "has_icon": false,
+            "requires_reveal": true
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-08-no-text-no-icon",
+          "expected": null,
+          "expected_reason": "NO_VISIBLE_TEXT_AND_NO_ICON",
+          "got": null,
+          "got_reason": "NO_VISIBLE_TEXT_AND_NO_ICON",
+          "inputs": {
+            "visible_state": "EMPTY",
+            "ax_state": "EMPTY",
+            "has_icon": false,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-09-visible-missing",
+          "expected": null,
+          "expected_reason": "VISIBLE_TEXT_UNOBSERVED",
+          "got": null,
+          "got_reason": "VISIBLE_TEXT_UNOBSERVED",
+          "inputs": {
+            "visible_state": "MISSING",
+            "ax_state": "PRESENT",
+            "has_icon": true,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-10-icon-unobserved",
+          "expected": null,
+          "expected_reason": "ICON_PRESENCE_UNOBSERVED",
+          "got": null,
+          "got_reason": "ICON_PRESENCE_UNOBSERVED",
+          "inputs": {
+            "visible_state": "EMPTY",
+            "ax_state": "PRESENT",
+            "has_icon": null,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-11-reveal-unobserved",
+          "expected": null,
+          "expected_reason": "REVEAL_STATE_UNOBSERVED",
+          "got": null,
+          "got_reason": "REVEAL_STATE_UNOBSERVED",
+          "inputs": {
+            "visible_state": "PRESENT",
+            "ax_state": "PRESENT",
+            "has_icon": false,
+            "requires_reveal": null
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-12-whitespace-only-visible-is-empty",
+          "expected": "ICON_ONLY_AX_NAMED",
+          "expected_reason": null,
+          "got": "ICON_ONLY_AX_NAMED",
+          "got_reason": null,
+          "inputs": {
+            "visible_state": "EMPTY",
+            "ax_state": "PRESENT",
+            "has_icon": true,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-13-zwsp-visible-counts-as-present",
+          "expected": "ICON_TEXT",
+          "expected_reason": null,
+          "got": "ICON_TEXT",
+          "got_reason": null,
+          "inputs": {
+            "visible_state": "PRESENT",
+            "ax_state": "PRESENT",
+            "has_icon": true,
+            "requires_reveal": false
+          },
+          "pass": true
+        },
+        {
+          "fixture_id": "MOD-14-ax-whitespace-only-unnamed",
+          "expected": "ICON_ONLY_UNNAMED",
+          "expected_reason": null,
+          "got": "ICON_ONLY_UNNAMED",
+          "got_reason": null,
+          "inputs": {
+            "visible_state": "EMPTY",
+            "ax_state": "EMPTY",
+            "has_icon": true,
+            "requires_reveal": false
+          },
+          "pass": true
+        }
+      ]
+    },
+    "counterexample_fixtures": {
+      "ce1_same_ax_name_different_visible_label": [
+        {
+          "accessible_name_normalized": "승차권 예매",
+          "distinct_visible_forms": [
+            "예매",
+            "표 사기"
+          ],
+          "observation_ids": [
+            "ce-a1",
+            "ce-a2"
+          ]
+        }
+      ],
+      "ce2_same_visible_label_different_control_type": [
+        {
+          "visible_label_normalized": "검색",
+          "distinct_control_types": [
+            "ICON_ONLY",
+            "SEARCHBOX"
+          ],
+          "observation_ids": [
+            "ce-d1",
+            "ce-d2"
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "check": "CE1-positive-detected",
+          "pass": true
+        },
+        {
+          "check": "CE1-positive-members",
+          "pass": true
+        },
+        {
+          "check": "CE1-nbsp-not-a-difference",
+          "pass": true
+        },
+        {
+          "check": "CE1-identical-not-flagged",
+          "pass": true
+        },
+        {
+          "check": "CE1-empty-and-missing-ignored",
+          "pass": true
+        },
+        {
+          "check": "CE2-positive-detected",
+          "pass": true
+        },
+        {
+          "check": "CE2-positive-types",
+          "pass": true
+        },
+        {
+          "check": "CE2-null-control-type-ignored",
+          "pass": true
+        },
+        {
+          "check": "CE2-same-type-not-flagged",
+          "pass": true
+        }
+      ],
+      "passed": 9,
+      "total": 9
+    },
+    "swap_symmetry": {
+      "cases": [
+        {
+          "fixture_id": "REL-01-identical-ko",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-02-plain-different-ko",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-03-leading-trailing-space",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-04-internal-runs",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-05-nbsp",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-06-ideographic-space",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-07-tab-newline",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-08-nfc-vs-nfd",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-09-nfd-both",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-10-fullwidth-vs-ascii",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-11-fullwidth-digits",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-12-case-differs",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-13-case-same",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-14-zwsp-inside",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-15-bom-prefix",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-16-zwsp-only-visible",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-17-visible-only",
+          "forward": [
+            "VISIBLE_ONLY",
+            null
+          ],
+          "reversed": [
+            "AX_ONLY",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-18-ax-only",
+          "forward": [
+            "AX_ONLY",
+            null
+          ],
+          "reversed": [
+            "VISIBLE_ONLY",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-19-both-empty-strings",
+          "forward": [
+            "NONE",
+            null
+          ],
+          "reversed": [
+            "NONE",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-20-whitespace-only-both",
+          "forward": [
+            "NONE",
+            null
+          ],
+          "reversed": [
+            "NONE",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-21-visible-missing",
+          "forward": [
+            null,
+            "VISIBLE_UNOBSERVED"
+          ],
+          "reversed": [
+            null,
+            "AX_UNOBSERVED"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-22-ax-missing",
+          "forward": [
+            null,
+            "AX_UNOBSERVED"
+          ],
+          "reversed": [
+            null,
+            "VISIBLE_UNOBSERVED"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-23-both-missing",
+          "forward": [
+            null,
+            "BOTH_UNOBSERVED"
+          ],
+          "reversed": [
+            null,
+            "BOTH_UNOBSERVED"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-24-visible-missing-ax-empty",
+          "forward": [
+            null,
+            "VISIBLE_UNOBSERVED"
+          ],
+          "reversed": [
+            null,
+            "AX_UNOBSERVED"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-25-visible-empty-ax-missing",
+          "forward": [
+            null,
+            "AX_UNOBSERVED"
+          ],
+          "reversed": [
+            null,
+            "VISIBLE_UNOBSERVED"
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-26-no-synonym-merge",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-27-near-miss-not-merged",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-28-substring-not-merged",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-29-nfd-plus-whitespace",
+          "forward": [
+            "MATCH",
+            null
+          ],
+          "reversed": [
+            "MATCH",
+            null
+          ],
+          "pass": true
+        },
+        {
+          "fixture_id": "REL-30-emoji-icon-text",
+          "forward": [
+            "DIFFERENT",
+            null
+          ],
+          "reversed": [
+            "DIFFERENT",
+            null
+          ],
+          "pass": true
+        }
+      ],
+      "passed": 30,
+      "total": 30,
+      "failed": []
+    },
+    "synonym_map_code_path": {
+      "shipped_map_size": 0,
+      "shipped_map_result": "DIFFERENT",
+      "injected_test_map_result": "SEMANTIC_EQUIV",
+      "injected_map_unrelated_pair_result": "DIFFERENT",
+      "note": "the injected map is TEST_ONLY_NOT_AUTHORITATIVE; A owns the real map",
+      "pass": true
+    },
+    "korean_html_roundtrip": {
+      "cases": [
+        {
+          "fixture": "utf8",
+          "declared_encoding": "utf-8",
+          "encoding_used": "utf-8",
+          "visible_label_text": " 승차권 예매",
+          "aria_label": "승차권 예매 바로가기",
+          "alt": "예매 아이콘",
+          "aria_labelledby_text": "출발역",
+          "mojibake_free": true,
+          "label_relation": "DIFFERENT",
+          "accessible_name_source": "ARIA_LABEL",
+          "entry_label_modality": "ICON_TEXT",
+          "pass": true
+        },
+        {
+          "fixture": "euckr",
+          "declared_encoding": "euc-kr",
+          "encoding_used": "euc-kr",
+          "visible_label_text": " 승차권 예매",
+          "aria_label": "승차권 예매 바로가기",
+          "alt": "예매 아이콘",
+          "aria_labelledby_text": "출발역",
+          "mojibake_free": true,
+          "label_relation": "DIFFERENT",
+          "accessible_name_source": "ARIA_LABEL",
+          "entry_label_modality": "ICON_TEXT",
+          "pass": true
+        },
+        {
+          "fixture": "cp949",
+          "declared_encoding": "cp949",
+          "encoding_used": "cp949",
+          "visible_label_text": " 승차권 예매",
+          "aria_label": "승차권 예매 바로가기",
+          "alt": "예매 아이콘",
+          "aria_labelledby_text": "출발역",
+          "mojibake_free": true,
+          "label_relation": "DIFFERENT",
+          "accessible_name_source": "ARIA_LABEL",
+          "entry_label_modality": "ICON_TEXT",
+          "pass": true
+        },
+        {
+          "fixture": "utf8_no_declaration",
+          "declared_encoding": "utf-8",
+          "encoding_used": "utf-8",
+          "visible_label_text": " 승차권 예매",
+          "aria_label": "승차권 예매 바로가기",
+          "alt": "예매 아이콘",
+          "aria_labelledby_text": "출발역",
+          "mojibake_free": true,
+          "label_relation": "DIFFERENT",
+          "accessible_name_source": "ARIA_LABEL",
+          "entry_label_modality": "ICON_TEXT",
+          "pass": true
+        }
+      ],
+      "passed": 4,
+      "total": 4,
+      "negative_control_bytes_to_lxml": [
+        {
+          "fixture": "utf8",
+          "bytes_to_lxml_text": "승차권 예매",
+          "bytes_to_lxml_mojibake": false,
+          "parse_html_text": "승차권 예매",
+          "parse_html_correct": true
+        },
+        {
+          "fixture": "euckr",
+          "bytes_to_lxml_text": "승차권 예매",
+          "bytes_to_lxml_mojibake": false,
+          "parse_html_text": "승차권 예매",
+          "parse_html_correct": true
+        },
+        {
+          "fixture": "cp949",
+          "bytes_to_lxml_text": "승차권 예매",
+          "bytes_to_lxml_mojibake": false,
+          "parse_html_text": "승차권 예매",
+          "parse_html_correct": true
+        },
+        {
+          "fixture": "utf8_no_declaration",
+          "bytes_to_lxml_text": "ì¹ì°¨ê¶ ìë§¤",
+          "bytes_to_lxml_mojibake": true,
+          "parse_html_text": "승차권 예매",
+          "parse_html_correct": true
+        }
+      ],
+      "negative_control_bytes_to_lxml_produces_mojibake": true,
+      "negative_control_parse_html_always_correct": true,
+      "d_def_01_trigger_refinement": "With lxml 6.1.1, handing raw bytes to lxml.html.fromstring only produces mojibake when the document carries NO in-document charset declaration (libxml2 then defaults to Latin-1). Declared UTF-8, euc-kr and cp949 all decode correctly even from bytes. So the D-DEF-01 defect is real but its stated mechanism ('lxml ignored the declared charset') does not reproduce here; the reproducing condition is an ABSENT declaration. D has NOT inspected the real dom.html files, so this is a fixture-level observation about the parser, not a re-attribution of the original 6/56 incident."
+    },
+    "mutation": {
+      "mutations": [
+        {
+          "mutation": "M1_NO_WHITESPACE_COLLAPSE",
+          "description": "drop the whitespace-normalize step",
+          "killed_by_fixtures": [
+            "REL-03-leading-trailing-space",
+            "REL-04-internal-runs",
+            "REL-05-nbsp",
+            "REL-06-ideographic-space",
+            "REL-07-tab-newline",
+            "REL-20-whitespace-only-both",
+            "REL-29-nfd-plus-whitespace",
+            "SRC-15-normalized-match",
+            "MOD-12-whitespace-only-visible-is-empty",
+            "MOD-14-ax-whitespace-only-unnamed"
+          ],
+          "killed_by_counterexample_checks": [
+            "CE1-nbsp-not-a-difference"
+          ],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M2_NFKC_PRIMARY",
+          "description": "use NFKC as the primary normalization form",
+          "killed_by_fixtures": [
+            "REL-10-fullwidth-vs-ascii",
+            "REL-11-fullwidth-digits"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M3_CASEFOLD_PRIMARY",
+          "description": "casefold before the exact compare",
+          "killed_by_fixtures": [
+            "REL-12-case-differs"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M4_NO_UNICODE_NORMALIZE",
+          "description": "skip Unicode normalization entirely",
+          "killed_by_fixtures": [
+            "REL-08-nfc-vs-nfd",
+            "REL-29-nfd-plus-whitespace",
+            "SRC-16-nfd-candidate"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M5_EMPTY_IS_MISSING",
+          "description": "collapse observed-EMPTY into MISSING",
+          "killed_by_fixtures": [
+            "REL-17-visible-only",
+            "REL-18-ax-only",
+            "REL-19-both-empty-strings",
+            "REL-20-whitespace-only-both",
+            "REL-24-visible-missing-ax-empty",
+            "REL-25-visible-empty-ax-missing",
+            "SRC-10-none-empty-no-candidates",
+            "SRC-11-empty-with-candidates",
+            "MOD-03-icon-only-ax-named",
+            "MOD-04-icon-only-unnamed-empty-ax",
+            "MOD-05-icon-only-ax-missing",
+            "MOD-08-no-text-no-icon",
+            "MOD-10-icon-unobserved",
+            "MOD-12-whitespace-only-visible-is-empty",
+            "MOD-14-ax-whitespace-only-unnamed"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M6_NO_MIXED",
+          "description": "never derive MIXED",
+          "killed_by_fixtures": [
+            "SRC-09-mixed-concat"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M7_STRIP_ZERO_WIDTH",
+          "description": "strip zero-width characters in the primary reading",
+          "killed_by_fixtures": [
+            "REL-14-zwsp-inside",
+            "REL-15-bom-prefix",
+            "REL-16-zwsp-only-visible",
+            "MOD-13-zwsp-visible-counts-as-present"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M8_REVERSE_PRECEDENCE",
+          "description": "reverse the accname tie-break precedence",
+          "killed_by_fixtures": [
+            "SRC-08-tie-aria-label-wins"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M9_MERGE_ICON_ONLY",
+          "description": "merge ICON_ONLY_UNNAMED into ICON_ONLY_AX_NAMED",
+          "killed_by_fixtures": [
+            "MOD-04-icon-only-unnamed-empty-ax",
+            "MOD-14-ax-whitespace-only-unnamed"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M10_RAW_KEYS",
+          "description": "group counterexamples on raw (unnormalized) text",
+          "killed_by_fixtures": [],
+          "killed_by_counterexample_checks": [
+            "CE1-nbsp-not-a-difference"
+          ],
+          "killed_by_swap_symmetry": [],
+          "killed": true
+        },
+        {
+          "mutation": "M11_ONLY_SIDE_COLLAPSE",
+          "description": "emit VISIBLE_ONLY for both one-sided cases (breaks the mirror)",
+          "killed_by_fixtures": [
+            "REL-18-ax-only"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [
+            "REL-17-visible-only",
+            "REL-18-ax-only"
+          ],
+          "killed": true
+        },
+        {
+          "mutation": "M12_AX_FALLBACK_TO_VISIBLE",
+          "description": "back-fill a missing accessible_name from visible_label_text -- the exact merge SSOT 00 §8 forbids",
+          "killed_by_fixtures": [
+            "REL-22-ax-missing",
+            "REL-25-visible-empty-ax-missing",
+            "MOD-05-icon-only-ax-missing"
+          ],
+          "killed_by_counterexample_checks": [],
+          "killed_by_swap_symmetry": [
+            "REL-21-visible-missing",
+            "REL-22-ax-missing",
+            "REL-24-visible-missing-ax-empty",
+            "REL-25-visible-empty-ax-missing"
+          ],
+          "killed": true
+        }
+      ],
+      "killed": 12,
+      "total": 12,
+      "survivors": [],
+      "restored_to_baseline_after_mutations": true
+    }
+  },
+  "ambiguous_definitions": [
+    {
+      "id": "AMB-L-01",
+      "variable": "label_relation",
+      "question": "04 §5 says 'Unicode normalize' without naming the form. NFC (canonical) and NFKC (compatibility) disagree on fullwidth/halfwidth, circled and ligature forms.",
+      "primary_reading_taken": "NFC",
+      "competing_reading": "NFKC",
+      "consequence": "Fullwidth vs ASCII labels are DIFFERENT under NFC and MATCH under NFKC.",
+      "resolution_owner": "A"
+    },
+    {
+      "id": "AMB-L-02",
+      "variable": "label_relation",
+      "question": "Is comparison case-sensitive? 04 §5 says 'exact' and never mentions case.",
+      "primary_reading_taken": "case-sensitive (literal 'exact')",
+      "competing_reading": "casefold before compare",
+      "consequence": "'Search' vs 'search' is DIFFERENT under the primary reading.",
+      "resolution_owner": "A"
+    },
+    {
+      "id": "AMB-L-03",
+      "variable": "label_relation / text_state",
+      "question": "Are zero-width characters (U+200B/200C/200D/2060/FEFF) 'whitespace' for the whitespace-normalize step? They are not whitespace in Unicode, so str.split() keeps them.",
+      "primary_reading_taken": "preserved (not whitespace)",
+      "competing_reading": "stripped as invisible formatting",
+      "consequence": "A ZWSP-only visible label is PRESENT under the primary reading and EMPTY under the competing one, which flips the row between DIFFERENT and AX_ONLY.",
+      "resolution_owner": "A"
+    },
+    {
+      "id": "AMB-L-04",
+      "variable": "accessible_name_source",
+      "question": "The codebook fixes the enum but not the attribution procedure. When two candidates hold the identical value that the AX name has, value evidence cannot separate them.",
+      "primary_reading_taken": "attribute by unique value match; break exact-value ties with W3C accname 1.2 precedence and set accessible_name_source_ambiguous=true",
+      "competing_reading": "leave unresolved whenever more than one candidate matches",
+      "consequence": "Affects only rows flagged ambiguous; those rows are individually listed.",
+      "resolution_owner": "A"
+    },
+    {
+      "id": "AMB-L-05",
+      "variable": "accessible_name_source",
+      "question": "MIXED has no operational definition in 04 §4.",
+      "primary_reading_taken": "MIXED iff the name equals the space-joined concatenation of 2-3 present candidate values (permutation search), which is the aria-labelledby multi-reference shape",
+      "competing_reading": "MIXED only when the collector asserts it",
+      "consequence": "Collector-asserted source always wins over derivation, so A can override wholesale.",
+      "resolution_owner": "A"
+    },
+    {
+      "id": "AMB-L-06",
+      "variable": "entry_label_modality",
+      "question": "Precedence between HIDDEN_UNTIL_REVEAL and the icon/text members is unspecified: a hidden control also has an icon/text character.",
+      "primary_reading_taken": "HIDDEN_UNTIL_REVEAL dominates when requires_reveal is true",
+      "competing_reading": "record reveal separately and keep the icon/text member",
+      "consequence": "Icon-only rates in 05 §2-C will be understated for revealed controls under the primary reading.",
+      "resolution_owner": "A"
+    },
+    {
+      "id": "AMB-L-07",
+      "variable": "entry_label_modality",
+      "question": "No enum member covers 'no visible text and no icon' (e.g. a bare region or an unlabelled input).",
+      "primary_reading_taken": "emit no value; undeterminable_reason=NO_VISIBLE_TEXT_AND_NO_ICON",
+      "competing_reading": "extend the enum",
+      "consequence": "Such rows are excluded from modality distributions rather than mislabelled.",
+      "resolution_owner": "A"
+    },
+    {
+      "id": "AMB-L-08",
+      "variable": "label_relation",
+      "question": "The enum has no member for 'a side was never observed'. NONE is defined as a relation, not as missingness.",
+      "primary_reading_taken": "emit label_relation=null plus undeterminable_reason (BOTH/VISIBLE/AX_UNOBSERVED); NONE is reserved for observed-empty on both sides",
+      "competing_reading": "map unobserved to NONE",
+      "consequence": "The competing reading would inflate NONE and destroy the empty-vs-missing distinction the contract requires.",
+      "resolution_owner": "A"
+    },
+    {
+      "id": "AMB-L-09",
+      "variable": "label_relation",
+      "question": "Is NBSP (U+00A0) / ideographic space (U+3000) collapsed by 'whitespace normalize'? Both are Unicode whitespace, so Python's str.split() collapses them.",
+      "primary_reading_taken": "collapsed",
+      "competing_reading": "treat NBSP as a significant character",
+      "consequence": "'검색\\u00a0하기' MATCHes '검색 하기' under the primary reading.",
+      "resolution_owner": "A"
+    },
+    {
+      "id": "AMB-L-10",
+      "variable": "accessible_name_source",
+      "question": "What does an observed-EMPTY accessible name mean when naming candidates are present (e.g. aria-label='' overriding real content)?",
+      "primary_reading_taken": "unresolved; unresolved_reason=EMPTY_NAME_WITH_CANDIDATES (NOT the NONE member)",
+      "competing_reading": "NONE",
+      "consequence": "Keeps 'the AX tree computed nothing despite available sources' distinguishable from 'nothing was available'.",
+      "resolution_owner": "A"
+    }
+  ],
+  "counterexample_detectors": [
+    {
+      "id": "CE-1",
+      "function": "detect_same_ax_name_different_visible",
+      "definition": "group observations whose accessible_name is PRESENT by its normalized form; flag groups holding more than one distinct normalized visible_label_text (also PRESENT). EMPTY and MISSING sides are excluded so an absence can never manufacture a collision.",
+      "no_threshold": true
+    },
+    {
+      "id": "CE-2",
+      "function": "detect_same_visible_different_control_type",
+      "definition": "group observations whose visible_label_text is PRESENT by its normalized form; flag groups holding more than one distinct entry_control_type. entry_control_type is an opaque input string.",
+      "no_threshold": true,
+      "interface_note": "control type arrives on LabelObservation.entry_control_type; no Lane S file is read or written."
+    }
+  ],
+  "limitation": [
+    "MAIN50 has no measured data yet; every result here is from synthetic fixtures. Nothing in this file has touched a real service.",
+    "This module does not compute accessible names. It consumes the AX name the collector recorded. If the collector's AX capture is wrong, every derived value here is wrong in the same direction and the harness cannot see it.",
+    "accessible_name_source attribution is evidence-based string matching against the candidate values the collector stored. A name produced by a naming path the collector did not record (e.g. a pseudo-element, a shadow-DOM label, an implicit table/legend name) will come back NAME_NOT_ATTRIBUTABLE, not wrong-but-plausible.",
+    "The synonym map is empty by contract, so SEMANTIC_EQUIV cannot occur on real data until A supplies an authored map. Until then every real semantic pair lands in DIFFERENT and the DIFFERENT bucket is inflated by exactly that amount.",
+    "Whitespace normalization uses Python str.split() semantics, which collapse every Unicode whitespace character including NBSP and U+3000 (AMB-L-09).",
+    "The HTML extraction helper reads a single element by xpath. It is a decoding-safety and evidence-shape test, not a candidate-binding implementation.",
+    "Fixture expectations were authored by D from the codebook text. They encode D's literal reading; where that reading is contested it is registered in ambiguous_definitions rather than defended."
+  ],
+  "not_implemented": [
+    "AX naming computation (browser's job per 04 §7)",
+    "entry_control_type classification (other lane's taxonomy)",
+    "any threshold, similarity cutoff, or composite score",
+    "embedding / fuzzy / edit-distance label merging (forbidden by 04 §5)",
+    "populating the synonym map (A's authority)",
+    "icon-only rate, unique-form counts, or any 05 §2-C aggregate (needs MAIN50 data)",
+    "gold labels, task gold, holdout access, GO/NO-GO calls",
+    "MLflow logging, git operations, REAL service access"
+  ]
+}

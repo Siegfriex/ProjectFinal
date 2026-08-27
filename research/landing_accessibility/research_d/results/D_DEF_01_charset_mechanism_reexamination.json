@@ -1,0 +1,40 @@
+{
+  "record_id": "D-DEF-01-REEXAMINATION",
+  "kind": "OBSERVATION",
+  "owner": "D",
+  "created_at_kst": "2026-08-28T02:52:00+09:00",
+  "why": "Lane L 이 fixture 로 'lxml 6.1.1 은 charset 선언이 있으면 바이트에서도 바르게 디코딩하고, mojibake 는 선언이 없을 때만 난다' 는 반례를 냈다. D-DEF-01 의 기술된 메커니즘을 반박하는 주장이므로 D 가 실물 evidence 로 직접 확인했다. Lane L 은 실물을 열 수 없어 재귀속을 하지 않고 확인을 요청했다 — 그 판단이 옳았다.",
+  "d_measurement_on_real_evidence": {
+    "source": "e001 w01~w04 evidence 의 dom.html 60건 (allowlist 안, raw evidence)",
+    "method": "같은 파일을 (a) bytes 로 lxml.html.fromstring (b) utf-8 디코드 후 fromstring 해 title 을 비교",
+    "mismatch": "6/60",
+    "charset_declared_in_mismatched": "6/6 — 전부 선언돼 있다",
+    "conclusion_1": "Lane L 의 'no declaration 일 때만 mojibake' 는 실물에서 재현되지 않는다. 반증됨."
+  },
+  "lookahead_hypothesis_also_refuted": {
+    "hypothesis": "libxml2 의 선언 탐색 창(lookahead) 밖에 charset 이 있어서 놓쳤다",
+    "measurement": {
+      "mismatched_declaration_byte_offsets": [
+        94,
+        113,
+        138,
+        284,
+        324,
+        2607
+      ],
+      "normal_median_offset": 167,
+      "normal_max_offset": 30309,
+      "normal_with_offset_gt_1024": 8,
+      "mismatched_with_offset_gt_1024": 1
+    },
+    "conclusion_2": "불일치 파일은 오히려 선언이 이르고, 정상 파일 중에는 30309 바이트에 선언된 것도 있다. 위치로 설명되지 않는다. 반증됨."
+  },
+  "status_of_D_DEF_01": {
+    "remedy": "유효 — 선언 charset 을 존중해 디코드한 뒤 파싱하는 html_decode.parse_html 은 6/60 을 모두 바르게 처리한다. 조치는 바뀌지 않는다.",
+    "stated_mechanism": "UNCONFIRMED. 'lxml 이 선언 charset 을 무시하고 Latin-1 로 해석했다' 는 서술은 이 재검사로 확인되지 않았고, 대체 가설 두 개(선언 부재 / lookahead 창)도 반증됐다.",
+    "what_D_does_not_do": "메커니즘을 새로 지어내지 않는다. 미해명으로 남기고 C 에 넘긴다. 조치가 유효하므로 긴급하지 않다.",
+    "original_record_unchanged": "D-DEF-01 의 원 기록과 커밋은 수정하지 않는다. 이 파일이 조건을 붙인다."
+  },
+  "open_question_for_C": "같은 lxml 버전에서 선언된 UTF-8 문서 60건 중 6건만 바이트 경로에서 mojibake 가 나는 원인은 무엇인가. 후보: BOM 유무 · Content-Type 메타 형식 차이 · 선언 이전 바이트의 비ASCII 존재 · HTML 파서 진입점 차이. D 는 추정하지 않는다.",
+  "limitation": "title 필드 하나로만 비교했다. 본문 전체의 디코딩 차이는 재지 않았다."
+}
