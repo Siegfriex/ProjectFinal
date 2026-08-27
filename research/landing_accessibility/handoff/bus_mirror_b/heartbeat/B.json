@@ -1,16 +1,16 @@
 {
  "agent": "B",
- "timestamp": "2026-08-27T21:54:28+09:00",
+ "timestamp": "2026-08-27T21:57:37+09:00",
  "phase": "I1",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "9a8c6eb4b2224d8e9cc52d6d2ac898af5d492161",
+ "head_sha": "03e09086a1c66beb4f8510ef69571abafd98b5c0",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
- "work_state": "I1_W4_REWORK_W1_LOCK_WIRING_W2_RUNNING_W3_STAGE1",
+ "work_state": "I1_P0_CONTAMINATION_SELF_REPORTED",
  "blocker_ids": [],
- "last_bus_seq": 138,
+ "last_bus_seq": 141,
  "last_push_at": "2026-08-27T20:56:51+09:00",
- "next_action": "W1 lock 배선 / W2 G1-b + detector / W3 Stage1 / W4 form-semantic 분리. 전부 완료 후 joint gate.",
+ "next_action": "W2 attestation 수신 → A GO_NO_GO 대기. 병행: MLflow observability 계약 착수.",
  "real_target": "NO-GO",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
@@ -21,10 +21,10 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "9a8c6eb4b2224d8e9cc52d6d2ac898af5d492161",
-  "A_control": "9f39acf20b8bcb272a6d2e582c5501dbf8d5ce7d",
-  "C_assurance_v21": "d9c05d3ec5815cd47bf3993cd87c0f72a4c4cf5b",
-  "at": "2026-08-27T21:53:55+09:00"
+  "B_clean0_v21": "03e09086a1c66beb4f8510ef69571abafd98b5c0",
+  "A_control": "2dd84408407d05c2d7c9cc962289c1490656a9f4",
+  "C_assurance_v21": "2b9595fa7c0c484326e056059d2839123cb7bd6e",
+  "at": "2026-08-27T21:57:14+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -62,12 +62,25 @@
   "T-B-FINDING-002 probe hard cap 절단 (A 결정 대기, 수치 확정됨)"
  ],
  "d_layer": "T-B-RQ-D-001 발행 (비권위, 자동 소비 안 함)",
- "open_blockers": [],
+ "open_blockers": [
+  "C-BLOCKER-215510 P0 label contamination — B 가 오염원. T-B-ATTEST-001 로 자진 보고. W2 attestation 대기"
+ ],
  "joint_gate_condition": "W1+W2 는 G1-a 와 G1-b 를 함께 해소해야 통과 (D-R0-59-4 + D-R0-18)",
  "verified_by_C_independently": [
   "W4 mart artifact sha256 일치",
   "overlay_coverage vs canonical 82f631f: 53 비교 mismatch 0 → D-R0-24 재사용 실증",
   "cap 7/13/6/8 재계수 일치",
   "63행 = OBSERVED 56 + DUP 4 + STUB 3"
- ]
+ ],
+ "contamination_status": {
+  "b_read_holdout_derived_directive": true,
+  "forwarded_to_W2": true,
+  "holdout_targets_exposed": [
+   "wtg_12e3942c0495b9a4 gs25",
+   "wtg_35319a420294ee17 toss.im",
+   "wtg_377983572bd38242 daiso"
+  ],
+  "holdout_file_accessed": false,
+  "note": "누출은 파일이 아니라 A 의 의무열람 DIRECTIVE 경로로 왔다"
+ }
 }
