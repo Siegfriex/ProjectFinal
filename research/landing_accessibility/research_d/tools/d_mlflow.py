@@ -107,6 +107,8 @@ def discover() -> list[dict]:
     def rq_id_of(prefix: str) -> str | None:
         if m := _re.fullmatch(r"RQ_(D[0-9A-Za-z]+)", prefix):
             return f"RQ-{m.group(1)}"
+        if m := _re.fullmatch(r"RQ_E(\d+[a-z]?)", prefix):
+            return f"RQ-E-{m.group(1)}"
         if m := _re.fullmatch(r"(RF001|RF2)_([A-Z])", prefix):
             return f"{m.group(1)}-{m.group(2)}"
         if m := _re.fullmatch(r"DSUP(\d+)", prefix):
@@ -163,6 +165,20 @@ def sync() -> int:
         payload = js if js and js.exists() else md
         if not payload.exists():
             continue
+        # [D-DEF-07 시정] 완결 게이트. run 은 지울 수 없으므로(덮어쓰기 금지 규약)
+        # 아직 쓰이는 중인 산출을 색인하면 빈 run 이 영구히 남는다.
+        # D 의 산출 규약은 JSON(최상위 verdict) + FINDINGS.md 둘 다이므로 둘 다 요구한다.
+        if js and js.exists():
+            try:
+                if "verdict" not in json.loads(js.read_text()):
+                    skipped.append(f"{rq}(미완: verdict 없음)")
+                    continue
+            except Exception:
+                skipped.append(f"{rq}(미완: JSON 파싱 실패)")
+                continue
+            if not md.exists():
+                skipped.append(f"{rq}(미완: FINDINGS.md 없음)")
+                continue
         rsha = sha256(payload)
         if (rq, rsha) in existing:
             skipped.append(rq)

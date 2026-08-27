@@ -1,0 +1,3616 @@
+{
+ "rq": "RQ-D7",
+ "title": "mart 분모 축소(59 -> 56 -> 31)가 계획된 association 추정에 주는 영향의 상한",
+ "claim_kind": "ANALYSIS",
+ "generated_at_kst": "2026-08-28T00:43:53.791165+09:00",
+ "seed": 20260828,
+ "n_permutations": 20000,
+ "headline_terminology": {
+  "59_to_56": "원장에 사유가 기록된 제외다(SKIPPED_RETRY_EXHAUSTED 3건). 조용한 소실이 아니라 두 산출물의 분모가 다른 것이다 — REAL_RUN_SUMMARY 는 59 를 알고 fact_landing_observation 은 56 이다.",
+  "56_to_31": "원장에 사유가 기록된 제외다. 25건은 ACCOUNT_ACTION_BLOCKED 로 scout 가 돌지 않아 task detail 키가 없다.",
+  "66_to_59": "결측층이 아니라 관측 grain 붕괴다(반복 실행 7건). target grain 분모는 59 로 시작한다.",
+  "within_56": "56 중 2건은 probe 가 없어 probe 파생 covariate 가 결측이다 — 이쪽은 원장에 사유가 없다.",
+  "do_not_call_it": "'손실' 이라고 부르지 않는다. 사유가 기록된 제외 / 기록되지 않은 covariate 결측으로 구분해 부른다."
+ },
+ "verdict": {
+  "value": "PARTIALLY_SUPPORTED",
+  "one_line": "결측이 관측 공변량과 무관하다는 가정(MCAR)은 L3 에서 기각된다 — 25건은 원장 ACCOUNT_ACTION_BLOCKED 와 결정론적으로 일치한다. worst-case bound 는 association 별로 극단적으로 갈린다: 결측이 3~5건인 landing 기반 association 은 bound 폭 0.1597~0.2943 로 complete-case CI 와 같은 자릿수지만, 결과가 task mart 인 association 은 결측 28건에서 폭 0.9301 로 부호가 식별되지 않는다.",
+  "what_is_supported": "층별 bound 폭과 부호식별 여부, 그리고 L3 결측이 MCAR 이 아니라는 것.",
+  "what_is_not_supported": "complete-case 편향의 방향과 크기, 인과 주장, 그리고 어떤 bound 폭이 '충분히 좁은가' 라는 판단(A 권한)."
+ },
+ "hypothesis_verdicts": {
+  "H-D7-MCAR": {
+   "statement": "결측은 관측 공변량과 무관하다",
+   "verdict": "REFUTED",
+   "evidence": "L3(56 중 25)는 원장 ACCOUNT_ACTION_BLOCKED 집합과 완전히 일치한다 — 무작위가 아니라 결정론적 제외다. BH-FDR 통과 covariate 를 가진 층: ['L2b_unrecorded_probe_absent'].",
+   "caveat": "L2(3)과 L2b(2)는 n 이 작아 MCAR 을 기각도 지지도 못한다."
+  },
+  "H-D7-MAR_OBSERVABLE": {
+   "statement": "결측이 관측 공변량과 연관돼 있어 complete-case 가 편향된다",
+   "verdict": "SUPPORTED_FOR_L3_INCONCLUSIVE_FOR_L2_L2b",
+   "evidence": {
+    "L3_significant_covariates": [],
+    "L3_n_tests": 45,
+    "L2_significant_covariates": [],
+    "L2_testable_covariates_only": [
+     "worker",
+     "prior_business_domain",
+     "prior_archetype",
+     "prior_mapping_status",
+     "prior_endpoint_signal_type",
+     "prior_region_signal_type"
+    ]
+   },
+   "note": "편향 '방향' 은 주장하지 않는다. 연관이 있다는 것과 complete-case 가 얼마나 치우쳤는지는 다른 문제이며 후자는 bound 로만 말한다."
+  },
+  "H-D7-BOUND_UNINFORMATIVE": {
+   "statement": "worst-case bound 가 너무 넓어 어떤 방향도 배제하지 못한다",
+   "verdict": "SUPPORTED_FOR_TASK_MART_OUTCOMES",
+   "evidence": {
+    "a_cap_any_x_commerce": {
+     "rd_width": 0.1597,
+     "sign_identified": true,
+     "n_missing": 5
+    },
+    "b_modal_x_no_arialabel": {
+     "rd_width": 0.2943,
+     "sign_identified": false,
+     "n_missing": 5
+    },
+    "c_taskrow_x_password_gate": {
+     "rd_width": 0.5138,
+     "sign_identified": false,
+     "n_missing": 5
+    },
+    "d_authgate_x_commerce": {
+     "rd_width": 0.9301,
+     "sign_identified": false,
+     "n_missing": 28
+    }
+   }
+  },
+  "H-D7-BOUND_INFORMATIVE": {
+   "statement": "bound 가 귀무값 0 을 배제하는 association 이 하나라도 있다",
+   "verdict": "SUPPORTED",
+   "n_sign_identified": 1,
+   "which": [
+    "a_cap_any_x_commerce"
+   ]
+  }
+ },
+ "denominator_chain": {
+  "grain_warning": "observation_dir grain 과 target(wtg) grain 은 다른 분모다. fact_task_entry 는 target 당 1행(31행/31 target)이므로 target grain 이다 — step grain 이 아니다.",
+  "step_0_observation_dirs": {
+   "n": 66,
+   "source": "filesystem enumeration of evidence/e001_full-wtg_*",
+   "per_worker": {
+    "w01": 15,
+    "w02": 20,
+    "w03": 17,
+    "w04": 14
+   },
+   "sealed_dirs": 60,
+   "empty_dirs": 6
+  },
+  "step_1_distinct_targets": {
+   "n": 59,
+   "source": "distinct wtg over the same dirs",
+   "delta_from_step_0": 7,
+   "delta_kind": "GRAIN_COLLAPSE_NOT_MISSINGNESS",
+   "repeat_targets": {
+    "13ed070478ef62c3": [
+     "e001_full-wtg_13ed070478ef62c3-2026-08-27T051430493325Z",
+     "e001_full-wtg_13ed070478ef62c3-2026-08-27T051438065577Z"
+    ],
+    "2cd43b99c1ed87cf": [
+     "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051633333382Z",
+     "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z"
+    ],
+    "9390ef32addf32bf": [
+     "e001_full-wtg_9390ef32addf32bf-2026-08-27T051440847025Z",
+     "e001_full-wtg_9390ef32addf32bf-2026-08-27T051447096710Z"
+    ],
+    "b728911c9782edb8": [
+     "e001_full-wtg_b728911c9782edb8-2026-08-27T051447794738Z",
+     "e001_full-wtg_b728911c9782edb8-2026-08-27T051454743475Z"
+    ],
+    "dd5061eb74e2d4d4": [
+     "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051814381396Z",
+     "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051901043748Z"
+    ],
+    "e1fadb214cde51c0": [
+     "e001_full-wtg_e1fadb214cde51c0-2026-08-27T051500365784Z",
+     "e001_full-wtg_e1fadb214cde51c0-2026-08-27T051506647716Z"
+    ],
+    "ff3ee504792f6cfc": [
+     "e001_full-wtg_ff3ee504792f6cfc-2026-08-27T051918096922Z",
+     "e001_full-wtg_ff3ee504792f6cfc-2026-08-27T052004684632Z"
+    ]
+   },
+   "duplicate_launch_both_sealed": [
+    "13ed070478ef62c3",
+    "9390ef32addf32bf",
+    "b728911c9782edb8",
+    "e1fadb214cde51c0"
+   ],
+   "retry_both_empty": [
+    "2cd43b99c1ed87cf",
+    "dd5061eb74e2d4d4",
+    "ff3ee504792f6cfc"
+   ],
+   "cross_check_summary_attempted_observations": 59,
+   "cross_check_summary_unique_targets": 59,
+   "agrees_with_summary": true
+  },
+  "step_2_landing_mart_rows": {
+   "n": 56,
+   "distinct_wtg": 56,
+   "delta_from_step_1": 3,
+   "delta_kind": "LEDGER_RECORDED_EXCLUSION",
+   "excluded_wtg": [
+    "2cd43b99c1ed87cf",
+    "dd5061eb74e2d4d4",
+    "ff3ee504792f6cfc"
+   ],
+   "ledger_reason": {
+    "2cd43b99c1ed87cf": [
+     "SKIPPED_RETRY_EXHAUSTED"
+    ],
+    "dd5061eb74e2d4d4": [
+     "SKIPPED_RETRY_EXHAUSTED"
+    ],
+    "ff3ee504792f6cfc": [
+     "SKIPPED_RETRY_EXHAUSTED"
+    ]
+   },
+   "recorded_in_summary_as": {
+    "skipped_retry_exhausted_n": 3
+   },
+   "not_silent": true
+  },
+  "step_3_task_mart_rows": {
+   "n": 31,
+   "distinct_wtg": 31,
+   "rows_per_target": 1.0,
+   "delta_from_step_2": 25,
+   "delta_kind": "LEDGER_RECORDED_EXCLUSION (mechanism verified below)",
+   "excluded_wtg": [
+    "088809bf9b31bc6a",
+    "0ee385d0c964e560",
+    "49a5eca8b58f7270",
+    "5c614fc99631ce5e",
+    "5ede56738376a8c5",
+    "65f15ce8fee25b24",
+    "6d5510a695d0a614",
+    "7f6f1aa6dd218d4d",
+    "88cb7f1e54f26500",
+    "91b952863c62993d",
+    "9390ef32addf32bf",
+    "95967b50683649f2",
+    "95e22b9aff7196b3",
+    "b728911c9782edb8",
+    "b8b226f9fe32539a",
+    "bbdefa2950f49882",
+    "be1e6feb78e5ef03",
+    "c5285b96b598a08b",
+    "cdce1ffd6b1b1e24",
+    "e1fadb214cde51c0",
+    "e296af221a5f7128",
+    "ed7b9bea21def8f8",
+    "f9fbd771ffcdbd42",
+    "fb3d1841dddfd982",
+    "fdce1294fac3dfdb"
+   ],
+   "task_subset_of_landing": true
+  },
+  "step_2b_within_mart_covariate_missing": {
+   "n_targets_in_landing_mart_without_probe": 2,
+   "wtg": [
+    "64d30ef262d8782d",
+    "ef06dc942ef3ccc9"
+   ],
+   "delta_kind": "UNRECORDED_COVARIATE_MISSING",
+   "note": "이 2건은 landing mart 에 행이 있으나 probe.json 이 없어 probe 파생 covariate (cap_*, modal_overlay_n, gate_*)가 전부 결측이다. 원장 outcome 에는 사유가 기록돼 있지 않다 — 위 두 제외층과 성격이 다르다."
+  },
+  "set_consistency": {
+   "fs_wtg_equals_obs_table_wtg": true,
+   "fs_wtg_equals_ledger_wtg": true,
+   "obs_in_mart_flag_equals_landing_set": true
+  }
+ },
+ "denominator_chain_vs_D_prior_numbers": {
+  "D_hypothesis": {
+   "dirs": 66,
+   "targets": 59,
+   "landing_rows": 56,
+   "task_targets": 31,
+   "duplicate_launch": 4,
+   "retry_failed": 3
+  },
+  "my_recomputation": {
+   "dirs": 66,
+   "targets": 59,
+   "landing_rows": 56,
+   "task_targets": 31,
+   "duplicate_launch": 4,
+   "retry_failed": 3
+  },
+  "agreement": "IDENTICAL",
+  "one_thing_D_did_not_state": "56 안에서 probe 부재로 covariate 가 결측인 target 이 2건 더 있다. RQ-D8 이 observation grain 으로 8행을 보고했으나 target grain 의 이 2건은 분모 사슬 서술에 들어 있지 않았다."
+ },
+ "l3_mechanism_cross_check": {
+  "n_landing_without_task_row": 25,
+  "n_ledger_ACCOUNT_ACTION_BLOCKED": 25,
+  "exact_set_match": true,
+  "in_l3_not_aab": [],
+  "in_aab_not_l3": [],
+  "blocked_category_distribution": {
+   "LOGIN": 19,
+   "PURCHASE": 3,
+   "SIGNUP": 2,
+   "PAYMENT": 1
+  },
+  "cross_check_summary_guard_blocked_n": 25,
+  "reading": "L3 제외는 무작위가 아니라 결정론적이다 — 원장이 ACCOUNT_ACTION_BLOCKED 로 기록한 target 은 scout 가 돌지 않아 task detail 키가 없고, 빌더가 task row 를 만들지 않는다. 사유가 기록된 제외다."
+ },
+ "missingness_diagnosis": {
+  "L1_dir_grain_excluded_from_mart": {
+   "layer": "L1 observation_dir grain: 66 dir 중 mart 에 들어가지 않은 10 dir",
+   "indicator": "_i",
+   "universe_n": 66,
+   "n_flagged": 10,
+   "n_not_flagged": 56,
+   "note": "grain=observation_dir(66). 10 = 중복발사 2번째 dir 4 + 빈 dir 6. target grain 분모는 여기서 줄지 않는다.",
+   "n_tests_run": 45,
+   "n_degenerate_skipped": 1,
+   "n_significant_bh05": 0,
+   "significant_covariates": [],
+   "verdict": "NO_ASSOCIATION_DETECTED_BUT_UNDERPOWERED",
+   "tests": [
+    {
+     "stat": 0.7176,
+     "p": 0.00336,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 0.5,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "gate_captcha_iframe_n",
+     "kind": "continuous",
+     "q_bh": 0.1512,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3512,
+     "p": 0.01825,
+     "n": 66,
+     "levels": 3,
+     "level_counts_flagged": {
+      "DOM_AX_ROLE": 6,
+      "FORM_STRUCTURE": 3,
+      "URL_PATTERN": 1
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_endpoint_signal_type",
+     "kind": "categorical",
+     "q_bh": 0.2979,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3801,
+     "p": 0.0217,
+     "n": 66,
+     "levels": 4,
+     "level_counts_flagged": {
+      "w01": 0,
+      "w02": 6,
+      "w03": 4,
+      "w04": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "worker",
+     "kind": "categorical",
+     "q_bh": 0.2979,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4654,
+     "p": 0.03105,
+     "n": 66,
+     "levels": 7,
+     "level_counts_flagged": {
+      "COMMUNICATION_ENTRY": 0,
+      "CONTENT_OPEN": 1,
+      "FINANCIAL_ACTION_ENTRY": 3,
+      "ITEM_DETAIL": 0,
+      "PLACE_LOOKUP": 0,
+      "QUERY": 3,
+      "UTILITY_ENTRY": 3
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_archetype",
+     "kind": "categorical",
+     "q_bh": 0.2979,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4654,
+     "p": 0.0331,
+     "n": 66,
+     "levels": 7,
+     "level_counts_flagged": {
+      "CONTENT_VIDEO": 1,
+      "FINANCE_PAYMENT": 3,
+      "MAP_MOBILITY": 0,
+      "PORTAL_SEARCH": 3,
+      "SHOPPING_COMMERCE": 0,
+      "SOCIAL_COMMUNICATION": 0,
+      "UTILITY_OTHER": 3
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_business_domain",
+     "kind": "categorical",
+     "q_bh": 0.2979,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.7969,
+     "p": 0.04603,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 14.5,
+     "median_0": 2.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_aria_label_n",
+     "kind": "continuous",
+     "q_bh": 0.34523,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6065,
+     "p": 0.07192,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "declared_regions_n",
+     "kind": "continuous",
+     "q_bh": 0.46234,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.2315,
+     "p": 0.0948,
+     "n": 66,
+     "levels": 2,
+     "level_counts_flagged": {
+      "CODEBOOK_PENDING": 3,
+      "DOM_AX_ROLE": 7
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_region_signal_type",
+     "kind": "categorical",
+     "q_bh": 0.53325,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5949,
+     "p": 0.16228,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "gate_password_input_n",
+     "kind": "continuous",
+     "q_bh": 0.8114,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.669,
+     "p": 0.24539,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 3.5,
+     "median_0": 1.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "motion_animated_n",
+     "kind": "continuous",
+     "q_bh": 0.93707,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6763,
+     "p": 0.24777,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 346755.5,
+     "median_0": 144598.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_bytes",
+     "kind": "continuous",
+     "q_bh": 0.93707,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3704,
+     "p": 0.26022,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "cap_count",
+     "kind": "continuous",
+     "q_bh": 0.93707,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6674,
+     "p": 0.27071,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 20.0,
+     "median_0": 7.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_role_n",
+     "kind": "continuous",
+     "q_bh": 0.93707,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6518,
+     "p": 0.31885,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 20.5,
+     "median_0": 10.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_button_n",
+     "kind": "continuous",
+     "q_bh": 0.95628,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6384,
+     "p": 0.35075,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 5.5,
+     "median_0": 1.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_input_n",
+     "kind": "continuous",
+     "q_bh": 0.95628,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1336,
+     "p": 0.35288,
+     "n": 60,
+     "n_x1": 54,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "has_l0c",
+     "kind": "binary",
+     "q_bh": 0.95628,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4074,
+     "p": 0.36126,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "search_inputs_n",
+     "kind": "continuous",
+     "q_bh": 0.95628,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6204,
+     "p": 0.4335,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 2775.5,
+     "median_0": 1235.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "gate_visible_text_len",
+     "kind": "continuous",
+     "q_bh": 0.99151,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6161,
+     "p": 0.44972,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 132.5,
+     "median_0": 90.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_interactive_n",
+     "kind": "continuous",
+     "q_bh": 0.99151,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6094,
+     "p": 0.47693,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 86473.5,
+     "median_0": 56299.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "ax_bytes",
+     "kind": "continuous",
+     "q_bh": 0.99151,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6019,
+     "p": 0.507,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 4013.5,
+     "median_0": 2622.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "probe_scroll_height",
+     "kind": "continuous",
+     "q_bh": 0.99151,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6004,
+     "p": 0.51439,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 874.5,
+     "median_0": 609.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_element_n",
+     "kind": "continuous",
+     "q_bh": 0.99151,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.596,
+     "p": 0.53365,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 820.0,
+     "median_0": 551.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_element_n",
+     "kind": "continuous",
+     "q_bh": 0.99151,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.596,
+     "p": 0.53365,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 22175.0,
+     "median_0": 15761.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_text_len",
+     "kind": "continuous",
+     "q_bh": 0.99151,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1535,
+     "p": 0.56292,
+     "n": 58,
+     "n_x1": 14,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_any",
+     "kind": "binary",
+     "q_bh": 0.99151,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1463,
+     "p": 0.57287,
+     "n": 58,
+     "n_x1": 13,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_accessible_name_sources",
+     "kind": "binary",
+     "q_bh": 0.99151,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5804,
+     "p": 0.60397,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 431132.5,
+     "median_0": 302222.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "css_bytes",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1089,
+     "p": 0.62677,
+     "n": 58,
+     "n_x1": 8,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_contrast",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5602,
+     "p": 0.70107,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 80.0,
+     "median_0": 49.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_target_size",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5556,
+     "p": 0.72387,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 79.5,
+     "median_0": 49.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_primary_action_candidates",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5424,
+     "p": 0.78956,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 92.0,
+     "median_0": 65.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_a_href_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4907,
+     "p": 0.83826,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "declared_endpoints_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5268,
+     "p": 0.8704,
+     "n1": 4,
+     "n0": 56,
+     "median_1": 23.5,
+     "median_0": 23.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_script_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4769,
+     "p": 0.89002,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 91.5,
+     "median_0": 93.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_contrast",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0193,
+     "p": 0.9336,
+     "n": 58,
+     "n_x1": 130,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "article_present",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4931,
+     "p": 0.97545,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 9.0,
+     "median_0": 10.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "modal_overlay_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4931,
+     "p": 0.97545,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 9.0,
+     "median_0": 10.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dismiss_control_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0714,
+     "p": 1.0,
+     "n": 60,
+     "n_x1": 4,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "dom_body_empty",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0496,
+     "p": 1.0,
+     "n": 60,
+     "n_x1": 58,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "probe_present",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.029,
+     "p": 1.0,
+     "n": 58,
+     "n_x1": 12,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "body_scroll_locked",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1008,
+     "p": 1.0,
+     "n": 58,
+     "n_x1": 7,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_primary_action_candidates",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0925,
+     "p": 1.0,
+     "n": 58,
+     "n_x1": 6,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_target_size",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.036,
+     "p": 1.0,
+     "n": 58,
+     "n_x1": 1,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_motion_animated_60",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1008,
+     "p": 1.0,
+     "n": 58,
+     "n_x1": 7,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_body_text_4000",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5,
+     "p": 1.0,
+     "n1": 4,
+     "n0": 54,
+     "median_1": 164.5,
+     "median_0": 134.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_accessible_name_sources",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 66,
+     "reason": "degenerate",
+     "covariate": "prior_mapping_status",
+     "kind": "categorical",
+     "q_bh": null,
+     "significant_bh05": false
+    }
+   ]
+  },
+  "L1b_target_grain_duplicate_launch": {
+   "layer": "L1b target grain: evidence 있는 56 중 중복발사 4",
+   "indicator": "is_duplicate_launch",
+   "universe_n": 56,
+   "n_flagged": 4,
+   "n_not_flagged": 52,
+   "note": "grain=target(56). 결측이 아니라 canonical dir 선택 모호성의 대상.",
+   "n_tests_run": 45,
+   "n_degenerate_skipped": 1,
+   "n_significant_bh05": 0,
+   "significant_covariates": [],
+   "verdict": "NO_ASSOCIATION_DETECTED_BUT_UNDERPOWERED",
+   "tests": [
+    {
+     "stat": 0.4804,
+     "p": 0.00695,
+     "n": 56,
+     "levels": 4,
+     "level_counts_flagged": {
+      "w01": 0,
+      "w02": 4,
+      "w03": 0,
+      "w04": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "worker",
+     "kind": "categorical",
+     "q_bh": 0.31275,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.615,
+     "p": 0.02311,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "declared_regions_n",
+     "kind": "continuous",
+     "q_bh": 0.47175,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.8197,
+     "p": 0.03145,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 14.5,
+     "median_0": 2.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_aria_label_n",
+     "kind": "continuous",
+     "q_bh": 0.47175,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6025,
+     "p": 0.09609,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "gate_password_input_n",
+     "kind": "continuous",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6025,
+     "p": 0.09609,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "gate_captcha_iframe_n",
+     "kind": "continuous",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4011,
+     "p": 0.15214,
+     "n": 56,
+     "levels": 7,
+     "level_counts_flagged": {
+      "CONTENT_VIDEO": 1,
+      "FINANCE_PAYMENT": 1,
+      "MAP_MOBILITY": 0,
+      "PORTAL_SEARCH": 1,
+      "SHOPPING_COMMERCE": 0,
+      "SOCIAL_COMMUNICATION": 0,
+      "UTILITY_OTHER": 1
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_business_domain",
+     "kind": "categorical",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4011,
+     "p": 0.15354,
+     "n": 56,
+     "levels": 7,
+     "level_counts_flagged": {
+      "COMMUNICATION_ENTRY": 0,
+      "CONTENT_OPEN": 1,
+      "FINANCIAL_ACTION_ENTRY": 1,
+      "ITEM_DETAIL": 0,
+      "PLACE_LOOKUP": 0,
+      "QUERY": 1,
+      "UTILITY_ENTRY": 1
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_archetype",
+     "kind": "categorical",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6825,
+     "p": 0.20874,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 3.5,
+     "median_0": 1.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "motion_animated_n",
+     "kind": "continuous",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6923,
+     "p": 0.20887,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 346778.5,
+     "median_0": 135771.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_bytes",
+     "kind": "continuous",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.36,
+     "p": 0.23762,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "cap_count",
+     "kind": "continuous",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6755,
+     "p": 0.24954,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 19.5,
+     "median_0": 6.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_role_n",
+     "kind": "continuous",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6635,
+     "p": 0.2843,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 20.5,
+     "median_0": 8.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_button_n",
+     "kind": "continuous",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.649,
+     "p": 0.31526,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 5.5,
+     "median_0": 1.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_input_n",
+     "kind": "continuous",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1563,
+     "p": 0.31608,
+     "n": 56,
+     "n_x1": 51,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "has_l0c",
+     "kind": "binary",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1563,
+     "p": 0.31928,
+     "n": 56,
+     "levels": 2,
+     "level_counts_flagged": {
+      "CODEBOOK_PENDING": 1,
+      "DOM_AX_ROLE": 3
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_region_signal_type",
+     "kind": "categorical",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1915,
+     "p": 0.33873,
+     "n": 56,
+     "levels": 3,
+     "level_counts_flagged": {
+      "DOM_AX_ROLE": 2,
+      "FORM_STRUCTURE": 1,
+      "URL_PATTERN": 1
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_endpoint_signal_type",
+     "kind": "categorical",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1673,
+     "p": 0.33888,
+     "n": 54,
+     "n_x1": 14,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_any",
+     "kind": "binary",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4,
+     "p": 0.33943,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "search_inputs_n",
+     "kind": "continuous",
+     "q_bh": 0.84857,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.63,
+     "p": 0.39914,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 2775.5,
+     "median_0": 1148.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "gate_visible_text_len",
+     "kind": "continuous",
+     "q_bh": 0.92556,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6202,
+     "p": 0.43561,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 132.5,
+     "median_0": 81.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_interactive_n",
+     "kind": "continuous",
+     "q_bh": 0.92556,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.61,
+     "p": 0.47455,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 4013.5,
+     "median_0": 2314.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "probe_scroll_height",
+     "kind": "continuous",
+     "q_bh": 0.92556,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6058,
+     "p": 0.4939,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 22175.0,
+     "median_0": 14754.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_text_len",
+     "kind": "continuous",
+     "q_bh": 0.92556,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6058,
+     "p": 0.49395,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 874.5,
+     "median_0": 599.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_element_n",
+     "kind": "continuous",
+     "q_bh": 0.92556,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6058,
+     "p": 0.49396,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 86472.5,
+     "median_0": 55342.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "ax_bytes",
+     "kind": "continuous",
+     "q_bh": 0.92556,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.601,
+     "p": 0.5142,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 820.0,
+     "median_0": 539.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_element_n",
+     "kind": "continuous",
+     "q_bh": 0.92556,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1593,
+     "p": 0.56287,
+     "n": 54,
+     "n_x1": 13,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_accessible_name_sources",
+     "kind": "binary",
+     "q_bh": 0.96272,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5865,
+     "p": 0.57763,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 431134.0,
+     "median_0": 292211.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "css_bytes",
+     "kind": "continuous",
+     "q_bh": 0.96272,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.118,
+     "p": 0.62052,
+     "n": 54,
+     "n_x1": 8,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_contrast",
+     "kind": "binary",
+     "q_bh": 0.97248,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1092,
+     "p": 0.63982,
+     "n": 54,
+     "n_x1": 7,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_primary_action_candidates",
+     "kind": "binary",
+     "q_bh": 0.97248,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1092,
+     "p": 0.64832,
+     "n": 54,
+     "n_x1": 7,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_body_text_4000",
+     "kind": "binary",
+     "q_bh": 0.97248,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.565,
+     "p": 0.67945,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 80.0,
+     "median_0": 46.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_target_size",
+     "kind": "continuous",
+     "q_bh": 0.9863,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.56,
+     "p": 0.70371,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 79.5,
+     "median_0": 45.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_primary_action_candidates",
+     "kind": "continuous",
+     "q_bh": 0.98959,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5457,
+     "p": 0.77448,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 92.0,
+     "median_0": 61.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_a_href_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.49,
+     "p": 0.832,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "declared_endpoints_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5288,
+     "p": 0.86096,
+     "n1": 4,
+     "n0": 52,
+     "median_1": 23.5,
+     "median_0": 23.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_script_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.475,
+     "p": 0.88165,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 91.5,
+     "median_0": 93.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_contrast",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4775,
+     "p": 0.8946,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 9.0,
+     "median_0": 10.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "modal_overlay_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4775,
+     "p": 0.8946,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 9.0,
+     "median_0": 10.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dismiss_control_n",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0211,
+     "p": 0.9219,
+     "n": 54,
+     "n_x1": 119,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "article_present",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.495,
+     "p": 0.98673,
+     "n1": 4,
+     "n0": 50,
+     "median_1": 164.5,
+     "median_0": 134.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_accessible_name_sources",
+     "kind": "continuous",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0769,
+     "p": 1.0,
+     "n": 56,
+     "n_x1": 4,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "dom_body_empty",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0534,
+     "p": 1.0,
+     "n": 56,
+     "n_x1": 54,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "probe_present",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0325,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 11,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "body_scroll_locked",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.1,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 6,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_target_size",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": -0.0389,
+     "p": 1.0,
+     "n": 54,
+     "n_x1": 1,
+     "n_y1": 4,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_motion_animated_60",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 56,
+     "reason": "degenerate",
+     "covariate": "prior_mapping_status",
+     "kind": "categorical",
+     "q_bh": null,
+     "significant_bh05": false
+    }
+   ]
+  },
+  "L2_ledger_recorded_no_evidence": {
+   "layer": "L2 target grain: 59 중 evidence 가 없는 3 (원장 SKIPPED_RETRY_EXHAUSTED)",
+   "indicator": "_i",
+   "universe_n": 59,
+   "n_flagged": 3,
+   "n_not_flagged": 56,
+   "note": "이 3 target 은 DOM/probe 파생 covariate 가 정의 자체로 결측이므로 그 covariate 들과의 연관은 **원리상 검정 불가능**하다. 항상 관측되는 prior_*/worker 만 검정했다. 따라서 이 층에서 MCAR 을 지지하는 음성 결과는 약한 증거다.",
+   "n_tests_run": 5,
+   "n_degenerate_skipped": 1,
+   "n_significant_bh05": 0,
+   "significant_covariates": [],
+   "verdict": "NO_ASSOCIATION_DETECTED_BUT_UNDERPOWERED",
+   "tests": [
+    {
+     "stat": 0.2609,
+     "p": 0.11574,
+     "n": 59,
+     "levels": 3,
+     "level_counts_flagged": {
+      "DOM_AX_ROLE": 2,
+      "FORM_STRUCTURE": 1,
+      "URL_PATTERN": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_endpoint_signal_type",
+     "kind": "categorical",
+     "q_bh": 0.4306,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1774,
+     "p": 0.27769,
+     "n": 59,
+     "levels": 2,
+     "level_counts_flagged": {
+      "CODEBOOK_PENDING": 1,
+      "DOM_AX_ROLE": 2
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_region_signal_type",
+     "kind": "categorical",
+     "q_bh": 0.4306,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3273,
+     "p": 0.34328,
+     "n": 59,
+     "levels": 7,
+     "level_counts_flagged": {
+      "COMMUNICATION_ENTRY": 0,
+      "CONTENT_OPEN": 0,
+      "FINANCIAL_ACTION_ENTRY": 1,
+      "ITEM_DETAIL": 0,
+      "PLACE_LOOKUP": 0,
+      "QUERY": 1,
+      "UTILITY_ENTRY": 1
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_archetype",
+     "kind": "categorical",
+     "q_bh": 0.4306,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3273,
+     "p": 0.34448,
+     "n": 59,
+     "levels": 7,
+     "level_counts_flagged": {
+      "CONTENT_VIDEO": 0,
+      "FINANCE_PAYMENT": 1,
+      "MAP_MOBILITY": 0,
+      "PORTAL_SEARCH": 1,
+      "SHOPPING_COMMERCE": 0,
+      "SOCIAL_COMMUNICATION": 0,
+      "UTILITY_OTHER": 1
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_business_domain",
+     "kind": "categorical",
+     "q_bh": 0.4306,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.252,
+     "p": 0.61437,
+     "n": 59,
+     "levels": 4,
+     "level_counts_flagged": {
+      "w01": 0,
+      "w02": 1,
+      "w03": 2,
+      "w04": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "worker",
+     "kind": "categorical",
+     "q_bh": 0.61437,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 59,
+     "reason": "degenerate",
+     "covariate": "prior_mapping_status",
+     "kind": "categorical",
+     "q_bh": null,
+     "significant_bh05": false
+    }
+   ]
+  },
+  "L2b_unrecorded_probe_absent": {
+   "layer": "L2b target grain: landing mart 56 중 probe 가 없는 2",
+   "indicator": "_i",
+   "universe_n": 56,
+   "n_flagged": 2,
+   "n_not_flagged": 54,
+   "note": "probe 파생 covariate 는 이 지표와 정의상 완전공선이므로 검정에서 제외했다. n=2 이므로 어떤 검정도 사실상 무검정력이다.",
+   "n_tests_run": 20,
+   "n_degenerate_skipped": 10,
+   "n_significant_bh05": 10,
+   "significant_covariates": [
+    "dom_body_empty",
+    "has_l0c",
+    "dom_bytes",
+    "ax_bytes",
+    "css_bytes",
+    "dom_element_n",
+    "dom_body_element_n",
+    "dom_interactive_n",
+    "dom_script_n",
+    "dom_body_text_len"
+   ],
+   "verdict": "ASSOCIATION_DETECTED",
+   "tests": [
+    {
+     "stat": 0.6939,
+     "p": 0.0041,
+     "n": 56,
+     "n_x1": 4,
+     "n_y1": 2,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "dom_body_empty",
+     "kind": "binary",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": -0.6146,
+     "p": 0.00705,
+     "n": 56,
+     "n_x1": 51,
+     "n_y1": 2,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "has_l0c",
+     "kind": "binary",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": 0.0046,
+     "p": 0.01916,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 3.5,
+     "median_0": 23.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_script_n",
+     "kind": "continuous",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": 0.0185,
+     "p": 0.02295,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 573.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_element_n",
+     "kind": "continuous",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": 0.0185,
+     "p": 0.02295,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 94.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_interactive_n",
+     "kind": "continuous",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": 0.0185,
+     "p": 0.02296,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 3.0,
+     "median_0": 311380.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "css_bytes",
+     "kind": "continuous",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": 0.0185,
+     "p": 0.02296,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 16308.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_text_len",
+     "kind": "continuous",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": 0.0185,
+     "p": 0.02297,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 9.0,
+     "median_0": 621.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_element_n",
+     "kind": "continuous",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": 0.0185,
+     "p": 0.02298,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 3193.0,
+     "median_0": 150172.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_bytes",
+     "kind": "continuous",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": 0.0185,
+     "p": 0.02298,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 342.5,
+     "median_0": 58872.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "ax_bytes",
+     "kind": "continuous",
+     "q_bh": 0.04596,
+     "significant_bh05": true
+    },
+    {
+     "stat": 0.037,
+     "p": 0.02875,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 69.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_a_href_n",
+     "kind": "continuous",
+     "q_bh": 0.05227,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0833,
+     "p": 0.0484,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 11.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_button_n",
+     "kind": "continuous",
+     "q_bh": 0.08067,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0926,
+     "p": 0.0535,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 7.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_role_n",
+     "kind": "continuous",
+     "q_bh": 0.08231,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1667,
+     "p": 0.10829,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 3.5,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_aria_label_n",
+     "kind": "continuous",
+     "q_bh": 0.1547,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1852,
+     "p": 0.12583,
+     "n1": 2,
+     "n0": 54,
+     "median_1": 0.0,
+     "median_0": 1.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_input_n",
+     "kind": "continuous",
+     "q_bh": 0.16777,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1859,
+     "p": 1.0,
+     "n": 56,
+     "levels": 4,
+     "level_counts_flagged": {
+      "w01": 1,
+      "w02": 1,
+      "w03": 0,
+      "w04": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "worker",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1864,
+     "p": 1.0,
+     "n": 56,
+     "levels": 7,
+     "level_counts_flagged": {
+      "CONTENT_VIDEO": 0,
+      "FINANCE_PAYMENT": 1,
+      "MAP_MOBILITY": 0,
+      "PORTAL_SEARCH": 0,
+      "SHOPPING_COMMERCE": 1,
+      "SOCIAL_COMMUNICATION": 0,
+      "UTILITY_OTHER": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_business_domain",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1864,
+     "p": 1.0,
+     "n": 56,
+     "levels": 7,
+     "level_counts_flagged": {
+      "COMMUNICATION_ENTRY": 0,
+      "CONTENT_OPEN": 0,
+      "FINANCIAL_ACTION_ENTRY": 1,
+      "ITEM_DETAIL": 1,
+      "PLACE_LOOKUP": 0,
+      "QUERY": 0,
+      "UTILITY_ENTRY": 0
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_archetype",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1151,
+     "p": 1.0,
+     "n": 56,
+     "levels": 3,
+     "level_counts_flagged": {
+      "DOM_AX_ROLE": 1,
+      "FORM_STRUCTURE": 0,
+      "URL_PATTERN": 1
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_endpoint_signal_type",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0603,
+     "p": 1.0,
+     "n": 56,
+     "levels": 2,
+     "level_counts_flagged": {
+      "CODEBOOK_PENDING": 0,
+      "DOM_AX_ROLE": 2
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_region_signal_type",
+     "kind": "categorical",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 56,
+     "reason": "degenerate",
+     "covariate": "prior_mapping_status",
+     "kind": "categorical",
+     "q_bh": null,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 54,
+     "reason": "degenerate",
+     "covariate": "article_present",
+     "kind": "binary",
+     "q_bh": null,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 54,
+     "reason": "degenerate",
+     "covariate": "body_scroll_locked",
+     "kind": "binary",
+     "q_bh": null,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 54,
+     "reason": "degenerate",
+     "covariate": "cap_any",
+     "kind": "binary",
+     "q_bh": null,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 54,
+     "reason": "degenerate",
+     "covariate": "cap_primary_action_candidates",
+     "kind": "binary",
+     "q_bh": null,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 54,
+     "reason": "degenerate",
+     "covariate": "cap_accessible_name_sources",
+     "kind": "binary",
+     "q_bh": null,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 54,
+     "reason": "degenerate",
+     "covariate": "cap_target_size",
+     "kind": "binary",
+     "q_bh": null,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 54,
+     "reason": "degenerate",
+     "covariate": "cap_contrast",
+     "kind": "binary",
+     "q_bh": null,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 54,
+     "reason": "degenerate",
+     "covariate": "cap_motion_animated_60",
+     "kind": "binary",
+     "q_bh": null,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 54,
+     "reason": "degenerate",
+     "covariate": "cap_body_text_4000",
+     "kind": "binary",
+     "q_bh": null,
+     "significant_bh05": false
+    }
+   ]
+  },
+  "L3_ledger_recorded_no_task_row": {
+   "layer": "L3 target grain: landing mart 56 중 task mart 행이 없는 25",
+   "indicator": "_i",
+   "universe_n": 56,
+   "n_flagged": 25,
+   "n_not_flagged": 31,
+   "note": "grain=target(56). 관측 covariate 가 전부 있으므로 이 층만 제대로 검정 가능하다.",
+   "n_tests_run": 45,
+   "n_degenerate_skipped": 1,
+   "n_significant_bh05": 0,
+   "significant_covariates": [],
+   "verdict": "NO_ASSOCIATION_DETECTED_BUT_UNDERPOWERED",
+   "tests": [
+    {
+     "stat": 0.6662,
+     "p": 0.0068,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "cap_count",
+     "kind": "continuous",
+     "q_bh": 0.16087,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3829,
+     "p": 0.00715,
+     "n": 54,
+     "n_x1": 14,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_any",
+     "kind": "binary",
+     "q_bh": 0.16087,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3446,
+     "p": 0.01715,
+     "n": 54,
+     "n_x1": 8,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_contrast",
+     "kind": "binary",
+     "q_bh": 0.18428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.3459,
+     "p": 0.0241,
+     "n": 54,
+     "n_x1": 13,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_accessible_name_sources",
+     "kind": "binary",
+     "q_bh": 0.18428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6766,
+     "p": 0.02656,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 12.0,
+     "median_0": 9.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "modal_overlay_n",
+     "kind": "continuous",
+     "q_bh": 0.18428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6766,
+     "p": 0.02656,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 12.0,
+     "median_0": 9.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dismiss_control_n",
+     "kind": "continuous",
+     "q_bh": 0.18428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6639,
+     "p": 0.03689,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 27.0,
+     "median_0": 18.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_script_n",
+     "kind": "continuous",
+     "q_bh": 0.18428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4722,
+     "p": 0.0381,
+     "n": 56,
+     "levels": 7,
+     "level_counts_flagged": {
+      "COMMUNICATION_ENTRY": 2,
+      "CONTENT_OPEN": 0,
+      "FINANCIAL_ACTION_ENTRY": 6,
+      "ITEM_DETAIL": 10,
+      "PLACE_LOOKUP": 0,
+      "QUERY": 4,
+      "UTILITY_ENTRY": 3
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_archetype",
+     "kind": "categorical",
+     "q_bh": 0.18428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4722,
+     "p": 0.03825,
+     "n": 56,
+     "levels": 7,
+     "level_counts_flagged": {
+      "CONTENT_VIDEO": 0,
+      "FINANCE_PAYMENT": 6,
+      "MAP_MOBILITY": 0,
+      "PORTAL_SEARCH": 4,
+      "SHOPPING_COMMERCE": 10,
+      "SOCIAL_COMMUNICATION": 2,
+      "UTILITY_OTHER": 3
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_business_domain",
+     "kind": "categorical",
+     "q_bh": 0.18428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6606,
+     "p": 0.04095,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 474672.0,
+     "median_0": 252874.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "css_bytes",
+     "kind": "continuous",
+     "q_bh": 0.18428,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6542,
+     "p": 0.04984,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 252179.0,
+     "median_0": 109663.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_bytes",
+     "kind": "continuous",
+     "q_bh": 0.19271,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6545,
+     "p": 0.05139,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 197.0,
+     "median_0": 93.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_accessible_name_sources",
+     "kind": "continuous",
+     "q_bh": 0.19271,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.2812,
+     "p": 0.059,
+     "n": 56,
+     "n_x1": 51,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "has_l0c",
+     "kind": "binary",
+     "q_bh": 0.20423,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6413,
+     "p": 0.07235,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 145.0,
+     "median_0": 63.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_interactive_n",
+     "kind": "continuous",
+     "q_bh": 0.23255,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6342,
+     "p": 0.08783,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 115.0,
+     "median_0": 43.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_a_href_n",
+     "kind": "continuous",
+     "q_bh": 0.26066,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6323,
+     "p": 0.09268,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 735.0,
+     "median_0": 488.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_element_n",
+     "kind": "continuous",
+     "q_bh": 0.26066,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6269,
+     "p": 0.11198,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 61.0,
+     "median_0": 40.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_primary_action_candidates",
+     "kind": "continuous",
+     "q_bh": 0.28726,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6232,
+     "p": 0.11739,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 804.0,
+     "median_0": 567.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_element_n",
+     "kind": "continuous",
+     "q_bh": 0.28726,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6221,
+     "p": 0.12654,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 63.0,
+     "median_0": 40.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_target_size",
+     "kind": "continuous",
+     "q_bh": 0.28726,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6194,
+     "p": 0.12767,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 12.0,
+     "median_0": 6.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_button_n",
+     "kind": "continuous",
+     "q_bh": 0.28726,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6193,
+     "p": 0.13507,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 103.0,
+     "median_0": 78.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "n_contrast",
+     "kind": "continuous",
+     "q_bh": 0.28944,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6152,
+     "p": 0.14947,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 1832.0,
+     "median_0": 1038.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "gate_visible_text_len",
+     "kind": "continuous",
+     "q_bh": 0.30573,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.6065,
+     "p": 0.17646,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 16682.0,
+     "median_0": 10454.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_body_text_len",
+     "kind": "continuous",
+     "q_bh": 0.34525,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5942,
+     "p": 0.2162,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 2.0,
+     "median_0": 1.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_input_n",
+     "kind": "continuous",
+     "q_bh": 0.40538,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1945,
+     "p": 0.22979,
+     "n": 54,
+     "n_x1": 7,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_primary_action_candidates",
+     "kind": "binary",
+     "q_bh": 0.41362,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.52,
+     "p": 0.29839,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "declared_endpoints_n",
+     "kind": "continuous",
+     "q_bh": 0.49101,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.2087,
+     "p": 0.29854,
+     "n": 56,
+     "levels": 3,
+     "level_counts_flagged": {
+      "DOM_AX_ROLE": 9,
+      "FORM_STRUCTURE": 4,
+      "URL_PATTERN": 12
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_endpoint_signal_type",
+     "kind": "categorical",
+     "q_bh": 0.49101,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5794,
+     "p": 0.31212,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 9.0,
+     "median_0": 6.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_role_n",
+     "kind": "continuous",
+     "q_bh": 0.49101,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1759,
+     "p": 0.31643,
+     "n": 54,
+     "n_x1": 11,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "body_scroll_locked",
+     "kind": "binary",
+     "q_bh": 0.49101,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1515,
+     "p": 0.34433,
+     "n": 54,
+     "n_x1": 119,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "article_present",
+     "kind": "binary",
+     "q_bh": 0.5165,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5658,
+     "p": 0.39377,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 4.0,
+     "median_0": 2.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "dom_aria_label_n",
+     "kind": "continuous",
+     "q_bh": 0.55889,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1444,
+     "p": 0.39743,
+     "n": 54,
+     "n_x1": 6,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_target_size",
+     "kind": "binary",
+     "q_bh": 0.55889,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5614,
+     "p": 0.4197,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 1.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "motion_animated_n",
+     "kind": "continuous",
+     "q_bh": 0.57232,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1479,
+     "p": 0.45993,
+     "n": 54,
+     "n_x1": 1,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_motion_animated_60",
+     "kind": "binary",
+     "q_bh": 0.6017,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5234,
+     "p": 0.47086,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "gate_captcha_iframe_n",
+     "kind": "continuous",
+     "q_bh": 0.6017,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5548,
+     "p": 0.48878,
+     "n1": 25,
+     "n0": 31,
+     "median_1": 63974.0,
+     "median_0": 50749.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "ax_bytes",
+     "kind": "continuous",
+     "q_bh": 0.6017,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.1728,
+     "p": 0.49473,
+     "n": 56,
+     "n_x1": 54,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "probe_present",
+     "kind": "binary",
+     "q_bh": 0.6017,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4848,
+     "p": 0.64633,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "gate_password_input_n",
+     "kind": "continuous",
+     "q_bh": 0.74725,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0967,
+     "p": 0.64762,
+     "n": 56,
+     "levels": 2,
+     "level_counts_flagged": {
+      "CODEBOOK_PENDING": 3,
+      "DOM_AX_ROLE": 22
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "prior_region_signal_type",
+     "kind": "categorical",
+     "q_bh": 0.74725,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0839,
+     "p": 0.69342,
+     "n": 54,
+     "n_x1": 7,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "cap_body_text_4000",
+     "kind": "binary",
+     "q_bh": 0.7801,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4807,
+     "p": 0.72832,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "search_inputs_n",
+     "kind": "continuous",
+     "q_bh": 0.79938,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.141,
+     "p": 0.81161,
+     "n": 56,
+     "levels": 4,
+     "level_counts_flagged": {
+      "w01": 5,
+      "w02": 7,
+      "w03": 6,
+      "w04": 7
+     },
+     "test": "Cramer's V + permutation (vectorized, 20000 perms)",
+     "covariate": "worker",
+     "kind": "categorical",
+     "q_bh": 0.86958,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.4869,
+     "p": 0.87507,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 2411.0,
+     "median_0": 2834.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "probe_scroll_height",
+     "kind": "continuous",
+     "q_bh": 0.91577,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.5028,
+     "p": 0.9366,
+     "n1": 25,
+     "n0": 29,
+     "median_1": 0.0,
+     "median_0": 0.0,
+     "test": "Mann-Whitney U (stat = rank-biserial AUC)",
+     "covariate": "declared_regions_n",
+     "kind": "continuous",
+     "q_bh": 0.95789,
+     "significant_bh05": false
+    },
+    {
+     "stat": 0.0299,
+     "p": 1.0,
+     "n": 56,
+     "n_x1": 4,
+     "n_y1": 25,
+     "test": "phi + permutation (vectorized, 20000 perms)",
+     "covariate": "dom_body_empty",
+     "kind": "binary",
+     "q_bh": 1.0,
+     "significant_bh05": false
+    },
+    {
+     "stat": null,
+     "p": null,
+     "n": 56,
+     "reason": "degenerate",
+     "covariate": "prior_mapping_status",
+     "kind": "categorical",
+     "q_bh": null,
+     "significant_bh05": false
+    }
+   ]
+  }
+ },
+ "bounds": {
+  "a_cap_any_x_commerce": {
+   "complete_case": {
+    "table_a_x1y1": 11,
+    "table_b_x1y0": 14,
+    "table_c_x0y1": 3,
+    "table_d_x0y0": 26,
+    "n_complete": 54,
+    "p_y1_given_x1": 0.44,
+    "wilson95_y1_given_x1": [
+     0.2667,
+     0.6293
+    ],
+    "p_y1_given_x0": 0.1034,
+    "wilson95_y1_given_x0": [
+     0.0358,
+     0.2639
+    ],
+    "risk_difference": 0.3366,
+    "rd_newcombe95": [
+     0.1004,
+     0.5376
+    ],
+    "rd_newcombe95_width": 0.4372,
+    "phi": 0.3829
+   },
+   "missing_breakdown": {
+    "x1_y_missing": 1,
+    "x0_y_missing": 4,
+    "y1_x_missing": 0,
+    "y0_x_missing": 0,
+    "both_missing": 0,
+    "n_missing_total": 5
+   },
+   "worst_case_bound": {
+    "rd_lower": 0.211,
+    "rd_upper": 0.3706,
+    "rd_width": 0.1597,
+    "rd_lower_witness_table": [
+     11,
+     15,
+     7,
+     26
+    ],
+    "rd_upper_witness_table": [
+     12,
+     14,
+     3,
+     30
+    ],
+    "phi_lower": 0.2275,
+    "phi_upper": 0.4226,
+    "excludes_null_rd0": true,
+    "sign_identified": true
+   },
+   "width_ratio_bound_over_cc_ci": 0.365,
+   "meta": {
+    "X": "prior_business_domain == SHOPPING_COMMERCE (커머스 계열, 본 RQ 사전 고정)",
+    "Y": "cap_any == 1 (측정 cap 절단이 하나라도 걸림)",
+    "derived_from": "RQ-D8",
+    "x_missing_source": "none — prior 표는 59 target 전부 보유",
+    "y_missing_source": "L2(3, 원장기록 제외) + L2b(2, probe 부재 covariate 결측)"
+   },
+   "grain": "target (wtg), population n=59"
+  },
+  "b_modal_x_no_arialabel": {
+   "complete_case": {
+    "table_a_x1y1": 18,
+    "table_b_x1y0": 0,
+    "table_c_x0y1": 36,
+    "table_d_x0y0": 0,
+    "n_complete": 54,
+    "p_y1_given_x1": 1.0,
+    "wilson95_y1_given_x1": [
+     0.8241,
+     1.0
+    ],
+    "p_y1_given_x0": 1.0,
+    "wilson95_y1_given_x0": [
+     0.9036,
+     1.0
+    ],
+    "risk_difference": 0.0,
+    "rd_newcombe95": [
+     -0.1759,
+     0.0964
+    ],
+    "rd_newcombe95_width": 0.2723,
+    "phi": null
+   },
+   "missing_breakdown": {
+    "x1_y_missing": 2,
+    "x0_y_missing": 0,
+    "y1_x_missing": 0,
+    "y0_x_missing": 0,
+    "both_missing": 3,
+    "n_missing_total": 5
+   },
+   "worst_case_bound": {
+    "rd_lower": -0.2174,
+    "rd_upper": 0.0769,
+    "rd_width": 0.2943,
+    "rd_lower_witness_table": [
+     18,
+     5,
+     36,
+     0
+    ],
+    "rd_upper_witness_table": [
+     20,
+     0,
+     36,
+     3
+    ],
+    "phi_lower": -0.3807,
+    "phi_upper": 0.1657,
+    "excludes_null_rd0": false,
+    "sign_identified": false
+   },
+   "width_ratio_bound_over_cc_ci": 1.081,
+   "meta": {
+    "X": "dom_aria_label_n == 0",
+    "Y": "modal_overlay_n > 0",
+    "derived_from": "PILOT-E E-P2",
+    "x_missing_source": "L2(3) — DOM 이 없는 target",
+    "y_missing_source": "L2(3) + L2b(2) — probe 파생"
+   },
+   "grain": "target (wtg), population n=59"
+  },
+  "c_taskrow_x_password_gate": {
+   "complete_case": {
+    "table_a_x1y1": 2,
+    "table_b_x1y0": 1,
+    "table_c_x0y1": 27,
+    "table_d_x0y0": 24,
+    "n_complete": 54,
+    "p_y1_given_x1": 0.6667,
+    "wilson95_y1_given_x1": [
+     0.2077,
+     0.9385
+    ],
+    "p_y1_given_x0": 0.5294,
+    "wilson95_y1_given_x0": [
+     0.3952,
+     0.6595
+    ],
+    "risk_difference": 0.1373,
+    "rd_newcombe95": [
+     -0.3398,
+     0.4404
+    ],
+    "rd_newcombe95_width": 0.7802,
+    "phi": 0.0631
+   },
+   "missing_breakdown": {
+    "x1_y_missing": 0,
+    "x0_y_missing": 0,
+    "y1_x_missing": 2,
+    "y0_x_missing": 3,
+    "both_missing": 0,
+    "n_missing_total": 5
+   },
+   "worst_case_bound": {
+    "rd_lower": -0.2138,
+    "rd_upper": 0.3,
+    "rd_width": 0.5138,
+    "rd_lower_witness_table": [
+     2,
+     4,
+     29,
+     24
+    ],
+    "rd_upper_witness_table": [
+     4,
+     1,
+     27,
+     27
+    ],
+    "phi_lower": -0.1294,
+    "phi_upper": 0.1673,
+    "excludes_null_rd0": false,
+    "sign_identified": false
+   },
+   "width_ratio_bound_over_cc_ci": 0.659,
+   "meta": {
+    "X": "gate_password_input_n > 0",
+    "Y": "fact_task_entry 에 행이 존재",
+    "derived_from": "RQ-D6b",
+    "x_missing_source": "L2(3) + L2b(2)",
+    "y_missing_source": "none — 결측 자체가 결과변수라 59 전부 관측된다",
+    "caveat": "Y 는 mart 포함 여부다. '결측이 결과' 인 association 이므로 L3 은 이 추정치에서 결측층이 아니라 결과의 분포다."
+   },
+   "grain": "target (wtg), population n=59"
+  },
+  "d_authgate_x_commerce": {
+   "complete_case": {
+    "table_a_x1y1": 8,
+    "table_b_x1y0": 8,
+    "table_c_x0y1": 7,
+    "table_d_x0y0": 8,
+    "n_complete": 31,
+    "p_y1_given_x1": 0.5,
+    "wilson95_y1_given_x1": [
+     0.28,
+     0.72
+    ],
+    "p_y1_given_x0": 0.4667,
+    "wilson95_y1_given_x0": [
+     0.2481,
+     0.6988
+    ],
+    "risk_difference": 0.0333,
+    "rd_newcombe95": [
+     -0.2865,
+     0.3435
+    ],
+    "rd_newcombe95_width": 0.63,
+    "phi": 0.0333
+   },
+   "missing_breakdown": {
+    "x1_y_missing": 10,
+    "x0_y_missing": 18,
+    "y1_x_missing": 0,
+    "y0_x_missing": 0,
+    "both_missing": 0,
+    "n_missing_total": 28
+   },
+   "worst_case_bound": {
+    "rd_lower": -0.4499,
+    "rd_upper": 0.4802,
+    "rd_width": 0.9301,
+    "rd_lower_witness_table": [
+     8,
+     18,
+     25,
+     8
+    ],
+    "rd_upper_witness_table": [
+     18,
+     8,
+     7,
+     26
+    ],
+    "phi_lower": -0.4499,
+    "phi_upper": 0.4824,
+    "excludes_null_rd0": false,
+    "sign_identified": false
+   },
+   "width_ratio_bound_over_cc_ci": 1.476,
+   "meta": {
+    "X": "prior_business_domain == SHOPPING_COMMERCE",
+    "Y": "fact_task_entry.auth_gate_before_endpoint == 1",
+    "derived_from": "RQ-D7 자체 추가 — task mart 를 결과로 쓰는 계획된 association 대표",
+    "x_missing_source": "none",
+    "y_missing_source": "L2(3) + L3(25) = 28 — task mart 에 행이 없으면 정의되지 않는다",
+    "why_added": "(a)(b)(c) 는 전부 L2/L2b 만 결측이라 3~5건 문제다. 56->31 의 25건이 실제로 무는 곳을 보여주려면 결과가 task mart 인 association 이 하나 필요하다."
+   },
+   "grain": "target (wtg), population n=59"
+  },
+  "a_sensitivity_commerce_wide": {
+   "complete_case": {
+    "table_a_x1y1": 12,
+    "table_b_x1y0": 22,
+    "table_c_x0y1": 2,
+    "table_d_x0y0": 18,
+    "n_complete": 54,
+    "p_y1_given_x1": 0.3529,
+    "wilson95_y1_given_x1": [
+     0.2149,
+     0.5209
+    ],
+    "p_y1_given_x0": 0.1,
+    "wilson95_y1_given_x0": [
+     0.0279,
+     0.301
+    ],
+    "risk_difference": 0.2529,
+    "rd_newcombe95": [
+     0.0091,
+     0.4357
+    ],
+    "rd_newcombe95_width": 0.4266,
+    "phi": 0.2787
+   },
+   "missing_breakdown": {
+    "x1_y_missing": 3,
+    "x0_y_missing": 2,
+    "y1_x_missing": 0,
+    "y0_x_missing": 0,
+    "both_missing": 0,
+    "n_missing_total": 5
+   },
+   "worst_case_bound": {
+    "rd_lower": 0.1425,
+    "rd_upper": 0.3145,
+    "rd_width": 0.172,
+    "rd_lower_witness_table": [
+     12,
+     25,
+     4,
+     18
+    ],
+    "rd_upper_witness_table": [
+     15,
+     22,
+     2,
+     20
+    ],
+    "phi_lower": 0.155,
+    "phi_upper": 0.3358,
+    "excludes_null_rd0": true,
+    "sign_identified": true
+   },
+   "width_ratio_bound_over_cc_ci": 0.403,
+   "meta": {
+    "X": "prior_business_domain in {SHOPPING_COMMERCE, FINANCE_PAYMENT}",
+    "Y": "cap_any == 1",
+    "role": "(a) 의 커머스 계열 정의 민감도"
+   }
+  }
+ },
+ "layer_decomposition": {
+  "per_association": {
+   "a_cap_any_x_commerce": {
+    "association": "a_cap_any_x_commerce",
+    "meta": {
+     "X": "prior_business_domain == SHOPPING_COMMERCE (커머스 계열, 본 RQ 사전 고정)",
+     "Y": "cap_any == 1 (측정 cap 절단이 하나라도 걸림)",
+     "derived_from": "RQ-D8",
+     "x_missing_source": "none — prior 표는 59 target 전부 보유",
+     "y_missing_source": "L2(3, 원장기록 제외) + L2b(2, probe 부재 covariate 결측)"
+    },
+    "scenarios": {
+     "S0_nothing_recovered": {
+      "recovered_layers": [],
+      "n_recovered_targets": 0,
+      "n_missing_remaining": 5,
+      "rd_bound": [
+       0.211,
+       0.3706
+      ],
+      "rd_width": 0.1597,
+      "sign_identified": true
+     },
+     "S_L2_ledger_recorded_no_evidence_only": {
+      "recovered_layers": [
+       "L2_ledger_recorded_no_evidence"
+      ],
+      "n_recovered_targets": 3,
+      "n_missing_remaining": 2,
+      "rd_bound": [
+       0.211,
+       0.2797
+      ],
+      "rd_width": 0.0688,
+      "width_reduction_vs_S0": 0.0909,
+      "sign_identified": true
+     },
+     "S_L2b_unrecorded_probe_absent_only": {
+      "recovered_layers": [
+       "L2b_unrecorded_probe_absent"
+      ],
+      "n_recovered_targets": 2,
+      "n_missing_remaining": 3,
+      "rd_bound": [
+       0.2494,
+       0.3403
+      ],
+      "rd_width": 0.0909,
+      "width_reduction_vs_S0": 0.0688,
+      "sign_identified": true
+     },
+     "S_L3_ledger_recorded_no_task_row_only": {
+      "recovered_layers": [
+       "L3_ledger_recorded_no_task_row"
+      ],
+      "n_recovered_targets": 25,
+      "n_missing_remaining": 5,
+      "rd_bound": [
+       0.211,
+       0.3706
+      ],
+      "rd_width": 0.1597,
+      "width_reduction_vs_S0": 0.0,
+      "sign_identified": true
+     },
+     "S_all_recovered": {
+      "recovered_layers": [
+       "L2_ledger_recorded_no_evidence",
+       "L2b_unrecorded_probe_absent",
+       "L3_ledger_recorded_no_task_row"
+      ],
+      "n_recovered_targets": 30,
+      "n_missing_remaining": 0,
+      "rd_bound": [
+       0.31,
+       0.31
+      ],
+      "rd_width": 0.0,
+      "width_reduction_vs_S0": 0.1597,
+      "sign_identified": true
+     }
+    },
+    "dominant_layer": "S_L2_ledger_recorded_no_evidence_only",
+    "dominant_layer_width_reduction": 0.0909,
+    "answer_3_vs_25": "이 association 의 결측은 전부 L2/L2b(<=5건)이므로 25건은 무관하다"
+   },
+   "b_modal_x_no_arialabel": {
+    "association": "b_modal_x_no_arialabel",
+    "meta": {
+     "X": "dom_aria_label_n == 0",
+     "Y": "modal_overlay_n > 0",
+     "derived_from": "PILOT-E E-P2",
+     "x_missing_source": "L2(3) — DOM 이 없는 target",
+     "y_missing_source": "L2(3) + L2b(2) — probe 파생"
+    },
+    "scenarios": {
+     "S0_nothing_recovered": {
+      "recovered_layers": [],
+      "n_recovered_targets": 0,
+      "n_missing_remaining": 5,
+      "rd_bound": [
+       -0.2174,
+       0.0769
+      ],
+      "rd_width": 0.2943,
+      "sign_identified": false
+     },
+     "S_L2_ledger_recorded_no_evidence_only": {
+      "recovered_layers": [
+       "L2_ledger_recorded_no_evidence"
+      ],
+      "n_recovered_targets": 3,
+      "n_missing_remaining": 2,
+      "rd_bound": [
+       -0.087,
+       0.0
+      ],
+      "rd_width": 0.087,
+      "width_reduction_vs_S0": 0.2073,
+      "sign_identified": false
+     },
+     "S_L2b_unrecorded_probe_absent_only": {
+      "recovered_layers": [
+       "L2b_unrecorded_probe_absent"
+      ],
+      "n_recovered_targets": 2,
+      "n_missing_remaining": 3,
+      "rd_bound": [
+       -0.1304,
+       0.0769
+      ],
+      "rd_width": 0.2074,
+      "width_reduction_vs_S0": 0.0869,
+      "sign_identified": false
+     },
+     "S_L3_ledger_recorded_no_task_row_only": {
+      "recovered_layers": [
+       "L3_ledger_recorded_no_task_row"
+      ],
+      "n_recovered_targets": 25,
+      "n_missing_remaining": 5,
+      "rd_bound": [
+       -0.2174,
+       0.0769
+      ],
+      "rd_width": 0.2943,
+      "width_reduction_vs_S0": 0.0,
+      "sign_identified": false
+     },
+     "S_all_recovered": {
+      "recovered_layers": [
+       "L2_ledger_recorded_no_evidence",
+       "L2b_unrecorded_probe_absent",
+       "L3_ledger_recorded_no_task_row"
+      ],
+      "n_recovered_targets": 30,
+      "n_missing_remaining": 0,
+      "rd_bound": [
+       0.0,
+       0.0
+      ],
+      "rd_width": 0.0,
+      "width_reduction_vs_S0": 0.2943,
+      "sign_identified": false
+     }
+    },
+    "dominant_layer": "S_L2_ledger_recorded_no_evidence_only",
+    "dominant_layer_width_reduction": 0.2073,
+    "answer_3_vs_25": "이 association 의 결측은 전부 L2/L2b(<=5건)이므로 25건은 무관하다"
+   },
+   "c_taskrow_x_password_gate": {
+    "association": "c_taskrow_x_password_gate",
+    "meta": {
+     "X": "gate_password_input_n > 0",
+     "Y": "fact_task_entry 에 행이 존재",
+     "derived_from": "RQ-D6b",
+     "x_missing_source": "L2(3) + L2b(2)",
+     "y_missing_source": "none — 결측 자체가 결과변수라 59 전부 관측된다",
+     "caveat": "Y 는 mart 포함 여부다. '결측이 결과' 인 association 이므로 L3 은 이 추정치에서 결측층이 아니라 결과의 분포다."
+    },
+    "scenarios": {
+     "S0_nothing_recovered": {
+      "recovered_layers": [],
+      "n_recovered_targets": 0,
+      "n_missing_remaining": 5,
+      "rd_bound": [
+       -0.2138,
+       0.3
+      ],
+      "rd_width": 0.5138,
+      "sign_identified": false
+     },
+     "S_L2_ledger_recorded_no_evidence_only": {
+      "recovered_layers": [
+       "L2_ledger_recorded_no_evidence"
+      ],
+      "n_recovered_targets": 3,
+      "n_missing_remaining": 2,
+      "rd_bound": [
+       -0.2138,
+       -0.0294
+      ],
+      "rd_width": 0.1844,
+      "width_reduction_vs_S0": 0.3294,
+      "sign_identified": true
+     },
+     "S_L2b_unrecorded_probe_absent_only": {
+      "recovered_layers": [
+       "L2b_unrecorded_probe_absent"
+      ],
+      "n_recovered_targets": 2,
+      "n_missing_remaining": 3,
+      "rd_bound": [
+       -0.0294,
+       0.3
+      ],
+      "rd_width": 0.3294,
+      "width_reduction_vs_S0": 0.1844,
+      "sign_identified": false
+     },
+     "S_L3_ledger_recorded_no_task_row_only": {
+      "recovered_layers": [
+       "L3_ledger_recorded_no_task_row"
+      ],
+      "n_recovered_targets": 25,
+      "n_missing_remaining": 5,
+      "rd_bound": [
+       -0.2138,
+       0.3
+      ],
+      "rd_width": 0.5138,
+      "width_reduction_vs_S0": 0.0,
+      "sign_identified": false
+     },
+     "S_all_recovered": {
+      "recovered_layers": [
+       "L2_ledger_recorded_no_evidence",
+       "L2b_unrecorded_probe_absent",
+       "L3_ledger_recorded_no_task_row"
+      ],
+      "n_recovered_targets": 30,
+      "n_missing_remaining": 0,
+      "rd_bound": [
+       -0.0273,
+       -0.0273
+      ],
+      "rd_width": 0.0,
+      "width_reduction_vs_S0": 0.5138,
+      "sign_identified": true
+     }
+    },
+    "dominant_layer": "S_L2_ledger_recorded_no_evidence_only",
+    "dominant_layer_width_reduction": 0.3294,
+    "answer_3_vs_25": "이 association 의 결측은 전부 L2/L2b(<=5건)이므로 25건은 무관하다"
+   },
+   "d_authgate_x_commerce": {
+    "association": "d_authgate_x_commerce",
+    "meta": {
+     "X": "prior_business_domain == SHOPPING_COMMERCE",
+     "Y": "fact_task_entry.auth_gate_before_endpoint == 1",
+     "derived_from": "RQ-D7 자체 추가 — task mart 를 결과로 쓰는 계획된 association 대표",
+     "x_missing_source": "none",
+     "y_missing_source": "L2(3) + L3(25) = 28 — task mart 에 행이 없으면 정의되지 않는다",
+     "why_added": "(a)(b)(c) 는 전부 L2/L2b 만 결측이라 3~5건 문제다. 56->31 의 25건이 실제로 무는 곳을 보여주려면 결과가 task mart 인 association 이 하나 필요하다."
+    },
+    "scenarios": {
+     "S0_nothing_recovered": {
+      "recovered_layers": [],
+      "n_recovered_targets": 0,
+      "n_missing_remaining": 28,
+      "rd_bound": [
+       -0.4499,
+       0.4802
+      ],
+      "rd_width": 0.9301,
+      "sign_identified": false
+     },
+     "S_L2_ledger_recorded_no_evidence_only": {
+      "recovered_layers": [
+       "L2_ledger_recorded_no_evidence"
+      ],
+      "n_recovered_targets": 3,
+      "n_missing_remaining": 25,
+      "rd_bound": [
+       -0.4499,
+       0.3893
+      ],
+      "rd_width": 0.8392,
+      "width_reduction_vs_S0": 0.0909,
+      "sign_identified": false
+     },
+     "S_L2b_unrecorded_probe_absent_only": {
+      "recovered_layers": [
+       "L2b_unrecorded_probe_absent"
+      ],
+      "n_recovered_targets": 2,
+      "n_missing_remaining": 28,
+      "rd_bound": [
+       -0.4499,
+       0.4802
+      ],
+      "rd_width": 0.9301,
+      "width_reduction_vs_S0": 0.0,
+      "sign_identified": false
+     },
+     "S_L3_ledger_recorded_no_task_row_only": {
+      "recovered_layers": [
+       "L3_ledger_recorded_no_task_row"
+      ],
+      "n_recovered_targets": 25,
+      "n_missing_remaining": 3,
+      "rd_bound": [
+       -0.0653,
+       0.0256
+      ],
+      "rd_width": 0.0909,
+      "width_reduction_vs_S0": 0.8392,
+      "sign_identified": false
+     },
+     "S_all_recovered": {
+      "recovered_layers": [
+       "L2_ledger_recorded_no_evidence",
+       "L2b_unrecorded_probe_absent",
+       "L3_ledger_recorded_no_task_row"
+      ],
+      "n_recovered_targets": 30,
+      "n_missing_remaining": 0,
+      "rd_bound": [
+       -0.0653,
+       -0.0653
+      ],
+      "rd_width": 0.0,
+      "width_reduction_vs_S0": 0.9301,
+      "sign_identified": true
+     }
+    },
+    "dominant_layer": "S_L3_ledger_recorded_no_task_row_only",
+    "dominant_layer_width_reduction": 0.8392,
+    "answer_3_vs_25": "이 association 은 L3 25건이 결측의 대부분을 차지한다"
+   }
+  },
+  "l1_canonical_choice_ambiguity": {
+   "n_duplicate_launch_targets_checked": 4,
+   "n_with_bound_variable_flip": 0,
+   "contribution_to_bound_width": "0 — canonical dir 선택은 본 RQ 의 bound 변수 4개 중 어느 것도 뒤집지 않는다",
+   "per_target": {
+    "13ed070478ef62c3": {
+     "cap_any": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "dom_aria_label_n": {
+      "values": [
+       11.0,
+       11.0
+      ],
+      "identical": true
+     },
+     "modal_overlay_n": {
+      "values": [
+       6.0,
+       7.0
+      ],
+      "identical": false
+     },
+     "gate_password_input_n": {
+      "values": [
+       1.0,
+       1.0
+      ],
+      "identical": true
+     },
+     "probe_present": {
+      "values": [
+       1.0,
+       1.0
+      ],
+      "identical": true
+     },
+     "dom_body_empty": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "derived_binary_flips": {
+      "X_b_aria0": false,
+      "Y_b_modal_gt0": false,
+      "X_c_password_gt0": false,
+      "Y_a_cap_any": false
+     },
+     "any_bound_variable_flips": false
+    },
+    "9390ef32addf32bf": {
+     "cap_any": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "dom_aria_label_n": {
+      "values": [
+       39.0,
+       39.0
+      ],
+      "identical": true
+     },
+     "modal_overlay_n": {
+      "values": [
+       7.0,
+       7.0
+      ],
+      "identical": true
+     },
+     "gate_password_input_n": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "probe_present": {
+      "values": [
+       1.0,
+       1.0
+      ],
+      "identical": true
+     },
+     "dom_body_empty": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "derived_binary_flips": {
+      "X_b_aria0": false,
+      "Y_b_modal_gt0": false,
+      "X_c_password_gt0": false,
+      "Y_a_cap_any": false
+     },
+     "any_bound_variable_flips": false
+    },
+    "b728911c9782edb8": {
+     "cap_any": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "dom_aria_label_n": {
+      "values": [
+       13.0,
+       13.0
+      ],
+      "identical": true
+     },
+     "modal_overlay_n": {
+      "values": [
+       12.0,
+       12.0
+      ],
+      "identical": true
+     },
+     "gate_password_input_n": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "probe_present": {
+      "values": [
+       1.0,
+       1.0
+      ],
+      "identical": true
+     },
+     "dom_body_empty": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "derived_binary_flips": {
+      "X_b_aria0": false,
+      "Y_b_modal_gt0": false,
+      "X_c_password_gt0": false,
+      "Y_a_cap_any": false
+     },
+     "any_bound_variable_flips": false
+    },
+    "e1fadb214cde51c0": {
+     "cap_any": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "dom_aria_label_n": {
+      "values": [
+       16.0,
+       16.0
+      ],
+      "identical": true
+     },
+     "modal_overlay_n": {
+      "values": [
+       11.0,
+       11.0
+      ],
+      "identical": true
+     },
+     "gate_password_input_n": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "probe_present": {
+      "values": [
+       1.0,
+       1.0
+      ],
+      "identical": true
+     },
+     "dom_body_empty": {
+      "values": [
+       0.0,
+       0.0
+      ],
+      "identical": true
+     },
+     "derived_binary_flips": {
+      "X_b_aria0": false,
+      "Y_b_modal_gt0": false,
+      "X_c_password_gt0": false,
+      "Y_a_cap_any": false
+     },
+     "any_bound_variable_flips": false
+    }
+   }
+  },
+  "answer_3_vs_25": "둘 다 답이 아니고 association 이 어느 mart 를 결과로 쓰는지에 달렸다. 결과가 landing mart 인 association((a)(b)(c))은 결측이 3~5건뿐이라 25건 복구는 bound 를 전혀 좁히지 못한다. 결과가 task mart 인 association((d))은 25건이 결측의 89%(25/28)를 차지해 3건만 복구해도 폭이 거의 그대로다."
+ },
+ "counterexamples": {
+  "against_bound_uninformative": [
+   {
+    "association": "a_cap_any_x_commerce",
+    "rd_bound": [
+     0.211,
+     0.3706
+    ],
+    "note": "결측 3~5건에서는 worst-case 여도 부호가 식별될 수 있다"
+   }
+  ],
+  "against_mcar_being_testable": "L2 의 3 target 은 DOM/probe covariate 가 정의상 결측이라, 그 covariate 들과의 연관을 검정할 방법이 없다. 검정 결과가 음성인 것이 MCAR 의 증거가 아니다.",
+  "against_treating_L1_as_missingness": "중복발사 4 target 에서 canonical dir 을 바꿔도 본 RQ 의 bound 변수는 0건에서만 뒤집힌다 — 66->59 는 분모 문제가 아니다."
+ },
+ "limitation": [
+  "층별 분해에서 '복구' 는 해당 층의 결측을 complete-case 조건부 비율로 결정론적으로 채운 것이다. bound **폭** 은 남은 결측 수에 지배돼 이 채움값에 사실상 무관하지만 bound **중심** 은 채움값에 의존한다. 폭만 해석하라.",
+  "L2(3)·L2b(2)의 결측 기전은 n 이 작아 어떤 검정도 검정력이 없다. 음성 결과를 MCAR 의 증거로 읽으면 안 된다.",
+  "worst-case bound 는 어떤 가정도 없는 상한이다. 실무적으로 그럴듯한 가정(예: 단조 결측)을 넣으면 좁아지지만 어떤 가정이 정당한지는 D 가 정하지 않는다.",
+  "prior_business_domain 은 gold label 이 아니라 prior 다. (a)(d)의 X 는 prior 이므로 prior 자체의 오분류는 bound 에 반영돼 있지 않다.",
+  "permutation p 는 20000 회 기준이며 최소 달성 가능 p 는 1/20001 이다.",
+  "fact_criterion_result 는 0행이라 KWCAG 축 association 은 bound 계산 자체가 불가능하다 — 이 RQ 의 분모 사슬에는 그 축이 아예 없다."
+ ],
+ "not_answered_by_this_rq": "이 bound 폭이 계획된 분석에 충분한지, 무엇을 다시 모을지, 어떤 분모를 공식 분모로 삼을지는 답하지 않는다 — construct 와 결정은 A 권한이다.",
+ "further_research_questions": [
+  "L2b(probe 부재 2건)는 왜 원장 outcome 에 사유가 남지 않았는가 — 수집기 경로 추적.",
+  "단조 결측(monotone MAR) 가정 아래의 축소 bound 가 (d)의 부호를 식별하는가.",
+  "fact_task_entry 결측을 결과로 두는 association 에 대해 IPW/selection model 이 worst-case 대비 얼마나 좁은 구간을 주는가, 그리고 그 가정이 L3 기전과 양립하는가.",
+  "ACCOUNT_ACTION_BLOCKED 25건에 대해 landing mart 만으로 정의 가능한 대리 결과를 쓰면 분모가 56 으로 회복되는가."
+ ],
+ "firewall": {
+  "denied_paths_not_opened": true,
+  "note": "D_INPUT_ALLOWLIST.json 의 denied 목록을 하나도 열지 않았다"
+ },
+ "figures": [
+  "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/figures/RQ_D7_bounds_vs_cc.png",
+  "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/figures/RQ_D7_layer_decomposition.png"
+ ],
+ "inputs": {
+  "D_OBSERVATION_TABLE_v2.csv": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_OBSERVATION_TABLE_v2.csv",
+   "sha256": "c39c10f09f7a6a7603409550eb331612eb44634eb98ec387a604aa5221351e6b",
+   "rows": 66,
+   "cols": 65
+  },
+  "fact_landing_observation.json": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/fact_landing_observation.json",
+   "sha256": "4ed58b66e002d25ce324efa720462bef45dec2826b68ab7babbb3335cb06fa8c",
+   "rows": 56
+  },
+  "fact_task_entry.json": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/fact_task_entry.json",
+   "sha256": "61bb7051045ab27ddc5b8105728b64c3f0df1c69c3f278d14087789fbcad0064",
+   "rows": 31
+  },
+  "fact_interrupt_element.json": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/fact_interrupt_element.json",
+   "sha256": "caebf1a4344a0b96d793b2f14418c14ece7c3ebef788e8eb7033eb678093dbf6",
+   "rows": 235
+  },
+  "REAL_RUN_SUMMARY.json": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/REAL_RUN_SUMMARY.json",
+   "sha256": "ac454f8f99796dc91f60de4e1d2c040be0d271fb6adabef369d53c68f8cc2928",
+   "rows": null
+  },
+  "FROZEN_MART_MANIFEST.json": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/FROZEN_MART_MANIFEST.json",
+   "sha256": "656b5ac3e077579c969a8045e810a3131210e85fa8bc0d19ce426bca0d6f7be3",
+   "rows": null
+  },
+  "RQ_D1_reconstruction.json": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/RQ_D1_reconstruction.json",
+   "sha256": "b8897e820900e01fa122cc630b72dd850ea7a77d41aa69e97ec60afd5295ed89",
+   "role": "prior D output — hypothesis only, independently recomputed"
+  },
+  "RQ_D11_ledger_vs_evidence.json": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/RQ_D11_ledger_vs_evidence.json",
+   "sha256": "587695b926d566731139880945becfee5178568bee6781b3219a823cf55c3713",
+   "role": "prior D output — hypothesis only, independently recomputed"
+  },
+  "RQ_D13C_mart_row_dropping.json": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/RQ_D13C_mart_row_dropping.json",
+   "sha256": "5c1388a71f5a8c663d96c88f98f5227d063a946b3108338f602a79a4a51dec4a",
+   "role": "prior D output — hypothesis only, independently recomputed"
+  },
+  "RQ_D8_cap_bias.json": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/RQ_D8_cap_bias.json",
+   "sha256": "cb288f06fdb891e19cb6c2884f8f653810f45ca96c9138f1536ef549f1e66f8e",
+   "role": "prior D output — hypothesis only, independently recomputed"
+  },
+  "worker_batch_ledgers": {
+   "n_files": 16,
+   "sha256_by_file": {
+    "batch_0001_b0001.json": "260410d46d927d81cc794fc12e4e171f0b3693f2cdaba9857ea76ae3d73f9b8e",
+    "batch_0002_b0002.json": "c029cd0c2501bfbbe8e64dfe23205a5e321de20a771f73f262301c0fc7c24b77",
+    "batch_0003_b0003.json": "c5e1921587dba3663f91e5edd1c8f3c0fed4ac739ea45815dfb3dd6b397958ed",
+    "batch_0004_b0004.json": "0f73692f0c5852061d71bcafd1fe6b55a0c4f8bc7d7de847da86dbe744ad27b7"
+   }
+  }
+ },
+ "code_path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/tools/rq_d7_denominator_bounds.py"
+}

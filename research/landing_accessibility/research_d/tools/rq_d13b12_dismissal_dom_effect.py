@@ -1118,10 +1118,20 @@ def build_samples(A: dict, parts: dict) -> dict:
             "supporting": sample_dump(parts["present"], 15),
             "refuting": sample_dump(parts["absent"], 15),
             "supporting_n": len(parts["present"]), "refuting_n": len(parts["absent"]),
+            "sample_shortfall_note": ("supporting 모집단 자체가 작아 10건을 채우지 못한다. "
+                                      "이것이 곧 이 가설의 반박 근거다. 대신 가장 가까운 약한 형태 "
+                                      "('control 은 DOM 에 있었으나 hittable 하지 않았다')를 아래에 "
+                                      "전수로 남긴다."),
+            "supporting_weak_control_exists_not_hittable": sample_dump(
+                [r for r in parts["absent"] if r["n_dismiss_controls"] > 0], 20),
+            "supporting_weak_n": len([r for r in parts["absent"] if r["n_dismiss_controls"] > 0]),
         },
         "H-13b1-MIXED": {
             "supporting": sample_dump(parts["absent"][:8] + parts["present"][:8], 16),
-            "refuting": [], "note": "두 부류가 모두 비어있지 않다는 것 자체가 증거다.",
+            "refuting": sample_dump(parts["absent"], 12),
+            "note": ("MIXED 는 두 부류가 모두 실질적 비중을 가질 때만 성립한다. refuting 칸에는 "
+                     "압도적 다수를 차지한 쪽(무대상)의 사례를 넣었다 — 한쪽이 이만큼 크면 "
+                     "'섞여 있다' 로 요약하는 것이 오히려 사실을 가린다."),
         },
         "H-13b2-ANIMATION": {
             "supporting": sample_dump(anim_yes, 15), "refuting": sample_dump(anim_no, 15),
@@ -1145,6 +1155,15 @@ def build_samples(A: dict, parts: dict) -> dict:
             "supporting": sample_dump(parts["real_pixel"], 15),
             "refuting": sample_dump(esc, 15),
             "supporting_n": len(parts["real_pixel"]), "refuting_n": len(esc),
+            "sample_shortfall_note": ("엄밀 정의(클릭 가능한 대상을 눌렀고 변화가 overlay 위에 집중)를 "
+                                      "만족하는 step 이 10건에 못 미친다. 이것 자체가 반박 근거다. "
+                                      "아래에 조건을 하나씩 푼 근접 사례를 전수로 남긴다."),
+            "near_miss_change_on_overlay_any_method": sample_dump(
+                [r for r in H4 if ((r.get("pix") or {}).get("overlay_overlap_frac") or 0) >= 0.5], 20),
+            "near_miss_n": len([r for r in H4
+                                if ((r.get("pix") or {}).get("overlay_overlap_frac") or 0) >= 0.5]),
+            "near_miss_clickable_target_any_location": sample_dump(
+                [r for r in H4 if r.get("engine_method") in ("CONTROL_CLICK", "DIALOG_CLOSE")], 20),
         },
         "H1_all_steps": sample_dump(H1, 60),
         "H4_all_steps": sample_dump(H4, 40),

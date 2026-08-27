@@ -648,6 +648,22 @@
      0.7638
     ]
    }
+  },
+  "succeeded_flag_vs_no_change": {
+   "observation": "H1_NO_EFFECT 는 픽셀도 DOM 바이트도 하나도 안 바뀐 step 이다. 그런데 engine 의 dismiss_succeeded 는 그중 상당수를 1(성공)로 적었다.",
+   "n_H1_in_mart": 48,
+   "succeeded_1": {
+    "k": 30,
+    "n": 48,
+    "p": 0.625,
+    "wilson95": [
+     0.4836,
+     0.7478
+    ]
+   },
+   "why": "engine 의 succeeded 는 `not present or viewport_overlap<=0 or not hittable` 로 **시도 직후의 상태**를 재는 술어이지 **변화**를 재는 술어가 아니다. overlay 가 원래부터 뷰포트 밖이거나 hit-test 최상위가 아니었으면 아무 일이 없어도 1 이 된다.",
+   "claim_kind": "OBSERVATION",
+   "not_a_defect_claim": "이것이 결함인지 의도된 정의인지는 construct 판단이며 D 가 정하지 않는다."
   }
  },
  "rq_d13b_2": {
@@ -1403,7 +1419,7 @@
   },
   "H-13b2-DOM_INSENSITIVE": {
    "statement": "DOM 비교 기준이 둔감해서 실제 변화를 못 잡았다",
-   "decision_rule": "(i) C1_BYTES 보다 민감한 기준으로 H4 가 '변화' 로 뒤집히면 SUPPORTED. (ii) 뒤집힘이 0 이면, page.content() 가 못 보는 내용(iframe/canvas/video)이 H4 다수에 있을 때만 PARTIALLY_SUPPORTED.",
+   "decision_rule": "(i) C1_BYTES 보다 민감한 기준으로 H4 가 '변화' 로 뒤집히면 SUPPORTED. (ii) 뒤집힘이 0 이면, page.content() 가 도달하지 못하는 내용(canvas/video 프레임 · iframe 내부 문서)이 H4 에 **기저율보다 유의하게 몰려 있을 때만** PARTIALLY_SUPPORTED. 단순히 '절반 이상이 iframe 을 갖는다' 는 근거가 아니다 — 전체 step 의 iframe 보유율이 이미 그 수준이기 때문이다.",
    "criterion_flips_within_H4": {},
    "n_flips_total": 0,
    "H4_with_iframe": {
@@ -1423,6 +1439,30 @@
      0.2183,
      0.5124
     ]
+   },
+   "iframe_base_rate_all_steps": {
+    "k": 139,
+    "n": 248,
+    "p": 0.5605,
+    "wilson95": [
+     0.4983,
+     0.6209
+    ]
+   },
+   "iframe_enrichment_over_base_rate": 0.0071,
+   "canvas_or_video_association": {
+    "phi": 0.3793,
+    "p_perm": 0.0002,
+    "n": 90,
+    "iters": 20000,
+    "status": "OK",
+    "table": {
+     "n11": 13,
+     "n10": 3,
+     "n01": 24,
+     "n00": 50
+    },
+    "predictor": "canvas_n>0 or video_n>0"
    },
    "sha_roundtrip_failures": 0,
    "verdict": "PARTIALLY_SUPPORTED",
@@ -11891,8 +11931,8 @@
    },
    {
     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/tools/rq_d13b12_dismissal_dom_effect.py",
-    "sha256": "890cd80b31a5007ec7240facf22ffdd583843e1595f2c5d6bec28e1dcebc1e17",
-    "bytes": 77977
+    "sha256": "eabddbedeed0cf6488d2281bb1c6b9f096877284e5cafdbdd69fc4f3fec63d5e",
+    "bytes": 79682
    },
    {
     "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/tools/html_decode.py",

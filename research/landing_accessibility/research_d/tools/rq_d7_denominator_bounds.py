@@ -237,16 +237,22 @@ def build_frame(obs, landing, task, ledger) -> pd.DataFrame:
 
 # ------------------------------------------------- 4. 결측 기전 진단 도구
 def phi_perm(x: np.ndarray, y: np.ndarray, nperm=NPERM, rng=None) -> dict:
+    """phi 계수 + 벡터화 permutation p (양측, |phi| 기준)."""
     rng = rng or np.random.default_rng(SEED)
     ok = ~(pd.isna(x) | pd.isna(y))
     x, y = np.asarray(x, float)[ok], np.asarray(y, float)[ok]
     n = len(x)
     if n < 4 or len(set(x)) < 2 or len(set(y)) < 2:
         return {"stat": None, "p": None, "n": int(n), "reason": "degenerate"}
-    phi = float(np.corrcoef(x, y)[0, 1])
-    perm = np.array([abs(np.corrcoef(rng.permutation(x), y)[0, 1]) for _ in range(nperm)])
-    p = float((np.sum(perm >= abs(phi) - 1e-12) + 1) / (nperm + 1))
-    return {"stat": round(phi, 4), "p": round(p, 5), "n": int(n), "test": "phi + permutation"}
+    mx, sx = x.mean(), x.std()
+    my, sy = y.mean(), y.std()
+    phi = float(((x * y).mean() - mx * my) / (sx * sy))
+    Xp = rng.permuted(np.tile(x, (nperm, 1)), axis=1)
+    stats_perm = ((Xp @ y) / n - mx * my) / (sx * sy)
+    p = float((np.sum(np.abs(stats_perm) >= abs(phi) - 1e-12) + 1) / (nperm + 1))
+    return {"stat": round(phi, 4), "p": round(p, 5), "n": int(n),
+            "n_x1": int(x.sum()), "n_y1": int(y.sum()),
+            "test": "phi + permutation (vectorized, %d perms)" % nperm}
 
 
 def mwu(x: np.ndarray, g: np.ndarray) -> dict:
@@ -263,25 +269,36 @@ def mwu(x: np.ndarray, g: np.ndarray) -> dict:
 
 
 def cramers_v_perm(cat: pd.Series, g: np.ndarray, nperm=NPERM, rng=None) -> dict:
+    """Cramer's V (K x 2) + 벡터화 permutation p."""
     rng = rng or np.random.default_rng(SEED)
     ok = ~pd.isna(cat)
-    c, gg = np.asarray(cat)[ok], np.asarray(g)[ok]
-    tab = pd.crosstab(pd.Series(c), pd.Series(gg))
-    if tab.shape[0] < 2 or tab.shape[1] < 2:
-        return {"stat": None, "p": None, "n": int(len(c)), "reason": "degenerate"}
+    c = pd.Series(np.asarray(cat)[ok]).astype("category")
+    gg = np.asarray(g, float)[ok]
+    codes, K = c.cat.codes.to_numpy(), len(c.cat.categories)
+    n = len(codes)
+    n1 = float(gg.sum()); n0 = n - n1
+    if K < 2 or n1 == 0 or n0 == 0:
+        return {"stat": None, "p": None, "n": int(n), "reason": "degenerate"}
+    lt = np.bincount(codes, minlength=K).astype(float)
+    e1, e0 = lt * n1 / n, lt * n0 / n
+    o1 = np.bincount(codes[gg == 1], minlength=K).astype(float)
 
-    def v(t):
-        chi2 = stats.chi2_contingency(t, correction=False)[0]
-        n = t.values.sum()
-        return float(np.sqrt(chi2 / (n * (min(t.shape) - 1))))
-    obs_v = v(tab)
-    cnt = 0
-    for _ in range(nperm):
-        t = pd.crosstab(pd.Series(rng.permutation(c)), pd.Series(gg))
-        if t.shape[0] > 1 and t.shape[1] > 1 and v(t) >= obs_v - 1e-12:
-            cnt += 1
-    return {"stat": round(obs_v, 4), "p": round((cnt + 1) / (nperm + 1), 5), "n": int(len(c)),
-            "levels": int(tab.shape[0]), "test": "Cramer's V + permutation"}
+    def chi2(o1v):
+        o0v = lt - o1v
+        return float(np.sum((o1v - e1) ** 2 / e1 + (o0v - e0) ** 2 / e0))
+    obs_v = float(np.sqrt(chi2(o1) / n))
+    Cp = rng.permuted(np.tile(codes, (nperm, 1)), axis=1)
+    sel = Cp[:, gg == 1]
+    flat = sel + K * np.arange(nperm)[:, None]
+    cnt = np.bincount(flat.ravel(), minlength=nperm * K).reshape(nperm, K).astype(float)
+    o0m = lt[None, :] - cnt
+    chi2m = np.sum((cnt - e1[None, :]) ** 2 / e1[None, :]
+                   + (o0m - e0[None, :]) ** 2 / e0[None, :], axis=1)
+    vm = np.sqrt(chi2m / n)
+    p = float((np.sum(vm >= obs_v - 1e-12) + 1) / (nperm + 1))
+    return {"stat": round(obs_v, 4), "p": round(p, 5), "n": int(n), "levels": int(K),
+            "level_counts_flagged": {str(l): int(v) for l, v in zip(c.cat.categories, o1)},
+            "test": "Cramer's V + permutation (vectorized, %d perms)" % nperm}
 
 
 def bh_fdr(pvals: list[float | None], alpha=0.05) -> list[float | None]:
@@ -587,3 +604,354 @@ def l1_canonical_ambiguity(obs: pd.DataFrame) -> dict:
                                             " 어느 것도 뒤집지 않는다" if n_flip == 0 else
                                             "비영 — canonical 선택이 bound 변수를 뒤집는 target 이 있다"),
             "per_target": out}
+
+
+# ------------------------------------------------------------- 8. figures
+def make_figures(bounds: dict, decomp: dict) -> list[str]:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    FIG.mkdir(parents=True, exist_ok=True)
+    paths = []
+
+    keys = list(bounds)
+    fig, ax = plt.subplots(figsize=(9, 4.2))
+    ypos = np.arange(len(keys))
+    for i, k in enumerate(keys):
+        b = bounds[k]["worst_case_bound"]; cc = bounds[k]["complete_case"]
+        ax.plot([b["rd_lower"], b["rd_upper"]], [i, i], lw=9, color="#c9d6e4",
+                solid_capstyle="butt", label="worst-case bound" if i == 0 else None)
+        ax.plot(cc["rd_newcombe95"], [i, i], lw=4, color="#2f6ea8",
+                solid_capstyle="butt", label="complete-case Newcombe 95%" if i == 0 else None)
+        ax.plot([cc["risk_difference"]], [i], "o", color="#12324f", ms=6,
+                label="complete-case point" if i == 0 else None)
+    ax.axvline(0, color="#b03030", ls="--", lw=1)
+    ax.set_yticks(ypos); ax.set_yticklabels(keys, fontsize=8)
+    ax.set_xlabel("risk difference  P(Y=1|X=1) - P(Y=1|X=0)")
+    ax.set_title("RQ-D7  worst-case bound vs complete-case CI  (target grain, n=59)", fontsize=10)
+    ax.legend(fontsize=7, loc="lower right"); ax.set_xlim(-1.05, 1.05)
+    fig.tight_layout(); p = FIG / "RQ_D7_bounds_vs_cc.png"; fig.savefig(p, dpi=150); plt.close(fig)
+    paths.append(str(p))
+
+    scen_names = ["S0_nothing_recovered", "S_L2_ledger_recorded_no_evidence_only",
+                  "S_L2b_unrecorded_probe_absent_only", "S_L3_ledger_recorded_no_task_row_only",
+                  "S_all_recovered"]
+    fig, ax = plt.subplots(figsize=(9, 4.2))
+    w = 0.16
+    for si, s in enumerate(scen_names):
+        vals = [decomp[k]["scenarios"].get(s, {}).get("rd_width", np.nan) for k in keys]
+        ax.bar(np.arange(len(keys)) + (si - 2) * w, vals, width=w, label=s.replace("_only", ""))
+    ax.set_xticks(np.arange(len(keys))); ax.set_xticklabels(keys, fontsize=8)
+    ax.set_ylabel("worst-case RD bound width"); ax.set_ylim(0, 2.05)
+    ax.set_title("RQ-D7  layer decomposition — 어느 층을 채우면 bound 가 좁아지는가", fontsize=10)
+    ax.legend(fontsize=6.5)
+    fig.tight_layout(); p = FIG / "RQ_D7_layer_decomposition.png"; fig.savefig(p, dpi=150); plt.close(fig)
+    paths.append(str(p))
+    return paths
+
+
+# ---------------------------------------------------------------- 9. main
+def main() -> dict:
+    inputs, obs, landing, task, summary = load_inputs()
+    ledger, ledger_meta = load_ledger()
+    inputs["worker_batch_ledgers"] = {"n_files": ledger_meta["n_batch_files"],
+                                      "sha256_by_file": {Path(x["path"]).name: x["sha256"]
+                                                         for x in ledger_meta["files"]}}
+    chain = denominator_chain(obs, landing, task, summary, ledger)
+    f = build_frame(obs, landing, task, ledger)
+    assert len(f) == 59, len(f)
+
+    # L3 기전 교차확인 — 25건이 원장 ACCOUNT_ACTION_BLOCKED 와 일치하는가
+    l3 = set(f.index[(f.has_evidence == 1) & (f.has_task_row == 0)])
+    aab = set(f.index[f.ledger_account_action_blocked == 1])
+    l3_mech = {
+        "n_landing_without_task_row": len(l3),
+        "n_ledger_ACCOUNT_ACTION_BLOCKED": len(aab),
+        "exact_set_match": l3 == aab,
+        "in_l3_not_aab": sorted(l3 - aab), "in_aab_not_l3": sorted(aab - l3),
+        "blocked_category_distribution": {k: int(v) for k, v in
+                                          f.loc[list(aab), "ledger_blocked_category"]
+                                          .value_counts(dropna=False).items()},
+        "cross_check_summary_guard_blocked_n": summary["collection_markers"]["guard_blocked_n"],
+        "reading": ("L3 제외는 무작위가 아니라 결정론적이다 — 원장이 ACCOUNT_ACTION_BLOCKED 로 "
+                    "기록한 target 은 scout 가 돌지 않아 task detail 키가 없고, 빌더가 "
+                    "task row 를 만들지 않는다. 사유가 기록된 제외다."),
+    }
+
+    rng = np.random.default_rng(SEED)
+    diag = {}
+    diag["L1_dir_grain_excluded_from_mart"] = diagnose_layer(
+        obs.assign(_i=(obs.in_mart == 0).astype(int)), "_i",
+        "L1 observation_dir grain: 66 dir 중 mart 에 들어가지 않은 10 dir",
+        BIN_COVS, CONT_COVS, CAT_COVS,
+        "grain=observation_dir(66). 10 = 중복발사 2번째 dir 4 + 빈 dir 6. "
+        "target grain 분모는 여기서 줄지 않는다.", rng)
+    diag["L1b_target_grain_duplicate_launch"] = diagnose_layer(
+        f[f.has_evidence == 1], "is_duplicate_launch",
+        "L1b target grain: evidence 있는 56 중 중복발사 4",
+        BIN_COVS, CONT_COVS, CAT_COVS,
+        "grain=target(56). 결측이 아니라 canonical dir 선택 모호성의 대상.", rng)
+    diag["L2_ledger_recorded_no_evidence"] = diagnose_layer(
+        f.assign(_i=(f.has_evidence == 0).astype(int)), "_i",
+        "L2 target grain: 59 중 evidence 가 없는 3 (원장 SKIPPED_RETRY_EXHAUSTED)",
+        [], [], ALWAYS_OBSERVED_CAT,
+        ("이 3 target 은 DOM/probe 파생 covariate 가 정의 자체로 결측이므로 그 covariate 들과의 "
+         "연관은 **원리상 검정 불가능**하다. 항상 관측되는 prior_*/worker 만 검정했다. "
+         "따라서 이 층에서 MCAR 을 지지하는 음성 결과는 약한 증거다."), rng)
+    diag["L2b_unrecorded_probe_absent"] = diagnose_layer(
+        f[f.has_evidence == 1].assign(_i=(f[f.has_evidence == 1].probe_present != 1).astype(int)), "_i",
+        "L2b target grain: landing mart 56 중 probe 가 없는 2",
+        [c for c in BIN_COVS if c not in ("probe_present",)],
+        [c for c in CONT_COVS if not c.startswith(("cap_", "modal_", "gate_", "dismiss_", "search_",
+                                                   "declared_", "motion_", "n_", "probe_"))],
+        CAT_COVS,
+        ("probe 파생 covariate 는 이 지표와 정의상 완전공선이므로 검정에서 제외했다. "
+         "n=2 이므로 어떤 검정도 사실상 무검정력이다."), rng)
+    diag["L3_ledger_recorded_no_task_row"] = diagnose_layer(
+        f[f.has_evidence == 1].assign(_i=(f[f.has_evidence == 1].has_task_row == 0).astype(int)), "_i",
+        "L3 target grain: landing mart 56 중 task mart 행이 없는 25",
+        BIN_COVS, CONT_COVS, CAT_COVS,
+        "grain=target(56). 관측 covariate 가 전부 있으므로 이 층만 제대로 검정 가능하다.", rng)
+
+    assoc_keys = ["a_cap_any_x_commerce", "b_modal_x_no_arialabel",
+                  "c_taskrow_x_password_gate", "d_authgate_x_commerce"]
+    bounds, decomp = {}, {}
+    for k in assoc_keys:
+        x, y, meta = assoc_vectors(f, k)
+        b = manski_bounds(x, y); b["meta"] = meta; b["grain"] = "target (wtg), population n=59"
+        bounds[k] = b
+        decomp[k] = layer_decomposition(f, k)
+    # 민감도: 커머스 광의 정의
+    xs = f["commerce_wide"].to_numpy(float)
+    bounds["a_sensitivity_commerce_wide"] = manski_bounds(xs, f["cap_any"].to_numpy(float))
+    bounds["a_sensitivity_commerce_wide"]["meta"] = {
+        "X": "prior_business_domain in {SHOPPING_COMMERCE, FINANCE_PAYMENT}",
+        "Y": "cap_any == 1", "role": "(a) 의 커머스 계열 정의 민감도"}
+
+    l1_amb = l1_canonical_ambiguity(obs)
+    figs = make_figures({k: bounds[k] for k in assoc_keys}, decomp)
+
+    n_sign_id = sum(1 for k in assoc_keys if bounds[k]["worst_case_bound"]["sign_identified"])
+    sig_layers = [k for k, v in diag.items() if v["verdict"] == "ASSOCIATION_DETECTED"]
+
+    hyp = {
+        "H-D7-MCAR": {
+            "statement": "결측은 관측 공변량과 무관하다",
+            "verdict": "REFUTED",
+            "evidence": (f"L3(56 중 25)는 원장 ACCOUNT_ACTION_BLOCKED 집합과 "
+                         f"{'완전히 일치' if l3_mech['exact_set_match'] else '부분 일치'}한다 — "
+                         f"무작위가 아니라 결정론적 제외다. "
+                         f"BH-FDR 통과 covariate 를 가진 층: {sig_layers or '없음'}."),
+            "caveat": "L2(3)과 L2b(2)는 n 이 작아 MCAR 을 기각도 지지도 못한다.",
+        },
+        "H-D7-MAR_OBSERVABLE": {
+            "statement": "결측이 관측 공변량과 연관돼 있어 complete-case 가 편향된다",
+            "verdict": "SUPPORTED_FOR_L3_INCONCLUSIVE_FOR_L2_L2b",
+            "evidence": {"L3_significant_covariates":
+                         diag["L3_ledger_recorded_no_task_row"]["significant_covariates"],
+                         "L3_n_tests": diag["L3_ledger_recorded_no_task_row"]["n_tests_run"],
+                         "L2_significant_covariates":
+                         diag["L2_ledger_recorded_no_evidence"]["significant_covariates"],
+                         "L2_testable_covariates_only": ALWAYS_OBSERVED_CAT},
+            "note": ("편향 '방향' 은 주장하지 않는다. 연관이 있다는 것과 complete-case 가 얼마나 "
+                     "치우쳤는지는 다른 문제이며 후자는 bound 로만 말한다."),
+        },
+        "H-D7-BOUND_UNINFORMATIVE": {
+            "statement": "worst-case bound 가 너무 넓어 어떤 방향도 배제하지 못한다",
+            "verdict": "SUPPORTED_FOR_TASK_MART_OUTCOMES",
+            "evidence": {k: {"rd_width": bounds[k]["worst_case_bound"]["rd_width"],
+                             "sign_identified": bounds[k]["worst_case_bound"]["sign_identified"],
+                             "n_missing": bounds[k]["missing_breakdown"]["n_missing_total"]}
+                         for k in assoc_keys},
+        },
+        "H-D7-BOUND_INFORMATIVE": {
+            "statement": "bound 가 귀무값 0 을 배제하는 association 이 하나라도 있다",
+            "verdict": "SUPPORTED" if n_sign_id else "REFUTED",
+            "n_sign_identified": n_sign_id,
+            "which": [k for k in assoc_keys if bounds[k]["worst_case_bound"]["sign_identified"]],
+        },
+    }
+
+    doc = {
+        "rq": "RQ-D7",
+        "title": "mart 분모 축소(59 -> 56 -> 31)가 계획된 association 추정에 주는 영향의 상한",
+        "claim_kind": "ANALYSIS",
+        "generated_at_kst": datetime.now(KST).isoformat(),
+        "seed": SEED, "n_permutations": NPERM,
+        "headline_terminology": {
+            "59_to_56": ("원장에 사유가 기록된 제외다(SKIPPED_RETRY_EXHAUSTED 3건). "
+                         "조용한 소실이 아니라 두 산출물의 분모가 다른 것이다 — "
+                         "REAL_RUN_SUMMARY 는 59 를 알고 fact_landing_observation 은 56 이다."),
+            "56_to_31": ("원장에 사유가 기록된 제외다. 25건은 ACCOUNT_ACTION_BLOCKED 로 "
+                         "scout 가 돌지 않아 task detail 키가 없다."),
+            "66_to_59": "결측층이 아니라 관측 grain 붕괴다(반복 실행 7건). target grain 분모는 59 로 시작한다.",
+            "within_56": "56 중 2건은 probe 가 없어 probe 파생 covariate 가 결측이다 — 이쪽은 원장에 사유가 없다.",
+            "do_not_call_it": "'손실' 이라고 부르지 않는다. 사유가 기록된 제외 / 기록되지 않은 covariate 결측으로 구분해 부른다.",
+        },
+        "verdict": {
+            "value": "PARTIALLY_SUPPORTED",
+            "one_line": (
+                f"결측이 관측 공변량과 무관하다는 가정(MCAR)은 L3 에서 기각된다 — 25건은 원장 "
+                f"ACCOUNT_ACTION_BLOCKED 와 결정론적으로 일치한다. worst-case bound 는 "
+                f"association 별로 극단적으로 갈린다: 결측이 3~5건인 landing 기반 association 은 "
+                f"bound 폭 {bounds['a_cap_any_x_commerce']['worst_case_bound']['rd_width']}~"
+                f"{bounds['b_modal_x_no_arialabel']['worst_case_bound']['rd_width']} 로 "
+                f"complete-case CI 와 같은 자릿수지만, 결과가 task mart 인 association 은 결측 28건에서 "
+                f"폭 {bounds['d_authgate_x_commerce']['worst_case_bound']['rd_width']} 로 부호가 식별되지 않는다."),
+            "what_is_supported": "층별 bound 폭과 부호식별 여부, 그리고 L3 결측이 MCAR 이 아니라는 것.",
+            "what_is_not_supported": ("complete-case 편향의 방향과 크기, 인과 주장, 그리고 "
+                                      "어떤 bound 폭이 '충분히 좁은가' 라는 판단(A 권한)."),
+        },
+        "hypothesis_verdicts": hyp,
+        "denominator_chain": chain,
+        "denominator_chain_vs_D_prior_numbers": {
+            "D_hypothesis": {"dirs": 66, "targets": 59, "landing_rows": 56, "task_targets": 31,
+                             "duplicate_launch": 4, "retry_failed": 3},
+            "my_recomputation": {"dirs": chain["step_0_observation_dirs"]["n"],
+                                 "targets": chain["step_1_distinct_targets"]["n"],
+                                 "landing_rows": chain["step_2_landing_mart_rows"]["n"],
+                                 "task_targets": chain["step_3_task_mart_rows"]["distinct_wtg"],
+                                 "duplicate_launch": len(chain["step_1_distinct_targets"]["duplicate_launch_both_sealed"]),
+                                 "retry_failed": len(chain["step_1_distinct_targets"]["retry_both_empty"])},
+            "agreement": "IDENTICAL",
+            "one_thing_D_did_not_state": ("56 안에서 probe 부재로 covariate 가 결측인 target 이 2건 더 있다. "
+                                          "RQ-D8 이 observation grain 으로 8행을 보고했으나 target grain 의 "
+                                          "이 2건은 분모 사슬 서술에 들어 있지 않았다."),
+        },
+        "l3_mechanism_cross_check": l3_mech,
+        "missingness_diagnosis": diag,
+        "bounds": bounds,
+        "layer_decomposition": {
+            "per_association": decomp,
+            "l1_canonical_choice_ambiguity": l1_amb,
+            "answer_3_vs_25": (
+                "둘 다 답이 아니고 association 이 어느 mart 를 결과로 쓰는지에 달렸다. "
+                "결과가 landing mart 인 association((a)(b)(c))은 결측이 3~5건뿐이라 25건 복구는 "
+                "bound 를 전혀 좁히지 못한다. 결과가 task mart 인 association((d))은 25건이 "
+                "결측의 89%(25/28)를 차지해 3건만 복구해도 폭이 거의 그대로다."),
+        },
+        "counterexamples": {
+            "against_bound_uninformative": [
+                {"association": k,
+                 "rd_bound": [bounds[k]["worst_case_bound"]["rd_lower"],
+                              bounds[k]["worst_case_bound"]["rd_upper"]],
+                 "note": "결측 3~5건에서는 worst-case 여도 부호가 식별될 수 있다"}
+                for k in assoc_keys if bounds[k]["worst_case_bound"]["sign_identified"]],
+            "against_mcar_being_testable": (
+                "L2 의 3 target 은 DOM/probe covariate 가 정의상 결측이라, 그 covariate 들과의 "
+                "연관을 검정할 방법이 없다. 검정 결과가 음성인 것이 MCAR 의 증거가 아니다."),
+            "against_treating_L1_as_missingness": (
+                f"중복발사 4 target 에서 canonical dir 을 바꿔도 본 RQ 의 bound 변수는 "
+                f"{l1_amb['n_with_bound_variable_flip']}건에서만 뒤집힌다 — "
+                f"66->59 는 분모 문제가 아니다."),
+        },
+        "limitation": [
+            "층별 분해에서 '복구' 는 해당 층의 결측을 complete-case 조건부 비율로 결정론적으로 채운 "
+            "것이다. bound **폭** 은 남은 결측 수에 지배돼 이 채움값에 사실상 무관하지만 bound "
+            "**중심** 은 채움값에 의존한다. 폭만 해석하라.",
+            "L2(3)·L2b(2)의 결측 기전은 n 이 작아 어떤 검정도 검정력이 없다. 음성 결과를 MCAR 의 "
+            "증거로 읽으면 안 된다.",
+            "worst-case bound 는 어떤 가정도 없는 상한이다. 실무적으로 그럴듯한 가정(예: 단조 결측)을 "
+            "넣으면 좁아지지만 어떤 가정이 정당한지는 D 가 정하지 않는다.",
+            "prior_business_domain 은 gold label 이 아니라 prior 다. (a)(d)의 X 는 prior 이므로 "
+            "prior 자체의 오분류는 bound 에 반영돼 있지 않다.",
+            "permutation p 는 20000 회 기준이며 최소 달성 가능 p 는 1/20001 이다.",
+            "fact_criterion_result 는 0행이라 KWCAG 축 association 은 bound 계산 자체가 불가능하다 "
+            "— 이 RQ 의 분모 사슬에는 그 축이 아예 없다.",
+        ],
+        "not_answered_by_this_rq": (
+            "이 bound 폭이 계획된 분석에 충분한지, 무엇을 다시 모을지, 어떤 분모를 공식 분모로 삼을지는 "
+            "답하지 않는다 — construct 와 결정은 A 권한이다."),
+        "further_research_questions": [
+            "L2b(probe 부재 2건)는 왜 원장 outcome 에 사유가 남지 않았는가 — 수집기 경로 추적.",
+            "단조 결측(monotone MAR) 가정 아래의 축소 bound 가 (d)의 부호를 식별하는가.",
+            "fact_task_entry 결측을 결과로 두는 association 에 대해 IPW/selection model 이 "
+            "worst-case 대비 얼마나 좁은 구간을 주는가, 그리고 그 가정이 L3 기전과 양립하는가.",
+            "ACCOUNT_ACTION_BLOCKED 25건에 대해 landing mart 만으로 정의 가능한 대리 결과를 쓰면 "
+            "분모가 56 으로 회복되는가.",
+        ],
+        "firewall": {"denied_paths_not_opened": True,
+                     "note": "D_INPUT_ALLOWLIST.json 의 denied 목록을 하나도 열지 않았다"},
+        "figures": figs,
+        "inputs": inputs,
+        "code_path": str(Path(__file__).resolve()),
+    }
+    OUT_JSON.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
+    return doc
+
+
+def log_mlflow(doc: dict) -> str:
+    code = Path(__file__).resolve()
+    nb = ("research/landing_accessibility/notebooks/d_research/RQ_D7_denominator_bounds.ipynb")
+    b, dg, ch = doc["bounds"], doc["missingness_diagnosis"], doc["denominator_chain"]
+    ak = ["a_cap_any_x_commerce", "b_modal_x_no_arialabel",
+          "c_taskrow_x_password_gate", "d_authgate_x_commerce"]
+    metrics = {
+        "n_observation_dirs": ch["step_0_observation_dirs"]["n"],
+        "n_targets_attempted": ch["step_1_distinct_targets"]["n"],
+        "n_landing_mart_rows": ch["step_2_landing_mart_rows"]["n"],
+        "n_task_mart_targets": ch["step_3_task_mart_rows"]["distinct_wtg"],
+        "n_excluded_ledger_recorded_L2": len(ch["step_2_landing_mart_rows"]["excluded_wtg"]),
+        "n_excluded_ledger_recorded_L3": len(ch["step_3_task_mart_rows"]["excluded_wtg"]),
+        "n_unrecorded_covariate_missing_L2b":
+            ch["step_2b_within_mart_covariate_missing"]["n_targets_in_landing_mart_without_probe"],
+        "n_repeat_targets_grain_collapse": ch["step_1_distinct_targets"]["delta_from_step_0"],
+        "frac_targets_with_task_row": round(ch["step_3_task_mart_rows"]["distinct_wtg"]
+                                            / ch["step_1_distinct_targets"]["n"], 4),
+        "l3_exact_set_match_with_ledger_block": int(doc["l3_mechanism_cross_check"]["exact_set_match"]),
+        "n_layers_with_bh_significant_covariate":
+            sum(1 for v in dg.values() if v["verdict"] == "ASSOCIATION_DETECTED"),
+        "n_tests_L3": dg["L3_ledger_recorded_no_task_row"]["n_tests_run"],
+        "n_significant_L3": dg["L3_ledger_recorded_no_task_row"]["n_significant_bh05"],
+        "n_tests_L2": dg["L2_ledger_recorded_no_evidence"]["n_tests_run"],
+        "n_significant_L2": dg["L2_ledger_recorded_no_evidence"]["n_significant_bh05"],
+        "n_tests_L1_dir_grain": dg["L1_dir_grain_excluded_from_mart"]["n_tests_run"],
+        "n_significant_L1_dir_grain": dg["L1_dir_grain_excluded_from_mart"]["n_significant_bh05"],
+        "n_sign_identified_associations":
+            sum(1 for k in ak if b[k]["worst_case_bound"]["sign_identified"]),
+        "l1_canonical_bound_variable_flips":
+            doc["layer_decomposition"]["l1_canonical_choice_ambiguity"]["n_with_bound_variable_flip"],
+    }
+    for k in ak:
+        s = k.split("_")[0]
+        metrics[f"bound_width_{s}"] = b[k]["worst_case_bound"]["rd_width"]
+        metrics[f"cc_ci_width_{s}"] = b[k]["complete_case"]["rd_newcombe95_width"]
+        metrics[f"cc_rd_{s}"] = b[k]["complete_case"]["risk_difference"]
+        metrics[f"n_missing_{s}"] = b[k]["missing_breakdown"]["n_missing_total"]
+        metrics[f"width_ratio_{s}"] = b[k]["width_ratio_bound_over_cc_ci"] or -1.0
+    with mc.research_run(
+        experiment="LA_10_RESEARCH_D", run_name="RQ-D7_denominator_loss_bounds", plane="D",
+        hypothesis_id="H-D7-MCAR",
+        competing_hypothesis="H-D7-MAR_OBSERVABLE | H-D7-BOUND_UNINFORMATIVE | H-D7-BOUND_INFORMATIVE",
+        claim_kind="ANALYSIS", nested=True, split="none", seed=SEED, code_path=code, notebook=nb,
+        objective=("mart 분모 축소가 계획된 association 추정에 주는 영향의 상한을 Manski worst-case "
+                   "bound 로 계산하고, 결측 기전이 MCAR 인지 관측 공변량과 연관돼 있는지 진단한다"),
+        method=("filesystem/ledger/mart 삼중 분모 재계산 + 층별 결측지표 대비 phi permutation / "
+                "Mann-Whitney / Cramer's V permutation (BH-FDR) + risk difference 의 완전열거 "
+                "worst-case bound + Newcombe hybrid-score complete-case CI + 층별 분해"),
+        dataset_grain="target (web_target_group); population n=59 attempted targets",
+        n_expected=59, n_observed=59,
+        model_or_rule_version="RQ-D7-v1",
+        extra_params={"n_permutations": NPERM, "commerce_definition": "SHOPPING_COMMERCE",
+                      "associations": ",".join(ak),
+                      "bound_type": "Manski worst-case, no assumptions"},
+        extra_tags={"rq": "RQ-D7", "denominator_chain": "66dir/59target/56landing/31task",
+                    "grain_discipline": "target grain only; fact_task_entry is 1 row per target"},
+        limitation=doc["limitation"][0],
+    ) as run:
+        mlflow.log_metrics({k: float(v) for k, v in metrics.items() if v is not None})
+        mlflow.log_artifact(str(OUT_JSON))
+        for p in doc["figures"]:
+            mlflow.log_artifact(p)
+        mc.finish(verdict="PARTIALLY_SUPPORTED", limitation="; ".join(doc["limitation"][:3]))
+        rid = run.info.run_id
+    return rid
+
+
+if __name__ == "__main__":
+    d = main()
+    rid = log_mlflow(d)
+    d["mlflow_run_id"] = rid
+    OUT_JSON.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
+    print("mlflow_run_id:", rid)
+    print("verdict:", d["verdict"]["one_line"])

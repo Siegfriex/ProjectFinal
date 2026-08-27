@@ -1,0 +1,24 @@
+{
+  "defect_id": "D-DEF-07",
+  "kind": "IMPLEMENTATION",
+  "owner": "D",
+  "severity": "관측 결함 — 연구 판정에 영향 없음",
+  "found_at_kst": "2026-08-28T00:43:00+09:00",
+  "where": "research_d/tools/d_mlflow.py :: discover() / sync()",
+  "what": [
+    "(a) D-DEF-06 시정에서 RQ-D·RF001·RF2·DSUP·PILOT 계열만 인식하도록 만들어 RQ-E 계열을 빠뜨렸다. RQ-E-1 이 색인되지 않았다.",
+    "(b) 완결 게이트가 없어, 워커가 파일을 쓰는 도중에 sync 가 돌면 미완 산출이 색인된다. 실제로 RQ-D13b12 가 metric 0 인 run(911394a2)으로 색인됐다."
+  ],
+  "why_it_mattered": "run 은 덮어쓰지 않는 규약이라 잘못 만든 run 을 지울 수 없다. 미완 색인은 index 에 영구히 남고, 나중에 완결 산출이 같은 RQ 로 또 들어와 run 이 두 개가 된다.",
+  "fix": {
+    "a": "rq_id_of 에 `RQ_E<n><suffix>` 패턴 추가.",
+    "b": "색인 전 완결 게이트: 최상위 `verdict` 키가 있고 `<prefix>_FINDINGS.md` 가 존재할 때만 색인한다. D 의 산출 규약이 JSON + FINDINGS.md 둘 다이므로 그것을 그대로 게이트로 쓴다."
+  },
+  "remediation_of_bad_run": {
+    "run_id": "911394a2b6894a42a24741c18ff4aa94",
+    "action": "삭제하지 않고 d.run_status=SUPERSEDED + d.superseded_reason 태그를 붙였다",
+    "why": "run 삭제는 덮어쓰기와 같은 종류의 조작이다. 잘못 만든 것도 남기고 표시한다."
+  },
+  "verification": {"rq_e1_indexed": "run ae0cc10843d242329109344e6aad228e, metrics=179", "inflight_now_skipped": "RQ-D13b12 가 '미완: verdict 없음' 으로 skip 됨 — 워커가 파일을 다시 쓰는 중임이 확인됐다", "manifest_after": {"runs": 35}},
+  "side_observation": "게이트를 켜자 기존 산출 12건이 미완으로 분류됐다 — verdict 키 없음 3건(RQ-D1·RQ-D10 등 초기 산출), FINDINGS.md 없음 9건. 이미 색인돼 있어 손실은 없지만, D 의 산출 규약이 초기 RQ 에는 소급 적용되지 않았다는 뜻이다. 소급 작성은 하지 않는다 — 당시 산출을 지금 문장으로 덧쓰는 게 되기 때문이다."
+}
