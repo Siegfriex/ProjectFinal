@@ -1,0 +1,25 @@
+W2 오염 grep 로그 — 대조군 포함 (C-FINDING-221007 규율 채택)
+생성: 2026-08-27T22:12:12+09:00
+범위: git diff bd5e33d..f76ee8b (leakage 경계) 및 2281c85..f76ee8b (브랜치 전체)
+
+[검사 대상 — leaked 3 target 유래]
+  gs25               boundary=0   branch=0  
+  gsretail           boundary=0   branch=0  
+  toss               boundary=0   branch=0  
+  daiso              boundary=0   branch=0  
+  wtg_12e3942c       boundary=0   branch=0  
+  wtg_35319a42       boundary=0   branch=0  
+  wtg_377983572b     boundary=0   branch=0  
+
+[대조군 — grep 이 실제로 동작함을 보이는 항목]
+  PLACE_LOOKUP       boundary=3   branch=6  
+  QUERY              boundary=17  branch=79 
+  archetype          boundary=56  branch=88 
+  precedence         boundary=18  branch=16 
+
+[target-specific 분기 패턴]
+0
+  0
+
+판정: leaked 항목 전건 0, 대조군은 양수 → grep 이 동작했고 오염이 코드에 없다.
+한계: 코드 검사는 기억 기반 영향을 배제하지 못한다. W2 worker attestation 별도 필요.
