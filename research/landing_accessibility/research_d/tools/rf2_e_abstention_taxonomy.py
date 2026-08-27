@@ -628,7 +628,7 @@ def main() -> None:
         d(agreement)/d(coverage) 가 가장 음수인 구간이 '여기서부터 커버리지를 더 늘리면
         일치가 가장 빨리 나빠진다' 는 지점이다. threshold 선언이 아니라 관찰 보고다.
         """
-        pts = [r for r in rows if r["coverage_n"] >= 5]
+        pts = [r for r in rows if r["coverage_n"] >= 14]  # coverage>=25%: 소표본 구간의 잡음 제외
         best = None
         for a, b in zip(pts[:-1], pts[1:]):
             dx = b[xk] - a[xk]

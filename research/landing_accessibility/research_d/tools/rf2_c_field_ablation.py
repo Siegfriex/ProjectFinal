@@ -755,5 +755,308 @@ def main() -> int:
     return 0
 
 
+# ================================================================ figures
+def figures() -> None:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    d = json.loads(OUT_JSON.read_text(encoding="utf-8"))
+    prim = d["grid"][PRIMARY_MODEL][PRIMARY_PROTO]
+    strat = d["baselines"]["stratified"]
+    rank = d["field_ranking_primary"]
+    COL = {"single": "#4C78A8", "combo": "#F58518", "control": "#54A24B", "loo": "#999999"}
+
+    # --- 1. field ranking -------------------------------------------------
+    fig, ax = plt.subplots(1, 2, figsize=(15, 8.5), sharey=True)
+    names = [r["representation"] for r in rank][::-1]
+    yy = np.arange(len(names))
+    f1 = [r["macro_f1"] for r in rank][::-1]
+    cols = [COL[r["group"]] for r in rank][::-1]
+    ax[0].barh(yy, f1, color=cols)
+    ax[0].axvline(strat["macro_f1_mean"], color="k", ls=":", lw=1.4,
+                  label=f"stratified mean {strat['macro_f1_mean']:.3f}")
+    ax[0].axvline(strat["macro_f1_p95"], color="crimson", ls="--", lw=1.6,
+                  label=f"stratified p95 {strat['macro_f1_p95']:.3f}")
+    ax[0].axvline(d["baselines"]["most_frequent"]["macro_f1"], color="grey", ls="-.", lw=1.2,
+                  label=f"most_frequent {d['baselines']['most_frequent']['macro_f1']:.3f}")
+    ax[0].set_yticks(yy); ax[0].set_yticklabels(names, fontsize=9)
+    ax[0].set_xlabel("macro F1 (7 archetypes)")
+    ax[0].set_title("A. macro F1 by evidence field\nbge-m3 x prototype set A(SSOT_DEF), n=56")
+    ax[0].legend(fontsize=8, loc="lower right"); ax[0].grid(axis="x", alpha=.3)
+    agr = [r["prior_agreement_all56"] for r in rank][::-1]
+    lo = [r["prior_agreement_all56"] - r["prior_agreement_all56_wilson95"][0] for r in rank][::-1]
+    hi = [r["prior_agreement_all56_wilson95"][1] - r["prior_agreement_all56"] for r in rank][::-1]
+    ax[1].barh(yy, agr, color=cols, xerr=[lo, hi], error_kw=dict(lw=.8, ecolor="#444"))
+    ax[1].axvline(strat["prior_agreement_mean"], color="k", ls=":", lw=1.4,
+                  label=f"stratified mean {strat['prior_agreement_mean']:.3f}")
+    ax[1].axvline(d["baselines"]["most_frequent"]["prior_agreement"], color="grey", ls="-.",
+                  lw=1.2, label=f"most_frequent {d['baselines']['most_frequent']['prior_agreement']:.3f}")
+    for i, r in enumerate(rank[::-1]):
+        ax[1].text(0.012, i, f"{r['n_agree_all56']}/56", va="center", fontsize=7.5, color="w")
+    ax[1].set_xlabel("prior_agreement  (denominator = all 56; empty field = ABSTAIN = miss)")
+    ax[1].set_title("B. prior_agreement with Wilson 95% CI\nprior_archetype is a PRIOR, not a gold label")
+    ax[1].legend(fontsize=8, loc="lower right"); ax[1].grid(axis="x", alpha=.3)
+    hs = [plt.Rectangle((0, 0), 1, 1, color=COL[g]) for g in ("single", "combo", "control")]
+    ax[0].legend(handles=hs + ax[0].get_legend().legend_handles,
+                 labels=["single field", "combination", "text_blob (control)",
+                         f"stratified mean {strat['macro_f1_mean']:.3f}",
+                         f"stratified p95 {strat['macro_f1_p95']:.3f}",
+                         f"most_frequent {d['baselines']['most_frequent']['macro_f1']:.3f}"],
+                 fontsize=8, loc="lower right")
+    fig.tight_layout(); fig.savefig(FIGDIR / "RF2_C_field_ranking.png", dpi=140); plt.close(fig)
+
+    # --- 2. leave-one-field-out ablation ---------------------------------
+    ab = d["ablation_leave_one_field_out"][PRIMARY_MODEL][PRIMARY_PROTO]
+    order = sorted(ab, key=lambda f: ab[f]["delta_macro_f1_removing_field"])
+    fig, ax = plt.subplots(1, 2, figsize=(14, 6))
+    dv = [ab[f]["delta_macro_f1_removing_field"] for f in order]
+    ax[0].barh(np.arange(len(order)), dv,
+               color=["#D62728" if v < -0.02 else "#2CA02C" if v > 0.02 else "#AAAAAA" for v in dv])
+    ax[0].axvline(0, color="k", lw=1); ax[0].axvspan(-0.02, 0.02, color="k", alpha=.06)
+    ax[0].set_yticks(np.arange(len(order))); ax[0].set_yticklabels(order, fontsize=9)
+    ax[0].set_xlabel("macro F1(text_blob) - macro F1(text_blob without field)")
+    ax[0].set_title("A. leave-one-field-out delta\n>0 field carries signal   <0 field is NOISE inside the blob")
+    ax[0].grid(axis="x", alpha=.3)
+    al = [ab[f]["field_alone_macro_f1"] for f in order]
+    ax[1].barh(np.arange(len(order)), al, color="#4C78A8")
+    ax[1].axvline(prim["text_blob__ALL"]["macro_f1"], color="#54A24B", ls="--", lw=1.8,
+                  label=f"text_blob {prim['text_blob__ALL']['macro_f1']:.3f}")
+    ax[1].axvline(strat["macro_f1_p95"], color="crimson", ls="--", lw=1.4,
+                  label=f"stratified p95 {strat['macro_f1_p95']:.3f}")
+    ax[1].set_yticks(np.arange(len(order))); ax[1].set_yticklabels([])
+    ax[1].set_xlabel("macro F1 of the field ALONE")
+    ax[1].set_title("B. field alone vs the whole blob"); ax[1].legend(fontsize=8)
+    ax[1].grid(axis="x", alpha=.3)
+    fig.tight_layout(); fig.savefig(FIGDIR / "RF2_C_ablation_delta.png", dpi=140); plt.close(fig)
+
+    # --- 3. prototype stability ------------------------------------------
+    reps = [r["representation"] for r in rank]
+    cols3 = [(m, s) for m in MODELS for s in PROTO_SETS]
+    M = np.array([[d["grid"][m][s][r]["macro_f1"] for (m, s) in cols3] for r in reps])
+    fig, ax = plt.subplots(1, 2, figsize=(16, 8.5),
+                           gridspec_kw={"width_ratios": [3, 1]})
+    im = ax[0].imshow(M, aspect="auto", cmap="viridis", vmin=0, vmax=max(0.6, M.max()))
+    ax[0].set_xticks(range(len(cols3)))
+    ax[0].set_xticklabels([f"{m}\n{s}" for m, s in cols3], fontsize=7.5, rotation=45, ha="right")
+    ax[0].set_yticks(range(len(reps))); ax[0].set_yticklabels(reps, fontsize=8.5)
+    for i in range(M.shape[0]):
+        for j in range(M.shape[1]):
+            ax[0].text(j, i, f"{M[i, j]:.2f}", ha="center", va="center", fontsize=6.2,
+                       color="w" if M[i, j] < 0.35 else "k")
+    for k in (3, 6):
+        ax[0].axvline(k - .5, color="w", lw=2)
+    ax[0].set_title("A. macro F1 — every field under the SAME 3 frozen prototype sets x 3 models\n"
+                    "(prototype wording is never changed per field)")
+    fig.colorbar(im, ax=ax[0], fraction=.025)
+    st = d["prototype_stability"]
+    x = np.arange(len(MODELS)); w = .36
+    bf = [st[m]["between_field_sd_of_mean_macro_f1"] for m in MODELS]
+    bp = [st[m]["between_prototype_set_sd_of_mean_macro_f1"] for m in MODELS]
+    ax[1].bar(x - w/2, bf, w, color="#4C78A8", label="between-FIELD sd")
+    ax[1].bar(x + w/2, bp, w, color="#E45756", label="between-PROTOTYPE-SET sd")
+    ax[1].set_xticks(x); ax[1].set_xticklabels(list(MODELS), fontsize=9)
+    ax[1].set_ylabel("sd of mean macro F1")
+    ax[1].set_title("B. H-C3 test\nfield effect vs prototype-wording noise")
+    ax[1].legend(fontsize=8); ax[1].grid(axis="y", alpha=.3)
+    fig.tight_layout(); fig.savefig(FIGDIR / "RF2_C_prototype_stability.png", dpi=140); plt.close(fig)
+
+    # --- 4. brand masking confound ----------------------------------------
+    bm = d["posthoc_brand_masking"]["results"]
+    order4 = sorted(bm, key=lambda r: -prim[r]["macro_f1"])
+    fig, ax = plt.subplots(figsize=(13, 6.5))
+    x = np.arange(len(order4)); w = .4
+    ax.bar(x - w/2, [prim[r]["macro_f1"] for r in order4], w, color="#4C78A8", label="as collected")
+    ax.bar(x + w/2, [bm[r]["macro_f1"] for r in order4], w, color="#B279A2",
+           label="brand name / URL host MASKED")
+    ax.axhline(strat["macro_f1_p95"], color="crimson", ls="--", lw=1.4,
+               label=f"stratified p95 {strat['macro_f1_p95']:.3f}")
+    ax.set_xticks(x); ax.set_xticklabels(order4, rotation=55, ha="right", fontsize=8)
+    ax.set_ylabel("macro F1")
+    ax.set_title("POST-HOC (exploratory, not pre-registered): how much of each field's signal is\n"
+                 "brand identity rather than interaction semantics?   bge-m3 x set A, n=56")
+    ax.legend(fontsize=9); ax.grid(axis="y", alpha=.3)
+    fig.tight_layout(); fig.savefig(FIGDIR / "RF2_C_brand_masking.png", dpi=140); plt.close(fig)
+
+    # --- 5. missingness / length / margin ---------------------------------
+    fig, ax = plt.subplots(1, 3, figsize=(16, 7), sharey=True)
+    r5 = [r["representation"] for r in rank][::-1]
+    yy = np.arange(len(r5))
+    ax[0].barh(yy, [d["representation_definitions"][r]["n_empty"] for r in r5], color="#E45756")
+    ax[0].set_yticks(yy); ax[0].set_yticklabels(r5, fontsize=8.5)
+    ax[0].set_xlabel("targets where the field is EMPTY (of 56)")
+    ax[0].set_title("A. missingness"); ax[0].grid(axis="x", alpha=.3)
+    tk = d["token_stats"][PRIMARY_MODEL]
+    ax[1].barh(yy, [tk[r]["tokens_median"] for r in r5], color="#4C78A8")
+    ax[1].set_xscale("log"); ax[1].set_xlabel("median tokens (bge-m3 tokenizer, log)")
+    ax[1].set_title("B. token length\n0/56 truncated at max_seq="
+                    f"{tk['text_blob__ALL']['model_max_seq']}")
+    ax[1].grid(axis="x", alpha=.3)
+    ax[2].barh(yy, [prim[r]["margin_median"] for r in r5],
+               xerr=[[prim[r]["margin_median"] - prim[r]["margin_p25"] for r in r5],
+                     [prim[r]["margin_p75"] - prim[r]["margin_median"] for r in r5]],
+               color="#54A24B", error_kw=dict(lw=.8, ecolor="#333"))
+    ax[2].set_xlabel("top1-top2 cosine margin (median, IQR bars)")
+    ax[2].set_title("C. decision margin\nall fields sit in a very narrow band")
+    ax[2].grid(axis="x", alpha=.3)
+    fig.tight_layout(); fig.savefig(FIGDIR / "RF2_C_missingness_margin.png", dpi=140); plt.close(fig)
+
+    # --- 6. v1 vs v2 encoding fix -----------------------------------------
+    v = d["v1_vs_v2_encoding_fix"]
+    if "primary_v1" in v:
+        order6 = sorted(v["primary_v1"], key=lambda r: -v["delta_v2_minus_v1"][r]["macro_f1"])
+        fig, ax = plt.subplots(1, 2, figsize=(15, 6.5))
+        x = np.arange(len(order6))
+        dd = [v["delta_v2_minus_v1"][r]["macro_f1"] for r in order6]
+        ax[0].bar(x, dd, color=["#2CA02C" if q > 0 else "#D62728" for q in dd])
+        ax[0].axhline(0, color="k", lw=1)
+        ax[0].set_xticks(x); ax[0].set_xticklabels(order6, rotation=55, ha="right", fontsize=8)
+        ax[0].set_ylabel("macro F1 (v2) - macro F1 (v1)")
+        ax[0].set_title("A. effect of the Korean-encoding fix\n"
+                        f"{v['n_targets_with_changed_field']['any_field']}/56 targets changed text; "
+                        f"blob_tokens median {v['blob_tokens_median_v1']:.0f} -> {v['blob_tokens_median_v2']:.0f}")
+        ax[0].grid(axis="y", alpha=.3)
+        w = .4
+        ax[1].bar(x - w/2, [v["primary_v1"][r]["macro_f1"] for r in order6], w,
+                  color="#999999", label="v1 (mojibake)")
+        ax[1].bar(x + w/2, [v["primary_v2"][r]["macro_f1"] for r in order6], w,
+                  color="#4C78A8", label="v2 (fixed)")
+        ax[1].axhline(strat["macro_f1_p95"], color="crimson", ls="--", lw=1.3,
+                      label=f"stratified p95 {strat['macro_f1_p95']:.3f}")
+        ax[1].set_xticks(x); ax[1].set_xticklabels(order6, rotation=55, ha="right", fontsize=8)
+        ax[1].set_ylabel("macro F1")
+        ax[1].set_title(f"B. rank-1 field changed: {v['top5_v1'][0]} (v1) -> {v['top5_v2'][0]} (v2)")
+        ax[1].legend(fontsize=8); ax[1].grid(axis="y", alpha=.3)
+        fig.tight_layout(); fig.savefig(FIGDIR / "RF2_C_v1_v2_encoding.png", dpi=140); plt.close(fig)
+    print("figures written")
+
+
+# ================================================================ mlflow
+def log_mlflow() -> str:
+    sys.path.insert(0, str(RD / "tools"))
+    import mlflow
+    import mlflow_contract as C
+
+    d = json.loads(OUT_JSON.read_text(encoding="utf-8"))
+    PARENT = "ae754858ba3a4be391e5f811640d3fd8"
+    prim = d["grid"][PRIMARY_MODEL][PRIMARY_PROTO]
+    strat = d["baselines"]["stratified"]
+    rank = d["field_ranking_primary"]
+    st = d["prototype_stability"]
+    bm = d["posthoc_brand_masking"]["results"]
+    limitation = (
+        "prior_archetype 는 gold label 이 아니라 service identity 에서 유도된 business-domain "
+        "prior 다. 따라서 title/url_tokens 처럼 브랜드를 담은 field 의 높은 prior_agreement 는 "
+        "상호작용 의미가 아니라 prior 생성 경로를 되짚은 순환일 수 있다. post-hoc brand masking 은 "
+        "실제로 title 의 macro F1 을 "
+        f"{prim['title']['macro_f1']:.3f} -> {bm['title']['macro_f1']:.3f} 로 떨어뜨렸다. "
+        "n=56, 4개 class 는 n<=5 이며 Wilson CI 가 0.3 폭을 넘는다. 단일 코호트·단일 스냅샷이고 "
+        "holdout 은 열지 않았으므로 일반화 주장은 불가하다.")
+    with C.research_run(
+            experiment="LA_03_RF_MAPPING", run_name="D-RF2-C field-wise semantic ablation",
+            plane="D", agent_id="D", subagent_id="worker/D-RF2-C",
+            objective="semantic information 이 어느 evidence field 에 있는지 field ablation 으로 규명",
+            method="frozen SSOT prototype 고정 + field 별 embedding 유사도 + permutation null + prototype 안정성",
+            dataset_grain="target (in_mart==1), n=56",
+            n_expected=56, n_observed=int(d["n"]),
+            hypothesis_id="H-RF2-C-FIELD-INFORMATION",
+            competing_hypothesis=("H-C1 text_blob 전체가 최선 / H-C2 primary controls·accessibility text 가 "
+                                  "더 informative / H-C3 field 간 차이가 prototype 노이즈보다 작다"),
+            claim_kind="ANALYSIS", ticket_id="NONE", phase="I1", split="none",
+            parent_run_id=PARENT,
+            result_path=OUT_JSON,
+            model_or_rule_version="RF2C_FIELD_ABLATION_v1", seed=SEED,
+            code_path=Path(__file__),
+            notebook="RF2_C_field_ablation.ipynb",
+            limitation=limitation,
+            extra_tags={"mlflow.parentRunId": PARENT, "rq_id": "RQ-D-RF-002",
+                        "child_id": "D-RF2-C",
+                        "primary_config": f"{PRIMARY_MODEL}|{PRIMARY_PROTO}",
+                        "decision_baseline": "stratified",
+                        "best_representation": d["headline"]["best_representation"],
+                        "labels_produced": "false", "production_modified": "false"},
+            extra_params={"n_representations": len(REPS), "n_prototype_sets": len(PROTO_SETS),
+                          "n_models": len(MODELS), "n_permutations": N_PERM,
+                          "n_mc_stratified": N_MC,
+                          "models": ",".join(MODELS), "prototype_sets": ",".join(PROTO_SETS),
+                          "empty_field_policy": "ABSTAIN, counted as miss in the all-56 denominator"},
+    ) as run:
+        m: dict[str, float] = {}
+        m["baseline.stratified.macro_f1_mean"] = strat["macro_f1_mean"]
+        m["baseline.stratified.macro_f1_p95"] = strat["macro_f1_p95"]
+        m["baseline.stratified.prior_agreement_mean"] = strat["prior_agreement_mean"]
+        m["baseline.most_frequent.macro_f1"] = d["baselines"]["most_frequent"]["macro_f1"]
+        m["baseline.most_frequent.prior_agreement"] = d["baselines"]["most_frequent"]["prior_agreement"]
+        for r in REPS:
+            if REP_GROUP[r] == "loo":
+                continue
+            k = r.replace("__", ".")
+            m[f"field.{k}.macro_f1"] = prim[r]["macro_f1"]
+            m[f"field.{k}.prior_agreement_all56"] = prim[r]["prior_agreement_all56"]
+            m[f"field.{k}.n_empty"] = prim[r]["n_empty"]
+            m[f"field.{k}.margin_median"] = prim[r]["margin_median"]
+            m[f"field.{k}.perm_p_macro_f1"] = prim[r]["perm_null"]["macro_f1_p_value"]
+            m[f"field.{k}.perm_z_macro_f1"] = prim[r]["perm_null"]["macro_f1_z"]
+            m[f"field.{k}.proto_stability_range"] = \
+                st[PRIMARY_MODEL]["per_representation"][r]["macro_f1_range"]
+            m[f"field.{k}.truncation_rate"] = d["token_stats"][PRIMARY_MODEL][r]["truncation_rate"]
+            m[f"field.{k}.tokens_median"] = d["token_stats"][PRIMARY_MODEL][r]["tokens_median"]
+            m[f"brandmasked.{k}.macro_f1"] = bm[r]["macro_f1"]
+            m[f"brandmasked.{k}.delta_macro_f1"] = bm[r]["delta_macro_f1_vs_unmasked"]
+        ab = d["ablation_leave_one_field_out"][PRIMARY_MODEL][PRIMARY_PROTO]
+        for f, v in ab.items():
+            m[f"ablation.{f}.delta_macro_f1"] = v["delta_macro_f1_removing_field"]
+            m[f"ablation.{f}.delta_prior_agreement"] = v["delta_prior_agreement_removing_field"]
+        for mk in MODELS:
+            m[f"stability.{mk}.between_field_sd"] = st[mk]["between_field_sd_of_mean_macro_f1"]
+            m[f"stability.{mk}.between_prototype_set_sd"] = \
+                st[mk]["between_prototype_set_sd_of_mean_macro_f1"]
+        v12 = d["v1_vs_v2_encoding_fix"]
+        if "delta_v2_minus_v1" in v12:
+            for r, x in v12["delta_v2_minus_v1"].items():
+                m[f"v2_minus_v1.{r.replace('__', '.')}.macro_f1"] = x["macro_f1"]
+            m["v1v2.n_targets_changed"] = v12["n_targets_with_changed_field"]["any_field"]
+        m["headline.best_macro_f1"] = d["headline"]["best_macro_f1"]
+        m["headline.text_blob_macro_f1"] = d["headline"]["text_blob_macro_f1"]
+        m["headline.best_control_surface_macro_f1"] = d["headline"]["best_control_macro_f1"]
+        m["headline.rank_of_text_blob"] = float(
+            [r["representation"] for r in rank].index("text_blob__ALL") + 1)
+        mlflow.log_metrics({k: float(v) for k, v in m.items()})
+
+        proto_txt = [PROTO_PROVENANCE, ""]
+        for sname, pset in PROTO_SETS.items():
+            proto_txt.append(f"=== prototype set {sname} ===")
+            for a in ARCHETYPES:
+                proto_txt.append(f"[{a}] {pset[a]}")
+            proto_txt.append("")
+        proto_txt.append("policy: 모든 field 에 동일한 frozen 세트를 적용했다. "
+                         "field 별로 prototype 문구를 바꾸지 않았다.")
+        proto_txt.append("e5 prefix: " + d["e5_prefix_convention"])
+        mlflow.log_text("\n".join(proto_txt), "prototype_definitions.txt")
+        mlflow.log_text(json.dumps(
+            {r: REPS[r] for r in REPS}, ensure_ascii=False, indent=1), "field_definitions.json")
+        mlflow.log_text(json.dumps(rank, ensure_ascii=False, indent=1), "field_ranking_primary.json")
+        mlflow.log_text(json.dumps(d["hypotheses"], ensure_ascii=False, indent=1), "hypotheses.json")
+        mlflow.log_text(json.dumps(d["counterexamples"], ensure_ascii=False, indent=1),
+                        "counterexamples.json")
+        mlflow.log_text(d["firewall"], "research_firewall_statement.txt")
+        mlflow.log_artifact(str(OUT_JSON), "results")
+        f_md = RD / "results" / "RF2_C_FINDINGS.md"
+        if f_md.exists():
+            mlflow.log_artifact(str(f_md), "results")
+        for fp in sorted(FIGDIR.glob("RF2_C_*.png")):
+            mlflow.log_artifact(str(fp), "figures")
+        C.finish(verdict=d["verdict"], limitation=limitation)
+        rid = run.info.run_id
+    (RD / "results" / "RF2_C_MLFLOW_RUN.txt").write_text(rid, encoding="utf-8")
+    print("mlflow run_id", rid)
+    return rid
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    mode = sys.argv[1] if len(sys.argv) > 1 else "all"
+    if mode in ("all", "compute"):
+        main()
+    if mode in ("all", "figures"):
+        figures()
+    if mode in ("all", "mlflow"):
+        log_mlflow()
