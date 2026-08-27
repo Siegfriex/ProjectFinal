@@ -55,12 +55,20 @@ def record(a: argparse.Namespace) -> int:
         "duration_ms": a.duration_ms,
         "duration_min": round(a.duration_ms / 60000, 2) if a.duration_ms else None,
         "owned_files": owned,
+        # [시정] 이 다섯은 **자기선언**이다. `holdout_accessed` 를 상수로 적는 것은
+        # D_PROTOCOL_SNAPSHOT.md:66 위반이다 — 스캐너 결과로만 기록해야 한다.
+        # 이 도구는 서브에이전트 등록기이고 스캔을 돌리지 않으므로, 값을 지어내지
+        # 않고 **선언임을 표기**한다. 측정이 필요하면 방화벽 산출을 참조한다.
         "constraints": {
-            "production_modified": False,
-            "git_executed": False,
-            "labels_produced": False,
-            "holdout_accessed": False,
-            "real_target_accessed": False,
+            "production_modified": "SELF_DECLARED_false",
+            "git_executed": "SELF_DECLARED_false",
+            "labels_produced": "SELF_DECLARED_false",
+            "holdout_accessed": "SELF_DECLARED_false — 측정은 "
+                                "results/D_INPUT_FIREWALL_VERIFICATION.json 이다",
+            "real_target_accessed": "SELF_DECLARED_false",
+            "provenance_note": ("이 블록은 워커가 지킨다고 **선언한** 것이지 "
+                                "측정이 아니다. D_PROTOCOL_SNAPSHOT.md:66 대로 "
+                                "holdout_accessed 의 측정 출처는 방화벽 스캔이다."),
         },
         "note": a.note,
     }
