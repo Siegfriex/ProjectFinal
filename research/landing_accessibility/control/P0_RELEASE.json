@@ -21,8 +21,32 @@
   "previous_main_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
   "real_target_allowed": true,
   "real_target_firewall_note": "REAL_TARGET firewall 은 이 릴리스로 해제된다. 다만 engine/firewall.py 의 P0_GATE_STATUS 는 코드 상수이므로, 그것을 CLOSED 로 바꾸는 커밋 SHA 가 collector 계보에 실제로 포함되는지 C 가 BASE QA 에서 확인한다 (C 제기, A 접수).",
-  "firewall_gate_status_commit_sha": null,
-  "firewall_gate_status_commit_note": "B 가 P0_GATE_STATUS 를 CLOSED 로 전이시키는 커밋을 만들면 그 SHA 를 여기에 바인딩한다. 바인딩 없이 REAL_TARGET 수집이 시작되면 C1 이다 — '승인 없이 수집이 시작되지 않았다' 의 기계적 증거가 이 필드다.",
+  "firewall_gate_status_commit_sha": "b8698326cb31317fc04e44f47e246618d3672def",
+  "firewall_gate_status_commit_note": "'승인 없이 수집이 시작되지 않았다' 의 기계적 증거. 이 SHA 이전에 생성된 REAL_TARGET evidence 가 있으면 C1 이다.",
+  "firewall_gate_status_binding": {
+    "bound_at": "2026-08-27T13:11:00+09:00",
+    "bound_by": "A (Authority Plane) — 바인딩 전에 커밋 범위와 계보를 직접 실측했다",
+    "branch": "claude-b/e000-real",
+    "commit_message": "chore(firewall): P0_GATE_STATUS OPEN → CLOSED (V2_SSOT_FROZEN 승격 반영)",
+    "verification": {
+      "single_purpose_commit": true,
+      "files_changed": 1,
+      "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+      "diff_scope": "P0_GATE_STATUS = \"OPEN\" -> \"CLOSED\" + 전이 근거 주석. 다른 변경 없음.",
+      "why_single_purpose_matters": "다른 변경이 섞이면 이 SHA 가 '수집 개시 승인 시점' 을 가리키는 증거로서의 의미가 흐려진다. 단독 커밋이어야 시점이 명확하다.",
+      "ancestry": {
+        "promoted_main_is_ancestor": true,
+        "promoted_main_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+        "integration_current_is_ancestor": true,
+        "body_commit": "ee6fc47820cee8b87528134233f242e8597950ad",
+        "body_commit_subject": "feat(e000): REAL_TARGET 실제 수집 경로 — ExecutionScope 게이트 + E000_FAST allowlist"
+      }
+    },
+    "defense_in_depth": "이 상수 전이만으로는 아무것도 열리지 않는다. 실제 허가는 evaluate_execution_scope() 가 P0_RELEASE.json 을 **런타임에 읽어** 내리며(status=RELEASED + promoted_main_sha + e000_allowed), 상수를 되돌려도 그 판정은 바뀌지 않는다. 즉 상수는 감사 증거, 런타임 검증은 실질 가드다 — 상수만 고쳐 우회하는 경로가 없다.",
+    "scope_limit": "E000_FAST 6타깃 allowlist 가 강제된다. 그 밖의 target 은 이 경로로도 차단된다 — 무제한 REAL_TARGET 은 열리지 않았다."
+  },
+  "collector_sha": "b8698326cb31317fc04e44f47e246618d3672def",
+  "collector_sha_note": "E000 과 E001 을 **정확히 같은 SHA** 로 돌린다. 다르면 TIMEBOX §7 의 E000→E001 batch-0 재사용 조항이 깨지고 6건을 재수집해야 한다. C 가 run/batch provenance 를 대조해 다르면 PROVENANCE_DRIFT C1 로 올린다.",
   "promoted_main_sha_note": "미확정 — 승격은 오케스트레이터가 직접 수행한다. 승격 전 main = 5a9015d1e95b15304aaf53a73efb475934610b82",
   "previous_main_sha": "5a9015d1e95b15304aaf53a73efb475934610b82",
   "exec_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
