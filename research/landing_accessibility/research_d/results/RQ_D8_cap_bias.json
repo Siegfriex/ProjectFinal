@@ -311,7 +311,7 @@
       "primary_action_cap_hit_target_grain": "7/54"
     },
     "D_verdict_on_B": "REPRODUCED at observation grain (7/58). B's number is correct for the grain B used, but '/58' is 58 observations covering 54 distinct targets; the per-target rate is 7/54.",
-    "D_verdict_on_C_count": "NOT REPRODUCED. No definition tried yields 8. Tried: flag==1 (7), n>=200 (7), n>200 (0), n==200 (7), target grain (7/54), including the 2 probe_present==0 rows as non-hits (7/60), counting all 66 raw rows (7/66). C's 8 is off by one against every reconstruction.",
+    "D_verdict_on_C_count": "NOT REPRODUCED as a primary_action count. No cap-flag definition yields 8: flag==1 (7), n>=200 (7), n>200 (0), n==200 (7), target grain (7/54), all 66 raw rows with NaN as 0 (7/66). Two reconstructions do land on exactly 8 and are the likely origin of C's number: (a) cap_contrast hits are 8/58 at the same grain, so C may have read the wrong cap column; (b) a near-cap threshold of n>=180 gives 8/58, pulling in one unit at n=188 that was not truncated. Both are transcription-level, not data-level, so D reports 7/58 (observation) and 7/54 (target) as the value.",
     "definitions_tried_for_primary_action": {
       "flag_eq_1_obs58": 7,
       "n_ge_200_obs58": 7,
@@ -319,7 +319,8 @@
       "flag_eq_1_target54": 7,
       "flag_eq_1_all66_nan_as_0": 7,
       "n_ge_190_obs58_near_cap": 7,
-      "n_ge_180_obs58_near_cap": 8
+      "n_ge_180_obs58_near_cap": 8,
+      "cap_contrast_flag_eq_1_obs58_LOOKALIKE": 8
     },
     "C_C-FINDING-212855_claim_2": "cap-hit 15 targets, prior ITEM_DETAIL 11/15 (73%) vs overall 43%",
     "D_on_C_claim_2": {
@@ -2064,14 +2065,126 @@
       "cap_hits_total": 14,
       "of_which_hit_accessible_name_sources": 13,
       "of_which_hit_accessible_name_ONLY": 5,
+      "of_which_hit_all_four": 5,
+      "cap_hits_NOT_hitting_accessible_name": [
+        {
+          "wtg": "0ee385d0c964e560",
+          "prior_archetype": "ITEM_DETAIL",
+          "dom_element_n": 728.0,
+          "n_accessible_name_sources": 260.0,
+          "cap_count": 1
+        }
+      ],
       "statement": "accessible_name_sources (ceiling 300, the only cap with no visible filter) is the first cap to bite in almost every cap-hit unit; it is the binding constraint of the probe."
     },
     "smallest_dom_that_hit_accessible_name_cap": {
-      "wtg": "54",
+      "wtg": "49a5eca8b58f7270",
+      "prior_archetype": "ITEM_DETAIL",
       "dom_element_n": 176.0,
-      "note": "a unit can reach 300 name sources with far fewer DOM elements, because one element contributes several name sources; the no-visible-filter cap therefore does not track rendered page size cleanly."
+      "dom_interactive_n": 23.0,
+      "n_accessible_name_sources": 300.0,
+      "note": "a unit can reach 300 name sources with far fewer DOM elements in the static dom.html snapshot, because the probe measures the rendered page and one element can contribute several name sources; the no-visible-filter cap therefore does not track static DOM size cleanly."
     },
     "assertion_type": "OBSERVATION"
+  },
+  "sensitivity_visible_filtered_caps_only": {
+    "rationale": "accessible_name_sources is the only cap without a visible filter, so it can fire on offscreen/hidden subtrees. Dropping it tests whether the archetype signal is an artifact of that one cap.",
+    "results": {
+      "observation_grain": {
+        "label": "ITEM_DETAIL vs rest — cap_any restricted to the 3 visible-filtered caps (observation_grain)",
+        "table_2x2": {
+          "group1_hit": 7,
+          "group1_n": 25,
+          "group0_hit": 2,
+          "group0_n": 33
+        },
+        "rate_group1": "7/25",
+        "rate_group1_pct": 28.0,
+        "ci95_group1": [
+          0.1428,
+          0.4758
+        ],
+        "rate_group0": "2/33",
+        "rate_group0_pct": 6.06,
+        "ci95_group0": [
+          0.0168,
+          0.1961
+        ],
+        "risk_difference": 0.2194,
+        "risk_difference_ci95_newcombe": [
+          0.0266,
+          0.42
+        ],
+        "risk_ratio": 4.62,
+        "ci95": [
+          1.0485,
+          20.3574
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 5.8407,
+        "odds_ratio_ci95": [
+          0.9727,
+          63.5304
+        ],
+        "fisher_exact_p_two_sided": 0.031
+      },
+      "target_grain_in_mart": {
+        "label": "ITEM_DETAIL vs rest — cap_any restricted to the 3 visible-filtered caps (target_grain_in_mart)",
+        "table_2x2": {
+          "group1_hit": 7,
+          "group1_n": 25,
+          "group0_hit": 2,
+          "group0_n": 29
+        },
+        "rate_group1": "7/25",
+        "rate_group1_pct": 28.0,
+        "ci95_group1": [
+          0.1428,
+          0.4758
+        ],
+        "rate_group0": "2/29",
+        "rate_group0_pct": 6.9,
+        "ci95_group0": [
+          0.0191,
+          0.2196
+        ],
+        "risk_difference": 0.211,
+        "risk_difference_ci95_newcombe": [
+          0.0073,
+          0.4131
+        ],
+        "risk_ratio": 4.06,
+        "ci95": [
+          0.9264,
+          17.7931
+        ],
+        "continuity_corrected": false,
+        "odds_ratio_conditional_mle": 5.0928,
+        "odds_ratio_ci95": [
+          0.8415,
+          55.6826
+        ],
+        "fisher_exact_p_two_sided": 0.065042
+      }
+    },
+    "assertion_type": "ANALYSIS"
+  },
+  "sensitivity_grain": {
+    "observation_minus_target_rows": 4,
+    "those_rows_archetypes": {
+      "CONTENT_OPEN": 1,
+      "QUERY": 1,
+      "FINANCIAL_ACTION_ENTRY": 1,
+      "UTILITY_ENTRY": 1
+    },
+    "those_rows_cap_any": {
+      "0": 4
+    },
+    "effect": "All 4 extra observation-grain rows are repeat runs of non-ITEM_DETAIL targets and all 4 are cap_any==0. They enter the observation-grain 2x2 only as extra no-cap units in the comparison group, which enlarges the apparent contrast without adding an independent target.",
+    "cap_any_fisher_p_target_grain": 0.011061,
+    "cap_any_fisher_p_observation_grain": 0.004179,
+    "conclusion": "The direction and rough size of the effect are grain-invariant (RR 4.25 target vs 4.84 observation), but the p-value is not: pseudo-replication moves it across the 0.05 line region. The target grain is the honest one and is reported as canonical.",
+    "assertion_type": "ANALYSIS"
   },
   "counterexamples": {
     "alt_hypothesis": "cap-hits are concentrated in large pages, not in ITEM_DETAIL; prior_archetype only correlates with page size.",

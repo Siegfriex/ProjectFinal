@@ -1,0 +1,2347 @@
+{
+  "rq": "RQ-D9 — relationship structure between dom.html size, probe signal richness, and cap attainment; what can/cannot proxy observation quality",
+  "ticket": "T-B-RQ-D-001 Q2",
+  "input": {
+    "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_OBSERVATION_TABLE.csv",
+    "rows": 66,
+    "cols": 64
+  },
+  "cap_constants_from_l0_probe_js_2281c85": {
+    "n_primary_action_candidates": {
+      "cap": 200,
+      "visible_filtered": true
+    },
+    "n_accessible_name_sources": {
+      "cap": 300,
+      "visible_filtered": false
+    },
+    "n_target_size": {
+      "cap": 300,
+      "visible_filtered": true
+    },
+    "n_contrast": {
+      "cap": 400,
+      "visible_filtered": "filter-passing only"
+    }
+  },
+  "unreported_truncation_points": {
+    "motion_body_star_slice": 3000,
+    "animated_elements_slice": 60,
+    "endpoint_signals_innerText_slice": 4000
+  },
+  "seed": 20260827,
+  "bootstrap_B": 10000,
+  "grain": {
+    "n_rows_total": 66,
+    "n_in_mart_1": 56,
+    "n_in_mart_1_unique_wtg": 56,
+    "n_probe_present_1": 58,
+    "n_probe_present_1_unique_wtg": 54,
+    "primary_grain": "in_mart==1 AND probe_present==1",
+    "primary_grain_n": 54,
+    "primary_grain_unique_wtg": 54,
+    "primary_grain_rationale": "in_mart==1 is the de-duplicated target mart (56 targets, 56 unique wtg; the 2nd run of each re-executed target is flagged in_mart==0), so it guarantees one row per target. Intersecting with probe_present==1 drops the 2 targets with no probe payload, for which every signal column is NaN and no size/richness relation is computable. The resulting n=54 has ZERO missingness on all analysis columns, so every denominator below is 54 unless stated. The alternative grain probe_present==1 (n=58) re-admits 4 duplicate re-runs of 4 targets and violates independence; it is used only as a sensitivity check.",
+    "dropped_from_in_mart_for_no_probe": [
+      {
+        "prior_service": "신한 SOL뱅크",
+        "wtg": "64d30ef262d8782d",
+        "dom_bytes": 6072.0,
+        "dom_element_n": 13.0,
+        "dom_interactive_n": 0.0,
+        "dom_body_empty": 1.0
+      },
+      {
+        "prior_service": "롯데하이마트",
+        "wtg": "ef06dc942ef3ccc9",
+        "dom_bytes": 314.0,
+        "dom_element_n": 5.0,
+        "dom_interactive_n": 0.0,
+        "dom_body_empty": 1.0
+      }
+    ],
+    "missing_per_analysis_col_primary_grain": {
+      "dom_bytes": 0,
+      "ax_bytes": 0,
+      "css_bytes": 0,
+      "probe_bytes": 0,
+      "dom_element_n": 0,
+      "dom_body_element_n": 0,
+      "dom_interactive_n": 0,
+      "dom_a_href_n": 0,
+      "dom_button_n": 0,
+      "dom_input_n": 0,
+      "dom_role_n": 0,
+      "dom_aria_label_n": 0,
+      "dom_script_n": 0,
+      "dom_body_text_len": 0,
+      "probe_scroll_height": 0,
+      "n_primary_action_candidates": 0,
+      "n_accessible_name_sources": 0,
+      "n_target_size": 0,
+      "n_contrast": 0,
+      "cap_any": 0,
+      "cap_count": 0,
+      "dom_body_empty": 0
+    }
+  },
+  "step1_counterexample_reproduction": {
+    "assertion_type": "OBSERVATION",
+    "b_claim_small": {
+      "dom_bytes": 1657,
+      "n_primary_action_candidates": 24
+    },
+    "b_claim_large": {
+      "dom_bytes": 4700000,
+      "n_primary_action_candidates": 17
+    },
+    "reproduced_small": {
+      "dom_bytes": 1657.0,
+      "n_primary_action_candidates": 24.0,
+      "matches_b": true,
+      "n_observations_tied_at_this_dom_bytes": 2,
+      "tied_services": [
+        "NH스마트뱅킹",
+        "NH콕뱅크"
+      ],
+      "tied_wtg": [
+        "95967b50683649f2",
+        "fb3d1841dddfd982"
+      ],
+      "note": "REPRODUCED but under-specified in the ticket: dom_bytes==1657 is not one observation, it is TWO distinct targets (distinct wtg) whose dom/probe measurements are byte-identical across every analysed column. Both are dom_body_empty==1 with dom_interactive_n==0 while the probe reports 24 primary actions -- i.e. the DOM artifact and the probe are not describing the same page state."
+    },
+    "reproduced_large": {
+      "dom_bytes": 4778840.0,
+      "n_primary_action_candidates": 17.0,
+      "service": "밴드",
+      "dom_element_n": 2051.0,
+      "dom_interactive_n": 24.0,
+      "bytes_per_element": 2330.0,
+      "matches_b": true
+    },
+    "true_global_min_dom_bytes": {
+      "dom_bytes": 314.0,
+      "service": "롯데하이마트",
+      "probe_present": 0.0,
+      "note": "The absolute smallest parsed dom.html in the table is 314 bytes (no probe payload), so B's 1657 is the smallest dom_bytes AMONG probe-bearing observations. B's implicit grain was probe_present==1, which this analysis adopts."
+    },
+    "tied_min_identical_columns": true
+  },
+  "step2_signal_dimensionality": {
+    "assertion_type": "ANALYSIS",
+    "spearman_matrix": {
+      "n_primary_action_candidates": {
+        "n_primary_action_candidates": 1.0,
+        "n_accessible_name_sources": 0.8739,
+        "n_target_size": 0.9993,
+        "n_contrast": 0.9086
+      },
+      "n_accessible_name_sources": {
+        "n_primary_action_candidates": 0.8739,
+        "n_accessible_name_sources": 1.0,
+        "n_target_size": 0.8715,
+        "n_contrast": 0.8313
+      },
+      "n_target_size": {
+        "n_primary_action_candidates": 0.9993,
+        "n_accessible_name_sources": 0.8715,
+        "n_target_size": 1.0,
+        "n_contrast": 0.9076
+      },
+      "n_contrast": {
+        "n_primary_action_candidates": 0.9086,
+        "n_accessible_name_sources": 0.8313,
+        "n_target_size": 0.9076,
+        "n_contrast": 1.0
+      }
+    },
+    "min_offdiag_rho": 0.8313,
+    "primary_equals_target_size_count": 30,
+    "primary_vs_target_size_rho": 0.9993,
+    "finding": "The four probe signals are not four independent quality dimensions. n_primary_action_candidates and n_target_size are effectively the same measurement at two different caps (200 vs 300): rho=0.999 and exactly equal in 30/54 observations; where they differ, n_target_size >= n_primary in every case. All off-diagonal rho >= 0.83. 'Signal richness' is therefore ~1 latent dimension, so a proxy only has to track one thing."
+  },
+  "step3_proxy_screen_primary_grain": {
+    "dom_bytes": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.2643,
+        "spearman_p": 0.05348,
+        "kendall_tau_b": 0.1915,
+        "kendall_p": 0.04288,
+        "boot_ci95_lo": -0.024,
+        "boot_ci95_hi": 0.5237,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.2507,
+        "spearman_p": 0.06752,
+        "kendall_tau_b": 0.1882,
+        "kendall_p": 0.04971,
+        "boot_ci95_lo": -0.0417,
+        "boot_ci95_hi": 0.5271,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.2688,
+        "spearman_p": 0.04933,
+        "kendall_tau_b": 0.1917,
+        "kendall_p": 0.04222,
+        "boot_ci95_lo": -0.0291,
+        "boot_ci95_hi": 0.5305,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.2916,
+        "spearman_p": 0.03243,
+        "kendall_tau_b": 0.2128,
+        "kendall_p": 0.02445,
+        "boot_ci95_lo": -0.0033,
+        "boot_ci95_hi": 0.5499,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      }
+    },
+    "ax_bytes": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.7336,
+        "spearman_p": 2.786e-10,
+        "kendall_tau_b": 0.6139,
+        "kendall_p": 8.406e-11,
+        "boot_ci95_lo": 0.5033,
+        "boot_ci95_hi": 0.8999,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.6347,
+        "spearman_p": 2.548e-07,
+        "kendall_tau_b": 0.5156,
+        "kendall_p": 7.612e-08,
+        "boot_ci95_lo": 0.3749,
+        "boot_ci95_hi": 0.832,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.7339,
+        "spearman_p": 2.728e-10,
+        "kendall_tau_b": 0.6188,
+        "kendall_p": 5.484e-11,
+        "boot_ci95_lo": 0.5055,
+        "boot_ci95_hi": 0.8977,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.7437,
+        "spearman_p": 1.178e-10,
+        "kendall_tau_b": 0.6582,
+        "kendall_p": 3.421e-12,
+        "boot_ci95_lo": 0.5133,
+        "boot_ci95_hi": 0.9183,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "css_bytes": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.7012,
+        "spearman_p": 3.52e-09,
+        "kendall_tau_b": 0.5376,
+        "kendall_p": 1.299e-08,
+        "boot_ci95_lo": 0.4992,
+        "boot_ci95_hi": 0.8438,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.7108,
+        "spearman_p": 1.721e-09,
+        "kendall_tau_b": 0.5675,
+        "kendall_p": 3.27e-09,
+        "boot_ci95_lo": 0.4978,
+        "boot_ci95_hi": 0.8661,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.7016,
+        "spearman_p": 3.424e-09,
+        "kendall_tau_b": 0.5356,
+        "kendall_p": 1.38e-08,
+        "boot_ci95_lo": 0.4946,
+        "boot_ci95_hi": 0.8453,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.7739,
+        "spearman_p": 6.759e-12,
+        "kendall_tau_b": 0.6144,
+        "kendall_p": 8.259e-11,
+        "boot_ci95_lo": 0.594,
+        "boot_ci95_hi": 0.8913,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "probe_bytes": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.9542,
+        "spearman_p": 6.578e-29,
+        "kendall_tau_b": 0.8372,
+        "kendall_p": 8.421e-19,
+        "boot_ci95_lo": 0.8974,
+        "boot_ci95_hi": 0.9778,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.9426,
+        "spearman_p": 1.969e-26,
+        "kendall_tau_b": 0.8025,
+        "kendall_p": 5.829e-17,
+        "boot_ci95_lo": 0.8951,
+        "boot_ci95_hi": 0.9629,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.9528,
+        "spearman_p": 1.365e-28,
+        "kendall_tau_b": 0.8344,
+        "kendall_p": 9.363e-19,
+        "boot_ci95_lo": 0.8932,
+        "boot_ci95_hi": 0.978,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.9413,
+        "spearman_p": 3.489e-26,
+        "kendall_tau_b": 0.8194,
+        "kendall_p": 4.572e-18,
+        "boot_ci95_lo": 0.8711,
+        "boot_ci95_hi": 0.9735,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "dom_element_n": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.7067,
+        "spearman_p": 2.347e-09,
+        "kendall_tau_b": 0.5451,
+        "kendall_p": 8.351e-09,
+        "boot_ci95_lo": 0.5041,
+        "boot_ci95_hi": 0.8481,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.7332,
+        "spearman_p": 2.897e-10,
+        "kendall_tau_b": 0.5823,
+        "kendall_p": 1.294e-09,
+        "boot_ci95_lo": 0.5234,
+        "boot_ci95_hi": 0.8787,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.7088,
+        "spearman_p": 2.011e-09,
+        "kendall_tau_b": 0.5487,
+        "kendall_p": 6.223e-09,
+        "boot_ci95_lo": 0.5041,
+        "boot_ci95_hi": 0.8521,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.7634,
+        "spearman_p": 1.919e-11,
+        "kendall_tau_b": 0.6191,
+        "kendall_p": 6.11e-11,
+        "boot_ci95_lo": 0.5689,
+        "boot_ci95_hi": 0.8915,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "dom_body_element_n": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.7181,
+        "spearman_p": 9.837e-10,
+        "kendall_tau_b": 0.5612,
+        "kendall_p": 2.976e-09,
+        "boot_ci95_lo": 0.5118,
+        "boot_ci95_hi": 0.8618,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.7487,
+        "spearman_p": 7.506e-11,
+        "kendall_tau_b": 0.6088,
+        "kendall_p": 2.207e-10,
+        "boot_ci95_lo": 0.5387,
+        "boot_ci95_hi": 0.8958,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.719,
+        "spearman_p": 9.134e-10,
+        "kendall_tau_b": 0.5619,
+        "kendall_p": 2.642e-09,
+        "boot_ci95_lo": 0.5138,
+        "boot_ci95_hi": 0.8582,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.7635,
+        "spearman_p": 1.908e-11,
+        "kendall_tau_b": 0.6125,
+        "kendall_p": 9.572e-11,
+        "boot_ci95_lo": 0.5662,
+        "boot_ci95_hi": 0.8931,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "dom_interactive_n": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.7805,
+        "spearman_p": 3.439e-12,
+        "kendall_tau_b": 0.6254,
+        "kendall_p": 3.95e-11,
+        "boot_ci95_lo": 0.6037,
+        "boot_ci95_hi": 0.894,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.8458,
+        "spearman_p": 8.351e-16,
+        "kendall_tau_b": 0.7185,
+        "kendall_p": 7.309e-14,
+        "boot_ci95_lo": 0.6792,
+        "boot_ci95_hi": 0.9491,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.782,
+        "spearman_p": 2.927e-12,
+        "kendall_tau_b": 0.6274,
+        "kendall_p": 3.136e-11,
+        "boot_ci95_lo": 0.606,
+        "boot_ci95_hi": 0.8985,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.6971,
+        "spearman_p": 4.742e-09,
+        "kendall_tau_b": 0.519,
+        "kendall_p": 4.258e-08,
+        "boot_ci95_lo": 0.5023,
+        "boot_ci95_hi": 0.8335,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "dom_a_href_n": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.7611,
+        "spearman_p": 2.388e-11,
+        "kendall_tau_b": 0.6022,
+        "kendall_p": 2.111e-10,
+        "boot_ci95_lo": 0.5747,
+        "boot_ci95_hi": 0.8834,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.8368,
+        "spearman_p": 3.243e-15,
+        "kendall_tau_b": 0.7007,
+        "kendall_p": 3.146e-13,
+        "boot_ci95_lo": 0.6579,
+        "boot_ci95_hi": 0.9401,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.7614,
+        "spearman_p": 2.334e-11,
+        "kendall_tau_b": 0.6035,
+        "kendall_p": 1.773e-10,
+        "boot_ci95_lo": 0.5763,
+        "boot_ci95_hi": 0.8834,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.6878,
+        "spearman_p": 9.131e-09,
+        "kendall_tau_b": 0.5169,
+        "kendall_p": 5.011e-08,
+        "boot_ci95_lo": 0.4757,
+        "boot_ci95_hi": 0.8299,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "dom_button_n": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.5305,
+        "spearman_p": 3.685e-05,
+        "kendall_tau_b": 0.3912,
+        "kendall_p": 4.963e-05,
+        "boot_ci95_lo": 0.2905,
+        "boot_ci95_hi": 0.7178,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.5205,
+        "spearman_p": 5.466e-05,
+        "kendall_tau_b": 0.3771,
+        "kendall_p": 0.0001151,
+        "boot_ci95_lo": 0.2971,
+        "boot_ci95_hi": 0.6904,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.5296,
+        "spearman_p": 3.827e-05,
+        "kendall_tau_b": 0.3924,
+        "kendall_p": 4.545e-05,
+        "boot_ci95_lo": 0.2857,
+        "boot_ci95_hi": 0.7204,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.5397,
+        "spearman_p": 2.542e-05,
+        "kendall_tau_b": 0.3937,
+        "kendall_p": 4.474e-05,
+        "boot_ci95_lo": 0.308,
+        "boot_ci95_hi": 0.7152,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "dom_input_n": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.287,
+        "spearman_p": 0.03538,
+        "kendall_tau_b": 0.225,
+        "kendall_p": 0.02592,
+        "boot_ci95_lo": 0.007,
+        "boot_ci95_hi": 0.5442,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.3733,
+        "spearman_p": 0.005426,
+        "kendall_tau_b": 0.2789,
+        "kendall_p": 0.006489,
+        "boot_ci95_lo": 0.1191,
+        "boot_ci95_hi": 0.5966,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.2931,
+        "spearman_p": 0.0315,
+        "kendall_tau_b": 0.2298,
+        "kendall_p": 0.02259,
+        "boot_ci95_lo": 0.019,
+        "boot_ci95_hi": 0.5449,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.1888,
+        "spearman_p": 0.1715,
+        "kendall_tau_b": 0.1581,
+        "kendall_p": 0.1175,
+        "boot_ci95_lo": -0.0906,
+        "boot_ci95_hi": 0.4532,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      }
+    },
+    "dom_role_n": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.3652,
+        "spearman_p": 0.00662,
+        "kendall_tau_b": 0.2631,
+        "kendall_p": 0.006314,
+        "boot_ci95_lo": 0.0873,
+        "boot_ci95_hi": 0.6034,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.4,
+        "spearman_p": 0.002727,
+        "kendall_tau_b": 0.2936,
+        "kendall_p": 0.002658,
+        "boot_ci95_lo": 0.1234,
+        "boot_ci95_hi": 0.6303,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.3673,
+        "spearman_p": 0.006289,
+        "kendall_tau_b": 0.2646,
+        "kendall_p": 0.00592,
+        "boot_ci95_lo": 0.0946,
+        "boot_ci95_hi": 0.6037,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.3934,
+        "spearman_p": 0.003253,
+        "kendall_tau_b": 0.2886,
+        "kendall_p": 0.002746,
+        "boot_ci95_lo": 0.1094,
+        "boot_ci95_hi": 0.6337,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "dom_aria_label_n": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.192,
+        "spearman_p": 0.1642,
+        "kendall_tau_b": 0.1369,
+        "kendall_p": 0.1672,
+        "boot_ci95_lo": -0.0883,
+        "boot_ci95_hi": 0.46,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.1493,
+        "spearman_p": 0.2813,
+        "kendall_tau_b": 0.1119,
+        "kendall_p": 0.2655,
+        "boot_ci95_lo": -0.1187,
+        "boot_ci95_hi": 0.4007,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.1982,
+        "spearman_p": 0.1507,
+        "kendall_tau_b": 0.1418,
+        "kendall_p": 0.1516,
+        "boot_ci95_lo": -0.0836,
+        "boot_ci95_hi": 0.4613,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.2708,
+        "spearman_p": 0.04762,
+        "kendall_tau_b": 0.1937,
+        "kendall_p": 0.05065,
+        "boot_ci95_lo": -0.02,
+        "boot_ci95_hi": 0.5328,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      }
+    },
+    "dom_script_n": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.2691,
+        "spearman_p": 0.04911,
+        "kendall_tau_b": 0.2033,
+        "kendall_p": 0.03359,
+        "boot_ci95_lo": -0.0276,
+        "boot_ci95_hi": 0.5424,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.287,
+        "spearman_p": 0.03535,
+        "kendall_tau_b": 0.2141,
+        "kendall_p": 0.02738,
+        "boot_ci95_lo": -0.0006,
+        "boot_ci95_hi": 0.5465,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.2711,
+        "spearman_p": 0.04742,
+        "kendall_tau_b": 0.2021,
+        "kendall_p": 0.03431,
+        "boot_ci95_lo": -0.033,
+        "boot_ci95_hi": 0.5441,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.2451,
+        "spearman_p": 0.07409,
+        "kendall_tau_b": 0.1691,
+        "kendall_p": 0.07731,
+        "boot_ci95_lo": -0.0339,
+        "boot_ci95_hi": 0.492,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      }
+    },
+    "dom_body_text_len": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.1227,
+        "spearman_p": 0.3767,
+        "kendall_tau_b": 0.0784,
+        "kendall_p": 0.4069,
+        "boot_ci95_lo": -0.1901,
+        "boot_ci95_hi": 0.4159,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.0859,
+        "spearman_p": 0.5367,
+        "kendall_tau_b": 0.0483,
+        "kendall_p": 0.6144,
+        "boot_ci95_lo": -0.2364,
+        "boot_ci95_hi": 0.3921,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.1253,
+        "spearman_p": 0.3666,
+        "kendall_tau_b": 0.0761,
+        "kendall_p": 0.4199,
+        "boot_ci95_lo": -0.1888,
+        "boot_ci95_hi": 0.418,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.0793,
+        "spearman_p": 0.5685,
+        "kendall_tau_b": 0.0502,
+        "kendall_p": 0.5956,
+        "boot_ci95_lo": -0.247,
+        "boot_ci95_hi": 0.3833,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      }
+    },
+    "probe_scroll_height": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.3833,
+        "spearman_p": 0.004225,
+        "kendall_tau_b": 0.2934,
+        "kendall_p": 0.002355,
+        "boot_ci95_lo": 0.1017,
+        "boot_ci95_hi": 0.6298,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.31,
+        "spearman_p": 0.02254,
+        "kendall_tau_b": 0.2372,
+        "kendall_p": 0.01535,
+        "boot_ci95_lo": 0.0225,
+        "boot_ci95_hi": 0.5683,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.3782,
+        "spearman_p": 0.00481,
+        "kendall_tau_b": 0.2891,
+        "kendall_p": 0.00268,
+        "boot_ci95_lo": 0.1008,
+        "boot_ci95_hi": 0.6259,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.5469,
+        "spearman_p": 1.882e-05,
+        "kendall_tau_b": 0.4121,
+        "kendall_p": 1.953e-05,
+        "boot_ci95_lo": 0.2993,
+        "boot_ci95_hi": 0.7364,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "bytes_per_element": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": -0.275,
+        "spearman_p": 0.04414,
+        "kendall_tau_b": -0.1971,
+        "kendall_p": 0.0371,
+        "boot_ci95_lo": -0.5233,
+        "boot_ci95_hi": 0.0078,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": -0.2973,
+        "spearman_p": 0.02899,
+        "kendall_tau_b": -0.2242,
+        "kendall_p": 0.01937,
+        "boot_ci95_lo": -0.5568,
+        "boot_ci95_hi": -0.0032,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": -0.2773,
+        "spearman_p": 0.04237,
+        "kendall_tau_b": -0.1987,
+        "kendall_p": 0.0352,
+        "boot_ci95_lo": -0.5217,
+        "boot_ci95_hi": 0.0078,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": -0.2934,
+        "spearman_p": 0.03128,
+        "kendall_tau_b": -0.2001,
+        "kendall_p": 0.03439,
+        "boot_ci95_lo": -0.5455,
+        "boot_ci95_hi": -0.0129,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "capture_ratio": {
+      "n_primary_action_candidates": {
+        "n": 52,
+        "spearman_rho": 0.117,
+        "spearman_p": 0.409,
+        "kendall_tau_b": 0.0816,
+        "kendall_p": 0.3977,
+        "boot_ci95_lo": -0.1895,
+        "boot_ci95_hi": 0.4097,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_accessible_name_sources": {
+        "n": 52,
+        "spearman_rho": -0.1781,
+        "spearman_p": 0.2064,
+        "kendall_tau_b": -0.12,
+        "kendall_p": 0.2203,
+        "boot_ci95_lo": -0.4404,
+        "boot_ci95_hi": 0.1108,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_target_size": {
+        "n": 52,
+        "spearman_rho": 0.1115,
+        "spearman_p": 0.4314,
+        "kendall_tau_b": 0.0791,
+        "kendall_p": 0.4113,
+        "boot_ci95_lo": -0.1878,
+        "boot_ci95_hi": 0.3997,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "n_contrast": {
+        "n": 52,
+        "spearman_rho": 0.1347,
+        "spearman_p": 0.3409,
+        "kendall_tau_b": 0.0916,
+        "kendall_p": 0.3426,
+        "boot_ci95_lo": -0.1546,
+        "boot_ci95_hi": 0.4083,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      }
+    },
+    "signal_richness": {
+      "n_primary_action_candidates": {
+        "n": 54,
+        "spearman_rho": 0.9826,
+        "spearman_p": 1.032e-39,
+        "kendall_tau_b": 0.8997,
+        "kendall_p": 2.394e-21,
+        "boot_ci95_lo": 0.9609,
+        "boot_ci95_hi": 0.9893,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_accessible_name_sources": {
+        "n": 54,
+        "spearman_rho": 0.9262,
+        "spearman_p": 1.116e-23,
+        "kendall_tau_b": 0.7851,
+        "kendall_p": 3.301e-16,
+        "boot_ci95_lo": 0.8525,
+        "boot_ci95_hi": 0.9626,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_target_size": {
+        "n": 54,
+        "spearman_rho": 0.9819,
+        "spearman_p": 3.179e-39,
+        "kendall_tau_b": 0.8982,
+        "kendall_p": 2.33e-21,
+        "boot_ci95_lo": 0.9596,
+        "boot_ci95_hi": 0.9891,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "n_contrast": {
+        "n": 54,
+        "spearman_rho": 0.9451,
+        "spearman_p": 6.428e-27,
+        "kendall_tau_b": 0.818,
+        "kendall_p": 6.54e-18,
+        "boot_ci95_lo": 0.8863,
+        "boot_ci95_hi": 0.9724,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    }
+  },
+  "step3_headline": {
+    "assertion_type": "ANALYSIS",
+    "dom_bytes_vs_primary": {
+      "n": 54,
+      "spearman_rho": 0.2643,
+      "spearman_p": 0.05348,
+      "kendall_tau_b": 0.1915,
+      "kendall_p": 0.04288,
+      "boot_ci95_lo": -0.024,
+      "boot_ci95_hi": 0.5237,
+      "boot_n_effective": 10000,
+      "boot_dropped": 0,
+      "ci_excludes_zero": false
+    },
+    "dom_interactive_n_vs_primary": {
+      "n": 54,
+      "spearman_rho": 0.7805,
+      "spearman_p": 3.439e-12,
+      "kendall_tau_b": 0.6254,
+      "kendall_p": 3.95e-11,
+      "boot_ci95_lo": 0.6037,
+      "boot_ci95_hi": 0.894,
+      "boot_n_effective": 10000,
+      "boot_dropped": 0,
+      "ci_excludes_zero": true
+    },
+    "dom_element_n_vs_primary": {
+      "n": 54,
+      "spearman_rho": 0.7067,
+      "spearman_p": 2.347e-09,
+      "kendall_tau_b": 0.5451,
+      "kendall_p": 8.351e-09,
+      "boot_ci95_lo": 0.5041,
+      "boot_ci95_hi": 0.8481,
+      "boot_n_effective": 10000,
+      "boot_dropped": 0,
+      "ci_excludes_zero": true
+    },
+    "finding": "dom_bytes rho=+0.264 (n=54, p=0.054, bootstrap CI95 [-0.024,+0.524]) -- the CI INCLUDES ZERO, so no reliable monotone association with signal richness. dom_interactive_n rho=+0.780 (CI95 [+0.602,+0.896]) and dom_element_n rho=+0.707 (CI95 [+0.500,+0.847]) both exclude zero. Structural COUNTS from the same dom.html track richness; the BYTE SIZE of that same file does not."
+  },
+  "step3_pearson_contrast": {
+    "assertion_type": "ANALYSIS",
+    "pearson_dom_bytes_raw": 0.096,
+    "pearson_log10_dom_bytes": 0.2994,
+    "pearson_dom_interactive_n": 0.6777,
+    "note": "dom_bytes spans 1.66e3..4.78e6 (3.5 orders of magnitude) with a single 4.8MB point; raw Pearson r=0.096 is dominated by that point and log10 lifts it to 0.299. Reporting Pearson alone on this column would be misleading in either direction, which is why Spearman is the primary statistic."
+  },
+  "step4_monotonicity": {
+    "assertion_type": "ANALYSIS",
+    "dom_bytes_quintiles": [
+      {
+        "q_bytes": 1,
+        "n": 11,
+        "proxy_median": 16653.0,
+        "primary_median": 24.0,
+        "primary_min": 3.0,
+        "primary_max": 138.0,
+        "richness_median": 0.26388888888888884,
+        "cap_any_hits": 1.0
+      },
+      {
+        "q_bytes": 2,
+        "n": 11,
+        "proxy_median": 62788.0,
+        "primary_median": 74.0,
+        "primary_min": 6.0,
+        "primary_max": 188.0,
+        "richness_median": 0.6365740740740741,
+        "cap_any_hits": 1.0
+      },
+      {
+        "q_bytes": 3,
+        "n": 10,
+        "proxy_median": 150172.5,
+        "primary_median": 90.0,
+        "primary_min": 7.0,
+        "primary_max": 200.0,
+        "richness_median": 0.625,
+        "cap_any_hits": 3.0
+      },
+      {
+        "q_bytes": 4,
+        "n": 11,
+        "proxy_median": 324712.0,
+        "primary_median": 60.0,
+        "primary_min": 15.0,
+        "primary_max": 200.0,
+        "richness_median": 0.6041666666666667,
+        "cap_any_hits": 5.0
+      },
+      {
+        "q_bytes": 5,
+        "n": 11,
+        "proxy_median": 675876.0,
+        "primary_median": 40.0,
+        "primary_min": 5.0,
+        "primary_max": 200.0,
+        "richness_median": 0.45833333333333337,
+        "cap_any_hits": 4.0
+      }
+    ],
+    "dom_interactive_n_quintiles": [
+      {
+        "q_inter": 1,
+        "n": 11,
+        "proxy_median": 8.0,
+        "primary_median": 11.0,
+        "primary_min": 3.0,
+        "primary_max": 138.0,
+        "richness_median": 0.1898148148148148,
+        "cap_any_hits": 1.0
+      },
+      {
+        "q_inter": 2,
+        "n": 11,
+        "proxy_median": 42.0,
+        "primary_median": 31.0,
+        "primary_min": 6.0,
+        "primary_max": 155.0,
+        "richness_median": 0.2800925925925926,
+        "cap_any_hits": 0.0
+      },
+      {
+        "q_inter": 3,
+        "n": 10,
+        "proxy_median": 94.5,
+        "primary_median": 50.0,
+        "primary_min": 12.0,
+        "primary_max": 188.0,
+        "richness_median": 0.53125,
+        "cap_any_hits": 1.0
+      },
+      {
+        "q_inter": 4,
+        "n": 11,
+        "proxy_median": 145.0,
+        "primary_median": 74.0,
+        "primary_min": 40.0,
+        "primary_max": 164.0,
+        "richness_median": 0.6365740740740741,
+        "cap_any_hits": 1.0
+      },
+      {
+        "q_inter": 5,
+        "n": 11,
+        "proxy_median": 451.0,
+        "primary_median": 200.0,
+        "primary_min": 23.0,
+        "primary_max": 200.0,
+        "richness_median": 0.9143518518518519,
+        "cap_any_hits": 11.0
+      }
+    ],
+    "dom_bytes_median_split": {
+      "median_dom_bytes": 150172.5,
+      "lower_half": {
+        "n": 27,
+        "rho": 0.4533,
+        "p": 0.01758
+      },
+      "upper_half": {
+        "n": 27,
+        "rho": -0.0338,
+        "p": 0.8672
+      }
+    },
+    "bytes_per_element_vs_primary": {
+      "n": 54,
+      "spearman_rho": -0.275,
+      "spearman_p": 0.04414,
+      "kendall_tau_b": -0.1971,
+      "kendall_p": 0.0371,
+      "boot_ci95_lo": -0.5233,
+      "boot_ci95_hi": 0.0078,
+      "boot_n_effective": 10000,
+      "boot_dropped": 0,
+      "ci_excludes_zero": false
+    },
+    "top_bloat": [
+      {
+        "prior_service": "밴드",
+        "dom_bytes": 4778840.0,
+        "dom_element_n": 2051.0,
+        "bytes_per_element": 2330.0,
+        "dom_interactive_n": 24.0,
+        "n_primary_action_candidates": 17.0,
+        "cap_any": 0.0
+      },
+      {
+        "prior_service": "YouTube",
+        "dom_bytes": 466333.0,
+        "dom_element_n": 216.0,
+        "bytes_per_element": 2158.9,
+        "dom_interactive_n": 13.0,
+        "n_primary_action_candidates": 8.0,
+        "cap_any": 0.0
+      },
+      {
+        "prior_service": "하나은행",
+        "dom_bytes": 1210955.0,
+        "dom_element_n": 567.0,
+        "bytes_per_element": 2135.7,
+        "dom_interactive_n": 93.0,
+        "n_primary_action_candidates": 40.0,
+        "cap_any": 0.0
+      },
+      {
+        "prior_service": "Instagram",
+        "dom_bytes": 640321.0,
+        "dom_element_n": 373.0,
+        "bytes_per_element": 1716.7,
+        "dom_interactive_n": 6.0,
+        "n_primary_action_candidates": 5.0,
+        "cap_any": 0.0
+      },
+      {
+        "prior_service": "Netflix",
+        "dom_bytes": 675876.0,
+        "dom_element_n": 429.0,
+        "bytes_per_element": 1575.5,
+        "dom_interactive_n": 44.0,
+        "n_primary_action_candidates": 11.0,
+        "cap_any": 0.0
+      },
+      {
+        "prior_service": "G마켓",
+        "dom_bytes": 643058.0,
+        "dom_element_n": 423.0,
+        "bytes_per_element": 1520.2,
+        "dom_interactive_n": 35.0,
+        "n_primary_action_candidates": 33.0,
+        "cap_any": 0.0
+      },
+      {
+        "prior_service": "디바이스 케어",
+        "dom_bytes": 417125.0,
+        "dom_element_n": 588.0,
+        "bytes_per_element": 709.4,
+        "dom_interactive_n": 145.0,
+        "n_primary_action_candidates": 60.0,
+        "cap_any": 0.0
+      },
+      {
+        "prior_service": "Google",
+        "dom_bytes": 247090.0,
+        "dom_element_n": 371.0,
+        "bytes_per_element": 666.0,
+        "dom_interactive_n": 45.0,
+        "n_primary_action_candidates": 15.0,
+        "cap_any": 0.0
+      }
+    ],
+    "finding": "Monotonicity FAILS for dom_bytes. Median n_primary_action_candidates by dom_bytes quintile is 24 -> 74 -> 90 -> 60 -> 40 (n=11/11/10/11/11): it rises to Q3 then FALLS, an inverted-U, so a rank correlation understates how badly the variable behaves rather than overstating it. Splitting at the median, rho=+0.36 below and rho=-0.09 above. By contrast the same table over dom_interactive_n quintiles is strictly increasing: 11 -> 31 -> 50 -> 74 -> 200. Mechanism: bytes_per_element (markup weight per structural node) is NEGATIVELY associated with richness (rho=-0.275, p=0.044, n=54); the 8 heaviest-per-element documents are media/SPA shells (BAND 2330 B/elem, YouTube 2159, Instagram 1717, Netflix 1575) whose bytes are inline script/JSON payload, not interactive structure. Large dom_bytes therefore arises from two opposite regimes -- a genuinely large commerce DOM, and a script-heavy shell with almost no interactive markup -- which is why size is non-monotone in richness."
+  },
+  "step5_cap_semantics": {
+    "assertion_type": "ANALYSIS",
+    "cap_hit_counts_primary_grain": {
+      "cap_primary_action_candidates": 7,
+      "cap_accessible_name_sources": 13,
+      "cap_target_size": 6,
+      "cap_contrast": 8,
+      "cap_any": 14,
+      "cap_motion_animated_60": 1,
+      "cap_body_text_4000": 7
+    },
+    "n": 54,
+    "capped_vs_uncapped": {
+      "dom_element_n": {
+        "n_group1": 14,
+        "n_group2": 40,
+        "median_group1": 2799.5,
+        "median_group2": 549.0,
+        "U": 506.0,
+        "p": 8.535e-06,
+        "A12": 0.9036
+      },
+      "dom_interactive_n": {
+        "n_group1": 14,
+        "n_group2": 40,
+        "median_group1": 395.0,
+        "median_group2": 59.5,
+        "U": 513.5,
+        "p": 4.235e-06,
+        "A12": 0.917
+      },
+      "dom_bytes": {
+        "n_group1": 14,
+        "n_group2": 40,
+        "median_group1": 306868.5,
+        "median_group2": 109808.5,
+        "U": 388.0,
+        "p": 0.03384,
+        "A12": 0.6929
+      },
+      "dom_a_href_n": {
+        "n_group1": 14,
+        "n_group2": 40,
+        "median_group1": 338.0,
+        "median_group2": 41.0,
+        "U": 510.0,
+        "p": 5.867e-06,
+        "A12": 0.9107
+      }
+    },
+    "censoring_severity_primary_cap200": {
+      "rows": [
+        {
+          "prior_service": "코스트코",
+          "dom_interactive_n": 1359.0,
+          "dom_a_href_n": 1158.0,
+          "n_primary_action_candidates": 200.0,
+          "cap_count": 4.0,
+          "dom_interactive_over_cap": 6.8
+        },
+        {
+          "prior_service": "다음",
+          "dom_interactive_n": 445.0,
+          "dom_a_href_n": 410.0,
+          "n_primary_action_candidates": 200.0,
+          "cap_count": 3.0,
+          "dom_interactive_over_cap": 2.22
+        },
+        {
+          "prior_service": "홈앤쇼핑",
+          "dom_interactive_n": 562.0,
+          "dom_a_href_n": 480.0,
+          "n_primary_action_candidates": 200.0,
+          "cap_count": 4.0,
+          "dom_interactive_over_cap": 2.81
+        },
+        {
+          "prior_service": "네이버",
+          "dom_interactive_n": 504.0,
+          "dom_a_href_n": 389.0,
+          "n_primary_action_candidates": 200.0,
+          "cap_count": 4.0,
+          "dom_interactive_over_cap": 2.52
+        },
+        {
+          "prior_service": "메가커피",
+          "dom_interactive_n": 1328.0,
+          "dom_a_href_n": 1322.0,
+          "n_primary_action_candidates": 200.0,
+          "cap_count": 3.0,
+          "dom_interactive_over_cap": 6.64
+        },
+        {
+          "prior_service": "이마트",
+          "dom_interactive_n": 345.0,
+          "dom_a_href_n": 233.0,
+          "n_primary_action_candidates": 200.0,
+          "cap_count": 4.0,
+          "dom_interactive_over_cap": 1.72
+        },
+        {
+          "prior_service": "롯데마트",
+          "dom_interactive_n": 928.0,
+          "dom_a_href_n": 659.0,
+          "n_primary_action_candidates": 200.0,
+          "cap_count": 4.0,
+          "dom_interactive_over_cap": 4.64
+        }
+      ],
+      "min_ratio": 1.73,
+      "max_ratio": 6.79,
+      "median_ratio": 2.81
+    },
+    "direction_finding": "The 'rich vs lossy' question is PARTLY separable. Separable half (SUPPORTED): cap-hit is driven by genuine page richness, evidenced INDEPENDENTLY of the probe by the DOM artifact -- capped observations have median dom_interactive_n=395 vs 60 uncapped (A12=0.917, p=4.2e-06, n=14 vs 40) and median dom_element_n=2800 vs 549 (A12=0.904, p=8.5e-06). Because dom.html is collected on a separate path from the probe arrays, this is not circular. Non-separable half (NOT_TESTABLE): whether the DISCARDED tail carried information that would have changed a conformance judgement cannot be decided from counts alone -- the table stores only the truncated count, never the dropped items. What IS quantifiable is a lower bound on how much was dropped: for the 7 primary-action-capped observations dom_interactive_n/200 ranges 1.72x to 6.80x (median 2.81x), so the probe reported at most 15%-58% of the DOM's interactive elements. Both readings are simultaneously true: cap-hit marks an information-RICH page AND a measurement that lost information; it is not a single scalar 'quality' direction.",
+    "asymmetry_note": "cap_accessible_name_sources (13/54) is the most frequently hit cap and is the ONE signal collected with no visibility filter, so it censors on raw node count rather than on user-perceivable elements; its cap-hits are the least interpretable as 'user-facing richness'."
+  },
+  "step6_same_page_state": {
+    "assertion_type": "OBSERVATION",
+    "n": 54,
+    "title_mismatch_n": 9,
+    "mojibake_explained_n": 6,
+    "genuine_state_mismatch_n": 3,
+    "genuine_rows": [
+      {
+        "prior_service": "NH스마트뱅킹",
+        "dom_title": "농협 개인모바일",
+        "probe_title": "NH농협 인터넷뱅킹",
+        "dom_body_empty": 1.0,
+        "dom_interactive_n": 0.0,
+        "n_primary_action_candidates": 24.0
+      },
+      {
+        "prior_service": "11번가",
+        "dom_title": "11번가 모바일",
+        "probe_title": "11번가 - 모바일",
+        "dom_body_empty": 0.0,
+        "dom_interactive_n": 23.0,
+        "n_primary_action_candidates": 138.0
+      },
+      {
+        "prior_service": "NH콕뱅크",
+        "dom_title": "농협 개인모바일",
+        "probe_title": "NH농협 인터넷뱅킹",
+        "dom_body_empty": 1.0,
+        "dom_interactive_n": 0.0,
+        "n_primary_action_candidates": 24.0
+      }
+    ],
+    "probe_url_equals_final_url_n": 54,
+    "dom_body_empty_n": 2,
+    "finding": "Title agreement LOOKS like a same-page-state check but is confounded by a collector defect. dom_title != probe_title in 9/54; in 6 of those 9 the dom_title contains only Latin-1-supplement characters and zero Hangul while probe_title is well-formed Hangul -- i.e. dom.html's title is being mis-decoded (UTF-8 bytes read under a single-byte codec), not describing a different page. Only 3/54 are genuine state divergences: the two byte-identical NH observations (dom_body_empty==1, dom_interactive_n==0, probe sees 24 primary actions) and 11beonga. So candidate (b) is unusable in its obvious form until dom_title decoding is fixed, and this encoding defect is itself a finding for the collector."
+  },
+  "step7_capture_ratio": {
+    "assertion_type": "ANALYSIS",
+    "definition": "n_primary_action_candidates / dom_interactive_n",
+    "defined_n": 52,
+    "undefined_n": 2,
+    "undefined_rows": [
+      "NH스마트뱅킹",
+      "NH콕뱅크"
+    ],
+    "quartiles": {
+      "min": 0.0674,
+      "q25": 0.3526,
+      "median": 0.5708,
+      "q75": 0.7743,
+      "max": 11.0
+    },
+    "n_ratio_gt_1": 4,
+    "rows_ratio_gt_1": [
+      {
+        "prior_service": "마켓컬리",
+        "dom_bytes": 61156.0,
+        "dom_interactive_n": 28.0,
+        "n_primary_action_candidates": 155.0,
+        "capture_ratio": 5.536
+      },
+      {
+        "prior_service": "홈플러스",
+        "dom_bytes": 52895.0,
+        "dom_interactive_n": 96.0,
+        "n_primary_action_candidates": 188.0,
+        "capture_ratio": 1.958
+      },
+      {
+        "prior_service": "11번가",
+        "dom_bytes": 16653.0,
+        "dom_interactive_n": 23.0,
+        "n_primary_action_candidates": 138.0,
+        "capture_ratio": 6.0
+      },
+      {
+        "prior_service": "모니모",
+        "dom_bytes": 20481.0,
+        "dom_interactive_n": 1.0,
+        "n_primary_action_candidates": 11.0,
+        "capture_ratio": 11.0
+      }
+    ],
+    "cr_vs_dom_bytes": {
+      "n": 52,
+      "spearman_rho": -0.1836,
+      "spearman_p": 0.1925,
+      "kendall_tau_b": -0.1335,
+      "kendall_p": 0.1625,
+      "boot_ci95_lo": -0.4458,
+      "boot_ci95_hi": 0.1005,
+      "boot_n_effective": 10000,
+      "boot_dropped": 0,
+      "ci_excludes_zero": false
+    },
+    "cr_vs_cap_any": {
+      "n": 52,
+      "spearman_rho": -0.2022,
+      "spearman_p": 0.1505,
+      "kendall_tau_b": -0.1667,
+      "kendall_p": 0.1487,
+      "boot_ci95_lo": -0.4711,
+      "boot_ci95_hi": 0.0835,
+      "boot_n_effective": 10000,
+      "boot_dropped": 0,
+      "ci_excludes_zero": false
+    },
+    "cr_vs_richness": {
+      "n": 52,
+      "spearman_rho": 0.0464,
+      "spearman_p": 0.7438,
+      "kendall_tau_b": 0.0371,
+      "kendall_p": 0.6988,
+      "boot_ci95_lo": -0.2446,
+      "boot_ci95_hi": 0.3295,
+      "boot_n_effective": 10000,
+      "boot_dropped": 0,
+      "ci_excludes_zero": false
+    },
+    "finding": "The capture-ratio family FAILS as a quality proxy, for three separate reasons, and this is the central negative result of RQ-D9. (1) It is UNDEFINED exactly where it would matter most: dom_interactive_n==0 for the 2 empty-body NH observations, which are the very cases where DOM and probe disagree. (2) Its numerator is a SELECTIVE, visibility-filtered subset (primary actions), not an attempt to enumerate all interactive elements, so ratio<1 is correct behaviour, not lost capture -- median 0.571 cannot be read as '43% missed'. (3) It is mechanically deflated by the very censoring it would need to detect: the 200-cap pins the numerator while dom_interactive_n keeps growing, so the richest pages (Costco 0.147, Megacoffee 0.151) score LOWEST. Ratio>1 in 4/52 (max 11.0, Monimo) flags client-side hydration -- the probe legitimately sees elements absent from the served dom.html -- which means the ratio mixes hydration and censoring into one number with opposite signs."
+  },
+  "step8_test_retest": {
+    "assertion_type": "OBSERVATION",
+    "n_pairs": 4,
+    "pairs": [
+      {
+        "service": "Netflix",
+        "wtg": "13ed070478ef62c3",
+        "dom_bytes": [
+          675876.0,
+          677082.0
+        ],
+        "dom_bytes_identical": false,
+        "dom_element_n_identical": false,
+        "signals_identical": false,
+        "signals": {
+          "n_primary_action_candidates": [
+            11.0,
+            11.0
+          ],
+          "n_accessible_name_sources": [
+            50.0,
+            51.0
+          ],
+          "n_target_size": [
+            14.0,
+            14.0
+          ],
+          "n_contrast": [
+            24.0,
+            24.0
+          ]
+        }
+      },
+      {
+        "service": "Chrome",
+        "wtg": "9390ef32addf32bf",
+        "dom_bytes": [
+          536881.0,
+          536881.0
+        ],
+        "dom_bytes_identical": true,
+        "dom_element_n_identical": true,
+        "signals_identical": true,
+        "signals": {
+          "n_primary_action_candidates": [
+            59.0,
+            59.0
+          ],
+          "n_accessible_name_sources": [
+            132.0,
+            132.0
+          ],
+          "n_target_size": [
+            60.0,
+            60.0
+          ],
+          "n_contrast": [
+            103.0,
+            103.0
+          ]
+        }
+      },
+      {
+        "service": "현대카드",
+        "wtg": "b728911c9782edb8",
+        "dom_bytes": [
+          107417.0,
+          107403.0
+        ],
+        "dom_bytes_identical": false,
+        "dom_element_n_identical": true,
+        "signals_identical": true,
+        "signals": {
+          "n_primary_action_candidates": [
+            164.0,
+            164.0
+          ],
+          "n_accessible_name_sources": [
+            197.0,
+            197.0
+          ],
+          "n_target_size": [
+            165.0,
+            165.0
+          ],
+          "n_contrast": [
+            254.0,
+            254.0
+          ]
+        }
+      },
+      {
+        "service": "캐시워크",
+        "wtg": "e1fadb214cde51c0",
+        "dom_bytes": [
+          156676.0,
+          156630.0
+        ],
+        "dom_bytes_identical": false,
+        "dom_element_n_identical": true,
+        "signals_identical": true,
+        "signals": {
+          "n_primary_action_candidates": [
+            100.0,
+            100.0
+          ],
+          "n_accessible_name_sources": [
+            203.0,
+            203.0
+          ],
+          "n_target_size": [
+            100.0,
+            100.0
+          ],
+          "n_contrast": [
+            80.0,
+            80.0
+          ]
+        }
+      }
+    ],
+    "n_pairs_signals_identical": 3,
+    "n_pairs_dom_bytes_identical": 1,
+    "n_pairs_primary_identical": 4,
+    "finding": "Across the 4 targets executed twice, the full 4-signal vector reproduces exactly in 3/4 pairs; the 4th (Netflix) differs only in n_accessible_name_sources (50 vs 51), the one signal collected with no visibility filter. n_primary_action_candidates reproduces exactly in 4/4. dom_bytes, by contrast, differs between runs in 3/4 pairs (Netflix 675876 vs 677082, Hyundai Card 107417 vs 107403, Cashwalk 156676 vs 156630) and is identical only for Chrome. So on these pairs size is the LESS reproducible of the two measures as well as the less valid one. n=4 pairs cannot support a reliability coefficient; treat as directional only."
+  },
+  "step9_sensitivity": {
+    "primary_grain_n54": {
+      "dom_bytes": {
+        "n": 54,
+        "spearman_rho": 0.2643,
+        "spearman_p": 0.05348,
+        "kendall_tau_b": 0.1915,
+        "kendall_p": 0.04288,
+        "boot_ci95_lo": -0.0294,
+        "boot_ci95_hi": 0.5226,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "dom_element_n": {
+        "n": 54,
+        "spearman_rho": 0.7067,
+        "spearman_p": 2.347e-09,
+        "kendall_tau_b": 0.5451,
+        "kendall_p": 8.351e-09,
+        "boot_ci95_lo": 0.5048,
+        "boot_ci95_hi": 0.8475,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_interactive_n": {
+        "n": 54,
+        "spearman_rho": 0.7805,
+        "spearman_p": 3.439e-12,
+        "kendall_tau_b": 0.6254,
+        "kendall_p": 3.95e-11,
+        "boot_ci95_lo": 0.5975,
+        "boot_ci95_hi": 0.8929,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_a_href_n": {
+        "n": 54,
+        "spearman_rho": 0.7611,
+        "spearman_p": 2.388e-11,
+        "kendall_tau_b": 0.6022,
+        "kendall_p": 2.111e-10,
+        "boot_ci95_lo": 0.5774,
+        "boot_ci95_hi": 0.8836,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "alt_grain_probe_present_n58": {
+      "dom_bytes": {
+        "n": 58,
+        "spearman_rho": 0.2119,
+        "spearman_p": 0.1103,
+        "kendall_tau_b": 0.1524,
+        "kendall_p": 0.09439,
+        "boot_ci95_lo": -0.0797,
+        "boot_ci95_hi": 0.4853,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "dom_element_n": {
+        "n": 58,
+        "spearman_rho": 0.7029,
+        "spearman_p": 7.678e-10,
+        "kendall_tau_b": 0.5362,
+        "kendall_p": 4.141e-09,
+        "boot_ci95_lo": 0.5025,
+        "boot_ci95_hi": 0.8415,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_interactive_n": {
+        "n": 58,
+        "spearman_rho": 0.7854,
+        "spearman_p": 2.873e-13,
+        "kendall_tau_b": 0.6323,
+        "kendall_p": 4.299e-12,
+        "boot_ci95_lo": 0.6162,
+        "boot_ci95_hi": 0.8951,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_a_href_n": {
+        "n": 58,
+        "spearman_rho": 0.7699,
+        "spearman_p": 1.616e-12,
+        "kendall_tau_b": 0.6118,
+        "kendall_p": 2.185e-11,
+        "boot_ci95_lo": 0.5966,
+        "boot_ci95_hi": 0.8865,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "uncapped_only": {
+      "dom_bytes": {
+        "n": 40,
+        "spearman_rho": 0.1229,
+        "spearman_p": 0.4501,
+        "kendall_tau_b": 0.0839,
+        "kendall_p": 0.4485,
+        "boot_ci95_lo": -0.1962,
+        "boot_ci95_hi": 0.4182,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "dom_element_n": {
+        "n": 40,
+        "spearman_rho": 0.5872,
+        "spearman_p": 6.814e-05,
+        "kendall_tau_b": 0.4302,
+        "kendall_p": 0.000103,
+        "boot_ci95_lo": 0.3207,
+        "boot_ci95_hi": 0.7873,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_interactive_n": {
+        "n": 40,
+        "spearman_rho": 0.7539,
+        "spearman_p": 1.954e-08,
+        "kendall_tau_b": 0.5779,
+        "kendall_p": 1.857e-07,
+        "boot_ci95_lo": 0.5593,
+        "boot_ci95_hi": 0.8722,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_a_href_n": {
+        "n": 40,
+        "spearman_rho": 0.7326,
+        "spearman_p": 7.714e-08,
+        "kendall_tau_b": 0.5473,
+        "kendall_p": 8.477e-07,
+        "boot_ci95_lo": 0.533,
+        "boot_ci95_hi": 0.8571,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "body_nonempty_only": {
+      "dom_bytes": {
+        "n": 52,
+        "spearman_rho": 0.2359,
+        "spearman_p": 0.09224,
+        "kendall_tau_b": 0.1714,
+        "kendall_p": 0.07535,
+        "boot_ci95_lo": -0.0769,
+        "boot_ci95_hi": 0.5128,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "dom_element_n": {
+        "n": 52,
+        "spearman_rho": 0.7083,
+        "spearman_p": 4.257e-09,
+        "kendall_tau_b": 0.5528,
+        "kendall_p": 1.001e-08,
+        "boot_ci95_lo": 0.491,
+        "boot_ci95_hi": 0.8586,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_interactive_n": {
+        "n": 52,
+        "spearman_rho": 0.7849,
+        "spearman_p": 5.706e-12,
+        "kendall_tau_b": 0.6395,
+        "kendall_p": 3.495e-11,
+        "boot_ci95_lo": 0.5916,
+        "boot_ci95_hi": 0.9065,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_a_href_n": {
+        "n": 52,
+        "spearman_rho": 0.7613,
+        "spearman_p": 5.671e-11,
+        "kendall_tau_b": 0.6105,
+        "kendall_p": 2.554e-10,
+        "boot_ci95_lo": 0.5657,
+        "boot_ci95_hi": 0.8956,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "excl_max_dom_bytes": {
+      "dom_bytes": {
+        "n": 53,
+        "spearman_rho": 0.3102,
+        "spearman_p": 0.0238,
+        "kendall_tau_b": 0.2217,
+        "kendall_p": 0.02032,
+        "boot_ci95_lo": 0.0116,
+        "boot_ci95_hi": 0.5601,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_element_n": {
+        "n": 53,
+        "spearman_rho": 0.7377,
+        "spearman_p": 2.944e-10,
+        "kendall_tau_b": 0.5729,
+        "kendall_p": 2.056e-09,
+        "boot_ci95_lo": 0.5451,
+        "boot_ci95_hi": 0.868,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_interactive_n": {
+        "n": 53,
+        "spearman_rho": 0.7772,
+        "spearman_p": 7.791e-12,
+        "kendall_tau_b": 0.6226,
+        "kendall_p": 7.591e-11,
+        "boot_ci95_lo": 0.5947,
+        "boot_ci95_hi": 0.8944,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_a_href_n": {
+        "n": 53,
+        "spearman_rho": 0.756,
+        "spearman_p": 5.972e-11,
+        "kendall_tau_b": 0.5975,
+        "kendall_p": 4.359e-10,
+        "boot_ci95_lo": 0.5641,
+        "boot_ci95_hi": 0.8825,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    }
+  },
+  "step9_finding": "The GRAIN choice changes nothing: dom_bytes~primary rho=+0.264 (n=54) vs +0.212 (n=58 alt grain); dom_interactive_n +0.780 vs +0.785. Neither grain flips any verdict. Across cap status and body-emptiness dom_bytes stays weak with a CI including zero (+0.123 uncapped n=40; +0.236 body-nonempty n=52) while dom_interactive_n stays strong (+0.754; +0.785). Two subsets DO lift dom_bytes' CI above zero and are reported against our own verdict: excluding the single 4.78MB point (rho=+0.310, CI [+0.012,+0.560], n=53) and restricting to ITEM_DETAIL (rho=+0.520, CI [+0.111,+0.802], n=25). Both work by removing archetype heterogeneity, and in both dom_bytes remains clearly weaker than dom_interactive_n on the identical rows (0.310 vs 0.777; 0.520 vs 0.708). dom_interactive_n is the more stable variable in every one of the six subsets examined.",
+  "step10_counterexamples": {
+    "assertion_type": "OBSERVATION",
+    "dom_bytes": {
+      "verdict": "many counterexamples, both directions",
+      "small_but_rich": [
+        {
+          "dom_bytes": 16653.0,
+          "dom_element_n": 176.0,
+          "dom_interactive_n": 23.0,
+          "n_primary_action_candidates": 138.0,
+          "n_accessible_name_sources": 300.0,
+          "cap_any": 1.0
+        }
+      ],
+      "large_but_poor": [
+        {
+          "dom_bytes": 4778840.0,
+          "dom_element_n": 2051.0,
+          "dom_interactive_n": 24.0,
+          "n_primary_action_candidates": 17.0,
+          "n_accessible_name_sources": 53.0,
+          "cap_any": 0.0
+        },
+        {
+          "dom_bytes": 640321.0,
+          "dom_element_n": 373.0,
+          "dom_interactive_n": 6.0,
+          "n_primary_action_candidates": 5.0,
+          "n_accessible_name_sources": 10.0,
+          "cap_any": 0.0
+        },
+        {
+          "dom_bytes": 466333.0,
+          "dom_element_n": 216.0,
+          "dom_interactive_n": 13.0,
+          "n_primary_action_candidates": 8.0,
+          "n_accessible_name_sources": 15.0,
+          "cap_any": 0.0
+        }
+      ],
+      "note": "11beonga at 16.6KB (Q1 of dom_bytes) yields 138 primary actions and HITS the 300-cap on accessible-name sources; BAND at 4.78MB (287x larger) yields 17 and hits nothing. Instagram 640KB->5 and YouTube 466KB->8 are the same failure. Ordering by bytes inverts the ordering by richness across the whole upper range."
+    },
+    "dom_interactive_n": {
+      "verdict": "counterexamples EXIST and are diagnosable",
+      "found": [
+        {
+          "dom_bytes": 16653.0,
+          "dom_element_n": 176.0,
+          "dom_interactive_n": 23.0,
+          "n_primary_action_candidates": 138.0,
+          "n_accessible_name_sources": 300.0,
+          "cap_any": 1.0
+        },
+        {
+          "dom_bytes": 61156.0,
+          "dom_element_n": 249.0,
+          "dom_interactive_n": 28.0,
+          "n_primary_action_candidates": 155.0,
+          "n_accessible_name_sources": 265.0,
+          "cap_any": 0.0
+        },
+        {
+          "dom_bytes": 20481.0,
+          "dom_element_n": 144.0,
+          "dom_interactive_n": 1.0,
+          "n_primary_action_candidates": 11.0,
+          "n_accessible_name_sources": 25.0,
+          "cap_any": 0.0
+        },
+        {
+          "dom_bytes": 319292.0,
+          "dom_element_n": 1115.0,
+          "dom_interactive_n": 341.0,
+          "n_primary_action_candidates": 23.0,
+          "n_accessible_name_sources": 300.0,
+          "cap_any": 1.0
+        }
+      ],
+      "note": "The proxy fails on client-hydrated pages, where the served dom.html understates the live DOM: 11beonga 23 interactive -> 138 primary actions, Marketkurly 28 -> 155, Monimo 1 -> 11, all capture_ratio>1. It also fails in the opposite direction on Shinsegae (341 interactive -> 23 primary, ratio 0.067), where the visibility filter legitimately rejects most nodes. And it is 0 for both NH observations, where it is uninformative rather than merely wrong. So dom_interactive_n is a good RANK-level proxy, not a point predictor."
+    },
+    "capture_ratio": {
+      "verdict": "fails; see step7",
+      "found": [
+        {
+          "dom_bytes": 1455381.0,
+          "dom_element_n": 9352.0,
+          "dom_interactive_n": 1359.0,
+          "n_primary_action_candidates": 200.0,
+          "n_accessible_name_sources": 300.0,
+          "cap_any": 1.0,
+          "capture_ratio": 0.14716703458425312
+        },
+        {
+          "dom_bytes": 20481.0,
+          "dom_element_n": 144.0,
+          "dom_interactive_n": 1.0,
+          "n_primary_action_candidates": 11.0,
+          "n_accessible_name_sources": 25.0,
+          "cap_any": 0.0,
+          "capture_ratio": 11.0
+        }
+      ]
+    },
+    "probe_bytes": {
+      "verdict": "excluded as CIRCULAR, not as failed",
+      "rho": {
+        "n": 54,
+        "spearman_rho": 0.9542,
+        "spearman_p": 6.578e-29,
+        "kendall_tau_b": 0.8372,
+        "kendall_p": 8.421e-19,
+        "boot_ci95_lo": 0.8974,
+        "boot_ci95_hi": 0.9778,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "note": "probe_bytes~primary rho=+0.954 (CI95 [+0.895,+0.979], n=54) is the strongest number in the study and is NOT usable: probe_bytes is the serialized size of the very arrays being counted, so it restates the outcome. It is reported only to be ruled out."
+    },
+    "dom_body_text_len": {
+      "verdict": "fails",
+      "rho": {
+        "n": 54,
+        "spearman_rho": 0.1227,
+        "spearman_p": 0.3767,
+        "kendall_tau_b": 0.0784,
+        "kendall_p": 0.4069,
+        "boot_ci95_lo": -0.1901,
+        "boot_ci95_hi": 0.4159,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": false
+      },
+      "note": "rho=+0.123, CI95 [-0.195,+0.418], n=54. Visible text volume is unrelated to interactive richness -- a long article page and a dense commerce grid sit at opposite ends."
+    },
+    "counterexamples_to_our_own_refutation": {
+      "claim_tested": "dom_bytes never recovers a CI that excludes zero",
+      "status": "FALSIFIED by two subsets — reported against our own verdict",
+      "found": [
+        {
+          "subset": "ITEM_DETAIL only",
+          "n": 25,
+          "rho": 0.5197,
+          "ci95": [
+            0.1114,
+            0.8016
+          ],
+          "dom_interactive_n_same_subset_rho": 0.708,
+          "note": "Within one archetype dom_bytes DOES excludes zero."
+        },
+        {
+          "subset": "excluding the single 4.78MB point",
+          "n": 53,
+          "rho": 0.3102,
+          "ci95": [
+            0.0116,
+            0.5601
+          ],
+          "dom_interactive_n_same_subset_rho": 0.7772,
+          "note": "Dropping BAND lifts the CI marginally above zero."
+        }
+      ],
+      "interpretation": "These do NOT rescue dom_bytes as a general proxy, but they do sharpen WHY it fails. Both subsets work by removing archetype heterogeneity: ITEM_DETAIL is homogeneous commerce, and the dropped point is the single most extreme SPA shell. This is exactly the two-regime mechanism proposed in step4 -- pooling script-heavy shells with genuinely large commerce DOMs is what destroys monotonicity. In BOTH subsets dom_bytes remains clearly weaker than dom_interactive_n on the same rows (0.520 vs 0.708; 0.310 vs 0.777) and both CIs are very wide. So the verdict stands for the POOLED, cross-archetype use that production would actually make, and is qualified rather than reversed within a fixed archetype."
+    }
+  },
+  "step11_archetype": {
+    "assertion_type": "ANALYSIS",
+    "table": [
+      {
+        "prior_archetype": "ITEM_DETAIL",
+        "n": 25,
+        "dom_bytes_median": 132077.0,
+        "dom_interactive_median": 122.0,
+        "primary_median": 99.0,
+        "cap_any_hits": 11.0
+      },
+      {
+        "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+        "n": 9,
+        "dom_bytes_median": 78721.0,
+        "dom_interactive_median": 57.0,
+        "primary_median": 32.0,
+        "cap_any_hits": 1.0
+      },
+      {
+        "prior_archetype": "UTILITY_ENTRY",
+        "n": 5,
+        "dom_bytes_median": 156676.0,
+        "dom_interactive_median": 145.0,
+        "primary_median": 60.0,
+        "cap_any_hits": 0.0
+      },
+      {
+        "prior_archetype": "PLACE_LOOKUP",
+        "n": 4,
+        "dom_bytes_median": 97033.5,
+        "dom_interactive_median": 59.5,
+        "primary_median": 44.0,
+        "cap_any_hits": 0.0
+      },
+      {
+        "prior_archetype": "COMMUNICATION_ENTRY",
+        "n": 4,
+        "dom_bytes_median": 396006.0,
+        "dom_interactive_median": 49.0,
+        "primary_median": 23.5,
+        "cap_any_hits": 0.0
+      },
+      {
+        "prior_archetype": "QUERY",
+        "n": 4,
+        "dom_bytes_median": 538502.0,
+        "dom_interactive_median": 275.0,
+        "primary_median": 129.5,
+        "cap_any_hits": 2.0
+      },
+      {
+        "prior_archetype": "CONTENT_OPEN",
+        "n": 3,
+        "dom_bytes_median": 466333.0,
+        "dom_interactive_median": 34.0,
+        "primary_median": 11.0,
+        "cap_any_hits": 0.0
+      }
+    ],
+    "within_item_detail": {
+      "n": 25,
+      "dom_bytes": {
+        "n": 25,
+        "spearman_rho": 0.5197,
+        "spearman_p": 0.007754,
+        "kendall_tau_b": 0.3933,
+        "kendall_p": 0.006497,
+        "boot_ci95_lo": 0.1114,
+        "boot_ci95_hi": 0.8016,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      },
+      "dom_interactive_n": {
+        "n": 25,
+        "spearman_rho": 0.708,
+        "spearman_p": 7.515e-05,
+        "kendall_tau_b": 0.5715,
+        "kendall_p": 8.024e-05,
+        "boot_ci95_lo": 0.3362,
+        "boot_ci95_hi": 0.9183,
+        "boot_n_effective": 10000,
+        "boot_dropped": 0,
+        "ci_excludes_zero": true
+      }
+    },
+    "finding": "Cap-hits concentrate in ITEM_DETAIL (11 of 14 cap_any hits, n=25) and QUERY (2 of 14, n=4); CONTENT_OPEN and COMMUNICATION_ENTRY have the largest median dom_bytes (466KB, 396KB) but the lowest median primary actions (11, 23.5). Archetype, not size, tracks where censoring happens."
+  },
+  "proxy_scorecard": [
+    {
+      "candidate": "dom_bytes",
+      "definition": "byte size of served dom.html",
+      "computable": "yes, 54/54",
+      "observed_relation": "rho=+0.264 vs primary (CI95 [-0.024,+0.524], p=0.054); NON-MONOTONE: quintile medians 24/74/90/60/40",
+      "failure_case": "11beonga 16.6KB->138 primary; BAND 4.78MB->17 primary",
+      "recommendation": "UNUSABLE"
+    },
+    {
+      "candidate": "bytes_per_element",
+      "definition": "dom_bytes / dom_element_n",
+      "computable": "yes, 54/54",
+      "observed_relation": "rho=-0.275 vs primary (p=0.044) -- NEGATIVE, but bootstrap CI95 [-0.523,+0.008] marginally includes zero; suggestive only",
+      "failure_case": "not a richness measure; only separates SPA shells from real DOMs",
+      "recommendation": "CONDITIONAL — use as a bloat FLAG, never as a richness proxy"
+    },
+    {
+      "candidate": "dom_element_n",
+      "definition": "element count in dom.html",
+      "computable": "yes, 54/54",
+      "observed_relation": "rho=+0.707 (CI95 [+0.500,+0.847])",
+      "failure_case": "BAND 2051 elements -> 17 primary actions",
+      "recommendation": "CONDITIONAL — weaker than dom_interactive_n, no reason to prefer it"
+    },
+    {
+      "candidate": "dom_interactive_n",
+      "definition": "interactive-element count in dom.html",
+      "computable": "yes, 54/54",
+      "observed_relation": "rho=+0.780 vs primary (CI95 [+0.602,+0.896]); +0.846 vs accessible-name sources; quintile medians strictly increasing 11/31/50/74/200; stable across all 5 sensitivity subsets",
+      "failure_case": "client-hydrated pages (11beonga 23->138, Marketkurly 28->155, Monimo 1->11); ==0 for both NH observations",
+      "recommendation": "RECOMMENDED — best available proxy, rank-level only"
+    },
+    {
+      "candidate": "dom_a_href_n",
+      "definition": "anchor-with-href count",
+      "computable": "yes, 54/54",
+      "observed_relation": "rho=+0.761 vs primary, +0.837 vs accessible-name sources",
+      "failure_case": "same hydration failures as dom_interactive_n",
+      "recommendation": "CONDITIONAL — near-equivalent substitute, no advantage"
+    },
+    {
+      "candidate": "probe_bytes",
+      "definition": "byte size of probe payload",
+      "computable": "yes, 54/54",
+      "observed_relation": "rho=+0.954 (CI95 [+0.895,+0.979])",
+      "failure_case": "circular — serializes the arrays being counted",
+      "recommendation": "UNUSABLE (circular, not failed)"
+    },
+    {
+      "candidate": "ax_bytes / css_bytes",
+      "definition": "sizes of sibling artifacts",
+      "computable": "yes, 54/54",
+      "observed_relation": "ax rho=+0.734, css rho=+0.701 vs primary",
+      "failure_case": "partially circular for ax_bytes (accessibility tree overlaps the signals); css_bytes tracks framework weight, not page richness",
+      "recommendation": "NOT RECOMMENDED — ax_bytes semi-circular, css_bytes coincidental"
+    },
+    {
+      "candidate": "dom_body_text_len",
+      "definition": "visible text length",
+      "computable": "yes, 54/54",
+      "observed_relation": "rho=+0.123 (CI95 [-0.195,+0.418])",
+      "failure_case": "article pages long+sparse; commerce grids short+dense",
+      "recommendation": "UNUSABLE"
+    },
+    {
+      "candidate": "capture_ratio",
+      "definition": "n_primary_action_candidates / dom_interactive_n",
+      "computable": "NO — undefined for 2/54 (dom_interactive_n==0)",
+      "observed_relation": "median 0.571, range 0.067..11.0; rho vs dom_bytes -0.184 (ns); deflated by the cap it should detect",
+      "failure_case": "Costco 0.147 and Megacoffee 0.151 score worst BECAUSE they are richest; Monimo 11.0 reflects hydration, not capture",
+      "recommendation": "UNUSABLE as a scalar — decompose into a hydration flag (ratio>1) and a censoring flag (cap_any) instead"
+    },
+    {
+      "candidate": "cap_any",
+      "definition": "any probe array truncated",
+      "computable": "yes, 54/54",
+      "observed_relation": "14/54 hit; capped obs have median dom_interactive_n 395 vs 60 (A12=0.917, p=4.2e-06)",
+      "failure_case": "bidirectional meaning — marks richness AND information loss",
+      "recommendation": "CONDITIONAL — use as a CENSORING flag, not a quality score"
+    },
+    {
+      "candidate": "dom_title == probe_title",
+      "definition": "DOM/probe same-page-state check",
+      "computable": "yes but CONFOUNDED",
+      "observed_relation": "9/54 mismatch, 6 of which are mojibake",
+      "failure_case": "dom_title mis-decoded (Latin-1-supplement, zero Hangul) in 6/54",
+      "recommendation": "UNUSABLE until the dom_title encoding defect is fixed"
+    },
+    {
+      "candidate": "dom_body_empty==0 AND dom_interactive_n>0",
+      "definition": "minimal DOM-usability gate",
+      "computable": "yes, 54/54",
+      "observed_relation": "excludes exactly the 2 NH observations, the only rows where DOM and probe demonstrably describe different page states",
+      "failure_case": "does not detect partial hydration (11beonga passes the gate but its DOM still understates the live page 6-fold)",
+      "recommendation": "RECOMMENDED as a GATE (not a score), paired with dom_interactive_n"
+    }
+  ],
+  "verdict": {
+    "headline": "REFUTED (size-as-proxy) + PARTIALLY_SUPPORTED (a proxy exists)",
+    "components": [
+      {
+        "claim": "dom_bytes is a proxy for observation quality",
+        "verdict": "REFUTED",
+        "assertion_type": "ANALYSIS",
+        "basis": "Pooled across archetypes: rho=+0.264, n=54, bootstrap CI95 [-0.024,+0.524] includes zero, and the relation is non-monotone (inverted-U across quintiles: 24/74/90/60/40). Scope note: within the single archetype ITEM_DETAIL (n=25) dom_bytes does reach rho=+0.520 with CI [+0.111,+0.802], so the refutation applies to the POOLED, cross-archetype use production would make -- not to every conceivable stratum. Even there it is beaten by dom_interactive_n (+0.708)."
+      },
+      {
+        "claim": "some measurable proxy for signal richness exists",
+        "verdict": "PARTIALLY_SUPPORTED",
+        "assertion_type": "ANALYSIS",
+        "basis": "dom_interactive_n rho=+0.780 (CI95 [+0.602,+0.896], n=54), strictly monotone across quintiles, stable in all 5 sensitivity subsets — but with known hydration counterexamples and undefined value on empty-body DOMs, so rank-level only."
+      },
+      {
+        "claim": "capture ratio beats size as a proxy",
+        "verdict": "NOT_SUPPORTED",
+        "assertion_type": "ANALYSIS",
+        "basis": "undefined for 2/54, confounded by cap censoring and by hydration with opposite signs, and its numerator is a selective subset so its scale has no quality interpretation."
+      },
+      {
+        "claim": "cap-hit is distinguishable as richness vs information loss",
+        "verdict": "PARTIALLY_SUPPORTED / NOT_TESTABLE",
+        "assertion_type": "ANALYSIS",
+        "basis": "Richness cause is SUPPORTED via probe-independent DOM evidence (A12=0.917). Magnitude of information lost is NOT_TESTABLE from this table — dropped items are not stored; only a lower bound (1.72x-6.80x over cap) is derivable."
+      }
+    ]
+  },
+  "limitations": [
+    "n=54 targets. All CIs are wide; rho differences below ~0.15 are not resolvable.",
+    "bytes_per_element is reported as a mechanism illustration only: its bootstrap CI95 [-0.523,+0.008] includes zero despite p=0.044, so the 'markup bloat' account of WHY size fails is plausible but not established.",
+    "Single fixture/run per target (except 4 duplicated), so between-run variance is essentially unmeasured; the 4 pairs are directional only.",
+    "'Observation quality' is operationalised as SIGNAL RICHNESS (how much the probe recorded), which is NOT the same as measurement CORRECTNESS. Nothing here validates that recorded signals are accurate — that needs gold labels, deliberately not consulted for this RQ.",
+    "The richness outcome is itself right-censored at the caps in 14/54, which attenuates every rho reported against it; true |rho| values are likely larger.",
+    "The four probe signals are ~one latent dimension (off-diagonal rho >= 0.83; primary vs target_size rho=0.999), so the four columns are not four independent tests and multiplicity across them is not meaningful.",
+    "dom.html is the served response while the probe runs post-hydration; the two are not guaranteed to describe the same DOM, which caps how good any DOM-derived proxy can be in principle.",
+    "The refutation of dom_bytes is scoped to POOLED, cross-archetype use. Within ITEM_DETAIL (n=25) its CI excludes zero (rho=+0.520 [+0.111,+0.802]), as it does after dropping the single 4.78MB point (+0.310 [+0.012,+0.560]). Both CIs are wide and both remain below dom_interactive_n on the same rows, but a reader restricting to one archetype should not treat dom_bytes as pure noise.",
+    "Observational and cross-sectional. No causal claim is made or supported."
+  ],
+  "production_implications": [
+    "IMPLEMENTATION: do not use dom_bytes (or any artifact byte size) as a collection health check or triage sort key — it is non-monotone in richness and would rank BAND (4.78MB, 17 actions) above 11beonga (16.6KB, 138).",
+    "IMPLEMENTATION: gate on dom_body_empty==0 AND dom_interactive_n>0 before admitting an observation; this flags exactly the 2 NH rows where the DOM artifact and probe describe different page states.",
+    "IMPLEMENTATION: two distinct targets (NH Smart Banking, NH Kok Bank) produced byte-identical observations. De-duplicate on the measurement vector, not only on wtg, or they will double-count in any aggregate.",
+    "IMPLEMENTATION: dom_title is mis-decoded in 6/54 (Latin-1-supplement bytes, zero Hangul, while probe_title is correct). Fix charset handling at dom.html read time; until then no dom_title-based comparison is trustworthy.",
+    "IMPLEMENTATION: caps are hit by 14/54 and the DOM says 1.72x-6.80x more interactive elements exist than the 200-cap admits. Persist a 'truncated=true' flag plus the pre-truncation total alongside each array, so downstream consumers can distinguish 'exactly 200' from 'at least 200'.",
+    "IMPLEMENTATION: cap_accessible_name_sources (300) is the most-hit cap and the only signal with no visibility filter — consider applying the same filter as the other three so its cap-hits mean the same thing.",
+    "OBSERVATION: the 3 unreported truncation points (motion slice 3000, animated 60, endpoint innerText 4000 chars) are silent — cap_motion_animated_60 fires in 1/54 and cap_body_text_4000 in 7/54 here, so they are live, not theoretical, and belong in the same truncation-flag treatment."
+  ],
+  "further_research_questions": [
+    "Does dom_interactive_n predict conformance-judgement STABILITY (not just signal count)? Requires gold labels — out of scope here by design.",
+    "Re-run the capped observations with caps raised 5x: does the added tail change any conformance decision? That would convert the NOT_TESTABLE half of the cap question into a testable one.",
+    "Quantify hydration lag directly by capturing dom.html at probe time as well as at fetch time; capture_ratio>1 (4/54) is currently the only proxy for it.",
+    "With >=5 runs per target, estimate a proper test-retest reliability coefficient for each signal; the present 4 pairs only show exact agreement.",
+    "Is bytes_per_element a usable SPA/shell classifier in its own right? The top-8 bloat list is entirely media/SPA apps, which suggests a clean threshold."
+  ],
+  "figures": [
+    "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/figures/RQ_D9_dom_bytes_vs_signal.png",
+    "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/figures/RQ_D9_monotonicity.png",
+    "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/figures/RQ_D9_proxy_forest.png"
+  ]
+}

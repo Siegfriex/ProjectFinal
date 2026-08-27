@@ -181,6 +181,14 @@ def mantel_haenszel(strata: list) -> dict:
             "strata_used": usable}
 
 
+def acc_missing_records(caph) -> list:
+    sub = caph[caph["cap_accessible_name_sources"] != 1]
+    return [{"wtg": str(r["wtg"]), "prior_archetype": str(r["prior_archetype"]),
+             "dom_element_n": float(r["dom_element_n"]),
+             "n_accessible_name_sources": float(r["n_accessible_name_sources"]),
+             "cap_count": int(r["cap_count"])} for _, r in sub.iterrows()]
+
+
 def js(o):
     if isinstance(o, (np.integer,)):
         return int(o)
@@ -300,9 +308,13 @@ def main() -> dict:
             "primary_action_cap_hit_target_grain": f"{int((tgt[CAPS['primary_action_candidates']['flag']]==1).sum())}/{len(tgt)}",
         },
         "D_verdict_on_B": "REPRODUCED at observation grain (7/58). B's number is correct for the grain B used, but '/58' is 58 observations covering 54 distinct targets; the per-target rate is 7/54.",
-        "D_verdict_on_C_count": ("NOT REPRODUCED. No definition tried yields 8. Tried: flag==1 (7), n>=200 (7), n>200 (0), "
-                                 "n==200 (7), target grain (7/54), including the 2 probe_present==0 rows as non-hits (7/60), "
-                                 "counting all 66 raw rows (7/66). C's 8 is off by one against every reconstruction."),
+        "D_verdict_on_C_count": ("NOT REPRODUCED as a primary_action count. No cap-flag definition yields 8: flag==1 (7), "
+                                 "n>=200 (7), n>200 (0), n==200 (7), target grain (7/54), all 66 raw rows with NaN as 0 (7/66). "
+                                 "Two reconstructions do land on exactly 8 and are the likely origin of C's number: "
+                                 "(a) cap_contrast hits are 8/58 at the same grain, so C may have read the wrong cap column; "
+                                 "(b) a near-cap threshold of n>=180 gives 8/58, pulling in one unit at n=188 that was not "
+                                 "truncated. Both are transcription-level, not data-level, so D reports 7/58 (observation) "
+                                 "and 7/54 (target) as the value."),
         "definitions_tried_for_primary_action": {
             "flag_eq_1_obs58": int((obs[CAPS['primary_action_candidates']['flag']] == 1).sum()),
             "n_ge_200_obs58": int((obs[CAPS['primary_action_candidates']['n']] >= 200).sum()),
@@ -311,6 +323,7 @@ def main() -> dict:
             "flag_eq_1_all66_nan_as_0": int((raw[CAPS['primary_action_candidates']['flag']].fillna(0) == 1).sum()),
             "n_ge_190_obs58_near_cap": int((obs[CAPS['primary_action_candidates']['n']] >= 190).sum()),
             "n_ge_180_obs58_near_cap": int((obs[CAPS['primary_action_candidates']['n']] >= 180).sum()),
+            "cap_contrast_flag_eq_1_obs58_LOOKALIKE": int((obs[CAPS['contrast']['flag']] == 1).sum()),
         },
         "C_C-FINDING-212855_claim_2": "cap-hit 15 targets, prior ITEM_DETAIL 11/15 (73%) vs overall 43%",
         "D_on_C_claim_2": {
@@ -536,6 +549,8 @@ def main() -> dict:
             either = int(((obs[f1] == 1) | (obs[f2] == 1)).sum())
             co[f"{f1}|{f2}"] = {"both": both, "either": either, "jaccard": round(both / either, 4) if either else None}
     caph = obs[obs.cap_any == 1]
+    acc_hits = caph[caph["cap_accessible_name_sources"] == 1]
+    smallest = acc_hits.nsmallest(1, "dom_element_n") if len(acc_hits) else None
     out["cap_structure"] = {
         "grain": "observation_grain",
         "phi_matrix": {k: v for k, v in phi.to_dict().items()},
@@ -544,15 +559,52 @@ def main() -> dict:
         "binding_constraint": {
             "cap_hits_total": int(len(caph)),
             "of_which_hit_accessible_name_sources": int((caph["cap_accessible_name_sources"] == 1).sum()),
-            "of_which_hit_accessible_name_ONLY": int((caph["cap_count"] == 1).sum() and ((caph["cap_count"] == 1) & (caph["cap_accessible_name_sources"] == 1)).sum()),
+            "of_which_hit_accessible_name_ONLY": int(((caph["cap_count"] == 1) & (caph["cap_accessible_name_sources"] == 1)).sum()),
+            "of_which_hit_all_four": int((caph["cap_count"] == 4).sum()),
+            "cap_hits_NOT_hitting_accessible_name": acc_missing_records(caph),
             "statement": "accessible_name_sources (ceiling 300, the only cap with no visible filter) is the first cap to bite in almost every cap-hit unit; it is the binding constraint of the probe.",
         },
-        "smallest_dom_that_hit_accessible_name_cap": {
-            "wtg": str(caph.loc[caph.cap_accessible_name_sources == 1, "dom_element_n"].idxmin()) if (caph.cap_accessible_name_sources == 1).any() else None,
-            "dom_element_n": float(caph.loc[caph.cap_accessible_name_sources == 1, "dom_element_n"].min()) if (caph.cap_accessible_name_sources == 1).any() else None,
-            "note": "a unit can reach 300 name sources with far fewer DOM elements, because one element contributes several name sources; the no-visible-filter cap therefore does not track rendered page size cleanly.",
-        },
+        "smallest_dom_that_hit_accessible_name_cap": ({
+            "wtg": str(smallest.iloc[0]["wtg"]),
+            "prior_archetype": str(smallest.iloc[0]["prior_archetype"]),
+            "dom_element_n": float(smallest.iloc[0]["dom_element_n"]),
+            "dom_interactive_n": float(smallest.iloc[0]["dom_interactive_n"]),
+            "n_accessible_name_sources": float(smallest.iloc[0]["n_accessible_name_sources"]),
+            "note": "a unit can reach 300 name sources with far fewer DOM elements in the static dom.html snapshot, because the probe measures the rendered page and one element can contribute several name sources; the no-visible-filter cap therefore does not track static DOM size cleanly.",
+        } if smallest is not None else None),
         "assertion_type": "OBSERVATION",
+    }
+
+    # ---- sensitivity: drop the no-visible-filter cap ---------------------
+    vis_flags = [CAPS[k]["flag"] for k in ("primary_action_candidates", "target_size", "contrast")]
+    sens = {}
+    for grain, df in (("observation_grain", obs), ("target_grain_in_mart", tgt)):
+        any_vis = (df[vis_flags].fillna(0).sum(axis=1) > 0).astype(int)
+        idm = df["prior_archetype"] == "ITEM_DETAIL"
+        sens[grain] = fisher_block(int(any_vis[idm].sum()), int(idm.sum()),
+                                   int(any_vis[~idm].sum()), int((~idm).sum()),
+                                   f"ITEM_DETAIL vs rest — cap_any restricted to the 3 visible-filtered caps ({grain})")
+    out["sensitivity_visible_filtered_caps_only"] = {
+        "rationale": "accessible_name_sources is the only cap without a visible filter, so it can fire on offscreen/hidden subtrees. Dropping it tests whether the archetype signal is an artifact of that one cap.",
+        "results": sens,
+        "assertion_type": "ANALYSIS",
+    }
+
+    # ---- sensitivity: grain / pseudo-replication -------------------------
+    extra = obs[obs["in_mart"] == 0]
+    out["sensitivity_grain"] = {
+        "observation_minus_target_rows": int(len(extra)),
+        "those_rows_archetypes": extra["prior_archetype"].value_counts().to_dict(),
+        "those_rows_cap_any": {str(int(k)): int(v) for k, v in extra["cap_any"].value_counts().items()},
+        "effect": ("All 4 extra observation-grain rows are repeat runs of non-ITEM_DETAIL targets and all 4 are cap_any==0. "
+                   "They enter the observation-grain 2x2 only as extra no-cap units in the comparison group, which enlarges "
+                   "the apparent contrast without adding an independent target."),
+        "cap_any_fisher_p_target_grain": out["fisher_item_detail_vs_rest"]["target_grain_in_mart"]["cap_any"]["fisher_exact_p_two_sided"],
+        "cap_any_fisher_p_observation_grain": out["fisher_item_detail_vs_rest"]["observation_grain"]["cap_any"]["fisher_exact_p_two_sided"],
+        "conclusion": ("The direction and rough size of the effect are grain-invariant (RR 4.25 target vs 4.84 observation), "
+                       "but the p-value is not: pseudo-replication moves it across the 0.05 line region. The target grain is "
+                       "the honest one and is reported as canonical."),
+        "assertion_type": "ANALYSIS",
     }
 
     # ---- counterexample hunt --------------------------------------------
