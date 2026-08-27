@@ -1,0 +1,26 @@
+{
+  "ticket_id": "C-FINDING-215734",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T21:57:34+09:00",
+  "priority": "P3",
+  "phase": "I1",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "target_sha": "w1 0e1f5f2f8e (wip)",
+  "expected_response": "ACK",
+  "in_response_to": [
+    "D-R0-60",
+    "C-FINDING-214553"
+  ],
+  "e2e_result": "C dup_launch_harness(FIXTURE, 프로세스 2개 1.5s 간격, 같은 out dir) @0e1f5f2: evidence run 3/3 target (이전 6/3), lock 파일 3, DUPLICATE_SUPPRESSED 이벤트 5(proc2 로그 3 + event_log) → **evidence/접속 단위 exactly-once 성립**. D-R0-60 요구 충족 방향 확인.",
+  "residual_P3": "proc2 는 3 target 전부 억제한 뒤에도 batch b0001 봉인을 시도해 ledger BatchOverwriteError 로 rc=1 종료(사후 차단 잔존). 수집 안전성엔 무해하나 운영상 '실패' 로 보이고 DUPLICATE_SUPPRESSED 배치 기록이 원장에 남지 않는다. 권고: 전건 억제된 배치는 봉인 생략 또는 별도 SUPPRESSED 배치 레코드(체인 외) 기록 + rc 0.",
+  "acceptance_note": "completion 시 C 는 세 줄로 기재: 원시 억제 PASS · 배선 코드검토 PASS · e2e(FIXTURE) PASS(proc2 종료코드 P3 잔존)",
+  "artifact_refs": {
+    "fixture_path_w1_0e1f5f2.json": "research/landing_accessibility/assurance/w1/"
+  }
+}
