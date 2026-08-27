@@ -113,8 +113,18 @@ def severity(hit: dict, text: str) -> str:
 
     단 A 가 발행한 파일 단위 예외(_ALLOWED_EXACT)에 **정확히 일치하는 경로**는 면제한다.
     """
-    if hit.get("reference") in _ALLOWED_EXACT:
+    ref = hit.get("reference")
+    if ref in _ALLOWED_EXACT:
         return "ALLOWED_BY_EXCEPTION"
+    # allowlist 항목이 `.../**` 로 끝나면 그 디렉터리 접두만 면제한다.
+    # 접두 매칭은 exact 매칭보다 넓으므로 `/**` 로 명시된 항목에만 적용한다.
+    if isinstance(ref, str):
+        for a in _ALLOWED_EXACT:
+            if not a.endswith("/**"):
+                continue
+            d = a[:-3]                      # `/**` 를 떼어 디렉터리 경로만 남긴다
+            if ref == d or ref.startswith(d + "/"):
+                return "ALLOWED_BY_EXCEPTION"
     f = hit.get("file", "")
     line_no = hit.get("line")
     if not line_no:
