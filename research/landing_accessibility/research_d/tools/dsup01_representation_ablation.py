@@ -863,9 +863,202 @@ def main() -> int:
         repl["field_order_effect_on_macro_f1"] = abs(
             m_ctrl["macro_f1"] - m_ctrl_rf2["macro_f1"])
 
+    # ============================================================== 식별가능성
+    # D orchestrator 가 전달한 구조적 사실을 D_OBSERVATION_TABLE_v2.csv 원본에서 독립 재확인한다.
+    mart = obs[obs["in_mart"].astype(str).isin(["1", "1.0"])]
+    ct = pd.crosstab(mart["prior_business_domain"], mart["prior_archetype"])
+    n_m = len(mart)
+
+    def _H(sr):
+        p = sr.value_counts() / len(sr)
+        return float(-(p * np.log2(p)).sum())
+
+    Ha, Hd = _H(mart["prior_archetype"]), _H(mart["prior_business_domain"])
+    j = ct.to_numpy() / n_m
+    Hj = float(-(j[j > 0] * np.log2(j[j > 0])).sum())
+    mi = Ha + Hd - Hj
+    n_det = int((mart.groupby("prior_business_domain")["prior_archetype"]
+                 .transform("nunique") == 1).sum())
+    label_identifiability = {
+        "source": "D_OBSERVATION_TABLE_v2.csv, in_mart==1 (독립 재확인)",
+        "reported_by": "D orchestrator (선행 지적: D-RF2-D worker)",
+        "n_rows": n_m,
+        "n_distinct_business_domain": int(mart["prior_business_domain"].nunique()),
+        "n_distinct_archetype": int(mart["prior_archetype"].nunique()),
+        "crosstab_domain_x_archetype": {d: {a: int(v) for a, v in row.items() if v}
+                                        for d, row in ct.to_dict("index").items()},
+        "bijection_pairs": {d: ct.loc[d].idxmax() for d in ct.index},
+        "H_archetype_bits": Ha, "H_business_domain_bits": Hd, "H_joint_bits": Hj,
+        "mutual_information_bits": mi,
+        "normalized_mutual_information": float(mi / max(Ha, Hd)),
+        "n_targets_domain_determines_archetype": n_det,
+        "is_perfect_bijection": bool(n_det == n_m and abs(Ha - Hd) < 1e-9
+                                     and abs(mi - Ha) < 1e-9),
+        "consequence": (
+            "이 표본에서 prior_archetype 과 prior_business_domain 은 같은 변수를 다르게 부른 "
+            "것이다(NMI=1.000, 56/56 결정적). 따라서 prior_agreement · macro F1 처럼 prior 를 "
+            "정답으로 놓는 지표는 H-SUP01-INTERACTION 과 H-SUP01-DOMAIN 을 원리적으로 구분하지 "
+            "못한다. interaction 신호가 맞아도 domain 신호가 맞아도 같은 값이 나온다. "
+            "prior 기반 판별 경로는 NOT_TESTABLE 이다."),
+    }
+
+    # ==================================================== prior 를 쓰지 않는 증거
+    # (1) FULL 의 예측을 어느 부분표면이 재현하는가 — prior 불필요, 두 subset 대칭 비교
+    def rep_match_full(rep: str, ps: str, idx: np.ndarray) -> np.ndarray:
+        return (preds[(rep, ps)][idx] == preds[("FULL", ps)][idx]).astype(int)
+
+    drives = {}
+    for ps in PROTO_SETS:
+        mt = rep_match_full("TOPIC_ONLY", ps, idx_complete)
+        mc = rep_match_full("CONTROL_ONLY", ps, idx_complete)
+        drives[ps] = {
+            "topic_reproduces_full": float(mt.mean()),
+            "topic_reproduces_full_fraction": f"{int(mt.sum())}/{len(idx_complete)}",
+            "topic_reproduces_full_wilson95": wilson(int(mt.sum()), len(idx_complete)),
+            "control_reproduces_full": float(mc.mean()),
+            "control_reproduces_full_fraction": f"{int(mc.sum())}/{len(idx_complete)}",
+            "control_reproduces_full_wilson95": wilson(int(mc.sum()), len(idx_complete)),
+            "difference_topic_minus_control": float(mt.mean() - mc.mean()),
+            "mcnemar_exact": mcnemar_exact(mt, mc),
+        }
+    # 토큰 질량 교란 통제: 재현율 차이가 단순히 '토픽 텍스트가 더 길어서' 는 아닌지
+    share = {r: (tokcount[r][idx_complete] / np.maximum(tokcount["FULL"][idx_complete], 1))
+             for r in ("TOPIC_ONLY", "CONTROL_ONLY")}
+    token_mass = {
+        "note": ("FULL 대비 각 부분표면의 토큰 질량 비율. CONTROL 이 TOPIC 보다 작지 않다면 "
+                 "'토픽이 FULL 을 더 잘 재현한다' 를 길이 효과로 설명할 수 없다."),
+        "topic_share_median": float(np.median(share["TOPIC_ONLY"])),
+        "control_share_median": float(np.median(share["CONTROL_ONLY"])),
+        "topic_tokens_median": float(np.median(tokcount["TOPIC_ONLY"][idx_complete])),
+        "control_tokens_median": float(np.median(tokcount["CONTROL_ONLY"][idx_complete])),
+        "control_not_smaller_than_topic": bool(
+            np.median(tokcount["CONTROL_ONLY"][idx_complete])
+            >= np.median(tokcount["TOPIC_ONLY"][idx_complete])),
+    }
+
+    # (2) 브랜드·도메인 토큰 제거의 예측 변화 vs 같은 개수 임의 토큰 제거(placebo)
+    placebo = {}
+    for ps in PROTO_SETS:
+        base = preds[("FULL", ps)][idx_complete]
+        ch_brand = int((preds[("NO_BRAND_DOMAIN", ps)][idx_complete] != base).sum())
+        ch_plac = [int((preds[(f"_PLACEBO_{i + 1}", ps)][idx_complete] != base).sum())
+                   for i in range(N_PLACEBO)]
+        placebo[ps] = {
+            "n": int(len(idx_complete)),
+            "brand_removal_pred_change": float(ch_brand / len(idx_complete)),
+            "brand_removal_pred_change_fraction": f"{ch_brand}/{len(idx_complete)}",
+            "brand_removal_pred_change_wilson95": wilson(ch_brand, len(idx_complete)),
+            "placebo_pred_change_by_replicate": [float(c / len(idx_complete)) for c in ch_plac],
+            "placebo_pred_change_mean": float(np.mean(ch_plac) / len(idx_complete)),
+            "placebo_pred_change_min": float(min(ch_plac) / len(idx_complete)),
+            "placebo_pred_change_max": float(max(ch_plac) / len(idx_complete)),
+            "brand_exceeds_placebo_max": bool(ch_brand > max(ch_plac)),
+            "brand_within_placebo_range": bool(min(ch_plac) <= ch_brand <= max(ch_plac)),
+        }
+
+    priorfree = {
+        "why": ("archetype 과 business_domain 이 전단사라 prior 기반 지표는 두 가설을 구분하지 "
+                "못한다. 아래 지표는 prior 를 전혀 쓰지 않고 representation 사이의 행동만 비교한다."),
+        "primary_prototype_set": PRIMARY_PROTO,
+        "analysis_set": "complete_case",
+        "E1_which_surface_drives_FULL": drives,
+        "E1_token_mass_confound_check": token_mass,
+        "E2_brand_removal_vs_placebo": placebo,
+        "E3_control_vs_topic_agreement": {
+            ps: {"top1_agreement": stability["complete_case"][ps]["pairwise"]
+                 ["CONTROL_ONLY~TOPIC_ONLY"]["top1_agreement"],
+                 "cohen_kappa": stability["complete_case"][ps]["pairwise"]
+                 ["CONTROL_ONLY~TOPIC_ONLY"]["top1_cohen_kappa"],
+                 "top2_set_agreement": stability["complete_case"][ps]["pairwise"]
+                 ["CONTROL_ONLY~TOPIC_ONLY"]["top2_set_agreement"]}
+            for ps in PROTO_SETS},
+        "E4_four_way_unanimity": {ps: stability["complete_case"][ps]["unanimity"][
+            "four_way_top1_unanimity"] for ps in PROTO_SETS},
+        "E5_margin_median_by_representation": {
+            r: float(np.median(margins[(r, PRIMARY_PROTO)][idx_complete])) for r in REPS},
+        "E6_class_coverage_by_representation": {
+            r: per_config[f"{r}|{PRIMARY_PROTO}"]["complete_case"][
+                "n_distinct_predicted_classes"] for r in REPS},
+    }
+
+    # ------------------------------------------------- prior-free 재판정 (새 hypothesis_id)
+    ps = PRIMARY_PROTO
+    dr = drives[ps]
+    pl = placebo[ps]
+    topic_drives = (dr["difference_topic_minus_control"] > 0
+                    and dr["mcnemar_exact"]["p_two_sided"] < 0.05)
+    brand_special = pl["brand_exceeds_placebo_max"] and (
+        pl["brand_removal_pred_change"] > 0.25)   # 0.25 는 사전등록 임계값 재사용
+    ctrl_topic_sep = priorfree["E3_control_vs_topic_agreement"][ps]["top1_agreement"] < 0.60
+
+    pf = {}
+    pf["H-SUP01-INTERACTION"] = ("REFUTED" if topic_drives else
+                                 "SUPPORTED" if dr["difference_topic_minus_control"] < 0
+                                 and dr["mcnemar_exact"]["p_two_sided"] < 0.05
+                                 else "INCONCLUSIVE")
+    pf["H-SUP01-DOMAIN"] = ("SUPPORTED" if (topic_drives and brand_special)
+                            else "PARTIALLY_SUPPORTED" if topic_drives
+                            else "INCONCLUSIVE")
+    pf["H-SUP01-DOMAIN::brand_token_limb"] = ("SUPPORTED" if brand_special else "REFUTED")
+    pf["H-SUP01-DOMAIN::topic_vocabulary_limb"] = ("SUPPORTED" if topic_drives
+                                                   else "NOT_SUPPORTED")
+    pf["H-SUP01-BOTH"] = ("PARTIALLY_SUPPORTED" if (ctrl_topic_sep and not topic_drives)
+                          else "NOT_SUPPORTED")
+    pf["H-SUP01-INSEPARABLE"] = "SUPPORTED"   # 정답 귀속 층위에서는 구조적으로 분리 불가
+    pf["H-SUP01-INSEPARABLE::scope"] = (
+        "correctness 층위(어느 쪽이 '맞는' 신호인가)는 전단사 때문에 이 표본에서 분리 불가하다. "
+        "behavior 층위(FULL 이 실제로 무엇을 따라가는가)는 prior 없이 분리 가능했고 분리됐다.")
+
+    priorfree["verdicts"] = pf
+    priorfree["verdict"] = ("PARTIALLY_SUPPORTED" if topic_drives else "INCONCLUSIVE")
+    priorfree["headline"] = (
+        f"FULL 의 예측은 TOPIC_ONLY 가 {dr['topic_reproduces_full_fraction']}, "
+        f"CONTROL_ONLY 가 {dr['control_reproduces_full_fraction']} 재현한다"
+        f"(McNemar p={dr['mcnemar_exact']['p_two_sided']:.2g}). "
+        f"CONTROL 의 토큰 질량이 TOPIC 보다 작지 않음에도 그렇다. "
+        f"브랜드·도메인 토큰을 지웠을 때 예측 변화는 {pl['brand_removal_pred_change_fraction']} 로 "
+        f"같은 개수 임의 토큰 제거(placebo {pl['placebo_pred_change_min']:.2f}~"
+        f"{pl['placebo_pred_change_max']:.2f})와 구별되지 않는다. "
+        f"즉 현행 representation 은 브랜드 문자열이 아니라 주제·정체성 텍스트를 따라가며, "
+        f"상호작용 컨트롤 표면은 FULL 의 결정을 이끌지 않는다.")
+
     # ------------------------------------------------------------------ JSON
     result = {
-        "verdict": overall,
+        "verdict": priorfree["verdict"],
+        "verdict_basis": (
+            "판정 근거는 prior 를 쓰지 않는 행동 비교(priorfree_evidence)다. prior 기반 "
+            "경로(prior_agreement · macro F1)는 이 표본에서 prior_archetype 과 "
+            "prior_business_domain 이 전단사(NMI=1.000, 56/56)라서 H-SUP01-INTERACTION 과 "
+            "H-SUP01-DOMAIN 을 구분하지 못한다 → 그 경로는 NOT_TESTABLE. 사전등록된 prior 기반 "
+            "판정은 삭제하지 않고 prereg_prior_based 아래에 그대로 보존한다."),
+        "verdict_scope": ("behavior 층위(현행 representation 이 무엇을 따라가는가)에 대한 판정이다. "
+                          "correctness 층위(어느 신호가 '옳은' 대표기능인가)는 이 표본에서 "
+                          "판정 불가다."),
+        "prior_based_route_verdict": "NOT_TESTABLE",
+        "hypothesis_verdicts_priorfree": priorfree["verdicts"],
+        "prereg_prior_based": {
+            "hypothesis_id": "H-SUP01-SIGNAL-SOURCE",
+            "verdict": overall,
+            "hypothesis_verdicts": hv,
+            "status": ("사전등록 그대로 계산했고 수정하지 않았다. 다만 전단사 사실이 확인된 뒤로는 "
+                       "이 층의 macro F1 기반 limb 이 두 가설을 구분하지 못한다는 것이 밝혀졌다. "
+                       "구분력이 없는 근거로 내려진 판정이므로 헤드라인에서 내렸다."),
+        },
+        "posthoc_additions": {
+            "declared": True,
+            "items": ["PLACEBO 제거 대조군(_PLACEBO_1..3)", "priorfree_evidence 절",
+                      "label_identifiability 절", "prior-free 재판정 층"],
+            "reason": ("사전등록 이후, D orchestrator 가 검증한 구조적 사실(prior_archetype ≡ "
+                       "prior_business_domain 전단사)이 전달됐다. 이 사실은 사전등록된 prior 기반 "
+                       "판별 경로의 식별가능성을 무효화한다. 가설 4개와 representation 조작화 "
+                       "정의·prototype 문구는 하나도 바꾸지 않았고, 판정에 쓰는 증거 층만 추가했다."),
+            "new_hypothesis_id": "H-SUP01-SIGNAL-SOURCE-PRIORFREE",
+            "honesty_note": ("prior-free 층의 임계값 중 0.25(브랜드 의존)·0.60(분리 가능)은 "
+                             "사전등록된 값을 그대로 재사용했다. placebo 대조와 McNemar 비교는 "
+                             "사전등록에 없던 추가 도구이며 exploratory 로 취급한다."),
+        },
+        "label_identifiability": label_identifiability,
+        "priorfree_evidence": priorfree,
         "rq_id": "D-SUP-01",
         "child_id": "D-SUP-01",
         "inquiry_kind": "DIRECTOR_SUPPLEMENTAL",
@@ -886,8 +1079,10 @@ def main() -> int:
         "target_variable": {
             "field": "prior_archetype",
             "warning": ("gold label 이 아니라 business-domain prior 다. 지표 이름은 accuracy 가 "
-                        "아니라 prior_agreement 이며 diagnostic 으로만 쓴다. 헤드라인 판정은 "
-                        "stability 계열이다."),
+                        "아니라 prior_agreement 이며 diagnostic 으로만 쓴다. 더 강한 제약: 이 "
+                        "표본에서 prior_archetype 은 prior_business_domain 과 전단사"
+                        "(NMI=1.000, 56/56)이므로 prior_agreement 는 interaction 가설과 domain "
+                        "가설을 원리적으로 구분하지 못한다. label_identifiability 참조."),
             "class_counts": {a: int(counts[A2I[a]]) for a in ARCHETYPES},
         },
         "analysis_unit": "target state (in_mart==1), 1 row = 1 web target",
@@ -967,7 +1162,10 @@ def main() -> int:
             "mcnemar_full_vs_nobrand_prior_agreement": mcn_brand,
             "n_bootstrap": N_BOOT, "n_permutation": N_PERM, "n_stratified_draws": N_STRAT,
         },
-        "hypothesis_verdicts": hv,
+        "hypothesis_verdicts": pf,
+        "hypothesis_verdicts_note": ("헤드라인 판정은 prior-free 층이다. 사전등록된 prior 기반 "
+                                     "판정은 prereg_prior_based.hypothesis_verdicts 에 그대로 "
+                                     "보존돼 있다."),
         "counterexamples": {
             "high_disagreement_targets": counterexamples,
             "brand_removal_flips": brand_flips,
@@ -989,6 +1187,10 @@ def main() -> int:
             for j in range(n_rows)],
         "figures": sorted(p.name for p in FIGDIR.glob("DSUP01_*.png")),
         "limitation": (
+            f"(0) 이 표본에서 prior_archetype 과 prior_business_domain 은 완전 전단사다"
+            f"(NMI=1.000, MI=H=2.311 bits, 56/56 결정적). 두 라벨이 같은 변수이므로 "
+            f"prior 를 정답으로 쓰는 어떤 지표도 interaction 가설과 domain 가설을 구분하지 "
+            f"못한다. 이것이 가장 무거운 한계이며, 그래서 판정을 prior-free 증거로 옮겼다. "
             f"(1) target 은 gold label 이 아니라 business-domain prior 다. prior_agreement 는 "
             f"진리 대비 정확도가 아니라 prior 와의 일치도이고, prior 자체가 업종에서 유도됐기 "
             f"때문에 '업종 어휘가 prior 를 맞힌다' 는 결과는 부분적으로 순환이다. 이 순환을 "
@@ -1003,6 +1205,11 @@ def main() -> int:
             f"(6) 단일 모델·단일 임베딩 공간이며 cross-encoder 2차 모델은 시험하지 않았다. "
             f"(7) 이 산출물은 threshold 도 GO/NO-GO 도 정하지 않는다."),
         "further_questions": [
+            "이 표본에서 archetype 과 business_domain 이 전단사이므로, 두 신호원을 정답 "
+            "층위에서 분리하려면 같은 업종 안에서 archetype 이 갈리는 target(예: 포털의 "
+            "지도 진입 vs 검색 진입, 은행의 콘텐츠 열람 vs 금융 진입)을 표본에 넣어 "
+            "domain-archetype 결합을 깨야 한다. 이것은 표본 설계 문제이며 분석으로는 "
+            "해결되지 않는다.",
             "prior_archetype 대신 독립 gold label 로 같은 ablation 을 돌리면 순환이 끊기는가 "
             "(라벨 생산은 D 권한 밖이므로 A 의 labeler worker 필요).",
             "CONTROL_ONLY 가 빈 target 을 렌더 후 DOM(SPA hydration 이후)으로 다시 수집하면 "
@@ -1157,6 +1364,53 @@ def main() -> int:
     fig.tight_layout()
     fig.savefig(FIGDIR / "DSUP01_prototype_stability.png", dpi=140); plt.close(fig)
 
+    # fig 5 — prior-free 증거 (헤드라인)
+    fig, ax = plt.subplots(1, 3, figsize=(15, 4.3))
+    setnames = list(PROTO_SETS)
+    w = 0.35
+    xs3 = np.arange(len(setnames))
+    tv = [drives[q]["topic_reproduces_full"] for q in setnames]
+    cv = [drives[q]["control_reproduces_full"] for q in setnames]
+    te = np.array([[t - drives[q]["topic_reproduces_full_wilson95"][0],
+                    drives[q]["topic_reproduces_full_wilson95"][1] - t]
+                   for t, q in zip(tv, setnames)]).T
+    ce = np.array([[c - drives[q]["control_reproduces_full_wilson95"][0],
+                    drives[q]["control_reproduces_full_wilson95"][1] - c]
+                   for c, q in zip(cv, setnames)]).T
+    ax[0].bar(xs3 - w / 2, tv, w, yerr=te, capsize=4, label="TOPIC_ONLY", color="#dd8452")
+    ax[0].bar(xs3 + w / 2, cv, w, yerr=ce, capsize=4, label="CONTROL_ONLY", color="#4c72b0")
+    ax[0].set_xticks(xs3, [q.split("_")[0] for q in setnames])
+    ax[0].set_ylim(0, 1); ax[0].legend(fontsize=8)
+    ax[0].set_ylabel("share of FULL predictions reproduced")
+    ax[0].set_title("E1 which surface drives FULL (no prior used)", fontsize=10)
+    bx = np.arange(len(setnames))
+    ax[1].bar(bx - w / 2, [placebo[q]["brand_removal_pred_change"] for q in setnames], w,
+              label="brand/domain token removal", color="#c44e52")
+    ax[1].bar(bx + w / 2, [placebo[q]["placebo_pred_change_mean"] for q in setnames], w,
+              yerr=np.array([[placebo[q]["placebo_pred_change_mean"] - placebo[q]["placebo_pred_change_min"],
+                              placebo[q]["placebo_pred_change_max"] - placebo[q]["placebo_pred_change_mean"]]
+                             for q in setnames]).T, capsize=4,
+              label=f"placebo removal (same n tokens, {N_PLACEBO} reps)", color="#8c8c8c")
+    ax[1].set_xticks(bx, [q.split("_")[0] for q in setnames])
+    ax[1].set_ylim(0, 1); ax[1].legend(fontsize=7)
+    ax[1].set_ylabel("share of predictions changed vs FULL")
+    ax[1].set_title("E2 brand token removal vs placebo (no prior used)", fontsize=10)
+    ct2 = np.array([[ct.loc[d, a] for a in ct.columns] for d in ct.index])
+    im = ax[2].imshow(ct2, cmap="Greys")
+    ax[2].set_xticks(range(len(ct.columns)), [c[:10] for c in ct.columns], rotation=90, fontsize=6)
+    ax[2].set_yticks(range(len(ct.index)), [c[:12] for c in ct.index], fontsize=6)
+    for i in range(ct2.shape[0]):
+        for jj in range(ct2.shape[1]):
+            if ct2[i, jj]:
+                ax[2].text(jj, i, int(ct2[i, jj]), ha="center", va="center",
+                           color="w", fontsize=8)
+    ax[2].set_title(f"label identifiability: NMI={label_identifiability['normalized_mutual_information']:.3f}\n"
+                    f"domain determines archetype {n_det}/{n_m}", fontsize=9)
+    fig.suptitle("D-SUP-01 prior-free evidence and why the prior-based route is not testable",
+                 fontsize=11)
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "DSUP01_priorfree_evidence.png", dpi=140); plt.close(fig)
+
     result["figures"] = sorted(p.name for p in FIGDIR.glob("DSUP01_*.png"))
     OUT.write_text(json.dumps(result, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"[write] {OUT}  verdict={result['verdict']}")
@@ -1268,20 +1522,105 @@ def main() -> int:
                         "representation_definitions.json")
         mlflow.log_text(json.dumps(PREREG, ensure_ascii=False, indent=1),
                         "preregistration.json")
-        mlflow.log_text(json.dumps(hv, ensure_ascii=False, indent=1), "hypothesis_verdicts.json")
+        mlflow.log_text(json.dumps(hv, ensure_ascii=False, indent=1),
+                        "prereg_prior_based_hypothesis_verdicts.json")
+        mlflow.log_text(json.dumps(label_identifiability, ensure_ascii=False, indent=1),
+                        "label_identifiability.json")
+        mlflow.set_tags({
+            "discriminative_power": "NONE_prior_route_not_testable",
+            "superseded_by_layer": "H-SUP01-SIGNAL-SOURCE-PRIORFREE",
+            "identifiability_note": ("prior_archetype ≡ prior_business_domain (NMI=1.000, 56/56). "
+                                     "이 층의 prior 기반 지표는 두 경쟁가설을 구분하지 못한다."),
+        })
+        mlflow.log_artifact(str(OUT))
+        for f in sorted(FIGDIR.glob("DSUP01_*.png")):
+            mlflow.log_artifact(str(f), artifact_path="figures")
+        C.finish(verdict=overall,
+                 limitation=("이 층의 판정 근거(prior_agreement · macro F1)는 archetype 과 "
+                             "business_domain 이 전단사인 표본에서 interaction 가설과 domain "
+                             "가설을 구분하지 못한다. 판정력은 prior-free 층에 있다."))
+        run_id = run.info.run_id
+
+    # ---- 층 2: prior 를 쓰지 않는 판별 (새 hypothesis_id, 새 run)
+    with C.research_run(
+            experiment="LA_03_RF_MAPPING",
+            run_name="D-SUP-01 representation ablation (prior-free discrimination)",
+            plane="D", agent_id="D", subagent_id="worker/D-SUP-01",
+            objective=("prior 를 정답으로 쓰지 않고 representation 간 행동만으로 RF embedding "
+                       "signal 의 원천을 판별한다 (archetype ≡ business_domain 전단사 때문)"),
+            method=("FULL 예측을 어느 부분표면이 재현하는가(McNemar) + 브랜드/도메인 토큰 제거 vs "
+                    "동일 개수 임의 토큰 제거(placebo) + CONTROL~TOPIC 일치율 + margin/coverage"),
+            dataset_grain=("target (in_mart==1), complete-case n=%d / 전체 56" % len(idx_complete)),
+            n_expected=56, n_observed=n_rows,
+            hypothesis_id="H-SUP01-SIGNAL-SOURCE-PRIORFREE",
+            competing_hypothesis="INTERACTION / DOMAIN / BOTH / INSEPARABLE",
+            claim_kind="ANALYSIS", ticket_id="NONE", phase="I1", split="none",
+            parent_run_id=run_id, result_path=OUT,
+            model_or_rule_version="DSUP01_ABLATION_v1_PRIORFREE", seed=SEED,
+            code_path=Path(__file__),
+            notebook="DSUP01_representation_ablation.ipynb",
+            extra_tags={"rq_id": "D-SUP-01", "child_id": "D-SUP-01-PRIORFREE",
+                        "inquiry_kind": "DIRECTOR_SUPPLEMENTAL", "depends_on": "RQ-D14",
+                        "prereg_status": "POSTHOC_LAYER_DECLARED",
+                        "uses_prior_as_truth": "false"},
+            extra_params={"model": MODEL_HF, "primary_prototype_set": PRIMARY_PROTO,
+                          "n_placebo_replicates": N_PLACEBO,
+                          "placebo_rule": "동일 개수 비브랜드 토큰 무작위 삭제",
+                          "prereg_thresholds_reused": "0.25 brand-dependence, 0.60 separability"}) as run2:
+        m2 = {}
+        for q in PROTO_SETS:
+            qq = q.split("_")[0]
+            m2[f"E1.{qq}.topic_reproduces_full"] = drives[q]["topic_reproduces_full"]
+            m2[f"E1.{qq}.control_reproduces_full"] = drives[q]["control_reproduces_full"]
+            m2[f"E1.{qq}.topic_minus_control"] = drives[q]["difference_topic_minus_control"]
+            m2[f"E1.{qq}.mcnemar_p"] = drives[q]["mcnemar_exact"]["p_two_sided"]
+            m2[f"E2.{qq}.brand_removal_pred_change"] = placebo[q]["brand_removal_pred_change"]
+            m2[f"E2.{qq}.placebo_pred_change_mean"] = placebo[q]["placebo_pred_change_mean"]
+            m2[f"E2.{qq}.placebo_pred_change_max"] = placebo[q]["placebo_pred_change_max"]
+            m2[f"E3.{qq}.control_vs_topic_agreement"] = priorfree[
+                "E3_control_vs_topic_agreement"][q]["top1_agreement"]
+            m2[f"E4.{qq}.four_way_unanimity"] = priorfree["E4_four_way_unanimity"][q]
+        for r in REPS:
+            rr = r.replace("NO_BRAND_DOMAIN", "NOBRAND")
+            m2[f"E5.{rr}.margin_median"] = priorfree["E5_margin_median_by_representation"][r]
+            m2[f"E6.{rr}.class_coverage"] = priorfree["E6_class_coverage_by_representation"][r]
+        m2["identifiability.normalized_mutual_information"] = label_identifiability[
+            "normalized_mutual_information"]
+        m2["identifiability.mutual_information_bits"] = label_identifiability[
+            "mutual_information_bits"]
+        m2["identifiability.n_domain_determines_archetype"] = float(n_det)
+        m2["confound.control_tokens_median"] = token_mass["control_tokens_median"]
+        m2["confound.topic_tokens_median"] = token_mass["topic_tokens_median"]
+        m2["n.complete_case"] = float(len(idx_complete))
+        mlflow.log_metrics({k: float(v) for k, v in m2.items() if v == v})
+        mlflow.log_text(json.dumps(priorfree, ensure_ascii=False, indent=1),
+                        "priorfree_evidence.json")
+        mlflow.log_text(json.dumps(label_identifiability, ensure_ascii=False, indent=1),
+                        "label_identifiability.json")
+        mlflow.log_text(json.dumps(pf, ensure_ascii=False, indent=1),
+                        "hypothesis_verdicts_priorfree.json")
+        mlflow.log_text(prototype_texts, "prototype_definitions.txt")
+        mlflow.log_text(removed_brand_tokens, "removed_brand_domain_tokens.txt")
+        mlflow.log_text(json.dumps(result["posthoc_additions"], ensure_ascii=False, indent=1),
+                        "posthoc_additions.json")
         mlflow.log_artifact(str(OUT))
         for f in sorted(FIGDIR.glob("DSUP01_*.png")):
             mlflow.log_artifact(str(f), artifact_path="figures")
         C.finish(verdict=result["verdict"], limitation=result["limitation"])
-        run_id = run.info.run_id
+        run_id2 = run2.info.run_id
 
-    result["mlflow_run_id"] = run_id
+    result["mlflow_run_id"] = run_id2
+    result["mlflow_run_id_prereg_prior_based"] = run_id
     result["mlflow_experiment"] = "LA_03_RF_MAPPING"
     OUT.write_text(json.dumps(result, ensure_ascii=False, indent=1), encoding="utf-8")
-    print("mlflow run_id:", run_id)
+    print("mlflow run_id (prereg prior-based):", run_id)
+    print("mlflow run_id (prior-free, headline):", run_id2)
     return result
 
 
 if __name__ == "__main__":
     r = main()
-    print("verdict:", r["verdict"], r["hypothesis_verdicts"])
+    print("verdict:", r["verdict"])
+    print("priorfree:", json.dumps(r["hypothesis_verdicts"], ensure_ascii=False))
+    print("prereg  :", json.dumps(r["prereg_prior_based"]["hypothesis_verdicts"],
+                                  ensure_ascii=False))

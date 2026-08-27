@@ -1,5 +1,269 @@
 {
  "verdict": "PARTIALLY_SUPPORTED",
+ "verdict_basis": "판정 근거는 prior 를 쓰지 않는 행동 비교(priorfree_evidence)다. prior 기반 경로(prior_agreement · macro F1)는 이 표본에서 prior_archetype 과 prior_business_domain 이 전단사(NMI=1.000, 56/56)라서 H-SUP01-INTERACTION 과 H-SUP01-DOMAIN 을 구분하지 못한다 → 그 경로는 NOT_TESTABLE. 사전등록된 prior 기반 판정은 삭제하지 않고 prereg_prior_based 아래에 그대로 보존한다.",
+ "verdict_scope": "behavior 층위(현행 representation 이 무엇을 따라가는가)에 대한 판정이다. correctness 층위(어느 신호가 '옳은' 대표기능인가)는 이 표본에서 판정 불가다.",
+ "prior_based_route_verdict": "NOT_TESTABLE",
+ "hypothesis_verdicts_priorfree": {
+  "H-SUP01-INTERACTION": "REFUTED",
+  "H-SUP01-DOMAIN": "PARTIALLY_SUPPORTED",
+  "H-SUP01-DOMAIN::brand_token_limb": "REFUTED",
+  "H-SUP01-DOMAIN::topic_vocabulary_limb": "SUPPORTED",
+  "H-SUP01-BOTH": "NOT_SUPPORTED",
+  "H-SUP01-INSEPARABLE": "SUPPORTED",
+  "H-SUP01-INSEPARABLE::scope": "correctness 층위(어느 쪽이 '맞는' 신호인가)는 전단사 때문에 이 표본에서 분리 불가하다. behavior 층위(FULL 이 실제로 무엇을 따라가는가)는 prior 없이 분리 가능했고 분리됐다."
+ },
+ "prereg_prior_based": {
+  "hypothesis_id": "H-SUP01-SIGNAL-SOURCE",
+  "verdict": "PARTIALLY_SUPPORTED",
+  "hypothesis_verdicts": {
+   "H-SUP01-INTERACTION": "REFUTED",
+   "H-SUP01-DOMAIN": "PARTIALLY_SUPPORTED",
+   "H-SUP01-BOTH": "PARTIALLY_SUPPORTED",
+   "H-SUP01-INSEPARABLE": "PARTIALLY_SUPPORTED"
+  },
+  "status": "사전등록 그대로 계산했고 수정하지 않았다. 다만 전단사 사실이 확인된 뒤로는 이 층의 macro F1 기반 limb 이 두 가설을 구분하지 못한다는 것이 밝혀졌다. 구분력이 없는 근거로 내려진 판정이므로 헤드라인에서 내렸다."
+ },
+ "posthoc_additions": {
+  "declared": true,
+  "items": [
+   "PLACEBO 제거 대조군(_PLACEBO_1..3)",
+   "priorfree_evidence 절",
+   "label_identifiability 절",
+   "prior-free 재판정 층"
+  ],
+  "reason": "사전등록 이후, D orchestrator 가 검증한 구조적 사실(prior_archetype ≡ prior_business_domain 전단사)이 전달됐다. 이 사실은 사전등록된 prior 기반 판별 경로의 식별가능성을 무효화한다. 가설 4개와 representation 조작화 정의·prototype 문구는 하나도 바꾸지 않았고, 판정에 쓰는 증거 층만 추가했다.",
+  "new_hypothesis_id": "H-SUP01-SIGNAL-SOURCE-PRIORFREE",
+  "honesty_note": "prior-free 층의 임계값 중 0.25(브랜드 의존)·0.60(분리 가능)은 사전등록된 값을 그대로 재사용했다. placebo 대조와 McNemar 비교는 사전등록에 없던 추가 도구이며 exploratory 로 취급한다."
+ },
+ "label_identifiability": {
+  "source": "D_OBSERVATION_TABLE_v2.csv, in_mart==1 (독립 재확인)",
+  "reported_by": "D orchestrator (선행 지적: D-RF2-D worker)",
+  "n_rows": 56,
+  "n_distinct_business_domain": 7,
+  "n_distinct_archetype": 7,
+  "crosstab_domain_x_archetype": {
+   "CONTENT_VIDEO": {
+    "CONTENT_OPEN": 3
+   },
+   "FINANCE_PAYMENT": {
+    "FINANCIAL_ACTION_ENTRY": 10
+   },
+   "MAP_MOBILITY": {
+    "PLACE_LOOKUP": 4
+   },
+   "PORTAL_SEARCH": {
+    "QUERY": 4
+   },
+   "SHOPPING_COMMERCE": {
+    "ITEM_DETAIL": 26
+   },
+   "SOCIAL_COMMUNICATION": {
+    "COMMUNICATION_ENTRY": 4
+   },
+   "UTILITY_OTHER": {
+    "UTILITY_ENTRY": 5
+   }
+  },
+  "bijection_pairs": {
+   "CONTENT_VIDEO": "CONTENT_OPEN",
+   "FINANCE_PAYMENT": "FINANCIAL_ACTION_ENTRY",
+   "MAP_MOBILITY": "PLACE_LOOKUP",
+   "PORTAL_SEARCH": "QUERY",
+   "SHOPPING_COMMERCE": "ITEM_DETAIL",
+   "SOCIAL_COMMUNICATION": "COMMUNICATION_ENTRY",
+   "UTILITY_OTHER": "UTILITY_ENTRY"
+  },
+  "H_archetype_bits": 2.3110113221086346,
+  "H_business_domain_bits": 2.3110113221086346,
+  "H_joint_bits": 2.3110113221086346,
+  "mutual_information_bits": 2.3110113221086346,
+  "normalized_mutual_information": 1.0,
+  "n_targets_domain_determines_archetype": 56,
+  "is_perfect_bijection": true,
+  "consequence": "이 표본에서 prior_archetype 과 prior_business_domain 은 같은 변수를 다르게 부른 것이다(NMI=1.000, 56/56 결정적). 따라서 prior_agreement · macro F1 처럼 prior 를 정답으로 놓는 지표는 H-SUP01-INTERACTION 과 H-SUP01-DOMAIN 을 원리적으로 구분하지 못한다. interaction 신호가 맞아도 domain 신호가 맞아도 같은 값이 나온다. prior 기반 판별 경로는 NOT_TESTABLE 이다."
+ },
+ "priorfree_evidence": {
+  "why": "archetype 과 business_domain 이 전단사라 prior 기반 지표는 두 가설을 구분하지 못한다. 아래 지표는 prior 를 전혀 쓰지 않고 representation 사이의 행동만 비교한다.",
+  "primary_prototype_set": "A_SSOT_DEF",
+  "analysis_set": "complete_case",
+  "E1_which_surface_drives_FULL": {
+   "A_SSOT_DEF": {
+    "topic_reproduces_full": 0.72,
+    "topic_reproduces_full_fraction": "36/50",
+    "topic_reproduces_full_wilson95": [
+     0.5833487630067897,
+     0.8252582933608495
+    ],
+    "control_reproduces_full": 0.4,
+    "control_reproduces_full_fraction": "20/50",
+    "control_reproduces_full_wilson95": [
+     0.2760838972770309,
+     0.5381856225558603
+    ],
+    "difference_topic_minus_control": 0.31999999999999995,
+    "mcnemar_exact": {
+     "b_a_only": 21,
+     "b_b_only": 5,
+     "n_discordant": 26,
+     "p_two_sided": 0.002493917942047119
+    }
+   },
+   "B_USER_BEHAVIOR": {
+    "topic_reproduces_full": 0.78,
+    "topic_reproduces_full_fraction": "39/50",
+    "topic_reproduces_full_wilson95": [
+     0.6475845041534792,
+     0.8724608403144255
+    ],
+    "control_reproduces_full": 0.48,
+    "control_reproduces_full_fraction": "24/50",
+    "control_reproduces_full_wilson95": [
+     0.3479713528373154,
+     0.6148825511292628
+    ],
+    "difference_topic_minus_control": 0.30000000000000004,
+    "mcnemar_exact": {
+     "b_a_only": 18,
+     "b_b_only": 3,
+     "n_discordant": 21,
+     "p_two_sided": 0.0014896392822265625
+    }
+   },
+   "C_TERSE_LABEL": {
+    "topic_reproduces_full": 0.82,
+    "topic_reproduces_full_fraction": "41/50",
+    "topic_reproduces_full_wilson95": [
+     0.6920394632230499,
+     0.9022980733116982
+    ],
+    "control_reproduces_full": 0.48,
+    "control_reproduces_full_fraction": "24/50",
+    "control_reproduces_full_wilson95": [
+     0.3479713528373154,
+     0.6148825511292628
+    ],
+    "difference_topic_minus_control": 0.33999999999999997,
+    "mcnemar_exact": {
+     "b_a_only": 20,
+     "b_b_only": 3,
+     "n_discordant": 23,
+     "p_two_sided": 0.00048828125
+    }
+   }
+  },
+  "E1_token_mass_confound_check": {
+   "note": "FULL 대비 각 부분표면의 토큰 질량 비율. CONTROL 이 TOPIC 보다 작지 않다면 '토픽이 FULL 을 더 잘 재현한다' 를 길이 효과로 설명할 수 없다.",
+   "topic_share_median": 0.21461508778699595,
+   "control_share_median": 0.2212051163507474,
+   "topic_tokens_median": 31.0,
+   "control_tokens_median": 34.0,
+   "control_not_smaller_than_topic": true
+  },
+  "E2_brand_removal_vs_placebo": {
+   "A_SSOT_DEF": {
+    "n": 50,
+    "brand_removal_pred_change": 0.16,
+    "brand_removal_pred_change_fraction": "8/50",
+    "brand_removal_pred_change_wilson95": [
+     0.08337420676765053,
+     0.28514216066417947
+    ],
+    "placebo_pred_change_by_replicate": [
+     0.14,
+     0.14,
+     0.18
+    ],
+    "placebo_pred_change_mean": 0.15333333333333335,
+    "placebo_pred_change_min": 0.14,
+    "placebo_pred_change_max": 0.18,
+    "brand_exceeds_placebo_max": false,
+    "brand_within_placebo_range": true
+   },
+   "B_USER_BEHAVIOR": {
+    "n": 50,
+    "brand_removal_pred_change": 0.18,
+    "brand_removal_pred_change_fraction": "9/50",
+    "brand_removal_pred_change_wilson95": [
+     0.09770192668830174,
+     0.30796053677695
+    ],
+    "placebo_pred_change_by_replicate": [
+     0.16,
+     0.16,
+     0.16
+    ],
+    "placebo_pred_change_mean": 0.16,
+    "placebo_pred_change_min": 0.16,
+    "placebo_pred_change_max": 0.16,
+    "brand_exceeds_placebo_max": true,
+    "brand_within_placebo_range": false
+   },
+   "C_TERSE_LABEL": {
+    "n": 50,
+    "brand_removal_pred_change": 0.08,
+    "brand_removal_pred_change_fraction": "4/50",
+    "brand_removal_pred_change_wilson95": [
+     0.03154951408206917,
+     0.18838246921607382
+    ],
+    "placebo_pred_change_by_replicate": [
+     0.12,
+     0.06,
+     0.1
+    ],
+    "placebo_pred_change_mean": 0.09333333333333334,
+    "placebo_pred_change_min": 0.06,
+    "placebo_pred_change_max": 0.12,
+    "brand_exceeds_placebo_max": false,
+    "brand_within_placebo_range": true
+   }
+  },
+  "E3_control_vs_topic_agreement": {
+   "A_SSOT_DEF": {
+    "top1_agreement": 0.32,
+    "cohen_kappa": 0.1931656383483626,
+    "top2_set_agreement": 0.16
+   },
+   "B_USER_BEHAVIOR": {
+    "top1_agreement": 0.46,
+    "cohen_kappa": 0.3037648272305312,
+    "top2_set_agreement": 0.2
+   },
+   "C_TERSE_LABEL": {
+    "top1_agreement": 0.44,
+    "cohen_kappa": 0.312039312039312,
+    "top2_set_agreement": 0.18
+   }
+  },
+  "E4_four_way_unanimity": {
+   "A_SSOT_DEF": 0.3,
+   "B_USER_BEHAVIOR": 0.38,
+   "C_TERSE_LABEL": 0.42
+  },
+  "E5_margin_median_by_representation": {
+   "FULL": 0.021426215767860413,
+   "CONTROL_ONLY": 0.015828371047973633,
+   "TOPIC_ONLY": 0.026402443647384644,
+   "NO_BRAND_DOMAIN": 0.027975961565971375
+  },
+  "E6_class_coverage_by_representation": {
+   "FULL": 6,
+   "CONTROL_ONLY": 7,
+   "TOPIC_ONLY": 6,
+   "NO_BRAND_DOMAIN": 7
+  },
+  "verdicts": {
+   "H-SUP01-INTERACTION": "REFUTED",
+   "H-SUP01-DOMAIN": "PARTIALLY_SUPPORTED",
+   "H-SUP01-DOMAIN::brand_token_limb": "REFUTED",
+   "H-SUP01-DOMAIN::topic_vocabulary_limb": "SUPPORTED",
+   "H-SUP01-BOTH": "NOT_SUPPORTED",
+   "H-SUP01-INSEPARABLE": "SUPPORTED",
+   "H-SUP01-INSEPARABLE::scope": "correctness 층위(어느 쪽이 '맞는' 신호인가)는 전단사 때문에 이 표본에서 분리 불가하다. behavior 층위(FULL 이 실제로 무엇을 따라가는가)는 prior 없이 분리 가능했고 분리됐다."
+  },
+  "verdict": "PARTIALLY_SUPPORTED",
+  "headline": "FULL 의 예측은 TOPIC_ONLY 가 36/50, CONTROL_ONLY 가 20/50 재현한다(McNemar p=0.0025). CONTROL 의 토큰 질량이 TOPIC 보다 작지 않음에도 그렇다. 브랜드·도메인 토큰을 지웠을 때 예측 변화는 8/50 로 같은 개수 임의 토큰 제거(placebo 0.14~0.18)와 구별되지 않는다. 즉 현행 representation 은 브랜드 문자열이 아니라 주제·정체성 텍스트를 따라가며, 상호작용 컨트롤 표면은 FULL 의 결정을 이끌지 않는다."
+ },
  "rq_id": "D-SUP-01",
  "child_id": "D-SUP-01",
  "inquiry_kind": "DIRECTOR_SUPPLEMENTAL",
@@ -7,7 +271,7 @@
  "hypothesis_id": "H-SUP01-SIGNAL-SOURCE",
  "competing_hypothesis": "INTERACTION / DOMAIN / BOTH / INSEPARABLE",
  "title": "RF embedding signal 은 representative interaction semantics 인가 business/domain semantics 인가 — representation ablation 기반 반증",
- "generated_at_kst": "2026-08-27T23:03:23.253722+09:00",
+ "generated_at_kst": "2026-08-27T23:09:42.086017+09:00",
  "seed": 20260827,
  "model": {
   "hf_id": "BAAI/bge-m3",
@@ -22,7 +286,7 @@
  "learning": "none (zero-shot). prior_archetype 으로 어떤 파라미터도 적합하지 않았다.",
  "target_variable": {
   "field": "prior_archetype",
-  "warning": "gold label 이 아니라 business-domain prior 다. 지표 이름은 accuracy 가 아니라 prior_agreement 이며 diagnostic 으로만 쓴다. 헤드라인 판정은 stability 계열이다.",
+  "warning": "gold label 이 아니라 business-domain prior 다. 지표 이름은 accuracy 가 아니라 prior_agreement 이며 diagnostic 으로만 쓴다. 더 강한 제약: 이 표본에서 prior_archetype 은 prior_business_domain 과 전단사(NMI=1.000, 56/56)이므로 prior_agreement 는 interaction 가설과 domain 가설을 원리적으로 구분하지 못한다. label_identifiability 참조.",
   "class_counts": {
    "QUERY": 4,
    "CONTENT_OPEN": 3,
@@ -2975,10 +3239,10 @@
     "never_predicted_classes": [
      "UTILITY_ENTRY"
     ],
-    "margin_median": 0.021426230669021606,
-    "margin_p10": 0.0012073814868927002,
-    "margin_p90": 0.059957027435302734,
-    "margin_mean": 0.028066003695130348,
+    "margin_median": 0.021426215767860413,
+    "margin_p10": 0.0012074410915374756,
+    "margin_p90": 0.05995705723762512,
+    "margin_mean": 0.028066013008356094,
     "top1_sim_median": 0.4791622757911682
    },
    "complete_case": {
@@ -3003,11 +3267,11 @@
     "never_predicted_classes": [
      "UTILITY_ENTRY"
     ],
-    "margin_median": 0.021426230669021606,
-    "margin_p10": 0.0011744468938559294,
-    "margin_p90": 0.06106308847665787,
-    "margin_mean": 0.02816259115934372,
-    "top1_sim_median": 0.4807043969631195
+    "margin_median": 0.021426215767860413,
+    "margin_p10": 0.0011744797229766846,
+    "margin_p90": 0.061063140630722046,
+    "margin_mean": 0.028162609785795212,
+    "top1_sim_median": 0.4807044267654419
    },
    "nonempty_only": {
     "n": 56,
@@ -3031,10 +3295,10 @@
     "never_predicted_classes": [
      "UTILITY_ENTRY"
     ],
-    "margin_median": 0.021426230669021606,
-    "margin_p10": 0.0012073814868927002,
-    "margin_p90": 0.059957027435302734,
-    "margin_mean": 0.028066003695130348,
+    "margin_median": 0.021426215767860413,
+    "margin_p10": 0.0012074410915374756,
+    "margin_p90": 0.05995705723762512,
+    "margin_mean": 0.028066013008356094,
     "top1_sim_median": 0.4791622757911682
    },
    "permutation_null_complete_case": {
@@ -3092,7 +3356,7 @@
     "margin_median": 0.021687358617782593,
     "margin_p10": 0.003398999571800232,
     "margin_p90": 0.07180292904376984,
-    "margin_mean": 0.030700866132974625,
+    "margin_mean": 0.03070087358355522,
     "top1_sim_median": 0.4943367838859558
    },
    "complete_case": {
@@ -3148,7 +3412,7 @@
     "margin_median": 0.021687358617782593,
     "margin_p10": 0.003398999571800232,
     "margin_p90": 0.07180292904376984,
-    "margin_mean": 0.030700866132974625,
+    "margin_mean": 0.03070087358355522,
     "top1_sim_median": 0.4943367838859558
    },
    "permutation_null_complete_case": {
@@ -3315,8 +3579,8 @@
     "never_predicted_classes": [],
     "margin_median": 0.015506893396377563,
     "margin_p10": 0.0030927956104278564,
-    "margin_p90": 0.049926236271858215,
-    "margin_mean": 0.022192958742380142,
+    "margin_p90": 0.0499262660741806,
+    "margin_mean": 0.02219296619296074,
     "top1_sim_median": 0.5187895894050598
    },
    "complete_case": {
@@ -3341,8 +3605,8 @@
     },
     "never_predicted_classes": [],
     "margin_median": 0.015828371047973633,
-    "margin_p10": 0.0014979063998907804,
-    "margin_p90": 0.04989098757505417,
+    "margin_p10": 0.00149785284884274,
+    "margin_p90": 0.04989099130034447,
     "margin_mean": 0.022661691531538963,
     "top1_sim_median": 0.5258222222328186
    },
@@ -3368,8 +3632,8 @@
     },
     "never_predicted_classes": [],
     "margin_median": 0.01614677906036377,
-    "margin_p10": 0.0015425682067871094,
-    "margin_p90": 0.04997029900550842,
+    "margin_p10": 0.001542508602142334,
+    "margin_p90": 0.0499703586101532,
     "margin_mean": 0.023708654567599297,
     "top1_sim_median": 0.5264236927032471
    },
@@ -3428,7 +3692,7 @@
     "margin_median": 0.0258905291557312,
     "margin_p10": 0.005649179220199585,
     "margin_p90": 0.06628257036209106,
-    "margin_mean": 0.02897603251039982,
+    "margin_mean": 0.02897602692246437,
     "top1_sim_median": 0.5192122459411621
    },
    "complete_case": {
@@ -3456,7 +3720,7 @@
     "margin_median": 0.021747037768363953,
     "margin_p10": 0.0055466266348958015,
     "margin_p90": 0.06593972444534302,
-    "margin_mean": 0.02803642675280571,
+    "margin_mean": 0.02803642302751541,
     "top1_sim_median": 0.515021800994873
    },
    "nonempty_only": {
@@ -3539,9 +3803,9 @@
     },
     "never_predicted_classes": [],
     "margin_median": 0.021503210067749023,
-    "margin_p10": 0.005392506718635559,
+    "margin_p10": 0.005392447113990784,
     "margin_p90": 0.08018967509269714,
-    "margin_mean": 0.03603815659880638,
+    "margin_mean": 0.03603815287351608,
     "top1_sim_median": 0.4822838008403778
    },
    "complete_case": {
@@ -3568,7 +3832,7 @@
     "margin_median": 0.023697271943092346,
     "margin_p10": 0.005089485552161932,
     "margin_p90": 0.08333979547023773,
-    "margin_mean": 0.03670278936624527,
+    "margin_mean": 0.03670278564095497,
     "top1_sim_median": 0.47672635316848755
    },
    "nonempty_only": {
@@ -3595,7 +3859,7 @@
     "margin_median": 0.024647891521453857,
     "margin_p10": 0.0052616894245147705,
     "margin_p90": 0.08114731311798096,
-    "margin_mean": 0.03753669559955597,
+    "margin_mean": 0.03753669187426567,
     "top1_sim_median": 0.4784233272075653
    },
    "permutation_null_complete_case": {
@@ -3650,10 +3914,10 @@
     "never_predicted_classes": [
      "UTILITY_ENTRY"
     ],
-    "margin_median": 0.02534453570842743,
-    "margin_p10": 0.006702780723571777,
-    "margin_p90": 0.06483796238899231,
-    "margin_mean": 0.03199130669236183,
+    "margin_median": 0.025344520807266235,
+    "margin_p10": 0.0067027658224105835,
+    "margin_p90": 0.06483802199363708,
+    "margin_mean": 0.03199131414294243,
     "top1_sim_median": 0.4768270254135132
    },
    "complete_case": {
@@ -3678,10 +3942,10 @@
     "never_predicted_classes": [
      "UTILITY_ENTRY"
     ],
-    "margin_median": 0.026402458548545837,
-    "margin_p10": 0.0064274342730641365,
-    "margin_p90": 0.06538417190313339,
-    "margin_mean": 0.03288254141807556,
+    "margin_median": 0.026402443647384644,
+    "margin_p10": 0.006427431013435125,
+    "margin_p90": 0.0653841644525528,
+    "margin_mean": 0.03288254886865616,
     "top1_sim_median": 0.4920276999473572
    },
    "nonempty_only": {
@@ -3706,10 +3970,10 @@
     "never_predicted_classes": [
      "UTILITY_ENTRY"
     ],
-    "margin_median": 0.025978535413742065,
-    "margin_p10": 0.0066872239112854,
-    "margin_p90": 0.0648861676454544,
-    "margin_mean": 0.032740943133831024,
+    "margin_median": 0.025978505611419678,
+    "margin_p10": 0.006687247660011053,
+    "margin_p90": 0.0648861974477768,
+    "margin_mean": 0.03274095430970192,
     "top1_sim_median": 0.4847656488418579
    },
    "permutation_null_complete_case": {
@@ -3907,7 +4171,7 @@
     "margin_median": 0.0437035858631134,
     "margin_p10": 0.01143944263458252,
     "margin_p90": 0.11529465019702911,
-    "margin_mean": 0.05300159379839897,
+    "margin_mean": 0.05300159752368927,
     "top1_sim_median": 0.44702017307281494
    },
    "nonempty_only": {
@@ -3934,7 +4198,7 @@
     "margin_median": 0.043430328369140625,
     "margin_p10": 0.011682760901749134,
     "margin_p90": 0.11464743316173553,
-    "margin_mean": 0.05248421058058739,
+    "margin_mean": 0.05248422175645828,
     "top1_sim_median": 0.4466246962547302
    },
    "permutation_null_complete_case": {
@@ -3988,10 +4252,10 @@
      "UTILITY_ENTRY": 1
     },
     "never_predicted_classes": [],
-    "margin_median": 0.026252642273902893,
-    "margin_p10": 0.0025980472564697266,
-    "margin_p90": 0.06206430494785309,
-    "margin_mean": 0.028905658051371574,
+    "margin_median": 0.026252686977386475,
+    "margin_p10": 0.002598091959953308,
+    "margin_p90": 0.062064290046691895,
+    "margin_mean": 0.028905674815177917,
     "top1_sim_median": 0.49576902389526367
    },
    "complete_case": {
@@ -4016,10 +4280,10 @@
     },
     "never_predicted_classes": [],
     "margin_median": 0.027975961565971375,
-    "margin_p10": 0.0026023625396192074,
+    "margin_p10": 0.00260237162001431,
     "margin_p90": 0.06130573898553848,
-    "margin_mean": 0.0288202166557312,
-    "top1_sim_median": 0.4994760751724243
+    "margin_mean": 0.028820235282182693,
+    "top1_sim_median": 0.4994761049747467
    },
    "nonempty_only": {
     "n": 55,
@@ -4043,9 +4307,9 @@
     },
     "never_predicted_classes": [],
     "margin_median": 0.026839375495910645,
-    "margin_p10": 0.0025969683192670345,
-    "margin_p90": 0.062277525663375854,
-    "margin_mean": 0.029308799654245377,
+    "margin_p10": 0.0025970221031457186,
+    "margin_p90": 0.06227750703692436,
+    "margin_mean": 0.02930881455540657,
     "top1_sim_median": 0.4975663125514984
    },
    "permutation_null_complete_case": {
@@ -4131,7 +4395,7 @@
     "margin_median": 0.019634440541267395,
     "margin_p10": 0.0025672942865639925,
     "margin_p90": 0.07840831577777863,
-    "margin_mean": 0.031111447140574455,
+    "margin_mean": 0.031111443415284157,
     "top1_sim_median": 0.5013676881790161
    },
    "nonempty_only": {
@@ -4216,7 +4480,7 @@
     "margin_median": 0.03488805890083313,
     "margin_p10": 0.0035587698221206665,
     "margin_p90": 0.10785280168056488,
-    "margin_mean": 0.04527191445231438,
+    "margin_mean": 0.04527190700173378,
     "top1_sim_median": 0.4665585458278656
    },
    "complete_case": {
@@ -4270,7 +4534,7 @@
     "margin_median": 0.03610825538635254,
     "margin_p10": 0.0033856569789350033,
     "margin_p90": 0.10838150978088379,
-    "margin_mean": 0.04571771249175072,
+    "margin_mean": 0.04571770876646042,
     "top1_sim_median": 0.4665585458278656
    },
    "permutation_null_complete_case": {
@@ -4333,7 +4597,7 @@
       "margin_median": 0.035744547843933105,
       "margin_p10": 0.0015808702446520329,
       "margin_p90": 0.06774258613586426,
-      "margin_mean": 0.034672923386096954,
+      "margin_mean": 0.034672919660806656,
       "top1_sim_median": 0.48096561431884766
      },
      "all56": {
@@ -4359,9 +4623,9 @@
        "UTILITY_ENTRY"
       ],
       "margin_median": 0.035744547843933105,
-      "margin_p10": 0.0014133274089545012,
+      "margin_p10": 0.0014132201904430985,
       "margin_p90": 0.06490296125411987,
-      "margin_mean": 0.03418667986989021,
+      "margin_mean": 0.034186676144599915,
       "top1_sim_median": 0.4795589745044708
      }
     },
@@ -4388,9 +4652,9 @@
       },
       "never_predicted_classes": [],
       "margin_median": 0.02283114194869995,
-      "margin_p10": 0.006069398019462824,
+      "margin_p10": 0.006069391965866089,
       "margin_p90": 0.05624987930059433,
-      "margin_mean": 0.02714427188038826,
+      "margin_mean": 0.027144260704517365,
       "top1_sim_median": 0.5326831340789795
      },
      "all56": {
@@ -4415,8 +4679,8 @@
       },
       "never_predicted_classes": [],
       "margin_median": 0.017326831817626953,
-      "margin_p10": 0.006394857075065374,
-      "margin_p90": 0.0649966150522232,
+      "margin_p10": 0.006394892930984497,
+      "margin_p90": 0.0649966225028038,
       "margin_mean": 0.02668791264295578,
       "top1_sim_median": 0.5252207517623901
      }
@@ -4444,11 +4708,11 @@
        "QUERY",
        "UTILITY_ENTRY"
       ],
-      "margin_median": 0.03948625922203064,
+      "margin_median": 0.03948622941970825,
       "margin_p10": 0.012698829174041748,
       "margin_p90": 0.06409361213445663,
-      "margin_mean": 0.040185753256082535,
-      "top1_sim_median": 0.5053436160087585
+      "margin_mean": 0.04018576070666313,
+      "top1_sim_median": 0.5053436756134033
      },
      "all56": {
       "n": 27,
@@ -4473,9 +4737,9 @@
        "UTILITY_ENTRY"
       ],
       "margin_median": 0.03905990719795227,
-      "margin_p10": 0.010080123320221901,
+      "margin_p10": 0.010080170817673206,
       "margin_p90": 0.06244422122836113,
-      "margin_mean": 0.038212019950151443,
+      "margin_mean": 0.03821202740073204,
       "top1_sim_median": 0.4847656488418579
      }
     },
@@ -4502,11 +4766,11 @@
       "never_predicted_classes": [
        "CONTENT_OPEN"
       ],
-      "margin_median": 0.03328382968902588,
-      "margin_p10": 0.003753024386242032,
+      "margin_median": 0.033283889293670654,
+      "margin_p10": 0.0037530185654759407,
       "margin_p90": 0.0655638724565506,
-      "margin_mean": 0.03624263033270836,
-      "top1_sim_median": 0.49780306220054626
+      "margin_mean": 0.03624262288212776,
+      "top1_sim_median": 0.4978031516075134
      },
      "all56": {
       "n": 27,
@@ -4530,8 +4794,8 @@
       "never_predicted_classes": [
        "CONTENT_OPEN"
       ],
-      "margin_median": 0.03328382968902588,
-      "margin_p10": 0.0025991261936724186,
+      "margin_median": 0.033283889293670654,
+      "margin_p10": 0.0025991618167608976,
       "margin_p90": 0.06481871753931046,
       "margin_mean": 0.035700783133506775,
       "top1_sim_median": 0.49397173523902893
@@ -4682,11 +4946,11 @@
        "CONTENT_OPEN",
        "UTILITY_ENTRY"
       ],
-      "margin_median": 0.013444080948829651,
-      "margin_p10": 0.0012024104362353683,
-      "margin_p90": 0.05312047153711319,
-      "margin_mean": 0.022570079192519188,
-      "top1_sim_median": 0.48518267273902893
+      "margin_median": 0.013444095849990845,
+      "margin_p10": 0.0012024581665173173,
+      "margin_p90": 0.05312056466937065,
+      "margin_mean": 0.022570112720131874,
+      "top1_sim_median": 0.4851827025413513
      },
      "all56": {
       "n": 26,
@@ -4710,11 +4974,11 @@
        "CONTENT_OPEN",
        "UTILITY_ENTRY"
       ],
-      "margin_median": 0.01569843292236328,
-      "margin_p10": 0.0012073814868927002,
-      "margin_p90": 0.05135731399059296,
-      "margin_mean": 0.02229558490216732,
-      "top1_sim_median": 0.4809631407260895
+      "margin_median": 0.01569846272468567,
+      "margin_p10": 0.0012074410915374756,
+      "margin_p90": 0.051357388496398926,
+      "margin_mean": 0.022295622155070305,
+      "top1_sim_median": 0.48096317052841187
      }
     },
     "CONTROL_ONLY": {
@@ -4741,9 +5005,9 @@
        "UTILITY_ENTRY"
       ],
       "margin_median": 0.015506893396377563,
-      "margin_p10": 0.0011670797830447555,
-      "margin_p90": 0.049543481320142746,
-      "margin_mean": 0.019301218912005424,
+      "margin_p10": 0.001167061971500516,
+      "margin_p90": 0.04954349994659424,
+      "margin_mean": 0.019301222637295723,
       "top1_sim_median": 0.5187895894050598
      },
      "all56": {
@@ -4768,11 +5032,11 @@
       "never_predicted_classes": [
        "UTILITY_ENTRY"
       ],
-      "margin_median": 0.013134568929672241,
-      "margin_p10": 0.0012743622064590454,
-      "margin_p90": 0.04931768774986267,
-      "margin_mean": 0.018334422260522842,
-      "top1_sim_median": 0.5168600082397461
+      "margin_median": 0.013134479522705078,
+      "margin_p10": 0.0012743324041366577,
+      "margin_p90": 0.04931771755218506,
+      "margin_mean": 0.01833442971110344,
+      "top1_sim_median": 0.5168600678443909
      }
     },
     "TOPIC_ONLY": {
@@ -4798,9 +5062,9 @@
        "CONTENT_OPEN",
        "UTILITY_ENTRY"
       ],
-      "margin_median": 0.020319566130638123,
-      "margin_p10": 0.0049563138745725155,
-      "margin_p90": 0.06813114881515503,
+      "margin_median": 0.02031952142715454,
+      "margin_p10": 0.004956292919814587,
+      "margin_p90": 0.06813110411167145,
       "margin_mean": 0.028988145291805267,
       "top1_sim_median": 0.4920276999473572
      },
@@ -4826,10 +5090,10 @@
        "CONTENT_OPEN",
        "UTILITY_ENTRY"
       ],
-      "margin_median": 0.01996690034866333,
-      "margin_p10": 0.005446687340736389,
+      "margin_median": 0.019967079162597656,
+      "margin_p10": 0.005446672439575195,
       "margin_p90": 0.06716728210449219,
-      "margin_mean": 0.02829420380294323,
+      "margin_mean": 0.028294216841459274,
       "top1_sim_median": 0.48311060667037964
      }
     },
@@ -4857,10 +5121,10 @@
        "UTILITY_ENTRY"
       ],
       "margin_median": 0.02209356427192688,
-      "margin_p10": 0.0024614303838461637,
-      "margin_p90": 0.038999319076538086,
-      "margin_mean": 0.02224721945822239,
-      "top1_sim_median": 0.5039500594139099
+      "margin_p10": 0.0024615139700472355,
+      "margin_p90": 0.03899946063756943,
+      "margin_mean": 0.02224726974964142,
+      "top1_sim_median": 0.5039501190185547
      },
      "all56": {
       "n": 26,
@@ -4884,10 +5148,10 @@
       "never_predicted_classes": [
        "UTILITY_ENTRY"
       ],
-      "margin_median": 0.02368268370628357,
-      "margin_p10": 0.0026958733797073364,
-      "margin_p90": 0.03841078281402588,
-      "margin_mean": 0.022357642650604248,
+      "margin_median": 0.023682624101638794,
+      "margin_p10": 0.002695932984352112,
+      "margin_p90": 0.03841090202331543,
+      "margin_mean": 0.022357679903507233,
       "top1_sim_median": 0.5018770694732666
      }
     }
@@ -5036,9 +5300,9 @@
        "COMMUNICATION_ENTRY",
        "UTILITY_ENTRY"
       ],
-      "margin_median": 0.02077585458755493,
-      "margin_p10": 0.01749655045568943,
-      "margin_p90": 0.02936946228146553,
+      "margin_median": 0.020775824785232544,
+      "margin_p10": 0.017496567219495773,
+      "margin_p90": 0.029369454830884933,
       "margin_mean": 0.022990146651864052,
       "top1_sim_median": 0.45398154854774475
      },
@@ -5064,9 +5328,9 @@
        "COMMUNICATION_ENTRY",
        "UTILITY_ENTRY"
       ],
-      "margin_median": 0.02077585458755493,
-      "margin_p10": 0.01749655045568943,
-      "margin_p90": 0.02936946228146553,
+      "margin_median": 0.020775824785232544,
+      "margin_p10": 0.017496567219495773,
+      "margin_p90": 0.029369454830884933,
       "margin_mean": 0.022990146651864052,
       "top1_sim_median": 0.45398154854774475
      }
@@ -5096,8 +5360,8 @@
       ],
       "margin_median": 0.01177823543548584,
       "margin_p10": 0.0024588347878307104,
-      "margin_p90": 0.029259562492370605,
-      "margin_mean": 0.015179038047790527,
+      "margin_p90": 0.029259657487273216,
+      "margin_mean": 0.015179078094661236,
       "top1_sim_median": 0.5264236927032471
      },
      "all56": {
@@ -5124,8 +5388,8 @@
       ],
       "margin_median": 0.01177823543548584,
       "margin_p10": 0.0024588347878307104,
-      "margin_p90": 0.029259562492370605,
-      "margin_mean": 0.015179038047790527,
+      "margin_p90": 0.029259657487273216,
+      "margin_mean": 0.015179078094661236,
       "top1_sim_median": 0.5264236927032471
      }
     },
@@ -5153,10 +5417,10 @@
        "UTILITY_ENTRY"
       ],
       "margin_median": 0.0093325674533844,
-      "margin_p10": 0.0019115031464025378,
-      "margin_p90": 0.0136669697239995,
+      "margin_p10": 0.0019114792812615633,
+      "margin_p90": 0.013666993007063866,
       "margin_mean": 0.008046458475291729,
-      "top1_sim_median": 0.4652758240699768
+      "top1_sim_median": 0.4652758538722992
      },
      "all56": {
       "n": 3,
@@ -5181,10 +5445,10 @@
        "UTILITY_ENTRY"
       ],
       "margin_median": 0.0093325674533844,
-      "margin_p10": 0.0019115031464025378,
-      "margin_p90": 0.0136669697239995,
+      "margin_p10": 0.0019114792812615633,
+      "margin_p90": 0.013666993007063866,
       "margin_mean": 0.008046458475291729,
-      "top1_sim_median": 0.4652758240699768
+      "top1_sim_median": 0.4652758538722992
      }
     },
     "NO_BRAND_DOMAIN": {
@@ -5211,10 +5475,10 @@
        "UTILITY_ENTRY"
       ],
       "margin_median": 0.02514985203742981,
-      "margin_p10": 0.01994212344288826,
-      "margin_p90": 0.028795534744858742,
-      "margin_mean": 0.02449899911880493,
-      "top1_sim_median": 0.46664583683013916
+      "margin_p10": 0.01994217000901699,
+      "margin_p90": 0.028795462101697922,
+      "margin_mean": 0.024498989805579185,
+      "top1_sim_median": 0.46664589643478394
      },
      "all56": {
       "n": 3,
@@ -5239,10 +5503,10 @@
        "UTILITY_ENTRY"
       ],
       "margin_median": 0.02514985203742981,
-      "margin_p10": 0.01994212344288826,
-      "margin_p90": 0.028795534744858742,
-      "margin_mean": 0.02449899911880493,
-      "top1_sim_median": 0.46664583683013916
+      "margin_p10": 0.01994217000901699,
+      "margin_p90": 0.028795462101697922,
+      "margin_mean": 0.024498989805579185,
+      "top1_sim_median": 0.46664589643478394
      }
     }
    },
@@ -5422,9 +5686,13 @@
  "hypothesis_verdicts": {
   "H-SUP01-INTERACTION": "REFUTED",
   "H-SUP01-DOMAIN": "PARTIALLY_SUPPORTED",
-  "H-SUP01-BOTH": "PARTIALLY_SUPPORTED",
-  "H-SUP01-INSEPARABLE": "PARTIALLY_SUPPORTED"
+  "H-SUP01-DOMAIN::brand_token_limb": "REFUTED",
+  "H-SUP01-DOMAIN::topic_vocabulary_limb": "SUPPORTED",
+  "H-SUP01-BOTH": "NOT_SUPPORTED",
+  "H-SUP01-INSEPARABLE": "SUPPORTED",
+  "H-SUP01-INSEPARABLE::scope": "correctness 층위(어느 쪽이 '맞는' 신호인가)는 전단사 때문에 이 표본에서 분리 불가하다. behavior 층위(FULL 이 실제로 무엇을 따라가는가)는 prior 없이 분리 가능했고 분리됐다."
  },
+ "hypothesis_verdicts_note": "헤드라인 판정은 prior-free 층이다. 사전등록된 prior 기반 판정은 prereg_prior_based.hypothesis_verdicts 에 그대로 보존돼 있다.",
  "counterexamples": {
   "high_disagreement_targets": [
    {
@@ -5438,7 +5706,7 @@
      "TOPIC_ONLY": "ITEM_DETAIL",
      "NO_BRAND_DOMAIN": "CONTENT_OPEN"
     },
-    "margin_FULL": 0.0011949539184570312,
+    "margin_FULL": 0.001194983720779419,
     "note": "4개 representation 이 3개 이상 서로 다른 archetype 을 준 target"
    },
    {
@@ -5452,7 +5720,7 @@
      "TOPIC_ONLY": "ITEM_DETAIL",
      "NO_BRAND_DOMAIN": "FINANCIAL_ACTION_ENTRY"
     },
-    "margin_FULL": 0.017140239477157593,
+    "margin_FULL": 0.017140328884124756,
     "note": "4개 representation 이 3개 이상 서로 다른 archetype 을 준 target"
    },
    {
@@ -5466,7 +5734,7 @@
      "TOPIC_ONLY": "CONTENT_OPEN",
      "NO_BRAND_DOMAIN": "UTILITY_ENTRY"
     },
-    "margin_FULL": 0.0003879070281982422,
+    "margin_FULL": 0.0003877878189086914,
     "note": "4개 representation 이 3개 이상 서로 다른 archetype 을 준 target"
    },
    {
@@ -5480,7 +5748,7 @@
      "TOPIC_ONLY": "PLACE_LOOKUP",
      "NO_BRAND_DOMAIN": "COMMUNICATION_ENTRY"
     },
-    "margin_FULL": 0.0023493170738220215,
+    "margin_FULL": 0.002349346876144409,
     "note": "4개 representation 이 3개 이상 서로 다른 archetype 을 준 target"
    },
    {
@@ -5522,7 +5790,7 @@
      "TOPIC_ONLY": "FINANCIAL_ACTION_ENTRY",
      "NO_BRAND_DOMAIN": "ITEM_DETAIL"
     },
-    "margin_FULL": 0.009337633848190308,
+    "margin_FULL": 0.00933772325515747,
     "note": "4개 representation 이 3개 이상 서로 다른 archetype 을 준 target"
    },
    {
@@ -5550,7 +5818,7 @@
      "TOPIC_ONLY": "PLACE_LOOKUP",
      "NO_BRAND_DOMAIN": "FINANCIAL_ACTION_ENTRY"
     },
-    "margin_FULL": 0.009372949600219727,
+    "margin_FULL": 0.009373009204864502,
     "note": "4개 representation 이 3개 이상 서로 다른 archetype 을 준 target"
    },
    {
@@ -5578,7 +5846,7 @@
      "TOPIC_ONLY": "PLACE_LOOKUP",
      "NO_BRAND_DOMAIN": "COMMUNICATION_ENTRY"
     },
-    "margin_FULL": 0.0004405379295349121,
+    "margin_FULL": 0.0004404783248901367,
     "note": "4개 representation 이 3개 이상 서로 다른 archetype 을 준 target"
    }
   ],
@@ -5709,9 +5977,9 @@
     ]
    },
    "margin": {
-    "FULL": 0.0011949539184570312,
+    "FULL": 0.001194983720779419,
     "CONTROL_ONLY": 0.009852170944213867,
-    "TOPIC_ONLY": 0.018447965383529663,
+    "TOPIC_ONLY": 0.01844799518585205,
     "NO_BRAND_DOMAIN": 0.011908769607543945
    },
    "n_distinct_pred_across_reps": 3
@@ -5754,10 +6022,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.03329211473464966,
-    "CONTROL_ONLY": 0.035455167293548584,
-    "TOPIC_ONLY": 0.038781702518463135,
-    "NO_BRAND_DOMAIN": 0.03328382968902588
+    "FULL": 0.033292174339294434,
+    "CONTROL_ONLY": 0.03545510768890381,
+    "TOPIC_ONLY": 0.03878176212310791,
+    "NO_BRAND_DOMAIN": 0.033283889293670654
    },
    "n_distinct_pred_across_reps": 1
   },
@@ -5799,10 +6067,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.02077585458755493,
+    "FULL": 0.020775824785232544,
     "CONTROL_ONLY": 0.01177823543548584,
-    "TOPIC_ONLY": 5.6236982345581055e-05,
-    "NO_BRAND_DOMAIN": 0.029706954956054688
+    "TOPIC_ONLY": 5.620718002319336e-05,
+    "NO_BRAND_DOMAIN": 0.029706865549087524
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -5889,10 +6157,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.012631535530090332,
+    "FULL": 0.012631595134735107,
     "CONTROL_ONLY": 0.007410109043121338,
     "TOPIC_ONLY": 0.011361837387084961,
-    "NO_BRAND_DOMAIN": 0.016132712364196777
+    "NO_BRAND_DOMAIN": 0.016132771968841553
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -5935,7 +6203,7 @@
    },
    "margin": {
     "FULL": 0.032733023166656494,
-    "CONTROL_ONLY": 0.06250685453414917,
+    "CONTROL_ONLY": 0.06250691413879395,
     "TOPIC_ONLY": 0.05720090866088867,
     "NO_BRAND_DOMAIN": 0.0322301983833313
    },
@@ -5980,9 +6248,9 @@
    },
    "margin": {
     "FULL": 0.048457205295562744,
-    "CONTROL_ONLY": 0.006732851266860962,
-    "TOPIC_ONLY": 0.05120900273323059,
-    "NO_BRAND_DOMAIN": 0.06313040852546692
+    "CONTROL_ONLY": 0.006732910871505737,
+    "TOPIC_ONLY": 0.051209092140197754,
+    "NO_BRAND_DOMAIN": 0.06313037872314453
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -6024,10 +6292,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.08727094531059265,
-    "CONTROL_ONLY": 0.0015425682067871094,
-    "TOPIC_ONLY": 0.06475761532783508,
-    "NO_BRAND_DOMAIN": 0.06510043144226074
+    "FULL": 0.0872710645198822,
+    "CONTROL_ONLY": 0.001542508602142334,
+    "TOPIC_ONLY": 0.06475773453712463,
+    "NO_BRAND_DOMAIN": 0.06510055065155029
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -6159,10 +6427,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.05576521158218384,
+    "FULL": 0.05576533079147339,
     "CONTROL_ONLY": 0.009272277355194092,
-    "TOPIC_ONLY": 0.06957694888114929,
-    "NO_BRAND_DOMAIN": 0.03693944215774536
+    "TOPIC_ONLY": 0.06957682967185974,
+    "NO_BRAND_DOMAIN": 0.03693950176239014
    },
    "n_distinct_pred_across_reps": 1
   },
@@ -6204,10 +6472,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.016676723957061768,
-    "CONTROL_ONLY": 0.0336298942565918,
-    "TOPIC_ONLY": 0.014750570058822632,
-    "NO_BRAND_DOMAIN": 0.018640190362930298
+    "FULL": 0.016676753759384155,
+    "CONTROL_ONLY": 0.03363001346588135,
+    "TOPIC_ONLY": 0.01475059986114502,
+    "NO_BRAND_DOMAIN": 0.018640249967575073
    },
    "n_distinct_pred_across_reps": 1
   },
@@ -6249,10 +6517,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.017140239477157593,
+    "FULL": 0.017140328884124756,
     "CONTROL_ONLY": 0.015509963035583496,
-    "TOPIC_ONLY": 0.00841870903968811,
-    "NO_BRAND_DOMAIN": 0.03086322546005249
+    "TOPIC_ONLY": 0.008418679237365723,
+    "NO_BRAND_DOMAIN": 0.03086337447166443
    },
    "n_distinct_pred_across_reps": 3
   },
@@ -6297,7 +6565,7 @@
     "FULL": 0.04340428113937378,
     "CONTROL_ONLY": 0.02013292908668518,
     "TOPIC_ONLY": 0.03245264291763306,
-    "NO_BRAND_DOMAIN": 0.018521219491958618
+    "NO_BRAND_DOMAIN": 0.018521130084991455
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -6339,9 +6607,9 @@
     ]
    },
    "margin": {
-    "FULL": 0.07815200090408325,
+    "FULL": 0.07815203070640564,
     "CONTROL_ONLY": 0.02931767702102661,
-    "TOPIC_ONLY": 0.08580401539802551,
+    "TOPIC_ONLY": 0.08580407500267029,
     "NO_BRAND_DOMAIN": 0.06593644618988037
    },
    "n_distinct_pred_across_reps": 2
@@ -6384,10 +6652,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.0003879070281982422,
-    "CONTROL_ONLY": 0.025776207447052002,
-    "TOPIC_ONLY": 0.025978535413742065,
-    "NO_BRAND_DOMAIN": 0.013675391674041748
+    "FULL": 0.0003877878189086914,
+    "CONTROL_ONLY": 0.025776267051696777,
+    "TOPIC_ONLY": 0.025978505611419678,
+    "NO_BRAND_DOMAIN": 0.013675212860107422
    },
    "n_distinct_pred_across_reps": 3
   },
@@ -6429,10 +6697,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.0012198090553283691,
-    "CONTROL_ONLY": 0.0046430230140686035,
+    "FULL": 0.0012198984622955322,
+    "CONTROL_ONLY": 0.004643082618713379,
     "TOPIC_ONLY": 0.009305953979492188,
-    "NO_BRAND_DOMAIN": 0.0021097660064697266
+    "NO_BRAND_DOMAIN": 0.0021098852157592773
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -6474,10 +6742,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.006574660539627075,
-    "CONTROL_ONLY": 0.018510878086090088,
+    "FULL": 0.0065746009349823,
+    "CONTROL_ONLY": 0.018510937690734863,
     "TOPIC_ONLY": 0.03050893545150757,
-    "NO_BRAND_DOMAIN": 0.010007590055465698
+    "NO_BRAND_DOMAIN": 0.010007530450820923
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -6609,7 +6877,7 @@
     ]
    },
    "margin": {
-    "FULL": 0.0023493170738220215,
+    "FULL": 0.002349346876144409,
     "CONTROL_ONLY": 0.04988217353820801,
     "TOPIC_ONLY": 0.008355110883712769,
     "NO_BRAND_DOMAIN": 0.0018593668937683105
@@ -6655,7 +6923,7 @@
    },
    "margin": {
     "FULL": 0.0008411407470703125,
-    "CONTROL_ONLY": 0.009436726570129395,
+    "CONTROL_ONLY": 0.009436607360839844,
     "TOPIC_ONLY": 0.01230311393737793,
     "NO_BRAND_DOMAIN": 0.0026034414768218994
    },
@@ -6744,10 +7012,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.01324450969696045,
-    "CONTROL_ONLY": 0.012449979782104492,
-    "TOPIC_ONLY": 0.006745636463165283,
-    "NO_BRAND_DOMAIN": 0.013612151145935059
+    "FULL": 0.013244450092315674,
+    "CONTROL_ONLY": 0.012449920177459717,
+    "TOPIC_ONLY": 0.006745755672454834,
+    "NO_BRAND_DOMAIN": 0.013612210750579834
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -6789,10 +7057,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.03131422400474548,
+    "FULL": 0.03131413459777832,
     "CONTROL_ONLY": 0.01550382375717163,
-    "TOPIC_ONLY": 0.03635001182556152,
-    "NO_BRAND_DOMAIN": 0.03146129846572876
+    "TOPIC_ONLY": 0.036349862813949585,
+    "NO_BRAND_DOMAIN": 0.03146138787269592
    },
    "n_distinct_pred_across_reps": 1
   },
@@ -6834,10 +7102,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.046949416399002075,
+    "FULL": 0.04694944620132446,
     "CONTROL_ONLY": 0.018262505531311035,
-    "TOPIC_ONLY": 0.02324959635734558,
-    "NO_BRAND_DOMAIN": 0.02566590905189514
+    "TOPIC_ONLY": 0.02324962615966797,
+    "NO_BRAND_DOMAIN": 0.025665998458862305
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -6925,9 +7193,9 @@
    },
    "margin": {
     "FULL": 0.023592770099639893,
-    "CONTROL_ONLY": 0.006732940673828125,
-    "TOPIC_ONLY": 0.006732940673828125,
-    "NO_BRAND_DOMAIN": 0.006732851266860962
+    "CONTROL_ONLY": 0.006732910871505737,
+    "TOPIC_ONLY": 0.006732910871505737,
+    "NO_BRAND_DOMAIN": 0.006732910871505737
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -6970,7 +7238,7 @@
    },
    "margin": {
     "FULL": 0.04433399438858032,
-    "CONTROL_ONLY": 0.0145263671875,
+    "CONTROL_ONLY": 0.014526307582855225,
     "TOPIC_ONLY": 0.0459807813167572,
     "NO_BRAND_DOMAIN": 0.010422825813293457
    },
@@ -7016,7 +7284,7 @@
    "margin": {
     "FULL": 0.047517597675323486,
     "CONTROL_ONLY": 0.036064594984054565,
-    "TOPIC_ONLY": 0.0469113290309906,
+    "TOPIC_ONLY": 0.046911269426345825,
     "NO_BRAND_DOMAIN": 0.0705018937587738
    },
    "n_distinct_pred_across_reps": 1
@@ -7104,10 +7372,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.01425662636756897,
+    "FULL": 0.014256596565246582,
     "CONTROL_ONLY": 0.0005292892456054688,
-    "TOPIC_ONLY": 0.011239409446716309,
-    "NO_BRAND_DOMAIN": 0.039882123470306396
+    "TOPIC_ONLY": 0.011239349842071533,
+    "NO_BRAND_DOMAIN": 0.03988230228424072
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -7149,9 +7417,9 @@
     ]
    },
    "margin": {
-    "FULL": 0.0017947852611541748,
-    "CONTROL_ONLY": 0.006732851266860962,
-    "TOPIC_ONLY": 0.01994296908378601,
+    "FULL": 0.0017946064472198486,
+    "CONTROL_ONLY": 0.006732910871505737,
+    "TOPIC_ONLY": 0.019942909479141235,
     "NO_BRAND_DOMAIN": 0.0005727410316467285
    },
    "n_distinct_pred_across_reps": 4
@@ -7194,10 +7462,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.03474605083465576,
-    "CONTROL_ONLY": 0.010765314102172852,
-    "TOPIC_ONLY": 0.07606902718544006,
-    "NO_BRAND_DOMAIN": 0.032693326473236084
+    "FULL": 0.03474634885787964,
+    "CONTROL_ONLY": 0.010765135288238525,
+    "TOPIC_ONLY": 0.07606914639472961,
+    "NO_BRAND_DOMAIN": 0.0326935350894928
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -7239,10 +7507,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.009283274412155151,
+    "FULL": 0.009283304214477539,
     "CONTROL_ONLY": 0.0005376935005187988,
     "TOPIC_ONLY": 0.024710536003112793,
-    "NO_BRAND_DOMAIN": 0.003598809242248535
+    "NO_BRAND_DOMAIN": 0.0035987496376037598
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -7284,10 +7552,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.009337633848190308,
-    "CONTROL_ONLY": 0.006795525550842285,
-    "TOPIC_ONLY": 0.022383064031600952,
-    "NO_BRAND_DOMAIN": 0.008351355791091919
+    "FULL": 0.00933772325515747,
+    "CONTROL_ONLY": 0.0067954957485198975,
+    "TOPIC_ONLY": 0.02238321304321289,
+    "NO_BRAND_DOMAIN": 0.008351325988769531
    },
    "n_distinct_pred_across_reps": 3
   },
@@ -7330,9 +7598,9 @@
    },
    "margin": {
     "FULL": 0.019001662731170654,
-    "CONTROL_ONLY": 0.006732851266860962,
-    "TOPIC_ONLY": 0.01996690034866333,
-    "NO_BRAND_DOMAIN": 0.02368268370628357
+    "CONTROL_ONLY": 0.006732910871505737,
+    "TOPIC_ONLY": 0.019967079162597656,
+    "NO_BRAND_DOMAIN": 0.023682624101638794
    },
    "n_distinct_pred_across_reps": 3
   },
@@ -7374,9 +7642,9 @@
     ]
    },
    "margin": {
-    "FULL": 0.002760559320449829,
+    "FULL": 0.0027606189250946045,
     "CONTROL_ONLY": 0.0010061562061309814,
-    "TOPIC_ONLY": 0.004220753908157349,
+    "TOPIC_ONLY": 0.004220724105834961,
     "NO_BRAND_DOMAIN": 0.0016706287860870361
    },
    "n_distinct_pred_across_reps": 2
@@ -7420,7 +7688,7 @@
    },
    "margin": {
     "FULL": 0.005605906248092651,
-    "CONTROL_ONLY": 0.04997029900550842,
+    "CONTROL_ONLY": 0.0499703586101532,
     "TOPIC_ONLY": 0.015205740928649902,
     "NO_BRAND_DOMAIN": 0.0032819807529449463
    },
@@ -7464,7 +7732,7 @@
     ]
    },
    "margin": {
-    "FULL": 0.060951948165893555,
+    "FULL": 0.06095200777053833,
     "CONTROL_ONLY": 0.017326831817626953,
     "TOPIC_ONLY": 0.060794830322265625,
     "NO_BRAND_DOMAIN": 0.06407356262207031
@@ -7509,10 +7777,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.009372949600219727,
+    "FULL": 0.009373009204864502,
     "CONTROL_ONLY": 0.015509963035583496,
-    "TOPIC_ONLY": 0.0006579458713531494,
-    "NO_BRAND_DOMAIN": 0.003414064645767212
+    "TOPIC_ONLY": 0.0006580650806427002,
+    "NO_BRAND_DOMAIN": 0.0034141838550567627
    },
    "n_distinct_pred_across_reps": 3
   },
@@ -7599,7 +7867,7 @@
     ]
    },
    "margin": {
-    "FULL": 0.0067713260650634766,
+    "FULL": 0.006771385669708252,
     "CONTROL_ONLY": 0.02283114194869995,
     "TOPIC_ONLY": 0.01995822787284851,
     "NO_BRAND_DOMAIN": 0.008648931980133057
@@ -7646,7 +7914,7 @@
    "margin": {
     "FULL": 0.05756154656410217,
     "CONTROL_ONLY": 0.0010959506034851074,
-    "TOPIC_ONLY": 0.04234251379966736,
+    "TOPIC_ONLY": 0.042342424392700195,
     "NO_BRAND_DOMAIN": 0.054611802101135254
    },
    "n_distinct_pred_across_reps": 2
@@ -7692,7 +7960,7 @@
     "FULL": 0.004539787769317627,
     "CONTROL_ONLY": 0.01614677906036377,
     "TOPIC_ONLY": 0.02682638168334961,
-    "NO_BRAND_DOMAIN": 0.0025926530361175537
+    "NO_BRAND_DOMAIN": 0.002592742443084717
    },
    "n_distinct_pred_across_reps": 3
   },
@@ -7737,7 +8005,7 @@
     "FULL": 0.0001533031463623047,
     "CONTROL_ONLY": 0.027062296867370605,
     "TOPIC_ONLY": 0.00667262077331543,
-    "NO_BRAND_DOMAIN": 0.006700456142425537
+    "NO_BRAND_DOMAIN": 0.006700575351715088
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -7781,8 +8049,8 @@
    "margin": {
     "FULL": 0.007176816463470459,
     "CONTROL_ONLY": 0.005088865756988525,
-    "TOPIC_ONLY": 0.022191166877746582,
-    "NO_BRAND_DOMAIN": 0.008977800607681274
+    "TOPIC_ONLY": 0.02219104766845703,
+    "NO_BRAND_DOMAIN": 0.008977830410003662
    },
    "n_distinct_pred_across_reps": 1
   },
@@ -7824,10 +8092,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.04726612567901611,
+    "FULL": 0.04726606607437134,
     "CONTROL_ONLY": 0.03778579831123352,
     "TOPIC_ONLY": 0.05244341492652893,
-    "NO_BRAND_DOMAIN": 0.04641440510749817
+    "NO_BRAND_DOMAIN": 0.046414345502853394
    },
    "n_distinct_pred_across_reps": 1
   },
@@ -7870,7 +8138,7 @@
    },
    "margin": {
     "FULL": 0.06916239857673645,
-    "CONTROL_ONLY": 0.07369637489318848,
+    "CONTROL_ONLY": 0.07369640469551086,
     "TOPIC_ONLY": 0.048449575901031494,
     "NO_BRAND_DOMAIN": 0.05555000901222229
    },
@@ -7959,10 +8227,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.0004405379295349121,
-    "CONTROL_ONLY": 0.007489949464797974,
+    "FULL": 0.0004404783248901367,
+    "CONTROL_ONLY": 0.007490038871765137,
     "TOPIC_ONLY": 0.001594454050064087,
-    "NO_BRAND_DOMAIN": 0.0019500255584716797
+    "NO_BRAND_DOMAIN": 0.0019499659538269043
    },
    "n_distinct_pred_across_reps": 3
   },
@@ -8004,10 +8272,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.0009898841381072998,
-    "CONTROL_ONLY": 0.048753201961517334,
-    "TOPIC_ONLY": 0.017308294773101807,
-    "NO_BRAND_DOMAIN": 0.03317904472351074
+    "FULL": 0.0009899437427520752,
+    "CONTROL_ONLY": 0.04875326156616211,
+    "TOPIC_ONLY": 0.017308354377746582,
+    "NO_BRAND_DOMAIN": 0.03317916393280029
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -8049,10 +8317,10 @@
     ]
    },
    "margin": {
-    "FULL": 0.023244738578796387,
+    "FULL": 0.02324467897415161,
     "CONTROL_ONLY": 0.010563492774963379,
-    "TOPIC_ONLY": 0.0006894767284393311,
-    "NO_BRAND_DOMAIN": 0.030576258897781372
+    "TOPIC_ONLY": 0.0006895065307617188,
+    "NO_BRAND_DOMAIN": 0.03057616949081421
    },
    "n_distinct_pred_across_reps": 2
   },
@@ -8141,7 +8409,7 @@
    "margin": {
     "FULL": 0.06206333637237549,
     "CONTROL_ONLY": 0.027032524347305298,
-    "TOPIC_ONLY": 0.03948625922203064,
+    "TOPIC_ONLY": 0.03948622941970825,
     "NO_BRAND_DOMAIN": 0.06099820137023926
    },
    "n_distinct_pred_across_reps": 1
@@ -8185,27 +8453,27 @@
    },
    "margin": {
     "FULL": 0.019001752138137817,
-    "CONTROL_ONLY": 0.006732851266860962,
-    "TOPIC_ONLY": 0.01996690034866333,
-    "NO_BRAND_DOMAIN": 0.02368268370628357
+    "CONTROL_ONLY": 0.006732910871505737,
+    "TOPIC_ONLY": 0.019967079162597656,
+    "NO_BRAND_DOMAIN": 0.023682624101638794
    },
    "n_distinct_pred_across_reps": 3
   }
  ],
  "figures": [
+  "DSUP01_priorfree_evidence.png",
   "DSUP01_prototype_stability.png",
   "DSUP01_signal_margin_coverage.png",
   "DSUP01_stability_matrix.png",
   "DSUP01_strata.png"
  ],
- "limitation": "(1) target 은 gold label 이 아니라 business-domain prior 다. prior_agreement 는 진리 대비 정확도가 아니라 prior 와의 일치도이고, prior 자체가 업종에서 유도됐기 때문에 '업종 어휘가 prior 를 맞힌다' 는 결과는 부분적으로 순환이다. 이 순환을 끊지 못하는 것이 이 inquiry 의 가장 무거운 한계다. (2) n=56 에 7 class, 5개 class 가 n<=5 라 per-class 추정의 CI 가 거의 [0,1] 이다. (3) CORPORATE_OR_APP_LANDING stratum 은 n=3 이라 사실상 추정 불가에 가깝다. (4) CONTROL_ONLY 는 5개 target 에서 비어 있어 '컨트롤 표면이 약하다' 는 결과가 컨트롤의 의미론적 무력함인지 수집 시점의 DOM 부재(SPA·앱 인터스티셜)인지 이 설계로는 분리되지 않는다. (5) 한글 브랜드 토큰 제거는 어절 경계가 없어 부분문자열로 지우므로 일반어 부수 제거가 발생한다(감사 목록 전문 공개). (6) 단일 모델·단일 임베딩 공간이며 cross-encoder 2차 모델은 시험하지 않았다. (7) 이 산출물은 threshold 도 GO/NO-GO 도 정하지 않는다.",
+ "limitation": "(0) 이 표본에서 prior_archetype 과 prior_business_domain 은 완전 전단사다(NMI=1.000, MI=H=2.311 bits, 56/56 결정적). 두 라벨이 같은 변수이므로 prior 를 정답으로 쓰는 어떤 지표도 interaction 가설과 domain 가설을 구분하지 못한다. 이것이 가장 무거운 한계이며, 그래서 판정을 prior-free 증거로 옮겼다. (1) target 은 gold label 이 아니라 business-domain prior 다. prior_agreement 는 진리 대비 정확도가 아니라 prior 와의 일치도이고, prior 자체가 업종에서 유도됐기 때문에 '업종 어휘가 prior 를 맞힌다' 는 결과는 부분적으로 순환이다. 이 순환을 끊지 못하는 것이 이 inquiry 의 가장 무거운 한계다. (2) n=56 에 7 class, 5개 class 가 n<=5 라 per-class 추정의 CI 가 거의 [0,1] 이다. (3) CORPORATE_OR_APP_LANDING stratum 은 n=3 이라 사실상 추정 불가에 가깝다. (4) CONTROL_ONLY 는 5개 target 에서 비어 있어 '컨트롤 표면이 약하다' 는 결과가 컨트롤의 의미론적 무력함인지 수집 시점의 DOM 부재(SPA·앱 인터스티셜)인지 이 설계로는 분리되지 않는다. (5) 한글 브랜드 토큰 제거는 어절 경계가 없어 부분문자열로 지우므로 일반어 부수 제거가 발생한다(감사 목록 전문 공개). (6) 단일 모델·단일 임베딩 공간이며 cross-encoder 2차 모델은 시험하지 않았다. (7) 이 산출물은 threshold 도 GO/NO-GO 도 정하지 않는다.",
  "further_questions": [
+  "이 표본에서 archetype 과 business_domain 이 전단사이므로, 두 신호원을 정답 층위에서 분리하려면 같은 업종 안에서 archetype 이 갈리는 target(예: 포털의 지도 진입 vs 검색 진입, 은행의 콘텐츠 열람 vs 금융 진입)을 표본에 넣어 domain-archetype 결합을 깨야 한다. 이것은 표본 설계 문제이며 분석으로는 해결되지 않는다.",
   "prior_archetype 대신 독립 gold label 로 같은 ablation 을 돌리면 순환이 끊기는가 (라벨 생산은 D 권한 밖이므로 A 의 labeler worker 필요).",
   "CONTROL_ONLY 가 빈 target 을 렌더 후 DOM(SPA hydration 이후)으로 다시 수집하면 컨트롤 표면의 신호가 살아나는가.",
   "업종(prior_business_domain)을 통제한 within-domain 대조 — 같은 업종 안에서 archetype 이 갈리는 target 쌍이 존재하는 표본을 모으면 두 원천이 분리 가능한가.",
   "title 단독이 FULL 보다 강하다는 RF2-C 관측이 brand token 제거 후에도 유지되는가 (TOPIC_ONLY 내부의 필드별 재분해).",
   "top-2 집합이 안정적인 target 만 자동 매핑하고 나머지를 abstain 시키는 운영 규칙의 coverage-정확도 곡선(단, threshold 선언은 A 권한)."
- ],
- "mlflow_run_id": "453b105edf9840a3b40912df95832991",
- "mlflow_experiment": "LA_03_RF_MAPPING"
+ ]
 }
