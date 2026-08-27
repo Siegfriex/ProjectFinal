@@ -18,7 +18,7 @@ KST = datetime.timezone(datetime.timedelta(hours=9))
 now = lambda: datetime.datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 ENDPOINT_7 = {"FUNCTION_ENDPOINT_REACHED", "AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED", "CAPTCHA", "BLOCKED", "UNRESOLVED"}
-J2_TERMINAL = {"FUNCTION_ENDPOINT_REACHED", "AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED", "CAPTCHA", "BLOCKED"}
+J2_TERMINAL = {"FUNCTION_ENDPOINT_REACHED", "AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED", "CAPTCHA"}  # BLOCKED excluded from gate set → ACCESS_REFUSAL (A E001_RELEASE draft exclusion_taxonomy)
 L0A_REQUIRED = ("l0a/dom.html", "l0a/ax.json", "l0a/computed_css.json", "l0a/screen_initial.png", "l0a/screen_fullpage.png", "l0a/probe.json")
 ARCHETYPES = {"QUERY", "CONTENT_OPEN", "ITEM_DETAIL", "PLACE_LOOKUP", "COMMUNICATION_ENTRY", "FINANCIAL_ACTION_ENTRY", "UTILITY_ENTRY"}
 OUTCOME_SET = {"MEASURED", "TRANSPORT_FAILURE", "TIMEOUT", "WAF_BLOCKED", "CAPTCHA", "APP_REDIRECT", "AUTH_GATE", "UNRESOLVED",
@@ -212,8 +212,10 @@ def reconstruct_target(res: dict, batch: dict, out_dir: pathlib.Path, f: F, plan
     if row["outcome"] == "PLANNED_NOT_EXECUTED": reason = "NOT_EXECUTED"
     elif row["outcome"] == "ACCOUNT_ACTION_BLOCKED": reason = "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
     elif row.get("timeout_cap_exceeded") or row["outcome"] == "TIMEOUT" or row["measurement_status"] == "FAILED_PAGE_TIMEOUT": reason = "TIMEOUT"
-    elif row["outcome"] in ("TRANSPORT_FAILURE", "TLS_FAILURE", "SKIPPED_RETRY_EXHAUSTED", "WAF_BLOCKED", "APP_REDIRECT") or row["measurement_status"] not in ("MEASURED",): reason = "TRANSPORT_FAILURE" if row["measurement_status"] != "MEASURED" or row["outcome"] in ("TRANSPORT_FAILURE", "TLS_FAILURE", "SKIPPED_RETRY_EXHAUSTED") else "L0_NOT_MEASURED"
+    elif row["outcome"] == "WAF_BLOCKED" or row["measurement_status"] == "FAILED_ACCESS_BLOCKED": reason = "ACCESS_REFUSAL"
+    elif row["outcome"] in ("TRANSPORT_FAILURE", "TLS_FAILURE", "SKIPPED_RETRY_EXHAUSTED", "APP_REDIRECT") or row["measurement_status"] not in ("MEASURED",): reason = "TRANSPORT_FAILURE" if row["measurement_status"] != "MEASURED" or row["outcome"] in ("TRANSPORT_FAILURE", "TLS_FAILURE", "SKIPPED_RETRY_EXHAUSTED") else "L0_NOT_MEASURED"
     elif row.get("run_status") != "VERIFIED" or row.get("l0a_missing"): reason = "L0_EVIDENCE_INCOMPLETE"
+    elif row["endpoint_status"] == "BLOCKED" or row["outcome"] == "WAF_BLOCKED": reason = "ACCESS_REFUSAL"
     elif not row["l1_present"] or row["endpoint_status"] not in J2_TERMINAL: reason = "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
     elif None in (row["ned"], row["ied"], row["mpfed"]):
         reason = "GATE_REACHED_MPFED_NULL" if row["endpoint_status"] in ("AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED") else "MPFED_NULL"  # contract §1.3 (A 2026-08-27 12:10): 대상의 성질 vs 우리 쪽 사정 분리

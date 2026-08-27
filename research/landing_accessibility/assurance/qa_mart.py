@@ -33,6 +33,7 @@ def load_older_relevant(path: str) -> dict[str, str]:
     p = pathlib.Path(path)
     if p.suffix == ".json":
         d = json.loads(p.read_text(encoding="utf-8"))
+        if isinstance(d, dict) and "table" in d: d = d["table"]
         if isinstance(d, dict): return {str(k): str(v) for k, v in d.items()}
         return {str(r.get("criterion_id")): str(r.get("older_relevance")) for r in d}
     df = pd.read_csv(p, dtype=str); return dict(zip(df[_col(df, "criterion_id")], df[_col(df, "older_relevance")]))
@@ -99,7 +100,7 @@ def main(a):
     # ---- FailRate from fact_criterion_result with FROZEN older-relevant set (never from mart's own tag column)
     fr = {}
     if fcr is not None:
-        SUSPECT = {"2.4.7": "not in KWCAG 2.2", "3.2.2": "KWCAG 3.2.2 != WCAG On Input", "2.5.1": "NOT_AUTOMATABLE (applicability always 0)"}
+        SUSPECT = {"2.4.7": "not in KWCAG 2.2 (WCAG Focus Visible) — registry LA-ORS-20260827 §4"}
         cid0 = _col(fcr, "criterion_id"); hits = sorted(set(fcr[cid0].astype(str)) & set(SUSPECT))
         if hits: add("C1", "SUSPECT_CRITERION_ID", f"mart contains criterion ids flagged by A as invalid/mixed WCAG: {hits}", detail={h: SUSPECT[h] for h in hits})
     if fcr is not None and a.older_relevant:
@@ -181,5 +182,5 @@ def main(a):
     for x in findings[:25]: print(x["severity"], x["code"], x["msg"])
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--out-dirs", nargs="+", required=True); ap.add_argument("--mart-dir", required=True); ap.add_argument("--older-relevant"); ap.add_argument("--plan", required=True)
+    ap = argparse.ArgumentParser(); ap.add_argument("--out-dirs", nargs="+", required=True); ap.add_argument("--mart-dir", required=True); ap.add_argument("--older-relevant", default=str(pathlib.Path(__file__).resolve().parent / "out" / "older_relevant_registry.json")); ap.add_argument("--plan", required=True)
     ap.add_argument("--b-stats"); ap.add_argument("--state-dir"); ap.add_argument("--out", default="out"); main(ap.parse_args())
