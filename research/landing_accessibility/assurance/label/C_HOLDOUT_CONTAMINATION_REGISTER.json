@@ -1,45 +1,23 @@
 {
-  "artifact": "C_HOLDOUT_CONTAMINATION_REGISTER",
-  "as_of": "2026-08-27T22:05 KST",
-  "holdout_n": 26,
-  "exposed_in_control_files": [
-    "wtg_0ee385d0c964e560",
-    "wtg_12e3942c0495b9a4",
-    "wtg_24e6654bfd1ab85b",
-    "wtg_35319a420294ee17",
-    "wtg_377983572bd38242",
-    "wtg_5ede56738376a8c5",
-    "wtg_9390ef32addf32bf",
-    "wtg_95967b50683649f2"
-  ],
-  "forwarded_to_detector_producer_by_B_attestation": [
-    "wtg_12e3942c0495b9a4",
-    "wtg_35319a420294ee17",
-    "wtg_377983572bd38242"
-  ],
-  "scoring_plan": {
-    "primary": "holdout 18 = 26 - exposed 8",
-    "secondary": "23 = 26 - forwarded 3",
-    "full": "26 (보고만)",
-    "also": "PRECEDENCE_CONTESTED 제외 값 병기 (D-R0-61-3)"
+  "artifact": "C_HOLDOUT_CONTAMINATION_REGISTER (public summary — A2 firewall)",
+  "version": 3,
+  "as_of": "2026-08-27T22:15 KST",
+  "note": "Director A2 에 따라 per-target holdout 정보(target_id 포함)를 공개 브랜치/티켓에서 제거. v2 의 id 목록은 C-only 경로로 이동. 이미 push 된 v1/v2 이력은 삭제하지 않고 EXPOSED_HISTORY 로 기록.",
+  "counts": {
+    "holdout_n": 26,
+    "exposed_via_overlap_or_directive": 8,
+    "forwarded_to_detector_producer": 3,
+    "available_via_control_files": 26
   },
-  "pending": [
-    "W2 worker attestation",
-    "A SUPERSEDE of D-R0-61 (ids 제거)",
-    "D non-exposure confirmation"
-  ],
-  "version": 2,
-  "correction": "A T-A-HOLDOUT-SCOPE-001 채택 — LABELS_FROZEN.jsonl(split 필드 포함)·RAW_L2·RAW_L4 가 control 에 있어 holdout 26 전체가 5b826e3(21:26) 이후 가용. C 의 '노출 8 / primary 18' 전제는 틀렸다(C 스캔 범위 오류: OVERLAP/D-R0-61/HOLDOUT_FOR_C 만 봄).",
-  "grades": {
-    "active_contamination": 3,
-    "available_to_B_D": 26,
-    "clean": 0
+  "evaluation_populations": {
+    "26_full_exposed": 26,
+    "23_partial_exclusion": 23,
+    "18_clean_primary": 18
   },
-  "scoring_plan_v2": {
-    "primary": "26 전체, 'blindness 미보장' 병기",
-    "secondary": "23 (능동 오염 3 제외)",
-    "also": "PRECEDENCE_CONTESTED 제외 병기",
-    "independence_claim": "철회 — 어느 값도 '독립 holdout' 이라 부르지 않는다"
-  },
-  "path_to_true_blind_holdout": "detector SHA 동결 → stratified REAL pilot(D-R0-31, 8~12 target) 수집 → pilot L0 evidence 를 새 labeler 가 라벨 → 라벨은 C 전용 채널(bus 파일+sha, control 미게재) → C 채점. 즉 pilot 이 post-freeze blind holdout 이 된다. E000 9 관측은 모집단이 달라 대체 불가."
+  "caveat": "18 = OVERLAP/DIRECTIVE 경로 비노출. 파일 경로(LABELS_FROZEN·RAW_L2·RAW_L4)로는 26 전부가 21:26:25 이후 가용",
+  "c_only_full_register": {
+    "path": "/home/sieg/projects-wsl/ProjectFinal/artifacts/c_only_holdout/C_HOLDOUT_CONTAMINATION_REGISTER_FULL.json",
+    "sha256": "eb171012d78379d261d4fd13347536f73cfb79994699cee74b88df740159d58c",
+    "git_tracked": false
+  }
 }
