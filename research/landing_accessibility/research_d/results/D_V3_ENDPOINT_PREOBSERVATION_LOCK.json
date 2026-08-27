@@ -1,0 +1,97 @@
+{
+  "lock_id": "D_V3_ENDPOINT_PREOBSERVATION_LOCK",
+  "kind": "OBSERVATION",
+  "authority": "NON_CANONICAL",
+  "locked_at_kst": "2026-08-28T02:24:00+09:00",
+  "why": "Director §3.2 endpoint laundering audit 은 '관측 전에 정의된 semantic stop condition' 을 전제한다. 사전 상태를 지금 기록해 두지 않으면, 나중에 endpoint 가 바뀌어도 바뀐 사실 자체를 보일 수 없다. 이 파일은 그 감사의 대조군이며 새 조작화를 만들지 않는다 — SSOTV3 원문 바이트를 해시할 뿐이다.",
+  "source": {
+    "01_TASK_FAMILY_TARGET_FRAME_v3.0.md": "3a7aab75b4af8c831c79410fd99b1eccf0aa952764fa94f0490ffca4441da300",
+    "00_SSOT_v3.0_CROSS_SERVICE_FLOW.md": "951c69f13d119f7b1bbe47196fbe908118963ae125519ee24408c2921f97b3e9",
+    "MANIFEST_v3.0.json": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a"
+  },
+  "state_at_lock": "MAIN50 은 A freeze 이전 candidate 단계다. 이 lock 은 frame freeze 를 대신하지 않는다.",
+  "families": {
+    "F1": {
+      "task_family": "BANK_TRANSFER_ENTRY",
+      "matched_task": "개인뱅킹 계좌이체/송금 기능 진입",
+      "fixture": "없음",
+      "endpoint_contract_verbatim": "사용자가 이체/송금 경로를 선택한 뒤 task-specific transfer surface가 열리거나 LOGIN/IDENTITY gate가 불가피하게 나타나는 최초 상태. 자격정보 입력·login submit·수취계좌/금액 입력·이체 실행 금지.",
+      "n": "10",
+      "endpoint_sha256": "c5f65c459ca4fbcd7d3f90b70ba27d20a7d078c935d6225cb5d7d182609bae3e",
+      "endpoint_00_verbatim": "사용자가 이체/송금 경로를 선택한 뒤 task-specific transfer surface가 열리거나 LOGIN/IDENTITY gate가 불가피하게 나타나는 최초 상태. 자격정보 입력·login submit·수취계좌/금액 입력·이체 실행 금지.",
+      "endpoint_00_sha256": "c5f65c459ca4fbcd7d3f90b70ba27d20a7d078c935d6225cb5d7d182609bae3e",
+      "legacy_archetype": "FINANCIAL_ACTION_ENTRY",
+      "domain": "금융",
+      "doc00_doc01_endpoint_identical": true
+    },
+    "F2": {
+      "task_family": "SHOPPING_ITEM_DETAIL",
+      "matched_task": "상품 검색/탐색 후 상품 상세 진입",
+      "fixture": "검색어=생수",
+      "endpoint_contract_verbatim": "개별 상품 상세면에서 상품명과 가격 또는 가격정보가 확인되는 최초 상태. 장바구니/구매/결제 control은 존재만 관측하고 활성화 금지.",
+      "n": "10",
+      "endpoint_sha256": "a7f0eb465a33bc236e8b7fc686e105256b53d7bc7ffc1a8a972b73d0e68efe85",
+      "endpoint_00_verbatim": "개별 상품 상세면에서 상품명과 가격 또는 가격정보가 확인되는 최초 상태. 장바구니/구매/결제 control은 존재만 관측하고 활성화 금지.",
+      "endpoint_00_sha256": "a7f0eb465a33bc236e8b7fc686e105256b53d7bc7ffc1a8a972b73d0e68efe85",
+      "legacy_archetype": "ITEM_DETAIL",
+      "domain": "상거래",
+      "doc00_doc01_endpoint_identical": true
+    },
+    "F3": {
+      "task_family": "DELIVERY_TRACKING_ENTRY",
+      "matched_task": "택배 배송조회/운송장조회 기능 진입",
+      "fixture": "실제 운송장번호 입력 없음",
+      "endpoint_contract_verbatim": "운송장/등기번호 입력 control과 조회 실행 control이 관측 가능한 최초 상태. 실사용 번호·개인정보 입력 및 조회 submit 금지.",
+      "n": "10",
+      "endpoint_sha256": "e03ecba8b073fd039629dc8e866ca8e16bd835255bfa6272163598418b3d7ac1",
+      "endpoint_00_verbatim": "운송장/등기번호 입력 control과 조회 실행 control이 관측 가능한 최초 상태. 실사용 번호·개인정보 입력 및 조회 submit 금지.",
+      "endpoint_00_sha256": "e03ecba8b073fd039629dc8e866ca8e16bd835255bfa6272163598418b3d7ac1",
+      "legacy_archetype": "UTILITY_ENTRY",
+      "domain": "배송/조회",
+      "doc00_doc01_endpoint_identical": true
+    },
+    "F4": {
+      "task_family": "HEALTH_PROVIDER_FINDING",
+      "matched_task": "병원·약국/의료기관 찾기",
+      "fixture": "지역=서울특별시 중구; 진료과/키워드=내과; 위치권한 허용 안 함",
+      "endpoint_contract_verbatim": "검색 폼에서 고정 조건을 적용한 뒤 기관 결과목록 또는 지도 결과가 표시되는 최초 상태. 예약·전화·외부앱 실행 금지.",
+      "n": "10",
+      "endpoint_sha256": "2c1330258a6433b14b49c5ea157b38c71b7e19eafd08c37cb03875653a5be946",
+      "endpoint_00_verbatim": "검색 폼에서 고정 조건을 적용한 뒤 기관 결과목록 또는 지도 결과가 표시되는 최초 상태. 예약·전화·외부앱 실행 금지.",
+      "endpoint_00_sha256": "2c1330258a6433b14b49c5ea157b38c71b7e19eafd08c37cb03875653a5be946",
+      "legacy_archetype": "PLACE_LOOKUP",
+      "domain": "건강/위치",
+      "doc00_doc01_endpoint_identical": true
+    },
+    "F5": {
+      "task_family": "INTERCITY_SCHEDULE_SEARCH",
+      "matched_task": "서울권→부산권, T+1 운행편/항공편 조회",
+      "fixture": "서울권→부산권; 날짜=T+1; 성인=1. mode별 출발/도착 지점은 target row의 fixture_override 사용.",
+      "endpoint_contract_verbatim": "조건 입력 후 시간·편명/운행편·가격 또는 예약가능성 정보를 포함한 결과목록이 표시되는 최초 상태. 좌석선택·예약·결제 금지.",
+      "n": "10",
+      "endpoint_sha256": "c0f6439589309843920970c9074e0050b7b7e216fa9f7f5078963d47a2c1f827",
+      "endpoint_00_verbatim": "조건 입력 후 시간·편명/운행편·가격 또는 예약가능성 정보를 포함한 결과목록이 표시되는 최초 상태. 좌석선택·예약·결제 금지.",
+      "endpoint_00_sha256": "c0f6439589309843920970c9074e0050b7b7e216fa9f7f5078963d47a2c1f827",
+      "legacy_archetype": "UTILITY_ENTRY",
+      "domain": "교통/예매",
+      "doc00_doc01_endpoint_identical": true
+    }
+  },
+  "cross_document_consistency": {
+    "checked": "01 §2 의 endpoint 문구와 00 §4 의 endpoint 요지가 바이트 동일한가",
+    "identical": [
+      "F1",
+      "F2",
+      "F3",
+      "F4",
+      "F5"
+    ],
+    "differ": []
+  },
+  "audit_rule_for_later": "이후 어느 시점에든 endpoint_sha256 이 바뀌면, 그것이 (a) A 의 명시적 새 frame/version 발행인지 (b) 관측 후 조용한 변경인지 구분해 C 에 보고한다. D 는 변경을 판정하지 않고 변경 사실과 시점만 보인다.",
+  "d_did_not": [
+    "endpoint 문구를 해석·정규화·요약하지 않았다 — 원문 바이트 그대로다",
+    "어떤 candidate URL 에도 접속하지 않았다",
+    "task 나 endpoint 를 제안하거나 수정하지 않았다"
+  ]
+}
