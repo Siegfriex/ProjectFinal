@@ -328,7 +328,10 @@ def _real_endpoint_by_signal_type(raw: dict[str, Any], task: TaskDefinition) -> 
     if st is RegionSignalType.DOM_AX_ROLE:
         if archetype in (InteractionArchetype.QUERY, InteractionArchetype.PLACE_LOOKUP):
             return _query_reflected_in_url(raw, task)
-        if archetype in (InteractionArchetype.CONTENT_OPEN, InteractionArchetype.COMMUNICATION_ENTRY):
+        if archetype in (
+            InteractionArchetype.CONTENT_OPEN,
+            InteractionArchetype.COMMUNICATION_ENTRY,
+        ):
             return _content_endpoint_real(raw)
         if archetype is InteractionArchetype.ITEM_DETAIL:
             return _commerce_control_present(raw) and _repeated_card_list_present(raw)
@@ -541,15 +544,65 @@ class MappingOutcome:
 
 
 #: `resolve_representative_function` 이 후보를 검증할 때 시도하는 signal family 순서.
-#: `01 §6` evidence precedence 의 "DOM/AX/form state change" 층 안에서, 더 결정적인 신호를
-#: 먼저 본다 — FORM_STRUCTURE(검색창처럼 조작 가능한 구조)가 DOM_AX_ROLE(카드/리스트 존재)
-#: 보다 강한 신호이기 때문이다. URL_PATTERN 은 이 시점(활성화 전 랜딩)엔 아직 반영될 게
-#: 없어(질의를 제출하지 않았다) 사실상 발화하지 않지만, 완전성을 위해 순서에는 둔다.
+#: `01 §6` evidence precedence 의 "DOM/AX/form state change" 층(tier 3) **안에서**, 더
+#: 결정적인 신호를 먼저 본다 — FORM_STRUCTURE(검색창처럼 조작 가능한 구조)가
+#: DOM_AX_ROLE(카드/리스트 존재)보다 강한 신호이기 때문이다. URL_PATTERN 은 이 시점
+#: (활성화 전 랜딩)엔 아직 반영될 게 없어(질의를 제출하지 않았다) 사실상 발화하지 않지만,
+#: 완전성을 위해 순서에는 둔다.
 _RESOLVER_SIGNAL_ORDER: tuple[RegionSignalType, ...] = (
     RegionSignalType.FORM_STRUCTURE,
     RegionSignalType.DOM_AX_ROLE,
     RegionSignalType.URL_PATTERN,
 )
+
+#: `RegionSignalType.DOM_AX_ROLE` 로 evidenced 된 archetype 은 (QUERY 제외) 전부
+#: `_repeated_card_list_present`(list-container 소속 링크) 를 근거로 쓴다 — tier 2 에서
+#: "이 evidence 가 top-ranked primary surface 의 list 소속 여부와 부합하는가"를 물을 때
+#: 이 집합을 "list 계열"로 취급한다.
+_LIST_BASED_ARCHETYPES: frozenset[InteractionArchetype] = frozenset(
+    {
+        InteractionArchetype.CONTENT_OPEN,
+        InteractionArchetype.ITEM_DETAIL,
+        InteractionArchetype.PLACE_LOOKUP,
+        InteractionArchetype.COMMUNICATION_ENTRY,
+        InteractionArchetype.FINANCIAL_ACTION_ENTRY,
+    }
+)
+#: `RegionSignalType.FORM_STRUCTURE` 로 evidenced 된 archetype — "검색 계열".
+_SEARCH_BASED_ARCHETYPES: frozenset[InteractionArchetype] = frozenset(
+    {InteractionArchetype.QUERY, InteractionArchetype.PLACE_LOOKUP}
+)
+
+
+def _top_ranked_primary_candidate(raw: dict[str, Any]) -> dict[str, Any] | None:
+    """`01 §6` Stage 4 precedence #2 — "public page primary interaction surface".
+
+    `min4_sort_key`(`A1 §2.6` 규칙 MIN-4, `l0_collector`·`Scout._activation_candidates`
+    와 **같은 전순서**)로 정한 1위 candidate. Scout 가 실제로 밟을 후보와 같은 순서를 써야
+    resolver 의 "대표 표면"과 실제 activation 경로가 다른 이야기를 하지 않는다.
+    """
+    cands = [
+        c
+        for c in raw.get("primary_action_candidates", [])
+        if c.get("hittable") and c.get("selector")
+    ]
+    if not cands:
+        return None
+    return sorted(cands, key=min4_sort_key)[0]
+
+
+def _tier2_primary_surface_favors(raw: dict[str, Any]) -> str | None:
+    """1위 표면이 "list 계열"인지 "검색 계열"인지 판정한다. 어느 쪽도 아니면 `None`.
+
+    tier 2 는 오직 **list 계열 vs 검색 계열**의 경합만 가른다 — 두 list 계열 후보끼리의
+    경합(예: 서로 다른 list 성격을 가진 두 archetype)은 이 신호로 구분되지 않는다
+    (그 페이지의 유일한 list 표면이 어느 archetype 의 것인지는 이 tier 로 알 수 없다).
+    그런 경우는 force-map 하지 않고 tier 3 결과 그대로 `AMBIGUOUS_UNRESOLVED` 로 남는다.
+    """
+    top = _top_ranked_primary_candidate(raw)
+    if top is None:
+        return None
+    return "list" if top.get("in_list_container") else "search"
 
 
 @dataclass(frozen=True)
@@ -566,6 +619,12 @@ class RepresentativeFunctionMapping:
     원인 = 라벨러가 서로 다른 evidence slot 을 읽음)에 대한 대응. 이 resolver 는 **오직
     `probe.json`(`raw_features`, 렌더 후 상태)만 읽는다** — `dom.html`/`ax.json` 스냅샷은
     읽지 않는다. 그 사실을 판정마다 명시적으로 남긴다.
+
+    `runner_up`/`why_not_runner_up`/`precedence_trace` — `D-R0-61`(PRECEDENCE_CONTESTED)
+    대응: 경합이 있었다는 사실 자체를 조용히 삼키지 않는다. 두 후보가 tier 3 에서 동시에
+    evidenced 됐는데 tier 2 가 하나를 가렸다면 **MAPPED 를 내면서도** 진 후보와 그 이유를
+    남긴다. tier 2 도 못 가르면 `AMBIGUOUS_UNRESOLVED` 이면서 두 후보 모두를
+    `candidate_archetypes` 에 남긴다(둘 다 강하면 force-map 하지 않는다, `D-R0-12`).
     """
 
     outcome: str
@@ -577,18 +636,26 @@ class RepresentativeFunctionMapping:
     evidence_slots_used: tuple[str, ...] = ("probe.json:raw_features",)
     unresolved_reason: str | None = None
     target_id: str = ""
+    runner_up: InteractionArchetype | None = None
+    why_not_runner_up: str | None = None
+    precedence_trace: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "outcome": self.outcome,
             "archetype": self.archetype.value if self.archetype else None,
-            "region_signal_type": self.region_signal_type.value if self.region_signal_type else None,
+            "region_signal_type": self.region_signal_type.value
+            if self.region_signal_type
+            else None,
             "mapping_basis": self.mapping_basis,
             "evidence_refs": list(self.evidence_refs),
             "candidate_archetypes": [a.value for a in self.candidate_archetypes],
             "evidence_slots_used": list(self.evidence_slots_used),
             "unresolved_reason": self.unresolved_reason,
             "target_id": self.target_id,
+            "runner_up": self.runner_up.value if self.runner_up else None,
+            "why_not_runner_up": self.why_not_runner_up,
+            "precedence_trace": list(self.precedence_trace),
         }
 
 
@@ -599,20 +666,36 @@ def resolve_representative_function(
     target_id: str = "",
     query_text: str = "고령자 접근성",
 ) -> RepresentativeFunctionMapping:
-    """`01 §6` Stage 4 — evidence precedence 로 유일 candidate 를 고른다.
+    """`01 §6` Stage 4 — evidence precedence 를 **명시적으로** 적용해 유일 candidate 를 고른다.
 
-    `D-R0-10`~`D-R0-13`:
+    `D-R0-61`(PRECEDENCE_CONTESTED) — 암묵적 순서(먼저 매칭되는 branch 가 이김) 대신
+    RF-DT §6 원문 5단계를 코드로 구현한다. 이 lane 이 실제로 관측할 수 있는 신호는
+    2·3단만이다(1단 "actual user-operation structure"는 Scout 가 activation 을 밟은 뒤에만
+    존재하므로 Stage 4 시점엔 아직 없다 — landing 만 보고 판단하는 것이 이 함수의 전제다.
+    4·5단 "business prior"/"service name token"은 Stage 1 의 자원이며 이 lane 이 만들지
+    않는다, `01 §3`):
 
-    - 유일 candidate 에게 evidence 가 있다 → `MAPPED`.
-    - 강한 candidate 가 2개 이상 → `AMBIGUOUS_UNRESOLVED` (`D-R0-13`: LABEL_FROZEN 이후에도
-      COMMUNICATION_ENTRY(calibration 0건)·UTILITY_ENTRY(1건) 는 semantic threshold 를 세울
-      근거가 없다 — 이 두 archetype 이 경합에 낀 ambiguity 는 rule DT 로만 처리하고 여기서
-      force-resolve 하지 않는다).
-    - evidence 없음 → `AMBIGUOUS_UNRESOLVED`.
-    - **force-map 절대 금지.**
+    ```
+    tier 2   public page primary interaction surface   — MIN-4 1위 candidate 의 소속
+    tier 3   DOM/AX/form state change evidence          — signal family 별 존재 판정
+    ```
 
-    `raw` 는 후보들이 공유하는 **하나의 관측**(보통 landing state)이다 — 이 함수는 archetype 별
-    실제 `TaskDefinition` 을 만들지 않고, 각 후보를 evidence 검증용 probe `TaskDefinition` 으로
+    절차:
+
+    1. 각 candidate 를 tier 3 신호(`_RESOLVER_SIGNAL_ORDER`)로 검증해 evidenced 집합을 만든다.
+    2. evidenced 가 0 이면 `AMBIGUOUS_UNRESOLVED`(evidence 없음).
+    3. evidenced 가 1 이면 `MAPPED`(경합 없음).
+    4. evidenced 가 2 이상이면 tier 2(`_tier2_primary_surface_favors`)로 가른다 —
+       "list 계열" vs "검색 계열" 경합만 가를 수 있다. 갈리면 `MAPPED` + `runner_up` 기록.
+       못 가르면(둘 다 같은 계열이거나 표면이 없으면) **force-map 하지 않고**
+       `AMBIGUOUS_UNRESOLVED` — 진 후보가 없으니 경합한 candidate 전부를 기록한다.
+
+    `D-R0-13`: LABEL_FROZEN 이후에도 COMMUNICATION_ENTRY(calibration 0건)·UTILITY_ENTRY
+    (1건)는 semantic threshold 를 세울 근거가 없다 — 이 함수는 NLP fallback 을 전혀 쓰지
+    않으므로 그 archetype 이 경합에 낀 ambiguity 도 여기서 force-resolve 하지 않는다.
+
+    `raw` 는 후보들이 공유하는 **하나의 관측**(랜딩 state)이다. archetype 별 실제
+    `TaskDefinition` 을 만들지 않고, 각 후보를 evidence 검증용 probe `TaskDefinition` 으로
     감싸 `_real_region_by_signal_type`(runtime detector 와 **같은** 원자 함수)를 재사용한다.
     """
     if not candidates:
@@ -625,6 +708,7 @@ def resolve_representative_function(
             (),
             unresolved_reason="후보가 없다 — Stage 1 candidate generation 결과가 비어 있다",
             target_id=target_id,
+            precedence_trace=("tier1: N/A(pre-Scout)", "tier2: N/A(0 candidates)"),
         )
 
     evidenced: list[tuple[InteractionArchetype, RegionSignalType, str]] = []
@@ -643,7 +727,10 @@ def resolve_representative_function(
                 evidenced.append((archetype, signal_type, f"{signal_type.value} evidence observed"))
                 break
 
+    trace = ["tier1: N/A(pre-Scout, actual user-operation structure 없음)"]
+
     if not evidenced:
+        trace.append("tier3: evidence 없음")
         return RepresentativeFunctionMapping(
             MappingOutcome.AMBIGUOUS_UNRESOLVED,
             None,
@@ -655,33 +742,72 @@ def resolve_representative_function(
                 "evidence 없음 — 관측된 DOM/AX/Form/URL 구조가 어떤 candidate 도 뒷받침하지 않는다"
             ),
             target_id=target_id,
+            precedence_trace=tuple(trace),
         )
 
     distinct_archetypes = {a for a, _, _ in evidenced}
-    if len(distinct_archetypes) > 1:
+    trace.append(f"tier3: evidenced={sorted(a.value for a in distinct_archetypes)}")
+
+    if len(distinct_archetypes) == 1:
+        archetype, signal_type, basis = evidenced[0]
+        trace.append("tier3 이 유일 candidate 를 냈다 — tier2 불필요")
         return RepresentativeFunctionMapping(
-            MappingOutcome.AMBIGUOUS_UNRESOLVED,
-            None,
-            None,
-            "",
-            tuple(basis for _, _, basis in evidenced),
-            tuple(candidates),
-            unresolved_reason=(
-                "강한 candidate 2개 이상 — NLP fallback 은 이 두 archetype 조합에 쓰지 않는다"
-                f"(경합: {sorted(a.value for a in distinct_archetypes)}). force-map 하지 않는다."
-            ),
+            MappingOutcome.MAPPED,
+            archetype,
+            signal_type,
+            f"observed interaction structure ({signal_type.value}) — {basis}",
+            (basis,),
+            (archetype,),
             target_id=target_id,
+            precedence_trace=tuple(trace),
         )
 
-    archetype, signal_type, basis = evidenced[0]
+    # tier 3 에서 2개 이상 경합 — `D-R0-61`: 조용히 하나만 내보내지 않는다. tier 2 로 시도한다.
+    tier2_favor = _tier2_primary_surface_favors(raw)
+    trace.append(f"tier2: primary surface favors={tier2_favor!r}")
+    winners_by_tier2: list[InteractionArchetype] = []
+    if tier2_favor == "list":
+        winners_by_tier2 = [a for a, _, _ in evidenced if a in _LIST_BASED_ARCHETYPES]
+    elif tier2_favor == "search":
+        winners_by_tier2 = [a for a, _, _ in evidenced if a in _SEARCH_BASED_ARCHETYPES]
+
+    if len(winners_by_tier2) == 1:
+        winner = winners_by_tier2[0]
+        losers = sorted((a for a in distinct_archetypes if a is not winner), key=lambda a: a.value)
+        winner_entry = next(e for e in evidenced if e[0] is winner)
+        _, signal_type, basis = winner_entry
+        trace.append(f"tier2 이 {winner.value} 를 승격했다 — 진 후보: {[a.value for a in losers]}")
+        return RepresentativeFunctionMapping(
+            MappingOutcome.MAPPED,
+            winner,
+            signal_type,
+            f"tier2 primary-surface precedence ({tier2_favor}) over tier3-evidenced 경합",
+            (basis,),
+            (winner,),
+            target_id=target_id,
+            runner_up=losers[0] if losers else None,
+            why_not_runner_up=(
+                f"tier2(public page primary interaction surface)가 {tier2_favor} 계열을 가리켰다 — "
+                f"{[a.value for a in losers]} 도 tier3 evidence 는 있었지만 대표 표면이 아니었다"
+            ),
+            precedence_trace=tuple(trace),
+        )
+
+    # tier 2 로도 못 가른다 — force-map 하지 않는다(D-R0-12). 경합한 candidate 전부를 남긴다.
+    trace.append("tier2 로도 못 가른다 — force-map 하지 않는다")
     return RepresentativeFunctionMapping(
-        MappingOutcome.MAPPED,
-        archetype,
-        signal_type,
-        f"observed interaction structure ({signal_type.value}) — {basis}",
-        (basis,),
-        (archetype,),
+        MappingOutcome.AMBIGUOUS_UNRESOLVED,
+        None,
+        None,
+        "",
+        tuple(basis for _, _, basis in evidenced),
+        tuple(candidates),
+        unresolved_reason=(
+            "강한 candidate 2개 이상, tier2(primary surface)로도 가르지 못했다 — "
+            f"경합: {sorted(a.value for a in distinct_archetypes)}. force-map 하지 않는다."
+        ),
         target_id=target_id,
+        precedence_trace=tuple(trace),
     )
 
 
@@ -1293,8 +1419,8 @@ __all__ = [
     "BudgetExhausted",
     "DepthResult",
     "MappingOutcome",
-    "RepresentativeFunctionMapping",
     "ReplayBroken",
+    "RepresentativeFunctionMapping",
     "Scout",
     "ScoutBudget",
     "TaskDefinition",

@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -59,7 +58,9 @@ FIXTURES = RESEARCH / "fixtures"
 pytestmark = pytest.mark.slow
 
 
-def _scout(budget: ScoutBudget | None = None, execution_mode: ExecutionMode = ExecutionMode.FIXTURE) -> Scout:
+def _scout(
+    budget: ScoutBudget | None = None, execution_mode: ExecutionMode = ExecutionMode.FIXTURE
+) -> Scout:
     return Scout(
         fixture_root=FIXTURES,
         budget=budget or ScoutBudget(max_activations_per_task=5, branching_limit=3),
@@ -182,12 +183,22 @@ def test_real_target_mode_never_calls_the_three_forbidden_marker_reads() -> None
             page.evaluate("window.__w2SpyCalls = []")
             real_target_probe = page.evaluate(PROBE_JS, "REAL_TARGET")
             real_target_calls = page.evaluate("window.__w2SpyCalls")
-            assert real_target_calls == [], f"REAL_TARGET 모드에서 marker 읽기 시도가 있었다: {real_target_calls}"
+            assert real_target_calls == [], (
+                f"REAL_TARGET 모드에서 marker 읽기 시도가 있었다: {real_target_calls}"
+            )
             assert real_target_probe["raw_features"]["region_signals"]["declared_regions"] == []
             assert real_target_probe["raw_features"]["endpoint_signals"]["declared_endpoints"] == []
-            assert real_target_probe["raw_features"]["endpoint_signals"]["body_endpoint_reached"] is None
-            assert real_target_probe["raw_features"]["region_signals"]["marker_path_disabled"] is True
-            assert real_target_probe["raw_features"]["endpoint_signals"]["marker_path_disabled"] is True
+            assert (
+                real_target_probe["raw_features"]["endpoint_signals"]["body_endpoint_reached"]
+                is None
+            )
+            assert (
+                real_target_probe["raw_features"]["region_signals"]["marker_path_disabled"] is True
+            )
+            assert (
+                real_target_probe["raw_features"]["endpoint_signals"]["marker_path_disabled"]
+                is True
+            )
         finally:
             browser.close()
 
@@ -198,9 +209,7 @@ def test_detect_functions_never_use_marker_fields_in_real_target_mode_even_if_po
     필드를 절대 소비하지 않는다."""
     raw = {
         "region_signals": {
-            "declared_regions": [
-                {"region": "MATCHES_TASK", "present": True, "visible": True}
-            ],
+            "declared_regions": [{"region": "MATCHES_TASK", "present": True, "visible": True}],
             "search_inputs": [],
         },
         "endpoint_signals": {
@@ -211,7 +220,9 @@ def test_detect_functions_never_use_marker_fields_in_real_target_mode_even_if_po
         },
     }
     task = TaskDefinition("TDEF", A.CONTENT_OPEN, "MATCHES_TASK", "MATCHES_TASK_EP")
-    assert detect_area_signal(raw, task, ExecutionMode.FIXTURE) is True  # FIXTURE 는 여전히 marker 를 쓴다
+    assert (
+        detect_area_signal(raw, task, ExecutionMode.FIXTURE) is True
+    )  # FIXTURE 는 여전히 marker 를 쓴다
     assert detect_area_signal(raw, task, ExecutionMode.REAL_TARGET) is False
     assert detect_endpoint_signal(raw, task, ExecutionMode.FIXTURE) is True
     assert detect_endpoint_signal(raw, task, ExecutionMode.REAL_TARGET) is False
@@ -248,7 +259,11 @@ def test_endpoint_false_positive_adversarial_fixture_from_real_measurement() -> 
             "article_present": 0,
             "video_playing": False,
         },
-        "repeated_structure": {"list_container_count": 0, "list_item_link_count": 0, "hittable_list_item_link_count": 0},
+        "repeated_structure": {
+            "list_container_count": 0,
+            "list_item_link_count": 0,
+            "hittable_list_item_link_count": 0,
+        },
         "primary_action_candidates": [],
     }
     # task 의 정의가 우연히 그 marker 값과 정확히 같다고 최악으로 가정한다.
@@ -272,9 +287,7 @@ def test_endpoint_false_positive_adversarial_fixture_from_real_measurement() -> 
 def test_resolver_maps_the_unique_evidenced_candidate() -> None:
     raw = {
         "region_signals": {
-            "search_inputs": [
-                {"visible": True, "in_form": True, "has_submit": True}
-            ]
+            "search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]
         },
         "repeated_structure": {"hittable_list_item_link_count": 0},
         "primary_action_candidates": [],
@@ -316,10 +329,143 @@ def test_resolver_abstains_when_no_evidence_exists_for_any_candidate() -> None:
     assert "evidence 없음" in (result.unresolved_reason or "")
 
 
+def test_resolver_tier2_breaks_search_vs_list_tie_using_primary_surface() -> None:
+    """`D-R0-61`(PRECEDENCE_CONTESTED) 경합 유형의 **일반 재현** — 특정 holdout 타깃의
+    구체적 candidate 쌍을 쓰지 않는다(제너릭 raw dict 로 구성). 검색창(QUERY 증거)과
+    list-container 카드(CONTENT_OPEN 증거)가 한 페이지에 동시에 있을 때, MIN-4 로 정한
+    1위 candidate(tier2 "public page primary interaction surface")가 list 소속이면
+    CONTENT_OPEN 이 이기고, 진 QUERY 는 `runner_up` 으로 **조용히 삼켜지지 않고 기록**된다."""
+    raw = {
+        "region_signals": {
+            "search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]
+        },
+        "repeated_structure": {"hittable_list_item_link_count": 2},
+        "primary_action_candidates": [
+            {
+                "selector": "a#card-1",
+                "hittable": True,
+                "marked_primary": False,
+                "dom_order": 0,
+                "in_list_container": True,
+            },
+            {
+                "selector": "button#search-submit",
+                "hittable": True,
+                "marked_primary": False,
+                "dom_order": 5,
+                "in_list_container": False,
+            },
+        ],
+    }
+    result = resolve_representative_function(raw, [A.QUERY, A.CONTENT_OPEN])
+    assert result.outcome == MappingOutcome.MAPPED
+    assert result.archetype is A.CONTENT_OPEN
+    assert result.runner_up is A.QUERY
+    assert result.why_not_runner_up is not None and "tier2" in result.why_not_runner_up
+    assert any("tier2" in t for t in result.precedence_trace)
+
+
+def test_resolver_tier2_favors_query_when_search_control_is_the_top_ranked_surface() -> None:
+    """위와 반대 방향 — MIN-4 1위가 검색 제출 버튼이면 QUERY 가 이긴다."""
+    raw = {
+        "region_signals": {
+            "search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]
+        },
+        "repeated_structure": {"hittable_list_item_link_count": 2},
+        "primary_action_candidates": [
+            {
+                "selector": "button#search-submit",
+                "hittable": True,
+                "marked_primary": False,
+                "dom_order": 0,
+                "in_list_container": False,
+            },
+            {
+                "selector": "a#card-1",
+                "hittable": True,
+                "marked_primary": False,
+                "dom_order": 5,
+                "in_list_container": True,
+            },
+        ],
+    }
+    result = resolve_representative_function(raw, [A.QUERY, A.CONTENT_OPEN])
+    assert result.outcome == MappingOutcome.MAPPED
+    assert result.archetype is A.QUERY
+    assert result.runner_up is A.CONTENT_OPEN
+
+
+def test_resolver_stays_ambiguous_when_tier2_cannot_break_a_tie_between_two_list_archetypes() -> (
+    None
+):
+    """두 후보가 **둘 다 list 계열**(CONTENT_OPEN·ITEM_DETAIL)이면 tier2(list vs 검색)로도
+    가를 수 없다 — 이 경우 top surface 가 있어도 force-map 하지 않고 `AMBIGUOUS_UNRESOLVED`
+    로 남는다. "이 페이지의 유일한 list 가 어느 archetype 의 것인가"는 이 lane 의 신호로
+    답할 수 없는 질문이다(candidate 쌍이 구체적으로 무엇이었는지는 명시하지 않는다 —
+    `D-R0-61` 경합 4건 중 3건이 사후에 holdout 으로 확인돼 그 구체값을 쓰지 않는다)."""
+    raw = {
+        "region_signals": {"search_inputs": []},
+        "repeated_structure": {"hittable_list_item_link_count": 3},
+        "primary_action_candidates": [
+            {
+                "selector": "a#card-1",
+                "hittable": True,
+                "marked_primary": False,
+                "dom_order": 0,
+                "in_list_container": True,
+            },
+        ],
+    }
+    result = resolve_representative_function(raw, [A.CONTENT_OPEN, A.ITEM_DETAIL])
+    assert result.outcome == MappingOutcome.AMBIGUOUS_UNRESOLVED
+    assert result.archetype is None
+    assert set(result.candidate_archetypes) == {A.CONTENT_OPEN, A.ITEM_DETAIL}
+
+
+def test_utility_entry_custom_uri_scheme_control_is_not_counted_as_a_primary_control() -> None:
+    """`mplweb.ahnlab.com` 유형(비-holdout, Director 가 명시적으로 다뤄도 된다고 확인함) —
+    도구의 유일한 "control"이 `v3mobileplus://` 같은 커스텀 URI 스킴 링크뿐이면 Branch U
+    (`D-R0-41`)의 endpoint("primary control이 present/actionable")가 **웹에서는 성립하지
+    않는다.** `<a>` 태그는 애초에 `_utility_primary_control_present` 의 candidate 가 아니므로
+    (button/input/select/textarea 또는 role=button 만 인정) 이 상황을 **억지로 UTILITY_ENTRY
+    로 매핑하지 않는다** — 대신 실제로 존재하는 다른 표면(예: 뉴스 카드 목록)이 있으면 그쪽이
+    evidenced 된다."""
+    raw_scheme_only = {
+        "primary_action_candidates": [
+            {
+                "selector": "a#open-app",
+                "tag": "a",
+                "role": None,
+                "hittable": True,
+                "href": "v3mobileplus://open",
+                "marked_primary": False,
+                "dom_order": 0,
+                "in_list_container": False,
+            }
+        ],
+    }
+    task = TaskDefinition("TSCHEME", A.UTILITY_ENTRY, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    assert detect_area_signal(raw_scheme_only, task, ExecutionMode.REAL_TARGET) is False
+    assert detect_endpoint_signal(raw_scheme_only, task, ExecutionMode.REAL_TARGET) is False
+
+    # 같은 페이지에 실제로 열리는 뉴스카드(list-container 소속 링크)가 있으면 CONTENT_OPEN
+    # 후보는 evidenced 된다 — "성립 불가"를 침묵으로 남기지 않고 다른 candidate 로 드러낸다.
+    raw_with_news_cards = {
+        **raw_scheme_only,
+        "region_signals": {"search_inputs": []},
+        "repeated_structure": {"hittable_list_item_link_count": 4},
+    }
+    result = resolve_representative_function(raw_with_news_cards, [A.UTILITY_ENTRY, A.CONTENT_OPEN])
+    assert result.outcome == MappingOutcome.MAPPED
+    assert result.archetype is A.CONTENT_OPEN
+
+
 def test_resolver_never_returns_an_archetype_outside_the_seven() -> None:
     """`D-R0-11` — 신규 archetype 을 만들지 않는다. resolver 산출은 항상 닫힌 7종 안에 있다."""
     raw = {
-        "region_signals": {"search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]},
+        "region_signals": {
+            "search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]
+        },
         "repeated_structure": {"hittable_list_item_link_count": 0},
         "primary_action_candidates": [],
     }
@@ -348,7 +494,9 @@ def test_partial_depth_is_preserved_when_region_observed_but_endpoint_never_foun
     assert entry.ied is None
     assert entry.mpfed is None
     assert entry.area_signal_status == "OBSERVED"
-    assert len(entry.steps) >= 1, "이 fixture 설계는 region 확정 이후에도 탐색이 계속돼야 결함이 드러난다"
+    assert len(entry.steps) >= 1, (
+        "이 fixture 설계는 region 확정 이후에도 탐색이 계속돼야 결함이 드러난다"
+    )
     assert all(s.depth_segment == "UNASSIGNED" for s in entry.steps), (
         f"MPFED=NULL 인데 IED 로 라벨링된 step 이 있다(결함 재발): "
         f"{[s.depth_segment for s in entry.steps]}"
@@ -417,9 +565,7 @@ def test_gate_endpoint_promotion_is_flagged_when_basis_is_vocabulary_only() -> N
 
 def test_gate_endpoint_promotion_is_not_flagged_when_structural_signal_present() -> None:
     """실제 OTP 입력 필드 등 구조 신호가 있으면 vocabulary-only 가 아니다 — 과탐 방지."""
-    structural = GateSignals(
-        text="본인 확인", identity_number_input_count=1, otp_input_count=1
-    )
+    structural = GateSignals(text="본인 확인", identity_number_input_count=1, otp_input_count=1)
     decision = classify_gate_kind(structural)
     assert decision.resolved and decision.gate_kind is not None
     assert _gate_basis_is_vocabulary_only(decision) is False
@@ -458,7 +604,11 @@ def test_truncation_caveat_is_recorded_for_item_detail_when_relevant_cap_hit() -
 
 
 def test_truncation_caveat_is_silent_when_nothing_relevant_was_truncated() -> None:
-    raw = {"probe_truncation": {"primary_action_candidates": {"cap": 200, "matched": 40, "truncated": False}}}
+    raw = {
+        "probe_truncation": {
+            "primary_action_candidates": {"cap": 200, "matched": 40, "truncated": False}
+        }
+    }
     task = TaskDefinition("TT2", A.ITEM_DETAIL, None, None)
     assert observation_truncation_caveats(raw, task) == []
 
@@ -466,7 +616,11 @@ def test_truncation_caveat_is_silent_when_nothing_relevant_was_truncated() -> No
 def test_truncation_caveat_ignores_irrelevant_cap_for_query_archetype() -> None:
     """QUERY 는 `search_inputs`(cap 없음)만 쓴다 — `primary_action_candidates` 절단은
     QUERY 판정과 무관하므로 caveat 을 달지 않는다."""
-    raw = {"probe_truncation": {"primary_action_candidates": {"cap": 200, "matched": 250, "truncated": True}}}
+    raw = {
+        "probe_truncation": {
+            "primary_action_candidates": {"cap": 200, "matched": 250, "truncated": True}
+        }
+    }
     task = TaskDefinition("TT3", A.QUERY, None, None, R.FORM_STRUCTURE, R.FORM_STRUCTURE)
     assert observation_truncation_caveats(raw, task) == []
 

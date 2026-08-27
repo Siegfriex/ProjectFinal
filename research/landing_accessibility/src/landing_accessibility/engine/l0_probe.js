@@ -335,6 +335,11 @@
         nearby_heading: heading,
         href: el.getAttribute('href'),
         marked_primary: el.hasAttribute('data-primary-action'),
+        // W2 · D-R0-61(PRECEDENCE_CONTESTED) — Stage 4 precedence #2
+        // "public page primary interaction surface" 판정에 쓴다: MIN-4 로 정한 1위
+        // candidate 가 list-container 소속인지(반복 카드/리스트 표면)를 알아야 경합하는
+        // archetype 후보 중 실제로 페이지의 대표 표면이 어느 쪽인지 가릴 수 있다.
+        in_list_container: !!el.closest('ul,ol,[role=list],[role=listbox],[role=menu],[role=feed]'),
         box: b,
         area_css_px2: b ? +(b.w * b.h).toFixed(2) : null,
         // A1 §2.6 규칙 MIN-4 / A2 §1.13 — tie-break 2차 키. 구조값이므로 NULL이 없고

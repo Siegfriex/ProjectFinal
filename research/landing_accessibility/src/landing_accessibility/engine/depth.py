@@ -220,7 +220,10 @@ def assign_depth_segments(step_count: int, depth: DepthResult) -> list[DepthSegm
     k = depth.ned if depth.ned is not None else 0
     if depth.mpfed is None:
         # endpoint 가 확정되지 않았다 — k 이후를 IED 로 채울 근거(m)가 없다.
-        return [DepthSegment.NED if i <= k else DepthSegment.UNASSIGNED for i in range(1, step_count + 1)]
+        return [
+            DepthSegment.NED if i <= k else DepthSegment.UNASSIGNED
+            for i in range(1, step_count + 1)
+        ]
     m = depth.mpfed
     out: list[DepthSegment] = []
     for i in range(1, step_count + 1):
