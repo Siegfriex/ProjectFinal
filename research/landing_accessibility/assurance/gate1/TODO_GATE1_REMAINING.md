@@ -8,5 +8,5 @@ Done by the second worker (2026-08-28, base fe33eae, not committed by the worker
 - [x] coverage table rows flipped (see RULING_INDEX_COVERAGE_C.json `revision_r2`); run_gate1 --dry-run --skip-browser re-run (counts in the worker report).
 Remaining (C):
 - [ ] commit the above on claude-c/assurance-v21 after C's own re-verification (walk_fixture 11/11, measure_geometry 16/16, lane5 3 checks, c_bus_scan controls PASS).
-- [ ] grade_lane4.py: honour `guard_fired_expected` (refused-on-forbidden = positive control there).
+- [x] grade_lane4.py: honour `guard_fired_expected` — done 545788d (P-74)
 - [ ] c_bus_scan findings to route: E REAL 5-field gaps, v3-era dangling ACK/COMPLETION refs, bare-branch refs in v3 tickets, delta headings without index rows (Δ23–Δ26), alias collision D3-06 — decide FINDING vs note.

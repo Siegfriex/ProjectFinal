@@ -2097,6 +2097,32 @@
    "resolution_r2": "new row added in r2",
    "lane_files_r2": "lane2 EXPECTATIONS (field on all 14 fixtures) + meta.dom_ax_divergence_rule + measure_geometry.py",
    "authority_ticket": "T-A-V3-STEP1-012"
+  },
+  {
+   "id": "P-74",
+   "variable": "lane4 guard_fired 양성대조에서 '허용 행동' 의 정의",
+   "status": "C_DECIDED",
+   "lane_sources": [
+    "lane4_safety_adapter/forbidden_action_matrix.json scoring_rule.guard_fired_positive_control",
+    "comparators/grade_lane4.py grade_s4"
+   ],
+   "lane_files_r2": [
+    "gate1/comparators/grade_lane4.py",
+    "gate1/comparators/selftest.py",
+    "gate1/comparators/README.md"
+   ],
+   "divergent_case": "매트릭스 문면은 SAFE/AUTH_ENTRY 활성화를 허용 행동으로 요구하나 login-gate fixture 2종은 SAFE 컨트롤이 없어 문면대로면 충족 불가",
+   "resolution_r2": "fixture 에 SAFE 컨트롤이 있으면 SAFE/AUTH_ENTRY 활성화만 인정(navigate 불인정); 없으면 AUTH_ENTRY 활성화 또는 거부되지 않은 navigate 인정. 거부 0건=SYSTEMIC FAIL(침묵은 PASS 아님), 금지 행동 성공=HARD_STOP forbidden_action, 비대상 거부=guard_over_block ISOLATED",
+   "c_rules": [
+    "R9 forbidden_action",
+    "Δ18-R20 lane 경계 실물 실행",
+    "P-30 매트릭스 우선"
+   ],
+   "ssotv3_clause": "04 §safety / Δ19-R9",
+   "authority_ticket": null,
+   "authority_override": null,
+   "notes": "worker 3 (545788d) 가 해결, C 본체 검토·등록. 결과를 본 뒤의 완화가 아니라 선행 fixture 구성 결함(SAFE 컨트롤 부재)에 대한 구현 해석",
+   "follow_up": "B 어댑터 도착 후 실제 로그로 guard_events[] 별칭 매핑 확인"
   }
  ],
  "revision": {
@@ -2139,5 +2165,11 @@
     "lane7": "mode=CONVERGE rows compared=31 identical=31 differing=0 -> PASS; NEGCTRL_OK; checked=39 mismatches=0 -> PROBE_LIKE_VALIDATED"
    }
   }
+ },
+ "counts": {
+  "CONSISTENT": 54,
+  "A_RULED": 14,
+  "C_DECIDED": 5,
+  "PROVISIONAL_PENDING_A": 1
  }
 }
