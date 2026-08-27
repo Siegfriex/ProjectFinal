@@ -1,6 +1,6 @@
 # CLAIM_REGISTRY — E001
 
-**스냅샷** 2026-08-27T16:16:51+09:00 (Asia/Seoul)
+**스냅샷** 2026-08-27T16:17:56+09:00 (Asia/Seoul)
 
 오늘 등재 가능한 등급은 **A**(정의·기술통계·직접 관측 + lineage 완전)뿐이다. association이 계산되지 않았으므로 그에 기반한 상위 등급은 **존재할 수 없고**, exploratory 등급도 **만들지 않았다** — 만들면 `substitute_made: false` 판정을 뒤집는 것이 된다.
 

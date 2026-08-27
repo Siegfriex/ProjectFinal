@@ -1,6 +1,6 @@
 # FINAL_RESULTS_SUMMARY — E001
 
-**스냅샷** 2026-08-27T16:16:51+09:00 (Asia/Seoul) · **등급** PILOT / PRELIMINARY
+**스냅샷** 2026-08-27T16:17:56+09:00 (Asia/Seoul) · **등급** PILOT / PRELIMINARY
 **mart manifest** `FROZEN_MART_MANIFEST.json` (`sha256:256ae9a9d8721e0d…`)
 
 ## 1. 오늘 결론의 핵심

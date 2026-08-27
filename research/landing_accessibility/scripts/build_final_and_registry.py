@@ -143,7 +143,7 @@ def build_final(d: Path) -> str:
     a("")
     a(f"{attr['layer_note']}")
     a("")
-    for key, item in attr["attribution"].items():
+    for item in attr["attribution"].values():
         a(f"- **{item['n']}건** ({item['pct']}%) `{item['category']}` — {item['label']}")
     a("")
     a(f"- {attr['e6b_note']}")
