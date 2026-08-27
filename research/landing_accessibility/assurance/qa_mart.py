@@ -98,6 +98,10 @@ def main(a):
             if oc and cr.get("observation_id") and str(b.get(oc)) != str(cr.get("observation_id")): add("C1", "OBS_ID_MART", "mart observation_id != raw", target_id=tid)
     # ---- FailRate from fact_criterion_result with FROZEN older-relevant set (never from mart's own tag column)
     fr = {}
+    if fcr is not None:
+        SUSPECT = {"2.4.7": "not in KWCAG 2.2", "3.2.2": "KWCAG 3.2.2 != WCAG On Input", "2.5.1": "NOT_AUTOMATABLE (applicability always 0)"}
+        cid0 = _col(fcr, "criterion_id"); hits = sorted(set(fcr[cid0].astype(str)) & set(SUSPECT))
+        if hits: add("C1", "SUSPECT_CRITERION_ID", f"mart contains criterion ids flagged by A as invalid/mixed WCAG: {hits}", detail={h: SUSPECT[h] for h in hits})
     if fcr is not None and a.older_relevant:
         orl = load_older_relevant(a.older_relevant); older = {c for c, t in orl.items() if t != "OTHER"}
         obs2t = {}
