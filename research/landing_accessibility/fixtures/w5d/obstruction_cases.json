@@ -1,0 +1,541 @@
+{
+  "_about": [
+    "W5D task-specific obstruction 대조군 fixture.",
+    "viewport 는 03 §1 고정값 390x844 CSS px.",
+    "task_control_bbox 는 우상단 진입 control (x 270..370, y 20..64, 면적 4400 px^2).",
+    "각 case 의 expect 는 measurement 수준(step 요약) 기대값이고,",
+    "expect_rows 는 interrupt 단위 원자료 기대값이다 — 요약이 원자료를 대체하지 않는다."
+  ],
+  "viewport": { "width": 390, "height": 844 },
+  "task_control_bbox": { "x": 270, "y": 20, "w": 100, "h": 44 },
+  "cases": [
+    {
+      "case_id": "divergence_wide_banner_misses_control",
+      "note": "화면 90% 를 덮지만 task control 은 비켜 간 배너. overlay_coverage 높고 task_control_occlusion 0.",
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "COOKIE_CONSENT",
+          "selector": "#cookie-banner",
+          "visible": true,
+          "box": { "x": 0, "y": 84, "w": 390, "h": 760 },
+          "viewport_coverage": 0.9005,
+          "intercepts_task_control": false,
+          "traps_interaction": false,
+          "dismiss_container_observed": true,
+          "dismiss_controls": [
+            {
+              "selector": "#cookie-banner .accept",
+              "accessible_name_source": "동의",
+              "matches_close_vocabulary": true,
+              "icon_only": false,
+              "hittable": true,
+              "viewport_overlap_css_px2": 2400
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 0.9005,
+        "task_control_occlusion": 0.0,
+        "dismiss_control_exists": null,
+        "dismiss_control_visible": null,
+        "dismiss_control_accessible_name": null,
+        "dismiss_required_for_task": false,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "NO_TARGET",
+        "status": "MEASURED",
+        "blocking_population": []
+      },
+      "expect_rows": [
+        { "interrupt_id": "i1", "blocking_basis": "NOT_BLOCKING", "task_control_occlusion": 0.0 }
+      ]
+    },
+    {
+      "case_id": "divergence_small_modal_covers_control",
+      "note": "화면 2% 만 덮지만 task control 위에 정확히 앉은 팝업. 두 값이 앞 case 와 반대 방향이다.",
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "PROMOTION_MODAL",
+          "selector": "#promo",
+          "visible": true,
+          "box": { "x": 265, "y": 15, "w": 110, "h": 55 },
+          "viewport_coverage": 0.0184,
+          "intercepts_task_control": true,
+          "traps_interaction": false,
+          "dismiss_container_observed": true,
+          "dismiss_attempted": true,
+          "dismiss_succeeded_observed": true,
+          "dismiss_controls": [
+            {
+              "selector": "#promo .close",
+              "accessible_name_source": "닫기",
+              "matches_close_vocabulary": true,
+              "icon_only": true,
+              "hittable": true,
+              "viewport_overlap_css_px2": 400
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 0.0184,
+        "task_control_occlusion": 1.0,
+        "dismiss_control_exists": true,
+        "dismiss_control_visible": true,
+        "dismiss_control_accessible_name": "닫기",
+        "dismiss_required_for_task": true,
+        "dismiss_succeeded": true,
+        "forced_dismissal_count": 1,
+        "dismissal_state": "DISMISS_SUCCEEDED",
+        "status": "MEASURED",
+        "blocking_population": ["i1"]
+      },
+      "expect_rows": [
+        {
+          "interrupt_id": "i1",
+          "blocking_basis": "POINTER_INTERCEPT",
+          "task_control_occlusion": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "no_target_nothing_to_dismiss",
+      "note": "닫을 대상 자체가 없다. 네 필드는 None 이고 False 가 아니다.",
+      "interrupts": [],
+      "expect": {
+        "overlay_coverage": 0.0,
+        "task_control_occlusion": 0.0,
+        "dismiss_control_exists": null,
+        "dismiss_control_visible": null,
+        "dismiss_control_accessible_name": null,
+        "dismiss_required_for_task": false,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "NO_TARGET",
+        "status": "MEASURED",
+        "blocking_population": []
+      },
+      "expect_rows": []
+    },
+    {
+      "case_id": "no_control_blocking_without_close",
+      "note": "닫기 control 이 없다. exists 는 관측된 부재이므로 False 이고 None 이 아니다.",
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "BLOCKING_MODAL",
+          "selector": "#wall",
+          "visible": true,
+          "box": { "x": 0, "y": 0, "w": 390, "h": 844 },
+          "viewport_coverage": 1.0,
+          "intercepts_task_control": true,
+          "traps_interaction": true,
+          "dismiss_container_observed": true,
+          "dismiss_controls": []
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 1.0,
+        "task_control_occlusion": 1.0,
+        "dismiss_control_exists": false,
+        "dismiss_control_visible": null,
+        "dismiss_control_accessible_name": null,
+        "dismiss_required_for_task": true,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "NO_CONTROL",
+        "status": "MEASURED",
+        "blocking_population": ["i1"]
+      },
+      "expect_rows": [
+        { "interrupt_id": "i1", "blocking_basis": "MODAL_TRAP", "task_control_occlusion": 1.0 }
+      ]
+    },
+    {
+      "case_id": "dismiss_failed",
+      "note": "닫기를 시도했고 상태가 안 바뀌었다. exists True + succeeded False.",
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "APP_INSTALL_PROMPT",
+          "selector": "#app-wall",
+          "visible": true,
+          "box": { "x": 0, "y": 0, "w": 390, "h": 400 },
+          "viewport_coverage": 0.4739,
+          "intercepts_task_control": true,
+          "traps_interaction": false,
+          "dismiss_container_observed": true,
+          "dismiss_attempted": true,
+          "dismiss_succeeded_observed": false,
+          "dismiss_failure_mode": "NO_STATE_CHANGE",
+          "dismiss_controls": [
+            {
+              "selector": "#app-wall .later",
+              "accessible_name_source": "나중에",
+              "matches_close_vocabulary": true,
+              "icon_only": false,
+              "hittable": true,
+              "viewport_overlap_css_px2": 900
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 0.4739,
+        "task_control_occlusion": 1.0,
+        "dismiss_control_exists": true,
+        "dismiss_control_visible": true,
+        "dismiss_control_accessible_name": "나중에",
+        "dismiss_required_for_task": true,
+        "dismiss_succeeded": false,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "DISMISS_FAILED",
+        "status": "MEASURED",
+        "blocking_population": ["i1"]
+      },
+      "expect_rows": [
+        {
+          "interrupt_id": "i1",
+          "blocking_basis": "POINTER_INTERCEPT",
+          "task_control_occlusion": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "axis1_unit_representative_row",
+      "note": "축 1 대조군 — 단위가 interrupt 다. 필드별 any 집계였다면 exists 가 True 로 나온다.",
+      "interrupts": [
+        {
+          "interrupt_id": "i_low",
+          "interrupt_type": "BANNER",
+          "selector": "#partial",
+          "visible": true,
+          "box": { "x": 270, "y": 20, "w": 25, "h": 44 },
+          "viewport_coverage": 0.0033,
+          "intercepts_task_control": true,
+          "traps_interaction": false,
+          "dismiss_container_observed": true,
+          "dismiss_controls": [
+            {
+              "selector": "#partial .x",
+              "accessible_name_source": "확인",
+              "matches_close_vocabulary": true,
+              "icon_only": false,
+              "hittable": true,
+              "viewport_overlap_css_px2": 300
+            }
+          ]
+        },
+        {
+          "interrupt_id": "i_high",
+          "interrupt_type": "BLOCKING_MODAL",
+          "selector": "#full",
+          "visible": true,
+          "box": { "x": 0, "y": 0, "w": 390, "h": 844 },
+          "viewport_coverage": 1.0,
+          "intercepts_task_control": true,
+          "traps_interaction": true,
+          "dismiss_container_observed": true,
+          "dismiss_controls": []
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 1.0,
+        "task_control_occlusion": 1.0,
+        "dismiss_control_exists": false,
+        "dismiss_control_visible": null,
+        "dismiss_control_accessible_name": null,
+        "dismiss_required_for_task": true,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "NO_CONTROL",
+        "status": "MEASURED",
+        "blocking_population": ["i_low", "i_high"],
+        "representative_interrupt_id": "i_high"
+      },
+      "expect_rows": [
+        {
+          "interrupt_id": "i_low",
+          "blocking_basis": "POINTER_INTERCEPT",
+          "task_control_occlusion": 0.25
+        },
+        { "interrupt_id": "i_high", "blocking_basis": "MODAL_TRAP", "task_control_occlusion": 1.0 }
+      ]
+    },
+    {
+      "case_id": "axis2_population_nonblocking_has_dismiss_control",
+      "note": "축 2 대조군 — 모집단이 blocking 조건부다. 보이는 오버레이 전체였다면 exists 가 True 로 나온다.",
+      "interrupts": [
+        {
+          "interrupt_id": "i_chat",
+          "interrupt_type": "CHAT_WIDGET",
+          "selector": "#chat",
+          "visible": true,
+          "box": { "x": 320, "y": 760, "w": 60, "h": 60 },
+          "viewport_coverage": 0.0109,
+          "intercepts_task_control": false,
+          "traps_interaction": false,
+          "dismiss_container_observed": true,
+          "dismiss_controls": [
+            {
+              "selector": "#chat .close",
+              "accessible_name_source": "닫기",
+              "matches_close_vocabulary": true,
+              "icon_only": true,
+              "hittable": true,
+              "viewport_overlap_css_px2": 400
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 0.0109,
+        "task_control_occlusion": 0.0,
+        "dismiss_control_exists": null,
+        "dismiss_control_visible": null,
+        "dismiss_control_accessible_name": null,
+        "dismiss_required_for_task": false,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "NO_TARGET",
+        "status": "MEASURED",
+        "blocking_population": []
+      },
+      "expect_rows": [
+        { "interrupt_id": "i_chat", "blocking_basis": "NOT_BLOCKING", "task_control_occlusion": 0.0 }
+      ]
+    },
+    {
+      "case_id": "axis3_source_container_unobserved",
+      "note": "축 3 대조군 — 원천 필드를 못 봤다. exists 는 False 가 아니라 None.",
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "BLOCKING_MODAL",
+          "selector": "#wall",
+          "visible": true,
+          "box": { "x": 0, "y": 0, "w": 390, "h": 844 },
+          "viewport_coverage": 1.0,
+          "intercepts_task_control": true,
+          "traps_interaction": true,
+          "dismiss_container_observed": false,
+          "dismiss_controls": []
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 1.0,
+        "task_control_occlusion": 1.0,
+        "dismiss_control_exists": null,
+        "dismiss_control_visible": null,
+        "dismiss_control_accessible_name": null,
+        "dismiss_required_for_task": true,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "UNDETERMINED",
+        "status": "PARTIAL",
+        "blocking_population": ["i1"]
+      },
+      "expect_rows": [
+        { "interrupt_id": "i1", "blocking_basis": "MODAL_TRAP", "task_control_occlusion": 1.0 }
+      ]
+    },
+    {
+      "case_id": "axis3_name_absent_is_not_null",
+      "note": "축 3 대조군 — control 은 있는데 이름이 비었다. NAME_ABSENT 이고 None 이 아니다.",
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "PROMOTION_MODAL",
+          "selector": "#promo",
+          "visible": true,
+          "box": { "x": 265, "y": 15, "w": 110, "h": 55 },
+          "viewport_coverage": 0.0184,
+          "intercepts_task_control": true,
+          "traps_interaction": false,
+          "dismiss_container_observed": true,
+          "dismiss_controls": [
+            {
+              "selector": "#promo .x",
+              "accessible_name_source": null,
+              "matches_close_vocabulary": false,
+              "icon_only": true,
+              "hittable": true,
+              "viewport_overlap_css_px2": 256
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 0.0184,
+        "task_control_occlusion": 1.0,
+        "dismiss_control_exists": true,
+        "dismiss_control_visible": true,
+        "dismiss_control_accessible_name": "NAME_ABSENT",
+        "dismiss_required_for_task": true,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "CONTROL_PRESENT_NOT_ATTEMPTED",
+        "status": "MEASURED",
+        "blocking_population": ["i1"]
+      },
+      "expect_rows": [
+        {
+          "interrupt_id": "i1",
+          "blocking_basis": "POINTER_INTERCEPT",
+          "task_control_occlusion": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "geometry_overlap_without_interception",
+      "note": "03 §9 — 겹치기만 하고 입력 가로채기 미관측. 0.0 이 아니라 None.",
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "UNKNOWN",
+          "selector": "#unknown",
+          "visible": true,
+          "box": { "x": 265, "y": 15, "w": 110, "h": 55 },
+          "viewport_coverage": 0.0184,
+          "intercepts_task_control": null,
+          "traps_interaction": null,
+          "dismiss_container_observed": true,
+          "dismiss_controls": []
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 0.0184,
+        "task_control_occlusion": null,
+        "dismiss_control_exists": null,
+        "dismiss_control_visible": null,
+        "dismiss_control_accessible_name": null,
+        "dismiss_required_for_task": null,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "UNDETERMINED",
+        "status": "UNDETERMINED",
+        "blocking_population": []
+      },
+      "expect_rows": [
+        { "interrupt_id": "i1", "blocking_basis": "UNDETERMINED", "task_control_occlusion": 1.0 }
+      ]
+    },
+    {
+      "case_id": "modal_trap_without_geometric_overlap",
+      "note": "occlusion 0 인데 막는다. 기하값만으로 obstruction 을 대표할 수 없음의 역방향 증거.",
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "BLOCKING_MODAL",
+          "selector": "#sheet",
+          "visible": true,
+          "box": { "x": 0, "y": 500, "w": 390, "h": 344 },
+          "viewport_coverage": 0.4076,
+          "intercepts_task_control": false,
+          "traps_interaction": true,
+          "dismiss_container_observed": true,
+          "dismiss_attempted": true,
+          "dismiss_succeeded_observed": true,
+          "dismiss_controls": [
+            {
+              "selector": "#sheet .close",
+              "accessible_name_source": "닫기",
+              "matches_close_vocabulary": true,
+              "icon_only": true,
+              "hittable": true,
+              "viewport_overlap_css_px2": 400
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 0.4076,
+        "task_control_occlusion": 0.0,
+        "dismiss_control_exists": true,
+        "dismiss_control_visible": true,
+        "dismiss_control_accessible_name": "닫기",
+        "dismiss_required_for_task": true,
+        "dismiss_succeeded": true,
+        "forced_dismissal_count": 1,
+        "dismissal_state": "DISMISS_SUCCEEDED",
+        "status": "MEASURED",
+        "blocking_population": ["i1"]
+      },
+      "expect_rows": [
+        { "interrupt_id": "i1", "blocking_basis": "MODAL_TRAP", "task_control_occlusion": 0.0 }
+      ]
+    },
+    {
+      "case_id": "invisible_overlay_not_blocking",
+      "note": "안 보이는 오버레이. 행 단위 기하값은 1.0 로 남지만 blocking 이 아니고 요약은 0.0.",
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "ADVERTISEMENT",
+          "selector": "#hidden-ad",
+          "visible": false,
+          "box": { "x": 0, "y": 0, "w": 390, "h": 844 },
+          "viewport_coverage": 1.0,
+          "intercepts_task_control": null,
+          "traps_interaction": null,
+          "dismiss_container_observed": true,
+          "dismiss_controls": []
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 0.0,
+        "task_control_occlusion": 0.0,
+        "dismiss_control_exists": null,
+        "dismiss_control_visible": null,
+        "dismiss_control_accessible_name": null,
+        "dismiss_required_for_task": false,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "NO_TARGET",
+        "status": "MEASURED",
+        "blocking_population": []
+      },
+      "expect_rows": [
+        { "interrupt_id": "i1", "blocking_basis": "NOT_BLOCKING", "task_control_occlusion": 1.0 }
+      ]
+    },
+    {
+      "case_id": "task_control_bbox_missing",
+      "note": "task 진입 control bbox 를 못 쟀다. primary 는 None, 보조값은 그대로 산출된다.",
+      "task_control_bbox": null,
+      "interrupts": [
+        {
+          "interrupt_id": "i1",
+          "interrupt_type": "LOGIN_PROMPT",
+          "selector": "#login-modal",
+          "visible": true,
+          "box": { "x": 0, "y": 0, "w": 390, "h": 844 },
+          "viewport_coverage": 1.0,
+          "intercepts_task_control": null,
+          "traps_interaction": true,
+          "dismiss_container_observed": true,
+          "dismiss_controls": []
+        }
+      ],
+      "expect": {
+        "overlay_coverage": 1.0,
+        "task_control_occlusion": null,
+        "dismiss_control_exists": false,
+        "dismiss_control_visible": null,
+        "dismiss_control_accessible_name": null,
+        "dismiss_required_for_task": true,
+        "dismiss_succeeded": null,
+        "forced_dismissal_count": 0,
+        "dismissal_state": "NO_CONTROL",
+        "status": "UNDETERMINED",
+        "blocking_population": ["i1"]
+      },
+      "expect_rows": [
+        { "interrupt_id": "i1", "blocking_basis": "MODAL_TRAP", "task_control_occlusion": null }
+      ]
+    }
+  ]
+}
