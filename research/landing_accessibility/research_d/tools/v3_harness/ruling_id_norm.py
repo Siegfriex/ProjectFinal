@@ -97,14 +97,22 @@ class Index:
 
     @staticmethod
     def _hit(token: str, text: str) -> bool:
-        """id 형태는 단어경계로, 서술형은 원문 그대로 찾는다."""
-        if _ID_LIKE.match(token):
-            return bool(re.search(r"(?<![A-Za-z0-9])" + re.escape(token)
-                                  + r"(?![A-Za-z0-9])", text))
-        return token in text
+        """전 별칭에 같은 토큰 경계를 쓴다. 부분일치는 쓰지 않는다.
+
+        A 의 `alias_rules.matching` 이 정본이다 — **"토큰 경계 매칭. 부분일치
+        금지"**. D 는 한 번 서술형 별칭만 부분일치로 돌렸는데, 실측하니
+        15건 전부에서 경계 매칭과 답이 같았다. 즉 **필요하지도 않으면서
+        규칙만 어겼다.**
+
+        경계는 C 의 것을 쓴다 — `(?<![\w-])…(?![\w-])`. D 가 쓰던
+        `(?<![A-Za-z0-9])` 는 앞의 `-` 를 허용해서 `Δ10-R12` 안의 `R12` 에
+        걸린다. 지금 데이터에서는 행 결론이 같지만(11건 동일), 그 느슨함이
+        바로 **다른 절의 표기에 걸리는** D-DEF-15 의 형태다. 좁은 쪽을 쓴다.
+        """
+        return bool(re.search(r"(?<![\w-])" + re.escape(token) + r"(?![\w-])", text))
 
     def match_mode(self, token: str) -> str:
-        return "word_boundary" if _ID_LIKE.match(token) else "verbatim_substring"
+        return "token_boundary"
 
 
 _default: Index | None = None
