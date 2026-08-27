@@ -141,7 +141,18 @@ DECISION  detector coverage gate 의 분모는 56 전체다. AMBIGUOUS 라벨 �
           두 값을 모두 보고한다.
 ```
 
-## D-R0-57 — prior 표의 정본과 결함 (P1, 신규)
+## D-R0-57 — ~~prior 표의 정본과 결함~~ **SUPERSEDED**
+
+> **[SUPERSEDED · C-FACT_CORRECTION-213916 · `r0/D_R0_57_SUPERSEDED.md`]**
+> 아래 결정은 **틀렸다.** `mapping_status == CANDIDATE` 로 필터하면 frozen 59행에
+> 중복 web_target_id 가 **0건**이고 naver 의 prior 는 `QUERY` 로 유일하다.
+> A 가 71행 전체에 last-wins 조인을 걸어 이미 배제된 `naver_naverpay` 행이
+> `naver_app` 행을 덮은 것이다. **frame 결함이 아니라 A 의 조인 결함이다.**
+> 정정: prior==label **22/42 = 0.5238** (C 값). A 의 21/42 폐기.
+> 정본 필터 = `@2281c85 ∧ mapping_status==CANDIDATE ∧ frozen_collection_order 59`.
+> 아래 원문은 발행 시점 상태로 보존한다.
+
+### (원문 — 무효)
 
 ### A 21/42 vs C 22/42 의 원인 — 둘 다 오계산이 아니다
 

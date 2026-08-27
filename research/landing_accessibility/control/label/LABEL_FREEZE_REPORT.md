@@ -103,7 +103,7 @@ prior 기반**이다. 두 축이 어긋난 채로 측정하게 된다.
 ```
 
 **이유 — label 의 신뢰도를 추정하지 않았다.** 각 target 은 **1회만** 라벨됐다.
-inter-labeler agreement 를 잰 적이 없다. 즉 `0.500` 이 prior 의 오류율인지 label 의
+inter-labeler agreement 를 잰 적이 없다. 즉 `0.5238` 이 prior 의 오류율인지 label 의
 분산인지 **구분할 수 없다.**
 
 ### §3.1 유일한 자연 복제 — 그리고 불일치했다
