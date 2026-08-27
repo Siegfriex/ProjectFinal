@@ -38,7 +38,7 @@ _FORBIDDEN_TAIL = None
 # CLAIM_GOVERNANCE rev 14:58: association NOT_COMPUTABLE, substitute_made=false → any association/GRADE B/C claim is out today
 TODAY_RULES = [
     (r"(?=.*(Spearman|ρ|rho|순위\s*상관|Kruskal|association))(?=.*(=\s*-?\d|보였다|나타났|유의|p\s*[<=]|n\s*=\s*\d))", "rev14:58 §1", "오늘 association 없음 — 검정 이름은 계약 인용 맥락에서만; 결과처럼 읽히면 반려"),
-    (r"예산\s*소진[^.]{0,20}(1[0-9]|9)\s*건", "rev14:58 축B", "'예산 소진' 계수 흡수 의심 — WALL_CLOCK 7 + NO_STATE_CHANGE 2 = 9 뿐이며 미기록 6·SCOUT_ERROR 3 은 별도 (B 15:07)"),
+    (r"(예산\s*(소진|초과)|깊이\s*예산|DEPTH_BUDGET_EXCEEDED)[^.]{0,25}(?<!\d)(10|12|13|15|16|18)\s*건", "rev14:58 축B", "예산 계수 흡수: 10=7+SCOUT_ERROR3 · 12=detail 필드 뭉침 · 13=7+미기록6 · 15/16/18 — 허용값은 7 · 2 · 9 뿐 (B 15:11)"),
     (r"GRADE\s*[BC]\b", "rev14:58 §1", "오늘 GRADE B/C 태그 자체가 무효 — A 또는 UNSUPPORTED 만"),
     (r"축\s*A[^.]{0,20}(관측됨|측정됨|산출)", "rev14:58 §0", "축 A = NOT_EVALUATED (판정기 부재) 로만 서술"),
     (r"(KWCAG|접근성\s*장벽)[^.]{0,30}(FAIL\s*비율|비율\s*분포|median)", "rev14:58 §0", "KWCAG 판정 미수행 — FailRate 서술 불가"),
