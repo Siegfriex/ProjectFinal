@@ -1005,8 +1005,24 @@ for auditor, argv_sha, sha_key, cyc_key, tgt_key, br_key in PINS:
         die("%s 감사 보고서 JSON 파싱 실패: %s:%s (%s)" % (auditor, argv_sha, path, e))
     if rep.get("cycle") != cycle:
         die("%s 보고서 cycle(%r) != %r" % (auditor, rep.get("cycle"), cycle))
-    if rep.get("target_sha") != exec_sha:
-        die("%s 보고서 target_sha(%r) != 승격 대상(%s)" % (auditor, rep.get("target_sha"), exec_sha))
+    # V2-C015 계약 정합 — 두 감사자가 같은 사실(감사한 exec 트리)을 다른 형태로 적는다:
+    #   target_sha = "<40hex>" · target_sha = {"exec": "<40hex>", ...} · target_sha_exec = "<40hex>"
+    # 검사 강도는 그대로다 — 보고서가 exec target 을 **명시 선언**해야 하고 승격 대상과 정확히
+    # 같아야 한다. 선언 부재·비 40-hex 는 _rt = None 이 되어 아래에서 차단된다 (fail-closed).
+    _rt = rep.get("target_sha")
+    if isinstance(_rt, dict):
+        _rt = _rt.get("exec")
+    if not (isinstance(_rt, str) and HEX40.match(_rt)):
+        _rt = None
+        for _k in ("target_sha_exec", "target_exec_sha"):
+            _v = rep.get(_k)
+            if isinstance(_v, str) and HEX40.match(_v):
+                _rt = _v
+                break
+    if _rt != exec_sha:
+        die("%s 보고서의 exec target SHA(%r) != 승격 대상(%s) — 보고서는 감사한 exec 트리를 "
+            "명시 선언해야 한다 (target_sha / target_sha.exec / target_sha_exec / target_exec_sha)"
+            % (auditor, _rt, exec_sha))
     if rep.get("auditor") != auditor:
         die("%s 보고서 auditor 필드(%r) 불일치" % (auditor, rep.get("auditor")))
     reports[auditor] = rep
@@ -1615,9 +1631,20 @@ for auditor, audit_sha, cyc_key in AUDITORS:
     if rep["verdict"] != "PASS":
         die("%s 감사 보고서 verdict = %r (PASS 아님): %s:%s"
             % (auditor, rep["verdict"], audit_sha, path))
-    if rep.get("target_sha") != exec_sha:
-        die("%s 감사 보고서 target_sha(%r) != 승격 대상(%s) — 감사한 트리와 승격 트리가 다르다"
-            % (auditor, rep.get("target_sha"), exec_sha))
+    # V2-C015 계약 정합 — (A) 블록과 **동일한** 판독 규칙. 강도 불변, 형태만 흡수한다.
+    _rt = rep.get("target_sha")
+    if isinstance(_rt, dict):
+        _rt = _rt.get("exec")
+    if not (isinstance(_rt, str) and HEX40.match(_rt)):
+        _rt = None
+        for _k in ("target_sha_exec", "target_exec_sha"):
+            _v = rep.get(_k)
+            if isinstance(_v, str) and HEX40.match(_v):
+                _rt = _v
+                break
+    if _rt != exec_sha:
+        die("%s 감사 보고서의 exec target SHA(%r) != 승격 대상(%s) — 감사한 트리와 승격 트리가 다르다"
+            % (auditor, _rt, exec_sha))
     if rep.get("cycle") != cyc:
         die("%s 감사 보고서 cycle(%r) != audit_lag.%s(%r)" % (auditor, rep.get("cycle"), cyc_key, cyc))
     if rep.get("auditor") != auditor:
