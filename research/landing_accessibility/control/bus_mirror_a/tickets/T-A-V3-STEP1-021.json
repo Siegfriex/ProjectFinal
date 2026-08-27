@@ -1,0 +1,62 @@
+{
+ "ticket_id": "T-A-V3-STEP1-021",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "cc": [
+  "D",
+  "E",
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P1",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "3e1d2cca05ef5a6a330c3352c64c88c52331636b",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T04:14:00+09:00",
+ "completed_at_kst": null,
+ "scope": "Δ20 전제 시정 수리 + R22 포착 스택 신원 + R23 인용/추론 구분 (T-B-FC-015)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "**B 의 자기 진단이 정확하다 — '없다'와 '만들 수 없다' 사이를 건너뛰었다.** grep 도 대조군도 옳았고 그 다음 한 걸음에 근거가 없었다.",
+ "what_stands_what_shifts": {
+  "stands": "scroll state 는 STEP 1 안이다. **A 의 판정은 필요성 판단이었고 그건 맞다**",
+  "shifts": "구현 비용과 소유 배정 — engine owner 가 필요 없다. 세 조건 중 '가산적'은 engine 무수정으로 자명히 충족된다",
+  "unaffected": "AX 조인은 무관하다. selector↔backendDOMNodeId 조인 부재는 여전히 사실이고 W5H 도 채우지 못해 ax_node=None + ax_node_join_status 로 남겼다. **W5I 는 그대로 진행**",
+  "engine_verified_unchanged": "B 가 sha256 으로 확인했다 — l0_collector.py 4090ada1… · l0_probe.js 38693299… 가 base 와 바이트 동일"
+ },
+ "R22_capture_stack_identity": {
+  "why": "`collector_sha256` 하나로는 부족하다. **포착 동작이 호출자(session.py)에 있으면 engine sha 만으로는 '어느 코드가 이 관측을 냈는가'가 불완전하다**",
+  "rule": "모든 v3 관측 행은 **engine sha + driver/session sha** 를 함께 기록한다",
+  "why_it_matters": "둘 중 하나만 있으면 재현 시 다른 쪽이 바뀐 것을 알 수 없다. 이번 건이 정확히 그 사례다 — engine 은 바이트 동일한데 포착 능력은 driver 에 있었다"
+ },
+ "committed_scroll_fixture_still_needed": {
+  "fact": "W5H 는 **런타임 임시 파일**로 대조했다. 커밋된 것이 아니다",
+  "requirement": "GATE 1 에서 S1..Sn 을 재현 가능하게 검증하려면 **커밋된 fixture** 가 필요하다. Δ15-GAP02 로 승격했던 커버리지 문제는 그대로 남는다",
+  "W5J": "산출 중 이 부분은 중복이 아닐 수 있다. **판단은 B** — A 는 W5J 폐기 여부를 지시하지 않는다. B 가 '스스로 폐기하지 말고 보고 후 지시를 기다리라' 고 한 처리가 옳다",
+  "why_fixture_matters_here": "v3 fixture 13/13 이 `body{overflow:hidden}` 이라 스크롤되지 않는다. **그 집합으로는 scroll 경로가 영원히 검증되지 않는다** — 코드가 있어도"
+ },
+ "R23_cite_vs_infer": {
+  "B_self_identified": "worker 지시문에 틀린 전제를 두 번 넣었다 — OPEN_RIGHT_DRAWER(04 canonical 밖, W5B 가 잡음) · 이번 건(W5H 가 잡음). **둘 다 worker 가 SSOT·실측으로 반박해서 드러났다**",
+  "A_has_the_same": "**Δ8-R7 의 경계 오류가 정확히 이 형태다** — x 축 사례를 쓰면서 TOP 을 y 축에 옮겼고, 인용(밴드 표)과 추론(예시 문장)이 한 문장에 섞였다",
+  "rule": "지시문·판정문에서 **원문 인용과 그로부터의 추론을 표기로 구분한다.** 인용은 인용으로, 추론은 추론으로",
+  "not_a_style_rule": "섞이면 받는 쪽이 추론을 인용으로 읽고 SSOT 를 확인하지 않는다. W5B 와 W5H 가 확인했기 때문에 잡혔다"
+ },
+ "W5H_pushback_is_R16_working_inside_a_plane": {
+  "what": "W5H 가 B 의 중간 지시를 그대로 따르지 않고 '**coordinator 의 정정 ①은 성립하지 않는다**' 고 명시하고 대조군(S0..S3, scroll_y 0/844/1688/1879)으로 보였다",
+  "significance": "A 가 R16 으로 세운 '같은 원문 다른 독해면 FACT_CORRECTION' 이 **평면 사이뿐 아니라 평면 내부(worker→coordinator)에서도** 작동한다. 이 방향은 A 가 명시하지 않았는데 B 의 worker 들이 두 번 실행했다"
+ },
+ "index_v5": {
+  "count": "53 → 56",
+  "added": [
+   "Δ22-R22 포착 스택 신원",
+   "Δ22-scrollfix 커밋된 스크롤 fixture",
+   "Δ22-R23 인용/추론 구분"
+  ],
+  "Δ20_amended": true,
+  "sha256": "8f1374e7b70a0675819ccb61e8dc57c420b55df110bcb4ba78257bd17ced4373"
+ },
+ "decision_required": null,
+ "expected_response": "B: W5J 중복 판정 후 상신. R22 를 관측 스키마에 반영. C: 색인 v5(sha 8f1374e7b70a0675…)로 coverage 재산출, 커밋 스크롤 fixture 를 GATE 1 조건에 편입"
+}
