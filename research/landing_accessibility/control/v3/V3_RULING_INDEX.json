@@ -1,6 +1,6 @@
 {
  "index": "V3_RULING_INDEX",
- "version": 8,
+ "version": 9,
  "purpose": "A 가 발행한 모든 조작적 정의·계약 요구의 정본 목록. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(T-B-V3-SCOPE-001).",
  "how_to_use": "C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 목록**을 기준으로 대조한다. 목록에 있는데 산출에 없으면 미반영이다.",
  "source": "control/v3/V3_0_1_SUCCESSOR_DELTA.md — 이 목록은 그 문서의 색인이며 정본은 그 문서다. 충돌 시 delta 원문이 이긴다.",
@@ -363,7 +363,6 @@
    "due": "GATE1",
    "authority": "Δ14",
    "aliases": [
-    "auth",
     "auth_gate_stage 위치규칙",
     "Δ14-auth"
    ]
@@ -468,7 +467,6 @@
    "authority": "Δ15",
    "aliases": [
     "DOM/AX 불일치",
-    "domax",
     "Δ15-domax"
    ]
   },
@@ -577,7 +575,6 @@
    "authority": "Δ5",
    "aliases": [
     "VALIDITY_RISK 우선순위",
-    "vr",
     "Δ5-vr"
    ]
   },
@@ -590,7 +587,6 @@
    "authority": "Δ2",
    "aliases": [
     "reserve 순서 건너뜀",
-    "skip",
     "Δ2-skip"
    ]
   },
@@ -695,7 +691,7 @@
    ]
   }
  ],
- "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안)",
+ "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안) | v9: 기계적 접미사 별칭 제거 + 토큰경계 매칭 + 길이3 미만 금지 (T-B-V3-FINDING-007)",
  "maintenance_rule": "A 가 판정을 낼 때 **delta 기록과 색인 추가를 함께** 한다. 티켓만 발행하면 정본이 전달 이력에 의존한다. C 는 색인↔delta 와 delta↔티켓 양방향을 대조한다.",
  "coverage_denominator": {
   "rule": "커버리지 분모는 **색인의 전체 행 수**다. 구조적으로 제외되는 행을 두지 않는다",
@@ -729,14 +725,23 @@
    "D3-06": "Δ1-a 와 Δ1-b 가 같은 D3-06 결정을 개정한다. 조회 시 두 행이 모두 반환되는 것이 옳다"
   },
   "last_run": {
-   "at_kst": "2026-08-28T04:50:00+09:00",
-   "total_aliases": 123,
+   "at_kst": "2026-08-28T04:58:00+09:00",
+   "total_aliases": 119,
    "rows": 56,
    "duplicate": 1,
    "unexpected_duplicate": 0,
-   "unexpected_list": {}
+   "prose_false_positive": 0,
+   "prose_control": "판정과 무관한 영문 문장에 토큰경계 매칭 → 0 이어야 한다"
   },
   "origin": "C 제안(T-B-V3-FINDING-006 ACK)",
   "what_it_found_immediately": "v7 에서 3건 — `a`·`b`(A 의 별칭 생성 버그: 정규식이 `Δ1-a` 에서 `a` 를 뽑았다) · `D3-06`(의도적 다중). **선언식으로 바꿔도 선언 자체가 틀릴 수 있다**"
+ },
+ "alias_rules": {
+  "what_qualifies": "별칭은 **그 판정이 실제로 다른 곳에서 불리는 형태**여야 한다",
+  "excluded": "소문자 단일어(구분자 없음)이면서 길이 6 이하 — 일반어 오탐의 실제 원인이다. `auth` · `vr` · `domax` · `skip` 이 여기 해당했다",
+  "kept_examples": "`R3a` · `R13b` · `THREE_TURN_RUNBOOK` · `SSOT provenance` · `scrollfix` 는 실제 참조 형태이므로 유지",
+  "matching": "**토큰 경계 매칭.** 부분일치 금지",
+  "removed_in_v9": {},
+  "A_over_removed_first": "A 의 1차 필터가 `R3a`·`R13b`·`THREE_TURN_RUNBOOK`·`SSOT provenance`·`scrollfix` 까지 지웠다. **시정이 과잉이었고 A 가 즉시 잡아 복원했다** — R25(선언도 검사한다)의 자기적용"
  }
 }
