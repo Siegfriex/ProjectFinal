@@ -50,6 +50,7 @@ import subprocess
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 #: `PHASE_GATES.md §1` — 이 게이트가 닫히기 전까지 REAL_TARGET 은 hard FAIL 이다.
@@ -564,6 +565,7 @@ _ALLOWLIST_CACHE: dict[str, TargetAllowlist] = {}
 
 def reset_allowlist_cache() -> None:
     _ALLOWLIST_CACHE.clear()
+    _DIAGNOSTIC_MANIFEST_CACHE.clear()
 
 
 def load_e000_fast_allowlist(path: str | Path | None = None) -> TargetAllowlist:
@@ -853,9 +855,23 @@ def load_e001_full_allowlist(path: str | Path | None = None) -> TargetAllowlist:
 
 
 # ── V2_DIAGNOSTIC allowlist ───────────────────────────────────────────────────
-def load_v2_diagnostic_allowlist(path: str | Path | None = None) -> TargetAllowlist:
-    """`DIAGNOSTIC_PILOT_MANIFEST.json`(12-target 표본)에서 `V2_DIAGNOSTIC`
-    allowlist 를 만든다.
+#: manifest 파싱 결과 캐시 — `load_v2_diagnostic_allowlist`·`load_v2_diagnostic_targets`
+#: 양쪽이 같은 검증(파일 탐색 + sha256 대조)을 두 번 반복하지 않게 공유한다.
+_DIAGNOSTIC_MANIFEST_CACHE: dict[str, tuple[Path, str, list[dict[str, Any]]]] = {}
+
+
+def _reset_diagnostic_manifest_cache() -> None:
+    _DIAGNOSTIC_MANIFEST_CACHE.clear()
+
+
+def _read_verified_diagnostic_manifest(
+    path: str | Path | None = None,
+) -> tuple[Path, str, list[dict[str, Any]]]:
+    """`DIAGNOSTIC_PILOT_MANIFEST.json`을 찾아 읽고 **sha256 을 검증한 뒤**
+    `targets` 배열을 돌려준다. `load_v2_diagnostic_allowlist`(firewall 판정용
+    id/url/host 집합)와 `load_v2_diagnostic_targets`(구동기가 쓸 `TargetSpec`
+    원본 행) **둘 다 이 함수 하나만** 거친다 — 한쪽만 검증하고 다른 쪽이
+    검증 없이 파일을 읽는 이중 표준을 만들지 않는다.
 
     `D-R0-82` §4 요구 2·3 — manifest 원본 바이트의 sha256 이
     `DIAGNOSTIC_PILOT_MANIFEST_SHA256`(동결값)과 다르면 **실행을 거부한다**.
@@ -869,9 +885,9 @@ def load_v2_diagnostic_allowlist(path: str | Path | None = None) -> TargetAllowl
             "V2_DIAGNOSTIC allowlist 정본(DIAGNOSTIC_PILOT_MANIFEST.json)을 찾지 못했다: "
             f"{[str(c) for c in candidates]} — allowlist 없이 실제 수집을 시작하지 않는다."
         )
-    key = f"V2_DIAGNOSTIC::{chosen}"
-    if path is None and key in _ALLOWLIST_CACHE:
-        return _ALLOWLIST_CACHE[key]
+    key = str(chosen)
+    if path is None and key in _DIAGNOSTIC_MANIFEST_CACHE:
+        return _DIAGNOSTIC_MANIFEST_CACHE[key]
 
     raw = chosen.read_bytes()
     digest = hashlib.sha256(raw).hexdigest()
@@ -886,6 +902,17 @@ def load_v2_diagnostic_allowlist(path: str | Path | None = None) -> TargetAllowl
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
         raise AllowlistUnavailableError(f"{chosen} 에 targets 배열이 없다")
+
+    result = (chosen, digest, targets)
+    if path is None:
+        _DIAGNOSTIC_MANIFEST_CACHE[key] = result
+    return result
+
+
+def load_v2_diagnostic_allowlist(path: str | Path | None = None) -> TargetAllowlist:
+    """`DIAGNOSTIC_PILOT_MANIFEST.json`(12-target 표본)에서 `V2_DIAGNOSTIC`
+    allowlist 를 만든다(firewall 판정용 — id/url/host 집합만)."""
+    chosen, digest, targets = _read_verified_diagnostic_manifest(path)
 
     ids: set[str] = set()
     urls: set[str] = set()
@@ -907,6 +934,10 @@ def load_v2_diagnostic_allowlist(path: str | Path | None = None) -> TargetAllowl
             f"{chosen} 의 targets 에서 web_target_id 를 하나도 못 읽었다"
         )
 
+    key = f"V2_DIAGNOSTIC::{chosen}"
+    if path is None and key in _ALLOWLIST_CACHE:
+        return _ALLOWLIST_CACHE[key]
+
     # `canonical_service_keys` 는 채우지 않는다 — manifest 스키마에 그 필드가 없다
     # (`service` 는 사람이 읽는 한국어 표기이지 P-B 의 canonical_service_key 어휘가
     # 아니다). 없는 데이터를 지어내 채우면 그게 곧 조작이다.
@@ -921,6 +952,61 @@ def load_v2_diagnostic_allowlist(path: str | Path | None = None) -> TargetAllowl
     if path is None:
         _ALLOWLIST_CACHE[key] = allowlist
     return allowlist
+
+
+@dataclass(frozen=True)
+class V2DiagnosticTargetRow:
+    """`DIAGNOSTIC_PILOT_MANIFEST.json` target 하나 — E001 과 달리 P-B CSV 조인이
+    필요 없다(manifest 자체가 이미 url·archetype 을 싣고 있다). manifest 배열
+    순서를 그대로 보존한다(`order_index`) — 재정렬하지 않는다(E001 과 같은 원칙,
+    `T-B-BLK-008` 구동기가 이 순서를 그대로 순회한다).
+    """
+
+    web_target_id: str
+    official_url: str
+    interaction_archetype: str
+    order_index: int
+    service_name_canonical: str | None = None
+    evidence_class: str | None = None
+    order_key: str | None = None
+
+
+def load_v2_diagnostic_targets(path: str | Path | None = None) -> tuple[V2DiagnosticTargetRow, ...]:
+    """구동기(`scripts/run_v2_diagnostic_pilot.py`)가 `TargetSpec` 을 만드는 데
+    쓰는 검증된 원본 행. `load_v2_diagnostic_allowlist` 와 **같은 sha256 검증**
+    (`_read_verified_diagnostic_manifest`)을 거친다.
+    """
+    chosen, _digest, targets = _read_verified_diagnostic_manifest(path)
+    rows: list[V2DiagnosticTargetRow] = []
+    for index, row in enumerate(targets):
+        if not isinstance(row, dict):
+            raise AllowlistUnavailableError(f"{chosen} 의 targets[{index}] 가 객체가 아니다")
+        target_id = str(row.get("web_target_id") or "")
+        url = str(row.get("url") or "")
+        archetype = str(row.get("prior_archetype") or "")
+        if not target_id or not url or not archetype:
+            raise AllowlistUnavailableError(
+                f"{chosen} 의 targets[{index}] 에 필수 값이 비었다 "
+                f"(web_target_id={target_id!r}, url={url!r}, prior_archetype={archetype!r})"
+            )
+        rows.append(
+            V2DiagnosticTargetRow(
+                web_target_id=target_id,
+                official_url=url,
+                interaction_archetype=archetype,
+                order_index=index,
+                service_name_canonical=(str(row.get("service")) if row.get("service") else None),
+                evidence_class=(
+                    str(row.get("evidence_class")) if row.get("evidence_class") else None
+                ),
+                order_key=(str(row.get("order_key")) if row.get("order_key") else None),
+            )
+        )
+    ids = [r.web_target_id for r in rows]
+    if len(ids) != len(set(ids)):
+        dupes = sorted({i for i in ids if ids.count(i) > 1})
+        raise AllowlistUnavailableError(f"manifest targets 에 web_target_id 중복: {dupes}")
+    return tuple(rows)
 
 
 def load_scope_allowlist(scope: object, *, path: str | Path | None = None) -> TargetAllowlist:
@@ -960,8 +1046,20 @@ def assert_target_allowlisted(
             f"target_id={target_id!r} 는 {resolved_list.scope} allowlist 에 없다 "
             f"(허용 {len(resolved_list.target_ids)}건, 정본 {resolved_list.source_path})."
         )
-    if canonical_service_key is not None and (
-        canonical_service_key not in resolved_list.canonical_service_keys
+    # `T-A-V3-P0-B-001` 시정 — `V2_DIAGNOSTIC` allowlist(`load_v2_diagnostic_
+    # allowlist`)는 `canonical_service_keys`를 의도적으로 항상 빈 집합으로 둔다
+    # (manifest 스키마에 그 필드가 없다 — 없는 데이터를 지어내 채우지 않는다).
+    # `resolved_list.canonical_service_keys`가 빈 집합이면 "이 scope는 그 축을
+    # 검사하지 않는다"는 뜻이지 "무엇을 줘도 거부한다"는 뜻이 아니다 — 이 구분이
+    # 없으면 `batch.py._run_real`의 defense-in-depth 재검증(`validate_real_
+    # target_scope_allowlist`, 호출부가 target_id를 그대로 canonical_service_key
+    # 자리에 채워 넣을 수밖에 없는 스키마)이 V2_DIAGNOSTIC 의 12 target 전부를
+    # 거짓으로 거부한다. `E000_FAST`/`E001_FULL`은 이 집합이 항상 비어 있지 않으므로
+    # (P-B 조인이 채운다) 이 조건은 그쪽 판정을 한 글자도 바꾸지 않는다.
+    if (
+        canonical_service_key is not None
+        and resolved_list.canonical_service_keys
+        and canonical_service_key not in resolved_list.canonical_service_keys
     ):
         raise TargetNotAllowlistedError(
             f"canonical_service_key={canonical_service_key!r} 는 "
@@ -1185,6 +1283,7 @@ __all__ = [
     "TargetNotAllowlistedError",
     "UnknownExecutionModeError",
     "UnknownExecutionScopeError",
+    "V2DiagnosticTargetRow",
     "assert_mode_allowed",
     "assert_navigation_allowed",
     "assert_real_target_scope_allowed",
@@ -1194,6 +1293,7 @@ __all__ = [
     "load_e000_fast_allowlist",
     "load_scope_allowlist",
     "load_v2_diagnostic_allowlist",
+    "load_v2_diagnostic_targets",
     "p0_closed",
     "read_release_document",
     "real_target_permitted",
