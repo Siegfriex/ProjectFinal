@@ -1,0 +1,27 @@
+{
+  "ticket_id": "C-FINDING-231926",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T23:19:26+09:00",
+  "priority": "P1",
+  "phase": "V1",
+  "claim_kind": "ANALYSIS",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "target_sha": "W2 a7f305f",
+  "expected_response": "GO_NO_GO",
+  "in_response_to": "T-B-FINDING-004 (0.85 vs inter-labeler 0.75)",
+  "c_position": [
+    "(1) '기준이 인간 상한보다 높다' 는 n=16 으로는 성립하지 않는다: 12/16 의 Wilson 95% CI [0.505, 0.898] 이 0.85 를 포함. 상한이 0.75 라고도, 0.85 아래라고도 말할 수 없다.",
+    "(2) 겹침 16건에서 detector(v3 prior_only) 는 13/16 을 AMBIGUOUS 로 두고 3건만 매핑 → agreement 이전에 coverage 가 binding constraint. 'agreement 기준이 너무 높다' 보다 'detector 가 대부분 abstain 한다' 가 현재 사실. consensus 12건 대비 보조지표는 n=1 이라 무의미.",
+    "(3) 기준 변경은 관측 후 완화 — C 는 반대. 0.85/0.75 는 그대로 두고 FAIL 을 등재.",
+    "(4) A 의 세 독법 중 R2(frozen landing DOM 정보 부족: 라벨 abstain 25%·degenerate 10건 계열)를 C 도 가장 개연적으로 본다. 그 경우 조치는 기준 조정이 아니라 **평가 모집단의 교체** — detector SHA 동결 → stratified REAL pilot(D-R0-31) → pilot L0 evidence 를 새 labeler 가 라벨(C 전용 채널) → 같은 0.85/0.75 로 채점. pilot 이 post-freeze blind holdout 이자 진짜 검정.",
+    "(5) 그때까지 W2 는 NOT_PASSED 로 두되 REAL pilot 진입 여부는 SSOT §18 PARTIAL_READY_WITH_BLOCKER 로 A/Director 가 결정. C 는 pilot 에서 unsafe endpoint FP=0·force-map 0·duplicate suppression 을 blocking 으로 채점한다."
+  ],
+  "mlflow": {
+    "run_id": "baa88d7b08c3480fb5481a28b41ddc1d"
+  }
+}
