@@ -1,0 +1,22 @@
+{
+ "ticket_id": "D-R0-74-2",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "priority": "P1",
+ "created_at": "2026-08-27T23:43:25+09:00",
+ "decision": "NOT_HOLD_YET_FINAL_CONDITION_FIXED",
+ "doc": "control/r0/D_R0_77_FALLBACK_ZERO_FIRE.md",
+ "target_sha": "b28aaa5cad736082a6a76c0ca6a9f6be330bbcfb",
+ "path_walked": "구현·조건 준수 측면에서 D-R0-13 경로를 밟았다. 5조건 전건 준수, 7 archetype 이탈 0, offline 강제, 486 passed.",
+ "but": "fallback 발화 0건이므로 '작동한 결과' 는 관측되지 않았다. coverage 는 해결되지 않았다.",
+ "decisive_finding": "fallback 이 틀리면서 rule 결함을 드러냈다 — _real_region_by_signal_type 이 PLACE_LOOKUP 과 QUERY 에 동일한 일반 검색창 신호를 공유시켜 '가짜 tie' 를 만들었고, fallback 은 존재하지 않는 경합을 풀려다 4건 중 3건을 틀렸다. 시정하니 그 4건이 rule 만으로 유일-MAPPED 가 되고 발화가 4→0. fallback 은 실패함으로써 rule 결함을 찾아냈다. D-R0-67-2 가 지목한 문제의 한 사례이며 C 의 'PLACE_LOOKUP 22 쏠림' 을 설명할 가능성이 있으나 미확인 — C 재채점 대상.",
+ "D-R0-77-1": "귀속 규율을 계약으로 올린다 — 두 변경이 같은 커밋 구간에 들어갔을 때 개선을 어느 쪽에 귀속시킬지는 분리 측정 없이 주장하지 않는다. 분리할 수 없으면 '분리되지 않았다' 고 적는다. 지키지 않으면 'NLP fallback 도입으로 abstain 29→25 개선' 이라는 문장이 만들어지고, 그 문장은 모든 단어가 참이면서 전체가 거짓이다. B 가 먼저 부인한 것을 A 가 규칙으로 고정한다.",
+ "D-R0-77-2": "fallback 이 calibration 으로 검증되기 전까지 어떤 게이트 판정도 fallback 출력에 기대지 않는다. threshold 0.10 은 provisional 이며 calibration 발화 표본 0건이라 도출 불가였다 — 규칙 위반이 아니라 규칙이 적용될 조건이 없는 것이다. 재수집 후 발화 표본이 생기면 실측으로 정한다.",
+ "D-R0-77-3_FINAL_HOLD_CONDITION": "HOLD 하지 않는다. 이유: fallback 이 0건 발화한 원인이 코퍼스 결함이고(구 l0_probe.js 로 수집된 frozen probe 에 신규 raw feature 부재 — C 가 C-FINDING-222009 에서 같은 지적), 그 결함을 푸는 절차(C 의 DOM replay, probe_v2 재생성)가 이미 존재하며 아직 실행되지 않았다. B 의 completion 자체가 다음 단계를 지목한다. **그러나 이것이 마지막이다** — C 가 b28aaa5 에서 DOM replay 로 재채점한 뒤에도 coverage 가 게이트에 도달하지 못하면 HOLD 하고 Director 판단을 요청한다. A 는 그 다음에 새로운 '아직 밟지 않은 경로' 를 찾지 않는다. 찾게 되면 그것은 경로가 아니라 HOLD 회피다. A 가 D-R0-74 §3 에서 같은 질문을 이미 한 번 했고, 같은 질문을 두 번 하면 답이 달라져야 하므로 조건을 종결형으로 적는다.",
+ "b_conduct": "B 가 HOLD 여부를 선언하지 않고 A 에게 넘겼고, fallback 성과 귀속을 스스로 부인했으며, threshold 를 provisional 로 표기하고 성능 주장을 봉인했고, not_verified 6항을 명시했다. 성과로 보고할 수 있는 것을 성과가 아니라고 먼저 말했다.",
+ "next": "C 가 b28aaa5 에서 DOM replay(probe_v2 재생성) 재채점 → A 의 최종 판정"
+}
