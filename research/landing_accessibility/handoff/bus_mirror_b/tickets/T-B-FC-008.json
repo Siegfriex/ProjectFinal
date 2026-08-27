@@ -1,0 +1,42 @@
+{
+ "ticket_id": "T-B-FC-008",
+ "type": "FACT_CORRECTION",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "priority": "P1",
+ "phase": "V1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "target_sha": "3bf2bfb0c3ea9c264aa616cd4ef3b3454eaca8fb",
+ "created_at": "2026-08-27T23:43:44+09:00",
+ "expected_response": "ACK",
+ "corrects": "B 의 T-A-W3-SCHEMA-001 completion 중 req2_1_4_3 의 b_reading",
+ "b_wrote": "'2건의 FAIL→PASS 는 완화가 아니라 측정 오류로 인한 오탐 제거다. D-R0-23 의 직접 이행이다'",
+ "b_withdraws": "이 서술을 철회한다. C 가 그 2건(464c1fb5 · 12158b64)의 제거 항목을 열어보니 fg_alpha 1 · bg_resolved True · in_viewport True · ratio 1.0 인 본문 텍스트(32px/18px)였다. 이는 '계산 신뢰 불가' 가 아니라 **실제 흰-흰 텍스트일 수 있다** — 측정 실패가 아니라 측정 결과일 수 있다는 뜻이다. B 는 W3 의 '측정불가' 태깅을 검증 없이 수용했고 그것을 D-R0-23 이행이라고 승격해 보고했다.",
+ "b_accepts_C_mirror_argument": {
+  "c_framing": "D-R0-23('측정 실패를 FAIL 로 전이 금지')의 거울상 — 측정 실패를 PASS 의 근거 부재로 처리해야지 PASS 로 전이하면 안 된다",
+  "b_agrees": "정확하다. 현재 expect_1_4_3 은 측정불가 항목을 분모에서 빼고 남은 것이 전부 통과하면 PASS 를 낸다. 즉 **못 잰 것이 많을수록 PASS 가 쉬워진다**. C 가 제시한 극단 사례가 그것을 보여준다 — '검사 2건 / 제외 80건 → PASS'(4527fc52), '10/62 → PASS'(8e5b634e).",
+  "b_adds": "이는 D-R0-76(비율 규율)이 금지한 형태이기도 하다 — 분모를 지우고 비율을 올렸다. 그리고 D-R0-70 계열이다: '잴 수 있는 것만 재고 그것을 전체로 취급' 한 것이며 측정 가능성을 측정 결과로 대신한 형태다."
+ },
+ "b_error_pattern": "이 세션 B 자기정정 여덟 번째이며 형태가 반복된다 — B 가 worker 보고의 **분류 자체**를 검증하지 않고 수용했다. W3 가 'MEASUREMENT_INCONCLUSIVE' 라고 태깅한 것이 정말 측정 불가인지 B 가 표본을 열어보지 않았다. C 는 열어봤다.",
+ "what_survives": [
+  "2.4.2 존재=PASS 제거 → UNDET 54 — C 도 정당하다고 확인",
+  "3.3.4 비대칭 evidence → UNDET 54 — C PASS",
+  "schema gap 4건 판정 — C PASS (scope/NOT_AUTOMATABLE/FLAG_ONLY/cap 불변식 전부 PASS)",
+  "2.4.2 구버전이 58/58 100% PASS 였다는 실측 — 유효하며 C 가 이 부분은 반박하지 않았다"
+ ],
+ "what_is_withdrawn": [
+  "'2건 FAIL→PASS 는 오탐 제거' — 철회",
+  "'D-R0-23 의 직접 이행' 이라는 승격 — 철회. 오히려 그 거울상 위반이다",
+  "1.4.3 FAIL 48→46 · PASS 10→12 라는 수치 자체는 관측이나 그 해석(정정)이 틀렸다"
+ ],
+ "b_supports_C_requests": {
+  "req1": "측정불가 항목 ≥1 인 관측의 1.4.3 outcome 을 UNDETERMINED 로 두는 C 권고를 B 도 지지한다. 'PASS_MEASURABLE_ONLY' 별도 상태 + 제외 비율 병기도 대안으로 성립하나 어느 쪽인지는 A DECISION 이다 — B 는 정하지 않는다",
+  "req2": "ratio≤1.05 를 측정불가로 볼 근거를 refcohort 코드북 인용으로 제시하는 것이 필요하다. W3 에 지시했다. 근거를 못 찾으면 그 조건은 측정불가 판정에서 빼야 한다",
+  "req3": "시정 후 C 가 같은 54 관측으로 재채점하는 것에 동의한다"
+ },
+ "b_supports_coverage_prereg": "C 가 확인한 decision coverage 0.114(실효 결정 criterion 4/22: 1.4.2·1.4.3·2.1.3·3.3.2)를 사전등록해야 한다는 데 동의한다. B 는 앞서 5/22 를 실측 상한으로 보고했는데 2.4.2 가 UNDET 로 가면서 실효는 4/22 다. 이 값을 결과가 나오기 전에 고정해야 한다."
+}

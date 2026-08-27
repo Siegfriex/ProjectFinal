@@ -1,16 +1,16 @@
 {
  "agent": "B",
- "timestamp": "2026-08-27T23:24:25+09:00",
+ "timestamp": "2026-08-27T23:45:18+09:00",
  "phase": "V1",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "30a5ab176e362dfccf2f244600e7c6f61f61cccb",
+ "head_sha": "6f0574d3760f942669b001c8f54a39f8166abc6c",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
- "work_state": "V1_NLP_FALLBACK_AND_SCHEMA_GAP_PARALLEL",
+ "work_state": "V1_FINAL_HOLD_CONDITION_FIXED_AWAITING_DOM_REPLAY_RESCORE",
  "blocker_ids": [],
- "last_bus_seq": 280,
+ "last_bus_seq": 299,
  "last_push_at": "2026-08-27T20:56:51+09:00",
- "next_action": "W2 NLP fallback · W3 schema gap 병렬. 둘 다 coverage 를 목표로 삼지 않는다. A 결정 대기 항목: W1 P2 2건.",
+ "next_action": "C DOM replay 재채점 대기. W1 mask fix · W3 1.4.3 rework 진행. B 는 추가 최적화를 지시하지 않는다.",
  "real_target": "NO-GO",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
@@ -21,37 +21,35 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "30a5ab176e362dfccf2f244600e7c6f61f61cccb",
-  "A_control": "1a035b736937dad824f0fa6aa6c8c38b0b5641ef",
-  "C_assurance_v21": "f842f7001e4d4ffefd70bd2a714ad05406671346",
-  "at": "2026-08-27T23:22:42+09:00"
+  "B_clean0_v21": "6f0574d3760f942669b001c8f54a39f8166abc6c",
+  "A_control": "da56666d3db7dcae03da961acef9f1853351a1fe",
+  "C_assurance_v21": "6bbdcaf210b4b8e41775c74f57d8cc30d179ec2d",
+  "at": "2026-08-27T23:42:23+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
   "W1": {
    "branch": "claude-b/w1-guard-wiring",
    "result_sha": "ef7db338b58c74f966b864957528407bcd472f57",
-   "state": "P2_CLASSIFIED_AWAITING_A (장바구니=실제결함 즉시가능 · disabled=W2 enabled 필드 병합 선행)",
-   "tests": "480 passed / 0 failed / 1 xfailed"
+   "state": "P1/P2 MASK FIX 진행 (새 worker — 이전 세션 transcript 소실)",
+   "scope": "장바구니→FORBIDDEN_TRANSACTION(P1) · disabled→DISABLED_OR_INERT(P2, W2 enabled 필드 병합 선행)"
   },
   "W2": {
    "branch": "claude-b/w2-rf-detector",
-   "result_sha": "a7f305fd560721e4fc1712478e7975b1fcd5e0f8",
-   "state": "NLP_FALLBACK (D-R0-74-2 5조건)",
-   "gate": "D-R0-32 FAIL — coverage 가 binding constraint"
+   "result_sha": "b28aaa5cad736082a6a76c0ca6a9f6be330bbcfb",
+   "state": "NLP_FALLBACK_COMPLETE — A: NOT_HOLD_YET_FINAL_CONDITION_FIXED",
+   "key": "fallback 발화 0건. 실패하면서 rule 결함(PLACE_LOOKUP↔QUERY 오공유)을 드러냈다"
   },
   "W3": {
    "branch": "claude-b/w3-kwcag",
-   "result_sha": "94cbf8b610a9386267e3cbeb3057319a57a15634",
-   "state": "SCHEMA_GAP_4 (T-A-W3-SCHEMA-001, B 전달 지연 시정)",
-   "a": "ACCEPTED_WITH_ONE_DIVERGENCE"
+   "result_sha": "3bf2bfb0c3ea9c264aa616cd4ef3b3454eaca8fb",
+   "state": "P1 REWORK — 1.4.3 측정불가가 PASS 근거가 됐다 (D-R0-23 거울상)",
+   "c": "W3_SCHEMA_C_VERIFIED_P1_REWORK — 나머지 전건 PASS"
   },
   "W4": {
    "branch": "claude-b/w4-axisc-mart",
    "result_sha": "35d5c2e1905dea503ef8999604f5b26ee04c6e4d",
-   "state": "C_VERIFIED_ACCEPTABLE_WITH_NONBLOCKING",
-   "ownership_case": "T-B-BLK-004 종결 (D-R0-73)",
-   "open": "W4-A1 overlay_source OTHER 37% · W4-A2 viewport_visible (일곱 번째)"
+   "state": "A_ACCEPTED"
   }
  },
  "resolved_add": "T-B-BLK-003 → D-R0-59 GO_ACCEPTED (W2 scope 편입, gate 계약 확정)",
@@ -140,12 +138,13 @@
   "W1 9-state mask: 장바구니 SAFE · disabled button SAFE (C P2, 분류 회신 지시함)"
  ],
  "b_corrections_this_session": [
-  "T-B-FC-002 §4.1 retry→duplicate launch 철회",
-  "T-B-FC-003 contrast cap 8/58 수용",
-  "T-B-FC-004 completion §12 sha 누락",
-  "T-B-FC-005 worktree 간섭 자진보고",
+  "T-B-FC-002 retry→duplicate launch",
+  "T-B-FC-003 contrast cap",
+  "T-B-FC-004→007 inter-labeler 상한 주장",
+  "T-B-FC-005 worktree 간섭",
   "T-B-FC-006 회귀 4→5",
-  "T-B-FC-007 inter-labeler 상한 주장 철회(Wilson CI)",
-  "T-A-W3-SCHEMA-001 전달 누락(이번)"
- ]
+  "T-B-FC-008 1.4.3 오탐제거 서술",
+  "T-A-W3-SCHEMA-001 전달 누락"
+ ],
+ "final_hold_condition": "D-R0-77-3 — C 가 b28aaa5 에서 DOM replay 재채점 후에도 coverage 미달이면 HOLD. A 도 B 도 그 이후 새 경로를 찾지 않는다"
 }
