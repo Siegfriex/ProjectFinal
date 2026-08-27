@@ -894,9 +894,31 @@
    "coverage": "COVERED",
    "gap_note": "base_sha 실재 — 독립 재계산(STEP1-024 C ACK) + c_bus_scan 상주 분류 + bus.emit 40hex 가드/selftest",
    "added_at_index_version": 10
+  },
+  {
+   "id": "Δ28-R26",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": null,
+   "must_appear_in": null,
+   "C_check": "c_bus_scan 출력에 measured_at_kst 상주(b6245f2); C 측정 ACK 는 (a)측정 시각 (b)주장 시각 (c)상태 변경 시각을 병기한다(STEP1-025/026·D FC-003 ACK 에서 적용)",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 12
+  },
+  {
+   "id": "Δ29",
+   "due": "상시",
+   "verified_by": "B+C+D",
+   "requires": null,
+   "must_appear_in": null,
+   "C_check": "C reconciliation 은 불일치를 대칭 해석으로 닫지 않는다 — 어느 쪽 값이 원문/바이트와 어긋나는지 명시(예: FINDING-012 Δ15-domax 는 D 정규식 결함 가능성으로 특정). verified_by B+C+D",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 12
   }
  ],
- "index_version": 10,
+ "index_version": 12,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -908,5 +930,7 @@
   "Δ25/Δ26 색인 행 부재는 v10 에서 해소(Δ23·Δ23-R24·Δ24-R25·Δ25·Δ26 추가)"
  ],
  "revision_r2": "2026-08-28 worker pass on fe33eae: rows Δ8-R5, Δ15-GAP06, Δ15-GAP05, Δ15-domax, Δ4, Δ6-a, Δ13-R17, Δ5-vr, Δ21, Δ22-R22 → COVERED after the check was implemented AND run (walk_fixture 11/11 + pair, measure_geometry 16/16, c_bus_scan --ref-lint controls PASS, lane5 3 checks); Δ18-R20 stays COVERED_PENDING_ADAPTER (matrix + plan rule added; grade_lane4 follow-up). COVERED here means the C-side check runs offline with a positive control; B-row comparison still needs the adapter map where noted. Counts recomputed over all 56 rows.",
- "index_sha256_v10": "5d916bc0ebfb80a02746e1e38a545f4a5e5fa74cb82c4122d2e0beacb850afda"
+ "index_sha256_v10": "5d916bc0ebfb80a02746e1e38a545f4a5e5fa74cb82c4122d2e0beacb850afda",
+ "index_sha256_v12": "5e03c7bc40cac0ec6b33cac3a0ae7e4981388f7af0978bd1bd395680655c3318",
+ "changelog_vs_delta_note_C": "색인 corrected_by v9 문구 '길이3 미만 금지' 는 delta Δ25 본문(소문자 단일어 ≤6 배제, R1/Δ2 유지)과 다르다 — delta 가 권위, C 는 Δ25 본문을 구현했다(관측)"
 }
