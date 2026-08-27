@@ -31,7 +31,7 @@ from collections import deque
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from urllib.parse import unquote
+from urllib.parse import unquote_plus
 
 from .depth import (
     DepthResult,
@@ -244,7 +244,9 @@ def _query_reflected_in_url(raw: dict[str, Any], task: TaskDefinition) -> bool:
     url = raw.get("viewport", {}).get("final_url") or ""
     if "?" not in url:
         return False
-    return task.query_text in unquote(url)
+    # `unquote_plus` — GET form(`application/x-www-form-urlencoded`) 제출은 공백을 `%20`
+    # 이 아니라 `+`로 인코딩한다. `unquote`만 쓰면 실제 form 제출을 놓친다(실측으로 확인).
+    return task.query_text in unquote_plus(url)
 
 
 def _repeated_card_list_present(raw: dict[str, Any]) -> bool:
@@ -295,7 +297,13 @@ def _real_region_by_signal_type(raw: dict[str, Any], task: TaskDefinition) -> bo
     st = task.region_signal_type
     archetype = task.archetype
     if st is RegionSignalType.FORM_STRUCTURE:
-        return _search_control_ready(raw)
+        # 검색 입력 존재는 QUERY/PLACE_LOOKUP 에서만 evidence 다 — 다른 archetype 이
+        # FORM_STRUCTURE 를 요청한다고 해서 "페이지 어딘가의 검색창"이 그 archetype 의
+        # 증거가 되지는 않는다(resolver 의 Stage 4 다중후보 판정에서 실제로 이 구분이
+        # 없으면 검색창 하나 때문에 모든 archetype 이 동시에 evidenced 로 잡힌다).
+        if archetype in (InteractionArchetype.QUERY, InteractionArchetype.PLACE_LOOKUP):
+            return _search_control_ready(raw)
+        return False
     if st is RegionSignalType.MEDIA_STATE:
         return bool(raw.get("endpoint_signals", {}).get("video_playing"))
     if st is RegionSignalType.DOM_AX_ROLE:
@@ -441,13 +449,49 @@ def detect_endpoint_signal(
     return _marker_endpoint_match(raw, task)
 
 
+#: `D-R0-59-1` — gate 성립의 **필요조건**. 구조 신호(브라우저가 DOM 에서 직접 알려주는
+#: 값)만 센다. `GateSignals.text`(어휘 매칭)는 여기 없다 — 어휘 단독으로는 gate 가 아니다.
+def _gate_structural_signal_present(signals: GateSignals) -> bool:
+    return any(
+        (
+            signals.password_input_count,
+            signals.username_autocomplete_count,
+            signals.tel_autocomplete_count,
+            signals.identity_number_input_count,
+            signals.otp_input_count,
+            signals.carrier_option_count,
+            signals.simple_auth_provider_count,
+            signals.captcha_iframe_count,
+            signals.payment_input_count,
+        )
+    )
+
+
 def gate_observed(raw: dict[str, Any]) -> bool:
     """gate 로 볼 신호가 **하나라도** 관측됐는가 — 종류와 무관하다.
 
     `A2 §1.5.1a` 규칙 E-9: `auth_gate_detected` 는 gate 종류를 가리지 않는다.
     유병률(규칙 E-8)은 종류를 합쳐 세고, 종류 구분은 **endpoint 판정에서만** 쓰인다.
+
+    `D-R0-59-1`(`T-B-BLK-003` P1 결함 시정, A 결정) — **구조 신호 없이 어휘만으로는
+    gate 가 성립하지 않는다.** 이전 구현은 `decision.login_basis`/`identity_basis` 가
+    비어있지 않기만 하면 True 를 냈다. 그런데 그 basis 는 어휘 항목(`*_vocabulary`)
+    하나만으로도 채워질 수 있다 — `google.com/chrome` 이 "비밀번호"(크롬 기능 설명 텍스트)
+    로, `band.us/about`/`m.naver.com`/`m.daum.net` 이 같은 방식으로 오탐됐다(B 의 n=58
+    재집계: 어휘 매칭 28/58, `password_input_count>0` 4/58, **어휘만 있고 구조 신호 없음
+    24/58**). `D-R0-03`("login control 존재는 raw feature/candidate annotation, terminal
+    아님")과 `D-R0-04`("chosen path 가 실제로 도달했을 때만 gate observation")를 코드
+    수준에서 강제한다.
+
+    어휘 매칭 자체를 버리지 않는다 — `classify_gate_kind` 는 여전히 어휘를 판별 근거의
+    일부로 쓴다(예: `auth_ambiguous_gate.html` 처럼 구조 신호가 실제로 있는 화면에서
+    RESOLVED/UNDETERMINED 를 가르는 데). 다만 그 어휘가 **유일한** 근거일 때는(구조 신호가
+    전혀 없을 때) gate 성립·terminal 판정에 쓰지 않는다 — annotation 으로만 남긴다.
     """
-    decision = detect_gate(raw)
+    signals = GateSignals.from_raw(raw)
+    if not _gate_structural_signal_present(signals):
+        return False
+    decision = classify_gate_kind(signals)
     if decision.gate_kind is not None:
         return True
     return bool(decision.login_basis or decision.identity_basis)
@@ -464,6 +508,23 @@ def detect_gate(raw: dict[str, Any]) -> GateKindDecision:
     판별기가 그것을 읽으면 조작화가 아니라 정답 열람이 된다.
     """
     return classify_gate_kind(GateSignals.from_raw(raw))
+
+
+def _gate_basis_is_vocabulary_only(decision: GateKindDecision) -> bool:
+    """`T-B-BLK-003`(P1, A 결정 대기) 대응 — **`gate_observed()` 자체는 바꾸지 않는다.**
+
+    B 가 발견한 결함: `gate_signals.visible_text`(랜딩 본문 전체)에 "로그인"/"비밀번호" 같은
+    어휘가 하나만 있어도 `gate_observed()`가 activation 0회에서 `True` 를 낸다
+    (`google.com/chrome`이 "비밀번호"로 오탐된 사례 등). 이 함수는 그 결함을 고치지 않고
+    — 조작화 변경은 A 결정 사항이다 — 대신 **gate→endpoint 승격의 근거가 어휘뿐인지
+    구조 신호(password_input/otp/identity_number/carrier_option/...)를 포함하는지**를
+    구분해 `TaskEntry.notes` 에 남긴다. `gate_classifier._login_basis`/`_identity_basis`
+    는 구조 신호 항목에 `이름×개수`를, 어휘 항목에 `_vocabulary` 접미사를 쓴다.
+    """
+    basis = list(decision.login_basis) + list(decision.identity_basis)
+    if not basis:
+        return False
+    return all(item.endswith("_vocabulary") for item in basis)
 
 
 # ── RF-DT Stage 4 — multi-candidate resolver (`01 §6` · D-R0-10~13) ────────────
@@ -945,6 +1006,16 @@ class Scout:
                             f"{gate_here.gate_kind.value if gate_here.gate_kind else '-'} "
                             f"({gate_here.reason})"
                         )
+                        if (
+                            detail is EndpointStatusDetail.ENDPOINT_VIA_AUTH_GATE
+                            and _gate_basis_is_vocabulary_only(gate_here)
+                        ):
+                            notes.append(
+                                "GATE_BASIS_VOCABULARY_ONLY: 이 gate→endpoint 승격의 판별 근거가 "
+                                "어휘 매칭뿐이다(구조 신호 없음) — T-B-BLK-003(P1, A 결정 대기) 영향권. "
+                                "gate_observed() 의 어휘 단독 위양성이 확정되면 이 endpoint 판정도 "
+                                "재검토 대상이다."
+                            )
                         terminal = (status, detail)
                         area_index = area_here
                         endpoint_index = (

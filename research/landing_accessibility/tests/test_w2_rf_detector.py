@@ -1,0 +1,488 @@
+"""W2 — Representative Function / Endpoint detector (real-site). `T-A-W2-001`.
+
+**이 파일의 PASS/FAIL 은 synthetic fixture 와 hand-built raw dict 에 대한 engine test
+결과다. 실제 서비스에 대한 research finding 이 아니다** (`PHASE_GATES §4.1`·`§4.3`·`§4.6`,
+`D-R0-17`). 픽스처가 심는 마커가 곧 지금 detector 가 읽는 것이라는 뜻이 **아니다** — 이 파일의
+핵심 취지가 바로 그 반대(marker 없이 성립하는 실신호 경로)를 증명하는 것이지만, 그렇다고 해도
+"이 fixture 셋 위에서 통과했다"가 "임의의 실사이트에서 이 정확도로 동작한다"를 뜻하지 않는다.
+정밀도/재현율은 holdout 에서 C 가 독립 검증한다 — B(이 lane)는 holdout 을 찾거나 읽지 않는다.
+
+대응 티켓: `T-A-W2-001` (P1). 관련 계약: RF-DT v2.1 §5·§6, R0 계약 §3(D-R0-10~13)·§4
+(D-R0-14~20), Director 조정 D-R0-41(UTILITY_ENTRY Branch U)·D-R0-42(marker 게이팅).
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[3]
+RESEARCH = REPO / "research" / "landing_accessibility"
+sys.path.insert(0, str(RESEARCH / "src"))
+
+from landing_accessibility.engine.depth import (  # noqa: E402
+    DepthResult,
+    assign_depth_segments,
+)
+from landing_accessibility.engine.firewall import ExecutionMode  # noqa: E402
+from landing_accessibility.engine.gate_classifier import (  # noqa: E402
+    GateSignals,
+    classify_gate_kind,
+)
+from landing_accessibility.engine.l0_collector import PROBE_JS  # noqa: E402
+from landing_accessibility.engine.l1_engine import (  # noqa: E402
+    MappingOutcome,
+    Scout,
+    ScoutBudget,
+    TaskDefinition,
+    _gate_basis_is_vocabulary_only,
+    detect_area_signal,
+    detect_endpoint_signal,
+    observation_truncation_caveats,
+    resolve_representative_function,
+)
+from landing_accessibility.engine.vocabulary import (  # noqa: E402
+    AreaSignalStatus,
+    DepthSegment,
+    EndpointStatus,
+)
+from landing_accessibility.engine.vocabulary import InteractionArchetype as A  # noqa: E402
+from landing_accessibility.engine.vocabulary import RegionSignalType as R  # noqa: E402
+
+pytest.importorskip("playwright.sync_api")
+
+FIXTURES = RESEARCH / "fixtures"
+
+pytestmark = pytest.mark.slow
+
+
+def _scout(budget: ScoutBudget | None = None, execution_mode: ExecutionMode = ExecutionMode.FIXTURE) -> Scout:
+    return Scout(
+        fixture_root=FIXTURES,
+        budget=budget or ScoutBudget(max_activations_per_task=5, branching_limit=3),
+        execution_mode=execution_mode,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 1) synthetic marker 없이 region/endpoint 가 실신호로 성립한다 (D-R0-14 · D-R0-16)
+# ══════════════════════════════════════════════════════════════════════════
+def test_content_open_region_and_endpoint_succeed_without_any_marker() -> None:
+    """`w2_real_content_list.html`/`w2_real_content_article.html` 은 `data-region`/
+    `data-endpoint` 를 전혀 쓰지 않는다. Region 은 `repeated_structure`(list-container 소속
+    링크), Endpoint 는 `endpoint_signals.article_present`(실 `<article>` 태그) 만으로 성립해야
+    한다."""
+    task = TaskDefinition("T2", A.CONTENT_OPEN, None, None)  # 기본 signal_type = DOM_AX_ROLE
+    entry, manifest = _scout().scout(
+        web_target_id="wt-w2-content", entry_fixture="w2_real_content_list.html", task=task
+    )
+    assert entry.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
+    assert (entry.ned, entry.ied, entry.mpfed) == (0, 1, 1)
+    assert [s.depth_segment for s in entry.steps] == ["IED"]
+    assert manifest is not None
+
+
+def test_utility_entry_region_and_endpoint_succeed_without_any_marker() -> None:
+    """`w2_real_utility.html` — Branch U(D-R0-41): landing 이 이미 button+input 을 갖고 있으므로
+    k=m=0. `<a>` 링크가 아니라 실제 조작 가능한 위젯(button)만 candidate 로 인정한 결과다."""
+    task = TaskDefinition("TU2", A.UTILITY_ENTRY, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    entry, _ = _scout().scout(
+        web_target_id="wt-w2-utility", entry_fixture="w2_real_utility.html", task=task
+    )
+    assert entry.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
+    assert (entry.ned, entry.ied, entry.mpfed) == (0, 0, 0)
+    assert len(entry.steps) == 0
+
+
+def test_utility_entry_bare_navigation_link_does_not_count_as_primary_control() -> None:
+    """`unresolved_route.html` 은 `<a>` 링크만 있다(button/input 없음) — Branch U 의
+    "primary control" 이 plain navigation link 로 오판되면 안 된다는 회귀다. 실측: 이
+    좁힘이 없으면 이 fixture 가 랜딩에서 즉시 area=True 가 되어 기존 예산-소진 계약
+    (`test_budget_fires_and_depth_stays_null`, `tests/test_pc_fixture_engine.py`)이 깨진다."""
+    task = TaskDefinition("TU3", A.UTILITY_ENTRY, None, None, R.DOM_AX_ROLE, R.DOM_AX_ROLE)
+    entry, _ = _scout(budget=ScoutBudget(max_activations_per_task=5, branching_limit=3)).scout(
+        web_target_id="wt-w2-bare-link", entry_fixture="unresolved_route.html", task=task
+    )
+    assert entry.endpoint_status == "UNRESOLVED"
+    assert (entry.ned, entry.ied, entry.mpfed) == (None, None, None)
+
+
+def test_query_endpoint_succeeds_via_real_url_pattern_without_marker() -> None:
+    """`w2_query_real.html` 은 진짜 `<form method=get>` 제출을 쓴다 — `data-endpoint`/
+    `body[data-endpoint-reached]` 없이, Scout 가 채운 `task.query_text` 가 실제로 URL 의
+    query string 에 반영됐는지(URL_PATTERN)만으로 endpoint 가 성립해야 한다."""
+    task = TaskDefinition(
+        "TQR", A.QUERY, None, None, R.FORM_STRUCTURE, R.URL_PATTERN, query_text="고령자 접근성"
+    )
+    entry, _ = _scout().scout(
+        web_target_id="wt-w2-query", entry_fixture="w2_query_real.html", task=task
+    )
+    assert entry.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
+    assert (entry.ned, entry.ied, entry.mpfed) == (0, 1, 1)
+    assert entry.text_input_episode_count == 1
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 2) REAL_TARGET 모드에서 marker 3종 읽기 시도 자체가 없다 (D-R0-42 · Director 지시)
+# ══════════════════════════════════════════════════════════════════════════
+def test_real_target_mode_never_calls_the_three_forbidden_marker_reads() -> None:
+    """`data-region` / `data-endpoint` / `data-endpoint-reached` — 결과값이 비어 있는 것으로는
+    부족하다(Director 지시). `document.querySelectorAll`/`Element.getAttribute` 를 spy 로
+    감싸 **호출 자체**가 없음을 증명한다. `depth_path_0.html` 은 세 marker 를 전부 갖고 있어
+    양성 대조(FIXTURE 모드에서는 실제로 호출됨)와 음성 대조(REAL_TARGET 모드에서는 호출 안 됨)
+    양쪽을 한 fixture 로 검증할 수 있다.
+    """
+    from playwright.sync_api import sync_playwright
+
+    spy_install_js = """
+    () => {
+      window.__w2SpyCalls = [];
+      if (!window.__w2SpyInstalled) {
+        window.__w2SpyInstalled = true;
+        const origQSA = Document.prototype.querySelectorAll;
+        Document.prototype.querySelectorAll = function (sel) {
+          if (sel === '[data-region]' || sel === '[data-endpoint]') {
+            window.__w2SpyCalls.push('querySelectorAll(' + sel + ')');
+          }
+          return origQSA.call(this, sel);
+        };
+        const origGetAttr = Element.prototype.getAttribute;
+        Element.prototype.getAttribute = function (name) {
+          if (name === 'data-endpoint-reached' && this === document.body) {
+            window.__w2SpyCalls.push('body.getAttribute(data-endpoint-reached)');
+          }
+          return origGetAttr.call(this, name);
+        };
+      }
+    }
+    """
+    fixture = FIXTURES / "depth_path_0.html"
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+        page = browser.new_context(viewport={"width": 390, "height": 844}).new_page()
+        try:
+            page.goto(f"file://{fixture.resolve()}", wait_until="load")
+            page.evaluate(spy_install_js)
+
+            # 양성 대조 — FIXTURE 모드(인자 없음 → undefined)에서는 세 신호 모두 실제로 읽힌다.
+            fixture_probe = page.evaluate(PROBE_JS)
+            fixture_calls = page.evaluate("window.__w2SpyCalls")
+            assert "querySelectorAll([data-region])" in fixture_calls
+            assert "querySelectorAll([data-endpoint])" in fixture_calls
+            assert "body.getAttribute(data-endpoint-reached)" in fixture_calls
+            # spy 가 실제로 작동한다는 증거로, 이 모드에서는 marker 값도 채워져 있어야 한다.
+            assert fixture_probe["raw_features"]["region_signals"]["declared_regions"]
+            assert fixture_probe["raw_features"]["endpoint_signals"]["declared_endpoints"]
+            assert fixture_probe["raw_features"]["endpoint_signals"]["body_endpoint_reached"]
+
+            # 음성 대조 — REAL_TARGET 모드에서는 호출 자체가 없다.
+            page.evaluate("window.__w2SpyCalls = []")
+            real_target_probe = page.evaluate(PROBE_JS, "REAL_TARGET")
+            real_target_calls = page.evaluate("window.__w2SpyCalls")
+            assert real_target_calls == [], f"REAL_TARGET 모드에서 marker 읽기 시도가 있었다: {real_target_calls}"
+            assert real_target_probe["raw_features"]["region_signals"]["declared_regions"] == []
+            assert real_target_probe["raw_features"]["endpoint_signals"]["declared_endpoints"] == []
+            assert real_target_probe["raw_features"]["endpoint_signals"]["body_endpoint_reached"] is None
+            assert real_target_probe["raw_features"]["region_signals"]["marker_path_disabled"] is True
+            assert real_target_probe["raw_features"]["endpoint_signals"]["marker_path_disabled"] is True
+        finally:
+            browser.close()
+
+
+def test_detect_functions_never_use_marker_fields_in_real_target_mode_even_if_populated() -> None:
+    """방어적 이중화 — `l0_probe.js` 의 게이팅이 어떤 이유로든 깨져 `raw` 에 marker 값이
+    실려 왔다고 **가정해도**, Python 판정 함수는 `execution_mode is REAL_TARGET` 이면 그
+    필드를 절대 소비하지 않는다."""
+    raw = {
+        "region_signals": {
+            "declared_regions": [
+                {"region": "MATCHES_TASK", "present": True, "visible": True}
+            ],
+            "search_inputs": [],
+        },
+        "endpoint_signals": {
+            "declared_endpoints": [{"endpoint": "MATCHES_TASK_EP", "visible": True}],
+            "body_endpoint_reached": "MATCHES_TASK_EP",
+            "article_present": 0,
+            "video_playing": False,
+        },
+    }
+    task = TaskDefinition("TDEF", A.CONTENT_OPEN, "MATCHES_TASK", "MATCHES_TASK_EP")
+    assert detect_area_signal(raw, task, ExecutionMode.FIXTURE) is True  # FIXTURE 는 여전히 marker 를 쓴다
+    assert detect_area_signal(raw, task, ExecutionMode.REAL_TARGET) is False
+    assert detect_endpoint_signal(raw, task, ExecutionMode.FIXTURE) is True
+    assert detect_endpoint_signal(raw, task, ExecutionMode.REAL_TARGET) is False
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 3) endpoint false-positive adversarial — 우연 일치 marker (T-B-FC-001 실측 재현)
+# ══════════════════════════════════════════════════════════════════════════
+def test_endpoint_false_positive_adversarial_fixture_from_real_measurement() -> None:
+    """B 의 n=58 전수 재집계에서 실제로 관측된 형태를 그대로 재현한다: tiktok.com 은
+    분석/설정용 `<script>` 에 우연히 `data-region="sg"` 를 갖고 있었다(region 신호와 무관한
+    속성이 우연히 marker 셀렉터에 걸린 사례). 이 테스트는 그보다 더 나쁜 경우 —
+    **task 의 region_definition/endpoint_definition 이 그 우연한 값과 정확히 일치하는
+    최악의 경우**를 구성해, REAL_TARGET 모드에서는 그래도 위양성이 나지 않음을 증명한다.
+    (실제 `body_endpoint_reached`/`declared_endpoints` 는 58/58 에서 신호가 없었다 — 여기서는
+    "만약 있었다면"을 가정해 더 엄격하게 시험한다.)
+    """
+    raw = {
+        "region_signals": {
+            "declared_regions": [
+                {
+                    "selector": "html>head>script:nth-of-type(2)",
+                    "region": "sg",  # 실측(tiktok.com)값 그대로
+                    "present": True,
+                    "visible": False,  # 실측대로 — script 태그는 visible 하지 않다
+                    "hittable": False,
+                }
+            ],
+            "search_inputs": [],
+        },
+        "endpoint_signals": {
+            "declared_endpoints": [{"selector": "body", "endpoint": "sg", "visible": True}],
+            "body_endpoint_reached": "sg",
+            "article_present": 0,
+            "video_playing": False,
+        },
+        "repeated_structure": {"list_container_count": 0, "list_item_link_count": 0, "hittable_list_item_link_count": 0},
+        "primary_action_candidates": [],
+    }
+    # task 의 정의가 우연히 그 marker 값과 정확히 같다고 최악으로 가정한다.
+    task = TaskDefinition("TADV", A.CONTENT_OPEN, "sg", "sg")
+    assert detect_area_signal(raw, task, ExecutionMode.REAL_TARGET) is False
+    assert detect_endpoint_signal(raw, task, ExecutionMode.REAL_TARGET) is False
+    # area 는 실측대로 `visible=False`(script 태그)라 marker 경로조차 원래 이 필드를
+    # 위양성으로 못 낸다(구현이 `visible` 을 이미 요구한다) — 이 실측 예시가 area 축에서는
+    # 애초에 최악이 아니었다는 뜻이다. 반대로 endpoint 는 `body_endpoint_reached` 가
+    # visible 여부와 무관하게 무조건 일치로 처리되므로(구현), **FIXTURE 모드에서는 실제로
+    # 위양성이 났을 것**이다 — 그 차이 자체가 D-R0-17("픽스처 PASS 는 실사이트 성립을
+    # 증명하지 못한다")의 근거다. picture: marker 경로를 유지하는 한 endpoint 축이
+    # area 축보다 구조적으로 더 취약하다.
+    assert detect_area_signal(raw, task, ExecutionMode.FIXTURE) is False
+    assert detect_endpoint_signal(raw, task, ExecutionMode.FIXTURE) is True
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 4) Stage 4 resolver — unique 후보만 MAPPED, 나머지는 force-map 없이 AMBIGUOUS_UNRESOLVED
+# ══════════════════════════════════════════════════════════════════════════
+def test_resolver_maps_the_unique_evidenced_candidate() -> None:
+    raw = {
+        "region_signals": {
+            "search_inputs": [
+                {"visible": True, "in_form": True, "has_submit": True}
+            ]
+        },
+        "repeated_structure": {"hittable_list_item_link_count": 0},
+        "primary_action_candidates": [],
+    }
+    result = resolve_representative_function(raw, [A.QUERY, A.ITEM_DETAIL], target_id="wt-x")
+    assert result.outcome == MappingOutcome.MAPPED
+    assert result.archetype is A.QUERY
+    assert result.region_signal_type is R.FORM_STRUCTURE
+    assert result.evidence_slots_used == ("probe.json:raw_features",)
+    assert result.candidate_archetypes == (A.QUERY,)
+
+
+def test_resolver_does_not_force_map_when_two_candidates_both_have_evidence() -> None:
+    """검색창(QUERY 증거) 과 list-container 카드(CONTENT_OPEN 증거) 가 한 페이지에 동시에
+    있는 흔한 실제 상황 — 첫 매칭을 무조건 고르지 않는다(`01 §6`)."""
+    raw = {
+        "region_signals": {
+            "search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]
+        },
+        "repeated_structure": {"hittable_list_item_link_count": 3},
+        "primary_action_candidates": [],
+    }
+    result = resolve_representative_function(raw, [A.QUERY, A.CONTENT_OPEN])
+    assert result.outcome == MappingOutcome.AMBIGUOUS_UNRESOLVED
+    assert result.archetype is None
+    assert set(result.candidate_archetypes) == {A.QUERY, A.CONTENT_OPEN}
+    assert result.unresolved_reason is not None and "force-map" in result.unresolved_reason
+
+
+def test_resolver_abstains_when_no_evidence_exists_for_any_candidate() -> None:
+    raw = {
+        "region_signals": {"search_inputs": []},
+        "repeated_structure": {"hittable_list_item_link_count": 0},
+        "primary_action_candidates": [],
+    }
+    result = resolve_representative_function(raw, [A.ITEM_DETAIL, A.FINANCIAL_ACTION_ENTRY])
+    assert result.outcome == MappingOutcome.AMBIGUOUS_UNRESOLVED
+    assert result.archetype is None
+    assert "evidence 없음" in (result.unresolved_reason or "")
+
+
+def test_resolver_never_returns_an_archetype_outside_the_seven() -> None:
+    """`D-R0-11` — 신규 archetype 을 만들지 않는다. resolver 산출은 항상 닫힌 7종 안에 있다."""
+    raw = {
+        "region_signals": {"search_inputs": [{"visible": True, "in_form": True, "has_submit": True}]},
+        "repeated_structure": {"hittable_list_item_link_count": 0},
+        "primary_action_candidates": [],
+    }
+    result = resolve_representative_function(raw, list(A))
+    if result.archetype is not None:
+        assert result.archetype in set(A)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 5) partial depth 보존 + assign_depth_segments NULL 결함 시정 (D-R0-20 · depth.py:212-215)
+# ══════════════════════════════════════════════════════════════════════════
+def test_partial_depth_is_preserved_when_region_observed_but_endpoint_never_found() -> None:
+    """`w2_partial_depth_a/b.html` — 실 DOM list 구조로 region 은 관측되지만(k=0) 두 페이지
+    어디에도 endpoint 신호(article/video)가 없어 순환하다 MAX_STATE_REVISITS 로 종료된다.
+    NED 는 보존돼야 하고(D-R0-20), IED/MPFED 는 NULL, 그리고 region 관측 이후 step 들은
+    `IED` 가 아니라 `UNASSIGNED` 여야 한다(이전 구현은 MPFED=NULL 을 step_count 로 대체해
+    `IED` 로 잘못 라벨링했다)."""
+    task = TaskDefinition("TPD", A.CONTENT_OPEN, None, None)
+    entry, manifest = _scout(
+        budget=ScoutBudget(max_activations_per_task=5, max_state_revisits=1, branching_limit=2)
+    ).scout(web_target_id="wt-w2-partial", entry_fixture="w2_partial_depth_a.html", task=task)
+
+    assert entry.endpoint_status == "UNRESOLVED"
+    assert entry.endpoint_status_detail == "UNRESOLVED_DEPTH_BUDGET_EXCEEDED"
+    assert entry.ned == 0  # region 은 살아 있다 — NULL 로 지워지지 않는다
+    assert entry.ied is None
+    assert entry.mpfed is None
+    assert entry.area_signal_status == "OBSERVED"
+    assert len(entry.steps) >= 1, "이 fixture 설계는 region 확정 이후에도 탐색이 계속돼야 결함이 드러난다"
+    assert all(s.depth_segment == "UNASSIGNED" for s in entry.steps), (
+        f"MPFED=NULL 인데 IED 로 라벨링된 step 이 있다(결함 재발): "
+        f"{[s.depth_segment for s in entry.steps]}"
+    )
+    assert manifest is None  # endpoint 미도달 — Freeze 산출물을 만들지 않는다
+    assert any("partial depth 보존" in n for n in entry.notes)
+
+
+def test_assign_depth_segments_does_not_substitute_step_count_for_null_mpfed() -> None:
+    """depth.py 단위 시험 — `assign_depth_segments`가 직접 결함을 재현하는 최소 사례.
+    구 구현: `m = depth.mpfed if ... else step_count` → step_count 를 상한으로 대체해
+    NED 이후 전부 `IED` 로 라벨링했다. 시정 후: `MPFED is None` 이면 NED 이후는 `UNASSIGNED`."""
+    depth = DepthResult(
+        ned=1,
+        ied=None,
+        mpfed=None,
+        area_signal_status=AreaSignalStatus.OBSERVED,
+        endpoint_status=EndpointStatus.UNRESOLVED,
+        endpoint_status_detail=None,
+        endpoint_reached=0,
+    )
+    segments = assign_depth_segments(3, depth)
+    assert segments == [DepthSegment.NED, DepthSegment.UNASSIGNED, DepthSegment.UNASSIGNED]
+    # 구 구현이었다면 [NED, IED, IED] 가 나왔을 것이다 — 그 값과 다름을 명시적으로 대조한다.
+    assert segments != [DepthSegment.NED, DepthSegment.IED, DepthSegment.IED]
+
+
+def test_assign_depth_segments_with_known_mpfed_is_unaffected_by_the_fix() -> None:
+    """회귀 방지 — MPFED 가 실제로 확정된 정상 경로는 이 시정으로 바뀌지 않는다."""
+    depth = DepthResult(
+        ned=2,
+        ied=1,
+        mpfed=3,
+        area_signal_status=AreaSignalStatus.OBSERVED,
+        endpoint_status=EndpointStatus.FUNCTION_ENDPOINT_REACHED,
+        endpoint_status_detail=None,
+        endpoint_reached=1,
+    )
+    assert assign_depth_segments(3, depth) == [
+        DepthSegment.NED,
+        DepthSegment.NED,
+        DepthSegment.IED,
+    ]
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 6b) T-B-BLK-003(P1, A 결정 대기) — gate_observed 는 고치지 않되, gate→endpoint 승격의
+#     근거가 어휘뿐인지 구조 신호를 포함하는지는 구분해 기록한다
+# ══════════════════════════════════════════════════════════════════════════
+def test_gate_endpoint_promotion_is_flagged_when_basis_is_vocabulary_only() -> None:
+    """FINANCIAL_ACTION_ENTRY 는 IDENTITY_VERIFICATION gate 도 endpoint 로 승격한다
+    (`ENDPOINT_GATE_KINDS`). "통신사/본인인증" 어휘만 있고 실제 캐리어 선택지·OTP 입력
+    필드는 하나도 없는 최악의 경우를 구성해, 그 경로가 vocabulary-only 로 정확히
+    식별되는지 확인한다. `classify_gate_kind` 자체의 판정 로직은 바꾸지 않는다
+    (`T-B-BLK-003` 은 A 결정 대기 — 이 lane 은 근거를 기록만 한다)."""
+    vocab_only = GateSignals(
+        text="휴대폰 본인확인은 SKT KT LG U+ 알뜰폰 중 하나를 선택하고 인증번호를 받아 진행합니다",
+        # 구조 신호(carrier_option_count/otp_input_count/identity_number_input_count/
+        # tel_autocomplete_count/password_input_count/username_autocomplete_count)는 전부 0.
+    )
+    decision = classify_gate_kind(vocab_only)
+    assert decision.resolved and decision.gate_kind is not None
+    assert decision.gate_kind.value == "IDENTITY_VERIFICATION"
+    assert _gate_basis_is_vocabulary_only(decision) is True
+
+
+def test_gate_endpoint_promotion_is_not_flagged_when_structural_signal_present() -> None:
+    """실제 OTP 입력 필드 등 구조 신호가 있으면 vocabulary-only 가 아니다 — 과탐 방지."""
+    structural = GateSignals(
+        text="본인 확인", identity_number_input_count=1, otp_input_count=1
+    )
+    decision = classify_gate_kind(structural)
+    assert decision.resolved and decision.gate_kind is not None
+    assert _gate_basis_is_vocabulary_only(decision) is False
+
+
+def test_gate_endpoint_promotion_note_appears_on_the_real_fixture_path() -> None:
+    """`auth_identity_gate.html`(P-C 기존 회귀 fixture)은 캐리어/OTP 구조 신호를 실제로
+    갖고 있으므로 vocabulary-only 로 flag 되면 안 된다 — 과탐 방지의 end-to-end 확인."""
+    entry, _ = _scout().scout(
+        web_target_id="wt-gate-note",
+        entry_fixture="auth_identity_gate.html",
+        task=TaskDefinition(
+            "TF", A.FINANCIAL_ACTION_ENTRY, None, "FIN", R.GATE_SIGNAL, R.GATE_SIGNAL
+        ),
+    )
+    assert entry.endpoint_status_detail == "ENDPOINT_VIA_AUTH_GATE"
+    assert not any("GATE_BASIS_VOCABULARY_ONLY" in n for n in entry.notes)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 6) observation truncation caveats — T-B-FINDING-002 강건성
+# ══════════════════════════════════════════════════════════════════════════
+def test_truncation_caveat_is_recorded_for_item_detail_when_relevant_cap_hit() -> None:
+    raw = {
+        "probe_truncation": {
+            "primary_action_candidates": {"cap": 200, "matched": 214, "truncated": True},
+            "accessible_name_sources": {"cap": 300, "matched": 120, "truncated": False},
+        }
+    }
+    task = TaskDefinition("TT1", A.ITEM_DETAIL, None, None)
+    caveats = observation_truncation_caveats(raw, task)
+    assert len(caveats) == 1
+    assert "OBSERVATION_TRUNCATED" in caveats[0]
+    assert "primary_action_candidates" in caveats[0]
+    assert "accessible_name_sources" not in caveats[0]  # 이건 절단되지 않았다
+
+
+def test_truncation_caveat_is_silent_when_nothing_relevant_was_truncated() -> None:
+    raw = {"probe_truncation": {"primary_action_candidates": {"cap": 200, "matched": 40, "truncated": False}}}
+    task = TaskDefinition("TT2", A.ITEM_DETAIL, None, None)
+    assert observation_truncation_caveats(raw, task) == []
+
+
+def test_truncation_caveat_ignores_irrelevant_cap_for_query_archetype() -> None:
+    """QUERY 는 `search_inputs`(cap 없음)만 쓴다 — `primary_action_candidates` 절단은
+    QUERY 판정과 무관하므로 caveat 을 달지 않는다."""
+    raw = {"probe_truncation": {"primary_action_candidates": {"cap": 200, "matched": 250, "truncated": True}}}
+    task = TaskDefinition("TT3", A.QUERY, None, None, R.FORM_STRUCTURE, R.FORM_STRUCTURE)
+    assert observation_truncation_caveats(raw, task) == []
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 7) FIXTURE 회귀 — 기존 marker 경로가 이번 변경으로 죽지 않았다 (D-R0-42)
+# ══════════════════════════════════════════════════════════════════════════
+def test_marker_path_still_works_in_fixture_mode_for_existing_regression_fixtures() -> None:
+    """`depth_path_0.html` 은 실 `<article>` 도 갖고 있어 real detector 로도 통과할 수 있다
+    (redundant). marker 전용 경로가 여전히 살아있는지는 `depth_path_1.html`(list 구조는
+    real 로도 통과하지만 endpoint 는 marker 전용)로 다시 확인한다 — 이건 기존 `test_pc_*`
+    스위트가 이미 전수 검증하므로 여기서는 대표 1건만 재확인한다."""
+    task = TaskDefinition("T", A.CONTENT_OPEN, "ARTICLE_LIST_REGION", "ARTICLE_BODY_OPEN")
+    entry, manifest = _scout().scout(
+        web_target_id="wt-marker-regress", entry_fixture="depth_path_3.html", task=task
+    )
+    assert entry.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
+    assert (entry.ned, entry.ied, entry.mpfed) == (2, 1, 3)
+    assert manifest is not None
