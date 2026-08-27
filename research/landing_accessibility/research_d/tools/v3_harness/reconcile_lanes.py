@@ -140,7 +140,73 @@ def cross_checks(lanes: list[dict]) -> list[dict]:
     return issues
 
 
+def run_controls() -> dict:
+    """이 대조기가 아직 겹침을 잡는가 — 매 실행 확인한다.
+
+    `cross_checks` 는 D-DEF-11 을 냈다: 이름 추출이 실패해 **겹침이 있는데도
+    0 건**을 냈고, 그 0 이 'READY / 교차 문제 없음' 으로 보고됐다. 시정은
+    들어갔지만 **대조군은 없었다** — 다시 같은 방식으로 죽으면 출력이 지금과
+    같다.
+
+    B 가 T-B-V3-RECON-004 에서 더 강한 기준을 걸었다: 목록을 내기 전에
+    **양성·음성 대조가 통과해야 하고, 통과 못 하면 목록을 내지 말고 방법을
+    고친다.** 그 기준을 여기에 적용한다 — 대조군이 실패하면
+    `RECONCILIATION.json` 을 쓰지 않는다.
+
+    D-DEF-11 의 실제 형태(세 가지 산출 모양)를 그대로 fixture 로 쓴다.
+    """
+    def lane(key, impl, amb=None):
+        return {"lane": key, "payload": {"implemented_variables": impl,
+                                         "ambiguous_definitions": amb or []}}
+    cases = []
+
+    # 양성 1 — list[str] 끼리 겹침
+    got = cross_checks([lane("S", ["menu_dependency"]), lane("F", ["menu_dependency"])])
+    cases.append(("겹침(list[str])을 잡는가",
+                  any(i["kind"] == "DUPLICATE_IMPLEMENTATION" for i in got), True))
+    # 양성 2 — **모양이 서로 다른** 겹침. D-DEF-11 이 정확히 이것이었다.
+    got = cross_checks([lane("S", ["nav_container_depth"]),
+                        lane("F", [{"variable": "nav_container_depth"}])])
+    cases.append(("모양이 다른 겹침을 잡는가 (D-DEF-11 형태)",
+                  any(i["kind"] == "DUPLICATE_IMPLEMENTATION" for i in got), True))
+    # 양성 3 — dict 키 형태
+    got = cross_checks([lane("S", {"reveal_required": {}}), lane("L", ["reveal_required"])])
+    cases.append(("dict 키 형태 겹침을 잡는가",
+                  any(i["kind"] == "DUPLICATE_IMPLEMENTATION" for i in got), True))
+    # 양성 4 — 모순(한쪽은 모호, 다른 쪽은 구현)
+    got = cross_checks([lane("S", ["x_var"]), lane("F", [], ["x_var"])])
+    cases.append(("모호 대 구현 모순을 잡는가",
+                  any(i["kind"] == "CONTRADICTION_AMBIGUOUS_VS_IMPLEMENTED" for i in got), True))
+    # 양성 5 — 못 알아보는 모양을 조용히 버리지 않는가
+    got = cross_checks([lane("S", [12345]), lane("F", [])])
+    cases.append(("미해석 항목을 드러내는가",
+                  any(i["kind"] == "UNPARSED_ENTRY" for i in got), True))
+    # 음성 — 겹치지 않으면 만들어내지 않는가
+    got = cross_checks([lane("S", ["a_var"]), lane("F", ["b_var"])])
+    cases.append(("겹치지 않으면 만들어내지 않는가",
+                  any(i["kind"] in ("DUPLICATE_IMPLEMENTATION",
+                                    "CONTRADICTION_AMBIGUOUS_VS_IMPLEMENTED") for i in got), False))
+
+    rows, ok = [], True
+    for name, got_v, want in cases:
+        good = got_v is want
+        ok &= good
+        rows.append({"case": name, "got": got_v, "expected": want, "ok": good})
+    return {"verdict": "PASS" if ok else "FAIL", "cases": rows,
+            "why": "대조군이 실패하면 목록을 내지 않는다 — 못 잡는 대조기의 "
+                   "'교차 문제 0 건' 은 0 이 아니다 (D-DEF-11)"}
+
+
 def main() -> int:
+    ctl = run_controls()
+    if ctl["verdict"] != "PASS":
+        print("!! 대조군 실패 — RECONCILIATION 을 쓰지 않는다")
+        for c in ctl["cases"]:
+            if not c["ok"]:
+                print(f"   {c['case']}: got={c['got']} expected={c['expected']}")
+        return 3
+    print(f"controls={ctl['verdict']} ({len(ctl['cases'])}/{len(ctl['cases'])})")
+
     lanes = [load_lane(k) for k in LANES]
     issues = cross_checks(lanes)
     missing = [L["lane"] for L in lanes if L["status"] == "MISSING"]
