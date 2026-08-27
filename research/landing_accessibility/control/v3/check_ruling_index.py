@@ -126,18 +126,27 @@ def positive_control(idx, delta_text):
     # 하나만 두면 좁은 규칙과 넓은 규칙을 구분하지 못한다.
     # `Δ999-R99` 는 A 가 Δ33 부기에 그 문자열을 써버려 delta 에서 도달 가능해졌다 —
     # 문서가 자기 양성대조를 무력화한 사례이므로 주석으로 남긴다.
-    orphan = "Δ90001-R901"
-    assert orphan not in delta_text, "양성대조 id 가 delta 에 등장한다 — 다른 값을 써라"
+    # probe 값은 **런타임에 delta 에 없는 것으로 고른다.**
+    # 고정 리터럴을 쓰면 그 값을 문서에 인용하는 순간 probe 가 죽는다 —
+    # A 가 `Δ999-R99` 로 한 번, `Δ90001` 로 또 한 번 그렇게 만들었다.
+    # 이제 **모든 토큰의 부재를 확인**하고, 걸리면 다음 후보로 넘어간다.
+    def pick(prefix):
+        for i in range(900001, 900050):
+            rid, auth = f"Δ{i}-R901", f"Δ{i}"
+            if all(t not in delta_text for t in (rid, auth)):
+                return rid, auth
+        raise AssertionError("delta 에 없는 probe 값을 찾지 못했다")
+
+    orphan_id, orphan_auth = pick("orphan")
     probe("index_to_delta_reachability",
-          lambda m: m["rulings"].append({"id": orphan, "requires": "x",
+          lambda m: m["rulings"].append({"id": orphan_id, "requires": "x",
                                          "must_appear_in": "x", "verified_by": "x",
-                                         "due": "상시", "authority": "Δ90001",
-                                         "aliases": [orphan]}))
+                                         "due": "상시", "authority": orphan_auth,
+                                         "aliases": [orphan_id]}))
 
     # 음성 대조 — 부모 절이 실재하는 가짜 자식은 authority 경로로 도달해야 한다.
-    # 이것이 잡히면 구현이 (a)(b)(c) 로 좁혀졌다는 뜻이고 선언과 어긋난다.
-    child = "Δ32-nonexistentchild"
-    assert child not in delta_text
+    # 잡히면 구현이 (a)(b)(c) 로 좁혀졌다는 뜻이고 선언과 어긋난다.
+    child = next(c for c in (f"Δ32-probe{i}" for i in range(1, 50)) if c not in delta_text)
     m = json.loads(json.dumps(base))
     m["rulings"].append({"id": child, "requires": "x", "must_appear_in": "x",
                          "verified_by": "x", "due": "상시", "authority": "Δ32",
