@@ -58,6 +58,10 @@ def main(a):
     findings = []; add = lambda sev, code, msg, **kw: findings.append({"severity": sev, "code": code, "msg": msg, **kw})
     C = build_c_table(a.out_dirs, a.plan, a.state_dir)
     if C.empty: print("no raw rows"); return
+    # A 14:24: analysis sample = E001 only (collector 222ef2c). E000 rows are validation output, never sample.
+    is_e000 = C["_out_dir"].str.contains("e000", case=False)
+    e000_rows = C[is_e000]; C = C[~is_e000].copy()
+    if len(e000_rows): add("C2", "E000_ROWS_EXCLUDED_FROM_SAMPLE", f"{len(e000_rows)} E000 observations excluded from analysis sample (validation output only; A 14:24)")
     dup = C[C.duplicated("target_id", keep=False)]["target_id"].unique().tolist()
     if dup: add("C1", "DUP_TARGET_ACROSS_OUTDIRS", "target attempted in more than one out_dir", target_ids=dup)
     # cross-out_dir provenance drift (E000 vs E001 workers): expected & approved by A when --expected-drift is set
@@ -175,6 +179,18 @@ def main(a):
     jv = attempted[attempted["joint_valid"]].copy()
     grade = "GREEN" if len(jv) >= 36 else "YELLOW" if len(jv) >= 28 else "RED_USABLE" if len(jv) >= 20 else "PRELIMINARY"
     summary["grade"] = grade
+    # A 14:24: three numbers + frame coverage by archetype (expected_by_plan)
+    frame_t = {t["target_id"]: t for t in frame.get("targets") or []}
+    uniq = set(attempted.index); summary["attempted_observations_e001"] = int(len(attempted)); summary["unique_targets_e001"] = len(uniq); summary["frame_size"] = 59; summary["coverage_unique_over_frame"] = round(len(uniq) / 59, 3)
+    exp_arch = {}; obs_arch = {}
+    for tid, t in frame_t.items(): exp_arch[t.get("interaction_archetype")] = exp_arch.get(t.get("interaction_archetype"), 0) + 1
+    for tid in uniq:
+        a_ = (frame_t.get(tid) or {}).get("interaction_archetype", "UNKNOWN"); obs_arch[a_] = obs_arch.get(a_, 0) + 1
+    summary["coverage_by_archetype"] = {a_: {"expected_by_plan": exp_arch.get(a_, 0), "observed_unique": obs_arch.get(a_, 0), "coverage": round(obs_arch.get(a_, 0) / exp_arch[a_], 3) if exp_arch.get(a_) else None} for a_ in sorted(set(exp_arch) | set(obs_arch))}
+    if flo is not None:
+        tc = _col(flo, "web_target_id"); e000_ids = set(e000_rows["target_id"]) if len(e000_rows) else set()
+        oid_e000 = set(e000_rows["observation_id"].dropna()) if len(e000_rows) else set(); oc = _col(flo, "observation_id")
+        if oc and oid_e000 & set(flo[oc].astype(str)): add("C1", "E000_OBSERVATION_IN_MART", f"{len(oid_e000 & set(flo[oc].astype(str)))} E000 observations present in mart — sample must be E001 only")
     # ---- statistics replay on C's own table
     med = st.archetype_medians({a_: g["mpfed"].astype(float).tolist() for a_, g in jv.groupby("archetype")})
     jv["excess_depth"] = [st.excess_depth(_num(m), a_, med) for m, a_ in zip(jv["mpfed"], jv["archetype"])]
