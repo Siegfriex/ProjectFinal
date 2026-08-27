@@ -1,0 +1,334 @@
+#!/usr/bin/env python3
+"""C-authored offline measurement of GATE 1 lane2 fixtures (label separation + reveal direction).
+
+Independent of B code. Opens each fixture via file:// with every non-file request aborted,
+reads the entry control through THREE channels (CDP AX tree with name sources; Playwright
+aria_snapshot; DOM fallbacks), records bbox before/after the reveal toggle, infers the
+reveal direction purely from geometry, and compares against EXPECTATIONS.json.
+
+Exit 0 only if every fixture PASSes.
+"""
+from __future__ import annotations
+import json, re, sys, time, unicodedata, pathlib
+from playwright.sync_api import sync_playwright
+
+HERE = pathlib.Path(__file__).resolve().parent
+FIX = HERE / "fixtures"
+EXP = json.loads((HERE / "EXPECTATIONS.json").read_text(encoding="utf-8"))
+VW, VH = EXP["meta"]["viewport"]["width"], EXP["meta"]["viewport"]["height"]
+SYN = EXP["meta"]["synonym_map_fixed"]
+OUT = HERE / "out"; OUT.mkdir(exist_ok=True)
+
+def norm(s):  # 04 §5: Unicode normalize + whitespace normalize
+    return re.sub(r"\s+", " ", unicodedata.normalize("NFC", s or "")).strip()
+
+def label_relation(vis, ax):
+    v, a = norm(vis), norm(ax)
+    if not v and not a: return "NONE"
+    if not v: return "AX_ONLY"
+    if not a: return "VISIBLE_ONLY"
+    if v == a: return "MATCH"
+    for k, alts in SYN.items():
+        group = {norm(k), *map(norm, alts)}
+        if v in group and a in group: return "SEMANTIC_EQUIV"
+    return "DIFFERENT"
+
+# ---- DOM-side facts (C's own reader; no accessible-name synthesis here) ----
+JS_INFO = r"""
+(el) => {
+  const cs = getComputedStyle(el);
+  const r = el.getBoundingClientRect();
+  const pseudo = ['::before','::after'].map(p => {
+    let c = getComputedStyle(el, p).content;
+    if (!c || c === 'none' || c === 'normal') return '';
+    return c.replace(/^["']|["']$/g, '');
+  }).join('');
+  const rendered = el.checkVisibility ? el.checkVisibility({visibilityProperty:true, opacityProperty:true}) : (cs.display !== 'none');
+  const inViewport = r.width > 0 && r.height > 0 && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight;
+  const tag = el.tagName.toLowerCase();
+  const type = (el.getAttribute('type') || '').toLowerCase();
+  const isInputBtn = tag === 'input' && ['submit','button','reset'].includes(type);
+  const imgAlts = [...el.querySelectorAll('img')].map(i => i.getAttribute('alt') || '');
+  const svgTitles = [...el.querySelectorAll('svg > title')].map(t => t.textContent || '');
+  const hasIcon = !!el.querySelector('svg, img');
+  const lb = el.getAttribute('aria-labelledby');
+  const lbText = lb ? lb.split(/\s+/).map(id => (document.getElementById(id) || {}).textContent || '').join(' ') : null;
+  // nearest ancestor (or self) with fixed/absolute position
+  let cont = null, n = el;
+  while (n && n !== document.body) { const p = getComputedStyle(n).position; if (p === 'fixed' || p === 'absolute') { cont = n; break; } n = n.parentElement; }
+  let contInfo = null;
+  if (cont) { const cr = cont.getBoundingClientRect(); contInfo = {position: getComputedStyle(cont).position, x: cr.x, y: cr.y, width: cr.width, height: cr.height, cls: cont.className, id: cont.id, dataState: cont.getAttribute('data-state'), dataSide: cont.getAttribute('data-side'), ariaLabel: cont.getAttribute('aria-label')}; }
+  return {
+    tag, type, role: el.getAttribute('role'), href: el.getAttribute('href'),
+    innerText: rendered ? (el.innerText || '') : '', textContent: el.textContent || '',
+    pseudo, inputValue: isInputBtn ? (el.value || '') : '',
+    ariaLabel: el.getAttribute('aria-label'), ariaLabelledbyText: lbText, title: el.getAttribute('title'),
+    imgAlts, svgTitles, hasIcon, rendered, inViewport,
+    display: cs.display, visibility: cs.visibility, opacity: cs.opacity,
+    bbox: {x: r.x, y: r.y, width: r.width, height: r.height},
+    container: contInfo, cls: el.className, id: el.id
+  };
+}
+"""
+
+def cdp_ax(cdp, selector):
+    doc = cdp.send("DOM.getDocument", {"depth": 0})
+    node = cdp.send("DOM.querySelector", {"nodeId": doc["root"]["nodeId"], "selector": selector})
+    tree = cdp.send("Accessibility.getPartialAXTree", {"nodeId": node["nodeId"], "fetchRelatives": False})
+    n = tree["nodes"][0]
+    name = (n.get("name") or {}).get("value", "") or ""
+    srcs = [(s.get("type"), s.get("attribute"), s.get("nativeSource")) for s in (n.get("name") or {}).get("sources", []) if s.get("value") is not None or s.get("attributeValue") is not None]
+    return {"name": name, "role": (n.get("role") or {}).get("value"), "ignored": n.get("ignored", False), "sources": srcs}
+
+def aria_snapshot_name(loc):
+    try:
+        snap = loc.aria_snapshot()
+    except Exception as e:
+        return None, f"err:{e.__class__.__name__}"
+    first = (snap or "").strip().splitlines()[0] if snap and snap.strip() else ""
+    m = re.match(r'-\s*(\w+)\s*(?:"(.*)")?', first)
+    return (m.group(2) or "" if m else ""), first
+
+def classify_source(info, ax):
+    """C's accessible_name_source rule (EXPECTATIONS.meta)."""
+    name = norm(ax["name"])
+    if not name: return "NONE"
+    if info["ariaLabelledbyText"] is not None and norm(info["ariaLabelledbyText"]): return "ARIA_LABELLEDBY"
+    if norm(info["ariaLabel"] or ""): return "ARIA_LABEL"
+    types = {t for t, _, _ in ax["sources"]}
+    attrs = {a for _, a, _ in ax["sources"] if a}
+    natives = {n for _, _, n in ax["sources"] if n}
+    if natives & {"label", "labelfor", "labelwrapped"}: return "LABEL"
+    if info["inputValue"] and norm(info["inputValue"]) == name and ("value" in attrs or True): return "VALUE"
+    hits = []
+    if norm(info["innerText"]) == name or norm(info["textContent"]) == name: hits.append("VISIBLE_TEXT")
+    if norm(info["pseudo"]) == name: hits.append("VISIBLE_TEXT")
+    if any(norm(a) == name for a in info["imgAlts"] + info["svgTitles"]): hits.append("ALT")
+    if not hits and norm(info["title"] or "") == name: return "TITLE"
+    if not hits: return "MIXED"
+    return hits[0] if len(set(hits)) == 1 else "MIXED"
+
+def visible_text(info):
+    if not info["rendered"] or not info["inViewport"]: return "", "NOT_RENDERED"
+    if info["inputValue"]: return norm(info["inputValue"]), "INPUT_VALUE"
+    t = norm(info["innerText"]); p = norm(info["pseudo"])
+    if t: return (t if not p else norm(p + " " + t) if info["pseudo"] and False else t), "DOM_TEXT"
+    if p: return p, "PSEUDO_ELEMENT"
+    return "", "DOM_TEXT"
+
+def control_type(info, vis):
+    if info["tag"] == "input" and info["inputValue"] != "": return "TEXT_BUTTON"
+    is_link = info["tag"] == "a" and info["href"] is not None or info["role"] == "link"
+    if vis and info["hasIcon"]: return "ICON_TEXT"
+    if vis: return "TEXT_LINK" if is_link else "TEXT_BUTTON"
+    if info["hasIcon"]: return "ICON_ONLY"
+    return "OTHER"
+
+def modality(vis, ax, info):
+    if vis and info["hasIcon"]: return "ICON_TEXT"
+    if vis: return "EXPLICIT_TEXT"
+    return "ICON_ONLY_AX_NAMED" if norm(ax) else "ICON_ONLY_UNNAMED"
+
+def zone(info, in_reveal_container):
+    b = info["bbox"]; cx, cy = b["x"] + b["width"] / 2, b["y"] + b["height"] / 2
+    xn, yn = cx / VW, cy / VH
+    c = info["container"]
+    if in_reveal_container and c and c["position"] in ("fixed", "absolute"): z = "DRAWER"
+    elif c and c["position"] == "fixed" and c["width"] < 0.9 * VW and c["height"] < 0.9 * VH: z = "FLOATING"
+    elif yn < 0.12: z = "TOP_LEFT" if xn < 1/3 else ("TOP_CENTER" if xn <= 2/3 else "TOP_RIGHT")
+    elif yn > 0.88: z = "BOTTOM"
+    else: z = "MID"
+    return z, round(xn, 3), round(yn, 3)
+
+def infer_direction(before, after_info):
+    """Geometry only. before = bbox dict or None (not laid out)."""
+    a = after_info["bbox"]; c = after_info["container"]
+    if before and before["width"] > 0:
+        dx = (a["x"] + a["width"]/2) - (before["x"] + before["width"]/2)
+        dy = (a["y"] + a["height"]/2) - (before["y"] + before["height"]/2)
+        if max(abs(dx), abs(dy)) <= 4:
+            return ("CENTER" if c else "INLINE"), dx, dy, "no-motion"
+        if abs(dx) >= abs(dy): return ("LEFT" if dx > 0 else "RIGHT"), dx, dy, "motion-x"
+        return ("TOP" if dy > 0 else "BOTTOM"), dx, dy, "motion-y"
+    # not rendered before
+    if not c: return "INLINE", None, None, "not-rendered-before/in-flow"
+    if c["width"] >= 0.9*VW and c["height"] >= 0.9*VH: return "CENTER", None, None, "not-rendered-before/covers-viewport"
+    full_w = c["width"] >= 0.9*VW; full_h = c["height"] >= 0.9*VH
+    if full_w and c["y"] <= 60: return "TOP", None, None, "edge-anchor"
+    if full_w and c["y"] + c["height"] >= VH - 1: return "BOTTOM", None, None, "edge-anchor"
+    if full_h and c["x"] <= 1: return "LEFT", None, None, "edge-anchor"
+    if full_h and c["x"] + c["width"] >= VW - 1: return "RIGHT", None, None, "edge-anchor"
+    return "CENTER", None, None, "edge-anchor/fallback"
+
+def nav_type_from(direction, after_info, steps):
+    if not steps: return "NONE"
+    c = after_info["container"]
+    return {"LEFT": "LEFT_DRAWER", "RIGHT": "RIGHT_DRAWER", "TOP": "TOP_DROPDOWN", "BOTTOM": "BOTTOM_SHEET",
+            "CENTER": "MODAL_MENU", "INLINE": "INLINE_EXPAND"}.get(direction, "HAMBURGER")
+
+def naive_name_guess(after_info):
+    c = after_info["container"] or {}
+    blob = " ".join(str(c.get(k) or "") for k in ("cls", "id", "dataSide", "ariaLabel")).lower()
+    for w, d in (("left", "LEFT"), ("왼쪽", "LEFT"), ("right", "RIGHT"), ("오른쪽", "RIGHT"), ("bottom", "BOTTOM"), ("sheet", "BOTTOM"), ("top", "TOP"), ("dropdown", "TOP")):
+        if w in blob: return d
+    return "?"
+
+def settle_bbox(loc, min_ms=260, max_ms=2500):
+    # 1) let the style/transition actually start (two rAF ticks), 2) wait for all CSS transitions/animations
+    #    on the page to finish, 3) then require two identical consecutive bbox samples.
+    page = loc.page
+    page.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
+    page.evaluate("() => Promise.race([Promise.all(document.getAnimations().map(a => a.finished.catch(() => null))), new Promise(r => setTimeout(r, 2000))])")
+    t0 = time.time(); last = None; stable = 0
+    while (time.time() - t0) * 1000 < max_ms:
+        b = loc.bounding_box()
+        key = None if b is None else tuple(round(v) for v in (b["x"], b["y"], b["width"], b["height"]))
+        stable = stable + 1 if key == last else 0
+        last = key
+        if stable >= 2 and (time.time() - t0) * 1000 >= min_ms: break
+        time.sleep(0.06)
+    return loc.bounding_box()
+
+def read_control(page, cdp, sel, in_reveal):
+    loc = page.locator(sel).first
+    info = loc.evaluate(JS_INFO)
+    ax = cdp_ax(cdp, sel)
+    pw_name, pw_line = aria_snapshot_name(loc)
+    ax_name = "" if (not info["rendered"]) else norm(ax["name"])   # not rendered => not exposed
+    vis, prov = visible_text(info)
+    src = classify_source(info, ax) if ax_name else "NONE"
+    z, xn, yn = zone(info, in_reveal)
+    fallback = norm(info["ariaLabel"] or "") or norm(info["innerText"])
+    return {
+        "selector": sel, "visible_label_text": vis, "visible_text_provenance": prov,
+        "accessible_name": ax_name, "accessible_name_channel": "CDP Accessibility.getPartialAXTree",
+        "ax_role": ax["role"], "ax_ignored": ax["ignored"], "ax_raw_sources": ax["sources"],
+        "pw_aria_snapshot_name": pw_name, "pw_aria_snapshot_line": pw_line,
+        "dom_fallback_name(ariaLabel|innerText)": fallback,
+        "accessible_name_source": src, "label_relation": label_relation(vis, ax_name),
+        "entry_control_type": control_type(info, vis), "entry_label_modality_of_control": modality(vis, ax_name, info),
+        "rendered": info["rendered"], "in_viewport": info["inViewport"], "bbox": info["bbox"],
+        "entry_zone": z, "entry_x_norm": xn, "entry_y_norm": yn, "container": info["container"], "_info": info,
+    }
+
+def cmp(field, got, exp, diffs):
+    if got != exp: diffs.append(f"{field}: got={got!r} exp={exp!r}")
+
+def run_fixture(browser, fx):
+    name = fx["fixture"]; exp = fx["expected"]; sel = fx["entry_selector"]
+    ctx = browser.new_context(viewport={"width": VW, "height": VH}, is_mobile=True, has_touch=True,
+                              device_scale_factor=1, locale="ko-KR", timezone_id="Asia/Seoul")
+    aborted = []
+    def guard(route):
+        u = route.request.url
+        if u.startswith("file://"): route.continue_()
+        else: aborted.append(u); route.abort()
+    ctx.route("**/*", guard)
+    page = ctx.new_page()
+    page.goto((FIX / f"{name}.html").as_uri(), wait_until="load")
+    page.wait_for_timeout(150)
+    cdp = ctx.new_cdp_session(page); cdp.send("Accessibility.enable")
+    diffs = []; rec = {"fixture": name, "control_role": fx["control_role"]}
+    steps = fx.get("reveal_steps", [])
+    s0 = read_control(page, cdp, sel, in_reveal=False)
+    s0_visible = s0["rendered"] and s0["in_viewport"]
+    rec["s0"] = {k: v for k, v in s0.items() if k != "_info"}
+    cmp("s0_task_control_visible", s0_visible, exp["s0_task_control_visible"], diffs)
+    cmp("visible_label_text", s0["visible_label_text"], exp["visible_label_text"], diffs)
+    cmp("accessible_name", s0["accessible_name"], exp["accessible_name"], diffs)
+    cmp("accessible_name_source", s0["accessible_name_source"], exp["accessible_name_source"], diffs)
+    cmp("label_relation", s0["label_relation"], exp["label_relation"], diffs)
+    mod = "HIDDEN_UNTIL_REVEAL" if (not s0_visible and steps) else s0["entry_label_modality_of_control"]
+    cmp("entry_label_modality", mod, exp["entry_label_modality"], diffs)
+    if exp.get("visible_text_provenance"): cmp("visible_text_provenance", s0["visible_text_provenance"], exp["visible_text_provenance"], diffs)
+    # cross-channel consistency: Playwright's own accname engine must agree with CDP when exposed
+    if s0_visible and s0["pw_aria_snapshot_name"] is not None:
+        cmp("pw_aria_snapshot_name==cdp", norm(s0["pw_aria_snapshot_name"]), s0["accessible_name"], diffs)
+    for aux in fx.get("aux", []):
+        a = read_control(page, cdp, aux["selector"], in_reveal=False)
+        rec.setdefault("aux", []).append({k: v for k, v in a.items() if k != "_info"})
+        for f, g in (("visible_label_text", a["visible_label_text"]), ("accessible_name", a["accessible_name"]),
+                     ("accessible_name_source", a["accessible_name_source"]), ("label_relation", a["label_relation"]),
+                     ("entry_label_modality", a["entry_label_modality_of_control"]), ("entry_control_type", a["entry_control_type"])):
+            cmp(f"aux[{aux['selector']}].{f}", g, aux[f], diffs)
+        if aux.get("visible_text_provenance"): cmp(f"aux[{aux['selector']}].visible_text_provenance", a["visible_text_provenance"], aux["visible_text_provenance"], diffs)
+        cmp(f"aux[{aux['selector']}].pw==cdp", norm(a["pw_aria_snapshot_name"] or ""), a["accessible_name"], diffs)
+    # ---- reveal ----
+    direction, dx, dy, method, naive = "NONE", None, None, "n/a", None
+    if steps:
+        before = page.locator(sel).first.bounding_box()
+        for i, st in enumerate(steps):
+            page.locator(st).first.click()
+            settle_bbox(page.locator(sel).first)
+            mid = read_control(page, cdp, sel, in_reveal=True)
+            if i < len(steps) - 1 and mid["rendered"] and mid["in_viewport"]:
+                diffs.append(f"control visible after {i+1} of {len(steps)} steps (depth over-stated)")
+        s1 = read_control(page, cdp, sel, in_reveal=True)
+        rec["s1_after_reveal"] = {k: v for k, v in s1.items() if k != "_info"}
+        rec["bbox_before"] = before
+        if not (s1["rendered"] and s1["in_viewport"]): diffs.append("control not visible after reveal steps")
+        direction, dx, dy, method = infer_direction(before, s1["_info"])
+        naive = naive_name_guess(s1["_info"])
+        ar = fx.get("after_reveal", {})
+        for f in ("visible_label_text", "accessible_name", "accessible_name_source", "label_relation"):
+            cmp(f"after_reveal.{f}", s1[f], ar[f], diffs)
+        cmp("after_reveal.entry_label_modality", s1["entry_label_modality_of_control"], ar["entry_label_modality"], diffs)
+        cmp("after_reveal.pw==cdp", norm(s1["pw_aria_snapshot_name"] or ""), s1["accessible_name"], diffs)
+        m = ar.get("motion", {})
+        if m.get("axis") == "x":
+            if dx is None or (m["sign"] == "+" and dx <= 0) or (m["sign"] == "-" and dx >= 0) or abs(dx) < m["min_abs_delta_px"]:
+                diffs.append(f"motion: dx={dx} expected sign {m['sign']} |dx|>={m['min_abs_delta_px']}")
+        elif m.get("axis") == "y":
+            if dy is None or (m["sign"] == "+" and dy <= 0) or (m["sign"] == "-" and dy >= 0) or abs(dy) < m["min_abs_delta_px"]:
+                diffs.append(f"motion: dy={dy} expected sign {m['sign']} |dy|>={m['min_abs_delta_px']}")
+        elif m.get("axis") == "none" and m.get("before_rendered", True):
+            if dx is None or max(abs(dx), abs(dy)) > m.get("max_abs_delta_px", 4): diffs.append(f"motion: expected none, got dx={dx} dy={dy}")
+        elif m.get("before_rendered") is False and before is not None:
+            diffs.append(f"expected not laid out before reveal, got bbox {before}")
+        zone_src = s1
+    else:
+        zone_src = s0
+    menu_dep = 0 if s0_visible else (1 if steps else None)
+    cmp("reveal_direction", direction, exp["reveal_direction"], diffs)
+    cmp("nav_container_type", nav_type_from(direction, (rec.get("s1_after_reveal") and read_control(page, cdp, sel, True)["_info"]) or s0["_info"], steps), exp["nav_container_type"], diffs)
+    cmp("menu_dependency", menu_dep, exp["menu_dependency"], diffs)
+    cmp("nav_container_depth", len(steps) if menu_dep else 0, exp["nav_container_depth"], diffs)
+    cmp("entry_control_type", zone_src["entry_control_type"], exp["entry_control_type"], diffs)
+    cmp("entry_zone", zone_src["entry_zone"], exp["entry_zone"], diffs)
+    if fx.get("naive_name_guess"):
+        rec["naive_name_guess_observed"] = naive
+        cmp("naive_name_guess(negative control must disagree with geometry)", naive, fx["naive_name_guess"], diffs)
+        if naive == direction: diffs.append("negative control ineffective: naive guess equals geometry")
+    if aborted: diffs.append(f"non-file requests attempted: {aborted}")
+    rec.update({"observed_direction": direction, "direction_method": method, "dx": dx, "dy": dy,
+                "non_file_requests_aborted": len(aborted), "diffs": diffs, "result": "PASS" if not diffs else "FAIL"})
+    ctx.close()
+    return rec, zone_src, mod, menu_dep, direction, naive
+
+def main():
+    rows = []; records = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        for fx in EXP["fixtures"]:
+            rec, zs, mod, dep, d, naive = run_fixture(browser, fx)
+            records.append(rec)
+            rows.append([fx["fixture"], fx["control_role"][:3], repr(rec["s0"]["visible_label_text"]), repr(rec["s0"]["accessible_name"]),
+                         rec["s0"]["accessible_name_source"], mod, rec["s0"]["label_relation"], zs["entry_control_type"],
+                         "T" if rec["s0"]["rendered"] and rec["s0"]["in_viewport"] else "F", d,
+                         "" if rec["dx"] is None else f"{rec['dx']:+.0f}", "" if rec["dy"] is None else f"{rec['dy']:+.0f}",
+                         zs["entry_zone"], f"{zs['entry_x_norm']:.2f},{zs['entry_y_norm']:.2f}", naive or "", rec["result"]])
+        browser.close()
+    hdr = ["fixture", "ctl", "visible", "ax_name", "ax_src", "modality", "relation", "ctype", "s0", "dir", "dx", "dy", "zone", "x,y", "naive", "result"]
+    widths = [max(len(str(r[i])) for r in [hdr] + rows) for i in range(len(hdr))]
+    lines = [" | ".join(str(c).ljust(w) for c, w in zip(r, widths)) for r in [hdr, ["-" * w for w in widths]] + rows]
+    print("\n".join(lines))
+    for r in records:
+        for d in r["diffs"]: print(f"  !! {r['fixture']}: {d}")
+    n_pass = sum(r["result"] == "PASS" for r in records)
+    line = f"RESULT: {n_pass}/{len(records)} PASS, non-file requests aborted total={sum(r['non_file_requests_aborted'] for r in records)}"
+    print(line)
+    (OUT / "measure_result.json").write_text(json.dumps({"summary": line, "table": lines, "records": records}, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    sys.exit(0 if n_pass == len(records) else 1)
+
+if __name__ == "__main__":
+    main()
