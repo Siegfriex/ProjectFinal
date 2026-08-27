@@ -1,16 +1,16 @@
 {
  "agent": "B",
- "timestamp": "2026-08-27T21:49:04+09:00",
+ "timestamp": "2026-08-27T21:52:00+09:00",
  "phase": "I1",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "e33a2e262e954cf3fe18e283f309361bb4c883c2",
+ "head_sha": "b9d586f088a7987d066ebff54546d3f41eb5ea46",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
  "work_state": "I1_W4_REWORK_W1_LOCK_WIRING_W2_RUNNING_W3_STAGE1",
  "blocker_ids": [],
- "last_bus_seq": 124,
+ "last_bus_seq": 132,
  "last_push_at": "2026-08-27T20:56:51+09:00",
- "next_action": "A 의 T-B-BLK-003 결정 대기. W1 lock 배선 / W4 form-semantic 분리 / W2·W3 진행 중.",
+ "next_action": "W1 lock 배선 / W2 G1-b + detector / W3 Stage1 / W4 form-semantic 분리. 전부 완료 후 joint gate.",
  "real_target": "NO-GO",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
@@ -21,10 +21,10 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "e33a2e262e954cf3fe18e283f309361bb4c883c2",
-  "A_control": "7695383416bd6ea18f363aaa5286aade1227df24",
-  "C_assurance_v21": "ccdc08ed2124ea8a820b3340d67382b89bc2326b",
-  "at": "2026-08-27T21:47:22+09:00"
+  "B_clean0_v21": "b9d586f088a7987d066ebff54546d3f41eb5ea46",
+  "A_control": "f107a061f8f5247e55738f6b5aa0e7512b8f15a3",
+  "C_assurance_v21": "876b72987852f798087b3fbea4fa489578a1664d",
+  "at": "2026-08-27T21:50:37+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -33,13 +33,14 @@
    "wip_sha": "67d7d8a",
    "state": "REWORK_FIXTURE_LOCK_WIRING",
    "verified_by_C": "lock race PASS (3 proc x 3 key, 키당 proceed 1 / SUPPRESSED 2)",
-   "open": "FIXTURE 경로 lock 미배선 → exactly-once e2e 미증명 (C-FINDING-214553 P2)"
+   "open": "D-R0-60 FIXTURE/SHADOW lock 배선 (exactly-once e2e 증명 경로)"
   },
   "W2": {
    "branch": "claude-b/w2-rf-detector",
    "wip_sha": "1de537c",
    "state": "RUNNING",
-   "c_preaudit": "구조 계약 정합 — marker 게이팅 이중화·signal_type 실소비·Branch U·depth NULL 시정"
+   "c_preaudit": "구조 계약 정합 — marker 게이팅 이중화·signal_type 실소비·Branch U·depth NULL 시정",
+   "scope": "rule-DT + signal family + semantic calibration + [신규] G1-b gate_observed 수정 (D-R0-59-2 scope 편입)"
   },
   "W3": {
    "branch": "claude-b/w3-kwcag",
@@ -52,16 +53,15 @@
    "result_sha": "cf8dbd70",
    "state": "REWORK_FORM_SEMANTIC_SPLIT",
    "verified_by_C": "분모·duplicate·geometry 불변·cap 플래그 전건 일치",
-   "open": "의미 라벨 22/635 BANNER 붕괴 (C-FINDING-214214 P2 REWORK)"
+   "open": "D-R0-58 rework — interrupt_form/interrupt_semantic 분리 + classifier_version + 전이표"
   }
  },
- "resolved_add": "T-B-FC-003 종결 — C 자체 정정으로 PAC 7/58 확정, B/C 수치 완전 일치",
+ "resolved_add": "T-B-BLK-003 → D-R0-59 GO_ACCEPTED (W2 scope 편입, gate 계약 확정)",
  "open_findings": [
   "T-B-FINDING-001 DecisionCoverage 구조적 상한 (A 결정 대기)",
   "T-B-FINDING-002 probe hard cap 절단 (A 결정 대기, 수치 확정됨)"
  ],
  "d_layer": "T-B-RQ-D-001 발행 (비권위, 자동 소비 안 함)",
- "open_blockers": [
-  "T-B-BLK-003 gate_observed 어휘단독 위양성 — C CONFIRMED, A DECISION 대기"
- ]
+ "open_blockers": [],
+ "joint_gate_condition": "W1+W2 는 G1-a 와 G1-b 를 함께 해소해야 통과 (D-R0-59-4 + D-R0-18)"
 }
