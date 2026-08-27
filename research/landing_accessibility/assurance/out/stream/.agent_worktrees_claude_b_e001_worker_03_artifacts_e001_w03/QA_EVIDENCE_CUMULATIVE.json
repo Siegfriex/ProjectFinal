@@ -1,7 +1,7 @@
 {
   "artifact": "QA_STREAM_.agent_worktrees_claude_b_e001_worker_03_artifacts_e001_w03",
   "generated_by": "C",
-  "generated_at": "2026-08-27T14:18:19+09:00",
+  "generated_at": "2026-08-27T14:20:13+09:00",
   "out_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03",
   "plan": {
     "frozen_order_n": 59,
@@ -13,31 +13,37 @@
       "naver_map",
       "kb_starbanking",
       "my_files",
-      "samsung_notes"
+      "samsung_notes",
+      "nh_smart_banking",
+      "samsung_wallet",
+      "toss",
+      "homeplus"
     ],
     "partition_worker": "worker_03"
   },
   "worker": "worker_03",
   "verdict": "MATCH",
   "severity_max": "C2",
-  "n_batches": 2,
+  "n_batches": 3,
   "batch_hash_all_ok": true,
   "outcomes": {
     "AUTH_GATE": 3,
-    "ACCOUNT_ACTION_BLOCKED": 4,
-    "SKIPPED_RETRY_EXHAUSTED": 1
+    "ACCOUNT_ACTION_BLOCKED": 6,
+    "SKIPPED_RETRY_EXHAUSTED": 2,
+    "UNRESOLVED": 1
   },
-  "attempted_n": 8,
+  "attempted_n": 12,
   "joint_valid_j1_j3_n": 0,
   "j4_pending": "requires fact_criterion_result + frozen older-relevant set",
   "excluded_by_reason": {
     "GATE_REACHED_MPFED_NULL": 3,
-    "L1_NOT_ATTEMPTED_GUARD": 4,
-    "TRANSPORT_FAILURE": 1
+    "L1_NOT_ATTEMPTED_GUARD": 6,
+    "TRANSPORT_FAILURE": 2,
+    "L1_NOT_ATTEMPTED_OR_UNRESOLVED": 1
   },
   "by_archetype": {
     "FINANCIAL_ACTION_ENTRY": {
-      "attempted": 2,
+      "attempted": 5,
       "j1_j3_valid": 0
     },
     "UTILITY_ENTRY": {
@@ -45,7 +51,7 @@
       "j1_j3_valid": 0
     },
     "ITEM_DETAIL": {
-      "attempted": 1,
+      "attempted": 2,
       "j1_j3_valid": 0
     },
     "COMMUNICATION_ENTRY": {
@@ -59,16 +65,18 @@
   },
   "mpfed_null_reason": {
     "gate_kind_undetermined": 2,
-    "guard_blocked_pre_scout": 4,
+    "guard_blocked_pre_scout": 6,
     "gate_reached_non_endpoint_archetype": 1,
-    "l1_not_attempted": 1
+    "l1_not_attempted": 2,
+    "scout_no_signal": 1
   },
   "mpfed_available_n": 0,
   "e6b_fail_closed_fired_n": 2,
+  "gate_kind_resolved_n": 1,
   "quarantine": [],
   "append_only": {
-    "batch_files": 2,
-    "runs": 8,
+    "batch_files": 3,
+    "runs": 10,
     "changed_batches": [],
     "changed_manifests": [],
     "removed": []
@@ -77,25 +85,27 @@
     "{\"authoritative\": true, \"base_sha\": \"397a10d\", \"protocol_version\": \"v2.0-pc-fixture-1\", \"real_target_measurement\": true, \"shadow_lane\": \"E001_RUNNER_L0L1_DEFAULT_FIX\", \"status\": \"REAL_TARGET_COLLECTION\"}"
   ],
   "protocol_versions": {
-    "v2.0-pc-fixture-1": 7
+    "v2.0-pc-fixture-1": 10
   },
   "orphan_evidence_runs": [],
   "run_accounting": {
-    "disk_runs": 11,
-    "referenced_by_batch": 7,
+    "disk_runs": 15,
+    "referenced_by_batch": 10,
     "retry_superseded": [
       "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051633333382Z",
-      "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z"
+      "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z",
+      "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051814381396Z",
+      "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051901043748Z"
     ],
     "guard_blocked_l0": [],
     "unsealed_in_progress": [
       "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051633333382Z",
       "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z",
-      "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051814381396Z"
+      "e001_full-wtg_888d37f34b5d3aaa-2026-08-27T052012699280Z",
+      "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051814381396Z",
+      "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051901043748Z"
     ],
-    "pending_batch_sealed": [
-      "e001_full-wtg_95967b50683649f2-2026-08-27T051806340380Z"
-    ],
+    "pending_batch_sealed": [],
     "orphan_unexplained": []
   },
   "findings": [
@@ -104,6 +114,12 @@
       "code": "L0_DETAIL_ABSENT_IN_BATCH",
       "msg": "outcome SKIPPED_RETRY_EXHAUSTED: batch result carries no L0 record (lineage from batch→evidence run broken; see orphan_runs)",
       "target_id": "wtg_2cd43b99c1ed87cf"
+    },
+    {
+      "severity": "C2",
+      "code": "L0_DETAIL_ABSENT_IN_BATCH",
+      "msg": "outcome SKIPPED_RETRY_EXHAUSTED: batch result carries no L0 record (lineage from batch→evidence run broken; see orphan_runs)",
+      "target_id": "wtg_dd5061eb74e2d4d4"
     }
   ],
   "rows": [
@@ -157,6 +173,7 @@
       "n_steps": 0,
       "gate_step_idx": [],
       "e6b_gate_kind_undetermined": true,
+      "gate_kind_resolved": false,
       "mpfed_null_reason": "gate_kind_undetermined",
       "j1_j3_valid": false,
       "exclusion_reason_c": "GATE_REACHED_MPFED_NULL"
@@ -211,6 +228,7 @@
       "n_steps": 0,
       "gate_step_idx": [],
       "e6b_gate_kind_undetermined": true,
+      "gate_kind_resolved": false,
       "mpfed_null_reason": "gate_kind_undetermined",
       "j1_j3_valid": false,
       "exclusion_reason_c": "GATE_REACHED_MPFED_NULL"
@@ -263,6 +281,7 @@
       "area_signal_status": null,
       "path_sha256": null,
       "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": false,
       "mpfed_null_reason": "guard_blocked_pre_scout",
       "j1_j3_valid": false,
       "exclusion_reason_c": "L1_NOT_ATTEMPTED_GUARD"
@@ -315,6 +334,7 @@
       "area_signal_status": null,
       "path_sha256": null,
       "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": false,
       "mpfed_null_reason": "guard_blocked_pre_scout",
       "j1_j3_valid": false,
       "exclusion_reason_c": "L1_NOT_ATTEMPTED_GUARD"
@@ -369,6 +389,7 @@
       "n_steps": 0,
       "gate_step_idx": [],
       "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": true,
       "mpfed_null_reason": "gate_reached_non_endpoint_archetype",
       "j1_j3_valid": false,
       "exclusion_reason_c": "GATE_REACHED_MPFED_NULL"
@@ -421,6 +442,7 @@
       "area_signal_status": null,
       "path_sha256": null,
       "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": false,
       "mpfed_null_reason": "guard_blocked_pre_scout",
       "j1_j3_valid": false,
       "exclusion_reason_c": "L1_NOT_ATTEMPTED_GUARD"
@@ -473,6 +495,7 @@
       "area_signal_status": null,
       "path_sha256": null,
       "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": false,
       "mpfed_null_reason": "guard_blocked_pre_scout",
       "j1_j3_valid": false,
       "exclusion_reason_c": "L1_NOT_ATTEMPTED_GUARD"
@@ -510,9 +533,209 @@
       "area_signal_status": null,
       "path_sha256": null,
       "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": false,
       "mpfed_null_reason": "l1_not_attempted",
       "j1_j3_valid": false,
       "exclusion_reason_c": "TRANSPORT_FAILURE"
+    },
+    {
+      "target_id": "wtg_95967b50683649f2",
+      "batch_index": 3,
+      "batch_id": "b0003",
+      "execution_mode": "REAL_TARGET",
+      "outcome": "ACCOUNT_ACTION_BLOCKED",
+      "attempts": 1,
+      "error": "target 'wtg_95967b50683649f2': category=LOGIN reason=matched text: '로그인 로그인'",
+      "scout_invoked": false,
+      "canonical_service_key": "nh_smart_banking",
+      "archetype_plan": "FINANCIAL_ACTION_ENTRY",
+      "observation_id": "bd2af5f2a0b5a346827b67410dc1e9c0",
+      "evidence_run_id": "e001_full-wtg_95967b50683649f2-2026-08-27T051806340380Z",
+      "measurement_status": "MEASURED",
+      "requested_url": "https://banking.nonghyup.com/nhbank.html",
+      "protocol_version": "v2.0-pc-fixture-1",
+      "max_overlay_coverage": 1.0,
+      "max_primary_action_occlusion": 1.0,
+      "primary_action_visible_initial": 1,
+      "blocking_modal_count": 2,
+      "l0_present": true,
+      "run_status": "VERIFIED",
+      "run_entries": 24,
+      "l0a_missing": [],
+      "run_provenance": {
+        "base_sha": "397a10d",
+        "shadow_lane": "E001_RUNNER_L0L1_DEFAULT_FIX",
+        "protocol_version": "v2.0-pc-fixture-1",
+        "authoritative": true,
+        "real_target_measurement": true,
+        "status": "REAL_TARGET_COLLECTION"
+      },
+      "run_execution_mode": "REAL_TARGET",
+      "sealed_at": "2026-08-27T05:18:14.380573Z",
+      "collection_started_at": "2026-08-27T05:18:06.340862Z",
+      "observation_id_recomputed_ok": true,
+      "l1_present": false,
+      "endpoint_status": null,
+      "endpoint_status_detail": null,
+      "endpoint_reached": null,
+      "ned": null,
+      "ied": null,
+      "mpfed": null,
+      "archetype": "FINANCIAL_ACTION_ENTRY",
+      "forced_dismissal_count": null,
+      "area_signal_status": null,
+      "path_sha256": null,
+      "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": false,
+      "mpfed_null_reason": "guard_blocked_pre_scout",
+      "j1_j3_valid": false,
+      "exclusion_reason_c": "L1_NOT_ATTEMPTED_GUARD"
+    },
+    {
+      "target_id": "wtg_dd5061eb74e2d4d4",
+      "batch_index": 3,
+      "batch_id": "b0003",
+      "execution_mode": "REAL_TARGET",
+      "outcome": "SKIPPED_RETRY_EXHAUSTED",
+      "attempts": 2,
+      "error": "EvidenceError: run e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051901043748Z 에 산출물이 없다 — 관측 0건인 run 은 유효하지 않다 (07 §4)",
+      "scout_invoked": null,
+      "canonical_service_key": "samsung_wallet",
+      "archetype_plan": "FINANCIAL_ACTION_ENTRY",
+      "observation_id": null,
+      "evidence_run_id": null,
+      "measurement_status": null,
+      "requested_url": null,
+      "protocol_version": null,
+      "max_overlay_coverage": null,
+      "max_primary_action_occlusion": null,
+      "primary_action_visible_initial": null,
+      "blocking_modal_count": null,
+      "l0_present": false,
+      "l1_present": false,
+      "endpoint_status": null,
+      "endpoint_status_detail": null,
+      "endpoint_reached": null,
+      "ned": null,
+      "ied": null,
+      "mpfed": null,
+      "archetype": "FINANCIAL_ACTION_ENTRY",
+      "forced_dismissal_count": null,
+      "area_signal_status": null,
+      "path_sha256": null,
+      "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": false,
+      "mpfed_null_reason": "l1_not_attempted",
+      "j1_j3_valid": false,
+      "exclusion_reason_c": "TRANSPORT_FAILURE"
+    },
+    {
+      "target_id": "wtg_35319a420294ee17",
+      "batch_index": 3,
+      "batch_id": "b0003",
+      "execution_mode": "REAL_TARGET",
+      "outcome": "UNRESOLVED",
+      "attempts": 1,
+      "error": "",
+      "scout_invoked": true,
+      "canonical_service_key": "toss",
+      "archetype_plan": "FINANCIAL_ACTION_ENTRY",
+      "observation_id": "5b96caa0d265bc1d4f4a39676a583825",
+      "evidence_run_id": "e001_full-wtg_35319a420294ee17-2026-08-27T051947549087Z",
+      "measurement_status": "MEASURED",
+      "requested_url": "https://toss.im/",
+      "protocol_version": "v2.0-pc-fixture-1",
+      "max_overlay_coverage": 0.0664,
+      "max_primary_action_occlusion": 1.0,
+      "primary_action_visible_initial": 1,
+      "blocking_modal_count": 1,
+      "l0_present": true,
+      "run_status": "VERIFIED",
+      "run_entries": 12,
+      "l0a_missing": [],
+      "run_provenance": {
+        "base_sha": "397a10d",
+        "shadow_lane": "E001_RUNNER_L0L1_DEFAULT_FIX",
+        "protocol_version": "v2.0-pc-fixture-1",
+        "authoritative": true,
+        "real_target_measurement": true,
+        "status": "REAL_TARGET_COLLECTION"
+      },
+      "run_execution_mode": "REAL_TARGET",
+      "sealed_at": "2026-08-27T05:20:01.612384Z",
+      "collection_started_at": "2026-08-27T05:19:47.549677Z",
+      "observation_id_recomputed_ok": true,
+      "l1_present": true,
+      "endpoint_status": "UNRESOLVED",
+      "endpoint_status_detail": "UNRESOLVED_NO_SIGNAL",
+      "endpoint_reached": 0,
+      "ned": null,
+      "ied": null,
+      "mpfed": null,
+      "archetype": "FINANCIAL_ACTION_ENTRY",
+      "forced_dismissal_count": 0,
+      "area_signal_status": "NOT_OBSERVED",
+      "path_sha256": null,
+      "n_steps": 0,
+      "gate_step_idx": [],
+      "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": false,
+      "mpfed_null_reason": "scout_no_signal",
+      "j1_j3_valid": false,
+      "exclusion_reason_c": "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
+    },
+    {
+      "target_id": "wtg_0ee385d0c964e560",
+      "batch_index": 3,
+      "batch_id": "b0003",
+      "execution_mode": "REAL_TARGET",
+      "outcome": "ACCOUNT_ACTION_BLOCKED",
+      "attempts": 1,
+      "error": "target 'wtg_0ee385d0c964e560': category=LOGIN reason=matched text: '로그인해 주세요 로그인해 주세요'",
+      "scout_invoked": false,
+      "canonical_service_key": "homeplus",
+      "archetype_plan": "ITEM_DETAIL",
+      "observation_id": "08efe1f76321b8f079a32b7849b9aee3",
+      "evidence_run_id": "e001_full-wtg_0ee385d0c964e560-2026-08-27T052001613003Z",
+      "measurement_status": "MEASURED",
+      "requested_url": "https://mfront.homeplus.co.kr/",
+      "protocol_version": "v2.0-pc-fixture-1",
+      "max_overlay_coverage": 1.0,
+      "max_primary_action_occlusion": 1.0,
+      "primary_action_visible_initial": 1,
+      "blocking_modal_count": 2,
+      "l0_present": true,
+      "run_status": "VERIFIED",
+      "run_entries": 36,
+      "l0a_missing": [],
+      "run_provenance": {
+        "base_sha": "397a10d",
+        "shadow_lane": "E001_RUNNER_L0L1_DEFAULT_FIX",
+        "protocol_version": "v2.0-pc-fixture-1",
+        "authoritative": true,
+        "real_target_measurement": true,
+        "status": "REAL_TARGET_COLLECTION"
+      },
+      "run_execution_mode": "REAL_TARGET",
+      "sealed_at": "2026-08-27T05:20:12.643942Z",
+      "collection_started_at": "2026-08-27T05:20:01.613578Z",
+      "observation_id_recomputed_ok": true,
+      "l1_present": false,
+      "endpoint_status": null,
+      "endpoint_status_detail": null,
+      "endpoint_reached": null,
+      "ned": null,
+      "ied": null,
+      "mpfed": null,
+      "archetype": "ITEM_DETAIL",
+      "forced_dismissal_count": null,
+      "area_signal_status": null,
+      "path_sha256": null,
+      "e6b_gate_kind_undetermined": false,
+      "gate_kind_resolved": false,
+      "mpfed_null_reason": "guard_blocked_pre_scout",
+      "j1_j3_valid": false,
+      "exclusion_reason_c": "L1_NOT_ATTEMPTED_GUARD"
     }
   ]
 }

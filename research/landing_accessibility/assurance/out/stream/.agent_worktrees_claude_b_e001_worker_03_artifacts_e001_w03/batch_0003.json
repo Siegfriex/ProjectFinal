@@ -1,47 +1,48 @@
 {
   "artifact": "QA_BATCH_STREAM",
   "generated_by": "C",
-  "generated_at": "2026-08-27T14:19:42+09:00",
+  "generated_at": "2026-08-27T14:20:13+09:00",
   "out_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_03/artifacts/e001_w03",
   "worker": "worker_03",
-  "batch_file": "batch_0001_b0001.json",
-  "batch_file_sha256": "ebfccfccf3e576bd53ccc4ca155485ebd2d0d61494ba1d08f85ce5d0fdf046cb",
+  "batch_file": "batch_0003_b0003.json",
+  "batch_file_sha256": "ee48075bb3915da1561814a8880301f99cbfb661d793ca7afc44bd797eb80509",
   "rerun_after_change": false,
   "verdict_cumulative": "MATCH",
   "severity_max_cumulative": "C2",
   "batch_targets": [
     [
-      "wtg_8fd5d30f8b1d707b",
-      "AUTH_GATE",
-      "GATE_REACHED_MPFED_NULL"
-    ],
-    [
-      "wtg_a215c45b2cc585ca",
-      "AUTH_GATE",
-      "GATE_REACHED_MPFED_NULL"
-    ],
-    [
-      "wtg_c5285b96b598a08b",
+      "wtg_95967b50683649f2",
       "ACCOUNT_ACTION_BLOCKED",
       "L1_NOT_ATTEMPTED_GUARD"
     ],
     [
-      "wtg_5ede56738376a8c5",
+      "wtg_dd5061eb74e2d4d4",
+      "SKIPPED_RETRY_EXHAUSTED",
+      "TRANSPORT_FAILURE"
+    ],
+    [
+      "wtg_35319a420294ee17",
+      "UNRESOLVED",
+      "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
+    ],
+    [
+      "wtg_0ee385d0c964e560",
       "ACCOUNT_ACTION_BLOCKED",
       "L1_NOT_ATTEMPTED_GUARD"
     ]
   ],
   "cumulative": {
-    "attempted_n": 8,
+    "attempted_n": 12,
     "joint_valid_j1_j3_n": 0,
     "excluded_by_reason": {
       "GATE_REACHED_MPFED_NULL": 3,
-      "L1_NOT_ATTEMPTED_GUARD": 4,
-      "TRANSPORT_FAILURE": 1
+      "L1_NOT_ATTEMPTED_GUARD": 6,
+      "TRANSPORT_FAILURE": 2,
+      "L1_NOT_ATTEMPTED_OR_UNRESOLVED": 1
     },
     "by_archetype": {
       "FINANCIAL_ACTION_ENTRY": {
-        "attempted": 2,
+        "attempted": 5,
         "j1_j3_valid": 0
       },
       "UTILITY_ENTRY": {
@@ -49,7 +50,7 @@
         "j1_j3_valid": 0
       },
       "ITEM_DETAIL": {
-        "attempted": 1,
+        "attempted": 2,
         "j1_j3_valid": 0
       },
       "COMMUNICATION_ENTRY": {
@@ -61,50 +62,60 @@
         "j1_j3_valid": 0
       }
     },
-    "n_batches": 2,
+    "n_batches": 3,
     "batch_hash_all_ok": true,
     "outcomes": {
       "AUTH_GATE": 3,
-      "ACCOUNT_ACTION_BLOCKED": 4,
-      "SKIPPED_RETRY_EXHAUSTED": 1
+      "ACCOUNT_ACTION_BLOCKED": 6,
+      "SKIPPED_RETRY_EXHAUSTED": 2,
+      "UNRESOLVED": 1
     },
     "orphan_evidence_runs": [],
     "run_accounting": {
-      "disk_runs": 12,
-      "referenced_by_batch": 7,
+      "disk_runs": 15,
+      "referenced_by_batch": 10,
       "retry_superseded": [
-        "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051633333382Z",
-        "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z"
-      ],
-      "guard_blocked_l0": [],
-      "unsealed_in_progress": [
         "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051633333382Z",
         "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z",
         "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051814381396Z",
         "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051901043748Z"
       ],
-      "pending_batch_sealed": [
-        "e001_full-wtg_95967b50683649f2-2026-08-27T051806340380Z"
+      "guard_blocked_l0": [],
+      "unsealed_in_progress": [
+        "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051633333382Z",
+        "e001_full-wtg_2cd43b99c1ed87cf-2026-08-27T051719827731Z",
+        "e001_full-wtg_888d37f34b5d3aaa-2026-08-27T052012699280Z",
+        "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051814381396Z",
+        "e001_full-wtg_dd5061eb74e2d4d4-2026-08-27T051901043748Z"
       ],
+      "pending_batch_sealed": [],
       "orphan_unexplained": []
     },
     "mpfed_null_reason": {
       "gate_kind_undetermined": 2,
-      "guard_blocked_pre_scout": 4,
+      "guard_blocked_pre_scout": 6,
       "gate_reached_non_endpoint_archetype": 1,
-      "l1_not_attempted": 1
+      "l1_not_attempted": 2,
+      "scout_no_signal": 1
     },
     "mpfed_available_n": 0,
     "e6b_fail_closed_fired_n": 2,
     "quarantine": []
   },
   "append_only": {
-    "batch_files": 2,
-    "runs": 8,
+    "batch_files": 3,
+    "runs": 10,
     "changed_batches": [],
     "changed_manifests": [],
     "removed": []
   },
-  "findings_batch": [],
-  "findings_all_count": 1
+  "findings_batch": [
+    {
+      "severity": "C2",
+      "code": "L0_DETAIL_ABSENT_IN_BATCH",
+      "msg": "outcome SKIPPED_RETRY_EXHAUSTED: batch result carries no L0 record (lineage from batch→evidence run broken; see orphan_runs)",
+      "target_id": "wtg_dd5061eb74e2d4d4"
+    }
+  ],
+  "findings_all_count": 2
 }
