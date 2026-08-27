@@ -222,6 +222,52 @@ def attribute_causes(results: list[dict[str, Any]]) -> dict[str, Any]:
             "'측정기가 실패했다'로 뭉뚱그리지 않는다 — 도구 입도(가드) / 계약 설계"
             "(archetype-endpoint 규칙) / 판별 실패(E-6b)는 성격이 다르고 시정 방향도 다르다."
         ),
+        "independently_verified": True,
+        "verification_status": {
+            "independently_verified": True,
+            "verifier": "Claude C (claude-c/assurance-current)",
+            "verified_at": "2026-08-27T14:54+09:00",
+            "result": "6종 전건 일치 · 합 59 ✓",
+            # 검증의 가치는 **다른 경로**로 같은 값에 도달했다는 데 있다.
+            "independent_join_path": (
+                "C는 B와 **다른 조인 경로**를 썼다 — `web_eligibility_shadow.csv`의 "
+                "ELIGIBLE_WEB 60건을 `representative_task_candidate_shadow.csv`와 "
+                "`canonical_service_key`로 조인하고, **mapping_status 필터 없이** "
+                "마스터플랜 frozen_order 59키로 제한했다(web_target_id 59/59). "
+                "B는 `mapping_status=CANDIDATE` 필터로 직접 조인했다. "
+                "**같은 코드를 두 번 돌린 것이 아니라 서로 다른 경로가 같은 값에 도달했다** — "
+                "그것이 이 검증의 가치다."
+            ),
+            "cross_checked": {
+                "guard_granularity": 25,
+                "guard_by_category": {"LOGIN": 19, "PURCHASE": 3, "SIGNUP": 2, "PAYMENT": 1},
+                "archetype_endpoint_rule": 11,
+                "archetype_endpoint_by_archetype": {
+                    "ITEM_DETAIL": 7,
+                    "PLACE_LOOKUP": 2,
+                    "CONTENT_OPEN": 1,
+                    "UTILITY_ENTRY": 1,
+                },
+                "unresolved": 18,
+                "unresolved_by_budget_reason": {
+                    "MAX_SCOUT_WALL_CLOCK_S": 7,
+                    "SCOUT_ERROR": 3,
+                    "MAX_CONSECUTIVE_NO_STATE_CHANGE": 2,
+                    "unresolved_reason_unrecorded": 6,
+                },
+                "skipped_retry_exhausted": 3,
+                "captcha": 1,
+                "e6b_fired": 8,
+                "e6b_binding": 1,
+                "total": 59,
+            },
+            "unrecorded_6_confirmed": (
+                "미기록 6건이 독립 확인됐다 — C 확인 결과 전부 "
+                "`endpoint_status_detail=UNRESOLVED_NO_SIGNAL`이며 **추측 배정 없이 6 그대로**다. "
+                "**이 6건은 59분의 10%이고, `MAX_SCOUT_WALL_CLOCK_S`로 흡수되면 '우리 쪽 사정'이 "
+                "7 → 13으로 부풀려진다.** 미기록을 미기록으로 남긴 것이 그 왜곡을 막았다."
+            ),
+        },
     }
 
 
@@ -430,8 +476,11 @@ def _describe_distribution(values: list[float]) -> dict[str, Any]:
         "quantile_method": "inclusive (C 재계산과 동일 규약)",
         "q1_exclusive_method": round(q_exclusive[0], 4),
         "quantile_method_note": (
-            "q1이 규약에 따라 0.0661(inclusive) / 0.0655(exclusive)로 갈린다 — "
-            "**데이터 차이가 아니라 사분위 계산 규약 차이다.** median·q3는 두 규약에서 동일하다."
+            "**사분위 규약에 따라 q1이 0.0655~0.0664 범위에서 달라진다. median과 q3는 "
+            "규약과 무관하게 동일하다.** 데이터 차이가 아니라 계산 규약 차이다 — "
+            "정본은 `inclusive`(C 규약)이며 `q1_exclusive_method`로 병기한다. "
+            "**요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간"
+            "(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다."
         ),
         "mass_below_0_25": low,
         "mass_0_25_to_0_75": mid,
