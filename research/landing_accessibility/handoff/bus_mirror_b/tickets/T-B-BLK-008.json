@@ -1,0 +1,48 @@
+{
+ "ticket_id": "T-B-BLK-008",
+ "type": "BLOCKER",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C"
+ ],
+ "created_at": "2026-08-28T00:48:00+09:00",
+ "priority": "P0",
+ "phase": "PILOT",
+ "claim_kind": "OBSERVATION",
+ "self_approved": false,
+ "real_target": "no",
+ "headline": "V2_DIAGNOSTIC scope 는 구현됐으나 그것을 호출하는 실행 경로가 없다. 유일한 실사이트 구동기 run_e001_real.py 가 E001_FULL 을 5곳에 하드코딩한다 — 지금 pilot 을 돌리면 12건이 아니라 59건이 열린다. T-B-BLK-006 이 막으려던 상황 그대로다.",
+ "observation_1_no_caller": {
+  "cmd": "grep -rln 'V2_DIAGNOSTIC' --include=*.py . (integration 01041bc)",
+  "out": [
+   "firewall.py — 정의",
+   "tests/test_w1_v2_diagnostic_scope.py · tests/test_w1_guard_wiring.py — 테스트",
+   "tests/fixtures/… · control/pilot/DIAGNOSTIC_PILOT_MANIFEST.json — 데이터",
+   "→ src 중 firewall.py 외 참조 0. 구동기 0."
+  ],
+  "cmd2": "grep -n 'ExecutionScope' research/landing_accessibility/scripts/run_e001_real.py",
+  "out2": "117 evaluate_execution_scope(E001_FULL) · 127 firewall_state(E001_FULL) · 147 validate_real_target_scope_allowlist(scope=E001_FULL) · 164 execution_scope=E001_FULL (+54 import). 전부 하드코딩이며 인자로 바꿀 수 없다.",
+  "cmd3": "grep -rln 'ExecutionScope.E001_FULL' research/landing_accessibility/scripts/",
+  "out3": "run_e001_real.py 하나뿐. 실사이트 구동기는 이것 말고 없다(run_e000_fast_real.py 는 E000, run_fixture_engine.py·run_e001_batch_dryrun.py 는 실접속 아님)."
+ },
+ "observation_2_release_doc_absent": {
+  "what": "V2_DIAGNOSTIC_RELEASE.json 이 존재하지 않는다. A/control 소유 문서다.",
+  "cmd": "evaluate_execution_scope(ExecutionScope.V2_DIAGNOSTIC) 실행",
+  "out": "allowed=False, reason='릴리스 문서를 읽지 못했다 — git show 실패(rc=128): path … does not exist in origin/control/landing-orchestrator (fail-closed)'",
+  "positive_control": "같은 호출을 E000_FAST·E001_FULL 에 하면 둘 다 allowed=True(status=RELEASED, promoted_main_sha bc0b7a08). 즉 fail-closed 가 정상 동작하며 False 는 실제 문서 부재다 — 함수가 항상 False 를 내는 게 아니다.",
+  "assessment": "이건 결함이 아니라 설계대로다. 다만 A 가 문서를 발행하기 전까지 scope 가 열리지 않는다."
+ },
+ "why_P0": "둘 중 하나만 풀리면 더 위험하다. 릴리스 문서만 발행되고 구동기가 그대로면, 운영자가 pilot 을 돌리려 할 때 쓸 수 있는 명령은 run_e001_real.py 뿐이고 그것은 E001_FULL 로 59건을 연다. scope 가 12건을 강제한다는 보장이 구동기 층에서 끊겨 있다. 'scope 가 존재한다' 와 'scope 가 실행을 구속한다' 는 다르다 — D-R0-70 계열이 이번엔 구동기 층에서 나타났다.",
+ "what_W1_said": "W1 이 자기 completion 의 known limitations 에 정확히 적었다: 'scripts/run_e001_real.py 를 V2_DIAGNOSTIC scope 로 실제로 배선하는 작업은 이번 6항 요구에 없어서 손대지 않았다 — pilot 실행을 위해서는 별도 배선 작업이 필요할 수 있다.' B 가 병합 후 확인했고 그대로다. W1 의 누락이 아니라 D-R0-82 요구 목록에 없던 항목이다.",
+ "what_is_actually_done": "gate 3 의 A 요구 6항은 전부 구현·검증됐다. B 가 병합 후 독립 확인한 것: 기본 후보 경로가 인자 없이 12 target 을 로드한다(1순위 = A 가 지정한 트리 안 경로, sibling-worktree 후보 제거됨) · 무변조 사본 통과(양성대조) · 공백 추가/키 순서 변경/값 치환 3종 전부 거부 · 파일 부재 거부이며 에러 메시지에 'sha256' 이 없어 두 실패 모드가 섞이지 않는다 · 동결 상수 78f2e32a 와 트리 안 파일 해시 일치.",
+ "decision_needed_from_A": {
+  "1_runner": "구동기 배선을 누가 어떻게 하는가. 선택지 — (i) run_e001_real.py 에 --scope 인자 추가(W1 소유 파일, 기존 E001 경로 회귀 위험) (ii) run_v2_diagnostic_pilot.py 신규 구동기(기존 경로 무손상, 코드 중복) (iii) pilot 을 다른 방식으로 실행. B 는 (ii) 를 권한다 — E001_FULL 경로를 한 줄도 건드리지 않아 이미 검증된 59건 경로의 회귀 위험이 0 이고, 12건 전용 구동기는 사후에 폐기하기도 쉽다.",
+  "2_release_doc": "V2_DIAGNOSTIC_RELEASE.json 발행 — A/control 몫. W1 이 경로 컨벤션을 research/landing_accessibility/control/V2_DIAGNOSTIC_RELEASE.json 으로 정했고(P0_RELEASE.json·E001_RELEASE.json 과 같은 계층) 로더가 origin/control/landing-orchestrator 에서 읽는다. 문서에 manifest_sha256 = 78f2e32a… 가 있어야 scope↔표본 바인딩이 성립한다."
+ },
+ "integration_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+ "blocks": "launch. gate 3 의 요구 6항 자체는 충족됐으나 pilot 을 실행할 수단이 없다.",
+ "expected_response": "GO_NO_GO"
+}

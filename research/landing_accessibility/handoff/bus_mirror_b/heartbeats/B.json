@@ -1,17 +1,17 @@
 {
  "agent": "B",
- "timestamp": "2026-08-28T00:22:07+09:00",
+ "timestamp": "2026-08-28T01:45:20+09:00",
  "phase": "PILOT",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "a88a629ec67a3cd5278f58e88c62fe0589cbb1fb",
+ "head_sha": "5f2a1b7aaafcc688b4c8b9fe5b68ba14010d8610",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
  "work_state": "V1_HOLD_DECLARED_AWAITING_DIRECTOR",
  "blocker_ids": [],
- "last_bus_seq": 375,
+ "last_bus_seq": 414,
  "last_push_at": "2026-08-27T20:56:51+09:00",
  "next_action": "Director 판단 대기. B 는 HOLD 무관 항목만 진행한다. REAL_TARGET NO-GO.",
- "real_target": "NO-GO — launch 하지 않음",
+ "real_target": "NO-GO. 이 세션 실사이트 접속 0건. 피벗 지침이 와도 launch 는 gate 재판정 없이 하지 않는다.",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
  "resolved": [
@@ -21,10 +21,10 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "a88a629ec67a3cd5278f58e88c62fe0589cbb1fb",
-  "A_control": "3ef06a3d1e6cc5378cf0c718015aa0852c81004f",
-  "C_assurance_v21": "ee4bdad40a028ada19b4d3c18b64852b56ffd9cf",
-  "at": "2026-08-28T00:22:07+09:00"
+  "B_clean0_v21": "5f2a1b7aaafcc688b4c8b9fe5b68ba14010d8610",
+  "A_control": "99377bb14277d359193c179a0ee692b9d09e8311",
+  "C_assurance_v21": "52df8a6426119ada709e11a249aa19ef8fe63b4f",
+  "at": "2026-08-28T01:45:20+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -164,7 +164,7 @@
   "D-R0-72 OverlayCoverage construct",
   "blind set 존재 여부 E000 6 (본 HOLD 직결)"
  ],
- "updated_at": "2026-08-28T00:21:00+09:00",
+ "updated_at": "2026-08-28T01:05:00+09:00",
  "launch_gate_status": {
   "1_C_preflight_v2_manifest": "MET — C-COMPLETION-001706 sampling 12/12, A 가 PREFLIGHT_1_TO_5_ACCEPTED. 6항(exactly-once)은 최종 SHA 대기",
   "2_W1_completion_mask_in_SHA": "PENDING — W1 4ec538b 수신·검산 완료(소유권 위반 0, ancestry 확인). integration 288025ff 에 편입해 push 했고 C 재확인 대기",
@@ -176,9 +176,22 @@
  "open_self_corrections": [
   "T-B-FC-010 — composition 에서 mask 를 fed031f 에 귀속시킨 거짓 진술 철회"
  ],
- "awaiting": [
-  "W1 — V2_DIAGNOSTIC scope 구현 + 3방향 테스트 + terminal 근거 기록",
-  "C — 288025ff 재검산 및 preflight 6항",
-  "Director — D-R0-32 HOLD 3안 결정 (B 는 새 경로를 제안하지 않는다)"
- ]
+ "awaiting": "Director 피벗 지침",
+ "state": "PIVOT_STANDBY",
+ "state_note": "Director 가 피벗을 예고했고 향후 지침 대기를 지시했다. B 는 새 작업을 시작하지 않는다. 프로토콜·오케스트레이션 방식·검산 방법론은 전부 보존한다 — 폐기·완화·재해석하지 않는다.",
+ "preserved_unchanged": [
+  "A/B/C 3평면 + D 연구소 오케스트레이션 구조와 티켓·ACK·COMPLETION 규약",
+  "프로토콜 §5 진리 위계(T1 exact bytes > … > T6 narrative)와 assertion type 구분",
+  "D-R0 계열 전체 — 특히 D-R0-69(워크트리 불간섭) · D-R0-70(존재≠작동) · D-R0-71(회귀 전건 재실행) · D-R0-76(0건에는 대조군, 비율에는 n과 CI) · D-R0-78(PASS는 전칭·FAIL은 존재) · D-R0-82 · D-R0-83(composition은 diff로)",
+  "self_approved=false 및 C 검산 전 integration PASS 금지",
+  "MLflow 는 관측 계층이며 SSOT 가 아니다",
+  "holdout 비접근, per-target holdout 정보는 C-only"
+ ],
+ "frozen_position": {
+  "integration_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+  "regression": "669 passed / 0 failed @01041bc",
+  "launch_gates": "1 MET · 2 MET · 3 부분충족(allowlist 층 O, 구동기 층 X)",
+  "open_P0": "T-B-BLK-008 — V2_DIAGNOSTIC 을 호출하는 구동기 없음(run_e001_real.py 가 E001_FULL 하드코딩 5곳) + V2_DIAGNOSTIC_RELEASE.json 미발행. A 결정 대기",
+  "open_HOLD": "T-A-HOLD-001 — D-R0-32 게이트 실패. Director 3안 결정 대기. B 는 새 경로를 제안하지 않는다."
+ }
 }

@@ -1,0 +1,42 @@
+{
+  "ticket_id": "C-FINDING-004800",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-28T00:48:00+09:00",
+  "priority": "P0",
+  "phase": "PILOT",
+  "claim_kind": "OBSERVATION",
+  "self_approved": false,
+  "real_target": "no",
+  "in_response_to": "T-A-PILOT-ASSURE-001 / W1-e2bb63e / T-B-BLK-008",
+  "base_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+  "headline": "scope 3방향 테스트 PASS @01041bc(allow 12/12 · outside 5/5 거부 · sha 변조 2/2 거부). 그러나 (1) 릴리스 문서 부재로 full path fail-closed, (2) 구동기가 V2_DIAGNOSTIC 을 호출하지 않음(E001_FULL 하드코딩 5곳) — T-B-BLK-008 독립 확인. gate 3 는 allowlist 층만 충족, 구동기 층 미충족.",
+  "tree_identity": "integration 01041bc tree 479831cf == C joint9(e2bb63e+35d5c2e+54a0c7a4) tree — 3방향·픽스처 13(288025ff 대비 diff 0)·dup harness(3 target 각 1 run) 결과가 바이트 동일 코드에 대한 것",
+  "threeway_detail": {
+    "T1": "assert_target_allowlisted(V2_DIAGNOSTIC, id+url) 12/12 통과",
+    "T2": "E001 밖 target(11st id+url)·비E001 url·manifest id+밖 url·manifest url+타 id·둘 다 없음 → 5/5 TargetNotAllowlistedError",
+    "T3": "복사본 manifest 1바이트 변조 → explicit path·default candidates 모두 AllowlistUnavailableError(sha 불일치). 원본 clone 미수정",
+    "negative_controls": "W1 단독 트리(manifest 부재) → AllowlistUnavailableError·NOT_PASSED; 8f5b688a(scope 부재) → NOT_PASSED — 하네스가 허위 PASS 를 내지 않음"
+  },
+  "T4_release_gate": "evaluate_execution_scope(V2_DIAGNOSTIC) → allowed=False: origin/control/landing-orchestrator 에 control/V2_DIAGNOSTIC_RELEASE.json 없음(fail-closed). A 소유 문서 — status RELEASED·v2_diagnostic_allowed·manifest_sha256=78f2e32a 필요. 참고: 릴리스 verdict 는 launch SHA 가 아니라 원격 control ref 의 런타임 상태를 읽는다(E001 도 동일 설계) → C 는 launch 시 control ref SHA 를 lineage 에 함께 기록한다",
+  "BLK_008_concur": "run_e001_real.py: ExecutionScope.E001_FULL 5곳 하드코딩(117·127·147·164 + docstring), src/scripts 에서 firewall.py 외 V2_DIAGNOSTIC 참조 0(양성대조 E001_FULL 참조 5). scope 존재≠실행 구속(D-R0-70 계열). 구동기가 scope 를 인자로 받아 V2_DIAGNOSTIC allowlist 로 12건만 열도록 배선돼야 하고, C 는 그 배선 후 '구동기 dry path 가 manifest 밖 target 을 거부하는지' 를 exact SHA 에서 추가 검증한다",
+  "blocked_state_provenance": "e2bb63e 가 C-FINDING-001512.A 요구(차단 유발 candidate state 기록 blocked_state)를 executor/real_executor 에 배선한 것을 diff 로 확인 — 픽스처 outcome 값은 변화 없음",
+  "launch_gate_view": {
+    "1_preflight": "MET",
+    "2_mask": "MET",
+    "3_scope": "allowlist 층 MET · 릴리스 문서 PENDING(A) · 구동기 배선 PENDING(W1)"
+  },
+  "mlflow": {
+    "run_id": "44bb6fd992644e91990be2dac6bdd499",
+    "experiment": "LA_00_ASSURANCE_C"
+  },
+  "artifacts": [
+    "assurance/pilot/C_SCOPE_THREEWAY_01041bc.json",
+    "assurance/pilot/scope_threeway_test.py",
+    "assurance/pilot/C_JOINT9_e2bb63e_fixture_batch.json"
+  ]
+}

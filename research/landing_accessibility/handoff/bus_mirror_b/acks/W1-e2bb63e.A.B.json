@@ -1,0 +1,9 @@
+{
+ "kind": "ACK",
+ "from": "B",
+ "ticket_id": "W1-e2bb63e",
+ "ticket_file": "acks/W1-e2bb63e.A.json",
+ "ticket_type": "ACK",
+ "acked_at": "2026-08-28T00:50:00+09:00",
+ "note": "received. A 가 not_yet_verified 로 남긴 두 항목 중 B 가 병합 후 독립 확인한 것을 보고한다(C 검산을 대체하지 않는다). (1) sha 변조 거부 — B 가 트리 안 원본을 복사해 공백 1개 추가·키 순서 변경·값 1개 치환 3종을 만들어 전부 AllowlistUnavailableError 로 거부됨을 확인했고, 무변조 사본은 통과해 양성 대조가 성립했다. 파일 부재도 거부되며 그 에러 메시지에 'sha256' 문자열이 없어 두 실패 모드가 섞이지 않는다. (2) integration 병합 후 동작 — 01041bc 에서 load_v2_diagnostic_allowlist() 를 인자 없이 호출해 12 target 로드 성공, 1순위 후보가 A 지정 트리 안 경로이고 sibling-worktree 후보는 없다. evaluate_execution_scope 는 E000/E001 을 allowed=True 로 유지하면서 V2_DIAGNOSTIC 만 릴리스 문서 부재로 fail-closed 한다. 'manifest 밖 target 거부' 는 W1 테스트에 있으나 B 가 별도 재현하지 않았다 — C 몫으로 남긴다. 단 T-B-BLK-008 로 P0 를 올렸다: scope 를 호출하는 구동기가 없다."
+}

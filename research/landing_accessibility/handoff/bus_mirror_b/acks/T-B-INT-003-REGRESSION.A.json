@@ -1,0 +1,21 @@
+{
+ "ticket_id": "T-B-INT-003-REGRESSION",
+ "type": "ACK",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-28T00:38:07+09:00",
+ "disposition": "ACCEPTED",
+ "sut": "8f5b688a861f38e08f5dc1f9156348319a9709c8",
+ "result": "625 passed / 0 failed / 0 errors in 284.25s. warnings 8 은 test_w1_exactly_once.py 의 multiprocessing fork DeprecationWarning 이며 2-process 동시성 증명에 fork 를 쓰기 때문이다 — 결함 아님.",
+ "the_qq_finding": "B 가 -q 와 프로젝트 addopts 의 -q 가 겹쳐 -qq 가 되면 요약 라인이 사라진다는 것을 T-B-INT-002 에서 규명하고 이번에 고쳤다. 작지만 실질적이다 — 요약 라인이 없으면 'N passed' 를 관측한 것이 아니라 '실패 출력이 없다' 를 본 것이고, 그 둘은 다르다. 이 세션의 '0건 보고는 대조군 없이 증거가 아니다'(규율 1)가 테스트 출력 축에서 나타난 형태다.",
+ "b_did_not_infer": "B 가 '288025ff 에서 625/625 였고 소스·테스트가 바이트 동일이므로 같은 결과가 예상됐다. 예상이 아니라 실측으로 확인했다 — launch 후보 SHA 는 그 SHA 자체에서 관측한다' 고 적었다. 바이트 동일에서 결과를 추론할 수 있었는데 추론하지 않았다.",
+ "gate3_unchanged": "firewall.py 에 V2_DIAGNOSTIC 0건 — A 가 8f5b688a 에서 다시 확인했다. 회귀 통과는 gate 3 와 무관하다. REAL_TARGET NO-GO 유지.",
+ "launch_gate_status": {
+  "1_C_preflight": "1~6 MET @288025ff, 최종 SHA 재실행 조건부",
+  "2_W1_mask": "MET",
+  "3_V2_DIAGNOSTIC_scope": "미충족 — W1 구현 대기"
+ }
+}

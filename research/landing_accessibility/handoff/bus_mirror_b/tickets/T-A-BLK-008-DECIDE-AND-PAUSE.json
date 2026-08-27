@@ -1,0 +1,42 @@
+{
+ "ticket_id": "T-A-BLK-008-DECIDE-AND-PAUSE",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "priority": "P0",
+ "phase": "PILOT",
+ "claim_kind": "DECISION",
+ "base_sha": "origin/control/landing-orchestrator",
+ "created_at": "2026-08-28T01:44:47+09:00",
+ "part1_runner_decision": {
+  "decision": "(ii) 신규 전용 구동기",
+  "rationale": "B 권고 채택. E001_FULL 경로를 한 줄도 건드리지 않아 이미 검증된 59건 경로의 회귀 위험이 0 이고, 12건 전용 구동기는 사후 폐기가 쉽다.",
+  "hard_requirement": "신규 구동기는 scope 인자를 받지 않는다. ExecutionScope.V2_DIAGNOSTIC 을 하드코딩한다 — 인자로 E001_FULL 을 넘길 수 있으면 구동기 자체가 방어층이 되지 못한다.",
+  "owner": "W1 (engine/firewall.py 를 이미 소유하며 scope 강제는 guard 계열)",
+  "verification": "양방향 — 12 target 통과 · manifest 밖 target 거부 · sha 변조 거부. C 가 exact SHA 에서 재실행."
+ },
+ "part2_A_found_larger_exposure": {
+  "what": "E001_RELEASE.json 이 status=RELEASED · e001_allowed=true 로 남아 있었고 firewall 은 deadline 을 검사하지 않는다(0건, 대조군 status 5건). 즉 run_e001_real.py 를 돌리면 59 target 이 열렸다. 59-target 실행을 막던 것은 아무도 그 명령을 돌리지 않았다 뿐이다.",
+  "action": "E001_RELEASE status → SUSPENDED. e001_allowed 값은 남기되 status 로 fail-closed. 과거 판정 기록은 한 글자도 바꾸지 않았다.",
+  "reinstatement": "full-59 승인 시 새 릴리스 문서로 재발행한다. 이 문서를 되돌려 쓰지 않는다.",
+  "finding": "deadline 은 통제처럼 보이지만 통제가 아니다 — D-R0-70 계열. V2_DIAGNOSTIC_RELEASE.json 에는 deadline 필드를 두지 않았고 정지는 status 로만 한다."
+ },
+ "part3_release_published": {
+  "doc": "research/landing_accessibility/control/V2_DIAGNOSTIC_RELEASE.json",
+  "fields": "status=RELEASED · promoted_main_sha · v2_diagnostic_allowed=true · real_target_allowed=true · manifest_sha256=78f2e32a(firewall 상수와 동일)",
+  "not_a_launch_approval": "이 문서의 발행은 firewall 이 scope 를 허가하는 조건일 뿐이다. launch 는 세 게이트가 닫힌 뒤 A 가 별도로 판정한다."
+ },
+ "current_safe_state": {
+  "REAL_TARGET": "NO-GO",
+  "E001_FULL": "SUSPENDED — fail-closed",
+  "V2 구동기": "부재 — launch 경로 없음",
+  "산출물": "REAL_TARGET 접속 흔적 0"
+ },
+ "A_pausing": "Research Director 지시로 A 가 자율 루프를 정지한다. 버스 감시도 해제한다. B·C·D 는 A 응답이 필요한 항목을 티켓으로 남기고 A 재개 시 처리한다. 위 결정은 유효하며 A 부재 중에도 구속력을 갖는다.",
+ "do_not_launch_while_A_paused": "A 가 정지한 동안 launch 하지 않는다. 세 게이트가 닫혀도 launch 판정은 A 의 명시 GO 가 필요하다 (D-R0-80 · T-A-PILOT-EXEC-001).",
+ "expected_response": "ACK"
+}

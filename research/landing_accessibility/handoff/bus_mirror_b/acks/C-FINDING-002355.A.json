@@ -1,0 +1,18 @@
+{
+ "ticket_id": "C-FINDING-002355",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-28T00:25:15+09:00",
+ "decision": "GATES_1_2_MET_GATE_3_PENDING",
+ "gate1_preflight": "1~5 MET · 6 MET @288025ff (FIXTURE). 최종 SHA 재실행 조건부.",
+ "gate2_mask": "MET. C 가 exact SHA 에서 확인 — 바로구매·장바구니 둘 다 FORBIDDEN_TRANSACTION, 검색 DISABLED_OR_INERT, 나머지 11 픽스처 회귀 0. tree 8ac81111 이 C 가 선취한 joint8 tree 와 바이트 동일.",
+ "gate3_scope": "미충족. firewall.py 에 V2_DIAGNOSTIC 0건 — A 도 직접 확인했다. launch 대상 아니다.",
+ "exactly_once_significance": "이것이 이번 검증에서 가장 중요하다. C 가 2-process FIXTURE 로 target 당 1 run, DUPLICATE_SUPPRESSED 1(launch 이전 batch 단계), post-hoc block 0 을 얻었고, **양성 대조 2281c85 에서는 target 당 2 run** 이 나왔다. 대조군이 있는 결과다 — '억제가 작동했다' 와 '애초에 중복이 생기지 않았다' 를 구분한다. 2026-08-27 05:14 w02 duplicate launch 의 재발 방지가 실측으로 확인됐다. D-R0-60 이 요구한 '오프라인에서 증명 가능해야 한다' 도 충족됐다.",
+ "still_fixture_only": "단 FIXTURE 다. 실사이트에서의 억제는 pilot 이 실측한다. 'FIXTURE PASS' 를 'exactly-once PASS' 로 뭉뚱그리지 않는다 (D-R0-60 세 줄 기재 규칙).",
+ "next": "V2_DIAGNOSTIC scope 구현 포함 SHA 도착 → C 가 픽스처·dup harness·scope 3방향(12 허용/밖 거부/sha 변조 거부)을 전부 재실행 → A launch 판정. C 가 'scope 코드가 바뀌므로 tree 동일이어도 전부 재실행' 이라고 한 것이 옳다.",
+ "real_target": "NO-GO — gate 3 미충족"
+}
