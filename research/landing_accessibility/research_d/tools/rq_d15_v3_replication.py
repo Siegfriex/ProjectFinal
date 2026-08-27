@@ -260,6 +260,40 @@ def macro_f1_batch_pred(pred_mat: np.ndarray, true: np.ndarray, k: int = 7) -> n
     return out / k
 
 
+# RF2-C 의 empty-field 정책: 해당 representation 이 빈 target 은 ABSTAIN(=7) 으로 두고
+# 전체-56 분모에서 오답 처리한다. ABSTAIN 은 어떤 class 의 tp/fp 도 되지 않고 해당 true class 의
+# fn 으로만 잡힌다. EXP3 는 RF2-C 재현이므로 이 정책을 그대로 쓴다.
+KT_ABSTAIN = 7          # true class 수
+KP_ABSTAIN = 8          # + ABSTAIN(=7) 예측 전용 class
+
+
+def macro_f1_abstain(pred: np.ndarray, true: np.ndarray) -> float:
+    cm = np.bincount(true * KP_ABSTAIN + pred,
+                     minlength=KT_ABSTAIN * KP_ABSTAIN).reshape(KT_ABSTAIN, KP_ABSTAIN)
+    tp = np.diag(cm[:, :KT_ABSTAIN]).astype(float)
+    fp = cm[:, :KT_ABSTAIN].sum(0) - tp
+    fn = cm.sum(1) - tp
+    pr = np.where(tp + fp > 0, tp / np.maximum(tp + fp, 1e-12), 0.0)
+    rc = np.where(tp + fn > 0, tp / np.maximum(tp + fn, 1e-12), 0.0)
+    f = np.where(pr + rc > 0, 2 * pr * rc / np.maximum(pr + rc, 1e-12), 0.0)
+    return float(f.mean())
+
+
+def macro_f1_abstain_batch_true(pred: np.ndarray, true_mat: np.ndarray) -> np.ndarray:
+    P, n = true_mat.shape
+    idx = true_mat * KP_ABSTAIN + pred[None, :]
+    off = (np.arange(P) * (KT_ABSTAIN * KP_ABSTAIN))[:, None]
+    cm = np.bincount((idx + off).ravel(),
+                     minlength=P * KT_ABSTAIN * KP_ABSTAIN).reshape(P, KT_ABSTAIN, KP_ABSTAIN)
+    tp = np.einsum("pii->pi", cm[:, :, :KT_ABSTAIN]).astype(float)
+    fp = cm[:, :, :KT_ABSTAIN].sum(1) - tp
+    fn = cm.sum(2) - tp
+    pr = np.where(tp + fp > 0, tp / np.maximum(tp + fp, 1e-12), 0.0)
+    rc = np.where(tp + fn > 0, tp / np.maximum(tp + fn, 1e-12), 0.0)
+    f = np.where(pr + rc > 0, 2 * pr * rc / np.maximum(pr + rc, 1e-12), 0.0)
+    return f.mean(1)
+
+
 def weighted_f1_idx(pred, true, k: int = 7) -> float:
     tot, acc = len(true), 0.0
     for c in range(k):
@@ -344,12 +378,44 @@ def join_fields(row, fields) -> str:
 
 
 # =============================================================== encoder (offline)
+EMB_CACHE_DIR = Path(os.environ.get(
+    "D15_EMB_CACHE",
+    "/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/"
+    "4ce53865-2c0b-4a99-b60a-11369195e644/scratchpad/d15_emb_cache"))
+
+
 class EncodeCache:
-    """모델별 text -> vector 캐시. v1/v2/v3 는 56행 중 4~11행만 다르므로 중복이 매우 크다."""
+    """모델별 text -> vector 캐시. v1/v2/v3 는 56행 중 4~11행만 다르므로 중복이 매우 크다.
+
+    임베딩은 결정적(같은 모델·같은 문자열 → 같은 벡터)이므로 스크래치패드에 디스크 캐시를 둔다.
+    캐시는 산출물이 아니라 재실행 비용을 줄이는 임시 파일이고, 저장소에는 들어가지 않는다.
+    """
 
     def __init__(self):
         self.store: dict[str, dict[str, np.ndarray]] = {m: {} for m in MODELS}
         self.meta: dict[str, dict] = {}
+        EMB_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        for m in MODELS:
+            f = EMB_CACHE_DIR / f"{m}.npz"
+            if f.exists():
+                try:
+                    z = np.load(f, allow_pickle=True)
+                    keys = list(z["keys"])
+                    vecs = z["vecs"]
+                    self.store[m] = {str(k): vecs[i] for i, k in enumerate(keys)}
+                    print(f"    [cache:{m}] loaded {len(self.store[m])} vectors from disk",
+                          flush=True)
+                except Exception as e:
+                    print(f"    [cache:{m}] load failed ({e}) — 무시하고 새로 인코딩한다", flush=True)
+
+    def _persist(self, model_key: str) -> None:
+        d = self.store[model_key]
+        if not d:
+            return
+        keys = list(d)
+        np.savez_compressed(EMB_CACHE_DIR / f"{model_key}.npz",
+                            keys=np.array(keys, dtype=object),
+                            vecs=np.stack([d[k] for k in keys]))
 
     def encode(self, model_key: str, texts: list[str], prefix: str = "") -> np.ndarray:
         need = sorted({prefix + t for t in texts} - set(self.store[model_key]))
@@ -378,6 +444,7 @@ class EncodeCache:
                      convert_to_numpy=True, show_progress_bar=False).astype(np.float64)
         for t, v in zip(texts, V):
             self.store[model_key][t] = v
+        self._persist(model_key)
         del m
         torch.cuda.empty_cache()
         print(f"    [encode:{model_key}] +{len(texts)} texts in {time.time() - t0:.1f}s "
@@ -459,7 +526,8 @@ def build_baselines(y_idx: np.ndarray, rng) -> dict:
     }
 
 
-def perm_null_labels(y_idx: np.ndarray, pred: np.ndarray, rng, strata=None) -> dict:
+def perm_null_labels(y_idx: np.ndarray, pred: np.ndarray, rng, strata=None,
+                     abstain: bool = False) -> dict:
     n = len(y_idx)
     if strata is None:
         perm = np.argsort(rng.random((N_MC, n)), axis=1)
@@ -470,7 +538,8 @@ def perm_null_labels(y_idx: np.ndarray, pred: np.ndarray, rng, strata=None) -> d
             idx = np.where(strata == s)[0]
             order = np.argsort(rng.random((N_MC, len(idx))), axis=1)
             true_mat[:, idx] = y_idx[idx][order]
-    f1s = macro_f1_batch_true(pred, true_mat)
+    f1s = (macro_f1_abstain_batch_true(pred, true_mat) if abstain
+           else macro_f1_batch_true(pred, true_mat))
     accs = (true_mat == pred).mean(axis=1)
     return {"f1": f1s, "acc": accs}
 
@@ -934,6 +1003,9 @@ def exp3_field_ablation(dfs, cache, splits, y_idx) -> dict:
         "model": MODELS[PRIMARY_MODEL]["hf"], "primary_prototype_set": PRIMARY_PROTO,
         "n_representations": len(REPRESENTATIONS),
         "prototype_policy": "모든 representation 에 동일한 frozen 세트. field 별 문구 변경 없음.",
+        "empty_field_policy": ("RF2-C 원본과 동일: 빈 representation 은 ABSTAIN 으로 두고 "
+                               "전체-56 분모에서 오답 처리한다. ABSTAIN 은 어떤 class 의 tp/fp 도 "
+                               "되지 않고 해당 true class 의 fn 으로만 잡힌다."),
         "hypothesis_rules": {
             "H-C1": "text_blob__ALL 이 최선인가. 다른 representation 이 이기면 REFUTED.",
             "H-C2": ("control-family(buttons/aria/placeholder/label/input name 및 그 조합) 최댓값이 "
@@ -953,33 +1025,45 @@ def exp3_field_ablation(dfs, cache, splits, y_idx) -> dict:
         texts = {rep: [join_fields(r, fl) for _, r in df.iterrows()]
                  for rep, fl in REPRESENTATIONS.items()}
         grid, preds = {}, {}
+        # RF2-C 의 empty-field 정책을 그대로 쓴다: 빈 representation 은 인코딩하지 않고
+        # ABSTAIN(=7) 으로 두며, 전체-56 분모에서 오답으로 센다. ABSTAIN 은 어떤 class 의
+        # tp/fp 도 되지 않는다. (이 정책을 빼면 title 처럼 빈 값이 있는 field 의 macro F1 이
+        # RF2-C 와 어긋난다 — 실제로 그것이 이 replication 초기 실행의 불일치 원인이었다.)
         for sname, pset in PROTO_SETS.items():
             P = cache.encode(PRIMARY_MODEL, [pset[a] for a in ARCHETYPES])
             for rep, tl in texts.items():
-                D = cache.encode(PRIMARY_MODEL, tl)
+                empty = np.array([not t.strip() for t in tl])
+                enc_idx = np.where(~empty)[0]
+                D = np.zeros((n, P.shape[1]), dtype=np.float64)
+                if len(enc_idx):
+                    D[enc_idx] = cache.encode(PRIMARY_MODEL, [tl[i] for i in enc_idx])
                 r = zero_shot(D, P)
+                yhat = np.where(empty, KT_ABSTAIN, r["top1"]).astype(int)
                 key = f"{rep}|{sname}"
-                preds[key] = r["top1"]
-                f1 = macro_f1_idx(r["top1"], y_idx)
-                correct = r["top1"] == y_idx
+                preds[key] = yhat
+                f1 = macro_f1_abstain(yhat, y_idx)
+                correct = yhat == y_idx
                 k = int(correct.sum())
                 toks = np.array([len(TOK.findall(t)) for t in tl])
-                nonempty = toks >= 1
-                pn = perm_null_labels(y_idx, r["top1"], np.random.default_rng(SEED + 3))
-                fold = np.array([macro_f1_idx(r["top1"][te], y_idx[te]) for _, te in splits])
+                nonempty = ~empty
+                pn = perm_null_labels(y_idx, yhat, np.random.default_rng(SEED + 3),
+                                      abstain=True)
+                fold = np.array([macro_f1_abstain(yhat[te], y_idx[te]) for _, te in splits])
                 grid[key] = {
                     "representation": rep, "prototype_set": sname, "macro_f1": f1,
                     "prior_agreement_all56": float(correct.mean()),
                     "n_agree_all56": k, "prior_agreement_all56_wilson95": wilson(k, n),
                     "prior_agreement_nonempty": (float(correct[nonempty].mean())
                                                  if nonempty.any() else None),
-                    "n_nonempty": int(nonempty.sum()), "n_empty": int((~nonempty).sum()),
-                    "margin_median": float(np.median(r["margin"])),
+                    "n_nonempty": int(nonempty.sum()), "n_empty": int(empty.sum()),
+                    "margin_median": float(np.median(r["margin"][nonempty]))
+                                     if nonempty.any() else None,
                     "tokens_median": float(np.median(toks)),
                     "perm_p_macro_f1": pval_upper(pn["f1"], f1),
                     "beats_stratified_p95": bool(f1 > strat["macro_f1_p95"]),
                     "fold_macro_f1_30": summ(fold),
-                    "n_distinct_predicted_classes": int(len(set(r["top1"].tolist()))),
+                    "n_abstain": int(empty.sum()),
+                    "n_distinct_predicted_classes": int(len(set(yhat[nonempty].tolist()))),
                 }
         prim = {rep: grid[f"{rep}|{PRIMARY_PROTO}"] for rep in REPRESENTATIONS}
         ranking = sorted(prim.values(), key=lambda d: -d["macro_f1"])
@@ -1276,8 +1360,9 @@ def google_query_section(dfs, e1, e2, e3, e4, y_idx, google_i) -> dict:
         for v in VERSIONS}
     g["prediction_by_experiment"]["EXP2_tfidf_oof_majority_primary"] = {
         v: e2["per_version"][v]["_oof_primary_pred"][google_i] for v in VERSIONS}
+    _lab = lambda c: ARCHETYPES[c] if c < len(ARCHETYPES) else "ABSTAIN"
     g["prediction_by_experiment"]["EXP3_selected_representations"] = {
-        v: {rep: ARCHETYPES[e3["per_version"][v]["_preds"][f"{rep}|{PRIMARY_PROTO}"][google_i]]
+        v: {rep: _lab(e3["per_version"][v]["_preds"][f"{rep}|{PRIMARY_PROTO}"][google_i])
             for rep in ("title", "identity", "primary_controls", "text_blob__ALL")}
         for v in VERSIONS}
     g["prediction_by_experiment"]["EXP4_representations"] = {
@@ -1289,6 +1374,7 @@ def google_query_section(dfs, e1, e2, e3, e4, y_idx, google_i) -> dict:
         pc2 = e2["per_version"][v]["per_class_oof_majority_primary"]["QUERY"]
         blob = np.array(e3["per_version"][v]["_preds"][f"text_blob__ALL|{PRIMARY_PROTO}"])
         ttl = np.array(e3["per_version"][v]["_preds"][f"title|{PRIMARY_PROTO}"])
+        # ABSTAIN(=7) 은 어떤 class 의 예측도 아니다 → per-class 집계에서 predicted 로 세지 않는다.
         g["query_class_metrics"][v] = {
             "EXP1_embedding_primary": {k: pc1[k] for k in
                                        ("support", "tp", "fp", "fn", "recall", "recall_fraction",

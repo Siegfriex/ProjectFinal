@@ -1,0 +1,65 @@
+{
+ "rq": "RQ-D6a",
+ "claim_kind": "IMPLEMENTATION",
+ "title": "activation 은 episode 로 기록되지 않는다 — 기록 경로는 존재하고 실제로 6건 기록됐다",
+ "derived_from": "RQ-D6 limitation 1 · PILOT 사전등록 P3",
+ "corrects": "RQ-D6 의 **증거 기반**. 결론은 유지되나 근거가 틀렸다.",
+ "code_facts_at_exact_sha": {
+  "sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "vocabulary.py:242-245": "EpisodeKind = StrEnum{ TEXT_INPUT, SCROLL } — **2값뿐이고 상호배타**",
+  "A2_VOCABULARY §1.12": "'episode는 activation과 **별개 축**이며 Depth에 가산되지 않는다' — 문서 원문",
+  "A2_VOCABULARY:195": "'Episode | **비-activation** 조작 구간의 상태'",
+  "l1_engine.py:109-112": "class TaskStep — '`fact_task_step` 한 행 = **사용자 activation 한 번** (02 §9)'",
+  "vocabulary.py:250-257": "EpisodeEndedBy 에 ACTIVATION 값이 있다 — episode 가 activation 때문에 **끝날** 수는 있으나 activation 자체는 TaskStep 이다",
+  "l1_engine.py:65": "max_activations_per_task = 8",
+  "l1_engine.py:308": "'강제 dismissal 은 activation 이 아니라 경로의 전제조건'"
+ },
+ "data_facts": {
+  "grain": "batch result (target), n=59",
+  "steps_field_exists": true,
+  "steps_non_empty": 4,
+  "steps_lengths": {
+   "1": 2,
+   "2": 2
+  },
+  "total_activations_recorded": 6,
+  "targets_with_steps": [
+   "ccd84811932b237b",
+   "4feab7e61bf642e8",
+   "377983572bd38242",
+   "ea031f85e857140e"
+  ],
+  "scout_invoked": {
+   "False": 25,
+   "True": 31,
+   "None": 3
+  },
+  "blocked_category": {
+   "None": 34,
+   "LOGIN": 19,
+   "PURCHASE": 3,
+   "SIGNUP": 2,
+   "PAYMENT": 1
+  }
+ },
+ "answer": {
+  "h3_recording_gap": "**REFUTED.** 기록 경로(`steps`)가 존재하고 실제로 4 target 에서 6건의 activation 이 기록됐다. '기록되지 않았다' 가 아니다.",
+  "what_actually_happened": "Scout 가 31/59 에서 실행됐고 25/59 는 guard 로 차단됐다(LOGIN 19 · PURCHASE 3 · SIGNUP 2 · PAYMENT 1 — 정확히 scout_invoked=False 수와 같다). 실행된 31 중 **27건이 activation 0건**이다.",
+  "rq_d6_conclusion_stands": "'보존할 partial NED 가 애초에 없었다' 는 결론은 유지된다. 다만 근거가 바뀐다.",
+  "rq_d6_evidence_was_wrong": "RQ-D6 는 'non-SCROLL episode 0/15' 를 activation 부재의 증거로 썼다. **episode 는 설계상 activation 을 담지 않으므로 그 추론은 성립하지 않는다.** 옳은 증거는 `steps` 다 — 4/59 non-empty, Scout 실행 31 중 27 이 0건.",
+  "what_151_scroll_episodes_actually_mean": "TEXT_INPUT episode 가 **0건**이라는 뜻이다. 아무도 입력 control 에 타이핑하지 않았다. QUERY archetype 은 §5 Branch Q 상 질의 제출이 대표행동이므로 이 사실은 QUERY 4건에 직접적이다."
+ },
+ "preregistration_correction": {
+  "target": "PILOT_PREREGISTRATION_D.json 의 P3",
+  "as_written": "새 pilot 에서 non-SCROLL episode 가 기록되면 H3(기록 누락)이 맞다",
+  "why_untestable": "non-SCROLL episode 는 정의상 TEXT_INPUT 뿐이며 activation 이 될 수 없다. 따라서 P3(a) 는 어떤 pilot 결과로도 H3 를 검정할 수 없다.",
+  "corrected_test": "H3 는 이미 **이 RQ 로 REFUTED 됐다**(기록 경로 존재·6건 기록). pilot 에서 볼 것은 대신 이것이다 — **`steps` 가 몇 target 에서 non-empty 가 되는가.** baseline: 4/59 non-empty, Scout 실행 31 중 27 이 0건, guard 차단 25.",
+  "discipline": "이것은 결과를 보고 예측을 고친 것이 아니다. pilot capture 는 아직 실행되지 않았고, P3 의 **전제가 코드 사실과 어긋난다**는 것을 데이터 이전에 발견해 정정한 것이다. 원문 P3 는 지우지 않고 그대로 둔다."
+ },
+ "verdict": "REFUTED",
+ "limitations": [
+  "steps 의 내용(어떤 selector 를 눌렀는지)은 이 RQ 에서 열지 않았다. 개수만 셌다.",
+  "Scout 가 activation 후보를 0개로 판단한 것인지 후보는 있었으나 시도가 실패한 것인지 구분하지 않았다.",
+  "blocked_category 25건이 scout_invoked=False 와 같은 수인 것은 관측이지 인과 확인이 아니다."
+ ]
+}
