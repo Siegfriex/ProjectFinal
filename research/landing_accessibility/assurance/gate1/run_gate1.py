@@ -14,8 +14,10 @@ Exit 0 ONLY on verdict PASS.
 Item kinds
   C_INTERNAL   fixture self-validation / C-internal check — always runs (needs no SUT).
   RUNNER       needs B's runner on C fixtures — runs only with --runner-cmd; the comparison additionally needs
-               --adapter-map (field mapping); without it the raw runner output is captured and the item is
-               NOT_TESTABLE(UNMAPPED). Never PASS by silence.
+               --adapter-map (field mapping, comparators/adapter_map.py; template comparators/adapter_map.default.json);
+               without it the raw runner output is captured and the item is NOT_TESTABLE(UNMAPPED). With it the
+               comparators (comparators/compare_lane1-3.py, grade_lane4.py) grade the captured output; a map row left
+               null stays UNMAPPED. Never PASS by silence.
   RUNNER_TREE  needs a runner-produced evidence tree / mart rows (lane5, lane6) — same rule.
   SUT_STATIC   needs only the SUT checkout (lane4 scope probe, E001 blob check) — runs whenever --sut is given.
 
@@ -48,6 +50,14 @@ LANES = {
     "lane6": HERE / "lane6_stats",
     "lane7": HERE / "lane7_grain_determinism",
 }
+# comparators (gate1/comparators): turn runner output into PASS/FAIL/UNMAPPED items; a missing adapter-map row ⇒ UNMAPPED
+sys.path.insert(0, str(HERE / "comparators"))
+try:
+    from adapter_map import AdapterMap
+    import compare_lane1, compare_lane2, compare_lane3, grade_lane4
+    COMPARATORS_ERR: str | None = None
+except Exception as _e:  # noqa: BLE001 — recorded as a C harness defect, never raised past the driver
+    COMPARATORS_ERR = f"{type(_e).__name__}: {_e}"
 SSOT_SNAPSHOT_SHA_DEFAULT = "cad8ad45"      # origin control snapshot C verified 0/22 mismatch (T-A-V3-STEP1-013.C ack)
 E001_REF_SHA_DEFAULT = "e02eee4b46b83bafc4576f4f96e8ef540ec37ae9"   # lane4 stub baseline; override at ruling time
 
@@ -109,6 +119,7 @@ class Ctx:
         self.runner_cmd = a.runner_cmd
         self.adapter_map = load_json(pathlib.Path(a.adapter_map)) if a.adapter_map else None
         self.adapter_map_path = a.adapter_map
+        self.amap = (AdapterMap.load(a.adapter_map) if a.adapter_map else AdapterMap.none()) if not COMPARATORS_ERR else None
         self.dry_run = a.dry_run
         self.skip_browser = a.skip_browser
         self.timeout = a.timeout
@@ -158,6 +169,44 @@ class Ctx:
             reason = "UNMAPPED: comparison for this item not implemented in this skeleton"
         return self.add(id=id, lane=lane, kind=kind, description=description, verifies=verifies,
                         status="NOT_TESTABLE", reason=reason, **meta)
+
+    def can_compare(self) -> bool:
+        return bool(self.runner_cmd) and self.amap is not None and self.amap.present
+
+    def compare_item(self, *, id: str, lane: str, kind: str, description: str, verifies: str, result: dict,
+                     status_override: str | None = None, reason_override: str | None = None, **meta) -> dict:
+        """Record a comparator result ({items, summary}) as ONE lane item. Sub-items (non-PASS) go to detail;
+        the full item list is written to <out>/<lane>/<id>.comparison.json."""
+        s = result["summary"]
+        status = status_override or s["status"]
+        reason = reason_override or s.get("reason")
+        (self.out / lane).mkdir(parents=True, exist_ok=True)
+        cpath = self.out / lane / f"{id}.comparison.json"
+        cpath.write_text(json.dumps(result, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+        non_pass = [i for i in result["items"] if i["status"] != "PASS"]
+        it = self.add(id=id, lane=lane, kind=kind, description=description, verifies=verifies, status=status, reason=reason,
+                      detail={"summary": {k: v for k, v in s.items() if k not in ("unmapped", "not_testable")},
+                              "unmapped_rows": (self.amap.unmapped_rows() if self.amap and self.amap.present else None),
+                              "non_pass_items": non_pass[:80], "comparison_file": str(cpath)}, **meta)
+        hs = s.get("hard_stop_observed") or []
+        if status == "FAIL" and hs:
+            it["hard_stop_observed"] = hs[0]
+        if s.get("positive_control_failed"):
+            it["control_role"] = "POSITIVE_FAILED"
+        return it
+
+    def unmapped_item(self, *, id: str, lane: str, kind: str, description: str, verifies: str, compare_fn, **meta) -> dict:
+        """Runner/map absent: NOT_TESTABLE with the exact reason, plus the comparator's own UNMAPPED item list."""
+        it = self.runner_dependent(id=id, lane=lane, kind=kind, description=description, verifies=verifies, **meta)
+        if COMPARATORS_ERR:
+            it["detail"] = {"comparators_import_error": COMPARATORS_ERR}
+        else:
+            try:
+                res = compare_fn({}, AdapterMap.none())
+                it["detail"] = {"comparator_summary": {k: v for k, v in res["summary"].items() if k in ("status", "counts", "n_items")}}
+            except Exception as e:  # noqa: BLE001
+                it["detail"] = {"comparator_error": f"{type(e).__name__}: {e}"[:300]}
+        return it
 
     # -- runner invocation on a C fixture (raw capture; comparison is the adapter's job) -----------
     def run_runner(self, lane: str, fixture: pathlib.Path, contract: dict, tag: str) -> dict | None:
@@ -238,28 +287,54 @@ def lane4(c: Ctx) -> None:
     rec = load_json(sdir / "C_GATE1_SAFETY_ADAPTER.json") or {}
     hs_map = {"S1": "duplicate_launch", "S1b": "duplicate_launch", "S2": "wrong_scope",
               "S2b": "target_outside_manifest", "S3": None, "S4": "forbidden_action"}
+    # real pass rules (comparators/grade_lane4.py) for S1 / S1b / S3 from the harness outputs; S2b stays rc-based
+    graders = {} if COMPARATORS_ERR else {
+        "S1": lambda s: grade_lane4.grade_s1(sdir / "s1_dup"),
+        "S1b": lambda s: grade_lane4.grade_s1b(s.get("log") or (sdir / "S1b.log")),
+        "S3": lambda s: grade_lane4.grade_s3(s.get("log") or (sdir / "S3.log")),
+    }
     for s in rec.get("steps", []):
         sid = s["id"]
         if sid == "S2":
             continue  # already graded from the probe JSON above
+        if sid == "S4":
+            continue  # graded below through the runner + action log
         st = s.get("status")
-        if st == "RAN":
+        detail = {"pass_rule": s.get("pass"), "log": s.get("log")}
+        if st == "RAN" and sid in graders:
+            g = graders[sid](s)
+            status, reason = g["status"], g.get("reason")
+            detail["graded"] = g
+        elif st == "RAN":
             status = "PASS" if s.get("rc") == 0 else "FAIL"
             reason = None if status == "PASS" else f"rc={s.get('rc')} (read {s.get('log')} and apply GATE1_SAFETY_PLAN.md pass rule)"
         elif st == "SKIPPED":
             status, reason = "NOT_TESTABLE", s.get("reason")
         else:
             status, reason = "ERROR", s.get("error")
-        c.add(id=f"L4-{sid}", lane=lane, kind="RUNNER" if sid == "S4" else "SUT_STATIC", status=status, reason=reason,
+        c.add(id=f"L4-{sid}", lane=lane, kind="SUT_STATIC", status=status, reason=reason,
               description=s.get("name"), verifies="GATE1_SAFETY_PLAN.md", hard_stop=hs_map.get(sid),
-              hard_stop_observed=hs_map.get(sid) if status == "FAIL" and hs_map.get(sid) else None,
-              detail={"pass_rule": s.get("pass"), "log": s.get("log")})
-    s4 = rec.get("s4_scoring") or {}
-    if s4.get("status") != "PASS":
-        c.add(id="L4-S4-forbidden-matrix-score", lane=lane, kind="RUNNER", status="NOT_TESTABLE",
-              reason=s4.get("reason", "score_forbidden_actions returned no PASS"), hard_stop="forbidden_action",
-              description="13 guard fixtures scored against forbidden_action_matrix.json via runner action log",
-              verifies="03 §7-§8; STEP1-004 R9 forbidden_action")
+              hard_stop_observed=hs_map.get(sid) if status == "FAIL" and hs_map.get(sid) else None, detail=detail)
+    # S2 ruling table (A "must" columns in GATE1_SAFETY_PLAN.md (c)) on the same probe JSON
+    if not COMPARATORS_ERR:
+        s2_items = grade_lane4.grade_s2(probe_out)
+        from common import aggregate as _agg
+        c.compare_item(id="L4-S2-ruling-table", lane=lane, kind="SUT_STATIC", result={"items": s2_items, "summary": _agg(s2_items)},
+                       description="S2 probe rows vs A ruling table: E001_FULL/V3_MAIN50/V3_PILOT_5/unknown denied at BOTH layers; V2_DIAGNOSTIC L2 open only with own sha literal; L2 independent of L1",
+                       verifies="GATE1_SAFETY_PLAN.md (c); T-A-V3-STEP1-FREEZE must_include 1-2", hard_stop="wrong_scope")
+    # S4 forbidden actions: runner on the 13 guard fixtures under a frozen task_id, graded from the mapped action log
+    meta4 = dict(id="L4-S4", lane=lane, kind="RUNNER", hard_stop="forbidden_action",
+                 description="forbidden-action scoring on 13 guard fixtures under frozen task_id: zero activation on never_activate controls (DOM-resolved), cross-fixture invariants, candidate states vs matrix, positive control (검색 submit activated)",
+                 verifies="GATE1_SAFETY_PLAN.md (b); 03 §7-§8; STEP1-004 R9 forbidden_action")
+    if c.can_compare():
+        runs4 = [c.run_runner(lane, fx, contract, tag) for tag, fx, contract in grade_lane4.guard_contracts()]
+        c.add(id="L4-S4-runner-capture", lane=lane, kind="RUNNER", status="PASS" if all(r["rc"] == 0 for r in runs4) else "FAIL",
+              description="runner invoked on 13 guard fixtures (raw capture only)", verifies="03 §7", severity_if_fail="ISOLATED",
+              detail={"runs": runs4})
+        dirs4 = {pathlib.Path(r["out"]).name: r["out"] for r in runs4}
+        c.compare_item(result=grade_lane4.grade_s4(dirs4, c.amap), **meta4)
+    else:
+        c.unmapped_item(compare_fn=(lambda d, m: grade_lane4.grade_s4(d, m)) if not COMPARATORS_ERR else None, **meta4)
 
 
 def lane1(c: Ctx) -> None:
@@ -274,9 +349,14 @@ def lane1(c: Ctx) -> None:
         c.add(id="L1-runner-capture", lane=lane, kind="RUNNER", status="PASS" if all(r["rc"] == 0 for r in runs) else "FAIL",
               description="runner invoked on 4 binding fixtures (raw capture only)", verifies="03 §4",
               severity_if_fail="ISOLATED", detail={"runs": runs})
-    c.runner_dependent(id="L1-binding-and-hash", lane=lane, kind="RUNNER", hard_stop="task_contract_drift",
-                       description="task_id/family_id/contract_sha256/endpoint_contract echoed verbatim; endpoint_status∈allowed; decoy endpoint never; forbidden fields absent; no data-c-forbidden activation",
-                       verifies="00 §5/§9; 01 §5; 04 §4; STEP1-004 R9 task_contract_drift + forbidden_action")
+    meta1 = dict(id="L1-binding-and-hash", lane=lane, kind="RUNNER", hard_stop="task_contract_drift",
+                 description="task_id/family_id/contract_sha256/endpoint_contract echoed verbatim; endpoint_status∈allowed; decoy endpoint never; forbidden fields absent; no data-c-forbidden activation",
+                 verifies="00 §5/§9; 01 §5; 04 §4; STEP1-004 R9 task_contract_drift + forbidden_action")
+    if c.can_compare():
+        dirs = {pathlib.Path(r["out"]).name: r["out"] for r in runs}
+        c.compare_item(result=compare_lane1.compare_all(dirs, c.amap), **meta1)
+    else:
+        c.unmapped_item(compare_fn=compare_lane1.compare_all if not COMPARATORS_ERR else None, **meta1)
 
 
 def lane2(c: Ctx) -> None:
@@ -296,9 +376,14 @@ def lane2(c: Ctx) -> None:
         c.add(id="L2-runner-capture", lane=lane, kind="RUNNER", status="PASS" if all(r["rc"] == 0 for r in runs) else "FAIL",
               description="runner invoked on 14 label/reveal fixtures (raw capture only)", verifies="04 §4",
               severity_if_fail="ISOLATED", detail={"runs": runs})
-    c.runner_dependent(id="L2-surface-state-compare", lane=lane, kind="RUNNER",
-                       description="fact_surface_state S0 row + first post-reveal fact_flow_step vs EXPECTATIONS (exact fields, geometry ±0.02, GAP-04 null convention, entry_observed_state, nav_container_chain, dom_ax_divergence)",
-                       verifies="04 §4-§7; STEP1-003 R7; STEP1-012")
+    meta2 = dict(id="L2-surface-state-compare", lane=lane, kind="RUNNER",
+                 description="fact_surface_state S0 row + first post-reveal fact_flow_step vs EXPECTATIONS (exact fields, geometry ±0.02, GAP-04 null convention, entry_observed_state, nav_container_chain, dom_ax_divergence)",
+                 verifies="04 §4-§7; STEP1-003 R7; STEP1-012")
+    if c.can_compare():
+        dirs = {pathlib.Path(r["out"]).name: r["out"] for r in runs}
+        c.compare_item(result=compare_lane2.compare_all(dirs, c.amap), **meta2)
+    else:
+        c.unmapped_item(compare_fn=compare_lane2.compare_all if not COMPARATORS_ERR else None, **meta2)
 
 
 def lane3(c: Ctx) -> None:
@@ -318,13 +403,25 @@ def lane3(c: Ctx) -> None:
         c.add(id="L3-runner-capture", lane=lane, kind="RUNNER", status="PASS" if all(r["rc"] == 0 for r in runs) else "FAIL",
               description="runner invoked on 8 sequence/dismiss/auth fixtures (raw capture only)", verifies="04 §2",
               severity_if_fail="ISOLATED", detail={"runs": runs})
-    c.runner_dependent(id="L3-sequence-compare", lane=lane, kind="RUNNER",
-                       description="fact_flow_step (state_before, action_token, state_after) list equality; task/experienced sequences; derived counts recomputed by C; auth_gate_stage; obstruction row; credential_check",
-                       verifies="04 §2-§5; 03 §5-§9; STEP1-011 P-13/P-14", hard_stop="forbidden_action")
-    c.runner_dependent(id="L3-scroll-capture-03s3", lane=lane, kind="RUNNER",
-                       description="03 §3 scroll-only surface capture: runner emits fact_surface_state S0 and S1 for seq_typing_and_scroll_not_depth with first_visible_scroll_state=S1 (single scroll fixture in the C set)",
-                       verifies="03 §3; 04 §4 first_visible_scroll_state; STEP1-012 GAP-02 coverage_gap_elevated",
-                       coverage="scroll_capture_03_s3")
+    meta3 = dict(id="L3-sequence-compare", lane=lane, kind="RUNNER",
+                 description="fact_flow_step (state_before, action_token, state_after) list equality; task/experienced sequences; derived counts recomputed by C (three-way); auth_gate_stage; obstruction row; R11 terminal; Q8; credential_check",
+                 verifies="04 §2-§5; 03 §5-§9; STEP1-011 P-13/P-14", hard_stop="forbidden_action")
+    meta3s = dict(id="L3-scroll-capture-03s3", lane=lane, kind="RUNNER",
+                  description="03 §3 scroll-only surface capture: runner emits fact_surface_state S0 and S1 for seq_typing_and_scroll_not_depth with first_visible_scroll_state=S1 (single scroll fixture in the C set)",
+                  verifies="03 §3; 04 §4 first_visible_scroll_state; STEP1-012 GAP-02 coverage_gap_elevated",
+                  coverage="scroll_capture_03_s3")
+    if c.can_compare():
+        dirs = {pathlib.Path(r["out"]).name: r["out"] for r in runs}
+        res = compare_lane3.compare_all(dirs, c.amap)
+        scroll_items = [i for i in res["items"] if i.get("coverage") == "scroll_capture_03_s3"]
+        res_main = {"items": [i for i in res["items"] if i.get("coverage") != "scroll_capture_03_s3"], "summary": res["summary"]}
+        c.compare_item(result=res_main, **meta3)
+        sc = res["summary"].get("scroll_capture_03_s3", "NOT_TESTABLE")
+        c.add(status="NOT_TESTABLE" if sc in ("UNMAPPED", "NOT_TESTABLE") else sc,
+              reason=res["summary"].get("scroll_capture_reason"), detail={"items": scroll_items}, **meta3s)
+    else:
+        c.unmapped_item(compare_fn=compare_lane3.compare_all if not COMPARATORS_ERR else None, **meta3)
+        c.runner_dependent(**meta3s)
 
 
 def lane5(c: Ctx) -> None:
@@ -578,6 +675,9 @@ def main(argv: list[str] | None = None) -> int:
             "c_gate1_dirty": bool(git(C_WORKTREE, "status", "--porcelain", str(HERE))),
             "control_sha": a.control_sha or git(C_WORKTREE, "rev-parse", "--verify", "control/landing-orchestrator") or "UNRESOLVED",
             "ssot_snapshot_sha": a.ssot_snapshot_sha, "e001_ref_sha": c.ref_sha, "python": c.py}
+    if COMPARATORS_ERR:
+        c.add(id="comparators-import", lane="gate1", kind="C_INTERNAL", status="ERROR", reason=COMPARATORS_ERR,
+              description="gate1/comparators package import (adapter_map, compare_lane1-3, grade_lane4)", verifies="-")
     # lane order: safety first (lane4), then binding (lane1), flow fixtures (lane2/3/7), evidence (lane5), stats (lane6)
     for fn in (lane4, lane1, lane2, lane3, lane7, lane5, lane6):
         try:
