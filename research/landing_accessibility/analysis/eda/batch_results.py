@@ -36,13 +36,41 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Sequence
+from datetime import datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 #: `gate_classifier`가 종류 미확정 시 남기는 마커 (규칙 E-6b fail-closed).
 _E6B_NOTE_RE = re.compile(r"gate\s*판별\s*:\s*UNDETERMINED")
 
 GUARD_BLOCKED_OUTCOME = "ACCOUNT_ACTION_BLOCKED"
+
+#: `detail`이 완전히 빈 `{}`이고 `scout_invoked`가 `None`이다 — L0도 L1도 **아예
+#: 시도되지 않았다.** `l1_not_attempted`(L0는 됐는데 L1을 안 함)와 **구분한다**:
+#: 이건 관측 자체가 없는 것이다. `attempted_observations`에는 포함되지만
+#: `l0_analyzable_n`에서는 J1(L0 완료) 미충족으로 빠진다.
+SKIPPED_RETRY_EXHAUSTED_OUTCOME = "SKIPPED_RETRY_EXHAUSTED"
+
+# ── UNRESOLVED 분해 — `endpoint_status_detail`을 단독 근거로 쓰지 않는다 ──────
+#
+# **결정적 이유**: `endpoint_status_detail`이 사유를 뭉갠다. 실측에서
+# `SCOUT_ERROR` 건의 `endpoint_status_detail`도 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED`로
+# 찍혀 있는데 실제 notes는 "Page.evaluate: Execution context was destroyed …"다.
+# **예산 소진이 아니라 기술적 실패다.** `endpoint_status_detail`만 보고 보고하면
+# "깊이 예산을 초과했다"로 **잘못 기술된다.** 그래서 `budget_reason`으로 분해한다.
+UNRESOLVED_BUDGET_REASON_CATEGORY: dict[str, str] = {
+    # 우리가 정한 예산이 소진된 것 — 우리 쪽 사정.
+    "MAX_SCOUT_WALL_CLOCK_S": "OUR_CIRCUMSTANCE",
+    # 클릭해도 상태가 안 변한다 = 대상의 동작 — 대상의 성질.
+    "MAX_CONSECUTIVE_NO_STATE_CHANGE": "TARGET_PROPERTY",
+    # 브라우저/네비게이션 오류 — transport 계열, 우리 쪽 사정.
+    "SCOUT_ERROR": "OUR_CIRCUMSTANCE",
+}
+
+#: `budget_reason`이 기록되지 않은 UNRESOLVED. **다른 사유로 뭉뚱그리지 않는다** —
+#: 모르는 것을 아는 것으로 만드는 것이 이 연구가 계속 막아온 실패다.
+UNRESOLVED_REASON_UNRECORDED = "unresolved_reason_unrecorded"
 
 
 def find_batch_files(batches_dir: str | Path) -> list[Path]:
@@ -131,6 +159,31 @@ class BatchCollectionError(ValueError):
 #: 코호트 식별 키. `execution_scope`가 `E000_FAST` / `E001_FULL`을 가른다.
 _COHORT_KEY = "execution_scope"
 
+# ── 분석 표본 확정 (Claude A 판정) ─────────────────────────────────────────
+#: **분석 표본은 E001만이다.** A가 raw 실측한 근거:
+#: E000 고유 타깃 6 · E001 고유 타깃 36 · 교집합 6 · **E000 전용 0**.
+#: E000은 고유 서비스를 0건 기여하므로 제외해도 정보 손실이 없다. 그리고
+#: **측정기가 다르다**(E000 `a86b4c7` vs E001 `222ef2c`) — 서로 다른 측정기의
+#: 산출을 한 기술통계에 섞으면 그것이 무엇의 분포인지 말할 수 없다. 이득 0, 위험만 있다.
+ANALYSIS_COHORT = "E001_FULL"
+ANALYSIS_COLLECTOR_SHA = "222ef2c"
+VERIFICATION_ONLY_COHORT = "E000_FAST"
+VERIFICATION_ONLY_COLLECTOR_SHA = "a86b4c7"
+
+#: 동결 프레임 전체 크기 — coverage의 분모다.
+FRAME_SIZE = 59
+
+_SEOUL = ZoneInfo("Asia/Seoul")
+
+
+def snapshot_now() -> str:
+    """계수 산출물에 박는 스냅샷 시각(Asia/Seoul).
+
+    C와 A가 계수를 대조할 때 스냅샷 시점이 다르면 불일치로 오인된다 — 수집이
+    진행 중이면 계수는 시점의 함수이므로 시각 없는 계수는 대조할 수 없다.
+    """
+    return datetime.now(_SEOUL).isoformat(timespec="seconds")
+
 
 def _worker_id_from_path(batches_dir: Path) -> str:
     """`.../artifacts/e001_w03/batches` → `e001_w03`. 못 찾으면 디렉터리명."""
@@ -213,16 +266,55 @@ def _load_source(batches_dir: str | Path) -> dict[str, Any]:
     }
 
 
+def _is_skipped_retry_exhausted(result: dict[str, Any]) -> bool:
+    """L0/L1 아예 미시도 — `detail`이 비었고 `scout_invoked`가 없다."""
+    detail = result.get("detail") or {}
+    if str(result.get("outcome")) == SKIPPED_RETRY_EXHAUSTED_OUTCOME:
+        return True
+    return not detail and detail.get("scout_invoked") is None and bool(result.get("outcome"))
+
+
+def classify_unresolved_reason(result: dict[str, Any]) -> str | None:
+    """UNRESOLVED 건의 사유를 `budget_reason`으로 판정한다.
+
+    `endpoint_status_detail`은 **단독 근거로 쓰지 않는다**(사유를 뭉갠다).
+    `budget_reason`이 없으면 `UNRESOLVED_REASON_UNRECORDED` — 다른 사유로
+    추정해 채우지 않는다.
+    """
+    detail = result.get("detail") or {}
+    if (
+        str(detail.get("endpoint_status")) != "UNRESOLVED"
+        and str(result.get("outcome")) != "UNRESOLVED"
+    ):
+        return None
+    reason = detail.get("budget_reason")
+    if reason in (None, "", "None"):
+        return UNRESOLVED_REASON_UNRECORDED
+    return str(reason)
+
+
 def _count_results(results: list[dict[str, Any]]) -> dict[str, Any]:
     guard_by_category: dict[str, int] = {}
     guard_n = 0
     e6b_n = 0
     e6b_corroborated = 0
     outcome_counts: dict[str, int] = {}
+    skipped_n = 0
+    unresolved_by_reason: dict[str, int] = {}
+    unresolved_by_category: dict[str, int] = {}
     for result in results:
         detail = result.get("detail") or {}
         outcome = str(result.get("outcome") or detail.get("outcome") or "UNKNOWN")
         outcome_counts[outcome] = outcome_counts.get(outcome, 0) + 1
+        if _is_skipped_retry_exhausted(result):
+            skipped_n += 1
+        unresolved_reason = classify_unresolved_reason(result)
+        if unresolved_reason is not None:
+            unresolved_by_reason[unresolved_reason] = (
+                unresolved_by_reason.get(unresolved_reason, 0) + 1
+            )
+            category = UNRESOLVED_BUDGET_REASON_CATEGORY.get(unresolved_reason, "UNCLASSIFIED")
+            unresolved_by_category[category] = unresolved_by_category.get(category, 0) + 1
         if _is_guard_blocked(result):
             guard_n += 1
             category = str(detail.get("blocked_category") or "UNSPECIFIED")
@@ -237,6 +329,73 @@ def _count_results(results: list[dict[str, Any]]) -> dict[str, Any]:
         "e6b_fired_n": e6b_n,
         "e6b_value_corroborated_n": e6b_corroborated,
         "outcome_counts": outcome_counts,
+        # L0/L1 아예 미시도 — l1_not_attempted와 구분되는 별도 사유.
+        "skipped_retry_exhausted_n": skipped_n,
+        # UNRESOLVED를 budget_reason으로 분해. endpoint_status_detail 단독 금지.
+        "unresolved_by_budget_reason": unresolved_by_reason,
+        "unresolved_by_category": unresolved_by_category,
+        "unresolved_reason_unrecorded_n": unresolved_by_reason.get(UNRESOLVED_REASON_UNRECORDED, 0),
+        "unresolved_note": (
+            "UNRESOLVED는 단일 범주가 아니다 — `budget_reason`으로 분해했다. "
+            "`endpoint_status_detail`은 **단독 근거로 쓰지 않는다**: SCOUT_ERROR(기술적 "
+            "실패)에도 `UNRESOLVED_DEPTH_BUDGET_EXCEEDED`가 찍혀 있어 그것만 보면 "
+            "'깊이 예산 초과'로 잘못 기술된다. `budget_reason` 미기록분은 "
+            f"`{UNRESOLVED_REASON_UNRECORDED}`로 따로 세며 다른 사유로 뭉뚱그리지 않는다."
+        ),
+    }
+
+
+def _sample_stats(sources: list[dict[str, Any]]) -> dict[str, Any]:
+    """세 숫자를 **구분해서** 낸다 (Claude A 명시).
+
+    - `attempted_observations` — 시도한 **관측 건수**. 재시도·중복발사 격리분이
+      여기 들어간다.
+    - `unique_targets` — 서로 다른 **서비스 수**. 위 숫자와 갈린다.
+    - `coverage` = `unique_targets / FRAME_SIZE`.
+
+    **"N건 시도"를 "N개 서비스"로 쓰지 않는다** — 실제로 중복 발사 격리분이
+    관측 수를 부풀린다.
+    """
+    attempted = sum(len(s["results"]) for s in sources)
+    targets: set[str] = set()
+    for source in sources:
+        targets.update(source.get("target_ids", []))
+
+    # archetype 관측 분포 — 전수를 못 채웠을 때 **어느 archetype이 덜 수집됐는지**가
+    # `expected_by_plan` 대조의 입력이다(가설검정이 아니라 기술 대조).
+    archetype_counts: dict[str, int] = {}
+    archetype_unknown: dict[str, int] = {}
+    for source in sources:
+        for result in source["results"]:
+            detail = result.get("detail") or {}
+            archetype = detail.get("archetype")
+            if archetype:
+                key = str(archetype)
+                archetype_counts[key] = archetype_counts.get(key, 0) + 1
+            else:
+                # 가드 차단 등으로 Scout가 안 돌면 archetype 자체가 없다.
+                outcome = str(result.get("outcome") or detail.get("outcome") or "UNKNOWN")
+                archetype_unknown[outcome] = archetype_unknown.get(outcome, 0) + 1
+
+    return {
+        "attempted_observations": attempted,
+        "unique_targets": len(targets),
+        "frame_size": FRAME_SIZE,
+        "coverage": round(len(targets) / FRAME_SIZE, 4) if FRAME_SIZE else None,
+        "counts_distinct_note": (
+            "`attempted_observations`(시도한 관측 건수)와 `unique_targets`(서로 다른 "
+            "서비스 수)는 **다른 숫자다** — 재시도·중복발사 격리분이 관측 수를 부풀린다. "
+            "'N건 시도'를 'N개 서비스'로 쓰지 않는다."
+        ),
+        "archetype_observed": archetype_counts,
+        "archetype_unknown_by_outcome": archetype_unknown,
+        "archetype_unknown_n": sum(archetype_unknown.values()),
+        "archetype_note": (
+            "archetype은 Scout가 돈 관측에만 있다 — 가드 차단·재시도 소진 건은 "
+            "archetype이 없어 `archetype_unknown_by_outcome`으로 따로 센다. "
+            "전수를 못 채운 경우 어느 archetype이 덜 수집됐는지가 expected_by_plan "
+            "대조의 입력이다(기술 대조이지 가설검정이 아니다)."
+        ),
     }
 
 
@@ -244,8 +403,15 @@ def derive_collection_markers_multi(
     batches_dirs: str | Path | Sequence[str | Path],
     *,
     allow_cross_cohort: bool = False,
+    analysis_cohort: str | None = ANALYSIS_COHORT,
 ) -> dict[str, Any]:
     """여러 배치 디렉터리(워커)를 **출처를 유지한 채** 합산한다.
+
+    **기본 분석 표본은 `ANALYSIS_COHORT`(E001)만이다** (Claude A 판정). 다른
+    코호트(E000)의 소스는 합산에서 **제외**되고 `verification_only_cohorts`로
+    따로 보고된다 — 측정기가 다르므로 한 기술통계에 섞지 않는다. 오류로 막지
+    않고 set-aside하는 이유는, 그래야 파이프라인이 계속 돌면서 E000을
+    측정기·evidence lineage 검증 산출물로 보고할 수 있기 때문이다.
 
     - 해시 체인은 소스별로 독립 검증한다(이어붙이지 않는다).
     - `execution_scope`가 섞이면(E000_FAST + E001_FULL) `allow_cross_cohort=True`
@@ -267,7 +433,7 @@ def derive_collection_markers_multi(
 
     # ── 코호트 혼합 검사 (E000 vs E001 자동 합산 금지) ──
     all_cohorts = sorted({c for s in sources for c in s.get("cohorts", [])})
-    if len(all_cohorts) > 1 and not allow_cross_cohort:
+    if len(all_cohorts) > 1 and not allow_cross_cohort and analysis_cohort is None:
         raise BatchCollectionError(
             f"서로 다른 execution_scope를 자동 합산할 수 없다: {all_cohorts}. "
             "E000과 E001은 collector가 다르므로 기본적으로 분리한다 — 합치려면 "
@@ -318,9 +484,29 @@ def derive_collection_markers_multi(
             f"같은 디렉터리 안에서 batch_id가 중복된다: {dup_within}. 조용히 합치지 않는다."
         )
 
+    # ── 분석 표본 코호트 필터 (기본 E001만) ──
+    analysis_sources = sources
+    verification_only: list[dict[str, Any]] = []
+    # 코호트가 **섞였을 때만** 필터한다. 비-분석 코호트만 단독으로 주어진 경우는
+    # 섞일 위험이 없으므로 그대로 집계한다(E000 단독 검증 실행이 그 경우다).
+    if analysis_cohort is not None and not allow_cross_cohort and len(all_cohorts) > 1:
+        analysis_sources = [
+            s for s in sources if not s.get("cohorts") or analysis_cohort in s["cohorts"]
+        ]
+        verification_only = [
+            {
+                **{k: v for k, v in s.items() if k not in {"results", "target_ids"}},
+                "n_targets": len(s.get("target_ids", [])),
+                **_count_results(s["results"]),
+            }
+            for s in sources
+            if s.get("cohorts") and analysis_cohort not in s["cohorts"]
+        ]
+
     if not with_files:
         return {
             "batches_found": False,
+            "snapshot_at": snapshot_now(),
             "n_sources": len(dirs),
             "n_sources_existing": len(existing),
             "n_batch_files": 0,
@@ -338,11 +524,12 @@ def derive_collection_markers_multi(
             ),
         }
 
-    all_results = [r for s in sources for r in s["results"]]
+    all_results = [r for s in analysis_sources for r in s["results"]]
     totals = _count_results(all_results)
+    sample = _sample_stats(analysis_sources)
 
     by_source = []
-    for source in sources:
+    for source in analysis_sources:
         record = {k: v for k, v in source.items() if k not in {"results", "target_ids"}}
         record["n_targets"] = len(source.get("target_ids", []))
         record.update(_count_results(source["results"]))
@@ -351,6 +538,21 @@ def derive_collection_markers_multi(
     chain_all_ok = all(s["chain_ok"] for s in sources)
     return {
         "batches_found": True,
+        # 계수 대조 시 시점 불일치를 오인하지 않도록 스냅샷 시각을 박는다.
+        "snapshot_at": snapshot_now(),
+        "analysis_cohort": analysis_cohort,
+        "analysis_collector_sha": ANALYSIS_COLLECTOR_SHA
+        if analysis_cohort == ANALYSIS_COHORT
+        else None,
+        "analysis_sample": sample,
+        # 분석 표본에서 제외된 코호트 — 측정기·evidence lineage 검증용으로만 보고한다.
+        "verification_only_cohorts": verification_only,
+        "cohort_policy_note": (
+            f"분석 표본은 `{analysis_cohort}`만이다(Claude A 판정). E000은 고유 서비스를 "
+            "0건 기여하고 측정기가 다르므로(E000 a86b4c7 / E001 222ef2c) 한 기술통계에 "
+            "섞지 않는다 — 이득 0, 위험만 있다. E000은 측정기·evidence lineage 검증 "
+            "산출물로만 보고한다."
+        ),
         "n_sources": len(dirs),
         "n_sources_existing": len(existing),
         "n_sources_with_files": len(with_files),

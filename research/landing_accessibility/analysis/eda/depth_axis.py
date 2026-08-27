@@ -120,6 +120,24 @@ def depth_axis_report(
         "e6b_marker_present": e6b_present,
         "guard_marker_present": guard_present,
         "marker_source": marker_source,
+        # UNRESOLVED를 budget_reason으로 분해한 결과 — endpoint_status_detail만 보면
+        # SCOUT_ERROR가 '깊이 예산 초과'로 잘못 기술된다.
+        "unresolved_decomposition": (
+            {
+                "by_budget_reason": markers.get("unresolved_by_budget_reason"),
+                "by_category": markers.get("unresolved_by_category"),
+                "reason_unrecorded_n": markers.get("unresolved_reason_unrecorded_n"),
+                "note": markers.get("unresolved_note"),
+            }
+            if markers and markers.get("batches_found")
+            else None
+        ),
+        "skipped_retry_exhausted_n": (
+            markers.get("skipped_retry_exhausted_n")
+            if markers and markers.get("batches_found")
+            else None
+        ),
+        "snapshot_at": (markers or {}).get("snapshot_at"),
         "batch_markers": markers,
         "marker_note": (
             (

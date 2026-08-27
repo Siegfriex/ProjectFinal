@@ -258,7 +258,60 @@ def generate_final_results_summary(
 
     lines = ["# FINAL_RESULTS_SUMMARY", "", f"`shadow_lane={provenance.shadow_lane}`", ""]
 
-    lines.append("## 관측 범위")
+    depth_for_counts = eda09_summary.get("depth_axis", {}) or {}
+    markers = depth_for_counts.get("batch_markers") or {}
+    sample = markers.get("analysis_sample") or {}
+
+    lines.append("## 관측 범위 — 네 숫자를 구분한다")
+    lines.append("")
+    if markers.get("batches_found"):
+        lines.append(
+            f"**스냅샷 시각: `{markers.get('snapshot_at')}` (Asia/Seoul)** — 수집 진행 중이면 계수는 시점의 함수다. 시점이 다른 계수를 불일치로 오인하지 않기 위해 박는다."
+        )
+        lines.append("")
+        lines.append(
+            f"- `attempted_observations` = **{sample.get('attempted_observations')}** (시도한 관측 건수)"
+        )
+        lines.append(
+            f"- `unique_targets` = **{sample.get('unique_targets')}** (서로 다른 서비스 수)"
+        )
+        lines.append(
+            f"- `coverage` = {sample.get('unique_targets')} / {sample.get('frame_size')} = "
+            f"**{sample.get('coverage')}**"
+        )
+        lines.append(
+            f"- `l0_analyzable_n` = **{validity.get('l0_analyzable_n')}** (J1∧J4, 새 PRIMARY 표본)"
+        )
+        lines.append(f"  - {sample.get('counts_distinct_note')}")
+        lines.append(
+            f"  - `SKIPPED_RETRY_EXHAUSTED` {depth_for_counts.get('skipped_retry_exhausted_n')}건은 "
+            "L0도 L1도 아예 시도되지 않아 `attempted_observations`에는 들어가지만 "
+            "`l0_analyzable_n`에서는 J1 미충족으로 빠진다 — 그래서 두 숫자가 갈린다."
+        )
+        lines.append(
+            f"- 분석 표본 코호트: `{markers.get('analysis_cohort')}` "
+            f"(collector `{markers.get('analysis_collector_sha')}`)"
+        )
+        lines.append(f"  - {markers.get('cohort_policy_note')}")
+        if markers.get("verification_only_cohorts"):
+            for v in markers["verification_only_cohorts"]:
+                lines.append(
+                    f"  - **검증 전용(분석 표본 제외)**: `{v.get('worker_id')}` "
+                    f"코호트 {v.get('cohorts')} · {v.get('n_results')}건 — "
+                    "측정기·evidence lineage 검증 산출물이며 기술통계에 섞지 않는다."
+                )
+        lines.append("")
+        lines.append("### 커버리지 — archetype별 관측 분포")
+        lines.append("")
+        lines.append(f"- 관측된 archetype: {sample.get('archetype_observed')}")
+        lines.append(
+            f"- archetype 미상 {sample.get('archetype_unknown_n')}건: "
+            f"{sample.get('archetype_unknown_by_outcome')}"
+        )
+        lines.append(f"  - {sample.get('archetype_note')}")
+        lines.append("")
+
+    lines.append("### joint-valid 분해")
     lines.append("")
     lines.append(
         f"- 시도 {validity.get('n_attempted')}건 · **joint_valid_n "

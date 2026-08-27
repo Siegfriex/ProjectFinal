@@ -75,6 +75,10 @@ EXCLUSION_REASONS: tuple[str, ...] = (
     "TRANSPORT_FAILURE",
     "TIMEOUT",
     "L1_NOT_ATTEMPTED_OR_UNRESOLVED",
+    # L0도 L1도 **아예 시도되지 않았다**(detail 비어 있음, scout_invoked 없음).
+    # `L1_NOT_ATTEMPTED_OR_UNRESOLVED`(L0는 됐는데 L1을 안 함)와 **구분한다** —
+    # 이건 관측 자체가 없다. attempted에는 들어가지만 J1 미충족으로 l0_analyzable에서 빠진다.
+    "SKIPPED_RETRY_EXHAUSTED",
     # `LA-AC-AMD1-20260827` §3 신설 — 제3범주(우리 도구의 제약).
     "L1_NOT_ATTEMPTED_GUARD",
     "GATE_REACHED_MPFED_NULL",
@@ -96,6 +100,7 @@ EXCLUSION_CATEGORY: dict[str, str] = {
     "TRANSPORT_FAILURE": "OUR_CIRCUMSTANCE",
     "TIMEOUT": "OUR_CIRCUMSTANCE",
     "L1_NOT_ATTEMPTED_OR_UNRESOLVED": "OUR_CIRCUMSTANCE",
+    "SKIPPED_RETRY_EXHAUSTED": "OUR_CIRCUMSTANCE",
     "L1_NOT_ATTEMPTED_GUARD": "OUR_TOOL_CONSTRAINT",
     "GATE_REACHED_MPFED_NULL": "TARGET_PROPERTY",
     # WAF·403은 우리 도구에 대한 반응이지 대상의 진입 설계가 아니다.
@@ -116,6 +121,8 @@ EXCLUSION_REASON_IS_TARGET_PROPERTY: dict[str, bool] = {
     "TIMEOUT": False,
     "L1_NOT_ATTEMPTED_OR_UNRESOLVED": False,
     "GATE_REACHED_MPFED_NULL": True,
+    # 관측 자체가 없다 — 대상의 성질이 아니다.
+    "SKIPPED_RETRY_EXHAUSTED": False,
     # 안전 계약이 측정을 제약한 경우 — 대상의 성질이 아니다(제3범주).
     "L1_NOT_ATTEMPTED_GUARD": False,
     # WAF·403은 우리 도구에 대한 반응이지 대상의 진입 설계가 아니다 → 대상의 성질이 아니다.

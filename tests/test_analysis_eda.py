@@ -968,8 +968,14 @@ def test_e000_and_e001_not_auto_merged() -> None:
     if not present or not Path(E000_BATCHES).is_dir():
         _pytest.skip("E000/E001 배치 디렉터리가 이 환경에 없다")
 
+    # 기본: E000은 분석 표본에서 set-aside되고 검증 전용으로 따로 보고된다.
+    default = derive_collection_markers_multi([*present, E000_BATCHES])
+    assert default["analysis_cohort"] == "E001_FULL"
+    assert [v["cohorts"] for v in default["verification_only_cohorts"]] == [["E000_FAST"]]
+
+    # analysis_cohort 필터를 끈 무필터 합산은 여전히 거부된다.
     with _pytest.raises(BatchCollectionError, match="execution_scope"):
-        derive_collection_markers_multi([*present, E000_BATCHES])
+        derive_collection_markers_multi([*present, E000_BATCHES], analysis_cohort=None)
 
     merged = derive_collection_markers_multi([*present, E000_BATCHES], allow_cross_cohort=True)
     assert merged["cross_cohort_merged"] is True
@@ -1016,3 +1022,83 @@ def test_double_collection_within_cohort_is_an_error(tmp_path: Path) -> None:
     c = _write("wc", "b0001", ["tgt_4"])
     ok = derive_collection_markers_multi([a, c])
     assert ok["n_sources"] == 2
+
+
+def test_analysis_sample_is_e001_only_with_four_distinct_counts() -> None:
+    """분석 표본 = E001만. 네 숫자를 구분하고 스냅샷 시각을 박는다."""
+    import pytest as _pytest
+    from analysis.eda.batch_results import (
+        ANALYSIS_COHORT,
+        ANALYSIS_COLLECTOR_SHA,
+        FRAME_SIZE,
+        derive_collection_markers_multi,
+    )
+
+    present = [d for d in E001_WORKER_BATCHES if Path(d).is_dir()]
+    if not present or not Path(E000_BATCHES).is_dir():
+        _pytest.skip("배치 디렉터리가 이 환경에 없다")
+
+    m = derive_collection_markers_multi([*present, E000_BATCHES])
+    assert m["analysis_cohort"] == ANALYSIS_COHORT == "E001_FULL"
+    assert m["analysis_collector_sha"] == ANALYSIS_COLLECTOR_SHA == "222ef2c"
+    # E000은 분석 계수에 섞이지 않는다.
+    assert m["cohorts"] == ["E000_FAST", "E001_FULL"]
+    assert len(m["verification_only_cohorts"]) == 1
+
+    sample = m["analysis_sample"]
+    # 세 숫자가 각각 존재하고 서로 구분된다.
+    assert sample["frame_size"] == FRAME_SIZE == 59
+    assert sample["unique_targets"] <= sample["attempted_observations"]
+    assert sample["coverage"] == round(sample["unique_targets"] / 59, 4)
+    assert "N개 서비스" in sample["counts_distinct_note"]
+    # 스냅샷 시각이 Asia/Seoul로 박힌다.
+    assert m["snapshot_at"].endswith("+09:00")
+    # archetype 커버리지 입력이 있다.
+    assert "archetype_observed" in sample
+    assert "archetype_unknown_by_outcome" in sample
+
+
+def test_unresolved_decomposed_by_budget_reason_not_endpoint_detail() -> None:
+    """UNRESOLVED는 budget_reason으로 분해한다 — esd 단독은 사유를 뭉갠다."""
+    from analysis.eda.batch_results import (
+        UNRESOLVED_BUDGET_REASON_CATEGORY,
+        UNRESOLVED_REASON_UNRECORDED,
+        classify_unresolved_reason,
+    )
+
+    # SCOUT_ERROR인데 esd는 DEPTH_BUDGET_EXCEEDED — esd만 보면 '예산 초과'로 오기된다.
+    conflated = {
+        "outcome": "UNRESOLVED",
+        "detail": {
+            "endpoint_status": "UNRESOLVED",
+            "endpoint_status_detail": "UNRESOLVED_DEPTH_BUDGET_EXCEEDED",
+            "budget_reason": "SCOUT_ERROR",
+        },
+    }
+    assert classify_unresolved_reason(conflated) == "SCOUT_ERROR"
+    assert UNRESOLVED_BUDGET_REASON_CATEGORY["SCOUT_ERROR"] == "OUR_CIRCUMSTANCE"
+    # 클릭해도 반응 없음 = 대상의 성질.
+    assert UNRESOLVED_BUDGET_REASON_CATEGORY["MAX_CONSECUTIVE_NO_STATE_CHANGE"] == "TARGET_PROPERTY"
+    # 미기록은 다른 사유로 뭉뚱그리지 않는다.
+    unrecorded = {"outcome": "UNRESOLVED", "detail": {"endpoint_status": "UNRESOLVED"}}
+    assert classify_unresolved_reason(unrecorded) == UNRESOLVED_REASON_UNRECORDED
+    assert UNRESOLVED_REASON_UNRECORDED not in UNRESOLVED_BUDGET_REASON_CATEGORY
+
+
+def test_skipped_retry_exhausted_is_distinct_from_l1_not_attempted() -> None:
+    """L0/L1 아예 미시도는 l1_not_attempted와 다른 사유다."""
+    from analysis.eda.batch_results import _is_skipped_retry_exhausted
+    from analysis.eda.joint_validity import (
+        EXCLUSION_CATEGORY,
+        EXCLUSION_REASON_IS_TARGET_PROPERTY,
+    )
+
+    skipped = {"outcome": "SKIPPED_RETRY_EXHAUSTED", "detail": {}}
+    assert _is_skipped_retry_exhausted(skipped) is True
+    # L1만 안 한 건과 섞이지 않는다.
+    l1_only = {"outcome": "UNRESOLVED", "detail": {"scout_invoked": True}}
+    assert _is_skipped_retry_exhausted(l1_only) is False
+
+    assert EXCLUSION_CATEGORY["SKIPPED_RETRY_EXHAUSTED"] == "OUR_CIRCUMSTANCE"
+    assert EXCLUSION_CATEGORY["L1_NOT_ATTEMPTED_OR_UNRESOLVED"] == "OUR_CIRCUMSTANCE"
+    assert EXCLUSION_REASON_IS_TARGET_PROPERTY["SKIPPED_RETRY_EXHAUSTED"] is False
