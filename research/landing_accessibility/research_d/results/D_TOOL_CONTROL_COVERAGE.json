@@ -1,0 +1,74 @@
+{
+ "artifact": "D_TOOL_CONTROL_COVERAGE",
+ "produced_at_kst": "2026-08-28T07:58:51+09:00",
+ "measured_at_kst": "2026-08-28T07:58:51+09:00",
+ "plane": "D",
+ "claim_kind": "OBSERVATION",
+ "d_head_at_measure": "d5fef7f338f8dae00984eade5289acad5fc29927",
+ "question": "D 의 각 도구가 망가졌을 때, 그 출력이 정상 출력과 구분되는가",
+ "why": "B 가 T-B-V3-FINDING-010 에서 '조용한 통과는 실패보다 오래 산다' 를 실물로 보였다 — `git diff --name-only HEAD` 를 쓴 단언이 커밋 후 항상 빈 값이라 한 번도 무언가를 잡은 적이 없고 깨진 적도 없어 아무도 보지 않았다. D 도구를 같은 기준으로 훑었다.",
+ "method": "grep 으로 세지 않는다. 도구마다 핵심 술어를 무력화해 주입하고, 도구가 판정을 거부하는지 본다.",
+ "tools": {
+  "d_bus_scan.sh": {
+   "resident_control": true,
+   "injection": "d_bus_lib.scan 을 빈 결과로",
+   "result": "INVALID — 거부",
+   "note": "원래 있었다 (D-DEF-09 시정 산물)"
+  },
+  "d_input_firewall.py": {
+   "resident_control": true,
+   "added_at": "이 세션",
+   "was": "대조군 없음 — verdict=PASS·FAIL=0 이 '위반 없음' 과 '매처가 열림' 을 같은 출력으로 냈다",
+   "injection": [
+    "severity 무조건 허용",
+    "허용목록에 label 파일 주입",
+    "금지목록 공백"
+   ],
+   "result": "3종 전부 CONTROL_FAIL",
+   "stake": "D 의 holdout_accessed=false 주장이 이 도구에 실려 있다"
+  },
+  "d_emit_ticket.py": {
+   "resident_control": true,
+   "added_at": "이 세션",
+   "was": "emit() 이 check() 만 믿었다 — check 가 조용히 통과하면 불량 티켓이 그대로 나가고 출력은 동일",
+   "injection": "check 를 무조건 통과로",
+   "result": "발행 차단",
+   "fixtures": "불량 fixture 가 base_sha·라우팅·limitation·R26·인용경로 5종을 전부 잡아야 PASS"
+  },
+  "d_mlflow.py": {
+   "resident_control": true,
+   "added_at": "이 세션",
+   "was": "완결 게이트가 sync() 안에 박혀 격리 시험이 불가능했다 — 그래서 대조군이 없었다",
+   "why_it_was_silent": "닫힌 채 망가지면 전부 '미완' 이 되는데 legacy RQ 다수가 이미 미완이라 정상 출력과 구분되지 않는다. 열린 채 망가지면 D-DEF-07 이 재발한다. 양쪽 다 조용하다.",
+   "injection": [
+    "gate 무조건 통과",
+    "gate 무조건 차단"
+   ],
+   "result": "양쪽 다 FAIL → sync 거부",
+   "regression": "리팩터 전후 sync 출력 38행 diff 0",
+   "fixtures": 6,
+   "includes_D_DEF_10b": "남의 노트북이 있어도 통과하지 않는지 고정"
+  },
+  "index_delta_crosscheck.py": {
+   "resident_control": true,
+   "strengthened_at": "이 세션",
+   "was": "대조군은 있었으나 판별력이 없었다 — Δ999-R99 는 좁은/넓은 규칙 어느 쪽에서도 미도달",
+   "now": "부모 절이 존재하는 가짜 자식. id 는 delta 해시에서 파생하고 부재를 검사한다",
+   "why_derived": "C-FINDING-075215 — A 의 probe Δ90001 이 그 문제를 기술한 delta 부기에 적히며 도달 가능해졌다. 문서가 자기 대조군을 무력화한다.",
+   "same_function": "도달 판정을 함수로 빼서 대조군이 본 검사와 같은 코드를 탄다 (D-DEF-09)"
+  },
+  "d_standing_control.py": {
+   "resident_control": true,
+   "note": "메모리 내 1바이트 변형 대조군. 실패 시 드리프트 판정 안 함"
+  },
+  "d_heartbeat.py": {
+   "resident_control": false,
+   "why_not": "기록기다. 판정을 내지 않으므로 잘못된 통과를 만들 수 없다. 다만 heartbeat 부재가 곧 신호이므로 다른 평면이 그것을 본다."
+  }
+ },
+ "residual": {
+  "무엇을_못_보나": "주입 시험은 **내가 상상한 고장**만 잰다. 상상하지 못한 고장 형태는 여전히 조용할 수 있다.",
+  "대조군_자체의_노후": "C 가 보인 대로 대조군은 문서·코드가 변하면서 조용히 무력화될 수 있다. 파생 id 는 그 한 형태만 막는다.",
+  "not_a_verdict": "D 는 NON_CANONICAL. 이것은 D 자기 도구에 대한 관측이며 다른 평면의 도구를 판정하지 않는다."
+ }
+}

@@ -155,7 +155,102 @@ def discover(base=None) -> list[dict]:
     return [{k: v for k, v in e.items() if not k.startswith("_")} for e in found.values()]
 
 
+def gate(rq: str, md: Path, js: Path | None, nb_dir: Path) -> tuple[bool, str]:
+    """완결 게이트 — 세 조건. `sync()` 안에 있던 것을 함수로 뺐다.
+
+    안에 박혀 있는 동안 이 게이트에는 **대조군이 없었다.** 그리고 이 게이트가
+    *닫힌 채로* 망가지면 출력이 지금과 구분되지 않는다 — 대부분의 legacy RQ 가
+    이미 `미완` 이라, 전부 `미완` 이 되어도 똑같아 보인다. 열린 채로 망가지면
+    D-DEF-07(빈 run 영구 잔존)이 재발한다. 양쪽 다 조용하다.
+
+    D 의 결함 이력이 이 함수에 다 들어 있다:
+      D-DEF-07  게이트 자체가 없어 in-flight 산출이 색인됐다
+      D-DEF-10  sidecar 가 정렬상 먼저 와서 본 결과를 가렸다 → 내용 계약으로 선택
+      D-DEF-10b 노트북 glob 이 k=1 까지 내려가 남의 노트북을 잡았다 → k>=2
+    """
+    if js and js.exists():
+        try:
+            if "verdict" not in json.loads(js.read_text()):
+                return False, "미완: verdict 없음"
+        except Exception:
+            return False, "미완: JSON 파싱 실패"
+        if not md.exists():
+            return False, "미완: FINDINGS.md 없음"
+        prefix = js.name.rsplit(".", 1)[0]
+        parts = prefix.split("_")
+        nbs = []
+        if rq in NOTEBOOK_MAP:                       # 이름이 규칙과 다른 예외
+            nbs = [nb_dir / NOTEBOOK_MAP[rq]] if (nb_dir / NOTEBOOK_MAP[rq]).exists() else []
+        for k in range(min(3, len(parts)), 1, -1):
+            if nbs:
+                break
+            nbs = sorted(nb_dir.glob("_".join(parts[:k]) + "*.ipynb"))
+            if nbs:
+                break
+        if not nbs:
+            return False, "미완: 노트북 없음"
+    return True, "OK"
+
+
+def gate_controls() -> dict:
+    """게이트가 아직 무언가를 막고 있는가 — 매 sync 마다 확인한다.
+
+    임시 디렉터리에만 쓴다. 실제 results/ 와 notebooks/ 는 건드리지 않는다.
+    """
+    import tempfile
+    cases, ok = [], True
+    with tempfile.TemporaryDirectory() as td:
+        t = Path(td)
+        nb = t / "nb"; nb.mkdir()
+        def mk(name, body, findings=True, notebook=True):
+            js = t / f"{name}.json"
+            js.write_text(json.dumps(body, ensure_ascii=False), encoding="utf-8")
+            md = t / f"{name}_FINDINGS.md"
+            if findings:
+                md.write_text("# f", encoding="utf-8")
+            if notebook:
+                (nb / f"{name}.ipynb").write_text("{}", encoding="utf-8")
+            return md, js
+
+        md, js = mk("RQ_DXX_thing", {"verdict": "SUPPORTED"})
+        cases.append(("완결 산출은 통과", gate("RQ-DXX", md, js, nb), True))
+        md, js = mk("RQ_DYY_thing", {"headline": "x"})          # verdict 없음
+        cases.append(("verdict 없으면 막힘", gate("RQ-DYY", md, js, nb), False))
+        md, js = mk("RQ_DZZ_thing", {"verdict": "X"}, findings=False)
+        cases.append(("FINDINGS.md 없으면 막힘", gate("RQ-DZZ", md, js, nb), False))
+        md, js = mk("RQ_DWW_thing", {"verdict": "X"}, notebook=False)
+        cases.append(("노트북 없으면 막힘", gate("RQ-DWW", md, js, nb), False))
+        # D-DEF-10b 회귀: 남의 노트북이 있어도 통과하면 안 된다
+        (nb / "RQ_OTHER_unrelated.ipynb").write_text("{}", encoding="utf-8")
+        md, js = mk("RQ_DVV_thing", {"verdict": "X"}, notebook=False)
+        cases.append(("남의 노트북으로 통과하지 않음 (D-DEF-10b)",
+                      gate("RQ-DVV", md, js, nb), False))
+        bad = t / "RQ_DUU_thing.json"
+        bad.write_text("{not json", encoding="utf-8")
+        cases.append(("JSON 깨지면 막힘",
+                      gate("RQ-DUU", t / "RQ_DUU_thing_FINDINGS.md", bad, nb), False))
+
+    rows = []
+    for name, (got_ok, reason), want in cases:
+        good = got_ok is want
+        ok &= good
+        rows.append({"case": name, "passed_gate": got_ok, "expected": want,
+                     "reason": reason, "ok": good})
+    return {"verdict": "PASS" if ok else "FAIL", "cases": rows,
+            "why": "대조군이 실패하면 sync 를 돌리지 않는다 — 닫힌 채 망가진 게이트의 "
+                   "'전부 미완' 은 정상 출력과 구분되지 않는다"}
+
+
 def sync() -> int:
+    ctl = gate_controls()
+    if ctl["verdict"] != "PASS":
+        print("!! 완결 게이트 대조군 실패 — sync 를 돌리지 않는다")
+        for c in ctl["cases"]:
+            if not c["ok"]:
+                print(f"   {c['case']}: passed={c['passed_gate']} expected={c['expected']}")
+        return 3
+    print(f"gate_controls={ctl['verdict']} ({len(ctl['cases'])}/{len(ctl['cases'])})")
+
     mlflow.set_tracking_uri(TRACKING_URI)
     mlflow.set_experiment(EXPERIMENT)
     snap = RD / "INPUT_SNAPSHOT_v21.json"
@@ -175,39 +270,13 @@ def sync() -> int:
         payload = js if js and js.exists() else md
         if not payload.exists():
             continue
-        # [D-DEF-07 시정] 완결 게이트. run 은 지울 수 없으므로(덮어쓰기 금지 규약)
-        # 아직 쓰이는 중인 산출을 색인하면 빈 run 이 영구히 남는다.
-        # D 의 산출 규약은 JSON(최상위 verdict) + FINDINGS.md 둘 다이므로 둘 다 요구한다.
-        if js and js.exists():
-            try:
-                if "verdict" not in json.loads(js.read_text()):
-                    skipped.append(f"{rq}(미완: verdict 없음)")
-                    continue
-            except Exception:
-                skipped.append(f"{rq}(미완: JSON 파싱 실패)")
-                continue
-            if not md.exists():
-                skipped.append(f"{rq}(미완: FINDINGS.md 없음)")
-                continue
-            # [D-DEF-10 시정 2] 완결 게이트는 세 조건인데 코드가 둘만 봤다.
-            # 노트북(Restart -> Run All 산출물)이 없으면 아직 완결이 아니다.
-            prefix = js.name.rsplit(".", 1)[0]
-            nb_dir = RD.parent / "notebooks" / "d_research"
-            parts = prefix.split("_")
-            # [D-DEF-10b] 첫 판본은 k=1 까지 내려가 `RQ*.ipynb` 로 아무 노트북이나
-            # 잡았고, 노트북이 없는 RQ-D7 을 통과시켰다. RQ 식별자까지(k>=2)만 허용한다.
-            nbs = []
-            if rq in NOTEBOOK_MAP:                       # 이름이 규칙과 다른 예외
-                nbs = [nb_dir / NOTEBOOK_MAP[rq]] if (nb_dir / NOTEBOOK_MAP[rq]).exists() else []
-            for k in range(min(3, len(parts)), 1, -1):
-                if nbs:
-                    break
-                nbs = sorted(nb_dir.glob("_".join(parts[:k]) + "*.ipynb"))
-                if nbs:
-                    break
-            if not nbs:
-                skipped.append(f"{rq}(미완: 노트북 없음)")
-                continue
+        # [D-DEF-07/10/10b 시정] 완결 게이트는 `gate()` 로 뺐다 — 안에 박혀
+        # 있는 동안 대조군을 붙일 수 없었고, 그래서 없었다.
+        nb_dir = RD.parent / "notebooks" / "d_research"
+        ok, reason = gate(rq, md, js, nb_dir)
+        if not ok:
+            skipped.append(f"{rq}({reason})")
+            continue
         rsha = sha256(payload)
         if (rq, rsha) in existing:
             skipped.append(rq)
