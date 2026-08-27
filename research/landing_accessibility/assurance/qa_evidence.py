@@ -181,7 +181,7 @@ def reconstruct_target(res: dict, batch: dict, out_dir: pathlib.Path, f: F, plan
         # NOTE: protocol_version string ('v2.0-pc-fixture-1') is NOT used to infer execution kind (A judgment 13:20) — only cross-run equality is checked.
     # L1
     tm = det.get("task_manifest") if isinstance(det.get("task_manifest"), dict) else {}
-    te = tm or {k: det.get(k) for k in ("endpoint_status", "endpoint_status_detail", "endpoint_reached", "ned", "ied", "mpfed", "archetype", "steps", "auth_gate_before_endpoint", "forced_dismissal_count", "area_signal_status") if k in det}
+    te = tm or {k: det.get(k) for k in ("endpoint_status", "endpoint_status_detail", "endpoint_reached", "ned", "ied", "mpfed", "archetype", "steps", "auth_gate_before_endpoint", "forced_dismissal_count", "area_signal_status", "budget_reason", "notes") if k in det}
     row["l1_present"] = bool(te)
     row["endpoint_status"] = te.get("endpoint_status"); row["endpoint_status_detail"] = te.get("endpoint_status_detail")
     er = te.get("endpoint_reached"); row["endpoint_reached"] = (1 if str(er) in ("1", "True", "true") else (0 if er is not None else None))
