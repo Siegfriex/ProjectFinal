@@ -225,7 +225,7 @@ def reconstruct_target(res: dict, batch: dict, out_dir: pathlib.Path, f: F, plan
     if not l0 and row["outcome"] not in ("PLANNED_NOT_EXECUTED",):
         f.add("C2", "L0_DETAIL_ABSENT_IN_BATCH", f"outcome {row['outcome']}: batch result carries no L0 record (lineage from batch→evidence run broken; see orphan_runs)", target_id=tid)
     if row["outcome"] == "PLANNED_NOT_EXECUTED": reason = "NOT_EXECUTED"
-    elif row["outcome"] == "ACCOUNT_ACTION_BLOCKED": reason = "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
+    elif row["outcome"] == "ACCOUNT_ACTION_BLOCKED": reason = "L1_NOT_ATTEMPTED_GUARD"  # contract §1.3 3rd category (A 14:04): our tool's constraint — not target property, not transient failure
     elif row.get("timeout_cap_exceeded") or row["outcome"] == "TIMEOUT" or row["measurement_status"] == "FAILED_PAGE_TIMEOUT": reason = "TIMEOUT"
     elif row["outcome"] == "WAF_BLOCKED" or row["measurement_status"] == "FAILED_ACCESS_BLOCKED": reason = "ACCESS_REFUSAL"
     elif row["outcome"] in ("TRANSPORT_FAILURE", "TLS_FAILURE", "SKIPPED_RETRY_EXHAUSTED", "APP_REDIRECT") or row["measurement_status"] not in ("MEASURED",): reason = "TRANSPORT_FAILURE" if row["measurement_status"] != "MEASURED" or row["outcome"] in ("TRANSPORT_FAILURE", "TLS_FAILURE", "SKIPPED_RETRY_EXHAUSTED") else "L0_NOT_MEASURED"

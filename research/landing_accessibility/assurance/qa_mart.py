@@ -60,6 +60,13 @@ def main(a):
     if C.empty: print("no raw rows"); return
     dup = C[C.duplicated("target_id", keep=False)]["target_id"].unique().tolist()
     if dup: add("C1", "DUP_TARGET_ACROSS_OUTDIRS", "target attempted in more than one out_dir", target_ids=dup)
+    # cross-out_dir provenance drift (E000 vs E001 workers): expected & approved by A when --expected-drift is set
+    provs = {}
+    for _, r in C.iterrows():
+        pv = r.get("run_provenance");
+        if isinstance(pv, dict): provs.setdefault(json.dumps({k: pv.get(k) for k in ("base_sha", "shadow_lane", "protocol_version", "execution_scope")}, sort_keys=True), set()).add(r["_out_dir"])
+    if len(provs) > 1:
+        add("C2" if a.expected_drift else "C1", "PROVENANCE_DRIFT_ACROSS_OUTDIRS", ("A-approved expected drift (E000 batch-0 reuse void): " if a.expected_drift else "") + f"{len(provs)} provenance variants across out_dirs", variants={k: sorted(v) for k, v in provs.items()})
     C = C.drop_duplicates("target_id", keep="first").set_index("target_id")
     mart = pathlib.Path(a.mart_dir)
     rd = lambda n: pd.read_csv(mart / f"{n}.csv", dtype=str) if (mart / f"{n}.csv").is_file() else None
@@ -231,4 +238,4 @@ def main(a):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--out-dirs", nargs="+", required=True); ap.add_argument("--mart-dir", required=True); ap.add_argument("--older-relevant", default=str(pathlib.Path(__file__).resolve().parent / "out" / "older_relevant_registry.json")); ap.add_argument("--plan", required=True)
-    ap.add_argument("--b-stats"); ap.add_argument("--collector-sha"); ap.add_argument("--protocol-sha"); ap.add_argument("--plan-hash", default="b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc"); ap.add_argument("--e001-start", help="KST HH:MM of actual E001 start (extension branch if >= 13:15)"); ap.add_argument("--state-dir"); ap.add_argument("--out", default="out"); main(ap.parse_args())
+    ap.add_argument("--b-stats"); ap.add_argument("--collector-sha"); ap.add_argument("--protocol-sha"); ap.add_argument("--plan-hash", default="b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc"); ap.add_argument("--expected-drift", action="store_true", help="A approved collector change between E000 and E001 (E000 reuse void)"); ap.add_argument("--e001-start", help="KST HH:MM of actual E001 start (extension branch if >= 13:15)"); ap.add_argument("--state-dir"); ap.add_argument("--out", default="out"); main(ap.parse_args())
