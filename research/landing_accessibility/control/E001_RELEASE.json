@@ -1,13 +1,11 @@
 {
-  "status": "RELEASED",
+  "status": "SUSPENDED",
   "released_at": "2026-08-27T13:41:00+09:00",
   "released_by": "A (Authority Plane, projectfinal-64) — E000_FAST 수용 판정 후 발행",
   "deadline": "2026-08-27T16:30:00+09:00",
-
   "e001_allowed": true,
   "execution_scope": "E001_FULL",
   "real_target_allowed": true,
-
   "e000_fast_verdict": {
     "verdict": "E000_FAST_PASS",
     "adjudicated_at": "2026-08-27T13:41:00+09:00",
@@ -21,7 +19,6 @@
       "UNRESOLVED": 1
     },
     "outcome_note": "전건이 정당한 L1 종결상태다. ACCOUNT_ACTION_BLOCKED 는 계정행동 가드가 차단한 것(정상 동작), AUTH_GATE 는 인증 벽 도달(관측 결과), UNRESOLVED 는 Scout 예산 소진. **금지행위 0건** — 로그인·결제·OTP·본인인증·PII·CAPTCHA 우회 전무.",
-
     "joint_valid_n": 0,
     "mpfed_available_n": 0,
     "mpfed_null_reason": {
@@ -33,7 +30,6 @@
     },
     "e6b_fail_closed_activations": 2,
     "e6b_note": "youtube(CONTENT_OPEN) · hana_bank(FINANCIAL). **후자는 gate 종류가 판별됐다면 endpoint 승격 대상이었다** — 판별 실패로 fail-closed 가 작동했다. 이 카운터가 '측정 한계' 서술의 정량 근거다.",
-
     "acceptance_checklist": {
       "1_predetermined_targets_and_order": "PASS — E000_FAST_PLAN allowlist 6건 전부, plan_sha256 bc8c590a… 확인",
       "2_l0_l1_both": "**FAIL — 문자 그대로 미충족. 예외 등재로 진행한다.**",
@@ -55,7 +51,6 @@
       "8_failure_isolation": "PASS — UNRESOLVED 1건이 다른 5건에 영향 없음",
       "9_no_outcome_conditioned_reselection": "PASS — frozen plan 순서 유지, 결과 후 변경 0"
     },
-
     "incident_recorded": {
       "what": "스크립트가 두 번 실행되어 3개 타깃에 중복 run 이 생겼고, 두 번째 실행이 batch_0001 재봉인 시도 중 BatchOverwriteError 로 중단됐다.",
       "cause": "발사 명령이 중복 투입됨 (A 가 명령을 여러 차례 제시한 것이 원인일 수 있다)",
@@ -63,15 +58,16 @@
       "duplicate_runs": "3개 타깃에 run 이 2개씩 존재한다(디스크). **배치에 등재된 것은 각 1건뿐**이므로 분석 표본에는 중복이 없다. 디스크의 잉여 run 은 삭제하지 않는다(append-only).",
       "verdict_effect": "없음 — 오히려 가드 검증 항목 4를 실부하로 충족시켰다."
     },
-
     "measured_T": {
       "note": "run_id 의 시작 시각과 sealed_at 의 차이로 산출한 **실측** 타깃당 소요다. 추정이 아니다.",
-      "observed_range_seconds": [103, 196],
+      "observed_range_seconds": [
+        103,
+        196
+      ],
       "observed_range_minutes": "1분43초 ~ 3분16초",
       "consistent_with_estimate": "B 의 구조 기반 추정(2~4분) 범위 안이다."
     }
   },
-
   "authority_refs": {
     "promoted_main_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
     "collector_sha": "a86b4c70cf4f245fc835a183930c7cd76a7adef5",
@@ -81,17 +77,18 @@
     "e001_frozen_plan_hash": "b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc",
     "e000_plan_sha256": "bc8c590a97f735fef390f531871e9c09ceb7fd97f1c2f54f68f628ebbf4aa1c4"
   },
-
   "batch_zero_reuse": {
     "SUPERSEDED_AT": "2026-08-27T13:58:00+09:00",
     "SUPERSEDED_NOTE": "**이 블록은 무효다.** 아래 `batch_zero_reuse_revised` 를 따른다. E001 실행 경로(`load_scope_allowlist(E001_FULL)` · `run_e001_real.py`)가 코드에 없어 신규 구현이 필요하고, 그로 인해 collector SHA 가 반드시 바뀐다. C 가 문서와 코드의 값 불일치를 지적해 정정했다.",
     "allowed": false,
     "condition_met": "collector SHA · protocol version · target frame · task frame · measurement schema 가 E000 과 동일하게 유지되는 한 유효하다 (TIMEBOX §7·§9).",
-    "e000_batches": ["batch_0001_b0001", "batch_0002_b0002"],
+    "e000_batches": [
+      "batch_0001_b0001",
+      "batch_0002_b0002"
+    ],
     "e000_targets": 6,
     "requirement": "(무효) 이 요구는 E001 실행 경로가 이미 존재한다는 전제 위에 있었다. 그 전제가 틀렸다."
   },
-
   "batch_zero_reuse_revised": {
     "allowed": false,
     "decided_at": "2026-08-27T13:58:00+09:00",
@@ -101,18 +98,17 @@
     "still_required": {
       "e001_worker_provenance_single": "E001 4워커 **간** provenance 는 반드시 단일이어야 한다. 워커끼리 다르면 C1 이다 (C 제기). 워크트리가 4개로 갈려 있어 실재하는 위험이다.",
       "collector_sha_to_be_filled": "(해소됨 — 아래 참조)",
-    "collector_sha_e001_resolved": {
-      "value": "222ef2c28ed5971b3c9f8b07120b7627d2617476",
-      "filled_at": "2026-08-27T14:33:00+09:00",
-      "note": "**수집 종료 후에 기입했다.** 수집 중에는 의도적으로 갱신하지 않았다 — firewall 이 launch 시점마다 이 문서를 읽고 document_sha256 을 검증하므로, 수집 중 문서를 고치면 나중에 뜨는 워커가 다른 해시를 보고 거부당한다. worker_01 은 돌고 worker_04 는 못 뜨는 상황이 조용히 생긴다.",
-      "e000_collector_sha": "a86b4c70cf4f245fc835a183930c7cd76a7adef5",
-      "why_different": "E001 실행 경로(load_scope_allowlist(E001_FULL) · run_e001_real.py)가 코드에 없어 신규 구현이 필요했다. A 승인 하의 expected drift 이며 batch-0 재사용은 무효다.",
-      "raised_by": "C 가 EXPECTED_DOC_LAG_DURING_COLLECTION 으로 기록하고, 수집 종료 후 미반영 시 C1 으로 올리도록 backlog 에 넣었다. 그 감시가 작동해 여기 기입됐다."
-    }
+      "collector_sha_e001_resolved": {
+        "value": "222ef2c28ed5971b3c9f8b07120b7627d2617476",
+        "filled_at": "2026-08-27T14:33:00+09:00",
+        "note": "**수집 종료 후에 기입했다.** 수집 중에는 의도적으로 갱신하지 않았다 — firewall 이 launch 시점마다 이 문서를 읽고 document_sha256 을 검증하므로, 수집 중 문서를 고치면 나중에 뜨는 워커가 다른 해시를 보고 거부당한다. worker_01 은 돌고 worker_04 는 못 뜨는 상황이 조용히 생긴다.",
+        "e000_collector_sha": "a86b4c70cf4f245fc835a183930c7cd76a7adef5",
+        "why_different": "E001 실행 경로(load_scope_allowlist(E001_FULL) · run_e001_real.py)가 코드에 없어 신규 구현이 필요했다. A 승인 하의 expected drift 이며 batch-0 재사용은 무효다.",
+        "raised_by": "C 가 EXPECTED_DOC_LAG_DURING_COLLECTION 으로 기록하고, 수집 종료 후 미반영 시 C1 으로 올리도록 backlog 에 넣었다. 그 감시가 작동해 여기 기입됐다."
+      }
     },
     "e000_evidence_disposition": "E000 6건은 버리지 않는다. **별도 배치로 보존**하고 합산 시 provenance 를 구분한다. joint-valid 0 이므로 분석 표본 손실은 없으나, L0 축 기술통계에는 collector SHA 를 명시한 채 포함할지 A 가 mart 수용 시점에 판정한다."
   },
-
   "depth_axis_finding": {
     "state": "MEASURED_BUT_LARGELY_UNAVAILABLE",
     "e000_evidence": "6/6 에서 MPFED = NULL. joint-valid 0.",
@@ -135,7 +131,6 @@
     },
     "post_e001_backlog": "가드 입도 시정(target 중단 → 후보 제외 후 나머지 경로 탐색, 클릭 금지 유지) 과 gate 종류 판별 개선. 둘 다 measurement 계약에 닿으므로 독립감사 후 적용한다."
   },
-
   "grade_predetermination": {
     "rule_source": ".agent_bus/landing_v2/COLLECTION_WINDOW_RULE.md (2026-08-27 12:48 선언, REAL TARGET evidence 0건 상태)",
     "e001_start_estimate": "13:43",
@@ -155,7 +150,6 @@
     },
     "downstream_gates_final": "14:40 AI cutoff · 14:50 MART_FREEZE · 15:40 STATS · 16:30 FINAL"
   },
-
   "constraints": {
     "prohibited_actions": "로그인 · 결제 · OTP · 본인인증 · PII · CAPTCHA 우회 금지. AUTH_GATE 도달은 관측 결과로 기록하고 통과하지 않는다.",
     "l0_l1": "모든 run 에서 L0 와 L1 이 함께 (A0 §14).",
@@ -165,11 +159,16 @@
     "single_invocation": "**동시 중복 실행 금지.** E000 에서 두 번 실행이 append-only 가드를 발화시켰다. 가드가 막았으나 E001 에서 반복되면 배치 번호 충돌로 수집이 중단된다.",
     "global_hard_stop": "canonical source corruption · systemic evidence identity corruption · outcome-conditioned target contamination · systemic append-only corruption · systemic forbidden external action — 이 5종만. 그 외는 record · isolate · continue."
   },
-
   "known_defects_carried": {
     "real_target_outcome_used_semantics": "실수집 run 의 provenance 에 `real_target_outcome_used: true` 가 찍힌다. **이는 '실수집을 했다' 의 오기이며 PHASE_GATES §4.1 의 outcome-conditioned 의미가 아니다.** mart/analysis 는 이 필드를 selection-contamination 지표로 **쓰지 마라.** outcome-conditioning 판정은 plan 순서 · target 집합 · plan hash 로만 한다. 필드 분리는 post-E001 backlog. (C 제기, A 판정)",
     "collector_sha_absent_in_run_provenance": "run provenance 에 실행 HEAD 가 없고 base_sha(397a10d, lane base) 만 있다. B 는 **batch 또는 mart provenance 에 a86b4c7 을 명시**해야 MART_ACCEPTANCE §1-7 을 충족한다. (C 제기, C2)",
     "locally_forgeable_tracking_ref": "firewall 이 릴리스 문서를 `git show origin/control/...` 로 읽는다. refs/remotes/origin/* 는 로컬 파일이라 위조 가능하며, V2-C015 에서 승격 스크립트에 대해 시정한 것과 **동일 결함 계열**이다. 오늘은 발사 직전 fetch 로 완화했을 뿐 해소하지 않았다. **post-E001 최우선 backlog.** LIMITATIONS 기재 필수. (C 제기, A 성격 정정)",
     "protocol_version_naming": "`v2.0-pc-fixture-1` 문자열에 fixture 가 남아 있으나 observation_id 안정성을 위해 유지된 것이며 실행 종류를 나타내지 않는다. 실행 종류는 execution_mode · execution_scope · real_target_measurement · run status 로 판별한다."
-  }
+  },
+  "suspended_at": "2026-08-28T00:47:26+09:00",
+  "suspended_by": "A (Authority Plane) — T-B-BLK-008 대응",
+  "suspension_reason": "현 phase 는 V2_DIAGNOSTIC_REAL_EVIDENCE_PILOT 이며 D-R0-80 이 REAL_TARGET 을 manifest 12 target 으로 한정했다. 그런데 이 문서가 RELEASED 로 남아 있어 E001_FULL(59 target) 이 firewall 을 통과할 수 있었다. deadline 2026-08-27T16:30 은 코드가 검사하지 않는다 — firewall.py 에 deadline 언급 0건(대조군: status 5건). 즉 마감은 문서상 표기일 뿐 강제되지 않았다. 59-target 실행을 막는 것이 '아무도 그 명령을 돌리지 않았다' 뿐이었다.",
+  "suspension_effect": "e001_allowed 는 값이 남아 있으나 status != RELEASED 이므로 evaluate_execution_scope 가 fail-closed 로 거부한다.",
+  "reinstatement_condition": "full-59 RAW COLLECTION 을 A 가 승인할 때 새 릴리스 문서로 재발행한다. 이 문서를 되돌려 쓰지 않는다 — 승인은 그 시점의 근거(pilot C0 부재 · systemic defect 부재 · exactly-once 실측)와 함께 새로 발행돼야 한다.",
+  "unchanged": "과거 판정 기록(e000_fast_verdict 등)은 한 글자도 바꾸지 않았다. status 와 정지 부기만 추가했다."
 }
