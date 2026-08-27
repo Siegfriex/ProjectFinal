@@ -1,0 +1,57 @@
+{
+  "artifact": "C_W3_STAGE0_MANIFEST_VERIFICATION",
+  "producer": "C",
+  "assertion_type": "OBSERVATION",
+  "generated_at": "2026-08-27T21:19:42+09:00",
+  "target_sha": "4e60aba979",
+  "target_branch": "claude-b/w3-kwcag",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "manifest_sha256": "be28da96373edb7a17c334718014692736e1421b383c14cff49f566b70e067dd",
+  "result": "MATCH",
+  "production_modified": false,
+  "checks": [
+    {
+      "check": "manifest sha256 == sidecar == MANIFEST_FREEZE.manifest_sha256",
+      "ok": true
+    },
+    {
+      "check": "criterion ids == C frozen registry LA-ORS-20260827 (33/33, diff 0)",
+      "ok": true
+    },
+    {
+      "check": "older-relevant = applicability!=OTHER = 22 == registry older_relevant_n 22 (같은 22개)",
+      "ok": true
+    },
+    {
+      "check": "source doc OLDER_RELEVANT_KWCAG_SUBSET.md @333119e sha256 da4b5208… == registry source sha256 == @084eff5",
+      "ok": true
+    },
+    {
+      "check": "required fields: criterion_id/applicability/automation_grade/SHA 33/33; evidence_source null 8 = 정확히 NOT_AUTOMATABLE 8 (정직한 null, 원본 코드북 detector None)",
+      "ok": true
+    },
+    {
+      "check": "new criterion 0 · subset 확대 0 · 2.4.7(WCAG 오염) 제외 명시 · Stage 1 코드 0줄 · self_approved=false",
+      "ok": true
+    },
+    {
+      "check": "production src 변경 = engine/kwcag/ 신규 4파일 + tests 1 (기존 파일 수정 0)",
+      "ok": true
+    }
+  ],
+  "notes": [
+    {
+      "severity": "P3",
+      "note": "SHA 필드가 commit sha(333119e)다. 문서 내용 해시(sha256 da4b5208)를 병기하면 문서가 다른 커밋에서 바뀌어도 동일성이 증명된다."
+    },
+    {
+      "severity": "P2",
+      "kind": "ANALYSIS_PREREGISTRATION",
+      "note": "older-relevant 22 = AUTO_DECIDABLE 9 + AUTO_FLAG_ONLY 6 + NOT_AUTOMATABLE 7. deterministic 판정은 최대 9 criterion. 7 NOT_AUTOMATABLE 은 Human Final ≤5 로 56 관측을 덮을 수 없어 구조적으로 UNDETERMINED/NA 가 된다. DecisionCoverage 상한(≈9~15/22)을 결과 보기 전에 사전등록해야 '낮은 coverage' 가 사후 해석되지 않는다. W3 Stage 1 착수 전 A DECISION 권고."
+    }
+  ],
+  "not_verified": [
+    "Stage 1 evaluator (미구현)",
+    "codebook kwcag22_criteria.json @ca0e082 내용 vs manifest evidence_source 문자열 1:1 대조(표본 미수행)"
+  ]
+}
