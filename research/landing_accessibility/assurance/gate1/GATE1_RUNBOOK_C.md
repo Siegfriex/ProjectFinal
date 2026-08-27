@@ -65,3 +65,16 @@ Every item is a subprocess of an existing lane script; a missing script is recor
 ```
 The 15 PASS are all C-internal controls (lane1 selfcheck 4/4; lane2 14/14; lane3 8/8; lane7 converge 31/31 + NEGCTRL_OK + probe-like 39/39 + determinism pos PASS/neg FAIL-as-expected; lane5 good=0 / bad_overwrite=2 / bad_lineage=2; lane6 pytest 30 passed + demo Q8-clean). The lane4 S2 probe against the C worktree records `IMPORT_FAIL` at both layers and is graded NOT_TESTABLE — not "denied at both layers" — which is the empty-result guard working. Verdict is not PASS and the exit code is 1, as designed: nothing runner-dependent was tested.
 Runner-path rehearsal (scratchpad stand-in runner honouring `gate1_adapter_spec.md` §1–§3, still no `--adapter-map`): 40 items, 24 PASS (adds 3 raw captures + determinism ×3 on f01–f06), 16 NOT_TESTABLE all tagged `UNMAPPED`, verdict unchanged — the comparison items cannot turn PASS without the filled §3 table. Default dry-run output lands in `gate1/out/dry_run/` (untracked, regenerable; removed after authoring).
+
+## Addendum r3 — COMPLETION intake checks added from T-B-V3-FINDING-008 (2026-08-28 07:30 KST, before any B COMPLETION)
+
+B reported 3 seam failures in its unpushed 12-lane merge (`d4e9e09f`, not a submission SHA). C does not audit that intermediate state (3-Gate mode). C pre-registers what it *will* check at COMPLETION intake, so the checks are fixed before the outcome is seen:
+
+| # | Check | Pass condition | Source |
+|---|---|---|---|
+| CI-1 | Test evidence recount | C re-runs the suite at the exact COMPLETION SHA and parses `--junitxml` itself; terminal summary is not evidence. `-q`/`-qq` addopts collision noted — empty output ≠ pass | FINDING-008 measurement note; [[verification-requires-control-group]] |
+| CI-2 | Skips enumerated | every skipped test listed with reason; **no seam test (cross-lane) may be skipped** at the merge SHA — a skip on a seam test is NOT_TESTABLE for that seam, not PASS | FINDING-008 형태B (skip masked the seam) |
+| CI-3 | Form-A rewrites narrow, not loosen | the two isolation assertions (`w5h` join-absent, `w5j` engine sha) must be rewritten to measure the lane's **own diff** (e.g. `git diff <lane-base>..<lane-tip> -- l0_collector.py`), not deleted or turned into absolute-hash-of-merged-file; C diffs old vs new assertion and confirms a lane-local violation still fails | FINDING-008 형태A; A rule "시끄러운 실패를 조용한 통과로 바꾸지 마라" |
+| CI-4 | Form-B resolved by ruling, not by edit | `test_w5c_splits_the_pair_when_it_is_available` (expected `ICON_ONLY_AX_NAMED`, got `NOT_OBSERVED`) must be closed by an A ruling (which side is right) referenced in COMPLETION; C independently reproduces the pair on a lane2 icon-only fixture through the adapter | FINDING-008 형태B; R16 |
+| CI-5 | Δ30 reflected | tie-break key `task_binding_candidate desc, dom_order asc, selector asc`, `BUDGET_EXCEEDED` (14 values), branch set = Δ9 IN10+COND3 present at the COMPLETION SHA — otherwise Δ30 rows stay NOT_TESTABLE and the verdict is at most METHOD_QUALIFIED_WITH_LIMITATIONS | T-A-V3-STEP1-027 |
+| CI-6 | Failures = 0 at submission | any non-zero `failures`/`errors` in C's own junit recount at the COMPLETION SHA ⇒ C_HARNESS_DEFECT check first (env), then FAIL_SYSTEMIC candidate | runbook ladder |
