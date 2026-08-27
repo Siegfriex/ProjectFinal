@@ -1,0 +1,54 @@
+{
+  "doc_id": "LA-LABEL-OVERLAP-2.1",
+  "assertion_type": "DECISION",
+  "purpose": "C-BLOCKER-211259 해소 — labeler 파티션이 split 과 완전 정렬돼 inter-labeler agreement 추정이 불가능했다. 겹침 16건으로 agreement 를 추정한다. F-A3 의 remedy 를 겸한다.",
+  "confound_observed": {
+    "L1": {
+      "calibration": 16,
+      "holdout": 0
+    },
+    "L2": {
+      "calibration": 0,
+      "holdout": 15
+    },
+    "L3": {
+      "calibration": 14,
+      "holdout": 0
+    },
+    "L4": {
+      "calibration": 0,
+      "holdout": 11
+    }
+  },
+  "design": "각 labeler 는 자신이 보지 않은 split 에서 4건을 추가 라벨한다. 원 labeler 와 재라벨 labeler 는 항상 다르다.",
+  "assignments": {
+    "L1": [
+      "wtg_0ee385d0c964e560",
+      "wtg_12e3942c0495b9a4",
+      "wtg_24e6654bfd1ab85b",
+      "wtg_35319a420294ee17"
+    ],
+    "L3": [
+      "wtg_377983572bd38242",
+      "wtg_5ede56738376a8c5",
+      "wtg_9390ef32addf32bf",
+      "wtg_95967b50683649f2"
+    ],
+    "L2": [
+      "wtg_054d78ed187cdd9f",
+      "wtg_088809bf9b31bc6a",
+      "wtg_0f3bdb2bd0bb891e",
+      "wtg_13ed070478ef62c3"
+    ],
+    "L4": [
+      "wtg_190b4501e4415d5e",
+      "wtg_22ffba7a86ea9919",
+      "wtg_46e5a43370f75308",
+      "wtg_5beeafeac2e27eae"
+    ]
+  },
+  "n_overlap": 16,
+  "slot_rule": "지시문에 읽을 evidence slot 집합을 고정한다 — dom.html · ax.json · probe.json · computed_css.json · screenshot. NH 불일치의 원인이 slot 선택 차이였으므로 slot 을 고정하지 않으면 agreement 가 slot 선택의 함수가 된다.",
+  "use": "agreement 는 holdout ceiling 으로 병기한다. LABELS_FROZEN 은 변경하지 않는다 — 겹침 라벨은 별도 파일에 적재한다.",
+  "does_not_change": "LABELS_FROZEN.jsonl sha256 f373004b… 와 split sha256 dbe4ed0f… 는 불변."
+}
