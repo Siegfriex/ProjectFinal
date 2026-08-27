@@ -147,6 +147,46 @@ def check_index_delta(prev: dict | None) -> dict:
     now["delta"] = _cmp(prev_dl, now["delta_sha"])
     now["index_changed"] = now["index"]["changed"]
     now["delta_changed"] = now["delta"]["changed"]
+    # --- input_identity (A 의 R38 / STEP1-033 9번째 검사) ---
+    # A 가 B·C·D 에게 `check_ruling_index.py` 실행을 지시했으나 그 파일은 D
+    # 방화벽 밖이다. **같은 신호를 허용된 두 파일만으로 만든다** — 색인이
+    # 스스로 선언한 `source_sha256` 과 실제 delta 바이트를 비교한다.
+    # 불일치면 그 색인의 수치를 인용하지 않는다.
+    try:
+        doc = json.loads(idx_p.read_text(encoding="utf-8"))
+    except Exception:                                    # noqa: BLE001
+        doc = {}
+    declared = doc.get("source_sha256")
+    now["input_identity"] = {
+        "declared_source_sha256": declared,
+        "actual_delta_sha256": now["delta_sha"],
+        "match": (declared == now["delta_sha"]) if declared else None,
+        "verdict": ("PASS" if declared == now["delta_sha"]
+                    else "NO_FIELD" if not declared else "FAIL"),
+        "consequence": "FAIL 이면 이 색인의 수치를 인용하지 않는다 (A STEP1-033)",
+        "why_D_computes_it_here": ("A 의 검사기는 D 방화벽 밖이다. 허용된 두 파일"
+                                   "(색인·delta)만으로 같은 신호를 만든다."),
+    }
+    # A 가 last_run 에 실은 절 수를 D 자신의 계수와 대조한다 — **같은 입력일 때만.**
+    lr = (doc.get("self_check") or {}).get("last_run") or {}
+    a_sections, a_input = lr.get("delta_sections"), lr.get("input_sha256")
+    d_sections = None
+    if a_sections is not None:
+        import re as _re
+        txt = dl_p.read_text(encoding="utf-8")
+        TOK = (r"(?:Δ\d+[a-z]?(?:-[A-Za-z0-9]+)?)|(?:R\d+)|(?:P-?\d+)|(?:GAP-?\d+)")
+        d_sections = len({m.group(1) for m in
+                          _re.finditer(rf"^#{{2,4}}\s*({TOK})\b", txt, _re.M)})
+    now["delta_sections_crosscheck"] = {
+        "A_last_run_delta_sections": a_sections,
+        "A_last_run_input_sha256": a_input,
+        "D_unique_header_tokens": d_sections,
+        "same_input": (a_input == now["delta_sha"]) if a_input else None,
+        "comparable": bool(a_input and a_input == now["delta_sha"]),
+        "agree": (a_sections == d_sections) if (a_sections is not None
+                                                and d_sections is not None) else None,
+        "rule": "R38 — 입력 sha 가 다른 두 측정값은 비교하지 않는다",
+    }
     now["note"] = ("변경은 결함이 아니다 — A 가 갱신 중이다. "
                    "변경을 **모르고 옛 sha 로 대조하는 것**이 결함이다.")
     return now
@@ -289,6 +329,12 @@ def main() -> int:
         print(f"pack 밖 문서     : {oop.get('verdict')} — {oop.get('why','')}")
     print(f"색인/delta      : v{i['index_version']} {i['index_sha'][:16]} "
           f"색인={_fmt(i['index'])} delta={_fmt(i['delta'])}")
+    ii = i.get("input_identity", {})
+    dc = i.get("delta_sections_crosscheck", {})
+    print(f"input_identity  : {ii.get('verdict')} "
+          f"(선언 {str(ii.get('declared_source_sha256'))[:16]} vs 실제 {str(ii.get('actual_delta_sha256'))[:16]})")
+    print(f"절 수 대조       : A={dc.get('A_last_run_delta_sections')} D={dc.get('D_unique_header_tokens')} "
+          f"같은입력={dc.get('same_input')} 일치={dc.get('agree')}")
     if i["index"]["comparable"] and i["index"]["changed"]:
         print(f"                  이전 {i['index']['prev']} → 현재 {i['index_sha'][:16]}")
     for d in s["mismatches"] + e["drifted"] + t["drifted"]:
