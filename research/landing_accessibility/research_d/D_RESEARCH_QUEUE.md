@@ -725,3 +725,27 @@ D 는 소유·배정에 관여하지 않는다(A 판정 사항). **측정 타당
 
 ### 열린 것
 `AMB-X02`(nav depth endpoint cut) — 유일하게 남은 수렴검사 모호성.
+
+## 2026-08-28 03:38 — "lane 별 green ≠ 통합 정확성" 이 세 번째로 관측됐다
+
+`T-B-V3-RECON-002` (cc) — B 가 8 lane 병합에서 인터페이스 불일치 3건을 찾았다.
+병합 자체는 충돌 0 · import 전건 성공인데 **Protocol 이름 불일치가 실행 시점 `AttributeError`** 를 낸다.
+
+> *"각 lane 은 자기 Protocol 경계를 fake 로 테스트했고 전부 통과했다. **통과가 겹친다고 연결이 되는 것이 아니다.**"*
+
+이 형태를 D 가 이미 두 번 관측했다. 세 사례를 나란히 둔다 — Wave 1 handoff 의 known limitation 재료다.
+
+| # | 평면 | 무엇이 green 이었나 | 무엇이 안 잡혔나 | 무엇이 잡았나 |
+|---|---|---|---|---|
+| 1 | D | Lane S fixture 60/60 · 변이 8/8 | precedence 결함(20 입력조합) | **독립 재도출**(코드 미공유 2차 구현) |
+| 2 | D | 5 lane 각각 `READY_WITH_AMBIGUITY` | `nav_container_depth` 중복·축 불일치 | **cross-lane reconcile** |
+| 3 | B | 8 lane 전건 통과 · 병합 충돌 0 | Protocol 이름 불일치 → 실행 시 AttributeError | **통합 후 실측** |
+
+공통 구조: **검사의 범위가 곧 보증의 범위다.** fixture 가 묻지 않은 것은 변이도 흔들지 못하고,
+lane 안에서 닫힌 것은 lane 경계를 넘지 못하며, fake 로 만족된 Protocol 은 실물 연결을 보장하지 않는다.
+
+세 사례 모두 **worker 완료를 그대로 canonical 로 채택했으면 드러나지 않았다.**
+Director ADDENDUM §3 의 reconciliation 이 요구한 것이 정확히 이 층이다.
+
+D 는 이것을 별도 티켓으로 발행하지 않는다 — cc 로 받은 B 산출에서 파생한 종합이고,
+Wave 1 handoff 의 `unresolved risks` / `what D explicitly did NOT test` 에 넣는다.
