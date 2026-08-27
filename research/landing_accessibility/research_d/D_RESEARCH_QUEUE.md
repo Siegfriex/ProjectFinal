@@ -170,3 +170,39 @@ RQ-D14 child 실행 시점의 exact HEAD 에서 사전 스캔을 남기고, 결�
 
 **패턴**: 중간 표현을 D 가 만들고 D 가 분석하면 D 의 버그가 세상에 대한 발견처럼 보인다.
 D-DEF-01 은 그것을 broadcast 해 철회까지 갔고, 이후 셋은 broadcast 전에 잡았다.
+
+## 수신 티켓 2026-08-27 23:52 — P0 HOLD
+
+| ticket | from | type | prio | 상태 |
+|---|---|---|---|---|
+| `T-A-HOLD-001` | A | HARD_STOP_CANDIDATE | **P0** | **ACKED** — GO_NO_GO 는 D 권한 밖이라 거절, 선택지 관련 증거만 `D-HOLD-EVIDENCE-001` 로 제출 |
+
+A 가 `W1_W2_JOINT_GATE` 에 HOLD 를 선언하고 **REAL_TARGET NO-GO** 를 확정했다.
+Director 선택지 3개: (a) 게이트 유지 + W2 rework(R1) / (b) frozen DOM 모집단 한계 인정(R2) →
+평가 모집단을 pilot 으로 교체 / (c) PARTIAL_READY_WITH_BLOCKER 로 stratified pilot 진입.
+
+**D 는 어느 선택지도 권고하지 않는다.** A7 순서에 대한 의견을 갖지 않는다.
+D 가 한 일은 (a)/(b) 와 직접 관련된 자기 관측을 pointer 로 제출한 것뿐이다.
+
+### D 가 제출한 것 (요약 — 상세는 D-HOLD-EVIDENCE-001)
+
+| 선택지 | D 관측 | 수치 |
+|---|---|---|
+| 모든 선택지에 걸림 | **D-FACT-01** — prior ≡ 업종 전단사 | nMI 1.000, 56/56. (b) 로 pilot 을 새로 만들어도 같은 방식으로 prior 를 배정하면 전단사가 재생산된다 |
+| (a) R1 | 세 독립 rule 구현이 우연 수준으로 다름 | Jaccard 0.043~0.190, kappa −0.165~+0.128, 교집합 1/56 |
+| (a) R1 | rule 이 semantic 위에 정보를 못 얹음 | McNemar b=0, c=2 |
+| (a) R1 | force-map 금지가 경험적으로 옳음 | rule argmax 0.750 vs first-match 0.775 불일치 |
+| (b) R2 | 원칙적 abstain 하한과 구성 | 표면부재 14 / 관측손상만 9 / 정의 2 |
+| (b) R2 | RF001-A 관측은 확인·추론은 반증 | corporate host 16/56 인데 그중 9건이 CONTROL_PRESENT |
+| (b) R2 | L1 출구 유무는 판별력 없음 | 82.8% vs 대조 92.6%, Fisher p=0.24 |
+| (b) R2 | probe 전용 후보 5/56 | dom 단독 판정은 최소 5건에서 틀린다 |
+| 어느 쪽도 아님 | NED 는 detector 와 독립이 아님 | episode 151개 전부 SCROLL, area_signal_status 31/31 NOT_OBSERVED |
+
+**D 가 확인할 수 없는 것**: 독립 labeler 의 gold label 이 D-FACT-01 의 전단사를 깨는가.
+깨지 않는다면 게이트의 agreement 조건이 무엇을 재는지가 바뀐다. holdout 방화벽 안쪽이라
+D 는 볼 수 없고, **이것은 D 가 판단할 사안이 아니라 확인이 필요한 사실이다.**
+
+### HOLD 가 D 를 멈추지 않는 이유
+HOLD 는 W2 detector 게이트에 관한 것이다(A 명시). D 의 연구는 frozen evidence 재분석이며
+게이트·REAL_TARGET 과 무관하다. RQ-D15(v3 코퍼스 재현)는 계속한다.
+D 산출은 어느 선택지도 전제하지 않는다.
