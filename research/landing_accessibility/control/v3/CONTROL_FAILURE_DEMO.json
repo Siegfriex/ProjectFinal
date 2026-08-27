@@ -1,0 +1,48 @@
+{
+ "what": "check_ruling_index.py 의 실패 시 동작 실증 (R35 셋째 요소)",
+ "checker": "control/v3/check_ruling_index.py",
+ "checker_sha256": "a2940285b0ec44e486fe8968d355a4aeb4c549fd595d5ea418bd81cd4db42dea",
+ "declared_failure_behavior": "검사 실패(exit 1) 또는 양성대조 실패(exit 2) 이면 **색인 파일을 쓰지 않는다.** 실패한 검사 아래 나온 값이 디스크에 남으면 다음에 읽는 쪽이 정상 산출과 구분하지 못한다",
+ "method": "격리 임시 사본에서 --write 를 돌리고 **산출 파일의 sha 변화**를 잰다. exit 코드는 파일에 남지 않으므로 exit 만으로는 실증이 아니다",
+ "cases": [
+  {
+   "case": "check_fail__count_mismatch",
+   "exit": 1,
+   "expected_exit": 1,
+   "output_changed": false,
+   "expected_output_changed": false,
+   "verdict": "PASS",
+   "kind": "must_not_write"
+  },
+  {
+   "case": "positive_control_fail__check_disabled",
+   "exit": 2,
+   "expected_exit": 2,
+   "output_changed": false,
+   "expected_output_changed": false,
+   "verdict": "PASS",
+   "kind": "must_not_write"
+  },
+  {
+   "case": "checker_crash__unrunnable",
+   "exit": 2,
+   "expected_exit": 2,
+   "output_changed": false,
+   "expected_output_changed": false,
+   "verdict": "PASS",
+   "kind": "must_not_write"
+  },
+  {
+   "case": "clean__writes",
+   "exit": 0,
+   "expected_exit": 0,
+   "output_changed": true,
+   "expected_output_changed": true,
+   "verdict": "PASS",
+   "kind": "must_write"
+  }
+ ],
+ "verdict": "PASS",
+ "limitation": "변이는 **내가 상상한 고장**만 잰다. 네 종뿐이다",
+ "exit_semantics": "0=통과·쓴다 · 1=검사 실패 · **2=검사가 돌지 않았다(양성대조 실패 또는 크래시) — 통과로도 실패로도 읽지 마라**"
+}

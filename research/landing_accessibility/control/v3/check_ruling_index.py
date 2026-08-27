@@ -219,6 +219,23 @@ def main():
         return 1
     print(f"PASS — {len(pc['per_check'])}개 검사 전부 통과 (변이 probe 로 셈)")
     if writing:
+        # R35 셋째 요소 — 실패 시 동작의 실증. **도구 sha 에 묶는다** (Δ46/R40).
+        # 실증이 낡으면 `valid_for_this_commit: false` 이며, 없는 실증이 있는 것으로 읽히지 않는다.
+        demo_path = os.path.join(HERE, "CONTROL_FAILURE_DEMO.json")
+        try:
+            demo = json.load(open(demo_path, encoding="utf-8"))
+            cur = hashlib.sha256(open(__file__, "rb").read()).hexdigest()
+            idx["failure_behavior_demo"] = {
+                "sidecar": "control/v3/CONTROL_FAILURE_DEMO.json",
+                "verdict": demo.get("verdict"),
+                "demonstrated_for_checker_sha256": demo.get("checker_sha256"),
+                "current_checker_sha256": cur,
+                "valid_for_this_commit": demo.get("checker_sha256") == cur,
+                "if_false": "검사기가 바뀌었고 실증은 낡았다. `python3 control_failure_demo.py` 를 다시 돌려라",
+            }
+        except FileNotFoundError:
+            idx["failure_behavior_demo"] = {"verdict": None, "valid_for_this_commit": False,
+                                            "if_false": "실증이 없다. control_failure_demo.py 를 돌려라"}
         # 입력 신원을 정본에 박는다 — 측정값만 남기면 시점 간 비교가 불가능하다 (Δ44)
         idx["source_sha256"] = delta_sha
         idx["authority_sha"] = subprocess.run(
@@ -240,4 +257,15 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # 크래시와 검사 실패가 같은 exit 을 내면 **미실행과 실패가 구분되지 않는다** (Δ46).
+    # 이 저장소의 중심 결함이 이 파일 안에 있었다 — 잘못된 색인은 traceback + exit 1 이었고
+    # 그것은 "검사가 돌아서 실패했다" 와 같은 코드다.
+    try:
+        sys.exit(main())
+    except SystemExit:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"\n!! 검사가 돌지 않았다({type(e).__name__}). 통과로도 실패로도 읽지 마라")
+        sys.exit(2)
