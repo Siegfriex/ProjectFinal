@@ -248,3 +248,124 @@ batch.py:258  run_l1_if_safe_real(target, run=run, scope=scope)   # task= 미전
 - REAL_TARGET: **NO-GO** (A GO 없음, 그리고 B-N4로 exactly-once 미구현)
 - B self-approval: **없음** — 이 문서는 `self_approved=false`
 - 다음 gate: **R0_GO**
+
+---
+
+# 부록 A — `T-A-CLEAN0-B-001` 미충족 항목 보완
+
+A의 `T-A-CLEAN0-B-001`(P1, base `2281c85`, deadline 21:30 KST) 수용기준 6개 중
+①G1~G5 exact 위치 ②stale/default task path ④integration base ancestry는 본문
+§2·§7·§1.1에서 이미 충족했다. 아래는 **③ W1~W4 scoped ownership**과
+**⑤ exactly-once 소비 지점 + locks 계획**, **⑥ locks/ 사용 여부**를 채운 것이다.
+
+## A.1 W1~W4 worktree / branch / scoped file ownership `DECISION(제안)`
+
+전 worker 공통 base SHA = **`2281c853950d0c475c5d2c1678680b971c2804f4`**
+(§1.1 근거: authoritative main `bc0b7a08`에는 production code가 없고 그 조상이다).
+
+| worker | worktree | branch | 소유 파일 (배타) |
+|---|---|---|---|
+| **W1** Guard + Wiring + ExactlyOnce | `.agent_worktrees/claude_b_w1` | `claude-b/w1-guard-wiring` | `e001_runner/guard.py`<br>`e001_runner/executor.py`<br>`e001_runner/real_executor.py`<br>`e001_runner/plan.py`<br>`e001_runner/batch.py`<br>`scripts/run_e001_real.py`<br>`engine/firewall.py` (loader `:542-730`만) |
+| **W2** RF / Endpoint Detector | `.agent_worktrees/claude_b_w2` | `claude-b/w2-rf-detector` | `engine/l1_engine.py`<br>`engine/l0_probe.js`<br>`engine/depth.py` |
+| **W3** KWCAG Evaluator | `.agent_worktrees/claude_b_w3` | `claude-b/w3-kwcag` | `engine/kwcag/**` (신규)<br>`engine/vocabulary.py` |
+| **W4** Axis C + Mart | `.agent_worktrees/claude_b_w4` | `claude-b/w4-axisc-mart` | `engine/l0_collector.py`<br>`engine/ai_review.py`<br>mart 산출 스크립트 (신규) |
+
+### A.1.1 잠재 충돌 3건과 그 해소 `DECISION(제안)`
+
+같은 파일을 두 worker가 만지지 않게 하기 위한 사전 규칙이다.
+
+1. **`l1_engine.py` — W1 vs W2.**
+   `TaskDefinition`(`:83-105`)은 W2 소유 파일 안에 있지만, W1의 wiring 복구는
+   **dataclass를 바꿀 필요가 없다** — `region_definition`·`endpoint_definition`·
+   `region_signal_type`·`endpoint_signal_type` 네 필드가 **이미 존재**하고
+   (`:93-97`), W1이 할 일은 `executor.py:68-75`의 상수를 실제 값으로 교체하는 것뿐이다.
+   따라서 W1은 `l1_engine.py`를 **읽기 전용**으로 쓴다. 필드 추가가 필요해지면
+   W1은 직접 고치지 않고 W2에 ticket을 낸다.
+
+2. **`l0_probe.js` — W2 vs W4.**
+   W2는 `region_signals`/`endpoint_signals`(`:307-340`)를, W4는
+   `modal_overlay_candidates`/`primary_action_candidates`를 쓴다.
+   SSOT `00 §10`이 "page-level overlay geometry는 **기존 evidence에서 우선 재사용**"이라
+   정했으므로 **W4는 `l0_probe.js`를 수정하지 않는다** — 전수 58/58에서
+   두 후보 배열이 이미 존재함을 §3에서 확인했다. 파일은 W2 단독 소유.
+
+3. **`vocabulary.py` — W3 vs W1.**
+   `outcomes.py:6`이 KWCAG 판정 어휘를 이 파일에서 가져온다. W3 단독 소유로 두고
+   W1은 읽기만 한다. W1이 새 outcome 어휘를 필요로 하면 W3에 ticket을 낸다.
+
+### A.1.2 게이트 묶음 `DECISION(제안)`
+
+`RECOVERY_DATAFLOW_AUDIT.md` §6.3이 형식 판정한 대로 **갱 1(wiring)과 갱 2(detector)는
+독립이며 어느 한쪽 단독 완료도 검증 가능한 결과를 내지 않는다.**
+따라서 **W1과 W2는 한 게이트에서 함께 검증하고, 그 사이에 재수집을 넣지 않는다.**
+W3·W4는 별개 게이트로 병렬 진행 가능하다.
+
+## A.2 Exactly-once — 소비 지점 `IMPLEMENTATION(제안)`
+
+현재 코드에는 소비 지점이 **없다**(§5). 있어야 할 자리를 exact 위치로 지정한다.
+
+```
+batch.py:237  _real_executor(target)
+  :245-248      run_id = f"{scope}-{target_id}-{timestamp}"   ← ★ 현재 여기서 매번 새로 생성
+  :249          EvidenceRun.create(...)                        ← evidence 디렉터리가 여기서 생긴다
+  :258          run_l1_if_safe_real(...)                       ← 실제 네트워크 접속
+```
+
+**★ 지점(`batch.py:245`, `EvidenceRun.create` 직전)이 유일한 삽입 위치다.**
+그 이전에는 target별 실행 단위가 확정되지 않고, 그 이후에는 evidence 디렉터리와
+네트워크 접속이 이미 발생한 뒤라 억제해도 늦다.
+
+삽입할 순서:
+
+1. `idempotency_key = sha256(ticket_id | run_id | target_id | collector_sha | protocol_sha)`
+   — LA-ORCH-2.1 §10 구성 그대로.
+2. `locks/<idempotency_key>.lock`을 `O_CREAT|O_EXCL`로 획득 시도.
+3. 실패(=이미 존재) → **launch하지 않고** `DUPLICATE_SUPPRESSED` event를
+   `event_log.jsonl`에 append하고 기존 결과를 반환.
+4. 성공 → `EvidenceRun.create` 이하 진행, 종료 시 lock에 결과 SHA를 기록(삭제하지 않는다 —
+   삭제하면 재실행이 다시 열린다).
+
+### A.2.1 `run_id` 어휘 충돌 (P1, 설계 전 반드시 정리) `OBSERVATION`
+
+프로토콜 §10의 `run_id`와 코드의 `run_id`는 **다른 것**이다.
+
+| | 의미 | 생성 |
+|---|---|---|
+| 프로토콜 §10 `run_id` | **수집 회차** 식별자 (한 batch 전체) | ticket과 함께 A가 부여 |
+| `batch.py:245` `run_id` | **target 1건의 1회 시도** 식별자 | timestamp 합성 |
+
+코드의 `run_id`를 그대로 키에 넣으면 timestamp가 들어가므로 **키가 매번 달라져
+억제가 영원히 발화하지 않는다.** 키에는 **회차 run_id**를 쓰고, target별
+timestamp 식별자는 `attempt_id`로 이름을 바꿔 evidence 디렉터리에만 남겨야 한다.
+
+### A.2.2 retry와의 관계 `OBSERVATION`
+
+`_run_target_isolated`(`batch.py:264-`)가 `run_with_retry(attempt)`로 감싸고,
+`attempt`가 `_real_executor`를 재호출한다. 따라서 **retry 1회마다 새 evidence run이
+생긴다** — §4.1에서 관측한 run 60 vs target 56(4건 차이)의 기전이 이것이다.
+
+exactly-once 설계는 **retry를 중복 실행으로 억제하면 안 된다.** 같은
+idempotency key 안에서 `attempt_id`만 증가시키고, lock은 **key 단위(=target×회차)**로
+잡는다. worker lock도 LA-ORCH-2.1 §10대로 **target 단위**다.
+
+## A.3 bus `locks/` 사용 여부 `DECISION(제안)`
+
+A가 생성한 `.agent_bus/landing_v2/locks/`를 확인했다 — **현재 비어 있다**
+(`ls -la` 결과 파일 0건).
+
+**B는 쓴다.** 다만 두 종류를 구분해서 쓴다.
+
+| lock | 경로 | 단위 | 목적 |
+|---|---|---|---|
+| worker 작업 lock | `locks/worker-<W#>.lock` | worker | 같은 파일을 두 worker가 잡지 않게 (A.1 소유권의 런타임 강제) |
+| 실행 idempotency lock | `locks/exec-<idempotency_key>.lock` | target × 회차 | A.2의 중복 발사 억제 |
+
+두 번째는 `.agent_bus/`가 Git 추적되지 않으므로(T-B-BLK-002) **로컬 파일시스템에만
+존재한다**. 이는 exactly-once에 문제가 없다(같은 머신에서 실행되므로).
+다만 억제 사건 자체는 감사 대상이므로 `DUPLICATE_SUPPRESSED` event는
+Git-tracked mirror에도 남긴다.
+
+## A.4 여전히 B가 결정하지 않는 것
+
+A.1~A.3은 전부 **제안**이다. 본문 §9의 R0 결정 6건이 나오기 전에는 착수하지 않는다.
+특히 A.2는 `T-B-BLK-001`의 대상이며, A가 "W1 범위에 포함"을 결정해야 구현에 들어간다.
