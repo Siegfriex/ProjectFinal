@@ -193,12 +193,29 @@ def test_tampering_is_detected_even_though_raw_is_gitignored(tmp_path: Path) -> 
 
 
 def test_structure_only_verification_is_not_counted_as_verified(tmp_path: Path) -> None:
-    """검사하지 않은 것을 통과로 세지 않는다 (`07 §4`)."""
+    """검사하지 않은 것을 통과로 세지 않는다 (`07 §4`).
+
+    `evidence_manifest.verify_run`(bc0b7a0, `verify-run-mislabels-mode-and-symlink-
+    bypasses-relpath-guard` 시정)은 `status`를 `require_files` 플래그가 아니라
+    **실제로 몇 건을 바이트 대조했는지**에서 유도한다. 그래서 raw 파일이 실제로
+    존재하면 `require_files=False`로 불러도 `VERIFIED`가 맞다 — "검사하지 않은 것을
+    통과로 세지 않는다"의 반례가 아니라 정확히 그 원칙이 요구하는 반대쪽 결과다.
+    이 케이스가 실제로 시험해야 하는 것은 **raw가 없는(manifest-only clone) 상황**이다 —
+    거기서만 `files_checked < entries`가 성립해 구조검증 라벨이 나온다.
+    """
     run = _run(tmp_path)
     run.seal()
-    assert verify_run(run.run_dir, require_files=False)["status"] == (
-        "MANIFEST_WELL_FORMED_FILES_NOT_CHECKED"
-    )
+    raw_path = run.run_dir / "obs-1" / "l0a" / "dom.html"
+    assert raw_path.exists()
+    raw_path.unlink()
+
+    structure_only = verify_run(run.run_dir, require_files=False)
+    assert structure_only["status"] == "MANIFEST_WELL_FORMED_FILES_NOT_CHECKED"
+    assert structure_only["files_checked"] == 0
+
+    strict = verify_run(run.run_dir, require_files=True)
+    assert strict["status"] == "FAILED"
+    assert raw_path.relative_to(run.run_dir).as_posix() in strict["missing_files"]
 
 
 def test_empty_run_cannot_be_sealed(tmp_path: Path) -> None:

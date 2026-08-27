@@ -337,4 +337,4 @@ P0 종료 전에는 금지다(`PHASE_GATES` §4.1 2항). **fixture 기반 조작
 | Q-2 `UTILITY_ENTRY` endpoint (U-1 채택 여부) | `A2` §6.4가 P-A 소관으로 유지. SHADOW lane은 **근거만 갱신**했고 권고를 바꾸지 않았다. 감사·Director 판정 사항 |
 | Q-9 gate 종류 판별 기준의 **내용** | 실제 gate 화면 관측 없이 문면만으로 만들면 임의 조작화다. 실관측은 P0 종료 전 금지 |
 | Q-3 ~ Q-8 | 초판 상태 그대로. SHADOW lane이 새로 판단할 근거를 얻지 못했다 |
-| pilot mapping 15건의 매핑값 | `mapping_status = DRAFT`. 동결하지 않았고 `ANALYSIS_AND_TASK_CODEBOOK_FROZEN`을 닫지 않았다 |
+| pilot mapping 15건의 매핑값 | `mapping_status ∈ {CANDIDATE, AMBIGUOUS_UNRESOLVED}` (stage1 RULE 확정 9건은 `CANDIDATE`, abstain 6건은 `CANDIDATE`를 경유해 `AMBIGUOUS_UNRESOLVED`). `FROZEN`으로 동결하지 않았고 `ANALYSIS_AND_TASK_CODEBOOK_FROZEN`을 닫지 않았다. (CR-002 시정 반영, integration-current) |

@@ -1,0 +1,32 @@
+<!doctype html>
+<!--
+FIXTURE: dom_order_tiebreak
+검증 대상: A1 §2.6 규칙 MIN-4 — `marked_primary`가 없는 동급 형제 control(그리드의
+      동급 카드, MIN-4 원문이 직접 든 예)에서 tie-break 2차 키가 관측값(면적)이
+      아니라 구조값(`dom_order`, 문서 순서)으로 결정되는가.
+설계: 세 카드(A/B/C)는 크기가 완전히 같다(171x120, `area_css_px2` 동일) — 면적으로는
+      전순서가 서지 않는다. `marked_primary`도 전부 false다. 유일하게 남는 결정 요인은
+      문서 순서(dom_order)뿐이다.
+기대: `primary_action_candidates` 중 hittable한 세 카드가 dom_order = 0,1,2 를
+      문서 등장 순서(A,B,C)대로 갖는다. `rank_primary_action_candidates`/Scout 후보
+      열거 모두 dom_order=0(카드 A)을 최상위로 고른다. 같은 fixture를 반복 실행해도
+      이 순서는 흔들리지 않아야 한다(A1 §2.5 `MIN-4 경로 결정성 케이스`).
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>동급 형제 카드 그리드 — 고정 픽스처</title>
+<style>
+  html,body{margin:0;font-family:system-ui,sans-serif;color:#111;background:#fff}
+  .grid{display:flex;flex-wrap:wrap;padding:8px}
+  .card{display:block;width:171px;height:120px;margin:8px;background:#eef3ff;
+        color:#111;text-decoration:none;border:1px solid #99b}
+</style></head>
+<body data-fixture="dom_order_tiebreak" data-archetype="CONTENT_OPEN"
+      data-region="ARTICLE_LIST_REGION">
+<h1 style="font-size:20px;padding:16px 8px 0">동급 카드 그리드</h1>
+<div class="grid">
+  <a id="card-a" class="card" href="./simple_article.html">카드 A</a>
+  <a id="card-b" class="card" href="./simple_article.html">카드 B</a>
+  <a id="card-c" class="card" href="./simple_article.html">카드 C</a>
+</div>
+</body></html>

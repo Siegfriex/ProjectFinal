@@ -1,0 +1,63 @@
+{
+  "title": "MIN-4 tie-break reconciliation: area_quantized (pre-C010b) -> dom_order (C011/C012)",
+  "status": "RESOLVED",
+  "resolved_by": "claude-b/integration-current (WORKER-INTEGRATION-CURRENT)",
+  "resolved_on_base_sha": "bc0b7a0",
+  "instruction_compliance": "authority re-read fresh at bc0b7a0 in this worktree before any code change, per explicit instruction not to implement from memory of a prior session.",
+  "authority_read": {
+    "a1_document": "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md",
+    "sections_read": ["§2.5 (MIN-4 경로 결정성 케이스)", "§2.6 규칙 MIN-4 / MIN-5 / MIN-8", "§5.1 fact_primary_action_candidate 표 (dom_order 컬럼 + 관측 절차)"],
+    "a2_document": "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+    "a2_section_read": "§1.13 Candidate 수준 어휘 -- dom_order 값 도메인 (정본)",
+    "execution_authority_document": "docs/v2/EXECUTION_AUTHORITY.md",
+    "execution_authority_line_129_claim_checked": {
+      "instruction_referenced": "'EXECUTION_AUTHORITY:129 정렬 조항'",
+      "finding": "grep for 'dom_order' and '정렬' across the current EXECUTION_AUTHORITY.md at bc0b7a0 returns zero matches -- this document does not currently contain a sort/ordering clause for dom_order at line 129 or anywhere else. Line 129 in the current file falls inside the '§5 SUPERSEDED_FOR_SCOPE / OPERATIONAL_GUARDS_INHERITED' section (inherited operational guards list), unrelated to MIN-4/dom_order. This is reported as-is rather than force-fitting a citation -- the authoritative sort clause actually lives in A1 §2.6 (규칙 MIN-4, line ~358-460) and A2 §1.13, both of which were read in full and are the basis for everything below."
+    },
+    "confirmed_current_definition": {
+      "tie_break_total_order": "(marked_primary desc, dom_order asc, selector asc)",
+      "area_css_px2_excluded_from_tie_break": "explicitly and permanently -- 'area_css_px2를 tie-break 키에서 뺀다', quantization approach abandoned entirely at V2-C010b after two prior quantization schemes (floor 1px^2, round 16px^2) were both shown to not neutralize sub-pixel jitter",
+      "dom_order_type": "Int64, >=0, 0-based, monotonic increasing within one document's candidate enumeration",
+      "dom_order_null_semantics": "NOT ALLOWED -- structural value, no concept of missing observation. If NULL is observed it is a PROBE DEFECT, handled as MEASUREMENT_FAILED, not a legitimate NULL",
+      "dom_order_uniqueness": "unique within (observation_id, document) -- iframe/frame boundaries restart numbering at 0, so selector (3rd tie-break key) is retained to disambiguate cross-document collisions",
+      "freeze_output_requirement": "A1 §2.6/§8 -- frozen path output must store at minimum: step_index, selector, dom_order, expected state id, plus path_sha256 and the budget values in effect",
+      "min8_replay_does_not_catch_dom_order_drift": "explicitly stated -- Replay walks the frozen selector sequence and will pass even if candidate order (and thus what the shortest path would be today) has changed. Only a fresh Scout run (repeated, per §2.5 'MIN-4 경로 결정성 케이스') can detect DOM non-determinism in dom_order."
+    }
+  },
+  "pc_engine_audit": {
+    "target": "agent/landing-pc-fixture @ 0c36c95 (merged into this branch via clean git merge, zero conflicts)",
+    "finding": "0c36c95 predates the entire MIN-4 area->dom_order pivot (V2-C008 through C012 happened on the docs-only exec branch AFTER P-C's fixture engine was built on an older base). P-C's tie-break implementation used the ORIGINAL pre-C008 scheme: (marked_primary, area_css_px2) with `area_css_px2 or 0.0` NULL coercion -- not even the intermediate quantized-area schemes described in A1's correction history, and no dom_order field existed anywhere in the probe or collector.",
+    "locations_with_defect": [
+      "src/landing_accessibility/engine/l0_probe.js -- primary_action_candidates never emitted a dom_order field",
+      "src/landing_accessibility/engine/l0_collector.py rank_primary_action_candidates() -- sort key was (marked*2+visible, area_css_px2 or 0.0), reverse=True",
+      "src/landing_accessibility/engine/l1_engine.py Scout._activation_candidates() -- sort key was (marked_primary, area_css_px2 or 0.0), reverse=True -- same defect duplicated in a second place",
+      "src/landing_accessibility/engine/l1_engine.py Scout.scout() trail entries (TaskManifest.path) -- did not include dom_order at all, violating the A1 §2.6/§8 freeze-output requirement"
+    ]
+  },
+  "fix_applied": {
+    "l0_probe.js": "primary_action_candidates map callback now takes (el, dom_order) and includes `dom_order` in each emitted candidate object -- the value is the 0-based index within the already-document-order, already-visibility-filtered array (querySelectorAll returns tree order; Array.filter preserves relative order, so monotonicity holds).",
+    "l0_collector.py": [
+      "PrimaryActionCandidate dataclass gained a `dom_order: int` field",
+      "new shared helper `min4_sort_key(c)` implements the exact authoritative total order (marked_primary desc via 0/1 inversion for ascending sort, dom_order asc, selector asc) -- area_css_px2 is not read by this key at all",
+      "new `_dom_order_of(c)` + `Min4ProbeContractError` -- raises instead of silently defaulting when dom_order is missing, matching A2 §1.13's 'NULL not allowed, probe defect not observation gap' semantics",
+      "rank_primary_action_candidates() now sorts with min4_sort_key (ascending, no reverse) instead of the old area/viewport-blended score"
+    ],
+    "l1_engine.py": [
+      "imports and reuses the SAME min4_sort_key from l0_collector.py (not a re-implementation) -- this closes a latent second-source-of-truth risk: before this fix, rank_primary_action_candidates() (storage/SELECTED) and Scout._activation_candidates() (path enumeration) could in principle have used different orders even after a partial fix; sharing one function makes that structurally impossible",
+      "Scout._activation_candidates() sort key replaced with min4_sort_key",
+      "trail entries (which become TaskManifest.path, i.e. the Freeze output) now include `\"dom_order\": action.get(\"dom_order\")` alongside step_index/selector/expected_state_id, satisfying A1 §2.6/§8's freeze-output requirement",
+      "replay() was NOT modified -- it only reads selector/step_index/expected_state_id from path nodes, so the added dom_order key is inert to Replay by design, matching the authority's explicit statement that MIN-8 Replay does not use or re-derive dom_order"
+    ],
+    "scope_deliberately_excluded": "area_css_px2's own NULL-coercion (`or 0.0`) in the STORAGE path (PrimaryActionCandidate.area_css_px2 field, used as the PrimaryActionOcclusion denominator) was left unchanged. A1 §2.6 does say area_css_px2 storage should preserve NULL rather than coercing to 0, but that is a distinct pre-existing defect from a different clause (denominator preservation, A2 규칙 C-2) and was not explicitly named in this reconciliation's scope (dom_order observation/storage, NULL semantics [of dom_order], document-local ordering, Freeze output, Scout repeated determinism). Flagged here as an OPEN_ISSUE for a future pass rather than silently fixed to avoid scope creep and untested type-signature changes to a field several tests assert as a bare float."
+  },
+  "tests_added": {
+    "new_fixture": "research/landing_accessibility/fixtures/dom_order_tiebreak.html -- 3 sibling <a class=\"card\"> elements, identical size (171x120px, so area_css_px2 is byte-identical across all three), none marked_primary -- isolates dom_order as the ONLY factor that can decide their order (mirrors MIN-4's own example text: '그리드의 동급 카드, 폭이 같은 nav 버튼').",
+    "new_tests_in": "tests/test_pc_fixture_engine.py",
+    "tests": [
+      "test_dom_order_matches_document_order_and_area_does_not_decide -- confirms dom_order is assigned 0/1/2 in document order, confirms area_css_px2 is identical across the 3 siblings (fixture design self-check), confirms SELECTED is the dom_order=0 candidate",
+      "test_dom_order_is_stable_across_repeated_collection -- runs L0Collector.collect() twice (independent EvidenceRun instances) against the same fixture, asserts the (selector, dom_order) pairs are byte-identical across both runs",
+      "test_scout_path_is_dom_order_deterministic_across_repeated_runs -- runs Scout.scout() twice against the same fixture+task (fresh Scout each time, NOT replay -- this is deliberately the 'MIN-4 경로 결정성 케이스' from A1 §2.5, since MIN-8 Replay is explicitly stated not to catch this class of drift), asserts identical clicked_selector sequence, identical (selector, dom_order) path pairs, and identical manifest.path_sha256() across both runs"
+    ],
+    "result": "all 3 new tests PASS (see TEST_COUNTS in INTEGRATION_READY.json)"
+  }
+}

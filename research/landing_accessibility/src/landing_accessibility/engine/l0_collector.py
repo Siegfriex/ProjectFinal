@@ -169,6 +169,7 @@ class PrimaryActionCandidate:
     task_id: str
     rank: int
     selector: str
+    dom_order: int
     control_role: str | None
     accessible_name: str | None
     visible_text: str | None
@@ -260,6 +261,40 @@ def classify_interrupt(candidate: dict[str, Any]) -> tuple[ClassificationStatus,
     return ClassificationStatus.AMBIGUOUS, InterruptLabel.UNKNOWN
 
 
+class Min4ProbeContractError(ValueError):
+    """`A2 §1.13` `dom_order` 계약 위반 — 구조값이므로 `NULL`을 허용하지 않는다.
+
+    probe(`l0_probe.js`)는 후보를 낼 때마다 `dom_order`를 채워야 한다. 비어 있으면
+    그것은 관측 결측이 아니라 **probe 결함**이다 (`A1 §2.6` 규칙 MIN-4 — "그 자리가
+    비는 상황이 정의되지 않는다") — 조용히 기본값(0 등)으로 흡수하지 않는다.
+    """
+
+
+def _dom_order_of(c: dict[str, Any]) -> int:
+    value = c.get("dom_order")
+    if value is None:
+        raise Min4ProbeContractError(
+            f"primary_action_candidate without dom_order (selector={c.get('selector')!r}) "
+            "— probe contract violation, not a missing observation (A2 §1.13)"
+        )
+    return int(value)
+
+
+def min4_sort_key(c: dict[str, Any]) -> tuple[int, int, str]:
+    """`A1 §2.6` 규칙 MIN-4 전순서 — `(marked_primary desc, dom_order asc, selector asc)`.
+
+    **`area_css_px2`는 tie-break 키에서 제외한다** `[V2-C010b 시정]` — 관측 잡음이 있는
+    면적을 정렬 키로 쓰면 어떤 양자화를 거쳐도 순서가 잡음을 따라간다(양자화 접근은
+    원리적으로 폐기됨, `A1 §2.6`). 이 함수는 `l0_collector.rank_primary_action_candidates`와
+    `l1_engine.Scout._activation_candidates` 양쪽이 공유한다 — 같은 후보 열에 다른 전순서를
+    적용하면 저장된 `SELECTED`/`rank`와 Scout가 실제로 밟는 경로가 어긋난다.
+
+    오름차순 정렬을 쓰므로 `marked_primary`는 `True`를 `0`으로 뒤집어 먼저 오게 한다.
+    """
+    marked_first = 0 if c.get("marked_primary") else 1
+    return (marked_first, _dom_order_of(c), str(c.get("selector") or ""))
+
+
 def rank_primary_action_candidates(
     raw: list[dict[str, Any]], *, task_id: str, top_n: int = TOP_N_CANDIDATES
 ) -> list[PrimaryActionCandidate]:
@@ -271,15 +306,12 @@ def rank_primary_action_candidates(
 
     후보를 **버리지 않는다** (`A2` 규칙 C-3): 상위 `top_n` 은 `SELECTED`/`RUNNER_UP`,
     나머지는 `REJECTED` 로 남는다.
+
+    정렬은 `min4_sort_key`(`A1 §2.6` 규칙 MIN-4) — `BRANCHING_LIMIT` 절단선이 이 순서로
+    결정되므로(`A1 §2.6` "2차 키 교체는 BRANCHING_LIMIT 절단선을 움직인다"), 이 함수가
+    매기는 `rank`/`SELECTED`와 Scout의 경로 열거가 항상 같은 순서를 본다.
     """
-
-    def score(c: dict[str, Any]) -> tuple[int, float]:
-        marked = 1 if c.get("marked_primary") else 0
-        area = float(c.get("area_css_px2") or 0.0)
-        visible = 1 if c.get("viewport_visible") else 0
-        return (marked * 2 + visible, area)
-
-    ordered = sorted(raw, key=score, reverse=True)
+    ordered = sorted(raw, key=min4_sort_key)
     out: list[PrimaryActionCandidate] = []
     for i, c in enumerate(ordered):
         box = c.get("box") or {"x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0}
@@ -295,6 +327,7 @@ def rank_primary_action_candidates(
                 task_id=task_id,
                 rank=i + 1,
                 selector=str(c.get("selector")),
+                dom_order=_dom_order_of(c),
                 control_role=c.get("role") or c.get("tag"),
                 accessible_name=c.get("aria_label") or c.get("visible_text"),
                 visible_text=c.get("visible_text"),

@@ -1,0 +1,69 @@
+{
+  "cr_id": "CR-002",
+  "title": "pilot_mapping.py mapping_status FSM violated A2 §1.9",
+  "status": "RESOLVED",
+  "resolved_by": "claude-b/integration-current (WORKER-INTEGRATION-CURRENT)",
+  "resolved_on_base_sha": "bc0b7a0",
+  "originally_raised_by": "claude-b/pa-qa (independent audit of agent/landing-pa-shadow@0f46203)",
+  "raised_against": "agent/landing-pa-shadow @ 0f46203, research/landing_accessibility/analysis/pilot/pilot_mapping.py _finish()",
+  "previously_ported_by": "claude-b/integration-prep-c007 @ 33c5d1a (same fix, applied on the older exec base 2025e56 / C007 -- this resolution independently re-derives and re-verifies the same fix against the CURRENT exec tip, bc0b7a0 / V2-C012, per instruction not to rely on memory of the prior session)",
+  "a2_reference": {
+    "document": "docs/v2/A2_VOCABULARY_AND_SCHEMA_BINDING.md",
+    "section": "§1.9 mapping_status — dim_representative_task",
+    "re_read_at_base_sha": "bc0b7a0",
+    "verified_unchanged_since_original_cr": true,
+    "quoted_definition": {
+      "values": ["DRAFT", "CANDIDATE", "FROZEN", "AMBIGUOUS_UNRESOLVED", "EXCLUDED"],
+      "mutual_exclusivity": "5값은 상호배타",
+      "transition_graph": "DRAFT → CANDIDATE → {FROZEN, AMBIGUOUS_UNRESOLVED, EXCLUDED}, unidirectional",
+      "candidate_definition": "규칙 source context embedding으로 후보가 narrowed but not yet finalized (A2 1.9 CANDIDATE)"
+    },
+    "codebook_cross_check": {
+      "file": "analysis/codebook/codebook.json",
+      "path": "shared_enums.mapping_status.transitions",
+      "matches_a2": true,
+      "note": "codebook.json itself already declares the exact DRAFT→CANDIDATE→{FROZEN,AMBIGUOUS_UNRESOLVED,EXCLUDED} graph -- unaffected by this fix, confirms the FSM violation was purely in pilot_mapping.py's runtime code, not in the schema definition"
+    }
+  },
+  "defect": {
+    "before_behavior": {
+      "resolved_at_stage_1_or_2 (9 rows: device_care, emart, gs_homeshopping_gsshop, hana_bank, hyundai_homeshopping_hmall, lotte_himart, my_files, nh_cok_bank, samsung_internet_browser)": "mapping_status = 'DRAFT' (never reaches CANDIDATE even though RULE/SOURCE_CONTEXT narrowed domain+archetype)",
+      "abstained (6 rows: 11st, baemin, chrome, coupang_eats, kakaotalk, mega_coffee)": "mapping_status = 'AMBIGUOUS_UNRESOLVED' assigned directly from DRAFT, skipping CANDIDATE -- the only FSM-legal edge into AMBIGUOUS_UNRESOLVED is CANDIDATE→AMBIGUOUS_UNRESOLVED"
+    },
+    "before_file_sha256": "35f1de384601404a9868de72de8b8bec1796c999691bbed9210a358e2adc1e59",
+    "mechanical_reproduction": "python3 -c \"import json; recs=[json.loads(l) for l in open('analysis/out/pilot/pilot_mapping.jsonl')]; print(sorted(set(r['mapping_status'] for r in recs)))\" -> ['AMBIGUOUS_UNRESOLVED', 'DRAFT'] before the fix -- 'CANDIDATE' never appears despite being declared in both A2 §1.9 and codebook.json"
+  },
+  "fix": {
+    "file": "research/landing_accessibility/analysis/pilot/pilot_mapping.py",
+    "function": "_finish()",
+    "after_file_sha256": "338b315e7824213a3c46aafaa209cdebd5cc5601f1d6250b592b71cb5ca575f9",
+    "byte_identical_to_prior_integration_prep_c007_fix": true,
+    "change": [
+      "resolved_at_stage in {1,2} rows now get mapping_status='CANDIDATE' (previously 'DRAFT') -- matches A2 §1.9 CANDIDATE definition literally",
+      "abstained rows keep mapping_status='AMBIGUOUS_UNRESOLVED' but a new 'mapping_status_history' field is added recording the actual FSM path traversed: ['DRAFT','CANDIDATE'] or ['DRAFT','CANDIDATE','AMBIGUOUS_UNRESOLVED']",
+      "no row is ever set to 'FROZEN' (unchanged -- P0 not closed, ANALYSIS_AND_TASK_CODEBOOK_FROZEN gate stays open, ban already correctly enforced pre-fix)"
+    ],
+    "docs_synced": [
+      "research/landing_accessibility/analysis/codebook/OPEN_QUESTIONS.md L340 (was: 'mapping_status = DRAFT', now: 'mapping_status ∈ {CANDIDATE, AMBIGUOUS_UNRESOLVED}')",
+      "research/landing_accessibility/analysis/pilot/PILOT_MAPPING_REPORT.md L10 (Gate row updated to reflect CANDIDATE/AMBIGUOUS_UNRESOLVED, no DRAFT terminal value)"
+    ],
+    "regenerated_outputs": [
+      "research/landing_accessibility/analysis/out/pilot/pilot_mapping.jsonl (re-run via pilot_mapping.py, same 15-row sample, same 9 RULE-resolved / 6 abstain split, same contamination verdict=CLEAN, same guard_selftest=GUARD_WORKS -- only mapping_status/mapping_status_history changed)",
+      "research/landing_accessibility/analysis/out/pilot/mapping_run_manifest.json (re-run; excluded from artifact_sha256 fixed-hash list per CR-001 resolution, see CR_001 note in SHADOW_MANIFEST.json non_reproducible_artifacts)"
+    ]
+  },
+  "tests": {
+    "mechanical_fsm_verification": {
+      "method": "python3 -c checking every record's mapping_status_history transitions against allowed_next = {'DRAFT':{'CANDIDATE'}, 'CANDIDATE':{'FROZEN','AMBIGUOUS_UNRESOLVED','EXCLUDED'}}, and that history[-1] == mapping_status",
+      "result": "PASS for all 15 records",
+      "mapping_status_set_after_fix": ["AMBIGUOUS_UNRESOLVED", "CANDIDATE"],
+      "mapping_status_history_set_after_fix": [["DRAFT", "CANDIDATE"], ["DRAFT", "CANDIDATE", "AMBIGUOUS_UNRESOLVED"]]
+    },
+    "pytest": "research/landing_accessibility/analysis/mapping/test_analysis_interface.py -- 24 passed",
+    "ruff_check": "pass (pilot_mapping.py clean)",
+    "mypy": "pass (pilot_mapping.py clean, checked in isolation and as part of full research/landing_accessibility scope)"
+  },
+  "cross_validation": {
+    "p_b_independent_implementation": "shadow/lane_b/state/LANE_B_SHADOW_MANIFEST.json distributions.mapping_status shows CANDIDATE:59, AMBIGUOUS_UNRESOLVED:12 for P-B's own 71-row target/task frame -- P-B independently arrived at the same two-value terminal set (CANDIDATE/AMBIGUOUS_UNRESOLVED, no DRAFT, no FSM-illegal direct jump) without having read P-A's pilot_mapping.py, corroborating that this reading of A2 §1.9 is correct and not an idiosyncratic interpretation"
+  }
+}

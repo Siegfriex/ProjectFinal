@@ -1,0 +1,28 @@
+{
+  "cr_id": "CR-001",
+  "title": "SHADOW_MANIFEST.json artifact_sha256 self-mismatch (mapping_run_manifest.json)",
+  "status": "RESOLVED_AS_DESIGN_ISSUE_NOT_TAMPERING",
+  "resolved_by": "claude-b/integration-current (WORKER-INTEGRATION-CURRENT)",
+  "resolved_on_base_sha": "bc0b7a0",
+  "originally_raised_by": "claude-b/pa-qa (independent audit of agent/landing-pa-shadow@0f46203)",
+  "conclusion_carried_forward_unchanged": {
+    "root_cause": "analysis/out/pilot/mapping_run_manifest.json embeds run_started_at/run_finished_at timestamps and absolute worktree paths (inside guard_selftest/contamination_check) that differ on every execution. It is not byte-reproducible by construction -- pinning a fixed sha256 for it in a manifest is a design mismatch with the file's own nature, not evidence of tampering.",
+    "confirmed_not_tampering": "the original CR-001 report showed pilot_mapping.jsonl (the actual research-bearing output, 27 entries minus this one) reproduces byte-identical across reruns -- only the self-describing run-metadata file varies, as expected."
+  },
+  "action_taken_in_this_branch": {
+    "recommendation_applied": "CR-001 recommendation #1 -- exclude analysis/out/pilot/mapping_run_manifest.json from the artifact_sha256 fixed-hash table entirely, and record it in a new non_reproducible_artifacts key with an explanation of why byte-identity is not the right check for it (existence + schema are verified every run instead).",
+    "file": "research/landing_accessibility/analysis/SHADOW_MANIFEST.json",
+    "artifact_sha256_entry_count": "26 (was 27 -- mapping_run_manifest.json removed, all remaining 26 entries recomputed and re-verified against the actual files in this integration tree)",
+    "no_past_artifact_rewritten": "the original P-A branch (agent/landing-pa-shadow@0f46203) SHADOW_MANIFEST.json is untouched -- this correction applies only to the copy inside claude-b/integration-current, produced by regenerating the manifest for the current tree state (as directed: 'record cause only, and regenerate the current integration manifest with a new hash -- do not rewrite the past artifact')."
+  },
+  "minor_doc_fix_also_applied": {
+    "file": "research/landing_accessibility/analysis/README.md",
+    "before": "'산출물 31건의 sha256' (stated 31, actual artifact_sha256 entry count and commit message both said 27 at the time CR-001 was raised)",
+    "after": "'산출물 26건의 sha256(재현불가 1건은 non_reproducible_artifacts로 분리, CR-001 시정)'",
+    "note": "this was CR-001's recommendation #3 (minor typo, 31 vs 27), now corrected and the count updated again to reflect the post-fix 26+1 split"
+  },
+  "self_consistency_check": {
+    "method": "python3 hashlib re-verification of all 26 artifact_sha256 entries against the actual files on disk in this tree",
+    "result": "0 mismatches"
+  }
+}

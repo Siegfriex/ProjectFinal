@@ -1,0 +1,68 @@
+{
+  "cr_id": "CR-003",
+  "title": "P-A/P-B provenance block shape drift -- source_frame_sha type, codebook_sha prefix",
+  "status": "RESOLVED",
+  "resolved_by": "claude-b/integration-current (WORKER-INTEGRATION-CURRENT)",
+  "resolved_on_base_sha": "bc0b7a0",
+  "originally_raised_by": "claude-b/integration-prep-c007 (WORKER-I, base agent/landing-v2-exec@2025e56)",
+  "raised_against": [
+    "agent/landing-pa-shadow @ 0f46203 -- research/landing_accessibility/analysis/SHADOW_MANIFEST.json",
+    "agent/landing-pb-prework @ 9999857 -- research/landing_accessibility/shadow/lane_b/state/LANE_B_SHADOW_MANIFEST.json"
+  ],
+  "authority_basis": {
+    "document": "docs/v2/PHASE_GATES.md",
+    "section": "§4.3 산출물 상태",
+    "re_read_at_base_sha": "bc0b7a0",
+    "finding": "§4.3 requires the 6 mandatory provenance fields (status/base_sha/created_at/created_before_p0_close/authoritative/real_target_outcome_used/requires_post_p0_reconciliation) and lists source_frame_sha/codebook_sha (among others) as 'record together where possible' -- it does NOT specify the shape or format of source_frame_sha/codebook_sha. This is unchanged from when the original CR-003 was raised (verified by re-reading, not from memory)."
+  },
+  "canonical_schema_selected": {
+    "codebook_sha": {
+      "form": "scalar string, 'sha256:' + 64-hex-lowercase digest",
+      "example": "sha256:49cc10484fa4f5cf344be96ed828dcb1ae93ccbab61b4e59caeaec1b8deb239e"
+    },
+    "source_frame_sha": {
+      "form": "dict[str, str] mapping each input frame filename actually read by the lane to its 'sha256:'-prefixed content digest",
+      "example": {
+        "state/service_master.parquet": "sha256:86d665cc9091c84440acaa622bcbbdd48d8c5585f931d3dbf16c9c14e07b8136"
+      },
+      "rationale": "must actually verify the content of the files the lane read -- a scalar copy of base_sha/input_authority_sha does not verify anything about input data content and is a semantic bug, not merely a format choice (see p_b_correction below)"
+    },
+    "grounds_for_selection": [
+      "PHASE_GATES §4.3 leaves format open (verified above), so an anchor outside §4.3 itself was needed to pick one side rather than invent a third convention.",
+      "The current exec authority tip (bc0b7a0, V2-C012) already established a repo-wide sha256 identity convention in src/landing_accessibility/authority_manifest.py: compute_self_sha256() returns 'sha256:' + hexdigest, and sources/wiseapp/authority_manifest.json's raw_assets.*.sha256 entries are ALL 'sha256:'-prefixed per-file digests inside a dict keyed by asset name -- i.e. the exact same shape (dict of prefixed digests) this CR needed to choose between P-A's bare-hex-dict and P-B's prefixed-scalar. This is the most current, most authoritative precedent available in the repo for 'how do we write a sha256 identity string here', so both fields were normalized to match it.",
+      "P-A's dict-of-per-file-hash STRUCTURE for source_frame_sha is kept (not P-B's scalar) because it is the only one of the two that verifies anything -- P-A-QA (claude-b/pa-qa) independently recomputed all 6 of P-A's per-file hashes and confirmed exact match, which is only possible because the field actually stores per-file content hashes."
+    ]
+  },
+  "changes_applied": {
+    "p_a_manifest": {
+      "file": "research/landing_accessibility/analysis/SHADOW_MANIFEST.json",
+      "codebook_sha": "added 'sha256:' prefix (value unchanged otherwise)",
+      "source_frame_sha": "added 'sha256:' prefix to each of the 6 dict values (entity_alias_map.parquet, panel_registry.parquet, service_master.parquet, source_membership.parquet, source_ranking_rows.parquet, web_target_group.parquet) -- underlying hex digests unchanged, still verified against the actual file contents in this tree",
+      "semantics_changed": false,
+      "note_added": "provenance_schema_note field explaining the normalization and pointing to this file"
+    },
+    "p_b_manifest": {
+      "file": "research/landing_accessibility/shadow/lane_b/state/LANE_B_SHADOW_MANIFEST.json",
+      "codebook_sha": "already 'sha256:'-prefixed -- no change needed, already canonical",
+      "source_frame_sha": {
+        "before": "scalar string 'd5f1da5652953542d5c8be377026cc3293f2075a' -- a verbatim copy of base_sha/input_authority_sha (a git commit SHA1), which per the original CR-003 finding does not verify any input frame content at all",
+        "after": "dict[str,str] of the 3 files run_lane_b.py actually opens READ ONLY (verified by reading shadow/lane_b/scripts/run_lane_b.py lines ~127-133): state/service_master.parquet, state/web_target_group.parquet, sources/certification/certification_registry.parquet -- each mapped to its 'sha256:'-prefixed content digest computed against the files as they exist in this integration tree",
+        "cross_validation": "the recomputed hashes for state/service_master.parquet and state/web_target_group.parquet are byte-identical to P-A's independently-recorded hashes for the same two files (sha256:86d665cc... and sha256:5262522d... respectively) -- both lanes are reading the exact same frame files, confirming no drift between P-A's and P-B's inputs",
+        "is_this_a_semantics_change": "the underlying research conclusions (web_eligibility_status, mapping_status, etc. distributions in the manifest) are completely unchanged -- only the provenance metadata field's VALUE was corrected to actually mean what its name promises. The task authorization for this CR explicitly scoped 'metadata format only, not research semantics' -- this correction stays inside that scope because it does not touch any judgment, decision, or distribution, only a self-referential integrity field.",
+        "note_added": "source_frame_sha_correction_note field explaining the correction and pointing to this file"
+      }
+    },
+    "p_c_provenance": {
+      "file": "research/landing_accessibility/src/landing_accessibility/engine/provenance.py (ShadowProvenance dataclass) / SHADOW_PROVENANCE.json",
+      "action": "NOT MODIFIED",
+      "reason": "P-C's source_frame_sha/codebook_sha are typed str|None and left unset (None) -- this was not part of the original CR-003 conflict (that CR was specifically about P-A vs P-B disagreeing on a value both of them DO populate). P-C leaving them unset is compliant with PHASE_GATES §4.3's 'record together where possible' language (fixture_only=True lanes read no external frame/codebook, so there is nothing to hash). Advisory only: if P-C ever populates these fields in the future, it should follow the same dict[str,'sha256:'+hex] / scalar 'sha256:'+hex convention for consistency."
+    }
+  },
+  "verification": {
+    "self_consistency": "after normalization, python3 hashlib re-check confirms every artifact_sha256 entry in SHADOW_MANIFEST.json still matches the actual file on disk (README.md hash also re-synced after its own text was edited for CR-001's count fix)",
+    "pytest": "no test asserts on the literal shape/prefix of source_frame_sha or codebook_sha in either manifest -- normalization did not break any existing test (confirmed via full tests/ + analysis/mapping/test_analysis_interface.py run, 316 passed)"
+  },
+  "not_in_scope": [
+    "This CR does not adjudicate whether P-B's ORIGINAL scalar value was itself a defect worth flagging to P-B's own lane audit (the original CR-003 already flagged this as recommendation #1) -- this resolution corrects the integrated tree's copy in claude-b/integration-current only. The original agent/landing-pb-prework@9999857 branch is unmodified (per instructions, no direct write to Claude A-owned branches)."
+  ]
+}

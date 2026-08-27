@@ -436,12 +436,22 @@ def _finish(
         "resolved_at_stage": resolved_stage,
         "cascade_history": history,
     }
+    # A2 §1.9 mapping_status FSM: DRAFT → CANDIDATE → {FROZEN, AMBIGUOUS_UNRESOLVED, EXCLUDED}
+    # (5값 상호배타, 단방향). `mapping_status_history`는 이 selective-port 시점에
+    # 새로 추가된 필드로, 각 행이 그 그래프의 어느 경로를 지나왔는지를 명시적으로
+    # 남긴다 — 최종 저장값(`mapping_status`)만으로는 CANDIDATE 경유 여부가 보이지
+    # 않기 때문이다 (닫는 CR: claude-b/pa-qa CR-002, mapping-status-fsm-drift).
     if abstained:
-        # codebook abstain_path · A2 §2.1 — ABSTAIN은 fact_ai_adjudication의 값이고
-        # task 쪽에는 그림자 상태 + AMBIGUOUS_UNRESOLVED 로 나타난다.
+        # stage1(RULE)·stage2(SOURCE_CONTEXT)·stage3(EMBEDDING)로 후보를 좁히려
+        # 시도했으나 확정하지 못했으므로 DRAFT 다음 CANDIDATE를 실제로 거친 뒤
+        # cascade·사람 검토 예산(stage4 AI_REVIEW)까지 소진돼 AMBIGUOUS_UNRESOLVED로
+        # 떨어진다. FSM이 허용하는 유일한 AMBIGUOUS_UNRESOLVED 진입 간선은
+        # CANDIDATE → AMBIGUOUS_UNRESOLVED이며, 이전 판(0f46203)은 DRAFT에서
+        # 직행해 그 간선 밖의 값을 만들었다(CR-002).
         record.update(
             {
                 "mapping_status": "AMBIGUOUS_UNRESOLVED",
+                "mapping_status_history": ["DRAFT", "CANDIDATE", "AMBIGUOUS_UNRESOLVED"],
                 "mapping_ai_review_status": "ABSTAINED",
                 "abstain_reason": "AI_REVIEW_UNAVAILABLE_PRE_P0",
                 "counts_toward_archetype_denominator": False,
@@ -449,10 +459,18 @@ def _finish(
         )
     else:
         # **FROZEN으로 올리지 않는다.** P0 종료 전이고 gate도 닫지 않는다.
+        # RULE/SOURCE_CONTEXT 근거로 domain·archetype이 둘 다 확정된 결과는
+        # A2 §1.9의 CANDIDATE 정의("규칙·source context·embedding으로 후보가
+        # 좁혀졌으나 확정 전")에 글자 그대로 들어맞는다. 이전 판(0f46203)은 이
+        # 9건 전부를 DRAFT로 남겨 CANDIDATE 상태 자체가 한 번도 관측되지
+        # 않았다(CR-002) — RULE/SOURCE_CONTEXT로 좁혀진 결과를 DRAFT로 두면
+        # "아직 후보조차 안 만들어졌다"는 뜻이 되어 실제로 일어난 일(좁혀짐)과
+        # 어긋난다.
         pending = archetype == "UTILITY_ENTRY"
         record.update(
             {
-                "mapping_status": "DRAFT",
+                "mapping_status": "CANDIDATE",
+                "mapping_status_history": ["DRAFT", "CANDIDATE"],
                 "mapping_ai_review_status": "NOT_REQUIRED",
                 "region_signal_type": "CODEBOOK_PENDING" if pending else "DOM_AX_ROLE",
                 "freeze_blocked_by": ["FRZ-4 (region_signal_type=CODEBOOK_PENDING · Q-2 미결)"]

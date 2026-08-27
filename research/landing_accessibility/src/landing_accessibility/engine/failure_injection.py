@@ -294,9 +294,18 @@ def _c_banner_mutation(tmp: Path) -> None:
 
 
 def _c_manifest_only_mode_not_verified(tmp: Path) -> None:
-    """raw 없는 clone 의 구조검증을 `VERIFIED` 로 세지 않는다 (`07 §4`)."""
+    """raw 없는 clone 의 구조검증을 `VERIFIED` 로 세지 않는다 (`07 §4`).
+
+    `evidence_manifest.verify_run`(bc0b7a0, `verify-run-mislabels-mode-and-symlink-
+    bypasses-relpath-guard` 시정)은 `require_files` 플래그가 아니라 **실제로 몇 건을
+    바이트 대조했는지**에서 `mode`/`status`를 유도한다. `_seed_run`이 raw 파일을 실제로
+    쓰므로 그 파일을 지워야 "raw 없는 clone"이 실제로 재현된다 — 지우지 않으면
+    `require_files=False`로 불러도 전건이 대조돼 정당하게 `VERIFIED`가 나온다(그것은
+    이 케이스가 잡으려는 결함이 아니라 시정된 정상 동작이다).
+    """
     run = _seed_run(tmp, "structonly")
     run.seal()
+    (run.run_dir / "l0a" / "dom.html").unlink()
     report = verify_run(run.run_dir, require_files=False)
     if report["status"] != "MANIFEST_WELL_FORMED_FILES_NOT_CHECKED":
         raise AssertionError(f"구조검증 상태가 어긋난다: {report['status']}")

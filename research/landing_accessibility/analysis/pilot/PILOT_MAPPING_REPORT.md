@@ -7,7 +7,7 @@
 | 스크립트 | `analysis/pilot/pilot_mapping.py` |
 | 산출 | `analysis/out/pilot/pilot_mapping.jsonl` · `mapping_run_manifest.json` |
 | 입력 tier | **T1 (source context) 전용** — codebook `mapping_rules.input_allowlist` |
-| Gate | `ANALYSIS_AND_TASK_CODEBOOK_FROZEN` **닫지 않았다.** 전 행이 `DRAFT` 또는 `AMBIGUOUS_UNRESOLVED` |
+| Gate | `ANALYSIS_AND_TASK_CODEBOOK_FROZEN` **닫지 않았다.** 전 행이 `CANDIDATE` 또는 `AMBIGUOUS_UNRESOLVED` (CR-002 시정 반영, `DRAFT` 최종값 없음) |
 
 ---
 

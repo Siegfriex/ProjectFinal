@@ -3,7 +3,8 @@
 > **상태 `SHADOW_PREPARATORY`.** 이 디렉터리의 어떤 산출물도 **정본이 아니다**.
 > 정책 정의부는 `docs/v2/PHASE_GATES.md` **§4**이며, 이 문서는 그 절을 가리킬 뿐 정책표를 복제하지 않는다.
 > provenance 전량은 **`SHADOW_MANIFEST.json`** 에 있다 — `base_sha` · `shadow_lane` ·
-> `source_frame_sha` · `codebook_sha` · 오염 검사 결과 · 산출물 31건의 sha256 · reconciliation 절차.
+> `source_frame_sha` · `codebook_sha` · 오염 검사 결과 · 산출물 26건의 sha256(재현불가 1건은
+> `non_reproducible_artifacts`로 분리, CR-001 시정) · reconciliation 절차.
 
 | | |
 |---|---|

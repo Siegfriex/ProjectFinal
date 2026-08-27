@@ -42,7 +42,7 @@ from .depth import (
 from .evidence import EvidenceRun
 from .firewall import ExecutionMode, assert_navigation_allowed
 from .gate_classifier import GateKindDecision, GateSignals, classify_gate_kind
-from .l0_collector import PROBE_JS, SETTLE_MS, L0Collector
+from .l0_collector import PROBE_JS, SETTLE_MS, L0Collector, min4_sort_key
 from .provenance import ShadowProvenance, utc_now_iso
 from .vocabulary import (
     AreaSignalStatus,
@@ -322,6 +322,11 @@ class Scout:
         **popup 의 닫기 control 은 후보가 아니다.** `02 §9` 가 popup dismiss 를 activation 에서
         제외했고, 그것을 후보로 두면 닫기가 depth 로 세어지는 것은 물론 `_dismiss_blockers` 와
         같은 요소를 두 번 누르게 되어 경로가 스스로 무너진다.
+
+        정렬은 `l0_collector.min4_sort_key`(`A1 §2.6` 규칙 MIN-4)와 **같은 함수**를 쓴다 —
+        `rank_primary_action_candidates`가 매기는 `SELECTED`/`rank`와 이 열거 순서가 갈리면
+        저장된 대표 control과 Scout가 실제로 밟는 경로가 서로 다른 이야기를 하게 된다.
+        이 순서가 곧 `BRANCHING_LIMIT` 절단선(`limit`)이 무엇을 자르는지를 결정한다.
         """
         dismiss_selectors = {
             str(ctrl.get("selector"))
@@ -335,10 +340,7 @@ class Scout:
             and c.get("selector")
             and str(c.get("selector")) not in dismiss_selectors
         ]
-        cands.sort(
-            key=lambda c: (1 if c.get("marked_primary") else 0, c.get("area_css_px2") or 0.0),
-            reverse=True,
-        )
+        cands.sort(key=min4_sort_key)
         seen: set[str] = set()
         out: list[dict[str, Any]] = []
         for c in cands:
@@ -466,6 +468,10 @@ class Scout:
                             {
                                 "step_index": depth_i,
                                 "selector": str(action["selector"]),
+                                # `A1 §2.6`/`§8` — Freeze 산출물은 그 관측 시점에 이 후보가
+                                # 어떤 문서 순서였는지도 함께 담아야 "무엇이 최소였는가"를
+                                # 재현 대조할 수 있다 (규칙 MIN-4 · MIN-8) `[V2-C012 반영]`.
+                                "dom_order": action.get("dom_order"),
                                 "expected_state_id": obs.state_id,
                                 "expected_url_tail": obs.url.rsplit("/", 1)[-1],
                             }

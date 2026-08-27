@@ -490,3 +490,83 @@ def test_mapping_cannot_freeze_while_the_codebook_is_pending() -> None:
     )
     assert pending.mapping_frozen_allowed() is False
     assert CONTENT_TASK.mapping_frozen_allowed() is True
+
+
+# ── dom_order (A1 §2.5 · §2.6 규칙 MIN-4 / A2 §1.13) ─────────────────────────
+# `area_css_px2`는 관측 잡음이 있어 tie-break 키에서 빠졌다(V2-C010b). 2차 키는
+# 구조값인 `dom_order`다 — 같은 DOM이면 항상 같은 값을 내야 한다(V2-C011/C012).
+_TIEBREAK_FIXTURE = "dom_order_tiebreak.html"
+_TIEBREAK_TASK = TaskDefinition("TD", A.CONTENT_OPEN, "ARTICLE_LIST_REGION", "ARTICLE_BODY_OPEN")
+
+
+def _collect_tiebreak(tmp_path: Path, run_name: str) -> Any:
+    run = EvidenceRun.create(tmp_path, run_name, execution_mode=ExecutionMode.FIXTURE)
+    collector = L0Collector(run, fixture_root=FIXTURES)
+    obs = collector.collect(
+        FixtureTarget(
+            web_target_id=f"wt-{run_name}", fixture=_TIEBREAK_FIXTURE, archetype=A.CONTENT_OPEN
+        )
+    )
+    run.seal()
+    return obs
+
+
+def test_dom_order_matches_document_order_and_area_does_not_decide(tmp_path: Path) -> None:
+    """세 형제 카드는 면적이 같고 `marked_primary`가 전부 false다 — 유일한 결정 요인은
+    `dom_order`(문서 순서)뿐이어야 한다(`A1 §2.6` 규칙 MIN-4)."""
+    obs = _collect_tiebreak(tmp_path, "dom-order-doc-order")
+    cards = {
+        c.selector: c
+        for c in obs.primary_action_candidates
+        if c.selector in ("a#card-a", "a#card-b", "a#card-c")
+    }
+    assert set(cards) == {"a#card-a", "a#card-b", "a#card-c"}
+    assert cards["a#card-a"].dom_order < cards["a#card-b"].dom_order < cards["a#card-c"].dom_order
+    areas = {c.area_css_px2 for c in cards.values()}
+    assert len(areas) == 1, f"fixture 설계 위반 — 면적이 같아야 tie-break 시험이 성립한다: {areas}"
+    selected = next(c for c in obs.primary_action_candidates if c.selection_status == "SELECTED")
+    assert selected.selector == "a#card-a", (
+        "marked_primary 가 전부 false 이고 면적도 동일하므로 dom_order 최솟값(a#card-a)이 "
+        f"선택돼야 한다 — 실제 선택: {selected.selector} (dom_order={selected.dom_order})"
+    )
+
+
+def test_dom_order_is_stable_across_repeated_collection(tmp_path: Path) -> None:
+    """`A1 §2.6` 잔여 조항 — 같은 fixture를 반복 수집해도 `dom_order`가 흔들리면 안 된다
+    (서브픽셀 잡음이 아니라 실제 DOM 비결정성이라면 여기서 드러난다)."""
+
+    def order_of(run_name: str) -> list[tuple[str, int]]:
+        obs = _collect_tiebreak(tmp_path, run_name)
+        return sorted(
+            (c.selector, c.dom_order)
+            for c in obs.primary_action_candidates
+            if c.selector in ("a#card-a", "a#card-b", "a#card-c")
+        )
+
+    first = order_of("dom-order-repeat-1")
+    second = order_of("dom-order-repeat-2")
+    assert first == second
+    assert first == [("a#card-a", 0), ("a#card-b", 1), ("a#card-c", 2)]
+
+
+def test_scout_path_is_dom_order_deterministic_across_repeated_runs() -> None:
+    """`A1 §2.5` `MIN-4 경로 결정성 케이스` — 같은 fixture를 Scout 층에서 두 번 돌려도
+    같은 경로(같은 `dom_order` 열)가 나와야 한다. **`replay`가 아니라 새 Scout 두 번**이다
+    (`A1 §2.6` 규칙 MIN-8 — Replay는 이 잔여를 잡지 않는다고 명시돼 있다)."""
+    entry1, manifest1 = _scout().scout(
+        web_target_id="wt-tiebreak-1", entry_fixture=_TIEBREAK_FIXTURE, task=_TIEBREAK_TASK
+    )
+    entry2, manifest2 = _scout().scout(
+        web_target_id="wt-tiebreak-2", entry_fixture=_TIEBREAK_FIXTURE, task=_TIEBREAK_TASK
+    )
+    assert entry1.endpoint_status == entry2.endpoint_status == "FUNCTION_ENDPOINT_REACHED"
+    assert manifest1 is not None and manifest2 is not None
+    assert [s.clicked_selector for s in entry1.steps] == [s.clicked_selector for s in entry2.steps]
+    path1 = [(node["selector"], node["dom_order"]) for node in manifest1.path]
+    path2 = [(node["selector"], node["dom_order"]) for node in manifest2.path]
+    assert path1 == path2
+    assert path1 == [("a#card-a", 0)], (
+        "형제 카드 중 marked_primary 없고 면적도 같으므로 dom_order 최솟값(a#card-a, "
+        f"dom_order=0)을 밟아야 한다 — 실제: {path1}"
+    )
+    assert manifest1.path_sha256() == manifest2.path_sha256()

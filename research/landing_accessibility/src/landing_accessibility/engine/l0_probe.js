@@ -276,7 +276,7 @@
   {
     const q = 'a[href],button,input[type=submit],input[type=button],'
       + '[role=button],[role=link],[role=tab],nav a';
-    const cands = [...document.querySelectorAll(q)].filter(visible).slice(0, 200).map((el) => {
+    const cands = [...document.querySelectorAll(q)].filter(visible).slice(0, 200).map((el, dom_order) => {
       const b = box(el);
       let heading = null, n = el;
       for (let d = 0; d < 6 && n; d++, n = n.parentElement) {
@@ -292,6 +292,11 @@
         marked_primary: el.hasAttribute('data-primary-action'),
         box: b,
         area_css_px2: b ? +(b.w * b.h).toFixed(2) : null,
+        // A1 §2.6 규칙 MIN-4 / A2 §1.13 — tie-break 2차 키. 구조값이므로 NULL이 없고
+        // 이 문서(프레임) 안에서 0-based 단조 증가한다. `filter(visible)` 이후의 열거
+        // 순서를 그대로 쓴다 — querySelectorAll 자체가 이미 문서 순서(tree order)를
+        // 보장하고, filter는 상대 순서를 보존하므로 단조성이 깨지지 않는다.
+        dom_order,
         viewport_visible: intersectArea(b, viewportBox) > 0,
         hittable: hittable(el, b),
       };
