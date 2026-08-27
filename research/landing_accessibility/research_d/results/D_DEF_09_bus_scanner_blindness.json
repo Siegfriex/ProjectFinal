@@ -1,0 +1,27 @@
+{
+  "defect_id": "D-DEF-09",
+  "kind": "IMPLEMENTATION",
+  "owner": "D",
+  "severity": "통신 결함 — P0 4건·P1 4건을 포함한 14건을 놓쳤고 실질 의무 1건을 이행하지 못했다",
+  "found_at_kst": "2026-08-28T01:55:00+09:00",
+  "found_how": "사용자가 D 의 통신 프로토콜과 작업 이력 보고를 요구해, 스캐너가 아니라 JSON 파싱으로 티켓을 직접 집계하다가 드러났다.",
+  "where": "research_d/tools/d_bus_scan.sh",
+  "what": "수신 판정을 grep 정규식 '\"to\"\\s*:\\s*(\\[[^]]*\"D\"[^]]*\\]|\"D\")' 로 했다. grep 은 줄 단위라 pretty-print 된 티켓(`\"to\": [` 다음 줄에 `\"D\"`)은 매칭되지 않는다. 한 줄짜리 compact 배열만 걸렸다.",
+  "impact": {
+    "visible_before": 2,
+    "actually_addressed_to_D": 20,
+    "unacked": 14,
+    "unacked_P0": 4,
+    "unacked_P1": 4,
+    "missed_obligation": "T-A-D-ROUTING-002 (2026-08-27 22:13) 가 D-RESEARCH_FINDING-001 의 to=[B] 를 A6 위반으로 지적하고 C 재라우팅을 요구했는데, 3시간 40분 동안 보지 못해 이행하지 않았다.",
+    "partially_mitigated": "T-A-DIRECTOR-A1-A7 · T-A-HOLDOUT-SCOPE-001 · T-A-PHASE-V2-DIAG 는 사용자가 대화로 직접 전달해 실질 대응은 했다(커밋 2ad18b6 · d2a8c3b · e6e928a). 버스 ACK 파일만 없었다. 나머지는 이번에 처음 읽었다."
+  },
+  "why_it_mattered": "이것은 D-DEF-06(색인 커버리지)·D-DEF-07(미완 색인)과 같은 계열의 실패다 — 빈 출력이 '없음' 으로 읽혔다. 그런데 이번에는 대조군이 없었다. D 는 방화벽 스캐너를 검증할 때 대조군을 주입해 검출력을 확인했으면서, 버스 스캐너에는 같은 검증을 하지 않았다. A 가 T-A-FC-003 에서 자기 grep 에 대조군을 안 붙였다고 자백한 것과 정확히 같은 형태다.",
+  "fix": "JSON 을 파싱해 to/cc 를 판정하도록 스캐너를 다시 썼다. 파싱 실패 파일은 조용히 건너뛰지 않고 '!! 파싱 실패' 로 출력한다. 미ACK 건수와 P0/P1 내역을 별도 블록으로 항상 낸다.",
+  "remediation": {
+    "acks_written": 14,
+    "late_flag": "모든 ACK 에 late=true 와 late_reason 을 명시했다 — 늦은 것을 제때 한 것처럼 기록하지 않는다.",
+    "reroute": "D-ROUTING-REROUTE-001 로 D-RESEARCH_FINDING-001 을 C 로 재라우팅했다. 원 티켓은 불변."
+  },
+  "control_group_added": "스캐너가 '0건' 을 낼 때 그것이 진짜 0인지 확인할 대조군이 필요하다. 다음 판본에서 알려진 D 수신 티켓 1건을 고정 대조로 삼아 스캔이 그것을 못 찾으면 경고를 내게 한다 — 이번에 넣지 않은 것은 피벗 대기 중 새 기능을 만들지 않기 위해서이며, 미이행 항목으로 남긴다."
+}
