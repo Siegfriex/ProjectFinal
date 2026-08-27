@@ -41,8 +41,30 @@
 
 ### 1.1 반드시 구분해야 하는 것
 
-**로그인·인증 벽은 관측 결과다.** 그 이유만으로 joint-valid 에서 제거하지 않는다 —
-오히려 이 연구가 측정하려는 현상 자체다.
+**로그인·인증 벽은 관측 결과다. 수집 실패가 아니다.** 이 구분은 절대적이다.
+
+> **정정 (2026-08-27 12:15, C 가 지적).** 이 절의 초판은 *"그 이유만으로 joint-valid 에서
+> 제거하지 않는다"* 고 적었다. **그 문장은 실제 계수 규칙과 어긋났다.** 아래가 사실이다.
+
+**A2 §1.5.1 이 지배한다** (`ANALYSIS_CONTRACT §0` — 측정 의미론은 권위문서가 정한다).
+`endpoint_status != FUNCTION_ENDPOINT_REACHED` 이면 `NED`/`IED`/`MPFED = NULL` 이다.
+gate 가 endpoint 로 승격되는 archetype 은 `FINANCIAL_ACTION_ENTRY`(로그인+본인인증) 와
+`COMMUNICATION_ENTRY`(로그인만) 뿐이다(`00_SSOT §3` · A2 E-5~E-10).
+
+**따라서:** 그 두 archetype 밖에서 gate 에 닿은 target 은 **J2 를 통과하고 J3 에서 탈락**해
+joint-valid 에 들어가지 않는다. 이건 계약의 결함이 아니라 **MPFED 가 정의되지 않기 때문**이다 —
+도달할 수 없는 지점까지의 깊이는 수(數)가 아니다.
+
+**그럼에도 이들은 수집 실패가 아니다.** 다음을 반드시 지킨다:
+
+1. **별도 제외 사유로 계수한다** — `gate_reached_mpfed_null`. 일반 `mpfed_null` 과도,
+   `transport`/`timeout` 과도 **섞지 마라.** 전자는 대상의 성질이고 후자는 우리 쪽 사정이다.
+2. **해당 서비스의 L0 접근성·obstruction descriptive 는 전부 보고한다.** 관측은 버려지지 않는다.
+3. **이 수 자체가 결과다.** "대표기능이 인증 벽 뒤에 있는 서비스가 N 건" 은 entry friction 에 관한
+   보고 가치가 있는 관측이며, `FINAL_RESULTS_SUMMARY.md` 에 **명시적으로 보고한다.**
+   joint-valid 에서 빠졌다는 이유로 서술에서 사라지면 그것이 곧 은폐다.
+4. `LIMITATIONS.md` 에 **primary association 의 표본이 "대표기능에 실제로 도달 가능한 서비스"
+   로 한정된다**는 사실을 적는다. 이 선택편향은 결과 해석에 직접 영향을 준다.
 
 **반대로 다음은 joint-valid 제외다:**
 
@@ -71,10 +93,11 @@ L1 자체를 시작하지 못함
 attempted_n
 joint_valid_n
 excluded_n
-  ├─ transport
-  ├─ timeout
-  ├─ l1_not_attempted
-  ├─ mpfed_null
+  ├─ transport                              (우리 쪽 사정)
+  ├─ timeout                                (우리 쪽 사정 — 360초 cap)
+  ├─ l1_not_attempted                       (우리 쪽 사정)
+  ├─ gate_reached_mpfed_null                (**대상의 성질** — §1.1)
+  ├─ mpfed_null                             (그 외 사유로 NED/IED 미정의)
   ├─ all_older_relevant_kwcag_undetermined
   └─ (기타 명시 상태별)
 ```
@@ -322,6 +345,7 @@ no outcome-conditioned reselection
 | 시각 | 변경 | 데이터 관측 이후인가 | 사유 |
 |---|---|---|---|
 | 2026-08-27 11:40 | 최초 동결 | **아니오 — REAL TARGET 수집 0건 상태** | A0 지시에 따른 사전 동결 |
+| 2026-08-27 12:15 | **§1.1 정정** — "로그인 벽이라는 이유만으로 joint-valid 에서 제거하지 않는다" 는 초판 문장이 실제 계수 규칙과 어긋났다. A2 §1.5.1(endpoint 미도달 → MPFED NULL → J3 탈락)이 지배함을 명시하고, 별도 제외 사유 `gate_reached_mpfed_null` 신설 + 그 수를 결과로 보고할 의무 + 선택편향의 `LIMITATIONS` 기재 의무를 추가했다. §1.3 제외 사유 목록에 해당 항목과 "우리 쪽 사정 / 대상의 성질" 구분을 표기했다. | **아니오 — REAL TARGET 수집 0건 상태** | 독립 검산자(C, `projectfinal-ba`)가 결과 이전에 계약 내부 모순을 지적했다. **joint-valid 판정 규칙 자체는 바꾸지 않았다** — A2 가 원래 정하던 것을 계약이 잘못 서술했던 것이고, 서술을 사실에 맞췄다. 계수 결과는 정정 전후가 동일하다. |
 
 > 이후 어떤 변경도 이 표에 한 줄을 남긴다. **"데이터 관측 이후인가" 열을 반드시 채운다.**
 > 관측 이후의 변경은 그 자체로 결과 해석에 영향을 주며, 숨기면 조작이 된다.
