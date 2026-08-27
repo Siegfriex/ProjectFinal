@@ -504,12 +504,17 @@ class L0Collector:
         fixture_root: Path | None = None,
         execution_mode: ExecutionMode = ExecutionMode.FIXTURE,
         execution_scope: object | None = None,
+        ax_join: bool = False,
     ) -> None:
         self.run = run
         self.fixture_root = Path(fixture_root).resolve() if fixture_root is not None else None
         self.execution_mode = execution_mode
         #: `REAL_TARGET` 에서만 의미가 있다 — 어느 승인 범위로 여는가 (`firewall.ExecutionScope`).
         self.execution_scope = execution_scope
+        #: W5I — DOM 후보 selector 와 CDP AX slim node 를 잇고 `l0a/ax_join.json` 을 더 낸다.
+        #: **기본값이 False 인 것이 가산성의 근거다.** 끄면 이 수집기는 base 와 바이트 단위로
+        #: 같은 것을 낸다(artifact 도 manifest 도 `L0Observation` 도 동일). v3 만 켠다.
+        self.ax_join = ax_join
 
     # ── 브라우저 컨텍스트 ──────────────────────────────────────────────────
     def _new_context(self, browser: Any) -> Any:
@@ -602,6 +607,13 @@ class L0Collector:
         self.run.open_observation(obs_id)
 
         notes: list[str] = []
+        # W5I / `Δ20` — 수집기 지문을 **관측 행 자체**에 남긴다. 브라우저를 열기 전에
+        # 붙이므로 항해가 실패해 `FAILED_*` 로 끝난 행에도 남는다. `ax_join` 이 켜진
+        # v3 수집에서만 늘어나므로 legacy 경로의 바이트는 바뀌지 않는다.
+        if self.ax_join:
+            from ..v3_runner.ax_join import collector_provenance_notes
+
+            notes.extend(collector_provenance_notes())
         status = MeasurementStatus.MEASURED
         paths: dict[str, str | None] = dict.fromkeys(
             ("dom", "ax", "screenshot_initial", "screenshot_fullpage", "computed_css", "probe"),
@@ -651,6 +663,31 @@ class L0Collector:
                 # 는 W2 소유라 손대지 않는다).
                 probe = page.evaluate(PROBE_JS, self.execution_mode.value)
                 paths["probe"] = self._store(obs_id, "l0a/probe.json", _json_bytes(probe))
+
+                # ── W5I: selector <-> backendDOMNodeId <-> AX slim node ────
+                # `l0_probe.js` 는 accessible name 을 계산하지 않고(이름의 *출처*만 낸다),
+                # 계산된 이름은 `ax` slim node 에만 있는데 그 노드는 selector 가 아니라
+                # `backendDOMNodeId` 로 키잉된다. `backendDOMNodeId` 는 페이지 JS 에서
+                # 관측 불가능하므로 probe 로는 원리적으로 이을 수 없다 — CDP 를 쥔 여기서
+                # 잇는다. 산출은 **새 artifact 하나**뿐이고 기존 슬롯/필드는 건드리지 않는다.
+                if self.ax_join:
+                    try:
+                        # 지역 import 다. `v3_runner` 패키지의 `__init__` 은 다른 worker 가
+                        # 소유하고 그쪽이 engine 을 다시 import 할 수 있다 — 모듈 최상단에서
+                        # 끌어오면 순환 import 가 생긴다. 끄고 쓰는 경로에서는 아예 로드되지
+                        # 않는 편이 가산성에도 맞다.
+                        from ..v3_runner.ax_join import AX_JOIN_RELPATH, collect_ax_join
+
+                        # `_ax_tree` 와 같은 규율 — 세션은 반드시 되돌려준다. 50 target 을
+                        # 도는 동안 관측당 하나씩 새다가는 수집 후반이 조용히 달라진다.
+                        cdp = context.new_cdp_session(page)
+                        try:
+                            payload = collect_ax_join(cdp, probe=probe, ax_nodes=ax)
+                        finally:
+                            cdp.detach()
+                        self._store(obs_id, AX_JOIN_RELPATH, _json_bytes(payload.as_dict()))
+                    except Exception as exc:  # 조인 실패가 관측 실패는 아니다
+                        notes.append(f"AX_JOIN_FAILED: {type(exc).__name__}: {exc}")
 
                 # ── L0-b: 후보·공간·blocking·의미·dismiss control (조작 없음) ──
                 candidates = rank_primary_action_candidates(
