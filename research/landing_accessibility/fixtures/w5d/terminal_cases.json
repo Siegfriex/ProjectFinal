@@ -1,0 +1,505 @@
+{
+  "_about": [
+    "W5D terminal 8종 + 인접 terminal 대조군 fixture.",
+    "각 case 는 signals(입력)와 expect(terminal / endpoint_status / resolution / competing) 를 갖는다.",
+    "competing 이 비어 있지 않은 case 는 '두 신호가 동시에 참일 때 하나로 합치지 않는다' 를 검정한다.",
+    "R1 — 'TASK_COMPARABILITY_CONCERN' 은 terminal 이 아니라 finding 이다. 그런 target 은 frame 에 남고, 과업 수행이 불가능하면 endpoint_status=ABSTAIN 또는 endpoint_status=PUBLIC_WEB_UNOBSERVABLE 로 떨어진다.",
+    "R6-Q8 — 값 AUTH_GATE / ABSTAIN 은 층을 명시해 쓴다. 이 파일에서는 JSON 키('terminal' / 'endpoint_status')가 층을 한정한다.",
+    "T-A-V3-STEP1-007 R11 — 각 case 의 expect 는 terminal_reason 도 갖는다. endpoint_status × terminal_reason 허용 조합표는 ALLOWED_ENDPOINT_STATUS_REASONS 가 정본이다."
+  ],
+  "cases": [
+    {
+      "case_id": "auth_gate",
+      "note": "과업 경로에서 인증이 불가피해졌다 (03 §7).",
+      "signals": {
+        "evidence_complete": true,
+        "auth_required_to_proceed": true,
+        "auth_gate_stage": "AT_ENDPOINT"
+      },
+      "expect": {
+        "terminal": "AUTH_GATE",
+        "endpoint_status": "AUTH_GATE",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "AT_ENDPOINT",
+        "competing_signals": [],
+        "terminal_reason": "AUTH_REQUIRED"
+      }
+    },
+    {
+      "case_id": "control_generic_login_control_is_not_auth_gate",
+      "note": "인접 대조군 — 로그인 버튼이 있을 뿐이다. 03 §7 은 이것만으로 중단을 금지한다.",
+      "signals": {
+        "evidence_complete": true,
+        "generic_login_control_present": true,
+        "auth_required_to_proceed": false,
+        "endpoint_reached": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "REACHED",
+        "resolution": "NOT_TERMINAL_ENDPOINT_REACHED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": null
+      }
+    },
+    {
+      "case_id": "public_web_unobservable",
+      "note": "증거는 온전하고, 그 증거가 공개 모바일웹에서 과업을 관측할 수 없음을 보인다. 채널은 있고 그 과업 surface 만 없다 → TASK_SURFACE_ABSENT.",
+      "signals": {
+        "evidence_complete": true,
+        "public_web_task_observable": false,
+        "public_mobile_web_present": true
+      },
+      "expect": {
+        "terminal": "PUBLIC_WEB_UNOBSERVABLE",
+        "endpoint_status": "PUBLIC_WEB_UNOBSERVABLE",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "TASK_SURFACE_ABSENT"
+      }
+    },
+    {
+      "case_id": "evidence_defect",
+      "note": "우리 도구의 결함. 사이트에 대한 진술이 아니다.",
+      "signals": {
+        "evidence_complete": false,
+        "evidence_defect_reason": "dom_capture_empty",
+        "public_web_task_observable": null
+      },
+      "expect": {
+        "terminal": "EVIDENCE_DEFECT",
+        "endpoint_status": "EVIDENCE_DEFECT",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "EVIDENCE_DEFECT"
+      }
+    },
+    {
+      "case_id": "control_evidence_defect_beats_public_web_unobservable",
+      "note": "인접 대조군 — 둘이 동시에 참. 증거가 깨졌으면 사이트에 대해 아무것도 주장할 수 없다.",
+      "signals": {
+        "evidence_complete": false,
+        "evidence_defect_reason": "screenshot_missing",
+        "public_web_task_observable": false
+      },
+      "expect": {
+        "terminal": "EVIDENCE_DEFECT",
+        "endpoint_status": "EVIDENCE_DEFECT",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [
+          "PUBLIC_WEB_UNOBSERVABLE"
+        ],
+        "terminal_reason": "EVIDENCE_DEFECT"
+      }
+    },
+    {
+      "case_id": "app_required",
+      "note": "공개 모바일웹 채널이 과업을 싣지 않는다 (03 §2).",
+      "signals": {
+        "evidence_complete": true,
+        "app_required": true
+      },
+      "expect": {
+        "terminal": "APP_REQUIRED",
+        "endpoint_status": "APP_REQUIRED",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "APP_REQUIRED"
+      }
+    },
+    {
+      "case_id": "control_app_install_prompt_is_not_app_required",
+      "note": "인접 대조군 — 설치 유도 배너는 obstruction 이지 terminal 근거가 아니다.",
+      "signals": {
+        "evidence_complete": true,
+        "app_install_prompt_present": true,
+        "app_required": false,
+        "endpoint_reached": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "REACHED",
+        "resolution": "NOT_TERMINAL_ENDPOINT_REACHED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": null
+      }
+    },
+    {
+      "case_id": "waf_or_challenge",
+      "note": "03 §8 — active blocking challenge 만 terminal. 해결·우회하지 않는다.",
+      "signals": {
+        "evidence_complete": true,
+        "active_blocking_challenge": true,
+        "challenge_kind": "RECAPTCHA_INTERSTITIAL"
+      },
+      "expect": {
+        "terminal": "WAF_OR_CHALLENGE",
+        "endpoint_status": "BLOCKED",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "ACTIVE_CHALLENGE"
+      }
+    },
+    {
+      "case_id": "control_inactive_captcha_is_not_terminal",
+      "note": "인접 대조군 — 숨은 CAPTCHA iframe 존재는 terminal 이 아니다.",
+      "signals": {
+        "evidence_complete": true,
+        "active_blocking_challenge": false,
+        "challenge_kind": "RECAPTCHA_HIDDEN_IFRAME",
+        "endpoint_reached": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "REACHED",
+        "resolution": "NOT_TERMINAL_ENDPOINT_REACHED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": null
+      }
+    },
+    {
+      "case_id": "control_waf_beats_auth_gate",
+      "note": "인접 대조군 — 차단 화면 뒤의 인증 신호는 과업 경로의 관측이 아니다.",
+      "signals": {
+        "evidence_complete": true,
+        "active_blocking_challenge": true,
+        "auth_required_to_proceed": true,
+        "auth_gate_stage": "BEFORE_TASK_DISCOVERY"
+      },
+      "expect": {
+        "terminal": "WAF_OR_CHALLENGE",
+        "endpoint_status": "BLOCKED",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "BEFORE_TASK_DISCOVERY",
+        "competing_signals": [
+          "AUTH_GATE"
+        ],
+        "terminal_reason": "ACTIVE_CHALLENGE"
+      }
+    },
+    {
+      "case_id": "timeout",
+      "note": "run 이 끝나지 않았다. 우리 쪽 사실이다.",
+      "signals": {
+        "evidence_complete": true,
+        "run_timed_out": true
+      },
+      "expect": {
+        "terminal": "TIMEOUT",
+        "endpoint_status": "EVIDENCE_DEFECT",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "TIMEOUT"
+      }
+    },
+    {
+      "case_id": "control_timeout_and_evidence_defect_stay_distinct",
+      "note": "인접 대조군 — endpoint_status 는 같아도 terminal 은 다르다. 다대일 매핑의 증거.",
+      "signals": {
+        "evidence_complete": false,
+        "evidence_defect_reason": "manifest_hash_mismatch",
+        "run_timed_out": true
+      },
+      "expect": {
+        "terminal": "EVIDENCE_DEFECT",
+        "endpoint_status": "EVIDENCE_DEFECT",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [
+          "TIMEOUT"
+        ],
+        "terminal_reason": "EVIDENCE_DEFECT"
+      }
+    },
+    {
+      "case_id": "no_safe_route_found",
+      "note": "허용된 탐색을 소진했으나 endpoint 에 못 닿았다.",
+      "signals": {
+        "evidence_complete": true,
+        "permitted_routes_exhausted": true,
+        "endpoint_reached": false
+      },
+      "expect": {
+        "terminal": "NO_SAFE_ROUTE_FOUND",
+        "endpoint_status": "ABSTAIN",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "OTHER"
+      }
+    },
+    {
+      "case_id": "safety_stop",
+      "note": "남은 경로가 금지 행위를 요구해 우리가 멈췄다 (03 §6·§8).",
+      "signals": {
+        "evidence_complete": true,
+        "prohibited_action_required": true,
+        "prohibited_action_kind": "PAYMENT_SUBMIT"
+      },
+      "expect": {
+        "terminal": "SAFETY_STOP",
+        "endpoint_status": "ABSTAIN",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "FORBIDDEN_ACTION_REQUIRED"
+      }
+    },
+    {
+      "case_id": "control_safety_stop_and_no_safe_route_stay_distinct",
+      "note": "인접 대조군 — 둘 다 ABSTAIN 이지만 서로 다른 terminal 이다.",
+      "signals": {
+        "evidence_complete": true,
+        "prohibited_action_required": true,
+        "prohibited_action_kind": "CART_ADD",
+        "permitted_routes_exhausted": true,
+        "endpoint_reached": false
+      },
+      "expect": {
+        "terminal": "SAFETY_STOP",
+        "endpoint_status": "ABSTAIN",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [
+          "NO_SAFE_ROUTE_FOUND"
+        ],
+        "terminal_reason": "FORBIDDEN_ACTION_REQUIRED"
+      }
+    },
+    {
+      "case_id": "control_auth_gate_beats_safety_stop",
+      "note": "명세 공백 구간의 확정 규칙 — 인증이 결제보다 앞선다. A 판단 대상으로 보고했다.",
+      "signals": {
+        "evidence_complete": true,
+        "auth_required_to_proceed": true,
+        "auth_gate_stage": "AFTER_TASK_SELECT",
+        "prohibited_action_required": true,
+        "prohibited_action_kind": "PAYMENT_SUBMIT"
+      },
+      "expect": {
+        "terminal": "AUTH_GATE",
+        "endpoint_status": "AUTH_GATE",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "AFTER_TASK_SELECT",
+        "competing_signals": [
+          "SAFETY_STOP"
+        ],
+        "terminal_reason": "AUTH_REQUIRED"
+      }
+    },
+    {
+      "case_id": "endpoint_reached",
+      "note": "terminal 이 아니다. resolution 이 그 사실을 명시한다.",
+      "signals": {
+        "evidence_complete": true,
+        "endpoint_reached": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "REACHED",
+        "resolution": "NOT_TERMINAL_ENDPOINT_REACHED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": null
+      }
+    },
+    {
+      "case_id": "undetermined_no_signal",
+      "note": "산출 불능. FAILED 로 바꾸지 않는다.",
+      "signals": {},
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "ABSTAIN",
+        "resolution": "UNDETERMINED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "OTHER"
+      }
+    },
+    {
+      "case_id": "control_app_required_beats_public_web_unobservable",
+      "note": "인접 대조군 — 앱 전용인 것과 공개웹에서 관측 불가인 것은 다른 사실이다.",
+      "signals": {
+        "evidence_complete": true,
+        "app_required": true,
+        "public_web_task_observable": false
+      },
+      "expect": {
+        "terminal": "APP_REQUIRED",
+        "endpoint_status": "APP_REQUIRED",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [
+          "PUBLIC_WEB_UNOBSERVABLE"
+        ],
+        "terminal_reason": "APP_REQUIRED"
+      }
+    },
+    {
+      "case_id": "task_comparability_concern_unperformable_abstains",
+      "note": "R1 — 과업 의미가 다르다는 이유로 target 을 교체하지 않는다. 증거는 온전하고 surface 부재도 확인되지 않았으나 허용 경로를 확정하지 못했다 → 판정 유보.",
+      "signals": {
+        "evidence_complete": true,
+        "public_web_task_observable": null,
+        "permitted_routes_exhausted": true,
+        "endpoint_reached": false
+      },
+      "expect": {
+        "terminal": "NO_SAFE_ROUTE_FOUND",
+        "endpoint_status": "ABSTAIN",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "OTHER"
+      }
+    },
+    {
+      "case_id": "reason_no_public_mobile_web",
+      "note": "R11 — 채널 자체가 없다. TASK_SURFACE_ABSENT 와 갈리는 대조군.",
+      "signals": {
+        "evidence_complete": true,
+        "public_web_task_observable": false,
+        "public_mobile_web_present": false
+      },
+      "expect": {
+        "terminal": "PUBLIC_WEB_UNOBSERVABLE",
+        "endpoint_status": "PUBLIC_WEB_UNOBSERVABLE",
+        "terminal_reason": "NO_PUBLIC_MOBILE_WEB",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": []
+      }
+    },
+    {
+      "case_id": "reason_unobservable_channel_presence_unresolved_is_other",
+      "note": "채널 유무 미관측 — 두 사유를 가를 수 없으므로 OTHER + note. 한쪽으로 밀지 않는다.",
+      "signals": {
+        "evidence_complete": true,
+        "public_web_task_observable": false,
+        "public_mobile_web_present": null
+      },
+      "expect": {
+        "terminal": "PUBLIC_WEB_UNOBSERVABLE",
+        "endpoint_status": "PUBLIC_WEB_UNOBSERVABLE",
+        "terminal_reason": "OTHER",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": []
+      }
+    },
+    {
+      "case_id": "reason_waf_block",
+      "note": "R11 — 서버가 응답을 거부했다. ACTIVE_CHALLENGE 와 갈리는 대조군.",
+      "signals": {
+        "evidence_complete": true,
+        "active_blocking_challenge": true,
+        "waf_block_observed": true,
+        "challenge_kind": "WAF_INTERSTITIAL"
+      },
+      "expect": {
+        "terminal": "WAF_OR_CHALLENGE",
+        "endpoint_status": "BLOCKED",
+        "terminal_reason": "WAF_BLOCK",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": []
+      }
+    },
+    {
+      "case_id": "reason_control_disabled_or_inert",
+      "note": "presence!=operative — control 이 있는데 작동하지 않는다. '없음'으로 접지 않는다.",
+      "signals": {
+        "evidence_complete": true,
+        "task_control_disabled_or_inert": true,
+        "endpoint_reached": false
+      },
+      "expect": {
+        "terminal": "NO_SAFE_ROUTE_FOUND",
+        "endpoint_status": "ABSTAIN",
+        "terminal_reason": "CONTROL_DISABLED_OR_INERT",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": []
+      }
+    },
+    {
+      "case_id": "reason_control_absent_is_task_surface_absent",
+      "note": "대조군 — control 자체가 없다. CONTROL_DISABLED_OR_INERT 와 다른 값으로 간다.",
+      "signals": {
+        "evidence_complete": true,
+        "public_web_task_observable": false,
+        "public_mobile_web_present": true,
+        "task_control_disabled_or_inert": false
+      },
+      "expect": {
+        "terminal": "PUBLIC_WEB_UNOBSERVABLE",
+        "endpoint_status": "PUBLIC_WEB_UNOBSERVABLE",
+        "terminal_reason": "TASK_SURFACE_ABSENT",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": []
+      }
+    },
+    {
+      "case_id": "reason_replay_broken",
+      "note": "03 §5 — frozen path 재생이 깨졌다. 자유탐색으로 조용히 대체하지 않는다.",
+      "signals": {
+        "evidence_complete": true,
+        "replay_broken": true,
+        "endpoint_reached": false
+      },
+      "expect": {
+        "terminal": "NO_SAFE_ROUTE_FOUND",
+        "endpoint_status": "ABSTAIN",
+        "terminal_reason": "REPLAY_BROKEN",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": []
+      }
+    },
+    {
+      "case_id": "reason_ambiguous_multiple_candidates",
+      "note": "후보가 여럿이라 경로를 확정할 수 없다.",
+      "signals": {
+        "evidence_complete": true,
+        "ambiguous_multiple_candidates": true,
+        "endpoint_reached": false
+      },
+      "expect": {
+        "terminal": "NO_SAFE_ROUTE_FOUND",
+        "endpoint_status": "ABSTAIN",
+        "terminal_reason": "AMBIGUOUS_MULTIPLE_CANDIDATES",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": []
+      }
+    },
+    {
+      "case_id": "reason_other_with_caller_supplied_note",
+      "note": "OTHER 양성 대조 — 호출부가 note 를 주면 그대로 실린다.",
+      "signals": {
+        "evidence_complete": true,
+        "permitted_routes_exhausted": true,
+        "endpoint_reached": false,
+        "other_reason_note": "지자체 위임 도메인으로 리다이렉트되어 계약상 endpoint 판정 불가"
+      },
+      "expect": {
+        "terminal": "NO_SAFE_ROUTE_FOUND",
+        "endpoint_status": "ABSTAIN",
+        "terminal_reason": "OTHER",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": []
+      }
+    }
+  ]
+}
