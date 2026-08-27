@@ -1,0 +1,1812 @@
+{
+  "verdict": "READY_WITH_AMBIGUITY",
+  "verdict_basis": {
+    "fixture_checks_total": 70,
+    "fixture_checks_failed": 0,
+    "n_ambiguous_definitions": 8,
+    "rule": "fixture 1건이라도 실패하면 NOT_READY. 전부 통과해도 AMBIGUOUS_DEFINITION 이 남아 있으면 READY_WITH_AMBIGUITY. 이것은 GO/NO-GO 가 아니라 하네스 자체의 준비 상태 표시다."
+  },
+  "lane": "P",
+  "scope": "Provenance / Denominator chain / Metric redundancy",
+  "generated_at_kst": "2026-08-28T02:53:08.570443+09:00",
+  "base_sha": "7448184a811f5d7d8772f21488bb75418fde3313",
+  "ssot_manifest_sha_declared": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+  "ssot_manifest_sha_observed": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+  "ssot_manifest_sha_match": true,
+  "grain": "service x frozen task",
+  "family_n": 10,
+  "n45_policy": "family 내 45 pair 는 distance matrix cell 이지 독립표본 n=45 가 아니다 (05 §1). 이 하네스는 어디서도 45 를 분모로 쓰지 않는다.",
+  "definitions_verbatim": {
+    "denominator_chain_05_6": "candidate 10 → eligible/frozen 10 → attempted 10 → evidence-bearing n → flow-evaluable n",
+    "denominator_chain_05_6_source": "SSOTV3/05_ANALYSIS_PLAN_v3.0.md §6 '각 family에서: candidate 10 → eligible/frozen 10 → attempted 10 → evidence-bearing n → flow-evaluable n / 모든 분모를 단계별로 보고. replacement는 freeze 전에만.'",
+    "analysis_unit_05_1": "Primary: service × frozen task. family n=10. 동일 family의 45 pair는 distance matrix의 cell이지 독립 표본 n=45가 아니다.",
+    "lineage_chain_director_p1_b": "requested URL -> final URL -> L0 -> AX -> DOM -> probe -> step -> terminal -> ledger",
+    "lineage_chain_source": "Lane P worker directive (Director P1 B 항). PROVENANCE_NOTE: Director 원문 packet 은 이 워크트리에 파일로 존재하지 않는다 — 워커 지시문에 실린 문안을 그대로 구현했고, 원문 대조는 D/A 가 해야 한다.",
+    "failure_classes_director_p1_c": [
+      "public mobile web 부재",
+      "WAF·challenge",
+      "timeout",
+      "evidence defect",
+      "disabled·inert",
+      "forbidden action",
+      "auth gate",
+      "genuine task surface absence"
+    ],
+    "failure_classes_source": "Lane P worker directive (Director P1 C 항). 동일 PROVENANCE_NOTE.",
+    "stfp_axes_05_3": [
+      "Spatial",
+      "Label",
+      "Control",
+      "Reveal",
+      "Sequence",
+      "Depth",
+      "Auth",
+      "Obstruction"
+    ],
+    "stfp_axes_source": "SSOTV3/05_ANALYSIS_PLAN_v3.0.md §3 'Spatial / Label / Control / Reveal / Sequence / Depth / Auth / Obstruction. 가중합 단일 score 생성 금지.'",
+    "evidence_package_03_10": "각 state/step: DOM / AX / screenshot / probe·CSS geometry / URL / selected control facts / manifest SHA",
+    "identity_02_8": "service_id + task_id + run_id 로 observation identity 구성. display name을 file id로 사용 금지.",
+    "endpoint_status_04_4": [
+      "REACHED",
+      "AUTH_GATE",
+      "PUBLIC_WEB_UNOBSERVABLE",
+      "APP_REQUIRED",
+      "EVIDENCE_DEFECT",
+      "BLOCKED",
+      "ABSTAIN"
+    ],
+    "precheck_03_2": [
+      "ELIGIBLE_PUBLIC_MOBILE_WEB",
+      "APP_REQUIRED_EXCLUDE",
+      "ACCESS_BLOCKED_REVIEW",
+      "URL_REMAP_REQUIRED"
+    ]
+  },
+  "implemented_components": {
+    "1_denominator_chain": {
+      "status": "IMPLEMENTED",
+      "entrypoints": [
+        "denominator_chain()",
+        "denominator_report()",
+        "ratio()"
+      ],
+      "stages": [
+        "candidate",
+        "eligible_frozen",
+        "attempted",
+        "evidence_bearing",
+        "flow_evaluable"
+      ],
+      "nesting_enforced": true,
+      "reports": "family 별 단계 분모 + 단계별 이탈 target id 목록 + 분자/분모/grain 을 붙인 비율 + silent_loss 합계 + 02 §8 identity 중복(duplicate_target_keys) + family n 불일치 표시",
+      "variants": [
+        "STRICT",
+        "PERMISSIVE"
+      ],
+      "variant_not_selected_reason": "AD-02 / AD-03"
+    },
+    "2_lineage_hole_detector": {
+      "status": "IMPLEMENTED",
+      "entrypoints": [
+        "detect_lineage_holes()",
+        "lineage_report()"
+      ],
+      "nodes": [
+        "requested_url",
+        "final_url",
+        "l0",
+        "ax",
+        "dom",
+        "probe",
+        "step",
+        "terminal",
+        "ledger"
+      ],
+      "node_states": {
+        "PRESENT": "값이 있고, 포인터면 파일이 실재하며 비어있지 않다",
+        "KEY_MISSING": "레코드에 그 키 자체가 없다",
+        "FIELD_NULL": "키는 있으나 값이 null 이다",
+        "VALUE_EMPTY": "값이 빈 문자열/빈 리스트/빈 객체다",
+        "VALUE_ZERO": "값이 수치 0 이다 (예: step 수 0)",
+        "FILE_ABSENT": "포인터 값은 있으나 그 경로에 파일이 없다",
+        "FILE_EMPTY": "파일은 있으나 0 바이트다",
+        "EVIDENCE_ROOT_UNKNOWN": "포인터 값은 있으나 evidence_root 가 주어지지 않아 파일 실재를 확인할 수 없다 (FILE_ABSENT 라고 주장하지 않는다)"
+      },
+      "conflation_policy": "파일 없음(FILE_ABSENT) / 필드 null(FIELD_NULL) / 값 0(VALUE_ZERO) / 키 부재(KEY_MISSING) / 확인불가(EVIDENCE_ROOT_UNKNOWN) 를 서로 다른 상태로 낸다.",
+      "downstream_masking": "없음 — 상류가 끊겨도 하류 노드를 독립 평가해 전부 보고한다."
+    },
+    "3_failure_class_decomposer": {
+      "status": "IMPLEMENTED_WITH_AMBIGUITY",
+      "entrypoints": [
+        "resolve_failure_class()",
+        "failure_report()"
+      ],
+      "classes": [
+        "PUBLIC_MOBILE_WEB_ABSENT",
+        "WAF_CHALLENGE",
+        "TIMEOUT",
+        "EVIDENCE_DEFECT",
+        "DISABLED_INERT",
+        "FORBIDDEN_ACTION",
+        "AUTH_GATE",
+        "GENUINE_TASK_SURFACE_ABSENCE",
+        "UNRESOLVED_FAILURE_CLASS"
+      ],
+      "basis_values": [
+        "EXPLICIT_SIGNAL",
+        "SSOT_DERIVED",
+        "SIGNAL_CONFLICT",
+        "NO_DISTINGUISHING_INPUT"
+      ],
+      "inference_policy": "명시 signal 또는 SSOT 일의적 파생만. 그 외 추정 없음.",
+      "ssot_coverage": "8종 중 SSOT endpoint_status 로 일의적 파생 가능한 것은 3종 (AUTH_GATE / EVIDENCE_DEFECT / APP_REQUIRED→PUBLIC_MOBILE_WEB_ABSENT). 나머지 5종은 명시 signal 필요. AD-01."
+    },
+    "4_metric_redundancy_scaffold": {
+      "status": "SCAFFOLD_ONLY_NO_NUMBERS",
+      "entrypoints": [
+        "metric_redundancy_scaffold()",
+        "spearman_rho()",
+        "mutual_information_discrete()",
+        "jaccard()",
+        "axis_pair_grid()"
+      ],
+      "axes": [
+        "Spatial",
+        "Label",
+        "Control",
+        "Reveal",
+        "Sequence",
+        "Depth",
+        "Auth",
+        "Obstruction"
+      ],
+      "n_axis_pairs": 28,
+      "threshold_policy": "NO_THRESHOLD. 중복 판정 없음.",
+      "why_no_numbers": "MAIN50 실측 없음 → NOT_COMPUTED_NO_DATA."
+    },
+    "5_manski_worst_case_bound": {
+      "status": "IMPLEMENTED",
+      "entrypoints": [
+        "manski_proportion_bound()",
+        "manski_rd_width()"
+      ],
+      "outputs": "lower / upper / width / sign_constant_over_bound",
+      "policy": "폭만. 식별 판정·threshold·재수집 권고 없음.",
+      "method_source": "tools/rq_d7_denominator_bounds.py (방법만; 수치 재사용 없음)"
+    },
+    "6_input_absent_guard": {
+      "status": "IMPLEMENTED",
+      "entrypoints": [
+        "load_input()",
+        "is_input_absent()"
+      ],
+      "absent_states": [
+        "INPUT_ABSENT_PATH_NOT_GIVEN",
+        "INPUT_ABSENT_PATH_MISSING",
+        "INPUT_ABSENT_NOT_A_DIR",
+        "INPUT_ABSENT_MANIFEST_MISSING",
+        "INPUT_ABSENT_ZERO_RECORDS"
+      ],
+      "guarantee": "부재 상태에서 lineage/denominator/failure 리포트는 computed=false 를 내며 '결손 0 / 정상' 으로 보이지 않는다."
+    }
+  },
+  "input_contract": {
+    "layout": {
+      "input_root/targets.jsonl": "한 줄 = 한 (family_id, service_id, task_id, run_id) 레코드. 02 §8 identity = service_id + task_id + run_id.",
+      "input_root/evidence/": "선택. lineage 포인터가 가리키는 evidence 파일 루트. 이 디렉터리가 있어야 'FILE_ABSENT' 와 'FIELD_NULL' 을 구분할 수 있다."
+    },
+    "record_fields": {
+      "family_id": "01 §2 F1..F5",
+      "service_id": "02 §2 dim_service_target.service_id",
+      "task_id": "02 §2 dim_task_contract.task_id",
+      "run_id": "02 §8. 없으면 attempted 아님",
+      "precheck_status": "03 §2 ELIGIBLE_PUBLIC_MOBILE_WEB / APP_REQUIRED_EXCLUDE / ACCESS_BLOCKED_REVIEW / URL_REMAP_REQUIRED",
+      "freeze_status": "02 §2 dim_task_contract.freeze_status",
+      "requested_url": "02 §2 / 03 §1",
+      "final_url": "02 §2 / 03 §1",
+      "l0_manifest_path": "03 §3 L0 surface capture manifest pointer",
+      "ax_manifest_path": "03 §10 AX",
+      "dom_manifest_path": "03 §10 DOM",
+      "probe_manifest_path": "03 §10 probe/CSS geometry",
+      "screenshot_manifest_path": "03 §10 screenshot",
+      "evidence_manifest_sha": "03 §10 manifest SHA / 02 §8",
+      "steps": "02 §4 fact_flow_step 배열",
+      "endpoint_status": "04 §4 REACHED/AUTH_GATE/PUBLIC_WEB_UNOBSERVABLE/APP_REQUIRED/EVIDENCE_DEFECT/BLOCKED/ABSTAIN",
+      "task_flow_sequence": "04 §3 dismissal 제외 서비스 자체 task 경로",
+      "ledger_entry": "원장 귀속 레코드 (D queue RQ-D11 / C-BLOCKER-220418 계열)",
+      "failure_class_signal": "수집기가 명시 기록한 Director 8종 토큰. 없으면 추정하지 않는다",
+      "termination_reason": "수집기가 명시 기록한 종료 사유 원문 토큰",
+      "forbidden_action_terminal": "03 §6/§8 forbidden_action_set 때문에 종료했는지 (bool)"
+    },
+    "note": "필드가 '없는 것'과 'null 인 것'과 '0/빈 것'은 서로 다른 입력이다. 이 하네스는 셋을 절대 같은 상태로 반환하지 않는다."
+  },
+  "fixture_results": {
+    "A_intact": {
+      "input_status": "INPUT_PRESENT",
+      "n_targets": 10,
+      "n_intact": 10,
+      "n_with_holes": 0,
+      "denominator_STRICT": {
+        "candidate": 10,
+        "eligible_frozen": 10,
+        "attempted": 10,
+        "evidence_bearing": 10,
+        "flow_evaluable": 10
+      }
+    },
+    "B_single_node_cuts": {
+      "requested_url": {
+        "expected_node": "requested_url",
+        "observed_hole_nodes": [
+          "requested_url"
+        ],
+        "n_targets_with_holes": 1,
+        "observed_state": "KEY_MISSING",
+        "exact_match": true
+      },
+      "final_url": {
+        "expected_node": "final_url",
+        "observed_hole_nodes": [
+          "final_url"
+        ],
+        "n_targets_with_holes": 1,
+        "observed_state": "KEY_MISSING",
+        "exact_match": true
+      },
+      "l0": {
+        "expected_node": "l0",
+        "observed_hole_nodes": [
+          "l0"
+        ],
+        "n_targets_with_holes": 1,
+        "observed_state": "FILE_ABSENT",
+        "exact_match": true
+      },
+      "ax": {
+        "expected_node": "ax",
+        "observed_hole_nodes": [
+          "ax"
+        ],
+        "n_targets_with_holes": 1,
+        "observed_state": "FILE_ABSENT",
+        "exact_match": true
+      },
+      "dom": {
+        "expected_node": "dom",
+        "observed_hole_nodes": [
+          "dom"
+        ],
+        "n_targets_with_holes": 1,
+        "observed_state": "FILE_ABSENT",
+        "exact_match": true
+      },
+      "probe": {
+        "expected_node": "probe",
+        "observed_hole_nodes": [
+          "probe"
+        ],
+        "n_targets_with_holes": 1,
+        "observed_state": "FILE_ABSENT",
+        "exact_match": true
+      },
+      "step": {
+        "expected_node": "step",
+        "observed_hole_nodes": [
+          "step"
+        ],
+        "n_targets_with_holes": 1,
+        "observed_state": "VALUE_ZERO",
+        "exact_match": true
+      },
+      "terminal": {
+        "expected_node": "terminal",
+        "observed_hole_nodes": [
+          "terminal"
+        ],
+        "n_targets_with_holes": 1,
+        "observed_state": "FIELD_NULL",
+        "exact_match": true
+      },
+      "ledger": {
+        "expected_node": "ledger",
+        "observed_hole_nodes": [
+          "ledger"
+        ],
+        "n_targets_with_holes": 1,
+        "observed_state": "FIELD_NULL",
+        "exact_match": true
+      }
+    },
+    "C_three_state_discrimination": {
+      "FILE_ABSENT_case": "FILE_ABSENT",
+      "FIELD_NULL_case": "FIELD_NULL",
+      "VALUE_ZERO_case": "VALUE_ZERO",
+      "KEY_MISSING_case": "KEY_MISSING",
+      "EVIDENCE_ROOT_UNKNOWN_case": "EVIDENCE_ROOT_UNKNOWN"
+    },
+    "D_input_absent": {
+      "path_not_given": {
+        "load_status": "INPUT_ABSENT_PATH_NOT_GIVEN",
+        "lineage_computed": false,
+        "lineage_status": "INPUT_ABSENT_PATH_NOT_GIVEN",
+        "denominator_computed": false,
+        "failure_computed": false,
+        "looks_like_clean_pass": false
+      },
+      "path_missing": {
+        "load_status": "INPUT_ABSENT_PATH_MISSING",
+        "lineage_computed": false,
+        "lineage_status": "INPUT_ABSENT_PATH_MISSING",
+        "denominator_computed": false,
+        "failure_computed": false,
+        "looks_like_clean_pass": false
+      },
+      "not_a_dir": {
+        "load_status": "INPUT_ABSENT_NOT_A_DIR",
+        "lineage_computed": false,
+        "lineage_status": "INPUT_ABSENT_NOT_A_DIR",
+        "denominator_computed": false,
+        "failure_computed": false,
+        "looks_like_clean_pass": false
+      },
+      "manifest_missing": {
+        "load_status": "INPUT_ABSENT_MANIFEST_MISSING",
+        "lineage_computed": false,
+        "lineage_status": "INPUT_ABSENT_MANIFEST_MISSING",
+        "denominator_computed": false,
+        "failure_computed": false,
+        "looks_like_clean_pass": false
+      },
+      "zero_records": {
+        "load_status": "INPUT_ABSENT_ZERO_RECORDS",
+        "lineage_computed": false,
+        "lineage_status": "INPUT_ABSENT_ZERO_RECORDS",
+        "denominator_computed": false,
+        "failure_computed": false,
+        "looks_like_clean_pass": false
+      }
+    },
+    "E_denominator_drops": {
+      "STRICT_stages": {
+        "candidate": 10,
+        "eligible_frozen": 8,
+        "attempted": 7,
+        "evidence_bearing": 6,
+        "flow_evaluable": 4
+      },
+      "PERMISSIVE_stages": {
+        "candidate": 10,
+        "eligible_frozen": 8,
+        "attempted": 7,
+        "evidence_bearing": 7,
+        "flow_evaluable": 6
+      },
+      "STRICT_drops": {
+        "eligible_frozen": [
+          "SYN-F2-01|T-F2-PRIMARY|RUN-SYN-F2-01-001",
+          "SYN-F2-02|T-F2-PRIMARY|RUN-SYN-F2-02-001"
+        ],
+        "attempted": [
+          "SYN-F2-03|T-F2-PRIMARY|"
+        ],
+        "evidence_bearing": [
+          "SYN-F2-04|T-F2-PRIMARY|RUN-SYN-F2-04-001"
+        ],
+        "flow_evaluable": [
+          "SYN-F2-05|T-F2-PRIMARY|RUN-SYN-F2-05-001",
+          "SYN-F2-06|T-F2-PRIMARY|RUN-SYN-F2-06-001"
+        ]
+      },
+      "STRICT_ratios": {
+        "eligible_frozen_over_candidate": {
+          "numerator": 8,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "label": "eligible_frozen / candidate, family F2",
+          "value": 0.8,
+          "value_undefined_reason": null
+        },
+        "attempted_over_candidate": {
+          "numerator": 7,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "label": "attempted / candidate, family F2",
+          "value": 0.7,
+          "value_undefined_reason": null
+        },
+        "evidence_bearing_over_candidate": {
+          "numerator": 6,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "label": "evidence_bearing / candidate, family F2",
+          "value": 0.6,
+          "value_undefined_reason": null
+        },
+        "flow_evaluable_over_candidate": {
+          "numerator": 4,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "label": "flow_evaluable / candidate, family F2",
+          "value": 0.4,
+          "value_undefined_reason": null
+        },
+        "flow_evaluable_over_frozen_10": {
+          "numerator": 4,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "label": "flow_evaluable / 고정 frozen 분모 10, family F2",
+          "value": 0.4,
+          "value_undefined_reason": null
+        }
+      },
+      "silent_loss_total_STRICT": 6
+    },
+    "E2_duplicate_identity": {
+      "n_input_records": 11,
+      "n_distinct_target_keys": 10,
+      "duplicate_target_keys": {
+        "SYN-F4-01|T-F4-PRIMARY|RUN-SYN-F4-01-001": 2
+      },
+      "frame_note": "입력 레코드 11 건. 05 §4 는 family 분모를 10 으로 고정한다 — 불일치를 은닉하지 않는다.",
+      "stage_denominators": {
+        "candidate": 11,
+        "eligible_frozen": 11,
+        "attempted": 11,
+        "evidence_bearing": 11,
+        "flow_evaluable": 11
+      },
+      "candidate_ratio": {
+        "numerator": 11,
+        "denominator": 10,
+        "grain": "service x frozen task",
+        "label": "flow_evaluable / 고정 frozen 분모 10, family F4",
+        "value": 1.1,
+        "value_undefined_reason": null
+      }
+    },
+    "F_failure_classes": {
+      "resolved": {
+        "PUBLIC_MOBILE_WEB_ABSENT": {
+          "observed": "PUBLIC_MOBILE_WEB_ABSENT",
+          "basis": "SSOT_DERIVED",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        },
+        "WAF_CHALLENGE": {
+          "observed": "WAF_CHALLENGE",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        },
+        "TIMEOUT": {
+          "observed": "TIMEOUT",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        },
+        "EVIDENCE_DEFECT": {
+          "observed": "EVIDENCE_DEFECT",
+          "basis": "SSOT_DERIVED",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        },
+        "DISABLED_INERT": {
+          "observed": "DISABLED_INERT",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        },
+        "FORBIDDEN_ACTION": {
+          "observed": "FORBIDDEN_ACTION",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        },
+        "AUTH_GATE": {
+          "observed": "AUTH_GATE",
+          "basis": "SSOT_DERIVED",
+          "match": true,
+          "is_ssot_legitimate_terminal": true
+        },
+        "GENUINE_TASK_SURFACE_ABSENCE": {
+          "observed": "GENUINE_TASK_SURFACE_ABSENCE",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        }
+      },
+      "unresolved": {
+        "blocked_alone": {
+          "observed": "UNRESOLVED_FAILURE_CLASS",
+          "basis": "NO_DISTINGUISHING_INPUT"
+        },
+        "public_web_unobservable_alone": {
+          "observed": "UNRESOLVED_FAILURE_CLASS",
+          "basis": "NO_DISTINGUISHING_INPUT"
+        },
+        "no_terminal_no_signal": {
+          "observed": "UNRESOLVED_FAILURE_CLASS",
+          "basis": "NO_DISTINGUISHING_INPUT"
+        }
+      },
+      "signal_conflict": {
+        "observed": "UNRESOLVED_FAILURE_CLASS",
+        "basis": "SIGNAL_CONFLICT"
+      }
+    },
+    "G_redundancy_scaffold": {
+      "status_without_data": "NOT_COMPUTED_NO_DATA",
+      "n_axis_pairs": 28,
+      "results_is_none": true
+    },
+    "G_function_selftest": {
+      "spearman_monotone": {
+        "rho": 0.9999999999999999,
+        "n_pairs": 5,
+        "grain": "service x frozen task"
+      },
+      "spearman_reverse": {
+        "rho": -0.9999999999999999,
+        "n_pairs": 5,
+        "grain": "service x frozen task"
+      },
+      "spearman_zero_variance": {
+        "rho": null,
+        "n_pairs": 4,
+        "grain": "service x frozen task",
+        "undefined_reason": "zero variance in one rank vector"
+      },
+      "mi_identical": {
+        "mi": 1.584962500721156,
+        "h_x": 1.584962500721156,
+        "h_y": 1.584962500721156,
+        "nmi_sqrt": 1.0,
+        "uncertainty_coefficient_y_given_x": 1.0,
+        "uncertainty_coefficient_x_given_y": 1.0,
+        "n_pairs": 6,
+        "n_dropped_missing": 0,
+        "grain": "service x frozen task",
+        "log_base": 2.0
+      },
+      "mi_independent": {
+        "mi": 0.0,
+        "h_x": 1.0,
+        "h_y": 1.0,
+        "nmi_sqrt": 0.0,
+        "uncertainty_coefficient_y_given_x": 0.0,
+        "uncertainty_coefficient_x_given_y": 0.0,
+        "n_pairs": 4,
+        "n_dropped_missing": 0,
+        "grain": "service x frozen task",
+        "log_base": 2.0
+      },
+      "mi_with_missing": {
+        "mi": 0.0,
+        "h_x": -0.0,
+        "h_y": -0.0,
+        "nmi_sqrt": null,
+        "uncertainty_coefficient_y_given_x": null,
+        "uncertainty_coefficient_x_given_y": null,
+        "n_pairs": 1,
+        "n_dropped_missing": 2,
+        "grain": "service x frozen task",
+        "log_base": 2.0
+      },
+      "jaccard_disjoint": {
+        "jaccard": 0.0,
+        "intersection": 0,
+        "union": 4,
+        "n_a": 2,
+        "n_b": 2,
+        "grain": "set of tokens",
+        "undefined_reason": null
+      },
+      "jaccard_identical": {
+        "jaccard": 1.0,
+        "intersection": 2,
+        "union": 2,
+        "n_a": 2,
+        "n_b": 2,
+        "grain": "set of tokens",
+        "undefined_reason": null
+      },
+      "jaccard_empty": {
+        "jaccard": null,
+        "intersection": 0,
+        "union": 0,
+        "n_a": 0,
+        "n_b": 0,
+        "grain": "set of tokens",
+        "undefined_reason": "union == 0"
+      }
+    },
+    "G_function_selftest_note": "합성 입력에 대한 함수 동작 확인일 뿐 construct 중복에 관한 어떤 주장도 아니다.",
+    "H_manski": {
+      "no_missing": {
+        "point_complete_case": 0.6,
+        "complete_case_numerator": 6,
+        "complete_case_denominator": 10,
+        "lower": 0.6,
+        "upper": 0.6,
+        "width": 0.0,
+        "n_unresolved": 0,
+        "denominator": 10,
+        "grain": "service x frozen task",
+        "interpretation_policy": "폭만 보고한다. 식별/비식별 판정, threshold, 재수집 권고 없음."
+      },
+      "three_missing": {
+        "point_complete_case": 0.857143,
+        "complete_case_numerator": 6,
+        "complete_case_denominator": 7,
+        "lower": 0.6,
+        "upper": 0.9,
+        "width": 0.3,
+        "n_unresolved": 3,
+        "denominator": 10,
+        "grain": "service x frozen task",
+        "interpretation_policy": "폭만 보고한다. 식별/비식별 판정, threshold, 재수집 권고 없음."
+      },
+      "all_missing": {
+        "point_complete_case": null,
+        "complete_case_numerator": 0,
+        "complete_case_denominator": 0,
+        "lower": 0.0,
+        "upper": 1.0,
+        "width": 1.0,
+        "n_unresolved": 10,
+        "denominator": 10,
+        "grain": "service x frozen task",
+        "interpretation_policy": "폭만 보고한다. 식별/비식별 판정, threshold, 재수집 권고 없음."
+      },
+      "rd_between_two_families": {
+        "rd_lower": 0.2,
+        "rd_upper": 0.7,
+        "rd_width": 0.5,
+        "sign_constant_over_bound": true,
+        "arm1": {
+          "point_complete_case": 0.857143,
+          "complete_case_numerator": 6,
+          "complete_case_denominator": 7,
+          "lower": 0.6,
+          "upper": 0.9,
+          "width": 0.3,
+          "n_unresolved": 3,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "interpretation_policy": "폭만 보고한다. 식별/비식별 판정, threshold, 재수집 권고 없음."
+        },
+        "arm2": {
+          "point_complete_case": 0.25,
+          "complete_case_numerator": 2,
+          "complete_case_denominator": 8,
+          "lower": 0.2,
+          "upper": 0.4,
+          "width": 0.2,
+          "n_unresolved": 2,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "interpretation_policy": "폭만 보고한다. 식별/비식별 판정, threshold, 재수집 권고 없음."
+        },
+        "grain": "service x frozen task",
+        "interpretation_policy": "폭과 부호 불변 여부만 사실로 적는다. GO/NO-GO 없음."
+      }
+    },
+    "I_mutations": {
+      "catalog": {
+        "M1_FILE_ABSENT_AS_PRESENT": "lineage 탐지기가 '파일 없음'을 PRESENT 로 처리한다 (파일/필드/값 3상태 뭉개기)",
+        "M2_NULL_AS_KEY_MISSING": "lineage 탐지기가 FIELD_NULL 을 KEY_MISSING 과 같은 상태로 반환한다",
+        "M3_NO_INPUT_ABSENT_GUARD": "빈/부재 입력에서 INPUT_ABSENT 를 내지 않고 '정상, hole 0' 처럼 보이게 한다",
+        "M4_DENOMINATOR_NOT_NESTED": "분모 사슬이 단계 중첩을 강제하지 않아 앞 단계에서 빠진 target 이 뒤 단계에 다시 산입된다",
+        "M5_GUESS_FAILURE_CLASS": "실패 사유 분해기가 구분 불가 케이스를 UNRESOLVED 로 두지 않고 TIMEOUT 으로 추정해 채운다"
+      },
+      "runs": {
+        "M1_FILE_ABSENT_AS_PRESENT": {
+          "fixture": "cut_dom",
+          "holes_under_mutation": 0,
+          "holes_normal": 1,
+          "caught": true
+        },
+        "M2_NULL_AS_KEY_MISSING": {
+          "state_normal": "FIELD_NULL",
+          "state_under_mutation": "KEY_MISSING",
+          "caught": true
+        },
+        "M3_NO_INPUT_ABSENT_GUARD": {
+          "load_status_under_mutation": "INPUT_PRESENT",
+          "lineage_computed": true,
+          "n_with_holes": 0,
+          "silent_clean_pass_produced": true,
+          "caught": true
+        },
+        "M4_DENOMINATOR_NOT_NESTED": {
+          "stages_normal": {
+            "candidate": 10,
+            "eligible_frozen": 8,
+            "attempted": 7,
+            "evidence_bearing": 6,
+            "flow_evaluable": 4
+          },
+          "stages_under_mutation": {
+            "candidate": 10,
+            "eligible_frozen": 8,
+            "attempted": 9,
+            "evidence_bearing": 9,
+            "flow_evaluable": 8
+          },
+          "caught": true
+        },
+        "M5_GUESS_FAILURE_CLASS": {
+          "class_normal": "UNRESOLVED_FAILURE_CLASS",
+          "class_under_mutation": "TIMEOUT",
+          "basis_under_mutation": "GUESSED",
+          "caught": true
+        }
+      },
+      "restored_after_run": true
+    },
+    "I_post_mutation_recheck": {
+      "n_with_holes": 0
+    },
+    "checks": [
+      {
+        "check": "A1_intact_input_present",
+        "pass": true,
+        "detail": "INPUT_PRESENT"
+      },
+      {
+        "check": "A2_intact_zero_holes",
+        "pass": true,
+        "detail": {}
+      },
+      {
+        "check": "A3_intact_all_stages_10",
+        "pass": true,
+        "detail": {
+          "candidate": 10,
+          "eligible_frozen": 10,
+          "attempted": 10,
+          "evidence_bearing": 10,
+          "flow_evaluable": 10
+        }
+      },
+      {
+        "check": "B_cut_requested_url_exactly_that_node",
+        "pass": true,
+        "detail": {
+          "expected_node": "requested_url",
+          "observed_hole_nodes": [
+            "requested_url"
+          ],
+          "n_targets_with_holes": 1,
+          "observed_state": "KEY_MISSING",
+          "exact_match": true
+        }
+      },
+      {
+        "check": "B_cut_final_url_exactly_that_node",
+        "pass": true,
+        "detail": {
+          "expected_node": "final_url",
+          "observed_hole_nodes": [
+            "final_url"
+          ],
+          "n_targets_with_holes": 1,
+          "observed_state": "KEY_MISSING",
+          "exact_match": true
+        }
+      },
+      {
+        "check": "B_cut_l0_exactly_that_node",
+        "pass": true,
+        "detail": {
+          "expected_node": "l0",
+          "observed_hole_nodes": [
+            "l0"
+          ],
+          "n_targets_with_holes": 1,
+          "observed_state": "FILE_ABSENT",
+          "exact_match": true
+        }
+      },
+      {
+        "check": "B_cut_ax_exactly_that_node",
+        "pass": true,
+        "detail": {
+          "expected_node": "ax",
+          "observed_hole_nodes": [
+            "ax"
+          ],
+          "n_targets_with_holes": 1,
+          "observed_state": "FILE_ABSENT",
+          "exact_match": true
+        }
+      },
+      {
+        "check": "B_cut_dom_exactly_that_node",
+        "pass": true,
+        "detail": {
+          "expected_node": "dom",
+          "observed_hole_nodes": [
+            "dom"
+          ],
+          "n_targets_with_holes": 1,
+          "observed_state": "FILE_ABSENT",
+          "exact_match": true
+        }
+      },
+      {
+        "check": "B_cut_probe_exactly_that_node",
+        "pass": true,
+        "detail": {
+          "expected_node": "probe",
+          "observed_hole_nodes": [
+            "probe"
+          ],
+          "n_targets_with_holes": 1,
+          "observed_state": "FILE_ABSENT",
+          "exact_match": true
+        }
+      },
+      {
+        "check": "B_cut_step_exactly_that_node",
+        "pass": true,
+        "detail": {
+          "expected_node": "step",
+          "observed_hole_nodes": [
+            "step"
+          ],
+          "n_targets_with_holes": 1,
+          "observed_state": "VALUE_ZERO",
+          "exact_match": true
+        }
+      },
+      {
+        "check": "B_cut_terminal_exactly_that_node",
+        "pass": true,
+        "detail": {
+          "expected_node": "terminal",
+          "observed_hole_nodes": [
+            "terminal"
+          ],
+          "n_targets_with_holes": 1,
+          "observed_state": "FIELD_NULL",
+          "exact_match": true
+        }
+      },
+      {
+        "check": "B_cut_ledger_exactly_that_node",
+        "pass": true,
+        "detail": {
+          "expected_node": "ledger",
+          "observed_hole_nodes": [
+            "ledger"
+          ],
+          "n_targets_with_holes": 1,
+          "observed_state": "FIELD_NULL",
+          "exact_match": true
+        }
+      },
+      {
+        "check": "C1_states_all_distinct",
+        "pass": true,
+        "detail": {
+          "FILE_ABSENT_case": "FILE_ABSENT",
+          "FIELD_NULL_case": "FIELD_NULL",
+          "VALUE_ZERO_case": "VALUE_ZERO",
+          "KEY_MISSING_case": "KEY_MISSING",
+          "EVIDENCE_ROOT_UNKNOWN_case": "EVIDENCE_ROOT_UNKNOWN"
+        }
+      },
+      {
+        "check": "C2_file_absent_labelled",
+        "pass": true,
+        "detail": {
+          "FILE_ABSENT_case": "FILE_ABSENT",
+          "FIELD_NULL_case": "FIELD_NULL",
+          "VALUE_ZERO_case": "VALUE_ZERO",
+          "KEY_MISSING_case": "KEY_MISSING",
+          "EVIDENCE_ROOT_UNKNOWN_case": "EVIDENCE_ROOT_UNKNOWN"
+        }
+      },
+      {
+        "check": "C3_null_labelled",
+        "pass": true,
+        "detail": {
+          "FILE_ABSENT_case": "FILE_ABSENT",
+          "FIELD_NULL_case": "FIELD_NULL",
+          "VALUE_ZERO_case": "VALUE_ZERO",
+          "KEY_MISSING_case": "KEY_MISSING",
+          "EVIDENCE_ROOT_UNKNOWN_case": "EVIDENCE_ROOT_UNKNOWN"
+        }
+      },
+      {
+        "check": "C4_zero_labelled",
+        "pass": true,
+        "detail": {
+          "FILE_ABSENT_case": "FILE_ABSENT",
+          "FIELD_NULL_case": "FIELD_NULL",
+          "VALUE_ZERO_case": "VALUE_ZERO",
+          "KEY_MISSING_case": "KEY_MISSING",
+          "EVIDENCE_ROOT_UNKNOWN_case": "EVIDENCE_ROOT_UNKNOWN"
+        }
+      },
+      {
+        "check": "C5_no_root_not_claimed_absent",
+        "pass": true,
+        "detail": {
+          "FILE_ABSENT_case": "FILE_ABSENT",
+          "FIELD_NULL_case": "FIELD_NULL",
+          "VALUE_ZERO_case": "VALUE_ZERO",
+          "KEY_MISSING_case": "KEY_MISSING",
+          "EVIDENCE_ROOT_UNKNOWN_case": "EVIDENCE_ROOT_UNKNOWN"
+        }
+      },
+      {
+        "check": "D_path_not_given_flagged_absent",
+        "pass": true,
+        "detail": "INPUT_ABSENT_PATH_NOT_GIVEN"
+      },
+      {
+        "check": "D_path_not_given_not_silent_pass",
+        "pass": true,
+        "detail": {
+          "load_status": "INPUT_ABSENT_PATH_NOT_GIVEN",
+          "lineage_computed": false,
+          "lineage_status": "INPUT_ABSENT_PATH_NOT_GIVEN",
+          "denominator_computed": false,
+          "failure_computed": false,
+          "looks_like_clean_pass": false
+        }
+      },
+      {
+        "check": "D_path_missing_flagged_absent",
+        "pass": true,
+        "detail": "INPUT_ABSENT_PATH_MISSING"
+      },
+      {
+        "check": "D_path_missing_not_silent_pass",
+        "pass": true,
+        "detail": {
+          "load_status": "INPUT_ABSENT_PATH_MISSING",
+          "lineage_computed": false,
+          "lineage_status": "INPUT_ABSENT_PATH_MISSING",
+          "denominator_computed": false,
+          "failure_computed": false,
+          "looks_like_clean_pass": false
+        }
+      },
+      {
+        "check": "D_not_a_dir_flagged_absent",
+        "pass": true,
+        "detail": "INPUT_ABSENT_NOT_A_DIR"
+      },
+      {
+        "check": "D_not_a_dir_not_silent_pass",
+        "pass": true,
+        "detail": {
+          "load_status": "INPUT_ABSENT_NOT_A_DIR",
+          "lineage_computed": false,
+          "lineage_status": "INPUT_ABSENT_NOT_A_DIR",
+          "denominator_computed": false,
+          "failure_computed": false,
+          "looks_like_clean_pass": false
+        }
+      },
+      {
+        "check": "D_manifest_missing_flagged_absent",
+        "pass": true,
+        "detail": "INPUT_ABSENT_MANIFEST_MISSING"
+      },
+      {
+        "check": "D_manifest_missing_not_silent_pass",
+        "pass": true,
+        "detail": {
+          "load_status": "INPUT_ABSENT_MANIFEST_MISSING",
+          "lineage_computed": false,
+          "lineage_status": "INPUT_ABSENT_MANIFEST_MISSING",
+          "denominator_computed": false,
+          "failure_computed": false,
+          "looks_like_clean_pass": false
+        }
+      },
+      {
+        "check": "D_zero_records_flagged_absent",
+        "pass": true,
+        "detail": "INPUT_ABSENT_ZERO_RECORDS"
+      },
+      {
+        "check": "D_zero_records_not_silent_pass",
+        "pass": true,
+        "detail": {
+          "load_status": "INPUT_ABSENT_ZERO_RECORDS",
+          "lineage_computed": false,
+          "lineage_status": "INPUT_ABSENT_ZERO_RECORDS",
+          "denominator_computed": false,
+          "failure_computed": false,
+          "looks_like_clean_pass": false
+        }
+      },
+      {
+        "check": "E1_strict_stage_counts_exact",
+        "pass": true,
+        "detail": {
+          "expected": {
+            "candidate": 10,
+            "eligible_frozen": 8,
+            "attempted": 7,
+            "evidence_bearing": 6,
+            "flow_evaluable": 4
+          },
+          "observed": {
+            "candidate": 10,
+            "eligible_frozen": 8,
+            "attempted": 7,
+            "evidence_bearing": 6,
+            "flow_evaluable": 4
+          }
+        }
+      },
+      {
+        "check": "E2_drop_ids_named",
+        "pass": true,
+        "detail": {
+          "n_dropped_here": 2,
+          "dropped_target_ids": [
+            "SYN-F2-01|T-F2-PRIMARY|RUN-SYN-F2-01-001",
+            "SYN-F2-02|T-F2-PRIMARY|RUN-SYN-F2-02-001"
+          ],
+          "dropped_from_stage": "candidate"
+        }
+      },
+      {
+        "check": "E3_permissive_differs_from_strict",
+        "pass": true,
+        "detail": {
+          "strict": {
+            "candidate": 10,
+            "eligible_frozen": 8,
+            "attempted": 7,
+            "evidence_bearing": 6,
+            "flow_evaluable": 4
+          },
+          "permissive": {
+            "candidate": 10,
+            "eligible_frozen": 8,
+            "attempted": 7,
+            "evidence_bearing": 7,
+            "flow_evaluable": 6
+          }
+        }
+      },
+      {
+        "check": "E4_ratio_carries_num_den_grain",
+        "pass": true,
+        "detail": [
+          "eligible_frozen_over_candidate",
+          "attempted_over_candidate",
+          "evidence_bearing_over_candidate",
+          "flow_evaluable_over_candidate",
+          "flow_evaluable_over_frozen_10"
+        ]
+      },
+      {
+        "check": "E5_duplicate_identity_surfaced",
+        "pass": true,
+        "detail": {
+          "n_input_records": 11,
+          "n_distinct_target_keys": 10,
+          "duplicate_target_keys": {
+            "SYN-F4-01|T-F4-PRIMARY|RUN-SYN-F4-01-001": 2
+          },
+          "frame_note": "입력 레코드 11 건. 05 §4 는 family 분모를 10 으로 고정한다 — 불일치를 은닉하지 않는다.",
+          "stage_denominators": {
+            "candidate": 11,
+            "eligible_frozen": 11,
+            "attempted": 11,
+            "evidence_bearing": 11,
+            "flow_evaluable": 11
+          },
+          "candidate_ratio": {
+            "numerator": 11,
+            "denominator": 10,
+            "grain": "service x frozen task",
+            "label": "flow_evaluable / 고정 frozen 분모 10, family F4",
+            "value": 1.1,
+            "value_undefined_reason": null
+          }
+        }
+      },
+      {
+        "check": "E6_family_n_mismatch_not_hidden",
+        "pass": true,
+        "detail": "입력 레코드 11 건. 05 §4 는 family 분모를 10 으로 고정한다 — 불일치를 은닉하지 않는다."
+      },
+      {
+        "check": "E7_fixed_denominator_stays_10",
+        "pass": true,
+        "detail": {
+          "numerator": 11,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "label": "flow_evaluable / 고정 frozen 분모 10, family F4",
+          "value": 1.1,
+          "value_undefined_reason": null
+        }
+      },
+      {
+        "check": "E8_duplicate_inflates_candidate_visibly",
+        "pass": true,
+        "detail": {
+          "candidate": 11,
+          "eligible_frozen": 11,
+          "attempted": 11,
+          "evidence_bearing": 11,
+          "flow_evaluable": 11
+        }
+      },
+      {
+        "check": "F_class_PUBLIC_MOBILE_WEB_ABSENT",
+        "pass": true,
+        "detail": {
+          "observed": "PUBLIC_MOBILE_WEB_ABSENT",
+          "basis": "SSOT_DERIVED",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        }
+      },
+      {
+        "check": "F_class_WAF_CHALLENGE",
+        "pass": true,
+        "detail": {
+          "observed": "WAF_CHALLENGE",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        }
+      },
+      {
+        "check": "F_class_TIMEOUT",
+        "pass": true,
+        "detail": {
+          "observed": "TIMEOUT",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        }
+      },
+      {
+        "check": "F_class_EVIDENCE_DEFECT",
+        "pass": true,
+        "detail": {
+          "observed": "EVIDENCE_DEFECT",
+          "basis": "SSOT_DERIVED",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        }
+      },
+      {
+        "check": "F_class_DISABLED_INERT",
+        "pass": true,
+        "detail": {
+          "observed": "DISABLED_INERT",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        }
+      },
+      {
+        "check": "F_class_FORBIDDEN_ACTION",
+        "pass": true,
+        "detail": {
+          "observed": "FORBIDDEN_ACTION",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        }
+      },
+      {
+        "check": "F_class_AUTH_GATE",
+        "pass": true,
+        "detail": {
+          "observed": "AUTH_GATE",
+          "basis": "SSOT_DERIVED",
+          "match": true,
+          "is_ssot_legitimate_terminal": true
+        }
+      },
+      {
+        "check": "F_class_GENUINE_TASK_SURFACE_ABSENCE",
+        "pass": true,
+        "detail": {
+          "observed": "GENUINE_TASK_SURFACE_ABSENCE",
+          "basis": "EXPLICIT_SIGNAL",
+          "match": true,
+          "is_ssot_legitimate_terminal": false
+        }
+      },
+      {
+        "check": "F_unresolved_blocked_alone",
+        "pass": true,
+        "detail": {
+          "observed": "UNRESOLVED_FAILURE_CLASS",
+          "basis": "NO_DISTINGUISHING_INPUT"
+        }
+      },
+      {
+        "check": "F_unresolved_public_web_unobservable_alone",
+        "pass": true,
+        "detail": {
+          "observed": "UNRESOLVED_FAILURE_CLASS",
+          "basis": "NO_DISTINGUISHING_INPUT"
+        }
+      },
+      {
+        "check": "F_unresolved_no_terminal_no_signal",
+        "pass": true,
+        "detail": {
+          "observed": "UNRESOLVED_FAILURE_CLASS",
+          "basis": "NO_DISTINGUISHING_INPUT"
+        }
+      },
+      {
+        "check": "F_signal_conflict_unresolved",
+        "pass": true,
+        "detail": {
+          "target_key": "SYN-F3-91|T-F3-PRIMARY|RUN-SYN-F3-91-001",
+          "failure_class": "UNRESOLVED_FAILURE_CLASS",
+          "basis": "SIGNAL_CONFLICT",
+          "explicit_signal": "TIMEOUT",
+          "ssot_derived": "AUTH_GATE",
+          "signal_conflict": true,
+          "is_ssot_legitimate_terminal": false,
+          "evidence": [
+            {
+              "source": "failure_class_signal",
+              "value": "TIMEOUT",
+              "kind": "EXPLICIT"
+            },
+            {
+              "source": "endpoint_status",
+              "value": "AUTH_GATE",
+              "kind": "SSOT_DERIVED",
+              "cites": "04 §4 endpoint_status=AUTH_GATE; 03 §7 auth terminal"
+            }
+          ]
+        }
+      },
+      {
+        "check": "F_all_8_classes_distinct",
+        "pass": true,
+        "detail": [
+          "AUTH_GATE",
+          "DISABLED_INERT",
+          "EVIDENCE_DEFECT",
+          "FORBIDDEN_ACTION",
+          "GENUINE_TASK_SURFACE_ABSENCE",
+          "PUBLIC_MOBILE_WEB_ABSENT",
+          "TIMEOUT",
+          "WAF_CHALLENGE"
+        ]
+      },
+      {
+        "check": "G1_no_data_no_numbers",
+        "pass": true,
+        "detail": "NOT_COMPUTED_NO_DATA"
+      },
+      {
+        "check": "G2_axis_pairs_28",
+        "pass": true,
+        "detail": 28
+      },
+      {
+        "check": "G3_spearman_monotone_1",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "check": "G4_spearman_reverse_-1",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "check": "G5_spearman_zero_var_none",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "check": "G6_mi_identical_equals_entropy",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "check": "G7_mi_independent_zero",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "check": "G8_mi_reports_dropped_missing",
+        "pass": true,
+        "detail": {
+          "mi": 0.0,
+          "h_x": -0.0,
+          "h_y": -0.0,
+          "nmi_sqrt": null,
+          "uncertainty_coefficient_y_given_x": null,
+          "uncertainty_coefficient_x_given_y": null,
+          "n_pairs": 1,
+          "n_dropped_missing": 2,
+          "grain": "service x frozen task",
+          "log_base": 2.0
+        }
+      },
+      {
+        "check": "G9_jaccard_disjoint_0",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "check": "G10_jaccard_identical_1",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "check": "G11_jaccard_empty_undefined",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "check": "H1_width_zero_when_complete",
+        "pass": true,
+        "detail": {
+          "point_complete_case": 0.6,
+          "complete_case_numerator": 6,
+          "complete_case_denominator": 10,
+          "lower": 0.6,
+          "upper": 0.6,
+          "width": 0.0,
+          "n_unresolved": 0,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "interpretation_policy": "폭만 보고한다. 식별/비식별 판정, threshold, 재수집 권고 없음."
+        }
+      },
+      {
+        "check": "H2_width_grows_with_missing",
+        "pass": true,
+        "detail": [
+          {
+            "point_complete_case": 0.6,
+            "complete_case_numerator": 6,
+            "complete_case_denominator": 10,
+            "lower": 0.6,
+            "upper": 0.6,
+            "width": 0.0,
+            "n_unresolved": 0,
+            "denominator": 10,
+            "grain": "service x frozen task",
+            "interpretation_policy": "폭만 보고한다. 식별/비식별 판정, threshold, 재수집 권고 없음."
+          },
+          {
+            "point_complete_case": 0.857143,
+            "complete_case_numerator": 6,
+            "complete_case_denominator": 7,
+            "lower": 0.6,
+            "upper": 0.9,
+            "width": 0.3,
+            "n_unresolved": 3,
+            "denominator": 10,
+            "grain": "service x frozen task",
+            "interpretation_policy": "폭만 보고한다. 식별/비식별 판정, threshold, 재수집 권고 없음."
+          }
+        ]
+      },
+      {
+        "check": "H3_all_missing_full_width",
+        "pass": true,
+        "detail": {
+          "point_complete_case": null,
+          "complete_case_numerator": 0,
+          "complete_case_denominator": 0,
+          "lower": 0.0,
+          "upper": 1.0,
+          "width": 1.0,
+          "n_unresolved": 10,
+          "denominator": 10,
+          "grain": "service x frozen task",
+          "interpretation_policy": "폭만 보고한다. 식별/비식별 판정, threshold, 재수집 권고 없음."
+        }
+      },
+      {
+        "check": "H4_no_verdict_field",
+        "pass": true,
+        "detail": [
+          "point_complete_case",
+          "complete_case_numerator",
+          "complete_case_denominator",
+          "lower",
+          "upper",
+          "width",
+          "n_unresolved",
+          "denominator",
+          "grain",
+          "interpretation_policy"
+        ]
+      },
+      {
+        "check": "I_M1_caught",
+        "pass": true,
+        "detail": {
+          "fixture": "cut_dom",
+          "holes_under_mutation": 0,
+          "holes_normal": 1,
+          "caught": true
+        }
+      },
+      {
+        "check": "I_M2_caught",
+        "pass": true,
+        "detail": {
+          "state_normal": "FIELD_NULL",
+          "state_under_mutation": "KEY_MISSING",
+          "caught": true
+        }
+      },
+      {
+        "check": "I_M3_caught",
+        "pass": true,
+        "detail": {
+          "load_status_under_mutation": "INPUT_PRESENT",
+          "lineage_computed": true,
+          "n_with_holes": 0,
+          "silent_clean_pass_produced": true,
+          "caught": true
+        }
+      },
+      {
+        "check": "I_M4_caught",
+        "pass": true,
+        "detail": {
+          "stages_normal": {
+            "candidate": 10,
+            "eligible_frozen": 8,
+            "attempted": 7,
+            "evidence_bearing": 6,
+            "flow_evaluable": 4
+          },
+          "stages_under_mutation": {
+            "candidate": 10,
+            "eligible_frozen": 8,
+            "attempted": 9,
+            "evidence_bearing": 9,
+            "flow_evaluable": 8
+          },
+          "caught": true
+        }
+      },
+      {
+        "check": "I_M5_caught",
+        "pass": true,
+        "detail": {
+          "class_normal": "UNRESOLVED_FAILURE_CLASS",
+          "class_under_mutation": "TIMEOUT",
+          "basis_under_mutation": "GUESSED",
+          "caught": true
+        }
+      },
+      {
+        "check": "I_mutations_restored",
+        "pass": true,
+        "detail": []
+      },
+      {
+        "check": "I_post_mutation_intact_still_clean",
+        "pass": true,
+        "detail": {}
+      }
+    ],
+    "n_checks": 70,
+    "n_failed": 0,
+    "failed_checks": [],
+    "J_negative_control": {
+      "purpose": "전건 통과가 검사 무력화 때문이 아님을 보이는 음성 대조",
+      "per_mutation": {
+        "M1_FILE_ABSENT_AS_PRESENT": {
+          "outcome": "CHECKS_FAILED",
+          "n_failed": 6,
+          "n_checks": 70,
+          "failed_checks": [
+            "B_cut_l0_exactly_that_node",
+            "B_cut_ax_exactly_that_node",
+            "B_cut_dom_exactly_that_node",
+            "B_cut_probe_exactly_that_node",
+            "C2_file_absent_labelled",
+            "I_mutations_restored"
+          ],
+          "suite_detected_the_break": true
+        },
+        "M2_NULL_AS_KEY_MISSING": {
+          "outcome": "CHECKS_FAILED",
+          "n_failed": 3,
+          "n_checks": 70,
+          "failed_checks": [
+            "C1_states_all_distinct",
+            "C3_null_labelled",
+            "I_mutations_restored"
+          ],
+          "suite_detected_the_break": true
+        },
+        "M3_NO_INPUT_ABSENT_GUARD": {
+          "outcome": "SUITE_RAISED",
+          "exception": "KeyError: 'F1'",
+          "suite_detected_the_break": true,
+          "note": "예외로 중단되는 것도 '조용한 통과'가 아니므로 탐지로 본다."
+        },
+        "M4_DENOMINATOR_NOT_NESTED": {
+          "outcome": "CHECKS_FAILED",
+          "n_failed": 2,
+          "n_checks": 70,
+          "failed_checks": [
+            "E1_strict_stage_counts_exact",
+            "I_mutations_restored"
+          ],
+          "suite_detected_the_break": true
+        },
+        "M5_GUESS_FAILURE_CLASS": {
+          "outcome": "CHECKS_FAILED",
+          "n_failed": 4,
+          "n_checks": 70,
+          "failed_checks": [
+            "F_unresolved_blocked_alone",
+            "F_unresolved_public_web_unobservable_alone",
+            "F_unresolved_no_terminal_no_signal",
+            "I_mutations_restored"
+          ],
+          "suite_detected_the_break": true
+        }
+      },
+      "all_mutations_detected": true,
+      "mutations_restored_after": true
+    }
+  },
+  "failure_class_taxonomy": {
+    "classes": {
+      "PUBLIC_MOBILE_WEB_ABSENT": "public mobile web 부재 — 01 §1 제외조건 / 03 §2 APP_REQUIRED_EXCLUDE",
+      "WAF_CHALLENGE": "WAF·challenge — 03 §8 'CAPTCHA 해결/우회 금지. active blocking challenge만 terminal'",
+      "TIMEOUT": "timeout — 수집기 종료 사유. SSOT 에 대응 endpoint_status 값 없음",
+      "EVIDENCE_DEFECT": "evidence defect — 04 §4 EVIDENCE_DEFECT / 05 §5 'structural failure로 재분류하지 않는다'",
+      "DISABLED_INERT": "disabled·inert — 대응 SSOT 필드 없음. 명시 signal 로만 확정",
+      "FORBIDDEN_ACTION": "forbidden action — 02 §2 forbidden_action_set / 03 §6·§8 금지행위로 진행 불가",
+      "AUTH_GATE": "auth gate — 03 §7 / 04 §2·§4 AUTH_GATE",
+      "GENUINE_TASK_SURFACE_ABSENCE": "genuine task surface absence — 서비스에 해당 과업 surface 자체가 없음",
+      "UNRESOLVED_FAILURE_CLASS": "입력이 위 8종을 구분하지 못한다. 추정으로 채우지 않는다"
+    },
+    "ssot_derivation_table": {
+      "AUTH_GATE": {
+        "maps_to": "AUTH_GATE",
+        "cites": "04 §4 endpoint_status=AUTH_GATE; 03 §7 auth terminal"
+      },
+      "EVIDENCE_DEFECT": {
+        "maps_to": "EVIDENCE_DEFECT",
+        "cites": "04 §4 endpoint_status=EVIDENCE_DEFECT; 05 §5 재분류 금지"
+      },
+      "APP_REQUIRED": {
+        "maps_to": "PUBLIC_MOBILE_WEB_ABSENT",
+        "cites": "04 §4 endpoint_status=APP_REQUIRED; 03 §2 APP_REQUIRED_EXCLUDE"
+      }
+    },
+    "ssot_ambiguous_terminals": {
+      "BLOCKED": "WAF_CHALLENGE 와 TIMEOUT 을 구분하지 못한다. 04 §4 는 BLOCKED 하나만 둔다",
+      "PUBLIC_WEB_UNOBSERVABLE": "PUBLIC_MOBILE_WEB_ABSENT 와 GENUINE_TASK_SURFACE_ABSENCE 를 구분하지 못한다",
+      "ABSTAIN": "04 §2 ABSTAIN 은 '억지 판정하지 않는다'는 선언이지 사유 분류가 아니다"
+    },
+    "legitimate_terminals": [
+      "AUTH_GATE"
+    ],
+    "no_collapse_policy": "8종을 하나로 묶지 않는다. 구분 불가 시 UNRESOLVED_FAILURE_CLASS."
+  },
+  "ambiguous_definitions": [
+    {
+      "id": "AD-01",
+      "where": "Director P1 C 8종  vs  04_FLOW_CODEBOOK §4 endpoint_status (7값)",
+      "issue": "Director 가 요구한 8종 중 TIMEOUT / DISABLED_INERT / FORBIDDEN_ACTION / GENUINE_TASK_SURFACE_ABSENCE 는 대응하는 SSOT endpoint_status 값이 없다. BLOCKED 하나가 WAF·challenge 와 timeout 을 함께 삼키고, PUBLIC_WEB_UNOBSERVABLE 하나가 'public mobile web 부재' 와 'genuine task surface absence' 를 함께 삼킨다.",
+      "harness_behaviour": "명시 signal 이 없으면 UNRESOLVED_FAILURE_CLASS. 추정하지 않는다.",
+      "needed_from": "A (codebook 값 추가 또는 수집기 필수 signal 필드 지정)"
+    },
+    {
+      "id": "AD-02",
+      "where": "05_ANALYSIS_PLAN §6 'evidence-bearing n'",
+      "issue": "03 §10 이 evidence package 구성요소를 열거하지만, target 하나가 evidence-bearing 이려면 구성요소 '전부'가 필요한지 '하나라도'면 되는지 SSOT 가 정하지 않는다.",
+      "harness_behaviour": "STRICT/PERMISSIVE 두 분모를 나란히 낸다. 고르지 않는다.",
+      "needed_from": "A"
+    },
+    {
+      "id": "AD-03",
+      "where": "05_ANALYSIS_PLAN §6 'flow-evaluable n'",
+      "issue": "task_flow_sequence 만 있으면 되는지, endpoint_status 가 REACHED/AUTH_GATE 여야 하는지 정의가 없다. ABSTAIN·BLOCKED 로 끝난 관측이 sequence 분석 분모에 들어가는지가 05 §2-E 의 unique signature·Levenshtein 분모를 바꾼다.",
+      "harness_behaviour": "STRICT/PERMISSIVE 두 분모를 나란히 낸다.",
+      "needed_from": "A"
+    },
+    {
+      "id": "AD-04",
+      "where": "Director P1 C 목록에 AUTH_GATE 가 실패사유로 포함  vs  01 §1 포함조건",
+      "issue": "01 §1 은 'legitimate AUTH_GATE로 종료 가능'을 frame 포함조건으로 둔다. AUTH_GATE 를 실패사유로 세면 정당 종료가 손실로 계상돼 분모가 바뀐다.",
+      "harness_behaviour": "class 는 그대로 내되 is_ssot_legitimate_terminal=true 플래그를 함께 낸다. 어느 쪽으로도 합산하지 않는다.",
+      "needed_from": "A"
+    },
+    {
+      "id": "AD-05",
+      "where": "Director P1 B 사슬의 'ledger' 노드",
+      "issue": "ledger(원장) 레코드의 스키마가 SSOTV3 에 정의돼 있지 않다. 02 §8 은 observation identity 만 규정한다. 무엇이 있어야 ledger 노드가 PRESENT 인지 확정 기준이 없다.",
+      "harness_behaviour": "비어있지 않은 record 이면 PRESENT. 내용 검증은 하지 않는다.",
+      "needed_from": "A 또는 C (C-BLOCKER-220418 원장 귀속 계열)"
+    },
+    {
+      "id": "AD-06",
+      "where": "Director P1 B 'L0' 노드  vs  03 §3 S0..Sn",
+      "issue": "L0 는 03 §3 의 S0 최초 안정화 capture 를 뜻하는 것으로 보이나 표기가 다르다. S1..Sn scroll state 의 결손을 L0 노드가 대표하는지 여부가 불명확하다.",
+      "harness_behaviour": "L0 를 단일 manifest 포인터로만 본다. scroll state 결손은 보지 않는다.",
+      "needed_from": "A"
+    },
+    {
+      "id": "AD-07",
+      "where": "05 §6 'attempted 10'  vs  03 §5 REPLAY_BROKEN",
+      "issue": "replay 가 깨져 REPLAY_BROKEN 인 run 이 attempted 에 계상되는지, 재수집 run 이 attempted 를 2 로 만드는지(02 §8 은 재수집을 새 run 으로 둔다) 정의가 없다. attempted 를 run 수로 세면 target 수와 grain 이 갈린다.",
+      "harness_behaviour": "target grain 으로만 센다(run_id 존재 여부). run grain 은 내지 않는다.",
+      "needed_from": "A / C (ruling_11 단위·모집단·원천 3축 명시 요구와 같은 계열)"
+    },
+    {
+      "id": "AD-08",
+      "where": "'metric redundancy' 의 대상 단위",
+      "issue": "05 §3 은 8축을 profile 로 분리 보고하라고만 한다. 두 축이 '같은 construct 를 중복 측정한다'의 조작적 정의가 SSOT 에 없다. 관측단위(target 8축 vector) 와 축쌍 28 을 혼동하면 45-pair 오류와 같은 계열의 오류가 난다.",
+      "harness_behaviour": "상관·상호정보·Jaccard 값만 내는 함수를 두고, 판정선을 만들지 않는다. 데이터가 없으므로 수치도 내지 않는다.",
+      "needed_from": "A (D 는 조작화를 발명하지 않는다)"
+    }
+  ],
+  "real_input_run": {
+    "input_root": null,
+    "load_status": "INPUT_ABSENT_PATH_NOT_GIVEN",
+    "n_records": 0,
+    "lineage": {
+      "status": "INPUT_ABSENT_PATH_NOT_GIVEN",
+      "computed": false
+    },
+    "denominator": {
+      "status": "INPUT_ABSENT_PATH_NOT_GIVEN",
+      "computed": false
+    },
+    "failure_classes": {
+      "status": "INPUT_ABSENT_PATH_NOT_GIVEN",
+      "computed": false
+    },
+    "metric_redundancy": {
+      "axes": [
+        "Spatial",
+        "Label",
+        "Control",
+        "Reveal",
+        "Sequence",
+        "Depth",
+        "Auth",
+        "Obstruction"
+      ],
+      "axis_source_fields": {
+        "Spatial": [
+          "entry_x_norm",
+          "entry_y_norm",
+          "entry_zone"
+        ],
+        "Label": [
+          "visible_label_text",
+          "accessible_name",
+          "accessible_name_source",
+          "label_relation"
+        ],
+        "Control": [
+          "entry_control_type",
+          "entry_label_modality"
+        ],
+        "Reveal": [
+          "nav_container_type",
+          "reveal_direction",
+          "nav_container_depth",
+          "menu_dependency"
+        ],
+        "Sequence": [
+          "task_flow_sequence",
+          "experienced_flow_sequence",
+          "flow_step_count"
+        ],
+        "Depth": [
+          "activation_depth"
+        ],
+        "Auth": [
+          "auth_gate_stage"
+        ],
+        "Obstruction": [
+          "forced_dismissal_count",
+          "task_control_occlusion"
+        ]
+      },
+      "n_axis_pairs": 28,
+      "axis_pairs": [
+        "Spatial~Label",
+        "Spatial~Control",
+        "Spatial~Reveal",
+        "Spatial~Sequence",
+        "Spatial~Depth",
+        "Spatial~Auth",
+        "Spatial~Obstruction",
+        "Label~Control",
+        "Label~Reveal",
+        "Label~Sequence",
+        "Label~Depth",
+        "Label~Auth",
+        "Label~Obstruction",
+        "Control~Reveal",
+        "Control~Sequence",
+        "Control~Depth",
+        "Control~Auth",
+        "Control~Obstruction",
+        "Reveal~Sequence",
+        "Reveal~Depth",
+        "Reveal~Auth",
+        "Reveal~Obstruction",
+        "Sequence~Depth",
+        "Sequence~Auth",
+        "Sequence~Obstruction",
+        "Depth~Auth",
+        "Depth~Obstruction",
+        "Auth~Obstruction"
+      ],
+      "measures_implemented": [
+        "spearman_rho",
+        "mutual_information_discrete",
+        "jaccard"
+      ],
+      "threshold_policy": "NO_THRESHOLD — 중복 판정선을 만들지 않는다. 값만 낸다.",
+      "grain": "service x frozen task",
+      "n_warning": "family n=10. family 내 45 pair 는 distance matrix cell 이지 독립표본 n=45 가 아니다 (05 §1). 축쌍 28 도 관측단위가 아니다.",
+      "status": "NOT_COMPUTED_NO_DATA",
+      "reason": "MAIN50 실측 없음. 05 §3 8축 vector 가 존재하지 않으므로 상관·상호정보·Jaccard 를 산출하지 않는다.",
+      "results": null
+    }
+  },
+  "limitation": [
+    "MAIN50 실측이 없다. 여기의 모든 수치는 합성 fixture 에 대한 것이며 어떤 서비스에 관한 사실도 아니다.",
+    "이 하네스는 입력이 SSOT v3 필드명을 따른다고 가정한다. B 의 실제 mart 필드명이 다르면 전부 KEY_MISSING 으로 떨어진다 — 그것이 조용한 통과보다 낫지만, 첫 실행 시 필드명 매핑 대조가 반드시 선행돼야 한다.",
+    "evidence_root 가 주어지지 않으면 포인터 노드는 FILE_ABSENT 가 아니라 EVIDENCE_ROOT_UNKNOWN 이다. 이 둘을 같게 읽으면 결손을 과대계상한다.",
+    "Manski bound 는 폭만 낸다. RQ-D7 의 수치는 재사용하지 않았고 방법만 가져왔다.",
+    "실패 사유 8종 중 4종은 SSOT 대응 필드가 없어(AD-01) 실입력에서 대량 UNRESOLVED_FAILURE_CLASS 가 날 수 있다. 이것은 하네스의 결함이 아니라 수집 스키마의 미정의를 드러낸 것이다.",
+    "변이 검사는 5개 변이만 덮는다. 탐지기의 다른 오류 양식은 덮지 못한다."
+  ],
+  "not_implemented": [
+    "8축 중복 수치 산출 — MAIN50 실측 없음. NOT_COMPUTED_NO_DATA 로만 반환한다.",
+    "중복 판정선 / threshold / cut-off / composite score — 금지 범위.",
+    "실패 사유를 evidence 로부터 추론하는 규칙 — 새 조작화 금지. 명시 signal 과 SSOT 일의적 파생만 쓴다.",
+    "REAL 접속·수집·replay — 금지.",
+    "gold label / task gold / holdout 접근 — 금지.",
+    "GO/NO-GO, 재수집 권고, target replacement 제안 — A 권한.",
+    "45 pair 를 관측단위로 쓰는 어떤 집계도 넣지 않았다.",
+    "ledger 레코드 내용 검증 (AD-05 미정의).",
+    "S1..Sn scroll state 결손 탐지 (AD-06 미정의).",
+    "run grain 분모 (AD-07 미정의; target grain 만).",
+    "MLflow 기록 — STANDBY 범위 밖(D queue 2026-08-28 02:28 보류 결정)."
+  ],
+  "constraints_observed": {
+    "real_target_accessed": false,
+    "production_or_mart_modified": false,
+    "raw_evidence_modified": false,
+    "git_executed": false,
+    "other_lane_files_accessed": false,
+    "gold_or_holdout_accessed": false,
+    "go_no_go_issued": false,
+    "threshold_or_composite_created": false,
+    "n45_used_as_sample_size": false
+  },
+  "files_written": [
+    "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/harness/lane_p/LANE_P_HARNESS.json",
+    "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/harness/lane_p/LANE_P_FINDINGS.md",
+    "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/tools/v3_harness/lane_p_provenance_denominator.py"
+  ],
+  "routing": "to=C, cc=A (06 §4 — D 는 A 로 canonical conclusion 을 직접 우회 전달하지 않는다)"
+}

@@ -85,8 +85,36 @@ LIST_ELEMENT_RE = re.compile(r'^\s*[\"\'][^\"\']*[\"\']\s*,?\s*$')
 NEG_WINDOW_LIST_ELEMENT = 12
 
 
+# [T-A-V3-STEP1-002] A 가 발행한 **파일 단위 예외**는 D_INPUT_ALLOWLIST.json 이 authority 다.
+# 블랭킷 면제가 아니라 allowlist 의 allowed 항목에 **정확히 그 경로**가 적힌 경우만 면제한다.
+# A 가 예외를 철회하면 allowlist 에서 빠지고 스캐너는 즉시 다시 FAIL 을 낸다 — 그것이 목적이다.
+def _explicit_allowed_paths() -> set[str]:
+    import json as _j
+    try:
+        d = _j.loads((Path(__file__).resolve().parents[1] / "D_INPUT_ALLOWLIST.json").read_text())
+    except Exception:
+        return set()
+    out = set()
+    for a in (d.get("allowed") or d.get("allow") or []):
+        for k in ("paths", "path"):
+            v = a.get(k)
+            if isinstance(v, str):
+                out.add(v)
+            elif isinstance(v, list):
+                out.update(x for x in v if isinstance(x, str))
+    return out
+
+
+_ALLOWED_EXACT = _explicit_allowed_paths()
+
+
 def severity(hit: dict, text: str) -> str:
-    """파일 접근 호출 옆이면 FAIL. 부정 선언 문맥이면 WARN. 둘 다 아니면 보수적으로 FAIL."""
+    """파일 접근 호출 옆이면 FAIL. 부정 선언 문맥이면 WARN. 둘 다 아니면 보수적으로 FAIL.
+
+    단 A 가 발행한 파일 단위 예외(_ALLOWED_EXACT)에 **정확히 일치하는 경로**는 면제한다.
+    """
+    if hit.get("reference") in _ALLOWED_EXACT:
+        return "ALLOWED_BY_EXCEPTION"
     f = hit.get("file", "")
     line_no = hit.get("line")
     if not line_no:

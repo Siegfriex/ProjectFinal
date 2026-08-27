@@ -1,0 +1,19 @@
+{
+  "defect_id": "D-DEF-11",
+  "kind": "IMPLEMENTATION",
+  "owner": "D",
+  "severity": "오케스트레이션 결함 — 겹침이 있는데 0건으로 보였다",
+  "found_at_kst": "2026-08-28T02:58:00+09:00",
+  "found_how": "reconcile 이 READY / cross-lane 0건을 냈는데, 0건이 '검사 가능했는데 없음' 인지 '검사 자체가 안 됨' 인지 확인하려고 lane 산출의 키 모양을 직접 열어봤다. 거기서 드러났다.",
+  "where": "tools/v3_harness/reconcile_lanes.py :: cross_checks()",
+  "what": "lane 마다 implemented_variables 의 모양이 달랐다 — lane_s 는 [{'variable':...}], lane_f 는 {이름: 설명} dict, lane_l 은 {'count':..,'variables':..}. 첫 판본은 list[str] 과 {'name':..} 만 처리해 나머지를 str(dict) 로 만들었고 그래서 어떤 이름도 겹치지 않았다.",
+  "impact": "실제 중복 2건(nav_container_depth · menu_dependency, S 와 F 양쪽 구현)이 탐지되지 않고 verdict 가 READY 로 나왔다. 그대로 넘어갔으면 두 구현이 갈리는 것을 모른 채 통합했을 것이다.",
+  "family": "D-DEF-06/07/09/10 과 같은 계열 — 빈 결과가 정상으로 읽혔다. 이번엔 '검사 가능성' 을 따로 확인해서 잡았다.",
+  "fix": "세 모양(list[str] / list[dict] with name·variable·id·component·key / dict keyed by name)을 모두 처리하고, 모양을 못 알아본 항목은 조용히 버리지 않고 UNPARSED: 접두로 남겨 리포트에 UNPARSED_ENTRY 로 올린다.",
+  "verification": {
+    "before": "verdict READY, cross-lane 0",
+    "after": "verdict RECONCILIATION_REQUIRED, DUPLICATE_IMPLEMENTATION 2건"
+  },
+  "root_cause_is_mine_not_the_workers": "중복 자체는 워커 잘못이 아니다. Lane S 와 Lane F 프롬프트에 내가 menu_dependency 와 nav_container_depth 를 둘 다 넣었다. 분할 계약을 잘못 쓴 것은 오케스트레이터다.",
+  "not_a_loss": "두 독립 구현이 생긴 것은 오히려 ruling_11 이 요구한 '같은 fixture 에서 두 독립 구현의 수렴 실증' 의 재료다. 어느 하나를 조용히 버리지 않는다 — 수렴 검사를 돌린 뒤에 판단한다."
+}

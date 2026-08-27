@@ -1,0 +1,96 @@
+{
+  "reconciliation_id": "D_V3_LANE_RECONCILIATION",
+  "verdict": "RECONCILIATION_REQUIRED",
+  "orchestrator_head": "879ee855e1705405d1e0e358a820cae63aa905d9",
+  "orchestrator_dirty": true,
+  "lanes": [
+    {
+      "lane": "S",
+      "namespace": "lane_s",
+      "responsibility": "spatial / control-form / menu·reveal",
+      "json": "LANE_S_HARNESS.json",
+      "md": "LANE_S_FINDINGS.md",
+      "code": [
+        "lane_s_spatial_control_reveal.py"
+      ],
+      "status": "COMPLETE",
+      "problems": []
+    },
+    {
+      "lane": "L",
+      "namespace": "lane_l",
+      "responsibility": "label / accessible name",
+      "json": "LANE_L_HARNESS.json",
+      "md": "LANE_L_FINDINGS.md",
+      "code": [
+        "lane_l_label_ax.py"
+      ],
+      "status": "COMPLETE",
+      "problems": []
+    },
+    {
+      "lane": "F",
+      "namespace": "lane_f",
+      "responsibility": "flow topology / depth",
+      "json": "LANE_F_HARNESS.json",
+      "md": "LANE_F_FINDINGS.md",
+      "code": [
+        "lane_f_flow_depth.py"
+      ],
+      "status": "COMPLETE",
+      "problems": []
+    },
+    {
+      "lane": "A",
+      "namespace": "lane_a",
+      "responsibility": "auth timing / obstruction",
+      "json": "LANE_A_HARNESS.json",
+      "md": "LANE_A_FINDINGS.md",
+      "code": [
+        "lane_a_auth_obstruction.py"
+      ],
+      "status": "COMPLETE",
+      "problems": []
+    },
+    {
+      "lane": "P",
+      "namespace": "lane_p",
+      "responsibility": "provenance / denominator / metric redundancy",
+      "json": "LANE_P_HARNESS.json",
+      "md": "LANE_P_FINDINGS.md",
+      "code": [
+        "lane_p_provenance_denominator.py"
+      ],
+      "status": "COMPLETE",
+      "problems": []
+    }
+  ],
+  "lane_verdicts": {
+    "S": "READY_WITH_AMBIGUITY",
+    "L": "READY_WITH_AMBIGUITY",
+    "F": "READY_WITH_AMBIGUITY",
+    "A": "READY_WITH_AMBIGUITY",
+    "P": "READY_WITH_AMBIGUITY"
+  },
+  "missing_lanes": [],
+  "incomplete_lanes": [],
+  "cross_lane_issues": [
+    {
+      "kind": "DUPLICATE_IMPLEMENTATION",
+      "variable": "nav_container_depth",
+      "lanes": [
+        "F",
+        "S"
+      ]
+    },
+    {
+      "kind": "DUPLICATE_IMPLEMENTATION",
+      "variable": "menu_dependency",
+      "lanes": [
+        "F",
+        "S"
+      ]
+    }
+  ],
+  "note": "빈 결과를 정상으로 읽지 않는다. lane 산출이 없으면 MISSING 이고 verdict 는 NOT_READY 다. cross_lane_issues 가 비었다는 것은 lane 이 전부 COMPLETE 일 때만 의미가 있다."
+}

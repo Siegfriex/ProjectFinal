@@ -72,6 +72,33 @@ def load_lane(key: str) -> dict:
     return out
 
 
+NAME_KEYS = ("name", "variable", "id", "component", "key")
+
+
+def _names(container) -> list[str]:
+    """[D-DEF-11] lane 마다 산출 모양이 다르다 — list[str] / list[dict] / dict(키=이름).
+    이름 추출이 실패하면 겹침이 있어도 0 건으로 보인다. 실제로 menu_dependency 가
+    S 와 F 양쪽에 구현됐는데 첫 판본이 놓쳤다. 세 모양을 모두 처리한다.
+    모양을 못 알아보면 조용히 버리지 않고 UNPARSED: 접두로 남겨 눈에 띄게 한다."""
+    out = []
+    if isinstance(container, dict):
+        return [str(k) for k in container]
+    if not isinstance(container, list):
+        return []
+    for v in container:
+        if isinstance(v, str):
+            out.append(v)
+        elif isinstance(v, dict):
+            for k in NAME_KEYS:
+                if isinstance(v.get(k), str):
+                    out.append(v[k]); break
+            else:
+                out.append("UNPARSED:" + json.dumps(v, ensure_ascii=False)[:40])
+        else:
+            out.append("UNPARSED:" + str(v)[:40])
+    return out
+
+
 def cross_checks(lanes: list[dict]) -> list[dict]:
     """§3 — overlap · 중복 · 모순 · 누락."""
     issues = []
@@ -87,8 +114,11 @@ def cross_checks(lanes: list[dict]) -> list[dict]:
     # 2) 같은 변수를 둘 이상의 lane 이 구현했는가 (중복 측정 = 모순 위험)
     impl = {}
     for L in lanes:
-        for var in (L.get("payload") or {}).get("implemented_variables") or []:
-            name = var if isinstance(var, str) else var.get("name", str(var))
+        pay = L.get("payload") or {}
+        src = pay.get("implemented_variables")
+        if src is None:
+            src = pay.get("implemented_components")
+        for name in _names(src):
             impl.setdefault(name, []).append(L["lane"])
     for name, ls in impl.items():
         if len(set(ls)) > 1:
@@ -96,14 +126,17 @@ def cross_checks(lanes: list[dict]) -> list[dict]:
     # 3) 같은 정의를 두고 서로 다른 판단 (모호 vs 구현)
     amb = {}
     for L in lanes:
-        for a in (L.get("payload") or {}).get("ambiguous_definitions") or []:
-            name = a if isinstance(a, str) else a.get("name", json.dumps(a, ensure_ascii=False)[:60])
+        for name in _names((L.get("payload") or {}).get("ambiguous_definitions")):
             amb.setdefault(name, []).append(L["lane"])
     for name, ls in amb.items():
         if name in impl and set(impl[name]) - set(ls):
             issues.append({"kind": "CONTRADICTION_AMBIGUOUS_VS_IMPLEMENTED", "variable": name,
                            "declared_ambiguous_by": sorted(set(ls)),
                            "implemented_by": sorted(set(impl[name]) - set(ls))})
+    unparsed = sorted({n for n in impl if n.startswith("UNPARSED:")} |
+                      {n for n in amb if n.startswith("UNPARSED:")})
+    if unparsed:
+        issues.append({"kind": "UNPARSED_ENTRY", "count": len(unparsed), "samples": unparsed[:5]})
     return issues
 
 

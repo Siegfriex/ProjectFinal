@@ -1,0 +1,5775 @@
+{
+  "artifact": "LANE_F_HARNESS",
+  "lane": "F — Flow Topology / Depth",
+  "verdict": "READY_WITH_AMBIGUITY",
+  "verdict_basis": {
+    "fixture_checks_total": 202,
+    "fixture_checks_failed": 0,
+    "failed_check_ids": [],
+    "mutants_total": 7,
+    "mutants_caught": 7,
+    "mutants_uncaught": [],
+    "restore_proof_failed_checks": 0,
+    "open_ambiguities": 11,
+    "rule": "READY only if zero open ambiguities; ambiguities are raised, not filled, so the highest achievable verdict here is READY_WITH_AMBIGUITY."
+  },
+  "generated_at_utc": "2026-08-27T17:53:30.718054+00:00",
+  "provenance": {
+    "ssot_dir": "/home/sieg/projects-wsl/ProjectFinal/SSOTV3",
+    "ssot_file_sha256": {
+      "MANIFEST_v3.0.json": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+      "00_SSOT_v3.0_CROSS_SERVICE_FLOW.md": "951c69f13d119f7b1bbe47196fbe908118963ae125519ee24408c2921f97b3e9",
+      "03_COLLECTION_MEASUREMENT_SPEC_v3.0.md": "13bb8b52abf3117638e2dd20107c0f4fd11b4f776b8163ead9a3714b0815b6e9",
+      "04_FLOW_CODEBOOK_v3.0.md": "aaae54bfb174b3d5f1da7dc0673bb8e1e1d846136012de09fd8ffb476dab0e43",
+      "05_ANALYSIS_PLAN_v3.0.md": "dfdeaa795322ca8088ab8fb09445f4ee35769107fa0badd2837558fda08b314c"
+    },
+    "expected_manifest_sha256": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+    "harness_path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/tools/v3_harness/lane_f_flow_depth.py",
+    "data_source": "SYNTHETIC FIXTURES ONLY — no REAL target, no MAIN50, no mart/raw evidence, no gold label, no holdout, no network access."
+  },
+  "sampling_discipline": {
+    "independent_unit": "service × frozen task (family n=10)",
+    "pair_cells_in_this_run": 45,
+    "warning": "family n=10 is the independent unit. The 45 unordered pairs are distance-matrix CELLS for description/visualization only — never n=45, never a rate denominator, never an inferential sample. (05_ANALYSIS_PLAN_v3.0 §1: '동일 family의 45 pair는 distance matrix의 cell이지 독립 표본 n=45가 아니다.')"
+  },
+  "codebook_definitions_verbatim": {
+    "flow_is_primary": {
+      "source": "00_SSOT_v3.0_CROSS_SERVICE_FLOW.md §7",
+      "text": "Raw primary: `task_flow_sequence`와 `experienced_flow_sequence`.\n- `task_flow_sequence`: 서비스 자체 navigation/task 구조. forced dismissal 제외.\n- `experienced_flow_sequence`: 실사용자가 실제 겪은 path. forced dismissal 포함.\nDerived: menu_dependency / nav_container_depth / activation_depth / NED,IED,MPFED compatibility fields / flow_step_count / auth_gate_stage\nScroll은 `first_visible_scroll_state`로 별도 측정하며 activation depth에 합산하지 않는다."
+    },
+    "task_vs_experienced": {
+      "source": "04_FLOW_CODEBOOK_v3.0.md §3",
+      "text": "- `task_flow_sequence`: `DISMISS_OBSTRUCTION`을 제외한 서비스 자체 task navigation.\n- `experienced_flow_sequence`: 실제 진행에 필요했던 dismissal까지 포함.\n예:\n`task_flow = OPEN_GLOBAL_MENU > SELECT_FUNCTION > AUTH_GATE`\n`experienced_flow = DISMISS_OBSTRUCTION > OPEN_GLOBAL_MENU > SELECT_FUNCTION > AUTH_GATE`"
+    },
+    "menu_dependency": {
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5",
+      "text": "`menu_dependency = 1` iff endpoint 전 OPEN_GLOBAL_MENU/OPEN_LOCAL_MENU/EXPAND_ACCORDION 등 reveal token 존재."
+    },
+    "menu_dependency_table": {
+      "source": "04_FLOW_CODEBOOK_v3.0.md §4",
+      "text": "menu_dependency | Derived | bool | action_sequence에 OPEN/REVEAL 계열 token이 endpoint 이전에 존재하는지"
+    },
+    "activation_depth": {
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5",
+      "text": "`activation_depth`: state-changing activation token 수. scroll/typing/passive/dismiss 제외."
+    },
+    "activation_depth_table": {
+      "source": "04_FLOW_CODEBOOK_v3.0.md §4",
+      "text": "activation_depth | Derived | count | scroll/typing/passive wait/dismiss 제외 state-changing activation 수"
+    },
+    "flow_step_count": {
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5",
+      "text": "`flow_step_count`: task-intent token 수. typing/submit/auth encounter 포함, scroll/passive 제외."
+    },
+    "flow_step_count_table": {
+      "source": "04_FLOW_CODEBOOK_v3.0.md §4",
+      "text": "flow_step_count | Derived | count | task-intent action token 수. typing/submit/auth encounter 포함, scroll/passive load 제외"
+    },
+    "nav_container_depth": {
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5 + §4",
+      "text": "§5: `nav_container_depth`: task control 노출 전 nested reveal 수.\n§4: nav_container_depth | Derived | count | task control 노출 전 menu/drawer expansion 수"
+    },
+    "action_inclusion": {
+      "source": "03_COLLECTION_MEASUREMENT_SPEC_v3.0.md §6",
+      "text": "Depth에 포함: link/button/tab/menu open · category/function/result select · state-changing menu/drawer reveal\nDepth에서 제외: scroll · passive load / redirect / wait · text 한 글자 입력 · popup dismiss\n단 `flow_step_count`에는 task-intent typing/submit을 별도 token으로 보존한다."
+    },
+    "flow_topology_metrics": {
+      "source": "05_ANALYSIS_PLAN_v3.0.md §2-E",
+      "text": "E. Flow Topology — unique sequence signatures / normalized Levenshtein distance / LCS similarity / sequence cluster·heatmap"
+    },
+    "depth_metrics": {
+      "source": "05_ANALYSIS_PLAN_v3.0.md §2-F",
+      "text": "F. Depth — activation depth median/IQR/range / optional legacy NED/IED/MPFED"
+    },
+    "analysis_unit": {
+      "source": "05_ANALYSIS_PLAN_v3.0.md §1",
+      "text": "Primary: `service × frozen task`. family n=10. 동일 family의 45 pair는 distance matrix의 cell이지 독립 표본 n=45가 아니다."
+    },
+    "no_composite_score": {
+      "source": "05_ANALYSIS_PLAN_v3.0.md §3",
+      "text": "가중합 단일 score 생성 금지. Secondary visualization으로 Gower/mixed distance를 쓸 수 있으나 규범적 threshold나 '고령자 부담 점수'로 해석 금지."
+    }
+  },
+  "canonical_tokens": {
+    "OPEN_GLOBAL_MENU": "전역 햄버거/전체메뉴를 연다",
+    "OPEN_LOCAL_MENU": "과업 영역 내부 메뉴/더보기를 연다",
+    "SWITCH_TAB": "탭을 전환한다",
+    "EXPAND_ACCORDION": "접힌 영역을 펼친다",
+    "SELECT_CATEGORY": "과업 관련 카테고리/서비스군을 선택한다",
+    "SELECT_FUNCTION": "사전지정 task 기능 control을 선택한다",
+    "INPUT_QUERY": "검색어/번호/키워드를 입력한다",
+    "SELECT_ORIGIN": "출발지를 선택한다",
+    "SELECT_DESTINATION": "도착지를 선택한다",
+    "SELECT_DATE": "날짜를 선택한다",
+    "SUBMIT_QUERY": "검색/조회 control을 실행한다",
+    "SELECT_RESULT": "결과 목록에서 항목을 선택한다",
+    "OPEN_ITEM_DETAIL": "상품 상세를 연다",
+    "OPEN_PLACE_DETAIL": "장소/기관 상세를 연다",
+    "DISMISS_OBSTRUCTION": "task path 진행에 필수인 방해요소를 허용된 닫기 control로 제거한다",
+    "AUTH_GATE": "사전지정 task 경로에서 인증이 불가피해지는 상태에 도달한다",
+    "ENDPOINT_REACHED": "사전정의 endpoint가 충족된다",
+    "ABSTAIN": "증거 부족/다중 후보/경로 불확정으로 억지 판정하지 않는다"
+  },
+  "implemented_variables": {
+    "task_flow_sequence / experienced_flow_sequence": "separated per 04 §3; DISMISS_OBSTRUCTION in task_flow_sequence is reported as a schema error",
+    "sequence_signature": "ordered token list; ' > ' rendering per the §3 example",
+    "menu_dependency": "04 §5 — two reveal-set readings (AMB-F05); single value only on agreement",
+    "activation_depth": "04 §5 — excludes INPUT_QUERY and DISMISS_OBSTRUCTION; two readings for AUTH_GATE/ENDPOINT_REACHED/ABSTAIN (AMB-F03); base-invariance asserted",
+    "flow_step_count": "04 §5 — includes typing/submit/auth encounter; 4 readings over base × terminal (AMB-F04). Deliberately NOT unified with activation_depth.",
+    "nav_container_depth": "candidates only, no value (AMB-F06)",
+    "levenshtein_raw / lcs_length": "05 §2-E raw values, unambiguous",
+    "normalized levenshtein / LCS similarity": "3 candidate denominators each, no default (AMB-F01 / AMB-F02)"
+  },
+  "fixture_results": {
+    "family_size": 10,
+    "observations": {
+      "SYN01_menu_category": {
+        "observation_id": "SYN01_menu_category",
+        "status": "OK",
+        "task_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "task_signature": "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "experienced_signature": "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "dismissal_count_in_experienced": 0,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": false,
+        "interpretability": {
+          "derived_values_interpretable": true,
+          "reason": null
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "base_invariant": true,
+          "endpoint_token_present": true,
+          "value": true,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F05"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F03"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 4,
+            "base=task|terminal=excl": 3,
+            "base=experienced|terminal=incl": 4,
+            "base=experienced|terminal=excl": 3
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F04"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 1,
+            "leading_consecutive_reveal_run": 1,
+            "all_reveal_tokens_before_endpoint": 1
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      },
+      "SYN02_search_item": {
+        "observation_id": "SYN02_search_item",
+        "status": "OK",
+        "task_flow_sequence": [
+          "INPUT_QUERY",
+          "SUBMIT_QUERY",
+          "SELECT_RESULT",
+          "OPEN_ITEM_DETAIL",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "INPUT_QUERY",
+          "SUBMIT_QUERY",
+          "SELECT_RESULT",
+          "OPEN_ITEM_DETAIL",
+          "ENDPOINT_REACHED"
+        ],
+        "task_signature": "INPUT_QUERY > SUBMIT_QUERY > SELECT_RESULT > OPEN_ITEM_DETAIL > ENDPOINT_REACHED",
+        "experienced_signature": "INPUT_QUERY > SUBMIT_QUERY > SELECT_RESULT > OPEN_ITEM_DETAIL > ENDPOINT_REACHED",
+        "dismissal_count_in_experienced": 0,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": false,
+        "interpretability": {
+          "derived_values_interpretable": true,
+          "reason": null
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": false,
+            "reveal_set_incl_switch_tab": false
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": false,
+            "reveal_set_incl_switch_tab": false
+          },
+          "base_invariant": true,
+          "endpoint_token_present": true,
+          "value": false,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F05"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F03"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 5,
+            "base=task|terminal=excl": 4,
+            "base=experienced|terminal=incl": 5,
+            "base=experienced|terminal=excl": 4
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F04"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 0,
+            "leading_consecutive_reveal_run": 0,
+            "all_reveal_tokens_before_endpoint": 0
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      },
+      "SYN03_tab_accordion": {
+        "observation_id": "SYN03_tab_accordion",
+        "status": "OK",
+        "task_flow_sequence": [
+          "SWITCH_TAB",
+          "EXPAND_ACCORDION",
+          "OPEN_PLACE_DETAIL",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "SWITCH_TAB",
+          "EXPAND_ACCORDION",
+          "OPEN_PLACE_DETAIL",
+          "ENDPOINT_REACHED"
+        ],
+        "task_signature": "SWITCH_TAB > EXPAND_ACCORDION > OPEN_PLACE_DETAIL > ENDPOINT_REACHED",
+        "experienced_signature": "SWITCH_TAB > EXPAND_ACCORDION > OPEN_PLACE_DETAIL > ENDPOINT_REACHED",
+        "dismissal_count_in_experienced": 0,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": false,
+        "interpretability": {
+          "derived_values_interpretable": true,
+          "reason": null
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "base_invariant": true,
+          "endpoint_token_present": true,
+          "value": true,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F05"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F03"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 4,
+            "base=task|terminal=excl": 3,
+            "base=experienced|terminal=incl": 4,
+            "base=experienced|terminal=excl": 3
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F04"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 1,
+            "leading_consecutive_reveal_run": 0,
+            "all_reveal_tokens_before_endpoint": 1
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      },
+      "SYN04_tab_auth_terminal": {
+        "observation_id": "SYN04_tab_auth_terminal",
+        "status": "OK",
+        "task_flow_sequence": [
+          "SWITCH_TAB",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "AUTH_GATE"
+        ],
+        "experienced_flow_sequence": [
+          "SWITCH_TAB",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "AUTH_GATE"
+        ],
+        "task_signature": "SWITCH_TAB > SELECT_CATEGORY > SELECT_FUNCTION > AUTH_GATE",
+        "experienced_signature": "SWITCH_TAB > SELECT_CATEGORY > SELECT_FUNCTION > AUTH_GATE",
+        "dismissal_count_in_experienced": 0,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": false,
+        "interpretability": {
+          "derived_values_interpretable": true,
+          "reason": null
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": false,
+            "reveal_set_incl_switch_tab": true
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": false,
+            "reveal_set_incl_switch_tab": true
+          },
+          "base_invariant": true,
+          "endpoint_token_present": false,
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F05",
+            "AMB-F09"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F03"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 4,
+            "base=task|terminal=excl": 4,
+            "base=experienced|terminal=incl": 4,
+            "base=experienced|terminal=excl": 4
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": 4,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F04"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 0,
+            "leading_consecutive_reveal_run": 0,
+            "all_reveal_tokens_before_endpoint": 0
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      },
+      "SYN05_modal_then_menu": {
+        "observation_id": "SYN05_modal_then_menu",
+        "status": "OK",
+        "task_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "DISMISS_OBSTRUCTION",
+          "OPEN_GLOBAL_MENU",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "task_signature": "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "experienced_signature": "DISMISS_OBSTRUCTION > OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "dismissal_count_in_experienced": 1,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": false,
+        "interpretability": {
+          "derived_values_interpretable": true,
+          "reason": null
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "base_invariant": true,
+          "endpoint_token_present": true,
+          "value": true,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F05"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F03"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 4,
+            "base=task|terminal=excl": 3,
+            "base=experienced|terminal=incl": 5,
+            "base=experienced|terminal=excl": 4
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F04"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 1,
+            "leading_consecutive_reveal_run": 1,
+            "all_reveal_tokens_before_endpoint": 1
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      },
+      "SYN06_no_modal_twin": {
+        "observation_id": "SYN06_no_modal_twin",
+        "status": "OK",
+        "task_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "task_signature": "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "experienced_signature": "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "dismissal_count_in_experienced": 0,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": false,
+        "interpretability": {
+          "derived_values_interpretable": true,
+          "reason": null
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "base_invariant": true,
+          "endpoint_token_present": true,
+          "value": true,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F05"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F03"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 4,
+            "base=task|terminal=excl": 3,
+            "base=experienced|terminal=incl": 4,
+            "base=experienced|terminal=excl": 3
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F04"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 1,
+            "leading_consecutive_reveal_run": 1,
+            "all_reveal_tokens_before_endpoint": 1
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      },
+      "SYN07_reordered": {
+        "observation_id": "SYN07_reordered",
+        "status": "OK",
+        "task_flow_sequence": [
+          "SELECT_CATEGORY",
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "SELECT_CATEGORY",
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "task_signature": "SELECT_CATEGORY > OPEN_GLOBAL_MENU > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "experienced_signature": "SELECT_CATEGORY > OPEN_GLOBAL_MENU > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "dismissal_count_in_experienced": 0,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": false,
+        "interpretability": {
+          "derived_values_interpretable": true,
+          "reason": null
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "base_invariant": true,
+          "endpoint_token_present": true,
+          "value": true,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F05"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F03"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 4,
+            "base=task|terminal=excl": 3,
+            "base=experienced|terminal=incl": 4,
+            "base=experienced|terminal=excl": 3
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F04"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 1,
+            "leading_consecutive_reveal_run": 0,
+            "all_reveal_tokens_before_endpoint": 1
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      },
+      "SYN08_transport_slots": {
+        "observation_id": "SYN08_transport_slots",
+        "status": "OK",
+        "task_flow_sequence": [
+          "SELECT_ORIGIN",
+          "SELECT_DESTINATION",
+          "SELECT_DATE",
+          "SUBMIT_QUERY",
+          "SELECT_RESULT",
+          "ENDPOINT_REACHED"
+        ],
+        "experienced_flow_sequence": [
+          "SELECT_ORIGIN",
+          "SELECT_DESTINATION",
+          "SELECT_DATE",
+          "SUBMIT_QUERY",
+          "SELECT_RESULT",
+          "ENDPOINT_REACHED"
+        ],
+        "task_signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "experienced_signature": "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "dismissal_count_in_experienced": 0,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": false,
+        "interpretability": {
+          "derived_values_interpretable": true,
+          "reason": null
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": false,
+            "reveal_set_incl_switch_tab": false
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": false,
+            "reveal_set_incl_switch_tab": false
+          },
+          "base_invariant": true,
+          "endpoint_token_present": true,
+          "value": false,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F05"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 6,
+            "activation_only": 5
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 6,
+            "activation_only": 5
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F03"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 6,
+            "base=task|terminal=excl": 5,
+            "base=experienced|terminal=incl": 6,
+            "base=experienced|terminal=excl": 5
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F04"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 0,
+            "leading_consecutive_reveal_run": 0,
+            "all_reveal_tokens_before_endpoint": 0
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      },
+      "SYN09_abstain": {
+        "observation_id": "SYN09_abstain",
+        "status": "OK",
+        "task_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "ABSTAIN"
+        ],
+        "experienced_flow_sequence": [
+          "OPEN_GLOBAL_MENU",
+          "ABSTAIN"
+        ],
+        "task_signature": "OPEN_GLOBAL_MENU > ABSTAIN",
+        "experienced_signature": "OPEN_GLOBAL_MENU > ABSTAIN",
+        "dismissal_count_in_experienced": 0,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": true,
+        "interpretability": {
+          "derived_values_interpretable": false,
+          "reason": "AMB-F07 — ABSTAIN declares an undetermined path; counts/distances involving it are computed but must not be read as determinate."
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": true,
+            "reveal_set_incl_switch_tab": true
+          },
+          "base_invariant": true,
+          "endpoint_token_present": false,
+          "value": true,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F05",
+            "AMB-F09"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 1
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 1
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F03",
+            "AMB-F07"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 2,
+            "base=task|terminal=excl": 1,
+            "base=experienced|terminal=incl": 2,
+            "base=experienced|terminal=excl": 1
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": null,
+          "ambiguity_active": true,
+          "ambiguity_ids": [
+            "AMB-F04",
+            "AMB-F07"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 1,
+            "leading_consecutive_reveal_run": 1,
+            "all_reveal_tokens_before_endpoint": 1
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      },
+      "SYN10_empty": {
+        "observation_id": "SYN10_empty",
+        "status": "OK",
+        "task_flow_sequence": [],
+        "experienced_flow_sequence": [],
+        "task_signature": "",
+        "experienced_signature": "",
+        "dismissal_count_in_experienced": 0,
+        "schema_errors": [],
+        "task_experienced_consistency": {
+          "experienced_minus_dismissal_equals_task": true,
+          "flag": null,
+          "note": "AMB-F11 — reported only. Neither sequence is corrected by this harness."
+        },
+        "abstain_present": false,
+        "interpretability": {
+          "derived_values_interpretable": true,
+          "reason": null
+        },
+        "menu_dependency": {
+          "readings": {
+            "reveal_set_explicit3": false,
+            "reveal_set_incl_switch_tab": false
+          },
+          "readings_experienced_base": {
+            "reveal_set_explicit3": false,
+            "reveal_set_incl_switch_tab": false
+          },
+          "base_invariant": true,
+          "endpoint_token_present": false,
+          "value": false,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F05",
+            "AMB-F09"
+          ]
+        },
+        "activation_depth": {
+          "readings": {
+            "literal_all_but_excluded": 0,
+            "activation_only": 0
+          },
+          "readings_experienced_base": {
+            "literal_all_but_excluded": 0,
+            "activation_only": 0
+          },
+          "base_invariant": true,
+          "determined_exclusions": [
+            "INPUT_QUERY",
+            "DISMISS_OBSTRUCTION"
+          ],
+          "open_tokens": [
+            "AUTH_GATE",
+            "ENDPOINT_REACHED",
+            "ABSTAIN"
+          ],
+          "value": 0,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F03"
+          ]
+        },
+        "flow_step_count": {
+          "readings": {
+            "base=task|terminal=incl": 0,
+            "base=task|terminal=excl": 0,
+            "base=experienced|terminal=incl": 0,
+            "base=experienced|terminal=excl": 0
+          },
+          "determined_inclusions": [
+            "INPUT_QUERY",
+            "SUBMIT_QUERY",
+            "AUTH_GATE"
+          ],
+          "value": 0,
+          "ambiguity_active": false,
+          "ambiguity_ids": [
+            "AMB-F04"
+          ]
+        },
+        "nav_container_depth": {
+          "value": null,
+          "not_computable_reason": "AMB-F06: no exposure marker token in canonical 18",
+          "candidates_illustrative_only": {
+            "reveal_tokens_before_first_SELECT_FUNCTION": 0,
+            "leading_consecutive_reveal_run": 0,
+            "all_reveal_tokens_before_endpoint": 0
+          },
+          "ambiguity_ids": [
+            "AMB-F06"
+          ]
+        }
+      }
+    },
+    "checks": [
+      {
+        "check_id": "SYN01_menu_category::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "actual": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN01_menu_category::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 3
+        },
+        "actual": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN01_menu_category::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "actual": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN01_menu_category::menu_dependency_value",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN01_menu_category::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN01_menu_category::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN01_menu_category::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN01_menu_category::abstain_present",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN01_menu_category::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN01_menu_category::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "SYN02_search_item::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "actual": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN02_search_item::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 5,
+          "base=task|terminal=excl": 4,
+          "base=experienced|terminal=incl": 5,
+          "base=experienced|terminal=excl": 4
+        },
+        "actual": {
+          "base=task|terminal=incl": 5,
+          "base=task|terminal=excl": 4,
+          "base=experienced|terminal=incl": 5,
+          "base=experienced|terminal=excl": 4
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN02_search_item::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": false,
+          "reveal_set_incl_switch_tab": false
+        },
+        "actual": {
+          "reveal_set_explicit3": false,
+          "reveal_set_incl_switch_tab": false
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN02_search_item::menu_dependency_value",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN02_search_item::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN02_search_item::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN02_search_item::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN02_search_item::abstain_present",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN02_search_item::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN02_search_item::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "SYN03_tab_accordion::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "actual": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN03_tab_accordion::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 3
+        },
+        "actual": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN03_tab_accordion::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "actual": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN03_tab_accordion::menu_dependency_value",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN03_tab_accordion::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN03_tab_accordion::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN03_tab_accordion::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN03_tab_accordion::abstain_present",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN03_tab_accordion::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN03_tab_accordion::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "actual": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 4,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 4
+        },
+        "actual": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 4,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 4
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": false,
+          "reveal_set_incl_switch_tab": true
+        },
+        "actual": {
+          "reveal_set_explicit3": false,
+          "reveal_set_incl_switch_tab": true
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::menu_dependency_value",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::abstain_present",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN04_tab_auth_terminal::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "actual": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 5,
+          "base=experienced|terminal=excl": 4
+        },
+        "actual": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 5,
+          "base=experienced|terminal=excl": 4
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "actual": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::menu_dependency_value",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::abstain_present",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN05_modal_then_menu::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "actual": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 3
+        },
+        "actual": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "actual": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::menu_dependency_value",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::abstain_present",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN06_no_modal_twin::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "SYN07_reordered::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "actual": {
+          "literal_all_but_excluded": 4,
+          "activation_only": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN07_reordered::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 3
+        },
+        "actual": {
+          "base=task|terminal=incl": 4,
+          "base=task|terminal=excl": 3,
+          "base=experienced|terminal=incl": 4,
+          "base=experienced|terminal=excl": 3
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN07_reordered::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "actual": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN07_reordered::menu_dependency_value",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN07_reordered::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN07_reordered::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN07_reordered::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN07_reordered::abstain_present",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN07_reordered::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN07_reordered::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "SYN08_transport_slots::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 6,
+          "activation_only": 5
+        },
+        "actual": {
+          "literal_all_but_excluded": 6,
+          "activation_only": 5
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN08_transport_slots::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 6,
+          "base=task|terminal=excl": 5,
+          "base=experienced|terminal=incl": 6,
+          "base=experienced|terminal=excl": 5
+        },
+        "actual": {
+          "base=task|terminal=incl": 6,
+          "base=task|terminal=excl": 5,
+          "base=experienced|terminal=incl": 6,
+          "base=experienced|terminal=excl": 5
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN08_transport_slots::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": false,
+          "reveal_set_incl_switch_tab": false
+        },
+        "actual": {
+          "reveal_set_explicit3": false,
+          "reveal_set_incl_switch_tab": false
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN08_transport_slots::menu_dependency_value",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN08_transport_slots::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN08_transport_slots::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN08_transport_slots::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN08_transport_slots::abstain_present",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN08_transport_slots::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN08_transport_slots::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "SYN09_abstain::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 2,
+          "activation_only": 1
+        },
+        "actual": {
+          "literal_all_but_excluded": 2,
+          "activation_only": 1
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN09_abstain::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 2,
+          "base=task|terminal=excl": 1,
+          "base=experienced|terminal=incl": 2,
+          "base=experienced|terminal=excl": 1
+        },
+        "actual": {
+          "base=task|terminal=incl": 2,
+          "base=task|terminal=excl": 1,
+          "base=experienced|terminal=incl": 2,
+          "base=experienced|terminal=excl": 1
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN09_abstain::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "actual": {
+          "reveal_set_explicit3": true,
+          "reveal_set_incl_switch_tab": true
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN09_abstain::menu_dependency_value",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN09_abstain::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN09_abstain::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN09_abstain::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN09_abstain::abstain_present",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN09_abstain::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN09_abstain::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "SYN10_empty::activation_depth_readings",
+        "expected": {
+          "literal_all_but_excluded": 0,
+          "activation_only": 0
+        },
+        "actual": {
+          "literal_all_but_excluded": 0,
+          "activation_only": 0
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN10_empty::flow_step_count_readings",
+        "expected": {
+          "base=task|terminal=incl": 0,
+          "base=task|terminal=excl": 0,
+          "base=experienced|terminal=incl": 0,
+          "base=experienced|terminal=excl": 0
+        },
+        "actual": {
+          "base=task|terminal=incl": 0,
+          "base=task|terminal=excl": 0,
+          "base=experienced|terminal=incl": 0,
+          "base=experienced|terminal=excl": 0
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN10_empty::menu_dependency_readings",
+        "expected": {
+          "reveal_set_explicit3": false,
+          "reveal_set_incl_switch_tab": false
+        },
+        "actual": {
+          "reveal_set_explicit3": false,
+          "reveal_set_incl_switch_tab": false
+        },
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN10_empty::menu_dependency_value",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN10_empty::menu_dependency_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "menu_dependency must not depend on task vs experienced base (dismissal is not a reveal token)"
+      },
+      {
+        "check_id": "SYN10_empty::activation_depth_base_invariant",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "activation_depth excludes dismissal, so it must be base-invariant"
+      },
+      {
+        "check_id": "SYN10_empty::consistency",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN10_empty::abstain_present",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN10_empty::no_schema_error",
+        "expected": [],
+        "actual": [],
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "SYN10_empty::nav_container_depth_withheld",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": "AMB-F06 — must never emit a value"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN07_reordered|task::levenshtein_raw",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "note": "OGM,SC transposed -> two substitutions; LCS keeps SC,SF,ER"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN07_reordered|task::lcs_length",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "OGM,SC transposed -> two substitutions; LCS keeps SC,SF,ER"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN06_no_modal_twin|task::levenshtein_raw",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "identical"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN06_no_modal_twin|task::lcs_length",
+        "expected": 4,
+        "actual": 4,
+        "pass": true,
+        "note": "identical"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN05_modal_then_menu|task::levenshtein_raw",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "task_flow identical — modal is not in task_flow"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN05_modal_then_menu|task::lcs_length",
+        "expected": 4,
+        "actual": 4,
+        "pass": true,
+        "note": "task_flow identical — modal is not in task_flow"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN05_modal_then_menu|experienced::levenshtein_raw",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": "one DISMISS_OBSTRUCTION insertion"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN05_modal_then_menu|experienced::lcs_length",
+        "expected": 4,
+        "actual": 4,
+        "pass": true,
+        "note": "one DISMISS_OBSTRUCTION insertion"
+      },
+      {
+        "check_id": "dist::SYN02_search_item|SYN04_tab_auth_terminal|task::levenshtein_raw",
+        "expected": 5,
+        "actual": 5,
+        "pass": true,
+        "note": "no shared token at all; len 5 vs 4 -> 4 substitutions + 1 deletion"
+      },
+      {
+        "check_id": "dist::SYN02_search_item|SYN04_tab_auth_terminal|task::lcs_length",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "no shared token at all; len 5 vs 4 -> 4 substitutions + 1 deletion"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN10_empty|task::levenshtein_raw",
+        "expected": 4,
+        "actual": 4,
+        "pass": true,
+        "note": "four deletions"
+      },
+      {
+        "check_id": "dist::SYN01_menu_category|SYN10_empty|task::lcs_length",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "four deletions"
+      },
+      {
+        "check_id": "BND01_both_empty::levenshtein_raw",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "0/0 is UNDEFINED. Not filled with 0.0 (AMB-F10)."
+      },
+      {
+        "check_id": "BND01_both_empty::lcs_length",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND01_both_empty::lev_by_max_len",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND01_both_empty::lev_by_sum_len",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND01_both_empty::lev_yujian_bo",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND01_both_empty::lcs_over_max_len",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND01_both_empty::lcs_over_min_len",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND01_both_empty::lcs_dice",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::levenshtein_raw",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": "min(len)=0 -> LCS/min undefined while LCS/max is defined. The three LCS candidates are not interchangeable."
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::lcs_length",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::lev_by_max_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::lev_by_sum_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::lev_yujian_bo",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::lcs_over_max_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::lcs_over_min_len",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND02_empty_vs_len1::lcs_dice",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND03_len1_identical::levenshtein_raw",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "length-1 identical"
+      },
+      {
+        "check_id": "BND03_len1_identical::lcs_length",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND03_len1_identical::lev_by_max_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND03_len1_identical::lev_by_sum_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND03_len1_identical::lev_yujian_bo",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND03_len1_identical::lcs_over_max_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND03_len1_identical::lcs_over_min_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND03_len1_identical::lcs_dice",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND04_len1_different::levenshtein_raw",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": "the three Levenshtein normalizations give 1.0 / 0.5 / 0.667 for the SAME pair — this is exactly why AMB-F01 must be ruled on."
+      },
+      {
+        "check_id": "BND04_len1_different::lcs_length",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND04_len1_different::lev_by_max_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND04_len1_different::lev_by_sum_len",
+        "expected": 0.5,
+        "actual": 0.5,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND04_len1_different::lev_yujian_bo",
+        "expected": 0.6666666667,
+        "actual": 0.6666666667,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND04_len1_different::lcs_over_max_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND04_len1_different::lcs_over_min_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND04_len1_different::lcs_dice",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND05_fully_identical_len4::levenshtein_raw",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": "fully identical"
+      },
+      {
+        "check_id": "BND05_fully_identical_len4::lcs_length",
+        "expected": 4,
+        "actual": 4,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND05_fully_identical_len4::lev_by_max_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND05_fully_identical_len4::lev_by_sum_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND05_fully_identical_len4::lev_yujian_bo",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND05_fully_identical_len4::lcs_over_max_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND05_fully_identical_len4::lcs_over_min_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND05_fully_identical_len4::lcs_dice",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::levenshtein_raw",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": "fully different, equal length"
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::lcs_length",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::lev_by_max_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::lev_by_sum_len",
+        "expected": 0.5,
+        "actual": 0.5,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::lev_yujian_bo",
+        "expected": 0.6666666667,
+        "actual": 0.6666666667,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::lcs_over_max_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::lcs_over_min_len",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND06_fully_disjoint_len3::lcs_dice",
+        "expected": 0.0,
+        "actual": 0.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND07_prefix_vs_extension::levenshtein_raw",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": "prefix containment: LCS/min = 1.0 says 'contained', LCS/max = 0.667 says 'partly similar'. Different research claims follow from the unresolved choice."
+      },
+      {
+        "check_id": "BND07_prefix_vs_extension::lcs_length",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND07_prefix_vs_extension::lev_by_max_len",
+        "expected": 0.3333333333,
+        "actual": 0.3333333333,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND07_prefix_vs_extension::lev_by_sum_len",
+        "expected": 0.2,
+        "actual": 0.2,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND07_prefix_vs_extension::lev_yujian_bo",
+        "expected": 0.3333333333,
+        "actual": 0.3333333333,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND07_prefix_vs_extension::lcs_over_max_len",
+        "expected": 0.6666666667,
+        "actual": 0.6666666667,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND07_prefix_vs_extension::lcs_over_min_len",
+        "expected": 1.0,
+        "actual": 1.0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "BND07_prefix_vs_extension::lcs_dice",
+        "expected": 0.8,
+        "actual": 0.8,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "INV01_unknown_token::valid",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "INV01_unknown_token::reason",
+        "expected": "NOT_IN_CANONICAL_18",
+        "actual": "NOT_IN_CANONICAL_18",
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "INV02_lowercase::valid",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "no silent case folding — a case-insensitive match is reported but does not pass"
+      },
+      {
+        "check_id": "INV02_lowercase::reason",
+        "expected": "NOT_IN_CANONICAL_18",
+        "actual": "NOT_IN_CANONICAL_18",
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "INV03_v2_legacy_token::valid",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "scroll has no canonical token (00 §7 keeps scroll in first_visible_scroll_state)"
+      },
+      {
+        "check_id": "INV03_v2_legacy_token::reason",
+        "expected": "NOT_IN_CANONICAL_18",
+        "actual": "NOT_IN_CANONICAL_18",
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "INV04_all_canonical::valid",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "TOKENERR::raises_on_unknown_token",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "unknown tokens must not pass silently"
+      },
+      {
+        "check_id": "CANONICAL::token_count",
+        "expected": 18,
+        "actual": 18,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "DC01_D1_pos_reordered::D1",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "same token multiset, same depth under both readings, different order"
+      },
+      {
+        "check_id": "DC02_D1_neg_identical::D1",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "depth tie but flows identical — must NOT be detected"
+      },
+      {
+        "check_id": "DC03_D1_neg_depth_differs::D1",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "flows differ but depth also differs — outside D1 by construction"
+      },
+      {
+        "check_id": "DC04_D1tier2_pos_disjoint::D1_TIER2",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "depth tied under both readings AND zero common subsequence"
+      },
+      {
+        "check_id": "DC05_D1tier2_neg_shared_endpoint::D1_TIER2",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "depth tie and different flow, but LCS>0 — tier1 yes, tier2 no"
+      },
+      {
+        "check_id": "DC06_D2_pos_disjoint::D2",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "depth diff 0 under every reading, levenshtein 5"
+      },
+      {
+        "check_id": "DC07_D2_neg_zero_distance::D2",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "depth tie with zero distance — must NOT be detected"
+      },
+      {
+        "check_id": "DC08_D2_neg_depth_differs::D2",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "distance is nonzero and sizeable, but depth differs — must NOT be detected. This is the case that a magnitude threshold would have wrongly swept in."
+      },
+      {
+        "check_id": "DC09_D3_pos_modal_one_side::D3",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "task_flow identical, experienced_flow longer by one dismissal only"
+      },
+      {
+        "check_id": "DC10_D3_neg_no_modal_anywhere::D3",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "no dismissal on either side — must NOT be detected"
+      },
+      {
+        "check_id": "DC11_D3_neg_same_modal_both_sides::D3",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "both sides dismissed identically — experienced flows equal, must NOT be detected"
+      },
+      {
+        "check_id": "DC12_D3_neg_task_flow_differs::D3",
+        "expected": false,
+        "actual": false,
+        "pass": true,
+        "note": "task_flow already differs — outside D3 by construction"
+      },
+      {
+        "check_id": "DC13_D3_nonattributable::D3_NONATTRIB",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": "task identical, experienced differs — but NOT by a dismissal. Must land in the non-attributable bucket, not in D3 positives. (Also trips TASK_EXPERIENCED_INCONSISTENT.)"
+      },
+      {
+        "check_id": "FAMILY::pair_cell_count",
+        "expected": 45,
+        "actual": 45,
+        "pass": true,
+        "note": "family n=10 is the independent unit. The 45 unordered pairs are distance-matrix CELLS for description/visualization only — never n=45, never a rate denominator, never an inferential sample. (05_ANALYSIS_PLAN_v3.0 §1: '동일 family의 45 pair는 distance matrix의 cell이지 독립 표본 n=45가 아니다.')"
+      },
+      {
+        "check_id": "FAMILY::D1_positives_activation_only_task_base",
+        "expected": 18,
+        "actual": 18,
+        "pass": true,
+        "note": "7 fixtures tie at depth 3; C(7,2)=21 tied cells minus 3 identical-signature cells"
+      },
+      {
+        "check_id": "FAMILY::D1_positives_literal_task_base",
+        "expected": 18,
+        "actual": 18,
+        "pass": true,
+        "note": "same set under the other depth reading -> the D1 result is robust to AMB-F03"
+      },
+      {
+        "check_id": "FAMILY::D1_positives_activation_only_experienced_base",
+        "expected": 20,
+        "actual": 20,
+        "pass": true,
+        "note": "on the experienced base SYN05 separates from SYN01/SYN06 -> +2. AMB-F08 is live."
+      },
+      {
+        "check_id": "FAMILY::D1_tier2_count",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "note": "only SYN02 vs SYN04 share no token"
+      },
+      {
+        "check_id": "FAMILY::D1_negatives_count",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "FAMILY::D2_positives_task_base",
+        "expected": 18,
+        "actual": 18,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "FAMILY::D2_extremal_distance",
+        "expected": 5,
+        "actual": 5,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "FAMILY::D2_positives_by_base",
+        "expected": {
+          "task": 18,
+          "experienced": 20
+        },
+        "actual": {
+          "task": 18,
+          "experienced": 20
+        },
+        "pass": true,
+        "note": "the base choice (AMB-F08) changes the cell count — the harness does not pick a base"
+      },
+      {
+        "check_id": "FAMILY::D3_positives",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "note": "SYN05 vs SYN01 and SYN05 vs SYN06"
+      },
+      {
+        "check_id": "FAMILY::D3_nonattributable",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "note": ""
+      },
+      {
+        "check_id": "FAMILY::D3_neg_identical_pair_present",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "note": ""
+      }
+    ],
+    "boundary_case_table": [
+      {
+        "id": "BND01_both_empty",
+        "a": [],
+        "b": [],
+        "note": "0/0 is UNDEFINED. Not filled with 0.0 (AMB-F10).",
+        "expected": {
+          "levenshtein_raw": 0,
+          "lcs_length": 0,
+          "lev_by_max_len": null,
+          "lev_by_sum_len": null,
+          "lev_yujian_bo": null,
+          "lcs_over_max_len": null,
+          "lcs_over_min_len": null,
+          "lcs_dice": null
+        },
+        "computed": {
+          "levenshtein_raw": 0,
+          "lcs_length": 0,
+          "lev_by_max_len": null,
+          "lev_by_sum_len": null,
+          "lev_yujian_bo": null,
+          "lcs_over_max_len": null,
+          "lcs_over_min_len": null,
+          "lcs_dice": null
+        },
+        "match": true
+      },
+      {
+        "id": "BND02_empty_vs_len1",
+        "a": [],
+        "b": [
+          "ENDPOINT_REACHED"
+        ],
+        "note": "min(len)=0 -> LCS/min undefined while LCS/max is defined. The three LCS candidates are not interchangeable.",
+        "expected": {
+          "levenshtein_raw": 1,
+          "lcs_length": 0,
+          "lev_by_max_len": 1.0,
+          "lev_by_sum_len": 1.0,
+          "lev_yujian_bo": 1.0,
+          "lcs_over_max_len": 0.0,
+          "lcs_over_min_len": null,
+          "lcs_dice": 0.0
+        },
+        "computed": {
+          "levenshtein_raw": 1,
+          "lcs_length": 0,
+          "lev_by_max_len": 1.0,
+          "lev_by_sum_len": 1.0,
+          "lev_yujian_bo": 1.0,
+          "lcs_over_max_len": 0.0,
+          "lcs_over_min_len": null,
+          "lcs_dice": 0.0
+        },
+        "match": true
+      },
+      {
+        "id": "BND03_len1_identical",
+        "a": [
+          "SELECT_FUNCTION"
+        ],
+        "b": [
+          "SELECT_FUNCTION"
+        ],
+        "note": "length-1 identical",
+        "expected": {
+          "levenshtein_raw": 0,
+          "lcs_length": 1,
+          "lev_by_max_len": 0.0,
+          "lev_by_sum_len": 0.0,
+          "lev_yujian_bo": 0.0,
+          "lcs_over_max_len": 1.0,
+          "lcs_over_min_len": 1.0,
+          "lcs_dice": 1.0
+        },
+        "computed": {
+          "levenshtein_raw": 0,
+          "lcs_length": 1,
+          "lev_by_max_len": 0.0,
+          "lev_by_sum_len": 0.0,
+          "lev_yujian_bo": 0.0,
+          "lcs_over_max_len": 1.0,
+          "lcs_over_min_len": 1.0,
+          "lcs_dice": 1.0
+        },
+        "match": true
+      },
+      {
+        "id": "BND04_len1_different",
+        "a": [
+          "SELECT_FUNCTION"
+        ],
+        "b": [
+          "SELECT_RESULT"
+        ],
+        "note": "the three Levenshtein normalizations give 1.0 / 0.5 / 0.667 for the SAME pair — this is exactly why AMB-F01 must be ruled on.",
+        "expected": {
+          "levenshtein_raw": 1,
+          "lcs_length": 0,
+          "lev_by_max_len": 1.0,
+          "lev_by_sum_len": 0.5,
+          "lev_yujian_bo": 0.6666666667,
+          "lcs_over_max_len": 0.0,
+          "lcs_over_min_len": 0.0,
+          "lcs_dice": 0.0
+        },
+        "computed": {
+          "levenshtein_raw": 1,
+          "lcs_length": 0,
+          "lev_by_max_len": 1.0,
+          "lev_by_sum_len": 0.5,
+          "lev_yujian_bo": 0.6666666667,
+          "lcs_over_max_len": 0.0,
+          "lcs_over_min_len": 0.0,
+          "lcs_dice": 0.0
+        },
+        "match": true
+      },
+      {
+        "id": "BND05_fully_identical_len4",
+        "a": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "b": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "note": "fully identical",
+        "expected": {
+          "levenshtein_raw": 0,
+          "lcs_length": 4,
+          "lev_by_max_len": 0.0,
+          "lev_by_sum_len": 0.0,
+          "lev_yujian_bo": 0.0,
+          "lcs_over_max_len": 1.0,
+          "lcs_over_min_len": 1.0,
+          "lcs_dice": 1.0
+        },
+        "computed": {
+          "levenshtein_raw": 0,
+          "lcs_length": 4,
+          "lev_by_max_len": 0.0,
+          "lev_by_sum_len": 0.0,
+          "lev_yujian_bo": 0.0,
+          "lcs_over_max_len": 1.0,
+          "lcs_over_min_len": 1.0,
+          "lcs_dice": 1.0
+        },
+        "match": true
+      },
+      {
+        "id": "BND06_fully_disjoint_len3",
+        "a": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION"
+        ],
+        "b": [
+          "INPUT_QUERY",
+          "SUBMIT_QUERY",
+          "SELECT_RESULT"
+        ],
+        "note": "fully different, equal length",
+        "expected": {
+          "levenshtein_raw": 3,
+          "lcs_length": 0,
+          "lev_by_max_len": 1.0,
+          "lev_by_sum_len": 0.5,
+          "lev_yujian_bo": 0.6666666667,
+          "lcs_over_max_len": 0.0,
+          "lcs_over_min_len": 0.0,
+          "lcs_dice": 0.0
+        },
+        "computed": {
+          "levenshtein_raw": 3,
+          "lcs_length": 0,
+          "lev_by_max_len": 1.0,
+          "lev_by_sum_len": 0.5,
+          "lev_yujian_bo": 0.6666666667,
+          "lcs_over_max_len": 0.0,
+          "lcs_over_min_len": 0.0,
+          "lcs_dice": 0.0
+        },
+        "match": true
+      },
+      {
+        "id": "BND07_prefix_vs_extension",
+        "a": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION"
+        ],
+        "b": [
+          "OPEN_GLOBAL_MENU",
+          "SELECT_FUNCTION",
+          "ENDPOINT_REACHED"
+        ],
+        "note": "prefix containment: LCS/min = 1.0 says 'contained', LCS/max = 0.667 says 'partly similar'. Different research claims follow from the unresolved choice.",
+        "expected": {
+          "levenshtein_raw": 1,
+          "lcs_length": 2,
+          "lev_by_max_len": 0.3333333333,
+          "lev_by_sum_len": 0.2,
+          "lev_yujian_bo": 0.3333333333,
+          "lcs_over_max_len": 0.6666666667,
+          "lcs_over_min_len": 1.0,
+          "lcs_dice": 0.8
+        },
+        "computed": {
+          "levenshtein_raw": 1,
+          "lcs_length": 2,
+          "lev_by_max_len": 0.3333333333,
+          "lev_by_sum_len": 0.2,
+          "lev_yujian_bo": 0.3333333333,
+          "lcs_over_max_len": 0.6666666667,
+          "lcs_over_min_len": 1.0,
+          "lcs_dice": 0.8
+        },
+        "match": true
+      }
+    ],
+    "invalid_token_cases": [
+      {
+        "id": "INV01_unknown_token",
+        "sequence": [
+          "OPEN_GLOBAL_MENU",
+          "CLICK_BUTTON"
+        ],
+        "expect_valid": false,
+        "result": {
+          "label": "INV01_unknown_token",
+          "length": 2,
+          "valid": false,
+          "invalid_tokens": [
+            {
+              "index": 1,
+              "token": "CLICK_BUTTON",
+              "reason": "NOT_IN_CANONICAL_18",
+              "case_insensitive_match": null,
+              "note": null
+            }
+          ],
+          "abstain_present": false
+        }
+      },
+      {
+        "id": "INV02_lowercase",
+        "sequence": [
+          "open_global_menu"
+        ],
+        "expect_valid": false,
+        "result": {
+          "label": "INV02_lowercase",
+          "length": 1,
+          "valid": false,
+          "invalid_tokens": [
+            {
+              "index": 0,
+              "token": "open_global_menu",
+              "reason": "NOT_IN_CANONICAL_18",
+              "case_insensitive_match": [
+                "OPEN_GLOBAL_MENU"
+              ],
+              "note": "case-insensitive match exists but exact match is required; no silent case folding"
+            }
+          ],
+          "abstain_present": false
+        }
+      },
+      {
+        "id": "INV03_v2_legacy_token",
+        "sequence": [
+          "SCROLL",
+          "SELECT_FUNCTION"
+        ],
+        "expect_valid": false,
+        "result": {
+          "label": "INV03_v2_legacy_token",
+          "length": 2,
+          "valid": false,
+          "invalid_tokens": [
+            {
+              "index": 0,
+              "token": "SCROLL",
+              "reason": "NOT_IN_CANONICAL_18",
+              "case_insensitive_match": null,
+              "note": null
+            }
+          ],
+          "abstain_present": false
+        }
+      },
+      {
+        "id": "INV04_all_canonical",
+        "sequence": [
+          "OPEN_GLOBAL_MENU",
+          "OPEN_LOCAL_MENU",
+          "SWITCH_TAB",
+          "EXPAND_ACCORDION",
+          "SELECT_CATEGORY",
+          "SELECT_FUNCTION",
+          "INPUT_QUERY",
+          "SELECT_ORIGIN",
+          "SELECT_DESTINATION",
+          "SELECT_DATE",
+          "SUBMIT_QUERY",
+          "SELECT_RESULT",
+          "OPEN_ITEM_DETAIL",
+          "OPEN_PLACE_DETAIL",
+          "DISMISS_OBSTRUCTION",
+          "AUTH_GATE",
+          "ENDPOINT_REACHED",
+          "ABSTAIN"
+        ],
+        "expect_valid": true,
+        "result": {
+          "label": "INV04_all_canonical",
+          "length": 18,
+          "valid": true,
+          "invalid_tokens": [],
+          "abstain_present": true
+        }
+      }
+    ],
+    "unique_task_flow_signatures": {
+      "count": 8,
+      "signatures": [
+        "",
+        "INPUT_QUERY > SUBMIT_QUERY > SELECT_RESULT > OPEN_ITEM_DETAIL > ENDPOINT_REACHED",
+        "OPEN_GLOBAL_MENU > ABSTAIN",
+        "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "SELECT_CATEGORY > OPEN_GLOBAL_MENU > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "SWITCH_TAB > EXPAND_ACCORDION > OPEN_PLACE_DETAIL > ENDPOINT_REACHED",
+        "SWITCH_TAB > SELECT_CATEGORY > SELECT_FUNCTION > AUTH_GATE"
+      ]
+    },
+    "unique_experienced_flow_signatures": {
+      "count": 9,
+      "signatures": [
+        "",
+        "DISMISS_OBSTRUCTION > OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "INPUT_QUERY > SUBMIT_QUERY > SELECT_RESULT > OPEN_ITEM_DETAIL > ENDPOINT_REACHED",
+        "OPEN_GLOBAL_MENU > ABSTAIN",
+        "OPEN_GLOBAL_MENU > SELECT_CATEGORY > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "SELECT_CATEGORY > OPEN_GLOBAL_MENU > SELECT_FUNCTION > ENDPOINT_REACHED",
+        "SELECT_ORIGIN > SELECT_DESTINATION > SELECT_DATE > SUBMIT_QUERY > SELECT_RESULT > ENDPOINT_REACHED",
+        "SWITCH_TAB > EXPAND_ACCORDION > OPEN_PLACE_DETAIL > ENDPOINT_REACHED",
+        "SWITCH_TAB > SELECT_CATEGORY > SELECT_FUNCTION > AUTH_GATE"
+      ]
+    },
+    "directed_cases": [
+      {
+        "case_id": "DC01_D1_pos_reordered",
+        "detector": "D1",
+        "why": "same token multiset, same depth under both readings, different order",
+        "expected_positive": true,
+        "detected_positive": true,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC02_D1_neg_identical",
+        "detector": "D1",
+        "why": "depth tie but flows identical — must NOT be detected",
+        "expected_positive": false,
+        "detected_positive": false,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC03_D1_neg_depth_differs",
+        "detector": "D1",
+        "why": "flows differ but depth also differs — outside D1 by construction",
+        "expected_positive": false,
+        "detected_positive": false,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC04_D1tier2_pos_disjoint",
+        "detector": "D1_TIER2",
+        "why": "depth tied under both readings AND zero common subsequence",
+        "expected_positive": true,
+        "detected_positive": true,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC05_D1tier2_neg_shared_endpoint",
+        "detector": "D1_TIER2",
+        "why": "depth tie and different flow, but LCS>0 — tier1 yes, tier2 no",
+        "expected_positive": false,
+        "detected_positive": false,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC06_D2_pos_disjoint",
+        "detector": "D2",
+        "why": "depth diff 0 under every reading, levenshtein 5",
+        "expected_positive": true,
+        "detected_positive": true,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC07_D2_neg_zero_distance",
+        "detector": "D2",
+        "why": "depth tie with zero distance — must NOT be detected",
+        "expected_positive": false,
+        "detected_positive": false,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC08_D2_neg_depth_differs",
+        "detector": "D2",
+        "why": "distance is nonzero and sizeable, but depth differs — must NOT be detected. This is the case that a magnitude threshold would have wrongly swept in.",
+        "expected_positive": false,
+        "detected_positive": false,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC09_D3_pos_modal_one_side",
+        "detector": "D3",
+        "why": "task_flow identical, experienced_flow longer by one dismissal only",
+        "expected_positive": true,
+        "detected_positive": true,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC10_D3_neg_no_modal_anywhere",
+        "detector": "D3",
+        "why": "no dismissal on either side — must NOT be detected",
+        "expected_positive": false,
+        "detected_positive": false,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC11_D3_neg_same_modal_both_sides",
+        "detector": "D3",
+        "why": "both sides dismissed identically — experienced flows equal, must NOT be detected",
+        "expected_positive": false,
+        "detected_positive": false,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC12_D3_neg_task_flow_differs",
+        "detector": "D3",
+        "why": "task_flow already differs — outside D3 by construction",
+        "expected_positive": false,
+        "detected_positive": false,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": null
+      },
+      {
+        "case_id": "DC13_D3_nonattributable",
+        "detector": "D3_NONATTRIB",
+        "why": "task identical, experienced differs — but NOT by a dismissal. Must land in the non-attributable bucket, not in D3 positives. (Also trips TASK_EXPERIENCED_INCONSISTENT.)",
+        "expected_positive": true,
+        "detected_positive": true,
+        "pass": true,
+        "consistency_flag_a": null,
+        "consistency_flag_b": "TASK_EXPERIENCED_INCONSISTENT"
+      }
+    ],
+    "mutation_testing": [
+      {
+        "mutant_id": "MUT01_depth_counts_dismissal",
+        "target": "activation_depth",
+        "breaks": "04 §5 / 03 §6 — popup dismiss must be excluded from depth",
+        "caught": true,
+        "failed_check_count": 1,
+        "sample_failed_checks": [
+          "SYN05_modal_then_menu::activation_depth_base_invariant"
+        ]
+      },
+      {
+        "mutant_id": "MUT02_menu_dependency_always_true",
+        "target": "menu_dependency",
+        "breaks": "04 §5 — reveal token must actually be present",
+        "caught": true,
+        "failed_check_count": 8,
+        "sample_failed_checks": [
+          "SYN02_search_item::menu_dependency_readings",
+          "SYN02_search_item::menu_dependency_value",
+          "SYN04_tab_auth_terminal::menu_dependency_readings",
+          "SYN04_tab_auth_terminal::menu_dependency_value",
+          "SYN08_transport_slots::menu_dependency_readings",
+          "SYN08_transport_slots::menu_dependency_value"
+        ]
+      },
+      {
+        "mutant_id": "MUT03_levenshtein_length_only",
+        "target": "levenshtein",
+        "breaks": "05 §2-E — edit distance must be order/content sensitive",
+        "caught": true,
+        "failed_check_count": 13,
+        "sample_failed_checks": [
+          "dist::SYN01_menu_category|SYN07_reordered|task::levenshtein_raw",
+          "dist::SYN02_search_item|SYN04_tab_auth_terminal|task::levenshtein_raw",
+          "BND04_len1_different::levenshtein_raw",
+          "BND04_len1_different::lev_by_max_len",
+          "BND04_len1_different::lev_by_sum_len",
+          "BND04_len1_different::lev_yujian_bo"
+        ]
+      },
+      {
+        "mutant_id": "MUT04_flow_step_count_drops_typing",
+        "target": "flow_step_count",
+        "breaks": "04 §5 — typing/submit/auth are INCLUDED in flow_step_count (this is exactly where it differs from activation_depth; unifying the two lists is the failure mode being guarded)",
+        "caught": true,
+        "failed_check_count": 1,
+        "sample_failed_checks": [
+          "SYN02_search_item::flow_step_count_readings"
+        ]
+      },
+      {
+        "mutant_id": "MUT05_zero_denominator_as_zero",
+        "target": "_div",
+        "breaks": "AMB-F10 — 0/0 must not be reported as 0.0 (would read as 'identical flows')",
+        "caught": true,
+        "failed_check_count": 7,
+        "sample_failed_checks": [
+          "BND01_both_empty::lev_by_max_len",
+          "BND01_both_empty::lev_by_sum_len",
+          "BND01_both_empty::lev_yujian_bo",
+          "BND01_both_empty::lcs_over_max_len",
+          "BND01_both_empty::lcs_over_min_len",
+          "BND01_both_empty::lcs_dice"
+        ]
+      },
+      {
+        "mutant_id": "MUT06_signature_collapse",
+        "target": "_sig",
+        "breaks": "04 §3 — task_flow and experienced_flow must stay separate",
+        "caught": true,
+        "failed_check_count": 6,
+        "sample_failed_checks": [
+          "DC09_D3_pos_modal_one_side::D3",
+          "DC13_D3_nonattributable::D3_NONATTRIB",
+          "FAMILY::D1_positives_activation_only_task_base",
+          "FAMILY::D1_positives_literal_task_base",
+          "FAMILY::D1_negatives_count",
+          "FAMILY::D3_positives"
+        ]
+      },
+      {
+        "mutant_id": "MUT07_lcs_length_blind",
+        "target": "lcs_length",
+        "breaks": "05 §2-E — LCS must reflect shared content; tier2 (LCS==0) depends on it",
+        "caught": true,
+        "failed_check_count": 12,
+        "sample_failed_checks": [
+          "dist::SYN01_menu_category|SYN07_reordered|task::lcs_length",
+          "dist::SYN02_search_item|SYN04_tab_auth_terminal|task::lcs_length",
+          "BND04_len1_different::lcs_length",
+          "BND04_len1_different::lcs_over_max_len",
+          "BND04_len1_different::lcs_over_min_len",
+          "BND04_len1_different::lcs_dice"
+        ]
+      },
+      {
+        "mutant_id": "RESTORE_PROOF",
+        "target": null,
+        "breaks": "n/a — verifies every mutation was reverted",
+        "caught": null,
+        "failed_check_count": 0,
+        "sample_failed_checks": []
+      }
+    ]
+  },
+  "counterexample_detectors": {
+    "D1_depth_tie_flow_divergent": {
+      "detector_id": "D1_DEPTH_TIE_FLOW_DIVERGENT",
+      "claim_tested": "동일 depth 가 동일 flow 를 함의하지 않는다 (depth 는 flow 의 요약손실 파생값이다).",
+      "predicate_tier1": "activation_depth[a] == activation_depth[b] AND ordered_tokens[a] != ordered_tokens[b]",
+      "predicate_tier2": "tier1 AND lcs_length == 0",
+      "threshold_used": null,
+      "positives_by_reading_and_base": {
+        "reading=literal_all_but_excluded|base=task": 18,
+        "reading=literal_all_but_excluded|base=experienced": 20,
+        "reading=activation_only|base=task": 18,
+        "reading=activation_only|base=experienced": 20
+      },
+      "positives_detail": {
+        "reading=literal_all_but_excluded|base=task": [
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN02_search_item",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN03_tab_accordion",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN03_tab_accordion",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 5,
+            "lcs_length": 0,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN05_modal_then_menu",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN06_no_modal_twin",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          }
+        ],
+        "reading=literal_all_but_excluded|base=experienced": [
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN02_search_item",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN03_tab_accordion",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 1,
+            "lcs_length": 4,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN03_tab_accordion",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 5,
+            "lcs_length": 0,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN05_modal_then_menu",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 1,
+            "lcs_length": 4,
+            "interpretable": true
+          },
+          {
+            "a": "SYN05_modal_then_menu",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN06_no_modal_twin",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          }
+        ],
+        "reading=activation_only|base=task": [
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN02_search_item",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN03_tab_accordion",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN03_tab_accordion",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 5,
+            "lcs_length": 0,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN05_modal_then_menu",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN06_no_modal_twin",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          }
+        ],
+        "reading=activation_only|base=experienced": [
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN02_search_item",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN03_tab_accordion",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 1,
+            "lcs_length": 4,
+            "interpretable": true
+          },
+          {
+            "a": "SYN01_menu_category",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN03_tab_accordion",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 5,
+            "lcs_length": 0,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN02_search_item",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN04_tab_auth_terminal",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 4,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN03_tab_accordion",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 1,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN05_modal_then_menu",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN04_tab_auth_terminal",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 3,
+            "lcs_length": 2,
+            "interpretable": true
+          },
+          {
+            "a": "SYN05_modal_then_menu",
+            "b": "SYN06_no_modal_twin",
+            "depth_diff": 0,
+            "levenshtein_raw": 1,
+            "lcs_length": 4,
+            "interpretable": true
+          },
+          {
+            "a": "SYN05_modal_then_menu",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          },
+          {
+            "a": "SYN06_no_modal_twin",
+            "b": "SYN07_reordered",
+            "depth_diff": 0,
+            "levenshtein_raw": 2,
+            "lcs_length": 3,
+            "interpretable": true
+          }
+        ]
+      },
+      "tier2_no_common_subsequence": [
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN04_tab_auth_terminal",
+          "depth_readings_all_tied": true,
+          "lcs_length": 0,
+          "levenshtein_raw": 5,
+          "interpretable": true
+        }
+      ],
+      "negatives_depth_tie_but_identical_flow": [
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN05_modal_then_menu",
+          "reason": "identical task_flow_sequence"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN06_no_modal_twin",
+          "reason": "identical task_flow_sequence"
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN06_no_modal_twin",
+          "reason": "identical task_flow_sequence"
+        }
+      ]
+    },
+    "D2_distance_positive_depth_tie": {
+      "detector_id": "D2_DISTANCE_POSITIVE_DEPTH_TIE",
+      "claim_tested": "depth 차이 0 인 pair 에서도 sequence 거리가 0 이 아닐 수 있고, 그 크기는 depth 로 복원되지 않는다.",
+      "predicate": "depth_diff == 0 under EVERY depth reading AND levenshtein_raw > 0",
+      "threshold_used": null,
+      "magnitude_handling": "reported and rank-ordered; extremal cell named as an order statistic only",
+      "positives_count": 38,
+      "extremal_levenshtein_raw_among_depth_tied": 5,
+      "extremal_cells": [
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN04_tab_auth_terminal",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 5,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 1.0,
+            "by_sum_len": 0.5555555556,
+            "yujian_bo_2d_over_sum_plus_d": 0.7142857143
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.0,
+            "over_min_len": 0.0,
+            "dice_2L_over_sum": 0.0
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN04_tab_auth_terminal",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 5,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 1.0,
+            "by_sum_len": 0.5555555556,
+            "yujian_bo_2d_over_sum_plus_d": 0.7142857143
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.0,
+            "over_min_len": 0.0,
+            "dice_2L_over_sum": 0.0
+          },
+          "interpretable": true
+        }
+      ],
+      "positives_ranked": [
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN04_tab_auth_terminal",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 5,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 1.0,
+            "by_sum_len": 0.5555555556,
+            "yujian_bo_2d_over_sum_plus_d": 0.7142857143
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.0,
+            "over_min_len": 0.0,
+            "dice_2L_over_sum": 0.0
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN04_tab_auth_terminal",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 5,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 1.0,
+            "by_sum_len": 0.5555555556,
+            "yujian_bo_2d_over_sum_plus_d": 0.7142857143
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.0,
+            "over_min_len": 0.0,
+            "dice_2L_over_sum": 0.0
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN02_search_item",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN02_search_item",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN03_tab_accordion",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN03_tab_accordion",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN05_modal_then_menu",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4,
+            "yujian_bo_2d_over_sum_plus_d": 0.5714285714
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.2,
+            "dice_2L_over_sum": 0.2
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN05_modal_then_menu",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN06_no_modal_twin",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN06_no_modal_twin",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN07_reordered",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN07_reordered",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN05_modal_then_menu",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 4,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.8,
+            "by_sum_len": 0.4444444444,
+            "yujian_bo_2d_over_sum_plus_d": 0.6153846154
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.2,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.2222222222
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN03_tab_accordion",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.25,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.25
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN03_tab_accordion",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.25,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.25
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN04_tab_auth_terminal",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.25,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.25
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN04_tab_auth_terminal",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.25,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.25
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN05_modal_then_menu",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.25,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.25
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN06_no_modal_twin",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.25,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.25
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN06_no_modal_twin",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.25,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.25
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN07_reordered",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.25,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.25
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN07_reordered",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.25,
+            "over_min_len": 0.25,
+            "dice_2L_over_sum": 0.25
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN05_modal_then_menu",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.6,
+            "by_sum_len": 0.3333333333,
+            "yujian_bo_2d_over_sum_plus_d": 0.5
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.4,
+            "over_min_len": 0.5,
+            "dice_2L_over_sum": 0.4444444444
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN07_reordered",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.5,
+            "over_min_len": 0.5,
+            "dice_2L_over_sum": 0.5
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN07_reordered",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 3,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.75,
+            "by_sum_len": 0.375,
+            "yujian_bo_2d_over_sum_plus_d": 0.5454545455
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.5,
+            "over_min_len": 0.5,
+            "dice_2L_over_sum": 0.5
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN04_tab_auth_terminal",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.5,
+            "over_min_len": 0.5,
+            "dice_2L_over_sum": 0.5
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN04_tab_auth_terminal",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.5,
+            "over_min_len": 0.5,
+            "dice_2L_over_sum": 0.5
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN07_reordered",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.75,
+            "over_min_len": 0.75,
+            "dice_2L_over_sum": 0.75
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN07_reordered",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.75,
+            "over_min_len": 0.75,
+            "dice_2L_over_sum": 0.75
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN05_modal_then_menu",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.5,
+            "over_min_len": 0.5,
+            "dice_2L_over_sum": 0.5
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN06_no_modal_twin",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.5,
+            "over_min_len": 0.5,
+            "dice_2L_over_sum": 0.5
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN06_no_modal_twin",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.5,
+            "over_min_len": 0.5,
+            "dice_2L_over_sum": 0.5
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN07_reordered",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.4,
+            "by_sum_len": 0.2222222222,
+            "yujian_bo_2d_over_sum_plus_d": 0.3636363636
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.6,
+            "over_min_len": 0.75,
+            "dice_2L_over_sum": 0.6666666667
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN07_reordered",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.75,
+            "over_min_len": 0.75,
+            "dice_2L_over_sum": 0.75
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN07_reordered",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.75,
+            "over_min_len": 0.75,
+            "dice_2L_over_sum": 0.75
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN07_reordered",
+          "base": "task",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 2,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.5,
+            "by_sum_len": 0.25,
+            "yujian_bo_2d_over_sum_plus_d": 0.4
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.75,
+            "over_min_len": 0.75,
+            "dice_2L_over_sum": 0.75
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN05_modal_then_menu",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 1,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.2,
+            "by_sum_len": 0.1111111111,
+            "yujian_bo_2d_over_sum_plus_d": 0.2
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.8,
+            "over_min_len": 1.0,
+            "dice_2L_over_sum": 0.8888888889
+          },
+          "interpretable": true
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN06_no_modal_twin",
+          "base": "experienced",
+          "depth_diff_all_readings": 0,
+          "levenshtein_raw": 1,
+          "levenshtein_normalized_candidates": {
+            "by_max_len": 0.2,
+            "by_sum_len": 0.1111111111,
+            "yujian_bo_2d_over_sum_plus_d": 0.2
+          },
+          "lcs_similarity_candidates": {
+            "over_max_len": 0.8,
+            "over_min_len": 1.0,
+            "dice_2L_over_sum": 0.8888888889
+          },
+          "interpretable": true
+        }
+      ],
+      "negatives": [
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN05_modal_then_menu",
+          "base": "task",
+          "reason": "depth tie AND zero distance — identical flows, must not be detected"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN06_no_modal_twin",
+          "base": "task",
+          "reason": "depth tie AND zero distance — identical flows, must not be detected"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN06_no_modal_twin",
+          "base": "experienced",
+          "reason": "depth tie AND zero distance — identical flows, must not be detected"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN08_transport_slots",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN08_transport_slots",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN09_abstain",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN09_abstain",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN10_empty",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN10_empty",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN08_transport_slots",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN08_transport_slots",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN09_abstain",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN09_abstain",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN10_empty",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN10_empty",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN08_transport_slots",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN08_transport_slots",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN09_abstain",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN09_abstain",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN10_empty",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN10_empty",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN08_transport_slots",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN08_transport_slots",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN09_abstain",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN09_abstain",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN10_empty",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN10_empty",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN06_no_modal_twin",
+          "base": "task",
+          "reason": "depth tie AND zero distance — identical flows, must not be detected"
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN08_transport_slots",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN08_transport_slots",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN09_abstain",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN09_abstain",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN10_empty",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN10_empty",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN08_transport_slots",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN08_transport_slots",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN09_abstain",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN09_abstain",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN10_empty",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN10_empty",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN07_reordered",
+          "b": "SYN08_transport_slots",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN07_reordered",
+          "b": "SYN08_transport_slots",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN07_reordered",
+          "b": "SYN09_abstain",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN07_reordered",
+          "b": "SYN09_abstain",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 2
+          }
+        },
+        {
+          "a": "SYN07_reordered",
+          "b": "SYN10_empty",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN07_reordered",
+          "b": "SYN10_empty",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 3
+          }
+        },
+        {
+          "a": "SYN08_transport_slots",
+          "b": "SYN09_abstain",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 4
+          }
+        },
+        {
+          "a": "SYN08_transport_slots",
+          "b": "SYN09_abstain",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 4,
+            "activation_only": 4
+          }
+        },
+        {
+          "a": "SYN08_transport_slots",
+          "b": "SYN10_empty",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 6,
+            "activation_only": 5
+          }
+        },
+        {
+          "a": "SYN08_transport_slots",
+          "b": "SYN10_empty",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 6,
+            "activation_only": 5
+          }
+        },
+        {
+          "a": "SYN09_abstain",
+          "b": "SYN10_empty",
+          "base": "task",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 1
+          }
+        },
+        {
+          "a": "SYN09_abstain",
+          "b": "SYN10_empty",
+          "base": "experienced",
+          "reason": "nonzero distance but depth differs — outside D2 by construction",
+          "depth_diff": {
+            "literal_all_but_excluded": 2,
+            "activation_only": 1
+          }
+        }
+      ],
+      "positives_by_base": {
+        "task": 18,
+        "experienced": 20
+      },
+      "equivalence_note": "levenshtein_raw == 0 iff the ordered token lists are identical, so on a fixed base this positive set is exactly D1-tier1's positive set restricted to cells where EVERY depth reading ties. No threshold was introduced to separate the two detectors; they differ in what they report (structure vs magnitude), not in what they select."
+    },
+    "D3_modal_experienced_only_inflation": {
+      "detector_id": "D3_MODAL_EXPERIENCED_ONLY_INFLATION",
+      "claim_tested": "forced dismissal 은 experienced_flow 만 늘리고 task_flow 와 activation_depth 는 그대로 둔다. 따라서 base sequence 선택(AMB-F08)과 flow_step_count base(AMB-F04)가 결과를 바꾼다.",
+      "predicate": "task signature EQUAL AND experienced signature DIFFERS",
+      "attribution_predicate": "experienced_a minus DISMISS_OBSTRUCTION == experienced_b minus DISMISS_OBSTRUCTION",
+      "threshold_used": null,
+      "positives": [
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN05_modal_then_menu",
+          "task_flow_distance": 0,
+          "experienced_flow_distance": 1,
+          "dismissal_count_a": 0,
+          "dismissal_count_b": 1,
+          "interpretable": true
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN06_no_modal_twin",
+          "task_flow_distance": 0,
+          "experienced_flow_distance": 1,
+          "dismissal_count_a": 1,
+          "dismissal_count_b": 0,
+          "interpretable": true
+        }
+      ],
+      "difference_not_dismissal_attributable": [],
+      "negatives": [
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN02_search_item",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN03_tab_accordion",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN04_tab_auth_terminal",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN06_no_modal_twin",
+          "reason": "task_flow AND experienced_flow both identical — must not be detected"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN07_reordered",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN08_transport_slots",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN09_abstain",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN01_menu_category",
+          "b": "SYN10_empty",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN03_tab_accordion",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN04_tab_auth_terminal",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN05_modal_then_menu",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN06_no_modal_twin",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN07_reordered",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN08_transport_slots",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN09_abstain",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN02_search_item",
+          "b": "SYN10_empty",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN04_tab_auth_terminal",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN05_modal_then_menu",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN06_no_modal_twin",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN07_reordered",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN08_transport_slots",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN09_abstain",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN03_tab_accordion",
+          "b": "SYN10_empty",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN05_modal_then_menu",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN06_no_modal_twin",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN07_reordered",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN08_transport_slots",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN09_abstain",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN04_tab_auth_terminal",
+          "b": "SYN10_empty",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN07_reordered",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN08_transport_slots",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN09_abstain",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN05_modal_then_menu",
+          "b": "SYN10_empty",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN07_reordered",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN08_transport_slots",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN09_abstain",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN06_no_modal_twin",
+          "b": "SYN10_empty",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN07_reordered",
+          "b": "SYN08_transport_slots",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN07_reordered",
+          "b": "SYN09_abstain",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN07_reordered",
+          "b": "SYN10_empty",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN08_transport_slots",
+          "b": "SYN09_abstain",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN08_transport_slots",
+          "b": "SYN10_empty",
+          "reason": "task_flow already differs — outside D3 by construction"
+        },
+        {
+          "a": "SYN09_abstain",
+          "b": "SYN10_empty",
+          "reason": "task_flow already differs — outside D3 by construction"
+        }
+      ],
+      "per_observation_inflation": [
+        {
+          "observation_id": "SYN01_menu_category",
+          "experienced_minus_task_length": 0,
+          "dismissal_count_in_experienced": 0,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 3,
+          "flow_step_count_experienced_base_excl_terminal": 3,
+          "activation_depth_base_invariant": true
+        },
+        {
+          "observation_id": "SYN02_search_item",
+          "experienced_minus_task_length": 0,
+          "dismissal_count_in_experienced": 0,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 4,
+          "flow_step_count_experienced_base_excl_terminal": 4,
+          "activation_depth_base_invariant": true
+        },
+        {
+          "observation_id": "SYN03_tab_accordion",
+          "experienced_minus_task_length": 0,
+          "dismissal_count_in_experienced": 0,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 3,
+          "flow_step_count_experienced_base_excl_terminal": 3,
+          "activation_depth_base_invariant": true
+        },
+        {
+          "observation_id": "SYN04_tab_auth_terminal",
+          "experienced_minus_task_length": 0,
+          "dismissal_count_in_experienced": 0,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 4,
+          "flow_step_count_experienced_base_excl_terminal": 4,
+          "activation_depth_base_invariant": true
+        },
+        {
+          "observation_id": "SYN05_modal_then_menu",
+          "experienced_minus_task_length": 1,
+          "dismissal_count_in_experienced": 1,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 3,
+          "flow_step_count_experienced_base_excl_terminal": 4,
+          "activation_depth_base_invariant": true
+        },
+        {
+          "observation_id": "SYN06_no_modal_twin",
+          "experienced_minus_task_length": 0,
+          "dismissal_count_in_experienced": 0,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 3,
+          "flow_step_count_experienced_base_excl_terminal": 3,
+          "activation_depth_base_invariant": true
+        },
+        {
+          "observation_id": "SYN07_reordered",
+          "experienced_minus_task_length": 0,
+          "dismissal_count_in_experienced": 0,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 3,
+          "flow_step_count_experienced_base_excl_terminal": 3,
+          "activation_depth_base_invariant": true
+        },
+        {
+          "observation_id": "SYN08_transport_slots",
+          "experienced_minus_task_length": 0,
+          "dismissal_count_in_experienced": 0,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 5,
+          "flow_step_count_experienced_base_excl_terminal": 5,
+          "activation_depth_base_invariant": true
+        },
+        {
+          "observation_id": "SYN09_abstain",
+          "experienced_minus_task_length": 0,
+          "dismissal_count_in_experienced": 0,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 1,
+          "flow_step_count_experienced_base_excl_terminal": 1,
+          "activation_depth_base_invariant": true
+        },
+        {
+          "observation_id": "SYN10_empty",
+          "experienced_minus_task_length": 0,
+          "dismissal_count_in_experienced": 0,
+          "excess_fully_dismissal_attributable": true,
+          "flow_step_count_task_base_excl_terminal": 0,
+          "flow_step_count_experienced_base_excl_terminal": 0,
+          "activation_depth_base_invariant": true
+        }
+      ]
+    }
+  },
+  "ambiguous_definitions": [
+    {
+      "id": "AMB-F01",
+      "variable": "normalized Levenshtein distance",
+      "source": "05_ANALYSIS_PLAN_v3.0.md §2-E ('normalized Levenshtein distance'), §8 ('service×service normalized edit-distance heatmap')",
+      "question": "정규화 분모가 정의되지 않았다. max(len(a),len(b)) 인가, len(a)+len(b) 인가, 아니면 Yujian-Bo 2d/(|a|+|b|+d) 인가?",
+      "why_it_matters": "세 후보는 같은 pair에 대해 서로 다른 값을 준다 (예: 서로소 len3-len3 → 1.0 / 0.5 / 0.667). heatmap 색과 pair 순위가 달라진다.",
+      "harness_behaviour": "정하지 않는다. distance_profile()이 세 후보값을 나란히 반환하고, 단일 'normalized' 스칼라는 emit 하지 않는다.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F02",
+      "variable": "LCS similarity",
+      "source": "05_ANALYSIS_PLAN_v3.0.md §2-E ('LCS similarity')",
+      "question": "LCS 길이를 무엇으로 나눠 similarity 로 만드는지 정의되지 않았다. L/max(len), L/min(len), 2L/(|a|+|b|) 중 어느 것인가?",
+      "why_it_matters": "길이가 다른 sequence pair에서 값이 크게 갈린다. prefix pair([A,B] vs [A,B,C])는 0.667 / 1.0 / 0.8.",
+      "harness_behaviour": "세 후보를 나란히 반환. 단일 similarity 스칼라 없음.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F03",
+      "variable": "activation_depth",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5 / §4; 03 §6",
+      "question": "AUTH_GATE / ENDPOINT_REACHED / ABSTAIN 이 'state-changing activation token' 에 포함되는가? 제외 목록(scroll/typing/passive/dismiss)에 없으므로 문자 그대로 읽으면 포함이고, '도달한다/충족된다/판정하지 않는다' 라는 토큰 정의상 사용자의 activation 이 아니므로 의미상 읽으면 제외다.",
+      "why_it_matters": "거의 모든 sequence 가 terminal token 을 하나 갖는다. 두 읽기는 depth 를 상수 1(또는 2)만큼 다르게 만든다. 절대값 비교와 median/IQR 보고가 바뀐다.",
+      "harness_behaviour": "두 읽기(literal_all_but_excluded / activation_only)를 모두 계산. 두 값이 일치할 때만 단일 primary 를 emit 한다.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F04",
+      "variable": "flow_step_count",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5 / §4",
+      "question": "(a) 어느 sequence 위에서 세는가 — task_flow_sequence 인가 experienced_flow_sequence 인가? DISMISS_OBSTRUCTION 은 포함/제외 어느 목록에도 없다. (b) ENDPOINT_REACHED / ABSTAIN 이 'task-intent action token' 인가?",
+      "why_it_matters": "(a) base 선택이 곧 dismissal 포함 여부다. modal 이 있는 서비스의 step count 가 통째로 달라진다. (b) terminal token 포함 여부가 모든 값을 +1 시킨다.",
+      "harness_behaviour": "base(task|experienced) × terminal(incl|excl) 4조합을 모두 emit. 단일 primary 는 4값이 모두 같을 때만.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F05",
+      "variable": "menu_dependency",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5 ('... 등 reveal token'), §4 ('OPEN/REVEAL 계열 token')",
+      "question": "reveal token 집합이 열려 있다('등', '계열'). SWITCH_TAB 이 reveal token 인가? nav_container_type 에는 TOP_DROPDOWN/INLINE_EXPAND 가 있어 tab 전환이 container reveal 로 읽힐 여지가 있다.",
+      "why_it_matters": "탭 기반 진입 서비스의 menu dependency rate(§2-A primary metric)가 통째로 뒤집힌다.",
+      "harness_behaviour": "explicit3 / incl_switch_tab 두 읽기를 모두 emit. 일치할 때만 단일 primary.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F06",
+      "variable": "nav_container_depth",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5 ('task control 노출 전 nested reveal 수'), §4 ('task control 노출 전 menu/drawer expansion 수')",
+      "question": "token sequence 만으로는 계산 불가능하다. 'task control 노출' 시점을 표시하는 token 이 canonical 18 에 없다. 또한 §5 는 'nested reveal', §4 는 'menu/drawer expansion' 이라 두 문구가 nesting 요구 여부에서 어긋난다.",
+      "why_it_matters": "값 자체가 정의되지 않으므로 임의 규칙(예: '첫 SELECT_FUNCTION 이전')을 넣으면 그것이 새 조작화가 된다.",
+      "harness_behaviour": "단일 값을 emit 하지 않는다. 후보 계산 3종을 candidate 로만 병기하고 not_implemented 에 등재한다. fact_flow_step 의 nav_container_type/reveal 증거가 sequence 와 함께 들어와야 계산 가능.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F07",
+      "variable": "ABSTAIN token 취급",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §2 (ABSTAIN), §4 endpoint_status(ABSTAIN)",
+      "question": "ABSTAIN 이 sequence 안에 들어왔을 때 (a) derived count 에 세는가, (b) 그 sequence 를 distance/ signature 모집단에 넣는가, (c) 넣는다면 ABSTAIN 을 하나의 심볼로 취급하는가 wildcard 로 취급하는가?",
+      "why_it_matters": "ABSTAIN 은 '경로 불확정' 선언이다. 이를 일반 token 으로 세면 불확정 경로가 확정 depth 값을 갖게 되고, distance 행렬에 확정값처럼 들어간다.",
+      "harness_behaviour": "임의 판단하지 않는다. abstain_present=True 를 표시하고, derived 값은 include/exclude 두 읽기를 병기하며, 이 observation 이 들어간 모든 distance cell 에 interpretable=false 를 찍는다. 값 자체는 계산해 두되 해석 가능으로 표시하지 않는다.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "AMB-F08",
+      "variable": "distance base sequence",
+      "source": "05_ANALYSIS_PLAN_v3.0.md §2-E, §8",
+      "question": "sequence signature / Levenshtein / LCS 를 task_flow_sequence 위에서 계산하는가 experienced_flow_sequence 위에서 계산하는가? §2-E 는 base 를 말하지 않는다.",
+      "why_it_matters": "정확히 detector 3(modal 로 experienced 만 길어지는 경우)이 이 선택에서 나타났다 사라진다.",
+      "harness_behaviour": "두 base 모두에서 계산해 병기한다. primary base 를 고르지 않는다.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "AMB-F09",
+      "variable": "menu_dependency 'endpoint 전' 경계",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §5",
+      "question": "ENDPOINT_REACHED 가 없는 terminal(AUTH_GATE / ABSTAIN / BLOCKED)에서 'endpoint 전' prefix 는 어디까지인가?",
+      "why_it_matters": "endpoint 미도달 observation 이 menu dependency 분모/분자에 어떻게 들어가는지가 §2-A rate 에 영향.",
+      "harness_behaviour": "ENDPOINT_REACHED 가 있으면 그 앞까지, 없으면 sequence 전체를 prefix 로 본 값과 그 사실(endpoint_token_present)을 함께 emit. 두 해석의 값이 다를 수 있는 경우를 flag.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "LOW"
+    },
+    {
+      "id": "AMB-F10",
+      "variable": "빈 sequence 의 normalized distance",
+      "source": "05_ANALYSIS_PLAN_v3.0.md §2-E",
+      "question": "두 sequence 가 모두 빈 경우 분모가 0 이다. 0.0(완전 동일)으로 볼 것인가 undefined 로 볼 것인가?",
+      "why_it_matters": "flow-evaluable 하지 않은 unit 이 heatmap 에서 '완벽히 동일'로 보이면 오독된다.",
+      "harness_behaviour": "0/0 을 0.0 으로 채우지 않는다. None + reason=ZERO_DENOMINATOR 로 반환한다. raw levenshtein=0, raw lcs=0 은 그대로 보고.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "LOW"
+    },
+    {
+      "id": "AMB-F11",
+      "variable": "task_flow vs experienced_flow 의 구조적 관계",
+      "source": "04_FLOW_CODEBOOK_v3.0.md §3",
+      "question": "§3 예시는 experienced = task + dismissal 삽입 관계를 보이지만, 'DISMISS_OBSTRUCTION 을 제거하면 반드시 task_flow 와 같아야 한다'를 규범으로 명시하지 않았다.",
+      "why_it_matters": "이 불변식을 강제하면 데이터 결함 탐지가 되고, 강제하지 않으면 두 sequence 가 독립적으로 어긋나도 통과한다.",
+      "harness_behaviour": "불변식을 강제하지 않는다. 위반을 TASK_EXPERIENCED_INCONSISTENT 로 '보고'만 하고 어느 쪽도 수정하지 않는다.",
+      "needs_ruling_from": "SSOT owner (A)",
+      "severity": "MEDIUM"
+    }
+  ],
+  "not_implemented": [
+    {
+      "item": "nav_container_depth (single value)",
+      "reason": "AMB-F06 — token sequence 만으로 'task control 노출' 시점을 알 수 없다. candidate 3종만 병기."
+    },
+    {
+      "item": "auth_gate_stage",
+      "reason": "BEFORE_TASK_DISCOVERY/AFTER_TASK_SELECT/AT_ENDPOINT 판정은 fact_flow_step 의 endpoint_signal/discovery evidence 를 요구한다. token 열만으로 확정 불가 — Lane F 범위 밖으로 두고 조작화하지 않음."
+    },
+    {
+      "item": "NED / IED / MPFED legacy compatibility fields",
+      "reason": "02 §7 의 legacy materialization 규칙이며 v3 codebook 이 재정의하지 않았다. v2.1 정의를 여기서 재구성하면 새 조작화가 된다."
+    },
+    {
+      "item": "sequence cluster / heatmap (05 §2-E 4번째 항목)",
+      "reason": "clustering 은 linkage·거리 선택이 필요하고 그 선택이 AMB-F01/F02 미해결에 종속된다. 거리행렬만 산출."
+    },
+    {
+      "item": "family-level median/IQR/range (05 §2-F, §4)",
+      "reason": "MAIN50 미수집. 합성 fixture 로 기술통계를 내면 실측처럼 오독될 수 있어 산출하지 않음."
+    },
+    {
+      "item": "any threshold / cut-off / composite score",
+      "reason": "Director 금지 + 05 §3 가중합 단일 score 금지. detector 는 전부 정확한 구조적 상등/부등 술어만 사용."
+    },
+    {
+      "item": "REAL target access, gold label, holdout, GO/NO-GO verdict",
+      "reason": "Lane F 계약상 금지."
+    }
+  ],
+  "limitation": [
+    "MAIN50 미수집. 여기의 모든 수치는 합성 fixture 산출물이며 어떤 서비스에 대한 관측도 아니다.",
+    "fixture 는 계산기가 정의를 지키는지만 보인다. 실제 MAIN50 sequence 의 token 분포·길이·terminal 구성이 fixture 와 다르면 detector 의 산출 규모는 달라진다. fixture 는 대표성 주장이 아니다.",
+    "detector 는 존재증명이다. '동일 depth 에서 flow 가 갈리는 pair 가 존재한다'는 구조적 사실을 보일 뿐, 그 빈도·효과크기·모집단 일반화를 말하지 않는다.",
+    "AMB-F01/F02 가 미해결인 한 normalized distance heatmap(05 §8)은 단일 그림으로 확정 발행할 수 없다. 분모 선택이 pair 순위를 바꾼다(BND07: 0.667 vs 1.0 vs 0.8).",
+    "AMB-F03/F04 가 미해결인 한 activation depth 의 median/IQR(05 §2-F) 절대값은 확정할 수 없다. 단, depth '차이'는 두 읽기에서 동일하게 나오는 경우가 많아 D1/D2 는 robust 하게 판정된다(본 run 에서 18=18).",
+    "AMB-F06 때문에 nav_container_depth 는 산출하지 못했다. token 열이 아니라 fact_flow_step 의 nav_container_type/reveal evidence 가 있어야 계산 가능하다.",
+    "Levenshtein 은 모든 token 치환 비용을 1 로 둔다. token 간 의미거리(예: OPEN_GLOBAL_MENU↔OPEN_LOCAL_MENU 가 OPEN_GLOBAL_MENU↔INPUT_QUERY 보다 가깝다)를 codebook 이 정의하지 않았으므로 가중치를 만들지 않았다.",
+    "D1-tier1 과 D2 는 임계값 없이는 동일 술어다. 이를 다르게 보이게 하려면 'large' 컷오프가 필요하고, 그것은 금지 사항이라 만들지 않았다.",
+    "본 하네스는 GO/NO-GO 를 내지 않는다. verdict 는 계산기 준비 상태에 대한 것이지 연구 결론이 아니다."
+  ]
+}
