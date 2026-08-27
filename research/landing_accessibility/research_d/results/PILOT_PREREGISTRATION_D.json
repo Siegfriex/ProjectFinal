@@ -1,0 +1,63 @@
+{
+ "document_id": "PILOT-PREREGISTRATION-D",
+ "before_results": true,
+ "created_at_kst": "2026-08-28T00:02:00+09:00",
+ "why": "pilot capture 가 아직 실행되지 않았다. D 의 예측을 데이터 이전에 고정해 '새 evidence 가 무엇을 바꿨는가' 가 사후 해석이 되지 않게 한다. 예측이 틀리면 틀린 대로 기록하고 예측을 고치지 않는다.",
+ "scope": "RQ-D-PILOT-001 child A(old-vs-new delta) · C(episode validity) · D(taxonomy 재검증) 의 사전 기준선",
+ "not_a_prediction_of_go_nogo": "D 는 pilot 성공/실패를 예측하지 않고 GO/NO_GO 를 내지 않는다.",
+ "predictions": [
+  {
+   "id": "P1",
+   "subject": "evidence-poor 3 target 의 재관측",
+   "baseline": "RQ-D11: 원장 outcome SKIPPED_RETRY_EXHAUSTED 3건(w02 1·w03 2). RQ-D1: 두 시도 모두 빈 디렉터리, 재시도 간격 46.49~46.66s (폭 0.17s)",
+   "prediction": "(a) 새 collector 가 성공하면 observation-damaged 계열이 **최대 3건** 줄어든다. (b) 같은 46.5s 대 timeout 서명으로 다시 실패하면 그것은 collector 속성이 아니라 **사이트 속성**이며 재수집으로 풀리지 않는다.",
+   "falsifies_what": "(b) 가 관측되면 RF2-F 의 '관측손상 9건은 재수집 대상' 중 이 3건은 재분류돼야 한다."
+  },
+  {
+   "id": "P2",
+   "subject": "surface-absent vs observation-damaged taxonomy",
+   "baseline": "RF2-F/RF2-E: 표면부재 14 / 관측손상만 9 / 정의문제 2 (세 rule 이 모두 실패한 25건 기준)",
+   "prediction": "새 evidence 는 **관측손상 9건을 줄이지만 표면부재 14건은 줄이지 않는다.** 표면부재는 URL 이 가리키는 면에 그 기능이 없다는 뜻이므로 같은 URL 을 더 잘 봐도 생기지 않는다.",
+   "falsifies_what": "표면부재도 함께 줄면 D 의 taxonomy 가 두 원인을 잘못 갈랐다는 뜻이다. 그 경우 taxonomy 를 폐기한다."
+  },
+  {
+   "id": "P3",
+   "subject": "non-SCROLL activation episode",
+   "baseline": "RQ-D6: 기록된 episode 151개 전부 SCROLL, non-SCROLL episode 를 가진 target 0/15",
+   "prediction": "두 갈래가 갈린다. (a) 새 pilot 에서 non-SCROLL episode 가 기록되면 **H3(기록 누락)이 맞고 RQ-D6 의 '활성화가 없었다' 읽기는 좁혀져야 한다.** (b) 여전히 0 이면 상류(대표기능 영역 미도달) 읽기가 유지된다.",
+   "falsifies_what": "(a) 는 RQ-D6 의 결론을 직접 수정한다. D 는 그 경우 RQ-D6 를 고치지 않고 superseding finding 을 낸다."
+  },
+  {
+   "id": "P4",
+   "subject": "prior ↔ business_domain 전단사",
+   "baseline": "D-FACT-01: 7<->7, MI = H = 2.311 bits, nMI 1.000, 56/56",
+   "prediction": "pilot 12 target 의 prior 가 같은 방식으로 배정되면 **전단사가 재생산된다.** 새 관측은 이 성질을 바꾸지 않는다 — 전단사는 evidence 가 아니라 배정 규칙의 성질이다.",
+   "falsifies_what": "pilot 에서 한 업종이 둘 이상 archetype 을 가지면 전단사는 표본 우연이었다는 뜻이다."
+  },
+  {
+   "id": "P5",
+   "subject": "L1 출구의 판별력",
+   "baseline": "D-SUP-02: RECOVERABLE_WITHIN_L1 대상 24/29(82.8%) vs 대조 25/27(92.6%), Fisher p=0.24. 가르는 것은 후보 **풍부함**(중앙값 30 vs 73, MW p=0.017)",
+   "prediction": "richer evidence 는 **두 층의 후보 수를 함께 올리고 판별력은 여전히 낮다.** 유무가 아니라 풍부함이 discriminator 였으므로 둘 다 풍부해지면 격차가 유지되거나 좁아진다.",
+   "falsifies_what": "한 층만 오르면 D-SUP-02 의 '유무는 판별력이 없다' 가 evidence-limited 결론이었다는 뜻이다."
+  },
+  {
+   "id": "P6",
+   "subject": "축 간 공유 slot (PILOT-E 진행 중)",
+   "baseline": "RF2-F: H3 후보에서 phi(확정, aria 빈칸) = -0.224 (perm p 0.087), 확정률 aria 빈칸 3/20 vs 있음 13/36",
+   "prediction": "richer evidence 로 aria-label 관측이 늘면 이 phi 의 절댓값은 **작아진다.** 공유 slot 자체는 사라지지 않으므로 **구조적 위험은 남는다.**",
+   "falsifies_what": "phi 가 그대로거나 커지면 공유가 evidence 풍부도와 무관하다는 뜻이며 위험 등급이 올라간다."
+  }
+ ],
+ "what_d_will_not_do": [
+  "pilot 결과를 보고 위 예측을 수정하지 않는다.",
+  "pilot evidence 를 C 검증 전 canonical 로 인용하지 않는다.",
+  "GO/NO_GO 를 내지 않는다. 판정질문 4개에 대한 증거만 낸다.",
+  "새 classifier 를 만들지 않는다."
+ ],
+ "d_baseline_sha": {
+  "input_snapshot_OLD": "f92ef2aa14efc9c957ec827d3a5936f3f79443616e5d5622ffef9f5f9dd8f188",
+  "observation_table_v2": "c39c10f09f7a6a7603409550eb331612eb44634eb98ec387a604aa5221351e6b",
+  "text_corpus_v3": "b944bc37153c50a69dc4464ac899884f1ad4db2b77fb719267cc6de0dcd64719"
+ }
+}
