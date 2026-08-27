@@ -1,16 +1,16 @@
 {
  "agent": "B",
- "timestamp": "2026-08-27T22:43:46+09:00",
+ "timestamp": "2026-08-27T23:06:38+09:00",
  "phase": "V1",
  "current_ticket_id": "T-A-W1-001,T-A-W2-001,T-A-W3-001,T-A-W4-001",
  "branch": "claude-b/clean0-v21",
- "head_sha": "f69f85727409a24e6dfa5b20f68f243c22cf0be5",
+ "head_sha": "1a927e640b6d64c4a8ae171b3fa55c3f713c6cab",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
- "work_state": "V1_W1_REGRESSION_UPDATE_W2_REWORK_W4_PROBE_WIRING",
+ "work_state": "V1_THREE_C_VERIFIED_W2_REWORK_ONLY",
  "blocker_ids": [],
- "last_bus_seq": 248,
+ "last_bus_seq": 265,
  "last_push_at": "2026-08-27T20:56:51+09:00",
- "next_action": "W1 회귀 5건 갱신 / W2 D-R0-67 rework / W4 probe 배선 / W3 schema gap. 전부 완료 후 joint gate. REAL_TARGET NO-GO.",
+ "next_action": "W2 D-R0-67-2 완료 → DOM replay 재채점 → W1+W2 joint gate. REAL_TARGET NO-GO.",
  "real_target": "NO-GO",
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
@@ -21,36 +21,38 @@
  ],
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
-  "B_clean0_v21": "f69f85727409a24e6dfa5b20f68f243c22cf0be5",
-  "A_control": "6ba1c3f6113e8906e88fde7c84638e74f00b33b7",
-  "C_assurance_v21": "6d8b33eea27c2beccdbceceac042a32876c565e9",
-  "at": "2026-08-27T22:43:07+09:00"
+  "B_clean0_v21": "1a927e640b6d64c4a8ae171b3fa55c3f713c6cab",
+  "A_control": "4423b86ce58c48b38fd69efbba0ffb9fb91ac862",
+  "C_assurance_v21": "bda7d6038535a3a823e1b9b6ffe206be94b94cc7",
+  "at": "2026-08-27T23:06:15+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
   "W1": {
    "branch": "claude-b/w1-guard-wiring",
-   "result_sha": "fd7fd9184834ff53c8f26bacb020cd2c7c56ea0a",
-   "state": "REGRESSION_UPDATE (D-R0-71 scope 예외 편입, 5건 갱신)",
-   "c": "W1_REWORK_C_VERIFIED_P2 (SHA 확인 요청 중 — A/C 는 51fb1dc 기재, 최종은 fd7fd918)"
+   "result_sha": "ef7db338b58c74f966b864957528407bcd472f57",
+   "state": "C_VERIFIED_LEGACY_TESTS_UPDATED",
+   "tests": "480 passed / 0 failed / 1 xfailed"
   },
   "W2": {
    "branch": "claude-b/w2-rf-detector",
-   "result_sha": "1188ee1483988a8085d9a54b36a7a061805eb438",
-   "state": "REWORK (D-R0-67 3건 + D-R0-70 잔여 스윕)",
-   "gate": "D-R0-32 FAIL at f76ee8ba — holdout18 agreement 0.500 vs 0.85"
+   "wip_sha": "839a1e1",
+   "state": "REWORK — D-R0-67-2 list-family 신호가 남은 핵심",
+   "precheck": "force-map 4→1 · agreement 0.500→0.571 · coverage 0.769→0.538 (tradeoff 정상)",
+   "gate": "D-R0-32 두 지표 동시 미달 — 기준 재정의 없음"
   },
   "W3": {
    "branch": "claude-b/w3-kwcag",
    "result_sha": "94cbf8b610a9386267e3cbeb3057319a57a15634",
    "state": "A_ACCEPTED_WITH_ONE_DIVERGENCE",
-   "open": "T-A-W3-SCHEMA-001 schema gap 4건 판정"
+   "open": "T-A-W3-SCHEMA-001 schema gap 4건"
   },
   "W4": {
    "branch": "claude-b/w4-axisc-mart",
-   "result_sha": "b27794feccc4ab07efd87aaad54bf648798fa293",
-   "state": "A_ACCEPTED",
-   "open": "probe execution_mode 배선 (D-R0-42 이중화)"
+   "result_sha": "35d5c2e1905dea503ef8999604f5b26ee04c6e4d",
+   "state": "C_VERIFIED_ACCEPTABLE_WITH_NONBLOCKING",
+   "ownership_case": "T-B-BLK-004 종결 (D-R0-73)",
+   "open": "W4-A1 overlay_source OTHER 37% · W4-A2 viewport_visible (일곱 번째)"
   }
  },
  "resolved_add": "T-B-BLK-003 → D-R0-59 GO_ACCEPTED (W2 scope 편입, gate 계약 확정)",
@@ -88,5 +90,14 @@
    "W4": "e5e46c901c584873bf82e3b17beb4328"
   }
  },
- "process_correction": "프로토콜 §3 ACK 누락 20건 일괄 시정 — 내용은 즉시 처리했으나 ACK 파일 발행을 빠뜨렸다. 대응한 사실과 상대가 그것을 알 수 있다는 것은 다르다."
+ "process_correction": "프로토콜 §3 ACK 누락 20건 일괄 시정 — 내용은 즉시 처리했으나 ACK 파일 발행을 빠뜨렸다. 대응한 사실과 상대가 그것을 알 수 있다는 것은 다르다.",
+ "presence_vs_operative_ledger": [
+  "G1-a login control 존재→target kill",
+  "G1-b 어휘 존재→gate_observed",
+  "G1-c captcha iframe 존재→terminal",
+  "KWCAG 2.4.2 title 존재→PASS",
+  "control hittable→area OBSERVED",
+  "기하 겹침→방해(D-R0-72)",
+  "viewport_visible bbox 교차→보임(미수정)"
+ ]
 }
