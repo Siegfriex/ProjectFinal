@@ -1,0 +1,34 @@
+{
+ "defect_id": "D-DEF-04",
+ "claim_kind": "IMPLEMENTATION",
+ "title": "build_text_corpus.py 가 <style>/<script> 텍스트를 코퍼스에 넣는다",
+ "reported_by": "D-RF-001-B worker (CSS 텍스트 혼입 4/56, 전부 QUERY 집중, 평균 7 hits/문서)",
+ "d_independent_check": {
+  "method": "CSS 속성 어휘 정규식으로 v1/v2 코퍼스 text_blob 스캔",
+  "result_v1": "2/56",
+  "result_v2": "2/56",
+  "detail": [
+   {
+    "service": "메가커피",
+    "archetype": "ITEM_DETAIL",
+    "wtg": "ea031f85e857140e",
+    "css_token_hits": 6
+   },
+   {
+    "service": "Google",
+    "archetype": "QUERY",
+    "wtg": "bbdefa2950f49882",
+    "css_token_hits": 20
+   }
+  ],
+  "source_fields": {
+   "landmarks": 2,
+   "buttons": 1
+  },
+  "discrepancy_with_worker": "worker 는 4/56·전부 QUERY 라 했고 D 는 2/56·QUERY 1 + ITEM_DETAIL 1 을 얻었다. 정규식 정의가 다르기 때문이며 어느 쪽도 '정답' 이 아니다. **방향은 확인됐다** — CSS 가 코퍼스에 새어 들어가고 Google 의 QUERY 문서에 가장 집중돼 있다(20 hits). 크기는 측정 정의에 의존하므로 워커 수치를 그대로 인용하지 않는다."
+ },
+ "root_cause": "lxml 의 text_content() 는 중첩된 <style>/<script>/<noscript> 텍스트를 포함한다. extract() 가 nav/header/[role=navigation]/[role=banner] 에 text_content() 를 적용하면서 그 안의 CSS 선언이 landmarks·buttons 필드로 들어갔다.",
+ "not_a_collector_defect": "수집기는 dom.html 을 그대로 저장했다. 파싱하는 D 의 결함이다.",
+ "fix": "extract() 에서 script/style/noscript/template 을 먼저 제거하도록 시정. v2 는 진행 중 산출의 동결 입력이라 덮어쓰지 않고 다음 생성분(v3)부터 반영.",
+ "impact": "v1/v2 코퍼스를 입력으로 쓴 NLP 계열 실험(RF001-B, RF001-C, RF2-C, D-SUP-01)에서 Google 의 QUERY 문서가 CSS 어휘로 분리됐을 수 있다. RF001-B 가 'QUERY 상위 계수 15개 중 4개가 flex/background/position/none' 이라고 보고한 것이 그 증거다. 영향 크기는 문서 2건에 국한되나 QUERY 는 n=4 라 비율로는 작지 않다."
+}

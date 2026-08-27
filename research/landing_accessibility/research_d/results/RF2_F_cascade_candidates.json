@@ -1,0 +1,6337 @@
+{
+ "schema": "RF2_F_cascade_synthesis/1",
+ "child_id": "D-RF2-F",
+ "rq_id": "RQ-D-RF-002",
+ "hypothesis_id": "H-RF2-F-CASCADE-SYNTHESIS",
+ "model_or_rule_version": "RF2F_SYNTHESIS_v1",
+ "seed": 20260827,
+ "parent_run_id": "ae754858ba3a4be391e5f811640d3fd8",
+ "generated_at_kst": "2026-08-27T23:24:48.949644+09:00",
+ "plane": "D",
+ "authority": "NON_CANONICAL",
+ "claim_kind": "ANALYSIS",
+ "split": "none",
+ "output_kind": "RECOMMENDED_EXPERIMENTAL_CANDIDATES",
+ "best_model_selected": false,
+ "production_threshold_declared": false,
+ "go_nogo_decision": "NOT_IN_SCOPE — D 는 GO/NO-GO 를 내지 않는다",
+ "analysis_unit": "target (wtg, in_mart==1)",
+ "n_expected": 56,
+ "n_observed": 56,
+ "inputs": [
+  {
+   "path": "results/D_OBSERVATION_TABLE_v2.csv",
+   "sha256": "c39c10f09f7a6a7603409550eb331612eb44634eb98ec387a604aa5221351e6b"
+  },
+  {
+   "path": "results/D_TEXT_CORPUS_v2.csv",
+   "sha256": "bf6bb772faa45541c780c75f5cbffa856783a34661a84e3de27a9eb5da4ea36a"
+  },
+  {
+   "path": "results/RF2_A_rule_firing.json",
+   "sha256": "189a1ba7232cd5897d62d4a2e1e9ebbd230a0e20683f6c630e95eaf693b7d5bd"
+  },
+  {
+   "path": "results/RF2_B_feature_discriminability.json",
+   "sha256": "61f5df5e356cc20e52c4ab43c8b2409741795696682e6c6dab7f468cfc86d131"
+  },
+  {
+   "path": "results/RF2_C_field_ablation.json",
+   "sha256": "1ad4bdec4cc72208a4ed48e0ef8709d096cc44451a624f3cc3f692129971c896"
+  },
+  {
+   "path": "results/RF2_D_hierarchical.json",
+   "sha256": "306557bfa4289e6105124fed54cc562988422cd906518e95c5fe1f11d244b976"
+  },
+  {
+   "path": "results/RF2_E_abstention_taxonomy.json",
+   "sha256": "eaab14e60ea5b7e34fe77ac161672eb79e86b89c945c8a3a0e7139a35d0baec4"
+  }
+ ],
+ "firewall": {
+  "not_opened": [
+   "holdout label",
+   "LABEL_SPLIT_FROZEN*",
+   "HOLDOUT_FOR_C*",
+   "RAW_L1~L4*",
+   "PACKET_L*",
+   "*_OVERLAP*",
+   "PRECEDENCE_CONTESTED*",
+   "CALIBRATION_FOR_B*",
+   "**/control/**",
+   "B/C target-level holdout error report"
+  ],
+  "note": "위 목록의 어떤 파일도 **열지 않았다.** 입력은 inputs[] 가 전부다. 네트워크 없음, gold label 생성 없음, A~E 산출물 수정 없음."
+ },
+ "D_FACT_01_framing": {
+  "statement": "이 56 target 표본에서 prior_archetype 과 prior_business_domain 은 완전 전단사다 (7↔7, MI = H = 2.311 bits, 정규화 MI = 1.000, 56/56).",
+  "consequence": "A~E 와 이 문서가 보고하는 모든 prior_agreement 는 **업종 배정 재현율**이지 대표기능 정확도가 아니다. 이 문서는 어떤 후보의 기대성능도 '정확도'로 서술하지 않는다.",
+  "source": "results/D_FACT_01_prior_domain_bijection.md"
+ },
+ "child_verdicts": {
+  "D-RF2-A": {
+   "verdict": "SUPPORTED",
+   "headline": "STRONG multi 30/56 > single 13/56, WEAK+ multi 50/56. exclusivity 7개 중 6개가 0.000, WEAK+ Jaccard 가 0.364 아래인 쌍이 하나도 없다. 유일 STRONG = prior 는 1/56."
+  },
+  "D-RF2-B": {
+   "verdict": "PARTIALLY_SUPPORTED",
+   "headline": "16 feature 중 BH-FDR(q<0.10) 통과 0개, 8개는 permutation null 평균 미달. 실효차원 6.37(독립 null 12.51). 상위는 구조량 accessible_name_richness MI 0.264."
+  },
+  "D-RF2-C": {
+   "verdict": "PARTIALLY_SUPPORTED",
+   "headline": "primary_controls 0.254 / accessibility_text 0.224 vs text_blob 0.509 — 절반 이하. 브랜드 마스킹 후 title 0.559→0.357, text_blob 0.478 로 1위."
+  },
+  "D-RF2-D": {
+   "verdict": "NOT_SUPPORTED",
+   "headline": "계층 이득 0. McNemar b=0, c=0. 병목은 L1(40건 손실), L2 손실 0."
+  },
+  "D-RF2-E": {
+   "verdict": "PARTIALLY_SUPPORTED",
+   "headline": "NO_STRONG_CANDIDATE 는 증상 — 무발화 12 중 11 설명됨. force-map 불일치 rule 0.750 / first-match 0.775 / semantic 0.375. margin 2~3분위 사이 꺾임."
+  }
+ },
+ "semantic_gate_used_for_illustration": {
+  "value": 0.016677,
+  "provenance": "이 코호트 margin 분포의 40% 분위수",
+  "warning": "**운영 threshold 가 아니다.** SSOT 01 §7 은 independent calibration split 을 요구한다."
+ },
+ "decision_agreement_matrix": {
+  "columns": [
+   "A_rule",
+   "D_flat",
+   "D_hier",
+   "E_ruleDT",
+   "E_admissible",
+   "SEM_margin"
+  ],
+  "n": 56,
+  "pairs": [
+   {
+    "a": "A_rule",
+    "b": "D_flat",
+    "both_determined": 3,
+    "both_abstain": 32,
+    "a_only": 10,
+    "b_only": 11,
+    "raw_agreement": 0.625,
+    "cohen_kappa": -0.0244,
+    "jaccard_determined": 0.125
+   },
+   {
+    "a": "A_rule",
+    "b": "D_hier",
+    "both_determined": 3,
+    "both_abstain": 30,
+    "a_only": 10,
+    "b_only": 13,
+    "raw_agreement": 0.5893,
+    "cohen_kappa": -0.0662,
+    "jaccard_determined": 0.1154
+   },
+   {
+    "a": "A_rule",
+    "b": "E_ruleDT",
+    "both_determined": 1,
+    "both_abstain": 33,
+    "a_only": 12,
+    "b_only": 10,
+    "raw_agreement": 0.6071,
+    "cohen_kappa": -0.1645,
+    "jaccard_determined": 0.0435
+   },
+   {
+    "a": "A_rule",
+    "b": "E_admissible",
+    "both_determined": 3,
+    "both_abstain": 37,
+    "a_only": 10,
+    "b_only": 6,
+    "raw_agreement": 0.7143,
+    "cohen_kappa": 0.1022,
+    "jaccard_determined": 0.1579
+   },
+   {
+    "a": "A_rule",
+    "b": "SEM_margin",
+    "both_determined": 7,
+    "both_abstain": 16,
+    "a_only": 6,
+    "b_only": 27,
+    "raw_agreement": 0.4107,
+    "cohen_kappa": -0.0572,
+    "jaccard_determined": 0.175
+   },
+   {
+    "a": "D_flat",
+    "b": "D_hier",
+    "both_determined": 14,
+    "both_abstain": 40,
+    "a_only": 0,
+    "b_only": 2,
+    "raw_agreement": 0.9643,
+    "cohen_kappa": 0.9091,
+    "jaccard_determined": 0.875
+   },
+   {
+    "a": "D_flat",
+    "b": "E_ruleDT",
+    "both_determined": 4,
+    "both_abstain": 35,
+    "a_only": 10,
+    "b_only": 7,
+    "raw_agreement": 0.6964,
+    "cohen_kappa": 0.1282,
+    "jaccard_determined": 0.1905
+   },
+   {
+    "a": "D_flat",
+    "b": "E_admissible",
+    "both_determined": 3,
+    "both_abstain": 36,
+    "a_only": 11,
+    "b_only": 6,
+    "raw_agreement": 0.6964,
+    "cohen_kappa": 0.0811,
+    "jaccard_determined": 0.15
+   },
+   {
+    "a": "D_flat",
+    "b": "SEM_margin",
+    "both_determined": 8,
+    "both_abstain": 16,
+    "a_only": 6,
+    "b_only": 26,
+    "raw_agreement": 0.4286,
+    "cohen_kappa": -0.0323,
+    "jaccard_determined": 0.2
+   },
+   {
+    "a": "D_hier",
+    "b": "E_ruleDT",
+    "both_determined": 4,
+    "both_abstain": 33,
+    "a_only": 12,
+    "b_only": 7,
+    "raw_agreement": 0.6607,
+    "cohen_kappa": 0.0828,
+    "jaccard_determined": 0.1739
+   },
+   {
+    "a": "D_hier",
+    "b": "E_admissible",
+    "both_determined": 3,
+    "both_abstain": 34,
+    "a_only": 13,
+    "b_only": 6,
+    "raw_agreement": 0.6607,
+    "cohen_kappa": 0.0432,
+    "jaccard_determined": 0.1364
+   },
+   {
+    "a": "D_hier",
+    "b": "SEM_margin",
+    "both_determined": 9,
+    "both_abstain": 15,
+    "a_only": 7,
+    "b_only": 25,
+    "raw_agreement": 0.4286,
+    "cohen_kappa": -0.0467,
+    "jaccard_determined": 0.2195
+   },
+   {
+    "a": "E_ruleDT",
+    "b": "E_admissible",
+    "both_determined": 3,
+    "both_abstain": 39,
+    "a_only": 8,
+    "b_only": 6,
+    "raw_agreement": 0.75,
+    "cohen_kappa": 0.1497,
+    "jaccard_determined": 0.1765
+   },
+   {
+    "a": "E_ruleDT",
+    "b": "SEM_margin",
+    "both_determined": 8,
+    "both_abstain": 19,
+    "a_only": 3,
+    "b_only": 26,
+    "raw_agreement": 0.4821,
+    "cohen_kappa": 0.0835,
+    "jaccard_determined": 0.2162
+   },
+   {
+    "a": "E_admissible",
+    "b": "SEM_margin",
+    "both_determined": 5,
+    "both_abstain": 18,
+    "a_only": 4,
+    "b_only": 29,
+    "raw_agreement": 0.4107,
+    "cohen_kappa": -0.029,
+    "jaccard_determined": 0.1316
+   }
+  ],
+  "kappa_matrix": {
+   "A_rule": {
+    "A_rule": 1.0,
+    "D_flat": -0.0244,
+    "D_hier": -0.0662,
+    "E_ruleDT": -0.1645,
+    "E_admissible": 0.1022,
+    "SEM_margin": -0.0572
+   },
+   "D_flat": {
+    "A_rule": -0.0244,
+    "D_flat": 1.0,
+    "D_hier": 0.9091,
+    "E_ruleDT": 0.1282,
+    "E_admissible": 0.0811,
+    "SEM_margin": -0.0323
+   },
+   "D_hier": {
+    "A_rule": -0.0662,
+    "D_flat": 0.9091,
+    "D_hier": 1.0,
+    "E_ruleDT": 0.0828,
+    "E_admissible": 0.0432,
+    "SEM_margin": -0.0467
+   },
+   "E_ruleDT": {
+    "A_rule": -0.1645,
+    "D_flat": 0.1282,
+    "D_hier": 0.0828,
+    "E_ruleDT": 1.0,
+    "E_admissible": 0.1497,
+    "SEM_margin": 0.0835
+   },
+   "E_admissible": {
+    "A_rule": 0.1022,
+    "D_flat": 0.0811,
+    "D_hier": 0.0432,
+    "E_ruleDT": 0.1497,
+    "E_admissible": 1.0,
+    "SEM_margin": -0.029
+   },
+   "SEM_margin": {
+    "A_rule": -0.0572,
+    "D_flat": -0.0323,
+    "D_hier": -0.0467,
+    "E_ruleDT": 0.0835,
+    "E_admissible": -0.029,
+    "SEM_margin": 1.0
+   }
+  },
+  "jaccard_of_determined_sets": {
+   "A_rule": {
+    "A_rule": 1.0,
+    "D_flat": 0.125,
+    "D_hier": 0.1154,
+    "E_ruleDT": 0.0435,
+    "E_admissible": 0.1579,
+    "SEM_margin": 0.175
+   },
+   "D_flat": {
+    "A_rule": 0.125,
+    "D_flat": 1.0,
+    "D_hier": 0.875,
+    "E_ruleDT": 0.1905,
+    "E_admissible": 0.15,
+    "SEM_margin": 0.2
+   },
+   "D_hier": {
+    "A_rule": 0.1154,
+    "D_flat": 0.875,
+    "D_hier": 1.0,
+    "E_ruleDT": 0.1739,
+    "E_admissible": 0.1364,
+    "SEM_margin": 0.2195
+   },
+   "E_ruleDT": {
+    "A_rule": 0.0435,
+    "D_flat": 0.1905,
+    "D_hier": 0.1739,
+    "E_ruleDT": 1.0,
+    "E_admissible": 0.1765,
+    "SEM_margin": 0.2162
+   },
+   "E_admissible": {
+    "A_rule": 0.1579,
+    "D_flat": 0.15,
+    "D_hier": 0.1364,
+    "E_ruleDT": 0.1765,
+    "E_admissible": 1.0,
+    "SEM_margin": 0.1316
+   },
+   "SEM_margin": {
+    "A_rule": 0.175,
+    "D_flat": 0.2,
+    "D_hier": 0.2195,
+    "E_ruleDT": 0.2162,
+    "E_admissible": 0.1316,
+    "SEM_margin": 1.0
+   }
+  }
+ },
+ "degenerate_columns": {
+  "D-RF2-B": "B 는 target-level 결정을 내지 않는다. B 의 결론(16 feature 중 FDR 통과 0개)을 결정규칙으로 옮기면 '어떤 target 도 이 feature 집합만으로는 확정 불가' 가 되어 56/56 ABSTAIN 인 퇴화 컬럼이 된다. kappa 를 계산할 수 없어 행렬에서 제외했다.",
+  "D-RF2-C_text_blob": "C 의 사전등록 규약은 '빈 representation = ABSTAIN' 이다. text_blob 은 56/56 이 비어있지 않아 역시 퇴화 컬럼이다. C 가 per-target 으로 남긴 유일한 판정은 blob 예측과 control 표면 예측이 갈린 25건(blob 맞음 23 : controls 맞음 2)이며, 그것은 결정 컬럼이 아니라 **representation 선택의 대가**를 재는 관측이다."
+ },
+ "rule_implementation_multiplicity": {
+  "note": "A / D_flat / E_ruleDT 는 SSOT 01 §5·§6 의 **같은 규칙**을 서로 다른 lexicon 으로 독립 조작화한 세 구현이다. 아래 수치는 '어느 target 이 결정 가능한가' 가 target 의 성질인지 lexicon 의 성질인지를 가른다.",
+  "n_implementations_determining_distribution": {
+   "0": 25,
+   "1": 25,
+   "2": 5,
+   "3": 1
+  },
+  "union_determined_by_at_least_one": 31,
+  "determined_by_all_three": 1,
+  "determined_by_all_three_detail": [
+   {
+    "wtg": "4feab7e61bf642e8",
+    "service": "CJ온스타일",
+    "prior_archetype": "ITEM_DETAIL",
+    "A": "QUERY",
+    "D": "QUERY",
+    "E": "QUERY"
+   }
+  ],
+  "multi_implementation_cases": [
+   {
+    "wtg": "22ffba7a86ea9919",
+    "service": "코스트코",
+    "prior_archetype": "ITEM_DETAIL",
+    "preds": {
+     "D": "QUERY",
+     "E": "QUERY"
+    },
+    "same_leaf": true
+   },
+   {
+    "wtg": "4feab7e61bf642e8",
+    "service": "CJ온스타일",
+    "prior_archetype": "ITEM_DETAIL",
+    "preds": {
+     "A": "QUERY",
+     "D": "QUERY",
+     "E": "QUERY"
+    },
+    "same_leaf": true
+   },
+   {
+    "wtg": "ea031f85e857140e",
+    "service": "메가커피",
+    "prior_archetype": "ITEM_DETAIL",
+    "preds": {
+     "D": "QUERY",
+     "E": "QUERY"
+    },
+    "same_leaf": true
+   },
+   {
+    "wtg": "35319a420294ee17",
+    "service": "토스",
+    "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+    "preds": {
+     "A": "ITEM_DETAIL",
+     "D": "FINANCIAL_ACTION_ENTRY"
+    },
+    "same_leaf": false
+   },
+   {
+    "wtg": "24e6654bfd1ab85b",
+    "service": "YouTube",
+    "prior_archetype": "CONTENT_OPEN",
+    "preds": {
+     "A": "QUERY",
+     "D": "QUERY"
+    },
+    "same_leaf": true
+   },
+   {
+    "wtg": "95e22b9aff7196b3",
+    "service": "NS홈쇼핑",
+    "prior_archetype": "ITEM_DETAIL",
+    "preds": {
+     "D": "ITEM_DETAIL",
+     "E": "ITEM_DETAIL"
+    },
+    "same_leaf": true
+   }
+  ],
+  "n_multi_impl_same_leaf": 5,
+  "per_implementation_prior_agreement": {
+   "A_rule": {
+    "n_determined": 13,
+    "n_prior_agree": 1,
+    "prior_agreement": 0.0769,
+    "prior_agreement_wilson95": [
+     0.0137,
+     0.3331
+    ],
+    "prior_agreement_of_56": 0.0179
+   },
+   "D_flat": {
+    "n_determined": 14,
+    "n_prior_agree": 5,
+    "prior_agreement": 0.3571,
+    "prior_agreement_wilson95": [
+     0.1634,
+     0.6124
+    ],
+    "prior_agreement_of_56": 0.0893
+   },
+   "E_ruleDT": {
+    "n_determined": 11,
+    "n_prior_agree": 6,
+    "prior_agreement": 0.5455,
+    "prior_agreement_wilson95": [
+     0.2801,
+     0.7873
+    ],
+    "prior_agreement_of_56": 0.1071
+   }
+  }
+ },
+ "split_targets": [
+  {
+   "wtg": "054d78ed187cdd9f",
+   "service": "쿠팡이츠",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "A_rule"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.0012,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING', 'T06_APP_INSTALL_SURFACE']"
+   ]
+  },
+  {
+   "wtg": "088809bf9b31bc6a",
+   "service": "삼성카드",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.03329,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION', 'T11_OVERLAY_OBSTRUCTED']"
+   ]
+  },
+  {
+   "wtg": "12e3942c0495b9a4",
+   "service": "GS25",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "D_hier",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.02078,
+   "reasons": [
+    "계층 L1 이 flat 이 못 닫은 것을 닫음 (D-RF2-D §11.1: 2건, 둘 다 prior 불일치)",
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']"
+   ]
+  },
+  {
+   "wtg": "22ffba7a86ea9919",
+   "service": "코스트코",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 2,
+   "E_sem_margin": 0.01825,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION']"
+   ]
+  },
+  {
+   "wtg": "5beeafeac2e27eae",
+   "service": "TikTok",
+   "prior_archetype": "CONTENT_OPEN",
+   "determined_by": [
+    "D_flat",
+    "D_hier"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_ruleDT",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.01263,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음",
+    "E: 표면부재 계열 유형 보유 ['T06_APP_INSTALL_SURFACE']",
+    "E: 관측손상 계열 유형 보유 ['T11_OVERLAY_OBSTRUCTED']"
+   ]
+  },
+  {
+   "wtg": "60d4d22e3809f780",
+   "service": "티맵",
+   "prior_archetype": "PLACE_LOOKUP",
+   "determined_by": [
+    "A_rule",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.03273,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']"
+   ]
+  },
+  {
+   "wtg": "64d30ef262d8782d",
+   "service": "신한 SOL뱅크",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.04846,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T07_REPRESENTATIVE_SURFACE_ABSENT']",
+    "E: 관측손상 계열 유형 보유 ['T09_CLIENT_RENDER_SPARSE', 'T12_DEGENERATE_OR_DUPLICATE_CAPTURE']"
+   ]
+  },
+  {
+   "wtg": "65f15ce8fee25b24",
+   "service": "밴드",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "determined_by": [
+    "D_flat",
+    "D_hier",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.08727,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING', 'T06_APP_INSTALL_SURFACE']"
+   ]
+  },
+  {
+   "wtg": "8195b68ac17e42a3",
+   "service": "세븐일레븐",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "A_rule",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.03574,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']"
+   ]
+  },
+  {
+   "wtg": "91b952863c62993d",
+   "service": "다음",
+   "prior_archetype": "QUERY",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.02208,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION']"
+   ]
+  },
+  {
+   "wtg": "b8b226f9fe32539a",
+   "service": "KB Pay",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "determined_by": [
+    "D_flat",
+    "D_hier",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.05577,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 관측손상 계열 유형 보유 ['T10A_TEXT_ENCODING_CORRUPTION']"
+   ]
+  },
+  {
+   "wtg": "ccd84811932b237b",
+   "service": "카카오T",
+   "prior_archetype": "PLACE_LOOKUP",
+   "determined_by": [
+    "A_rule",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.01668,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']"
+   ]
+  },
+  {
+   "wtg": "cdce1ffd6b1b1e24",
+   "service": "디바이스 케어",
+   "prior_archetype": "UTILITY_ENTRY",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.01714,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']",
+    "E: 관측손상 계열 유형 보유 ['T10A_TEXT_ENCODING_CORRUPTION']"
+   ]
+  },
+  {
+   "wtg": "dd2cec4c1fa2beec",
+   "service": "롯데백화점",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "A_rule",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.0434,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)"
+   ]
+  },
+  {
+   "wtg": "e7bb158c1c8d9fe7",
+   "service": "마켓컬리",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.07815,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']",
+    "E: 관측손상 계열 유형 보유 ['T11_OVERLAY_OBSTRUCTED']"
+   ]
+  },
+  {
+   "wtg": "13ed070478ef62c3",
+   "service": "Netflix",
+   "prior_archetype": "CONTENT_OPEN",
+   "determined_by": [
+    "D_flat",
+    "D_hier",
+    "E_admissible"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_ruleDT",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.00039,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음"
+   ]
+  },
+  {
+   "wtg": "377983572bd38242",
+   "service": "다이소",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "E_ruleDT"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.00657,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION']"
+   ]
+  },
+  {
+   "wtg": "4feab7e61bf642e8",
+   "service": "CJ온스타일",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "abstained_by": [
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 3,
+   "E_sem_margin": 0.00967,
+   "reasons": [
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음"
+   ]
+  },
+  {
+   "wtg": "5c614fc99631ce5e",
+   "service": "홈앤쇼핑",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "E_ruleDT",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.04362,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION']"
+   ]
+  },
+  {
+   "wtg": "9390ef32addf32bf",
+   "service": "Chrome",
+   "prior_archetype": "QUERY",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.03658,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION']"
+   ]
+  },
+  {
+   "wtg": "be1e6feb78e5ef03",
+   "service": "emart24",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.03131,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION', 'T11_OVERLAY_OBSTRUCTED']"
+   ]
+  },
+  {
+   "wtg": "e1fadb214cde51c0",
+   "service": "캐시워크",
+   "prior_archetype": "UTILITY_ENTRY",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.04695,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T06_APP_INSTALL_SURFACE']"
+   ]
+  },
+  {
+   "wtg": "ea031f85e857140e",
+   "service": "메가커피",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 2,
+   "E_sem_margin": 0.04056,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 관측손상 계열 유형 보유 ['T10A_TEXT_ENCODING_CORRUPTION', 'T10B_TEXT_CAP_TRUNCATION']"
+   ]
+  },
+  {
+   "wtg": "ef06dc942ef3ccc9",
+   "service": "롯데하이마트",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.02359,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T07_REPRESENTATIVE_SURFACE_ABSENT']",
+    "E: 관측손상 계열 유형 보유 ['T09_CLIENT_RENDER_SPARSE', 'T12_DEGENERATE_OR_DUPLICATE_CAPTURE']"
+   ]
+  },
+  {
+   "wtg": "fdce1294fac3dfdb",
+   "service": "신세계백화점",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "D_flat",
+    "D_hier",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.04433,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 표면부재 계열 유형 보유 ['T06_APP_INSTALL_SURFACE']",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION']"
+   ]
+  },
+  {
+   "wtg": "0ee385d0c964e560",
+   "service": "홈플러스",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "E_ruleDT",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.04752,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION', 'T11_OVERLAY_OBSTRUCTED']"
+   ]
+  },
+  {
+   "wtg": "0f3bdb2bd0bb891e",
+   "service": "탑마트",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "A_rule",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.03152,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']",
+    "E: 관측손상 계열 유형 보유 ['T10A_TEXT_ENCODING_CORRUPTION']"
+   ]
+  },
+  {
+   "wtg": "35319a420294ee17",
+   "service": "토스",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "determined_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier"
+   ],
+   "abstained_by": [
+    "E_ruleDT",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 2,
+   "E_sem_margin": 0.01426,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING', 'T06_APP_INSTALL_SURFACE']"
+   ]
+  },
+  {
+   "wtg": "5ede56738376a8c5",
+   "service": "Instagram",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "determined_by": [
+    "A_rule",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.03475,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 표면부재 계열 유형 보유 ['T06_APP_INSTALL_SURFACE']"
+   ]
+  },
+  {
+   "wtg": "888d37f34b5d3aaa",
+   "service": "롯데홈쇼핑",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "A_rule"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.00928,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING']"
+   ]
+  },
+  {
+   "wtg": "95967b50683649f2",
+   "service": "NH스마트뱅킹",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.019,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T07_REPRESENTATIVE_SURFACE_ABSENT']",
+    "E: 관측손상 계열 유형 보유 ['T09_CLIENT_RENDER_SPARSE', 'T11_OVERLAY_OBSTRUCTED', 'T12_DEGENERATE_OR_DUPLICATE_CAPTURE']"
+   ]
+  },
+  {
+   "wtg": "e296af221a5f7128",
+   "service": "KB스타뱅킹",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "determined_by": [
+    "A_rule",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.06095,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 관측손상 계열 유형 보유 ['T11_OVERLAY_OBSTRUCTED']"
+   ]
+  },
+  {
+   "wtg": "efda6e0b8457d63c",
+   "service": "네이버지도",
+   "prior_archetype": "PLACE_LOOKUP",
+   "determined_by": [
+    "E_ruleDT",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.05896,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)"
+   ]
+  },
+  {
+   "wtg": "24e6654bfd1ab85b",
+   "service": "YouTube",
+   "prior_archetype": "CONTENT_OPEN",
+   "determined_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier"
+   ],
+   "abstained_by": [
+    "E_ruleDT",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 2,
+   "E_sem_margin": 0.00677,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음",
+    "E: 관측손상 계열 유형 보유 ['T10A_TEXT_ENCODING_CORRUPTION']"
+   ]
+  },
+  {
+   "wtg": "46e5a43370f75308",
+   "service": "당근",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "determined_by": [
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.05756,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음"
+   ]
+  },
+  {
+   "wtg": "49a5eca8b58f7270",
+   "service": "11번가",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "D_flat",
+    "D_hier"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_ruleDT",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.00454,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음",
+    "E: 표면부재 계열 유형 보유 ['T06_APP_INSTALL_SURFACE']",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION']"
+   ]
+  },
+  {
+   "wtg": "51484a735cdb487b",
+   "service": "컴포즈커피",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "A_rule",
+    "E_admissible"
+   ],
+   "abstained_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.00015,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음"
+   ]
+  },
+  {
+   "wtg": "7f6f1aa6dd218d4d",
+   "service": "이마트",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "D_hier"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "E_ruleDT",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.00718,
+   "reasons": [
+    "계층 L1 이 flat 이 못 닫은 것을 닫음 (D-RF2-D §11.1: 2건, 둘 다 prior 불일치)",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION', 'T11_OVERLAY_OBSTRUCTED']"
+   ]
+  },
+  {
+   "wtg": "88cb7f1e54f26500",
+   "service": "롯데마트",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "E_ruleDT",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.04727,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION']"
+   ]
+  },
+  {
+   "wtg": "95e22b9aff7196b3",
+   "service": "NS홈쇼핑",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 2,
+   "E_sem_margin": 0.06916,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 표면부재 계열 유형 보유 ['T06_APP_INSTALL_SURFACE']",
+    "E: 관측손상 계열 유형 보유 ['T10B_TEXT_CAP_TRUNCATION', 'T11_OVERLAY_OBSTRUCTED']"
+   ]
+  },
+  {
+   "wtg": "bbdefa2950f49882",
+   "service": "Google",
+   "prior_archetype": "QUERY",
+   "determined_by": [
+    "D_flat",
+    "D_hier",
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_ruleDT"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.05172,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)"
+   ]
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "service": "현대백화점",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "SEM_margin"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.00044,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "rule 은 유일 후보를 냈으나 semantic top1-top2 가 붙어 있음"
+   ]
+  },
+  {
+   "wtg": "e67be79550661604",
+   "service": "CU",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "D_flat",
+    "D_hier",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.02324,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 표면부재 계열 유형 보유 ['T05_GENERIC_BRAND_LANDING', 'T06_APP_INSTALL_SURFACE']"
+   ]
+  },
+  {
+   "wtg": "f322b894ee95c181",
+   "service": "카카오맵",
+   "prior_archetype": "PLACE_LOOKUP",
+   "determined_by": [
+    "E_ruleDT",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 1,
+   "E_sem_margin": 0.09169,
+   "reasons": [
+    "rule lexicon 조작화 차이 (같은 SSOT §5, 다른 어휘·임계)",
+    "E: 관측손상 계열 유형 보유 ['T11_OVERLAY_OBSTRUCTED']"
+   ]
+  },
+  {
+   "wtg": "f9fbd771ffcdbd42",
+   "service": "G마켓",
+   "prior_archetype": "ITEM_DETAIL",
+   "determined_by": [
+    "E_admissible",
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.06206,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음"
+   ]
+  },
+  {
+   "wtg": "fb3d1841dddfd982",
+   "service": "NH콕뱅크",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "determined_by": [
+    "SEM_margin"
+   ],
+   "abstained_by": [
+    "A_rule",
+    "D_flat",
+    "D_hier",
+    "E_ruleDT",
+    "E_admissible"
+   ],
+   "n_rule_impl_determining": 0,
+   "E_sem_margin": 0.019,
+   "reasons": [
+    "semantic margin 은 높은데 어떤 rule 구현도 발화하지 않음",
+    "E: 표면부재 계열 유형 보유 ['T07_REPRESENTATIVE_SURFACE_ABSENT']",
+    "E: 관측손상 계열 유형 보유 ['T09_CLIENT_RENDER_SPARSE', 'T11_OVERLAY_OBSTRUCTED', 'T12_DEGENERATE_OR_DUPLICATE_CAPTURE']"
+   ]
+  }
+ ],
+ "matched_coverage_comparison": {
+  "note": "모든 prior_agreement 는 D-FACT-01 에 따라 **업종 배정 재현율**이다. 이 표는 threshold 를 선언하지 않는다. coverage 를 맞춘 대조일 뿐이다.",
+  "curve": [
+   {
+    "coverage_n": 56,
+    "coverage": 1.0,
+    "semantic_only_prior_agreement": 0.6786,
+    "semantic_only_wilson95": [
+     0.5482,
+     0.786
+    ],
+    "semantic_only_debranded_prior_agreement": 0.6964,
+    "rule_first_cascade_prior_agreement": 0.6429,
+    "rule_first_cascade_wilson95": [
+     0.5119,
+     0.7554
+    ],
+    "delta_cascade_minus_semantic_only": -0.0357
+   },
+   {
+    "coverage_n": 54,
+    "coverage": 0.9643,
+    "semantic_only_prior_agreement": 0.6852,
+    "semantic_only_wilson95": [
+     0.5526,
+     0.7932
+    ],
+    "semantic_only_debranded_prior_agreement": 0.6852,
+    "rule_first_cascade_prior_agreement": 0.6481,
+    "rule_first_cascade_wilson95": [
+     0.5148,
+     0.7618
+    ],
+    "delta_cascade_minus_semantic_only": -0.037
+   },
+   {
+    "coverage_n": 52,
+    "coverage": 0.9286,
+    "semantic_only_prior_agreement": 0.7115,
+    "semantic_only_wilson95": [
+     0.5773,
+     0.8167
+    ],
+    "semantic_only_debranded_prior_agreement": 0.7115,
+    "rule_first_cascade_prior_agreement": 0.6538,
+    "rule_first_cascade_wilson95": [
+     0.518,
+     0.7685
+    ],
+    "delta_cascade_minus_semantic_only": -0.0577
+   },
+   {
+    "coverage_n": 50,
+    "coverage": 0.8929,
+    "semantic_only_prior_agreement": 0.72,
+    "semantic_only_wilson95": [
+     0.5833,
+     0.8253
+    ],
+    "semantic_only_debranded_prior_agreement": 0.74,
+    "rule_first_cascade_prior_agreement": 0.68,
+    "rule_first_cascade_wilson95": [
+     0.5419,
+     0.7924
+    ],
+    "delta_cascade_minus_semantic_only": -0.04
+   },
+   {
+    "coverage_n": 48,
+    "coverage": 0.8571,
+    "semantic_only_prior_agreement": 0.7292,
+    "semantic_only_wilson95": [
+     0.59,
+     0.8343
+    ],
+    "semantic_only_debranded_prior_agreement": 0.75,
+    "rule_first_cascade_prior_agreement": 0.6667,
+    "rule_first_cascade_wilson95": [
+     0.5254,
+     0.7832
+    ],
+    "delta_cascade_minus_semantic_only": -0.0625
+   },
+   {
+    "coverage_n": 46,
+    "coverage": 0.8214,
+    "semantic_only_prior_agreement": 0.7391,
+    "semantic_only_wilson95": [
+     0.5974,
+     0.844
+    ],
+    "semantic_only_debranded_prior_agreement": 0.7609,
+    "rule_first_cascade_prior_agreement": 0.6957,
+    "rule_first_cascade_wilson95": [
+     0.5519,
+     0.8092
+    ],
+    "delta_cascade_minus_semantic_only": -0.0435
+   },
+   {
+    "coverage_n": 44,
+    "coverage": 0.7857,
+    "semantic_only_prior_agreement": 0.7727,
+    "semantic_only_wilson95": [
+     0.6301,
+     0.8716
+    ],
+    "semantic_only_debranded_prior_agreement": 0.75,
+    "rule_first_cascade_prior_agreement": 0.7273,
+    "rule_first_cascade_wilson95": [
+     0.5815,
+     0.8365
+    ],
+    "delta_cascade_minus_semantic_only": -0.0455
+   },
+   {
+    "coverage_n": 42,
+    "coverage": 0.75,
+    "semantic_only_prior_agreement": 0.8095,
+    "semantic_only_wilson95": [
+     0.667,
+     0.9002
+    ],
+    "semantic_only_debranded_prior_agreement": 0.7857,
+    "rule_first_cascade_prior_agreement": 0.7143,
+    "rule_first_cascade_wilson95": [
+     0.5643,
+     0.8283
+    ],
+    "delta_cascade_minus_semantic_only": -0.0952
+   },
+   {
+    "coverage_n": 40,
+    "coverage": 0.7143,
+    "semantic_only_prior_agreement": 0.8,
+    "semantic_only_wilson95": [
+     0.6524,
+     0.895
+    ],
+    "semantic_only_debranded_prior_agreement": 0.775,
+    "rule_first_cascade_prior_agreement": 0.725,
+    "rule_first_cascade_wilson95": [
+     0.5716,
+     0.8389
+    ],
+    "delta_cascade_minus_semantic_only": -0.075
+   },
+   {
+    "coverage_n": 38,
+    "coverage": 0.6786,
+    "semantic_only_prior_agreement": 0.8158,
+    "semantic_only_wilson95": [
+     0.6658,
+     0.9078
+    ],
+    "semantic_only_debranded_prior_agreement": 0.7632,
+    "rule_first_cascade_prior_agreement": 0.7368,
+    "rule_first_cascade_wilson95": [
+     0.5799,
+     0.8503
+    ],
+    "delta_cascade_minus_semantic_only": -0.0789
+   },
+   {
+    "coverage_n": 36,
+    "coverage": 0.6429,
+    "semantic_only_prior_agreement": 0.8611,
+    "semantic_only_wilson95": [
+     0.7134,
+     0.9392
+    ],
+    "semantic_only_debranded_prior_agreement": 0.7778,
+    "rule_first_cascade_prior_agreement": 0.75,
+    "rule_first_cascade_wilson95": [
+     0.5893,
+     0.8625
+    ],
+    "delta_cascade_minus_semantic_only": -0.1111
+   },
+   {
+    "coverage_n": 34,
+    "coverage": 0.6071,
+    "semantic_only_prior_agreement": 0.8529,
+    "semantic_only_wilson95": [
+     0.6987,
+     0.9355
+    ],
+    "semantic_only_debranded_prior_agreement": 0.7941,
+    "rule_first_cascade_prior_agreement": 0.7647,
+    "rule_first_cascade_wilson95": [
+     0.6,
+     0.8756
+    ],
+    "delta_cascade_minus_semantic_only": -0.0882
+   },
+   {
+    "coverage_n": 32,
+    "coverage": 0.5714,
+    "semantic_only_prior_agreement": 0.9062,
+    "semantic_only_wilson95": [
+     0.7578,
+     0.9676
+    ],
+    "semantic_only_debranded_prior_agreement": 0.8125,
+    "rule_first_cascade_prior_agreement": 0.75,
+    "rule_first_cascade_wilson95": [
+     0.5789,
+     0.8675
+    ],
+    "delta_cascade_minus_semantic_only": -0.1562
+   },
+   {
+    "coverage_n": 30,
+    "coverage": 0.5357,
+    "semantic_only_prior_agreement": 0.9032,
+    "semantic_only_wilson95": [
+     0.751,
+     0.9665
+    ],
+    "semantic_only_debranded_prior_agreement": 0.8667,
+    "rule_first_cascade_prior_agreement": 0.7667,
+    "rule_first_cascade_wilson95": [
+     0.5907,
+     0.8821
+    ],
+    "delta_cascade_minus_semantic_only": -0.1366
+   },
+   {
+    "coverage_n": 28,
+    "coverage": 0.5,
+    "semantic_only_prior_agreement": 0.8929,
+    "semantic_only_wilson95": [
+     0.728,
+     0.9629
+    ],
+    "semantic_only_debranded_prior_agreement": 0.8571,
+    "rule_first_cascade_prior_agreement": 0.75,
+    "rule_first_cascade_wilson95": [
+     0.5664,
+     0.8732
+    ],
+    "delta_cascade_minus_semantic_only": -0.1429
+   },
+   {
+    "coverage_n": 26,
+    "coverage": 0.4643,
+    "semantic_only_prior_agreement": 0.9231,
+    "semantic_only_wilson95": [
+     0.7586,
+     0.9786
+    ],
+    "semantic_only_debranded_prior_agreement": 0.9231,
+    "rule_first_cascade_prior_agreement": 0.7308,
+    "rule_first_cascade_wilson95": [
+     0.5392,
+     0.863
+    ],
+    "delta_cascade_minus_semantic_only": -0.1923
+   },
+   {
+    "coverage_n": 24,
+    "coverage": 0.4286,
+    "semantic_only_prior_agreement": 0.9167,
+    "semantic_only_wilson95": [
+     0.7415,
+     0.9768
+    ],
+    "semantic_only_debranded_prior_agreement": 0.9167,
+    "rule_first_cascade_prior_agreement": 0.7083,
+    "rule_first_cascade_wilson95": [
+     0.5083,
+     0.8509
+    ],
+    "delta_cascade_minus_semantic_only": -0.2083
+   },
+   {
+    "coverage_n": 22,
+    "coverage": 0.3929,
+    "semantic_only_prior_agreement": 0.9091,
+    "semantic_only_wilson95": [
+     0.7218,
+     0.9747
+    ],
+    "semantic_only_debranded_prior_agreement": 0.9545,
+    "rule_first_cascade_prior_agreement": 0.6818,
+    "rule_first_cascade_wilson95": [
+     0.4732,
+     0.8364
+    ],
+    "delta_cascade_minus_semantic_only": -0.2273
+   },
+   {
+    "coverage_n": 20,
+    "coverage": 0.3571,
+    "semantic_only_prior_agreement": 0.9,
+    "semantic_only_wilson95": [
+     0.699,
+     0.9721
+    ],
+    "semantic_only_debranded_prior_agreement": 0.95,
+    "rule_first_cascade_prior_agreement": 0.65,
+    "rule_first_cascade_wilson95": [
+     0.4329,
+     0.8188
+    ],
+    "delta_cascade_minus_semantic_only": -0.25
+   },
+   {
+    "coverage_n": 18,
+    "coverage": 0.3214,
+    "semantic_only_prior_agreement": 0.8889,
+    "semantic_only_wilson95": [
+     0.672,
+     0.969
+    ],
+    "semantic_only_debranded_prior_agreement": 0.9444,
+    "rule_first_cascade_prior_agreement": 0.6667,
+    "rule_first_cascade_wilson95": [
+     0.4375,
+     0.8372
+    ],
+    "delta_cascade_minus_semantic_only": -0.2222
+   },
+   {
+    "coverage_n": 16,
+    "coverage": 0.2857,
+    "semantic_only_prior_agreement": 0.875,
+    "semantic_only_wilson95": [
+     0.6398,
+     0.965
+    ],
+    "semantic_only_debranded_prior_agreement": 0.9375,
+    "rule_first_cascade_prior_agreement": 0.625,
+    "rule_first_cascade_wilson95": [
+     0.3864,
+     0.8152
+    ],
+    "delta_cascade_minus_semantic_only": -0.25
+   },
+   {
+    "coverage_n": 14,
+    "coverage": 0.25,
+    "semantic_only_prior_agreement": 0.8571,
+    "semantic_only_wilson95": [
+     0.6006,
+     0.9599
+    ],
+    "semantic_only_debranded_prior_agreement": 0.9286,
+    "rule_first_cascade_prior_agreement": 0.6429,
+    "rule_first_cascade_wilson95": [
+     0.3876,
+     0.8366
+    ],
+    "delta_cascade_minus_semantic_only": -0.2143
+   },
+   {
+    "coverage_n": 12,
+    "coverage": 0.2143,
+    "semantic_only_prior_agreement": 0.9167,
+    "semantic_only_wilson95": [
+     0.6461,
+     0.9851
+    ],
+    "semantic_only_debranded_prior_agreement": 0.9167,
+    "rule_first_cascade_prior_agreement": 0.5833,
+    "rule_first_cascade_wilson95": [
+     0.3195,
+     0.8067
+    ],
+    "delta_cascade_minus_semantic_only": -0.3333
+   },
+   {
+    "coverage_n": 10,
+    "coverage": 0.1786,
+    "semantic_only_prior_agreement": 0.9,
+    "semantic_only_wilson95": [
+     0.5958,
+     0.9821
+    ],
+    "semantic_only_debranded_prior_agreement": 1.0,
+    "rule_first_cascade_prior_agreement": 0.5455,
+    "rule_first_cascade_wilson95": [
+     0.2801,
+     0.7873
+    ],
+    "delta_cascade_minus_semantic_only": -0.3545
+   },
+   {
+    "coverage_n": 8,
+    "coverage": 0.1429,
+    "semantic_only_prior_agreement": 0.875,
+    "semantic_only_wilson95": [
+     0.5291,
+     0.9776
+    ],
+    "semantic_only_debranded_prior_agreement": 1.0,
+    "rule_first_cascade_prior_agreement": 0.5455,
+    "rule_first_cascade_wilson95": [
+     0.2801,
+     0.7873
+    ],
+    "delta_cascade_minus_semantic_only": -0.3295
+   },
+   {
+    "coverage_n": 6,
+    "coverage": 0.1071,
+    "semantic_only_prior_agreement": 1.0,
+    "semantic_only_wilson95": [
+     0.6097,
+     1.0
+    ],
+    "semantic_only_debranded_prior_agreement": 1.0,
+    "rule_first_cascade_prior_agreement": 0.5455,
+    "rule_first_cascade_wilson95": [
+     0.2801,
+     0.7873
+    ],
+    "delta_cascade_minus_semantic_only": -0.4545
+   },
+   {
+    "coverage_n": 4,
+    "coverage": 0.0714,
+    "semantic_only_prior_agreement": 1.0,
+    "semantic_only_wilson95": [
+     0.5101,
+     1.0
+    ],
+    "semantic_only_debranded_prior_agreement": 1.0,
+    "rule_first_cascade_prior_agreement": 0.5455,
+    "rule_first_cascade_wilson95": [
+     0.2801,
+     0.7873
+    ],
+    "delta_cascade_minus_semantic_only": -0.4545
+   }
+  ],
+  "cascade_never_beats_semantic_only_at_matched_coverage": true,
+  "paired_on_rule_mapped_11": {
+   "n": 11,
+   "rule_agrees_with_prior": 6,
+   "semantic_agrees_with_prior": 8,
+   "rule_only_right_b": 0,
+   "semantic_only_right_c": 2,
+   "mcnemar_exact_p_two_sided": 0.5,
+   "reading": "b=0 은 '규칙이 맞고 semantic 이 틀린 target 이 하나도 없다'는 뜻이다. 즉 이 표본에서 rule stage 는 semantic 이 이미 되찾는 업종 배정 위에 아무것도 얹지 못한다. n=11 이라 유의하지 않다."
+  }
+ },
+ "three_axis_independence_exposure": {
+  "H1_rule_only_unique_strong": {
+   "n_determined": 13,
+   "phi_determined_vs_aria_labels_empty": 0.0315,
+   "perm_p_aria": 0.8683,
+   "phi_determined_vs_control_surface_empty": -0.1722,
+   "perm_p_control_surface": 0.2595,
+   "determination_rate_when_aria_empty": [
+    5,
+    20
+   ],
+   "determination_rate_when_aria_present": [
+    8,
+    36
+   ],
+   "median_n_accessible_name_sources_determined": 75.0,
+   "median_n_accessible_name_sources_abstained": 165.0
+  },
+  "H1_alt_ruleDT_leaf": {
+   "n_determined": 11,
+   "phi_determined_vs_aria_labels_empty": 0.0067,
+   "perm_p_aria": 0.986,
+   "phi_determined_vs_control_surface_empty": -0.1548,
+   "perm_p_control_surface": 0.5509,
+   "determination_rate_when_aria_empty": [
+    4,
+    20
+   ],
+   "determination_rate_when_aria_present": [
+    7,
+    36
+   ],
+   "median_n_accessible_name_sources_determined": 300.0,
+   "median_n_accessible_name_sources_abstained": 93.0
+  },
+  "H2_rule_then_semantic_margin": {
+   "n_determined": 40,
+   "phi_determined_vs_aria_labels_empty": 0.1414,
+   "perm_p_aria": 0.2814,
+   "phi_determined_vs_control_surface_empty": 0.0594,
+   "perm_p_control_surface": 0.978,
+   "determination_rate_when_aria_empty": [
+    16,
+    20
+   ],
+   "determination_rate_when_aria_present": [
+    24,
+    36
+   ],
+   "median_n_accessible_name_sources_determined": 144.5,
+   "median_n_accessible_name_sources_abstained": 116.5
+  },
+  "H2_semantic_only_margin": {
+   "n_determined": 34,
+   "phi_determined_vs_aria_labels_empty": 0.1417,
+   "perm_p_aria": 0.3094,
+   "phi_determined_vs_control_surface_empty": 0.1236,
+   "perm_p_control_surface": 0.4451,
+   "determination_rate_when_aria_empty": [
+    14,
+    20
+   ],
+   "determination_rate_when_aria_present": [
+    20,
+    36
+   ],
+   "median_n_accessible_name_sources_determined": 152.0,
+   "median_n_accessible_name_sources_abstained": 96.5
+  },
+  "H3_hierarchical_rule": {
+   "n_determined": 16,
+   "phi_determined_vs_aria_labels_empty": -0.2239,
+   "perm_p_aria": 0.0878,
+   "phi_determined_vs_control_surface_empty": -0.198,
+   "perm_p_control_surface": 0.2695,
+   "determination_rate_when_aria_empty": [
+    3,
+    20
+   ],
+   "determination_rate_when_aria_present": [
+    13,
+    36
+   ],
+   "median_n_accessible_name_sources_determined": 163.5,
+   "median_n_accessible_name_sources_abstained": 134.5
+  },
+  "_reading": "phi < 0 = 접근성 표면이 빈곤할수록 detector 가 abstain 한다 = 두 축이 함께 무너진다. n=56 에서 |phi| 의 잡음 규모는 대략 1/sqrt(56) = 0.134 다. perm_p 와 함께만 읽어라. 절대값이 아니라 **후보 간 상대 노출도**로만 쓴다."
+ },
+ "target_property_sets": {
+  "deterministically_identifiable_union": {
+   "label": "적어도 한 rule 구현이 유일 후보를 낸 target",
+   "n": 31,
+   "share_of_56": 0.5536,
+   "wilson95": [
+    0.4241,
+    0.6761
+   ],
+   "prior_archetype_distribution": {
+    "ITEM_DETAIL": 18,
+    "CONTENT_OPEN": 3,
+    "PLACE_LOOKUP": 4,
+    "COMMUNICATION_ENTRY": 2,
+    "FINANCIAL_ACTION_ENTRY": 3,
+    "QUERY": 1
+   },
+   "median_blob_tokens": 177.0,
+   "median_E_n_fired": 2,
+   "median_E_sem_margin": 0.0327,
+   "median_ssot7_components_present": 7,
+   "share_surface_absent": 0.4516,
+   "share_capture_defect": 0.4839,
+   "share_prior_conflict": 0.3871,
+   "services": [
+    "쿠팡이츠",
+    "코스트코",
+    "TikTok",
+    "티맵",
+    "밴드",
+    "세븐일레븐",
+    "KB Pay",
+    "카카오T",
+    "롯데백화점",
+    "Netflix",
+    "다이소",
+    "CJ온스타일",
+    "홈앤쇼핑",
+    "메가커피",
+    "신세계백화점",
+    "홈플러스",
+    "탑마트",
+    "토스",
+    "Instagram",
+    "롯데홈쇼핑",
+    "KB스타뱅킹",
+    "네이버지도",
+    "YouTube",
+    "11번가",
+    "컴포즈커피",
+    "롯데마트",
+    "NS홈쇼핑",
+    "Google",
+    "현대백화점",
+    "CU",
+    "카카오맵"
+   ]
+  },
+  "undetermined_by_every_rule_implementation": {
+   "label": "세 rule 구현 모두 확정 실패",
+   "n": 25,
+   "share_of_56": 0.4464,
+   "wilson95": [
+    0.3239,
+    0.5759
+   ],
+   "prior_archetype_distribution": {
+    "FINANCIAL_ACTION_ENTRY": 7,
+    "ITEM_DETAIL": 8,
+    "QUERY": 3,
+    "UTILITY_ENTRY": 5,
+    "COMMUNICATION_ENTRY": 2
+   },
+   "median_blob_tokens": 101.0,
+   "median_E_n_fired": 1,
+   "median_E_sem_margin": 0.019,
+   "median_ssot7_components_present": 7,
+   "share_surface_absent": 0.56,
+   "share_capture_defect": 0.76,
+   "share_prior_conflict": 0.2,
+   "services": [
+    "삼성카드",
+    "GS25",
+    "신한 SOL뱅크",
+    "다음",
+    "디바이스 케어",
+    "마켓컬리",
+    "V3 Mobile Plus",
+    "카카오톡",
+    "네이버",
+    "Chrome",
+    "현대카드",
+    "emart24",
+    "캐시워크",
+    "롯데하이마트",
+    "농협하나로마트",
+    "하나은행",
+    "NH스마트뱅킹",
+    "에이닷 전화",
+    "배달의민족",
+    "내 파일",
+    "당근",
+    "이마트",
+    "모니모",
+    "G마켓",
+    "NH콕뱅크"
+   ]
+  },
+  "needs_semantic_evidence": {
+   "label": "rule 이 전부 실패했으나 semantic margin 이 상위 60% 안에 드는 target",
+   "n": 14,
+   "share_of_56": 0.25,
+   "wilson95": [
+    0.1552,
+    0.3769
+   ],
+   "prior_archetype_distribution": {
+    "FINANCIAL_ACTION_ENTRY": 4,
+    "ITEM_DETAIL": 5,
+    "QUERY": 2,
+    "UTILITY_ENTRY": 2,
+    "COMMUNICATION_ENTRY": 1
+   },
+   "median_blob_tokens": 205.0,
+   "median_E_n_fired": 1.5,
+   "median_E_sem_margin": 0.0323,
+   "median_ssot7_components_present": 7.0,
+   "share_surface_absent": 0.7143,
+   "share_capture_defect": 0.7143,
+   "share_prior_conflict": 0.2143,
+   "services": [
+    "삼성카드",
+    "GS25",
+    "신한 SOL뱅크",
+    "다음",
+    "디바이스 케어",
+    "마켓컬리",
+    "Chrome",
+    "emart24",
+    "캐시워크",
+    "롯데하이마트",
+    "NH스마트뱅킹",
+    "당근",
+    "G마켓",
+    "NH콕뱅크"
+   ]
+  },
+  "principled_abstain_surface_absent": {
+   "label": "rule 전부 실패 + 표면부재 계열 — 이 URL 에서 더 모아도 안 된다",
+   "n": 14,
+   "share_of_56": 0.25,
+   "wilson95": [
+    0.1552,
+    0.3769
+   ],
+   "prior_archetype_distribution": {
+    "ITEM_DETAIL": 5,
+    "FINANCIAL_ACTION_ENTRY": 3,
+    "UTILITY_ENTRY": 4,
+    "COMMUNICATION_ENTRY": 1,
+    "QUERY": 1
+   },
+   "median_blob_tokens": 195.0,
+   "median_E_n_fired": 0.5,
+   "median_E_sem_margin": 0.0199,
+   "median_ssot7_components_present": 7.0,
+   "share_surface_absent": 1.0,
+   "share_capture_defect": 0.7143,
+   "share_prior_conflict": 0.2857,
+   "services": [
+    "GS25",
+    "신한 SOL뱅크",
+    "디바이스 케어",
+    "마켓컬리",
+    "카카오톡",
+    "Chrome",
+    "emart24",
+    "캐시워크",
+    "롯데하이마트",
+    "NH스마트뱅킹",
+    "에이닷 전화",
+    "배달의민족",
+    "내 파일",
+    "NH콕뱅크"
+   ]
+  },
+  "wrong_kind_of_abstain_capture_defect_only": {
+   "label": "rule 전부 실패 + 관측손상만 — 재수집 대상이지 미결정이 아니다",
+   "n": 9,
+   "share_of_56": 0.1607,
+   "wilson95": [
+    0.0869,
+    0.2781
+   ],
+   "prior_archetype_distribution": {
+    "FINANCIAL_ACTION_ENTRY": 4,
+    "QUERY": 2,
+    "UTILITY_ENTRY": 1,
+    "ITEM_DETAIL": 2
+   },
+   "median_blob_tokens": 325.0,
+   "median_E_n_fired": 2,
+   "median_E_sem_margin": 0.0072,
+   "median_ssot7_components_present": 6,
+   "share_surface_absent": 0.0,
+   "share_capture_defect": 1.0,
+   "share_prior_conflict": 0.0,
+   "services": [
+    "삼성카드",
+    "다음",
+    "V3 Mobile Plus",
+    "네이버",
+    "현대카드",
+    "농협하나로마트",
+    "하나은행",
+    "이마트",
+    "모니모"
+   ]
+  },
+  "residual_definition_ambiguity": {
+   "label": "rule 전부 실패 + 표면부재도 관측손상도 아님 — 정의 문제",
+   "n": 2,
+   "share_of_56": 0.0357,
+   "wilson95": [
+    0.0098,
+    0.1212
+   ],
+   "prior_archetype_distribution": {
+    "COMMUNICATION_ENTRY": 1,
+    "ITEM_DETAIL": 1
+   },
+   "median_blob_tokens": 98.5,
+   "median_E_n_fired": 3.0,
+   "median_E_sem_margin": 0.0598,
+   "median_ssot7_components_present": 7.0,
+   "share_surface_absent": 0.0,
+   "share_capture_defect": 0.0,
+   "share_prior_conflict": 0.5,
+   "services": [
+    "당근",
+    "G마켓"
+   ]
+  }
+ },
+ "master_rq_answer": {
+  "question": "A~E 를 합치면 '무엇을 관측하면 무엇을 안다고 말할 수 있는가' 의 답은 무엇인가",
+  "answer_in_one_paragraph": "L0 landing snapshot 하나를 관측하면 **그 페이지가 지금 무엇을 하게 해 주는지에 대한 약한 증거**와 **그 서비스가 어느 업종인지에 대한 비교적 강한 증거**를 얻는다. 대표기능은 얻지 못한다. 이 구분이 가능한 이유는 세 가지 관측이 같은 방향을 가리키기 때문이다 — (1) D-RF2-D 의 L1 이 확정한 7건 중 6건이 QUERY 로 흡수됐고 prior 가 QUERY 인 것은 1건뿐이다(랜딩에서 가장 완결된 affordance 가 검색창이기 때문이다), (2) D-RF2-A 에서 유일 STRONG 후보 = prior 인 target 이 56건 중 1건뿐이다, (3) D-RF2-C 에서 브랜드 문자열을 지우면 title 의 우위가 0.559→0.357 로 무너진다. 그리고 D-FACT-01 때문에 (2)(3)의 '맞았다/틀렸다'는 전부 **업종 배정**에 대한 것이다. 따라서 정직한 답은: **관측하면 업종을 알 수 있고, 랜딩이 제공하는 affordance 를 부분적으로 알 수 있으며, 대표기능은 이 증거만으로는 알 수 없다.**",
+  "what_can_be_claimed": [
+   "이 URL 이 렌더된 공개 web surface 를 갖는가 — Stage-0 로 결정적으로 판정 가능(56 중 5건이 NO).",
+   "이 관측이 손상됐는가 — 인코딩·절단·오버레이·렌더희소는 결정적으로 관측된다(E 의 CAPTURE_QUALITY 계열).",
+   "이 페이지가 어느 업종의 서비스인가 — semantic 순위로 상당 부분 되찾을 수 있다(단 그것이 전부다).",
+   "이 페이지가 어떤 affordance 를 지금 제공하는가 — 부분적으로. 규칙 술어가 발화한 것만."
+  ],
+  "what_cannot_be_claimed": [
+   "이 서비스의 대표기능이 무엇인가 — prior 가 업종과 전단사라 이 표본으로는 원리적으로 검증 불가(D-FACT-01).",
+   "어느 detector 가 더 나은가 — 세 rule 구현의 확정집합 Jaccard 가 0.043~0.190 이다. 비교의 기준선이 없다.",
+   "어떤 threshold 가 옳은가 — calibration split 이 방화벽 밖이다."
+  ],
+  "quantitative_anchor": {
+   "targets_determined_by_at_least_one_rule_implementation": 31,
+   "targets_determined_by_all_three": 1,
+   "principled_abstain_n": 14,
+   "of_56": 56
+  }
+ },
+ "synthesis_questions": {
+  "Q1_master": "master_rq_answer 참조.",
+  "Q2_properties_of_deterministically_identifiable_targets": {
+   "n": 31,
+   "of": 56,
+   "answer": "**결정적 증거만으로 식별 가능한 target 의 가장 두드러진 성질은 '그 성질이 target 이 아니라 lexicon 에 있다' 는 것이다.** 세 독립 rule 구현(A 13건 / D_flat 14건 / E_ruleDT 11건)의 합집합은 31건인데 교집합은 **1건**이다. Jaccard 는 0.043~0.190, pairwise kappa 는 −0.16~+0.13 으로 우연 수준이다. 같은 SSOT §5·§6 를 어휘만 바꿔 구현하면 다른 target 집합이 열린다. 그 위에서 관측되는 부차적 성질은: 텍스트가 충분히 있고(blob 토큰 중앙값 177.0 vs 미확정 101.0), 술어가 하나 이상 발화하며(E n_fired 중앙값 2 vs 1), semantic margin 도 이미 높다(중앙값 0.0327 vs 0.019). **즉 규칙이 닫는 target 은 semantic 도 이미 닫는 target 이다** — 이것이 Q5 의 답으로 이어진다.",
+   "cross_check_A_D_E": {
+    "A_unique_strong_matching_prior": "1/56 (D-RF2-A §14)",
+    "D_flat_mapped": "14/56, prior 일치 5 (D-RF2-D §7)",
+    "E_rule_mapped": "11/56, prior 일치 6 (D-RF2-E)",
+    "multi_impl_cases": [
+     {
+      "wtg": "22ffba7a86ea9919",
+      "service": "코스트코",
+      "prior_archetype": "ITEM_DETAIL",
+      "preds": {
+       "D": "QUERY",
+       "E": "QUERY"
+      },
+      "same_leaf": true
+     },
+     {
+      "wtg": "4feab7e61bf642e8",
+      "service": "CJ온스타일",
+      "prior_archetype": "ITEM_DETAIL",
+      "preds": {
+       "A": "QUERY",
+       "D": "QUERY",
+       "E": "QUERY"
+      },
+      "same_leaf": true
+     },
+     {
+      "wtg": "ea031f85e857140e",
+      "service": "메가커피",
+      "prior_archetype": "ITEM_DETAIL",
+      "preds": {
+       "D": "QUERY",
+       "E": "QUERY"
+      },
+      "same_leaf": true
+     },
+     {
+      "wtg": "35319a420294ee17",
+      "service": "토스",
+      "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+      "preds": {
+       "A": "ITEM_DETAIL",
+       "D": "FINANCIAL_ACTION_ENTRY"
+      },
+      "same_leaf": false
+     },
+     {
+      "wtg": "24e6654bfd1ab85b",
+      "service": "YouTube",
+      "prior_archetype": "CONTENT_OPEN",
+      "preds": {
+       "A": "QUERY",
+       "D": "QUERY"
+      },
+      "same_leaf": true
+     },
+     {
+      "wtg": "95e22b9aff7196b3",
+      "service": "NS홈쇼핑",
+      "prior_archetype": "ITEM_DETAIL",
+      "preds": {
+       "D": "ITEM_DETAIL",
+       "E": "ITEM_DETAIL"
+      },
+      "same_leaf": true
+     }
+    ],
+    "reading": "2개 이상이 확정한 6건 중 5건이 같은 leaf 를 낸다. 그런데 그 5건 중 4건이 QUERY 이고 prior 는 ITEM_DETAIL/CONTENT_OPEN 이다 — D-RF2-D §11.2 의 '랜딩에서 가장 완결된 affordance 는 검색창' 현상이 세 구현에서 독립적으로 재현된다."
+   },
+   "prior_class_distribution": {
+    "ITEM_DETAIL": 18,
+    "CONTENT_OPEN": 3,
+    "PLACE_LOOKUP": 4,
+    "COMMUNICATION_ENTRY": 2,
+    "FINANCIAL_ACTION_ENTRY": 3,
+    "QUERY": 1
+   }
+  },
+  "Q3_properties_of_targets_needing_semantic_evidence": {
+   "n": 14,
+   "answer": "semantic 을 더해야 하는 target 은 **표면이 관측됐고 손상도 없는데 술어가 배타적으로 발화하지 못한 target** 이다. E 의 유형으로 말하면 T02(한쪽 신호만, abstain 40 중 22 — 최대 유형)와 T03(다중 강후보 6)이다. 이들에서 semantic force-map 불일치는 T02 0.23 으로 rule 0.68 의 1/3 이다 — semantic 이 실제로 보탠다. **반대로 semantic 을 더해도 안 되는 것이 T03 이다**: rule 0.50 vs semantic 0.67 로 semantic 이 더 나쁘다. SSOT §6 이 다중후보를 §7 로 보내라고 규정했는데, 이 표본에서 §7 이 그 6건을 더 못 가른다. n=6 이라 결론은 아니지만 **'semantic 이 ambiguity 를 푼다'는 전제가 검증되지 않았다는 사실 자체가 결과다.**",
+   "where_semantic_helps": "T02_WEAK_ONE_SIDED_EVIDENCE (n=22 in abstain 40): rule 0.68 → semantic 0.23 불일치",
+   "where_semantic_does_not_help": "T03_MULTI_STRONG_CANDIDATE (n=6): rule 0.50 → semantic 0.67 불일치 (악화)",
+   "where_semantic_is_misleading": "T05_GENERIC_BRAND_LANDING — semantic 이 잘 맞지만 그건 업종을 맞힌 것이다. E: 표면부재 유형을 먼저 abstain 시키면 같은 coverage 에서 지표가 오히려 낮아진다."
+  },
+  "Q4_principled_abstain": {
+   "count_lower_bound": 14,
+   "count_including_definition_ambiguity": 16,
+   "answer": "세 rule 구현이 모두 확정에 실패한 25건을 원인으로 가르면: **표면부재 14건** (그 중 T07 미렌더·error 5건, 그리고 14건 중 10건은 관측손상까지 겹쳐 재수집해도 없는 표면이 생기지 않는다), **관측손상만 9건** (재수집 대상 — 이것은 '미결정'이 아니라 '아직 안 봤다'이며 지금의 abstain 은 잘못된 종류다), **둘 다 아닌 정의 문제 2건**. 따라서 **현재 evidence 로 원칙적으로 식별 불가능해서 ABSTAIN 이 정직한 target 은 14건(하한)** 이고, SSOT 정의를 고치지 않는 한 못 푸는 것까지 포함하면 16건이다. 이유는 detector 결함이 아니라 **target URL 이 그 서비스의 기능면이 아니라 그것을 설명하는 면**이기 때문이다 — E 의 처방은 detector 개선이 아니라 target URL 감사다.",
+   "why_not_a_detector_problem": "E 의 관측: 탑마트→seowon.com, 카카오T→kakaomobility.com/service-kakaot 처럼 요청 URL 이 브랜드 소개면으로 해석된 사례가 반복된다. 같은 URL 에서 더 정교하게 관측해도 없는 표면은 생기지 않는다.",
+   "caveat": "E limitation 4번 — 해결가능성 판정은 반사실 주장이다. 재수집 실험 없이는 '관측손상 9건이 풀린다'도 '표면부재 14건이 안 풀린다'도 검증되지 않았다.",
+   "sets": {
+    "principled_abstain_services": [
+     "GS25",
+     "신한 SOL뱅크",
+     "디바이스 케어",
+     "마켓컬리",
+     "카카오톡",
+     "Chrome",
+     "emart24",
+     "캐시워크",
+     "롯데하이마트",
+     "NH스마트뱅킹",
+     "에이닷 전화",
+     "배달의민족",
+     "내 파일",
+     "NH콕뱅크"
+    ],
+    "capture_defect_only_services": [
+     "삼성카드",
+     "다음",
+     "V3 Mobile Plus",
+     "네이버",
+     "현대카드",
+     "농협하나로마트",
+     "하나은행",
+     "이마트",
+     "모니모"
+    ],
+    "definition_ambiguity_services": [
+     "당근",
+     "G마켓"
+    ]
+   }
+  },
+  "Q5_smallest_sufficient_structure": "smallest_sufficient_structure 참조."
+ },
+ "smallest_sufficient_structure": {
+  "question": "최소한의 evidence · 최소한의 단계로 어디까지 갈 수 있는가",
+  "answer": "**두 단계면 된다: (1) evidence admissibility 게이트, (2) 하나의 텍스트 representation 위의 7-prototype 유사도 + margin 게이트.** archetype 을 고르는 규칙 트리는 이 표본에서 그 위에 아무것도 얹지 못한다 — 같은 coverage 로 맞추면 rule-first cascade 가 semantic-only 를 한 번도 이기지 못하고(모든 대조점에서 Δ ≤ 0), rule 이 실제로 확정한 11건에서 McNemar b=0 (규칙이 맞고 semantic 이 틀린 target 이 0건), c=2 다. evidence 쪽 최소치도 작다 — C 에 따르면 `identity`(title + meta_description + url_tokens, 중앙값 29토큰)가 `text_blob`(498토큰)과 같은 prior_agreement 38/56 를 내고 macro F1 은 더 높다. **토큰을 17배 줄여도 손해가 없다.**",
+  "the_catch": "이 '최소 충분구조'가 충분한 것은 **업종 배정 재현율**에 대해서다(D-FACT-01). 그리고 identity 로 좁힐수록 C 가 경고한 순환 — title/url 이 브랜드를 읽고 브랜드→업종→archetype 을 되짚는 경로 — 이 강해진다. C 의 브랜드 마스킹에서 `url_tokens` 0.361→0.138, `title` 0.559→0.357 이다. **따라서 최소 충분구조는 '가장 작다'와 '가장 순환적이다'가 같은 방향이다.** 독립 label 없이 이 구조를 채택하면 업종 분류기를 대표기능 detector 라고 부르게 된다.",
+  "minimum_viable_stack": [
+   {
+    "stage": 1,
+    "name": "Stage-0 renderability",
+    "kind": "deterministic",
+    "why": "SSOT §2 가 이미 확정을 금지한다. 이 코호트 56 중 5건이 여기서 걸린다.",
+    "cost": "거의 0"
+   },
+   {
+    "stage": 2,
+    "name": "evidence-defect gate (인코딩 · cap · 오버레이 · 렌더희소)",
+    "kind": "deterministic",
+    "why": "E: 강제선택 불일치율이 인코딩 손상에서 1.00 이다. 이 게이트가 없으면 수집 결함이 연구결과로 세탁된다.",
+    "cost": "관측표 플래그 4개. 이미 전부 관측되고 있다."
+   },
+   {
+    "stage": 3,
+    "name": "one text representation × 7 frozen prototypes × margin gate",
+    "kind": "semantic",
+    "why": "coverage 를 얻는 유일한 단계. 학습 없음, 모델 1개.",
+    "cost": "provenance 상실. threshold 는 calibration split 없이는 못 정한다."
+   }
+  ],
+  "what_the_rule_tree_is_still_for": "**버리라는 말이 아니다.** 규칙은 이 표본에서 archetype 선택에는 기여하지 않았지만 (a) provenance — 어느 field 의 어느 어휘가 발화했는지, (b) 반증 가능성 — D-RF2-D 가 '병목은 L1' 이라고 말할 수 있었던 것은 규칙이 있었기 때문, (c) prior 와 구조의 불일치 관측(E 의 T13 17건)을 제공한다. semantic-only 구조에는 이 세 가지가 전부 없다.",
+  "observed_numbers": {
+   "rule_only_coverage": [
+    11,
+    56
+   ],
+   "rule_only_prior_agreement": 0.5455,
+   "semantic_only_curve_first_8": [
+    {
+     "coverage_n": 56,
+     "coverage": 1.0,
+     "semantic_only_prior_agreement": 0.6786,
+     "semantic_only_wilson95": [
+      0.5482,
+      0.786
+     ],
+     "semantic_only_debranded_prior_agreement": 0.6964,
+     "rule_first_cascade_prior_agreement": 0.6429,
+     "rule_first_cascade_wilson95": [
+      0.5119,
+      0.7554
+     ],
+     "delta_cascade_minus_semantic_only": -0.0357
+    },
+    {
+     "coverage_n": 54,
+     "coverage": 0.9643,
+     "semantic_only_prior_agreement": 0.6852,
+     "semantic_only_wilson95": [
+      0.5526,
+      0.7932
+     ],
+     "semantic_only_debranded_prior_agreement": 0.6852,
+     "rule_first_cascade_prior_agreement": 0.6481,
+     "rule_first_cascade_wilson95": [
+      0.5148,
+      0.7618
+     ],
+     "delta_cascade_minus_semantic_only": -0.037
+    },
+    {
+     "coverage_n": 52,
+     "coverage": 0.9286,
+     "semantic_only_prior_agreement": 0.7115,
+     "semantic_only_wilson95": [
+      0.5773,
+      0.8167
+     ],
+     "semantic_only_debranded_prior_agreement": 0.7115,
+     "rule_first_cascade_prior_agreement": 0.6538,
+     "rule_first_cascade_wilson95": [
+      0.518,
+      0.7685
+     ],
+     "delta_cascade_minus_semantic_only": -0.0577
+    },
+    {
+     "coverage_n": 50,
+     "coverage": 0.8929,
+     "semantic_only_prior_agreement": 0.72,
+     "semantic_only_wilson95": [
+      0.5833,
+      0.8253
+     ],
+     "semantic_only_debranded_prior_agreement": 0.74,
+     "rule_first_cascade_prior_agreement": 0.68,
+     "rule_first_cascade_wilson95": [
+      0.5419,
+      0.7924
+     ],
+     "delta_cascade_minus_semantic_only": -0.04
+    },
+    {
+     "coverage_n": 48,
+     "coverage": 0.8571,
+     "semantic_only_prior_agreement": 0.7292,
+     "semantic_only_wilson95": [
+      0.59,
+      0.8343
+     ],
+     "semantic_only_debranded_prior_agreement": 0.75,
+     "rule_first_cascade_prior_agreement": 0.6667,
+     "rule_first_cascade_wilson95": [
+      0.5254,
+      0.7832
+     ],
+     "delta_cascade_minus_semantic_only": -0.0625
+    },
+    {
+     "coverage_n": 46,
+     "coverage": 0.8214,
+     "semantic_only_prior_agreement": 0.7391,
+     "semantic_only_wilson95": [
+      0.5974,
+      0.844
+     ],
+     "semantic_only_debranded_prior_agreement": 0.7609,
+     "rule_first_cascade_prior_agreement": 0.6957,
+     "rule_first_cascade_wilson95": [
+      0.5519,
+      0.8092
+     ],
+     "delta_cascade_minus_semantic_only": -0.0435
+    },
+    {
+     "coverage_n": 44,
+     "coverage": 0.7857,
+     "semantic_only_prior_agreement": 0.7727,
+     "semantic_only_wilson95": [
+      0.6301,
+      0.8716
+     ],
+     "semantic_only_debranded_prior_agreement": 0.75,
+     "rule_first_cascade_prior_agreement": 0.7273,
+     "rule_first_cascade_wilson95": [
+      0.5815,
+      0.8365
+     ],
+     "delta_cascade_minus_semantic_only": -0.0455
+    },
+    {
+     "coverage_n": 42,
+     "coverage": 0.75,
+     "semantic_only_prior_agreement": 0.8095,
+     "semantic_only_wilson95": [
+      0.667,
+      0.9002
+     ],
+     "semantic_only_debranded_prior_agreement": 0.7857,
+     "rule_first_cascade_prior_agreement": 0.7143,
+     "rule_first_cascade_wilson95": [
+      0.5643,
+      0.8283
+     ],
+     "delta_cascade_minus_semantic_only": -0.0952
+    }
+   ],
+   "cascade_never_wins": true
+  }
+ },
+ "recommended_experimental_candidates": [
+  {
+   "candidate_id": "H1",
+   "name": "High-precision Rule → unresolved = ABSTAIN",
+   "status": "RETAINED_WITH_KNOWN_REFUTING_EVIDENCE",
+   "one_line": "결정적 규칙만 쓰고 유일 후보가 아니면 전부 abstain 한다. semantic 단계 없음.",
+   "deterministic_portion": "전부. SSOT 01 §5 Stage-3 branch 의 REGION∧ENDPOINT 술어와 §6 resolver(유일 후보만 확정).",
+   "semantic_portion": "없음.",
+   "required_evidence": {
+    "slots": [
+     "L0 landing snapshot (DOM + AX)"
+    ],
+    "fields": [
+     "buttons",
+     "aria_labels",
+     "nav_links",
+     "form_labels",
+     "placeholders",
+     "input_names",
+     "card_texts",
+     "landmarks",
+     "title",
+     "headings",
+     "url_tokens"
+    ],
+    "structural_counters": [
+     "search_inputs_n",
+     "article_present",
+     "gate_password_input_n",
+     "n_primary_action_candidates",
+     "dom_body_text_len"
+    ],
+    "note": "endpoint 는 상태전이가 아니라 'endpoint-enabling control 의 존재'로 강등된 상태다 (A·D 공통)."
+   },
+   "supported_by": [
+    {
+     "child": "D-RF2-E",
+     "evidence": "force-map 비용이 이 후보의 존재이유다. abstain 40건에 rule argmax 를 강제하면 prior 불일치 0.750, SSOT §6 이 금지한 first-match 는 0.775. 규칙이 침묵할 때 강제선택은 기저율 0.46 보다 나쁘다."
+    },
+    {
+     "child": "D-RF2-E",
+     "evidence": "rule_conf = 0 인 17건의 구간별 prior_agreement 는 **0.000** 이다. 규칙이 아무것도 못 본 target 을 끌어들이면 한 건도 안 맞는다 — abstain 이 옳다."
+    },
+    {
+     "child": "D-RF2-A",
+     "evidence": "증거 부재는 지배적 실패가 아니다(STRONG 13/56, WEAK+ 4/56) — 즉 규칙이 '아무것도 못 본다'가 문제는 아니다. H-A3 REFUTED."
+    }
+   ],
+   "refuted_by": [
+    {
+     "child": "D-RF2-A",
+     "evidence": "유일 STRONG 후보가 나오는 target 은 13/56 = 0.232 뿐이고 STRONG multi 30/56 이 압도한다. exclusivity 는 7개 중 6개가 0.000 — WEAK+ 수준에서 어떤 archetype 도 혼자 켜지지 못한다. 즉 '유일 후보' 조건 자체가 이 증거에서 거의 성립하지 않는다."
+    },
+    {
+     "child": "D-RF2-A",
+     "evidence": "유일 STRONG 후보가 prior 와 일치한 것은 56건 중 **1건**이다. 유일성이 타당성을 뜻하지 않는다."
+    },
+    {
+     "child": "D-RF2-B",
+     "evidence": "규칙이 딛고 선 16개 조작화 feature 중 BH-FDR(q<0.10)을 통과하는 것이 **0개**다. 8개는 permutation null 평균에도 못 미친다. 규칙 술어의 근거는 이 데이터가 아니라 도메인 지식이다."
+    },
+    {
+     "child": "D-RF2-F",
+     "evidence": "세 독립 rule 구현(A / D_flat / E_ruleDT)이 모두 확정한 target 은 56건 중 **1건**이다. Jaccard 0.043~0.190, pairwise kappa 는 −0.16~+0.13 으로 우연 수준이다. '결정 가능한 target' 은 target 의 성질이 아니라 lexicon 의 성질이다."
+    }
+   ],
+   "observed_coverage_in_this_cohort": {
+    "A_operationalization": {
+     "n": 13,
+     "coverage": 0.2321,
+     "wilson95": [
+      0.141,
+      0.3577
+     ]
+    },
+    "E_operationalization": {
+     "n": 11,
+     "coverage": 0.1964,
+     "wilson95": [
+      0.1134,
+      0.3184
+     ]
+    },
+    "note": "두 수치의 차이가 곧 이 후보의 최대 취약점이다 — 같은 규칙, 다른 어휘, 다른 집합."
+   },
+   "expected_failure_modes": [
+    {
+     "E_type": "T03_MULTI_STRONG_CANDIDATE",
+     "why": "다중 강후보에서 확정 불가. SSOT §6 이 §7 로 보내라고 한 분기를 이 후보는 받을 곳이 없다."
+    },
+    {
+     "E_type": "T02_WEAK_ONE_SIDED_EVIDENCE",
+     "why": "abstain 40 중 최대 유형(22). region 만 또는 endpoint 만 붙은 상태."
+    },
+    {
+     "E_type": "T01_NO_PREDICATE_FIRED",
+     "why": "무발화 12건. 단 E 는 이것이 증상이며 11건이 표면부재/관측손상으로 설명된다고 보고했다."
+    },
+    {
+     "E_type": "T10A_TEXT_ENCODING_CORRUPTION",
+     "why": "어휘 술어가 무력화된다. force-map 불일치율 1.00."
+    }
+   ],
+   "abstention_semantics": {
+    "principle": "E-RF2-E 의 결론을 그대로 받는다 — **표면부재(SURFACE_NOT_REPRESENTATIVE)와 관측손상(EVIDENCE_DEFECT)을 같은 leaf 로 묶지 않는다.** 처방이 정반대이기 때문이다: 전자는 target URL 재정의, 후자는 재수집.",
+    "required_leaves": [
+     {
+      "leaf": "SURFACE_NOT_REPRESENTATIVE",
+      "meaning": "관측된 표면이 대표기능면이 아니다 (E: T05 브랜드면 / T06 앱설치면 / T07 미렌더·error).",
+      "prescription": "target URL 감사. detector 개선이 아니다.",
+      "n_in_this_cohort_of_56": 28
+     },
+     {
+      "leaf": "EVIDENCE_DEFECT",
+      "meaning": "관측 자체가 손상됐다 (E: T09 렌더희소 / T10A 인코딩 / T10B 절단 / T11 오버레이 / T12 퇴화캡처).",
+      "prescription": "재수집 큐. 이 상태의 abstain 은 '미결정'이 아니라 '아직 안 봤다'다.",
+      "n_in_this_cohort_of_56": 34
+     },
+     {
+      "leaf": "GENUINELY_AMBIGUOUS",
+      "meaning": "표면은 관측됐고 손상도 없는데 정의상 후보가 갈린다 (E: T02/T03/T04).",
+      "prescription": "SSOT §5 술어 상호배타화 또는 §6 precedence 명문화. 수집 문제가 아니다.",
+      "n_in_this_cohort_of_56": 30
+     },
+     {
+      "leaf": "PRIOR_CONFLICT_UNRESOLVABLE_WITHOUT_LABEL",
+      "meaning": "관측 구조와 business prior 가 어긋난다 (E: T13). D 는 label 을 열지 않아 어느 쪽이 틀렸는지 못 가른다.",
+      "prescription": "독립 gold label. D 의 권한 밖이다.",
+      "n_in_this_cohort_of_56": 17
+     }
+    ],
+    "forbidden": "`AMBIGUOUS_UNRESOLVED` 단일 leaf. E-RF2-E 는 무발화 12건 중 11건이 표면부재 또는 관측손상으로 설명된다고 보고했다 — 단일 leaf 는 원인을 감춘다."
+   },
+   "calibration_requirements": [
+    "gold label 이 붙은 독립 calibration split — D 는 열지 않았고, 이것 없이는 어떤 threshold 도 정할 수 없다 (SSOT 01 §7).",
+    "평가 지표를 prior_agreement 로 두면 안 된다 — D-FACT-01 에 따라 그것은 업종 배정 재현율이다. prior 로 detector 를 튜닝하면 업종 분류기가 만들어진다.",
+    "abstention leaf 4종(위)의 판정식 — 어휘사전·경로마커·구성요소 임계는 현재 전부 D 의 조작화다.",
+    "재수집 반사실 검증 — E 의 RESOLVABLE 판정은 가설이지 결과가 아니다 (E limitation 4번).",
+    "lexicon 을 SSOT 에 명문화해야 한다 — 현재 A/D/E 세 구현의 어휘가 다르고 그 차이가 확정집합을 지배한다.",
+    "endpoint 강등(control presence)을 유지할지 상호작용 1스텝 수집으로 풀지의 결정.",
+    "UTILITY_ENTRY 의 endpoint(`n_primary_action_candidates>=1`)는 56건 중 52건에서 참이다 — 재정의 없이는 residual 로 남는다."
+   ],
+   "operational_complexity": "LOW — 학습 없음, 모델 없음, 결정론적, 전 단계 provenance 추적 가능.",
+   "leakage_risk": {
+    "level": "MEDIUM",
+    "mechanism": "규칙의 CTRL() 술어가 buttons·aria_labels·form_labels 를 직접 읽는다. aria-label 이 없는 페이지는 곧 KWCAG 접근성 축에서 나쁜 페이지다.",
+    "measured": {
+     "n_determined": 13,
+     "phi_determined_vs_aria_labels_empty": 0.0315,
+     "perm_p_aria": 0.8683,
+     "phi_determined_vs_control_surface_empty": -0.1722,
+     "perm_p_control_surface": 0.2595,
+     "determination_rate_when_aria_empty": [
+      5,
+      20
+     ],
+     "determination_rate_when_aria_present": [
+      8,
+      36
+     ],
+     "median_n_accessible_name_sources_determined": 75.0,
+     "median_n_accessible_name_sources_abstained": 165.0
+    }
+   },
+   "explainability": "HIGH. 어느 술어가 어느 field 의 어느 어휘로 발화했는지 target 마다 남는다 (A 의 per_target.firing 이 그 형식이다).",
+   "cost": "coverage 0.20~0.25. SSOT §10 의 holdout coverage >= 0.75 에 도달 불가."
+  },
+  {
+   "candidate_id": "H2",
+   "name": "High-precision Rule → Semantic prototype ranking → margin low = ABSTAIN",
+   "status": "RETAINED_WITH_PARTIAL_REFUTATION_OF_ITS_RULE_STAGE",
+   "one_line": "규칙이 유일 후보를 내면 확정, 아니면 frozen prototype 유사도 순위로 넘기고 margin 이 낮으면 abstain.",
+   "deterministic_portion": "1단계 규칙(H1 과 동일) + Stage-0 게이트 + abstention leaf 배정.",
+   "semantic_portion": "2단계 — 하나의 텍스트 representation 을 7개 frozen prototype 과 코사인 비교, top1−top2 margin 으로 게이트. 학습 없음(zero-shot).",
+   "required_evidence": {
+    "slots": [
+     "L0 landing snapshot (DOM + AX)"
+    ],
+    "fields_rule_stage": "H1 과 동일",
+    "fields_semantic_stage": "C 가 상위군으로 잰 것은 `text_blob`(12 field 전체) 과 `identity`(title+meta_description+url_tokens) 다. 브랜드 마스킹 후에는 `text_blob` 이 1위(0.478)로 남고 `title` 은 0.559→0.357 로 무너진다.",
+    "must_not_use_as_primary": "primary_controls / accessibility_text 계열. C: 0.254 / 0.224 vs text_blob 0.509 — 절반 이하이고 stratified p95(0.222)에 붙어 있다."
+   },
+   "supported_by": [
+    {
+     "child": "D-RF2-E",
+     "evidence": "margin 5분위에서 하위 2분위(0.364 / 0.455)와 상위 3분위(0.727 / 0.909 / 0.917) 사이가 꺾인다. margin 은 이 코호트에서 실제로 확정 가능성과 단조 관계를 갖는다."
+    },
+    {
+     "child": "D-RF2-E",
+     "evidence": "force-map 을 semantic 으로 하면 불일치 0.375 로 rule argmax 0.750 의 절반이다. 규칙이 침묵하는 구간에서 semantic 은 규칙보다 낫다."
+    },
+    {
+     "child": "D-RF2-C",
+     "evidence": "field 간 정보량 차이가 prototype 문구 노이즈의 3.3~4.9배다(bge-m3, MiniLM). 즉 semantic 단계의 입력 선택은 실재하는 설계 결정이다."
+    },
+    {
+     "child": "D-RF2-E",
+     "evidence": "debranded 대조군에서도 곡선이 거의 움직이지 않는다(coverage 1.00: 0.679 → 0.696). semantic 신호가 브랜드 문자열만은 아니다."
+    }
+   ],
+   "refuted_by": [
+    {
+     "child": "D-RF2-F",
+     "evidence": "**이 후보의 1단계가 반증된다.** 같은 coverage 로 맞추면 rule-first cascade 가 semantic-only 를 **한 번도 이기지 못한다**(모든 대조점에서 Δ ≤ 0). rule 이 실제로 확정한 11건에서 McNemar b=0, c=2 — 규칙이 맞고 semantic 이 틀린 target이 하나도 없다. 규칙 단계는 이 표본에서 순수 비용이다. 단 지표가 업종 배정 재현율이므로 '규칙이 대표기능에 대해 무가치하다'는 뜻은 아니다."
+    },
+    {
+     "child": "D-RF2-C",
+     "evidence": "margin 은 field 를 가르지 못한다 — 22개 representation 전부 margin 중앙값이 0.016~0.036 의 좁은 띠다. 게다가 `form_labels` 는 39/56 이 비었는데 margin 은 평균보다 높다 — **정보가 없을수록 margin 이 커지는 역전**이 있다. margin 을 abstention 게이트로 쓰면 이 역전을 그대로 산다."
+    },
+    {
+     "child": "D-RF2-E",
+     "evidence": "SSOT §6 이 §7 로 보내라고 한 T03 다중강후보 6건에서 semantic 불일치율(0.67)이 rule(0.50)보다 **높다**. 즉 이 후보의 2단계가 1단계의 실패 유형을 실제로 가른다는 증거가 없다."
+    },
+    {
+     "child": "D-RF2-B",
+     "evidence": "prior 를 되찾는 신호의 상당 부분이 페이지 규모 축일 수 있다 — 16 feature 의 제1성분(33% 분산)이 규모이고 상위 feature `accessible_name_richness`(MI 0.264)는 domain 의미가 없는 구조량이다."
+    }
+   ],
+   "observed_coverage_in_this_cohort": {
+    "rule_stage_only": {
+     "n": 13,
+     "coverage": 0.2321
+    },
+    "cascade_at_declared_gate": {
+     "n": 40,
+     "coverage": 0.7143,
+     "gate_note": "이 gate 는 40% 분위수로 잡은 **기술적 절단점**이지 운영 threshold 가 아니다."
+    },
+    "semantic_only_at_same_gate": {
+     "n": 34,
+     "coverage": 0.6071
+    },
+    "matched_coverage_comparison": [
+     {
+      "coverage_n": 56,
+      "coverage": 1.0,
+      "semantic_only_prior_agreement": 0.6786,
+      "semantic_only_wilson95": [
+       0.5482,
+       0.786
+      ],
+      "semantic_only_debranded_prior_agreement": 0.6964,
+      "rule_first_cascade_prior_agreement": 0.6429,
+      "rule_first_cascade_wilson95": [
+       0.5119,
+       0.7554
+      ],
+      "delta_cascade_minus_semantic_only": -0.0357
+     },
+     {
+      "coverage_n": 54,
+      "coverage": 0.9643,
+      "semantic_only_prior_agreement": 0.6852,
+      "semantic_only_wilson95": [
+       0.5526,
+       0.7932
+      ],
+      "semantic_only_debranded_prior_agreement": 0.6852,
+      "rule_first_cascade_prior_agreement": 0.6481,
+      "rule_first_cascade_wilson95": [
+       0.5148,
+       0.7618
+      ],
+      "delta_cascade_minus_semantic_only": -0.037
+     },
+     {
+      "coverage_n": 52,
+      "coverage": 0.9286,
+      "semantic_only_prior_agreement": 0.7115,
+      "semantic_only_wilson95": [
+       0.5773,
+       0.8167
+      ],
+      "semantic_only_debranded_prior_agreement": 0.7115,
+      "rule_first_cascade_prior_agreement": 0.6538,
+      "rule_first_cascade_wilson95": [
+       0.518,
+       0.7685
+      ],
+      "delta_cascade_minus_semantic_only": -0.0577
+     },
+     {
+      "coverage_n": 50,
+      "coverage": 0.8929,
+      "semantic_only_prior_agreement": 0.72,
+      "semantic_only_wilson95": [
+       0.5833,
+       0.8253
+      ],
+      "semantic_only_debranded_prior_agreement": 0.74,
+      "rule_first_cascade_prior_agreement": 0.68,
+      "rule_first_cascade_wilson95": [
+       0.5419,
+       0.7924
+      ],
+      "delta_cascade_minus_semantic_only": -0.04
+     },
+     {
+      "coverage_n": 48,
+      "coverage": 0.8571,
+      "semantic_only_prior_agreement": 0.7292,
+      "semantic_only_wilson95": [
+       0.59,
+       0.8343
+      ],
+      "semantic_only_debranded_prior_agreement": 0.75,
+      "rule_first_cascade_prior_agreement": 0.6667,
+      "rule_first_cascade_wilson95": [
+       0.5254,
+       0.7832
+      ],
+      "delta_cascade_minus_semantic_only": -0.0625
+     },
+     {
+      "coverage_n": 46,
+      "coverage": 0.8214,
+      "semantic_only_prior_agreement": 0.7391,
+      "semantic_only_wilson95": [
+       0.5974,
+       0.844
+      ],
+      "semantic_only_debranded_prior_agreement": 0.7609,
+      "rule_first_cascade_prior_agreement": 0.6957,
+      "rule_first_cascade_wilson95": [
+       0.5519,
+       0.8092
+      ],
+      "delta_cascade_minus_semantic_only": -0.0435
+     },
+     {
+      "coverage_n": 44,
+      "coverage": 0.7857,
+      "semantic_only_prior_agreement": 0.7727,
+      "semantic_only_wilson95": [
+       0.6301,
+       0.8716
+      ],
+      "semantic_only_debranded_prior_agreement": 0.75,
+      "rule_first_cascade_prior_agreement": 0.7273,
+      "rule_first_cascade_wilson95": [
+       0.5815,
+       0.8365
+      ],
+      "delta_cascade_minus_semantic_only": -0.0455
+     },
+     {
+      "coverage_n": 42,
+      "coverage": 0.75,
+      "semantic_only_prior_agreement": 0.8095,
+      "semantic_only_wilson95": [
+       0.667,
+       0.9002
+      ],
+      "semantic_only_debranded_prior_agreement": 0.7857,
+      "rule_first_cascade_prior_agreement": 0.7143,
+      "rule_first_cascade_wilson95": [
+       0.5643,
+       0.8283
+      ],
+      "delta_cascade_minus_semantic_only": -0.0952
+     }
+    ]
+   },
+   "expected_failure_modes": [
+    {
+     "E_type": "T05_GENERIC_BRAND_LANDING",
+     "why": "E 의 가장 불편한 관측 — 브랜드면에서 semantic 이 오히려 prior 와 잘 맞는다. 대표기능을 읽은 것이 아니라 업종을 맞힌 것이다. coverage 를 올리는 근거로 쓰면 안 된다."
+    },
+    {
+     "E_type": "T03_MULTI_STRONG_CANDIDATE",
+     "why": "semantic 이 rule 보다 더 못 가른다(0.67 vs 0.50)."
+    },
+    {
+     "E_type": "T10A_TEXT_ENCODING_CORRUPTION",
+     "why": "semantic force-map 불일치 0.57 — 깨진 텍스트는 임베딩도 못 살린다."
+    },
+    {
+     "E_type": "T06_APP_INSTALL_SURFACE",
+     "why": "semantic 불일치 0.55. 웹 표면의 대표행동이 '앱으로 나가기'다."
+    }
+   ],
+   "abstention_semantics": {
+    "principle": "E-RF2-E 의 결론을 그대로 받는다 — **표면부재(SURFACE_NOT_REPRESENTATIVE)와 관측손상(EVIDENCE_DEFECT)을 같은 leaf 로 묶지 않는다.** 처방이 정반대이기 때문이다: 전자는 target URL 재정의, 후자는 재수집.",
+    "required_leaves": [
+     {
+      "leaf": "SURFACE_NOT_REPRESENTATIVE",
+      "meaning": "관측된 표면이 대표기능면이 아니다 (E: T05 브랜드면 / T06 앱설치면 / T07 미렌더·error).",
+      "prescription": "target URL 감사. detector 개선이 아니다.",
+      "n_in_this_cohort_of_56": 28
+     },
+     {
+      "leaf": "EVIDENCE_DEFECT",
+      "meaning": "관측 자체가 손상됐다 (E: T09 렌더희소 / T10A 인코딩 / T10B 절단 / T11 오버레이 / T12 퇴화캡처).",
+      "prescription": "재수집 큐. 이 상태의 abstain 은 '미결정'이 아니라 '아직 안 봤다'다.",
+      "n_in_this_cohort_of_56": 34
+     },
+     {
+      "leaf": "GENUINELY_AMBIGUOUS",
+      "meaning": "표면은 관측됐고 손상도 없는데 정의상 후보가 갈린다 (E: T02/T03/T04).",
+      "prescription": "SSOT §5 술어 상호배타화 또는 §6 precedence 명문화. 수집 문제가 아니다.",
+      "n_in_this_cohort_of_56": 30
+     },
+     {
+      "leaf": "PRIOR_CONFLICT_UNRESOLVABLE_WITHOUT_LABEL",
+      "meaning": "관측 구조와 business prior 가 어긋난다 (E: T13). D 는 label 을 열지 않아 어느 쪽이 틀렸는지 못 가른다.",
+      "prescription": "독립 gold label. D 의 권한 밖이다.",
+      "n_in_this_cohort_of_56": 17
+     }
+    ],
+    "forbidden": "`AMBIGUOUS_UNRESOLVED` 단일 leaf. E-RF2-E 는 무발화 12건 중 11건이 표면부재 또는 관측손상으로 설명된다고 보고했다 — 단일 leaf 는 원인을 감춘다.",
+    "extra": "margin 이 낮아서 abstain 한 것과 표면이 없어서 abstain 한 것을 같은 leaf 로 묶으면 안 된다. 전자는 LOW_CONFIDENCE_SEMANTIC, 후자는 SURFACE_NOT_REPRESENTATIVE 다."
+   },
+   "calibration_requirements": [
+    "gold label 이 붙은 독립 calibration split — D 는 열지 않았고, 이것 없이는 어떤 threshold 도 정할 수 없다 (SSOT 01 §7).",
+    "평가 지표를 prior_agreement 로 두면 안 된다 — D-FACT-01 에 따라 그것은 업종 배정 재현율이다. prior 로 detector 를 튜닝하면 업종 분류기가 만들어진다.",
+    "abstention leaf 4종(위)의 판정식 — 어휘사전·경로마커·구성요소 임계는 현재 전부 D 의 조작화다.",
+    "재수집 반사실 검증 — E 의 RESOLVABLE 판정은 가설이지 결과가 아니다 (E limitation 4번).",
+    "margin threshold — **D 는 정하지 않는다.** independent calibration split 이 필요하다(SSOT §7).",
+    "prototype 세트 동결과 그 provenance — C 는 SSOT §5·§7 에서만 유도했고 코퍼스를 보고 맞추지 않았다. 이 규율이 유지돼야 한다.",
+    "embedding 모델 고정. C: e5-small 에서는 field 효과가 prototype 문구 노이즈에 묻힌다(0.098 vs 0.103).",
+    "representation 선택 — brand-masked 조건에서 다시 재야 한다. C 의 1위 `title` 은 마스킹에서 무너진다.",
+    "인코딩 검증을 파이프라인 게이트로. C §10: mojibake 8/56 이 짧은 field 의 macro F1 을 12.5%p 떨어뜨렸는데 blob 지표로는 1.2%p 로만 보였다."
+   ],
+   "operational_complexity": "MEDIUM — 임베딩 모델 1개 + prototype 7문장 + 게이트 1개. 학습은 여전히 없음.",
+   "leakage_risk": {
+    "level": "LOW_TO_MEDIUM",
+    "mechanism": "semantic 단계가 `text_blob`/`identity` 를 쓰면 접근성 텍스트 의존도가 낮다 — C 의 LOO ablation 에서 `aria_labels` 의 기여는 Δ+0.035, `form_labels` Δ+0.030 에 불과하고 `input_names`·`placeholders` 는 blob 안에서 오히려 노이즈다. 대신 브랜드/업종 어휘 순환이라는 **다른 종류의 누출**이 남는다.",
+    "measured": {
+     "n_determined": 40,
+     "phi_determined_vs_aria_labels_empty": 0.1414,
+     "perm_p_aria": 0.2814,
+     "phi_determined_vs_control_surface_empty": 0.0594,
+     "perm_p_control_surface": 0.978,
+     "determination_rate_when_aria_empty": [
+      16,
+      20
+     ],
+     "determination_rate_when_aria_present": [
+      24,
+      36
+     ],
+     "median_n_accessible_name_sources_determined": 144.5,
+     "median_n_accessible_name_sources_abstained": 116.5
+    },
+    "measured_semantic_only": {
+     "n_determined": 34,
+     "phi_determined_vs_aria_labels_empty": 0.1417,
+     "perm_p_aria": 0.3094,
+     "phi_determined_vs_control_surface_empty": 0.1236,
+     "perm_p_control_surface": 0.4451,
+     "determination_rate_when_aria_empty": [
+      14,
+      20
+     ],
+     "determination_rate_when_aria_present": [
+      20,
+      36
+     ],
+     "median_n_accessible_name_sources_determined": 152.0,
+     "median_n_accessible_name_sources_abstained": 96.5
+    }
+   },
+   "explainability": "MEDIUM. 1단계는 술어 provenance 가 남지만 2단계는 코사인 순위라 '왜 이 archetype 인가'를 field 수준으로 되짚을 수 없다. C 의 LOO ablation 이 사후 해부의 유일한 경로다.",
+   "cost": "coverage 를 얻는 대신 '무엇을 관측했는가'가 흐려진다. 그리고 D-FACT-01 때문에 이 후보의 관측된 이득은 **업종 배정 재현율의 이득**으로만 확인됐다."
+  },
+  {
+   "candidate_id": "H3",
+   "name": "Hierarchical Interaction Rule → field-specific semantic ranking → conflict = ABSTAIN",
+   "status": "RETAINED_BUT_ALREADY_PARTIALLY_REFUTED — 목록에서 지우지 않는다",
+   "retention_rationale": "반증된 후보를 지우면 다음 사람이 같은 설계를 다시 제안한다. 반증 사실과 함께 남기는 것이 이 문서의 산출물이다.",
+   "one_line": "interaction primitive 를 먼저 가르고(L1), primitive 안에서 field 별 semantic 순위로 archetype 을 정하고, 충돌하면 abstain 한다.",
+   "deterministic_portion": "L1 primitive 판정 + L2 후보 제한 + 충돌 게이트.",
+   "semantic_portion": "L2 — primitive member 로 제한된 후보 위의 field-specific 유사도 순위.",
+   "required_evidence": {
+    "slots": [
+     "L0 landing snapshot (DOM + AX)"
+    ],
+    "fields": "L1 은 20개 atomic predicate(SEARCH_INPUT / ITEM_CARDS / PRICE / TXN_CTRL / LOGIN_GATE / FIN_HEAD / TOOL_PRIMARY …), L2 는 field 별로 분리된 텍스트 표면.",
+    "note": "field-specific 이라는 요구가 곧 이 후보의 최대 약점이다 — 아래 refuted_by 참조."
+   },
+   "supported_by": [
+    {
+     "child": "D-RF2-D",
+     "evidence": "L2 에서 손실이 **0** 이다(16/16). 일단 L1 이 닫히면 그 안에서는 후보가 갈리지 않는다 — 계층 아이디어의 유일한 관측된 장점."
+    },
+    {
+     "child": "D-RF2-D",
+     "evidence": "계층이 flat 을 잃지 않고 감싼다(S2): 두 구조가 같이 매핑한 14건에서 예측이 100% 동일하고, flat 만 매핑한 건이 0 이다. coverage 는 14→16."
+    },
+    {
+     "child": "D-RF2-C",
+     "evidence": "field 마다 정보량이 실제로 다르다(macro F1 0.030~0.559, between-field sd 가 prototype 노이즈 sd 의 3.3배) — field-specific 이라는 발상 자체는 근거가 있다."
+    }
+   ],
+   "refuted_by": [
+    {
+     "child": "D-RF2-D",
+     "evidence": "**핵심 반증.** 계층 이득이 0 이다. flat 과 hier 의 prior 일치 여부가 target 단위로 완전히 같다 — McNemar b=0, c=0. 늘어난 coverage 2건은 둘 다 prior 불일치라 prior_agreement 는 5/56 → 5/56 으로 불변이다."
+    },
+    {
+     "child": "D-RF2-D",
+     "evidence": "병목은 L1 이다. Stage0 6 / L1 무후보 19 / L1 다중후보 15 로 40건을 L1 에서 잃고 L2 에서는 0건을 잃는다. 계층을 넣어도 손실 구조가 바뀌지 않는다."
+    },
+    {
+     "child": "D-RF2-D",
+     "evidence": "L1 은 쉽지 않다. L1 이 닫은 16건의 prior primitive 일치 9/16=0.5625 는 같은 16건의 다수결 기준선 13/16=0.8125 **보다 낮다**."
+    },
+    {
+     "child": "D-RF2-D",
+     "evidence": "L1 의 후보 제한이 semantic arm 에서 정보를 **뺀다**: 동일 16건에서 제한 없는 7-way argmax 9/16 → 제한 후 6/16 (McNemar p=0.375, 방향은 음)."
+    },
+    {
+     "child": "D-RF2-D",
+     "evidence": "SSOT §5 branch tree 는 primitive 위의 분할이 아니다 — PLACE_LOOKUP 과 COMMUNICATION_ENTRY 가 primitive 2개에 걸친다. 계층을 엄격히 강제하면(S2s) flat 이 확정하던 3건을 그 이유만으로 잃는다."
+    },
+    {
+     "child": "D-RF2-C",
+     "evidence": "**field-specific semantic 이 반증된다.** primary_controls 0.254 · first_screen_interaction 0.257 · accessibility_text 0.224 로 text_blob 0.509 의 절반 이하이며, 세 모델 모두에서 하위권이다. blob 예측과 controls 예측이 갈린 25건 중 blob 이 맞은 것이 23, controls 가 맞은 것이 2다."
+    },
+    {
+     "child": "D-RF2-A",
+     "evidence": "L1 이 겨냥한 list-family 얽힘은 국소 문제가 아니다 — family 6쌍의 평균 Jaccard(STRONG 0.145 / WEAK+ 0.548)가 나머지 15쌍(0.213 / 0.581)보다 오히려 **낮다**. 최강 얽힘 쌍은 F–U, Q–U 로 family 를 가로지른다."
+    }
+   ],
+   "observed_coverage_in_this_cohort": {
+    "hier_rule": {
+     "n": 16,
+     "coverage": 0.2857,
+     "wilson95": [
+      0.1842,
+      0.4148
+     ]
+    },
+    "flat_reference": {
+     "n": 14,
+     "coverage": 0.25
+    },
+    "prior_agreement_unchanged": "flat 5/56 = hier 5/56 (D-RF2-D §12)"
+   },
+   "expected_failure_modes": [
+    {
+     "E_type": "T04_SHARED_LIST_SIGNAL",
+     "why": "L1 이 없애려던 바로 그 유형인데 primitive 층이 그대로 재생산한다."
+    },
+    {
+     "E_type": "T03_MULTI_STRONG_CANDIDATE",
+     "why": "L1 다중후보 15건의 최빈 충돌이 '검색창 + 반복 카드'로 SSOT §6 이 든 그 사례다."
+    },
+    {
+     "E_type": "T02_WEAK_ONE_SIDED_EVIDENCE",
+     "why": "primitive 수준 R/E 도 결국 한쪽만 붙는다."
+    },
+    {
+     "E_type": "T09_CLIENT_RENDER_SPARSE",
+     "why": "field 를 쪼갤수록 빈 field 가 늘고, C 규약상 빈 representation 은 abstain 이다."
+    }
+   ],
+   "abstention_semantics": {
+    "principle": "E-RF2-E 의 결론을 그대로 받는다 — **표면부재(SURFACE_NOT_REPRESENTATIVE)와 관측손상(EVIDENCE_DEFECT)을 같은 leaf 로 묶지 않는다.** 처방이 정반대이기 때문이다: 전자는 target URL 재정의, 후자는 재수집.",
+    "required_leaves": [
+     {
+      "leaf": "SURFACE_NOT_REPRESENTATIVE",
+      "meaning": "관측된 표면이 대표기능면이 아니다 (E: T05 브랜드면 / T06 앱설치면 / T07 미렌더·error).",
+      "prescription": "target URL 감사. detector 개선이 아니다.",
+      "n_in_this_cohort_of_56": 28
+     },
+     {
+      "leaf": "EVIDENCE_DEFECT",
+      "meaning": "관측 자체가 손상됐다 (E: T09 렌더희소 / T10A 인코딩 / T10B 절단 / T11 오버레이 / T12 퇴화캡처).",
+      "prescription": "재수집 큐. 이 상태의 abstain 은 '미결정'이 아니라 '아직 안 봤다'다.",
+      "n_in_this_cohort_of_56": 34
+     },
+     {
+      "leaf": "GENUINELY_AMBIGUOUS",
+      "meaning": "표면은 관측됐고 손상도 없는데 정의상 후보가 갈린다 (E: T02/T03/T04).",
+      "prescription": "SSOT §5 술어 상호배타화 또는 §6 precedence 명문화. 수집 문제가 아니다.",
+      "n_in_this_cohort_of_56": 30
+     },
+     {
+      "leaf": "PRIOR_CONFLICT_UNRESOLVABLE_WITHOUT_LABEL",
+      "meaning": "관측 구조와 business prior 가 어긋난다 (E: T13). D 는 label 을 열지 않아 어느 쪽이 틀렸는지 못 가른다.",
+      "prescription": "독립 gold label. D 의 권한 밖이다.",
+      "n_in_this_cohort_of_56": 17
+     }
+    ],
+    "forbidden": "`AMBIGUOUS_UNRESOLVED` 단일 leaf. E-RF2-E 는 무발화 12건 중 11건이 표면부재 또는 관측손상으로 설명된다고 보고했다 — 단일 leaf 는 원인을 감춘다.",
+    "extra": "이 후보에는 **L1 abstain 과 L2 abstain 을 구분하는 leaf 가 추가로 필요하다.** D 의 관측에서 L1_MULTI 와 L1_NONE 은 원인이 다르고(전자는 정의, 후자는 증거), L2 손실은 0 이라 사실상 발생하지 않는다."
+   },
+   "calibration_requirements": [
+    "gold label 이 붙은 독립 calibration split — D 는 열지 않았고, 이것 없이는 어떤 threshold 도 정할 수 없다 (SSOT 01 §7).",
+    "평가 지표를 prior_agreement 로 두면 안 된다 — D-FACT-01 에 따라 그것은 업종 배정 재현율이다. prior 로 detector 를 튜닝하면 업종 분류기가 만들어진다.",
+    "abstention leaf 4종(위)의 판정식 — 어휘사전·경로마커·구성요소 임계는 현재 전부 D 의 조작화다.",
+    "재수집 반사실 검증 — E 의 RESOLVABLE 판정은 가설이지 결과가 아니다 (E limitation 4번).",
+    "**선행조건**: SSOT §5 를 primitive 분할이 되도록 재정의해야 한다 — 7 archetype 변경이므로 A 결정 사항이다. D 는 제안만 한다.",
+    "field 별 prototype 을 따로 둘지 — C 는 field 별로 문구를 바꾸면 field 비교가 무너진다고 보고 동일 세트를 강제했다. field-specific 을 하려면 이 규약부터 다시 세워야 한다.",
+    "primitive 경계의 독립 검증 — D 의 L1 정의는 SSOT §5 endpoint 절에서 유도한 `DEFINITION` 이며 검증받지 않았다."
+   ],
+   "operational_complexity": "HIGH — 2층 규칙 + field 별 임베딩 + 충돌 게이트. 세 후보 중 가장 비싸다.",
+   "leakage_risk": {
+    "level": "HIGH — 세 후보 중 최대",
+    "mechanism": "field-specific semantic 의 '좋은 field' 후보가 정확히 접근성 표면(aria_labels / form_labels / placeholders / input_names)이다. C 가 지적한 위험이 이 후보에서 최대가 된다: 접근성이 나쁜 페이지에서 Axis A 와 RF detector 가 **함께** 무너져 SSOT 의 세 축 독립이 통계적으로 깨진다.",
+    "measured": {
+     "n_determined": 16,
+     "phi_determined_vs_aria_labels_empty": -0.2239,
+     "perm_p_aria": 0.0878,
+     "phi_determined_vs_control_surface_empty": -0.198,
+     "perm_p_control_surface": 0.2695,
+     "determination_rate_when_aria_empty": [
+      3,
+      20
+     ],
+     "determination_rate_when_aria_present": [
+      13,
+      36
+     ],
+     "median_n_accessible_name_sources_determined": 163.5,
+     "median_n_accessible_name_sources_abstained": 134.5
+    },
+    "measured_reading": "이 코호트에서 H3 의 확정률은 aria_labels 가 빈 20건에서 3/20, 있는 36건에서 13/36 이다. phi 는 세 후보 중 가장 음수다. n=56 이라 잡음 규모(±0.13)와 겹치므로 **후보 간 상대 비교로만** 읽어야 한다."
+   },
+   "explainability": "MEDIUM-HIGH for L1 (술어 추적 가능), LOW for L2 (field 별 코사인). 단 두 층으로 나뉘어 실패 지점을 특정하기는 쉽다 — D 가 '병목은 L1' 이라고 말할 수 있었던 것이 이 구조 덕이다.",
+   "cost": "가장 비싼 구조에 대해 **관측된 이득이 정확히 0** 이다. 그리고 그 구조를 제대로 만들려면 SSOT 의 archetype 정의를 먼저 손대야 한다."
+  },
+  {
+   "candidate_id": "H4",
+   "name": "Evidence-admissibility gate → single semantic ranking → margin low = ABSTAIN (rule 단계 없음)",
+   "status": "NEW_CANDIDATE_ADDED_BY_SYNTHESIS",
+   "addition_rationale": "최소 후보 3개는 전부 '규칙 먼저'를 공유한다. A~E 를 합치면 그 공유 전제 자체가 이 표본에서 지지되지 않는다 — 그래서 그 전제를 뺀 대조 후보를 하나 세운다. 이것은 추천이 아니라 **대조군**이다.",
+   "one_line": "규칙으로 archetype 을 고르지 않는다. 규칙은 오직 '이 관측이 판정 가능한가'를 게이트하고(Stage-0 + 표면부재/관측손상 판정), 통과한 것만 하나의 semantic 순위에 넘긴다.",
+   "deterministic_portion": "evidence admissibility 만 — Stage-0, E 의 표면부재/관측손상 유형 판정, 인코딩 검증. archetype 선택에는 규칙을 쓰지 않는다.",
+   "semantic_portion": "단일 representation × 7 frozen prototype × margin 게이트.",
+   "required_evidence": {
+    "slots": [
+     "L0 landing snapshot (DOM + AX)"
+    ],
+    "fields": "admissibility 판정용 구조 신호 + semantic 용 `text_blob` 또는 `identity` 1개."
+   },
+   "supported_by": [
+    {
+     "child": "D-RF2-F",
+     "evidence": "같은 coverage 에서 semantic-only 가 rule-first cascade 를 모든 대조점에서 이긴다(Δ ≤ 0 전부). 규칙 단계를 빼는 것이 이 표본에서 손해가 아니다."
+    },
+    {
+     "child": "D-RF2-D",
+     "evidence": "계층 없는 7-way semantic argmax 를 전부 강제매핑하면 29/56 = 0.518 인데 어떤 규칙 구조도 overall 6/56 = 0.107 를 넘지 못한다. 이 격차가 flat-대-계층 격차보다 훨씬 크다."
+    },
+    {
+     "child": "D-RF2-E",
+     "evidence": "표면부재/관측손상을 별도 leaf 로 올리라는 E 의 처방을 구조의 1단계로 승격한 형태다. 무발화 12건 중 11건이 이 두 계열로 설명된다."
+    }
+   ],
+   "refuted_by": [
+    {
+     "child": "D-RF2-E",
+     "evidence": "**가장 무거운 반증.** 표면부재 유형을 먼저 abstain 시킨 캐스케이드는 같은 coverage 에서 prior_agreement 가 오히려 **낮다**. 브랜드/앱 랜딩면에서는 semantic 이 잘 맞는데, 그건 대표기능을 읽어서가 아니라 **업종을 맞혀서**다. 즉 이 후보의 게이트는 지표를 떨어뜨리는데 그것이 오히려 옳을 수 있다 — 지표가 D-FACT-01 때문에 잘못된 것을 재고 있기 때문이다. 이 후보는 **현재 지표로는 평가 자체가 불가능하다.**"
+    },
+    {
+     "child": "D-RF2-C",
+     "evidence": "semantic 단독의 신호는 identity 순환에 취약하다. `title` 0.559 → 브랜드 마스킹 0.357, `url_tokens` 0.361 → 0.138. 규칙을 빼면 이 순환을 견제할 구조가 하나도 남지 않는다."
+    },
+    {
+     "child": "D-RF2-A",
+     "evidence": "규칙 단계를 빼면 '어떤 관측 때문에 이렇게 판정했는가'의 provenance 가 사라진다. A 의 per-target signal provenance 가 가능했던 것은 규칙이 있었기 때문이다."
+    },
+    {
+     "child": "D-RF2-B",
+     "evidence": "구조 feature 가 판정에 전혀 들어가지 않으므로, 텍스트가 손상된 target 에서 대안이 없다."
+    }
+   ],
+   "observed_coverage_in_this_cohort": {
+    "semantic_only_at_declared_gate": {
+     "n": 34,
+     "coverage": 0.6071
+    },
+    "matched_coverage_comparison": [
+     {
+      "coverage_n": 56,
+      "coverage": 1.0,
+      "semantic_only_prior_agreement": 0.6786,
+      "semantic_only_wilson95": [
+       0.5482,
+       0.786
+      ],
+      "semantic_only_debranded_prior_agreement": 0.6964,
+      "rule_first_cascade_prior_agreement": 0.6429,
+      "rule_first_cascade_wilson95": [
+       0.5119,
+       0.7554
+      ],
+      "delta_cascade_minus_semantic_only": -0.0357
+     },
+     {
+      "coverage_n": 54,
+      "coverage": 0.9643,
+      "semantic_only_prior_agreement": 0.6852,
+      "semantic_only_wilson95": [
+       0.5526,
+       0.7932
+      ],
+      "semantic_only_debranded_prior_agreement": 0.6852,
+      "rule_first_cascade_prior_agreement": 0.6481,
+      "rule_first_cascade_wilson95": [
+       0.5148,
+       0.7618
+      ],
+      "delta_cascade_minus_semantic_only": -0.037
+     },
+     {
+      "coverage_n": 52,
+      "coverage": 0.9286,
+      "semantic_only_prior_agreement": 0.7115,
+      "semantic_only_wilson95": [
+       0.5773,
+       0.8167
+      ],
+      "semantic_only_debranded_prior_agreement": 0.7115,
+      "rule_first_cascade_prior_agreement": 0.6538,
+      "rule_first_cascade_wilson95": [
+       0.518,
+       0.7685
+      ],
+      "delta_cascade_minus_semantic_only": -0.0577
+     },
+     {
+      "coverage_n": 50,
+      "coverage": 0.8929,
+      "semantic_only_prior_agreement": 0.72,
+      "semantic_only_wilson95": [
+       0.5833,
+       0.8253
+      ],
+      "semantic_only_debranded_prior_agreement": 0.74,
+      "rule_first_cascade_prior_agreement": 0.68,
+      "rule_first_cascade_wilson95": [
+       0.5419,
+       0.7924
+      ],
+      "delta_cascade_minus_semantic_only": -0.04
+     },
+     {
+      "coverage_n": 48,
+      "coverage": 0.8571,
+      "semantic_only_prior_agreement": 0.7292,
+      "semantic_only_wilson95": [
+       0.59,
+       0.8343
+      ],
+      "semantic_only_debranded_prior_agreement": 0.75,
+      "rule_first_cascade_prior_agreement": 0.6667,
+      "rule_first_cascade_wilson95": [
+       0.5254,
+       0.7832
+      ],
+      "delta_cascade_minus_semantic_only": -0.0625
+     },
+     {
+      "coverage_n": 46,
+      "coverage": 0.8214,
+      "semantic_only_prior_agreement": 0.7391,
+      "semantic_only_wilson95": [
+       0.5974,
+       0.844
+      ],
+      "semantic_only_debranded_prior_agreement": 0.7609,
+      "rule_first_cascade_prior_agreement": 0.6957,
+      "rule_first_cascade_wilson95": [
+       0.5519,
+       0.8092
+      ],
+      "delta_cascade_minus_semantic_only": -0.0435
+     },
+     {
+      "coverage_n": 44,
+      "coverage": 0.7857,
+      "semantic_only_prior_agreement": 0.7727,
+      "semantic_only_wilson95": [
+       0.6301,
+       0.8716
+      ],
+      "semantic_only_debranded_prior_agreement": 0.75,
+      "rule_first_cascade_prior_agreement": 0.7273,
+      "rule_first_cascade_wilson95": [
+       0.5815,
+       0.8365
+      ],
+      "delta_cascade_minus_semantic_only": -0.0455
+     },
+     {
+      "coverage_n": 42,
+      "coverage": 0.75,
+      "semantic_only_prior_agreement": 0.8095,
+      "semantic_only_wilson95": [
+       0.667,
+       0.9002
+      ],
+      "semantic_only_debranded_prior_agreement": 0.7857,
+      "rule_first_cascade_prior_agreement": 0.7143,
+      "rule_first_cascade_wilson95": [
+       0.5643,
+       0.8283
+      ],
+      "delta_cascade_minus_semantic_only": -0.0952
+     }
+    ],
+    "caveat": "이 수치는 업종 배정 재현율이다. 대표기능 성능이 아니다 (D-FACT-01)."
+   },
+   "expected_failure_modes": [
+    {
+     "E_type": "T05_GENERIC_BRAND_LANDING",
+     "why": "게이트가 잡아내지만, 잡아낸 뒤 지표가 나빠진다 — 위 반증 참조."
+    },
+    {
+     "E_type": "T13_PRIOR_CONTRADICTS_STRUCTURE",
+     "why": "구조 증거를 안 쓰므로 prior 와 구조의 불일치를 관측할 수단이 없다."
+    },
+    {
+     "E_type": "T10A_TEXT_ENCODING_CORRUPTION",
+     "why": "텍스트에 전량 의존하므로 인코딩 손상이 치명적이다. 게이트가 반드시 앞서야 한다."
+    }
+   ],
+   "abstention_semantics": {
+    "principle": "E-RF2-E 의 결론을 그대로 받는다 — **표면부재(SURFACE_NOT_REPRESENTATIVE)와 관측손상(EVIDENCE_DEFECT)을 같은 leaf 로 묶지 않는다.** 처방이 정반대이기 때문이다: 전자는 target URL 재정의, 후자는 재수집.",
+    "required_leaves": [
+     {
+      "leaf": "SURFACE_NOT_REPRESENTATIVE",
+      "meaning": "관측된 표면이 대표기능면이 아니다 (E: T05 브랜드면 / T06 앱설치면 / T07 미렌더·error).",
+      "prescription": "target URL 감사. detector 개선이 아니다.",
+      "n_in_this_cohort_of_56": 28
+     },
+     {
+      "leaf": "EVIDENCE_DEFECT",
+      "meaning": "관측 자체가 손상됐다 (E: T09 렌더희소 / T10A 인코딩 / T10B 절단 / T11 오버레이 / T12 퇴화캡처).",
+      "prescription": "재수집 큐. 이 상태의 abstain 은 '미결정'이 아니라 '아직 안 봤다'다.",
+      "n_in_this_cohort_of_56": 34
+     },
+     {
+      "leaf": "GENUINELY_AMBIGUOUS",
+      "meaning": "표면은 관측됐고 손상도 없는데 정의상 후보가 갈린다 (E: T02/T03/T04).",
+      "prescription": "SSOT §5 술어 상호배타화 또는 §6 precedence 명문화. 수집 문제가 아니다.",
+      "n_in_this_cohort_of_56": 30
+     },
+     {
+      "leaf": "PRIOR_CONFLICT_UNRESOLVABLE_WITHOUT_LABEL",
+      "meaning": "관측 구조와 business prior 가 어긋난다 (E: T13). D 는 label 을 열지 않아 어느 쪽이 틀렸는지 못 가른다.",
+      "prescription": "독립 gold label. D 의 권한 밖이다.",
+      "n_in_this_cohort_of_56": 17
+     }
+    ],
+    "forbidden": "`AMBIGUOUS_UNRESOLVED` 단일 leaf. E-RF2-E 는 무발화 12건 중 11건이 표면부재 또는 관측손상으로 설명된다고 보고했다 — 단일 leaf 는 원인을 감춘다.",
+    "extra": "이 후보에서 abstain 은 두 곳에서만 나온다 — admissibility 게이트(SURFACE_NOT_REPRESENTATIVE / EVIDENCE_DEFECT)와 margin 게이트(LOW_CONFIDENCE_SEMANTIC). GENUINELY_AMBIGUOUS 를 관측할 수단이 없다는 것이 이 구조의 구조적 맹점이다."
+   },
+   "calibration_requirements": [
+    "gold label 이 붙은 독립 calibration split — D 는 열지 않았고, 이것 없이는 어떤 threshold 도 정할 수 없다 (SSOT 01 §7).",
+    "평가 지표를 prior_agreement 로 두면 안 된다 — D-FACT-01 에 따라 그것은 업종 배정 재현율이다. prior 로 detector 를 튜닝하면 업종 분류기가 만들어진다.",
+    "abstention leaf 4종(위)의 판정식 — 어휘사전·경로마커·구성요소 임계는 현재 전부 D 의 조작화다.",
+    "재수집 반사실 검증 — E 의 RESOLVABLE 판정은 가설이지 결과가 아니다 (E limitation 4번).",
+    "admissibility 판정식의 독립 검증 — 현재 E 의 유형 판정식은 전부 D 의 조작화다.",
+    "brand/domain-vocabulary ablation — 브랜드 문자열만이 아니라 업종 어휘까지 지운 조건에서 신호가 남는지. C 의 최우선 후속질문이다.",
+    "margin threshold — D 는 정하지 않는다."
+   ],
+   "operational_complexity": "LOW-MEDIUM — 규칙 트리가 없고 게이트 + 임베딩 1개.",
+   "leakage_risk": {
+    "level": "LOW for accessibility-axis coupling, HIGH for identity circularity",
+    "mechanism": "접근성 표면을 분류 feature 로 쓰지 않으므로 C 가 경고한 축 결합은 가장 약하다. 대신 '업종을 맞히고 대표기능을 맞혔다고 말하는' 순환이 견제 없이 남는다.",
+    "measured": {
+     "n_determined": 34,
+     "phi_determined_vs_aria_labels_empty": 0.1417,
+     "perm_p_aria": 0.3094,
+     "phi_determined_vs_control_surface_empty": 0.1236,
+     "perm_p_control_surface": 0.4451,
+     "determination_rate_when_aria_empty": [
+      14,
+      20
+     ],
+     "determination_rate_when_aria_present": [
+      20,
+      36
+     ],
+     "median_n_accessible_name_sources_determined": 152.0,
+     "median_n_accessible_name_sources_abstained": 96.5
+    }
+   },
+   "explainability": "LOW. 게이트는 설명되지만 archetype 선택은 코사인 순위 하나다.",
+   "cost": "provenance 와 구조 증거를 통째로 포기한다. 그 대가로 이 표본에서 가장 높은 업종 재현율을 얻는다."
+  }
+ ],
+ "counterexamples": [
+  {
+   "kind": "세 구현이 모두 확정한 유일한 target — 그런데 prior 와 불일치",
+   "detail": {
+    "wtg": "4feab7e61bf642e8",
+    "service": "CJ온스타일",
+    "prior_archetype": "ITEM_DETAIL",
+    "A": "QUERY",
+    "D": "QUERY",
+    "E": "QUERY"
+   },
+   "reading": "'세 구현이 합의하면 믿을 만하다'는 직관의 반례다. 세 독립 lexicon 이 모두 QUERY 로 닫았는데 prior 는 ITEM_DETAIL 이다. 합의는 타당성이 아니라 '랜딩에서 검색창이 가장 완결된 affordance' 라는 같은 편향의 공유일 수 있다."
+  },
+  {
+   "kind": "semantic 이 규칙보다 항상 나은 것은 아니다",
+   "detail": "D-RF2-E: T03_MULTI_STRONG_CANDIDATE 6건에서 semantic 불일치 0.67 > rule 0.50",
+   "reading": "SSOT §6 → §7 캐스케이드의 핵심 전제(§7 이 다중후보를 가른다)가 이 표본에서 반증 방향이다."
+  },
+  {
+   "kind": "표면부재를 먼저 걸러내면 지표가 나빠진다",
+   "detail": "D-RF2-E: T05/T06/T07 을 먼저 abstain 시킨 캐스케이드는 같은 coverage 에서 prior_agreement 가 낮다",
+   "reading": "올바른 처방이 지표를 떨어뜨린다. 지표가 대표기능이 아니라 업종을 재고 있기 때문이다(D-FACT-01). **이 반례는 지표 자체를 반증한다.**"
+  },
+  {
+   "kind": "control 표면이 이기는 2건",
+   "detail": "D-RF2-C §11: TikTok(prior CONTENT_OPEN — blob 은 COMMUNICATION_ENTRY, controls 는 CONTENT_OPEN), 네이버(prior QUERY — blob 은 ITEM_DETAIL, controls 는 QUERY)",
+   "reading": "H3 의 field-specific 발상이 23:2 로 졌지만 0:25 는 아니다. 네이버 첫 화면 전체 텍스트는 쇼핑·뉴스 카드로 덮여 ITEM_DETAIL 로 끌려가는데 검색 버튼의 aria-label 은 QUERY 를 정확히 가리킨다. 'controls 가 무의미하다'는 반대 극단도 틀렸다."
+  },
+  {
+   "kind": "어떤 유형으로도 설명되지 않는 잔여",
+   "detail": "D-RF2-E: 컴포즈커피 1건 — blob 19토큰, dom_body_empty=0, 인코딩 정상인데 아무 유형에도 안 걸린다",
+   "reading": "abstention taxonomy 의 완결성 상한. REAL_TARGET 규모에서 이 잔여가 몇 %인지는 미지수다."
+  }
+ ],
+ "per_target": [
+  {
+   "wtg": "054d78ed187cdd9f",
+   "service": "쿠팡이츠",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "UTILITY_ENTRY",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "COMMUNICATION_ENTRY",
+   "E_sem_margin": 0.0011950135231018066,
+   "E_sem_top1_debranded": "CONTENT_OPEN",
+   "E_sem_margin_debranded": 0.01196637749671936,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T05_GENERIC_BRAND_LANDING",
+    "T06_APP_INSTALL_SURFACE"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 200.0,
+   "n_accessible_name_sources": 68.0,
+   "ssot7_components_present": 6,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "088809bf9b31bc6a",
+   "service": "삼성카드",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 6,
+   "E_rule_conf": 2.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.03329223394393921,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.03259855508804321,
+   "E_types": [
+    "T03_MULTI_STRONG_CANDIDATE",
+    "T08_LOGIN_DOMINATED",
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T11_OVERLAY_OBSTRUCTED"
+   ],
+   "E_primary_type": "T11_OVERLAY_OBSTRUCTED",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 350.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 8,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "12e3942c0495b9a4",
+   "service": "GS25",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "PLACE_LOOKUP",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": true,
+   "D_hier_pred": "CONTENT_OPEN",
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.020775824785232544,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.028401345014572144,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T05_GENERIC_BRAND_LANDING",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 377.0,
+   "n_accessible_name_sources": 251.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "22ffba7a86ea9919",
+   "service": "코스트코",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "QUERY",
+   "D_hier_det": true,
+   "D_hier_pred": "QUERY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": true,
+   "E_pred": "QUERY",
+   "E_n_fired": 5,
+   "E_rule_conf": 2.5,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.018253952264785767,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.030115783214569092,
+   "E_types": [
+    "T08_LOGIN_DOMINATED",
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T10B_TEXT_CAP_TRUNCATION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": true,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 402.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 8,
+   "n_rule_impl_determining": 2
+  },
+  {
+   "wtg": "5beeafeac2e27eae",
+   "service": "TikTok",
+   "prior_archetype": "CONTENT_OPEN",
+   "prior_business_domain": "CONTENT_VIDEO",
+   "A_strong": [
+    "COMMUNICATION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "UTILITY_ENTRY",
+   "D_hier_det": true,
+   "D_hier_pred": "UTILITY_ENTRY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "COMMUNICATION_ENTRY",
+   "E_sem_margin": 0.012631475925445557,
+   "E_sem_top1_debranded": "COMMUNICATION_ENTRY",
+   "E_sem_margin_debranded": 0.016819000244140625,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T06_APP_INSTALL_SURFACE",
+    "T08_LOGIN_DOMINATED",
+    "T11_OVERLAY_OBSTRUCTED",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T06_APP_INSTALL_SURFACE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": "controls_right_blob_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 56.0,
+   "n_accessible_name_sources": 39.0,
+   "ssot7_components_present": 5,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "60d4d22e3809f780",
+   "service": "티맵",
+   "prior_archetype": "PLACE_LOOKUP",
+   "prior_business_domain": "MAP_MOBILITY",
+   "A_strong": [
+    "PLACE_LOOKUP"
+   ],
+   "A_weakplus": [
+    "PLACE_LOOKUP",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "PLACE_LOOKUP",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "PLACE_LOOKUP",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "PLACE_LOOKUP",
+   "E_sem_margin": 0.03273293375968933,
+   "E_sem_top1_debranded": "PLACE_LOOKUP",
+   "E_sem_margin_debranded": 0.032775551080703735,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T05_GENERIC_BRAND_LANDING"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 238.0,
+   "n_accessible_name_sources": 75.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "64d30ef262d8782d",
+   "service": "신한 SOL뱅크",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [],
+   "A_weakplus": [],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "S0_UNDETERMINED",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.04845729470252991,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.05532616376876831,
+   "E_types": [
+    "T07_REPRESENTATIVE_SURFACE_ABSENT",
+    "T09_CLIENT_RENDER_SPARSE",
+    "T12_DEGENERATE_OR_DUPLICATE_CAPTURE"
+   ],
+   "E_primary_type": "T07_REPRESENTATIVE_SURFACE_ABSENT",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": true,
+   "C_aria_empty": true,
+   "blob_tokens": 8.0,
+   "n_accessible_name_sources": null,
+   "ssot7_components_present": 1,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "65f15ce8fee25b24",
+   "service": "밴드",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "prior_business_domain": "SOCIAL_COMMUNICATION",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "COMMUNICATION_ENTRY",
+   "D_hier_det": true,
+   "D_hier_pred": "COMMUNICATION_ENTRY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "COMMUNICATION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "COMMUNICATION_ENTRY",
+   "E_sem_margin": 0.08727085590362549,
+   "E_sem_top1_debranded": "COMMUNICATION_ENTRY",
+   "E_sem_margin_debranded": 0.06492406129837036,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T05_GENERIC_BRAND_LANDING",
+    "T06_APP_INSTALL_SURFACE",
+    "T08_LOGIN_DOMINATED"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 109.0,
+   "n_accessible_name_sources": 53.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "8195b68ac17e42a3",
+   "service": "세븐일레븐",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "UTILITY_ENTRY",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.03574448823928833,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.03637361526489258,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T05_GENERIC_BRAND_LANDING"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 148.0,
+   "n_accessible_name_sources": 67.0,
+   "ssot7_components_present": 5,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "91b952863c62993d",
+   "service": "다음",
+   "prior_archetype": "QUERY",
+   "prior_business_domain": "PORTAL_SEARCH",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "PLACE_LOOKUP",
+    "QUERY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "PLACE_LOOKUP",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 8,
+   "E_rule_conf": 2.0,
+   "E_sem_top1": "PLACE_LOOKUP",
+   "E_sem_margin": 0.022076517343521118,
+   "E_sem_top1_debranded": "PLACE_LOOKUP",
+   "E_sem_margin_debranded": 0.026837944984436035,
+   "E_types": [
+    "T03_MULTI_STRONG_CANDIDATE",
+    "T04_SHARED_LIST_SIGNAL",
+    "T10B_TEXT_CAP_TRUNCATION"
+   ],
+   "E_primary_type": "T10B_TEXT_CAP_TRUNCATION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 349.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 6,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "b8b226f9fe32539a",
+   "service": "KB Pay",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [
+    "FINANCIAL_ACTION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "FINANCIAL_ACTION_ENTRY",
+   "D_hier_det": true,
+   "D_hier_pred": "FINANCIAL_ACTION_ENTRY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.05576527118682861,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.03748899698257446,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T08_LOGIN_DOMINATED",
+    "T10A_TEXT_ENCODING_CORRUPTION"
+   ],
+   "E_primary_type": "T10A_TEXT_ENCODING_CORRUPTION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 146.0,
+   "n_accessible_name_sources": 59.0,
+   "ssot7_components_present": 5,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "ccd84811932b237b",
+   "service": "카카오T",
+   "prior_archetype": "PLACE_LOOKUP",
+   "prior_business_domain": "MAP_MOBILITY",
+   "A_strong": [
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "PLACE_LOOKUP",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "UTILITY_ENTRY",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.01667669415473938,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.01819068193435669,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T05_GENERIC_BRAND_LANDING"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 139.0,
+   "n_accessible_name_sources": 51.0,
+   "ssot7_components_present": 6,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "cdce1ffd6b1b1e24",
+   "service": "디바이스 케어",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.01714026927947998,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.02946573495864868,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T05_GENERIC_BRAND_LANDING",
+    "T08_LOGIN_DOMINATED",
+    "T10A_TEXT_ENCODING_CORRUPTION"
+   ],
+   "E_primary_type": "T10A_TEXT_ENCODING_CORRUPTION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 315.0,
+   "n_accessible_name_sources": 149.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "dd2cec4c1fa2beec",
+   "service": "롯데백화점",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "UTILITY_ENTRY",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.04340428113937378,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.0174252986907959,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T02_WEAK_ONE_SIDED_EVIDENCE",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 177.0,
+   "n_accessible_name_sources": 155.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "e7bb158c1c8d9fe7",
+   "service": "마켓컬리",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [],
+   "A_weakplus": [
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.0781518816947937,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.07077780365943909,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T05_GENERIC_BRAND_LANDING",
+    "T11_OVERLAY_OBSTRUCTED"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 73.0,
+   "n_accessible_name_sources": 265.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "13ed070478ef62c3",
+   "service": "Netflix",
+   "prior_archetype": "CONTENT_OPEN",
+   "prior_business_domain": "CONTENT_VIDEO",
+   "A_strong": [
+    "COMMUNICATION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "QUERY",
+   "D_hier_det": true,
+   "D_hier_pred": "QUERY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 3,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "CONTENT_OPEN",
+   "E_sem_margin": 0.0003879070281982422,
+   "E_sem_top1_debranded": "UTILITY_ENTRY",
+   "E_sem_margin_debranded": 0.01420283317565918,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T08_LOGIN_DOMINATED",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T08_LOGIN_DOMINATED",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 278.0,
+   "n_accessible_name_sources": 50.0,
+   "ssot7_components_present": 8,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "190b4501e4415d5e",
+   "service": "V3 Mobile Plus",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "A_strong": [],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "QUERY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.00121992826461792,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.001892387866973877,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T10A_TEXT_ENCODING_CORRUPTION",
+    "T11_OVERLAY_OBSTRUCTED"
+   ],
+   "E_primary_type": "T10A_TEXT_ENCODING_CORRUPTION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 93.0,
+   "n_accessible_name_sources": 100.0,
+   "ssot7_components_present": 4,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "377983572bd38242",
+   "service": "다이소",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "PLACE_LOOKUP",
+   "E_det": true,
+   "E_pred": "QUERY",
+   "E_n_fired": 5,
+   "E_rule_conf": 2.5,
+   "E_sem_top1": "COMMUNICATION_ENTRY",
+   "E_sem_margin": 0.0065746307373046875,
+   "E_sem_top1_debranded": "COMMUNICATION_ENTRY",
+   "E_sem_margin_debranded": 0.009085208177566528,
+   "E_types": [
+    "T10B_TEXT_CAP_TRUNCATION"
+   ],
+   "E_primary_type": "T10B_TEXT_CAP_TRUNCATION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 286.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "4feab7e61bf642e8",
+   "service": "CJ온스타일",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "QUERY"
+   ],
+   "A_weakplus": [
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "QUERY",
+   "D_flat_det": true,
+   "D_flat_pred": "QUERY",
+   "D_hier_det": true,
+   "D_hier_pred": "QUERY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "QUERY",
+   "E_det": true,
+   "E_pred": "QUERY",
+   "E_n_fired": 2,
+   "E_rule_conf": 3.0,
+   "E_sem_top1": "QUERY",
+   "E_sem_margin": 0.00967174768447876,
+   "E_sem_top1_debranded": "QUERY",
+   "E_sem_margin_debranded": 0.01998540759086609,
+   "E_types": [
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T13_PRIOR_CONTRADICTS_STRUCTURE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": false,
+   "capture_defect": false,
+   "definition_ambiguous": false,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 112.0,
+   "n_accessible_name_sources": 126.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 3
+  },
+  {
+   "wtg": "5c614fc99631ce5e",
+   "service": "홈앤쇼핑",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": true,
+   "E_pred": "ITEM_DETAIL",
+   "E_n_fired": 4,
+   "E_rule_conf": 2.5,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.04361921548843384,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.054974913597106934,
+   "E_types": [
+    "T04_SHARED_LIST_SIGNAL",
+    "T08_LOGIN_DOMINATED",
+    "T10B_TEXT_CAP_TRUNCATION"
+   ],
+   "E_primary_type": "T10B_TEXT_CAP_TRUNCATION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 587.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "699a5e2f3f410152",
+   "service": "카카오톡",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "prior_business_domain": "SOCIAL_COMMUNICATION",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "QUERY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "S0_UNDETERMINED",
+   "D_flat_sem_pred": "QUERY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "COMMUNICATION_ENTRY",
+   "E_sem_margin": 0.002349287271499634,
+   "E_sem_top1_debranded": "COMMUNICATION_ENTRY",
+   "E_sem_margin_debranded": 0.003963202238082886,
+   "E_types": [
+    "T05_GENERIC_BRAND_LANDING",
+    "T07_REPRESENTATIVE_SURFACE_ABSENT"
+   ],
+   "E_primary_type": "T07_REPRESENTATIVE_SURFACE_ABSENT",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 320.0,
+   "n_accessible_name_sources": 88.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "6d5510a695d0a614",
+   "service": "네이버",
+   "prior_archetype": "QUERY",
+   "prior_business_domain": "PORTAL_SEARCH",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "QUERY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 4,
+   "E_rule_conf": 2.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.0008412003517150879,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.0026033222675323486,
+   "E_types": [
+    "T03_MULTI_STRONG_CANDIDATE",
+    "T10B_TEXT_CAP_TRUNCATION"
+   ],
+   "E_primary_type": "T10B_TEXT_CAP_TRUNCATION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "controls_right_blob_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 325.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "9390ef32addf32bf",
+   "service": "Chrome",
+   "prior_archetype": "QUERY",
+   "prior_business_domain": "PORTAL_SEARCH",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "QUERY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "QUERY",
+   "E_sem_margin": 0.03658205270767212,
+   "E_sem_top1_debranded": "QUERY",
+   "E_sem_margin_debranded": 0.02808135747909546,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T05_GENERIC_BRAND_LANDING",
+    "T08_LOGIN_DOMINATED",
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 521.0,
+   "n_accessible_name_sources": 132.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "b728911c9782edb8",
+   "service": "현대카드",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [
+    "FINANCIAL_ACTION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 5,
+   "E_rule_conf": 2.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.01324450969696045,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.012574732303619385,
+   "E_types": [
+    "T03_MULTI_STRONG_CANDIDATE",
+    "T08_LOGIN_DOMINATED",
+    "T11_OVERLAY_OBSTRUCTED"
+   ],
+   "E_primary_type": "T11_OVERLAY_OBSTRUCTED",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 330.0,
+   "n_accessible_name_sources": 197.0,
+   "ssot7_components_present": 8,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "be1e6feb78e5ef03",
+   "service": "emart24",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.031314194202423096,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.032575130462646484,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T05_GENERIC_BRAND_LANDING",
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T11_OVERLAY_OBSTRUCTED"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 309.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "e1fadb214cde51c0",
+   "service": "캐시워크",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "A_strong": [
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 5,
+   "E_rule_conf": 2.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.04694938659667969,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.025991469621658325,
+   "E_types": [
+    "T03_MULTI_STRONG_CANDIDATE",
+    "T06_APP_INSTALL_SURFACE",
+    "T08_LOGIN_DOMINATED"
+   ],
+   "E_primary_type": "T06_APP_INSTALL_SURFACE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 459.0,
+   "n_accessible_name_sources": 203.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "ea031f85e857140e",
+   "service": "메가커피",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "QUERY",
+   "D_hier_det": true,
+   "D_hier_pred": "QUERY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": true,
+   "E_pred": "QUERY",
+   "E_n_fired": 2,
+   "E_rule_conf": 3.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.04055511951446533,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.04545331001281738,
+   "E_types": [
+    "T08_LOGIN_DOMINATED",
+    "T10A_TEXT_ENCODING_CORRUPTION",
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T10A_TEXT_ENCODING_CORRUPTION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 200.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 2
+  },
+  {
+   "wtg": "ef06dc942ef3ccc9",
+   "service": "롯데하이마트",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [],
+   "A_weakplus": [],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "S0_UNDETERMINED",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.023592770099639893,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.023592770099639893,
+   "E_types": [
+    "T07_REPRESENTATIVE_SURFACE_ABSENT",
+    "T09_CLIENT_RENDER_SPARSE",
+    "T12_DEGENERATE_OR_DUPLICATE_CAPTURE"
+   ],
+   "E_primary_type": "T07_REPRESENTATIVE_SURFACE_ABSENT",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": true,
+   "C_aria_empty": true,
+   "blob_tokens": 5.0,
+   "n_accessible_name_sources": null,
+   "ssot7_components_present": 0,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "fdce1294fac3dfdb",
+   "service": "신세계백화점",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "COMMUNICATION_ENTRY",
+   "D_hier_det": true,
+   "D_hier_pred": "COMMUNICATION_ENTRY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 3,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.04433393478393555,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.010031461715698242,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T06_APP_INSTALL_SURFACE",
+    "T08_LOGIN_DOMINATED",
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T06_APP_INSTALL_SURFACE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 97.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 5,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "0ee385d0c964e560",
+   "service": "홈플러스",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": true,
+   "E_pred": "ITEM_DETAIL",
+   "E_n_fired": 4,
+   "E_rule_conf": 2.5,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.04751750826835632,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.07095107436180115,
+   "E_types": [
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T11_OVERLAY_OBSTRUCTED"
+   ],
+   "E_primary_type": "T11_OVERLAY_OBSTRUCTED",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 428.0,
+   "n_accessible_name_sources": 260.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "0f3bdb2bd0bb891e",
+   "service": "탑마트",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "UTILITY_ENTRY",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.031517744064331055,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.022587686777114868,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T05_GENERIC_BRAND_LANDING",
+    "T10A_TEXT_ENCODING_CORRUPTION"
+   ],
+   "E_primary_type": "T10A_TEXT_ENCODING_CORRUPTION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 170.0,
+   "n_accessible_name_sources": 145.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "35319a420294ee17",
+   "service": "토스",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [
+    "ITEM_DETAIL"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "ITEM_DETAIL",
+   "D_flat_det": true,
+   "D_flat_pred": "FINANCIAL_ACTION_ENTRY",
+   "D_hier_det": true,
+   "D_hier_pred": "FINANCIAL_ACTION_ENTRY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.014256805181503296,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.0411829948425293,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T05_GENERIC_BRAND_LANDING",
+    "T06_APP_INSTALL_SURFACE"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 243.0,
+   "n_accessible_name_sources": 93.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 2
+  },
+  {
+   "wtg": "517b8047eb5be716",
+   "service": "농협하나로마트",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "PLACE_LOOKUP",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.0017946958541870117,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.0006360709667205811,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T09_CLIENT_RENDER_SPARSE"
+   ],
+   "E_primary_type": "T09_CLIENT_RENDER_SPARSE",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": true,
+   "C_aria_empty": true,
+   "blob_tokens": 40.0,
+   "n_accessible_name_sources": 46.0,
+   "ssot7_components_present": 2,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "5ede56738376a8c5",
+   "service": "Instagram",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "prior_business_domain": "SOCIAL_COMMUNICATION",
+   "A_strong": [
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "UTILITY_ENTRY",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "QUERY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "COMMUNICATION_ENTRY",
+   "E_sem_margin": 0.03474617004394531,
+   "E_sem_top1_debranded": "COMMUNICATION_ENTRY",
+   "E_sem_margin_debranded": 0.014407336711883545,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T06_APP_INSTALL_SURFACE",
+    "T08_LOGIN_DOMINATED",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T06_APP_INSTALL_SURFACE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 64.0,
+   "n_accessible_name_sources": 10.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "888d37f34b5d3aaa",
+   "service": "롯데홈쇼핑",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "QUERY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "QUERY",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.00928342342376709,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.002490907907485962,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T04_SHARED_LIST_SIGNAL",
+    "T05_GENERIC_BRAND_LANDING"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 181.0,
+   "n_accessible_name_sources": 144.0,
+   "ssot7_components_present": 5,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "8fd5d30f8b1d707b",
+   "service": "하나은행",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.009337663650512695,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.0004552602767944336,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T10A_TEXT_ENCODING_CORRUPTION"
+   ],
+   "E_primary_type": "T10A_TEXT_ENCODING_CORRUPTION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 23.0,
+   "n_accessible_name_sources": 136.0,
+   "ssot7_components_present": 5,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "95967b50683649f2",
+   "service": "NH스마트뱅킹",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [],
+   "A_weakplus": [],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "S0_UNDETERMINED",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.019001632928848267,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.010831683874130249,
+   "E_types": [
+    "T07_REPRESENTATIVE_SURFACE_ABSENT",
+    "T09_CLIENT_RENDER_SPARSE",
+    "T11_OVERLAY_OBSTRUCTED",
+    "T12_DEGENERATE_OR_DUPLICATE_CAPTURE"
+   ],
+   "E_primary_type": "T07_REPRESENTATIVE_SURFACE_ABSENT",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": true,
+   "C_aria_empty": true,
+   "blob_tokens": 8.0,
+   "n_accessible_name_sources": 67.0,
+   "ssot7_components_present": 1,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "a215c45b2cc585ca",
+   "service": "에이닷 전화",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "A_strong": [],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "COMMUNICATION_ENTRY",
+   "E_sem_margin": 0.002760589122772217,
+   "E_sem_top1_debranded": "QUERY",
+   "E_sem_margin_debranded": 0.0013854503631591797,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T06_APP_INSTALL_SURFACE",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T06_APP_INSTALL_SURFACE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 81.0,
+   "n_accessible_name_sources": 8.0,
+   "ssot7_components_present": 6,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "c5285b96b598a08b",
+   "service": "배달의민족",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "PLACE_LOOKUP",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "PLACE_LOOKUP",
+   "E_sem_margin": 0.005605965852737427,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.002248615026473999,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T06_APP_INSTALL_SURFACE",
+    "T11_OVERLAY_OBSTRUCTED",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T06_APP_INSTALL_SURFACE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 36.0,
+   "n_accessible_name_sources": 41.0,
+   "ssot7_components_present": 5,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "e296af221a5f7128",
+   "service": "KB스타뱅킹",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [
+    "QUERY"
+   ],
+   "A_weakplus": [
+    "FINANCIAL_ACTION_ENTRY",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "QUERY",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.06095165014266968,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.06362080574035645,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T11_OVERLAY_OBSTRUCTED",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T11_OVERLAY_OBSTRUCTED",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 125.0,
+   "n_accessible_name_sources": 145.0,
+   "ssot7_components_present": 5,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "ed7b9bea21def8f8",
+   "service": "내 파일",
+   "prior_archetype": "UTILITY_ENTRY",
+   "prior_business_domain": "UTILITY_OTHER",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.00937303900718689,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.0006532371044158936,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T05_GENERIC_BRAND_LANDING",
+    "T08_LOGIN_DOMINATED",
+    "T10A_TEXT_ENCODING_CORRUPTION"
+   ],
+   "E_primary_type": "T10A_TEXT_ENCODING_CORRUPTION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 355.0,
+   "n_accessible_name_sources": 165.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "efda6e0b8457d63c",
+   "service": "네이버지도",
+   "prior_archetype": "PLACE_LOOKUP",
+   "prior_business_domain": "MAP_MOBILITY",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "PLACE_LOOKUP",
+   "E_det": true,
+   "E_pred": "PLACE_LOOKUP",
+   "E_n_fired": 5,
+   "E_rule_conf": 2.5,
+   "E_sem_top1": "PLACE_LOOKUP",
+   "E_sem_margin": 0.05896240472793579,
+   "E_sem_top1_debranded": "PLACE_LOOKUP",
+   "E_sem_margin_debranded": 0.06102806329727173,
+   "E_types": [],
+   "E_primary_type": "T00_UNCLASSIFIED",
+   "E_resolvability": "OTHER",
+   "surface_absent": false,
+   "capture_defect": false,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 397.0,
+   "n_accessible_name_sources": 251.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "24e6654bfd1ab85b",
+   "service": "YouTube",
+   "prior_archetype": "CONTENT_OPEN",
+   "prior_business_domain": "CONTENT_VIDEO",
+   "A_strong": [
+    "QUERY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "QUERY",
+   "D_flat_det": true,
+   "D_flat_pred": "QUERY",
+   "D_hier_det": true,
+   "D_hier_pred": "QUERY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "QUERY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 1,
+   "E_rule_conf": 1.5,
+   "E_sem_top1": "QUERY",
+   "E_sem_margin": 0.006771445274353027,
+   "E_sem_top1_debranded": "QUERY",
+   "E_sem_margin_debranded": 0.007211565971374512,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T10A_TEXT_ENCODING_CORRUPTION",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T10A_TEXT_ENCODING_CORRUPTION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 39.0,
+   "n_accessible_name_sources": 15.0,
+   "ssot7_components_present": 4,
+   "n_rule_impl_determining": 2
+  },
+  {
+   "wtg": "46e5a43370f75308",
+   "service": "당근",
+   "prior_archetype": "COMMUNICATION_ENTRY",
+   "prior_business_domain": "SOCIAL_COMMUNICATION",
+   "A_strong": [
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "PLACE_LOOKUP",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 4,
+   "E_rule_conf": 2.0,
+   "E_sem_top1": "PLACE_LOOKUP",
+   "E_sem_margin": 0.05756154656410217,
+   "E_sem_top1_debranded": "PLACE_LOOKUP",
+   "E_sem_margin_debranded": 0.054839909076690674,
+   "E_types": [
+    "T03_MULTI_STRONG_CANDIDATE"
+   ],
+   "E_primary_type": "T03_MULTI_STRONG_CANDIDATE",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 101.0,
+   "n_accessible_name_sources": 84.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "49a5eca8b58f7270",
+   "service": "11번가",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "QUERY",
+   "D_hier_det": true,
+   "D_hier_pred": "QUERY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "PLACE_LOOKUP",
+   "E_sem_margin": 0.004539936780929565,
+   "E_sem_top1_debranded": "COMMUNICATION_ENTRY",
+   "E_sem_margin_debranded": 0.0007038414478302002,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T06_APP_INSTALL_SURFACE",
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T06_APP_INSTALL_SURFACE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 66.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 6,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "51484a735cdb487b",
+   "service": "컴포즈커피",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "UTILITY_ENTRY"
+   ],
+   "A_det": true,
+   "A_pred": "UTILITY_ENTRY",
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "QUERY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "QUERY",
+   "E_sem_margin": 0.000153273344039917,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.006579279899597168,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED"
+   ],
+   "E_primary_type": "T01_NO_PREDICATE_FIRED",
+   "E_resolvability": "OTHER",
+   "surface_absent": false,
+   "capture_defect": false,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 19.0,
+   "n_accessible_name_sources": 11.0,
+   "ssot7_components_present": 4,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "7f6f1aa6dd218d4d",
+   "service": "이마트",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": true,
+   "D_hier_pred": "CONTENT_OPEN",
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.007176607847213745,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.00909307599067688,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T11_OVERLAY_OBSTRUCTED"
+   ],
+   "E_primary_type": "T11_OVERLAY_OBSTRUCTED",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 370.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "88cb7f1e54f26500",
+   "service": "롯데마트",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "S0_UNDETERMINED",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": true,
+   "E_pred": "ITEM_DETAIL",
+   "E_n_fired": 5,
+   "E_rule_conf": 2.5,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.04726618528366089,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.047977060079574585,
+   "E_types": [
+    "T04_SHARED_LIST_SIGNAL",
+    "T08_LOGIN_DOMINATED",
+    "T10B_TEXT_CAP_TRUNCATION"
+   ],
+   "E_primary_type": "T10B_TEXT_CAP_TRUNCATION",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 945.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "95e22b9aff7196b3",
+   "service": "NS홈쇼핑",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "ITEM_DETAIL"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "ITEM_DETAIL",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "ITEM_DETAIL",
+   "D_hier_det": true,
+   "D_hier_pred": "ITEM_DETAIL",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": true,
+   "E_pred": "ITEM_DETAIL",
+   "E_n_fired": 2,
+   "E_rule_conf": 3.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.06916233897209167,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.05541375279426575,
+   "E_types": [
+    "T06_APP_INSTALL_SURFACE",
+    "T10B_TEXT_CAP_TRUNCATION",
+    "T11_OVERLAY_OBSTRUCTED"
+   ],
+   "E_primary_type": "T06_APP_INSTALL_SURFACE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 235.0,
+   "n_accessible_name_sources": 300.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 2
+  },
+  {
+   "wtg": "bbdefa2950f49882",
+   "service": "Google",
+   "prior_archetype": "QUERY",
+   "prior_business_domain": "PORTAL_SEARCH",
+   "A_strong": [
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "QUERY",
+   "D_hier_det": true,
+   "D_hier_pred": "QUERY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "QUERY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "QUERY",
+   "E_sem_margin": 0.05171847343444824,
+   "E_sem_top1_debranded": "QUERY",
+   "E_sem_margin_debranded": 0.056539714336395264,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE"
+   ],
+   "E_primary_type": "T02_WEAK_ONE_SIDED_EVIDENCE",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 118.0,
+   "n_accessible_name_sources": 41.0,
+   "ssot7_components_present": 5,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "service": "현대백화점",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "CONTENT_OPEN",
+    "PLACE_LOOKUP",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "CONTENT_OPEN",
+   "E_det": true,
+   "E_pred": "PLACE_LOOKUP",
+   "E_n_fired": 4,
+   "E_rule_conf": 2.5,
+   "E_sem_top1": "CONTENT_OPEN",
+   "E_sem_margin": 0.0004404783248901367,
+   "E_sem_top1_debranded": "CONTENT_OPEN",
+   "E_sem_margin_debranded": 0.0006833374500274658,
+   "E_types": [
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T13_PRIOR_CONTRADICTS_STRUCTURE",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": false,
+   "capture_defect": false,
+   "definition_ambiguous": false,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 217.0,
+   "n_accessible_name_sources": 133.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "d5ae5426eac23877",
+   "service": "모니모",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [],
+   "A_weakplus": [
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.0009897947311401367,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.030229181051254272,
+   "E_types": [
+    "T01_NO_PREDICATE_FIRED",
+    "T09_CLIENT_RENDER_SPARSE"
+   ],
+   "E_primary_type": "T09_CLIENT_RENDER_SPARSE",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 16.0,
+   "n_accessible_name_sources": 25.0,
+   "ssot7_components_present": 2,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "e67be79550661604",
+   "service": "CU",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [
+    "FINANCIAL_ACTION_ENTRY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "COMMUNICATION_ENTRY",
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": true,
+   "D_flat_pred": "COMMUNICATION_ENTRY",
+   "D_hier_det": true,
+   "D_hier_pred": "COMMUNICATION_ENTRY",
+   "D_flat_outcome": "MAPPED",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.023244768381118774,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.030572324991226196,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T05_GENERIC_BRAND_LANDING",
+    "T06_APP_INSTALL_SURFACE"
+   ],
+   "E_primary_type": "T05_GENERIC_BRAND_LANDING",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 243.0,
+   "n_accessible_name_sources": 201.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "f322b894ee95c181",
+   "service": "카카오맵",
+   "prior_archetype": "PLACE_LOOKUP",
+   "prior_business_domain": "MAP_MOBILITY",
+   "A_strong": [
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "PLACE_LOOKUP",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_MULTI_BRANCH",
+   "D_flat_sem_pred": "PLACE_LOOKUP",
+   "E_det": true,
+   "E_pred": "PLACE_LOOKUP",
+   "E_n_fired": 4,
+   "E_rule_conf": 2.5,
+   "E_sem_top1": "PLACE_LOOKUP",
+   "E_sem_margin": 0.09169250726699829,
+   "E_sem_top1_debranded": "PLACE_LOOKUP",
+   "E_sem_margin_debranded": 0.10188925266265869,
+   "E_types": [
+    "T08_LOGIN_DOMINATED",
+    "T11_OVERLAY_OBSTRUCTED"
+   ],
+   "E_primary_type": "T11_OVERLAY_OBSTRUCTED",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": true,
+   "blob_tokens": 144.0,
+   "n_accessible_name_sources": 91.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 1
+  },
+  {
+   "wtg": "f9fbd771ffcdbd42",
+   "service": "G마켓",
+   "prior_archetype": "ITEM_DETAIL",
+   "prior_business_domain": "SHOPPING_COMMERCE",
+   "A_strong": [],
+   "A_weakplus": [
+    "CONTENT_OPEN",
+    "FINANCIAL_ACTION_ENTRY",
+    "ITEM_DETAIL",
+    "QUERY",
+    "UTILITY_ENTRY"
+   ],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "ABSTAIN_NO_BRANCH",
+   "D_flat_sem_pred": "ITEM_DETAIL",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 2,
+   "E_rule_conf": 1.0,
+   "E_sem_top1": "ITEM_DETAIL",
+   "E_sem_margin": 0.06206327676773071,
+   "E_sem_top1_debranded": "ITEM_DETAIL",
+   "E_sem_margin_debranded": 0.06099829077720642,
+   "E_types": [
+    "T02_WEAK_ONE_SIDED_EVIDENCE",
+    "T13_PRIOR_CONTRADICTS_STRUCTURE"
+   ],
+   "E_primary_type": "T02_WEAK_ONE_SIDED_EVIDENCE",
+   "E_resolvability": "RESOLVABLE",
+   "surface_absent": false,
+   "capture_defect": false,
+   "definition_ambiguous": true,
+   "prior_conflict": true,
+   "C_blob_vs_controls": null,
+   "C_control_surface_empty": false,
+   "C_aria_empty": false,
+   "blob_tokens": 96.0,
+   "n_accessible_name_sources": 41.0,
+   "ssot7_components_present": 7,
+   "n_rule_impl_determining": 0
+  },
+  {
+   "wtg": "fb3d1841dddfd982",
+   "service": "NH콕뱅크",
+   "prior_archetype": "FINANCIAL_ACTION_ENTRY",
+   "prior_business_domain": "FINANCE_PAYMENT",
+   "A_strong": [],
+   "A_weakplus": [],
+   "A_det": false,
+   "A_pred": null,
+   "D_flat_det": false,
+   "D_flat_pred": null,
+   "D_hier_det": false,
+   "D_hier_pred": null,
+   "D_flat_outcome": "S0_UNDETERMINED",
+   "D_flat_sem_pred": "FINANCIAL_ACTION_ENTRY",
+   "E_det": false,
+   "E_pred": null,
+   "E_n_fired": 0,
+   "E_rule_conf": 0.0,
+   "E_sem_top1": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin": 0.019001632928848267,
+   "E_sem_top1_debranded": "FINANCIAL_ACTION_ENTRY",
+   "E_sem_margin_debranded": 0.010831683874130249,
+   "E_types": [
+    "T07_REPRESENTATIVE_SURFACE_ABSENT",
+    "T09_CLIENT_RENDER_SPARSE",
+    "T11_OVERLAY_OBSTRUCTED",
+    "T12_DEGENERATE_OR_DUPLICATE_CAPTURE"
+   ],
+   "E_primary_type": "T07_REPRESENTATIVE_SURFACE_ABSENT",
+   "E_resolvability": "UNDECIDABLE_AT_THIS_URL",
+   "surface_absent": true,
+   "capture_defect": true,
+   "definition_ambiguous": false,
+   "prior_conflict": false,
+   "C_blob_vs_controls": "blob_right_controls_wrong",
+   "C_control_surface_empty": true,
+   "C_aria_empty": true,
+   "blob_tokens": 8.0,
+   "n_accessible_name_sources": 67.0,
+   "ssot7_components_present": 1,
+   "n_rule_impl_determining": 0
+  }
+ ],
+ "verdict": "PARTIALLY_SUPPORTED",
+ "verdict_note": "A~E 를 합치면 '무엇을 관측하면 무엇을 안다고 말할 수 있는가' 에 부분적으로만 답할 수 있다. 확실히 답할 수 있는 것: (1) 현재 L0 landing 증거로 **업종 배정**은 상당 부분 되찾을 수 있고, (2) **대표기능**을 안다고 말할 근거는 이 표본 안에 없다 — 두 라벨이 전단사라 구분이 원리적으로 불가능하다. 후보 architecture 3개는 모두 제출 가능하지만 셋 다 각각 다른 child 에게 반증당했고, 셋이 공유하는 '규칙 먼저' 전제는 이 표본에서 지지되지 않는다.",
+ "limitation": [
+  "**가장 무겁다 — 이 종합의 모든 정량 대조가 prior 를 기준으로 한다.** D-FACT-01 에 따라 prior_archetype 은 prior_business_domain 과 전단사이므로 모든 수치는 업종 배정 재현율이다. 'semantic-only 가 cascade 를 이긴다'는 **업종을 더 잘 되찾는다**는 뜻이며, 대표기능에 대해서는 어느 후보가 나은지 이 표본으로 **원리적으로** 말할 수 없다. 후보 선택은 gold label 없이 닫히지 않는다.",
+  "이 문서는 새 실험을 하지 않았다. A~E 의 산출물을 교차 종합한 2차 분석이며, 각 child 의 조작화(어휘사전·임계·prototype·유형 판정식)를 그대로 상속한다. 그 조작화가 틀렸다면 이 종합도 같이 틀린다.",
+  "세 rule 구현의 낮은 일치도(kappa −0.16~+0.13)는 '규칙이 나쁘다'가 아니라 '세 구현이 서로 다르다'는 관측이다. 어느 구현이 SSOT §5 를 더 충실히 조작화했는지 D 는 판정할 수 없다 — 판정하려면 SSOT 해석의 권위가 필요하고 그것은 A 에 있다.",
+  "n=56, 7 class 중 5개가 n≤5. 모든 하위집합 수치의 Wilson CI 가 넓다. 후보 간 coverage 차이는 대부분 CI 가 겹친다.",
+  "semantic 축 수치는 E 가 독립 재계산한 bge-m3 × A_SSOT_DEF × text_blob 하나에 의존한다. C 는 e5-small 에서 field 효과가 prototype 노이즈에 묻힌다고 보고했다 — 모델을 바꾸면 결론이 흔들린다.",
+  "leakage 노출 phi 는 n=56 에서 잡음 규모 ±0.13 과 겹친다. **후보 간 상대 비교로만** 읽어야 하고, 'H3 가 위험하다'는 정량 확증이 아니라 C 의 정성 경고에 방향이 일치한다는 관측이다.",
+  "E 의 해결가능성 판정(RESOLVABLE / UNDECIDABLE)은 반사실 주장이며 재수집 실험 전에는 가설이다. Q4 의 '원칙적 ABSTAIN 14건' 은 그 가설 위에 서 있다.",
+  "endpoint 를 정적 presence 로 강등한 것이 A·D·E 세 구현에 공통으로 들어 있다. 이 강등은 coverage 를 낙관적으로 올리는 방향이며, 상호작용 기반 endpoint 로는 세 구현 모두 coverage 가 줄고 no-evidence 가 는다.",
+  "이 문서는 production threshold 를 정하지 않았고 GO/NO-GO 를 내지 않았으며 best model 을 고르지 않았다."
+ ],
+ "next_research_questions": [
+  {
+   "id": "RQ-D-RF-002-f1",
+   "q": "세 rule 구현의 확정집합이 거의 겹치지 않는다(J 0.043~0.190). 이 불일치를 lexicon 축으로 분해할 수 있는가 — 세 구현의 어휘 교집합만으로 규칙을 다시 세우면 확정집합은 어떻게 되는가?",
+   "why": "'결정 가능한 target' 이 lexicon 의 성질인지 target 의 성질인지를 가르는 직접 실험."
+  },
+  {
+   "id": "RQ-D-RF-002-f2",
+   "q": "prior 가 아닌 기준으로 후보를 비교할 수 있는가 — representation·모델·prototype 을 바꿔도 예측이 안 바뀌는 target 집합(stability)을 기준으로 삼으면 D-FACT-01 을 우회할 수 있는가?",
+   "why": "D-SUP-01 이 이미 이 방향으로 갔다. 후보 비교의 유일한 prior-free 경로일 수 있다."
+  },
+  {
+   "id": "RQ-D-RF-002-f3",
+   "q": "규칙 단계를 뺐을 때 실제로 잃는 것(provenance · 반증가능성 · prior-구조 불일치 관측)을 정량화할 수 있는가?",
+   "why": "Q5 의 '최소 충분구조' 는 지표상 손해가 없지만 관측력에서는 손해다. 그 손해가 얼마인지는 안 쟀다."
+  },
+  {
+   "id": "RQ-D-RF-002-f4",
+   "q": "업종 어휘까지 마스킹한 조건에서 semantic 이 남기는 신호는 무엇인가? (C 의 최우선 후속질문. 브랜드 문자열만 지운 절제는 조악하다.)",
+   "why": "'semantic 인가 identity 인가' 를 닫는 유일한 D-내부 경로."
+  },
+  {
+   "id": "RQ-D-RF-002-f5",
+   "q": "표면부재 14건의 target URL 을 재정의하면 몇 건이 확정 가능해지는가? (E 의 target URL 감사)",
+   "why": "coverage 를 올리는 첫 시도가 detector 개선이 아니라 모집단 정의라는 주장의 검증."
+  },
+  {
+   "id": "RQ-D-RF-002-f6",
+   "q": "접근성 표면을 분류 feature 에서 완전히 배제한 detector 와 포함한 detector 를 같은 코호트에서 돌렸을 때, KWCAG 축 점수와 detector abstention 의 상관이 실제로 갈리는가?",
+   "why": "세 축 독립 위반은 현재 phi 관측(잡음 규모와 겹침)뿐이다. 설계된 대조가 필요하다."
+  }
+ ]
+}

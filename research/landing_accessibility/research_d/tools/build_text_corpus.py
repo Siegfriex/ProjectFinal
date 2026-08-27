@@ -67,6 +67,11 @@ def url_tokens(url: str) -> list[str]:
 
 def extract(dom: Path, url: str) -> dict:
     tree, _enc = parse_html(dom)
+    # D-DEF-04 시정: lxml 의 text_content() 는 중첩된 <style>/<script>/<noscript> 의
+    # 텍스트까지 포함한다. 그대로 두면 CSS 선언(flex·background·position…)이 landmarks·buttons
+    # 필드로 새어 들어가 NLP 실험에서 archetype 신호처럼 작동한다.
+    for bad in tree.xpath("//script | //style | //noscript | //template"):
+        bad.getparent().remove(bad)
     title_el = tree.find(".//title")
     meta = tree.xpath("//meta[@name='description']/@content")
     headings = texts(tree.xpath("//h1 | //h2 | //h3"), 25)
