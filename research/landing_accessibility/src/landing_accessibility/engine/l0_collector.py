@@ -256,21 +256,33 @@ def _overlap(a: dict[str, float] | None, b: dict[str, float] | None) -> float:
 
 
 def classify_interrupt(candidate: dict[str, Any]) -> tuple[ClassificationStatus, InterruptLabel]:
-    """`02 §5` 4차 의미분류 중 **결정적 1순위**만 수행한다.
+    """`02 §5` 4차 의미분류 — `D-R0-25` 순서 `deterministic rule → text/NLP → VLM → abstain`.
 
-    확정하지 못하면 `AMBIGUOUS` + `UNKNOWN` 이다 (`A2` 규칙 I-1).
-    억지로 라벨을 고르지 않는다 — semantic/VLM 단계는 `ai_review` 층의 일이다.
+    이 lane 은 앞의 두 단계까지만 구현한다 (`W4` 범위). **VLM 은 붙이지 않는다** — 구조
+    신호로도 텍스트 어휘로도 확정하지 못하면 `AMBIGUOUS` + `UNKNOWN` 으로 abstain 한다
+    (`A2` 규칙 I-1). 억지로 라벨을 고르지 않는다.
+
+    | tier | 근거 | `classification_status` |
+    |---|---|---|
+    | 1 deterministic rule | `candidate_sources`(dialog/aria-modal/sticky/fixed) — 텍스트 불필요 | `DETERMINISTIC` |
+    | 2 text/NLP | `_LABEL_RULES` 어휘 사전 매칭 (`accessible_text`/`aria_label`) | `SEMANTIC_MODEL` |
+    | 3 VLM | 미구현 | — |
+    | 4 abstain | 위 어느 것도 확정하지 못함 | `AMBIGUOUS` / `UNKNOWN` |
+
+    구조 신호가 텍스트보다 **먼저** 온다 — `D-R0-22`가 다른 cascade(KWCAG evaluator)에
+    쓰는 것과 같은 일반 우선순위(`browser-native/AX → deterministic geometry/CSS →
+    semantic text/embedding`)를 여기서도 그대로 따른다.
+
+    **불변조건 (`W4` 테스트로 증명)**: 이 함수는 `candidate` 의 이미 계산된 raw 필드
+    (좌표·면적·overlap·coverage)를 읽기만 하고 절대 새로 만들거나 바꾸지 않는다 —
+    돌려주는 것은 `(status, label)` 두 값뿐이다. 호출부(`_build_interrupts`)의 geometry
+    계산(`_overlap`, `blocks_primary_action` 등)은 이 함수의 반환값과 무관하게 별도로
+    이뤄진다.
     """
     if candidate.get("viewport_overlap_css_px2", 0) <= 0:
         return ClassificationStatus.NOT_CLASSIFIED, InterruptLabel.UNKNOWN
 
-    text = " ".join(
-        str(x) for x in (candidate.get("accessible_text"), candidate.get("aria_label")) if x
-    ).lower()
-    for label, needles in _LABEL_RULES:
-        if any(n.lower() in text for n in needles):
-            return ClassificationStatus.DETERMINISTIC, label
-
+    # ── tier 1 · deterministic rule — 구조 신호만, 텍스트 불필요 ────────────
     sources = set(candidate.get("candidate_sources") or ())
     modal_like = {"dialog_element", "role_dialog", "aria_modal"} & sources
     if modal_like and candidate.get("viewport_coverage", 0) >= 0.5:
@@ -279,6 +291,16 @@ def classify_interrupt(candidate: dict[str, Any]) -> tuple[ClassificationStatus,
         return ClassificationStatus.DETERMINISTIC, InterruptLabel.PROMOTION_MODAL
     if "position_sticky" in sources or "position_fixed" in sources:
         return ClassificationStatus.DETERMINISTIC, InterruptLabel.BANNER
+
+    # ── tier 2 · text/NLP — 구조로 확정 못했을 때만 어휘 사전으로 판단 ──────
+    text = " ".join(
+        str(x) for x in (candidate.get("accessible_text"), candidate.get("aria_label")) if x
+    ).lower()
+    for label, needles in _LABEL_RULES:
+        if any(n.lower() in text for n in needles):
+            return ClassificationStatus.SEMANTIC_MODEL, label
+
+    # ── tier 3 (VLM) 은 이 lane 에 없음 → tier 4 abstain ────────────────────
     return ClassificationStatus.AMBIGUOUS, InterruptLabel.UNKNOWN
 
 

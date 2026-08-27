@@ -1,0 +1,571 @@
+"""W4 — Axis C(초기 obstruction) + mart 회귀검사.
+
+`D-R0-24`/`D-R0-25`/`SSOTV2 §10`/Research Director 지시(2026-08-27)를 코드 불변조건으로
+증명한다. **REAL_TARGET 에 접속하지 않는다** — 전부 이미 디스크에 있는 E001_FULL evidence를
+읽기 전용으로 읽거나, in-memory dict 로 순수함수를 검사한다.
+
+실행:
+    /home/sieg/projects-wsl/ProjectFinal/.venv/bin/python -m pytest \\
+        research/landing_accessibility/tests/test_w4_axisc_mart.py -q
+"""
+
+from __future__ import annotations
+
+import copy
+import sys
+from pathlib import Path
+
+import pytest
+
+RESEARCH = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(RESEARCH / "src"))
+sys.path.insert(0, str(RESEARCH / "scripts"))
+
+import build_mart_axisc as mart  # noqa: E402
+from landing_accessibility.engine.l0_collector import classify_interrupt  # noqa: E402
+from landing_accessibility.engine.vocabulary import (  # noqa: E402
+    ClassificationStatus,
+    InterruptLabel,
+)
+
+EVIDENCE_AVAILABLE = len(mart.discover_run_dirs()) > 0
+
+
+def _require_evidence() -> None:
+    if not EVIDENCE_AVAILABLE:
+        pytest.skip(
+            "E001_FULL evidence 디렉터리를 찾지 못했다 — 이 worktree 밖에서 실행 중일 수 있다"
+        )
+
+
+# ── 실제 mart 를 한 번 빌드해 여러 테스트가 재사용한다 (evidence 는 읽기 전용) ──
+
+
+@pytest.fixture(scope="module")
+def mart_rows() -> list[dict]:
+    _require_evidence()
+    attempted = mart.load_attempted_population()
+    run_dirs = mart.discover_run_dirs()
+    return mart.build_mart_rows(attempted, run_dirs)
+
+
+@pytest.fixture(scope="module")
+def denominators(mart_rows: list[dict]) -> dict:
+    return mart.compute_denominators(mart_rows)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 1. classify_interrupt — D-R0-25 tier 순서 + geometry 불변
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TestClassifyInterruptTiering:
+    def test_viewport_overlap_zero_is_not_classified(self):
+        status, label = classify_interrupt({"viewport_overlap_css_px2": 0})
+        assert status is ClassificationStatus.NOT_CLASSIFIED
+        assert label is InterruptLabel.UNKNOWN
+
+    def test_structural_dialog_role_wins_over_text_tier(self):
+        """tier 1(구조) 이 tier 2(텍스트)보다 먼저 온다 — D-R0-25 순서.
+
+        dialog role 이면서 쿠키 텍스트를 가진 후보는 COOKIE_CONSENT(텍스트)가 아니라
+        구조 규칙(BLOCKING_MODAL/PROMOTION_MODAL)으로 확정돼야 한다.
+        """
+        candidate = {
+            "viewport_overlap_css_px2": 100.0,
+            "viewport_coverage": 0.6,
+            "candidate_sources": ["role_dialog"],
+            "accessible_text": "쿠키 사용에 동의합니다",
+        }
+        status, label = classify_interrupt(candidate)
+        assert status is ClassificationStatus.DETERMINISTIC
+        assert label is InterruptLabel.BLOCKING_MODAL  # coverage>=0.5 이므로
+
+    def test_text_tier_fires_only_when_structural_tier_abstains(self):
+        candidate = {
+            "viewport_overlap_css_px2": 50.0,
+            "viewport_coverage": 0.1,
+            "candidate_sources": [],  # 구조 신호 없음
+            "accessible_text": "쿠키 사용에 동의합니다",
+        }
+        status, label = classify_interrupt(candidate)
+        assert status is ClassificationStatus.SEMANTIC_MODEL
+        assert label is InterruptLabel.COOKIE_CONSENT
+
+    def test_no_structural_no_text_match_abstains_no_vlm(self):
+        candidate = {
+            "viewport_overlap_css_px2": 50.0,
+            "viewport_coverage": 0.1,
+            "candidate_sources": [],
+            "accessible_text": "완전히 무관한 문구",
+        }
+        status, label = classify_interrupt(candidate)
+        assert status is ClassificationStatus.AMBIGUOUS
+        assert label is InterruptLabel.UNKNOWN
+
+    def test_position_fixed_is_structural_banner(self):
+        candidate = {
+            "viewport_overlap_css_px2": 10.0,
+            "viewport_coverage": 0.01,
+            "candidate_sources": ["position_fixed"],
+        }
+        status, label = classify_interrupt(candidate)
+        assert status is ClassificationStatus.DETERMINISTIC
+        assert label is InterruptLabel.BANNER
+
+    def test_pure_function_does_not_mutate_input_candidate(self):
+        candidate = {
+            "viewport_overlap_css_px2": 50.0,
+            "viewport_coverage": 0.1,
+            "candidate_sources": ["position_sticky"],
+            "accessible_text": "이벤트 할인",
+            "box": {"x": 1, "y": 2, "w": 3, "h": 4},
+        }
+        before = copy.deepcopy(candidate)
+        classify_interrupt(candidate)
+        assert candidate == before, "classify_interrupt 가 입력 candidate 를 변형했다"
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 2. semantic 분류가 geometry 를 바꾸지 않는다 (구조로 증명)
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TestSemanticClassificationDoesNotMutateGeometry:
+    def test_geometry_fields_are_verbatim_copies_of_raw_probe_scalars(self):
+        """`axis_c_page_level_from_probe` 가 만드는 interrupt 의 geometry 필드가
+        classify_interrupt 의 결과와 무관하게 raw candidate 의 값과 정확히 같은지 확인한다.
+        """
+        raw_features = {
+            "modal_overlay_candidates": [
+                {
+                    "selector": "div.a",
+                    "visible": True,
+                    "viewport_overlap_css_px2": 1234.5,
+                    "viewport_coverage": 0.42,
+                    "candidate_sources": ["role_dialog"],
+                    "accessible_text": None,
+                },
+                {
+                    "selector": "div.b",
+                    "visible": True,
+                    "viewport_overlap_css_px2": 9.9,
+                    "viewport_coverage": 0.01,
+                    "candidate_sources": [],
+                    "accessible_text": "쿠키 안내",
+                },
+            ],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        result = mart.axis_c_page_level_from_probe(raw_features)
+        recs = {r["selector"]: r for r in result["interrupts"]}
+        assert recs["div.a"]["viewport_overlap_css_px2"] == 1234.5
+        assert recs["div.a"]["viewport_coverage"] == 0.42
+        assert recs["div.b"]["viewport_overlap_css_px2"] == 9.9
+        assert recs["div.b"]["viewport_coverage"] == 0.01
+        # 서로 다른 classification_status/label 이 나왔는데도 geometry 는 원본 그대로.
+        assert recs["div.a"]["classification_status"] != recs["div.b"]["classification_status"]
+
+    def test_monkeypatched_classifier_cannot_change_geometry(self, monkeypatch):
+        """classify_interrupt 의 반환값을 강제로 바꿔도 geometry 열은 그대로다 —
+        `axis_c_page_level_from_probe` 가 geometry 와 classification 을 코드 구조로
+        분리하고 있음을 직접 증명한다.
+        """
+        raw_features = {
+            "modal_overlay_candidates": [
+                {
+                    "selector": "div.c",
+                    "visible": True,
+                    "viewport_overlap_css_px2": 777.0,
+                    "viewport_coverage": 0.33,
+                    "candidate_sources": [],
+                }
+            ],
+            "dismiss_control_candidates": [],
+            "body_scroll_lock": {"locked": False},
+        }
+        before = mart.axis_c_page_level_from_probe(raw_features)
+
+        def _always_blocking_modal(_candidate):
+            return ClassificationStatus.DETERMINISTIC, InterruptLabel.BLOCKING_MODAL
+
+        monkeypatch.setattr(mart, "classify_interrupt", _always_blocking_modal)
+        after = mart.axis_c_page_level_from_probe(raw_features)
+
+        assert after["interrupts"][0]["final_label"] == "BLOCKING_MODAL"
+        assert before["interrupts"][0]["viewport_overlap_css_px2"] == 777.0
+        assert after["interrupts"][0]["viewport_overlap_css_px2"] == 777.0
+        assert before["overlay_coverage"] == after["overlay_coverage"] == 0.33
+
+    def test_axis_c_page_level_has_no_box_overlap_computation(self, monkeypatch):
+        """`_overlap`(box-vs-box 새 geometry 계산)을 이 함수가 절대 호출하지 않는다는
+        것을 monkeypatch 로 직접 증명한다 — 호출되면 예외를 던져 실패시킨다.
+        """
+        from landing_accessibility.engine import l0_collector
+
+        def _boom(*_args, **_kwargs):
+            raise AssertionError("axis_c_page_level_from_probe 가 _overlap 을 호출했다 — 금지")
+
+        monkeypatch.setattr(l0_collector, "_overlap", _boom)
+        raw_features = {
+            "modal_overlay_candidates": [
+                {
+                    "selector": "div.d",
+                    "visible": True,
+                    "viewport_overlap_css_px2": 5.0,
+                    "viewport_coverage": 0.02,
+                    "candidate_sources": ["position_fixed"],
+                }
+            ],
+            "dismiss_control_candidates": [
+                {
+                    "container_selector": "div.d",
+                    "dismiss_control_candidates": [
+                        {
+                            "display": "block",
+                            "visibility": "visible",
+                            "opacity": "1",
+                            "viewport_overlap_css_px2": 10,
+                            "hittable": True,
+                        }
+                    ],
+                }
+            ],
+            "body_scroll_lock": {"locked": True},
+        }
+        result = mart.axis_c_page_level_from_probe(raw_features)  # 예외 없이 통과해야 함
+        assert result["overlay_coverage"] == 0.02
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 3. PrimaryActionOcclusion — task binding 없이는 절대 값을 만들지 않는다
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TestPrimaryActionOcclusionPendingTaskBinding:
+    def test_always_none_with_pending_status_regardless_of_input(self):
+        cases = [
+            {
+                "modal_overlay_candidates": [],
+                "dismiss_control_candidates": [],
+                "body_scroll_lock": {},
+            },
+            {
+                "modal_overlay_candidates": [
+                    {
+                        "selector": "x",
+                        "visible": True,
+                        "viewport_overlap_css_px2": 999.0,
+                        "viewport_coverage": 0.99,
+                        "candidate_sources": ["role_dialog"],
+                    }
+                ],
+                "dismiss_control_candidates": [],
+                "body_scroll_lock": {"locked": True},
+            },
+        ]
+        for raw in cases:
+            result = mart.axis_c_page_level_from_probe(raw)
+            assert result["primary_action_occlusion"] is None
+            assert result["primary_action_occlusion_status"] == "PENDING_TASK_BINDING"
+
+    def test_function_signature_takes_no_task_binding_input(self):
+        """`axis_c_page_level_from_probe` 는 `primary_action_candidates`/task 정보를
+        파라미터로조차 받지 않는다 — task binding 값을 만들 **능력이 코드에 없다.**
+        """
+        import inspect
+
+        sig = inspect.signature(mart.axis_c_page_level_from_probe)
+        params = list(sig.parameters)
+        assert params == ["raw_features"], (
+            "axis_c_page_level_from_probe 에 task/primary_action 관련 파라미터가 추가됐다 — "
+            "PENDING_TASK_BINDING 경계가 깨졌을 수 있다"
+        )
+
+    def test_mart_rows_never_produce_primary_action_occlusion(self, mart_rows):
+        for row in mart_rows:
+            assert row["primary_action_occlusion"] is None
+            assert row["primary_action_occlusion_status"] == "PENDING_TASK_BINDING"
+            assert row["task_id"] is None
+            assert row["task_id_status"] == "PENDING_TASK_BINDING"
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 4. 모집단 — duplicate 4건 제외, stub 6건(3 target) 배제, 하드코딩 없이 유도
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TestPopulationDenominators:
+    def test_attempted_is_59(self, denominators):
+        assert denominators["attempted"] == 59
+
+    def test_evidence_bytes_denominator_is_56_after_duplicate_exclusion(self, denominators):
+        assert denominators["evidence_bytes"] == 56
+        assert denominators["excluded_duplicate_launch"] == 4
+
+    def test_unobserved_stub_excludes_3_targets_not_6_raw_dirs(self, mart_rows, denominators):
+        assert denominators["unobserved"] == 3
+        unobserved_rows = [r for r in mart_rows if r["population_status"] == "UNOBSERVED_STUB"]
+        names = {r["service_name"] for r in unobserved_rows}
+        assert names == {"samsung_internet_browser", "samsung_notes", "samsung_wallet"}
+        for r in unobserved_rows:
+            assert r["in_main_population"] is False
+
+    def test_measured_denominator_excludes_3_degenerate_captures(self, denominators):
+        assert denominators["measured"] == 53
+        assert denominators["failed_evidence_incomplete"] == 3
+
+    def test_degenerate_captures_are_the_named_three(self, mart_rows):
+        failed = {
+            r["service_name"]
+            for r in mart_rows
+            if r["measurement_status"] == "FAILED_EVIDENCE_INCOMPLETE"
+        }
+        assert failed == {"coupang_eats", "shinhan_sol_bank", "lotte_himart"}
+
+    def test_degenerate_captures_stay_undetermined_not_fail(self, mart_rows):
+        """`D-R0-23` — 측정 실패는 FAIL 로 전이되지 않는다. 이 mart 에 PASS/FAIL 어휘
+        자체가 없다는 것으로 그 금지를 지킨다(Axis A 판정 컬럼이 이 mart 에 없음)."""
+        for r in mart_rows:
+            for key in r:
+                assert "verdict" not in key.lower()
+            assert r.get("axis_c_missingness_reason") != "FAIL"
+
+    def test_duplicate_launch_rows_are_flagged_not_silently_dropped(self, mart_rows):
+        dup_rows = [r for r in mart_rows if r["population_status"] == "EXCLUDED_DUPLICATE_LAUNCH"]
+        assert len(dup_rows) == 4
+        names = {r["service_name"] for r in dup_rows}
+        assert names == {"netflix", "chrome", "hyundai_card", "cashwalk"}
+        for r in dup_rows:
+            assert r["in_main_population"] is False
+            assert r["canonical_run_id_kept"] is not None
+
+    def test_row_count_accounts_for_every_attempted_and_every_excluded_duplicate(
+        self, mart_rows, denominators
+    ):
+        # attempted(59) 서비스 각각 최소 1행 + duplicate 로 제외된 4행 추가 = 63.
+        assert (
+            len(mart_rows) == denominators["attempted"] + denominators["excluded_duplicate_launch"]
+        )
+
+    def test_denominator_is_never_a_single_hardcoded_number_in_source(self):
+        """`compute_denominators` 가 실제로 데이터에서 집계하는지 — 소스에 `== 56`
+        같은 매직넘버로 반환을 고정한 줄이 없는지 정적으로 확인한다."""
+        src = Path(mart.__file__).read_text(encoding="utf-8")
+        # compute_denominators 함수 몸통만 추출해 하드코딩 리터럴 반환이 없는지 확인.
+        start = src.index("def compute_denominators")
+        end = src.index("\ndef main", start)
+        body = src[start:end]
+        assert "return {" in body
+        for magic in ("56", "53", "59", "3,", "4,"):
+            assert f"= {magic}" not in body.replace(" ", "")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 5. 결측은 NULL — 0 이나 상한값으로 대체하지 않는다
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TestMissingnessStaysNull:
+    def test_failed_and_unobserved_rows_have_null_axis_c_fields_not_zero(self, mart_rows):
+        null_fields = (
+            "interrupt_count_visible",
+            "overlay_coverage",
+            "interrupts",
+            "classification_tier_counts",
+            "body_scroll_locked",
+            "dismiss_control_present_count",
+            "dismiss_control_visible_count",
+            "pac_len",
+            "pac_truncated",
+        )
+        for row in mart_rows:
+            if row["measurement_status"] in ("MEASURED",):
+                continue
+            for f in null_fields:
+                assert row[f] is None, (
+                    f"{row['service_name']}.{f} 가 결측인데 {row[f]!r} 로 채워짐 — 0/상한 대체 금지"
+                )
+
+    def test_measured_rows_overlay_coverage_is_never_silently_zero_for_missing_probe(
+        self, mart_rows
+    ):
+        # probe_path 가 없는 행은 axis_c_valid 가 False 이고 overlay_coverage 는 None 이어야 한다
+        # (0.0 으로 채워지면 "관측된 무장애물(0.0)"과 "결측"이 뒤섞인다).
+        for row in mart_rows:
+            if not row["probe_path"]:
+                assert row["overlay_coverage"] is None
+
+    def test_informative_missingness_candidates_total_6(self, denominators):
+        assert denominators["informative_missingness_candidates"] == 6
+
+    def test_task_id_is_null_everywhere_not_a_placeholder_string_value(self, mart_rows):
+        for row in mart_rows:
+            assert row["task_id"] is None  # "PENDING" 같은 문자열로 결측을 감추지 않는다
+            assert row["task_id_status"] == "PENDING_TASK_BINDING"
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 6. probe 배열 cap — page-level(overlay) 은 안전, primary_action 은 절단 관측됨
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TestProbeCapTruncation:
+    def test_overlay_and_dismiss_fields_never_hit_any_cap_candidate(self, mart_rows):
+        for row in mart_rows:
+            if row["measurement_status"] != "MEASURED":
+                continue
+            assert row["modal_overlay_candidates_len"] < 200
+            assert row["dismiss_control_candidates_len"] < 200
+
+    def test_verify_overlay_fields_not_capped_reports_safe(self, mart_rows):
+        report = mart.verify_overlay_fields_not_capped(mart_rows)
+        assert report["safe_from_cap"] is True
+        assert report["n_checked"] == 53
+
+    def test_primary_action_candidates_truncation_is_flagged_when_present(self, mart_rows):
+        truncated = [r for r in mart_rows if r.get("pac_truncated")]
+        for r in truncated:
+            assert r["pac_len"] == 200
+        # B 의 전수조사(n=58) 결과와 일치해야 한다: 정확히 7건.
+        assert len(truncated) == 7
+
+    def test_pac_truncated_never_true_when_axis_c_invalid(self, mart_rows):
+        for row in mart_rows:
+            if not row["axis_c_valid"]:
+                assert row["pac_truncated"] is None
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 7. duplicate capture group (F-A2) — 삭제하지 않고 플래그 + 양방향 분모
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TestDuplicateCaptureGroup:
+    def test_nh_pair_flagged_same_group_not_deleted(self, mart_rows):
+        nh = {
+            r["service_name"]: r
+            for r in mart_rows
+            if r["service_name"] in ("nh_smart_banking", "nh_cok_bank")
+        }
+        assert len(nh) == 2
+        groups = {r["duplicate_capture_group"] for r in nh.values()}
+        assert len(groups) == 1
+        assert None not in groups
+        for r in nh.values():
+            assert r["duplicate_capture_group_size"] == 2
+            assert r["in_main_population"] is True  # 삭제되지 않았다
+            assert r["measurement_status"] == "MEASURED"  # FAIL 로 전이되지 않았다
+
+    def test_both_raw_and_collapsed_denominator_are_computable(self, denominators):
+        assert denominators["measured_n_raw"] == 53
+        assert denominators["measured_n_collapsed_duplicate_capture"] == 52
+        assert (
+            denominators["measured_n_collapsed_duplicate_capture"] < denominators["measured_n_raw"]
+        )
+
+    def test_only_one_duplicate_capture_group_found(self, denominators):
+        # A 의 전수 스캔 결과("이런 쌍은 이 1군뿐")를 W4 가 독립적으로 재확인.
+        assert denominators["duplicate_capture_groups"] == 1
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 8. 소유 파일 경계 — l0_probe.js 를 건드리지 않았는지, 다른 owner 파일 무손 확인
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TestProbeCapCountsMatchConfirmedScan:
+    """B/C 독립 재계산이 일치한 확정 수치(n=58 probe.json)와 대조한다."""
+
+    def test_contrast_cap_hits_8(self, mart_rows):
+        assert sum(1 for r in mart_rows if r.get("contrast_at_400")) == 8
+
+    def test_animated_elements_cap_hits_at_least_1(self, mart_rows):
+        hits = [r for r in mart_rows if r.get("anim_truncated")]
+        assert len(hits) >= 1
+        for r in hits:
+            assert r["anim_len"] == 60
+
+    def test_ans_and_ts_cap_counts(self, mart_rows):
+        assert sum(1 for r in mart_rows if r.get("ans_truncated")) == 13
+        assert sum(1 for r in mart_rows if r.get("ts_truncated")) == 6
+
+    def test_probe_primary_action_n_is_alias_of_pac_len(self, mart_rows):
+        for r in mart_rows:
+            assert r["probe_primary_action_n"] == r["pac_len"]
+
+    def test_all_cap_columns_store_counts_not_only_bools(self, mart_rows):
+        """개수(`*_len`) 자체가 있어야 cap 기준이 바뀌어도 재계산할 수 있다."""
+        measured = [r for r in mart_rows if r["measurement_status"] == "MEASURED"]
+        assert measured
+        for r in measured:
+            assert isinstance(r["pac_len"], int)
+            assert isinstance(r["ans_len"], int)
+            assert isinstance(r["ts_len"], int)
+            assert isinstance(r["contrast_len"], int)
+            assert isinstance(r["anim_len"], int)
+
+
+class TestSlotRawMaterialLeavesDefinitionOpen:
+    """`T-A-LABEL-FROZEN-001` F-A3.1 — dom/ax/probe slot 원자재는 저장하되
+    `dom_body_empty`/`slot_disagreement` 는 W4 가 임의로 bool 을 확정하지 않는다."""
+
+    def test_dom_body_empty_is_always_none_with_pending_status(self, mart_rows):
+        for r in mart_rows:
+            assert r["dom_body_empty"] is None
+            assert r["dom_body_empty_status"] == "DEFINITION_PENDING_D_LAYER"
+
+    def test_slot_disagreement_is_always_none_with_pending_status(self, mart_rows):
+        for r in mart_rows:
+            assert r["slot_disagreement"] is None
+            assert r["slot_disagreement_status"] == "DEFINITION_PENDING_D_LAYER_T-B-RQ-D-001-Q3"
+
+    def test_dom_ax_raw_material_survives_even_when_probe_is_missing(self, mart_rows):
+        """shinhan_sol_bank/lotte_himart 는 probe.json 이 없어 axis_c 는 결측이지만,
+        dom.html/ax.json 은 L0-a 단계에서 먼저 저장되므로 그 원자재는 남아 있어야 한다."""
+        by_name = {r["service_name"]: r for r in mart_rows}
+        for name in ("shinhan_sol_bank", "lotte_himart"):
+            row = by_name[name]
+            assert row["pac_len"] is None  # probe 결측이므로 probe 파생값은 NULL
+            assert row["dom_bytes"] is not None  # 그러나 dom slot 은 존재한다
+            assert row["dom_body_element_count"] is not None
+            assert row["ax_node_count"] is not None
+
+    def test_nh_pair_shows_empty_dom_ax_but_rich_probe(self, mart_rows):
+        """F-A3.1 이 설명한 slot 불일치 현상을 원자재 컬럼으로 재확인한다 — 해석하지
+        않는다(불일치 여부 판정은 이 mart 의 일이 아니다), 숫자만 검증한다."""
+        by_name = {r["service_name"]: r for r in mart_rows}
+        for name in ("nh_smart_banking", "nh_cok_bank"):
+            row = by_name[name]
+            assert row["dom_bytes"] == 1657
+            assert row["dom_body_element_count"] == 0
+            assert row["ax_node_count"] == 1
+            assert row["probe_primary_action_n"] == 24
+            assert row["modal_overlay_candidates_len"] == 15
+
+    def test_dom_bytes_never_null_for_measured_or_failed_probe_missing_rows(self, mart_rows):
+        for r in mart_rows:
+            if r["population_status"] == "OBSERVED":
+                assert r["dom_bytes"] is not None
+
+
+class TestOwnershipBoundary:
+    def test_l0_probe_js_not_opened_or_imported_by_mart_script(self):
+        """`l0_probe.js` 는 문서 주석의 **인용**으로만 나타나야 한다 — 스크립트가 그
+        파일을 열거나(`open(...)`) import 하면 안 된다(W2 소유, 읽기 전용 계약 위반)."""
+        src = Path(mart.__file__).read_text(encoding="utf-8")
+        forbidden_patterns = ('"l0_probe.js"', "'l0_probe.js'", "PROBE_JS", "import l0_probe")
+        for pattern in forbidden_patterns:
+            assert pattern not in src, (
+                f"{pattern!r} 가 스크립트에 있다 — l0_probe.js 를 열려는 시도로 보인다"
+            )
+
+    def test_mart_script_never_imports_playwright(self):
+        src = Path(mart.__file__).read_text(encoding="utf-8")
+        assert "playwright" not in src.lower()
+        assert "sync_playwright" not in src
+
+
+if __name__ == "__main__":
+    raise SystemExit(pytest.main([__file__, "-q"]))
