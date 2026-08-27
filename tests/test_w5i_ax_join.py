@@ -36,6 +36,17 @@ from landing_accessibility.engine.l0_collector import L0Observation  # noqa: E40
 from landing_accessibility.v3_runner.ax_join import (  # noqa: E402
     AX_JOIN_RELPATH,
     AX_JOIN_VERSION,
+    CAPTURE_STACK_ABSENT,
+    CAPTURE_STACK_COMPLETE,
+    CAPTURE_STACK_COMPLETENESS_NOTE_PREFIX,
+    CAPTURE_STACK_LAYERS,
+    CAPTURE_STACK_MEMBERS,
+    CAPTURE_STACK_METHOD,
+    CAPTURE_STACK_METHOD_NOTE_PREFIX,
+    CAPTURE_STACK_NONE,
+    CAPTURE_STACK_NOTE_PREFIX,
+    CAPTURE_STACK_PARTIAL,
+    CAPTURE_STACK_UNREADABLE,
     COLLECTOR_SHA256_METHOD,
     COLLECTOR_SHA256_METHOD_NOTE_PREFIX,
     COLLECTOR_SHA256_NOTE_PREFIX,
@@ -47,6 +58,8 @@ from landing_accessibility.v3_runner.ax_join import (  # noqa: E402
     SelectorResolution,
     ax_join_relpath_for,
     build_ax_join_payload,
+    capture_stack,
+    capture_stack_notes,
     collect_ax_join,
     collector_provenance,
     collector_provenance_notes,
@@ -780,7 +793,10 @@ def test_collector_provenance_names_the_combining_method() -> None:
 
 def test_provenance_notes_carry_both_the_digest_and_the_method() -> None:
     notes = collector_provenance_notes()
-    assert len(notes) == 2
+    # `R22` 가 줄을 더 붙이므로 총 개수를 고정하지 않는다. 대신 `Δ20` 두 줄이 **각각
+    # 정확히 하나씩** 있는 것을 본다 — 개수 고정보다 이쪽이 계약에 가깝다.
+    assert sum(n.startswith(COLLECTOR_SHA256_NOTE_PREFIX) for n in notes) == 1
+    assert sum(n.startswith(COLLECTOR_SHA256_METHOD_NOTE_PREFIX) for n in notes) == 1
     digest = next(n for n in notes if n.startswith(COLLECTOR_SHA256_NOTE_PREFIX))
     method = next(n for n in notes if n.startswith(COLLECTOR_SHA256_METHOD_NOTE_PREFIX))
     assert digest.removeprefix(COLLECTOR_SHA256_NOTE_PREFIX) == collector_sha256()["combined"]
@@ -833,3 +849,226 @@ def test_the_fingerprint_survives_a_failed_observation(tmp_path: Path) -> None:
     obs = out["obs"]["does_not_exist.html"]
     assert obs.measurement_status != "MEASURED"
     assert any(n.startswith(COLLECTOR_SHA256_NOTE_PREFIX) for n in obs.notes), obs.notes
+
+
+# ── 12. R22 — capture_stack (engine sha 하나로는 부족하다) ────────────────────
+#
+# `T-A-V3-STEP1-021`: "포착 동작이 호출자(session.py)에 있으면 engine sha 만으로는
+# '어느 코드가 이 관측을 냈는가' 가 불완전하다" · "둘 중 하나만 있으면 재현 시 다른 쪽이
+# 바뀐 것을 알 수 없다".
+#
+# 이 절의 두 음성대조가 핵심이다. **AttributeError 가 사라지는 것은 수용기준이 아니고,
+# 시끄러운 실패를 조용한 통과로 바꾸는 것도 아니다.** 그래서 (a) 구성원 1바이트 변경이
+# 지문에 반드시 나타나는가, (b) 구성원 부재가 값으로 남는가(건너뛰지도 죽지도 않는가)
+# 를 각각 본다.
+
+_MEMBER_SEED = {rel: f"seed:{rel}".encode() for rel in CAPTURE_STACK_MEMBERS}
+
+
+def _plant(root: Path, members: dict[str, bytes]) -> Path:
+    """가짜 패키지 루트에 구성원 파일을 심는다."""
+    for rel, blob in members.items():
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(blob)
+    return root
+
+
+def test_capture_stack_covers_engine_and_driver_not_engine_alone() -> None:
+    """`R22` 가 요구한 구성원이 실제로 전부 들어 있는가."""
+    assert set(CAPTURE_STACK_MEMBERS) == {
+        "engine/l0_collector.py",
+        "engine/l0_probe.js",
+        "v3_runner/ax_join.py",
+        "v3_runner/runner.py",
+        "v3_runner/session.py",
+    }
+    # driver 층이 비어 있으면 `R22` 를 만족하지 못한다 — engine sha 만 남는 셈이다.
+    assert CAPTURE_STACK_LAYERS["driver"] == ("v3_runner/runner.py", "v3_runner/session.py")
+    stack = capture_stack()
+    assert set(stack["members"]) == set(CAPTURE_STACK_MEMBERS)
+    assert set(stack["layers"]) == set(CAPTURE_STACK_LAYERS)
+    assert stack["method"] == CAPTURE_STACK_METHOD
+
+
+def test_capture_stack_is_a_superset_of_the_delta20_fingerprint() -> None:
+    """`collector_sha256` 을 대체하지 않고 감싼다 — 같은 이름에 두 뜻을 주지 않기 위해서다."""
+    assert set(COLLECTOR_SOURCE_FILES) < set(CAPTURE_STACK_MEMBERS)
+    # 결합 방식이 같아도 대상 집합이 다르므로 두 지문은 같을 수 없다.
+    assert capture_stack()["combined"] != collector_sha256()["combined"]
+
+
+@pytest.mark.parametrize("target", CAPTURE_STACK_MEMBERS)
+def test_capture_stack_changes_when_one_member_byte_changes(tmp_path: Path, target: str) -> None:
+    """**음성대조 (a)** — 구성원 하나를 1바이트 바꾸면 지문이 달라진다.
+
+    이 테스트가 없으면 "지문을 뜬다" 와 "상수를 낸다" 가 같은 출력으로 통과한다.
+    구성원 전부에 대해 돈다 — 하나라도 결합에서 빠져 있으면 그 파라미터가 실패한다.
+    """
+    root = _plant(tmp_path, dict(_MEMBER_SEED))
+    before = capture_stack(root)
+    assert before["completeness"] == CAPTURE_STACK_COMPLETE
+
+    # 정확히 1바이트를 더한다.
+    (root / target).write_bytes(_MEMBER_SEED[target] + b"!")
+    after = capture_stack(root)
+
+    assert after["members"][target] != before["members"][target], target
+    assert after["combined"] != before["combined"], target
+    # 바뀐 구성원이 속한 층만 움직이고 나머지 층은 그대로다 — 층 지문이 실제로
+    # 층별로 계산됐다는 뜻이다.
+    changed = {name for name, rels in CAPTURE_STACK_LAYERS.items() if target in rels}
+    for layer in CAPTURE_STACK_LAYERS:
+        if layer in changed:
+            assert after["layers"][layer] != before["layers"][layer], (target, layer)
+        else:
+            assert after["layers"][layer] == before["layers"][layer], (target, layer)
+    # 나머지 구성원은 한 글자도 안 바뀐다.
+    for rel in CAPTURE_STACK_MEMBERS:
+        if rel != target:
+            assert after["members"][rel] == before["members"][rel]
+
+
+def test_a_missing_member_is_named_absent_not_skipped_and_does_not_raise(
+    tmp_path: Path,
+) -> None:
+    """**음성대조 (b)** — 구성원 부재가 **값**으로 남는다.
+
+    `runner.py` / `session.py` 는 다른 lane(W5F/W5H) 소유라 이 워크트리에 없다.
+    없는 파일을 만들지 않았다. 그래서 부재 처리가 셋 중 어느 것도 아니어야 한다:
+
+    1. 예외로 죽는다 — 수집 전체가 넘어간다.
+    2. 조용히 건너뛴다 — 부재 스택의 지문이 완전 스택의 지문과 **같아진다**. 그러면
+       `R22` 가 막으려던 "다른 쪽이 바뀐 것을 알 수 없다" 가 그대로 재현된다.
+    3. `null` / 빈 문자열 — `Δ15-GAP04` 위반.
+
+    셋 다 아님을 하나씩 확인한다.
+    """
+    absent = ("v3_runner/runner.py", "v3_runner/session.py")
+    present = {rel: blob for rel, blob in _MEMBER_SEED.items() if rel not in absent}
+    root = _plant(tmp_path, present)
+
+    stack = capture_stack(root)  # (1) 예외로 죽지 않는다
+
+    # 키가 사라지지 않는다. 값이 명시적 표지다. `null` 도 빈 문자열도 아니다.
+    for rel in absent:
+        assert rel in stack["members"]
+        assert stack["members"][rel] == CAPTURE_STACK_ABSENT == "ABSENT_IN_THIS_TREE"
+        assert stack["members"][rel] not in (None, "")
+    assert stack["absent_members"] == list(absent)
+    assert stack["unreadable_members"] == []
+    assert stack["completeness"] == CAPTURE_STACK_PARTIAL
+
+    # (2) 조용한 통과가 아님의 증명 — 부재 구성원을 결합에서 **빼면** 다른 값이 나온다.
+    #     즉 부재는 결합에 실제로 기여한다.
+    skipped = hashlib.sha256(
+        "".join(f"{rel}:{stack['members'][rel]}\n" for rel in sorted(present)).encode("utf-8")
+    ).hexdigest()
+    assert stack["combined"] != skipped
+
+    # 그리고 그 파일이 나중에 생기면 지문이 바뀐다 — `R22` 가 요구한 바로 그 성질이다.
+    _plant(root, {rel: _MEMBER_SEED[rel] for rel in absent})
+    filled = capture_stack(root)
+    assert filled["completeness"] == CAPTURE_STACK_COMPLETE
+    assert filled["absent_members"] == []
+    assert filled["combined"] != stack["combined"]
+    assert filled["layers"]["driver"] != stack["layers"]["driver"]
+    # engine/joiner 는 안 건드렸으므로 그대로여야 한다 — 부재가 다른 층으로 새지 않는다.
+    assert filled["layers"]["engine"] == stack["layers"]["engine"]
+    assert filled["layers"]["joiner"] == stack["layers"]["joiner"]
+
+
+def test_unreadable_is_not_collapsed_into_absent(tmp_path: Path) -> None:
+    """읽기 실패와 부재는 서로 다른 사실이다 — 한 값으로 뭉개면 사후 대응이 갈리지 않는다."""
+    root = _plant(tmp_path, dict(_MEMBER_SEED))
+    victim = root / "v3_runner/session.py"
+    victim.chmod(0o000)
+    try:
+        stack = capture_stack(root)
+    finally:
+        victim.chmod(0o644)
+    if stack["members"]["v3_runner/session.py"] == CAPTURE_STACK_UNREADABLE:
+        assert stack["unreadable_members"] == ["v3_runner/session.py"]
+        assert stack["absent_members"] == []
+        assert stack["completeness"] == CAPTURE_STACK_PARTIAL
+    else:  # root 로 돌면 chmod 가 막지 못한다 — 그때는 이 대조를 세울 수 없다.
+        pytest.skip("이 실행 계정은 0o000 파일을 읽을 수 있다 (root)")
+
+
+def test_this_tree_actually_reports_the_driver_as_absent() -> None:
+    """실측 — W5I 워크트리에 `runner.py`/`session.py` 는 **없다**. 없는 것을 없다고 낸다.
+
+    이 테스트는 다른 lane 이 병합되면 자연히 `COMPLETE` 로 넘어간다. 그때 값이 바뀌는
+    것이 정상이고, 바뀌는 것이 보이는 것이 `R22` 의 목적이다.
+    """
+    stack = capture_stack()
+    pkg = RESEARCH / "src" / "landing_accessibility"
+    for rel in CAPTURE_STACK_MEMBERS:
+        on_disk = (pkg / rel).is_file()
+        assert (stack["members"][rel] != CAPTURE_STACK_ABSENT) is on_disk, rel
+    assert stack["completeness"] == (
+        CAPTURE_STACK_COMPLETE if not stack["absent_members"] else CAPTURE_STACK_PARTIAL
+    )
+
+
+def test_capture_stack_notes_name_the_incompleteness(tmp_path: Path) -> None:
+    """행에 지문만 남기고 완전성을 안 남기면 `PARTIAL` 지문이 `COMPLETE` 와 섞여 비교된다."""
+    root = _plant(tmp_path, {r: b for r, b in _MEMBER_SEED.items() if r != "v3_runner/session.py"})
+    notes = capture_stack_notes(root)
+    stack = capture_stack(root)
+    got = dict(n.split("=", 1) for n in notes)
+    assert got["CAPTURE_STACK"] == stack["combined"]
+    assert got["CAPTURE_STACK_METHOD"] == CAPTURE_STACK_METHOD
+    assert got["CAPTURE_STACK_COMPLETENESS"] == CAPTURE_STACK_PARTIAL
+    assert got["CAPTURE_STACK_ABSENT"] == "v3_runner/session.py"
+    assert got["CAPTURE_STACK_UNREADABLE"] == CAPTURE_STACK_NONE
+    # 완전한 스택에서는 빈 문자열이 아니라 `NONE` 이다.
+    (root / "v3_runner/session.py").write_bytes(b"x")
+    full = dict(n.split("=", 1) for n in capture_stack_notes(root))
+    assert full["CAPTURE_STACK_COMPLETENESS"] == CAPTURE_STACK_COMPLETE
+    assert full["CAPTURE_STACK_ABSENT"] == CAPTURE_STACK_NONE != ""
+
+
+def test_every_v3_observation_row_carries_the_capture_stack(
+    joined_pair: dict[str, Any],
+) -> None:
+    """`R22` 의 '모든 v3 관측 행' — 행 하나도 빠지지 않는다."""
+    stack = capture_stack()
+    for name, obs in joined_pair["obs"].items():
+        notes = obs.as_dict()["notes"]
+        # `CAPTURE_STACK=` 뒤는 `=`, 나머지는 `_` 로 갈리므로 접두사가 겹치지 않는다.
+        digests = [
+            n.removeprefix(CAPTURE_STACK_NOTE_PREFIX)
+            for n in notes
+            if n.startswith(CAPTURE_STACK_NOTE_PREFIX)
+        ]
+        assert digests == [stack["combined"]], f"{name}: {notes}"
+        assert any(n.startswith(CAPTURE_STACK_METHOD_NOTE_PREFIX) for n in notes)
+        assert any(n.startswith(CAPTURE_STACK_COMPLETENESS_NOTE_PREFIX) for n in notes)
+
+
+def test_the_join_artifact_carries_the_capture_stack_sub_object(
+    joined_pair: dict[str, Any],
+) -> None:
+    """구성원별 해시는 하위 객체로 남는다 — 행의 note 는 결합값만 담을 수 있다."""
+    stack = capture_stack()
+    for payload in joined_pair["payloads"].values():
+        got = payload["capture_stack"]
+        assert got["combined"] == stack["combined"]
+        assert set(got["members"]) == set(CAPTURE_STACK_MEMBERS)
+        assert got["completeness"] in (CAPTURE_STACK_COMPLETE, CAPTURE_STACK_PARTIAL)
+
+
+def test_provenance_carries_the_capture_stack_for_the_row_schema() -> None:
+    """행 스키마를 소유한 lane(W5F/W5H)이 그대로 병합할 수 있는 모양인가."""
+    prov = collector_provenance()
+    assert prov["capture_stack"] == capture_stack()
+    assert json.loads(json.dumps(prov)) == prov  # 직렬화 가능해야 행에 실린다
+
+
+def test_legacy_rows_gain_no_capture_stack_note(
+    icon_only_pair: dict[str, Path], tmp_path: Path
+) -> None:
+    """가산성 대조군 — 조인을 끄면 `R22` 줄도 붙지 않는다."""
+    out = _collect(icon_only_pair["root"], ["icon_only_unnamed.html"], ax_join=False, tmp=tmp_path)
+    assert out["obs"]["icon_only_unnamed.html"].notes == []

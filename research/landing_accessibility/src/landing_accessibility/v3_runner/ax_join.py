@@ -65,6 +65,32 @@ selector 를 재생성)을 쓰지 않은 이유는 명확하다 — 그 경로�
 relpath 사전순으로 `"<relpath>:<sha256(file)>\n"` 을 이어 붙인 바이트열의 sha256 이다.
 파일 하나만 바뀌어도 값이 바뀌고 열거 순서에 의존하지 않는다.
 
+## `capture_stack` — engine sha 하나로는 부족하다 (`R22`)
+
+`T-A-V3-STEP1-021`: "포착 동작이 호출자(`session.py`)에 있으면 engine sha 만으로는
+'어느 코드가 이 관측을 냈는가' 가 불완전하다" · "모든 v3 관측 행은 engine sha +
+driver/session sha 를 함께 기록한다" · "engine 은 바이트 동일한데 포착 능력은 driver
+에 있었다".
+
+그래서 `capture_stack` 은 `collector_sha256`(engine + joiner)의 **상위 집합**이다.
+구성원은 `engine/l0_collector.py` · `engine/l0_probe.js` · `v3_runner/ax_join.py` ·
+`v3_runner/runner.py` · `v3_runner/session.py` 다섯이고, 층은 `engine` / `joiner` /
+`driver` 셋이다. 층 배정은 `R22` 가 정하지 않아 W5I 가 정했다.
+
+`Δ20` 지문의 정의를 넓히지 않고 새 이름을 만든 이유: `collector_sha256` 은 이미 산출된
+관측 행에 실려 있다. 같은 이름이 두 가지 뜻을 갖게 되면 비교가 성립하지 않는다.
+
+**`runner.py` 와 `session.py` 는 W5I 워크트리에 없다** (각각 W5F / W5H 소유). 만들지
+않았다. 대신 그 부재를 값으로 낸다 — `ABSENT_IN_THIS_TREE` 다. `null` 도 빈 문자열도
+아니고 조용한 생략도 아니다(`SSOTV3 Δ15-GAP04`: categorical 결측은 명시적 표지).
+부재 구성원도 그 값 그대로 `combined` 에 들어가므로, 나중에 그 파일이 생기면 지문이
+바뀐다 — "둘 중 하나만 있으면 다른 쪽이 바뀐 것을 알 수 없다" 가 `R22` 가 막으려던
+것이고, 부재를 건너뛰면 정확히 그 구멍이 다시 생긴다.
+
+행에는 `CAPTURE_STACK=` · `_METHOD=` · `_COMPLETENESS=` · `_ABSENT=` · `_UNREADABLE=`
+다섯 줄이 붙고, 구성원별 해시가 들어간 하위 객체는 `collector_provenance()
+["capture_stack"]` 과 `l0a/ax_join.json` 의 `capture_stack` 이 싣는다.
+
 ## 측정으로 확인한 경계 — reveal gating
 
 `hidden`(= `display:none`) 조상 안의 control 은 **Chrome AX tree 에 노드가 아예 없다.**
@@ -91,6 +117,19 @@ from typing import Any, Protocol
 __all__ = [
     "AX_JOIN_RELPATH",
     "AX_JOIN_VERSION",
+    "CAPTURE_STACK_ABSENT",
+    "CAPTURE_STACK_ABSENT_NOTE_PREFIX",
+    "CAPTURE_STACK_COMPLETE",
+    "CAPTURE_STACK_COMPLETENESS_NOTE_PREFIX",
+    "CAPTURE_STACK_LAYERS",
+    "CAPTURE_STACK_MEMBERS",
+    "CAPTURE_STACK_METHOD",
+    "CAPTURE_STACK_METHOD_NOTE_PREFIX",
+    "CAPTURE_STACK_NONE",
+    "CAPTURE_STACK_NOTE_PREFIX",
+    "CAPTURE_STACK_PARTIAL",
+    "CAPTURE_STACK_UNREADABLE",
+    "CAPTURE_STACK_UNREADABLE_NOTE_PREFIX",
     "COLLECTOR_SHA256_METHOD",
     "COLLECTOR_SHA256_METHOD_NOTE_PREFIX",
     "COLLECTOR_SHA256_NOTE_PREFIX",
@@ -104,6 +143,8 @@ __all__ = [
     "SelectorResolution",
     "ax_join_relpath_for",
     "build_ax_join_payload",
+    "capture_stack",
+    "capture_stack_notes",
     "collect_ax_join",
     "collector_provenance",
     "collector_provenance_notes",
@@ -241,23 +282,160 @@ def collector_provenance(package_root: Path | None = None) -> dict[str, Any]:
         "collector_sha256": digests["combined"],
         "collector_sha256_files": {k: v for k, v in digests.items() if k != "combined"},
         "collector_sha256_method": COLLECTOR_SHA256_METHOD,
+        # `R22` — engine sha 만으로는 "어느 코드가 이 관측을 냈는가" 가 불완전하다.
+        # driver 층까지 포함한 하위 객체를 **행 스키마에 그대로 실을 수 있는 모양**으로 낸다.
+        "capture_stack": capture_stack(package_root),
         "ax_join_version": AX_JOIN_VERSION,
     }
 
 
 def collector_provenance_notes(package_root: Path | None = None) -> list[str]:
-    """`L0Observation.notes` 에 넣을 두 줄.
+    """`L0Observation.notes` 에 넣을 provenance 줄 전부 (`Δ20` 2줄 + `R22` 5줄).
 
     `L0Observation` 에 **새 필드를 더할 수 없어서** 고른 경로다. `as_dict()` 는
     `e001_runner/executor.py` 가 그대로 직렬화해 ledger 해시에 넣으므로, 필드를 하나
     더하면 legacy 59 와 12 diagnostic 산출물의 바이트가 바뀐다 — 가산적이지 않다.
-    `notes` 는 이미 존재하는 list 필드이고, **`ax_join` 이 켜진 v3 수집에서만** 이 두
-    줄이 붙으므로 legacy 경로의 바이트는 한 글자도 바뀌지 않는다.
+    `notes` 는 이미 존재하는 list 필드이고, **`ax_join` 이 켜진 v3 수집에서만** 이 줄들이
+    붙으므로 legacy 경로의 바이트는 한 글자도 바뀌지 않는다.
     """
     prov = collector_provenance(package_root)
     return [
         f"{COLLECTOR_SHA256_NOTE_PREFIX}{prov['collector_sha256']}",
         f"{COLLECTOR_SHA256_METHOD_NOTE_PREFIX}{prov['collector_sha256_method']}",
+        # `R22` — 같은 규율로 포착 스택 지문도 행에 붙인다. `Δ20` 지문만 있으면
+        # driver 가 바뀐 것을 재현 시 알 수 없다.
+        *capture_stack_notes(package_root),
+    ]
+
+
+# ── R22 — 포착 스택 지문 (capture_stack) ─────────────────────────────────────
+#
+# `T-A-V3-STEP1-021` 원문: "`collector_sha256` 하나로는 부족하다. **포착 동작이
+# 호출자(session.py)에 있으면 engine sha 만으로는 '어느 코드가 이 관측을 냈는가' 가
+# 불완전하다**" · "모든 v3 관측 행은 **engine sha + driver/session sha** 를 함께
+# 기록한다" · "둘 중 하나만 있으면 재현 시 다른 쪽이 바뀐 것을 알 수 없다. 이번 건이
+# 정확히 그 사례다 — engine 은 바이트 동일한데 포착 능력은 driver 에 있었다".
+#
+# `collector_sha256` 은 engine + joiner 만 덮는다(`Δ20` 이 그렇게 굳었고 이미 관측
+# 행에 실려 있다). `capture_stack` 은 그 위에 driver 층을 얹은 **상위 집합**이다.
+# 둘을 한 값으로 합치지 않은 이유: `Δ20` 지문은 이미 산출된 관측 행에 실려 있고, 그
+# 정의를 바꾸면 같은 이름의 값이 두 가지 뜻을 갖게 된다. 새 이름에 새 뜻을 담는다.
+
+#: 층별 구성원. **어느 파일이 어느 층인지는 `R22` 가 정하지 않았다 — W5I 가 정했다.**
+#: `R22` 는 "engine sha + driver/session sha" 를 함께 기록하라고만 했다.
+#: `joiner` 를 engine 에서 떼어 놓은 것도 W5I 의 결정이다: 조인기는 engine 도 driver 도
+#: 아니고 v3 에서만 도는 제3의 코드라, engine 에 합치면 engine 이 바뀐 것으로 잘못 읽힌다.
+CAPTURE_STACK_LAYERS: dict[str, tuple[str, ...]] = {
+    "engine": ("engine/l0_collector.py", "engine/l0_probe.js"),
+    "joiner": ("v3_runner/ax_join.py",),
+    #: **다른 lane(W5F `runner.py` / W5H `session.py`) 소유다.** W5I 워크트리에는 없다.
+    #: 읽어서 해시만 뜬다 — 만들지도, 고치지도 않는다. 없으면 없다고 적는다.
+    "driver": ("v3_runner/runner.py", "v3_runner/session.py"),
+}
+
+#: 지문을 뜨는 구성원 전부. 패키지 루트(`landing_accessibility/`) 기준 relpath.
+CAPTURE_STACK_MEMBERS: tuple[str, ...] = tuple(
+    sorted({rel for rels in CAPTURE_STACK_LAYERS.values() for rel in rels})
+)
+
+#: 구성원 파일이 **이 트리에 존재하지 않을 때**의 값. `null` 도 빈 문자열도 쓰지 않는다.
+#: `SSOTV3 Δ15-GAP04`: 결측은 numeric=`null`, categorical=명시적 표지, 빈 문자열 금지.
+#: 조용히 건너뛰면 "그 파일이 있었는데 안 떴다" 와 "애초에 없었다" 가 구분되지 않는다.
+CAPTURE_STACK_ABSENT = "ABSENT_IN_THIS_TREE"
+#: 파일은 있으나 읽지 못했을 때. **부재와 같은 값으로 뭉개지 않는다** — 부재는 lane 병합
+#: 전이라는 뜻이고, 읽기 실패는 환경 결함이라는 뜻이다. 사후 대응이 서로 다르다.
+CAPTURE_STACK_UNREADABLE = "UNREADABLE_IN_THIS_TREE"
+
+#: 스택이 전부 지문화됐는가. 하나라도 부재/불가면 `combined` 은 **불완전한 스택**의
+#: 지문이므로, 그 사실 자체가 행에 남아야 한다.
+CAPTURE_STACK_COMPLETE = "COMPLETE"
+CAPTURE_STACK_PARTIAL = "PARTIAL"
+
+#: 결합 방식 식별자. 방식을 바꾸면 이 문자열도 바꾼다 — 그래야 두 관측의 `combined` 이
+#: 다를 때 "코드가 달랐다" 와 "합치는 방식이 달랐다" 를 가릴 수 있다.
+CAPTURE_STACK_METHOD = "sha256(concat(sorted('<relpath>:<member>\\n')))/r22-w5i-1"
+
+#: `L0Observation.notes` 접두사. 관측 **행 자체**가 포착 스택 지문을 갖게 하는 경로다.
+CAPTURE_STACK_NOTE_PREFIX = "CAPTURE_STACK="
+CAPTURE_STACK_METHOD_NOTE_PREFIX = "CAPTURE_STACK_METHOD="
+CAPTURE_STACK_COMPLETENESS_NOTE_PREFIX = "CAPTURE_STACK_COMPLETENESS="
+#: 부재/읽기불가 구성원을 **행에 이름으로** 남긴다. 둘은 서로 다른 사실이라 줄을 나눈다.
+#: 비어 있으면 `NONE` 이다 — 빈 문자열을 쓰지 않는다(`Δ15-GAP04`).
+CAPTURE_STACK_ABSENT_NOTE_PREFIX = "CAPTURE_STACK_ABSENT="
+CAPTURE_STACK_UNREADABLE_NOTE_PREFIX = "CAPTURE_STACK_UNREADABLE="
+CAPTURE_STACK_NONE = "NONE"
+
+
+def _combine(digests: Mapping[str, str], relpaths: Iterable[str]) -> str:
+    """`"<relpath>:<값>\n"` 을 relpath 사전순으로 이어 붙인 바이트열의 sha256.
+
+    열거 순서에 의존하지 않고, 구성원 하나만 바뀌어도 값이 바뀐다.
+    """
+    joined = "".join(f"{rel}:{digests[rel]}\n" for rel in sorted(relpaths))
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest()
+
+
+def _member_digest(path: Path) -> str:
+    """구성원 하나의 값. 부재/읽기불가를 **예외로 죽지도, 조용히 건너뛰지도 않고** 값으로 낸다."""
+    if not path.is_file():
+        return CAPTURE_STACK_ABSENT
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return CAPTURE_STACK_UNREADABLE
+
+
+def capture_stack(package_root: Path | None = None) -> dict[str, Any]:
+    """`R22` 포착 스택 지문 — engine + joiner + driver 를 한 객체로.
+
+    키:
+
+    - `members`: `{relpath: sha256 | ABSENT_IN_THIS_TREE | UNREADABLE_IN_THIS_TREE}`
+    - `layers`: `{engine|joiner|driver: <층 결합 지문>}`
+    - `absent_members` / `unreadable_members`: 지문을 못 뜬 구성원 이름
+    - `completeness`: `COMPLETE` | `PARTIAL`
+    - `combined`: 구성원 전부의 결합 지문
+    - `method`: 결합 방식 식별자
+
+    부재 구성원도 `combined` 에 **`ABSENT_IN_THIS_TREE` 라는 값으로** 들어간다. 그래서
+    나중에 그 파일이 생기면 `combined` 이 바뀐다 — "다른 쪽이 바뀐 것을 알 수 없다" 가
+    `R22` 가 막으려던 것이고, 부재를 건너뛰면 정확히 그 구멍이 다시 생긴다.
+    """
+    root = package_root if package_root is not None else _package_root()
+    members = {rel: _member_digest(root / rel) for rel in CAPTURE_STACK_MEMBERS}
+    absent = [rel for rel in CAPTURE_STACK_MEMBERS if members[rel] == CAPTURE_STACK_ABSENT]
+    unreadable = [rel for rel in CAPTURE_STACK_MEMBERS if members[rel] == CAPTURE_STACK_UNREADABLE]
+    return {
+        "members": members,
+        "layers": {layer: _combine(members, rels) for layer, rels in CAPTURE_STACK_LAYERS.items()},
+        "absent_members": absent,
+        "unreadable_members": unreadable,
+        "completeness": (
+            CAPTURE_STACK_COMPLETE if not (absent or unreadable) else CAPTURE_STACK_PARTIAL
+        ),
+        "combined": _combine(members, CAPTURE_STACK_MEMBERS),
+        "method": CAPTURE_STACK_METHOD,
+    }
+
+
+def capture_stack_notes(package_root: Path | None = None) -> list[str]:
+    """`L0Observation.notes` 에 넣을 포착 스택 다섯 줄.
+
+    `notes` 는 평평한 문자열 리스트라 하위 객체를 담을 수 없다. 그래서 행에는 **지문 +
+    방식 + 완전성 + 부재 구성원 이름**을 남기고, 구성원별 해시가 들어간 하위 객체는
+    `collector_provenance()["capture_stack"]` 과 `l0a/ax_join.json` 이 싣는다.
+    완전성과 부재 이름을 행에 남기지 않으면 `PARTIAL` 지문이 `COMPLETE` 지문과 구분되지
+    않은 채로 비교돼, "왜 지문이 다르지" 를 사후에 풀 수 없다.
+    """
+    stack = capture_stack(package_root)
+    return [
+        f"{CAPTURE_STACK_NOTE_PREFIX}{stack['combined']}",
+        f"{CAPTURE_STACK_METHOD_NOTE_PREFIX}{stack['method']}",
+        f"{CAPTURE_STACK_COMPLETENESS_NOTE_PREFIX}{stack['completeness']}",
+        CAPTURE_STACK_ABSENT_NOTE_PREFIX
+        + (",".join(stack["absent_members"]) or CAPTURE_STACK_NONE),
+        CAPTURE_STACK_UNREADABLE_NOTE_PREFIX
+        + (",".join(stack["unreadable_members"]) or CAPTURE_STACK_NONE),
     ]
 
 
@@ -309,11 +487,16 @@ class AxJoinPayload:
     ax_nodes_total: int = 0
     full_ax_compared: bool = False
     source_features: tuple[str, ...] = field(default=DEFAULT_SELECTOR_FEATURES)
+    #: `R22` 포착 스택 지문. `collector_sha256` 의 상위 집합이고 driver 층을 포함한다.
+    #: 기본값이 빈 dict 인 것은 순수 구성 테스트가 파일시스템을 만지지 않게 하기 위해서다 —
+    #: 실제 수집 경로는 `build_ax_join_payload` 가 항상 채운다.
+    capture_stack: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "ax_join_version": self.ax_join_version,
             "collector_sha256": dict(self.collector_sha256),
+            "capture_stack": dict(self.capture_stack),
             "ax_nodes_total": self.ax_nodes_total,
             "full_ax_compared": self.full_ax_compared,
             "source_features": list(self.source_features),
@@ -511,6 +694,7 @@ def build_ax_join_payload(
     return AxJoinPayload(
         ax_join_version=AX_JOIN_VERSION,
         collector_sha256=collector_sha256(package_root),
+        capture_stack=capture_stack(package_root),
         entries=tuple(entries),
         stats=_stats(entries),
         notes=tuple(notes),
