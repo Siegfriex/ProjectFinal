@@ -36,7 +36,7 @@ def _try(fn, *a, **kw):
 
 
 def main(sut_root: str, out_json: str) -> int:
-    root = pathlib.Path(sut_root).resolve()
+    root = pathlib.Path(sut_root).resolve(); out_json = str(pathlib.Path(out_json).resolve())
     head = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"]).decode().strip()
     man_path = root / MANIFEST_REL
     rec: dict = {"artifact": "C_SCOPE_THREEWAY_TEST", "sut_head": head, "manifest_in_tree": man_path.exists()}
