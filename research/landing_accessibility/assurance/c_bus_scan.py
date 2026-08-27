@@ -235,6 +235,12 @@ class RulingIndex:
         self.shape_unsafe = sorted(a for a in amap if shape_unsafe_alias(a))                          # Δ25 proxy, report-only
         self.alias_rules = obj.get("alias_rules")
         self.safe_alias_map = {a: ids for a, ids in amap.items() if not unsafe_alias(a)}
+        # second channel (report-only): A's own control corpus from index alias_rules, if declared — never replaces C's corpus
+        ar = obj.get("alias_rules") or {}
+        a_corpus = ar.get("control_corpus") if isinstance(ar, dict) else None
+        if isinstance(a_corpus, list): a_corpus = " ".join(str(x) for x in a_corpus)
+        self.a_corpus_present = isinstance(a_corpus, str) and bool(a_corpus.strip())
+        self.unsafe_by_a_corpus = sorted(a for a in amap if self.a_corpus_present and alias_fires_in_corpus(a, a_corpus)) if self.a_corpus_present else None
     def resolve(self, token: str) -> list:
         """ids for a token: exact id, else safe alias (token-bounded, case-sensitive equality on the whole token)."""
         if token in self.ids: return [token]
@@ -278,7 +284,7 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
     out = {"index_source": source, "index_version": idx.version, "index_rows": len(idx.rows), "index_sha256": idx.sha256, "controls": controls,
            "alias_rule_applied": "index v17 alias_rules / Δ33: alias unsafe iff it fires in C's ruling-unrelated control corpus (specificity, measured); Δ25 shape rule kept as report-only proxy; token-boundary matching",
            "index_alias_rules_present": idx.alias_rules is not None,
-           "alias_collisions": idx.collisions, "unsafe_aliases": idx.unsafe, "shape_unsafe_aliases_delta25_proxy": idx.shape_unsafe, "short_alpha_aliases": idx.short_alpha, "empty_alias_rows": idx.empty_alias_rows}
+           "alias_collisions": idx.collisions, "unsafe_aliases": idx.unsafe, "unsafe_aliases_by_index_control_corpus": idx.unsafe_by_a_corpus, "index_control_corpus_declared": idx.a_corpus_present, "shape_unsafe_aliases_delta25_proxy": idx.shape_unsafe, "short_alpha_aliases": idx.short_alpha, "empty_alias_rows": idx.empty_alias_rows}
     if any(c["result"] == "FAIL" for c in controls):
         out["status"] = "CONTROLS_FAILED_MAIN_CHECK_REFUSED"; return out
     a_tickets = [(tid, d) for tid, p, d, v3 in tickets if v3 and str(d.get("from")) == "A"]
