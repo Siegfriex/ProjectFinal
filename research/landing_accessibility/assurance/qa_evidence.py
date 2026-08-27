@@ -215,7 +215,8 @@ def reconstruct_target(res: dict, batch: dict, out_dir: pathlib.Path, f: F, plan
     elif row["outcome"] in ("TRANSPORT_FAILURE", "TLS_FAILURE", "SKIPPED_RETRY_EXHAUSTED", "WAF_BLOCKED", "APP_REDIRECT") or row["measurement_status"] not in ("MEASURED",): reason = "TRANSPORT_FAILURE" if row["measurement_status"] != "MEASURED" or row["outcome"] in ("TRANSPORT_FAILURE", "TLS_FAILURE", "SKIPPED_RETRY_EXHAUSTED") else "L0_NOT_MEASURED"
     elif row.get("run_status") != "VERIFIED" or row.get("l0a_missing"): reason = "L0_EVIDENCE_INCOMPLETE"
     elif not row["l1_present"] or row["endpoint_status"] not in J2_TERMINAL: reason = "L1_NOT_ATTEMPTED_OR_UNRESOLVED"
-    elif None in (row["ned"], row["ied"], row["mpfed"]): reason = "MPFED_NULL"
+    elif None in (row["ned"], row["ied"], row["mpfed"]):
+        reason = "GATE_REACHED_MPFED_NULL" if row["endpoint_status"] in ("AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED") else "MPFED_NULL"  # contract §1.3 (A 2026-08-27 12:10): 대상의 성질 vs 우리 쪽 사정 분리
     row["j1_j3_valid"] = reason is None; row["exclusion_reason_c"] = reason
     return row
 

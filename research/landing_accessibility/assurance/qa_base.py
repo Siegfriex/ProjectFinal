@@ -72,8 +72,19 @@ def run(ticket: dict) -> dict:
         if st == "CLOSED":
             # the commit that closed it must be after promoted main and must be identified
             rc, log = git("log", "--format=%H", "-S", 'P0_GATE_STATUS = "CLOSED"', "--", f"{LA}/src/landing_accessibility/engine/firewall.py") if False else (0, "")
-            rep["firewall_close_commit"] = p.get("firewall_close_commit")
-            if pm and not p.get("firewall_close_commit"): add("C2", "FIREWALL_CLOSE_COMMIT_UNSTATED", "ticket does not name the commit that set P0_GATE_STATUS=CLOSED")
+            fc = p.get("firewall_close_commit")
+            if not fc:  # fall back to P0_RELEASE.json on origin/control (A binds the field there)
+                rel = show("origin/control/landing-orchestrator", f"{LA}/control/P0_RELEASE.json")
+                if rel:
+                    try:
+                        R = json.loads(rel); fc = next((v for k, v in R.items() if "firewall" in k.lower() and isinstance(v, str) and HEX40.match(v)), None)
+                    except Exception: fc = None
+            rep["firewall_close_commit"] = fc
+            if not fc: add("C1", "FIREWALL_CLOSE_COMMIT_UNBOUND", "no commit SHA binding P0_GATE_STATUS=CLOSED in ticket or P0_RELEASE.json — release→collection authorization not mechanically evidenced")
+            elif not exists(fc) or not is_ancestor(fc, col): add("C1", "FIREWALL_CLOSE_COMMIT_NOT_IN_BASE", f"firewall close commit {fc[:12]} not an ancestor of collector SHA")
+            else:
+                fw_at = show(fc, f"{LA}/src/landing_accessibility/engine/firewall.py") or ""
+                if 'P0_GATE_STATUS = "CLOSED"' not in fw_at: add("C1", "FIREWALL_CLOSE_COMMIT_WRONG", f"commit {fc[:12]} does not set P0_GATE_STATUS=CLOSED")
     # plan integrity
     plan_txt = show(shas["plan_sha"], p.get("plan_path", f"{LA}/shadow/e001_plan/E001_MASTER_PLAN.json")) if shas.get("plan_sha") and exists(shas["plan_sha"]) else None
     if plan_txt is None: add("C1", "PLAN_MISSING", "E001 master plan not readable at plan_sha")
