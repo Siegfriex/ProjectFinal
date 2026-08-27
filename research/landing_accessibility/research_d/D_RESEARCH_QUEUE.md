@@ -346,3 +346,16 @@ transcript 에서 다시 깨우면 되고, 그때 RQ-D13b 는 JSON 과 FINDINGS.
 미발행 상태로 남은 것: RQ-D7 / RQ-D13b-1,2 의 RESEARCH_FINDING 티켓.
 OPEN 유지: RQ-E-1a, RQ-E-3, RQ-E-4, RQ-E-5, RQ-D11a, RQ-D13b-1/2, RQ-D7.
 PILOT child A / B / C-part2 / D 는 `PENDING_PILOT_FREEZE` — 캡처 산출물 미도착.
+
+## 2026-08-28 02:14 — 미완 2건 완결, D 열린 RQ 0
+
+| RQ | verdict | 완결 게이트 | 티켓 |
+|---|---|---|---|
+| RQ-D7 | PARTIALLY_SUPPORTED | 통과 (노트북 22셀 error 0) | `D-V3-FINDING-002` (v3 스키마) |
+| RQ-D13b-1/2 | SUPPORTED | 통과 (노트북 31셀 error 0) | `D-V3-FINDING-003` (v3 스키마) |
+
+**D 의 v2.1 유래 열린 RQ 는 이제 0건이다.** 남은 OPEN(RQ-E-1a, E-3, E-4, E-5, RQ-D11a)은
+전부 legacy 59 코호트 대상이며, v3 채택으로 본연구 critical path 에서 내려왔다.
+A 의 v3 역할 티켓이 오면 `14_PROMPT_D_v3.0.md` 우선연구 8개와 대조해 새로 등재한다.
+
+착수 금지 유지: SSOTV3 00 §13 · T-A-PIVOT-PRESERVE-001 — 대상 지정 전 새 조작화·게이트 수치·archetype 금지.
