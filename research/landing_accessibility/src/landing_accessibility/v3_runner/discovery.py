@@ -63,6 +63,8 @@ _RESEARCH_ROOT = Path(__file__).resolve().parents[3]
 if str(_RESEARCH_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(_RESEARCH_ROOT / "src"))
 
+from enum import StrEnum  # noqa: E402
+
 from landing_accessibility.e001_runner.guard import (  # noqa: E402
     ActionRisk,
     CandidateActionState,
@@ -211,6 +213,65 @@ MIN4_POLICY = PathSelectionPolicy(name="MIN-4", sort_key=min4_sort_key)
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# fixture_input_mode (A Δ8-R5, 2026-08-28 확정) — SELECT_ORIGIN/DESTINATION/DATE
+# 의 activation_depth 포함 여부를 가르는 관측 입력. `04_FLOW_CODEBOOK_v3.0.md`
+# 원문 22필드 표가 동결된 뒤에 A 가 추가한 delta 라 그 문서에는 없다.
+# ══════════════════════════════════════════════════════════════════════════
+class FixtureInputMode(StrEnum):
+    """A 규칙: "서비스가 먼저 제시하는 수단을 쓴다 — 수집자가 고르지 않는다."
+    닫힌 집합이다 — 이 다섯 값 밖을 만들지 않는다."""
+
+    FREE_TEXT = "FREE_TEXT"
+    DROPDOWN = "DROPDOWN"
+    MIXED = "MIXED"
+    MAP_PAN = "MAP_PAN"
+    OTHER = "OTHER"
+
+
+def _infer_fixture_input_mode(candidate: Mapping[str, Any]) -> FixtureInputMode | None:
+    """**구조 신호(tag/role/type)만** 본다 — candidate 가 어떤 task 용도인지는
+    보지 않는다(모듈 상단 "대표기능을 추론하지 않는다"와 같은 이유: "OTHER 서비스는
+    지도로 목적지를 고른다"를 라벨/문구로 추측하면 그건 관측이 아니라 대표기능
+    추론의 재발이다). 신호가 전혀 없으면 `None`이다 — `OTHER`로 단정하지 않는다
+    (`OTHER`는 "버튼/링크류로 관측됐지만 다섯 카테고리 중 더 좁게 구조적으로
+    가를 수 없다"는 뜻이지 "모름"이 아니다).
+
+    **known limitation** — `primary_action_candidates`(`discover_task_
+    candidates`의 유일한 candidate source, 위 함수 docstring 참고) 쿼리는
+    `input[type=submit|button]`만 잡고 일반 `<input type=text>`/`<select>`/
+    지도 위젯(보통 스크립트가 그리는 `<div>`, 시맨틱 role 이 없는 경우가 흔하다)
+    은 잡지 않는다. 그래서 `FREE_TEXT`/`DROPDOWN`/`MAP_PAN`은 **구조적으로
+    거의 관측되지 않는다** — 실제로 관측되는 것은 그런 위젯을 여는 트리거
+    button/link(`OTHER`) 인 경우가 대부분이다. 이 한계는 `discover_task_
+    candidates`의 candidate-source 한계와 같은 근본 원인(`l0_probe.js` 읽기
+    전용)이고 새로 만든 것이 아니다.
+    """
+    tag = str(candidate.get("tag") or "").strip().lower()
+    role = str(candidate.get("role") or "").strip().lower()
+    input_type = str(candidate.get("type") or candidate.get("input_type") or "").strip().lower()
+
+    if role == "combobox":
+        return FixtureInputMode.MIXED
+    if tag == "select" or role in ("listbox", "menu"):
+        return FixtureInputMode.DROPDOWN
+    if tag == "input" and input_type not in (
+        "submit",
+        "button",
+        "checkbox",
+        "radio",
+        "hidden",
+    ):
+        return FixtureInputMode.FREE_TEXT
+    if role == "application" or "map" in tag:
+        # 구조적으로 지도 위젯임이 명시된 경우만(role=application 은 흔치 않은
+        # 명시적 신호) — 라벨/문구로 "지도"를 추측하지 않는다.
+        return FixtureInputMode.MAP_PAN
+    if tag in ("button", "a") or role in ("button", "link", "tab"):
+        return FixtureInputMode.OTHER
+    return None
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # TaskCandidate — discovery 결과 한 건
 # ══════════════════════════════════════════════════════════════════════════
 @dataclass(frozen=True)
@@ -238,6 +299,10 @@ class TaskCandidate:
     #: `policy.sort_key` 적용 후 순위(0-based). `BRANCHING_LIMIT` 절단선이
     #: 이 순서를 본다(Scout 자신의 순서와, 정책이 MIN-4 인 한 일치한다).
     rank: int
+    #: A `Δ8-R5`(2026-08-28) — `SELECT_ORIGIN`/`DESTINATION`/`DATE` 의
+    #: `activation_depth` 포함 여부를 가르는 관측 입력. 구조 신호만으로 판정하고
+    #: (`_infer_fixture_input_mode`), 신호가 없으면 `None`이다(추측하지 않는다).
+    fixture_input_mode: FixtureInputMode | None
     raw: dict[str, Any] = field(repr=False)
 
 
@@ -300,6 +365,7 @@ def discover_task_candidates(
                 guard_state=state,
                 usable=state in _USABLE_STATES,
                 rank=rank,
+                fixture_input_mode=_infer_fixture_input_mode(c),
                 raw=c,
             )
         )
@@ -399,6 +465,7 @@ def run_task_aware_scout(
 
 __all__ = [
     "MIN4_POLICY",
+    "FixtureInputMode",
     "PathSelectionPolicy",
     "TaskCandidate",
     "TaskContract",

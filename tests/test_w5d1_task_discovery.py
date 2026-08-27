@@ -36,8 +36,10 @@ from landing_accessibility.engine.evidence import EvidenceRun  # noqa: E402
 from landing_accessibility.engine.firewall import ExecutionMode  # noqa: E402
 from landing_accessibility.engine.vocabulary import InteractionArchetype  # noqa: E402
 from landing_accessibility.v3_runner.discovery import (  # noqa: E402
+    FixtureInputMode,
     PathSelectionPolicy,
     TaskDiscoveryResult,
+    _infer_fixture_input_mode,
     bind_task_definition,
     discover_task_candidates,
     run_task_aware_scout,
@@ -408,3 +410,73 @@ def test_scout_internal_branching_ignores_the_injected_policy_by_design(tmp_path
         result_default.entry.steps[0].clicked_selector
         == result_reverse.entry.steps[0].clicked_selector
     )
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 5. fixture_input_mode (A `Δ8-R5`, 2026-08-28) — 구조 신호만으로 관측한다
+# ══════════════════════════════════════════════════════════════════════════
+@pytest.mark.parametrize(
+    ("candidate_kwargs", "expected"),
+    [
+        ({"role": "combobox"}, FixtureInputMode.MIXED),
+        ({"tag": "select"}, FixtureInputMode.DROPDOWN),
+        ({"role": "listbox"}, FixtureInputMode.DROPDOWN),
+        ({"tag": "input", "type": "text"}, FixtureInputMode.FREE_TEXT),
+        ({"tag": "input", "type": "search"}, FixtureInputMode.FREE_TEXT),
+        ({"role": "application"}, FixtureInputMode.MAP_PAN),
+        ({"tag": "button"}, FixtureInputMode.OTHER),
+        ({"tag": "a"}, FixtureInputMode.OTHER),
+        ({"role": "tab"}, FixtureInputMode.OTHER),
+    ],
+)
+def test_infer_fixture_input_mode_uses_only_structural_signals(candidate_kwargs, expected):
+    assert _infer_fixture_input_mode(_probe_candidate(**candidate_kwargs)) is expected
+
+
+def test_infer_fixture_input_mode_button_type_input_is_not_free_text():
+    """`input[type=submit|button]`은 `primary_action_candidates`의 진짜 소스이지만
+    FREE_TEXT가 아니다 — 제출 버튼이지 텍스트 입력이 아니다(구조 신호가 그 이상
+    가르지 못하므로 `None`)."""
+    assert _infer_fixture_input_mode(_probe_candidate(tag="input", type="submit")) is None
+    assert _infer_fixture_input_mode(_probe_candidate(tag="input", type="button")) is None
+
+
+def test_infer_fixture_input_mode_returns_none_when_no_structural_signal():
+    """신호가 전혀 없으면 `OTHER`로 단정하지 않고 `None`(결측)이다 — 관측이지
+    추측이 아니다."""
+    assert _infer_fixture_input_mode({"tag": "div", "role": None}) is None
+    assert _infer_fixture_input_mode({}) is None
+
+
+def test_infer_fixture_input_mode_does_not_use_label_text_to_guess_map_widgets():
+    """ "지도"라는 문구가 aria_label/visible_text 에 있어도 구조 신호가 없으면
+    MAP_PAN 으로 추측하지 않는다 — 라벨로 의미를 추론하면 대표기능 비추론
+    원칙을 어긴다."""
+    candidate = _probe_candidate(tag="button", visible_text="지도에서 위치 선택")
+    assert _infer_fixture_input_mode(candidate) is FixtureInputMode.OTHER, (
+        "라벨 문구가 아니라 tag=button 구조 신호로만 OTHER 가 나와야 한다"
+    )
+
+
+def test_discover_task_candidates_populates_fixture_input_mode_per_candidate():
+    probe = {
+        "primary_action_candidates": [
+            _probe_candidate(selector="#combo", dom_order=0, role="combobox"),
+            _probe_candidate(selector="#btn", dom_order=1, tag="button"),
+        ]
+    }
+    out = discover_task_candidates(probe, _contract())
+    by_selector = {c.selector: c.fixture_input_mode for c in out}
+    assert by_selector["#combo"] is FixtureInputMode.MIXED
+    assert by_selector["#btn"] is FixtureInputMode.OTHER
+
+
+def test_run_task_aware_scout_records_fixture_input_mode_on_real_fixture_candidates(tmp_path):
+    """실제 fixture(FIXTURE 전용, 브라우저 통과) 에서도 `fixture_input_mode`가
+    채워지는지 확인한다 — `w1_enabled_only.html`의 유일한 candidate 는
+    `<button>`이므로 구조적으로 `OTHER`다."""
+    run = _run(tmp_path)
+    result = run_task_aware_scout(_contract(), fixture_root=FIXTURES, run=run)
+    run.seal()
+    assert len(result.candidates) == 1
+    assert result.candidates[0].fixture_input_mode is FixtureInputMode.OTHER
