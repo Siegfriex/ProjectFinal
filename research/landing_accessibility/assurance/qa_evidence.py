@@ -289,6 +289,8 @@ def append_only_check(out_dir: pathlib.Path, batches: list[dict], state_path: pa
 
 # ----------------------------------------------------------------------------- main
 
+HARDSTOP_KST = "2026-08-27T14:45:00+09:00"  # A: 새 target 시작 하드스톱 (재연장 없음)
+
 def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: str | None, extra_plan_targets: str | None = None) -> dict:
     f = F(); out = pathlib.Path(out_dir); plan = json.loads(pathlib.Path(plan_path).read_text(encoding="utf-8"))
     plan_targets = {t["target_id"]: t for t in (plan.get("targets") or []) if isinstance(t, dict) and t.get("target_id")}
@@ -334,6 +336,14 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
     if guard_blocked: f.add("C2", "GUARD_BLOCKED_L0_RUNS", f"{len(guard_blocked)} L0 runs from ACCOUNT_ACTION_BLOCKED targets (lineage note)", runs=guard_blocked[:10])
     run_accounting = {"disk_runs": len(disk_runs), "referenced_by_batch": len(referenced), "retry_superseded": retry_superseded, "guard_blocked_l0": guard_blocked, "unsealed_in_progress": unsealed, "orphan_unexplained": orphan}
     ao = append_only_check(out, batches, pathlib.Path(state) if state else None, f)
+    # A 14:10 priority 4: no new target started after 14:45 KST hardstop
+    for r in rows:
+        cs = r.get("collection_started_at")
+        if cs:
+            try:
+                t = datetime.datetime.fromisoformat(str(cs).replace("Z", "+00:00")).astimezone(KST)
+                if t.strftime("%Y-%m-%dT%H:%M:%S+09:00") > HARDSTOP_KST: f.add("C1", "NEW_TARGET_AFTER_HARDSTOP", f"collection_started_at {t.strftime('%H:%M:%S')} KST > 14:45 hardstop", target_id=r["target_id"])
+            except Exception: pass
     # SHA consistency across runs
     provs = Counter(json.dumps(r.get("run_provenance"), sort_keys=True) for r in rows if r.get("run_provenance"))
     protos = Counter(r.get("protocol_version") for r in rows if r.get("protocol_version"))

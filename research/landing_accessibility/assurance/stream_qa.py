@@ -30,6 +30,8 @@ def discover(extra):
 def worker_of(path: pathlib.Path):
     m = re.search(r"worker[_-]?(\d{2})", str(path)); return f"worker_{m.group(1)}" if m else None
 
+CROSS = {}
+
 def main(a):
     OUT.mkdir(parents=True, exist_ok=True); seen = {}; state_dir = OUT / "_state"; state_dir.mkdir(exist_ok=True)
     plan_master = a.plan_master; plan_targets = a.plan_targets
@@ -79,6 +81,13 @@ def main(a):
                 except Exception: pass
                 if c0:
                     bus.emit("SYSTEMIC_HARD_STOP_CANDIDATE", {"out_dir": str(root), "batch_file": bf.name, "findings": c0[:10], "recommendation": "B: stop affected writes; A decides global stop"}, to=("A", "B"))
+                if not is_e000:
+                    xp = CROSS.setdefault("e001_prov", {})
+                    for v in rep.get("provenance_variants") or []: xp.setdefault(v, set()).add(str(root))
+                    if len(xp) > 1:
+                        print(f"CROSS_WORKER_PROVENANCE_DRIFT C1 variants={len(xp)} roots={[sorted(x) for x in xp.values()]}", flush=True)
+                        try: bus._log("CROSS_WORKER_PROVENANCE_DRIFT", variants=len(xp))
+                        except Exception: pass
                 print(f"BATCH_QA {worker or slug} {bf.name} verdict={rep['verdict']} sev={sev} attempted={rep['attempted_n']} jv13={rep['joint_valid_j1_j3_n']} C0={len(c0)} C1={len(c1)} {'RERUN_CHANGED' if changed else ''}", flush=True)
         time.sleep(a.interval)
 
