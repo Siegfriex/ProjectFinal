@@ -1047,7 +1047,6 @@ def log_mlflow() -> str:
             mlflow.log_artifact(str(fp), "figures")
         C.finish(verdict=d["verdict"], limitation=limitation)
         rid = run.info.run_id
-    (RD / "results" / "RF2_C_MLFLOW_RUN.txt").write_text(rid, encoding="utf-8")
     print("mlflow run_id", rid)
     return rid
 

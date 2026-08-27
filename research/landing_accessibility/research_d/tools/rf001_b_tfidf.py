@@ -177,6 +177,48 @@ def main() -> int:
     ct = pd.crosstab(df["prior_archetype"], df["prior_business_domain"])
     collinear = bool((ct > 0).sum(axis=1).max() == 1 and (ct > 0).sum(axis=0).max() == 1)
 
+    # --- 상위 계수 토큰 육안 검사에서 드러난 두 번째/세 번째 누출 채널을 계량화한다 -------
+    #   (1) mojibake: dom.html 을 잘못된 인코딩으로 디코드해 생긴 Latin-1 보충영역 문자열
+    #   (2) CSS/style 텍스트가 본문 추출에 섞여 들어온 흔적
+    CSS_KEYWORDS = {"flex", "background", "position", "none", "absolute", "relative",
+                    "px", "rgba", "margin", "padding", "webkit", "font", "color",
+                    "width", "height", "display", "border", "important", "inline",
+                    "transform", "opacity", "overflow", "hidden", "block"}
+
+    def moji_share(t: str) -> float:
+        if not t:
+            return 0.0
+        return sum(1 for ch in t if "\u0080" <= ch <= "\u00ff") / len(t)
+
+    def css_hits(t: str) -> int:
+        return sum(1 for w in TOK.findall(t.lower()) if w in CSS_KEYWORDS)
+
+    _blob = df["text_blob"].fillna("").astype(str)
+    df_moji = _blob.map(moji_share)
+    df_css = _blob.map(css_hits)
+    artifact_diag = {
+        "mojibake": {
+            "definition": "text_blob 문자 중 U+0080-U+00FF 비율. UTF-8 을 Latin-1 로 잘못 읽으면 급증한다.",
+            "n_docs_over_5pct": int((df_moji > 0.05).sum()),
+            "n_docs_over_20pct": int((df_moji > 0.20).sum()),
+            "n_docs": int(len(df_moji)),
+            "affected_services": df.loc[df_moji > 0.05, "prior_service"].tolist(),
+            "mean_share_by_class": {c: float(df_moji[df["prior_archetype"] == c].mean())
+                                    for c in classes},
+        },
+        "css_text_leakage": {
+            "definition": "본문 추출물에 섞인 CSS 키워드 토큰 수 (style 블록이 텍스트로 들어온 흔적).",
+            "n_docs_with_hits": int((df_css > 0).sum()),
+            "n_docs": int(len(df_css)),
+            "median_hits_when_present": float(df_css[df_css > 0].median()) if (df_css > 0).any() else 0.0,
+            "mean_hits_by_class": {c: float(df_css[df["prior_archetype"] == c].mean())
+                                   for c in classes},
+        },
+        "interpretation": ("상위 계수 토큰에서 CONTENT_OPEN·UTILITY_ENTRY 는 거의 전적으로 "
+                           "mojibake 조각으로, QUERY 는 부분적으로 CSS 토큰으로 분리되고 있다. "
+                           "이는 archetype 신호가 아니라 수집·파싱 아티팩트다."),
+    }
+
     brand_terms = build_brand_terms(df)
     brand_pat = re.compile("|".join(re.escape(t) for t in brand_terms), re.IGNORECASE)
     featuresets = make_featuresets(df, brand_pat)
@@ -535,6 +577,7 @@ def main() -> int:
             "duplicate_text_blob_groups": dup_groups,
             "duplicate_url_groups": dup_url_groups,
             "note": "동일 텍스트가 두 target 에 나타나면 CV 에서 train/test 를 가로질러 새어 나간다.",
+            "collection_artifacts": artifact_diag,
         },
         "design": {
             "seed": SEED,
@@ -621,6 +664,8 @@ def main() -> int:
             "동일 URL/동일 텍스트 중복이 존재하면 CV 폴드를 가로지르는 누출이 남는다.",
             "fold 는 30개지만 표본은 56개뿐이라 fold 점수들은 독립이 아니다. percentile 구간을 "
             "정식 신뢰구간처럼 읽으면 안 된다.",
+            "코퍼스에 인코딩 깨짐(mojibake)과 CSS 텍스트 혼입이 있어, 일부 class 의 분리는 "
+            "내용이 아니라 수집 아티팩트를 학습한 결과다 — data_integrity.collection_artifacts 참조.",
             "인과 주장 없음. 어떤 토큰이 archetype 을 '만든다'는 해석은 불가.",
         ],
         "production_implication": [
@@ -704,6 +749,8 @@ def main() -> int:
             "leak.deleak_drop_abs": float(leak["deleak_drop_abs"]),
             "leak.brand_only_macro_f1": float(leak["brand_only_macro_f1_word_logreg"]),
             "leak.mean_top15_brand_share": float(leak["mean_top15_brand_share_full"]),
+            "artifact.n_docs_mojibake_over_5pct": float(artifact_diag["mojibake"]["n_docs_over_5pct"]),
+            "artifact.n_docs_css_leak": float(artifact_diag["css_text_leakage"]["n_docs_with_hits"]),
         }
         for k, cfg in configs.items():
             s = cfg["summary"]

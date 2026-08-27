@@ -1,0 +1,554 @@
+{
+ "defect_id": "D-DEF-03",
+ "claim_kind": "IMPLEMENTATION",
+ "title": "D 관측테이블의 dismiss_control_n 은 dismiss 컨트롤 수가 아니라 overlay 컨테이너 수다",
+ "how_found": "RF2-B worker 가 modal_overlay_n 과 dismiss_control_n 이 54/54 전부 동일(rho=1.0)함을 발견하고 '수집기/마트 레이어 문제' 로 인계했다. D 가 raw probe.json 스키마를 직접 확인한 결과 수집기 결함이 아니라 D 의 파싱 결함이었다.",
+ "root_cause": "probe 의 dismiss_control_candidates 는 overlay 컨테이너당 1개 항목을 갖는 래퍼 리스트이고(키: container_selector / dismiss_control_candidates / is_dialog_element / has_form_method_dialog), 실제 dismiss 컨트롤은 각 항목 안에 **중첩된** dismiss_control_candidates 에 있다. build_observation_table.py 는 바깥 리스트 길이를 셌다 -> 정의상 modal_overlay_n 과 항상 같다.",
+ "not_a_collector_defect": "수집기는 설계대로 동작했다. D-VRC 로 C 에 보내지 않는다. 이전 D-VRC-001-A(수집기 인코딩 결함 오귀속)와 같은 실수를 반복하지 않는다.",
+ "correction": {
+  "old_field": "dismiss_control_n (= overlay 컨테이너 수)",
+  "new_fields": [
+   "dismiss_container_n (기존 의미 보존)",
+   "dismiss_control_n_true (중첩 항목 합계)",
+   "dismiss_dialog_element_n"
+  ],
+  "n": 58,
+  "container_n": {
+   "median": 10.5,
+   "min": 2,
+   "max": 44
+  },
+  "true_dismiss_control_n": {
+   "median": 7.0,
+   "min": 0,
+   "max": 109
+  },
+  "identical_to_modal_overlay_n": 58,
+  "true_identical_to_modal_overlay_n": 5
+ },
+ "impact": "v1/v2 테이블을 입력으로 쓴 D 산출에서 dismiss_control_n 을 'dismiss 컨트롤 수' 로 해석한 서술은 전부 '컨테이너 수' 로 읽어야 한다. RQ-D13a 의 dismiss=NN 표기가 여기 해당한다. 수치 자체는 바뀌지 않고 이름의 의미만 정정된다.",
+ "per_target": [
+  {
+   "wtg": "054d78ed187cdd9f",
+   "service": "쿠팡이츠",
+   "in_mart": "1",
+   "container_n": 3,
+   "true_dismiss_control_n": 4,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 3
+  },
+  {
+   "wtg": "088809bf9b31bc6a",
+   "service": "삼성카드",
+   "in_mart": "1",
+   "container_n": 11,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 11
+  },
+  {
+   "wtg": "12e3942c0495b9a4",
+   "service": "GS25",
+   "in_mart": "1",
+   "container_n": 13,
+   "true_dismiss_control_n": 0,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 13
+  },
+  {
+   "wtg": "22ffba7a86ea9919",
+   "service": "코스트코",
+   "in_mart": "1",
+   "container_n": 16,
+   "true_dismiss_control_n": 20,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 16
+  },
+  {
+   "wtg": "5beeafeac2e27eae",
+   "service": "TikTok",
+   "in_mart": "1",
+   "container_n": 29,
+   "true_dismiss_control_n": 14,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 29
+  },
+  {
+   "wtg": "60d4d22e3809f780",
+   "service": "티맵",
+   "in_mart": "1",
+   "container_n": 4,
+   "true_dismiss_control_n": 4,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 4
+  },
+  {
+   "wtg": "65f15ce8fee25b24",
+   "service": "밴드",
+   "in_mart": "1",
+   "container_n": 5,
+   "true_dismiss_control_n": 1,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 5
+  },
+  {
+   "wtg": "8195b68ac17e42a3",
+   "service": "세븐일레븐",
+   "in_mart": "1",
+   "container_n": 4,
+   "true_dismiss_control_n": 3,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 4
+  },
+  {
+   "wtg": "91b952863c62993d",
+   "service": "다음",
+   "in_mart": "1",
+   "container_n": 12,
+   "true_dismiss_control_n": 2,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 12
+  },
+  {
+   "wtg": "b8b226f9fe32539a",
+   "service": "KB Pay",
+   "in_mart": "1",
+   "container_n": 11,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 11
+  },
+  {
+   "wtg": "ccd84811932b237b",
+   "service": "카카오T",
+   "in_mart": "1",
+   "container_n": 10,
+   "true_dismiss_control_n": 4,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 10
+  },
+  {
+   "wtg": "cdce1ffd6b1b1e24",
+   "service": "디바이스 케어",
+   "in_mart": "1",
+   "container_n": 13,
+   "true_dismiss_control_n": 9,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 13
+  },
+  {
+   "wtg": "dd2cec4c1fa2beec",
+   "service": "롯데백화점",
+   "in_mart": "1",
+   "container_n": 9,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 9
+  },
+  {
+   "wtg": "e7bb158c1c8d9fe7",
+   "service": "마켓컬리",
+   "in_mart": "1",
+   "container_n": 11,
+   "true_dismiss_control_n": 5,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 11
+  },
+  {
+   "wtg": "13ed070478ef62c3",
+   "service": "Netflix",
+   "in_mart": "1",
+   "container_n": 6,
+   "true_dismiss_control_n": 4,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 6
+  },
+  {
+   "wtg": "13ed070478ef62c3",
+   "service": "Netflix",
+   "in_mart": "0",
+   "container_n": 7,
+   "true_dismiss_control_n": 4,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 7
+  },
+  {
+   "wtg": "190b4501e4415d5e",
+   "service": "V3 Mobile Plus",
+   "in_mart": "1",
+   "container_n": 5,
+   "true_dismiss_control_n": 6,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 5
+  },
+  {
+   "wtg": "377983572bd38242",
+   "service": "다이소",
+   "in_mart": "1",
+   "container_n": 10,
+   "true_dismiss_control_n": 10,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 10
+  },
+  {
+   "wtg": "4feab7e61bf642e8",
+   "service": "CJ온스타일",
+   "in_mart": "1",
+   "container_n": 5,
+   "true_dismiss_control_n": 3,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 5
+  },
+  {
+   "wtg": "5c614fc99631ce5e",
+   "service": "홈앤쇼핑",
+   "in_mart": "1",
+   "container_n": 44,
+   "true_dismiss_control_n": 26,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 44
+  },
+  {
+   "wtg": "699a5e2f3f410152",
+   "service": "카카오톡",
+   "in_mart": "1",
+   "container_n": 4,
+   "true_dismiss_control_n": 3,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 4
+  },
+  {
+   "wtg": "6d5510a695d0a614",
+   "service": "네이버",
+   "in_mart": "1",
+   "container_n": 28,
+   "true_dismiss_control_n": 10,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 28
+  },
+  {
+   "wtg": "9390ef32addf32bf",
+   "service": "Chrome",
+   "in_mart": "1",
+   "container_n": 7,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 1,
+   "modal_overlay_n": 7
+  },
+  {
+   "wtg": "9390ef32addf32bf",
+   "service": "Chrome",
+   "in_mart": "0",
+   "container_n": 7,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 1,
+   "modal_overlay_n": 7
+  },
+  {
+   "wtg": "b728911c9782edb8",
+   "service": "현대카드",
+   "in_mart": "1",
+   "container_n": 12,
+   "true_dismiss_control_n": 10,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 12
+  },
+  {
+   "wtg": "b728911c9782edb8",
+   "service": "현대카드",
+   "in_mart": "0",
+   "container_n": 12,
+   "true_dismiss_control_n": 10,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 12
+  },
+  {
+   "wtg": "be1e6feb78e5ef03",
+   "service": "emart24",
+   "in_mart": "1",
+   "container_n": 15,
+   "true_dismiss_control_n": 9,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 15
+  },
+  {
+   "wtg": "e1fadb214cde51c0",
+   "service": "캐시워크",
+   "in_mart": "1",
+   "container_n": 11,
+   "true_dismiss_control_n": 10,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 11
+  },
+  {
+   "wtg": "e1fadb214cde51c0",
+   "service": "캐시워크",
+   "in_mart": "0",
+   "container_n": 11,
+   "true_dismiss_control_n": 10,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 11
+  },
+  {
+   "wtg": "ea031f85e857140e",
+   "service": "메가커피",
+   "in_mart": "1",
+   "container_n": 20,
+   "true_dismiss_control_n": 6,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 20
+  },
+  {
+   "wtg": "fdce1294fac3dfdb",
+   "service": "신세계백화점",
+   "in_mart": "1",
+   "container_n": 28,
+   "true_dismiss_control_n": 26,
+   "is_dialog_element_n": 3,
+   "modal_overlay_n": 28
+  },
+  {
+   "wtg": "0ee385d0c964e560",
+   "service": "홈플러스",
+   "in_mart": "1",
+   "container_n": 11,
+   "true_dismiss_control_n": 7,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 11
+  },
+  {
+   "wtg": "0f3bdb2bd0bb891e",
+   "service": "탑마트",
+   "in_mart": "1",
+   "container_n": 12,
+   "true_dismiss_control_n": 2,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 12
+  },
+  {
+   "wtg": "35319a420294ee17",
+   "service": "토스",
+   "in_mart": "1",
+   "container_n": 12,
+   "true_dismiss_control_n": 3,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 12
+  },
+  {
+   "wtg": "517b8047eb5be716",
+   "service": "농협하나로마트",
+   "in_mart": "1",
+   "container_n": 6,
+   "true_dismiss_control_n": 0,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 6
+  },
+  {
+   "wtg": "5ede56738376a8c5",
+   "service": "Instagram",
+   "in_mart": "1",
+   "container_n": 6,
+   "true_dismiss_control_n": 0,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 6
+  },
+  {
+   "wtg": "888d37f34b5d3aaa",
+   "service": "롯데홈쇼핑",
+   "in_mart": "1",
+   "container_n": 6,
+   "true_dismiss_control_n": 5,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 6
+  },
+  {
+   "wtg": "8fd5d30f8b1d707b",
+   "service": "하나은행",
+   "in_mart": "1",
+   "container_n": 12,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 12
+  },
+  {
+   "wtg": "95967b50683649f2",
+   "service": "NH스마트뱅킹",
+   "in_mart": "1",
+   "container_n": 15,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 15
+  },
+  {
+   "wtg": "a215c45b2cc585ca",
+   "service": "에이닷 전화",
+   "in_mart": "1",
+   "container_n": 2,
+   "true_dismiss_control_n": 1,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 2
+  },
+  {
+   "wtg": "c5285b96b598a08b",
+   "service": "배달의민족",
+   "in_mart": "1",
+   "container_n": 3,
+   "true_dismiss_control_n": 1,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 3
+  },
+  {
+   "wtg": "e296af221a5f7128",
+   "service": "KB스타뱅킹",
+   "in_mart": "1",
+   "container_n": 17,
+   "true_dismiss_control_n": 32,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 17
+  },
+  {
+   "wtg": "ed7b9bea21def8f8",
+   "service": "내 파일",
+   "in_mart": "1",
+   "container_n": 13,
+   "true_dismiss_control_n": 9,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 13
+  },
+  {
+   "wtg": "efda6e0b8457d63c",
+   "service": "네이버지도",
+   "in_mart": "1",
+   "container_n": 19,
+   "true_dismiss_control_n": 7,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 19
+  },
+  {
+   "wtg": "24e6654bfd1ab85b",
+   "service": "YouTube",
+   "in_mart": "1",
+   "container_n": 9,
+   "true_dismiss_control_n": 5,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 9
+  },
+  {
+   "wtg": "46e5a43370f75308",
+   "service": "당근",
+   "in_mart": "1",
+   "container_n": 3,
+   "true_dismiss_control_n": 3,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 3
+  },
+  {
+   "wtg": "49a5eca8b58f7270",
+   "service": "11번가",
+   "in_mart": "1",
+   "container_n": 20,
+   "true_dismiss_control_n": 11,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 20
+  },
+  {
+   "wtg": "51484a735cdb487b",
+   "service": "컴포즈커피",
+   "in_mart": "1",
+   "container_n": 4,
+   "true_dismiss_control_n": 4,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 4
+  },
+  {
+   "wtg": "7f6f1aa6dd218d4d",
+   "service": "이마트",
+   "in_mart": "1",
+   "container_n": 11,
+   "true_dismiss_control_n": 109,
+   "is_dialog_element_n": 1,
+   "modal_overlay_n": 11
+  },
+  {
+   "wtg": "88cb7f1e54f26500",
+   "service": "롯데마트",
+   "in_mart": "1",
+   "container_n": 2,
+   "true_dismiss_control_n": 2,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 2
+  },
+  {
+   "wtg": "95e22b9aff7196b3",
+   "service": "NS홈쇼핑",
+   "in_mart": "1",
+   "container_n": 6,
+   "true_dismiss_control_n": 1,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 6
+  },
+  {
+   "wtg": "bbdefa2950f49882",
+   "service": "Google",
+   "in_mart": "1",
+   "container_n": 15,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 1,
+   "modal_overlay_n": 15
+  },
+  {
+   "wtg": "ccb9754c97fa7341",
+   "service": "현대백화점",
+   "in_mart": "1",
+   "container_n": 5,
+   "true_dismiss_control_n": 9,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 5
+  },
+  {
+   "wtg": "d5ae5426eac23877",
+   "service": "모니모",
+   "in_mart": "1",
+   "container_n": 5,
+   "true_dismiss_control_n": 1,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 5
+  },
+  {
+   "wtg": "e67be79550661604",
+   "service": "CU",
+   "in_mart": "1",
+   "container_n": 9,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 9
+  },
+  {
+   "wtg": "f322b894ee95c181",
+   "service": "카카오맵",
+   "in_mart": "1",
+   "container_n": 10,
+   "true_dismiss_control_n": 7,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 10
+  },
+  {
+   "wtg": "f9fbd771ffcdbd42",
+   "service": "G마켓",
+   "in_mart": "1",
+   "container_n": 4,
+   "true_dismiss_control_n": 3,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 4
+  },
+  {
+   "wtg": "fb3d1841dddfd982",
+   "service": "NH콕뱅크",
+   "in_mart": "1",
+   "container_n": 15,
+   "true_dismiss_control_n": 8,
+   "is_dialog_element_n": 0,
+   "modal_overlay_n": 15
+  }
+ ]
+}

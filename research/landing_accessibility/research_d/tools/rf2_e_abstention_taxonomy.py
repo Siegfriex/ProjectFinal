@@ -352,7 +352,25 @@ UNDECIDABLE_SET = {"TARGET_RESOLVABLE__UNDECIDABLE_AT_THIS_URL", "NOT_AN_EVIDENC
 # ----------------------------------------------------------------------------
 # 5. semantic margin — bge-m3 + A_SSOT_DEF prototype 을 독립 재계산
 # ----------------------------------------------------------------------------
-def semantic_margins(df: pd.DataFrame) -> dict:
+def _debrand(blob: str, service: str, url: str) -> str:
+    """서비스명·도메인 라벨을 blob 에서 지운다 (RF001-B 가 확인한 brand leak 대조군)."""
+    out = str(blob or "")
+    toks = set()
+    sv = str(service or "").strip()
+    if sv:
+        toks.add(sv)
+        toks.update(t for t in re.split(r"[\s/]+", sv) if len(t) >= 2)
+    m = re.search(r"https?://([^/]+)", str(url or ""))
+    if m:
+        host = m.group(1)
+        toks.update(t for t in host.split(".")
+                    if len(t) >= 3 and t not in ("www", "com", "net", "org", "co", "kr", "https"))
+    for t in sorted(toks, key=len, reverse=True):
+        out = re.sub(re.escape(t), " ", out, flags=re.I)
+    return out
+
+
+def semantic_margins(df: pd.DataFrame, debrand: bool = False) -> dict:
     import os
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
@@ -360,7 +378,12 @@ def semantic_margins(df: pd.DataFrame) -> dict:
     protos = C["prototype_sets"]["A_SSOT_DEF"]
     from sentence_transformers import SentenceTransformer
     m = SentenceTransformer("BAAI/bge-m3", device="cuda")
-    docs = [str(x or "") for x in df["text_blob"]]
+    if debrand:
+        docs = [_debrand(r["text_blob"], r["prior_service"],
+                         r.get("probe_final_url") or r.get("prior_url"))
+                for _, r in df.iterrows()]
+    else:
+        docs = [str(x or "") for x in df["text_blob"]]
     P = m.encode([protos[a] for a in ARCHETYPES], normalize_embeddings=True,
                  batch_size=8, show_progress_bar=False)
     D = m.encode(docs, normalize_embeddings=True, batch_size=8, show_progress_bar=False)
@@ -575,6 +598,10 @@ def main() -> None:
     R["sem_margin"] = [sem[w]["margin"] for w in R.wtg]
     R["sem_sim_top1"] = [sem[w]["sim_top1"] for w in R.wtg]
 
+    sem_db = semantic_margins(df, debrand=True)
+    R["sem_db_top1"] = [sem_db[w]["top1"] for w in R.wtg]
+    R["sem_db_margin"] = [sem_db[w]["margin"] for w in R.wtg]
+
     prior = list(R.prior_archetype)
     # 곡선 1: rule confidence (force-map = rule_argmax)
     rc = R.rule_conf.values.astype(float)
@@ -660,6 +687,17 @@ def main() -> None:
                                            "재계산. margin = cos(top1) - cos(top2)."),
                             "curve": curve_sem, "bands": bands_sem,
                             "steepest_agreement_gain_per_coverage_loss": knee(curve_sem)},
+        "semantic_margin_debranded": {
+            "definition": ("동일 절차이나 blob 에서 서비스명·도메인 라벨을 제거한 대조군. "
+                           "RF001-B 가 brand leak 을 확인했으므로 semantic 축의 prior_agreement 가 "
+                           "'표면 기능을 읽은 것'인지 '브랜드로 prior 를 되찾은 것'인지 가른다."),
+            "curve": curve(R.sem_db_margin.values.astype(float), list(R.sem_db_top1), prior,
+                           np.unique(np.round(np.quantile(R.sem_db_margin.values.astype(float),
+                                                          np.linspace(0, 1, 29)), 6))),
+            "brand_leak_warning": (
+                "prior_archetype 은 prior_business_domain 과 1:1 이다(RF001-B). 텍스트에 브랜드/도메인 "
+                "어휘가 남아 있으면 semantic top1 의 prior_agreement 는 '표면 기능 식별'이 아니라 "
+                "'브랜드로부터 prior 복원'을 재는 것일 수 있다. 아래 debranded 대조군과 비교해서만 읽어라.")},
         "cascade_rule_then_semantic": {"definition": "SSOT §6 유일강후보 -> rule 확정, 아니면 §7 margin 임계 위에서만 확정",
                                        "curve": casc, "steepest_agreement_gain_per_coverage_loss": knee(casc)},
         "cascade_gated_by_surface_absent": {
@@ -671,7 +709,8 @@ def main() -> None:
     # ---- force-map 비용
     force = {}
     for name, predcol in (("rule_argmax", list(R.rule_argmax)),
-                          ("semantic_top1", list(R.sem_top1))):
+                          ("semantic_top1", list(R.sem_top1)),
+                          ("semantic_top1_debranded", list(R.sem_db_top1))):
         agree = np.array([predcol[i] == prior[i] for i in range(len(R))])
         per_type = {}
         for t in TYPES:
@@ -885,6 +924,8 @@ def main() -> None:
              "rule_tie": bool(recs[i]["rule_tie"]),
              "sem_top1": R.sem_top1.values[i], "sem_top2": R.sem_top2.values[i],
              "sem_margin": float(R.sem_margin.values[i]),
+             "sem_top1_debranded": R.sem_db_top1.values[i],
+             "sem_margin_debranded": float(R.sem_db_margin.values[i]),
              "primary_type": R.primary_type.values[i],
              "resolvability_bucket": R.resolvability_bucket.values[i],
              "types": sorted([t for t in TYPES if recs[i]["type_flags"][t]]),

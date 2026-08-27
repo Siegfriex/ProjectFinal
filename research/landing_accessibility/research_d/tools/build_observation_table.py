@@ -110,7 +110,13 @@ def probe_features(path: Path) -> dict:
         "probe_layout_width": vp.get("layout_width"),
         "body_scroll_locked": int(bool(rf.get("body_scroll_lock", {}).get("locked"))),
         "modal_overlay_n": len(rf.get("modal_overlay_candidates", [])),
-        "dismiss_control_n": len(rf.get("dismiss_control_candidates", [])),
+        # D-DEF-03 시정: probe 의 dismiss_control_candidates 는 overlay 컨테이너당 1개인 래퍼다.
+        # 바깥 길이를 세면 정의상 modal_overlay_n 과 항상 같다. 실제 컨트롤은 중첩 리스트에 있다.
+        "dismiss_container_n": len(rf.get("dismiss_control_candidates", [])),
+        "dismiss_control_n_true": sum(len(c.get("dismiss_control_candidates", []) or [])
+                                      for c in (rf.get("dismiss_control_candidates", []) or [])),
+        "dismiss_dialog_element_n": sum(1 for c in (rf.get("dismiss_control_candidates", []) or [])
+                                        if c.get("is_dialog_element")),
         "search_inputs_n": len(rf.get("region_signals", {}).get("search_inputs", [])),
         "declared_regions_n": len(rf.get("region_signals", {}).get("declared_regions", [])),
         "declared_endpoints_n": len(rf.get("endpoint_signals", {}).get("declared_endpoints", [])),
