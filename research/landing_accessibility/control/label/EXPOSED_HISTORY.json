@@ -1,0 +1,67 @@
+{
+  "doc_id": "LA-EXPOSED-HISTORY-2.1",
+  "assertion_type": "OBSERVATION",
+  "purpose": "Director A2 — 이미 노출된 이력을 삭제로 '없던 일' 처리하지 않고 기록한다.",
+  "principle": "force-push 로 이력을 지우지 않는다. 감사 이력을 지우는 것이 노출보다 나쁘다 (D-R0-62-4).",
+  "exposure_events": [
+    {
+      "event": "E1",
+      "commit": "5b826e3a61339f831e4cc783d7bb57ca7dc7d69d",
+      "at_kst": "2026-08-27T21:26:25+09:00",
+      "files": [
+        "label/LABELS_FROZEN.jsonl",
+        "label/RAW_L2.jsonl",
+        "label/RAW_L4.jsonl",
+        "label/HOLDOUT_FOR_C.jsonl"
+      ],
+      "scope": "holdout 26 전부의 gold label",
+      "channel": "control 브랜치 (B 가 worktree 로 읽는 위치)",
+      "grade": "가용 (열람 여부 미확인)"
+    },
+    {
+      "event": "E2",
+      "commit": "fd06761ff2d5987eebffc28c6753b2de1511303a",
+      "at_kst": "2026-08-27T21:48:40+09:00",
+      "files": [
+        "label/OVERLAP_L1~L4.jsonl",
+        "label/OVERLAP_AGREEMENT_REPORT.md"
+      ],
+      "scope": "holdout 8 의 gold label + 원/재라벨 대조표",
+      "channel": "control 브랜치",
+      "grade": "가용"
+    },
+    {
+      "event": "E3",
+      "commit": "9f39acf20b8bcb272a6d2e582c5501dbf8d5ce7d",
+      "at_kst": "2026-08-27T21:52:00+09:00",
+      "files": [
+        "label/PRECEDENCE_CONTESTED.json (v1)"
+      ],
+      "scope": "holdout 3 의 target_id + site + candidate 쌍",
+      "channel": "B 의무열람 DIRECTIVE (D-R0-61)",
+      "grade": "능동 오염 — B 가 읽었고 W2 detector producer 에게 전달 (T-B-ATTEST-001 자진신고)",
+      "downstream": "W2 detector producer"
+    }
+  ],
+  "remediation": [
+    {
+      "commit": "46b7c0bad54edf4baffba69a04ed02fa31eaf49b",
+      "action": "HOLDOUT_FOR_C · OVERLAP_L* 를 control HEAD 에서 제거, PRECEDENCE_CONTESTED v2(target id 제거), OVERLAP_AGREEMENT_REPORT holdout 행 가림"
+    },
+    {
+      "commit": "018fa463e221ee0491ea216c0426e4cf37fc00f6",
+      "action": "LABELS_FROZEN.jsonl · RAW_L2 · RAW_L4 제거, LABEL_FREEZE_REPORT §3.1 라벨 가림"
+    }
+  ],
+  "remediation_limit": "제거는 향후 가용성만 줄인다. 위 세 커밋의 이력은 그대로 남아 있고 누구든 git show 로 읽을 수 있다. 그것이 사실이며 기록한다.",
+  "exposed_8_target_ids": "C-only — 이 문서에 담지 않는다 (Director A2). C 브랜치와 .agent_bus/landing_v2/holdout_c_only/ 참조",
+  "exposed_8_count": 8,
+  "actively_contaminated_count": 3,
+  "scoring_per_A1": {
+    "full_contaminated_reference": 26,
+    "sensitivity_excl_precedence_contested": 23,
+    "primary_clean": 18,
+    "mandatory_annotation": "primary n=18 — OVERLAP/DIRECTIVE 경로 비노출. 파일 경로(LABELS_FROZEN·RAW_L2·RAW_L4)로는 26 전부가 21:26:25 이후 가용했다."
+  },
+  "custody_going_forward": "holdout 유래 per-target 정보는 C-only. A control · B ticket · D notice · shared MLflow artifact 에 넣지 않는다."
+}
