@@ -116,6 +116,38 @@
       "measured_by": "A · B 독립 계수 일치 (2026-08-27 14:28~14:30 KST)"
     },
 
+    "counterfactual_would_fixing_the_guard_recover_depth": {
+      "question": "가드 입도를 고치면 depth 축이 살아나는가? — 이것이 오늘 결과의 해석을 좌우한다.",
+      "answer": "**대체로 아니다. 최대 8건, 실질적으로는 그보다 적다.**",
+      "measured_at": "2026-08-27T14:35:38+09:00, A 가 원천 CSV(9999857 representative_task_candidate_shadow.csv, mapping_status=CANDIDATE 59건) 와 배치 JSON 을 조인",
+
+      "guard_blocked_25_by_archetype": {
+        "승격_불가": { "n": 17, "breakdown": { "ITEM_DETAIL": 10, "QUERY": 4, "UTILITY_ENTRY": 3 } },
+        "승격_가능": { "n": 8, "breakdown": { "FINANCIAL_ACTION_ENTRY": 6, "COMMUNICATION_ENTRY": 2 } }
+      },
+
+      "decisive_evidence": {
+        "what": "**승격 불가 archetype 에서 가드가 막지 않고 Scout 이 실제로 돈 25건 → endpoint 도달 0건.**",
+        "outcomes": { "UNRESOLVED": 13, "AUTH_GATE": 11, "CAPTCHA": 1 },
+        "meaning": "가드가 개입하지 않은 조건에서도, 승격 불가 archetype 은 대표기능 진입점에 **25/25 도달하지 못했다.** 따라서 가드에 막힌 17건(승격 불가)도 가드를 고친다고 MPFED 가 나올 것으로 기대할 근거가 없다."
+      },
+
+      "upper_bound_recovery": {
+        "n": 8,
+        "which": "가드 차단분 중 승격 가능 archetype (FINANCIAL 6 · COMMUNICATION 2)",
+        "further_constrained_by": "그 8건도 gate 종류가 판별돼야 endpoint 로 승격된다. 관측된 AUTH_GATE 12건 중 8건에서 E-6b(종류 UNDETERMINED)가 발화했다 — **판별 실패율이 3분의 2다.** 8건 전부가 회복될 것으로 기대할 수 없다.",
+        "honest_range": "0 ~ 8, 상한에 가까울 근거 없음"
+      },
+
+      "inference_limits": {
+        "not_a_randomized_comparison": "Scout 이 돈 25건과 가드에 막힌 17건은 무작위 배정이 아니다. 가드 발화 여부는 페이지 텍스트에 의존하므로 두 집단이 체계적으로 다를 수 있다.",
+        "what_supports_the_inference": "다만 두 집단의 archetype 구성이 유사하고(양쪽 다 ITEM_DETAIL 지배), Scout 이 돈 쪽에서 **예외 없이 0/25** 였다는 점이 추론을 뒷받침한다.",
+        "what_would_settle_it": "가드 입도를 고친 뒤 같은 프레임을 재수집하는 것. **오늘 하지 않았고 post-E001 backlog 다.**"
+      },
+
+      "headline": "**가드 입도는 depth 축 소실의 구속 조건이 아니다.** 가드가 개입하지 않은 25건에서도 endpoint 도달이 0 이었다. 더 근본적인 제약은 **이 측정 접근이 이 프레임의 대표기능 진입점에 닿지 못한다**는 것이며, archetype-endpoint 규칙(승격 2종 한정)이 그 제약을 정의 수준에서 확정한다."
+    },
+
     "endpoint_status_detail_inflation_quantified": {
       "field": "endpoint_status_detail",
       "labeled_depth_budget_exceeded": 12,
