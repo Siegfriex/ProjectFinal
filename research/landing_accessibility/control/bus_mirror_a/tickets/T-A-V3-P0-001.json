@@ -1,0 +1,68 @@
+{
+ "from": "A",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "5c22faebaeb6699049fc9af5646f8b492b6a4068",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:12:00+09:00",
+ "completed_at_kst": null,
+ "task_family_id": null,
+ "target_manifest_sha256": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "ticket_id": "T-A-V3-P0-001",
+ "type": "DIRECTIVE",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "scope": "P0 V3_CONTRACT_REFREEZE — 개시 · NO_REAL",
+ "headline": "SSOTV3 를 연구설계·측정계약의 유일 권위로 채택한다. 채택은 릴리스가 아니다. Wave 1 = P0→P1→P2 자율전이, Director 중간승인 없음.",
+ "authority_docs": [
+  "control/v3/V3_REFREEZE_DECISION.md",
+  "control/v3/V3_CURRENT_STATE_RECONCILIATION.md",
+  "control/v3/V3_0_1_SUCCESSOR_DELTA.md",
+  "control/v3/V3_ADOPTION_RECORD.md",
+  "control/v3/DIRECTOR_V3_MASTER_DIRECTIVE_RECEIVED.md"
+ ],
+ "pack_integrity": {
+  "manifest_sha256": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+  "files": 20,
+  "mismatch": 0,
+  "pack_modified_by_A": false,
+  "independent": "D-V3-FINDING-001 이 0/20 로 독립 일치. 두 평면이 서로의 숫자를 받지 않고 같은 결과에 도달했다."
+ },
+ "REAL_boundary": {
+  "E000_FAST": "RELEASED (기존)",
+  "E001_FULL_59": "SUSPENDED — 유지. 이 Wave 에서 어떤 경우에도 열지 않는다",
+  "V2_DIAGNOSTIC_12": "RELEASED · manifest 78f2e32a… — 구동기 부재로 실행 불가(T-B-BLK-008)",
+  "V3_MAIN50": "미발행 — candidate",
+  "V3_FLOW_PILOT_10": "미발행 — P2·P3 종결 전 금지",
+  "ELIGIBILITY_PRECHECK": "미발행 — P2 에서 A 가 별도 release 해야 B 가 L0 precheck 가능"
+ },
+ "absolute_order": "P0→P1→P2→P3→P4→P5→P6→P7. P2·P3 오프라인분만 P1 종료 후 병렬. 12 PASS→full59 자동승격 영구 금지.",
+ "gate_rule": "PASS 는 결과가 좋아서가 아니라 measurement contract 가 충족돼서만 가능하다. site-specific timeout/WAF/빈 결과는 자동 전체 FAIL 이 아니다. 각 PASS 문서에 '검증하지 않은 것' 절 필수.",
+ "hard_stop_triggers": [
+  "wrong scope",
+  "forbidden action",
+  "evidence overwrite",
+  "duplicate launch",
+  "task/outcome leakage",
+  "denominator corruption"
+ ],
+ "immutable_rules_carried": [
+  "producer≠reviewer",
+  "T1~T6 진실 위계",
+  "immutable ticket + FACT_CORRECTION/SUPERSEDE",
+  "exactly-once",
+  "fail-closed firewall",
+  "approval↔manifest hash binding",
+  "C hard-stop",
+  "D→C routing (cc A)",
+  "result-blind preregistration",
+  "artifact retention manifest"
+ ],
+ "P0_exit_condition": "B·C·D 의 P0 ACK 각 1건(각자 exact head SHA 명시) + C 의 manifest/authority audit CONFIRMED + D 의 negative-control fixture 완결 + A 결정문. 넷이 같은 exact state 를 가리킬 때만 V3_CONTRACT_FROZEN.",
+ "ack_requirement": "ACK 에 반드시 포함: (1) 자기 브랜치와 exact head SHA — 하트비트 자기보고가 아니라 커밋 직후 값 (2) SSOTV3 20/20 자기 재계산 결과 (3) 이 티켓의 REAL_boundary 를 수용한다는 명시",
+ "expected_response": "ACK + 각 평면 전용 티켓 수행"
+}
