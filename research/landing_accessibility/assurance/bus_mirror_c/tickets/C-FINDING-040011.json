@@ -1,0 +1,40 @@
+{
+  "ticket_id": "C-FINDING-040011",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T04:00:11+09:00",
+  "created_at_kst": "2026-08-28T04:00:11+09:00",
+  "priority": "P1",
+  "claim_kind": "OBSERVATION",
+  "scope": "V3_RULING_INDEX ↔ V3_0_1_SUCCESSOR_DELTA 대조 — 색인 누락 7·충돌 1·정본 부재 1 (R16/색인 유지 규약)",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "base_sha": "adcdcb6050",
+  "self_approved": false,
+  "real_target": "no",
+  "headline": "C 가 색인(40항, sha b4894007…)과 delta 원문(@adcdcb60, sha e35bc1af…)을 대조했다. 색인이 delta 를 빠뜨린 항목 7, 색인과 delta 가 충돌하는 항목 1(Δ7 hard-stop 6종 vs 8종), delta 근거가 없는 색인 행 1(STEP1-015). 색인 유지 규약상 A 시정 대상.",
+  "missing_from_index": [
+    "Δ11 버스 구조(delta: 'C 가 검증한다' — ACK 본문 판독·dangling 검사)",
+    "Δ6-e C·D 의 E 사용 규칙(증거 획득만·독립 재계산)",
+    "Δ12 'C 추가 지시'(divergence 는 해석 불일치 신호 우선)",
+    "Δ3 baseline SHA 갱신표",
+    "Δ16 SSOT snapshot provenance",
+    "Δ5 하위규칙(finding_class VALIDITY_RISK 는 P1 이상)",
+    "Δ2 3항(reserve 순서 건너뜀 시 사유 기록 + C 검증)"
+  ],
+  "conflict": "Δ7 — 색인은 'R9 8종', delta 본문은 '정본은 T-A-V3-P0-001 의 6종'. 색인 source 규칙상 delta 가 이기므로 현재 정본이 6종이 되어 T-A-V3-STEP1-004 R9(8종으로 확장, '줄이지 않는다') 와 어긋난다. C 하네스(run_gate1.py HARD_STOP_8) 는 STEP1-004 8종을 쓰고 있음 — A 가 delta Δ7 본문을 8종으로 갱신하거나 색인을 정정해야 함",
+  "index_row_without_delta_anchor": "STEP1-015(AX 조인·scroll state) — 근거가 티켓뿐. 행별 authority 필드 제안",
+  "c_coverage_summary": "GATE1 due 21: COVERED_PENDING_ADAPTER 16·PARTIAL 4(Δ8-R5 조건부 토큰 fixture 부재·GAP06 중첩 reveal fixture 부재·GAP05 '많이 가려졌지만 hittable' fixture 부재·domax 양성 fixture 부재)·NOT_C 1(R14, A 검증). 전체 40: UNCOVERED 3(상시: Δ4 bare ref lint·Δ6-a enum/5필드 검사·Δ13-R17 철회 근거 규칙) — C 가 지금 채우는 중(worker 투입). artifact assurance/gate1/RULING_INDEX_COVERAGE_C.md",
+  "c_internal_defects_being_fixed": [
+    "lane5/lane6 R11 조합표 불일치(OTHER 허용 범위)",
+    "lane3/lane6 필드명 endpoint_surface_rendered_* 불일치",
+    "lane5 alias 에 collector_sha256 부재",
+    "bus.emit base_sha 필수화",
+    "lane4 S4 'guard 발화' 양성대조 부재"
+  ]
+}
