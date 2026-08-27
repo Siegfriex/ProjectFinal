@@ -1,0 +1,38 @@
+{
+  "artifact": "C_BACKLOG",
+  "updated_at": "2026-08-27T13:24:15+09:00",
+  "items": [
+    {
+      "id": "LOCALLY_FORGEABLE_TRACKING_REF_IN_FIREWALL_DOCUMENT_READ",
+      "severity": "C2_TODAY__P0_POST_E001",
+      "priority": "TOP — first item after E001 completes",
+      "description": "engine/firewall.py (collector a86b4c7) reads the release document via 'git show origin/control/landing-orchestrator:...'. refs/remotes/origin/* is a LOCAL file forgeable by any actor with local write access via 'git update-ref' — no push, credentials, or network needed. A forged RELEASED document can therefore be read by the firewall as genuine. Same defect class as _resolve_branch_tip exploited by adversarial this morning and fixed in V2-C015.",
+      "why_not_fixed_today": "fixing moves collector SHA and breaks E000->E001 batch-0 reuse (TIMEBOX §7). Gate was legitimately opened; mitigation = B fetches immediately before launch. Mitigation, not resolution.",
+      "remediation": "ls-remote only + fail-closed; reference implementation already exists in research/landing_accessibility/scripts/promote_landing_main.sh (V2-C015 _resolve_branch_tip).",
+      "limitations_sentence": "수집 개시 판정이 읽는 릴리스 문서 경로가 로컬 추적 ref 기반이며, 이는 로컬 쓰기 권한을 가진 행위자가 위조할 수 있다. 오늘 수집에서는 발사 직전 fetch 로 완화했다.",
+      "recorded_by": "C (identified as staleness 13:20; reclassified as forgeability by A 13:23)"
+    },
+    {
+      "id": "E000_PLAN_PARENT_HASH_UNVERIFIABLE",
+      "severity": "C1_RESOLVED_BY_A_JUDGMENT_(b)",
+      "description": "e000_plan_hash_candidate built from placeholder bytes; not reproducible. Lineage rests on parent_plan.commit_sha f97d707. Hash field must never be cited as verification.",
+      "limitations_sentence": "E000_PLAN.json 의 e000_plan_hash_candidate 는 placeholder 바이트를 해싱한 뒤 덮어쓴 구조라 최종 산출물만으로 재현할 수 없다. 부모 계보는 parent_plan.commit_sha 로 검증되며, 해시 필드는 검증 기능을 갖지 않는다."
+    },
+    {
+      "id": "PROTOCOL_VERSION_STRING_NAMING_DEBT",
+      "severity": "C2",
+      "description": "PROTOCOL_VERSION 'v2.0-pc-fixture-1' retained for observation_id stability; string does not indicate execution kind.",
+      "limitations_sentence": "PROTOCOL_VERSION 문자열에 fixture 가 남아 있으나 이는 observation_id 안정성을 위해 유지된 것이며 실행 종류를 나타내지 않는다."
+    },
+    {
+      "id": "ORPHAN_L0_RUNS_FOR_GUARD_BLOCKED_TARGETS",
+      "severity": "C2",
+      "description": "ACCOUNT_ACTION_BLOCKED targets leave an L0 evidence run on disk with no batch-result reference. attempted_n vs disk run count may differ for this reason first."
+    },
+    {
+      "id": "KW_DOCSTRING_MIN_N_20_VS_CONST_5",
+      "severity": "C2",
+      "description": "statistics.py kruskal_wallis_gate docstring says 20; constant is 5 (contract §4.6). Constant is right."
+    }
+  ]
+}
