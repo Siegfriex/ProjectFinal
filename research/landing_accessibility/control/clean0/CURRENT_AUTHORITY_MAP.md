@@ -95,9 +95,37 @@ A·B·C 규약 / CLEAN-0·recovery gate. **그 외에는 v2 가 여전히 유효
 
 ---
 
+## §5b D LAYER — Independent DS Research Sandbox (신규)
+
+Research Director 가 Claude D 를 추가했다. **D 는 Authority Plane 이 아니다.**
+
+| | |
+|---|---|
+| 브랜치 | `claude-d/research-sandbox-v21` |
+| 지위 | **비권위 · GO/NO-GO 권한 없음 · A/B/C critical path 밖** |
+| 산출 | `RESEARCH_FINDING` — Jupyter Notebook + machine-readable 결과 |
+| truth 계층 | **canonical truth 아님.** T2(독립 재계산)에 준하되 자동 승격되지 않는다 |
+| 권한 없음 | gold label · holdout · REAL_TARGET · production write |
+| 활성화 | `RESEARCH_QUESTION` 또는 `RESEARCH_OBSERVATION` ticket 수신 시에만 |
+
+```
+A 의 구속
+  D 결과를 SSOT 나 gate 에 자동 반영하지 않는다
+  D 에게 substantive direct report 를 요구하지 않는다
+  필요하면 RESEARCH_QUESTION ticket 만 발행한다
+  승격은 Research Director 검토 후에만 — 그때 정식 measurement/model candidate 가 된다
+```
+
+**왜 이 구분이 필요한가**: D 는 raw evidence 와 mart 를 자유롭게 탐색한다. 그 자유가
+유용하려면 **결과가 자동으로 계약이 되지 않아야** 한다. 탐색과 확정을 같은 통로에 두면
+탐색이 위축되거나 확정이 오염된다.
+
+---
+
 ## §6 권위가 아닌 것 — 명시
 
 ```
+D 의 RESEARCH_FINDING            권위 아님 — Director 승격 전까지
 branch name                      권위 아님 (TRAP-01/02 참조)
 로컬 refs/remotes 패턴 조회      권위 아님 (git ref 는 경로 컴포넌트 경계로 매칭)
 docstring / 주석                 T5
