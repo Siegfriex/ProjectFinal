@@ -1,8 +1,8 @@
-# QA_CLAIM_LEDGER (C) — 2026-08-27T15:22:36+09:00
+# QA_CLAIM_LEDGER (C) — 2026-08-27T15:34:56+09:00
 
 기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_STAT_REPLAY.json, /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_MART_RECONCILIATION.json
 
-집계: {'SUPPORTED_WITH_LIMITATION': 13, 'SUPPORTED': 6}
+집계: {'SUPPORTED_WITH_LIMITATION': 22, 'SUPPORTED': 6}
 
 | file | status | issues | sentence |
 |---|---|---|---|
@@ -19,11 +19,20 @@
 | STATISTICAL_RESULTS.md | **SUPPORTED** | - | [A]** 59개 서비스 전수를 시도해 대표기능 진입 깊이(MPFED)가 산출된 것은 0건이다. |
 | STATISTICAL_RESULTS.md | **SUPPORTED** | - | [A]** 본 연구 계약이 대표기능 endpoint로 인정하지 않는 archetype에서 gate에 도달해 진입 깊이가 정의상 산출되지 않은 경우가 11건이다. |
 | STATISTICAL_RESULTS.md | **SUPPORTED** | - | [A]** gate 종류 판별이 UNDETERMINED로 떨어져 fail-closed 규칙이 endpoint 승격을 거부한 발화가 8건이고, 그중 실제로 결과를 바꾼 것은 1건이다. |
+| STATISTICAL_RESULTS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 충분원인이 둘이고 서로 겹치지 않으므로** MPFED가 산출될 경로는 애초에 없었다. |
 | STATISTICAL_RESULTS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 오류를 먼저 적고, 그것이 산출물에 남지 않은 경위를 나중에 적는다. |
 | STATISTICAL_RESULTS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | "이 단계의 산출물을 만드는 코드가 실재하는가" |
 | STATISTICAL_RESULTS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | — 상류 산출물의 존재를 하류 단계의 존재로 추론하지 않는다. |
 | STATISTICAL_RESULTS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 마지막 건은 오늘의 통계 산출물이 계산 불가능해진 직접 원인이다. |
 | STATISTICAL_RESULTS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | ／ C → A ／   판정 근거가 사실과 다름 ·   초판이 축 A 산출을 전제한 오류 ／ |
 | STATISTICAL_RESULTS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 판별 키를   중복으로 바꿔 지시의 의도(이중 수집 탐지)는 지켰다. |
+| LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | E000_PLAN.json 의 e000_plan_hash_candidate 는 placeholder 바이트를 해싱한 뒤 덮어쓴 구조라 최종 산출물만으로 재현할 수 없다. |
+| LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | 분모 없는 '0건' — 'N건 중 0건' 으로 | 데이터 관측 이전에 동결됐다 (2026-08-27 12:25 KST, REAL TARGET evidence 0건 상태). |
+| LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | 분모 없는 '0건' — 'N건 중 0건' 으로 | E000은 고유 서비스를 0건 기여하고 측정기가 다르므로(E000 a86b4c7 / E001 222ef2c) 한 기술통계에 섞지 않는다 — 이득 0, 위험만 있다. |
+| LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | E000은 측정기·evidence lineage 검증 산출물로만 보고한다. |
+| LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | collector SHA가 상이하므로(E000   / E001  ) E000 6건은 **분석 표본이 아니라 측정기·evidence lineage 검증 산출물**이다. |
+| LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 유형 분포를 인용할 때 UNKNOWN을 각주로 빼면 실측 강도가 과대표시된다. |
+| LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 유형 분포를 인용할 때 이 값을 각주로 빼지 않는다. |
+| LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 오늘은 축 A가 평가되지 않아 이 축소가 실제 값으로 나타나지도 못했다 — 분모 자체가 산출되지 않았다. |
 
 > 최종 headline 판정은 A. C 는 §2 금지 스캔·grade 태그·N 병기·수치 일치만 판정한다. `NUMBER_NOT_IN_C_REPLAY` 는 A 가 인용하는 숫자가 C 재계산값 집합에 없다는 뜻이며, 반올림 차이일 수 있어 개별 확인 대상이다.
