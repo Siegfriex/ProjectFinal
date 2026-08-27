@@ -1,0 +1,13 @@
+{
+  "defect_id": "D-DEF-12",
+  "kind": "IMPLEMENTATION",
+  "owner": "D",
+  "severity": "오케스트레이션 결함 — 결과에는 영향 없었으나 워커가 방어하지 않았으면 영향이 있었다",
+  "found_at_kst": "2026-08-28T03:22:00+09:00",
+  "found_how": "X-Converge 워커가 부수 발견으로 보고했다. D 가 산출에서 직접 확인했다 — provenance.replication_across_concurrent_revisions 에 5회 실행과 lane_s 4 / lane_f 3 리비전 해시가 기록돼 있다.",
+  "what": "D 가 F-Δ9 워커에게 lane_f_flow_depth.py 를 수정하라고 지시하면서, 동시에 X-Converge 워커에게 그 파일을 import 해 비교하라고 지시했다. 두 워커가 같은 모듈을 하나는 쓰고 하나는 읽었다.",
+  "why_it_is_mine": "Director ADDENDUM §2 가 '공유 파일 직접 동시 수정 금지' 와 'worker 마다 isolated output namespace' 를 요구한다. D 는 출력 namespace 만 분리하고 **입력 의존성**은 분리하지 않았다. D-DEF-11(중복 변수)에 이은 두 번째 분할 계약 오류다.",
+  "why_it_did_not_corrupt_the_result": "워커가 스스로 방어했다 — 두 모듈을 스냅샷·해시한 뒤 스냅샷에서 import 하고, 실행 후 원본을 재해시해 drift 를 기록했다. 5회 실행이 lane_s 4개·lane_f 3개 byte-state 에 걸쳐 있었고 verdict·요약 4개 리스트·mutation 결과가 전부 동일했다. **워커가 방어하지 않았으면 결과가 일시적 코드 상태의 산물이었을 것이고, 그것을 사후에 알아낼 방법도 없었다.**",
+  "practice_change": "워커를 띄울 때 출력 namespace 뿐 아니라 **입력 모듈 의존성**도 분할 계약에 넣는다. 다른 워커가 수정 중인 모듈을 import 해야 하면 (a) 순차화하거나 (b) 스냅샷·해시 방식을 지시문에 명시한다. 이번엔 워커가 스스로 (b)를 했지만 그것은 운이지 설계가 아니다.",
+  "not_rewritten": "F-Δ9 는 계속 진행한다. 결과가 재현됐으므로 되돌릴 것이 없다."
+}
