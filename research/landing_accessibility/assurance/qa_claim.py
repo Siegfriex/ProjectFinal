@@ -28,6 +28,7 @@ FORBIDDEN = [  # (pattern, rule, note)
     (r"닫을\s*수\s*없는\s*(방해요소|팝업|모달)[^.]{0,10}\d+\s*건", "axis-C", "'시각적 닫기 컨트롤 미탐지 상태에서 ESC/배경클릭으로 닫힘' 으로 서술"),
 ]
 AXIS_C_CHECKS = [  # (trigger, required-companion, note)
+    (r"UNRESOLVED[^.]{0,20}18\s*건", r"미기록|unrecorded|6\s*건", "UNRESOLVED 18 서술에 미기록 6 병기 필수 (B 15:07)"),
     (r"(방해요소|interrupt|overlay)[^.]{0,30}(유형|분류|label)[^.]{0,30}(분포|비율)", r"UNKNOWN|미분류", "final_label 분포는 UNKNOWN(110/235, 47%) 병기 필수 (A 14:45)"),
     (r"(overlay\s*coverage|OverlayCoverage|오버레이\s*(면적|비율))[^.]{0,40}(median|중앙값)", r"q3|IQR|사분위|1\.0|전면", "median 단독 인용 금지 — q3=1.0, 22/56 전면 (A 14:45)"),
     (r"축\s*C[^.]{0,20}(측정됨|관측됨|측정되었)", r"미분류|UNKNOWN|47\s*%", "축 C = raw 실측 235 + 분류 47% 미분류 로 서술 (A 14:45)"),
@@ -36,7 +37,8 @@ AXIS_C_CHECKS = [  # (trigger, required-companion, note)
 _FORBIDDEN_TAIL = None
 # CLAIM_GOVERNANCE rev 14:58: association NOT_COMPUTABLE, substitute_made=false → any association/GRADE B/C claim is out today
 TODAY_RULES = [
-    (r"(Spearman|ρ\s*=|rho\s*=|순위\s*상관|상관(계수|을|이)\s*보|Kruskal|association)", "rev14:58 §1", "오늘 association 없음 — GRADE B/C claim 존재 불가 (substitute_made=false)"),
+    (r"(?=.*(Spearman|ρ|rho|순위\s*상관|Kruskal|association))(?=.*(=\s*-?\d|보였다|나타났|유의|p\s*[<=]|n\s*=\s*\d))", "rev14:58 §1", "오늘 association 없음 — 검정 이름은 계약 인용 맥락에서만; 결과처럼 읽히면 반려"),
+    (r"예산\s*소진[^.]{0,20}(1[0-9]|9)\s*건", "rev14:58 축B", "'예산 소진' 계수 흡수 의심 — WALL_CLOCK 7 + NO_STATE_CHANGE 2 = 9 뿐이며 미기록 6·SCOUT_ERROR 3 은 별도 (B 15:07)"),
     (r"GRADE\s*[BC]\b", "rev14:58 §1", "오늘 GRADE B/C 태그 자체가 무효 — A 또는 UNSUPPORTED 만"),
     (r"축\s*A[^.]{0,20}(관측됨|측정됨|산출)", "rev14:58 §0", "축 A = NOT_EVALUATED (판정기 부재) 로만 서술"),
     (r"(KWCAG|접근성\s*장벽)[^.]{0,30}(FAIL\s*비율|비율\s*분포|median)", "rev14:58 §0", "KWCAG 판정 미수행 — FailRate 서술 불가"),
@@ -64,7 +66,8 @@ def flatten_numbers(obj, acc):
 
 def main(a):
     ref = set()
-    for f in (a.replay, a.recon):
+    canon = pathlib.Path(__file__).resolve().parent / "out" / "C_CANONICAL_NUMBERS.json"
+    for f in (a.replay, a.recon, str(canon) if canon.is_file() else None):
         if f and pathlib.Path(f).is_file(): flatten_numbers(json.loads(pathlib.Path(f).read_text(encoding="utf-8")), ref)
     rows = []
     for cf in a.claims:
