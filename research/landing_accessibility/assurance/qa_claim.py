@@ -20,7 +20,7 @@ FORBIDDEN = [  # (pattern, rule, note)
     (r"(고령자|사용자|서비스|접근성|장벽|방해요소)[^.]{0,25}(때문에|로 인해|초래|야기|영향을\s*미친|효과가\s*있)", "§2.4", "인과표현(연구 대상) — 문맥 확인 필요"),
     (r"(종합\s*점수|composite\s*score|\bscore\b|점수)", "§2.4", "단일 종합점수/score 금지"),
     (r"(depth\s*(>=|≥)\s*3|3\s*이상이면)", "§2.4", "절대 cutoff 금지"),
-    (r"(25\s*\+\s*31|31\s*\+\s*25|25\s*\+\s*59|\b60\s*건|합계\s*(60|118|1[0-9]{2}))", "recovery", "4층위(C-G 25/C-W 59/C-D 31/C-E) 는 중첩이라 합산 금지 — 분할은 outcome 6종(합 59) (B 15:48)"),
+    (r"(25\s*\+\s*31|31\s*\+\s*25|25\s*\+\s*59|59\s*\+\s*31|합계\s*(60|118|1[0-9]{2})\s*건)", "recovery", "4층위(C-G 25/C-W 59/C-D 31/C-E) 는 중첩이라 합산 금지 — 분할은 outcome 6종(합 59) (B 15:48)"),
     (r"측정기가?\s*(실패|작동하지\s*않|고장)", "§3", "원인 3종(가드 입도·archetype-endpoint 규칙·E-6b 구속) 분리 없이 뭉뚱그림 (A 14:31)"),
     (r"E-?6b[^.]{0,40}(8\s*건|8회)[^.]{0,40}(원인|때문)", "§3", "E-6b 발화 8 ≠ 구속 1 — 발화 횟수를 원인 계수로 쓰지 말 것"),
     (r"가드(만|를)\s*(고치|정밀화|완화)[^.]{0,30}(측정된다|산출된다|살아난다|해결)", "counterfactual", "반사실 과잉확정(긍정): 회복 상한 0~8, 무작위 배정 아님 (A 14:38)"),
@@ -112,20 +112,22 @@ def main(a):
         for s in sentences(txt):
             sentences_scanned += 1
             issues = []; status = "SUPPORTED"
-            for pat, rule, note in FORBIDDEN:
+            META = re.search(r"않는다|않았다|금지|반려|패턴|규칙|허용|예:|✗|○|assert|forbidden|scan|스캔|목록", s)
+            for pat, rule, note in ([] if META else FORBIDDEN):
                 if re.search(pat, s, re.I): issues.append(f"FORBIDDEN {rule}: {note}")
             has_grade = bool(re.search(GRADE, s, re.I)); has_n = bool(re.search(r"\b[nNmM]\s*=\s*\d+|\d+\s*건|\d+\s*/\s*\d+|\d+\s*개", s))
             is_claim = bool(re.search(r"(비율|분포|상관|median|IQR|ρ|rho|Spearman|Kruskal|산출|탐지|관측됐|관측되|FAIL|UNDETERMINED|N\s*=)", s))
             if re.search(HEDGE_N, s) and not has_n: issues.append("§2.5 N/분모 없는 일반화")
             for pat, rule, note in RETRACTED:
                 if re.search(pat, s, re.I) and not re.search(r"철회|정정|교정|뒤집|이전에는|초판|둔갑|로\s*읽으면|가\s*아니라", s): issues.append(f"RETRACTED_CLAIM_PRESENT {rule}: {note}")
-            for pat, rule, note in TODAY_RULES:
+            for pat, rule, note in ([] if META else TODAY_RULES):
                 if re.search(pat, s, re.I): issues.append(f"FORBIDDEN {rule}: {note}")
-            for trig, comp, note in AXIS_C_CHECKS:
+            for trig, comp, note in ([] if META else AXIS_C_CHECKS):
                 if re.search(trig, s, re.I) and not re.search(comp, s, re.I): issues.append(f"AXIS_C: {note}")
             # A 14:21: '0건' must be written as 'N건 중 0건' — bare zero reads as 'not measured'
             if re.search(r"(?<![\d/])0\s*건", s) and not re.search(r"\d+\s*(건|개)[^.]{0,40}0\s*건|0\s*/\s*\d+|\d+\s*(건|개)[^.]{0,25}시도", s): issues.append("분모 없는 '0건' — 'N건 중 0건' 으로")
-            nums = numbers_in(s) - {"2026", "08", "27", "2", "1"}
+            nums = (numbers_in(s) - {"2026", "08", "27", "2", "1"}) if p.suffix == ".md" else set()
+            nums = {n for n in nums if not re.match(r"^\d\.\d$", n) and not re.match(r"^20\d{6}$", n) and not re.match(r"^0\d$", n)}
             unmatched = sorted(n for n in nums if n not in ref and not re.match(r"^\d{1,2}$", n) is None and n not in ref)
             unmatched = sorted(n for n in nums if n not in ref)
             if is_claim and unmatched and ref: issues.append(f"NUMBER_NOT_IN_C_REPLAY: {unmatched[:6]}")

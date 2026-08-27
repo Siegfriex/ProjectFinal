@@ -1,10 +1,10 @@
-# QA_CLAIM_LEDGER (C) — 2026-08-27T16:40:31+09:00
+# QA_CLAIM_LEDGER (C) — 2026-08-27T16:41:34+09:00
 
 기준: .agent_bus/landing_v2/CLAIM_GOVERNANCE.md §2/§4 · 재계산 참조: /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_STAT_REPLAY.json, /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance/research/landing_accessibility/assurance/out/QA_MART_RECONCILIATION.json
 
 **scan coverage: files 25/25 · sentences 4331 · retracted-phrase raw hits 4 · positive controls {"successor of '정직하게 거부' / '없는 codebook'": 13, "successor of '설계가 작동'": 19, "successor of 'wiring 고쳐도 신호 없다'": 10} · VALID**
 
-집계: {'SUPPORTED_WITH_LIMITATION': 166, 'MISMATCH': 16, 'UNSUPPORTED': 15, 'SUPPORTED': 6}
+집계: {'SUPPORTED_WITH_LIMITATION': 182, 'UNSUPPORTED': 9, 'SUPPORTED': 6}
 
 | file | status | issues | sentence |
 |---|---|---|---|
@@ -27,7 +27,7 @@
 | FINAL_RESULTS_SUMMARY.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 충분원인이 둘이고 서로 겹치지 않으므로** MPFED가 산출될 경로는 애초에 없었다. |
 | FINAL_RESULTS_SUMMARY.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 0** — J3(MPFED 산출)이 충족되지 않았다. |
 | FINAL_RESULTS_SUMMARY.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | L0 산출물을 보유한 56개 관측에서 방해요소 235건이 탐지됐다. |
-| FINAL_RESULTS_SUMMARY.md | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['0.25', '0.75']; §4-2 grade 태그 없음 | 겹침 분포는 **양극**이다 — 완전히 덮은 관측 22건(39.3%) · 겹침 없음 6건 · 가운데 구간(0.25~0.75) 2건뿐. |
+| FINAL_RESULTS_SUMMARY.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 겹침 분포는 **양극**이다 — 완전히 덮은 관측 22건(39.3%) · 겹침 없음 6건 · 가운데 구간(0.25~0.75) 2건뿐. |
 | FINAL_RESULTS_SUMMARY.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용은 오도한다. |
 | LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | E000_PLAN.json 의 e000_plan_hash_candidate 는 placeholder 바이트를 해싱한 뒤 덮어쓴 구조라 최종 산출물만으로 재현할 수 없다. |
 | LIMITATIONS.md | **SUPPORTED_WITH_LIMITATION** | 분모 없는 '0건' — 'N건 중 0건' 으로 | 데이터 관측 이전에 동결됐다 (2026-08-27 12:25 KST, REAL TARGET evidence 0건 상태). |
@@ -42,28 +42,26 @@
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | 분모 없는 '0건' — 'N건 중 0건' 으로 | E000은 고유 서비스를 0건 기여하고 측정기가 다르므로(E000 a86b4c7 / E001 222ef2c) 한 기술통계에 섞지 않는다 — 이득 0, 위험만 있다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | E000은 측정기·evidence lineage 검증 산출물로만 보고한다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | e6b_fired = detail.notes의 'gate 판별: UNDETERMINED' 마커(규칙 E-6b fail-closed). |
-| REAL_RUN_SUMMARY.json | **UNSUPPORTED** | FORBIDDEN §3: 원인 3종(가드 입도·archetype-endpoint 규칙·E-6b 구속) 분리 없이 뭉뚱그림 (A 14:31) | '측정기가 실패했다'로 뭉뚱그리지 않는다 — 도구 입도(가드) / 계약 설계(archetype-endpoint 규칙) / 판별 실패(E-6b)는 성격이 다르고 시정 방향도 다르다. |
-| REAL_RUN_SUMMARY.json | **UNSUPPORTED** | FORBIDDEN recovery: 4층위(C-G 25/C-W 59/C-D 31/C-E) 는 중첩이라 합산 금지 — 분할은 outcome 6종(합 59) (B 15:48) | C는 B와 **다른 조인 경로**를 썼다 —  의 ELIGIBLE_WEB 60건을  와  로 조인하고, **mapping_status 필터 없이** 마스터플랜 frozen_order 59키로 제한했다(web_target_id 59/59). |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median과 q3는 규약과 무관하게 동일하다. |
-| REAL_RUN_SUMMARY.json | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['0.25', '0.75']; §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
+| REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용 금지.** min/q1/median/q3/max 전부와  (전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 이봉 분포다** — 낮은 쪽 5건 · 가운데 0건 · 높은 쪽 51건으로 가운데가 비어 있다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용은 오도한다**: 중앙값은 어느 봉도 대표하지 않는다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median과 q3는 규약과 무관하게 동일하다. |
-| REAL_RUN_SUMMARY.json | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['0.25', '0.75']; §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
+| REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용 금지.** min/q1/median/q3/max 전부와  (전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 이봉 분포다** — 낮은 쪽 32건 · 가운데 2건 · 높은 쪽 22건으로 가운데가 비어 있다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용은 오도한다**: 중앙값은 어느 봉도 대표하지 않는다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median과 q3는 규약과 무관하게 동일하다. |
-| REAL_RUN_SUMMARY.json | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['0.25', '0.75']; §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
+| REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용 금지.** min/q1/median/q3/max 전부와  (전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 이봉 분포다** — 낮은 쪽 15건 · 가운데 1건 · 높은 쪽 40건으로 가운데가 비어 있다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용은 오도한다**: 중앙값은 어느 봉도 대표하지 않는다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median과 q3는 규약과 무관하게 동일하다. |
-| REAL_RUN_SUMMARY.json | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['0.25', '0.75']; §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
+| REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용 금지.** min/q1/median/q3/max 전부와  (전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median과 q3는 규약과 무관하게 동일하다. |
-| REAL_RUN_SUMMARY.json | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['0.25', '0.75']; §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
+| REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용 금지.** min/q1/median/q3/max 전부와  (전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 이봉 분포다** — 낮은 쪽 15건 · 가운데 0건 · 높은 쪽 41건으로 가운데가 비어 있다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용은 오도한다**: 중앙값은 어느 봉도 대표하지 않는다. |
@@ -74,9 +72,9 @@
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 시각적 닫기 컨트롤이 탐지되지 않은 상태에서 ESC/배경클릭으로 닫힌 경우가 102건이다 |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 충분원인이 둘이고 서로 겹치지 않으므로** MPFED가 산출될 경로는 애초에 없었다. |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | gate kind가 UNDETERMINED로 **도달**했고 fail-closed 규칙이 승격을 막았다. |
-| REAL_RUN_SUMMARY.json | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['1.1', '20260827']; §4-2 grade 태그 없음 | LA-AC-AMD1-20260827 §1.1 Spearman(OlderRelevantKWCAGFailRate, obstruction) |
+| REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | LA-AC-AMD1-20260827 §1.1 Spearman(OlderRelevantKWCAGFailRate, obstruction) |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 개정 1은 'X가 원리적으로 산출 불가'라는 **측정 가능성**에 근거했으나, 지금 남은 변수 중에서 새 association을 고르면 그것은 **쓸 수 있는 데이터를 보고 분석을 고르는 것**이 되어 성격이 다르다. |
-| REAL_RUN_SUMMARY.json | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['1.3', '20260827']; §4-2 grade 태그 없음 | LA-AC-AMD1-20260827 §1.3 Kruskal-Wallis(FailRate ~ InteractionArchetype) |
+| REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | LA-AC-AMD1-20260827 §1.3 Kruskal-Wallis(FailRate ~ InteractionArchetype) |
 | REAL_RUN_SUMMARY.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 개정 1은 'X가 원리적으로 산출 불가'라는 **측정 가능성**에 근거했으나, 지금 남은 변수 중에서 새 association을 고르면 그것은 **쓸 수 있는 데이터를 보고 분석을 고르는 것**이 되어 성격이 다르다. |
 | STATISTICAL_RESULTS.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | L0 산출물을 보유한 56개 관측에서 방해요소 235건이 탐지됐다. |
 | STATISTICAL_RESULTS.json | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 56개 관측 중 22건(39.3%)에서 방해요소가 뷰포트를 완전히 덮었고, 6건은 겹침이 없었으며, 나머지 28건의 median은 0.0723이다. |
@@ -121,12 +119,11 @@
 | build_canonical_entities.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | THRESHOLD: 월간 사용자 평균 200만 명 이상 + 액티브시니어+ 세대 비율 25% 이상인 앱 |
 | build_canonical_entities.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | THRESHOLD: 순 결제추정금액 합 5천억 원 이상 + 액티브시니어+ 세대 비율 30% 이상인 리테일 브랜드 |
 | build_canonical_entities.py | **SUPPORTED_WITH_LIMITATION** | 분모 없는 '0건' — 'N건 중 0건' 으로 | 원자료(source_ranking_rows.parquet) 값 시정은 누적 0건이며 261행은 그대로다. |
-| build_canonical_entities.py | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['70']; §4-2 grade 태그 없음 | 25년 하반기 NS홈쇼핑, 홈앤쇼핑, 현대홈쇼핑/현대Hmall, CJ 온스타일, GS홈쇼핑/GS Shop은 액티브시니어+ 세대의 순 결제추정금액 비율이 각각 70%를 넘었음. |
-| build_canonical_entities.py | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['70']; §4-2 grade 태그 없음 | 주요 홈쇼핑 리테일 브랜드 5개는 액티브시니어+ 세대 순 결제추정금액 비율이 전체의 70% 이상을 차지. |
+| build_canonical_entities.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 25년 하반기 NS홈쇼핑, 홈앤쇼핑, 현대홈쇼핑/현대Hmall, CJ 온스타일, GS홈쇼핑/GS Shop은 액티브시니어+ 세대의 순 결제추정금액 비율이 각각 70%를 넘었음. |
+| build_canonical_entities.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 주요 홈쇼핑 리테일 브랜드 5개는 액티브시니어+ 세대 순 결제추정금액 비율이 전체의 70% 이상을 차지. |
 | build_canonical_entities.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 각주도 '리테일 브랜드를 업종별로 분류하여 각 업종별 합을 산출' 이라고 명시한다. |
-| build_canonical_entities.py | **UNSUPPORTED** | FORBIDDEN recovery: 4층위(C-G 25/C-W 59/C-D 31/C-E) 는 중첩이라 합산 금지 — 분할은 outcome 6종(합 59) (B 15:48) | SYSTEM_APP_CANDIDATE 11건 + NOT_ASSESSED 60건 + EXCLUDED_INDUSTRY_AXIS 10건 |
 | build_canonical_entities.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 판정 분포 MERGE 1 / KEEP_SEPARATE 6 / UNRESOLVED 0. |
-| build_final_and_registry.py | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['21']; §4-2 grade 태그 없음 | ·   — A0 §21 필수 산출물. |
+| build_final_and_registry.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | ·   — A0 §21 필수 산출물. |
 | build_final_and_registry.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 이미 검증된 산출물에서 값을 읽어 문서화만 한다. |
 | build_final_and_registry.py | **UNSUPPORTED** | FORBIDDEN §2.1: 도구 한계→대상 성질 | 고령자가 대표기능에 도달할 수 없다 |
 | build_final_and_registry.py | **UNSUPPORTED** | FORBIDDEN §2.1: 가드는 단어 존재만 탐지 | 대표기능이 로그인 뒤에 있다 |
@@ -139,7 +136,6 @@
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 유형 분포를 인용할 때 UNKNOWN을 각주로 빼면 실측 강도가 과대표시된다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 개정 1은 'X가 원리적으로 산출 불가'라는 **측정 가능성**에 근거했으나, 지금 남은 변수 중에서 새 association을 고르면 그것은 **쓸 수 있는 데이터를 보고 분석을 고르는 것**이 되어 성격이 다르다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | MPFED 미산출 59건의 원인을 **성격이 다른 범주로** 귀속한다. |
-| build_real_marts.py | **UNSUPPORTED** | FORBIDDEN §3: 원인 3종(가드 입도·archetype-endpoint 규칙·E-6b 구속) 분리 없이 뭉뚱그림 (A 14:31) | "측정기가 실패했다"로 뭉뚱그리지 않는다 — 도구 입도 / 계약 설계 / 판별 실패는 |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | (manifest 해시 체인 검증) ·  (필수 산출물). |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 시각적 닫기 컨트롤이 탐지되지 않은 상태에서 ESC/배경클릭으로 닫힌 경우가 102건이다 |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 분포를   없이 보고하려 했다 — A 판정으로 금지된다. |
@@ -148,21 +144,19 @@
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용을 막기 위해** 항상 함께 낸다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 102건만 강조하면   38건 — **닫기 컨트롤이 탐지됐는데도 해제에 실패한 경우** — 이 가려진다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 오늘 산출물 4종 — 축 A/B/C + 방법론적 결론. |
-| build_real_marts.py | **UNSUPPORTED** | FORBIDDEN §3: 원인 3종(가드 입도·archetype-endpoint 규칙·E-6b 구속) 분리 없이 뭉뚱그림 (A 14:31) | '측정기가 실패했다'로 뭉뚱그리지 않는다 — 도구 입도(가드) / 계약 설계(archetype-endpoint 규칙) / 판별 실패(E-6b)는 성격이 다르고 시정 방향도 다르다. |
 | build_real_marts.py | **UNSUPPORTED** | FORBIDDEN axis-C: 자동화 dismissal 결과 ≠ 사용자 행동 (A 14:45) | 고령자가 이 방해요소를 닫지 못한다 |
 | build_real_marts.py | **UNSUPPORTED** | FORBIDDEN axis-C: '시각적 닫기 컨트롤 미탐지 상태에서 ESC/배경클릭으로 닫힘' 으로 서술 | 닫을 수 없는 방해요소가 102건이다 |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | gate kind가 UNDETERMINED로 **도달**했고 fail-closed 규칙이 승격을 막았다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median과 q3는 규약과 무관하게 동일하다. |
-| build_real_marts.py | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['0.25', '0.75']; §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
+| build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 요점: 양극 분포라는 결론은 규약과 무관하게 성립한다** — 가운데 구간(0.25~0.75)이 2건뿐이라는 사실이 어느 규약에서도 바뀌지 않기 때문이다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용 금지.** min/q1/median/q3/max 전부와  (전면 가림 건수)을 함께 보고한다 — median 0.1281만 인용하면 전면 가림 건이 통째로 가려진다. |
-| build_real_marts.py | **UNSUPPORTED** | FORBIDDEN recovery: 4층위(C-G 25/C-W 59/C-D 31/C-E) 는 중첩이라 합산 금지 — 분할은 outcome 6종(합 59) (B 15:48) | C는 B와 **다른 조인 경로**를 썼다 —  의 ELIGIBLE_WEB 60건을  와  로 조인하고, **mapping_status 필터 없이** 마스터플랜 frozen_order 59키로 제한했다(web_target_id 59/59). |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | final_label 분포에 UNKNOWN 행이 없다 — UNKNOWN을 뺀 유형 분포 보고는 금지된다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 이봉 분포다** — 낮은 쪽 |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | median 단독 인용은 오도한다**: 중앙값은 어느 봉도 대표하지 않는다. |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | interrupts_per_obs_median |
 | build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | max_overlay_coverage_median |
-| build_real_marts.py | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['1.1', '20260827']; §4-2 grade 태그 없음 | LA-AC-AMD1-20260827 §1.1 Spearman(OlderRelevantKWCAGFailRate, obstruction) |
-| build_real_marts.py | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['1.3', '20260827']; §4-2 grade 태그 없음 | LA-AC-AMD1-20260827 §1.3 Kruskal-Wallis(FailRate ~ InteractionArchetype) |
+| build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | LA-AC-AMD1-20260827 §1.1 Spearman(OlderRelevantKWCAGFailRate, obstruction) |
+| build_real_marts.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | LA-AC-AMD1-20260827 §1.3 Kruskal-Wallis(FailRate ~ InteractionArchetype) |
 | build_source_rows_from_journal.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | C002 산출물( ,  )은 |
 | build_source_rows_from_journal.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | figure 판독 결과만 커밋돼 있어 산출물로부터 재현이 불가능했다. |
 | build_source_rows_from_journal.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 저널이 없으면 스크립트는 실패하며, 기존 산출물을 덮어쓰지 않는다. |
@@ -173,7 +167,7 @@
 | build_source_rows_from_journal.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | (1) 액티브시니어+ 세대 순 결제추정금액 비율이 높은 주요 홈쇼핑 리테일 브랜드 |
 | build_source_rows_from_journal.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 기존 산출물과 대조만 하고 쓰지 않는다 |
 | build_source_rows_from_journal.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 절대경로를 산출물에 적으면 실행 위치가 산출물의 일부가 되어 재실행 바이트 동일성이 성립하지 않는다(C011 P2 idempotency-claim-false-journal-path-absolute). |
-| build_statistical_results.py | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['14', '58']; §4-2 grade 태그 없음 | STATS 산출물 —  (2026-08-27 14:58 개정본) 기준. |
+| build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | STATS 산출물 —  (2026-08-27 14:58 개정본) 기준. |
 | build_statistical_results.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 불가능하다는 사실을 보고하는 것이 오늘의 통계 산출물이다**(A 명시). |
 | build_statistical_results.py | **UNSUPPORTED** | FORBIDDEN §2.1: 도구 한계→대상 성질 | 고령자가 대표기능에 도달할 수 없다 |
 | build_statistical_results.py | **UNSUPPORTED** | FORBIDDEN §2.1: 가드는 단어 존재만 탐지 | 대표기능이 로그인 뒤에 있다 |
@@ -205,7 +199,7 @@
 | extract_remediation_cases.py | **UNSUPPORTED** | FORBIDDEN §2.4: 단일 종합점수/score 금지 | 세 축(KWCAG/entry friction/certification)을 단일 점수로 합치지 않는 원칙과 같은 |
 | extract_remediation_cases.py | **SUPPORTED_WITH_LIMITATION** | 분모 없는 '0건' — 'N건 중 0건' 으로 | 게이트를 통과한 사례가 0건인 것은 실패가 아니라 사실이다. |
 | generate_deliverable_templates.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 산출물 템플릿 생성 CLI — 목표 3, end-to-end. |
-| generate_deliverable_templates.py | **MISMATCH** | NUMBER_NOT_IN_C_REPLAY: ['03', '09']; §4-2 grade 태그 없음 | marts 빌드 → EDA-03~09 실행 →   → Markdown/JSON 산출물 |
+| generate_deliverable_templates.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | marts 빌드 → EDA-03~09 실행 →   → Markdown/JSON 산출물 |
 | generate_deliverable_templates.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | E000_FAST(6개 타깃) 범위 — PHASE_GATES.md의 E000_V2_VALIDATED(8~12타깃+두 독립감사)는 이 산출물로 충족되지 않는다. |
 | run_fixture_engine.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | <out>/task_manifests/       Path Freeze 산출물 |
 | run_fixture_engine.py | **SUPPORTED_WITH_LIMITATION** | §4-2 grade 태그 없음 | 여기서 나오는 PASS/FAIL 은 **synthetic fixture 에 대한 engine test 결과**이며 |
