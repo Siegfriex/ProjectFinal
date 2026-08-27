@@ -365,16 +365,29 @@ def test_main_is_blocked_when_release_document_lacks_manifest_binding(
 # 이건 **버그가 아니라 지금 phase 의 의도와 일치하는 우연한 추가 방어**다 —
 # "P0 가 닫히기 전 REAL 은 어떤 경우에도 금지"(`T-A-V3-P0-B-001`)를 이 층이
 # 이미 무조건 만족시키고 있다. 다만 이 상태로는 **exactly-once 락 로직**
-# (`_run_real`/`_real_executor`, 내 검증 대상)에 REAL_TARGET 경로로 아예 도달할
-# 수 없다 — 그래서 아래 dup-억제 테스트(§8)는 `layer_firewall`을 test-only로
-# bypass 해 그 뒷단(내 책임 범위)만 분리해서 증명한다. `layer_firewall.py`
-# 자체를 고치지 않았다 — 그건 내 소유가 아니다. **known limitation 에 명시한다.**
+# (`_run_real`/`_real_executor`)에 REAL_TARGET 경로로 아예 도달할 수 없다 —
+# 그래서 아래 dup-억제 테스트(§8)는 `layer_firewall`을 test-only로 bypass 해
+# 그 뒷단만 분리해서 증명한다.
+#
+# `T-A-V3-STEP1-FREEZE` C_BLK_009_ruling 으로 **이 상태의 의미가 바뀌었다.**
+# 작성 당시에는 '아직 배선되지 않은 gap' 이었고 W1 이 소유 밖이라 고치지 않았다.
+# 지금은 A 가 `layer_firewall.py` 를 B 본체 소유로 지정하고 `V2_DIAGNOSTIC` 을
+# **추가하지 않기로 결정**했다 — DIAG-PILOT-001 12건이 `HISTORICAL_METHOD_ASSURANCE`
+# 로 동결돼 실행되지 않으므로 launch 경로가 불필요하다. 관측되는 사실은 같고
+# 의미가 다르다: 미구현이 아니라 **의도된 종결 상태**다.
 def test_layer_firewall_currently_blocks_v2_diagnostic_unconditionally() -> None:
-    """`layer_firewall.py`(W1 소유 아님)가 아직 `V2_DIAGNOSTIC`을 모른다는 사실
-    자체를 고정한다 — 릴리스 문서를 아무리 잘 갖춰도 이 층에서 막힌다. 이
-    테스트가 실패하면(즉 더 이상 이 예외가 안 나면) `layer_firewall.py`가
-    갱신됐다는 뜻이니, 그때 `test_driver_second_invocation_with_same_ticket_
-    run_launches_zero_times`의 bypass 를 제거해도 된다."""
+    """`layer_firewall.py` 2층이 `V2_DIAGNOSTIC` 을 모른다 — 이것은 **의도된 종결
+    상태**이며 미구현 gap 이 아니다 (`T-A-V3-STEP1-FREEZE` C_BLK_009_ruling ②).
+
+    릴리스 문서를 아무리 잘 갖춰도 이 층에서 막힌다. 12건 실행이 취소됐으므로
+    그 launch 경로는 필요하지 않고, 2층은 이 scope 를 모르는 채로 둔다.
+
+    **이 테스트가 실패하면 누군가 `V2_DIAGNOSTIC` 을 2층에 추가한 것이다.** 그건
+    A 의 결정을 뒤집는 변경이므로 그 자체가 검토 대상이다 — 테스트를 고치지 말고
+    왜 추가됐는지 먼저 물어라. V3 scope(`V3_PILOT_5`/`V3_MAIN50`)를 2층에 추가하는
+    것은 별개이며, 그때는 릴리스 문서뿐 아니라 `manifest_sha256` 을 파일 바이트에서
+    **1층 결과 재사용 없이 독립 재확인**해야 한다 (같은 ruling ③) — 그러지 않으면
+    2층이 1층보다 약해져 독립 방어의 의미가 사라진다."""
     from landing_accessibility.e001_runner import layer_firewall
     from landing_accessibility.e001_runner.layer_firewall import BatchRealTargetBlockedError
 
@@ -386,11 +399,13 @@ def test_layer_firewall_currently_blocks_v2_diagnostic_unconditionally() -> None
 def test_driver_is_currently_blocked_end_to_end_by_the_batch_layer_gap(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """위 사실이 구동기의 실제 REAL_TARGET 경로에도 그대로 적용된다는 것을
-    end-to-end 로 확인한다 — 릴리스 문서를 완벽히 RELEASED 로 갖춰도(엔진 층은
-    통과) 2층(`layer_firewall`)에서 막힌다. `run_l1_if_safe_real`에 spy 를 심어
-    두고 launch 카운트가 0인지도 함께 본다(브라우저 기동 시도 자체가 없었다는
-    직접 증거)."""
+    """위 종결 상태가 구동기의 실제 REAL_TARGET 경로에도 그대로 적용된다는 것을
+    end-to-end 로 확인한다 — 릴리스 문서를 완벽히 RELEASED 로 갖춰도(엔진 1층은
+    통과) 2층(`layer_firewall`)에서 막힌다.
+
+    `run_l1_if_safe_real` 에 spy 를 심어 launch 카운트가 0 인지도 함께 본다 —
+    브라우저 기동 **시도 자체가 없었다**는 직접 증거다. 차단됐다는 예외만으로는
+    '막혔지만 이미 열긴 열었다' 와 구분되지 않는다."""
     monkeypatch.setattr(
         firewall, "read_release_document", lambda **_kw: _doc(RELEASED_V2_DIAGNOSTIC)
     )
