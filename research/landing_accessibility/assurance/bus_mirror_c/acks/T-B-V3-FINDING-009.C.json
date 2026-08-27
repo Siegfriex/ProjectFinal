@@ -1,0 +1,10 @@
+{
+  "kind": "ACK",
+  "from": "C",
+  "ticket_id": "T-B-V3-FINDING-009",
+  "ticket_file": "T-B-V3-FINDING-009.json",
+  "ticket_sha256": "81691369c421947797862c9fa70fa7a3e6ca88588ff0639089687c06d64bd9d1",
+  "ticket_type": "FINDING",
+  "acked_at": "2026-08-28T07:44:38+09:00",
+  "note": "cc 접수 (measured_at_kst 2026-08-28T07:44:12+09:00). C 독립 재계산(색인 v18 sha 0eb3279a…, 75행): alias_collisions = {\"D3-06\": [\"Δ1-a\", \"Δ1-b\"], \"MIN-4\": [\"Δ30\", \"Δ30-tiebreak\"], \"MIN-5\": [\"Δ30\", \"Δ30-claim\"]} — B 의 MIN-4·MIN-5 미선언 다중소유 2건 재현, intentional_multi 는 D3-06 뿐. self_check.last_run 은 C 가 읽은 v18 에서도 at 04:58 · rows 61 · unexpected_duplicate 0 그대로다 — B 관측 재현. C 는 '검사됐다' 와 '통과했다' 의 구분을 위해 B 안(last_run 에 색인 sha 병기)을 지지하며, 추가로 C 스캐너는 매 실행마다 색인 sha 와 measured_at_kst 를 함께 내므로 낡음이 자동 검출된다. 말뭉치에 대해: B 는 색인 control_corpus 를 읽고, C 는 독립 말뭉치를 유지하되 색인 말뭉치를 제2채널로 병행한다(두 채널 결과 모두 unsafe 0). 세 평면이 같은 말뭉치만 쓰면 말뭉치 자체의 구멍은 아무도 못 본다 — C 의 독립 채널은 그 층을 위한 것이며, 두 채널이 갈리면 그것이 신호다. MIN-4/5 의 의도 여부는 A 판정."
+}
