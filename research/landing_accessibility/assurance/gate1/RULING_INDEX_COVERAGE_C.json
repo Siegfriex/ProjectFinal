@@ -1754,9 +1754,97 @@
    "coverage": "PARTIAL",
    "gap_note": null,
    "added_at_index_version": 40
+  },
+  {
+   "id": "Δ51-R49",
+   "due": "PILOT5",
+   "verified_by": "C",
+   "requires": "**REAL 판정 기준은 요청 대상 호스트다** — 의도·모드·디렉터리·스크립트 이름이 아니라 **네트워크 요청이 어느 호스트로 나갔는가**. 관측 대상 도메인 집합은 **동결 manifest 에서 파생**한다. **디렉터리 이름은 방어가 아니다**",
+   "must_appear_in": "REAL 게이트 · 네트워크 접근 스크립트",
+   "C_check": "CI-27 호스트 기준 REAL 판정(manifest 파생 도메인 집합 vs 요청 로그)",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 41
+  },
+  {
+   "id": "Δ51-probe",
+   "due": "PILOT5",
+   "verified_by": "C",
+   "requires": "`shadow/lane_b/scripts/probe_official_urls_shadow.py` 는 **관측 대상 도메인에 요청하므로 REAL 이며 현재 실행 금지**다. 모바일 UA L0 precheck 는 **A 의 eligibility-precheck scope release** 가 있어야 하고 그때도 **task click/input/flow 실행 금지**. 게이트를 붙이거나 실행 불가 상태로 둔다",
+   "must_appear_in": "shadow probe 스크립트",
+   "C_check": "CI-27 probe_official_urls_shadow 실행 금지 상태 확인",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 41
+  },
+  {
+   "id": "Δ51-registry",
+   "due": "PILOT5",
+   "verified_by": "C",
+   "requires": "`acquire_wiseapp_authority.py`·`collect_certification_registry.py` 는 **표본 구성 출처**이므로 REAL 아님. 그러나 무게이트로 두지 않는다 — ① 요청 호스트가 **목록/권위 출처 allowlist** 안임을 실행 시 검사(대상 도메인이면 차단) ② 실행 기록. **지금 안 치는 것은 현재 코드의 성질이지 계약이 아니다**",
+   "must_appear_in": "두 스크립트",
+   "C_check": "Δ51 계열 — RUNBOOK r10 CI-27/28",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 41
+  },
+  {
+   "id": "Δ51-R50",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**소비자가 0인 안전 플래그는 소비시키거나 제거한다.** 남겨 두면 **보호처럼 읽힌다** — R41·R43 의 데이터판. `FINAL_MAIN50_MANIFEST.json` 의 `real_target_allowed` 가 실측 소비자 0 이었다",
+   "must_appear_in": "모든 안전 플래그",
+   "C_check": "CI-28 고아 안전 플래그 = finding; manifest real_target_allowed 소비 여부 확인",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 41
+  },
+  {
+   "id": "Δ51-binding-detail",
+   "due": "PILOT5",
+   "verified_by": "C",
+   "requires": "`Δ50-pilot5-binding` 의 두 번째 입력 = `FINAL_MAIN50_MANIFEST.json` — (a) 자기 `manifest_sha256` 이 내용과 일치 (b) `real_target_allowed is True` (c) **target 이 동결 50 안**. 릴리스 문서는 그 manifest sha 를 싣고 일치해야 한다. **릴리스 문서만 고쳐서는 열리지 않는다**(must_not_flag)",
+   "must_appear_in": "V3_PILOT_5 release · engine 게이트",
+   "C_check": "Δ51 계열 — RUNBOOK r10 CI-27/28",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 41
+  },
+  {
+   "id": "Δ51-gate-depth",
+   "due": "PILOT5",
+   "verified_by": "C",
+   "requires": "**두 번째 입력 검사는 `batch.py` 가 아니라 engine 게이트에 건다.** `L0Collector`/`run_l0_real` 직접 생성이 `layer_firewall` 을 건너뛴다 — **진입점에만 걸면 진입점을 우회하는 호출이 지나간다**",
+   "must_appear_in": "engine 게이트",
+   "C_check": "CI-28 engine 게이트에서 두 번째 입력 must_flag/must_not_flag (GATE 2)",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 41
+  },
+  {
+   "id": "Δ51-allowlist-path",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**저장소 트리 밖으로 해소되는 allowlist 경로는 fallback 이 아니라 hard error 다** — 바깥 경로가 조용히 잡히면 **어느 파일이 표본을 정했는지가 저장소에 남지 않는다**. `E000_FAST` 자체는 철회 상태이므로 sha 고정에 투자하지 않고, 재개방 시 새 release 문서가 pin 을 실어야 한다",
+   "must_appear_in": "allowlist 해소 경로",
+   "C_check": "CI-28 트리 밖 allowlist 경로 = hard error 시험",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 41
+  },
+  {
+   "id": "Δ51-scope-mismatch",
+   "due": "GATE2",
+   "verified_by": "C",
+   "requires": "`layer_firewall` 은 {E000_FAST,E001_FULL} 만 알고 engine 은 `V2_DIAGNOSTIC` 도 안다 → `run_v2_diagnostic_pilot.py` 는 배치층에서 항상 차단. **결과는 안전 방향이나 이유가 우연이다**(두 층이 아는 scope 집합이 다른 것이지 정책이 아니다). **막힌 것과 막도록 만든 것은 다르다**(Δ47-refusal) — 기록하고 지금 고치지 않는다",
+   "must_appear_in": "firewall scope 문서",
+   "C_check": "CI-28 engine 게이트에서 두 번째 입력 must_flag/must_not_flag (GATE 2)",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 41
   }
  ],
- "index_version": 40,
+ "index_version": 41,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1805,5 +1893,6 @@
  "index_sha256_v36": "c751759319ddd3ee86024336bb6d7f5bea8d436dc7d5a3257b0b2acd1a23b3eb",
  "index_sha256_v37": "a5a21f4e8c6bf88ad4c2a38b46b3eafbd3d9c4036af7abffc195a1ddb5083848",
  "index_sha256_v38": "1fb824919a5e1abaa48a29bc629358541f1e15c2fae6201a06972967aeb07ad6",
- "index_sha256_v40": "0a8a5f5a81e1e5a826100e847607c4eda64a8f00b372d4711ab82dd34f4513ac"
+ "index_sha256_v40": "0a8a5f5a81e1e5a826100e847607c4eda64a8f00b372d4711ab82dd34f4513ac",
+ "index_sha256_v41": "73c981ebb9acdfa258e36ee3abb6409a62a91d2a14a6ffce2b7f78ebd1e76073"
 }
