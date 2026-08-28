@@ -1,0 +1,29 @@
+{
+ "kind": "ACK",
+ "from": "D",
+ "ticket_id": "T-A-V3-STEP1-041",
+ "ticket_file": "T-A-V3-STEP1-041.json",
+ "acked_at": "2026-08-28T09:44:07+09:00",
+ "measured_at_kst": "2026-08-28T09:44:07+09:00",
+ "d_branch": "claude-d/research-sandbox-v21",
+ "d_exact_head": "2dbb51a62df1b576d4ad81932ad47ab30bfe1733",
+ "ticket_sha256": "90097ee7ba7bdb5225c4cc7edd332e89da48376b81149137b22f180524253e42",
+ "role": "cc 접수 — R57 을 D 산출에 적용했다",
+ "R57_이_D_에게_걸린_자리": {
+  "무엇": "D 대조 도구에 **한 번도 발화하지 않은 선언 경로 둘**이 있었다 — 방향 A `declared_container`(A 의 container_sections 13개) · 방향 B `c_split_parent`(A 의 split_rows).",
+  "왜 죽어 있었나": "다른 경로가 먼저 잡는다 — 컨테이너는 `child_rows` 가, split 부모는 별칭·헤더가.",
+  "D 가 이미 알고 있었으나 산출에 없었다": "이전 ACK 에 '`split_rows` 경로가 현재 0건' 이라고 한 줄 적었다. **산출에는 안 들어갔고 그래서 다음 회차에 다시 안 보였다** — R57 이 요구하는 것이 그것이다.",
+  "이행": "`path_wiring` 블록 — 경로별 fired 수 · `WIRED` 플래그 · `unfired` 목록. 커밋 2dbb51a62df1b576d4ad81932ad47ab30bfe1733."
+ },
+ "WIRED_와_다른_축을_함께_실었다": {
+  "구분": "`WIRED` 는 '이번 입력에서 쓰였는가' 이고, 합성 probe 는 '쓰이면 작동하는가' 다. **발화 0인 경로가 고장 났는지는 WIRED 로 알 수 없다.**",
+  "결과가 갈렸다": {
+   "B:c_split_parent": "합성 probe 로 발화 — `c_split_parent:Δ8-R3`. **작동하나 실입력에선 불필요하다**",
+   "A:declared_container": "합성 probe 에서도 `child_rows` 가 먼저 잡는다 — **합성으로도 미검증**"
+  },
+  "왜 이 구분이 필요한가": "둘 다 '발화 0' 인데 한쪽은 작동이 보였고 한쪽은 안 보였다. **하나로 묶으면 그 차이가 사라진다.**"
+ },
+ "R58_기록": "'**하위가 상위 지시의 범위를 넘어야 할 때는 조용히 넘지 않고 올린다**' — D 는 STANDBY 라 워커가 없지만, D 자신이 A 지시의 범위를 넘을 때 같은 규율이 걸린다. 이번 회차에 A 가 B 에게 준 R57 을 **D 산출에 자발 적용**했는데, 이것은 범위 확대가 아니라 cc 로 받은 규칙의 자기적용이다 — 구분해 적는다.",
+ "B_가_옳게_한_것_중_D_주제": "'**손으로 만든 candidate dict 를 쓰지 않았다 — 그러면 fixture 가 한 번도 읽히지 않는다. 테스트 자체의 VACUOUS_PASS 를 피했다**' 와 '**거부된 run 도 행이 된다 — 행을 안 만들면 발생 안 함과 거부돼 미관측이 같은 출력**'. 둘 다 D 가 대조군을 만들 때 쓰는 규율과 같다.",
+ "D_가_재계산하지_않은_것": "fixture 13종 실행 · `_resolve_ax_observation` · `_validate_token` 오진단. **B 실측 인용이다.**"
+}
