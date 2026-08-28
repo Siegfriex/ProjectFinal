@@ -215,6 +215,11 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_self_sha import scan as _ss_fn
+    _ss = _ss_fn()
+    print(f"   자기참조 sha : JSON {_ss['n_json']} 중 **{_ss['n_self_referencing']}** "
+          f"{[h['file'] for h in _ss['self_referencing']]} "
+          f"— **값으로는 못 찾는다**(자기 sha 는 정의상 안 맞는다). D 는 고치지 않는다")
     from d_tool_health import import_side_effects as _ise_fn
     _ise = _ise_fn()
     print(f"   임포트 부수효과(최상위, AST) : {_ise['verdict']} · **게이트 대상 {_ise['n_gated']} 중 "
