@@ -160,7 +160,8 @@ def main():
             if f_["check"] == "EVIDENCE_OR_TERMINAL" and "missing" in f_: f_["systemic_candidate"] = "denominator_corruption"
     checks.update({f"MART.{k}": v for k, v in qc["checks"].items()}); flags.extend(qc["flags"])
     if rows:
-        extra, missing_cols = sorted(set(rows[0].keys()) - set(COLS23)), sorted(set(COLS23) - set(rows[0].keys()))
+        APPROVED_EXTRA = {"entry_observation_provenance", "collection_run", "superseded_runs"}   # R76 / R98 / R99 (A-approved additions)
+        extra, missing_cols = sorted(set(rows[0].keys()) - set(COLS23) - APPROVED_EXTRA), sorted(set(COLS23) - set(rows[0].keys()))
         if missing_cols or extra: flag("MART.COLUMNS", f"mart columns differ from the 23 fixed by TBX-006: missing {missing_cols} extra {extra}", None)
         checks["MART.COLUMNS"] = {"status": "FLAG" if (missing_cols or extra) else "PASS", "n_items": len(rows[0]), "missing": missing_cols, "extra": extra}
         blank = {}
