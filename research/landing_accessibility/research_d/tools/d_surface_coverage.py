@@ -181,6 +181,10 @@ ACCEPTED_UNSURFACED = {
     ("d_bus_scan_selftest", "log"):
         "케이스별 OK/FAIL 자취 14줄. 스캔은 verdict 와 positive/negative/malformed 계수를 찍고, "
         "**`failures` 는 생기는 즉시 찍는다** — 그 셋이면 자취 없이도 무엇이 깨졌는지 안다",
+    ("d_warn_baseline", "n_now"):
+        "WARN **총수**(399)다. 스캔은 그것을 `총수 399(Δ3 — **신호 아님**)` 로 찍으면서 "
+        "**신호가 아니라고 함께 적는다** — 신호는 `종류` 쪽이다(`D-DEF-77`). "
+        "이름 충돌로 되돌아왔지만 값은 찍힌다",
     ("d_warn_baseline", "n_base"):
         "총수(398)의 baseline 이다. 그 검사 스스로 **총수는 신호가 아니라고** 하므로 그 baseline 도 "
         "신호가 아니다 — 신호인 **종류** 쪽은 `종류 12 (baseline 12, Δ0)` 로 baseline 까지 찍는다",
