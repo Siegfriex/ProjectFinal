@@ -913,3 +913,34 @@ A 가 D 를 분석·시각화 평면으로 재배치했다. `NON_CANONICAL` 은 
 
 대조군 7건 PASS (must_flag 3 · must_not_flag 4). 이 검사는 **문서를 자동으로
 고치지 않는다** — 상태 판정은 기록이고 덮으면 이력이 사라진다.
+
+---
+
+## 2026-08-28 16:50 — SSOTV3 우선연구 8개 가용성 (등재 아님 · 착수 아님)
+
+`14_PROMPT_D_v3.0.md` 의 우선 연구 8항목이 **현재 census 로 관측되는가**만
+대조했다. **A 의 v3 역할 티켓이 없으므로 RQ 로 등재하지 않고 착수하지도 않는다**
+(SSOTV3 00 §13 · `T-A-PIVOT-PRESERVE-001`). 새 수치도 새 조작화도 만들지 않았고
+이미 계산된 coverage 를 8축에 매핑만 했다.
+
+| 우선연구 | 상태 | 최소 n | 축 |
+|---|---|---|---|
+| spatial dispersion 조작화 | OBSERVED | **8** | x/y/zone 8/50 |
+| visible label vs accessible name 변이 | **PARTIAL** | 0 | visible 29 · **accessible_name 0** · **label_relation 0** |
+| icon-only/control-type/reveal-direction taxonomy | **PARTIAL** | 0 | control 27 · **reveal_direction 0** |
+| action sequence normalization · edit distance | OBSERVED | 50 | task/experienced flow 50/50 |
+| Depth와 sequence divergence 비동일성 | OBSERVED | 50 | depth 50 · sequence 50 |
+| auth-gate stage variation | OBSERVED | **8** | auth_gate_stage 8/50 |
+| task-specific obstruction | **NOT_OBSERVED_AT_ALL** | 0 | task_control_occlusion **0/50** |
+| missingness/slot dependency | OBSERVED | 50 | 전 축 coverage 자체 |
+
+**A 가 알아야 할 것 셋.**
+
+1. **한 항목은 축이 0/50 이라 착수 자체가 불가능하다** — `task-specific
+   obstruction`. 데이터가 없지 계기가 없는 것이 아니다.
+2. **두 항목은 핵심 축이 0 이다** — `accessible_name` 독립관측 0(C-DEF-39 확정),
+   `reveal_direction` 0(UNWIRED). 남은 축만으로는 그 항목이 묻는 **변이**를 볼 수 없다.
+3. **`OBSERVED` 는 충분하다는 뜻이 아니다.** spatial 과 auth-gate 는 **n=8** 이다
+   — A R106 대로 개별점이지 분포가 아니다. **착수 가능 여부는 A 가 정한다.**
+
+`d_priority_availability.py` · 대조군 6건 · 산출 `analysis/D_PRIORITY_AVAILABILITY.json`
