@@ -67,6 +67,32 @@ def _r35_block(tool_file: str, demo_key: str) -> dict:
     }
 
 
+def _synthetic_path_check(reach, cover, heads_set, idx, text) -> dict:
+    """선언 경로가 **원리상** 작동하는지 합성 입력으로 보인다.
+
+    `WIRED` 는 '이번 입력에서 쓰였는가' 이고 이것은 '쓰이면 작동하는가' 다.
+    둘은 다른 축이다 — 발화 0인 경로가 고장 났는지 아닌지는 WIRED 로 알 수 없다.
+    """
+    out = {}
+    # B 방향 c_ (split 부모): 선언된 split_rows 의 자식 id 를 그대로 태운다
+    import json as _j
+    doc = _j.loads(idx.path.read_text(encoding="utf-8"))
+    split = (doc.get("split_rows") or {}).get("map", {})
+    kid = next(iter(split), None)
+    if kid:
+        # 별칭·헤더로는 못 닿게 빈 토큰만 준다 → c_ 경로만 남는다
+        out["B:c_split_parent"] = {"probe": kid, "reach": reach(kid, [])}
+    # A 방향 declared_container: 컨테이너 목록의 첫 항목을 자식 없이 물어본다
+    conts = (doc.get("container_sections") or {}).get("list", [])
+    if conts:
+        c = conts[0]
+        out["A:declared_container"] = {"probe": c, "cover_via": (cover(c) or {}).get("via")}
+    out["note"] = ("합성 probe 다. `B:c_split_parent` 는 별칭을 비워 c_ 경로만 남긴 것이고, "
+                   "`A:declared_container` 는 실제 입력이라 자식 경로가 먼저 잡을 수 있다 "
+                   "— 그 경우 컨테이너 경로는 **여전히 미검증**이다.")
+    return out
+
+
 def main() -> int:
     idx = Index()
     text = DELTA.read_text(encoding="utf-8")
@@ -238,8 +264,31 @@ def main() -> int:
         else "FAIL"
     )
 
+
+    # [A STEP1-041 R57] **배선되지 않은 기능은 관측을 만들지 않는다.**
+    # 선언된 경로 중 이번 실행에서 한 번도 쓰이지 않은 것을 명시한다.
+    # 발화 0인 경로는 **작동하는지 알 수 없다** — 그것을 산출이 말해야 한다.
+    # 합성 fixture 로 각 경로가 원리상 작동하는지는 따로 보인다(WIRED 와 다른 축).
+    _a_paths = {k: sum(1 for x in a_hit if x["via"] == k)
+                for k in ("alias_or_id", "child_rows", "declared_split_parent",
+                          "declared_container")}
+    _b_paths = {k: sum(1 for x in b_hit if (x["reachable_via"] or "").startswith(k))
+                for k in ("a_", "b_", "c_")}
+    _wiring = {
+        "rule": "R57 — 발화 0인 선언 경로는 이 실행에서 검증되지 않았다",
+        "direction_A": {k: {"fired": n, "WIRED": n > 0} for k, n in _a_paths.items()},
+        "direction_B": {k: {"fired": n, "WIRED": n > 0} for k, n in _b_paths.items()},
+        "unfired": sorted([f"A:{k}" for k, n in _a_paths.items() if n == 0]
+                          + [f"B:{k}" for k, n in _b_paths.items() if n == 0]),
+        "what_unfired_means": ("그 경로가 틀렸다는 뜻이 아니다. **다른 경로가 먼저 "
+                               "잡아서 이 입력에서는 필요하지 않았다**는 뜻이고, "
+                               "따라서 **이 실행이 그 경로를 검증하지 않았다.**"),
+        "synthetic_check": _synthetic_path_check(reach, cover, heads_set, idx, text),
+    }
+
     out = {
         "tool": "tools/v3_harness/index_delta_crosscheck.py",
+        "path_wiring": _wiring,
         "resolver": "ruling_id_norm v3 — 색인 aliases 조회, 추론 없음",
         "checked_at_kst": subprocess.run(["date", "-Iseconds"], capture_output=True,
                                          text=True).stdout.strip(),

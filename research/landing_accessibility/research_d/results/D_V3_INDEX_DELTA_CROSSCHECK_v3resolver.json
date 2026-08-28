@@ -1,20 +1,71 @@
 {
  "tool": "tools/v3_harness/index_delta_crosscheck.py",
+ "path_wiring": {
+  "rule": "R57 — 발화 0인 선언 경로는 이 실행에서 검증되지 않았다",
+  "direction_A": {
+   "alias_or_id": {
+    "fired": 81,
+    "WIRED": true
+   },
+   "child_rows": {
+    "fired": 30,
+    "WIRED": true
+   },
+   "declared_split_parent": {
+    "fired": 1,
+    "WIRED": true
+   },
+   "declared_container": {
+    "fired": 0,
+    "WIRED": false
+   }
+  },
+  "direction_B": {
+   "a_": {
+    "fired": 35,
+    "WIRED": true
+   },
+   "b_": {
+    "fired": 89,
+    "WIRED": true
+   },
+   "c_": {
+    "fired": 0,
+    "WIRED": false
+   }
+  },
+  "unfired": [
+   "A:declared_container",
+   "B:c_"
+  ],
+  "what_unfired_means": "그 경로가 틀렸다는 뜻이 아니다. **다른 경로가 먼저 잡아서 이 입력에서는 필요하지 않았다**는 뜻이고, 따라서 **이 실행이 그 경로를 검증하지 않았다.**",
+  "synthetic_check": {
+   "B:c_split_parent": {
+    "probe": "Δ8-R3a",
+    "reach": "c_split_parent:Δ8-R3"
+   },
+   "A:declared_container": {
+    "probe": "Δ1",
+    "cover_via": "child_rows"
+   },
+   "note": "합성 probe 다. `B:c_split_parent` 는 별칭을 비워 c_ 경로만 남긴 것이고, `A:declared_container` 는 실제 입력이라 자식 경로가 먼저 잡을 수 있다 — 그 경우 컨테이너 경로는 **여전히 미검증**이다."
+  }
+ },
  "resolver": "ruling_id_norm v3 — 색인 aliases 조회, 추론 없음",
- "checked_at_kst": "2026-08-28T08:49:50+09:00",
+ "checked_at_kst": "2026-08-28T09:43:23+09:00",
  "index": {
-  "version": 36,
-  "sha256": "c751759319ddd3ee86024336bb6d7f5bea8d436dc7d5a3257b0b2acd1a23b3eb",
-  "authority_sha": "9cad17159f208a1a51082bc7a6a4318d2b5db451",
-  "rows": 115
+  "version": 46,
+  "sha256": "83c15df5cf9f2605184cf8e6ade3e484a2c8592dca14ff24f14f2447753cf9cd",
+  "authority_sha": "8c4197e87a60fc011ec2ddfc55da6a0aee6fd9f2",
+  "rows": 168
  },
  "delta": {
   "path": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_a_control/research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md",
-  "sha256": "6abe9168e9c1610e89f7621e5d2d70de7045d24d9f1e526c014a30935a3f1f57"
+  "sha256": "b7c3484d65b6e45b100d3709302c8b59e2276abf0d4a83e5119f2e8d3ef461a0"
  },
  "control": {
-  "delta_heads_found": 87,
-  "index_rows": 115,
+  "delta_heads_found": 112,
+  "index_rows": 168,
   "naming": "Δ40 — must_flag / must_not_flag ('양성/음성' 은 두 뜻으로 쓰여 버린다)",
   "expectations": {
    "positive_control": "must_flag — 실재하는 id 는 검출돼야 한다",
@@ -38,13 +89,13 @@
    }
   },
   "coverage_control": {
-   "fake_head": "Δ96abe91",
+   "fake_head": "Δ9b7c348",
    "absent_from_index": true,
    "cover_result": null,
    "expected": null
   },
   "discriminating_control": {
-   "fake_child": "Δ15-P6abe9168e9",
+   "fake_child": "Δ15-Pb7c3484d65",
    "probe_absent_from_delta": true,
    "parent_section_exists": true,
    "reach_result": null,
@@ -57,8 +108,8 @@
   "rule": "Δ41-R35 — 대조 목록 · 각 결과 · 실행으로 실증된 실패 시 동작 · 도구 경로와 커밋",
   "tool": {
    "path": "tools/v3_harness/index_delta_crosscheck.py",
-   "sha256": "ddd5db9999e60fb550521f653a0fa5f97ee4f98a58d975702f7a5b13b0f067ad",
-   "commit": "948994d5878898155704205a6bca15a1fe5f946a"
+   "sha256": "27c58318542767042ec594bb8e30ac9dc78f3b11fb6c8b880df4b4fed00932e8",
+   "commit": "9561e7208715ea3262187d1f3d06dad4b295065f"
   },
   "on_control_failure": {
    "behavior": "대조군 실패 시 exit 3 이며 산출 파일을 쓰지 않는다",
@@ -74,7 +125,7 @@
      "results/D_V3_INDEX_DELTA_CROSSCHECK_v3resolver.json"
     ],
     "tool": "tools/v3_harness/index_delta_crosscheck.py",
-    "tool_sha256": "f05a7f1c0a6943dd6fcad027a4a07e97ff9afd472f7e6f8cb5c07f2bd04373bc",
+    "tool_sha256": "ddd5db9999e60fb550521f653a0fa5f97ee4f98a58d975702f7a5b13b0f067ad",
     "why_this_mutation": "도달 판정이 무조건 미도달이 되면 전 행이 '미도달' 로 보고된다",
     "expect_exit": 3,
     "verdict": "PASS"
@@ -83,24 +134,24 @@
   }
  },
  "A_delta_head_to_index": {
-  "n": 87,
-  "covered": 87,
+  "n": 112,
+  "covered": 112,
   "rule": "A self_check.delta_section_coverage — 별칭/자식행/선언된 컨테이너",
   "by_path": {
-   "alias_or_id": 66,
-   "child_rows": 20,
+   "alias_or_id": 81,
+   "child_rows": 30,
    "declared_split_parent": 1,
    "declared_container": 0
   },
   "UNCOVERED": []
  },
  "B_index_row_to_delta": {
-  "n": 115,
-  "reachable": 89,
+  "n": 168,
+  "reachable": 124,
   "rule": "A self_check.index_to_delta_reachability — (a)헤더 (b)별칭 토큰경계 (c)split_rows 부모",
   "by_path": {
    "a_": 35,
-   "b_": 54,
+   "b_": 89,
    "c_": 0
   },
   "UNRESOLVED": [
@@ -163,27 +214,6 @@
     "index_id": "Δ35-wiring",
     "tokens": [
      "Δ35-wiring"
-    ],
-    "reachable_via": null
-   },
-   {
-    "index_id": "Δ36-order",
-    "tokens": [
-     "Δ36-order"
-    ],
-    "reachable_via": null
-   },
-   {
-    "index_id": "Δ36-budgetseam",
-    "tokens": [
-     "Δ36-budgetseam"
-    ],
-    "reachable_via": null
-   },
-   {
-    "index_id": "Δ36-tokens",
-    "tokens": [
-     "Δ36-tokens"
     ],
     "reachable_via": null
    },
@@ -279,16 +309,164 @@
     "reachable_via": null
    },
    {
-    "index_id": "Δ46-exit2",
+    "index_id": "Δ46-casename",
     "tokens": [
-     "Δ46-exit2"
+     "Δ46-casename"
     ],
     "reachable_via": null
    },
    {
-    "index_id": "Δ46-casename",
+    "index_id": "Δ47-reveal",
     "tokens": [
-     "Δ46-casename"
+     "Δ47-reveal"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ47-fixture",
+    "tokens": [
+     "Δ47-fixture"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ47-gate1-pair",
+    "tokens": [
+     "Δ47-gate1-pair"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ48-safety-gate",
+    "tokens": [
+     "Δ48-safety-gate"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ49-retro",
+    "tokens": [
+     "Δ49-retro"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ49-A-selfaudit",
+    "tokens": [
+     "Δ49-A-selfaudit"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ49-half",
+    "tokens": [
+     "Δ49-half"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ51-probe",
+    "tokens": [
+     "Δ51-probe"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ51-registry",
+    "tokens": [
+     "Δ51-registry"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ51-binding-detail",
+    "tokens": [
+     "Δ51-binding-detail"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ51-gate-depth",
+    "tokens": [
+     "Δ51-gate-depth"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ51-allowlist-path",
+    "tokens": [
+     "Δ51-allowlist-path"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ51-scope-mismatch",
+    "tokens": [
+     "Δ51-scope-mismatch"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ52-mirror-fact",
+    "tokens": [
+     "Δ52-mirror-fact"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ52-exit2-first",
+    "tokens": [
+     "Δ52-exit2-first"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ53-selfcatch",
+    "tokens": [
+     "Δ53-selfcatch"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ54-pattern",
+    "tokens": [
+     "Δ54-pattern"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ54-probe-miss",
+    "tokens": [
+     "Δ54-probe-miss"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ55-firewall-held",
+    "tokens": [
+     "Δ55-firewall-held"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ56-provenance",
+    "tokens": [
+     "identity_provenance",
+     "Δ56-provenance"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ56-other",
+    "tokens": [
+     "Δ56-other"
+    ],
+    "reachable_via": null
+   },
+   {
+    "index_id": "Δ56-depth-limit",
+    "tokens": [
+     "Δ56-depth-limit"
     ],
     "reachable_via": null
    }
