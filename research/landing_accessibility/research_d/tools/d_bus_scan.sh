@@ -45,8 +45,8 @@ except Exception as _e:
 # 철회 사실을 주석·문서에만 두면 아무것도 강제하지 않는다.
 try:
     from d_retractions import audit_artifacts as _ra, retracted_tokens as _rt
-    from d_retractions import audit_tickets as _rk
-    _r, _k = _ra(), _rk()
+    from d_retractions import audit_tickets as _rk, audit_superseded as _rs
+    _r, _k, _s = _ra(), _rk(), _rs()
     print(f"\n=== 철회 라벨 인용 : 산출물 {_r['verdict']}({_r['n']}) · "
           f"발행티켓 {_k['verdict']}({_k['n']}) · 철회토큰 {sorted(_rt())} ===")
     for _f in _r["files"]:
@@ -55,6 +55,9 @@ try:
         print(f"   티켓    {_f}  (발행분은 고치지 않는다 — 사실만 기록)")
     if _k["철회_이전_인용"]["n"]:
         print(f"   철회 이전 인용 {_k['철회_이전_인용']['n']}건 — **위반 아님**")
+    print(f"   폐기 산출물 인용 : {_s['verdict']}({_s['n']}) · 폐기본 {_s['n_superseded']}")
+    for _f in _s["files"]:
+        print(f"     경로 없는 인용  {_f}")
 except Exception as _e:
     print(f"\n=== 철회 라벨 인용 : 검사 실패 {_e} ===")
     errs.append({"file": "(철회 인용)", "error": f"철회 감사 실행 실패: {_e}"})

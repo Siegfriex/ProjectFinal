@@ -203,6 +203,69 @@ def audit_tickets(plane: str = "D") -> dict:
             "발행분은_고치지_않는다": "불변이다 — 사실만 보고한다"}
 
 
+# ── 폐기된 **산출물** 인용 ────────────────────────────────────────────────
+# [D-DEF-51] 철회된 **라벨**과 같은 형태가 그림에도 있다. `T-A-V3-TBX-022` 로
+# 보고서 그림이 6장→4장으로 줄면서 옛 6장은 `_superseded_do_not_cite/` 로
+# 옮겨졌고 디렉터리 이름이 "인용하지 마라" 라고 말한다. 그런데 D 의
+# `CLAIM_CANDIDATES.json` 은 **경로 없이 파일명만** 적어 폐기본을 가리킨다.
+#
+# C 는 같은 파일들을 인용하되 **`_superseded_do_not_cite/` 경로를 명시**한다 —
+# 그것이 옳은 형태다. 경로가 지위를 말한다.
+SUPERSEDED_DIR = REPO / "artifacts/v3_census/analysis/figures/_superseded_do_not_cite"
+_SUPERSEDED_MARK = "_superseded_do_not_cite"
+# 철회 라벨의 `retracted_labels_cited` 와 같은 자리. **선언 필드 자신이 이름을
+# 담기 때문에** 인정하지 않으면 선언한 문서가 걸린다 — D-DEF-49 에서 같은 형태를
+# 이미 겪고도 폐기 쪽에 반복했다.
+SUPERSEDED_DECLARE = "superseded_figures_cited"
+
+
+def superseded_files() -> set:
+    if not SUPERSEDED_DIR.is_dir():
+        return set()
+    return {p.name for p in SUPERSEDED_DIR.iterdir()
+            if p.is_file() and p.suffix.lower() in (".png", ".svg", ".csv", ".md")}
+
+
+def audit_superseded(root=None) -> dict:
+    """산출물이 폐기본 파일명을 **경로 없이** 인용하는가.
+
+    경로(`_superseded_do_not_cite/`)를 붙이면 통과한다 — 지위가 드러나기 때문이다.
+    """
+    root = ANALYSIS if root is None else Path(root)
+    names = superseded_files()
+    bad = []
+    for p in sorted(list(root.rglob("*.json")) + list(root.rglob("*.md"))
+                    + list(root.rglob("*.csv"))):
+        if _SUPERSEDED_MARK in str(p):
+            continue                       # 폐기 디렉터리 자신은 대상이 아니다
+        try:
+            txt = p.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        declared = set()
+        if p.suffix == ".json":
+            try:
+                import json as _j
+                v = _j.loads(txt).get(SUPERSEDED_DECLARE)
+                declared = set(v.keys()) if isinstance(v, dict) else set(v or [])
+            except Exception:
+                declared = set()
+        for n in names:
+            if n in declared:
+                continue                   # 선언한 문서 — 통과
+            for m in re.finditer(re.escape(n), txt):
+                head = txt[max(0, m.start() - 60):m.start()]
+                if _SUPERSEDED_MARK in head:
+                    continue               # 경로를 밝힌 인용 — 통과
+                bad.append({"source": str(p.relative_to(root)), "file": n,
+                            "context": txt[max(0, m.start() - 60):m.end() + 40]
+                            .replace("\n", " ")})
+    return {"verdict": "PASS" if not bad else "FAIL", "n": len(bad),
+            "files": sorted({b["source"] for b in bad}), "hits": bad[:12],
+            "n_superseded": len(names),
+            "규칙": "경로 `_superseded_do_not_cite/` 를 밝히면 통과한다 — 경로가 지위를 말한다"}
+
+
 def controls() -> dict:
     """파싱과 감사가 **양방향으로** 맞는지 본다."""
     rows = []
@@ -261,6 +324,28 @@ def controls() -> dict:
     case("다른 토큰을 선언해도 이 토큰은 걸린다",
          len(audit_json_text('{"headline":"NO_SAFE_ROUTE_SITE 16",'
                              ' "retracted_labels_cited":{"OTHER":"x"}}', "synth")), 1)
+    # [D-DEF-51] 폐기 산출물 인용 — 양방향
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as _td:
+        _d = Path(_td)
+        _n = sorted(superseded_files())
+        if _n:
+            (_d / "a.json").write_text('{"figure": "%s"}' % _n[0], encoding="utf-8")
+            case("경로 없이 폐기본을 인용하면 걸린다",
+                 audit_superseded(_d)["verdict"], "FAIL")
+            (_d / "a.json").write_text(
+                '{"figure": "figures/_superseded_do_not_cite/%s"}' % _n[0], encoding="utf-8")
+            case("경로를 밝히면 통과 — C 방식", audit_superseded(_d)["verdict"], "PASS")
+            (_d / "a.json").write_text('{"figure": "report_fig1_acquisition_state.png"}',
+                                       encoding="utf-8")
+            case("현행 그림은 안 걸린다", audit_superseded(_d)["verdict"], "PASS")
+            # [D-DEF-49 반복] **선언 필드 자신이 이름을 담는다** — 인정하지 않으면
+            # 선언한 문서가 걸린다. 철회 쪽에서 겪고도 폐기 쪽에 반복했다
+            (_d / "a.json").write_text(
+                '{"figure": "%s", "%s": {"%s": "경로를 밝혀 인용한다"}}'
+                % (_n[0], SUPERSEDED_DECLARE, _n[0]), encoding="utf-8")
+            case("선언하면 통과 — 선언 필드가 자기 이름에 걸리지 않는다",
+                 audit_superseded(_d)["verdict"], "PASS")
     case("철회 시각을 근거 티켓에서 읽는다",
          bool(retracted_since("NO_SAFE_ROUTE_SITE")), True)
     case("철회 아닌 토큰엔 시각이 없다",
