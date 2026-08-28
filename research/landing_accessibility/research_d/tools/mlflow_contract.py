@@ -112,7 +112,8 @@ def _holdout_accessed_from_scan() -> str:
 def holdout_value_from_scan(doc: dict) -> str:
     """[D-DEF-86] `verdict != PASS` 를 곧장 `"true"` 로 쓰던 것을 가른다.
 
-    현재 FAIL 3 건은 전부 `research/landing_accessibility/control` **경로 참조**다 —
+    현재 FAIL 3 건은 전부 **control 축의 경로 참조**다(원문 경로는 적지 않는다,
+    `D-DEF-60`) —
     **holdout 과 다른 축**이다. 그것을 `holdout_accessed=true` 로 쓰면
     **다른 축의 실패가 holdout 접근으로 보고된다.**
 
@@ -368,7 +369,7 @@ def controls() -> dict:
                      {"verdict": "PASS"},
                      {"verdict": "FAIL", "violations": []},
                      {"verdict": "FAIL", "violations": [
-                         {"severity": "FAIL", "reference": "HOLDOUT_FOR_C"}]}))})
+                         {"severity": "FAIL", "reference": "holdout_sample"}]}))})
 
     # [D-DEF-86] extra_tags 가 기계 유래 tag 를 덮지 못하는가
     rows.append({"case": "[보호] `holdout_accessed` 를 extra_tags 로 덮으면 막힌다",
