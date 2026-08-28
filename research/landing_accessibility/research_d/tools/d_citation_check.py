@@ -61,6 +61,40 @@ def cited() -> dict:
             "visual_last_cumulative": (int(vals[-1]) if vals else None)}
 
 
+# ── [D-DEF-44] mart 컬럼의 **출처 귀속** 도 인용이다 ──────────────────────────
+# D-041 에서 "mart entry_zone 은 B 사후파생 구분" 이라 적었다. 틀렸다 —
+# 그 8건은 전부 `E_R3_SUPPLEMENT` 관측이고 B 파생은 0건이다(C-FACT_CORRECTION-133618).
+# **도구가 이미 `entry_geometry_provenance` 를 읽고 있었는데 열어보지 않았다.**
+# 그래서 "이 컬럼은 누가 만든 값인가" 를 주장할 때 provenance 컬럼과 대조한다.
+COLUMN_PROVENANCE_CLAIMS = {
+    "entry_zone": {"prov_col": "entry_geometry_provenance",
+                   "claimed": ["E_R3_SUPPLEMENT"],
+                   "note": "E 보충 회차의 관측이다. B 파생이 아니다"},
+    "entry_control_type": {"prov_col": "entry_observation_provenance",
+                           "claimed": ["ANCHOR_ON_E_LABEL", "B_LEXICON_MATCHER",
+                                       "POSTHOC_AMBIGUOUS_MULTIPLE_NARROW_MATCHES"],
+                           "note": "전부 사후 DOM 매칭 계열 — AX role 직접관측과 증거 등급이 다르다"},
+}
+
+
+def column_provenance(claims=None) -> list:
+    """관측행의 provenance 가 주장한 집합 안에 있는가."""
+    claims = COLUMN_PROVENANCE_CLAIMS if claims is None else claims
+    df, _ = C.read_mart_pinned(C.MART_DIR / "CANONICAL_MART_50.csv")
+    out = []
+    for col, spec in claims.items():
+        pc = spec["prov_col"]
+        if pc not in df.columns:
+            out.append({"column": col, "ok": False, "detail": {"missing_prov_col": pc}})
+            continue
+        obs = df[~df[col].str.contains(C._MISSING_PAT, regex=True)]
+        seen = sorted(set(obs[pc]))
+        out.append({"column": col, "ok": set(seen) <= set(spec["claimed"]),
+                    "detail": {"n_observed": len(obs), "actual_provenance": seen,
+                               "claimed": spec["claimed"], "note": spec["note"]}})
+    return out
+
+
 def check() -> dict:
     cases = []
 
@@ -108,6 +142,10 @@ def check() -> dict:
     case("dist31 합 == 31 (합산 중복 없음)", tot == 31,
          {"sum": tot, "note": "D 는 앞서 18+3 을 합친 21 을 인용하고 3 을 또 셌다"})
 
+    # 6. mart 컬럼의 출처 귀속 == provenance 컬럼 [D-DEF-44]
+    for r in column_provenance():
+        case(f"mart `{r['column']}` 출처 귀속 == provenance 컬럼", r["ok"], r["detail"])
+
     ok = all(c["ok"] for c in cases)
     return {"verdict": "PASS" if ok else "FAIL", "n": len(cases),
             "failed": [c["case"] for c in cases if not c["ok"]], "cases": cases,
@@ -150,6 +188,18 @@ def controls() -> dict:
 
     ok = all(r["ok"] for r in rows)
     return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "column_provenance_controls": [
+                {"name": "zone 을 B 파생이라 주장 (= D-041 의 오류)",
+                 "flagged": not column_provenance(
+                     {"entry_zone": {"prov_col": "entry_geometry_provenance",
+                                     "claimed": ["B_DERIVED_FROM_DOM_POSTHOC"], "note": "-"}})[0]["ok"],
+                 "expectation": "must_flag"},
+                {"name": "zone 을 E 보충 관측이라 주장 (= 참)",
+                 "flagged": not column_provenance(
+                     {"entry_zone": {"prov_col": "entry_geometry_provenance",
+                                     "claimed": ["E_R3_SUPPLEMENT"], "note": "-"}})[0]["ok"],
+                 "expectation": "must_not_flag"},
+            ],
             "must_flag": sum(1 for r in rows if r["expectation"] == "must_flag"),
             "must_not_flag": sum(1 for r in rows if r["expectation"] == "must_not_flag"),
             "cases": rows}
