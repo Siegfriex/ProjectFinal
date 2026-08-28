@@ -42,7 +42,7 @@ def check(root: Path | None = None) -> dict:
     root = root or R1_ROOT
     if not root.exists():
         return {"verdict": "NO_ROOT", "path": str(root)}
-    n = has_label = has_sel = 0
+    n = has_label = has_sel = has_sel_value = 0
     lens = Counter()
     dom_ok = dom_missing = dom_nopath = dom_sha = 0
     for _t, o in _lines(root):
@@ -50,7 +50,12 @@ def check(root: Path | None = None) -> dict:
         if "visible_label" in o:
             has_label += 1
         if "selected_candidate" in o:
+            # [D-DEF-107] **키 존재와 값 존재는 다른 질문이다** (A R174).
+            # D 는 이 둘을 한 수로 뭉개 `R2B: selected_candidate 11` 이라고 냈는데,
+            # R2B 11건의 값은 **전부 `None`** 이다 — 키만 있고 값이 없다.
             has_sel += 1
+            if isinstance(o["selected_candidate"], dict):
+                has_sel_value += 1
         e = o.get("visible_text_excerpt")
         if isinstance(e, str):
             lens[len(e)] += 1
@@ -70,7 +75,12 @@ def check(root: Path | None = None) -> dict:
     return {"verdict": "INFO",       # **판정이 아니다** — 확인 가능성을 잰 것이다
             "n_lines": n,
             "n_with_visible_label": has_label,
-            "n_with_selected_candidate": has_sel,
+            "n_with_selected_candidate_key": has_sel,
+            "n_with_selected_candidate_value": has_sel_value,
+            "**키와 값은 다른 질문이다**": (
+                "`키` 는 `\"selected_candidate\" in o`, `값` 은 그것이 dict 인가다. "
+                "R2B 는 **키 11 · 값 0**(전부 `None`) — D 가 처음 낸 `11` 은 **키 수**였고 "
+                "그것을 값처럼 읽으면 틀린다 [A R174]"),
             "n_excerpt": n_exc, "n_excerpt_capped": capped,
             "capped_ratio": round(capped / n_exc, 3) if n_exc else None,
             "excerpt_cap": EXCERPT_CAP,
@@ -154,7 +164,7 @@ def controls() -> dict:
         r = check(root)
         case("**절단된 발췌를 센다**", r["n_excerpt_capped"], 1, negative=True)
         case("`visible_label` 이 있으면 센다", r["n_with_visible_label"], 1)
-        case("`selected_candidate` 가 있으면 센다", r["n_with_selected_candidate"], 1)
+        case("`selected_candidate` 가 있으면 센다", r["n_with_selected_candidate_key"], 1)
         case("**없는 DOM 스냅샷을 센다**", r["dom_snapshot_missing"], 1, negative=True)
         case("두 줄을 다 읽었다 — 0 이면 무효다", r["n_lines"], 2)
 
@@ -170,8 +180,15 @@ def controls() -> dict:
     runs = by_run()
     case("네 회차 전부 `visible_label` 0",
          [r.get("n_with_visible_label") for r in runs["runs"].values()], [0, 0, 0, 0])
-    case("**R2B 에 `selected_candidate` 가 있다** — 'R3 에서 신설' 은 틀렸다",
-         runs["runs"]["E-REAL-CENSUS-1230-R2B"]["n_with_selected_candidate"] > 0, True,
+    case("**R2B 는 키만 있고 값이 없다** — 키와 값은 다른 질문이다 [A R174]",
+         (runs["runs"]["E-REAL-CENSUS-1230-R2B"]["n_with_selected_candidate_key"],
+          runs["runs"]["E-REAL-CENSUS-1230-R2B"]["n_with_selected_candidate_value"]),
+         (11, 0), negative=True)
+    case("**값은 R3 에만 있다**",
+         [r.get("n_with_selected_candidate_value") for r in runs["runs"].values()],
+         [0, 0, 0, 8], negative=True)
+    case("**R2B 에 `selected_candidate` 키가 있다** — 'R3 에서 신설' 은 틀렸다",
+         runs["runs"]["E-REAL-CENSUS-1230-R2B"]["n_with_selected_candidate_key"] > 0, True,
          negative=True)
     # **한 회차만 보고 2 라고 적었다가 대조군이 잡았다** — 실제 6(대상 4, R1 4 + R2B 2)
     case("0 바이트 trace 총 6건(대상 4)", runs["n_zero_byte_total"], 6, negative=True)
@@ -180,7 +197,7 @@ def controls() -> dict:
 
     live = check()
     case("R1 에 `visible_label` 이 없다", live["n_with_visible_label"], 0)
-    case("R1 에 `selected_candidate` 가 없다", live["n_with_selected_candidate"], 0)
+    case("R1 에 `selected_candidate` 가 없다", live["n_with_selected_candidate_key"], 0)
     case("R1 줄을 실제로 읽었다", live["n_lines"] > 0, True)
     case("DOM 스냅샷은 전건 실재한다", live["dom_snapshot_missing"], 0)
     ok = all(r["ok"] for r in rows)
