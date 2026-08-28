@@ -140,6 +140,111 @@ def label_geometry_match(target_id: str, visible_label: str) -> bool:
     return bool(sc) and str(sc.get("visible_label", "")).strip() == str(visible_label).strip()
 
 
+def label_geometry_evidence(target_id: str, visible_label: str, root=None) -> dict:
+    """[D-DEF-103] `label_geometry_match` 가 **왜** 그 값을 냈는지 가른다.
+
+    그 함수는 두 자리에서 조용히 `False` 를 낸다 —
+    (a) trace 파일이 없을 때 (b) 어느 줄에도 `selected_candidate` 가 없을 때.
+    둘 다 '**확인할 수 없다**' 인데 출력은 '**불일치**' 와 같다.
+
+    **분류 로직은 바꾸지 않는다.** 그림 2 의 분류는 `A R152/R154` 의 조작화이고
+    D 가 대상 지정 없이 바꾸지 않는다(`00 §13`). 이 함수는 **읽기 전용 진단**이며
+    `controls()` 가 '두 자리가 지금 발현하지 않는다' 를 매 회 잰다.
+    """
+    base = R3_TRACE if root is None else Path(root)
+    p = base / target_id / f"E_SCOUT_TRACE_{target_id}.jsonl"
+    if not p.exists():
+        return {"class": "NO_TRACE_FILE", "match": False,
+                "왜": "파일이 없다 — **불일치가 아니라 확인 불가**다"}
+    sc = None
+    for line in p.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            d = json.loads(line)
+        except Exception:                           # noqa: BLE001
+            continue
+        if isinstance(d.get("selected_candidate"), dict):
+            sc = d["selected_candidate"]
+    if not sc:
+        return {"class": "NO_SELECTED_CANDIDATE", "match": False,
+                "왜": "`selected_candidate` 가 없다 — R1 trace 에는 그 키가 아예 없었다(R3 에서 신설)"}
+    same = str(sc.get("visible_label", "")).strip() == str(visible_label).strip()
+    return {"class": "MATCH" if same else "MISMATCH", "match": same,
+            "trace_label": sc.get("visible_label")}
+
+
+def evidence_census(root=None) -> dict:
+    """R3 대상 전부에 대해 `class` 분포를 낸다 — **확인 불가가 몇 건인가**."""
+    from collections import Counter as _C
+    base = R3_TRACE if root is None else Path(root)
+    if not base.exists():
+        return {"verdict": "NO_ROOT", "path": str(base)}
+    c, rows = _C(), []
+    for d in sorted(x.name for x in base.iterdir() if x.is_dir()):
+        e = label_geometry_evidence(d, "", root=base)
+        # **라벨을 넘기지 않았으므로 MATCH/MISMATCH 를 보고하지 않는다** — 빈 라벨로
+        # 비교하면 전건이 `MISMATCH` 로 보이고 그것은 **인공물이지 관측이 아니다**.
+        # 이 census 가 재는 것은 오직 **확인 가능한가**이다.
+        cls = ("VERIFIABLE" if e["class"] in ("MATCH", "MISMATCH") else e["class"])
+        c[cls] += 1
+        rows.append({"target": d, "class": cls})
+    unknown = c["NO_TRACE_FILE"] + c["NO_SELECTED_CANDIDATE"]
+    return {"verdict": "PASS" if unknown == 0 else "FAIL",
+            "n_targets": sum(c.values()), "by_class": dict(c),
+            "n_unverifiable": unknown, "rows_evidence": rows,
+            "왜_MATCH_를_안_세나": ("이 census 는 라벨을 넘기지 않는다 — 넘길 라벨이 mart 쪽에 있고 "
+                          "여기서는 **확인 가능성**만 잰다. 빈 라벨로 비교하면 전건이 "
+                          "`MISMATCH` 로 보이는데 그것은 **인공물이다**"),
+            "**확인 불가와 불일치는 다르다**": (
+                "`label_geometry_match` 는 둘을 같은 `False` 로 낸다. "
+                "지금 `n_unverifiable` 이 0 이라 **그림 2 의 수치는 이 경로 때문에 틀리지 않았다** — "
+                "0 이 아니게 되면 그때는 분류를 A 와 다시 봐야 한다"),
+            "분류를_바꾸지_않는다": "그림 2 의 분류는 A R152/R154 의 조작화다 [00 §13]"}
+
+
+def controls() -> dict:
+    import tempfile as _tf
+    rows = []
+
+    def case(name, got, want, negative=False):
+        rows.append({"case": name, "got": got, "want": want, "ok": got == want,
+                     "expectation": "must_flag" if negative else "must_not_flag"})
+
+    with _tf.TemporaryDirectory() as t:
+        root = Path(t)
+        (root / "T1").mkdir()
+        (root / "T1" / "E_SCOUT_TRACE_T1.jsonl").write_text(
+            json.dumps({"selected_candidate": {"visible_label": "이체"}}) + "\n",
+            encoding="utf-8")
+        (root / "T2").mkdir()                       # 파일 없음
+        (root / "T3").mkdir()
+        (root / "T3" / "E_SCOUT_TRACE_T3.jsonl").write_text(
+            json.dumps({"note": "selected_candidate 없음"}) + "\n", encoding="utf-8")
+
+        case("같은 라벨은 MATCH",
+             label_geometry_evidence("T1", "이체", root=root)["class"], "MATCH")
+        case("다른 라벨은 MISMATCH",
+             label_geometry_evidence("T1", "조회", root=root)["class"], "MISMATCH")
+        case("**파일이 없으면 확인 불가다 — 불일치가 아니다**",
+             label_geometry_evidence("T2", "이체", root=root)["class"],
+             "NO_TRACE_FILE", negative=True)
+        case("**`selected_candidate` 가 없으면 확인 불가다**",
+             label_geometry_evidence("T3", "이체", root=root)["class"],
+             "NO_SELECTED_CANDIDATE", negative=True)
+        case("census 가 확인 불가 2건을 센다",
+             evidence_census(root=root)["n_unverifiable"], 2, negative=True)
+
+    live = evidence_census()
+    case("현재 R3 대상에 확인 불가 0", live.get("n_unverifiable"), 0)
+    case("대상을 실제로 읽었다 — 0 이면 검사가 무효다", live.get("n_targets", 0) > 0, True)
+    ok = all(r["ok"] for r in rows)
+    return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "must_flag": sum(1 for r in rows if r["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for r in rows if r["expectation"] == "must_not_flag"),
+            "failed": [r["case"] for r in rows if not r["ok"]], "cases": rows}
+
+
 def figure2_spatial_cases(df):
     """관측 가능한 사례의 진입점. **'분포' 라는 말을 쓰지 않는다** (A TBX-022).
 

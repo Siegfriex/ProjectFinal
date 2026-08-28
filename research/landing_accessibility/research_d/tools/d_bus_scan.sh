@@ -215,6 +215,11 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_v3_report import evidence_census as _ec_fn
+    _ec = _ec_fn()
+    print(f"   라벨-좌표 확인 가능성(R3 {_ec.get('n_targets')}대상) : {_ec.get('verdict')} "
+          f"· **확인 불가 {_ec.get('n_unverifiable')}** · {_ec.get('by_class')} "
+          f"— `label_geometry_match` 는 **확인 불가와 불일치를 같은 False 로 낸다**")
     from d_gate_selftest import controls as _gs_fn
     _gs = _gs_fn()
     print(f"   완결 게이트 fixture(Director P0 1.2) : {_gs['verdict']} · {_gs['n']}건 "
