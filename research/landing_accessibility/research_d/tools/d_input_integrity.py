@@ -36,8 +36,34 @@ WATCH = [("mart", CENSUS / "mart"), ("raw", CENSUS / "raw")]
 # 그래서 나눈다:
 #   동결(CSV·raw)  변경 → **FAIL**. D 의 모든 수치가 다른 판본을 가리키게 된다
 #   사이드카        변경 → **INFO**. 정상이고, 다만 **읽어야 할 것이 생겼다**는 신호다
-LIVING_DOCS = ("mart/CANONICAL_MART_50.sha256.json",
-               "mart/CANONICAL_MART_50.RETRACTIONS.md")
+# **손 목록이 아니라 판정 규칙이다** [D-DEF-73].
+# 첫 판은 두 파일을 열거했다 — 새 사이드카가 생기면 동결본으로 취급돼 FAIL 이
+# 나고, 그때 목록을 늘려야 한다. 그것이 D-DEF-45(손 목록은 뒤처진다)의 자리다.
+#
+# 사이드카의 정의: **동결본과 stem 을 공유하되 데이터 확장자가 아닌 파일.**
+#   CANONICAL_MART_50.csv          동결본
+#   CANONICAL_MART_50.sha256.json  사이드카 (같은 stem · 메타 확장자)
+#   CANONICAL_MART_50.RETRACTIONS.md 사이드카
+#   CANONICAL_MART_50.parquet      **동결본** — 같은 데이터의 다른 형식일 수 있다
+FROZEN_STEMS = ("CANONICAL_MART_50",)
+DATA_SUFFIXES = (".csv", ".parquet", ".jsonl", ".tsv", ".feather")
+
+
+def is_living_doc(rel: str) -> bool:
+    """동결본에 딸린 **메타 문서**인가 — 손 목록이 아니라 규칙으로 판정한다."""
+    p = Path(rel)
+    name = p.name
+    stem = name.split(".", 1)[0]
+    if stem not in FROZEN_STEMS:
+        return False
+    if "." not in name:
+        return False
+    suffix = "." + name.split(".", 1)[1]        # `.sha256.json` · `.csv`
+    last = "." + name.rsplit(".", 1)[1]
+    # 데이터 확장자로 끝나면 동결본이다 — 같은 데이터의 다른 형식일 수 있다
+    if last in DATA_SUFFIXES:
+        return False
+    return suffix != last or True               # stem 공유 + 비데이터 = 사이드카
 RD = Path(__file__).resolve().parent.parent
 BASELINE = RD / "results" / "D_INPUT_INTEGRITY_BASELINE.json"
 
@@ -81,12 +107,17 @@ def check() -> dict:
                 added.append(k)
             elif b[k] != n[k]:
                 changed.append(k)
-    living = [k for k in changed if k in LIVING_DOCS]
-    frozen_changed = [k for k in changed if k not in LIVING_DOCS]
+    living = [k for k in changed if is_living_doc(k)]
+    frozen_changed = [k for k in changed if not is_living_doc(k)]
     ok = not (frozen_changed or added or removed)
     return {"verdict": "PASS" if ok else "FAIL",
             "living_doc_changed": living,
             "frozen_changed": frozen_changed,
+            "규칙의_적용_범위": ("사이드카 판정은 `FROZEN_STEMS`(현재 `CANONICAL_MART_50`) "
+                        "에 딸린 것만 본다. mart 의 `INGEST_LEDGER.jsonl`·`REINGEST.log` "
+                        "등은 **stem 이 달라 동결본으로 취급**된다 — 바뀌면 FAIL 이 나고 "
+                        "**그때 성격을 판단한다.** 미리 사이드카로 분류하면 동결 대상을 "
+                        "놓친다"),
             "동결_vs_사이드카": ("동결본(CSV·raw) 변경은 **FAIL** — D 의 수치가 다른 판본을 "
                           "가리킨다. 사이드카 변경은 **INFO** — 정상이고 다만 "
                           "**읽어야 할 것이 생겼다**는 신호다"),
@@ -143,10 +174,19 @@ def controls() -> dict:
         case("파일이 사라지면 removed", diff(d)[2], ["a.txt"], negative=True)
 
     # [D-DEF-72] 사이드카는 FAIL 을 내지 않고, 동결본은 낸다
-    case("사이드카는 LIVING_DOCS 에 있다",
-         "mart/CANONICAL_MART_50.sha256.json" in LIVING_DOCS, True)
-    case("동결 CSV 는 LIVING_DOCS 가 아니다",
-         "mart/CANONICAL_MART_50.csv" in LIVING_DOCS, False, negative=True)
+    # [D-DEF-73] **손 목록이 아니라 규칙** — 새 사이드카가 자동 인식되는가
+    case("sha256 사이드카", is_living_doc("mart/CANONICAL_MART_50.sha256.json"), True)
+    case("RETRACTIONS 사이드카", is_living_doc("mart/CANONICAL_MART_50.RETRACTIONS.md"), True)
+    case("**아직 없는 사이드카도 인식된다**",
+         is_living_doc("mart/CANONICAL_MART_50.NOTES.md"), True)
+    case("동결 CSV 는 사이드카가 아니다",
+         is_living_doc("mart/CANONICAL_MART_50.csv"), False, negative=True)
+    case("**같은 stem 의 데이터 파일도 동결본이다**",
+         is_living_doc("mart/CANONICAL_MART_50.parquet"), False, negative=True)
+    case("남의 stem 은 대상이 아니다",
+         is_living_doc("mart/snapshot_10.csv"), False, negative=True)
+    case("raw 파일은 사이드카가 아니다",
+         is_living_doc("raw/E/x/E_SCOUT_TRACE_F1-01.jsonl"), False, negative=True)
 
     # 이 검사가 실제 입력을 바꾸지 않는지 — snapshot 은 읽기 전용이다
     before = snapshot()
