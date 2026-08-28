@@ -28,11 +28,17 @@ print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['e
 # `holdout_accessed=UNVERIFIED_SCAN_NOT_PASS` 만 보고 **FAIL 개수와 내역을 보지
 # 않았다.** D 가 D-DEF-54 시정에서 FAIL 을 1 → 3 으로 늘렸는데 세 회차 동안
 # "control/v3 경로 상수 건" 이라고 **단수로** 보고했다. 숫자를 노출한다.
+# **파일이 없으면 조용히 넘어가지 않는다.** 첫 판은 `__file__`(= `<stdin>`)로
+# 경로를 잡아 `exists()` 가 False 였고 **아무 줄도 찍지 않았다** — 이 스캔이
+# 반복해 잡아온 "조용한 통과" 를 그대로 만들었다. 경로는 `sys.argv[2]`(RD) 다.
 try:
     import json as _j
     from pathlib import Path as _P
-    _fw = _P(__file__).resolve().parent.parent / "results" / "D_INPUT_FIREWALL_VERIFICATION.json"
-    if _fw.exists():
+    _fw = _P(sys.argv[2]) / "results" / "D_INPUT_FIREWALL_VERIFICATION.json"
+    if not _fw.exists():
+        print(f"\n=== 방화벽 : **산출 없음** — {_fw} ===")
+        errs.append({"file": "(방화벽)", "error": f"스캔 산출이 없다: {_fw}"})
+    else:
         _d = _j.loads(_fw.read_text(encoding="utf-8"))
         _f = [v for v in (_d.get("violations") or []) if v.get("severity") == "FAIL"]
         print(f"\n=== 방화벽 : {_d.get('verdict')} · FAIL {_d.get('fail_count')} "
@@ -41,6 +47,7 @@ try:
             print(f"   {_v.get('file')}:{_v.get('line')}  {_v.get('reference')}")
 except Exception as _e:
     print(f"\n=== 방화벽 내역 : 읽기 실패 {_e} ===")
+    errs.append({"file": "(방화벽)", "error": f"내역 읽기 실패: {_e}"})
 
 # --- D 입력(mart·raw) 무결성 (D-DEF-53) ---
 # `production_modified` 는 git diff 로 재는데 `artifacts/` 는 추적 제외라
