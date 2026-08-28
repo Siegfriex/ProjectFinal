@@ -1,0 +1,132 @@
+{
+ "verdict": "PASS",
+ "n": 6,
+ "failed": [],
+ "cases": [
+  {
+   "case": "원천 두 곳(A tally · C assurance)이 같은 수를 말한다",
+   "ok": true,
+   "detail": {
+    "A": {
+     "cumulative": 22,
+     "trusted": [
+      "F3-04",
+      "F4-01",
+      "F4-10"
+     ]
+    },
+    "C": {
+     "cumulative": 22,
+     "trusted": [
+      "F3-04",
+      "F4-01",
+      "F4-10"
+     ]
+    },
+    "source_of_truth": "불일치 시 D 는 판정하지 않는다 — **검산본(C)을 인용하고 불일치 사실을 함께 적는다**"
+   }
+  },
+  {
+   "case": "D 인용 누적 == C 검산본",
+   "ok": true,
+   "detail": {
+    "D": "22/50 (겹침 0)",
+    "C": 22
+   }
+  },
+  {
+   "case": "시각물 마지막 누적 == C 검산본",
+   "ok": true,
+   "detail": {
+    "visual": 22,
+    "C": 22
+   }
+  },
+  {
+   "case": "D 인용 TRUSTED == C 검산본",
+   "ok": true,
+   "detail": {
+    "D": [
+     "F3-04",
+     "F4-01",
+     "F4-10"
+    ],
+    "C": [
+     "F3-04",
+     "F4-01",
+     "F4-10"
+    ]
+   }
+  },
+  {
+   "case": "D 인용 dist31 == C 검산본",
+   "ok": true,
+   "detail": {
+    "D": {
+     "NO_CANDIDATE_TO_DEPTH_2": 18,
+     "ENDPOINT_REACHED": 6,
+     "CLICK_AMBIGUOUS": 3,
+     "EVIDENCE_DEFECT": 2,
+     "SAFETY_STOP": 1,
+     "TIMEOUT": 1
+    },
+    "C": {
+     "NO_CANDIDATE_TO_DEPTH_2": 18,
+     "ENDPOINT_REACHED": 6,
+     "CLICK_AMBIGUOUS": 3,
+     "EVIDENCE_DEFECT": 2,
+     "SAFETY_STOP": 1,
+     "TIMEOUT": 1
+    }
+   }
+  },
+  {
+   "case": "dist31 합 == 31 (합산 중복 없음)",
+   "ok": true,
+   "detail": {
+    "sum": 31,
+    "note": "D 는 앞서 18+3 을 합친 21 을 인용하고 3 을 또 셌다"
+   }
+  }
+ ],
+ "source_ticket": "C-ASSURANCE-130648.json",
+ "axis": "**인용 정합성** — D 검사에 없던 축이다(기존은 전부 자기 정합성)",
+ "what_this_does_not_prove": "D 가 인용한 값이 원천과 같다는 것까지다. **원천이 옳은지는 말하지 않는다**",
+ "controls": {
+  "verdict": "PASS",
+  "n": 4,
+  "must_flag": 3,
+  "must_not_flag": 1,
+  "cases": [
+   {
+    "case": "현 상태는 통과",
+    "expectation": "must_not_flag",
+    "verdict": "PASS",
+    "ok": true
+   },
+   {
+    "case": "시각물 누적이 검산본과 다르면 막힘",
+    "expectation": "must_flag",
+    "verdict": "FAIL",
+    "ok": true
+   },
+   {
+    "case": "TRUSTED 집합이 다르면 막힘",
+    "expectation": "must_flag",
+    "verdict": "FAIL",
+    "ok": true
+   },
+   {
+    "case": "합산된 분포(18+3=21)를 인용하면 막힘",
+    "expectation": "must_flag",
+    "verdict": "FAIL",
+    "ok": true
+   }
+  ]
+ },
+ "measured_at_kst": "2026-08-28T13:15:23+09:00",
+ "d_head_sha": "02819c963799836b931e85c9ca4babd9c70177cd",
+ "왜_만들었나": "`D-DEF-42` 가 두 회차 연속 났다 — 남이 만든 분류·수치를 판정 근거 검사 없이 축으로 썼다. **규칙을 적는 것이 준수를 보장하지 않는다**(A 가 이 세션 초반에 일반화한 것). 그래서 검사로 옮긴다",
+ "이_검사가_그때_있었다면": "D 가 인용한 13:07 시점에 **A tally 는 TRUSTED 2 · 누적 21, C 검산은 3 · 22 로 실제로 달랐다.** D 는 A 쪽만 읽었다. 이 검사의 첫 항목('원천 두 곳이 같은 수를 말한다')이 **그 불일치를 먼저 띄웠을 것**이고, D 는 어느 쪽이 옳은지 정하지 않고 **검산본을 인용하며 불일치 사실을 함께 적었을 것**이다. 지금은 A 가 13:13:38 에 집계기를 고쳐 재계산해 두 원천이 일치한다 — **그래서 지금 돌리면 PASS 다.** **통과가 검사의 무용을 뜻하지 않는다**: 불일치 창이 닫힌 뒤에 돌렸을 뿐이다",
+ "축": "**인용 정합성.** D 검사에 없던 축이다 — D-V3-FINDING-037 에서 센 27개는 VALUE 17 · IDENTITY 4 · DELTA 4 였고 그 DELTA 4 도 전부 자기 정합성이었다. 이것은 '내 기록이 현재와 같은가' 가 아니라 **'내가 인용한 남의 수가 그 남의 최신본과 같은가'** 다"
+}
