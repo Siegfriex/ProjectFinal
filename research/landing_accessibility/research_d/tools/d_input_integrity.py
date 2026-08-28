@@ -25,6 +25,19 @@ from pathlib import Path
 REPO = Path("/home/sieg/projects-wsl/ProjectFinal")
 CENSUS = REPO / "artifacts/v3_census"
 WATCH = [("mart", CENSUS / "mart"), ("raw", CENSUS / "raw")]
+
+# [D-DEF-72] **동결 대상과 살아있는 문서를 가른다.**
+#
+# `CANONICAL_MART_50.sha256.json` 은 mart 디렉터리에 있지만 **동결본이 아니다** —
+# B 가 지식을 계속 덧붙이는 사이드카다(어휘 선언·철회 감사·독법 주석…).
+# 두 번 연속 그 파일 하나 때문에 FAIL 이 났고, **매 회차 확인→갱신을 반복하면
+# 그것도 배경음이 된다**(D-DEF-52·59 의 형태).
+#
+# 그래서 나눈다:
+#   동결(CSV·raw)  변경 → **FAIL**. D 의 모든 수치가 다른 판본을 가리키게 된다
+#   사이드카        변경 → **INFO**. 정상이고, 다만 **읽어야 할 것이 생겼다**는 신호다
+LIVING_DOCS = ("mart/CANONICAL_MART_50.sha256.json",
+               "mart/CANONICAL_MART_50.RETRACTIONS.md")
 RD = Path(__file__).resolve().parent.parent
 BASELINE = RD / "results" / "D_INPUT_INTEGRITY_BASELINE.json"
 
@@ -68,8 +81,15 @@ def check() -> dict:
                 added.append(k)
             elif b[k] != n[k]:
                 changed.append(k)
-    ok = not (changed or added or removed)
+    living = [k for k in changed if k in LIVING_DOCS]
+    frozen_changed = [k for k in changed if k not in LIVING_DOCS]
+    ok = not (frozen_changed or added or removed)
     return {"verdict": "PASS" if ok else "FAIL",
+            "living_doc_changed": living,
+            "frozen_changed": frozen_changed,
+            "동결_vs_사이드카": ("동결본(CSV·raw) 변경은 **FAIL** — D 의 수치가 다른 판본을 "
+                          "가리킨다. 사이드카 변경은 **INFO** — 정상이고 다만 "
+                          "**읽어야 할 것이 생겼다**는 신호다"),
             "n_files": sum(len(v) for v in now.values() if isinstance(v, dict)),
             "changed": changed[:20], "added": added[:20], "removed": removed[:20],
             "n_changed": len(changed), "n_added": len(added), "n_removed": len(removed),
@@ -121,6 +141,12 @@ def controls() -> dict:
         case("파일이 늘면 added", diff(d)[1], ["b.txt"], negative=True)
         (d / "a.txt").unlink()
         case("파일이 사라지면 removed", diff(d)[2], ["a.txt"], negative=True)
+
+    # [D-DEF-72] 사이드카는 FAIL 을 내지 않고, 동결본은 낸다
+    case("사이드카는 LIVING_DOCS 에 있다",
+         "mart/CANONICAL_MART_50.sha256.json" in LIVING_DOCS, True)
+    case("동결 CSV 는 LIVING_DOCS 가 아니다",
+         "mart/CANONICAL_MART_50.csv" in LIVING_DOCS, False, negative=True)
 
     # 이 검사가 실제 입력을 바꾸지 않는지 — snapshot 은 읽기 전용이다
     before = snapshot()

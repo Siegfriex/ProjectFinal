@@ -138,6 +138,8 @@ try:
     from d_input_integrity import check as _ii
     _i = _ii()
     print(f"\n=== D 입력 무결성(mart·raw) : {_i['verdict']} · {_i.get('n_files','?')} 파일 ===")
+    for _ld in (_i.get("living_doc_changed") or []):
+        print(f"   사이드카 갱신 {_ld} — **읽어야 할 것이 생겼다**(FAIL 아님)")
     if _i["verdict"] == "FAIL":
         print(f"   변경 {_i['n_changed']} · 추가 {_i['n_added']} · 삭제 {_i['n_removed']}")
         for _f in (_i["changed"] + _i["added"] + _i["removed"])[:6]:
