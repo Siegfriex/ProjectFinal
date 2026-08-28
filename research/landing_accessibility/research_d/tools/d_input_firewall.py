@@ -385,6 +385,44 @@ def _exception_wiring(violations: list, denied: list) -> dict:
             "not_a_verdict": "예외 축소 여부는 A 판정이다 — 예외는 A 가 확대한 것이다."}
 
 
+def corpus_files() -> list:
+    """스캔 코퍼스의 파일 목록. **main() 과 신선도 판정이 같은 정의를 쓴다.**
+
+    [D-DEF-29] 처음 뽑을 때 `NB_DIR` 분을 빠뜨려 main() 213 · 이 함수 199 로
+    갈렸다. 정의가 둘이면 신선도는 영원히 STALE 이다 — 그리고 조용하다.
+    갯수를 서로 대조해서 잡았다.
+    """
+    return sorted([p for p in RD.rglob("*") if p.is_file() and p.suffix in SCAN_SUFFIX]
+                  + [p for p in NB_DIR.rglob("*") if p.is_file() and p.suffix in SCAN_SUFFIX])
+
+
+def freshness_sha() -> str:
+    """신선도 비교용 신원 = 코퍼스에서 **스캔 자신의 산출만** 뺀 것.
+
+    스캔 산출이 코퍼스 안에 있어서(자기참조) 전체 sha 는 재계산이 원리적으로
+    기록값과 같아질 수 없다. 그래서 `scanned_corpus_sha256`(무엇을 쟀는가, R38)과
+    `freshness_corpus_sha256`(다시 재도 같은가)을 **분리해 둘 다 남긴다.**
+    다른 도구의 산출(drift log 등)은 빼지 않는다 — 그것이 바뀌면 코퍼스가
+    실제로 바뀐 것이고, 재스캔이 맞는 대응이다.
+    """
+    out = (globals().get("OUT_DIR_OVERRIDE") or (RD / "results")) / OUT_NAME
+    return corpus_sha([f for f in corpus_files() if f != out])
+
+
+def corpus_sha(files=None) -> str:
+    """[R38] 코퍼스의 **바이트 신원**. 경로순으로 파일별 sha 를 이어 해싱한다.
+
+    이 함수가 하나뿐이어야 하는 이유: d_heartbeat 의 신선도 판정이
+    **이 값을 재계산해 기록값과 비교**한다. 정의가 두 벌이면 영원히 STALE 이거나
+    영원히 fresh 다 — 둘 다 조용하다.
+    """
+    import hashlib
+    fs = corpus_files() if files is None else sorted(files)
+    return hashlib.sha256("".join(
+        f"{p.relative_to(RD.parents[2])}:{hashlib.sha256(p.read_bytes()).hexdigest()}\n"
+        for p in fs).encode()).hexdigest()
+
+
 def main() -> int:
     global OUT_NAME, SCAN_LABEL
     args = sys.argv[1:]
@@ -399,8 +437,7 @@ def main() -> int:
         globals()["OUT_DIR_OVERRIDE"] = Path(__file__).resolve().parents[1] / "results"
     man = load_manifest()
     denied = man["denied"]
-    files = [p for p in RD.rglob("*") if p.is_file() and p.suffix in SCAN_SUFFIX]
-    files += [p for p in NB_DIR.rglob("*") if p.is_file() and p.suffix in SCAN_SUFFIX]
+    files = corpus_files()
 
     controls = run_controls(denied)
 
@@ -435,10 +472,8 @@ def main() -> int:
         # [R38] **무엇을 쟀는지의 바이트 신원.** 파일 수만 적으면 다음 실행과
         # 비교할 수 없다 — 같은 211개라도 내용이 다르면 다른 측정이다.
         # 파일별 sha 를 경로순으로 이어 해싱한다.
-        "scanned_corpus_sha256": __import__("hashlib").sha256(
-            "".join(f"{p.relative_to(RD.parents[2])}:"
-                    f"{__import__('hashlib').sha256(p.read_bytes()).hexdigest()}\n"
-                    for p in sorted(files)).encode()).hexdigest(),
+        "scanned_corpus_sha256": corpus_sha(files),
+        "freshness_corpus_sha256": freshness_sha(),
         "corpus_identity_note": ("scanned_files 는 개수이고 이것은 신원이다. "
                                  "두 실행의 코퍼스 sha 가 다르면 FAIL 수를 비교하지 않는다 (R38)."),
         "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",

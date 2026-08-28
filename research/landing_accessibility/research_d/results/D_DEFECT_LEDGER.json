@@ -1,8 +1,8 @@
 {
  "artifact": "D_DEFECT_LEDGER",
  "produced_at_kst": "2026-08-28T09:51:38+09:00",
- "measured_at_kst": "2026-08-28T09:51:38+09:00",
- "d_head": "723c8e55ec427343d10ef9031854fd580ce4d932",
+ "measured_at_kst": "2026-08-28T10:01:19+09:00",
+ "d_head": "aa388acd493c082673bb92e7ffc8cf79848ec821",
  "plane": "D",
  "claim_kind": "OBSERVATION",
  "why": "D 규약은 '결함이면 숨기지 말고 D-DEF-NN 으로 번호를 붙여 남긴다' 이다. results/ 의 개별 파일은 **D_DEF_14b 에서 멈춰 있었고**, 그 뒤 결함들은 티켓에는 남았으나 **대장 색인이 따라가지 않았다.** D 가 다른 평면의 낡은 색인을 지적해 온 그 형태가 D 대장에 있었다.",
@@ -138,6 +138,16 @@
    "fix": "키를 (input_sha, tool_sha) 로",
    "control": "도구 sha 변경 시 전건 재기록 확인",
    "escaped": true
+  },
+  {
+   "id": "D-DEF-29",
+   "what": "안전 주장 필드가 **정상 상태에서 UNVERIFIED** 를 냈다",
+   "mechanism": "heartbeat 의 `holdout_accessed` 신선도를 '경로 접두사 + 파일명 제외목록' 으로 쟀다. 제외목록은 휴리스틱이라 새 산출이 생길 때마다 뒤처진다 — `D_EMITTED_TICKET_INTEGRITY.json` 을 커밋한 직후 깨끗한 트리에서 `UNVERIFIED_STALE` 이 났고, 재스캔해도 풀리지 않았다",
+   "why_it_matters": "멀쩡한 상태에서 UNVERIFIED 를 내는 안전 필드는 읽는 쪽이 곧 무시하게 된다. 조용한 거짓 통과의 반대편 실패다",
+   "ticket": "D-V3-FINDING-029",
+   "fix": "신선도를 **코퍼스 바이트 신원 재계산**으로 (R38/R56). 자기참조분만 뺀 `freshness_corpus_sha256` 을 따로 기록",
+   "control": "정상 fresh=True · 코퍼스에 1파일 추가 시 UNVERIFIED_STALE · 제거 시 fresh=True 복원 — 3케이스 시연",
+   "escaped": true
   }
  ],
  "caught_pre_emission": [
@@ -163,6 +173,12 @@
   },
   {
    "note": "넷은 열거기 오탐이고 **발행 전에 잡혔다.** 다섯 번째는 파서 결함이 실재해 티켓이 됐다."
+  },
+  {
+   "what": "고치는 도중 코퍼스 정의를 둘로 쪼갰다",
+   "mechanism": "`corpus_files()` 를 뽑으면서 `NB_DIR` 분(14개)을 빠뜨려 main() 213 · 함수 199 로 갈렸다. 신선도가 **영원히 STALE** 이 되는 형태",
+   "how_caught": "두 값을 서로 세서 대조했다. 갯수를 안 봤으면 '제외목록 문제' 로 오귀인했을 것이다",
+   "note": "같은 커밋의 docstring 에 '정의가 두 벌이면 조용하다' 고 써 놓고 그대로 했다"
   }
  ],
  "pattern": "14 건 중 다수가 같은 뿌리다 — **부재와 미독해, 실패와 미실행, 값과 휴리스틱을 같은 출력으로 냈다.** D 가 다른 평면에 반복해 지적한 형태이고 D 도구에 같은 수만큼 있었다.",

@@ -42,32 +42,42 @@ def _firewall_claim(head: str) -> tuple:
     except Exception as e:                                  # noqa: BLE001
         return "UNVERIFIED_UNREADABLE", {"source": str(fp), "why": str(e)}
     scan_head = d.get("d_head_sha")
-    # [시정] `scan_head == head` 로만 보면 **스캔 산출을 커밋하는 순간 항상 STALE**
-    # 이 된다 — HEAD 가 바뀌지만 스캔 대상은 그대로다. 구조적 거짓 STALE 이다.
-    # 신선도는 **스캔 이후 스캔 대상 파일이 바뀌었는가**로 판정한다.
-    SCANNED = ("research/landing_accessibility/research_d/",
-               "research/landing_accessibility/notebooks/d_research/")
-    changed_since = []
-    if scan_head and scan_head != head:
-        diff = git("diff", "--name-only", f"{scan_head}..{head}").splitlines()
-        # 스캔 산출 자신은 제외한다 — 그것이 바뀌는 것이 곧 스캔의 결과다
-        changed_since = [f for f in diff
-                         if any(f.startswith(x) for x in SCANNED)
-                         and not f.endswith("D_INPUT_FIREWALL_VERIFICATION.json")
-                         and not f.endswith("D_STANDING_CONTROL_DRIFT_LOG.jsonl")
-                         and not f.endswith("CONTROL_FAILURE_DEMOS.json")]
-    fresh = (scan_head == head) or (scan_head is not None and not changed_since)
+    # [시정 2] 경로 접두사 + **파일명 제외목록**으로 신선도를 재던 것이 틀렸다.
+    # 제외목록은 휴리스틱이라 새 산출이 생길 때마다 뒤처지고, 실제로
+    # D_EMITTED_TICKET_INTEGRITY.json 을 커밋한 직후 **정상 상태가 STALE** 로 났다.
+    # 안전 주장 필드가 멀쩡한 상태에서 UNVERIFIED 를 내면 읽는 쪽이 무시하게 된다.
+    # 신선도는 **스캔이 잰 코퍼스의 바이트 신원을 재계산해 기록값과 비교**한다 (R38/R56).
+    # 정의상 참이라 제외할 파일 목록이 필요 없다.
+    recorded = d.get("freshness_corpus_sha256")
+    recomputed, recompute_err = None, None
+    try:
+        import sys as _s
+        _s.path.insert(0, str(Path(__file__).resolve().parent))
+        import d_input_firewall as _fw
+        recomputed = _fw.freshness_sha()
+    except Exception as e:                                  # noqa: BLE001
+        recompute_err = f"{type(e).__name__}: {e}"
+    if recorded is None or recomputed is None:
+        fresh = None                       # 판정 불가 — false 로 적지 않는다
+    else:
+        fresh = (recorded == recomputed)
     ev = {"source": "results/D_INPUT_FIREWALL_VERIFICATION.json",
           "verdict": d.get("verdict"),
           "checked_at_kst": d.get("checked_at_kst"),
           "scanned_files": d.get("scanned_files"),
           "scanned_corpus_sha256": d.get("scanned_corpus_sha256"),
           "scan_head_sha": scan_head, "current_head_sha": head,
+          "recorded_freshness_sha256": recorded,
+          "recomputed_freshness_sha256": recomputed,
+          "recompute_error": recompute_err,
           "fresh_for_current_head": fresh,
-          "freshness_rule": ("스캔 이후 스캔 대상 경로의 파일이 바뀌지 않았으면 신선하다. "
-                             "HEAD 동일성만 보면 스캔 산출을 커밋하는 순간 거짓 STALE 이 된다."),
-          "scanned_paths_changed_since_scan": changed_since[:10],
+          "freshness_rule": ("스캔이 기록한 코퍼스 sha 를 **재계산해 일치하면** 신선하다. "
+                             "HEAD 동일성은 스캔 산출을 커밋하는 순간 거짓 STALE 을 내고, "
+                             "파일명 제외목록은 새 산출이 생길 때마다 뒤처진다."),
+          "freshness_method": "d_input_firewall.freshness_sha() 재계산 — 코퍼스에서 스캔 자신의 산출만 제외 (자기참조)",
           "rule": "D_PROTOCOL_SNAPSHOT.md:66 — self-report 금지, 스캐너 결과로만"}
+    if fresh is None:
+        return "UNVERIFIED_CORPUS_UNCOMPARABLE", ev
     if not fresh:
         return "UNVERIFIED_STALE", ev
     if d.get("verdict") == "PASS":
