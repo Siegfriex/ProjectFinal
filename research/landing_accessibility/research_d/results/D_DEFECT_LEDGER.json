@@ -1,8 +1,8 @@
 {
  "artifact": "D_DEFECT_LEDGER",
  "produced_at_kst": "2026-08-28T09:51:38+09:00",
- "measured_at_kst": "2026-08-28T10:40:57+09:00",
- "d_head": "f3c118bb1844d11b1e82942de3cd64e5c515042d",
+ "measured_at_kst": "2026-08-28T11:06:58+09:00",
+ "d_head": "0074449403193d8dbb4d515fced3d5dc5fa15d96",
  "plane": "D",
  "claim_kind": "OBSERVATION",
  "why": "D 규약은 '결함이면 숨기지 말고 D-DEF-NN 으로 번호를 붙여 남긴다' 이다. results/ 의 개별 파일은 **D_DEF_14b 에서 멈춰 있었고**, 그 뒤 결함들은 티켓에는 남았으나 **대장 색인이 따라가지 않았다.** D 가 다른 평면의 낡은 색인을 지적해 온 그 형태가 D 대장에 있었다.",
@@ -179,6 +179,46 @@
    "fix": "tools/d_mlflow.py notebook_execution_check() — 에러·미실행·cells부재·파싱실패는 차단, 비순차는 표지. 대조군 3종 추가(9/9 PASS)",
    "control": "합성 노트북 3종으로 시정 전 통과 / 시정 후 차단을 각각 실증",
    "regression": "새 검사로 막힌 RQ 0건 — 시정이 과거 판정을 뒤집지 않았다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-33",
+   "what": "`data_state` 가 행수만 봐서 evidence 2건 mart 에 COMPLETE 를 냈다",
+   "mechanism": "B 는 실패 target 도 행으로 남긴다(분모 50 유지). 행수 기준이면 골격 50행과 관측 50건이 같은 출력이다",
+   "why_it_matters": "이 세션 내내 다룬 형태를, **그것을 막으려고 만든 표지가 스스로 냈다**",
+   "ticket": "D-V3-FINDING-033",
+   "fix": "PARTIAL_k_OF_50_EVIDENCE_IN_n_ROWS — 행수와 관측 충실도를 함께 낸다",
+   "control": "0행→NO_DATA · 골격→SKELETON · 부분→PARTIAL 를 대조군에 넣었다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-34",
+   "what": "표를 읽은 뒤 sha 를 따로 계산해 provenance 가 다른 판본을 가리킬 수 있었다",
+   "mechanism": "B 가 streaming 갱신 중이다. read→(파일 변경)→hash 순서면 해시와 표가 어긋나고 **양쪽 다 정상으로 보인다**",
+   "why_it_matters": "C 가 그 sha 로 재계산하면 값이 안 맞고 원인은 D 쪽이다. 같은 파일에서 evidence 가 2→4→6→7 로 변하는 것을 실측했다",
+   "ticket": "D-V3-FINDING-033",
+   "fix": "read_mart_pinned() — read_bytes 한 번에서 표와 sha 를 함께 만든다",
+   "control": "C 에도 같은 형태인지 확인 권고로 보냈다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-35",
+   "what": "`TERMINAL_NO_ENDPOINT` 가 completed/failed 목록 밖이라 unaccounted 로 갔다",
+   "mechanism": "상태 토큰 목록이 손 유지 목록이라 실데이터 enum 을 못 따라갔다",
+   "why_it_matters": "임의로 실패에 접었다면 그것은 D 의 조작화이고 D 권한이 아니다",
+   "ticket": "D-V3-FINDING-033",
+   "fix": "접지 않고 unaccounted_by_status 로 값별 전수 분해 + unknown_tokens() 로 목록 밖 토큰을 드러낸다(R62)",
+   "control": "결측 3종이 목록 밖이었음을 실측으로 확인",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-36",
+   "what": "대조군의 두 값이 같은 출처인 것을 보지 못하고 '일치' 를 정확성의 증거로 썼다",
+   "mechanism": "MAIN50 시각 관측에서 A 티켓 8건의 `created_at_kst` 와 file mtime 이 초 단위로 일치하는 것을 보고 'A 시계 정상' 이라 했다. A 판정(TBX-011): **created_at_kst 는 측정이 아니라 손 기입이고, 8/8 은 우연히 근접한 것**이다",
+   "why_it_matters": "D 는 R45/R46/R47(방법이 다를 때만 일치가 증거)을 규약으로 갖고 있으면서 **적용을 놓쳤다.** 관측 자체는 옳았고 A 가 D 산출을 closeout 에 인용하지만, 배제했다고 적은 가설(시계 오차)의 배제 근거가 약했다",
+   "ticket": "D-V3-FINDING-034",
+   "fix": "대조군을 세울 때 두 값의 **생성 경로**가 다른지 먼저 적는다. 같은 손이 만든 두 값의 일치는 증거가 아니다",
+   "control": "같은 회차에 B·C·D 가 같은 mart sha 에서 7 로 일치한 건은 **방법이 서로 다르므로**(B 승격판정 / C checker / D evidence_hash 비공백) 증거로 쓸 수 있다 — 두 경우를 구분해 적었다",
    "escaped": true
   }
  ],
