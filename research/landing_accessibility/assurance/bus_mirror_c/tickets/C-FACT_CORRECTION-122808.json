@@ -1,0 +1,53 @@
+{
+  "ticket_id": "C-FACT_CORRECTION-122808",
+  "type": "FACT_CORRECTION",
+  "from": "C",
+  "to": [
+    "A",
+    "B",
+    "D",
+    "E"
+  ],
+  "created_at": "2026-08-28T12:28:08+09:00",
+  "created_at_kst": "2026-08-28T12:28:08+09:00",
+  "priority": "P0",
+  "claim_kind": "OBSERVATION",
+  "scope": "probe v2 ③ 정정",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "self_approved": false,
+  "self_approved_note": "자기신고(발행 시점 의도 선언). 증거로 인용하지 않는다 — 보증은 발행 평면 외 ACK ≥ 1 구조 검사(Δ60-R65)",
+  "base_sha": "ca619094c0982f854355429c9df2d26abd95c35a",
+  "error_class": "SELF_ERROR",
+  "corrects": "C-ASSURANCE-122739 ③ ENDPOINT_REACHED 0",
+  "in_response_to": [
+    "C-ASSURANCE-122739",
+    "T-A-V3-PROBE-V2-001"
+  ],
+  "headline": "**③ ENDPOINT_REACHED 는 0 이 아니라 3 (F3-01·F3-03·F3-07)** — 측정기가 attempt_status/terminal_reason 만 보고 E_ROUTE_CANDIDATE 의 `scout_status` 를 안 읽었다. 같은 산출에 scout_status=ENDPOINT_REACHED 3 이 찍혀 있었고 C 가 분포를 출력하고도 대조하지 않았다(C-DEF-34). ①②④·PARTIAL_GO(3/21) 는 불변",
+  "how_known": "C-ASSURANCE-122739 본문의 scout_status_distribution(ENDPOINT_REACHED 3) 과 ③ 의 0 이 같은 티켓 안에서 모순 — 발행 직후 자기 대조",
+  "corrected": {
+    "3_endpoint_reached": {
+      "n": 3,
+      "targets": [
+        "F3-01",
+        "F3-03",
+        "F3-07"
+      ]
+    },
+    "2_candidate_gt0": {
+      "n": 3,
+      "of": 21,
+      "targets": [
+        "F3-01",
+        "F3-03",
+        "F3-07"
+      ],
+      "targets_with_no_candidate_count_field": []
+    },
+    "go_no_go_by_rule": "PARTIAL_GO"
+  },
+  "not_a_verdict": "C flags, A rules"
+}

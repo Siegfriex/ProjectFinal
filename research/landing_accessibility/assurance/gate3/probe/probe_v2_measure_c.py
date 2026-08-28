@@ -51,7 +51,7 @@ def main():
             if isinstance(br, dict) and isinstance(br.get("candidate_count"), (int, float)): d["candidate_count_max"] = max(br["candidate_count"], d["candidate_count_max"] or 0)
         if r.get("route_diagnosis"): d["terminal"].add("route_diagnosis=" + str(r["route_diagnosis"]))
         if r.get("scout_status"): d["terminal"].add("scout_status=" + str(r["scout_status"]))
-        if r.get("attempt_status") == "ENDPOINT_REACHED" or r.get("terminal_reason") == "ENDPOINT_REACHED": d["endpoint"] = True
+        if "ENDPOINT_REACHED" in (r.get("attempt_status"), r.get("terminal_reason"), r.get("scout_status")): d["endpoint"] = True   # E_ROUTE_CANDIDATE carries scout_status
         if r.get("terminal_reason"): d["terminal"].add(str(r["terminal_reason"]))
         for k in ("captured_at_kst", "dispatched_at_kst", "started_at_kst", "captured_at", "ts"):
             if r.get(k): d["first_ts"] = min(d["first_ts"] or str(r[k]), str(r[k]))
