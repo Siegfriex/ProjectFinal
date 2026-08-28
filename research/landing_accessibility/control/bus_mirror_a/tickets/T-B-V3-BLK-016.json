@@ -1,0 +1,111 @@
+{
+ "ticket_id": "T-B-V3-BLK-016",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "0f49e9504d609a5ec58c71064d52a67722c62196",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T08:52:53+09:00",
+ "measured_at_kst": "2026-08-28T08:52:53+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "scope": "Δ36·Δ37·Δ43 이행 완료 + **R16 — Δ36 의 전제 두 개가 실측과 다르다** + 판정 필요 4건",
+ "lane": "claude-b/w5o-delta36 @ abaefd67e9e54b74c23b1e806608fc4de3b11a82 (push 됨)",
+ "headline": "**Δ36 의 부기 두 개가 실측과 다르다 — 둘 다 A 의 판정 방향을 바꾸지는 않지만 근거를 바꾼다.** ① `marked_primary` 는 RF classifier 산물이 아니라 **DOM 속성**이고 발산 조건이 **성립한다** ② `SUBMIT_QUERY` 오분류는 depth 를 빠뜨리지 않았다 — **진짜 틀린 측정은 reveal 계열이었다.**",
+ "part0_원문_읽기_고지": {
+  "왜 적는가": "B 가 T-A-V3-FC-007 을 받고 워커에게 **읽은 줄 수를 함께 보고**하게 했다. 그 결과다",
+  "Δ36": "72줄 — 처음부터 원문",
+  "Δ37": "32줄 — 처음부터 원문",
+  "Δ43": "**최초 0줄** → 재fetch 후 88줄",
+  "귀결": "**R37 구현의 초기 단계는 B 의 인용문만을 근거로 진행됐다.** 이후 원문 88줄과 대조해 **불일치 0** 을 확인했으나 그 사실 자체를 기록한다",
+  "원문에만 있던 것 1건": "`pilot 5` 에서 미발견 발생 여부와 서비스 구조 기록 = **GATE 2 관측 항목**. 이번 범위 밖이나 `path_discovery_outcome` 이 행에 실리므로 스키마가 그 관측을 지지한다"
+ },
+ "part1_R16_①_marked_primary": {
+  "인용 — Δ36 부기": "\"`marked_primary` 는 RF classifier 산물이고 `D3-03` 이 퇴역시켰다. **v3 경로에서 그 값이 `True` 가 될 수 있는지 B 가 실측하라** — 될 수 없다면 발산 조건 자체가 성립하지 않는다\"",
+  "**실측은 다르다**": {
+   "정의": "`engine/l0_probe.js:350` — `marked_primary: el.hasAttribute('data-primary-action')`. **DOM 속성 유무다.** 그 값을 만드는 줄은 파일 전체에 1줄이고 **classifier 호출이 없다**",
+   "정적": "저장소 fixture **42종 중 17종**이 `data-primary-action` 을 갖는다. v3 전용 13종은 0건",
+   "동적": "`L0Collector` FIXTURE 실행에서 `w1_query_login_purchase`·`depth_path_1`·`search_dispatch`·`overlay_primary_action` 이 `marked_primary=True` 후보를 **실제로 낸다**"
+  },
+  "귀결": "**발산 조건은 성립한다.** A 의 '될 수 없다면' 은 성립하지 않는다",
+  "다만 우연": "그 4종에서는 표시된 원소가 마침 `dom_order=0` 이라 두 순서가 **우연히 일치**했다. 표시 원소가 DOM 상 뒤에 있으면 갈린다 — 음성대조로 고정(v2 `[button#marked, a#first, a#third]` vs v3 `[a#first, button#marked, a#third]`)",
+  "B 가 이것을 P1 로 올리는 이유": "**우연한 일치는 통제가 아니다.** 실사이트 fixture 가 바뀌면 갈린다"
+ },
+ "part2_판정필요_②_시정_방향": {
+  "A 의 지시": "인용 — \"시정 방향은 v2 변경이 아니라 **v3 가 자기 것을 쓰게 하는 것**\"",
+  "임계경로는 됐다": "`V3Runner` → `MinPathScoutStrategy` → `discover_task_candidates` 는 Δ30/W5L 이 이미 v3 전순서를 쓴다. 음성대조 확인 — 같은 집합에서 `MIN4_POLICY` 는 `button#marked`, v3 기본은 `a#first` 를 1위로 낸다",
+  "남은 이음매": "`discovery.run_task_aware_scout` → v2 `Scout.scout()`",
+  "구조 실측": "**`Scout._activation_candidates` 는 `@staticmethod` 이고 `min4_sort_key` 를 본문에서 직접 부른다 — 인자로도 속성으로도 주입점이 없다**",
+  "워커가 한 것": "`l1_engine.py` 가 금지이므로 **v3 가 v2 순서로 고른 경로를 받지 않는다** → `path_order_divergence()` + `V3PathOrderDivergenceError` 로 **Scout 를 만들기 전에 멈춘다.** 순서가 일치하는 집합에서는 발화하지 않는다",
+  "**판정 요청**": "**'거부' 가 A 가 의도한 '자기 것을 쓰게' 인가.** 워커가 '확신하지 못한다' 고 명시했고 B 도 판정하지 않는다"
+ },
+ "part3_R16_④_틀린_측정의_실체가_다르다": {
+  "인용 — Δ36": "\"`SUBMIT_QUERY` 를 분류하지 못하면 `activation_depth` 가 submit 을 빠뜨리고, 그것은 `Δ9` 를 정면으로 어긴다\"",
+  "**이 트리에서 성립하지 않는다**": "`flow.ACTIVATION_TOKENS` 에 `SELECT_FUNCTION` 과 `SUBMIT_QUERY` 가 **둘 다** 있어 오분류로 depth **수**가 줄지 않았다",
+  "**진짜 틀린 측정**": "**reveal 계열이다.** 분류기가 `REVEAL_TOKENS`(`OPEN_*_MENU`·`EXPAND_ACCORDION`)를 **낼 수 없었으므로** `menu_dependency` 가 **구조적으로 항상 `False`**, `nav_container_depth` 가 **항상 `0`** 이었다",
+  "왜 이것이 더 나쁜가": "`SUBMIT_QUERY` 는 **토큰 신원**이 틀린 것이고, reveal 은 **변수 두 개가 상수였던 것**이다. 상수인 변수는 분석에서 '효과 없음' 으로 읽힌다 — **D 가 `H1_NO_EFFECT` 에서 보인 그 형태다**",
+  "A 의 판정 자체는 유효": "'Δ9 IN 10 종은 분류 가능해야 한다' 는 결론은 그대로다. **바뀌는 것은 무엇이 왜 틀렸는가**다"
+ },
+ "part4_이행_요약": {
+  "① search_strategy": "`build_path_manifest` 필수 필드. `assert_search_strategy_declared` 가 **해시를 뜨기 전에** 거부한다(freeze 신원 확정 후면 늦다). R37 로 **관측 행에도** 실린다",
+  "① 어휘": "B 실측 13건 중 **범위 11건을 건별로 읽고 6건만 고쳤다.** '최소 하나'·'minimal interface'·'사전순 최소'·'at least 1' 5건은 **그대로 뒀다** — 최소성 주장이 아니다. **기계적 치환을 하지 않았다**",
+  "`03 §5` 보류 결과": "**되돌릴 것 없음.** 고친 6건은 전부 `A1 §2.6 MIN-7`/`Δ30` 인용이고 **`03 §5` 인용 0건**. 코드 안 `03 §5` 인용 12곳은 전부 replay/freeze 절이며 **'최소 허용 path' 를 옮겨 적은 곳은 저장소에 없다.** Scout 인용 2곳에 개정본 전문을 병기했고 **SSOTV3 원본·`ssot_snapshot/` 무수정(테스트로 고정)**",
+  "③ Protocol": "`classify` → `TerminalVerdict | str | None`. **문자열은 조합표가 사유를 유일하게 좁히는 status 에만** 허용 — `ABSTAIN` 처럼 사유가 여럿인 status 를 문자열로 주면 `TerminalSeamError`. **하나를 골라 적으면 그게 지어내기다**",
+  "③ 다시 좁힘": "`test_scout_budget_exhaustion_...` 의 `endpoint_status is None` 핀을 **삭제하지 않고**, 그 테스트가 지키려던 MIN-7 후단(예산값을 숫자로 대입하지 않는다)을 **더 강하게** 검사하게 바꿨다 — 두 축이 둘 다 있고, 예산값이 산출 스칼라 어디에도 없고, 남는 **유일한** 자리가 `search_parameters` 임을 확인",
+  "④ 확정 5종": "`SWITCH_TAB` · `SUBMIT_QUERY` · `OPEN_GLOBAL_MENU`/`OPEN_LOCAL_MENU` · `EXPAND_ACCORDION`",
+  "④ 확정 불가 5종": "`SELECT_FUNCTION`↔`SELECT_CATEGORY`(신호 없음) · `SELECT_RESULT`↔`OPEN_ITEM_DETAIL`↔`OPEN_PLACE_DETAIL`. **가르려면 '그 리스트가 결과인지 상품인지 장소인지' 를 읽어야 하고 그건 대표기능 추론의 재발이다**",
+  "④ UNDETERMINED": "`token_determinacy` 를 `PlannedAction`→`FlowStep`→manifest→replay→mart 까지 잇는다. 미확정이 하나라도 섞이면 `activation_depth = None` + 사유. **`0` 도 부분값도 내지 않는다.** reveal 의 **부정 주장**(`menu_dependency=False`)도 보류하되 **양성 관측(True)은 그대로 산다** — Δ10 의 `has_terminal` 비대칭과 같다",
+  "l0_probe.js": "**+40 / -0.** `l0_collector.py` 는 **손대지 않았다** — `raw_features` 가 키 필터 없이 통과시켜 새 신호가 그대로 도달한다(실측). **가산 여지가 있었으나 필요가 없어 만들지 않았다**",
+  "R22": "probe sha `38693299…` → `fe63e362…`, `capture_stack combined` 도 따라 바뀐다(테스트로 고정). completeness `COMPLETE`",
+  "part4 파라미터": "`search_parameters` 5종 + `candidate_nomination_rule` 4종. 주입 구현이 이름을 안 내면 `NOT_OBSERVABLE_FROM_INJECTED_IMPLEMENTATION`, scout 자체가 없으면 `NOT_USED_IN_THIS_RUN` — **두 사실을 갈랐다.** Δ30-budget 나머지 4 파라미터는 **값을 정하지 않았다**"
+ },
+ "part5_Δ37": {
+  "실측 보고": "**v3 는 `NED`/`IED`/`MPFED` 를 어디서도 산출하지 않았다.** `v3_runner/*.py` 에서 그 이름으로 값을 만드는 코드 **0건**(must_flag 대조로 v2 `engine/depth.py:129-131` 에 실재 확인). `SSOTV3 02 §5` 는 그 컬럼을 legacy compatibility 로 선언하는데 **v3 행에는 컬럼 자체가 없었다**",
+  "**따라서 이행의 성격이 다르다**": "'값을 지우기' 가 아니라 **'컬럼을 만들고 NULL + 사유로 채우기'** 였다",
+  "구현": "`as_mart_record` 가 컬럼을 내고 값은 `None`, `legacy_depth_null_reason` 에 **Δ37 축자 문구**(다시 쓰지 않았다)",
+  "거부": "`assert_legacy_depth_null_reasoned` — 사유 없는 NULL 이면 **행을 만들지 않는다.** 컬럼에 값이 들어가도 거부",
+  "음성대조": "`NULL`+사유 → 통과 / `NULL`+사유 없음 → `LegacyDepthNullReasonError` / 공백 사유 → 거부. **셋이 다른 출력**"
+ },
+ "part6_Δ43_R37": {
+  "기록": "`path_discovery_outcome` 5값 — `NOT_ATTEMPTED`·`NO_CANDIDATES_TO_SEARCH`·`PATH_FOUND`·`POLICY_DID_NOT_FIND_PATH`·`POLICY_STOPPED_ON_BUDGET`. 미발견은 `policy_relative: true` + `search_strategy` 를 **함께** 싣고 하나만 있으면 거부",
+  "어휘": "미발견 = `ABSTAIN` × `OTHER` + `PATH_NOT_FOUND_NOTE`. **15값을 늘리지 않았다.** `assert_no_path_absence_claim` 이 `'경로가 없다'`·`NO_PATH`·`PATH_ABSENT` 를 **산출 전체(중첩 포함)** 에서 막는다",
+  "**구현 중 접혔던 것**": "(1)경로 미발견과 (2)후보 부재가 한 번 **둘 다 `POLICY_DID_NOT_FIND_PATH`** 로 접혔다. 그것을 잡으려고 `NO_CANDIDATES_TO_SEARCH` 를 신설했다 — **후보 부재는 페이지에 대한 관측이지 정책 실패가 아니다**",
+  "네 사건이 갈린다": {
+   "경로 미발견": "`POLICY_DID_NOT_FIND_PATH` · `OTHER` · policy_relative **True** · count 1",
+   "후보 부재(Δ32)": "`NO_CANDIDATES_TO_SEARCH` · `NO_TASK_CANDIDATE_FOUND` · **False** · count 0",
+   "endpoint 도달 실패": "`PATH_FOUND` · `AUTH_REQUIRED` · **False** · count 1",
+   "예산 소진": "`POLICY_STOPPED_ON_BUDGET` · `BUDGET_EXCEEDED` · **True** · count 1"
+  },
+  "BFS": "**도입하지 않았다**",
+  "판정 요청": "`terminal_reason=OTHER` 를 쓴 것이 맞는가. 16번째 값(`PATH_NOT_FOUND_BY_POLICY` 등)을 원하면 `path_discovery_outcome` 축은 그대로 두고 reason 만 바꾸면 된다"
+ },
+ "part7_R31": {
+  "방식": "단언 11종을 **각각 실패시켜** 메시지를 실측. 표는 워커 보고에 있다",
+  "특기할 두 건": "`path_manifest_sha256` 게이트와 ③ Protocol 은 **기존 테스트가 실제로 깨졌다** — 만든 실패가 아니라 **일어난 실패**다. 각각 다시 좁혔다",
+  "R22": "변경 전 sha 를 `git show 5b6b00a5:…` 로 떠서 대조 — 실제로 달라진다"
+ },
+ "part8_regression": {
+  "수치": "353 passed / 204 passed·1 failed / 838 passed / 575 passed·1 failed·1 skipped · ruff 통과",
+  "실패 2건 귀속": "**둘 다 base `5b6b00a5` 에서 이미 실패하던 것**(`git stash` 로 base 대조 확인). `test_w5c_splits_the_pair...`(surface.py 소관) · `TestAxNodeJoinIsAbsent...`(W5I 주석). **W5M 이 두 건을 이미 처리했고 이 브랜치에 그 시정이 없다**",
+  "반대로 하나는 고쳐졌다": "`test_this_lane_does_not_touch_the_engine` 은 base 에서 실패 중이었고 **W5M 의 재좁힘으로 통과 상태가 됐다**",
+  "B 가 수치를 확정하지 않는다": "**13+ lane 재병합 회귀를 B 가 단독으로 돌린 뒤에 말한다**"
+ },
+ "part9_워커가_남긴_미확정": {
+  "② 시정 방향": "'거부' 가 의도와 같은가 — **part2 판정 요청**",
+  "④ 파급": "미확정 토큰이 depth 를 보류시켜 **현재 13종 v3 fixture 대부분에서 `activation_depth` 가 `None` 이 된다**(`aria-haspopup`·`aria-controls` 가 **0건**). 워커는 이것을 'Δ36 이 의도한 결과(허위 정밀도보다 낫다)' 로 읽었으나 **GATE 1/2 산출량 영향은 A 판단**. fixture 에 신호를 넣으면 확정으로 돌아서는데 **fixture 수정은 범위 밖이라 하지 않았다**",
+  "③ 하위호환 폭": "문자열 반환을 1값 status 에만 허용하는 규칙이 미래 classifier 를 막을 수 있다. 지금은 테스트 fake 뿐이라 실해 없음",
+  "④ terminal_reason=OTHER": "**part6 판정 요청**",
+  "Δ43 초기 인용 기반": "**part0 에 기록**"
+ },
+ "decision_required": "① `path_order_divergence` 거부가 '자기 것을 쓰게' 를 만족하는가 ② `terminal_reason=OTHER` vs 16번째 값 ③ v3 fixture 13종 대부분에서 `activation_depth=None` 이 되는 것이 GATE 1 에 수용 가능한가 ④ Δ36 부기 두 개(marked_primary 출처 · SUBMIT_QUERY 파급)의 정정 여부",
+ "self_approved": false
+}

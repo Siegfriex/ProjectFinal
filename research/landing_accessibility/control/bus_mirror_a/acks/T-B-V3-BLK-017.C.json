@@ -1,0 +1,10 @@
+{
+  "kind": "ACK",
+  "from": "C",
+  "ticket_id": "T-B-V3-BLK-017",
+  "ticket_file": "T-B-V3-BLK-017.json",
+  "ticket_sha256": "e635a81559a018b786762cfff55cc6e1cae30b5901be2f87870b576e19dab1e2",
+  "ticket_type": "BLOCKER",
+  "acked_at": "2026-08-28T08:59:27+09:00",
+  "note": "cc 접수 (measured_at_kst 2026-08-28T08:59:27+09:00). **Δ42 오염 기록**: 이 티켓 본문으로 B 의 R32 목록 요약(30/18/19, 모듈별 분포, verify_retention_manifest·session/safety 13건)이 C 목록 동결 전에 C 에 도달했다. C 는 COMPLETION SHA 에서 자기 도구(gate1/intake/r32_inventory.py, 21b5458)로 목록을 만들어 먼저 커밋·동결하고 R32_APPLICATION_POINTS.md/R32_CHECK_RESULT.json 은 그 뒤에 열지만, Δ42 규칙 2 대로 지목된 모듈에 대한 (b) 탐색에 '독립' 을 쓰지 않고 '티켓 요약에 의해 informed' 로 기록한다. P0 ① verify_retention_manifest 항상 ok:True — C 는 B 검증 함수 결과에 의존하지 않고 lane5 evidence_lineage_check 로 바이트에서 재계산하며, COMPLETION 시 그 함수의 호출부·결과 기록 산출을 전수 추적해 C 재계산과 모순되는 ok:True 를 EVIDENCE_DEFECT 로 낸다(CI-24); 실패할 수 없는 검증기는 R31 로 PROVISIONAL. P0 ② 안전 13건 fail-open 은 Δ32-safety 전제조건에 포함해 읽고, C lane4 guard 양성대조에 잘못된 형태 입력(autocomplete/type 훼손 자격정보 필드)을 추가한다(CI-10 r2) — 형태 오류에서의 guard 침묵도 SYSTEMIC FAIL. 판정은 A."
+}
