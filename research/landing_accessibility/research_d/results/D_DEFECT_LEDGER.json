@@ -1,8 +1,8 @@
 {
  "artifact": "D_DEFECT_LEDGER",
  "produced_at_kst": "2026-08-28T09:51:38+09:00",
- "measured_at_kst": "2026-08-28T10:34:04+09:00",
- "d_head": "298f0ca4086062508cdcadea17a4f8bfa72de02f",
+ "measured_at_kst": "2026-08-28T10:40:57+09:00",
+ "d_head": "f3c118bb1844d11b1e82942de3cd64e5c515042d",
  "plane": "D",
  "claim_kind": "OBSERVATION",
  "why": "D 규약은 '결함이면 숨기지 말고 D-DEF-NN 으로 번호를 붙여 남긴다' 이다. results/ 의 개별 파일은 **D_DEF_14b 에서 멈춰 있었고**, 그 뒤 결함들은 티켓에는 남았으나 **대장 색인이 따라가지 않았다.** D 가 다른 평면의 낡은 색인을 지적해 온 그 형태가 D 대장에 있었다.",
@@ -167,6 +167,18 @@
    "ticket": "D-V3-FINDING-030 → FACT_CORRECTION 발행",
    "fix": "results/D_FLAG_HISTORY_AUDIT.json — git 판본을 분모로 4종 측정. 원 산출은 R36 에 따라 고치지 않는다",
    "control": "분모 0 을 주장하기 전에 (a) 덮어쓰기 여부 (b) 버전관리 추적 여부 (c) append 로그 존재 여부 를 각각 확인한다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-32",
+   "what": "완결 게이트 셋째 조건(노트북 Restart→Run All 에러 0)을 도구가 재지 않았다",
+   "mechanism": "`gate()` 는 노트북 **파일의 존재만** 확인했다. 에러 셀이 있는 노트북도, 한 셀도 실행되지 않은 노트북도 통과했다",
+   "why_it_matters": "D 의 모든 완결 주장이 이 게이트를 근거로 나갔다. 조건 하나가 이름만 있었다면 그 주장은 세 조건이 아니라 두 조건을 통과한 것이다",
+   "why_it_never_showed": "실측 14/14 노트북이 조건을 이미 만족했다. **검사의 부재와 조건의 충족이 같은 출력을 낸다**",
+   "ticket": "D-V3-FINDING-032",
+   "fix": "tools/d_mlflow.py notebook_execution_check() — 에러·미실행·cells부재·파싱실패는 차단, 비순차는 표지. 대조군 3종 추가(9/9 PASS)",
+   "control": "합성 노트북 3종으로 시정 전 통과 / 시정 후 차단을 각각 실증",
+   "regression": "새 검사로 막힌 RQ 0건 — 시정이 과거 판정을 뒤집지 않았다",
    "escaped": true
   }
  ],

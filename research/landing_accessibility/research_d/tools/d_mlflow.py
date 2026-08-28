@@ -268,7 +268,55 @@ def gate(rq: str, md: Path, js: Path | None, nb_dir: Path) -> tuple[bool, str]:
                 break
         if not nbs:
             return False, "미완: 노트북 없음"
+        ok, why, _det = notebook_execution_check(nbs)
+        if not ok:
+            return False, why
     return True, "OK"
+
+
+def notebook_execution_check(nbs) -> tuple:
+    """완결 게이트 셋째 조건 — `Restart→Run All 에러 0` 을 **재는** 부분.
+
+    [D-DEF-32] 이 조건은 이름만 있었다. 게이트는 노트북이 **있는지만** 봤고,
+    에러 셀이 있는 노트북도 한 셀도 실행되지 않은 노트북도 통과시켰다
+    (대조군으로 실증). 실측 14/14 가 조건을 이미 만족하고 있었기 때문에
+    이 구멍은 한 번도 드러나지 않았다 — **검사의 부재와 조건의 충족이 같은
+    출력을 낸다.**
+
+    등급을 나눈다:
+      차단  에러 셀 · 미실행 셀 · 읽을 수 없는 노트북
+      표지  execution_count 비순차 — 부분 재실행 후 저장이라는 정당한 경우가
+            있다. 차단으로 만들면 거짓 양성이 쌓여 아무도 읽지 않는다 (A R61).
+    """
+    det = {"notebooks": [], "flags": []}
+    for nb in nbs:
+        try:
+            d = json.loads(Path(nb).read_text(encoding="utf-8"))
+        except Exception as e:
+            det["notebooks"].append({"nb": Path(nb).name, "readable": False,
+                                     "error": f"{type(e).__name__}: {e}"})
+            return False, "미완: 노트북 파싱 실패", det
+        if "cells" not in d:
+            det["notebooks"].append({"nb": Path(nb).name, "readable": True,
+                                     "cells_key": "ABSENT"})
+            return False, "미완: 노트북에 cells 가 없다", det
+        code = [c for c in d["cells"] if c.get("cell_type") == "code"]
+        errs = sum(1 for c in code for o in c.get("outputs", [])
+                   if o.get("output_type") == "error")
+        counts = [c.get("execution_count") for c in code]
+        unrun = sum(1 for x in counts if x is None)
+        ran = [x for x in counts if x is not None]
+        seq = ran == list(range(1, len(ran) + 1))
+        row = {"nb": Path(nb).name, "readable": True, "code_cells": len(code),
+               "error_cells": errs, "unrun_cells": unrun, "sequential_1_to_N": seq}
+        det["notebooks"].append(row)
+        if not seq:
+            det["flags"].append(f"{Path(nb).name}: execution_count 비순차 (표지)")
+        if errs:
+            return False, f"미완: 노트북 에러 셀 {errs}건", det
+        if unrun:
+            return False, f"미완: 미실행 셀 {unrun}건", det
+    return True, "OK", det
 
 
 def gate_controls() -> dict:
@@ -288,7 +336,11 @@ def gate_controls() -> dict:
             if findings:
                 md.write_text("# f", encoding="utf-8")
             if notebook:
-                (nb / f"{name}.ipynb").write_text("{}", encoding="utf-8")
+                (nb / f"{name}.ipynb").write_text(json.dumps(
+                    {"cells": [{"cell_type": "code", "source": "1+1",
+                                "execution_count": 1, "outputs": [], "metadata": {}}],
+                     "metadata": {}, "nbformat": 4, "nbformat_minor": 5}),
+                    encoding="utf-8")
             return md, js
 
         md, js = mk("RQ_DXX_thing", {"verdict": "SUPPORTED"})
@@ -304,6 +356,28 @@ def gate_controls() -> dict:
         md, js = mk("RQ_DVV_thing", {"verdict": "X"}, notebook=False)
         cases.append(("남의 노트북으로 통과하지 않음 (D-DEF-10b)",
                       gate("RQ-DVV", md, js, nb), False))
+        # [D-DEF-32] 셋째 조건을 재게 한 뒤의 대조군. 검사를 넣고 대조군을
+        # 넣지 않으면 다시 '이름만 있는 조건' 이다.
+        def mknb(name, cell):
+            js = t / f"{name}.json"; js.write_text(json.dumps({"verdict": "X"}))
+            md = t / f"{name}_FINDINGS.md"; md.write_text("# f")
+            (nb / f"{name}.ipynb").write_text(json.dumps(
+                {"cells": [cell], "metadata": {}, "nbformat": 4, "nbformat_minor": 5}))
+            return md, js
+        md, js = mknb("RQ_DE1_thing", {"cell_type": "code", "source": "x", "execution_count": 1,
+                                       "outputs": [{"output_type": "error", "ename": "ValueError",
+                                                    "evalue": "boom", "traceback": []}],
+                                       "metadata": {}})
+        cases.append(("노트북에 에러 셀이 있으면 막힘", gate("RQ-DE1", md, js, nb), False))
+        md, js = mknb("RQ_DE2_thing", {"cell_type": "code", "source": "x",
+                                       "execution_count": None, "outputs": [], "metadata": {}})
+        cases.append(("미실행 셀이 있으면 막힘", gate("RQ-DE2", md, js, nb), False))
+        js3 = t / "RQ_DE3_thing.json"; js3.write_text(json.dumps({"verdict": "X"}))
+        (t / "RQ_DE3_thing_FINDINGS.md").write_text("# f")
+        (nb / "RQ_DE3_thing.ipynb").write_text("{}")          # cells 키 부재
+        cases.append(("cells 없는 노트북은 막힘 (부재≠통과)",
+                      gate("RQ-DE3", t / "RQ_DE3_thing_FINDINGS.md", js3, nb), False))
+
         bad = t / "RQ_DUU_thing.json"
         bad.write_text("{not json", encoding="utf-8")
         cases.append(("JSON 깨지면 막힘",

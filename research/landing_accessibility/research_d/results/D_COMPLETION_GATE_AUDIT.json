@@ -1,0 +1,181 @@
+{
+ "verification_id": "D-COMPLETION-GATE-THIRD-CONDITION",
+ "rq": "완결 게이트 마무리 (프롬프트 (5) 허용 항목)",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T10:40:28+09:00",
+ "d_head_sha": "f3c118bb1844d11b1e82942de3cd64e5c515042d",
+ "verdict": "DEFECT_FOUND_AND_FIXED",
+ "finding": {
+  "claim": "완결 게이트 3조건 중 셋째 — **노트북 Restart→Run All 에러 0** — 은 이름만 있었고 도구가 재지 않았다. 게이트는 노트북 파일의 **존재만** 확인했다.",
+  "evidence_before_fix": "합성 대조: 에러 셀이 있는 노트북 → gate=True / 한 셀도 실행되지 않은 노트북 → gate=True / 정상 노트북 → gate=True. 셋이 구분되지 않았다.",
+  "why_it_never_showed": "실측 14/14 노트북이 조건을 이미 만족하고 있었다(에러 0 · 미실행 0 · execution_count 1..N 순차). **검사의 부재와 조건의 충족이 같은 출력을 낸다** — 이 세션의 중심 결함족 그대로다.",
+  "relation_to_R61": "A 의 R61 은 '거짓 양성이 잦은 표지는 상수가 되어 안 읽힌다' 였다. 이것은 그 이면이다 — **한 번도 거짓이 된 적 없는 조건은 검사가 없어도 표시가 나지 않는다.** 두 경우 다 표지가 정보를 잃지만 원인이 반대다."
+ },
+ "fix": {
+  "tool": "tools/d_mlflow.py :: notebook_execution_check()",
+  "grading": {
+   "차단": "에러 셀 · 미실행 셀 · cells 키 부재 · 파싱 실패",
+   "표지": "execution_count 비순차 — 부분 재실행 후 저장이라는 정당한 경우가 있다. 차단으로 만들면 거짓 양성이 쌓여 아무도 읽지 않는다(R61 을 이 도구에 적용했다)"
+  },
+  "controls_added": [
+   "노트북에 에러 셀이 있으면 막힘",
+   "미실행 셀이 있으면 막힘",
+   "cells 없는 노트북은 막힘 (부재≠통과)"
+  ],
+  "gate_controls": {
+   "verdict": "PASS",
+   "n_cases": 9,
+   "must_flag": 8,
+   "must_not_flag": 1
+  }
+ },
+ "regression_check": {
+  "rule": "R56 — 도구 sha 가 바뀌면 판정은 다른 도구가 낸 것이다. 재판정해 대조한다",
+  "blocked_by_new_check": 0,
+  "note": "새 검사 때문에 막힌 RQ 는 0건이다. 시정이 과거 통과 판정을 뒤집지 않았다 — 조건이 이미 만족돼 있었기 때문이고, 그것이 이 구멍이 보이지 않았던 이유이기도 하다",
+  "sync_after_fix": "14 logged · 36 skipped(전부 기존 사유: verdict 없음 / FINDINGS.md 없음 / 노트북 없음)"
+ },
+ "notebooks": [
+  {
+   "nb": "D00_pilot_forensic_reconstruction.ipynb",
+   "readable": true,
+   "code_cells": 6,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "DSUP01_representation_ablation.ipynb",
+   "readable": true,
+   "code_cells": 13,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "DSUP02_l1_recoverability.ipynb",
+   "readable": true,
+   "code_cells": 17,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "PILOT_E_slot_dependency.ipynb",
+   "readable": true,
+   "code_cells": 11,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RF2_A_rule_firing.ipynb",
+   "readable": true,
+   "code_cells": 11,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RF2_B_feature_discriminability.ipynb",
+   "readable": true,
+   "code_cells": 16,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RF2_C_field_ablation.ipynb",
+   "readable": true,
+   "code_cells": 16,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RF2_D_hierarchical.ipynb",
+   "readable": true,
+   "code_cells": 11,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RF2_E_abstention_taxonomy.ipynb",
+   "readable": true,
+   "code_cells": 21,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RF2_F_cascade_synthesis.ipynb",
+   "readable": true,
+   "code_cells": 17,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RQ_D13b12_dismissal_dom_effect.ipynb",
+   "readable": true,
+   "code_cells": 21,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RQ_D15_v3_replication.ipynb",
+   "readable": true,
+   "code_cells": 23,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RQ_D7_denominator_bounds.ipynb",
+   "readable": true,
+   "code_cells": 13,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  },
+  {
+   "nb": "RQ_E1_icononly_ablation.ipynb",
+   "readable": true,
+   "code_cells": 17,
+   "error_cells": 0,
+   "unrun_cells": 0,
+   "sequential_1_to_N": true,
+   "gate_pass": true
+  }
+ ],
+ "notebook_summary": {
+  "n": 14,
+  "error_cells_total": 0,
+  "unrun_total": 0,
+  "non_sequential": 0,
+  "gate_pass": 14
+ },
+ "queue_cross_check": {
+  "claim": "큐 02:14 기록 'RQ-D7 노트북 22셀 error 0' · 'RQ-D13b-1/2 31셀 error 0' 을 대조했다",
+  "RQ-D7": "총 22셀 (markdown 9 + code 13) · error 0 — 일치",
+  "RQ-D13b12": "총 31셀 (markdown 10 + code 21) · error 0 — 일치",
+  "note": "셀 수는 markdown 포함 총계다. 손 기록이 정확했다 — 다만 그 정확성은 **도구가 강제한 것이 아니라 사람이 확인한 것**이었다"
+ },
+ "limitation": "정적 검사다. 저장된 노트북의 출력이 그 소스로 재현되는지는 재지 않는다 — 셀을 고치고 출력을 남긴 채 저장하면 이 검사는 통과한다. 실제 Restart→Run All 재실행은 하지 않았다(입력 데이터·시간 비용). 순차성은 그 위조를 좁히지만 배제하지 않는다.",
+ "not_a_verdict": "D 도구 시정이다. 완결 게이트 정의 자체(3조건)는 A 규약이며 D 가 바꾸지 않았다 — 재지 않던 조건을 재게 했을 뿐이다."
+}
