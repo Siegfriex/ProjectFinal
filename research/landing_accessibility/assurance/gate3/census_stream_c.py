@@ -160,7 +160,7 @@ def main():
             if f_["check"] == "EVIDENCE_OR_TERMINAL" and "missing" in f_: f_["systemic_candidate"] = "denominator_corruption"
     checks.update({f"MART.{k}": v for k, v in qc["checks"].items()}); flags.extend(qc["flags"])
     if rows:
-        APPROVED_EXTRA = {"entry_observation_provenance", "collection_run", "superseded_runs"}   # R76 / R98 / R99 (A-approved additions)
+        APPROVED_EXTRA = {"entry_observation_provenance", "collection_run", "superseded_runs", "entry_geometry_provenance"}   # R76 / R98 / R99 (A-approved additions)
         extra, missing_cols = sorted(set(rows[0].keys()) - set(COLS23) - APPROVED_EXTRA), sorted(set(COLS23) - set(rows[0].keys()))
         if missing_cols or extra: flag("MART.COLUMNS", f"mart columns differ from the 23 fixed by TBX-006: missing {missing_cols} extra {extra}", None)
         checks["MART.COLUMNS"] = {"status": "FLAG" if (missing_cols or extra) else "PASS", "n_items": len(rows[0]), "missing": missing_cols, "extra": extra}
@@ -269,6 +269,19 @@ def main():
             used_late = [r.get("target_id") for r in rows if r.get("target_id") in late_t and str(r.get("collection_run") or "")[-2:] in {u[-2:] for u in late_runs[r.get("target_id")]}]
             for t in used_late: flag("RAW.CUTOFF_1150", f"mart row {t} carries a run whose manifest line is after the 11:50 cutoff", None, target=t)
             checks["RAW.CUTOFF_1150"]["mart_rows_using_post_cutoff_run"] = used_late
+    # --- R98 run selection recomputed by C: per target, the manifest line with the latest captured_at_kst ≤ cutoff, excluding R3 (geometry-only run)
+    if raw_m and rows and "collection_run" in rows[0]:
+        best = {}
+        for r in raw_m:
+            if run_of(r) == "R3" or str(r.get("captured_at_kst") or "")[:19] > CUTOFF: continue
+            t = r.get("target_id"); ts = str(r.get("captured_at_kst") or "")
+            if t not in best or ts > best[t][0]: best[t] = (ts, str(r.get("scout_run_id") or r.get("evidence_dir") or ""))
+        mism = []
+        for r in rows:
+            t = r.get("target_id"); cr = str(r.get("collection_run") or "").strip()
+            if t in best and cr and not (best[t][1].endswith(cr) or cr in best[t][1]): mism.append({"target": t, "mart_run": cr, "C_latest_run": best[t][1][-40:], "latest_ts": best[t][0]})
+        for x in mism: flag("MART.RUN_SELECTION", "mart collection_run is not the latest-captured non-R3 line for the target (R98 latest-by-captured_at)", None, **x)
+        checks["MART.RUN_SELECTION"] = {"status": ("VACUOUS" if not best else "FLAG" if mism else "PASS"), "n_items": len(best), "mismatch": mism, "rule": "latest captured_at_kst ≤ 11:50 cutoff, R3 excluded (geometry supplement channel)"}
     # --- forbidden-action presence probe over raw dirs
     dirs = [d for d in glob.glob(str(RUN_ROOT / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0; exec_hits = []
     EXEC_RE = re.compile(r'"(action|action_token|type|event|kind)"\s*:\s*"(click|tap|press|submit|SUBMIT_QUERY|SUBMIT|enter)"', re.I)

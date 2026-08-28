@@ -1,0 +1,118 @@
+{
+ "ticket_id": "D-V3-CP6-001",
+ "type": "STATUS",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "daf160981519e78bb0f0c8f4fb525575892a8030",
+ "in_response_to": [
+  "T-A-V3-TBX-017",
+  "T-A-V3-TBX-018",
+  "T-A-V3-TBX-019"
+ ],
+ "measured_at_kst": "2026-08-28T11:38:38+09:00",
+ "headline": "CP6 그림 확정 — figure_완성수 6/6 · claim후보수 5. A 판정 R74/R78/R87/R92/R93/R104/R106 전부 그림에 반영",
+ "the_measurement": {
+  "mart_pin": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/mart/CANONICAL_MART_50.csv",
+   "sha256": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
+   "bytes": 26245,
+   "optional_present": [
+    "entry_observation_provenance",
+    "collection_run",
+    "superseded_runs"
+   ]
+  },
+  "data_state": "COMPLETE_50_ROWS_50_EVIDENCE",
+  "R78_분모": {
+   "denominator_frozen": 50,
+   "rows_present": 50,
+   "attempted": 50,
+   "not_attempted": 0,
+   "evidence_adequate": 50,
+   "completed": 6,
+   "failed": 44,
+   "unaccounted": 0,
+   "split_note": "R74 — 수집기의 0 과 사이트의 사실을 분리한다. `NOT_YET_SPLIT` 은 옛 `NO_SAFE_ROUTE` 라벨이며 **어느 쪽인지 모른다** — D 가 임의로 배분하지 않는다",
+   "classification_note": "R78 적용. 목록 밖 상태가 나오면 unaccounted 가 0 이 아니게 되어 드러난다"
+  },
+  "R74_R92_split": {
+   "collector_observation": 21,
+   "site_observation": 16,
+   "unverified_candidate_count": 2,
+   "NOT_YET_SPLIT": 0
+  },
+  "label_cross_table": {
+   "visible=False,ax=True,AX_ONLY": 25,
+   "visible=False,ax=False,NONE": 21,
+   "visible=True,ax=True,DIFFERENT": 3,
+   "visible=True,ax=False,VISIBLE_ONLY": 1
+  },
+  "both_observed": 3,
+  "axes_not_observed": [
+   "entry_x_norm",
+   "entry_y_norm",
+   "entry_zone",
+   "reveal_direction",
+   "task_control_occlusion"
+  ],
+  "figures": {
+   "fig1_coverage_terminal": "c2cac08180058495f9a16197da58ddf6705a4962af554c302558385f12f5b763",
+   "fig2_entry_spatial_map": "674e83c7036fec7c8e586f12dfa11bc9c02f3ed11bac257b918c5fad5802b4c7",
+   "fig3_entry_implementation": "a6c0e3c0a18a2bc477b2c15d57428dce48449807e7c12127d8bcd5c8172c2a11",
+   "fig4_activation_depth": "aef49d946edc0653091ff913443b1051a89e4dc75de92637267aa9b97559cae1",
+   "fig5_label_divergence": "3e7623126d6345b4ef02fa35578d978e0d7f05bd063a12d07cc54f64c7d349e6",
+   "fig6_sequence_divergence": "16cd4d6738cd4f95b8b20206acbd0a3e07255550631b54c488f9b379888354ed"
+  }
+ },
+ "A_rulings_applied": {
+  "R74/R92": "coverage 그림에서 COLLECTOR_ZERO_CANDIDATE / NO_SAFE_ROUTE_SITE / UNVERIFIED_CANDIDATE_COUNT 를 분리",
+  "R78": "completed=ENDPOINT_REACHED 만 · unaccounted 0",
+  "R87": "입력 0 축은 렌더 않고 AXIS_NOT_OBSERVED",
+  "R93": "라벨·control 축 제목에 [POST-HOC DOM DERIVED] 를 박았다 — 각주 아님",
+  "R104": "fig5 상단에 'NOT A SITE-LEVEL FINDING' 과 both-observed n 을 붉게 명시. AX_ONLY 는 수집 비대칭이라고 그림 안에 적었다",
+  "R106": "fig2 는 n<=10 이면 개별점+target 라벨, zone 분포 억제, 제목에 n/50"
+ },
+ "재동결분_대조": "D 실측이 A 의 R95/R104 확정치와 일치 — label AX_ONLY 25·NONE 21·DIFFERENT 3·VISIBLE_ONLY 1·MATCH 0 · split 21/16/2 · completed 6 · failed 44 · unaccounted 0",
+ "claim_candidates": [
+  {
+   "id": "D-CLAIM-01",
+   "axis": "coverage",
+   "statement": "frozen 50 전수 attempt. endpoint 도달 6/50, 미도달 44/50. family 별 분해는 fig1."
+  },
+  {
+   "id": "D-CLAIM-02",
+   "axis": "failure decomposition (R74/R92/R95)",
+   "statement": "미도달 44 중 **수집기 관측 21 · 사이트 관측 16 · 후보수 미확인 2**. 합산하면 '50 중 44 에서 경로를 못 찾았다' 가 되는데 그중 21 은 사이트 사실이 아니다."
+  },
+  {
+   "id": "D-CLAIM-03",
+   "axis": "spatial — 산출 불가",
+   "statement": "`entry_x_norm`·`entry_y_norm`·`entry_zone`·`reveal_direction` 은 0/50. 공간 표현 축은 이번 census 에서 산출되지 않았다."
+  },
+  {
+   "id": "D-CLAIM-04",
+   "axis": "label — 사이트 발견 아님 (R104)",
+   "statement": "양쪽이 함께 관측된 행은 **3/50** 이다. `AX_ONLY` 25 는 초기 AX 캡처 파손에 따른 **수집 비대칭**이지 사이트 현상이 아니다. D02 를 사이트 수준 발견으로 보고하지 않는다."
+  },
+  {
+   "id": "D-CLAIM-05",
+   "axis": "provenance (R93)",
+   "statement": "라벨·control 축 값은 E 의 현장 관측이 아니라 저장된 DOM 에서의 **사후 파생**이다. '사용자가 화면에서 실제로 본 라벨' 이라 말할 수 없고, '수집 시점 DOM 에 존재한 라벨' 까지만 말할 수 있다."
+  }
+ ],
+ "for_C": "대조 가능한 것 — 분모 4종 · 3분할(21/16/2) · label 교차표 4칸과 both_observed 3 · axis_coverage 14축. figure sha 6종은 mart_pin 에 묶여 있다",
+ "limitation": "공간축이 0/50 이라 fig2 는 현재 AXIS_NOT_OBSERVED 다. geometry supplement 가 mart 에 join 되면 n=8 **개별점만** 그린다. Gower 는 A 지시 없이 돌리지 않는다 — feature 절반이 비어 family identity 만 학습한다",
+ "not_a_verdict": "claim 후보다. C 가 재계산하고 A 가 freeze 한다",
+ "created_at_kst": "2026-08-28T11:39:19+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

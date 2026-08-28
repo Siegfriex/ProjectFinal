@@ -1,6 +1,6 @@
 {
  "agent": "B",
- "timestamp": "2026-08-28T11:38:20+09:00",
+ "timestamp": "2026-08-28T11:41:21+09:00",
  "phase": "STEP 1 — task-first runner offline. 8 lane 병렬.",
  "current_ticket_id": "T-A-V3-TBX-006 (P0, deadline 12:30, B freeze 11:40)",
  "branch": "claude-b/diag-pilot-integration",
@@ -8,7 +8,7 @@
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
  "work_state": "V1_HOLD_DECLARED_AWAITING_DIRECTOR",
  "blocker_ids": [],
- "last_bus_seq": 1130,
+ "last_bus_seq": 1132,
  "last_push_at": "2026-08-27T20:56:51+09:00",
  "next_action": "Director 판단 대기. B 는 HOLD 무관 항목만 진행한다. REAL_TARGET NO-GO.",
  "real_target": {
@@ -69,8 +69,8 @@
  "observed_remote": {
   "B_clean0_v21": "ba04a339bdb77c697bdb48a2fc758e47f5309610",
   "A_control": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
-  "C_assurance_v21": "7fb8bef107468e62cc390c6a95f33f1c3bacaaad",
-  "at": "2026-08-28T11:38:20+09:00"
+  "C_assurance_v21": "65d82af4134b98d9c98672154ab03b778690b0ac",
+  "at": "2026-08-28T11:41:21+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -210,7 +210,7 @@
   "D-R0-72 OverlayCoverage construct",
   "blind set 존재 여부 E000 6 (본 HOLD 직결)"
  ],
- "updated_at": "2026-08-28T11:36:37+09:00",
+ "updated_at": "2026-08-28T11:41:16+09:00",
  "launch_gate_status": {
   "1_C_preflight_v2_manifest": "MET — C-COMPLETION-001706 sampling 12/12, A 가 PREFLIGHT_1_TO_5_ACCEPTED. 6항(exactly-once)은 최종 SHA 대기",
   "2_W1_completion_mask_in_SHA": "PENDING — W1 4ec538b 수신·검산 완료(소유권 위반 0, ancestry 확인). integration 288025ff 에 편입해 push 했고 C 재확인 대기",
@@ -223,7 +223,7 @@
   "T-B-FC-010 — composition 에서 mask 를 fed031f 에 귀속시킨 거짓 진술 철회"
  ],
  "awaiting": "Director 피벗 지침",
- "state": "MART_REFROZEN_TBX017_018",
+ "state": "MART_FINAL_FROZEN",
  "state_note": "Director override 수용 — 버스 실물로 검증 후 착수. **B 는 브라우저를 열지 않는다**",
  "preserved_unchanged": [
   "A/B/C 3평면 + D 연구소 오케스트레이션 구조와 티켓·ACK·COMPLETION 규약",
@@ -246,7 +246,7 @@
   "integration b094eaa2b0a9 — layer_firewall 종결 상태 서술(실행 코드 0줄)",
   "W5B d312c9a647fa — flow 정규화, 727 passed, 로그 sha256 2d76d21c26c9e4f0"
  ],
- "next_gate": "A 후속 티켓 대응 · E 추가분 자동 반영 · 필요시 재동결(새 sha 발행)",
+ "next_gate": "C CP7 독립 재검산(12:10) 대기. B 산출 확정.",
  "decision_needed": [
   "T-B-V3-DR-001 ① SUBMIT_QUERY 를 activation_depth 에 포함하는가 ② SWITCH_TAB 이 reveal token 인가 — 04 와 03 이 다르게 읽힌다",
   "T-B-V3-E-ACK-001 은 ruling_9 로 해소됨"
@@ -286,7 +286,7 @@
  },
  "hard_stop_vocabulary": "R9 8종 채택 — wrong_scope · target_outside_manifest · forbidden_action · evidence_overwrite · duplicate_launch · task_contract_drift(endpoint drift 포함) · task_or_outcome_leakage · denominator_corruption. T-A-V3-P0-001 의 6종을 supersede.",
  "index_verified": "v9 e26e8714a62053a74b643edbb38e4be49cc1a4b230a2d61ca2edd4948de29154",
- "measured_at_kst": "2026-08-28T11:36:37+09:00",
+ "measured_at_kst": "2026-08-28T11:41:16+09:00",
  "resumed_at_kst": "2026-08-28T10:43:58.534912+09:00",
  "a_tickets_in_scope": {
   "T-A-V3-STEP1-039": "R54 확장 + probe 겨냥 확인 — 착수",
@@ -302,19 +302,26 @@
  "tbx006": {
   "mart_rows": 50,
   "snapshot_id": "CANONICAL_MART_50.csv",
-  "file_sha256": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
-  "supersedes": "33f6ac624432d8570ca22dd3a6db92d0a21588fcbe71a5df9d843f976e5c8b2a",
-  "b_head_sha": "f444a7299bf4bb31a15bfb32fcfb148b5e40424b",
-  "adapter_commit": "733c2b1843eb5ae4946cb2366150fdf157a45b72",
+  "**최종 sha**": "8cf57069e7588bbc3c45519e19774bebdef25cbbaa04054c854984218f429b21",
+  "supersedes": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
+  "b_head_sha": "059c3340046786372276a3d92addd117bce4a208",
+  "adapter_commit": "e2b394eb15fa85156503115f878c3bb30e98f393",
+  "columns": 27,
   "collection_run": {
-   "E-REAL-CENSUS-1230": 20,
-   "E-REAL-CENSUS-1230-R3": 8,
-   "E-REAL-CENSUS-1230-R2": 22
+   "E-REAL-CENSUS-1230": 15,
+   "E-REAL-CENSUS-1230-R2": 22,
+   "E-REAL-CENSUS-1230-R2B": 13
   },
-  "label_relation": "MATCH 0 · AX_ONLY 25 · NONE 21 · DIFFERENT 3 · VISIBLE_ONLY 1 (B 재계산, 규칙 문서 수록)",
-  "auth_gate_stage": "UNDETERMINED 42 · NONE 6 · AT_ENDPOINT 2",
   "terminal": "COLLECTOR_ZERO_CANDIDATE 21 · NO_SAFE_ROUTE_SITE 16 · ENDPOINT_REACHED 6 · AUTH_GATE 2 · TIMEOUT 2 · FORBIDDEN_ACTION_BOUNDARY 1 · UNVERIFIED 2",
-  "**미해결**": "E 가 R3 수집 중 — 12:00 컷오프 선언 시 최종 재동결 1회 남음",
-  "**자기결함 기록**": "병합 목록 누락을 같은 자리에서 두 번(_dir · scout_run_id). **R62 를 ACK 한 뒤 두 번 걸렸고 구조적 해법은 미적용**"
+  "E 보고와의 관계": "**E 의 NO_SAFE_ROUTE 39 = 21 + 16 + 2.** 미분할 라벨 vs 분할본이며 충돌이 아니다",
+  "label_relation": "MATCH 0 · AX_ONLY 25 · NONE 21 · DIFFERENT 3 · VISIBLE_ONLY 1",
+  "geometry": "E_R3_SUPPLEMENT 8 · E_SUPPLEMENT_NO_CANDIDATE 42",
+  "cutoff": "11:50 KST (captured_at_kst 기준) · 초과 제외 0건",
+  "**미배선 2열 자진신고**": "reveal_direction · task_control_occlusion 이 50/50 전건 NOT_OBSERVED. **열이 있는 것과 배선된 것은 다르다. 결과절 아니라 한계절**",
+  "**자기결함 3건**": [
+   "run 선택이 이름은 LATEST 인데 계산은 사전순이었다 — R2B 가 드러냈고 captured_at_kst 로 교정",
+   "병합 목록 누락 2회(_dir · scout_run_id) — R62 를 ACK 한 뒤 두 번 걸렸고 구조적 해법 미적용",
+   "재라벨이 디렉터리 스캔 경로에만 걸려 정본 18건이 분리 없이 동결될 뻔했다"
+  ]
  }
 }
