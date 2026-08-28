@@ -40,7 +40,9 @@ def classify(d):
     ev = {"candidate_count": cc, "scout_status": st, "png_same": png_same,
           "dom_same": dom_same, "click_xy": [x, y], "in_viewport": in_vp}
     # ① 후보 ② endpoint ③ 클릭 유효 ④ 좌표 뷰포트 내
-    if cc <= 0:                     return False, "NO_CANDIDATE", ev
+    # 종결 사유를 접지 않는다 — TIMEOUT 은 '후보가 없었다' 가 아니라 '모른다' 다 (B 지적)
+    if cc <= 0:
+        return False, (st if st else "NO_STATUS"), ev
     if st != "ENDPOINT_REACHED":    return False, f"NOT_ENDPOINT:{st}", ev
     if png_same and dom_same:       return False, "CLICK_NO_EFFECT", ev
     if png_same or dom_same:        return False, "CLICK_AMBIGUOUS", ev
