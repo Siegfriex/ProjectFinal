@@ -198,6 +198,36 @@
   .tag{display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.07em;
     padding:1px 5px; border-radius:2px; border:1px solid var(--rule-2);
     color:var(--ink-3); margin-left:6px; vertical-align:2px}
+
+  /* ── probe progression ── */
+  .prog{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+  .pr{display:grid;grid-template-columns:112px 1fr 92px;align-items:center;gap:14px}
+  .pr .pl{font-size:13px;color:var(--ink-2);text-align:right;line-height:1.3}
+  .pr .pl b{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);font-weight:500}
+  .pr .pb{height:26px;background:var(--panel-2);border-radius:4px;display:flex;gap:2px;overflow:hidden}
+  .pr .pb i{display:block;height:100%}
+  .pr .pb i:first-child{border-radius:4px 0 0 4px}
+  .pr .pv{font-family:var(--mono);font-size:15px;font-weight:600;
+    font-variant-numeric:tabular-nums;color:var(--ink)}
+  .pr .pv small{color:var(--ink-3);font-weight:400;font-size:11px}
+  .pr.gain .pv{color:var(--ord-2)}
+  .pr.zero .pv{color:var(--critical)}
+  .zerobox{margin-top:20px;padding:20px 22px;background:var(--panel);
+    border:1px solid var(--rule);border-left:3px solid var(--critical);border-radius:4px}
+  .zerobox .zh{font-family:var(--mono);font-size:11px;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--critical);font-weight:600;margin-bottom:10px}
+  .zerobox .zn{font-family:var(--mono);font-size:34px;font-weight:600;color:var(--critical);
+    line-height:1;margin-bottom:6px;font-variant-numeric:tabular-nums}
+  .zerobox p{margin:0;font-size:13.5px;line-height:1.65;color:var(--ink-2);font-weight:300}
+  .zerobox p b{color:var(--ink);font-weight:500}
+  .zerobox p + p{margin-top:10px}
+  .rem{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+  .rem div{background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:12px 14px}
+  .rem .rn{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--ink);
+    font-variant-numeric:tabular-nums;line-height:1.1}
+  .rem .rl{font-size:12px;color:var(--ink-2);margin-top:3px;line-height:1.35}
+  .rem .rc{font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-top:4px}
+
   /* retracted mark — value kept, claim withdrawn (A R137) */
   .retracted{position:relative}
   .retracted::after{
@@ -394,6 +424,65 @@
     </div>
   </section>
 
+
+  <section>
+    <h2>그 뒤로 세 번 더 시도했다 <span class="n">post-census probes · census 밖</span></h2>
+    <p class="sub">동결 이후 수집기를 세 번 고치고 못 닿았던 곳을 다시 두드렸다.
+      <b>아래 수치는 census 밖이다</b> — 위의 8 / 16 / 26은 동결된 값 그대로이고 바뀌지 않는다.</p>
+
+    <div class="prog">
+      <div class="pr"><div class="pl">동결 census<b>기준선</b></div>
+        <div class="pb"><i style="width:16%;background:var(--ord-1)"></i></div>
+        <div class="pv">8<small> / 50</small></div></div>
+      <div class="pr gain"><div class="pl">1차 재시도<b>AX 복구</b></div>
+        <div class="pb"><i style="width:16%;background:var(--ord-1)"></i><i style="width:6%;background:var(--ord-2)"></i></div>
+        <div class="pv">11<small> / 50</small></div></div>
+      <div class="pr gain"><div class="pl">2차 재시도<b>좌표·클릭</b></div>
+        <div class="pb"><i style="width:16%;background:var(--ord-1)"></i><i style="width:6%;background:var(--ord-2)"></i><i style="width:16%;background:var(--ord-3)"></i></div>
+        <div class="pv">19<small> / 50</small></div></div>
+      <div class="pr gain"><div class="pl">3차 재시도<b>두 단계 전개</b></div>
+        <div class="pb"><i style="width:16%;background:var(--ord-1)"></i><i style="width:6%;background:var(--ord-2)"></i><i style="width:16%;background:var(--ord-3)"></i><i style="width:6%;background:var(--ord-4)"></i></div>
+        <div class="pv">22<small> / 50</small></div></div>
+    </div>
+
+    <div class="zerobox">
+      <div class="zh">⚠ 세 번을 고쳐도 한 건도 안 뚫린 자리</div>
+      <div class="zn">0 / 18</div>
+      <p>첫 수집에서 <b>후보를 하나도 못 찾은 18곳</b>은, 접근성 트리를 복구하고 좌표를 고치고
+        메뉴를 한 단계 더 열어본 뒤에도 <b>여전히 후보가 0</b>이었다. 3차에서 회복된 3건은
+        이 18곳이 아니라 다른 집단에서 나왔다.</p>
+      <p><b>이것을 “그 사이트들에는 진입점이 없다”로 읽으면 안 된다.</b>
+        말할 수 있는 것은 <b>“이 수집기가 첫 화면에서 두 단계까지 내려가도 후보를 찾지 못했다”</b>까지다.
+        앞서 “사이트에 경로가 없다”던 분류를 철회한 것과 같은 이유로, 여기서도 넘어가지 않는다.</p>
+    </div>
+
+    <div class="rem">
+      <div><div class="rn">18</div><div class="rl">두 단계까지 후보 0</div>
+        <div class="rc">NO_CANDIDATE_TO_DEPTH_2</div></div>
+      <div><div class="rn">3</div><div class="rl">닿았으나 좌표가 화면 밖</div>
+        <div class="rc">ENDPOINT_REACHED · 좌표 미검증</div></div>
+      <div><div class="rn">3</div><div class="rl">클릭 효과 불분명</div>
+        <div class="rc">CLICK_AMBIGUOUS</div></div>
+      <div><div class="rn">2</div><div class="rl">증거 결함</div>
+        <div class="rc">EVIDENCE_DEFECT</div></div>
+      <div><div class="rn">1</div><div class="rl">안전 경계에서 정지</div>
+        <div class="rc">SAFETY_STOP</div></div>
+      <div><div class="rn">1</div><div class="rl">시간 초과</div>
+        <div class="rc">TIMEOUT</div></div>
+    </div>
+
+    <p class="note" style="margin-top:14px"><b>이 분해는 한 번 고쳤다.</b> 처음엔 “후보 0”을 21로 적었는데,
+      그것은 <b>후보 0(18)과 클릭 효과 불분명(3)을 합친 수</b>였고 아래 카드에서 그 3을 또 세고 있었다.
+      검산자가 그 합산을 짚어 바로잡았다 — 시도 31건은 <b>18 + 6 + 3 + 2 + 1 + 1</b>로 갈린다.</p>
+
+    <p class="note"><b>판정 기준은 착수 전에 고정했고 완화하지 않았다.</b> 오히려 한 번 더 엄격해졌다 —
+      집계기가 “평가할 수 없음”을 통과로 세고 있던 것을 발견해 <b>불통과로 바꿨고</b>,
+      그 결과 이 라운드의 성공이 6에서 3으로 내려갔다. 낮아진 쪽이 정직한 수치다.
+      그중 한 건은 클릭 좌표가 어떻게 나왔는지 과정이 남아 있지 않아 <b>주석을 달아 두었다</b> —
+      화면과 DOM이 모두 바뀌었으므로 행위 자체는 성립하지만, 유도 과정은 검증되지 않았다.
+      시도 31건 전부 수행됐고 표적을 벗어난 건 없다.</p>
+  </section>
+
   <section>
     <h2>발표에서 말할 수 있는 것 <span class="n">claim-safe wording</span></h2>
     <p class="sub">같은 수치가 어떤 문장에 들어가느냐에 따라 참이 되기도 하고 거짓이 되기도 한다.</p>
@@ -408,6 +497,8 @@
             <em>selected case series임을 함께 말할 것</em></li>
           <li>“도달 실패의 원인을 사이트로 돌릴 수 있는 근거는 이 데이터에 없다. 전부 수집기가 무엇을 보지 못했는가에 대한 기록이다.”
             <em>COLLECTOR_ZERO 21 유지 · SITE 16 철회 후</em></li>
+          <li>“수집기를 세 번 고쳐 다시 시도했고 22/50까지 확보했다. 첫 수집에서 후보가 0이던 18곳은 그 뒤에도 0이었다.”
+            <em>사전에 고정한 기준으로 판정 · census 수치는 불변</em></li>
         </ul>
       </div>
 
@@ -421,7 +512,9 @@
           <li>“라벨 일치율 28/28” · “AX는 원리적으로 못 얻는다”
             <em>독립 관측 쌍은 0. 다만 방법은 이후 복구됐다 — 이번 수집의 사실일 뿐</em></li>
           <li>“50개 중 16곳은 사이트에 안전한 경로가 없었다”
-            <em>철회된 분류다. 재측정에서 5/5가 도달했다</em></li>
+            <em>철회된 분류다. 재측정에서 도달에 성공했다</em></li>
+          <li>“18곳에는 진입점이 없다” · “재시도가 실패했으니 그 사이트들이 더 어렵다”
+            <em>0/18은 수집기에 대한 진술이다. 사이트 난이도로 옮기지 마라</em></li>
         </ul>
       </div>
     </div>
@@ -438,6 +531,7 @@
     <b>검산</b> C 독립 재계산 9항 일치 · k=8은 3차 수집 이전 증거로 8/8 확인<br>
     <b>등급</b> acquisition·분모 <span class="tag">ASSURED_RECALCULATED</span> 관측가능성·사례 <span class="tag">DESCRIPTIVE_VERIFIED</span>
     다양성·공간거리 <span class="tag">EXPLORATORY</span> geometry 결속 <span class="tag">NOT_ASSURED</span><br>
+    <b>후속</b> census 밖 재시도 3회 — 누적 22/50 · 첫 수집 후보 0인 18곳은 0/18 유지 · 시도 31 전건 수행<br>
     <b>철회</b> NO_SAFE_ROUTE_SITE 16 — 값 유지, 주장 철회 · 근거는 신뢰 가능 8/16 (F2 6·F4 1·F5 1) ·
     초기 근거 F3 5/5는 좌표계 결함으로 폐기 · COLLECTOR_ZERO_CANDIDATE 21은 유지<br>
     <b>범위</b> 백분율은 동결된 50에 대한 기술값이며 모집단 추정값이 아니다 · 재현 replay는 면제됐고 해시는 산출물 동일성만 보장한다
