@@ -100,7 +100,9 @@ def validate_raw_contract(raw_m, manifest):
         if exp and r.get("task_hash") in (None, "", "NOT_PROVIDED_BY_E"): probs.append({"line": i, "kind": "TASK_HASH_NOT_PROVIDED", "target_id": r.get("target_id"), "note": "R68: task/endpoint gate runs empty — not a pass"})
     from collections import Counter
     dk = {k: n for k, n in Counter(r.get("idempotency_key") for r in raw_m).items() if n > 1}; dt = {k: n for k, n in Counter(r.get("target_id") for r in raw_m).items() if n > 1}
-    for k, n in dk.items(): probs.append({"kind": "IDEMPOTENCY_KEY_DUP", "key": k, "n": n, "systemic": "duplicate_launch"})
+    for k, n in dk.items():
+        dirs_k = {str(r.get("evidence_dir") or "") for r in raw_m if r.get("idempotency_key") == k}
+        probs.append({"kind": "IDEMPOTENCY_KEY_DUP" if len(dirs_k) < n else "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)", "key": k, "n": n, "systemic": "duplicate_launch" if len(dirs_k) < n else None})
     # R84 (TBX-015): a re-measurement run (R2) appends a NEW line with a new run identity — exactly-once is per (target_id, run); a
     # second line per target is a REPORT unless its idempotency_key repeats (caught above) — never a duplicate_launch by target_id alone
     for k, n in dt.items(): probs.append({"kind": "TARGET_MULTI_LINE_REPORT", "target_id": k, "n": n, "systemic": None, "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"})
@@ -171,6 +173,7 @@ def main():
         for c, t in blank.items(): flag("MART.BLANKS", f"column {c} blank in {len(t)} rows — TBX-006: blank and 0 must not be the same output (use UNDETERMINED/NOT_OBSERVED + missing_reason)", None, column=c, targets=t[:10])
         if no_reason: flag("MART.BLANKS", f"{len(no_reason)} rows carry UNDETERMINED/NOT_OBSERVED without missing_reason", None, targets=no_reason[:10])
         checks["MART.BLANKS"] = {"status": "FLAG" if (blank or no_reason) else "PASS", "n_items": len(rows) * len(COLS23), "blank_columns": {c: len(t) for c, t in blank.items()}, "undetermined_without_reason": len(no_reason)}
+        if "collection_run" in rows[0]: checks["MART.COLLECTION_RUN"] = {"status": "REPORT", "n_items": len(rows), "distribution": dict(__import__("collections").Counter((r.get("collection_run") or "").strip() for r in rows)), "note": "R98: R1-only vs R1+R2 targets must be visible"}
         checks["MART.ATTEMPT_STATUS_VALUES"] = {"status": "REPORT", "n_items": len(rows), "distribution": dict(sorted(__import__("collections").Counter((r.get("attempt_status") or "").strip() for r in rows).items())), "completed_rule": f"attempt_status ∈ {COMPLETED_VALUES}"}
         c50 = ROOT / "mart" / "CANONICAL_MART_50.csv"; s50 = ROOT / "mart" / "CANONICAL_MART_50.sha256.json"
         if c50.exists():
@@ -183,7 +186,11 @@ def main():
         from collections import Counter
         dk = {k: n for k, n in Counter(d.get("idempotency_key") for d in disp).items() if n > 1}; dt = {k: n for k, n in Counter(d.get("target_id") for d in disp).items() if n > 1}
         out = sorted({d.get("target_id") for d in disp} - {t["target_id"] for t in manifest["targets"]})
-        for k, n in dk.items(): flag("RAW.DISPATCH", f"idempotency_key {k} dispatched {n}×", "duplicate_launch", key=k, n=n)
+        roots = {}
+        for d_ in disp: roots.setdefault(d_.get("idempotency_key"), set()).add(str(d_.get("evidence_dir") or d_.get("run_id") or d_.get("dispatched_at") or ""))
+        for k, n in dk.items():
+            same_run = len(roots.get(k, set())) < n
+            flag("RAW.DISPATCH", f"idempotency_key {k} dispatched {n}×" + (" within the SAME run" if same_run else " across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch"), "duplicate_launch" if same_run else None, key=k, n=n)
         for k, n in dt.items(): flag("RAW.DISPATCH", f"target {k} dispatched {n}× (retry must be ledgered)", None, target=k, n=n)
         for t in out: flag("RAW.DISPATCH", f"dispatched target {t} outside the frozen 50", "target_outside_manifest", target=t)
         checks["RAW.DISPATCH"] = {"status": "FLAG" if (dk or dt or out) else "PASS", "n_items": len(disp), "dispatched_unique": len({d.get("target_id") for d in disp}), "of": 50, "dup_keys": dk, "dup_targets": dt, "outside": out, "unparsable_lines": d_bad}
@@ -223,13 +230,16 @@ def main():
         zero = sorted({r.get("target_id") for r in raw_m if run_of(r) == "R1" and (r.get("terminal_reason") == "COLLECTOR_ZERO_CANDIDATE" or r.get("route_diagnosis") == "COLLECTOR_ZERO_CANDIDATE" or r.get("candidate_count") == 0)})
         # criterion source: raw label OR the mart relabel (TBX-013 R74 was applied in the mart); R2 evidence = manifest lines OR dirs under the -R2 run root
         zero = sorted(set(zero) | {r.get("target_id") for r in rows if str(r.get("terminal_reason") or "").strip() == "COLLECTOR_ZERO_CANDIDATE"})
+        # R97 (TBX-018): criterion widened AFTER partial results (recorded as such) — union with ② attempt_status ERROR whose error is click_failed / Page.goto
+        err2 = sorted({r.get("target_id") for r in rows if str(r.get("attempt_status") or "").strip() == "ERROR" and re.search(r"click_failed|Page\.goto|page\.goto", str(r.get("experienced_flow_sequence") or "") + str(r.get("missing_reason") or ""))})
+        zero_union = sorted(set(zero) | set(err2)); zero_narrow = zero; zero = zero_union
         r2_dirs = sorted(os.path.basename(d_) for d_ in glob.glob(str(RUN_ROOT) + "-R2/*") if os.path.isdir(d_))
         r2 = sorted({r.get("target_id") for r in raw_m if run_of(r) == "R2"} | set(r2_dirs)); r2_open = bool(r2)
         missing_r2 = [t for t in zero if t not in r2]; extra_r2 = [t for t in r2 if t not in zero]
         if r2_open and missing_r2: flag("RAW.R2_COVERAGE", f"{len(missing_r2)}/{len(zero)} COLLECTOR_ZERO_CANDIDATE targets have no R2 line — at freeze this is an outcome-based selection (R82)", None, missing=missing_r2)
         for t in extra_r2: flag("RAW.R2_COVERAGE", f"R2 line for {t} whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion", "task_or_outcome_leakage", target=t)
         checks["RAW.R2_COVERAGE"] = {"status": ("NOT_TESTABLE" if not zero and not r2 else "FLAG" if (r2_open and missing_r2) or extra_r2 else "PASS" if r2_open else "PENDING_R2_NOT_OPENED"),
-                                    "n_items": len(zero) + len(r2), "eligible_by_criterion": len(zero), "re_measured": len(r2), "r2_dirs_on_disk": len(r2_dirs), "r2_manifest_lines": sum(1 for r in raw_m if run_of(r) == "R2"), "missing": missing_r2, "outside_criterion": extra_r2,
+                                    "n_items": len(zero) + len(r2), "eligible_by_criterion": len(zero), "eligible_R82_narrow": len(zero_narrow), "eligible_R97_error_branch": len(err2), "criterion_history": "R82 narrow (COLLECTOR_ZERO_CANDIDATE) → R97 union with ERROR click_failed/Page.goto, widened after partial results (TBX-018)", "re_measured": len(r2), "r2_dirs_on_disk": len(r2_dirs), "r2_manifest_lines": sum(1 for r in raw_m if run_of(r) == "R2"), "missing": missing_r2, "outside_criterion": extra_r2,
                                     "rule": "criterion = R1 candidate_count==0 / COLLECTOR_ZERO_CANDIDATE (mechanical, fixed before results); run detection = '-R2' in evidence_dir/idempotency_key"}
     # --- forbidden-action presence probe over raw dirs
     dirs = [d for d in glob.glob(str(RUN_ROOT / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0; exec_hits = []

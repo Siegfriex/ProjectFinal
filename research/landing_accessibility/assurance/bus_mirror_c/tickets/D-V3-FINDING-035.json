@@ -1,0 +1,114 @@
+{
+ "ticket_id": "D-V3-FINDING-035",
+ "type": "FINDING",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "fce00fe56bee68d4a852dd17fe91f8e3c97fe3c0",
+ "in_response_to": [
+  "T-A-V3-TBX-016",
+  "T-A-V3-TBX-015",
+  "C-ASSURANCE-112924"
+ ],
+ "measured_at_kst": "2026-08-28T11:34:22+09:00",
+ "headline": "CANONICAL_MART_50 분석 — claim 후보 4건. 그중 하나는 **주의 요함**: label_relation 은 50/50 채워졌으나 두 라벨을 실제로 비교한 것은 3건뿐이다",
+ "the_measurement": {
+  "mart_pin": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/mart/CANONICAL_MART_50.csv",
+   "sha256": "bce7850126643977fdc6d554448a33fded879bed61ad398c12d8d8b52b9b671a",
+   "bytes": 24504,
+   "optional_present": [
+    "entry_observation_provenance"
+   ]
+  },
+  "data_state": "COMPLETE_50_ROWS_50_EVIDENCE",
+  "R78_분모": {
+   "denominator_frozen": 50,
+   "rows_present": 50,
+   "attempted": 50,
+   "not_attempted": 0,
+   "evidence_adequate": 50,
+   "completed": 6,
+   "failed": 44,
+   "unaccounted": 0,
+   "split_note": "R74 — 수집기의 0 과 사이트의 사실을 분리한다. `NOT_YET_SPLIT` 은 옛 `NO_SAFE_ROUTE` 라벨이며 **어느 쪽인지 모른다** — D 가 임의로 배분하지 않는다",
+   "classification_note": "R78 적용. 목록 밖 상태가 나오면 unaccounted 가 0 이 아니게 되어 드러난다"
+  },
+  "R74_split": {
+   "collector_observation": 21,
+   "site_observation": 16,
+   "NOT_YET_SPLIT": 0
+  },
+  "axes_not_observed": [
+   "entry_x_norm",
+   "entry_y_norm",
+   "entry_zone",
+   "reveal_direction",
+   "task_control_occlusion"
+  ],
+  "axis_coverage": {
+   "entry_x_norm": "AXIS_NOT_OBSERVED",
+   "entry_y_norm": "AXIS_NOT_OBSERVED",
+   "entry_zone": "AXIS_NOT_OBSERVED",
+   "entry_control_type": "26/50",
+   "nav_container_type": "26/50",
+   "reveal_direction": "AXIS_NOT_OBSERVED",
+   "menu_dependency": "50/50",
+   "auth_gate_stage": "8/50",
+   "activation_depth": "50/50",
+   "visible_label": "4/50",
+   "accessible_name": "28/50",
+   "label_relation": "50/50",
+   "task_control_occlusion": "AXIS_NOT_OBSERVED",
+   "experienced_flow_sequence": "50/50"
+  },
+  "figures": {
+   "fig1_coverage_terminal": "c2cac08180058495f9a16197da58ddf6705a4962af554c302558385f12f5b763",
+   "fig2_entry_spatial_map": "bdc05fe3bc7d6a43a5087cffc3d931bd2cf795b8e2089881250df988a3e7ca68",
+   "fig3_entry_implementation": "77047470370d83fd8b36994582ec2f77d4e8c595eb2136e987c9365d8ea86554",
+   "fig4_activation_depth": "aef49d946edc0653091ff913443b1051a89e4dc75de92637267aa9b97559cae1",
+   "fig5_label_divergence": "a150e2a967e59f14ff273801c845eb37bddae745fd9a0e4905be9de71cf46cb7",
+   "fig6_sequence_divergence": "16cd4d6738cd4f95b8b20206acbd0a3e07255550631b54c488f9b379888354ed"
+  }
+ },
+ "claim_candidates": [
+  {
+   "id": "D-CLAIM-01",
+   "axis": "coverage",
+   "statement": "frozen 50 전수 attempt 완료. endpoint 도달 6/50, 미도달 44/50."
+  },
+  {
+   "id": "D-CLAIM-02",
+   "axis": "failure decomposition — R74/R86",
+   "statement": "미도달 44 중 **수집기 관측 21 · 사이트 관측 16**. 두 값을 합치면 분모가 사이트 탓을 한다."
+  },
+  {
+   "id": "D-CLAIM-03",
+   "axis": "spatial — 산출 불가",
+   "statement": "`entry_x_norm`·`entry_y_norm`·`entry_zone`·`reveal_direction` 은 **0/50** 이다. 이번 census 에서 공간 표현 축은 산출되지 않았다."
+  },
+  {
+   "id": "D-CLAIM-04",
+   "axis": "label divergence — 주의 요함",
+   "statement": "`label_relation` 은 50/50 채워져 있으나 **두 라벨을 실제로 비교한 것은 3건(DIFFERENT)뿐**이다. 나머지 47 은 한쪽 또는 양쪽의 **부재를 기록한 것**이다."
+  }
+ ],
+ "가장_주의할_것": "`label_relation` 50/50 은 **관측 유무의 함수**이지 의미 비교가 아니다. 교차표: visible없음·ax있음→AX_ONLY 25 · 둘다없음→NONE 21 · 둘다있음→DIFFERENT 3 · visible있음·ax없음→VISIBLE_ONLY 1. **분포로 제시하면 부재가 관계로 보인다**",
+ "A_판정에_대한_실측_정정": "A 는 R75 에서 'AX 가 비면 label divergence(D02) 산출 불가' 라 했다. 실측은 반대다 — `accessible_name` 28/50 인데 `visible_label` 이 4/50 이다. **제약은 AX 쪽이 아니라 visible label 쪽이다.** 비교 가능한 쌍은 3/50",
+ "D_자기결함": "D-DEF-37 — `entry_zone` 23건이 전부 `NOT_OBSERVABLE_FROM_STATIC_DOM` 인데 23/50 관측으로 세어졌다(실제 0/50). **C 가 맞고 D 가 틀렸다.** 손 토큰 목록이 네 번 뒤처진 결과이며, 판정을 목록에서 패턴·형변환으로 바꿨다(R62). 그대로 갔으면 없는 공간분포를 그렸을 것이다 — R87 이 금지한 그 형태",
+ "R87_이행": "입력 0 인 5축은 렌더하지 않고 AXIS_NOT_OBSERVED 로 표시한다(entry_x/y_norm·entry_zone·reveal_direction·task_control_occlusion)",
+ "for_C": "대조 가능한 것 — (a) 분모 4종과 unaccounted 0 (b) collector 21 vs site 16 분리 (c) axis_coverage 9축 (d) label 교차표 4칸. D 는 C 재계산과 이미 6축에서 일치했고 3축은 B 갱신분 차이다",
+ "limitation": "공간 표현 축이 통째로 0/50 이라 fig2 는 분포를 내지 못한다. Gower clustering 은 feature 절반이 비어 지금 돌리면 family identity 만 학습하므로 A 의 축소 지시를 기다린다",
+ "not_a_verdict": "claim 후보다. C 가 재계산하고 A 가 freeze 한다",
+ "created_at_kst": "2026-08-28T11:35:15+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

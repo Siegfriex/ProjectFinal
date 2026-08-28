@@ -1,17 +1,17 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T11:33:52+09:00",
+ "measured_at_kst": "2026-08-28T11:35:35+09:00",
  "state": "CANONICAL_50_SEEN",
  "checker": {
-  "commit": "2f346b044d9ba62d162abe99bc87a70057b9b637",
+  "commit": "526acf85f73695e6297fab868985371aab8316c8",
   "census_qc_c_sha256": "80a598ffe2c61b8644829223ba5b61e0c306a4a837fc8caa3073ba654d063df5",
-  "census_stream_c_sha256": "6bb890908ed2c798f3c7c7dc2dfc69fa5c5b04df11d0516a5fbbaa94e4b3d593",
+  "census_stream_c_sha256": "5ff7716f08ca3dd06346a8040e62c3f1732746e4ed44fdc2f1bfd45b2f2dc624",
   "checker_frozen": "43d7d4da52e0403a2b76d1322a170678e97a6f03"
  },
  "inputs": {
   "mart": "CANONICAL_MART_50",
-  "mart_sha256": "bce7850126643977fdc6d554448a33fded879bed61ad398c12d8d8b52b9b671a",
-  "mart_bytes": 24504,
+  "mart_sha256": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
+  "mart_bytes": 26245,
   "mart_rows": 50,
   "evidence_manifest_lines": 72,
   "dispatch_lines": 72,
@@ -243,10 +243,12 @@
   },
   "MART.COLUMNS": {
    "status": "FLAG",
-   "n_items": 24,
+   "n_items": 26,
    "missing": [],
    "extra": [
-    "entry_observation_provenance"
+    "collection_run",
+    "entry_observation_provenance",
+    "superseded_runs"
    ]
   },
   "MART.BLANKS": {
@@ -254,6 +256,16 @@
    "n_items": 1150,
    "blank_columns": {},
    "undetermined_without_reason": 0
+  },
+  "MART.COLLECTION_RUN": {
+   "status": "REPORT",
+   "n_items": 50,
+   "distribution": {
+    "E-REAL-CENSUS-1230": 20,
+    "E-REAL-CENSUS-1230-R3": 8,
+    "E-REAL-CENSUS-1230-R2": 22
+   },
+   "note": "R98: R1-only vs R1+R2 targets must be visible"
   },
   "MART.ATTEMPT_STATUS_VALUES": {
    "status": "REPORT",
@@ -268,12 +280,12 @@
   "MART.CANONICAL_50": {
    "status": "PASS",
    "n_items": 1,
-   "file_sha256_recomputed": "bce7850126643977fdc6d554448a33fded879bed61ad398c12d8d8b52b9b671a",
+   "file_sha256_recomputed": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
    "declared": {
-    "file_sha256": "bce7850126643977fdc6d554448a33fded879bed61ad398c12d8d8b52b9b671a",
+    "file_sha256": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
     "row_count": 50,
-    "frozen_at_kst": "2026-08-28T11:32:57+09:00",
-    "b_head_sha": "56d71af114a57c0e91adc08e791b46888f51d141",
+    "frozen_at_kst": "2026-08-28T11:35:11+09:00",
+    "b_head_sha": "f444a7299bf4bb31a15bfb32fcfb148b5e40424b",
     "manifest_file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
     "manifest_body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
     "promoted": 50,
@@ -339,7 +351,13 @@
     },
     "label_relation_provenance": "B_RECOMPUTED_BY_RULE_TBX_017",
     "auth_gate_stage_rule": "`NONE` 은 `ENDPOINT_REACHED` 행에서만. endpoint 에 닿지 못한 행은 `UNDETERMINED` — 게이트 부재를 주장할 수 없다",
-    "supersedes": "0deaed787bb5b6e00c093ac5303b6b3c83d2c950f6877568c3a16bd7d1c42ea7",
+    "supersedes": "33f6ac624432d8570ca22dd3a6db92d0a21588fcbe71a5df9d843f976e5c8b2a",
+    "collection_run_distribution": {
+     "E-REAL-CENSUS-1230": 20,
+     "E-REAL-CENSUS-1230-R3": 8,
+     "E-REAL-CENSUS-1230-R2": 22
+    },
+    "run_mixing_note": "**target 마다 수집 회차가 다르다.** 최신-run 우선 규칙은 결과에 눈감고 적용되지만, R2/R3 가 부분집합에만 있으므로 **두 수집 체제가 target 별로 섞여 있다.** `collection_run` 으로 어느 회차 산물인지 행마다 확인할 수 있다",
     "self_approved": false
    },
    "rows": 50
@@ -407,7 +425,7 @@
    "of": 50,
    "chain_breaks": 0,
    "changed_lines_vs_previous_run": [],
-   "previous_run_lines": 65,
+   "previous_run_lines": 72,
    "unparsable_lines": [],
    "non_canonical_terminal": []
   },
@@ -423,7 +441,7 @@
    "problems": 132,
    "by_kind": {
     "NULL_WITHOUT_MISSING_REASON": 88,
-    "IDEMPOTENCY_KEY_DUP": 22,
+    "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)": 22,
     "TARGET_MULTI_LINE_REPORT": 22
    },
    "control": "raw_contract_controls() PASS in this run",
@@ -433,6 +451,9 @@
    "status": "FLAG",
    "n_items": 43,
    "eligible_by_criterion": 21,
+   "eligible_R82_narrow": 21,
+   "eligible_R97_error_branch": 0,
+   "criterion_history": "R82 narrow (COLLECTOR_ZERO_CANDIDATE) → R97 union with ERROR click_failed/Page.goto, widened after partial results (TBX-018)",
    "re_measured": 22,
    "r2_dirs_on_disk": 22,
    "r2_manifest_lines": 22,
@@ -497,159 +518,159 @@
  "flags": [
   {
    "check": "MART.COLUMNS",
-   "message": "mart columns differ from the 23 fixed by TBX-006: missing [] extra ['entry_observation_provenance']",
+   "message": "mart columns differ from the 23 fixed by TBX-006: missing [] extra ['collection_run', 'entry_observation_provenance', 'superseded_runs']",
    "systemic_candidate": null
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F1-04::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47 dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F1-04::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47 dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F1-04::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F1-08::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47 dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F1-08::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47 dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F1-08::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F5-01::040f07bd630089410c43be8d91592618e8a67b650722170d5969d80205849bb6 dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F5-01::040f07bd630089410c43be8d91592618e8a67b650722170d5969d80205849bb6 dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F5-01::040f07bd630089410c43be8d91592618e8a67b650722170d5969d80205849bb6",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-01::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F3-01::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F3-01::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-03::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F4-03::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F4-03::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-04::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F3-04::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F3-04::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-05::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F3-05::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F3-05::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-04::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F4-04::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F4-04::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-02::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F2-02::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F2-02::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-05::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F2-05::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F2-05::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-09::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F3-09::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F3-09::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-10::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F3-10::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F3-10::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-06::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F4-06::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F4-06::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "message": "idempotency_key E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
@@ -1426,155 +1447,155 @@
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F1-04::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F1-08::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F5-01::040f07bd630089410c43be8d91592618e8a67b650722170d5969d80205849bb6",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-01::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-03::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-04::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-05::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-04::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-02::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-05::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-09::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-10::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-06::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.CONTRACT_TBX011",
-   "message": "IDEMPOTENCY_KEY_DUP",
-   "systemic_candidate": "duplicate_launch",
+   "message": "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
@@ -2416,6 +2437,54 @@
     "mart_rows": 50,
     "evidence_manifest_lines": 65,
     "dispatch_lines": 65,
+    "ingest_lines": 50,
+    "raw_target_dirs": 50
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:33:52+09:00",
+   "state": "CANONICAL_50_SEEN",
+   "summary": {
+    "checks_pass": 10,
+    "checks_flag": 5,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 215,
+    "systemic_candidates": [
+     "duplicate_launch",
+     "task_or_outcome_leakage"
+    ]
+   },
+   "inputs": {
+    "mart": "CANONICAL_MART_50",
+    "mart_sha256": "bce7850126643977fdc6d554448a33fded879bed61ad398c12d8d8b52b9b671a",
+    "mart_bytes": 24504,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 72,
+    "dispatch_lines": 72,
+    "ingest_lines": 50,
+    "raw_target_dirs": 50
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:35:13+09:00",
+   "state": "CANONICAL_50_SEEN",
+   "summary": {
+    "checks_pass": 10,
+    "checks_flag": 5,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 215,
+    "systemic_candidates": [
+     "duplicate_launch",
+     "task_or_outcome_leakage"
+    ]
+   },
+   "inputs": {
+    "mart": "CANONICAL_MART_50",
+    "mart_sha256": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
+    "mart_bytes": 26245,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 72,
+    "dispatch_lines": 72,
     "ingest_lines": 50,
     "raw_target_dirs": 50
    }
