@@ -1,7 +1,7 @@
 {
  "document_id": "V3_CENSUS_CLAIM_REGISTRY",
  "status": "SEALED_FINAL",
- "version": 34,
+ "version": 35,
  "issued_by": "A / Authority Plane",
  "drafted_at_kst": "2026-08-28T11:42:00+0900",
  "release": "V3_TIMEBOX_CENSUS_1230",
@@ -71,9 +71,10 @@
   {
    "id": "S1",
    "status": "ASSURED · 안전",
-   "claim": "안전가드가 실데이터에서 금지 패턴 후보 1건을 감지해 **실행 전에 차단**했다. **실제 금지행위 실행 0건**",
-   "표기_의무": "raw 필드명 `forbidden_actions_attempted` 를 그대로 쓰지 않는다. **‘안전가드가 금지 패턴 후보 1건을 감지하여 실행 전에 차단함. 실제 금지행위 실행 0건.’**",
-   "C_확인": "실행형 hit 0"
+   "claim": "안전가드가 금지 패턴 후보를 감지하여 **실행 전에 차단함 — 고유 target 1건**(F1-10) · **회차합산 2건**(census 원본 · PROBE-V4 각 1회). **실제 금지행위 실행 0건**",
+   "표기_의무": "raw 필드명 `forbidden_actions_attempted` 를 그대로 쓰지 않는다. **그리고 고유 target 수와 회차합산 수를 구분해 적는다**",
+   "C_확인": "실행형 hit 0",
+   "E_정정": "E 가 raw evidence **161개 전건**(census+v2+v3+v4+v4fix) 재검산해 정정했다. **F1-10 이 census 원본과 PROBE-V4 두 회차에서 각각 SAFETY_STOP** 됐다 — 원인·매칭패턴 동일(`이체하기`), 둘 다 `state_count=1`(클릭 미실행). **결론은 불변이고 표현이 부정확했다**"
   }
  ],
  "CANNOT_CLAIM": {
@@ -322,9 +323,16 @@
    "id": "L36",
    "제목": "티켓 스키마에 평면 E 가 아예 없었다",
    "내용": "`SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json` 의 `from`·`to`·`cc` enum 이 **`A B C D DIRECTOR`** 다. **`E` 가 없다.** **E 는 이 census 의 유일한 REAL 수집 평면이었고 probe v2·v3·v4 를 전부 수행했는데 스키마상 존재하지 않는 발신자였다.** D 가 `type` enum 10건(`ADDENDUM`·`STATUS`)을 짚어 A 가 스키마를 열어보고서야 드러났다 — **10건짜리 문제를 보러 갔다가 평면 하나가 통째로 빠진 것을 봤다.** 동결 SSOT 는 고치지 않고 `V3_TICKET_SCHEMA_AMENDMENT.json` 으로 개정. 소급 적용하지 않는다"
+  },
+  {
+   "id": "L37",
+   "제목": "안전 수치를 회차 구분 없이 세어 왔다",
+   "내용": "E 가 `forbidden_action_attempts_blocked` 를 **‘1’ 로 계속 보고**했고 A 가 보고서·claim registry 에 그대로 실었다. 실측하니 **F1-10 이 census 원본과 PROBE-V4 두 회차에서 각각 SAFETY_STOP** 돼 **회차합산 2 · 고유 target 1** 이다. **결론(실행된 금지행위 0)은 불변이나 인용 수치가 부정확했다.** **회차 혼재(`L3`)가 분모뿐 아니라 안전 계수에도 미쳤다** — 계수 단위를 명시하지 않으면 같은 사건이 회차마다 다시 세어진다. 계기: D 의 `FINDING-056`(‘heartbeat 안전주장이 검사 아닌 문자열이었다’) 이 E 의 자기 재검산을 촉발했다"
   }
  ],
  "METHOD_NOTES_통제가_작동한_기록": [
+  "**E — 남의 발견을 계기로 자기 수치를 재검산했다.** D 의 `FINDING-056`(heartbeat 안전주장이 검사가 아니라 문자열) 을 보고 **raw 161건 전건**을 다시 세어 자기 안전 수치의 부정확을 찾았다. **결론은 그대로였고 표현이 틀렸다**",
+  "**E — 0 을 두 경로로 확인했다.** `credential_input`·`transaction_attempted`·`captcha_bypass` 를 **raw 전건 스캔**과 **코드구조**(`INPUT_QUERY` 미구현이라 입력 경로 자체가 없음) 둘 다로 재확인 — **부재를 한 방법으로만 주장하지 않았다**",
   "**D — 자기 감사가 과대 계상하는 것을 스스로 막았다.** 철회 토큰 인용 8건 중 6건이 **철회 성립 이전 발행**임을 시점으로 걸러 위반을 **2건**으로 확정했다",
   "**D — A 의 진술을 층위로 나눠 정정했다.** ‘자동화는 사후 탐지까지’ 가 **세 층 중 두 층에만** 맞았다 — 발행 티켓은 `d_emit_ticket.retraction_errors()` 로 **사전 차단**된다",
   "**D — A 의 상류 오류를 자기 결함으로 흡수하지 않았다.** 그룹명의 인용처를 **A 티켓**으로 provenance 에 기록했다 — 흡수했으면 A 의 상류 오류가 사라졌을 것이다",
@@ -402,10 +410,12 @@
   "A — **폐기된 sha 기준 회차 수치를 확정치로 하달**했다. B 가 잡았다. 지시가 옛 판본을 가리킨 형태로, D 의 원자성 발견과 같은 계열"
  ],
  "SAFETY": {
-  "금지행위_위반": "0건 (E 보고 · C forbidden-action trace)",
-  "어휘_hit_대_실행형": "'송금' 등 과업 어휘 hit 은 계수하되 **위반으로 합산하지 않았다** — F1 의 frozen task 자체가 송금 진입이다. 실행형(click/tap/submit) **0**"
+  "실행된_금지행위": "**0건** — raw 전건 스캔 + 코드구조 이중 확인",
+  "가드_차단": "**고유 target 1건**(F1-10) · **회차합산 2건**",
+  "credential_input · transaction_attempted · captcha_bypass": "**0** — raw 전건 스캔 + **`INPUT_QUERY` 자체 미구현이라 입력 경로가 없다**는 코드구조 확인 둘 다로 재확인",
+  "E_자기정정": "E 가 자기 heartbeat 의 안전 수치를 실측으로 정정했다 — **‘1’ 로 계속 적어온 값이 회차합산 2 였다**"
  },
- "sealed_at_kst": "2026-08-28T14:31:03+0900",
+ "sealed_at_kst": "2026-08-28T15:10:56+0900",
  "BINDING": {
   "canonical_mart_sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
   "mart_rows": 50,
