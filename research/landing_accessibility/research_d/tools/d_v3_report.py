@@ -209,8 +209,8 @@ def figure4_measurement_boundary(df):
     # [A] 0 만 보이면 "라벨이 하나도 없었다" 로 읽힌다. **채워진 28 을 함께 보인다** —
     # 두 수의 차이가 곧 "mart 가 경고를 값으로 들고 있었다" 는 사실이다.
     filled_both = int(sum(1 for _, r in df.iterrows()
-                          if not C.is_missing(r["visible_label"])
-                          and not C.is_missing(r["accessible_name"])))
+                          if not C.is_missing(r["visible_label"], "visible_label")
+                          and not C.is_missing(r["accessible_name"], "accessible_name")))
     fig, ax = plt.subplots(figsize=(10.5, 4.6))
     for i, (label, v) in enumerate(stages):
         w = v / C.N_TOTAL

@@ -76,8 +76,8 @@ def t3_measurement_boundary(df, pin):
     cs = R._cases(df)
     paired = C.independently_paired_labels(df)
     filled_both = int(sum(1 for _, r in df.iterrows()
-                          if not C.is_missing(r["visible_label"])
-                          and not C.is_missing(r["accessible_name"])))
+                          if not C.is_missing(r["visible_label"], "visible_label")
+                          and not C.is_missing(r["accessible_name"], "accessible_name")))
     cov = C.axis_coverage(df)
     rows = [["frozen targets", 50, "manifest v3.0.2"],
             ["attempted", int(len(df)), "전수 시도"],

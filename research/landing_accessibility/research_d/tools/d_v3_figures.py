@@ -156,7 +156,7 @@ def fig2_entry_spatial_map(df):
             axes[0].legend(fontsize=8)
         axes[0].set_xlim(0, 1); axes[0].set_ylim(1, 0)
         axes[0].set_xlabel("entry_x_norm"); axes[0].set_ylabel("entry_y_norm (0=top)")
-        z = Counter(str(v) for v in obs["entry_zone"] if not C.is_missing(v))
+        z = Counter(str(v) for v in obs["entry_zone"] if not C.is_missing(v, "entry_zone"))
         if small or not z:
             axes[1].text(0.5, 0.5,
                          "n=%d — individual points only\nNO DISTRIBUTION, NO FAMILY COMPARISON\n(A R106)"
@@ -191,7 +191,7 @@ def fig3_entry_implementation(df):
     fig, axes = plt.subplots(1, len(cols), figsize=(17, 3.8))
     cov = C.axis_coverage(df)
     for ax, c in zip(axes, cols):
-        vals = Counter(str(v) for v in df[c] if not C.is_missing(v)) if len(df) else Counter()
+        vals = Counter(str(v) for v in df[c] if not C.is_missing(v, c)) if len(df) else Counter()
         if len(df) and cov.get(c, {}).get("state") == "AXIS_NOT_OBSERVED":
             _axis_absent(ax, c, cov)          # 관측 0 — 빈 막대가 아니라 부재로 표시
         elif not vals:
@@ -244,15 +244,15 @@ def fig5_label_divergence(df):
                 [r for r in rel if r not in C.LABEL_RELATIONS]
         axes[0].bar(order, [rel[r] for r in order], color="indianred")
         axes[0].tick_params(axis="x", rotation=40, labelsize=7)
-        vl = Counter(str(v) for v in df["visible_label"] if not C.is_missing(v))
-        ax_ = Counter(str(v) for v in df["accessible_name"] if not C.is_missing(v))
+        vl = Counter(str(v) for v in df["visible_label"] if not C.is_missing(v, "visible_label"))
+        ax_ = Counter(str(v) for v in df["accessible_name"] if not C.is_missing(v, "accessible_name"))
         axes[1].bar(["visible_label", "accessible_name"], [len(vl), len(ax_)], color="slategray")
         axes[1].set_ylabel("distinct vocabulary size")
         fams = sorted(df["family_id"].astype(str).unique())
         div = []
         for f in fams:
             s = df[df["family_id"].astype(str) == f]
-            v = {str(x) for x in s["visible_label"] if not C.is_missing(x)}
+            v = {str(x) for x in s["visible_label"] if not C.is_missing(x, "visible_label")}
             div.append(len(v))
         axes[2].bar(fams, div, color="darkkhaki")
         axes[2].set_ylabel("distinct visible labels")
@@ -260,8 +260,8 @@ def fig5_label_divergence(df):
     axes[1].set_title("vocabulary size (visible vs AX)", fontsize=10)
     axes[2].set_title("family label diversity", fontsize=10)
     both = int(sum(1 for _, r in df.iterrows()
-                   if not C.is_missing(r["visible_label"])
-                   and not C.is_missing(r["accessible_name"]))) if len(df) else 0
+                   if not C.is_missing(r["visible_label"], "visible_label")
+                   and not C.is_missing(r["accessible_name"], "accessible_name"))) if len(df) else 0
     fig.text(0.5, 0.93,
              "NOT A SITE-LEVEL FINDING (A R104): both-observed rows = %d/%d.  "
              "AX_ONLY count reflects COLLECTION ASYMMETRY (AX capture broke early), not site behaviour."
@@ -299,7 +299,7 @@ def fig6_sequence_divergence(df):
     else:
         for ax, f in zip(axes, fams):
             s = df[df["family_id"].astype(str) == f]
-            seqs = [str(v).split("|") if not C.is_missing(v) else None
+            seqs = [str(v).split("|") if not C.is_missing(v, c) else None
                     for v in s["experienced_flow_sequence"]]
             k = len(seqs)
             M = [[float("nan")] * k for _ in range(k)]

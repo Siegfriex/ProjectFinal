@@ -1,7 +1,7 @@
 {
  "artifact": "D_DEFECT_LEDGER",
  "produced_at_kst": "2026-08-28T09:51:38+09:00",
- "measured_at_kst": "2026-08-28T13:44:16+09:00",
+ "measured_at_kst": "2026-08-28T13:51:16+09:00",
  "d_head": "0074449403193d8dbb4d515fced3d5dc5fa15d96",
  "plane": "D",
  "claim_kind": "OBSERVATION",
@@ -320,7 +320,29 @@
    "독립_재계산_결과": "whitelist 로 다시 센 15개 열이 **C 의 정정값과 전부 일치**한다 (visible_label 29 · accessible_name 28 · label_relation 0 · x/y/zone 8 · control 27 · nav 26 · reveal 0 · menu/depth 50 · auth 8 · occlusion 0)",
    "control": "미관측을 열거하지 말고 **관측을 열거한다**. 열거할 수 없는 열(자유 문자열·수치)에서만 판정식을 쓴다",
    "family": "'채워진 것을 관측된 것으로 센다' 족의 여섯 번째. 이번엔 **검사 방식 자체**가 원인이었다",
-   "escaped": true
+   "escaped": true,
+   "행위_유효성_측정": {
+    "무엇을_쟀나": "위임 전후 census 23개 축의 coverage 를 대조했다. **byte-identical 이면 행위 무효**다 [A R146]",
+    "바뀐_축": {
+     "terminal_reason": "50→48",
+     "label_relation": "50→0",
+     "entry_control_type": "28→27",
+     "nav_container_type": "27→26"
+    },
+    "산출물까지_전파": "T3_measurement_boundary.csv 의 `axis: entry_control_type` 이 28/50 → 27/50 으로 바뀌었다 — 표까지 갔다",
+    "검사_축": "D 의 세 층 중 **행위 유효성** — D 가 0 이던 층이다"
+   },
+   "발행_전_자체검출": {
+    "무엇": "whitelist 첫 판에 `NO_[A-Z_]+` 를 미관측 접두로 넣었다가 `NO_SAFE_ROUTE_SITE` 16건을 지웠다 (terminal_reason 50→32)",
+    "왜_틀렸나": "**접두 규칙은 blacklist 의 재발**이다 — 이름 모양으로 의미를 넘겨짚었고, A R74 가 관측값으로 확정한 값을 지웠다",
+    "어떻게_잡았나": "전후 diff 를 먼저 찍었다. Δ-18 이 설명되지 않아 값을 열어봤다",
+    "교훈": "whitelist 도 틀린다. 방향이 **과소 차단에서 과잉 차단으로** 바뀔 뿐이다 — 대조군을 양방향으로 두었다(16건)"
+   },
+   "unknown_tokens_신호_회복": {
+    "전": "LINK·HEADER 같은 정상값까지 전부 unknown 으로 나와 신호가 묻혔다. AMBIGUOUS_MULTIPLE_TYPES 도 목록에 **있었는데 판정에 쓰이지 않았다**",
+    "후": "AX_NOT_INDEPENDENTLY_OBSERVED 28 · NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT 2 · VISIBLE_ONLY 1 · AMBIGUOUS_MULTIPLE_TYPES 1 · AMBIGUOUS_MULTIPLE_CONTAINERS 1 — 전부 미관측 토큰",
+    "요점": "**보이게 만드는 것과 막는 것은 다르다.** 이 검사는 D-DEF-45 를 보고 있었지만 막지 않았다"
+   }
   }
  ],
  "caught_pre_emission": [

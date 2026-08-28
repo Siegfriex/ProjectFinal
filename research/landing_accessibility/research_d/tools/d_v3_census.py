@@ -117,7 +117,15 @@ _MISSING_PAT = re.compile(
     r"(NOT_OBSERV|UNOBSERV|NOT_OBSERVABLE|UNDETERMINED|NOT_YET|NA_NUMERIC|NOT_SEPARABLE)")
 
 
-def is_missing(v) -> bool:
+def is_missing(v, col: str | None = None) -> bool:
+    """[D-DEF-45] `col` 을 주면 **열별 허용값 집합**으로 판정한다.
+
+    패턴(blacklist)은 새 토큰이 생길 때마다 뚫렸다 — `AMBIGUOUS_MULTIPLE_TYPES`
+    가 마지막이다. `col` 없는 호출은 옛 경로이며 **뚫린 채로 남는다**.
+    """
+    if col is not None:
+        import d_coverage as _cov
+        return not _cov.is_observed(col, "" if v is None else str(v))
     t = "" if v is None else str(v).strip()
     if t == "" or t in MISSING_TOKENS:
         return True
@@ -150,7 +158,7 @@ def denominators(df) -> dict:
         # NOT_ATTEMPTED 는 attempted 에 세지 않는다. 분모(frozen)는 그대로 유지된다.
         from collections import Counter
         ea = int(sum(1 for _, r in sub.iterrows()
-                     if not is_missing(r["evidence_hash"])))
+                     if not is_missing(r["evidence_hash"], "evidence_hash")))
         st = [str(r["attempt_status"]).strip().upper() for _, r in sub.iterrows()]
         not_att = sum(1 for x in st if x == NOT_ATTEMPTED_TOKEN)
         attempted = len(st) - not_att
@@ -200,7 +208,7 @@ def data_state(df) -> str:
     n = len(df)
     if n == 0:
         return "NO_DATA"
-    ea = int(sum(1 for _, r in df.iterrows() if not is_missing(r["evidence_hash"])))
+    ea = int(sum(1 for _, r in df.iterrows() if not is_missing(r["evidence_hash"], "evidence_hash")))
     if ea == 0:
         return f"SKELETON_{n}_ROWS_0_EVIDENCE"
     if ea >= N_TOTAL:
@@ -209,16 +217,28 @@ def data_state(df) -> str:
 
 
 def unknown_tokens(df) -> dict:
-    """MISSING_TOKENS/STATUS_TOKENS 어디에도 없는 대문자 토큰을 **센다**.
+    """어느 목록에도 없는 대문자 토큰을 센다.
 
-    [A R62] 손으로 유지하는 포함/제외 목록은 썩는다. 목록을 늘리는 대신,
-    목록 밖의 것이 **보이게** 만든다 — 모르는 토큰이 조용히 값으로 새는 것을 막는다.
+    [A R62] 손으로 유지하는 목록은 썩는다. 목록 밖의 것이 **보이게** 만든다.
+
+    [D-DEF-45] **이 검사는 D-DEF-45 를 막지 못했다.** 알려진 *관측값* 목록이
+    없어서 `LINK`·`HEADER` 같은 정상값까지 전부 unknown 으로 나왔고, 신호가
+    묻혔다. `AMBIGUOUS_MULTIPLE_TYPES` 도 목록에 있었지만 **세기만 하고 판정에
+    쓰지 않았다** — 보이게 만드는 것과 막는 것은 다르다.
+
+    이제 `d_coverage.OBSERVED_VALUES` 를 알려진 값으로 빼고 센다. 남는 것이
+    **정말 모르는 토큰**이고, 그것은 곧 다음에 뚫릴 자리다.
     """
+    import d_coverage as _cov
     import re
-    known = set(MISSING_TOKENS) + set() if False else set(MISSING_TOKENS) | set(STATUS_TOKENS)
+    known = set(MISSING_TOKENS) | set(STATUS_TOKENS)
+    for _vals in _cov.OBSERVED_VALUES.values():   # 알려진 **관측값** 도 known 이다
+        known |= set(_vals)
     pat = re.compile(r"^[A-Z][A-Z0-9_]{2,59}$")
     seen = {}
     for c in COLUMNS:
+        if c in _cov.IDENTIFIER:      # 서비스명·식별자는 토큰이 아니다 (SRT·KOBUS)
+            continue
         for v in df[c]:
             t = str(v).strip()
             if pat.match(t) and t not in known:
@@ -345,7 +365,8 @@ def independently_paired_labels(df) -> int:
     """
     n = 0
     for _, r in df.iterrows():
-        if is_missing(r["visible_label"]) or is_missing(r["accessible_name"]):
+        if (is_missing(r["visible_label"], "visible_label")
+                or is_missing(r["accessible_name"], "accessible_name")):
             continue
         if str(r.get("label_relation", "")).strip() == AX_NOT_INDEPENDENT:
             continue
@@ -365,7 +386,7 @@ def axis_coverage(df) -> dict:
         if c not in df.columns:
             out[c] = {"observed": 0, "n": n, "state": "COLUMN_ABSENT"}
             continue
-        pred = numeric_observed if c in NUMERIC_AXES else (lambda x: not is_missing(x))
+        pred = numeric_observed if c in NUMERIC_AXES else (lambda x, _c=c: not is_missing(x, _c))
         k = int(sum(1 for v in df[c] if pred(v)))
         out[c] = {"observed": k, "n": n,
                   "state": "AXIS_NOT_OBSERVED" if k == 0 else f"{k}/{n}"}

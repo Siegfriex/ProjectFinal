@@ -30,7 +30,23 @@ OBSERVED_VALUES = {
     "reveal_direction": frozenset({"DOWN", "UP", "LEFT", "RIGHT", "OVERLAY", "NONE"}),
     "task_control_occlusion": frozenset({"TRUE", "FALSE", "True", "False"}),
     "menu_dependency": frozenset({"TRUE", "FALSE", "True", "False"}),
+    # [A R74] 수집기의 0 과 사이트의 사실은 **둘 다 관측**이다. 합치면 분모가 사이트 탓을 한다.
+    # `NO_SAFE_ROUTE_SITE` 의 **SITE 라벨은 R132/R137 로 철회**됐다 — 값은 남고
+    # 인용하는 쪽이 RETRACTED 를 붙인다. 종료 사유가 기록됐다는 사실 자체는 관측이다.
+    # `..._UNVERIFIED_CANDIDATE_COUNT` 는 이름이 미검증을 말한다 — 미관측이다.
+    "terminal_reason": frozenset({"COLLECTOR_ZERO_CANDIDATE", "ENDPOINT_REACHED",
+                                  "AUTH_GATE", "FORBIDDEN_ACTION_BOUNDARY",
+                                  "NO_SAFE_ROUTE_SITE", "NO_SAFE_ROUTE", "TIMEOUT"}),
+    "attempt_status": frozenset({"TERMINAL_NO_ENDPOINT", "ENDPOINT_REACHED", "ERROR"}),
+    "collector_plane": frozenset({"A", "B", "C", "D", "E"}),
 }
+
+# 식별자 — 값 집합을 적을 수 없고 미관측 토큰도 오지 않는다
+# `evidence_hash` 는 넣지 않는다 — "항상 관측" 으로 두면 **미래에 토큰이 오면 뚫린다**.
+# 형태를 명시하는 것이 whitelist 정신에 맞다.
+IDENTIFIER = ("target_id", "family_id", "service")
+HASHLIKE = ("evidence_hash",)
+_HEX = re.compile(r"^[0-9a-fA-F]{16,}$")
 
 # 값 집합을 못 적는 열 — 자유 문자열/수치. 여기서만 판정식을 쓴다
 FREE_TEXT = ("visible_label", "accessible_name")
@@ -38,7 +54,12 @@ NUMERIC = ("entry_x_norm", "entry_y_norm", "activation_depth")
 
 _TEXT_MISSING = re.compile(
     r"^(NOT_OBSERVED|UNOBSERVED|NOT_OBSERVABLE|UNDETERMINED|NOT_YET|NA_NUMERIC"
-    r"|NOT_SEPARABLE|AMBIGUOUS|AX_NOT_INDEPENDENTLY_OBSERVED|NO_[A-Z_]+)")
+    r"|NOT_SEPARABLE|AMBIGUOUS|AX_NOT_INDEPENDENTLY_OBSERVED)")
+
+# [발행 전 자체 검출] 처음에 `NO_[A-Z_]+` 를 미관측 접두로 넣었다가 `NO_SAFE_ROUTE_SITE`
+# 16건을 지웠다(terminal_reason 50 -> 32). **접두 규칙은 blacklist 의 재발이다** —
+# 이름 모양으로 의미를 넘겨짚은 것이고, A R74 가 관측값으로 확정한 값을 지웠다.
+# 규칙을 없애고 그 열에 허용값 집합을 명시했다.
 
 
 def is_observed(col: str, val: str) -> bool:
@@ -53,6 +74,10 @@ def is_observed(col: str, val: str) -> bool:
             return True
         except ValueError:
             return False
+    if col in IDENTIFIER:
+        return True
+    if col in HASHLIKE:
+        return bool(_HEX.match(v))
     if col in FREE_TEXT:
         return not _TEXT_MISSING.match(v)
     return not _TEXT_MISSING.match(v)
@@ -89,10 +114,23 @@ def controls() -> dict:
     # 5. 수치
     case("좌표 0.42 는 관측", is_observed("entry_x_norm", "0.42"), True)
     case("좌표 NA_NUMERIC 은 미관측", is_observed("entry_x_norm", "NA_NUMERIC_UNOBSERVED"), False)
+    # 6. **과잉 차단** 대조군 — whitelist 도 틀릴 수 있다. 발행 전에 실제로 났다
+    case("NO_SAFE_ROUTE_SITE 는 관측 [A R74] — 접두로 지우면 안 된다",
+         is_observed("terminal_reason", "NO_SAFE_ROUTE_SITE"), True)
+    case("NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT 는 미관측",
+         is_observed("terminal_reason", "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT"), False)
+    case("COLLECTOR_ZERO_CANDIDATE 는 관측(수집기 사실) [A R74]",
+         is_observed("terminal_reason", "COLLECTOR_ZERO_CANDIDATE"), True)
+    case("식별자는 항상 관측", is_observed("service", "KB국민은행"), True)
+    case("evidence_hash 는 해시 형태만 관측",
+         is_observed("evidence_hash", "a3f19c" * 8), True)
+    case("evidence_hash 에 토큰이 오면 미관측",
+         is_observed("evidence_hash", "E_RAW_NOT_YET_RECEIVED"), False)
 
     ok = all(r["ok"] for r in rows)
     return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
             "failed": [r["case"] for r in rows if not r["ok"]], "cases": rows,
+            "양방향":"2번은 **과소 차단**(뚫림), 6번대는 **과잉 차단**(지워버림)을 잡는다. whitelist 도 틀릴 수 있다",
             "왜_이_대조군인가": ("2번이 핵심이다. **아직 없는 토큰**을 넣었을 때 blacklist 는 "
                           "관측으로 세고 whitelist 는 막는다. D 가 실제로 뚫린 방식이다")}
 
