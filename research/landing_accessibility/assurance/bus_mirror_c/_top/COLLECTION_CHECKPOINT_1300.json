@@ -1,0 +1,72 @@
+{
+  "checkpoint": "MIN_N_CHECKPOINT",
+  "scheduled_at": "2026-08-27T13:00:00+09:00",
+  "recorded_at": "2026-08-27T13:04:00+09:00",
+  "recorded_by": "A (Authority Plane, projectfinal-64)",
+
+  "observed": {
+    "attempted_n": 0,
+    "joint_valid_n": 0,
+    "excluded_n": 0,
+    "e000_status": "NOT_STARTED",
+    "e001_status": "NOT_STARTED",
+    "evidence_batches_on_disk": 0,
+    "note": "12:15 COLLECTION_CHECKPOINT_EXPECTED 도 0 이었다. 이 체크포인트는 관측 부재를 기록하는 것이지 관측을 보고하는 것이 아니다."
+  },
+
+  "cause": {
+    "blocker": "REAL_TARGET 실행 경로 미구현",
+    "nature": "결함이 아니라 fail-closed 설계 — P-C 레인이 A0 §4.5(P0 종료 전 real-target 수집 금지)를 코드 수준에서 구현한 결과다. firewall 상수 · l0_collector file:// 전용 · executor 가 official_url 을 읽지 않음 3중.",
+    "discovered_at": "2026-08-27T12:24:00+09:00 (B 자진 보고)",
+    "honest_note": "B 가 그 이전까지 '발사 대기 100%' 로 보고했고 실제로는 아니었다. 숨기지 않고 즉시 올린 것은 옳았으나, 이 갭이 오늘 수집창의 대부분을 소모했다. 교훈은 '준비 완료' 를 실행 경로 실측 후에만 선언하는 것이다.",
+    "b_eta": "12:55~13:10 (B 추정, 관측 근거 첨부). 13:04 현재 미도달."
+  },
+
+  "projection": {
+    "method": "구조 기반 추정. 실측 T 없음 — E000 첫 1~2건에서 확보 예정.",
+    "assumptions": { "T_min_per_target": 3, "workers": 4, "success_rate": 0.7, "frame": 59, "e000_batch_zero": 6 },
+    "scenarios": [
+      { "e001_start": "13:15", "new_target_stop": "13:50", "window_min": 35, "attempted_est": 46, "plus_e000": 52, "joint_valid_est": 36, "grade": "GREEN 경계" },
+      { "e001_start": "13:32", "new_target_stop": "14:00 (연장 분기)", "window_min": 28, "attempted_est": 37, "plus_e000": 43, "joint_valid_est": 30, "grade": "YELLOW" },
+      { "e001_start": "13:45", "new_target_stop": "14:00 (연장 분기)", "window_min": 15, "attempted_est": 20, "plus_e000": 26, "joint_valid_est": 18, "grade": "PRELIMINARY" }
+    ],
+    "most_likely": "e001_start ~13:32 → YELLOW (joint-valid ~30)",
+    "uncertainty": "T 가 추정의 2배(6분)면 모든 시나리오가 한 칸씩 내려간다. 실측이 오면 즉시 갱신한다."
+  },
+
+  "degradation_decision": {
+    "rule": "A0 §17 — 13:00 시점 joint-valid 예상 < 28 이면 subgroup inference 제거",
+    "projected_joint_valid": 30,
+    "threshold": 28,
+    "decision": "SUBGROUP_INFERENCE_RETAINED",
+    "decision_basis": "예상 30 >= 28. 다만 **경계값이며 여유가 없다.**",
+    "conditional_revision": "13:50(또는 연장 시 14:00) frame freeze 시점의 **실제** joint-valid N 으로 재판정한다. 실제가 28 미만이면 그때 subgroup inference 를 제거한다 — 예상이 아니라 실측으로 판정하며, 이 사전 판정이 실측을 덮지 않는다.",
+    "not_done": "표본 목표를 낮추거나 등급 임계를 조정하지 않았다. A0 §17 의 N 기준(GREEN 36 / YELLOW 28 / RED_USABLE 20 / PRELIMINARY <20)은 그대로다."
+  },
+
+  "window_rule_branch": {
+    "rule_doc": ".agent_bus/landing_v2/COLLECTION_WINDOW_RULE.md",
+    "declared_at": "2026-08-27T12:48:00+09:00 — evidence 0건 상태",
+    "branch_determined_by": "E001 실제 개시 시각 (결과와 무관한 값)",
+    "current_expectation": "13:15~13:35 구간 → 새 target 중단 14:00 으로 연장 + 측정 이질성 공시 4의무 발동",
+    "hard_cap": "14:00. 하류(14:10 MART_FREEZE 이후)는 어떤 분기에서도 유지."
+  },
+
+  "integrity_status": {
+    "pilot_diff": 0,
+    "prohibited_actions": 0,
+    "outcome_conditioned_changes": 0,
+    "global_hard_stop_candidates": 0,
+    "c1_open": 0,
+    "note": "수집이 0건이므로 evidence 관련 위반이 원리적으로 없다. 계약·정본 동결은 전부 evidence 0건 상태에서 이뤄졌다."
+  },
+
+  "frozen_before_data": [
+    "ANALYSIS_CONTRACT (joint-valid J1~J4 · FailRate 분모 · archetype 최소N · Spearman 계약 · claim 등급)",
+    "OLDER_RELEVANT_KWCAG_SUBSET sha256 da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e",
+    "E000_FAST_ACCEPTANCE (9항 + 3 추가조건)",
+    "MART_ACCEPTANCE (8항 대조 + 계약 정합)",
+    "COLLECTION_WINDOW_RULE (조건부 연장, 상한 14:00)",
+    "E001_MASTER_PLAN frozen_plan_hash b48be3cb… (59타깃 archetype 층화 4분할)"
+  ]
+}
