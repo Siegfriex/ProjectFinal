@@ -1,7 +1,7 @@
 {
  "artifact": "D_CONTROL_FAILURE_DEMOS",
- "measured_at_kst": "2026-08-28T09:05:45+09:00",
- "d_head": "a902ecca35a89dd3c87d083b82f6e860b7941bc9",
+ "measured_at_kst": "2026-08-28T09:27:57+09:00",
+ "d_head": "449e1b31c35d09f5ea2ba19e29a2c876b62524a2",
  "rule": "Δ41-R35 — 실행으로 실증된 실패 시 동작",
  "demos": {
   "d_input_firewall": {
@@ -12,7 +12,7 @@
    "verdict_as_expected": true,
    "artifact_kept": true,
    "tool": "tools/d_input_firewall.py",
-   "tool_sha256": "6a8a7e2b82a46c723eae8f26bc3f99579ef5bad95e2929aeac98bb3bc2269ef3",
+   "tool_sha256": "5f6cd8115a7428c98ba91a59a9f56ffd9822d7725c7051ae11c9948dc7b63f63",
    "why_this_mutation": "매처가 열리면 금지 경로가 전부 허용된다",
    "expected_behavior": "CONTROL_FAIL 로 기록하고 exit 2",
    "verdict": "PASS"
@@ -25,7 +25,7 @@
    "verdict_as_expected": true,
    "artifact_kept": true,
    "tool": "tools/d_standing_control.py",
-   "tool_sha256": "2ec438e25826437cd5460eecb4e99c15a39c14db81d2e3bbb7caae7b7f8ad4d4",
+   "tool_sha256": "1fd030fd95ef0505cb507e87a2575693618ec9727dedcbb9b0ce65ee30fa8293",
    "why_this_mutation": "_mutate 가 바이트를 안 바꾸면 변형 대조군이 검출하지 못한다",
    "expected_behavior": "CONTROL_FAIL 을 기록하고 exit 3",
    "verdict": "PASS"
@@ -62,6 +62,45 @@
    "expect_exit": 3,
    "verdict": "PASS"
   }
+ },
+ "vacuous_pass_probe": {
+  "axis": "R52 축2 — VACUOUS_PASS (검사 0회로 성공을 내는가)",
+  "verdict": "PASS",
+  "cases": [
+   {
+    "control": "d_input_firewall.run_controls",
+    "expectation": "must_flag",
+    "empty_input_verdict": "FAIL",
+    "protected": true,
+    "mechanism": "SANITY 항목이 금지 패턴 >=10 을 요구한다",
+    "ok": true
+   },
+   {
+    "control": "reconcile_lanes.run_controls",
+    "expectation": "must_flag",
+    "empty_input_verdict": "FAIL",
+    "protected": true,
+    "mechanism": "겹침을 만들어내지 못하면 must_flag 5종이 전부 실패한다",
+    "ok": true
+   },
+   {
+    "control": "d_mlflow.gate_controls",
+    "expectation": "must_flag",
+    "empty_input_verdict": "FAIL",
+    "protected": true,
+    "mechanism": "fixture 하드코딩 6종 — 빈 집합 경로 없음",
+    "ok": true
+   },
+   {
+    "control": "d_emit_ticket.self_test",
+    "expectation": "must_flag",
+    "empty_input_verdict": "FAIL",
+    "protected": true,
+    "mechanism": "불량 fixture 5종이 전부 잡혀야 PASS",
+    "ok": true
+   }
+  ],
+  "note": "여기서 PASS 는 '빈 입력에서 대조군이 통과하지 **않는다**' 는 뜻이다. 구조적 불가능이 아니라 **지금 그 경로가 없다** 는 관측이다 — fixture 를 동적으로 만들면 다시 생긴다."
  },
  "verdict": "PASS"
 }

@@ -108,6 +108,68 @@ DEMOS = [
 ]
 
 
+def vacuous_pass_probe() -> dict:
+    """축 2 (A 의 R52) — **이 대조군은 검사 0회로 통과하는가.**
+
+    축 1(`CAN_FAIL`)만 재면 놓친다. B 의 워커가 찾은 형태다:
+    `verify_retention_manifest` 는 실패할 수 **있는데**, 그 호출이
+    빈 manifest 를 줘서 순회가 0회였다. **함수는 검증했고 검사할 것이 없었다.**
+
+    D 대조군에 같은 자리가 있는지 **입력 집합을 비워서** 잰다.
+    ACK 에 손으로 적었던 측정을 상주화한다 — 손으로 잰 것은 다음에 안 잰다.
+    """
+    import importlib
+    rows = []
+
+    def rec(name, verdict, mechanism):
+        ok = verdict != "PASS"
+        rows.append({"control": name, "expectation": "must_flag",
+                     "empty_input_verdict": verdict, "protected": ok,
+                     "mechanism": mechanism, "ok": ok})
+
+    sys.path.insert(0, str(RD / "tools"))
+    sys.path.insert(0, str(HARNESS))
+
+    import d_input_firewall as _F
+    rec("d_input_firewall.run_controls", _F.run_controls([])["verdict"],
+        "SANITY 항목이 금지 패턴 >=10 을 요구한다")
+
+    import reconcile_lanes as _R
+    _rc = _R.cross_checks
+    try:
+        _R.cross_checks = lambda lanes: []
+        rec("reconcile_lanes.run_controls", _R.run_controls()["verdict"],
+            "겹침을 만들어내지 못하면 must_flag 5종이 전부 실패한다")
+    finally:
+        _R.cross_checks = _rc
+
+    import d_mlflow as _M
+    _g = _M.gate
+    try:
+        _M.gate = lambda *a: (True, "OK")
+        rec("d_mlflow.gate_controls", _M.gate_controls()["verdict"],
+            "fixture 하드코딩 6종 — 빈 집합 경로 없음")
+    finally:
+        _M.gate = _g
+
+    import d_emit_ticket as _E
+    _c = _E.check
+    try:
+        _E.check = lambda t: []
+        rec("d_emit_ticket.self_test", _E.self_test()["verdict"],
+            "불량 fixture 5종이 전부 잡혀야 PASS")
+    finally:
+        _E.check = _c
+
+    ok = all(r["ok"] for r in rows)
+    return {"axis": "R52 축2 — VACUOUS_PASS (검사 0회로 성공을 내는가)",
+            "verdict": "PASS" if ok else "FAIL",
+            "cases": rows,
+            "note": ("여기서 PASS 는 '빈 입력에서 대조군이 통과하지 **않는다**' 는 뜻이다. "
+                     "구조적 불가능이 아니라 **지금 그 경로가 없다** 는 관측이다 — "
+                     "fixture 를 동적으로 만들면 다시 생긴다.")}
+
+
 def main() -> int:
     ts = subprocess.run(["date", "-Iseconds"], capture_output=True,
                         text=True).stdout.strip()
@@ -170,6 +232,12 @@ def main() -> int:
         print(f"  {d['name']:<26} exit={res.get('exit_code')} "
               f"기대={d['expect_exit']} 산출불변={res.get('guarded_files_unchanged')} "
               f"→ {res['verdict']}")
+    vp = vacuous_pass_probe()
+    out["vacuous_pass_probe"] = vp
+    for r in vp["cases"]:
+        print(f"  {'축2 ' + r['control']:<40} 빈입력={r['empty_input_verdict']:<12} "
+              f"보호={'예' if r['protected'] else '** 아니오 **'}")
+    ok &= vp["verdict"] == "PASS"
     out["verdict"] = "PASS" if ok else "FAIL"
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"wrote {OUT.relative_to(RD)}  verdict={out['verdict']}")
