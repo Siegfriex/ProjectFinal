@@ -1503,3 +1503,24 @@ B 가 **내 limitation 이 가리킨 자리**를 찾았다 — `nav_container_ty
 
 **D 쪽 시정**: 사이드카 수치를 상수로 옮겨 적던 것을 **원문 읽기**로 바꿨다 —
 "산문이라 파싱 못 한다" 는 이유가 **구조화 블록 신설로 무효**가 됐다(`D-DEF-110`).
+
+## RQ-D-AXISRECON — 축 전수 대조 (`D-V3-FINDING-100`, P1, D-DEF-111)
+
+한 번에 하나씩 찾던 것을 **전수로** 셌다. **11축 중 4축 · 분쟁 셀 19.**
+
+| 축 | 사이드카 | D | 토큰 |
+|---|---|---|---|
+| `terminal_reason` | 50 | **48** | `NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT` ×2 |
+| `label_relation` | 1 | **0** | `VISIBLE_ONLY` ×1 |
+| `nav_container_type` | 16 | **26** | `NONE` ×10 |
+| `auth_gate_stage` | 2 | **8** | `NONE` ×6 |
+
+**네 축은 세 질문**: ① `NONE`(두 축 **16셀**) ② UNVERIFIED 토큰(2) ③ `VISIBLE_ONLY`(1).
+
+**③ 은 C 정정과 어긋난다** — `C-FACT_CORRECTION-133903` 이 `label_relation 0/50` 으로 정했는데
+사이드카는 `n_observed: 1`. ② 의 근거로 든 TBX-005 목록에는 **그 토큰 이름이 없다**.
+
+**정의 없는 16열은 일치로 세지 않았다**(세면 분모가 부푼다).
+
+**미결**: 그 16열은 **어긋나는지조차 모른다** — 정의를 세우는 것은 조작화라 A 지정 뒤다.
+그리고 이 대조는 **수의 일치**만 본다.
