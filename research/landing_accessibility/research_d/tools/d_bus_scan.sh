@@ -128,8 +128,14 @@ try:
             _kd = (_kn - _kb) if (_kn is not None and _kb is not None) else None
             print(f"   WARN 종류 : {_w['verdict']} · **종류 {_kn}** (baseline {_kb}, Δ{_kd}) "
                   f"· 총수 {_w.get('n_now')}(Δ{_w.get('delta')} — **신호 아님**)")
-            if _w.get("new_references"):
-                print(f"     ** 새 토큰 ** {_w['new_references']}")
+            # [D-DEF-87] `D-DEF-60` 이 토큰을 **해시로** 바꿨는데 표시부는 옛 키를
+            # 계속 읽었다 — `new_references` 는 이제 늘 `None` 이라 **새 토큰이
+            # 생겨도 조용했다**. 실제로 이 회차에 하나 생겼다.
+            if _w.get("new_reference_hashes"):
+                print(f"     ** 새 토큰 해시 ** {_w['new_reference_hashes']} "
+                      f"(원문은 기록하지 않는다 — D-DEF-60)")
+            if _w.get("gone_reference_hashes"):
+                print(f"     사라진 토큰 해시 : {_w['gone_reference_hashes']}")
             if _w.get("new_top_paths"):
                 print(f"     ** 새 경로 ** {_w['new_top_paths']}")
         except Exception as _e2:
