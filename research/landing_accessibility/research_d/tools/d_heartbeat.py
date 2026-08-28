@@ -85,9 +85,11 @@ def _production_touch(base: str, head: str) -> tuple:
     이지 '아무도 production 을 고치지 않았다' 가 아니다. A 가 자기 어휘를
     `REAL_TARGET 누적 0건` → `A_발행_REAL_허가: 없음` 으로 바꾼 것과 같다.
     """
-    PROD = ("research/landing_accessibility/src/", "research/landing_accessibility/control/",
-            "research/landing_accessibility/engine/", "engine/", "v3_runner/",
-            "research/landing_accessibility/shadow/")
+    PROD = ("research/landing_accessibility/src/",  # FIREWALL_GUARD_DEFINITION
+            "research/landing_accessibility/control/",  # FIREWALL_GUARD_DEFINITION
+            "research/landing_accessibility/engine/",  # FIREWALL_GUARD_DEFINITION
+            "engine/", "v3_runner/",
+            "research/landing_accessibility/shadow/")  # FIREWALL_GUARD_DEFINITION
     files = git("diff", "--name-only", f"{base}..{head}").splitlines()
     hits = sorted({f for f in files if any(f.startswith(x) or ("/" + x) in f for x in PROD)})
     return bool(hits), {

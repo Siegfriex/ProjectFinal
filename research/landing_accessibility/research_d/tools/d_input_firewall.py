@@ -36,6 +36,12 @@ SELF_DECLARATION_FILES = {"D_INPUT_ALLOWLIST.json", "d_input_firewall.py"}
 # 자기참조로 WARN 이 누적된다. 파일명 접두로 제외한다 (내용은 D 자신의 스캔 기록이다).
 SELF_DECLARATION_PREFIXES = ("D_INPUT_FIREWALL_VERIFICATION",)
 
+# 금지 경로를 **감시 대상으로 나열하는 줄**은 접근이 아니라 선언이다.
+# 파일 전체를 예외로 두면(SELF_DECLARATION_FILES) 그 파일의 실제 접근까지
+# 놓친다. **줄 단위 표식**으로 좁힌다 — 표식은 코드에 보이고 opt-in 이며,
+# 표식 없는 같은 경로는 그대로 FAIL 이다.
+GUARD_MARKER = "FIREWALL_GUARD_DEFINITION"
+
 SCAN_SUFFIX = (".py", ".ipynb", ".md", ".json", ".csv", ".sh", ".txt", ".jsonl")
 
 
@@ -187,7 +193,14 @@ def scan_file(p: Path, denied: list[dict]) -> list[dict]:
         pat = denied_hit(cand, denied)
         if pat and not self_decl:
             line = text[:m.start()].count("\n") + 1
-            hits.append({"file": str(p.relative_to(RD.parent)), "line": line,
+            src_line = text.splitlines()[line - 1] if line <= len(text.splitlines()) else ""
+            if GUARD_MARKER in src_line:
+                continue          # 감시 대상 선언 — 접근이 아니다
+            try:
+                _f = str(p.relative_to(RD.parent))
+            except ValueError:
+                _f = str(p)          # 대조군의 임시 파일은 트리 밖이다
+            hits.append({"file": _f, "line": line,
                          "reference": cand[:200], "denied_pattern": pat, "kind": "DENIED_PATH"})
     if not self_decl:
         for h in hits:
@@ -276,6 +289,25 @@ def run_controls(denied) -> dict:
                      "got": got, "expected": "ALLOWED_BY_EXCEPTION", "ok": good})
     # 금지 패턴 목록 자체가 비어버리면 위 DENY 가 전부 통과할 수 없다는 보장이 없다
     n_denied = len(denied)
+    # 줄 표식 대조 — 표식이 있으면 통과, 없으면 잡혀야 한다
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as _td:
+        _p = Path(_td) / "probe.py"
+        _p.write_text('X = "research/landing_accessibility/control/label/x.json"'
+                      f'  # {GUARD_MARKER}\n'
+                      'Y = "research/landing_accessibility/control/label/y.json"\n',
+                      encoding="utf-8")
+        _h = scan_file(_p, denied)
+        _marked = [x for x in _h if x.get("line") == 1]
+        _plain = [x for x in _h if x.get("line") == 2]
+        rows.append({"kind": "MARKER", "expectation": "must_not_flag",
+                     "case": "표식 있는 줄은 잡히지 않는다", "got": len(_marked),
+                     "expected": 0, "ok": len(_marked) == 0})
+        rows.append({"kind": "MARKER", "expectation": "must_flag",
+                     "case": "표식 없는 같은 경로는 잡힌다", "got": len(_plain),
+                     "expected": ">=1", "ok": len(_plain) >= 1})
+        ok &= (len(_marked) == 0 and len(_plain) >= 1)
+
     rows.append({"kind": "SANITY", "expectation": "must_flag", "case": "금지 패턴 개수",
                  "got": n_denied, "expected": ">=10", "ok": n_denied >= 10})
     ok &= n_denied >= 10
