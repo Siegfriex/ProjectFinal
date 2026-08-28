@@ -1,7 +1,7 @@
 {
  "artifact": "D_DEFECT_LEDGER",
  "produced_at_kst": "2026-08-28T09:51:38+09:00",
- "measured_at_kst": "2026-08-28T11:51:33+09:00",
+ "measured_at_kst": "2026-08-28T12:00:49+09:00",
  "d_head": "0074449403193d8dbb4d515fced3d5dc5fa15d96",
  "plane": "D",
  "claim_kind": "OBSERVATION",
@@ -239,6 +239,16 @@
    "ticket": "D-V3-REPORT-001",
    "fix": "NanumGothic 지정 + axes.unicode_minus False",
    "control": "렌더 후 UserWarning 건수를 세어 0 인지 확인했다 — 경고를 stderr 로 흘리지 않고 판정에 쓴다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-39",
+   "what": "상위 평면이 준 사실 주장을 확인 가능했는데도 확인하지 않고 산출에 실었다",
+   "mechanism": "A 가 'AX 원자료는 존재하나 이번 집계에 반영되지 않았다' 고 판정했고 D 는 그대로 그림 한계 문구에 실었다. C 실측으로 `.ax.json` 107/107 이 60B 오류 스텁 — **원자료가 없다** 로 정정됐다",
+   "why_it_matters": "D 는 mart 소비자이지만 **파일 존재 여부는 `ls` 한 번이면 확인 가능했다.** '없는 것과 안 쓴 것을 구분한다' 는 규칙 자체가 이 자리에서 반대로 적용됐고, '안 썼다' 로 두면 다음 회차에 '쓰면 된다' 로 읽힌다",
+   "ticket": "D-V3-REPORT-FC-001",
+   "fix": "문구 교체. 상위 판정이라도 **파일 존재·바이트 수준 주장은 인용 전에 직접 확인한다**",
+   "control": "B 의 T-B-V3-FINDING-008 공통 형태(‘파생된 열 값이 원천보다 가깝고 싸다’)의 D 사례로 등재. B 는 보고도 잊었고 D 는 보지 않았다 — 구분해 적었다",
    "escaped": true
   }
  ],
