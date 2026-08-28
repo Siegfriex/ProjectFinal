@@ -346,11 +346,19 @@ def sync() -> int:
     head = git("rev-parse", "HEAD")
     dirty = bool(git("status", "--porcelain"))
 
+    # [A STEP1-040 R56] **재계산 키는 (입력 sha, 도구 sha) 쌍이다.**
+    # 예전에는 `(rq, result_sha)` 만 봤다 — **도구를 고쳐도 입력이 같으면
+    # 건너뛰어 도구 수정이 산출에 도달하지 않았다.** verdict 파서를 고쳤는데
+    # 잘못된 18건이 그대로 남은 것이 그 결과다. R38(측정값에 입력 신원)의 뒷면.
+    _tool_sha = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+
     existing = {}
     exp = mlflow.get_experiment_by_name(EXPERIMENT)
     if exp:
         for r in mlflow.search_runs([exp.experiment_id], output_format="list"):
-            existing[(r.data.tags.get("d.rq_id"), r.data.tags.get("d.result_sha256"))] = r.info.run_id
+            existing[(r.data.tags.get("d.rq_id"),
+                      r.data.tags.get("d.result_sha256"),
+                      r.data.tags.get("d.tool_sha256"))] = r.info.run_id
 
     logged, skipped = [], []
     for item in discover():
@@ -366,7 +374,7 @@ def sync() -> int:
             skipped.append(f"{rq}({reason})")
             continue
         rsha = sha256(payload)
-        if (rq, rsha) in existing:
+        if (rq, rsha, _tool_sha) in existing:
             skipped.append(rq)
             continue
         metrics = {}
@@ -395,6 +403,7 @@ def sync() -> int:
                 "d.input_snapshot_sha256": snap_sha,
                 "d.verdict": _verdict,
                 "d.verdict_source": _vsrc,
+                "d.tool_sha256": _tool_sha,
                 "d.production_modified": "false",
                 "d.labels_produced": "false",
                 "d.holdout_accessed": "false",
