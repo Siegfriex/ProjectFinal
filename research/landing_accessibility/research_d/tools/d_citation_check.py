@@ -19,6 +19,7 @@ import json
 import re
 from pathlib import Path
 
+import d_coverage as COV
 import d_v3_census as C
 
 BUS = Path("/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2")
@@ -87,7 +88,8 @@ def column_provenance(claims=None) -> list:
         if pc not in df.columns:
             out.append({"column": col, "ok": False, "detail": {"missing_prov_col": pc}})
             continue
-        obs = df[~df[col].str.contains(C._MISSING_PAT, regex=True)]
+        # [D-DEF-45] blacklist 가 아니라 열별 허용값 집합으로 판정한다
+        obs = df[[COV.is_observed(col, v) for v in df[col]]]
         seen = sorted(set(obs[pc]))
         out.append({"column": col, "ok": set(seen) <= set(spec["claimed"]),
                     "detail": {"n_observed": len(obs), "actual_provenance": seen,
