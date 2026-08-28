@@ -287,6 +287,20 @@
    "why_controls_missed_it": "the synthetic controls never contained placeholder tokens (they used real-looking paths), so 'absent' and 'present' were the only two states exercised — the third state (placeholder) was not in the corpus (R32 three states)",
    "fix": "SENTINELS set + _evidence_present (hash regex / existing path only) + attempted_observed from attempt_status; controls added: skeleton_50_placeholders→0/0/0 and token_as_evidence_pointer_not_counted (17 controls)",
    "lesson": "a verifier's control corpus must contain the producer's placeholder vocabulary; the first real input is itself a control — read its numbers against the producer's before trusting either"
+  },
+  {
+   "id": "C-DEF-30",
+   "found_at_kst": "2026-08-28T11:07:00+09:00",
+   "what": "일괄 ACK 셸 함수에 빈 인자를 넘겨 T-A-V3-STEP1-041 에 빈 note 재ACK(.C-1)가 나갔다",
+   "fix": "정정 재ACK(.C-2). 기록 불변",
+   "lesson": "셸 함수로 버스에 쓸 때 인자 검증(빈 note 거부)이 없었다"
+  },
+  {
+   "id": "C-DEF-31",
+   "found_at_kst": "2026-08-28T11:33:52+09:00",
+   "what": "d1597d9 를 analysis_replay selftest 1건 실패(R91 control) 상태로 커밋·push 했다 — c_commit.sh 가 selftest 를 게이트하지 않고, 본체가 출력 첫 줄을 읽지 않고 커밋 명령을 같은 셸 라인에 이어 붙였다",
+   "fix": "2f346b0 에서 시정(R91 override). 이후 gate3 커밋은 selftest 종료코드로 게이트(&&)",
+   "lesson": "C-DEF-15 재발형: 규칙 서술 직후 실증 없이 커밋. 같은 라인에 selftest 와 commit 을 잇는다면 && 로 잇는다"
   }
  ],
  "caught_before_issue": [
