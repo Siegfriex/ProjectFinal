@@ -301,6 +301,14 @@
    "what": "d1597d9 를 analysis_replay selftest 1건 실패(R91 control) 상태로 커밋·push 했다 — c_commit.sh 가 selftest 를 게이트하지 않고, 본체가 출력 첫 줄을 읽지 않고 커밋 명령을 같은 셸 라인에 이어 붙였다",
    "fix": "2f346b0 에서 시정(R91 override). 이후 gate3 커밋은 selftest 종료코드로 게이트(&&)",
    "lesson": "C-DEF-15 재발형: 규칙 서술 직후 실증 없이 커밋. 같은 라인에 selftest 와 commit 을 잇는다면 && 로 잇는다"
+  },
+  {
+   "id": "C-DEF-32",
+   "found_at_kst": "2026-08-28T11:47:45+09:00",
+   "found_by": "B self-report + C raw check (accessible_name_source)",
+   "what": "analysis_replay 의 label_relation 재계산이 mart 의 visible_label/accessible_name 문자열만 읽고 원천(raw accessible_name_source, AX 캡처 60 B)을 검증하지 않아 AX_ONLY 25 → MATCH 28 두 판본 모두 'ASSURED' 로 냈다 — 규칙 재현과 관측 검증을 구분하지 않았다",
+   "fix": "accessible_name_source 조인 + VISIBLE_TEXT 복사 MATCH 는 ASSURED_AS_RULE_ONLY (0bcf71c); ASSURED 는 원천이 독립 관측일 때만",
+   "lesson": "산출 열의 재계산 일치는 원천 관측의 증거가 아니다 — 재계산 전에 각 입력 열의 provenance 를 먼저 묻는다(R45 세 독립: 주체·방법·시점 + 원천)"
   }
  ],
  "caught_before_issue": [
