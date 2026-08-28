@@ -75,11 +75,14 @@ def replay_row(r):
     if observed(r.get("menu_dependency")) and "c_menu_dependency" in out:
         mv = str(r.get("menu_dependency")).strip().lower(); mv = 1 if mv in ("1", "true", "yes") else 0 if mv in ("0", "false", "no") else mv
         out["menu_dependency_match"] = (mv == out["c_menu_dependency"]) if isinstance(mv, int) else f"UNREADABLE:{mv}"
+    if observed(r.get("auth_gate_stage")) and "c_auth_gate_stage" not in out and str(r.get("attempt_status") or "").strip() != "ENDPOINT_REACHED":
+        out["c_auth_gate_stage"] = "UNDETERMINED"; out["auth_basis"] = "R91: endpoint not reached ⇒ UNDETERMINED (NONE only allowed on ENDPOINT_REACHED)"
     if observed(r.get("auth_gate_stage")) and "c_auth_gate_stage" in out:
         out["auth_gate_stage_match"] = str(r.get("auth_gate_stage")).strip() == out["c_auth_gate_stage"]; out["mart_auth_gate_stage"] = r.get("auth_gate_stage")
-    if observed(r.get("visible_label")) and observed(r.get("accessible_name")):
-        out["c_label_relation"] = F.label_relation(r.get("visible_label"), r.get("accessible_name"), {})
-        if observed(r.get("label_relation")): out["label_relation_match"] = str(r.get("label_relation")).strip() == out["c_label_relation"]; out["mart_label_relation"] = r.get("label_relation")
+    # R90 (TBX-017): both unobserved → NONE · visible only → VISIBLE_ONLY · ax only → AX_ONLY · equal → MATCH · differ → DIFFERENT; no SEMANTIC_EQUIV
+    vis = r.get("visible_label") if observed(r.get("visible_label")) else None; ax = r.get("accessible_name") if observed(r.get("accessible_name")) else None
+    out["c_label_relation"] = F.label_relation(vis, ax, {})
+    if observed(r.get("label_relation")): out["label_relation_match"] = str(r.get("label_relation")).strip() == out["c_label_relation"]; out["mart_label_relation"] = r.get("label_relation")
     out["c_seq_for_distance"] = seq
     return out
 
@@ -138,6 +141,9 @@ def controls(manifest):
     a = analyse(good, manifest); res["must_not_flag:consistent→activation_depth ASSURED n=2"] = "PASS" if a["metrics"]["activation_depth"]["state"] == "ASSURED" and a["metrics"]["activation_depth"]["n_compared"] == 2 else f"FAIL {a['metrics']['activation_depth']}"
     res["must_not_flag:label MATCH ASSURED"] = "PASS" if a["metrics"]["label_relation"]["state"] == "ASSURED" else f"FAIL {a['metrics']['label_relation']}"
     a = analyse([row(0, seq, ad=exp_ad + 1)], manifest); res["must_flag:activation_depth+1→DIVERGENT"] = "PASS" if a["metrics"]["activation_depth"]["state"] == "DIVERGENT" else "FAIL"
+    a = analyse([row(0, seq, ad=exp_ad, vl="NOT_OBSERVED", an="전체메뉴", lr="MATCH")], manifest); res["must_flag:R90 visible NOT_OBSERVED stored MATCH→DIVERGENT(C=AX_ONLY)"] = "PASS" if a["metrics"]["label_relation"]["state"] == "DIVERGENT" and a["row_replay"][0]["c_label_relation"] == "AX_ONLY" else f"FAIL {a['row_replay'][0]}"
+    a = analyse([row(0, seq, ad=exp_ad, att="TERMINAL_NO_ENDPOINT"), ], manifest)
+    a2 = analyse([{**row(0, seq, ad=exp_ad, att="TERMINAL_NO_ENDPOINT"), "auth_gate_stage": "NONE"}], manifest); res["must_flag:R91 NONE on non-reached→DIVERGENT"] = "PASS" if a2["metrics"]["auth_gate_stage"]["state"] == "DIVERGENT" else f"FAIL {a2['metrics']['auth_gate_stage']}"
     a = analyse([row(0, seq, ad=exp_ad, vl="이체", an="송금", lr="MATCH")], manifest); res["must_flag:label 이체/송금 stored MATCH→DIVERGENT"] = "PASS" if a["metrics"]["label_relation"]["state"] == "DIVERGENT" else f"FAIL {a['metrics']['label_relation']}"
     a = analyse([row(0, "AMBIGUOUS_E_SUPPLIES_ONE_SEQUENCE", exp="AMBIGUOUS_E_SUPPLIES_ONE_SEQUENCE", ad=1)], manifest)
     res["must_flag:placeholder sequence→NOT_ASSURED not 0"] = "PASS" if a["metrics"]["activation_depth"]["state"] == "NOT_ASSURED" and a["coverage"]["overall"]["task_flow_sequence"]["k"] == 0 else f"FAIL {a['metrics']['activation_depth']['state']} k={a['coverage']['overall']['task_flow_sequence']['k']}"

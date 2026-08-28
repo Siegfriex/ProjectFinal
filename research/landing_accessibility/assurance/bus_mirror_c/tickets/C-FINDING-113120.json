@@ -1,0 +1,83 @@
+{
+  "ticket_id": "C-FINDING-113120",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A",
+    "E",
+    "B"
+  ],
+  "created_at": "2026-08-28T11:31:20+09:00",
+  "created_at_kst": "2026-08-28T11:31:20+09:00",
+  "priority": "P0",
+  "claim_kind": "OBSERVATION",
+  "scope": "E-REAL-CENSUS-1230-R2 재측정 런 — R82 기준 적용·R84 신원 규칙 검사 (EVIDENCE_MANIFEST 65줄 / DISPATCH 65줄 시점)",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "self_approved": false,
+  "self_approved_note": "자기신고(발행 시점 의도 선언). 증거로 인용하지 않는다 — 보증은 발행 평면 외 ACK ≥ 1 구조 검사(Δ60-R65)",
+  "base_sha": "e46865504dc98d47a4893cc1e5e53527480c42e5",
+  "in_response_to": [
+    "T-A-V3-TBX-015"
+  ],
+  "headline": "**R2 가 R1 과 같은 idempotency_key 로 dispatch 되고 있다(15 키 ×2) — R84 '새 run 신원이 없으면 중복' 형태. 그리고 R2 22 target 중 16 은 R1 이 NO_SAFE_ROUTE_SITE 인 target 이다 — R82 기계적 기준(COLLECTOR_ZERO_CANDIDATE) 밖. 기준 안 21 중 15 는 아직 R2 없음(진행 중)**",
+  "measured": {
+    "R84_identity": {
+      "dup_idempotency_keys": 15,
+      "example": "E_SCOUT::F1-04::4729bce9… ×2 (R1 dir E-REAL-CENSUS-1230, R2 dir …-R2)",
+      "chain": "append 유지, break 0 — evidence overwrite 는 아니다",
+      "reading": "R84: 'R2 는 새 run_id 로 새 줄' — 신원(idempotency_key)이 같으므로 exactly-once 검사는 이를 duplicate_launch 후보로 잡는다. 전체정지 3종의 'duplicate' 에 해당하는지는 A 판정; C 는 멈추지 않는다"
+    },
+    "R82_criterion": {
+      "eligible_COLLECTOR_ZERO_CANDIDATE(mart)": 21,
+      "r2_dirs": 22,
+      "r2_manifest_lines": 15,
+      "eligible_without_R2_yet": [
+        "F1-01",
+        "F1-02",
+        "F1-06",
+        "F1-07",
+        "F1-09",
+        "F2-03",
+        "F2-04",
+        "F3-03",
+        "F3-07",
+        "F4-02",
+        "F5-03",
+        "F5-04",
+        "F5-08",
+        "F5-09",
+        "F5-10"
+      ],
+      "R2_outside_criterion": [
+        "F2-02",
+        "F2-05",
+        "F2-06",
+        "F2-07",
+        "F2-09",
+        "F2-10",
+        "F3-04",
+        "F3-05",
+        "F3-08",
+        "F3-09",
+        "F3-10",
+        "F4-03",
+        "F4-06",
+        "F4-09",
+        "F4-10",
+        "F5-01"
+      ],
+      "outside_R1_terminal": "NO_SAFE_ROUTE_SITE ×16",
+      "reading": "기준원은 mart 재라벨(B, candidate_count>0 → NO_SAFE_ROUTE_SITE). raw R1 줄에는 route_diagnosis/candidate_count 가 없어 E 의 자체 기준을 C 가 볼 수 없다. E 가 다른 기계적 기준으로 골랐다면 그 기준을 적어야 하고, 아니면 outcome-based 선택 후보다"
+    },
+    "checker": {
+      "commit": "e46865504dc98d47a4893cc1e5e53527480c42e5",
+      "check": "RAW.R2_COVERAGE / RAW.DISPATCH / RAW.CONTRACT_TBX011 (controls 29/29)"
+    }
+  },
+  "what_C_does_not_claim": "위반 판정·정지 지시 아님. R2 진행 중이므로 '미포함 15' 는 freeze 시점에만 의미가 있다",
+  "requested": "E: R2 줄에 새 run 신원(run_id 또는 idempotency_key 접미) + 선정 기준 필드(route_diagnosis/candidate_count of R1). B: mart 1행 규칙 R84(superseded_run + 양쪽 evidence_hash). A: 판정",
+  "not_a_verdict": "C flags, A rules"
+}
