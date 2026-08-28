@@ -1,0 +1,91 @@
+{
+ "ticket_id": "T-B-V3-BLK-018",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "8c4197e87a60fc011ec2ddfc55da6a0aee6fd9f2",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T09:37:53+09:00",
+ "measured_at_kst": "2026-08-28T09:37:53+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "scope": "Δ47 ①②③ + Δ48 R42·⑤ 이행 완료. **base 실측이 A 의 진단 셋을 확증했다.** 판정 필요 4건",
+ "lane": "claude-b/w5q-delta47 @ 999c9baccd8765226f339d7be93ed289e17f2368 (push 됨)",
+ "headline": "**A 가 추론으로 지목한 세 결함이 base 실측에서 그대로 나왔다.** ③ base 13 fixture 중 **must_flag 를 만족하는 것이 하나도 없었다** ④ 형태 위반과 정당한 미관측이 **둘 다 `True`** ⑤ `service_id=\"\"` 가 **정상 파생 행과 완전히 같은 행**을 냈다.",
+ "b_read_the_delta": {
+  "Δ47 1차": "112줄 @ `7752ed79`",
+  "Δ47 재fetch": "115줄 @ `f9c9c7b7`",
+  "Δ48": "122줄 @ `f9c9c7b7`",
+  "두 판본 대조": "`diff` 결과 **본문 불일치 0**(공백줄·수평선 3줄만 차이). **0줄 사건 없음**",
+  "사본 확인": "`git ls-tree` 전수 grep 으로 delta 사본이 **하나뿐**임을 확인"
+ },
+ "part1_base_실측이_A_를_확증했다": {
+  "**③ GATE 1 이 depth 경로를 한 번도 실행하지 않았다**": {
+   "방법": "base 13종 fixture **전건**을 실제 `l0_probe.js`(Playwright FIXTURE) → 분류 → `normalize_flow` 로 돌려 `activation_depth` 측정",
+   "결과": "**12종 전부 `None`, 1종은 후보 0건. must_flag 를 만족하는 fixture 가 하나도 없었다**",
+   "A 의 진단": "인용 — \"**GATE 1 이 depth 산출 경로를 한 번도 실행하지 않고 통과한다**\" → **실측으로 확증됐다**"
+  },
+  "**④ 형태 위반이 관측으로 위장했다**": {
+   "방법": "base `surface.py` 로 측정",
+   "결과": "`ax_node=\"문자열\"`·`[\"x\"]`(형태 위반)가 DOM 발견 경로에서 `dom_ax_divergence=True`, **정당한 미관측(`None`)도 `True`** — **두 사건이 구별 불가능**",
+   "그리고 원인을 찾았다": "**두 산출 경로가 각자 판정하고 있었다.** R42 결함이 '못 찾은 경로' 에서만 관측된 이유가 그것이다 — 워커가 `_resolve_ax_observation()` 을 **유일한 입구**로 모았다"
+  },
+  "**⑤ `or` fallback 이 증거를 다른 서비스에 귀속시켰다**": {
+   "방법": "base `runner.py` 로 측정",
+   "결과": "`service_id=\"\"` 와 `service_id=0` 이 **조용히 `contract.target_id` 로 떨어져 정상 파생 행과 완전히 같은 행**을 냈다",
+   "부수": "`_validate_token` 이 정수에 대해 **\"비어 있을 수 없다\" 라는 틀린 진단**을 냈다 — **틀린 값에 틀린 이유가 붙는다**",
+   "A 의 판정": "인용 — \"`service_id` 가 조용히 다른 값으로 떨어지면 **증거가 다른 서비스에 귀속된다**\" → **확증**"
+  },
+  "**R31 방식**": "소스만 base 판본으로 되돌려(`git stash push -- <파일>`) **행동을 직접 측정했다** — **심볼 부재로 인한 `ImportError` 는 근거로 쓰지 않았다**"
+ },
+ "part2_이행_요약": {
+  "① 16값": "`PATH_NOT_FOUND_BY_POLICY` 등재 · `ABSTAIN` 허용 · `classify_terminal` 분기(예산 소진 **뒤**·`OTHER` **앞**). **`path_discovery_outcome` 축 무변경**. 기존 15값 회귀 — **신설값으로 옮겨 간 기존 case 0건**",
+  "① 음성대조": "16값 **쌍별 상이** · 미발견↔미분류가 다른 값 · **범주가 note 에 살지 않음** · 조합표가 발생 불가 자리에서 신설값을 거부",
+  "② PARTIALLY_IMPLEMENTED": "모든 mart 행이 `delta36_2_seam_status` + `delta36_2_remaining_seam` 을 싣는다. 거부된 run 도 **행이 된다** — **행을 안 만들면 '발생 안 함' 과 '거부돼 미관측' 이 같은 출력(행 없음)** 이 된다",
+  "② 다섯이 갈린다": "`path_discovery_outcome` **축 하나만으로도** 5개로 갈린다. `test_the_refusal_is_never_written_as_resolved` 가 **완료 어휘 부재와 `PARTIALLY_IMPLEMENTED` 실재를 양쪽으로** 고정",
+  "③ fixture": "**가산만** — 기존 13종 HTML 무수정. 두 신규는 `hamburger.html` trigger 에 **ARIA 속성 하나만** 더했고 **body 태그 시퀀스가 대조와 동일**(기계 비교)",
+  "③ 실증 방법": "손으로 만든 candidate dict 를 **쓰지 않았다** — 그러면 fixture 가 한 번도 읽히지 않는다. 실제 probe → 같은 코드 경로로 비교",
+  "③ 한계 문장": "`FIXTURE_DISCRIMINATION_MATRIX.json` **및** 두 HTML 주석 헤더 **양쪽**. 테스트 2건이 양쪽 실재를 확인",
+  "④ R42": "R32 세 상태 — 키 부재→판정 제외 / `dict`·`None`→실측 / 그 밖→**raise**. **정당한 관측 보존**: DOM 있고 AX 없음→`True`, AX 무시→`True`, 일치→`False`",
+  "⑤ or fallback": "**4건 전부 제거**(부재를 grep 테스트로 고정). `_resolve_identity()` 가 세 상태로 가르고 **파생 자리도 검사**. `service_id_provenance` 신설",
+  "⑤ 산출 영향 범위": "mart 행 · `observation_id`(파생 해시) · path manifest(해시 대상) · evidence run key. **증거 파일 경로와 해시까지 이 값이 결정한다**"
+ },
+ "part3_판정필요_4건": {
+  "① ②의 이음매가 여전히 배선되지 않았다": {
+   "워커 진술": "인용 — \"'산출에 남는다' 는 현재 **가능해졌다**이지 **실제로 남고 있다**가 아니다\"",
+   "무엇": "`discovery.run_task_aware_scout` 가 `V3PathOrderDivergenceError` 를 던지는데 **그것을 행으로 바꾸는 호출부가 프로덕션에 없다**",
+   "**B 가 이것을 특히 올리는 이유**": "**Δ35 의 `measure_surface` 와 같은 형태다** — 기능은 만들어졌고 배선이 없어 **실제 경로에서 발화하는지 알 수 없다.** A 가 그때 '배선 시점 재확인' 을 GATE 1 조건으로 걸었다",
+   "소유": "워커가 '`run_task_aware_scout` 를 부르는 평면 소관' 으로 판단해 하지 않았다 — **A 판정 요청**"
+  },
+  "② `seam_refusal_result` 의 `identity_provenance` 를 호출부가 거짓으로 적을 수 있다": {
+   "무엇": "그 함수는 **계약을 받지 않아** 파생 검사를 대신할 수 없다. 호출부가 계약 파생 key 를 넘기며 `CALLER_SUPPLIED` 로 적으면 **거짓 기록**이 된다",
+   "워커가 한 것": "명시 인자 요구 + 어휘 검사. **막을 방법을 찾지 못했다고 적었다**"
+  },
+  "③ ②의 `terminal_reason` 을 `OTHER` 로 둔 선택": {
+   "워커 근거": "Δ47 이 값 **하나**를 신설했고 어휘 크기는 A 판정 사항이라 17번째를 임의로 만들지 않았다. `path_discovery_outcome` 은 **닫힌 어휘**라 문자열 매칭이 불필요 — ①이 금지한 'note 로만 구분되는 범주' 가 아니다",
+   "워커가 남긴 여지": "\"**`OTHER` 가 다시 두 뜻을 갖는다** 로 읽을 여지가 있고, 17번째 값 신설이 옳다면 A 판정 사항\""
+  },
+  "④ ④의 `ignored` 비-bool 거부가 원문 범위를 한 겹 넘는다": {
+   "무엇": "Δ48 원문은 `task_control[\"ax_node\"]` 형태만 지목했는데 워커가 **중첩 `ignored` 가 bool 이 아닌 것도 raise** 하게 했다",
+   "근거": "**같은 결함이 한 겹 안에서 재발하는 자리**",
+   "위험": "기존 호출부가 문자열 `\"true\"` 를 넘기고 있었다면 이제 멈춘다. **저장소 내에서는 발생하지 않았고 관련 테스트 전건 통과**"
+  }
+ },
+ "part4_한계": {
+  "③ depth=1 은 S0 단독": "인용 — 워커: \"**depth 산출 경로가 실행됐다**는 것은 실증했지만 **다단계 depth 누적은 이 게이트가 아직 실행하지 않는다**\". 다단계는 세션 구동이 필요하고 REAL_TARGET NO-GO·offline 범위 밖",
+  "회귀": "비-브라우저 v3 14파일 **1437 passed · 1 skipped**. 브라우저 3파일 **2 failed — 둘 다 base `abaefd67` 에서 동일하게 실패**함을 `stash --include-untracked` 로 재현 확인. **W5M 이 이미 처리한 그 2건이고 이 브랜치에 그 시정이 없다**",
+  "lint": "ruff · mypy 통과. **실사이트 접속 0** — 모든 브라우저 테스트가 `ExecutionMode.FIXTURE` 전용"
+ },
+ "b_r44_compliance": "워커가 R32 위반 목록의 수치·분포·함수명을 **보고에 적지 않았고** 그 목록을 건드리지 않았다. B 도 이 티켓에 적지 않는다",
+ "decision_required": "① ② 이음매 배선의 소유 평면 ② `seam_refusal_result` 의 거짓 기록 가능성 처리 ③ `OTHER` vs 17번째 값 ④ `ignored` 비-bool 거부의 범위 승인 여부",
+ "self_approved": false
+}
