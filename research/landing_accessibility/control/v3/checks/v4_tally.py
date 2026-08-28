@@ -44,13 +44,37 @@ def classify(d):
     if st != "ENDPOINT_REACHED":    return False, f"NOT_ENDPOINT:{st}", ev
     if png_same and dom_same:       return False, "CLICK_NO_EFFECT", ev
     if png_same or dom_same:        return False, "CLICK_AMBIGUOUS", ev
+    # 조건 4 — R150 정의(E 재실행 *전* 인 13:01 에 고정). 면제는 기록이 있을 때만 발동한다
+    # click_method 는 route candidate 가 아니라 E_SCOUT_TRACE 의 selected_candidate 에 있다
+    sc = {}
+    for tp in glob.glob(f"{d}/E_SCOUT_TRACE_*.jsonl"):
+        for line in open(tp, encoding="utf-8"):
+            try: rec = json.loads(line)
+            except Exception: continue
+            c = rec.get("selected_candidate")
+            if isinstance(c, dict) and c.get("click_method"): sc = c
+    cm = sc.get("click_method")
+    ev["click_method"] = cm
+    if cm == "locator":                                  # 좌표를 안 썼으므로 좌표 검사 면제
+        ev["coord_exempt"] = True; ev["click_xy_is_stale"] = sc.get("click_xy_is_stale")
+        return True, "TRUSTED", ev
+    if cm == "coordinate":
+        ux, uy = sc.get("click_x_used"), sc.get("click_y_used")
+        if ux is None or uy is None: return False, "COORD_USED_BUT_NOT_RECORDED", ev
+        ev["click_xy_used"] = [ux, uy]
+        if not (0 <= ux <= VIEWPORT[0] and 0 <= uy <= VIEWPORT[1]):
+            return False, "COORD_OUT_OF_VIEWPORT", ev
+        return True, "TRUSTED", ev
     if in_vp is False:              return False, "COORD_OUT_OF_VIEWPORT", ev
-    if in_vp is None:               return False, "COORD_NOT_EVALUABLE", ev   # 없음을 통과로 만들지 않는다
-    return True, "TRUSTED", ev
+    return False, "CLICK_METHOD_NOT_RECORDED", ev        # 미기록 → 불통과 (완화가 아니라 엄격)
 
 def main():
     roots = glob.glob("artifacts/v3_probe_v4/raw/**/F[1-5]-*", recursive=True)
     roots = [r for r in roots if os.path.isdir(r)]
+    # run_id 를 명시적으로 고른다 — SMOKE 등 비정본 run 이 사전순으로 먼저 잡혀 정본을 밀어냈다
+    CANON = "E-PROBE-V4"
+    excluded = sorted({r for r in roots if f"/{CANON}/" not in r})
+    roots = [r for r in roots if f"/{CANON}/" in r]
     if not roots:
         print("!! probe v4 산출 없음", file=sys.stderr); return 3
     tgt = json.load(open("artifacts/v3_probe_v4/PROBE_V4_TARGET_SET.json"))
@@ -65,6 +89,7 @@ def main():
     attempted = {r["target_id"] for r in res}
     out = {
      "viewport": VIEWPORT, "criterion_frozen_before_run": True,
+     "canonical_run": CANON, "excluded_non_canonical_dirs": excluded,
      "planned": len(planned), "attempted": len(attempted),
      "not_attempted": sorted(planned - attempted),
      "off_target": sorted(attempted - planned),
@@ -84,6 +109,7 @@ def main():
     tmp = "artifacts/v3_probe_v4/V4_TALLY.json.tmp"        # 원자적 쓰기 — 중간 상태를 읽히지 않는다
     json.dump(out, open(tmp, "w"), ensure_ascii=False, indent=1)
     os.replace(tmp, "artifacts/v3_probe_v4/V4_TALLY.json")
+    print(f"정본 run {CANON} · 제외된 비정본 디렉터리 {len(excluded)}")
     print(f"계획 {len(planned)} · 시도 {len(attempted)} · 미시도 {len(planned-attempted)} · 대상밖 {len(attempted-planned)}")
     print(f"V4 TRUSTED {len(trusted)}")
     for k,v in sorted(out['v4_reasons'].items(), key=lambda x:-x[1]): print(f"   {v:>3}  {k}")
