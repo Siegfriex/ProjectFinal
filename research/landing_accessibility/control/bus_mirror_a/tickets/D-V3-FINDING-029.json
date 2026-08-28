@@ -1,0 +1,63 @@
+{
+ "ticket_id": "D-V3-FINDING-029",
+ "type": "FINDING",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T10:02:22+09:00",
+ "in_response_to": [
+  "T-A-V3-STEP1-039"
+ ],
+ "scope": "D 자기 안전 필드가 정상 상태에서 UNVERIFIED 를 낸 결함과 그 시정",
+ "headline": "**안전 주장 필드가 멀쩡한 상태에서 `UNVERIFIED_STALE` 을 냈다.** 조용한 거짓 통과의 **반대편** 실패다 — 읽는 쪽이 곧 무시하게 된다.",
+ "what_happened": {
+  "증상": "깨끗한 트리·직전 스캔 PASS 인데 heartbeat 의 `holdout_accessed` 가 `UNVERIFIED_STALE`. **재스캔해도 풀리지 않았다.**",
+  "원인": "신선도를 '경로 접두사 + **파일명 제외목록**' 으로 쟀다. 제외목록은 휴리스틱이라 새 산출이 생길 때마다 뒤처진다.",
+  "방아쇠": "`D_EMITTED_TICKET_INTEGRITY.json` 을 커밋하자 제외목록에 없어서 STALE.",
+  "시정": "신선도를 **코퍼스 바이트 신원 재계산**으로 (R38/R56). 정의상 참이라 제외할 파일 목록이 없다."
+ },
+ "the_self_reference": {
+  "발견": "스캔이 자기 산출을 코퍼스 안에 쓴다(213 중 1). 그래서 전체 sha 는 **재계산이 원리적으로 기록값과 같아질 수 없다.**",
+  "처리": "`scanned_corpus_sha256`(무엇을 쟀는가·R38)과 `freshness_corpus_sha256`(다시 재도 같은가)을 **분리해 둘 다 남긴다.**",
+  "안 뺀 것": "다른 도구의 산출(drift log 등)은 제외하지 않았다 — 바뀌면 코퍼스가 **실제로** 바뀐 것이고 재스캔이 맞는 대응이다."
+ },
+ "failure_demonstration": {
+  "규칙": "R43 — 판정기를 바꾸면 자기 실패를 시연한다",
+  "정상": "`holdout_accessed=False` · `fresh=True`",
+  "코퍼스에 1파일 추가": "`UNVERIFIED_STALE` · `fresh=False`",
+  "제거 후": "`fresh=True` 복원",
+  "판정": "**세 케이스 모두 기대대로 움직인다.**"
+ },
+ "what_D_caught_before_emitting": {
+  "무엇": "고치는 도중 코퍼스 정의를 둘로 쪼갰다 — `corpus_files()` 가 `NB_DIR` 14개를 빠뜨려 main() **213** · 함수 **199**.",
+  "결과였을 것": "신선도가 **영원히 STALE**. 그리고 조용하다.",
+  "어떻게 잡았나": "두 갯수를 서로 세서 대조했다. **갯수를 안 봤으면 '제외목록 문제' 로 오귀인**하고 끝냈을 것이다.",
+  "부끄러운 점": "같은 커밋의 docstring 에 '정의가 두 벌이면 조용하다' 고 써 놓고 그대로 했다. **일곱 번째 발행 전 포착이다.**"
+ },
+ "artifact_diff_explained": {
+  "왜 적나": "이 커밋에서 방화벽 산출이 3261행 바뀌었다. 통제 산출의 큰 diff 를 설명 없이 두지 않는다.",
+  "측정": "`scanned_files` 213→213 · `verdict` PASS→PASS · `violations` 392→392 **집합 동일**",
+  "결론": "코퍼스를 전역 정렬하게 되면서 **순서만** 바뀌었다. 내용 변화 아니다."
+ },
+ "what_D_does_not_claim": {
+  "다른 평면 미검사": "A·B·C 의 안전 필드가 같은 형태인지는 보지 않았다.",
+  "판정 아님": "이것은 D 자기 도구 관측이다. GO/NO-GO 가 아니다."
+ },
+ "artifact_refs": {
+  "D_commit": "08af237ce6f5e3d930e6c9aeda34d7ff612d8718",
+  "ledger": "research/landing_accessibility/research_d/results/D_DEFECT_LEDGER.json",
+  "tool": "research/landing_accessibility/research_d/tools/d_heartbeat.py"
+ },
+ "limitation": "신선도는 코퍼스 **바이트** 동일성만 본다. 같은 바이트가 다른 의미를 갖는 경우(외부 상태 변화)는 잡지 못한다.",
+ "from": "D",
+ "base_sha": "08af237ce6f5e3d930e6c9aeda34d7ff612d8718",
+ "created_at_kst": "2026-08-28T10:02:22+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다."
+}
