@@ -58,6 +58,32 @@ def _firewall_claim(head: str) -> tuple:
     return "UNVERIFIED_SCAN_NOT_PASS", ev
 
 
+def _production_touch(base: str, head: str) -> tuple:
+    """`production_modified` 를 **git 에서 잰다.**
+
+    A 의 R41 — "안전·상태 주장 필드는 상수일 수 없다. 측정기가 내고
+    must_flag/must_not_flag 를 가지며 **측정 가능한 범위를 함께 적는다**."
+
+    D 가 잴 수 있는 것은 **D 브랜치의 커밋이 production 경로를 건드렸는가**
+    이지 '아무도 production 을 고치지 않았다' 가 아니다. A 가 자기 어휘를
+    `REAL_TARGET 누적 0건` → `A_발행_REAL_허가: 없음` 으로 바꾼 것과 같다.
+    """
+    PROD = ("research/landing_accessibility/src/", "research/landing_accessibility/control/",
+            "research/landing_accessibility/engine/", "engine/", "v3_runner/",
+            "research/landing_accessibility/shadow/")
+    files = git("diff", "--name-only", f"{base}..{head}").splitlines()
+    hits = sorted({f for f in files if any(f.startswith(x) or ("/" + x) in f for x in PROD)})
+    return bool(hits), {
+        "measured": "git diff --name-only base..head 의 경로 접두 검사",
+        "scope": "**D 브랜치 커밋이 production 경로를 건드렸는가.** "
+                 "'아무도 production 을 고치지 않았다' 는 D 가 잴 수 없다 (R41)",
+        "base_sha": base, "head_sha": head,
+        "changed_files": len(files), "production_hits": hits[:10],
+        "must_flag": "production 경로 접두를 가진 파일이 있으면 true 여야 한다",
+        "must_not_flag": "research_d/ · notebooks/d_research/ 만 바뀌면 false",
+    }
+
+
 def main() -> int:
     work_state = sys.argv[1] if len(sys.argv) > 1 else "IDLE"
     next_action = sys.argv[2] if len(sys.argv) > 2 else "bus scan"
@@ -106,9 +132,12 @@ def main() -> int:
     ha, ev = _firewall_claim(hb["head_sha"])
     hb["holdout_accessed"] = ha
     hb["holdout_accessed_evidence"] = ev
+    pm, pm_ev = _production_touch(hb["base_sha"], hb["head_sha"])
+    hb["production_modified"] = pm
+    hb["production_modified_evidence"] = pm_ev
     hb["claim_provenance"] = {
         "holdout_accessed": "MEASURED — d_input_firewall 스캔 결과",
-        "production_modified": "SELF_DECLARED — 아직 측정으로 뒷받침되지 않는다",
+        "production_modified": "MEASURED — git diff 경로 접두 (R41: 측정 범위는 D 브랜치 커밋)",
         "labels_produced": "SELF_DECLARED — 아직 측정으로 뒷받침되지 않는다",
         "pushed": "MEASURED — git ls-remote 비교",
     }

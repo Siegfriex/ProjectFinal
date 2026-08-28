@@ -1,7 +1,7 @@
 {
  "artifact": "D_CONTROL_FAILURE_DEMOS",
- "measured_at_kst": "2026-08-28T08:49:55+09:00",
- "d_head": "948994d5878898155704205a6bca15a1fe5f946a",
+ "measured_at_kst": "2026-08-28T09:05:45+09:00",
+ "d_head": "a902ecca35a89dd3c87d083b82f6e860b7941bc9",
  "rule": "Δ41-R35 — 실행으로 실증된 실패 시 동작",
  "demos": {
   "d_input_firewall": {
@@ -15,6 +15,19 @@
    "tool_sha256": "6a8a7e2b82a46c723eae8f26bc3f99579ef5bad95e2929aeac98bb3bc2269ef3",
    "why_this_mutation": "매처가 열리면 금지 경로가 전부 허용된다",
    "expected_behavior": "CONTROL_FAIL 로 기록하고 exit 2",
+   "verdict": "PASS"
+  },
+  "d_standing_control": {
+   "demonstrated": true,
+   "mutation": "def _mutate(b: bytes) -> bytes: → def _mutate(b: bytes) -> bytes:\n    return b  # MUTATION: 변형",
+   "exit_code": 3,
+   "recorded_verdict": "CONTROL_FAIL",
+   "verdict_as_expected": true,
+   "artifact_kept": true,
+   "tool": "tools/d_standing_control.py",
+   "tool_sha256": "2ec438e25826437cd5460eecb4e99c15a39c14db81d2e3bbb7caae7b7f8ad4d4",
+   "why_this_mutation": "_mutate 가 바이트를 안 바꾸면 변형 대조군이 검출하지 못한다",
+   "expected_behavior": "CONTROL_FAIL 을 기록하고 exit 3",
    "verdict": "PASS"
   },
   "reconcile_lanes": {

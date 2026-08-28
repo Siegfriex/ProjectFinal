@@ -69,7 +69,15 @@ def demonstrate_records(tool: Path, mutation: tuple[str, str], out_file: Path,
     try:
         mut.write_text(src.replace(old, new, 1), encoding="utf-8")
         r = subprocess.run([sys.executable, str(mut)], capture_output=True, text=True)
-        got = json.loads(out_file.read_text(encoding="utf-8")).get("verdict") if out_file.exists() else None
+        got = None
+        if out_file.exists():
+            txt = out_file.read_text(encoding="utf-8")
+            try:
+                got = json.loads(txt).get("verdict")
+            except json.JSONDecodeError:
+                # JSONL 산출(상주 대조 로그)은 마지막 줄이 이번 실행의 것이다
+                lines = [l for l in txt.splitlines() if l.strip()]
+                got = json.loads(lines[-1]).get("verdict") if lines else None
         return {"demonstrated": True,
                 "mutation": old.strip()[:60] + " → " + new.strip()[:60],
                 "exit_code": r.returncode,
@@ -125,6 +133,29 @@ def main() -> int:
     out["demos"]["d_input_firewall"] = fres
     print(f"  {'d_input_firewall':<26} exit={fres.get('exit_code')} "
           f"기록된verdict={fres.get('recorded_verdict')} → {fres['verdict']}")
+
+    # 기록형 도구 — 상주 대조. 대조군이 죽으면 CONTROL_FAIL 을 **기록**하고 exit 3.
+    sc = RD / "tools" / "d_standing_control.py"
+    sc_log = RD / "results" / "D_STANDING_CONTROL_DRIFT_LOG.jsonl"
+    _before_lines = len(sc_log.read_text(encoding="utf-8").splitlines()) if sc_log.exists() else 0
+    sres = demonstrate_records(
+        sc, ("def _mutate(b: bytes) -> bytes:",
+             "def _mutate(b: bytes) -> bytes:\n    return b  # MUTATION: 변형하지 않는다"),
+        sc_log, "CONTROL_FAIL")
+    # [시정] 여기서 로그를 **다시 읽으면 안 된다.** demonstrate_records 가 finally 에서
+    # 산출을 복원하므로, 복원 뒤에 읽으면 변형 실행이 아니라 **이전 실행의 값**을 본다.
+    # 첫 판이 그래서 CONTROL_FAIL 대신 DRIFT_NONE 을 기록했다 — 실증기가 자기
+    # 복원 때문에 틀린 값을 실증으로 남길 뻔했다.
+    sres["verdict_as_expected"] = sres.get("recorded_verdict") == "CONTROL_FAIL"
+    sres.update({"tool": "tools/d_standing_control.py", "tool_sha256": _sha(sc),
+                 "why_this_mutation": "_mutate 가 바이트를 안 바꾸면 변형 대조군이 검출하지 못한다",
+                 "expected_behavior": "CONTROL_FAIL 을 기록하고 exit 3"})
+    sres["verdict"] = "PASS" if (sres.get("verdict_as_expected")
+                                 and sres.get("exit_code") == 3) else "FAIL"
+    ok &= sres["verdict"] == "PASS"
+    out["demos"]["d_standing_control"] = sres
+    print(f"  {'d_standing_control':<26} exit={sres.get('exit_code')} "
+          f"기록된verdict={sres.get('recorded_verdict')} → {sres['verdict']}")
 
     for d in DEMOS:
         res = demonstrate(d["tool"], d["mutation"], d["expect_exit"], d["guards"])
