@@ -33,6 +33,9 @@ def _find_bus(start):
 BUS = _find_bus(HERE)
 MIRROR = os.path.join(HERE, "bus_mirror_a")
 DIRS = ("tickets", "acks", "completions", "escalations")
+#: 디렉터리가 아니라 **파일**인 버스 산출. 훑는 단위를 디렉터리로만 잡아
+#: `event_log.jsonl` 이 단위 밖에 있었다 (Δ58-unit).
+FILES = ("event_log.jsonl",)
 
 
 def sha(p):
@@ -41,6 +44,18 @@ def sha(p):
 
 def scan(sync):
     report, drift = {}, []
+    for f in FILES:
+        s_, t_ = os.path.join(BUS, f), os.path.join(MIRROR, f)
+        if not os.path.exists(s_):
+            report[f] = {"bus": 0, "note": "버스에 없는 파일"}
+            continue
+        same = os.path.exists(t_) and sha(s_) == sha(t_)
+        report[f] = {"bus": 1, "same": same}
+        if not same:
+            if sync:
+                shutil.copy2(s_, t_)
+            else:
+                drift.append((f, ["다름" if os.path.exists(t_) else "없음"], [], []))
     for d in DIRS:
         src, dst = os.path.join(BUS, d), os.path.join(MIRROR, d)
         if not os.path.isdir(src):
