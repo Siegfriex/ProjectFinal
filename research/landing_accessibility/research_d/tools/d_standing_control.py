@@ -306,6 +306,20 @@ def main() -> int:
     oop = out["out_of_pack_docs"]
     if oop.get("checked"):
         controls_ok = controls_ok and oop.get("control_ok", False)
+    # [A R147 형태 점검] 대조군이 **돌지 않았을 때** 그것이 controls_ok 를 낮추지 않는다.
+    # A 의 집계기는 `in_vp = None` 을 통과시켜 조건 4 를 31/31 에서 한 번도 적용하지 않고
+    # TRUSTED 6 을 냈다. 여기도 `checked: 0` 이면 out_of_pack 대조군이 **안 돈 채로**
+    # 전체 PASS 가 나온다 — 기록은 남지만 집계에는 반영되지 않는다.
+    # 판정 로직은 바꾸지 않는다(동결본을 흔들지 않는다). 대신 **무엇이 실제로 돌았는지**를
+    # 산출에 드러낸다 — R150 "면제는 기록이 있을 때만 발동한다" 의 최소 이행이다.
+    out["controls_evaluated"] = {
+        "ssotv3": bool(out["ssotv3"].get("control")),
+        "endpoint_lock": bool(out["endpoint_lock"].get("control")),
+        "emitted_tickets": bool(out["emitted_tickets"].get("control")),
+        "out_of_pack_docs": bool(oop.get("checked")),
+        "note": ("False 인 항목은 **대조군이 돌지 않았다**는 뜻이고, 그 사실이 "
+                 "`controls_ok` 를 낮추지는 않는다. 통과로 세지 말고 미실행으로 읽어라"),
+    }
     drifted = (out["ssotv3"]["mismatch"] or out["ssotv3"]["missing"]
                or out["endpoint_lock"]["drift"]
                or out["emitted_tickets"]["drift"] or out["emitted_tickets"]["removed"]

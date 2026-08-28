@@ -1,0 +1,300 @@
+{
+ "verification_id": "D-NONE-PASSES-AUDIT",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T13:05:24+09:00",
+ "d_head_sha": "01de585e41c499e0586e8479a24c26ef09834a7e",
+ "in_response_to": [
+  "T-A-V3-PROBE-V4-002"
+ ],
+ "question": "A 가 R147 에서 낸 결함 형태(`in_vp = None` 인데 `is False` 만 검사 → None 이 통과)가 **D 도구에도 있는가**",
+ "verdict": "A_FORM_ABSENT_ADJACENT_FORM_FOUND_AND_SURFACED",
+ "the_measurement": {
+  "n_files": 22,
+  "n_hits": 37,
+  "by_kind": {
+   "TRUTHY_GATE": 30,
+   "BARE_GET": 6,
+   "FALSE_ONLY": 1
+  },
+  "kinds": {
+   "FALSE_ONLY": "`is False`/`== False` 만 본다 — None 이 통과한다 (A R147 형태)",
+   "TRUTHY_GATE": "`if not x:` 로 None·False·0·\"\"·[] 를 한 덩어리로 접는다",
+   "BARE_GET": "`.get()` 결과를 None 검사 없이 조건에 넣는다"
+  }
+ },
+ "결과": {
+  "A_와_정확히_같은_형태(FALSE_ONLY)": "**0건.** 유일한 히트는 이 감사기 자신의 탐지 코드였다",
+  "이미_고쳐져_있던_자리": "`d_heartbeat._firewall_claim` — `if fresh is None: UNVERIFIED_CORPUS_UNCOMPARABLE` 가 `if not fresh` 보다 **먼저** 온다. 앞서 D-DEF-29 시정 때 세 상태로 갈라 둔 것이 여기서 값을 했다",
+  "인접_형태_1건": {
+   "어디": "`d_standing_control.py` — `oop.get('checked')` 가 0 이면 out_of_pack 대조군이 **안 돈 채로** 전체 `controls_ok` 가 True 로 남는다",
+   "A_와_같은_점": "검사가 적용되지 않았는데 통과가 나온다",
+   "A_와_다른_점": "D 는 `checked: 0` 과 `verdict: NO_RULING_SECTION` 을 **산출에 기록한다** — 드러나 있다. A 의 경우는 `in_viewport: None` 이 기록됐으나 집계기가 읽지 않았다",
+   "시정": "**판정 로직은 바꾸지 않았다**(동결본을 흔들지 않는다). `controls_evaluated` 필드를 추가해 **어느 대조군이 실제로 돌았는지** 드러낸다. 실측 4/4 전부 true",
+   "왜_판정을_안_바꿨나": "지금 고쳐 상시검사 출력을 바꾸면 그 변경 자체가 검증되지 않은 계기가 된다(A R144 정신). 드러내는 것이 먼저다"
+  }
+ },
+ "TRUTHY_GATE_27건에_대해": "대부분 빈 리스트·빈 문자열 판정이라 None 이 도달하지 않는다. **자리를 지목할 뿐 판정하지 않는다** — 전수 검토는 다음 실행 항목",
+ "limitation": "정적 탐지다. 세 형태가 항상 결함인 것은 아니며 None 이 올 수 없는 자리면 안전하다. 이 감사기 자신도 `is False` 를 쓴다(탐지 목적)",
+ "not_a_verdict": "관측이다. TRUTHY_GATE 전수 검토와 standing_control 판정 로직 변경은 다음 실행 사안이다",
+ "hits": [
+  {
+   "file": "d_bus_lib.py",
+   "fn": "_ack_index_files",
+   "line": 187,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not m:"
+  },
+  {
+   "file": "d_bus_lib.py",
+   "fn": "<line>",
+   "line": 114,
+   "kind": "BARE_GET",
+   "snippet": "tk = next((k for k in TS_KEYS if rec.get(k)), None)"
+  },
+  {
+   "file": "d_bus_lib.py",
+   "fn": "<line>",
+   "line": 115,
+   "kind": "BARE_GET",
+   "snippet": "ak = next((k for k in ACTOR_KEYS if rec.get(k)), None)"
+  },
+  {
+   "file": "d_dashboard.py",
+   "fn": "<line>",
+   "line": 1228,
+   "kind": "BARE_GET",
+   "snippet": "if lf.get(\"limitation\"):"
+  },
+  {
+   "file": "d_emit_ticket.py",
+   "fn": "check",
+   "line": 73,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not bs:"
+  },
+  {
+   "file": "d_emit_ticket.py",
+   "fn": "check",
+   "line": 81,
+   "kind": "TRUTHY_GATE",
+   "snippet": "elif not _r:"
+  },
+  {
+   "file": "d_emit_ticket.py",
+   "fn": "<line>",
+   "line": 287,
+   "kind": "BARE_GET",
+   "snippet": "return {\"n\": len(rows), \"v3_era\": sum(1 for r in rows if r.get(\"v3_era\")),"
+  },
+  {
+   "file": "d_gate_selftest.py",
+   "fn": "main",
+   "line": 56,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not ok:"
+  },
+  {
+   "file": "d_gate_selftest.py",
+   "fn": "main",
+   "line": 67,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not ok:"
+  },
+  {
+   "file": "d_heartbeat.py",
+   "fn": "_firewall_claim",
+   "line": 81,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not fresh:"
+  },
+  {
+   "file": "d_input_firewall.py",
+   "fn": "severity",
+   "line": 154,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not line_no:"
+  },
+  {
+   "file": "d_input_firewall.py",
+   "fn": "scan_file",
+   "line": 205,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not self_decl:"
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "parse_limitation",
+   "line": 90,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not m:"
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "discover",
+   "line": 148,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not prefix:"
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "gate",
+   "line": 269,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not nbs:"
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "gate",
+   "line": 272,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not ok:"
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "notebook_execution_check",
+   "line": 313,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not seq:"
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "sync",
+   "line": 447,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not ok:"
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "list_runs",
+   "line": 517,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not exp:"
+  },
+  {
+   "file": "d_mlflow_sync.py",
+   "fn": "parse_limitation",
+   "line": 90,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not m:"
+  },
+  {
+   "file": "d_mlflow_sync.py",
+   "fn": "discover",
+   "line": 112,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not m:"
+  },
+  {
+   "file": "d_mlflow_sync.py",
+   "fn": "supersede_pending",
+   "line": 136,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not exp:"
+  },
+  {
+   "file": "d_mlflow_sync.py",
+   "fn": "existing_result_shas",
+   "line": 154,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not exp:"
+  },
+  {
+   "file": "d_none_passes_audit.py",
+   "fn": "visit_Compare",
+   "line": 47,
+   "kind": "FALSE_ONLY",
+   "snippet": "cmp_.value is False"
+  },
+  {
+   "file": "d_presentation_eda.py",
+   "fn": "task_c",
+   "line": 275,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not line:"
+  },
+  {
+   "file": "d_presentation_eda.py",
+   "fn": "fig5_observability",
+   "line": 430,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not n:"
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "_mutate",
+   "line": 36,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not b:"
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "_cmp",
+   "line": 137,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not prev_val:"
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "check_out_of_pack_docs",
+   "line": 220,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not sec:"
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "check_out_of_pack_docs",
+   "line": 225,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not m:"
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "extend_baseline",
+   "line": 262,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not added:"
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "<line>",
+   "line": 307,
+   "kind": "BARE_GET",
+   "snippet": "if oop.get(\"checked\"):"
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "<line>",
+   "line": 349,
+   "kind": "BARE_GET",
+   "snippet": "if oop.get(\"checked\"):"
+  },
+  {
+   "file": "d_v3_census.py",
+   "fn": "load_geometry_supplement",
+   "line": 320,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not line:"
+  },
+  {
+   "file": "d_v3_figures.py",
+   "fn": "fig3_entry_implementation",
+   "line": 197,
+   "kind": "TRUTHY_GATE",
+   "snippet": "elif not vals:"
+  },
+  {
+   "file": "d_v3_figures.py",
+   "fn": "fig6_sequence_divergence",
+   "line": 297,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not fams:"
+  },
+  {
+   "file": "d_v3_report.py",
+   "fn": "figure2_spatial_cases",
+   "line": 114,
+   "kind": "TRUTHY_GATE",
+   "snippet": "if not cs:"
+  }
+ ]
+}
