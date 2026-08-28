@@ -53,7 +53,12 @@ def last_hash(path: Path) -> str | None:
 
 def main():
     scout_run_id = sys.argv[1]
-    target_ids = sys.argv[2:]
+    selection_criterion = None
+    rest = sys.argv[2:]
+    if rest and rest[0].startswith("--criterion="):
+        selection_criterion = rest[0].split("=", 1)[1]
+        rest = rest[1:]
+    target_ids = rest
     packets = json.loads(PACKETS_PATH.read_text(encoding="utf-8"))["targets"]
 
     RAW_ROOT.mkdir(parents=True, exist_ok=True)
@@ -111,6 +116,7 @@ def main():
                 "task_hash": task_hash, "endpoint_hash": endpoint_hash,
                 "attempt_status": attempt_status, "terminal_reason": terminal_reason,
                 "scout_status_raw": scout_status, "route_diagnosis": route_diagnosis, "error_sample": error_sample,
+                "selection_criterion": selection_criterion,
                 "visible_label_text": visible_label or "NOT_OBSERVED",
                 "accessible_name": visible_label or "NOT_OBSERVED",
                 "accessible_name_source": "VISIBLE_TEXT" if visible_label else "NOT_OBSERVED",
