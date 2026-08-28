@@ -23,6 +23,7 @@ from __future__ import annotations
 import ast
 import json
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parent
@@ -234,6 +235,10 @@ def static_control_presence() -> dict:
             "rows": rows}
 
 
+# [D-DEF-88] **한 프로세스 안에서만** 결과를 재사용한다. 이 함수가 한 회차에
+# 두 번 이상 불리는데(스캔 + 표시누락 검사 + 자기 controls) 매번 전부 다시 쟀다.
+# 프로세스가 끝나면 캐시도 끝나므로 **회차 간 낡은 값이 남지 않는다.**
+@lru_cache(maxsize=1)
 def control_coverage() -> dict:
     """루프에서 도는 도구가 **실행되는 대조군**을 갖는가.
 

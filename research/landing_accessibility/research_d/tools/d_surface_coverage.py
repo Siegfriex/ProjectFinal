@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import re
+from functools import lru_cache
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parent
@@ -127,6 +128,10 @@ ACCEPTED_UNSURFACED = {
 }
 
 
+# [D-DEF-88] **한 프로세스 안에서만** 결과를 재사용한다. 이 함수가 한 회차에
+# 두 번 이상 불리는데(스캔 + 표시누락 검사 + 자기 controls) 매번 전부 다시 쟀다.
+# 프로세스가 끝나면 캐시도 끝나므로 **회차 간 낡은 값이 남지 않는다.**
+@lru_cache(maxsize=1)
 def check() -> dict:
     import importlib
     import sys as _s
