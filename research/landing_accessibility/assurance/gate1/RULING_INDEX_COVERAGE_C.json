@@ -1849,8 +1849,8 @@
    "verified_by": "C",
    "requires": "**미러·사본·색인은 측정된 동기화여야 한다** — ① 만진 것이 아니라 **원본 전량** ② 복사 후 **다시 재서** 확인(복사 성공을 가정하지 않는다) ③ `2>/dev/null` 로 오류를 삼키지 않는다 ④ 없는 것·**다른 것**·**원본에 없는데 사본에 있는 것** 을 각각 센다 ⑤ 원본을 못 찾으면 **exit 2 '검사가 돌지 않았다'**",
    "must_appear_in": "control/mirror_bus.py · 각 평면의 사본 도구",
-   "C_check": "Δ52/R51: C bus_mirror_c 를 원본 전량·복사 후 재검증·3방향(없음/다름/사본에만)·조용한 실패 금지·원본 부재 exit 2 로 전환 중(mirror_sync.py) — 완료 시 COVERED",
-   "coverage": "COVERED_PENDING_ADAPTER",
+   "C_check": "mirror_sync.py 전면 재작성(3459eaf): 원본 전량 4 디렉터리·복사 후 재해시 3방향 검증·잔여 0 만 exit 0·원본 부재 exit 2·오류 비삼킴; c_commit.sh 는 mirror 실패 시 커밋 중단(|| true 제거); must_flag 691→exit1 / must_not_flag 0→exit0 / no-bus→exit2 실측",
+   "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 42
   },
@@ -1871,8 +1871,8 @@
    "verified_by": "C",
    "requires": "`Δ46-exit2` 규약이 **첫 실사용에서 값을 했다** — `mirror_bus.py` 가 버스를 못 찾았을 때 **'파일 0개 → 불일치 0 → 통과'** 대신 exit 2 를 냈다. **빈 원본과 일치가 같은 출력이 되는 자리**였다",
    "must_appear_in": "exit 규약 근거",
-   "C_check": "Δ52/R51: C bus_mirror_c 를 원본 전량·복사 후 재검증·3방향(없음/다름/사본에만)·조용한 실패 금지·원본 부재 exit 2 로 전환 중(mirror_sync.py) — 완료 시 COVERED",
-   "coverage": "PARTIAL",
+   "C_check": "C 도 동형 실증: mirror_sync 원본 부재 → exit 2 DID_NOT_RUN(빈 원본≠일치)",
+   "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 42
   }
