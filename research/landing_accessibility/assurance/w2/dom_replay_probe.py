@@ -10,7 +10,12 @@ Usage: dom_replay_probe.py <probe_js_path> <out_dir> [execution_mode=REAL_TARGET
 """
 from __future__ import annotations
 import sys, json, glob, pathlib, datetime, hashlib
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError as _e:  # Δ46-exit2: a probe that cannot import its browser driver did not run
+    if __name__ != "__main__":
+        raise
+    print(f"dom_replay_probe: did not run — read neither as pass nor fail (exit 2): {_e!r}", file=sys.stderr); sys.exit(2)
 
 MART = pathlib.Path("/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_analysis_current/artifacts/e001_real_marts/fact_landing_observation.json")
 EVID = "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_b_e001_worker_0*/artifacts/e001_w0*/evidence/*/*/l0a/dom.html"
@@ -49,4 +54,12 @@ def main(probe_js: str, out_dir: str, mode: str = "REAL_TARGET", limit: int = 0)
     return 0
 
 if __name__ == "__main__":
-    a = sys.argv[1:]; sys.exit(main(a[0], a[1], a[2] if len(a) > 2 else "REAL_TARGET", int(a[3]) if len(a) > 3 else 0))
+    a = sys.argv[1:]
+    try:
+        _rc = main(a[0], a[1], a[2] if len(a) > 2 else "REAL_TARGET", int(a[3]) if len(a) > 3 else 0)
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("dom_replay_probe: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

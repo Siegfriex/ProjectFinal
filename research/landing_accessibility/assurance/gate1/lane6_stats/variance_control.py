@@ -195,6 +195,12 @@ def run_controls() -> dict[str, Any]:
 
 if __name__ == "__main__":
     import sys
-    res = run_controls()
+    try:
+        res = run_controls()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: controls that crashed did not run
+        import traceback
+        traceback.print_exc()
+        print("variance_control: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        sys.exit(2)
     print(json.dumps(res, ensure_ascii=False, indent=1, default=str))
     sys.exit(0 if res["controls_ok"] else 1)

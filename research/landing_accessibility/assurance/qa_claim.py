@@ -175,7 +175,14 @@ def main(a):
     for r in rows: md.append(f"| {r['file']} | **{r['status']}** | {'; '.join(r['issues']) or '-'} | {(r['sentence'] or '').replace('|','／')} |")
     md += ["", "> 최종 headline 판정은 A. C 는 §2 금지 스캔·grade 태그·N 병기·수치 일치만 판정한다. `NUMBER_NOT_IN_C_REPLAY` 는 A 가 인용하는 숫자가 C 재계산값 집합에 없다는 뜻이며, 반올림 차이일 수 있어 개별 확인 대상이다."]
     out.write_text("\n".join(md), encoding="utf-8"); print(json.dumps({"scan_files": f"{files_scanned}/{files_expected}", "sentences": sentences_scanned, "retracted_raw_hits": retracted_hits, "positive_controls": controls, "negative_control": ("caught" if neg_ok else ("NOT_CAUGHT" if neg_files_in_run else "not_run")), "marker_leak": marker_leak, "scan_valid": scan_ok, **cnt}, ensure_ascii=False)); print("written", out)
-    if not scan_ok: sys.exit(2)
+    if not scan_ok:
+        print("qa_claim: scan INVALID — did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--claims", nargs="+", required=True); ap.add_argument("--replay"); ap.add_argument("--recon"); ap.add_argument("--out", default="out/QA_CLAIM_LEDGER.md"); main(ap.parse_args())
+    ap = argparse.ArgumentParser(); ap.add_argument("--claims", nargs="+", required=True); ap.add_argument("--replay"); ap.add_argument("--recon"); ap.add_argument("--out", default="out/QA_CLAIM_LEDGER.md")
+    try:
+        main(ap.parse_args())
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash = did not run
+        import traceback
+        traceback.print_exc()
+        print("qa_claim: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)

@@ -89,4 +89,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("determinism_check: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

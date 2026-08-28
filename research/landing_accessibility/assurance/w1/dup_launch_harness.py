@@ -18,6 +18,8 @@ import json, os, re, subprocess, sys, time, pathlib, collections, datetime, hash
 def main(sut_root: str, out: str, delay: float = 1.5) -> int:
     sut = pathlib.Path(sut_root).resolve(); outp = pathlib.Path(out).resolve(); outp.mkdir(parents=True, exist_ok=True)
     script = sut / "research/landing_accessibility/scripts/run_e001_batch_dryrun.py"
+    if not script.is_file():  # Δ46-exit2: no SUT script = harness did not run (was: INCONCLUSIVE + exit 0)
+        print(f"dup_launch_harness: SUT script missing {script} — did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); return 2
     cmd = [sys.executable, str(script), "--mode", "FIXTURE", "--out", str(outp)]
     env = {**os.environ, "PYTHONUNBUFFERED": "1"}
     t0 = time.time()
@@ -57,4 +59,11 @@ def main(sut_root: str, out: str, delay: float = 1.5) -> int:
     print(json.dumps(res, ensure_ascii=False, indent=1)); return 0
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1], sys.argv[2], float(sys.argv[3]) if len(sys.argv) > 3 else 1.5))
+    try:
+        _rc = main(sys.argv[1], sys.argv[2], float(sys.argv[3]) if len(sys.argv) > 3 else 1.5)
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("dup_launch_harness: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

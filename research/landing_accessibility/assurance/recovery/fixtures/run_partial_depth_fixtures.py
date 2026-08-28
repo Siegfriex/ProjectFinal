@@ -96,6 +96,8 @@ CASES: list[tuple[str, str, TaskDefinition, dict[str, Any], str]] = [
 
 def _check(expected: dict[str, Any], actual: dict[str, Any]) -> list[str]:
     fails: list[str] = []
+    if not expected:  # R43 / T-B-V3-FC-005: no expectation declared = nothing checked, never PASS
+        return ["VACUOUS: no expectations declared for this case (checks_performed=0)"]
     for key, want in expected.items():
         if key == "endpoint_status_not":
             if actual["endpoint_status"] == want:
@@ -173,6 +175,8 @@ def main() -> int:
             }
         )
 
+    if not results:  # R43: zero cases run is not PASS
+        print("run_partial_depth_fixtures: did not run — zero cases (checks_performed=0) — read neither as pass nor fail (exit 2)", file=sys.stderr); return 2
     payload = {
         "note": "synthetic fixture 에 대한 engine test 결과다. 실제 서비스에 대한 research finding 이 아니다.",
         "engine_src": str(ENGINE_SRC),
@@ -194,4 +198,11 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("run_partial_depth_fixtures: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

@@ -317,6 +317,21 @@ def run(path):
 
 
 if __name__ == "__main__":
-    for a in sys.argv[1:]:
-        for r in run(a):
-            print(json.dumps(r, ensure_ascii=False))
+    _rc = 0
+    try:
+        for a in sys.argv[1:]:
+            for r in run(a):
+                print(json.dumps(r, ensure_ascii=False))
+    except SystemExit as _e:  # impl_b raises SystemExit(<str>) on a malformed fixture = precondition, not a verdict
+        if not isinstance(_e.code, str):
+            raise
+        import traceback
+        traceback.print_exc()
+        print("impl_b: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing fixture = did not run
+        import traceback
+        traceback.print_exc()
+        print("impl_b: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

@@ -80,5 +80,11 @@ def main(labels_p, split_p, det_p, out_p):
     print(json.dumps({k: out[k] for k in ("holdout_n","evaluated_n","pooled_agreement_on_mapped","coverage","macro_agreement","release_gate_engineering_not_research","problems")}, ensure_ascii=False, indent=1))
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5: print(__doc__); sys.exit(2)
-    main(*sys.argv[1:])
+    if len(sys.argv) != 5: print(__doc__); print("holdout_scorer: usage error — did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)
+    try:
+        main(*sys.argv[1:])
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: missing labels/split/detector file / crash = did not run
+        import traceback
+        traceback.print_exc()
+        print("holdout_scorer: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)
+    sys.exit(0)

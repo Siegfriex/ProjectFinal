@@ -124,4 +124,12 @@ def main() -> int:
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"overall": out["overall"], "verdicts": out["verdicts"], "pop_C": out["population_reconciliation_C"]}, ensure_ascii=False, indent=1))
     return 0
-if __name__ == "__main__": sys.exit(main())
+if __name__ == "__main__":
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("qa_retention: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

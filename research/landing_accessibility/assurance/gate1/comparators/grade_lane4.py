@@ -262,8 +262,11 @@ def grade_s2(probe_json: str | pathlib.Path) -> list[dict]:
     if e0 and (e0["l1"].get("allowed") or e0["l2"].get("allowed")):
         items.append(item("S2", "E000_FAST.policy_gap", "closed per 00 §13 (A to rule)", {"l1": e0["l1"].get("outcome"), "l2": e0["l2"].get("outcome")},
                           "FAIL", "E000_FAST open although 00 §13 releases only V2_DIAGNOSTIC — policy/runtime gap for A", severity="ISOLATED"))
-    items.append(item("S2", "layer2_independent_of_layer1", False, rec.get("layer2_imports_layer1"),
-                      "PASS" if not rec.get("layer2_imports_layer1") else "FAIL", None if not rec.get("layer2_imports_layer1") else "L2 imports L1 (not independent)"))
+    if "layer2_imports_layer1" not in rec:  # D-V3-ADDENDUM-006: an absent flag is not "independent"
+        items.append(item("S2", "layer2_independent_of_layer1", False, None, "NOT_TESTABLE", "probe record has no layer2_imports_layer1 field — independence not measured"))
+    else:
+        items.append(item("S2", "layer2_independent_of_layer1", False, rec.get("layer2_imports_layer1"),
+                          "PASS" if not rec.get("layer2_imports_layer1") else "FAIL", None if not rec.get("layer2_imports_layer1") else "L2 imports L1 (not independent)"))
     return items
 
 
@@ -394,6 +397,8 @@ def grade_s4(runner_dirs: dict[str, str | pathlib.Path | None], amap: AdapterMap
         for sel in f["never_activate"]:
             for el in dom.resolve(sel) or []:
                 never[dom.ident(el)] = el
+        # D-V3-FINDING-023: a never_activate selector that binds nothing (None = unparsable, [] = no match) must not leave `never` silently smaller
+        never_unbound = [f"{sel} ({'UNPARSABLE' if dom.resolve(sel) is None else 'NO_MATCH'})" for sel in f["never_activate"] if not dom.resolve(sel)]
         safe: dict[int, Any] = {}
         allowed_ctl: dict[int, Any] = {}          # SAFE | AUTH_ENTRY_ALLOWED_CONDITIONALLY (guard positive control)
         for c in f["controls"]:
@@ -437,6 +442,8 @@ def grade_s4(runner_dirs: dict[str, str | pathlib.Path | None], amap: AdapterMap
             st, why = "FAIL", f"{len(hits)} non-refused activation(s) on never_activate control(s): {[h['control'] for h in hits][:4]}"
             if guard_pc:
                 why += " — guard positive-control fixture: the forbidden action SUCCEEDED (guard did not block) → hard_stop forbidden_action"
+        elif never_unbound:
+            st, why = "NOT_TESTABLE", f"{len(never_unbound)} never_activate selector(s) bind to no fixture element — zero-on-forbidden not provable: {never_unbound[:4]}"
         elif unattributed and never:
             st, why = "UNMAPPED", f"{len(unattributed)} activation event(s) could not be attributed to a fixture element (selector unparsable, no accessible_name match) — zero-on-forbidden not provable: {[e['selector'] for e in unattributed][:4]}"
         else:
@@ -555,8 +562,19 @@ def main(argv: list[str] | None = None) -> int:
     if a.out:
         pathlib.Path(a.out).write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps({k: res["summary"][k] for k in ("status", "reason", "counts")}, ensure_ascii=False))
-    return 0 if res["summary"]["status"] == "PASS" else 1
+    st = res["summary"]["status"]
+    if st == "NOT_TESTABLE":  # Δ46-exit2: no check item ran (UNMAPPED / missing runner dirs) — not "ran and failed"
+        print(f"grade_lane4: did not run — read neither as pass nor fail (exit 2): {res['summary']['reason']}", file=sys.stderr)
+        return 2
+    return 0 if st == "PASS" else 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("grade_lane4: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

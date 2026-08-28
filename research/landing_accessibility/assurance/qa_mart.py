@@ -18,11 +18,13 @@ from assurance import stats_replay as st
 KST = datetime.timezone(datetime.timedelta(hours=9)); now = lambda: datetime.datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00")
 TOL = 1e-6
 
+COERCION_LOG: list = []   # D-V3-FINDING-023: non-empty values that could not be read as numbers (UNREADABLE ≠ missing); reported as a C1 finding by main()
 def _num(v):
     try:
         if v is None or (isinstance(v, str) and not v.strip()): return None
         x = float(v); return None if math.isnan(x) else x
-    except Exception: return None
+    except Exception:
+        COERCION_LOG.append(repr(v)[:60]); return None
 
 def _col(df, *names):
     for n in names:
@@ -57,7 +59,8 @@ def build_c_table(out_dirs, plan, state_dir) -> pd.DataFrame:
 def main(a):
     findings = []; add = lambda sev, code, msg, **kw: findings.append({"severity": sev, "code": code, "msg": msg, **kw})
     C = build_c_table(a.out_dirs, a.plan, a.state_dir)
-    if C.empty: print("no raw rows"); return
+    if C.empty:  # R43 / Δ46-exit2: nothing to reconcile is did-not-run, never exit 0
+        print("qa_mart: did not run — no raw rows in --out-dirs (checks_performed=0) — read neither as pass nor fail (exit 2)", file=sys.stderr); return 2
     # A 14:24: analysis sample = E001 only (collector 222ef2c). E000 rows are validation output, never sample.
     is_e000 = C["_out_dir"].str.contains("e000", case=False)
     e000_rows = C[is_e000]; C = C[~is_e000].copy()
@@ -144,11 +147,12 @@ def main(a):
             fp = pathlib.Path(a.mart_dir) / pathlib.Path(str(fn)).name
             if not fp.is_file(): hash_check.append({"file": fn, "status": "MISSING"}); add("C1", "MART_FILE_MISSING", f"manifest lists {fn} but file absent"); continue
             got = _h.sha256(fp.read_bytes()).hexdigest(); ok = (got == declared)
-            rc = fe.get("row_count"); rows_actual = None
+            rc = fe.get("row_count"); rows_actual = None; parse_err = None
             try:
                 dd = json.loads(fp.read_text(encoding="utf-8")); rows_actual = len(dd) if isinstance(dd, list) else len(dd.get("rows") or [])
-            except Exception: pass
-            hash_check.append({"file": fn, "sha256_match": ok, "row_count_declared": rc, "row_count_actual": rows_actual})
+            except Exception as ex:  # D-V3-FINDING-023: unparseable mart file ≠ row count OK
+                parse_err = f"{type(ex).__name__}: {ex}"[:120]; add("C1", "MART_FILE_UNPARSEABLE", f"{fn}: not parseable JSON — row-count check did not run (UNREADABLE) ({parse_err})")
+            hash_check.append({"file": fn, "sha256_match": ok, "row_count_declared": rc, "row_count_actual": rows_actual, "parse_error": parse_err})
             if not ok: add("C1", "MART_FILE_HASH_MISMATCH", f"{fn}: sha256 {got[:12]} != manifest {declared[:12]}")
             if rc is not None and rows_actual is not None and int(rc) != rows_actual: add("C1", "MART_FILE_ROWCOUNT_MISMATCH", f"{fn}: rows {rows_actual} != manifest {rc}")
         prov_check["_file_hashes"] = hash_check
@@ -317,6 +321,7 @@ def main(a):
             if not x["match"]: add(x["severity"], "STATS_MISMATCH", f"{name}: B={b} C={c}")
         if take(B, "primary_association", "n") is not None and take(B, "primary_association", "n") != prim["n_pairwise_complete"]:
             add("C1", "N_MISMATCH_STOP", "N differs — stop comparing coefficients; find sample inclusion mismatch first (§19)")
+    if COERCION_LOG: add("C1", "NUMERIC_COERCION_UNPARSEABLE", f"{len(COERCION_LOG)} non-empty value(s) were not numeric and were treated as missing — UNREADABLE ≠ absent (D-V3-FINDING-023)", samples=COERCION_LOG[:10])
     sev = min((x["severity"] for x in findings if x["severity"]), key=lambda s: {"C0": 0, "C1": 1, "C2": 2}[s], default=None)
     recon = {"artifact": "QA_MART_RECONCILIATION", "generated_by": "C", "generated_at": now(), "inputs": {"out_dirs": a.out_dirs, "mart_dir": a.mart_dir, "older_relevant": a.older_relevant, "plan": a.plan},
              "verdict": "MART_QA_MATCH" if sev in (None, "C2") else "MART_QA_MISMATCH", "severity_max": sev, "axis_a_state": axis_a_state, "summary_contract_1_3": summary, "mart_acceptance_s1": {"counts_keys": acc1, "input_sha": prov_check}, "per_target_variables": per_target,
@@ -330,4 +335,11 @@ def main(a):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--out-dirs", nargs="+", required=True); ap.add_argument("--mart-dir", required=True); ap.add_argument("--older-relevant", default=str(pathlib.Path(__file__).resolve().parent / "out" / "older_relevant_registry.json")); ap.add_argument("--plan", required=True)
-    ap.add_argument("--b-stats"); ap.add_argument("--collector-sha"); ap.add_argument("--protocol-sha"); ap.add_argument("--plan-hash", default="b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc"); ap.add_argument("--manifest", help="FROZEN_MART_MANIFEST.json or REAL_RUN_SUMMARY.json (with 'manifest' block)"); ap.add_argument("--expected-drift", action="store_true", help="A approved collector change between E000 and E001 (E000 reuse void)"); ap.add_argument("--e001-start", help="KST HH:MM of actual E001 start (extension branch if >= 13:15)"); ap.add_argument("--state-dir"); ap.add_argument("--out", default="out"); main(ap.parse_args())
+    ap.add_argument("--b-stats"); ap.add_argument("--collector-sha"); ap.add_argument("--protocol-sha"); ap.add_argument("--plan-hash", default="b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc"); ap.add_argument("--manifest", help="FROZEN_MART_MANIFEST.json or REAL_RUN_SUMMARY.json (with 'manifest' block)"); ap.add_argument("--expected-drift", action="store_true", help="A approved collector change between E000 and E001 (E000 reuse void)"); ap.add_argument("--e001-start", help="KST HH:MM of actual E001 start (extension branch if >= 13:15)"); ap.add_argument("--state-dir"); ap.add_argument("--out", default="out")
+    try:
+        _rc = main(ap.parse_args())
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: missing mart/plan / crash = did not run
+        import traceback
+        traceback.print_exc()
+        print("qa_mart: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)
+    sys.exit(_rc or 0)

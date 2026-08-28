@@ -87,4 +87,18 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        _rc = main()
+    except SystemExit as _e:  # impl_b raises SystemExit(<str>) on a malformed fixture = precondition, not a verdict
+        if not isinstance(_e.code, str):
+            raise
+        import traceback
+        traceback.print_exc()
+        print("converge_check: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("converge_check: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

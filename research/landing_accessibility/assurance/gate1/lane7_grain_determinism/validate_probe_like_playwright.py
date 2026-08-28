@@ -6,7 +6,12 @@ v1.2 also the path_control 9x9 elementFromPoint hit grid and every container's b
 control centre must leave location.hash unchanged; containers are removed in dismissal order between proofs).
 This validates the simulated probe input, not impl_a/impl_b. Output: out/playwright_validation.{txt,json}."""
 import json, pathlib, re, sys
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError as _e:  # Δ46-exit2: a probe that cannot import its browser driver did not run
+    if __name__ != "__main__":
+        raise
+    print(f"validate_probe_like_playwright: did not run — read neither as pass nor fail (exit 2): {_e!r}", file=sys.stderr); sys.exit(2)
 HERE = pathlib.Path(__file__).resolve().parent
 PROBE = {"f01": "f01_blocking_modal_visible_close.html", "f02": "f02_overlay_control_hidden.html",
          "f03": "f03_overlay_control_after_scroll.html", "f04": "f04_two_overlays_one_blocking.html", "f05": "f05_no_overlay.html",
@@ -100,6 +105,8 @@ def main():
                      f"{f(r.get('visible_hand'), r.get('visible_pw'))} | {f(r.get('hittable_hand'), r.get('hittable_pw'))} | "
                      f"{f(r.get('ax_exposed_hand'), r.get('ax_exposed_pw'))} | {f(r.get('name_hand'), r.get('name_pw'))} | "
                      f"{'ok' if r['bbox_ok'] and r['facts_ok'] else 'MISMATCH'}")
+    if not rows:  # R43 / T-B-V3-FC-005: zero checks is not PROBE_LIKE_VALIDATED
+        print("validate_probe_like_playwright: did not run — zero checks (checks_performed=0) — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)
     lines.append(f"checked={len(rows)} mismatches={mism} -> {'PROBE_LIKE_VALIDATED' if mism == 0 else 'PROBE_LIKE_MISMATCH'}")
     txt = "\n".join(lines); print(txt)
     (HERE / "out" / "playwright_validation.txt").write_text(txt + "\n", encoding="utf-8")
@@ -107,4 +114,11 @@ def main():
     sys.exit(0 if mism == 0 else 1)
 
 if __name__ == "__main__":
-    main()
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("validate_probe_like_playwright: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

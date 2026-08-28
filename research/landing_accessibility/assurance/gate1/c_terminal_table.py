@@ -123,7 +123,13 @@ def selftest() -> list[str]:
 
 if __name__ == "__main__":
     import sys
-    probs = selftest()
+    try:
+        probs = selftest()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: a selftest that crashed did not run
+        import traceback
+        traceback.print_exc()
+        print("c_terminal_table: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        sys.exit(2)
     print("c_terminal_table selftest:", "OK" if not probs else probs)
     sys.exit(0 if not probs else 1)
 

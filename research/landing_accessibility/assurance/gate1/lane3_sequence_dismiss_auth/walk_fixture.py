@@ -15,10 +15,20 @@ Exit 0 only when every fixture PASSes.
 """
 from __future__ import annotations
 import json, sys, time, pathlib
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError as _e:  # Δ46-exit2: a probe that cannot import its browser driver did not run
+    if __name__ != "__main__":
+        raise
+    print(f"walk_fixture: did not run — read neither as pass nor fail (exit 2): {_e!r}", file=sys.stderr); sys.exit(2)
 
 HERE = pathlib.Path(__file__).resolve().parent
-EXP = json.loads((HERE / "EXPECTATIONS.json").read_text())
+try:
+    EXP = json.loads((HERE / "EXPECTATIONS.json").read_text())
+except OSError as _e:  # Δ46-exit2: a missing tool fixture is did-not-run, never exit 1
+    if __name__ != "__main__":
+        raise
+    print(f"walk_fixture: did not run — read neither as pass nor fail (exit 2): {_e!r}", file=sys.stderr); sys.exit(2)
 VW, VH = EXP["viewport"]["width"], EXP["viewport"]["height"]
 ACT, REVEAL = set(EXP["token_sets"]["ACTIVATION_SET"]), set(EXP["token_sets"]["REVEAL_SET"])
 COND = set(EXP["token_sets"]["CONDITIONAL_SET"])                    # T-A-V3-STEP1-006 CONDITIONAL 3 (Δ8-R5 fixture_input_mode decides)
@@ -300,8 +310,17 @@ def main():
         cov = r.get("s0_overlay_coverage"); covs = "n/a" if cov is None else f"{cov:.3f}"
         print(f"| {r['fixture']} | {f['control_role'].split('_')[0]} | {n}/{len(f['lossless_check'])} | {occs} | {covs} | {'null' if r.get('first_visible_scroll_state', '?') is None else r.get('first_visible_scroll_state', '?')} | {r.get('terminal','?')} | {'PASS' if ok else 'FAIL: ' + '; '.join(r['fails'])} |")
     nf = [r for r in results if not r.get("_pair")]; npair = len(results) - len(nf)
+    if not nf:  # R43 / T-B-V3-FC-005: zero fixtures walked is not ALL PASS
+        print("walk_fixture: did not run — zero fixtures (checks_performed=0) — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)
     print(f"\nRESULT: {'ALL PASS' if all_ok else 'FAIL'} ({sum(1 for r in nf if not r['fails'])}/{len(nf)} fixtures, {sum(1 for r in results if r.get('_pair') and not r['fails'])}/{npair} conditional pairs) -> {OUT/'walk_result.json'}")
     sys.exit(0 if all_ok else 1)
 
 if __name__ == "__main__":
-    main()
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("walk_fixture: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

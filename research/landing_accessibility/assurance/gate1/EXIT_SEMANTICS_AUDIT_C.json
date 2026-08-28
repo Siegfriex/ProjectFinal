@@ -1,0 +1,3446 @@
+{
+ "artifact": "EXIT_SEMANTICS_AUDIT_C",
+ "producer": "C (claude-c/assurance-v21)",
+ "measured_at_kst": "2026-08-28T09:44:39+09:00",
+ "worktree_head": "42d66c9334065f2096c4651219c02a0e6aa85159",
+ "rulings": [
+  "Δ46-exit2",
+  "Δ50-exit2-common",
+  "D-V3-FINDING-023 (except sweep)",
+  "D-V3-ADDENDUM-006 (denominator + benign-default sweep)",
+  "T-B-V3-FC-005 / R43 (vacuous pass)"
+ ],
+ "convention": {
+  "0": "ran and passed",
+  "1": "ran and failed",
+  "2": "did not run — read neither as pass nor fail (crash / missing input / precondition / nothing to check)",
+  "exception": "gate1/lane5_evidence/evidence_lineage_check.py keeps 2 = ran-and-found-SYSTEMIC (bound by gate1/run_gate1.py L5 expect_rc=2 on bad_* fixtures) and uses 3 for did-not-run"
+ },
+ "denominator": {
+  "rule": "every *.py and *.sh under research/landing_accessibility/assurance/ (recursive, __pycache__ excluded); 전수 = 전수 of N files",
+  "n_files": 62,
+  "by_category": {
+   "entry_point": 41,
+   "excluded_by_owner": 7,
+   "library": 2,
+   "fixtures_py": 6,
+   "test_module": 2,
+   "package_init": 2,
+   "shell_entry": 1,
+   "demonstrator": 1
+  },
+  "files": [
+   {
+    "path": "__init__.py",
+    "category": "package_init",
+    "sha256_now": "5408f8ef9436db733ed626b5fc161424950d42da52ad72775413f3f9fdb30b9d",
+    "sha256_head": "5408f8ef9436db733ed626b5fc161424950d42da52ad72775413f3f9fdb30b9d",
+    "excluded_reason": null
+   },
+   {
+    "path": "bus.py",
+    "category": "entry_point",
+    "sha256_now": "a24cc204adb376d6ea8c6f2c7f015e26ce38da9dc0b04628e8940cc86b541e7a",
+    "sha256_head": "e0177e4b11790f7b23c5dd446bbf38347ca8ed7d888c1fe255c5cf4768fb180c",
+    "excluded_reason": null
+   },
+   {
+    "path": "c_bus_scan.py",
+    "category": "excluded_by_owner",
+    "sha256_now": "128614b072a70c00b9487844497441496a3e3e18e16e52ba8077f6000dfc4300",
+    "sha256_head": "128614b072a70c00b9487844497441496a3e3e18e16e52ba8077f6000dfc4300",
+    "excluded_reason": "converted earlier (A/C shared convention)"
+   },
+   {
+    "path": "c_commit.sh",
+    "category": "shell_entry",
+    "sha256_now": "5aca02a5f0091bd0e0d1381b3d7fec457cfb4ce7144fed11632c59b33385dc87",
+    "sha256_head": "5aca02a5f0091bd0e0d1381b3d7fec457cfb4ce7144fed11632c59b33385dc87",
+    "excluded_reason": null
+   },
+   {
+    "path": "c_hb_measure.py",
+    "category": "excluded_by_owner",
+    "sha256_now": "7116433c097ce48da2f97e822d0f3352b3c2a4ffbf5610f2f3edeec00b671c62",
+    "sha256_head": "7116433c097ce48da2f97e822d0f3352b3c2a4ffbf5610f2f3edeec00b671c62",
+    "excluded_reason": "converted earlier"
+   },
+   {
+    "path": "clean0/qa_retention.py",
+    "category": "entry_point",
+    "sha256_now": "e37792f5c5b08d8eb8046e4da3cead906d1a8b481de6cfdc29f936674956066d",
+    "sha256_head": "8bd4f3cfe1e07364dd254b9c0759e672b78811bd1a65e6676a13f79d13cd71df",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/c_terminal_table.py",
+    "category": "entry_point",
+    "sha256_now": "17eea248f30114a57a49009aa44ba094d49f93a38ed2552911376c7268ad4c83",
+    "sha256_head": "524f6ad8cdb9e9c38bf976c3e73c4018dab070847fe63fb0f7e4ec8a70e23a84",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/comparators/__init__.py",
+    "category": "package_init",
+    "sha256_now": "4dfdd3e3cd637f56e73006ef70627ef8b107c91b6664e48c77c689b3ca7addc5",
+    "sha256_head": "4dfdd3e3cd637f56e73006ef70627ef8b107c91b6664e48c77c689b3ca7addc5",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/comparators/adapter_map.py",
+    "category": "entry_point",
+    "sha256_now": "049689212f799990537581f0eeae2f924c0888e84a7bc60121e54d21bfc5e112",
+    "sha256_head": "02d72def68faec161a76601136b389964a2db6b6c578be74cc4576ad1faf5862",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/comparators/common.py",
+    "category": "library",
+    "sha256_now": "7cc17f59a4a81116853c94dd1460d75d9af9f006a6a12a2cf3d16b7ce91d6773",
+    "sha256_head": "7cc17f59a4a81116853c94dd1460d75d9af9f006a6a12a2cf3d16b7ce91d6773",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/comparators/compare_lane1.py",
+    "category": "entry_point",
+    "sha256_now": "79153c37eafa8deafc89d912d2cce46ef64c7da954ef6f717436323610ce1983",
+    "sha256_head": "9f3bd8daf7ba10d02a16e3b75b4bfcf99c61bcb1368f7393a58bdec4dca08207",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/comparators/compare_lane2.py",
+    "category": "entry_point",
+    "sha256_now": "e8f1378294cf25a3b7284ae373b18c0623623b5f6aa4b1952b6f4e70498c12fb",
+    "sha256_head": "b61294128bb7e363dac3beb1747c7e154421c45d66e6ddd4ab563a24fca20cba",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/comparators/compare_lane3.py",
+    "category": "entry_point",
+    "sha256_now": "65e24c70f0afc376f42d4b6222f6d6b99bf1584c259b58b3031af9e4341a67e5",
+    "sha256_head": "80f97a5208c91cf85979102debd0d492bcb4ed8428f5bb266074694b347860c4",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/comparators/grade_lane4.py",
+    "category": "entry_point",
+    "sha256_now": "a1b32ae530a4ba82abdb37f0bfd813e7166c7a567a575bf8b2ce765504106e6a",
+    "sha256_head": "5fdef7ef35ded3c0fdb0f6ccdfaec3195c1fa9acf5395462dfdb52f2c5cd3647",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/comparators/selftest.py",
+    "category": "entry_point",
+    "sha256_now": "01c3d70570c9941668f505345120e9116e25ed7888cb2d03db0087c2a65cc4cf",
+    "sha256_head": "b62925bdd5336e1c93ba6b83025f965d067de26b7c192c48ada9d67d0c8fe50b",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/control_failure_demo_c.py",
+    "category": "excluded_by_owner",
+    "sha256_now": "b5d4cb9bd24b673b1be673f78f9068eca3aaaa6ac0a7cc13fccf38aae46a57ff",
+    "sha256_head": "b5d4cb9bd24b673b1be673f78f9068eca3aaaa6ac0a7cc13fccf38aae46a57ff",
+    "excluded_reason": "converted earlier"
+   },
+   {
+    "path": "gate1/exit_semantics_demo_c.py",
+    "category": "demonstrator",
+    "sha256_now": "1ab2fe0a0425f1e5048b8da35d94ea509c10c91e82352e5564c369bba627f3a6",
+    "sha256_head": null,
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/intake/fixtures_py/__init__.py",
+    "category": "fixtures_py",
+    "sha256_now": "8c2037a5b96f031b1193899b8377a4921a1d247209547c640a8ad4c9b0e89595",
+    "sha256_head": "8c2037a5b96f031b1193899b8377a4921a1d247209547c640a8ad4c9b0e89595",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/intake/fixtures_py/coverage_idioms.py",
+    "category": "fixtures_py",
+    "sha256_now": "3e3c754746401098c239eff4b24b7a94f2355bc185bcd23a213da5619efe9486",
+    "sha256_head": "3e3c754746401098c239eff4b24b7a94f2355bc185bcd23a213da5619efe9486",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/intake/fixtures_py/ctrl_clean.py",
+    "category": "fixtures_py",
+    "sha256_now": "c9f2233e7029be93d9a9cb6b449c23c9980fee3d40881ff07d379b852f2aa4fa",
+    "sha256_head": "c9f2233e7029be93d9a9cb6b449c23c9980fee3d40881ff07d379b852f2aa4fa",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/intake/fixtures_py/ctrl_must_flag_ax_node.py",
+    "category": "fixtures_py",
+    "sha256_now": "8f9cee938c949c9ad000cd0944915a144f19affc296780e09f08fabd0d99852c",
+    "sha256_head": "8f9cee938c949c9ad000cd0944915a144f19affc296780e09f08fabd0d99852c",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/intake/fixtures_py/ctrl_must_not_flag_surface.py",
+    "category": "fixtures_py",
+    "sha256_now": "02c8d786b2536a4419f71b0354f844d244176289b0e0061802f3288b7f22213d",
+    "sha256_head": "02c8d786b2536a4419f71b0354f844d244176289b0e0061802f3288b7f22213d",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/intake/fixtures_py/ctrl_out_of_unit_nested.py",
+    "category": "fixtures_py",
+    "sha256_now": "9ff28f80e90f73654bbfcd4e42f87bf1a546f973d0f2ec4e5229e270f33520f1",
+    "sha256_head": "9ff28f80e90f73654bbfcd4e42f87bf1a546f973d0f2ec4e5229e270f33520f1",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/intake/r32_inventory.py",
+    "category": "excluded_by_owner",
+    "sha256_now": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355",
+    "sha256_head": "374eab5e6cf31e4901fce348a0a35e493caa0103cfffd88bd4ec9853e8cb5355",
+    "excluded_reason": "converted earlier"
+   },
+   {
+    "path": "gate1/intake/r32_selftest.py",
+    "category": "entry_point",
+    "sha256_now": "cc0f7e84e9a8e00724a08c078e2f9cd0ec919d696ffbdcb773a0e0dd3fbbbab2",
+    "sha256_head": "28a0a7c198f3911d13084d61b4a655cb825e341be30e543f51108a40130eb825",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane1_task_binding/selfcheck.py",
+    "category": "entry_point",
+    "sha256_now": "6ab1b80ea30fc8ac64e1cfb1175a6fa6bb4a69233a10c4bcdeeda7d71632c8d0",
+    "sha256_head": "2a89385d028a0478e926eacf40005c53709b0409b159ca3076b5d8643ab2f9f6",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane2_label_reveal/measure_geometry.py",
+    "category": "entry_point",
+    "sha256_now": "67217cee08dd7291b46c75e95cd7fe4598910fe035e53f76349830f86c100638",
+    "sha256_head": "1da82842f1a26bbbee829cc41e3d5ad11664e19e8f7dad7627b3676650e8ef36",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane3_sequence_dismiss_auth/walk_fixture.py",
+    "category": "entry_point",
+    "sha256_now": "202b080b3557137c9c6defe4488a52142acec9accbdf96df6852cb1d762b4878",
+    "sha256_head": "a6bd65d2bd4e946da65631d170f67e4e6ed493633f6b4e6494d74e9160d62749",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane4_safety_adapter/adapter_interface_stub.py",
+    "category": "entry_point",
+    "sha256_now": "20263d6a4cdb300680f410040d53e6f299ef7bd4bad0cdb1a51690df57e976e6",
+    "sha256_head": "35f13df4066d36a43e8ccb48cbed46234becf30befef5ace6fa7b4b5f14224fd",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane4_safety_adapter/two_layer_scope_probe.py",
+    "category": "excluded_by_owner",
+    "sha256_now": "4f15762b9b97c2bdfb6ed41370892d26951389617f654d9dabc3a915073dd504",
+    "sha256_head": "4f15762b9b97c2bdfb6ed41370892d26951389617f654d9dabc3a915073dd504",
+    "excluded_reason": "converted earlier"
+   },
+   {
+    "path": "gate1/lane5_evidence/evidence_lineage_check.py",
+    "category": "entry_point",
+    "sha256_now": "4bccced45f451923a99ea4e88beeaf76288c8e3fc1d4575dea3bbb30cae0ee9b",
+    "sha256_head": "f2d0214e7fbd2ec61190549e2b970a9a9ee04e169bbe713b7e6c6412d504bc74",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane5_evidence/make_synthetic_evidence.py",
+    "category": "entry_point",
+    "sha256_now": "8464f4c1cab504d1204a6999e844a909bdcf2cc7b9d8563ebf943f1feeb33cfb",
+    "sha256_head": "db842d1c32875e946fc6045ed3fb95a5259725802babcced451808334f9d51db",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane6_stats/c_flow_derive.py",
+    "category": "library",
+    "sha256_now": "2d258881a716eecf5ab771c0c1e1bfd2f6af8b0a5118fa17ccc6f9a82a5a9543",
+    "sha256_head": "2d258881a716eecf5ab771c0c1e1bfd2f6af8b0a5118fa17ccc6f9a82a5a9543",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane6_stats/synthetic_family_demo.py",
+    "category": "entry_point",
+    "sha256_now": "e4003929a067b93794c7dfa27c32a6e82d93de32718c9dad1beeab0891d6a8dd",
+    "sha256_head": "d136941816d55eb52c1d7721079c0433b50b1b6209dc0c3a652a12f90157c19c",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane6_stats/test_c_flow_derive.py",
+    "category": "test_module",
+    "sha256_now": "c5000e3d9c25f9ff6d6e3c4b922edb823ab0ae78ba4c6b7b392039ce9a15ccca",
+    "sha256_head": "c5000e3d9c25f9ff6d6e3c4b922edb823ab0ae78ba4c6b7b392039ce9a15ccca",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane6_stats/test_variance_control.py",
+    "category": "test_module",
+    "sha256_now": "6c52d7c49f7dfe350a2e700f8b8c3ef3a9b5060ce4746c4753bf9f33382b1c3e",
+    "sha256_head": "6c52d7c49f7dfe350a2e700f8b8c3ef3a9b5060ce4746c4753bf9f33382b1c3e",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane6_stats/variance_control.py",
+    "category": "entry_point",
+    "sha256_now": "55c668fa156d4cf5db3c66291dacb6e2d2cd3992d71aa42586debd5bbd4a24e7",
+    "sha256_head": "dbea946fd1111320b09f40dd1577413673cd927970c753dd6d383e49685408df",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane7_grain_determinism/converge_check.py",
+    "category": "entry_point",
+    "sha256_now": "76ae6006802895a4fab31e69d1d259217aad4eef0c7c44be2f0e1b3c989d7d36",
+    "sha256_head": "cf5a40634ed5443ce190a4b1b408d6d2af16f75b8e751e62b1df661a2e4ab334",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane7_grain_determinism/determinism_check.py",
+    "category": "entry_point",
+    "sha256_now": "599addd621ff339f2dc0f2f0e9cef29c3173acf18ad017ec28aa2d2e521058a3",
+    "sha256_head": "17f89b504f6b26046428c2e3da3343c34738f821b512601d68beabdb1a9c0b8c",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane7_grain_determinism/fake_runner_det.py",
+    "category": "entry_point",
+    "sha256_now": "5b5792f8505213fdcf1eadf2922e171a6b5104c2a7a7d012e01786c385e08ffb",
+    "sha256_head": "7c52bebc4e6279676d5afc6ef8afaa236c38a552ebab92c2c1bcdcf2e57b0862",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane7_grain_determinism/fake_runner_rand.py",
+    "category": "entry_point",
+    "sha256_now": "fb71a8d325e15e122bdea556b8f7864cdc816bc97d06c70797661b25f08f6b88",
+    "sha256_head": "235822802c8eb9ae7e069e0e36c5f511a415a8fa2eebcd564b3ecc423d6111f3",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane7_grain_determinism/impl_a.py",
+    "category": "entry_point",
+    "sha256_now": "3438ec699d337bca86485e85c0fe628981c425624082cfa014f5256965876a71",
+    "sha256_head": "e3cf0e3173e355d6c85853fd7815b134c2fd4fa74ec63ccf6c1ef61ff23a3488",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane7_grain_determinism/impl_b.py",
+    "category": "entry_point",
+    "sha256_now": "025c88d3cb95231273c062a614c37761ef937b8b919fa6a8e21f9d8e3bd4ada3",
+    "sha256_head": "8117bf511f1547ac1d3a894b757dec2e3595ca43659f85a43558ca47d73bc1ea",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/lane7_grain_determinism/validate_probe_like_playwright.py",
+    "category": "entry_point",
+    "sha256_now": "3ea88c7e4126676ae6e6c9ec9b90f4cad8ad89474f58d25e7935ac818c4b31bd",
+    "sha256_head": "b6ce4360c2d48be9576b31a415a58ba538d053a2ab0fe4f2e9de4275ba1f06b3",
+    "excluded_reason": null
+   },
+   {
+    "path": "gate1/run_gate1.py",
+    "category": "excluded_by_owner",
+    "sha256_now": "89acf5ce4190443c6cd984fbf186c811df6cc5b45b4d2615f9089ef685a299f5",
+    "sha256_head": "89acf5ce4190443c6cd984fbf186c811df6cc5b45b4d2615f9089ef685a299f5",
+    "excluded_reason": "converted earlier"
+   },
+   {
+    "path": "gate1/run_gate1_selftest.py",
+    "category": "entry_point",
+    "sha256_now": "486c6307776e9023f0313092a97dbf347a4a269cc61f761cdcfd4cdb2ffd1d00",
+    "sha256_head": "179b4902e94f69e24e9dcfd9690d02a1d1841a8b291eae49104ca3b6aeac4499",
+    "excluded_reason": null
+   },
+   {
+    "path": "mirror_sync.py",
+    "category": "excluded_by_owner",
+    "sha256_now": "306af04399ed820e10b1c32b4a5840f63799d36ee1c90f2ab5aa33331c225035",
+    "sha256_head": "306af04399ed820e10b1c32b4a5840f63799d36ee1c90f2ab5aa33331c225035",
+    "excluded_reason": "R51 in progress (C body)"
+   },
+   {
+    "path": "mlflow_log.py",
+    "category": "entry_point",
+    "sha256_now": "654b8162cb1787c076569e24e0cdfa0b9120101201e3c2de3a4b83c9391aa1b9",
+    "sha256_head": "654b8162cb1787c076569e24e0cdfa0b9120101201e3c2de3a4b83c9391aa1b9",
+    "excluded_reason": null
+   },
+   {
+    "path": "pilot/e001_runner_unchanged_check.py",
+    "category": "entry_point",
+    "sha256_now": "9f46bf5a0723e0939b45990e7eb549b2c01d525bca8efe46a943c4298399666a",
+    "sha256_head": "66d35c8f2f89284a7d3128f51b138ead59753e0477e5699fe04d404cd6b8de2e",
+    "excluded_reason": null
+   },
+   {
+    "path": "pilot/preflight_sampling.py",
+    "category": "entry_point",
+    "sha256_now": "710a720905e66d9a2ad8c921a0307a9ce11d559b63e8ed3128310a8392a450b4",
+    "sha256_head": "c1aba563643ff2abd21019ff66c205edc2740fba5f8412416a17c7db30cb21cc",
+    "excluded_reason": null
+   },
+   {
+    "path": "pilot/scope_threeway_test.py",
+    "category": "entry_point",
+    "sha256_now": "127e541797ee3ad1c54a9880d19e998506cb8d99a5e33e9e83c7c4294026b42b",
+    "sha256_head": "8c898487dd1e4f8e47655ed6547e654f9a669a4428e73d2faca6b75f8c1e1c82",
+    "excluded_reason": null
+   },
+   {
+    "path": "qa_base.py",
+    "category": "entry_point",
+    "sha256_now": "f4b88c0254ebe8a20eced59f0ab91954f62817d1ce7fe29e781ec19478df7d75",
+    "sha256_head": "ba355b478ef1d5858f50bb9afe487ae9e7834d6f2fe66261d28fc440cc8b2280",
+    "excluded_reason": null
+   },
+   {
+    "path": "qa_claim.py",
+    "category": "entry_point",
+    "sha256_now": "aec23bf479cbd26d368f9e5f6955f684b0d97f9736c89eaf8d5a3fb5dacc497c",
+    "sha256_head": "c53d5ec805a5e4d1f89e4920895bb4c28151c0f5a28ffe664d7bae4e22b78bc3",
+    "excluded_reason": null
+   },
+   {
+    "path": "qa_evidence.py",
+    "category": "entry_point",
+    "sha256_now": "669a9d8f87ee0cd2a048cfffd38fe34ab402e3406073be1b17b515106a08b286",
+    "sha256_head": "9614ea1c9f63d2ae8330eafce5b26d66b914906b0ec22ebbdd486260df838139",
+    "excluded_reason": null
+   },
+   {
+    "path": "qa_mart.py",
+    "category": "entry_point",
+    "sha256_now": "093ad236bda65031a018e4f6430f8e4ca00f109efa0785f62129d36299f00bbc",
+    "sha256_head": "595caa2570b478e61f3cd3916cd17dce60c061dc275d971c363f372a3f8aaa57",
+    "excluded_reason": null
+   },
+   {
+    "path": "recovery/fixtures/run_partial_depth_fixtures.py",
+    "category": "entry_point",
+    "sha256_now": "71f7d0b138c487c6813bcdacef4b7dd1f12b6d14fe615740f5156253e3c23627",
+    "sha256_head": "a9c37305f9748a4af361200e949c05be07c94d1ebb8674049503ed2ce1bc0d13",
+    "excluded_reason": null
+   },
+   {
+    "path": "stats_replay.py",
+    "category": "entry_point",
+    "sha256_now": "5ed3009db75d62423f64a9664bf842dbe3e186d62881431d24edf95fb7724765",
+    "sha256_head": "27afa23f049ad9440f8fe5a9d05f1844a32e02725ea4bcea7b2815f889875394",
+    "excluded_reason": null
+   },
+   {
+    "path": "stream_qa.py",
+    "category": "entry_point",
+    "sha256_now": "fc33cf1bffcd804ccf63a44d06f6eb45ce5260cedacd6f18ecb810a3f967f5c4",
+    "sha256_head": "f4685e98b0112987d1860766911f71c9ea23d4b78badf73d14b87dde2d15bdef",
+    "excluded_reason": null
+   },
+   {
+    "path": "w1/dup_launch_harness.py",
+    "category": "entry_point",
+    "sha256_now": "ddaa540bf99b91a614dea59cca5e0b56f94c4e0af66e34c27648558f59411df4",
+    "sha256_head": "4db923220bec6c51b822de451d96cee53c5286eb8fd1ad77729b3f7a94aee3bc",
+    "excluded_reason": null
+   },
+   {
+    "path": "w1/lock_race_harness.py",
+    "category": "entry_point",
+    "sha256_now": "eb108652b02d693681876dab4932ae19d9765b4f192ff516cc6bbdc60e95260d",
+    "sha256_head": "53c36f98cd4fd13f5742966e4577eb7bc7d4722a64e1db70dd4ac14b2d1640fe",
+    "excluded_reason": null
+   },
+   {
+    "path": "w2/dom_replay_probe.py",
+    "category": "entry_point",
+    "sha256_now": "18fd1d17254ce5b3bc4ca1a587ac9fc7bbb49ad97c6ba6e78735aac41bf65abd",
+    "sha256_head": "e78e6ef45b650aa5d886bdf112a2d8e193a6c280f4ed6052d276209943a67514",
+    "excluded_reason": null
+   },
+   {
+    "path": "w2/holdout_scorer.py",
+    "category": "entry_point",
+    "sha256_now": "bc6490237954f5e41b0b367b6781c8613ae25155df1346489c2be60727e32560",
+    "sha256_head": "c1ff861f3bbe725965f1501c8f754a16766e9247d4190c66152254868f16a9bd",
+    "excluded_reason": null
+   }
+  ]
+ },
+ "tools": [
+  {
+   "path": "bus.py",
+   "sha256_head": "e0177e4b11790f7b23c5dd446bbf38347ca8ed7d888c1fe255c5cf4768fb180c",
+   "sha256_now": "a24cc204adb376d6ea8c6f2c7f015e26ce38da9dc0b04628e8940cc86b541e7a",
+   "changed": true,
+   "semantics_before": "0 ran (any subcommand) · 1 selftest FAIL (explicit) · crash/IndexError(no argv)/missing ticket → Python default 1",
+   "semantics_after": "0 ran · 1 selftest AssertionError (ran and failed) · 2 crash / missing ticket / missing argv + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "inline CLI block wrapped (module globals preserved)"
+  },
+  {
+   "path": "clean0/qa_retention.py",
+   "sha256_head": "8bd4f3cfe1e07364dd254b9c0759e672b78811bd1a65e6676a13f79d13cd71df",
+   "sha256_now": "e37792f5c5b08d8eb8046e4da3cead906d1a8b481de6cfdc29f936674956066d",
+   "changed": true,
+   "semantics_before": "0 always (report; MISMATCH still 0) · crash / missing A manifest or B mart → 1",
+   "semantics_after": "0 ran (report-only, verdict in JSON) · 2 crash / missing input + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "reads A/B worktrees — normal run NOT_EXERCISED by this worker"
+  },
+  {
+   "path": "gate1/c_terminal_table.py",
+   "sha256_head": "524f6ad8cdb9e9c38bf976c3e73c4018dab070847fe63fb0f7e4ec8a70e23a84",
+   "sha256_now": "17eea248f30114a57a49009aa44ba094d49f93a38ed2552911376c7268ad4c83",
+   "changed": true,
+   "semantics_before": "0 selftest OK · 1 selftest problems · crash → 1",
+   "semantics_after": "0 · 1 · 2 crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/comparators/adapter_map.py",
+   "sha256_head": "02d72def68faec161a76601136b389964a2db6b6c578be74cc4576ad1faf5862",
+   "sha256_now": "049689212f799990537581f0eeae2f924c0888e84a7bc60121e54d21bfc5e112",
+   "changed": true,
+   "semantics_before": "0 always · missing --show file → 1 (crash)",
+   "semantics_after": "0 · 2 missing file / crash",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/comparators/compare_lane1.py",
+   "sha256_head": "9f3bd8daf7ba10d02a16e3b75b4bfcf99c61bcb1368f7393a58bdec4dca08207",
+   "sha256_now": "79153c37eafa8deafc89d912d2cce46ef64c7da954ef6f717436323610ce1983",
+   "changed": true,
+   "semantics_before": "0 PASS · 1 anything else incl. NOT_TESTABLE (nothing compared) · crash/missing map → 1",
+   "semantics_after": "0 PASS · 1 FAIL (ran) · 2 NOT_TESTABLE (no item ran) / crash / missing input + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "run_gate1.py uses compare_all in-process; CLI exit only"
+  },
+  {
+   "path": "gate1/comparators/compare_lane2.py",
+   "sha256_head": "b61294128bb7e363dac3beb1747c7e154421c45d66e6ddd4ab563a24fca20cba",
+   "sha256_now": "e8f1378294cf25a3b7284ae373b18c0623623b5f6aa4b1952b6f4e70498c12fb",
+   "changed": true,
+   "semantics_before": "same as lane1",
+   "semantics_after": "same as lane1 (after)",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/comparators/compare_lane3.py",
+   "sha256_head": "80f97a5208c91cf85979102debd0d492bcb4ed8428f5bb266074694b347860c4",
+   "sha256_now": "65e24c70f0afc376f42d4b6222f6d6b99bf1584c259b58b3031af9e4341a67e5",
+   "changed": true,
+   "semantics_before": "same as lane1",
+   "semantics_after": "same as lane1 (after)",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/comparators/grade_lane4.py",
+   "sha256_head": "5fdef7ef35ded3c0fdb0f6ccdfaec3195c1fa9acf5395462dfdb52f2c5cd3647",
+   "sha256_now": "a1b32ae530a4ba82abdb37f0bfd813e7166c7a567a575bf8b2ce765504106e6a",
+   "changed": true,
+   "semantics_before": "same as lane1",
+   "semantics_after": "same as lane1 (after)",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/comparators/selftest.py",
+   "sha256_head": "b62925bdd5336e1c93ba6b83025f965d067de26b7c192c48ada9d67d0c8fe50b",
+   "sha256_now": "01c3d70570c9941668f505345120e9116e25ed7888cb2d03db0087c2a65cc4cf",
+   "changed": true,
+   "semantics_before": "0 OK · 1 FAILED · crash → 1",
+   "semantics_after": "0 · 1 · 2 crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/intake/r32_selftest.py",
+   "sha256_head": "28a0a7c198f3911d13084d61b4a655cb825e341be30e543f51108a40130eb825",
+   "sha256_now": "cc0f7e84e9a8e00724a08c078e2f9cd0ec919d696ffbdcb773a0e0dd3fbbbab2",
+   "changed": true,
+   "semantics_before": "0 all pass · 1 any step fails · crash (incl. AssertionError on tamper anchor) → 1",
+   "semantics_after": "0 · 1 · 2 crash/precondition + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/lane1_task_binding/selfcheck.py",
+   "sha256_head": "2a89385d028a0478e926eacf40005c53709b0409b159ca3076b5d8643ab2f9f6",
+   "sha256_now": "6ab1b80ea30fc8ac64e1cfb1175a6fa6bb4a69233a10c4bcdeeda7d71632c8d0",
+   "changed": true,
+   "semantics_before": "0 PASS · 1 FAIL · missing task_contracts.json → 1 (crash)",
+   "semantics_after": "0 · 1 · 2 missing fixture / crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "harness-defect anchor line untouched (control_failure_demo_c / run_gate1_selftest)"
+  },
+  {
+   "path": "gate1/lane2_label_reveal/measure_geometry.py",
+   "sha256_head": "1da82842f1a26bbbee829cc41e3d5ad11664e19e8f7dad7627b3676650e8ef36",
+   "sha256_now": "67217cee08dd7291b46c75e95cd7fe4598910fe035e53f76349830f86c100638",
+   "changed": true,
+   "semantics_before": "0 all fixtures PASS (0/0 too) · 1 otherwise · missing EXPECTATIONS/playwright → 1 (import-time)",
+   "semantics_after": "0 · 1 · 2 crash / missing EXPECTATIONS / no playwright / zero fixtures + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "module-level guards for EXPECTATIONS + playwright import"
+  },
+  {
+   "path": "gate1/lane3_sequence_dismiss_auth/walk_fixture.py",
+   "sha256_head": "a6bd65d2bd4e946da65631d170f67e4e6ed493633f6b4e6494d74e9160d62749",
+   "sha256_now": "202b080b3557137c9c6defe4488a52142acec9accbdf96df6852cb1d762b4878",
+   "changed": true,
+   "semantics_before": "0 ALL PASS (0/0 too) · 1 · import-time crash → 1",
+   "semantics_after": "0 · 1 · 2 crash / missing EXPECTATIONS / no playwright / zero fixtures + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/lane4_safety_adapter/adapter_interface_stub.py",
+   "sha256_head": "35f13df4066d36a43e8ccb48cbed46234becf30befef5ace6fa7b4b5f14224fd",
+   "sha256_now": "20263d6a4cdb300680f410040d53e6f299ef7bd4bad0cdb1a51690df57e976e6",
+   "changed": true,
+   "semantics_before": "0 always · crash → 1",
+   "semantics_after": "0 ran · 2 crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "sha256_head": "f2d0214e7fbd2ec61190549e2b970a9a9ee04e169bbe713b7e6c6412d504bc74",
+   "sha256_now": "4bccced45f451923a99ea4e88beeaf76288c8e3fc1d4575dea3bbb30cae0ee9b",
+   "changed": true,
+   "semantics_before": "0 no systemic · 2 SYSTEMIC · 3 usage · crash → 1 · EMPTY DIR → 0 COMPLETE_WITH_ISOLATED_DEFECTS (vacuous)",
+   "semantics_after": "0 · 2 SYSTEMIC (tool-local ≡ A's 1) · 3 usage / crash / NO_EVIDENCE_INPUT (tool-local did-not-run ≡ A's 2) + message · checks_performed field",
+   "did_not_run_distinguishable_before": true,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "NOT renumbered: run_gate1.py L5 binds expect_rc=2 on bad_* fixtures — a crash or an empty dir must never satisfy that negative-control expectation, so did-not-run is 3 here"
+  },
+  {
+   "path": "gate1/lane5_evidence/make_synthetic_evidence.py",
+   "sha256_head": "db842d1c32875e946fc6045ed3fb95a5259725802babcced451808334f9d51db",
+   "sha256_now": "8464f4c1cab504d1204a6999e844a909bdcf2cc7b9d8563ebf943f1feeb33cfb",
+   "changed": true,
+   "semantics_before": "0 · crash → 1",
+   "semantics_after": "0 · 2 crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "generator"
+  },
+  {
+   "path": "gate1/lane6_stats/synthetic_family_demo.py",
+   "sha256_head": "d136941816d55eb52c1d7721079c0433b50b1b6209dc0c3a652a12f90157c19c",
+   "sha256_now": "e4003929a067b93794c7dfa27c32a6e82d93de32718c9dad1beeab0891d6a8dd",
+   "changed": true,
+   "semantics_before": "0 · Q8 ValueError (ran, failed) → 1 · crash → 1 (same code)",
+   "semantics_after": "0 · 1 R6 Q8 rejection (ran and failed) · 2 crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/lane6_stats/variance_control.py",
+   "sha256_head": "dbea946fd1111320b09f40dd1577413673cd927970c753dd6d383e49685408df",
+   "sha256_now": "55c668fa156d4cf5db3c66291dacb6e2d2cd3992d71aa42586debd5bbd4a24e7",
+   "changed": true,
+   "semantics_before": "0 controls ok · 1 not · crash → 1",
+   "semantics_after": "0 · 1 · 2 crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/lane7_grain_determinism/converge_check.py",
+   "sha256_head": "cf5a40634ed5443ce190a4b1b408d6d2af16f75b8e751e62b1df661a2e4ab334",
+   "sha256_now": "76ae6006802895a4fab31e69d1d259217aad4eef0c7c44be2f0e1b3c989d7d36",
+   "changed": true,
+   "semantics_before": "0 PASS/NEGCTRL_OK (n_ok>0 required) · 1 · crash / impl_b SystemExit(str) → 1",
+   "semantics_after": "0 · 1 · 2 crash / missing probe_like / impl_b fixture-shape SystemExit(str) + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/lane7_grain_determinism/determinism_check.py",
+   "sha256_head": "17f89b504f6b26046428c2e3da3343c34738f821b512601d68beabdb1a9c0b8c",
+   "sha256_now": "599addd621ff339f2dc0f2f0e9cef29c3173acf18ad017ec28aa2d2e521058a3",
+   "changed": true,
+   "semantics_before": "0 PASS · 1 FAIL · 2 runner failed / fields missing (already) · crash (e.g. missing --policy-doc) → 1",
+   "semantics_after": "0 · 1 · 2 runner failed / fields missing / crash / missing input + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/lane7_grain_determinism/fake_runner_det.py",
+   "sha256_head": "7c52bebc4e6279676d5afc6ef8afaa236c38a552ebab92c2c1bcdcf2e57b0862",
+   "sha256_now": "5b5792f8505213fdcf1eadf2922e171a6b5104c2a7a7d012e01786c385e08ffb",
+   "changed": true,
+   "semantics_before": "0 · missing fixture → 1",
+   "semantics_after": "0 · 2 missing fixture / crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "fake SUT; determinism_check reads rc≠0 as runner failed"
+  },
+  {
+   "path": "gate1/lane7_grain_determinism/fake_runner_rand.py",
+   "sha256_head": "235822802c8eb9ae7e069e0e36c5f511a415a8fa2eebcd564b3ecc423d6111f3",
+   "sha256_now": "fb71a8d325e15e122bdea556b8f7864cdc816bc97d06c70797661b25f08f6b88",
+   "changed": true,
+   "semantics_before": "same",
+   "semantics_after": "same (after)",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/lane7_grain_determinism/impl_a.py",
+   "sha256_head": "e3cf0e3173e355d6c85853fd7815b134c2fd4fa74ec63ccf6c1ef61ff23a3488",
+   "sha256_now": "3438ec699d337bca86485e85c0fe628981c425624082cfa014f5256965876a71",
+   "changed": true,
+   "semantics_before": "0 · missing fixture → 1",
+   "semantics_after": "0 · 2 + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "library CLI"
+  },
+  {
+   "path": "gate1/lane7_grain_determinism/impl_b.py",
+   "sha256_head": "8117bf511f1547ac1d3a894b757dec2e3595ca43659f85a43558ca47d73bc1ea",
+   "sha256_now": "025c88d3cb95231273c062a614c37761ef937b8b919fa6a8e21f9d8e3bd4ada3",
+   "changed": true,
+   "semantics_before": "0 · missing fixture → 1 · malformed fixture SystemExit(str) → 1",
+   "semantics_after": "0 · 2 missing/malformed fixture / crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "library raise SystemExit(str) untouched; CLI maps it to 2"
+  },
+  {
+   "path": "gate1/lane7_grain_determinism/validate_probe_like_playwright.py",
+   "sha256_head": "b6ce4360c2d48be9576b31a415a58ba538d053a2ab0fe4f2e9de4275ba1f06b3",
+   "sha256_now": "3ea88c7e4126676ae6e6c9ec9b90f4cad8ad89474f58d25e7935ac818c4b31bd",
+   "changed": true,
+   "semantics_before": "0 validated (0 checks too) · 1 mismatch · crash → 1",
+   "semantics_after": "0 · 1 · 2 crash / no playwright / zero checks + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "gate1/run_gate1_selftest.py",
+   "sha256_head": "179b4902e94f69e24e9dcfd9690d02a1d1841a8b291eae49104ca3b6aeac4499",
+   "sha256_now": "486c6307776e9023f0313092a97dbf347a4a269cc61f761cdcfd4cdb2ffd1d00",
+   "changed": true,
+   "semantics_before": "0 · 1 · crash (incl. AssertionError anchors) → 1",
+   "semantics_after": "0 · 1 · 2 crash/precondition + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "mlflow_log.py",
+   "sha256_head": "654b8162cb1787c076569e24e0cdfa0b9120101201e3c2de3a4b83c9391aa1b9",
+   "sha256_now": "654b8162cb1787c076569e24e0cdfa0b9120101201e3c2de3a4b83c9391aa1b9",
+   "changed": false,
+   "semantics_before": "0 prints constants",
+   "semantics_after": "unchanged: no inputs, no verdict (prints TRACKING_URI/EXPERIMENT)",
+   "did_not_run_distinguishable_before": null,
+   "did_not_run_distinguishable_after": null,
+   "fixed": false,
+   "note": "UNCHANGED"
+  },
+  {
+   "path": "pilot/e001_runner_unchanged_check.py",
+   "sha256_head": "66d35c8f2f89284a7d3128f51b138ead59753e0477e5699fe04d404cd6b8de2e",
+   "sha256_now": "9f46bf5a0723e0939b45990e7eb549b2c01d525bca8efe46a943c4298399666a",
+   "changed": true,
+   "semantics_before": "0 unchanged · 1 changed — ALSO 1 when repo/sha unresolvable or no ref blobs (conflation) · crash → 1",
+   "semantics_after": "0 · 1 changed (ran) · 2 sha unresolvable / no baseline blobs / crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "pilot/preflight_sampling.py",
+   "sha256_head": "c1aba563643ff2abd21019ff66c205edc2740fba5f8412416a17c7db30cb21cc",
+   "sha256_now": "710a720905e66d9a2ad8c921a0307a9ce11d559b63e8ed3128310a8392a450b4",
+   "changed": true,
+   "semantics_before": "module-level script (no __main__): 0 ran · crash/missing git object → 1",
+   "semantics_after": "0 ran · 2 crash + message (whole body wrapped at module level; globals preserved)",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "not matched by the __main__/argparse grep — found by the denominator walk"
+  },
+  {
+   "path": "pilot/scope_threeway_test.py",
+   "sha256_head": "8c898487dd1e4f8e47655ed6547e654f9a669a4428e73d2faca6b75f8c1e1c82",
+   "sha256_now": "127e541797ee3ad1c54a9880d19e998506cb8d99a5e33e9e83c7c4294026b42b",
+   "changed": true,
+   "semantics_before": "0 always (verdict in JSON) · missing SUT → 1 (crash)",
+   "semantics_after": "0 ran · 2 crash / missing SUT + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "normal run needs a SUT clone — NOT_EXERCISED"
+  },
+  {
+   "path": "qa_base.py",
+   "sha256_head": "ba355b478ef1d5858f50bb9afe487ae9e7834d6f2fe66261d28fc440cc8b2280",
+   "sha256_now": "f4b88c0254ebe8a20eced59f0ab91954f62817d1ce7fe29e781ec19478df7d75",
+   "changed": true,
+   "semantics_before": "0 · missing ticket → 1",
+   "semantics_after": "0 · 2 missing ticket / crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "qa_claim.py",
+   "sha256_head": "c53d5ec805a5e4d1f89e4920895bb4c28151c0f5a28ffe664d7bae4e22b78bc3",
+   "sha256_now": "aec23bf479cbd26d368f9e5f6955f684b0d97f9736c89eaf8d5a3fb5dacc497c",
+   "changed": true,
+   "semantics_before": "0 · 2 scan invalid (already did-not-run class) · crash → 1",
+   "semantics_after": "0 · 2 scan invalid (+message) / crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "qa_evidence.py",
+   "sha256_head": "9614ea1c9f63d2ae8330eafce5b26d66b914906b0ec22ebbdd486260df838139",
+   "sha256_now": "669a9d8f87ee0cd2a048cfffd38fe34ab402e3406073be1b17b515106a08b286",
+   "changed": true,
+   "semantics_before": "0 always (verdict in JSON; MATCH with zero batches = vacuous) · crash/missing plan → 1",
+   "semantics_after": "0 ran · 2 crash / missing input / NO_INPUT (zero sealed batches, checks_performed=0) + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "qa_mart.py",
+   "sha256_head": "595caa2570b478e61f3cd3916cd17dce60c061dc275d971c363f372a3f8aaa57",
+   "sha256_now": "093ad236bda65031a018e4f6430f8e4ca00f109efa0785f62129d36299f00bbc",
+   "changed": true,
+   "semantics_before": "0 always (incl. 'no raw rows' early return) · crash → 1",
+   "semantics_after": "0 ran · 2 crash / missing input / no raw rows + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "recovery/fixtures/run_partial_depth_fixtures.py",
+   "sha256_head": "a9c37305f9748a4af361200e949c05be07c94d1ebb8674049503ed2ce1bc0d13",
+   "sha256_now": "71f7d0b138c487c6813bcdacef4b7dd1f12b6d14fe615740f5156253e3c23627",
+   "changed": true,
+   "semantics_before": "0 · 1 · crash / firewall assert → 1",
+   "semantics_after": "0 · 1 · 2 crash / precondition / zero cases + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "imports B worker engine — normal run NOT_EXERCISED; _check() control in-process"
+  },
+  {
+   "path": "stats_replay.py",
+   "sha256_head": "27afa23f049ad9440f8fe5a9d05f1844a32e02725ea4bcea7b2815f889875394",
+   "sha256_now": "5ed3009db75d62423f64a9664bf842dbe3e186d62881431d24edf95fb7724765",
+   "changed": true,
+   "semantics_before": "0 self-test OK · assert fail → 1 · scipy missing/crash → 1 (same code)",
+   "semantics_after": "0 · 1 self-test assertion (ran and failed) · 2 crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "__main__ block is mid-file"
+  },
+  {
+   "path": "stream_qa.py",
+   "sha256_head": "f4685e98b0112987d1860766911f71c9ea23d4b78badf73d14b87dde2d15bdef",
+   "sha256_now": "fc33cf1bffcd804ccf63a44d06f6eb45ce5260cedacd6f18ecb810a3f967f5c4",
+   "changed": true,
+   "semantics_before": "daemon: never exits normally · crash → 1",
+   "semantics_after": "crash → 2 + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "scans other planes' out_dirs — NOT_EXERCISED"
+  },
+  {
+   "path": "w1/dup_launch_harness.py",
+   "sha256_head": "4db923220bec6c51b822de451d96cee53c5286eb8fd1ad77729b3f7a94aee3bc",
+   "sha256_now": "ddaa540bf99b91a614dea59cca5e0b56f94c4e0af66e34c27648558f59411df4",
+   "changed": true,
+   "semantics_before": "0 always — missing SUT script ⇒ INCONCLUSIVE + 0 (conflation) · crash → 1",
+   "semantics_after": "0 ran · 2 missing SUT script / crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  },
+  {
+   "path": "w1/lock_race_harness.py",
+   "sha256_head": "53c36f98cd4fd13f5742966e4577eb7bc7d4722a64e1db70dd4ac14b2d1640fe",
+   "sha256_now": "eb108652b02d693681876dab4932ae19d9765b4f192ff516cc6bbdc60e95260d",
+   "changed": true,
+   "semantics_before": "main() return value DISCARDED ⇒ always 0 (even exactly_once_holds=false) · crash → 1",
+   "semantics_after": "0 holds · 1 does not hold (ran) · 2 SUT absent / no worker decision / crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "return value now propagated"
+  },
+  {
+   "path": "w2/dom_replay_probe.py",
+   "sha256_head": "e78e6ef45b650aa5d886bdf112a2d8e193a6c280f4ed6052d276209943a67514",
+   "sha256_now": "18fd1d17254ce5b3bc4ca1a587ac9fc7bbb49ad97c6ba6e78735aac41bf65abd",
+   "changed": true,
+   "semantics_before": "0 always · missing probe js / B mart → 1",
+   "semantics_after": "0 ran · 2 crash / missing input / no playwright + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": "reads B artifacts — NOT_EXERCISED"
+  },
+  {
+   "path": "w2/holdout_scorer.py",
+   "sha256_head": "c1ff861f3bbe725965f1501c8f754a16766e9247d4190c66152254868f16a9bd",
+   "sha256_now": "bc6490237954f5e41b0b367b6781c8613ae25155df1346489c2be60727e32560",
+   "changed": true,
+   "semantics_before": "0 always · 2 usage (already) · missing files → 1",
+   "semantics_after": "0 ran · 2 usage (+message) / missing files / crash + message",
+   "did_not_run_distinguishable_before": false,
+   "did_not_run_distinguishable_after": true,
+   "fixed": true,
+   "note": ""
+  }
+ ],
+ "fixed": [
+  "bus.py",
+  "clean0/qa_retention.py",
+  "gate1/c_terminal_table.py",
+  "gate1/comparators/adapter_map.py",
+  "gate1/comparators/compare_lane1.py",
+  "gate1/comparators/compare_lane2.py",
+  "gate1/comparators/compare_lane3.py",
+  "gate1/comparators/grade_lane4.py",
+  "gate1/comparators/selftest.py",
+  "gate1/intake/r32_selftest.py",
+  "gate1/lane1_task_binding/selfcheck.py",
+  "gate1/lane2_label_reveal/measure_geometry.py",
+  "gate1/lane3_sequence_dismiss_auth/walk_fixture.py",
+  "gate1/lane4_safety_adapter/adapter_interface_stub.py",
+  "gate1/lane5_evidence/evidence_lineage_check.py",
+  "gate1/lane5_evidence/make_synthetic_evidence.py",
+  "gate1/lane6_stats/synthetic_family_demo.py",
+  "gate1/lane6_stats/variance_control.py",
+  "gate1/lane7_grain_determinism/converge_check.py",
+  "gate1/lane7_grain_determinism/determinism_check.py",
+  "gate1/lane7_grain_determinism/fake_runner_det.py",
+  "gate1/lane7_grain_determinism/fake_runner_rand.py",
+  "gate1/lane7_grain_determinism/impl_a.py",
+  "gate1/lane7_grain_determinism/impl_b.py",
+  "gate1/lane7_grain_determinism/validate_probe_like_playwright.py",
+  "gate1/run_gate1_selftest.py",
+  "pilot/e001_runner_unchanged_check.py",
+  "pilot/preflight_sampling.py",
+  "pilot/scope_threeway_test.py",
+  "qa_base.py",
+  "qa_claim.py",
+  "qa_evidence.py",
+  "qa_mart.py",
+  "recovery/fixtures/run_partial_depth_fixtures.py",
+  "stats_replay.py",
+  "stream_qa.py",
+  "w1/dup_launch_harness.py",
+  "w1/lock_race_harness.py",
+  "w2/dom_replay_probe.py",
+  "w2/holdout_scorer.py"
+ ],
+ "unchanged": [
+  "mlflow_log.py"
+ ],
+ "not_safe_to_fix_as_specified": [
+  {
+   "path": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "why": "renumbering SYSTEMIC 2→1 / did-not-run →2 would let a crash or an empty dir satisfy run_gate1.py's expect_rc=2 negative-control expectation (run_gate1.py is owner-excluded); tool-local mapping documented in its docstring: 0≡A0, 2≡A1, 3≡A2"
+  },
+  {
+   "path": "gate1/lane6_stats/c_flow_derive.assert_field_qualified",
+   "why": "empty artifact is a legitimate caller path (denominator_chain.reasons may be {}); raising on empty would break denominator_chain — recorded as VACUOUS_PASS(form), not fixed"
+  }
+ ],
+ "proof_cases": [
+  {
+   "tool": "bus.py",
+   "case": "ack_missing_ticket",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/bus.py ack no_such_ticket.json x",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "bus: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "bus: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "bus.py",
+   "case": "no_argv",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/bus.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "bus: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "bus: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "bus.py",
+   "case": "selftest",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/bus.py selftest",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "refused as expected: emit refused: base_sha deadbeefdeadbeefdeadbeefdeadbeefdeadbeef does not resolve to a comm",
+    "refused as expected: emit refused: base_sha is mandatory (15 schema / Δ5) and must be a 7-40 hex git sha; got '",
+    "valid emits wrote C-FINDING-094407.json C-FINDING-094407-1.json in temp dir only (short sha expanded to 32460b87334a…); selftest OK"
+   ],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "valid emits wrote C-FINDING-094407.json C-FINDING-094407-1.json in temp dir only (short sha expanded to 32460b87334a…); selftest OK"
+   ]
+  },
+  {
+   "tool": "clean0/qa_retention.py",
+   "case": "missing_A_manifest(mutated copy)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/clean0/qa_retention.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "qa_retention: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "qa_retention: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "clean0/qa_retention.py",
+   "case": "normal",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "reads A/B worktrees (other planes) — not run by this worker"
+  },
+  {
+   "tool": "gate1/c_terminal_table.py",
+   "case": "selftest",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/c_terminal_table.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "c_terminal_table selftest: OK"
+   ],
+   "stderr_last": [],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "c_terminal_table selftest: OK"
+   ]
+  },
+  {
+   "tool": "gate1/c_terminal_table.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/_esd_c_terminal_table_crash.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "c_terminal_table: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "c_terminal_table: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/comparators/adapter_map.py",
+   "case": "show_missing_map",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/adapter_map.py --show /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "adapter_map: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "adapter_map: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/comparators/adapter_map.py",
+   "case": "write_default",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/adapter_map.py --write-default /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/map.json",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "wrote /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/map.json: 9 files, 87 fields, 10 UNMAPPED rows"
+   ],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "wrote /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/map.json: 9 files, 87 fields, 10 UNMAPPED rows"
+   ]
+  },
+  {
+   "tool": "gate1/comparators/compare_lane1.py",
+   "case": "missing_adapter_map",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/compare_lane1.py --adapter-map /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "compare_lane1: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "compare_lane1: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/comparators/compare_lane1.py",
+   "case": "no_map_nothing_compared→NOT_TESTABLE",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/compare_lane1.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "compare_lane1: did not run",
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"status\": \"NOT_TESTABLE\", \"reason\": \"UNMAPPED 64 / NOT_TESTABLE 0: ['C-F3-DECOY-01:run_result.exit', 'C-F3-DECOY-01:run_result.refusal_reason_null', 'C-F3-DECOY-01:run_result.non_file_requests_aborted', 'C-F3-DECOY-01:echo.task_id', 'C-F3-DECOY-01:echo.family_id', 'C-F3-DECOY-01:echo.contract_sha256']\", \"counts\": {\"UNMAPPED\": 64}, \"systemic_fail\": [], \"isolated_fail\": [], \"unmapped\": [\"C-F3-DECOY-01:run_result.exit\", \"C-F3-DECOY-01:run_result.refusal_reason_null\", \"C-F3-DECOY-01:run_result.non_file_requests_aborted\", \"C-F3-DECOY-01:echo.task_id\", \"C-F3-DECOY-01:echo.family_id\", \"C-F3-DECOY-01:echo.contract_sha256\", \"C-F3-DECOY-01:echo.endpoint_contract\", \"C-F3-DECOY-01:echo_optional.task_family\", \"C-F3-DECOY-01:echo_optional.task_instruction\", \"C-F3-DECOY-01:echo_optional.fixed_fixture\", \"C-F3-DECOY-01:hash_recompute_over_echo\", \"C-F3-DECOY-01:forbidden_output_fields_absent\", \"C-F3-DECOY-01:endpoint_status_allowed\", \"C-F3-DECOY-01:auth_gate_stage_allowed\", \"C-F3-DECOY-01:legacy_archetype_if_present\", \"C-F3-DECOY-01:terminal.markers\", \"C-F4-DECOY-01:run_result.exit\", \"C-F4-DECOY-01:run_result.refusal_reason_null\", \"C-F4-DECOY-01:run_result.non_file_requests_aborted\", \"C-F4-DECOY-01:echo.task_id\", \"C-F4-DECOY-01:echo.family_id\", \"C-F4-DECOY-01:echo.contract_sha256\", \"C-F4-DECOY-01:echo.endpoint_contract\", \"C-F4-DECOY-01:echo_optional.task_family\", \"C-F4-DECOY-01:echo_optional.task_instruction\", \"C-F4-DECOY-01:echo_optional.fixed_fixture\", \"C-F4-DECOY-01:hash_recompute_over_echo\", \"C-F4-DECOY-01:forbidden_output_fields_absent\", \"C-F4-DECOY-01:endpoint_status_allowed\", \"C-F4-DECOY-01:auth_gate_stage_allowed\", \"C-F4-DECOY-01:legacy_archetype_if_present\", \"C-F4-DECOY-01:terminal.markers\", \"C-F2-POS-01:run_result.exit\", \"C-F2-POS-01:run_result.refusal_reason_null\", \"C-F2-POS-01:run_result.non_file_requests_aborted\", \"C-F2-POS-01:echo.task_id\", \"C-F2-POS-01:echo.family_id\", \"C-F2-POS-01:echo.contract_sha256\", \"C-F2-POS-01:echo.endpoint_contract\", \"C-F2-POS-01:echo_optional.task_family\", \"C-F2-POS-01:echo_optional.task_instruction\", \"C-F2-POS-01:echo_optional.fixed_fixture\", \"C-F2-POS-01:hash_recompute_over_echo\", \"C-F2-POS-01:forbidden_output_fields_absent\", \"C-F2-POS-01:endpoint_status_allowed\", \"C-F2-POS-01:auth_gate_stage_allowed\", \"C-F2-POS-01:legacy_archetype_if_present\", \"C-F2-POS-01:terminal.markers\", \"C-F5-NOSURF-01:run_result.exit\", \"C-F5-NOSURF-01:run_result.refusal_reason_null\", \"C-F5-NOSURF-01:run_result.non_file_requests_aborted\", \"C-F5-NOSURF-01:echo.task_id\", \"C-F5-NOSURF-01:echo.family_id\", \"C-F5-NOSURF-01:echo.contract_sha256\", \"C-F5-NOSURF-01:echo.endpoint_contract\", \"C-F5-NOSURF-01:echo_optional.task_family\", \"C-F5-NOSURF-01:echo_optional.task_instruction\", \"C-F5-NOSURF-01:echo_optional.fixed_fixture\", \"C-F5-NOSURF-01:hash_recompute_over_echo\", \"C-F5-NOSURF-01:forbidden_output_fields_absent\", \"C-F5-NOSURF-01:endpoint_status_allowed\", \"C-F5-NOSURF-01:auth_gate_stage_allowed\", \"C-F5-NOSURF-01:legacy_archetype_if_present\", \"C-F5-NOSURF-01:terminal.markers\"], \"not_testable\": [], \"n_items\": 64, \"hard_stop_observed\": []}"
+   ],
+   "stderr_last": [
+    "compare_lane1: did not run — read neither as pass nor fail (exit 2): UNMAPPED 64 / NOT_TESTABLE 0: ['C-F3-DECOY-01:run_result.exit', 'C-F3-DECOY-01:run_result.refusal_reason_null', 'C-F3-DECOY-01:run_result.non_file_requests_aborted', 'C-F3-DECOY-01:echo.task_id', 'C-F3-DECOY-01:echo.family_id', 'C-F3-DECOY-01:echo.contract_sha256']"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "was exit 1 (read as 'ran and failed')"
+  },
+  {
+   "tool": "gate1/comparators/compare_lane1.py",
+   "case": "exit0_PASS_path",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "CLI exit 0 needs B runner output at the joint SHA; in-process PASS on synthetic output is proven by comparators/selftest.py (exit 0 below)"
+  },
+  {
+   "tool": "gate1/comparators/compare_lane2.py",
+   "case": "missing_adapter_map",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/compare_lane2.py --adapter-map /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "compare_lane2: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "compare_lane2: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/comparators/compare_lane2.py",
+   "case": "no_map_nothing_compared→NOT_TESTABLE",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/compare_lane2.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "compare_lane2: did not run",
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"status\": \"NOT_TESTABLE\", \"reason\": \"UNMAPPED 59 / NOT_TESTABLE 0: ['label_explicit_text:surface_rows', 'label_explicit_text:flow.menu_dependency', 'label_explicit_text:flow.nav_container_depth', 'label_icon_text:surface_rows', 'label_icon_text:flow.menu_dependency', 'label_icon_text:flow.nav_container_depth']\", \"counts\": {\"UNMAPPED\": 59}}"
+   ],
+   "stderr_last": [
+    "compare_lane2: did not run — read neither as pass nor fail (exit 2): UNMAPPED 59 / NOT_TESTABLE 0: ['label_explicit_text:surface_rows', 'label_explicit_text:flow.menu_dependency', 'label_explicit_text:flow.nav_container_depth', 'label_icon_text:surface_rows', 'label_icon_text:flow.menu_dependency', 'label_icon_text:flow.nav_container_depth']"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "was exit 1 (read as 'ran and failed')"
+  },
+  {
+   "tool": "gate1/comparators/compare_lane2.py",
+   "case": "exit0_PASS_path",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "CLI exit 0 needs B runner output at the joint SHA; in-process PASS on synthetic output is proven by comparators/selftest.py (exit 0 below)"
+  },
+  {
+   "tool": "gate1/comparators/compare_lane3.py",
+   "case": "missing_adapter_map",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/compare_lane3.py --adapter-map /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "compare_lane3: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "compare_lane3: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/comparators/compare_lane3.py",
+   "case": "no_map_nothing_compared→NOT_TESTABLE",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/compare_lane3.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "compare_lane3: did not run",
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"status\": \"NOT_TESTABLE\", \"reason\": \"UNMAPPED 183 / NOT_TESTABLE 0: ['seq_menu_category_function_endpoint:seq.task_flow_sequence', 'seq_menu_category_function_endpoint:seq.experienced_flow_sequence', 'seq_menu_category_function_endpoint:lossless', 'seq_menu_category_function_endpoint:derived.activation_depth', 'seq_menu_category_function_endpoint:derived.flow_step_count', 'seq_menu_category_function_endpoint:derived.menu_dependency']\", \"counts\": {\"UNMAPPED\": 183}, \"scroll_capture_03_s3\": \"UNMAPPED\"}"
+   ],
+   "stderr_last": [
+    "compare_lane3: did not run — read neither as pass nor fail (exit 2): UNMAPPED 183 / NOT_TESTABLE 0: ['seq_menu_category_function_endpoint:seq.task_flow_sequence', 'seq_menu_category_function_endpoint:seq.experienced_flow_sequence', 'seq_menu_category_function_endpoint:lossless', 'seq_menu_category_function_endpoint:derived.activation_depth', 'seq_menu_category_function_endpoint:derived.flow_step_count', 'seq_menu_category_function_endpoint:derived.menu_dependency']"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "was exit 1 (read as 'ran and failed')"
+  },
+  {
+   "tool": "gate1/comparators/compare_lane3.py",
+   "case": "exit0_PASS_path",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "CLI exit 0 needs B runner output at the joint SHA; in-process PASS on synthetic output is proven by comparators/selftest.py (exit 0 below)"
+  },
+  {
+   "tool": "gate1/comparators/grade_lane4.py",
+   "case": "missing_adapter_map",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/grade_lane4.py --adapter-map /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "grade_lane4: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "grade_lane4: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/comparators/grade_lane4.py",
+   "case": "no_map_nothing_compared→NOT_TESTABLE",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/grade_lane4.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "grade_lane4: did not run",
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"status\": \"NOT_TESTABLE\", \"reason\": \"UNMAPPED 26 / NOT_TESTABLE 0: ['finance_login_gate:never_activate', 'finance_login_gate:candidate_states', 'nonfinance_login_gate:never_activate', 'nonfinance_login_gate:candidate_states', 'naver_like_login_plus_query:never_activate', 'naver_like_login_plus_query:candidate_states']\", \"counts\": {\"UNMAPPED\": 26}}"
+   ],
+   "stderr_last": [
+    "grade_lane4: did not run — read neither as pass nor fail (exit 2): UNMAPPED 26 / NOT_TESTABLE 0: ['finance_login_gate:never_activate', 'finance_login_gate:candidate_states', 'nonfinance_login_gate:never_activate', 'nonfinance_login_gate:candidate_states', 'naver_like_login_plus_query:never_activate', 'naver_like_login_plus_query:candidate_states']"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "was exit 1 (read as 'ran and failed')"
+  },
+  {
+   "tool": "gate1/comparators/grade_lane4.py",
+   "case": "exit0_PASS_path",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "CLI exit 0 needs B runner output at the joint SHA; in-process PASS on synthetic output is proven by comparators/selftest.py (exit 0 below)"
+  },
+  {
+   "tool": "gate1/comparators/selftest.py",
+   "case": "selftest",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/selftest.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": "SELFTEST OK",
+   "msg_seen": true,
+   "stdout_tail": [
+    "lane4-guard over_block             finance_login_gate: guard_fired_positive_control=PASS, guard_over_block=FAIL hard_stop_observed=[] → OK",
+    "no-map  status=NOT_TESTABLE PASS=0 UNMAPPED=183 → OK",
+    "SELFTEST OK: clean synthetic output PASS on 4 lanes, mutated copies FAIL on the predicted checks, no-map ⇒ UNMAPPED (workdir /tmp/c_gate1_selftest_hgg82tjv)"
+   ],
+   "stderr_last": [],
+   "seconds": 0.2,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "SELFTEST OK: clean synthetic output PASS on 4 lanes, mutated copies FAIL on the predicted checks, no-map ⇒ UNMAPPED (workdir /tmp/c_gate1_selftest_hgg82tjv)"
+   ]
+  },
+  {
+   "tool": "gate1/comparators/selftest.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/comparators/_esd_selftest_crash.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "comparators/selftest: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "comparators/selftest: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/intake/r32_selftest.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/intake/_esd_r32_selftest_crash.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "r32_selftest: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "r32_selftest: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/intake/r32_selftest.py",
+   "case": "selftest",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/intake/r32_selftest.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": "ALL PASS",
+   "msg_seen": true,
+   "stdout_tail": [
+    " \"all_pass\": true,",
+    " \"scratch\": \"/tmp/r32_selftest_58s65dw7\"",
+    "}"
+   ],
+   "stderr_last": [
+    "r32_selftest: ALL PASS (scratch /tmp/r32_selftest_58s65dw7)"
+   ],
+   "seconds": 0.4,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "r32_selftest: ALL PASS (scratch /tmp/r32_selftest_58s65dw7)"
+   ]
+  },
+  {
+   "tool": "gate1/lane1_task_binding/selfcheck.py",
+   "case": "selfcheck",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane1_task_binding/selfcheck.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": "SELFCHECK PASS",
+   "msg_seen": true,
+   "stdout_tail": [
+    "SELFCHECK PASS: fixtures=4 (pos=1, neg=3) contracts=4 sha_recomputed=4 fails=0 warns=0"
+   ],
+   "stderr_last": [],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "SELFCHECK PASS: fixtures=4 (pos=1, neg=3) contracts=4 sha_recomputed=4 fails=0 warns=0"
+   ]
+  },
+  {
+   "tool": "gate1/lane1_task_binding/selfcheck.py",
+   "case": "missing_task_contracts(lane copy)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/gate1_lane1_task_binding/selfcheck.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "selfcheck: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "selfcheck: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane2_label_reveal/measure_geometry.py",
+   "case": "fixtures",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane2_label_reveal/measure_geometry.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": "RESULT:",
+   "msg_seen": true,
+   "stdout_tail": [
+    "dom_ax_divergence_positive                      | POS | '배송조회'         | '배송조회'         | VISIBLE_TEXT    | EXPLICIT_TEXT       | MATCH        | TEXT_LINK   | T  | NONE   |      |      | TOP_LEFT | TOP_LEFT   | 0.20,0.28 | S0                        | -                         | T     |        |                                | PASS  ",
+    "order_divergence_marked_not_first               | POS | '배송조회'         | '배송조회'         | VISIBLE_TEXT    | EXPLICIT_TEXT       | MATCH        | TEXT_LINK   | T  | NONE   |      |      | TOP_LEFT | TOP_LEFT   | 0.20,0.26 | S0                        | -                         | F     |        | Δ30=a#first|min4=button#marked | PASS  ",
+    "RESULT: 17/17 PASS, non-file requests aborted total=0"
+   ],
+   "stderr_last": [],
+   "seconds": 10.7,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "RESULT: 17/17 PASS, non-file requests aborted total=0"
+   ]
+  },
+  {
+   "tool": "gate1/lane2_label_reveal/measure_geometry.py",
+   "case": "missing_EXPECTATIONS(lane copy)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/gate1_lane2_label_reveal/measure_geometry.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "measure_geometry: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "measure_geometry: did not run — read neither as pass nor fail (exit 2): FileNotFoundError(2, 'No such file or directory')"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane2_label_reveal/measure_geometry.py",
+   "case": "zero_fixtures→not PASS (lane copy)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/gate1_lane2_label_reveal/measure_geometry.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "measure_geometry: did not run",
+   "msg_seen": true,
+   "stdout_tail": [
+    "fixture | ctl | visible | ax_name | ax_src | modality | relation | ctype | s0 | dir | dx | dy | zone(R7) | band | x,y | observed_state | chain | domax | naive | order | result",
+    "------- | --- | ------- | ------- | ------ | -------- | -------- | ----- | -- | --- | -- | -- | -------- | ---- | --- | -------------- | ----- | ----- | ----- | ----- | ------"
+   ],
+   "stderr_last": [
+    "measure_geometry: did not run — zero fixtures (checks_performed=0) — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.7,
+   "result": "PASS",
+   "note": "R43 vacuous-pass fix: was exit 0 '0/0 PASS'"
+  },
+  {
+   "tool": "gate1/lane3_sequence_dismiss_auth/walk_fixture.py",
+   "case": "fixtures",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane3_sequence_dismiss_auth/walk_fixture.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": "RESULT: ALL PASS",
+   "msg_seen": true,
+   "stdout_tail": [
+    "| PAIR:seq_conditional_date_picker|seq_conditional_date_freetext | PAIR | - | - | - | - | - | PASS |",
+    "",
+    "RESULT: ALL PASS (12/12 fixtures, 1/1 conditional pairs) -> /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane3_sequence_dismiss_auth/out/walk_result.json"
+   ],
+   "stderr_last": [],
+   "seconds": 6.1,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "RESULT: ALL PASS (12/12 fixtures, 1/1 conditional pairs) -> /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane3_sequence_dismiss_auth/out/walk_result.json"
+   ]
+  },
+  {
+   "tool": "gate1/lane3_sequence_dismiss_auth/walk_fixture.py",
+   "case": "missing_EXPECTATIONS(lane copy)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/gate1_lane3_sequence_dismiss_auth/walk_fixture.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "walk_fixture: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "walk_fixture: did not run — read neither as pass nor fail (exit 2): FileNotFoundError(2, 'No such file or directory')"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane3_sequence_dismiss_auth/walk_fixture.py",
+   "case": "zero_fixtures→not ALL PASS (lane copy)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/gate1_lane3_sequence_dismiss_auth/walk_fixture.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "walk_fixture: did not run",
+   "msg_seen": true,
+   "stdout_tail": [
+    "| fixture | role | recorded steps | S0 occl (hit/geo) | S0 overlay cov | fvss | terminal | result |",
+    "|---|---|---|---|---|---|---|---|"
+   ],
+   "stderr_last": [
+    "walk_fixture: did not run — zero fixtures (checks_performed=0) — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.6,
+   "result": "PASS",
+   "note": "R43: was exit 0 'ALL PASS (0/0)'"
+  },
+  {
+   "tool": "gate1/lane4_safety_adapter/adapter_interface_stub.py",
+   "case": "dry_run",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane4_safety_adapter/adapter_interface_stub.py --dry-run --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/stub_out",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "      cmd : (no command — blocked on B interface)",
+    "      pass: zero events on any never_activate control; per-candidate state == expected_state (matrix)",
+    "      reuse: BLOCKED on B: runner_cmd_template + action-log schema unknown"
+   ],
+   "stderr_last": [],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "      reuse: BLOCKED on B: runner_cmd_template + action-log schema unknown"
+   ]
+  },
+  {
+   "tool": "gate1/lane4_safety_adapter/adapter_interface_stub.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane4_safety_adapter/_esd_adapter_interface_stub_crash.py --dry-run --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/stub_out2",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "adapter_interface_stub: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "adapter_interface_stub: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane5_evidence/make_synthetic_evidence.py",
+   "case": "regen",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/make_synthetic_evidence.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "fixtures written under /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures"
+   ],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "fixtures written under /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures"
+   ]
+  },
+  {
+   "tool": "gate1/lane5_evidence/make_synthetic_evidence.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/_esd_make_synthetic_evidence_crash.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "make_synthetic_evidence: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "make_synthetic_evidence: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "case": "fixture_good",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/evidence_lineage_check.py /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures/good --path-manifest /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures/good/path_manifest.json --quiet --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/elc_good.json",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "unchanged numbering (0 / 2 systemic)",
+   "counts": [
+    "COMPLETE",
+    28
+   ]
+  },
+  {
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "case": "fixture_bad_overwrite",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/evidence_lineage_check.py /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures/bad_overwrite --path-manifest /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures/bad_overwrite/path_manifest.json --quiet --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/elc_bad_overwrite.json",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "unchanged numbering (0 / 2 systemic)",
+   "counts": [
+    "SYSTEMIC_DEFECT",
+    21
+   ]
+  },
+  {
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "case": "fixture_bad_lineage",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/evidence_lineage_check.py /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures/bad_lineage --path-manifest /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures/bad_lineage/path_manifest.json --quiet --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/elc_bad_lineage.json",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "unchanged numbering (0 / 2 systemic)",
+   "counts": [
+    "SYSTEMIC_DEFECT",
+    20
+   ]
+  },
+  {
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "case": "empty_root→NO_EVIDENCE_INPUT",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/evidence_lineage_check.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/empty_dir --quiet --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/elc_empty.json",
+   "expect_rc": 3,
+   "rc": 3,
+   "expect_msg": "evidence_lineage_check: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "evidence_lineage_check: did not run — nothing to check (checks_performed=0 under /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/empty_dir) — read neither as pass nor fail (exit 3; this tool's did-not-run code)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "R43 hit (C body): was exit 0 COMPLETE_WITH_ISOLATED_DEFECTS; now verdict NO_EVIDENCE_INPUT checks_performed=0 exit 3 (tool-local did-not-run; 2 is bound by run_gate1 L5 expect_rc)",
+   "counts": [
+    "NO_EVIDENCE_INPUT",
+    0
+   ]
+  },
+  {
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "case": "missing_root(usage)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/evidence_lineage_check.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist --quiet",
+   "expect_rc": 3,
+   "rc": 3,
+   "expect_msg": "root is not a directory",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "root is not a directory: /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/_esd_evidence_lineage_check_crash.py /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane5_evidence/fixtures/good --quiet",
+   "expect_rc": 3,
+   "rc": 3,
+   "expect_msg": "evidence_lineage_check: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "evidence_lineage_check: did not run — read neither as pass nor fail (exit 3; this tool's did-not-run code, 2 = ran-and-found-systemic)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "was exit 1 (uncaught); 3 = this tool's did-not-run code"
+  },
+  {
+   "tool": "gate1/lane6_stats/synthetic_family_demo.py",
+   "case": "demo",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane6_stats/synthetic_family_demo.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "    flow_evaluable:  9  dropped=1  reasons=['S10 endpoint_status=ABSTAIN']",
+    "",
+    "wrote /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane6_stats/demo_output.json"
+   ],
+   "stderr_last": [],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "wrote /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane6_stats/demo_output.json"
+   ]
+  },
+  {
+   "tool": "gate1/lane6_stats/synthetic_family_demo.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane6_stats/_esd_synthetic_family_demo_crash.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "synthetic_family_demo: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "synthetic_family_demo: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane6_stats/synthetic_family_demo.py",
+   "case": "injected_R6Q8_rejection→ran_and_failed",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane6_stats/_esd_synthetic_family_demo_q8.py",
+   "expect_rc": 1,
+   "rc": 1,
+   "expect_msg": "FAIL (ran)",
+   "msg_seen": true,
+   "stdout_tail": [
+    "         attempted: 10  dropped=0  reasons=[]",
+    "  evidence_bearing: 10  dropped=0  reasons=[]",
+    "    flow_evaluable:  9  dropped=1  reasons=['S10 endpoint_status=ABSTAIN']"
+   ],
+   "stderr_last": [
+    "synthetic_family_demo: FAIL (ran): T-A-V3-STEP1-003 R6 Q8 field qualification violated: injected (exit_semantics_demo_c)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "ran-and-failed stays exit 1, distinct from crash"
+  },
+  {
+   "tool": "gate1/lane6_stats/variance_control.py",
+   "case": "controls",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane6_stats/variance_control.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    " },",
+    " \"controls_ok\": true",
+    "}"
+   ],
+   "stderr_last": [],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane6_stats/variance_control.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane6_stats/_esd_variance_control_crash.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "variance_control: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "variance_control: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/converge_check.py",
+   "case": "converge",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/converge_check.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": "PASS",
+   "msg_seen": true,
+   "stdout_tail": [
+    "f06 | container | all | #tip-dialog | T | T | 닫기 | F | ARIA_MODAL | 0.000 | 0.000 | T | #tip-close | ok",
+    "",
+    "mode=CONVERGE rows compared=31 identical=31 differing=0 per-unit={'target': 12, 'container': 11, 'step': 8} -> PASS"
+   ],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "mode=CONVERGE rows compared=31 identical=31 differing=0 per-unit={'target': 12, 'container': 11, 'step': 8} -> PASS"
+   ]
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/converge_check.py",
+   "case": "negative_control",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/converge_check.py --negative-control",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "DIFF {\"key\": [\"f06_aria_modal_not_blocking_glass_no_pointer.html\", \"container\", \"blocking\", \"#tip-dialog\"], \"A\": {\"fixture\": \"f06_aria_modal_not_blocking_glass_no_pointer.html\", \"unit\": \"container\", \"population\": \"blocking\", \"row_id\": \"#tip-dialog\", \"dismiss_control_exists\": true, \"dismiss_control_visible\": true, \"dismiss_control_accessible_name\": \"닫기\", \"dismiss_required_for_task\": true, \"dismiss_required_signal\": \"ARIA_MODAL\", \"task_control_occlusion\": 0.0, \"occlusion_geom_crosscheck\": 0.0, \"dismiss_control_hittable_s0\": true, \"selected_selector\": \"#tip-close\"}, \"B\": null, \"differing_fields\": [\"dismiss_control_exists\", \"dismiss_control_visible\", \"dismiss_control_accessible_name\", \"dismiss_required_for_task\", \"dismiss_required_signal\", \"task_control_occlusion\", \"occlusion_geom_crosscheck\", \"dismiss_control_hittable_s0\", \"selected_selector\"]}",
+    "DIFF {\"key\": [\"f06_aria_modal_not_blocking_glass_no_pointer.html\", \"step\", \"all\", \"step0:#tip-dialog\"], \"A\": {\"fixture\": \"f06_aria_modal_not_blocking_glass_no_pointer.html\", \"unit\": \"step\", \"population\": \"all\", \"row_id\": \"step0:#tip-dialog\", \"dismiss_control_exists\": true, \"dismiss_control_visible\": true, \"dismiss_control_accessible_name\": \"닫기\", \"dismiss_required_for_task\": true, \"dismiss_required_signal\": \"ARIA_MODAL\", \"task_control_occlusion\": 0.0, \"occlusion_geom_crosscheck\": 0.0, \"dismiss_control_hittable_s0\": true, \"selected_selector\": \"#tip-close\"}, \"B\": null, \"differing_fields\": [\"dismiss_control_exists\", \"dismiss_control_visible\", \"dismiss_control_accessible_name\", \"dismiss_required_for_task\", \"dismiss_required_signal\", \"task_control_occlusion\", \"occlusion_geom_crosscheck\", \"dismiss_control_hittable_s0\", \"selected_selector\"]}",
+    "DIFF {\"key\": [\"f06_aria_modal_not_blocking_glass_no_pointer.html\", \"step\", \"blocking\", \"step0:#tip-dialog\"], \"A\": {\"fixture\": \"f06_aria_modal_not_blocking_glass_no_pointer.html\", \"unit\": \"step\", \"population\": \"blocking\", \"row_id\": \"step0:#tip-dialog\", \"dismiss_control_exists\": true, \"dismiss_control_visible\": true, \"dismiss_control_accessible_name\": \"닫기\", \"dismiss_required_for_task\": true, \"dismiss_required_signal\": \"ARIA_MODAL\", \"task_control_occlusion\": 0.0, \"occlusion_geom_crosscheck\": 0.0, \"dismiss_control_hittable_s0\": true, \"selected_selector\": \"#tip-close\"}, \"B\": null, \"differing_fields\": [\"dismiss_control_exists\", \"dismiss_control_visible\", \"dismiss_control_accessible_name\", \"dismiss_required_for_task\", \"dismiss_required_signal\", \"task_control_occlusion\", \"occlusion_geom_crosscheck\", \"dismiss_control_hittable_s0\", \"selected_selector\"]}"
+   ],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "",
+   "counts": []
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/converge_check.py",
+   "case": "missing_probe_like(lane copy)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/gate1_lane7_grain_determinism/converge_check.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "converge_check: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "converge_check: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/impl_b.py",
+   "case": "malformed_fixture_SystemExit(str)→2",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/impl_b.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/gate1_lane7_grain_determinism/fixtures/two_task_entries.html",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "impl_b: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "impl_b: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "library raise SystemExit(str) untouched; was exit 1"
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/impl_b.py",
+   "case": "missing_fixture",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/impl_b.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "impl_b: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "impl_b: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/impl_b.py",
+   "case": "f01",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/impl_b.py /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fixtures/f01_blocking_modal_visible_close.html",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"fixture\": \"f01_blocking_modal_visible_close.html\", \"unit\": \"container\", \"population\": \"blocking\", \"row_id\": \"#promo-modal\", \"dismiss_control_exists\": true, \"dismiss_control_visible\": true, \"dismiss_control_accessible_name\": \"닫기\", \"dismiss_required_for_task\": true, \"dismiss_required_signal\": \"ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0\", \"task_control_occlusion\": 1.0, \"occlusion_geom_crosscheck\": 1.0, \"dismiss_control_hittable_s0\": true, \"selected_selector\": \"#promo-close\"}",
+    "{\"fixture\": \"f01_blocking_modal_visible_close.html\", \"unit\": \"target\", \"population\": \"blocking\", \"row_id\": \"TARGET\", \"dismiss_control_exists\": true, \"dismiss_control_visible\": true, \"dismiss_control_accessible_name\": \"[\\\"닫기\\\"]\", \"dismiss_required_for_task\": true, \"dismiss_required_signal\": \"ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0\", \"task_control_occlusion\": 1.0, \"occlusion_geom_crosscheck\": 1.0, \"dismiss_control_hittable_s0\": true, \"selected_selector\": \"[\\\"#promo-close\\\"]\"}",
+    "{\"fixture\": \"f01_blocking_modal_visible_close.html\", \"unit\": \"step\", \"population\": \"blocking\", \"row_id\": \"step0:#promo-modal\", \"dismiss_control_exists\": true, \"dismiss_control_visible\": true, \"dismiss_control_accessible_name\": \"닫기\", \"dismiss_required_for_task\": true, \"dismiss_required_signal\": \"ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0\", \"task_control_occlusion\": 1.0, \"occlusion_geom_crosscheck\": 1.0, \"dismiss_control_hittable_s0\": true, \"selected_selector\": \"#promo-close\"}"
+   ],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "rows=3+"
+   ]
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/impl_a.py",
+   "case": "missing_probe",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/impl_a.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "impl_a: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "impl_a: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/impl_a.py",
+   "case": "f01_probe",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/impl_a.py /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/probe_like/f01.json",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"fixture\": \"f01_blocking_modal_visible_close.html\", \"unit\": \"container\", \"population\": \"blocking\", \"row_id\": \"#promo-modal\", \"dismiss_control_exists\": true, \"dismiss_control_visible\": true, \"dismiss_control_accessible_name\": \"닫기\", \"dismiss_required_for_task\": true, \"dismiss_required_signal\": \"ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0\", \"task_control_occlusion\": 1.0, \"occlusion_geom_crosscheck\": 1.0, \"dismiss_control_hittable_s0\": true, \"selected_selector\": \"#promo-close\"}",
+    "{\"fixture\": \"f01_blocking_modal_visible_close.html\", \"unit\": \"target\", \"population\": \"blocking\", \"row_id\": \"TARGET\", \"dismiss_control_exists\": true, \"dismiss_control_visible\": true, \"dismiss_control_accessible_name\": \"[\\\"닫기\\\"]\", \"dismiss_required_for_task\": true, \"dismiss_required_signal\": \"ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0\", \"task_control_occlusion\": 1.0, \"occlusion_geom_crosscheck\": 1.0, \"dismiss_control_hittable_s0\": true, \"selected_selector\": \"[\\\"#promo-close\\\"]\"}",
+    "{\"fixture\": \"f01_blocking_modal_visible_close.html\", \"unit\": \"step\", \"population\": \"blocking\", \"row_id\": \"step0:#promo-modal\", \"dismiss_control_exists\": true, \"dismiss_control_visible\": true, \"dismiss_control_accessible_name\": \"닫기\", \"dismiss_required_for_task\": true, \"dismiss_required_signal\": \"ARIA_MODAL+GEOM_OVERLAP_GT0+OCCLUSION_GT0\", \"task_control_occlusion\": 1.0, \"occlusion_geom_crosscheck\": 1.0, \"dismiss_control_hittable_s0\": true, \"selected_selector\": \"#promo-close\"}"
+   ],
+   "stderr_last": [],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/fake_runner_det.py",
+   "case": "missing_fixture",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fake_runner_det.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/fr.json",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "fake_runner_det: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "fake_runner_det: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/fake_runner_det.py",
+   "case": "f04",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fake_runner_det.py /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fixtures/f04_two_overlays_one_blocking.html /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/fake_runner_det.json",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/fake_runner_rand.py",
+   "case": "missing_fixture",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fake_runner_rand.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/fr.json",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "fake_runner_rand: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "fake_runner_rand: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/fake_runner_rand.py",
+   "case": "f04",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fake_runner_rand.py /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fixtures/f04_two_overlays_one_blocking.html /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/fake_runner_rand.json",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/determinism_check.py",
+   "case": "posctrl_det_f04",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/determinism_check.py --cmd /home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fake_runner_det.py {fixture} {out} --fixture /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fixtures/f04_two_overlays_one_blocking.html --n 3 --label det_f04 --workdir /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/det --policy-doc /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/ROUTE_POLICY_DETERMINISM_SPEC.md",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": "PASS",
+   "msg_seen": true,
+   "stdout_tail": [
+    "2 | b7be9696 | 22627a5e | 0c4199aa | 79f423b2 | DISMISS_OBSTRUCTION > DISMISS_OBSTRUCTION > SELECT_FUNCTION > ENDPOINT_REACHED",
+    "label=det_f04 n=3 distinct-per-field={'task_flow_sequence': 1, 'experienced_flow_sequence': 1, 'selected_control_selectors': 1} raw-file-distinct=3 (informational) -> PASS",
+    "policy_doc=ROUTE_POLICY_DETERMINISM_SPEC.md sha256=9673b89059b608e62c539b15abe3129933d05fe201f96fda5681481ce9e8a1a1"
+   ],
+   "stderr_last": [],
+   "seconds": 0.2,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/determinism_check.py",
+   "case": "negctrl_rand_f04→ran_and_failed",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/determinism_check.py --cmd /home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fake_runner_rand.py {fixture} {out} --fixture /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fixtures/f04_two_overlays_one_blocking.html --n 3 --label rand_f04 --workdir /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/det",
+   "expect_rc": 1,
+   "rc": 1,
+   "expect_msg": "FAIL",
+   "msg_seen": true,
+   "stdout_tail": [
+    "1 | b7be9696 | 22627a5e | 4df52498 | 9cccae55 | DISMISS_OBSTRUCTION > DISMISS_OBSTRUCTION > SELECT_FUNCTION > ENDPOINT_REACHED",
+    "2 | db5f9e06 | 2ca9f58d | e244313e | 3861d1be | DISMISS_OBSTRUCTION > DISMISS_OBSTRUCTION > OPEN_GLOBAL_MENU > SELECT_FUNCTION > ENDPOINT_REACHED",
+    "label=rand_f04 n=3 distinct-per-field={'task_flow_sequence': 2, 'experienced_flow_sequence': 2, 'selected_control_selectors': 3} raw-file-distinct=3 (informational) -> FAIL"
+   ],
+   "stderr_last": [],
+   "seconds": 0.2,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/determinism_check.py",
+   "case": "missing_policy_doc",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/determinism_check.py --cmd /home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fake_runner_det.py {fixture} {out} --fixture /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fixtures/f04_two_overlays_one_blocking.html --n 1 --label pd --workdir /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/det --policy-doc /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "determinism_check: did not run",
+   "msg_seen": true,
+   "stdout_tail": [
+    "run | task_flow sha8 | experienced_flow sha8 | selectors sha8 | raw file sha8 | experienced_flow",
+    "0 | b7be9696 | 22627a5e | 0c4199aa | 29def1ef | DISMISS_OBSTRUCTION > DISMISS_OBSTRUCTION > SELECT_FUNCTION > ENDPOINT_REACHED",
+    "label=pd n=1 distinct-per-field={'task_flow_sequence': 1, 'experienced_flow_sequence': 1, 'selected_control_selectors': 1} raw-file-distinct=1 (informational) -> PASS"
+   ],
+   "stderr_last": [
+    "determinism_check: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/determinism_check.py",
+   "case": "runner_missing(already 2)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/determinism_check.py --cmd /home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist {fixture} {out} --fixture /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/fixtures/f04_two_overlays_one_blocking.html --n 1 --label rm --workdir /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/det",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "runner failed",
+   "msg_seen": true,
+   "stdout_tail": [
+    "run 0: runner failed rc=2 stderr=/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3: can't open file '/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist': [Errno 2] No such file or directory"
+   ],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/validate_probe_like_playwright.py",
+   "case": "probe_like_vs_browser",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/lane7_grain_determinism/validate_probe_like_playwright.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": "PROBE_LIKE_VALIDATED",
+   "msg_seen": true,
+   "stdout_tail": [
+    "f06 | blocking_proof | #tip-dialog | hand=False | click-at-centre blocked=False | ok",
+    "f06 | blocking_proof | #glass | hand=False | click-at-centre blocked=False | ok",
+    "checked=39 mismatches=0 -> PROBE_LIKE_VALIDATED"
+   ],
+   "stderr_last": [],
+   "seconds": 1.4,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "checked=39 mismatches=0 -> PROBE_LIKE_VALIDATED"
+   ]
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/validate_probe_like_playwright.py",
+   "case": "missing_probe_like(lane copy)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/gate1_lane7_grain_determinism/validate_probe_like_playwright.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "validate_probe_like_playwright: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "validate_probe_like_playwright: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.7,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane7_grain_determinism/validate_probe_like_playwright.py",
+   "case": "zero_checks→not VALIDATED (lane copy)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/copies/gate1_lane7_grain_determinism/validate_probe_like_playwright.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "validate_probe_like_playwright: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "validate_probe_like_playwright: did not run — zero checks (checks_performed=0) — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.5,
+   "result": "PASS",
+   "note": "R43: was exit 0 'checked=0 -> PROBE_LIKE_VALIDATED'"
+  },
+  {
+   "tool": "gate1/run_gate1_selftest.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/_esd_run_gate1_selftest_crash.py --work /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/rgs",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "run_gate1_selftest: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "run_gate1_selftest: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "mlflow_log.py",
+   "case": "print_constants",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/mlflow_log.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    "http://127.0.0.1:5000 LA_00_ASSURANCE_C"
+   ],
+   "stderr_last": [],
+   "seconds": 1.5,
+   "result": "PASS",
+   "note": "UNCHANGED tool"
+  },
+  {
+   "tool": "pilot/e001_runner_unchanged_check.py",
+   "case": "unchanged(scratch repo)",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/pilot/e001_runner_unchanged_check.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/e001_repo c036eb1f45b4bfdae6210c7b46457a604418e286 fc1d35613265326fb3f1bf342d883276d511975b",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    " \"all_unchanged\": true,",
+    " \"firewall_blob_cand\": null",
+    "}"
+   ],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "pilot/e001_runner_unchanged_check.py",
+   "case": "changed→ran_and_failed(scratch repo)",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/pilot/e001_runner_unchanged_check.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/e001_repo c036eb1f45b4bfdae6210c7b46457a604418e286 4b8dba2ac44027ee4377e9c6316857f3b5eed4a5",
+   "expect_rc": 1,
+   "rc": 1,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    " \"all_unchanged\": false,",
+    " \"firewall_blob_cand\": null",
+    "}"
+   ],
+   "stderr_last": [],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "pilot/e001_runner_unchanged_check.py",
+   "case": "unresolvable_sha",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/pilot/e001_runner_unchanged_check.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/e001_repo 0000000000000000000000000000000000000000 fc1d35613265326fb3f1bf342d883276d511975b",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "e001_runner_unchanged_check: ref sha '0000000000000000000000000000000000000000' does not resolve in '/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/e001_repo' — did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "was exit 1 = 'changed'"
+  },
+  {
+   "tool": "pilot/e001_runner_unchanged_check.py",
+   "case": "missing_repo",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/pilot/e001_runner_unchanged_check.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist c036eb1f45b4bfdae6210c7b46457a604418e286 fc1d35613265326fb3f1bf342d883276d511975b",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "e001_runner_unchanged_check: ref sha 'c036eb1f45b4bfdae6210c7b46457a604418e286' does not resolve in '/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist' — did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "pilot/e001_runner_unchanged_check.py",
+   "case": "no_baseline_blobs(C worktree lacks runner files)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/pilot/e001_runner_unchanged_check.py /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21 HEAD HEAD",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "reference blobs resolve",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "e001_runner_unchanged_check: none of 3 reference blobs resolve at 'HEAD' — did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "was exit 1 = 'changed'"
+  },
+  {
+   "tool": "pilot/e001_runner_unchanged_check.py",
+   "case": "missing_argv",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/pilot/e001_runner_unchanged_check.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "e001_runner_unchanged_check: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "pilot/scope_threeway_test.py",
+   "case": "missing_sut",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/pilot/scope_threeway_test.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/s3.json",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "scope_threeway_test: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "scope_threeway_test: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "pilot/scope_threeway_test.py",
+   "case": "normal",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "needs a SUT clone with the V2 firewall"
+  },
+  {
+   "tool": "pilot/preflight_sampling.py",
+   "case": "bad_git_object(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/pilot/_esd_preflight_sampling_crash.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "preflight_sampling: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "preflight_sampling: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": "module-level script: whole body wrapped"
+  },
+  {
+   "tool": "pilot/preflight_sampling.py",
+   "case": "normal",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "reads B mart / evidence dom.html (other plane)"
+  },
+  {
+   "tool": "qa_base.py",
+   "case": "missing_ticket",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/qa_base.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "qa_base: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "qa_base: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_base.py",
+   "case": "normal",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "needs a real E001 release ticket (network git fetch); WALL_CLOCK injection below is in-process"
+  },
+  {
+   "tool": "qa_claim.py",
+   "case": "missing_claims_file→SCAN_INVALID(already 2)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/qa_claim.py --claims /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/claim.md",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "qa_claim: scan INVALID",
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"scan_files\": \"0/1\", \"sentences\": 0, \"retracted_raw_hits\": 0, \"positive_controls\": {\"successor of '정직하게 거부' / '없는 codebook'\": 0, \"successor of '설계가 작동'\": 0, \"successor of 'wiring 고쳐도 신호 없다'\": 0}, \"negative_control\": \"not_run\", \"marker_leak\": [], \"scan_valid\": false, \"MISMATCH\": 1, \"SCAN_INVALID\": 1}",
+    "written /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/claim.md"
+   ],
+   "stderr_last": [
+    "qa_claim: scan INVALID — did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_claim.py",
+   "case": "unwritable_out",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/qa_claim.py --claims /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/GATE1_RUNBOOK_C.md --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist_out/x/claim.md",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "did not run",
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"scan_files\": \"1/1\", \"sentences\": 196, \"retracted_raw_hits\": 0, \"positive_controls\": {\"successor of '정직하게 거부' / '없는 codebook'\": 0, \"successor of '설계가 작동'\": 0, \"successor of 'wiring 고쳐도 신호 없다'\": 0}, \"negative_control\": \"not_run\", \"marker_leak\": [], \"scan_valid\": false, \"MISMATCH\": 11, \"SUPPORTED_WITH_LIMITATION\": 10, \"SCAN_INVALID\": 1}",
+    "written /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist_out/x/claim.md"
+   ],
+   "stderr_last": [
+    "qa_claim: scan INVALID — did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.3,
+   "result": "PASS",
+   "note": "either crash (wrapper) or SCAN_INVALID — both are the did-not-run class with the message"
+  },
+  {
+   "tool": "qa_claim.py",
+   "case": "scan_one_C_doc_without_positive_control→SCAN_INVALID",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/qa_claim.py --claims /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/gate1/GATE1_RUNBOOK_C.md --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/claim2.md",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "scan INVALID",
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"scan_files\": \"1/1\", \"sentences\": 196, \"retracted_raw_hits\": 0, \"positive_controls\": {\"successor of '정직하게 거부' / '없는 codebook'\": 0, \"successor of '설계가 작동'\": 0, \"successor of 'wiring 고쳐도 신호 없다'\": 0}, \"negative_control\": \"not_run\", \"marker_leak\": [], \"scan_valid\": false, \"MISMATCH\": 11, \"SUPPORTED_WITH_LIMITATION\": 10, \"SCAN_INVALID\": 1}",
+    "written /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/claim2.md"
+   ],
+   "stderr_last": [
+    "qa_claim: scan INVALID — did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.3,
+   "result": "PASS",
+   "note": "a single doc carries no positive control → scan_ok False → designed did-not-run (exit 2); exit 0 needs the full claims set + controls"
+  },
+  {
+   "tool": "qa_claim.py",
+   "case": "normal(exit 0)",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "needs A's claim documents + C positive-control files at their recorded paths"
+  },
+  {
+   "tool": "qa_evidence.py",
+   "case": "missing_plan",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/qa_evidence.py --out-dir /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/empty_dir --plan /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "qa_evidence: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "qa_evidence: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_evidence.py",
+   "case": "zero_batches→NO_INPUT",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/qa_evidence.py --out-dir /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/qe_empty --plan /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/plan.json",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "qa_evidence: did not run",
+   "msg_seen": true,
+   "stdout_tail": [
+    "{\"verdict\": \"NO_INPUT\", \"severity_max\": null, \"n_batches\": 0, \"attempted_n\": 0, \"joint_valid_j1_j3_n\": 0, \"excluded_by_reason\": {}, \"outcomes\": {}}"
+   ],
+   "stderr_last": [
+    "qa_evidence: did not run — nothing to check (zero sealed batches, checks_performed=0) — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "R43: was exit 0 verdict MATCH with n_batches 0"
+  },
+  {
+   "tool": "qa_evidence.py",
+   "case": "normal",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "needs a B out_dir with sealed batches + evidence; synthetic single-batch injections below exercise the judging paths"
+  },
+  {
+   "tool": "qa_mart.py",
+   "case": "missing_out_dirs→no_raw_rows",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/qa_mart.py --out-dirs /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist --mart-dir /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist --plan /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist --out /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/qm",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "qa_mart: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "qa_mart: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.4,
+   "result": "PASS",
+   "note": "was exit 0 'no raw rows'"
+  },
+  {
+   "tool": "qa_mart.py",
+   "case": "normal",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "needs B mart + out_dirs"
+  },
+  {
+   "tool": "stream_qa.py",
+   "case": "normal/crash",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "daemon; discover() scans other planes' out_dirs by design; wrapper is the same pattern as qa_evidence (py_compile OK)"
+  },
+  {
+   "tool": "stats_replay.py",
+   "case": "selftest",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/stats_replay.py",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": "self-test OK",
+   "msg_seen": true,
+   "stdout_tail": [
+    "self-test OK: {'n_pairwise_complete': 40, 'rho': 0.6716159601590429, 'p_value': 0.0004997501249375312, 'p_method': 'permutation(two-sided, B=2000, seed=20260827)', 'scipy_p_ref': 2.0919391548154655e-06}",
+    "{'n': 7, 'median': 1.0, 'iqr': 1.5, 'q1': 1.0, 'q3': 2.5, 'mode': [1.0], 'min': 0.0, 'max': 5.0, 'ecdf': {'0.0': 0.14285714285714285, '1.0': 0.5714285714285714, '2.0': 0.7142857142857143, '3.0': 0.8571428571428571, '5.0': 1.0}, 'bins_0_1_2_3_4plus': {'0': 1, '1': 3, '2': 1, '3': 1, '4+': 1}}",
+    "{'eligible_older_relevant': 2, 'fail_older_relevant': 1, 'fail_rate': 0.5, 'undetermined_n': 1, 'undetermined_rate': 0.3333333333333333, 'na_n': 0, 'bound_lower_all_undet_pass': 0.3333333333333333, 'bound_upper_all_undet_fail': 0.6666666666666666}"
+   ],
+   "stderr_last": [],
+   "seconds": 0.8,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    "self-test OK: {'n_pairwise_complete': 40, 'rho': 0.6716159601590429, 'p_value': 0.0004997501249375312, 'p_method': 'permutation(two-sided, B=2000, seed=20260827)', 'scipy_p_ref': 2.0919391548154655e-06}"
+   ]
+  },
+  {
+   "tool": "stats_replay.py",
+   "case": "injected_crash(temp sibling)",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/_esd_stats_replay_crash.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "stats_replay: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "stats_replay: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "stats_replay.py",
+   "case": "injected_assert→ran_and_failed",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/_esd_stats_replay_assert.py",
+   "expect_rc": 1,
+   "rc": 1,
+   "expect_msg": "self-test FAIL (ran)",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "stats_replay: self-test FAIL (ran): AssertionError('injected self-test failure (exit_semantics_demo_c)')"
+   ],
+   "seconds": 0.7,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "recovery/fixtures/run_partial_depth_fixtures.py",
+   "case": "normal/crash",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "imports the B worker engine at module level (other plane); _check() vacuous control is in-process below"
+  },
+  {
+   "tool": "w1/dup_launch_harness.py",
+   "case": "missing_sut_script",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/w1/dup_launch_harness.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/dl",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "dup_launch_harness: SUT script missing /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist/research/landing_accessibility/scripts/run_e001_batch_dryrun.py — did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "was exit 0 INCONCLUSIVE"
+  },
+  {
+   "tool": "w1/dup_launch_harness.py",
+   "case": "normal",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "needs B's run_e001_batch_dryrun.py"
+  },
+  {
+   "tool": "w1/lock_race_harness.py",
+   "case": "missing_sut_src",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/w1/lock_race_harness.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/lr",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "lock_race_harness: SUT batch.py not under '/tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist' — did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "was exit 1 (worker errors → exactly_once_holds=false) and even that was discarded (always 0)"
+  },
+  {
+   "tool": "w1/lock_race_harness.py",
+   "case": "normal",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "needs B's TargetLock"
+  },
+  {
+   "tool": "w2/dom_replay_probe.py",
+   "case": "missing_probe_js",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/w2/dom_replay_probe.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/dr",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "dom_replay_probe: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "dom_replay_probe: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.1,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "w2/dom_replay_probe.py",
+   "case": "normal",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "needs B mart + evidence dom.html"
+  },
+  {
+   "tool": "w2/holdout_scorer.py",
+   "case": "usage",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/w2/holdout_scorer.py",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "usage error",
+   "msg_seen": true,
+   "stdout_tail": [
+    "  detector.jsonl {observation_id, archetype_pred | \"AMBIGUOUS_UNRESOLVED\" | null, region_detected (bool|null),",
+    "                  endpoint_detected (bool|null), decision_trace, producer_sha}",
+    "Usage: holdout_scorer.py labels.jsonl split.json detector.jsonl out.json"
+   ],
+   "stderr_last": [
+    "holdout_scorer: usage error — did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "w2/holdout_scorer.py",
+   "case": "missing_labels",
+   "control_role": "must_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/w2/holdout_scorer.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/does_not_exist /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/ho.json",
+   "expect_rc": 2,
+   "rc": 2,
+   "expect_msg": "holdout_scorer: did not run",
+   "msg_seen": true,
+   "stdout_tail": [],
+   "stderr_last": [
+    "holdout_scorer: did not run — read neither as pass nor fail (exit 2)"
+   ],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "w2/holdout_scorer.py",
+   "case": "synthetic_1_row",
+   "control_role": "must_not_flag",
+   "cmd": "/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python3 /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_c_assurance_v21/research/landing_accessibility/assurance/w2/holdout_scorer.py /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/labels.jsonl /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/split.json /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/det.jsonl /tmp/claude-1000/-home-sieg-projects-wsl-ProjectFinal/9025a829-6001-41cc-967e-a7eebf607234/scratchpad/exit_audit_demo/ho2.json",
+   "expect_rc": 0,
+   "rc": 0,
+   "expect_msg": null,
+   "msg_seen": true,
+   "stdout_tail": [
+    " },",
+    " \"problems\": []",
+    "}"
+   ],
+   "stderr_last": [],
+   "seconds": 0.0,
+   "result": "PASS",
+   "note": "",
+   "counts": [
+    1,
+    1
+   ]
+  },
+  {
+   "tool": "qa_evidence.py",
+   "case": "except_sweep:FORBIDDEN_LABEL_SCAN_UNREADABLE (dir named corrupt.json)",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "finding present",
+   "observed": "['FORBIDDEN_LABEL_SCAN_UNREADABLE']",
+   "result": "PASS",
+   "note": "was: except Exception: pass (unreadable == clean)"
+  },
+  {
+   "tool": "qa_evidence.py",
+   "case": "except_sweep:FORBIDDEN_LABEL_SCAN_UNREADABLE restored",
+   "control_role": "must_not_flag",
+   "cmd": "(in-process)",
+   "expect": "finding absent",
+   "observed": "[]",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_evidence.py",
+   "case": "except_sweep:COLLECTION_STARTED_AT_UNPARSEABLE + benign:STEPS_ABSENT + benign:BATCH_COMMITTED_AT_MISSING (corrupt)",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "3 sentinels present",
+   "observed": "('SYSTEMIC_HARD_STOP_CANDIDATE', 2, ['BATCH_COMMITTED_AT_MISSING', 'CHAIN_MISSING', 'COLLECTION_STARTED_AT_UNPARSEABLE', 'L0A_INCOMPLETE', 'OBS_ID_MISMATCH', 'RUN_DIR_MISSING', 'STEPS_ABSENT', 'TARGET_NOT_IN_PLAN'])",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_evidence.py",
+   "case": "same batch restored (ISO time, steps=[], committed_at)",
+   "control_role": "must_not_flag",
+   "cmd": "(in-process)",
+   "expect": "sentinels absent, checks_performed=2",
+   "observed": "('SYSTEMIC_HARD_STOP_CANDIDATE', 2, ['CHAIN_MISSING', 'L0A_INCOMPLETE', 'OBS_ID_MISMATCH', 'RUN_DIR_MISSING', 'TARGET_NOT_IN_PLAN'])",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_evidence.py",
+   "case": "vacuous:run_qa(zero batches)→NO_INPUT checks_performed=0",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "NO_INPUT / 0",
+   "observed": "('NO_INPUT', 0)",
+   "result": "PASS",
+   "note": "was verdict MATCH"
+  },
+  {
+   "tool": "qa_evidence.py",
+   "case": "vacuous:check_plan_order([]) carries checks_performed=0",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "checks_performed: 0",
+   "observed": "{'frozen_order_n': 0, 'attempted_keys': [], 'partition_worker': None, 'checks_performed': 0}",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_mart.py",
+   "case": "except_sweep:_num('abc') logs UNREADABLE (not silently missing)",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "None + COERCION_LOG ['abc']",
+   "observed": "(None, [\"'abc'\", \"'abc'\"])",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_mart.py",
+   "case": "_num('1.5') / _num('') / _num(None) do not log",
+   "control_role": "must_not_flag",
+   "cmd": "(in-process)",
+   "expect": "1.5, no log",
+   "observed": "(1.5, [])",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_mart.py",
+   "case": "except_sweep:MART_FILE_UNPARSEABLE",
+   "control_role": "must_flag",
+   "result": "NOT_EXERCISED",
+   "note": "code path sits inside main() after build_c_table (needs B mart + out_dirs); finding added at the former `except Exception: pass` site"
+  },
+  {
+   "tool": "gate1/comparators/compare_lane2.py",
+   "case": "reveal_direction_geom on clean synthetic output",
+   "control_role": "must_not_flag",
+   "cmd": "(in-process)",
+   "expect": "PASS",
+   "observed": "('PASS', None)",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/comparators/compare_lane2.py",
+   "case": "except_sweep:bbox_before present-but-unreadable → FAIL UNREADABLE_BBOX (not 'missing')",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "FAIL UNREADABLE_BBOX",
+   "observed": "('FAIL', 'UNREADABLE_BBOX: bbox_before present but not a readable bbox (unreadable ≠ absent)')",
+   "result": "PASS",
+   "note": "was: bbox_center→None == absent"
+  },
+  {
+   "tool": "gate1/comparators/grade_lane4.py",
+   "case": "never_activate on clean synthetic output (original matrix)",
+   "control_role": "must_not_flag",
+   "cmd": "(in-process)",
+   "expect": "all PASS",
+   "observed": "{'finance_login_gate': 'PASS', 'nonfinance_login_gate': 'PASS', 'naver_like_login_plus_query': 'PASS', 'item_detail_purchase_present': 'PASS', 'captcha_active_challenge': 'PASS', 'captcha_passive_script': 'PASS', 'disabled_inert_controls': 'PASS', 'overlay_blocks_control': 'PASS', 'ambiguous_query_plus_items': 'PASS', 'content_open_preroll_ad': 'PASS', 'endpoint_fp_autocomplete_only': 'PASS', 'end",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/comparators/grade_lane4.py",
+   "case": "except_sweep:never_activate selector unparsable → NOT_TESTABLE (not PASS)",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "finance_login_gate: NOT_TESTABLE",
+   "observed": "{'finance_login_gate': 'NOT_TESTABLE', 'nonfinance_login_gate': 'PASS', 'naver_like_login_plus_query': 'PASS', 'item_detail_purchase_present': 'PASS', 'captcha_active_challenge': 'PASS', 'captcha_passive_script': 'PASS', 'disabled_inert_controls': 'PASS', 'overlay_blocks_control': 'PASS', 'ambiguous_query_plus_items': 'PASS', 'content_open_preroll_ad': 'PASS', 'endpoint_fp_autocomplete_only': 'PAS",
+   "result": "PASS",
+   "note": "was: resolve→None or [] silently shrank `never` → PASS"
+  },
+  {
+   "tool": "gate1/comparators/grade_lane4.py",
+   "case": "benign:S2 layer2_imports_layer1 absent → NOT_TESTABLE",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "NOT_TESTABLE",
+   "observed": "NOT_TESTABLE",
+   "result": "PASS",
+   "note": "was PASS (absent ≡ False)"
+  },
+  {
+   "tool": "gate1/comparators/grade_lane4.py",
+   "case": "benign:S2 layer2_imports_layer1=false → PASS",
+   "control_role": "must_not_flag",
+   "cmd": "(in-process)",
+   "expect": "PASS",
+   "observed": "PASS",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "case": "vacuous:run(empty dir) → NO_EVIDENCE_INPUT checks_performed=0",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "NO_EVIDENCE_INPUT / 0",
+   "observed": "('NO_EVIDENCE_INPUT', 0)",
+   "result": "PASS",
+   "note": "was COMPLETE_WITH_ISOLATED_DEFECTS"
+  },
+  {
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "case": "run(fixtures/good) → COMPLETE checks_performed>0",
+   "control_role": "must_not_flag",
+   "cmd": "(in-process)",
+   "expect": "COMPLETE / >0",
+   "observed": "('COMPLETE', 28)",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "recovery/fixtures/run_partial_depth_fixtures.py",
+   "case": "vacuous:_check({}, {}) → VACUOUS marker (not PASS)",
+   "control_role": "must_flag",
+   "cmd": "(in-process)",
+   "expect": "['VACUOUS: ...']",
+   "observed": "['VACUOUS: no expectations declared for this case (checks_performed=0)']",
+   "result": "PASS",
+   "note": "was [] → PASS"
+  },
+  {
+   "tool": "recovery/fixtures/run_partial_depth_fixtures.py",
+   "case": "_check({'ned': 1}, {'ned': 1}) → []",
+   "control_role": "must_not_flag",
+   "cmd": "(in-process)",
+   "expect": "[]",
+   "observed": "[]",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "tool": "qa_base.py",
+   "case": "benign:WALL_CLOCK_FILE_UNREADABLE",
+   "control_role": "must_flag",
+   "result": "NOT_EXERCISED",
+   "note": "the wall-clock branch runs only when batch.py exists at collector_sha; C's repo has no such commit (codes=['FIREWALL_MISSING', 'PLAN_MISSING', 'RUNNER_MISSING'])"
+  },
+  {
+   "tool": "qa_base.py",
+   "case": "benign:WALL_CLOCK cap present → no UNREADABLE finding",
+   "control_role": "must_not_flag",
+   "result": "NOT_EXERCISED",
+   "note": "no commit in C's repo carries wall_clock.py (B file)"
+  }
+ ],
+ "proof_summary": {
+  "n_cases": 125,
+  "pass": 106,
+  "fail": 0,
+  "not_exercised": 19
+ },
+ "except_clause_sweep": {
+  "scope": "every ExceptHandler in every in-scope *.py (entry points + libraries + fixtures + tests), AST; counts at HEAD (before) and in the worktree (after; includes the Δ46 wrappers added by this change)",
+  "before": {
+   "handlers_total": 45,
+   "safe_looking": 25
+  },
+  "after": {
+   "handlers_total": 96,
+   "safe_looking": 22
+  },
+  "judging_path_classified": 25,
+  "fixed": 6,
+  "rows": [
+   {
+    "site": "bus.py:43 _log except:pass",
+    "class": "(c) non-judging side channel (event log write)"
+   },
+   {
+    "site": "gate1/c_terminal_table.py:146 cb=None",
+    "class": "(b) unknown candidates_bound → R29 violation (flagged)"
+   },
+   {
+    "site": "gate1/comparators/common.py:93 bbox_center→None",
+    "class": "(a) unreadable bbox ≡ absent → FIXED in compare_lane2 (UNREADABLE_BBOX FAIL); other consumers none"
+   },
+   {
+    "site": "gate1/comparators/grade_lane4.py:102/108 _last_json_in_log→None",
+    "class": "(b) None → NOT_TESTABLE"
+   },
+   {
+    "site": "gate1/comparators/grade_lane4.py:120 _parse_ts→None / :170 continue",
+    "class": "(c) ts_check is recorded as evidence only, not judged"
+   },
+   {
+    "site": "gate1/comparators/grade_lane4.py:298 resolve→None",
+    "class": "(a) None (unparsable) collapsed to [] by `or []` in never_activate binding → FIXED (never_unbound → NOT_TESTABLE); event attribution already UNMAPPED"
+   },
+   {
+    "site": "gate1/intake/fixtures_py/coverage_idioms.py:22",
+    "class": "(c) r32 fixture — the idiom under test"
+   },
+   {
+    "site": "gate1/intake/r32_selftest.py:54 expect_raises→False",
+    "class": "(b) wrong exception → check FAIL"
+   },
+   {
+    "site": "gate1/lane5_evidence/evidence_lineage_check.py:179 parse_iso→None",
+    "class": "(b) unparseable captured_at → MISSING_FIELD defect (line 310); overwrite check skips only that record"
+   },
+   {
+    "site": "gate1/lane5_evidence/evidence_lineage_check.py:212 → []",
+    "class": "(b) MISSING_FIELD defect recorded"
+   },
+   {
+    "site": "gate1/lane7_grain_determinism/impl_b.py:189 z→0",
+    "class": "(c) CSS semantics (z-index auto/invalid = 0); impl_a is the independent cross-check"
+   },
+   {
+    "site": "qa_base.py:81 fc=None",
+    "class": "(b) → FIREWALL_CLOSE_COMMIT_UNBOUND C1"
+   },
+   {
+    "site": "qa_evidence.py:330 forbidden-label scan except:pass",
+    "class": "(a) unreadable ≡ clean → FIXED (FORBIDDEN_LABEL_SCAN_UNREADABLE C1)"
+   },
+   {
+    "site": "qa_evidence.py:347 _sealed_at→''",
+    "class": "(b) unreadable run.json → not 'pending' → ORPHAN finding (conservative)"
+   },
+   {
+    "site": "qa_evidence.py:361 hardstop except:pass",
+    "class": "(a) unparseable timestamp ≡ before hardstop → FIXED (COLLECTION_STARTED_AT_UNPARSEABLE C1)"
+   },
+   {
+    "site": "qa_mart.py:25 _num→None",
+    "class": "(a) unreadable ≡ missing → FIXED additively (COERCION_LOG → NUMERIC_COERCION_UNPARSEABLE C1; stats untouched)"
+   },
+   {
+    "site": "qa_mart.py:150 row-count except:pass",
+    "class": "(a) unparseable mart file ≡ row count OK → FIXED (MART_FILE_UNPARSEABLE C1 + parse_error field)"
+   },
+   {
+    "site": "qa_mart.py:264 _kst→None",
+    "class": "(b) → bucket 'UNKNOWN'"
+   },
+   {
+    "site": "stats_replay.py:71 p_value=None / :80 pass",
+    "class": "(b) null p_value / absent scipy keys are distinct from numbers; reference-only"
+   },
+   {
+    "site": "stream_qa.py:61 fw_sha=None",
+    "class": "(b) → COLLECTION_BEFORE_FIREWALL_BINDING C1 (conservative)"
+   },
+   {
+    "site": "stream_qa.py:81/:90 bus hb/log except:pass",
+    "class": "(c) side channel"
+   },
+   {
+    "site": "gate1/lane2_label_reveal/measure_geometry.py:168 → (None, 'err:…')",
+    "class": "(b) error class carried in the tuple"
+   },
+   {
+    "site": "gate1/lane3_sequence_dismiss_auth/walk_fixture.py:280",
+    "class": "(b) EXCEPTION recorded as a fixture fail"
+   },
+   {
+    "site": "pilot/scope_threeway_test.py:31/91",
+    "class": "(b) rejection class recorded"
+   },
+   {
+    "site": "qa_evidence.py:64/96/111",
+    "class": "(b) C1 findings recorded"
+   }
+  ]
+ },
+ "benign_default_sweep": {
+  "scope": "non-except benign defaults in in-scope *.py (AST): `if not p.exists()/is_file()/is_dir(): return/continue/benign`, `.get(k, benign)`, `x or benign` (benign = None/0/False/''/[]/{} /status-like string)",
+  "before": {
+   "exists_guard": 18,
+   "get_default": 67,
+   "or_default": 158,
+   "total": 243
+  },
+  "after": {
+   "exists_guard": 20,
+   "get_default": 67,
+   "or_default": 159,
+   "total": 246
+  },
+  "judging_path_examined": 34,
+  "class_a_fixed": 4,
+  "class_a_noted_not_fixed": 1,
+  "rows": [
+   {
+    "site": "gate1/comparators/grade_lane4.py S2 rec.get('layer2_imports_layer1') falsy → PASS",
+    "class": "(a) absent ≡ independent → FIXED (NOT_TESTABLE when key absent)"
+   },
+   {
+    "site": "qa_evidence.py te.get('steps') or [] → no ACTIVATION_AFTER_GATE / MPFED_GT_STEPS",
+    "class": "(a) absent steps ≡ no activation after gate → FIXED (STEPS_ABSENT C1 on gate outcomes, C2 otherwise)"
+   },
+   {
+    "site": "qa_evidence.py committed_at or '' → last_commit '' → every unreferenced run 'pending'",
+    "class": "(a) absent ≡ pending (never orphan) → FIXED (BATCH_COMMITTED_AT_MISSING C1)"
+   },
+   {
+    "site": "qa_base.py show(wall_clock.py) or '' → cap None → allowed",
+    "class": "(a) unreadable ≡ cap OK → FIXED (WALL_CLOCK_FILE_UNREADABLE / WALL_CLOCK_CAP_UNPARSED C2)"
+   },
+   {
+    "site": "gate1/lane6_stats/c_flow_derive.py row_evidence_bearing / row_flow_evaluable: endpoint_status or '' → counted",
+    "class": "(a) noted, NOT fixed: denominator logic (measurement); validate_terminal(None) flags the row separately, so the artifact carries the violation — changing the count would change statistics"
+   },
+   {
+    "site": "gate1/comparators/compare_lane2.py _c_reference → None when C's own measure_result.json is absent",
+    "class": "(b) consumer emits an explicit item when ref_row is missing"
+   },
+   {
+    "site": "gate1/comparators/grade_lane4.py rec.get('rows', []) (S2)",
+    "class": "(b) each unprobed scope → NOT_TESTABLE"
+   },
+   {
+    "site": "gate1/comparators/grade_lane4.py duplicate_suppressed_events or 0 / per_key or {} / errors or []",
+    "class": "(b) conservative: fewer suppressions / no keys / errors → FAIL or NOT_TESTABLE"
+   },
+   {
+    "site": "gate1/comparators/grade_lane4.py layer2_mentions_manifest_sha falsy",
+    "class": "(b) conservative (FAIL when open without literal)"
+   },
+   {
+    "site": "gate1/comparators/compare_lane1.py markers/battrs .value or {}",
+    "class": "(b) guarded by Lookup.ok; UNMAPPED otherwise"
+   },
+   {
+    "site": "gate1/comparators/compare_lane2.py ch.value or [] (nav_container_chain)",
+    "class": "(c) null chain ≡ empty chain semantically; compared against expectation"
+   },
+   {
+    "site": "qa_evidence.py attempts or 0 / sealed_at or '' / archetype or 'UNKNOWN'",
+    "class": "(b)/(c) conservative or reporting"
+   },
+   {
+    "site": "qa_evidence.py notes or [] → e6b flags False",
+    "class": "(c) reporting breakdown only"
+   },
+   {
+    "site": "qa_mart.py rd()→None when table absent; manifest absent",
+    "class": "(b) FROZEN_MART_MANIFEST_MISSING C1; table None handled downstream"
+   },
+   {
+    "site": "qa_claim.py FILE_MISSING → MISMATCH + SCAN_INVALID",
+    "class": "(b)"
+   },
+   {
+    "site": "clean0/qa_retention.py chain absent → {present: False}",
+    "class": "(b) linkage_ok falsy → MISMATCH"
+   },
+   {
+    "site": "gate1/comparators/adapter_map.py path missing → Lookup UNMAPPED",
+    "class": "(b)"
+   },
+   {
+    "site": "gate1/lane5_evidence/evidence_lineage_check.py root/manifest missing → exit 3",
+    "class": "(b)"
+   },
+   {
+    "site": "w1/dup_launch_harness.py / w1/lock_race_harness.py SUT missing",
+    "class": "(a) → FIXED under Δ46 (exit 2)"
+   },
+   {
+    "site": "lane2/lane3/lane7/impl_*/fake_runner_* `.get(...) or ''`/`or 0` on C's own fixture DOM/probe data",
+    "class": "(c) measurement of C-authored fixtures; converge_check cross-checks impl_a vs impl_b"
+   },
+   {
+    "site": "c_flow_derive.py entry_is_floating/entry_in_drawer default False",
+    "class": "(b) C recompute vs B row diff surfaces a mismatch"
+   },
+   {
+    "site": "remaining ~200 `.get(k, {})` / `or []` / `or {}` sites",
+    "class": "(c) iteration/reporting data access, not a judging path (bulk-classified by pattern)"
+   }
+  ]
+ },
+ "vacuous_pass_sweep": {
+  "scope": "judging functions (validate_*/check_*/verify_*/assert_*/selfcheck/compare*/grade*/run_qa/audit_*/mains) called with empty input (dict/list/dir, zero fixtures/rows)",
+  "functions_tested": 40,
+  "vacuous_pass_found": 9,
+  "fixed": 8,
+  "not_fixed": [
+   "c_flow_derive.assert_field_qualified({})"
+  ],
+  "rows": [
+   {
+    "function": "compare_lane1.compare_all({}, map)",
+    "empty_input_result": "\"NOT_TESTABLE\"",
+    "class": "DISTINCT (NOT_TESTABLE; CLI now exit 2)",
+    "note": ""
+   },
+   {
+    "function": "compare_lane2.compare_all({}, map)",
+    "empty_input_result": "\"NOT_TESTABLE\"",
+    "class": "DISTINCT",
+    "note": ""
+   },
+   {
+    "function": "compare_lane3.compare_all({}, map)",
+    "empty_input_result": "\"NOT_TESTABLE\"",
+    "class": "DISTINCT",
+    "note": ""
+   },
+   {
+    "function": "grade_lane4.grade_s1(empty dir)",
+    "empty_input_result": "\"NOT_TESTABLE\"",
+    "class": "DISTINCT",
+    "note": ""
+   },
+   {
+    "function": "grade_lane4.grade_s1b(missing log)",
+    "empty_input_result": "\"NOT_TESTABLE\"",
+    "class": "DISTINCT",
+    "note": ""
+   },
+   {
+    "function": "grade_lane4.grade_s2(missing json)",
+    "empty_input_result": "\"NOT_TESTABLE\"",
+    "class": "DISTINCT",
+    "note": ""
+   },
+   {
+    "function": "grade_lane4.grade_s3(missing log)",
+    "empty_input_result": "\"NOT_TESTABLE\"",
+    "class": "DISTINCT",
+    "note": ""
+   },
+   {
+    "function": "grade_lane4.grade_s4({}, map)",
+    "empty_input_result": "\"NOT_TESTABLE\"",
+    "class": "DISTINCT",
+    "note": ""
+   },
+   {
+    "function": "c_terminal_table.validate_pair(None,None,None)",
+    "empty_input_result": "[\"endpoint_status missing (R11: every terminal observation carries endpoint_status)\"]",
+    "class": "DISTINCT (violation)",
+    "note": ""
+   },
+   {
+    "function": "c_terminal_table.validate_zero_depth(None x4)",
+    "empty_input_result": "[]",
+    "class": "NOT_APPLICABLE (row predicate: R29 rule does not fire without depth/status; not a pass claim)",
+    "note": ""
+   },
+   {
+    "function": "c_terminal_table.validate_policy_relative(None x3)",
+    "empty_input_result": "[]",
+    "class": "NOT_APPLICABLE (row predicate)",
+    "note": ""
+   },
+   {
+    "function": "selfcheck.check_fixture(missing, {})",
+    "empty_input_result": "[null, [\"/nonexistent.html: missing fixture file\"]]",
+    "class": "DISTINCT (fail recorded)",
+    "note": ""
+   },
+   {
+    "function": "selfcheck.check_registry_verbatim([], {})",
+    "empty_input_result": "RAISES KeyError: 'registry_source'",
+    "class": "DISTINCT (raises)",
+    "note": ""
+   },
+   {
+    "function": "adapter_interface_stub.score_forbidden_actions(empty log)",
+    "empty_input_result": "\"SKIPPED\"",
+    "class": "DISTINCT (SKIPPED)",
+    "note": ""
+   },
+   {
+    "function": "evidence_lineage_check.run(empty dir)",
+    "empty_input_result": "[\"NO_EVIDENCE_INPUT\", 0]",
+    "class": "VACUOUS_PASS → FIXED (NO_EVIDENCE_INPUT, checks_performed=0, exit 3)",
+    "note": ""
+   },
+   {
+    "function": "evidence_lineage_check.check_required({}, STATE_REQUIRED)",
+    "empty_input_result": "[null, 14]",
+    "class": "DISTINCT (MISSING_FIELD per field)",
+    "note": ""
+   },
+   {
+    "function": "c_flow_derive.assert_field_qualified({})",
+    "empty_input_result": "null",
+    "class": "VACUOUS_PASS(form) — NOT FIXED: empty input is a legitimate caller path (denominator_chain.reasons may be {}); the guard's contract is 'no bare mention', for which empty is a true negative",
+    "note": ""
+   },
+   {
+    "function": "c_flow_derive.compare_with_mart_row({})",
+    "empty_input_result": "RAISES KeyError: 'task_flow_sequence'",
+    "class": "DISTINCT (raises)",
+    "note": ""
+   },
+   {
+    "function": "c_flow_derive._validate_replacement({}, 0)",
+    "empty_input_result": "RAISES ValueError: replaced[0] missing ['target_id', 'reason', 'reserve_rank', 'decided_at', 'decided_by'] (T-A-V3-STEP",
+    "class": "DISTINCT (raises)",
+    "note": ""
+   },
+   {
+    "function": "c_flow_derive._validate_xy(None, None)",
+    "empty_input_result": "RAISES ValueError: entry_zone needs x_norm and y_norm (04 §6 / R7: entry_x_norm·entry_y_norm are ALWAYS stored, even wh",
+    "class": "DISTINCT (raises)",
+    "note": ""
+   },
+   {
+    "function": "c_flow_derive.validate_terminal(None, None, None)",
+    "empty_input_result": "false",
+    "class": "DISTINCT (ok=False)",
+    "note": ""
+   },
+   {
+    "function": "c_flow_derive.family_summary([])",
+    "empty_input_result": "{\"n_primary\": 0}",
+    "class": "DISTINCT (n=0, rate None, warning) — left per coordinator",
+    "note": ""
+   },
+   {
+    "function": "variance_control.check_variance([], [], {})",
+    "empty_input_result": "RAISES ValueError: CI-20: no runner rows — an empty observation set is not a pass",
+    "class": "DISTINCT (raises CI-20) — left per coordinator",
+    "note": ""
+   },
+   {
+    "function": "qa_evidence.verify_run(empty dir)",
+    "empty_input_result": "[\"FAILED\", [\"MANIFEST_MISSING\"]]",
+    "class": "DISTINCT (FAILED)",
+    "note": ""
+   },
+   {
+    "function": "qa_evidence.check_plan_order([], {})",
+    "empty_input_result": "{\"frozen_order_n\": 0, \"attempted_keys\": [], \"partition_worker\": null, \"checks_performed\": 0}",
+    "class": "VACUOUS_PASS(form) → FIXED (checks_performed=0 field; run_qa NO_INPUT gate)",
+    "note": ""
+   },
+   {
+    "function": "qa_evidence.run_qa(empty out, empty plan)",
+    "empty_input_result": "[\"NO_INPUT\", 0]",
+    "class": "VACUOUS_PASS → FIXED (NO_INPUT, checks_performed=0, exit 2)",
+    "note": ""
+   },
+   {
+    "function": "qa_retention.audit_run(empty dir)",
+    "empty_input_result": "false",
+    "class": "DISTINCT (has_manifest False → flagged)",
+    "note": ""
+   },
+   {
+    "function": "qa_retention.audit_chain(empty dir)",
+    "empty_input_result": "{\"present\": false}",
+    "class": "DISTINCT (present False → linkage_ok falsy)",
+    "note": ""
+   },
+   {
+    "function": "stats_replay.spearman_tie_aware([], [])",
+    "empty_input_result": "{\"n_pairwise_complete\": 0, \"rho\": null}",
+    "class": "DISTINCT (n=0, rho None)",
+    "note": ""
+   },
+   {
+    "function": "qa_mart.compare('x', None, None)",
+    "empty_input_result": "{\"var\": \"x\", \"B\": null, \"C\": null, \"delta\": null, \"match\": true, \"severity\": null}",
+    "class": "DISTINCT/NOT_APPLICABLE (see result)",
+    "note": ""
+   },
+   {
+    "function": "run_partial_depth_fixtures._check({}, {})",
+    "empty_input_result": "\"see injection control\"",
+    "class": "VACUOUS_PASS(form) → FIXED (VACUOUS marker)",
+    "note": ""
+   },
+   {
+    "function": "measure_geometry main (zero fixtures)",
+    "empty_input_result": "\"see subprocess case\"",
+    "class": "VACUOUS_PASS → FIXED (exit 2)",
+    "note": ""
+   },
+   {
+    "function": "walk_fixture main (zero fixtures)",
+    "empty_input_result": "\"see subprocess case\"",
+    "class": "VACUOUS_PASS → FIXED (exit 2)",
+    "note": ""
+   },
+   {
+    "function": "validate_probe_like_playwright main (zero checks)",
+    "empty_input_result": "\"see subprocess case\"",
+    "class": "VACUOUS_PASS → FIXED (exit 2)",
+    "note": ""
+   },
+   {
+    "function": "converge_check main (zero rows)",
+    "empty_input_result": "\"verdict requires n_ok > 0\"",
+    "class": "DISTINCT (FAIL when nothing compared)",
+    "note": ""
+   },
+   {
+    "function": "determinism_check main (--n 0)",
+    "empty_input_result": "\"distinct-per-field 0 != 1 → FAIL\"",
+    "class": "DISTINCT (ran and failed; not pass)",
+    "note": ""
+   },
+   {
+    "function": "qa_mart main (empty C table)",
+    "empty_input_result": "\"see subprocess case\"",
+    "class": "VACUOUS/did-not-run conflation (exit 0) → FIXED (exit 2)",
+    "note": ""
+   },
+   {
+    "function": "holdout_scorer main (empty holdout)",
+    "empty_input_result": "\"gates evaluate to False when n_eval=0\"",
+    "class": "DISTINCT",
+    "note": ""
+   },
+   {
+    "function": "qa_claim main (zero targets)",
+    "empty_input_result": "\"GLOB_EMPTY → SCAN_INVALID → exit 2\"",
+    "class": "DISTINCT",
+    "note": ""
+   },
+   {
+    "function": "lane1 selfcheck main (zero contracts)",
+    "empty_input_result": "\"'no POSITIVE_CONTROL fixture' FAIL\"",
+    "class": "DISTINCT",
+    "note": ""
+   }
+  ]
+ },
+ "run_gate1_selftest_full": {
+  "status": "PENDING — run separately after this demonstrator (long: 5× run_gate1 with browsers); result merged by the worker"
+ },
+ "seconds": 32.4
+}

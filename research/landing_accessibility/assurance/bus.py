@@ -128,34 +128,41 @@ def hb(**fields) -> None:
     HB_STATE.write_text(json.dumps(st, ensure_ascii=False, indent=2), encoding="utf-8")
 
 if __name__ == "__main__":
-    cmd = sys.argv[1]
-    if cmd == "ack":
-        t = load_ticket(sys.argv[2]); print(ack(t, " ".join(sys.argv[3:])))
-    elif cmd == "hb":
-        hb(**json.loads(sys.argv[2])); print("hb updated")
-    elif cmd == "list":
-        for p in sorted(TICKETS.glob("*.json")):
-            t = load_ticket(p.name); print(p.name, "FOR_C" if is_for_c(t) else "-", t.get("type") or t.get("kind"))
-    elif cmd == "selftest":
-        # base_sha refusal, demonstrated against a temp dir — the real bus is never written
-        import tempfile
-        with tempfile.TemporaryDirectory(prefix="bus_selftest_") as td:
-            TICKETS = pathlib.Path(td) / "tickets"; EVENT_LOG = pathlib.Path(td) / "event_log.jsonl"
-            try:
-                emit("FINDING", {"headline": "no base_sha"}); print("FAIL: emit wrote a ticket without base_sha"); sys.exit(1)
-            except ValueError as e:
-                print("refused as expected:", e)
-            assert not list(TICKETS.glob("*.json")) if TICKETS.exists() else True, "a file was created despite refusal"
-            import subprocess
-            head = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
-            for bad, why in (("0123abcd", "short sha that resolves to nothing"), ("deadbeef" * 5, "40-hex fake sha"), ("zz1234567", "non-hex")):
+    try:
+        cmd = sys.argv[1]
+        if cmd == "ack":
+            t = load_ticket(sys.argv[2]); print(ack(t, " ".join(sys.argv[3:])))
+        elif cmd == "hb":
+            hb(**json.loads(sys.argv[2])); print("hb updated")
+        elif cmd == "list":
+            for p in sorted(TICKETS.glob("*.json")):
+                t = load_ticket(p.name); print(p.name, "FOR_C" if is_for_c(t) else "-", t.get("type") or t.get("kind"))
+        elif cmd == "selftest":
+            # base_sha refusal, demonstrated against a temp dir — the real bus is never written
+            import tempfile
+            with tempfile.TemporaryDirectory(prefix="bus_selftest_") as td:
+                TICKETS = pathlib.Path(td) / "tickets"; EVENT_LOG = pathlib.Path(td) / "event_log.jsonl"
                 try:
-                    emit("FINDING", {"headline": "bad", "base_sha": bad}); print(f"FAIL: emit accepted {why} {bad}"); sys.exit(1)
+                    emit("FINDING", {"headline": "no base_sha"}); print("FAIL: emit wrote a ticket without base_sha"); sys.exit(1)
                 except ValueError as e:
-                    print("refused as expected:", str(e)[:90])
-            assert not list(TICKETS.glob("*.json")) if TICKETS.exists() else True, "a file was created despite refusal"
-            p = emit("FINDING", {"headline": "ok short", "base_sha": head[:10]}); d = json.loads(p.read_text(encoding="utf-8"))
-            assert d["base_sha"] == head and d.get("base_sha_as_given") == head[:10] and p.parent == TICKETS, "short real sha was not expanded to 40 chars"
-            p2 = emit("FINDING", {"headline": "ok full", "base_sha": head}); d2 = json.loads(p2.read_text(encoding="utf-8"))
-            assert d2["base_sha"] == head and "base_sha_as_given" not in d2, "full sha changed"
-            print("valid emits wrote", p.name, p2.name, "in temp dir only (short sha expanded to", head[:12] + "…); selftest OK")
+                    print("refused as expected:", e)
+                assert not list(TICKETS.glob("*.json")) if TICKETS.exists() else True, "a file was created despite refusal"
+                import subprocess
+                head = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+                for bad, why in (("0123abcd", "short sha that resolves to nothing"), ("deadbeef" * 5, "40-hex fake sha"), ("zz1234567", "non-hex")):
+                    try:
+                        emit("FINDING", {"headline": "bad", "base_sha": bad}); print(f"FAIL: emit accepted {why} {bad}"); sys.exit(1)
+                    except ValueError as e:
+                        print("refused as expected:", str(e)[:90])
+                assert not list(TICKETS.glob("*.json")) if TICKETS.exists() else True, "a file was created despite refusal"
+                p = emit("FINDING", {"headline": "ok short", "base_sha": head[:10]}); d = json.loads(p.read_text(encoding="utf-8"))
+                assert d["base_sha"] == head and d.get("base_sha_as_given") == head[:10] and p.parent == TICKETS, "short real sha was not expanded to 40 chars"
+                p2 = emit("FINDING", {"headline": "ok full", "base_sha": head}); d2 = json.loads(p2.read_text(encoding="utf-8"))
+                assert d2["base_sha"] == head and "base_sha_as_given" not in d2, "full sha changed"
+                print("valid emits wrote", p.name, p2.name, "in temp dir only (short sha expanded to", head[:12] + "…); selftest OK")
+    except AssertionError as _e:  # selftest assertion = the control ran and FAILED
+        print(f"FAIL: {_e}", file=sys.stderr); sys.exit(1)
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash / missing ticket / missing argv = did not run
+        import traceback
+        traceback.print_exc()
+        print("bus: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)

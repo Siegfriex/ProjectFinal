@@ -159,6 +159,7 @@ def leave_one_archetype_out(rows: list[dict], xkey: str, ykey: str, archkey: str
     return res
 
 if __name__ == "__main__":  # self-test vs scipy
+  try:
     rng = np.random.default_rng(1)
     x = rng.integers(0, 5, 40).astype(float); y = rng.random(40) * (x + 1) / 5
     r = spearman_tie_aware(x, y, permutations=2000)
@@ -168,6 +169,10 @@ if __name__ == "__main__":  # self-test vs scipy
     print("self-test OK:", {k: r[k] for k in ("n_pairwise_complete", "rho", "p_value", "p_method", "scipy_p_ref")})
     print(describe_discrete([0, 1, 1, 2, 3, 5, 1]))
     print(fail_rate({"1.1.1": "FAIL", "1.3.3": "PASS", "2.1.1": "UNDETERMINED", "9.9.9": "FAIL"}, {"1.1.1", "1.3.3", "2.1.1"}))
+  except AssertionError as _e:  # self-test assertion = ran and FAILED
+    import sys; print(f"stats_replay: self-test FAIL (ran): {_e!r}"[:400], file=sys.stderr); sys.exit(1)
+  except Exception:  # Δ46-exit2 / Δ50-exit2-common: scipy missing / crash = did not run
+    import sys, traceback; traceback.print_exc(); print("stats_replay: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)
 
 # ----------------------------------------------------------------------------- A-confirmed operationalizations (2026-08-27 ~11:58)
 

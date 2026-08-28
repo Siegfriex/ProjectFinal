@@ -93,4 +93,9 @@ def main(a):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--roots", nargs="*", default=[]); ap.add_argument("--plan-master", required=True); ap.add_argument("--plan-targets"); ap.add_argument("--plan-e000", help="E000 plan view (order = E000_FAST order) used for out_dirs whose path contains 'e000'"); ap.add_argument("--interval", type=int, default=15)
-    main(ap.parse_args())
+    try:
+        main(ap.parse_args())
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: daemon crash = did not run (the loop never exits normally)
+        import traceback
+        traceback.print_exc()
+        print("stream_qa: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)

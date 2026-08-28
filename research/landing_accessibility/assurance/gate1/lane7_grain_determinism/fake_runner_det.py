@@ -28,4 +28,11 @@ def main(fixture, out):
     pathlib.Path(out).write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    try:
+        _rc = main(sys.argv[1], sys.argv[2])
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("fake_runner_det: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

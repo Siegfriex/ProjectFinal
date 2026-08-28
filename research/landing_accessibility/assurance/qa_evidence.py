@@ -199,6 +199,8 @@ def reconstruct_target(res: dict, batch: dict, out_dir: pathlib.Path, f: F, plan
         if row["archetype"] and row["archetype"] not in ARCHETYPES: f.add("C1", "ARCHETYPE_ENUM", f"archetype {row['archetype']} not in 7-value set", target_id=tid)
         if row["archetype_plan"] and row["archetype"] and row["archetype"] != row["archetype_plan"]: f.add("C1", "ARCHETYPE_VS_PLAN", f"archetype {row['archetype']} != frozen plan {row['archetype_plan']}", target_id=tid)
         steps = te.get("steps") or []
+        if te.get("steps") is None:  # D-V3-ADDENDUM-006: absent steps ≠ "no activation after gate"
+            f.add("C1" if row["endpoint_status"] in ("AUTH_GATE_REACHED", "PAYMENT_GATE_REACHED", "PERSONAL_DATA_REQUIRED") else "C2", "STEPS_ABSENT", "task manifest has no steps list — activation-after-gate (E-7) and MPFED-vs-steps checks did not run (UNREADABLE, not clean)", target_id=tid)
         gate_idx = [i for i, s in enumerate(steps) if isinstance(s, dict) and str(s.get("auth_gate_detected")) in ("1", "True", "true")]
         if gate_idx and gate_idx[0] < len(steps) - 1:
             f.add("C0", "ACTIVATION_AFTER_GATE", f"activation(s) recorded after auth gate step {gate_idx[0]} (E-7 forbidden action)", target_id=tid)
@@ -269,7 +271,7 @@ def check_plan_order(rows: list[dict], plan: dict, worker: str | None, f: F, lab
         pos = {k: i for i, k in enumerate(order)}; seq = [pos.get(k, -1) for k in keys]
         if any(s < 0 for s in seq): f.add("C1", "KEY_NOT_IN_ORDER", "target key not in frozen order", keys=[k for k, s in zip(keys, seq) if s < 0])
         if seq != sorted(seq): f.add("C1", "ORDER_VIOLATION", f"{label}: collection order deviates from frozen order", observed=keys)
-    return {"frozen_order_n": len(order), "attempted_keys": keys, "partition_worker": worker}
+    return {"frozen_order_n": len(order), "attempted_keys": keys, "partition_worker": worker, "checks_performed": len(rows)}
 
 def append_only_check(out_dir: pathlib.Path, batches: list[dict], state_path: pathlib.Path | None, f: F) -> dict:
     cur = {m["_file"]: m["_file_sha256"] for m in batches}
@@ -323,12 +325,13 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
         if ifc is not None and ifc != nonm: f.add("C1", "ISOLATION_COUNT", f"{b['_file']}: provenance isolated_failure_count {ifc} != non-MEASURED results {nonm}", file=b["_file"])
         if (b.get("provenance") or {}).get("target_count") not in (None, len(res)): f.add("C1", "ISOLATION_TARGET_COUNT", f"{b['_file']}: provenance target_count != results (target dropped after failure?)", file=b["_file"])
     # §0 naming contract: forbidden string anywhere in out_dir JSON/JSONL/MD
-    forb = []
+    forb = []; scan_unreadable = []
     for pth in list(out.rglob("*.json")) + list(out.rglob("*.jsonl")) + list(out.rglob("*.md")):
         try:
             if "E000_V2_VALIDATED" in pth.read_text(encoding="utf-8", errors="ignore"): forb.append(str(pth.relative_to(out)))
-        except Exception: pass
+        except Exception as ex: scan_unreadable.append(f"{pth.relative_to(out)}: {type(ex).__name__}")  # D-V3-FINDING-023: unreadable ≠ clean
     if forb: f.add("C1", "FORBIDDEN_LABEL_E000_V2_VALIDATED", f"forbidden string E000_V2_VALIDATED found in {len(forb)} files", files=forb[:10])
+    if scan_unreadable: f.add("C1", "FORBIDDEN_LABEL_SCAN_UNREADABLE", f"{len(scan_unreadable)} file(s) could not be read — the forbidden-label scan did not run on them (UNREADABLE, not clean)", files=scan_unreadable[:10])
     # §1-5 counts: disk runs == referenced runs (+orphans reported separately)
     referenced = {r.get("evidence_run_id") for r in rows if r.get("evidence_run_id")}
     ev = out / "evidence"; disk_runs = sorted(d.name for d in ev.iterdir() if d.is_dir()) if ev.is_dir() else []
@@ -342,6 +345,7 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
     unsealed = [n for n in disk_runs if not (ev / n / "manifest.jsonl").is_file()]
     # runs sealed AFTER the last sealed batch belong to a batch still in progress — not orphans (yet)
     last_commit = max((b.get("committed_at") or "" for b in batches), default="")
+    if batches and not last_commit: f.add("C1", "BATCH_COMMITTED_AT_MISSING", "no batch carries committed_at — orphan-vs-pending discrimination did not run (unreferenced sealed runs cannot be cleared as pending)")  # D-V3-ADDENDUM-006
     def _sealed_at(n):
         try: return json.loads((ev / n / "run.json").read_text(encoding="utf-8")).get("sealed_at") or ""
         except Exception: return ""
@@ -358,7 +362,7 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
             try:
                 t = datetime.datetime.fromisoformat(str(cs).replace("Z", "+00:00")).astimezone(KST)
                 if t.strftime("%Y-%m-%dT%H:%M:%S+09:00") > HARDSTOP_KST: f.add("C1", "NEW_TARGET_AFTER_HARDSTOP", f"collection_started_at {t.strftime('%H:%M:%S')} KST > 14:45 hardstop", target_id=r["target_id"])
-            except Exception: pass
+            except Exception as ex: f.add("C1", "COLLECTION_STARTED_AT_UNPARSEABLE", f"collection_started_at {str(cs)[:40]!r} unparseable ({type(ex).__name__}) — hardstop check did not run for this row (UNREADABLE, not 'before hardstop')", target_id=r.get("target_id"))  # D-V3-FINDING-023
     # SHA consistency across runs
     provs = Counter(json.dumps(r.get("run_provenance"), sort_keys=True) for r in rows if r.get("run_provenance"))
     protos = Counter(r.get("protocol_version") for r in rows if r.get("protocol_version"))
@@ -384,8 +388,10 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
     quarantine = [{"run_id": n, "class": "CONCURRENT_LAUNCH_SUPERSEDED", "reason": "sealed REAL run not referenced by any batch; produced by a concurrent duplicate launch process (A 13:48: possibly duplicate launch command presentation)", "limitations_sentence": "동시 이중 발사로 실제 호스트에 중복 요청이 나갔고, 그 run 은 분석에서 격리했다."} for n in orphan]
     sev = f.worst()
     verdict = "MATCH" if sev in (None, "C2") else ("MISMATCH" if sev == "C1" else "SYSTEMIC_HARD_STOP_CANDIDATE")
+    checks_performed = len(batches) + len(rows)
+    if not batches: verdict = "NO_INPUT"   # R43 / T-B-V3-FC-005: zero sealed batches — nothing was QA'd; never MATCH
     return {"artifact": f"QA_{label}", "generated_by": "C", "generated_at": now(), "out_dir": str(out), "plan": plan_path, "worker": worker,
-            "verdict": verdict, "severity_max": sev, "n_batches": len(batches), "batch_hash_all_ok": all(b["_hash_ok"] for b in batches) if batches else None,
+            "verdict": verdict, "checks_performed": checks_performed, "severity_max": sev, "n_batches": len(batches), "batch_hash_all_ok": all(b["_hash_ok"] for b in batches) if batches else None,
             "outcomes": dict(outcomes), "attempted_n": len(attempted), "joint_valid_j1_j3_n": len(jv), "j4_pending": "requires fact_criterion_result + frozen older-relevant set",
             "excluded_by_reason": dict(excl), "by_archetype": dict(by_arch), "mpfed_null_reason": dict(mpfed_null_reasons), "mpfed_available_n": sum(1 for r in attempted if r.get("mpfed") is not None), "e6b_fail_closed_fired_n": e6b_fired_n, "e6b_binding_n": e6b_binding_n, "gate_kind_resolved_n": gate_resolved_n, "unresolved_by_budget_reason": {f"{k[0]}|{k[1]}": v for k, v in unresolved_by_budget.items()}, "auth_gate_by_archetype": dict(auth_gate_by_arch), "quarantine": quarantine, "plan": plan_rep, "append_only": ao,
             "provenance_variants": list(provs), "protocol_versions": dict(protos), "orphan_evidence_runs": orphan, "run_accounting": run_accounting,
@@ -394,8 +400,15 @@ def run_qa(out_dir: str, plan_path: str, worker: str | None, label: str, state: 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--out-dir", required=True); ap.add_argument("--plan", required=True); ap.add_argument("--worker"); ap.add_argument("--label", default="EVIDENCE")
     ap.add_argument("--state"); ap.add_argument("--report"); ap.add_argument("--extra-plan-targets"); a = ap.parse_args()
-    rep = run_qa(a.out_dir, a.plan, a.worker, a.label, a.state, a.extra_plan_targets)
-    if a.report:
-        pathlib.Path(a.report).parent.mkdir(parents=True, exist_ok=True); pathlib.Path(a.report).write_text(json.dumps(rep, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
-    print(json.dumps({k: rep[k] for k in ("verdict", "severity_max", "n_batches", "attempted_n", "joint_valid_j1_j3_n", "excluded_by_reason", "outcomes")}, ensure_ascii=False))
-    for x in rep["findings"][:30]: print(x["severity"], x["code"], x["msg"], x.get("target_id", ""))
+    try:
+        rep = run_qa(a.out_dir, a.plan, a.worker, a.label, a.state, a.extra_plan_targets)
+        if a.report:
+            pathlib.Path(a.report).parent.mkdir(parents=True, exist_ok=True); pathlib.Path(a.report).write_text(json.dumps(rep, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+        print(json.dumps({k: rep[k] for k in ("verdict", "severity_max", "n_batches", "attempted_n", "joint_valid_j1_j3_n", "excluded_by_reason", "outcomes")}, ensure_ascii=False))
+        for x in rep["findings"][:30]: print(x["severity"], x["code"], x["msg"], x.get("target_id", ""))
+        if rep["verdict"] == "NO_INPUT":
+            import sys; print("qa_evidence: did not run — nothing to check (zero sealed batches, checks_performed=0) — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: missing plan/out-dir / crash = did not run
+        import sys, traceback
+        traceback.print_exc()
+        print("qa_evidence: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)

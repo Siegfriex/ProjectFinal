@@ -5,7 +5,11 @@ Reads RAW FILES ONLY (manifests + artifacts on disk). Never reads B's summary/ma
 
 Usage:
   evidence_lineage_check.py ROOT [--path-manifest PATH.json] [--out report.json] [--quiet]
-Exit code: 0 iff no SYSTEMIC defect (verdict COMPLETE or COMPLETE_WITH_ISOLATED_DEFECTS); 2 on SYSTEMIC_DEFECT; 3 on usage error.
+Exit code: 0 iff no SYSTEMIC defect (verdict COMPLETE or COMPLETE_WITH_ISOLATED_DEFECTS); 2 on SYSTEMIC_DEFECT; 3 on usage error,
+  on verdict NO_EVIDENCE_INPUT (R43: zero evidence records checked, `checks_performed: 0` — "did not run — nothing to check")
+  or on an uncaught exception ("did not run — read neither as pass nor fail"). Δ46-exit2 mapping: this tool's 2 ≡ A's 1 (ran and
+  found systemic defects) and this tool's 3 ≡ A's 2 (did not run); the numbers are NOT renumbered because gate1/run_gate1.py L5
+  binds expect_rc=2 for the bad_* negative fixtures — a crash must never satisfy that expectation, so crash ⇒ 3, not 2.
 
 Rules are fixed by EVIDENCE_CONTRACT_C.md. The ONLY thing expected to change once B's real
 layout is known is the FIELD_ALIASES / ARTIFACT_ALIASES tables below (name mapping), not the rules.
@@ -133,13 +137,18 @@ class Report:
 
     def finish(self) -> dict:
         systemic = any(d["severity"] == "systemic" for d in self.defects)
-        verdict = ("SYSTEMIC_DEFECT" if systemic else
-                   "COMPLETE_WITH_ISOLATED_DEFECTS" if self.defects else "COMPLETE")
+        checks_performed = self.n_states + self.n_steps + self.n_flows + self.n_artifacts_checked
+        if systemic:
+            verdict = "SYSTEMIC_DEFECT"
+        elif checks_performed == 0:   # R43 / T-B-V3-FC-005: zero evidence records checked is never a COMPLETE-family verdict
+            verdict = "NO_EVIDENCE_INPUT"
+        else:
+            verdict = "COMPLETE_WITH_ISOLATED_DEFECTS" if self.defects else "COMPLETE"
         return {
             "checker": "evidence_lineage_check.py", "contract": "EVIDENCE_CONTRACT_C.md",
             "root": str(self.root), "path_manifest": str(self.path_manifest) if self.path_manifest else None,
             "n_manifests": self.n_manifests, "n_states": self.n_states, "n_steps": self.n_steps, "n_flows": self.n_flows,
-            "n_unknown_records": self.n_unknown, "n_artifacts_checked": self.n_artifacts_checked,
+            "n_unknown_records": self.n_unknown, "n_artifacts_checked": self.n_artifacts_checked, "checks_performed": checks_performed,
             "counts_by_kind": dict(sorted(Counter(d["kind"] for d in self.defects).items())),
             "defects": self.defects, "systemic": systemic, "verdict": verdict,
         }
@@ -510,8 +519,18 @@ def main(argv: list[str] | None = None) -> int:
         a.out.write_text(text + "\n", encoding="utf-8")
     if not a.quiet:
         print(text)
+    if report["verdict"] == "NO_EVIDENCE_INPUT":  # R43: nothing was checked — did not run, never exit 0
+        print(f"evidence_lineage_check: did not run — nothing to check (checks_performed=0 under {a.root}) — read neither as pass nor fail (exit 3; this tool's did-not-run code)", file=sys.stderr)
+        return 3
     return 0 if not report["systemic"] else 2
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: did not run ≠ failed; 3 here (2 is this tool's "ran, systemic defects")
+        import traceback
+        traceback.print_exc()
+        print("evidence_lineage_check: did not run — read neither as pass nor fail (exit 3; this tool's did-not-run code, 2 = ran-and-found-systemic)", file=sys.stderr)
+        _rc = 3
+    sys.exit(_rc)

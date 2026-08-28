@@ -185,4 +185,18 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    _rc = 0
+    try:
+        main()
+    except ValueError as _e:  # C.assert_field_qualified (R6 Q8) rejected the artifact = the check ran and FAILED
+        if "R6 Q8" not in str(_e):
+            raise
+        print(f"synthetic_family_demo: FAIL (ran): {_e}", file=sys.stderr)
+        _rc = 1
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash = did not run
+        import traceback
+        traceback.print_exc()
+        print("synthetic_family_demo: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

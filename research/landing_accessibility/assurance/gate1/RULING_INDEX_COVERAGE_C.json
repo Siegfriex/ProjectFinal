@@ -1189,7 +1189,7 @@
    "verified_by": "C",
    "requires": "**선택적 입력은 세 상태를 구분한다** — 부재(관측, None+사유 note) · 형태 위반(계약 위반, raise) · 존재(값). 부재와 형태 위반이 같은 출력이면 계약 위반이 관측으로 위장한다",
    "must_appear_in": "모든 선택적 입력을 받는 함수",
-   "C_check": "RUNBOOK CI-19 r2: C 가 lane 경계 입력을 독립 열거하고 각 이음매에 3상태(부재→None+note 관측 / 형태 위반→raise / 존재→값)를 모두 주입해 확인; B 목록 완전성은 C 열거와 diff 로 판정(Δ10-R14, B 자기보고로 닫지 않음)",
+   "C_check": "C 자체 except/benign-default sweep: 45 핸들러 중 6 conflation 시정, 243 benign 사이트 중 4 시정(주입 대조 동반); B 이음매는 CI-19",
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 29
@@ -1607,7 +1607,7 @@
    "verified_by": "C",
    "requires": "**검증 함수는 자기 실패를 실증하지 못하면 검증 함수가 아니다.** `verify_*`·`assert_*`·`check_*` **전수**에 대해 실패하는 입력이 존재함을 실증한다(**GATE 1 조건**). 실증 불가면 **이름이 약속을 하고 이행하지 않는 것**이므로 시정 또는 제거 — **이름만 남기지 않는다**",
    "must_appear_in": "B 의 검증 함수 sweep · GATE1",
-   "C_check": "CI-25: COMPLETION SHA 에서 verify_*/assert_*/check_* 전수에 대해 실패 입력 존재를 C 가 실증(실증 불가 = PROVISIONAL, 이름만 남긴 함수는 finding)",
+   "C_check": "C 검증기 vacuous 시험 40 함수 → 9 VACUOUS_PASS/8 시정(lane5 NO_EVIDENCE_INPUT 등); B 검증기는 COMPLETION 에서 CI-25",
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 38
@@ -1750,8 +1750,8 @@
    "verified_by": "C",
    "requires": "`Δ46-exit2` 는 규약 하나가 아니라 **공통 오해**를 고친 것이다 — A(검사기)·B(r32_check)·C(probe) **세 평면 전부**가 **검사가 못 돈 것을 '안전하게 막혔다' 로** 읽고 있었다. 각 평면은 자기 도구 전수에서 이 표기를 확인한다",
    "must_appear_in": "각 평면의 도구 exit 규약",
-   "C_check": "C 도구 전수 exit 의미 감사 worker 진행 중(EXIT_SEMANTICS_AUDIT_C.json); 완료 시 COVERED",
-   "coverage": "PARTIAL",
+   "C_check": "C 도구 전수(분모 62) exit 의미 감사 완료 — 40 엔트리 did-not-run=exit 2 분리, 실증기 125 사례 106 PASS/0 FAIL/19 NOT_EXERCISED; lane5 는 선언된 편차(2=SYSTEMIC, 3=did-not-run) 문서화",
+   "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 40
   },
@@ -1893,7 +1893,7 @@
    "verified_by": "C",
    "requires": "**`VACUOUS_PASS` 를 별도 범주로 승격한다** — `CAN_FAIL`/`CANNOT_FAIL` 축만 재면 **'검사 0회로 성공을 내는' 호출**을 놓친다. **'검사했고 통과' 와 '검사할 것이 없어서 통과' 가 같은 출력이다.** 실패 가능성 실증은 **호출 지점의 실제 입력**에서 한다 — 함수 수준으로 끝나지 않는다",
    "must_appear_in": "R43 sweep · 검증 호출 지점",
-   "C_check": "CI-25 r2/r3 VACUOUS_PASS 축 — C 자기 검증기 빈 입력 시험(lane5 1건 발견, worker 시정 중)",
+   "C_check": "VACUOUS_PASS 축을 C 도구에 적용 완료(EXIT_SEMANTICS_AUDIT_C vacuous_pass_sweep); B 측은 CI-25 r3",
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 43

@@ -60,8 +60,11 @@ def run(ticket: dict) -> dict:
         rep["default_executor_calls_l1"] = l1_default
         if not l1_default: add("C1", "L1_NOT_DEFAULT", "_default_fixture_executor does not call run_l1_if_safe — L0-only default path")
         rep["shadow_lane"] = (re.search(r'E001_RUNNER_SHADOW_LANE\s*=\s*"([^"]+)"', batch_py) or [None, None])[1]
-        rep["wall_clock_cap_s"] = (re.search(r'DEFAULT_TARGET_WALL_CLOCK_CAP_S[^=]*=\s*([0-9.]+)', show(col, f"{LA}/src/landing_accessibility/e001_runner/wall_clock.py") or "") or [None, None])[1]
-        if rep["wall_clock_cap_s"] not in (None, "360.0", "360"): add("C2", "WALL_CLOCK_CAP", f"wall-clock cap {rep['wall_clock_cap_s']} != 360 (contract §1.1)")
+        wc_src = show(col, f"{LA}/src/landing_accessibility/e001_runner/wall_clock.py")
+        rep["wall_clock_cap_s"] = (re.search(r'DEFAULT_TARGET_WALL_CLOCK_CAP_S[^=]*=\s*([0-9.]+)', wc_src or "") or [None, None])[1]
+        if not wc_src: add("C2", "WALL_CLOCK_FILE_UNREADABLE", "wall_clock.py not readable at collector SHA — cap check did not run (UNREADABLE, not cap-OK)")  # D-V3-ADDENDUM-006
+        elif rep["wall_clock_cap_s"] is None: add("C2", "WALL_CLOCK_CAP_UNPARSED", "DEFAULT_TARGET_WALL_CLOCK_CAP_S not found in wall_clock.py — cap check did not run")
+        elif rep["wall_clock_cap_s"] not in ("360.0", "360"): add("C2", "WALL_CLOCK_CAP", f"wall-clock cap {rep['wall_clock_cap_s']} != 360 (contract §1.1)")
     # REAL_TARGET release binding
     fw = show(col, f"{LA}/src/landing_accessibility/engine/firewall.py") if col and exists(col) else None
     if fw is None: add("C1", "FIREWALL_MISSING", "engine/firewall.py not at collector SHA")
@@ -135,5 +138,10 @@ def run(ticket: dict) -> dict:
             "verdict": "BASE_QA_MATCH" if sev in (None, "C2") else "RESULT_AFFECTING_MISMATCH", "severity_max": sev, "checks": rep, "findings": f}
 
 if __name__ == "__main__":
-    t = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")); t.setdefault("ticket_id", pathlib.Path(sys.argv[1]).stem)
-    r = run(t); print(json.dumps(r, ensure_ascii=False, indent=2))
+    try:
+        t = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")); t.setdefault("ticket_id", pathlib.Path(sys.argv[1]).stem)
+        r = run(t); print(json.dumps(r, ensure_ascii=False, indent=2))
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: missing ticket / crash = did not run
+        import traceback
+        traceback.print_exc()
+        print("qa_base: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)

@@ -19,6 +19,8 @@ print(json.dumps(out))
 '''
 def main(src, lock_dir, n_procs=3, n_keys=3):
     import time
+    if not (pathlib.Path(src) / "landing_accessibility" / "e001_runner" / "batch.py").is_file():  # Δ46-exit2: SUT absent = did not run
+        print(f"lock_race_harness: SUT batch.py not under {src!r} — did not run — read neither as pass nor fail (exit 2)", file=sys.stderr); return 2
     lock_dir = pathlib.Path(lock_dir); lock_dir.mkdir(parents=True, exist_ok=True)
     w = pathlib.Path(lock_dir) / "_worker.py"; w.write_text(WORKER)
     t0 = time.time() + 1.5
@@ -28,6 +30,8 @@ def main(src, lock_dir, n_procs=3, n_keys=3):
         o, e = p.communicate(timeout=120)
         if p.returncode != 0: errs.append(e[-800:]); continue
         res.append(json.loads(o))
+    if not res:  # Δ46-exit2: every worker died before deciding — nothing was measured
+        print("lock_race_harness: no worker produced a decision — did not run — read neither as pass nor fail (exit 2)\n" + "\n".join(errs), file=sys.stderr); return 2
     per = collections.defaultdict(list)
     for r in res:
         for d in r: per[d["target"]].append(d)
@@ -42,4 +46,11 @@ def main(src, lock_dir, n_procs=3, n_keys=3):
     verdict["exactly_once_holds"] = ok
     print(json.dumps(verdict, ensure_ascii=False, indent=1)); return 0 if ok else 1
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 3, int(sys.argv[4]) if len(sys.argv) > 4 else 3)
+    try:
+        _rc = main(sys.argv[1], sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 3, int(sys.argv[4]) if len(sys.argv) > 4 else 3)
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("lock_race_harness: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

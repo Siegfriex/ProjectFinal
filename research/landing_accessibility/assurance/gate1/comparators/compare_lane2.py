@@ -247,6 +247,8 @@ def compare_fixture(exp: dict, out: RunnerOutput, synonym_map: dict) -> list[dic
                     axis = motion.get("axis")
                     if c1 is None:
                         st, obs, why = "FAIL", {"before": bb.value, "after": ba.value}, "bbox_after not a bbox (control must be laid out after the reveal)"
+                    elif c0 is None and bb.value not in (None, {}, []):  # D-V3-FINDING-023: present-but-unreadable bbox is not "missing"
+                        st, obs, why = "FAIL", {"before": bb.value, "after": ba.value}, "UNREADABLE_BBOX: bbox_before present but not a readable bbox (unreadable ≠ absent)"
                     elif c0 is None:
                         ok = axis == "none" and motion.get("before_rendered") is False
                         st, obs, why = ("PASS" if ok else "FAIL"), {"before": bb.value, "after": ba.value}, (None if ok else "bbox_before missing but motion expected")
@@ -291,8 +293,19 @@ def main(argv: list[str] | None = None) -> int:
     if a.out:
         pathlib.Path(a.out).write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps({k: res["summary"][k] for k in ("status", "reason", "counts")}, ensure_ascii=False))
-    return 0 if res["summary"]["status"] == "PASS" else 1
+    st = res["summary"]["status"]
+    if st == "NOT_TESTABLE":  # Δ46-exit2: no check item ran (UNMAPPED / missing runner dirs) — not "ran and failed"
+        print(f"compare_lane2: did not run — read neither as pass nor fail (exit 2): {res['summary']['reason']}", file=sys.stderr)
+        return 2
+    return 0 if st == "PASS" else 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("compare_lane2: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

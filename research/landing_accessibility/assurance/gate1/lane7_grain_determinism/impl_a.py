@@ -125,6 +125,14 @@ def run_probe(p):
 
 
 if __name__ == "__main__":
-    for a in sys.argv[1:]:
-        for r in run(a):
-            print(json.dumps(r, ensure_ascii=False))
+    _rc = 0
+    try:
+        for a in sys.argv[1:]:
+            for r in run(a):
+                print(json.dumps(r, ensure_ascii=False))
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing fixture = did not run
+        import traceback
+        traceback.print_exc()
+        print("impl_a: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)

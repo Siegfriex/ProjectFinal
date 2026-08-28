@@ -15,11 +15,21 @@ Exit 0 only if every fixture PASSes.
 """
 from __future__ import annotations
 import json, re, sys, time, unicodedata, pathlib
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError as _e:  # Δ46-exit2: a probe that cannot import its browser driver did not run
+    if __name__ != "__main__":
+        raise
+    print(f"measure_geometry: did not run — read neither as pass nor fail (exit 2): {_e!r}", file=sys.stderr); sys.exit(2)
 
 HERE = pathlib.Path(__file__).resolve().parent
 FIX = HERE / "fixtures"
-EXP = json.loads((HERE / "EXPECTATIONS.json").read_text(encoding="utf-8"))
+try:
+    EXP = json.loads((HERE / "EXPECTATIONS.json").read_text(encoding="utf-8"))
+except OSError as _e:  # Δ46-exit2: a missing tool fixture is did-not-run, never exit 1
+    if __name__ != "__main__":
+        raise
+    print(f"measure_geometry: did not run — read neither as pass nor fail (exit 2): {_e!r}", file=sys.stderr); sys.exit(2)
 VW, VH = EXP["meta"]["viewport"]["width"], EXP["meta"]["viewport"]["height"]
 SYN = EXP["meta"]["synonym_map_fixed"]
 OUT = HERE / "out"; OUT.mkdir(exist_ok=True)
@@ -494,10 +504,19 @@ def main():
     for r in records:
         for d in r["diffs"]: print(f"  !! {r['fixture']}: {d}")
     n_pass = sum(r["result"] == "PASS" for r in records)
+    if not records:  # R43 / T-B-V3-FC-005: zero fixtures measured is not PASS
+        print("measure_geometry: did not run — zero fixtures (checks_performed=0) — read neither as pass nor fail (exit 2)", file=sys.stderr); sys.exit(2)
     line = f"RESULT: {n_pass}/{len(records)} PASS, non-file requests aborted total={sum(r['non_file_requests_aborted'] for r in records)}"
     print(line)
     (OUT / "measure_result.json").write_text(json.dumps({"summary": line, "table": lines, "records": records}, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     sys.exit(0 if n_pass == len(records) else 1)
 
 if __name__ == "__main__":
-    main()
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2 / Δ50-exit2-common: crash or missing input = did not run, never exit 1 (ran and failed)
+        import traceback
+        traceback.print_exc()
+        print("measure_geometry: did not run — read neither as pass nor fail (exit 2)", file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)
