@@ -822,3 +822,6 @@ D 가 커버리지 대조를 요구받는 시점에 `D-V3-FINDING-006` 과 같�
 - 결과: D 발행 54건 전건 타평면 ACK 보유 **54/54 · 예외 0** · 두 방법 불일치 0
 - 통제: must_flag/must_not_flag PASS · 재ACK 변종 19건 포착 · VACUOUS 아님(54건)
 - 산출: results/D_CROSS_PLANE_ACK_AUDIT.json · 도구: d_bus_lib.cross_plane_ack_audit
+- RQ-D043 추가 축: 표지가 **범위 없이** 나가는 문제 — `holdout_accessed: False` 는
+  정적 스캔 결과인데 그 범위(`접속하는 코드가 없다` ≠ `접속하지 않았다`)를 달고 있지 않다.
+  B 의 NO-GO 범위 표현(T-B-V3-HALT-002)이 참고 형식이다.
