@@ -4,11 +4,11 @@
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
  "verdict": "PASS",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T09:44:12.309549+09:00",
- "d_head_sha": "2dbb51a62df1b576d4ad81932ad47ab30bfe1733",
+ "checked_at_kst": "2026-08-28T09:47:18.947023+09:00",
+ "d_head_sha": "1786a22655991fcd807722e475fab48feb819ef1",
  "manifest_sha256": "5321e4f19d990d70ae9bc89370bb134d85970ac5f7a12d2f2ca048743529de94",
  "scanned_files": 212,
- "scanned_corpus_sha256": "72d5c14aa954b79c14f3b51a3cc912c6bf5a27d54e77810646425a2f449002aa",
+ "scanned_corpus_sha256": "f5095e1eb2e6a8b9163c1ab412eb036ab4615f4f5f7e762f4fc21f5e5325edd3",
  "corpus_identity_note": "scanned_files 는 개수이고 이것은 신원이다. 두 실행의 코퍼스 sha 가 다르면 FAIL 수를 비교하지 않는다 (R38).",
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
  "controls": {
@@ -126,8 +126,8 @@
   "rule": "Δ41-R35",
   "tool": {
    "path": "tools/d_input_firewall.py",
-   "sha256": "5f6cd8115a7428c98ba91a59a9f56ffd9822d7725c7051ae11c9948dc7b63f63",
-   "commit": "2dbb51a62df1b576d4ad81932ad47ab30bfe1733"
+   "sha256": "89ac9a89ccd02c02640e88e7a2e02fcf92f37f86199f694d361a13cd0759156a",
+   "commit": "1786a22655991fcd807722e475fab48feb819ef1"
   },
   "on_control_failure": {
    "behavior": "verdict=CONTROL_FAIL 로 기록하고 exit 2 — 지우지 않고 남긴다",
@@ -145,8 +145,49 @@
     "expected_behavior": "CONTROL_FAIL 로 기록하고 exit 2",
     "verdict": "PASS"
    },
-   "valid_for_this_commit": true
+   "valid_for_this_commit": false
   }
+ },
+ "exception_wiring": {
+  "rule": "R57 를 허용 예외에 적용 — 발화 0인 예외는 이 스캔이 검증하지 않았다",
+  "exempted_hits": 5,
+  "per_exception": {
+   ".agent_worktrees/claude_b_recovery/research/landing_accessibility/shadow/lane_b/state/representative_task_candidate_shadow.csv": {
+    "fired": 0,
+    "WIRED": false
+   },
+   "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json": {
+    "fired": 1,
+    "WIRED": true
+   },
+   "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.sha256.json": {
+    "fired": 0,
+    "WIRED": false
+   },
+   "research/landing_accessibility/control/v3/SSOTV3_PROVENANCE_SNAPSHOT.json": {
+    "fired": 0,
+    "WIRED": false
+   },
+   "research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md": {
+    "fired": 2,
+    "WIRED": true
+   },
+   "research/landing_accessibility/control/v3/V3_RULING_INDEX.json": {
+    "fired": 1,
+    "WIRED": true
+   },
+   "research/landing_accessibility/control/v3/ssot_snapshot/**": {
+    "fired": 1,
+    "WIRED": true
+   }
+  },
+  "unfired": [
+   ".agent_worktrees/claude_b_recovery/research/landing_accessibility/shadow/lane_b/state/representative_task_candidate_shadow.csv",
+   "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.sha256.json",
+   "research/landing_accessibility/control/v3/SSOTV3_PROVENANCE_SNAPSHOT.json"
+  ],
+  "what_unfired_means": "그 예외가 틀렸다는 뜻이 아니다. **이 스캔에서 아무것도 면제하지 않았다**는 뜻이고, 따라서 너무 넓더라도 여기서는 드러나지 않는다.",
+  "not_a_verdict": "예외 축소 여부는 A 판정이다 — 예외는 A 가 확대한 것이다."
  },
  "exit_codes": {
   "0": "PASS",

@@ -348,6 +348,43 @@ def _r35_block() -> dict:
                                               and demo.get("verdict") == "PASS")}}
 
 
+def _exception_wiring(violations: list, denied: list) -> dict:
+    """[A STEP1-041 R57 를 예외에 적용] **어느 허용 예외가 실제로 면제했는가.**
+
+    발화하지 않는 예외는 결함이 아니다 — 그러나 **열려 있는데 쓰이지 않는
+    범위**이고, 틀렸더라도(너무 넓더라도) 이 스캔이 그것을 드러내지 않는다.
+    최소권한 관점에서 보이게 둔다.
+    """
+    from collections import Counter
+    fired = Counter()
+    exempted = 0
+    for h in violations:
+        if h.get("kind") != "DENIED_PATH":
+            continue
+        ref = h.get("reference")
+        if not isinstance(ref, str) or h.get("severity") != "ALLOWED_BY_EXCEPTION":
+            continue
+        exempted += 1
+        for a in _ALLOWED_EXACT:
+            d = a[:-3] if a.endswith("/**") else a
+            if (ref == a or ref.endswith("/" + a) or ref == d
+                    or ref.startswith(d + "/") or ("/" + d + "/") in ref):
+                fired[a] += 1
+                break
+        else:
+            fired["(매칭 미상)"] += 1
+    rows = {a: {"fired": fired.get(a, 0), "WIRED": fired.get(a, 0) > 0}
+            for a in sorted(_ALLOWED_EXACT)}
+    return {"rule": "R57 를 허용 예외에 적용 — 발화 0인 예외는 이 스캔이 검증하지 않았다",
+            "exempted_hits": exempted,
+            "per_exception": rows,
+            "unfired": sorted(a for a, v in rows.items() if not v["WIRED"]),
+            "what_unfired_means": ("그 예외가 틀렸다는 뜻이 아니다. **이 스캔에서 아무것도 "
+                                   "면제하지 않았다**는 뜻이고, 따라서 너무 넓더라도 "
+                                   "여기서는 드러나지 않는다."),
+            "not_a_verdict": "예외 축소 여부는 A 판정이다 — 예외는 A 가 확대한 것이다."}
+
+
 def main() -> int:
     global OUT_NAME, SCAN_LABEL
     args = sys.argv[1:]
@@ -407,6 +444,7 @@ def main() -> int:
         "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
         "controls": controls,
         "r35": _r35_block(),
+        "exception_wiring": _exception_wiring(violations, denied),
         "exit_codes": {"0": "PASS", "2": "FAIL 또는 CONTROL_FAIL",
                        "4": "검사가 돌지 않았다 — 통과로도 실패로도 읽지 마라",
                        "note": "D 는 '돌지 않았다' 에 4 를 쓴다. A 는 2 를 쓰는데 "
