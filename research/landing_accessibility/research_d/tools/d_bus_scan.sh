@@ -215,6 +215,13 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_label_provenance import check as _lp_fn
+    _lp = _lp_fn()
+    print(f"   라벨 출처(R1 {_lp.get('n_lines')}줄) : visible_label {_lp.get('n_with_visible_label')} "
+          f"· selected_candidate {_lp.get('n_with_selected_candidate')} "
+          f"· 발췌 절단 {_lp.get('n_excerpt_capped')}/{_lp.get('n_excerpt')}"
+          f"({_lp.get('capped_ratio')}) — **R1 trace 로는 라벨을 확인할 수 없다**. "
+          f"DOM 스냅샷 {_lp.get('dom_snapshot_present')}건 실재·sha 기록(D 는 열지 않았다)")
     from d_v3_report import evidence_census as _ec_fn
     _ec = _ec_fn()
     print(f"   라벨-좌표 확인 가능성(R3 {_ec.get('n_targets')}대상) : {_ec.get('verdict')} "

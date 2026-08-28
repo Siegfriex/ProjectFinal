@@ -116,6 +116,19 @@ ACCEPTED_UNSURFACED = {
         "값이 이미 표시된다 — 스캔의 `문법만 45` 가 이 45 다. 45개 도구 **이름**을 매 회차 "
         "찍는 것은 소음이고, 변화는 수로 드러난다",
     # [D-DEF-102] fixture 를 배선하며 되돌아온 것들 — 스캔은 `PASS · 4건 · must_flag 1` 을 찍는다
+    # [D-DEF-104] 라벨 출처 검사 — 스캔이 찍는 것과 안 찍는 것
+    ("d_label_provenance", "n_lines"):
+        "스캔이 `R1 58줄` 로 머리에 찍는 그 수다 — 이름만 다르다",
+    ("d_label_provenance", "excerpt_cap"):
+        "절단 한계값 500 은 **상수**다. 변하면 `n_excerpt_capped` 가 먼저 움직인다",
+    ("d_label_provenance", "dom_snapshot_sha_recorded"):
+        "스캔은 `DOM 스냅샷 58건 실재·sha 기록` 으로 **둘을 한 줄에** 찍는다 — "
+        "두 수가 갈리면 `dom_snapshot_missing` 이 0 이 아니게 되고 그것이 신호다",
+    ("d_label_provenance", "dom_snapshot_missing"):
+        "**0 이 아니게 되면 신호다.** 지금은 0 이라 스캔이 실재 수만 찍는다 — "
+        "`controls()` 가 must_flag 로 잡고 있다",
+    ("d_label_provenance", "dom_snapshot_no_path"):
+        "위와 같은 축. 경로 키 자체가 빠지는 경우이고 지금 0 이다",
     ("d_v3_report", "rows_evidence"):
         "대상별 분류 상세 8줄이다. 스캔은 `확인 불가 N · {분류: 수}` 를 찍고 "
         "**확인 불가가 0 이 아니게 되면 그 수가 먼저 움직인다**",
