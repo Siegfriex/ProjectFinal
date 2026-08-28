@@ -4,12 +4,12 @@
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
  "verdict": "FAIL",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T15:29:22.301608+09:00",
- "d_head_sha": "f1274a8ffb229a7e6fe81802d5c3bc56ac1010a4",
+ "checked_at_kst": "2026-08-28T15:30:14.408456+09:00",
+ "d_head_sha": "c4c4118221ec75837433af87ba5b28b93ff8a0a4",
  "manifest_sha256": "5321e4f19d990d70ae9bc89370bb134d85970ac5f7a12d2f2ca048743529de94",
  "scanned_files": 254,
- "scanned_corpus_sha256": "d82723072405c70a6b28b40c3cc9602e81dd26860da8c05cd40457c46ea9f314",
- "freshness_corpus_sha256": "f3ce100481d37ff2a2b235dda771b1eaaa9d500c633e3cbb21ebfe7febd7687e",
+ "scanned_corpus_sha256": "4f9608238b4b2cc1aaa0022b6fb525d613f2432d2b02227d2461a0685b343b9d",
+ "freshness_corpus_sha256": "e62a86580619a7b56ddf37bef814b1b0b96df214148a0ad5e56fb681ac2da1f5",
  "corpus_identity_note": "scanned_files 는 개수이고 이것은 신원이다. 두 실행의 코퍼스 sha 가 다르면 FAIL 수를 비교하지 않는다 (R38).",
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
  "controls": {
@@ -128,7 +128,7 @@
   "tool": {
    "path": "tools/d_input_firewall.py",
    "sha256": "43db0ab94a414d97726872b46aaa333d297e83ab664aa269285ee89ade410638",
-   "commit": "f1274a8ffb229a7e6fe81802d5c3bc56ac1010a4"
+   "commit": "c4c4118221ec75837433af87ba5b28b93ff8a0a4"
   },
   "on_control_failure": {
    "behavior": "verdict=CONTROL_FAIL 로 기록하고 exit 2 — 지우지 않고 남긴다",
@@ -195,8 +195,8 @@
   "note": "D 는 '돌지 않았다' 에 4 를 쓴다. A 는 2 를 쓰는데 D 의 2 는 이미 FAIL 이라 바꾸면 나간 산출의 의미가 소급해 달라진다."
  },
  "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
- "fail_count": 27,
- "warn_count": 396,
+ "fail_count": 3,
+ "warn_count": 397,
  "violations": [
   {
    "file": "notebooks/d_research/DSUP01_representation_ablation.ipynb",
@@ -1824,258 +1824,6 @@
    "severity": "ALLOWED_BY_EXCEPTION"
   },
   {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 8,
-   "reference": "**/control/label/**",
-   "denied_pattern": "research/landing_accessibility/control/label/**",
-   "kind": "DENIED_PATH",
-   "line_is_list_element": true,
-   "context": "{  \"measured_at_kst\": \"2026-08-28T15:27:33+09:00\",  \"note\": \"첫 기록 — WARN 종류 고정. 총수가 아니라 새 토큰·새 경로를 본다\",  \"source\": \"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_INPUT_FIREWALL_VERIFICATION.json\",  \"shape\": {   \"n\": 396,  ",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 16,
-   "reference": "control/label/**",
-   "denied_pattern": "research/landing_accessibility/control/label/**",
-   "kind": "DENIED_PATH",
-   "line_is_list_element": true,
-   "context": "\"source\": \"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_INPUT_FIREWALL_VERIFICATION.json\",  \"shape\": {   \"n\": 396,   \"references\": [    \"**/control/label/**\",    \"CALIBRATION_FOR_B\",    \"HOLDOUT_FOR_C\",    \"LABEL_SPLIT_FR",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 17,
-   "reference": "research/landing_accessibility/control",
-   "denied_pattern": "research/landing_accessibility/control/**",
-   "kind": "DENIED_PATH",
-   "line_is_list_element": true,
-   "context": "\"shape\": {   \"n\": 396,   \"references\": [    \"**/control/label/**\",    \"CALIBRATION_FOR_B\",    \"HOLDOUT_FOR_C\",    \"LABEL_SPLIT_FROZEN\",    \"PACKET_L\",    \"PRECEDENCE_CONTESTED\",    \"RAW_L1\",    \"_OVERLAP\",    \"control/label/**\",    \"research/landing_accessibility/control\",    \"research/landing_acces",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 18,
-   "reference": "research/landing_accessibility/control/**",
-   "denied_pattern": "research/landing_accessibility/control/**",
-   "kind": "DENIED_PATH",
-   "line_is_list_element": true,
-   "context": "\"n\": 396,   \"references\": [    \"**/control/label/**\",    \"CALIBRATION_FOR_B\",    \"HOLDOUT_FOR_C\",    \"LABEL_SPLIT_FROZEN\",    \"PACKET_L\",    \"PRECEDENCE_CONTESTED\",    \"RAW_L1\",    \"_OVERLAP\",    \"control/label/**\",    \"research/landing_accessibility/control\",    \"research/landing_accessibility/cont",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 19,
-   "reference": "research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv",
-   "denied_pattern": "research/landing_accessibility/control/**",
-   "kind": "DENIED_PATH",
-   "line_is_list_element": true,
-   "context": "\"references\": [    \"**/control/label/**\",    \"CALIBRATION_FOR_B\",    \"HOLDOUT_FOR_C\",    \"LABEL_SPLIT_FROZEN\",    \"PACKET_L\",    \"PRECEDENCE_CONTESTED\",    \"RAW_L1\",    \"_OVERLAP\",    \"control/label/**\",    \"research/landing_accessibility/control\",    \"research/landing_accessibility/control/**\",    ",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 33,
-   "reference": "research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv",
-   "denied_pattern": "research/landing_accessibility/control/**",
-   "kind": "DENIED_PATH",
-   "context": "\"research_d\"   ],   \"by_reference\": {    \"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": 54,    \"PRECEDENCE_CONTESTED\": 54,    \"CALIBRATION_FOR_B\": 54,    \"_OVERLAP\": 54,    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv\": 1, ",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 34,
-   "reference": "control/label/**",
-   "denied_pattern": "research/landing_accessibility/control/label/**",
-   "kind": "DENIED_PATH",
-   "context": "],   \"by_reference\": {    \"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": 54,    \"PRECEDENCE_CONTESTED\": 54,    \"CALIBRATION_FOR_B\": 54,    \"_OVERLAP\": 54,    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv\": 1,    \"control/lab",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 35,
-   "reference": "research/landing_accessibility/control",
-   "denied_pattern": "research/landing_accessibility/control/**",
-   "kind": "DENIED_PATH",
-   "context": "\"by_reference\": {    \"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": 54,    \"PRECEDENCE_CONTESTED\": 54,    \"CALIBRATION_FOR_B\": 54,    \"_OVERLAP\": 54,    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv\": 1,    \"control/label/**",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 36,
-   "reference": "research/landing_accessibility/control/**",
-   "denied_pattern": "research/landing_accessibility/control/**",
-   "kind": "DENIED_PATH",
-   "context": "\"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": 54,    \"PRECEDENCE_CONTESTED\": 54,    \"CALIBRATION_FOR_B\": 54,    \"_OVERLAP\": 54,    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv\": 1,    \"control/label/**\": 4,    \"research/la",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 37,
-   "reference": "**/control/label/**",
-   "denied_pattern": "research/landing_accessibility/control/label/**",
-   "kind": "DENIED_PATH",
-   "context": "\"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": 54,    \"PRECEDENCE_CONTESTED\": 54,    \"CALIBRATION_FOR_B\": 54,    \"_OVERLAP\": 54,    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv\": 1,    \"control/label/**\": 4,    \"research/landing_accessibility/cont",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 10,
-   "reference": "HOLDOUT_FOR_C",
-   "denied_pattern": "token:HOLDOUT_FOR_C",
-   "kind": "DENIED_NAME_TOKEN",
-   "line_is_list_element": true,
-   "context": "{  \"measured_at_kst\": \"2026-08-28T15:27:33+09:00\",  \"note\": \"첫 기록 — WARN 종류 고정. 총수가 아니라 새 토큰·새 경로를 본다\",  \"source\": \"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_INPUT_FIREWALL_VERIFICATION.json\",  \"shape\": {   \"n\": 396,  ",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 26,
-   "reference": "HOLDOUT_FOR_C",
-   "denied_pattern": "token:HOLDOUT_FOR_C",
-   "kind": "DENIED_NAME_TOKEN",
-   "context": "\"control/label/**\",    \"research/landing_accessibility/control\",    \"research/landing_accessibility/control/**\",    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv\"   ],   \"top_paths\": [    \"notebooks\",    \"research_d\"   ],   \"by_reference\": {    \"HOLDOUT_FOR_C",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 11,
-   "reference": "LABEL_SPLIT_FROZEN",
-   "denied_pattern": "token:LABEL_SPLIT_FROZEN",
-   "kind": "DENIED_NAME_TOKEN",
-   "line_is_list_element": true,
-   "context": "{  \"measured_at_kst\": \"2026-08-28T15:27:33+09:00\",  \"note\": \"첫 기록 — WARN 종류 고정. 총수가 아니라 새 토큰·새 경로를 본다\",  \"source\": \"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_INPUT_FIREWALL_VERIFICATION.json\",  \"shape\": {   \"n\": 396,  ",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 27,
-   "reference": "LABEL_SPLIT_FROZEN",
-   "denied_pattern": "token:LABEL_SPLIT_FROZEN",
-   "kind": "DENIED_NAME_TOKEN",
-   "context": "\"research/landing_accessibility/control\",    \"research/landing_accessibility/control/**\",    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv\"   ],   \"top_paths\": [    \"notebooks\",    \"research_d\"   ],   \"by_reference\": {    \"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 14,
-   "reference": "RAW_L1",
-   "denied_pattern": "token:RAW_L1",
-   "kind": "DENIED_NAME_TOKEN",
-   "line_is_list_element": true,
-   "context": "\"measured_at_kst\": \"2026-08-28T15:27:33+09:00\",  \"note\": \"첫 기록 — WARN 종류 고정. 총수가 아니라 새 토큰·새 경로를 본다\",  \"source\": \"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_INPUT_FIREWALL_VERIFICATION.json\",  \"shape\": {   \"n\": 396,   \"r",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 28,
-   "reference": "RAW_L1",
-   "denied_pattern": "token:RAW_L1",
-   "kind": "DENIED_NAME_TOKEN",
-   "context": "\"research/landing_accessibility/control/**\",    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv\"   ],   \"top_paths\": [    \"notebooks\",    \"research_d\"   ],   \"by_reference\": {    \"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": ",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 12,
-   "reference": "PACKET_L",
-   "denied_pattern": "token:PACKET_L",
-   "kind": "DENIED_NAME_TOKEN",
-   "line_is_list_element": true,
-   "context": "{  \"measured_at_kst\": \"2026-08-28T15:27:33+09:00\",  \"note\": \"첫 기록 — WARN 종류 고정. 총수가 아니라 새 토큰·새 경로를 본다\",  \"source\": \"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_INPUT_FIREWALL_VERIFICATION.json\",  \"shape\": {   \"n\": 396,  ",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 29,
-   "reference": "PACKET_L",
-   "denied_pattern": "token:PACKET_L",
-   "kind": "DENIED_NAME_TOKEN",
-   "context": "\"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_MART_50.csv\"   ],   \"top_paths\": [    \"notebooks\",    \"research_d\"   ],   \"by_reference\": {    \"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": 54,    \"PRECEDENCE_CONTESTED\": 54,    \"CALIBRATI",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 13,
-   "reference": "PRECEDENCE_CONTESTED",
-   "denied_pattern": "token:PRECEDENCE_CONTESTED",
-   "kind": "DENIED_NAME_TOKEN",
-   "line_is_list_element": true,
-   "context": "{  \"measured_at_kst\": \"2026-08-28T15:27:33+09:00\",  \"note\": \"첫 기록 — WARN 종류 고정. 총수가 아니라 새 토큰·새 경로를 본다\",  \"source\": \"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_INPUT_FIREWALL_VERIFICATION.json\",  \"shape\": {   \"n\": 396,  ",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 30,
-   "reference": "PRECEDENCE_CONTESTED",
-   "denied_pattern": "token:PRECEDENCE_CONTESTED",
-   "kind": "DENIED_NAME_TOKEN",
-   "context": "],   \"top_paths\": [    \"notebooks\",    \"research_d\"   ],   \"by_reference\": {    \"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": 54,    \"PRECEDENCE_CONTESTED\": 54,    \"CALIBRATION_FOR_B\": 54,    \"_OVERLAP\": 54,    \"research/landing_accessibility/control/v3/REPORT_BUN",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 9,
-   "reference": "CALIBRATION_FOR_B",
-   "denied_pattern": "token:CALIBRATION_FOR_B",
-   "kind": "DENIED_NAME_TOKEN",
-   "line_is_list_element": true,
-   "context": "{  \"measured_at_kst\": \"2026-08-28T15:27:33+09:00\",  \"note\": \"첫 기록 — WARN 종류 고정. 총수가 아니라 새 토큰·새 경로를 본다\",  \"source\": \"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_INPUT_FIREWALL_VERIFICATION.json\",  \"shape\": {   \"n\": 396,  ",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 31,
-   "reference": "CALIBRATION_FOR_B",
-   "denied_pattern": "token:CALIBRATION_FOR_B",
-   "kind": "DENIED_NAME_TOKEN",
-   "context": "\"top_paths\": [    \"notebooks\",    \"research_d\"   ],   \"by_reference\": {    \"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": 54,    \"PRECEDENCE_CONTESTED\": 54,    \"CALIBRATION_FOR_B\": 54,    \"_OVERLAP\": 54,    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 15,
-   "reference": "_OVERLAP",
-   "denied_pattern": "token:_OVERLAP",
-   "kind": "DENIED_NAME_TOKEN",
-   "line_is_list_element": true,
-   "context": "\"note\": \"첫 기록 — WARN 종류 고정. 총수가 아니라 새 토큰·새 경로를 본다\",  \"source\": \"/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research/research/landing_accessibility/research_d/results/D_INPUT_FIREWALL_VERIFICATION.json\",  \"shape\": {   \"n\": 396,   \"references\": [    \"**/control/label/**\",    \"CALIB",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
-   "file": "research_d/results/D_WARN_BASELINE.json",
-   "line": 32,
-   "reference": "_OVERLAP",
-   "denied_pattern": "token:_OVERLAP",
-   "kind": "DENIED_NAME_TOKEN",
-   "context": "\"notebooks\",    \"research_d\"   ],   \"by_reference\": {    \"HOLDOUT_FOR_C\": 55,    \"LABEL_SPLIT_FROZEN\": 59,    \"RAW_L1\": 53,    \"PACKET_L\": 54,    \"PRECEDENCE_CONTESTED\": 54,    \"CALIBRATION_FOR_B\": 54,    \"_OVERLAP\": 54,    \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/data/CANONICAL_M",
-   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
-   "severity": "FAIL"
-  },
-  {
    "file": "research_d/results/PILOT_E_FINDINGS.md",
    "line": 84,
    "reference": "HOLDOUT_FOR_C",
@@ -3368,6 +3116,16 @@
    "context": "OUT = RD / \"presentation_eda\" AUTH_SHA = \"574e32880c2cd81c6b2e85c31306f768a55e274c\" BUNDLE = \"research/landing_accessibility/control/v3/REPORT_BUNDLE_v1\" EXPECTED_MART = \"5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf\" WORKTREE = RD.parents[2]",
    "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
    "severity": "FAIL"
+  },
+  {
+   "file": "research_d/tools/d_warn_baseline.py",
+   "line": 20,
+   "reference": "research/landing_accessibility/control/**",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "[D-DEF-60] 첫 판은 토큰을 **원문 그대로** 저장했다. 그 토큰 중에는 `research/landing_accessibility/control/**` 같은 **금지 경로 문자열**이 있어서 baseline 파일 자체가 방화벽 위반이 됐다 — FAIL 3 → **27**. **금지 대상을 감시하는 도구가 그 대상 이름을 기록하면 스스로 위반이 된다.**",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
   },
   {
    "file": "research_d/tools/dsup01_representation_ablation.py",
