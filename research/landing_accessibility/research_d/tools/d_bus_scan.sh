@@ -215,6 +215,13 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_ssot_manifest import verify as _sm_fn
+    _sm = _sm_fn()
+    print(f"   SSOTV3 manifest : {_sm['verdict']} · 일치 {_sm.get('n_ok')}/{_sm.get('n_entries')} "
+          f"· 불일치 {_sm.get('n_mismatch')} · 없음 {_sm.get('n_missing')} "
+          f"— **주장이 아니라 이 회차에 재계산한 값**")
+    for _mm in (_sm.get("mismatch") or [])[:5]:
+        print(f"     ** sha 불일치 ** {_mm}")
     from d_self_sha import scan as _ss_fn
     _ss = _ss_fn()
     print(f"   자기참조 sha : JSON {_ss['n_json']} 중 **{_ss['n_self_referencing']}** "

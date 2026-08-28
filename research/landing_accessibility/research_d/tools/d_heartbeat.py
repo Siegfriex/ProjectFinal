@@ -95,6 +95,20 @@ PROD_PREFIXES = (
 )
 
 
+def _ssot_claim() -> str:
+    """[D-DEF-98] SSOTV3 manifest 를 **재계산해서** 한 줄로 낸다."""
+    try:
+        import d_ssot_manifest as _m
+        v = _m.verify()
+    except Exception as e:                          # noqa: BLE001
+        return f"SSOTV3 (manifest 검증 실패: {type(e).__name__}) — **통과로 읽지 마라**"
+    if v.get("verdict") == "PASS":
+        return (f"SSOTV3 (MANIFEST_v3.0.json {v['n_ok']}/{v['n_entries']} sha256 일치, "
+                f"**이 회차에 재계산**)")
+    return (f"SSOTV3 (MANIFEST {v.get('verdict')} — 일치 {v.get('n_ok')}/{v.get('n_entries')} · "
+            f"불일치 {v.get('n_mismatch')} · 없음 {v.get('n_missing')}) — **통과로 읽지 마라**")
+
+
 def is_production_path(f: str) -> bool:
     return any(f.startswith(x) or ("/" + x) in f for x in PROD_PREFIXES)
 
@@ -211,7 +225,9 @@ def main() -> int:
         "artifact": artifact,
         "next_gate": next_gate,
         "decision_needed": decision_needed,
-        "ssot": "SSOTV3 (MANIFEST_v3.0.json 20/20 sha256 일치, D 독립 검증)",
+        # [D-DEF-98] 이 자리는 **하드코딩된 문장**이었다 — manifest 가 깨져도 같은 말을
+        # 냈다. A R41: 무결성 주장은 **측정기가 낸다.** 매 회차 다시 계산한다.
+        "ssot": _ssot_claim(),
         "protocol_version": "v3.0",
     }
     ha, ev = _firewall_claim(hb["head_sha"])
