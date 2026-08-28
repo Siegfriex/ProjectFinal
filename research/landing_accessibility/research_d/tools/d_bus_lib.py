@@ -93,3 +93,76 @@ def scan(bus_dir: str | Path, plane: str = "D") -> dict:
         })
     rows.sort(key=lambda r: (str(r["prio"]), str(r["id"])))
     return {"rows": rows, "parse_errors": parse_errors, "n_scanned": len(tickets)}
+
+
+# ─────────────────────────────────────────────────────────────────────
+# [R60] event_log 읽기 — A 의 T-A-V3-STEP1-042
+#
+# 공유 event_log 는 네 조합을 섞어 쓴다. **한 가정으로 읽으면 나머지가 조용히
+# 빠진다** — D 가 실제로 988행 중 287행을 'actor 누락' 으로 읽었다.
+# A 판정: 쓰기 정본은 `ts`+`actor`, **읽기는 네 조합 전부** 처리하고
+# 어느 매핑에도 안 걸린 행은 **`UNPARSED` 로 따로 센다**(Δ54-R54).
+# 못 읽은 것을 0 으로 세지 않는다.
+TS_KEYS    = ("ts", "at", "at_kst", "timestamp")
+ACTOR_KEYS = ("actor", "agent", "plane")
+
+
+def normalize_event(rec: dict) -> dict:
+    """한 행을 정규화한다. 어느 키도 못 찾으면 그 필드는 `None` 이고
+    `unparsed` 가 True 다 — **빈 값과 못 읽음을 구분한다.**"""
+    tk = next((k for k in TS_KEYS if rec.get(k)), None)
+    ak = next((k for k in ACTOR_KEYS if rec.get(k)), None)
+    return {"ts": rec.get(tk) if tk else None,
+            "actor": rec.get(ak) if ak else None,
+            "event": rec.get("event"), "ticket_id": rec.get("ticket_id"),
+            "ts_key": tk, "actor_key": ak,
+            "unparsed": (tk is None or ak is None),
+            "raw": rec}
+
+
+def read_event_log(path) -> dict:
+    """정규화된 행 + **조합 분포 + UNPARSED + JSON 파싱 실패**를 함께 낸다."""
+    from collections import Counter
+    p = Path(path)
+    if not p.exists():
+        return {"rows": [], "n": 0, "unparsed": None, "json_errors": None,
+                "combos": {}, "note": "LOG_MISSING — 0 이 아니라 판정 불가"}
+    rows, json_errors = [], 0
+    for line in p.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            rows.append(normalize_event(json.loads(line)))
+        except Exception:                                   # noqa: BLE001
+            json_errors += 1
+    combos = Counter((r["ts_key"] or "NONE", r["actor_key"] or "NONE") for r in rows)
+    return {"rows": rows, "n": len(rows),
+            "unparsed": sum(1 for r in rows if r["unparsed"]),
+            "json_errors": json_errors,
+            "combos": {f"{a}+{b}": c for (a, b), c in sorted(combos.items())},
+            "canonical_write_schema": "ts+actor (R60)"}
+
+
+def read_event_log_controls() -> dict:
+    """must_flag / must_not_flag — **네 조합은 읽혀야 하고, 미지 모양은 UNPARSED 로 세야 한다.**
+
+    이 통제가 없으면 '정규화했다' 는 주장이 검증되지 않는다. 특히
+    미지 모양을 조용히 통과시키면 R60 이 요구한 구분이 사라진다.
+    """
+    must_not_flag = [                       # 네 조합 — 전부 읽혀야 한다
+        {"ts": "T", "actor": "A", "event": "X"},
+        {"ts": "T", "agent": "B", "event": "X"},
+        {"at": "T", "actor": "C", "event": "X"},
+        {"at_kst": "T", "plane": "A", "event": "X"},
+    ]
+    must_flag = [                           # 미지 모양 — UNPARSED 여야 한다
+        {"when": "T", "who": "Z", "event": "X"},
+        {"ts": "T", "event": "X"},                       # 주체 없음
+        {"actor": "A", "event": "X"},                    # 시각 없음
+    ]
+    ok_not = [not normalize_event(r)["unparsed"] for r in must_not_flag]
+    ok_yes = [normalize_event(r)["unparsed"] for r in must_flag]
+    return {"must_not_flag_read": f"{sum(ok_not)}/{len(ok_not)}",
+            "must_flag_unparsed": f"{sum(ok_yes)}/{len(ok_yes)}",
+            "passed": all(ok_not) and all(ok_yes),
+            "why": "네 조합 전부 읽고, 미지 모양은 UNPARSED 로 분리한다 (R60)"}
