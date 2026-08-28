@@ -1,0 +1,67 @@
+{
+ "document": "V3_TIMEBOX_CENSUS_1230 — CLOSEOUT",
+ "title_ko": "MAIN50 시간제한 전수관측 보고서 v1",
+ "title_en": "MAIN50 Time-boxed Acquisition Report v1",
+ "closed_by": "A / Authority Plane",
+ "closed_at_kst": "2026-08-28T12:06:00+0900",
+ "PUBLICATION_READY": false,
+ "사유": "Director 유보 — replay 면제 · 수집기 계통한계 미해소 · 라벨축 측정불가 · geometry 보충 hash 미결속",
+ "실행_요약": {
+  "창": "10:30 → 12:30 KST (120분)",
+  "선언": "11:50 수집 컷오프",
+  "평면": "A 권한/관제 · B 정본적재 · C 독립검산 · D 분석/시각화 · E REAL 수집",
+  "A_발행": "티켓 24장 (T-A-V3-TBX-001~024) + release 1 + claim registry",
+  "체크포인트": "9개 전부 달성. CP7(C 독립재계산)은 예정 12:10 보다 29분 빠른 11:41 에 1차 완료"
+ },
+ "BINDING": {
+  "release": "V3_TIMEBOX_CENSUS_1230",
+  "manifest": "FINAL_MAIN50_MANIFEST v3.0.2 (body 81d55db9… / file ef4e19ad…) — 무수정",
+  "canonical_mart": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf · 50행 · supersede 사슬 7단 보존",
+  "evidence": "EVIDENCE_MANIFEST.jsonl 85줄 · 고유 target 50 · hash chain break 0 · 컷오프 초과 0",
+  "assurance": "MAIN50_EVIDENCE_ASSURED 71303b17… · ANALYSIS_ASSURED a9c756a6… · CHECKER_FROZEN v4 b82ec389…"
+ },
+ "결과_1층_방법론": {
+  "전수": "50 frozen service×task 를 **exactly-once 로 전부 시도**했다",
+  "acquisition_state": {
+   "USABLE PATH EVIDENCE (8)": "ENDPOINT_REACHED 6 · AUTH_GATE 2",
+   "SITE-SIDE ROUTE NOT OBSERVED (16)": "NO_SAFE_ROUTE_SITE 16",
+   "MEASUREMENT / COLLECTOR LIMITED (26)": "COLLECTOR_ZERO_CANDIDATE 21 · TIMEOUT 2 · UNVERIFIED 2 · FORBIDDEN_ACTION_BOUNDARY 1"
+  },
+  "핵심": "**실패 44 중 21 은 사이트에 경로가 없어서가 아니라 수집기가 후보를 0개 반환했기 때문이다.** viewport 보정을 적용한 재수집에서도 동일하게 재현됐다 — **재시도로 해소되지 않는 계통적 한계**",
+  "그래프_제목": "‘시간제한 수집 종료 시점의 acquisition state’ — ‘서비스 접근성 결과’ 아님"
+ },
+ "결과_2층_사례분석": {
+  "k": 8,
+  "검증": "C 가 pre-R3 provenance **8/8 CONFIRMED**",
+  "수렴하지_않은_것": "진입 위치(zone 5종/8) · control 형태(2종/8) · nav 컨테이너(4종/7 관측)",
+  "수렴한_것": "조작순서(`SELECT_FUNCTION` ×8) · 활성화 깊이(1 ×8) · 메뉴의존(False ×8)",
+  "해석": "**갈린 것은 ‘어디에 있는가’ 이고 갈리지 않은 것은 ‘몇 번에 닿는가’ 다** — 관측된 재학습 요구는 절차적이 아니라 위치·시각적이다",
+  "필수_병기": "**관측된 8건이 전부 얕은 경로였던 것은 수집기가 깊은 경로를 못 뚫었기 때문일 수 있다(선택편향). ‘사이트가 얕다’ 로 넘어가지 않는다**"
+ },
+ "안전": {
+  "실제_금지행위_실행": "**0건**",
+  "가드_차단": "**1건** (F1-10, 라벨 '이체하기' 를 실행형 패턴으로 감지해 클릭 이전 리턴)",
+  "표기": "‘안전가드가 금지 패턴 후보 1건을 감지하여 실행 전에 차단함. 실제 금지행위 실행 0건.’ — raw 필드명 `forbidden_actions_attempted` 를 그대로 쓰지 않는다",
+  "의미": "**가드가 있다는 것과 작동한다는 것은 다른데, 이번에 작동이 관측됐다**"
+ },
+ "이_실행의_방법론적_산물": {
+  "결함_계보": "네 평면이 **같은 계열의 결함을 각자 잡았다** — 없음과 0 을 같은 출력으로 내는 형태. C-DEF-29(관측 0 에서 만점) · D(행수만 보고 COMPLETE) · B 4회(`_dir`/`scout_run_id`/`visible_label_text`/시정회귀) · A 3회(손 timestamp·부분수치 인용·옛 판본 인용 2회)",
+  "검사로_옮긴_것": "`COLUMN_SENTINEL`(열 100% sentinel = 미배선) · `undermapped_columns`(원본보다 덜 실린 열) · `must_flag`/`must_not_flag` · 미실행과 실패의 종료코드 분리",
+  "가장_깊은_한_줄": "**‘첫 재동결은 오류 없이 통과했고 값만 틀렸다. 검사가 잡은 게 아니라 내가 출력에서 봤다’**(B) — 그리고 같은 형태가 재발했을 때는 검사가 잡았다. **검사로의 이전이 이 실행의 실제 산물이다**",
+  "아직_못_잡는_것": "**시정이 새 결측을 만드는 경로**(L12). B 의 네 번째 사례를 두 검사 모두 통과시켰다"
+ },
+ "산출물": {
+  "claim_registry": "research/landing_accessibility/control/v3/V3_CENSUS_CLAIM_REGISTRY.json (v8, claims 5 · limitations 14 · method notes 23)",
+  "mart": "artifacts/v3_census/mart/CANONICAL_MART_50.csv",
+  "raw": "artifacts/v3_census/raw/",
+  "assurance": "artifacts/v3_census/assurance/",
+  "figures": "artifacts/v3_census/analysis/figures/ (4장)"
+ },
+ "다음_단계_권고": [
+  "AX 트리 캡처 복구 — 이번 census 에 browser-computed accessible name 이 **0건**이었고 원자료도 없다",
+  "얕은 키워드 매처를 SPA 하위구조 탐색으로 교체 — `COLLECTOR_ZERO_CANDIDATE` 21 의 직접 원인",
+  "geometry 를 수집 시점에 기록 — 소급 복구가 불가능했다",
+  "‘시정이 새 결측을 만드는’ 경로를 잡는 검사 추가",
+  "위 넷을 마친 뒤에야 replay 를 포함한 본수집을 논한다"
+ ]
+}
