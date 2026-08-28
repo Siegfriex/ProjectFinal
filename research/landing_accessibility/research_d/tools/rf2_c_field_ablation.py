@@ -972,8 +972,10 @@ def log_mlflow() -> str:
                         "child_id": "D-RF2-C",
                         "primary_config": f"{PRIMARY_MODEL}|{PRIMARY_PROTO}",
                         "decision_baseline": "stratified",
-                        "best_representation": d["headline"]["best_representation"],
-                        "labels_produced": "false", "production_modified": "false"},
+                        # [D-DEF-86] `labels_produced`·`production_modified` 는 계약이
+                        # 스스로 넣는다(같은 값 `"false"`). 호출자가 다시 넘기면
+                        # **기계 유래 tag 를 호출자가 덮는 경로**가 되므로 뺐다.
+                        "best_representation": d["headline"]["best_representation"]},
             extra_params={"n_representations": len(REPS), "n_prototype_sets": len(PROTO_SETS),
                           "n_models": len(MODELS), "n_permutations": N_PERM,
                           "n_mc_stratified": N_MC,

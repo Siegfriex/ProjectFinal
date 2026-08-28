@@ -106,7 +106,30 @@ def _holdout_accessed_from_scan() -> str:
         doc = json.loads(v.read_text(encoding="utf-8"))
     except Exception:
         return "UNVERIFIED_SCAN_UNREADABLE"
-    return "false" if doc.get("verdict") == "PASS" else "true"
+    return holdout_value_from_scan(doc)
+
+
+def holdout_value_from_scan(doc: dict) -> str:
+    """[D-DEF-86] `verdict != PASS` 를 곧장 `"true"` 로 쓰던 것을 가른다.
+
+    현재 FAIL 3 건은 전부 `research/landing_accessibility/control` **경로 참조**다 —
+    **holdout 과 다른 축**이다. 그것을 `holdout_accessed=true` 로 쓰면
+    **다른 축의 실패가 holdout 접근으로 보고된다.**
+
+    그리고 이 스캐너는 **정적 산출물 스캔**이다(문서의 `residual_risk` 가 그렇게
+    적는다) — **참조를 볼 수 있지 접근을 볼 수 없다.** 그래서 가장 강한 정직한
+    값은 `"true"` 가 아니라 `SCAN_FLAGGED_HOLDOUT_REFERENCE` 다.
+    """
+    if doc.get("verdict") == "PASS":
+        return "false"
+    hits = [x for x in (doc.get("violations") or [])
+            if x.get("severity") == "FAIL"
+            and "HOLDOUT" in (f"{x.get('reference','')} {x.get('denied_pattern','')} "
+                              f"{x.get('file','')}").upper()]
+    if hits:
+        return "SCAN_FLAGGED_HOLDOUT_REFERENCE"
+    # 스캔이 돌았고 PASS 가 아니지만 **holdout 축의 FAIL 은 없다**
+    return "UNVERIFIED_SCAN_NOT_PASS"
 
 
 def ensure_experiments() -> dict[str, str]:
@@ -120,6 +143,17 @@ def ensure_experiments() -> dict[str, str]:
             eid = exp.experiment_id
         out[name] = eid
     return out
+
+
+# [D-DEF-86] 호출자가 덮으면 안 되는 tag — **측정기가 내는 값**이다(R41).
+PROTECTED_TAGS = frozenset({
+    "project", "plane", "authority_status",
+    "holdout_accessed", "holdout_verification",
+    "self_approved", "production_modified", "labels_produced",
+    "head_sha", "base_sha", "git_branch", "worktree_dirty",
+    "input_snapshot_sha", "evidence_manifest_sha", "result_sha", "code_sha",
+    "started_at_kst",
+})
 
 
 class ContractViolation(RuntimeError):
@@ -198,6 +232,14 @@ def research_run(*, experiment: str, run_name: str, plane: str, objective: str, 
     if competing_hypothesis:
         tags["competing_hypothesis"] = competing_hypothesis[:480]
     if extra_tags:
+        # [D-DEF-86] `update` 는 **필수 tag 를 덮어쓸 수 있었다.** 특히
+        # `holdout_accessed` 는 "self-tag 가 아니라 방화벽 결과" 라고 적혀 있는데
+        # 호출자가 덮어쓸 수 있었다 — **보장이 강제되지 않았다.**
+        clash = sorted(set(extra_tags) & PROTECTED_TAGS)
+        if clash:
+            raise ContractViolation(
+                f"extra_tags 가 기계 유래 tag 를 덮으려 한다: {clash} — "
+                f"이 값들은 측정기가 낸다(R41)")
         tags.update({k: str(v)[:480] for k, v in extra_tags.items()})
     missing = [t for t in REQUIRED_TAGS if not tags.get(t)]
     if missing:
@@ -289,6 +331,47 @@ def controls() -> dict:
          ok_args | {"plane": "D", "authority_status": "DECISION"})
     case("A 는 DECISION 을 쓸 수 있다",
          ok_args | {"plane": "A", "authority_status": "DECISION"}, should_raise=False)
+
+    # [D-DEF-86] holdout 값 매핑 — **다른 축의 FAIL 을 holdout 접근으로 쓰지 않는다**
+    def hcase(name, doc, want):
+        got = holdout_value_from_scan(doc)
+        rows.append({"case": f"[holdout] {name}", "got": got, "want": want,
+                     "expectation": "must_flag" if want != "false" else "must_not_flag",
+                     "ok": got == want})
+
+    hcase("PASS 면 false", {"verdict": "PASS"}, "false")
+    hcase("**control 경로 FAIL 은 holdout 이 아니다**",
+          {"verdict": "FAIL", "violations": [
+              {"severity": "FAIL", "reference": "research/landing_accessibility/control/v3/x.py",
+               "file": "tools/d_heartbeat.py"}]},
+          "UNVERIFIED_SCAN_NOT_PASS")
+    hcase("holdout 참조 FAIL 은 그렇게 적는다",
+          {"verdict": "FAIL", "violations": [
+              {"severity": "FAIL", "reference": "artifacts/HOLDOUT_FOR_C.csv", "file": "x.py"}]},
+          "SCAN_FLAGGED_HOLDOUT_REFERENCE")
+    hcase("**WARN 등급 holdout 언급은 FAIL 로 올리지 않는다**",
+          {"verdict": "FAIL", "violations": [
+              {"severity": "WARN", "reference": "HOLDOUT_FOR_C", "file": "nb.ipynb"},
+              {"severity": "FAIL", "reference": "control/x", "file": "y.py"}]},
+          "UNVERIFIED_SCAN_NOT_PASS")
+    rows.append({"case": "[holdout] **`true` 는 이제 나오지 않는다** — 정적 스캔은 접근을 못 본다",
+                 "expectation": "must_not_flag",
+                 "ok": all(holdout_value_from_scan(d) != "true" for d in (
+                     {"verdict": "PASS"},
+                     {"verdict": "FAIL", "violations": []},
+                     {"verdict": "FAIL", "violations": [
+                         {"severity": "FAIL", "reference": "HOLDOUT_FOR_C"}]}))})
+
+    # [D-DEF-86] extra_tags 가 기계 유래 tag 를 덮지 못하는가
+    rows.append({"case": "[보호] `holdout_accessed` 를 extra_tags 로 덮으면 막힌다",
+                 "expectation": "must_flag",
+                 "ok": "holdout_accessed" in PROTECTED_TAGS})
+    rows.append({"case": "[보호] 보호 목록이 비어 있지 않다 — 빈 목록은 아무것도 막지 않는다",
+                 "expectation": "must_not_flag", "ok": len(PROTECTED_TAGS) > 0})
+    rows.append({"case": "[보호] 보호 목록이 필수 tag 를 벗어나지 않는다",
+                 "expectation": "must_not_flag",
+                 "ok": PROTECTED_TAGS.issuperset({"holdout_accessed", "self_approved",
+                                                  "production_modified", "labels_produced"})})
 
     # 계약 상수가 비면 검사가 통째로 무의미해진다 — 빈 enum 은 통과가 아니다
     rows.append({"case": "enum 상수가 비어 있지 않다 — 빈 enum 은 모든 값을 막거나 통과시킨다",
