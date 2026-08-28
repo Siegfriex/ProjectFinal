@@ -73,6 +73,26 @@ def _is_d(run, exp_name: str) -> bool:
     return run.data.tags.get("plane") == "D"
 
 
+# [D-DEF-90] 세 함수가 각자 서버를 전부 훑었다 — `audit` · `run_accounting` ·
+# `unterminated`. 스캔이 17.5 → 42.7 초로 늘었다(미종결 축을 넣으며 내가 만든 비용).
+# **한 프로세스 안에서 한 번만 가져온다.** 캐시는 프로세스와 함께 끝난다.
+# **클라이언트별로** 캐시한다. 하나로 두었더니 대조군의 합성 클라이언트가
+# 진짜 서버 결과를 돌려받아 대조군 2건이 죽었다 — 캐시가 대상 경계를 넘었다.
+_RUNS_CACHE: dict = {}
+
+
+def _all_runs(c) -> list:
+    """`[(experiment_name, run), ...]` — **클라이언트당** 한 번만 가져온다."""
+    key = id(c)
+    if key not in _RUNS_CACHE:
+        out = []
+        for e in c.search_experiments():
+            for r in c.search_runs([e.experiment_id], max_results=1000):
+                out.append((e.name, r))
+        _RUNS_CACHE[key] = out
+    return _RUNS_CACHE[key]
+
+
 def run_accounting(c) -> dict:
     """**서버의 모든 run 이 어느 한 곳에서 세어졌는가.**
 
@@ -93,20 +113,19 @@ def run_accounting(c) -> dict:
     buckets = Counter()
     unaccounted = []
     total = 0
-    for e in c.search_experiments():
-        for r in c.search_runs([e.experiment_id], max_results=1000):
+    for e_name, r in _all_runs(c):
             total += 1
-            if e.name in LEGACY_EXPERIMENTS:
+            if e_name in LEGACY_EXPERIMENTS:
                 buckets["excluded_legacy"] += 1
-            elif e.name == D_OWN_EXPERIMENT:
+            elif e_name == D_OWN_EXPERIMENT:
                 buckets["audited_d_own"] += 1
-            elif e.name in contract_exps and r.data.tags.get("plane") == "D":
+            elif e_name in contract_exps and r.data.tags.get("plane") == "D":
                 buckets["audited_a_contract"] += 1
             elif r.data.tags.get("plane") in ("A", "B", "C", "E"):
                 buckets["other_plane"] += 1
             else:
                 buckets["unaccounted"] += 1
-                unaccounted.append({"experiment": e.name,
+                unaccounted.append({"experiment": e_name,
                                     "run_id": r.info.run_id[:12],
                                     "plane": r.data.tags.get("plane"),
                                     "d_plane": r.data.tags.get("d.plane")})
@@ -134,13 +153,12 @@ def unterminated(c) -> dict:
     **계약 이전 run 은 tag 자체가 없다** — 그것은 '미종결' 이 아니라 '대상 아님' 이다.
     """
     tag_running, life_running, pending, no_tag = [], [], [], 0
-    for e in c.search_experiments():
-        for r in c.search_runs([e.experiment_id], max_results=1000):
+    for e_name, r in _all_runs(c):
             t = r.data.tags
             if "run_status" not in t:
                 no_tag += 1
                 continue
-            row = {"exp": e.name, "run": r.info.run_name,
+            row = {"exp": e_name, "run": r.info.run_name,
                    "lifecycle": r.info.status,
                    "run_status": t.get("run_status"),
                    "started": t.get("started_at_kst"), "ended": t.get("ended_at_kst"),
@@ -181,11 +199,10 @@ def audit() -> dict:
     rows, miss_tag, miss_param = [], Counter(), Counter()
     n_d = n_new = n_base = 0
     contract_exps = set(MC.EXPERIMENTS)
-    for e in exps:
-        if e.name in LEGACY_EXPERIMENTS or e.name not in contract_exps:
-            continue                     # **A 계약 대상 실험만** — 다른 체계는 아래에서 따로
-        for r in c.search_runs([e.experiment_id], max_results=1000):
-            if not _is_d(r, e.name):
+    for e_name, r in _all_runs(c):            # [D-DEF-90] 공유 fetch
+            if e_name in LEGACY_EXPERIMENTS or e_name not in contract_exps:
+                continue                 # **A 계약 대상 실험만** — 다른 체계는 아래에서 따로
+            if not _is_d(r, e_name):
                 continue
             n_d += 1
             started = datetime.fromtimestamp(r.info.start_time / 1000).strftime(
@@ -201,7 +218,7 @@ def audit() -> dict:
                         miss_tag[t] += 1
                     for p in mp:
                         miss_param[p] += 1
-                rows.append({"experiment": e.name, "run_id": r.info.run_id[:12],
+                rows.append({"experiment": e_name, "run_id": r.info.run_id[:12],
                              "started": started,
                              "class": "NEW" if new else "BASELINE_PRE_CONTRACT",
                              "missing_tags": mt, "missing_params": mp})
