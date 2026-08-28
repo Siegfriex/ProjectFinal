@@ -104,6 +104,30 @@ JS_ANCESTORS = r"""
   return out; }
 """
 
+# CI-14 r2 (RUNBOOK Addendum r8): task-entry candidate enumeration in document order. dom_order = 0-based index inside the
+# enumeration (A1 §5.1 structural value); marked_primary = presence of the DOM attribute data-primary-action;
+# task_binding_candidate = fixture-declared membership (every element matching candidate_selector). selector = tag#id.
+JS_CANDIDATES = r"""
+(s) => [...document.querySelectorAll(s)].map((el, i) => ({
+  selector: el.tagName.toLowerCase() + (el.id ? '#' + el.id : ''), dom_order: i,
+  marked_primary: el.hasAttribute('data-primary-action'), task_binding_candidate: true,
+  visible_text: el.innerText || '', tag: el.tagName.toLowerCase(), href: el.getAttribute('href')}))
+"""
+
+def delta30_order(cands):
+    """Δ30 total order (RULING_INDEX Δ30-tiebreak): task_binding_candidate desc, dom_order asc, selector asc."""
+    return [c["selector"] for c in sorted(cands, key=lambda c: (not c["task_binding_candidate"], c["dom_order"], c["selector"]))]
+
+def min4_order(cands):
+    """v2 min4_sort_key (A1 §5.1 line 366): marked_primary desc, dom_order asc, selector asc."""
+    return [c["selector"] for c in sorted(cands, key=lambda c: (not c["marked_primary"], c["dom_order"], c["selector"]))]
+
+def order_explaining(selected, d30, m4):
+    """Which declared order explains a runner's SELECTED (first activated candidate). DELTA30 wins when both agree."""
+    if d30 and selected == d30[0]: return "DELTA30"
+    if m4 and selected == m4[0]: return "MIN4"
+    return "NEITHER"
+
 def cdp_ax(cdp, loc):
     """AX node of the element behind a Playwright locator, located by backendNodeId through a temporary probe attribute
     (DOM.querySelector does not pierce shadow roots; the pierced DOM.getDocument tree does)."""
@@ -417,27 +441,53 @@ def run_fixture(browser, fx):
         rec["naive_name_guess_observed"] = naive
         cmp("naive_name_guess(negative control must disagree with geometry)", naive, fx["naive_name_guess"], diffs)
         if naive == direction: diffs.append("negative control ineffective: naive guess equals geometry")
+    # ---- CI-14 r2: candidate order (Δ30 vs min4) recomputed from the observed candidate list ----
+    order_str = ""
+    if fx.get("candidate_selector"):
+        oc = fx["order_controls"]
+        cands = page.evaluate(JS_CANDIDATES, fx["candidate_selector"])
+        d30, m4 = delta30_order(cands), min4_order(cands)
+        cmp("candidates.dom_order", [c["selector"] for c in cands], oc["expected_candidates_dom_order"], diffs)
+        cmp("candidates.marked_primary", {c["selector"]: c["marked_primary"] for c in cands}, oc["expected_marked_primary"], diffs)
+        cmp("candidates.task_binding_candidate", {c["selector"]: c["task_binding_candidate"] for c in cands}, oc["expected_task_binding_candidate"], diffs)
+        cmp("delta30_order", d30, oc["expected_delta30_order"], diffs)
+        cmp("min4_order", m4, oc["expected_min4_order"], diffs)
+        cmp("first_under_delta30_order", d30[0] if d30 else None, oc["expected_first_under_delta30_order"], diffs)
+        cmp("first_under_min4_order", m4[0] if m4 else None, oc["expected_first_under_min4_order"], diffs)
+        if d30 and m4 and d30[0] == m4[0]: diffs.append("order divergence not live: Δ30 first == min4 first (fixture cannot test CI-14 r2)")
+        # mutation controls (comparator must be able to fail): a min4-walked SELECTED must be flagged, the Δ30 first must not
+        flag_sel = oc["expected_first_under_min4_order"]; flag_verdict = order_explaining(flag_sel, d30, m4)
+        ok_sel = d30[0] if d30 else None; ok_verdict = order_explaining(ok_sel, d30, m4)
+        must_flag = flag_verdict != "DELTA30"; must_not_flag = ok_verdict == "DELTA30" and ok_sel == oc["expected_first_under_delta30_order"]
+        if not must_flag: diffs.append(f"must_flag control ineffective: SELECTED={flag_sel} explained as {flag_verdict}")
+        if not must_not_flag: diffs.append(f"must_not_flag control failed: SELECTED={ok_sel} explained as {ok_verdict}")
+        rec["candidates"] = cands
+        rec["order"] = {"delta30_order": d30, "min4_order": m4, "first_under_delta30_order": d30[0] if d30 else None,
+                        "first_under_min4_order": m4[0] if m4 else None, "divergence_live": bool(d30 and m4 and d30[0] != m4[0]),
+                        "controls": {"must_flag": {"fake_runner_selected": flag_sel, "order_explaining": flag_verdict, "flagged": must_flag},
+                                     "must_not_flag": {"observed_selected": ok_sel, "order_explaining": ok_verdict, "passed": must_not_flag}}}
+        order_str = f"Δ30={d30[0] if d30 else '-'}|min4={m4[0] if m4 else '-'}"
     if aborted: diffs.append(f"non-file requests attempted: {aborted}")
     rec.update({"observed_direction": direction, "direction_method": method, "dx": dx, "dy": dy,
                 "non_file_requests_aborted": len(aborted), "diffs": diffs, "result": "PASS" if not diffs else "FAIL"})
     ctx.close()
-    return rec, zone_src, mod, menu_dep, direction, naive
+    return rec, zone_src, mod, menu_dep, direction, naive, order_str
 
 def main():
     rows = []; records = []
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         for fx in EXP["fixtures"]:
-            rec, zs, mod, dep, d, naive = run_fixture(browser, fx)
+            rec, zs, mod, dep, d, naive, order_str = run_fixture(browser, fx)
             records.append(rec)
             rows.append([fx["fixture"], fx["control_role"][:3], repr(rec["s0"]["visible_label_text"]), repr(rec["s0"]["accessible_name"]),
                          rec["s0"]["accessible_name_source"], mod, rec["s0"]["label_relation"], zs["entry_control_type"],
                          "T" if rec["s0"]["rendered"] and rec["s0"]["in_viewport"] else "F", d,
                          "" if rec["dx"] is None else f"{rec['dx']:+.0f}", "" if rec["dy"] is None else f"{rec['dy']:+.0f}",
                          zs["entry_zone"], zs["entry_zone_band_R7"], f"{zs['entry_x_norm']:.2f},{zs['entry_y_norm']:.2f}", rec["entry_observed_state"], ">".join(rec["nav_container_chain"]) or "-",
-                         "T" if rec["s0"]["dom_ax_divergence"] or (rec.get("s1_after_reveal") or {}).get("dom_ax_divergence") else "F", naive or "", rec["result"]])
+                         "T" if rec["s0"]["dom_ax_divergence"] or (rec.get("s1_after_reveal") or {}).get("dom_ax_divergence") else "F", naive or "", order_str, rec["result"]])
         browser.close()
-    hdr = ["fixture", "ctl", "visible", "ax_name", "ax_src", "modality", "relation", "ctype", "s0", "dir", "dx", "dy", "zone(R7)", "band", "x,y", "observed_state", "chain", "domax", "naive", "result"]
+    hdr = ["fixture", "ctl", "visible", "ax_name", "ax_src", "modality", "relation", "ctype", "s0", "dir", "dx", "dy", "zone(R7)", "band", "x,y", "observed_state", "chain", "domax", "naive", "order", "result"]
     widths = [max(len(str(r[i])) for r in [hdr] + rows) for i in range(len(hdr))]
     lines = [" | ".join(str(c).ljust(w) for c, w in zip(r, widths)) for r in [hdr, ["-" * w for w in widths]] + rows]
     print("\n".join(lines))

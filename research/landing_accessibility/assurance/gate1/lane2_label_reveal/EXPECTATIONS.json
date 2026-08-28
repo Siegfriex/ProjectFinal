@@ -65,7 +65,19 @@
       "precedence": "Geometry wins. class/id/data-*/aria-label naming NEVER decides reveal_direction; it is recorded only as naive_name_guess for the negative control."
     },
     "menu_dependency_rule": "1 iff the entry control is not visible at S0 and becomes visible only after >=1 reveal activation (OPEN_GLOBAL_MENU / OPEN_LOCAL_MENU / EXPAND_ACCORDION). nav_container_depth = number of reveal activations required (04 §5). A T-A-V3-STEP1-011 (P-09) fixes the primary reading as sequence-based (a reveal token before the endpoint); SWITCH_TAB is not a reveal token (P-06). On all 14 fixtures the only reveal in the recorded path is the one that exposes the control, so the S0-based wording above and the sequence-based primary yield identical values.",
-    "revision_r3": "2026-08-28 after fe33eae: +drawer_nested_accordion (GAP-06 two-level chain) and +dom_ax_divergence_positive (STEP1-012 divergence positive control); measure_geometry: per-step container chain, naive light-DOM channel vs AX-by-backendNodeId, shadow-aware hit test. Values of the 14 r2 fixtures unchanged (re-run)."
+    "revision_r3": "2026-08-28 after fe33eae: +drawer_nested_accordion (GAP-06 two-level chain) and +dom_ax_divergence_positive (STEP1-012 divergence positive control); measure_geometry: per-step container chain, naive light-DOM channel vs AX-by-backendNodeId, shadow-aware hit test. Values of the 14 r2 fixtures unchanged (re-run).",
+    "candidate_order_rule_CI14": {
+      "authority": "GATE1_RUNBOOK_C Addendum r8 CI-14 r2 (T-B-V3-BLK-016 part1/part2); Δ30 total order per RULING_INDEX Δ30-tiebreak; min4_sort_key per v2 A1 §5.1 line 366 (REFERENCE_DEFINITIONS 'dom_order 2차 키')",
+      "candidate_list": "fixtures that declare candidate_selector: every element matching it, enumerated in document order (querySelectorAll). Fixture-declared membership stands in for lane1 task binding, so task_binding_candidate=true for every enumerated element (lane1 tests binding itself; here the binding set is a given).",
+      "dom_order": "0-based document-order index inside the candidate enumeration at that state (A1 §5.1: a structural value, never null)",
+      "marked_primary": "presence of the DOM attribute data-primary-action on the element (CI-14 r2: a DOM attribute, not an RF product)",
+      "selector": "tag#id of the candidate (3rd key; every candidate in C's fixtures has an id)",
+      "delta30_order": "sort key (task_binding_candidate desc, dom_order asc, selector asc)",
+      "min4_order": "sort key (marked_primary desc, dom_order asc, selector asc)",
+      "comparator": "order_explaining(selected) = DELTA30 if selected == delta30_order[0]; MIN4 if selected == min4_order[0] (and not DELTA30); NEITHER otherwise. Runner SELECTED must be explained by DELTA30 (must_not_flag on the observed Δ30 first); a min4-explained SELECTED is flagged (must_flag). The fixture is only live if the two firsts differ — measure_geometry fails the fixture otherwise.",
+      "seam_refusal": "a runner raising V3PathOrderDivergenceError on this fixture is recorded as SEAM_REFUSED — neither PASS nor FAIL until A rules whether refusal = 'v3 uses its own order'"
+    },
+    "revision_r4": "2026-08-28 (RUNBOOK Addendum r8): +order_divergence_marked_not_first (CI-14 r2 order-divergence fixture; candidate_selector / order_controls pre-registered before the first run); measure_geometry: per-candidate dom_order + marked_primary, Δ30 and min4 orders recomputed from the observed candidate list, must_flag / must_not_flag order controls. Values of the 16 r3 fixtures unchanged (re-run)."
   },
   "fixtures": [
     {
@@ -662,6 +674,66 @@
         "dom_ax_divergence": true
       },
       "rationale": "A T-A-V3-STEP1-012 'DOM_AX_divergence_noted' positive control: DOM channel (naive querySelector over the light DOM) does not find the control, AX channel does → dom_ax_divergence=true with both channels recorded. A runner that hard-codes false, or that lets one channel win (drops the row or reports the control absent), fails here; the other 16 fixtures expect false. Same layout as label_explicit_text (control at x≈0.20, y≈0.26 → TOP_LEFT) so only the channel disagreement differs."
+    },
+    {
+      "fixture": "order_divergence_marked_not_first",
+      "control_role": "POSITIVE_CONTROL",
+      "entry_selector": "[data-c-target=entry]",
+      "candidate_selector": "[data-c-candidate]",
+      "expected": {
+        "visible_label_text": "배송조회",
+        "accessible_name": "배송조회",
+        "accessible_name_reasoning": "entry = a#first (the Δ30-first candidate): link, no aria-*; accname 2F name-from-content = text node '배송조회'. Same hero-row layout as label_explicit_text (control centre x≈0.20, y≈0.26 → TOP_LEFT); the link is styled .btn so its box equals that fixture's button.",
+        "accessible_name_source": "VISIBLE_TEXT",
+        "entry_label_modality": "EXPLICIT_TEXT",
+        "label_relation": "MATCH",
+        "entry_control_type": "TEXT_LINK",
+        "nav_container_type": "NONE",
+        "reveal_direction": "NONE",
+        "menu_dependency": 0,
+        "nav_container_depth": 0,
+        "s0_task_control_visible": true,
+        "entry_zone": "TOP_LEFT",
+        "entry_zone_band_R7": "TOP_LEFT",
+        "entry_observed_state": "S0",
+        "nav_container_chain": [],
+        "dom_ax_divergence": false
+      },
+      "order_controls": {
+        "expected_candidates_dom_order": [
+          "a#first",
+          "button#marked",
+          "a#third"
+        ],
+        "expected_marked_primary": {
+          "a#first": false,
+          "button#marked": true,
+          "a#third": false
+        },
+        "expected_task_binding_candidate": {
+          "a#first": true,
+          "button#marked": true,
+          "a#third": true
+        },
+        "expected_first_under_delta30_order": "a#first",
+        "expected_first_under_min4_order": "button#marked",
+        "expected_delta30_order": [
+          "a#first",
+          "button#marked",
+          "a#third"
+        ],
+        "expected_min4_order": [
+          "button#marked",
+          "a#first",
+          "a#third"
+        ],
+        "derivation": "all three are task-binding candidates, so the Δ30 first key ties and dom_order decides → a#first (dom_order 0). min4_sort_key puts marked_primary first → button#marked (dom_order 1) despite not being first in the DOM. The two orders diverge on the first element, which is the CI-14 r2 condition.",
+        "mutation_control": {
+          "must_flag": "fake runner claim SELECTED=button#marked → order_explaining = MIN4 ≠ DELTA30 → FAIL under expected_first_under_delta30_order",
+          "must_not_flag": "observed delta30_order[0] (from the live candidate list) == expected_first_under_delta30_order → PASS"
+        }
+      },
+      "rationale": "RUNBOOK CI-14 r2 (T-B-V3-BLK-016 part1/part2): marked_primary is a DOM attribute (data-primary-action), so the Δ30-vs-min4 divergence condition is live and testable with C's own fixture. A runner whose SELECTED/rank is explained by min4 (button#marked) while claiming the Δ30 policy is a ruling_10 violation (Δ36-order); a runner that refuses (V3PathOrderDivergenceError) is recorded as SEAM_REFUSED."
     }
   ]
 }
