@@ -221,6 +221,16 @@ def qc(rows, manifest, file_sha, body_sha, expect_file, expect_body, adapter, b_
     else: mism = "NOT_TESTABLE (family_id UNBOUND)"
     checks["FAMILY_10x5"] = {"status": "FLAG" if not (fam_m_ok and fam_r_ok) or (isinstance(mism, list) and mism) else "PASS", "n_items": len(rows),
                              "manifest_families": {k: len(v) for k, v in sorted(fam_m.items())}, "row_families": {k: len(v) for k, v in sorted(fam_r.items())}, "family_mismatch": mism}
+    # ---- R110 (TBX-020): per-column sentinel ratio; a column that is 100% sentinel/blank is UNWIRED — a column-level flag, never a pass
+    cols = sorted({k for r in rows for k in r.keys()}); col_stats = {}; unwired = []
+    for c_ in cols:
+        vals = [str(r.get(c_) if r.get(c_) is not None else "").strip() for r in rows]
+        n_sent = sum(1 for v in vals if v in SENTINELS or v.startswith("NOT_RECORDED") or v.startswith("E_DID_NOT_SUPPLY") or v == "")
+        col_stats[c_] = {"n": len(vals), "sentinel": n_sent, "ratio": round(n_sent / len(vals), 3) if vals else None}
+        if vals and n_sent == len(vals): unwired.append(c_)
+    for c_ in unwired: flag("COLUMN_SENTINEL", f"column {c_} is 100% sentinel/blank across {len(rows)} rows — UNWIRED (WIRED:false), not an observation", None, column=c_)
+    checks["COLUMN_SENTINEL"] = {"status": "FLAG" if unwired else "PASS", "n_items": len(cols), "unwired_columns": unwired, "per_column": col_stats,
+                                 "rule": "sentinel = SENTINELS ∪ NOT_RECORDED* ∪ E_DID_NOT_SUPPLY* ∪ blank; 100% ⇒ UNWIRED (R110)"}
     # ---- 7 DENOMINATORS
     den = {}
     for f in sorted(fam_m):
@@ -279,7 +289,7 @@ def controls(manifest, raw, file_sha, body_sha):
         return any(f["check"] == check and (sysc is None or f["systemic_candidate"] == sysc) for f in out["flags"])
     o = run(base)
     res["must_not_flag:consistent_50→0_flags"] = "PASS" if not o["flags"] and all(c["status"] == "PASS" for c in o["checks"].values()) else f"FAIL {[(k, c['status']) for k, c in o['checks'].items()]} {o['flags'][:2]}"
-    res["must_not_flag:all_7_checks_ran"] = "PASS" if len(o["checks"]) == 7 and all(c.get("n_items", 0) > 0 for c in o["checks"].values()) else f"FAIL {len(o['checks'])}"
+    res["must_not_flag:all_7_checks_ran"] = "PASS" if len(o["checks"]) == 8 and all(c.get("n_items", 0) > 0 for c in o["checks"].values()) else f"FAIL {len(o['checks'])}"
     o = run(base + [{**base[0], "target_id": "F9-99", "run_id": "rx"}]); res["must_flag:extra_target→target_outside_manifest"] = "PASS" if has(o, "UNIQUE_TARGETS", "target_outside_manifest") else "FAIL"
     rsvc = manifest["replacement_reserve"][0]["service_name"]
     o = run(base + [{**base[0], "target_id": "F1-R1", "run_id": "rr", "svc_name": rsvc}]); res["must_flag:reserve_service_used→is_reserve"] = "PASS" if any(f.get("is_reserve") for f in o["flags"]) else "FAIL"
@@ -294,6 +304,8 @@ def controls(manifest, raw, file_sha, body_sha):
     o = run(skel); d0 = o["checks"]["DENOMINATORS"]["per_family"]["overall"]
     res["must_flag:skeleton_50_placeholders→attempted_observed 0·evidence 0·k 0/50"] = "PASS" if (d0["attempted_observed"] == 0 and d0["evidence_adequate"] == 0 and o["checks"]["EVIDENCE_OR_TERMINAL"]["k"] == 0 and has(o, "EVIDENCE_OR_TERMINAL") and not o["checks"]["EVIDENCE_OR_TERMINAL"]["non_canonical_terminal"]) else f"FAIL {d0} k={o['checks']['EVIDENCE_OR_TERMINAL']['k']}"
     o = run([{**r, "path_manifest_path": "NOT_OBSERVED"} if i == 4 else r for i, r in enumerate(base)]); res["must_flag:token_as_evidence_pointer_not_counted"] = "PASS" if o["checks"]["DENOMINATORS"]["per_family"]["overall"]["evidence_adequate"] == 49 else "FAIL"
+    o = run([{**r, "path_manifest_path": r["path_manifest_path"], "collection_run": "NOT_RECORDED_BY_E"} for r in base]); res["must_flag:R110 column 100% sentinel→UNWIRED"] = "PASS" if "collection_run" in o["checks"]["COLUMN_SENTINEL"]["unwired_columns"] else f"FAIL {o['checks']['COLUMN_SENTINEL']}"
+    o = run(base); res["must_not_flag:R110 no unwired column on consistent"] = "PASS" if not o["checks"]["COLUMN_SENTINEL"]["unwired_columns"] else f"FAIL {o['checks']['COLUMN_SENTINEL']['unwired_columns']}"
     o = run(base, bd={"overall": {"attempted": 49}}); res["must_flag:B_denominator_49_vs_C_50"] = "PASS" if has(o, "DENOMINATORS", "denominator_corruption") else "FAIL"
     o = run(base, adapter={**CTL_ADAPTER, "forbidden_action_events": {"field": None, "status": "UNBOUND"}, "forbidden_action_count": {"field": None, "status": "UNBOUND"}})
     res["unbound:forbidden→NOT_TESTABLE_not_PASS"] = "PASS" if o["checks"]["FORBIDDEN_ACTION"]["status"] == "NOT_TESTABLE" else "FAIL"

@@ -174,7 +174,13 @@ def main():
         for c, t in blank.items(): flag("MART.BLANKS", f"column {c} blank in {len(t)} rows — TBX-006: blank and 0 must not be the same output (use UNDETERMINED/NOT_OBSERVED + missing_reason)", None, column=c, targets=t[:10])
         if no_reason: flag("MART.BLANKS", f"{len(no_reason)} rows carry UNDETERMINED/NOT_OBSERVED without missing_reason", None, targets=no_reason[:10])
         checks["MART.BLANKS"] = {"status": "FLAG" if (blank or no_reason) else "PASS", "n_items": len(rows) * len(COLS23), "blank_columns": {c: len(t) for c, t in blank.items()}, "undetermined_without_reason": len(no_reason)}
-        if "collection_run" in rows[0]: checks["MART.COLLECTION_RUN"] = {"status": "REPORT", "n_items": len(rows), "distribution": dict(__import__("collections").Counter((r.get("collection_run") or "").strip() for r in rows)), "note": "R98: R1-only vs R1+R2 targets must be visible"}
+        if "collection_run" in rows[0]:
+            from collections import Counter as _Ct
+            by_run = {}
+            for r in rows: by_run.setdefault((r.get("collection_run") or "").strip(), _Ct())[(r.get("terminal_reason") or "").strip()] += 1
+            checks["MART.COLLECTION_RUN"] = {"status": "REPORT", "n_items": len(rows), "distribution": dict(_Ct((r.get("collection_run") or "").strip() for r in rows)),
+                                             "terminal_by_run": {k: dict(v) for k, v in sorted(by_run.items())}, "rows_with_superseded_runs": sum(1 for r in rows if str(r.get("superseded_runs") or "").strip() not in ("", "[]", "NOT_OBSERVED")),
+                                             "note": "R98/R110: R1-only vs re-measured targets must be visible; terminal distribution per run is a reportable value"}
         checks["MART.ATTEMPT_STATUS_VALUES"] = {"status": "REPORT", "n_items": len(rows), "distribution": dict(sorted(__import__("collections").Counter((r.get("attempt_status") or "").strip() for r in rows).items())), "completed_rule": f"attempt_status ∈ {COMPLETED_VALUES}"}
         c50 = ROOT / "mart" / "CANONICAL_MART_50.csv"; s50 = ROOT / "mart" / "CANONICAL_MART_50.sha256.json"
         if c50.exists():

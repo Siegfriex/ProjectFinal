@@ -1,11 +1,11 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T11:37:53+09:00",
+ "measured_at_kst": "2026-08-28T11:38:38+09:00",
  "state": "CANONICAL_50_SEEN",
  "checker": {
-  "commit": "253572539dfcdf59b5dd2362dc0f3c7f1a6c81bd",
-  "census_qc_c_sha256": "80a598ffe2c61b8644829223ba5b61e0c306a4a837fc8caa3073ba654d063df5",
-  "census_stream_c_sha256": "3dbe1b4aab5c484a2d5f3527706eb76715ce30aa95bc1e93a1cfb4895666c8f8",
+  "commit": "7fb8bef107468e62cc390c6a95f33f1c3bacaaad",
+  "census_qc_c_sha256": "604f81aaf94c6839eee35dc7090e0f575529110326c0029e7a6d7cfdb0e7e9f8",
+  "census_stream_c_sha256": "9753de29c11760e67b4399b70f1f06ddffd0c8f696a889de3213362082efb29e",
   "checker_frozen": "43d7d4da52e0403a2b76d1322a170678e97a6f03"
  },
  "inputs": {
@@ -24,8 +24,8 @@
   "matches_release": true
  },
  "controls": {
-  "n": 29,
-  "pass": 29
+  "n": 31,
+  "pass": 31
  },
  "adapter": {
   "target_id": {
@@ -83,9 +83,9 @@
  },
  "summary": {
   "checks_pass": 11,
-  "checks_flag": 4,
+  "checks_flag": 5,
   "checks_not_testable_or_vacuous": 1,
-  "flags": 250,
+  "flags": 253,
   "systemic_candidates": []
  },
  "checks": {
@@ -143,6 +143,148 @@
     "F5": 10
    },
    "family_mismatch": []
+  },
+  "MART.COLUMN_SENTINEL": {
+   "status": "FLAG",
+   "n_items": 26,
+   "unwired_columns": [
+    "missing_reason",
+    "reveal_direction",
+    "task_control_occlusion"
+   ],
+   "per_column": {
+    "accessible_name": {
+     "n": 50,
+     "sentinel": 22,
+     "ratio": 0.44
+    },
+    "activation_depth": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "attempt_status": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "auth_gate_stage": {
+     "n": 50,
+     "sentinel": 42,
+     "ratio": 0.84
+    },
+    "collection_run": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "collector_plane": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "entry_control_type": {
+     "n": 50,
+     "sentinel": 24,
+     "ratio": 0.48
+    },
+    "entry_observation_provenance": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "entry_x_norm": {
+     "n": 50,
+     "sentinel": 28,
+     "ratio": 0.56
+    },
+    "entry_y_norm": {
+     "n": 50,
+     "sentinel": 28,
+     "ratio": 0.56
+    },
+    "entry_zone": {
+     "n": 50,
+     "sentinel": 28,
+     "ratio": 0.56
+    },
+    "evidence_hash": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "experienced_flow_sequence": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "family_id": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "label_relation": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "menu_dependency": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "missing_reason": {
+     "n": 50,
+     "sentinel": 50,
+     "ratio": 1.0
+    },
+    "nav_container_type": {
+     "n": 50,
+     "sentinel": 24,
+     "ratio": 0.48
+    },
+    "reveal_direction": {
+     "n": 50,
+     "sentinel": 50,
+     "ratio": 1.0
+    },
+    "service": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "superseded_runs": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "target_id": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "task_control_occlusion": {
+     "n": 50,
+     "sentinel": 50,
+     "ratio": 1.0
+    },
+    "task_flow_sequence": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "terminal_reason": {
+     "n": 50,
+     "sentinel": 0,
+     "ratio": 0.0
+    },
+    "visible_label": {
+     "n": 50,
+     "sentinel": 46,
+     "ratio": 0.92
+    }
+   },
+   "rule": "sentinel = SENTINELS ∪ NOT_RECORDED* ∪ E_DID_NOT_SUPPLY* ∪ blank; 100% ⇒ UNWIRED (R110)"
   },
   "MART.DENOMINATORS": {
    "status": "PASS",
@@ -258,7 +400,24 @@
     "E-REAL-CENSUS-1230-R3": 8,
     "E-REAL-CENSUS-1230-R2": 22
    },
-   "note": "R98: R1-only vs R1+R2 targets must be visible"
+   "terminal_by_run": {
+    "E-REAL-CENSUS-1230": {
+     "COLLECTOR_ZERO_CANDIDATE": 15,
+     "FORBIDDEN_ACTION_BOUNDARY": 1,
+     "TIMEOUT": 2,
+     "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT": 2
+    },
+    "E-REAL-CENSUS-1230-R2": {
+     "COLLECTOR_ZERO_CANDIDATE": 6,
+     "NO_SAFE_ROUTE_SITE": 16
+    },
+    "E-REAL-CENSUS-1230-R3": {
+     "ENDPOINT_REACHED": 6,
+     "AUTH_GATE": 2
+    }
+   },
+   "rows_with_superseded_runs": 50,
+   "note": "R98/R110: R1-only vs re-measured targets must be visible; terminal distribution per run is a reportable value"
   },
   "MART.ATTEMPT_STATUS_VALUES": {
    "status": "REPORT",
@@ -463,7 +622,7 @@
    "re_measured": 43,
    "r2_dirs_on_disk": 43,
    "r2_manifest_lines": 35,
-   "r1_basis": "snapshot_50.csv sha cfa7bb1c383e",
+   "r1_basis": "snapshot_50.csv sha 201ed3b8a841",
    "runs_seen": [
     "R1",
     "R2"
@@ -535,6 +694,24 @@
   }
  },
  "flags": [
+  {
+   "check": "COLUMN_SENTINEL",
+   "message": "column missing_reason is 100% sentinel/blank across 50 rows — UNWIRED (WIRED:false), not an observation",
+   "systemic_candidate": null,
+   "column": "missing_reason"
+  },
+  {
+   "check": "COLUMN_SENTINEL",
+   "message": "column reveal_direction is 100% sentinel/blank across 50 rows — UNWIRED (WIRED:false), not an observation",
+   "systemic_candidate": null,
+   "column": "reveal_direction"
+  },
+  {
+   "check": "COLUMN_SENTINEL",
+   "message": "column task_control_occlusion is 100% sentinel/blank across 50 rows — UNWIRED (WIRED:false), not an observation",
+   "systemic_candidate": null,
+   "column": "task_control_occlusion"
+  },
   {
    "check": "RAW.DISPATCH",
    "message": "idempotency_key E_SCOUT::F1-04::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47 dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
@@ -2829,6 +3006,27 @@
     "systemic_candidates": [
      "task_or_outcome_leakage"
     ]
+   },
+   "inputs": {
+    "mart": "CANONICAL_MART_50",
+    "mart_sha256": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
+    "mart_bytes": 26245,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 85,
+    "dispatch_lines": 85,
+    "ingest_lines": 50,
+    "raw_target_dirs": 50
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:37:53+09:00",
+   "state": "CANONICAL_50_SEEN",
+   "summary": {
+    "checks_pass": 11,
+    "checks_flag": 4,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 250,
+    "systemic_candidates": []
    },
    "inputs": {
     "mart": "CANONICAL_MART_50",
