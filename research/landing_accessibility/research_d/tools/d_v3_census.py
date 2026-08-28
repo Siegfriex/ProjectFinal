@@ -34,7 +34,14 @@ COLUMNS = [
 # [A R76] 사후 DOM 복원분의 출처 표시. CANONICAL_MART_50 에서 24번째 컬럼으로 들어왔다.
 # 계약 검사가 이것을 **초과 컬럼으로 막았다** — 조용히 통과시키지 않은 것이 옳고,
 # A 지시 필드이므로 optional 로 편입한다. 없어도 되고 있으면 읽는다.
-OPTIONAL_COLUMNS = ("entry_observation_provenance",)
+# A 지시로 추가된 필드들. 계약 검사가 매번 **초과 컬럼으로 막았고**, 그때마다
+# A 지시분임을 확인하고 편입했다 — 조용히 통과시키지 않는 것이 이 검사의 값이다.
+OPTIONAL_COLUMNS = ("entry_observation_provenance",      # R76 사후 DOM 복원 출처
+                    "collection_run",                    # R98 조건2 — 섞임을 보이게
+                    "superseded_runs",                   # R99 재측정 이력
+                    "entry_geometry_provenance",         # R106 E_R3_SUPPLEMENT
+                    "route_diagnosis", "route_diagnosis_provenance",
+                    "label_relation_rule", "label_provenance")
 PROV_LIVE = "E_LIVE_SCOUT"
 PROV_POSTHOC = "B_DERIVED_FROM_DOM_POSTHOC"
 
@@ -123,6 +130,8 @@ def is_missing(v) -> bool:
 COLLECTOR_ZERO = "COLLECTOR_ZERO_CANDIDATE"      # 후보 추출이 0 을 반환 — 수집기 관측
 SITE_NO_ROUTE = "NO_SAFE_ROUTE_SITE"             # 후보는 찾았으나 안전 경로 없음 — 사이트 관측
 UNSPLIT_NO_ROUTE = "NO_SAFE_ROUTE"               # **아직 나뉘지 않은 옛 라벨.** 어느 쪽인지 모른다
+# [A R92] '못 셌다' 는 세 번째 상태다. 0 으로 접지 않는다.
+UNVERIFIED_COUNT = "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT"
 
 # [A R78] 분모 분류 확정
 COMPLETED_TOKENS = ("ENDPOINT_REACHED",)
@@ -157,6 +166,7 @@ def denominators(df) -> dict:
                      and str(r["attempt_status"]).strip().upper() not in COMPLETED_TOKENS)
         split = {"collector_observation": int(fr.get(COLLECTOR_ZERO, 0)),
                  "site_observation": int(fr.get(SITE_NO_ROUTE, 0)),
+                 "unverified_candidate_count": int(fr.get(UNVERIFIED_COUNT, 0)),
                  "NOT_YET_SPLIT": int(fr.get(UNSPLIT_NO_ROUTE, 0))}
         return {"denominator_frozen": attempted_target,
                 "rows_present": int(len(sub)),

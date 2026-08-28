@@ -123,19 +123,40 @@ def fig2_entry_spatial_map(df):
         _nodata(axes[0], "NO OBSERVED COORDINATES")
         _nodata(axes[1])
     else:
+        # [A R106] n 이 작으면 **분포로 그리지 않는다.** 개별 점을 라벨과 함께 찍고
+        # 제목에 n/50 을 박는다. family 별 비교도 하지 않는다 — F1 은 0 이거나 1~2 다.
+        small = len(obs) <= 10
         for f in sorted(obs["family_id"].astype(str).unique()):
             s = obs[obs["family_id"].astype(str) == f]
             axes[0].scatter([float(x) for x in s["entry_x_norm"]],
-                            [float(y) for y in s["entry_y_norm"]], label=f, s=42, alpha=.8)
+                            [float(y) for y in s["entry_y_norm"]],
+                            label=(None if small else f), s=52, alpha=.85)
+        if small:
+            for _, r in obs.iterrows():
+                axes[0].annotate(str(r["target_id"]),
+                                 (float(r["entry_x_norm"]), float(r["entry_y_norm"])),
+                                 fontsize=6, xytext=(3, 3), textcoords="offset points")
+        else:
+            axes[0].legend(fontsize=8)
         axes[0].set_xlim(0, 1); axes[0].set_ylim(1, 0)
         axes[0].set_xlabel("entry_x_norm"); axes[0].set_ylabel("entry_y_norm (0=top)")
-        axes[0].legend(fontsize=8)
         z = Counter(str(v) for v in obs["entry_zone"] if not C.is_missing(v))
-        axes[1].bar(list(z.keys()), list(z.values()), color="darkseagreen")
-        axes[1].set_ylabel("targets")
-    axes[0].set_title("entry point position", fontsize=10)
-    axes[1].set_title("entry_zone distribution", fontsize=10)
-    _stamp(fig, df, "2. entry spatial map",
+        if small or not z:
+            axes[1].text(0.5, 0.5,
+                         "n=%d — individual points only\nNO DISTRIBUTION, NO FAMILY COMPARISON\n(A R106)"
+                         % len(obs), ha="center", va="center", fontsize=9,
+                         color="darkred", transform=axes[1].transAxes)
+            axes[1].set_xticks([]); axes[1].set_yticks([])
+        else:
+            axes[1].bar(list(z.keys()), list(z.values()), color="darkseagreen")
+            axes[1].set_ylabel("targets")
+    axes[0].set_title("entry point position  [POST-HOC DOM DERIVED, not live observation]",
+                      fontsize=9)
+    axes[1].set_title("entry_zone" + ("" if len(obs) > 10 else "  (suppressed at small n)"),
+                      fontsize=10)
+    fig.suptitle("2. entry spatial map   n=%d / %d" % (len(obs), len(df)) if len(df) else "2. entry spatial map",
+                 fontsize=13, y=0.99)
+    _stamp(fig, df, "2. entry spatial map   n=%d / %d" % (len(obs), len(df)) if len(df) else "2. entry spatial map",
            (f"observed_coords={len(obs)}/{len(df)}   "
             f"(provenance: E_LIVE_SCOUT vs B_DERIVED_FROM_DOM_POSTHOC — see D_PROVENANCE)")
            if len(df) else "")
@@ -156,7 +177,7 @@ def fig3_entry_implementation(df):
         else:
             ax.bar(list(vals.keys()), list(vals.values()), color="cornflowerblue")
             ax.tick_params(axis="x", rotation=45, labelsize=7)
-        ax.set_title(c, fontsize=9)
+        ax.set_title(f"{c}\n[POST-HOC DOM DERIVED]", fontsize=8)
     absent = [c for c in cols if cov.get(c, {}).get("state") == "AXIS_NOT_OBSERVED"]
     _stamp(fig, df, "3. entry implementation",
            ("AXIS_NOT_OBSERVED: " + ", ".join(absent)) if absent else "all axes observed")
@@ -213,10 +234,18 @@ def fig5_label_divergence(df):
             div.append(len(v))
         axes[2].bar(fams, div, color="darkkhaki")
         axes[2].set_ylabel("distinct visible labels")
-    axes[0].set_title("label_relation", fontsize=10)
+    axes[0].set_title("label_relation  [derived from stored DOM, not live]", fontsize=9)
     axes[1].set_title("vocabulary size (visible vs AX)", fontsize=10)
     axes[2].set_title("family label diversity", fontsize=10)
-    _stamp(fig, df, "5. visible label ↔ accessible name divergence")
+    both = int(sum(1 for _, r in df.iterrows()
+                   if not C.is_missing(r["visible_label"])
+                   and not C.is_missing(r["accessible_name"]))) if len(df) else 0
+    fig.text(0.5, 0.93,
+             "NOT A SITE-LEVEL FINDING (A R104): both-observed rows = %d/%d.  "
+             "AX_ONLY count reflects COLLECTION ASYMMETRY (AX capture broke early), not site behaviour."
+             % (both, len(df)), ha="center", fontsize=8, color="darkred")
+    _stamp(fig, df, "5. visible label / accessible name — observation presence, NOT semantic comparison",
+           "both-observed n=%d — too few for a distribution" % both)
     return _save(fig, "fig5_label_divergence.png")
 
 
