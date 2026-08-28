@@ -340,6 +340,14 @@
    "what": "V4 tally NO_CANDIDATE 21 의 구성을 rows 분해 없이 '18+CLICK_AMBIGUOUS 3 로 보임' 이라 티켓에 적음 — 실제 21 = 18 + TIMEOUT 1 + EVIDENCE_DEFECT 2",
    "fix": "FACT_CORRECTION 발행",
    "lesson": "집계 원인 귀속은 rows 교차표로만; 추정은 티켓에 넣지 않는다"
+  },
+  {
+   "id": "C-DEF-37",
+   "found_at_kst": "2026-08-28T13:36:18+09:00",
+   "found_by": "B (D-041 정정 검토 중 C 재확인)",
+   "what": "sentinel 목록에 NOT_OBSERVABLE_FROM_STATIC_DOM(사유 토큰) 이 없어 ANALYSIS_ASSURED coverage 가 entry_x/y/zone 을 26/50 으로 냈다 — 실제 관측 8/50(E_R3_SUPPLEMENT). 열별 sentinel 을 점검했다고 보고한 직후의 누락",
+   "fix": "observed() 가 NOT_OBSERVABLE*/NOT_RECORDED*/NA_* 접두 토큰을 미관측으로 처리(+control); ANALYSIS_ASSURED 재생성, CHECKER_FROZEN v5, FACT_CORRECTION 발행",
+   "lesson": "sentinel 은 목록이 아니라 '값 어휘 밖의 모든 토큰' 으로 정의해야 한다(R62 손 목록은 썩는다) — 열의 허용 값 집합을 먼저 두고 그 밖은 전부 미관측"
   }
  ],
  "caught_before_issue": [

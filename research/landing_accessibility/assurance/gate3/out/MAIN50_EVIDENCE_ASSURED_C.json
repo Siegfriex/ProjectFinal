@@ -1,12 +1,12 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T11:50:06+09:00",
+ "measured_at_kst": "2026-08-28T13:36:18+09:00",
  "state": "CANONICAL_50_SEEN",
  "checker": {
-  "commit": "1b0313679bdedbb4a97f6b1901a29fe85bf1ba8d",
-  "census_qc_c_sha256": "6df1496ee155d0e5737516e8705246e07208e1e28a572174a9c2bbe4a51dadb0",
+  "commit": "661d0b60a9bd4eab6afbf9570ba10563285bf1b1",
+  "census_qc_c_sha256": "90e22bfffc22b492532ded11ed97263bb5d0b686a95dc5ea16b9511c4db92361",
   "census_stream_c_sha256": "5c3a8b53ed07284cc8d52176c072946a44cb650dfc6e0b1f59d390119e9aafc7",
-  "checker_frozen": "8cea653c38d147287c8b8908431dd9386958e277"
+  "checker_frozen": "872a25d55da44d502b2f4fba68c83c9e0b37b36a"
  },
  "inputs": {
   "mart": "CANONICAL_MART_50",
@@ -199,18 +199,18 @@
     },
     "entry_x_norm": {
      "n": 50,
-     "sentinel": 24,
-     "ratio": 0.48
+     "sentinel": 42,
+     "ratio": 0.84
     },
     "entry_y_norm": {
      "n": 50,
-     "sentinel": 24,
-     "ratio": 0.48
+     "sentinel": 42,
+     "ratio": 0.84
     },
     "entry_zone": {
      "n": 50,
-     "sentinel": 24,
-     "ratio": 0.48
+     "sentinel": 42,
+     "ratio": 0.84
     },
     "evidence_hash": {
      "n": 50,
@@ -436,8 +436,8 @@
    "declared": {
     "file_sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
     "row_count": 50,
-    "frozen_at_kst": "2026-08-28T11:48:43+09:00",
-    "b_head_sha": "601221611bd7c6ce351e2f667b9066d4ea83c133",
+    "frozen_at_kst": "2026-08-28T13:32:04+09:00",
+    "b_head_sha": "cad3eb2051de2ceea9ed62655ea610f28f0f1306",
     "manifest_file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
     "manifest_body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
     "promoted": 50,
@@ -490,7 +490,8 @@
      "**evidence_hash 의 무결성** — 일부는 B 가 디렉터리 바이트로 계산한 값이고 E 가 쓴 바이트의 증언이 아니다(`evidence_hash_provenance` 참조)",
      "**`COLLECTOR_ZERO_CANDIDATE` 인 행의 사이트 사실** — 그 행들은 수집기가 후보를 못 잡은 것이고 사이트에 경로가 없다는 뜻이 아니다",
      "**`entry_observation_provenance` 가 `B_DERIVED_FROM_DOM_POSTHOC` 인 값** — 관측이 아니라 저장 DOM 에서의 파생이다",
-     "**`activation_depth`** — 사후로 채우지 않았다. E 가 준 값만 실려 있다"
+     "**`activation_depth`** — 사후로 채우지 않았다. E 가 준 값만 실려 있다",
+     "**`accessible_name` 열은 AX 관측이 아니다** — 이번 census 의 AX 캡처가 전 상태에서 실패했고(오류 스텁 **107/107** = `{\"_error\": \"\\x27Page\\x27 object has no attribute \\x27accessibility\\x27\"}`), `accessible_name` 은 visible text 복사였다(E 의 `emit_ledger.py` 자기확인). browser-computed AX 는 **0/50**. **이 census 의 raw 로는 재추출할 수 없다.** — **그러나 방법의 한계는 아니다**: probe v2 가 `page.aria_snapshot()` 으로 21/21 실제 트리를 얻었다(A R130). 이 문구는 두 번 정정됐다 — ①'원자료는 존재하나 반영되지 않았다'(틀림, C 실측) ②'향후 재추출도 불가능하다'(**과했음, probe v2 가 반증**)."
     ],
     "label_relation_rule": {
      "NONE": "둘 다 미관측",
@@ -504,13 +505,93 @@
     },
     "label_relation_provenance": "B_RECOMPUTED_BY_RULE_TBX_017",
     "**이 mart 의 성격**": "**acquisition mart 다**(Director 규정). `collection_run` · `superseded_runs` 는 **provenance 전용이며 통계변수로 쓰지 않는다** — 회차별 성공률 같은 것을 계산하면 회차 선정이 결과와 얽혀 있어 순환이 된다",
+    "entry_control_type_출처_분해": {
+     "E_SUPPLEMENT": 8,
+     "ANCHOR_ON_E_LABEL": 18,
+     "B_LEXICON_MATCHER": 2,
+     "관측 기반 합": 26,
+     "B 추측": 2,
+     "**주의**": "`entry_observation_provenance` 는 **사후 파생 경로**를 말하며 **값의 최종 출처가 아니다** — E geometry 보충이 그 값을 덮은 행이 8건 있다. 두 열을 대응시켜 세면 출처를 잘못 귀속한다"
+    },
     "**R1 표기 규약**": "`R1 attempted 50` 과 `R1-only surviving in mart 15` 는 **다른 것을 센다.** 전자는 R1 에서 시도된 target 수, 후자는 최신우선 선택 후 mart 에 남은 R1 행 수다. **'R1 15' 만 쓰면 'R1 이 15건 수집했다' 로 오독된다**",
     "auth_gate_stage_rule": "`NONE` 은 `ENDPOINT_REACHED` 행에서만. endpoint 에 닿지 못한 행은 `UNDETERMINED` — 게이트 부재를 주장할 수 없다",
+    "supersede_chain": [
+     "0deaed787bb5b6e00c093ac5303b6b3c83d2c950f6877568c3a16bd7d1c42ea7",
+     "bce7850126643977fdc6d554448a33fded879bed61ad398c12d8d8b52b9b671a",
+     "33f6ac624432d8570ca22dd3a6db92d0a21588fcbe71a5df9d843f976e5c8b2a",
+     "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
+     "8cf57069e7588bbc3c45519e19774bebdef25cbbaa04054c854984218f429b21",
+     "18675ef679323debc3ef08a6e7c676440124c9713b31c35559fce128d035ba24",
+     "4e276cf97448e886fafaa494583da2ce7c31df617a139f707cf4eefe82ac5750"
+    ],
     "supersedes": "4e276cf97448e886fafaa494583da2ce7c31df617a139f707cf4eefe82ac5750",
+    "wording_correction_log": [
+     {
+      "n": 1,
+      "틀린 문구": "AX 원자료는 존재하나 이번 집계에 반영되지 않았다",
+      "반증": "C 실측 — `.ax.json` **107/107 이 60 B 오류 스텁**",
+      "출처": "A 의 `TBX-024` R127 판정을 B 가 받아 실었다"
+     },
+     {
+      "n": 2,
+      "과한 문구": "AX 트리 원자료는 존재하지 않으며 **향후 재추출도 불가능하다**",
+      "반증": "**probe v2 가 `page.aria_snapshot()` 으로 21/21 실제 트리를 얻었다**(A R130)",
+      "출처": "A 의 R127 정정문을 B 가 받아 실었다",
+      "**B 의 형태**": "**두 번 다 상위 판정을 확인 없이 산출물에 실었다.** D 가 같은 자리를 `D-DEF-39`(확인 가능한 상위 주장을 확인 없이 인용)로 기록했다"
+     }
+    ],
+    "**RETRACTED_LABEL**": {
+     "라벨": "NO_SAFE_ROUTE_SITE (이 mart 에 16건)",
+     "B 의 규칙이었다": "`candidate_count > 0` → SITE · `== 0` → COLLECTOR_ZERO_CANDIDATE",
+     "**철회 사유**": "probe v3 에서 그 16 중 **8건이 신뢰 가능하게 `ENDPOINT_REACHED` 로 회복**됐다 — **F2-02·05·06·07·09·10 · F4-09 · F5-01**. 좌표가 뷰포트 안이고 클릭 전후 스크린샷이 변했다",
+     "**철회 근거가 한 번 교체됐다**": "처음 근거는 **'F3 5/5'** 였는데 **전량 폐기됐다**(`PROBE-V3-003` R143). `aria_snapshot(boxes=True)` 의 box 가 문서 절대좌표라 스크롤 상태에서 화면 밖을 클릭했고 **예외 없이 `ENDPOINT_REACHED` 판정이 나갔다**(F3-05 의 `y=-19705`). **클릭이 무효인데 성공으로 기록되는 형태다.** F3 5건은 오탐 의심/판정 보류로 인용 대상이 아니다",
+     "**교체로 철회가 강해졌다**": "회복이 F3 한 family 가 아니라 **F2·F4·F5 세 family** 에 걸쳐 나왔다 — A 가 R134 에서 경고한 **family 편향이 해소**됐다",
+     "**정확한 진술**": "**`candidate_count > 0` 은 '컨트롤을 봤다' 는 뜻이지 '사이트에 경로가 있다/없다' 를 말하지 않는다.** 규칙이 관측할 수 있는 것보다 강한 이름을 붙였다 — **이름 자체가 과했다**",
+     "A 의 대체 라벨": "`ROUTE_NOT_REACHED_BY_COLLECTOR`",
+     "**이 파일의 값을 고치지 않는 이유**": "동결 기록을 덮으면 인용한 문서가 조용히 근거를 잃는다(Δ41-R36). **값은 그대로 두고 철회 사실을 붙인다.** 토큰 개명은 새 판본이 필요하고 그것은 A 의 판단이다",
+     "**분모 주의**": "**5/5 를 16 으로 외삽하지 마라.** 시험된 것은 F3 5건뿐이고 나머지 11(F2 6·F4 4·F5 1)은 `NOT_ATTEMPTED_IN_PROBE` 다. F3 는 v2 에서도 유일하게 회복된 family 라 **family 편향이 있을 수 있다**",
+     "**같은 의심이 21건에도 적용된다**": "`COLLECTOR_ZERO_CANDIDATE` 는 이름이 과하지 않았다 — **'수집기가 후보를 못 잡았다' 까지만 말한다.** 그 라벨은 철회 대상이 아니다",
+     "**probe v2 의 3건은 좌표버그 대상인가 — B 추정이 틀렸고 E 가 코드로 바로잡았다**": {
+      "왜 쟀나": "내가 그 3건(F3-01·03·07)을 `COLLECTOR_ZERO_CANDIDATE` 가 옳았다는 증거로 인용했는데, **R141 좌표버그가 v2 에도 있었다면 그 증거가 무너진다**",
+      "검사 1 — 스크린샷/DOM 바이트": "**S0 ≠ S1 · dom 도 상이 · 3건 전부.** C 가 v3 오탐을 잡은 그 방법이다 — '클릭 후 무변화' 형태가 아니다",
+      "**B 의 추정과 그것이 틀린 이유**": "산출물에 좌표 필드가 없어서 **좌표 클릭 경로를 타지 않았다고 추정했다. 틀렸다.** E 가 코드를 열어 확인했다 — `cand.get('el')` 이 있으면 `el.click()`, 없으면 `click_xy(page.mouse.click)` 인데 **AX_SNAPSHOT 소스 후보는 구조적으로 `el=None` 이라 무조건 좌표 분기**다. **v2 3건 전부 그 경로였다**",
+      "**정확한 진술**": "**같은 결함 노출 코드경로였고 이번엔 좌표가 우연히 뷰포트 안이었다** (`x_end` 334·352·348, 전부 ≤390). **구조적 안전이 아니라 우연이다.** **'다른 방법이라 안전했다' 로 쓰지 마라** — E 가 인용 전에 직접 요청한 표현이다(`L22`)",
+      "판정": "**인용은 유지한다** — 값은 png/dom 변화와 좌표 뷰포트 내로 검증됐다. 다만 **재현성은 보장되지 않는다**",
+      "**좌표 근거의 소재 — 이 문서로는 검증할 수 없다**": "코드는 좌표를 썼고 **trace 에는 기록하지 않았다.** 둘 다 참이라 모순이 아니다. 그래서 `x_end` 334·352·348 은 **E 의 로그에서 나온 값이고 census 산출물 어디에도 없다.** 이 문서를 읽는 사람은 그 수치를 **산출물만으로 검증할 수 없다** — `L22` 와 E 보고를 함께 봐야 한다",
+      "**교훈**": "**산출물에 무엇이 없다는 것은 코드가 그것을 안 썼다는 증명이 아니다.** B 가 그 유보를 달았기 때문에 E 확인으로 넘어갔고 추정이 뒤집혔다 — **유보가 없었으면 틀린 추정이 결론으로 굳었다**"
+     }
+    },
+    "cited_sources": {
+     "**주의**": "**아래 sha 는 인용 시점의 원천 티켓 바이트다.** 지금 그 티켓이 다르면 이 문서의 인용은 그 시점 값이며 최신이 아닐 수 있다",
+     "tickets": {
+      "T-A-V3-PROBE-V3-001": "5bfc7119159f6465ba85f3916ec19c32a7c9ad44791970ac8bfc3abb3fc3c74d",
+      "T-A-V3-PROBE-V3-003": "0f2682b5f2f35cc38789d3a0a4c99e68d1c5b3f7b70ae87d3bc6d128333f57f2",
+      "T-A-V3-PROBE-V4-002": "4e91dc69cc25df03a0319135ff0f7bca9afbd647c2113145e27076fbc3f76bc8",
+      "C-ASSURANCE-124542": "fa54f13fd16e31ef3d62a4486714ea79bef304e5a1ee08c847a15322f7666e67",
+      "T-A-V3-TBX-024": "51067a6af9d0e9fb90db284774647f75603fe761417830ff0410ee50b53f6611"
+     },
+     "인용한 수치": {
+      "철회 근거 8건(F2-02·05·06·07·09·10 · F4-09 · F5-01)": "C-ASSURANCE-124542 / T-A-V3-PROBE-V3-003",
+      "F3 5/5 폐기": "T-A-V3-PROBE-V3-003 R143",
+      "v2 회복 3건(F3-01·03·07)": "B 자체 측정 + E 코드 확인(A 중계)",
+      "x_end 334·352·348": "**E 로그 — census 산출물에 없다**",
+      "AX 오류 스텁 107/107": "C 실측 / T-A-V3-TBX-024 R127 정정"
+     },
+     "**B 에 없는 것**": "**인용 정합성 검사.** 인용이 원천 최신본과 같은지 자동으로 확인하지 않는다 — 다음 실행 항목이며 지금 넣지 않는다(동결본을 흔들지 않는다)"
+    },
+    "**쓰면 안 되는 문구**": "'AX 는 원리적으로 못 얻는다' — probe v2 가 반증했다. 맞는 표현은 '이번 census 에서 AX 캡처가 실패했고 그 raw 로는 복구할 수 없다' 까지다",
+    "supersede_chain_provenance": "**사슬의 sha 는 각 동결 시점의 도구 출력에서 왔고, 짧은 형태가 `claude-b/integration-current` 커밋 메시지에 남아 있다.** 이 배열은 그것을 복원한 것이며 **각 판본의 CSV 바이트는 남아 있지 않다** — 한 파일을 덮어쓰는 방식이라 폐기본은 복구 불가다",
     "collection_run_distribution": {
      "E-REAL-CENSUS-1230": 15,
      "E-REAL-CENSUS-1230-R2": 22,
      "E-REAL-CENSUS-1230-R2B": 13
+    },
+    "**행 안에서 회차가 섞인다 — `collection_run` 은 행 전체를 말하지 않는다**": {
+     "실측": "`entry_geometry_provenance == E_R3_SUPPLEMENT` **8행 전부** `collection_run` 이 `E-REAL-CENSUS-1230`(R1) 인데 **geometry 4열(`entry_x_norm`·`entry_y_norm`·`entry_zone`·`entry_control_type`)은 R3 보충에서 왔다**",
+     "**따라서**": "**`collection_run` 을 그 행의 모든 값의 출처로 읽으면 틀린다.** geometry 열의 출처는 `entry_geometry_provenance` 가 따로 들고 있다",
+     "이름이 범위보다 크다": "`NO_SAFE_ROUTE_SITE` 가 관측보다 강한 이름이었던 것과 같은 형태다 — **열 이름이 자기가 덮는 범위보다 넓게 읽힌다**",
+     "왜 이렇게 뒀나": "R3 는 geometry 목적 회차라 A 가 최신우선 선택 풀에서 빼라고 지시했고(`TBX-019`), 그 데이터는 **별도 통로**로만 들어온다. **구조가 그래서 섞이는 것이지 실수가 아니다** — 다만 **이름이 그 사실을 말하지 않았다**",
+     "출처": "`D-V3-FINDING-040` 이 자기 매트릭스에서 같은 형태(계기 혼입)를 발행 전에 잡았고, B 가 그것을 자기 산출에 돌려 확인했다"
     },
     "run_mixing_note": "**target 마다 수집 회차가 다르다.** 최신-run 우선 규칙은 결과에 눈감고 적용되지만, R2/R3 가 부분집합에만 있으므로 **두 수집 체제가 target 별로 섞여 있다.** `collection_run` 으로 어느 회차 산물인지 행마다 확인할 수 있다",
     "self_approved": false
@@ -3161,6 +3242,27 @@
     "mart": "CANONICAL_MART_50",
     "mart_sha256": "4e276cf97448e886fafaa494583da2ce7c31df617a139f707cf4eefe82ac5750",
     "mart_bytes": 29898,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 85,
+    "dispatch_lines": 85,
+    "ingest_lines": 50,
+    "raw_target_dirs": 50
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:50:06+09:00",
+   "state": "CANONICAL_50_SEEN",
+   "summary": {
+    "checks_pass": 12,
+    "checks_flag": 5,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 252,
+    "systemic_candidates": []
+   },
+   "inputs": {
+    "mart": "CANONICAL_MART_50",
+    "mart_sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+    "mart_bytes": 28715,
     "mart_rows": 50,
     "evidence_manifest_lines": 85,
     "dispatch_lines": 85,

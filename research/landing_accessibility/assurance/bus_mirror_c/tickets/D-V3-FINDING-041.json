@@ -1,0 +1,85 @@
+{
+ "ticket_id": "D-V3-FINDING-041",
+ "type": "FINDING",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "1f1f48b3fd1067b23317d559e38e234209a697f8",
+ "in_response_to": [
+  "D-V3-FINDING-040"
+ ],
+ "measured_at_kst": "2026-08-28T13:31:17+09:00",
+ "headline": "`entry_zone`·`control type` 은 **22/22 가 아니라 둘 다 14/22 이고 같은 14건**이다 — 다만 그 14 에서는 control 이 사후파생이 아니라 **브라우저 AX role 직접 관측**이다",
+ "질문과_답": {
+  "질문": "`entry_zone` 과 `control type` 이 22/22 로 살아 있는가 — 살아 있으면 n=8 보다 풍부한 기술분석이 가능하다",
+  "답": "**아니다. 둘 다 14/22 이고 정확히 같은 14건이다** — AX 가 살아난 probe 14. census 8 은 AX 가 60B 스텁이라 둘 다 얻지 못한다"
+ },
+ "the_measurement": {
+  "n": {
+   "zone_from_bbox": "14/22",
+   "ax_role": "14/22",
+   "same_14": true,
+   "targets": [
+    "F2-02",
+    "F2-05",
+    "F2-06",
+    "F2-07",
+    "F2-09",
+    "F2-10",
+    "F3-01",
+    "F3-03",
+    "F3-04",
+    "F3-07",
+    "F4-01",
+    "F4-09",
+    "F4-10",
+    "F5-01"
+   ]
+  },
+  "분포": {
+   "zone_from_bbox": {
+    "TOP_RIGHT": 5,
+    "BOTTOM_CENTER": 3,
+    "TOP_CENTER": 6
+   },
+   "ax_role": {
+    "link": 5,
+    "textbox": 4,
+    "button": 3,
+    "tab": 1,
+    "spinbutton": 1
+   }
+  }
+ },
+ "D_자기정정": "앞 회차에 이 두 축을 '`raw` 에 없다' 로 매트릭스에서 제외했다. **틀렸다** — zone 은 trace 의 중첩 bbox 에서, control 은 AX `aria_snapshot` 의 role 에서 얻을 수 있다. '없다' 를 확인 없이 적었고 이번에 파싱해서 잡았다",
+ "그래도_얻은_것": {
+  "control_type_이_사후파생이_아니다": "기존 n=8 의 control type 은 mart 의 **B 사후 DOM 파생**(TEXT_LINK·ICON_TEXT 2종)이었다. 여기서는 **브라우저가 계산한 AX role 을 직접 읽는다** — link 5 · textbox 4 · button 3 · tab 1 · spinbutton 1 로 **5종**. **증거 강도가 다르다**: 파생값이 아니라 관측값이다",
+  "textbox_와_spinbutton": "입력 요소가 진입점인 사례가 5건 있다(textbox 4 · spinbutton 1). n=8 의 2종 분류로는 보이지 않던 형태다 — 진입이 '누르기' 가 아니라 '입력' 인 경우"
+ },
+ "비교하면_안_되는_것": {
+  "zone": "기존 5종(mart)과 여기 3종(bbox 파생)은 **같은 이름이지만 다른 정의**다. mart 는 B 사후파생 구분이고 이것은 390×844 를 3×3 으로 자른 격자다. **두 수를 비교하지 않는다**",
+  "control": "기존 2종과 여기 5종도 정의가 다르다. **'늘었다' 가 아니라 '다른 축이다'** — 사후파생 분류와 AX role 은 같은 것을 세지 않는다"
+ },
+ "발표_표기": {
+  "쓸_수_있다": "AX 가 살아난 14건에서는 진입 control 이 link·button 만이 아니라 **textbox·spinbutton 도 있었다**(n=14)",
+  "쓸_수_없다": "control type 이 2종에서 5종으로 늘었다 — 정의가 달라 비교가 아니다",
+  "n_표기": "이 두 축은 **n=14** 로 적는다. 22 로 적으면 census 8 을 관측한 것처럼 읽힌다"
+ },
+ "왜_C_가_봐야_하나": "D 는 raw 에서 새 축 두 개를 파생했다 — **C 가 아직 검산하지 않은 값**이다. zone 은 D 가 정한 3×3 격자이고 mart 정의와 다르며, AX role 은 라벨 부분일치로 노드를 찾는다. **두 방법 모두 D 가 만든 것이므로 C 재계산 없이는 ASSURED 가 아니다**",
+ "artifact_refs": {
+  "results/D_N22_ZONE_CONTROL.json": "14건 전수 + bbox·role 원값"
+ },
+ "limitation": "zone 은 bbox 중심점을 3×3 격자에 넣은 것이고 mart 정의와 다르다. AX role 은 라벨 부분일치로 노드를 찾으므로 동명 노드가 있으면 첫 매칭을 쓴다",
+ "not_a_verdict": "관측이다. 이 두 축을 발표에 쓸지는 A 판정이며 C 재계산 전에는 EXPLORATORY 다",
+ "created_at_kst": "2026-08-28T13:31:46+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

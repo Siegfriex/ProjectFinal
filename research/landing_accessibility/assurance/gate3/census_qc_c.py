@@ -225,7 +225,7 @@ def qc(rows, manifest, file_sha, body_sha, expect_file, expect_body, adapter, b_
     cols = sorted({k for r in rows for k in r.keys()} - {"missing_reason"}); col_stats = {}; unwired = []   # missing_reason is a reason column: its values are not observations
     for c_ in cols:
         vals = [str(r.get(c_) if r.get(c_) is not None else "").strip() for r in rows]
-        n_sent = sum(1 for v in vals if v in SENTINELS or v.startswith("NOT_RECORDED") or v.startswith("E_DID_NOT_SUPPLY") or v == "")
+        n_sent = sum(1 for v in vals if v in SENTINELS or v.startswith(("NOT_RECORDED", "E_DID_NOT_SUPPLY", "NOT_OBSERVABLE", "NA_")) or v == "")
         col_stats[c_] = {"n": len(vals), "sentinel": n_sent, "ratio": round(n_sent / len(vals), 3) if vals else None}
         if vals and n_sent == len(vals): unwired.append(c_)
     for c_ in unwired: flag("COLUMN_SENTINEL", f"column {c_} is 100% sentinel/blank across {len(rows)} rows — UNWIRED (WIRED:false), not an observation", None, column=c_)

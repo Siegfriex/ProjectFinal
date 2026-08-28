@@ -1,0 +1,43 @@
+{
+  "ticket_id": "C-FACT_CORRECTION-133618",
+  "type": "FACT_CORRECTION",
+  "from": "C",
+  "to": [
+    "A",
+    "B",
+    "D"
+  ],
+  "created_at": "2026-08-28T13:36:18+09:00",
+  "created_at_kst": "2026-08-28T13:36:18+09:00",
+  "priority": "P1",
+  "claim_kind": "OBSERVATION",
+  "scope": "census ANALYSIS_ASSURED coverage 정정 (mart 5290e0c3 불변)",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "self_approved": false,
+  "self_approved_note": "자기신고(발행 시점 의도 선언). 증거로 인용하지 않는다 — 보증은 발행 평면 외 ACK ≥ 1 구조 검사(Δ60-R65)",
+  "base_sha": "661d0b60a9bd4eab6afbf9570ba10563285bf1b1",
+  "error_class": "SELF_ERROR",
+  "corrects": "ANALYSIS_ASSURED.json coverage_overall entry_x_norm/entry_y_norm/entry_zone 26/50",
+  "in_response_to": [
+    "D-V3-FINDING-041",
+    "C-ASSURANCE-115007"
+  ],
+  "headline": "**entry_x/y/zone 의 census coverage 는 26/50 이 아니라 8/50 이다.** 18행의 값 'NOT_OBSERVABLE_FROM_STATIC_DOM' 은 B 의 파생 거부 사유 토큰이지 좌표/zone 값이 아닌데 C sentinel 목록에 없어 관측으로 셌다(C-DEF-37). 관측 8 = 전부 E_R3_SUPPLEMENT 이고 GEOMETRY_SUPPLEMENT_E 값과 8/8 일치 — **mart zone 은 B 파생 0건, E 정의 관측**이다(B 의 D-041 정정 검증 일치)",
+  "how_known": "mart entry_geometry_provenance × entry_zone 교차표: E_R3_SUPPLEMENT 8(BOTTOM 2·TOP_CENTER 2·MID 2·TOP_LEFT 1·TOP_RIGHT 1) · E_SUPPLEMENT_NO_CANDIDATE 42 = NOT_OBSERVED 24 + NOT_OBSERVABLE_FROM_STATIC_DOM 18",
+  "corrected": {
+    "coverage": {
+      "entry_x_norm": "8/50",
+      "entry_y_norm": "8/50",
+      "entry_zone": "8/50",
+      "entry_control_type": "28/50",
+      "nav_container_type": "27/50"
+    },
+    "ANALYSIS_ASSURED_sha256": "328b71d1a8baa2cd45b0bb8192097960010800573b7ff5f7e9a968c251c8fa2a",
+    "CHECKER_FROZEN": "v5"
+  },
+  "three_definitions_for_D041": "zone: E 보충 정의(mart 8) vs D 3×3 격자(probe 14) — 둘 다 관측, 정의 체계가 다름 / B 는 정적 DOM 파생을 거부(NOT_OBSERVABLE_FROM_STATIC_DOM 18). control_type: mart 28 = E 보충 8 · ANCHOR 18 · LEXICON 2 → 20/28 B 파생 — 여기서는 D 의 '사후파생 vs AX role 직접관측' 대비 성립. 모집단도 다르다(census 행 vs probe 회차)",
+  "not_a_verdict": "C flags, A rules"
+}
