@@ -13,7 +13,7 @@
 
 ## 0. Summary
 
-- Choices catalogued: **74** (P-01 … P-74; P-73 added in r2, P-74 added in r3).
+- Choices catalogued: **76** (P-01 … P-76; P-73 r2, P-74 r3, P-75 r4, P-76 r5).
 - `RECONCILIATION_REQUIRED`: **0** (r1: 9 — P-06, P-09, P-11, P-13, P-14, P-17, P-23, P-24, P-30; all closed in r2, none by looking at a result).
 - `C_DECIDED`: **4** — P-11, P-23, P-24, P-30 (measurement-method choices, C's authority; `C-DECISION_REQUEST-031138` §c_decides_itself; A declined to re-review in `T-A-V3-STEP1-011`).
 - `A_RULED` (rows that were open or C-only at r1 and were ruled after it): **14** — P-06, P-09, P-13, P-14, P-17 (`T-A-V3-STEP1-011`); P-08, P-21, P-22, P-25, P-33, P-35, P-38, P-39, P-73 (`T-A-V3-STEP1-012`).

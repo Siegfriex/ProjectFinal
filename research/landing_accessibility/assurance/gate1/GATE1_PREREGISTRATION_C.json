@@ -2148,6 +2148,33 @@
    "authority_override": null,
    "notes": "worker 4 해결·C 본체 검토. 대안(폴드에 걸친 컨트롤)은 fvss=S0 인데 visible=false 가 되는 모순으로 기각",
    "follow_up": "A 가 GAP-05 를 '0.0' 으로 명시 판정하면 세 키만 바꾼다"
+  },
+  {
+   "id": "P-76",
+   "variable": "CI-14 r2 순서 발산 fixture 의 Δ30 1차 키 값과 발산 해석",
+   "status": "C_DECIDED",
+   "lane_sources": [
+    "lane2_label_reveal/EXPECTATIONS.json order_controls",
+    "lane2 measure_geometry.py delta30_order/min4_order/order_explaining"
+   ],
+   "lane_files_r2": [
+    "gate1/lane2_label_reveal/fixtures/order_divergence_marked_not_first.html",
+    "gate1/lane2_label_reveal/measure_geometry.py"
+   ],
+   "divergent_case": "Δ30 1차 키 task_binding_candidate 는 binder(lane1) 산출인데 lane2 fixture 에는 binder 가 없다",
+   "resolution_r2": "lane2 에서는 [data-c-candidate] 전부를 후보로 fixture 가 선언(전원 true) → dom_order 가 결정; 3차 키 selector=tag#id; order_explaining 은 두 순서가 같으면 DELTA30, min4 1위이면서 Δ30 1위가 아닐 때만 MIN4; V3PathOrderDivergenceError 는 SEAM_REFUSED(PASS/FAIL 아님, Δ47-refusal)",
+   "c_rules": [
+    "Δ30-tiebreak",
+    "Δ36-order",
+    "Δ47-marked",
+    "Δ47-refusal",
+    "ruling_10"
+   ],
+   "ssotv3_clause": "delta Δ30/Δ36/Δ47",
+   "authority_ticket": "T-A-V3-STEP1-035",
+   "authority_override": null,
+   "notes": "worker 6 해결·C 본체 검토. min4 키는 REFERENCE_DEFINITIONS.md(A1 line 366) 인용",
+   "follow_up": "어댑터 도착 후 runner 의 SELECTED/rank 를 두 순서와 대조(CI-14)"
   }
  ],
  "revision": {
@@ -2194,7 +2221,7 @@
  "counts": {
   "CONSISTENT": 54,
   "A_RULED": 14,
-  "C_DECIDED": 6,
+  "C_DECIDED": 7,
   "PROVISIONAL_PENDING_A": 1
  }
 }
