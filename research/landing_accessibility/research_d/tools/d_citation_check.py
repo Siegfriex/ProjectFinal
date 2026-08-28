@@ -163,6 +163,14 @@ def coverage_agreement() -> dict:
     return {"verdict": "PASS" if (not bad and not missing) else "FAIL",
             "n_axes": len(rows), "disagree": bad, "missing_sources": missing,
             "축": "**교차 일치** — 같은 축을 계산하는 세 곳이 같은 수를 내는가",
+            "**독립_확인이_아니다**": ("[D-DEF-71 / T-B-V3-FINDING-018] 세 원천은 **전부 "
+                             "B mart 의 하류**다 — `d_coverage()` 도 `T3` 도 "
+                             "`ANALYSIS_ASSURED` 도 같은 CSV 를 읽는다. **공통 상류가 "
+                             "틀리면 셋이 같이 틀린다.** 이 검사가 잡는 것은 "
+                             "**하류 사이의 갈라짐**이지 상류의 정확성이 아니다"),
+            "진짜_독립_다리": ("**동결 CSV 바이트에서 직접 재계산하는 것**이고 그것은 mart "
+                       "소유자인 B 가 한다(`T-B-V3-FINDING-018`). 실제로 B 가 그렇게 해서 "
+                       "**자기 mart 의 미선언 결측 토큰 3종 86셀**을 찾았다"),
             "C_값이_달라지면": "그것도 신호다 — **C 가 재계산했다는 뜻**이고 D 가 알아야 한다",
             "읽지_못한_원천은_통과가_아니다": "`missing_sources` 가 있으면 FAIL 이다"}
 
