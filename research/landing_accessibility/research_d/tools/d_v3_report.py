@@ -107,33 +107,108 @@ def _cases(df):
     return rows
 
 
+R3_TRACE = C.REPO / "artifacts/v3_census/raw/E/E-REAL-CENSUS-1230-R3"
+
+
+def label_geometry_match(target_id: str, visible_label: str) -> bool:
+    """[A R152/R154] 이 행의 **라벨과 좌표가 같은 후보를 가리키는가**.
+
+    mart 의 `visible_label` 은 R1 에서, `entry_x/y/zone` 은 R3 보충에서 왔다.
+    **R1 trace 에는 `selected_candidate` 키가 아예 없어서**(R3 에서 신설) 두
+    회차가 서로 다른 후보를 골랐을 수 있다. k=8 중 3건이 그랬다.
+
+    D 가 F2-01 **1건**을 짚었고 전수 확장은 B 가 했다 —
+    **한 건의 이상은 표본이지 결론이 아니다**(A method 절).
+    """
+    p = R3_TRACE / target_id / f"E_SCOUT_TRACE_{target_id}.jsonl"
+    if not p.exists():
+        return False
+    sc = None
+    for line in p.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            d = json.loads(line)
+        except Exception:
+            continue
+        if isinstance(d.get("selected_candidate"), dict):
+            sc = d["selected_candidate"]
+    return bool(sc) and str(sc.get("visible_label", "")).strip() == str(visible_label).strip()
+
+
 def figure2_spatial_cases(df):
-    """관측 가능한 사례의 진입점. **'분포' 라는 말을 쓰지 않는다** (A TBX-022)."""
+    """관측 가능한 사례의 진입점. **'분포' 라는 말을 쓰지 않는다** (A TBX-022).
+
+    [A R154] **섞는 것을 막을 수 없으면 보이게 만든다.** 8점을 다 그리되 두 층으로
+    나눈다 — 라벨·좌표가 같은 후보인 5점은 실선 마커에 라벨을 달고, 출처가
+    어긋난 3점은 속 빈 마커에 라벨을 달지 않는다. B 는 8점 무라벨을 권했으나
+    A 가 채택하지 않았다: **무엇의 좌표인지 주장하지 않으면 진입점 분산도 못
+    말한다.**
+    """
     cs = _cases(df)
-    fig, ax = plt.subplots(figsize=(7.2, 6.4))
+    n_ok = sum(1 for c in cs
+               if label_geometry_match(c["target_id"], c.get("visible_label", "")))
+    ok_cases = [c for c in cs
+                if label_geometry_match(c["target_id"], c.get("visible_label", ""))]
+    fig, ax = plt.subplots(figsize=(7.6, 6.6))
+    fig.subplots_adjust(top=.845, bottom=.135, left=.105, right=.965)
+    placed = []
     if not cs:
         ax.text(0.5, 0.5, "NO OBSERVABLE CASES", ha="center", va="center",
                 color="red", fontsize=13, transform=ax.transAxes)
     else:
         for c in cs:
             x, y = float(c["entry_x_norm"]), float(c["entry_y_norm"])
-            ax.scatter([x], [y], s=90, color="#2166ac", alpha=.85, zorder=3)
-            ax.annotate(f"{c['target_id']}\n{c.get('service','')}", (x, y),
-                        fontsize=6.5, xytext=(6, 4), textcoords="offset points")
-        ax.set_xlim(0, 1); ax.set_ylim(1, 0)
+            ok = label_geometry_match(c["target_id"], c.get("visible_label", ""))
+            # 오른쪽 끝은 라벨을 왼쪽으로 뺀다. 이미 쓴 자리와 가까우면 아래로 내린다
+            ha, dx = ("right", -8) if x > 0.86 else ("left", 7)
+            dy = 4
+            for px, py in placed:
+                if abs(px - x) < .10 and abs(py - y) < .055:
+                    dy = -13
+            placed.append((x, y))
+            if ok:
+                ax.scatter([x], [y], s=95, color="#2166ac", alpha=.9, zorder=3)
+                ax.annotate(f"{c['target_id']}  {c.get('visible_label','')}", (x, y),
+                            fontsize=6.6, ha=ha, xytext=(dx, dy),
+                            textcoords="offset points", zorder=4)
+            else:
+                # 라벨을 달지 않는다 — 이 좌표가 그 라벨의 것이 아니기 때문이다
+                ax.scatter([x], [y], s=95, facecolors="none", edgecolors="#7d858f",
+                           linewidths=1.4, zorder=3)
+                ax.annotate(c["target_id"], (x, y), fontsize=6.2, color="#7d858f",
+                            ha=ha, xytext=(dx, dy), textcoords="offset points", zorder=4)
+        from matplotlib.lines import Line2D
+        ax.legend(handles=[
+            Line2D([], [], marker="o", linestyle="none", color="#2166ac", markersize=8,
+                   label="라벨·좌표가 같은 후보 (n=%d)" % n_ok),
+            Line2D([], [], marker="o", linestyle="none", markerfacecolor="none",
+                   markeredgecolor="#7d858f", markersize=8,
+                   label="라벨·좌표 출처 불일치 — 좌표는 R3 후보의 것 (n=%d)" % (len(cs) - n_ok)),
+        ], loc="lower left", fontsize=7.4, framealpha=.92, borderpad=.6)
+        # 0·1 에 붙은 점이 잘리지 않도록 여유만 준다. 눈금은 0~1 그대로다
+        ax.set_xlim(-.03, 1.03); ax.set_ylim(1.03, -.03)
+        ax.set_xticks([0, .2, .4, .6, .8, 1.0]); ax.set_yticks([0, .2, .4, .6, .8, 1.0])
         ax.set_xlabel("entry_x_norm (0=left)"); ax.set_ylabel("entry_y_norm (0=top)")
         ax.grid(alpha=.25, zorder=0)
-    zones = Counter(str(c.get("entry_zone")) for c in cs)
-    ctrls = Counter(str(c.get("entry_control_type")) for c in cs)
-    ax.set_title("관측 가능한 %d개 사례의 진입점은 같은 위치에 모이지 않았다" % len(cs),
-                 fontsize=12)
-    fig.text(0.5, 0.89, "zone %d종/%d · control %d종/%d  (비수렴)"
-             % (len(zones), len(cs), len(ctrls), len(cs)),
-             ha="center", fontsize=8.5, color="#2166ac")
-    fig.text(0.5, 0.93, "Observed cases only, n=%d/%d" % (len(cs), len(df)),
-             ha="center", fontsize=9, color="dimgray")
-    _foot(fig, "개별 사례다. 나머지 %d개는 진입 후보 자체가 관측되지 않아 위치라는 것이 존재하지 않는다. "
-               "source: E_R3_SUPPLEMENT (live click geometry)." % (len(df) - len(cs)))
+    # [A R153] 수치는 **일치분 n=5 에서** 낸다. 8 로 세면 오염분이 섞인다
+    zones = Counter(str(c.get("entry_zone")) for c in ok_cases)
+    ctrls = Counter(str(c.get("entry_control_type")) for c in ok_cases)
+    # 위에서부터 겹치지 않게 명시 배치한다 — 제목이 2줄이라 set_title 로는 부딪힌다
+    fig.text(.5, .975, "라벨·좌표가 같은 후보인 사례만 셈, n=%d/%d" % (n_ok, len(df)),
+             ha="center", fontsize=8.8, color="dimgray")
+    fig.text(.5, .935, "관측 가능한 %d개 사례의 진입점은 같은 위치에 모이지 않았다" % n_ok,
+             ha="center", fontsize=12.5, weight="bold")
+    fig.text(.5, .900, "(n=%d/%d, 좌표 출처 불일치 %d건 별도 표기)"
+             % (n_ok, len(df), len(cs) - n_ok), ha="center", fontsize=10)
+    fig.text(.5, .868, "zone %d종/%d · control %d종/%d  (비수렴)"
+             % (len(zones), n_ok, len(ctrls), n_ok),
+             ha="center", fontsize=8.6, color="#2166ac")
+    _foot(fig, "개별 사례다. %d개는 진입 후보 자체가 관측되지 않아 위치라는 것이 존재하지 않는다. "
+               "속 빈 %d점은 라벨이 R1, 좌표가 R3 후보의 것이라 라벨을 달지 않았다 — "
+               "섞는 것을 막을 수 없으면 보이게 만든다 (A R154). "
+               "source: E_R3_SUPPLEMENT (live click geometry)."
+               % (len(df) - len(cs), len(cs) - n_ok))
     return _save(fig, "report_fig2_spatial_cases.png")
 
 
@@ -180,7 +255,7 @@ def figure3_flow_cases(df):
     # 따라서 "비수렴" 도 "미관측 8/8" 도 아니고 **이 주장에서 제외**한다.
     fig.text(0.5, 0.945,
              "수렴: SELECT_FUNCTION ×8 · activation_depth=1 ×8 · menu_dependency=False ×8      "
-             "비수렴: entry_zone 5종/8 · entry_control_type 2종/8   (둘 다 E 관측 8/8)",
+             "비수렴: entry_zone 4종/5 · entry_control_type 2종/5   (라벨·좌표 일치분. 출처 불일치 3건 제외 — A R153)",
              ha="center", fontsize=8.5, color="#2166ac")
     fig.text(0.5, 0.915,
              "navigation container는 이 주장에 포함하지 않는다 — E 산출 0 · B 사후파생 7 · 인용가능 5(실질 4).",
