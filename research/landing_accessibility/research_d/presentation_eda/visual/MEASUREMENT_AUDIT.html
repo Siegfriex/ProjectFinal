@@ -1,0 +1,535 @@
+<title>MAIN50 측정 감사</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap">
+
+<style>
+  :root{
+    /* surfaces & ink */
+    --ground:#f7f8fa; --panel:#ffffff; --panel-2:#eceff3;
+    --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#7d7f84;
+    --rule:#dde1e7; --rule-2:#c6ccd4;
+
+    /* categorical — documented slots 1/2/3 (light) */
+    --cat-1:#2a78d6; --cat-2:#eb6834; --cat-3:#1baf7a;
+
+    /* ordinal ramp — evidence strength, one hue, 650/500/400/300 */
+    --ord-1:#104281; --ord-2:#256abf; --ord-3:#3987e5; --ord-4:#6da7ec;
+
+    /* status (fixed, never themed) + out-of-ramp neutral */
+    --critical:#d03b3b;
+    --absent:#d3d8de;
+
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'Noto Sans KR',system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:where(:not([data-theme="light"])){
+      --ground:#131519; --panel:#171b21; --panel-2:#1f242c;
+      --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#8b9098;
+      --rule:#282e37; --rule-2:#3a424e;
+      --cat-1:#3987e5; --cat-2:#d95926; --cat-3:#199e70;
+      /* dark flips the ordinal anchor: strongest is lightest */
+      --ord-1:#cde2fb; --ord-2:#9ec5f4; --ord-3:#5598e7; --ord-4:#256abf;
+      --critical:#d03b3b;
+      --absent:#39404a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#131519; --panel:#171b21; --panel-2:#1f242c;
+    --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#8b9098;
+    --rule:#282e37; --rule-2:#3a424e;
+    --cat-1:#3987e5; --cat-2:#d95926; --cat-3:#199e70;
+    --ord-1:#cde2fb; --ord-2:#9ec5f4; --ord-3:#5598e7; --ord-4:#256abf;
+    --critical:#d03b3b;
+    --absent:#39404a;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1060px; margin:0 auto; padding:56px 26px 88px}
+
+  .mast{border-bottom:2px solid var(--ink); padding-bottom:20px}
+  .kicker{font-family:var(--mono); font-size:11px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-3); margin:0 0 10px}
+  h1{font-size:clamp(29px,4.3vw,45px); line-height:1.14; margin:0 0 14px;
+    font-weight:700; letter-spacing:-.022em; text-wrap:balance}
+  .dek{font-size:16px; color:var(--ink-2); max-width:62ch; margin:0; font-weight:300}
+  .dek b{color:var(--ink); font-weight:500}
+  .stamp{display:flex; flex-wrap:wrap; gap:6px 22px; margin-top:18px;
+    font-family:var(--mono); font-size:11px; color:var(--ink-3)}
+  .stamp b{color:var(--ink-2); font-weight:500}
+
+  section{margin-top:50px}
+  h2{font-size:13px; font-family:var(--mono); font-weight:600; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--ink-2); margin:0 0 4px;
+    display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  h2 .n{color:var(--ink-3); font-weight:400}
+  .sub{font-size:14px; color:var(--ink-2); margin:0 0 20px; max-width:64ch; font-weight:300}
+  .sub b{color:var(--ink); font-weight:500}
+
+  /* ── stacked bar: 2px surface gap between fills, 4px rounded data-ends ── */
+  .acq{display:flex; gap:2px; height:74px}
+  .acq div{display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:#fff; gap:2px; padding:0 8px; text-align:center; cursor:default}
+  .acq div:first-child{border-radius:4px 0 0 4px}
+  .acq div:last-child{border-radius:0 4px 4px 0}
+  .acq .lab{font-size:11px; font-weight:500; line-height:1.25}
+  .acq .val{font-family:var(--mono); font-size:19px; font-weight:600;
+    font-variant-numeric:tabular-nums}
+  .acqleg{display:grid; grid-template-columns:repeat(auto-fit,minmax(206px,1fr));
+    gap:12px; margin-top:14px}
+  .acqleg div{font-size:12.5px; color:var(--ink-2); padding-left:11px; border-left:3px solid}
+  .acqleg b{color:var(--ink); font-weight:500; display:block}
+  .acqleg span{font-family:var(--mono); font-size:11px; color:var(--ink-3)}
+
+  /* ── funnel ── */
+  .funnel{display:flex; flex-direction:column; gap:7px}
+  .fr{display:grid; grid-template-columns:1fr 250px 58px; align-items:center; gap:16px}
+  .fr .fl{font-size:13.5px; color:var(--ink-2); text-align:right}
+  .fr .fb{height:24px; background:var(--panel-2); border-radius:4px; overflow:hidden}
+  .fr .fb i{display:block; height:100%; background:var(--cat-1); border-radius:4px}
+  .fr .fv{font-family:var(--mono); font-size:16px; font-weight:600;
+    font-variant-numeric:tabular-nums}
+  .fr.zero .fv{color:var(--critical)}
+  .fr.zero .fl{color:var(--ink); font-weight:500}
+
+  /* ── observability matrix ── */
+  .mx{width:100%; border-collapse:collapse; font-size:13px}
+  .mx th{font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-3); text-align:left;
+    padding:0 0 8px; border-bottom:1px solid var(--rule)}
+  .mx th:last-child{text-align:right}
+  .mx td{padding:6px 0; border-bottom:1px solid var(--rule); vertical-align:middle}
+  .mx td:first-child{font-family:var(--mono); font-size:12px; color:var(--ink);
+    white-space:nowrap; padding-right:16px}
+  .mx .stack{display:flex; gap:2px; height:16px; min-width:190px}
+  .mx .stack i{display:block; height:100%; cursor:default}
+  .mx .stack i:first-child{border-radius:4px 0 0 4px}
+  .mx .stack i:last-child{border-radius:0 4px 4px 0}
+  .mx .stack i:only-child{border-radius:4px}
+  .mx td:last-child{text-align:right; font-family:var(--mono); font-size:13px;
+    font-weight:600; padding-left:14px; font-variant-numeric:tabular-nums}
+  .mx tr.z td:last-child{color:var(--critical)}
+  .mx .badge{font-size:9px; letter-spacing:.07em; margin-left:9px; color:var(--critical);
+    border:1px solid currentColor; padding:1px 4px; border-radius:2px}
+  .mxleg{display:flex; flex-wrap:wrap; gap:7px 16px; margin-top:16px;
+    font-family:var(--mono); font-size:11px; color:var(--ink-2)}
+  .mxleg span{display:flex; align-items:center; gap:6px}
+  .mxleg i{width:11px; height:11px; border-radius:2px; display:block; flex-shrink:0}
+  .mxleg .st{color:var(--critical); font-weight:500}
+
+  /* ── tooltip ── */
+  #tip{
+    position:fixed; z-index:50; pointer-events:none; opacity:0;
+    transition:opacity .12s; background:var(--panel); color:var(--ink);
+    border:1px solid var(--rule-2); border-radius:4px; padding:9px 12px;
+    font-family:var(--mono); font-size:11.5px; line-height:1.6;
+    box-shadow:0 4px 16px rgba(0,0,0,.16); max-width:280px;
+  }
+  #tip b{display:block; font-size:12px; margin-bottom:3px; font-weight:600}
+  #tip em{font-style:normal; color:var(--ink-3); font-family:var(--sans);
+    font-size:11px; display:block; margin-top:4px; line-height:1.5}
+
+  /* ── panels ── */
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  @media(max-width:760px){.split{grid-template-columns:1fr}
+    .fr{grid-template-columns:1fr 140px 48px; gap:10px}}
+  .pan{background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:22px 24px}
+  .pan h3{margin:0 0 3px; font-size:17px; font-weight:700; letter-spacing:-.01em}
+  .pan .pt{font-family:var(--mono); font-size:11px; color:var(--ink-3); margin:0 0 18px}
+  .row{display:flex; align-items:center; gap:11px; margin-bottom:8px}
+  .row .k{font-family:var(--mono); font-size:11.5px; color:var(--ink-2);
+    width:104px; flex-shrink:0; text-align:right}
+  .row .b{flex:1; height:18px; background:var(--panel-2); border-radius:4px; overflow:hidden}
+  .row .b i{display:block; height:100%; border-radius:4px; background:var(--cat-1)}
+  .row .v{font-family:var(--mono); font-size:12.5px; width:22px; text-align:right;
+    color:var(--ink-2); font-variant-numeric:tabular-nums}
+  .same{display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--cat-3); color:#fff; border-radius:4px; padding:11px 14px; margin-bottom:8px}
+  .same .sk{font-family:var(--mono); font-size:12px}
+  .same .sv{font-family:var(--mono); font-size:13px; font-weight:600}
+
+  .verdict{margin-top:24px; padding:20px 24px; background:var(--panel);
+    border:1px solid var(--rule); border-left:3px solid var(--cat-1); border-radius:4px}
+  .verdict p{margin:0; font-size:16px; line-height:1.55; font-weight:500}
+  .verdict small{display:block; margin-top:12px; font-size:12.5px; color:var(--ink-2);
+    font-weight:300; line-height:1.62}
+  .verdict small b{color:var(--ink); font-weight:500}
+
+  /* ── wording ── */
+  .say{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  @media(max-width:760px){.say{grid-template-columns:1fr}}
+  .box{border-radius:4px; padding:20px 22px; border:1px solid var(--rule); background:var(--panel)}
+  .box.ok{border-left:3px solid var(--cat-3)}
+  .box.no{border-left:3px solid var(--critical)}
+  .box h4{margin:0 0 14px; font-family:var(--mono); font-size:11px; letter-spacing:.11em;
+    text-transform:uppercase; font-weight:600; display:flex; align-items:center; gap:7px}
+  .box.ok h4{color:var(--cat-3)} .box.no h4{color:var(--critical)}
+  .box ul{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:13px}
+  .box li{font-size:13.5px; line-height:1.55; color:var(--ink)}
+  .box li em{display:block; font-style:normal; font-size:11.5px; color:var(--ink-2);
+    margin-top:4px; font-family:var(--mono)}
+
+  .note{margin-top:16px; font-size:12.5px; color:var(--ink-2);
+    line-height:1.65; font-weight:300; max-width:74ch}
+  .note b{color:var(--ink); font-weight:500}
+  .note code{font-family:var(--mono); font-size:11.5px; background:var(--panel-2);
+    padding:1px 5px; border-radius:2px}
+
+  details{margin-top:18px; border-top:1px solid var(--rule); padding-top:14px}
+  summary{font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-3); cursor:pointer; padding:3px 0}
+  summary:hover{color:var(--ink-2)}
+  summary:focus-visible{outline:2px solid var(--cat-1); outline-offset:3px; border-radius:2px}
+  .dt{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11.5px;
+    margin-top:12px; font-variant-numeric:tabular-nums}
+  .dt th{text-align:right; color:var(--ink-3); font-weight:500; padding:5px 8px;
+    border-bottom:1px solid var(--rule); white-space:nowrap}
+  .dt th:first-child{text-align:left}
+  .dt td{text-align:right; padding:5px 8px; border-bottom:1px solid var(--rule); color:var(--ink-2)}
+  .dt td:first-child{text-align:left; color:var(--ink)}
+  .dt tbody tr:hover td{background:var(--panel-2)}
+
+  .prov{margin-top:52px; padding-top:20px; border-top:1px solid var(--rule);
+    font-family:var(--mono); font-size:11px; color:var(--ink-3); line-height:1.9}
+  .prov b{color:var(--ink-2); font-weight:500}
+  .tag{display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.07em;
+    padding:1px 5px; border-radius:2px; border:1px solid var(--rule-2);
+    color:var(--ink-3); margin-left:6px; vertical-align:2px}
+  /* retracted mark — value kept, claim withdrawn (A R137) */
+  .retracted{position:relative}
+  .retracted::after{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(135deg,
+      rgba(255,255,255,.34) 0 3px, rgba(255,255,255,0) 3px 8px);
+  }
+  .rbadge{
+    display:inline-flex; align-items:center; gap:4px;
+    font-family:var(--mono); font-size:9px; letter-spacing:.09em; font-weight:600;
+    color:#fff; background:rgba(0,0,0,.34); border:1px solid rgba(255,255,255,.5);
+    padding:1px 5px; border-radius:2px; margin-top:3px;
+  }
+  .rnote{
+    margin-top:16px; padding:16px 18px; border-radius:4px;
+    background:var(--panel); border:1px solid var(--rule);
+    border-left:3px solid var(--critical); font-size:13px; line-height:1.6;
+    color:var(--ink-2); font-weight:300;
+  }
+  .rnote b{color:var(--ink); font-weight:500}
+  .rnote .rh{
+    display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--critical); font-weight:600; margin-bottom:8px;
+  }
+  .strike{text-decoration:line-through; text-decoration-thickness:1.5px; opacity:.75}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<div class="wrap">
+
+  <header class="mast">
+    <p class="kicker">MAIN50 · 시간제한 전수관측 · 측정 감사</p>
+    <h1>50개를 전부 시도했고,<br>8개만 비교할 수 있었다</h1>
+    <p class="dek">이 보고서는 서비스의 접근성을 평가하지 않는다. <b>무엇이 측정됐고 무엇이 측정되지 못했는가</b>를
+      변수 단위로 기록한다. 여기 있는 어떤 수치도 전체 서비스 분포의 추정값이 아니고,
+      <b>사이트에 대한 진술은 하나도 남아 있지 않다.</b></p>
+    <div class="stamp">
+      <span><b>mart</b> 5290e0c3…caf</span>
+      <span><b>frozen frame</b> 50 targets</span>
+      <span><b>검산</b> C 9항 재계산 일치</span>
+      <span><b>class</b> ASSURED_RECALCULATED</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>수집 종료 시점의 상태 <span class="n">acquisition state · n=50</span></h2>
+    <p class="sub">50개 전부 시도했다. 도달하지 못한 44개를 한 덩어리로 두면 “44곳에 경로가 없었다”가 되는데,
+      그건 사실이 아니다. <b>절반 이상이 사이트가 아니라 수집기에 대한 관측이다.</b></p>
+
+    <div class="acq">
+      <div style="background:var(--cat-1); flex:8" data-tip="사용 가능한 경로 증거|8 / 50 · 16%|ENDPOINT_REACHED 6 · AUTH_GATE 2|과업 진입 경로를 끝까지 관측한 사례">
+        <span class="lab">사용 가능한 경로 증거</span><span class="val">8</span></div>
+      <div class="retracted" style="background:var(--cat-2); flex:16" data-tip="RETRACTED — 사이트 진술 철회|16 / 50 · 32%|NO_SAFE_ROUTE_SITE 16 (값은 유지, 주장은 철회)|F3 부분집합 5건을 같은 계기로 재측정하니 5/5 전부 도달했다. 이 라벨은 관측할 수 있는 것보다 강한 이름이었다.">
+        <span class="lab">사이트에 경로 없음</span><span class="val">16</span>
+        <span class="rbadge">⚠ RETRACTED</span></div>
+      <div style="background:var(--cat-3); flex:26" data-tip="측정 · 수집기 한계|26 / 50 · 52%|COLLECTOR_ZERO 21 · TIMEOUT 2 · UNVERIFIED 2 · FORBIDDEN 1|사이트가 아니라 수집기에 대한 진술">
+        <span class="lab">측정 · 수집기 한계</span><span class="val">26</span></div>
+    </div>
+
+    <div class="acqleg">
+      <div style="border-color:var(--cat-1)"><b>USABLE PATH EVIDENCE</b>
+        <span>ENDPOINT_REACHED 6 · AUTH_GATE 2</span></div>
+      <div style="border-color:var(--cat-2)"><b class="strike">SITE-SIDE ROUTE NOT OBSERVED</b>
+        <span>NO_SAFE_ROUTE_SITE 16 · <b style="color:var(--critical);display:inline">RETRACTED</b></span></div>
+      <div style="border-color:var(--cat-3)"><b>MEASUREMENT / COLLECTOR LIMITED</b>
+        <span>COLLECTOR_ZERO 21 · TIMEOUT 2 · UNVERIFIED 2 · FORBIDDEN 1</span></div>
+    </div>
+
+    <div class="rnote">
+      <span class="rh">⚠ 이 분류는 철회됐다 — 값은 남기고 주장을 내린다</span>
+      가운데 <b>16</b>은 “사이트에 안전한 경로가 없었다”로 분류됐던 값이다. 그중 <b>8건</b>이
+      <b>코드를 바꾸지 않고</b> 같은 방법으로 다시 재보니 도달에 성공했다 — 쇼핑 6 · 의료 1 · 교통 1.
+      후보를 봤다는 것(<code>candidate_count &gt; 0</code>)은 “컨트롤이 보였다”는 뜻이지
+      “사이트에 경로가 있다·없다”를 말하지 않는데, <b>라벨이 관측할 수 있는 것보다 강한 이름을 달고 있었다.</b><br><br>
+      <b>그래서 이 보고서에는 이제 사이트에 대한 진술이 하나도 없다.</b> 남은 것은 전부
+      “이 수집기가 무엇을 보았고 무엇을 보지 못했는가”다.<br><br>
+      두 가지를 섞지 않는다 — <b>철회는 이 한 라벨에만</b> 해당한다.
+      <code>COLLECTOR_ZERO_CANDIDATE</code> 21은 “수집기가 후보를 못 잡았다”까지만 말하므로 과하지 않고, 유지된다.
+      그리고 <b>8/16을 16 전체로 외삽하지 않는다</b> — 나머지는 아직 시험하지 않았거나 판정을 보류했다.
+    </div>
+
+    <div class="rnote" style="border-left-color:var(--ord-3)">
+      <span class="rh" style="color:var(--ord-3)">근거가 한 번 교체됐다 — 그리고 더 단단해졌다</span>
+      철회의 첫 근거는 <b>택배 계열 5건이 전부 도달했다</b>였다. 그 5건은 <b>폐기됐다.</b>
+      좌표를 넘기는 방식에 결함이 있어 <b>클릭이 화면 밖을 찍었는데 오류가 나지 않아 성공으로 기록</b>됐고,
+      클릭 전후 스크린샷이 <b>바이트까지 동일</b>한 것을 두 사람이 각각 발견했다.<br><br>
+      대체 근거는 <b>쇼핑 6 · 의료 1 · 교통 1 = 8건</b>이다. 검산자가 독립으로 다시 세었을 때
+      <b>같은 8건이 나왔다</b>(차이 0). 근거가 바뀌면서 오히려 강해졌다 —
+      처음엔 회복이 한 계열에만 몰려 “그 계열만 특이한 것 아니냐”는 의심이 남았는데,
+      <b>세 계열에서 나오면서 그 의심이 사라졌다.</b><br><br>
+      검산자가 16건을 다시 갈랐다 — <b>신뢰 가능 8</b>(클릭 전후 화면·DOM 모두 변했고 좌표가 화면 안) ·
+      <b>판정 보류 5</b>(DOM은 변했으나 화면은 그대로) · <b>오탐 의심 3</b>(클릭 좌표가 화면 밖).
+      뒤의 8건은 지우지 않고 그대로 남겼다. <b>인용은 신뢰 가능한 8건으로만 한다.</b>
+    </div>
+
+    <p class="note"><b>FORBIDDEN_ACTION_BOUNDARY는 측정 쪽이다.</b> 사이트가 금지행위를 한 것이 아니라
+      수집기가 안전 경계에서 멈춘 것이다. 실행된 금지행위는 0건이고, 안전가드가 클릭을 거부한 시도가 1건 관측됐다.</p>
+  </section>
+
+  <section>
+    <h2>측정 가능한 분모는 축마다 다르다 <span class="n">measurement boundary</span></h2>
+    <p class="sub">하나의 분모로 전체를 말할 수 없다. 아래로 갈수록 답할 수 있는 질문이 줄어든다.</p>
+
+    <div class="funnel">
+      <div class="fr"><div class="fl">동결된 대상</div>
+        <div class="fb"><i style="width:100%"></i></div><div class="fv">50</div></div>
+      <div class="fr"><div class="fl">시도됨</div>
+        <div class="fb"><i style="width:100%"></i></div><div class="fv">50</div></div>
+      <div class="fr"><div class="fl">사용 가능한 경로 증거</div>
+        <div class="fb"><i style="width:16%"></i></div><div class="fv">8</div></div>
+      <div class="fr"><div class="fl">진입 좌표까지 확보</div>
+        <div class="fb"><i style="width:16%"></i></div><div class="fv">8</div></div>
+      <div class="fr zero"><div class="fl">화면 라벨 ↔ 접근성 이름 독립 관측 쌍</div>
+        <div class="fb"><i style="width:0%"></i></div><div class="fv">0</div></div>
+    </div>
+
+    <p class="note">마지막 줄이 <b>0</b>인 이유는 라벨이 없어서가 아니다. 두 열이 함께 채워진 행은 <b>28</b>개다.
+      그런데 그 28개 전부가 <code>AX_NOT_INDEPENDENTLY_OBSERVED</code> — <b>접근성 이름이 화면 라벨의 복사본</b>이라
+      비교할 두 값이 애초에 하나였다. 브라우저가 계산한 접근성 이름은 이번 수집에서 0/50이다.</p>
+  </section>
+
+  <section>
+    <h2>변수별 관측가능성 <span class="n">observability audit · 증거 강도 순</span></h2>
+    <p class="sub">값이 채워져 있다는 것과 관측됐다는 것은 다르다. 아래는 <b>채워진 칸이 아니라 관측된 칸</b>을 센 것이다.
+      색은 임의 구분이 아니라 <b>증거 강도의 순서</b>다 — 진할수록 직접 관측에 가깝다.</p>
+
+    <div style="overflow-x:auto">
+    <table class="mx">
+      <thead><tr><th>변수</th><th>증거 강도 분포 (n=50)</th><th>관측</th></tr></thead>
+      <tbody id="mxbody"></tbody>
+    </table>
+    </div>
+
+    <div class="mxleg">
+      <span><i style="background:var(--ord-1)"></i>현장 관측</span>
+      <span><i style="background:var(--ord-2)"></i>보충 관측</span>
+      <span><i style="background:var(--ord-3)"></i>저장 DOM 사후 파생</span>
+      <span><i style="background:var(--ord-4)"></i>모호 · 판정 불가</span>
+      <span class="st"><i style="background:var(--critical)"></i>⚠ 수집 방법 실패</span>
+      <span><i style="background:var(--absent)"></i>미관측</span>
+    </div>
+
+    <p class="note">파랑 계열은 <b>증거 강도의 순서</b>다. 세 번째 단계(사후 파생)부터는 저장된 DOM에서 다시 뽑은 값이라
+      “사용자가 화면에서 실제로 본 라벨”이라고 말할 수 없고, “수집 시점 DOM에 있던 라벨”까지만 말할 수 있다.
+      맨 아래 두 축은 <b>값이 0인 게 아니라 한 건도 배선되지 않았다</b>. 0으로 그리면 “그런 게 없었다”로 읽히므로 따로 표시했다.</p>
+
+    <details>
+      <summary>표로 보기 — 변수 15 × 강도 6</summary>
+      <div style="overflow-x:auto">
+        <table class="dt"><thead><tr>
+          <th>변수</th><th>현장</th><th>보충</th><th>사후파생</th><th>모호</th><th>실패</th><th>미관측</th><th>관측</th>
+        </tr></thead><tbody id="dtbody"></tbody></table>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <h2>관측된 8개 사례 <span class="n">verified case series · n=8</span></h2>
+    <p class="sub">여기부터는 <b>선택된 사례들</b>이다. 무작위 표본이 아니고, 8은 성공률이 아니다.</p>
+
+    <div class="split">
+      <div class="pan">
+        <h3>달랐던 것</h3>
+        <p class="pt">진입 위치 5종 / 8 · 표현 형태 2종 / 8</p>
+        <div class="row"><span class="k">TOP_CENTER</span><span class="b"><i style="width:100%"></i></span><span class="v">2</span></div>
+        <div class="row"><span class="k">MID</span><span class="b"><i style="width:100%"></i></span><span class="v">2</span></div>
+        <div class="row"><span class="k">BOTTOM</span><span class="b"><i style="width:100%"></i></span><span class="v">2</span></div>
+        <div class="row"><span class="k">TOP_LEFT</span><span class="b"><i style="width:50%"></i></span><span class="v">1</span></div>
+        <div class="row"><span class="k">TOP_RIGHT</span><span class="b"><i style="width:50%"></i></span><span class="v">1</span></div>
+        <div style="height:14px"></div>
+        <div class="row"><span class="k">TEXT_LINK</span><span class="b"><i style="width:100%"></i></span><span class="v">6</span></div>
+        <div class="row"><span class="k">ICON_TEXT</span><span class="b"><i style="width:33%"></i></span><span class="v">2</span></div>
+      </div>
+
+      <div class="pan">
+        <h3>같았던 것</h3>
+        <p class="pt">세 축 모두 8 / 8 일치</p>
+        <div class="same"><span class="sk">조작 순서</span><span class="sv">SELECT_FUNCTION · 8/8</span></div>
+        <div class="same"><span class="sk">활성화 깊이</span><span class="sv">1 · 8/8</span></div>
+        <div class="same"><span class="sk">메뉴 의존</span><span class="sv">False · 8/8</span></div>
+        <p class="note" style="margin-top:18px">여덟 사례 모두 <b>메뉴를 거치지 않는 한 스텝</b>이었다.
+          navigation container는 이 비교에서 제외했다 — 수집기가 그 변수를 산출한 적이 없다.</p>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <p>관측된 8개 사례에서는 <b>절차보다 진입 위치와 표현 형태가 달랐다.</b></p>
+      <small><b>다만 이것이 사이트가 얕다는 뜻은 아니다.</b> 여덟 건이 전부 얕은 경로였던 것은
+        수집기가 깊은 경로를 뚫지 못했기 때문일 수 있다 — 도달 실패 21건이 “사이트에 경로가 없다”가 아니라
+        “후보를 찾지 못했다”였던 것과 같은 방향의 선택편향이다. 실제로 후속 probe에서 한 계열(택배)은
+        매처를 고치자 3/3 전부 복구됐고, 나머지 네 계열은 0/18이었다. 진입점이 첫 화면 한 단계 아래에 있다는 뜻이다.</small>
+    </div>
+  </section>
+
+  <section>
+    <h2>발표에서 말할 수 있는 것 <span class="n">claim-safe wording</span></h2>
+    <p class="sub">같은 수치가 어떤 문장에 들어가느냐에 따라 참이 되기도 하고 거짓이 되기도 한다.</p>
+
+    <div class="say">
+      <div class="box ok">
+        <h4><span aria-hidden="true">✓</span> 써도 되는 문장</h4>
+        <ul>
+          <li>“동일한 생활과업을 기준으로 50개 모바일웹을 전수 시도했고, 그중 8개에서만 비교 가능한 과업경로 증거를 확보했다.”
+            <em>attempted 50/50 · usable 8/50 — 재계산 일치</em></li>
+          <li>“관측된 8개 사례에서는 진입 위치와 control 형태가 갈렸지만, 조작순서·깊이·메뉴의존은 8건 모두 같았다.”
+            <em>selected case series임을 함께 말할 것</em></li>
+          <li>“도달 실패의 원인을 사이트로 돌릴 수 있는 근거는 이 데이터에 없다. 전부 수집기가 무엇을 보지 못했는가에 대한 기록이다.”
+            <em>COLLECTOR_ZERO 21 유지 · SITE 16 철회 후</em></li>
+        </ul>
+      </div>
+
+      <div class="box no">
+        <h4><span aria-hidden="true">⚠</span> 쓰면 안 되는 문장</h4>
+        <ul>
+          <li>“50개 중 8개 서비스가 접근 가능했다” · “접근성 성공률 16%”
+            <em>8은 수집 결과이지 도달가능성이 아니다</em></li>
+          <li>“평균 활성화 깊이는 0.56단계였다” — 50을 분모로 한 모든 depth 통계
+            <em>깊이 0인 22건은 관측이 아니라 시퀀스 부재다. 분모는 28</em></li>
+          <li>“라벨 일치율 28/28” · “AX는 원리적으로 못 얻는다”
+            <em>독립 관측 쌍은 0. 다만 방법은 이후 복구됐다 — 이번 수집의 사실일 뿐</em></li>
+          <li>“50개 중 16곳은 사이트에 안전한 경로가 없었다”
+            <em>철회된 분류다. 재측정에서 5/5가 도달했다</em></li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:22px"><b>수집 회차는 교환 가능한 반복측정이 아니다.</b>
+      2·3차는 앞선 관측 결과에 따라 대상이 선택된 구제 패스이므로, 회차별 분포를 성능 비교나
+      서비스 특성 비교에 쓰지 않았다. 결측은 하나의 NA로 합치지 않고 원인별로 남겼다 —
+      수집기 한계 21 · 사이트 경로 미관측 16 · 타임아웃 2 · 안전 경계 1 · 미상 2.
+      <b>보정(imputation)은 하지 않았다.</b></p>
+  </section>
+
+  <div class="prov">
+    <b>입력</b> CANONICAL_MART_50.csv · sha256 5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf<br>
+    <b>검산</b> C 독립 재계산 9항 일치 · k=8은 3차 수집 이전 증거로 8/8 확인<br>
+    <b>등급</b> acquisition·분모 <span class="tag">ASSURED_RECALCULATED</span> 관측가능성·사례 <span class="tag">DESCRIPTIVE_VERIFIED</span>
+    다양성·공간거리 <span class="tag">EXPLORATORY</span> geometry 결속 <span class="tag">NOT_ASSURED</span><br>
+    <b>철회</b> NO_SAFE_ROUTE_SITE 16 — 값 유지, 주장 철회 · 근거는 신뢰 가능 8/16 (F2 6·F4 1·F5 1) ·
+    초기 근거 F3 5/5는 좌표계 결함으로 폐기 · COLLECTOR_ZERO_CANDIDATE 21은 유지<br>
+    <b>범위</b> 백분율은 동결된 50에 대한 기술값이며 모집단 추정값이 아니다 · 재현 replay는 면제됐고 해시는 산출물 동일성만 보장한다
+  </div>
+</div>
+
+<script>
+(function(){
+  var STR=[
+    {k:'direct',   n:'현장 관측',            v:'--ord-1'},
+    {k:'supp',     n:'보충 관측',            v:'--ord-2'},
+    {k:'derived',  n:'저장 DOM 사후 파생',   v:'--ord-3'},
+    {k:'ambig',    n:'모호 · 판정 불가',      v:'--ord-4'},
+    {k:'fail',     n:'수집 방법 실패',        v:'--critical'},
+    {k:'none',     n:'미관측',               v:'--absent'}
+  ];
+  // observed = direct + supp
+  var ROWS=[
+    {v:'task_path_evidence', d:{direct:50}},
+    {v:'activation_depth',   d:{direct:28,none:22}},
+    {v:'menu_dependency',    d:{direct:28,none:22}},
+    {v:'task_flow_sequence', d:{direct:28,none:22}},
+    {v:'entry_x_norm',       d:{supp:8,none:42}},
+    {v:'entry_y_norm',       d:{supp:8,none:42}},
+    {v:'entry_zone',         d:{supp:8,none:42}},
+    {v:'auth_gate_stage',    d:{direct:8,none:42}},
+    {v:'visible_label_text', d:{derived:29,ambig:7,fail:4,none:10}},
+    {v:'entry_control_type', d:{derived:27,ambig:9,fail:4,none:10}},
+    {v:'nav_container_type', d:{derived:26,ambig:10,fail:4,none:10}},
+    {v:'accessible_name',    d:{derived:28,fail:22}},
+    {v:'label_relation',     d:{derived:50}},
+    {v:'reveal_direction',   d:{none:50}, unwired:true},
+    {v:'task_control_occlusion', d:{none:50}, unwired:true}
+  ];
+  var NOTE={
+    accessible_name:'브라우저가 계산한 접근성 이름은 0/50. 채워진 28건은 화면 라벨의 복사본이고, 22건은 캡처 자체가 실패했다.',
+    nav_container_type:'수집기가 이 변수를 산출한 적이 없다. 값이 있는 26건은 전부 사후 파생이다.',
+    activation_depth:'깊이 0인 22건은 시퀀스가 비어 생긴 값이다. 이 축의 분모는 50이 아니라 28.',
+    label_relation:'관측이 아니라 규칙의 산물이다 — 두 열의 관측 유무로 계산된다.',
+    reveal_direction:'값이 0인 게 아니라 한 건도 배선되지 않았다.',
+    task_control_occlusion:'값이 0인 게 아니라 한 건도 배선되지 않았다.'
+  };
+
+  var mb=document.getElementById('mxbody'), db=document.getElementById('dtbody');
+  ROWS.forEach(function(r){
+    var obs=(r.d.direct||0)+(r.d.supp||0);
+    var tr=document.createElement('tr');
+    if(r.unwired) tr.className='z';
+    var td1=document.createElement('td');
+    td1.textContent=r.v;
+    if(r.unwired){var b=document.createElement('span'); b.className='badge'; b.textContent='UNWIRED'; td1.appendChild(b);}
+    var td2=document.createElement('td');
+    var st=document.createElement('div'); st.className='stack';
+    STR.forEach(function(s){
+      var n=r.d[s.k]||0; if(!n) return;
+      var i=document.createElement('i');
+      i.style.width=(n/50*100)+'%';
+      i.style.background='var('+s.v+')';
+      i.setAttribute('data-tip', r.v+'|'+s.n+' · '+n+' / 50|'+(NOTE[r.v]||''));
+      st.appendChild(i);
+    });
+    td2.appendChild(st);
+    var td3=document.createElement('td'); td3.textContent=obs;
+    tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+    mb.appendChild(tr);
+
+    var dr=document.createElement('tr');
+    var cells=[r.v,r.d.direct||0,r.d.supp||0,r.d.derived||0,r.d.ambig||0,r.d.fail||0,r.d.none||0,obs];
+    cells.forEach(function(c,i){
+      var td=document.createElement('td'); td.textContent=c;
+      if(i===7) td.style.fontWeight='600';
+      dr.appendChild(td);
+    });
+    db.appendChild(dr);
+  });
+
+  var tip=document.getElementById('tip');
+  function show(e){
+    var el=e.target.closest('[data-tip]'); if(!el){hide();return;}
+    var p=el.getAttribute('data-tip').split('|');
+    var h='<b>'+p[0]+'</b>'+(p[1]?p[1]:'');
+    if(p[2]) h+='<em>'+p[2]+'</em>';
+    if(p[3]) h+='<em>'+p[3]+'</em>';
+    tip.innerHTML=h; tip.style.opacity='1';
+    var r=tip.getBoundingClientRect();
+    var x=Math.min(e.clientX+14, window.innerWidth-r.width-10);
+    var y=e.clientY-r.height-12; if(y<8) y=e.clientY+18;
+    tip.style.left=x+'px'; tip.style.top=y+'px';
+  }
+  function hide(){tip.style.opacity='0';}
+  document.addEventListener('mousemove',show);
+  document.addEventListener('mouseleave',hide);
+  document.addEventListener('scroll',hide,{passive:true});
+})();
+</script>

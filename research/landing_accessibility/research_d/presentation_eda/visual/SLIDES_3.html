@@ -1,0 +1,462 @@
+<title>MAIN50 발표 슬라이드</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap">
+
+<style>
+  :root{
+    --page:#e8eaed;
+    --deck:#ffffff;
+    --ink:#14181d; --ink-2:#4d545e; --ink-3:#828a95;
+    --rule:#d7dbe0; --rule-2:#b9c0c9;
+
+    --plan:#5c646f;        /* 회색 — 우리가 정한 것 */
+    --plan-bg:#f1f3f5;
+    --obs:#0e7c86;         /* 청록 — 관측된 것 */
+    --obs-bg:#e6f4f5;
+    --concl:#c85a45;       /* 코랄 — 남는 문장 */
+    --concl-bg:#fdf0ed;
+    --retract:#b3341f;
+
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --sans:'Noto Sans KR',system-ui,-apple-system,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:where(:not([data-theme="light"])){
+      --page:#0e1114; --deck:#171b20;
+      --ink:#f2f4f6; --ink-2:#b6bdc6; --ink-3:#7d858f;
+      --rule:#2b3037; --rule-2:#3d444d;
+      --plan:#98a1ac; --plan-bg:#1e232a;
+      --obs:#4ab8c2; --obs-bg:#12292c;
+      --concl:#e08872; --concl-bg:#2a1d1a;
+      --retract:#e07a63;
+    }
+  }
+  :root[data-theme="dark"]{
+    --page:#0e1114; --deck:#171b20;
+    --ink:#f2f4f6; --ink-2:#b6bdc6; --ink-3:#7d858f;
+    --rule:#2b3037; --rule-2:#3d444d;
+    --plan:#98a1ac; --plan-bg:#1e232a;
+    --obs:#4ab8c2; --obs-bg:#12292c;
+    --concl:#e08872; --concl-bg:#2a1d1a;
+    --retract:#e07a63;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased}
+  .page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+
+  .top{margin-bottom:30px}
+  .top .k{font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}
+  .top h1{font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:-.02em}
+  .top p{font-size:14px;color:var(--ink-2);margin:0;font-weight:300;max-width:70ch}
+  .top p b{color:var(--ink);font-weight:500}
+
+  /* ── slide shell: 16:9, internal units scale with container ── */
+  .slide{
+    position:relative; aspect-ratio:16/9; background:var(--deck);
+    border:1px solid var(--rule); border-radius:4px; overflow:hidden;
+    container-type:size; margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(0,0,0,.06);
+  }
+  .cap{font-family:var(--mono);font-size:11px;color:var(--ink-3);
+    margin:0 0 8px;letter-spacing:.06em}
+  .cap b{color:var(--ink-2);font-weight:500}
+  section{margin-bottom:44px}
+
+  /* everything inside a slide sizes from container width (100cqw = 1920px) */
+  .s{position:absolute;inset:0;padding:3.1cqw 3.4cqw;display:flex;flex-direction:column}
+
+  .shead{display:flex;justify-content:space-between;align-items:flex-start;
+    padding-bottom:1.1cqw;border-bottom:.12cqw solid var(--ink);margin-bottom:1.6cqw}
+  .shead h2{margin:0;font-size:2.05cqw;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+  .shead .meta{font-family:var(--mono);font-size:.72cqw;color:var(--ink-3);
+    text-align:right;line-height:1.7;letter-spacing:.05em}
+  .shead .meta b{color:var(--ink-2);font-weight:500}
+
+  .grid{flex:1;display:grid;grid-template-columns:1fr 1fr;
+    grid-template-rows:auto auto auto;gap:.85cqw}
+
+  .box{border-radius:.3cqw;padding:1.15cqw 1.35cqw;display:flex;flex-direction:column}
+  .box .bh{display:flex;align-items:baseline;gap:.6cqw;margin-bottom:.75cqw}
+  .box .bn{font-family:var(--mono);font-size:1cqw;font-weight:600}
+  .box .bt{font-size:1.05cqw;font-weight:700;letter-spacing:-.01em}
+  .box ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.4cqw}
+  .box li{font-size:.92cqw;line-height:1.45;color:var(--ink-2);
+    padding-left:.85cqw;position:relative}
+  .box li::before{content:'';position:absolute;left:0;top:.55cqw;
+    width:.28cqw;height:.28cqw;border-radius:50%;background:currentColor;opacity:.55}
+  .box li b{color:var(--ink);font-weight:500}
+  .box li s{opacity:.6}
+
+  .plan{background:var(--plan-bg);border-left:.22cqw solid var(--plan)}
+  .plan .bn,.plan .bt{color:var(--plan)}
+  .obs{background:var(--obs-bg);border-left:.22cqw solid var(--obs)}
+  .obs .bn,.obs .bt{color:var(--obs)}
+  .concl{background:var(--concl-bg);border-left:.22cqw solid var(--concl);
+    grid-column:1/-1;justify-content:center}
+  .concl .bn,.concl .bt{color:var(--concl)}
+
+  /* ③-좌 numbers */
+  .nums{display:flex;flex-direction:column;gap:.62cqw;margin-top:.2cqw}
+  .nrow{display:grid;grid-template-columns:5.4cqw 1fr;align-items:baseline;gap:.9cqw}
+  .nrow .nv{font-family:var(--mono);font-size:1.72cqw;font-weight:600;
+    color:var(--obs);text-align:right;font-variant-numeric:tabular-nums;line-height:1.1}
+  .nrow .nl{font-size:1cqw;font-weight:500;color:var(--ink);line-height:1.3}
+  .nrow .nd{font-family:var(--mono);font-size:.66cqw;color:var(--ink-3);
+    margin-top:.15cqw;line-height:1.4}
+  .sumline{margin-top:.7cqw;padding-top:.6cqw;border-top:.06cqw dashed var(--rule-2);
+    font-family:var(--mono);font-size:.8cqw;color:var(--ink-2);text-align:right}
+  .rtag{display:inline-block;font-family:var(--mono);font-size:.55cqw;font-weight:600;
+    letter-spacing:.07em;color:#fff;background:var(--retract);
+    padding:.08cqw .35cqw;border-radius:.15cqw;margin-left:.4cqw;vertical-align:.15cqw}
+
+  /* ③-우 split */
+  .cmp{display:flex;flex-direction:column;gap:.55cqw;margin-top:.15cqw}
+  .cgrp{display:grid;grid-template-columns:4.2cqw 1fr;gap:.8cqw;align-items:start}
+  .cgrp .ck{font-size:.86cqw;font-weight:700;color:var(--obs);
+    text-align:right;padding-top:.12cqw;line-height:1.35}
+  .cgrp .cv{display:flex;flex-direction:column;gap:.32cqw}
+  .cgrp .cv div{font-size:.9cqw;color:var(--ink);line-height:1.35}
+  .cgrp .cv em{font-style:normal;font-family:var(--mono);font-size:.66cqw;color:var(--ink-3)}
+  .cgrp .cv b{font-family:var(--mono);font-weight:600;color:var(--obs)}
+  .csep{height:.06cqw;background:var(--rule);margin:.25cqw 0}
+
+  .concl p{margin:0;font-size:1.18cqw;line-height:1.62;font-weight:500;color:var(--ink)}
+  .concl p + p{margin-top:.28cqw}
+  .concl .last{color:var(--concl);font-weight:700}
+
+  .foot{font-family:var(--mono);font-size:.62cqw;color:var(--ink-3);
+    line-height:1.6;margin-top:1.1cqw;padding-top:.7cqw;border-top:.06cqw solid var(--rule)}
+  .foot b{color:var(--ink-2);font-weight:500}
+
+  /* ── slide 2: phone + convergence ── */
+  .s2{flex:1;display:grid;grid-template-columns:1fr .1cqw 1fr;gap:2.2cqw;align-items:stretch}
+  .s2 .vline{background:var(--rule-2)}
+  .colh{font-size:1.35cqw;font-weight:700;margin:0 0 .9cqw;letter-spacing:-.01em}
+  .colh.a{color:var(--obs)} .colh.b{color:var(--obs)}
+  .phonewrap{display:flex;gap:1.6cqw;align-items:flex-start}
+  .phone{width:11.5cqw;aspect-ratio:390/844;border:.16cqw solid var(--ink-2);
+    border-radius:1.1cqw;position:relative;background:var(--plan-bg);flex-shrink:0}
+  .phone::before{content:'';position:absolute;top:.5cqw;left:50%;transform:translateX(-50%);
+    width:3cqw;height:.32cqw;border-radius:.2cqw;background:var(--rule-2)}
+  .mk{position:absolute;width:1.05cqw;height:1.05cqw;border-radius:50%;
+    background:var(--obs);border:.14cqw solid var(--deck);transform:translate(-50%,-50%)}
+  .zt{flex:1;display:flex;flex-direction:column;gap:.34cqw;padding-top:.4cqw}
+  .zt .zr{display:grid;grid-template-columns:1fr 2.2cqw;font-size:.85cqw;
+    color:var(--ink-2);border-bottom:.05cqw solid var(--rule);padding-bottom:.24cqw}
+  .zt .zr b{font-family:var(--mono);text-align:right;color:var(--ink);
+    font-variant-numeric:tabular-nums;font-weight:600}
+  .zt .zsum{font-family:var(--mono);font-size:.78cqw;color:var(--obs);
+    text-align:right;font-weight:600;margin-top:.15cqw}
+  .same3{display:flex;flex-direction:column;gap:1.1cqw;margin-top:1.4cqw}
+  .same3 .r{display:flex;flex-direction:column;gap:.2cqw}
+  .same3 .rk{font-size:1cqw;color:var(--ink-2)}
+  .same3 .rv{display:flex;align-items:baseline;gap:.7cqw}
+  .same3 .rn{font-family:var(--mono);font-size:1.05cqw;color:var(--ink)}
+  .same3 .rb{font-family:var(--mono);font-size:1.62cqw;font-weight:700;color:var(--obs);
+    font-variant-numeric:tabular-nums}
+  .kick{margin-top:auto;padding-top:1.1cqw;border-top:.08cqw solid var(--rule);
+    font-size:1.12cqw;font-weight:500;color:var(--ink);line-height:1.5}
+  .kick b{color:var(--obs)}
+
+  /* ── slide 3: narrative + implications ── */
+  .s3{flex:1;display:grid;grid-template-columns:.82fr 1.18fr;gap:2.4cqw}
+  .narr{display:flex;flex-direction:column;gap:.5cqw;padding-top:.3cqw}
+  .narr .nst{font-size:1.02cqw;color:var(--ink-2);line-height:1.4;
+    display:flex;align-items:baseline;gap:.6cqw}
+  .narr .nst.on{color:var(--ink);font-weight:500}
+  .narr .arrow{color:var(--rule-2);font-size:1.1cqw;padding-left:.35cqw;line-height:1}
+  .narr .side{font-family:var(--mono);font-size:.7cqw;color:var(--concl)}
+  .imp{display:flex;flex-direction:column;gap:1.05cqw}
+  .imp .i{display:grid;grid-template-columns:3.1cqw 1fr;gap:.85cqw;align-items:start}
+  .imp .ik{font-family:var(--mono);font-size:.82cqw;font-weight:600;color:var(--concl);
+    text-align:right;padding-top:.2cqw;letter-spacing:.04em}
+  .imp .iv{font-size:1.05cqw;line-height:1.5;color:var(--ink)}
+  .imp .i.big .iv{font-size:1.24cqw;font-weight:500}
+  .imp .i.big .ik{font-size:.9cqw}
+
+  /* ── deploy strip ── */
+  .strip{background:var(--concl-bg);border:1px solid var(--concl);border-radius:4px;
+    padding:16px 20px;margin-top:8px}
+  .strip .sh{font-family:var(--mono);font-size:11px;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--concl);font-weight:600;margin-bottom:9px}
+  .strip p{margin:0;font-size:13.5px;line-height:1.7;color:var(--ink-2)}
+  .strip p b{color:var(--ink);font-weight:500}
+
+  .say{margin-top:12px;background:var(--deck);border:1px solid var(--rule);
+    border-left:3px solid var(--plan);border-radius:4px;padding:16px 20px}
+  .say .sh{font-family:var(--mono);font-size:11px;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:9px}
+  .say p{margin:0;font-size:14px;line-height:1.75;color:var(--ink)}
+  .say p + p{margin-top:10px}
+  .say em{font-style:normal;color:var(--ink-3);font-size:12.5px}
+
+  .warn{margin-top:12px;background:var(--deck);border:1px solid var(--retract);
+    border-left:3px solid var(--retract);border-radius:4px;padding:16px 20px}
+  .warn .sh{font-family:var(--mono);font-size:11px;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--retract);font-weight:600;margin-bottom:9px}
+  .warn p{margin:0;font-size:13.5px;line-height:1.7;color:var(--ink-2)}
+  .warn p b{color:var(--ink);font-weight:500}
+
+  @media(max-width:720px){
+    .top h1{font-size:22px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="page">
+
+  <div class="top">
+    <p class="k">MAIN50 · 발표 슬라이드 시안</p>
+    <h1>세 장 — 종합 · 결과 B · 결론</h1>
+    <p>16:9 · 1920×1080 기준. 색 세 단계가 <b>계획 → 관측 → 결론</b>을 가릅니다.
+      회색은 우리가 정한 것, 청록은 관측된 것, 코랄은 남는 문장입니다.
+      슬라이드 안 모든 치수는 폭에 비례하므로 어느 크기로 띄워도 비율이 유지됩니다.</p>
+  </div>
+
+  <div class="warn">
+    <div class="sh">⚠ 명세와 최신 판정이 어긋나는 곳 한 군데</div>
+    <p>③-좌의 <b>“16 / 50 서비스 쪽 경로 미관측”</b>은 <b>12:39에 철회됐습니다.</b>
+      후보가 보였다는 것은 “컨트롤이 보였다”는 뜻이지 “사이트에 경로가 있다·없다”를 말하지 않는데
+      라벨이 그보다 강한 이름을 달고 있었고, 재측정에서 <b>8건이 도달에 성공</b>했습니다.
+      값 16은 지우지 않고 <b>철회 표시</b>를 달았습니다 — 값을 지우면 이 숫자를 인용한 문서가 조용히 근거를 잃습니다.
+      <b>지금 이 보고서에는 사이트에 대한 진술이 하나도 없습니다.</b>
+      다만 <code>COLLECTOR_ZERO 21</code>은 “수집기가 후보를 못 잡았다”까지만 말하므로 유지됩니다.</p>
+  </div>
+
+
+  <!-- ═══════════ SLIDE 1 ═══════════ -->
+  <section>
+    <p class="cap"><b>1</b> · 종합 — 계획 · 관측 · 결론  |  왼쪽 위 → 오른쪽 아래로 갈수록 확실성이 올라간다</p>
+    <div class="slide"><div class="s">
+
+      <div class="shead">
+        <h2>같은 과업으로 50개를 재보았습니다</h2>
+        <div class="meta"><b>SEALED_FINAL v17</b><br>frozen frame 50 · mart 5290e0c3</div>
+      </div>
+
+      <div class="grid">
+
+        <div class="box plan">
+          <div class="bh"><span class="bn">①</span><span class="bt">데이터 수집</span></div>
+          <ul>
+            <li>5개 과업 × 10개 서비스 = <b>50</b></li>
+            <li>관측 전 동결, <b>결과 기반 교체 없음</b></li>
+            <li>첫 화면 → 대표기능 첫 진입까지</li>
+            <li>390×844 · 모바일 UA · 로그인 없음</li>
+            <li>증거 5종 — 화면 · DOM · AX · 좌표 · 조작</li>
+          </ul>
+        </div>
+
+        <div class="box plan">
+          <div class="bh"><span class="bn">②</span><span class="bt">분석 모형</span></div>
+          <ul>
+            <li>계획 8축, <b>합성점수 만들지 않음</b></li>
+            <li>Task Flow / Experienced Flow 분리</li>
+            <li>n=50 기술 census, n=8 사례 기술</li>
+            <li>검정 · p값 · 신뢰구간 <b>없음</b></li>
+            <li>폐기 — 기능 추론, 이름 축, nav</li>
+          </ul>
+        </div>
+
+        <div class="box obs">
+          <div class="bh"><span class="bn">③</span><span class="bt">결과 · 50개 전수 시도</span></div>
+          <div class="nums">
+            <div class="nrow"><div class="nv">8 / 50</div>
+              <div><div class="nl">비교 가능한 경로 증거</div>
+                <div class="nd">ENDPOINT_REACHED 6 · AUTH_GATE 2</div></div></div>
+            <div class="nrow"><div class="nv">16 / 50</div>
+              <div><div class="nl">서비스 쪽 경로 미관측<span class="rtag">철회</span></div>
+                <div class="nd">NO_SAFE_ROUTE_SITE 16 — 재측정 8건 도달, 주장 철회</div></div></div>
+            <div class="nrow"><div class="nv">26 / 50</div>
+              <div><div class="nl">수집기 · 측정 한계</div>
+                <div class="nd">COLLECTOR_ZERO 21 · TIMEOUT 2 · UNVERIFIED 2 · FORBIDDEN 1</div></div></div>
+          </div>
+          <div class="sumline">8 + 16 + 26 = 50</div>
+        </div>
+
+        <div class="box obs">
+          <div class="bh"><span class="bn">③</span><span class="bt">결과 · 검증 사례 n = 8</span></div>
+          <div class="cmp">
+            <div class="cgrp"><div class="ck">갈린 것</div><div class="cv">
+              <div>진입 위치 — <b>5개 구역</b> <em>TL 1 · TC 2 · TR 1 · MID 2 · BOT 2</em></div>
+              <div>조작 형태 — <b>2종</b> <em>TEXT_LINK 6 · ICON+TEXT 2</em></div>
+            </div></div>
+            <div class="csep"></div>
+            <div class="cgrp"><div class="ck">같았던 것</div><div class="cv">
+              <div>조작 순서 — SELECT_FUNCTION <b>8 / 8</b></div>
+              <div>진입 깊이 1 — <b>8 / 8</b></div>
+              <div>메뉴 의존 없음 — <b>8 / 8</b></div>
+            </div></div>
+          </div>
+        </div>
+
+        <div class="box concl">
+          <div class="bh"><span class="bn">④</span><span class="bt">결론</span></div>
+          <p>50개를 같은 과업으로 재봤고, 끝까지 관측된 것은 8개였습니다.</p>
+          <p>그 8개에서 절차는 같고 시작점이 달랐습니다.</p>
+          <p class="last">구조를 비교하려면 측정체계부터 필요합니다.</p>
+        </div>
+
+      </div>
+
+      <div class="foot">
+        <b>수치는 동결된 50에 대한 기술값</b>이며 모집단 추정값이 아닙니다 ·
+        접근성 성공률이 아닙니다 · n=8은 선택된 사례이며 분포 추정이 아닙니다
+      </div>
+
+    </div></div>
+  </section>
+
+
+  <!-- ═══════════ SLIDE 2 ═══════════ -->
+  <section>
+    <p class="cap"><b>2</b> · 21장 결과 B — 좌우 정확히 반. 갈린 것만 크면 없는 주장을, 같았던 것만 크면 결과 없음을 말하게 된다</p>
+    <div class="slide"><div class="s">
+
+      <div class="shead">
+        <h2>절차는 같았지만, 시작점은 같지 않았다</h2>
+        <div class="meta"><b>관측 결과</b><br>selected case series · n = 8</div>
+      </div>
+
+      <p style="font-size:1.15cqw;color:var(--ink-2);margin:0 0 1.4cqw;font-weight:300;line-height:1.5">
+        검증한 8개 사례에서, <b style="color:var(--ink);font-weight:500">한 번에 진입한다는 점은 같았습니다.</b>
+        위치와 표현 형태는 달랐습니다.</p>
+
+      <div class="s2">
+
+        <div>
+          <h3 class="colh a">달랐던 것</h3>
+          <div class="phonewrap">
+            <div class="phone">
+              <span class="mk" style="left:22%;top:14%"></span>
+              <span class="mk" style="left:50%;top:11%"></span>
+              <span class="mk" style="left:52%;top:17%"></span>
+              <span class="mk" style="left:79%;top:13%"></span>
+              <span class="mk" style="left:44%;top:47%"></span>
+              <span class="mk" style="left:58%;top:53%"></span>
+              <span class="mk" style="left:36%;top:83%"></span>
+              <span class="mk" style="left:63%;top:88%"></span>
+            </div>
+            <div class="zt">
+              <div class="zr"><span>TOP_LEFT</span><b>1</b></div>
+              <div class="zr"><span>TOP_CENTER</span><b>2</b></div>
+              <div class="zr"><span>TOP_RIGHT</span><b>1</b></div>
+              <div class="zr"><span>MID</span><b>2</b></div>
+              <div class="zr"><span>BOTTOM</span><b>2</b></div>
+              <div class="zsum">5개 구역 / 8</div>
+              <div style="height:.7cqw"></div>
+              <div class="zr"><span>TEXT_LINK</span><b>6</b></div>
+              <div class="zr"><span>ICON + TEXT</span><b>2</b></div>
+              <div class="zsum">2종 / 8</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vline"></div>
+
+        <div style="display:flex;flex-direction:column">
+          <h3 class="colh b">같았던 것</h3>
+          <div class="same3">
+            <div class="r"><span class="rk">조작 순서</span>
+              <span class="rv"><span class="rn">SELECT_FUNCTION</span><span class="rb">8 / 8</span></span></div>
+            <div class="r"><span class="rk">진입 깊이</span>
+              <span class="rv"><span class="rn">1</span><span class="rb">8 / 8</span></span></div>
+            <div class="r"><span class="rk">메뉴 의존</span>
+              <span class="rv"><span class="rn">없음</span><span class="rb">8 / 8</span></span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="kick">관측된 8개 사례에서는 <b>‘몇 번에 닿는가’보다 ‘어디서 시작하는가’</b>가 달랐습니다.</div>
+
+      <div class="foot">
+        <b>selected case series n=8.</b> 수집기가 깊은 경로를 충분히 관측하지 못한 선택편향 가능성이 있습니다.
+        전체 서비스 분포로 일반화하지 않습니다.
+      </div>
+
+    </div></div>
+  </section>
+
+
+  <!-- ═══════════ SLIDE 3 ═══════════ -->
+  <section>
+    <p class="cap"><b>3</b> · 22장 결론 — 좌측 서사는 작게, 우측 시사점은 크게. B3만 한 단계 더 크게</p>
+    <div class="slide"><div class="s">
+
+      <div class="shead">
+        <h2>길을 비교하려면, 길을 잴 수 있어야 한다</h2>
+        <div class="meta"><b>결론</b><br>MAIN50 Time-boxed Acquisition</div>
+      </div>
+
+      <p style="font-size:1.15cqw;color:var(--ink-2);margin:0 0 1.5cqw;font-weight:300;line-height:1.5">
+        저희가 확보한 것은 서비스의 지도가 아니라,
+        <b style="color:var(--ink);font-weight:500">그 지도를 그리려면 무엇이 필요한지에 대한 목록</b>입니다.</p>
+
+      <div class="s3">
+
+        <div class="narr">
+          <div class="nst">사람의 역량만 재고 있었다</div>
+          <div class="arrow">↓</div>
+          <div class="nst">서비스의 길을 재려 했다
+            <span class="side">→ 분류로는 안 됐다</span></div>
+          <div class="arrow">↓</div>
+          <div class="nst">과업을 고정하고 경로를 쟀다
+            <span class="side">→ 50개 중 8개만 관측됐다</span></div>
+          <div class="arrow">↓</div>
+          <div class="nst on">길을 잴 수 있는 측정체계가<br>먼저 필요하다</div>
+        </div>
+
+        <div class="imp">
+          <div class="i"><div class="ik">B1 교육</div>
+            <div class="iv">사용자 교육과 서비스 구조는 <b>서로 다른 개입대상</b>으로 구분해
+              평가할 필요가 있습니다.</div></div>
+          <div class="i"><div class="ik">B2 설계</div>
+            <div class="iv">이번에 실제로 관측된 차이는 <b>진입 위치와 control 표현</b>이었습니다.
+              화면에 어디에 놓이고 어떤 형태로 제시되는지도 접근성 평가의 대상이 될 필요가 있습니다.</div></div>
+          <div class="i big"><div class="ik">B3 정책·평가</div>
+            <div class="iv">개별 기준 준수와 <b>서비스 간 일관성은 다른 질문</b>이며,
+              후자를 평가하려면 <b>task-aware interaction measurement</b>가 필요합니다.</div></div>
+        </div>
+
+      </div>
+
+      <div class="kick" style="border-top-color:var(--concl)">
+        사용자의 역량 문제와 서비스 구조의 문제를 분리해서 보려면 —
+        <b style="color:var(--concl)">서비스 구조부터 제대로 잴 수 있어야 합니다.</b></div>
+
+      <div class="foot">
+        <b>한계</b> ① 고령 사용자 실험이 아니라 모바일웹 구조 관측 연구입니다. 실제 인지부하·사용실패·전이효과를 입증하지 않았습니다.
+        ② 관측 조건은 390×844 · 모바일웹 · 로그인 이전으로 한정됩니다.
+        ③ 계열마다 과업 등가성의 강도가 다를 수 있습니다.
+        ④ n=8 사례 기술이며 분포 추정이 아닙니다. 선택편향 가능성이 있습니다.
+        ⑤ 계획한 8축 중 label 축은 AX capture 0/50으로 결과에서 제외했습니다.
+      </div>
+
+    </div></div>
+  </section>
+
+
+  <div class="strip">
+    <div class="sh">배포본에만 넣는 띠 — 화면 발표에는 넣지 않는다</div>
+    <p><b>말할 수 없는 것</b> — 접근성 성공률 아님 · 계열별 비일관성 비율 아님 ·
+      고령자 실패에 대한 인과 주장 아님 · n=8은 분포 추정 아님(선택편향 가능) ·
+      AX 0/50으로 이름 축 결과 제외 · <b>“서비스 쪽 경로 미관측 16”은 철회된 분류</b></p>
+  </div>
+
+  <div class="say">
+    <div class="sh">소리내어 말할 것 — 슬라이드에 없음</div>
+    <p><b>선택편향은 발표자가 먼저 말한다.</b> 안 하면 반드시 질문으로 옵니다.<br>
+      “깊이가 전부 1이었다는 건, 깊은 경로가 없다는 뜻이 아닙니다. 저희가 관측할 수 있었던 8건이 전부 얕았다는 뜻입니다.
+      앞 장에서 26건이 수집기 한계로 끊겼는데, 그중 깊은 경로가 있었을 가능성을 배제할 수 없습니다.”</p>
+    <p><b>11장과 연결.</b> “아까 예시로 보여드린 세 프레임 기억하시나요. 실제로는 여덟 개가 다섯 군데에 흩어져 있었습니다.”</p>
+    <p><b>마지막 문단.</b> “저희는 50개 서비스를 같은 과업으로 재보았습니다. 모든 길을 끝까지 읽지는 못했습니다.
+      하지만 관측할 수 있었던 사례에서는 ‘몇 번 눌러야 하는가’보다 ‘어디서 시작하고 어떤 형태로 보이는가’가 달랐습니다.
+      그래서 다음 질문은 노인이 얼마나 잘 쓰는가가 아니라, 서비스의 길을 어떻게 안정적으로 측정할 것인가입니다.”</p>
+    <p><em>말할 수 있는 최대치 — “위치와 control 형태의 차이는 서비스 간 구조적 재학습 요구의 <b>후보가 될 수 있습니다</b>.”
+      / 넘으면 안 되는 선 — “이 위치 차이 <b>때문에</b> 노인이 다시 배웁니다.”</em></p>
+  </div>
+
+</div>
