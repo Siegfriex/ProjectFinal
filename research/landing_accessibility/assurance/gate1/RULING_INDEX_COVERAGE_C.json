@@ -1783,7 +1783,7 @@
    "verified_by": "C",
    "requires": "`acquire_wiseapp_authority.py`·`collect_certification_registry.py` 는 **표본 구성 출처**이므로 REAL 아님. 그러나 무게이트로 두지 않는다 — ① 요청 호스트가 **목록/권위 출처 allowlist** 안임을 실행 시 검사(대상 도메인이면 차단) ② 실행 기록. **지금 안 치는 것은 현재 코드의 성질이지 계약이 아니다**",
    "must_appear_in": "두 스크립트",
-   "C_check": "Δ51 계열 — RUNBOOK r10 CI-27/28",
+   "C_check": "CI-28: acquire_wiseapp/collect_certification_registry 는 REAL 아님(출처)이나 실행 시 요청 호스트가 출처 allowlist 안임을 검사·기록해야 함 — GATE 2 에서 C 가 요청 로그 vs manifest 파생 대상 도메인 집합으로 확인",
    "coverage": "NOT_DUE_YET",
    "gap_note": null,
    "added_at_index_version": 41
@@ -1805,7 +1805,7 @@
    "verified_by": "C",
    "requires": "`Δ50-pilot5-binding` 의 두 번째 입력 = `FINAL_MAIN50_MANIFEST.json` — (a) 자기 `manifest_sha256` 이 내용과 일치 (b) `real_target_allowed is True` (c) **target 이 동결 50 안**. 릴리스 문서는 그 manifest sha 를 싣고 일치해야 한다. **릴리스 문서만 고쳐서는 열리지 않는다**(must_not_flag)",
    "must_appear_in": "V3_PILOT_5 release · engine 게이트",
-   "C_check": "Δ51 계열 — RUNBOOK r10 CI-27/28",
+   "C_check": "CI-28: 두 번째 층 입력 = FINAL_MAIN50_MANIFEST.json (a) manifest_sha256 자기일치 (b) real_target_allowed is True (c) target ∈ 동결 50 — 릴리스 문서는 그 sha 를 싣고 일치; must_not_flag 문서만 수정 → 미개방",
    "coverage": "NOT_DUE_YET",
    "gap_note": null,
    "added_at_index_version": 41
@@ -1838,7 +1838,7 @@
    "verified_by": "C",
    "requires": "`layer_firewall` 은 {E000_FAST,E001_FULL} 만 알고 engine 은 `V2_DIAGNOSTIC` 도 안다 → `run_v2_diagnostic_pilot.py` 는 배치층에서 항상 차단. **결과는 안전 방향이나 이유가 우연이다**(두 층이 아는 scope 집합이 다른 것이지 정책이 아니다). **막힌 것과 막도록 만든 것은 다르다**(Δ47-refusal) — 기록하고 지금 고치지 않는다",
    "must_appear_in": "firewall scope 문서",
-   "C_check": "CI-28 engine 게이트에서 두 번째 입력 must_flag/must_not_flag (GATE 2)",
+   "C_check": "RUNBOOK r10 scope_mismatch 기록 — 막힌 것 ≠ 막도록 만든 것; GATE 2 에서 layer/engine scope 집합 차이를 C probe 결과에 병기(수정 없음)",
    "coverage": "NOT_DUE_YET",
    "gap_note": null,
    "added_at_index_version": 41
