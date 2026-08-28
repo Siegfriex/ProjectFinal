@@ -42,7 +42,21 @@ def _firewall_claim(head: str) -> tuple:
     except Exception as e:                                  # noqa: BLE001
         return "UNVERIFIED_UNREADABLE", {"source": str(fp), "why": str(e)}
     scan_head = d.get("d_head_sha")
-    fresh = scan_head == head
+    # [시정] `scan_head == head` 로만 보면 **스캔 산출을 커밋하는 순간 항상 STALE**
+    # 이 된다 — HEAD 가 바뀌지만 스캔 대상은 그대로다. 구조적 거짓 STALE 이다.
+    # 신선도는 **스캔 이후 스캔 대상 파일이 바뀌었는가**로 판정한다.
+    SCANNED = ("research/landing_accessibility/research_d/",
+               "research/landing_accessibility/notebooks/d_research/")
+    changed_since = []
+    if scan_head and scan_head != head:
+        diff = git("diff", "--name-only", f"{scan_head}..{head}").splitlines()
+        # 스캔 산출 자신은 제외한다 — 그것이 바뀌는 것이 곧 스캔의 결과다
+        changed_since = [f for f in diff
+                         if any(f.startswith(x) for x in SCANNED)
+                         and not f.endswith("D_INPUT_FIREWALL_VERIFICATION.json")
+                         and not f.endswith("D_STANDING_CONTROL_DRIFT_LOG.jsonl")
+                         and not f.endswith("CONTROL_FAILURE_DEMOS.json")]
+    fresh = (scan_head == head) or (scan_head is not None and not changed_since)
     ev = {"source": "results/D_INPUT_FIREWALL_VERIFICATION.json",
           "verdict": d.get("verdict"),
           "checked_at_kst": d.get("checked_at_kst"),
@@ -50,6 +64,9 @@ def _firewall_claim(head: str) -> tuple:
           "scanned_corpus_sha256": d.get("scanned_corpus_sha256"),
           "scan_head_sha": scan_head, "current_head_sha": head,
           "fresh_for_current_head": fresh,
+          "freshness_rule": ("스캔 이후 스캔 대상 경로의 파일이 바뀌지 않았으면 신선하다. "
+                             "HEAD 동일성만 보면 스캔 산출을 커밋하는 순간 거짓 STALE 이 된다."),
+          "scanned_paths_changed_since_scan": changed_since[:10],
           "rule": "D_PROTOCOL_SNAPSHOT.md:66 — self-report 금지, 스캐너 결과로만"}
     if not fresh:
         return "UNVERIFIED_STALE", ev
