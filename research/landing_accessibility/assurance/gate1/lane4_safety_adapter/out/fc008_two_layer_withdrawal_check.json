@@ -1,0 +1,93 @@
+{
+ "artifact": "C_FC008_TWO_LAYER_WITHDRAWAL_CHECK",
+ "measured_at_kst": "2026-08-28T09:06:37+09:00",
+ "method": "scratch clone of ProjectFinal (--shared, checkout SUT sha); refs/remotes/origin/control/landing-orchestrator set to control commit BEFORE (7752ed79, A's own pre-FC-008 state) and AFTER (fd304ef0d6236ea1d40d63b2996849650626ca2d); C two_layer_scope_probe imports engine/firewall.py (L1) and e001_runner/layer_firewall.py (L2) from the SUT and each layer reads the release doc via git show origin/control/... inside the clone",
+ "suts": {
+  "v21_reference": "01041bc213a2e61f6cb224e469087d9a11324349",
+  "b_w5p_latest_pushed": "a4185e4c858455f4a1c85112d6e619bbdb9762b1"
+ },
+ "controls": {
+  "must_flag_ALLOW_before": "control 7752ed79 (e000_allowed=true)",
+  "must_not_flag_DENY_after": "control fd304ef0d6236ea1d40d63b2996849650626ca2d (e000_allowed=false)"
+ },
+ "results": {
+  "probe_v21ref_50ed953.json": {
+   "sut_head": "01041bc213a2e61f6cb224e469087d9a11324349",
+   "rows": {
+    "E000_FAST": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': 'e000_allowed 가 true 가 아니다: False', 'doc': 'origin/control/landing-orchestrator:research/landing_accessibility/c",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': 'E001 배치 러너 층 firewall: 릴리스 문서를 이 레이어가 직접 확인했으나 승인 조건(status=RELEASED · promoted_main_sha · e000_allowed=t"
+    },
+    "V2_DIAGNOSTIC": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': \"status 가 RELEASED 가 아니다: 'HISTORICAL_METHOD_ASSURANCE'\", 'doc': 'origin/control/landing-orchestrator:research/l",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': \"E001 배치 러너 층 firewall: 이 레이어가 아는 실제 수집 scope 는 ['E000_FAST', 'E001_FULL'] 뿐이다 — 받은 값: 'V2_DIAGNOSTIC'.\", "
+    },
+    "E001_FULL": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': \"status 가 RELEASED 가 아니다: 'SUSPENDED'\", 'doc': 'origin/control/landing-orchestrator:research/landing_accessibili",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': 'E001 배치 러너 층 firewall: 릴리스 문서를 이 레이어가 직접 확인했으나 승인 조건(status=RELEASED · promoted_main_sha · e001_allowed=t"
+    }
+   },
+   "probe_json_sha256": "3bf85a06fd6dcb8a22f0b956cdc40770d0898f2d767762e0222c0b5044b0b329"
+  },
+  "probe_v21ref_7752ed7.json": {
+   "sut_head": "01041bc213a2e61f6cb224e469087d9a11324349",
+   "rows": {
+    "E000_FAST": {
+     "l1": "{'allowed': True, 'outcome': 'ALLOW', 'reason': 'e000_allowed=true · status=RELEASED · promoted_main_sha 확인', 'doc': 'origin/control/landing-orchestrator:resear",
+     "l2": "{'allowed': True, 'outcome': 'PASS', 'reason': \"returned 'REAL_TARGET'\", 'exc': None}"
+    },
+    "V2_DIAGNOSTIC": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': \"status 가 RELEASED 가 아니다: 'HISTORICAL_METHOD_ASSURANCE'\", 'doc': 'origin/control/landing-orchestrator:research/l",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': \"E001 배치 러너 층 firewall: 이 레이어가 아는 실제 수집 scope 는 ['E000_FAST', 'E001_FULL'] 뿐이다 — 받은 값: 'V2_DIAGNOSTIC'.\", "
+    },
+    "E001_FULL": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': \"status 가 RELEASED 가 아니다: 'SUSPENDED'\", 'doc': 'origin/control/landing-orchestrator:research/landing_accessibili",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': 'E001 배치 러너 층 firewall: 릴리스 문서를 이 레이어가 직접 확인했으나 승인 조건(status=RELEASED · promoted_main_sha · e001_allowed=t"
+    }
+   },
+   "probe_json_sha256": "bac3efb139543b3406d5bdb36707f0455584539566ddabf02301345b0ed9e290"
+  },
+  "probe_w5p_50ed953.json": {
+   "sut_head": "a4185e4c858455f4a1c85112d6e619bbdb9762b1",
+   "rows": {
+    "E000_FAST": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': 'e000_allowed 가 true 가 아니다: False', 'doc': 'origin/control/landing-orchestrator:research/landing_accessibility/c",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': 'E001 배치 러너 층 firewall: 릴리스 문서를 이 레이어가 직접 확인했으나 승인 조건(status=RELEASED · promoted_main_sha · e000_allowed=t"
+    },
+    "V2_DIAGNOSTIC": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': \"status 가 RELEASED 가 아니다: 'HISTORICAL_METHOD_ASSURANCE'\", 'doc': 'origin/control/landing-orchestrator:research/l",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': \"E001 배치 러너 층 firewall: 이 레이어가 아는 실제 수집 scope 는 ['E000_FAST', 'E001_FULL'] 뿐이다 — 받은 값: 'V2_DIAGNOSTIC'.\", "
+    },
+    "E001_FULL": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': \"status 가 RELEASED 가 아니다: 'SUSPENDED'\", 'doc': 'origin/control/landing-orchestrator:research/landing_accessibili",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': 'E001 배치 러너 층 firewall: 릴리스 문서를 이 레이어가 직접 확인했으나 승인 조건(status=RELEASED · promoted_main_sha · e001_allowed=t"
+    }
+   },
+   "probe_json_sha256": "55254e52b1135b0ca20c615b397a4d170a3839f15d7bf7f6c8b541bf4945c1f3"
+  },
+  "probe_w5p_7752ed7.json": {
+   "sut_head": "a4185e4c858455f4a1c85112d6e619bbdb9762b1",
+   "rows": {
+    "E000_FAST": {
+     "l1": "{'allowed': True, 'outcome': 'ALLOW', 'reason': 'e000_allowed=true · status=RELEASED · promoted_main_sha 확인', 'doc': 'origin/control/landing-orchestrator:resear",
+     "l2": "{'allowed': True, 'outcome': 'PASS', 'reason': \"returned 'REAL_TARGET'\", 'exc': None}"
+    },
+    "V2_DIAGNOSTIC": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': \"status 가 RELEASED 가 아니다: 'HISTORICAL_METHOD_ASSURANCE'\", 'doc': 'origin/control/landing-orchestrator:research/l",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': \"E001 배치 러너 층 firewall: 이 레이어가 아는 실제 수집 scope 는 ['E000_FAST', 'E001_FULL'] 뿐이다 — 받은 값: 'V2_DIAGNOSTIC'.\", "
+    },
+    "E001_FULL": {
+     "l1": "{'allowed': False, 'outcome': 'DENY', 'reason': \"status 가 RELEASED 가 아니다: 'SUSPENDED'\", 'doc': 'origin/control/landing-orchestrator:research/landing_accessibili",
+     "l2": "{'allowed': False, 'outcome': 'BLOCK(exc)', 'reason': 'E001 배치 러너 층 firewall: 릴리스 문서를 이 레이어가 직접 확인했으나 승인 조건(status=RELEASED · promoted_main_sha · e001_allowed=t"
+    }
+   },
+   "probe_json_sha256": "5a5e65b3034aeb62b88a1c74f96396f1ae5dd08874ef7240a74e1198267527ff"
+  }
+ },
+ "summary": {
+  "E000_FAST_before": "L1 ALLOW + L2 PASS(REAL_TARGET) on BOTH SUTs — both layers were open, not only the batch layer",
+  "E000_FAST_after": "L1 DENY(e000_allowed False) + L2 BLOCK(BatchRealTargetBlockedError) on BOTH SUTs",
+  "E001_FULL": "DENY/BLOCK before and after (SUSPENDED)",
+  "V2_DIAGNOSTIC": "L2 BLOCK (scope unknown to layer) before and after"
+ }
+}

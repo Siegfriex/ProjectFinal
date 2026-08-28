@@ -108,6 +108,11 @@ def main(argv: list[str] | None = None) -> int:
     os.chdir(root) if root.exists() else None
     fw, e1 = _import(L1_MOD)
     lf, e2 = _import(L2_MOD)
+    if fw is None or lf is None:   # Δ46-exit2: a probe that could not import the layers DID NOT RUN — it must not print 'fail-closed'
+        rec["did_not_run"] = True; rec["note"] = "did not run — layer import failed; read neither as fail-closed nor as allow"
+        print("two_layer_scope_probe: did not run — layer import failed (exit 2)", file=sys.stderr)
+        if args.out: pathlib.Path(args.out).write_text(json.dumps(rec, ensure_ascii=False, indent=1), encoding="utf-8")
+        sys.exit(2)
     rec["layers"]["layer1_engine_firewall"] = {"module": L1_MOD, "imported": fw is not None, "error": e1,
                                               "file": getattr(fw, "__file__", None)}
     rec["layers"]["layer2_batch_layer_firewall"] = {"module": L2_MOD, "imported": lf is not None, "error": e2,
