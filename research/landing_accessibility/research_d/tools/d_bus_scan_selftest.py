@@ -126,3 +126,21 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+def controls() -> dict:
+    """[D-DEF-55] `run_controls()` 를 표준 형태로 정규화한 래퍼."""
+    r = run_controls()
+    cases = []
+    for kind, exp in (("negative", "must_flag"), ("malformed", "must_flag"),
+                      ("positive", "must_not_flag")):
+        v = r.get(kind)
+        if v is None:
+            continue
+        ok = bool(v) if not isinstance(v, dict) else bool(v.get("ok", True))
+        cases.append({"case": f"{kind} fixture", "expectation": exp, "ok": ok,
+                      "detail": str(v)[:120]})
+    return {"verdict": r.get("verdict"), "n": len(cases),
+            "must_flag": sum(1 for c in cases if c["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for c in cases if c["expectation"] == "must_not_flag"),
+            "cases": cases, "failures": r.get("failures")}

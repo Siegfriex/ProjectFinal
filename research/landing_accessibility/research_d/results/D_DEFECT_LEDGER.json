@@ -1,7 +1,7 @@
 {
  "artifact": "D_DEFECT_LEDGER",
  "produced_at_kst": "2026-08-28T09:51:38+09:00",
- "measured_at_kst": "2026-08-28T15:06:30+09:00",
+ "measured_at_kst": "2026-08-28T15:10:39+09:00",
  "d_head": "0074449403193d8dbb4d515fced3d5dc5fa15d96",
  "plane": "D",
  "claim_kind": "OBSERVATION",
@@ -579,6 +579,21 @@
    "손_목록이_또_뒤처졌다": "대조군 함수 이름을 `(\"controls\",\"self_test\",...)` 로 열거했더니 `d_bus_lib.cross_plane_ack_controls` 가 NO_CONTROLS 로 잘못 나왔다. **패턴으로 바꿨다** — D-DEF-45 의 형태 그대로다",
    "실측": "대조군 없음 6 → 3(`d_exit`·`d_presentation_eda`·`d_v3_report` — 유틸·산출기) · 부정 0 의심 0 · 형태 못읽음 4(인자 필요 등)",
    "control": "**안전·상태 주장을 내는 함수는 자기 판정에 실행되는 대조군을 붙인다.** 그리고 자동 집계 도구는 못 읽은 것을 0 으로 세지 않는다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-55",
+   "what": "**대조군 집계가 모듈 함수만 보고 산출물을 안 봤다** — `d_input_firewall` 의 대조군 13건이 이미 표준 형태로 산출 JSON 에 실려 있는데 `NEEDS_ARGS` 로 빠졌다",
+   "mechanism": "`control_coverage` 가 `getattr(mod, fn)()` 만 시도한다. `run_controls(denied)` 처럼 인자를 요구하면 못 부르고, 그 결과가 **산출물에 실리는 경우**를 보지 않는다",
+   "why_it_matters": "`d_input_firewall` 은 D 의 **holdout 안전 주장 전체**를 싣는 도구다. 그 대조군이 '없다' 로 보이면 가장 중요한 자리가 미검증으로 읽힌다 — **실제로는 13건이 돌고 있었다**",
+   "다른_셋도_같았다": "`d_emit_ticket.self_test`(발행 가드) · `d_bus_scan_selftest.run_controls` · `d_bus_lib.cross_plane_ack_controls` — 전부 강한 대조군인데 **반환 필드 이름이 달라** 집계가 못 읽었다",
+   "fix": [
+    "네 모듈에 **인자 없는 정규화 래퍼** `controls()` 추가. 원 함수는 그대로 둔다",
+    "`d_input_firewall.controls()` 는 **최근 산출을 읽는다** — 스캔을 다시 돌리면 대상을 건드릴 수 있다(D-DEF-50)"
+   ],
+   "실측": "형태 못읽음 4 → **0** · 부정 0 의심 **0** · 대조군 없음 3(`d_exit`·`d_presentation_eda`·`d_v3_report`, 유틸·산출기). 루프 도구 20 중 **17이 실행되는 대조군**을 갖는다",
+   "family": "D-DEF-54 의 집계 오분류 **세 번째 판**이다. 1차 must_flag 필드만, 2차 want 값 형태, 3차 **호출 형태와 결과 위치**. 매번 '못 읽은 것' 을 '없는 것' 으로 셀 뻔했다",
+   "control": "집계기는 **어떻게 부르는가**와 **어디에 결과가 있는가**를 모두 본다. 못 읽으면 `unreadable_shape` 로 남기고 0 으로 세지 않는다 — 그 규율이 이번에도 오분류를 막았다",
    "escaped": true
   }
  ],

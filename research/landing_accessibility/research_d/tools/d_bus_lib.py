@@ -246,3 +246,21 @@ def cross_plane_ack_controls(bus_dir, plane: str = "D") -> dict:
             "variant_names_captured": len(variant),
             "why_variant": "`.A2.json`/`.C-1.json` 류. 좁은 글롭이면 재ACK 를 놓치고 예외를 부풀린다",
             "passed": bool(must_flag and must_not_flag and variant)}
+
+
+BUS_DEFAULT = Path("/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2")
+
+
+def controls() -> dict:
+    """[D-DEF-55] `cross_plane_ack_controls(bus_dir)` 의 인자 없는 정규화 래퍼."""
+    c = cross_plane_ack_controls(BUS_DEFAULT)
+    cases = [
+        {"case": "누락 ACK 를 잡는다", "expectation": "must_flag",
+         "ok": bool(c.get("must_flag_missing_ack"))},
+        {"case": "실제 티켓은 안 잡는다", "expectation": "must_not_flag",
+         "ok": bool(c.get("must_not_flag_real_ticket"))},
+    ]
+    ok = all(x["ok"] for x in cases)
+    return {"verdict": "PASS" if ok else "FAIL", "n": len(cases),
+            "must_flag": 1, "must_not_flag": 1, "cases": cases,
+            "variant_names_captured": c.get("variant_names_captured")}

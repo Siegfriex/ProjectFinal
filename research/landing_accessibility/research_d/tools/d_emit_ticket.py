@@ -370,3 +370,20 @@ if __name__ == "__main__":
         raise SystemExit(0)
     print(json.dumps({"self_test": self_test()["verdict"],
                       "emitted_audit": audit_emitted()}, ensure_ascii=False, indent=1))
+
+
+def controls() -> dict:
+    """[D-DEF-55] `self_test()` 를 표준 형태로 정규화한 래퍼. 원 함수는 그대로다."""
+    st = self_test()
+    cases = []
+    for name, caught in (st.get("bad_fixture_caught") or {}).items():
+        cases.append({"case": f"불량 fixture 를 막는다: {name}",
+                      "expectation": "must_flag", "ok": bool(caught)})
+    good = st.get("good_fixture_errors") or []
+    cases.append({"case": "정상 fixture 는 통과한다",
+                  "expectation": "must_not_flag", "ok": not good,
+                  "detail": good[:3]})
+    return {"verdict": st.get("verdict"), "n": len(cases),
+            "must_flag": sum(1 for c in cases if c["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for c in cases if c["expectation"] == "must_not_flag"),
+            "cases": cases}

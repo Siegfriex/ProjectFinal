@@ -519,3 +519,30 @@ import d_exit
 
 if __name__ == "__main__":
     raise SystemExit(d_exit.run(main))
+
+
+def controls() -> dict:
+    """[D-DEF-55] **인자 없는 정규화 래퍼.**
+
+    `run_controls(denied)` 는 인자를 요구해서 모듈 단위 대조군 집계
+    (`d_tool_health.control_coverage`)가 부를 수 없었고 `NEEDS_ARGS` 로 빠졌다.
+    **대조군 자체는 완전하다** — 13건이 `expectation: must_flag/must_not_flag`
+    표준 형태로 산출 JSON 의 `controls` 에 실린다.
+
+    집계가 못 본 이유는 **모듈 함수만 보고 산출물을 안 본 것**이다. 여기서는
+    스캔을 다시 돌리지 않고 **최근 산출의 대조군 결과를 읽는다** — 재실행은
+    대상을 건드릴 수 있다(D-DEF-50).
+    """
+    import json as _j
+    from pathlib import Path as _P
+    out = _P(__file__).resolve().parent.parent / "results" / "D_INPUT_FIREWALL_VERIFICATION.json"
+    if not out.exists():
+        return {"verdict": "NO_RESULT", "n": 0, "cases": [],
+                "note": "스캔 산출이 없다 — `d_input_firewall.py` 를 먼저 실행한다"}
+    c = (_j.loads(out.read_text(encoding="utf-8")) or {}).get("controls") or {}
+    cs = c.get("cases") or []
+    return {"verdict": c.get("verdict"), "n": len(cs),
+            "must_flag": sum(1 for x in cs if x.get("expectation") == "must_flag"),
+            "must_not_flag": sum(1 for x in cs if x.get("expectation") == "must_not_flag"),
+            "cases": cs, "source": str(out),
+            "note": "**최근 스캔 산출을 읽는다** — 재실행하지 않는다"}
