@@ -136,11 +136,49 @@ def pending() -> dict:
             "rows": live[:12]}
 
 
+def status_field_reliability() -> dict:
+    """[D-DEF-67] `status` 는 **발행 시점의 자기신고**이고 갱신되지 않는다.
+
+    B 가 `T-B-V3-DR-004` 에서 짚었다 — "`status: OPEN` 47건은 갱신되지 않은
+    자기신고이지 대기가 아니다". **D 발행분도 같다.**
+
+    D 의 대기 집계는 **ACK 유무**로 세므로 `status` 에 의존하지 않는다. 그래도
+    그 필드가 부정확하다는 사실은 D 산출에 남으므로 수치로 낸다 —
+    **읽는 쪽이 `status` 를 대기 신호로 쓰면 틀린다.**
+    """
+    import json as _j
+    total = open_n = open_acked = 0
+    for p in sorted(TICKETS.glob("*.json")):
+        try:
+            d = _j.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if d.get("from") != "D":
+            continue
+        total += 1
+        if d.get("status") != "OPEN":
+            continue
+        open_n += 1
+        tid = d.get("ticket_id") or p.stem
+        to = set(d.get("to") or [])
+        acked = {q.name[len(tid) + 1:].split(".")[0][0]
+                 for q in ACKS.glob(f"{tid}.*.json") if q.name[len(tid) + 1:]}
+        if to & acked:
+            open_acked += 1
+    return {"d_emitted": total, "status_open": open_n,
+            "open_but_to_acked": open_acked,
+            "뜻": ("`status:OPEN` 중 **응답을 받았는데 OPEN 그대로**인 것의 수. "
+                 "발행분은 고치지 않으므로 이 수는 줄지 않는다 — "
+                 "**`status` 를 대기 신호로 쓰지 마라**"),
+            "D_의_집계는_무엇을_쓰나": "**ACK 유무**다. `status` 에 의존하지 않는다"}
+
+
 def check() -> dict:
     pen = pending()
     live = plane_liveness()
     return {"verdict": "INFO",            # **판정이 아니다** — 사실만 낸다
             "pending": pen, "liveness": live,
+            "status_field": status_field_reliability(),
             "D_는_판정하지_않는다": ("'상대가 느리다' 가 아니라 '몇 건이 대기 중이고 "
                             "상대의 마지막 활동이 언제인가' 만 적는다"),
             "왜_필요한가": ("D 는 매 회차 'A 판정 대기 · C 검산 대기' 라고 적으면서 "
