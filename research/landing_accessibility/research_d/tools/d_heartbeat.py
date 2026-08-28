@@ -106,6 +106,10 @@ def _production_touch(base: str, head: str) -> tuple:
         "measured": "git diff --name-only base..head 의 경로 접두 검사",
         "scope": "**D 브랜치 커밋이 production 경로를 건드렸는가.** "
                  "'아무도 production 을 고치지 않았다' 는 D 가 잴 수 없다 (R41)",
+        "측정_범위_밖": ("**mart 와 raw evidence 는 이 측정에 잡히지 않는다** — "
+                    "`artifacts/` 가 `.gitignore` 로 추적 제외라 git diff 에 안 나온다. "
+                    "mart 는 `d_prereg_check` 가 sha 로, raw 는 "
+                    "`d_input_integrity` 가 파일별 sha 로 잰다 [D-DEF-53]"),
         "base_sha": base, "head_sha": head,
         "changed_files": len(files), "production_hits": hits[:10],
         "must_flag": "production 경로 접두를 가진 파일이 있으면 true 여야 한다",

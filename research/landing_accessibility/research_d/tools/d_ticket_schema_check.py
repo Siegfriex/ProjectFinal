@@ -70,6 +70,30 @@ def violations(plane: str = "D", since: str = V3_SINCE, tickets=None) -> list:
     return out
 
 
+# [D-DEF-53] **스키마 PASS 가 D 권한 준수를 뜻하지 않는다.** 스키마 enum 은 전
+# 평면 공용이라 `BLOCKER`·`DIRECTIVE` 를 **허용**한다. D 는 그것을 발행하면 안 된다
+# (SSOTV3 14_PROMPT_D "금지: GO/NO-GO", D 규약 §1 권한경계).
+# `d_emit_ticket.FORBIDDEN_TYPES` 가 발행 시 막지만 **손으로 쓴 티켓은 우회**한다.
+D_FORBIDDEN_TYPES = {"GO", "NO_GO", "NO-GO", "BLOCKER", "DIRECTIVE", "SUPERSEDE",
+                     "RULING", "ASSURANCE"}
+
+
+def authority_violations(plane: str = "D") -> list:
+    """D 가 **낼 수 없는 종류**의 티켓을 발행했는가. 스키마와 별개 축이다."""
+    out = []
+    for p in sorted(TICKETS.glob("*.json")):
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if d.get("from") != plane:
+            continue
+        if d.get("type") in D_FORBIDDEN_TYPES:
+            out.append({"ticket": p.name, "type": d.get("type"),
+                        "created_at_kst": str(d.get("created_at_kst", ""))[:19]})
+    return out
+
+
 def check() -> dict:
     v = violations()
     for r in v:
@@ -90,7 +114,8 @@ def check() -> dict:
             c["missing:" + k] += 1
         for k in r["enum_violation"]:
             c["enum:" + k] += 1
-    return {"verdict": "PASS" if not new else "FAIL",
+    _auth = authority_violations()
+    return {"verdict": "PASS" if (not new and not _auth) else "FAIL",
             "schema": str(SCHEMA), "v3_since": V3_SINCE,
             "guard_since": SCHEMA_GUARD_SINCE,
             "n_new": len(new), "n_violations": len(v), "by_field": dict(c),
@@ -101,6 +126,12 @@ def check() -> dict:
                             "세되 verdict 를 좌우하지 않는다 — 영구 FAIL 은 신호를 죽인다")},
             "violations": v,
             "소급하지_않는다": "v3 이전 발행분은 대상이 아니다. 발행된 티켓은 고치지 않는다 — 사실만 보고한다",
+            "authority": {
+                "n": len(authority_violations()),
+                "violations": authority_violations(),
+                "축": ("**스키마와 다른 축이다.** 스키마 enum 은 전 평면 공용이라 "
+                     "`BLOCKER`·`DIRECTIVE` 를 허용하지만 D 는 낼 수 없다"),
+                "forbidden": sorted(D_FORBIDDEN_TYPES)},
             "type_enum_은_A_소관": ("`ADDENDUM`·`STATUS` 는 스키마 enum 에 없다. "
                                 "D 가 쓰지 말아야 할 어휘인지, 스키마가 넓어져야 하는지는 "
                                 "**A 가 정한다**. D 는 불일치만 보고한다")}
@@ -168,6 +199,13 @@ def controls() -> dict:
     run("status 누락은 막힘", {k: v for k, v in full.items() if k != "status"})
     run("enum 밖 type 은 막힘", full | {"type": "ADDENDUM"})
     run("enum 밖 to 는 막힘", full | {"to": ["Z"]})
+    # [D-DEF-53] 스키마 enum 에는 있지만 **D 는 낼 수 없는** 종류
+    rows.append({"case": "D 권한 밖 type(BLOCKER)은 스키마 enum 에 있어도 권한 축에서 걸린다",
+                 "flagged": "BLOCKER" in D_FORBIDDEN_TYPES,
+                 "expectation": "must_flag", "ok": "BLOCKER" in D_FORBIDDEN_TYPES})
+    rows.append({"case": "FINDING 은 D 권한 안",
+                 "flagged": "FINDING" in D_FORBIDDEN_TYPES,
+                 "expectation": "must_not_flag", "ok": "FINDING" not in D_FORBIDDEN_TYPES})
     run("v3 이전 발행분은 대상 아님 — 소급하지 않는다",
         full | {"created_at_kst": "2026-08-27T23:00:00+09:00", "scope": None} | {},
         should_fail=False)

@@ -24,6 +24,22 @@ print(f"  verdict          : {ctl['verdict']}")
 print(f"  positive control : {ctl['positive']['detected']}/{ctl['positive']['expected']} 검출")
 print(f"  negative control : {ctl['negative']['not_detected']}/{ctl['negative']['expected']} 미검출(과탐 0)")
 print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['expected']} 명시 오류")
+# --- D 입력(mart·raw) 무결성 (D-DEF-53) ---
+# `production_modified` 는 git diff 로 재는데 `artifacts/` 는 추적 제외라
+# **mart·raw 는 그 측정 범위 밖**이다. 여기서 파일별 sha 로 잰다.
+try:
+    from d_input_integrity import check as _ii
+    _i = _ii()
+    print(f"\n=== D 입력 무결성(mart·raw) : {_i['verdict']} · {_i.get('n_files','?')} 파일 ===")
+    if _i["verdict"] == "FAIL":
+        print(f"   변경 {_i['n_changed']} · 추가 {_i['n_added']} · 삭제 {_i['n_removed']}")
+        for _f in (_i["changed"] + _i["added"] + _i["removed"])[:6]:
+            print(f"     {_f}")
+        print("   (누가 바꿨는지는 말하지 않는다 — **D 의 입력이 바뀌었다**는 사실이다)")
+except Exception as _e:
+    print(f"\n=== D 입력 무결성 : 검사 실패 {_e} ===")
+    errs.append({"file": "(입력 무결성)", "error": f"무결성 검사 실행 실패: {_e}"})
+
 # --- D 도구 문법 건전성 (D-DEF-50) ---
 # `d_presentation_eda.py` 가 syntax error 인 채로 두 회차를 지났다. 검사 7종이
 # 전부 exit 0 이었고 **그 파일을 실행하는 검사가 하나도 없었기 때문**이다.
