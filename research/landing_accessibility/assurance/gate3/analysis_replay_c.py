@@ -197,6 +197,21 @@ def controls(manifest):
     return res
 
 
+def retractions_block():
+    """Read the machine-readable retraction block (schema b_retractions/v1) next to the mart; C outputs carry it so any token they cite
+    is read with its marker (R137: the citing side marks). Returns {} when absent — reported as such, never silently."""
+    import re as _re
+    p = ROOT / "mart" / "CANONICAL_MART_50.RETRACTIONS.md"
+    if not p.exists(): return {"status": "ABSENT"}
+    m = _re.search(r"```json\s*(\{.*?\})\s*```", p.read_text(encoding="utf-8"), _re.S)
+    if not m: return {"status": "NO_MACHINE_BLOCK"}
+    try: b = json.loads(m.group(1))
+    except ValueError: return {"status": "UNPARSABLE"}
+    nr = b.get("not_retracted", []); inv = all(not x.get("replacement_label") for x in nr)
+    return {"status": "OK", "schema": b.get("schema"), "retracted": {x["token"]: {"replacement_label": x.get("replacement_label"), "citation_marker": x.get("citation_marker")} for x in b.get("retracted", [])},
+            "not_retracted": [x.get("token") for x in nr], "invariant_not_retracted_has_no_replacement": inv, "reading_rule": "every retracted token appearing in this file is a stored VALUE; cite it as '<token> [RETRACTED] → <replacement_label>'"}
+
+
 def main():
     raw_m = Q.git_show(Q.MANIFEST_PATH); manifest, fsha, bsha = Q.manifest_hashes(raw_m)
     ctl = controls(manifest); failed = {k: v for k, v in ctl.items() if v != "PASS"}
@@ -271,7 +286,7 @@ def main():
            "coverage_overall": {k: f"{v['k']}/50" + (f" (filled {v['filled']}, independent AX 0 — VISIBLE_TEXT copies)" if k == "accessible_name" and v.get("filled", 0) > v["k"] else "") for k, v in a["coverage"]["overall"].items()}}, "coverage": a["coverage"], "metrics": a["metrics"], "per_family": a["per_family"],
            "by_provenance": a["by_provenance"], "provenance_note": a.get("provenance_note"), "d_analysis_files_seen": dfiles, "d_claim_candidates_seen": claims, "row_replay": a["row_replay"],
            "reading_rules": {"ASSURED": "C recomputation equals the mart value on every compared row (n stated)", "DIVERGENT": "at least one compared row differs — listed; which side is wrong is A's call", "NOT_ASSURED": "0 rows recomputable — never counted as pass", "sequence_distance": "computed by C only (no B/D matrix to diff yet); cells of a matrix, not independent n"},
-           "not_a_verdict": True, "exit": 0 if a["n_observed_rows"] else 3}
+           "retractions": retractions_block(), "not_a_verdict": True, "exit": 0 if a["n_observed_rows"] else 3}
     OUT_C.parent.mkdir(parents=True, exist_ok=True); OUT_A.parent.mkdir(parents=True, exist_ok=True)
     for p in (OUT_A, OUT_C): p.write_text(json.dumps(rec, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps(rec["summary"], ensure_ascii=False)); 

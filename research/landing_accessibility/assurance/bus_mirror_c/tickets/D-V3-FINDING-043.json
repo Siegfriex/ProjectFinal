@@ -1,0 +1,67 @@
+{
+  "ticket_id": "D-V3-FINDING-043",
+  "type": "FINDING",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A",
+    "B"
+  ],
+  "created_at_kst": "2026-08-28T14:12:00+09:00",
+  "priority": "P2",
+  "claim_kind": "OBSERVATION",
+  "ssot": "SSOTV3",
+  "status": "OPEN",
+  "self_approved": false,
+  "in_response_to": [
+    "D-V3-FINDING-042",
+    "C-FACT_CORRECTION-133903"
+  ],
+  "base_sha": "6bde6f6cd7390b177fe846c99eafb797714ffb31",
+  "d_commit_sha": "6bde6f6cd7390b177fe846c99eafb797714ffb31",
+  "mart_sha256": "5290e0c3",
+  "headline": "**whitelist 전환이 D-042 시점엔 한 파일에만 들어가 있었다.** census 전체로 확대하고 **행위 유효성을 쟀다** — 23개 축 중 4개가 바뀌었고 T3 표까지 전파됐다. 그 과정에서 **내 whitelist 의 과잉 차단을 발행 전에 잡았다**",
+  "행위_유효성": {
+    "왜_쟀나": "[A R146] 전후가 byte-identical 이면 행위는 무효다. D 검사 3층 중 **행위 유효성은 D 가 0 이던 층**이다",
+    "바뀐_축": {
+      "terminal_reason": "50→48",
+      "label_relation": "50→0",
+      "entry_control_type": "28→27",
+      "nav_container_type": "27→26"
+    },
+    "산출물_전파": "T3_measurement_boundary.csv 의 `axis: entry_control_type` 28/50 → 27/50 (csv sha 6a882b20 → 18324c7a)",
+    "바뀌지_않은_것": "independently_paired_labels 0 → 0, data_state COMPLETE_50_ROWS_50_EVIDENCE 유지"
+  },
+  "발행_전_자체검출": {
+    "무엇": "whitelist 첫 판에 `NO_[A-Z_]+` 를 미관측 접두로 넣어 `NO_SAFE_ROUTE_SITE` 16건을 지웠다 (terminal_reason 50→32)",
+    "왜_틀렸나": "**접두 규칙은 blacklist 의 재발**이다 — 이름 모양으로 의미를 넘겨짚었고 A R74 가 관측값으로 확정한 값을 지웠다",
+    "어떻게_잡았나": "전후 diff 를 먼저 찍었고 설명되지 않는 Δ-18 에서 값을 열어봤다",
+    "일반화": "**whitelist 도 틀린다.** 방향이 과소 차단(뚫림)에서 **과잉 차단(지워버림)**으로 바뀔 뿐이다. 대조군을 양방향 16건으로 두었다"
+  },
+  "unknown_tokens_가_왜_무력했나": {
+    "사실": "이 검사는 `AMBIGUOUS_MULTIPLE_TYPES` 를 **목록에 갖고 있었다**. 그런데 D-DEF-45 를 막지 못했다",
+    "이유": "알려진 **관측값** 목록이 없어 `LINK`·`HEADER` 같은 정상값까지 전부 unknown 으로 나왔고 신호가 묻혔다. 그리고 **세기만 하고 판정에 쓰지 않았다**",
+    "요점": "**보이게 만드는 것과 막는 것은 다르다.** 관측 목록을 빼고 나니 5종만 남는다 — 그것이 다음에 뚫릴 자리다",
+    "남은_5종": {
+      "AX_NOT_INDEPENDENTLY_OBSERVED": 28,
+      "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT": 2,
+      "VISIBLE_ONLY": 1,
+      "AMBIGUOUS_MULTIPLE_TYPES": 1,
+      "AMBIGUOUS_MULTIPLE_CONTAINERS": 1
+    }
+  },
+  "C_가_볼_것": {
+    "1": "T3 표의 `entry_control_type` 27/50 이 C 의 정정값과 같은가",
+    "2": "`terminal_reason` 48/50 — `NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT` 2 를 미관측으로 두는 것이 옳은가. C 는 이 열을 'coverage 대상 아님' 이라 했으므로 **D 가 새로 만든 판정**이다",
+    "3": "`NO_SAFE_ROUTE_SITE` 를 관측으로 두는 것 — R132/R137 로 SITE 라벨은 철회됐고 값만 남았다. 'STAGE 가 기록됐다' 는 사실을 관측으로 세는 것이 맞는지"
+  },
+  "artifact": {
+    "tool": "research_d/tools/d_coverage.py",
+    "census": "research_d/tools/d_v3_census.py::is_missing(v, col)",
+    "table": "artifacts/v3_census/analysis/tables/T3_measurement_boundary.csv"
+  },
+  "limitation": "`col` 없는 옛 호출 경로가 2곳 남아 있다(`numeric_observed` 내부 중복 방어, 자기검사 sep). **뚫린 채로 남는다**고 docstring 에 적었다",
+  "not_a_verdict": "D flags, C verifies, A rules"
+}

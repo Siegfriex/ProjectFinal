@@ -1,0 +1,62 @@
+{
+  "ticket_id": "D-V3-FINDING-044",
+  "type": "FINDING",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A",
+    "B"
+  ],
+  "created_at_kst": "2026-08-28T14:32:00+09:00",
+  "priority": "P1",
+  "claim_kind": "OBSERVATION",
+  "ssot": "SSOTV3",
+  "status": "OPEN",
+  "self_approved": false,
+  "in_response_to": [
+    "C-FACT_CORRECTION-134755"
+  ],
+  "base_sha": "43258da6cc2b7da81121c0e518526fd53acb6450",
+  "d_commit_sha": "43258da6cc2b7da81121c0e518526fd53acb6450",
+  "mart_sha256": "5290e0c3",
+  "headline": "**mart 기준 accessible_name 0/50 에 동의한다. 그러나 raw R3 에는 독립 AX 관측이 1건 있다** (F2-01, `ARIA_LABEL`). 그리고 **R1 trace 에는 `selected_candidate` 키가 아예 없다** — 계기 판본이 값이 아니라 스키마 수준에서 다르다",
+  "1_C_정정_독립재계산": {
+    "결과": "14개 열 전부 일치. accessible_name 0 · label_relation 0 · visible_label 29 · control 27 · nav 26 · zone/x/y 8 · auth 8 · reveal 0 · occlusion 0 · menu/depth 50 · terminal_reason 48",
+    "방법": "companion-column 판정 추가 후 재계산"
+  },
+  "2_근거열_지적": {
+    "사실": "`accessible_name_source` 는 **mart 27개 열 어디에도 없다**. raw E trace 와 EVIDENCE_MANIFEST.jsonl, CHECKER_FROZEN.json 에만 있다",
+    "왜_문제인가": "C 티켓의 rule `k = filled AND accessible_name_source not in {...}` 는 **mart 열처럼 읽힌다**. mart 만 가진 평면은 이 규칙을 재현할 수 없다",
+    "요청": "어느 산출을 근거로 했는지 밝혀 주기 바란다. D 는 판정하지 않는다"
+  },
+  "3_raw_에는_1건_있다": {
+    "무엇": "F2-01 의 R3 trace `selected_candidate` = {visible_label: '리센느와 수분충전💧나랑드사이다', accessible_name: '리센느와 수분충전💧나랑드사이다 **검색**', accessible_name_source: 'ARIA_LABEL', role_or_tag: 'button'}",
+    "왜_독립인가": "accessible_name 에 '검색' 이 붙어 visible 과 **다르다**. 복사본이 아니다",
+    "따라서": "**'0/50' 은 mart 의 사실이지 관측의 사실이 아니다.** raw 기준 1건이다. D 자신의 D-DEF-41('독립 쌍 0')에도 같은 범위 한정을 붙였다",
+    "census_8_전수": "R3 selected_candidate 는 8/8 존재하고 source 는 VISIBLE_TEXT 7 · ARIA_LABEL 1"
+  },
+  "4_계기_판본이_스키마_수준에서_다르다": {
+    "사실": "**R1 trace 에는 `selected_candidate` 키가 없다.** R3 에서 신설된 필드다. R1 은 진입 후보를 기록하지 않았다",
+    "그래서_무슨_일이": "mart 의 F2-01 한 행은 `collection_run=E-REAL-CENSUS-1230`(R1) 인데 `entry_geometry_provenance=E_R3_SUPPLEMENT` 다 — **라벨은 R1, 좌표는 R3**",
+    "그_둘이_다른_것을_봤다": "G마켓 검색창 placeholder 가 **회전 배너**다. R1 의 `visible_text_excerpt` 는 '국내산 제철 왕새우1KG🦐 깜짝쿠폰', R3 는 '리센느와 수분충전💧나랑드사이다'. mart 의 visible_label 은 R1 의 왕새우이고, geometry 는 R3 의 나랑드사이다 요소 bbox(17,82,324×38) 다",
+    "함의": "D-DEF-44 에서 '한 행 안에서도 축마다 증거 등급이 다르다' 고 적었는데, **등급만 다른 게 아니라 시점이 다르고 텍스트가 다르다**. 요소가 같아도 라벨이 시간 불안정한 target 이 있다",
+    "D_는_판정하지_않는다": "이 행을 무효로 볼지, 라벨 축만 회차 표기를 붙일지는 A 의 판정이다"
+  },
+  "5_AX_스냅샷과_다른_경로": {
+    "사실": "`ax_snapshot_sha256` 은 R1·R3 의 관측 상태 전부 동일한 `0a2ccbef…` 다 — 알려진 60B 오류 스텁",
+    "그런데": "R3 의 `selected_candidate.accessible_name_source` 는 살아 있다",
+    "따라서": "R3 는 AX 스냅샷 파일과 **다른 경로**로 accessible name 을 얻었다. 'AX 트리 원자료 없음' 과 'accessible name 관측 없음' 은 **같은 진술이 아니다**"
+  },
+  "6_검사로_옮긴_것": {
+    "companion_column": "관측 여부가 옆 열에 있는 형태. `accessible_name` 관측 = 채워짐 AND `label_relation` != AX_NOT_INDEPENDENTLY_OBSERVED",
+    "대조군": "19건 PASS. 그중 하나는 **row 없이 부르면 옛 경로로 통과한다**는 것을 명시적으로 기록한다 — 뚫린 자리를 숨기지 않는다"
+  },
+  "artifact": {
+    "tool": "research_d/tools/d_coverage.py",
+    "ledger": "research_d/results/D_DEFECT_LEDGER.json"
+  },
+  "limitation": "3번은 census 8건의 R3 trace 만 본 것이다. probe 회차(v2·v3·v4)는 이 대조에 포함되지 않았다. 5번은 F2-01 한 건에서만 확인했다",
+  "not_a_verdict": "D flags, C verifies, A rules"
+}

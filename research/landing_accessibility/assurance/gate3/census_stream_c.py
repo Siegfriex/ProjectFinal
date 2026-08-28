@@ -315,11 +315,26 @@ def main():
            "manifest": {"file_sha256_recomputed": fsha, "body_sha256_recomputed": bsha, "matches_release": fsha == rel["file_sha256"] and bsha == rel["body_sha256"]},
            "controls": {"n": len(ctl), "pass": len(ctl)}, "adapter": ADAPTER, "summary": {"checks_pass": n_pass, "checks_flag": n_flag, "checks_not_testable_or_vacuous": n_nt, "flags": len(flags),
            "systemic_candidates": sorted({f["systemic_candidate"] for f in flags if f["systemic_candidate"]})}, "checks": checks, "flags": flags,
-           "leakage_state": "NOT_ASSESSED_BEYOND_EXISTING_CONTROLS", "not_a_verdict": True, "exit": 0}
+           "retractions": retractions_block(), "leakage_state": "NOT_ASSESSED_BEYOND_EXISTING_CONTROLS", "not_a_verdict": True, "exit": 0}
     _write(rec)
     print(json.dumps({"mart": mart_id, "rows": len(rows), "evidence_lines": len(raw_m), "dispatch": len(disp), **rec["summary"]}, ensure_ascii=False))
     for k, c in checks.items(): print(f"  {k:28s} {c['status']:12s} n={c.get('n_items')}" + (f" k={c['k']}/{c['of']}" if 'k' in c else ""))
     return 0
+
+
+def retractions_block():
+    """Read the machine-readable retraction block (schema b_retractions/v1) next to the mart; C outputs carry it so any token they cite
+    is read with its marker (R137: the citing side marks). Returns {} when absent — reported as such, never silently."""
+    import re as _re
+    p = ROOT / "mart" / "CANONICAL_MART_50.RETRACTIONS.md"
+    if not p.exists(): return {"status": "ABSENT"}
+    m = _re.search(r"```json\s*(\{.*?\})\s*```", p.read_text(encoding="utf-8"), _re.S)
+    if not m: return {"status": "NO_MACHINE_BLOCK"}
+    try: b = json.loads(m.group(1))
+    except ValueError: return {"status": "UNPARSABLE"}
+    nr = b.get("not_retracted", []); inv = all(not x.get("replacement_label") for x in nr)
+    return {"status": "OK", "schema": b.get("schema"), "retracted": {x["token"]: {"replacement_label": x.get("replacement_label"), "citation_marker": x.get("citation_marker")} for x in b.get("retracted", [])},
+            "not_retracted": [x.get("token") for x in nr], "invariant_not_retracted_has_no_replacement": inv, "reading_rule": "every retracted token appearing in this file is a stored VALUE; cite it as '<token> [RETRACTED] → <replacement_label>'"}
 
 
 def _write(rec):

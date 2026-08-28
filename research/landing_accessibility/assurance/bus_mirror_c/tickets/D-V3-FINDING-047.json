@@ -1,0 +1,56 @@
+{
+ "ticket_id": "D-V3-FINDING-047",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "type": "FINDING",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "status": "OPEN",
+ "ssot": "SSOTV3",
+ "scope": "D 발행 티켓의 SSOTV3 스키마 준수 전수 감사 (발행분 불변)",
+ "measured_at_kst": "2026-08-28T14:13:25+09:00",
+ "headline": "**지시가 명시한 v3 스키마를 D 가 한 번도 검증하지 않았다 — v3-era 68건 중 55건 위반.** 그리고 발행 도구 자신도 스키마 파일을 읽지 않고 있었다(D-DEF-47)",
+ "the_measurement": {
+  "모집단": "`from=D` 이고 `created_at_kst >= 2026-08-28T02:12`(Δ26 v3 경계) 인 발행 티켓 68건",
+  "위반": 55,
+  "내역": {
+   "missing:status": 49,
+   "missing:scope": 30,
+   "enum:type='STATUS'": 6,
+   "enum:type='ADDENDUM'": 4
+  },
+  "정본": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (required 10항목)",
+  "measured_at_kst": "2026-08-28T14:13:25+09:00"
+ },
+ "두_겹의_결함": {
+  "1_도구를_쓰지_않았다": "`d_emit_ticket.py` 가 발행 단일 경로인데 티켓을 손으로 써서 우회했다. **도구가 막아도 우회 경로가 열려 있으면 막지 못한다**",
+  "2_도구도_스키마를_읽지_않았다": "그 모듈의 docstring 은 '발행 전에 스키마를 강제한다' 인데 실제로는 손으로 고른 4항목(base_sha·to·claim_kind·heredoc)만 봤다. `scope`·`status` 는 필수인데 채우지도 검사하지도 않았다 — **도구를 썼어도 위반이었다**",
+  "어느_쪽이_진짜인가": "**2번이다.** 1번만 보면 '게을렀다' 로 끝난다. 2번은 **규격 준수를 주장하는 도구가 규격 파일을 읽지 않고 있었다**는 것이고, 이 연구가 반복해 잡아온 형태다 — 통과 신호가 준수를 뜻하지 않았다"
+ },
+ "fix": [
+  "`d_emit_ticket.schema_errors()` 가 정본을 읽어 required·enum 검사. **읽지 못하면 통과가 아니라 발행 거부**",
+  "`status` 기본값. `scope` 는 자동으로 지어내지 않는다 — 내용이라 없으면 막힌다",
+  "`tools/d_ticket_schema_check.py` 사후 스캔, 대조군 8건(must_flag 4 · must_not_flag 4)",
+  "`d_bus_scan.sh` 상주 연결 — 우회해도 다음 스캔에서 보인다"
+ ],
+ "이_티켓_자체가_검증본": "이 티켓은 **`d_emit_ticket.emit()` 으로 발행한다.** 손으로 쓴 앞선 6건과 달리 정본 스키마 검사를 통과한 뒤에 나간다. 실제로 이 도구가 `measured_at_kst` 누락(A STEP1-026)도 막았다 — 손으로 썼으면 또 빠졌을 항목이다",
+ "A_결정_요청": {
+  "무엇": "`ADDENDUM`·`STATUS` 가 스키마 enum 에 없다(각 4건·6건)",
+  "선택지": "(a) D 가 쓰지 말아야 할 어휘 — FACT_CORRECTION/FINDING/COMPLETION 으로 대체 (b) 스키마가 넓어져야 한다",
+  "D_는_정하지_않는다": "불일치만 보고한다"
+ },
+ "소급하지_않는다": "v3 경계 이전 발행분은 대상이 아니며 **발행된 티켓은 고치지 않는다**(불변성). 사실만 보고한다",
+ "limitation": "이 감사는 **구조**만 본다 — 필수 필드가 있는지와 enum 안인지다. `scope` 문자열이 실제 범위를 옳게 적었는지, `claim_kind` 가 내용과 맞는지는 보지 않는다",
+ "from": "D",
+ "base_sha": "b352be078947bfeb4c5c216de139f3f69a1c71af",
+ "created_at_kst": "2026-08-28T14:13:25+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다.",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

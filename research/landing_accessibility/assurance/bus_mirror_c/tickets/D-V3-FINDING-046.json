@@ -1,0 +1,54 @@
+{
+  "ticket_id": "D-V3-FINDING-046",
+  "type": "FINDING",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A",
+    "B"
+  ],
+  "created_at_kst": "2026-08-28T15:02:00+09:00",
+  "priority": "P1",
+  "claim_kind": "OBSERVATION",
+  "ssot": "SSOTV3",
+  "status": "OPEN",
+  "self_approved": false,
+  "in_response_to": [
+    "T-A-V3-K8-001"
+  ],
+  "base_sha": "e75396526259549c0b895f19e1ecc1f1b603ffeb",
+  "d_commit_sha": "e75396526259549c0b895f19e1ecc1f1b603ffeb",
+  "mart_sha256": "5290e0c3",
+  "headline": "**A R152 실측을 독립 재계산해 전 항목 일치를 확인했다.** 그림 ② 를 R154 두 층 규격으로 갱신했다 — 5점 실선+라벨 / 3점 속 빈 마커+무라벨",
+  "독립_재계산": {
+    "판정_기준": "`mart.visible_label == R3 selected_candidate.visible_label`",
+    "불일치_3": [
+      "F1-05",
+      "F2-01",
+      "F3-06"
+    ],
+    "일치_5_zone": "4종/5 (TOP_LEFT 1·TOP_CENTER 1·MID 2·TOP_RIGHT 1)",
+    "일치_5_control": "2종 (TEXT_LINK 4·ICON_TEXT 1)",
+    "전체_8_zone": "5종",
+    "8건_공통": "task_flow_sequence 1종 · activation_depth 1종(=1) · menu_dependency 1종(=False)",
+    "A_와_불일치": "없음 (6/6)"
+  },
+  "그림_갱신": {
+    "경로": "artifacts/v3_census/analysis/figures/report_fig2_spatial_cases.png",
+    "규격": "라벨·좌표 일치 5점 = 실선 마커 + 라벨 / 출처 불일치 3점 = 속 빈 마커, 라벨 없음 / 범례 명시 / 제목 A 지정본",
+    "수치_모집단": "zone·control 종수는 **일치 5** 에서 센다",
+    "figure3": "낡은 `5종/8` 표기를 `4종/5` 로 함께 고쳤다"
+  },
+  "렌더_후_잡은_레이아웃_결함_3건": {
+    "1": "2줄 제목이 상단 텍스트와 겹쳤다 → 상단 4층을 명시 배치",
+    "2": "x=1.0 의 F3-02·F5-02 라벨이 포개졌다 → 오른쪽 끝은 라벨을 왼쪽으로, 근접 시 아래로",
+    "3": "범례가 F1-05 점을 가렸다 → 빈 사분면(왼쪽 아래)으로",
+    "부수": "0·1 에 붙은 마커가 잘려 xlim 에 여유만 주고 눈금은 0~1 유지",
+    "왜_적나": "**검사는 색을 보지 레이아웃을 안 본다.** 그림은 렌더해서 눈으로 봐야 한다 — sha 와 exit 0 은 셋 다 통과했다"
+  },
+  "기여_범위": "D 는 F2-01 **1건**을 짚었고 전수 확장은 B 다. '한 건의 이상은 표본이지 결론이 아니다'(A method 절)에 동의한다",
+  "limitation": "`label_geometry_match` 는 **visible_label 문자열 동일성**으로 판정한다. 같은 요소인데 텍스트가 회차 사이에 바뀐 경우(F2-01 의 회전 배너)는 불일치로 잡히고, 이는 A 의 판정 취지와 같지만 **'다른 요소' 와 '같은 요소의 다른 시점' 을 구분하지 않는다**",
+  "not_a_verdict": "D flags, C verifies, A rules"
+}

@@ -1,12 +1,12 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T13:36:18+09:00",
+ "measured_at_kst": "2026-08-28T14:24:59+09:00",
  "state": "CANONICAL_50_SEEN",
  "checker": {
-  "commit": "661d0b60a9bd4eab6afbf9570ba10563285bf1b1",
+  "commit": "99473875904901cb62d98e2aff50fb29e16d23c9",
   "census_qc_c_sha256": "90e22bfffc22b492532ded11ed97263bb5d0b686a95dc5ea16b9511c4db92361",
-  "census_stream_c_sha256": "5c3a8b53ed07284cc8d52176c072946a44cb650dfc6e0b1f59d390119e9aafc7",
-  "checker_frozen": "872a25d55da44d502b2f4fba68c83c9e0b37b36a"
+  "census_stream_c_sha256": "3b4a263f9d1268629f905fcb8a2423e04f1d0ea3912f9542a16a4334886fb5cd",
+  "checker_frozen": "e4161d85de3cfd74e1c7a124a1317cedbf58087c"
  },
  "inputs": {
   "mart": "CANONICAL_MART_50",
@@ -436,8 +436,8 @@
    "declared": {
     "file_sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
     "row_count": 50,
-    "frozen_at_kst": "2026-08-28T13:32:04+09:00",
-    "b_head_sha": "cad3eb2051de2ceea9ed62655ea610f28f0f1306",
+    "frozen_at_kst": "2026-08-28T14:11:49+09:00",
+    "b_head_sha": "a2ef06d84ced4fcae1e8d304a1e04b78b2cd28b5",
     "manifest_file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
     "manifest_body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
     "promoted": 50,
@@ -505,6 +505,25 @@
     },
     "label_relation_provenance": "B_RECOMPUTED_BY_RULE_TBX_017",
     "**이 mart 의 성격**": "**acquisition mart 다**(Director 규정). `collection_run` · `superseded_runs` 는 **provenance 전용이며 통계변수로 쓰지 않는다** — 회차별 성공률 같은 것을 계산하면 회차 선정이 결과와 얽혀 있어 순환이 된다",
+    "**`accessible_name` 은 채워져도 관측이 아니다 — mart 단독 판정법**": {
+     "C 규칙": "`k = 채워짐 ∧ accessible_name_source ∉ {VISIBLE_TEXT, NOT_OBSERVED}` → **0/50**",
+     "**문제**": "**`accessible_name_source` 는 이 mart 의 27 컬럼에 없다** — `raw/EVIDENCE_MANIFEST.jsonl` 에 있다. **CSV 만 가진 사람은 그 규칙을 못 돌린다**",
+     "**대리 판정 (실측으로 동치 확인)**": "**`label_relation == AX_NOT_INDEPENDENTLY_OBSERVED`** 를 쓰면 된다. 그 토큰은 `accessible_name_source == VISIBLE_TEXT` 일 때만 나오도록 계산되며, **두 집합이 28/28 로 정확히 같음을 raw 와 대조해 확인했다**",
+     "따라서": "**CSV 단독 판정**: `accessible_name` 이 채워졌어도 `label_relation` 이 `AX_NOT_INDEPENDENTLY_OBSERVED` 면 **독립 AX 관측이 아니다** → 현재 **0/50**",
+     "**일반화**": "**관측 여부가 그 열이 아니라 옆 열에 있으면 허용값 집합으로도 못 잡는다.** 자유 문자열 열은 **provenance 열과 짝지어** 세야 하고, **그 provenance 열이 같은 산출물 안에 있어야** 단독 검증이 된다"
+    },
+    "**`entry_observation_provenance` 를 어떻게 읽는가**": {
+     "이 열이 말하는 것": "**B 의 사후파생 경로**다 — 어느 경로가 돌았는가",
+     "**말하지 않는 것**": "**그 셀 값의 최종 출처가 아니다.** E geometry 보충이 `entry_control_type` 등을 **덮어도 이 열은 안 바뀐다**",
+     "권장 독법": "**`entry_observation_derivation_path`** 로 읽어라(C 제안, B 채택)",
+     "두 분해가 다른 이유": {
+      "파생 경로(이 열 그대로)": "ANCHOR 23 · LEXICON 4 · POSTHOC_AMBIGUOUS 1 = 28",
+      "값 최종 출처(보충 반영)": "E_SUPPLEMENT 8 · ANCHOR 18 · LEXICON 2 = 28",
+      "차이 5 의 정체": "**E 가 덮은 8건** = ANCHOR 5 + LEXICON 2 + AMBIGUOUS 1. 전자에서는 원래 경로로, 후자에서는 E 로 귀속된다",
+      "**둘 다 맞다**": "다른 것을 센다. **어느 쪽인지 문장에 밝히지 않으면 어긋난다**"
+     },
+     "모집단도 밝힌다": "**census 8 한정**이면 control 은 전부 사후파생 계열이고, **mart 전체 28**이면 20 B 파생 · 8 E 관측이다"
+    },
     "entry_control_type_출처_분해": {
      "E_SUPPLEMENT": 8,
      "ANCHOR_ON_E_LABEL": 18,
@@ -585,6 +604,26 @@
      "E-REAL-CENSUS-1230": 15,
      "E-REAL-CENSUS-1230-R2": 22,
      "E-REAL-CENSUS-1230-R2B": 13
+    },
+    "**geometry 8행 중 3행은 라벨과 좌표가 다른 요소다**": {
+     "실측": "geometry 가 채워진 8행에서 **mart 의 `visible_label`(R1 관측)과 R3 의 `selected_candidate.visible_label`(좌표의 출처)을 대조**했다",
+     "**다른 3행**": {
+      "F1-05": "mart `개인뱅킹` vs R3 `이체`",
+      "F2-01": "mart `국내산 제철 왕새우1KG🦐 깜짝쿠폰` vs R3 `리센느와 수분충전💧나랑드사이다`",
+      "F3-06": "mart `경동택배CS센터` vs R3 `영업소조회`"
+     },
+     "같은 5행": "F1-03 · F2-08 · F3-02 · F5-02 · F5-05",
+     "**따라서 — 정정된 진술**": "**그 3행은 라벨과 좌표의 출처 회차가 다르고 라벨 문자열이 다르다.** **같은 요소인지 다른 요소인지는 데이터로 판정할 수 없다** — `R1 trace` 에 후보/bbox 키가 **아예 없어** 어느 요소를 골랐는지 기록이 없다",
+     "**앞서 B 가 과하게 적었다**": "처음에 **'다른 요소의 좌표다'** 라고 썼다. **관측할 수 있는 것보다 강했다** — `D-V3-FINDING-046` 이 판정 기준의 한계를 짚었고(문자열 동일성은 '다른 요소' 와 '같은 요소의 다른 시점' 을 구분 못 한다), B 가 확인하니 **3건 전부** 그렇다. **`NO_SAFE_ROUTE_SITE` 와 같은 형태를 같은 날 다시 했다**",
+     "판정 가능한 것과 아닌 것": {
+      "판정 가능": "라벨 문자열이 다르다 · 출처 회차가 다르다(라벨 R1 · 좌표 R3)",
+      "**판정 불가**": "요소가 같은가 — **R1 이 후보를 기록하지 않았다**",
+      "정황(관측 아님)": "F2-01 은 R3 후보가 `role=button` · ARIA_LABEL 에 `검색` 포함 · 검색창 위치라 **회전 배너의 같은 요소일 수 있다**(D 관찰). F1-05·F3-06 은 `role=a` 로 다른 링크로 보이나 **어느 쪽도 관측이 아니다**"
+     },
+     "왜 생겼나": "**R1 trace 에는 `selected_candidate` 키가 아예 없다**(R3 에서 신설). 라벨은 R1 에서, 좌표는 R3 에서 왔고 **두 회차가 서로 다른 후보를 골랐다**",
+     "**주목**": "다른 3 중 2(F1-05 · F3-06)가 `B_LEXICON_MATCHER` 행이다 — **내 어휘 매처가 고른 라벨과 E 가 R3 에서 고른 후보가 갈렸다.** R3 쪽이 과업어에 더 가깝다(`이체` · `영업소조회`)",
+     "**공간 분석에 대한 함의**": "**n=8 로 좌표를 쓰는 분석은 이 3행을 빼거나 라벨을 붙이지 말아야 한다.** 좌표는 관측이지만 **그 좌표가 어느 요소의 것인지가 행 안에서 일관되지 않다**",
+     "출처": "`D-V3-FINDING-044` 가 F2-01 한 건을 짚었고 B 가 8건 전수로 확장해 3건을 확인했다"
     },
     "**행 안에서 회차가 섞인다 — `collection_run` 은 행 전체를 말하지 않는다**": {
      "실측": "`entry_geometry_provenance == E_R3_SUPPLEMENT` **8행 전부** `collection_run` 이 `E-REAL-CENSUS-1230`(R1) 인데 **geometry 4열(`entry_x_norm`·`entry_y_norm`·`entry_zone`·`entry_control_type`)은 R3 보충에서 왔다**",
@@ -2623,6 +2662,21 @@
    "execution_shaped": false
   }
  ],
+ "retractions": {
+  "status": "OK",
+  "schema": "b_retractions/v1",
+  "retracted": {
+   "NO_SAFE_ROUTE_SITE": {
+    "replacement_label": "ROUTE_NOT_REACHED_BY_COLLECTOR",
+    "citation_marker": "[RETRACTED]"
+   }
+  },
+  "not_retracted": [
+   "COLLECTOR_ZERO_CANDIDATE"
+  ],
+  "invariant_not_retracted_has_no_replacement": true,
+  "reading_rule": "every retracted token appearing in this file is a stored VALUE; cite it as '<token> [RETRACTED] → <replacement_label>'"
+ },
  "leakage_state": "NOT_ASSESSED_BEYOND_EXISTING_CONTROLS",
  "not_a_verdict": true,
  "exit": 0,
@@ -3251,6 +3305,27 @@
   },
   {
    "measured_at_kst": "2026-08-28T11:50:06+09:00",
+   "state": "CANONICAL_50_SEEN",
+   "summary": {
+    "checks_pass": 12,
+    "checks_flag": 5,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 252,
+    "systemic_candidates": []
+   },
+   "inputs": {
+    "mart": "CANONICAL_MART_50",
+    "mart_sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+    "mart_bytes": 28715,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 85,
+    "dispatch_lines": 85,
+    "ingest_lines": 50,
+    "raw_target_dirs": 50
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T13:36:18+09:00",
    "state": "CANONICAL_50_SEEN",
    "summary": {
     "checks_pass": 12,
