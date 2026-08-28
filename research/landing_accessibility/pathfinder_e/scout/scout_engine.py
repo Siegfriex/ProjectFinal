@@ -237,7 +237,8 @@ class ScoutRun:
                     safe, reason = is_safe_to_click(menu_btn["visible_label"], menu_btn["accessible_name"])
                     if safe:
                         try:
-                            menu_btn["el"].click(timeout=5000)
+                            menu_btn["el"].scroll_into_view_if_needed(timeout=3000)
+                            menu_btn["el"].click(timeout=5000, force=False)
                             page.wait_for_timeout(SETTLE_MS * 2)
                             self.route.append({"action": "OPEN_GLOBAL_MENU", "label": menu_btn["visible_label"] or "(icon-only)"})
                             nav_container, reveal = "HAMBURGER", "RIGHT"
@@ -284,6 +285,7 @@ class ScoutRun:
             self.route.append({"action": "SELECT_FUNCTION", "label": chosen["visible_label"]})
             url_before = page.url
             try:
+                chosen["el"].scroll_into_view_if_needed(timeout=3000)
                 chosen["el"].click(timeout=5000)
                 page.wait_for_timeout(SETTLE_MS)
             except Exception as e:  # noqa: BLE001

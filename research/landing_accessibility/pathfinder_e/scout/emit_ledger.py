@@ -86,6 +86,11 @@ def main():
             rc = json.loads(rc_path.read_text(encoding="utf-8"))
             scout_status = rc.get("scout_status") or "EVIDENCE_DEFECT"
             attempt_status, terminal_reason = STATUS_MAP.get(scout_status, ("ERROR", "NO_SAFE_ROUTE"))
+            route_diagnosis = rc.get("route_diagnosis")
+            error_sample = None
+            for step in rc.get("route", []):
+                if "error" in step:
+                    error_sample = str(step["error"])[:200]
 
             # 라벨: route 에서 마지막 SELECT_FUNCTION 액션의 label
             visible_label = None
@@ -104,6 +109,7 @@ def main():
                 "evidence_dir": str(target_dir), "evidence_hash": evidence_hash, "prev_hash": prev,
                 "task_hash": task_hash, "endpoint_hash": endpoint_hash,
                 "attempt_status": attempt_status, "terminal_reason": terminal_reason,
+                "scout_status_raw": scout_status, "route_diagnosis": route_diagnosis, "error_sample": error_sample,
                 "visible_label_text": visible_label or "NOT_OBSERVED",
                 "accessible_name": visible_label or "NOT_OBSERVED",
                 "accessible_name_source": "VISIBLE_TEXT" if visible_label else "NOT_OBSERVED",
