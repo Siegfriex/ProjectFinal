@@ -340,19 +340,27 @@ def controls() -> dict:
                      "ok": got == want})
 
     hcase("PASS 면 false", {"verdict": "PASS"}, "false")
-    hcase("**control 경로 FAIL 은 holdout 이 아니다**",
+    # [D-DEF-87] **대조군이 실제 금지 경로를 쓸 필요가 없다.** 처음엔 진짜 경로
+    # 문자열을 넣었고 방화벽이 그것을 새 WARN 토큰으로 잡았다 — `D-DEF-60` 재발
+    # (감시 도구가 대상 이름을 원문으로 기록하면 스스로 위반이 된다).
+    # 이 분기가 보는 것은 "reference 에 HOLDOUT 이 없다" 뿐이므로 중립 문자열로 족하다.
+    hcase("**holdout 이 아닌 축의 FAIL 은 holdout 이 아니다**",
           {"verdict": "FAIL", "violations": [
-              {"severity": "FAIL", "reference": "research/landing_accessibility/control/v3/x.py",
-               "file": "tools/d_heartbeat.py"}]},
+              {"severity": "FAIL", "reference": "OTHER_AXIS/some/path.py",
+               "file": "tools/some_tool.py"}]},
           "UNVERIFIED_SCAN_NOT_PASS")
+    # [D-DEF-87] 이 분기는 `reference` 에 `HOLDOUT` 이 들어 있는지만 본다 —
+    # **실제 보호 산출물의 파일명을 fixture 에 쓸 이유가 없다.** 처음엔 그 이름을
+    # 그대로 썼고 방화벽이 금지 토큰으로 잡았다(`D-DEF-60`: 감시 도구가 대상 이름을
+    # 원문으로 기록하면 스스로 위반이 된다). 쪼개서 회피하지 않고 **다른 이름**을 쓴다.
     hcase("holdout 참조 FAIL 은 그렇게 적는다",
           {"verdict": "FAIL", "violations": [
-              {"severity": "FAIL", "reference": "artifacts/HOLDOUT_FOR_C.csv", "file": "x.py"}]},
+              {"severity": "FAIL", "reference": "artifacts/holdout_sample.csv", "file": "x.py"}]},
           "SCAN_FLAGGED_HOLDOUT_REFERENCE")
     hcase("**WARN 등급 holdout 언급은 FAIL 로 올리지 않는다**",
           {"verdict": "FAIL", "violations": [
-              {"severity": "WARN", "reference": "HOLDOUT_FOR_C", "file": "nb.ipynb"},
-              {"severity": "FAIL", "reference": "control/x", "file": "y.py"}]},
+              {"severity": "WARN", "reference": "holdout_sample", "file": "nb.ipynb"},
+              {"severity": "FAIL", "reference": "OTHER_AXIS/x", "file": "y.py"}]},
           "UNVERIFIED_SCAN_NOT_PASS")
     rows.append({"case": "[holdout] **`true` 는 이제 나오지 않는다** — 정적 스캔은 접근을 못 본다",
                  "expectation": "must_not_flag",
