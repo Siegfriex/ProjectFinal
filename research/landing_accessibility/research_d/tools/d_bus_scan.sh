@@ -30,7 +30,10 @@ print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['e
 try:
     from d_tool_health import check as _th
     _t = _th()
-    print(f"\n=== D 도구 문법 : {_t['verdict']} · {_t['ok']}/{_t['n_tools']} ===")
+    from d_tool_health import coverage as _tc
+    _c = _tc()
+    print(f"\n=== D 도구 문법 : {_t['verdict']} · {_t['ok']}/{_t['n_tools']} "
+          f"· 루프 실행 {_c['executed_in_loop']} / 문법만 {_c['syntax_only']} ===")
     for _b in _t["syntax_error"]:
         print(f"   {_b['tool']}:{_b['line']}  {_b['msg']}")
 except Exception as _e:
