@@ -24,6 +24,24 @@ print(f"  verdict          : {ctl['verdict']}")
 print(f"  positive control : {ctl['positive']['detected']}/{ctl['positive']['expected']} 검출")
 print(f"  negative control : {ctl['negative']['not_detected']}/{ctl['negative']['expected']} 미검출(과탐 0)")
 print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['expected']} 명시 오류")
+# --- D 발행분 응답 대기 · 평면 생존 (D-DEF-64) ---
+# **티켓 발행 ≠ 전달.** D 는 매 회차 "A 판정 대기 · C 검산 대기" 라고 적으면서
+# 그 대기가 유효한지 재지 않았다. 발행은 세고 응답은 안 셌다.
+try:
+    from d_pending_response import check as _pr
+    _p = _pr()
+    _pen, _liv = _p["pending"], _p["liveness"]
+    print(f"\n=== D 발행분 응답 대기 : {_pen['n']}건 {_pen['by_to']} "
+          f"· 최장 {_pen['oldest_minutes']}분 ===")
+    for _dr in _pen["decision_requests"]:
+        print(f"   ** DECISION ** {_dr['ticket']}  to={_dr['to']}  {_dr['minutes_ago']}분")
+    print("   평면 마지막 활동: " + " · ".join(
+        f"{k} {v['minutes_ago']}분" for k, v in _liv.items()))
+    print("   (생존은 heartbeat 와 최근 발행 중 **늦은 것** — A 는 heartbeat 를 안 쓴다)")
+except Exception as _e:
+    print(f"\n=== D 발행분 응답 대기 : 검사 실패 {_e} ===")
+    errs.append({"file": "(응답 대기)", "error": f"검사 실행 실패: {_e}"})
+
 # --- MLflow 계약 사후 감사 (D-DEF-61) ---
 # `mlflow_contract` 는 발행 전 차단만 있었다. 도구를 우회해 `start_run()` 을
 # 직접 부르면 계약 없는 run 이 남고 아무도 모른다. **두 계약이 별개**다 —
