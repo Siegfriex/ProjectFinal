@@ -45,6 +45,22 @@ except Exception as _e:
     print(f"\n=== D 발행분 응답 대기 : 검사 실패 {_e} ===")
     errs.append({"file": "(응답 대기)", "error": f"검사 실행 실패: {_e}"})
 
+# --- coverage 교차 일치 (D-DEF-68) ---
+# 같은 축을 **세 곳**이 계산한다 — d_coverage · T3 표 · C 의 ANALYSIS_ASSURED.
+# 갈라지면 아무도 모른다. C 값이 달라지면 그것도 신호다(C 가 재계산했다).
+try:
+    from d_citation_check import coverage_agreement as _ca
+    _cg = _ca()
+    print(f"\n=== coverage 교차 일치 : {_cg['verdict']} · 축 {_cg['n_axes']} "
+          f"· 불일치 {len(_cg['disagree'])} ===")
+    for _r in _cg["disagree"]:
+        print(f"   {_r['axis']}: {_r['values']}")
+    for _ms in _cg["missing_sources"]:
+        print(f"   ** 원천 없음 ** {_ms}")
+except Exception as _e:
+    print(f"\n=== coverage 교차 일치 : 검사 실패 {_e} ===")
+    errs.append({"file": "(교차 일치)", "error": f"검사 실행 실패: {_e}"})
+
 # --- MLflow 계약 사후 감사 (D-DEF-61) ---
 # `mlflow_contract` 는 발행 전 차단만 있었다. 도구를 우회해 `start_run()` 을
 # 직접 부르면 계약 없는 run 이 남고 아무도 모른다. **두 계약이 별개**다 —

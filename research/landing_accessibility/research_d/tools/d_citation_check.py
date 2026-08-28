@@ -97,6 +97,65 @@ def column_provenance(claims=None) -> list:
     return out
 
 
+# [D-DEF-68] **같은 축을 세 곳이 계산한다.** 갈라지면 아무도 모른다 —
+# D-DEF-49(같은 규칙 두 구현이 갈라짐)의 **데이터판**이다.
+#
+#   d_coverage.coverage()                계산값
+#   T3_measurement_boundary.csv          D 산출 표
+#   ANALYSIS_ASSURED.coverage_overall    C 산출
+#
+# 셋이 같은지 매 루프 본다. C 값이 달라지면 **그것도 신호다** —
+# C 가 재계산했다는 뜻이고 D 가 알아야 한다.
+T3_CSV = C.REPO / "artifacts/v3_census/analysis/tables/T3_measurement_boundary.csv"
+ASSURED = C.REPO / "artifacts/v3_census/assurance/ANALYSIS_ASSURED.json"
+
+
+def coverage_agreement() -> dict:
+    df, _ = C.read_mart_pinned(C.MART_DIR / "CANONICAL_MART_50.csv")
+    mine = COV.coverage(df, list(C.COLUMNS))
+    rows, missing = [], []
+
+    t3 = {}
+    if T3_CSV.exists():
+        for line in T3_CSV.read_text(encoding="utf-8").splitlines():
+            if line.startswith("axis:"):
+                parts = line.split(",")
+                t3[parts[0].replace("axis: ", "").strip()] = parts[1].strip()
+    else:
+        missing.append(str(T3_CSV))
+
+    aa = {}
+    if ASSURED.exists():
+        try:
+            aa = (json.loads(ASSURED.read_text(encoding="utf-8"))
+                  .get("coverage_overall") or {})
+        except Exception as e:
+            missing.append(f"{ASSURED}: {type(e).__name__}")
+    else:
+        missing.append(str(ASSURED))
+
+    def head(v):
+        return str(v).split("/")[0].strip()
+
+    for ax in sorted(set(t3) | set(aa)):
+        if ax not in mine:
+            continue
+        vals = {"d_coverage": str(mine[ax])}
+        if ax in t3 and t3[ax] != "AXIS_NOT_OBSERVED":
+            vals["T3"] = head(t3[ax])
+        if ax in aa:
+            vals["ANALYSIS_ASSURED"] = head(aa[ax])
+        agree = len(set(vals.values())) == 1
+        rows.append({"axis": ax, "values": vals, "agree": agree})
+
+    bad = [r for r in rows if not r["agree"]]
+    return {"verdict": "PASS" if (not bad and not missing) else "FAIL",
+            "n_axes": len(rows), "disagree": bad, "missing_sources": missing,
+            "축": "**교차 일치** — 같은 축을 계산하는 세 곳이 같은 수를 내는가",
+            "C_값이_달라지면": "그것도 신호다 — **C 가 재계산했다는 뜻**이고 D 가 알아야 한다",
+            "읽지_못한_원천은_통과가_아니다": "`missing_sources` 가 있으면 FAIL 이다"}
+
+
 def check() -> dict:
     cases = []
 
@@ -143,6 +202,13 @@ def check() -> dict:
     tot = sum((c_dist or {}).values())
     case("dist31 합 == 31 (합산 중복 없음)", tot == 31,
          {"sum": tot, "note": "D 는 앞서 18+3 을 합친 21 을 인용하고 3 을 또 셌다"})
+
+    # 7. 같은 축을 계산하는 세 곳이 같은 수를 내는가 [D-DEF-68]
+    _ag = coverage_agreement()
+    case("coverage 교차 일치 (d_coverage · T3 · ANALYSIS_ASSURED)",
+         _ag["verdict"] == "PASS",
+         {"n_axes": _ag["n_axes"], "disagree": _ag["disagree"],
+          "missing_sources": _ag["missing_sources"]})
 
     # 6. mart 컬럼의 출처 귀속 == provenance 컬럼 [D-DEF-44]
     for r in column_provenance():
