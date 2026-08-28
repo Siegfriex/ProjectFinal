@@ -1,0 +1,53 @@
+{
+ "from": "A",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst": "2026-08-28T10:50:00+0900",
+ "base_sha": "768aeb10cfcc15a7eefe501059bc8fa3b45ab2a1",
+ "self_approved": false,
+ "release": {
+  "release_id": "V3_TIMEBOX_CENSUS_1230",
+  "path": "research/landing_accessibility/control/v3/V3_TIMEBOX_CENSUS_1230.json",
+  "manifest_body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "manifest_file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0"
+ },
+ "deadline_kst": "2026-08-28T12:30:00+0900",
+ "정지_해제": "B `HALTED_BY_DIRECTOR` / C `STOPPED_BY_DIRECTOR` 는 이 Director override 로 해제. 즉시 재기동",
+ "전체정지_3종만": [
+  "frozen target/manifest 오실행",
+  "credential·transaction·purchase·reservation·payment 금지행위",
+  "evidence overwrite / duplicate / denominator corruption"
+ ],
+ "그_외": "defect·missingness·site failure 는 해당 row/variable 을 `UNDETERMINED`/`NOT_OBSERVED` 로 남기고 **속행**",
+ "묻지_말고_해결": "integration·fixture·retry·batch-size·worker allocation·분석구현 — Director §10",
+ "ticket_id": "T-A-V3-TBX-005",
+ "type": "REAL_RELEASE_DISPATCH",
+ "to": [
+  "E"
+ ],
+ "cc": [
+  "A",
+  "B",
+  "C",
+  "D"
+ ],
+ "priority": "P0",
+ "headline": "**E: REAL 권한 발행됐다. 50 전수 raw acquisition 을 지금 시작하라.** 네가 이번 census 의 수집 평면이다",
+ "역할변경": "sampled-pilot 종료. **E = authorized REAL raw acquisition plane.** B 는 브라우저를 다시 열지 않는다 — 네 raw 가 유일한 관측이다",
+ "지금_당장": "P0/OFFLINE bootstrap 상태에서 벗어나 **이 release reference 를 50 worker packet 에 주입하고 즉시 dispatch**. A 의 REAL `SCOUT_REQUEST` 는 이 티켓이다",
+ "큐_순서": "**F1(금융) 먼저 enqueue → F5 → F4 → F3 → F2.** family 순차가 아니라 worker queue. F1 은 auth gate·WAF 로 꼬리가 가장 길다",
+ "병렬": "6~8 worker. 4~6분/target 이면 worker time 25~38분, 브라우저 초기화·WAF·timeout 꼬리 포함 **50건 시도완료 40~55분**이 현실범위",
+ "exactly_once": "frozen service×task 당 **정확히 1회**. target lock / idempotency key / retry ledger 필수. **duplicate 는 전체정지 사유다**",
+ "raw는_immutable": "append-only + hash chain. 한 번 쓴 evidence 를 고치지 마라. **overwrite 는 전체정지 사유다**",
+ "보존해야_할_것": "browser-native evidence — DOM / AX tree / CSS / geometry, ordered action sequence, `task_flow_sequence` 와 `experienced_flow_sequence` 를 **분리해서**, `visible_label_text` 와 browser-computed `accessible_name` 을 **분리해서**",
+ "실패는_결과다": "`WAF` `APP_REQUIRED` `AUTH_GATE` `NO_SAFE_ROUTE` `TIMEOUT` `PUBLIC_WEB_UNOBSERVABLE` 을 `terminal_reason` 으로 기록하고 다음 target 으로 간다. **교체 금지** — 실패한 것도 분모 50 에 남는다",
+ "timeout": "정해둔 timeout 을 넘기면 **그것 자체가 terminal outcome** 이다. 더 기다리지 마라",
+ "절대금지": [
+  "표본 교체 / membership 변경 — outcome 을 보고든 preflight 로든",
+  "claim 판단",
+  "credential 입력·login submit·본인인증·CAPTCHA 해결·구매·송금·예약·결제·장바구니·전화발신·실제 운송장 제출"
+ ],
+ "auth": "frozen task path 에서 불가피해지는 최초 gate 까지만 관측하고 **금지행위 직전에 종료**. `auth_gate_stage` 를 `BEFORE_TASK_DISCOVERY`/`AFTER_TASK_SELECT`/`AT_ENDPOINT` 로 구분",
+ "streaming": "50건 완료를 기다리지 마라. **1건 끝나는 즉시 B 로 흘려라**",
+ "냉시동": "heartbeat 가 03:05 이후 정지다. 복구가 첫 작업이고, 복구 지연을 A 에 보고하되 census 착수를 늦추지 마라"
+}

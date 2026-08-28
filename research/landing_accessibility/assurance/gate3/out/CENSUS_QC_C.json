@@ -1,0 +1,113 @@
+{
+ "schema": "C_CENSUS_QC",
+ "ruling": "T-A-V3-TBX-007 / V3_TIMEBOX_CENSUS_1230",
+ "measured_at_kst": "2026-08-28T10:53:29+09:00",
+ "tool_sha256": "2ce2e3bff5a3dc534ead2824f608de35d1272f7bb915730144475b7db7b8e933",
+ "rows_input": "/nonexistent-empty",
+ "n_rows": 0,
+ "manifest": {
+  "version": "3.0.2",
+  "file_sha256_recomputed": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+  "body_sha256_recomputed": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "expected_from": "origin/control/landing-orchestrator:research/landing_accessibility/control/v3/V3_TIMEBOX_CENSUS_1230.json"
+ },
+ "adapter": {
+  "target_id": {
+   "field": "target_id",
+   "status": "WIRED_BY_MANIFEST"
+  },
+  "family_id": {
+   "field": "family_id",
+   "status": "WIRED_BY_MANIFEST"
+  },
+  "service_id": {
+   "field": "service_id",
+   "status": "WIRED_BY_SSOT"
+  },
+  "task_id": {
+   "field": "task_id",
+   "status": "WIRED_BY_SSOT"
+  },
+  "run_id": {
+   "field": "run_id",
+   "status": "WIRED_BY_SSOT"
+  },
+  "endpoint_status": {
+   "field": "endpoint_status",
+   "status": "WIRED_BY_SSOT"
+  },
+  "terminal_reason": {
+   "field": "terminal_reason",
+   "status": "WIRED_BY_SSOT"
+  },
+  "evidence_pointer": {
+   "field": "path_manifest_path",
+   "status": "WIRED_BY_SSOT"
+  },
+  "evidence_sha256": {
+   "field": null,
+   "status": "UNBOUND"
+  },
+  "evidence_adequacy": {
+   "field": null,
+   "status": "UNBOUND"
+  },
+  "forbidden_action_events": {
+   "field": null,
+   "status": "UNBOUND"
+  },
+  "forbidden_action_count": {
+   "field": null,
+   "status": "UNBOUND"
+  },
+  "service_name": {
+   "field": null,
+   "status": "UNBOUND"
+  }
+ },
+ "controls": {
+  "must_not_flag:consistent_50→0_flags": "PASS",
+  "must_not_flag:all_7_checks_ran": "PASS",
+  "must_flag:extra_target→target_outside_manifest": "PASS",
+  "must_flag:reserve_service_used→is_reserve": "PASS",
+  "must_flag:duplicate_identity→duplicate_launch": "PASS",
+  "must_flag:49_rows→EVIDENCE_OR_TERMINAL 49/50 + FAMILY": "PASS",
+  "must_flag:row_without_evidence_or_terminal": "PASS",
+  "must_flag:non_canonical_terminal_reason": "PASS",
+  "must_flag:forbidden_event→forbidden_action": "PASS",
+  "must_flag:manifest_hash_mismatch→wrong_scope": "PASS",
+  "must_flag:family_id_drift": "PASS",
+  "must_flag:B_denominator_49_vs_C_50": "PASS",
+  "unbound:forbidden→NOT_TESTABLE_not_PASS": "PASS",
+  "empty_input:no_row_checks_claim_PASS": "PASS"
+ },
+ "checks": {
+  "MANIFEST_HASH": {
+   "status": "PASS",
+   "n_items": 2,
+   "file_recomputed": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+   "body_recomputed": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+   "file_expected": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+   "body_expected": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+   "declared_in_manifest": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d"
+  },
+  "FAMILY_10x5": {
+   "status": "PASS",
+   "n_items": 50,
+   "manifest_families": {
+    "F1": 10,
+    "F2": 10,
+    "F3": 10,
+    "F4": 10,
+    "F5": 10
+   },
+   "rows": "NO_ROWS"
+  }
+ },
+ "flags": [],
+ "n_flags": 0,
+ "systemic_candidates": [],
+ "leakage_state": "NOT_ASSESSED_BEYOND_EXISTING_CONTROLS",
+ "not_a_verdict": true,
+ "exit": 3
+}

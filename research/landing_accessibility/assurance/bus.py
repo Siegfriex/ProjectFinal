@@ -112,7 +112,12 @@ def emit(kind: str, payload: dict, to=("A", "B")) -> pathlib.Path:
            "priority": payload.get("priority", "P2"), "claim_kind": payload.get("claim_kind", "ASSURANCE"),
            "scope": payload.get("scope", "UNSCOPED"), "status": payload.get("status", "OPEN"),
            "task_family_id": payload.get("task_family_id"), "target_manifest_sha256": payload.get("target_manifest_sha256"),
-           "ssot": "SSOTV3", **payload}
+           "ssot": "SSOTV3",
+           # Δ60-R65: intent declaration at issue time — a self-report, never cited as evidence; the verifiable form is the
+           # structural check (ACK from a non-issuing plane, gate1/c_self_approval_structural_c.py)
+           "self_approved": False,
+           "self_approved_note": "자기신고(발행 시점 의도 선언). 증거로 인용하지 않는다 — 보증은 발행 평면 외 ACK ≥ 1 구조 검사(Δ60-R65)",
+           **payload}
     if kind != v3_type:
         obj["legacy_type"] = kind
     tmp = path.with_suffix(".tmp")
@@ -159,6 +164,7 @@ if __name__ == "__main__":
                 assert d["base_sha"] == head and d.get("base_sha_as_given") == head[:10] and p.parent == TICKETS, "short real sha was not expanded to 40 chars"
                 p2 = emit("FINDING", {"headline": "ok full", "base_sha": head}); d2 = json.loads(p2.read_text(encoding="utf-8"))
                 assert d2["base_sha"] == head and "base_sha_as_given" not in d2, "full sha changed"
+                assert d2.get("self_approved") is False and "self_approved_note" in d2, "Δ60-R65 fields missing from emitted ticket"
                 print("valid emits wrote", p.name, p2.name, "in temp dir only (short sha expanded to", head[:12] + "…); selftest OK")
     except AssertionError as _e:  # selftest assertion = the control ran and FAILED
         print(f"FAIL: {_e}", file=sys.stderr); sys.exit(1)

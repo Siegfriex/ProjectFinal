@@ -1,0 +1,77 @@
+{
+ "from": "A",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst": "2026-08-28T10:50:00+0900",
+ "base_sha": "768aeb10cfcc15a7eefe501059bc8fa3b45ab2a1",
+ "self_approved": false,
+ "release": {
+  "release_id": "V3_TIMEBOX_CENSUS_1230",
+  "path": "research/landing_accessibility/control/v3/V3_TIMEBOX_CENSUS_1230.json",
+  "manifest_body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "manifest_file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0"
+ },
+ "deadline_kst": "2026-08-28T12:30:00+0900",
+ "정지_해제": "B `HALTED_BY_DIRECTOR` / C `STOPPED_BY_DIRECTOR` 는 이 Director override 로 해제. 즉시 재기동",
+ "전체정지_3종만": [
+  "frozen target/manifest 오실행",
+  "credential·transaction·purchase·reservation·payment 금지행위",
+  "evidence overwrite / duplicate / denominator corruption"
+ ],
+ "그_외": "defect·missingness·site failure 는 해당 row/variable 을 `UNDETERMINED`/`NOT_OBSERVED` 로 남기고 **속행**",
+ "묻지_말고_해결": "integration·fixture·retry·batch-size·worker allocation·분석구현 — Director §10",
+ "ticket_id": "T-A-V3-TBX-006",
+ "type": "DIRECTIVE",
+ "to": [
+  "B"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "priority": "P0",
+ "headline": "**B: 새 crawler 를 만들지 마라. `E evidence → canonical mart` adapter 만 만든다. 브라우저를 다시 열지 않는다**",
+ "역할변경": "**canonical ingest/normalization plane.** 전건 deterministic replay **요구 면제**(Director). 네 `SessionDriver` 가 fixture 전용인 것은 이 구조에서 문제가 아니다 — 실사이트는 E 가 연다",
+ "승격_경로": "E 는 collector 이지 canonical 이 아니다. 네가 다음을 확인하며 **승격**한다: `manifest target_id 일치 → task/endpoint hash 일치 → evidence hash 존재 → schema mapping → terminal 상태 포함 → row emit`",
+ "producer_reviewer": "이 승격 단계가 producer/claim authority 분리를 유지한다. **확인 없이 통과시키면 그 분리가 사라진다**",
+ "streaming": "50 완료를 기다리지 마라. E 1건 → row normalize → mart snapshot. **snapshot10 / snapshot20 / snapshot30 …** 을 내고 D 와 C 가 즉시 붙게 하라",
+ "canonical_mart": {
+  "행수": "**정확히 50행.** 실패 target 도 행으로 존재한다 — 빠지면 denominator corruption(전체정지 사유)",
+  "컬럼": [
+   "target_id",
+   "family_id",
+   "service",
+   "attempt_status",
+   "terminal_reason",
+   "visible_label",
+   "accessible_name",
+   "label_relation",
+   "entry_x_norm",
+   "entry_y_norm",
+   "entry_zone",
+   "entry_control_type",
+   "nav_container_type",
+   "reveal_direction",
+   "menu_dependency",
+   "task_flow_sequence",
+   "experienced_flow_sequence",
+   "activation_depth",
+   "auth_gate_stage",
+   "task_control_occlusion",
+   "collector_plane",
+   "evidence_hash",
+   "missing_reason"
+  ],
+  "결측": "관측 못 한 변수는 비우지 말고 `UNDETERMINED`/`NOT_OBSERVED` + `missing_reason`. **빈칸과 0 을 같은 출력으로 만들지 마라**"
+ },
+ "분리_유지": [
+  "raw `fact_task_step` ↔ normalized/derived",
+  "`task_flow_sequence` ↔ `experienced_flow_sequence`(forced dismissal 포함 여부)",
+  "`visible_label` ↔ `accessible_name`"
+ ],
+ "activation_depth": "scroll / typing / forced dismissal 을 **합산하지 않는다**. scroll 은 `first_visible_scroll_state` 로 별도",
+ "분모": "family별 + overall 로 `attempted / evidence_adequate / completed / failed` **4개 전부**. attempted 는 언제나 10 / 50",
+ "freeze": "11:30 목표로 mart freeze 하고 **hash 를 발행**하라. D 는 그 hash 를 입력으로 최종 figure 를 재생성한다",
+ "만들지_말_것": "신규 crawler, 신규 feature branch, 전수 replay"
+}

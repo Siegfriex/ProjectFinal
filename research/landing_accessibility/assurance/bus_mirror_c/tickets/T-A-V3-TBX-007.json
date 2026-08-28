@@ -1,0 +1,59 @@
+{
+ "from": "A",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst": "2026-08-28T10:50:00+0900",
+ "base_sha": "768aeb10cfcc15a7eefe501059bc8fa3b45ab2a1",
+ "self_approved": false,
+ "release": {
+  "release_id": "V3_TIMEBOX_CENSUS_1230",
+  "path": "research/landing_accessibility/control/v3/V3_TIMEBOX_CENSUS_1230.json",
+  "manifest_body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "manifest_file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0"
+ },
+ "deadline_kst": "2026-08-28T12:30:00+0900",
+ "정지_해제": "B `HALTED_BY_DIRECTOR` / C `STOPPED_BY_DIRECTOR` 는 이 Director override 로 해제. 즉시 재기동",
+ "전체정지_3종만": [
+  "frozen target/manifest 오실행",
+  "credential·transaction·purchase·reservation·payment 금지행위",
+  "evidence overwrite / duplicate / denominator corruption"
+ ],
+ "그_외": "defect·missingness·site failure 는 해당 row/variable 을 `UNDETERMINED`/`NOT_OBSERVED` 로 남기고 **속행**",
+ "묻지_말고_해결": "integration·fixture·retry·batch-size·worker allocation·분석구현 — Director §10",
+ "ticket_id": "T-A-V3-TBX-007",
+ "type": "DIRECTIVE",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B",
+  "D",
+  "E"
+ ],
+ "priority": "P0",
+ "headline": "**C: 지금 검산기를 동결하라. 수집 끝나고 만들면 12:30 에 안 들어간다. 그리고 검사 범위를 줄여라**",
+ "가장_먼저": "census 착수 **전에** checker 동결 + exact SHA 를 버스에 올린다. **부수효과로 분석 사전등록이 된다** — 결과를 보고 검산식을 고르는 경로가 구조적으로 막힌다",
+ "검사_범위_축소": [
+  "50 unique target IDs",
+  "manifest hash (선언 읽지 말고 재계산: dumps(minus manifest_sha256, sort_keys=False, indent=1, sep=(',',': '), ensure_ascii=False))",
+  "duplicate 0",
+  "evidence-or-terminal **50/50**",
+  "forbidden_action 0",
+  "family 10×5",
+  "denominator 재계산"
+ ],
+ "이것만_한다": "**잠재결함 재발굴 금지.** 기존 통제 밖 leakage 추가 탐색 gate 는 Director 가 중단시켰다. 상태는 `NOT_ASSESSED_BEYOND_EXISTING_CONTROLS` 이고 **'누수 없음' 이라고 쓰지 마라**",
+ "대조군은_줄이지_마라": {
+  "이유": "이 세션 최대 결함이 **무결과가 통과와 같은 출력**으로 나온 것이다. 압축 실행에서 제일 먼저 터진다",
+  "요구": "각 검사에 `must_flag`/`must_not_flag` 를 붙이고 **검사가 실제로 실패를 잡는 것을 실행으로 보여라**. 검사 0회 성공(`VACUOUS_PASS`)을 통과로 세지 마라. 검산기 미실행의 종료코드를 실패와 **다르게** 하라"
+ },
+ "streaming_QC": "B 의 snapshot10/20/30 에 즉시 붙는다. 배치 종료를 기다리지 마라",
+ "정지하지_말_것": "개별 WAF·timeout·block·not-found·auth gate·evidence inadequacy 는 **기록된 결과**다. 전체 census 를 세우지 마라. 전체정지는 위 3종뿐",
+ "1150_1210_역할": "**D 를 다시 하는 것이 아니다.** D 의 그림을 재제작하지 말고, 그 그림이 서 있는 **수치를 독립 재계산**해서 대조하라 — coverage k/50·k/10, activation_depth median/IQR, label_relation 분포, sequence distance matrix. 값이 어긋나면 어느 쪽이 틀렸는지 A 에 올린다",
+ "산출": [
+  "`MAIN50_EVIDENCE_ASSURED` — exact SHA / mart hash bound",
+  "`ANALYSIS_ASSURED` — key metric 독립 replay 결과"
+ ],
+ "역할경계": "C 는 중앙 assurance/control 이지 **A 의 authority 를 대체하지 않는다**. D finding 의 replication/escalation 판단은 C 가 한다"
+}

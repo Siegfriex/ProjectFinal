@@ -1,0 +1,100 @@
+{
+ "ticket_id": "T-A-V3-TBX-009",
+ "type": "TIMEBOX_SCHEDULE",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D",
+  "E"
+ ],
+ "cc": [
+  "A"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst": "2026-08-28T10:51:00+0900",
+ "base_sha": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
+ "self_approved": false,
+ "headline": "**시각표를 강제한다. 체크포인트에서 미달이면 목표시각을 미루지 않고 범위를 줄인다.** 그게 타임박스다",
+ "기준시각": "2026-08-28 10:51 KST 발행 · 마감 12:30 KST · 잔여 99분",
+ "체크포인트": {
+  "10:55 T0": {
+   "책임": "E·B·C·D",
+   "판정": "착수 보고. E 는 50 worker packet **dispatch 개시** 확인",
+   "미달시": "A 가 직접 워커 배분 재지시"
+  },
+  "11:00 CP1": {
+   "책임": "C·D",
+   "판정": "C: checker **동결 SHA 버스 게시**(hard) / D: 빈 schema notebook·figure template 완성",
+   "미달시": "**A 가 축소 checker(7항목)를 대신 발행하고 진행**. C 는 그 위에 얹는다"
+  },
+  "11:10 CP2": {
+   "책임": "E",
+   "판정": "**10/50 attempt 완료**",
+   "미달시": "워커 증설 또는 target별 timeout 하향. **마감을 밀지 않는다**"
+  },
+  "11:20 CP3": {
+   "책임": "E·B",
+   "판정": "**25/50 attempt** + B `snapshot20` 존재",
+   "미달시": "E 잔여를 timeout 단축, B 는 부분 mart 로 계속"
+  },
+  "11:35 CP4": {
+   "책임": "E",
+   "판정": "**50/50 attempt 완료**. 미완은 그 시각에 `TIMEOUT` terminal 로 확정",
+   "미달시": "11:35 에 미착수 target 은 `PUBLIC_WEB_UNOBSERVABLE`/`TIMEOUT` 으로 확정. **기다리지 않는다**"
+  },
+  "11:40 CP5": {
+   "책임": "B",
+   "판정": "**canonical mart 50행 freeze + hash 발행**",
+   "미달시": "행 수 부족은 denominator corruption — 실패 target 을 terminal row 로 채워 반드시 50행"
+  },
+  "11:55 CP6": {
+   "책임": "D",
+   "판정": "6종 figure/표 초판 + claim 후보 → C",
+   "미달시": "아래 축소사다리 적용"
+  },
+  "12:10 CP7": {
+   "책임": "C",
+   "판정": "독립 재계산 대조 완료. `MAIN50_EVIDENCE_ASSURED` + `ANALYSIS_ASSURED`",
+   "미달시": "재계산 못 한 지표는 **ASSURED 목록에서 빼고 그렇게 적는다**. 통과로 세지 않는다"
+  },
+  "12:20 CP8": {
+   "책임": "A",
+   "판정": "claim registry freeze (claim → metric/table/figure → evidence hash)",
+   "미달시": "—"
+  },
+  "12:30 CLOSE": {
+   "책임": "A",
+   "판정": "publication bundle + reproducibility manifest + limitations",
+   "미달시": "—"
+  }
+ },
+ "타임박스_제1규칙": "**어떤 체크포인트에서도 마감을 밀지 않는다.** 미달은 시간을 더 쓰는 사유가 아니라 **범위를 줄이는 사유**다. 협상하지 마라 — 축소순서는 아래에 미리 정해두었다",
+ "축소사다리_이_순서로만": [
+  "1. D 의 Gower hierarchical clustering (탐색적 참고) — **가장 먼저 버린다**",
+  "2. D 의 sequence divergence heatmap (10×10)",
+  "3. D 의 spatial map 정밀도 → zone 5구간 집계로 축약",
+  "4. D 의 label vocabulary diversity → MATCH/DIFFERENT 2분류로 축약"
+ ],
+ "절대_버리지_않는_것": [
+  "coverage / terminal_reason 분포 (`k/10`, `k/50`)",
+  "canonical mart **50행**",
+  "C 의 독립 수치 재계산",
+  "limitations / NOT_ASSESSED_BEYOND_EXISTING_CONTROLS 절",
+  "claim → evidence hash 연결"
+ ],
+ "보고의무": {
+  "주기": "**10분마다** heartbeat 에 진행수치를 적어라",
+  "E": "`attempted / dispatched / terminal_확정` 수",
+  "B": "`mart_rows / snapshot_id`",
+  "C": "`checker_frozen_sha / 검사통과·실패 수`",
+  "D": "`figure_완성수 / claim후보수`",
+  "형식": "수치로 적어라. '진행중' 은 보고가 아니다"
+ },
+ "B_에_대한_정정": "B 가 10:46:38 에 ACK 한 `T-A-V3-MAIN50-001..004` 는 **10:48 에 SUPERSEDED** 됐다. 실행하지 마라. **네 티켓은 `T-A-V3-TBX-006` 이고 역할이 바뀌었다** — 브라우저를 열지 않고 E 의 raw 를 canonical mart 로 승격한다",
+ "E_에_대한_확인": "E heartbeat 가 10:44:40 로 살아났다. **네가 이번 census 의 유일한 REAL 수집 평면이다.** `T-A-V3-TBX-005` 대로 지금 dispatch 하라",
+ "A_의_역할": "A 는 10분 주기로 체크포인트를 판정하고 미달 시 축소를 **지시**한다. 각 평면은 축소 여부를 스스로 정하지 마라 — A 가 정한다",
+ "release": "V3_TIMEBOX_CENSUS_1230 (real_target_allowed=true, frozen MAIN50 x50)"
+}

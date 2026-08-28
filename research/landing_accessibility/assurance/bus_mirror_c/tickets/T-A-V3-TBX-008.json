@@ -1,0 +1,62 @@
+{
+ "from": "A",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst": "2026-08-28T10:50:00+0900",
+ "base_sha": "768aeb10cfcc15a7eefe501059bc8fa3b45ab2a1",
+ "self_approved": false,
+ "release": {
+  "release_id": "V3_TIMEBOX_CENSUS_1230",
+  "path": "research/landing_accessibility/control/v3/V3_TIMEBOX_CENSUS_1230.json",
+  "manifest_body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "manifest_file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0"
+ },
+ "deadline_kst": "2026-08-28T12:30:00+0900",
+ "정지_해제": "B `HALTED_BY_DIRECTOR` / C `STOPPED_BY_DIRECTOR` 는 이 Director override 로 해제. 즉시 재기동",
+ "전체정지_3종만": [
+  "frozen target/manifest 오실행",
+  "credential·transaction·purchase·reservation·payment 금지행위",
+  "evidence overwrite / duplicate / denominator corruption"
+ ],
+ "그_외": "defect·missingness·site failure 는 해당 row/variable 을 `UNDETERMINED`/`NOT_OBSERVED` 로 남기고 **속행**",
+ "묻지_말고_해결": "integration·fixture·retry·batch-size·worker allocation·분석구현 — Director §10",
+ "ticket_id": "T-A-V3-TBX-008",
+ "type": "DIRECTIVE",
+ "to": [
+  "D"
+ ],
+ "cc": [
+  "C",
+  "A"
+ ],
+ "priority": "P0",
+ "headline": "**D: 11:30 까지 기다리지 마라. 지금 빈 mart schema 로 notebook·figure template 을 만들고, 첫 10행이 들어오는 순간 분석을 시작한다. 오늘 최종 그림 제작자는 너다**",
+ "지위_정정": "`NON_CANONICAL` 은 **'D 가 계산·EDA·ML·그래프를 만들면 안 된다'는 뜻이 아니다.** D 혼자 만든 수치를 최종 연구사실로 **승인**할 수 없다는 뜻이다. 오늘은 read-only analysis/ML/visualization plane 으로 **적극적으로** 쓴다",
+ "지금_당장": "위 B 컬럼 23개로 **빈 mart schema** 를 만들어 notebook / script / figure template 을 먼저 완성. 데이터 도착 전에 코드가 준비돼 있어야 한다",
+ "최종산출_6종": {
+  "1_coverage_terminal": "family별 endpoint reached / auth / app-only / WAF 등. **반드시 `k/10`, 전체 `k/50`** 로 적는다",
+  "2_entry_spatial_map": "`entry_x_norm × entry_y_norm`, family별 service 점, 상단/하단/좌/우/중앙 zone 분포",
+  "3_entry_implementation": "control type · direct visible vs menu dependency · nav container · reveal direction · auth stage 분포",
+  "4_activation_depth": "service별 dot + family median/IQR. **scroll/typing/forced dismissal 제외 원칙 유지**",
+  "5_label_divergence": "visible label vocabulary · accessible name · `MATCH/SEMANTIC_EQUIV/DIFFERENT/VISIBLE_ONLY/AX_ONLY/NONE` · family vocabulary diversity",
+  "6_sequence_divergence": "family별 **10×10 normalized edit-distance matrix** heatmap. **45 cells 는 descriptive pair cell 임을 그림 안에 표기** — independent n=45 아님"
+ },
+ "ML": {
+  "하지_말_것": "50건으로 분류모델 accuracy 내기",
+  "할_것": "`mixed feature → Gower distance → hierarchical clustering`. categorical+ordinal/numeric 혼재라 Gower 가 적합. feature: x/y · control_type · menu · reveal · depth · auth · obstruction · label_relation",
+  "산출": "dendrogram · cluster membership · medoid · cluster별 flow signature",
+  "경고": "**5 family 를 통째로 한 모델에 넣으면 family identity 를 학습한다.** primary 는 family 내부 divergence 이고 global clustering 은 **탐색적 참고**로만 표기",
+  "UMAP": "만들 수는 있으나 12:30 핵심결론에 넣을 이유 없다"
+ },
+ "금지": [
+  "REAL 접속",
+  "canonical 승인 / GO·NO-GO 권한",
+  "sample·replacement selection",
+  "gold/holdout leakage",
+  "임의 threshold 또는 **composite STFP score**",
+  "within-family 45 pair 를 independent n=45 로 취급 — **n=10**"
+ ],
+ "claim_후보": "claim 후보를 생성해 **C 로** 올린다. C 가 독립 재계산으로 대조하고 A 가 freeze 한다. **D 가 자기 수치를 최종사실로 선언하지 않는다**",
+ "provenance": "모든 산출에 source evidence IDs/SHA + mart hash + D code SHA + MLflow lineage",
+ "head_drift": "Director 기준 `cfad928…` vs A 실측 `f3c118bb…`. NON_CANONICAL 이라 hard-stop 아니지만 **자기 head 를 보고하라** — closeout 에 싣는다"
+}
