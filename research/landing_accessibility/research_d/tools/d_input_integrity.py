@@ -110,8 +110,16 @@ def sidecar_keys() -> dict:
             except Exception:
                 continue
             if isinstance(doc, dict):
-                out[rel] = sorted(hashlib.sha256(k.encode("utf-8")).hexdigest()[:12]
-                                  for k in doc)
+                # [D-DEF-75] 키 이름만 저장하면 **값이 바뀐 것을 못 짚는다.**
+                # 키별 `(키해시 → 값해시)` 로 두면 어느 항목이 갱신됐는지 알 수 있다.
+                # 둘 다 해시다 — 원문 저장은 D-DEF-60(감시 도구가 대상 이름을
+                # 기록하면 스스로 위반이 된다)에서 막았다.
+                out[rel] = {
+                    hashlib.sha256(k.encode("utf-8")).hexdigest()[:12]:
+                        hashlib.sha256(
+                            _j.dumps(v, ensure_ascii=False, sort_keys=True)
+                            .encode("utf-8")).hexdigest()[:12]
+                    for k, v in doc.items()}
     return out
 
 
@@ -140,11 +148,21 @@ def check() -> dict:
     bk, nk = base.get("_sidecar_keys") or {}, now.get("_sidecar_keys") or {}
     key_delta = {}
     for f in sorted(set(bk) | set(nk)):
-        gained = sorted(set(nk.get(f, [])) - set(bk.get(f, [])))
-        lost = sorted(set(bk.get(f, [])) - set(nk.get(f, [])))
-        if gained or lost:
+        b_map, n_map = bk.get(f) or {}, nk.get(f) or {}
+        # 옛 baseline 은 리스트였다 — 형식이 다르면 키만 비교한다
+        if isinstance(b_map, list):
+            b_map = {k: None for k in b_map}
+        if isinstance(n_map, list):
+            n_map = {k: None for k in n_map}
+        gained = sorted(set(n_map) - set(b_map))
+        lost = sorted(set(b_map) - set(n_map))
+        revalued = sorted(k for k in (set(b_map) & set(n_map))
+                          if b_map[k] is not None and n_map[k] is not None
+                          and b_map[k] != n_map[k])
+        if gained or lost or revalued:
             key_delta[f] = {"gained_key_hashes": gained, "lost_key_hashes": lost,
-                            "n_now": len(nk.get(f, [])), "n_base": len(bk.get(f, []))}
+                            "revalued_key_hashes": revalued,
+                            "n_now": len(n_map), "n_base": len(b_map)}
     changed, added, removed = [], [], []
     for name in {*base, *now}:
         if name == "_sidecar_keys":
@@ -163,6 +181,16 @@ def check() -> dict:
     return {"verdict": "PASS" if ok else "FAIL",
             "living_doc_changed": living,
             "sidecar_key_delta": key_delta,
+            "**B_해시와_비교하지_마라**": ("B 가 같은 사이드카 안에 `키별 내용 해시` 를 "
+                            "낸다(`D-V3-FINDING-068` 한계를 받아 추가). **algo 가 "
+                            "다르다** — B 는 `separators=(',',':')` 에 16자, D 는 "
+                            "기본 구분자에 12자다. **두 값은 절대 일치하지 않으므로 "
+                            "대조하면 항상 '다르다' 가 나온다.** D 감지는 B 산출과 "
+                            "**독립**이어야 하므로 맞추지 않는다 — B 가 그 블록을 "
+                            "지워도 D 는 작동해야 한다"),
+            "값도_해시로_추적한다": ("키 이름만 보면 **값이 바뀐 것을 못 짚는다** "
+                          "[D-DEF-75]. `revalued_key_hashes` 가 어느 항목이 "
+                          "갱신됐는지 가리키고, **그 개수만큼만 원본에서 읽으면 된다**"),
             "키_해시로_두는_이유": ("감시 도구가 대상 이름을 원문으로 기록하면 스스로 "
                           "위반이 된다(D-DEF-60). baseline 은 **감지용**이고 "
                           "**새 키가 잡히면 원본을 열어 읽는다**"),
@@ -242,6 +270,21 @@ def controls() -> dict:
          is_living_doc("mart/CANONICAL_MART_50.backup.csv"), False, negative=True)
     case("`.sha256.json` 은 사이드카 — 최종 확장자가 데이터가 아니다",
          is_living_doc("mart/CANONICAL_MART_50.sha256.json"), True)
+    # [D-DEF-75] 값 변화를 실제로 짚는가 — 합성 문서로
+    import hashlib as _h, json as _jj
+
+    def _keymap(d):
+        return {_h.sha256(k.encode()).hexdigest()[:12]:
+                _h.sha256(_jj.dumps(v, ensure_ascii=False, sort_keys=True)
+                          .encode()).hexdigest()[:12] for k, v in d.items()}
+
+    _b, _n = _keymap({"a": 1, "b": 2}), _keymap({"a": 1, "b": 3})
+    case("값이 바뀐 키를 짚는다",
+         sorted(k for k in set(_b) & set(_n) if _b[k] != _n[k]),
+         [_h.sha256(b"b").hexdigest()[:12]], negative=True)
+    _n2 = _keymap({"a": 1, "b": 2})
+    case("값이 같으면 안 짚는다",
+         sorted(k for k in set(_b) & set(_n2) if _b[k] != _n2[k]), [])
     case("남의 stem 은 대상이 아니다",
          is_living_doc("mart/snapshot_10.csv"), False, negative=True)
     case("raw 파일은 사이드카가 아니다",
