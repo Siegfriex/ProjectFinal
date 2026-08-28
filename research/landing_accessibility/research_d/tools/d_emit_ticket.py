@@ -299,6 +299,42 @@ def retraction_errors(t: dict) -> list:
             for h in {h["token"]: h for h in hits}.values()]
 
 
+# [D-DEF-81] **시각도 측정치다.** `emit()` 은 `created_at_kst` 를 스탬프하지만
+# 호출자가 값을 주면 그것이 이긴다 — 그래서 손으로 쓴 시각이 37건 발행됐고
+# 최대 88분 앞섰다. B 가 `D-V3-FINDING-075` 를 **선언 발행시각보다 14분 먼저**
+# ACK 한 것으로 기록돼 버스에 인과 역전이 남았다. 이제 어긋난 시각은 막는다.
+CLOCK_TOLERANCE_SEC = 120
+_CLOCK_FIELDS = ("created_at_kst", "measured_at_kst", "ack_at_kst")
+
+
+def clock_errors(t: dict) -> list:
+    """선언한 시각이 실제 시각과 어긋나면 막는다."""
+    import datetime as _dt
+    now_s = _sh("date", "-Iseconds")
+    try:
+        now = _dt.datetime.fromisoformat(now_s)
+    except Exception:                               # noqa: BLE001
+        return []                                   # 시계를 못 읽으면 판정하지 않는다
+    out = []
+    for f in _CLOCK_FIELDS:
+        v = t.get(f)
+        if not isinstance(v, str) or not v:
+            continue
+        try:
+            d = _dt.datetime.fromisoformat(v)
+        except Exception:                           # noqa: BLE001
+            out.append(f"{f} 를 시각으로 읽을 수 없다: {v!r}")
+            continue
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=now.tzinfo)
+        off = (d - now).total_seconds()
+        if abs(off) > CLOCK_TOLERANCE_SEC:
+            out.append(f"{f} 가 실제 시각과 {off:+.0f}초 어긋났다 "
+                       f"(선언 {v} / 지금 {now_s}) — **시각을 손으로 쓰지 마라. "
+                       f"필드를 빼면 도구가 스탬프한다** [D-DEF-81]")
+    return out
+
+
 def emit(t: dict, *, dry_run: bool = False) -> dict:
     """검사를 통과하면 티켓을 쓰고 event_log 에 append 한다."""
     t = dict(t)
@@ -328,6 +364,7 @@ def emit(t: dict, *, dry_run: bool = False) -> dict:
     errs = list(errs) + schema_errors(t)     # [D-DEF-47] 정본 스키마도 본다
     errs += retraction_errors(t)             # [D-DEF-48] 철회 라벨도 본다
     errs += decision_field_errors(t)         # [D-DEF-66] 결정 요청은 필드로 낸다
+    errs += clock_errors(t)                  # [D-DEF-81] 시각도 측정치다
     if errs:
         return {"emitted": False, "errors": errs}
     if dry_run:
@@ -415,6 +452,7 @@ def audit_emitted(v3_since: str | None = None) -> dict:
     v3_since = _v3_since() if v3_since is None else v3_since
     """D 발행분 전수 — v3 이후 base_sha 해석 여부. 스캐너가 매 회 호출한다."""
     rows = []
+
     # [D-DEF-80] **명명 규약을 저자 판정의 대리로 쓰지 않는다** (T-B-V3-FINDING-021).
     # 접두사는 `check()` 가 발행 시점에 강제하지만 그 보장은 **이 도구를 거친 발행에만**
     # 있다. 모집단은 `from` 으로 잡는다 — 현재 두 방식의 차는 0 이고, 그것도 측정치다.
@@ -462,11 +500,31 @@ def controls() -> dict:
     for name, caught in (st.get("bad_fixture_caught") or {}).items():
         cases.append({"case": f"불량 fixture 를 막는다: {name}",
                       "expectation": "must_flag", "ok": bool(caught)})
+    # [D-DEF-81] 손으로 쓴 시각을 막는가 — **`emit()` 의 errs 사슬에 들어간 검사다**
+    import datetime as _dt
+    _now = _dt.datetime.fromisoformat(_sh("date", "-Iseconds"))
+
+    def _clk(name, delta, should_fail=True):
+        v = (_now + _dt.timedelta(seconds=delta)).isoformat(timespec="seconds")
+        flagged = bool(clock_errors({"created_at_kst": v}))
+        cases.append({"case": f"[시각] {name}",
+                      "expectation": "must_flag" if should_fail else "must_not_flag",
+                      "ok": flagged == should_fail})
+
+    _clk("15분 앞선 시각은 막힌다", 900)
+    _clk("15분 뒤진 시각도 막힌다", -900)
+    _clk("지금 시각은 통과한다", 0, should_fail=False)
+    _clk("허용오차 안(60초)은 통과한다", 60, should_fail=False)
+    cases.append({"case": "[시각] 필드가 없으면 판정하지 않는다",
+                  "expectation": "must_not_flag", "ok": not clock_errors({})})
+
     good = st.get("good_fixture_errors") or []
     cases.append({"case": "정상 fixture 는 통과한다",
                   "expectation": "must_not_flag", "ok": not good,
                   "detail": good[:3]})
-    return {"verdict": st.get("verdict"), "n": len(cases),
+    _all_ok = all(c["ok"] for c in cases) and st.get("verdict") == "PASS"
+    return {"verdict": "PASS" if _all_ok else "FAIL", "n": len(cases),
+            "failed": [c["case"] for c in cases if not c["ok"]],
             "must_flag": sum(1 for c in cases if c["expectation"] == "must_flag"),
             "must_not_flag": sum(1 for c in cases if c["expectation"] == "must_not_flag"),
             "cases": cases}
