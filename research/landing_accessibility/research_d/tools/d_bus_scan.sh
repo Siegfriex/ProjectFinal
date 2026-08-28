@@ -239,6 +239,18 @@ try:
     _sc = _schema_check()
     print(f"\n=== D 발행분 스키마(SSOTV3 정본) : {_sc['verdict']} "
           f"· 새 {_sc['n_new']} / baseline {_sc['baseline_pre_guard']['n']} ===")
+    from d_ticket_schema_check import self_approval_record as _sar_fn
+    _sar = _sar_fn()
+    _sv = _sar.get("**정본에 없는 필드다**") or {}
+    print(f"   자기승인 기록 : {_sar['verdict']} · true {_sar['n_true']} "
+          f"· false {_sar['n_false']} · **부재 {_sar['n_absent']}**"
+          f"(가드 이후 {_sar['n_absent_since_guard']}, 마지막 부재 {_sar['last_absent_at']}) "
+          f"· 이상값 {_sar['n_other_value']}")
+    print(f"     **정본 스키마에 없는 필드다** — required {_sv.get('in_required')} / "
+          f"properties {_sv.get('in_properties')}. 부재는 위반이 아니고, "
+          f"true 0 을 정본이 보증하지도 않는다")
+    if _sar.get("absent_since_guard"):
+        print(f"     ** 가드 이후 부재 ** {_sar['absent_since_guard'][:5]}")
     _au = _sc.get("authority") or {}
     print(f"   권한 축(D 가 낼 수 없는 type) : {'PASS' if _au.get('n') == 0 else 'FAIL'} "
           f"· 위반 {_au.get('n')} "

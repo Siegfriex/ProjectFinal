@@ -94,6 +94,56 @@ def authority_violations(plane: str = "D") -> list:
     return out
 
 
+def self_approval_record(plane: str = "D") -> dict:
+    """`self_approved` 를 **'없음' 과 '거짓' 으로 가른다** (T-B-V3-FINDING-020 · Δ15-GAP04).
+
+    안전 제약('자기승인하지 않았다')의 **기록**이 있는가를 잰다. 필드 부재와
+    `false` 를 한 수로 묶으면 **지키지 않은 것과 기록하지 않은 것이 같은 출력**이 된다.
+
+    경계는 `SCHEMA_GUARD_SINCE` — **가드 도입 시각에서 온다**(D-DEF-52 · A R62).
+    관측된 마지막 부재 시각에서 뽑지 않는다. 그것은 데이터에서 경계를 만드는 일이다.
+    """
+    sc = schema()
+    absent, false_, true_, other = [], [], [], []
+    for f in sorted(TICKETS.glob("*.json")):
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:                           # noqa: BLE001
+            continue
+        if d.get("from") != plane:
+            continue
+        ts = d.get("created_at_kst") or d.get("created_at") or ""
+        tid = d.get("ticket_id")
+        if "self_approved" not in d:
+            absent.append((ts, tid))
+        elif d["self_approved"] is False:
+            false_.append((ts, tid))
+        elif d["self_approved"] is True:
+            true_.append((ts, tid))
+        else:
+            other.append((ts, tid, d["self_approved"]))
+    new_absent = [t for t in absent if t[0] and t[0] >= SCHEMA_GUARD_SINCE]
+    ok = not true_ and not other and not new_absent
+    return {"verdict": "PASS" if ok else "FAIL",
+            "n_true": len(true_), "true": [t[1] for t in true_],
+            "n_false": len(false_), "n_absent": len(absent),
+            "n_absent_since_guard": len(new_absent),
+            "absent_since_guard": [t[1] for t in new_absent],
+            "n_other_value": len(other), "other_value": other,
+            "last_absent_at": max((t[0] for t in absent), default=None),
+            "guard_since": SCHEMA_GUARD_SINCE,
+            "**정본에 없는 필드다**": {
+                "in_required": "self_approved" in (sc.get("required") or []),
+                "in_properties": "self_approved" in (sc.get("properties") or {}),
+                "뜻": ("`self_approved` 는 정본 스키마의 `required` 에도 `properties` 에도 "
+                     "**없다**. 따라서 (a) 부재는 **스키마 위반이 아니고** (b) `true 0` 을 "
+                     "**정본이 보증하지도 않는다** — 평면들이 관행으로 쓰는 필드다"),
+                "누가_정하나": "정본 편입 여부는 **A 소관**이다. D 는 사실만 낸다"},
+            "이_수가_말하지_않는_것": ("`true` 0 은 **그렇게 적힌 티켓이 없다**는 뜻이다. "
+                             "부재 건에는 **지켰다는 기록 자체가 없다** — "
+                             "'없음' 과 '거짓' 을 같은 출력으로 만들지 않는 이유가 이것이다")}
+
+
 def check() -> dict:
     v = violations()
     for r in v:
@@ -194,6 +244,32 @@ def controls() -> dict:
             "priority": "P2", "claim_kind": "OBSERVATION",
             "base_sha": "a" * 40, "scope": "x", "status": "OPEN",
             "created_at_kst": "2026-08-28T15:00:00+09:00"}
+    def _sa(t, should_fail=True):
+        """`self_approval_record` 의 판정부만 합성 티켓으로 재현한다."""
+        ts = t.get("created_at_kst", "")
+        bad = (t.get("self_approved") is True
+               or ("self_approved" in t and t["self_approved"] not in (True, False))
+               or ("self_approved" not in t and ts and ts >= SCHEMA_GUARD_SINCE))
+        rows.append({"case": "[self_approved] " + _sa_name, "flagged": bad,
+                     "expectation": "must_flag" if should_fail else "must_not_flag",
+                     "ok": bad == should_fail})
+
+    _sa_name = "가드 이후 true 는 걸린다"
+    _sa(full | {"self_approved": True})
+    _sa_name = "가드 이후 **부재**도 걸린다"
+    _sa(full)
+    _sa_name = "false 아닌 이상한 값도 걸린다"
+    _sa(full | {"self_approved": "no"})
+    _sa_name = "가드 **이전** 부재는 baseline"
+    _sa(full | {"created_at_kst": "2026-08-28T09:00:00+09:00"}, should_fail=False)
+    _sa_name = "가드 이후 false 는 안 걸린다"
+    _sa(full | {"self_approved": False}, should_fail=False)
+    _sar = self_approval_record()
+    rows.append({"case": "[self_approved] 현재 D 발행분 PASS", "flagged": _sar["verdict"] != "PASS",
+                 "expectation": "must_not_flag", "ok": _sar["verdict"] == "PASS"})
+    rows.append({"case": "[self_approved] true 는 0", "flagged": _sar["n_true"] != 0,
+                 "expectation": "must_not_flag", "ok": _sar["n_true"] == 0})
+
     run("필수 10항목이 다 있으면 통과", full, should_fail=False)
     run("scope 누락은 막힘", {k: v for k, v in full.items() if k != "scope"})
     run("status 누락은 막힘", {k: v for k, v in full.items() if k != "status"})
