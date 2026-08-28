@@ -1875,9 +1875,64 @@
    "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 42
+  },
+  {
+   "id": "Δ53-fc",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**`Δ48-R43` 의 예시 서술을 정정한다** — `verify_retention_manifest` 는 **`CAN_FAIL`**(실패 입력 3종 실증, 도입 커밋 이후 불변)이며 **함수는 검증한다. 그 호출이 검증할 것을 주지 않았다**(`manifest={}` → roots 순회 0회). `R43` 규칙과 '테스트가 결함을 가렸다' 는 유효하고 **가려진 결함의 이름이 틀렸다**",
+   "must_appear_in": "Δ48 을 인용하는 곳",
+   "C_check": "Δ53 계열 — RUNBOOK CI-25 r3",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 43
+  },
+  {
+   "id": "Δ53-R52",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**`VACUOUS_PASS` 를 별도 범주로 승격한다** — `CAN_FAIL`/`CANNOT_FAIL` 축만 재면 **'검사 0회로 성공을 내는' 호출**을 놓친다. **'검사했고 통과' 와 '검사할 것이 없어서 통과' 가 같은 출력이다.** 실패 가능성 실증은 **호출 지점의 실제 입력**에서 한다 — 함수 수준으로 끝나지 않는다",
+   "must_appear_in": "R43 sweep · 검증 호출 지점",
+   "C_check": "CI-25 r2/r3 VACUOUS_PASS 축 — C 자기 검증기 빈 입력 시험(lane5 1건 발견, worker 시정 중)",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 43
+  },
+  {
+   "id": "Δ53-R53",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "**지시문의 사실 주장이 반증되면 게이트를 깨지 말고 `FALSIFIED` 로 기록한다** — 깨면 **방법의 결함과 지시의 결함이 같은 출력**이 된다. 도구의 능력은 **합성 대조**로 따로 실증한다. **상위가 하위에 내리는 사실 주장은 하위가 반증할 수 있어야 하고, 상위는 그 반증을 게이트가 아니라 기록으로 받는다**",
+   "must_appear_in": "각 평면의 워커 지시·게이트",
+   "C_check": "C worker 계약에 FALSIFIED 기록 규칙 반영(RUNBOOK CI-25 r3 iii) — run_gate1 R40 brief 의 반증 사례를 소급 기록",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 43
+  },
+  {
+   "id": "Δ53-engine27",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "`engine/` 27건은 **v3 가 실제로 호출하는 부분집합만 B 가 실증**하고 나머지는 **`ENUMERATED_NOT_DEMONSTRATED`** 로 남겨 **GATE 1 의 '검증하지 않은 것' 절**로 옮긴다. v3 의 주장은 v3 가 실행하는 경로에 의존한다. **27 은 워커 규칙 기준의 수이며 다른 규칙으로 세면 다른 수가 나온다**",
+   "must_appear_in": "GATE1 '검증하지 않은 것' 절",
+   "C_check": "GATE 1 verdict '검증하지 않은 것' 절에 ENUMERATED_NOT_DEMONSTRATED 목록 수용",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 43
+  },
+  {
+   "id": "Δ53-selfcatch",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**검사기가 자기 도구를 잡는 것은 정상 동작이며 배치로 푼다.** 검사 규칙을 느슨하게 해서 자기를 빼는 것이 오답이다",
+   "must_appear_in": "검사 도구 배치",
+   "C_check": "Δ53 계열 — RUNBOOK CI-25 r3",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 43
   }
  ],
- "index_version": 42,
+ "index_version": 43,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1928,5 +1983,6 @@
  "index_sha256_v38": "1fb824919a5e1abaa48a29bc629358541f1e15c2fae6201a06972967aeb07ad6",
  "index_sha256_v40": "0a8a5f5a81e1e5a826100e847607c4eda64a8f00b372d4711ab82dd34f4513ac",
  "index_sha256_v41": "73c981ebb9acdfa258e36ee3abb6409a62a91d2a14a6ffce2b7f78ebd1e76073",
- "index_sha256_v42": "501a8ee6c36b28f93f471f65c42f070fd83c50d0bba8d798ea2e8c6eaaa3a968"
+ "index_sha256_v42": "501a8ee6c36b28f93f471f65c42f070fd83c50d0bba8d798ea2e8c6eaaa3a968",
+ "index_sha256_v43": "350b91aaf8b164976d26b8e9e9d5eeac79603a3c1169a587e3ecd87733ef6a6c"
 }
