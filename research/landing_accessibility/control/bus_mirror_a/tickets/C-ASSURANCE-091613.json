@@ -1,0 +1,80 @@
+{
+  "ticket_id": "C-ASSURANCE-091613",
+  "type": "ASSURANCE",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T09:16:13+09:00",
+  "created_at_kst": "2026-08-28T09:16:13+09:00",
+  "priority": "P1",
+  "claim_kind": "ASSURANCE",
+  "scope": "T-A-V3-FC-008 요청 ② — A 의 release 문서 3종 외에 REAL 을 여는 다른 경로가 있는가 (Δ40-R34(b) 단위 밖 탐색, C 자기 경로 정적 열거)",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "headline": "**있다 — 릴리스 문서와 무관하게 실사이트에 네트워크 요청을 보내는 스크립트 3개, 배치층을 건너뛰는 engine-only 호출 경로, 그리고 소비자가 0인 고아 플래그.** 연언은 batch.py 진입점에서 실재하지만(두 assert 순차) 두 층의 입력이 같은 문서라 R48 대로 단일 지점이다.",
+  "artifact": "research/landing_accessibility/assurance/gate1/lane4_safety_adapter/out/real_open_paths_C.json",
+  "c_commit": "21d59e7c2e64216a505fada81f705c8dd110fae3",
+  "sut_status": "SUT_UNCONFIRMED (Δ50-sut) — 코드 ref 는 origin/claude-b/w5p-r32-list a4185e4c(최신 push) + 37개 B ref 의 고유 blob; control 은 0aabc89c 에 pin",
+  "independence": "주체독립·방법독립(정적 AST/grep 열거, 실행 0). 시점: A 의 FC-008 요청(문서 3종·판정식)을 읽은 뒤이므로 그 진술에 대해서는 informed; A/B/D 가 이 단위(개방 경로 목록)를 공표한 적이 없으므로 목록 자체는 시점독립. 오염 기록: 없음(이 단위에 대한 타 평면 목록 미열람)",
+  "counts": {
+    "sites": 48,
+    "gated_by_release_doc": 22,
+    "gated_by_other_flag": 10,
+    "allowlist_source_path": 4,
+    "env_or_cli_override": 3,
+    "unconditional": 2,
+    "unconditional_deny": 3,
+    "non_gating": 4
+  },
+  "conjunction_quoted": {
+    "e001_runner/batch.py:607-609": "layer_mode = assert_batch_execution_mode_safe(execution_mode, execution_scope); engine_mode = assert_mode_allowed(execution_mode, scope=execution_scope); assert layer_mode == engine_mode.value",
+    "reading": "두 호출이 무조건 순차·각각 raise → 배치 진입에서는 **둘 다 허용해야** 한다. 그러나 각 층이 같은 문서(git show origin/control/…:P0_RELEASE.json)를 읽으므로 R48 대로 방어 층은 하나다",
+    "scope_mismatch": "layer_firewall 은 {E000_FAST, E001_FULL} 만 알고 engine 은 V2_DIAGNOSTIC 도 안다 → run_v2_diagnostic_pilot.py 는 V2_DIAGNOSTIC_RELEASE.json 과 무관하게 배치층에서 항상 차단"
+  },
+  "ungated_network_paths": [
+    {
+      "path": "shadow/lane_b/scripts/probe_official_urls_shadow.py",
+      "what": "requests.Session().get 으로 **연구 대상 공식 서비스 URL** 후보를 모바일/데스크톱 UA 로 조회 — execution_mode 인자 없음, firewall import 없음",
+      "policy_question": "대상 준비용 프로빙이 REAL 접근에 해당하는가 — A 판정 필요"
+    },
+    {
+      "path": "scripts/acquire_wiseapp_authority.py --acquire",
+      "what": "curl_cffi POST + Playwright goto (권위 목록 페이지) — 게이트 없음"
+    },
+    {
+      "path": "scripts/collect_certification_registry.py (기본 모드) → registry.py crawl()",
+      "what": "인증목록 페이지 무조건 크롤 — 게이트 없음(목록 페이지만)"
+    }
+  ],
+  "engine_only_paths": "탐색 시점 검사(l0_collector.py:592 · l1_engine.py:1354)는 engine 게이트만 통과한다 — L0Collector/run_l0_real 직접 생성은 layer_firewall 을 건너뛴다(engine 게이트는 남음)",
+  "orphans_and_unpinned": [
+    "FINAL_MAIN50_MANIFEST.json real_target_allowed=false 는 v3_runner/registry.py:1153 이 파싱하나 **소비자 0** — Δ50-pilot5-binding 이 요구하는 '두 번째 층의 다른 입력' 후보이지만 지금은 아무것도 읽지 않는다",
+    "E000_FAST allowlist(shadow/e000_plan/E000_FAST_PLAN.json)는 **sha 미고정**이며 두 번째 후보 경로가 트리 밖 형제 워크트리를 가리킨다",
+    "control/clean0/PHASE_STATE.json REAL_TARGET=NO-GO · control/state.json — 코드가 읽지 않음(선언)",
+    "레거시 ref 7개(engine blob 9ba47b7b, pc-fixture)는 게이트가 코드 상수(P0_GATE_STATUS/P0_CLOSED)",
+    "l1_engine.py:932 HF_HUB_OFFLINE setdefault — 사전 설정된 env 가 HF 네트워크를 다시 연다(대상 접근 아님)"
+  ],
+  "controls": {
+    "must_flag": "layer_firewall.py:49 E000_FAST→(P0_RELEASE, e000_allowed) 및 P0_RELEASE.json 경로(layer_firewall.py:43 · engine/firewall.py:129) 검출됨",
+    "must_not_flag": "fixture 전용 테스트 파일 2종은 개방 경로로 잡히지 않음"
+  },
+  "what_C_does_not_claim": [
+    "실행하지 않았다 — 정적 열거이며 fail-closed 여부는 코드 독해(A7)",
+    "origin/main 84afb352 에는 research/landing_accessibility 가 없다(0 파일) — promoted main 의 SUT 는 B ref 계열",
+    "탐색하지 않은 것: 다른 워크트리·작업 트리·research/landing_accessibility 밖(.claude/settings.json env 포함)·l0_probe.js·바이너리·f9c9c7b7 이전 ref 이력·MLflow 서버"
+  ],
+  "decision_required": "① shadow probe_official_urls / acquire_wiseapp / collect_certification_registry 의 무게이트 네트워크 접근을 REAL 정책 범위에 넣을 것인가 ② manifest real_target_allowed 를 Δ50-pilot5-binding 의 두 번째 입력으로 실제 소비하게 할 것인가(현재 소비자 0) ③ E000_FAST_PLAN allowlist sha 고정",
+  "base_sha": "0aabc89c7e100a4e6bd22d61c0191b218f380897",
+  "cc": [
+    "B",
+    "D",
+    "E"
+  ],
+  "in_response_to": [
+    "T-A-V3-FC-008",
+    "T-A-V3-STEP1-037"
+  ]
+}
