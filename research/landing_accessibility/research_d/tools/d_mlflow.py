@@ -165,6 +165,34 @@ def discover(base=None) -> list[dict]:
     return [{k: v for k, v in e.items() if not k.startswith("_")} for e in found.values()]
 
 
+def authoritative_verdict(js: Path | None, md: Path) -> tuple[str, str]:
+    """verdict 는 **JSON 최상위**에서 읽는다. md 파서는 대체 경로일 뿐이다.
+
+    예전에는 `parse_verdict(md)` 하나만 색인에 실었다. 그 파서는
+    `sorted(VERDICTS, key=len, reverse=True)` 로 **앞 4000자에서 가장 긴
+    토큰**을 고른다 — 가설별 판정표에 `PARTIALLY_SUPPORTED` 가 먼저 나오면
+    그것이 RQ 의 판정으로 색인된다.
+
+    실측: JSON 정본과 md 파서가 **11건에서 갈렸고 둘은 정반대**였다
+    (`RQ-D12A` json=REFUTED / md=SUPPORTED · `D-SUP-02` json=SUPPORTED /
+    md=NOT_SUPPORTED). **완결 게이트가 이미 JSON 최상위 verdict 를 요구한다**
+    — 정본이 어디인지는 정해져 있었고 색인만 다른 것을 읽고 있었다.
+
+    반환: (verdict, source)
+    """
+    if js and js.exists():
+        try:
+            v = json.loads(js.read_text(encoding="utf-8")).get("verdict")
+        except Exception:                                    # noqa: BLE001
+            v = None
+        if isinstance(v, dict):          # RQ-D8 형태 — 값이 구조를 갖는다
+            v = v.get("value") or v.get("verdict")
+        if isinstance(v, str) and v.strip():
+            return v.strip(), "json_top_level"
+    mv = parse_verdict(md) if md.exists() else "UNKNOWN"
+    return mv, "md_heuristic_fallback"
+
+
 def gate(rq: str, md: Path, js: Path | None, nb_dir: Path) -> tuple[bool, str]:
     """완결 게이트 — 세 조건. `sync()` 안에 있던 것을 함수로 뺐다.
 
@@ -304,6 +332,7 @@ def sync() -> int:
             except Exception as _e:                      # noqa: BLE001
                 skipped.append(f"{rq}(게이트 이후 JSON 파싱 실패: {type(_e).__name__})")
                 continue
+        _verdict, _vsrc = authoritative_verdict(js, md)
         nb_name = NOTEBOOK_MAP.get(rq)
         nb = (NB_DIR / nb_name) if nb_name and (NB_DIR / nb_name).exists() else None
         with mlflow.start_run(run_name=f"{rq}") as run:
@@ -317,7 +346,8 @@ def sync() -> int:
                 "d.base_sha": BASE_SHA,
                 "d.worktree_dirty": str(dirty),
                 "d.input_snapshot_sha256": snap_sha,
-                "d.verdict": parse_verdict(md),
+                "d.verdict": _verdict,
+                "d.verdict_source": _vsrc,
                 "d.production_modified": "false",
                 "d.labels_produced": "false",
                 "d.holdout_accessed": "false",
@@ -328,7 +358,8 @@ def sync() -> int:
                 "base_sha": BASE_SHA[:12],
                 "head_sha": head[:12],
                 "input_snapshot_sha256": snap_sha[:16],
-                "verdict": parse_verdict(md),
+                "verdict": _verdict,
+                "verdict_source": _vsrc,
                 "notebook": nb.name if nb else "none",
             })
             if metrics:
