@@ -115,6 +115,18 @@ ACCEPTED_UNSURFACED = {
     ("d_tool_health", "syntax_only_tools"):
         "값이 이미 표시된다 — 스캔의 `문법만 45` 가 이 45 다. 45개 도구 **이름**을 매 회차 "
         "찍는 것은 소음이고, 변화는 수로 드러난다",
+    # [D-DEF-102] fixture 를 배선하며 되돌아온 것들 — 스캔은 `PASS · 4건 · must_flag 1` 을 찍는다
+    ("d_gate_selftest", "n"):
+        "스캔이 `4건` 으로 찍는 그 수다 — 이름만 다르다",
+    ("d_gate_selftest", "must_not_flag"):
+        "`n` 과 `must_flag` 를 찍으므로 차는 계산된다 — 셋을 다 찍는 것은 소음이다",
+    ("d_gate_selftest", "cases"):
+        "케이스 상세다. 스캔은 verdict·건수·must_flag 를 찍고 **실패하면 그 이름**을 찍는다",
+    ("d_gate_selftest", "fixture_stdout_lines"):
+        "fixture 가 삼킨 출력 줄 수다. **삼키는 것은 출력이지 결과가 아니라는 표시**로 남기지만, "
+        "판정에 쓰이지 않으므로 매 회 찍지 않는다",
+    ("d_tool_health", "ok"):
+        "문법 통과 도구의 **목록**이다. 스캔은 `74/74` 로 수를 찍는다 — 74개 이름은 소음이다",
     ("d_standing_control", "checks"):
         "네 검사의 원본 반환 묶음이다. 스캔은 `드리프트 {…} · 대조군 4/4` 로 **판정에 쓰이는 두 축**을 "
         "찍고, 하나라도 어긋나면 그 이름을 찍는다 — 원본 묶음은 소음이다",

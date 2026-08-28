@@ -215,6 +215,12 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_gate_selftest import controls as _gs_fn
+    _gs = _gs_fn()
+    print(f"   완결 게이트 fixture(Director P0 1.2) : {_gs['verdict']} · {_gs['n']}건 "
+          f"· must_flag {_gs['must_flag']} — **내용 계약**(최상위 `verdict`)으로 canonical 을 고른다")
+    if _gs.get("failed"):
+        print(f"     ** 실패 ** {_gs['failed']}")
     from d_standing_control import read_only_checks as _sc_fn
     _stc = _sc_fn()
     print(f"   상주 대조(변형 대조군 내장) : {_stc['verdict']} · 드리프트 {_stc['drift']} "

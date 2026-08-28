@@ -97,5 +97,57 @@ def main() -> int:
     return 0
 
 
+def controls() -> dict:
+    """[D-DEF-102] 이 fixture 를 **게이트가 부를 수 있게** 감싼다.
+
+    `D-V3-FINDING-092` 에서 나는 '`controls()` 진입점이 없어 무엇을 부를지 정해야
+    하고 아무 함수나 골라 부르면 그것이 임의 판정' 이라고 적었다. **틀렸다** —
+    `main()` 이 정의된 진입점이고(docstring: `exit 0 = 전 항목 기대대로`)
+    `tempfile` 밖으로는 아무것도 쓰지 않는다. **읽지 않고 조심한 것이다.**
+    """
+    import contextlib
+    import io
+    import json as _j
+    import tempfile as _tf
+
+    rows = []
+
+    def case(name, got, want, negative=False):
+        rows.append({"case": name, "got": got, "want": want, "ok": got == want,
+                     "expectation": "must_flag" if negative else "must_not_flag"})
+
+    # 본 fixture — 출력은 삼킨다(스캔 출력에서 소음이 된다). 삼키는 것은 **출력**이지 결과가 아니다
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = main()
+    case("fixture 전 항목이 기대대로다 (exit 0)", rc, 0)
+    case("**계약 대상이 실재한다** — CANON 에 최상위 `verdict` 가 있다",
+         "verdict" in CANON, True)
+
+    # 음성 — **층을 맞춘다.** 처음엔 `discover()` 가 `verdict` 없는 파일을 안 뽑을 거라
+    # 가정했는데 **틀렸다**: `discover` 는 뽑고 **차단은 `gate()` 가 한다**
+    # (이 fixture 의 케이스 C 가 '게이트가 뒤에서 차단' 이라고 이미 적어 두었다).
+    with _tf.TemporaryDirectory() as t:
+        d = Path(t) / "neg"
+        d.mkdir()
+        (d / "RQ_D99_partial.json").write_text(_j.dumps({"note": "verdict 키가 없다"}),
+                                               encoding="utf-8")
+        got = [x for x in d_mlflow.discover(d) if x["rq_id"] == "RQ-D99"]
+        chosen = got[0].get("json") if got else None
+        case("`discover` 는 후보로 뽑는다 — 차단 층이 아니다",
+             bool(chosen), True)
+        case("**뽑힌 것에 `verdict` 가 없다** — 뒤 게이트가 막을 재료가 있다",
+             "verdict" in _j.loads(Path(chosen).read_text(encoding="utf-8")) if chosen else None,
+             False, negative=True)
+
+    ok = all(r["ok"] for r in rows)
+    return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "must_flag": sum(1 for r in rows if r["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for r in rows if r["expectation"] == "must_not_flag"),
+            "failed": [r["case"] for r in rows if not r["ok"]],
+            "fixture_stdout_lines": len(buf.getvalue().splitlines()),
+            "cases": rows}
+
+
 if __name__ == "__main__":
     raise SystemExit(main())
