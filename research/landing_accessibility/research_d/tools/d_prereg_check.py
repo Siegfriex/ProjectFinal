@@ -41,6 +41,43 @@ def _sha(p) -> str:
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
+def _sanctioned_renames() -> dict:
+    """철회 정본이 **대체 라벨을 지정한** 개명만 모은다.
+
+    `NO_SAFE_ROUTE_SITE` 의 SITE 라벨이 철회되면서 그 토큰을 담던 그룹명
+    "SITE-SIDE ROUTE NOT OBSERVED" 도 철회된 함의를 재생산하게 됐다(D-DEF-48).
+    정본이 지정한 대체 라벨 `ROUTE_NOT_REACHED_BY_COLLECTOR` 의 공백형으로만
+    바꿔 인정한다 — **정본에 없는 이름으로 바꾸면 여전히 FAIL 이다.**
+    """
+    try:
+        import d_retractions as _RET
+        import d_v3_report as _R
+    except Exception:
+        return {}
+    out = {}
+    for tok, meta in _RET.parse().items():
+        if not meta.get("retracted") or not meta.get("replacement"):
+            continue
+        new = meta["replacement"].replace("_", " ")
+        # 그 토큰을 담고 있는 현재 그룹명이 대체 라벨과 같을 때만 매핑을 만든다
+        for label, keys, *_ in _R.GROUPS:
+            if tok in keys and label == new:
+                for old_label, old_keys, *_ in _FROZEN_GROUP_KEYS:
+                    if tok in old_keys:
+                        out[old_label] = new
+    return out
+
+
+# 사전등록 시점의 그룹 구성 — **고치지 않는다.** 개명 인정은 위에서 판정한다
+_FROZEN_GROUP_KEYS = [
+    ("USABLE PATH EVIDENCE", ["ENDPOINT_REACHED", "AUTH_GATE"]),
+    ("SITE-SIDE ROUTE NOT OBSERVED", ["NO_SAFE_ROUTE_SITE"]),
+    ("MEASUREMENT / COLLECTOR LIMITED",
+     ["COLLECTOR_ZERO_CANDIDATE", "TIMEOUT",
+      "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT", "FORBIDDEN_ACTION_BOUNDARY"]),
+]
+
+
 def check() -> dict:
     cases = []
 
@@ -61,13 +98,21 @@ def check() -> dict:
         now = {k: sum(v.values()) for k, v in g.items()
                if isinstance(v, dict) and not k.startswith("_")}
         # 키 이름과 값을 **따로** 본다 — 이름이 달라 난 FAIL 을 수치 변경으로 읽지 않는다
-        same_keys = set(now) == set(FROZEN_GROUPS)
+        # [A R163] 철회 정본이 **대체 라벨을 지정한** 개명만 허용한다.
+        # 임의 개명은 여전히 FAIL 이다 — 여기가 "이름이 달라졌으니 예외를 준다" 가
+        # "수치가 달라졌으니 예외를 준다" 로 미끄러지는 자리다.
+        canon = _sanctioned_renames()
+        mapped = {canon.get(k, k): v for k, v in FROZEN_GROUPS.items()}
+        same_keys = set(now) == set(mapped)
         same_vals = sorted(now.values()) == sorted(FROZEN_GROUPS.values())
-        case("census 3집단 수치 불변", same_keys and now == FROZEN_GROUPS,
+        renamed = {k: canon[k] for k in FROZEN_GROUPS if k in canon and canon[k] in now}
+        case("census 3집단 수치 불변", same_keys and now == mapped,
              {"frozen": FROZEN_GROUPS, "now": now,
-              "keys_match": same_keys, "values_match": same_vals,
+              "sanctioned_renames": renamed,
+              "keys_match_after_rename": same_keys, "values_match": same_vals,
               "note": ("값은 같고 키만 다르면 그것은 수치 변경이 아니라 **선언 오류**다"
-                       if same_vals and not same_keys else "")})
+                       if same_vals and not same_keys else ""),
+              "규칙": "정본이 지정한 대체 라벨로의 개명만 인정한다. 사전등록 원문은 고치지 않는다"})
         case("3집단 합 = 분모 50 · unmapped 0",
              sum(now.values()) == FROZEN_DENOM and not g["_unmapped"],
              {"sum": sum(now.values()), "unmapped": g["_unmapped"]})
@@ -140,6 +185,28 @@ def controls() -> dict:
                      "verdict": v, "ok": (v == "FAIL") is should_fail})
 
     run("현 상태는 통과", lambda: None, lambda: None, should_fail=False)
+
+    # [A R163] **개명 인정이 미끄러지지 않는지** 본다. 정본이 지정한 대체 라벨로만
+    # 인정해야 하고, 임의 개명과 수치 변경은 여전히 막혀야 한다.
+    import d_v3_report as _R
+    _orig_groups_def = list(_R.GROUPS)
+
+    def m_rename_arbitrary():
+        _R.GROUPS[1] = ("SOMETHING ELSE ENTIRELY", ["NO_SAFE_ROUTE_SITE"], "#1b9e77")
+
+    def r_rename():
+        _R.GROUPS[:] = _orig_groups_def
+
+    run("정본에 없는 임의 개명은 막힘", m_rename_arbitrary, r_rename)
+
+    def m_value():
+        globals()["FROZEN_GROUPS"] = dict(orig_groups,
+                                          **{"SITE-SIDE ROUTE NOT OBSERVED": 15})
+
+    def r_value():
+        globals()["FROZEN_GROUPS"] = dict(orig_groups)
+
+    run("개명이 인정돼도 **수치가 다르면** 막힘", m_value, r_value)
 
     def m1():
         globals()["FROZEN_MART_SHA"] = "0" * 64
