@@ -220,6 +220,8 @@ try:
     print(f"   출처 분해 재계산 : {_pv['verdict']} · D {_pv['n_observed_D']} vs 사이드카 "
           f"{_pv['n_observed_sidecar']} · **E 덮음 8건 분해 일치 {_pv['overwritten_agrees']}** "
           f"· 차이 {[x['target_id'] + '=' + str(x['entry_control_type']) for x in _pv['excluded_by_D']]}")
+    print(f"     사이드카 안에서 : 구조화 per_column **{_pv['n_observed_sidecar']}** vs "
+          f"산문 블록 **{_pv['sidecar_prose_block']}** — **한 산출의 두 수치가 어긋난다**")
     from d_label_provenance import by_run as _lpr_fn
     _lpr = _lpr_fn()
     _vl = {k.replace("E-REAL-CENSUS-1230", "R1").replace("R1-", ""): v.get("n_with_visible_label")

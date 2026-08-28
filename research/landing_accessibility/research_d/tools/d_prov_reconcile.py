@@ -35,6 +35,31 @@ def _rows(path: Path | None = None) -> list:
     return list(csv.DictReader(p.open(encoding="utf-8")))
 
 
+SIDECAR = REPO / "artifacts/v3_census/mart/CANONICAL_MART_50.sha256.json"
+
+
+def sidecar_observed(column: str) -> dict:
+    """[D-DEF-110] 사이드카의 **구조화된** `per_column` 에서 읽는다.
+
+    처음엔 `SIDECAR_*` 상수로 **옮겨 적었고** 그 이유를 '사이드카가 산문 안에 수를
+    적어서 파싱하면 해석층이 생긴다' 고 했다. **그 이유가 무효가 됐다** —
+    `missing_value_vocabulary.per_column` 이라는 **구조화된 블록**이 생겼다.
+    원문에서 읽는다(A R62: 옮겨 적은 값은 썩는다).
+    """
+    try:
+        doc = json.loads(SIDECAR.read_text(encoding="utf-8"))
+        pc = (doc.get("missing_value_vocabulary") or {}).get("per_column") or {}
+    except Exception as e:                          # noqa: BLE001
+        return {"verdict": "UNREADABLE", "error": str(e)}
+    col = pc.get(column)
+    if not col:
+        return {"verdict": "NO_COLUMN", "column": column}
+    return {"verdict": "OK", "column": column,
+            "n_observed": col.get("n_observed"), "n_missing": col.get("n_missing"),
+            "missing_tokens": col.get("missing_tokens"),
+            "출처": "사이드카 `missing_value_vocabulary.per_column` — **옮겨 적지 않았다**"}
+
+
 def recompute(path: Path | None = None) -> dict:
     import d_coverage as CV
     rows = _rows(path)
@@ -64,7 +89,15 @@ def recompute(path: Path | None = None) -> dict:
                              "entry_control_type": r.get("entry_control_type"),
                              "provenance": cls})
     agree_ovw = overwritten == SIDECAR_OVERWRITTEN
-    n_d, n_s = len(obs), sum(SIDECAR_DERIVATION.values())
+    # **원문에서 읽은 값**이 있으면 그것을 쓴다. 상수는 산문 블록의 옛 값이다.
+    live_sc = sidecar_observed("entry_control_type")
+    n_s_live = live_sc.get("n_observed") if live_sc.get("verdict") == "OK" else None
+    n_d, n_s = len(obs), (n_s_live if n_s_live is not None
+                          else sum(SIDECAR_DERIVATION.values()))
+    # **차이만큼만 이름을 짚는다.** 총수가 같아지면 짚을 행도 없다 —
+    # 옛 상수 기준으로 뽑은 목록을 그대로 두면 `AGREE` 인데 차이 행이 남는다.
+    gap = max(0, n_s - n_d)
+    excluded = excluded[:gap]
     return {"verdict": "AGREE" if (n_d == n_s and agree_ovw) else "DISAGREE",
             "n_observed_D": n_d, "n_observed_sidecar": n_s,
             "derivation_D": dict(deriv), "derivation_sidecar": SIDECAR_DERIVATION,
@@ -72,6 +105,14 @@ def recompute(path: Path | None = None) -> dict:
             "overwritten_D": overwritten, "overwritten_sidecar": SIDECAR_OVERWRITTEN,
             "overwritten_agrees": agree_ovw,
             "excluded_by_D": excluded,
+            "sidecar_per_column": live_sc,
+            "sidecar_prose_block": sum(SIDECAR_DERIVATION.values()),
+            "**사이드카 안에서 두 수가 다르다**": (
+                "구조화된 `per_column.entry_control_type.n_observed` 는 "
+                f"**{n_s_live}** 인데, 같은 파일의 산문 블록 '두 분해가 다른 이유' 는 "
+                f"여전히 **{sum(SIDECAR_DERIVATION.values())}** 이라고 적는다 — "
+                "**한 산출 안의 두 수치가 어긋난다**. D 는 사실만 낸다"),
+            "nav_축도_본다": sidecar_observed("nav_container_type"),
             "**차이는 정의 불일치다**": (
                 "총수 차이는 **D 화이트리스트가 상태 토큰을 관측으로 세지 않는 것**에서 온다. "
                 "D 는 옳다고 주장하지 않는다 — **어느 정의를 쓸지는 A 소관**이고 "
