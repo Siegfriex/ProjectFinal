@@ -252,6 +252,31 @@ def schema_errors(t: dict) -> list:
     return out
 
 
+_ASK_A = __import__("re").compile(r"(A_에게|A_결정|A_소관|A_판정)")
+
+
+def decision_field_errors(t: dict) -> list:
+    """[D-DEF-66] **결정을 요청하면서 `decision_required` 를 비워두지 않는다.**
+
+    D 는 `A_결정_요청`·`A_에게` 같은 **필드 이름**으로 A 의 결정을 물어왔다 —
+    18건. 전부 `cc=[A]` 라 A 가 수신자이긴 했고 실제로 답을 받은 것도 있다
+    (R167). 그러나 스키마에 `decision_required` 가 있는데 비워뒀고, 그래서
+    **기계가 읽는 결정 대기 목록에 안 잡힌다.** D 자신의 `d_pending_response`
+    도 그 18건을 결정 대기로 세지 않는다.
+
+    B 가 `T-B-V3-DR-003` 에서 더 나쁜 형태를 보고했다 — "A 결정 사항" 이라
+    적은 11건이 **D·C 앞 ACK 본문**에 있어 A 에게 간 적이 없었다. D 는 cc 로는
+    갔지만 **읽을 수 있는 형태가 아니었다**는 점에서 같은 계열이다.
+    """
+    if t.get("decision_required"):
+        return []
+    keys = [k for k in t if _ASK_A.search(str(k))]
+    if not keys:
+        return []
+    return [f"A 의 결정을 묻는 필드({keys})가 있는데 `decision_required` 가 비었다 — "
+            f"기계가 읽는 결정 대기에 잡히지 않는다 [D-DEF-66]"]
+
+
 def retraction_errors(t: dict) -> list:
     """[A R163 / D-DEF-48] 철회된 라벨을 **표시 없이** 인용하고 나가지 않는다.
 
@@ -302,6 +327,7 @@ def emit(t: dict, *, dry_run: bool = False) -> dict:
     errs = check(t)
     errs = list(errs) + schema_errors(t)     # [D-DEF-47] 정본 스키마도 본다
     errs += retraction_errors(t)             # [D-DEF-48] 철회 라벨도 본다
+    errs += decision_field_errors(t)         # [D-DEF-66] 결정 요청은 필드로 낸다
     if errs:
         return {"emitted": False, "errors": errs}
     if dry_run:
