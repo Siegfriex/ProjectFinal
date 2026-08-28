@@ -32,6 +32,7 @@ D_REMOTE = f"origin/{D_BRANCH}"
 
 BUS = Path("/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2")
 _HEX40 = re.compile(r"[0-9a-f]{40}")
+_BARE_INDEP = re.compile(r"독립\s*(?:재계산|확인|검증|열거|적으로|도달)")
 # 측정을 담고 있음을 드러내는 키 이름. 보수적으로 넓게 잡는다 —
 # 측정이 아닌데 시각을 요구하는 쪽이, 측정인데 시각 없이 나가는 쪽보다 싸다.
 _MEASURE_KEYS = ("measurement", "실측", "measured", "재계산", "recount", "관측된_순서", "the_measurement")
@@ -109,6 +110,20 @@ def check(t: dict) -> list[str]:
         if not any((b / rel).exists() for b in _BASES):
             errs.append(f"인용 경로가 실재하지 않는다: {path} = {rel}")
 
+    # R45 — '독립' 을 단독으로 쓰지 않는다. 세 뜻이 섞여 있었다:
+    #   시점독립(읽기 전에 쟀다) · 방법독립(다른 도구·경로) · 주체독립(다른 평면)
+    # Δ40 이 '양성대조' 에 내린 판정과 같다 — 한 단어가 두 뜻을 가지면 버린다.
+    for path, val in _walk(t):
+        if not isinstance(val, str):
+            continue
+        for m in _BARE_INDEP.finditer(val):
+            around = val[max(0, m.start() - 40):m.end() + 40]
+            if any(q in around for q in ("시점독립", "방법독립", "주체독립",
+                                         "시점 독립", "방법 독립", "주체 독립")):
+                continue
+            errs.append(f"'독립' 을 한정 없이 썼다 (R45): {path} … {m.group(0)}")
+            break
+
     # 본문 어디의 40자 hex 든 실재 커밋이어야 한다 (B 의 b_ticket_precheck 에서 채택).
     # base_sha 만 보면 본문에 적은 증거 sha 의 조작·오타는 통과한다. B 가 실제로
     # 축약 sha 에 0 을 채운 값을 발행했다(T-B-V3-FINDING-007-SHANOTE).
@@ -158,7 +173,8 @@ def self_test() -> dict:
            "claim_kind": "OBSERVATION",
            "base_sha": "0" * 40,              # 실재하지 않는 커밋
            "measurement": {"n": 1},           # 측정인데 measured_at_kst 없음 (R26)
-           "evidence": ["results/__NO_SUCH_FILE__.json"]}  # 없는 경로
+           "evidence": ["results/__NO_SUCH_FILE__.json"],  # 없는 경로
+           "note": "C 가 독립 확인했다"}                      # R45 위반 (한정 없는 '독립')
     # limitation 도 없다 → 최소 5종이 걸려야 한다
     # 원격 도달 불가 fixture — 실재하는 커밋이되 D 브랜치 조상이 아닌 것.
     # `origin/main` 을 쓴다(존재하지만 D 브랜치에 병합되지 않았다).
@@ -187,7 +203,8 @@ def self_test() -> dict:
               "to=[C] 라우팅": any("to=[C]" in e for e in b),
               "limitation 필수": any("limitation" in e for e in b),
               "R26 measured_at": any("measured_at_kst" in e for e in b),
-              "인용 경로 실재": any("인용 경로가" in e for e in b)}
+              "인용 경로 실재": any("인용 경로가" in e for e in b),
+              "R45 한정 없는 독립": any("R45" in e for e in b)}
     ok = not g and all(v is True for v in expect.values())
     return {"verdict": "PASS" if ok else "FAIL",
             "good_fixture_errors": g,
