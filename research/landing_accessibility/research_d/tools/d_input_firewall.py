@@ -539,10 +539,28 @@ def controls() -> dict:
     if not out.exists():
         return {"verdict": "NO_RESULT", "n": 0, "cases": [],
                 "note": "스캔 산출이 없다 — `d_input_firewall.py` 를 먼저 실행한다"}
-    c = (_j.loads(out.read_text(encoding="utf-8")) or {}).get("controls") or {}
+    doc = _j.loads(out.read_text(encoding="utf-8")) or {}
+    c = doc.get("controls") or {}
     cs = c.get("cases") or []
+    # **신선도는 시각이 아니라 대상이다.** 이 도구는 이미
+    # `freshness_corpus_sha256`("다시 재도 같은가", R38)를 남긴다 — 지금 값과
+    # 대조하면 그 대조군 결과가 **지금 코퍼스에 대한 것인지** 알 수 있다.
+    try:
+        cur = freshness_sha()
+    except Exception as e:
+        cur, stale = None, None
+        fresh_note = f"신선도 재계산 실패: {type(e).__name__}"
+    else:
+        stale = (cur != doc.get("freshness_corpus_sha256"))
+        fresh_note = ("코퍼스가 스캔 이후 바뀌었다 — 이 대조군 결과는 **옛 코퍼스**의 것이다"
+                      if stale else "스캔 이후 코퍼스가 그대로다")
     return {"verdict": c.get("verdict"), "n": len(cs),
             "must_flag": sum(1 for x in cs if x.get("expectation") == "must_flag"),
             "must_not_flag": sum(1 for x in cs if x.get("expectation") == "must_not_flag"),
             "cases": cs, "source": str(out),
+            "freshness": {"stale": stale,
+                          "recorded": doc.get("freshness_corpus_sha256", "")[:16],
+                          "now": (cur or "")[:16] if cur else None,
+                          "checked_at_kst": doc.get("checked_at_kst"),
+                          "note": fresh_note},
             "note": "**최근 스캔 산출을 읽는다** — 재실행하지 않는다"}
