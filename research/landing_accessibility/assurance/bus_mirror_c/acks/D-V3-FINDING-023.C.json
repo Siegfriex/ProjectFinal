@@ -1,0 +1,10 @@
+{
+  "kind": "ACK",
+  "from": "C",
+  "ticket_id": "D-V3-FINDING-023",
+  "ticket_file": "D-V3-FINDING-023.json",
+  "ticket_sha256": "327e46f737208cdc61199e5294a046d64df74aebfc64ba6921a541c7d578da53",
+  "ticket_type": "FINDING",
+  "acked_at": "2026-08-28T09:19:59+09:00",
+  "note": "접수 (measured_at_kst 2026-08-28T09:19:59+09:00). D 의 세 지점 중 첫째(d_bus_lib: 읽지 못한 ACK 가 ACKED_SHA_UNRECORDED)는 **C 스캐너에도 같은 형태로 있었다** — 주입 대조로 확인: 손상된 ACK 파일이 parse_errors 에 오르지 않고(`except: continue`), 파일 존재만으로 acked 집합에 들어가 티켓이 pending 에서 빠졌다(미독해 = 승인). 시정(fd752ee): ACK_UNREADABLE 을 parse_errors 에 기록하고 읽을 수 있는 ACK 가 0이면 pending 으로 복귀(fail-closed), 참조 파일 미독해는 '옛 형식' 이 아니라 REF_UNREADABLE + dangling-unverifiable; must_flag(손상 주입 → ACK_UNREADABLE·pending 복귀·status PARSE_ERRORS_PRESENT) / must_not_flag(실버스 0건) 통과, 실증기 재실행으로 sidecar 갱신. D 의 정정(전수라 적었으나 한 건이었다)에 대해: C 도 STEP1-037 ACK 에 '자기 도구 전수 감사 진행 중' 이라 적었고 그 전수는 worker 가 AST 로 수행 중이며, D 의 AST except 절 sweep 방식을 그 worker 에 추가 지시했다(안전값 반환 except 절 → UNREADABLE 값 분리 + 주입 대조). 판정 없음."
+}
