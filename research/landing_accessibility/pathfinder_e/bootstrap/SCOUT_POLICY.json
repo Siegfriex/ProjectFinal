@@ -1,0 +1,168 @@
+{
+  "policy_kind": "E_SCOUT_POLICY_REFERENCE",
+  "authority_status": "REFERENCE_ONLY — 전부 A 티켓에서 축자 인용, E 가 만든 규칙 아님",
+  "canonical": false,
+  "note": "이 문서는 실제 REAL scout 구현 시점에 재대조해야 한다 — 특히 traversal_policy.status 가 여러 티켓(T-A-V3-STEP1-027→030→FC-006 등)에 걸쳐 수정된 이력이 있어 마지막 상태만 신뢰하지 말고 그 사이 최신 A 티켓을 다시 확인할 것.",
+  "traversal_policy": {
+    "source": "T-A-V3-STEP1-027 (Δ6-d, MIN-1..MIN-7 승계+조정), 이후 T-A-V3-STEP1-030/D-FINDING-016/T-A-V3-FC-006 에서 폭우선 예외 근거가 재논의됨 — 구현 직전 최신 티켓 재확인 필수",
+    "traversal": "activation 수 폭우선 열거(MIN-2). 길이 n 소진 전 n+1 착수 금지. 탐욕적 하강 금지 — 탐욕적 하강은 최소 경로를 못 찾고도 못 찾았다는 사실 자체를 모른다",
+    "greedy_descent_status": "PENDING_RECONFIRM — v3 러너가 실제로는 탐욕적 하강이라는 B 지적(BLK-015)이 있었고 A 가 STEP1-030에서 'v3 결함 아니라 A 의 승계범위 오류'로 재분류했으나, 그 뒤 FC-006에서 '면제 근거가 사실이 아니었다'며 근거를 교체함. 최종 실무 결론이 B 의 실제 구현에 어떻게 반영됐는지는 B runner COMPLETION 시점에 재확인.",
+    "minimality_scope": "MIN-5 — 최소성은 열거된 부분격자 안에서만 성립. '최소 경로를 찾았다'로 쓰지 않는다",
+    "ied_ned_coupling": "MIN-6 — k(NED)와 m(IED)는 같은 경로에서 읽는다. 따로 최소화하면 음수 IED 발생",
+    "budget_exhaustion": "MIN-7 — 예산 소진은 '최소'가 아니라 '관측 없음'이다. 예산값을 결과로 대입 금지. terminal: endpoint_status=ABSTAIN x terminal_reason=BUDGET_EXCEEDED",
+    "branch_set": "Δ9 분류 사용(아래 activation_depth_classification) — v2.1 MIN-1과 달리 SUBMIT_QUERY가 분기 대상",
+    "tiebreak": {
+      "source": "T-A-V3-STEP1-027 (Δ6-d 2)",
+      "key": [
+        "task_binding_candidate desc",
+        "dom_order asc",
+        "selector asc"
+      ],
+      "why_not_score": "1차 키는 점수가 아니라 집합 소속(binder 가 이 task_id 후보로 지명했는가) — 점수를 키로 쓰면 구현이 바뀔 때 순서가 바뀌어 결정성이 깨진다"
+    },
+    "gate_promotion": {
+      "source": "T-A-V3-STEP1-027 (Δ6-d 3, Δ14 와 정합)",
+      "rule": "family 의 endpoint_contract 가 AUTH_GATE 를 endpoint 로 명시하는가로 판정",
+      "F1": "명시 -> endpoint 도달로 카운트",
+      "F2_F5": "비명시 -> 비-endpoint terminal (evidence-bearing n 에는 포함, endpoint 도달률 분모에서는 제외)"
+    }
+  },
+  "collection_parameters": {
+    "source": "T-A-V3-STEP1-027",
+    "kind": "수집 파라미터(관측을 유한하게 만드는 값) — 해석 임계값 아님",
+    "BRANCHING_LIMIT": {
+      "value": 4,
+      "status": "FROZEN",
+      "note": "v2.1 값 승계"
+    },
+    "MAX_ACTIVATIONS_PER_TASK": {
+      "value": null,
+      "status": "PENDING_A_FREEZE"
+    },
+    "MAX_SCOUT_WALL_CLOCK_S": {
+      "value": null,
+      "status": "PENDING_A_FREEZE"
+    },
+    "MAX_STATE_REVISITS": {
+      "value": null,
+      "status": "PENDING_A_FREEZE"
+    },
+    "MAX_CONSECUTIVE_NO_STATE_CHANGE": {
+      "value": null,
+      "status": "PENDING_A_FREEZE"
+    },
+    "pending_note": "B 가 실측 근거와 함께 제안하고 A 가 동결하는 절차 — 값을 임의로 채우지 않는다. REAL scout 착수 전 반드시 최신 상태 재확인."
+  },
+  "activation_depth_classification": {
+    "source": "T-A-V3-STEP1-006 (Δ9), 18종 canonical action token",
+    "general_criterion": {
+      "rule": "activation_depth 는 사용자가 control 을 의도적으로 활성화해 상태 전이를 일으킨 토큰 수",
+      "tests": [
+        "① 사용자의 의도적 조작인가(수동 로드/리다이렉트/대기 아님)",
+        "② control 활성화인가(스크롤/타이핑 아님)",
+        "③ 상태가 전이되는가(단순 표시 변화 아님)"
+      ]
+    },
+    "IN": [
+      "OPEN_GLOBAL_MENU",
+      "OPEN_LOCAL_MENU",
+      "SWITCH_TAB",
+      "EXPAND_ACCORDION",
+      "SELECT_CATEGORY",
+      "SELECT_FUNCTION",
+      "SUBMIT_QUERY",
+      "SELECT_RESULT",
+      "OPEN_ITEM_DETAIL",
+      "OPEN_PLACE_DETAIL"
+    ],
+    "OUT": {
+      "INPUT_QUERY": "타이핑 — flow_step_count 에는 포함",
+      "DISMISS_OBSTRUCTION": "forced_dismissal_count 로 별도 집계",
+      "AUTH_GATE": "활성화가 아니라 마주친 상태(기준 ①). flow_step_count 에는 auth encounter 로 포함",
+      "ENDPOINT_REACHED": "종결 표지, 행위 아님",
+      "ABSTAIN": "행위 아님, 판정 유보"
+    },
+    "CONDITIONAL": {
+      "tokens": [
+        "SELECT_ORIGIN",
+        "SELECT_DESTINATION",
+        "SELECT_DATE"
+      ],
+      "rule": "입력수단에 따라 갈린다 — picker/dropdown/calendar 로 값이 정해지면 포함, 자유입력 타이핑이면 제외(flow_step_count 에만).",
+      "how_to_decide": "Δ8-R5 의 fixture_input_mode 로 판정(DROPDOWN/MAP_PAN=포함, FREE_TEXT=제외, MIXED=실제 사용 수단 기준)",
+      "record_field": "depth_conditional_tokens — 어느 토큰이 어떤 근거로 포함/제외됐는지 기록"
+    },
+    "OPEN_RIGHT_DRAWER_note": "존재하지 않는 토큰이다(T-B-FC-013, T-A-V3-STEP1-006 확인). 오른쪽 drawer 는 OPEN_GLOBAL_MENU/OPEN_LOCAL_MENU + nav_container_type=RIGHT_DRAWER + reveal_direction=RIGHT 로 표현 — 방향은 토큰이 아니라 별도 변수."
+  },
+  "fixture_input_mode": {
+    "source": "T-A-V3-STEP1-003 (Δ8-R5)",
+    "applies_to": [
+      "F2",
+      "F3",
+      "F4",
+      "F5"
+    ],
+    "values": [
+      "FREE_TEXT",
+      "DROPDOWN",
+      "MIXED",
+      "MAP_PAN",
+      "OTHER"
+    ],
+    "rule": [
+      "자유입력 제공 시: fixture 문자열 그대로 입력",
+      "드롭다운/선택지 제공 시: 해당 값 선택. 정확히 같은 항목 없으면 가장 상위 포함관계 항목 선택 + 그 사실 기록",
+      "둘 다 있으면: task path 상 서비스가 먼저 제시하는 수단 사용(수집자가 고르지 않음)",
+      "지도 pan/zoom 으로만 지정 가능하면 그것도 유효한 수단(MAP_PAN)"
+    ]
+  },
+  "entry_zone_thresholds": {
+    "source": "T-A-V3-STEP1-003 (Δ8-R7), 경계 오류는 T-A-V3-FC-001/002(원래 F-002)로 정정",
+    "coordinate_basis": "control bbox 중심을 viewport(390x844 CSS px)로 정규화. 그 state 의 viewport 기준(scroll 상태 무관)",
+    "y_bands": {
+      "TOP": "[0, 1/3)",
+      "MID": "[1/3, 2/3)",
+      "BOTTOM": "[2/3, 1]",
+      "boundary_rule": "[a,b) — y=1/3 -> MID, y=2/3 -> BOTTOM"
+    },
+    "x_within_TOP": {
+      "TOP_LEFT": "[0, 1/3)",
+      "TOP_CENTER": "[1/3, 2/3)",
+      "TOP_RIGHT": "[2/3, 1]",
+      "boundary_rule": "x=1/3 -> TOP_CENTER, x=2/3 -> TOP_RIGHT"
+    },
+    "MID_BOTTOM": "x 삼등분 미적용 — MID/BOTTOM 그대로(04 codebook 값 목록에 MID_LEFT 류 없음)",
+    "structural_overrides": {
+      "precedence": "FLOATING/DRAWER 가 기하보다 우선. 둘 다 해당하면 DRAWER 우선(reveal 필요가 더 큰 구조적 부담)",
+      "FLOATING": "computed position 이 fixed/sticky 이고 일반 흐름 이탈, viewport 고정",
+      "DRAWER": "control 이 reveal 필요한 nav_container 안(menu_dependency=1 을 만든 그 container)",
+      "record_anyway": "override 적용돼도 entry_x_norm/entry_y_norm 원자료는 그대로 저장"
+    },
+    "later_changes_rule": "임계값을 나중에 바꾸는 것은 재수집이 아니라 재도출 — 단 선언된 민감도로만 허용, 원 임계값 결과와 병기 필수"
+  },
+  "hard_stop_vocabulary": {
+    "source": "T-A-V3-STEP1-004 (R9), canonical 8종 — supersedes T-A-V3-P0-001 의 6종",
+    "values": [
+      "wrong_scope",
+      "target_outside_manifest",
+      "forbidden_action",
+      "evidence_overwrite",
+      "duplicate_launch",
+      "task_contract_drift (endpoint drift 포함)",
+      "task_or_outcome_leakage",
+      "denominator_corruption"
+    ],
+    "site_level_not_systemic": {
+      "source": "T-A-V3-STEP1-004 (R8)",
+      "rule": "개수 임계값 없음 — 원인이 우리 쪽(계측기)에 있는가만 본다",
+      "procedure": [
+        "① 실패 양식을 fixture/대조군에서 재현 시도",
+        "② 재현되면 -> systemic, 즉시 HOLD",
+        "③ 재현 안 되고 사이트마다 양상 다르면 -> site-level, terminal/missing 사유로 보존하고 계속",
+        "④ 재현 시도 자체 불가면 재현불가로 기록, 그 target 은 ABSTAIN"
+      ],
+      "who_judges": "C 다. E 는 자기 실패를 site-level 로 자가분류하지 않는다"
+    }
+  },
+  "safety_note_recurring_theme": "이 정책을 실제로 구현·적용하는 시점에는, 이 프로젝트에서 반복 확인된 '빈 결과와 통과가 같은 출력' 함정(T-B-V3-BLK-014/T-A-V3-STEP1-028)을 scout_status 판정에도 적용한다 — 후보 전건 실패를 정상 종료로 읽지 않는다. 계약 위반(forbidden action 시도 등)은 관측이 아니라 즉시 SAFETY_STOP."
+}
