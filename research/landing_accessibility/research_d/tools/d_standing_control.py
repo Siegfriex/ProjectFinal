@@ -152,10 +152,21 @@ def check_index_delta(prev: dict | None) -> dict:
     # 방화벽 밖이다. **같은 신호를 허용된 두 파일만으로 만든다** — 색인이
     # 스스로 선언한 `source_sha256` 과 실제 delta 바이트를 비교한다.
     # 불일치면 그 색인의 수치를 인용하지 않는다.
+    # [A STEP1-037] 예전에는 파싱 실패를 `doc = {}` 로 삼켜 **읽지 못한 색인이
+    # `NO_FIELD`(그 필드가 없다)로 보고**됐다. 부재와 미독해는 다른 사건이다.
+    doc, doc_err = None, None
     try:
         doc = json.loads(idx_p.read_text(encoding="utf-8"))
-    except Exception:                                    # noqa: BLE001
-        doc = {}
+    except Exception as e:                               # noqa: BLE001
+        doc_err = f"{type(e).__name__}: {e}"
+    if doc is None:
+        now["input_identity"] = {
+            "verdict": "UNVERIFIED_INDEX_UNREADABLE", "error": doc_err,
+            "consequence": "색인을 읽지 못했다. **통과로도 실패로도 읽지 마라**",
+        }
+        now["delta_sections_crosscheck"] = {"comparable": False, "why": "색인 미독해"}
+        now["note"] = "색인 미독해 — 위 비교는 수행되지 않았다"
+        return now
     declared = doc.get("source_sha256")
     now["input_identity"] = {
         "declared_source_sha256": declared,

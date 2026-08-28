@@ -58,12 +58,22 @@ def scan(bus_dir: str | Path, plane: str = "D") -> dict:
         if not ack_p.exists():
             ack_state = "UNACKED"
         else:
+            # [A STEP1-037] 예전에는 파싱 실패를 `a = {}` 로 삼켜서 **읽지 못한
+            # ACK 가 `ACKED_SHA_UNRECORDED`(구식 ACK — 알려진 양성 상태)로
+            # 보고**됐다. 미독해와 부재는 다른 사건이다.
+            a = None
             try:
                 a = json.loads(ack_p.read_text(encoding="utf-8"))
             except Exception:
-                a = {}
-            rec = a.get("ticket_sha256")
-            if rec is None:
+                pass
+            if a is None:
+                ack_state = "ACK_UNREADABLE"             # 통과로 읽지 마라
+                rec = None
+            else:
+                rec = a.get("ticket_sha256")
+            if a is None:
+                pass
+            elif rec is None:
                 ack_state = "ACKED_SHA_UNRECORDED"       # 옛 ACK — 대조 불가
             elif rec == cur_sha:
                 ack_state = "ACKED"
@@ -75,6 +85,7 @@ def scan(bus_dir: str | Path, plane: str = "D") -> dict:
             "type": d.get("type", "-"),
             "from": d.get("from", "-"),
             "chan": "to" if plane in to else "cc",
+            # `ACK_UNREADABLE` 은 acked 가 아니다 — 읽지 못한 것을 처리됨으로 세지 않는다
             "acked": ack_state in ("ACKED", "ACKED_SHA_UNRECORDED"),
             "ack_state": ack_state,
             "ticket_sha256": cur_sha,

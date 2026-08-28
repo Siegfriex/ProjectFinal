@@ -286,10 +286,14 @@ def sync() -> int:
             continue
         metrics = {}
         if js and js.exists():
+            # [A STEP1-037] 빈 metrics 로 삼키면 **지표 0개 run 이 영구히 남는다**
+            # — D-DEF-07 의 형태다. 게이트가 이미 파싱을 요구했으므로 여기 도달하면
+            # 게이트 이후 파일이 바뀐 것이고, 색인하지 않는다.
             try:
                 metrics = flatten_numeric(json.loads(js.read_text(encoding="utf-8")))
-            except Exception:
-                metrics = {}
+            except Exception as _e:                      # noqa: BLE001
+                skipped.append(f"{rq}(게이트 이후 JSON 파싱 실패: {type(_e).__name__})")
+                continue
         nb_name = NOTEBOOK_MAP.get(rq)
         nb = (NB_DIR / nb_name) if nb_name and (NB_DIR / nb_name).exists() else None
         with mlflow.start_run(run_name=f"{rq}") as run:
