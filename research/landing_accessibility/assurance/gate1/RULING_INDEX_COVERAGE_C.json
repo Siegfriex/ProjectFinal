@@ -1453,8 +1453,8 @@
    "verified_by": "C",
    "requires": "**실패 시 동작의 실증은 도구 sha 에 묶는다.** 별도 실증기가 **격리 사본**에서 변형 실행하고 sidecar 에 **그때의 도구 sha256** 을 남기며, 산출은 그 sha 가 현재 도구와 같을 때만 `valid_for_this_commit: true`. 측정 대상은 **exit 이 아니라 산출 파일의 sha 변화** — **exit 은 파일에 남지 않는다**",
    "must_appear_in": "대조를 완료조건으로 거는 모든 도구",
-   "C_check": "c_bus_scan·r32_inventory: control_failure_demo_c.py 격리 사본 변형 7 사례 + sidecar 도구 sha 결속 + valid_for_this_commit (fc12bc6, 결속 must_flag/must_not_flag 4/4); run_gate1 sidecar 는 worker 진행 중 → 완료 시 COVERED",
-   "coverage": "PARTIAL",
+   "C_check": "스캐너·r32·run_gate1 세 도구 모두 control_failure_demo_c.py 격리 사본 변형 10 사례 + sidecar 도구 sha 결속 + valid_for_this_commit(결속 4 단계 must_flag/must_not_flag)",
+   "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 36
   },
@@ -1644,9 +1644,119 @@
    "coverage": "PARTIAL",
    "gap_note": null,
    "added_at_index_version": 38
+  },
+  {
+   "id": "Δ49-R45",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "**'독립' 을 단독으로 쓰지 않는다.** 이 프로젝트에서 최소 세 뜻으로 쓰였다 — **시점독립**(읽기 전에 쟀다) · **방법독립**(다른 도구·다른 경로) · **주체독립**(다른 평면, 순서 무관). Δ40 의 '양성대조' 판정과 같다: **한 단어가 두 뜻을 가지면 이름을 고르지 말고 버린다**",
+   "must_appear_in": "모든 평면의 확인 서술",
+   "C_check": "C ACK/verdict 어휘: '독립' 단독 금지 — 시점독립/방법독립/주체독립 중 하나로 표기(RUNBOOK 상시 규칙)",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 40
+  },
+  {
+   "id": "Δ49-R46",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**informed 확인은 무가치하지 않다 — 쓸 수 있는 곳이 다르다.** 주체독립+방법독립(시점 informed)은 **진술된 주장의 검증**(인용 바이트가 그렇게 말하는가)에 유효하고, **완전성 주장과 '수렴/두 평면이 독립적으로 같은 결론' 서술에는 무효**다. 같은 도구 재실행의 일치는 **거의 아무 용도가 없다**",
+   "must_appear_in": "확인 결과의 용도 표기",
+   "C_check": "C 의 사후 '재현' 은 방법독립(시점 informed)로 표기 내림; 완전성·수렴 서술에는 쓰지 않음",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 40
+  },
+  {
+   "id": "Δ49-R47",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**일치는 방법이 달랐을 때만 증거다.** 일치를 근거로 쓰려면 **방법이 달랐음을 함께 적어야** 하고, 적을 수 없으면 그 일치는 근거가 아니다. 검증 설계는 **일치를 모으는 쪽이 아니라 불일치가 나올 수 있는 쪽**으로 만든다",
+   "must_appear_in": "평면 간 확인 설계",
+   "C_check": "일치를 근거로 쓸 때 방법이 달랐음을 함께 적는다 — C 는 (도구·매칭·경계) 차이를 ACK 에 명시",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 40
+  },
+  {
+   "id": "Δ49-retro",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "소급은 **되돌리지 않는다**. ① 각 평면이 자기 산출의 **완전성 주장·'수렴/독립' 서술**에서 사후 일치에 기댄 것을 찾아 **표기를 내린다(재실행 아님)** ② **완전성 주장만** Δ42 순서를 지켜 **새로** 만든다(R32 목록·R34(b)·R43 sweep) ③ **방어할 수 없는 수는 내지 않는다**",
+   "must_appear_in": "각 평면의 소급 표기 · GATE1",
+   "C_check": "C 자기산출 소급: 완전성 주장(R32 목록·R34(b)·R43 sweep)은 COMPLETION 접수 시 Δ42 순서로 새로 만든다",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 40
+  },
+  {
+   "id": "Δ49-A-selfaudit",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**A 자기감사 결과**: delta 의 '독립' 9건 중 주장 5건, 그중 **2건(§839 MIN-1 · §1676 03 §5)이 informed 를 '독립' 으로 적은 것**. 둘 다 용도는 유효(방법독립·바이트 검증)하므로 **표기만 `방법독립 확인(시점 informed)` 으로 내리고 원문은 고쳐 쓰지 않는다**",
+   "must_appear_in": "delta Δ49",
+   "C_check": "C 자기산출 소급: 완전성 주장(R32 목록·R34(b)·R43 sweep)은 COMPLETION 접수 시 Δ42 순서로 새로 만든다",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 40
+  },
+  {
+   "id": "Δ49-half",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "**자기에게 거는 규칙은 자기가 주체인 절반에만 걸린다.** A·B·D 셋 다 Δ42 를 '내가 무엇을 공개하는가' 로 읽고 '나에 대한 확인이 언제 이뤄졌는가' 로는 읽지 않았다. Δ45-R39 의 변주",
+   "must_appear_in": "각 평면의 자기적용 점검",
+   "C_check": "C 자기산출 소급: 완전성 주장(R32 목록·R34(b)·R43 sweep)은 COMPLETION 접수 시 Δ42 순서로 새로 만든다",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 40
+  },
+  {
+   "id": "Δ50-R48",
+   "due": "PILOT5",
+   "verified_by": "C",
+   "requires": "**다층 방어는 입력이 다를 때만 층이다.** 두 층이 같은 릴리스 문서를 읽으면 **연언이 방어가 아니라 같은 입력의 두 독법**이다. 다층으로 부르려면 **각 층의 입력이 서로 달라야** 하고, 아니면 **단일 지점**이라고 적는다. `layer_firewall.py` docstring 은 판정 독립에 대해 참이고 **방어 독립에 대해 거짓**이다(R36)",
+   "must_appear_in": "firewall 문서 · 층 수를 세는 모든 서술",
+   "C_check": "Δ49 계열 — STEP1-036 대응",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 40
+  },
+  {
+   "id": "Δ50-pilot5-binding",
+   "due": "PILOT5",
+   "verified_by": "C",
+   "requires": "`V3_PILOT_5` release 는 **두 번째 층이 릴리스 문서가 아닌 입력**(동결 manifest sha 바인딩, `V2_DIAGNOSTIC` 방식)을 읽어야 한다. **must_not_flag**: 릴리스 문서만 고치고 manifest 를 두면 열리지 않음. **must_flag**: 둘 다 맞을 때만 열림. Δ19-R10 에 더해진다",
+   "must_appear_in": "V3_PILOT_5 release 설계",
+   "C_check": "Δ49 계열 — STEP1-036 대응",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 40
+  },
+  {
+   "id": "Δ50-sut",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**GATE 1 의 SUT 는 B 의 COMPLETION SHA 로 확정된다.** 그 전 C 검사 결과에는 **`SUT_미확정` 표기**를 단다 — **미확정 상태의 통과는 확정 상태의 통과가 아니다**. COMPLETION 이 오면 그 SHA 에서 다시 잰다",
+   "must_appear_in": "C GATE1 산출",
+   "C_check": "Δ49 계열 — STEP1-036 대응",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 40
+  },
+  {
+   "id": "Δ50-exit2-common",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "`Δ46-exit2` 는 규약 하나가 아니라 **공통 오해**를 고친 것이다 — A(검사기)·B(r32_check)·C(probe) **세 평면 전부**가 **검사가 못 돈 것을 '안전하게 막혔다' 로** 읽고 있었다. 각 평면은 자기 도구 전수에서 이 표기를 확인한다",
+   "must_appear_in": "각 평면의 도구 exit 규약",
+   "C_check": "Δ49 계열 — STEP1-036 대응",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 40
   }
  ],
- "index_version": 38,
+ "index_version": 40,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1694,5 +1804,6 @@
  "read_from": "origin/control/landing-orchestrator after fetch (R39)",
  "index_sha256_v36": "c751759319ddd3ee86024336bb6d7f5bea8d436dc7d5a3257b0b2acd1a23b3eb",
  "index_sha256_v37": "a5a21f4e8c6bf88ad4c2a38b46b3eafbd3d9c4036af7abffc195a1ddb5083848",
- "index_sha256_v38": "1fb824919a5e1abaa48a29bc629358541f1e15c2fae6201a06972967aeb07ad6"
+ "index_sha256_v38": "1fb824919a5e1abaa48a29bc629358541f1e15c2fae6201a06972967aeb07ad6",
+ "index_sha256_v40": "0a8a5f5a81e1e5a826100e847607c4eda64a8f00b372d4711ab82dd34f4513ac"
 }
