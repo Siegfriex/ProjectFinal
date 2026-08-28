@@ -73,7 +73,8 @@ def main():
 
             dispatch_rec = {
                 "target_id": tid, "family_id": tc["family_id"], "service": tc["service_name"],
-                "worker_id": "E-direct-01", "idempotency_key": f"E_SCOUT::{tid}::{tc['e_working_task_contract_hash']}",
+                "worker_id": "E-direct-01",
+                "idempotency_key": f"E_SCOUT::{tid}::{tc['e_working_task_contract_hash']}::{scout_run_id}",
                 "dispatched_at_kst": now, "scout_run_id": scout_run_id,
             }
             dl.write(json.dumps(dispatch_rec, ensure_ascii=False) + "\n")
