@@ -12,168 +12,234 @@
    "what": "ACK 에 스크립트 출력을 읽기 전에 '0건' 을 적음(실제 2건)",
    "record": "T-A-V3-FC-003.C → .C-1 재ACK",
    "rule": "R17",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/T-A-V3-FC-003.C-1.json"
+   ]
   },
   {
    "id": "C-DEF-02",
    "what": "ACK 에 '결과를 그대로 옮긴다' 고 쓰고 값을 넣지 않음",
    "record": "T-A-V3-STEP1-020.C → .C-1",
    "rule": "R17",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/T-A-V3-STEP1-020.C-1.json"
+   ]
   },
   {
    "id": "C-DEF-03",
    "what": "worker 에게 auth-stage 토큰 집합을 요약으로 오전달(원문은 reveal 제외)",
    "record": "STEP1-011 처리 중, worker 가 티켓 원문 우선",
    "rule": "T1 원문 우선",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [],
+   "record_files_note": "bus 기록 없음 — 메모리/커밋 이력 출처"
   },
   {
    "id": "C-DEF-04",
    "what": "MANIFEST 항목 수를 21/21 로 오기(실제 20+manifest)",
    "record": "P0 pack audit ACK 정정",
    "rule": "계수",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/T-A-V3-P0-001.C.json"
+   ]
   },
   {
    "id": "C-DEF-05",
    "what": "스캐너 dangling 계수 40(재ACK 접미사·mtime 오파싱) → 실제 1",
    "record": "C-FACT_CORRECTION-030523",
    "rule": "R17",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "tickets/C-FACT_CORRECTION-030523.json"
+   ]
   },
   {
    "id": "C-DEF-06",
    "what": "mirror_sync 가 재ACK 파일(.C-n)을 복사하지 않음",
    "record": "mirror_sync glob 수정",
    "rule": "R19",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [],
+   "record_files_note": "bus 기록 없음 — 메모리/커밋 이력 출처"
   },
   {
    "id": "C-DEF-07",
    "what": "cwd 재설정으로 git add 반복 실패",
    "record": "c_commit.sh 절대경로 헬퍼",
    "rule": "절대경로 규율",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [],
+   "record_files_note": "bus 기록 없음 — 메모리/커밋 이력 출처"
   },
   {
    "id": "C-DEF-08",
    "what": "발행 티켓 본문의 백틱 구간이 셸 heredoc 명령 치환으로 빈 문자열이 됨",
    "record": "C-FINDING-074834 self_correction(ACK 0건, sha_before 기록)",
    "rule": "R28 층",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "tickets/C-FINDING-074834.json"
+   ]
   },
   {
    "id": "C-DEF-09",
    "what": "ACK 텍스트 f-string 안 '{}' 리터럴로 SyntaxError → ACK 미발행",
    "record": "STEP1-031/ADDENDUM-004 재발행",
    "rule": "도구",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [],
+   "record_files_note": "bus 기록 없음 — 메모리/커밋 이력 출처"
   },
   {
    "id": "C-DEF-10",
    "what": "스캐너가 origin 을 읽어 v29(낡음)를 v33 시점에 사용 → 로컬 ref 로 '시정' 했다가 A FC-007 로 철회(원인은 A 미push)",
    "record": "D-019.C-1 · FC-007.C",
    "rule": "R39 producer≠reviewer",
-   "status": "fixed(철회 후 fetch-first)"
+   "status": "fixed(철회 후 fetch-first)",
+   "record_files": [
+    "acks/D-V3-FINDING-019.C-1.json",
+    "acks/T-A-V3-FC-007.C.json"
+   ]
   },
   {
    "id": "C-DEF-11",
    "what": "c_hb_measure porcelain 파싱이 경로 첫 글자를 절단해 production_modified=True 오탐",
    "record": "D-021.C",
    "rule": "R38 증거 동봉으로 즉시 발견",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/D-V3-FINDING-021.C.json"
+   ]
   },
   {
    "id": "C-DEF-12",
    "what": "heartbeat 의 production_modified/REAL_TARGET 이 손으로 적은 상수(self-declared)",
    "record": "D-021.C · c_hb_measure.py",
    "rule": "R41",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/D-V3-FINDING-021.C.json"
+   ]
   },
   {
    "id": "C-DEF-13",
    "what": "읽지 못한 ACK 파일을 파일 존재만으로 acked 로 취급(미독해=승인)",
    "record": "D-023.C · c_bus_scan ACK_UNREADABLE",
    "rule": "R32 파싱판",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/D-V3-FINDING-023.C.json"
+   ]
   },
   {
    "id": "C-DEF-14",
    "what": "two_layer_scope_probe 가 모듈 import 실패를 'fail-closed' 로 표기(exit 0)",
    "record": "C-ASSURANCE-090716 what_C_does_not_claim",
    "rule": "Δ46-exit2",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "tickets/C-ASSURANCE-090716.json"
+   ]
   },
   {
    "id": "C-DEF-15",
    "what": "run_gate1 편집을 dry-run/실증기 없이 커밋해 깨진 상태 2회 커밋(rc2→FAIL 매핑, sut_status NameError)",
    "record": "커밋 fd8af96/8acdcee → 시정 f30802b/2575262",
    "rule": "R24 실행 전 커밋 금지",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [],
+   "record_files_note": "bus 기록 없음 — 메모리/커밋 이력 출처"
   },
   {
    "id": "C-DEF-16",
    "what": "lane5 evidence_lineage_check 가 빈 디렉터리에 COMPLETE_WITH_ISOLATED_DEFECTS/exit 0(공허 통과)",
    "record": "FC-005.C → exit 감사 worker 시정(NO_EVIDENCE_INPUT, exit 3)",
    "rule": "R52",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/T-B-V3-FC-005.C.json"
+   ]
   },
   {
    "id": "C-DEF-17",
    "what": "c_commit.sh 가 mirror_sync 실패를 '|| true' 로 삼킴",
    "record": "5033a7b",
    "rule": "R51 ③",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/T-A-V3-FC-009.C.json"
+   ]
   },
   {
    "id": "C-DEF-18",
    "what": "C 미러가 설계상 C 발행분만 복사하고 복사 후 재검증 없음(부분 미러)",
    "record": "FC-009.C · mirror_sync 재작성 3459eaf",
    "rule": "R51",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/T-A-V3-FC-009.C.json"
+   ]
   },
   {
    "id": "C-DEF-19",
    "what": "coverage C_check 에 자동 생성 자리표시 노트 2건 잔존",
    "record": "ef4a582/a2522f8",
    "rule": "R54 (아무도 안 읽는 필드)",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/D-V3-FINDING-025.C.json"
+   ]
   },
   {
    "id": "C-DEF-20",
    "what": "40 개 C 엔트리포인트가 did-not-run 과 failed 를 같은 exit 1 로 냄",
    "record": "EXIT_SEMANTICS_AUDIT_C.json (6e452a2)",
    "rule": "Δ50-exit2-common",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/T-A-V3-STEP1-037.C-1.json"
+   ]
   },
   {
    "id": "C-DEF-21",
    "what": "except 절 6건·benign 기본값 4건이 미독해/부재를 양성값으로 냄",
    "record": "EXIT_SEMANTICS_AUDIT_C sweeps",
    "rule": "R32/R54",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [
+    "acks/T-A-V3-STEP1-037.C-1.json"
+   ]
   },
   {
    "id": "C-DEF-22",
    "what": "scanner 요약이 대조 실패(거부) 상태에서도 수치 0 을 출력(거부가 '무결함' 으로 읽힘)",
    "record": "R40 worker: n/a 출력",
    "rule": "Δ46-declared",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [],
+   "record_files_note": "bus 기록 없음 — 메모리/커밋 이력 출처"
   },
   {
    "id": "C-DEF-23",
    "what": "Δ33 대조 말뭉치의 'Skip' 대문자로 양성대조 실패(첫 실행)",
    "record": "dc57e… 시정",
    "rule": "대조군이 잡음",
-   "status": "fixed"
+   "status": "fixed",
+   "record_files": [],
+   "record_files_note": "bus 기록 없음 — 메모리/커밋 이력 출처"
   },
   {
    "id": "C-DEF-24",
    "what": "ACK 다수에 '독립 재계산' 을 시점 구분 없이 사용(대부분 방법독립·시점 informed)",
    "record": "STEP1-036.C 소급 표기 내림(원문 불변)",
    "rule": "R45/R46",
-   "status": "recorded(표기 내림)"
+   "status": "recorded(표기 내림)",
+   "record_files": [
+    "acks/T-A-V3-STEP1-036.C.json"
+   ]
   }
  ],
  "caught_before_issue": [
@@ -228,6 +294,16 @@
    "C-DEF-23",
    "C-DEF-24"
   ],
-  "note": "R54/Δ57: 대장은 사전필터+수작업이며 사전필터만으로는 재현율 2/24 — 나머지는 메모리/커밋 이력에서 왔다"
+  "note": "R54/Δ57: 대장은 사전필터+수작업이며 사전필터만으로는 재현율 2/24 — 나머지는 메모리/커밋 이력에서 왔다",
+  "known_positives_method": "각 항목에 정확한 bus 파일명을 명시(known_positives) 후 사전필터가 그 파일을 잡는지 계수 — 이전 계수(2/24)는 id 추출 정규식이 좁아 낸 오탐(R54 형태가 대조 안에서 재현)",
+  "entries_with_bus_record": 17,
+  "surfaced_by_prefilter": 14,
+  "missed": [
+   "C-DEF-04",
+   "C-DEF-05",
+   "C-DEF-19"
+  ],
+  "entries_without_bus_record": 7,
+  "recall_over_recorded": "14/17"
  }
 }
