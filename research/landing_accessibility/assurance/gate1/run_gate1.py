@@ -355,6 +355,9 @@ class Ctx:
                     shell=shell_cmd is not None)
         if r["rc"] is None:
             status = "ERROR"
+        elif r["rc"] == 2 and expect_rc == 0:
+            status = "NOT_TESTABLE"   # Δ46-exit2 / Δ50-exit2-common: exit 2 = the tool DID NOT RUN — neither pass nor fail
+            r["reason"] = "did_not_run(exit 2): " + (r.get("reason") or "tool reported it could not run (e.g. layer import failed)")
         elif r["rc"] == expect_rc:
             status = "PASS"
         elif expect_rc != 0 and r["rc"] == 0:
