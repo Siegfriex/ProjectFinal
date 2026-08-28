@@ -180,8 +180,14 @@ def fig2_entry_spatial_map(df):
 
 
 def fig3_entry_implementation(df):
-    cols = ["entry_control_type", "menu_dependency", "nav_container_type",
-            "reveal_direction", "auth_gate_stage"]
+    # [A TBX-021 R113] `reveal_direction` 은 **100% sentinel = UNWIRED** 다.
+    # 0 으로 그리면 "reveal 이 없다" 로 읽힌다 — 축을 **뺀다**. 빈 패널도 두지 않는다.
+    # 값이 0 인 것과 한 건도 측정되지 않은 것은 다른 사건이다 (A R110 열 단위 WIRED).
+    ALL = ["entry_control_type", "menu_dependency", "nav_container_type",
+           "reveal_direction", "auth_gate_stage"]
+    cov0 = C.axis_coverage(df) if len(df) else {}
+    unwired = [c for c in ALL if cov0.get(c, {}).get("state") == "AXIS_NOT_OBSERVED"]
+    cols = [c for c in ALL if c not in unwired] or ALL
     fig, axes = plt.subplots(1, len(cols), figsize=(17, 3.8))
     cov = C.axis_coverage(df)
     for ax, c in zip(axes, cols):
@@ -194,9 +200,9 @@ def fig3_entry_implementation(df):
             ax.bar(list(vals.keys()), list(vals.values()), color="cornflowerblue")
             ax.tick_params(axis="x", rotation=45, labelsize=7)
         ax.set_title(f"{c}\n[POST-HOC DOM DERIVED]", fontsize=8)
-    absent = [c for c in cols if cov.get(c, {}).get("state") == "AXIS_NOT_OBSERVED"]
     _stamp(fig, df, "3. entry implementation",
-           ("AXIS_NOT_OBSERVED: " + ", ".join(absent)) if absent else "all axes observed")
+           ("UNWIRED axes REMOVED (not drawn as zero): " + ", ".join(unwired))
+           if unwired else "all axes observed")
     return _save(fig, "fig3_entry_implementation.png")
 
 
