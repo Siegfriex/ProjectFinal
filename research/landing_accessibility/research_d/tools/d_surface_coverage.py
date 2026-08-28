@@ -133,6 +133,25 @@ ACCEPTED_UNSURFACED = {
         "헤레독 블록의 tag·시작행·줄수. 스캔은 `헤레독 1블록` 으로 **개수**를 찍고 오류가 나면 "
         "행 번호를 찍는다 — 정상일 때 블록 명세는 소음이다",
     # [D-DEF-94] 충돌로 되돌려진 둘 — 값은 안 찍히는 것이 맞다
+    # [D-DEF-99] 이름 충돌로 되돌아온 것들 — **행 번호로 확인**했다(`d_bus_scan.sh`)
+    ("d_ledger_shape", "n_entries"):
+        "57행 `대장 두 분류 … entries {n_entries}` 로 찍힌다",
+    ("d_ssot_manifest", "n_entries"):
+        "220행 `SSOTV3 manifest … 일치 {n_ok}/{n_entries}` 의 분모로 찍힌다",
+    ("d_emit_ticket", "n"):
+        "339행 `D 발행분 base_sha ({v3_era} v3-era / {n})` 로 찍힌다",
+    ("d_retractions", "n"):
+        "250행 `철회 라벨 인용 : 산출물 {verdict}({n})` 로 찍힌다 — 그것은 `audit_artifacts` 의 "
+        "`n` 이다. `audit_tickets` 의 `n`(=2)은 251행의 `baseline` 수와 같은 값이지만 "
+        "**그 키로 직접 찍히지는 않는다**",
+    ("d_retractions", "n_new"):
+        "251행 `발행티켓 {verdict}(새 {n_new} / baseline …)` 로 찍힌다",
+    ("d_ticket_schema_check", "n_new"):
+        "303행 `D 발행분 스키마 … 새 {n_new} / baseline …` 로 찍힌다",
+    ("d_retractions", "baseline_pre_guard"):
+        "251행에서 `baseline_pre_guard['n']` 이 찍히고 255행이 그 목록을 펼친다",
+    ("d_ticket_schema_check", "baseline_pre_guard"):
+        "303행에서 `baseline_pre_guard['n']` 이 찍힌다",
     ("d_tool_health", "per_module_calls"):
         "도구 72개의 모듈별 부수효과 호출 수다. 스캔은 `게이트 대상 24 중 위험 N · 전체 72 중 M` 로 "
         "**수**를 찍고 위험한 것은 이름까지 찍는다 — 72개 전부는 소음이다. "
@@ -224,7 +243,12 @@ def check() -> dict:
 
     # [D-DEF-94] 충돌로 '표시됨' 판정이 **믿을 수 없는** 키는 미표시로 되돌린다 —
     # **불확실한 것을 통과로 세지 않는다.** 그래야 사람이 판단하게 된다.
-    for amb in ambiguous_deep:
+    # [D-DEF-99] **최상위 충돌도 같이 되돌린다.** 중첩만 되돌리고 최상위는 보고만 한
+    # 것은 일관성이 없었다 — `hits` 사건이 우연히 중첩이었을 뿐 위험은 같다.
+    _amb_all = list(ambiguous_deep) + [
+        {"key": a["key"], "modules": a["modules"], "signal_in": a["modules"]}
+        for a in ambiguous]
+    for amb in _amb_all:
         for mod in amb["signal_in"]:
             if not any(u["module"] == mod and u["key"] == amb["key"] for u in unsurfaced):
                 rec = {"module": mod, "key": amb["key"],
