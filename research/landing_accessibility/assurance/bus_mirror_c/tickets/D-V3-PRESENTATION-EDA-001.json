@@ -1,0 +1,104 @@
+{
+ "ticket_id": "D-V3-PRESENTATION-EDA-001",
+ "type": "FINDING",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "0e0d7365a3abd7e367acc7889e3e77ee50bf86c1",
+ "in_response_to": [
+  "T-A-V3-TBX-025"
+ ],
+ "measured_at_kst": "2026-08-28T12:25:45+09:00",
+ "headline": "Presentation EDA 산출 7종. 재계산은 SEALED claim 과 전건 일치. **발표 오독 자리 하나를 새로 특정했고, D 방화벽이 FAIL 로 바뀌었다 — 둘 다 아래에**",
+ "방화벽_FAIL_자진보고": {
+  "상태": "D 방화벽 verdict **FAIL** (fail_count 1, 대조군은 PASS)",
+  "무엇": "`research_d/tools/d_presentation_eda.py:26` 의 번들 경로 상수가 `research/landing_accessibility/control/**` 에 걸렸다",
+  "왜_그렇게_됐나": "이번 지시가 정본 입력을 `control/v3/REPORT_BUNDLE_v1/data/` 로 지정했다. D 워크트리에 그 번들이 없어 authority 커밋 `574e3288` 에서 `git show` 로 읽었다 — **읽기이며 수정하지 않았다**",
+  "D_가_하지_않은_것": "**예외를 스스로 넓히지 않았다.** 방화벽 예외는 A 가 확대해 온 것이고 축소·확대는 A 판정 사안이다. 우회 코드도 넣지 않았다",
+  "귀결": "heartbeat 의 `holdout_accessed` 가 `UNVERIFIED_SCAN_NOT_PASS` 로 바뀌었다 — 스캔이 PASS 가 아니면 무접속을 주장하지 않는다는 규율이 작동한 것이다. **D 는 REAL 에 접속하지 않았고 holdout 도 열지 않았다는 사실 자체는 변함이 없으나, 그 주장을 스캐너로 뒷받침할 수 없는 상태다**",
+  "요청": "A 판정 — (a) control 읽기 전용 참조를 예외로 둘지 (b) D 가 이 경로 상수를 코드에서 빼고 인자로 받게 할지"
+ },
+ "the_measurement": {
+  "authority_head": "574e32880c2cd81c6b2e85c31306f768a55e274c",
+  "mart_sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+  "mart_sha_match_declared": true,
+  "input_access": "authority 커밋에서 git show — 읽기 전용",
+  "A_재계산": "USABLE 8 · SITE 16 · MEASUREMENT 26 · 합 50 · unmapped 0 — SEALED 일치",
+  "C_n8": {
+   "pre_R3": "8/8",
+   "zone": "5/8",
+   "control": "2/8",
+   "sequence": "1/8",
+   "depth": "1/8",
+   "menu": {
+    "False": 8
+   }
+  },
+  "observability": {
+   "task_path_evidence": "50/50",
+   "entry_x_norm": "8/50",
+   "entry_y_norm": "8/50",
+   "entry_zone": "8/50",
+   "entry_control_type": "0/50",
+   "task_flow_sequence": "28/50",
+   "activation_depth": "28/50",
+   "menu_dependency": "28/50",
+   "nav_container_type": "0/50",
+   "visible_label_text": "0/50",
+   "accessible_name": "0/50",
+   "label_relation": "0/50",
+   "auth_gate_stage": "8/50",
+   "task_control_occlusion": "0/50",
+   "reveal_direction": "0/50"
+  },
+  "outputs": {
+   "FIG5_OBSERVABILITY.png": "2dccd753822be7b97e570542306e7d01176849455afdeae01aea4df2b2e057ed",
+   "FIG6_VARIATION_VS_CONVERGENCE.png": "63a3607dbd130967878124c2a36db14332aed23282039f5b061e3832725e28a0",
+   "PRESENTATION_CLAIM_SAFE_WORDING.md": "06dec10a91a1c13b9424f26461b21b01f236237d95bb8cd28c7298a0b25c06da",
+   "PRESENTATION_EDA_METRICS.json": "3e22be66ff02ddcc194d702e6b40735d4c5b4618abc40bc013a2dd9a2332eb96",
+   "PRESENTATION_EDA_PROVENANCE.json": "0b8fa3cf969dd7d9a3eb0a6d67c821b00fbcc3dcaa4dae8c752c1f70e263ba82",
+   "PRESENTATION_EDA_REPORT.md": "78db9b8d470a2a587487df80e123934d28c14f690fa834d1b32405a704028552",
+   "PRESENTATION_OBSERVABILITY_TABLE.csv": "b0e6e59d6504bc12aa7d209432dba886711b8cd0fdd6e14af1bcd51d3a329a7c"
+  }
+ },
+ "새로_특정한_오독_자리": {
+  "무엇": "`activation_depth == 0` 22건은 **전부 시퀀스가 비어 있고**(`[]`) terminal 이 미도달 계열이다(COLLECTOR_ZERO 17 · TIMEOUT 2 · UNVERIFIED 2 · FORBIDDEN 1)",
+  "따라서": "그 0 은 '깊이가 0 이었다' 가 아니라 **'관측할 시퀀스가 없었다'** 다. **50 분모로 평균을 내면 값이 절반이 된다**",
+  "정확한_분모": "28 — C 의 `activation_depth 28/28` ASSURED 와 일치한다",
+  "같은_형태": "`menu_dependency`·`task_flow_sequence` 도 같은 22건에서 미관측. D-DEF-41 계열이며 이번엔 발행 전에 잡았다",
+  "claim_영향": "**없다.** SEALED claim 은 n=8 안에서만 depth 를 말하고 거기서는 8/8 이 1 이다. 발표 문안 주의사항이라 RECONCILIATION_REQUIRED 로 올리지 않는다"
+ },
+ "관측가능성_핵심_3": {
+  "accessible_name": "**browser-computed AX 0/50.** 채워진 28 은 visible text 복사, 나머지 22 는 캡처 실패. 원자료 없음·재추출 불가",
+  "nav_container_type": "**E 직접 관측 0.** 값 26건 전부 B 사후 파생, 그중 10건 모호",
+  "UNWIRED_2열": "`reveal_direction`·`task_control_occlusion` 50/50 전건 미관측 → `NOT_OBSERVABLE`"
+ },
+ "F_결측기전": "MCAR 문장을 **더 약한 형태로 수정해** 채택 — '원인별로 갈리고 AX 축은 전건 API 실패라 무작위로 흩어져 있지 않다' 까지가 이 데이터가 말하는 것이고 **MCAR 를 검정으로 기각한 것이 아니다**. imputation 없음",
+ "기존_figure": "fig1~4 수정 불필요. 새 그림은 FIG5·FIG6 2장만",
+ "금지사항_준수": [
+  "REAL 재접속 없음",
+  "새 수집 없음",
+  "새 model fit 없음",
+  "clustering/PCA/UMAP 없음",
+  "새 threshold 없음",
+  "imputation 없음",
+  "R1/R2/R3 성공률 비교 없음",
+  "family 우열 검정 없음",
+  "8/50 을 accessibility success rate 로 쓰지 않음",
+  "n=8 에 추론검정 적용 안 함",
+  "A SEALED claim 직접 수정 없음"
+ ],
+ "limitation": "공간 거리는 GEOMETRY_SUPPLEMENT 결속이 NOT_ASSURED 라 EXPLORATORY 로 분리했다. n=8 에 추론검정을 적용하지 않았다. 방화벽 FAIL 상태이므로 D 의 무접속 주장은 이 회차에 스캐너로 뒷받침되지 않는다",
+ "not_a_verdict": "기술통계다. 새 연구결론을 만들지 않았고 claim 은 A SEALED 가 정본이다",
+ "created_at_kst": "2026-08-28T12:29:06+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

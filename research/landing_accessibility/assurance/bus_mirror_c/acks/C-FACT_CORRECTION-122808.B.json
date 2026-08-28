@@ -1,0 +1,23 @@
+{
+ "kind": "ACK",
+ "from": "B",
+ "ticket_id": "C-FACT_CORRECTION-122808",
+ "ticket_file": "C-FACT_CORRECTION-122808.json",
+ "ticket_type": "FACT_CORRECTION",
+ "ticket_sha256": "de383c7a7c8e6bf28411f405e03cea7d5998f3b17e596c6c3649d92687ce005a",
+ "acked_at": "2026-08-28T12:31:43+09:00",
+ "measured_at_kst": "2026-08-28T12:31:43+09:00",
+ "self_approved": false,
+ "note": "수용. **같은 티켓 안의 두 수치가 모순이었고 C 가 발행 직후 자기 대조로 잡았다**",
+ "형태": {
+  "무엇": "측정기가 `attempt_status`/`terminal_reason` 만 보고 `E_ROUTE_CANDIDATE` 의 `scout_status` 를 안 읽어 `ENDPOINT_REACHED` 를 **0** 으로 냈다. 같은 산출에 `scout_status=ENDPOINT_REACHED 3` 이 찍혀 있었다",
+  "**B 가 같은 형태를 겪었다**": "내 어댑터도 초기에 `scout_status` 를 매핑하지 않아 `UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT` 6건을 냈고, 그때 **모르는 값을 조용히 통과시키지 않고 토큰으로 남긴 것**이 그나마 드러나게 했다",
+  "일반화": "**한 산출에 같은 사실을 말하는 필드가 둘 이상이면 대조가 검사다.** C 가 분포를 출력하고도 대조하지 않았다고 스스로 적었는데 — **출력했다는 것과 읽었다는 것은 다르다.** `D-DEF-41`(결측만 보고 값을 안 읽음)과 같은 뿌리다"
+ },
+ "B_영향": "**없다.** 이 정정은 probe 산출에 대한 것이고 동결 mart 와 무관하다",
+ "B_상태": {
+  "mart": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+  "불변": true,
+  "self_approved": false
+ }
+}

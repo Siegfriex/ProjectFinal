@@ -1,47 +1,63 @@
 {
   "agent": "E",
   "role": "PATHFINDER_DATA_RECONNAISSANCE_OPERATOR",
-  "protocol_version": "SSOTV3 06_ABCD_ORCHESTRATION_PROTOCOL_v3.0 + LA-ORCH-3E + T-A-V3-TBX-005..017",
-  "phase": "STEP1/CENSUS — REAL acquisition complete, supplement pass done",
+  "protocol_version": "SSOTV3 06_ABCD_ORCHESTRATION_PROTOCOL_v3.0 + LA-ORCH-3E + T-A-V3-TBX-005..017 + T-A-V3-PROBE-V2",
+  "phase": "PROBE-V2 완료 · PROBE-V3 발주대기 (NOT_DISPATCHED)",
   "branch": "claude-e/pathfinder-v3",
   "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_e_pathfinder",
-  "head_sha": "f3dbf28",
-  "collection_cutoff_kst": "11:50 (T-A-V3-TBX-019) — 이후 신규 수집 사이클 없음, 현재가 최종",
-  "origin_pushed": true,
-  "current_task": "REAL census 50/50 attempted (T-A-V3-TBX-005 release) — R1 전수 + R2(click_failed 22건 재시도) + R3(geometry 8건 재시도) + GEOMETRY_SUPPLEMENT_E.jsonl 완료. idempotency_key 결함(C-FINDING-113120) 수정.",
-  "real_target": "yes — 첫 REAL 접속 발생(2026-08-28 census, T-A-V3-TBX-005 release 하에)",
-  "real_target_contact_count": "50 unique targets attempted (R1) + 22 재시도(R2) + 8 재시도(R3) = 80 nav events, 0 forbidden action 실행(1건 SAFETY_STOP 정상 차단)",
-  "census_results": {
-    "attempted": 50, "unique_target_coverage": "50/50", "exactly_once_r1": "확인(중복0/누락0)",
-    "hash_chain": "intact (prev_hash 연쇄 확인)",
-    "attempt_status_final": {"ENDPOINT_REACHED": 6, "AUTH_GATE": 2, "TIMEOUT": 2, "FORBIDDEN_ACTION_BOUNDARY": 1, "NO_SAFE_ROUTE(R1 기준)": 39},
-    "endpoint_reached_targets": ["F1-03", "F5-02", "F5-05", "F2-01", "F2-08", "F3-06"],
-    "auth_gate_targets": ["F1-05", "F3-02"],
-    "safety_stop_target": "F1-10 (금지 패턴 매칭, 클릭 자체 거부 — 정상 작동)"
+  "head_sha": "b2d8c95",
+  "collection_cutoff_kst": "census 원본은 11:50 컷오프 확정. PROBE-V2는 12:43 컷오프로 21/21 완주",
+  "origin_pushed": false,
+  "current_task": "PROBE-V3 대기 — A 가 NOT_DISPATCHED 로 선언, Director GO 대기중. 실행 준비만 완료(REAL 접속 없음)",
+  "real_target": "yes — census(50) + PROBE-V2(21) 기 실행 완료. PROBE-V3(5~16)는 미실행",
+  "probe_v2_result": {
+    "run_id": "E-PROBE-V2",
+    "attempted": "21/21 (NOT_ATTEMPTED 0)",
+    "ax_recovered": "21/21 — page.aria_snapshot(boxes=True) 로 60B 결함 완전 해소, C 가 독립 재계산으로 확인(C-ASSURANCE-122739)",
+    "candidate_recovered": "3/21 — F3-01/F3-03/F3-07, 전부 ENDPOINT_REACHED",
+    "matched_labels": {"F3-01": "조회/예약 레이어 팝업 열기", "F3-03": "운송장 번호", "F3-07": "화물조회"},
+    "no_recovery": "F1/F2/F4/F5 시도분 18/18 — max_candidates=0 그대로, 구조 깊이 문제로 분리",
+    "director_verdict": "A T-A-V3-PROBE-V2-002 부분GO — F3 계열 GO, 나머지 넷 NO-GO, family 별 원인 상이"
+  },
+  "probe_v3_status": {
+    "target_set_file": "artifacts/v3_probe_v3/PROBE_V3_TARGET_SET.json",
+    "question": "NO_SAFE_ROUTE_SITE 판정 16건이 사이트 사실인가, 죽은 AX 시절 매처가 낸 오판인가",
+    "full_set_n": 16,
+    "1차_대상": ["F3-04", "F3-05", "F3-08", "F3-09", "F3-10"],
+    "criterion_pinned": "terminal_reason == NO_SAFE_ROUTE_SITE at mart 5290e0c3",
+    "verdict_bands_pinned": {"회복>=1": "16건 사이트사실 주장 철회", "회복0": "16건 첫 실증"},
+    "dispatch_status": "NOT_DISPATCHED — A 및 E 모두 Director GO 대기, self-authorize 하지 않음",
+    "readiness": "5건 전부 WORKER_DISPATCH_PACKETS_V2 확인됨, 출력경로 artifacts/v3_probe_v3/raw/E-PROBE-V3 생성됨, scout_engine.py 코드 준비완료(REAL 미실행)"
+  },
+  "code_changes_this_session": {
+    "commit": "b2d8c95 (미push)",
+    "summary": "page.accessibility.snapshot()(미존재 API, 전량 60B 무효)를 page.aria_snapshot(boxes=True)로 교체 + find_ax_candidates 추가 + raw_root override 인자 추가",
+    "self_detected": true,
+    "note": "이번 세션 최대 결함 자가발견·보고 항목. 60B/1노드 산출물은 census 원본에서 append-only 로 불변 유지, 이 커밋은 향후 실행에만 적용"
   },
   "artifacts": {
-    "shared_raw": "artifacts/v3_census/raw/{DISPATCH_LEDGER,EVIDENCE_MANIFEST,GEOMETRY_SUPPLEMENT_E}.jsonl",
-    "e_evidence_root": "artifacts/v3_census/raw/E/{E-REAL-CENSUS-1230,E-REAL-CENSUS-1230-R2,E-REAL-CENSUS-1230-R3}/<target_id>/",
-    "code": "research/landing_accessibility/pathfinder_e/scout/{scout_engine,emit_ledger,emit_geometry_supplement}.py (committed+pushed)"
+    "shared_raw_sealed": "artifacts/v3_census/raw/{DISPATCH_LEDGER,EVIDENCE_MANIFEST,GEOMETRY_SUPPLEMENT_E}.jsonl — A 지시로 봉인, 이번 세션 미접촉",
+    "probe_v2_raw": "artifacts/v3_probe_v2/raw/E-PROBE-V2/<target_id>/ — census 분모 밖, 21건",
+    "probe_v3_raw_prepared_empty": "artifacts/v3_probe_v3/raw/E-PROBE-V3/ — 발주 대기, 현재 빈 디렉토리",
+    "code": "research/landing_accessibility/pathfinder_e/scout/{scout_engine,emit_ledger,emit_geometry_supplement}.py"
   },
   "known_limitations": [
-    "매처(candidate finder)가 얕음 — 39/50이 NO_SAFE_ROUTE(대부분 은행/커머스 SPA 메뉴 하위구조 미탐색), B의 사후 DOM 추출이 보완 중",
-    "R1/R2 원본 라인엔 route_diagnosis 미기재(구현 후 수정, 기존 줄 불변 유지) — join 파일로 보완 제공",
-    "entry geometry는 실제 클릭 성공 8건만 확보 — 나머지는 정직하게 NOT_OBSERVED",
-    "AX 스냅샷 R1 초반(F1-01/02) 결함(60B/1노드) — 이후 수정, 해당 두 줄은 불변 유지"
+    "candidate_count>0 인데 NO_SAFE_ROUTE_SITE 로 분류된 16건은 죽은-AX 시절 매처의 산출물 — PROBE-V3 미실행 상태라 아직 검증 안 됨(요 하트비트 시점 기준 사이트 사실로 인용 금지)",
+    "F3 5건 회복 시 '사이트 사실 16건' 주장 자체가 보고서에서 철회 대상"
   ],
   "safety": {
     "absolute_prohibitions_violated": 0,
     "credential_input": 0, "transaction_attempted": 0, "captcha_bypass": 0,
-    "forbidden_action_attempts_blocked": 1
+    "forbidden_action_attempts_blocked": 1,
+    "self_authorized_real_execution": 0
   },
   "self_approved": false,
   "canonical": false,
   "authority_status": "AUXILIARY_EXECUTION_EVIDENCE",
-  "downstream_status": "B 의 CANONICAL_MART_50 이 C 의 독립검산(C-ASSURANCE-112924)을 이미 통과함 — hash chain 50/50, exactly-once 50/50, task_hash 불일치 0",
+  "downstream_status": "C 가 probe-v2 4수치 독립검산 완료(C-ASSURANCE-122739) + fact correction 발행(C-FACT_CORRECTION-122808, ENDPOINT_REACHED 3 확인 일치). D 가 EDA presentation 문구 정정(AX 재추출 가능 확인, D-V3-EDA-FC-001)",
   "monitor": {"task_id": "b51ctkymm", "watch": ".agent_bus/landing_v2/{tickets,escalations}", "fallback_interval_s": 1500},
-  "blocker": "없음",
-  "next_gate": "A claim freeze(12:20 목표) 대기 — 추가 요청 있으면 즉시 대응",
-  "decision_needed": "없음",
-  "timestamp_kst": "2026-08-28T11:34:13+09:00"
+  "blocker": "없음 — Director GO 수신 즉시 5건부터 target_id 오름차순 실행 가능",
+  "next_gate": "PROBE-V3 Director GO 대기",
+  "decision_needed": "Director: PROBE-V3(F3 5건, NO_SAFE_ROUTE_SITE 재검증) 실행 승인 여부",
+  "timestamp_kst": "2026-08-28T12:38:00+09:00"
 }
