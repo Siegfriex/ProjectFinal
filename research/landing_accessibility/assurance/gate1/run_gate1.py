@@ -1031,7 +1031,8 @@ def main(argv: list[str] | None = None) -> int:
     doc = {"artifact": "GATE1_VERDICT_C", "runner": "run_gate1.py", "dry_run": c.dry_run, "shas": shas,
            "runner_cmd": c.runner_cmd, "adapter_map": c.adapter_map_path, **verdict,
            "next_automatic_action": next_action(verdict["verdict"]), "declared_failure_behaviour": DECLARED_FAILURE_BEHAVIOUR,
-           "failure_behaviour_demo": failure_demo_binding(), "input_identity": top, "compare_guard": guard, "items": c.items}
+           "failure_behaviour_demo": failure_demo_binding(), "sut_status": ("SUT_CONFIRMED:" + args.sut_sha) if getattr(args, "sut_sha", None) else "SUT_UNCONFIRMED (Δ50-sut)",
+        "input_identity": top, "compare_guard": guard, "items": c.items}
     # report first, verdict last: a crash anywhere before this line leaves NO verdict file (declared failure behaviour (2))
     write_report(c, verdict, shas, c.out / "GATE1_REPORT_C.md", top, guard)
     (c.out / "GATE1_VERDICT_C.json").write_text(json.dumps(doc, ensure_ascii=False, indent=1, default=str) + "\n", encoding="utf-8")

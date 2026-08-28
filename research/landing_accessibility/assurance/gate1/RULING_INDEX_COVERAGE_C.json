@@ -1717,8 +1717,8 @@
    "verified_by": "C",
    "requires": "**다층 방어는 입력이 다를 때만 층이다.** 두 층이 같은 릴리스 문서를 읽으면 **연언이 방어가 아니라 같은 입력의 두 독법**이다. 다층으로 부르려면 **각 층의 입력이 서로 달라야** 하고, 아니면 **단일 지점**이라고 적는다. `layer_firewall.py` docstring 은 판정 독립에 대해 참이고 **방어 독립에 대해 거짓**이다(R36)",
    "must_appear_in": "firewall 문서 · 층 수를 세는 모든 서술",
-   "C_check": "Δ49 계열 — STEP1-036 대응",
-   "coverage": "NOT_DUE_YET",
+   "C_check": "C-ASSURANCE-090716 conjunction_note 가 근거; C 검사(fc008_two_layer_withdrawal_check)는 두 층의 입력이 같은 문서임을 기록 — GATE 2 에서 입력 분리(manifest sha 바인딩) 실증 must_flag/must_not_flag 를 C 가 잰다",
+   "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 40
   },
@@ -1728,7 +1728,7 @@
    "verified_by": "C",
    "requires": "`V3_PILOT_5` release 는 **두 번째 층이 릴리스 문서가 아닌 입력**(동결 manifest sha 바인딩, `V2_DIAGNOSTIC` 방식)을 읽어야 한다. **must_not_flag**: 릴리스 문서만 고치고 manifest 를 두면 열리지 않음. **must_flag**: 둘 다 맞을 때만 열림. Δ19-R10 에 더해진다",
    "must_appear_in": "V3_PILOT_5 release 설계",
-   "C_check": "Δ49 계열 — STEP1-036 대응",
+   "C_check": "GATE 2: 릴리스 문서만 수정 시 미개방(must_not_flag)·둘 다 맞을 때만 개방(must_flag)을 C probe 로 실증",
    "coverage": "NOT_DUE_YET",
    "gap_note": null,
    "added_at_index_version": 40
@@ -1739,8 +1739,8 @@
    "verified_by": "C",
    "requires": "**GATE 1 의 SUT 는 B 의 COMPLETION SHA 로 확정된다.** 그 전 C 검사 결과에는 **`SUT_미확정` 표기**를 단다 — **미확정 상태의 통과는 확정 상태의 통과가 아니다**. COMPLETION 이 오면 그 SHA 에서 다시 잰다",
    "must_appear_in": "C GATE1 산출",
-   "C_check": "Δ49 계열 — STEP1-036 대응",
-   "coverage": "COVERED_PENDING_ADAPTER",
+   "C_check": "run_gate1 verdict 에 sut_status(SUT_UNCONFIRMED / --sut-sha 로 확정) 필드; FC-008 산출에 SUT_UNCONFIRMED 태그; COMPLETION SHA 에서 재측정",
+   "coverage": "COVERED",
    "gap_note": null,
    "added_at_index_version": 40
   },
@@ -1750,8 +1750,8 @@
    "verified_by": "C",
    "requires": "`Δ46-exit2` 는 규약 하나가 아니라 **공통 오해**를 고친 것이다 — A(검사기)·B(r32_check)·C(probe) **세 평면 전부**가 **검사가 못 돈 것을 '안전하게 막혔다' 로** 읽고 있었다. 각 평면은 자기 도구 전수에서 이 표기를 확인한다",
    "must_appear_in": "각 평면의 도구 exit 규약",
-   "C_check": "Δ49 계열 — STEP1-036 대응",
-   "coverage": "COVERED_PENDING_ADAPTER",
+   "C_check": "C 도구 전수 exit 의미 감사 worker 진행 중(EXIT_SEMANTICS_AUDIT_C.json); 완료 시 COVERED",
+   "coverage": "PARTIAL",
    "gap_note": null,
    "added_at_index_version": 40
   }
