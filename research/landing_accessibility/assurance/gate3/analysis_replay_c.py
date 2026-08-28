@@ -203,6 +203,12 @@ def main():
             t_ = r_.get("target_id"); ts_ = str(r_.get("captured_at_kst") or "")
             if t_ not in src or ts_ > src[t_][0]: src[t_] = (ts_, r_.get("accessible_name_source"))
     by_t = {r.get("target_id"): r for r in rows}
+    # TBX-023: when accessible_name_source == VISIBLE_TEXT the canonical value is AX_NOT_INDEPENDENTLY_OBSERVED — C's expected value follows the
+    # provenance, not the string rule; a stored MATCH there is a tautology, a stored AX_NOT_INDEPENDENTLY_OBSERVED agrees with C
+    for x in a["row_replay"]:
+        if src.get(x["target_id"], (None, None))[1] == "VISIBLE_TEXT" and "mart_label_relation" in x:
+            x["c_label_relation_provenance_adjusted"] = "AX_NOT_INDEPENDENTLY_OBSERVED"; x["label_relation_match"] = str(x["mart_label_relation"]).strip() == "AX_NOT_INDEPENDENTLY_OBSERVED"
+    lr0 = a["metrics"]["label_relation"]; lr0["mismatch"] = [x["target_id"] for x in a["row_replay"] if x.get("label_relation_match") is False]; lr0["state"] = "NOT_ASSURED" if lr0["n_compared"] == 0 else "DIVERGENT" if lr0["mismatch"] else "ASSURED"
     taut = [t for t, r in by_t.items() if str(r.get("label_relation") or "").strip() == "MATCH" and src.get(t, (None, None))[1] == "VISIBLE_TEXT"]
     ax_obs = [t for t, r in by_t.items() if src.get(t, (None, None))[1] not in (None, "VISIBLE_TEXT", "NOT_OBSERVED")]
     lr = a["metrics"]["label_relation"]
