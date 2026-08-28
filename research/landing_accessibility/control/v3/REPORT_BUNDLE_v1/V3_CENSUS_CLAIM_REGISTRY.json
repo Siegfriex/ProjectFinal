@@ -1,0 +1,377 @@
+{
+ "document_id": "V3_CENSUS_CLAIM_REGISTRY",
+ "status": "SEALED_FINAL",
+ "version": 12,
+ "issued_by": "A / Authority Plane",
+ "drafted_at_kst": "2026-08-28T11:42:00+0900",
+ "release": "V3_TIMEBOX_CENSUS_1230",
+ "frame": "frozen MAIN50 v3.0.2 · 5 family × 10 service",
+ "manifest": {
+  "body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+  "frozen": true,
+  "unmodified": true
+ },
+ "binding_pending": null,
+ "CLAIMS": [
+  {
+   "id": "Claim 1",
+   "status": "ASSURED",
+   "claim": "동일한 생활과업을 기준으로 50개 모바일웹 서비스를 전수 관측했지만, 현재 자동화 프로토콜은 모든 서비스에서 비교 가능한 task-flow evidence 를 확보하지 못했다",
+   "근거": "attempted 50/50 · acquisition state 7종 · C 독립 재계산 일치",
+   "방어범위": "50 attempt + acquisition state 로 방어 가능"
+  },
+  {
+   "id": "Claim 2",
+   "status": "**ASSURED — B·C 합의 최종문안** (5290e0c3 기준)",
+   "claim": "C 가 검증한 8개 사례에서 **진입 지점의 화면 위치와 control 형태는 하나로 수렴하지 않았다** — `entry_zone` **8/8 E 관측, 5종**(TOP_LEFT 1·TOP_CENTER 2·TOP_RIGHT 1·MID 2·BOTTOM 2) · `entry_control_type` **8/8 E 관측, 2종**(TEXT_LINK 6·ICON_TEXT 2). **조작순서·활성화 깊이·메뉴의존은 8건 모두 동일했다** (`SELECT_FUNCTION` ×8 · `activation_depth` 1 ×8 · `menu_dependency` False ×8). **navigation container 는 이 주장에 포함하지 않는다**",
+   "근거": "C 독립 재계산 gate3/out/K8_CONVERGENCE_C.json (checker 1b03136)",
+   "표현_규칙": {
+    "금지": [
+     "‘서비스의 62.5% 가 메뉴 의존형이었다’",
+     "**‘직접노출형과 메뉴의존형이 모두 관측됐다’ — A 가 쓴 예시였고 실측과 반대다. 메뉴의존형 0/8**"
+    ],
+    "허용": [
+     "‘8개 사례의 진입위치는 하나의 위치로 수렴하지 않았다’",
+     "**‘관측된 8개 사례는 모두 메뉴를 거치지 않는 단일 스텝이었다’**(선택편ржение 병기 필수)"
+    ]
+   },
+   "원안_폐기": "Director 원안 ‘진입 위치·navigation 구조·조작순서가 하나의 동일 패턴으로 수렴하지 않았다’ 는 **C 실측과 어긋난다** — 조작순서는 수렴했고 navigation 구조는 미관측이다",
+   "해석_주의": "**이 수정은 서사를 약화시키지 않고 바꾼다.** 8 사례에서 갈린 것은 **어디에 있는가**(위치·형태)이고 갈리지 않은 것은 **몇 번에 닿는가**(순서·깊이)다. 즉 관측된 재학습 요구는 **절차적**이 아니라 **위치·시각적**이다. 다만 n=8 이며 분포추정이 아니다",
+   "C_필수_단서": {
+    "위치·형태_관측의_출처": "`entry_zone` · `entry_control_type` 모두 **E 관측 8/8** (`E_R3_SUPPLEMENT` geometry 보충 줄). 다만 `GEOMETRY_SUPPLEMENT` 줄에 `evidence_hash` 가 없어 **hash 결속은 NOT_ASSURED** — 이 두 축은 **R3 재실행 관측 위에 서 있다**",
+    "C_자기정정_C_DEF_33": "C 가 앞서 ‘control type 은 관측 5건 한정’ 이라고 단 단서는 **틀렸다**. `entry_observation_provenance` 는 **라벨·nav 앵커링의 출처이지 control type 의 출처가 아니다**. 원천(`GEOMETRY_SUPPLEMENT_E.jsonl`) 직접 대조로 control type 이 8/8 존재하고 mart 값과 8/8 동일함을 확인했다 — **열별 provenance 를 잘못 대응시킨 결함**"
+   },
+   "A_문안_2차_정정": "A 가 v4 에서 ‘navigation 구조는 8/8 미관측’ 이라고 적었다. **그것은 폐기된 회귀본 `4e276cf9` 기준이었다.** 최종 `5290e0c3` 에서는 7/8 관측이고 **4종으로 갈렸다** — C 가 최종 sha 에서 재계산해 잡았다. **nav 컨테이너도 비수렴 쪽이다**",
+   "선택편향_필수병기": "**관측된 8건이 전부 메뉴를 거치지 않는 단일 스텝이었다는 사실은, 관측 가능했던 사례가 얕은 경로였기 때문일 수 있다** — 수집기가 깊은 경로를 못 뚫는다는 R108 과 **같은 방향의 선택편향**이다. **‘사이트가 얕다’ 로 넘어가면 안 된다**. D 가 짚었다",
+   "nav_container_제외_사유": {
+    "E_관측": "**0/8. E 는 `nav_container_type` 을 산출한 적이 없다** — `GEOMETRY_SUPPLEMENT_E.jsonl` 키에 이 변수가 없다",
+    "실제": "B 사후 파생 **7/8** — 앵커 기반 5(F1-03·F2-01·F2-08·F3-02·F5-02) · B 어휘매처 2(F1-05·F3-06) · POSTHOC 1(F5-05 = NOT_OBSERVED)",
+    "C5_규칙_적용시": "앵커만 세면 **5/8**, 그중 F3-02 는 `AMBIGUOUS_MULTIPLE_CONTAINERS`(값이 아니라 **못 정했다는 표시**) → **실질 4/8**",
+    "판정": "**이 축은 사이트 발견으로 보고하지 않는다**",
+    "두_수치_모두_틀렸다": "**‘미관측 8/8’ 은 폐기된 판본(`4e276cf9`) 값이고, ‘관측 7/8’ 은 출처를 지운 수치다.** 정확한 진술은 ‘E 0 · B 파생 7 · 규칙상 인용 가능 5(실질 4)’"
+   },
+   "A_문안_3차_정정": "A 가 nav 절을 **세 번 틀렸다** — ① 8/8 미관측(폐기 판본) ② 7/8 관측·4종 비수렴(출처 미확인) ③ 이제 축 자체를 제외. **매번 다른 평면이 잡았다**",
+   "A_문안_정정_횟수": "A 가 이 한 문장을 **세 차례 틀렸다** — ① nav 8/8 미관측(폐기 판본 인용) ② nav 7/8 관측·비수렴(출처 미확인) ③ control type 5건 한정(C 의 오단서를 그대로 채택). **세 번 다 다른 평면이 잡았다**"
+  },
+  {
+   "id": "Claim 3",
+   "status": "해석",
+   "claim": "이번 결과는 서비스 간 구조적 불일치의 **전체 발생률을 추정한 결과가 아니라**, 동일 과업을 비교하려면 단순 페이지 수집보다 **task-aware interaction measurement 가 필요함**을 보여주는 1차 전수관측이다"
+  },
+  {
+   "id": "Claim 4",
+   "status": "경계",
+   "claim": "이 구조적 차이가 실제 고령 사용자의 재학습 부담이나 과업 실패를 유발하는지는 **이번 연구에서 직접 측정하지 않았다**",
+   "주": "**여기서 더 나가지 않는다**"
+  },
+  {
+   "id": "S1",
+   "status": "ASSURED · 안전",
+   "claim": "안전가드가 실데이터에서 금지 패턴 후보 1건을 감지해 **실행 전에 차단**했다. **실제 금지행위 실행 0건**",
+   "표기_의무": "raw 필드명 `forbidden_actions_attempted` 를 그대로 쓰지 않는다. **‘안전가드가 금지 패턴 후보 1건을 감지하여 실행 전에 차단함. 실제 금지행위 실행 0건.’**",
+   "C_확인": "실행형 hit 0"
+  }
+ ],
+ "CANNOT_CLAIM": {
+  "금지_claim_원문_유지": [
+   "실제 고령자의 인지부하 증가량",
+   "실제 학습전이 실패의 인과효과",
+   "cross-provider WCAG/KWCAG 위반 판정",
+   "사람 대상 연구 없는 연령별 행동효과",
+   "composite '고령자 접근성 점수'"
+  ],
+  "이번_census_고유_불가": [
+   {
+    "항목": "'사람도 이 경로를 못 찾는다'",
+    "이유": "관측된 것은 **자동 수집기의 실패**다. 사람의 탐색은 측정하지 않았다"
+   },
+   {
+    "항목": "visible label ↔ AX name 분기 (D02)",
+    "이유": "**양쪽이 함께 관측된 행이 50 중 3**. `AX_ONLY` 25 는 초기 AX 캡처 결함으로 인한 **수집 비대칭**이지 사이트 현상이 아니다"
+   },
+   {
+    "항목": "family 간 구조 비교",
+    "이유": "도달 6건이 5 family 에 0~2 로 흩어져 있고, 수집 회차가 R1 20 / R2 22 / R3 8 로 혼재한다"
+   },
+   {
+    "항목": "task_flow ↔ experienced_flow 분리",
+    "이유": "E 가 sequence 를 하나만 산출 — `NOT_SEPARABLE_IN_THIS_CENSUS`"
+   },
+   {
+    "항목": "공간 분포·zone 분포",
+    "이유": "n=8. 정적 DOM 에 좌표가 없어 나머지는 `NOT_OBSERVABLE_FROM_STATIC_DOM`"
+   }
+  ],
+  "Director_차단_목록": [
+   "서비스 접근성 주장",
+   "고령층 인과 주장",
+   "family 우열·순위 주장",
+   "8/50 을 reachability 로",
+   "run 별 성능 비교",
+   "label 일치/불일치 (측정 불가)"
+  ]
+ },
+ "LIMITATIONS": [
+  {
+   "id": "L0",
+   "제목": "AX 캡처가 한 번도 성공하지 않았다 — 원인은 API 부재다",
+   "내용": "**AX 캡처가 전 상태에서 실패했다 — 전 evidence_dir 의 `.ax.json` 107개가 전부 60 B `{\"_error\": \"'Page' object has no attribute 'accessibility'\"}` 스텁이다**(C 실측). `accessible_name` 은 E 의 `emit_ledger.py` 121-123 에서 `visible_label` 을 그대로 복사한 값이다. 따라서 `label_relation` 의 `MATCH` 는 ‘두 값이 같더라’ 가 아니라 **‘같은 값을 두 열에 넣었다’** 이고 `AX_NOT_INDEPENDENTLY_OBSERVED` 로 교체했다. 라벨 일관성은 **사이트 간 결과지표에서 제외**했다 — `AX_ONLY 25` 는 발견이 아니라 수집 비대칭이었다",
+   "A_자기정정": "A 가 앞선 판정(TBX-024 R127)에서 **‘AX 원자료는 존재하나 이번 집계에 반영되지 않았다’** 로 적었다. **틀렸다.** E 의 표현을 검증 없이 옮긴 것이고 C 가 107/107 을 직접 세어 잡았다. **없는 것과 안 쓴 것은 다르고, 이건 없는 쪽이다.** 향후 재추출도 불가능하다",
+   "근본원인": "**설치된 Playwright 1.62.0 에서 `page.accessibility` API 가 제거됐다** (E 실측: `hasattr(page,'accessibility') → False`). E 의 캡처 코드가 존재하지 않는 속성에 접근해 **매번 `AttributeError`** 를 냈고, 그것이 except 블록에 잡혀 `{\"_error\": \"'Page' object has no attribute 'accessibility'\"}` 라는 **고정 60바이트 문자열로 저장**됐다",
+   "정확한_라벨": "**`AX_CAPTURE_METHOD_FAILURE` (API 버전 불일치) · 실제 캡처 0/50.** ‘얕은 AX 트리’ 가 아니다",
+   "E_철회": "E 가 중간에 ‘AX 수정 완료(`interesting_only=False`)’ 로 보고했으나 **그 수정 코드 자체가 존재하지 않는 속성을 호출했다. E 가 그 보고를 철회했다**"
+  },
+  {
+   "id": "L1",
+   "제목": "라벨·control 축의 값은 현장 관측이 아니다",
+   "내용": "`E_LIVE_SCOUT` 라벨 **0행**. 전부 저장 DOM 사후 파생(38) 또는 B 파생(8), DOM 없음(4). 따라서 '사용자가 화면에서 실제로 본 라벨' 이라고 말할 수 없고 **'수집 시점 DOM 에 존재한 라벨'** 까지만 말한다"
+  },
+  {
+   "id": "L2",
+   "제목": "결정론적 replay 를 면제받았다",
+   "내용": "Director override 로 전건 replay 를 면제했다. 그 대가가 실측으로 나타났다 — 같은 target 의 재실행이 `activation_depth` 0 과 1 을 냈고, 원인은 사이트 비결정성이 아니라 **census 진행 중 수집기가 개선된 것**이었다(E 확인). 개선 전후 산출이 한 데이터셋에 공존한다"
+  },
+  {
+   "id": "L3",
+   "제목": "수집 회차가 혼재한다",
+   "내용": "`collection_run` — **R1 15 · R2 22 · R2B 13 · R3 0**. superseded 35. **R1-only 는 15행뿐이다.** 회차 선택 규칙은 `captured_at_kst` 최신 우선(결과에 눈감고)이며 R3(geometry 보충)는 선택 풀에서 제외했다. **A 가 한 차례 폐기된 sha 기준 수치(R1 20·R2 22·R3 8)를 확정치로 하달했고 B 가 잡았다** — R2B 회차가 그 지시에 아예 없었다"
+  },
+  {
+   "id": "L4",
+   "제목": "누수·오염은 부재가 아니라 미측정이다",
+   "내용": "`NOT_ASSESSED_BEYOND_EXISTING_CONTROLS`. Director 가 기존 통제 밖 leakage 추가 탐색 gate 를 중단시켰다. **'누수 없음' 이 아니라 '미측정' 이다**"
+  },
+  {
+   "id": "L5",
+   "제목": "컷오프 이후 수집분은 미포함",
+   "내용": "수집 컷오프 11:50 KST. 이후 산출은 보관하되 이번 분석에 포함하지 않았다"
+  },
+  {
+   "id": "L6",
+   "제목": "손으로 유지하는 필드 목록이 세 번 뒤처졌다",
+   "내용": "B 의 병합/개명 목록이 `_dir` · `scout_run_id` · `visible_label_text` 에서 각각 한 번씩 같은 형태로 값을 누락시켰다. 세 번째는 `visible_label` 을 28→4 로 줄였고 **그 결측 위에서 `label_relation` 이 계산됐다**. 구조적 해법은 시간상 시행하지 않았다"
+  },
+  {
+   "id": "L7",
+   "제목": "검사가 잡지 못한 결함이 있었다",
+   "내용": "첫 재동결에서 `collection_run` 이 50행 전부 sentinel 이었는데 **모든 검사를 통과했다**. 생산자가 출력을 눈으로 보고 잡았다. 이후 '컬럼 100% sentinel = 미배선' must_flag 를 신설했으나, **그 이전 산출물에는 이 검사가 적용되지 않았다**"
+  },
+  {
+   "id": "L8",
+   "제목": "두 측정축이 배선되지 않았다",
+   "내용": "`reveal_direction` · `task_control_occlusion` 이 **50/50 전건 `NOT_OBSERVED`**. E 가 두 변수를 산출하지 않아 어떤 관측도 이 열에 도달하지 않았다. **값이 0 인 것이 아니라 미배선이다.** C 의 신설 `COLUMN_SENTINEL` 검사가 첫 실행에서 잡았다"
+  },
+  {
+   "id": "L9",
+   "제목": "사유 없는 결측이 88건",
+   "내용": "`NULL_WITHOUT_MISSING_REASON` **88** (C 실측). 결측인데 왜 없는지가 기록되지 않았다 — **'없음' 은 알지만 '왜 없는지' 를 모른다**"
+  },
+  {
+   "id": "L10",
+   "제목": "재측정 전수 적용이 검증되지 않았다",
+   "내용": "R82 합집합 **35** 의 목록 파일을 E 가 내지 못해 C 가 독립 재구성하지 못했다. C 측정으로는 **재측정 없는 target 7/50**, 그중 좁은 기준 안 **4**(F1-01·02·07·09). **전수 적용 여부 미검증.** 시간 부족이며 의도적 배제의 증거는 없다"
+  },
+  {
+   "id": "L11",
+   "제목": "idempotency key 가 회차 간 재사용됐다",
+   "내용": "**22건**에서 R1/R2 가 같은 key 를 썼다(E 계기결함, 이후 `scout_run_id` 포함으로 시정, 기존 줄 불변). C 는 `(target_id, run_id)` 쌍으로 검사해 **중복 0** 을 확인했다"
+  },
+  {
+   "id": "L12",
+   "제목": "시정이 새 결측을 만드는 경로를 검사가 잡지 못한다",
+   "내용": "B 의 네 번째 사례 — provenance 판정이 `visible_label` 에 의존했는데 그 열의 매핑 결함을 고치자 **분기가 뒤바뀌어 `entry_control_type` 이 28→9 로 조용히 떨어진 판본(`4e276cf9`)이 실제로 동결됐다**. 생산자가 출력 대조로 잡았고 **검사는 잡지 못했다** — `unwired_columns` 는 전건 sentinel 이 아니라 통과했고, `undermapped_columns` 는 원본이 8건뿐이라 9 > 8 을 손실로 보지 않는다. **교훈: 결함을 고칠 때 그 값에 의존하던 분기를 함께 보지 않으면 시정이 새 결측을 만든다.** 이 경로를 잡는 검사는 이번 체계에 없고, 동결본을 다시 흔들지 않기 위해 추가하지 않았다"
+  },
+  {
+   "id": "L13",
+   "제목": "관측된 8건이 얕은 경로에 치우쳐 있을 수 있다",
+   "내용": "usable evidence 를 얻은 8건이 **전부 메뉴를 거치지 않는 단일 스텝**(`activation_depth` 1 · `menu_dependency` False)이었다. 이는 사이트가 얕아서가 아니라 **수집기가 깊은 경로를 뚫지 못했기 때문일 수 있다** — `COLLECTOR_ZERO_CANDIDATE` 21 의 계통적 한계와 같은 방향의 **선택편향**이다. **‘사이트가 얕다’ 로 해석하지 않는다**"
+  },
+  {
+   "id": "L14",
+   "제목": "권한 평면의 오기가 흘렀고, 수신 평면이 자기 관측을 잊었다",
+   "내용": "A 가 ‘AX 원자료는 존재하나 이번 집계에 미반영’ 이라고 판정했고(TBX-024 R127) B 가 그 문구를 동결 문서에 반영했다. **그 문구는 틀렸다** — C 실측으로 `.ax.json` 107/107 이 60 B 오류 스텁이며 **AX 원자료 자체가 존재하지 않는다**. **권한 평면의 오기가 검증 없이 하위 산출물로 흐르는 경로가 이 실행에서 실제로 작동했다.** CSV 바이트는 불변이므로 mart sha `5290e0c3` 는 유지되고, 동봉 문서 문구만 정정 대상이다",
+   "B_가_덧붙인_축": "**B 의 지적이 더 정확하다.** B 는 세션 초반에 `.ax.json` 이 60바이트 오류 스텁이라는 것을 **직접 보고 보고까지 했다**. 그런데 두 시간 뒤 ‘원자료는 존재한다’ 는 A 판정을 받았을 때 **자기가 앞서 본 것과 대조하지 않았다**. **권한 평면의 오기만 문제가 아니라 수신 평면이 자기 관측을 잊은 것이 함께 작동했다.** 두 겹이 다 필요했다"
+  }
+ ],
+ "METHOD_NOTES_통제가_작동한_기록": [
+  "**E — 자기 중간 보고를 철회했다.** ‘AX 수정 완료’ 라고 보고했던 코드가 **존재하지 않는 속성을 호출하고 있었음**을 직접 확인하고 철회했다. 근본 원인(Playwright 1.62.0 의 `page.accessibility` 제거)까지 특정했다",
+  "**D — 상위 판정을 인용한 자기 책임을 별도로 등재했다(D-DEF-39).** ‘AX 문구는 A 가 준 것이지만 `ls` 한 번이면 확인됐다’ — B 와 구분해서 적었다. **B 는 직접 보고도 잊었고 D 는 본 적이 없다**",
+  "**B — 자기가 A 의 오기를 받아들인 경로를 스스로 더 정확하게 분석했다.** ‘내가 확인할 수 없는 사실이어서가 아니다. `.ax.json` 은 내 디스크에 있었고 나는 세션 초반에 그것이 오류 스텁임을 직접 보고했다. 두 시간 뒤 반대 판정을 받았을 때 앞서 본 것과 대조하지 않았다’",
+  "**B·C — 같은 수치를 서로 다른 방법으로 독립 재현했다.** `entry_control_type` 관측 기반 **26/50** 을 B 는 값 출처 분해로, C 는 보충 줄과 mart 값의 일치 여부로 각각 도출했다",
+  "**C — 자기가 A 에게 준 단서를 스스로 뒤집었다(C-DEF-33).** ‘control type 은 관측 5건 한정’ 이라는 단서를 달았다가 원천 파일을 직접 대조해 **8/8 E 관측**임을 확인하고 정정했다. **열별 provenance 를 잘못 대응시킨 형태** — 그 정정이 Claim 2 를 오히려 단단하게 만들었다",
+  "**B — C 가 통보한 수치가 맞는데도 그 값의 *출처* 를 확인했다.** `nav_container_type` 7/8 이 전부 B 자신의 사후 파생이고 **E 는 그 변수를 산출한 적이 없음**을 `GEOMETRY_SUPPLEMENT` 키 목록에서 확인해 잡았다. **수치가 맞다고 출처가 맞는 것이 아니다**",
+  "**D — A 가 준 허용 문장 예시가 실측과 반대임을 잡았다.** A 는 ‘직접노출형과 메뉴의존형이 모두 관측됐다’ 를 허용 예시로 줬으나 **메뉴의존형은 0/8** 이었다. D 는 대체 문장과 함께 **선택편향 경고**(관측 가능했던 사례가 얕은 경로였기 때문일 수 있다)를 붙였다",
+  "**C — A 의 Claim 2 문안이 폐기된 회귀본 기준임을 잡았다.** ‘navigation 구조 8/8 미관측’ 은 `4e276cf9` 값이고 최종 `5290e0c3` 에서는 7/8 관측·4종 비수렴이다. **A 가 같은 실수(옛 판본 인용)를 두 번째로 했다**",
+  "**C — A 의 한계절 문구를 실측으로 뒤집었다.** A 가 ‘AX 원자료는 존재하나 미반영’ 이라고 적었으나 C 가 `.ax.json` **107/107 이 오류 스텁**임을 세어 **원자료 자체가 없음**을 확정했다. A 가 생산자의 표현을 검증 없이 옮긴 형태다",
+  "**B — 시정이 만든 회귀를 스스로 잡았다.** `label_relation` 결함을 고치자 `entry_control_type` 이 28→9 로 떨어진 판본을 동결했고, 출력 대조로 발견해 복구한 뒤 **자진신고했다.** 네 번째 사례이며 앞의 셋과 형태는 같지만(오류 없이 통과하고 값만 조용히 빔) **이번엔 검사도 눈도 아닌 자기 대조가 잡았다**",
+  "**B — 검사로의 이전이 이 실행의 실제 산물이다.** `collection_run` 이 50행 전건 sentinel 인 채 모든 검사를 통과했을 때는 **생산자의 눈**이 잡았고, 같은 형태가 `reveal_direction`·`task_control_occlusion` 에서 재발했을 때는 **검사**가 잡았다. B 본인의 표현: '눈으로는 못 봤을 것이다'",
+  "C-DEF-29 — checker v1 이 `NOT_OBSERVED` 토큰을 evidence 로 세어 **관측 0 인 입력에서 50/50 만점**. 대조군이 잡아 v2 시정",
+  "C — 신설 `COLUMN_SENTINEL`(열 100% sentinel = `UNWIRED`) 검사가 **첫 실행에서 2건 정탐**",
+  "C — `label_relation` 전건 MATCH 를 독립 재계산으로 뒤집었다. 결정적 근거는 '미관측 행도 MATCH' — **정의상 불가능**",
+  "D — `data_state` 가 행수만 보고 evidence 2건 mart 에 COMPLETE. **그 형태를 막으려 만든 표지가 스스로 그 형태를 냈다**",
+  "D — 표와 해시 비원자 읽기로 값이 2→4→6 흔들림. 세 평면 read+hash 원자화",
+  "D — A 가 하달한 확정치가 mart 실측과 다르다고 **판정하지 않고 올렸다**",
+  "B — 승격 target 신원을 순번으로 가정해 보고 후 자기정정. **수치는 맞고 신원이 틀렸다**",
+  "B — 재라벨이 스캔 경로에만 걸려 정본 유래 18건 미적용. **절반만 적용된 채 동결될 뻔했다**",
+  "B — 두 run 겹칠 때 `found[tid]=ev` 조용한 덮어쓰기. **실패가 아니라 성공처럼 보이는 변경**",
+  "B — `selection_rule` 이름은 `LATEST_RUN` 인데 계산은 **사전순**이었다. `R2B` 가 `R3` 보다 사전순으로 앞서면서 드러났다 — **이름이 계산을 잘못 설명하고 있었다**",
+  "B — 어휘 매처로 후보를 고르지 않고 **E 관측 라벨로 DOM 앵커링**",
+  "E — viewport 커밋 타임라인을 **자기에게 불리한 방향으로** 확인해 '재시도로 해소 안 됨' 을 확정시켰다",
+  "E — 후보를 못 찾은 42건의 좌표를 **지어내지 않고** `NOT_OBSERVED` 로 뒀다",
+  "E — union 을 스스로 재계산해 **A 의 부분 수치 21 인용을 35 로 정정**하고 gap 13 을 잡았다",
+  "E — 자기 보고의 오독 여지(`forbidden_actions_attempted`)를 **인용 전에 먼저 짚었다**",
+  "A — 티켓 `created_at` 을 측정하지 않고 손으로 적어 mtime 보다 미래 시각. D 가 발견",
+  "A — R2 기준 합집합에 **부분 수치를 전체처럼 인용**(21 vs 35). E 가 정정",
+  "A — **폐기된 sha 기준 회차 수치를 확정치로 하달**했다. B 가 잡았다. 지시가 옛 판본을 가리킨 형태로, D 의 원자성 발견과 같은 계열"
+ ],
+ "SAFETY": {
+  "금지행위_위반": "0건 (E 보고 · C forbidden-action trace)",
+  "어휘_hit_대_실행형": "'송금' 등 과업 어휘 hit 은 계수하되 **위반으로 합산하지 않았다** — F1 의 frozen task 자체가 송금 진입이다. 실행형(click/tap/submit) **0**"
+ },
+ "sealed_at_kst": "2026-08-28T12:02:16+0900",
+ "BINDING": {
+  "canonical_mart_sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+  "mart_rows": 50,
+  "mart_columns": 27,
+  "b_head_sha": "601221611bd7c6ce",
+  "b_adapter_sha": "4039df87b9dd240c",
+  "supersede_chain_depth": 7,
+  "c_checker_sha": "8cea653",
+  "c_checker_version": "CHECKER_FROZEN v3",
+  "c_assurance": [
+   "artifacts/v3_census/assurance/MAIN50_EVIDENCE_ASSURED.json",
+   "artifacts/v3_census/assurance/ANALYSIS_ASSURED.json"
+  ],
+  "e_head_sha": "f3dbf28",
+  "d_head_sha": "7eef4beb0b5b27dd306515c6f68f127177a7e1eb",
+  "evidence_chain": "EVIDENCE_MANIFEST.jsonl 85줄 · break 0 · 고유 target 50",
+  "collection_cutoff_kst": "2026-08-28T11:50:00+0900",
+  "cutoff_초과_줄": 0,
+  "폐기된_중간본": "`4e276cf9` — `entry_control_type` 28→9 회귀 포함. C 가 이 sha 에서 검산했으므로 최종 sha 에서 재실행 중",
+  "c_final_recheck": "**완료** — C-ASSURANCE-115007, `5290e0c3` 에서 9항 전부 불변 일치, k8 집합 동일, pre-R3 8/8 유지",
+  "c_assurance_files": {
+   "MAIN50_EVIDENCE_ASSURED.json": "file sha 71303b17… · measured 11:50:06 · inputs.mart_sha256 = 5290e0c3…",
+   "ANALYSIS_ASSURED.json": "file sha a9c756a6… · measured 11:50:06 · mart.sha256 = 5290e0c3…",
+   "CHECKER_FROZEN.json v4": "file sha b82ec389… · final_mart_verified = 5290e0c3 · k8 pre-R3 8/8 · K8_CONVERGENCE 경로 결속",
+   "checker_head": "claude-c/assurance-v21 @ 872a25d (pushed)",
+   "인용_규칙": "**보고서 인용은 이 세 파일 sha 로 한다**"
+  }
+ },
+ "C_INDEPENDENT_ASSURANCE": {
+  "EVIDENCE_ASSURED": [
+   "파일 sha 재계산 일치",
+   "50행 · 27컬럼",
+   "manifest 두 hash 일치",
+   "분모 50/50/6/44 · unaccounted 0",
+   "hash chain 85줄 break 0",
+   "동일 run 중복 0",
+   "run 선택 독립 재계산 50/50 일치(latest captured_at ≤ 11:50, R3 제외)",
+   "컷오프 이후 줄 0",
+   "task_hash 불일치 0",
+   "mart hash ↔ E chain 50/50",
+   "전체정지 3종 해당 0"
+  ],
+  "ANALYSIS_ASSURED": {
+   "activation_depth": "28/28",
+   "menu_dependency": "28/28",
+   "label_relation": "AX_NOT_INDEPENDENTLY_OBSERVED 28 · NONE 21 · VISIBLE_ONLY 1 — C 가 raw `accessible_name_source` 로 기대값을 내어 **50/50 일치**(provenance 기반 ASSURED, **결과절 제외 유지**)"
+  },
+  "NOT_ASSURED_그리고_그렇게_적는다": {
+   "auth_gate_stage": "파생 불가 8 · `UNDETERMINED` 42 는 관측이 아니다",
+   "entry_geometry_4축": "E_R3 8 + 사후 파생 — 원천 검증 불가",
+   "reveal_direction · task_control_occlusion": "**UNWIRED 0/50** — 배선되지 않았다",
+   "sequence_distance": "C 단독 산출 · family n 6/8/7/4/3",
+   "geometry_supplement": "`GEOMETRY_SUPPLEMENT_E.jsonl` 50줄에 `evidence_hash` 가 없다 → n=8 geometry 의 hash 결속은 **R1 줄 hash 로만**, 보충 파일 자체는 **NOT_ASSURED**"
+  },
+  "임계경로_답": {
+   "질문": "8 target 이 R3 선택 이전에 이미 task-path evidence 를 갖고 있었는가",
+   "답": "**8/8 CONFIRMED**",
+   "티켓": "C-ASSURANCE-114653"
+  },
+  "headline_재계산": "6/50 · 21/16 · 가족 completed/failed 1/9 · 2/8 · 1/9 · 0/10 · 2/8 · activation_depth median 1 / IQR 0",
+  "k8_수렴_재계산": {
+   "수렴한_것": "조작순서 signature 1종(`SELECT_FUNCTION` ×8) · `activation_depth` 1 ×8 · `menu_dependency` False ×8",
+   "수렴하지_않은_것": "`entry_zone` **5종/8** (TOP_LEFT 1 · TOP_CENTER 2 · TOP_RIGHT 1 · MID 2 · BOTTOM 2) · control type **2종** (TEXT_LINK 6 · ICON_TEXT 2)",
+   "미관측": "`nav_container_type` **8/8 NOT_OBSERVED**",
+   "출처": "C — gate3/out/K8_CONVERGENCE_C.json"
+  },
+  "sentinel_열별_의미": "C 전역 목록에 `NONE` 없음(`superseded_runs`·`label_relation` 의 `NONE` 은 **값**으로 셈) · `UNDETERMINED` 는 `auth_gate_stage` 에서만 미관측 취급 — **충돌 0**"
+ },
+ "FAMILY_BREAKDOWN_C실측": {
+  "F1": "COLLECTOR_ZERO 7 · AUTH_GATE 1 · FORBIDDEN_BOUNDARY 1 · ENDPOINT_REACHED 1",
+  "F2": "COLLECTOR_ZERO 2 · NO_SAFE_ROUTE_SITE 6 · ENDPOINT_REACHED 2",
+  "F3": "COLLECTOR_ZERO 3 · NO_SAFE_ROUTE_SITE 5 · AUTH_GATE 1 · ENDPOINT_REACHED 1",
+  "F4": "COLLECTOR_ZERO 4 · NO_SAFE_ROUTE_SITE 4 · TIMEOUT 2 · ENDPOINT_REACHED 0",
+  "F5": "COLLECTOR_ZERO 5 · NO_SAFE_ROUTE_SITE 1 · UNVERIFIED 2 · ENDPOINT_REACHED 2"
+ },
+ "document_title": {
+  "en": "MAIN50 Time-boxed Acquisition Report v1",
+  "ko": "MAIN50 시간제한 전수관측 보고서 v1"
+ },
+ "PUBLICATION_READY": false,
+ "PUBLICATION_READY_사유": "Director 유보. replay 면제 · 수집기 계통한계 미해소 · 라벨축 제외 · geometry 보충 NOT_ASSURED 상태에서 completion contract 를 채우지 못했다",
+ "MART_규정": {
+  "무엇인가": "**outcome-conditioned rescue mart**. R1 → 실패기반 R2/R2B → 성공대상 geometry 보충 R3 가 섞여 있다",
+  "무엇이_아닌가": "동일 조건의 50개 census 결과표가 아니다",
+  "금지": [
+   "run 간 성공률 비교",
+   "family 간 성공률 비교",
+   "8/50 을 서비스 reachability 로 해석"
+  ],
+  "필수문장": "**Collection run 은 교환가능한 반복측정이 아니다. R2 와 R3 는 이전 관측 결과에 따라 대상이 선택된 rescue pass 이므로 run 별 terminal 분포를 성능 비교나 서비스 특성 비교에 사용하지 않았다.**",
+  "회차_표기": "`R1 attempted 50` / `R1-only surviving in mart 15` · R2 22 · R2B 13 · R3 0(GEOMETRY_SUPPLEMENT 전용)"
+ },
+ "ACQUISITION_STATE_3집단": {
+  "USABLE PATH EVIDENCE (8)": "ENDPOINT_REACHED 6 · AUTH_GATE 2",
+  "SITE-SIDE ROUTE NOT OBSERVED (16)": "NO_SAFE_ROUTE_SITE 16",
+  "MEASUREMENT / COLLECTOR LIMITED (26)": "COLLECTOR_ZERO_CANDIDATE 21 · TIMEOUT 2 · UNVERIFIED 2 · FORBIDDEN_ACTION_BOUNDARY 1",
+  "그래프_제목": "**‘시간제한 수집 종료 시점의 acquisition state’** — ‘서비스 접근성 결과’ 금지"
+ },
+ "K_판정": {
+  "k": 8,
+  "status": "**CONFIRMED**",
+  "검증자": "C (C-ASSURANCE-114653, checker 74065df)",
+  "target": [
+   "F1-03",
+   "F1-05",
+   "F2-01",
+   "F2-08",
+   "F3-02",
+   "F3-06",
+   "F5-02",
+   "F5-05"
+  ],
+  "근거": "**8/8 전부 R3 이전 R1 줄(captured 11:06–11:26, 컷오프 전)에 endpoint/auth evidence 보유** — 각각 S0+S1 상태·파일 8개·evidence_dir 실재·evidence_hash 보유. C 는 raw 만 보고 D/E 서술 미사용",
+  "의미": "**‘시간 제한 내 전체 acquisition history 에서 8개 고유 target 에 usable task-path evidence 가 최소 1회 확보됐다’**",
+  "의미가_아닌_것": "**‘50개 중 8개 서비스가 접근 가능했다’ 가 아니다. ‘접근성 성공률’ 이라 부르지 않는다**"
+ },
+ "PROVENANCE_분리": {
+  "entry_control_type 28": {
+   "ANCHOR_ON_E_LABEL": "**23 — E 관측 라벨로 DOM 앵커링. 관측 기반**",
+   "B_LEXICON_MATCHER": "**4 — B 어휘 매처. 추측 기반** (F1-05·F1-08·F3-06·F4-06)",
+   "사유토큰": "POSTHOC_AMBIGUOUS 9 · POSTHOC_NO_NARROW_MATCH 10 · NO_DOM_CAPTURED_BY_E 4",
+   "보고_규칙": "**control type 분포는 23/50 으로만 쓴다.** 4건은 근거가 다르므로 합산하지 않는다"
+  }
+ },
+ "A_시각기록_주의": "이 문서의 앞선 판본들은 `sealed_at_kst` 를 **손으로 적어** 실제 시각보다 앞서 있었다. A 가 TBX-011 에서 판정했던 결함을 A 가 다시 냈다. 이 판본부터 측정값이다",
+ "FINDING_전파경로": {
+  "제목": "**하나의 미검증 진술이 네 평면을 거쳐 동결 문서와 그림까지 들어갔고, 한 번의 실측이 끊었다**",
+  "경로": [
+   "① **E** — `.ax.json` 파일이 **존재하는 것만 보고 내용을 열지 않은 채** ‘AX 원자료는 존재한다’ 고 보고",
+   "② **A** — E 의 진술을 **검증 없이 채택**해 ‘AX 원자료는 존재하나 이번 집계에 미반영’ 으로 **판정**(TBX-024 R127)",
+   "③ **B** — A 의 판정을 받아 **동결 문서에 반영**. 그러나 B 는 세션 초반에 **그 파일이 60바이트 오류 스텁임을 직접 보고 보고까지 했다** — 자기 관측과 대조하지 않았다",
+   "④ **D** — `ls` 한 번이면 확인됐을 것을 하지 않고 **그림에 실었다**(D-DEF-39)",
+   "⑤ **C** — `.ax.json` **107/107 을 직접 세어** 전부 오류 스텁임을 확인. **전파가 끊겼다**",
+   "⑥ **E** — 코드에서 근본 원인 확인. **Playwright 1.62.0 에 `page.accessibility` 가 없다.** 자기 중간 보고를 철회"
+  ],
+  "교훈": [
+   "**파일 존재는 내용의 증거가 아니다.** ①이 그 형태다",
+   "**권한 평면의 판정이 검증을 대체하지 않는다.** ②→③→④ 가 그 통로다",
+   "**자기가 이미 관측한 것과 새로 받은 판정을 대조해야 한다.** ③이 하지 않았다",
+   "**상위 판정이라도 파일 존재·바이트 수준 주장은 인용 전에 직접 확인한다.** D 가 스스로 고친 규칙이다",
+   "**한 번의 실측이 네 단계를 끊었다.** ⑤가 한 일은 `ls -l` 과 세기뿐이다"
+  ],
+  "왜_이것이_이_실행의_대표_산물인가": "이 census 가 겪은 모든 결함이 같은 형태였다 — **없음과 있음이 같은 출력으로 보이는 것**. 60바이트 오류 스텁은 **파일 목록에서 정상 파일과 구분되지 않는다.** 그리고 그 구분을 하지 않은 판단이 네 평면을 연쇄로 통과했다"
+ }
+}

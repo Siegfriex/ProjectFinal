@@ -1,0 +1,48 @@
+{
+ "release_id": "V3_TIMEBOX_CENSUS_1230",
+ "version": 1,
+ "status": "RELEASED",
+ "issued_by": "A / Authority Plane",
+ "issued_at_kst": "2026-08-28T10:48:00+0900",
+ "authority": "DIRECTOR — V3 DIRECT MAIN50 CENSUS / AUTONOMOUS CLOSEOUT + 10:47 개정(E=acquisition, B=ingest)",
+ "real_target_allowed": true,
+ "scope": "frozen MAIN50 v3.0.2 **exactly 50 units** (service × frozen task). 그 밖의 REAL 은 허가하지 않는다",
+ "manifest_binding": {
+  "path": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+  "version": "3.0.2",
+  "body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+  "body_재계산규칙": "dumps(manifest minus 'manifest_sha256', sort_keys=False, indent=1, separators=(',',': '), ensure_ascii=False), 후행개행 없음",
+  "A_독립재계산": "두 값 모두 일치 확인. manifest 파일은 FROZEN — 아무도 수정하지 않는다"
+ },
+ "manifest_은_불변": "이 release 는 frame 을 동결한 manifest 를 **수정하지 않는다**. manifest 의 `real_target_allowed:false` 는 '이 파일이 실행을 허가하지 않는다'는 뜻이고, 실행허가는 **이 별도 release** 가 준다. 두 문서는 다른 것을 말한다",
+ "plane_role": {
+  "A": "단일 release · 전체 dispatch · 진행률 관제 · 최종 claim freeze. **canonical row 를 직접 생산하지 않고 자기승인하지 않는다**",
+  "E": "**authorized REAL raw acquisition plane** — 50 전수 crawler/pathfinder, 다중 worker. 표본교체·claim 판단 금지",
+  "B": "**canonical ingest/normalization plane** — E raw 를 streaming ingest → V3 schema 정규화 → canonical mart 50행. **전건 deterministic replay 요구 면제**",
+  "C": "streaming central assurance — 수집 전 checker 동결, streaming QC, 최종 독립 수치 재계산. 전 타깃 승인·잠재결함 재발굴 안 함",
+  "D": "**read-only analysis/ML/visualization** — streaming EDA · mixed-feature 분석 · 최종 표/그림 · claim 후보. REAL 접속·canonical 승인 금지"
+ },
+ "면제": [
+  "Pilot5 / Pilot10 / Q12 REAL qualification — release 선행조건에서 제거",
+  "mobile-web precheck 선행",
+  "B 의 전건 deterministic replay",
+  "RUNNER_CONVERGENCE_OFFLINE 을 census 의 gate 로 두는 것"
+ ],
+ "n_50_의_의미": "**endpoint 성공 50 이 아니라 frozen service×task 50 을 exactly-once attempted 했다는 뜻.** 연구 frame n=50 은 실패 여부와 무관하게 고정되고, 변수별로 `observed k/50` 을 따로 적는다",
+ "실패처리": "교체하지 않고 denominator 에 유지. `WAF / APP_REQUIRED / AUTH_GATE / NO_SAFE_ROUTE / TIMEOUT / PUBLIC_WEB_UNOBSERVABLE` 등을 `terminal_reason` 으로 기록. 변수는 `UNDETERMINED` / `NOT_OBSERVED`",
+ "leakage_상태": {
+  "값": "NOT_ASSESSED_BEYOND_EXISTING_CONTROLS",
+  "의미": "기존 통제 밖의 leakage/content contamination 을 **추가 탐색하는 gate 를 중단**했다. 따라서 **'누수 없음' 주장 금지**. 미탐지는 부재가 아니라 미측정이다",
+  "최종문서_의무": "limitations 절에 이 값을 그대로 싣는다"
+ },
+ "전체정지_조건": [
+  "frozen target/manifest 를 잘못 실행",
+  "credential·transaction·purchase·reservation·payment 등 금지행위 발생",
+  "evidence overwrite / duplicate / denominator corruption"
+ ],
+ "그_외": "defect / missingness / site failure 는 해당 row 또는 해당 variable 을 `UNDETERMINED`/`NOT_OBSERVED` 로 남기고 **속행**. 전체 census 를 세우지 않는다",
+ "안전금지_유지": "credential 입력·login submit·본인인증·CAPTCHA 해결/우회·구매·송금·예약·결제·장바구니·전화 발신·실제 운송장 제출 — 전부 금지. auth 는 frozen task path 에서 불가피한 gate 까지만 관측하고 금지행위 직전 종료",
+ "비가역성_정정": "**공개 모바일웹의 GET/render 자체는 비가역 접속이 아니다.** 비가역인 것은 계정·결제·예약·전송 등 상태변경 action 이다. REAL 권한은 연구통제상 필요해서 두는 것이지 열람이 비가역이어서가 아니다 — Director 정정 수용",
+ "claim_boundary_유지": "service×task primary unit · 다축 STFP(composite 금지) · family n=10 (45 pair 는 descriptive cell) · 금지 claim(실제 인지부하·실제 전이실패·인과 usability·cross-provider WCAG 위반) 그대로"
+}

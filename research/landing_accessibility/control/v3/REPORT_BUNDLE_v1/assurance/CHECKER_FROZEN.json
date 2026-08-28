@@ -1,0 +1,95 @@
+{
+ "schema": "C_CHECKER_FROZEN",
+ "version": 4,
+ "frozen_at_kst": "2026-08-28T11:52:34+09:00",
+ "plane": "C",
+ "ruling": "T-A-V3-TBX-007 / TBX-009 / TBX-010; release V3_TIMEBOX_CENSUS_1230",
+ "checker": {
+  "path": "research/landing_accessibility/assurance/gate3/census_qc_c.py",
+  "branch": "claude-c/assurance-v21",
+  "commit_sha": "872a25d55da44d502b2f4fba68c83c9e0b37b36a",
+  "pushed_to_origin": true,
+  "tool_sha256": "6df1496ee155d0e5737516e8705246e07208e1e28a572174a9c2bbe4a51dadb0",
+  "adapter_map": "research/landing_accessibility/assurance/gate3/ADAPTER_MAP_C.json",
+  "derived_metric_replay_lib": "research/landing_accessibility/assurance/gate1/lane6_stats/c_flow_derive.py (30 tests)",
+  "stream_wrapper": {
+   "path": "research/landing_accessibility/assurance/gate3/census_stream_c.py",
+   "sha256": "5c3a8b53ed07284cc8d52176c072946a44cb650dfc6e0b1f59d390119e9aafc7"
+  },
+  "analysis_replay": {
+   "path": "research/landing_accessibility/assurance/gate3/analysis_replay_c.py",
+   "sha256": "9663c525f44a100fe85cc01867520b2206d7a5a8c4c152b6b9e1b373ddfd9f91"
+  }
+ },
+ "checks": [
+  "UNIQUE_TARGETS",
+  "MANIFEST_HASH",
+  "DUPLICATE",
+  "EVIDENCE_OR_TERMINAL",
+  "FORBIDDEN_ACTION",
+  "FAMILY_10x5",
+  "DENOMINATORS"
+ ],
+ "controls": {
+  "census_qc_c": 18,
+  "census_stream_c": 31,
+  "analysis_replay_c": 12,
+  "all_pass": true
+ },
+ "exit_semantics": {
+  "0": "ran (flags in JSON)",
+  "2": "did not run (controls failed / crash)",
+  "3": "NO_EVIDENCE_INPUT (0 rows) — not a pass"
+ },
+ "manifest": {
+  "version": "3.0.2",
+  "body_sha256_recomputed": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "file_sha256_recomputed": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+  "matches_release": true
+ },
+ "binding_state": "BOUND to T-A-V3-TBX-010 paths + TBX-006 23 columns (census_stream_c.py ADAPTER); evidence_adequacy / forbidden_action have no mart column → chain presence + raw presence probe (rule stated), NOT claimed as 0",
+ "leakage_state": "NOT_ASSESSED_BEYOND_EXISTING_CONTROLS",
+ "not_a_verdict": true,
+ "history": [
+  {
+   "commit_sha": "e21dc903ff7240883425add65b9c259206c7dc80",
+   "tool_sha256": "2ce2e3bff5a3dc534ead2824f608de35d1272f7bb915730144475b7db7b8e933",
+   "frozen_at_kst": "2026-08-28T10:54:37+09:00",
+   "superseded_at_kst": "2026-08-28T10:58:15+09:00",
+   "reason": "C-DEF-29: placeholder tokens (NOT_OBSERVED/UNDETERMINED) were counted as evidence on snapshot_00 → tightened (sentinel handling), controls 14→17; TBX-010 field/path binding added (census_stream_c.py). Logic scope unchanged (7 items)."
+  },
+  {
+   "commit_sha": "43d7d4da52e0403a2b76d1322a170678e97a6f03",
+   "tool_sha256": "503be50a6bd8ad0ad83f0bd3cbc47b3210a59cf7e6b8d808aadcf752574e13bd",
+   "frozen_at_kst": "2026-08-28T10:58:15+09:00",
+   "superseded_at_kst": "2026-08-28T11:41:51+09:00",
+   "reason": "A rulings absorbed during streaming (R78 denominators, R82/R97/R103 re-measurement criterion, R90/R91 label/auth rules, R98 run selection, R99/R107 run identity, R102 cutoff, R105, R110 column sentinel) — 7-item scope unchanged; controls qc 18 · stream 31 · replay 12"
+  },
+  {
+   "commit_sha": "8cea653c38d147287c8b8908431dd9386958e277",
+   "tool_sha256": "6df1496ee155d0e5737516e8705246e07208e1e28a572174a9c2bbe4a51dadb0",
+   "frozen_at_kst": "2026-08-28T11:41:51+09:00",
+   "superseded_at_kst": "2026-08-28T11:52:34+09:00",
+   "reason": "final: TBX-023 provenance rule for label_relation, K8 convergence on final sha; scope unchanged"
+  }
+ ],
+ "first_input_reading": {
+  "mart": "snapshot_00.csv",
+  "rows": 50,
+  "attempted_frozen": 50,
+  "attempted_observed": 0,
+  "evidence_adequate": 0,
+  "evidence_or_terminal_k": "0/50",
+  "agrees_with_B_INGEST_STATS": true
+ },
+ "final_mart_verified": {
+  "sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+  "at_kst": "2026-08-28T11:50:06+09:00",
+  "assured_files": {
+   "MAIN50_EVIDENCE_ASSURED.json": "71303b17ede27794b83d574b3977bd5c41a10378824e9f691f6a8bf8fabd492e",
+   "ANALYSIS_ASSURED.json": "a9c756a69ba5dc325404170604a68a66cc617fe0ea08aeb76a84a3ca1098ec02"
+  },
+  "k8_pre_r3": "8/8",
+  "k8_convergence": "gate3/out/K8_CONVERGENCE_C.json"
+ }
+}

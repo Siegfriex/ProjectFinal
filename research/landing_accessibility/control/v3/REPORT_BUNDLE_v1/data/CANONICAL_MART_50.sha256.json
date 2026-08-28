@@ -1,0 +1,91 @@
+{
+ "file_sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+ "row_count": 50,
+ "frozen_at_kst": "2026-08-28T11:55:41+09:00",
+ "b_head_sha": "1d6f5a7a8fe6ed8eae0f0bf584317d0c6bbc34ab",
+ "manifest_file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+ "manifest_body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+ "promoted": 50,
+ "rejected": 0,
+ "family_denominators": {
+  "F1": {
+   "attempted": 10,
+   "evidence_adequate": 10,
+   "completed": 1,
+   "failed": 9,
+   "denominator": 10
+  },
+  "F2": {
+   "attempted": 10,
+   "evidence_adequate": 10,
+   "completed": 2,
+   "failed": 8,
+   "denominator": 10
+  },
+  "F3": {
+   "attempted": 10,
+   "evidence_adequate": 10,
+   "completed": 1,
+   "failed": 9,
+   "denominator": 10
+  },
+  "F4": {
+   "attempted": 10,
+   "evidence_adequate": 10,
+   "completed": 0,
+   "failed": 10,
+   "denominator": 10
+  },
+  "F5": {
+   "attempted": 10,
+   "evidence_adequate": 10,
+   "completed": 2,
+   "failed": 8,
+   "denominator": 10
+  },
+  "OVERALL": {
+   "attempted": 50,
+   "evidence_adequate": 50,
+   "completed": 6,
+   "failed": 44,
+   "denominator": 50
+  }
+ },
+ "**이 동결이 주장하지 않는 것**": [
+  "**evidence_hash 의 무결성** — 일부는 B 가 디렉터리 바이트로 계산한 값이고 E 가 쓴 바이트의 증언이 아니다(`evidence_hash_provenance` 참조)",
+  "**`COLLECTOR_ZERO_CANDIDATE` 인 행의 사이트 사실** — 그 행들은 수집기가 후보를 못 잡은 것이고 사이트에 경로가 없다는 뜻이 아니다",
+  "**`entry_observation_provenance` 가 `B_DERIVED_FROM_DOM_POSTHOC` 인 값** — 관측이 아니라 저장 DOM 에서의 파생이다",
+  "**`activation_depth`** — 사후로 채우지 않았다. E 가 준 값만 실려 있다",
+  "**`accessible_name` 열은 AX 관측이 아니다** — AX 캡처가 전 상태에서 실패했고(오류 스텁 **107/107** = `{\"_error\": \"'Page' object has no attribute 'accessibility'\"}`), `accessible_name` 은 visible text 복사였다(E 의 `emit_ledger.py` 자기확인). **AX 트리 원자료는 존재하지 않으며 향후 재추출도 불가능하다.** 이 문구는 앞서 '원자료는 존재하나 반영되지 않았다' 로 적혀 있었는데 **그 판정이 틀렸고 C 실측으로 정정됐다**"
+ ],
+ "label_relation_rule": {
+  "NONE": "둘 다 미관측",
+  "VISIBLE_ONLY": "visible_label 만 관측",
+  "AX_ONLY": "accessible_name 만 관측",
+  "MATCH": "둘 다 관측되고 **문자열 동일**",
+  "DIFFERENT": "둘 다 관측되고 다름",
+  "**금지**": "`SEMANTIC_EQUIV` 는 규칙을 명시하지 않는 한 쓰지 않는다",
+  "**불변식**": "어느 한쪽이라도 미관측이면 **MATCH 가 될 수 없다**",
+  "AX_NOT_INDEPENDENTLY_OBSERVED": "`accessible_name_source == VISIBLE_TEXT` — **AX 이름이 독립 관측이 아니다.** E 의 AX 캡처가 깨져 가시 텍스트를 복사했으므로 두 열의 일치는 동어반복이고 **라벨 분기는 이번 census 에서 측정 불가다**"
+ },
+ "label_relation_provenance": "B_RECOMPUTED_BY_RULE_TBX_017",
+ "**이 mart 의 성격**": "**acquisition mart 다**(Director 규정). `collection_run` · `superseded_runs` 는 **provenance 전용이며 통계변수로 쓰지 않는다** — 회차별 성공률 같은 것을 계산하면 회차 선정이 결과와 얽혀 있어 순환이 된다",
+ "entry_control_type_출처_분해": {
+  "E_SUPPLEMENT": 8,
+  "ANCHOR_ON_E_LABEL": 18,
+  "B_LEXICON_MATCHER": 2,
+  "관측 기반 합": 26,
+  "B 추측": 2,
+  "**주의**": "`entry_observation_provenance` 는 **사후 파생 경로**를 말하며 **값의 최종 출처가 아니다** — E geometry 보충이 그 값을 덮은 행이 8건 있다. 두 열을 대응시켜 세면 출처를 잘못 귀속한다"
+ },
+ "**R1 표기 규약**": "`R1 attempted 50` 과 `R1-only surviving in mart 15` 는 **다른 것을 센다.** 전자는 R1 에서 시도된 target 수, 후자는 최신우선 선택 후 mart 에 남은 R1 행 수다. **'R1 15' 만 쓰면 'R1 이 15건 수집했다' 로 오독된다**",
+ "auth_gate_stage_rule": "`NONE` 은 `ENDPOINT_REACHED` 행에서만. endpoint 에 닿지 못한 행은 `UNDETERMINED` — 게이트 부재를 주장할 수 없다",
+ "supersedes": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+ "collection_run_distribution": {
+  "E-REAL-CENSUS-1230": 15,
+  "E-REAL-CENSUS-1230-R2": 22,
+  "E-REAL-CENSUS-1230-R2B": 13
+ },
+ "run_mixing_note": "**target 마다 수집 회차가 다르다.** 최신-run 우선 규칙은 결과에 눈감고 적용되지만, R2/R3 가 부분집합에만 있으므로 **두 수집 체제가 target 별로 섞여 있다.** `collection_run` 으로 어느 회차 산물인지 행마다 확인할 수 있다",
+ "self_approved": false
+}
