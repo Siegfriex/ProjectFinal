@@ -14,6 +14,7 @@ from collections import Counter
 from pathlib import Path
 
 import d_v3_census as C
+import d_retractions as _RET
 import d_v3_report as R
 
 OUT = C.ANALYSIS / "tables"
@@ -47,7 +48,9 @@ def t1_acquisition_state(df, pin):
             n = int(g[label].get(k, 0))
             per = {f: int(((df["family_id"].astype(str) == f) &
                            (df["terminal_reason"].astype(str) == k)).sum()) for f in fams}
-            rows.append([label, k, f"{n}/50"] + [f"{per[f]}/10" for f in fams])
+            # [A R163] 철회된 라벨은 **표시를 달아서만** 나간다. 주석이 아니라 코드다
+            rows.append([label, _RET.cite(k), f"{n}/50"]
+                        + [f"{per[f]}/10" for f in fams])
     rows.append(["TOTAL", "", f"{g['_total']}/50"] +
                 [f"{int((df['family_id'].astype(str) == f).sum())}/10" for f in fams])
     note = ("시간제한 수집 종료 시점의 acquisition state. **서비스 접근성 결과가 아니다.** "

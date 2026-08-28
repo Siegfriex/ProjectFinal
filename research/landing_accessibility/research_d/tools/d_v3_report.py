@@ -32,7 +32,11 @@ OUT = C.ANALYSIS / "figures"
 # 사이트가 금지행위를 한 것이 아니라 collector 가 경계에서 멈춘 것이다.
 GROUPS = [
     ("USABLE PATH EVIDENCE", ["ENDPOINT_REACHED", "AUTH_GATE"], "#2166ac"),
-    ("SITE-SIDE ROUTE NOT OBSERVED", ["NO_SAFE_ROUTE_SITE"], "#1b9e77"),
+    # [A R163 / RETRACTIONS.md] `NO_SAFE_ROUTE_SITE` 의 **SITE 라벨은 철회됐다**.
+    # 옛 그룹명 "SITE-SIDE ROUTE NOT OBSERVED" 는 **철회된 함의를 그룹명으로
+    # 재생산**하고 있었다 — 정본이 금지한 형태다("이 토큰을 사이트에 대한
+    # 진술로 쓰면 안 된다"). 정본이 지정한 대체 라벨을 쓴다.
+    ("ROUTE NOT REACHED BY COLLECTOR", ["NO_SAFE_ROUTE_SITE"], "#1b9e77"),
     ("MEASUREMENT / COLLECTOR LIMITED",
      ["COLLECTOR_ZERO_CANDIDATE", "TIMEOUT",
       "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT", "FORBIDDEN_ACTION_BOUNDARY"], "#d95f02"),

@@ -24,6 +24,20 @@ print(f"  verdict          : {ctl['verdict']}")
 print(f"  positive control : {ctl['positive']['detected']}/{ctl['positive']['expected']} 검출")
 print(f"  negative control : {ctl['negative']['not_detected']}/{ctl['negative']['expected']} 미검출(과탐 0)")
 print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['expected']} 명시 오류")
+# --- 철회 라벨 인용 상주 감사 (A R163 / D-DEF-48) ---
+# "검사는 CSV 의 값을 보지 그 값이 사람에게 어떻게 읽히는지를 안 본다" (B).
+# 철회 사실을 주석·문서에만 두면 아무것도 강제하지 않는다.
+try:
+    from d_retractions import audit_artifacts as _ra, retracted_tokens as _rt
+    _r = _ra()
+    print(f"\n=== 철회 라벨 인용 : {_r['verdict']} · 표시 없는 인용 {_r['n']} "
+          f"(철회 토큰 {sorted(_rt())}) ===")
+    for _f in _r["files"]:
+        print(f"   {_f}")
+except Exception as _e:
+    print(f"\n=== 철회 라벨 인용 : 검사 실패 {_e} ===")
+    errs.append({"file": "(철회 인용)", "error": f"철회 감사 실행 실패: {_e}"})
+
 # --- D 자기 발행분 **스키마 정본** 상주 감사 (D-DEF-47) ---
 # 발행 도구를 우회해 손으로 티켓을 쓰면 도구의 가드가 무의미하다.
 # 그래서 **사후 스캔**을 매 루프에 붙인다 — 우회해도 다음 스캔에서 보인다.
