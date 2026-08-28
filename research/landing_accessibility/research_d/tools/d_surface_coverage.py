@@ -57,6 +57,79 @@ _PROSE = ("왜", "뜻", "note", "why", "규칙", "축", "이유", "말하지", "
           "무엇을", "어떻게", "설명", "출처", "대상", "범위", "관계", "read")
 
 
+# [D-DEF-108] 지금까지 **한 방향**만 봤다 — 모듈이 낸 키가 스캔에 있는가.
+# 반대편(**스캔이 읽는데 모듈이 안 내는 키**)은 아무 검사도 안 봤고, 실제로
+# 키 이름을 바꾼 뒤 표시부 하나가 `selected_candidate None` 을 찍고 있었다.
+_BIND = re.compile(r"from\s+([a-z_0-9]+)\s+import\s+([a-z_0-9]+)\s+as\s+([_A-Za-z0-9]+)")
+# 단일 대입과 **튜플 언패킹**(`_r, _k, _s = _ra(), _rk(), _rs()`) 둘 다 잡는다 —
+# 튜플을 안 잡아 `_s` 를 다른 함수에 매핑해 **오탐 1건**을 냈다.
+_CALL = re.compile(r"^\s*([_A-Za-z0-9, ]+?)\s*=\s*([_A-Za-z0-9(), ]+?)\s*$", re.M)
+# `for X in ...` 로 **다시 묶이는 이름**은 모듈 결과가 아니다 — 오탐 4건의 원인
+_LOOP = re.compile(r"for\s+([_A-Za-z0-9]+)\s+in\s")
+_READ = re.compile(r"([_A-Za-z0-9]+)(?:\.get\(['\"]([a-z_0-9]+)['\"]|\[['\"]([a-z_0-9]+)['\"]\])")
+
+
+def reads_missing_keys(text: str | None = None, keys_by: dict | None = None) -> dict:
+    """스캔이 읽는 키가 그 모듈의 반환에 실제로 있는가.
+
+    `text`/`keys_by` 를 주면 그것을 본다 — **대조군이 이 함수를 직접 시험**한다.
+    `0` 이 '탐지기가 죽었다' 일 수 있으므로 합성 입력으로 잡히는지 매 회 보인다.
+    """
+    import importlib
+    if text is None:
+        if not SCAN.exists():
+            return {"verdict": "NO_SCAN"}
+        txt = SCAN.read_text(encoding="utf-8")
+    else:
+        txt = text
+    alias = {a: (m, f) for m, f, a in _BIND.findall(txt)}        # _g -> (module, fn)
+    var = {}
+    for lhs, rhs in _CALL.findall(txt):
+        names = [x.strip() for x in lhs.split(",") if x.strip()]
+        calls = [x.strip().rstrip("()") for x in rhs.split(",") if x.strip()]
+        if len(names) != len(calls):
+            continue                    # 길이가 다르면 짝을 못 짓는다 — **추측하지 않는다**
+        for n, c_ in zip(names, calls):
+            if c_ in alias:
+                var[n] = alias[c_]
+    # **루프 변수로 다시 묶이는 이름은 뺀다** — 같은 이름이 다른 것을 가리킨다
+    for v in set(_LOOP.findall(txt)):
+        var.pop(v, None)
+    cache, missing, checked = {}, [], 0
+    for v, k1, k2 in _READ.findall(txt):
+        key = k1 or k2
+        if v not in var or not key:
+            continue
+        mod, f = var[v]
+        if (mod, f) not in cache:
+            if keys_by is None and (mod, f) in _KEYS_BY:
+                cache[(mod, f)] = _KEYS_BY[(mod, f)]    # **이미 계산된 것을 쓴다**
+            elif keys_by is not None:
+                cache[(mod, f)] = keys_by.get(mod)
+            else:
+                try:
+                    cache[(mod, f)] = set(getattr(importlib.import_module(mod), f)())
+                except Exception:                               # noqa: BLE001
+                    cache[(mod, f)] = None
+        keys = cache[(mod, f)]
+        if keys is None:
+            continue
+        checked += 1
+        if key not in keys:
+            missing.append({"var": v, "module": mod, "fn": f, "key": key})
+    return {"verdict": "PASS" if not missing else "FAIL",
+            "n_bindings": len(var), "n_reads_checked": checked,
+            "n_missing": len(missing), "missing": missing,
+            "**반대 방향이다**": (
+                "`check()` 는 **모듈 → 스캔**을 본다. 이것은 **스캔 → 모듈**이다 — "
+                "키 이름을 바꾸면 표시부가 조용히 `None` 을 찍는다"),
+            "안_보는_것": ("변수에 바인딩되지 않은 읽기(중첩 접근, 루프 변수)는 못 본다. "
+                     "`n_reads_checked` 가 그 범위다")}
+
+
+_KEYS_BY: dict = {}            # [D-DEF-108] `check()` 가 채운다 — 재호출 비용을 없앤다
+
+
 def _deep_key_names(obj, depth: int = 0) -> set:
     """반환 안의 **모든 깊이**의 키 이름. [D-DEF-94]
 
@@ -250,6 +323,7 @@ def check() -> dict:
     scan_txt = SCAN.read_text(encoding="utf-8") if SCAN.exists() else ""
     rows, unsurfaced = [], []
     key_owners: dict = {}          # [D-DEF-93] 최상위 키 이름 → 그 키를 내는 모듈들
+    global _KEYS_BY                # [D-DEF-108] 반대 방향 검사가 재호출하지 않게 공유
     deep_owners: dict = {}         # [D-DEF-94] **모든 깊이**의 키 이름 → 모듈들
     for mod_name, fn_name in derive_targets():
         try:
@@ -268,6 +342,9 @@ def check() -> dict:
         if not isinstance(res, dict):
             rows.append({"module": mod_name, "state": "NON_DICT"})
             continue
+        # **(모듈, 함수)** 로 키잉한다 — 모듈만으로 두면 같은 모듈의 다른 함수 키셋을
+        # 섞어 '없는 키 29' 라는 거짓 신호를 냈다
+        _KEYS_BY[(mod_name, fn_name)] = set(res)
         sig = [k for k, v in res.items() if _is_signal(k, v)]
         miss = [k for k in sig if not _referenced(k, scan_txt)]
         rows.append({"module": mod_name, "fn": fn_name,
@@ -369,6 +446,18 @@ def controls() -> dict:
     case("쌍따옴표도 표시다", _referenced("covered", 'print(_c.get("covered"))'), True)
     case("이름 충돌을 센다 — 0 이면 그 축이 죽은 것이다",
          isinstance(c.get("ambiguous_keys"), list), True)
+    # [D-DEF-108] 반대 방향(스캔 → 모듈)이 **실제로 잡는가**
+    _ok = ("from modx import f as _g\n_v = _g()\nprint(_v['good'])\n")
+    _bad = ("from modx import f as _g\n_v = _g()\nprint(_v['gone'])\n")
+    _loop = ("from modx import f as _g\n_v = _g()\nfor _v in xs:\n    print(_v['gone'])\n")
+    _kb = {"modx": {"good"}}
+    case("있는 키는 안 걸린다",
+         reads_missing_keys(_ok, _kb)["n_missing"], 0)
+    case("**없는 키는 걸린다** — 이름을 바꾸면 표시부가 조용히 None 을 찍는다",
+         reads_missing_keys(_bad, _kb)["n_missing"], 1, negative=True)
+    case("**루프 변수로 다시 묶인 이름은 안 걸린다** — 오탐 4건의 원인이었다",
+         reads_missing_keys(_loop, _kb)["n_missing"], 0)
+    case("현재 스캔에 없는 키 0", reads_missing_keys()["n_missing"], 0)
     _t = derive_targets()
     case("원본에서 9쌍보다 많이 뽑는다", len(_t) > 9, True)
     case("자기 자신은 빼야 한다 — 재귀", any(m == SELF_MODULE for m, _ in _t), False)

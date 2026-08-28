@@ -234,7 +234,8 @@ try:
     from d_label_provenance import check as _lp_fn
     _lp = _lp_fn()
     print(f"   라벨 출처(R1 {_lp.get('n_lines')}줄) : visible_label {_lp.get('n_with_visible_label')} "
-          f"· selected_candidate {_lp.get('n_with_selected_candidate')} "
+          f"· selected_candidate 키 {_lp.get('n_with_selected_candidate_key')}"
+          f"/값 {_lp.get('n_with_selected_candidate_value')} "
           f"· 발췌 절단 {_lp.get('n_excerpt_capped')}/{_lp.get('n_excerpt')}"
           f"({_lp.get('capped_ratio')}) — **R1 trace 로는 라벨을 확인할 수 없다**. "
           f"DOM 스냅샷 {_lp.get('dom_snapshot_present')}건 실재·sha 기록(D 는 열지 않았다)")
@@ -337,6 +338,13 @@ try:
               f"— 위험한 것만 **미표시로 되돌린다**(불확실한 것을 통과로 세지 않는다)")
     for _st in _sf["stale_accepted"]:
         print(f"   ** 목록 썩음 ** {_st['module']}.{_st['key']} — 검사가 더는 내지 않는다")
+    from d_surface_coverage import reads_missing_keys as _rmk
+    _rm = _rmk()
+    print(f"   반대 방향(스캔이 읽는데 모듈이 안 내는 키) : {_rm.get('verdict')} "
+          f"· 바인딩 {_rm.get('n_bindings')} · 읽기 {_rm.get('n_reads_checked')} "
+          f"· **없는 키 {_rm.get('n_missing')}**")
+    for _mk in (_rm.get("missing") or [])[:5]:
+        print(f"     ** 없는 키 ** {_mk['var']}={_mk['module']}.{_mk['fn']} → {_mk['key']}")
     print("   (판정이 아니다 — 무엇이 신호인지는 자동으로 정해지지 않는다)")
 except Exception as _e9:
     print(f"\n=== 표시 누락 : 검사 실패 {_e9} ===")
