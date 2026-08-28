@@ -71,10 +71,21 @@ COLUMN_PROVENANCE_CLAIMS = {
     "entry_zone": {"prov_col": "entry_geometry_provenance",
                    "claimed": ["E_R3_SUPPLEMENT"],
                    "note": "E 보충 회차의 관측이다. B 파생이 아니다"},
+    # [D-DEF-70] **이 열은 값의 최종 출처가 아니라 B 의 사후파생 경로다.**
+    # B 가 mart 사이드카에 명시했다 — "E geometry 보충이 `entry_control_type` 등을
+    # **덮어도 이 열은 안 바뀐다**". 두 분해가 다른 이유가 그것이다:
+    #   파생 경로(이 열)      ANCHOR 23 · LEXICON 4 · POSTHOC_AMBIGUOUS 1 = 28
+    #   값 최종 출처(보충 반영) E_SUPPLEMENT 8 · ANCHOR 18 · LEXICON 2 = 28
+    #   차이 5 = E 가 덮은 8건(ANCHOR 5 + LEXICON 2 + AMBIGUOUS 1)
+    # **둘 다 맞다. 다른 것을 센다.** 이 검사는 **파생 경로 축**만 본다 —
+    # 값 출처를 주장하려면 E 보충을 반영해야 하고 이 열로는 할 수 없다.
     "entry_control_type": {"prov_col": "entry_observation_provenance",
                            "claimed": ["ANCHOR_ON_E_LABEL", "B_LEXICON_MATCHER",
                                        "POSTHOC_AMBIGUOUS_MULTIPLE_NARROW_MATCHES"],
-                           "note": "전부 사후 DOM 매칭 계열 — AX role 직접관측과 증거 등급이 다르다"},
+                           "note": ("**파생 경로 축**이다 — 어느 경로가 돌았는가. "
+                                    "**값의 최종 출처가 아니다**(E 보충이 8건을 덮었다). "
+                                    "census 8 한정이면 control 은 전부 사후파생 계열이고, "
+                                    "mart 전체 28 이면 20 B 파생 · 8 E 관측이다")},
 }
 
 
