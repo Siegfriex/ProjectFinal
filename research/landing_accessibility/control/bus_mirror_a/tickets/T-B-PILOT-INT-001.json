@@ -1,0 +1,50 @@
+{
+ "ticket_id": "T-B-PILOT-INT-001",
+ "type": "FINDING",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "priority": "P0",
+ "phase": "PILOT",
+ "claim_kind": "IMPLEMENTATION",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "target_sha": "4bbbc2299f924aceb20203ddc7798cab41b37471",
+ "created_at": "2026-08-28T00:03:42+09:00",
+ "expected_response": "ACK",
+ "headline": "diagnostic integration SHA 생성 완료 — C preflight 대상이다. B 는 아직 launch 하지 않았다.",
+ "integration_sha": "4bbbc2299f924aceb20203ddc7798cab41b37471",
+ "branch": "claude-b/diag-pilot-integration (origin push 확인)",
+ "composition": {
+  "W1": "fed031f5e90dcc4cad33ba0b42afbc31e2595d24 — guard candidate-level · task lineage 59/59 · exactly-once · 원장 귀속 · D-R0-71 회귀 갱신 · T-A-W1-P2-DECIDED mask",
+  "W2": "b28aaa5cad736082a6a76c0ca6a9f6be330bbcfb — NOT_PASSED freeze 상태로 diagnostic baseline",
+  "W4": "35d5c2e1905dea503ef8999604f5b26ee04c6e4d — D-R0-42 probe execution_mode 배선 · D-R0-72 overlay construct",
+  "W3": "포함하지 않는다 — 수집 실행과 독립이며 W3 자신도 같은 판단을 했다"
+ },
+ "b_finding_on_composition": {
+  "headline": "W1 이 이미 W2 를 merge 하고 있었다 — 별도 병합이 불필요했다",
+  "evidence": "W1 의 fed031f 커밋이 'merge(w1): origin/claude-b/w2-rf-detector @ b28aaa5 — enabled() 필드 편입' 이다. B 가 disabled→DISABLED_OR_INERT 처리를 위해 W2 의 enabled 필드가 필요하다고 지시했고 W1 이 merge 로 해결했다",
+  "verification": "merge-base --is-ancestor 로 W2 b28aaa5 가 W1 fed031f5 의 조상임을 확인했다",
+  "consequence": "integration 은 W1 + W4 병합만으로 성립했고 두 브랜치의 변경 파일이 겹치지 않아 충돌 0건이었다"
+ },
+ "b_verification": {
+  "method": "D-R0-69 전용 워크트리(.agent_worktrees/claude_b_verify)에서 수행. worker 워크트리 미접촉",
+  "dry_run_first": "--no-commit --no-ff 로 먼저 충돌을 확인한 뒤 abort 하고 실제 병합했다",
+  "conflicts": "0건 (Automatic merge went well)",
+  "ancestry_checks": {
+   "W1": "포함",
+   "W2": "포함",
+   "W4": "포함",
+   "base 2281c85": "포함",
+   "W3 be51a3b3": "미포함 — 의도대로"
+  },
+  "remote": "origin refs/heads/claude-b/diag-pilot-integration = 4bbbc2299f92 확인"
+ },
+ "b_has_not_launched": "B 는 아직 REAL_TARGET 에 접속하지 않았다. C 의 T-A-PILOT-ASSURE-001 preflight 완료가 선행이며 A 가 그렇게 지시했다.",
+ "remaining_before_launch": [
+  "C preflight 6항 완료 (manifest sha 재계산 · sampling 재현 · split/label 비참조 · quota · exactly-once 하네스 이식)",
+  "W1 completion 수신 — push 는 확인했으나 completion 보고가 아직 없어 B 가 T-A-W1-P2-DECIDED 내용을 검산하지 못했다"
+ ],
+ "producer": "B"
+}

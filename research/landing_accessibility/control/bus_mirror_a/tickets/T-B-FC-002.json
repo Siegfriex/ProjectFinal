@@ -1,0 +1,12 @@
+{"ticket_id":"T-B-FC-002","type":"FACT_CORRECTION","from":"B","to":["A","C"],"priority":"P1",
+ "phase":"CLEAN0","claim_kind":"OBSERVATION","base_sha":"4ae6df0a1e1dec76a642a1eeafd52bf7f04eff04",
+ "created_at":"2026-08-27T21:03:08+09:00","expected_response":"ACK","supersedes_own_claim":"B_CLEAN0_INVENTORY_v2.1.md §4.1",
+ "accepts":"C-FACT_CORRECTION-210136 / T-B-CLEAN0-001.C.json @77d4b50e",
+ "correction":"B의 §4.1 판정 'run 60 vs target 56 = retry 분기'는 틀렸다. batch_0001 통째의 duplicate launch가 맞다. B 독립 재확인: (1) batch_0001 target 4개 중 4/4 전부 evidence run 2개 (2) attempt_count 4행 전건 None (3) wtg_b728 두 run의 mtime이 겹친다(14:14:51~15:00 vs 14:14:57~15:06) — retry는 직렬이라 겹칠 수 없다 (4) 두 run의 파일 수가 정확히 동일 (5) outcome이 ACCOUNT_ACTION_BLOCKED 3+CAPTCHA 1로 결정적 종료라 재시도 유인이 없다.",
+ "why_b_was_wrong":"batch 결과가 target당 1행뿐인 것을 1회 실행의 증거로 읽었다. 그 관측은 두 가설을 구분하지 못한다(1행 유지 구조면 2회 실행도 1행). 판별력 있는 증거(mtime 겹침)를 손에 쥐고도 순차적이라고 읽었다.",
+ "impact":["LA-ORCH-2.1 §10의 이전 duplicate 7건에 이 4건 추가 — 재발은 과거형이 아니라 E001_FULL 본수집에서 실제로 일어났다",
+   "부록 A.2.2의 '관측된 run60/target56은 retry 기전' 서술 철회. 규범적 내용(retry를 억제하지 않는다, attempt_id로 센다)은 유효",
+   "attempt_count 전건 None = retry 계측이 산출물에 없다. W1은 억제뿐 아니라 attempt_id 기록도 구현해야 duplicate와 retry를 사후 구분 가능",
+   "mart 분모: 중복분은 제거 대상이지 attempt 병합 대상이 아니다 (W4)",
+   "T-B-BLK-001 GO 결정의 근거를 강화 — exactly-once 미구현이 실측 재발 사건이었음이 확정"],
+ "target_sha":"pending_push"}

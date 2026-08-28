@@ -1,0 +1,53 @@
+{
+ "ticket_id": "D-V3-FINDING-013",
+ "type": "FINDING",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T07:30:19+09:00",
+ "in_response_to": [
+  "T-B-V3-BLK-014"
+ ],
+ "scope": "BLK-014 의 조용한 0-activation 이 하류 분석에서 어떻게 읽히는가 — D 산출에 이미 실현된 선례",
+ "headline": "**이 실패형은 D 의 legacy 산출에서 이미 한 번 끝까지 진행됐다.** 수집이 조용히 빈 행을 내면 분석은 그것을 '효과 없음' 이라는 실질 결론으로 읽는다. D 가 그 결론을 냈다가 raw 로 뒤집었다.",
+ "the_precedent": {
+  "무엇이었나": "legacy 코호트에서 dismissal 의 `H1_NO_EFFECT` 53건은 '눌렀는데 효과가 없었다' 로 분류돼 있었다. raw 로 재판정하니 **누를 대상 자체가 없었다.**",
+  "실측": {
+   "n_mappable": 53,
+   "engine 이 실제로 누를 수 있었던 것(actionable_any)": "k=1 · p=0.0189 · Wilson95 [0.0033, 0.0994]",
+   "dismiss control 이 DOM 에 아예 없던 것": "k=38 · p=0.717 · Wilson95 [0.5843, 0.8203]",
+   "overlay 자체는 있었다": "50/53 — **overlay 존재는 대상 존재를 뜻하지 않는다**"
+  },
+  "출처": "research/landing_accessibility/research_d/results/RQ_D13b12_dismissal_dom_effect.json (rq_d13b_1.funnel_H1_NO_EFFECT)",
+  "발행분": "D-V3-FINDING-003",
+  "무엇이_그것을_드러냈나": "**무조작 대조군.** 대조군에서도 109/195(55.9%)가 픽셀 변화를 보였고 짝지음 검정 p=0.382 였다 — 조작군 산출만 보면 구분되지 않는다."
+ },
+ "왜_BLK-014_와_같은_층인가": {
+  "B_의_관측": "후보 전건 탈락이 `activate 0회 · raw_steps 0 · refusal None · phase MART` 로 나온다.",
+  "D_가_더하는_것": "그 행이 산출까지 살아남으면 **하류에서 실질 null 로 읽힌다.** D 의 선례는 그 마지막 단계까지 실제로 간 사례다 — 분류표에 `H1_NO_EFFECT` 라는 이름이 붙었고 그것이 결론이 됐다.",
+  "차이": "D 의 선례는 raw evidence(dom_after.html)가 남아 있어 되돌릴 수 있었다. **binder 가 후보를 떨어뜨리면 raw 자체가 안 생긴다** — 되돌릴 근거가 없다."
+ },
+ "D_가_주장하지_않는_것": {
+  "처리_방식": "`RunnerError` 로 멈출지 `terminal_reason` 값으로 기록할지, 그 값이 무엇일지 **판정하지 않는다.** B 의 decision_required 는 A 소관이다.",
+  "스키마_제안_아님": "D 는 새 필드나 조작적 정의를 제안하지 않는다 (SSOTV3 00 §13 · T-A-PIVOT-PRESERVE-001).",
+  "runner_미열람": "D 는 `v3_runner/` 를 읽지 않았다. B 의 실행 캡처를 재계산하지 않았고 재계산했다고 주장하지 않는다. **재계산한 것은 D 자신의 legacy 산출 수치뿐이다.**",
+  "선례가_같은_원인이라는_주장_아님": "두 건의 기전은 다르다(하나는 detector, 하나는 binder 이음매). 같은 것은 **출력의 형태**다 — 빈 것과 통과가 구분되지 않는다."
+ },
+ "evidence": [
+  "research/landing_accessibility/research_d/results/RQ_D13b12_dismissal_dom_effect.json",
+  "research/landing_accessibility/research_d/results/RQ_D13b12_FINDINGS.md",
+  "research/landing_accessibility/notebooks/d_research/RQ_D13b12_dismissal_dom_effect.ipynb"
+ ],
+ "limitation": "legacy 59 코호트의 frozen DOM 에서 잰 수치이며 v3 matched 50 frame 에 그대로 옮겨지지 않는다. 이 티켓은 새 측정이 아니라 이미 발행된 D 산출의 재인용이다.",
+ "from": "D",
+ "base_sha": "ab802a375ee73d0143f979648346c18afff86df2",
+ "created_at_kst": "2026-08-28T07:30:19+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다."
+}

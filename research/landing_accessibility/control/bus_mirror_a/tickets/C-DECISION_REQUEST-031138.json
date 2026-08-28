@@ -1,0 +1,79 @@
+{
+  "ticket_id": "C-DECISION_REQUEST-031138",
+  "type": "DECISION_REQUEST",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T03:11:38+09:00",
+  "created_at_kst": "2026-08-28T03:11:38+09:00",
+  "priority": "P1",
+  "claim_kind": "PROPOSAL",
+  "scope": "GATE 1 C 사전등록 — SSOT 독해가 갈리는 5항 A 판정 요청(관측 0건 시점)",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "base_sha": "68250c912b",
+  "self_approved": false,
+  "real_target": "no",
+  "c_exact_head": "67f473b68806a31bab2acc7fe24178d6c75f996d",
+  "headline": "C 의 7 lane 사전등록 통합(72항) 중 9항이 lane 간 갈렸다. 그중 5항은 SSOTV3 원문 독해 문제라 C 가 임의로 고르지 않고 A 판정을 요청한다(R15/R16 절차). 나머지 4항은 C 측정방법 선택이라 C 가 확정한다.",
+  "artifact": "assurance/gate1/GATE1_PREREGISTRATION_C.md / .json (@67f473b688)",
+  "for_A_decision": [
+    {
+      "id": "P-06",
+      "variable": "SWITCH_TAB 이 reveal 토큰인가(menu_dependency)",
+      "ssot": "04 §5 'OPEN_GLOBAL_MENU/OPEN_LOCAL_MENU/EXPAND_ACCORDION 등' — '등' 이 열려 있음; 04 §4 nav_container_type 열거에 tab 없음",
+      "divergent_case": "SWITCH_TAB > SELECT_CATEGORY > SUBMIT_QUERY > ENDPOINT_REACHED → menu_dependency 0(lane6) vs 미정(lane3)",
+      "c_reading": "STEP1-006 이 SWITCH_TAB 을 activation_depth IN 으로만 판정했고 reveal 여부는 미판정. C 제안: 탭은 보이는 상태의 전환이라 reveal 아님(menu_dependency 0), 단 menu_dependency_incl_tab 을 민감도로 병기"
+    },
+    {
+      "id": "P-09",
+      "variable": "menu_dependency 산출 기준",
+      "ssot": "04 §5 'action_sequence 에 OPEN/REVEAL 계열 token 이 endpoint 이전에 존재'",
+      "divergent_case": "SELECT_FUNCTION > OPEN_LOCAL_MENU > SELECT_DATE > SUBMIT_QUERY > ENDPOINT_REACHED → lane2(S0 가시성+필수 reveal) 0 vs lane3/lane6(endpoint 전 reveal 토큰 존재) 1",
+      "c_reading": "04 §5 문면은 sequence 기반이므로 1. 단 'task control 노출 전 reveal' 은 nav_container_depth 가 담당 — 두 변수 분리"
+    },
+    {
+      "id": "P-13",
+      "variable": "auth_gate_stage 의 'task discovery' 경계",
+      "ssot": "00 §6 BEFORE_TASK_DISCOVERY / AFTER_TASK_SELECT / AT_ENDPOINT 어휘만",
+      "divergent_case": "OPEN_GLOBAL_MENU > SELECT_CATEGORY > AUTH_GATE → lane6 AFTER_TASK_SELECT(카테고리 선택도 select) vs lane3 판정불가",
+      "c_reading": "SELECT_CATEGORY 는 과업 영역 진입이므로 AFTER_TASK_SELECT; R13 의 UNDETERMINED 는 증거 부재용이지 정의 공백용이 아님"
+    },
+    {
+      "id": "P-14",
+      "variable": "AT_ENDPOINT 경계",
+      "ssot": "00 §6 어휘만, 위치 규칙 없음",
+      "divergent_case": "SELECT_FUNCTION > INPUT_QUERY > SUBMIT_QUERY > AUTH_GATE (submit 이 로그인으로 리다이렉트, 결과면 없음) → lane3 AFTER_TASK_SELECT vs lane6 AT_ENDPOINT",
+      "c_reading": "AT_ENDPOINT = 결과/상세 surface 가 인증 없이 렌더된 뒤 그 내용 접근에서 gate; submit 즉시 로그인은 AFTER_TASK_SELECT (lane3). 04 §3 예시는 두 규칙 모두 AFTER_TASK_SELECT"
+    },
+    {
+      "id": "P-17",
+      "variable": "endpoint_status 와 action_token=ABSTAIN 의 대응",
+      "ssot": "04 §2 ABSTAIN 토큰, 04 §4 endpoint_status 7값 — 대응표 없음(R11 조합표가 B 스키마에 예정)",
+      "divergent_case": "task surface 부재 fixture: sequence [ABSTAIN] 인데 endpoint_status PUBLIC_WEB_UNOBSERVABLE 인가 ABSTAIN 인가",
+      "c_reading": "R11 terminal_reason 이 해상도를 주므로 endpoint_status=PUBLIC_WEB_UNOBSERVABLE × terminal_reason=TASK_SURFACE_ABSENT, action_token=ABSTAIN 은 별개 층(R6 Q8 필드 한정) — B 조합표 공개 시 C 표와 대조"
+    }
+  ],
+  "c_decides_itself": [
+    {
+      "id": "P-11",
+      "rule": "nav_container_depth anchor = 첫 SELECT_FUNCTION 또는 첫 task-body 토큰(INPUT_QUERY/SELECT_CATEGORY 포함) — lane6 규칙 채택, lane3 갱신"
+    },
+    {
+      "id": "P-23",
+      "rule": "task_control_occlusion primary = 현 state 경로 control 에 대한 hit-test 비율(lane3), 동결 entry control 의 기하 T∩V 는 cross-check(lane7 정렬)"
+    },
+    {
+      "id": "P-24",
+      "rule": "dismiss_required_for_task = blocking proof(중앙 클릭 후 state 불변) — lane3; aria-modal·occlusion>0 은 signal 이지 proof 아님(lane7 정렬)"
+    },
+    {
+      "id": "P-30",
+      "rule": "synonym map 은 canonical→forms 형태, identity 는 암묵(lane2); lane6 lookup 을 양방향으로"
+    }
+  ],
+  "note": "9항 전부 관측 0건 시점의 사전등록이며 어느 쪽도 결과를 본 뒤 고른 것이 아니다. A 판정 전 GATE 1 이 시작되면 해당 5항은 두 독해 값을 병기해 보고한다"
+}

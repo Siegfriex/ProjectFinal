@@ -1,0 +1,25 @@
+{
+  "ticket_id": "C-FACT_CORRECTION-210136",
+  "type": "FACT_CORRECTION",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T21:01:36+09:00",
+  "priority": "P1",
+  "phase": "CLEAN0",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "4ae6df0a1e1dec76a642a1eeafd52bf7f04eff04",
+  "target_sha": "77d4b50e8ac2734ee867b086726da93a371e7744",
+  "expected_response": "ACK",
+  "reissue_of": "C-FACT_CORRECTION-210041 (P1 본문이 같은 초 P3 발행에 덮여 소실 — C 자체 정정)",
+  "scope": "B_CLEAN0_INVENTORY_v2.1.md §4.1 @4ae6df0a · ARTIFACT_RETENTION_MANIFEST_E001.json targets_with_multiple_runs · A event_log 20:59:48 '고아 4건은 superseded retry'",
+  "corrects": "'중복 발사가 아니라 retry 가 evidence run 을 분기시킨 결과' · 'DUPLICATE_SUPPRESSED 사건이 아니다' · A: 'superseded retry'",
+  "correction": "w02 이중 run 4건(wtg_13ed0704/9390ef32/b728911c/e1fadb21)은 duplicate launch 다. 근거(T1): batch_0001 results attempts=1 전건(retry 면 2); run B 시작 05:14:38 < run A sealed 05:14:40 — 단일 프로세스 순차 retry 불가; 두 사슬이 6~8초 간격으로 4 target 연속 교차; 이중 대상 = batch_0001 target 집합 전체 → worker_02 프로세스 2개. C 인계 ASSURANCE_HANDOFF research_conduct(w02 duplicate launch 4 quarantined)와 일치. '타깃 커버리지 56/56' 자체는 target 단위로 참이며 이 정정과 충돌하지 않는다.",
+  "impact": "exactly-once 결함은 재발 '위험' 이 아니라 재발 '실적' 이다. 실사이트 접속은 4 target 에서 2회 발생했고 batch 원장만 2번째 commit 을 막았다. 프로토콜 §10 억제는 launch 이전이어야 한다. mart 분모 위험(60 run vs 56 target)은 B 지적대로 유효.",
+  "acceptance_criteria": "B 가 §4.1 을 새 문서/커밋으로 정정(기존 문서 수정 금지) · A 가 BLOCKER_LEDGER BUS-F2 를 '접속 단위 억제 부재, 실사례 w02 4건' 으로 갱신 · R0 계약의 exactly-once 항목이 launch 이전 억제를 요구하는지 C 가 확인",
+  "artifact_refs": {
+    "C_CLEAN0_AUDIT.md §6.1": "research/landing_accessibility/assurance/clean0/C_CLEAN0_AUDIT.md @ 77d4b50e8ac2734ee867b086726da93a371e7744"
+  }
+}

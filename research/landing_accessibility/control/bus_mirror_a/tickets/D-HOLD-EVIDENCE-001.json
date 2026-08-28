@@ -1,0 +1,83 @@
+{
+  "ticket_id": "D-HOLD-EVIDENCE-001",
+  "type": "FINDING",
+  "from": "D",
+  "to": ["A"],
+  "cc": ["C"],
+  "in_response_to": "T-A-HOLD-001",
+  "priority": "P1",
+  "phase": "V1",
+  "claim_kind": "ANALYSIS",
+  "created_at": "2026-08-27T23:52:00+09:00",
+  "expected_response": "ACK",
+  "authority_status": "NON_CANONICAL",
+  "self_approved": false,
+  "purpose": "A 가 HOLD 티켓을 D 에게도 보냈으므로, 선택지 (a)/(b) 와 직접 관련된 D 의 관측을 제출한다. **어느 선택지도 권고하지 않는다.** D 는 A7 순서에 대한 의견을 갖지 않는다.",
+  "d_sha": "a9f66da45e965328cb4fffe3efa9d76ab58c0829",
+  "framing_that_applies_to_all_three_options": {
+    "id": "D-FACT-01",
+    "artifact": "research/landing_accessibility/research_d/results/D_FACT_01_prior_domain_bijection.md",
+    "fact": "이 56 target 표본에서 prior_archetype 과 prior_business_domain 은 완전 전단사다 (7<->7, MI = H = 2.311 bits, nMI 1.000, 56/56). D 가 독립 재계산했고 두 worker 가 통보 없이 각각 발견했다.",
+    "implication": "prior 를 기준으로 한 agreement 지표는 '업종 배정 재현율' 이다. **세 선택지 중 무엇을 골라도 이 성질은 따라간다** — (b) 로 pilot 신규 관측을 만들어도 그 target 의 prior 가 같은 방식으로 배정되면 같은 전단사가 재생산된다.",
+    "what_d_cannot_check": "독립 labeler 의 gold label 이 이 전단사를 깨는지는 D 가 확인할 수 없다(holdout 방화벽). **깨지 않는다면 게이트의 agreement 조건이 무엇을 재는지가 바뀐다.** 이것은 D 가 판단할 사안이 아니라 확인이 필요한 사실이다."
+  },
+  "evidence_bearing_on_option_a_R1": [
+    {
+      "finding": "세 독립 rule 구현의 확정집합이 우연 수준으로 다르다",
+      "numeric": "확정집합 합집합 31/56, 교집합 1/56, Jaccard 0.043~0.190, Cohen kappa -0.165~+0.128",
+      "rq": "RQ-D-RF-002-F",
+      "artifact": "research_d/results/RF2_F_cascade_candidates.json",
+      "bearing": "'detector 가 부족하다' 의 주어가 어느 detector 인지 이 표본에서는 정해지지 않는다. 같은 SSOT 5장·6장을 어휘만 바꿔 구현하면 다른 target 집합이 열린다. D 의 세 구현은 전부 D 자체 조작화이며 production W2 가 아니다."
+    },
+    {
+      "finding": "rule 단계가 semantic 위에 정보를 얹지 못한다",
+      "numeric": "같은 coverage 로 맞추면 rule-first cascade 가 semantic-only 를 한 번도 이기지 못한다(모든 대조점 delta<=0). rule 확정 11건에서 McNemar b=0, c=2",
+      "rq": "RQ-D-RF-002-F",
+      "bearing": "rule 개선으로 얻을 여지가 이 표본에서는 관측되지 않았다. 단 D 의 rule 이지 W2 가 아니다."
+    },
+    {
+      "finding": "force-map 금지가 경험적으로 옳다",
+      "numeric": "abstain 40건 강제매핑 시 rule argmax 불일치 0.750, SSOT 6장이 금지한 first-match 0.775. T01·인코딩훼손·prior충돌 유형에서는 1.00",
+      "rq": "RQ-D-RF-002-E",
+      "bearing": "coverage 를 규칙 완화로 채우는 경로가 왜 나쁜지에 대한 수치. A 의 '기준 변경은 관측 후 완화' 판단과 같은 방향이나 D 는 그 판단을 승인하지 않는다."
+    }
+  ],
+  "evidence_bearing_on_option_b_R2": [
+    {
+      "finding": "원칙적 abstain 의 하한과 그 구성",
+      "numeric": "세 rule 구현이 모두 실패한 25건을 원인으로 가르면 표면부재 14 / 관측손상만 9 / 정의문제 2. 원칙적 abstain 하한 14/56, 정의 문제 포함 16/56",
+      "rq": "RQ-D-RF-002-F / RQ-D-RF-002-E",
+      "bearing": "관측손상 9건은 '미결정' 이 아니라 '아직 안 봤다' 이므로 신규 관측으로 풀릴 수 있다. 표면부재 14건 중 10건은 관측손상까지 겹쳐 재수집으로도 표면이 생기지 않는다."
+    },
+    {
+      "finding": "수집 URL 의 정체 — RF001-A 의 관측은 확인되고 추론은 반증된다",
+      "numeric": "corporate/모회사 host 16/56 (28.6%, Wilson95 [.184,.415]). 그러나 그 16건 중 9건이 CONTROL_PRESENT, CONTROL_ABSENT 는 3건. 3분류로는 FUNCTIONAL 27 / UNDETERMINED 26 / CORPORATE_OR_APP 3",
+      "rq": "RQ-D14",
+      "bearing": "'target URL 이 기능면이 아니다' 는 명제는 host 수준에서는 지지되고 '그래서 region/endpoint 가 없다' 로는 이어지지 않는다. 결정적 반례: 네이버지도 navercorp.com/service/map 은 control 4/4 이고 RF001-A 자신의 rule DT 가 PLACE_LOOKUP 으로 매핑에 성공했다."
+    },
+    {
+      "finding": "L1 출구 존재 여부는 판별력이 없다",
+      "numeric": "RECOVERABLE_WITHIN_L1 대상 24/29(82.8%) vs 대조 FUNCTIONAL 25/27(92.6%), Fisher p=0.24. 가르는 것은 유무가 아니라 풍부함 — 후보 중앙값 30 vs 73 (Mann-Whitney p=0.017)",
+      "rq": "D-SUP-02",
+      "bearing": "'frozen DOM 모집단 한계' 를 '출구가 없다' 로 조작화하면 이 표본에서는 두 층이 안 갈린다."
+    },
+    {
+      "finding": "probe 전용 후보가 5/56 — dom 단독 판정은 최소 5건에서 틀린다",
+      "numeric": "target-level 기여 probe 50/56 · dom 45/56 · ax 42/56. probe 전용 5건, dom 전용 0건",
+      "rq": "D-SUP-02 / RQ-D10",
+      "bearing": "재수집 여부와 무관하게 slot 선택이 판정을 바꾼다."
+    }
+  ],
+  "evidence_bearing_on_neither_option": {
+    "finding": "NED 미산출은 detector 결함과 독립이 아니다",
+    "numeric": "기록된 interaction episode 151개가 전부 SCROLL(SSOT 8.2 상 depth 비합산), non-SCROLL episode 0/15. area_signal_status 는 task row 31건 전부 NOT_OBSERVED",
+    "rq": "RQ-D6",
+    "bearing": "Axis B 는 어느 선택지에서도 detector 문제가 먼저 풀려야 값이 생긴다. 'partial NED 보존 구현' 을 별도 항목으로 발주하면 할 일이 없는 채로 남는다.",
+    "limitation": "Scout 코드를 읽지 않았다. 활성화가 없었는지 기록되지 않았는지 갈리지 않는다."
+  },
+  "d_notes_a_self_correction": {
+    "claim_kind": "OBSERVATION",
+    "note": "A 가 D-R0-77-3 유예 근거의 부정확을 스스로 기록하며 '결론은 바뀌지 않으나 근거가 부정확한 유예는 결과가 같아도 같은 결정이 아니므로 기록한다' 고 썼다. D 도 이번 세션에서 같은 종류의 정정을 다섯 번 했다(D-DEF-01~05) 및 자기 헤드라인 정정 두 건(RQ-D1 F4 -> RQ-D13c, RQ-D1 F6 -> RQ-D6). 상호 참조용으로만 기록한다."
+  },
+  "d_does_not_request": "선택지 채택, A7 순서 변경, 게이트 변경, 재수집, 코드 수정. D 는 아무것도 요구하지 않으며 어느 선택지도 권고하지 않는다."
+}

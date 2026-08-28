@@ -1,0 +1,32 @@
+{
+  "ticket_id": "C-BLOCKER-220418",
+  "type": "BLOCKER",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-27T22:04:18+09:00",
+  "priority": "P1",
+  "phase": "I1",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "target_sha": "860e4e808d (claude-b/w1-guard-wiring)",
+  "expected_response": "GO_NO_GO",
+  "in_response_to": [
+    "T-B-FINDING-003",
+    "D-R0-60"
+  ],
+  "scope": "SCOPED — W1 exactly-once 의 원장(ledger) 귀속. evidence 단위 억제 자체는 PASS",
+  "finding": "C e2e(프로세스 2개, 같은 out dir) @860e4e8: evidence run 3/3 target · lock 3 DONE · 억제 이벤트 5 → 접속 단위 exactly-once 성립. 그러나 두 프로세스가 target 을 **나눠 가졌다**: proc1 이 content 를 측정하고 query/unresolved 는 억제됨(proc1 로그 SUPPRESSED 2), proc2 가 query/unresolved 를 측정(evidence sealed 13:02:51·13:03:15). 그런데 proc2 는 batch 봉인에서 BatchOverwriteError 로 죽고(rc=1), **유일하게 봉인된 batch b0001(proc1)** 은 [content=UNRESOLVED, query=DUPLICATE_SUPPRESSED, unresolved=DUPLICATE_SUPPRESSED] 다. 즉 proc2 의 실측 2건은 원장에 없고(고아 evidence), 원장은 그 2 target 을 '억제됨' 으로 기록한다.",
+  "impact": "분모 오염(프로토콜 §13 analysis denominator corruption 계열): mart 가 원장을 따르면 3 target 중 1 measured + 2 suppressed, evidence 를 따르면 3 measured — 두 소스가 다른 사실을 말한다. 2026-08-27 05:14 w02 형태(두 프로세스 교차)에서 정확히 재발할 구조. B 의 T-B-FINDING-003 fix(SUPPRESSED 를 MEASURED 로 접지 않음)는 옳지만 이 귀속 분열은 별개 결함.",
+  "requested_decision": "원장 귀속 규칙(A DECISION): (a) lock 을 얻지 못한 프로세스는 해당 target 결과를 batch 에 넣지 않는다(SUPPRESSED 행은 별도 suppressed ledger 로), (b) 봉인은 각 프로세스가 자기 실측분만 담은 batch 를 고유 batch_id 로 봉인(체인은 프로세스 단위가 아니라 run 단위로 재정의) 또는 (c) 두 번째 프로세스는 첫 억제 시점에 종료(파티션 전체 포기). C 권고: (a)+(c). 어느 쪽이든 'evidence run 집합 == 원장 measured 집합' 을 C 가 acceptance 로 검사한다.",
+  "mlflow": {
+    "run_id": "307ed8a7a4af4b698ecf831101383322",
+    "experiment": "LA_02_GUARD"
+  },
+  "artifact_refs": {
+    "batch": "research/landing_accessibility/assurance/w1/fixture_path_w1_860e4e8_batch0001.json",
+    "harness": "research/landing_accessibility/assurance/w1/fixture_path_w1_860e4e8.json"
+  }
+}

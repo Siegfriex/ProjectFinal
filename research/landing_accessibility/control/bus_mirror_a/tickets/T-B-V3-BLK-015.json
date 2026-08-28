@@ -1,0 +1,84 @@
+{
+ "ticket_id": "T-B-V3-BLK-015",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "c95ae8e2b796c11436ad9a556e69d7d7283b1219",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T08:00:47+09:00",
+ "measured_at_kst": "2026-08-28T08:00:47+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "scope": "Δ30 이행 결과 — 3건은 됐고 **승계 위반 2건과 이음매 2건이 남았다.** B 가 단독으로 못 닫는다",
+ "headline": "**Δ30 을 구현하니 그 판정이 v3 runner 와 충돌하는 지점이 드러났다.** ① v3 Scout 은 폭우선이 아니라 **탐욕적 하강**이다 — MIN-2 를 정면으로 어긴다. ② Δ30 tie-break 을 v3 에 넣자 **evidence 순서와 실제로 밟는 경로가 갈렸다.**",
+ "lane": "claude-b/w5l-delta30 @ 5b6b00a5de884a861fc9ebb9ffbf96c1734b3e9a (push 됨)",
+ "part0_what_is_done": {
+  "Δ30-tiebreak": "`v3_runner/tiebreak.py` 신설 — `(task_binding_candidate desc, dom_order asc, selector asc)`. **`min4_sort_key` 를 건드리지 않았다**(v2 공유 함수)",
+  "Δ30 BUDGET_EXCEEDED": "14번째 값 추가 · `ALLOWED[ABSTAIN]` 등재 · MIN-7 대로 **예산값을 대입하지 않는다**(신호가 bool 하나뿐이라 숫자가 들어올 필드가 없음을 테스트로 고정)",
+  "Δ30-branch": "이미 맞았다 — `_classify_action_token` 이 낼 수 있는 값 3종이 전부 Δ9 IN 안. **다만 아무것도 그걸 붙들고 있지 않아** 집합 선언 + 위반 시 `ScoutBranchSetError` 강제선을 넣었다",
+  "Δ32 (a)/(b)": "(a) `CandidateBindingContractError(RunnerError)` — `bind` 반환 형태를 런타임 검증(R30), `propose_next` 의 조용한 `isinstance` 스킵도 예외로 교체, **관측 행 미생성** / (b) `ABSTAIN`×`NO_TASK_CANDIDATE_FOUND` 15번째 값 + `task_candidate_count`(`None` 미관측 ≠ `0` 관측)",
+  "Δ32 R29": "`validate_reached_requires_binding()` + `ZeroActivationClaimError`. `classify_terminal` 이 산출 **전에** 거부하고 runner 도 통과시킨다. **양성대조**(후보 1건이면 REACHED 허용)와 미관측 비거부를 함께 고정",
+  "engine 무수정": "`git diff --numstat d4e9e09..HEAD -- l0_collector.py l0_probe.js` **출력 없음**(변경 0). `l1_engine.py` 포함 engine 전체 무수정",
+  "**D 의 우려가 해소됐다**": "raw 포착 순서 실측 = **binding 앞이다.** `V3Runner.run` 이 `3. _capture_surface`(즉시 디스크 기록) → `4. binder.bind`. **(a) 로 멈춰도 `s000/dom.html` 이 남는다.** 두 갈래 모두 raw 잔존을 테스트로 고정했다"
+ },
+ "part1_MIN2_succession_violation": {
+  "판정 요청": "**Δ30 이 MIN-2 를 '그대로 승계' 로 못박았는데 v3_runner 가 그것을 어긴다.**",
+  "인용 — Δ30": "MIN-2 — activation 수에 대한 **폭우선 열거**. 길이 `n` 을 소진하기 전에 `n+1` 을 시도하지 않는다. **탐욕적 하강 금지** — \"그 방식은 최소 경로를 찾지 못하고도 자신이 찾지 못했다는 사실을 알 수 없다\"",
+  "워커 실측": "`V3Runner._scout_path` 는 `while` 단일 경로이고 `MinPathScoutStrategy` 는 매 호출 랭킹 1위 하나만 낸다 — **탐욕적 하강 그 자체**",
+  "그리고 코드가 그것을 인정한다": "`scout_strategy.py` 자기 docstring — \"재귀 BFS 는 runner 의 다음 버전이 할 일\"",
+  "B 독립 확인": "v2 `l1_engine.py:1412` 에 **실제 BFS 가 있다** — `queue: deque[list[...]] = deque([[]])` · `popleft()` · `len(prefix) > max_activations_per_task` 로 길이를 늘려간다. **양성대조로서 폭우선이 이 저장소에 실재함을 확인했다.** v3 쪽에는 그 구조가 없다",
+  "왜 B 가 못 정하나": "BFS 를 v3 runner 에 넣는 것은 **탐색 알고리즘 교체**다. Δ30 이 요구한 것이기도 하고 STEP 1 범위를 넘는 규모이기도 하다. **'Δ30 이 요구하므로 넣는다' 와 'STEP 1 이후로 미룬다' 중 어느 것인지는 A 판정**이다",
+  "미룰 경우 B 가 요구하는 것": "**그 사실이 산출에 남아야 한다.** MIN-5 가 말한 그대로다 — 탐욕적 하강으로 얻은 값을 '최소' 라고 부를 수 없다. `depth` 계열 산출에 탐색 방식 표기가 필요하다"
+ },
+ "part2_order_divergence": {
+  "판정 요청": "**Δ30 tie-break 을 v3 에 넣자 evidence 랭킹과 실제로 밟는 경로가 갈렸다.**",
+  "기전": "Δ30 이전에는 둘 다 `min4_sort_key` 라 항상 같았다. 이제 v3 evidence 랭킹은 Δ30 전순서, `Scout._activation_candidates` 는 **여전히 하드코딩된 `min4_sort_key`** 다",
+  "B 독립 확인": "`l1_engine.py:48` 이 `min4_sort_key` 를 import 하고 **`:754` 와 `:1313` 에서 실제로 쓴다.** 워커 보고와 일치",
+  "발산 조건": "`marked_primary=True` 후보가 하나라도 있으면 두 순서가 갈린다",
+  "왜 B 가 못 고치나": "맞추려면 **freeze 된 v2 를 고쳐야 한다.** `min4_sort_key` 의 1차 키를 바꾸면 v2 BFS 의 분기 순서가 바뀌고 그건 v2 산출의 재현성을 깬다",
+  "A 에게 묻는 것": "`ruling_10`(경로선택 규칙이 전 target 에 균일)에 이것이 걸리는가. **워커가 '내가 판정할 수 없다' 고 명시했고 B 도 판정하지 않는다**",
+  "B 가 지적하는 실질": "기록된 랭킹과 실제 밟은 경로가 다르면 **`SELECTED`/`rank` 가 경로를 설명하지 못한다.** `min4_sort_key` docstring 이 스스로 그 위험을 적어 뒀다 — \"같은 후보 열에 다른 전순서를 적용하면 저장된 `SELECTED`/`rank` 와 Scout 가 실제로 밟는 경로가 어긋난다\""
+ },
+ "part3_two_seams": {
+  "① BUDGET_EXCEEDED 가 runner 를 건너오지 못한다": {
+   "현상": "`terminal.classify_terminal` 은 낸다. 그러나 runner 의 `TerminalClassifier` Protocol 이 **`endpoint_status` 문자열만 반환**하는 구조라 사유 축이 안 건너온다",
+   "결과": "예산 소진 run 은 `scout_budget_exhausted=True` + **`terminal_reason=None`** 으로 나간다",
+   "워커가 안 고친 이유": "기존 테스트가 그 경우 `endpoint_status is None` 을 핀하고 있어 **덮어쓰면 그 단언을 조용히 무력화한다**",
+   "판정 요청": "이 이음매를 잇는 것이 맞는가. 맞다면 Protocol 반환 형태 변경이 필요하다"
+  },
+  "② 분기 대상 13종 중 3종만 관측 가능": {
+   "현상": "`_classify_action_token` 이 낼 수 있는 값이 3개뿐이다. 나머지 10개(**특히 `SUBMIT_QUERY`**)는 이 경로로 관측될 수 없다 — `l0_probe.js` 읽기전용이라 구조 신호가 없다",
+   "왜 중요한가": "Δ30-branch 가 \"**v2.1 과 달리 `SUBMIT_QUERY` 는 분기 대상이다**\" 를 실질 차이로 명시했는데 **구현이 그것을 낼 수 없다**",
+   "판정 요청": "집합 선언·강제만으로 Δ30-branch 가 이행됐다고 볼 것인가. **워커가 '확신이 없다' 고 명시했고 B 도 단정하지 않는다**"
+  }
+ },
+ "part4_MIN5_precondition_absent": {
+  "관측": "`build_path_manifest` 가 `BRANCHING_LIMIT`·`MAX_ACTIVATIONS_PER_TASK`·후보 지명 규칙·즉시종료 규칙을 **하나도 기재하지 않는다**",
+  "인용 — Δ30": "\"이 값들이 최소성의 범위를 정하므로 값 없이는 '무엇에 대한 최소인가' 를 말할 수 없다\"",
+  "덧붙여": "v3 `ScoutBudget` 은 `max_activations` **하나뿐**이고 5개 파라미터는 v2 `l1_engine.ScoutBudget` 에만 있다",
+  "'최소를 찾았다' 주장은 없다": "v3 어디에도 그 문장이 없다(grep 0) — **그 점은 MIN-5 를 지킨다.** 부족한 것은 범위 기재다",
+  "B 의 Δ30-budget 상태": "나머지 4 파라미터 제안은 **여전히 못 한다** — pilot 관측이 0건이라 실측 근거가 없다. v2.1 값을 옮기고 '실측 근거' 라 부르지 않겠다는 입장 그대로다"
+ },
+ "regression": {
+  "W5L 대상 12파일": "545 passed · 1 skipped · 0 failed",
+  "광역 18파일": "1654 passed · 1 skipped · **3 failed**",
+  "그 3건의 귀속": "**병합본 기저 d4e9e09 에서도 동일하게 실패한다** — 워커가 무수정 워크트리에서 재현 확인. Δ31 의 그 3건이고 **W5M(`341c8177`)이 이미 처리했다.** W5L 브랜치에는 그 시정이 없어서 남아 있는 것뿐이다",
+  "engine diff": "0줄"
+ },
+ "what_B_does_not_claim": {
+  "재병합 미완": "W5L·W5M·W5N 이 아직 합쳐지지 않았다. **13+ lane 병합 회귀를 B 가 단독으로 돌린 뒤에야 수치를 말한다**",
+  "part1·part2 를 B 가 판정하지 않는다": "둘 다 **Δ30 정본과 기존 구현이 충돌**하는 건이고 한쪽은 freeze 된 v2 를 건드려야 한다. R16 경로로 올린다",
+  "워커 보고 중 B 가 독립 확인한 것": "v2 BFS 실재(`deque`/`popleft`) · `min4_sort_key` 의 `l1_engine` 사용처 2곳 · engine numstat 0. **나머지는 워커 실측을 인용한다**"
+ },
+ "decision_required": "① MIN-2 폭우선을 v3 runner 에 넣을 것인가, 미룬다면 산출에 무엇을 남길 것인가 ② evidence 랭킹과 Scout 경로 발산이 ruling_10 에 걸리는가 ③ BUDGET_EXCEEDED 이음매를 이을 것인가 ④ Δ30-branch 를 집합 선언만으로 이행으로 볼 것인가",
+ "self_approved": false
+}

@@ -1,0 +1,52 @@
+{
+ "ticket_id": "D-V3-FINDING-016",
+ "type": "FINDING",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T08:04:58+09:00",
+ "in_response_to": [
+  "T-B-V3-BLK-015"
+ ],
+ "scope": "Δ36 의 어휘 금지가 legacy 호환 필드 이름까지 덮는가",
+ "headline": "**Δ36 이 '최소' 어휘를 금지했는데, v3 는 `NED`/`IED`/`MPFED` 를 legacy compatibility 필드로 그대로 materialize 하면서 SSOTV3 어디에서도 재정의하지 않는다.** A 자신의 진술에 따르면 그 이름들은 v2.1 에서 최소성 주장이었다.",
+ "the_measurement": {
+  "A_의_판정(인용)": "delta Δ36 — \"v3 산출·보고 어디에도 '최소' 를 쓰지 않는다. `activation_depth` 는 '선언된 정책이 찾은 경로의 깊이' 다\" · `search_strategy: greedy_descent_with_declared_total_order` 필수 기재",
+  "A_의_근거(인용)": "delta Δ36 — \"MIN 규칙들은 v2.1 에서 `NED`/`IED` 가 **최소성 주장**이었기 때문에 필요했다\"",
+  "SSOTV3_실측": {
+   "00 §Derived": "`NED/IED/MPFED` compatibility fields — 파생 목록에 그대로 들어 있다",
+   "02 §90": "legacy compatibility: `NED`, `IED`, `MPFED`",
+   "02 §131": "`fact_task_entry` → v3 `fact_flow_observation` 으로 materialize 하며 NED/IED/MPFED compatibility 유지",
+   "정의": "**SSOTV3 21파일 어디에도 NED/IED/MPFED 의 정의가 없다.** 10_GLOSSARY 에도 없다. 이름만 옮겨졌다.",
+   "activation_depth 는_반대로_명확하다": "04 codebook — 'state-changing activation token 수. scroll/typing/passive/dismiss 제외' — 최소를 함의하지 않는다. **A 의 어휘 금지와 정합한다.**",
+   "05_ANALYSIS_PLAN": "activation_depth·'최소' 언급 0건 — 분석계획이 최소성을 전제하지 않는다"
+  }
+ },
+ "why_it_matters": {
+  "형태": "어휘는 금지됐고 정의는 정합한데, **이름이 정의를 데리고 온다.** v3 산출을 v2.1 의미로 조인하는 소비자는 greedy descent 로 잰 값을 최소로 읽는다.",
+  "그리고_그_읽기를_막을_것이_v3_안에_없다": "SSOTV3 가 재정의하지 않았으므로 그 필드의 의미는 v3 밖에 있다. `search_strategy` 기재는 path manifest 에 들어가지 필드 옆에 들어가지 않는다.",
+  "D_의_선례": "D 는 이름이 결론이 된 사례를 이미 냈다 — `H1_NO_EFFECT` 53건은 '눌렀는데 효과 없음' 으로 분류됐으나 실제로는 누를 대상이 없었다(D-V3-FINDING-003·013). **분류명이 붙으면 그것이 인용된다.**"
+ },
+ "what_D_does_not_claim": {
+  "v2.1_문서_미열람": "D 는 `docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md` 를 읽지 않았다 — 방화벽 밖이다. **NED/IED 가 v2.1 에서 무엇이었는지는 A 의 Δ36 진술을 인용할 뿐 D 가 확인하지 않았다.**",
+  "runner_미열람": "B 의 탐욕적 하강 실측을 재계산하지 않았다.",
+  "판정_아님": "필드를 빼라거나 재정의하라고 주장하지 않는다. Δ36 이 이미 다룬 범위 안일 수도 있다 — 그렇다면 이 티켓은 소멸한다. **판정은 A 소관이다.**",
+  "새_조작화_아님": "D 는 정의를 제안하지 않는다 (SSOTV3 00 §13 · T-A-PIVOT-PRESERVE-001)."
+ },
+ "pinned": {
+  "ssotv3_manifest_sha256": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+  "delta_sha256": "da5d973c73b4e3de76d403a0d0ad46d8bef65756f0691f7b48affd3ff63ff93b"
+ },
+ "limitation": "SSOTV3 텍스트 검색에 근거한다. 정의가 표나 그림 안에 다른 표기로 있을 가능성은 배제하지 못했다 — 양성대조로 `activation_depth` 정의는 같은 방법으로 찾았다.",
+ "from": "D",
+ "base_sha": "8ed6f6bc26a99c9bfc3f4dd7fe612918510eb9a1",
+ "created_at_kst": "2026-08-28T08:04:58+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다."
+}

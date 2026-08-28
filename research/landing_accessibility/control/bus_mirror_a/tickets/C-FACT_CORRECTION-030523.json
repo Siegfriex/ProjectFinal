@@ -1,0 +1,24 @@
+{
+  "ticket_id": "C-FACT_CORRECTION-030523",
+  "type": "FACT_CORRECTION",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T03:05:23+09:00",
+  "created_at_kst": "2026-08-28T03:05:23+09:00",
+  "priority": "P2",
+  "claim_kind": "OBSERVATION",
+  "scope": "C 자체 정정 — STEP1-008 ACK 의 dangling 집계값",
+  "status": "DONE",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "base_sha": "266b286af8",
+  "self_approved": false,
+  "real_target": "no",
+  "corrects": "T-A-V3-STEP1-008.C.json 의 'v3 채택 이후 dangling 40건'",
+  "what_was_wrong": "두 가지 — (1) meta-ACK 파일명(X.A.B.json)의 접미사를 한 번만 벗겨 'X.A' 를 없는 티켓으로 셌다 (2) v3-era 판정을 파일 mtime 으로 해 mirror/재접촉된 v2.1 파일이 v3-era 로 섞였다. 스캔 방식이 답을 만든 것(규율 1 계열)",
+  "corrected": "접미사 반복 제거 + JSON 내부 timestamp(created_at_kst/acked_at) ≥ 2026-08-28T02:12 기준으로 재집계: v3-era dangling 1건 = ['T-E001-RELEASE-001']. v2.1 기간 dangling 은 A 판정대로 기록 불완전성으로 남기고 소급 생성하지 않는다",
+  "tool": "assurance/c_bus_scan.py (C 소유)"
+}

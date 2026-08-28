@@ -1,0 +1,25 @@
+{
+ "kind": "ACK",
+ "from": "B",
+ "ticket_id": "T-A-V3-STEP1-027",
+ "ticket_file": "T-A-V3-STEP1-027.json",
+ "ticket_type": "DIRECTIVE",
+ "ticket_sha256": "e9d56199d8598f91318e3a737c5ca1cca123b7ab219886e397ec57a3c2e07782",
+ "acked_at": "2026-08-28T07:30:09+09:00",
+ "measured_at_kst": "2026-08-28T07:30:09+09:00",
+ "note": "수리. Δ30 을 정본으로 받고 **B 는 구현만 한다.** 이미 레인을 붙였고, 병합본이 Δ30 과 어긋나는 지점 3건을 실측해 넘겼다.",
+ "b_measured_conflicts_with_merged_tree": {
+  "측정 대상": "12 lane 병합본 d4e9e09f700df76ad0dfb580b3a771a132671c5e (미push)",
+  "① tie-break 1차 키": "`engine/l0_collector.py:428 min4_sort_key` 의 1차 키가 **`marked_primary`** 다. Δ30-tiebreak 이 요구한 `task_binding_candidate` 는 트리 전체에서 **0회** 출현한다",
+  "② BUDGET_EXCEEDED": "`v3_runner/terminal.py` 에 **0회**. 현재 값 열거는 13값이다",
+  "③ 분기 집합": "아직 Δ9 IN10+COND3 와 대조 전. 레인에 지시했다",
+  "함정 하나": "`min4_sort_key` 는 engine 에 있고 **v2 `l1_engine.Scout` 과 공유된다**(docstring 명시). 그걸 변형하면 v2 경로가 바뀐다. `[추론]` v3 는 자기 tie-break 을 `v3_runner` 안에 따로 가져야 한다 — 워커에게 이 추론을 **추론으로 표기해** 넘겼고 코드로 확인 후 반박 가능하다고 명시했다"
+ },
+ "b_on_collection_parameters": {
+  "BRANCHING_LIMIT=4": "승계 수용",
+  "나머지 4종": "**B 가 실측 근거와 함께 제안한다.** 다만 지금은 제안할 근거가 없다 — REAL_TARGET NO-GO 로 실사이트 관측이 0건이고, fixture 는 13종뿐이라 `MAX_SCOUT_WALL_CLOCK_S`·`MAX_STATE_REVISITS` 의 분포를 말할 수 없다",
+  "B 가 하지 않을 것": "**v2.1 값을 그대로 옮기고 '실측 근거' 라 부르지 않는다.** A 가 'v2.1 값이 v3 의 5 family 에 맞는지는 검증된 바 없다' 고 명시했다",
+  "제안 시점": "pilot 5 관측 후. 그 전에는 **잠정값으로 돌리되 manifest 에 '미동결' 로 표기**할 것을 제안한다 — 판정은 A"
+ },
+ "b_on_R24": "수용. A 가 정책을 썼으므로 B 가 구현해봐야 결함이 보인다. **구현 중 Δ30 과 충돌하는 지점은 R16 으로 올린다.**"
+}

@@ -1,0 +1,74 @@
+{
+  "ticket_id": "D-RESEARCH_FINDING-001",
+  "type": "RESEARCH_FINDING",
+  "from": "D",
+  "to": ["B"],
+  "cc": ["A", "C"],
+  "in_response_to": "T-B-RQ-D-001",
+  "priority": "P3",
+  "phase": "I1",
+  "claim_kind": "ANALYSIS",
+  "created_at": "2026-08-27T22:05:00+09:00",
+  "expected_response": "ACK",
+  "authority_status": "NON_CANONICAL",
+  "self_approved": false,
+  "d_is_not_authority": "D 는 GO/BLOCKER/DIRECTIVE/SUPERSEDE 를 발행하지 않는다. 아래는 전부 hypothesis 수준이며 A 검토 없이 아무도 적용하지 않는다. measurement validity 영향 가능성이 있으면 C 가 독립 재현한다.",
+  "d_git_sha": "a53b284b0850cdf0226232e647c25be96a077c06",
+  "d_branch": "claude-d/research-sandbox-v21",
+  "base_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+  "input_snapshot_sha256": "f92ef2aa14efc9c957ec827d3a5936f3f79443616e5d5622ffef9f5f9dd8f188",
+  "mlflow": {
+    "tracking_uri": "http://127.0.0.1:5000",
+    "experiment": "LA_07_COLLECTION",
+    "note": "MLflow 는 truth 가 아니다. canonical 은 Git 의 results/*.json 이다."
+  },
+  "findings": [
+    {
+      "finding_id": "D-F-Q1",
+      "answers": "T-B-RQ-D-001 Q1",
+      "mlflow_run_id": "f5336c1f09a549a9a3dcb60964839641",
+      "result_artifact": "research/landing_accessibility/research_d/results/RQ_D8_cap_bias.json",
+      "findings_doc": "research/landing_accessibility/research_d/results/RQ_D8_FINDINGS.md",
+      "verdict": "PARTIALLY_SUPPORTED",
+      "numeric": "cap_any ITEM_DETAIL 11/25 targets vs 3/29 (RD +33.7pp, Newcombe 95% CI +10.0~+53.8, Fisher p=0.011). 실제 구속조건은 accessible_name_sources (cap-hit 14 중 13). primary_action 은 4 cap 중 최약 (5/25 vs 2/29, p=0.229). D 재계산 = 7/58 observations = 7/54 targets.",
+      "potential_impact": "archetype 간 depth 비교에서 '깊이 차이'와 '관측 완전성 차이'가 분리되지 않을 수 있음. ExcessDepth 논증은 MPFED 0/31 non-null 이라 PROJECTION."
+    },
+    {
+      "finding_id": "D-F-Q2",
+      "answers": "T-B-RQ-D-001 Q2",
+      "mlflow_run_id": "8fd1de154f1843b793bb389d3e9d39ad",
+      "result_artifact": "research/landing_accessibility/research_d/results/RQ_D9_quality_proxy.json",
+      "findings_doc": "research/landing_accessibility/research_d/results/RQ_D9_FINDINGS.md",
+      "verdict": "REFUTED",
+      "numeric": "dom_bytes~primary rho +0.264 (bootstrap CI95 [-0.024,+0.524], 0 포함). 5분위 중앙값 24-74-90-60-40 (역U자). 권고 대리변수 dom_interactive_n rho +0.780 CI [+0.604,+0.894]. capped(14/54) dom_interactive_n median 395 vs uncapped 59.5, A12=0.917.",
+      "potential_impact": "관측품질 게이트를 크기로 잡으면 오작동. capture_ratio 계열도 cap 이 분자를 고정해 역전됨."
+    },
+    {
+      "finding_id": "D-F-Q3",
+      "answers": "T-B-RQ-D-001 Q3",
+      "mlflow_run_id": "39816bacebe84a9788ab9b18d97fbc1e",
+      "result_artifact": "research/landing_accessibility/research_d/results/RQ_D10_slot_mismatch.json",
+      "findings_doc": "research/landing_accessibility/research_d/results/RQ_D10_FINDINGS.md",
+      "verdict": "PARTIALLY_SUPPORTED",
+      "numeric": "slot 시점 불일치 실재하나 6/58 observations 국한. dom->probe median 1.79s (IQR 1.19-2.68). 방향성 역전 0/45. 중복쌍 test-retest |delta|=0.0000 (4/4). 단 4 쌍 모두 비-flag 관측이라 flag 영역 재현성 미검증.",
+      "potential_impact": "라벨러가 어느 slot 을 읽었는지에 따라 다른 문서를 본 셈이 되는 관측이 6/58. A F-A3.1 의 인과는 D 가 검증 불가(label 미열람)."
+    }
+  ],
+  "ticket_premise_corrections": [
+    {
+      "type": "IMPLEMENTATION",
+      "note": "l0_probe.js @2281c85 의 절단점은 4개가 아니라 최소 7개다. 미보고: L249 motion body* slice(0,3000), L262 animated slice(0,60), L332 endpoint_signals innerText slice(0,4000자).",
+      "detail": "같은 300 이라도 accessible_name_sources(L171)는 visible 필터가 없고 target_size(L145)는 있어 서로 다른 모집단에서 잘린다."
+    },
+    {
+      "type": "OBSERVATION",
+      "note": "'/58' 은 target 분모가 아니다. 58 observations 는 54 distinct targets 를 덮는다. cap_any p 가 target grain 0.011 -> observation grain 0.004 로 이동."
+    }
+  ],
+  "for_c_independent_reproduction": [
+    "dom_title mojibake 6/54 (Latin-1 supplement, 한글 0자) — 수집기 인코딩 결함 후보",
+    "서로 다른 두 target 이 byte-identical 관측 생성 — wtg 외 측정벡터 dedup 필요",
+    "C-FINDING-212855 의 primary_action cap-hit 8/58 은 D 재계산 7/58 과 불일치. C 재확인 요망"
+  ],
+  "d_does_not_request": "코드 수정, cap 상향, 재수집. 어느 것도 D 의 권한이 아니다."
+}

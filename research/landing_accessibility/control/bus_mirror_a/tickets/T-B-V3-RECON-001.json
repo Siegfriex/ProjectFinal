@@ -1,0 +1,51 @@
+{
+ "ticket_id": "T-B-V3-RECON-001",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "type": "FINDING",
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "b094eaa2b0a957b69eecc015332c45a0dcc10bf9",
+ "scope": "STEP 1 중간 reconciliation — 7 lane 시험 병합 결과. 최종 SHA 아니다.",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:31:47+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "완료된 7 lane 을 병합해 1173 passed / 0 failed 를 얻었다. 병합 경로가 성립함을 미리 확인한 것이며 **이것은 제출 SHA 가 아니다** — W5C·W5H 가 아직 진행 중이고 push 하지 않았다.",
+ "why_B_did_this_now": "Director ADDENDUM §5 — 다른 결과를 기다리는 동안 outcome-independent 하게 준비 가능한 작업은 병렬 수행한다. 마지막 lane 이 온 뒤 처음 병합하면 그때 충돌을 발견한다. 미리 밟아 두면 실패 지점이 지금 드러난다.",
+ "merged_lanes": {
+  "W5A claude-b/w5a-task-registry": "056fe5f72b39 — contracts.py · registry.py",
+  "W5B claude-b/w5b-flow-normalize": "d312c9a647fa (병합 시점. 이후 6085f0b16f1a 로 후속 커밋됨 — 재병합 필요)",
+  "W5D claude-b/w5d-obstruction": "f388134cfedc — obstruction.py · terminal.py",
+  "W5E claude-b/w5e-v3-fixtures": "8496c700f6e0 — fixture 13종 + 판별 행렬",
+  "W5F claude-b/w5f-runner-core": "e8d8829c15c4 — runner.py · evidence.py",
+  "W5G claude-b/w5g-v3-safety": "022729c7237d — safety.py",
+  "W5D1 claude-b/w5d1-task-discovery": "71341498c1c9 — discovery.py"
+ },
+ "not_merged": [
+  "W5C surface.py — 진행 중",
+  "W5H session.py — 진행 중"
+ ],
+ "reconciliation_findings": {
+  "file_overlap": "전 쌍 검사에서 겹침 **1건** — v3_runner/__init__.py 를 W5A(73줄, contracts·registry re-export)와 W5D1(0줄 빈 파일)이 둘 다 만들었다. add/add 충돌이며 W5A 것을 채택해 해소했다. 나머지 lane 은 의도적으로 만들지 않았다(PEP 420 namespace 로 동작하는 것을 각자 확인).",
+  "import_check": "병합 후 9 모듈 전건 import 성공 — contracts · registry · flow · obstruction · terminal · runner · evidence · safety · discovery. **SEAM 1 이 import 층에서는 깨지지 않는다.**",
+  "type_duplication_confirmed": "TaskContract 가 contracts.py(정본)와 runner.py 두 곳, FlowStep 이 flow.py 와 runner.py 두 곳에 정의돼 있다. safety.py·discovery.py 는 Protocol(TaskContractLike)로 경계를 둬 중복이 아니다. **W5F 가 스스로 SEAM 1 로 보고했고 병합 순서(contracts → 나머지)까지 제시했다.** 필드는 B 가 전 worker 에 동일 정의를 주입해 일치하므로 import 교체로 닫힌다.",
+  "regression": "1173 passed / 0 failed / 315.76s. 범위 축소 없음. 로그 sha256 0d183fd1029f66aabdd5e6f6c08eab1a54b55ef3ce698dd8f65eaf3ec97efe25"
+ },
+ "known_gaps_before_final": [
+  "W5B 가 d312c9a 이후 6085f0b1 로 후속 커밋했다(Δ15·Δ9·Δ10 반영, 771 passed). 최종 병합은 그 SHA 로 다시 해야 한다.",
+  "TaskContract·FlowStep 중복 정리 — runner.py 가 contracts.py 에서 import 하도록 교체. B 가 처리한다.",
+  "W5B 가 FlowStep 에 input_mode 를 추가했다. **W5A 의 contracts.py 정본에 반영돼야 하며 빠지면 CONDITIONAL 3종 판정이 전부 불능으로 접힌다.**",
+  "engine.vocabulary.EndpointStatus(v2.1)와 v3_runner.terminal.EndpointStatus 가 **이름이 같고 값이 다르다**(W5D 보고). 한 모듈에서 둘 다 import 하면 조용히 섞인다. 별칭 규약이 필요하다.",
+  "W5G 의 guard_page() 를 W5F 러너가 실제로 태우는 배선 — 안 하면 그 강제가 발화하지 않는다. W5G 가 '통합 시점의 수용기준' 으로 남겼다.",
+  "min4_sort_key 가 후보 dict 에 dom_order 를 요구한다(W5G 보고). W5C·W5F 가 실어야 한다."
+ ],
+ "what_this_does_not_claim": "이 병합은 B 의 검증 워크트리에서만 존재하며 push 하지 않았다. 어떤 lane 도 이것으로 수용되지 않는다 — 각 lane 은 여전히 self_approved=false 이고 C 의 GATE 1 검산 대상이다. 1173 passed 는 **병합 가능성**의 증거이지 정확성의 증거가 아니다.",
+ "decision_required": null
+}

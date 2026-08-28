@@ -1,0 +1,71 @@
+{
+  "ticket_id": "MART_READY-145415-cc76cf",
+  "actor": "A",
+  "verdict": "MART_ACCEPTED",
+  "decided_at": "2026-08-27T15:00:19+09:00",
+  "decided_by": "A (Authority Plane, projectfinal-64)",
+  "criteria": ".agent_bus/landing_v2/MART_ACCEPTANCE.md — 산출물 도착 이전에 공개된 기준",
+
+  "verified_by_A_directly": {
+    "note": "아래는 A 가 파일을 직접 열어 계산한 값이다. B·C 보고를 인용하지 않았다.",
+    "row_counts": {
+      "fact_landing_observation": 56,
+      "fact_task_entry": 31,
+      "fact_interrupt_element": 235,
+      "fact_criterion_result": 0,
+      "dim_certification": 0,
+      "declared_vs_actual": "5/5 일치"
+    },
+    "file_hashes": {
+      "method": "sha256(raw bytes), 선언값의 'sha256:' 접두 제거 후 비교",
+      "result": "5/5 일치"
+    },
+    "cross_check_with_raw": "interrupt 235 · landing 56 은 A 가 배치 JSON raw 에서 센 값과도 일치한다"
+  },
+
+  "acceptance_checklist_result": {
+    "1_row_counts": "PASS — mart 56 == 배치 참조 run 56. 디스크 66 = 56 + 격리 4 + 미봉인/불완전 6 (C 대조)",
+    "2_keys": "PASS — observation_id null 0 · dup 0",
+    "3_target_coverage": "PASS — target 56 ⊆ frozen 59 · E000 행 0",
+    "4_l0_coverage": "PASS — MEASURED 53 전건 L0 존재, null 은 FAILED_EVIDENCE_INCOMPLETE 3행뿐",
+    "5_l1_coverage": "PASS — fact_task_entry 31 == scout_invoked True 31 · L0-only 가 joint-valid 로 계수된 것 0",
+    "6_undet": "해당 없음 — KWCAG 판정 자체가 수행되지 않았다",
+    "7_input_sha": "PASS — FROZEN_MART_MANIFEST.json 으로 충족. collector 222ef2c · frozen_plan b48be3cb… · older_relevance_registry da4b5208… · e001_release_control ba745758… · promoted_main bc0b7a0",
+    "8_manifest": "PASS — 배치 해시체인 4워커 검증, append-only 위반 0"
+  },
+
+  "contract_conformance": {
+    "joint_valid_counting": "PASS — J1~J4 적용, attempted/joint_valid/excluded + 사유별 분해",
+    "exclusion_taxonomy": "PASS — 3범주 분리. unresolved_reason_unrecorded 6 이 독립 항목으로 살아 있다 (흡수 0)",
+    "blocked_handling": "PASS",
+    "older_relevance": "해당 없음 — criterion 0",
+    "failrate_denominator": "해당 없음 — 계산 불가",
+    "excess_depth": "해당 없음 — MPFED 0",
+    "archetype_min_n": "해당 없음",
+    "execution_mode": "PASS — 3값 밖 0건",
+    "outcome_blind": "PASS — frozen plan 순서 재정렬 0 · 결과 후 변경 0"
+  },
+
+  "association_slots": {
+    "primary": "NOT_COMPUTABLE",
+    "secondary": "NOT_COMPUTABLE",
+    "substitute_made": false,
+    "adjudication": "AXIS_A_NOT_EVALUATED.md §3 — 계약을 개정하지 않는다. 개정 1 은 '측정 가능성' 에 근거했으나 지금 새 association 을 만들면 '남은 것 중에서 고르는 것' 이 되어 성격이 다르다. 비어 있는 슬롯이 오늘의 통계 산출물이다."
+  },
+
+  "c_findings_disposition": {
+    "C1_input_sha_missing": "CLOSED — FROZEN_MART_MANIFEST.json 이 두 필드를 포함한다. 데이터 무변경으로 닫혔다.",
+    "C1_axis_a_not_evaluated": "결함이 아니라 판정 사항. AXIS_A_NOT_EVALUATED.md 에 기록됨. mart 는 이를 정직하게 표시했다(association.computable=false).",
+    "variable_cross_check": "C 가 NED/IED/MPFED/archetype/endpoint_status/max_overlay_coverage/max_primary_action_occlusion/blocking_modal_count 323건 비교, 불일치 0"
+  },
+
+  "a_self_correction": {
+    "what": "A 가 처음 해시 대조에서 5/5 불일치로 판정했다. **오류였다.**",
+    "cause": "선언값의 `sha256:` 접두를 제거하지 않고 그대로 비교했다.",
+    "corrected_at": "2026-08-27T15:00:19+09:00",
+    "lesson": "오늘 B 가 네 차례, A 가 세 차례 같은 축의 실수를 했다 — **손에 원본이 있는데 형식·범위를 확인하지 않고 비교하거나 일반화했다.** 이번 것은 A 가 스스로 잡았다.",
+    "why_recorded": "manifest 가 해시 불일치라고 잘못 보고했으면 B 가 존재하지 않는 결함을 쫓았을 것이다. 오판을 기록하지 않으면 같은 오판이 반복된다."
+  },
+
+  "next": "STATS 15:50 — association 없음 유지. 축 C 기술통계 · 축 B 원인 분해 · 축 A 미평가 사실 · 방법론적 결론이 그 자리를 채운다. CLAIM 16:00 기준은 CLAIM_GOVERNANCE.md (14:58 개정본)."
+}

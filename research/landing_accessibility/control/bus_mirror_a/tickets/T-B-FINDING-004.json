@@ -1,0 +1,21 @@
+{"ticket_id":"T-B-FINDING-004","type":"FINDING","from":"B","to":["A","C"],"priority":"P1",
+ "phase":"V1","claim_kind":"ANALYSIS","base_sha":"2281c853950d0c475c5d2c1678680b971c2804f4",
+ "target_sha":"a7f305fd560721e4fc1712478e7975b1fcd5e0f8","created_at":"2026-08-27T23:17:14+09:00","expected_response":"GO_NO_GO",
+ "b_accepts_gate_fail":"D-R0-32 FAIL 을 수용한다. 전 모집단에서 agreement<0.85 · coverage<0.75 · force-map≠0 이다. B 는 기준 재정의·재채점·표본 재선택을 요구하지 않는다.",
+ "headline":"C 가 지적한 '기준이 상한보다 높다' 를 B 가 정량으로 뒷받침한다 — 다만 기준을 낮추자는 주장이 아니다",
+ "the_relation":{
+  "detector_requirement":"D-R0-32 holdout archetype agreement >= 0.85",
+  "inter_labeler_ceiling":"겹침 16건 이중라벨에서 12/16 = 0.750 (A 보고 · C 독립 재계산 일치)",
+  "detector_observed":"mapped 일치율 0.571 (18 primary, prior_only)",
+  "structural_point":"사람 둘이 같은 DOM 을 보고 0.75 로 일치하는 과제에서 기계에게 0.85 를 요구한다. 기준이 관측된 인간 상한보다 0.10 높다."},
+ "when_the_threshold_was_set":"D-R0-32 의 0.85 는 RF-DT v2.1 §10 의 engineering release gate 에서 왔고 그 시점에 inter-labeler agreement 는 측정된 적이 없었다. A 가 D-R0-54 에서 'labeler 파티션이 split 과 완전 정렬돼 겹침 0 이라 agreement 추정 자체가 불가능했다' 고 인정했고, 0.750 은 그 교락을 해소한 뒤(겹침 16건 재라벨) 나온 값이다. 즉 기준이 정해질 때 상한을 몰랐다.",
+ "b_does_not_propose":"B 는 0.85 를 낮추자고 제안하지 않는다. 그것은 관측 후 기준 완화이며 D-R0-64 prereg_defense_line 위반이다. B 가 제시하는 것은 '이 기준이 현재 모집단에서 달성 가능한 범위 안에 있는가' 라는 질문이며 답은 A 가 정한다.",
+ "three_readings_A_may_choose":[
+  {"id":"R1","reading":"detector 가 아직 부족하다","implication":"rework 계속. 다만 0.571→0.85 는 인간 상한을 넘어야 하므로 rule DT 만으로는 경로가 보이지 않는다"},
+  {"id":"R2","reading":"frozen landing DOM 이 이 과제에 충분한 정보를 담지 않는다","evidence":"라벨 자체 abstain 25% · inter-labeler 0.75 · C 의 'gate 를 통과시키기 어려운 모집단일 가능성'. SSOT §18 PARTIAL_READY_WITH_BLOCKER 경로",
+   "implication":"detector 를 더 고쳐도 상한이 움직이지 않는다. 측정 가능성 자체의 한계를 기재하고 다음 단계로 간다"},
+  {"id":"R3","reading":"기준이 잘못 설정됐다","implication":"관측 후 완화이므로 B 는 이 경로를 지지하지 않는다. 다만 A 가 '상한을 몰랐던 시점의 기준' 이라는 사실을 근거로 재검토한다면 그것은 B 판단 밖이다"}],
+ "b_position":"B 는 R1 과 R2 중 어느 쪽인지 판정할 근거를 갖고 있지 않다. 판정하려면 '같은 DOM 에서 인간이 0.75 로 일치할 때 기계가 어디까지 갈 수 있는가' 를 알아야 하는데 그 상한은 이 표본에서 추정되지 않는다. B 는 A 결정을 기다린다.",
+ "what_did_improve":"D-R0-67-3 로 force-map 5→1, D-R0-70 로 disabled 검색 랜딩 area NOT_OBSERVED 시정, endpoint FP 0/3, marker engine 게이팅 PASS, CAPTCHA 양방향 PASS, G1-b PASS, fixtures 13 중 11 PASS. 계약 준수 항목은 대부분 통과했고 실패한 것은 agreement/coverage 라는 성능 지표다. 이 구분이 A 판단에 필요하다고 본다.",
+ "w1_p2_residual":"C 가 남긴 P2 2건은 W1 소유 9-state mask 다 — 장바구니 SAFE · disabled button SAFE. B 가 W1 에 전달한다. D-R0-70 계열(disabled 를 SAFE 로 두는 것)이므로 여덟 번째 사례일 수 있다.",
+ "b_will_not":"B 는 W2 에 추가 rework 를 지시하지 않는다. A 결정 없이 수치를 올리려는 시도는 abstain 축소나 vocabulary 확대로 흐를 위험이 크고, 그것이 정확히 D-R0-67-3 이 막은 것이다."}

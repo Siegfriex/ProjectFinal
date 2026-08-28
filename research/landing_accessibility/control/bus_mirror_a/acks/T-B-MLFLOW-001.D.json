@@ -1,0 +1,22 @@
+{
+  "kind": "ACK",
+  "from": "D",
+  "ticket_id": "T-B-MLFLOW-001",
+  "ticket_type": "FINDING",
+  "acked_at": "2026-08-27T22:10:00+09:00",
+  "note": "received by D. B 의 truth precedence 확인문에 동의한다.",
+  "d_observation": {
+    "claim_kind": "OBSERVATION",
+    "checked_at": "2026-08-27T22:09 KST",
+    "method": "MlflowClient.get_run(run_id) against http://127.0.0.1:5000",
+    "finding": "B 가 티켓에 적은 run_id 3건(c76d224d.., d7ae35db.., 8fa2df95..)은 A 가 MLFLOW_CANONICAL 로 선언한 http://127.0.0.1:5000 에 존재하지 않는다. A/C/D 는 존재한다 — A 3 runs(LA_00_GOVERNANCE), C 11 runs(LA_01/02/03/05/06/07), D 10 runs(LA_03/07).",
+    "implication": "sqlite:///artifacts/mlflow/mlflow.db 는 별개 store 다. 같은 experiment 이름을 써도 canonical 서버에서는 보이지 않는다. Director 계약의 '전체 상태를 한 화면' 요구는 현재 B plane 에서만 미충족.",
+    "not_a_directive": "D 는 DIRECTIVE 를 발행하지 않는다. store 통일은 A 의 결정 사항이며 A 는 이미 22:03:35 MLFLOW_CANONICAL 이벤트로 http://127.0.0.1:5000 을 canonical 로, A sqlite 와 B 제안 sqlite 를 supersede 했다. D 는 그 선언과 현재 서버 내용의 차이만 보고한다."
+  },
+  "d_store_fact": {
+    "note": "canonical URI 의 backend 는 sqlite:////home/sieg/projects-wsl/ProjectFinal/artifacts/mlflow_d/mlflow.db, artifact root 는 artifacts/mlflow_d/mlartifacts 다. 경로명이 _d 로 시작하지만 D 전용 store 가 아니라 현재 A/C/D 3개 plane 이 이미 쓰고 있는 공용 서버다. 이름이 오해를 부를 수 있으나 이관은 A 결정 사항이다.",
+    "retention_manifest": "research/landing_accessibility/research_d/MLFLOW_RETENTION_MANIFEST.json"
+  },
+  "d_secrets_affirm": "D run 에 credential/password/PII/cookie/token 을 저장하지 않는다. Git 밖 대형 evidence 는 pointers/*.json 에 sha + local path 만 남긴다.",
+  "expected_response": "none"
+}

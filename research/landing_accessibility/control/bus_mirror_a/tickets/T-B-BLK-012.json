@@ -1,0 +1,52 @@
+{
+ "ticket_id": "T-B-BLK-012",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "8285bd869a23a3ab0a7f23e1a6c3fc16207a1a8f",
+ "scope": "수집기에 구조적 공백 2건 — 소유 lane 이 없다. 둘 다 v3 primary 관측축에 걸린다.",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:33:48+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "W5C 가 surface 측정을 만들며 base 수집기의 공백 2건을 찾았다. B 가 대조군과 함께 독립 확인했다. 둘 다 지금 만들지 않으면 v3 의 핵심 변수가 산출되지 않는다.",
+ "gap_1_ax_join": {
+  "claim": "DOM 후보와 AX 노드를 잇는 조인이 base 코드베이스에 없다.",
+  "measurement": {
+   "l0_probe.js 의 accessible name 계산": "0건 — probe 는 name 의 **출처**(aria-label/alt/title/value/labelledby 유무)만 낸다. 계산된 이름을 만들지 않는다.",
+   "positive_control": "같은 파일에서 name-source 관련 언급은 18건 발화한다. 검색이 정상이고 0 은 실제 부재다.",
+   "AX 쪽": "계산된 이름은 l0_collector._ax_tree 의 CDP slim node 에만 있고 그 노드는 selector 가 아니라 `backendDOMNodeId` 로 키잉된다(l0_collector.py:546). **selector ↔ backendDOMNodeId 를 잇는 코드가 없다.**"
+  },
+  "why_it_blocks": "v3 00 §8 이 `visible_label_text`(rendered)와 `accessible_name`(AX naming computation)을 **반드시 분리 저장**하라고 요구한다. 04 §4 의 `accessible_name` · `accessible_name_source` · `label_relation` 세 변수와 `entry_label_modality` 의 `ICON_ONLY_AX_NAMED` ↔ `ICON_ONLY_UNNAMED` 구분이 전부 여기 걸린다. **조인이 없으면 이 축이 통째로 산출되지 않는다.**",
+  "W5C_did_not_paper_over_it": "W5C 가 DOM 속성으로 이름을 추정하지 않았다 — 추정하면 `visible_label_text` 와 출처가 겹쳐 00 §8 의 분리가 무너진다. 대신 호출자가 `ax_node` 를 실어야 하게 만들고 없으면 `accessible_name=None` + `AX_NODE_ABSENT` note 다. **부재를 값으로 바꾸지 않은 처리가 옳다.**",
+  "owner": "미배정. W5C 는 판정 함수 소유이고 수집은 그 밖이다. W5H(session driver)가 후보인데 B 가 그 lane 에 이 요구를 넣지 않았다 — **B 의 lane 분할 누락이다.**"
+ },
+ "gap_2_scroll_state": {
+  "claim": "scroll state 수집 구현이 base 에 없다.",
+  "measurement": {
+   "grep": "`scroll_state|state_index|scroll_y` → **0 파일**",
+   "positive_control": "같은 범위에서 `scroll` 자체는 4파일 발화. l0_collector.py 는 `window.scrollTo(0,0)`(643행)과 `body_scroll_lock`(750행)만 쓴다 — full-page 캡처 후 되돌리는 용도이지 state 열거가 아니다.",
+   "verdict": "S0 만 찍는다. S1..Sn 이 존재하지 않는다."
+  },
+  "why_it_blocks": "03 §3 이 '고정 scroll 정책으로 S1..Sn 을 만들고 task-entry control 의 최초 관측 state 를 기록한다' 를 요구한다. 04 §4 의 `first_visible_scroll_state` 와 Δ15 의 `entry_observed_state` 가 여기 걸린다. **A 가 GAP-02 에서 '`NULL` 은 끝내 미관측일 때뿐' 이라고 확정했는데, 지금 구현으로는 S0 에 없는 control 이 전부 미관측이 된다.**",
+  "already_flagged_twice": "W5E 가 'fixture 13종이 전부 한 뷰포트에 들어가 S1 이 생기지 않아 03 §3 을 이 집합으로 검증할 수 없다' 고 보고했고 A 가 `GATE 1 은 03 §3 을 검증하거나 검증하지 못했음을 명시해야 한다` 로 판정했다. **W5C 의 발견은 그보다 앞선 층이다 — fixture 가 없는 게 아니라 수집기가 없다.**",
+  "owner": "미배정. 같은 이유로 B 의 lane 분할 누락이다."
+ },
+ "b_dispatch_failure": "두 공백 모두 B 가 lane 을 나눌 때 '수집기 자체를 누가 만드는가' 를 명시하지 않아 생겼다. W5H 를 SessionDriver 로 뒤늦게 냈으나 그 지시문에 AX 조인도 scroll state 열거도 넣지 않았다 — `capture_surface` 가 'scroll state 별로 관측을 낸다' 고만 적었고 그것을 만들 코드가 base 에 없다는 것을 B 가 확인하지 않았다.",
+ "b_will_not_decide": "두 공백을 메우려면 `l0_probe.js` 또는 `l0_collector.py` 를 건드려야 할 수 있다. 그 파일들의 소유와 W2 freeze 경계는 A 판정 사항이다. B 는 임의로 배정하지 않는다.",
+ "options_B_sees": {
+  "1": "W5H 범위를 확장해 SessionDriver 가 scroll state 열거와 AX 조인을 둘 다 담당한다. 가장 응집적이나 W5H 가 이미 돌고 있어 중간 범위 변경이다.",
+  "2": "별도 lane 신설. 두 공백이 서로 독립이라 각각 나눌 수도 있다.",
+  "3": "STEP 1 범위 밖으로 두고 GATE 1 에서 '검증하지 않은 것' 으로 선언한다. A 가 GAP-02 에서 그 선택지를 이미 열어뒀다 — 다만 그러면 accessible_name 축도 함께 미검증이 된다."
+ },
+ "decision_required": "두 공백의 소유와 STEP 1 포함 여부. 특히 AX 조인은 v3 00 §8 의 중심 요구라 미검증으로 두는 비용이 크다."
+}

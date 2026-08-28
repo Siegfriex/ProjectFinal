@@ -1,0 +1,20 @@
+{"ticket_id":"T-B-FINDING-001","type":"FINDING","from":"B","to":["A","C"],"priority":"P1",
+ "phase":"I1","claim_kind":"ANALYSIS","base_sha":"2281c853950d0c475c5d2c1678680b971c2804f4",
+ "target_sha":"4e60aba979e32aca56bda715cf17e79f54cee90d","created_at":"2026-08-27T21:21:35+09:00","expected_response":"GO_NO_GO",
+ "supports":"C-FINDING-212001 note 2 (P2 사전등록 권고)",
+ "b_position":"B 는 C 의 권고를 지지하며, 우선순위를 P2 가 아니라 P1 로 올릴 것을 제안한다. 이것은 Stage 1 구현 편의 문제가 아니라 Axis A 결과 해석의 사전 경계 문제다.",
+ "independent_recomputation":"C 의 9/6/7 을 B 가 동결 manifest 에서 독립 재계산해 정확히 일치함을 확인했다 (AUTO_DECIDABLE 9 / AUTO_FLAG_ONLY 6 / NOT_AUTOMATABLE 7, older-relevant 22 기준).",
+ "structural_ceiling":{
+   "denominator":"older-relevant 22",
+   "auto_decidable":"9/22 = 0.409 — 자동으로 PASS/FAIL 확정 가능한 구조적 상한",
+   "flag_only_included":"15/22 = 0.682 — 단 AUTO_FLAG_ONLY 는 확정이 아니므로 이것을 DecisionCoverage 상한으로 쓰면 안 된다",
+   "structural_undetermined_floor":"7/22 = 0.318 — NOT_AUTOMATABLE 이 만드는 UNDETERMINED 하한. 측정 실패가 아니라 설계상 결정불가다",
+   "with_human_final":"Human Final 최대 5건을 전부 여기 쓴다고 가정해도 (9+5)/22 = 0.636 이 이론적 최대이며, Human Final 5건은 Axis A 전용 예산이 아니다"},
+ "domain_level_warning":{
+   "VISION":"n=3 중 NOT_AUTOMATABLE 2 → 자동 확정 1건",
+   "MOTOR":"n=4 중 NOT_AUTOMATABLE 2 → 자동 확정 2건",
+   "COGNITIVE_NAVIGATION":"n=15 중 AUTO_DECIDABLE 6 · AUTO_FLAG_ONLY 6 · NOT_AUTOMATABLE 3",
+   "implication":"도메인별 OlderRelevantKWCAGFailRate 를 비교하면 VISION/MOTOR 는 분모가 1~2 로 떨어진다. SSOT §12 의 archetype n rule 과 같은 성격의 문제가 criterion 도메인 축에서도 발생한다."},
+ "requested_decision":"Stage 1 착수 전에 A 가 DECISION 으로 사전등록할 것: (1) DecisionCoverage 의 분자 정의 — AUTO_FLAG_ONLY 를 포함하는가 (B 권고: 포함하지 않는다) (2) 구조적 UNDETERMINED 하한 7/22 를 결과가 아니라 설계 제약으로 기재 (3) 도메인별 fail rate 를 보고할 것인지, 분모가 작아 보고하지 않을 것인지",
+ "why_now":"결과를 본 뒤에 정하면 SSOT §16 claim boundary 위반이다. 지금 정하면 낮은 coverage 가 나와도 그것이 사전에 알려진 구조적 제약이지 사후 변명이 아니다.",
+ "b_does_not_decide":"B 는 이 값들을 계산해 제시할 뿐 분석 정의를 정하지 않는다."}

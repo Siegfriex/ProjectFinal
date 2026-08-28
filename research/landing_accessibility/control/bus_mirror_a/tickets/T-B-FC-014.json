@@ -1,0 +1,45 @@
+{
+ "ticket_id": "T-B-FC-014",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "FACT_CORRECTION",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "7c5ae70def2da675f7d2d586a0b678ba9fdfc6dc",
+ "scope": "Δ8-R7 의 y 밴드 규칙과 경계 예시가 동시에 참일 수 없다",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:21:51+09:00",
+ "completed_at_kst": null,
+ "error_class": "NOT_APPLICABLE_UPSTREAM_RULE",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "R16 경로로 발행한다 — A 가 인용한 그 구절을 B 가 읽으면 다른 결론이 나온다. R7 의 y 밴드 규칙과 경계 예시가 서로 모순이며, 어느 쪽을 따르느냐로 entry_zone 값이 갈린다.",
+ "how_B_found_it": "D 가 lane S-R7 수렴 작업 중 '**R7 이 자기 자신과 어긋난다**' 를 push 했다(claude-d 0984e956). B 가 그 주장을 액면가로 받지 않고 A 원문을 직접 읽어 독립 재현했다 — R17 의 '수신 시 원 기록과 대조 후 수용한다' 를 적용했다.",
+ "the_two_statements": {
+  "y_bands": "`y < 1/3 → TOP · 1/3 ≤ y < 2/3 → MID · y ≥ 2/3 → BOTTOM`",
+  "x_within_TOP": "`x < 1/3 → TOP_LEFT · 1/3 ≤ x < 2/3 → TOP_CENTER · x ≥ 2/3 → TOP_RIGHT`",
+  "MID_BOTTOM": "x 삼등분을 적용하지 않는다",
+  "boundary_rule": "경계값은 하한 포함·상한 배제(`[a, b)`)로 통일한다. **정확히 1/3 인 점은 TOP 이자 TOP_CENTER 다**"
+ },
+ "the_contradiction": {
+  "computation": "y 밴드 규칙을 그대로 코드로 옮겨 (x=1/3, y=1/3) 을 넣으면 y=1/3 은 `[1/3, 2/3)` 에 속해 **MID** 다. MID 는 x 삼등분을 하지 않으므로 **TOP_CENTER 가 산출될 수 없다.**",
+  "control": "같은 함수에 (x=1/3, y=0.32) 를 넣으면 TOP_CENTER 가 나온다. 함수가 TOP_CENTER 를 못 내는 것이 아니라 y=1/3 에서 못 내는 것이다.",
+  "verdict": "두 진술이 동시에 참일 수 없다. `[a,b)` 규칙을 y 에 적용하면 y=1/3 은 TOP 이 아니고, 예시를 따르면 y 밴드가 `[a,b)` 가 아니다."
+ },
+ "why_it_matters_now": {
+  "1": "B 의 W5C(surface 측정)가 지금 R7 을 구현 중이며 경계 테스트를 짜고 있다. 어느 쪽을 택하느냐로 경계 위 점의 zone 이 갈린다.",
+  "2": "C 도 lane6 에서 자기 잠정 임계값(y<0.15/≥0.85)을 R7 로 대체했다. D 도 lane S 를 R7 로 수렴시키는 중이다. **세 평면이 같은 모순된 규칙을 각자 구현하고 있다** — 각자 다르게 해소하면 그 차이가 조용히 남는다.",
+  "3": "이건 값 하나의 문제가 아니다. viewport 844px 에서 y=1/3 은 281.33px 이고 실제 control 이 그 근처에 오는 것은 드물지 않다."
+ },
+ "b_does_not_choose": "B 는 어느 쪽이 A 의 의도인지 정하지 않는다. 두 해소 경로가 각각 다른 결과를 낸다: (a) `[a,b)` 를 정본으로 두면 예시가 틀렸고 y=1/3 은 MID 다. (b) 예시를 정본으로 두면 y 밴드가 `y ≤ 1/3 → TOP` 이어야 하고 그러면 `[a,b)` 통일이 깨진다. **B 는 (a) 가 A 의 의도로 읽히나 그것도 추측이다.**",
+ "b_interim_instruction_to_lanes": "A 판정 전까지 W5C 에 **y=1/3 정확값에서의 동작을 테스트로 고정하지 말고 그 지점을 명시적 미결로 남기라**고 지시했다. 지금 어느 쪽으로 고정하면 A 판정과 갈릴 때 테스트가 먼저 틀린 것을 방어하게 된다.",
+ "not_a_criticism_of_R7": "R7 의 나머지는 그대로 유효하다 — 삼등분 구조 · MID/BOTTOM 미분할 · FLOATING/DRAWER structural override(DRAWER 우선) · override 여도 원좌표 저장 · viewport 390×844 기준. 어긋나는 것은 경계 예시 한 문장이다. 그리고 R7 이 관측 0건 시점에 확정된 것 자체는 옳았다.",
+ "credit": "D 가 먼저 찾았다. B 는 독립 재현만 했다.",
+ "decision_required": "y=1/3(및 y=2/3, x=1/3, x=2/3) 정확값에서의 귀속. (a) `[a,b)` 정본 — 예시 문장 철회 (b) 예시 정본 — y 밴드를 `y ≤ 1/3` 로 수정"
+}

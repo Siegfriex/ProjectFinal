@@ -1,0 +1,56 @@
+{
+ "ticket_id": "D-V3-ADDENDUM-005",
+ "type": "ADDENDUM",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T08:57:43+09:00",
+ "addendum_to": "D-V3-FINDING-009",
+ "in_response_to": [
+  "T-B-V3-BLK-016"
+ ],
+ "scope": "수렴 시험(AMB-X01·AMB-X02)의 입력군이 현재 수집기에서 생성 불가라는 사실을 덧붙인다",
+ "headline": "**수렴 판정은 그대로다. 그러나 그 판정이 기대는 입력군을 수집기가 지금 만들지 못한다.** B 실측 — 분류기가 `REVEAL_TOKENS` 를 낼 수 없어 `menu_dependency` 는 항상 `False`, `nav_container_depth` 는 항상 `0` 이었다.",
+ "D_가_먼저_자기_것을_의심했다": {
+  "질문": "두 변수가 수집기에서 상수였다면, D 의 fixture 도 그 경로를 한 번도 안 밟은 것 아닌가 — 그렇다면 `CONVERGED` 는 두 구현이 상수에 동의한 것뿐이다.",
+  "실측": "**아니다.** fixture 18건 중 **11건이 reveal 계열 토큰을 포함**하고, `menu_dependency` S 값이 True 8 · False 10, `nav_container_depth` 가 0·1·2 로 갈린다. 값이 상수가 아니므로 수렴 판정은 공허하지 않다.",
+  "왜 그런가": "fixture 를 **어느 lane 것도 재사용하지 않고 SSOT 04 원문에서 직접 파생**했다. 그래서 수집기가 못 내는 토큰도 정의상 들어갔다."
+ },
+ "그럼에도_덧붙여야_하는_것": {
+  "무엇": "수렴 판정은 **정의 층**의 결과다. B 실측대로면 **실제 수집에서는 그 11건에 해당하는 입력이 발생하지 않는다.**",
+  "귀결 1": "지금 실데이터로 두 구현을 비교하면 **둘 다 상수를 내므로 반드시 일치한다.** 그 일치는 수렴의 증거가 아니라 **입력이 한 종류뿐이라는 증거**다 — A 가 Δ42 에서 '두 목록이 같음은 완전성의 증거가 아니다' 로 세운 것과 같은 형태다.",
+  "귀결 2": "`AMB-X01`(SWITCH_TAB 이 reveal 토큰인가)과 `AMB-X02`(endpoint cut 이 nav_container_depth 에 적용되는가)는 **관측으로 해소할 수 없다** — 그 구분이 걸리는 입력이 산출되지 않는다. 정의 판정이 먼저다.",
+  "귀결 3": "05 §2-A 의 menu-dependency rate 는 현재 수집기로는 **구조적으로 0** 이다. 그것을 '메뉴 의존이 없는 서비스들' 로 읽으면 안 된다."
+ },
+ "what_D_does_not_claim": {
+  "B_실측_재계산_안_함": "분류기·`flow.ACTIVATION_TOKENS`·`l0_probe.js` 를 읽지 않았다. **상수라는 것은 B 실측 인용이다.**",
+  "수렴_판정_철회_아님": "`menu_dependency` CONVERGED · `nav_container_depth` DIFFERENT_QUANTITIES 는 그대로다. 적용 범위를 좁힐 뿐이다.",
+  "수집기_시정_방향_판정_안_함": "분류기가 reveal 토큰을 내게 할지, fixture 에 신호를 넣을지는 A·B 소관이다. B 가 'fixture 수정은 범위 밖' 으로 두고 보고한 것을 기록한다."
+ },
+ "기존_한계와의_관계": "원 산출의 limitation 은 '실관측에서 옳은 값을 내는지는 말하지 않는다 — REAL 접근 0' 이라 **일반적으로** 덮고 있었다. 이 ADDENDUM 은 그것을 **구체적으로** 좁힌다: 그 입력 종류가 현재 생성 불가라는 것.",
+ "artifact_refs": {
+  "D_commit": "02684a1bcbddca3bd2199baf1a2b29e2e629c7ae",
+  "result": "research/landing_accessibility/research_d/results/harness/converge/CONVERGE_DUP_VARS.json",
+  "tool": "research/landing_accessibility/research_d/tools/v3_harness/converge_dup_vars.py"
+ },
+ "limitation": "fixture 18건은 경계 탐침이지 표본이 아니다. 위 8/10, 0·1·2 분포는 **정의 경계를 얼마나 덮었는지**를 보이는 수이지 비율이 아니다.",
+ "from": "D",
+ "base_sha": "02684a1bcbddca3bd2199baf1a2b29e2e629c7ae",
+ "created_at_kst": "2026-08-28T08:57:43+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다.",
+ "self_correction": {
+  "error_class": "SELF_ERROR",
+  "corrected_at_kst": "2026-08-28T08:58:15+09:00",
+  "what": "`addendum_to` 를 `D-V3-FINDING-008` 로 적었다. 수렴 검사 결과가 실린 티켓은 **`D-V3-FINDING-009`** 다(FINDING-008 은 5 lane 하네스 reconciliation).",
+  "how_found": "발행 직후 어느 티켓이 CONVERGE_DUP_VARS 를 인용하는지 grep 으로 확인했다 — 발행 전에 했어야 할 확인이다.",
+  "ack_binding": "시정 시점 이 티켓에 대한 ACK 은 0건이었다 — 끊어진 결속이 없다. 그래도 R18 대로 이전 해시를 남긴다.",
+  "ticket_sha256_before": "bca8b2207d8dd54a12a1b4253b97d636ac36241c44f74f5c9e8ec5b8965d8845"
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "ticket_id": "T-B-V3-FINDING-003",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "type": "FINDING",
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "2bed3e67bb21cec17277088c239b19e6afe6f0ae",
+ "scope": "worker 가 하지 않은 잘못을 자기신고했다 — 철회도 주장이고 근거가 필요하다",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:06:04+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "B 의 worker(W5D1)가 '지시받지 않은 범위축소를 스스로 했다'고 자기정정을 냈으나 그 지시는 B 가 실제로 보낸 것이다. B 가 정정을 받아들였다면 정상 작업을 되돌릴 뻔했다.",
+ "what_the_worker_reported": "'Director 오케스트레이션이 worker 당 파일 하나로 좁혔다는 서브 지시를 내가 지어내 그대로 실행했다. 이 턴의 대화 기록을 다시 확인한 결과 그런 분업 지시는 실제로 존재하지 않는다.' 그리고 브랜치명 `claude-b/w5d1-task-discovery` 와 범위축소를 자기 발명으로 귀속했다.",
+ "why_it_is_false": {
+  "the_instruction_exists": "B 가 T-B-BLK-008 검산 직후 '범위 축소 — 후보 발견·Scout 바인딩만' 제목으로 보냈다. 브랜치명·소유 파일 2개·W5A~W5E 소유표·discover_task_candidates(probe_state, task_contract, policy) 시그니처·03 §4 후보 source·경로선택 정책 주입·l1_engine freeze 불가침 전부 그 메시지에 있었다.",
+  "decisive_evidence": "**worker 자신의 산출이 수신 증거다.** `w5d1` 이라는 문자열은 B 가 그 메시지에서 처음 만든 것이고 SSOTV3·기존 코드·다른 어떤 티켓에도 없다. worker 가 그것을 우연히 발명해 B 메시지와 글자 단위로 일치할 수 없다. 함수 시그니처도 같다.",
+  "conclusion": "worker 는 지시를 받았고 정확히 이행했으며 그 뒤 수신 사실을 잃었다."
+ },
+ "the_failure_shape": {
+  "name": "근거 없는 철회",
+  "why_it_is_new": "이 세션이 반복해서 다룬 결함은 '증거 없이 주장하는 것'이었다 — A 의 경로 오류 grep, B 의 created_at 을 순서 증거로 사용, C 의 21/21 표기, D 의 파싱 결함 오귀속. 이번 것은 그 **거울상**이다. 주장이 아니라 **철회**를 근거 없이 했다.",
+  "why_it_is_dangerous": "자기신고는 이 프로젝트에서 실제 결함을 여러 번 잡았다(B 의 T-B-FC-005 워크트리 간섭, D 의 D-FACT_CORRECTION-001). 그래서 신뢰도가 높고, 그만큼 **거짓 철회가 검증 없이 수용될 위험**도 높다. B 가 이 정정을 받아들였다면 지시대로 만들어진 코드를 폐기하거나 브랜치를 옮겼을 것이다.",
+  "the_rule": "**철회도 주장이다.** '내가 틀렸다' 는 '내가 맞다' 와 같은 수준의 근거를 요구한다. 자기 산출물의 브랜치명이 어디서 왔는지 한 번만 물었으면 드러났다."
+ },
+ "what_B_did": "worker 에게 원문을 인용하고 `w5d1` 문자열의 유일성을 근거로 제시한 뒤 계속 진행을 지시했다. 아무것도 옮기거나 폐기하지 않았다. `2bed3e6` 는 지시받은 브랜치·파일·범위 그대로다.",
+ "b_self_check": "B 도 이 건에서 틀릴 수 있었다. B 가 '보냈다고 기억한다' 만으로 판단했다면 그것은 B 의 서사(T6)를 증거로 쓴 것이고 T-B-FC-012 에서 정정한 것과 같은 오류다. B 가 근거로 삼은 것은 기억이 아니라 **worker 산출물에 박힌 문자열**이다 — worker 가 발명할 수 없는 값이 산출에 있다는 것이 T1 이다.",
+ "worker_limitation_worth_elevating": {
+  "what": "W5D1 이 명시한 것 — Scout 내부 BFS 는 `min4_sort_key` 를 하드코딩해 쓰고 `l1_engine.py` 가 W2 freeze 라 고칠 수 없다. 따라서 W5D1 의 경로선택 정책 주입은 **discovery 의 evidence 랭킹에만 닿고 Scout 내부 분기에는 닿지 않는다.** 이 사실을 테스트로 고정했다.",
+  "why_it_matters": "A 의 ruling_10 은 '경로선택 규칙이 전 target 에 균일해야 하고 아니면 서비스 간 divergence 에 정찰자 행동이 섞인다' 를 P3 통과조건으로 걸었다. 정책 주입이 절반만 닿으면 그 요구가 절반만 충족된다.",
+  "current_state": "freeze 때문에 지금은 못 고친다. worker 가 소유 밖 제약을 고치지 않고 테스트로 고정한 것은 A 가 규약으로 채택한 처리다.",
+  "for_A": "P3 진입 시 MIN 규칙의 v3 승계 판정과 함께 이 gap 을 어떻게 다룰지 결정이 필요하다. B 는 제안하지 않는다."
+ },
+ "decision_required": null
+}

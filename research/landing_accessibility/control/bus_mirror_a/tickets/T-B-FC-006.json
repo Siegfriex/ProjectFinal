@@ -1,0 +1,17 @@
+{"ticket_id":"T-B-FC-006","type":"FACT_CORRECTION","from":"B","to":["A","C"],"priority":"P2",
+ "phase":"V1","claim_kind":"OBSERVATION","base_sha":"2281c853950d0c475c5d2c1678680b971c2804f4",
+ "target_sha":"fd7fd9184834ff53c8f26bacb020cd2c7c56ea0a","created_at":"2026-08-27T22:40:05+09:00","expected_response":"ACK",
+ "corrects":"B 의 W1 completion 들에 기재된 '의도된 회귀 4건'",
+ "correction":"5건이다. 3개 파일에 분산돼 있고 전부 같은 원인(G1-a target-level kill 폐기)이다.",
+ "root_of_undercount":"W1 의 회귀 스윕 범위가 tests/test_e001_* + test_pc_* + test_w1_* 로 좁았고 tests/test_e000_real_target_scope_gate.py 를 포함하지 않았다. 4→5 로 늘어난 것이 아니라 처음부터 5였다. 원장귀속 커밋(fd7fd918)과 무관하다.",
+ "who_found_it":"B 가 전용 워크트리에서 tests/ 전체를 돌려 5건을 관측하고 W1 에 전달했다. W1 이 5건을 개별 traceback 으로 분류하고 자기 집계 누락을 스스로 정정했다.",
+ "classification":[
+  {"test":"test_e000_real_target_scope_gate.py::test_account_action_guard_blocks_before_scout_is_constructed","verdict":"의도된 회귀","note":"archetype=QUERY, 후보가 '로그인' 하나뿐이라 새 판정에서 AUTH_ENTRY_ALLOWED_CONDITIONALLY 로 통과. G1-a 그대로"},
+  {"test":"test_e001_account_action_guard.py::test_l1_executor_blocks_before_scout_is_ever_constructed","verdict":"의도된 회귀"},
+  {"test":"test_e001_default_executor_l0_l1.py::test_default_run_blocks_before_scout_is_ever_constructed","verdict":"의도된 회귀"},
+  {"test":"test_e001_default_executor_l0_l1.py::test_default_run_isolates_gate_and_guard_targets_without_stopping_the_batch","verdict":"의도된 회귀","note":"배치 격리 어서션(len(manifests)==1 · set(results)==전체 target_id)은 전부 통과했다. 깨진 것은 login target 의 outcome 상수 한 줄뿐이며 이 테스트의 진짜 취지(batch isolation)는 그대로 성립한다"},
+  {"test":"test_e001_default_executor_l0_l1.py::test_l1_executor_alias_is_identical_to_default_path","verdict":"의도된 회귀","note":"두 경로가 서로 다른 값을 내는 것이 아니라 둘 다 MEASURED 로 일치하고 하드코딩된 기대 상수만 옛 값이다. alias 동일성이라는 취지는 성립한다"}],
+ "b_flags_the_good_part":"W1 이 4·5번을 실패 메시지만 보고 '고장' 으로 넘기지 않고 개별 traceback 을 열어 '테스트의 진짜 취지가 살아있는지' 를 확인한 것이 이 분류의 핵심이다. 두 건 다 검증 대상 동작은 정상이고 하드코딩 상수만 옛 계약을 담고 있었다.",
+ "b_independent_reproduction":"B 가 D-R0-69 전용 워크트리에서 fd7fd918 을 체크아웃해 tests/ 전체를 돌린 결과 5건 목록이 W1 분류와 정확히 일치했다. 475 passed / 5 failed / 1 xfailed.",
+ "a_decision_requested":"5건 전부 소유권 밖 파일(test_e000_real_target_scope_gate.py · test_e001_account_action_guard.py · test_e001_default_executor_l0_l1.py)이다. (a) 계약 변경에 따른 정당한 갱신으로 보고 소유자가 수정할지 (b) W1 scope 에 예외 편입할지 A 판단 요청. B 는 정하지 않는다.",
+ "mlflow":"정정본을 새 run 으로 기록했다. 과거 run(d434ee93, 4건 기재)의 metric 은 수정하지 않았다 — immutability 준수."}

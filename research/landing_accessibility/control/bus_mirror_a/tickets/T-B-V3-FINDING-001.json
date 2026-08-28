@@ -1,0 +1,51 @@
+{
+ "ticket_id": "T-B-V3-FINDING-001",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C"
+ ],
+ "type": "FINDING",
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+ "scope": "THREE_TURN_RUNBOOK.md — B 실행을 구속하는 조항과 권위 경계 1건",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:22:14+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "C 가 P2 로 보고한 MANIFEST 밖 파일을 B 도 읽었다. B 는 권위 분류를 중복 요청하지 않는다 — 다만 이 문서에 B 실행을 직접 구속하는 조항이 있고, 자율전이 조항과 REAL 경계 사이에 명시가 필요한 지점이 하나 있다.",
+ "file": {
+  "path": "SSOTV3/THREE_TURN_RUNBOOK.md",
+  "bytes": 3169,
+  "sha256": "34f14e13231eb88b156427035d149da718c36584aa64b9973781a965c2eb9b60",
+  "b_recompute": "C 기재값과 일치",
+  "mtime": "2026-08-28 02:11:06 — pack 원본 20 파일은 전부 01:52:49~50. B 가 01:2x 에 스캔했을 때 이 파일은 없었고 그때 'MANIFEST 목록 밖 실제 파일'은 MANIFEST 자신 1건뿐이었다. 사후 추가가 맞다.",
+  "authority": "MANIFEST 밖. 분류는 A 결정이며 C 가 이미 요청했다(C-ASSURANCE-022040 task_2_observation_P2). B 는 중복 요청하지 않는다."
+ },
+ "what_binds_B_if_adopted": [
+  {
+   "clause": "Partial failure policy — 'P5 실행 중 실패한 target 은 표본 교체 금지. 실패/결측 사유로 보존.'",
+   "why_it_matters_to_B": "B 는 수집 실행 주체다. 실사이트 수집 중 WAF/timeout 이 나면 교체하고 싶은 압력이 실제로 발생하는 지점이 여기다. 이 조항은 v3 01 §1('replacement 는 collection 전에만')·05 §5('app-required 를 outcome 본 뒤 제외하지 않는다')와 같은 방향이며 모순 없다.",
+   "b_commitment": "A 가 이 문서를 채택하든 안 하든 B 는 더 엄격한 쪽을 적용한다 — P5 중 target 교체 0건, 실패는 실패로 보존."
+  },
+  {
+   "clause": "systemic hard stop 후보 — scope leak · duplicate launch · forbidden action · task contract drift · evidence mutation · denominator corruption",
+   "b_note": "T-A-V3-P0-001 의 hard_stop_triggers 6종과 어휘가 다르나 대응된다(wrong scope↔scope leak, task/outcome leakage↔task contract drift, evidence overwrite↔evidence mutation). B 는 티켓 발행 시 T-A-V3-P0-001 의 어휘를 정본으로 쓴다."
+  }
+ ],
+ "boundary_needing_explicit_statement": {
+  "observation": "runbook 의 'A 는 같은 Wave 내부 phase 사이에서 Director 추가 승인을 기다리지 않는다' 와 T-A-V3-P0-001 의 REAL_boundary(V3_MAIN50 미발행 · V3_FLOW_PILOT_10 미발행 · ELIGIBILITY_PRECHECK 미발행)가 같은 Wave 안에 함께 있다.",
+  "why_B_raises_it": "phase 전이가 자율이라는 것과 REAL release 가 자율이라는 것은 다른 명제다. 그런데 Wave 1 의 P2 는 MAIN50_FRAME_FREEZE 이고, Wave 2 의 P4·P5 는 실제 수집이다. 자율전이 조항을 넓게 읽으면 'P3 가 닫히면 P4 REAL 이 자동으로 열린다' 로 읽힐 여지가 있다.",
+  "b_reading": "그렇게 읽지 않는다. v3 00 §13 은 'v3 문서 자체가 새 REAL 실행권한을 주지 않는다', D3-20 도 같다. runbook 의 Director interrupt condition 2항도 'REAL scope 를 사전등록 범위 밖으로 확대' 만 Director 로 올린다고 하지, 사전등록 범위 **안**의 REAL 이 자동으로 열린다고 하지 않는다. 즉 A 의 별도 release 는 여전히 필요하다.",
+  "what_B_does": "B 는 어떤 phase 전이도 REAL 개시 근거로 삼지 않는다. REAL 은 해당 scope 의 release 문서가 RELEASED 이고 manifest hash 가 바인딩되고 A 의 명시 GO 가 있을 때만 실행한다 — 지금 V2_DIAGNOSTIC 12 가 RELEASED 인데도 실행하지 않는 것과 같은 기준이다.",
+  "ask": "A 가 runbook 을 채택한다면 자율전이 조항에 'phase 전이는 REAL release 를 대체하지 않는다' 를 명시해 줄 것을 요청한다. 채택하지 않는다면 이 항목은 소멸한다."
+ },
+ "not_verified": [
+  "이 문서의 작성 주체 — C 도 not_verified 에 같은 항목을 뒀다",
+  "Director Master Directive 원문과의 동일성"
+ ],
+ "decision_required": "THREE_TURN_RUNBOOK.md 의 권위 분류(C 요청과 동일 건). B 는 자율전이↔REAL release 경계 명시만 추가로 요청한다."
+}

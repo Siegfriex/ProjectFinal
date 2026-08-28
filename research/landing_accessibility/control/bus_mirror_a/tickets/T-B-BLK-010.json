@@ -1,0 +1,42 @@
+{
+ "ticket_id": "T-B-BLK-010",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "7c5ae70def2da675f7d2d586a0b678ba9fdfc6dc",
+ "scope": "동결 MAIN50 manifest 가 원격에 없다 — T-B-BLK-007 과 같은 형태의 재발",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:46:44+09:00",
+ "completed_at_kst": null,
+ "target_manifest_sha256": "25ce482ddb13269168a0b07c79726c9e1297afc9c7522c125d8b350b3717af1b",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "T-A-V3-STEP1-FREEZE 가 MAIN50 을 동결하고 manifest 경로·해시를 명시했으나 그 파일이 어느 원격 브랜치에도 없다. A 의 로컬 워크트리에만 있다. B·C·E 어느 평면도 그것을 읽어 검증할 수 없다.",
+ "observation": {
+  "path": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+  "method": "git ls-remote 로 전 원격 브랜치를 열거하고 각각 git cat-file -e 로 존재를 물었다",
+  "result": "전 원격 브랜치 부재",
+  "positive_control": "같은 디렉터리 control/v3/ 의 다른 6파일(DIRECTOR_V3_MASTER_DIRECTIVE_RECEIVED.md · P0_COMPLETION_REPORT.md · V3_0_1_SUCCESSOR_DELTA.md · V3_ADOPTION_RECORD.md · V3_CURRENT_STATE_RECONCILIATION.md · V3_REFREEZE_DECISION.md)은 control/landing-orchestrator 에 실재한다. 검색이 정상 동작하며 부재가 실제다.",
+  "where_it_is": "로컬 .agent_worktrees/claude_a_control/ 안에만 존재. push 되지 않았다."
+ },
+ "why_this_matters": {
+  "1_verification": "A 가 manifest_sha256 25ce482d 와 file_sha256 6500adc3 을 기재했으나 B 가 재계산할 대상이 없다. 해시는 대조할 바이트가 있어야 의미를 갖는다.",
+  "2_runtime": "v3 06 §6 은 REAL 실행에 frozen manifest hash 바인딩을 요구한다. 트리 밖 파일을 읽으면 launch SHA 만으로 표본이 재현되지 않는다 — T-B-BLK-007 에서 A 가 이미 같은 이유로 S-b 를 택했다.",
+  "3_workers": "B 의 W5A(TaskRegistryLoader)가 지금 이 manifest 를 입력으로 삼도록 정정 지시를 받았다. 파일이 없으면 fail-closed 로 거부하도록 지시했고 SSOTV3 CSV 로의 조용한 fallback 을 금지했다 — 그것이 가장 위험한 실패 양식이기 때문이다."
+ },
+ "recurrence": {
+  "prior": "T-B-BLK-007 — DIAGNOSTIC_PILOT_MANIFEST.json 이 control/landing-orchestrator 에만 있고 integration 트리에 없었다. A 가 S-b(worker base 계열 ref 에 A 가 직접 커밋)로 해소했다.",
+  "same_shape": "이번에도 A 가 만든 사전등록 산출물이 A 의 로컬에만 있다. B 는 이것을 A 의 부주의가 아니라 **구조적 반복**으로 본다 — A 가 문서를 쓰는 위치와 다른 평면이 읽는 위치가 다르다.",
+  "b_suggestion": "S-b 를 다시 쓰면 된다. 다만 이번엔 반복이므로 A 가 원한다면 '사전등록 산출물은 발행 즉시 worker base 계열 ref 에 커밋한다' 를 규약으로 두는 편이 낫다. 결정은 A 몫이고 B 는 제안만 한다."
+ },
+ "what_B_did_not_do": "B 는 A 의 워크트리에서 파일을 읽어 쓰지 않았다. 워크트리 직접 접근은 D-R0-69 위반이고, 더 중요하게는 그렇게 하면 '어느 SHA 가 무엇을 대상으로 했는가' 가 기록되지 않는다.",
+ "not_blocking_everything": "STEP 1 의 나머지 lane(flow 정규화 · surface 측정 · obstruction/terminal · fixture 13종 · runner core · safety)은 이 manifest 에 의존하지 않는다. 계속 진행 중이다. 막히는 것은 W5A 의 실물 대조뿐이다.",
+ "decision_required": "동결 manifest 를 어느 ref 에 커밋할 것인가. B 는 T-B-BLK-007 의 S-b 와 같은 처리(A 가 worker base 계열 ref 에 직접 커밋)를 권한다 — 소유 경계가 흐려지지 않고 사전등록 산출물의 lineage 와도 맞는다."
+}

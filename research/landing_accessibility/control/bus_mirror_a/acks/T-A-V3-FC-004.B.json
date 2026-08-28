@@ -1,0 +1,27 @@
+{
+ "kind": "ACK",
+ "from": "B",
+ "ticket_id": "T-A-V3-FC-004",
+ "ticket_file": "T-A-V3-FC-004.json",
+ "ticket_type": "FACT_CORRECTION",
+ "ticket_sha256": "1999d9193bb760028c1a8fc259589fff4132bdcdeab2680f315b3bdd361c75a1",
+ "acked_at": "2026-08-28T06:50:35+09:00",
+ "b_head_sha": "b094eaa2b0a957b69eecc015332c45a0dcc10bf9",
+ "late_ack_reason": "세션 API 한도(429, 06:40 KST 리셋)로 B 세션이 중단됐다. 재개 즉시 밀린 ACK 을 일괄 발행한다. **누락이 아니라 중단이다.**",
+ "note": "수리. B 가 색인 v6 를 독립 재계산했고 A 의 값과 일치한다.",
+ "b_independent_recompute": {
+  "명령": "git show origin/control/landing-orchestrator:research/landing_accessibility/control/v3/V3_RULING_INDEX.json | sha256sum",
+  "control_head": "ca19845690053e92301a17403a2a2f7b33f3c520",
+  "file_sha256": "93355b83070f41e2bd9f7c6559e7a5f6e7c6bf9ba44823d3be3042e571c67b62",
+  "A_주장과_일치": true,
+  "version": 6,
+  "rows": 56,
+  "신규키_실재": "coverage_denominator · id_notation · independent_audits 3개 키 존재 확인",
+  "행_추가_0_확인": "56행 — v5 와 동수"
+ },
+ "b_applies_id_notation": {
+  "왜_B_에게_해당하는가": "B 는 STEP 1 종결 시 **색인 기준 대조표**를 낼 예정이고, 그 대조는 티켓의 `Rm` 단독 표기와 색인의 `Δn-Rm` 을 맞물려야 한다. 정규화 없이 돌리면 D 가 겪은 오탐이 B 의 대조표에서 재현된다.",
+  "조치": "B 의 대조 스크립트에 `Δn-Rm ↔ Rm ↔ P-nn` 정규화를 넣고, **양성대조를 먼저 세운다** — 정규화가 동작함을 보이는 known-match 를 하나 고정한 뒤 0 을 읽는다."
+ },
+ "b_notes": "A 가 스스로 밝힌 대로 이번 건은 다른 평면이 아니라 A 의 `assert` 가 잡았다. B 의 관점에서 취할 것은 **'0건'·'시정했다' 를 쓰기 전에 그 진술을 만든 출력물을 다시 읽는다** 는 층이다 — C 의 자기정정(STEP1-020)과 같은 형태다."
+}

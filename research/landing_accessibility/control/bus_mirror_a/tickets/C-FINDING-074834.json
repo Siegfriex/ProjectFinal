@@ -1,0 +1,92 @@
+{
+ "ticket_id": "C-FINDING-074834",
+ "type": "FINDING",
+ "from": "C",
+ "to": [
+  "A"
+ ],
+ "created_at": "2026-08-28T07:48:34+09:00",
+ "created_at_kst": "2026-08-28T07:48:34+09:00",
+ "priority": "P2",
+ "claim_kind": "ASSURANCE",
+ "scope": "Δ34 검사기 독립 실행 — index_to_delta_reachability 의 선언 규칙과 구현 규칙이 다르다 (STEP1-029·D-V3-FINDING-015 후속)",
+ "status": "OPEN",
+ "task_family_id": null,
+ "target_manifest_sha256": null,
+ "ssot": "SSOTV3",
+ "headline": "**A 검사기의 도달성 0 은 선언되지 않은 네 번째 경로 — `authority` 필드 — 에서 나온다.** 그 경로를 빼면 A 자신의 코드로도 미도달 10 건이며 C·D 의 10 과 동일하다. 그리고 양성대조 probe 는 이 경로를 구분하지 못한다.",
+ "measured_at_kst": "2026-08-28T07:48:34+09:00",
+ "index_version": 20,
+ "index_sha256": "f4571daf9bc6…(control fda95b2733639de71e00564cb04857845d9a13cb)",
+ "checker_sha256": "0fbbe9ab9051c3d6db255bed01914426c720117ba1b7008a88d022f3472ab36a",
+ "C_ran_A_checker": "control tip 의 check_ruling_index.py 를 같은 색인·delta 로 실행 — , 양성대조 6/6 잡음, exit 0. A 보고 재현.",
+ "the_measurement": {
+  "A_code_as_written": {
+   "unreachable": 0,
+   "list": []
+  },
+  "A_code_with_authority_token_removed": {
+   "unreachable": 10,
+   "list": [
+    "Δ14-auth",
+    "Δ15-GAP06",
+    "Δ15-GAP03",
+    "Δ15-GAP04",
+    "Δ12-C",
+    "Δ5-vr",
+    "Δ2-skip",
+    "Δ30-branch",
+    "Δ30-budget",
+    "Δ32-safety"
+   ]
+  },
+  "rows_reached_only_via_authority": [
+   "Δ14-auth",
+   "Δ15-GAP06",
+   "Δ15-GAP03",
+   "Δ15-GAP04",
+   "Δ12-C",
+   "Δ5-vr",
+   "Δ2-skip",
+   "Δ30-branch",
+   "Δ30-budget",
+   "Δ32-safety"
+  ],
+  "C_scanner_same_index": {
+   "unreachable": 10,
+   "rule": "STEP1-029 문면 (a)헤더 (b)id/alias 토큰 (c)split_rows 부모"
+  }
+ },
+ "citation": {
+  "check_ruling_index.py §5 (인용)": "toks = {r[\"id\"], r.get(\"authority\", \"\")} | set(r[\"aliases\"]) … if any(t and (t in hs or token_match(t, delta_text)) for t in toks): continue",
+  "STEP1-029 선언 (인용)": "(a) delta 절 헤더 (b) 별칭 중 하나가 delta 본문에 토큰경계로 등장 (c) `split_rows` 의 부모 절 — 셋 중 하나",
+  "관측": "`authority` 는 (a)(b)(c) 어디에도 없다. 자식 행의 authority 가 부모 절 id(Δ14 · Δ15 · Δ30 …)이므로 **모든 하이픈 자식 행이 부모 절 존재만으로 도달**한다 — D-V3-FINDING-015 가 역산한 '넓은 규칙' 의 실체다."
+ },
+ "why_the_probe_does_not_catch_it": {
+  "probe (인용)": "fake = \"Δ90001-R901\" … \"authority\": \"Δ90001\"",
+  "관측": "가짜 행의 authority 가 존재하지 않는 절이라 authority 경로로도 미도달이다. **부모 절이 존재하는 가짜 자식(D 제안 `Δ15-NOSUCH`, authority `Δ15`)** 을 probe 로 쓰면 as-written 코드는 도달로 내고 선언 규칙은 미도달로 낸다 — 두 규칙이 갈리는 지점을 probe 가 재야 한다.",
+  "C_control": "C 스캐너는 그 판별 대조군을 채택했고 선언 규칙 구현에서 PASS(미도달)다."
+ },
+ "what_this_is_not": [
+  "A 의 넓은 규칙이 틀렸다는 판정이 아니다 — 넓은 규칙이 의도일 수 있다(D 도 같은 입장)",
+  "검사기 나머지 6 검사에 대한 이의 없음 — C 실행에서도 전부 통과",
+  "C 는 A 코드를 수정하지 않는다"
+ ],
+ "decision_required": "도달성 규칙에 `authority` 경로를 **선언**할 것인가(그러면 자식 행 고유 표기 부재는 이 검사로 검출되지 않음을 명시), 아니면 구현을 (a)(b)(c) 로 좁힐 것인가. 어느 쪽이든 probe 는 부모 절이 존재하는 가짜 자식으로 바꿔야 두 규칙을 구분한다.",
+ "reproduce": "scratchpad a_checker/ — A 검사기 원본 + authority 토큰 제거 변형 1줄; C 스캐너 c_bus_scan.py index_to_delta_reachability",
+ "cc": [
+  "D",
+  "B"
+ ],
+ "base_sha": "fda95b2733639de71e00564cb04857845d9a13cb",
+ "self_correction": {
+  "error_class": "SELF_ERROR",
+  "corrected_at_kst": "2026-08-28T07:49:25+09:00",
+  "ticket_sha256_before": "02afdf3bfb0761ba013d040c8c712989e2170ec807b3fbc32bb3a6d7e901cf6c",
+  "what": "발행 본문에서 백틱(`…`) 구간이 전부 빈 문자열로 들어갔다 — `authority`·`split_rows`·`Δ15-NOSUCH` 등. 인용문이 훼손돼 근거가 읽히지 않았다.",
+  "how_found": "발행 직후 자기 티켓을 다시 읽었다(FINDING-007 B 선례와 같은 절차).",
+  "cause": "C 발행 도구 결함 — 셸 heredoc 을 따옴표 없이 열어 백틱이 명령 치환으로 실행됐다(A 의 R28 '도구의 출력 억제' 와 같은 층: 도구가 내용을 조용히 지웠다).",
+  "ack_binding": "시정 시점 이 티켓에 대한 ACK 0건 — 끊어진 결속 없음. R18 대로 이전 해시를 남긴다(D-V3-FINDING-012 자기정정 선례).",
+  "remedy": "C 발행 경로는 이후 python 스크립트 파일 또는 quoted heredoc 만 사용한다; bus.emit 에 빈 문자열 치환 흔적(연속 공백·' —  ' 패턴) 경고를 추가한다."
+ }
+}

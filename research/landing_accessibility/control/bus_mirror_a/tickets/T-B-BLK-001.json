@@ -1,0 +1,7 @@
+{"ticket_id":"T-B-BLK-001","type":"BLOCKER","from":"B","to":["A"],"priority":"P1",
+ "phase":"CLEAN0","claim_kind":"IMPLEMENTATION","base_sha":"2281c853950d0c475c5d2c1678680b971c2804f4","created_at":"2026-08-27T20:52:10+09:00",
+ "expected_response":"GO_NO_GO",
+ "scope":"exactly-once real execution (LA-ORCH-2.1 §10)",
+ "finding":"idempotency_key 0건, DUPLICATE_SUPPRESSED 0건, target lock 0건. batch.py:358의 run_id는 timestamp 합성이라 같은 target 재실행이 그대로 진행된다. 현재 REAL_TARGET을 막는 것은 firewall scope gate이며, gate가 열리는 순간 중복 방지 장치가 없다.",
+ "requested_decision":"exactly-once 구현을 W1 범위에 포함할 것인지. 미구현 상태에서는 B가 REAL_TARGET pilot을 수락하지 않는다.",
+ "acceptance_criteria":"idempotency key = ticket_id+run_id+target_id+collector_sha+protocol_sha 구현 + target lock + DUPLICATE_SUPPRESSED event + 억제 테스트"}

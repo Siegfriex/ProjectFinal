@@ -1,0 +1,61 @@
+{
+  "ticket_id": "D-V3-FACT_CORRECTION-001",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A"
+  ],
+  "type": "FACT_CORRECTION",
+  "priority": "P1",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "0984e956a4110ff3e0525165912327947f396ec4",
+  "scope": "Δ8-R7 내부 모순 — y=1/3 의 zone 이 두 진술에서 다르게 읽힌다",
+  "status": "OPEN",
+  "created_at_kst": "2026-08-28T03:21:18+09:00",
+  "task_family_id": null,
+  "target_manifest_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "depends_on": [
+    "T-A-V3-STEP1-003",
+    "T-A-V3-STEP1-009"
+  ],
+  "evidence": [
+    "research/landing_accessibility/research_d/results/harness/lane_s/LANE_S_R7_CONVERGENCE.json",
+    "research/landing_accessibility/research_d/results/harness/lane_s/LANE_S_R7_FINDINGS.md"
+  ],
+  "payload": {
+    "finding_class": "VALIDITY_RISK",
+    "issued_under": "R16 — A 의 조작적 정의가 다르게 읽히면 FACT_CORRECTION 으로 발행한다. 권위 불복이 아니라 규약이다.",
+    "routing_note": "A6/v3 §4 를 지킨다 — A 판정에 대한 것이지만 to=[C] cc=[A] 로 보낸다. A 가 직접 요청한 바 없으므로 우회하지 않는다.",
+    "not_ssot_vs_A": "이것은 'SSOT 원문과 A 독해가 다르다' 가 아니라 **A 판정 두 문장이 서로 다르다** 는 것이다. R16 이 상정한 것보다 더 직접적인 형태다.",
+    "the_two_statements_verbatim": {
+      "thresholds.y_bands": "y < 1/3 → TOP · 1/3 ≤ y < 2/3 → MID · y ≥ 2/3 → BOTTOM",
+      "boundary_rule": "경계값은 하한 포함·상한 배제(`[a, b)`)로 통일한다. 정확히 1/3 인 점은 TOP 이자 TOP_CENTER 다"
+    },
+    "the_contradiction": {
+      "y_axis": "y_bands 는 1/3 ≤ y 를 MID 에 넣으므로 y=1/3 → MID. boundary_rule 마지막 문장은 y=1/3 → TOP. 두 값이 다르다.",
+      "x_axis": "모순 없음 — x_within_TOP 의 1/3 ≤ x < 2/3 → TOP_CENTER 와 boundary_rule 의 'TOP_CENTER' 가 일치한다.",
+      "possible_reading": "boundary_rule 문장이 x 축만 말하려던 것일 수 있다. 그러나 문면은 축을 한정하지 않는다. D 는 의도를 추정하지 않는다."
+    },
+    "d_verification": "D 오케스트레이터가 워커 보고를 그대로 올리지 않고 티켓 JSON 원문을 직접 열어 두 필드를 확인했다. 워커의 전사도 티켓 파일과 바이트 동일 검증됨(verbatim_match=true, sha256 ea09d398…).",
+    "why_it_matters": "경계값은 관측이 몰릴 수 있는 지점이다. 화면 상단 1/3 지점의 control 이 TOP_* 로 가는지 MID 로 가는지가 05 §2-B 의 zone 분포·엔트로피를 바꾼다. 두 구현이 각각 다른 문장을 따르면 조용히 갈린다 — ruling_11 이 막으려는 형태다.",
+    "harness_behaviour": "Lane S 는 2:1 로 thresholds 표를 구현하고, 구현하지 않은 읽기도 함께 계산해 나란히 남겼다. 두 읽기가 갈리는 probe 는 3/10 이다. **D 는 어느 쪽도 canonical 로 선언하지 않았다.**",
+    "what_D_does_not_do": [
+      "의도를 추정해 하나를 고르지 않는다",
+      "A 판정을 무효로 취급하지 않는다 — 나머지 R7 조항은 그대로 구현했다",
+      "새 절단값을 제안하지 않는다"
+    ],
+    "incidental_finding_strengthening_R14": {
+      "what": "Lane S 구현 결함 하나가 fixture 60/60 green 과 변이 8/8 검출 상태에서 살아 있었다. DRAWER 가 미결이고 FLOATING 이 확정일 때 코드가 FLOATING 을 반환했는데, R7 은 DRAWER 를 위에 뒀다. 20개 입력조합 영향.",
+      "what_caught_it": "티켓 원문에서 코드를 공유하지 않고 두 번째로 구현한 독립 재도출. 그것만이 잡았다.",
+      "why": "**변이검사는 fixture 가 이미 묻는 것만 건드린다.** fixture 가 그 조합을 묻지 않으면 변이도 그 자리를 흔들지 못한다.",
+      "implication": "R14 가 C 에게 요구한 '독립 fixture 파생' 이 왜 필요한지의 실증이다. D 의 5 lane 전체가 같은 한계를 갖는다 — 각 lane 의 green 은 그 lane 의 fixture 가 묻는 범위 안에서만 green 이다."
+    },
+    "residual_limitation_from_the_worker": "두 독립 구현이 일치해도 **같은 읽기에서 쓰였다.** AMB-S14 가 반대로 판정되면 그 일치 전부가 틀린 읽기에 대한 일치다."
+  },
+  "decision_required": "y=1/3 의 zone — thresholds 표(MID) 인가 boundary_rule 문장(TOP) 인가. 관측 0건인 지금 정해야 result-blind 다.",
+  "limitation": "이 티켓은 R7 의 y 경계 한 지점만 다룬다. R7 의 나머지 조항(x 삼등분·MID/BOTTOM 미분할·좌표 기준·structural override)에 대해서는 모순을 발견하지 못했다.",
+  "d_is_not_authority": true,
+  "authority": "NON_CANONICAL"
+}

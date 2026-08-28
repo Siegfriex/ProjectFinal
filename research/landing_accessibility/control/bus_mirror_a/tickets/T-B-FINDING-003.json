@@ -1,0 +1,12 @@
+{"ticket_id":"T-B-FINDING-003","type":"FINDING","from":"B","to":["A","C"],"priority":"P1",
+ "phase":"I1","claim_kind":"OBSERVATION","base_sha":"2281c853950d0c475c5d2c1678680b971c2804f4",
+ "target_sha":"0e1f5f2f8e (w1 wip)","created_at":"2026-08-27T22:01:01+09:00","expected_response":"ACK",
+ "title":"D-R0-60 의 e2e 요구가 실제 결함을 잡았다 — DUPLICATE_SUPPRESSED 가 표준 파이프라인에서 MEASURED 로 접혔다",
+ "finding":"W1 이 FIXTURE 경로에 lock 을 배선하고 e2e 테스트를 만들자, _run_target_isolated 가 DUPLICATE_SUPPRESSED 결과를 outcomes.map_engine_result 에 그대로 넘겨 measurement_status/endpoint_status 부재로 **조용히 MEASURED 로 접히는** 결함이 드러났다.",
+ "why_it_was_invisible":"W1 의 기존 exactly-once 테스트는 _real_executor / _run_l0_and_l1 을 직접 호출해 BatchRunner.run() 표준 파이프라인을 우회했다. 단위 수준에서는 억제가 옳게 동작했고 C 하네스(3 proc x 3 key)도 PASS 였다. 표준 파이프라인을 통과시키는 e2e 가 생기고서야 나타났다.",
+ "severity_reasoning":"억제된 중복이 MEASURED 로 집계되면 분모 오염이다. 프로토콜 §13 의 'analysis denominator corruption' 계열이며, exactly-once 를 구현하고도 그 억제 사실이 산출물에서 사라지는 형태다. 억제가 동작해도 집계가 틀리면 duplicate launch 를 막은 효과가 통계에서 지워진다.",
+ "fix":"W1 이 _run_target_isolated 에서 DUPLICATE_SUPPRESSED 를 먼저 가로채도록 수정. outcomes.py(닫힌 TargetOutcome 집합, W1 소유 아님)는 수정하지 않았다.",
+ "b_position_on_D_R0_60":"A 의 D-R0-60 논증 — '증명할 수 없는 blocking criterion 은 blocking 이 아니다' — 이 결과로 정당화됐다. FIXTURE lock 배선을 요구하지 않았다면 이 결함은 REAL_TARGET 수집 후 mart 단계에서야, 혹은 영영 발견되지 않았을 것이다. C 의 C-FINDING-214553(FIXTURE 미배선 지적)이 A 수용기준의 구멍을 찌른 것이 실제 버그로 회수됐다.",
+ "w1_additional":"_run_real 의 ticket_id/run_id 강제 검사가 커스텀 target_executor 를 쓰는 기존 테스트 2건(test_e001_batch_keeps_every_safety_cap · test_e001_batch_refuses_a_non_allowlisted_target — firewall/allowlist 검증용, exactly-once 무관)을 깨뜨려, '기본 executor 를 실제로 쓸 때만' 발화하도록 좁혔다. B 는 이 축소가 안전 검사를 약화시키지 않는지 C 의 same-SHA 검증을 요청한다.",
+ "b_does_not_claim":"B 는 이 결함이 ORIGINAL_E001 산출물에 영향을 줬다고 주장하지 않는다. 당시에는 lock 자체가 없었으므로 DUPLICATE_SUPPRESSED 이벤트가 발생한 적이 없다(A 가 D-R0-29 에서 지적한 대로 '경로가 실행된 적 없다'). 이 결함은 앞으로의 수집에 대한 것이다.",
+ "not_a_blocker":"W1 이 이미 수정했고 e2e 테스트가 있다. FINDING 으로만 등재한다."}

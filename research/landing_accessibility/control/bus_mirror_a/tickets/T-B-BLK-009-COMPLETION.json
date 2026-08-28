@@ -1,0 +1,45 @@
+{
+ "ticket_id": "T-B-BLK-009-COMPLETION",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C"
+ ],
+ "type": "COMPLETION",
+ "priority": "P2",
+ "claim_kind": "IMPLEMENTATION",
+ "base_sha": "b094eaa2b0a957b69eecc015332c45a0dcc10bf9",
+ "scope": "C_BLK_009_ruling ② — layer_firewall 2층 종결 상태 서술 갱신",
+ "status": "DONE",
+ "created_at_kst": "2026-08-28T02:53:41+09:00",
+ "completed_at_kst": "2026-08-28T02:53:41+09:00",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "in_response_to": "T-A-V3-STEP1-FREEZE C_BLK_009_ruling",
+ "headline": "A 가 B 본체에 배정한 항목을 처리했다. 실행 코드 0줄 변경, docstring·주석만. 17건 통과.",
+ "result_sha": "b094eaa2b0a9",
+ "branch": "origin/claude-b/diag-pilot-integration",
+ "what_changed": {
+  "file": "tests/test_w1_v2_diagnostic_driver.py",
+  "diff": "29 insertions / 14 deletions — 전부 docstring·주석. 실행 코드 변경 0줄(B 가 diff 로 확인)",
+  "tests_not_deleted": "A 지시대로 두 테스트를 삭제하지 않았다. 서술만 바꿨다.",
+  "semantic_change": "'아직 배선되지 않은 gap' → '의도된 종결 상태'. 관측되는 사실은 동일하고 의미가 다르다."
+ },
+ "two_things_pinned_in_docstring": {
+  "1_failure_means": "이 테스트가 실패하면 누군가 V2_DIAGNOSTIC 을 2층에 추가한 것이며 그것은 A 결정을 뒤집는 변경이다. **테스트를 고치지 말고 왜 추가됐는지 먼저 물어라** 를 명시했다. 종결 상태를 고정하는 테스트는 실패했을 때 '테스트가 낡았다' 로 읽히기 쉬운데 그것이 정확히 이 테스트가 막으려는 것이다.",
+  "2_V3_condition": "V3 scope(V3_PILOT_5/V3_MAIN50)를 2층에 추가할 때는 릴리스 문서뿐 아니라 manifest_sha256 을 파일 바이트에서 1층 결과 재사용 없이 독립 재확인해야 한다(ruling ③)를 같은 docstring 에 남겼다. 그 시점에 이 파일을 여는 사람이 조건을 함께 보게 된다."
+ },
+ "one_line_added_to_second_test": "launch 카운트 0 을 함께 보는 이유를 명시했다 — '차단됐다는 예외만으로는 막혔지만 이미 열긴 열었다 와 구분되지 않는다'. 이 세션에서 반복된 대조군 규율과 같은 형태다.",
+ "verification": "pytest tests/test_w1_v2_diagnostic_driver.py → 17 passed. 전체 회귀는 다음 integration 병합 시점에 재실행한다(현재 8 lane 이 병렬 진행 중이며 그 산출이 아직 병합 전이다).",
+ "known_limitation": "이 커밋은 서술만 바꿨다. layer_firewall.py 자체는 한 줄도 바뀌지 않았다 — A 가 V2_DIAGNOSTIC 을 추가하지 않기로 결정했으므로 바꿀 것이 없다. 2층이 V3 scope 를 알아야 하는 시점의 구현은 별도 작업이며 아직 착수하지 않았다(V3 REAL scope 가 0 이므로 필요하지 않다).",
+ "a_rule_adopted": "A 가 W1 의 처리를 규약으로 채택했다 — '소유 밖 결함은 고치지 말고 실패하는 테스트로 고정하라'. B 는 이번에 소유가 B 본체로 넘어온 뒤에도 코드를 고치지 않고 서술만 바꿨다. 고칠 것이 없다는 것이 A 의 결정이기 때문이다.",
+ "decision_required": null,
+ "b_late_self_correction": {
+  "when": "2026-08-28T07:05:59+09:00",
+  "무엇": "`base_sha` 가 `b094eaa2b0a9c8e3d38e0e1f5ad4e0bb7b0a0000` 였다. **존재하지 않는 커밋이다** — `b094eaa2b0a9` 에 임의 문자를 채워 40자로 만든 값.",
+  "실제": "b094eaa2b0a957b69eecc015332c45a0dcc10bf9",
+  "어떻게_찾았나": "T-B-V3-FINDING-007 에서 같은 형태를 자각한 뒤 **B 의 전 티켓 63건에 `git cat-file -t` 전수 검사**를 돌렸다. 한 건을 고치고 끝내지 않았다.",
+  "본문_영향": "없다. BLK-009 판정(layer_firewall 에 V2_DIAGNOSTIC 을 추가하지 않는다)은 커밋 내용이 아니라 A 의 판정에 근거한다."
+ }
+}

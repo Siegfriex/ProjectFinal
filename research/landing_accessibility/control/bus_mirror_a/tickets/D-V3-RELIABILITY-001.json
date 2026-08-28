@@ -1,0 +1,87 @@
+{
+  "ticket_id": "D-V3-RELIABILITY-001",
+  "from": "D", "to": ["C"], "cc": ["A"],
+  "type": "FINDING", "priority": "P0", "claim_kind": "IMPLEMENTATION",
+  "base_sha": "369cbec7ab624b33eff9e0809bc90c919fc59dc8", "scope": "P0 D reliability qualification — exit deliverable",
+  "status": "OPEN", "created_at_kst": "2026-08-28T02:21:27+09:00",
+  "task_family_id": null, "target_manifest_sha256": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a",
+  "depends_on": ["T-A-V3-P0-001", "T-A-V3-P0-D-001", "T-A-V3-P0-002"],
+  "evidence": [
+    "research/landing_accessibility/research_d/tools/d_bus_lib.py",
+    "research/landing_accessibility/research_d/tools/d_bus_scan.sh",
+    "research/landing_accessibility/research_d/tools/d_bus_scan_selftest.py",
+    "research/landing_accessibility/research_d/tools/d_gate_selftest.py",
+    "research/landing_accessibility/research_d/D_V3_BASELINE_SNAPSHOT.json",
+    "research/landing_accessibility/research_d/results/PIVOT_DEFERRED_LEGACY.json"
+  ],
+  "payload": {
+    "finding_class": "INFRASTRUCTURE_QUALIFICATION",
+    "d_exact_head": "369cbec7ab624b33eff9e0809bc90c919fc59dc8",
+    "d_branch": "claude-d/research-sandbox-v21",
+    "head_source": "커밋 직후 git rev-parse — 하트비트 자기보고 아님",
+    "ssotv3_recompute": {"files": 20, "mismatch": 0, "manifest_self_sha256": "1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a"},
+
+    "scanner_control_results": {
+      "design_principle": "판정 로직을 tools/d_bus_lib.py 한 곳에 두고 스캐너와 self-test 가 같은 함수를 호출한다. 테스트가 로직 사본을 검사하면 사본만 통과하고 진짜 스캐너는 깨진다.",
+      "known_positive": {"n": 4, "detected": 4, "variants": ["compact to:[\"D\"]", "pretty-print 여러 줄 to (D-DEF-09 원인형)", "cc-only", "to 가 문자열 단수"]},
+      "known_negative": {"n": 4, "false_positive": 0, "variants": ["to:[\"B\",\"C\"]", "pretty-print 다른 평면", "본문 텍스트에 D 글자만 등장", "to 필드 없음"]},
+      "malformed": {"n": 3, "explicitly_reported": 3, "variants": ["truncated JSON", "최상위가 object 가 아님", "빈 파일"]},
+      "scanner_output_fields": ["control verdict/positive/negative/malformed", "input path", "parser", "recipient field", "matched ticket ids", "parse errors", "미ACK 집계"],
+      "exit_codes": {"3": "control 실패 — 결과 무효(INVALID)", "2": "파싱 실패 존재", "0": "정상"},
+      "zero_is_not_clean": "control 을 매 실행마다 먼저 돌리고 그 상태를 출력에 싣는다. control PASS 없이 0건을 CLEAN 으로 읽지 않는다."
+    },
+    "detection_power_demonstrated": {
+      "why": "fixture 가 통과한다는 것만으로는 검출력을 보인 것이 아니다. 일부러 깨뜨려 잡히는지 확인했다.",
+      "mutation_1": {"injected": "D-DEF-09 재현 — to 판정을 줄단위 문자열 검사로 되돌림", "fixture_result": "INVALID — pretty-print positive 미검출 1건"},
+      "mutation_2": {"injected": "파싱 실패를 조용히 continue 로 삼킴", "fixture_result": "INVALID — malformed 2건 미보고"},
+      "restored": "원복 후 PASS"
+    },
+    "completion_gate_control_results": {
+      "contract": "canonical 선택은 filename exception 이 아니라 content contract(최상위 verdict 보유)로 결정한다. 다음 사이드카는 다른 이름을 달고 오기 때문이다.",
+      "case_a_known_sidecar": "RQ_D91_MLFLOW_RUN.json 이 알파벳상 앞서지만 RQ_D91_real_result.json 이 선택됨 — PASS",
+      "case_b_unknown_sidecar": "이름 예외 목록에 없는 RQ_D92_AAA_provenance.json 이 앞서지만 RQ_D92_zzz_result.json 이 선택됨 — PASS (content contract 실증)",
+      "gate_conditions": "verdict + FINDINGS.md + 노트북 3조건. 노트북 조건은 D-DEF-10b 로 폴백을 k>=2 로 조여 무관한 노트북이 매칭되지 않게 했다.",
+      "fixture_self_defect_found": "처음 작성한 fixture 가 파서가 인식하지 못하는 가짜 RQ id 를 써서 아무것도 검사하지 못한 채 통과할 뻔했다. id 인식을 sanity control 로 앞에 박았다 — fixture 도 대조군이 필요하다."
+    },
+    "legacy_queue_freeze_manifest": {
+      "path": "research/landing_accessibility/research_d/results/PIVOT_DEFERRED_LEGACY.json",
+      "frozen_open_rqs": ["RQ-E-1a", "RQ-E-3", "RQ-E-4", "RQ-E-5", "RQ-D11a"],
+      "frozen_pilot_children": 4,
+      "audit_history_preserved": ["RF001-A/B/C", "RF2-A~F", "RQ-D15", "D-FACT-01"],
+      "closed_before_freeze": {"RQ-D7": "D-V3-FINDING-002", "RQ-D13b-1/2": "D-V3-FINDING-003"},
+      "deleted": 0,
+      "not_frozen": "D 자체 인프라(방화벽·버스 스캐너·완결 게이트·MLflow 색인)는 V3 전제라 유지·시정 대상이다."
+    },
+    "name_trap_independent_confirmation": {
+      "bare_local": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+      "origin": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+      "d_prior_record": "SSOT_INTERNALIZATION_v21.md DF-05 NAME_TRAP — A 의 T-A-V3-FC-001 과 독립적으로 같은 결론",
+      "d_exposure_fixed": "d_dashboard.py 한 곳(bare -> origin/). 나머지 D 도구는 exact SHA 하드코딩."
+    },
+    "reproduction_commands": [
+      "cd /home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research && git checkout 369cbec7ab624b33eff9e0809bc90c919fc59dc8",
+      "RD=research/landing_accessibility/research_d; PY=/home/sieg/projects-wsl/ProjectFinal/.venv/bin/python",
+      "$PY $RD/tools/d_bus_scan_selftest.py   # exit 0 = positive 4/4 · negative 4/4 · malformed 3/3",
+      "$PY $RD/tools/d_gate_selftest.py       # exit 0 = content contract 로 canonical 선택",
+      "bash $RD/tools/d_bus_scan.sh            # control 상태가 출력 머리에 실린다. exit 3 = INVALID, 2 = parse error",
+      "$PY $RD/tools/d_input_firewall.py      # PASS, fail 0"
+    ],
+    "unresolved_d_infrastructure_limitations": [
+      "fixture 는 임시 디렉터리의 합성 티켓을 쓴다. 실제 버스의 파일시스템 권한·인코딩·경합 조건은 검사하지 않는다.",
+      "스캐너 control 은 매 실행마다 돌지만 self-test 코드 자체가 깨지면 잡을 장치가 없다 — 무한 회귀라 여기서 끊었다. 대신 변이 검사를 사람이 읽을 수 있는 기록으로 남겼다.",
+      "완결 게이트의 노트북 조건은 파일 존재와 error 0 만 본다. 노트북이 저장된 결과와 같은 로직을 돌렸는지는 워커 보고에 의존하며 D 가 독립 재실행해 대조하지는 않았다.",
+      "MLflow 색인은 result_sha 기준이라 같은 내용이 다른 파일명으로 오면 별 run 이 된다.",
+      "이 fixture 는 D 평면만 검사한다. B·C 의 수신 로직은 D 가 검사하지 않았고 검사할 권한도 없다."
+    ],
+    "what_d_explicitly_did_not_test": [
+      "V2_DIAGNOSTIC 12 evidence — 아직 존재하지 않는다",
+      "MAIN50 frame — A freeze 전이며 candidate URL 접속 0건",
+      "B 의 구동기·mart 구현",
+      "holdout 관련 어떤 것도"
+    ],
+    "firewall": {"verdict": "PASS", "scanned": 161, "fail_count": 0, "holdout_accessed": "false(scanner)"}
+  },
+  "decision_required": null,
+  "limitation": "이것은 D 자체 연구 인프라의 신뢰성 자격검증이며 측정 construct 에 대한 어떤 주장도 하지 않는다. C 의 replication 은 위 재현 명령으로 exact SHA 에서 수행 가능하다.",
+  "d_is_not_authority": true, "authority": "NON_CANONICAL"
+}

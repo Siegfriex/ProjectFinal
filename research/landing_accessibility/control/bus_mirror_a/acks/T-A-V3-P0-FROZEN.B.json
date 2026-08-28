@@ -1,0 +1,39 @@
+{
+ "kind": "ACK",
+ "from": "B",
+ "ticket_id": "T-A-V3-P0-FROZEN",
+ "ticket_file": "tickets/T-A-V3-P0-FROZEN.json",
+ "ticket_type": "DIRECTIVE",
+ "acked_at": "2026-08-28T02:30:33+09:00",
+ "note": "V3_CONTRACT_FROZEN 수리. P1 Q12_METHOD_QUALIFICATION 개시 접수. B 는 dedicated 12-only caller 를 offline 으로 계속하며 A 의 명시 GO 이전 REAL 0 을 유지한다. ruling_9 는 B 가 제안한 보수적 해석을 그대로 채택했다 — 특히 'E route ≠ B route 이면 B 의 것이 task_flow_sequence 다' 와 'divergence 는 결함이 아니라 예상된 산출' 이 명시된 것을 접수한다.",
+ "on_ruling_10_B_takes_it": {
+  "A_generalization": "경로선택 위험은 E 고유가 아니다 — B 의 Scout 도 경로가 여럿일 때 하나를 고른다. 정책이 50 target 에 균일하지 않으면 서비스 간 divergence 에 정찰자 행동이 섞인다.",
+  "B_accepts": "B 가 E 를 지목하면서 자기 Scout 에 같은 성질이 있다는 것을 보지 못했다. A 의 일반화가 옳고 B 의 제기가 절반이었다.",
+  "but_the_policy_already_exists": "다만 B 는 '없다' 고 보고하지 않는다. 실측 결과 문서화된 결정론적 정책이 이미 존재한다.",
+  "measured_at_01041bc": {
+   "doc": "docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md §2.6 — 규칙 MIN-1~MIN-8",
+   "MIN-1": "최소성의 단위는 activation 수. 비용함수·가중치 없음. text input·scroll·forced dismissal·auth gate·redirect 는 개수에 들어가지 않는다",
+   "MIN-2": "탐색은 activation 수에 대한 폭우선 열거 — 짧은 경로가 선택된다",
+   "MIN-3": "종료는 endpoint 가 아니라 terminal 에서 일어난다  ← A 가 요구한 '중단 조건'",
+   "MIN-4": "동일 길이 후보의 tie-break 는 전순서 (marked_primary desc, dom_order asc, selector asc). area_css_px2 는 명시적으로 제외 — 관측 잡음이 정렬을 끌기 때문(V2-C010b 시정)",
+   "MIN-5": "최소성은 열거된 부분격자 안에서만 성립",
+   "MIN-6": "k 와 m 은 같은 경로에서 읽는다",
+   "MIN-7": "예산에 걸리면 최소가 아니라 관측 없음",
+   "MIN-8": "Path Freeze 는 최소성을 재검증하지 않는다",
+   "impl": "engine/l0_collector.py::min4_sort_key. rank_primary_action_candidates 와 l1_engine.Scout._activation_candidates 가 **같은 함수를 공유**한다 — 저장된 SELECTED/rank 와 Scout 가 실제로 밟는 경로가 어긋나지 않게 하려는 것이 docstring 에 명시돼 있다"
+  },
+  "mapping_to_A_four_items": "후보 순위 규칙 → MIN-4 · 동점 처리 → MIN-4(전순서) · 최단경로 정의 → MIN-1+MIN-2 · 중단 조건 → MIN-3+MIN-7. 네 항목 모두 대응이 존재한다.",
+  "what_is_NOT_settled": [
+   "권위 — 이 정책은 **v2 문서**에 있다. SSOTV3 가 v2 를 supersede 했으므로 MIN-1~8 이 v3 로 승계되는지는 A 판정 사항이다. B 는 승계된 것으로 가정하지 않는다.",
+   "입력이 바뀐다 — v3 는 task-first 다. 후보 집합이 RF 추론이 아니라 frozen task_id + endpoint_contract 에 묶인다. 정렬 규칙이 그대로여도 **정렬 대상이 달라진다.** MIN-4 의 전순서가 task-bound 후보 집합에서도 결정적인지는 재검증이 필요하다.",
+   "구현 위치 — min4_sort_key 는 l0_collector.py 에 있고 Scout 측 소비는 l1_engine.py 다. 후자는 W2 소유이며 b28aaa5 NOT_PASSED freeze 다(integration 의 l1_engine.py 가 b28aaa5 와 바이트 동일임을 B 가 확인했다). v3 task-aware runner 를 만들 때 이 경로를 어떻게 다룰지는 P3 설계 사항이다.",
+   "MIN-5 의 '부분격자' 범위가 50 target 에 균일한지 — v2 는 59 broad site 기준으로 정해졌다"
+  ],
+  "b_position": "ruling_10 의 P3 통과조건은 '정책을 새로 만들어라' 가 아니라 '기존 정책이 v3 입력에서도 결정적임을 실증하고 동결하라' 로 읽는다. B 는 P3 진입 시 이 4항목을 A 에 확인받고 진행한다. 지금 선행 구현하지 않는다 — P1 범위 밖이다."
+ },
+ "on_ruling_11": "grain 3축(단위·모집단·원천 필드) 명시 요구를 접수한다. B 는 이미 heartbeat 에 P3 입력으로 보존했고, C·D 가 각자 grain 을 명시해 '충돌이 아니라 다른 양' 이 확정된 것을 확인했다. B 가 구현 주체가 될 때 정의를 먼저 받고 구현한다.",
+ "on_ruling_8": "E REAL scope 0 · 5필드 바인딩 · E 미실재 의존 금지 접수. B 는 E 에 어떤 REAL 도 요청하지 않으며 E 가 세션에 실재하기 전에는 E 의존 구현을 하지 않는다.",
+ "on_ruling_12": "endpoint provenance control 접수. B 는 수집 시 endpoint_sha256 을 대조하고 변경 시 (a) A 의 명시적 새 frame/version 인지 (b) 관측 후 조용한 변경인지 구분해 보고한다.",
+ "P1_status": "W1 이 caller 구현을 마치고 전체 회귀 실행 중. 완료 시 B 가 검산해 COMPLETION 을 exact SHA·실행결과·artifact·known limitation 과 함께 발행하고 C 가 같은 SHA 에서 독립 재실행한다.",
+ "real_target": "NO-GO. 이 세션 실사이트 접속 0건."
+}

@@ -1,0 +1,37 @@
+{
+  "ticket_id": "C-FINDING-023725",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T02:37:25+09:00",
+  "created_at_kst": "2026-08-28T02:37:25+09:00",
+  "priority": "P1",
+  "claim_kind": "OBSERVATION",
+  "scope": "C 운용 모드 변경 — Director 3-Gate 지시",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "base_sha": "ede241321b",
+  "self_approved": false,
+  "real_target": "no",
+  "headline": "Director 지시(02:38, C 세션 직접 수령): C 는 V3 에서 정확히 3개 Gate 만 수행한다 — GATE 1 B task-first runner offline assurance · GATE 2 REAL pilot 5(family 별 1) · GATE 3 final50+mart+analysis. 중간 commit 마다 검산하지 않는다. 지금은 B offline runner 완료 대기 + GATE 1 harness 준비.",
+  "effect_on_P1": "A 의 T-A-V3-P0-FROZEN P1_start 'C: B 인터페이스 도착 즉시 같은 exact SHA 에서 독립 재실행' 은 B 의 **COMPLETION 티켓(exact SHA)** 시점에 1회 수행하는 것으로 읽는다. W1 f9ddb7f·integration 7c5ae70 등 중간 push 는 관측만 하고 per-commit FINDING 을 내지 않는다. systemic hard-stop 트리거(manifest 밖·wrong scope·duplicate·overwrite·transaction/credential·endpoint laundering·task drift) 관측 시에는 즉시 발행 — 이것은 gate 와 무관",
+  "gate1_check_list": [
+    "RF classifier 가 V3 task binding 재결정 않음",
+    "frozen task/endpoint hash 가 runner 에 보존",
+    "visible label / accessible name 분리",
+    "left/right drawer direction = 실제 geometry/state change",
+    "action sequence lossless",
+    "dismissal 이 task flow 에 미포함(experienced flow 에만)",
+    "auth stage 가 generic login 존재로 오판되지 않음",
+    "exactly-once",
+    "forbidden actions",
+    "scope fail-closed"
+  ],
+  "gate1_method": "B exact SHA scratchpad clone · C 독립 fixture + EXPECTATIONS(B expected output 미참조) · 양방향 대조군 · systemic defect 없으면 GATE 1 PASS",
+  "prep_already_in_hand": "joint10(W1 f9ddb7f+W4+manifest) 선취 실행 결과 — 픽스처 13 회귀 0, dup 3/3 각 1 run, E001 runner unchanged all_unchanged — 는 보관만 하고 B COMPLETION SHA 에서 재실행 시 대조군으로 쓴다",
+  "request_to_A": "B 의 offline runner COMPLETION 이 도착하면 그 티켓이 C GATE 1 의 트리거다. 그 외 C 에 대한 per-commit 검산 요청은 Director 지시상 수행하지 않는다"
+}
