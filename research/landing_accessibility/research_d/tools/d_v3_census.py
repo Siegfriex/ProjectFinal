@@ -31,7 +31,14 @@ COLUMNS = [
 ]
 
 # 관측되지 않은 것을 나타내는 토큰. **빈칸과 0 과 다르다** (TBX-006 명시)
-MISSING_TOKENS = ("UNDETERMINED", "NOT_OBSERVED")
+# 실데이터(snapshot_00, 11:00)에서 관측된 결측 토큰을 포함한다.
+# `NA_NUMERIC_UNOBSERVED` 148건 · `E_RAW_NOT_YET_RECEIVED` 48건이 초기 목록에 없어
+# **결측이 값으로 새어 들어갔다**. 토큰 목록은 손 유지 목록이라 또 뒤처진다(A R62) —
+# 그래서 아래 `unknown_tokens()` 로 목록 밖 대문자 토큰을 **세어서 드러낸다**.
+MISSING_TOKENS = ("UNDETERMINED", "NOT_OBSERVED", "NA_NUMERIC_UNOBSERVED",
+                  "E_RAW_NOT_YET_RECEIVED", "NOT_YET_RECEIVED")
+# 결측이 아니라 **상태값**이다. 결측으로 접으면 분모가 조용히 줄어든다.
+STATUS_TOKENS = ("NOT_ATTEMPTED", "NO_SAFE_ROUTE", "AMBIGUOUS_E_SUPPLIES_ONE_SEQUENCE")
 LABEL_RELATIONS = ("MATCH", "SEMANTIC_EQUIV", "DIFFERENT", "VISIBLE_ONLY", "AX_ONLY", "NONE")
 N_PER_FAMILY = 10
 N_TOTAL = 50
@@ -41,6 +48,29 @@ def empty_mart():
     """0행 mart. **template 이 데이터 없이도 끝까지 돈다는 것을 보이는 용도.**"""
     import pandas as pd
     return pd.DataFrame({c: pd.Series(dtype="object") for c in COLUMNS})
+
+
+def read_mart_pinned(path):
+    """바이트를 **한 번** 읽어 sha 와 표를 같은 판본에서 만든다.
+
+    [D-DEF-34] B 가 streaming 으로 mart 를 갱신한다. 표를 읽은 뒤 sha 를 따로
+    계산하면 그 사이 파일이 바뀌어 **provenance 의 해시가 그림과 다른 표를
+    가리킨다** — 그리고 둘 다 정상으로 보인다. C 가 그 sha 로 재계산하면
+    값이 안 맞고, 원인은 D 쪽에 있다.
+    """
+    import hashlib, io
+    import pandas as pd
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"mart 없음: {p}")
+    raw = p.read_bytes()
+    sha = hashlib.sha256(raw).hexdigest()
+    df = pd.read_csv(io.BytesIO(raw), dtype=str, keep_default_na=False)
+    missing = [c for c in COLUMNS if c not in df.columns]
+    extra = [c for c in df.columns if c not in COLUMNS]
+    if missing or extra:
+        raise ValueError(f"컬럼 계약 위반 — 누락 {missing} / 초과 {extra}")
+    return df[COLUMNS], {"path": str(p), "sha256": sha, "bytes": len(raw)}
 
 
 def read_mart(path):
@@ -79,10 +109,19 @@ def denominators(df) -> dict:
                        if str(r["attempt_status"]).upper() in ("COMPLETED", "SUCCESS", "OK")))
         fail = int(sum(1 for _, r in sub.iterrows()
                        if str(r["attempt_status"]).upper() in ("FAILED", "FAIL", "ERROR", "BLOCKED")))
+        # [D-DEF-35] `completed`/`failed` 는 **알려진 토큰만** 센다. 실데이터의
+        # `TERMINAL_NO_ENDPOINT` 처럼 목록 밖 상태를 임의로 실패로 접으면 그것은
+        # D 의 조작화다 — D 권한이 아니다. 접지 말고 **값별로 전수 분해해 드러낸다.**
+        from collections import Counter
+        known = ("COMPLETED", "SUCCESS", "OK", "FAILED", "FAIL", "ERROR", "BLOCKED")
+        other = Counter(str(r["attempt_status"]) for _, r in sub.iterrows()
+                        if str(r["attempt_status"]).upper() not in known)
         return {"attempted": attempted_target, "rows_present": int(len(sub)),
                 "rows_not_yet_arrived": max(0, attempted_target - int(len(sub))),
                 "evidence_adequate": ea, "completed": comp, "failed": fail,
-                "unaccounted": int(len(sub)) - comp - fail}
+                "unaccounted": int(len(sub)) - comp - fail,
+                "unaccounted_by_status": dict(other),
+                "classification_note": "목록 밖 상태는 D 가 분류하지 않는다 — A/C 판정 사안"}
     out = {"overall": block(df, N_TOTAL),
            "by_family": {f: block(df[df["family_id"].astype(str) == f], N_PER_FAMILY)
                          for f in fams}}
@@ -94,11 +133,43 @@ def denominators(df) -> dict:
 
 
 def data_state(df) -> str:
-    """NO_DATA / PARTIAL / COMPLETE. **그림과 표에 반드시 실린다.**"""
+    """행수와 **관측 충실도를 함께** 낸다. 그림과 표에 반드시 실린다.
+
+    [D-DEF-33] 처음에는 행수만 봤다. B 의 mart 는 실패 target 도 행으로 남기므로
+    (그래야 분모 50 이 지켜진다) evidence 가 2건뿐인 snapshot_00 에서도
+    `COMPLETE` 가 나왔다 — **골격 50행과 관측 50건이 같은 출력을 냈다.**
+    이 세션 내내 다룬 그 형태를, 그것을 막으려고 만든 표지가 스스로 냈다.
+    """
     n = len(df)
     if n == 0:
         return "NO_DATA"
-    return "COMPLETE" if n >= N_TOTAL else f"PARTIAL_{n}_OF_{N_TOTAL}"
+    ea = int(sum(1 for _, r in df.iterrows() if not is_missing(r["evidence_hash"])))
+    if ea == 0:
+        return f"SKELETON_{n}_ROWS_0_EVIDENCE"
+    if ea >= N_TOTAL:
+        return f"COMPLETE_{n}_ROWS_{ea}_EVIDENCE"
+    return f"PARTIAL_{ea}_OF_{N_TOTAL}_EVIDENCE_IN_{n}_ROWS"
+
+
+def unknown_tokens(df) -> dict:
+    """MISSING_TOKENS/STATUS_TOKENS 어디에도 없는 대문자 토큰을 **센다**.
+
+    [A R62] 손으로 유지하는 포함/제외 목록은 썩는다. 목록을 늘리는 대신,
+    목록 밖의 것이 **보이게** 만든다 — 모르는 토큰이 조용히 값으로 새는 것을 막는다.
+    """
+    import re
+    known = set(MISSING_TOKENS) + set() if False else set(MISSING_TOKENS) | set(STATUS_TOKENS)
+    pat = re.compile(r"^[A-Z][A-Z0-9_]{2,59}$")
+    seen = {}
+    for c in COLUMNS:
+        for v in df[c]:
+            t = str(v).strip()
+            if pat.match(t) and t not in known:
+                seen.setdefault(t, {"count": 0, "columns": set()})
+                seen[t]["count"] += 1
+                seen[t]["columns"].add(c)
+    return {k: {"count": v["count"], "columns": sorted(v["columns"])}
+            for k, v in sorted(seen.items(), key=lambda x: -x[1]["count"])}
 
 
 def synthetic_fixture(n=50, seed_note="deterministic, not random"):
