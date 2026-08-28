@@ -50,12 +50,15 @@ def _write(path: pathlib.Path, obj: dict) -> pathlib.Path:
     tmp.replace(path)
     return path
 
-def ack(ticket: dict, note: str = "") -> pathlib.Path:
+def ack(ticket: dict, note: str = "", retracted_labels_cited=None) -> pathlib.Path:
     tid = ticket.get("ticket_id") or ticket.get("id") or pathlib.Path(ticket["_file"]).stem
     _tf = TICKETS / ticket["_file"].split("/")[-1] if not str(ticket["_file"]).startswith("acks/") and not str(ticket["_file"]).startswith("completions/") else BUS / ticket["_file"]
     _sha = hashlib.sha256(_tf.read_bytes()).hexdigest() if _tf.exists() else None
     obj = {"kind": "ACK", "from": "C", "ticket_id": tid, "ticket_file": ticket["_file"], "ticket_sha256": _sha,
            "ticket_type": ticket.get("type") or ticket.get("kind"), "acked_at": now(), "note": note}
+    if retracted_labels_cited: obj["retracted_labels_cited"] = retracted_labels_cited
+    obj = enforce_retraction_citation(obj, "ack")   # R137: refuse before writing
+
     _ap = ACKS / f"{tid}.C.json"; _seq = 0
     while _ap.exists():
         _seq += 1; _ap = ACKS / f"{tid}.C-{_seq}.json"  # immutable: re-ACK creates a new file, never overwrites
@@ -86,6 +89,36 @@ def resolve_base_sha(bs, repo: pathlib.Path = REPO) -> str:
     if r.returncode != 0 or not BASE_SHA_RE.match(full) or len(full) != 40:
         raise ValueError(f"emit refused: short base_sha {bs} does not resolve to a unique commit (Δ26; never zero-pad an abbreviation)")
     return full
+
+RETRACTIONS_MD = pathlib.Path("/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/mart/CANONICAL_MART_50.RETRACTIONS.md")
+
+
+def retracted_tokens(path: pathlib.Path = None) -> dict:
+    """{token: replacement_label} from the b_retractions/v1 block; {} if the file/block is absent (state reported by the caller)."""
+    import re as _re
+    path = path or RETRACTIONS_MD
+    if not path.exists(): return {}
+    m = _re.search(r"```json\s*(\{.*?\})\s*```", path.read_text(encoding="utf-8"), _re.S)
+    if not m: return {}
+    try: b = json.loads(m.group(1))
+    except ValueError: return {}
+    return {x["token"]: x.get("replacement_label") for x in b.get("retracted", []) if x.get("token")}
+
+
+def enforce_retraction_citation(obj: dict, kind: str) -> dict:
+    """R137 / C-PEND-03: a retracted token in the body (use OR mention) requires an explicit `retracted_labels_cited` declaration.
+    Refuses (ValueError) instead of publishing; never edits the body silently."""
+    toks = retracted_tokens()
+    if not toks:
+        obj["retraction_block"] = "ABSENT"; return obj
+    body = json.dumps({k: v for k, v in obj.items() if k != "retracted_labels_cited"}, ensure_ascii=False)
+    hit = sorted(t for t in toks if t in body)
+    if hit and not obj.get("retracted_labels_cited"):
+        raise ValueError(f"{kind} refused (R137): body cites retracted token(s) {hit} without `retracted_labels_cited` — declare e.g. "
+                         + json.dumps({"retracted_labels_cited": [{"token": t, "replacement_label": toks[t], "marker": "[RETRACTED]", "use_or_mention": "mention"} for t in hit]}, ensure_ascii=False))
+    if hit: obj["retraction_marker"] = "[RETRACTED] " + ", ".join(f"{t} → {toks[t]}" for t in hit)
+    return obj
+
 
 def emit(kind: str, payload: dict, to=("A", "B")) -> pathlib.Path:
     """Unsolicited C→A/B ticket (e.g. SYSTEMIC_HARD_STOP_CANDIDATE). Raises ValueError if payload lacks a base_sha that
@@ -120,6 +153,7 @@ def emit(kind: str, payload: dict, to=("A", "B")) -> pathlib.Path:
            **payload}
     if kind != v3_type:
         obj["legacy_type"] = kind
+    obj = enforce_retraction_citation(obj, "emit")   # refuses BEFORE any file is created
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
     import os
@@ -136,7 +170,9 @@ if __name__ == "__main__":
     try:
         cmd = sys.argv[1]
         if cmd == "ack":
-            t = load_ticket(sys.argv[2]); print(ack(t, " ".join(sys.argv[3:])))
+            args = sys.argv[3:]; decl = None
+            if args and args[0].startswith("--cite="): decl = json.loads(args[0][7:]); args = args[1:]
+            t = load_ticket(sys.argv[2]); print(ack(t, " ".join(args), retracted_labels_cited=decl))
         elif cmd == "hb":
             hb(**json.loads(sys.argv[2])); print("hb updated")
         elif cmd == "list":
@@ -164,6 +200,18 @@ if __name__ == "__main__":
                 assert d["base_sha"] == head and d.get("base_sha_as_given") == head[:10] and p.parent == TICKETS, "short real sha was not expanded to 40 chars"
                 p2 = emit("FINDING", {"headline": "ok full", "base_sha": head}); d2 = json.loads(p2.read_text(encoding="utf-8"))
                 assert d2["base_sha"] == head and "base_sha_as_given" not in d2, "full sha changed"
+                # R137 pre-publish refusal: retracted token in body without declaration → refused, no file; with declaration → written + marker
+                import bus as _self
+                _rt = retracted_tokens()
+                if _rt:
+                    _tok = next(iter(_rt)); _n0 = len(list(TICKETS.glob("*.json")))
+                    try:
+                        emit("FINDING", {"headline": f"mentions {_tok} as a bad name", "base_sha": head}); print("FAIL: emit accepted a retracted token without declaration"); sys.exit(1)
+                    except ValueError as e: print("refused as expected (R137):", str(e)[:80])
+                    assert len(list(TICKETS.glob("*.json"))) == _n0, "a file was created despite R137 refusal"
+                    p3 = emit("FINDING", {"headline": f"mentions {_tok}", "base_sha": head, "retracted_labels_cited": [{"token": _tok, "use_or_mention": "mention"}]}); d3 = json.loads(p3.read_text(encoding="utf-8"))
+                    assert d3.get("retraction_marker", "").startswith("[RETRACTED]"), "marker missing on declared citation"
+                else: print("NOTE: retraction block absent — R137 control not exercised (reported, not passed)")
                 assert d2.get("self_approved") is False and "self_approved_note" in d2, "Δ60-R65 fields missing from emitted ticket"
                 print("valid emits wrote", p.name, p2.name, "in temp dir only (short sha expanded to", head[:12] + "…); selftest OK")
     except AssertionError as _e:  # selftest assertion = the control ran and FAILED
