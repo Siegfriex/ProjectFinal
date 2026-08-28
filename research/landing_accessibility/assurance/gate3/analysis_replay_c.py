@@ -40,7 +40,11 @@ def parse_seq(v):
     if not observed(s): return None, "PLACEHOLDER"
     if s.startswith("["):
         try: arr = json.loads(s)
-        except ValueError: return None, "UNPARSABLE"
+        except ValueError:
+            import ast
+            try: arr = ast.literal_eval(s)          # B writes python-repr lists ("['OPEN_GLOBAL_MENU']") — rule stated
+            except (ValueError, SyntaxError): return None, "UNPARSABLE"
+        if not isinstance(arr, list): return None, "UNPARSABLE"
         toks = []
         for x in arr:
             if isinstance(x, str): toks.append(x)
@@ -141,6 +145,7 @@ def controls(manifest):
     res["must_not_flag:experienced_only basis used when task is placeholder"] = "PASS" if a["row_replay"][0].get("basis") == "experienced_only" and a["metrics"]["activation_depth"]["n_compared"] == 1 else f"FAIL {a['row_replay'][0]}"
     a = analyse([row(0, "AMBIGUOUS_E_SUPPLIES_ONE_SEQUENCE", exp=json.dumps([{"error": "menu_click_failed"}]), ad=1)], manifest)
     res["must_flag:error-only sequence→NON_CANONICAL, depth compared via alt"] = "PASS" if a["row_replay"][0].get("derive") == "NON_CANONICAL" else f"FAIL {a['row_replay'][0]}"
+    a = analyse([row(0, "['OPEN_GLOBAL_MENU', 'SELECT_FUNCTION', 'ENDPOINT_REACHED']", ad=exp_ad)], manifest); res["must_not_flag:python-repr list parsed"] = "PASS" if a["metrics"]["activation_depth"]["n_compared"] == 1 else f"FAIL {a['row_replay'][0]}"
     skel = [row(i, "NOT_OBSERVED", att="NOT_ATTEMPTED") for i in range(10)]; a = analyse(skel, manifest)
     res["must_flag:skeleton→every metric NOT_ASSURED, coverage 0"] = "PASS" if all(m["state"] == "NOT_ASSURED" for m in a["metrics"].values()) and all(v["k"] == 0 for v in a["coverage"]["overall"].values()) else "FAIL"
     a = analyse([row(i, seq, ad=exp_ad) for i in range(3)], manifest); f0 = t[0]["family_id"]

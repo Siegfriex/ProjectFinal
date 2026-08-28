@@ -101,7 +101,9 @@ def validate_raw_contract(raw_m, manifest):
     from collections import Counter
     dk = {k: n for k, n in Counter(r.get("idempotency_key") for r in raw_m).items() if n > 1}; dt = {k: n for k, n in Counter(r.get("target_id") for r in raw_m).items() if n > 1}
     for k, n in dk.items(): probs.append({"kind": "IDEMPOTENCY_KEY_DUP", "key": k, "n": n, "systemic": "duplicate_launch"})
-    for k, n in dt.items(): probs.append({"kind": "TARGET_MULTI_LINE", "target_id": k, "n": n, "systemic": "duplicate_launch", "note": "TBX-011: 1 target = 1 line"})
+    # R84 (TBX-015): a re-measurement run (R2) appends a NEW line with a new run identity — exactly-once is per (target_id, run); a
+    # second line per target is a REPORT unless its idempotency_key repeats (caught above) — never a duplicate_launch by target_id alone
+    for k, n in dt.items(): probs.append({"kind": "TARGET_MULTI_LINE_REPORT", "target_id": k, "n": n, "systemic": None, "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"})
 
 
     return probs
@@ -120,7 +122,7 @@ def raw_contract_controls(manifest):
     cases = {"first_prev_hash_not_null": ([{**g[0], "prev_hash": "x"}], "FIRST_PREV_HASH_NOT_NULL"), "terminal_enum": ([{**g[0], "terminal_reason": "GAVE_UP"}], "TERMINAL_REASON_ENUM(TBX-011)"),
              "attempt_enum": ([{**g[0], "attempt_status": "OK"}], "ATTEMPT_STATUS_ENUM"), "numeric_blank": ([{**g[0], "entry_x_norm": ""}], "NUMERIC_MISSING_MUST_BE_NULL"),
              "null_without_reason": ([{**g[0], "activation_depth": None}], "NULL_WITHOUT_MISSING_REASON"), "dup_idempotency": ([g[0], {**g[1], "idempotency_key": "k0"}], "IDEMPOTENCY_KEY_DUP"),
-             "target_two_lines": ([g[0], {**g[1], "target_id": t0["target_id"], "family_id": t0["family_id"]}], "TARGET_MULTI_LINE"), "target_outside": ([{**g[0], "target_id": "F9-99"}], "TARGET_NOT_IN_MANIFEST"),
+             "target_two_lines_report": ([g[0], {**g[1], "target_id": t0["target_id"], "family_id": t0["family_id"]}], "TARGET_MULTI_LINE_REPORT"), "target_outside": ([{**g[0], "target_id": "F9-99"}], "TARGET_NOT_IN_MANIFEST"),
              "missing_key": ([{k: v for k, v in g[0].items() if k != "task_hash"}], "MISSING_KEYS"), "sequence_not_array": ([{**g[0], "task_flow_sequence": "A>B"}], "SEQUENCE_NOT_ARRAY"),
              "task_hash_mismatch": ([{**g[0], "task_hash": "0" * 64}], "TASK_HASH_MISMATCH"), "task_hash_not_provided": ([{**g[0], "task_hash": "NOT_PROVIDED_BY_E"}], "TASK_HASH_NOT_PROVIDED")}
     for name, (rows, kind) in cases.items():
@@ -215,6 +217,17 @@ def main():
         for x in probs: flag("RAW.CONTRACT_TBX011", x.get("kind"), x.get("systemic"), **{k: v for k, v in x.items() if k not in ("kind", "systemic")})
         checks["RAW.CONTRACT_TBX011"] = {"status": "FLAG" if probs else "PASS", "n_items": len(raw_m), "problems": len(probs), "by_kind": dict(Counter(x["kind"] for x in probs)), "control": "raw_contract_controls() PASS in this run",
                                          "vocabulary_observation": "TBX-011 terminal_reason 8 values vs R11 16 values — C validates raw against TBX-011 (A's census contract); mart terminal_reason is checked against the union; entry_zone 5 values vs R7 7 zones; auth_gate_stage NONE vs R13 UNDETERMINED — reported, not judged"}
+    # --- R82 (TBX-015): every first-run target with candidate_count==0 / COLLECTOR_ZERO_CANDIDATE must appear in the R2 run — no exceptions
+    if raw_m:
+        def run_of(r): return "R2" if ("-R2" in str(r.get("evidence_dir") or "") or "-R2" in str(r.get("idempotency_key") or "") or str(r.get("run_id") or "").endswith("R2")) else "R1"
+        zero = sorted({r.get("target_id") for r in raw_m if run_of(r) == "R1" and (r.get("terminal_reason") == "COLLECTOR_ZERO_CANDIDATE" or r.get("route_diagnosis") == "COLLECTOR_ZERO_CANDIDATE" or r.get("candidate_count") == 0)})
+        r2 = sorted({r.get("target_id") for r in raw_m if run_of(r) == "R2"}); r2_open = bool(r2)
+        missing_r2 = [t for t in zero if t not in r2]; extra_r2 = [t for t in r2 if t not in zero]
+        if r2_open and missing_r2: flag("RAW.R2_COVERAGE", f"{len(missing_r2)}/{len(zero)} COLLECTOR_ZERO_CANDIDATE targets have no R2 line — at freeze this is an outcome-based selection (R82)", None, missing=missing_r2)
+        for t in extra_r2: flag("RAW.R2_COVERAGE", f"R2 line for {t} whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion", "task_or_outcome_leakage", target=t)
+        checks["RAW.R2_COVERAGE"] = {"status": ("NOT_TESTABLE" if not zero and not r2 else "FLAG" if (r2_open and missing_r2) or extra_r2 else "PASS" if r2_open else "PENDING_R2_NOT_OPENED"),
+                                    "n_items": len(zero) + len(r2), "eligible_by_criterion": len(zero), "re_measured": len(r2), "missing": missing_r2, "outside_criterion": extra_r2,
+                                    "rule": "criterion = R1 candidate_count==0 / COLLECTOR_ZERO_CANDIDATE (mechanical, fixed before results); run detection = '-R2' in evidence_dir/idempotency_key"}
     # --- forbidden-action presence probe over raw dirs
     dirs = [d for d in glob.glob(str(RUN_ROOT / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0; exec_hits = []
     EXEC_RE = re.compile(r'"(action|action_token|type|event|kind)"\s*:\s*"(click|tap|press|submit|SUBMIT_QUERY|SUBMIT|enter)"', re.I)

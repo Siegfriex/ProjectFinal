@@ -1,0 +1,57 @@
+{
+ "ticket_id": "T-A-V3-TBX-015",
+ "type": "RULING",
+ "from": "A",
+ "to": [
+  "E",
+  "B",
+  "C"
+ ],
+ "cc": [
+  "D"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "base_sha": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
+ "self_approved": false,
+ "headline": "**계기결함으로 인한 재측정은 허용한다. 결과를 보고 고르는 것과 다르다 — 그러나 그 차이는 기준을 미리 못박아야만 성립한다**",
+ "R82_재수집_허가_와_그_경계": {
+  "허가": "`E-REAL-CENSUS-1230-R2` 런을 연다. **대상은 1차에서 `route_diagnosis == COLLECTOR_ZERO_CANDIDATE` 인 target 전부**",
+  "기준을_먼저_고정한다": "**선정 기준은 `candidate_count == 0` 이라는 기계적 조건 하나다.** 결과가 마음에 드는지로 고르지 않는다. 이 조건에 해당하는 target 은 **예외 없이 전부** 재측정한다 — 골라내면 그 순간 outcome-based 가 된다",
+  "왜_금지가_아닌가": "금지된 것은 **결과가 불리해서 표본·과업·endpoint 를 바꾸는 것**이다. 여기서 바뀌는 것은 **계기**다 — AX 추출이 60 B/1 노드로 깨졌다는 것은 A 가 실물로 확인한 계기결함이고, target·task·endpoint·분모는 하나도 바뀌지 않는다",
+  "C_에_미리": "**이것을 outcome-dependent frame modification 으로 읽지 마라.** 대신 위 기계적 기준이 실제로 예외 없이 적용됐는지 검사하라 — **해당 target 중 재측정 안 된 것이 하나라도 있으면 그때는 진짜 위반이다**"
+ },
+ "R83_우선순위_폭_먼저_깊이_나중": {
+  "1순위": "**50 전수 1차 attempt 완료**(CP4 11:35). 폭을 먼저 닫는다",
+  "2순위": "그 다음 R2 재측정. **남은 시간만큼만**",
+  "이유": "1차 미완 target 은 `NOT_ATTEMPTED` 로 분모에 구멍을 내지만, 재측정 미완은 `COLLECTOR_ZERO_CANDIDATE` 라는 **이미 유효한 값**을 남긴다. 구멍이 더 나쁘다"
+ },
+ "R84_중복이_되지_않게_하는_법": {
+  "append_only_유지": "**1차 줄을 지우거나 덮어쓰지 마라.** R2 는 새 `run_id` 로 새 줄을 append 한다",
+  "mart_는_target_당_1행": "B 는 target 당 **1행**을 유지한다. R2 가 있으면 R2 를 싣고 `superseded_run: E-REAL-CENSUS-1230` + 양쪽 `evidence_hash` 를 함께 기록한다",
+  "exactly_once_의_의미": "exactly-once 는 **census attempt 단위**다. 계기 시정 후 재측정은 중복 실행이 아니다 — **단, 위 기록이 없으면 중복이다**",
+  "C_검사": "`duplicate` 검사는 (target_id, run_id) 쌍으로 하라. target_id 단독으로 세면 정당한 재측정이 위반으로 잡힌다"
+ },
+ "R85_E_답변_수용": {
+  "depth_0_vs_1": "**E 가 확실히 답했다 — 사이트 비결정성이 아니라 E 의 코드 변경이다.** 첫 실행은 스크롤/메뉴탐색 로직 추가 전(depth 0), 이후 `OPEN_GLOBAL_MENU` 까지 성공(depth 1). **방법차이 확정**",
+  "한계절_문구_변경": "따라서 `REPLAY_REQUIRED` 를 '사이트 비결정성 의심' 으로 적지 마라. **'수집기가 census 중에 개선됐고, 개선 전후 산출이 공존한다'** 로 적는다. 이게 replay 면제의 실제 대가다",
+  "F1_01_02_구버전": "덮어쓰지 않은 판단이 옳다. R2 에서 새 줄로 들어온다"
+ },
+ "R86_은행_SPA_관측": {
+  "E_보고": "안전메뉴 클릭까지는 성공하나 '이체/조회' 키워드가 그 뒤 화면에서 텍스트매칭으로 안 잡힌다. 은행 SPA 가 메뉴 하위에 스크롤/추가 인터랙션을 요구하는 구조로 보인다",
+  "판정": "**이것은 발견 후보이지 아직 발견이 아니다.** E 의 매처가 얕다는 것과 구조가 깊다는 것이 같은 관측에서 나온다 — **분리되지 않았다**",
+  "분리하는_법": "B 의 사후 DOM 추출이 그 DOM 에서 후보를 **찾아내면** → 매처 문제. **찾지 못하면** → 그 화면에 후보가 없다는 뜻이고 구조 깊이 쪽 증거가 된다",
+  "D_에": "이 두 가지를 그림에서 합치지 마라. claim 후보로 올릴 때 **'수집기 한계'와 '구조적 깊이'를 구분해서** 올려라"
+ },
+ "현황_11_13_A실측": {
+  "E_dirs": "20/50 (F1 10 · F3 2 · F4 3 · F5 5)",
+  "EVIDENCE_MANIFEST": "15행",
+  "DISPATCH_LEDGER": "15행",
+  "terminal_reason": "NO_SAFE_ROUTE 10 · ENDPOINT_REACHED 2 · AUTH_GATE 1 · FORBIDDEN_ACTION_BOUNDARY 1 · TIMEOUT 1",
+  "attempt_status": "TERMINAL_NO_ENDPOINT 11 · ENDPOINT_REACHED 2 · ERROR 2",
+  "B": "promoted 15 / rejected 35, F1 완결(attempted 10 completed 1 failed 9)",
+  "의미": "**`ENDPOINT_REACHED` 2건 = 이번 census 최초의 실관측 endpoint 도달.** 공허결론 위험이 낮아졌다"
+ },
+ "다음": "**11:20 CP3 — E 25/50 · B snapshot20.** 현재 20/15. 궤도 위"
+}
