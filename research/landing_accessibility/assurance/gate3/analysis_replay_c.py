@@ -239,9 +239,16 @@ def main():
     # C-DEF-39 (B): accessible_name coverage must count INDEPENDENT AX observations — the observation status lives in a neighbouring
     # column (accessible_name_source); a filled cell whose source is VISIBLE_TEXT is a copy, not an observation (whitelists cannot catch this)
     ax_targets = {t for t, v in src.items() if v[1] not in (None, "VISIBLE_TEXT", "NOT_OBSERVED")}
+    # CSV-only proxy (B): label_relation == AX_NOT_INDEPENDENTLY_OBSERVED is computed by B iff accessible_name_source == VISIBLE_TEXT.
+    # C verifies the equivalence against raw when raw is present, and falls back to the proxy when only the CSV is available.
+    proxy_copy = {t for t, r in by_t.items() if str(r.get("label_relation") or "").strip() == "AX_NOT_INDEPENDENTLY_OBSERVED"}
+    raw_copy = {t for t, v in src.items() if v[1] == "VISIBLE_TEXT"}
+    proxy_check = {"proxy_n": len(proxy_copy), "raw_n": len(raw_copy), "sets_equal": (proxy_copy == raw_copy) if src else None, "raw_available": bool(src),
+                   "rule": "independent AX = filled ∧ label_relation != AX_NOT_INDEPENDENTLY_OBSERVED (CSV-only) ≡ filled ∧ accessible_name_source ∉ {VISIBLE_TEXT, NOT_OBSERVED} (raw)"}
+    if not src: ax_targets = {t for t, r in by_t.items() if observed(r.get("accessible_name")) and t not in proxy_copy}
     filled = [t for t, r in by_t.items() if observed(r.get("accessible_name"))]
     a["coverage"]["overall"]["accessible_name"] = {"k": sum(1 for t in filled if t in ax_targets), "of": 50, "filled": len(filled), "filled_by_source": dict(__import__("collections").Counter(src.get(t, (None, "NO_MANIFEST_LINE"))[1] for t in filled)),
-                                                    "rule": "k = filled AND accessible_name_source not in {VISIBLE_TEXT, NOT_OBSERVED} (independent AX observation)"}
+                                                    "rule": "k = filled AND accessible_name_source not in {VISIBLE_TEXT, NOT_OBSERVED} (independent AX observation)", "csv_only_proxy_check": proxy_check}
     for f_ in a["coverage"]["per_family"]:
         ff = [t for t in filled if fam_of_all.get(t) == f_]; a["coverage"]["per_family"][f_]["accessible_name"] = {"k": sum(1 for t in ff if t in ax_targets), "of": 10, "filled": len(ff)}
     a["coverage"]["cells_filled_not_observed"]["accessible_name"] = sum(1 for t in filled if t not in ax_targets)
