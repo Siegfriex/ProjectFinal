@@ -117,6 +117,22 @@ ACCEPTED_UNSURFACED = {
         "찍는 것은 소음이고, 변화는 수로 드러난다",
     # [D-DEF-102] fixture 를 배선하며 되돌아온 것들 — 스캔은 `PASS · 4건 · must_flag 1` 을 찍는다
     # [D-DEF-104] 라벨 출처 검사 — 스캔이 찍는 것과 안 찍는 것
+    # [D-DEF-106] 출처 분해 재계산 — 스캔은 **총수·일치 여부·차이 행**을 찍는다
+    ("d_prov_reconcile", "derivation_D"):
+        "파생 경로 분해다. 스캔은 `D 27 vs 사이드카 28` 로 **총수**를 찍고 "
+        "**차이 행을 이름으로** 찍는다 — 분해 전체는 어긋난 자리를 보고 나서 볼 것이다",
+    ("d_prov_reconcile", "derivation_sidecar"):
+        "사이드카 원문 값이다. **정본은 사이드카 파일**이고 여기 것은 옮겨 적은 것이다 — "
+        "매 회 찍으면 옮겨 적은 값이 정본처럼 읽힌다",
+    ("d_prov_reconcile", "final_D"):
+        "값 최종 출처 분해다. 위와 같은 축이고 스캔은 총수와 차이 행만 찍는다",
+    ("d_prov_reconcile", "final_sidecar"):
+        "사이드카 원문 값 — 위와 같은 이유로 안 찍는다",
+    ("d_prov_reconcile", "overwritten_D"):
+        "E 가 덮은 8건의 분해다. 스캔은 **`일치 True/False` 를 찍는다** — "
+        "**어긋나면 그 불린이 먼저 움직인다**",
+    ("d_prov_reconcile", "overwritten_sidecar"):
+        "사이드카 원문 값 — 비교 상대이고 일치 여부로 표시된다",
     ("d_label_provenance", "zero_byte"):
         "0 바이트 trace 의 `회차/대상` 목록 6줄이다. 스캔은 **총수 6파일**과 "
         "'mart 는 전건 NOT_OBSERVED' 를 찍는다 — 총수가 변하면 그것이 먼저 움직인다",

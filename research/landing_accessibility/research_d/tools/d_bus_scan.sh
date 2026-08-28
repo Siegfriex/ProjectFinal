@@ -215,6 +215,11 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_prov_reconcile import recompute as _pr_fn
+    _pv = _pr_fn()
+    print(f"   출처 분해 재계산 : {_pv['verdict']} · D {_pv['n_observed_D']} vs 사이드카 "
+          f"{_pv['n_observed_sidecar']} · **E 덮음 8건 분해 일치 {_pv['overwritten_agrees']}** "
+          f"· 차이 {[x['target_id'] + '=' + str(x['entry_control_type']) for x in _pv['excluded_by_D']]}")
     from d_label_provenance import by_run as _lpr_fn
     _lpr = _lpr_fn()
     _vl = {k.replace("E-REAL-CENSUS-1230", "R1").replace("R1-", ""): v.get("n_with_visible_label")
