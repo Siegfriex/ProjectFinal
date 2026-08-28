@@ -1,11 +1,11 @@
 {
  "index": "V3_RULING_INDEX",
- "version": 42,
+ "version": 43,
  "purpose": "A 가 발행한 모든 조작적 정의·계약 요구의 정본 목록. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(T-B-V3-SCOPE-001).",
  "how_to_use": "C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 목록**을 기준으로 대조한다. 목록에 있는데 산출에 없으면 미반영이다.",
  "source": "control/v3/V3_0_1_SUCCESSOR_DELTA.md — 이 목록은 그 문서의 색인이며 정본은 그 문서다. 충돌 시 delta 원문이 이긴다.",
- "authority_sha": "75dda5cb67cfeca23286d1a3b3365d95973ac850",
- "count": 150,
+ "authority_sha": "6fc7567c1ee6cf1191be08694c04fa10581a2370",
+ "count": 155,
  "rulings": [
   {
    "id": "Δ1-a",
@@ -1790,6 +1790,67 @@
    "aliases": [
     "Δ52-exit2-first"
    ]
+  },
+  {
+   "id": "Δ53-fc",
+   "requires": "**`Δ48-R43` 의 예시 서술을 정정한다** — `verify_retention_manifest` 는 **`CAN_FAIL`**(실패 입력 3종 실증, 도입 커밋 이후 불변)이며 **함수는 검증한다. 그 호출이 검증할 것을 주지 않았다**(`manifest={}` → roots 순회 0회). `R43` 규칙과 '테스트가 결함을 가렸다' 는 유효하고 **가려진 결함의 이름이 틀렸다**",
+   "must_appear_in": "Δ48 을 인용하는 곳",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ53",
+   "aliases": [
+    "verify_retention_manifest",
+    "Δ53-fc"
+   ]
+  },
+  {
+   "id": "Δ53-R52",
+   "requires": "**`VACUOUS_PASS` 를 별도 범주로 승격한다** — `CAN_FAIL`/`CANNOT_FAIL` 축만 재면 **'검사 0회로 성공을 내는' 호출**을 놓친다. **'검사했고 통과' 와 '검사할 것이 없어서 통과' 가 같은 출력이다.** 실패 가능성 실증은 **호출 지점의 실제 입력**에서 한다 — 함수 수준으로 끝나지 않는다",
+   "must_appear_in": "R43 sweep · 검증 호출 지점",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ53",
+   "aliases": [
+    "R52",
+    "VACUOUS_PASS",
+    "Δ53-R52"
+   ]
+  },
+  {
+   "id": "Δ53-R53",
+   "requires": "**지시문의 사실 주장이 반증되면 게이트를 깨지 말고 `FALSIFIED` 로 기록한다** — 깨면 **방법의 결함과 지시의 결함이 같은 출력**이 된다. 도구의 능력은 **합성 대조**로 따로 실증한다. **상위가 하위에 내리는 사실 주장은 하위가 반증할 수 있어야 하고, 상위는 그 반증을 게이트가 아니라 기록으로 받는다**",
+   "must_appear_in": "각 평면의 워커 지시·게이트",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ53",
+   "aliases": [
+    "R53",
+    "FALSIFIED",
+    "Δ53-R53"
+   ]
+  },
+  {
+   "id": "Δ53-engine27",
+   "requires": "`engine/` 27건은 **v3 가 실제로 호출하는 부분집합만 B 가 실증**하고 나머지는 **`ENUMERATED_NOT_DEMONSTRATED`** 로 남겨 **GATE 1 의 '검증하지 않은 것' 절**로 옮긴다. v3 의 주장은 v3 가 실행하는 경로에 의존한다. **27 은 워커 규칙 기준의 수이며 다른 규칙으로 세면 다른 수가 나온다**",
+   "must_appear_in": "GATE1 '검증하지 않은 것' 절",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ53",
+   "aliases": [
+    "ENUMERATED_NOT_DEMONSTRATED",
+    "Δ53-engine27"
+   ]
+  },
+  {
+   "id": "Δ53-selfcatch",
+   "requires": "**검사기가 자기 도구를 잡는 것은 정상 동작이며 배치로 푼다.** 검사 규칙을 느슨하게 해서 자기를 빼는 것이 오답이다",
+   "must_appear_in": "검사 도구 배치",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ53",
+   "aliases": [
+    "Δ53-selfcatch"
+   ]
   }
  ],
  "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안) | v9: 기계적 접미사 별칭 제거 + 토큰경계 매칭 + 길이3 미만 금지 (T-B-V3-FINDING-007) | v10: Δ23~Δ26·R24·R25 누락 5행 추가 + container_sections 명시 + delta 절 커버리지 검사 상주 (D-V3-FINDING-012). **A 의 Δ21 위반 네 번째** | v11: Δ28-R26 추가 (delta 기록과 색인 추가를 함께 — Δ21/Δ27 자기적용) | v12: Δ29 추가 + R26 보강 (D-V3-FACT_CORRECTION-003 — A 의 Δ28 이 너무 관대했다) | v13: Δ30 Scout 정책 승계 5행 + terminal_reason 14값 (T-B-V3-BLK-013) | v14: Δ31 계열 3행 (T-B-V3-FINDING-008) | v15: Δ32 계열 4행 + terminal_reason 15값 (T-B-V3-BLK-014 P0) | v16: Δ10-R11 을 15값 전체 열거로 (D-V3-FINDING-014 — 서술이 14/15 를 뒤집어 읽히게 했다) + 82 분해 기록 | v17: 별칭 기준을 모양에서 특정성으로 (D-V3-FACT_CORRECTION-004). 대조 말뭉치 검사 상주 | v18: split_rows 선언 + index→delta 도달성 검사 상주 (C 의 v16 11건 보고가 v17 에서 우연히 0 이 된 것을 구조로 고정) | v19: MIN-4/MIN-5 중복 해소 + 유령 별칭 7건 제거 (T-B-V3-FINDING-009 · D-V3-ADDENDUM-003) | v20: Δ27·Δ33·Δ34 색인 행 추가 — **서술로만 있던 검사가 실제로 돌자 A 의 Δ21 위반 다섯 번째가 나왔다** | v21: 도달성 선언에 authority 경로 명시 + 헤더 추출 정규식 시정 (D-V3-FINDING-015) | v22: authority 경로를 한계와 함께 선언 + 두 방향 양성대조 (C-FINDING-074834) | v23: probe 값 런타임 선택 — 문서가 자기 검사를 무력화한 두 번째 사례 | v24: Δ35 계열 3행 (T-B-V3-FINDING-010) | v25: Δ36 계열 4행 — A 의 MIN-2 과잉 승계 시정 (T-B-V3-BLK-015) | v26: Δ37 — legacy depth 필드 NULL + 사유 (D-V3-FINDING-016) | v27: 하위 블록의 낡은 측정값 제거 — 측정값 단일 출처 (D-V3-FINDING-017) | v28: Δ38 행 추가 | v29: Δ39/R32 계열 3행 (T-B-V3-FINDING-011)",
@@ -1826,14 +1887,14 @@
    "D3-06": "Δ1-a 와 Δ1-b 가 같은 D3-06 결정을 개정한다. 조회 시 두 행이 모두 반환되는 것이 옳다"
   },
   "last_run": {
-   "at_kst": "2026-08-28T09:22:04+0900",
-   "index_version": 42,
-   "rows": 150,
-   "total_aliases": 261,
+   "at_kst": "2026-08-28T09:25:44+0900",
+   "index_version": 43,
+   "rows": 155,
+   "total_aliases": 272,
    "duplicate": 1,
    "unexpected_duplicate": 0,
-   "delta_sections": 100,
-   "input_sha256": "a77a09425bc5879e87dc74311ef73113efbf0989c88376a1b1ce574edf1a498d",
+   "delta_sections": 103,
+   "input_sha256": "bbc777815b04db3a5bfc0a10c9cec28baef4a9b4098ccd1ac895b26c72070b4c",
    "positive_control": {
     "per_check": {
      "alias_uniqueness": true,
@@ -1960,7 +2021,7 @@
   "consumer_rule": "index→delta 도달성 검사에서 분할 행은 **부모 절 존재로 충족**이다. 이것은 `container_sections` 의 역방향 대응물이다",
   "why_declared": "v16 에서 C 가 도달 불가 11건을 보고했고 v17 에서 0 이 됐다. **그러나 그 해소는 구조가 아니라 산문 우연이다** — A 가 Δ33 본문 표에 `Δ32-R29` 등을 쓴 덕에 토큰이 등장했을 뿐이다. 다음에 A 가 그런 언급을 하지 않으면 다시 도달 불가가 된다. **우연에 기대지 않도록 선언한다**"
  },
- "source_sha256": "a77a09425bc5879e87dc74311ef73113efbf0989c88376a1b1ce574edf1a498d",
+ "source_sha256": "bbc777815b04db3a5bfc0a10c9cec28baef4a9b4098ccd1ac895b26c72070b4c",
  "authority_sha_semantics": "이 값을 쓴 시점의 git HEAD 다. **이 갱신 자체는 그 다음 커밋에 담기므로 항상 한 칸 뒤진다.** 정확한 입력 신원은 `source_sha256`(delta 바이트) 이며 그쪽을 인용하라",
  "failure_behavior_demo": {
   "sidecar": "control/v3/CONTROL_FAILURE_DEMO.json",

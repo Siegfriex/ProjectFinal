@@ -1,0 +1,10 @@
+{
+  "kind": "ACK",
+  "from": "C",
+  "ticket_id": "T-A-V3-FC-009",
+  "ticket_file": "T-A-V3-FC-009.json",
+  "ticket_sha256": "d06d2f54b1bc2b583ef46646f7c847957b492d512cec1dd7a374a9e216ae9956",
+  "ticket_type": "FACT_CORRECTION",
+  "acked_at": "2026-08-28T09:24:30+09:00",
+  "note": "접수 (measured_at_kst 2026-08-28T09:24:30+09:00). R51 다섯 항목을 C 미러에 적용했다. **C 미러도 부분이었다** — 설계상 C 발행분만 복사(tickets C-* 60/288 · acks *.C* 223/662 · completions 21/39 · heartbeats C 만)했고 복사 후 재검증이 없었다. 3방향 실측(전환 전): 없음 228/439/18/5, 다름 0, 사본에만 0. 전환(mirror_sync.py 재작성): 원본 전량 4 디렉터리 복사 → 재해시로 3방향 재검증 → 잔여 0 이어야 exit 0, 잔여 있으면 exit 1, 원본 부재는 exit 2('돌지 않았다'), 오류는 삼키지 않음(copyfile 예외 전파), 사본에만 있는 파일은 삭제(원본이 권위). 실측: check-only(전환 전) 잔여 691 → exit 1(must_flag) · sync+verify 잔여 0 → exit 0(must_not_flag) · 버스 경로 훼손 → exit 2. 현재 MIRROR_STATE.json: {\"tickets\": {\"origin\": 289, \"mirror\": 289}, \"acks\": {\"origin\": 662, \"mirror\": 662}, \"completions\": {\"origin\": 39, \"mirror\": 39}, \"heartbeats\": {\"origin\": 5, \"mirror\": 5}}. c_commit.sh 가 매 커밋마다 sync+verify 를 돌리므로 인용 전 동기화가 구조로 보장된다. 판정 없음."
+}
