@@ -45,7 +45,7 @@
 
 ---
 
-## 3. 2층 — 사례분석 (n=8)
+## 3. 2층 — 사례분석 (위치·형태 n=5 · 순서·깊이 n=8)
 
 C가 독립 검증했다: 8개 target 전부 **R3 선택 이전(R1, 11:06–11:26)에 이미 endpoint/auth evidence를 보유**했다(8/8 CONFIRMED). 따라서 8이라는 수는
 
@@ -55,8 +55,8 @@ C가 독립 검증했다: 8개 target 전부 **R3 선택 이전(R1, 11:06–11:2
 
 | 축 | 값 | 판정 |
 |---|---|---|
-| 진입 위치 `entry_zone` | 5종 / 8 (TOP_LEFT 1 · TOP_CENTER 2 · TOP_RIGHT 1 · MID 2 · BOTTOM 2) | **비수렴** |
-| control 형태 `entry_control_type` | 2종 / 8 (TEXT_LINK 6 · ICON_TEXT 2) | **비수렴** |
+| 진입 위치 `entry_zone` | **4종 / 5** (TOP_LEFT 1 · TOP_CENTER 1 · MID 2 · TOP_RIGHT 1) | **비수렴** |
+| control 형태 `entry_control_type` | 2종 / 5 (TEXT_LINK 4 · ICON_TEXT 1) | **비수렴** |
 | 조작순서 signature | 1종 (`SELECT_FUNCTION` ×8) | **수렴** |
 | 활성화 깊이 `activation_depth` | 1 ×8 | **수렴** |
 | 메뉴 의존 `menu_dependency` | False ×8 | **수렴** |
