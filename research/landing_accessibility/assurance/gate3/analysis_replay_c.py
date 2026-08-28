@@ -29,6 +29,24 @@ VARS = ["visible_label", "accessible_name", "label_relation", "entry_x_norm", "e
 TOL = 1e-6
 
 
+# C-DEF-38 (B): coverage must be "value observed", not "cell not in a sentinel list" — per-column ALLOWED value sets; anything outside is not an observation.
+# A column absent from this map falls back to the sentinel/prefix rule (reported as such).
+ALLOWED = {
+    "label_relation": {"MATCH", "DIFFERENT", "SEMANTIC_EQUIV"},            # a RELATION is observed only when both labels were; VISIBLE_ONLY/AX_ONLY/NONE/AX_NOT_INDEPENDENTLY_OBSERVED are non-observation states
+    "entry_zone": {"TOP_LEFT", "TOP_CENTER", "TOP_RIGHT", "MID", "BOTTOM", "FLOATING", "DRAWER", "TOP", "LEFT", "RIGHT", "CENTER"},
+    "auth_gate_stage": {"BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "NONE"},
+    "menu_dependency": {"True", "False", "true", "false", "0", "1"},
+    "task_control_occlusion": {"True", "False", "true", "false", "0", "1"},
+}
+DISALLOWED_PREFIX = ("AMBIGUOUS_", "NOT_OBSERVABLE", "NOT_RECORDED", "NA_", "E_DID_NOT_SUPPLY", "UNDETERMINED", "AX_NOT_INDEPENDENTLY")
+
+
+def observed_col(col, v):
+    s = ("" if v is None else str(v)).strip()
+    if col in ALLOWED: return s in ALLOWED[col]
+    return observed(s) and not s.startswith(DISALLOWED_PREFIX)
+
+
 def observed(v):
     s = ("" if v is None else str(v)).strip()
     # reason tokens are not observations (C-DEF-37: NOT_OBSERVABLE_FROM_STATIC_DOM was counted as an entry_zone value → coverage 26/50 instead of 8/50)
@@ -114,9 +132,11 @@ def metric(state_rows, ok_key):
 
 def analyse(rows, manifest):
     fam_of = {t["target_id"]: t["family_id"] for t in manifest["targets"]}; fams = sorted(set(fam_of.values()))
-    cov = {"overall": {}, "per_family": {f: {} for f in fams}}
+    cov = {"overall": {}, "per_family": {f: {} for f in fams}, "rule": "value observed = in the column's ALLOWED set (label_relation: MATCH/DIFFERENT/SEMANTIC_EQUIV only); columns without a set: not sentinel and not a reason/ambiguity token", "cells_filled_not_observed": {}}
     for v in VARS:
-        ks = [r["target_id"] for r in rows if r.get("target_id") in fam_of and observed(r.get(v))]
+        cov["cells_filled_not_observed"][v] = sum(1 for r in rows if r.get("target_id") in fam_of and observed(r.get(v)) and not observed_col(v, r.get(v)))
+    for v in VARS:
+        ks = [r["target_id"] for r in rows if r.get("target_id") in fam_of and observed_col(v, r.get(v))]
         cov["overall"][v] = {"k": len(ks), "of": 50}
         for f in fams: cov["per_family"][f][v] = {"k": sum(1 for t in ks if fam_of[t] == f), "of": 10}
     obs_rows = [r for r in rows if r.get("target_id") in fam_of and str(r.get("attempt_status") or "").strip() not in Q.NOT_ATTEMPTED_VALUES]
@@ -167,6 +187,8 @@ def controls(manifest):
     res["must_flag:error-only sequence→NON_CANONICAL, depth compared via alt"] = "PASS" if a["row_replay"][0].get("derive") == "NON_CANONICAL" else f"FAIL {a['row_replay'][0]}"
     a = analyse([row(0, "['OPEN_GLOBAL_MENU', 'SELECT_FUNCTION', 'ENDPOINT_REACHED']", ad=exp_ad)], manifest); res["must_not_flag:python-repr list parsed"] = "PASS" if a["metrics"]["activation_depth"]["n_compared"] == 1 else f"FAIL {a['row_replay'][0]}"
     a = analyse([{**row(0, seq, ad=exp_ad), "entry_zone": "NOT_OBSERVABLE_FROM_STATIC_DOM", "entry_x_norm": "NOT_OBSERVABLE_FROM_STATIC_DOM"}], manifest); res["must_flag:reason token NOT_OBSERVABLE_* not counted as observed"] = "PASS" if a["coverage"]["overall"]["entry_zone"]["k"] == 0 and a["coverage"]["overall"]["entry_x_norm"]["k"] == 0 else f"FAIL {a['coverage']['overall']['entry_zone']}"
+    a = analyse([{**row(0, seq, ad=exp_ad), "label_relation": "AX_NOT_INDEPENDENTLY_OBSERVED", "nav_container_type": "AMBIGUOUS_MULTIPLE_CONTAINERS"}], manifest); res["must_flag:non-observation tokens (AX_NOT_INDEPENDENTLY_OBSERVED / AMBIGUOUS_*) not counted"] = "PASS" if a["coverage"]["overall"]["label_relation"]["k"] == 0 and a["coverage"]["overall"]["nav_container_type"]["k"] == 0 and a["coverage"]["cells_filled_not_observed"]["label_relation"] == 1 else f"FAIL {a['coverage']['overall']['label_relation']} {a['coverage']['cells_filled_not_observed']}"
+    a = analyse([{**row(0, seq, ad=exp_ad, vl="이체", an="송금", lr="DIFFERENT")}], manifest); res["must_not_flag:DIFFERENT counts as observed relation"] = "PASS" if a["coverage"]["overall"]["label_relation"]["k"] == 1 else "FAIL"
     skel = [row(i, "NOT_OBSERVED", att="NOT_ATTEMPTED") for i in range(10)]; a = analyse(skel, manifest)
     res["must_flag:skeleton→every metric NOT_ASSURED, coverage 0"] = "PASS" if all(m["state"] == "NOT_ASSURED" for m in a["metrics"].values()) and all(v["k"] == 0 for v in a["coverage"]["overall"].values()) else "FAIL"
     a = analyse([row(i, seq, ad=exp_ad) for i in range(3)], manifest); f0 = t[0]["family_id"]

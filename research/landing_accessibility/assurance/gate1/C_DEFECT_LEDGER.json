@@ -348,6 +348,14 @@
    "what": "sentinel 목록에 NOT_OBSERVABLE_FROM_STATIC_DOM(사유 토큰) 이 없어 ANALYSIS_ASSURED coverage 가 entry_x/y/zone 을 26/50 으로 냈다 — 실제 관측 8/50(E_R3_SUPPLEMENT). 열별 sentinel 을 점검했다고 보고한 직후의 누락",
    "fix": "observed() 가 NOT_OBSERVABLE*/NOT_RECORDED*/NA_* 접두 토큰을 미관측으로 처리(+control); ANALYSIS_ASSURED 재생성, CHECKER_FROZEN v5, FACT_CORRECTION 발행",
    "lesson": "sentinel 은 목록이 아니라 '값 어휘 밖의 모든 토큰' 으로 정의해야 한다(R62 손 목록은 썩는다) — 열의 허용 값 집합을 먼저 두고 그 밖은 전부 미관측"
+  },
+  {
+   "id": "C-DEF-38",
+   "found_at_kst": "2026-08-28T13:39:03+09:00",
+   "found_by": "B (C-DEF-37 을 자기 열에 적용)",
+   "what": "ANALYSIS_ASSURED coverage 가 label_relation 을 50/50 관측으로 냈다 — AX_NOT_INDEPENDENTLY_OBSERVED 28·NONE 21·VISIBLE_ONLY 1 은 전부 '관계 미관측' 상태인데 sentinel 목록 밖이라 통과. 관계 관측은 0/50",
+   "fix": "coverage 를 열별 허용값 집합 방식으로 전환(+cells_filled_not_observed 병기, controls +2); ANALYSIS_ASSURED 재생성, CHECKER_FROZEN v6",
+   "lesson": "C-DEF-37 교훈을 적은 지 20분 만에 같은 형태가 더 큰 열에서 나왔다 — 교훈을 적는 것과 도구에 넣는 것은 다르다(Δ59-writing)"
   }
  ],
  "caught_before_issue": [
