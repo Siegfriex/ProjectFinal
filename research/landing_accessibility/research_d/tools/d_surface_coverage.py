@@ -115,6 +115,9 @@ ACCEPTED_UNSURFACED = {
     ("d_tool_health", "syntax_only_tools"):
         "값이 이미 표시된다 — 스캔의 `문법만 45` 가 이 45 다. 45개 도구 **이름**을 매 회차 "
         "찍는 것은 소음이고, 변화는 수로 드러난다",
+    ("d_retractions", "rows_ack"):
+        "ACK 파일별 인용 상세다. 스캔은 `새 N · 철회 이전 N(위반 아님) · baseline N` 으로 "
+        "**분류별 수**를 찍고 `새` 가 생기면 그것이 먼저 움직인다 — 5줄 상세는 소음이다",
     ("d_retractions", "hits"):
         "값이 이미 표시된다 — 스캔의 `발행티켓 PASS(새 0 / baseline 2)` 가 이 2건이다. "
         "둘 다 `D-V3-FINDING-043` · `BASELINE_PRE_GUARD` 이고 발행분은 고치지 않으므로 변하지 않는다",

@@ -252,6 +252,11 @@ try:
           f"· 철회토큰 {sorted(_rt())} ===")
     for _f in _r["files"]:
         print(f"   산출물  {_f}")
+    from d_retractions import audit_acks as _rak
+    _ak = _rak()
+    print(f"   ACK 파일 철회 인용 : {_ak['verdict']} · **새 {_ak['n_new']}** "
+          f"· 철회 이전 {_ak['n_before_retraction']}(위반 아님) · baseline {_ak['n_baseline']} "
+          f"— **ACK 는 어느 검사도 안 보던 자리다**")
     for _f in _k["baseline_pre_guard"]["tickets"]:
         print(f"   티켓    {_f}  (차단 이전 발행 — 고칠 수 없다. verdict 를 좌우하지 않음)")
     for _h in _k["new"]:

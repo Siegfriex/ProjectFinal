@@ -207,6 +207,42 @@ def ticket_time(path):
     return _ticket_time(p, d)
 
 
+BUS_ACKS = REPO / ".agent_bus/landing_v2/acks"
+# [D-DEF-100] ACK 파일은 **어느 검사도 보지 않았다.** 티켓만 봤다.
+ACK_GUARD_SINCE = "2026-08-28T20:45:00"      # `emit_ack` 이 철회 검사를 거치기 시작한 시각
+
+
+def audit_acks(plane: str = "D") -> dict:
+    """D 가 쓴 ACK 파일의 철회 라벨 인용. **티켓과 같은 판정 경로**를 쓴다."""
+    import datetime as _dt
+    rows = []
+    for p in sorted(BUS_ACKS.glob(f"*.{plane}.json")):
+        txt = p.read_text(encoding="utf-8")
+        for h in audit_json_text(txt, p.name):
+            tok = h.get("token") if isinstance(h, dict) else str(h)
+            since = retracted_since(tok)
+            m = _dt.datetime.fromtimestamp(p.stat().st_mtime).isoformat(timespec="seconds")
+            if since and m < since:
+                cls = "BEFORE_RETRACTION"      # 철회 전에 쓴 것 — **위반이 아니다**
+            elif m < ACK_GUARD_SINCE:
+                cls = "BASELINE_PRE_GUARD"     # 철회 후·가드 전 — 고칠 수 없다
+            else:
+                cls = "NEW"
+            rows.append({"file": p.name, "token": tok, "mtime": m,
+                         "retracted_since": since, "class": cls})
+    new = [r for r in rows if r["class"] == "NEW"]
+    return {"verdict": "PASS" if not new else "FAIL",
+            "n": len(rows), "n_new": len(new),
+            "n_before_retraction": sum(1 for r in rows if r["class"] == "BEFORE_RETRACTION"),
+            "n_baseline": sum(1 for r in rows if r["class"] == "BASELINE_PRE_GUARD"),
+            "rows_ack": rows[:10], "guard_since": ACK_GUARD_SINCE,
+            "**총수는 신호가 아니다**": (
+                "`BEFORE_RETRACTION` 은 **철회 전에 쓴 것이라 위반이 아니고**, "
+                "`BASELINE_PRE_GUARD` 는 `emit_ack` 이 검사를 거치기 전 것이라 **고칠 수 없다**. "
+                "**`NEW` 만 신호다**"),
+            "왜_이제_보나": "ACK 파일은 티켓 감사에도 스키마 감사에도 대상이 아니었다 [D-DEF-100]"}
+
+
 def audit_tickets(plane: str = "D") -> dict:
     """**발행 티켓**이 철회 토큰을 표시 없이 인용하는가 — 철회 이후 발행분만.
 

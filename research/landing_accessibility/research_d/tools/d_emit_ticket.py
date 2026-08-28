@@ -402,7 +402,10 @@ def emit_ack(ticket_id: str, body: dict, *, ack_type: str = "ACK",
     # [D-DEF-13] ACK 은 "그때 그 내용" 에 대한 것이다 — 해시를 박는다
     a["ticket_sha256"] = hashlib.sha256(tp.read_bytes()).hexdigest()
     a.setdefault("not_a_verdict", "D 는 NON_CANONICAL. 판정은 A 소관이다.")
-    errs = clock_errors(a)
+    # [D-DEF-100] ACK 경로는 `clock_errors` 하나만 거쳤다. **철회 라벨 검사는 안 불렀고**
+    # 사후 감사도 `acks/` 를 안 봤다 — 가드가 있는데 경로가 안 부르고 감사도 못 본다.
+    # `T-B-V3-FINDING-024` 가 자기 발행 게이트에서 찾은 것과 같은 형태다.
+    errs = clock_errors(a) + retraction_errors(a)
     if errs:
         return {"acked": False, "errors": errs}
     if dry_run:
