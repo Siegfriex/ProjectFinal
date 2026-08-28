@@ -168,6 +168,16 @@ def unterminated(c) -> dict:
             if r.info.status == "RUNNING":
                 life_running.append(row)
             if t.get("verdict") == "PENDING":
+                # [D-DEF-91] **총수를 그대로 신호로 보면 과대계상이다.**
+                # `PENDING` 은 넷으로 갈린다 — 그중 둘은 정상이다.
+                if r.info.status == "RUNNING":
+                    row["pending_class"] = "OPEN"           # 아직 안 닫힌 run
+                elif t.get("run_status") == "RUNNING":
+                    row["pending_class"] = "STATUS_STUCK"   # 닫혔는데 상태 고착 [D-DEF-89]
+                elif t.get("run_status") == "SUPERSEDED":
+                    row["pending_class"] = "SUPERSEDED"     # 대체됨 — **정상**
+                else:
+                    row["pending_class"] = "OTHER"          # 예: 사전등록(설계상 verdict 없음)
                 pending.append(row)
     # 두 축이 어긋난 것 — **끝났다고 하면서 RUNNING 이라고도 한다**
     disagree = [x for x in tag_running if x["lifecycle"] != "RUNNING"]
@@ -176,6 +186,13 @@ def unterminated(c) -> dict:
             "n_lifecycle_running": len(life_running),
             "n_disagree": len(disagree), "disagree": disagree,
             "n_verdict_pending": len(pending),
+            "pending_by_class": dict(Counter(x["pending_class"] for x in pending)),
+            "pending_rows": pending,
+            "**PENDING 총수는 신호가 아니다**": (
+                "`OPEN` 은 아직 안 닫힌 run, `STATUS_STUCK` 은 `D-DEF-89` 축, "
+                "`SUPERSEDED` 는 **대체된 run 이라 최종 verdict 가 없는 것이 정상**, "
+                "`OTHER` 에는 **사전등록**(결과 전에 여는 run — 설계상 verdict 가 없다)이 있다. "
+                "**넷을 한 수로 묶으면 정상과 결함이 같은 출력이 된다**"),
             "n_no_run_status_tag": no_tag,
             "두_축이_다르다": ("MLflow lifecycle `status` 는 프로세스가 끝났는지, "
                         "`run_status` tag 는 **D 가 무엇으로 닫았는지**를 말한다. "
@@ -315,6 +332,19 @@ def _audit_d_own(c) -> dict:
 def controls() -> dict:
     """합성 run 으로 누락을 잡는지 본다. **서버를 건드리지 않는다.**"""
     rows = []
+
+    # [D-DEF-91] PENDING 분해가 총수와 맞는가 — **합이 안 맞으면 분류가 샌다**
+    _u2 = audit().get("unterminated") or {}
+    _pc = _u2.get("pending_by_class") or {}
+    rows.append({"case": "[PENDING] 분해의 합이 총수와 같다",
+                 "expectation": "must_not_flag",
+                 "ok": sum(_pc.values()) == _u2.get("n_verdict_pending")})
+    rows.append({"case": "[PENDING] 네 분류 이름만 나온다 — 모르는 값이 새지 않는다",
+                 "expectation": "must_not_flag",
+                 "ok": set(_pc).issubset({"OPEN", "STATUS_STUCK", "SUPERSEDED", "OTHER"})})
+    rows.append({"case": "[PENDING] STATUS_STUCK 은 어긋남 수를 넘지 않는다",
+                 "expectation": "must_not_flag",
+                 "ok": _pc.get("STATUS_STUCK", 0) <= _u2.get("n_disagree", 0)})
 
     # [D-DEF-89] 미종결 축이 살아 있는가 — **비어 있으면 검사가 아니다**
     _u = audit().get("unterminated") or {}

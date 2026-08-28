@@ -96,6 +96,11 @@ try:
           f"{_un.get('n_lifecycle_running')} · **어긋남 {_un.get('n_disagree')}**(끝났는데 RUNNING) "
           f"· verdict PENDING {_un.get('n_verdict_pending')} "
           f"· tag 없음 {_un.get('n_no_run_status_tag')}(계약 이전, 대상 아님)")
+    _pc = _un.get("pending_by_class") or {}
+    print(f"     verdict PENDING 분해 : OPEN {_pc.get('OPEN', 0)} · "
+          f"STATUS_STUCK {_pc.get('STATUS_STUCK', 0)}(D-DEF-89) · "
+          f"SUPERSEDED {_pc.get('SUPERSEDED', 0)}(정상) · OTHER {_pc.get('OTHER', 0)}(사전등록 등) "
+          f"— **총수는 신호가 아니다**")
     if _m.get("verdict") == "NO_SERVER":
         print("   서버 없음 — **통과가 아니다.** 재기동 후 다시 잰다")
 except Exception as _e:
