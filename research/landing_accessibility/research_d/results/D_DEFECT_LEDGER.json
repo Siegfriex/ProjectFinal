@@ -1,7 +1,7 @@
 {
  "artifact": "D_DEFECT_LEDGER",
  "produced_at_kst": "2026-08-28T09:51:38+09:00",
- "measured_at_kst": "2026-08-28T11:34:47+09:00",
+ "measured_at_kst": "2026-08-28T11:51:33+09:00",
  "d_head": "0074449403193d8dbb4d515fced3d5dc5fa15d96",
  "plane": "D",
  "claim_kind": "OBSERVATION",
@@ -229,6 +229,16 @@
    "ticket": "D-V3-FINDING-035",
    "fix": "수치 축은 float 변환 가능성으로 판정(numeric_observed), 범주 축은 미관측 **패턴** 매칭 + STATUS_TOKENS 예외. 손 목록은 보조로만 둔다 (A R62)",
    "control": "C 재계산과 9축 대조 — entry_x/y/zone·reveal_direction 4축이 0/50 으로 일치. 앞서 어긋났던 것이 맞춰졌다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-38",
+   "what": "보고서 그림의 한글 제목이 **네모로 깨진 채 저장**됐고 경고만 stderr 로 나갔다",
+   "mechanism": "matplotlib 기본 폰트(DejaVu Sans)에 한글 글리프가 없다. 폰트를 지정하지 않으면 파일은 정상 생성되고 UserWarning 만 나간다",
+   "why_it_matters": "**산출물이 정상으로 보인다.** 그림 sha 도 정상이고 렌더도 성공한다 — 사람이 열어봐야 안다. 이 세션 내내 다룬 '실패가 성공처럼 보이는' 형태다",
+   "ticket": "D-V3-REPORT-001",
+   "fix": "NanumGothic 지정 + axes.unicode_minus False",
+   "control": "렌더 후 UserWarning 건수를 세어 0 인지 확인했다 — 경고를 stderr 로 흘리지 않고 판정에 쓴다",
    "escaped": true
   }
  ],
