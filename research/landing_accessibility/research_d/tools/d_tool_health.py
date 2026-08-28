@@ -250,9 +250,9 @@ _SIDE_NAMES = {"open", "print", "exec", "eval"}
 # `run`·`dump`·`set_tag` 는 남겼지만 **모호하다** — 잡히면 눈으로 봐야 한다.
 
 
-def _toplevel_side_hits(tree) -> list:
+def _toplevel_side_calls(tree) -> list:
     """AST 하나에서 최상위 부수효과 호출을 뽑는다 — **대조군이 부르는 지점**."""
-    hits = []
+    calls = []
     for node in tree.body:                          # **최상위만** — def/class 안은 안 돈다
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef,
                              ast.Import, ast.ImportFrom)):
@@ -266,8 +266,8 @@ def _toplevel_side_hits(tree) -> list:
             nm = (fn.attr if isinstance(fn, ast.Attribute)
                   else fn.id if isinstance(fn, ast.Name) else None)
             if nm in _SIDE_CALLS or nm in _SIDE_NAMES:
-                hits.append({"call": nm, "line": getattr(sub, "lineno", None)})
-    return hits
+                calls.append({"call": nm, "line": getattr(sub, "lineno", None)})
+    return calls
 
 
 def import_side_effects(text: str | None = None) -> dict:
@@ -277,8 +277,8 @@ def import_side_effects(text: str | None = None) -> dict:
     """
     if text is not None:
         return {"verdict": "PASS", "n_tools": 1, "n_gated": 0, "n_risky_gated": 0,
-                "risky_gated": [], "n_any": 1 if _toplevel_side_hits(ast.parse(text)) else 0,
-                "hits": _toplevel_side_hits(ast.parse(text))}
+                "risky_gated": [], "n_any": 1 if _toplevel_side_calls(ast.parse(text)) else 0,
+                "side_calls": _toplevel_side_calls(ast.parse(text))}
     rows = []
     for f in sorted(TOOLS.glob("*.py")):
         if f.name in SKIP:
@@ -288,17 +288,17 @@ def import_side_effects(text: str | None = None) -> dict:
         except SyntaxError:
             rows.append({"module": f.stem, "state": "SYNTAX_ERROR"})
             continue
-        hits = _toplevel_side_hits(tree)
-        rows.append({"module": f.stem, "n_hits": len(hits), "hits": hits[:5]})
+        calls = _toplevel_side_calls(tree)
+        rows.append({"module": f.stem, "n_calls": len(calls), "side_calls": calls[:5]})
     gated = {x["module"] for x in static_control_presence()["rows"]
              if x.get("in_loop") and x.get("has_control_def")}
-    risky = [r for r in rows if r.get("n_hits") and r["module"] in gated]
+    risky = [r for r in rows if r.get("n_calls") and r["module"] in gated]
     return {"verdict": "PASS" if not risky else "FAIL",
             "n_tools": len(rows),
             "n_gated": len(gated),
             "n_risky_gated": len(risky),
-            "risky_gated": [{"module": r["module"], "hits": r["hits"]} for r in risky],
-            "n_any": sum(1 for r in rows if r.get("n_hits")),
+            "risky_gated": [{"module": r["module"], "side_calls": r["side_calls"]} for r in risky],
+            "n_any": sum(1 for r in rows if r.get("n_calls")),
             "**게이트가 상태를 바꾸면 안 된다**": (
                 "게이트는 `controls()` 를 부르려고 모듈을 **임포트한다**. 최상위에 "
                 "쓰기·네트워크 호출이 있으면 임포트만으로 그것이 일어난다 — "

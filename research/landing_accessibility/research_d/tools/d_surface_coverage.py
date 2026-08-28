@@ -139,6 +139,7 @@ def check() -> dict:
         _s.path.insert(0, str(TOOLS))
     scan_txt = SCAN.read_text(encoding="utf-8") if SCAN.exists() else ""
     rows, unsurfaced = [], []
+    key_owners: dict = {}          # [D-DEF-93] 키 이름 → 그 키를 내는 모듈들
     for mod_name, fn_name in derive_targets():
         try:
             mod = importlib.import_module(mod_name)
@@ -160,6 +161,8 @@ def check() -> dict:
         miss = [k for k in sig if not _referenced(k, scan_txt)]
         rows.append({"module": mod_name, "fn": fn_name,
                      "signal_keys": len(sig), "unsurfaced": miss})
+        for k in sig:
+            key_owners.setdefault(k, set()).add(mod_name)
         for k in miss:
             rec = {"module": mod_name, "key": k}
             acc = ACCEPTED_UNSURFACED.get((mod_name, k))
@@ -171,11 +174,22 @@ def check() -> dict:
     stale = [{"module": m, "key": k, "왜": "검사가 더는 이 키를 내지 않는다 — 목록에서 뺀다"}
              for (m, k) in ACCEPTED_UNSURFACED if (m, k) not in live]
     unreviewed = [u for u in unsurfaced if "accepted_reason" not in u]
+    # [D-DEF-93] **이름 대조는 모듈을 구분하지 않는다.** 두 모듈이 같은 키 이름을 내면
+    # 한쪽을 찍은 것이 다른 쪽도 찍은 것으로 읽힌다 — `hits` 가 실제로 그랬다
+    # (`d_tool_health` 쪽 표시가 생기자 `d_retractions.hits` 가 '표시됨' 이 됐다).
+    shared = {k: sorted(v) for k, v in key_owners.items() if len(v) > 1}
+    ambiguous = [{"key": k, "modules": v} for k, v in sorted(shared.items())
+                 if _referenced(k, scan_txt)]
     return {"verdict": "INFO",              # **판정이 아니다** — 목록만 낸다
             "n_modules": len(rows), "rows": rows,
             "n_unsurfaced": len(unsurfaced), "unsurfaced": unsurfaced,
             "n_unreviewed": len(unreviewed), "unreviewed": unreviewed,
             "n_stale_accepted": len(stale), "stale_accepted": stale,
+            "n_ambiguous_keys": len(ambiguous), "ambiguous_keys": ambiguous,
+            "**이름 대조는 모듈을 구분하지 않는다**": (
+                "두 모듈이 같은 키 이름을 내면 한쪽 표시가 다른 쪽도 표시된 것으로 읽힌다. "
+                "`ambiguous_keys` 는 **그렇게 읽힌 것**이다 — '표시됨' 으로 세지만 "
+                "**어느 모듈의 값이 찍혔는지는 이 방법으로 알 수 없다**"),
             "판정하지_않는_이유": ("어떤 키가 '찍어야 할 신호' 인지는 자동으로 정해지지 "
                           "않는다 — 이 세션에서 자동 판정이 표기 형태에 걸려 "
                           "세 번 오분류했다(D-DEF-54·55). **목록만 내고 사람이 고른다**"),
@@ -203,6 +217,8 @@ def controls() -> dict:
     case("따옴표로 꺼내 쓰면 표시다",
          _referenced("covered", "print(_c['covered'])"), True)
     case("쌍따옴표도 표시다", _referenced("covered", 'print(_c.get("covered"))'), True)
+    case("이름 충돌을 센다 — 0 이면 그 축이 죽은 것이다",
+         isinstance(c.get("ambiguous_keys"), list), True)
     _t = derive_targets()
     case("원본에서 9쌍보다 많이 뽑는다", len(_t) > 9, True)
     case("자기 자신은 빼야 한다 — 재귀", any(m == SELF_MODULE for m, _ in _t), False)

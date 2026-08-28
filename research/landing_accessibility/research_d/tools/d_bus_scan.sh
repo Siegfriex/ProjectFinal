@@ -221,7 +221,7 @@ try:
           f"위험 {_ise['n_risky_gated']}** · 전체 {_ise['n_tools']} 중 {_ise['n_any']} "
           f"— 0 은 '없다' 가 아니라 **이 방법으로는 안 보인다**")
     for _rg in _ise.get("risky_gated") or []:
-        print(f"     ** 게이트가 임포트하는데 최상위 부수효과 ** {_rg['module']} {_rg['hits']}")
+        print(f"     ** 게이트가 임포트하는데 최상위 부수효과 ** {_rg['module']} {_rg['side_calls']}")
     for _b in _t["syntax_error"]:
         print(f"   {_b['tool']}:{_b['line']}  {_b['msg']}")
 except Exception as _e:
@@ -269,6 +269,9 @@ try:
           f"/ **미검토 {_sf['n_unreviewed']}**) ===")
     for _u in _sf["unreviewed"]:
         print(f"   ** 미검토 ** {_u['module']}.{_u['key']}")
+    if _sf.get("n_ambiguous_keys"):
+        print(f"   이름 충돌 {_sf['n_ambiguous_keys']} — **이름 대조는 모듈을 구분하지 않는다**: "
+              f"{[a['key'] for a in _sf['ambiguous_keys']]}")
     for _st in _sf["stale_accepted"]:
         print(f"   ** 목록 썩음 ** {_st['module']}.{_st['key']} — 검사가 더는 내지 않는다")
     print("   (판정이 아니다 — 무엇이 신호인지는 자동으로 정해지지 않는다)")
