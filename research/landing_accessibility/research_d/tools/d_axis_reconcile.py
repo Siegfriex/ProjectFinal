@@ -21,6 +21,31 @@ SIDECAR = REPO / "artifacts/v3_census/mart/CANONICAL_MART_50.sha256.json"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 
+C_CANON = (REPO / ".agent_bus/landing_v2/tickets/C-FACT_CORRECTION-133903.json")
+
+
+def c_coverage_axes() -> dict:
+    """[D-DEF-113] **coverage 축이 무엇인지는 C 가 정했다.** 원문에서 읽는다.
+
+    `C-FACT_CORRECTION-133903.corrected.coverage_overall` 이 **15축**을 든다.
+    `terminal_reason` 은 **그 목록에 없다** — C 가 그 토큰을 'coverage 대상 아님'
+    이라고 적은 것은 **그 축 자체가 coverage 축이 아니라는 뜻**이다.
+    """
+    try:
+        doc = json.loads(C_CANON.read_text(encoding="utf-8"))
+        cov = (doc.get("corrected") or {}).get("coverage_overall") or {}
+    except Exception as e:                          # noqa: BLE001
+        return {"verdict": "UNREADABLE", "error": str(e), "axes": {}}
+    out = {}
+    for k, v in cov.items():
+        try:
+            out[k] = int(str(v).split("/")[0])
+        except Exception:                           # noqa: BLE001
+            continue
+    return {"verdict": "OK" if out else "EMPTY", "n_axes": len(out), "axes": out,
+            "출처": "`C-FACT_CORRECTION-133903.corrected.coverage_overall` — **옮겨 적지 않았다**"}
+
+
 def compare(mart: Path | None = None, sidecar: Path | None = None) -> dict:
     import d_coverage as CV
     try:
@@ -56,7 +81,35 @@ def compare(mart: Path | None = None, sidecar: Path | None = None) -> dict:
         diffs.append({"column": col, "sidecar": n_s, "D": n_d, "delta": n_d - n_s,
                       "tokens": sorted(toks, key=lambda x: -x["n"])})
     n_cells = sum(t["n"] for d in diffs for t in d["tokens"])
+    # [D-DEF-113] **C 정본 coverage 축과 갈라 본다.** 사이드카 `per_column.n_observed` 는
+    # 모든 열의 비결측 수이고, D 화이트리스트는 **coverage 관측**이다 —
+    # coverage 축이 아닌 곳에서 둘을 비교하면 **다른 질문을 견주는 것**이다.
+    cc = c_coverage_axes()
+    c_axes = set(cc.get("axes") or {})
+    in_c = [a_["column"] for a_ in axes if a_["column"] in c_axes]
+    out_c = [a_["column"] for a_ in axes if a_["column"] not in c_axes]
+    diffs_in_c = [d_ for d_ in diffs if d_["column"] in c_axes]
+    diffs_out_c = [d_ for d_ in diffs if d_["column"] not in c_axes]
+    # C 정본과 D 재계산 직접 대조(공통 축만)
+    vs_c = []
+    for col in sorted(c_axes & set(CV.OBSERVED_VALUES)):
+        n_d = sum(1 for r in rows if CV.is_observed(col, r.get(col, ""), r))
+        vs_c.append({"column": col, "C": cc["axes"][col], "D": n_d,
+                     "agree": n_d == cc["axes"][col]})
+    c_only = sorted(c_axes - set(CV.OBSERVED_VALUES))
+
     return {"verdict": "AGREE" if not diffs else "DISAGREE",
+            "c_canonical_axes": cc.get("n_axes"),
+            "vs_c_canonical": vs_c,
+            "n_vs_c_disagree": sum(1 for x in vs_c if not x["agree"]),
+            "c_axes_without_D_definition": c_only,
+            "d_axes_outside_c_coverage": out_c,
+            "n_disagree_in_c_scope": len(diffs_in_c),
+            "n_disagree_outside_c_scope": len(diffs_out_c),
+            "**C 축이 아닌 곳의 차이는 정의 불일치가 아니다**": (
+                "사이드카 `per_column.n_observed` 는 **모든 열의 비결측 수**이고 "
+                "D 화이트리스트는 **coverage 관측**이다. `terminal_reason` 처럼 "
+                "**C 의 coverage 축이 아닌 곳**에서 둘을 견주면 **다른 질문을 비교하는 것**이다"),
             "n_columns_in_sidecar": len(pc),
             "n_axes_compared": len(axes), "n_axes_disagree": len(diffs),
             "n_cells_in_dispute": n_cells,

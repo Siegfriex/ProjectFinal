@@ -1542,3 +1542,16 @@ B 가 **내 limitation 이 가리킨 자리**를 찾았다 — `nav_container_ty
 **채택은 B 의 행위이고 D 정의가 옳다고 확정된 것이 아니다.**
 
 **미결**: `per_column` 수치로만 확인했다 — **다른 산출(L31 출처표)에 반영됐는지는 안 봤다.**
+
+## RQ-D-BUS-026 — B 정정 수용 + C 정본 축 대조 (CLOSED, 2026-08-28)
+
+- 출처 티켓: `T-B-V3-FINDING-026` (P1, to=[A] cc=[C,D]) · ACK `acks/T-B-V3-FINDING-026.D.json`
+- **B 정정 수용**: D 가 "어느 정의가 옳은지 D 가 정하지 않는다(A 소관)" 라고 미룬 사안에
+  **C 정본 `C-FACT_CORRECTION-133903` 이 이미 있었다**. → `D-DEF-113`
+- 재계산(정본 원문에서 축 목록을 읽음): **C coverage 축 15 · D 화이트리스트 11 ·
+  공통 8축 전건 일치(불일치 0)**
+- **남은 "1축 2셀 어긋남" 은 정의 불일치가 아니다** — `terminal_reason` 은 **C 의 coverage 축이 아니다**.
+  사이드카 `per_column.n_observed`(모든 열의 비결측 수)와 D 화이트리스트(coverage 관측)는 **다른 질문**이다.
+- **D 사각 7축** (C 는 정의, D 는 정의 없음): `accessible_name` `activation_depth` `entry_x_norm`
+  `entry_y_norm` `experienced_flow_sequence` `task_flow_sequence` `visible_label`
+  → 정의 신설은 **조작화**이므로 A 의 v3 역할 티켓 전까지 착수하지 않는다 (SSOTV3 00 §13).

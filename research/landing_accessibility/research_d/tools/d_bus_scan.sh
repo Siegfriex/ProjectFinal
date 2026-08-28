@@ -224,6 +224,12 @@ try:
     for _dg in _ax.get("disagreements") or []:
         _tk = [f"{t['token']}×{t['n']}({t['sidecar']}/{t['D']})" for t in _dg["tokens"]]
         print(f"     {_dg['column']:<22} 사이드카 {_dg['sidecar']} D {_dg['D']} → {_tk}")
+    print(f"     C 정본 대조 : C coverage 축 **{_ax['c_canonical_axes']}** · "
+          f"공통 {len(_ax['vs_c_canonical'])}축 **불일치 {_ax['n_vs_c_disagree']}** "
+          f"· 어긋남 C범위안 {_ax['n_disagree_in_c_scope']} / **밖 {_ax['n_disagree_outside_c_scope']}"
+          f"(coverage 축이 아니다 — 다른 질문이다)**")
+    print(f"     C 축인데 D 정의 없음 **{len(_ax['c_axes_without_D_definition'])}** "
+          f"{_ax['c_axes_without_D_definition']} · D 정의인데 C 축 아님 {_ax['d_axes_outside_c_coverage']}")
     from d_prov_reconcile import recompute as _pr_fn
     _pv = _pr_fn()
     print(f"   출처 분해 재계산 : {_pv['verdict']} · D {_pv['n_observed_D']} vs 사이드카 "
