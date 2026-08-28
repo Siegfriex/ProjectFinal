@@ -1,18 +1,18 @@
 {
  "agent": "B",
- "timestamp": "2026-08-28T10:52:57+09:00",
+ "timestamp": "2026-08-28T10:55:59+09:00",
  "phase": "STEP 1 — task-first runner offline. 8 lane 병렬.",
- "current_ticket_id": "T-B-V3-STEP1-001 (RUNNING) · T-B-V3-DR-001 (A 재정 대기)",
+ "current_ticket_id": "T-A-V3-TBX-006 (P0, deadline 12:30, B freeze 11:40)",
  "branch": "claude-b/diag-pilot-integration",
  "head_sha": "ba04a339bdb77c697bdb48a2fc758e47f5309610",
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
  "work_state": "V1_HOLD_DECLARED_AWAITING_DIRECTOR",
  "blocker_ids": [],
- "last_bus_seq": 1064,
+ "last_bus_seq": 1072,
  "last_push_at": "2026-08-27T20:56:51+09:00",
  "next_action": "Director 판단 대기. B 는 HOLD 무관 항목만 진행한다. REAL_TARGET NO-GO.",
  "real_target": {
-  "verdict": "NO-GO",
+  "verdict": "NO-GO for B",
   "measured_at_kst": "2026-08-28T08:55:08+09:00",
   "**이것은 주장이 아니라 측정이다**": "이전에는 B 가 손으로 '실사이트 접속 0건' 이라고 적었다. D 가 자기 heartbeat 의 `holdout_accessed` 가 상수였음을 시정한 것(D-V3-FINDING-021)을 보고 B 도 같은 형태임을 확인했다",
   "method": "B 브랜치 7개에서 `http(s)` 실주소로 여는 호출(`goto`/`navigate`/`request.get`/`urlopen`/`requests.`)을 센다",
@@ -55,7 +55,8 @@
   },
   "artifact_check": "수집 산출물(`l0a`/`run.json`)이 `artifacts/` 에 **없다**",
   "**측정의 경계**": "이것은 **정적 검사**다. 잰 것은 **코드에 그런 호출이 있는가**까지이며, 런타임에 다른 경로로 나갔는지는 이 방법으로 잡히지 않는다. **'접속하지 않았다' 가 아니라 '접속하는 코드가 없다' 가 이 측정의 주장이다**",
-  "**재개 후 재측정 필요**": "정지 중 브랜치가 늘지 않았으나 lane 6개가 새 코드를 낸다. **COMPLETION 전에 다시 잰다**"
+  "**재개 후 재측정 필요**": "정지 중 브랜치가 늘지 않았으나 lane 6개가 새 코드를 낸다. **COMPLETION 전에 다시 잰다**",
+  "**B 범위 재확인**": "release 는 `real_target_allowed=true` 지만 **그 권한은 E 의 것이다.** B 는 ingest 평면이고 브라우저를 열지 않는다 — adapter 는 네트워크 호출이 없다"
  },
  "self_approved": false,
  "note": "mirror는 heartbeat를 담으므로 Git mirror의 heartbeat는 항상 한 커밋 뒤처진다. 정본은 이 파일이다.",
@@ -68,8 +69,8 @@
  "observed_remote": {
   "B_clean0_v21": "ba04a339bdb77c697bdb48a2fc758e47f5309610",
   "A_control": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
-  "C_assurance_v21": "f0b9193dfa8830eacb8b1ede785a6ccea89be55e",
-  "at": "2026-08-28T10:52:57+09:00"
+  "C_assurance_v21": "e21dc903ff7240883425add65b9c259206c7dc80",
+  "at": "2026-08-28T10:55:59+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -209,7 +210,7 @@
   "D-R0-72 OverlayCoverage construct",
   "blind set 존재 여부 E000 6 (본 HOLD 직결)"
  ],
- "updated_at": "2026-08-28T10:43:58.534912+09:00",
+ "updated_at": "2026-08-28T10:57:38+09:00",
  "launch_gate_status": {
   "1_C_preflight_v2_manifest": "MET — C-COMPLETION-001706 sampling 12/12, A 가 PREFLIGHT_1_TO_5_ACCEPTED. 6항(exactly-once)은 최종 SHA 대기",
   "2_W1_completion_mask_in_SHA": "PENDING — W1 4ec538b 수신·검산 완료(소유권 위반 0, ancestry 확인). integration 288025ff 에 편입해 push 했고 C 재확인 대기",
@@ -222,8 +223,8 @@
   "T-B-FC-010 — composition 에서 mask 를 fed031f 에 귀속시킨 거짓 진술 철회"
  ],
  "awaiting": "Director 피벗 지침",
- "state": "RESUMED_BY_DIRECTOR",
- "state_note": "Director 재시작 지시. **작업 기준은 A 발행 티켓** — 정지(10:09) 이후 A 는 새 티켓을 내지 않았으므로 미ACK 상태로 남아 있던 A 티켓을 시작점으로 삼는다. 정지 기록은 T-B-V3-HALT-002 에 남아 있다.",
+ "state": "RUNNING_TBX006_INGEST",
+ "state_note": "Director override 수용 — 버스 실물로 검증 후 착수. **B 는 브라우저를 열지 않는다**",
  "preserved_unchanged": [
   "A/B/C 3평면 + D 연구소 오케스트레이션 구조와 티켓·ACK·COMPLETION 규약",
   "프로토콜 §5 진리 위계(T1 exact bytes > … > T6 narrative)와 assertion type 구분",
@@ -245,7 +246,7 @@
   "integration b094eaa2b0a9 — layer_firewall 종결 상태 서술(실행 코드 0줄)",
   "W5B d312c9a647fa — flow 정규화, 727 passed, 로그 sha256 2d76d21c26c9e4f0"
  ],
- "next_gate": "6 lane 완결 → 19+2 lane 재병합 → 전체 회귀 → COMPLETION(=SUT 확정). **COMPLETION 은 lane 미결 중 발행하지 않는다**",
+ "next_gate": "E raw 수신 → 승격 → snapshot10/20/30 → **11:40 CANONICAL_MART_50.csv freeze + hash 발행**",
  "decision_needed": [
   "T-B-V3-DR-001 ① SUBMIT_QUERY 를 activation_depth 에 포함하는가 ② SWITCH_TAB 이 reveal token 인가 — 04 와 03 이 다르게 읽힌다",
   "T-B-V3-E-ACK-001 은 ruling_9 로 해소됨"
@@ -285,7 +286,7 @@
  },
  "hard_stop_vocabulary": "R9 8종 채택 — wrong_scope · target_outside_manifest · forbidden_action · evidence_overwrite · duplicate_launch · task_contract_drift(endpoint drift 포함) · task_or_outcome_leakage · denominator_corruption. T-A-V3-P0-001 의 6종을 supersede.",
  "index_verified": "v9 e26e8714a62053a74b643edbb38e4be49cc1a4b230a2d61ca2edd4948de29154",
- "measured_at_kst": "2026-08-28T10:43:58.534912+09:00",
+ "measured_at_kst": "2026-08-28T10:57:38+09:00",
  "resumed_at_kst": "2026-08-28T10:43:58.534912+09:00",
  "a_tickets_in_scope": {
   "T-A-V3-STEP1-039": "R54 확장 + probe 겨냥 확인 — 착수",
@@ -295,11 +296,23 @@
   "**아직 결과 없음**": "6 lane 실행 중. **수치를 적지 않는다 — 동결 전이다**"
  },
  "lanes_running": {
-  "L1": "R65 구조 ACK 측정 (B 전건)",
-  "L2": "emit_ticket 규약 필드 구조화 (소급 기입 금지)",
-  "L3": "R61 안전 표지 거짓양성 측정",
-  "L4": "FC-006 AST 분모 확정 + probe 겨냥 감사",
-  "L5": "W5S R52 호출지점 실증 완결 → push",
-  "L6": "W5T R57 배선 완결 → push"
+  "본체": "TBX-006 단독 수행 중",
+  "서브에이전트": "**429 세션한도로 6개 전멸, 11:40 리셋**"
+ },
+ "tbx006": {
+  "adapter_commit": "b7023b260272148b995a95a78805f1067b32462d",
+  "adapter_branch": "claude-b/integration-current",
+  "snapshot": "mart/snapshot_00.csv sha256=ec9129cc7754792bc78bb1e0b161f44922b935c479f85af6efab930595526dde",
+  "rows": 50,
+  "promoted": 0,
+  "rejected": 50,
+  "evidence_rows_read": 0,
+  "reject_reason_전건": "NO_EVIDENCE_ROW_FOR_TARGET — **E raw 미수신이지 수집 실패가 아니다**",
+  "duplicate_target_ids": 0,
+  "unknown_target_ids": 0,
+  "manifest_독립재계산": "file ef4e19ad… / body 81d55db… 둘 다 일치",
+  "selftest": "4종 PASS — 양성·음성·must_flag·R54",
+  "blocked_on": "E raw. artifacts/v3_census/raw/ 비어 있음 (DISPATCH_LEDGER·EVIDENCE_MANIFEST 없음, target 디렉터리 0)",
+  "monitor": "raw/ 3분 폴링 무장"
  }
 }

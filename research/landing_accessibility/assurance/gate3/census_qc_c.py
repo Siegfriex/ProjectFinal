@@ -97,8 +97,24 @@ class Bind:
         return row.get(f) if f else None
 
 
+SENTINELS = frozenset({"", "NOT_OBSERVED", "UNDETERMINED", "NA_NUMERIC_UNOBSERVED", "NOT_ATTEMPTED", "NA", "N/A", "NULL", "None", "nan"})
+HASH_RE = __import__("re").compile(r"^[0-9a-fA-F]{16,128}$")
+NOT_ATTEMPTED_VALUES = frozenset({"NOT_ATTEMPTED", ""})
+
+
 def _truthy(v):
-    return v not in (None, "", "0", 0, False, "false", "False", "[]", [])
+    """present = a real value, never a placeholder token (snapshot_00 lesson: 'NOT_OBSERVED' read as evidence → 50/50 phantom)."""
+    if v is None or isinstance(v, bool) and v is False: return False
+    if isinstance(v, (list, dict)): return bool(v)
+    sv = str(v).strip()
+    return sv not in SENTINELS and sv not in ("0", "false", "False", "[]")
+
+
+def _evidence_present(v):
+    """an evidence pointer counts only if it looks like a hash (hex ≥16) or a path that exists — a token never does."""
+    if not _truthy(v): return False
+    sv = str(v).strip()
+    return bool(HASH_RE.match(sv)) or os.path.exists(sv)
 
 
 def qc(rows, manifest, file_sha, body_sha, expect_file, expect_body, adapter, b_denoms=None):
@@ -162,15 +178,16 @@ def qc(rows, manifest, file_sha, body_sha, expect_file, expect_body, adapter, b_
         for r in rows:
             t = b.get(r, "target_id")
             if t not in targets: continue
-            ev = _truthy(b.get(r, "evidence_pointer")) if ev_bound else False
+            ev = _evidence_present(b.get(r, "evidence_pointer")) if ev_bound else False
             tr = b.get(r, "terminal_reason") if tr_bound else None
             tr_ok = tr in TERMINAL_REASONS
-            if tr not in (None, "") and not tr_ok: bad_tr.append({"target": t, "terminal_reason": tr})
+            not_att = b.ok("endpoint_status") and str(b.get(r, "endpoint_status") or "").strip() in NOT_ATTEMPTED_VALUES
+            if tr not in (None, "") and not tr_ok and not (not_att and str(tr).strip() in SENTINELS): bad_tr.append({"target": t, "terminal_reason": tr})
             have[t] = have.get(t, False) or ev or tr_ok
         k = sum(1 for t in targets if have.get(t))
         missing = sorted(t for t in targets if not have.get(t))
         for x in bad_tr: flag("EVIDENCE_OR_TERMINAL", f"non-canonical terminal_reason {x['terminal_reason']!r} (16 values, R11/Δ30/Δ32/Δ47)", None, **x)
-        if missing: flag("EVIDENCE_OR_TERMINAL", f"{len(missing)}/50 frozen units have neither evidence nor a canonical terminal_reason", "denominator_corruption", missing=missing)
+        if missing: flag("EVIDENCE_OR_TERMINAL", f"{len(missing)}/50 frozen units have neither evidence nor a canonical terminal_reason (streaming: pending; at CANONICAL_MART_50 freeze this is denominator corruption)", None, missing=missing)
         checks["EVIDENCE_OR_TERMINAL"] = {"status": "FLAG" if (missing or bad_tr) else "PASS", "k": k, "of": 50, "n_items": len(rows), "missing": missing, "non_canonical_terminal": bad_tr}
     # ---- 5 FORBIDDEN_ACTION
     fb_e, fb_c = b.ok("forbidden_action_events"), b.ok("forbidden_action_count")
@@ -209,14 +226,15 @@ def qc(rows, manifest, file_sha, body_sha, expect_file, expect_body, adapter, b_
     for f in sorted(fam_m):
         fr = [r for r in rows if b.get(r, "target_id") in fam_m[f]]
         att = {b.get(r, "target_id") for r in fr}
-        ev_ok = {b.get(r, "target_id") for r in fr if (ev_bound and _truthy(b.get(r, "evidence_pointer"))) or (b.ok("evidence_adequacy") and _truthy(b.get(r, "evidence_adequacy")))}
+        att_obs = {b.get(r, "target_id") for r in fr if not (b.ok("endpoint_status") and str(b.get(r, "endpoint_status") or "").strip() in NOT_ATTEMPTED_VALUES)}
+        ev_ok = {b.get(r, "target_id") for r in fr if (ev_bound and _evidence_present(b.get(r, "evidence_pointer"))) or (b.ok("evidence_adequacy") and _truthy(b.get(r, "evidence_adequacy")))}
         comp = {b.get(r, "target_id") for r in fr if b.ok("endpoint_status") and b.get(r, "endpoint_status") in ENDPOINT_OK}
         auth = {b.get(r, "target_id") for r in fr if b.ok("endpoint_status") and b.get(r, "endpoint_status") == "AUTH_GATE"}
         failed = {b.get(r, "target_id") for r in fr if tr_bound and b.get(r, "terminal_reason") in TERMINAL_REASONS and b.get(r, "endpoint_status") not in ENDPOINT_OK}
-        den[f] = {"frozen": len(fam_m[f]), "attempted": len(att), "evidence_adequate": len(ev_ok), "completed_endpoint_reached": len(comp), "auth_gate_terminal": len(auth), "failed": len(failed)}
-        if not (len(att) <= 10 and len(ev_ok) <= len(att) and len(comp) <= len(ev_ok) + len(auth) + 0 and len(comp) + len(failed) <= len(att)):
+        den[f] = {"frozen": len(fam_m[f]), "attempted": len(att), "attempted_observed": len(att_obs), "evidence_adequate": len(ev_ok), "completed_endpoint_reached": len(comp), "auth_gate_terminal": len(auth), "failed": len(failed)}
+        if not (len(att) <= 10 and len(att_obs) <= len(att) and len(ev_ok) <= len(att_obs) and len(comp) <= len(ev_ok) + len(auth) and len(comp) + len(failed) <= len(att_obs)):
             flag("DENOMINATORS", f"family {f} denominators are not monotonic (frozen ≥ attempted ≥ evidence_adequate; completed+failed ≤ attempted)", "denominator_corruption", family=f, **den[f])
-    den["overall"] = {k: sum(den[f][k] for f in fam_m) for k in ("frozen", "attempted", "evidence_adequate", "completed_endpoint_reached", "auth_gate_terminal", "failed")}
+    den["overall"] = {k: sum(den[f][k] for f in fam_m) for k in ("frozen", "attempted", "attempted_observed", "evidence_adequate", "completed_endpoint_reached", "auth_gate_terminal", "failed")}
     diff = None
     if b_denoms:
         diff = {}
@@ -227,7 +245,8 @@ def qc(rows, manifest, file_sha, body_sha, expect_file, expect_body, adapter, b_
                     diff[f"{f}.{k}"] = {"B": v, "C": mine}; flag("DENOMINATORS", f"B-reported {f}.{k}={v} ≠ C-recomputed {mine}", "denominator_corruption", key=f"{f}.{k}", B=v, C=mine)
     checks["DENOMINATORS"] = {"status": "FLAG" if any(x["check"] == "DENOMINATORS" for x in flags) else "PASS", "n_items": len(rows), "per_family": den,
                               "evidence_adequate_basis": ("evidence_pointer" if ev_bound else "") + ("+evidence_adequacy" if b.ok("evidence_adequacy") else ""),
-                              "completed_rule": "endpoint_status == ENDPOINT_REACHED (AUTH_GATE counted separately — R2 two denominators)", "diff_vs_B": diff}
+                              "completed_rule": "endpoint_status == ENDPOINT_REACHED (AUTH_GATE counted separately — R2 two denominators)",
+                              "attempted_rule": "attempted = rows present for the frozen unit (A: always 10/50); attempted_observed = attempt/endpoint status not in NOT_ATTEMPTED/blank; evidence_adequate = pointer is a hash/existing path (placeholder tokens never count)", "diff_vs_B": diff}
     for c in checks.values():
         if c.get("status") == "PASS" and c.get("n_items", 0) == 0: c["status"] = "VACUOUS"
     return {"checks": checks, "flags": flags, "n_rows": len(rows)}
@@ -239,7 +258,7 @@ def synth_rows(manifest, evidence=True):
     for i, t in enumerate(manifest["targets"]):
         rows.append({"target_id": t["target_id"], "family_id": t["family_id"], "service_id": f"svc{i}", "task_id": t["family_id"], "run_id": f"run{i}",
                      "endpoint_status": "ENDPOINT_REACHED" if i % 3 else "AUTH_GATE", "terminal_reason": "" if i % 3 else "OTHER",
-                     "path_manifest_path": f"ev/{t['target_id']}.json" if evidence else "", "forbidden_events": "[]", "forbidden_n": 0, "svc_name": t["service_name"]})
+                     "path_manifest_path": hashlib.sha256(t['target_id'].encode()).hexdigest() if evidence else "", "forbidden_events": "[]", "forbidden_n": 0, "svc_name": t["service_name"]})
     return rows
 
 
@@ -268,6 +287,10 @@ def controls(manifest, raw, file_sha, body_sha):
     o = run([{**r, "forbidden_events": '["login submit"]'} if i == 5 else r for i, r in enumerate(base)]); res["must_flag:forbidden_event→forbidden_action"] = "PASS" if has(o, "FORBIDDEN_ACTION", "forbidden_action") else "FAIL"
     o = run(base, fs="0" * 64); res["must_flag:manifest_hash_mismatch→wrong_scope"] = "PASS" if has(o, "MANIFEST_HASH", "wrong_scope") else "FAIL"
     o = run([{**r, "family_id": "F1"} if r["family_id"] == "F2" and i % 5 == 0 else r for i, r in enumerate(base)]); res["must_flag:family_id_drift"] = "PASS" if has(o, "FAMILY_10x5", "task_contract_drift") else "FAIL"
+    skel = [{**r, "endpoint_status": "NOT_ATTEMPTED", "terminal_reason": "UNDETERMINED", "path_manifest_path": "NOT_OBSERVED"} for r in base]
+    o = run(skel); d0 = o["checks"]["DENOMINATORS"]["per_family"]["overall"]
+    res["must_flag:skeleton_50_placeholders→attempted_observed 0·evidence 0·k 0/50"] = "PASS" if (d0["attempted_observed"] == 0 and d0["evidence_adequate"] == 0 and o["checks"]["EVIDENCE_OR_TERMINAL"]["k"] == 0 and has(o, "EVIDENCE_OR_TERMINAL") and not o["checks"]["EVIDENCE_OR_TERMINAL"]["non_canonical_terminal"]) else f"FAIL {d0} k={o['checks']['EVIDENCE_OR_TERMINAL']['k']}"
+    o = run([{**r, "path_manifest_path": "NOT_OBSERVED"} if i == 4 else r for i, r in enumerate(base)]); res["must_flag:token_as_evidence_pointer_not_counted"] = "PASS" if o["checks"]["DENOMINATORS"]["per_family"]["overall"]["evidence_adequate"] == 49 else "FAIL"
     o = run(base, bd={"overall": {"attempted": 49}}); res["must_flag:B_denominator_49_vs_C_50"] = "PASS" if has(o, "DENOMINATORS", "denominator_corruption") else "FAIL"
     o = run(base, adapter={**CTL_ADAPTER, "forbidden_action_events": {"field": None, "status": "UNBOUND"}, "forbidden_action_count": {"field": None, "status": "UNBOUND"}})
     res["unbound:forbidden→NOT_TESTABLE_not_PASS"] = "PASS" if o["checks"]["FORBIDDEN_ACTION"]["status"] == "NOT_TESTABLE" else "FAIL"
