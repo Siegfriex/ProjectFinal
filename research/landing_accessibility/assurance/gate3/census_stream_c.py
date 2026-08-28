@@ -20,6 +20,7 @@ import census_qc_c as Q  # noqa: E402
 Q.TERMINAL_REASONS = tuple(sorted(set(Q.TERMINAL_REASONS) | {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY"}))  # TBX-011 ∪ R11
 
 ROOT = pathlib.Path("/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census")
+RUN_ROOT = ROOT / "raw" / "E" / "E-REAL-CENSUS-1230"   # R66 (TBX-012): canonical raw run root; ledgers stay at raw/
 OUT_A = ROOT / "assurance" / "MAIN50_EVIDENCE_ASSURED.json"; OUT_C = HERE.parent / "out" / "MAIN50_EVIDENCE_ASSURED_C.json"
 STATE = HERE.parent / "out" / "chain_state.json"
 COLS23 = ["target_id", "family_id", "service", "attempt_status", "terminal_reason", "visible_label", "accessible_name", "label_relation", "entry_x_norm",
@@ -72,7 +73,8 @@ def validate_raw_contract(raw_m, manifest):
            "entry_control_type", "nav_container_type", "reveal_direction", "menu_dependency", "task_flow_sequence", "experienced_flow_sequence", "activation_depth",
            "first_visible_scroll_state", "auth_gate_stage", "task_control_occlusion", "missing_reason"]
     NUM = ("entry_x_norm", "entry_y_norm", "activation_depth"); tf = {t["target_id"]: t["family_id"] for t in manifest["targets"]}
-    probs = []; thash = {}
+    expected_task_hash = {t["target_id"]: hashlib.sha256(f"{t['target_id']}|{t['frozen_task']}|{t['endpoint_contract']}".encode("utf-8")).hexdigest() for t in manifest["targets"]}
+    probs = []
     for i, r in enumerate(raw_m, 1):
         miss = [k for k in REQ if k not in r]
         if miss: probs.append({"line": i, "kind": "MISSING_KEYS", "keys": miss})
@@ -92,13 +94,16 @@ def validate_raw_contract(raw_m, manifest):
             if v is None and not (r.get("missing_reason") or ""): probs.append({"line": i, "kind": "NULL_WITHOUT_MISSING_REASON", "key": k})
         ed = r.get("evidence_dir")
         if isinstance(ed, str) and ed and not os.path.isdir(ed if os.path.isabs(ed) else os.path.join("/home/sieg/projects-wsl/ProjectFinal", ed)): probs.append({"line": i, "kind": "EVIDENCE_DIR_ABSENT", "evidence_dir": ed})
-        if r.get("family_id") in tf.values(): thash.setdefault(r.get("family_id"), set()).add(r.get("task_hash"))
+        exp = expected_task_hash.get(r.get("target_id"))
+        if exp and r.get("task_hash") not in (None, "", "NOT_PROVIDED_BY_E") and r.get("task_hash") != exp:
+            probs.append({"line": i, "kind": "TASK_HASH_MISMATCH", "target_id": r.get("target_id"), "got": str(r.get("task_hash"))[:16], "expected": exp[:16], "systemic": "task_contract_drift", "rule": "R68 sha256(f'{target_id}|{frozen_task}|{endpoint_contract}')"})
+        if exp and r.get("task_hash") in (None, "", "NOT_PROVIDED_BY_E"): probs.append({"line": i, "kind": "TASK_HASH_NOT_PROVIDED", "target_id": r.get("target_id"), "note": "R68: task/endpoint gate runs empty — not a pass"})
     from collections import Counter
     dk = {k: n for k, n in Counter(r.get("idempotency_key") for r in raw_m).items() if n > 1}; dt = {k: n for k, n in Counter(r.get("target_id") for r in raw_m).items() if n > 1}
     for k, n in dk.items(): probs.append({"kind": "IDEMPOTENCY_KEY_DUP", "key": k, "n": n, "systemic": "duplicate_launch"})
     for k, n in dt.items(): probs.append({"kind": "TARGET_MULTI_LINE", "target_id": k, "n": n, "systemic": "duplicate_launch", "note": "TBX-011: 1 target = 1 line"})
-    multi = {f: sorted(map(str, v)) for f, v in thash.items() if len(v) > 1}
-    for f, v in multi.items(): probs.append({"kind": "TASK_HASH_VARIES_WITHIN_FAMILY", "family": f, "hashes": v, "systemic": "task_contract_drift", "note": "one frozen task per family ⇒ one task_hash expected (hash rule not published; consistency only)"})
+
+
     return probs
 
 
@@ -106,7 +111,7 @@ def raw_contract_controls(manifest):
     t0, t1 = manifest["targets"][0], manifest["targets"][1]
     def good(t, i, prev):
         return {"target_id": t["target_id"], "family_id": t["family_id"], "service": t["service_name"], "worker_id": "w1", "idempotency_key": f"k{i}", "captured_at_kst": "2026-08-28T11:00:00+09:00",
-                "evidence_dir": "/", "evidence_hash": "a" * 64, "prev_hash": prev, "task_hash": "t" * 8, "endpoint_hash": "e" * 8, "attempt_status": "ENDPOINT_REACHED", "terminal_reason": "ENDPOINT_REACHED",
+                "evidence_dir": "/", "evidence_hash": "a" * 64, "prev_hash": prev, "task_hash": hashlib.sha256(f"{t['target_id']}|{t['frozen_task']}|{t['endpoint_contract']}".encode()).hexdigest(), "endpoint_hash": "e" * 8, "attempt_status": "ENDPOINT_REACHED", "terminal_reason": "ENDPOINT_REACHED",
                 "visible_label_text": "이체", "accessible_name": "이체", "accessible_name_source": "text", "label_relation": "MATCH", "entry_x_norm": 0.5, "entry_y_norm": 0.2, "entry_zone": "TOP",
                 "entry_control_type": "button", "nav_container_type": "tab", "reveal_direction": "NONE", "menu_dependency": False, "task_flow_sequence": ["SELECT_FUNCTION"], "experienced_flow_sequence": ["SELECT_FUNCTION"],
                 "activation_depth": 1, "first_visible_scroll_state": "S0", "auth_gate_stage": "NONE", "task_control_occlusion": False, "missing_reason": ""}
@@ -117,7 +122,7 @@ def raw_contract_controls(manifest):
              "null_without_reason": ([{**g[0], "activation_depth": None}], "NULL_WITHOUT_MISSING_REASON"), "dup_idempotency": ([g[0], {**g[1], "idempotency_key": "k0"}], "IDEMPOTENCY_KEY_DUP"),
              "target_two_lines": ([g[0], {**g[1], "target_id": t0["target_id"], "family_id": t0["family_id"]}], "TARGET_MULTI_LINE"), "target_outside": ([{**g[0], "target_id": "F9-99"}], "TARGET_NOT_IN_MANIFEST"),
              "missing_key": ([{k: v for k, v in g[0].items() if k != "task_hash"}], "MISSING_KEYS"), "sequence_not_array": ([{**g[0], "task_flow_sequence": "A>B"}], "SEQUENCE_NOT_ARRAY"),
-             "task_hash_varies": ([g[0], {**good(manifest["targets"][2], 2, "a" * 64), "task_hash": "other"}], "TASK_HASH_VARIES_WITHIN_FAMILY")}
+             "task_hash_mismatch": ([{**g[0], "task_hash": "0" * 64}], "TASK_HASH_MISMATCH"), "task_hash_not_provided": ([{**g[0], "task_hash": "NOT_PROVIDED_BY_E"}], "TASK_HASH_NOT_PROVIDED")}
     for name, (rows, kind) in cases.items():
         kinds = {p["kind"] for p in validate_raw_contract(rows, manifest)}
         res[f"must_flag:{name}"] = "PASS" if kind in kinds else f"FAIL got {sorted(kinds)}"
@@ -206,7 +211,8 @@ def main():
         checks["RAW.CONTRACT_TBX011"] = {"status": "FLAG" if probs else "PASS", "n_items": len(raw_m), "problems": len(probs), "by_kind": dict(Counter(x["kind"] for x in probs)), "control": "raw_contract_controls() PASS in this run",
                                          "vocabulary_observation": "TBX-011 terminal_reason 8 values vs R11 16 values — C validates raw against TBX-011 (A's census contract); mart terminal_reason is checked against the union; entry_zone 5 values vs R7 7 zones; auth_gate_stage NONE vs R13 UNDETERMINED — reported, not judged"}
     # --- forbidden-action presence probe over raw dirs
-    dirs = [d for d in glob.glob(str(ROOT / "raw" / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0
+    dirs = [d for d in glob.glob(str(RUN_ROOT / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0; exec_hits = []
+    EXEC_RE = re.compile(r'"(action|action_token|type|event|kind)"\s*:\s*"(click|tap|press|submit|SUBMIT_QUERY|SUBMIT|enter)"', re.I)
     for d in dirs:
         for f in glob.glob(os.path.join(d, "**", "*"), recursive=True):
             if not os.path.isfile(f) or os.path.getsize(f) > 5_000_000: continue
@@ -215,10 +221,13 @@ def main():
             try:
                 for i, ln in enumerate(open(f, encoding="utf-8", errors="replace"), 1):
                     m = FORBIDDEN_RE.search(ln)
-                    if m and "html" not in f[-5:]: hits.append({"file": os.path.relpath(f, ROOT), "line": i, "match": m.group(0), "text": ln.strip()[:120]})
+                    if m and "html" not in f[-5:]:
+                        h = {"file": os.path.relpath(f, ROOT), "line": i, "match": m.group(0), "text": ln.strip()[:120], "execution_shaped": bool(EXEC_RE.search(ln))}
+                        hits.append(h)
+                        if h["execution_shaped"]: exec_hits.append(h)
             except OSError: pass
     for h in hits[:200]: flag("RAW.FORBIDDEN_PROBE", "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)", None, **h)
-    checks["RAW.FORBIDDEN_PROBE"] = {"status": ("NOT_TESTABLE" if not dirs else "FLAG" if hits else "PASS"), "n_items": nfiles, "raw_target_dirs": len(dirs), "of": 50, "rule": FORBIDDEN_RULE, "hits": len(hits),
+    checks["RAW.FORBIDDEN_PROBE"] = {"status": ("NOT_TESTABLE" if not dirs else "FLAG" if hits else "PASS"), "n_items": nfiles, "raw_target_dirs": len(dirs), "run_root": str(RUN_ROOT), "of": 50, "rule": FORBIDDEN_RULE, "hits": len(hits), "execution_shaped_hits": len(exec_hits), "execution_rule": "same line also carries an action/event key valued click|tap|press|submit|enter (R71: vocabulary ≠ execution; both listed, neither summed into violations)",
                                      "note": "html bodies excluded from the probe (page text names payments legitimately); this is a presence probe, not proof of execution — 0 hits ≠ 'no forbidden action'"}
     # --- ingest ledger
     if ingest:
