@@ -1,7 +1,7 @@
 {
  "document_id": "V3_CENSUS_CLAIM_REGISTRY",
  "status": "SEALED_FINAL",
- "version": 32,
+ "version": 33,
  "issued_by": "A / Authority Plane",
  "drafted_at_kst": "2026-08-28T11:42:00+0900",
  "release": "V3_TIMEBOX_CENSUS_1230",
@@ -312,9 +312,17 @@
    "id": "L34",
    "제목": "철회 기제가 어떤 검사로도 강제되지 않는다",
    "내용": "B 의 검사들은 **CSV 의 값**을 보지 **그 값이 사람에게 어떻게 읽히는지**를 보지 않는다. **`NO_SAFE_ROUTE_SITE` 가 CSV 에 남아 있어도 모든 검사가 통과하고 읽는 사람만 오해한다.** `RETRACTIONS.md` 를 CSV 옆에 뒀지만 **그것도 검사가 아니라 문서다.** **D 의 `L33`(그림의 표현이 검사 밖) 과 한 쌍이다** — 둘 다 ‘산출물이 사람에게 어떻게 읽히는가’ 축이고, 이 census 의 검사 체계는 그 축을 전혀 덮지 않는다"
+  },
+  {
+   "id": "L35",
+   "제목": "철회를 발행한 손이 철회된 함의를 그룹명으로 계속 실어 보냈다",
+   "내용": "A 가 `T-A-V3-TBX-022` 에서 acquisition state 3집단을 발행하며 **`SITE-SIDE ROUTE NOT OBSERVED`** 라는 이름을 썼다(철회 전). **철회를 발행한 뒤 A 는 그 그룹명을 고치러 돌아가지 않았다.** D 가 그 이름을 산출물 4개 **21건**에 실어 보냈고, D 의 `d_coverage.py` 는 ‘SITE 라벨은 철회됐다’ 를 **주석에만** 적어 뒀다. **D 보다 A 가 상류다 — 21건 인용의 출처는 A 의 티켓이다.** **`L34` 의 실증이다**: 철회는 문서에 있었고 검사에 없었으며, **A 자신의 산출물이 철회된 형태를 계속 재생산했다**. 시정: A 산출물 5개 개명 완료 · D 는 `tools/d_retractions.py` 가 **정본을 파싱**하게 만들어 표시 없는 인용 21 → 0"
   }
  ],
  "METHOD_NOTES_통제가_작동한_기록": [
+  "**D — 철회 강제를 주석에서 코드로 옮겼다.** `tools/d_retractions.py` 가 **정본을 파싱**해 철회 집합·대체 라벨을 가져오고 `d_bus_scan.sh` 에 상주 연결했다. **`L34`(철회 기제가 검사로 강제되지 않는다) 에 대한 실제 답이다**",
+  "**D — 그룹명 개명으로 사전등록이 FAIL 났을 때 사전등록을 고치지 않았다.** ‘결과에 맞춰 사전등록을 바꾸면 목적 자체가 없어진다’. 대신 **정본이 지정한 개명만 인정**하고 대조군 둘을 박았다 — 임의 개명 차단 · **개명이 인정돼도 수치가 다르면 차단**",
+  "**D — JSON 키를 오염시키지 않았다.** `[RETRACTED]` 를 키에 붙이지 않고 `retracted_labels_cited` 로 선언 — **키에 표시를 붙이면 그 파일을 읽는 도구가 키를 못 찾는다**",
   "**B — 자기 P1 보고가 과했음을 스스로 확장 확인했다.** ‘F2-01 만이 아니라 3건 전부다. **R1 trace 에 후보/bbox 키가 아예 없어** 요소 동일성을 판정할 데이터가 없다’",
   "**B — 같은 날 같은 형태를 반복했음을 명명했다.** ‘관측과 그 관측이 함의하는 것 사이를 건넜다. **그 철회를 사이드카에 적어 넣은 손으로** 같은 형태를 냈다’",
   "**D — 그림을 렌더해서 눈으로 보고 레이아웃 결함 3건을 잡았다.** sha·exit 0·번들 검사가 전부 통과한 상태였다. **‘검사는 색을 보지 레이아웃을 안 본다’**",
@@ -389,7 +397,7 @@
   "금지행위_위반": "0건 (E 보고 · C forbidden-action trace)",
   "어휘_hit_대_실행형": "'송금' 등 과업 어휘 hit 은 계수하되 **위반으로 합산하지 않았다** — F1 의 frozen task 자체가 송금 진입이다. 실행형(click/tap/submit) **0**"
  },
- "sealed_at_kst": "2026-08-28T14:13:19+0900",
+ "sealed_at_kst": "2026-08-28T14:24:34+0900",
  "BINDING": {
   "canonical_mart_sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
   "mart_rows": 50,
@@ -494,7 +502,7 @@
  },
  "ACQUISITION_STATE_3집단": {
   "USABLE PATH EVIDENCE (8)": "ENDPOINT_REACHED 6 · AUTH_GATE 2",
-  "SITE-SIDE ROUTE NOT OBSERVED (16)": "NO_SAFE_ROUTE_SITE 16",
+  "ROUTE NOT REACHED BY COLLECTOR (16)": "NO_SAFE_ROUTE_SITE 16",
   "MEASUREMENT / COLLECTOR LIMITED (26)": "COLLECTOR_ZERO_CANDIDATE 21 · TIMEOUT 2 · UNVERIFIED 2 · FORBIDDEN_ACTION_BOUNDARY 1",
   "그래프_제목": "**‘시간제한 수집 종료 시점의 acquisition state’** — ‘서비스 접근성 결과’ 금지"
  },
