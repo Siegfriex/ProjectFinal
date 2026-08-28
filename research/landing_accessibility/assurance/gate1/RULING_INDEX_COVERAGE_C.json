@@ -1567,9 +1567,86 @@
    "coverage": "NOT_DUE_YET",
    "gap_note": null,
    "added_at_index_version": 37
+  },
+  {
+   "id": "Δ48-e000",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**`P0_RELEASE.json` 의 `E000_FAST` REAL 허가를 철회한다** — `e000_allowed`·`e001_allowed_after_e000_pass`·`real_target_allowed` 를 false 로. **승격 기록(`status`·`promoted_main_sha`·`promotion_verified`·`firewall_gate_status_*`)은 보존**한다. 다시 열려면 **새 release 문서**가 필요하고 이 문서를 고쳐서 열지 않는다",
+   "must_appear_in": "control/P0_RELEASE.json · C 독립 확인",
+   "C_check": "CI-26: E000_FAST 철회의 2층 실폐쇄를 C two_layer_scope_probe 로 독립 확인 + REAL 개방 경로 단위 밖 열거(worker)",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 38
+  },
+  {
+   "id": "Δ48-R41",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "**안전·상태 주장 필드는 상수일 수 없다.** 측정기가 내고 `must_flag`/`must_not_flag` 를 가지며 **측정 가능한 범위를 함께 적는다**. A 는 `REAL_TARGET 누적 0건` 대신 **`A_발행_REAL_허가: 없음(실측·문서 3종·판정식 재평가)`** 로 쓴다 — **항상 참인 필드는 아무것도 말하지 않는다**",
+   "must_appear_in": "A/B/C/D 의 모든 안전·상태 필드",
+   "C_check": "c_hb_measure.py — heartbeat 안전 주장은 측정기 산출(MEASURED/SELF_DECLARED/UNVERIFIED 표기, 범위 명시); must_flag/must_not_flag 는 hb 측정기 selftest 로 추가 예정",
+   "coverage": "PARTIAL",
+   "gap_note": null,
+   "added_at_index_version": 38
+  },
+  {
+   "id": "Δ48-R42",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**형태 오류가 관측 소견으로 변환되는 경로는 금지한다.** `dom_ax_divergence = ax_declared and not ax_observed` 처럼 형태 위반이 **다른, 의미 있어 보이는 출력**이 되면 계약 위반이 관측으로 위장하는 것을 넘어 **없는 현상을 만든다**. 형태 위반은 raise 로 끝나고 어떤 관측 변수에도 기여하지 않는다",
+   "must_appear_in": "ax_join · 관측 변수 산출",
+   "C_check": "lane2 dom_ax_divergence 는 AX 조인 관측(backendNodeId)에서만 계산, 형태 위반 입력은 raise — CI-19 3상태 시험에 '형태 오류→의미 있는 관측값' 경로를 must_flag 로 추가",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 38
+  },
+  {
+   "id": "Δ48-R43",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**검증 함수는 자기 실패를 실증하지 못하면 검증 함수가 아니다.** `verify_*`·`assert_*`·`check_*` **전수**에 대해 실패하는 입력이 존재함을 실증한다(**GATE 1 조건**). 실증 불가면 **이름이 약속을 하고 이행하지 않는 것**이므로 시정 또는 제거 — **이름만 남기지 않는다**",
+   "must_appear_in": "B 의 검증 함수 sweep · GATE1",
+   "C_check": "CI-25: COMPLETION SHA 에서 verify_*/assert_*/check_* 전수에 대해 실패 입력 존재를 C 가 실증(실증 불가 = PROVISIONAL, 이름만 남긴 함수는 finding)",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 38
+  },
+  {
+   "id": "Δ48-safety-gate",
+   "due": "PILOT5",
+   "verified_by": "C",
+   "requires": "**배선 3건**(`is_credential_field`·`observe_input_mode`·`resolve_forbidden_actions`)은 **`V3_PILOT_5` release 차단**(must_flag/must_not_flag 실증 필수). **미배선 10건은 그 함수를 배선하는 커밋이 그 함수의 R32 시정을 포함해야 한다** — **안전이 '현재 배선에서 발화 안 함' 에 기대면 배선 변경 한 번에 사라진다**",
+   "must_appear_in": "V3_PILOT_5 preconditions · 배선 커밋",
+   "C_check": "Δ48 계열 — FC-008 대응 진행 중",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 38
+  },
+  {
+   "id": "Δ48-runner-id",
+   "due": "PILOT5",
+   "verified_by": "C",
+   "requires": "`runner.py` 의 `service_id`·`task_id` **`or` fallback 4건은 배선 3건과 같은 급**이다. 조용히 다른 값으로 떨어지면 **증거가 다른 서비스에 귀속**되며 Director 가 즉시 HARD_STOP_CANDIDATE 로 지목한 **denominator corruption** 이다",
+   "must_appear_in": "runner 시정 · V3_PILOT_5 preconditions",
+   "C_check": "Δ48 계열 — FC-008 대응 진행 중",
+   "coverage": "NOT_DUE_YET",
+   "gap_note": null,
+   "added_at_index_version": 38
+  },
+  {
+   "id": "Δ48-R44",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "**판정 티켓 본문이 `Δ42` 오염 경로가 된다.** 순서가 걸린 사안은 독립 열거를 해야 하는 평면에 **수치와 항목명을 티켓 본문으로 보내지 않는다** — 등급·차단 여부·필요한 판정만 보낸다. 이미 도달한 것은 **오염으로 기록하고 '독립' 이라 쓰지 않는다**",
+   "must_appear_in": "버스 티켓 규약",
+   "C_check": "RUNBOOK Δ42 오염 기록 절차 — 티켓 본문 경유 도달도 오염으로 기록, '독립' 미사용",
+   "coverage": "PARTIAL",
+   "gap_note": null,
+   "added_at_index_version": 38
   }
  ],
- "index_version": 37,
+ "index_version": 38,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -1616,5 +1693,6 @@
  "index_sha256_v35": "f3ec3fb90deab9cee3717878fa1e019905ee8e8d656d34ada67000f95392e804",
  "read_from": "origin/control/landing-orchestrator after fetch (R39)",
  "index_sha256_v36": "c751759319ddd3ee86024336bb6d7f5bea8d436dc7d5a3257b0b2acd1a23b3eb",
- "index_sha256_v37": "a5a21f4e8c6bf88ad4c2a38b46b3eafbd3d9c4036af7abffc195a1ddb5083848"
+ "index_sha256_v37": "a5a21f4e8c6bf88ad4c2a38b46b3eafbd3d9c4036af7abffc195a1ddb5083848",
+ "index_sha256_v38": "1fb824919a5e1abaa48a29bc629358541f1e15c2fae6201a06972967aeb07ad6"
 }
