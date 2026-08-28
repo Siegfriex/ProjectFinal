@@ -11,8 +11,8 @@
 
 **한계 둘.** (a) **키 이름으로 맞춘다** — 같은 값이 다른 이름으로 표시되면
 오탐이 난다(`n_violations` 가 `baseline_pre_guard.n` 으로 표시되는 경우).
-(b) **스캔이 부르는 검사만 본다** — `SURFACED_BY_SCAN` 은 손 목록이라
-스캔에 새 검사가 붙어도 자동으로 늘지 않는다.
+(b) **스캔이 부르는 검사만 본다.** 그 목록은 이제 원본 import 에서 뽑지만,
+스캔이 import 없이(예: 서브프로세스로) 부르는 검사는 여전히 안 보인다.
 
 **판정하지 않는다.** 어떤 키가 "찍어야 할 신호" 인지는 자동으로 정해지지
 않는다 — 이 세션에서 자동 판정이 표기 형태에 걸려 세 번 오분류했다
@@ -21,23 +21,35 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parent
 SCAN = TOOLS / "d_bus_scan.sh"
 
-# 스캔이 부르는 검사들 — 그 반환 키가 표시 대상이다
-SURFACED_BY_SCAN = [
-    ("d_input_integrity", "check"),
-    ("d_warn_baseline", "check"),
-    ("d_ticket_schema_check", "check"),
-    ("d_retractions", "audit_artifacts"),
-    ("d_tool_health", "check"),
-    ("d_ledger_shape", "check"),
-    ("d_pending_response", "check"),
-    ("d_mlflow_contract_audit", "audit"),
-    ("d_citation_check", "coverage_agreement"),
-]
+# 스캔이 부르는 검사들 — **원본에서 뽑는다.** 손 목록이었을 때 15쌍 중 9쌍만
+# 적혀 있었다(D-DEF-79): `audit_tickets` · `coverage` · `audit_emitted` ·
+# `run_controls` · 그리고 **이 검사 자신**이 빠져 있었다. A R62 — 손 목록은 썩는다.
+_IMPORT = re.compile(r"from\s+([a-z_0-9]+)\s+import\s+([a-z_0-9]+)")
+SELF_MODULE = "d_surface_coverage"
+
+
+def derive_targets() -> list:
+    """`d_bus_scan.sh` 의 import 문에서 (모듈, 함수) 를 뽑는다."""
+    if not SCAN.exists():
+        return []
+    out, seen = [], set()
+    for mod, fn in _IMPORT.findall(SCAN.read_text(encoding="utf-8")):
+        if mod == SELF_MODULE:          # 자기 자신 — 재귀
+            continue
+        if not (TOOLS / f"{mod}.py").exists():
+            continue
+        if (mod, fn) in seen:
+            continue
+        seen.add((mod, fn))
+        out.append((mod, fn))
+    return out
+
 
 # 설명·근거를 담는 키는 신호가 아니다 — 이름으로 거른다
 _PROSE = ("왜", "뜻", "note", "why", "규칙", "축", "이유", "말하지", "않는",
@@ -64,6 +76,15 @@ ACCEPTED_UNSURFACED = {
     ("d_ticket_schema_check", "n_violations"):
         "**값은 이미 표시된다** — 스캔이 `baseline_pre_guard['n']` 로 같은 55 를 찍는다. "
         "이 검사는 **키 이름**으로 맞추므로 같은 값이 다른 이름으로 표시되면 오탐이 난다",
+    # 아래 셋은 전부 한계 (a) 의 사례다 — **값은 표시되는데 이름이 다르다**
+    ("d_tool_health", "covered"):
+        "값이 이미 표시된다 — 스캔의 `루프 실행 26` 이 이 26 이다",
+    ("d_tool_health", "syntax_only_tools"):
+        "값이 이미 표시된다 — 스캔의 `문법만 45` 가 이 45 다. 45개 도구 **이름**을 매 회차 "
+        "찍는 것은 소음이고, 변화는 수로 드러난다",
+    ("d_retractions", "hits"):
+        "값이 이미 표시된다 — 스캔의 `발행티켓 PASS(새 0 / baseline 2)` 가 이 2건이다. "
+        "둘 다 `D-V3-FINDING-043` · `BASELINE_PRE_GUARD` 이고 발행분은 고치지 않으므로 변하지 않는다",
     ("d_ledger_shape", "inner_records"):
         "대장 형태 검사의 내부 세부. 상위 `entries`·`caught_pre_emission` 가 이미 표시되고 "
         "이 수가 바뀌어도 대장의 두 분류는 달라지지 않는다",
@@ -88,10 +109,17 @@ def check() -> dict:
         _s.path.insert(0, str(TOOLS))
     scan_txt = SCAN.read_text(encoding="utf-8") if SCAN.exists() else ""
     rows, unsurfaced = [], []
-    for mod_name, fn_name in SURFACED_BY_SCAN:
+    for mod_name, fn_name in derive_targets():
         try:
             mod = importlib.import_module(mod_name)
-            res = getattr(mod, fn_name)()
+            fn = getattr(mod, fn_name)
+            import inspect
+            if any(q.default is inspect.Parameter.empty
+                   and q.kind in (q.POSITIONAL_ONLY, q.POSITIONAL_OR_KEYWORD)
+                   for q in inspect.signature(fn).parameters.values()):
+                rows.append({"module": mod_name, "fn": fn_name, "state": "NEEDS_ARGS"})
+                continue
+            res = fn()
         except Exception as e:
             rows.append({"module": mod_name, "state": f"RUN_FAIL: {type(e).__name__}"})
             continue
@@ -140,6 +168,11 @@ def controls() -> dict:
     case("`note` 도 설명이다", _is_signal("note", "x"), False)
     c = check()
     case("판정이 아니라 INFO 다", c["verdict"], "INFO")
+    _t = derive_targets()
+    case("원본에서 9쌍보다 많이 뽑는다", len(_t) > 9, True)
+    case("자기 자신은 빼야 한다 — 재귀", any(m == SELF_MODULE for m, _ in _t), False)
+    case("없는 모듈은 안 뽑는다",
+         all((TOOLS / f"{m}.py").exists() for m, _ in _t), True)
     case("판단한 것은 미검토에서 빠진다", c["n_unreviewed"] <= c["n_unsurfaced"], True)
     case("사라진 목록 항목을 신고한다",
          {"module": "없는모듈", "key": "없는키"} not in c["unsurfaced"], True)
