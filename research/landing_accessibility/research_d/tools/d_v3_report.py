@@ -197,16 +197,15 @@ def figure4_measurement_boundary(df):
     g = group_counts(df)
     usable = sum(g["USABLE PATH EVIDENCE"].values())
     cs = _cases(df)
-    paired = int(sum(1 for _, r in df.iterrows()
-                     if not C.is_missing(r["visible_label"])
-                     and not C.is_missing(r["accessible_name"])))
+    # [D-DEF-41] 채워짐이 아니라 독립 관측으로 센다
+    paired = C.independently_paired_labels(df)
     # [C-ASSURANCE-114653] k=8 CONFIRMED — pre-R3 provenance 8/8 독립 확인.
     # 의미는 '전체 acquisition history 에서 8 고유 target 에 usable evidence ≥1회' 이며
     # **8/50 reachability 가 아니다**.
     stages = [("frozen targets", C.N_TOTAL), ("attempted", int(len(df))),
               ("usable path evidence  k=%d (CONFIRMED)" % usable, usable),
               ("geometry-complete cases", len(cs)),
-              ("paired visible+AX label cases", paired)]
+              ("independently paired visible+AX label", paired)]
     fig, ax = plt.subplots(figsize=(10.5, 4.6))
     for i, (label, v) in enumerate(stages):
         w = v / C.N_TOTAL

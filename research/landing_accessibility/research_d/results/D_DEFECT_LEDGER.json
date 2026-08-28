@@ -1,7 +1,7 @@
 {
  "artifact": "D_DEFECT_LEDGER",
  "produced_at_kst": "2026-08-28T09:51:38+09:00",
- "measured_at_kst": "2026-08-28T12:00:49+09:00",
+ "measured_at_kst": "2026-08-28T12:05:24+09:00",
  "d_head": "0074449403193d8dbb4d515fced3d5dc5fa15d96",
  "plane": "D",
  "claim_kind": "OBSERVATION",
@@ -249,6 +249,27 @@
    "ticket": "D-V3-REPORT-FC-001",
    "fix": "문구 교체. 상위 판정이라도 **파일 존재·바이트 수준 주장은 인용 전에 직접 확인한다**",
    "control": "B 의 T-B-V3-FINDING-008 공통 형태(‘파생된 열 값이 원천보다 가깝고 싸다’)의 D 사례로 등재. B 는 보고도 잊었고 D 는 보지 않았다 — 구분해 적었다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-40",
+   "what": "폐기된 그림 6장을 최종본과 같은 디렉터리에 남겨뒀다",
+   "mechanism": "Director 가 명시적으로 폐기한 fig3·fig5·fig6 을 포함해 옛 6장이 `analysis/figures/` 에 그대로 있었다. A 가 `_superseded_do_not_cite/` 로 격리했다",
+   "why_it_matters": "**폐기된 것과 확정된 것이 같은 출력에 있었다.** 최종본 옆에 두면 인용된다 — 이 세션 결함족과 같은 계열이다",
+   "ticket": "T-A-V3-TBX-025",
+   "fix": "A 가 격리·README 작성. D 는 산출 갱신 시 폐기분을 같은 자리에 두지 않는다",
+   "control": "D_PROVENANCE 에 `superseded_figures` 경로를 명시해 최종 4장과 구분",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-41",
+   "what": "`paired visible+AX label` 을 '두 열이 채워짐' 으로 세어 28 을 냈다",
+   "mechanism": "`accessible_name` 은 visible text 복사이고 mart 자신이 `AX_NOT_INDEPENDENTLY_OBSERVED` 로 28건을 표시하고 있었다. 그 라벨을 무시하고 결측 여부만 봤다",
+   "why_it_matters": "**독립 관측 쌍은 0이다.** 표에 28 로 나가면 'AX 비교가 28건 가능했다' 로 읽힌다 — A 가 R120 에서 확정한 'browser-computed AX name 0건' 과 정면으로 어긋난다",
+   "ticket": "D-V3-REPORT-TABLES-001",
+   "fix": "`independently_paired_labels()` — 결측 여부 외에 `label_relation` 라벨을 함께 본다. Figure 4 와 T3 에 반영",
+   "control": "표를 만들다 그림과 다른 수가 나와 잡혔다. **표가 그림의 대조군 역할을 했다**",
+   "note": "열이 채워졌다는 것과 관측됐다는 것이 다르다 — 이 세션에서 네 번째로 같은 자리다(D-DEF-33·37·39·41)",
    "escaped": true
   }
  ],

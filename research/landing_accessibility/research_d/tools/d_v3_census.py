@@ -332,6 +332,27 @@ def load_geometry_supplement():
     return out
 
 
+AX_NOT_INDEPENDENT = "AX_NOT_INDEPENDENTLY_OBSERVED"
+
+
+def independently_paired_labels(df) -> int:
+    """visible label 과 **독립 관측된** accessible name 을 둘 다 가진 행 수.
+
+    [D-DEF-41] 둘 다 채워짐으로 세면 28 이 나온다. 그러나 accessible_name 은
+    visible text 복사이고 mart 자신이 AX_NOT_INDEPENDENTLY_OBSERVED 로 표시하고
+    있다 (A R120: browser-computed AX name 0건). **열이 채워졌다는 것과 관측됐다는
+    것은 다르다** — 이 세션에서 네 번째로 같은 자리다.
+    """
+    n = 0
+    for _, r in df.iterrows():
+        if is_missing(r["visible_label"]) or is_missing(r["accessible_name"]):
+            continue
+        if str(r.get("label_relation", "")).strip() == AX_NOT_INDEPENDENT:
+            continue
+        n += 1
+    return n
+
+
 def axis_coverage(df) -> dict:
     """축별 `k/n` 관측 수. **그림을 그릴지 말지의 입력이다** (A R87).
 
