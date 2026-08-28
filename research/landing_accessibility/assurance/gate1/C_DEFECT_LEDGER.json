@@ -3,7 +3,7 @@
  "measured_at_kst": "2026-08-28T09:54:34+09:00",
  "source": "C 발행 티켓/ACK 전량(bus_mirror_c) + 세션 메모리 — 기억이 아니라 발행 기록 우선, 기록에 없는 즉시 수정(스크립트 오타 등)은 세지 않았다",
  "counts": {
-  "defects": 27,
+  "defects": 28,
   "caught_before_issue": 4
  },
  "defects": [
@@ -269,6 +269,15 @@
    ],
    "rule": "R54 NOT_STATED/R41",
    "status": "open(스키마 필드 판정 A 대기; 읽기 쪽 NOT_STATED 처리는 규칙화)"
+  },
+  {
+   "id": "C-DEF-28",
+   "what": "재생성한 Monitor 스크립트가 refs 목록과 manifest sha 줄을 정렬하지 않고 comm 에 넣어 manifest sha 를 매 이벤트마다 '변경' 으로 오보(거짓 양성 표지 — R61 형태: 무시되기 시작하면 진짜 manifest 변경도 같은 자리에 앉는다)",
+   "record": "10:09 KST; Monitor 재생성(정렬 통일)",
+   "record_files": [],
+   "record_files_note": "세션 이벤트",
+   "rule": "R61",
+   "status": "fixed"
   }
  ],
  "caught_before_issue": [
