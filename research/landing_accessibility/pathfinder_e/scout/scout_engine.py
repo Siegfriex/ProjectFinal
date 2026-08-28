@@ -94,7 +94,7 @@ class ScoutRun:
     def _kst_now(self) -> str:
         return time.strftime("%Y-%m-%dT%H:%M:%S+09:00", time.localtime())
 
-    def capture_state(self, page, state_id: str, seq: int, action_token, terminal, nav_container="NONE", reveal="NONE") -> dict:
+    def capture_state(self, page, state_id: str, seq: int, action_token, terminal, nav_container="NONE", reveal="NONE", selected_candidate=None) -> dict:
         dom = None
         for attempt in range(5):
             try:
@@ -155,6 +155,9 @@ class ScoutRun:
             "reveal_direction": reveal,
             "action_token": action_token,
             "terminal_status": terminal,
+            "selected_candidate": {
+                k: v for k, v in (selected_candidate or {}).items() if k != "el"
+            } if selected_candidate else None,
         }
         self.states.append(record)
         return record
@@ -294,7 +297,7 @@ class ScoutRun:
                 browser.close()
                 return self._finalize()
 
-            s1 = self.capture_state(page, f"S{seq}", seq, "SELECT_FUNCTION", None)
+            s1 = self.capture_state(page, f"S{seq}", seq, "SELECT_FUNCTION", None, selected_candidate=chosen)
             seq += 1
             url_after = page.url
 
