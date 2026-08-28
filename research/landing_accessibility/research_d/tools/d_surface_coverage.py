@@ -117,6 +117,11 @@ ACCEPTED_UNSURFACED = {
         "찍는 것은 소음이고, 변화는 수로 드러난다",
     # [D-DEF-102] fixture 를 배선하며 되돌아온 것들 — 스캔은 `PASS · 4건 · must_flag 1` 을 찍는다
     # [D-DEF-104] 라벨 출처 검사 — 스캔이 찍는 것과 안 찍는 것
+    ("d_label_provenance", "zero_byte"):
+        "0 바이트 trace 의 `회차/대상` 목록 6줄이다. 스캔은 **총수 6파일**과 "
+        "'mart 는 전건 NOT_OBSERVED' 를 찍는다 — 총수가 변하면 그것이 먼저 움직인다",
+    ("d_v3_report", "n_targets"):
+        "R3 대상 수 8이다. 스캔이 `라벨-좌표 확인 가능성(R3 **8대상**)` 으로 머리에 찍는다",
     ("d_label_provenance", "n_lines"):
         "스캔이 `R1 58줄` 로 머리에 찍는 그 수다 — 이름만 다르다",
     ("d_label_provenance", "excerpt_cap"):

@@ -215,6 +215,12 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_label_provenance import by_run as _lpr_fn
+    _lpr = _lpr_fn()
+    _vl = {k.replace("E-REAL-CENSUS-1230", "R1").replace("R1-", ""): v.get("n_with_visible_label")
+           for k, v in _lpr["runs"].items()}
+    print(f"   회차별 라벨 확인 : visible_label {_vl} — **어느 회차에도 없다**"
+          f" · 0바이트 trace **{_lpr['n_zero_byte_total']}파일**(mart 는 전건 NOT_OBSERVED)")
     from d_label_provenance import check as _lp_fn
     _lp = _lp_fn()
     print(f"   라벨 출처(R1 {_lp.get('n_lines')}줄) : visible_label {_lp.get('n_with_visible_label')} "

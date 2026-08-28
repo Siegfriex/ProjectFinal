@@ -118,7 +118,8 @@ def label_geometry_match(target_id: str, visible_label: str) -> bool:
     """[A R152/R154] 이 행의 **라벨과 좌표가 같은 후보를 가리키는가**.
 
     mart 의 `visible_label` 은 R1 에서, `entry_x/y/zone` 은 R3 보충에서 왔다.
-    **R1 trace 에는 `selected_candidate` 키가 아예 없어서**(R3 에서 신설) 두
+    **R1 trace 에는 `selected_candidate` 키가 아예 없어서**(**R2B 부터** 있다 — D 가
+    처음 'R3 에서 신설' 이라고 적은 것은 부정확했다, `D-DEF-105`) 두
     회차가 서로 다른 후보를 골랐을 수 있다. k=8 중 3건이 그랬다.
 
     D 가 F2-01 **1건**을 짚었고 전수 확장은 B 가 했다 —

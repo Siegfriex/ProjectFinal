@@ -17,8 +17,13 @@ from collections import Counter
 from pathlib import Path
 
 REPO = Path("/home/sieg/projects-wsl/ProjectFinal")
-R1_ROOT = REPO / "artifacts/v3_census/raw/E/E-REAL-CENSUS-1230"
+E_RAW = REPO / "artifacts/v3_census/raw/E"
+R1_ROOT = E_RAW / "E-REAL-CENSUS-1230"
 EXCERPT_CAP = 500
+# [D-DEF-105] `D-V3-FINDING-095` 는 **R1 만** 봤다. mart 의 `collection_run` 은
+# R1 15 · R2 22 · R2B 13 이므로 나머지 두 회차도 재야 한다.
+RUNS = ("E-REAL-CENSUS-1230", "E-REAL-CENSUS-1230-R2",
+        "E-REAL-CENSUS-1230-R2B", "E-REAL-CENSUS-1230-R3")
 
 
 def _lines(root: Path):
@@ -84,6 +89,50 @@ def check(root: Path | None = None) -> dict:
                 "새 측정은 대상 지정 뒤다(`00 §13`)")}
 
 
+def by_run() -> dict:
+    """[D-DEF-105] 회차별 확인 가능성. **`visible_label` 은 어느 회차에도 없다.**
+
+    `selected_candidate` 는 **R2B 부터** 있다 — D 가 다른 도구 주석에 'R3 에서 신설'
+    이라고 적었는데 **틀렸다**(R2B 11/11 줄에 있다).
+    """
+    out, empty = {}, []
+    for run in RUNS:
+        root = E_RAW / run
+        if not root.exists():
+            out[run] = {"verdict": "NO_ROOT"}
+            continue
+        r = check(root)
+        dirs = [x for x in root.iterdir() if x.is_dir()]
+        # **0 바이트 trace 를 따로 센다** — `exists()` 만 보는 검사는 '있음' 으로 읽는다
+        zero = []
+        for x in sorted(dirs):
+            fs = list(x.glob("*.jsonl"))
+            if fs and all(f.stat().st_size == 0 for f in fs):
+                zero.append(x.name)
+        r["n_targets"] = len(dirs)
+        r["n_zero_byte_trace"] = len(zero)
+        r["zero_byte_targets"] = zero
+        out[run] = r
+        empty += [f"{run}/{z}" for z in zero]
+    return {"verdict": "INFO",
+            "runs": out,
+            "n_zero_byte_total": len(empty), "zero_byte": empty,
+            "**어느 회차에도 `visible_label` 이 없다**": (
+                "네 회차 전부 0 이다. mart 의 라벨은 **B 의 사후파생**이고 "
+                "trace 에서 그 이름으로 읽어올 수 없다"),
+            "`selected_candidate` 는 R2B 부터": (
+                "R1 0 · R2 0 · **R2B 있음** · R3 있음. "
+                "D 가 `d_v3_report` 주석에 'R3 에서 신설' 이라고 적은 것은 **부정확했다**"),
+            "**0 바이트는 결함이 아니다**": (
+                "**6 파일 · 대상 4**(`F4-01`·`F4-08`·`F5-06`·`F5-07`; 뒤 둘은 R1·R2B 양쪽). "
+                "mart 는 **넷 다** `visible_label=NOT_OBSERVED` 이고 terminal 사유도 일관된다 "
+                "(`TIMEOUT` 2 · `NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT` 2). "
+                "예: `R2B/F5-06`·`F5-07` 이 0 바이트인데 mart 는 그 둘을 "
+                "`visible_label=NOT_OBSERVED` · `terminal_reason=NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE` "
+                "로 적었다 — **미관측의 기록이고 mart 가 정확히 옮겼다**. "
+                "다만 **`exists()` 만 보는 검사는 이 둘을 '있음' 으로 읽는다**")}
+
+
 def controls() -> dict:
     import tempfile as _tf
     rows = []
@@ -108,6 +157,26 @@ def controls() -> dict:
         case("`selected_candidate` 가 있으면 센다", r["n_with_selected_candidate"], 1)
         case("**없는 DOM 스냅샷을 센다**", r["dom_snapshot_missing"], 1, negative=True)
         case("두 줄을 다 읽었다 — 0 이면 무효다", r["n_lines"], 2)
+
+    with _tf.TemporaryDirectory() as t:
+        root = Path(t) / "run"
+        (root / "Z1").mkdir(parents=True)
+        (root / "Z1" / "E_SCOUT_TRACE_Z1.jsonl").write_text("", encoding="utf-8")
+        zero = [x.name for x in sorted(root.iterdir())
+                if x.is_dir() and (list(x.glob("*.jsonl"))
+                                   and all(f.stat().st_size == 0 for f in x.glob("*.jsonl")))]
+        case("**0 바이트 trace 를 존재로 세지 않는다**", zero, ["Z1"], negative=True)
+
+    runs = by_run()
+    case("네 회차 전부 `visible_label` 0",
+         [r.get("n_with_visible_label") for r in runs["runs"].values()], [0, 0, 0, 0])
+    case("**R2B 에 `selected_candidate` 가 있다** — 'R3 에서 신설' 은 틀렸다",
+         runs["runs"]["E-REAL-CENSUS-1230-R2B"]["n_with_selected_candidate"] > 0, True,
+         negative=True)
+    # **한 회차만 보고 2 라고 적었다가 대조군이 잡았다** — 실제 6(대상 4, R1 4 + R2B 2)
+    case("0 바이트 trace 총 6건(대상 4)", runs["n_zero_byte_total"], 6, negative=True)
+    case("0 바이트가 R1 에도 있다 — R2B 만 본 것이 틀렸다",
+         runs["runs"]["E-REAL-CENSUS-1230"]["n_zero_byte_trace"], 4, negative=True)
 
     live = check()
     case("R1 에 `visible_label` 이 없다", live["n_with_visible_label"], 0)
