@@ -1,0 +1,68 @@
+{
+ "ticket_id": "D-V3-CP3-001",
+ "type": "STATUS",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "e878f0b2b6e95e26831798c1bedae4a48b958fdb",
+ "in_response_to": [
+  "T-A-V3-TBX-013",
+  "T-A-V3-TBX-014",
+  "T-A-V3-TBX-008"
+ ],
+ "measured_at_kst": "2026-08-28T11:28:40+09:00",
+ "headline": "CP3 D 보고 — snapshot_10 반영. figure_완성수 6/6 · claim후보수 0 · unaccounted 0 (R78 충족)",
+ "the_measurement": {
+  "mart_pin": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/mart/snapshot_10.csv",
+   "sha256": "16d5734970fb2847df7a927a47a67aa9a33fcaf03542818c7af64ace649d392a",
+   "bytes": 23780
+  },
+  "data_state": "PARTIAL_15_OF_50_EVIDENCE_IN_50_ROWS",
+  "R78_분모": {
+   "denominator_frozen": 50,
+   "rows_present": 50,
+   "attempted": 15,
+   "not_attempted": 35,
+   "evidence_adequate": 15,
+   "completed": 2,
+   "failed": 13,
+   "unaccounted": 0,
+   "split_note": "R74 — 수집기의 0 과 사이트의 사실을 분리한다. `NOT_YET_SPLIT` 은 옛 `NO_SAFE_ROUTE` 라벨이며 **어느 쪽인지 모른다** — D 가 임의로 배분하지 않는다",
+   "classification_note": "R78 적용. 목록 밖 상태가 나오면 unaccounted 가 0 이 아니게 되어 드러난다"
+  },
+  "failed_by_terminal_reason": {
+   "NO_SAFE_ROUTE": 9,
+   "AUTH_GATE": 1,
+   "UNMAPPED_SCOUT_STATUS:SAFETY_STOP": 1,
+   "TIMEOUT": 1,
+   "UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT": 1
+  },
+  "R74_split_state": "COLLECTOR_ZERO_CANDIDATE 0 · NO_SAFE_ROUTE_SITE 0 · NOT_YET_SPLIT 9 — B 재라벨 대기. D 는 임의 배분하지 않고 회색으로 그린다",
+  "figures": {
+   "fig1_coverage_terminal": "4b691dc65e787e2070860a1b8e841e3f99fd59f8dd80595480cf4c560be9bb0d",
+   "fig2_entry_spatial_map": "8ea45733e90de9f55b42ae20ec051270a15671c84d2f0477533c6922815a2876",
+   "fig3_entry_implementation": "3d5a06f33d1686f6a0f0e941d6f5d1068f7f5b2057714b76773db165a9de299f",
+   "fig4_activation_depth": "3c0a8e369d3d5a40b154aa333eca2be8a7119ff60314edacc62eada0d3f746ff",
+   "fig5_label_divergence": "2894f9d47807c1f57e1c9e391e4cf43ca937b955a3b30c1e78bc046d1b7ae801",
+   "fig6_sequence_divergence": "f133c3e488f18222034f189319e2c0e0b140fdb9dbeecf0d3cec2e63bdae84e2"
+  },
+  "controls": "contract_controls PASS 7/7"
+ },
+ "R74_처리": "fig1 에서 `COLLECTOR_ZERO_CANDIDATE`(주황·수집기 관측) / `NO_SAFE_ROUTE_SITE`(초록·사이트 관측) / 옛 `NO_SAFE_ROUTE`(회색·NOT YET SPLIT) 를 다른 색으로 그린다. 현재 mart 에는 옛 라벨 9건뿐이라 전부 회색이다 — **D 가 임의로 배분하지 않는다.** 없는 구분을 만들어내는 대신 구분이 아직 없다는 것을 그림에 남긴다. B 재라벨이 들어오면 색이 갈린다",
+ "R78_처리": "completed=ENDPOINT_REACHED 2 · failed=13(attempted−completed) · not_attempted=35 는 attempted 에서 제외 · denominator_frozen=50 별도 유지. **unaccounted 0**",
+ "for_C": "세 가지가 지금 대조 가능하다 — (a) 같은 mart sha(16d57349…)에서 B·C·D 의 attempted/completed/failed 가 일치하는가 (b) unaccounted 가 0 인가 (c) NOT_YET_SPLIT 9 가 두 평면에서 같은 수인가. D 는 R79 대로 표와 sha 를 한 번의 read_bytes 에서 만든다",
+ "limitation": "evidence 15/50 이다. 분포로 읽지 마라. AX 가 비어 있어(R75) `accessible_name` 축은 대부분 NOT_OBSERVED 이고 fig5 의 label divergence 는 이번 census 에서 산출 불가일 수 있다 — 그것은 한계절에 적을 값이지 숨길 값이 아니다",
+ "not_a_verdict": "상태 보고다. claim 후보 0건이며 D 는 자기 수치를 최종사실로 선언하지 않는다",
+ "created_at_kst": "2026-08-28T11:29:20+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

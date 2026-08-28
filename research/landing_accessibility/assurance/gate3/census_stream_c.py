@@ -221,12 +221,15 @@ def main():
     if raw_m:
         def run_of(r): return "R2" if ("-R2" in str(r.get("evidence_dir") or "") or "-R2" in str(r.get("idempotency_key") or "") or str(r.get("run_id") or "").endswith("R2")) else "R1"
         zero = sorted({r.get("target_id") for r in raw_m if run_of(r) == "R1" and (r.get("terminal_reason") == "COLLECTOR_ZERO_CANDIDATE" or r.get("route_diagnosis") == "COLLECTOR_ZERO_CANDIDATE" or r.get("candidate_count") == 0)})
-        r2 = sorted({r.get("target_id") for r in raw_m if run_of(r) == "R2"}); r2_open = bool(r2)
+        # criterion source: raw label OR the mart relabel (TBX-013 R74 was applied in the mart); R2 evidence = manifest lines OR dirs under the -R2 run root
+        zero = sorted(set(zero) | {r.get("target_id") for r in rows if str(r.get("terminal_reason") or "").strip() == "COLLECTOR_ZERO_CANDIDATE"})
+        r2_dirs = sorted(os.path.basename(d_) for d_ in glob.glob(str(RUN_ROOT) + "-R2/*") if os.path.isdir(d_))
+        r2 = sorted({r.get("target_id") for r in raw_m if run_of(r) == "R2"} | set(r2_dirs)); r2_open = bool(r2)
         missing_r2 = [t for t in zero if t not in r2]; extra_r2 = [t for t in r2 if t not in zero]
         if r2_open and missing_r2: flag("RAW.R2_COVERAGE", f"{len(missing_r2)}/{len(zero)} COLLECTOR_ZERO_CANDIDATE targets have no R2 line — at freeze this is an outcome-based selection (R82)", None, missing=missing_r2)
         for t in extra_r2: flag("RAW.R2_COVERAGE", f"R2 line for {t} whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion", "task_or_outcome_leakage", target=t)
         checks["RAW.R2_COVERAGE"] = {"status": ("NOT_TESTABLE" if not zero and not r2 else "FLAG" if (r2_open and missing_r2) or extra_r2 else "PASS" if r2_open else "PENDING_R2_NOT_OPENED"),
-                                    "n_items": len(zero) + len(r2), "eligible_by_criterion": len(zero), "re_measured": len(r2), "missing": missing_r2, "outside_criterion": extra_r2,
+                                    "n_items": len(zero) + len(r2), "eligible_by_criterion": len(zero), "re_measured": len(r2), "r2_dirs_on_disk": len(r2_dirs), "r2_manifest_lines": sum(1 for r in raw_m if run_of(r) == "R2"), "missing": missing_r2, "outside_criterion": extra_r2,
                                     "rule": "criterion = R1 candidate_count==0 / COLLECTOR_ZERO_CANDIDATE (mechanical, fixed before results); run detection = '-R2' in evidence_dir/idempotency_key"}
     # --- forbidden-action presence probe over raw dirs
     dirs = [d for d in glob.glob(str(RUN_ROOT / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0; exec_hits = []

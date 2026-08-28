@@ -1,0 +1,53 @@
+{
+ "ticket_id": "T-A-V3-TBX-016",
+ "type": "RULING",
+ "from": "A",
+ "to": [
+  "B",
+  "E"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "base_sha": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
+ "self_approved": false,
+ "headline": "**A 실측 — 그림 6종 중 2종이 데이터 0 이다. `entry_control_type` 0/35 · `entry_x_norm` 0/35. B 의 사후 DOM 추출이 지금 임계경로다**",
+ "A_실측_11_26": {
+  "E_dirs": "47/50",
+  "EVIDENCE_MANIFEST": "35행",
+  "B_promoted": "35 / rejected 15",
+  "completed": "**5** (ENDPOINT_REACHED) — F1 1 · F2 2 · F5 2",
+  "축별_관측": {
+   "activation_depth": "**35/35** 채워짐",
+   "visible_label_text": "21/35",
+   "accessible_name": "21/35",
+   "entry_control_type": "**0/35**",
+   "entry_x_norm": "**0/35**"
+  },
+  "attempt_status": "TERMINAL_NO_ENDPOINT 19 · ERROR **11** · ENDPOINT_REACHED 5"
+ },
+ "R87_그림_2종이_비어_있다": {
+  "영향": "D 의 6종 중 **②entry spatial map** 과 **③entry implementation distribution** 은 현재 **입력이 0** 이다. 그리기면 빈 그림이 나온다",
+  "지시_B": "**사후 DOM 추출의 1순위를 `entry_control_type` · `entry_x_norm` · `entry_y_norm` · `entry_zone` · `nav_container_type` 으로 잡아라.** 이 다섯이 그림 두 장을 살린다",
+  "가능한가": "DOM 74KB + PNG 가 있고 geometry 는 DOM 에서 뽑을 수 있다. **단 provenance 를 `B_DERIVED_FROM_DOM_POSTHOC` 로 반드시 표시**",
+  "안_되면": "**빈 그림을 그리지 말고 그림을 빼라.** 그리고 '이 축은 이번 census 에서 관측되지 않았다' 로 한계절에 적는다. **빈 그림은 없음을 0 으로 보이게 한다**",
+  "D_에": "입력이 0 인 그림은 **렌더하지 말고 `AXIS_NOT_OBSERVED` 로 표시하라**. 빈 렌더와 데이터 렌더가 다른 sha 를 내게 만든 네 장치를 여기에도 적용하라"
+ },
+ "R88_route_diagnosis_가_안_실렸다": {
+  "실측": "EVIDENCE_MANIFEST 35행 **전부에 `route_diagnosis` 키가 없다**",
+  "E_보고와_불일치": "E 는 필드를 추가했다고 보고했다. **route candidate 파일에는 있으나 manifest 줄로 전파되지 않은 것으로 보인다**",
+  "지시_E": "**manifest 줄에 `route_diagnosis` 를 실어라.** 이게 없으면 TBX-013 의 라벨 분리가 파이프라인에 도달하지 못한다 — **판정을 내렸는데 데이터에 안 들어간 상태다**",
+  "차선": "E 가 못 전파하면 **B 가 route candidate 파일에서 읽어 채우고 `route_diagnosis_provenance: B_READ_FROM_ROUTE_CANDIDATE` 를 단다**",
+  "일반화": "**A 가 판정하고 평면이 수용해도, 데이터에 실리지 않으면 없는 것이다.** 이게 `WIRED: true/false` 다 — 가능해진 것과 실제로 남는 것은 다르다"
+ },
+ "R89_ERROR_11건": {
+  "지시": "**`ERROR` 11건은 무엇인가.** attempt_status ERROR 는 terminal_reason 과 별개다. E 는 이 11건의 실패 성격을 수치로 보고하라",
+  "왜": "ERROR 가 수집기 예외라면 그건 `COLLECTOR_ZERO_CANDIDATE` 와 같은 계열(계기결함)이고, 사이트 사실이 아니다. **35건 중 11건이면 분모의 31% 다** — 성격을 모르면 결론을 못 쓴다"
+ },
+ "현재_궤도": "CP4(11:35, 50/50) 은 47/50 으로 궤도 위. **남은 3건은 F5.** CP5(11:40 mart freeze) 도 가능",
+ "우선순위_재확인": "E 는 **1차 50 전수 완료가 여전히 1순위**. R2 재측정은 그 다음"
+}

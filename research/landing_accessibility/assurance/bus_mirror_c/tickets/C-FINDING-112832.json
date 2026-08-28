@@ -1,0 +1,175 @@
+{
+  "ticket_id": "C-FINDING-112832",
+  "type": "FINDING",
+  "from": "C",
+  "to": [
+    "A",
+    "B"
+  ],
+  "created_at": "2026-08-28T11:28:32+09:00",
+  "created_at_kst": "2026-08-28T11:28:32+09:00",
+  "priority": "P0",
+  "claim_kind": "OBSERVATION",
+  "scope": "snapshot_50 (sha a94a2724…) 독립 재계산 대조 — mart freeze(11:40) 전에 B 가 봐야 할 것",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "self_approved": false,
+  "self_approved_note": "자기신고(발행 시점 의도 선언). 증거로 인용하지 않는다 — 보증은 발행 평면 외 ACK ≥ 1 구조 검사(Δ60-R65)",
+  "base_sha": "6bad699cade055ad99b2bcecb97407e303e4dd0f",
+  "in_response_to": [
+    "T-A-V3-TBX-007",
+    "T-A-V3-TBX-014",
+    "T-A-V3-TBX-015"
+  ],
+  "headline": "**B 의 label_relation 이 visible_label↔accessible_name 을 비교하고 있지 않다 — 대조 가능한 6/6 행 전부 mart=MATCH, C=DIFFERENT** ('개인뱅킹'↔'전체메뉴', '해외송금하기'↔'메뉴', '열차시각 및 예매일 조회'↔'추석 승차권 예매 꿀팁'). D02 축이 이 값 위에 서면 라벨 분기가 0 으로 나온다",
+  "measured": {
+    "mart": {
+      "file": "snapshot_50.csv",
+      "sha256": "a94a27247a770471d992ae8ea3618bfc5e2284e312ecbab34936269511303b90",
+      "rows": 50,
+      "observed": 50
+    },
+    "label_relation": {
+      "compared": 6,
+      "mismatch": 6,
+      "rule_C": "04 §5 label_relation(visible, accessible, synonym_map={}) — NFC+공백정규화 후 동일=MATCH, 아니면 DIFFERENT; C 는 synonym map 을 두지 않았다(빈 map 이므로 SEMANTIC_EQUIV 는 안 나온다)",
+      "examples": [
+        [
+          "F1-02",
+          "개인뱅킹",
+          "전체메뉴"
+        ],
+        [
+          "F1-05",
+          "개인뱅킹",
+          "이체"
+        ],
+        [
+          "F3-05",
+          "국내우편 배송조회",
+          "제작/배달현황 조회"
+        ],
+        [
+          "F5-01",
+          "열차시각 및 예매일 조회",
+          "추석 승차권 예매 꿀팁(코레일과 SR이 하나로!)"
+        ]
+      ],
+      "reading": "B 값이 어떤 규칙에서 MATCH 인지 C 는 모른다 — B 가 규칙을 적어야 한다. 32건의 MATCH 중 visible_label 이 NOT_OBSERVED 인 행(F1-01 등)도 MATCH 로 적혀 있다 — 한쪽이 미관측인데 관계가 MATCH 일 수 없다(04 §5: VISIBLE_ONLY/AX_ONLY/NONE)"
+    },
+    "activation_depth": {
+      "compared": 31,
+      "match": 28,
+      "mismatch": [
+        "F4-07",
+        "F5-06",
+        "F5-07"
+      ],
+      "what": "experienced_flow_sequence == [] 인 행에 activation_depth=0 — 빈 시퀀스는 0 이 아니라 미추출이다(TBX-006 '빈칸과 0 을 같은 출력으로 만들지 마라'). C 는 NA 로 둔다",
+      "family_F1": {
+        "mart": {
+          "n": 10,
+          "median": 1.0,
+          "q1": 0.0,
+          "q3": 1.0,
+          "iqr": 1.0,
+          "min": 0,
+          "max": 1
+        },
+        "C": {
+          "n": 6,
+          "median": 1.0,
+          "q1": 1.0,
+          "q3": 1.0,
+          "iqr": 0.0,
+          "min": 1,
+          "max": 1
+        }
+      }
+    },
+    "auth_gate_stage": {
+      "compared": 23,
+      "mart_vs_C": {
+        "NONE→UNDETERMINED": 21,
+        "AT_ENDPOINT→UNDETERMINED": 2
+      },
+      "reading": "어휘 차이(TBX-011 enum 에 UNDETERMINED 없음 vs R13). 오류로 세지 않는다 — A 가 TBX-011 을 정본으로 못박았으므로 C 는 관측으로만 기록"
+    },
+    "menu_dependency": {
+      "compared": 23,
+      "mismatch": 0,
+      "state": "ASSURED"
+    },
+    "denominators_R78": {
+      "frozen": 50,
+      "attempted": 50,
+      "attempted_observed": 50,
+      "evidence_adequate": 50,
+      "completed_endpoint_reached": 6,
+      "auth_gate_terminal": 0,
+      "failed": 44
+    },
+    "failed_by_terminal_overall": {
+      "COLLECTOR_ZERO_CANDIDATE": 21,
+      "NO_SAFE_ROUTE_SITE": 16,
+      "AUTH_GATE": 2,
+      "TIMEOUT": 2,
+      "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT": 2,
+      "FORBIDDEN_ACTION_BOUNDARY": 1,
+      "note": "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT 는 어느 enum 에도 없다(TBX-011/R74) — B 가 정의를 적거나 A 가 추가해야 한다"
+    },
+    "raw": {
+      "chain": "PASS",
+      "chain_lines": 50,
+      "dispatch_exactly_once": "PASS",
+      "task_hash_R68_mismatch": 0,
+      "contract_problems": {
+        "NULL_WITHOUT_MISSING_REASON": 56
+      },
+      "evidence_link_mart_vs_E": {
+        "hash_shaped_rows": 50,
+        "unlinked": 12,
+        "note": "B mart evidence_hash 가 E EVIDENCE_MANIFEST 에 없는 행 — provenance 연결이 끊긴 행"
+      },
+      "forbidden_probe": {
+        "vocab_hits": 21,
+        "execution_shaped": 0
+      }
+    },
+    "provenance": {
+      "E_LIVE_SCOUT": 0,
+      "POSTHOC_AMBIGUOUS_MULTIPLE_NARROW_MATCHES": 26,
+      "POSTHOC_NO_NARROW_MATCH_IN_DOM": 12,
+      "B_DERIVED_FROM_DOM_POSTHOC": 8,
+      "NO_DOM_CAPTURED_BY_E": 4,
+      "reading": "라벨·공간 축은 전부 사후 DOM 추출 또는 없음 — E 실관측 라벨은 0 행. 한계절 값"
+    },
+    "coverage_k_of_50": {
+      "visible_label": "8/50",
+      "accessible_name": "23/50",
+      "label_relation": "38/50",
+      "entry_x_norm": "0/50",
+      "entry_y_norm": "0/50",
+      "entry_zone": "0/50",
+      "entry_control_type": "8/50",
+      "nav_container_type": "10/50",
+      "reveal_direction": "0/50",
+      "menu_dependency": "38/50",
+      "task_flow_sequence": "38/50",
+      "experienced_flow_sequence": "50/50",
+      "activation_depth": "50/50",
+      "auth_gate_stage": "38/50",
+      "task_control_occlusion": "0/50"
+    }
+  },
+  "what_C_does_not_claim": "어느 쪽이 옳은지 판정하지 않는다(A). 전체정지 3종 해당 없음. 검사 통과 항목을 정합의 증거로 쓰지 않는다",
+  "artifacts": {
+    "MAIN50_EVIDENCE_ASSURED": "artifacts/v3_census/assurance/MAIN50_EVIDENCE_ASSURED.json",
+    "ANALYSIS_ASSURED": "artifacts/v3_census/assurance/ANALYSIS_ASSURED.json",
+    "checker": "6bad699cade055ad99b2bcecb97407e303e4dd0f"
+  },
+  "leakage_state": "NOT_ASSESSED_BEYOND_EXISTING_CONTROLS",
+  "not_a_verdict": "C flags, A rules"
+}
