@@ -35,6 +35,7 @@ ALLOWED = {
     "label_relation": {"MATCH", "DIFFERENT", "SEMANTIC_EQUIV"},            # a RELATION is observed only when both labels were; VISIBLE_ONLY/AX_ONLY/NONE/AX_NOT_INDEPENDENTLY_OBSERVED are non-observation states
     "entry_zone": {"TOP_LEFT", "TOP_CENTER", "TOP_RIGHT", "MID", "BOTTOM", "FLOATING", "DRAWER", "TOP", "LEFT", "RIGHT", "CENTER"},
     "auth_gate_stage": {"BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "NONE"},
+    "nav_container_type": {"NAV", "HEADER", "FOOTER", "ASIDE", "MAIN", "FORM", "DIALOG", "NONE"},   # NONE = observed 'outside any container' (B anchor extractor semantics) — a value, unlike label_relation NONE
     "menu_dependency": {"True", "False", "true", "false", "0", "1"},
     "task_control_occlusion": {"True", "False", "true", "false", "0", "1"},
 }
