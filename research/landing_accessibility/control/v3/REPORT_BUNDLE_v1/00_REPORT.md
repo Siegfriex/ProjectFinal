@@ -2,6 +2,8 @@
 
 *MAIN50 Time-boxed Acquisition Report v1*
 
+> **이 문서는 동결 census(8/50)를 기술한다.** 동결 이후 계기를 고쳐가며 재측정한 결과 **누적 확보가 22/50** 이 됐다 — **부록 `11_POST_CENSUS_PROBE.md` 를 함께 읽어야 한다.** 동결본(`mart 5290e0c3`)은 그 과정에서 불변이다.
+
 **상태**: `PUBLICATION_READY` 유보 · **수집창** 2026-08-28 10:30–11:50 KST · **분석·검산·봉인** ~12:30 KST
 **동결 프레임** FINAL_MAIN50_MANIFEST v3.0.2 (무수정) · **정본 mart** `5290e0c3…` 50행
 
