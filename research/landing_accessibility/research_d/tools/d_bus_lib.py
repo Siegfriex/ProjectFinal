@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 
@@ -166,3 +167,82 @@ def read_event_log_controls() -> dict:
             "must_flag_unparsed": f"{sum(ok_yes)}/{len(ok_yes)}",
             "passed": all(ok_not) and all(ok_yes),
             "why": "네 조합 전부 읽고, 미지 모양은 UNPARSED 로 분리한다 (R60)"}
+
+
+# ─────────────────────────────────────────────────────────────────────
+# [R65] 자기승인 여부를 **자기신고 대신 구조로** 잰다 — A 의 T-A-V3-STEP1-044
+#
+# `self_approved: false` 는 생산자가 자기에 대해 적는 값이라 검증 불가다.
+# 검증 가능한 형태 = **그 티켓에 발행 평면이 아닌 평면의 ACK 가 있는가.**
+# 두 입력(ACK 파일명 · event_log)으로 따로 재고 **불일치를 함께 낸다** —
+# 일치는 방법이 실제로 달랐을 때만 증거다(R46/R47).
+ACK_NAME = re.compile(r"^(?P<tid>.+)\.(?P<plane>[A-E])[0-9-]*\.json$")
+#   변종을 좁게 잡으면 재ACK(`.A2.json` `.C-1.json`)를 놓친다 — 실측으로 확인한 모양이다
+
+
+def _ack_index_files(bus: Path) -> tuple[dict, list]:
+    idx, unparsed = {}, []
+    for f in (bus / "acks").iterdir():
+        m = ACK_NAME.match(f.name)
+        if not m:
+            unparsed.append(f.name)          # 못 읽은 것을 0 으로 세지 않는다
+            continue
+        idx.setdefault(m["tid"], set()).add(m["plane"])
+    return idx, unparsed
+
+
+def cross_plane_ack_audit(bus_dir, plane: str = "D") -> dict:
+    """자기 발행 티켓 전건에 **발행 평면 외 ACK ≥ 1** 이 있는가."""
+    bus = Path(bus_dir)
+    mine = []
+    for p in sorted((bus / "tickets").glob("*.json")):
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:                                   # noqa: BLE001
+            continue
+        if d.get("from") == plane:
+            mine.append(p.stem)
+    files_idx, unparsed = _ack_index_files(bus)
+    log = read_event_log(bus / "event_log.jsonl")
+    log_idx = {}
+    for r in log["rows"]:
+        if r["event"] in ("ACK", "TICKET_ACK") and r["ticket_id"]:
+            log_idx.setdefault(r["ticket_id"], set()).add(r["actor"])
+
+    def others(idx, t):
+        return sorted(x for x in idx.get(t, set()) if x and x != plane)
+    by_files = {t: others(files_idx, t) for t in mine}
+    by_log = {t: others(log_idx, t) for t in mine}
+    ex_files = [t for t in mine if not by_files[t]]
+    ex_log = [t for t in mine if not by_log[t]]
+    return {
+        "n_tickets": len(mine),
+        "vacuous": len(mine) == 0,          # [R52] 0건이면 통과가 아무 말도 안 한다
+        "method_files": f"{len(mine) - len(ex_files)}/{len(mine)}",
+        "method_event_log": f"{len(mine) - len(ex_log)}/{len(mine)}",
+        "methods_differ": "입력이 다르다 — 파일명 vs 로그 행 (R46: 일치는 이때만 증거다)",
+        "disagreement": sorted(set(ex_files) ^ set(ex_log)),
+        "exceptions": ex_files,
+        "ack_filename_unparsed": unparsed,
+        "log_unparsed_rows": log["unparsed"],
+    }
+
+
+def cross_plane_ack_controls(bus_dir, plane: str = "D") -> dict:
+    """[R29] **0 은 증거가 필요한 주장이다** — 예외가 있으면 잡히는지 실증한다."""
+    bus = Path(bus_dir)
+    files_idx, _ = _ack_index_files(bus)
+    real = next((t for t, v in files_idx.items() if v - {plane}), None)
+
+    def others(t):
+        return sorted(x for x in files_idx.get(t, set()) if x != plane)
+    must_flag = not others("D-SYNTHETIC-NEVER-ACKED-000")   # 없는 티켓 → 예외로 잡혀야
+    must_not_flag = bool(others(real)) if real else None
+    # 좁은 글롭이었다면 재ACK 변종을 놓쳤을 것 — 그 탐지력도 함께 실증한다
+    variant = [f for f in (bus / "acks").iterdir() if ACK_NAME.match(f.name)
+               and not f.name.endswith((".A.json", ".B.json", ".C.json", ".D.json", ".E.json"))]
+    return {"must_flag_missing_ack": must_flag,
+            "must_not_flag_real_ticket": must_not_flag,
+            "variant_names_captured": len(variant),
+            "why_variant": "`.A2.json`/`.C-1.json` 류. 좁은 글롭이면 재ACK 를 놓치고 예외를 부풀린다",
+            "passed": bool(must_flag and must_not_flag and variant)}

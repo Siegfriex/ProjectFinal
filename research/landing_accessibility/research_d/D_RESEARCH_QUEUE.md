@@ -807,3 +807,18 @@ D 가 커버리지 대조를 요구받는 시점에 `D-V3-FINDING-006` 과 같�
 - 구현: `tools/d_bus_lib.py` normalize_event / read_event_log / read_event_log_controls
 - 통제: must_not_flag 4/4 · must_flag 3/3 · 실측 989행 UNPARSED 0
 - 부수 발견: D heartbeat 행이 공유 로그에 0건(색인 공백, 선언함) · 대장 서수 도출 결함(값은 상쇄로 우연히 일치)
+
+## RQ-D043 — D 표지의 거짓 양성 측정 (T-A-V3-STEP1-043 / R61)
+- 상태: OPEN — 다음 회차
+- 질문: D 표지 11종 각각에 must_flag/must_not_flag 가 **실증돼** 있는가, 거짓 양성 이력이 있는가
+- 선언 집합(손 선언, 매처 아님): holdout_accessed · production_modified · pushed ·
+  denied_paths_not_opened · labels_produced · WIRED · verdict_source · claim_provenance ·
+  comparable/changed · ACK_UNREADABLE · firewall verdict
+- 주의: 이 중 차단은 firewall verdict 하나뿐이고 나머지는 전부 표지다
+- 왜 이번 회차에 안 냈나: 도구를 읽어야 나오는 값이다. 기억으로 표를 채우지 않는다
+
+## RQ-D044 — R65 구조 검사 (T-A-V3-STEP1-044)
+- 상태: DONE (같은 회차)
+- 결과: D 발행 54건 전건 타평면 ACK 보유 **54/54 · 예외 0** · 두 방법 불일치 0
+- 통제: must_flag/must_not_flag PASS · 재ACK 변종 19건 포착 · VACUOUS 아님(54건)
+- 산출: results/D_CROSS_PLANE_ACK_AUDIT.json · 도구: d_bus_lib.cross_plane_ack_audit

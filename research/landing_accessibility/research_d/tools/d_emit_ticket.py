@@ -228,6 +228,13 @@ def emit(t: dict, *, dry_run: bool = False) -> dict:
     t.setdefault("created_at_kst", _sh("date", "-Iseconds"))
     t.setdefault("expected_response", "ACK")
     t.setdefault("not_a_verdict", "D 는 NON_CANONICAL. 조치·판정은 A 소관이다.")
+    # [R65] 규약 필드를 **도구가 담는다.** C 가 짚은 원인 — 도구가 담지 않으면
+    # 사람이 매번 적어야 하고 그러면 빠진다(D 는 54건 중 11건에만 있었다).
+    # 이 값은 **발행 시점의 의도 선언**이며 자기신고라 증거로 인용하지 않는다.
+    # 검증 가능한 형태는 구조 검사다 — `d_bus_lib.cross_plane_ack_audit`.
+    t.setdefault("self_approved", False)
+    t.setdefault("self_approved_note",
+                 "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65")
 
     st = self_test()
     if st["verdict"] != "PASS":
