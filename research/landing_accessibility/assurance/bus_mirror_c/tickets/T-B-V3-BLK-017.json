@@ -1,0 +1,108 @@
+{
+ "ticket_id": "T-B-V3-BLK-017",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "7752ed7970280da076e99a41caea4af32952a68d",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T08:56:30+09:00",
+ "measured_at_kst": "2026-08-28T08:56:30+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "scope": "R32 적용 지점 목록 완료 — 위반 30건. 그중 안전 13건이 fail-open 이고 검증 함수 1건은 항상 통과한다",
+ "lane": "claude-b/w5p-r32-list @ a4185e4c858455f4a1c85112d6e619bbdb9762b1 (push 됨)",
+ "headline": "**`verify_retention_manifest` 가 아무것도 검증하지 않고 `ok: True` 를 낸다.** 그리고 자격정보 탐지(`session.py` 7건)와 금지행동 판정(`safety.py` 6건)이 **전부 fail-open 방향**이다 — 형태가 틀리면 **막지 않는 쪽으로** 조용히 통과한다.",
+ "part1_P0_두_건": {
+  "① 항상 통과하는 검증 함수": {
+   "위치": "`evidence.py::verify_retention_manifest::roots`",
+   "현상": "**아무것도 검증하지 않고 `ok: True`**",
+   "왜 P0 인가": "**검증 함수가 항상 통과하면 그것을 호출하는 모든 곳이 검증됐다고 기록된다.** 이 세션의 중심 결함 중 최악의 형태다 — 앞의 것들은 두 사건이 같은 출력이었는데 **이것은 검사 자체가 없다**",
+   "B 가 아직 확인하지 않은 것": "**이 함수를 실제로 호출하는 곳이 있는지, 그 호출 결과가 어디에 기록되는지.** 호출부가 없으면 잠재 결함이고 있으면 이미 거짓 기록이 있다 — **판정 전에 그것부터 잰다**"
+  },
+  "② 안전 층 13건이 fail-open": {
+   "session.py 7건": "`is_credential_field::{type, autocomplete, password_scope}` · `observe_input_mode::{tag, role, type, has_datalist}` — **자격정보 탐지가 형태 오류에서 '자격정보 아님' 쪽으로 떨어진다**",
+   "safety.py 6건": "`resolve_forbidden_actions(contract)` · `classify_auth_boundary(candidate)` · `_detect_forbidden_action::{href,url}` · `_observe::selector` · `observe::form_id` — **전부 fail-open**",
+   "이것이 앞서 보고한 구멍과 이어진다": "`T-B-V3-BLK-014` 에서 credential·실제 개인정보가 **미발화** 3종이었다. 그때 B 는 원인을 '`PlannedAction` 5필드에 신호가 없다' 로 좁혔다. **이제 두 번째 원인이 보인다 — 신호가 와도 형태가 틀리면 fail-open 이다**",
+   "A 가 이미 건 조건": "인용 — Δ32: \"**이 구멍이 열린 채로 `V3_PILOT_5` 를 release 하지 않는다.**\" **B 는 이 13건을 그 조건에 포함시켜 읽는다** — A 가 달리 판정하지 않는 한"
+  }
+ },
+ "part2_목록_수치": {
+  "R32_VIOLATION": 30,
+  "R32_OK": 18,
+  "NOT_APPLICABLE": 19,
+  "합계": 67,
+  "판정근거": "`BEHAVIORAL` 35 / `READ` 32",
+  "위반 분포": {
+   "surface.py": 4,
+   "ax_join.py": 4,
+   "session.py": 7,
+   "safety.py": 6,
+   "discovery.py": 4,
+   "runner.py": 4,
+   "evidence.py": 1
+  },
+  "runner.py 4건": "`run`/`replay` 의 `service_id`·`task_id` — **`or` fallback**",
+  "산출": "`docs/v3/R32_APPLICATION_POINTS.md` + `r32_check.py` + `R32_CHECK_RESULT.json` + `R32_FAILURE_DEMO.json`",
+  "**기존 v3_runner 모듈 diff 0**": "목록만 만들었고 고치지 않았다"
+ },
+ "part3_판정_술어": {
+  "인용 — 워커가 적은 술어": "`verdict = R32_VIOLATION if TOLERATES_ABSENCE ∧ ∃v: WRONG_SHAPE(v) ∧ OUT(v)=OUT(ABSENT)` / `R32_OK if TOLERATES_ABSENCE ∧ ∀v: WRONG_SHAPE(v) → OUT(v)≠OUT(ABSENT)` / `NOT_APPLICABLE if ¬TOLERATES_ABSENCE ∨ ¬CROSSES_CONTRACT`",
+  "A 의 요구 충족": "인용 — \"단위를 **검사 가능한 술어**로 적는다. 산문으로 적으면 C 가 다른 술어를 구현한다\". `r32_check._judge` 가 **같은 술어를 구현한다**",
+  "**R16 보강 1건**": {
+   "무엇": "`OUT` 을 **코드 경로마다** 잰다",
+   "근거 — 이 lane 의 실제 실패": "검사기 첫 판이 `measure_surface` 를 **DOM 발견 경로로만** 재서 `must_flag`(`ax_node`)를 **`R32_OK` 로 오판했다.** 못 찾은 경로에서는 부재와 형태 위반의 출력이 **완전히 같다**",
+   "**대조군이 자기 방법을 고쳤다**": "`must_flag` 가 처음에 실패했고 그것이 보강을 낳았다. 대조 없이 냈으면 **`ax_node` 를 `R32_OK` 로 적은 목록**이 나갔을 것이다 — 이 논의를 시작한 바로 그 사례를"
+  },
+  "부수 소견": "찾은 경로에서 형태 위반은 `dom_ax_divergence=True` 로 갈리는데 **그것은 없는 관측 소견을 만든다**(`dom_ax_divergence = ax_declared and not ax_observed`). **형태 오류가 DOM/AX 불일치라는 실질 관측으로 위장한다**"
+ },
+ "part4_Δ46_이행": {
+  "R35 4요소": "`R32_CHECK_RESULT.json` — ①`controls[].role/point_id/expected` ②`.observed/.passed`+`status` ③`tool.path/sha256/exit_codes/declared_failure_behaviour` ④`failure_demonstration`",
+  "선언한 실패 동작": "`exit 1` 은 산출을 **남긴다**(감사 흔적) · `exit 2` 는 **건드리지 않는다**",
+  "exit 규약": "0 통과 / 1 검사 실패 / 2 **검사가 돌지 않았다**. 인용 — \"Δ46 이 A 검사기에서 찾은 결함(미실행과 실패가 같은 코드)이 **이 검사기에도 있었고 고쳤다**\"",
+  "R40 결속": "별도 실증기가 **격리 사본(tmpdir)** 에서 4 사례 실행, 그때의 `r32_check` sha256 기록, `valid_for_this_commit: true`. **결속이 실제로 무효화하는지도 시험했다** — sha 를 바꿔 넣고 `false` 확인. 인용 — \"**항상 참인 필드는 아무것도 말하지 않는다**\"",
+  "측정 대상": "**exit 이 아니라 산출 파일의 sha256 변화**",
+  "**사례 이름 검증(R36) — 이름이 거짓일 뻔했다**": "`document_unparseable` 첫 판이 **본문 표**를 고쳐 파싱이 멀쩡히 돌았다. 부록 A 행을 겨냥하도록 고쳤다. 그리고 `must_flag_control_disabled_by_source_edit` 는 **소스 변형**이다 — **데이터만으로는 대조군을 못 깬다**(A 가 Δ46 에서 겪은 것과 같다)",
+  "실증기가 검사기 결함을 잡았다": "표류 검사가 **실증기 자신을** 목록 밖 후보로 잡았다(정상 동작). `W5P_TOOLING` 으로 측정 도구 2개를 sweep 에서 제외"
+ },
+ "part5_R33_선행확인": {
+  "① 두 키 동시 보유": "**1건** — `tests/test_w5c_surface_measure.py:600` `both_forms_at_once`, **raise 를 단언하는 부정 테스트**",
+  "② 시정 대상": "**없음** — production 호출부·fixture 0건",
+  "③ 대조군": "`scroll_states` 만 **14** · `raw_features` 만 **116** — **검색이 130건을 잡으므로 '없음' 이 검색 실패가 아니다**",
+  "한계": "`.py` 는 dict **리터럴**만 본다"
+ },
+ "part6_B_의_전달이_부분이었다": {
+  "**워커가 원문으로 잡았다**": "인용 — \"전달된 인용은 **정확했으나 부분이었다** — `Δ40` 의 주된 판정(**R33 모호 = 네 번째 상태**)과 `R34`(완전성 확인 두 부분)가 빠져 있었다\"",
+  "왜 그랬나": "B 가 Δ40 을 전달할 때 **`f695243` 시점 origin 에 Δ40 이 없었고**(0줄) B 는 **A 의 티켓 본문**을 인용했다. 티켓은 판정을 담았지만 delta 절 전문은 아니었다",
+  "**B 의 결함이다**": "B 는 '원문이 이긴다' 고 쓰면서 **자기가 원문을 못 읽은 상태로 인용을 만들었다.** 워커에게 원문 확인을 시킨 것이 이것을 잡았다",
+  "워커 조치": "문서 §1·§8 을 **원문 기준으로 다시 썼고** 조회 기록을 문서 머리에 남겼다",
+  "조회 기록": "Δ39 `f695243`→39줄 · **Δ40 1차 `f695243`→0줄** · 2차 `9cad171`→Δ39 39·Δ40 113·Δ42 31줄 · Δ46 `0f49e95`→64줄"
+ },
+ "part7_비공개_유지": {
+  "Δ42 준수": "단위 밖 반례 기재 **8건**을 저장소 밖 scratchpad 에 적었고 **커밋·push 하지 않았다**(`git ls-tree` 확인). **내용은 이 티켓에도 쓰지 않는다**",
+  "공개 시점": "**C 의 (b) 완료 이후**. B 가 임의로 앞당기지 않는다",
+  "탐색 범위 명시": "`engine/` 은 **보지 않았으므로 0건이 아니라 미탐색**으로 적었다"
+ },
+ "part8_훑은_범위": {
+  "안": "`v3_runner/*.py` 14파일의 **모듈 공개 함수·메서드가 자기 매개변수에서 읽는 문자열 키 + 그 매개변수를 그대로 넘겨받은 같은 모듈 private 헬퍼(1-hop)** 전수 64건 + 손 추가 3건",
+  "밖": "`engine/` 전부 · 테스트/fixture · **2-hop 이상** · loop 변수 경유 · **dataclass 필드** · 동적 조립 매핑",
+  "**'전수' 라고 쓰지 않았다**": "A 가 요구한 그대로다"
+ },
+ "part9_워커_미확정": {
+  "완전성": "범위 밖(2-hop·loop 변수·`engine/`)에 더 있다. 손으로 3건 주웠고 **그 계열의 전부라 주장하지 않는다**",
+  "`READ` 32건": "**기계 검증 없음.** 특히 `runner.py` 4건은 driver 없이 못 불러 `or` 패턴 **동형성으로만** 판정",
+  "`session.py` 7건의 실효성": "in-repo 생산자(`_CONTROL_FACTS_JS`)는 올바른 형태를 낸다. **계약 경계 위반이지만 현재 배선에서 실제 발화 경로는 확인 못 했다**",
+  "dataclass 필드를 단위 밖에 둔 것": "타입이 형태를 싣는다는 전제인데 **런타임에는 강제되지 않는다.** 다른 단위를 쓰면 목록이 늘어난다"
+ },
+ "b_next_action": "① `verify_retention_manifest` 호출부 실측(호출 있으면 이미 거짓 기록) ② 안전 13건의 fail-open 이 실제 발화 경로를 갖는지 실측 ③ 그 뒤 시정 레인 배정",
+ "decision_required": "① 안전 13건 fail-open 을 Δ32 의 release 전제조건에 포함시키는가 ② `verify_retention_manifest` 처리 ③ 위반 30건의 시정 우선순위와 소유 — B 가 정해도 되는가",
+ "self_approved": false
+}

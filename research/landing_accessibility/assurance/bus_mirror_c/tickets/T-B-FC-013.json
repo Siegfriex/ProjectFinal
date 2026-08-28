@@ -1,0 +1,36 @@
+{
+ "ticket_id": "T-B-FC-013",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "type": "FACT_CORRECTION",
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "d312c9a647fa2065e011a8468e7def0dd607789b",
+ "scope": "B 가 worker 지시문에 04 canonical 밖 토큰을 예시로 썼다",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:57:39+09:00",
+ "completed_at_kst": null,
+ "error_class": "SELF_ERROR",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "B 가 W5B 지시문에 `OPEN_RIGHT_DRAWER` 를 flow 예시로 썼다. 04 §2 canonical 18종에 없는 토큰이다. worker 가 04 를 정본으로 삼고 B 지시를 따르지 않은 것이 옳다.",
+ "what_i_wrote": "W5B 지시문 §'특히 주의할 것' 1: `task_flow = OPEN_RIGHT_DRAWER > SELECT_TRANSFER > AUTH_GATE` / `experienced_flow = DISMISS_OBSTRUCTION > OPEN_RIGHT_DRAWER > SELECT_TRANSFER > AUTH_GATE`",
+ "measurement": {
+  "cmd": "grep -c OPEN_RIGHT_DRAWER SSOTV3/04_FLOW_CODEBOOK_v3.0.md",
+  "out": "0",
+  "positive_control": "같은 파일에서 OPEN_GLOBAL_MENU 는 4건 발화한다. 검색이 정상이고 0 은 실제 부재다.",
+  "04_actual_example": "`task_flow = OPEN_GLOBAL_MENU > SELECT_FUNCTION > AUTH_GATE` / `experienced_flow = DISMISS_OBSTRUCTION > OPEN_GLOBAL_MENU > SELECT_FUNCTION > AUTH_GATE`",
+  "also_absent": "`SELECT_TRANSFER` 도 04 canonical 에 없다. 해당 의미는 `SELECT_FUNCTION` 이다."
+ },
+ "how_it_happened": "Director 의 B 지침 원문이 `OPEN_RIGHT_DRAWER > SELECT_TRANSFER > AUTH_GATE` 를 예시로 들었고 B 가 그것을 04 와 대조하지 않고 worker 지시문에 그대로 옮겼다. Director 문안은 설명을 위한 것이고 codebook 이 정본인데, B 가 그 구분을 하지 않았다.",
+ "why_it_matters": "worker 가 B 지시를 04 보다 우선했다면 canonical 밖 토큰을 받아들이는 구현이 됐을 것이다. 그러면 `nav_container_type`·`reveal_direction`(방향을 재는 축)과 action token(행위를 재는 축)이 한 토큰에 섞인다 — 04 가 두 축을 분리한 설계 의도가 무너진다.",
+ "what_W5B_did": "04 를 정본으로 삼고 `OPEN_RIGHT_DRAWER` 를 non-canonical 로 `ValueError` 처리했으며 그것을 테스트로 고정했다. 그리고 B 지시문과 04 원문의 불일치를 **지어내지 않고 보고**했다. 프로토콜 §5 진리 위계 그대로다 — T3(frozen codebook)가 T6(코디네이터 산문)을 이긴다.",
+ "b_correction": "지시문의 그 예시를 철회한다. 정본 예시는 04 §3 원문이다. B 는 앞으로 worker 지시문에 토큰·enum 값을 쓸 때 SSOT 원문과 대조한 뒤 인용한다.",
+ "scope_of_impact": "W5B 외 다른 lane 지시문에도 같은 예시가 들어갔는지 B 가 확인했다 — W5A·W5C·W5D·W5E·W5F·W5G·W1 지시문에는 `OPEN_RIGHT_DRAWER` 를 쓰지 않았다. 영향은 W5B 한 건이며 W5B 가 스스로 막았다.",
+ "decision_required": null
+}

@@ -1,0 +1,27 @@
+{
+ "kind": "ACK",
+ "from": "B",
+ "ticket_id": "T-A-V3-STEP1-019",
+ "ticket_file": "tickets/T-A-V3-STEP1-019.json",
+ "ticket_type": "FACT_CORRECTION",
+ "ticket_sha256": "5efd6335f1dce618df9818eb67a464134c52e99950f8e4c386eb9ee8c560492b",
+ "binding_note": "대상 티켓 파일 바이트의 sha256 (R18).",
+ "acked_at": "2026-08-28T04:05:21+09:00",
+ "note": "색인 v2 접수. **B 독립 재계산 7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a — A 기재값과 일치, 51항.** A·C 의 숫자를 받아쓰지 않고 직접 계산했다(B 가 STEP1-018 ACK 에서 그렇게 하겠다고 적었다). C 도 독립 재계산으로 같은 값에 도달했으므로 세 평면이 서로를 참조하지 않고 수렴했다.",
+ "increment_B_measured": {
+  "GATE1_due": "v1 21항 → v2 **23항**",
+  "new_three": "Δ12-C(GATE 1 보고의 분류 — C 소관) · Δ19-R10(릴리스 문서 preconditions[] — A 소관) · **Δ20(수집기 + 관측 행 — B 소관)**",
+  "action_taken": "Δ20 의 범위 확장을 W5I·W5J 에 즉시 전달했다. B 지시문은 'collector_sha256 기록' 이었는데 색인은 '**모든 v3 관측 행에**' 다 — 산출물 한 곳이 아니라 관측 단위마다다. 해시 결합 방식은 색인이 정하지 않았으므로 각 lane 이 정하되 근거 부재를 known limitation 에 적게 했고, **두 lane 이 다르게 정하면 병합 시 드러나므로 서로 맞추려 참조하지 말라**고 명시했다."
+ },
+ "on_the_root_cause_A_named": {
+  "A_said": "근본원인은 색인이 아니라 delta 였다",
+  "B_notes": "그 구분이 중요하다. 색인 누락이면 색인만 고치면 되지만 **delta 결손이면 그 delta 를 근거로 삼은 모든 하류 판단이 영향권**이다. B 는 어느 항목이 어느 쪽이었는지 실측하지 않았다 — C 가 대조로 찾았고 A 가 시정했으며 B 는 결과(v2 51항)만 받았다. **B 가 그 9건의 성격을 안다고 말하지 않는다.**"
+ },
+ "on_B_own_earlier_check": {
+  "what_B_did": "v1 색인으로 미전달 의심 4항(Δ6-d · Δ14-P09 · Δ14-auth · Δ14-P17)이 실제로 반영됐는지 확인했고 네 항목 모두 해당 산출물에서 발화했다 — scout_strategy.py · flow.py · flow.py · terminal.py. **B 가 명시 전달하지 않았는데 워커들이 SSOT 를 직접 읽어 구현했다.**",
+  "its_limit": "그 검사는 **v1 색인 위에서 돌았고 v1 은 7항 누락 상태였다.** 따라서 그 결과는 '확인한 4항이 반영돼 있다' 까지이며 완결성 주장이 아니다.",
+  "and_it_is_still_only_existence": "이름이 산출물에서 발화한다는 것은 존재 확인이지 정의 준수 확인이 아니다. Δ14-auth 가 요구한 '과업 특이적 토큰 **10종** 기준' 이 그대로 지켜졌는지는 이 검사로 나오지 않는다. **색인의 verified_by 가 전부 C 인 것이 맞다.**",
+  "B_plan": "4 lane 완료 후 최종 reconciliation 에서 **색인 v2 51항 전건 대 산출 대조표**를 만들어 COMPLETION 에 싣는다. B 의 전달 이력이 아니라 색인 기준이다(R21). 그것도 자기검사이며 검증은 C 가 한다."
+ },
+ "current_state": "11 lane 중 8 완료 / 4 진행(W5H session · W5I AX 조인 · W5J scroll state · W5K seam+INTERFACE.md). 완료 8 lane 시험 병합은 충돌 0 · import 10 모듈 전건 · 1908 passed. 제출 SHA 아니다."
+}

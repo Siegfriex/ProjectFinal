@@ -1,0 +1,95 @@
+{
+  "ticket_id": "D-V3-FINDING-009",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A"
+  ],
+  "type": "FINDING",
+  "priority": "P1",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "8979647cd80965eea9779fb05231b4aa7c54fdc1",
+  "scope": "중복 2변수 수렴검사 (T-A-V3-STEP1-007 D 배정) — 결과",
+  "status": "OPEN",
+  "created_at_kst": "2026-08-28T03:16:20+09:00",
+  "task_family_id": null,
+  "target_manifest_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "depends_on": [
+    "T-A-V3-STEP1-007",
+    "D-V3-FINDING-008"
+  ],
+  "evidence": [
+    "research/landing_accessibility/research_d/results/harness/converge/CONVERGE_DUP_VARS.json",
+    "research/landing_accessibility/research_d/results/harness/converge/CONVERGE_FINDINGS.md",
+    "research/landing_accessibility/research_d/tools/v3_harness/converge_dup_vars.py",
+    "research/landing_accessibility/research_d/results/D_DEF_12_lane_partition_concurrency.json"
+  ],
+  "payload": {
+    "finding_class": "CONVERGENCE_TEST",
+    "verdict": "DIFFERENT_QUANTITIES",
+    "per_variable": {
+      "menu_dependency": "CONVERGED (정렬된 읽기 18/18 일치)",
+      "nav_container_depth": "DIFFERENT_QUANTITIES (두 축이 다름)"
+    },
+    "no_same_axes_contradiction": "세 축을 맞춘 뒤 어디에서도 same-axes 모순이 나오지 않았다. 중복은 결함이 아니라 서로 다른 양을 재고 있었던 것이다 — ruling_11 의 절차가 정확히 이것을 가른다.",
+    "three_axis_detail": {
+      "menu_dependency": {
+        "grain": "양쪽 run",
+        "population": "양쪽 endpoint cut 이전 prefix",
+        "source": "S 는 호출자 지정 sequence 1개(필수 인자), F 는 두 sequence 모두이며 primary=task_flow",
+        "residual_difference": "emission policy — S 는 04 §5 의 열린 reveal 집합을 명명된 세 토큰으로 닫고, F 는 열린 동안 값을 보류한다. 정렬된 읽기(explicit3)에서는 일치."
+      },
+      "nav_container_depth": {
+        "source": "S 는 토큰열에 없는 외부 입력 exposure_step_index 를 요구, F 는 노출 시점 발명을 거부해 값 자체를 내지 않는다",
+        "population": "F 는 endpoint cut 적용, S 는 미적용",
+        "grain": "둘 다 run 이지만 F 가 어떤 단위에서도 값을 내지 않아 스칼라 비교가 정의되지 않는다"
+      }
+    },
+    "new_ambiguities_only_the_convergence_test_could_find": [
+      {
+        "id": "AMB-X02",
+        "what": "nav_container_depth 에 endpoint cut 이 걸리는지 미정. 04 §5 는 'task control 노출 전' 이라 했고 endpoint 를 언급하지 않는다.",
+        "why_new": "어느 lane 도 혼자서는 등재하지 못했다. 두 구현을 나란히 놓아야 드러난다."
+      },
+      {
+        "id": "AMB-X03",
+        "what": "AMB-S08 과 AMB-F06 이 같은 모호성이다 — 'task control 노출' 시점의 식별 규칙 부재.",
+        "why_it_matters": "두 lane 이 서로 모른 채 독립 등재했다. 같은 구절을 두 사람이 따로 읽고 같은 곳에서 막혔다는 것은 SSOT 결함의 방증이다."
+      }
+    ],
+    "converged_but_possibly_both_wrong": [
+      {
+        "case": "FX11 형제 drawer",
+        "what": "양쪽이 flat count 라 04 §5 의 'nested' 한정어를 둘 다 미구현. 일치하지만 둘 다 틀렸을 수 있다.",
+        "id": "AMB-X04"
+      },
+      {
+        "case": "FX09/FX12 빈 sequence·ABSTAIN 단독",
+        "what": "양쪽이 확정 False/0 을 낸다. R13 이 세운 원칙('없음을 적으려면 관측 증거가 필요하다')에 비추면 판정불능이어야 할 수 있다.",
+        "id": "AMB-X05"
+      }
+    ],
+    "r14_applied_by_the_worker": "워커가 스스로 '일치가 정확성의 증거가 아니다' 를 적용해 위 두 항목을 분리 보고했다. 두 lane 중 어느 쪽 fixture 도 쓰지 않고 SSOT 원문에서 새로 파생한 fixture 를 썼다 — 한 쪽 fixture 를 쓰면 그 쪽 해석이 정답이 되기 때문이다.",
+    "mutation_check": {
+      "MUT00_NULL": "BASELINE_STABLE — 무변이가 clean 으로 보고돼 비교기가 무력하지 않음을 실증",
+      "MUT01": "CAUGHT 10건",
+      "MUT02 endpoint cut 제거": "CAUGHT, FX03 1건만 — 국소 감지 확인",
+      "MUT03 S 가 SWITCH_TAB 채택": "CAUGHT — reconciliation 이 실수로 할 수 있는 바로 그 병합",
+      "MUT04 off-by-one": "CAUGHT 17건"
+    },
+    "d_orchestration_defect": {
+      "id": "D-DEF-12",
+      "what": "D 가 F-Δ9 에게 lane_f 수정을 지시하면서 동시에 X-Converge 에게 그 모듈을 import 하게 했다. 출력 namespace 만 분리하고 입력 의존성은 분리하지 않았다.",
+      "why_result_survived": "워커가 스냅샷·해시로 스스로 방어했다. 5회 실행이 lane_s 4개·lane_f 3개 byte-state 에 걸쳐 있었고 verdict·요약·mutation 이 전부 동일했다. D 가 이 기록을 산출에서 직접 확인했다.",
+      "honest": "방어하지 않았으면 결과가 일시적 코드 상태의 산물이었을 것이고 사후에 알아낼 방법도 없었다. 운이지 설계가 아니다."
+    },
+    "no_canonical_declared": "어느 구현도 canonical 로 선언하지 않았다. 그것은 D 본체의 reconciliation 이 아니라 A 의 정의 확정 사안이다.",
+    "exposure_step_index_note": "fixture 가 비교 성립을 위해 stipulate 한 test scaffold 이며 조작화 제안이 아니다. 워커가 JSON·MD 양쪽에 명시했다."
+  },
+  "decision_required": "AMB-X02(nav depth endpoint cut) · AMB-X03(노출 시점 식별) · AMB-X01(SWITCH_TAB reveal 여부) — 세 축이 맞아도 정의가 없으면 수렴을 요구할 수 없다",
+  "limitation": "MAIN50 실측 없음. 합성 fixture 18 케이스이며 분포가 아니라 구조를 검증한다. 45 pair 미사용, threshold·composite 없음.",
+  "d_is_not_authority": true,
+  "authority": "NON_CANONICAL"
+}

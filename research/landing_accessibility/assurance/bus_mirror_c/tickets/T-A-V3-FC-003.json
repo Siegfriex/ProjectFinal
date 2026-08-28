@@ -1,0 +1,36 @@
+{
+ "ticket_id": "T-A-V3-FC-003",
+ "from": "A",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "B",
+  "D",
+  "E"
+ ],
+ "type": "FACT_CORRECTION",
+ "priority": "P2",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "551acfcb63c50a4f320d73be58ddea7f53ab5fe5",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T04:06:00+09:00",
+ "completed_at_kst": null,
+ "error_class": "SELF_ERROR",
+ "corrects": "V3_RULING_INDEX v2 — Δ19-R10 의 due",
+ "scope": "색인 v3 — Δ19-R10 due 를 GATE1 에서 V3_PILOT_5_RELEASE 로",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "C 의 `NOT_TESTABLE` 매핑이 A 의 색인 오류를 드러냈다. **release 문서는 GATE 1 통과 후에 발행되므로 due 를 GATE1 로 두면 영구 NOT_TESTABLE 이다.**",
+ "how_it_surfaced": "C 가 Δ19-R10 을 'GATE 1 시점 V3 release 문서 부재라 NOT_TESTABLE' 로 매핑했다. **C 는 A 의 오류를 지적한 것이 아니라 정직하게 검사 불가를 보고했을 뿐이다.** 그 보고가 오류를 드러냈다",
+ "why_it_matters": "영구 NOT_TESTABLE 항목이 색인에 있으면 **커버리지가 구조적으로 100% 에 못 미치고, 그 미달이 결함인지 설계인지 구분되지 않는다.** 시간이 지나면 '늘 NOT_TESTABLE 이던 항목' 으로 굳어 아무도 안 본다",
+ "correction": {
+  "due": "GATE1 → V3_PILOT_5_RELEASE",
+  "must_appear_in": "A 가 발행하는 V3_PILOT_5 릴리스 문서",
+  "index_version": "v2 → v3",
+  "sha256": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365"
+ },
+ "the_general_form": "**검증 시점이 산출물 생성 시점보다 앞서면 그 항목은 영원히 검사되지 않는다.** 색인의 due 는 '언제 요구되는가' 가 아니라 '언제 검사 가능해지는가' 여야 한다. 다른 항목도 같은 형태가 있는지 C 가 매핑하며 발견하면 올려라",
+ "not_a_relaxation": "R10 의 요구는 그대로다. 검사 시점만 옮긴다. **V3_PILOT_5 릴리스는 preconditions[] 없이 발행될 수 없다**",
+ "decision_required": null,
+ "expected_response": "C: 색인 v3 로 재대조. 같은 형태(검증 시점이 생성 시점보다 앞선 due)가 더 있으면 상신"
+}

@@ -1,0 +1,61 @@
+{
+ "ticket_id": "T-A-V3-STEP1-030",
+ "from": "A",
+ "to": [
+  "B"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E",
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P1",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "c95ae8e2b796c11436ad9a556e69d7d7283b1219",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T06:58:00+09:00",
+ "completed_at_kst": null,
+ "measured_at_kst": "2026-08-28T06:56",
+ "scope": "T-B-V3-BLK-015 판정 4건 — Δ36",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "**드러난 것은 v3 의 결함이 아니라 A 의 승계 범위 오류다.** Δ30 에서 MIN 규칙을 '그대로 승계 / A 조정' 둘로만 갈랐고 **셋째 범주를 두지 않았다 — v3 에 필요 없는 것.**",
+ "①_MIN-2_not_required": {
+  "verdict": "**v3 에 요구하지 않는다. BFS 도입 없이 진행한다**",
+  "why": "MIN 규칙들은 v2.1 에서 NED/IED 가 **최소성 주장**이었기 때문에 필요했다. v3 는 primary construct 가 **flow divergence** 이고 depth 는 derived scalar(D3-05)이며 Δ6-d 가 요구하는 것은 **결정성과 균일성**이지 최소성이 아니다",
+  "the_line": "**탐욕적 하강 + 선언된 전순서는 결정성과 균일성을 만족한다. 최소성만 만족하지 못한다. 그리고 v3 는 최소성을 주장하지 않는다**",
+  "the_cost_A_imposes": "B 가 '미룬다면 산출에 남아야 한다'고 요구했고 **A 는 그보다 강하게 어휘 자체를 금지한다** — v3 산출·보고 어디에도 '최소' 를 쓰지 않는다. `search_strategy: greedy_descent_with_declared_total_order` 를 path manifest 에 필수 기재",
+  "MIN-5_narrows": "주장 경계가 **더 좁아진다** — '열거된 부분격자 안에서의 최소' 조차 말할 수 없다. 열거가 없기 때문이다",
+  "B_measurement_credited": "양성대조로 v2 l1_engine.py:1412 의 실제 BFS(deque·popleft)를 확인해 **폭우선이 이 저장소에 실재하며 v3 쪽에만 없음**을 보였다. 부재 주장에 대조군을 붙인 형태다"
+ },
+ "②_order_divergence": {
+  "verdict": "**v2 를 고치지 않는다. v3 가 자기 tiebreak 을 쓰게 한다**",
+  "why_not_v2": "min4_sort_key 의 1차 키를 바꾸면 v2 BFS 분기 순서가 바뀌어 **v2 산출의 재현성이 깨진다**",
+  "the_seam": "v3 runner 가 v2 Scout 을 호출해 min4_sort_key 를 타고 있다면 **그 이음매가 시정 대상**이며, 방향은 v2 변경이 아니라 v3 가 자기 것을 쓰게 하는 것",
+  "ruling_10": "**발산이 남으면 위반이다.** 기록된 SELECTED/rank 가 실제 밟은 경로를 설명하지 못하면 경로선택 규칙이 균일하다고 말할 수 없다",
+  "B_to_measure": "`marked_primary` 는 RF 산물이고 D3-03 이 퇴역시켰다. **v3 경로에서 True 가 될 수 있는지 실측하라** — 될 수 없다면 발산 조건 자체가 성립하지 않는다"
+ },
+ "③_budget_seam": {
+  "verdict": "**잇는다.** Protocol 반환 형태를 바꾼다",
+  "why": "Δ10-R11 이 '모든 terminal 이 두 필드를 다 갖는다'고 정했다. **terminal_reason=None 으로 나가는 terminal 은 스키마 위반**이다",
+  "existing_test": "`endpoint_status is None` 을 핀한 테스트는 **Δ31 대로 지우지 않고 다시 좁힌다.** 그리고 R31 — 그 테스트가 실패할 수 있음을 실증한다",
+  "worker_was_right": "덮어쓰면 그 단언을 조용히 무력화한다는 판단이 옳다"
+ },
+ "④_branch_set": {
+  "verdict": "**PARTIALLY_IMPLEMENTED. 선언만으로 닫지 않는다**",
+  "why_not_a_limitation": "`SUBMIT_QUERY` 를 분류하지 못하면 activation_depth 가 submit 을 빠뜨린다. **이건 한계가 아니라 틀린 측정이고 Δ9 를 정면으로 어긴다**",
+  "gate_condition": "**Δ9 의 IN 10종은 분류 가능해야 한다.** 분류 불가 토큰이 남으면 그 target 의 activation_depth 는 산출하지 않고 UNDETERMINED",
+  "probe_modification_allowed": "`l0_probe.js` 에 구조 신호를 추가하는 것은 **Δ20 이 이미 허용한 범주**다 — 가산적·회귀 전건 통과·포착 스택 신원 기록",
+  "worker_uncertainty_respected": "워커가 '확신이 없다'고 명시하고 B 가 단정하지 않은 것이 옳다. 단정했으면 이 판정이 늦어졌다"
+ },
+ "part4_manifest": {
+  "keep": "판정 ① 로 '최소성의 범위' 틀은 사라지나 **파라미터 기재 요구는 남는다** — 무엇을 탐색했는지 모르면 무엇을 못 봤는지도 모른다",
+  "Δ30-budget_deferred": "**B 가 'pilot 관측 0건이라 실측 근거가 없다'며 제안을 거부한 것이 옳다.** v2.1 값을 옮기고 '실측 근거'라 부르지 않겠다는 입장을 A 가 지지한다 — P4 이후로 미룬다"
+ },
+ "D_concern_resolved": "B 실측 — `V3Runner.run` 이 `_capture_surface`(즉시 디스크 기록) → `binder.bind` 순서다. **Δ32(a) 로 멈춰도 s000/dom.html 이 남는다.** 계약 위반 중단에도 raw 증거가 잔존한다",
+ "index": "v25, 82항. Δ36 계열 4행 + Δ30 행에 MIN-2 예외 표기",
+ "index_sha256": "da3c6b89e9312e40fa2ecd6cc72c0e53b7e475e2f2df56a967b61cfa16bd6ccd",
+ "decision_required": null,
+ "expected_response": "B: ②의 marked_primary 실측 · ③ Protocol 시정 · ④ 토큰 분류기. ① 은 어휘 금지와 search_strategy 기재로 이행. C: Δ36 계열 4행 GATE 1 매핑"
+}

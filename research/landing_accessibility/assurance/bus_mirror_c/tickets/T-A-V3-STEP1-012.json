@@ -1,0 +1,107 @@
+{
+ "ticket_id": "T-A-V3-STEP1-012",
+ "from": "A",
+ "to": [
+  "B"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E",
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P1",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "68250c912bb8b83f84dedd7b84d88877a4479e4d",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:16:00+09:00",
+ "completed_at_kst": null,
+ "target_manifest_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+ "scope": "04 codebook 공백 6건 판정 (T-B-V3-DR-002)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "GAP-07 이 핵심이다 — B 가 정확히 짚었듯 이건 값이 틀리는 문제가 아니라 **같은 행의 필드들이 서로 다른 시점을 가리키는** 문제다. 행이 자기 시점을 선언하게 만들어 해결한다.",
+ "GAP_07_row_declares_its_own_state": {
+  "problem": "reveal-gated control 의 entry_* 를 S0 기준으로 적는가 reveal 이후 기준으로 적는가. S0 에서는 그 control 이 화면에 없으므로 entry_x_norm 이 무엇인지 불분명하다",
+  "citations": [
+   "04 §4 — | entry_x_norm | Geometry | 0~1 | task-entry control 중심 x 좌표를 viewport로 정규화 |",
+   "04 §4 — | entry_label_modality | ... | EXPLICIT_TEXT/ICON_TEXT/ICON_ONLY_AX_NAMED/ICON_ONLY_UNNAMED/**HIDDEN_UNTIL_REVEAL** |",
+   "02 §3 — fact_surface_state: 한 행 = 한 target의 한 scroll state"
+  ],
+  "ruling": "**entry_* 기하는 control 이 최초로 관측 가능해진 state 기준으로 기록한다** — reveal-gated 면 reveal 이후다. S0 에 없는 것의 좌표를 0 이나 추정치로 적지 않는다",
+  "new_field": "`entry_observed_state` 를 추가한다 — 값은 `S0` / `S1`... 또는 `POST_REVEAL:<nav_container_type>`. **모든 행이 자기 기하가 어느 시점 것인지 선언한다**",
+  "why_this_is_the_fix": "B 의 진단이 정확하다. 한 시점을 전제로 두면 어떤 행은 그 전제를 어기고 그것이 조용히 남는다. 행이 자기 시점을 들고 있으면 어긴다는 개념 자체가 사라진다",
+  "no_conflict_with_S0_facts": "`s0_task_control_visible` 은 여전히 S0 사실이며 reveal-gated control 이면 false 다. 두 변수는 다른 것을 잰다",
+  "W5E_was_right": "W5E 의 현재 가정(modality 만 HIDDEN_UNTIL_REVEAL, 나머지 entry_* 는 reveal 이후 관측값)이 옳다. `entry_observed_state` 는 그 가정을 **가정이 아니라 기록**으로 바꾼다",
+  "B_dispatch_note": "B 가 R7 을 W5C 에만 전달하고 W5E 에 빠뜨린 것을 스스로 등재했다. 그리고 W5E 가 정보 부재 상태에서 **지어내지 않고 미선언으로 남긴 것**이 옳은 처리다 — 결함이 아니다"
+ },
+ "GAP_06_innermost_plus_chain": {
+  "citations": [
+   "04 §4 — | nav_container_type | Flow | categorical | NONE/HAMBURGER/LEFT_DRAWER/RIGHT_DRAWER/TOP_DROPDOWN/BOTTOM_SHEET/MODAL_MENU/INLINE_EXPAND |",
+   "04 §4 — | nav_container_depth | Derived | count | task control 노출 전 menu/drawer expansion 수 |"
+  ],
+  "ruling": "`nav_container_type` 은 **task-entry control 을 직접 담고 있는 가장 안쪽 컨테이너**를 기록한다. hamburger 안 accordion 이면 `INLINE_EXPAND`, `nav_container_depth = 2`",
+  "why_innermost": "이 필드는 fact_surface_state 에 있고 진입 control 의 맥락을 서술한다. 바깥 컨테이너는 `nav_container_depth` 가 이미 센다. 바깥쪽을 적으면 '처음 누른 것'과 중복되고 **정작 control 을 담고 있는 것이 무엇인지가 사라진다**",
+  "new_field": "`nav_container_chain` — 바깥에서 안쪽 순서의 배열. 요약값이 원자료를 덮지 않는다는 Δ8-R7 과 같은 처리다"
+ },
+ "GAP_02_scroll_state": {
+  "ruling": "`first_visible_scroll_state` 는 control 이 최초 관측된 **scroll state** 를 적는다. reveal 로 나타난 control 이면 그 reveal 이 일어난 scroll state 다(보통 S0). NULL 이 아니다 — control 은 어떤 scroll 위치에서 관측됐다",
+  "null_case": "control 을 **끝내 관측하지 못한** 경우에만 NULL 이며 그때는 endpoint_status × terminal_reason 이 사유를 담는다",
+  "coverage_gap_elevated": {
+   "B_reported": "fixture 13종이 전부 한 뷰포트에 들어가 S1 이 생기지 않는다. 따라서 **03 §3 의 scroll-only surface capture 를 이 집합으로 검증할 수 없다**",
+   "A_ruling": "이것은 fixture 설계 문제가 아니라 **게이트 커버리지 문제**이므로 A 가 판정한다. GATE 1 은 03 §3 을 검증하거나, 검증하지 못했음을 `검증하지 않은 것` 절에 명시해야 한다. 둘 중 하나 없이 통과시키지 않는다",
+   "how_is_B_and_C_choice": "scroll fixture 를 추가할지 미검증으로 선언할지는 B·C 가 정한다. A 는 구현을 지시하지 않는다",
+   "why_A_raises_it": "명세 한 절이 통째로 미검증인 채 게이트를 통과하면 그 사실이 나중에 복원되지 않는다"
+  }
+ },
+ "GAP_03_flow_step_count_terminals": {
+  "citation": "04 §5 — `flow_step_count`: task-intent token 수. **typing/submit/auth encounter 포함**, scroll/passive 제외.",
+  "ruling": "`ENDPOINT_REACHED` 는 **제외**한다. `AUTH_GATE` 는 포함한다. `ABSTAIN` 은 제외한다",
+  "reasoning": [
+   "04 §5 는 `auth encounter` 를 **명시적으로 이름 붙여** 포함시킨다. `ENDPOINT_REACHED` 는 이름이 없다",
+   "AUTH_GATE 는 사용자가 실제로 **부딪힌 상태**이고 대응을 요구한다. ENDPOINT_REACHED 는 도달을 계측이 기록한 표지이지 사용자가 한 일이 아니다",
+   "04 §5 는 `task-intent token 수` 라고 한다. 도달 기록은 task-intent 가 아니다",
+   "ABSTAIN 은 판정 유보이지 행위가 아니다"
+  ],
+  "on_W5B_reasoning": "W5B 의 논거('AUTH_GATE 가 포함되는 이상 같은 terminal 표지를 비대칭 처리할 근거가 없다')는 성립하지 않는다 — **근거가 있다. 04 §5 가 하나는 이름 붙이고 하나는 붙이지 않았다.** 다만 W5B 가 근거를 적고 결정한 것은 옳은 처리이며, A 가 SSOT 문면으로 뒤집는다",
+  "consistency_with_Δ9": "activation_depth 는 AUTH_GATE 와 ENDPOINT_REACHED 를 **둘 다** 제외한다(Δ9). flow_step_count 는 AUTH_GATE 만 포함한다. 비대칭으로 보이나 각각 SSOT 문면에 근거한다 — 04 §5 가 flow_step_count 에만 auth encounter 를 명시한다"
+ },
+ "GAP_04_null_convention": {
+  "ruling": "Δ10-R13 의 전 변수 원칙을 entry_*·occlusion 에 적용한다",
+  "rules": [
+   "수치 필드(entry_x_norm · entry_y_norm · task_control_occlusion · overlay_coverage)의 미관측은 **`null`** 이다. **0 이 아니다**",
+   "범주 필드의 미관측은 명시적 `UNDETERMINED` 또는 `NOT_OBSERVED` 값이다. 빈 문자열 금지",
+   "`task_control_occlusion = 0.0` 은 **관측했고 가려지지 않았다** 는 뜻이다. `null` 은 관측하지 못했다는 뜻이다",
+   "한 행 안에서 결측 표현이 섞이지 않아야 한다"
+  ],
+  "real_precedent": "D-V3-FINDING-002 가 실제 사례를 관측했다 — probe 없는 2행에서 `max_overlay_coverage` 와 `max_primary_action_occlusion` 은 null 이 아니라 0.0 인데 같은 행의 `primary_action_visible_initial` 은 null 이었다. **한 행 안에서 결측 표현이 불일치했다.** 그 일이 v3 에서 반복되지 않게 한다",
+  "interlock": "`entry_observed_state`(GAP-07)가 있으면 null 이 해석 가능해진다 — 어느 시점에도 관측되지 않았다는 뜻이 명확해진다"
+ },
+ "GAP_05_no_threshold_needed": {
+  "question": "occlusion 이 얼마나 되면 s0_task_control_visible 이 false 인가",
+  "ruling": "**임계값을 만들지 않는다. 두 변수는 서로 다른 것을 재며 하나가 다른 하나에서 파생되지 않는다**",
+  "definitions": {
+   "s0_task_control_visible": "S0 viewport 안에 control 의 bbox 가 교차하고 **S0 에서 hit-testable** 한가",
+   "task_control_occlusion": "blocking obstruction 이 control bbox 를 실제로 덮는 비율"
+  },
+  "why": "90% 가려져도 노출된 모서리에서 hit-testable 이면 보이는 것이다. 0% 가려져도 viewport 밖이면 보이지 않는 것이다. **둘은 독립이다.** 파생 관계를 만들면 없는 인과를 스키마에 새기게 된다",
+  "same_family": "C 의 P-24 판정(`dismiss_required_for_task` 는 blocking proof 이지 `aria-modal`·`occlusion>0` 이 아니다)과 같은 논리다. 속성 존재와 실제 작동을 가른다",
+  "and_it_avoids_inventing_a_number": "임계값을 만들면 그것이 새 게이트 수치가 된다. 만들지 않는 것이 답이다"
+ },
+ "DOM_AX_divergence_noted": {
+  "W5E_observed": "evidence_defect fixture 에서 DOM querySelector 는 button 을 못 찾고 shadowRoot 도 null 인데 Chrome AX full tree 에는 이름 있는 button 이 있다",
+  "ruling": "둘이 다를 때 **어느 쪽도 우선하지 않는다.** 둘 다 기록하고 `dom_ax_divergence` 플래그를 세운다",
+  "basis": "00 §8 이 이미 visible_label 과 accessible_name 을 분리 저장하라고 요구한다. 이 사례는 그 분리가 label 뿐 아니라 **control 존재 자체**에도 필요함을 보인다",
+  "why_it_matters": "한쪽을 정본으로 삼으면 그 divergence 가 데이터에서 사라진다. 그리고 그것은 보조기술 사용자와 시각 사용자가 다른 화면을 보고 있다는 관측이므로 **버릴 것이 아니라 결과다**"
+ },
+ "W5E_work_credited": [
+  "contrast_pair 상호참조 13종 일관 — 13 이 홀수라 최소 1개가 남는다는 것을 먼저 적었다",
+  "태그 시퀀스 완전 일치 쌍 4개 — 판별 대상 하나만 다르다는 것이 구조적으로 보장된다",
+  "mutation 4건으로 검증기가 공허하지 않음을 확인 — **테스트가 통과한다는 것과 테스트가 무언가를 잡는다는 것은 다르다**",
+  "Playwright 실렌더 대조로 자기 fixture 결함 2건 자가 발견 — transform 조상 안의 position:fixed, 1px border 로 '방향만 다른 짝' 이 깨진 것. **선언 좌표와 실렌더 좌표를 대조하지 않았으면 둘 다 조용히 남았다**"
+ ],
+ "recording": "Δ15 로 기록. SSOTV3 원본 무수정",
+ "preregistration_status": "REAL 접속 누적 0건",
+ "decision_required": null,
+ "expected_response": "B: 6건 반영 + entry_observed_state · nav_container_chain · dom_ax_divergence 신규 필드. C: GATE 1 에 03 §3 커버리지 판정 편입"
+}

@@ -1,0 +1,9 @@
+{"kind":"ACK","from":"B","ticket_id":"T-A-MLFLOW-001","ticket_type":"DIRECTIVE","acked_at":"2026-08-27T22:04:53+09:00",
+ "b_migrated":"B 는 A 지시 수신 전에 artifacts/mlflow/mlflow.db 로 임시 store 를 만들어 5 run 을 기록했다. A 확정 백엔드 sqlite:///artifacts/mlflow.db 로 즉시 이전하고 experiment artifact_location 을 artifacts/mlartifacts 로 설정했다. 이전은 동일 내용 재기록이며 결과 변경이 아니다 — migrated_from tag 로 명시했다. 임시 store 는 폐기한다.",
+ "b_runs_in_A_store":[{"subagent":"B-orchestration","run_id":"19126b8571044a379ed14b5f9970875d"},
+  {"subagent":"W3","ticket":"T-A-W3-001","run_id":"bde5a945e8d548e5b7f24357133966f1","result_sha":"94cbf8b610a9386267e3cbeb3057319a57a15634"},
+  {"subagent":"W1","ticket":"T-A-W1-001","run_id":"259f9badabb8455f9d3da954041c27d9","result_sha":"860e4e808d42a3edff055ee06e38c13082b32f64"},
+  {"subagent":"W4","ticket":"T-A-W4-001-REWORK","run_id":"f599efca65d141449841eca31a30c6a2","result_sha":"b27794feccc4ab07efd87aaad54bf648798fa293"}],
+ "b_enforcement":"mlflow_b_track.py 가 코드로 강제: 필수 tag 19종/param 7종 누락 시 예외, authority_status=IMPLEMENTATION_CANDIDATE 및 self_approved=false 하드코딩(B 가 바꿀 수 없다), run_status 어휘 검증, result_sha 를 git ls-remote 원격값과 대조해 불일치 시 sha_mismatch_warning tag.",
+ "b_affirms":"MLflow 는 SSOT 도 empirical truth 도 아니다. run 존재가 승인이 아니다. Git 밖 대형 evidence 는 업로드하지 않고 retention manifest sha + local path pointer 만 기록한다. credential/PII/token 저장 경로 없음.",
+ "b_will_not":"holdout split tag 사용 금지(calibration 또는 none 만). D finding 파생은 NON_CANONICAL_DERIVED 로만 기록하고 A ADOPT 전 canonical integration 금지. 자기 run PASS 승인 금지. 과거 run 의 parameter/metric 수정 금지."}

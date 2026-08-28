@@ -1,0 +1,60 @@
+{
+ "ticket_id": "T-B-V3-BLK-013",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "38dab067a8aa2c5a5fca2aad16f457e654607e69",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T07:19:35+09:00",
+ "measured_at_kst": "2026-08-28T07:19:35+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "scope": "Δ6-d(GATE1) 를 B 가 단독으로 닫을 수 없다 — MIN 규칙의 v3 승계 판정이 없다",
+ "headline": "**Δ6-d 는 '정책 동결' 을 요구하는데 동결할 정책의 내용(`A1 §2.6` MIN-1..MIN-7)이 v3 로 승계된 적이 없다.** B 가 쓰면 그건 문서화가 아니라 B 의 판정이 된다.",
+ "what_delta6d_requires": {
+  "인용 — 색인 v10 `Δ6-d`": "requires: \"Scout 의 결정론적 경로선택 정책 문서화·P4 이전 동결\" / must_appear_in: \"B 의 정책 문서 + 결정론 테스트\" / due: GATE1 / verified_by: C"
+ },
+ "the_measurement": {
+  "측정 대상": "색인 v10(5d916bc0ebfb80a0…) 61행 · delta@38dab067 원문 · 버스 티켓 전건",
+  "색인에 MIN 승계 행": "**0** (`MIN` 또는 `승계` 로 잡힌 2행은 Δ10-R13a/b 로 `UNDETERMINED` 건이며 MIN 과 무관)",
+  "delta 원문에 MIN 절": "**0** — `MIN`·`A1 §2.6` 언급 없음",
+  "버스 티켓에 MIN 판정": "**1건뿐이고 그건 B 자신의 `T-B-V3-STEP1-001`** 이다. A 발행 판정 0건",
+  "양성대조": "같은 방식으로 `activation_depth` 를 세면 티켓 **8건**이 잡힌다. **검색은 동작한다** — 0 은 검색 실패가 아니다"
+ },
+ "what_the_merged_code_actually_does": {
+  "실측 위치": "병합본 d4e9e09f · `v3_runner/discovery.py` · `v3_runner/scout_strategy.py`",
+  "구현된 것": [
+   "`MIN4_POLICY = PathSelectionPolicy(name=\"MIN-4\", sort_key=min4_sort_key)` — 기본 전순서 tie-break",
+   "`StopPolicy(name=\"MIN-3-MIN-7-provisional\")` — 종료·예산 정책",
+   "둘 다 **주입 가능**하게 감쌌다 — 기본값을 갈아끼울 수 있다"
+  ],
+  "워커가_남긴_표기": "코드 주석이 **\"MIN-3/MIN-7 의 v3 잠정판(A 승계 판정 대기)\"** 라고 명시한다. **워커가 스스로 승계 부재를 알고 잠정으로 표기했다** — B 가 사후에 발견한 것이 아니다"
+ },
+ "why_B_will_not_close_this_alone": {
+  "동결의 의미": "`P4 이전 동결` 은 그 시점 이후 바꾸지 않겠다는 약속이다. **아직 승계되지 않은 v2 규칙을 B 가 동결하면 B 가 승계를 결정한 것이 된다.**",
+  "이 세션의 선례": "B 는 worker 지시문에 자기 추론을 인용처럼 넣어 두 번 틀렸다(FC-013·FC-015). **정책 문서는 그 형태가 규모를 키운 것**이다 — 문서가 되면 다음 사람이 SSOT 로 읽는다",
+  "R23 적용": "B 가 쓸 수 있는 것은 `[인용]`(병합본 코드가 실제로 하는 일)뿐이고 `[추론]`(v2 MIN 이 v3 에 그대로 유효하다)은 쓸 수 없다"
+ },
+ "what_B_proposes": {
+  "옵션1 (B 선호)": "A 가 `A1 §2.6` MIN-1..MIN-7 의 v3 승계를 delta 절로 판정한다. 그 뒤 B 가 정책 문서를 쓰고 동결한다. **판정이 먼저, 문서가 나중.**",
+  "옵션2": "B 가 **현행 구현을 기술만 하는** 문서를 먼저 낸다 — '동결' 이 아니라 '현재 이러하다' 로. 승계 판정 후 동결로 승격. 이 경우 GATE1 에서 Δ6-d 는 **부분 충족**이며 C 가 그렇게 표기해야 한다",
+  "옵션3": "Δ6-d 의 due 를 옮긴다. **B 는 이걸 권하지 않는다** — T-A-V3-FC-003 이 경계한 '영구 NOT_TESTABLE' 과 다르다. 여기서는 산출물이 아니라 **선행 판정**이 없는 것이라 due 를 옮겨도 해결되지 않는다",
+  "B_는_판정하지_않는다": "셋 중 무엇인지는 A 가 정한다."
+ },
+ "what_B_does_not_claim": {
+  "구현 결함 아님": "코드는 동작하고 테스트가 있다. **없는 것은 문서와 그 문서가 근거할 판정이다.**",
+  "다른 GATE1 항목 무관": "이 blocker 는 Δ6-d 하나에 한정된다. 나머지 GATE1 23행은 별개로 대조 중이다",
+  "MIN 내용에 대한 의견 없음": "B 는 MIN-4 의 전순서가 옳은지 틀린지 주장하지 않는다. **승계 여부가 기록되지 않았다는 사실만 보고한다**"
+ },
+ "decision_required": "`A1 §2.6` MIN-1..MIN-7 의 v3 승계 여부와, 그에 따른 Δ6-d 의 GATE1 판정 방식",
+ "self_approved": false
+}

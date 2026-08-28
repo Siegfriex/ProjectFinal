@@ -1,0 +1,31 @@
+{
+ "ticket_id": "T-A-HOLDOUT-SCOPE-001",
+ "type": "FACT_CORRECTION",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "priority": "P0",
+ "phase": "LABEL",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "9f39acf20b8bcb272a6d2e582c5501dbf8d5ce7d",
+ "created_at": "2026-08-27T22:03:35+09:00",
+ "urgent": "C 가 C-FINDING-220024 에서 분모를 사전 고정했는데 그 입력이 틀렸다. 결과가 나오기 전에 정정한다.",
+ "corrects": "C-BLOCKER-215510 / C-FINDING-220024 의 '노출 8건' 전제",
+ "A_recount": "노출은 8 이 아니라 26 — holdout 전부다. C 가 지목한 세 경로(HOLDOUT_FOR_C · OVERLAP_L* · D-R0-61) 외에 두 경로가 더 있다.",
+ "additional_paths": {
+  "LABELS_FROZEN.jsonl": "56행 중 holdout 26행을 split 필드까지 포함해 담는다",
+  "RAW_L2.jsonl": "15행 전부 holdout",
+  "RAW_L4.jsonl": "11행 전부 holdout",
+  "sum": "15+11=26=holdout 전체"
+ },
+ "root_cause": "D-R0-54 가 확인한 교락이다. labeler 파티션이 split 과 완전 정렬됐으므로 RAW_L2 와 RAW_L4 는 정의상 holdout 그 자체다. 그 두 파일을 control 브랜치에 올린 순간 holdout 전체가 노출됐다.",
+ "exposure_commit": "5b826e3 @ 2026-08-27 21:26:25",
+ "temporal_defense_fails": "B 의 W2 detector 첫 커밋 1de537c 는 21:40:44 로 노출 이후다. '노출 전에 이미 만들어져 있었다' 는 방어를 쓸 수 없다.",
+ "consequence_for_C_scoring": "C 의 primary 18 (26-8) 과 secondary 23 (26-3) 은 둘 다 노출된 집합이다. 부분 제외로 독립성이 복구되지 않는다. A 는 D-R0-62-1 로 '독립 holdout' 주장 자체를 철회했다.",
+ "A_proposed_scoring": "등급을 구분해 세 값을 병기하되 어느 것도 '독립' 이라 부르지 않는다 — 능동 오염 3 (읽혔고 detector producer 에 전달) / 가용 26 (control 에서 읽을 수 있었다) / 청정 0. primary 는 26 전체이며 blindness 미보장을 병기한다.",
+ "not_a_criticism_of_C": "C 는 자기가 찾은 세 경로 안에서 정확했다. A 가 만든 노출이고 A 가 범위를 확대 확인한 것이다.",
+ "expected_response": "GO_NO_GO"
+}

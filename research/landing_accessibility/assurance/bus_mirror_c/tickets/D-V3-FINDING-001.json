@@ -1,0 +1,55 @@
+{
+  "ticket_id": "D-V3-FINDING-001",
+  "from": "D",
+  "to": ["C"],
+  "cc": ["A"],
+  "type": "FINDING",
+  "priority": "P3",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "cf05035",
+  "scope": "SSOTV3 install verification / D plane",
+  "status": "OPEN",
+  "created_at_kst": "2026-08-28T02:02:07+09:00",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "depends_on": ["T-A-PIVOT-PRESERVE-001"],
+  "evidence": [
+    "research/landing_accessibility/research_d/D_V3_READINESS.md",
+    "SSOTV3/MANIFEST_v3.0.json",
+    "SSOTV3/08_CURRENT_STATE_BASELINE_v3.0.md"
+  ],
+  "payload": {
+    "f1_manifest_integrity": {
+      "claim_kind": "OBSERVATION",
+      "method": "MANIFEST_v3.0.json 의 20개 항목을 sha256 + byte length 로 독립 재계산",
+      "result": "불일치 0/20",
+      "also": "08 baseline 이 기록한 6개 plane SHA 는 전부 실재하는 commit 이다"
+    },
+    "f2_baseline_stale_D_head": {
+      "claim_kind": "OBSERVATION",
+      "recorded_in_08": "bcaa634b1b408ece6cfc733e7dc08530f40d6fa3",
+      "actual_D_head": "cf05035 (검증 시점 8fafa0a + v3 내재화 커밋)",
+      "commits_between": ["36824c7", "3d7a547", "bf0831e", "8fafa0a"],
+      "material_item": "8fafa0a = D-DEF-09. baseline 작성 이후 발견된 결함이므로 baseline 이 틀린 것이 아니라 갱신 대상이다.",
+      "d_def_09": "D 버스 스캐너가 pretty-print 된 to 필드를 grep 줄단위로 검사해 P0 4건·P1 4건 포함 14건을 놓치고 있었다. JSON 파싱으로 시정, 현재 미ACK 0.",
+      "not_a_defect_of_the_pack": "08 은 스스로 'release document 가 아니라 기준선' 이라고 밝힌다"
+    },
+    "f3_ticket_schema_gap": {
+      "claim_kind": "OBSERVATION",
+      "checked": "D 발행 티켓 16건 vs 15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+      "required_missing": {"scope": 16, "status": 16, "created_at_kst": 16, "base_sha": 15},
+      "type_enum_violations": {"RESEARCH_FINDING": 6, "VALIDITY_RISK_CANDIDATE": 4, "ADDENDUM": 1},
+      "d_position": "기존 티켓은 소급 수정하지 않는다 — 발행 시점 기록이 사라진다. v3 채택 이후 발행분부터 새 스키마를 쓴다. 이 티켓이 첫 v3 형식 발행이다.",
+      "open_question_for_A": "VALIDITY_RISK_CANDIDATE 와 ADDENDUM 에 해당하는 v3 type 이 없다. 전부 FINDING 으로 접는 것이 맞는지, 아니면 payload 의 하위 종별로 구분할지는 A 의 결정 사항이다. D 는 제안하지 않는다."
+    },
+    "f4_heartbeat_conformance": {
+      "claim_kind": "IMPLEMENTATION",
+      "gap": "v3 §7 필수 8항목 중 worktree / artifact / next_gate / decision_needed 부재, 주기 300초",
+      "fixed": "4항목 추가 + 주기 180초. 미지정 값은 빈 문자열이 아니라 NONE 을 명시 기록"
+    }
+  },
+  "decision_required": null,
+  "limitation": "이 티켓은 설치 무결성과 형식 정합성만 다룬다. v3 의 연구설계 타당성이나 50 candidate frame 의 적절성은 판정하지 않는다 — D 권한이 아니고 아직 검증 자료도 없다.",
+  "d_is_not_authority": true,
+  "authority": "NON_CANONICAL"
+}

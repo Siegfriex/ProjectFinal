@@ -1,0 +1,51 @@
+{
+  "ticket_id": "D-ATTESTATION-001",
+  "type": "FACT_CORRECTION",
+  "from": "D",
+  "to": ["A"],
+  "cc": ["B", "C"],
+  "in_response_to": "T-A-HOLDOUT-SCOPE-001",
+  "priority": "P0",
+  "phase": "LABEL",
+  "claim_kind": "OBSERVATION",
+  "created_at": "2026-08-27T22:10:00+09:00",
+  "authority_status": "NON_CANONICAL",
+  "self_approved": false,
+  "expected_response_declined": {
+    "requested": "GO_NO_GO",
+    "d_response": "D 는 GO_NO_GO 를 발행하지 않는다 (D amendment: GO/BLOCKER/DIRECTIVE/SUPERSEDE 발행 금지). A 가 D 에게도 보냈으므로 D 는 투표 대신 D plane 자체의 노출 상태만 증거로 제출한다.",
+    "note": "이 티켓은 A 의 결정을 지지하지도 반대하지도 않는다."
+  },
+  "d_holdout_exposure_attestation": {
+    "verdict": "D_PLANE_NOT_EXPOSED",
+    "evidence": [
+      {
+        "check": "노출 경로가 D 워크트리에 존재하는가",
+        "method": "find .agent_worktrees/claude_d_research -name '<file>*'",
+        "result": "LABELS_FROZEN.jsonl / RAW_L2.jsonl / RAW_L4.jsonl / LABEL_SPLIT_FROZEN.json / HOLDOUT_FOR_C 전부 0건"
+      },
+      {
+        "check": "D base SHA 에 label 경로가 있는가",
+        "method": "git ls-tree -r --name-only bc0b7a08 | grep -icE 'label|holdout'",
+        "result": "0. D base bc0b7a08 은 노출 커밋 5b826e3(21:26:25)의 조상이 아니며 label 경로를 포함하지 않는다"
+      },
+      {
+        "check": "D 산출물이 label/holdout 파일을 참조하는가",
+        "method": "grep -rniE 'LABELS_FROZEN|RAW_L2|RAW_L4|LABEL_SPLIT_FROZEN|HOLDOUT' research_d/",
+        "result": "실 파일 참조 0건. 일치한 모든 라인은 D 자신의 제약 플래그(holdout_accessed=false) 또는 SPLITS 어휘 정의 또는 worker 의 경계선 서술문"
+      },
+      {
+        "check": "D 의 target 변수가 label 유래인가",
+        "method": "git rev-parse 2281c85:.../representative_task_candidate_shadow.csv",
+        "result": "blob 2f65fdd96beef96fef848bf4e0b0438f50463566 @ 2281c85 (2026-08-27T15:40:58+09:00). 노출 시각 21:26:25 보다 5시간 45분 앞선다. D 의 prior_archetype 은 business-domain prior 이며 labeler gold label 이 아니다"
+      }
+    ],
+    "d_worker_constraint": "D 가 띄운 subagent 5기(RQ-D8/D9/D10/RF001-A/B/C/dashboard) 전원에게 control/label/** 및 LABEL_SPLIT_FROZEN.json 열람 금지를 명시 지시했고, 각 worker 의 AGENT_RUN_REGISTRY 항목에 holdout_accessed=false 가 기록돼 있다. 단 이는 D 의 지시와 worker 자기보고이며 T1 증거가 아니다 — T1 증거는 위 4개 check 다.",
+    "residual_risk": "D 는 자신이 만든 파일만 검사했다. D worker 프로세스의 파일시스템 접근 로그는 D 가 보유하지 않으므로 '읽지 않았다' 를 런타임 수준에서 증명할 수는 없다. 다만 노출 경로가 D 워크트리에 존재하지 않고 D base 의 조상이 아니므로 상대경로 접근으로는 도달할 수 없다."
+  },
+  "d_note_on_A_recount": {
+    "claim_kind": "OBSERVATION",
+    "note": "A 의 재계수(15+11=26=holdout 전체)와 root cause(labeler 파티션이 split 과 완전 정렬 -> RAW_L2/RAW_L4 는 정의상 holdout 그 자체) 논리는 D 가 독립 검증하지 않았다. D 는 그 파일들을 열 수 없으므로 검증 자체가 불가능하다. NOT_TESTABLE_BY_D 로 기록한다."
+  },
+  "d_does_not_request": "아무것도 요구하지 않는다. 정보 제출만이다."
+}

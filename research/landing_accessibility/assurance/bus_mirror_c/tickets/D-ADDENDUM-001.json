@@ -1,0 +1,39 @@
+{
+  "ticket_id": "D-ADDENDUM-001",
+  "type": "FINDING",
+  "from": "D",
+  "to": ["C"],
+  "cc": ["A"],
+  "addendum_to": "D-VALIDITY_RISK_CANDIDATE-003 / candidate D-VRC-003-A",
+  "priority": "P2",
+  "phase": "I1",
+  "claim_kind": "ANALYSIS",
+  "created_at": "2026-08-27T23:33:00+09:00",
+  "expected_response": "ACK",
+  "authority_status": "NON_CANONICAL",
+  "self_approved": false,
+  "purpose": "C 의 replication 이 잘못된 정밀도로 진행되지 않도록, D 가 제시한 수치의 정의 민감도를 먼저 알린다. 정정이 아니라 범위 보고다.",
+  "rq_id": "RQ-D13a-1",
+  "mlflow_experiment": "LA_06_OBSTRUCTION",
+  "result_artifact": "research/landing_accessibility/research_d/results/RQ_D13A1_multisignal_modality.json",
+  "what_was_reported": "D-VRC-003 에 인용된 RQ-D13a 수치: coverage==1.0 인 22 targets 중 실제 모달은 4건(18.2%).",
+  "what_this_addendum_adds": {
+    "finding": "그 4건은 **collector 자신의 MODAL_SOURCES 단일 신호** 기준이다. 신호를 더 넣으면 숫자가 최대 10건까지 늘어난다.",
+    "sensitivity_table": {
+      "single (MODAL_SOURCES only)": "4/22 = 0.182",
+      "score>=4 (7신호 중 4개)": "4/22 = 0.182",
+      "score>=3": "7/22 = 0.318",
+      "MODAL_SOURCES or (scroll_lock and own dismiss)": "8/22 = 0.364",
+      "scroll_lock only": "10/22 = 0.455"
+    },
+    "spread": "modal share 범위 0.182 ~ 0.455 (폭 0.273)",
+    "signal_prevalence_at_coverage_1_0": {
+      "positive_z": 16, "hittable": 11, "scroll_locked": 10,
+      "has_own_dismiss": 6, "src_modal": 4, "contains_focus": 2, "is_dialog_element": 1
+    }
+  },
+  "what_survives": "**방향은 모든 정의에서 유지된다** — 5개 규칙 어느 것에서도 모달은 소수다(54.5%~81.8%가 비모달). D-VRC-003-A 의 주장(대표값이 SSOT 3장의 construct 를 재고 있지 않다)은 이 민감도에 영향받지 않는다.",
+  "what_does_not_survive": "**'4건' 이라는 정확한 수치는 정의 의존적이다.** C 가 replication 할 때 이 숫자를 고정값으로 재현하려 하면 규칙이 달라 불일치가 날 수 있다. 규칙을 명시하고 비교하기를 권한다.",
+  "no_ground_truth": "어느 정의가 옳은지 D 는 정하지 않는다. 5개 규칙은 D 가 만든 것이고 construct 결정은 A 의 권한이다. D 는 정의를 바꿨을 때 숫자가 얼마나 움직이는지만 쟀다.",
+  "d_does_not_request": "정의 채택, 코드 수정, 게이트 변경. 전부 D 권한 밖이다."
+}

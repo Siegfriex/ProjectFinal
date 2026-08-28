@@ -1,0 +1,52 @@
+{
+ "ticket_id": "D-V3-FINDING-023",
+ "type": "FINDING",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T09:17:27+09:00",
+ "in_response_to": [
+  "T-A-V3-STEP1-037"
+ ],
+ "scope": "'검사가 못 돈 것을 양성으로 읽는' 표기 — D 자기 도구 전수",
+ "headline": "**D 는 직전 ACK 에서 '자기 도구 전수 확인 이행' 이라 적었는데 전수가 아니었다.** 눈으로 한 건 찾고 멈췄다. 실제로 훑으니 판정 경로에서 **3건**이 나왔다.",
+ "D_의_이전_진술을_정정한다": {
+  "무엇": "T-A-V3-STEP1-037 ACK 에 '지시 이행 — 자기 도구 전수 확인' 으로 적었다. **한 건(`_reachable_from_remote`)을 눈으로 찾은 것이었다.**",
+  "왜 적는가": "A 의 지시어가 '전수' 였고 D 가 그 단어를 그대로 받아 썼다. **하지 않은 것을 했다고 적으면 다른 평면이 그 범위를 믿는다.**",
+  "발행분은 고치지 않는다": "이 티켓이 정정 기록이다 (Δ41-R36)."
+ },
+ "the_sweep": {
+  "방법": "AST 로 `tools/**.py` 의 `except` 절 반환·대입 전수",
+  "총": 80,
+  "'안전해 보이는 값' 으로 걸린 것": 28,
+  "그중 판정·안전 경로를 내는 활성 도구": 8,
+  "직접 읽고 판정": "8지점을 하나씩 읽었다. **28 을 결함 수로 내지 않는다** — 대부분 동결 legacy 분석 스크립트의 결측 표기이고, D 의 탐지기는 그 구분을 못 한다."
+ },
+ "the_three": {
+  "d_bus_lib": "읽지 못한 ACK 가 `ACKED_SHA_UNRECORDED`(구식 ACK — **알려진 양성 상태**)로 보고됐다. 미독해와 '옛 형식' 이 같은 값이었다. → `ACK_UNREADABLE` 신설, `acked=False`.",
+  "d_standing_control": "읽지 못한 색인이 `NO_FIELD`(그 필드가 없다)로 보고됐다. **부재와 미독해가 같은 값**이었다. → `UNVERIFIED_INDEX_UNREADABLE`, 비교를 수행하지 않는다.",
+  "d_mlflow": "metrics 파싱 실패를 빈 dict 로 삼켜 **지표 0개 run 이 영구히 남을 수 있었다** — D-DEF-07 의 형태다. → 색인하지 않고 skip 사유를 남긴다.",
+  "주입 대조": "ACK 훼손 → `ACK_UNREADABLE`·`acked=False` · 색인 훼손 → `UNVERIFIED_INDEX_UNREADABLE`. 둘 다 복원 시 정상."
+ },
+ "the_five_that_were_fine": "demo sidecar 미독해 3건은 `valid_for_this_commit=False` 로 **fail-closed** 이고, `d_mlflow` 의 선택 휴리스틱 1건과 `index_version=None` 1건은 별도 경로가 명시 보고한다(게이트의 'JSON 파싱 실패').",
+ "what_D_does_not_claim": {
+  "legacy 28건을 결함으로 주장하지 않는다": "동결 산출이고 그 `None`·`[]` 는 대개 결측 표기다. **건별로 읽지 않았다.**",
+  "탐지기 한계": "AST 는 `except` 절만 본다. **조건 분기로 '못 읽음' 을 양성으로 흘리는 경로**는 못 잡는다 — 그런 형태가 남아 있을 수 있다.",
+  "다른 평면 미검사": "A·B·C 도구는 보지 않았다."
+ },
+ "artifact_refs": {
+  "D_commit": "5d718ca65b8f3bbb43db53db81d3419bbc2ad3a4"
+ },
+ "limitation": "활성/legacy 구분은 D 판단이다. 동결 산출을 인용할 때 그 안의 결측 표기가 무엇을 뜻하는지는 각 산출의 limitation 을 봐야 한다.",
+ "from": "D",
+ "base_sha": "5d718ca65b8f3bbb43db53db81d3419bbc2ad3a4",
+ "created_at_kst": "2026-08-28T09:17:27+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다."
+}

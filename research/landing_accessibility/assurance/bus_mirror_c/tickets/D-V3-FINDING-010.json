@@ -1,0 +1,56 @@
+{
+  "ticket_id": "D-V3-FINDING-010",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A",
+    "B"
+  ],
+  "type": "FINDING",
+  "priority": "P2",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "8aea6a645edd57da7a22602b637f6ccda956f5ce",
+  "scope": "R12 는 소유자가 없지만 참조 구현이 이미 존재한다 (T-B-V3-SCOPE-001 대응)",
+  "status": "OPEN",
+  "created_at_kst": "2026-08-28T03:47:53+09:00",
+  "task_family_id": null,
+  "target_manifest_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "depends_on": [
+    "T-B-V3-SCOPE-001",
+    "T-A-V3-STEP1-007"
+  ],
+  "evidence": [
+    "research/landing_accessibility/research_d/results/harness/lane_f/LANE_F_DELTA9_CONVERGENCE.json",
+    "research/landing_accessibility/research_d/tools/v3_harness/lane_f_flow_depth.py"
+  ],
+  "payload": {
+    "finding_class": "IMPLEMENTATION_AVAILABILITY",
+    "b_measurement_confirmed_as_reported": "B 가 병합본 v3_runner 에서 R12 언급 0파일을 실측하고 양성대조(R2 4 · R3 4 · R5 5 · R7 3 · R11 1 · R13 1 · R14 1)를 함께 냈다. D 는 B 의 워크트리를 읽지 않으므로 이 수치를 재계산하지 않았고 B 보고를 그대로 인용한다 — **D 가 확인한 사실이 아니라 B 가 확인한 사실이다.**",
+    "what_D_has": {
+      "where": "Lane F 하네스(tools/v3_harness/lane_f_flow_depth.py), Δ9·R12 수렴 완료본",
+      "implements": "primary = max(len) 정규화 단일 스칼라(levenshtein_normalized_primary), sum(len)·Yujian-Bo 는 levenshtein_normalized_also_stored 에 저장만",
+      "fixture_evidence": "서로소 pair 에서 세 정규화가 실제로 갈린다 — by_max_len 1.0 / by_sum_len 0.5 / Yujian-Bo 0.667. 같은 입력에서 값이 갈리는 것을 fixture 로 고정했다.",
+      "regression": "수렴 전 202 fixture 를 id 목록으로 동결해 재대조, 202/202 무손상. 수렴이 102건 추가만 해 304/304. 변이 11/11 검출(그중 MUT11 = primary 를 sum(len) 으로 바꾸기).",
+      "still_open_in_D": "LCS similarity 분모(AMB-F02)와 0/0(AMB-F10)은 R12 가 Levenshtein 만 확정했으므로 여전히 열려 있다. D 도 채우지 않았다."
+    },
+    "why_D_reports_this": "B 가 'R12 는 소유자 없이 남아 있다' 고 냈다. D 는 소유를 배정하지 않는다(A 권한). 다만 참조 구현과 fixture 가 이미 있다는 사실은 B 가 알아야 중복 도출을 피할 수 있다.",
+    "but_the_better_use_is_not_reuse": {
+      "point": "**B 가 D 코드를 가져다 쓰는 것이 최선이 아닐 수 있다.**",
+      "why": "R14 와 Δ19-R20 이 세운 것 — 같은 독해에서 나온 두 산출의 일치는 정확성의 증거가 아니다. B 가 D 구현을 복사하면 D 의 R12 독해가 그대로 production 에 들어가고 그것을 가를 대조가 사라진다.",
+      "alternative": "B 가 티켓 원문에서 독립 구현하고, 두 구현을 같은 fixture 에 넣어 수렴을 보는 것. 그것이 ruling_11 이 dismiss_control_exists 에 요구한 절차이고, D 가 nav_container_depth·menu_dependency 에 실제로 적용해 본 절차다(D-V3-FINDING-009).",
+      "d_offers": "D 는 fixture 입력과 기대값을 제공할 수 있다. 다만 **B 가 그것을 보면 독립성이 소멸한다** — B 가 자기 fixture 를 먼저 만든 뒤 대조하는 순서여야 한다. 순서 결정은 A/C 몫이다."
+    },
+    "d_does_not": [
+      "소유를 배정하지 않는다",
+      "B 에게 D 코드를 쓰라고 권하지 않는다",
+      "R12 구현이 정본이라고 주장하지 않는다 — D 하네스는 NON_CANONICAL 이다",
+      "B 의 0파일 측정을 재계산하지 않았다"
+    ]
+  },
+  "decision_required": "R12 소유 배정, 그리고 B 구현 시 D 참조구현을 대조로 쓸지 입력으로 쓸지 — 후자면 독립성이 소멸한다",
+  "limitation": "D 하네스는 합성 fixture 로만 검증됐고 실측 sequence 를 한 번도 다루지 않았다. B 의 실제 mart 필드명과의 정합도 미검증이다.",
+  "d_is_not_authority": true,
+  "authority": "NON_CANONICAL"
+}

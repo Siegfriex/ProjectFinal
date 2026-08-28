@@ -1,0 +1,49 @@
+{
+ "ticket_id": "T-B-V3-RECON-002",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "type": "FINDING",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "f4cb83fc8e330cacf934fb2fcfc6c09331ba0669",
+ "scope": "lane 간 인터페이스 불일치 3건 — 병합하면 연결 시점에 깨진다",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:36:35+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "8 lane 병합 자체는 성립하나(충돌 0·import 전건 성공) **Protocol 이름 불일치 1건이 실제 실행 시점에 AttributeError 를 낸다.** W5D1 이 발견했고 B 가 실측 확인했다.",
+ "seam_1_safety_guard_name": {
+  "severity": "실행 시점 파손",
+  "runner_requires": "runner.py:305 `SafetyGuard` Protocol — `assert_action_allowed(contract, action) -> None`. runner.py:652 가 `self._safety.assert_action_allowed(contract, action)` 로 실제 호출하고 829·863 에서 그 경로를 탄다.",
+  "safety_provides": "safety.py 의 `ActivationSafetyGuard` — `authorize` · `evaluate` · `evidence` · `guard_page` · `observe` · `observe_all`. **`assert_action_allowed` 없음.**",
+  "measured": "B 가 병합본에서 dir() 로 직접 확인했다. runner.SafetyGuard 요구 메서드 = ['assert_action_allowed'], ActivationSafetyGuard 제공 = ['authorize','evaluate','evidence','guard_page','observe','observe_all'].",
+  "consequence": "runner 가 ActivationSafetyGuard 를 SafetyGuard 로 받는 순간 AttributeError. **지금 회귀가 통과하는 이유는 두 lane 이 각자 fake 로 테스트했기 때문이다** — W5F 는 Protocol fake 로, W5G 는 spy 로 검증했고 둘을 실제로 연결한 테스트가 없다.",
+  "why_it_matters_beyond_a_rename": "W5G 가 자기 known limitation 에 이미 적었다 — '실제 러너(W5F)가 guard.guard_page(page) 를 태우지 않으면 이 강제는 발화하지 않는다. 배선 자체는 W5F 통합 시점의 수용기준으로 남는다.' **이름 불일치는 그 배선이 아직 없다는 것의 증상이다.** 이름만 맞추고 배선을 확인하지 않으면 강제가 안 걸린 채 통과할 수 있다.",
+  "b_will_not_rename_unilaterally": "두 파일 다 worker 소유다. B 가 한쪽 이름을 바꾸면 그 lane 의 exact SHA 가 C 검산 대상과 달라진다. 어느 쪽을 정본으로 할지와 배선 수용기준을 A 가 정하면 B 가 해당 worker 에 지시한다."
+ },
+ "seam_2_TaskContract_duplication": {
+  "severity": "논리적 중복 — 지금은 안 깨진다",
+  "fact": "`TaskContract` 가 contracts.py(W5A, 정본)와 runner.py(W5F) 두 곳에 정의돼 있다. `FlowStep` 은 flow.py(W5B)와 runner.py 두 곳.",
+  "field_divergence": "W5D1 관측 — contracts.py 쪽이 `stratum` · `is_pilot_5` · `collection_order` · `fixture_input_mode` 를 더 갖는다. **runner.py 의 것을 쓰면 그 네 필드가 사라진다.**",
+  "additional": "W5B 가 `FlowStep` 에 `input_mode` 를 추가했다. **contracts.py 정본에 반영되지 않으면 CONDITIONAL 3종(SELECT_ORIGIN/DESTINATION/DATE) 판정이 전부 불능으로 접힌다** — W5B 가 KL-01 보강으로 명시했다.",
+  "resolution": "W5F 가 스스로 'RECONCILIATION SEAM — contracts.py 가 최종 소유자' 로 표시했고 병합 순서(contracts → 나머지)까지 제시했다. B 가 import 교체로 닫는다. 다만 `input_mode` 필드 추가는 W5A 소유 파일 변경이라 W5A 에 지시가 필요하다."
+ },
+ "seam_3_unimplemented_protocols": {
+  "fact": "runner.py 가 `CandidateBinder` 와 `EligibilityChecker` 의 구현처로 'W1 discovery.py' 를 지목했으나 discovery.py 에 그 이름의 구현이 없다. W5D1 이 이번 턴에 discovery.py 를 손대지 않았다.",
+  "status": "미확인 — B 가 아직 실측하지 않았다. 다음 reconciliation 에서 확인한다.",
+  "b_does_not_claim": "B 는 이것이 결함이라고 주장하지 않는다. discovery.py 가 다른 이름으로 같은 일을 할 수 있다."
+ },
+ "what_merged_cleanly": {
+  "merge": "8 lane 충돌 0. `v3_runner/__init__.py` 만 3종(W5A 73줄 · W5C 6줄 · W5D1 0줄)이 add/add 였고 W5A 것으로 통일해 해소했다.",
+  "import": "contracts · registry · flow · surface · obstruction · terminal · runner · evidence · safety · discovery 전건 성공.",
+  "regression": "실행 중. 직전 7 lane 병합에서 1173 passed / 0 failed 였다."
+ },
+ "what_this_finding_shows": "**lane 병렬화가 막지 못하는 층이 여기다.** 각 lane 은 자기 Protocol 경계를 fake 로 테스트했고 전부 통과했다. 통과가 겹친다고 연결이 되는 것이 아니다 — Director ADDENDUM §3 의 reconciliation 이 요구한 'contradictory result 확인' 이 정확히 이 검사이며, worker 완료를 그대로 canonical 로 채택했다면 드러나지 않았다.",
+ "decision_required": "seam 1 의 정본 이름과 guard_page 배선 수용기준. seam 2 의 contracts.py 에 input_mode 추가 지시."
+}

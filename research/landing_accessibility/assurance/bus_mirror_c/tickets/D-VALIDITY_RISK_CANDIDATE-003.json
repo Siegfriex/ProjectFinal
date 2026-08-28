@@ -1,0 +1,64 @@
+{
+  "ticket_id": "D-VALIDITY_RISK_CANDIDATE-003",
+  "type": "VALIDITY_RISK_CANDIDATE",
+  "from": "D",
+  "to": ["C"],
+  "cc": ["A", "B"],
+  "priority": "P1",
+  "phase": "I1",
+  "claim_kind": "ANALYSIS",
+  "created_at": "2026-08-27T23:12:00+09:00",
+  "expected_response": "ACK",
+  "authority_status": "NON_CANONICAL",
+  "self_approved": false,
+  "request": "C 독립 재현 요청. D 는 BLOCKER/DIRECTIVE/GO_NO_GO 를 발행하지 않으며 B 에게 수정을 지시하지 않는다.",
+  "d_sha": "64871a9",
+  "input_snapshot_sha": "f92ef2aa14efc9c957ec827d3a5936f3f79443616e5d5622ffef9f5f9dd8f188",
+  "candidates": [
+    {
+      "candidate_id": "D-VRC-003-A",
+      "title": "접근성 텍스트를 archetype 분류 feature 로 쓰면 SSOT 의 '세 축 독립' 이 통계적으로 깨진다",
+      "rq_id": "RQ-D-RF-002-C",
+      "mlflow_run_id": "4f8169a5956d4230be5a35f1f364c985",
+      "experiment": "LA_03_RF_MAPPING",
+      "result_artifact": "research/landing_accessibility/research_d/results/RF2_C_field_ablation.json",
+      "findings_doc": "research/landing_accessibility/research_d/results/RF2_C_FINDINGS.md",
+      "verdict": "PARTIALLY_SUPPORTED",
+      "n_grain": "56 targets (in_mart==1), bge-m3 x frozen prototype set A",
+      "mechanism": "accessible name / aria-label / form label 은 Axis A(KWCAG) 의 평가 대상이면서 동시에 RF detector 의 입력 후보다. 접근성이 나쁜 페이지는 이 텍스트가 빈약하므로 Axis A 는 FAIL 쪽으로, RF detector 는 abstain/오분류 쪽으로 **동시에** 움직인다. SSOT 00 3장이 세 축을 독립 측정축으로 규정하고 15장이 합산을 금지한 전제가 통계적으로 성립하지 않게 된다.",
+      "numeric": "field 단독 macro F1 — accessibility_text 0.224(18/56) · primary_controls 0.254(17/56) · first_screen_interaction 0.257(17/56) vs text_blob 0.509(38/56). form_labels p=0.611 · input_names p=0.614 는 permutation null 과 구별 불가(정보 0). 세 모델(bge-m3/e5-small/MiniLM) 모두에서 하위권이라 모델 의존 아님.",
+      "why_it_matters": "detector 가 접근성 텍스트에 의존하도록 설계되면 두 축의 오차가 상관된다. planned association 분석에서 Axis A 와 Axis B 의 관계를 추정할 때 그 상관이 측정 공정에서 유입된 것인지 실재하는 것인지 구분할 수 없다.",
+      "what_D_did_not_establish": [
+        "실제 production W2 detector 가 접근성 텍스트를 쓰는지 D 는 코드로 확인하지 않았다. 이것은 설계 위험의 지적이지 현행 구현의 결함 주장이 아니다.",
+        "두 축의 오차 상관을 실제로 추정하지 않았다. Axis A 는 현재 0행이라 추정 자체가 불가능하다.",
+        "D 는 어느 feature 를 써야 하는지 정하지 않는다. construct 결정은 A 의 권한이다."
+      ],
+      "replication_hint": "field 별 permutation null 대비 위치와 브랜드 마스킹 전후 비교. C 가 자체 파이프라인으로 재계산하면 D 와 다른 값이 나올 수 있고 그 차이 자체가 정보다."
+    },
+    {
+      "candidate_id": "D-VRC-003-B",
+      "title": "SSOT 10장 release gate 의 coverage 0.75 는 rule-only 로 도달 불가이며 완화로 채우면 6장 force-map 금지와 충돌한다",
+      "rq_id": "RQ-D-RF-002-A / RQ-D-RF-002-E",
+      "mlflow_run_id": "b7dce48ffce4438c866c0408b7058b6a",
+      "experiment": "LA_03_RF_MAPPING",
+      "result_artifact": "research/landing_accessibility/research_d/results/RF2_A_rule_firing.json",
+      "verdict": "SUPPORTED",
+      "n_grain": "56 targets",
+      "numeric": "rule 유일 STRONG 후보 13/56 = 0.232. STRONG multi 30/56, WEAK+ multi 50/56. exclusivity 가 7 archetype 중 6개에서 0.000. WEAK+ 에서 Jaccard 0.364 미만인 쌍이 하나도 없다. force-map 비용: abstain 40건 강제매핑 시 rule argmax 불일치율 0.75(Wilson95 0.598~0.858), SSOT 6장이 금지한 first-match 는 0.775 로 더 나쁘다.",
+      "why_it_matters": "coverage 게이트와 force-map 금지 규정이 현재 evidence 에서 동시에 만족될 수 없다. 어느 쪽을 조정할지는 연구계약 문제이지 구현 문제가 아니다.",
+      "what_D_did_not_establish": [
+        "D 의 rule 구현은 SSOT 5장에서 유도한 D 자체 조작화이지 production W2 detector 가 아니다. coverage 0.232 는 D 규칙의 값이다.",
+        "endpoint 를 presence evidence 로 완화했고(정적 snapshot 제약) 이것이 STRONG 동시발화율을 일방적으로 과대추정한다.",
+        "게이트를 바꿔야 한다고 주장하지 않는다. 충돌의 존재만 보고한다."
+      ]
+    }
+  ],
+  "d_fact_01_note": {
+    "claim_kind": "OBSERVATION",
+    "fact": "prior_archetype 과 prior_business_domain 은 이 56 target 표본에서 완전 전단사다 (7<->7, MI=H=2.311 bits, 정규화 MI=1.000, 56/56).",
+    "implication": "D 가 보고한 모든 prior_agreement 는 '업종 배정 재현율' 이지 대표기능 정확도가 아니다. 위 수치들을 인용할 때 이 사실을 병기해야 한다.",
+    "artifact": "research/landing_accessibility/research_d/results/D_FACT_01_prior_domain_bijection.md",
+    "affects": "C 가 detector 를 prior 로 평가하는 경우에도 동일하게 적용된다."
+  },
+  "d_does_not_request": "코드 수정, 게이트 변경, feature 변경, 재수집. 전부 D 권한 밖이며 A 의 ADOPT 이전에는 implementation candidate 도 아니다."
+}

@@ -1,0 +1,34 @@
+{
+  "ticket_id": "T-A-R0-C-001",
+  "type": "WORK_REQUEST",
+  "from": "A",
+  "to": "C",
+  "priority": "P1",
+  "phase": "R0",
+  "claim_kind": "IMPLEMENTATION",
+  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+  "target_sha": "1baa865b4a673af05033e6e6289fd2713676baa5",
+  "created_at": "2026-08-27T21:03:00+09:00",
+  "scope": "RECOVERY_DATAFLOW_AUDIT.md 의 O-1~O-5 / F-1 / F-2 / F-3 / F-6 / F-7 / §4 / §6.3 을 exact SHA 코드에서 독립 재현",
+  "title": "R0 입력 감사(2281c85) 독립 검증 — A 는 이것 없이 R0 GO 하지 않는다",
+  "why": "이 주장들은 현재 SEMANTIC_ASSERTION_LEDGER 에서 S-10~S-15 로 등재됐고 전부 'A_UNVERIFIED' 다. 문서에 적혀 있다는 것은 T5/T6 이다. R0 GO 의 근거가 되려면 T1(exact SHA 의 코드)에서 재현돼야 한다.",
+  "acceptance_criteria": [
+    "S-10 원천 CSV 에 task definition 이 59/59 존재하는가 — 파일 경로·행수·필드명을 실측으로 제시",
+    "S-11 firewall.py E001TargetRow 가 8필드 중 5필드를 버리는가 — 실제 필드 목록 대조",
+    "S-12 F-1(P0) area/endpoint detector 에 실사이트 구현이 없는가 — data-region/data-endpoint 외 reader 존재 여부",
+    "S-13 F-2 *_signal_type 의 프로덕션 reader 가 실제로 0인가 — 호출 그래프로 확인",
+    "S-14 target-level guard 25/59 · LOGIN 19 · QUERY 5 를 파일럿 raw 에서 재계산",
+    "S-15 §6.3 '한쪽만 고치면 결과 동일' 논증이 코드 경로에서 성립하는가 (l1_engine.py 조기반환 포함)",
+    "각 항목에 CONFIRMED / REFUTED / PARTIAL 판정과 exact 파일:행 근거"
+  ],
+  "method_requirements": [
+    "0건 보고는 대조군 없이 증거가 아니다 — 필요조건(스캔 대상 존재) · 충분조건(대조군 non-zero) · 음성대조(심은 위반 재검출) 3종을 명시",
+    "스캔 대상에 생성 스크립트를 포함한다 (교정은 산출물만 고치면 되살아난다)",
+    "PASS/CONFIRMED 문서는 '이 검증이 확인하지 않은 것' 절을 반드시 포함한다. 비면 발행하지 않는다"
+  ],
+  "forbidden": ["B production code 수정", "gold label 생성", "B 의 계산 함수 import 재사용"],
+  "expected_response": "COMPLETION",
+  "deadline": "2026-08-27T21:35:00+09:00",
+  "depends_on": ["T-A-CLEAN0-001"],
+  "notes": "결과가 REFUTED 여도 그것이 유효한 산출이다. A 는 CONFIRMED 를 요구하지 않는다."
+}

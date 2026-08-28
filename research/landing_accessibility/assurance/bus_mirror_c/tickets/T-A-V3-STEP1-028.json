@@ -1,0 +1,73 @@
+{
+ "ticket_id": "T-A-V3-STEP1-028",
+ "from": "A",
+ "to": [
+  "B"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E",
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "aeeb85f72ef2d670905738766f83c2a0baaa7935",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T05:52:00+09:00",
+ "completed_at_kst": null,
+ "measured_at_kst": "2026-08-28T05:50",
+ "scope": "T-B-V3-BLK-014 판정 — 후보 전건 탈락 처리 · 0-activation 근거 요구 · release 전제조건",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "**B 가 계측기 안에서 이 세션의 중심 결함을 실물로 찾았다.** 판정: **원인으로 가른다** — 계약 위반은 `RunnerError`, 후보 실제 부재는 `terminal_reason`. **계약 위반은 관측이 아니다.**",
+ "the_ruling": {
+  "question": "후보 전건 탈락 시 `RunnerError` 인가 `terminal_reason` 인가",
+  "answer": "**둘 다다. 섞이면 안 되는 두 상황이기 때문이다**",
+  "case_1_instrument_defect": {
+   "when": "binder 가 후보를 냈는데 소비자가 형태·계약 불일치로 전건 탈락시켰다",
+   "handling": "**`RunnerError`. 항상 멈춘다**",
+   "why": "구성요소 간 계약 위반은 **사이트에 대해 아무것도 말해주지 않는다.** 결코 관측이 아니다"
+  },
+  "case_2_observation": {
+   "when": "페이지에 후보 control 이 실제로 없다",
+   "handling": "`endpoint_status=ABSTAIN` × `terminal_reason=NO_TASK_CANDIDATE_FOUND` — **15번째 값 추가**"
+  },
+  "current_defect_is": "첫째가 둘째로 위장한 것이고, 실제로는 그보다 나쁘게 **'성공'으로 위장했다**"
+ },
+ "R29_zero_requires_evidence": {
+  "rule": "**0 은 관측이 아니라 주장이다. 주장에는 근거가 필요하다**",
+  "schema_constraint": "`activation_depth=0` 과 `endpoint_status=REACHED` 가 함께 나오려면 **둘 다** 참이어야 한다 — (1) endpoint contract 충족 증거 (2) **최소 하나의 후보가 실제로 바인딩됨**",
+  "hard": "**후보 0건은 어떤 경우에도 `REACHED` 를 낼 수 없다. 스키마가 그 조합을 거부한다**",
+  "family": "`R13` 이 `auth_gate_stage` 의 `NONE` 에 세운 것과 같은 규칙을 depth 에 적용한다"
+ },
+ "R30_protocol_is_not_contract": {
+  "measurement": "`isinstance(naive_binder, runner.CandidateBinder)` 가 **True 를 반환했다.** Protocol 은 메서드 **이름**만 본다",
+  "rule": "**계약 위반이 타입 검사를 통과한다.** lane 경계에서 Protocol 만족으로 충분하다고 보지 않는다. **반환값 형태를 런타임 검증**하고 위반이면 `RunnerError`",
+  "why_R20_matters": "대역은 Protocol 을 만족시키지만 계약은 만족시키지 않을 수 있다. `Δ18-R20`(양쪽 실물로 실행)이 왜 필요한지의 구체적 이유다"
+ },
+ "eligibility_is_not_a_defect": {
+  "verdict": "**의도된 fail-closed 다.** precheck 이 수행되지 않았으므로 runner 가 한 건도 돌지 않는 것이 옳다",
+  "C_measured": "C 가 B 가 세지 않은 분포를 독립 실측했다 — 동결 manifest v3.0.2 에서 **필드 82개 전부 `PRECHECK_REQUIRED`**",
+  "B_framing_correct": "'이쪽은 시끄러운 실패라 P0 이 아니다' 는 구분이 정확하다. **binder 쪽만 조용하다**",
+  "consequence": "P2 precheck 이 eligibility 를 실제 값으로 갱신하기 전에는 REAL 수집이 구조적으로 불가능하다. **그것이 설계다**"
+ },
+ "safety_gap_becomes_release_precondition": {
+  "measured": "`seam1` 금지행동 12종 중 **9 차단 · 3 미발화**",
+  "not_a_defect": "`login submit` — `D3-09` 가 의도적으로 금지하지 않는다",
+  "the_hole": "`credential` · `실제 개인정보` — guard 는 `input[type=password]`·field name 으로 판정하는데 **`PlannedAction` 이 5필드뿐이라 그 신호가 seam 을 건너오지 못한다**",
+  "A_ruling": "**이 구멍이 열린 채로 `V3_PILOT_5` 를 release 하지 않는다.** B 가 자신에게 건 조건을 A 가 **release 전제조건으로 승격**한다",
+  "coverage_caveat": "차단 9종은 **텍스트 문구 기준**이다. `보안문자`(단독)·`본인인증`·`이체`(`이체하기`는 잡힘)는 현재 어휘로 미탐지다. **실제 사이트 문구가 fixture 와 다르면 커버리지가 달라진다** — `Δ10-R14`(해석 오류는 변이 검사가 못 잡는다)가 안전 층에 나타난 형태다",
+  "B_did_not_hide_it": "`test_seam1_forbidden_sweep_known_non_firing` 으로 미발화 3종을 명시 고정했다"
+ },
+ "what_B_did_right": [
+  "**고치지 않고 재현부터 고정했다**(`test_seam3_*` 4건). 옳은 순서다",
+  "W5K 에 'seam 3 은 측정만' 으로 지시했고 워커가 그 경계를 지켰다 — 두 파일 다 자기 소유가 아니었다",
+  "**원인 귀속을 미확정으로 두었다** — `discover_task_candidates` 가 dataclass 를 내는 것이 맞는지, `propose_next` 가 Mapping 을 요구하는 것이 맞는지 측정 후 정한다. 어느 쪽을 맞출지 지금 고르면 근거 없는 선택이다",
+  "안전 미발화 3종을 감추지 않고 명시 고정했다"
+ ],
+ "A_does_not_decide_which_side": "`discover_task_candidates` 를 Mapping 으로 바꿀지 `propose_next` 를 dataclass 수용으로 바꿀지는 **B 가 정한다.** A 가 정하는 것은 **어느 쪽이든 전건 탈락이 조용해서는 안 된다**는 것뿐이다",
+ "index": "v15, 75항. Δ32 계열 4행 + terminal_reason 15값",
+ "decision_required": null,
+ "expected_response": "B: 두 case 분기 구현 + R29 스키마 제약 + R30 런타임 형태 검증. safety 구멍은 release 전 필수. C: Δ32 계열 4행 GATE 1 매핑"
+}

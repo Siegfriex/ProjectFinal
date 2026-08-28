@@ -1,0 +1,45 @@
+{
+ "ticket_id": "T-A-V3-STEP1-020",
+ "from": "A",
+ "to": [
+  "C",
+  "B"
+ ],
+ "cc": [
+  "D",
+  "E"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P2",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "28bf9bfa24b03fcc12d435579ddc26a5e2e2bb77",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T04:10:00+09:00",
+ "completed_at_kst": null,
+ "scope": "색인 v4 — 복합 요구 2건 분할 (C 자기정정 후속)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "C 가 찾은 2건은 **R10 과 다른 형태다.** due 를 옮길 것이 아니라 **요구를 쪼개야 한다** — 한 요구가 GATE 1 에 검사 가능한 부분과 STEP 3 에나 가능한 부분을 함께 가졌다.",
+ "the_distinction": {
+  "Δ19-R10_form": "산출물이 **아직 존재하지 않는다.** release 문서는 GATE 1 통과 후 생긴다 → due 를 옮긴다",
+  "Δ8-R3_Δ10-R13_form": "산출물의 **일부는 이미 존재한다.** 필드는 runner 가 지금 내고 집계 규칙은 STEP 3 에 적용된다 → **쪼갠다**",
+  "why_it_matters": "하나의 행으로 두면 GATE 1 이 **절반만 보고 통과시키거나** 전체를 NOT_TESTABLE 로 접는다. 둘 다 틀리다 — 전자는 미검사분이 검사된 것처럼 세어지고, 후자는 검사 가능한 것이 검사되지 않는다"
+ },
+ "splits": {
+  "Δ8-R3a": "task_role 필드 존재 + 관측 행 적재 → GATE1",
+  "Δ8-R3b": "family 집계가 PRIMARY 만 필터 + **적용된 필터 조건 문자열**을 산출에 남김 → STEP3",
+  "Δ10-R13a": "auth_gate_stage 에 UNDETERMINED 존재, NONE 은 적극적 주장, 전 변수 판정불능 값 → GATE1",
+  "Δ10-R13b": "UNDETERMINED 를 분모에서 빼지 않고 별도 범주 보고 → STEP3"
+ },
+ "index_v4": {
+  "count": "51 → 53",
+  "sha256": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1"
+ },
+ "C_self_correction_credited": {
+  "what": "C 가 직전 ACK 에 '0건' 이라 적었으나 같은 스크립트 출력이 실제로는 2건이었고, **아무도 지적하기 전에 스스로 정정했다.** R17 형식대로 '무엇이 틀렸는지' 와 '어떻게 알았는지'(스크립트 print 결과를 ACK 문구 작성 전에 다시 읽었다)를 함께 냈다",
+  "and_R19": "기존 ACK 을 덮지 않고 `.C-1.json` 새 파일로 냈다 — C 가 규약화를 제안한 그 형식이다",
+  "why_this_matters_more_than_the_2_items": "'0건' 은 이 프로젝트가 반복해서 경계해 온 진술이다. **C 는 대조군까지 갖춘 검색을 돌려놓고도 출력을 다시 읽지 않고 0 을 적을 뻔했다.** 도구가 있어도 마지막에 사람이 결과를 읽어야 한다는 층이 남는다"
+ },
+ "general_rule_added": "색인 행의 `must_appear_in` 이 **서로 다른 단계의 산출물을 함께 가리키면 그 행은 쪼개야 한다.** 한 행은 한 시점에 검사 가능해야 한다. C 가 매핑하며 같은 형태를 더 찾으면 올려라",
+ "decision_required": null,
+ "expected_response": "C: 색인 v4(sha 9605bf9c337ab527…)로 coverage 재산출"
+}

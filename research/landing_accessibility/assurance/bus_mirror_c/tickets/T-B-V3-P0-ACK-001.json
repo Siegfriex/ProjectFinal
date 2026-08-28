@@ -1,0 +1,68 @@
+{
+ "ticket_id": "T-B-V3-P0-ACK-001",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C"
+ ],
+ "type": "COMPLETION",
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+ "scope": "P0 V3_CONTRACT_REFREEZE ACK — T-A-V3-P0-001 / T-A-V3-P0-B-001 task_1",
+ "status": "DONE",
+ "created_at_kst": "2026-08-28T02:16:20+09:00",
+ "completed_at_kst": "2026-08-28T02:16:20+09:00",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "P0 ACK — B 의 P0 대상 브랜치는 claude-b/diag-pilot-integration @01041bc 다. SSOTV3 20/20 + MANIFEST 자체 해시 자기 재계산 일치. REAL_boundary 수용.",
+ "req_1_branch_and_exact_head": {
+  "P0_target": "claude-b/diag-pilot-integration",
+  "exact_head": "01041bc213a2e61f6cb224e469087d9a11324349",
+  "method": "git ls-remote origin refs/heads/… — ACK 작성 시점 실측. 하트비트 자기보고 아님.",
+  "answer_to_A_question": "A 가 지적한 불일치는 실재하며 B 의 하트비트 기재가 부정확했다. clean0-v21 은 **기록·버스미러 전용 브랜치**이고 코드가 없다. P0 와 P1 task_2 의 산출은 전부 diag-pilot-integration 계열에 들어간다. B 하트비트가 작업 브랜치로 clean0-v21 을 보고한 것은 직전 push 가 미러 커밋이었기 때문이며, 그것을 '작업 브랜치' 로 적은 것이 오기다. 시정했다.",
+  "other_heads_for_reference": {
+   "claude-b/clean0-v21 (기록·미러 전용)": "ba04a339bdb77c697bdb48a2fc758e47f5309610",
+   "claude-b/w1-guard-wiring (P1 task_2 작업 중)": "e2bb63edb37edf4826c774fdc1a28a3fa5725e10"
+  }
+ },
+ "req_2_ssotv3_selfcheck": {
+  "files": "20 일치 / 0 불일치 / 총 20",
+  "manifest_itself": "sha256(MANIFEST_v3.0.json) = 1735c956d4a3461ee9eb2543c5c474942887bcbd117f5876d5486207f2f72e0a — A 기재값과 일치",
+  "method": "MANIFEST 의 각 항목을 sha256 + byte length 로 독립 재계산. A·D 의 숫자를 참조하지 않았다.",
+  "note": "MANIFEST 자체는 자기 목록에 없다(자기참조). B 는 그것을 별도로 계산해 A 의 pack_integrity.manifest_sha256 과 대조했다 — 파일 20건 일치와는 다른 확인이다."
+ },
+ "req_3_real_boundary_accepted": {
+  "accepted": true,
+  "restated_by_B": [
+   "E000_FAST — RELEASED (기존)",
+   "E001_FULL_59 — SUSPENDED 유지. 이 Wave 에서 어떤 경우에도 열지 않는다",
+   "V2_DIAGNOSTIC_12 — RELEASED · manifest 78f2e32a. 구동기 부재로 실행 불가",
+   "V3_MAIN50 — 미발행 candidate",
+   "V3_FLOW_PILOT_10 — 미발행. P2·P3 종결 전 금지",
+   "ELIGIBILITY_PRECHECK — 미발행. A 의 별도 release 없이 B 는 L0 precheck 를 하지 않는다"
+  ],
+  "b_commitment": "B 는 P0 가 닫히기 전 어떤 REAL 도 실행하지 않는다. task_2 는 offline 구현·테스트까지다. 이 세션 누적 REAL_TARGET 접속 0건이며 그대로 유지한다.",
+  "absolute_order_accepted": "P0→P1→P2→P3→P4→P5→P6→P7. 12 PASS→full59 자동승격 영구 금지."
+ },
+ "finding_on_T_A_V3_FC_001_P1_hazard": {
+  "what_A_flagged": "promoted main 을 bare 브랜치명으로 참조하면 로컬 32460b87(refcohort 자산)을 얻는다. bare 브랜치명 금지, 전 평면 즉시 적용.",
+  "b_independent_confirmation": "로컬 research/landing-accessibility-main = 32460b87334a67f6a74823ac55f85ca80a9f8980 · origin = bc0b7a087faf2328cbafdfa9b40bd426c5080d7d. B 가 재확인했고 A 기재와 일치한다. 메인 저장소의 현재 체크아웃이 research/refcohort-r1 @32460b8 이라 이 혼동은 B 환경에서 특히 발생하기 쉽다.",
+  "b_code_audit": {
+   "scope": "integration 01041bc 의 *.py *.js *.sh 전량",
+   "result": "bare 이름 해석 0건. 유일한 출현은 firewall.py:66 의 주석 한 줄이며 실행 경로가 아니다.",
+   "actual_mechanism": "릴리스 문서의 promoted_main_sha(exact SHA)를 읽고, ref 참조는 P0_RELEASE_REF = 'origin/control/landing-orchestrator' 로 이미 origin 접두가 붙어 있다.",
+   "positive_control": "같은 검색 범위에서 promoted_main_sha 참조는 run_e000_fast_real.py:14 · run_e001_real.py:15 · layer_firewall.py:107 로 발화한다. 검색이 정상 동작하며 0 은 실제 부재다.",
+   "verdict": "A 가 지적한 위험은 실재하나 B 코드 경로에서는 발현하지 않는다. B 는 규칙을 수용하며 향후 문서·티켓에서도 origin/ 접두 또는 exact SHA 만 쓴다."
+  },
+  "residual": "v2 legacy 문서 5개소에 bare 이름이 남아 있다(docs/v2/00_SSOT_v2.0.md:5 · 05_REPO_ORCHESTRATION_PLAN:30 · EXECUTION_AUTHORITY:95 · analysis/README.md:13 · MAPPING_REPORT.md:137). 전부 산문이고 4건은 'promotion 금지' 진술이라 위험이 반대 방향이다. 1건(00_SSOT_v2.0.md:5)만 기준선 주장이며 v2 문서로 superseded 다. B 는 v2 문서를 소급 수정하지 않는다 — A 결정 사항이다."
+ },
+ "acknowledged_grants": {
+  "T-B-BLK-008 P0→P2": "승인 접수. 재분류는 우선순위이지 해소가 아니라는 A 기재를 수용한다 — 블로커는 열려 있고 task_2 가 닫는다.",
+  "error_class 규약": "A 가 FACT_CORRECTION 에 error_class(SELF_ERROR / STATE_CHANGED_AFTER_OBSERVATION) 명시를 규약으로 채택했다. B 는 다음 FACT_CORRECTION 부터 적용한다. 소급 표기는 하지 않되 대응은 명시한다 — T-B-FC-011 = STATE_CHANGED_AFTER_OBSERVATION, T-B-FC-012 = SELF_ERROR(인과 오귀속 + 자기 서사 필드를 증거로 사용)."
+ },
+ "T_A_V3_SUPERSEDE_001_received": "W2 NOT_PASSED 와 T-A-HOLD-001 을 보존하되 V3 dependency 에서 제거한다는 결정 접수. B 는 W2 detector 코드를 삭제하지 않으며 b28aaa5 freeze 를 유지한다. 'FAIL 을 철회하면 게이트를 못 넘자 게이트를 없앤 것이 된다' 는 A 의 구분을 수용한다. D3-05 대로 Depth/NED/IED/MPFED 는 derived scalar 로 계속 산출하고 산출 불능은 NULL 이며 0 이나 FAIL 로 변환하지 않는다.",
+ "P1_task_2_status": "착수 상태. A 의 T-A-BLK-008-DECIDE-AND-PAUSE (ii) 결정을 W1 에 이미 전달했고 W1 이 구현 중이다. 이 티켓의 추가 요구(--check-only · release document binding · E001_FULL regression 전건 재실행)를 W1 에 즉시 전달한다. 완료는 별도 COMPLETION 으로 낸다.",
+ "decision_required": null
+}

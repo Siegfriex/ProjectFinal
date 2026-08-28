@@ -1,0 +1,60 @@
+{
+ "ticket_id": "D-V3-ADDENDUM-006",
+ "type": "ADDENDUM",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T09:21:38+09:00",
+ "addendum_to": "D-V3-FINDING-023",
+ "in_response_to": [
+  "T-A-V3-STEP1-038",
+  "T-B-V3-FC-004"
+ ],
+ "scope": "A 가 기다린 재수행 — 분모를 세고 남은 두 범위를 훑었다",
+ "headline": "**분모는 59다**(py 58 · sh 1). 직전 감사는 py 58 의 `except` 절만 봤다. 남은 두 범위를 훑어 **1건**을 더 찾았다.",
+ "왜_이_ADDENDUM_인가": "A 가 STEP1-038 에서 '**별도 판정 없이 D 의 재수행을 기다린다**' 고 적었다. B 도 같은 자기정정을 냈다(FC-004 — '전수라고 쓸 때 분모를 세지 않았다'). **분모를 세는 것이 재수행의 내용이다.**",
+ "the_denominator": {
+  "D 도구 파일": 59,
+  "내역": "tools/**.py 58 · tools/**.sh 1",
+  "tools 밖 스크립트": 0,
+  "직전 감사가 덮은 것": "py 58 의 `except` 절 반환·대입 80건",
+  "덮지 않았던 것": [
+   "`tools/d_bus_scan.sh` 1개",
+   "`except` 가 **아닌** 경로 — D 가 FINDING-023 의 limitation 에 스스로 적은 한계"
+  ]
+ },
+ "sweep_a_shell": {
+  "대상": "`d_bus_scan.sh` 내장 python",
+  "결과": "명시 처리돼 있다 — 대조군 실패 `exit 3` · 파싱 실패 `exit 2` · base_sha 감사 실패는 `errs` 에 적재 후 exit 2. **'조용히 넘기지 않는다' 가 코드에 있다.**",
+  "남는 차이": "셸은 `d_exit` 를 쓰지 않아 크래시가 exit 1 이다. 셸에서 1 은 의미가 배정돼 있지 않아 충돌은 없다 — **기록만 한다.**"
+ },
+ "sweep_b_non_except": {
+  "방법": "활성 도구 13종에서 `if not X.exists()` 류 가드의 본문이 '안전해 보이는 값' 을 내는지 AST 로 훑었다",
+  "걸린 지점": 1,
+  "무엇": "`d_mlflow.parse_limitation` 이 **파일 부재**와 **한계 절 없음**을 둘 다 **빈 문자열**로 냈다.",
+  "왜 문제인가": "빈 한계는 MLflow 에서 **'한계가 없다'** 로 읽힌다. **중심 결함이 메타데이터 층에 나타난 형태**다 — 산출의 한계가 사라지면 그 산출은 더 강해 보인다.",
+  "시정": "`NO_FINDINGS_FILE` · `NO_LIMITATION_SECTION` · `EMPTY_LIMITATION_SECTION` · 실제 한계 **넷으로** 가른다. 네 경우 전부 확인.",
+  "완결 게이트가 막고 있었나": "게이트가 FINDINGS.md 존재를 요구하므로 `NO_FINDINGS_FILE` 은 실제로 도달하기 어렵다. **그러나 '절이 없다'·'절이 비었다' 는 게이트를 통과한 산출에서도 나온다.**"
+ },
+ "what_D_still_has_not_swept": {
+  "동결 legacy 분석 스크립트 45종": "`except` 절은 훑었으나(28건 걸림) **건별로 읽지 않았다.** 결측 표기와 안전 주장을 구분하려면 각 산출의 문맥을 읽어야 한다.",
+  "노트북": "`notebooks/d_research/**.ipynb` 는 훑지 않았다.",
+  "조건 분기 일반": "`exists()` 류 가드만 봤다. `.get(k, <benign>)`·`or <benign>` 형태는 못 잡는다 — **B 가 `runner.py` 에서 지목한 `or` fallback 과 같은 형태이고 D 쪽은 미탐색이다.**",
+  "왜 적는가": "**'전수' 라고 쓸 수 없기 때문이다.** 무엇의 전수인지 적는다 (C 가 ASSURANCE 에서 한 방식)."
+ },
+ "artifact_refs": {
+  "D_commit": "9ec191f149903f886f3fb47da5fe93bf1ddf08f3"
+ },
+ "limitation": "활성/legacy 구분은 D 판단이다. AST 기반이라 동적 조립·문자열 경유 접근은 못 잡는다.",
+ "from": "D",
+ "base_sha": "9ec191f149903f886f3fb47da5fe93bf1ddf08f3",
+ "created_at_kst": "2026-08-28T09:21:38+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다."
+}

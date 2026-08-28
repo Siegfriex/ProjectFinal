@@ -1,0 +1,39 @@
+{
+ "ticket_id": "T-B-HOLD-ACK-001",
+ "type": "FINDING",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "priority": "P1",
+ "phase": "V1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "target_sha": "b28aaa5cad736082a6a76c0ca6a9f6be330bbcfb",
+ "created_at": "2026-08-27T23:46:44+09:00",
+ "expected_response": "GO_NO_GO",
+ "headline": "B 는 HOLD 도달을 수용하고 새 경로를 제안하지 않는다.",
+ "b_accepts_hold": "C 의 D-R0-77-3 조건 충족 판정을 수용한다. prior_only 전 모집단이 coverage 0.75 미만이고 fallback 발화 0/56 이다. all7 stress 에서 26 이 0.75 경계에 닿으나 agreement 0.11~0.13 과 force-map 4 로 다른 두 조건이 FAIL 이므로 게이트 통과가 아니다.",
+ "b_will_not_propose": "A 가 D-R0-77-3 에서 '그 다음에 새로운 아직 밟지 않은 경로를 찾지 않는다. 찾게 되면 그것은 경로가 아니라 HOLD 회피다' 라고 스스로를 묶었고 B 도 같은 구속을 받는다고 ACK 했다. B 는 지금 그것을 지킨다 — 추가 detector 개선안·threshold 조정·평가 방식 변경을 제안하지 않는다.",
+ "b_verifies_C_method": {
+  "probe_v2_reuse": "C 가 joint5 산출을 재사용한 근거(l0_probe.js 가 a7f305f 와 b28aaa5 에서 바이트 동일)를 B 가 독립 확인했다 — git diff --quiet 로 두 SHA 의 해당 파일이 동일하다. 재생성과 등가라는 C 판단이 맞다",
+  "b_note": "이것은 W2 의 b28aaa5 변경이 l1_engine.py 와 테스트에만 있었고 probe 수집 로직을 건드리지 않았다는 뜻이기도 하다 — B 가 검산에서 확인한 소유 파일 목록과 일치한다"
+ },
+ "b_position_on_three_options": {
+  "b_does_not_choose": "세 선택지 중 어느 것도 B 가 고르지 않는다. Director 판단 항목이다.",
+  "b_supplies_facts_only": [
+   "(a) R1 을 택하면: W2 는 rule DT + fallback 을 계약대로 밟았고 fallback 은 0건 발화했다. 추가 개선의 구체 경로를 B 는 제시하지 않는다 — 제시하면 그것이 HOLD 회피가 된다",
+   "(b) R2 를 택하면: 평가 모집단 교체는 A 가 D-R0-76 에서 'A7 게이트 순서를 뒤집는다(pilot 을 막는 조건을 pilot 으로 검증한다)' 고 지적했고 Director 항목으로 올렸다. B 는 그 지적이 여전히 유효하다고 본다",
+   "(c) PARTIAL_READY_WITH_BLOCKER 는 SSOT §18 에 이미 있는 경로다. 다만 그 경우에도 A7 전건과 A 명시 GO 가 선행돼야 한다"
+  ],
+  "b_reiterates": "어느 경우도 REAL_TARGET 은 A 명시 GO 전 NO-GO 라는 C 의 단서를 B 도 그대로 유지한다. B 는 REAL_TARGET 을 요청하지 않는다."
+ },
+ "b_open_items_unaffected_by_hold": {
+  "note": "HOLD 는 W2 detector 게이트에 관한 것이며 아래는 계속 진행한다",
+  "W1": "T-A-W1-P2-DECIDED — 장바구니 FORBIDDEN_TRANSACTION(P1, 안전 규칙) · disabled DISABLED_OR_INERT(P2). 안전 항목이므로 게이트와 무관하게 마친다",
+  "W3": "C-BLOCKER-234221 1.4.3 rework — (a) ratio<=1.05 근거 제시 즉시 가능 (b) outcome 처리는 A DECISION 대기",
+  "W4": "A_ACCEPTED. PrimaryActionOcclusion 은 여전히 PENDING_TASK_BINDING"
+ },
+ "b_session_record": "B 는 이 세션에서 자기정정 8건을 발행했다(T-B-FC-002~008 + T-A-W3-SCHEMA-001 전달 누락). 그중 3건은 C 가 먼저 지적했고 5건은 B 가 먼저 찾았다. HOLD 시점에 이것을 기록하는 이유는 게이트 미달이 detector 성능 문제이지 보고 신뢰성 문제가 아니라는 것을 구분하기 위해서다 — B 는 성과로 보고할 수 있는 것을 성과가 아니라고 먼저 말해 왔다."
+}

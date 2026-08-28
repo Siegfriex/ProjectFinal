@@ -1,0 +1,38 @@
+{
+ "ticket_id": "T-B-V3-DR-001",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "type": "DECISION_REQUEST",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "d312c9a647fa2065e011a8468e7def0dd607789b",
+ "scope": "04 와 03 이 activation_depth 의 submit 포함 여부를 다르게 읽힌다 — W5B 가 구현 중 발견",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:57:39+09:00",
+ "completed_at_kst": null,
+ "target_manifest_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "두 SSOT 문서가 SUBMIT_QUERY 의 activation_depth 포함 여부를 다르게 읽힌다. W5B 는 04 를 정본으로 삼아 포함했으나 그 선택이 임의적이지 않도록 A 재정을 요청한다. 관측 0건인 지금 정하면 result-blind 다.",
+ "conflict_1_submit_in_activation_depth": {
+  "04_§4_and_§5": "'activation_depth | Derived | count | scroll/typing/passive wait/dismiss 제외 state-changing activation 수' · 'scroll/typing/passive/dismiss 제외'. **제외 목록에 submit 이 없다** → SUBMIT_QUERY 포함으로 읽힌다.",
+  "03_§6": "Depth 제외 목록(scroll · passive load/redirect/wait · text 한 글자 입력 · popup dismiss) 다음에 '단 flow_step_count 에는 task-intent typing/submit 을 별도 token 으로 보존한다' → submit 이 flow_step_count 전용이고 depth 밖이라는 읽기가 가능하다.",
+  "W5B_choice": "04 를 정본으로 삼아 SUBMIT_QUERY 를 activation_depth 에 포함했다.",
+  "why_it_matters": "F3(배송조회)·F4(병원찾기)·F5(운행편조회)는 **조회 실행이 endpoint 도달의 필수 단계**다. submit 을 depth 에 넣느냐 마느냐가 이 세 family 의 activation_depth 를 일괄로 1 씩 옮긴다. F1·F2 는 submit 이 없거나 선택적이라 덜 움직인다 — 즉 **family 간 depth 비교가 이 한 결정에 의존한다.**",
+  "b_does_not_decide": "B 는 어느 쪽이 옳은지 정하지 않는다. 다만 어느 쪽이든 **50 target 전체에 균일하게** 적용돼야 하고, 지금 정해야 result-blind 다."
+ },
+ "conflict_2_reveal_token_set": {
+  "04_§5": "menu_dependency = 1 iff endpoint 전 'OPEN_GLOBAL_MENU/OPEN_LOCAL_MENU/EXPAND_ACCORDION **등**' reveal token 존재. **'등' 으로 열려 있다.**",
+  "W5B_choice": "명시된 3종만 셌다. SWITCH_TAB 을 제외한 근거는 04 §4 nav_container_type 열거에 tab 이 없다는 것뿐이다.",
+  "why_it_matters": "SWITCH_TAB 이 reveal 이면 menu_dependency 와 nav_container_depth 가 **같이 움직인다.** 탭 전환을 '메뉴를 열어야 한다' 와 같은 부담으로 볼 것인가가 실질 질문이다 — 탭은 보통 보이는 상태이고 메뉴는 감춰진 상태라 구조적으로 다르다는 것이 W5B 의 근거이나, 04 가 명시하지 않았다.",
+  "b_observation": "04 §4 는 entry_label_modality 에 HIDDEN_UNTIL_REVEAL 값을 둔다. '감춰짐' 이 별도 축으로 이미 있다는 점이 SWITCH_TAB 제외 쪽을 지지하는 것으로 읽히나, B 의 해석이지 04 의 진술이 아니다."
+ },
+ "other_KL_for_A_awareness": "W5B 가 flow.py 의 KNOWN_LIMITATIONS 상수에 12건을 전문 기록했다. 위 둘 외에 A 판단이 필요할 수 있는 것 — ABSTAIN 섞인 sequence 의 파생 규칙 부재(04 침묵, W5B 는 파생 scalar 전부 None) · 빈 sequence(04 침묵, 전부 None, 0 으로 접지 않음) · ENDPOINT_REACHED 를 flow_step_count 에 포함(04 는 'typing/submit/auth encounter 포함' 만 열거, W5B 는 AUTH_GATE 가 포함되는 이상 같은 terminal 표지를 비대칭 처리할 근거가 없다고 판단) · token 과 flag(02 §4 auth_gate_detected/endpoint_signal_detected) 충돌 시 정본이 어느 쪽인지 04·02 모두 침묵.",
+ "b_position": "B 는 W5B 의 선택을 뒤집지 않는다 — 전부 04 를 정본으로 삼은 일관된 판단이고 근거가 코드에 기록돼 있다. 다만 conflict 1 은 두 SSOT 문서가 실제로 다르게 읽히는 T3 층위 문제라 코디네이터가 정할 사안이 아니다.",
+ "decision_required": "① SUBMIT_QUERY 를 activation_depth 에 포함하는가 ② SWITCH_TAB 이 menu_dependency 의 reveal token 인가"
+}

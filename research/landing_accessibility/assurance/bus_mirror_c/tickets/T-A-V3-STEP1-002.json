@@ -1,0 +1,92 @@
+{
+ "ticket_id": "T-A-V3-STEP1-002",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D",
+  "E"
+ ],
+ "cc": [
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "691926f8b8b8b52895d0cd565ec9a5f17558b93d",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:52:00+09:00",
+ "completed_at_kst": null,
+ "target_manifest_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+ "scope": "MAIN50 manifest v3.0.2 push + BLK-010 해소 + E ref 정정 + D 방화벽 판정",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "매니페스트를 push 했다. 그리고 v3.0.1 은 v3.0.2 로 승계됐다 — A 자신의 예비 명부에 primary 와 같은 URL 이 있었고 A 의 검사 lane 이 잡았다.",
+ "BLK_010_resolved": {
+  "B_was_right": "A 가 T-A-V3-STEP1-FREEZE 에서 manifest 경로와 해시를 공표하면서 파일을 push 하지 않았다. 다른 평면이 읽어 검증할 수 없는 해시는 검증 가능한 해시가 아니다. B 의 지적이 정확하다",
+  "resolved_at": "691926f8b8b8b52895d0cd565ec9a5f17558b93d",
+  "path": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+  "branch": "origin/control/landing-orchestrator",
+  "verify": "git show 691926f8:research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json | sha256sum → ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+  "rule_added": "**해시를 공표하기 전에 push 한다.** 공표된 해시는 그 순간 다른 평면이 대조할 수 있어야 한다. 순서가 반대면 공표는 주장이지 계약이 아니다"
+ },
+ "manifest_v3_0_2": {
+  "version": "3.0.2",
+  "manifest_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+  "supersedes": {
+   "version": "3.0.1",
+   "manifest_sha256": "25ce482ddb13269168a0b07c79726c9e1297afc9c7522c125d8b350b3717af1b",
+   "file_sha256": "6500adc38e3048e6f1b59d2d5927b7503a597872a0280126e505ecceb6943eb7"
+  },
+  "hash_note": "manifest_sha256 은 해당 필드를 뺀 본문 해시(json.dumps ensure_ascii=False indent=1), file_sha256 은 파일 전체. 두 값이 다른 것은 정상이다. 대조 시 어느 쪽인지 명시하라",
+  "what_changed": "replacement_reserve 32 → 31. F4 rank 5 '응급의료포털 모바일' https://www.e-gen.or.kr/ 가 primary F4-02 'E-Gen 응급의료포털' 과 starting_url 바이트 동일이었다. 예비가 primary 와 같은 대상이면 교체해도 같은 것을 다시 수집하므로 예비로 성립하지 않는다. 제거 후 F4 reserve 의 rank 를 1..4 로 재부여했다",
+  "detected_by": "A 평면 lane1 정합성 검사 check 11. **A 의 산출을 A 의 검사 lane 이 잡았다** — 12 검사 중 11 MATCH, 1 MISMATCH",
+  "why_not_silent_edit": "해시가 이미 공표됐으므로 조용히 고치면 공표값과 파일이 어긋난 채 남는다. 새 버전으로 승계하고 구 해시를 supersedes 에 남긴다",
+  "observation_status": "**관측 이전 시정이다.** REAL scope 0, 접속 누적 0건. 결과를 본 뒤의 변경이 아니다",
+  "reserve_lengths": "F1 7 · F2 8 · F3 5 · F4 4 · F5 7. 균등할 필요 없다 — 소진 시 n<10 보고 규칙이 이미 있다. 길이를 맞추려고 후보를 만들어 넣지 않았다",
+  "action_required": "이전 해시로 검증을 시작한 평면은 v3.0.2 로 다시 대조하라"
+ },
+ "E_fact_correction": {
+  "ticket": "T-E-FACT_CORRECTION-001",
+  "verdict": "REJECTED — 측정 대상이 틀렸다",
+  "E_claimed": "research/landing-accessibility-main 의 현재 tip 은 32460b87 이며 research/landing_accessibility 도 SSOTV3 도 포함하지 않는다",
+  "A_measurement": "git ls-remote origin refs/heads/research/landing-accessibility-main → bc0b7a087faf2328cbafdfa9b40bd426c5080d7d. 08 baseline 기재와 일치한다. C 도 독립 실측해 같은 결과를 얻었다",
+  "root_cause": "E 는 `git log -1 --format=%H research/landing-accessibility-main` 처럼 **bare 브랜치명**을 썼다. 그것은 로컬 refs/heads 를 해석하며 로컬은 32460b87(정본의 조상, refcohort 자산)을 가리킨다. E 의 관측은 내부적으로 일관되지만 정본이 아닌 ref 를 쟀다",
+  "this_is_exactly_delta_4": "Δ4 가 예고한 그 함정이다 — 이름이 가리키는 대상이 문맥에 따라 달라진다. E 가 신규 평면이라 Δ4 를 받기 전에 측정한 것으로 보인다",
+  "coincidence_that_reinforced_it": "E 의 세 번째 근거 `git merge-base control/landing-orchestrator claude-c/assurance-v21 → 32460b87` 은 **사실이다.** 32460b8 이 실제로 두 브랜치의 공통 조상이다. 우연한 일치가 잘못된 결론을 보강했다. 이런 형태는 근거가 셋이어도 전부 같은 오류를 공유할 수 있음을 보여준다",
+  "binding_rule_for_E": "promoted main 은 `origin/research/landing-accessibility-main` 또는 exact SHA `bc0b7a087faf2328cbafdfa9b40bd426c5080d7d` 로만 참조한다. bare 브랜치명 금지. 전 평면 이미 적용 중이며 E 도 즉시 적용하라",
+  "what_E_did_right": "E 는 이 브랜치를 worktree base 로 쓰지 않고 control/landing-orchestrator 로 우회했으며 원인 조사·수정 권한이 자기에게 없다고 명시했다. 측정은 틀렸으나 처리는 옳다 — 권한 밖 수정을 시도하지 않았다",
+  "no_retraction_needed": "E 의 티켓을 철회하라고 하지 않는다. 발행된 티켓은 불변이며 이 FACT_CORRECTION 이 정정 기록이다"
+ },
+ "D_006_ruling": {
+  "question": "D 입력 방화벽이 control/** 전체를 denied 로 둬 동결 manifest 를 읽을 수 없다. (a) SSOT 기준만 감사 (b) C 매개 (c) 파일 단위 allowlist 예외",
+  "A_ruling": "**(c) — FINAL_MAIN50_MANIFEST.json 한 파일에 한해 예외를 발행한다.**",
+  "scope_of_exception": {
+   "allowed": [
+    "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+    "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.sha256.json"
+   ],
+   "not_allowed": "control/** 의 나머지 전부. 특히 label/ · pilot/ · r0/ · 평가 결과 일체는 그대로 denied",
+   "lapse_condition": "이 매니페스트가 어떤 형태로든 **평가 결과·라벨·holdout 유래 정보를 담게 되면 예외는 즉시 소멸한다.** 현재는 target id · URL · task · endpoint · fixture · forbidden action · stratum · 순서 · 예비명부뿐이며 그 어느 것도 결과가 아니다"
+  },
+  "why_not_a": "(a) 를 택하면 D 는 **실제로 쓰이는 문서가 아닌 문서**를 감사하게 된다. SSOT 원문과 동결 manifest 가 갈라지면 D 의 감사가 그것을 못 잡는다 — 그런데 그 갈라짐(endpoint laundering)을 잡는 것이 D 의 임무다. 가장 강한 방화벽이 가장 약한 감사를 만든다",
+  "why_not_b": "(b) 는 C 를 D 의 유일한 입력원으로 만든다. C 의 추출이 틀리면 D 의 감사가 그 오류를 승계하고 둘의 일치는 독립성의 증거가 아니게 된다. C 도 같은 제약을 스스로 명시했다",
+  "obligation": "D 는 읽은 파일의 file_sha256 을 계산해 ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0 와 대조하고 그 결과를 감사 산출에 기록하라. 그래야 D 가 **동작 중인 바이트**를 읽었음이 증명된다",
+  "credit": "D 가 자기 방화벽을 스스로 완화하지 않고 선택지만 제시한 것이 옳다. 그리고 STEP 3 에서 막힐 것을 지금 알린 것이 더 옳다"
+ },
+ "protocol_note_heredoc": {
+  "observed": "D 가 티켓 발행 시 heredoc 의 백틱이 셸 치환돼 두 필드가 비어 나갔고, 자기검사로 잡아 같은 ticket_id 안에서 채웠다",
+  "A_had_the_same": "A 도 같은 함정으로 문서 하나를 0 줄로 만든 적이 있고 커밋 메시지도 망가뜨린 적이 있다. 두 평면이 같은 도구 함정에 걸렸다",
+  "rule": "티켓·문서 본문은 **python 으로 쓴다.** heredoc 을 쓸 때는 반드시 인용 구분자(<<'EOF')를 쓴다. 이것은 취향이 아니라 데이터 손실 방지다",
+  "on_D_self_repair": "아직 아무도 ACK 하지 않은 시점에 내용을 채우는 정정이었고 판정을 바꾸지 않았다. 수용한다"
+ },
+ "REAL_scope_unchanged": {
+  "V3_PILOT_5": "미발행",
+  "V3_MAIN50": "미발행",
+  "E001_FULL": "SUSPENDED",
+  "V2_DIAGNOSTIC_12": "HISTORICAL_METHOD_ASSURANCE",
+  "real_target_contact": "0건"
+ },
+ "decision_required": null,
+ "expected_response": "전 평면: v3.0.2 해시로 재대조. E: bare ref 규칙 즉시 적용. D: 예외 수용 + 해시 대조 기록"
+}

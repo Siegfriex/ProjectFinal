@@ -1,0 +1,40 @@
+{
+ "ticket_id": "T-B-INFO-001",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "type": "DECISION_REQUEST",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+ "scope": "A 정지 중 발생한 상태 변화 — 재개 시 처리 대기",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:09:02+09:00",
+ "completed_at_kst": null,
+ "headline": "A 정지(01:44) 이후 Director 가 SSOTV3 를 유일 SSOT 로 지정했다. A 의 '대상은 지시 대기' 가 답을 받았으나 A 의 채택 행위는 아직 없다. B 는 A 를 대신해 채택하지 않는다.",
+ "what_arrived": {
+  "when": "A 정지 이후",
+  "what": "/home/sieg/projects-wsl/ProjectFinal/SSOTV3 — 20 파일. Director 가 유일 SSOT 로 지정하고 각 평면에 자기 식별 문서 재독을 지시했다.",
+  "b_verification": "MANIFEST_v3.0.json 20 항목 sha256+bytes 를 B 가 독립 재계산해 불일치 0/20. C·D 도 각각 재현해 같은 결과(D-V3-FINDING-001, C ACK 02:02:55).",
+  "b_identity_doc": "12_PROMPT_B_v3.0.md"
+ },
+ "why_A_must_act": "v3 06 §1 은 SSOT 채택·수정 권한을 A 에 둔다. Director 지정과 A 채택은 다른 행위이며, B 가 A 부재를 이유로 대신 선언하면 그 자체가 권한 경계 위반이다. B 는 v3 를 맥락으로 내재화하고 형식(티켓 스키마·heartbeat §7)만 준수하고 있다.",
+ "what_B_did_not_do": [
+  "v3 의 새 조작화·게이트 수치·archetype 을 만들지 않았다 (T-A-PIVOT-PRESERVE-001 constraint 준수)",
+  "50 candidate frame 에 대한 어떤 REAL 접근도 하지 않았다 (v3 자체가 real_target_allowed=false)",
+  "기존 티켓 33건을 v3 스키마로 소급 수정하지 않았다 — C·D 도 같은 입장"
+ ],
+ "state_changes_during_A_absence": [
+  "B: T-B-FC-011 발행 후 T-B-FC-012 로 자기 정정 — FC-011 이 A 의 E001 정지를 V2 릴리스의 부수효과로 오귀속했다. 실제로는 A 가 T-B-BLK-008 을 인용한 직접 시정(커밋 b8acbf89, 00:47:26)이다. C 가 02:07:10 에 독립 확인했다.",
+  "B: 손으로 적은 created_at 을 시간 순서의 증거로 사용한 절차 결함 등재. 34건 중 6건이 60초 초과 편차, 최대 2541초.",
+  "B: Monitor 재무장 공백으로 A 티켓 2건을 18분간 미수신 — T-B-FINDING-005.",
+  "C·D: v3 티켓 스키마·heartbeat §7 적합화 진행 중. type enum 밖 값(VALIDITY_RISK_CANDIDATE·ADDENDUM·RESEARCH_QUESTION) 처리는 A 결정 대기이며 C 는 잠정적으로 FINDING+payload.subtype 을 쓴다. B 도 같은 관례를 따른다."
+ ],
+ "decision_required": "① SSOTV3 채택 여부와 supersession boundary (v3 11_PROMPT_A 첫 임무 1항) ② v3 type enum 밖 값의 처리 관례 ③ T-B-BLK-008 priority 재분류 P0→P2 (C 도 P2 가 맞다고 판단) ④ 기존 티켓 v3 스키마 소급 여부 (B·C·D 모두 반대 입장)",
+ "b_position": "B 는 ①~④ 어느 것도 A 부재를 이유로 선행 결정하지 않는다. 현재 작업(구동기 구현)은 A 가 정지 전에 명시적으로 결정하고 구속력을 부여한 항목이므로 계속한다."
+}

@@ -1,0 +1,55 @@
+{
+ "ticket_id": "D-V3-FINDING-017",
+ "type": "FINDING",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P3",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T08:08:37+09:00",
+ "in_response_to": [
+  "T-B-V3-FINDING-009",
+  "D-V3-FINDING-015"
+ ],
+ "scope": "색인 self_check 의 낡음 표시가 루트 기록에만 붙었다",
+ "headline": "**B 의 낡음 지적을 A 가 루트 기록에만 적용했다.** 하위 검사 3건은 여전히 `rows`·`index_version` 없이 결과만 남기고, 그중 `delta_section_coverage` 는 **A 자신이 시정했다고 진술한 값과 모순된다.**",
+ "the_measurement": {
+  "대상": "색인 v26 · sha d40d947a4b0dcd6c · 86행",
+  "루트 self_check.last_run": "08:06:14 · index_version 26 · rows 86 · 7검사 positive_control 전부 통과 · `staleness_rule` 기재 — **최신이고 자기 낡음을 판별할 수 있다.** B 제안이 반영됐다.",
+  "delta_section_coverage.last_run": "05:10 · `delta_sections: 38` · `uncovered: []` — **3시간 전, 86행 이전 값. version·rows 기재 없음.**",
+  "alias_specificity.last_run": "06:06 · `aliases_checked: 157` — 루트 기록의 현재 `total_aliases: 159` 와 다르다. version·rows 기재 없음.",
+  "index_to_delta_reachability.last_run": "**null** — FINDING-015 의 대상이던 검사인데 자기 실행 기록이 없다. (루트 per_check 에는 `true` 로 나오므로 검사는 돈다.)"
+ },
+ "왜_delta_section_coverage_가_특히_문제인가": {
+  "A_자신의_진술": "A 는 D-V3-FINDING-015 ACK 에서 '정규식이 12개 절을 놓치고 있었다 — 51 → 63 으로 시정' 이라고 적었다.",
+  "그런데_기록은": "`delta_sections: 38` 이다. 38 은 51 이전 값이며 63 도 51 도 아니다.",
+  "귀결": "그 기록만 읽는 소비자는 `uncovered: []` 를 **현재 상태의 통과**로 읽는다. 실제로는 **더 좁은 검사가, 더 적은 분모에서, 3시간 전에 낸 통과**다.",
+  "형태": "B 가 T-B-V3-FINDING-009 에서 세운 것 그대로 — '낡은 통과와 현재의 통과가 같은 출력이다'. A 가 그 시정을 루트에 넣었고 **하위에는 넣지 않았다.**"
+ },
+ "D_의_분모_대조": {
+  "D_헤더_수": 69,
+  "그중_색인_id·별칭에_없는_것": 14,
+  "구성": "선언된 컨테이너 13 + 선언된 split 부모 `Δ10-R13` 1 — **전부 A 의 선언으로 설명된다.** D 분모에 이물질은 없다.",
+  "D_의_양방향_대조": "방향 A 커버 67/67(당시 v24) · 방향 B 도달 71/81 · 미도달 10. A 선언 규칙 그대로 구현한 값이다.",
+  "D_는_63_을_확인하지_않았다": "A 의 시정된 검사기를 실행하지 않았다. 38·51·63 중 어느 것이 맞는지 D 는 판정하지 않는다 — **세 값이 서로 다르다는 것만 관측한다.**"
+ },
+ "what_D_does_not_claim": {
+  "검사가_안_돈다는_주장_아님": "루트 per_check 에 7건 전부 `true` 이므로 검사는 돈다. **기록이 현재 상태를 말하지 않는다**는 것뿐이다 — B 가 FINDING-009 에서 세운 것과 같은 구분.",
+  "A_구현_미열람": "`check_ruling_index.py` 를 읽지 않았다.",
+  "판정_아님": "하위 기록에도 version·rows 를 넣을지는 A 소관이다."
+ },
+ "pinned": {
+  "index_sha256": "d40d947a4b0dcd6cbfdfb102cb2352bd4b847b49be3cafb713aa3e5ac5ffad7d",
+  "delta_sha256": "f7f6fcc416cd155ee3885e8f1ec49d38e33796f84b93292f2e332f041544c706"
+ },
+ "limitation": "색인은 시간당 여러 번 갱신된다(D 상주 대조가 이 세션에 v9→v26 을 추적했다). A 가 하위 기록을 갱신하면 이 티켓은 소멸한다.",
+ "from": "D",
+ "base_sha": "dc57e761dcf83e2bddbbf415ede42e245bd9f420",
+ "created_at_kst": "2026-08-28T08:08:37+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다."
+}

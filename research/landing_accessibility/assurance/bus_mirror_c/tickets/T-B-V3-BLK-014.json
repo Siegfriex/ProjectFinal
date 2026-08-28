@@ -1,0 +1,64 @@
+{
+ "ticket_id": "T-B-V3-BLK-014",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "46bb2b6a82da5bfa47d37984754a108a0bb6f7a3",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T07:27:40+09:00",
+ "measured_at_kst": "2026-08-28T07:27:40+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "scope": "CandidateBinder 이음매가 조용한 0건을 낸다 — 이 상태로 수집하면 전 target 이 깨끗한 0-activation 행을 낸다",
+ "headline": "**runner 가 후보를 전건 탈락시키고도 정상 종료로 읽는다.** 예외도 refusal 도 없이 `phase=MART` · `activate 0회` · `raw_steps 0` 이 나온다. **이 프로젝트가 반복해 경계해 온 '빈 결과와 통과가 같은 출력' 의 실물이다.**",
+ "the_measurement": {
+  "출처": "W5K 레인 실행 실측 (B 가 지시한 seam 3 은 **측정만** 이었고 워커는 고치지 않았다 — 두 파일 다 자기 소유가 아니었다)",
+  "실행 캡처": {
+   "isinstance(naive_binder, runner.CandidateBinder)": "True — **Protocol 은 메서드 이름만 본다.** 계약 위반이 타입 검사를 통과한다",
+   "bind() 반환": "TaskCandidate 1건 · issubclass(TaskCandidate, Mapping) = False",
+   "결과": "driver.activate **0회** · raw_steps **0** · refusal **None** · phase **Phase.MART**",
+   "dict 로 감싸면": "activate **2회** · raw_steps **1** — 즉 데이터는 멀쩡하고 형태만 안 맞는다"
+  },
+  "기전": "`bind` 계약은 `Sequence[Mapping]` 인데 `discover_task_candidates` 는 dataclass 를 낸다. `MinPathScoutStrategy.propose_next` 가 `isinstance(c, Mapping)` 으로 전건 탈락시킨 뒤 `None` 을 반환하고, runner 는 그 `None` 을 **정상 종료**로 읽는다",
+  "고정": "`test_seam3_*` 4건으로 이 측정값을 회귀에 못박았다. **고치지 않고 재현부터 고정했다**"
+ },
+ "why_P0": {
+  "수집 타당성이 무너진다": "이 상태로 50 target 을 돌리면 **전건이 '성공'** 으로 나온다. activation 0, terminal 없음, refusal 없음. 사후에 보면 '아무 일도 안 일어난 깨끗한 관측' 이다",
+  "그리고 그건 v2 에서 이미 한 번 일어났다": "v2 Day-1 에서 MPFED 0/59 가 나왔고 진짜 원인은 task wiring + fixture detector 였다. **같은 층이다** — 파이프라인이 조용히 비어 돌았다",
+  "인용 — A 의 규칙": "\"시끄러운 실패를 조용한 통과로 바꾸지 마라\" — 여기서는 **처음부터 조용한 통과다.** 바꿀 시끄러운 실패조차 없었다",
+  "대조군_없이는_안_보인다": "0-activation 행과 '정말로 activation 이 필요 없던 target' 은 산출에서 구분되지 않는다"
+ },
+ "the_second_defect_same_seam": {
+  "EligibilityChecker": "구현 0개. 미주입 시 `contract.mobile_web_eligibility` 를 쓰는데 **동결 manifest 의 기본값 `PRECHECK_REQUIRED` 가 `ELIGIBILITY_VALUES` 밖**이라 `RunnerError` 로 거부된다",
+  "차이": "**이쪽은 시끄러운 실패다.** 그래서 P0 이 아니다 — 걸리면 멈춘다. binder 쪽만 조용하다",
+  "그러나 함께 봐야 한다": "동결 manifest 50 target 이 전부 `PRECHECK_REQUIRED` 이면 runner 는 한 건도 못 돈다. **B 가 이 값 분포를 아직 세지 않았다**"
+ },
+ "safety_finding_same_lane": {
+  "seam1 금지행동 전수": "12종 중 **9종 차단 · 3종 미발화**",
+  "차단됨": "OTP · CAPTCHA · 송금 · 장바구니 · 주문 · 결제 · 예약 · 좌석선택 · 외부앱",
+  "미발화": {
+   "credential · 실제 개인정보": "**guard 는 `input[type=password]`·field name 으로 판정하는데 `PlannedAction` 이 5필드뿐이라 그 신호가 seam 을 건너오지 못한다.** 구멍이다",
+   "login submit": "`D3-09` 에 따라 **의도적으로** 금지가 아니다 — 결함 아님"
+  },
+  "감추지 않았다": "`test_seam1_forbidden_sweep_known_non_firing` 으로 미발화 3종을 명시 고정했다",
+  "B 의 판단": "REAL_TARGET 이 NO-GO 이므로 지금 당장의 위험은 아니다. **다만 이 구멍이 열린 채로 REAL_TARGET 을 열면 안 된다** — B 는 그 조건을 자신에게 건다",
+  "발화 근거의 한계": "차단 9종은 **텍스트 문구 기준**이다. `보안문자`(단독)·`본인인증`·`이체`(`이체하기`는 잡힘)는 현재 어휘로 미탐지다. 실제 사이트 문구가 fixture 와 다르면 커버리지가 달라진다"
+ },
+ "what_B_does_not_claim": {
+  "W5K 가 고쳤다고 하지 않는다": "측정만 했다. **B 가 seam 3 을 '측정만' 으로 지시했고 워커는 그 경계를 지켰다**",
+  "원인 귀속 미확정": "`discover_task_candidates` 가 dataclass 를 내는 것이 맞는지, `propose_next` 가 Mapping 을 요구하는 것이 맞는지 **아직 판정하지 않았다.** 둘 중 어느 쪽을 맞출지는 측정 후 정한다",
+  "전체 회귀 미완": "W5K 는 마지막 커밋 시점의 전체 스위트 완주를 보지 못했다고 스스로 밝혔다(fork 교착 6회). **B 의 12 lane 병합 회귀는 별도로 완주했고 3 failed / 2069 passed 다**"
+ },
+ "b_next_action": "binder 이음매를 실물×실물로 잇고 **0-activation 이 조용히 성공으로 읽히지 않게** 한다. 후보 전건 탈락은 시끄러운 실패여야 한다. `mobile_web_eligibility` 값 분포 실측.",
+ "decision_required": "후보 전건 탈락 시의 처리 — `RunnerError` 로 멈출 것인가, `terminal_reason` 값으로 기록하고 계속할 것인가. 후자면 어느 값인가",
+ "self_approved": false
+}

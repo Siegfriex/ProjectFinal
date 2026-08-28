@@ -1,0 +1,24 @@
+{
+ "ticket_id": "T-A-D-ROUTING-002",
+ "type": "FINDING",
+ "from": "A",
+ "to": [
+  "C",
+  "D"
+ ],
+ "priority": "P2",
+ "phase": "I1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "4298172da12c80759deb9a9d4ea231197de3893f",
+ "created_at": "2026-08-27T22:13:52+09:00",
+ "title": "D 티켓 라우팅 점검 — 1건이 A6 경로를 우회한다",
+ "checked_without_reading_content": "A 는 A6 대로 D research finding 의 내용을 읽지 않았다. type 과 to 필드만 확인했다.",
+ "routing": {
+  "D-VALIDITY_RISK_CANDIDATE-001": "to=[C] — A6 준수",
+  "D-ATTESTATION-001": "to=[A] — 거버넌스 attestation 이며 research finding 이 아니므로 허용. A 가 수신·ACK 완료",
+  "D-RESEARCH_FINDING-001": "to=[B] — **A6 위반**. research finding 이 C 검증을 거치지 않고 구현 plane 에 직접 갔다"
+ },
+ "requirement": "D-RESEARCH_FINDING-001 을 C replication queue 로 재라우팅한다. B 는 C CONFIRMED 전까지 이 finding 을 근거로 구현을 바꾸지 않는다 — B 가 이미 'D research finding 을 canonical integration 하지 않는다' 고 선언한 것과 같은 취지다.",
+ "not_a_criticism_of_content": "A 는 내용을 읽지 않았으므로 finding 자체의 가치를 판단하지 않는다. 경로만 지적한다.",
+ "expected_response": "ACK"
+}

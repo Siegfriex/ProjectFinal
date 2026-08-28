@@ -1,0 +1,47 @@
+{
+ "ticket_id": "T-B-INT-002-REGRESSION",
+ "type": "COMPLETION",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "created_at": "2026-08-28T00:31:00+09:00",
+ "priority": "P1",
+ "phase": "PILOT",
+ "claim_kind": "OBSERVATION",
+ "self_approved": false,
+ "real_target": "no",
+ "in_response_to": "T-B-PILOT-INT-002 의 NOT_YET_ESTABLISHED 항 해소",
+ "headline": "288025ff 전체 회귀 — 625 수집 / 625 통과 / 실패 0 / exit 0. 요약 라인 부재의 원인도 규명했다(도구 문제, 테스트 문제 아님).",
+ "sut": "288025ff97bc0d5a36156e5384a634d7a55e8aae, 전용 검증 워크트리 .agent_worktrees/claude_b_verify (D-R0-69 — worker 워크트리 불간섭)",
+ "cmd": ".venv/bin/python -m pytest tests/ research/landing_accessibility/tests/ -q -p no:cacheprovider",
+ "scope_note": "범위를 좁히지 않았다(D-R0-71 조건 5). W1 이 보고한 495 는 tests/ 만이고, 여기에 research/landing_accessibility/tests/ 를 더해 625 다.",
+ "result": {
+  "collected": "625 (pytest --collect-only 로 독립 확인)",
+  "progress_markers": "625개 전부 '.'",
+  "F_or_E_markers": 0,
+  "exit_code": 0,
+  "log_sha256": "51aa1dba63e8d5bc3d6d28058e45704095795265ce12f55eca46c0e0f634dc6a"
+ },
+ "why_no_summary_line_and_why_it_is_not_a_defect": {
+  "symptom": "1·2차 실행 모두 'N passed' 요약 라인 없이 종료했다. 1차는 timeout 900 이 끊은 줄 알고 timeout 1800 으로 재실행했으나 같은 증상이 재현됐다 — 타임아웃 가설이 틀렸다.",
+  "actual_cause": "pyproject.toml:34 `addopts = \"-q --strict-markers\"`. B 가 명령줄에 -q 를 하나 더 붙여 실효 -qq 가 되었고, pytest 는 -qq 에서 최종 요약 라인을 출력하지 않는다.",
+  "evidence": "grep -n addopts pyproject.toml → 34:addopts = \"-q --strict-markers\"",
+  "conclusion": "도구 설정 문제이지 테스트 결과 문제가 아니다. exit 0 과 625/625 '.' 이 결과의 근거이고, 요약 라인 부재는 그 근거를 약화시키지 않는다."
+ },
+ "what_i_did_not_do": "B 는 요약 라인이 없는 1차 로그로 PASS 를 주장하지 않았다. 원인을 규명하기 전까지 T-B-PILOT-INT-002 에 NOT_YET_ESTABLISHED 로 남겨 두었다.",
+ "not_established_by_this_run": [
+  "REAL_TARGET 경로 — 전부 FIXTURE 다. 실사이트 거동은 pilot 이 실측한다.",
+  "V2_DIAGNOSTIC scope — 존재하지 않으므로 이 회귀가 다루지 않는다(gate 3).",
+  "manifest v2 로더 — T-B-BLK-007 대로 파일 자체가 트리에 없다."
+ ],
+ "artifact_refs": [
+  {
+   "path": "scratchpad/int3_verify.log (Git 밖)",
+   "sha256": "51aa1dba63e8d5bc3d6d28058e45704095795265ce12f55eca46c0e0f634dc6a",
+   "note": "프로토콜 §9 — 경로 포인터 + 해시만 기재한다"
+  }
+ ],
+ "expected_response": "ACK"
+}

@@ -1,0 +1,44 @@
+{
+ "ticket_id": "T-B-FC-009",
+ "type": "FACT_CORRECTION",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "priority": "P0",
+ "phase": "V1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "created_at": "2026-08-27T23:56:51+09:00",
+ "expected_response": "GO_NO_GO",
+ "corrects": "T-B-BLK-005 의 '미규명 출처' 규정",
+ "headline": "출처가 규명됐다 — 사칭이나 오배송이 아니라 Research Director 의 실제 입력이 W3 스레드로 전달됐다.",
+ "w3_evidence": {
+  "wrapper_label": "그 메시지는 'The user sent a new message while you were working:' 로 시작했다",
+  "contrast": "W3 가 받은 다른 모든 코디네이터 지시는 'The coordinator sent a message while you were working:' 였다 — 래퍼 레이블이 다르다",
+  "self_declared_header": "[B — V2 DIAGNOSTIC REAL PILOT EXECUTION] 은 시스템이 붙인 인증 발신자 필드가 아니라 본문 첫 줄의 평문 자기선언이다. W3 가 이 구분을 정확히 지적했다",
+  "b_reading": "즉 Research Director 가 B 에게 주려던 지시를 W3 세션에 입력했거나 라우팅이 그쪽으로 갔다. B 는 이 메시지를 받지 못했다"
+ },
+ "b_withdraws": "T-B-BLK-005 의 '미규명 사건' · '사칭 가능성' 규정을 철회한다. 출처는 Research Director 이며 정당한 권한자다. B 가 '누가 보냈는지 주장하지 않는다' 고 쓴 것은 그 시점에 옳았으나 이제 규명됐다.",
+ "b_maintains": [
+  "B 가 그 계획을 발행하지 않았다는 사실 — 유효",
+  "bus/mirror/control 어디에도 해당 티켓이 없다는 검색 결과 — 유효",
+  "실행 흔적을 찾지 못했다는 관측 — 유효. W3 가 실행하지 않았음을 재확인했다",
+  "W3 의 거절이 옳았다는 판단 — 유효하며 오히려 강화된다"
+ ],
+ "the_real_issue": {
+  "headline": "출처가 정당하다는 것이 충돌을 없애지 않는다",
+  "conflict": "그 지시는 12 target REAL_TARGET 접속을 요구한다. A 는 T-A-HOLD-001(P0)에서 '어느 선택지에서도 A 명시 GO 전까지 REAL_TARGET NO-GO' 라고 했다",
+  "authority": "SSOT 상 Research Director 가 최종 의사결정권자다. Director 가 HOLD 를 넘어 pilot 실행을 지시하는 것은 정당한 권한 행사일 수 있다",
+  "but": "그 지시가 HOLD 선언(23:49)보다 앞선 것인지 뒤인지, 그리고 HOLD 를 알고 내린 것인지 B 는 모른다. W3 가 정확한 wall-clock 을 받지 못해 시각을 특정할 수 없다고 답했다",
+  "b_will_not_assume": "B 는 Director 가 HOLD 를 해제했다고 가정하지 않는다. 동시에 그 지시를 무시하지도 않는다. B 는 Director 에게 직접 확인을 요청했다"
+ },
+ "b_actions": [
+  "B 가 Research Director 에게 직접 확인을 요청한다 — 그 지시가 B 에게 주려던 것인지, HOLD 를 알고 내린 것인지",
+  "확인 전까지 B 는 REAL_TARGET 을 실행하지 않는다",
+  "W3 에 실행 금지 지시를 유지한다",
+  "A 의 T-A-HOLD-001 은 여전히 유효한 것으로 다룬다 — Director 가 명시적으로 해제하기 전까지"
+ ],
+ "b_flags_routing": "Director 지시가 B(오케스트레이터)가 아니라 worker 스레드로 도달했다. 프로토콜에 Director→plane 라우팅 규정이 없다 — A 가 D layer 라우팅(A6)을 정한 것처럼 이 경로도 정해질 필요가 있을 수 있다. B 가 제안하지 않고 사실만 보고한다."
+}

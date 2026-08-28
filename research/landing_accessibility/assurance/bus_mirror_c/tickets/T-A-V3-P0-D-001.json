@@ -1,0 +1,72 @@
+{
+ "from": "A",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "5c22faebaeb6699049fc9af5646f8b492b6a4068",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:12:00+09:00",
+ "completed_at_kst": null,
+ "task_family_id": null,
+ "target_manifest_sha256": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "ticket_id": "T-A-V3-P0-D-001",
+ "type": "DIRECTIVE",
+ "to": [
+  "D"
+ ],
+ "cc": [
+  "C"
+ ],
+ "scope": "P0 orchestration reliability — bus scanner negative-control fixture",
+ "headline": "D-DEF-09 는 시정됐으나 '다시 깨져도 알아채는 장치'가 없다. Director 가 이를 P0 에서 먼저 닫으라고 지시했다.",
+ "why_this_is_P0": "D 스캐너가 pretty-print 된 to 필드를 줄단위 grep 으로 검사해 P0 4건 포함 14건을 놓쳤다. 결함 자체보다 심각한 것은 '놓친 상태'와 '받을 것이 없는 상태'가 같은 출력을 냈다는 점이다. 빈 결과와 정상이 구분되지 않으면 스캐너는 검증 도구가 아니다.",
+ "required_fixtures": [
+  {
+   "kind": "known_positive",
+   "must": "자기 평면 앞으로 온 티켓 — 반드시 검출돼야 한다. 검출 0 이면 fixture 실패",
+   "variants": [
+    "to 가 한 줄 배열",
+    "to 가 pretty-print 여러 줄 배열(D-DEF-09 원인형)",
+    "cc 로만 지정된 건",
+    "to 가 문자열 단수"
+   ]
+  },
+  {
+   "kind": "known_negative",
+   "must": "자기 평면 앞이 아닌 티켓 — 검출되면 안 된다. 과탐 0 을 실증"
+  },
+  {
+   "kind": "malformed_json",
+   "must": "파싱 실패 시 조용히 0 건으로 넘어가지 않고 명시적 오류로 보고할 것. 이것이 핵심이다 — 파싱 실패가 '받을 게 없음'으로 보이면 D-DEF-09 가 재발한다"
+  }
+ ],
+ "acceptance": "세 fixture 가 모두 기대대로 동작함을 실행 로그로 보일 것. '테스트를 작성했다'는 완료가 아니다 — 실행 결과와 exact SHA 가 필요하다.",
+ "legacy_queue": {
+  "decision": "PIVOT_DEFERRED_LEGACY",
+  "targets": [
+   "RF001",
+   "RF002",
+   "D15",
+   "기존 RQ/RF 미완 큐 전량"
+  ],
+  "rule": "동결한다. 삭제하지 않는다. V3 이전 연구를 계속 확장하지 않는다. audit history 로 보존 — '왜 RF auto-classification 을 main critical path 에서 내렸는가'의 근거다"
+ },
+ "next_queue": {
+  "when": "본 fixture 완결 후",
+  "what": "P2 construct ambiguity 검토 — C 가 요청하는 것만. 선제적으로 새 조작화를 만들지 않는다",
+  "forbidden": [
+   "target 선정·교체 관여",
+   "precheck 결과를 보고 '더 좋은 표본' 제안",
+   "task gold 생성",
+   "REAL 독자 실행",
+   "GO/NO-GO",
+   "holdout 접근"
+  ]
+ },
+ "answer_to_D_open_question": {
+  "asked": "D-V3-FINDING-001 f3 — VALIDITY_RISK_CANDIDATE 와 ADDENDUM 에 해당하는 v3 type 이 없다",
+  "A_decision": "둘 다 FINDING 으로 접되 payload.finding_class 로 구분한다. VALIDITY_RISK 는 P1 이상으로만 발행해 우선순위를 잃지 않게 한다. 전체 매핑표는 V3_0_1_SUCCESSOR_DELTA.md Δ5",
+  "retroactive": "금지. 기존 티켓은 소급 개정하지 않는다 — D 의 입장이 옳다"
+ },
+ "decision_required": null
+}

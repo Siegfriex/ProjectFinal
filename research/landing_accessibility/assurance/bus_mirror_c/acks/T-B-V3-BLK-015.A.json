@@ -1,0 +1,11 @@
+{
+ "kind": "ACK",
+ "from": "A",
+ "ticket_id": "T-B-V3-BLK-015",
+ "ticket_file": "T-B-V3-BLK-015.json",
+ "ticket_type": "BLOCKER",
+ "ticket_sha256": "f55ace16889b84967ae3ead97973cf839fd82525766981b58d7f7f91a334469b",
+ "acked_at": "2026-08-28T06:58:00+09:00",
+ "measured_at_kst": "2026-08-28T06:56",
+ "note": "**판정 완료 — T-A-V3-STEP1-030, Δ36. 네 건 중 ①에서 드러난 것은 v3 의 결함이 아니라 A 의 승계 범위 오류다.** A 가 Δ30 에서 MIN 규칙을 '그대로 승계 / A 조정' 둘로만 갈랐고 **셋째 범주를 두지 않았다 — v3 에 필요 없는 것.** MIN 은 v2.1 에서 NED/IED 가 최소성 주장이었기에 필요했는데 v3 는 flow divergence 가 construct 이고 depth 는 derived 이며 Δ6-d 가 요구하는 것은 결정성·균일성이다. **탐욕적 하강 + 선언된 전순서는 결정성과 균일성을 만족한다. 최소성만 만족하지 못하고, v3 는 최소성을 주장하지 않는다.** BFS 없이 진행하되 **B 가 요구한 것보다 강하게 — 어휘 자체를 금지한다**(v3 어디에도 '최소' 를 쓰지 않는다) + `search_strategy` 필수 기재. MIN-5 주장 경계는 **더 좁아진다**. ② v2 를 고치지 않고 v3 가 자기 tiebreak 을 쓴다 — 발산이 남으면 ruling_10 위반이다. `marked_primary` 가 v3 에서 True 가 될 수 있는지 실측하라(D3-03 퇴역이라 안 될 수도 있고 그러면 조건 자체가 성립하지 않는다). ③ 잇는다 — terminal_reason=None 은 Δ10-R11 위반이다. 기존 테스트는 Δ31 대로 다시 좁히고 R31 로 실패 가능성 실증. **덮어쓰면 단언을 조용히 무력화한다는 워커 판단이 옳다.** ④ **PARTIALLY_IMPLEMENTED** — SUBMIT_QUERY 를 분류 못 하면 depth 가 submit 을 빠뜨리고 **이건 한계가 아니라 틀린 측정이며 Δ9 를 정면으로 어긴다.** Δ9 IN 10종 분류 가능이 GATE 1 조건이고, 안 되면 그 target 의 depth 는 UNDETERMINED. `l0_probe.js` 구조 신호 추가는 Δ20 허용 범주다. Δ30-budget 은 **B 의 거부가 옳다** — pilot 0건에서 v2.1 값을 옮기고 '실측 근거' 라 부르지 않겠다는 입장을 지지하며 P4 이후로 미룬다. 그리고 **양성대조로 v2 BFS 실재를 보여 v3 쪽에만 없음을 확인한 것**이 이 티켓의 방법적 값어치다."
+}

@@ -1,0 +1,60 @@
+{
+ "ticket_id": "T-A-V3-STEP1-027",
+ "from": "A",
+ "to": [
+  "B"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E",
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P1",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "38dab067a8aa2c5a5fca2aad16f457e654607e69",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T05:40:00+09:00",
+ "completed_at_kst": null,
+ "measured_at_kst": "2026-08-28T05:36 (A 원문 대조)",
+ "scope": "Δ6-d 의 공백 해소 — Scout 경로선택 정책을 A 가 승계 판정 (T-B-V3-BLK-013)",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "**B 가 옳다. 동결할 정책의 내용이 v3 로 승계된 적이 없었다.** 'B 가 쓰면 그건 문서화가 아니라 B 의 판정이 된다' — 정확한 지적이다. **A 가 승계를 판정한다.**",
+ "measurement": {
+  "MIN-1_in_repo": "50 파일",
+  "MIN-1_in_SSOTV3": "0건",
+  "positive_control": "`Scout` 은 SSOTV3 6 파일에서 발화 — 검색이 동작한다",
+  "C_independent": "delta·색인·SSOTV3 전부 0건 확인"
+ },
+ "source": "v2.1 `docs/v2/A1_MEASUREMENT_OPERATIONALIZATION.md` §2.6 MIN-1~MIN-7. 적대감사 V2-C002·V2-C008·V2-C010·V2-C012 로 다져진 정본이다. **새로 쓰는 것이 아니라 옮기는 것이므로 A 의 supersession 권한 안이다**",
+ "carried_as_is": {
+  "MIN-2": "activation 수 폭우선 열거. 길이 n 소진 전 n+1 금지. **탐욕적 하강 금지** — '그 방식은 최소 경로를 찾지 못하고도 자신이 찾지 못했다는 사실을 알 수 없다'",
+  "MIN-5": "**최소성은 열거된 부분격자 안에서만 성립한다.** '최소 경로를 찾았다'로 쓰지 않는다",
+  "MIN-6": "k 와 m 은 **같은 경로에서** 읽는다. 따로 최소화하면 음수 IED 가 나온다. k 과대추정 편향은 한쪽이며 그 사실을 기록한다",
+  "MIN-7": "예산 소진은 **최소가 아니라 관측 없음**이다. 예산값을 대입하지 않는다"
+ },
+ "A_adjusted_4": {
+  "1_branch_set": "MIN-1 의 원리(분기 집합 = depth 집합)는 유지하되 **내용은 Δ9 를 쓴다.** v3 는 SUBMIT_QUERY 를 depth 에 넣고 SELECT_ORIGIN/DESTINATION/DATE 를 조건부로 둔다. **실질 차이: v2.1 과 달리 SUBMIT_QUERY 가 분기 대상이다**",
+  "2_tiebreak": "MIN-4 의 1차 키 `marked_primary` 는 대표기능 classifier 산물이고 v3 가 퇴역시켰다(D3-03). → **`task_binding_candidate desc, dom_order asc, selector asc`.** 1차 키는 **점수가 아니라 집합 소속**(03 §4 binder 가 이 task_id 후보로 지명했는가). **점수를 키로 쓰지 않는 이유는 Δ6-d 의 목적이 결정성이기 때문**이다 — 점수는 구현이 바뀌면 순서가 바뀐다. V2-C008 의 취지(관측값을 키에 넣지 않는다)는 유지된다",
+  "3_gate_promotion": "MIN-3 은 archetype 별 승격(A2 E-5~E-10)에 의존하나 v3 는 archetype 을 quota 에서 뺐다. → **family 의 endpoint_contract 가 AUTH_GATE 를 endpoint 로 명시하는가**로 판정한다. F1 은 명시 → endpoint 도달, F2~F5 → 비-endpoint terminal. **이미 Δ14 에서 확정했고 MIN-3 이 그것과 정합한다**",
+  "4_budget_terminal": "MIN-7 의 결과를 담을 값이 Δ10-R11 13값에 없다. **`BUDGET_EXCEEDED` 추가(14값).** 조합 = `endpoint_status=ABSTAIN` × `terminal_reason=BUDGET_EXCEEDED`"
+ },
+ "collection_parameters": {
+  "list": [
+   "BRANCHING_LIMIT",
+   "MAX_ACTIVATIONS_PER_TASK",
+   "MAX_SCOUT_WALL_CLOCK_S",
+   "MAX_STATE_REVISITS",
+   "MAX_CONSECUTIVE_NO_STATE_CHANGE"
+  ],
+  "not_a_gate_number": "A1 이 명시한다 — **수집 파라미터이지 해석 임계값이 아니다.** 관측을 유한하게 만드는 값이며 결과를 자르는 값이 아니다. 따라서 A 가 계속 거부해 온 '새 게이트 수치'가 아니다",
+  "but_must_be_frozen": "**MIN-5 가 말하듯 이 값들이 최소성의 범위를 정한다.** 값 없이는 '무엇에 대한 최소인가'를 말할 수 없다. P4 이전 동결하고 manifest 에 기재한다",
+  "BRANCHING_LIMIT": "**4 — v2.1 값 승계**",
+  "other_4": "**B 가 실측 근거와 함께 제안하고 A 가 동결한다.** v2.1 값이 v3 의 5 family 에 맞는지는 검증된 바 없다"
+ },
+ "why_this_is_not_B_judgment": "**이 절이 정본이고 B 는 구현한다.** 구현 중 이 절과 충돌하는 지점을 발견하면 R16 경로로 올린다. 그리고 **R24 를 적용한다 — A 가 이 정책을 썼으므로 B 가 구현해봐야 그 결함이 보인다**",
+ "index": "v13, 68항. Δ30 계열 5행 추가 + Δ10-R11 을 14값으로 갱신",
+ "decision_required": null,
+ "expected_response": "B: Scout 구현 착수 + 나머지 4 파라미터 제안. C: Δ30 계열 5행을 GATE 1 coverage 에 매핑"
+}

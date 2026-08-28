@@ -1,0 +1,46 @@
+{
+ "ticket_id": "T-B-BLK-011",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "056fe5f72b396f82406a62bcce64675ccfd8d9b5",
+ "scope": "SSOTV3 가 git 에 전혀 추적되지 않는다 — 유일 SSOT 에 버전 신원이 없다",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:16:11+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "W5A 가 발견하고 B 가 대조군과 함께 확인했다. SSOTV3 는 어느 커밋에도, 어느 원격 브랜치에도 없다. MANIFEST 20/20 은 무결성을 주지만 provenance 를 주지 않는다 — '어제도 같은 바이트였는가' 에 답할 수 없다.",
+ "measurement": {
+  "git log --all -- SSOTV3": "0건",
+  "git ls-files SSOTV3": "0건",
+  "gitignore": "대상 아님 — git check-ignore 가 아무것도 내지 않는다",
+  "remote_scan": "전 원격 브랜치를 열거해 각각 git ls-tree 로 SSOTV3/ 를 셌다 → 전부 0. control/landing-orchestrator 포함.",
+  "positive_control": "같은 remote_scan 이 control/v3/ 파일 6종은 control/landing-orchestrator 에서 찾아낸다(T-B-BLK-010 에서 사용한 것과 같은 방법). 스캔이 정상 동작하며 0 은 실제 부재다.",
+  "who_found_it": "W5A 가 대조군을 hermetic 하게 만들려다 발견했다. B 가 독립 재확인했다."
+ },
+ "why_this_is_not_covered_by_MANIFEST": {
+  "what_MANIFEST_gives": "20 파일의 sha256+bytes. 네 평면이 각자 재계산해 0/20 일치를 확인했다. **지금 이 순간의 무결성**은 확실하다.",
+  "what_it_does_not_give": "버전 신원. 파일이 언제 어떻게 그 상태가 됐는지, 그 뒤 바뀌었는지에 대한 기록이 없다. MANIFEST 자신도 같은 디렉터리의 추적되지 않는 파일이다.",
+  "concrete_failure_mode": "누군가 SSOTV3 를 수정하고 MANIFEST 를 함께 갱신하면 20/20 은 여전히 일치한다. 그리고 **그 변경이 일어났다는 사실이 어디에도 남지 않는다.** 지금 THREE_TURN_RUNBOOK.md 가 02:11 에 사후 추가된 것을 C 가 잡았는데, 그것을 잡을 수 있었던 이유는 mtime 이 나머지 20개(01:52:49~50)와 달랐기 때문이다 — git 이 아니라 파일시스템 타임스탬프가 유일한 단서였다.",
+  "A_own_reasoning_applies": "A 가 ruling_5 에서 '매니페스트는 Director 가 준 bytes 다. A 가 항목을 추가하면 팩 해시가 A 의 손을 타고 무엇이 Director 가 준 것인가가 소멸한다' 고 했다. 그 논증은 팩이 고정돼 있다는 전제 위에 선다. 지금 팩은 git 밖에 있어 **누구의 손도 타지 않았다는 것을 증명할 수단이 없다.**"
+ },
+ "same_family_as_prior_blockers": {
+  "T-B-BLK-007": "DIAGNOSTIC_PILOT_MANIFEST 가 A 브랜치에만 있고 integration 트리에 없었다",
+  "T-B-BLK-010": "FINAL_MAIN50_MANIFEST 가 A 워크트리에만 있고 원격에 없었다",
+  "this": "SSOTV3 전체가 어느 git 객체에도 없다",
+  "escalation": "앞의 둘은 '다른 평면이 읽을 수 없다' 였고 A 가 '**다른 평면이 읽어 검증할 수 없는 해시는 검증 가능한 해시가 아니다**' 로 정리했다. 이번은 그 논리가 SSOT 자체에 적용되는 경우다."
+ },
+ "what_is_already_mitigated": "W5A 가 대조군 SSOTV3 파일 2종(CSV·candidate JSON)의 바이트 사본을 tests/fixtures/w5a_v3/ssot_control/ 에 커밋해 자기 테스트를 hermetic 하게 만들었다. 이것은 W5A lane 의 재현성을 확보하지만 SSOT 전체의 provenance 를 대신하지 못한다.",
+ "what_B_does_not_claim": "B 는 SSOTV3 가 변조됐다고 주장하지 않는다. 네 평면의 20/20 독립 일치가 그 반대를 시사한다. B 가 말하는 것은 **변조되지 않았음을 증명할 구조가 없다**는 것이다. 이 둘은 다르다.",
+ "decision_required": "SSOTV3 를 git 에 커밋할 것인가. 커밋한다면 어느 ref 에 두는가. B 는 T-B-BLK-007 의 S-b 와 같은 처리(A 가 worker base 계열 ref 에 직접 커밋)를 권한다 — 사전등록 산출물의 lineage 와 맞고 소유 경계를 흐리지 않는다. 다만 SSOTV3 는 Director 가 준 것이므로 'A 가 커밋하면 A 의 손을 탄다' 는 A 자신의 우려가 여기에도 걸린다. 그 긴장을 어떻게 풀지는 A 결정이다.",
+ "not_blocking_current_work": "STEP 1 의 8 lane 은 이 문제와 무관하게 진행 중이며 5개가 완료됐다. 이것은 GATE 1 이전에 풀려야 하는 provenance 문제이지 구현을 막는 것이 아니다."
+}

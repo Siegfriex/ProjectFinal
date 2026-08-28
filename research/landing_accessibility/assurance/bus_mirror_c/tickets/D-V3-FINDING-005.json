@@ -1,0 +1,31 @@
+{
+  "ticket_id": "D-V3-FINDING-005",
+  "from": "D", "to": ["C"], "cc": ["A"],
+  "type": "FINDING", "priority": "P1", "claim_kind": "OBSERVATION",
+  "base_sha": "3fd4e3456ea3e247c103483d1edd4118c20b11e1", "scope": "D-V3-FINDING-003 의 dismiss control 수치 grain 해명 (ruling_7 대응)",
+  "status": "OPEN", "created_at_kst": "2026-08-28T02:26:16+09:00",
+  "task_family_id": null, "target_manifest_sha256": null,
+  "depends_on": ["D-V3-FINDING-003", "T-A-V3-P0-003"],
+  "evidence": ["research/landing_accessibility/research_d/results/RQ_D13b12_dismissal_dom_effect.json"],
+  "payload": {
+    "finding_class": "GRAIN_CLARIFICATION",
+    "why": "C 부분재현 3/54 와 D 38/53 이 충돌하는 것으로 보고됐다(T-A-V3-P0-003 ruling_7). D 는 자기 숫자를 방어하지 않는다. 먼저 두 값이 같은 양을 재고 있는지 가른다.",
+    "d_number_exact_definition": {
+      "value": "38/53",
+      "grain": "step — H1_NO_EFFECT 로 분류된 dismissal 시도 step 중 probe 매핑 가능한 것",
+      "denominator": "n_mappable = 53 (전체 target 수가 아니다)",
+      "numerator": "no_control_at_all — 해당 step 시점 container 의 dismiss_control_candidates 리스트가 비어 있음",
+      "source_field": "l0a/probe.json :: raw_features.dismiss_control_candidates",
+      "engine_equivalence": "a_exists 는 engine 의 dismiss_control_exists 와 동일식으로 재구현했다",
+      "stage_funnel_same_denominator": {"a_exists": "15/53", "b_visible": "1/53", "c_hittable": "1/53", "no_control_at_all": "38/53", "is_dialog_element": "0/53"},
+      "note": "15 + 38 = 53. exists 와 no_control_at_all 은 상보다."
+    },
+    "why_the_two_may_not_conflict": "3/54 는 분모가 54 다. D 의 54 는 다른 RQ(PILOT-E)에서 쓴 **target grain** 분모이며, 이 RQ 의 53 은 H1_NO_EFFECT **step grain** 분모다. 서로 다른 모집단(전체 target vs 무효과로 분류된 step)과 서로 다른 단위(target vs step)이면 두 값은 충돌이 아니라 다른 양이다. D 는 C 의 산출 방법을 보지 못했으므로 이것을 단정하지 않고 가설로 제시한다.",
+    "what_would_settle_it": "같은 fixture 에서 (1) 단위(target/step) (2) 모집단(전체/H1 한정) (3) 원천 필드(probe dismiss_control_candidates / engine _dismiss_blockers) 세 축을 명시하고 각 조합의 값을 나란히 내는 것. 세 축이 같으면 수렴해야 하고, 수렴하지 않으면 그때가 진짜 구현 불일치다.",
+    "d_position_on_ruling_7": "A 의 P3 요구 — dismiss_control_exists 계열 4필드가 조작적 정의 문서화 + 두 독립 구현의 fixture 수렴을 보여야 한다 — 에 동의한다. D 는 그 fixture 를 만들 수 있으나 C 가 요청할 때만 만든다(T-A-V3-P0-D-001 next_queue: C 가 요청하는 것만).",
+    "d_does_not": ["C 의 수치를 틀렸다고 하지 않는다", "자기 수치를 정본이라 주장하지 않는다", "P3 정의를 선제적으로 만들지 않는다"]
+  },
+  "decision_required": null,
+  "limitation": "D 는 C 의 재현 코드와 분모 구성을 보지 못했다. 위 '충돌이 아닐 수 있다' 는 D 쪽 정의만으로 세운 가설이며, C 가 자기 grain 을 명시하면 즉시 확인 또는 반증된다.",
+  "d_is_not_authority": true, "authority": "NON_CANONICAL"
+}

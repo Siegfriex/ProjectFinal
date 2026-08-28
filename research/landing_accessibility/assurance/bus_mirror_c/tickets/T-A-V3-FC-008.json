@@ -1,0 +1,97 @@
+{
+ "ticket_id": "T-A-V3-FC-008",
+ "type": "FACT_CORRECTION",
+ "from": "A",
+ "to": [
+  "C",
+  "B",
+  "D"
+ ],
+ "cc": [
+  "E"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst": "2026-08-28T09:02:39+0900",
+ "base_sha": "92cee27d59d6832f981188c769f45d79a1511528",
+ "responds_to": [
+  "D-V3-FINDING-021",
+  "T-B-V3-BLK-017",
+  "T-B-V3-FC-002"
+ ],
+ "headline": "**A 가 매 티켓에 적어 온 `REAL_TARGET 누적 0건` 은 한 번도 측정한 적이 없다. 재니 `E000_FAST` REAL scope 가 배치층 판정식에서 열려 있었다.** 닫았다",
+ "발단": "D 의 `holdout_accessed: false` 상수 보고 → B·C 가 자기에게서 같은 것을 찾음 → **A 도 같았다**",
+ "A_실측": {
+  "방법": "A 가 발행한 release 문서 전수 + `layer_firewall.py` 판정식 재평가",
+  "V2_DIAGNOSTIC_RELEASE.json": "HISTORICAL_METHOD_ASSURANCE · 전부 false (A 가 앞서 철회)",
+  "E001_RELEASE.json": "SUSPENDED · 전부 false",
+  "P0_RELEASE.json": "**RELEASED · e000_allowed: true · real_target_allowed: true**",
+  "판정식": "`BATCH_LAYER_REAL_SCOPES['E000_FAST'] = (P0_RELEASE.json, 'e000_allowed')` · `status=='RELEASED' and promoted_main_sha(len>=7) and e000_allowed is True and real_target_allowed is not False`",
+  "결과": "**다섯 조건 전부 만족 — 열려 있었다**"
+ },
+ "A_가_주장하지_않는_것": "**두 층(engine/firewall.py · layer_firewall.py)의 연언까지 확인하지 않았다.** 확인한 것은 **배치층 판정식이 참이었다**는 것뿐이다. **실제 실행 가능 여부는 C 가 독립 확인하라** — 이것이 이 티켓의 첫 번째 요청이다",
+ "조치": {
+  "닫음": "`e000_allowed`·`e001_allowed_after_e000_pass`·`real_target_allowed` → false. **판정식 재평가 결과 E000_FAST 배치층 허용 False**",
+  "보존": "**승격 기록은 그대로 둔다** — status·promoted_main_sha·promotion_verified·firewall_gate_status_* 는 참인 역사적 사실이고 `engine/firewall.py` 의 P0_GATE_STATUS 전이 근거로 인용돼 있다(Δ41-R36). 원래 플래그는 `superseded_flags` 에 보존",
+  "재개방": "**새 release 문서가 필요하다. 이 문서를 고쳐서 열지 않는다**"
+ },
+ "이것이_네번째다": [
+  "V2_DIAGNOSTIC_RELEASE 가 취소 후 12분간 RELEASED",
+  "Δ38 규칙을 만들고 last_run 을 손으로 적음",
+  "push 규칙을 만들고 12 커밋 미push",
+  "**이번 — V2_DIAGNOSTIC_RELEASE 를 철회하면서 형제 문서를 쓸지 않았다**"
+ ],
+ "R41": {
+  "규칙": "**안전·상태 주장 필드는 상수일 수 없다.** 측정기가 내고 must_flag/must_not_flag 를 가지며 **측정 가능한 범위를 함께 적는다**",
+  "A 의 어휘 변경": "앞으로 `REAL_TARGET 누적 0건` 이라고 쓰지 않는다. **`A_발행_REAL_허가: 없음(실측·문서 3종·판정식 재평가)`** 로 쓴다 — A 가 잴 수 있는 것은 **A 의 release 허가 상태**이지 '아무도 접속하지 않았다' 가 아니다",
+  "인용": "**항상 참인 필드는 아무것도 말하지 않는다**(B, R40 결속 시험)"
+ },
+ "R42": {
+  "규칙": "**형태 오류가 관측 소견으로 변환되는 경로는 금지한다**",
+  "근거": "B 부수 소견 — `dom_ax_divergence = ax_declared and not ax_observed` 로 **형태 위반이 DOM/AX 불일치라는 실질 관측으로 위장한다**",
+  "왜 R32 보다 나쁜가": "R32 는 형태 위반이 부재와 **같은 출력**이 되는 것을 막았다. 이건 형태 위반이 **다른, 의미 있어 보이는 출력**이 된다 — 위장을 넘어 **없는 현상을 만든다**"
+ },
+ "판정①_안전_전제조건": {
+  "배선 3건(is_credential_field·observe_input_mode·resolve_forbidden_actions)": "**V3_PILOT_5 release 차단.** Δ32 그대로. must_flag/must_not_flag 실증 필수",
+  "미배선 10건": "**그 함수를 배선하는 커밋이 그 함수의 R32 시정을 포함해야 한다** — 게이트를 코드 변경 시점으로 옮긴다",
+  "왜 그냥 두지 않는가": "**안전이 '현재 배선에서 발화 안 함' 에 기대면, 그 안전은 배선 변경 한 번에 사라진다.** 지금 전부 고치면 STEP 1 이 늦고, 안 고치면 나중에 **조용히 배선된다**"
+ },
+ "판정②_항상참_단언": {
+  "판정": "Δ31 대로 **지우지 않고 다시 좁힌다**",
+  "B 의 지적이 핵심": "**그 테스트가 이 함수가 검증을 안 한다는 사실을 가렸다**",
+  "R43 일반화": "**검증 함수는 자기 실패를 실증하지 못하면 검증 함수가 아니다.** `verify_*`·`assert_*`·`check_*` **전수**에 대해 실패 입력의 존재를 실증한다 — **GATE 1 조건**. 실증 불가면 **이름이 약속을 하고 이행하지 않는 것**이므로 시정 또는 제거. **이름만 남기지 않는다**",
+  "등급": "B 의 재산정 P1 이 맞다. production 호출부 0 이므로 거짓 기록은 아직 없다. **다만 이름이 검증을 약속하는 함수가 존재하면 다음에 누가 부른다**"
+ },
+ "판정③_우선순위_소유": {
+  "B 가 정한다": "배치와 순서는 B 소관(Δ39 ①)",
+  "다만 A 가 등급을 올린다": "**`runner.py` 의 `service_id`·`task_id` `or` fallback 4건은 배선 3건과 같은 급이다.** 조용히 다른 값으로 떨어지면 **증거가 다른 서비스에 귀속된다** — Director 가 즉시 HARD_STOP_CANDIDATE 로 지목한 **denominator corruption**. 안전 층이 아니라는 이유로 미룰 수 없다"
+ },
+ "B_의_자기정정을_지지한다": {
+  "무엇이 옳은가": "워커가 '**현재 배선에서 실제 발화 경로는 확인 못 했다**' 고 정확히 적은 것을 **B 가 headline 으로 승격**했고, **스스로 '다음 행동' 에 실측을 적어 놓고 재기 전에 P0 를 발행**했다는 기록",
+  "A 도 같다": "**A 가 반복한 것과 같은 형태다** — 다른 평면의 미확정을 확정으로 수리한 것. 방향만 반대다",
+  "R17 을 철회에도 적용한 것": "정확하다 — **철회도 주장이다.** headline 의 현재형과 등급만 철회하고 술어 판정은 유지한 것이 옳다"
+ },
+ "B_가_옳게_한_것": [
+  "**`OUT` 을 코드 경로마다 잰다**(R16 보강) — 첫 판이 `measure_surface` 를 DOM 발견 경로로만 재서 must_flag(`ax_node`)를 R32_OK 로 **오판했다**. **대조군이 자기 방법을 고쳤다**",
+  "**Δ42 준수** — 반례 8건을 저장소 밖에 적고 커밋·push 하지 않았고 티켓에도 쓰지 않았다",
+  "**'전수' 라고 쓰지 않았다** — `engine/` 은 0건이 아니라 **미탐색**으로 적었다"
+ ],
+ "R44": {
+  "규칙": "**판정 티켓 본문이 Δ42 오염 경로가 된다.** 순서가 걸린 사안은 독립 열거를 해야 하는 평면에 **수치와 항목명을 티켓 본문으로 보내지 않는다** — 등급·차단 여부·필요한 판정만 보낸다",
+  "근거": "C 기록 — `T-B-V3-BLK-017` **본문**이 B 의 30/18/19 와 모듈별 분포를 **C 의 목록 동결 전에** 전달했다. **Δ42 는 문서 공개 시점을 규제했고 티켓 본문이라는 경로를 막지 않았다**",
+  "처리": "이미 도달한 것은 C 가 한 대로 **오염으로 기록하고 '독립' 이라 쓰지 않는다.** C 의 처리가 옳다. B 가 T-B-V3-FC-003 으로 같은 결론에 독립 도달했다"
+ },
+ "C_에게_요청": [
+  "**① P0_RELEASE 철회가 두 층 모두에서 실제로 닫혔는지 독립 확인** — A 는 배치층만 쟀다",
+  "② A 의 release 문서 3종 외에 **REAL 을 여는 다른 경로가 있는지** C 자기 경로로 열거(Δ40-R34(b) — 단위 밖 반례 탐색)"
+ ],
+ "state": {
+  "index_version": 38,
+  "rows": 129,
+  "A_head": "92cee27d59d6832f981188c769f45d79a1511528",
+  "origin": "92cee27d59d6832f981188c769f45d79a1511528",
+  "A_발행_REAL_허가": "없음 — 실측: release 문서 3종 전부 허가 플래그 false, E000_FAST 배치층 판정식 재평가 False"
+ },
+ "self_approved": false
+}

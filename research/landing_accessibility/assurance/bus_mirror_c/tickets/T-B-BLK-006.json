@@ -1,0 +1,47 @@
+{
+ "ticket_id": "T-B-BLK-006",
+ "type": "BLOCKER",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "priority": "P0",
+ "phase": "PILOT",
+ "claim_kind": "IMPLEMENTATION",
+ "base_sha": "4bbbc2299f924aceb20203ddc7798cab41b37471",
+ "created_at": "2026-08-28T00:06:40+09:00",
+ "expected_response": "GO_NO_GO",
+ "headline": "diagnostic pilot 을 실행할 scope 가 코드에 없다. E001_FULL 로 열면 12 가 아니라 59 가 열린다.",
+ "the_blocker": {
+  "execution_scope": "engine/firewall.py:89 ExecutionScope 에는 E000_FAST 와 E001_FULL 두 값뿐이다. V2_DIAGNOSTIC 에 해당하는 값이 없다",
+  "runner": "scripts/run_e001_real.py 는 load_e001_full_allowlist(args.plan) 으로 E001_FULL allowlist 를 로드한다. DIAGNOSTIC_PILOT_MANIFEST 를 읽는 경로가 없다",
+  "consequence": "E001_FULL scope 로 열면 firewall 이 59 target 을 허용한다. T-A-PILOT-EXEC-001 은 'manifest 의 12 target 만. manifest 밖 접속은 wrong target 이며 C0' 라고 했는데, firewall 층에서 그 제한이 걸리지 않는다",
+  "why_it_matters": "실행기 레벨에서 12건으로 제한할 수는 있으나 그것은 한 겹이다. firewall 은 REAL_TARGET 의 마지막 방어선이고 assert_navigation_allowed 가 항해 직전 allowlist 를 다시 확인하는 구조인데, 그 allowlist 가 59 이면 실행기 버그 하나로 manifest 밖 접속이 가능하다"
+ },
+ "b_verified": {
+  "manifest_is_subset": "manifest 12 target 은 E001 59 서비스의 부분집합이다 — daum·kakaocorp 등이 E001 frozen_collection_order 에 있다. 즉 E001_FULL allowlist 를 쓰면 12건은 전부 통과하되 나머지 47 도 함께 열린다",
+  "b_first_comparison_was_wrong": "B 가 처음에 '교집합 0/12, manifest 가 E001 부분집합이 아니다' 라고 산출했다. 틀렸다 — frozen_collection_order 는 web_target_id 가 아니라 서비스 키('band','daum' 등) 리스트인데 B 가 wtg_ 형식과 대조했다. 형식 불일치를 부분집합 부정으로 읽을 뻔했다. D-R0-76 규율1(대조군)을 적용해 구조를 먼저 확인하고 정정했다"
+ },
+ "options_for_A": [
+  {
+   "id": "S1",
+   "desc": "새 ExecutionScope.V2_DIAGNOSTIC + 전용 allowlist 로더 + 릴리스 문서",
+   "pro": "firewall 이 12건만 허용한다. 이중화가 성립한다",
+   "con": "ExecutionScope 는 firewall.py:89 이고 W1 소유 범위(loader :542-730) 밖이다. 소유권 지정이 필요하다. evaluate_execution_scope 가 E000_FAST 가 아니면 모두 E001_RELEASE 문서를 보므로 그 분기도 손봐야 한다"
+  },
+  {
+   "id": "S2",
+   "desc": "E001_FULL scope 를 쓰되 실행기에서 manifest 12건으로 제한",
+   "pro": "코드 변경 최소",
+   "con": "firewall 이 59 를 허용하므로 방어가 한 겹이다. B 는 이것을 권하지 않는다 — 05:14 duplicate launch 이후 첫 REAL_TARGET 이고 A 가 manifest 밖 접속을 C0 로 규정했다"
+  },
+  {
+   "id": "S3",
+   "desc": "A 가 다른 경로를 지정"
+  }
+ ],
+ "b_does_not_decide": "B 는 고르지 않는다. ExecutionScope 추가는 firewall 설계 변경이고 소유권 지정이 필요하며, S2 는 안전 방어를 한 겹으로 줄이는 선택이라 어느 쪽도 B 가 정할 사안이 아니다.",
+ "b_has_not_launched": "B 는 REAL_TARGET 에 접속하지 않았다. 이 blocker 가 풀리기 전에는 launch 하지 않는다.",
+ "related": "C 의 preflight 6항에 'exactly-once 하네스 이식' 이 있다. C 가 같은 지점을 볼 수 있다."
+}

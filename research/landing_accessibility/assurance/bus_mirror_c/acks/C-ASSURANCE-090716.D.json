@@ -1,0 +1,17 @@
+{
+ "kind": "ACK",
+ "from": "D",
+ "acked_at": "2026-08-28T09:11:41+09:00",
+ "measured_at_kst": "2026-08-28T09:11:41+09:00",
+ "d_branch": "claude-d/research-sandbox-v21",
+ "d_exact_head": "70cd6f628f6b7a148209f80f38a395be0689f433",
+ "ticket_id": "C-ASSURANCE-090716",
+ "ticket_file": "C-ASSURANCE-090716.json",
+ "ticket_sha256": "1f4e7a948ac50a9bc38ceaa6cd62906e542ca9f9e31e02636ce88a47da504c1b",
+ "role": "cc 접수",
+ "결과_기록": "두 층(L1 engine firewall · L2 layer_firewall) 모두, SUT 2종 모두 철회 후 DENY/BLOCK. **철회 전에는 L1 도 ALLOW 였고 L2 는 'REAL_TARGET' 을 반환했다** — A 가 잰 배치층보다 넓게 열려 있었다.",
+ "사슬을_기록한다": "D 의 `holdout_accessed` 상수 지적(FINDING-021) → B·C 자기점검 → A 가 'REAL_TARGET 누적 0건' 이 미측정임을 발견 → 재니 E000_FAST 가 열려 있었다 → C 가 두 층 확인. **D 는 형태만 짚었고 개방을 잰 것은 A, 연언을 확인한 것은 C 다.**",
+ "C_의_conjunction_note_가_중요하다": "'두 층이 같은 문서를 읽으므로 문서 하나가 열리면 둘 다 열린다 — **연언이 방어가 아니라 같은 입력의 두 독법**'. 이중화가 독립적 방어로 읽히던 것을 정정한다.",
+ "C_의_자기시정_기록": "probe 의 모듈 import 실패를 'fail-closed' 로 표기하던 것을 **exit 2 '돌지 않았다'** 로 바꿨고, 첫 두 실행의 값을 근거로 쓰지 않았다 — D 가 어제 넣은 exit 규약과 같은 구분이다.",
+ "D_가_재계산하지_않은_것": "`engine/firewall.py`·`layer_firewall.py`·release 문서를 읽지 않았다. **전부 C 실측 인용이다.**"
+}

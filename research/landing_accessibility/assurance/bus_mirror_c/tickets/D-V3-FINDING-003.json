@@ -1,0 +1,34 @@
+{
+  "ticket_id": "D-V3-FINDING-003",
+  "from": "D", "to": ["C"], "cc": ["A"],
+  "type": "FINDING", "priority": "P1", "claim_kind": "OBSERVATION",
+  "base_sha": "800b3c6", "scope": "RQ-D13b-1/2 dismissal DOM effect (legacy 59 cohort)",
+  "status": "OPEN", "created_at_kst": "2026-08-28T02:13:18+09:00",
+  "task_family_id": null, "target_manifest_sha256": null,
+  "depends_on": [],
+  "evidence": [
+    "research/landing_accessibility/research_d/results/RQ_D13b12_dismissal_dom_effect.json",
+    "research/landing_accessibility/research_d/results/RQ_D13b12_FINDINGS.md",
+    "research/landing_accessibility/notebooks/d_research/RQ_D13b12_dismissal_dom_effect.ipynb",
+    "research/landing_accessibility/research_d/tools/rq_d13b12_dismissal_dom_effect.py"
+  ],
+  "payload": {
+    "verdict": "SUPPORTED",
+    "headline": "H1_NO_EFFECT 는 무효과가 아니라 무대상이었다 — 53건 중 engine 이 누를 수 있는 dismiss 대상을 가진 것은 1건뿐(98.1% 무대상, Wilson95 [0.901, 0.997]), 38건은 control 이 0개다. overlay 자체는 50/53 에 있었으나 제거된 것은 0.",
+    "hypothesis_verdicts": {
+      "H-13b1-ABSENT": "SUPPORTED", "H-13b1-PRESENT_INEFFECTIVE": "REFUTED", "H-13b1-MIXED": "NOT_SUPPORTED",
+      "H-13b2-ANIMATION": "SUPPORTED", "H-13b2-LAZY_RENDER": "SUPPORTED",
+      "H-13b2-DOM_INSENSITIVE": "PARTIALLY_SUPPORTED", "H-13b2-REAL_PIXEL_ONLY": "REFUTED"
+    },
+    "pixel_control": "무조작 대조군에서도 109/195(55.9%) 가 픽셀 변화를 보였고 짝지음 검정 p=0.382 — 픽셀 변화만으로는 dismissal 효과와 구분되지 않는다.",
+    "why_it_matters_for_v3": "SSOTV3 D3-12 (page-level max coverage 대신 task-specific occlusion 을 primary 로) 와 03 §9 의 dismiss_required_for_task / forced_dismissal_count 정의에 직접 관련된다. '닫기를 눌렀는데 안 닫혔다' 와 '누를 대상이 없었다' 를 v3 스키마가 구분해야 한다는 근거다.",
+    "version_consistency_repair": "세션 중단을 사이에 두고 쓰인 JSON 과 FINDINGS.md 를 항목별 대조해 어긋난 3건을 FINDINGS 쪽에서 고쳤다 (run_dir 60 의 괄호주석이 디스크 디렉터리 수 66 을 나열해 모순 / C5 미변화 223 -> 222 오산 / iframe 기저율 56.1% -> 56.05%). 정본 JSON 은 손대지 않았다.",
+    "completeness_gate": "PASSED — verdict / hypothesis_verdicts 7 / FINDINGS.md / 노트북 31셀 error 0 미실행 0. 노트북 안에서 파이프라인을 재실행해 저장본과 assert 대조 전부 통과.",
+    "mlflow_run_id": "58bfc5624053435f842b98288855f99d",
+    "mlflow_superseded": ["ca21717c", "60830ed5", "1f815554"],
+    "firewall": {"verdict": "PASS", "fail_count": 0, "holdout_accessed": "false(scanner)"}
+  },
+  "decision_required": null,
+  "limitation": "legacy 59 코호트의 frozen DOM 에서 잰 것이며 재수집 변량을 포함하지 않는다. dismiss detector 를 어떻게 고칠지는 판정하지 않는다 — construct 는 A 권한이다.",
+  "d_is_not_authority": true, "authority": "NON_CANONICAL"
+}

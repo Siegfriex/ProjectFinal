@@ -1,0 +1,77 @@
+{
+ "ticket_id": "T-A-W3-SCHEMA-001",
+ "type": "COMPLETION",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "priority": "P2",
+ "phase": "V1",
+ "claim_kind": "IMPLEMENTATION",
+ "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+ "result_sha": "3bf2bfb0c3ea9c264aa616cd4ef3b3454eaca8fb",
+ "branch": "claude-b/w3-kwcag",
+ "supersedes_result_sha": "94cbf8b610a9386267e3cbeb3057319a57a15634",
+ "self_approved": false,
+ "created_at": "2026-08-27T23:39:12+09:00",
+ "expected_response": "ACK",
+ "changed_files": [
+  "engine/kwcag/stage1_types.py (ExpectationResult 에 escalate_semantic 추가)",
+  "engine/kwcag/stage1_evidence.py (3.3.4 매핑 추가 · 비대칭 evidence 강제 · 4건 판정표 docstring)",
+  "engine/kwcag/stage1_expectations.py (1.4.3 · 2.4.2 로직)",
+  "engine/kwcag/stage1_pipeline.py (_finalize 가 escalate_semantic 반영)",
+  "tests/test_w3_stage1_evaluator.py (신규 15건)"
+ ],
+ "tests": "test_w3_manifest_freeze.py 13 + test_w3_stage1_evaluator.py 94 = 107 전건 PASS. ruff·mypy clean",
+ "artifact_refs": {
+  "git_external": "없음",
+  "mlflow": "별도 run 기록"
+ },
+ "b_verification": {
+  "remote_sha": "확인 — origin claude-b/w3-kwcag = 3bf2bfb0",
+  "ancestry": "확인 — 94cbf8b6 IS ancestor of 3bf2bfb0",
+  "file_ownership": "확인 — kwcag/ 와 tests/test_w3_ 밖 변경 0건",
+  "method": "D-R0-69 전용 워크트리 기준 검산. worker 워크트리 미접촉"
+ },
+ "req1_schema_gap_4": {
+  "2.2.1": {
+   "verdict": "진짜로 못 채운다",
+   "evidence": "l0_probe.js 전체에 meta refresh/session timeout 관련 코드가 없다"
+  },
+  "2.4.1": {
+   "verdict": "채울 수 있어 보이지만 의도적으로 안 채운다",
+   "evidence": "region_signals.declared_regions 는 querySelectorAll('[data-region]') — fixture 전용 마커만 감지하고 실제 ARIA landmark/skip-link 는 못 본다. 실 evidence n=58 에서 55/58 이 항상 빈 배열",
+   "b_note": "이 판정이 이번 라운드에서 가장 중요하다. 신호가 존재한다는 이유로 채웠다면 '신호 없음' 보다 나쁜 대량 오판을 만들었을 것이다 — 존재≠작동 패턴을 W3 가 스스로 피했다"
+  },
+  "2.5.4": {
+   "verdict": "진짜로 못 채운다",
+   "evidence": "devicemotion/deviceorientation 이벤트 감지 코드가 없다"
+  },
+  "3.3.4": {
+   "verdict": "매핑 누락이었고 고쳤다. 단 Outcome 은 그대로 UNDETERMINED",
+   "evidence": "gate_signals.username_autocomplete_count/tel_autocomplete_count 는 실재하는 비-fixture 신호(input[autocomplete~=X] 직접 카운트)",
+   "why_still_undetermined": "'있음' 만 셀 수 있고 '있어야 하는데 없음' 은 못 세는 구조적 비대칭이라 Applicability/Outcome 어느 쪽도 안전히 못 낸다. _STRUCTURALLY_ASYMMETRIC_EVIDENCE_IDS 로 강제 UNDETERMINED",
+   "impact": "실 evidence 58건 중 긍정신호 0건이라 관측치 변화 없음 — 투명성만 개선"
+  }
+ },
+ "req1_conclusion": "D-R0-52 실측 상한 변경 없음 — 여전히 5/22. EXPECTATION_FUNCS 는 그대로 5개(1.4.2/1.4.3/2.1.3/2.4.2/3.3.2)",
+ "req2_1_4_3": {
+  "separation": "fg_alpha==0(전경 투명·그라디언트 텍스트 클립) · font_px<=2(아이콘 글리프/장식 배지) · contrast_ratio<=1.05(전경·배경 동색 산출) 세 조건을 측정 불가로 분리해 PASS/FAIL 후보에서 제외",
+  "preserved": "item_verdict='MEASUREMENT_INCONCLUSIVE' 로 matched_items 에 보존 — 추적 가능",
+  "measured_effect": "58건 전수 8373 매칭 항목 중 2086건이 새로 MEASUREMENT_INCONCLUSIVE 로 분리. FAIL 48→46 · PASS 10→12",
+  "b_reading": "2건의 FAIL→PASS 는 완화가 아니라 측정 오류로 인한 오탐 제거다. D-R0-23(measurement failure 를 FAIL 로 전이 금지)의 직접 이행이다"
+ },
+ "req3_2_4_2": {
+  "change": "title 부재 → 그대로 결정적 FAIL. title 존재 → 더 이상 PASS 를 주지 않고 candidate_verdict=None + escalate_semantic=True 로 다음 tier 에 적절성 판단을 넘긴다",
+  "measured_effect": "58건 전수 — 구버전 PASS 58/58(100%) → 신버전 UNDETERMINED 58/58, FAIL 0건",
+  "b_reading": "이것이 이번 라운드의 결정적 실측이다. 구버전이 100% PASS 였다는 것은 그 지표가 아무 정보도 주지 못했다는 뜻이다. A 가 '존재로 PASS 를 주는 것은 존재로 terminal 을 주는 것과 같은 형태' 라고 한 것이 58/58 로 확인됐다. D-R0-70 일곱 사례 중 네 번째의 실측 근거다"
+ },
+ "known_limitations": [
+  "2.4.2 가 여전히 '5/22 구현됨' 으로 집계되나 실측 58건에서 결정된 PASS/FAIL 기여는 0건이다 — 코드는 있지만 현재 real-world 분포에서 DecisionCoverage 분자에 실질 기여하지 못한다",
+  "_STRUCTURALLY_ASYMMETRIC_EVIDENCE_IDS 는 현재 3.3.4 하나뿐이나 '긍정신호만 세고 결측은 못 세는' 패턴이 다른 criterion 에도 잠재할 수 있다 — 전수 재검토는 하지 않았다(요청 4건만 심사)",
+  "이전 W3 보고의 known_limitations 전부 유효"
+ ],
+ "next_dependency": "C same-SHA 독립검증",
+ "producer": "B"
+}

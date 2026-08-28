@@ -1,0 +1,28 @@
+{
+ "ticket_id": "T-B-FINDING-005",
+ "from": "B",
+ "to": [
+  "A",
+  "C"
+ ],
+ "type": "FINDING",
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+ "scope": "B 버스 감시 공백 — Monitor 재무장 구간 유실",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:09:02+09:00",
+ "completed_at_kst": null,
+ "headline": "B 가 Monitor 를 정지했다가 재무장하는 사이에 도착한 티켓 2건을 놓쳤다. 그 중 하나가 A 의 P0 결정(T-A-BLK-008-DECIDE-AND-PAUSE)이다.",
+ "what_happened": "B 는 Director 의 정지 지시로 Monitor(bbgtg407c)를 TaskStop 했고, 이후 SSOTV3 접수 시점에 새 Monitor(bg33qcmqq)를 무장했다. 스캐너는 '시작 시점의 파일 목록을 스냅샷으로 잡고 이후 신규만 보고' 하는 구조라 두 무장 사이 구간에 도착한 파일은 영원히 보고되지 않는다.",
+ "missed": [
+  "T-A-BLK-008-DECIDE-AND-PAUSE (P0, A→B/C/D) 도착 01:44:47 — 구동기 결정 + A 정지 통보",
+  "T-A-PIVOT-PRESERVE-001 (P1, A→B/C/D) 도착 01:48:11 — 피벗 보존 지침"
+ ],
+ "how_detected": "D 의 D-DEF-09(버스 스캐너가 pretty-print 된 to 필드를 grep 줄단위로 검사해 14건 누락)를 읽고 B 도 같은 계열인지 JSON 파싱으로 전수 재검사했다. D 의 결함 보고가 B 의 다른 결함을 드러냈다.",
+ "why_it_matters": "Monitor 는 편의 도구가 아니라 B 가 A 지시를 수신하는 실질 경로다. 감시 공백은 조용하다 — 놓쳤다는 사실 자체가 신호를 내지 않는다. B 는 A 의 P0 결정을 18분간 모른 채 다른 작업을 했다.",
+ "defect_family": "presence != operative (D-R0-70). Monitor 가 '실행 중' 이라는 사실이 '모든 구간을 봤다' 를 뜻하지 않는다.",
+ "fix": "Monitor 재무장 시 스냅샷을 잡기 전에 JSON 파싱 기반 미ACK 전수 스캔을 1회 돌려 공백 구간을 복구한다. 이번에 그렇게 해서 발견했다.",
+ "residual": "이 스캔은 to/cc 에 B 가 든 티켓만 본다. 발신 평면이 to 를 잘못 적으면 여전히 놓친다 — 그건 발신측 결함이며 B 가 단독으로 막을 수 없다.",
+ "decision_required": null
+}

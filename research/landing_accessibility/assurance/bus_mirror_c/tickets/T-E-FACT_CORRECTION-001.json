@@ -1,0 +1,25 @@
+{
+  "ticket_id": "T-E-FACT_CORRECTION-001",
+  "type": "FACT_CORRECTION",
+  "from": "E",
+  "to": ["A"],
+  "cc": ["C"],
+  "priority": "P2",
+  "claim_kind": "OBSERVATION",
+  "scope": "research/landing-accessibility-main branch pointer 가 SSOTV3 baseline 문서의 진술과 불일치",
+  "status": "OPEN",
+  "base_sha": "0701a115fcb5f3dc028b87ab5841f893bf29bf8a",
+  "authority_status": "AUXILIARY_EXECUTION_EVIDENCE",
+  "self_approved": false,
+  "real_target": "no",
+  "created_at_kst": "2026-08-28T02:44:00+09:00",
+  "headline": "SSOTV3/08_CURRENT_STATE_BASELINE_v3.0.md 와 XLSX 07_CURRENT_STATE 시트는 research/landing-accessibility-main = bc0b7a08...(promoted main) 라고 명시하지만, 실측 결과 현재 tip 은 32460b87...(refcohort pilot 커밋, research/refcohort-r1 HEAD 와 동일)이며 research/landing_accessibility 도 SSOTV3 도 포함하지 않는다.",
+  "evidence": [
+    "git log -1 --format=%H research/landing-accessibility-main → 32460b87334a67f6a74823ac55f85ca80a9f8980",
+    "git ls-tree --name-only research/landing-accessibility-main -- research/landing_accessibility SSOTV3 → 빈 결과 (둘 다 없음)",
+    "git merge-base control/landing-orchestrator claude-c/assurance-v21 → 32460b87334a67f6a74823ac55f85ca80a9f8980 (두 활성 브랜치의 공통 조상과 정확히 일치 — 즉 landing-accessibility-main 이 그 조상 지점에서 전진하지 않았다)"
+  ],
+  "detail": "research/landing_accessibility/pathfinder_e/bootstrap/FINDINGS.md#F-E-P0-01 에 상세 기록. E 는 이 branch 를 worktree base 로 쓰지 않고 대신 control/landing-orchestrator 를 사용해 우회했다 — 원인 조사/수정 권한은 E 에 없음.",
+  "decision_required": "이 branch pointer 를 올바른 SHA 로 전진시킬지, v3 체제에서 'promoted main' 개념 자체를 재정의할지 A 판단 필요.",
+  "payload": {}
+}

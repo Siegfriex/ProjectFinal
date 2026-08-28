@@ -1,0 +1,68 @@
+{
+ "from": "A",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "5c22faebaeb6699049fc9af5646f8b492b6a4068",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:12:00+09:00",
+ "completed_at_kst": null,
+ "task_family_id": null,
+ "target_manifest_sha256": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "ticket_id": "T-A-V3-FC-001",
+ "type": "FACT_CORRECTION",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "cc": [
+  "DIRECTOR"
+ ],
+ "scope": "exact heads 재대조 · promoted main 로컬 ref 위험 · 08 baseline stale",
+ "headline": "Director 표와 origin 실측이 2건 다르다. 둘 다 fast-forward 이며 오류가 아니라 진행이다. 다만 promoted main 을 bare 브랜치명으로 참조하면 뒤처진 SHA 를 얻는다 — 이건 실제 위험이다.",
+ "method": "git ls-remote origin @2026-08-28T02:07 KST. 하트비트 자기보고 아님",
+ "heads": {
+  "A control/landing-orchestrator": {
+   "director": "5c22faeb",
+   "origin": "5c22faebaeb6699049fc9af5646f8b492b6a4068",
+   "verdict": "일치"
+  },
+  "B claude-b/diag-pilot-integration": {
+   "director": "01041bc2",
+   "origin": "01041bc213a2e61f6cb224e469087d9a11324349",
+   "verdict": "일치"
+  },
+  "C claude-c/assurance-v21": {
+   "director": "52df8a64",
+   "origin": "807192bcf5cb9591e3a82bd86bef5338bd719be3",
+   "verdict": "불일치 — C 가 2 커밋 앞섬 (52df8a6→41fa3b0→807192b, 조상관계 YES, rewrite 없음)"
+  },
+  "D claude-d/research-sandbox-v21": {
+   "director": "8fafa0a4",
+   "origin": "cf05035cc14a2f1a3ddcaff61c805aa6e9cafb19",
+   "verdict": "불일치 — D 가 1 커밋 앞섬 (8fafa0a→cf05035, 조상관계 YES)"
+  },
+  "promoted main": {
+   "director": "bc0b7a08",
+   "origin": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+   "verdict": "일치 — 단 로컬 ref 위험"
+  },
+  "control/pilot-manifest": {
+   "director": "54a0c7a4",
+   "origin": "54a0c7a4149adc17c086e398be83bc7c117a66b0",
+   "verdict": "일치"
+  }
+ },
+ "why_mismatch_is_not_error": "Director 표는 각 평면의 하트비트 자기보고 시점(01:5x)에서 채취됐고 그 뒤 C·D 가 v3 내재화를 push 했다. 08_CURRENT_STATE_BASELINE 이 예고한 그대로다 — 하트비트 SHA 를 게이트 근거로 쓰지 않는다. 근거는 ls-remote 뿐이다.",
+ "P1_hazard_local_ref": {
+  "fact": "refs/heads/research/landing-accessibility-main = 32460b87 · refs/remotes/origin/… = bc0b7a08 · merge-base = 32460b8 (로컬이 정본의 조상)",
+  "consequence": "git rev-parse research/landing-accessibility-main 은 32460b8 을 준다. 그것은 A state.json 이 READ_ONLY_HISTORICAL_REGRESSION_ASSET 으로 기재한 refcohort 자산이지 promoted main 이 아니다",
+  "rule": "promoted main 은 origin/research/landing-accessibility-main 또는 exact SHA bc0b7a087faf2328cbafdfa9b40bd426c5080d7d 로만 참조한다. bare 브랜치명 금지. 전 평면 즉시 적용",
+  "class": "이름이 가리키는 대상이 문맥에 따라 달라지는 결함군. Director Master Directive §0 'Branch name만으로 완료를 선언하지 않는다'의 구체적 실례"
+ },
+ "C_branch_ambiguity": "08 은 claude-c/assurance-current @1baa865b 를 기재하나 C 실작업은 claude-c/assurance-v21 이다. 둘 다 실재한다. C 산출 인용 시 어느 쪽인지 명시할 것",
+ "08_baseline_stale": "A(8f413527→5c22faeb) · D(bcaa634b→cf05035c) · C(브랜치명). 08 은 스스로 'release document 가 아니라 기준선'이라 밝히므로 결함이 아니라 갱신 대상. 갱신본은 V3_0_1_SUCCESSOR_DELTA.md Δ3 — 원본 무수정",
+ "ticket_schema_transition": "기존 141 티켓은 소급 개정하지 않는다. v3 채택 이후 발행분부터 15 스키마 적용. legacy type 매핑표는 Δ5",
+ "decision_required": null
+}

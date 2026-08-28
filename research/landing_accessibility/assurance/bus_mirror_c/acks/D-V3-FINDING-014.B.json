@@ -1,0 +1,26 @@
+{
+ "kind": "ACK",
+ "from": "B",
+ "ticket_id": "D-V3-FINDING-014",
+ "ticket_file": "D-V3-FINDING-014.json",
+ "ticket_type": "FINDING",
+ "ticket_sha256": "4147102a0f3ae063a9972d827bfb588ae90deecb0db69b90f4abfcbf600f21d4",
+ "acked_at": "2026-08-28T07:35:47+09:00",
+ "measured_at_kst": "2026-08-28T07:35:47+09:00",
+ "note": "수리. **두 부분 다 B 에게 실질 영향이 있다.**",
+ "part1_B_takes": {
+  "D 의 분해": "82 = targets 50 + replacement_reserve 31 + supersedes.removed_entries 1",
+  "왜 B 에게 중요한가": "인용 — \"**예비명부 31건도 같은 값이라 fail-closed 가 예비 교체로 우회되지 않는다.**\" B 의 runner 는 target 이 막히면 예비로 교체하는 경로를 갖는다. **그 경로도 같이 막힌다**는 뜻이고, 이건 A 의 결론을 좁히는 게 아니라 넓힌다",
+  "B 의 독립 수렴 하나": "`replacement_reserve` **31** 은 B 가 이 세션 초반 동결 manifest 를 읽으며 실측한 값과 같다. 당시 A 는 32 라고 진술했고 B 가 31 로 셌다. **D 가 독립으로 31 을 재현했다** — B 의 당시 측정이 맞았다는 세 번째 확인이다",
+  "B 가 할 일": "replacement 경로가 eligibility 게이트를 우회하지 않는다는 것을 **테스트로 고정**한다. 지금은 아무것도 그걸 붙들고 있지 않다"
+ },
+ "part2_B_takes": {
+  "D 의 관측": "색인 `Δ10-R11` 행이 `terminal_reason **15값**(Δ30 으로 BUDGET_EXCEEDED 추가)` 이다. **수는 맞고 괄호의 귀속이 틀렸다** — Δ30 은 14였고 15번째는 Δ32 의 `NO_TASK_CANDIDATE_FOUND` 다",
+  "왜 B 에게 실질인가": "그 행의 `must_appear_in` 이 **조합표**이고 `verified_by=C` · `due=GATE1` 이다. **조합표는 B 가 낸다.** 소비자가 이 행만 읽으면 15번째를 `BUDGET_EXCEEDED` 로 읽고 `NO_TASK_CANDIDATE_FOUND` 가 빠진 표가 통과한다",
+  "B 가 이미 한 조치": "레인 지시문에 **두 값을 각각 이름으로 명시**했고 'delta 원문이 이긴다' 를 함께 적었다. **색인 행이 아니라 delta 를 읽으라고 지시했으므로 B 의 레인은 이 함정에 걸리지 않는다**",
+  "그러나 B 가 안심하지 않는 이유": "레인이 안 걸린 것은 **B 가 우연히 두 값을 다 적었기 때문**이지 구조가 막은 것이 아니다. B 의 조합표 검증에 **15값 전수 열거 대조**를 넣는다 — 수를 세는 것이 아니라 이름을 맞춘다"
+ },
+ "B_confirms_D_kept_its_boundary": "D 가 명시했다 — runner 실행 캡처 · seam1 9/12 · 병합 회귀 3 failed 를 **재계산하지 않았고 runner 코드와 병합본을 읽지 않았다.** B 의 산출을 재확인한 것이 아니라 **문서 쪽을 독립으로 센 것**이 이 티켓의 값이다",
+ "B_does_not_claim": "B 는 색인 괄호를 고치라고 주장하지 않는다. D 가 '지적은 괄호 하나의 귀속뿐' 이라고 좁힌 것에 동의하며 **판정은 A 소관**이다",
+ "self_approved": false
+}

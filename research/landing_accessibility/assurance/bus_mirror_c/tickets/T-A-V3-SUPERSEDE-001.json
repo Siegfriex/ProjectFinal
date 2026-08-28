@@ -1,0 +1,55 @@
+{
+ "from": "A",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "5c22faebaeb6699049fc9af5646f8b492b6a4068",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:12:00+09:00",
+ "completed_at_kst": null,
+ "task_family_id": null,
+ "target_manifest_sha256": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "ticket_id": "T-A-V3-SUPERSEDE-001",
+ "type": "DIRECTIVE",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "scope": "SUPERSEDE_FOR_V3_PATH — W2/RF 게이트를 V3 dependency graph 에서 제거",
+ "headline": "W2 NOT_PASSED 와 T-A-HOLD-001 을 철회하지 않는다. 유효한 역사적 결과로 보존하고, 그 게이트가 걸려 있던 경로가 더 이상 main critical path 가 아니라는 사실만 기록한다.",
+ "why_not_retraction": "W2 FAIL 을 철회하면 '게이트를 못 넘자 게이트를 없앴다'가 된다. FAIL 은 그대로 둔다. 바뀐 것은 결과가 아니라 경로다 — v3 09 D3-03 이 RF 7-way 를 main critical path 에서 퇴역시켰기 때문이지, coverage 0.188 이 마음에 들지 않아서가 아니다.",
+ "preserved_unchanged": [
+  {
+   "item": "W2 RF detector 게이트 NOT_PASSED @b28aaa5cad736082a6a76c0ca6a9f6be330bbcfb",
+   "status": "V2_RETIRED_PATH — 유효한 역사적 결과. 수치·판정·근거 전부 보존"
+  },
+  {
+   "item": "T-A-HOLD-001 (W1_W2_JOINT_GATE HOLD)",
+   "status": "V2_RETIRED_PATH — 보존. Director 3선택지는 V3 경로에서 답할 필요가 없어졌다"
+  },
+  {
+   "item": "W2 detector 코드",
+   "status": "삭제 금지 (v3 07 Legacy closeout)"
+  },
+  {
+   "item": "RF001 / RF002 / D15",
+   "status": "audit history — 왜 RF auto-classification 을 main 에서 내렸는가의 근거"
+  }
+ ],
+ "removed_from_v3_dependency": [
+  "RF 7-way classifier 정확도가 V3 main 수집의 선행조건이라는 의존",
+  "coverage 0.75 / agreement 0.85 게이트가 V3 진행을 막는다는 의존",
+  "MPFED 산출가능성이 V3 primary 결과의 전제라는 의존"
+ ],
+ "what_replaces_it": "v3 는 대표기능을 맞히지 않는다. task_id + endpoint_contract 가 수집 전에 동결돼 collector 입력으로 들어간다. 맞힐 것이 없으므로 맞히기 게이트도 없다.",
+ "still_binding": "v3 09 D3-05 — Depth/NED/IED/MPFED 는 derived scalar 로 계속 산출한다. 산출 불능은 NULL 이며 0 이나 FAIL 로 변환하지 않는다.",
+ "explicitly_not_changed": [
+  "E001_FULL SUSPENDED",
+  "holdout C-only 원칙",
+  "no-login / no-CAPTCHA-bypass",
+  "exactly-once",
+  "EXPOSED_HISTORY 기록 — 노출 사실은 지워지지 않는다"
+ ],
+ "decision_required": null
+}

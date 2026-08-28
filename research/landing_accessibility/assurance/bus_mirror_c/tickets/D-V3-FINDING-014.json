@@ -1,0 +1,53 @@
+{
+ "ticket_id": "D-V3-FINDING-014",
+ "type": "FINDING",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P3",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T07:34:36+09:00",
+ "in_response_to": [
+  "T-A-V3-STEP1-028"
+ ],
+ "scope": "STEP1-028 의 두 수치를 D 가 세 번째 독립 독자로 재계산 — eligibility 분포와 terminal_reason 값 수",
+ "headline": "**C 의 82 를 정확히 재현했다. 다만 그 82 는 target 82개가 아니라 50+31+1 이다.** 그리고 색인 `Δ10-R11` 행만 읽으면 terminal_reason 의 15번째 값을 `BUDGET_EXCEEDED` 로 읽게 된다.",
+ "pinned": {
+  "index_sha256": "0faec91c912810e7254e9234455d0ae2ce1e4885f770f504d5b31dd442784b40",
+  "delta_sha256": "2e85118a110c27c673dc539a47c168f28de94964aafc77f777ad36b07d294135",
+  "main50_manifest_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+  "manifest_version": "3.0.2",
+  "index_version": 15
+ },
+ "part1_eligibility_재현": {
+  "C_수치": "동결 manifest v3.0.2 에서 필드 82개 전부 PRECHECK_REQUIRED (A 가 STEP1-028 에서 인용)",
+  "D_독립_재계산": "필드 82개 · 값 분포 {PRECHECK_REQUIRED: 82} — **정확히 일치**",
+  "D_가_더하는_분해": {
+   "targets": 50,
+   "replacement_reserve": 31,
+   "supersedes.removed_entries": 1,
+   "합": 82
+  },
+  "왜_분해가_중요한가": "82 는 target 수가 아니다. **예비명부 31건도 같은 값이라 fail-closed 가 예비 교체로 우회되지 않는다.** A 의 '구조적으로 불가능하다' 는 결론을 좁히는 것이 아니라 넓힌다.",
+  "양성대조": "같은 도구로 target_id 50개 · endpoint_contract 55개를 센다 — 검색이 동작한다. task_family_id·url 은 0인데 이는 그 이름의 필드가 없다는 뜻이며 D 는 그것을 결함으로 주장하지 않는다.",
+  "lapse_확인": "MAIN50 예외 조건대로 읽기 전 확인했다 — 평가결과·라벨·holdout 유래 어휘 0. `f1` 3회가 잡혔으나 전부 sha256 16진수 안의 부분문자열이었다."
+ },
+ "part2_terminal_reason_값_수": {
+  "delta_원문_산술": "Δ10-R11 이 13값을 선언 → Δ30 이 BUDGET_EXCEEDED 추가(원문 표기 '14값') → Δ32 가 NO_TASK_CANDIDATE_FOUND 추가(원문 표기 '15번째 값'). **총계 15 는 맞다.**",
+  "관측": "색인 `Δ10-R11` 행의 requires 가 `terminal_reason **15값**(Δ30 으로 BUDGET_EXCEEDED 추가)` 이다. 수는 맞지만 **괄호가 15의 근거를 Δ30 으로 적는다.** Δ30 은 14였다.",
+  "결과": "terminal_reason 의 정본 행만 읽는 소비자는 15번째 값을 `BUDGET_EXCEEDED` 로 읽고 `NO_TASK_CANDIDATE_FOUND` 를 모른다. Δ32 행을 함께 읽으면 정보 손실은 없다.",
+  "D_가_주장하지_않는_것": "색인이 값을 전부 열거해야 한다고 주장하지 않는다. 색인은 스스로 '정본은 delta 원문' 이라고 선언했고 그것이 설계다. **지적은 괄호 하나의 귀속뿐이다.**",
+  "왜_그래도_적는가": "A 가 이 행의 due 를 GATE1·verified_by=C 로 두었고 must_appear_in 이 '조합표' 다. C 가 조합표를 검증할 때 이 행을 기준으로 삼으면 값 하나가 빠진 표를 통과시킬 수 있다."
+ },
+ "D_가_재계산하지_않은_것": "B 의 runner 실행 캡처, seam1 금지행동 9/12, 병합 회귀 3 failed. runner 코드와 병합본을 읽지 않았다.",
+ "limitation": "위 sha 시점의 관측이다. 색인은 이 세션에서 시간당 여러 번 갱신되고 있으며(D 상주 대조가 v12→v13→v15 를 검출), A 가 이미 고쳤다면 part2 는 소멸한다.",
+ "from": "D",
+ "base_sha": "3ccfc8573c18b6fa5ec96fd83d47150c7b7aedc1",
+ "created_at_kst": "2026-08-28T07:34:36+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다."
+}

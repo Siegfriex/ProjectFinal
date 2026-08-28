@@ -1,0 +1,37 @@
+{
+  "ticket_id": "D-V3-FINDING-002",
+  "from": "D", "to": ["C"], "cc": ["A"],
+  "type": "FINDING", "priority": "P2", "claim_kind": "OBSERVATION",
+  "base_sha": "8818df1", "scope": "RQ-D7 denominator loss bounds (legacy 59 cohort)",
+  "status": "OPEN", "created_at_kst": "2026-08-28T02:13:18+09:00",
+  "task_family_id": null, "target_manifest_sha256": null,
+  "depends_on": [],
+  "evidence": [
+    "research/landing_accessibility/research_d/results/RQ_D7_denominator_bounds.json",
+    "research/landing_accessibility/research_d/results/RQ_D7_FINDINGS.md",
+    "research/landing_accessibility/notebooks/d_research/RQ_D7_denominator_bounds.ipynb",
+    "research/landing_accessibility/research_d/tools/rq_d7_denominator_bounds.py"
+  ],
+  "payload": {
+    "verdict": "PARTIALLY_SUPPORTED",
+    "headline": "결측률은 하나의 숫자가 아니다 — 결과변수가 landing mart 에 있으면 5/59, task mart 에 있으면 28/59 이고 worst-case RD bound 폭은 각각 0.1597~0.5138 와 0.9301 이다. 검사한 4개 association 중 0 을 배제하는 것은 0개.",
+    "hypothesis_verdicts": {
+      "H-D7-MCAR": "REFUTED_ON_MECHANISM_NOT_DETECTED_BY_COVARIATE_TESTS",
+      "note": "L3 의 25건 제외는 원장 ACCOUNT_ACTION_BLOCKED 집합과 대칭차 공집합으로 정확히 일치한다 — 결정론적이다. 그런데 BH-FDR 을 붙인 covariate 검정은 그 알려진 비무작위성을 하나도 검출하지 못했다."
+    },
+    "why_it_matters_for_v3": "SSOTV3 05 §6 이 요구하는 단계별 분모 보고(candidate -> eligible/frozen -> attempted -> evidence-bearing -> flow-evaluable)에 그대로 적용되는 방법이다. 이 RQ 는 legacy 59 코호트에서 수행했다.",
+    "d_verified_upstream_observations": {
+      "how": "D 가 마트 원본 fact_landing_observation.json 바이트에서 직접 재확인했다 — D 의 관측테이블이 아니다.",
+      "o1": "measurement_status 실패 3건과 probe 부재 2건은 서로 다른 집합이다. 054d78ed 는 FAILED_EVIDENCE_INCOMPLETE 인데 probe_path 실물이 있고 max_overlay_coverage 0.1137 / max_primary_action_occlusion 1.0 이다.",
+      "o2": "probe 없는 2행에서 max_overlay_coverage 와 max_primary_action_occlusion 은 null 이 아니라 0.0 인데 같은 행의 primary_action_visible_initial 은 null 이다 — 한 행 안에서 결측 표현이 불일치한다.",
+      "d_position": "둘 다 OBSERVATION 으로만 올린다. 결함 판정은 D 권한이 아니다."
+    },
+    "worker_self_correction": "probe 없는 2 target 을 '원장에 사유가 기록되지 않은 결측' 으로 틀 잡았다가, 보고 전에 원장과 evidence 디렉터리를 직접 열어 사유가 기록돼 있음을 확인하고 RECORDED_IN_MART_NOT_IN_LEDGER_OUTCOME 으로 분류를 바꿨다. JSON 의 self_correction 필드에 남아 있다.",
+    "completeness_gate": "PASSED — verdict / FINDINGS.md 22169B / 노트북 22셀 error 0 stderr 0 미실행 0. 노트북이 재계산한 20개 항목 전부 저장 JSON 과 일치, 불일치 0.",
+    "mlflow_run_id": "e15528648d6d48e0a3cb9bf5afc5139e",
+    "firewall": {"verdict": "PASS", "fail_count": 0, "holdout_accessed": "false(scanner)"}
+  },
+  "decision_required": null,
+  "limitation": "이 bound 는 legacy 59 코호트 기준이며 v3 matched 50 frame 에는 적용되지 않는다. 어떤 bound 폭이 '충분히 좁은가' 와 무엇을 다시 모을지는 A 권한이라 판정하지 않는다.",
+  "d_is_not_authority": true, "authority": "NON_CANONICAL"
+}

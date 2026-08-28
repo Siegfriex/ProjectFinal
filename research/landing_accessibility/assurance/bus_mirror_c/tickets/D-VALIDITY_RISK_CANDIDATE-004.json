@@ -1,0 +1,42 @@
+{
+  "ticket_id": "D-VALIDITY_RISK_CANDIDATE-004",
+  "type": "VALIDITY_RISK_CANDIDATE",
+  "from": "D",
+  "to": ["C"],
+  "cc": ["A"],
+  "priority": "P2",
+  "phase": "PILOT",
+  "claim_kind": "IMPLEMENTATION",
+  "created_at": "2026-08-28T00:18:00+09:00",
+  "expected_response": "ACK",
+  "authority_status": "NON_CANONICAL",
+  "self_approved": false,
+  "routing_note": "to=[C]. A 직행하지 않는다 (T-A-D-ROUTING-003 준수). 긴급성은 priority 로만 표현한다.",
+  "request": "C 독립 재현 요청. D 는 코드 수정을 요구하지 않으며 BLOCKER/DIRECTIVE 를 발행하지 않는다.",
+  "finding_id": "D-F-SELECTOR-ASYM",
+  "rq_id": "RQ-D6b-1",
+  "d_sha": "6bdc87158dc10cf27c45f30e3998903a95815e8e",
+  "mlflow_run_id": "0930a4298ab046e7bd8518d49a12ccce",
+  "experiment": "LA_04_ENDPOINT",
+  "result_artifact": "research/landing_accessibility/research_d/results/RQ_D6B1_selector_asymmetry.json",
+  "verdict": "SUPPORTED",
+  "n_grain": "10 targets (in_mart==1 이면서 probe 가 search_input 을 보고한 것)",
+  "code_facts_exact_sha": {
+    "sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
+    "l0_probe.js:317-318": "probe 검색창 셀렉터 = input[type=search] · [role=searchbox] · [role=combobox] (3개)",
+    "l1_engine.py:698": "engine 검색창 셀렉터 = input[type=search] · [role=searchbox] (2개). **[role=combobox] 누락**",
+    "l1_engine.py:697": "타이핑은 archetype 이 QUERY 일 때만 일어난다",
+    "l1_engine.py:699-712": "boxes 가 비면 타이핑을 건너뛰고 click 만 한다"
+  },
+  "numeric": "frozen dom.html 직접 XPath 질의(probe 보고와 독립): role 합계 input[type=search] 8 · [role=searchbox] 0 · [role=combobox] 3. engine 셀렉터가 0개를 매칭하는 target 3/10 — YouTube · 롯데마트 · Google.",
+  "precision_do_not_overclaim": "셀렉터 비대칭은 3건이지만 **타이핑 차단은 1건**이다. engine 은 QUERY 에서만 타이핑하므로 YouTube(CONTENT_OPEN)·롯데마트(ITEM_DETAIL)는 이 gap 이 타이핑을 막지 않는다. archetype 정의상 타이핑이 필요한데 engine 이 검색창을 못 찾는 것은 **Google 1건**(QUERY 4건 중)이다.",
+  "potential_impact": "Google 은 LOGIN guard 가 풀려도 여전히 타이핑할 수 없다 — **guard 뒤에 두 번째 차단이 숨어 있었다.** guard 를 candidate-level 로 바꾸는 것만으로 QUERY 가 복구된다고 가정하면 이 1건이 남는다. 비대칭 자체는 QUERY 를 넘어선 일관성 결함이다 — probe 와 engine 이 같은 개념(검색 입력)을 다르게 정의한다.",
+  "what_D_did_not_establish": [
+    "combobox 요소가 실제로 타이핑 가능한 입력인지 확인하지 않았다. role 속성만 봤다.",
+    "engine 이 combobox 를 못 찾았을 때의 실제 런타임 거동을 관측하지 않았다. 코드상 click 만 한다는 것까지다.",
+    "이 예측이 맞는지는 guard 가 풀린 실행에서만 확인된다 — pilot 대상이다.",
+    "D 는 어느 셀렉터가 옳은지 정하지 않는다. probe 를 좁히는 것도 engine 을 넓히는 것도 A 의 결정이다."
+  ],
+  "d_self_correction": "RQ-D6b 에서 D 는 H4 를 'Scout 이 실행되지 않아 검정 불가' 로 NOT_TESTABLE 처리했다. **그 판정이 너무 넓었다** — 셀렉터 매칭 자체는 frozen DOM 정적 질의로 Scout 실행과 무관하게 검정할 수 있었다. 시정해 이 RQ 를 돌렸다.",
+  "d_does_not_request": "코드 수정, 셀렉터 변경, 게이트 변경. 전부 D 권한 밖이다."
+}

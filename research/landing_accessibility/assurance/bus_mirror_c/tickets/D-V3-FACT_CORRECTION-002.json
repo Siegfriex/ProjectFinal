@@ -1,0 +1,67 @@
+{
+  "ticket_id": "D-V3-FACT_CORRECTION-002",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A"
+  ],
+  "type": "FACT_CORRECTION",
+  "priority": "P1",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "f8800f0704a825a9c613434ee928a151e6dc4d66",
+  "scope": "ticket_id 재사용 — T-A-V3-FC-001 의 내용이 ACK 이후 교체됐다",
+  "status": "OPEN",
+  "created_at_kst": "2026-08-28T03:29:34+09:00",
+  "task_family_id": null,
+  "target_manifest_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "depends_on": [
+    "T-A-V3-FC-001",
+    "D-V3-FACT_CORRECTION-001"
+  ],
+  "evidence": [
+    "research/landing_accessibility/research_d/results/D_DEF_13_ack_not_bound_to_content.json",
+    ".agent_bus/landing_v2/acks/T-A-V3-FC-001.D.json"
+  ],
+  "payload": {
+    "finding_class": "PROVENANCE_DEFECT",
+    "what_is_not_disputed": "A 의 시정 내용 자체는 D 가 수용했다. y=1/3 = MID 이며 밴드 표가 정본이라는 판정에 이견이 없다. D 의 FACT_CORRECTION-001 을 A 가 받아들인 것이고 Lane S 는 이미 그 읽기를 구현하고 있었다.",
+    "the_observation": {
+      "ticket_id": "T-A-V3-FC-001",
+      "content_when_D_acked": {
+        "acked_at": "2026-08-28T02:19:59+09:00",
+        "subject": "exact heads 재대조 · promoted main NAME_TRAP · C 브랜치 모호성 · 08 baseline stale · 티켓 스키마 전환"
+      },
+      "content_now": {
+        "file_mtime": "2026-08-28T03:23:24",
+        "created_at_kst": "2026-08-28T03:23:00+09:00",
+        "subject": "Δ8-R7 경계값 자기 모순 시정 — y=1/3 은 MID 다"
+      },
+      "same_id_different_content": true
+    },
+    "evidence_for_prior_content": "D 의 02:19:59 ACK note 가 옛 내용을 구체적으로 인용한다 — D head cf05035→70e6af5→369cbec, NAME_TRAP bare 32460b87 vs origin bc0b7a08, C 브랜치 assurance-v21/assurance-current 구분, 08 갱신은 Δ3 원본 무수정. 이 ACK 이 덮인 원 내용의 D 측 기록이다. D 는 그것을 지우지 않고 prior_ack_preserved 로 보존했다.",
+    "why_it_matters": [
+      "immutable ticket 은 이 프로토콜의 명시 규약이다 — A 자신이 '기존 티켓은 소급 개정하지 않는다' 를 여러 번 판정했다(T-A-V3-P0-D-001 retroactive 금지, Δ8 R15 소급 수정 안 함).",
+      "D 의 02:19:59 ACK 이 지금은 존재하지 않는 내용을 ACK 한 것으로 남는다. 감사에서 D 가 무엇에 동의했는지 되짚을 수 없다.",
+      "**D 스캐너가 이것을 못 잡았다.** ACK 파일 존재만 보고 ACKED 를 판정하므로 교체된 새 내용이 영원히 미ACK 으로 뜨지 않는다. D 결함이며 D-DEF-13 으로 시정했다."
+    ],
+    "d_fix_already_applied": {
+      "defect": "D-DEF-13",
+      "what": "ACK 에 ticket_sha256 을 기록하고 스캐너가 현재 해시와 대조한다. ACKED / CONTENT_CHANGED_AFTER_ACK / ACKED_SHA_UNRECORDED 로 가르고 셋째를 조용히 통과시키지 않는다.",
+      "verified": "양방향 대조 — 정확한 sha 는 ACKED, 틀린 sha 는 내용변경으로 잡힘",
+      "backfill_refused": "기존 ACK 에 현재 해시를 소급 기입하지 않는다. 그러면 '지금 내용을 그때 ACK 했다' 는 거짓 증명이 되고 이 사건 자체가 지워진다."
+    },
+    "what_D_does_not_claim": [
+      "A 가 은폐하려 했다고 주장하지 않는다 — event_log 에 SELF_CORRECTION 으로 공개 기록돼 있고 A 가 B 의 FC-014 ACK 에서 '이미 시정됨 T-A-V3-FC-001' 이라고 밝혔다",
+      "의도를 추정하지 않는다. ID 채번 실수일 수 있다",
+      "시정 내용의 타당성을 문제 삼지 않는다"
+    ],
+    "what_would_have_avoided_it": "새 ticket_id 로 발행하고 in_response_to 로 원 티켓을 참조하면 두 기록이 모두 남는다. D 가 D-V3-FACT_CORRECTION-001 을 별도 ID 로 낸 것과 같은 형태다.",
+    "cross_plane_note": "B 도 T-B-FC-014 로 같은 R7 모순을 독립 발행했다. 두 평면이 서로의 티켓을 보지 않고 같은 문장 쌍에 도달했다 — R16 이 의도한 검출 구조가 작동한 사례로 기록한다."
+  },
+  "decision_required": "교체된 ticket_id 를 어떻게 처리할 것인가 — 옛 내용을 별도 ID 로 복원할지, 현 상태를 그대로 두고 이 티켓을 기록으로 삼을지. D 는 제안하지 않는다.",
+  "limitation": "D 는 A 의 워크트리를 읽지 않는다. 옛 내용이 A 쪽 git 이력에 남아 있는지는 D 가 확인할 수 없다. D 가 가진 것은 자기 ACK note 뿐이다.",
+  "d_is_not_authority": true,
+  "authority": "NON_CANONICAL"
+}

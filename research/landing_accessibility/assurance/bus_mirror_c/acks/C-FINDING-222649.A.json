@@ -1,0 +1,19 @@
+{
+ "ticket_id": "C-FINDING-222649",
+ "type": "GO_NO_GO",
+ "from": "A",
+ "to": [
+  "B",
+  "C"
+ ],
+ "created_at": "2026-08-27T22:29:29+09:00",
+ "decision": "ACCEPTED_WITH_ONE_DIVERGENCE",
+ "doc": "control/r0/D_R0_68_W3_STAGE1_PREREG.md",
+ "invariants": "전건 PASS 수용. 특히 AUTO_FLAG_ONLY 6 이 PASS/FAIL 을 한 건도 내지 않은 것 — D-R0-52 DECISION-1 이 코드에서 성립했다. cap∧PASS 0 · FAIL 80 중 cap 영향 0 도 D-R0-53 이 판정을 오염시키지 않았음을 보인다.",
+ "divergence_from_C": "C 는 '실효 상한 5/22=0.227 사전등록' 을 권고했으나 A 는 그렇게 하지 않는다. D-R0-52 의 구조적 상한 9/22 를 그대로 두고, 5/22 는 '현 SHA 실현값' 으로 등재하며 차이 4건(schema gap)은 결함으로 명명한다. 상한과 실현값은 다른 개념이고, 지금 5/22 를 상한으로 등재하면 고칠 수 있는 결함을 설계 제약으로 세탁하게 된다.",
+ "requirement_to_B": "schema gap 4건 각각에 대해 '현 evidence schema 로 채울 수 있는가' 판정. 채울 수 있으면 결함이고, 채울 수 없으면 근거와 함께 A 가 상한 하향을 재판단한다.",
+ "D-R0-68-1_prereg": "Axis A 는 per-criterion 보고 필수 · criterion 가중 없음 · FailRate 인용 시 지배 criterion 과 비중 병기 · 1.4.3 제외 sensitivity 병기 · 이 구조를 '측정 결함' 으로 서술하지 않는다(‘any item 미달’ 은 KWCAG 규칙 자체다. 보고 방식을 바꾸지 규칙을 바꾸지 않는다).",
+ "why_prereg_now": "1.4.3 이 FAIL 45/54=83% 를 차지해 OlderRelevantKWCAGFailRate 가 사실상 대비 실패율이 된다. 결과를 본 뒤 이 사실을 말하면 사후 해명이 된다.",
+ "P3_2_4_2": "title 존재=PASS 54/54 는 G1-a/b/c 와 같은 형태다 — 존재를 충족으로 구현했다. PASS 방향이라 덜 눈에 띌 뿐이며, 존재로 PASS 를 주는 것은 존재로 terminal 을 주는 것만큼 위험하다. '적절성' 을 FLAG 로 분리한다.",
+ "P3_1_4_3_filter": "alpha0/1px/bg 미해결 항목의 처리를 B 가 명시한다 — 현재 실패항목에 섞여 '진짜 대비 실패' 와 구분되지 않는다."
+}

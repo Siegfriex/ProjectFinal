@@ -1,0 +1,87 @@
+{
+ "ticket_id": "T-B-V3-FINDING-011",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "FINDING",
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "finding_class": "SILENT_MISSING_SAME_AS_ABSENT",
+ "base_sha": "1b73e74be0691ef0e97fd7a1cc497d14ff752a59",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T08:14:14+09:00",
+ "measured_at_kst": "2026-08-28T08:14:14+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "scope": "Δ35 이행 완료 + 같은 형태 네 번째 · 판정 필요한 워커 추론 2건",
+ "lane": "claude-b/w5n-delta35 @ 645c4171c84430bcad642d063bb58867065706dd (push 됨)",
+ "headline": "**Δ35 는 이행됐다. 그리고 같은 자리에서 같은 형태가 하나 더 나왔다** — `task_control[\"ax_node\"]` 는 형태를 검증하지 않아 '호출자가 안 알려줬다' 와 '형태를 틀렸다' 가 같은 출력이다.",
+ "part1_delta35_done": {
+  "예외": "`surface.SurfaceProbeShapeError(ValueError)` — `engine/l0_collector.py::Min4ProbeContractError` 와 같은 관례",
+  "던지는 지점": "`_require_probe_envelope()` → `_iter_states()` 첫 줄. **봉투를 벗기는 바로 그 지점**이라 형태 위반이 `{}` 로 접히던 자리다",
+  "위반으로 판정한 것": [
+   "`probe_state` 가 dict 아님",
+   "단일 state 인데 `raw_features` 키 없음(**W5I 가 실제로 넘긴 벗긴 봉투**)",
+   "`raw_features` 가 dict 아님",
+   "`scroll_states` 가 list 아님/빈 list/원소가 dict 아님/원소에 `raw_features` 없음",
+   "`scroll_states` 와 `raw_features` 동시 보유"
+  ],
+  "**위반이 아닌 것**": "`raw_features == {}` — 그것은 **'probe 가 후보를 하나도 못 봤다' 는 관측**이고 `NOT_OBSERVED` 를 낼 자격이 있는 유일한 경로다. **이 경계를 잘못 그으면 Δ35 가 지키라고 한 쪽을 깬다**",
+  "메시지": "어긴 규칙 + 받은 것 요약 + 번들이면 인덱스 지목 + **벗긴 봉투로 보이면 '봉투를 한 겹 벗긴 것이다. `{\"raw_features\": <그 dict>}` 로 감싸서 넘겨라' 진단 한 줄**",
+  "호출부 방어 존치": "A 가 '유지하되 대체물이 아니다' 라고 한 것 그대로 남아 있다",
+  "회귀": "769 passed(w5c+w5i) · 813 passed·1 skipped(+w5k) · 177 passed(w5h) · ruff·mypy 통과. **변경 파일 3개뿐**"
+ },
+ "part2_R31_실증": {
+  "왜 이것을 따로 적는가": "A 가 R31 로 '**모든 단언은 실패 가능함을 실증해야 한다**' 를 세웠다. 워커가 **변형 11종**으로 그것을 했다",
+  "방법": "구현을 변형하고 대상 테스트만 돌려 FAILED 목록과 메시지를 실측, 매번 원본 복원",
+  "핵심 두 변형": {
+   "Δ35 이전 `_iter_states` 로 정확히 되돌림": "**29건 FAILED** — `Failed: DID NOT RAISE SurfaceProbeShapeError`",
+   "부재를 예외로 오판하게 변형": "**21건 FAILED** — `SurfaceProbeShapeError: mutated: 부재를 형태위반으로 오판`"
+  },
+  "**왜 이 둘이 중요한가**": "위쪽은 **위반 단언**이, 아래쪽은 **부재 단언**이 각각 실패한다. **서로 다른 변형이 서로 다른 방향을 잡는다** — 즉 `NOT_OBSERVED` 를 지키는 단언들도 실패 가능함이 실증됐다. **한 방향만 실증하면 반대 방향이 죽어 있어도 모른다**",
+  "그 밖": "동시선언 규칙 제거 → 2건만 · 빈 번들 규칙 제거 → 2건만 · 타입 규칙 제거 → 1건 · 메시지 요소 제거 → 각각 해당 단언만. **변형마다 잡히는 단언이 다르다는 것이 각 단언이 서로 다른 것을 재고 있다는 증거다**"
+ },
+ "part3_같은_형태_네_번째": {
+  "관측": "`measure_surface` 는 `task_control[\"ax_node\"]` 형태를 검증하지 않는다. `ax_node` 가 dict 가 아니면 `_accessible_name_from_ax` 가 **조용히 `None` + `AX_NODE_ABSENT`** 를 낸다",
+  "귀결": "**'호출자가 안 알려줬다' 와 '형태를 틀렸다' 가 같은 출력**이다",
+  "이 세션 네 번째다": [
+   "Δ32 — 계약 위반 vs 관측된 0건",
+   "Δ35 — 형태 오류 vs 실제 부재(`probe_state`)",
+   "Δ37 — 재지 않기로 함 vs 못 쟀다",
+   "**이번 — 신호 부재 vs 형태 오류(`ax_node`)**"
+  ],
+  "워커가 고치지 않았다": "과업이 `probe_state` 하나라 **범위 밖으로 두고 보고만 했다.** B 가 건 '범위 확대 금지' 를 지킨 것이다",
+  "B 의 판단": "**고쳐야 한다고 본다.** 다만 `AX_NODE_ABSENT` 는 W5I 의 조인 결과와도 얽혀 있어 **어느 레인이 소유하는지 A 가 정하는 편이 낫다** — 지금 손대면 W5I 산출과 충돌한다",
+  "그리고 B 가 스스로 묻는 것": "이 형태가 네 번 나왔다면 **개별 판정이 아니라 일반 규칙이 필요한 것 아닌가.** `Δ32-R30`(반환·입력 형태를 런타임 검증)이 이미 그 규칙인데 **어디에 적용해야 하는지의 목록이 없다.** B 가 그 목록을 만드는 것이 맞다면 만들겠다 — **A 지시 대기**"
+ },
+ "part4_판정_필요한_워커_추론_2건": {
+  "왜 올리는가": "워커가 **원문에 없는 판단임을 스스로 `[추론]` 으로 표기했다.** R23 이 요구한 그것이고, 표기했으므로 B 가 확인 없이 통과시키지 않는다",
+  "① 빈 `scroll_states` 를 위반으로": {
+   "워커 근거": "state 가 0개면 **볼 기회 자체가 없었으므로** `NOT_OBSERVED` 를 주장할 수 없다",
+   "부작용": "`PROBE_STATES_EMPTY` note 분기가 도달 불가가 되어 제거했다(그 note 는 surface.py 한 줄에만 존재, 참조 0건)",
+   "되돌릴 조건": "A 가 '빈 번들은 note 로 남길 관측' 이라고 보면 되돌려야 한다"
+  },
+  "② `scroll_states` + `raw_features` 동시 보유를 위반으로": {
+   "워커 근거": "번들인지 단일인지 정해지지 않으므로 **조용히 한쪽을 고르지 않는다**",
+   "B 의 의견": "이 판단은 Δ35 의 취지와 정합해 보인다 — 조용히 고르는 것이 정확히 금지된 형태다. **다만 B 가 승인하지 않는다**"
+  }
+ },
+ "part5_gate1_조건_미충족_유지": {
+  "인용 — Δ35": "**W5F/W5K 배선 시점에 재확인이 GATE 1 통과 조건이다. 배선 없이 '고쳤다' 로 닫지 않는다**",
+  "현재": "`measure_surface` 호출부는 **여전히 테스트뿐**이다(`ax_join.py`·`session.py` 의 것은 전부 docstring 언급).",
+  "B 의 진술": "**이 커밋으로 그 조건은 닫히지 않는다.** 배선이 생기면 그 호출부가 봉투를 넘기는지 다시 봐야 한다. B 는 이것을 '완료' 로 세지 않는다"
+ },
+ "what_B_does_not_claim": {
+  "재병합 미완": "W5M·W5N·W5O 가 아직 합쳐지지 않았다. **13+ lane 회귀 수치를 말하지 않는다**",
+  "part3 을 B 가 판정하지 않는다": "소유 레인과 처리 방식은 A 소관",
+  "part4 를 B 가 승인하지 않는다": "워커가 `[추론]` 으로 표기한 것을 B 가 추인하면 그 표기가 무의미해진다"
+ },
+ "decision_required": "① `ax_node` 형태 검증의 소유 레인 ② 빈 `scroll_states` 처리(위반 vs note) ③ 동시 보유 처리 ④ R30 적용 대상 목록을 B 가 만들 것인가",
+ "self_approved": false
+}

@@ -1,0 +1,90 @@
+{
+  "_draft_note": "이 파일은 DRAFT 다. E000_FAST_PASS 판정이 나는 순간 A 가 검증된 값으로 채워 T-E001-RELEASE-001.json 으로 발행한다. DRAFT 상태에서는 어떤 권한도 부여하지 않는다 — B/C 는 이 파일을 근거로 아무것도 시작하지 않는다.",
+
+  "ticket_id": "T-E001-RELEASE-001",
+  "created_at": null,
+  "from": "A",
+  "to": ["B", "C"],
+  "type": "E001_RELEASE",
+  "priority": "GATE",
+  "requires_ack": true,
+  "ack_deadline_seconds": 60,
+  "blocking_scope": "E001_FULL_COLLECTION",
+  "idempotency_key": null,
+
+  "preconditions_verified_by_A": {
+    "e000_fast_verdict": null,
+    "e000_acceptance_checklist": ".agent_bus/landing_v2/E000_FAST_ACCEPTANCE.md (9항 + 3 추가조건)",
+    "c_qa_verdict": null,
+    "c_qa_fallback_used": false,
+    "global_hard_stop_count": 0,
+    "note": "세 조건 — B=E000_FAST_PASS · (C=MATCH 또는 C timeout 시 A fallback) · C0=0 — 이 전건 충족돼야 발행한다."
+  },
+
+  "authority_refs": {
+    "promoted_main_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+    "collector_sha": null,
+    "protocol_sha": null,
+    "target_frame_sha": null,
+    "task_frame_sha": null,
+    "measurement_schema_sha": null,
+    "firewall_gate_status_commit_sha": null,
+    "older_relevance_registry": {
+      "path": "research/landing_accessibility/control/OLDER_RELEVANT_KWCAG_SUBSET.md",
+      "control_sha": "333119e6821166cbba7c950203098f199f0fdc13",
+      "blob_sha": "85f506c248b577c5067d10802b894b65eecb74be",
+      "sha256": "da4b5208c91dd7634fc9e50d7a883674ad7666fc3828f359e4f428b3be863f8e"
+    },
+    "frozen_plan": {
+      "path": "research/landing_accessibility/shadow/e001_plan/E001_MASTER_PLAN.json",
+      "frozen_plan_hash": "b48be3cb5e2cb992c0b9ee44306a4f3bd3cee8fbd601de5f14ebb82f75a9e2bc",
+      "targets": 59,
+      "partitions": 4
+    }
+  },
+
+  "batch_zero_reuse": {
+    "allowed": null,
+    "condition": "collector SHA · protocol SHA · target frame · task frame · measurement schema 가 E000 과 **모두** 동일하면 E000 6 observations 를 E001 batch-0 으로 canonical reuse 한다 (TIMEBOX §7·§9).",
+    "if_any_changed": "영향 받은 target 만 production collector 로 재수집한다. C 가 PROVENANCE_DRIFT 로 감시한다.",
+    "e000_observation_ids": null
+  },
+
+  "requested_action": {
+    "B": [
+      "E001 4-worker 수집 개시 — frozen interleaved 순서 그대로, 재정렬 금지",
+      "12:15/13:00 체크포인트 산출 (경과분은 즉시)",
+      "13:50 에 **새 target 시작 중단** — 진행 중인 것은 끝낸다",
+      "타깃당 실측 wall-clock 과 CPU/RSS 를 첫 1~2건에서 보고 (워커 증설 판단용)"
+    ],
+    "C": [
+      "streaming QA 유지 — 배치 단위 manifest/해시체인/identity/plan 순서·partition/E-7/J1~J3 즉시 재계산",
+      "C0 후보는 즉시 SYSTEMIC_HARD_STOP_CANDIDATE 로 A 에게",
+      "C1 은 target/result id 명시하고 해당 unit quarantine, 수집은 계속",
+      "C2 는 backlog"
+    ]
+  },
+
+  "constraints": {
+    "prohibited_actions": "로그인 · 결제 · OTP · 본인인증 · PII · CAPTCHA 우회 금지. AUTH_GATE 도달은 관측 결과로 기록하고 통과하지 않는다.",
+    "l0_l1": "모든 run 에서 L0 와 L1 이 함께 (A0 §14 절대 축소 금지).",
+    "execution_mode_vocabulary": "{FIXTURE, SHADOW_DRY_RUN, REAL_TARGET} 3값만 (A2 S-3 닫힌 집합). E000/E001 구분은 provenance.shadow_lane 또는 run_id prefix 로.",
+    "outcome_blind": "frozen_plan_hash 유지. 결과를 보고 순서·표본을 바꾸지 않는다.",
+    "wall_clock_cap": "타깃당 360초. 초과는 TRANSPORT_FAILURE 로 기록하며 UNDETERMINED 로 세탁하지 않는다.",
+    "exclusion_taxonomy": "gate_reached_mpfed_null(대상의 성질) 과 transport/timeout/l1_not_attempted(우리 쪽 사정) 을 분리 집계한다. BLOCKED 는 gate 집합에서 제외하고 access-refusal 로 따로 센다.",
+    "global_hard_stop": "canonical source corruption · systemic evidence identity corruption · outcome-conditioned target contamination · systemic append-only corruption · systemic forbidden external action — 이 5종만. 그 외는 record · isolate · continue."
+  },
+
+  "downstream_gates": {
+    "13:50": "새 target 시작 중단 · analytic collection frame freeze (A 승인)",
+    "14:00": "AI ambiguity cutoff — 미해결은 UNDETERMINED freeze",
+    "14:10": "MART_FREEZE — A 가 row counts/keys/coverage/UNDET/input SHA/manifest 검증 후 MART_ACCEPTED",
+    "15:10": "core EDA/statistics 완료",
+    "15:35": "robustness + joint classification 완료",
+    "16:00": "claim registry + remediation case inputs",
+    "16:25": "all analysis stop",
+    "16:30": "final freeze"
+  },
+
+  "deadline": "2026-08-27T16:30:00+09:00"
+}

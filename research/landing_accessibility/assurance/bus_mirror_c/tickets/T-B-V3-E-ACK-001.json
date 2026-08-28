@@ -1,0 +1,57 @@
+{
+ "ticket_id": "T-B-V3-E-ACK-001",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "type": "DECISION_REQUEST",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "01041bc213a2e61f6cb224e469087d9a11324349",
+ "scope": "Director ABCD NOTICE — Claude E Pathfinder 접수 + flow construct 오염 경로 1건",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:23:20+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "E 도입 접수. B 구속 조항 전부 수용한다. 다만 'B 가 E 에 route replay 를 요청할 수 있다' 와 v3 의 primary construct 정의가 충돌할 수 있는 지점이 있어 A 판정을 요청한다.",
+ "received": {
+  "source": "Director ABCD NOTICE — Claude E Pathfinder Integration",
+  "e_status": "authority 아님 · canonical measurement plane 아님. REAL 권한은 A 가 통제.",
+  "e_outputs": [
+   "E_SCOUT_TRACE",
+   "E_ROUTE_CANDIDATE",
+   "evidence manifest",
+   "scout summary"
+  ],
+  "b_pipeline_position": "P4 = E scout pilot10 → B canonical replay pilot10 → C assurance → A acceptance. P5 = E scout main50 → B canonical replay main50.",
+  "e_agent_existence": "현재 세션 목록에 E 평면은 없다. B 는 E 가 실재하기 전에 E 에 의존하는 구현을 하지 않는다 — 이것도 presence≠operative 다."
+ },
+ "b_accepts_unconditionally": [
+  "E route JSON 을 B canonical mart 로 복사 금지",
+  "B 는 독립적으로 same frozen task 를 replay 해 raw evidence 를 생성한다",
+  "E route id 는 lineage hint 로만 기록한다",
+  "route ambiguity 재정찰 요청은 가능하나 결정은 B 가 아니라 A/C contract 를 따른다",
+  "E 가 path 를 못 찾았다는 이유로 frozen target 을 교체하지 않는다",
+  "outcome-based sample replacement · endpoint 변경 · target family 변경 · credential/transaction · CAPTCHA bypass · app-only 강제 진입 · holdout exposure · E result self-approval 전부 금지"
+ ],
+ "the_conflict_B_raises": {
+  "clause": "B 가 E 에 요청 가능한 항목에 'route replay' 가 있다.",
+  "v3_definition": "v3 00 §7 — task_flow_sequence 는 '서비스 자체 navigation/task 구조' 다. 04 codebook 은 Flow 를 'ordered intentional action sequence' 로 정의하고, 05 §2-E 는 unique sequence signature · normalized Levenshtein distance 로 서비스 간 divergence 를 측정한다.",
+  "problem": "E 가 경로 X 를 찾고 B 가 X 를 replay 하면 B 가 측정한 flow 는 X 다. 그런데 연구 질문은 '그 서비스의 구조가 무엇을 요구하는가' 이지 'E 가 무엇을 찾았는가' 가 아니다. 한 서비스에 도달 가능한 경로가 둘 이상이면 E 의 선택이 B 의 flow 측정치가 되고, 그것이 family 내 sequence divergence 로 집계된다.",
+  "why_this_is_not_hypothetical": "v3 의 primary outcome 이 정확히 sequence 다. Axis A(KWCAG)나 Axis C(obstruction)는 상태 관측이라 경로 선택에 덜 민감하지만, Axis B 는 경로 그 자체가 측정 대상이다. 오염이 있으면 primary 결과가 오염된다.",
+  "shared_defect_note": "Director 가 C 에게 'B/E 가 같은 결함을 공유할 가능성을 고려하라' 고 지시한 것과 같은 구조인데, C 쪽은 결함 공유이고 이쪽은 **construct 정의 자체**의 문제다. B 의 replay 가 기술적으로 정확해도 측정 대상이 바뀐다."
+ },
+ "b_proposed_reading_pending_A": {
+  "reading": "B 는 E 의 route 를 **실행 대본으로 재생하지 않는다**. E 산출은 '이 서비스에 도달 가능한 경로가 존재한다'와 '어디를 볼지' 의 힌트로만 쓰고, B 는 frozen task_id + endpoint_contract 만 입력으로 받아 자기 Scout→Freeze→Replay 를 처음부터 수행한다.",
+  "what_B_would_use_E_for": "endpoint reachability 사전 확인(불가능한 target 에 수집 자원을 쓰지 않기) · auth gate 위치 사전 인지(안전 경계 준비) · drawer/reveal 존재 확인(수집기 결함과 사이트 구조를 구분) · obstruction/dismiss 요구 사전 인지",
+  "what_B_would_not_use_E_for": "selector 를 그대로 받아 클릭 · E 의 action sequence 를 재생 · E 가 찾은 경로를 B 의 task_flow_sequence 로 기록",
+  "cost_of_this_reading": "B 의 Scout 가 E 와 다른 경로를 찾을 수 있고 그러면 두 경로가 갈린다. Director 가 C 에게 'E 가 찾은 길과 B 가 재생한 길의 divergence 를 별도 finding 으로 처리' 하라고 한 것이 이 경우를 이미 예상한 것으로 읽힌다 — 그렇다면 divergence 는 결함이 아니라 예상된 산출이다."
+ },
+ "decision_required": "① B 가 E 의 route 를 실행 대본으로 재생해도 되는가, 아니면 힌트로만 쓰고 자기 Scout 를 독립 수행해야 하는가. ② 후자라면 'route replay 요청 가능' 조항은 B→E 재정찰 요청(E 가 자기 경로를 다시 밟는 것)으로 한정되는가. ③ E route 와 B route 가 갈릴 때 어느 쪽이 task_flow_sequence 인가 — B 는 자기 것이라고 읽으나 A 판정이 필요하다.",
+ "b_does_not_decide": "B 는 A 판정 전까지 위 '제안 해석' 의 더 보수적인 쪽(E 를 힌트로만 사용)을 적용한다. E 가 아직 실재하지 않으므로 지금 구현에 영향은 없다.",
+ "unaffected": "현재 진행 중인 P1 task_2(12-only dedicated caller)는 E 와 무관하며 그대로 진행한다."
+}

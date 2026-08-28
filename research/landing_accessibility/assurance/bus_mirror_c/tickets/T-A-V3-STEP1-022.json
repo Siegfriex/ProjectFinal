@@ -1,0 +1,58 @@
+{
+ "ticket_id": "T-A-V3-STEP1-022",
+ "from": "A",
+ "to": [
+  "D"
+ ],
+ "cc": [
+  "B",
+  "C",
+  "E",
+  "DIRECTOR"
+ ],
+ "type": "DIRECTIVE",
+ "priority": "P2",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "af2b28334ca60af15c312ce208b1b7263e3201cc",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T04:18:00+09:00",
+ "completed_at_kst": null,
+ "scope": "D allowlist 확대 — 판정 색인·delta 2파일. 색인 대조에 세 번째 독립 독자를 둔다",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json (Δ6-a)",
+ "headline": "D 가 짚었다 — **색인이 v1→v5 로 다섯 번 갱신되는 동안 매번 다른 평면의 정직한 보고가 A 의 오류를 드러냈다.** 그런데 D 는 방화벽 때문에 그 대조에 참여할 수 없었다. 확대한다.",
+ "the_observation_D_made": {
+  "v2": "C 의 delta 대조 — 누락 7·충돌 1·근거부재 1",
+  "v3": "C 의 NOT_TESTABLE 매핑이 due 오류를 드러냄",
+  "v4": "C 의 자기정정이 복합 요구 2건을 드러냄",
+  "v5": "B 의 FC-015 가 Δ20 전제 오류를 드러냄",
+  "and": "D 는 allowlist 밖이라 참여하지 못했다. **다섯 번 중 D 가 볼 수 있었으면 몇 번 더 잡혔을지 알 수 없다**"
+ },
+ "safety_check_before_extending": {
+  "criterion": "FINAL_MAIN50_MANIFEST 에 적용한 것과 같다 — **평가 결과·라벨·holdout 유래 정보가 없으면 허용**한다",
+  "method": "A 가 실측했다. 그리고 **양성대조를 먼저 확보했다**",
+  "positive_control": "`wtg_` 는 control 트리 34개 파일에서 발화(label/PACKET_L1.json 만 32건) · `0.188` 은 4개 파일에서 발화. **검색이 정상 동작한다**",
+  "result": "그 상태에서 `V3_0_1_SUCCESSOR_DELTA.md` 와 `V3_RULING_INDEX.json` 둘 다 `wtg_` 0 · 노출 서비스명 0 · `0.188` 등 평가 수치 0",
+  "why_the_positive_control_mattered": "A 의 1차 검사는 대조 파일에서도 0 이 나와 **검색이 동작하는지 알 수 없는 상태였다.** 그대로 0 을 근거로 접근을 확대했으면 T-A-FC-003 형태의 오류였다"
+ },
+ "extension": {
+  "allowed_add": [
+   "research/landing_accessibility/control/v3/V3_RULING_INDEX.json",
+   "research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md"
+  ],
+  "already_allowed": [
+   "control/v3/FINAL_MAIN50_MANIFEST.json",
+   "control/v3/FINAL_MAIN50_MANIFEST.sha256.json"
+  ],
+  "still_denied": "control/** 의 나머지 전부. 특히 label/ · pilot/ · r0/ · 평가 결과 일체",
+  "lapse_condition": "이 두 파일이 평가 결과·라벨·holdout 유래 정보를 담게 되면 **예외 즉시 소멸.** A 가 delta 에 그런 내용을 쓰려 하면 별도 문서로 분리한다"
+ },
+ "what_D_should_do": {
+  "primary": "색인↔delta 대조. C 와 **서로 참조 없이** 독립 수행한다 — 두 대조가 일치하면 그것이 실증이고 갈리면 A 가 본다",
+  "also": "delta↔발행 티켓 대조(Δ21). 이번 Δ19·Δ20 누락이 그 대조로만 잡히는 형태였다",
+  "not": "D 는 여전히 판정하지 않는다. 불일치를 관측해 올린다",
+  "read_only": "수정 금지. D 는 이 두 파일에 write 하지 않는다"
+ },
+ "why_a_third_reader": "색인은 다섯 번 틀렸다. **A 가 쓰고 C 가 검사하는 구조에서 A 와 C 가 같은 것을 놓치면 아무도 못 잡는다** — Δ12 가 말한 '덮이지 않는 층'이다. 독립 독자를 하나 더 두면 그 층이 얇아진다. 없애지는 못한다",
+ "decision_required": null,
+ "expected_response": "D: 접근 확인 후 색인↔delta·delta↔티켓 대조 1회. C 와 결과를 사전 공유하지 않는다"
+}

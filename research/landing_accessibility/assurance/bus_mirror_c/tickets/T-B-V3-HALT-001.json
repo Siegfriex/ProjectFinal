@@ -1,0 +1,64 @@
+{
+ "ticket_id": "T-B-V3-HALT-001",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "b094eaa2b0a957b69eecc015332c45a0dcc10bf9",
+ "scope": "STEP 1 중단 — 세션 한도. 결함 아니며 상태를 동결해 재개 가능하게 남긴다.",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T06:45:02+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "잔여 3 워커(W5I·W5J·W5K)가 API 세션 한도로 동시 중단됐다(HTTP 429, 06:40 KST 리셋). **외부 제약이며 구현 결함이 아니다.** 완료 10 lane 은 push 돼 있고 손실 없다.",
+ "halt_facts": {
+  "cause": "rate_limit HTTP 429 — 'You've hit your session limit · resets 6:40am (Asia/Seoul)'. 세 워커가 같은 순간에 같은 이유로 종료됐다.",
+  "not_a_defect": "코드·계약·판정 어느 것과도 무관하다. B 가 이것을 결함으로 서술하지 않는다.",
+  "no_loss": "완료 10 lane 은 전부 origin 에 push 됐다. 중단된 것은 미완 작업뿐이다."
+ },
+ "frozen_state": {
+  "completed_and_pushed": {
+   "W5A claude-b/w5a-task-registry": "056fe5f72b39 — contracts.py · registry.py",
+   "W5B claude-b/w5b-flow-normalize": "6085f0b16f1a — flow.py (Δ15·Δ9·Δ10 반영, 771 passed)",
+   "W5C claude-b/w5c-surface-measure": "8285bd869a23 — surface.py (1230 passed)",
+   "W5D claude-b/w5d-obstruction": "f388134cfedc — obstruction.py · terminal.py (661 passed)",
+   "W5E claude-b/w5e-v3-fixtures": "8496c700f6e0 — fixture 13종 + 판별 행렬 (704 passed)",
+   "W5F claude-b/w5f-runner-core": "e8d8829c15c4 — runner.py · evidence.py (741 passed)",
+   "W5G claude-b/w5g-v3-safety": "022729c7237d — safety.py (598 passed)",
+   "W5D1 claude-b/w5d1-task-discovery": "f4cb83fc8e33 — discovery.py · scout_strategy.py (1085 passed)",
+   "W5H claude-b/w5h-session-driver": "e535ae021b44 — session.py (2064 passed)",
+   "W5I claude-b/w5i-ax-join": "bdb5009c08ba — ax_join.py + l0_collector.py 가산 수정(삭제 0/추가 34). **완료 보고 미수신**"
+  },
+  "interrupted": {
+   "W5J claude-b/w5j-scroll-state": "**미push.** 중단 직전 판단을 남겼다 — 'B 판단이 옳다. W5H 의 capture_surface 가 같은 층이다. 열거 모듈을 버리고 fixture 를 남긴다.' 즉 중복 판정은 끝났고 산출만 미완이다.",
+   "W5K claude-b/w5k-seam-integration": "**미push.** 중단 직전 — 'INTERFACE.md 에 §7(C 의 v2 7종)과 R22 를 추가 중. 먼저 7종 각각을 병합 트리에 대고 실측 중.'",
+   "W5I": "push 는 됐으나 완료 보고 미수신. 중단 직전 — 'R22 구현 중 — W5H 의 session.py 를 포함한 계층 지문.'"
+  },
+  "integration": "claude-b/diag-pilot-integration b094eaa2b0a9 — **10 lane 미병합 상태.** B 의 시험 병합은 검증 워크트리에만 있고 push 하지 않았다.",
+  "index_at_halt": "V3_RULING_INDEX.json sha 8f1374e7b70a0675(v5, 56항) @ control efdda7d0f897"
+ },
+ "what_B_verified_before_halt": {
+  "trial_merge": "8 lane 시점 — 충돌 0(`v3_runner/__init__.py` 3종만 add/add, W5A 73줄 채택으로 해소) · 10 모듈 import 전건 성공 · **1908 passed / 0 failed**",
+  "W5I_additivity": "l0_collector.py **삭제 0줄 / 추가 34줄**, l0_probe.js 무수정(386932995003ad7e, base 동일). A 조건 ①이 diff 로 증명된다.",
+  "W5H_claims": "engine 두 파일 바이트 동일 확인 · scroll 열거를 자기 파일 page.evaluate 로 수행 확인 · v3 fixture **13/13 이 body{overflow:hidden}** 확인",
+  "index": "v4 9605bf9c337ab527(53항)·v5 8f1374e7b70a0675(56항) B 독립 재계산 일치. B 소관 21항 중 GATE1 due 17항 식별"
+ },
+ "open_when_resumed": [
+  "W5I 완료 보고 — base 회귀 수 대조 · 조인 성공률 · R22 반영",
+  "W5J — 열거 모듈 폐기 + 커밋 스크롤 fixture(Δ22-scrollfix) 산출",
+  "W5K — seam 1 실물 연결(실물 runner × 실물 guard) · seam 2 contracts.py 정본화 + input_mode · seam 3 실측 · INTERFACE.md(C v2 7종 PRESENT/ABSENT/PARTIAL 표기 + R22)",
+  "B — 11 lane 최종 병합 · 색인 기준 21항 대조표 · COMPLETION 발행",
+  "C — GATE 1 (adapter map UNMAPPED 10 = 스펙 공백)"
+ ],
+ "real_target": "NO-GO. 이 세션 실사이트 접속 **0건**. 중단이 그 상태를 바꾸지 않는다.",
+ "b_does_not_claim": "B 는 중단된 3 워커의 산출을 예측하지 않는다. W5J 의 중복 판정만 워커가 명시적으로 남기고 죽었으므로 그것만 기록한다.",
+ "decision_required": null
+}

@@ -1,0 +1,55 @@
+{
+ "ticket_id": "T-B-V3-DR-002",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "type": "DECISION_REQUEST",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "8496c700f6e0c8d06b90f623b8906353818508e7",
+ "scope": "04 codebook 공백 6건 — 그중 2건은 lane 간 조용한 불일치를 만든다",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T03:13:52+09:00",
+ "completed_at_kst": null,
+ "target_manifest_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "headline": "W5E 가 fixture 13종을 만들며 04 공백 7건을 골랐다. 1건은 A 의 Δ8-R7 로 이미 해소됐다(B 전달 누락). 나머지 6건 중 GAP-06·07 은 지금 정하지 않으면 lane 마다 다른 가정으로 구현돼 나중에 schema mismatch 로 나타난다.",
+ "b_dispatch_failure_first": {
+  "what": "GAP-01(좌표→entry_zone 임계)은 A 가 T-A-V3-STEP1-003 R7 로 이미 확정했다 — y 삼등분 · TOP 내 x 삼등분 · [a,b) 경계 · FLOATING/DRAWER structural override · override 시에도 원좌표 저장.",
+  "why_W5E_did_not_know": "B 가 R7 을 W5C(surface 측정)에만 전달하고 W5E(fixture)에는 전달하지 않았다. B 의 전달 누락이다 — R7 은 fixture 의 expected_values 에도 직접 걸린다.",
+  "consequence": "W5E 가 13종 중 2종(left/right_drawer)만 entry_zone 을 선언하고 나머지 11종은 미선언으로 남겼다. 결함이 아니라 **정보 부재 상태의 올바른 처리**다 — 지어내지 않았다.",
+  "b_action": "W5E 에 R7 전문을 즉시 전달했다. 재작업 범위는 expected_values 보강이며 fixture HTML 자체는 바꿀 필요가 없을 것으로 본다(판단은 W5E)."
+ },
+ "GAP_06_and_07_are_the_blocking_pair": {
+  "GAP-06": "중첩 reveal 에서 nav_container_type 을 **어느 컨테이너로 기록하는가.** 02 §3 은 값 하나만 기록한다. hamburger 안에 accordion 이 있으면 HAMBURGER 인가 INLINE_EXPAND 인가.",
+  "GAP-07": "reveal-gated control 의 entry_* 를 **S0 기준으로 기록하는가 reveal 이후 기준인가.** 04 §4 가 entry_label_modality 에 HIDDEN_UNTIL_REVEAL 토큰을 두었다는 것은 S0 기준을 시사하는데, 그러면 **같은 행의 entry_x_norm 이 무엇인지 불분명하다** — S0 에서는 그 control 이 화면에 없다.",
+  "why_blocking": "W5E 가 명시했다 — 'GAP-06/07 은 W5B/W5C/W5D 의 구현 선택과 직접 충돌할 수 있어 A 결정 전에 서로 다르게 가정하면 나중에 schema mismatch 로 나타난다.' B 가 동의한다. 이건 값이 틀리는 문제가 아니라 **같은 행의 필드들이 서로 다른 시점을 가리키는** 문제다.",
+  "W5E_current_assumption": "modality 만 HIDDEN_UNTIL_REVEAL 로 두고 나머지 entry_* 는 reveal 이후 관측값으로 선언한 뒤 fixture 별로 가정을 명시했다. **가정을 드러낸 것이 옳은 처리**이나 W5C 가 다른 가정을 하면 갈린다.",
+  "b_has_not_resolved_it": "B 는 이 둘을 임의로 정하지 않는다. 조작화이고 A 권한이다. 다만 A 결정 전까지 lane 들이 **각자 가정을 명시하도록** 지시했다 — 조용히 갈리는 것보다 드러난 채 갈리는 편이 낫다."
+ },
+ "remaining_gaps": {
+  "GAP-02": "reveal 로 노출되거나 가려진 control 의 first_visible_scroll_state 가 S0 인지 NULL 인지 04 가 정하지 않는다. 부수 관측: 13종 전부 한 뷰포트에 들어가 S1 이 생기지 않는다 — **Director 지정 fixture 목록에 스크롤 fixture 가 없어 03 §3 의 scroll-only surface capture 를 이 집합으로 검증할 수 없다.** 이것은 A 결정 사항이라기보다 fixture 집합의 커버리지 한계이며 B 가 그대로 보고한다.",
+  "GAP-03": "flow_step_count 가 ENDPOINT_REACHED 같은 terminal 토큰을 세는가. **W5B 는 KL-05 에서 포함으로 결정했고**(근거: AUTH_GATE 가 포함되는 이상 같은 terminal 표지를 비대칭 처리할 근거가 없다) W5E 는 절대값 확정 불가로 보아 어느 fixture 에서도 선언하지 않았다. 두 lane 이 다른 위치에 있다. A 의 Δ9 는 activation_depth 만 확정했고 flow_step_count 는 다루지 않았다.",
+  "GAP-04": "미관측 entry_*·occlusion 의 NULL 표기 규약(02·04 침묵). A 의 Δ10-R13 이 auth_gate_stage 에 UNDETERMINED 를 넣으며 '어떤 변수든 없음을 적으려면 관측했다는 증거가 있어야 한다' 를 전 변수 원칙으로 세웠다 — 그 원칙의 entry_* 적용이 이 GAP 이다.",
+  "GAP-05": "occlusion → s0_task_control_visible 임계. 얼마나 가려지면 '보이지 않는다' 인가."
+ },
+ "what_W5E_did_that_B_wants_recorded": {
+  "1": "contrast_pair 상호참조가 13종 전부에서 일관한다 — B 가 독립 검사했다. 6쌍 + 짝 없음 1(evidence_defect, 사유 명시). **13 은 홀수라 최소 1개가 남는다**는 것을 W5E 가 먼저 적었다.",
+  "2": "**태그 시퀀스 완전 일치 쌍 4개** — icon_only(aria-label 유무) · left/right_drawer(앵커·translateX 부호) · task/login_first_auth(hidden 속성 위치) · bottom_sheet/modal_obstruction(노드 역할만 다름). 판별 대상 하나만 다르다는 것이 구조적으로 보장된다.",
+  "3": "검증기가 공허하지 않음을 mutation 4건으로 확인했다 — 짝에 노드 추가 / 04 에 없는 값 삽입 / 짝 상호성 파괴 / 좌표 선언 위조. 전부 잡혔다. **테스트가 통과한다는 것과 테스트가 무언가를 잡는다는 것은 다르다**는 이 세션의 규율이 적용됐다.",
+  "4": "Playwright 실렌더 대조로 자기 fixture 결함 2건을 찾아 고쳤다 — transform 조상 안의 position:fixed 가 뷰포트 기준이 아니게 되는 것(bottom_sheet y=1145 로 뷰포트 밖), 1px border 가 right_drawer 만 x 를 1px 밀어 '방향만 다른 짝' 이 아니게 된 것. **선언 좌표와 실렌더 좌표를 대조하지 않았으면 둘 다 조용히 남았다.**",
+  "5": "evidence_defect 를 실측 확인했다 — DOM querySelector 는 button 을 못 찾고 shadowRoot 도 null 인데 Chrome AX full tree 에는 이름 있는 button 이 있다. **DOM probe 와 AX probe 가 서로 다른 사실을 보고하는 상태**이며 어느 쪽이든 03 §5 Freeze 의 raw selector 를 만들 수 없다."
+ },
+ "coverage_honestly_stated": {
+  "isolated_by_pair": "16 필드 — s0_task_control_visible · entry_x_norm · entry_y_norm · entry_control_type · entry_label_modality · accessible_name · accessible_name_source · label_relation · nav_container_type · reveal_direction · menu_dependency · nav_container_depth · activation_depth · auth_gate_stage · forced_dismissal_count · task_control_occlusion",
+  "not_isolated": "endpoint_status · visible_label_text — 값은 갈리나 원인이 여러 조작에 섞여 '측정기가 이걸 재고 있다' 를 이 집합만으로 단정할 수 없다",
+  "never_varying": "entry_zone · first_visible_scroll_state · flow_step_count — 전부 원인이 codebook 공백이지 fixture 설계 누락이 아니다(단 entry_zone 은 B 전달 누락이 겹쳤다)",
+  "unreachable_enum_values": "이 집합이 만들어내지 못하는 04 토큰이 다수 있다 — label_relation 의 SEMANTIC_EQUIV/DIFFERENT/VISIBLE_ONLY · accessible_name_source 6종 · entry_control_type 8종 · nav_container_type 3종 · reveal_direction 2종 · auth_gate_stage 의 AT_ENDPOINT · endpoint_status 4종. task_control_occlusion 도 0.0/1.0 만 나와 부분 가림(0<v<1)의 분자·분모는 미검증이다. **GATE 1 이 이 집합만으로 통과하면 그 값들은 검증되지 않은 채 남는다.**"
+ },
+ "decision_required": "GAP-02 · GAP-03 · GAP-04 · GAP-05 · GAP-06 · GAP-07. 특히 GAP-06·07 은 lane 간 조용한 불일치를 막기 위해 다른 것보다 먼저 필요하다."
+}

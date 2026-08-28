@@ -1,0 +1,48 @@
+{
+  "ticket_id": "D-V3-FINDING-006",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A"
+  ],
+  "type": "FINDING",
+  "priority": "P2",
+  "claim_kind": "OBSERVATION",
+  "base_sha": "f388b6adef6a0590c5a7cc6522885ccc043c6770",
+  "scope": "D 의 frame 감사 접근 제약 — 지금 알려야 나중에 막히지 않는다",
+  "status": "OPEN",
+  "created_at_kst": "2026-08-28T02:45:48+09:00",
+  "task_family_id": null,
+  "target_manifest_sha256": "25ce482ddb13269168a0b07c79726c9e1297afc9c7522c125d8b350b3717af1b",
+  "depends_on": [
+    "T-A-V3-STEP1-FREEZE"
+  ],
+  "evidence": [
+    "research/landing_accessibility/research_d/D_INPUT_ALLOWLIST.json"
+  ],
+  "payload": {
+    "finding_class": "ACCESS_CONSTRAINT",
+    "fact": "D 의 입력 방화벽은 research/landing_accessibility/control/** 전체를 denied 로 둔다. 사유는 'A control 전체를 무비판적 연구입력으로 읽지 않는다' 이며 holdout 유래 지시가 control 아래 있었던 이력에서 나왔다.",
+    "consequence": "동결된 control/v3/FINAL_MAIN50_MANIFEST.json 을 D 가 열 수 없다. 따라서 Director packet §3 의 frame construct audit(§3.1 matched-task equivalence · §3.2 endpoint laundering · §3.3 replacement bias)을 D 가 동결 manifest 원문 기준으로는 수행할 수 없다.",
+    "what_d_can_still_do": "SSOTV3 01 §4 의 50 candidate 표와 §2 의 5 family task/endpoint 는 allowlist 안(SSOTV3/**)이라 읽을 수 있다. D 는 이미 endpoint 원문 바이트를 관측 전에 동결해 두었다(D-V3-FINDING-004, ruling_12 로 P2 provenance control 채택). 즉 **SSOT 기준 감사는 가능하고 동결 manifest 기준 감사는 불가능**하다.",
+    "why_this_matters_now": "STEP 3 이나 C 요청 시점에 발견하면 그때 막힌다. 지금 알리면 세 선택지 중 하나를 미리 고를 수 있다.",
+    "options_for_A_and_C": [
+      "(a) 아무것도 바꾸지 않는다 — D 는 SSOT 기준으로만 감사하고 '동결 manifest 원문 미열람' 을 limitation 에 명시한다. 방화벽이 가장 강하게 유지된다.",
+      "(b) C 가 필요한 필드만 추출해 D 에 전달한다 — D 는 control 을 열지 않고 C 가 매개한다. 추출 자체가 C 의 산출이므로 provenance 가 남는다.",
+      "(c) A 가 FINAL_MAIN50_MANIFEST.json 한 파일에 한해 allowlist 예외를 발행한다 — 예외는 파일 단위여야 하고 control/** 전체를 여는 것이 아니어야 한다."
+    ],
+    "d_recommends_nothing": "D 는 자기 방화벽을 스스로 완화하지 않는다. 셋 중 무엇을 고를지는 A 권한이며 D 는 선택지만 제시한다.",
+    "d_has_not": [
+      "control/ 아래 어떤 파일도 열지 않았다",
+      "동결 manifest 의 target 목록을 추정하거나 재구성하지 않았다",
+      "frame 에 대한 어떤 선발·교체 의견도 내지 않았다"
+    ],
+    "emission_defect_note": "이 티켓의 첫 판본에서 두 필드가 비어 나갔다. heredoc 이 백틱을 셸 치환해 경로 문자열이 삭제됐다. 커밋 메시지에서 같은 함정을 겪고 git commit -F 로 바꿨는데 JSON heredoc 에서 재발했다. 발행 직후 자기검사로 잡아 같은 ticket_id 안에서 정정한다 — 아직 아무도 ACK 하지 않았고 내용을 채우는 정정이지 판정을 바꾸는 수정이 아니다. 앞으로 티켓 본문은 heredoc 이 아니라 python 으로 쓴다."
+  },
+  "decision_required": "frame audit 시 D 의 동결 manifest 접근 방식 — (a) SSOT 기준만 / (b) C 매개 추출 / (c) 파일 단위 allowlist 예외",
+  "limitation": "이 티켓은 접근 경로에 대한 것이고 frame 의 construct 타당성에 대해서는 어떤 주장도 하지 않는다.",
+  "d_is_not_authority": true,
+  "authority": "NON_CANONICAL"
+}

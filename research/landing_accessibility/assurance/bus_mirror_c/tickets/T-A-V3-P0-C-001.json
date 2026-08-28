@@ -1,0 +1,52 @@
+{
+ "from": "A",
+ "priority": "P0",
+ "claim_kind": "AUTHORITY",
+ "base_sha": "5c22faebaeb6699049fc9af5646f8b492b6a4068",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T02:12:00+09:00",
+ "completed_at_kst": null,
+ "task_family_id": null,
+ "target_manifest_sha256": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "ticket_id": "T-A-V3-P0-C-001",
+ "type": "DIRECTIVE",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A"
+ ],
+ "scope": "P0 C audit + P1 assurance harness 병렬 준비",
+ "headline": "Director 지시 3 항 — METHODOLOGY_PRESERVED.md 와 V3 pack 의 모순을 C 가 독립검증한다. A 의 대조는 A 의 자기판정이므로 근거가 되지 않는다.",
+ "task_1_contradiction_audit": {
+  "targets": [
+   "control/method/METHODOLOGY_PRESERVED.md (@5c22faeb, 286행)",
+   "SSOTV3/ 21 파일 (@원본, 무수정)"
+  ],
+  "question": "METHODOLOGY_PRESERVED §1~§8 중 v3 가 폐기·완화·재해석하는 항목이 있는가. A 는 '0 건'이라고 판정했다 — 이를 사실로 받지 말고 독립 재검토하라.",
+  "method_requirement": "§1~§8 각 항목에 대해 v3 21 파일 중 대응 조항을 exact 인용으로 지목하거나, 대응 없음을 명시하라. '대응 없음'이 곧 폐기는 아니다 — 구분해서 보고할 것.",
+  "negative_control": "A 가 §0 에서 '보존하지 않는다'로 분류한 항목(7 archetype·MPFED/NED/IED·OverlayCoverage·59 frame·W1~W4 범위·0.85/0.75)이 v3 에서 실제로 강등·대체됐는지도 확인하라. 그중 하나라도 v3 main critical path 에 남아 있으면 A 의 supersession 판정이 틀린 것이다."
+ },
+ "task_2_pack_audit": {
+  "recompute": "SSOTV3 20 파일 sha256 + byte length 독립 재계산. A(0/20)·D(0/20) 의 숫자를 import 하지 말 것",
+  "authority_audit": "v3 팩이 스스로 선언한 권위경계(00 §13 · 09 D3-20 · README)와 A 의 V3_REFREEZE_DECISION 이 일치하는지. A 가 팩보다 넓은 권한을 주장하면 blocker",
+  "successor_check": "control/v3/V3_0_1_SUCCESSOR_DELTA.md 의 Δ1~Δ5 가 v3.0 원본을 덮어쓰지 않고 delta 로만 존재하는지 확인. 원본 20/20 이 여전히 일치해야 한다"
+ },
+ "task_3_parallel_P1_harness": {
+  "why_now": "Wave 1 §5 — B 가 구현하는 동안 C 를 기다리게 두지 않는다. 이것은 offline 준비이며 REAL 이 아니다",
+  "prepare": [
+   "fixture harness",
+   "allow12 / outside deny / tamper deny 3방향",
+   "음성대조(양성대조가 발화하는 상태에서 얻은 0 인지)",
+   "duplicate/idempotency harness",
+   "release document binding",
+   "manifest hash binding",
+   "--check-only 경로",
+   "E001_FULL regression unchanged 확인 경로"
+  ],
+  "hard_constraint": "B 의 expected output 을 import 해 검증하지 않는다. 같은 exact B SHA 에서 독립 재실행한다.",
+  "not_yet": "P1 REAL 실행은 A 의 12 REAL GO 이전 금지"
+ },
+ "decision_required": "task_1 verdict: CONFIRMED / CONTRADICTION_FOUND. CONTRADICTION_FOUND 면 hard stop 후보로 즉시 올릴 것"
+}

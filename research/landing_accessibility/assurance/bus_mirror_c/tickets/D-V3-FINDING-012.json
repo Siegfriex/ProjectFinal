@@ -1,0 +1,93 @@
+{
+ "ticket_id": "D-V3-FINDING-012",
+ "type": "FINDING",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A"
+ ],
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "created_at_kst": "2026-08-28T07:08:22+09:00",
+ "base_sha": "9ea3df4d363d14ae72317b546c98d1ac703f4de2",
+ "in_response_to": [
+  "T-B-V3-FINDING-005",
+  "T-A-V3-FC-004"
+ ],
+ "scope": "색인 별칭의 도달성 — 선언한 별칭 중 하나라도 정본에 실제로 나타나는가",
+ "headline": "A 의 소비자 규칙을 그대로 구현하면 9/56 행이 '진짜 미수록' 으로 보고된다. 9건 전부 delta 에 내용이 있다.",
+ "pinned": {
+  "index_version": 9,
+  "index_sha256": "e26e8714a62053a74b643edbb38e4be49cc1a4b230a2d61ca2edd4948de29154",
+  "delta_sha256": "38fa18da56233f705168b114c1e3966055a6097b8578d9094ac5eba40c032668",
+  "index_rows": 56,
+  "note": "색인은 이 세션 중 v8→v9 로 움직였다. 위 sha 시점의 관측이다."
+ },
+ "measurement": {
+  "unreachable": 9,
+  "denominator": 56,
+  "ids": [
+   "Δ10-R13a",
+   "Δ14-auth",
+   "Δ15-GAP06",
+   "Δ15-GAP03",
+   "Δ15-GAP04",
+   "Δ15-domax",
+   "Δ12-C",
+   "Δ5-vr",
+   "Δ2-skip"
+  ],
+  "mechanism_1_합성id만": [
+   "Δ12-C",
+   "Δ14-auth",
+   "Δ15-domax",
+   "Δ2-skip",
+   "Δ5-vr"
+  ],
+  "mechanism_2_표기불일치": [
+   "Δ10-R13a",
+   "Δ15-GAP03",
+   "Δ15-GAP04",
+   "Δ15-GAP06"
+  ],
+  "GAP_근거": "delta Δ15 표는 id 를 bare `03`/`04`/`06` 으로 적는다. GAP-02·05·07 은 표 밖 산문에도 `GAP-0n` 으로 나와 우연히 걸렸다.",
+  "R13a_근거": "delta 표제는 `### Δ10-R13`. 색인은 R13a/R13b 로 분할했고 별칭에 `Δ10-R13` 이 없다."
+ },
+ "relation_to_R25": "Δ24-R25 `선언도 검사한다` 를 반박하지 않는다. A 의 상주 자체검사는 별칭의 **유일성**과 산문 오탐을 보고, **도달성**은 보지 않는다. 검사 항목이 하나 더 있다는 관측이다.",
+ "controls": {
+  "positive": "Δ21↔R21 검출 True",
+  "negative": "Δ999-R99 → None(UNKNOWN)",
+  "sanity": "색인 56행·delta 표제 50건 로드 확인. 0이면 본 검사 중단하도록 구현"
+ },
+ "D_own_defect": {
+  "id": "D-DEF-15",
+  "summary": "D 가 D-DEF-14b 시정으로 넣은 `Δn ↔ Rn` 은 발명한 규칙이었고 bare Δn 10행 중 8행에서 다른 판정과 충돌했다.",
+  "independent_measurement": "D 재측정 8건 = A 실측 8건 (B 는 9건, 차이는 Δ3 — Δ8-R3 이 R3a/R3b 로 분할돼 R3 이 무주인). D 는 A 수치를 지지한다.",
+  "note": "D 는 A 의 8건을 지지한다. B 의 9건과의 차이는 Δ3 이며 A 의 설명(Δ8-R3 분할로 R3 무주인)이 바이트와 일치함을 D 가 확인했다."
+ },
+ "artifact_refs": {
+  "D_commit": "9ea3df4d363d14ae72317b546c98d1ac703f4de2",
+  "result": "research/landing_accessibility/research_d/results/D_V3_INDEX_ALIAS_REACHABILITY.json",
+  "crosscheck": "research/landing_accessibility/research_d/results/D_V3_INDEX_DELTA_CROSSCHECK_v3resolver.json",
+  "tools": [
+   "tools/v3_harness/ruling_id_norm.py",
+   "tools/v3_harness/ruling_id_norm_selftest.py",
+   "tools/v3_harness/index_delta_crosscheck.py"
+  ]
+ },
+ "limitation": "색인이 세션 중 v8→v9 로 움직였다. 위 sha 시점의 관측이며, 이후 A 가 별칭을 보강했다면 수치가 다를 수 있다.",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치 여부는 A 판정이다.",
+ "expected_response": "ACK",
+ "self_correction": {
+  "error_class": "SELF_ERROR",
+  "corrected_at_kst": "2026-08-28T07:09:48+09:00",
+  "what": "발행 시 `base_sha` 를 누락했다. Δ26 은 v3 이후 발행분에 해석 가능한 base_sha 를 요구한다.",
+  "how_found": "T-A-V3-STEP1-024(base_sha 전수감사)를 ACK 하려고 D 발행분 31건을 직접 재검사하다가 걸렸다. **A 의 감사 대상이 되어야 잡혔다는 뜻이다.**",
+  "impact_on_A_count": "A 실측 'v3 이후 해석 불가 1건'(T-B-V3-FINDING-007-SHANOTE)에 이 건이 더해져 **2건**이다. A 의 검사가 놓친 것이 아니라 A 감사 이후 D 가 발행한 것이다.",
+  "ticket_sha256_before": "437d179aef0a9bfbd22188775b79c762a48e76e526b3ec08cdc789fe3c9e22a3",
+  "ack_binding": "시정 시점 이 티켓에 대한 ACK 은 0건이었다 — 끊어진 결속이 없다. 그래도 R18 대로 이전 해시를 남긴다.",
+  "remedy": "tools/d_emit_ticket.py 로 발행 경로를 단일화하고 base_sha 를 강제한다. 스캐너에 v3 이후 발행분 base_sha 해석 검사를 상주시킨다."
+ }
+}

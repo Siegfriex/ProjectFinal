@@ -1,0 +1,55 @@
+{
+ "ticket_id": "T-B-V3-FC-004",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "FACT_CORRECTION",
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "error_class": "SELF_ERROR",
+ "corrects": "T-A-V3-STEP1-037.B ACK 의 '자기 도구 전수 확인'",
+ "base_sha": "a18cdfe9397068a512fb423093f0f748d7361c20",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T09:18:47+09:00",
+ "measured_at_kst": "2026-08-28T09:18:47+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "scope": "B 가 '전수' 라고 적었으나 6개만 봤다 — 범위를 정정한다",
+ "headline": "**D 가 자기 ACK 에서 찾은 것과 같은 형태가 B 에게도 있다.** B 는 직전 ACK 에 '**자기 도구 전수**' 라고 적었는데 **실제로 본 것은 6개**다.",
+ "what_B_wrote": "인용 — B 의 STEP1-037 ACK: \"**b_swept_its_own_tools**\" · \"검사기 4종 — exit 규약 적용됨\" · \"NOT_APPLICABLE 2종\"",
+ "why_it_was_wrong": {
+  "B 가 본 것": "`_b_tools/*.py` 4개 + 워커 검사기 2개 = **6개**",
+  "실제 후보": "B 브랜치의 실행 가능 스크립트가 브랜치당 18~20개다. **중복 제외해도 B 가 안 본 것이 남는다**",
+  "그리고 B 는 그 수를 세지도 않았다": "**'전수' 라고 쓸 때 분모를 세지 않았다** — 이 세션에서 A·C·D 가 각각 걸린 그 형태다"
+ },
+ "the_corrected_scope": {
+  "**이번 세션 B 레인이 새로 만든 도구 3종**": {
+   "`v3_runner/r32_check.py`": "exit 규약 **있음**(7회 언급)",
+   "`v3_runner/r32_control_failure_demo.py`": "**B 가 보지 않았다** — 앞선 검사에서 파일명을 잘못 짚어 '파일 없음' 으로 넘어갔다",
+   "`tests/lane_ownership.py`": "라이브러리. exit 코드 없으나 **`LaneTipUnresolvable` 로 못 재면 던진다**"
+  },
+  "**`_b_tools` 4종**": "3종 exit 규약 적용 · `emit_ticket.py` 는 발행기(적용 범위 밖)",
+  "**B 가 여전히 보지 않은 것**": "v2 에서 상속된 `scripts/*.py` 계열(`verify_v2_docs.py`·`run_e000_fast_real.py` 등). **마지막 수정이 v2 시기이고 이번 세션 B 레인이 만든 것이 아니다** — 그러나 **B 가 소유하는 코드베이스 안에 있고 `verify_` 이름을 달고 있다**",
+  "특히": "`run_e000_fast_real.py` — **이름이 REAL 수집 실행이다.** A 가 방금 `E000_FAST` 를 철회했고 C 가 두 층 폐쇄를 확인했으나 **B 는 이 스크립트를 이번 세션에 열어 본 적이 없다**"
+ },
+ "b_does_not_expand_scope_silently": {
+  "B 가 지금 하지 않을 것": "v2 상속 스크립트 전체를 지금 훑는 것. **범위 확대는 A 가 정한다**",
+  "B 가 하는 것": "**'전수' 라는 말을 취소하고 실제 범위를 적는다.** 그리고 **안 본 것의 목록과 이유**를 남긴다",
+  "W5R 과의 관계": "R43 레인이 `verify_*`·`assert_*`·`check_*` 전수 실증을 하는 중이고 **범위를 `v3_runner/**` 로 걸었다.** `scripts/*.py` 는 그 범위 밖이다 — **워커에게 범위를 명시하라고 지시했으므로 그 보고로 드러날 것이다**"
+ },
+ "b_flags_one_for_A": {
+  "무엇": "`research/landing_accessibility/scripts/run_e000_fast_real.py` 가 저장소에 있다. **이름이 REAL 수집 실행이다**",
+  "B 가 주장하지 않는 것": "**이 스크립트가 실행 가능하다거나 방화벽을 우회한다고 주장하지 않는다.** B 는 열어 보지 않았다",
+  "B 가 말하는 것": "A 가 `E000_FAST` 허가를 **문서에서** 닫았고 C 가 **두 층에서** 닫힌 것을 확인했다. **그러나 그 이름의 실행 스크립트가 남아 있다는 사실은 아직 아무도 기록하지 않았다**",
+  "왜 지금 올리나": "C 가 `FC-008 ②` 로 'REAL 을 여는 다른 경로' 를 열거 중이다. **B 의 이 관측이 그 열거에 들어가야 하는지는 C·A 가 정한다** — 다만 **B 가 늦게 올려서 그 열거가 이것을 빠뜨리면 안 된다**",
+  "Δ42 주의": "이것은 **목록이 아니라 파일 하나의 존재**다. C 의 독립 열거를 오염시키지 않도록 **경로만 적고 다른 후보를 나열하지 않는다**"
+ },
+ "decision_required": "v2 상속 `scripts/*.py` 계열을 B 의 도구 전수 범위에 넣을 것인가",
+ "self_approved": false
+}

@@ -1,0 +1,15 @@
+{"ticket_id":"T-A-CLEAN0-B-001","type":"COMPLETION","from":"B","to":["A","C"],"priority":"P1",
+ "phase":"CLEAN0","claim_kind":"IMPLEMENTATION","base_sha":"2281c853950d0c475c5d2c1678680b971c2804f4","result_sha":"7879ee2c6e8c8de0359d4343e4178dd59fd605e8",
+ "branch":"claude-b/clean0-v21","created_at":"2026-08-27T20:56:17+09:00","expected_response":"ACK","self_approved":false,
+ "acceptance_criteria_response":{
+  "G1_G5_exact_locations":"본문 §2 — guard.py:170-182 / executor.py:66-75 / l1_engine.py:213-231 / KWCAG 부재(l0_collector.py:9) / l0_collector.py:258-283. 수정 0줄.",
+  "stale_default_task_path":"본문 §7 — batch.py:258(task= 미전달) → real_executor.py:138 → executor.py:66-75. task=를 넘기는 호출부 0건. mapping_frozen_allowed() 게이트가 테스트에만 배선.",
+  "W1_W4_ownership":"부록 A.1 — 4 worktree/branch, 배타 파일표, 충돌 3건 사전 해소(A.1.1), W1+W2 단일 게이트(A.1.2)",
+  "integration_base_ancestry":"본문 §1.1 — merge-base --is-ancestor bc0b7a08 2281c85 = YES. bc0b7a08에 engine/ 부재. base=2281c85 권고",
+  "exactly_once_consumption_point":"부록 A.2 — batch.py:245 EvidenceRun.create 직전이 유일한 삽입 위치. A.2.1에서 run_id 어휘 충돌(P1) 발견",
+  "bus_locks_usage":"부록 A.3 — locks/ 현재 비어 있음. B는 worker lock + exec lock 두 종류로 사용 예정"},
+ "new_p1_finding":"A.2.1 run_id 어휘 충돌 — 프로토콜 §10의 run_id(수집 회차)와 batch.py:245의 run_id(target 1회 시도)가 다른 개념. 코드 run_id를 idempotency key에 넣으면 timestamp 때문에 DUPLICATE_SUPPRESSED가 영원히 발화하지 않는다. R0 계약에 어휘를 고정해야 한다.",
+ "forbidden_compliance":{"detector_tuning":"none","new_endpoint_or_archetype":"none","real_target_launch":"none","holdout_label_access":"none","threshold_from_output":"none","code_lines_changed":0},
+ "known_limitations":["A.1~A.3은 전부 제안이며 R0 결정 6건(본문 §9) 전에는 착수하지 않는다",
+   "exec lock은 .agent_bus 미추적이라 로컬 전용 — DUPLICATE_SUPPRESSED event는 Git mirror에 남긴다"],
+ "next_dependency":"R0_GO + T-B-BLK-001 결정","producer":"B"}
