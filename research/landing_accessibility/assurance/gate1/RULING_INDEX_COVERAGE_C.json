@@ -2036,7 +2036,7 @@
    "verified_by": "C",
    "requires": "**자기가 검증할 수 없는 출처를 기록하는 필드는 그 자체가 주장이다.** `seam_refusal_result` 에 **계약을 넘기게 바꾼다** — 검증 가능한 형태가 있는데 검증 불가 형태를 두지 않는다. 불가피하면 **필드를 지우지 말고 `identity_provenance_verified: false` 를 함께** 싣는다",
    "must_appear_in": "provenance 기록 자리",
-   "C_check": "Δ56 계열 — CI-30/CI-23 접수 검사로 확인",
+   "C_check": "CI-19/R55: seam_refusal_result 류 출처 필드는 자유 텍스트가 아니라 검증 가능한 형태(계약 객체·sha)여야 하며, C 는 그 필드를 정본 계약과 대조해 불일치 시 HEURISTIC_FALLBACK 으로 강등",
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 46
@@ -2047,7 +2047,7 @@
    "verified_by": "C",
    "requires": "②의 `terminal_reason=OTHER` 를 **승인한다(17번째 값 신설 안 함)** — `path_discovery_outcome` 은 **닫힌 어휘**라 구분이 자유 텍스트에 살지 않는다. **조건**: `OTHER` 사건이 **닫힌 축과의 조합으로 유일하게 결정됨을 단언으로 고정**한다. **닫힌 축으로 갈리지 않는 `OTHER` 가 하나라도 나오면 그때 새 값을 준다**",
    "must_appear_in": "terminal 조합표 · 단언",
-   "C_check": "Δ56 계열 — CI-30/CI-23 접수 검사로 확인",
+   "C_check": "c_terminal_table: Δ36-② 거부 run 의 terminal_reason=OTHER+note 승인(17값 신설 안 함) — 구분 축은 닫힌 어휘 path_discovery_outcome; C 는 OTHER 행마다 note 존재와 path_discovery_outcome 값을 함께 검사(CI-15 r2 의 '노트만의 구분' 금지는 terminal_reason 축에만 적용)",
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 46
@@ -2069,7 +2069,7 @@
    "verified_by": "C",
    "requires": "**`depth` 산출 경로가 실행됐다는 것은 실증됐으나 다단계 `depth` 누적은 GATE 1 이 실행하지 않는다**(`depth=1` 은 `S0` 단독). **pilot 5 관측 항목**이며 GATE 1 의 '검증하지 않은 것' 절로 간다. `Δ47-fixture-limit` 과 함께 읽는다",
    "must_appear_in": "GATE1 '검증하지 않은 것' 절",
-   "C_check": "Δ56 계열 — CI-30/CI-23 접수 검사로 확인",
+   "C_check": "CI-23 limitation: GATE 1 은 depth 경로 실행(depth=1, S0 단독)만 실증하며 다단계 누적은 pilot 5 관측 항목 — C verdict limitations 에 명기",
    "coverage": "NOT_DUE_YET",
    "gap_note": null,
    "added_at_index_version": 46
