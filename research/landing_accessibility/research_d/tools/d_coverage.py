@@ -62,10 +62,24 @@ _TEXT_MISSING = re.compile(
 # 규칙을 없애고 그 열에 허용값 집합을 명시했다.
 
 
-def is_observed(col: str, val: str) -> bool:
+# [C-FACT_CORRECTION-134755] **허용집합으로도 안 잡히는 형태가 있다** — 관측 여부가
+# 값이 아니라 **옆 열**에 있는 경우다. `accessible_name` 은 28건이 채워져 있지만
+# 전부 visible text 복사이고, 그 사실은 `label_relation` 이 들고 있다.
+# D 가 D-DEF-45 limitation 으로 적어둔 자리를 C 가 채웠다.
+COMPANION = {
+    "accessible_name": ("label_relation",
+                        lambda cv: cv != "AX_NOT_INDEPENDENTLY_OBSERVED"),
+}
+
+
+def is_observed(col: str, val: str, row=None) -> bool:
     v = (val or "").strip()
     if not v:
         return False
+    if col in COMPANION and row is not None:
+        cc, pred = COMPANION[col]
+        if cc in row and not pred(str(row[cc]).strip()):
+            return False        # 채워졌지만 옆 열이 미관측이라 말한다
     if col in OBSERVED_VALUES:
         return v in OBSERVED_VALUES[col]          # **모르는 값은 미관측**
     if col in NUMERIC:
@@ -85,7 +99,13 @@ def is_observed(col: str, val: str) -> bool:
 
 def coverage(df, cols=None) -> dict:
     cols = cols or [c for c in df.columns]
-    return {c: int(sum(is_observed(c, v) for v in df[c])) for c in cols}
+    out = {}
+    for c in cols:
+        if c in COMPANION:      # 행 문맥이 필요한 열
+            out[c] = int(sum(is_observed(c, r[c], r) for _, r in df.iterrows()))
+        else:
+            out[c] = int(sum(is_observed(c, v) for v in df[c]))
+    return out
 
 
 def controls() -> dict:
@@ -126,6 +146,14 @@ def controls() -> dict:
          is_observed("evidence_hash", "a3f19c" * 8), True)
     case("evidence_hash 에 토큰이 오면 미관측",
          is_observed("evidence_hash", "E_RAW_NOT_YET_RECEIVED"), False)
+    # 7. companion column — 값만 보면 관측처럼 보이는 형태 [C-FACT_CORRECTION-134755]
+    case("accessible_name 이 채워져도 label_relation 이 AX 미관측이면 미관측",
+         is_observed("accessible_name", "이체",
+                     {"label_relation": "AX_NOT_INDEPENDENTLY_OBSERVED"}), False)
+    case("label_relation 이 MATCH 면 accessible_name 은 관측",
+         is_observed("accessible_name", "이체", {"label_relation": "MATCH"}), True)
+    case("row 없이 부르면 옛 경로 — 값만 보고 통과한다(**뚫린 채로 남는다**)",
+         is_observed("accessible_name", "이체"), True)
 
     ok = all(r["ok"] for r in rows)
     return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
