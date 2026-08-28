@@ -1,6 +1,6 @@
 {
  "agent": "B",
- "timestamp": "2026-08-28T13:39:59+09:00",
+ "timestamp": "2026-08-28T13:46:09+09:00",
  "phase": "STEP 1 — task-first runner offline. 8 lane 병렬.",
  "current_ticket_id": "T-A-V3-TBX-006 (P0, deadline 12:30, B freeze 11:40)",
  "branch": "claude-b/diag-pilot-integration",
@@ -8,7 +8,7 @@
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
  "work_state": "STANDBY — probe v4 는 mart 를 바꾸지 않는다. B 는 동결본을 읽기만 한다",
  "blocker_ids": [],
- "last_bus_seq": 1241,
+ "last_bus_seq": 1244,
  "last_push_at": "2026-08-27T20:56:51+09:00",
  "next_action": "Director 판단 대기. B 는 HOLD 무관 항목만 진행한다. REAL_TARGET NO-GO.",
  "real_target": {
@@ -69,8 +69,8 @@
  "observed_remote": {
   "B_clean0_v21": "ba04a339bdb77c697bdb48a2fc758e47f5309610",
   "A_control": "a793625c20f964c3b019ed2c1e44d10e44939f9f",
-  "C_assurance_v21": "395893814c26871694a78cb2825feb3bedb5fc77",
-  "at": "2026-08-28T13:39:59+09:00"
+  "C_assurance_v21": "48e0a48a21748f6b66e3278f1546d4e0cbeb2147",
+  "at": "2026-08-28T13:46:09+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -210,7 +210,7 @@
   "D-R0-72 OverlayCoverage construct",
   "blind set 존재 여부 E000 6 (본 HOLD 직결)"
  ],
- "updated_at": "2026-08-28T12:56:33+09:00",
+ "updated_at": "2026-08-28T13:41:36+09:00",
  "launch_gate_status": {
   "1_C_preflight_v2_manifest": "MET — C-COMPLETION-001706 sampling 12/12, A 가 PREFLIGHT_1_TO_5_ACCEPTED. 6항(exactly-once)은 최종 SHA 대기",
   "2_W1_completion_mask_in_SHA": "PENDING — W1 4ec538b 수신·검산 완료(소유권 위반 0, ancestry 확인). integration 288025ff 에 편입해 push 했고 C 재확인 대기",
@@ -286,7 +286,7 @@
  },
  "hard_stop_vocabulary": "R9 8종 채택 — wrong_scope · target_outside_manifest · forbidden_action · evidence_overwrite · duplicate_launch · task_contract_drift(endpoint drift 포함) · task_or_outcome_leakage · denominator_corruption. T-A-V3-P0-001 의 6종을 supersede.",
  "index_verified": "v9 e26e8714a62053a74b643edbb38e4be49cc1a4b230a2d61ca2edd4948de29154",
- "measured_at_kst": "2026-08-28T12:56:33+09:00",
+ "measured_at_kst": "2026-08-28T13:41:36+09:00",
  "resumed_at_kst": "2026-08-28T10:43:58.534912+09:00",
  "a_tickets_in_scope": {
   "T-A-V3-STEP1-039": "R54 확장 + probe 겨냥 확인 — 착수",
@@ -317,8 +317,12 @@
   "provenance 토큰 하나에 두 방법",
   "결함 시정이 다른 열을 비움(entry_control_type 28→9) — 값 검사 둘 다 통과",
   "직접 관측·보고한 사실(.ax.json 60B 스텁)을 두 시간 뒤 반대 판정 받고 대조하지 않음",
-  "**`NO_SAFE_ROUTE_SITE` — 관측보다 강한 이름 (probe v3 가 반증)**",
-  "**v2 좌표경로 추정 오류 — 산출물에 없다는 것을 코드가 안 썼다는 근거로 삼음 (E 가 코드로 반증)**"
+  "`NO_SAFE_ROUTE_SITE` — 관측보다 강한 이름 (probe v3 가 반증)",
+  "v2 좌표경로 추정 오류 — 산출물에 없다를 코드가 안 썼다로 읽음 (E 가 코드로 반증)",
+  "`supersedes` 자기참조 — freeze() 가 덮을 파일에서 이전 값을 읽음 (A 가 잡음)",
+  "**sentinel 을 목록으로 둬서 비관측 토큰 4종을 관측으로 셈** — label_relation 28 · terminal_reason 2 · entry_control_type 1 · **nav_container_type 10(C 가 잡음)**",
+  "**자기감사 범위를 안 밝힘** — `is False` 만 보고 '같은 형태 없다' 로 보고 (D 분류가 TRUTHY_GATE 44 를 더 드러냄)",
+  "**힌트 매처 오탐** — 비관측 토큰 스캔에서 관측 토큰 3종을 잡음(버림)"
  ],
  "**측정한 것 — B 검사의 축**": {
   "총 검사 함수": 17,
@@ -328,5 +332,11 @@
   "**행위 유효성**": "**0**",
   "의미": "D-V3-FINDING-037 과 같은 결과다. **B 도구 중 어떤 것도 행위 전후의 산출물을 비교하지 않는다** — 한 시점 스냅샷만 읽는다",
   "분류기 한계": "**17 중 10 을 미분류로 남겼다. 약한 분류기다.** 다만 `행위 유효성 0` 은 전수 육안 확인으로도 성립한다 — 전후 비교를 하는 함수가 하나도 없다"
+ },
+ "**이번 라운드 교훈**": {
+  "C 의 문장": "교훈을 적는 것과 도구에 넣는 것은 다르다",
+  "**B 의 것**": "**도구에 넣는 것과 옳은 형태로 넣는 것은 또 다르다** — `column_scoped_sentinels` 를 도구에 넣었는데 그것이 **목록**이어서 같은 형태를 네 번 놓쳤다",
+  "**마지막 건이 보인 이유**": "**두 평면이 같은 열을 다르게 셌다**(C 26 vs B 16). 세 번째 평면이 같은 것을 재는 이유가 이것이다",
+  "다음 실행": "sentinel 을 **열별 허용값 집합**으로 전환 — C 는 이미 했다(checker 48e0a48)"
  }
 }

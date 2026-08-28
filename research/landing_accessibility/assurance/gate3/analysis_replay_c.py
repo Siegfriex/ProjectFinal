@@ -227,7 +227,7 @@ def main():
             if "R3" in str(r_.get("scout_run_id") or ""): continue
             t_ = r_.get("target_id"); ts_ = str(r_.get("captured_at_kst") or "")
             if t_ not in src or ts_ > src[t_][0]: src[t_] = (ts_, r_.get("accessible_name_source"))
-    by_t = {r.get("target_id"): r for r in rows}
+    by_t = {r.get("target_id"): r for r in rows}; fam_of_all = {t["target_id"]: t["family_id"] for t in manifest["targets"]}
     # TBX-023: when accessible_name_source == VISIBLE_TEXT the canonical value is AX_NOT_INDEPENDENTLY_OBSERVED — C's expected value follows the
     # provenance, not the string rule; a stored MATCH there is a tautology, a stored AX_NOT_INDEPENDENTLY_OBSERVED agrees with C
     for x in a["row_replay"]:
@@ -236,6 +236,15 @@ def main():
     lr0 = a["metrics"]["label_relation"]; lr0["mismatch"] = [x["target_id"] for x in a["row_replay"] if x.get("label_relation_match") is False]; lr0["state"] = "NOT_ASSURED" if lr0["n_compared"] == 0 else "DIVERGENT" if lr0["mismatch"] else "ASSURED"
     taut = [t for t, r in by_t.items() if str(r.get("label_relation") or "").strip() == "MATCH" and src.get(t, (None, None))[1] == "VISIBLE_TEXT"]
     ax_obs = [t for t, r in by_t.items() if src.get(t, (None, None))[1] not in (None, "VISIBLE_TEXT", "NOT_OBSERVED")]
+    # C-DEF-39 (B): accessible_name coverage must count INDEPENDENT AX observations — the observation status lives in a neighbouring
+    # column (accessible_name_source); a filled cell whose source is VISIBLE_TEXT is a copy, not an observation (whitelists cannot catch this)
+    ax_targets = {t for t, v in src.items() if v[1] not in (None, "VISIBLE_TEXT", "NOT_OBSERVED")}
+    filled = [t for t, r in by_t.items() if observed(r.get("accessible_name"))]
+    a["coverage"]["overall"]["accessible_name"] = {"k": sum(1 for t in filled if t in ax_targets), "of": 50, "filled": len(filled), "filled_by_source": dict(__import__("collections").Counter(src.get(t, (None, "NO_MANIFEST_LINE"))[1] for t in filled)),
+                                                    "rule": "k = filled AND accessible_name_source not in {VISIBLE_TEXT, NOT_OBSERVED} (independent AX observation)"}
+    for f_ in a["coverage"]["per_family"]:
+        ff = [t for t in filled if fam_of_all.get(t) == f_]; a["coverage"]["per_family"][f_]["accessible_name"] = {"k": sum(1 for t in ff if t in ax_targets), "of": 10, "filled": len(ff)}
+    a["coverage"]["cells_filled_not_observed"]["accessible_name"] = sum(1 for t in filled if t not in ax_targets)
     lr = a["metrics"]["label_relation"]
     lr["accessible_name_source_distribution"] = dict(__import__("collections").Counter(v[1] for v in src.values()))
     lr["tautological_match_n"] = len(taut); lr["ax_tree_observed_n"] = len(ax_obs)
@@ -252,7 +261,7 @@ def main():
     rec = {"schema": "C_ANALYSIS_ASSURED", "measured_at_kst": now(), "checker": {"commit": head, "analysis_replay_c_sha256": hashlib.sha256(HERE.read_bytes()).hexdigest(), "c_flow_derive_sha256": hashlib.sha256(open(F.__file__, "rb").read()).hexdigest()},
            "mart": {"path": str(mp), "sha256": msha, "bytes": len(b), "rows": len(rows), "is_canonical_50": mp == c50}, "manifest": {"file_sha256": fsha, "body_sha256": bsha},
            "controls": {"n": len(ctl), "pass": len(ctl)}, "summary": {"n_observed_rows": a["n_observed_rows"], "ASSURED": assured, "ASSURED_AS_RULE_ONLY": rule_only, "DIVERGENT": divergent, "NOT_ASSURED": not_assured,
-           "coverage_overall": {k: f"{v['k']}/50" for k, v in a["coverage"]["overall"].items()}}, "coverage": a["coverage"], "metrics": a["metrics"], "per_family": a["per_family"],
+           "coverage_overall": {k: f"{v['k']}/50" + (f" (filled {v['filled']}, independent AX 0 — VISIBLE_TEXT copies)" if k == "accessible_name" and v.get("filled", 0) > v["k"] else "") for k, v in a["coverage"]["overall"].items()}}, "coverage": a["coverage"], "metrics": a["metrics"], "per_family": a["per_family"],
            "by_provenance": a["by_provenance"], "provenance_note": a.get("provenance_note"), "d_analysis_files_seen": dfiles, "d_claim_candidates_seen": claims, "row_replay": a["row_replay"],
            "reading_rules": {"ASSURED": "C recomputation equals the mart value on every compared row (n stated)", "DIVERGENT": "at least one compared row differs — listed; which side is wrong is A's call", "NOT_ASSURED": "0 rows recomputable — never counted as pass", "sequence_distance": "computed by C only (no B/D matrix to diff yet); cells of a matrix, not independent n"},
            "not_a_verdict": True, "exit": 0 if a["n_observed_rows"] else 3}

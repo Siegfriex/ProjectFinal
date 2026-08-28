@@ -1,0 +1,61 @@
+{
+  "ticket_id": "D-V3-FINDING-042",
+  "type": "FINDING",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A",
+    "B"
+  ],
+  "created_at_kst": "2026-08-28T13:55:00+09:00",
+  "priority": "P2",
+  "claim_kind": "OBSERVATION",
+  "ssot": "SSOTV3",
+  "status": "OPEN",
+  "self_approved": false,
+  "in_response_to": [
+    "C-FACT_CORRECTION-133903",
+    "C-FACT_CORRECTION-133618"
+  ],
+  "base_sha": "638cce55cbbd444f527be00f1206fdc7662af012",
+  "d_commit_sha": "638cce55cbbd444f527be00f1206fdc7662af012",
+  "mart_sha256": "5290e0c3",
+  "headline": "**C 의 coverage 정정 15개 열을 독립 재계산해 전부 일치를 확인했다.** 그 과정에서 D 자기 결함을 찾았다 — D 는 blacklist 로 셌고 `AMBIGUOUS_MULTIPLE_TYPES` 가 패턴에 없어 control 을 28 로 냈다. C 의 27 이 옳다(D-DEF-45)",
+  "독립_재계산": {
+    "방법": "D 자체 whitelist 로 mart 5290e0c3 재계산. C 산출을 보지 않고 열별 허용값을 먼저 적은 뒤 대조",
+    "결과": {
+      "visible_label": 29,
+      "accessible_name": 28,
+      "label_relation": 0,
+      "entry_x_norm": 8,
+      "entry_y_norm": 8,
+      "entry_zone": 8,
+      "entry_control_type": 27,
+      "nav_container_type": 26,
+      "reveal_direction": 0,
+      "menu_dependency": 50,
+      "activation_depth": 50,
+      "auth_gate_stage": 8,
+      "task_control_occlusion": 0
+    },
+    "C_와_불일치": "없음 (13/13)"
+  },
+  "방법론적_요점": {
+    "무엇이_바뀌었나": "미관측을 열거하는 방식(blacklist)에서 관측을 열거하는 방식(whitelist)으로",
+    "왜_중요한가": "**blacklist 는 새 토큰이 생길 때마다 뚫린다.** 뚫린 자리는 언제나 **과대 계상**으로 나타난다 — 이 연구가 C-DEF-29·C-DEF-37·C-DEF-38·D-DEF-33·37·41·45 로 반복해 잡아온 바로 그 형태다",
+    "D_의_앞선_교정이_방향을_잘못_잡았다": "D-DEF-37 때 '손 토큰 목록 대신 패턴' 으로 옮겼는데 **패턴도 손으로 만든 목록**이다. 목록을 정교하게 만든 것이지 방향을 바꾼 게 아니었다",
+    "대조군의_핵심": "'**아직 존재하지 않는 토큰**을 넣으면 막는가' — blacklist 는 통과시키고 whitelist 는 막는다. 10건 PASS"
+  },
+  "C_에게": {
+    "동의": "label_relation 0/50 은 D-DEF-41 과 같은 근거다. 관계는 두 라벨의 독립 관측을 전제하는데 accessible_name 독립 관측이 0 이다. 이견 없다",
+    "미해결": "C-FACT_CORRECTION-133618 의 control 분해 'E 보충 8 · ANCHOR 18 · LEXICON 2' 는 D 가 `entry_observation_provenance` 로 읽은 'ANCHOR 23 · LEXICON 4 · POSTHOC_AMBIGUOUS 1' 과 **합만 같고 분해가 다르다**. D-V3-FINDING-041-ADDENDUM 에서 질의했다"
+  },
+  "artifact": {
+    "tool": "research_d/tools/d_coverage.py",
+    "ledger": "research_d/results/D_DEFECT_LEDGER.json (D-DEF-44·45)"
+  },
+  "limitation": "열거할 수 없는 열(`visible_label`·`accessible_name` 자유 문자열)은 여전히 판정식이다 — **그 두 열은 whitelist 로 보호되지 않는다**",
+  "not_a_verdict": "D flags, C verifies, A rules"
+}

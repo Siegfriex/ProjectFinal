@@ -1,0 +1,54 @@
+{
+  "ticket_id": "D-V3-FINDING-041-ADDENDUM",
+  "type": "FACT_CORRECTION",
+  "from": "D",
+  "to": [
+    "C"
+  ],
+  "cc": [
+    "A",
+    "B"
+  ],
+  "created_at_kst": "2026-08-28T13:45:00+09:00",
+  "priority": "P2",
+  "claim_kind": "OBSERVATION",
+  "ssot": "SSOTV3",
+  "status": "OPEN",
+  "self_approved": false,
+  "in_response_to": [
+    "C-FACT_CORRECTION-133618"
+  ],
+  "corrects": "D-V3-FINDING-041 의 `비교하면_안_되는_것.zone` 서술",
+  "error_class": "SELF_ERROR",
+  "base_sha": "e5a2f82d6e1303fbdf6f902cea91de2b63c45852",
+  "d_commit_sha": "e5a2f82d6e1303fbdf6f902cea91de2b63c45852",
+  "mart_sha256": "5290e0c3",
+  "headline": "**C 정정 수용.** D-041 이 'mart entry_zone 은 B 사후파생 구분' 이라 한 것은 틀렸다 — 관측 8건 전부 `E_R3_SUPPLEMENT` 이고 B 파생은 0건이다. 사후파생인 것은 **control 쪽**이었고 D 가 그 성질을 zone 에 옮겨 적었다(D-DEF-44)",
+  "독립_재계산": {
+    "entry_zone_관측": "8/50 — C 와 일치",
+    "그_8건_target": "F1-03 F1-05 F2-01 F2-08 F3-02 F3-06 F5-02 F5-05",
+    "census_8_과_동일": true,
+    "entry_geometry_provenance": {
+      "E_R3_SUPPLEMENT": 8,
+      "E_SUPPLEMENT_NO_CANDIDATE": 42
+    },
+    "D_매트릭스와의_정합": "D 매트릭스는 'census 8 은 판정근거 run 에 bbox 가 없고 보충 run 에만 있다' 고 적었다. C 의 8/50 과 **같은 사실의 두 표현**이다 — 모순 아님"
+  },
+  "살아남는_것": {
+    "control_대비": "'사후파생 vs AX role 직접관측' 은 성립한다. census 8 의 `entry_observation_provenance` 는 ANCHOR_ON_E_LABEL 5 · B_LEXICON_MATCHER 2 · POSTHOC_AMBIGUOUS 1 로 **전부 사후 DOM 매칭 계열**이다",
+    "n": "zone·control 둘 다 probe 14/22 로 유지. census 8 은 AX 스텁이라 여전히 얻지 못한다"
+  },
+  "모집단_명시_보강": {
+    "무엇이_부족했나": "D-041 이 'mart control 2종' 이라 썼는데 그것은 **census 8 한정**(TEXT_LINK 6 · ICON_TEXT 2)이다. mart 전체 관측 28건은 **6종**이다",
+    "조치": "발표 시각물에 모집단을 명시했다"
+  },
+  "C_에게_돌려주는_관측": {
+    "무엇": "C 티켓의 control 내역 'E 보충 8 · ANCHOR 18 · LEXICON 2'(합 28)와 D 가 `entry_observation_provenance` 로 읽은 'ANCHOR 23 · LEXICON 4 · POSTHOC_AMBIGUOUS 1'(합 28)은 **합만 같고 분해가 다르다**",
+    "요청": "어느 컬럼으로 낸 분해인지 밝혀 주기 바란다. `entry_geometry_provenance` 와 `entry_observation_provenance` 가 섞였을 가능성이 있다",
+    "D_는_판정하지_않는다": "두 분해 중 어느 쪽이 옳은지는 D 가 정하지 않는다. **불일치 사실만 보고한다**"
+  },
+  "이번_회차의_실질": "**계기 혼재는 회차 사이에만 있는 게 아니라 한 행의 컬럼 사이에도 있다.** 같은 census 8건에서 zone 은 E 직접관측이고 control 은 B 사후매칭이다. 사용자가 지시한 instrument×target×variable 매트릭스에 **provenance class 를 variable 마다** 붙여야 하는 이유가 여기서 구체화됐다",
+  "fix": "`d_citation_check.py::column_provenance()` — mart 컬럼의 출처를 주장하려면 provenance 컬럼과 대조한다. 8케이스 PASS, 대조군이 D-041 의 오류를 must_flag 로 재현한다",
+  "limitation": "이 addendum 은 **귀속 서술 한 줄**을 정정한다. D-041 의 측정값(14/22, 같은 14건, 분포)은 바뀌지 않으며 **여전히 C 재계산 전 EXPLORATORY** 다",
+  "not_a_verdict": "D flags, C verifies, A rules"
+}

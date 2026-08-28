@@ -356,6 +356,14 @@
    "what": "ANALYSIS_ASSURED coverage 가 label_relation 을 50/50 관측으로 냈다 — AX_NOT_INDEPENDENTLY_OBSERVED 28·NONE 21·VISIBLE_ONLY 1 은 전부 '관계 미관측' 상태인데 sentinel 목록 밖이라 통과. 관계 관측은 0/50",
    "fix": "coverage 를 열별 허용값 집합 방식으로 전환(+cells_filled_not_observed 병기, controls +2); ANALYSIS_ASSURED 재생성, CHECKER_FROZEN v6",
    "lesson": "C-DEF-37 교훈을 적은 지 20분 만에 같은 형태가 더 큰 열에서 나왔다 — 교훈을 적는 것과 도구에 넣는 것은 다르다(Δ59-writing)"
+  },
+  {
+   "id": "C-DEF-39",
+   "found_at_kst": "2026-08-28T13:47:55+09:00",
+   "found_by": "B",
+   "what": "ANALYSIS_ASSURED coverage accessible_name 28/50 — 28 은 accessible_name_source=VISIBLE_TEXT 복사본이라 독립 AX 관측 0. label_relation 은 0 으로 내렸으면서 그 재료 열은 28 로 둠(A R120 '0건' 과 모순)",
+   "fix": "coverage k = filled ∧ source ∉ {VISIBLE_TEXT, NOT_OBSERVED}; filled 와 source 분포 병기; CHECKER_FROZEN v7",
+   "lesson": "관측 여부가 옆 열에 있으면 허용집합도 못 잡는다 — 자유문자열 열은 provenance 열과 짝지어 센다"
   }
  ],
  "caught_before_issue": [
