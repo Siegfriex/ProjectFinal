@@ -2106,9 +2106,53 @@
    "coverage": "PARTIAL",
    "gap_note": null,
    "added_at_index_version": 47
+  },
+  {
+   "id": "Δ58-R60",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**공유 로그는 다수형을 정본으로 고정한다** — 쓰기는 `ts`+`actor`(973/978·693/978). **소수형을 정본으로 삼으면 기존 976행이 전부 재해석 대상**이 된다. 읽기는 **네 조합 전부**를 처리하고 빠진 행을 **`UNPARSED` 로 따로 센다**. 소급 수정 금지, **누락은 소급 기입하지 않고 공백 자체를 한 행으로 기록**한다",
+   "must_appear_in": "event_log 쓰기·읽기 도구",
+   "C_check": "Δ58 계열 — C 대응: 결함 대장(C_DEFECT_LEDGER, known_positives 재현율 14/17)·R54 매처 sweep worker 진행 중",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 48
+  },
+  {
+   "id": "Δ58-A-gap",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**A 의 `T-A-V3-*` 티켓 59건 중 ~30건이 `event_log` 에 없고, A 는 자기 행을 세 모양으로 썼으며 `at_kst`/`plane` 단일 행 스키마를 새로 만들었다.** 다만 **event_log 는 정본이 아니다** — 티켓/ACK 파일이 정본이므로 **증거 공백이 아니라 색인 공백**이다",
+   "must_appear_in": "A 의 발행 절차",
+   "C_check": "Δ58 계열 — C 대응: 결함 대장(C_DEFECT_LEDGER, known_positives 재현율 14/17)·R54 매처 sweep worker 진행 중",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 48
+  },
+  {
+   "id": "Δ58-unit",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "`mirror_bus.py` 의 훑는 단위가 **디렉터리**여서 `event_log.jsonl`(파일)이 단위 밖에 있었다 — **A 가 자기 도구의 단위를 좁게 잡아 자기 기록 공백을 못 봤다**. `Δ49-R45` 의 단위 문제가 A 자신의 도구에서 재발",
+   "must_appear_in": "control/mirror_bus.py",
+   "C_check": "Δ58 계열 — C 대응: 결함 대장(C_DEFECT_LEDGER, known_positives 재현율 14/17)·R54 매처 sweep worker 진행 중",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 48
+  },
+  {
+   "id": "Δ58-divergence",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "D 976행/3스키마 vs A 978행/4조합의 차이를 **C 가 재ACK 로 2행 증가로 설명**했다. **세 평면의 수가 달랐기 때문에 시점 차이가 드러났다 — 같았으면 아무것도 안 보였다**(`Δ49-R47` 의 반례)",
+   "must_appear_in": "평면 간 수치 비교",
+   "C_check": "Δ58 계열 — C 대응: 결함 대장(C_DEFECT_LEDGER, known_positives 재현율 14/17)·R54 매처 sweep worker 진행 중",
+   "coverage": "PARTIAL",
+   "gap_note": null,
+   "added_at_index_version": 48
   }
  ],
- "index_version": 47,
+ "index_version": 48,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -2169,5 +2213,6 @@
  "index_sha256_v44": "8da051c43d5edd7783456991e59bd7815ade78507ee0d81602126e7a028fe6d8",
  "index_sha256_v45": "8d704abcd3d18fc9e7b06c4b725b503fd548deda7efb76c89e5f585eadc5b136",
  "index_sha256_v46": "83c15df5cf9f2605184cf8e6ade3e484a2c8592dca14ff24f14f2447753cf9cd",
- "index_sha256_v47": "859dd65a670bb4361cc496f91ec7cf7fef3bec7234f5b2dd331d1ad2f5bcbf64"
+ "index_sha256_v47": "859dd65a670bb4361cc496f91ec7cf7fef3bec7234f5b2dd331d1ad2f5bcbf64",
+ "index_sha256_v48": "5175210eec9b043eed5aed9edf1c59aba42d2cd1e19391cdd198b091b7d84a08"
 }
