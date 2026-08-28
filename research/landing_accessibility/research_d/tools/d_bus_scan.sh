@@ -263,6 +263,12 @@ try:
     from d_emit_ticket import audit_emitted
     au = audit_emitted()
     print(f"\n=== D 발행분 base_sha ({au['v3_era']} v3-era / {au['n']}) : {au['verdict']} ===")
+    _er = au.get("emission_record") or {}
+    print(f"   발행기록(event_log 대조) : {_er.get('verdict')} · 기록 있음 {_er.get('n_with_record')} "
+          f"· **새 누락 {_er.get('n_missing_new')}** · baseline 누락 {_er.get('n_missing_baseline')} "
+          f"· created_at 없음 {_er.get('n_no_created_at')}")
+    if _er.get("missing_new"):
+        print(f"     ** 새 누락 ** {_er['missing_new'][:5]}")
     for r in au["v3_era_non_resolving"]:
         print(f"   {r['state']:<9} {r['file']}")
     if au["verdict"] != "PASS":

@@ -359,11 +359,66 @@ def _v3_since() -> str:
         return "2026-08-28T02:12"     # 불러오지 못해도 감사가 멈추지는 않는다
 
 
+# `emit()` 이 event_log 에 남기기 시작한 경계. 그 이전 발행분은 baseline —
+# **영구 FAIL 은 신호를 죽인다**(D-DEF-52). 경계는 손 목록이 아니라 시각이다.
+EMIT_LOG_SINCE = "2026-08-28T07:00:00"
+
+
+def emission_record() -> dict:
+    """D 발행 티켓에 event_log 발행기록이 있는가."""
+    log = BUS / "event_log.jsonl"
+    seen, first_ts = set(), None
+    if log.exists():
+        for line in log.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                ev = json.loads(line)
+            except Exception:                       # noqa: BLE001
+                continue
+            if first_ts is None:
+                first_ts = ev.get("ts")
+            if ev.get("actor") == "D" and ev.get("event") in ("EMIT", "TICKET_ISSUED"):
+                seen.add(ev.get("ticket_id"))
+    have, miss_new, miss_base, no_ts = 0, [], [], []
+    for p in (BUS / "tickets").glob("*.json"):
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:                           # noqa: BLE001
+            continue
+        if d.get("from") != "D":
+            continue
+        tid = d.get("ticket_id")
+        ts = d.get("created_at_kst") or d.get("created_at") or ""
+        if not ts:
+            no_ts.append(tid)
+        if tid in seen:
+            have += 1
+        elif ts and ts >= EMIT_LOG_SINCE:
+            miss_new.append(tid)
+        else:
+            miss_base.append(tid)
+    return {"verdict": "PASS" if not miss_new else "FAIL",
+            "n_with_record": have,
+            "n_missing_new": len(miss_new), "missing_new": sorted(miss_new),
+            "n_missing_baseline": len(miss_base),
+            "n_no_created_at": len(no_ts),
+            "log_first_ts": first_ts,
+            "**로그_부재가_아니다**": ("event_log 는 티켓보다 이르게 시작한다 — "
+                                "`log_first_ts` 를 티켓 최초 시각과 대조해 확인한다"),
+            "baseline_경계": EMIT_LOG_SINCE,
+            "이_수가_말하지_않는_것": ("기록이 없다는 것은 **`actor:D` 의 EMIT/TICKET_ISSUED 줄이 "
+                             "없다**는 뜻이다. 그것이 곧 '우회 발행' 인지는 D 가 단정하지 않는다")}
+
+
 def audit_emitted(v3_since: str | None = None) -> dict:
     v3_since = _v3_since() if v3_since is None else v3_since
     """D 발행분 전수 — v3 이후 base_sha 해석 여부. 스캐너가 매 회 호출한다."""
     rows = []
-    for p in sorted((BUS / "tickets").glob("D-*.json")):
+    # [D-DEF-80] **명명 규약을 저자 판정의 대리로 쓰지 않는다** (T-B-V3-FINDING-021).
+    # 접두사는 `check()` 가 발행 시점에 강제하지만 그 보장은 **이 도구를 거친 발행에만**
+    # 있다. 모집단은 `from` 으로 잡는다 — 현재 두 방식의 차는 0 이고, 그것도 측정치다.
+    for p in sorted((BUS / "tickets").glob("*.json")):
         try:
             d = json.loads(p.read_text(encoding="utf-8"))
         except Exception as e:                      # noqa: BLE001
@@ -383,7 +438,9 @@ def audit_emitted(v3_since: str | None = None) -> dict:
         rows.append({"file": p.name, "created": ts, "state": st,
                      "v3_era": ts >= v3_since})
     bad = [r for r in rows if r.get("v3_era") and r.get("state") not in ("OK", None)]
+    rec = emission_record()
     return {"n": len(rows), "v3_era": sum(1 for r in rows if r.get("v3_era")),
+            "emission_record": rec,
             "v3_era_non_resolving": bad,
             "verdict": "PASS" if not bad else "FAIL",
             "pre_v3_not_amended": "소급 개정하지 않는다 (STEP1-024)"}
