@@ -32,8 +32,11 @@ try:
     from d_mlflow_contract_audit import audit as _ma
     _m = _ma()
     _o = _m.get("d_own") or {}
+    _ac = _m.get("accounting") or {}
     print(f"\n=== MLflow 계약 : A {_m.get('verdict')}(위반 {_m.get('n_violating_new','?')}) "
-          f"· D자체 {_o.get('verdict')}(위반 {_o.get('n_violating','?')}) ===")
+          f"· D자체 {_o.get('verdict')}(위반 {_o.get('n_violating','?')}) "
+          f"· 회계 {_ac.get('verdict')}({_ac.get('total_runs','?')} run, 미귀속 "
+          f"{(_ac.get('buckets') or {}).get('unaccounted', 0)}) ===")
     if _m.get("verdict") == "NO_SERVER":
         print("   서버 없음 — **통과가 아니다.** 재기동 후 다시 잰다")
 except Exception as _e:

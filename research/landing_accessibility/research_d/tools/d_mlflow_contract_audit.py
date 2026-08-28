@@ -72,6 +72,53 @@ def _is_d(run, exp_name: str) -> bool:
     return run.data.tags.get("plane") == "D"
 
 
+def run_accounting(c) -> dict:
+    """**서버의 모든 run 이 어느 한 곳에서 세어졌는가.**
+
+    [D-DEF-63] 두 감사(A 계약 · D 자체)는 각자 자기 대상만 본다. 그 밖의 run 은
+    **조용히 건너뛴다** — 그러면 "위반 0" 이 "다 봤는데 0" 인지 "안 본 것이 있어서
+    0" 인지 구분되지 않는다. 이 census 가 반복해 잡아온 형태다.
+
+    그래서 **분모를 맞춘다.** 모든 run 을 다음 넷 중 하나로 귀속시키고
+    `unaccounted` 가 0 이 아니면 그 사실을 낸다.
+
+      audited_a_contract   `mlflow_contract.EXPERIMENTS` 의 `plane=D` run
+      audited_d_own        `landing_accessibility_D_v21` run (`d.` 접두 체계)
+      other_plane          다른 평면의 run — D 가 판정하지 않는다
+      excluded_legacy      계약 이전 실험 — 이름이 그 사실을 말한다
+    """
+    import mlflow_contract as MC
+    contract_exps = set(MC.EXPERIMENTS)
+    buckets = Counter()
+    unaccounted = []
+    total = 0
+    for e in c.search_experiments():
+        for r in c.search_runs([e.experiment_id], max_results=1000):
+            total += 1
+            if e.name in LEGACY_EXPERIMENTS:
+                buckets["excluded_legacy"] += 1
+            elif e.name == D_OWN_EXPERIMENT:
+                buckets["audited_d_own"] += 1
+            elif e.name in contract_exps and r.data.tags.get("plane") == "D":
+                buckets["audited_a_contract"] += 1
+            elif r.data.tags.get("plane") in ("A", "B", "C", "E"):
+                buckets["other_plane"] += 1
+            else:
+                buckets["unaccounted"] += 1
+                unaccounted.append({"experiment": e.name,
+                                    "run_id": r.info.run_id[:12],
+                                    "plane": r.data.tags.get("plane"),
+                                    "d_plane": r.data.tags.get("d.plane")})
+    n_un = buckets.get("unaccounted", 0)
+    return {"verdict": "PASS" if n_un == 0 else "FAIL",
+            "total_runs": total, "buckets": dict(buckets),
+            "sum_check": sum(buckets.values()) == total,
+            "unaccounted": unaccounted[:10],
+            "왜_회계인가": ("'위반 0' 이 **다 봐서 0** 인지 **안 본 것이 있어서 0** 인지 "
+                      "구분하려면 분모가 맞아야 한다"),
+            "D_는_판정하지_않는다": "`other_plane` 은 세기만 한다 — 남의 run 이 계약을 지키는지는 그 평면 소관이다"}
+
+
 def audit() -> dict:
     try:
         import mlflow_contract as MC
@@ -120,6 +167,7 @@ def audit() -> dict:
             "contract_since": CONTRACT_SINCE,
             "대상": f"`mlflow_contract.EXPERIMENTS` {len(contract_exps)}개 실험의 `plane=D` run 만",
             "d_own": _audit_d_own(c),
+            "accounting": run_accounting(c),
             "읽기만_한다": "MLflow run 은 삭제·수정하지 않는다(불변성). 잘못된 run 표시는 A/C 와 조율할 사안이다",
             "baseline_이_왜_있나": "계약 도입 이전 run 은 계약을 지킬 수 없었다 — 영구 FAIL 로 두면 새 위반이 묻힌다(D-DEF-52)"}
 
@@ -237,6 +285,37 @@ def controls() -> dict:
          bool(req_d) and all(t.startswith("d.") for t in req_d), True)
     case("두 계약의 tag 이름이 다르다 — 섞으면 안 된다",
          bool(set(req_d) & set(MC.REQUIRED_TAGS)), False, negative=True)
+    # [D-DEF-63] 회계가 실제로 분모를 맞추는지 — 합성 클라이언트로
+    class _FakeRun:
+        def __init__(self, tags):
+            self.data = type("D", (), {"tags": tags, "params": {}})()
+            self.info = type("I", (), {"run_id": "x" * 32, "start_time": 0,
+                                       "run_name": "n"})()
+
+    class _FakeExp:
+        def __init__(self, name):
+            self.name = name
+            self.experiment_id = name
+
+    class _FakeClient:
+        def __init__(self, m):
+            self.m = m
+
+        def search_experiments(self):
+            return [_FakeExp(k) for k in self.m]
+
+        def search_runs(self, ids, max_results=1000):
+            return self.m[ids[0]]
+
+    _m = {"LA_01_FRAME": [_FakeRun({"plane": "D"}), _FakeRun({"plane": "C"})],
+          D_OWN_EXPERIMENT: [_FakeRun({"d.plane": "x"})],
+          "ZZ_LEGACY_D_PRE_CONTRACT": [_FakeRun({})],
+          "SOMETHING_NEW": [_FakeRun({})]}
+    _acc = run_accounting(_FakeClient(_m))
+    case("회계의 분모가 맞는다", _acc["sum_check"], True)
+    case("귀속 안 되는 run 이 있으면 잡는다", _acc["verdict"], "FAIL", negative=True)
+    case("그 run 을 목록으로 낸다",
+         [u["experiment"] for u in _acc["unaccounted"]], ["SOMETHING_NEW"], negative=True)
     case("서버 없음은 PASS 가 아니다",
          audit().get("verdict") in ("NO_SERVER", "NO_CONTRACT_MODULE", "PASS", "FAIL"), True)
 
