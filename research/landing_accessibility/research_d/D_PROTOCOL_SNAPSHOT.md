@@ -142,3 +142,65 @@ RQ-D6b 에서 이 둘을 섞어 판정을 너무 넓게 닫았고 RQ-D6b-1 이 �
 - OPEN: RQ-E-1a, RQ-E-3, RQ-E-4, RQ-E-5, RQ-D11a, RQ-D7, RQ-D13b-1/2.
 - PILOT child A / B / C-part2 / D: `PENDING_PILOT_FREEZE` — 캡처 산출물 미도착.
 - 발행 완료: `D-RESEARCH_FINDING-003/004/005`, `D-ADDENDUM-002` (C ACK 완료).
+
+
+---
+
+## §16 V3 MAIN50 census 회차 (2026-08-28 10:44–12:15) — 추가분
+
+**기존 §1~§15 는 고치지 않았다.** 이 절은 그 뒤에 붙는다. 위 절들의 결함 표는
+`D-DEF-08` 까지이고 현재 대장은 `D-DEF-41` 이다 — 33건이 그 표 밖이므로
+**결함 이력은 `results/D_DEFECT_LEDGER.json` 이 정본**이다(스냅샷 표는 옛 판본).
+
+기록 시각 2026-08-28T12:16:15+09:00 · D head `74996b2dd66d15f82c2a2717a9de5d17131201d3`
+
+### 지위 정정 (A T-A-V3-TBX-008)
+
+`NON_CANONICAL` 은 **계산·EDA·ML·그래프를 만들면 안 된다는 뜻이 아니다.**
+D 혼자 만든 수치를 최종 연구사실로 **승인**할 수 없다는 뜻이다. 분석·시각화
+평면으로 적극적으로 쓰인다. claim 후보는 `to=[C] cc=[A]` 로만 올린다.
+
+### 이번 회차에 승계한 A 판정
+
+| 규약 | 내용 |
+|---|---|
+| R74/R92 | 수집기의 0(`COLLECTOR_ZERO_CANDIDATE`)과 사이트의 사실(`NO_SAFE_ROUTE_SITE`)을 **분리해 다른 색으로**. '못 셌다'(`UNVERIFIED_CANDIDATE_COUNT`)는 세 번째 값이지 0 이 아니다 |
+| R78 | `completed` = `ENDPOINT_REACHED` 만 · `failed` = attempted − completed · `NOT_ATTEMPTED` 는 attempted 에 세지 않음 · **`unaccounted` 는 0 이어야 한다** · failed 는 혼자 두지 말고 terminal 분해를 붙인다 |
+| R79 | streaming 파일은 **표와 sha 를 한 번의 `read_bytes` 에서** 만든다 |
+| R87 | 입력 coverage 가 0 인 축은 **렌더하지 않고 `AXIS_NOT_OBSERVED`**. 빈 그림은 없음을 0 으로 보이게 한다 |
+| R93 | 사후 파생 축은 **제목에 표기**한다. 각주로 숨기지 않는다 |
+| R104 | 규칙의 산물을 발견으로 내지 않는다. 양쪽 관측 n 이 작으면 사이트 수준 발견으로 보고하지 않는다 |
+| R106 | n 이 작으면 **분포로 그리지 않는다** — 개별 점 + 라벨 + 제목에 n/N |
+| R110 | **어떤 컬럼이 100% sentinel 이면 통과가 아니라 미배선**(`WIRED:false` 의 열 단위 판정) |
+| R113 | 회차별 terminal 을 **성능이 아니라 목적**으로 낸다. outcome 기반으로 대상이 선택된 rescue pass 는 성능 비교에 쓰지 않는다 |
+| R122 | 같은 이름이 다른 것을 셀 때 **두 이름으로 분리**한다 (`R1 attempted` vs `R1-only surviving in mart`) |
+| R125 | **sentinel 목록은 전역이 아니라 컬럼별이다.** 전역 목록으로 세면 값을 결측으로 만든다 |
+
+### 이번 회차 D 결함의 공통 형태 — 한 줄로
+
+**열이 채워졌다는 것과 관측됐다는 것은 다르다.** 그리고 **결측 검사와 값 읽기는
+다른 행위다** — 열이 비었는지만 보면 열이 들고 있는 경고를 놓친다.
+같은 자리에서 네 번 났다: `D-DEF-33`(골격 50행을 COMPLETE) ·
+`D-DEF-37`(미관측 토큰을 값으로) · `D-DEF-39`(확인 가능한 상위 주장을 미확인) ·
+`D-DEF-41`(채워진 열을 관측으로).
+
+### 도구
+
+| 파일 | 역할 |
+|---|---|
+| `tools/d_v3_census.py` | mart 계약(23+optional) · 결측 판정(패턴+형변환) · 분모(R78) · `axis_coverage` · `read_mart_pinned` |
+| `tools/d_v3_report.py` | 보고서 그림 4장. 한글 폰트 지정 필수 |
+| `tools/d_v3_tables.py` | 표 4종. **각 표 첫 줄에 읽는 법**을 적는다 — 그림의 경고가 표에는 없다 |
+| `tools/d_v3_bundle_check.py` | 산출 정합성 + 대조군. 대조군 실패는 **다른 종료코드(3)** |
+
+### 다음 실행에 반드시 할 것
+
+1. 결함 등재 **시점에** `caught_by` / `caught_how` 를 적는다 — 사후 복원 불가(`D-V3-FINDING-036`)
+2. 검사를 만들면 **must_flag 대조군을 같이** 만든다. 전건 PASS 인데 must_flag 0 이면 공허통과다
+3. 판본 간 열별 관측수 diff 검사 — `unwired`(전건 sentinel)와 `undermapped`(원본 대비 손실) 사이의 구멍
+4. 미충족을 **닫았다고 적지 않는다**. 부분 완료는 부분 완료다
+
+### 미충족으로 남긴 것
+
+`D ML / robustness` — Gower 는 A 승인 하에 폐기, leave-one-service-out ·
+missingness sensitivity 미실행. **closeout 이후 착수 금지(A 지시).**
