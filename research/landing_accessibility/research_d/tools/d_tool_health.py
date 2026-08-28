@@ -53,6 +53,7 @@ LOOP_ENTRYPOINTS = [
     "d_prereg_check", "d_v3_bundle_check", "d_queue_consistency",
     "d_ticket_schema_check", "d_retractions", "d_input_firewall",
     "d_input_integrity", "d_priority_availability", "d_warn_baseline",
+    "d_mlflow_contract_audit",
     "d_heartbeat", "d_mlflow", "d_emit_ticket",
 ]
 

@@ -24,6 +24,22 @@ print(f"  verdict          : {ctl['verdict']}")
 print(f"  positive control : {ctl['positive']['detected']}/{ctl['positive']['expected']} 검출")
 print(f"  negative control : {ctl['negative']['not_detected']}/{ctl['negative']['expected']} 미검출(과탐 0)")
 print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['expected']} 명시 오류")
+# --- MLflow 계약 사후 감사 (D-DEF-61) ---
+# `mlflow_contract` 는 발행 전 차단만 있었다. 도구를 우회해 `start_run()` 을
+# 직접 부르면 계약 없는 run 이 남고 아무도 모른다. **두 계약이 별개**다 —
+# A 계약(접두 없음, LA_* 실험) · D 자체(`d.` 접두, D_v21 실험).
+try:
+    from d_mlflow_contract_audit import audit as _ma
+    _m = _ma()
+    _o = _m.get("d_own") or {}
+    print(f"\n=== MLflow 계약 : A {_m.get('verdict')}(위반 {_m.get('n_violating_new','?')}) "
+          f"· D자체 {_o.get('verdict')}(위반 {_o.get('n_violating','?')}) ===")
+    if _m.get("verdict") == "NO_SERVER":
+        print("   서버 없음 — **통과가 아니다.** 재기동 후 다시 잰다")
+except Exception as _e:
+    print(f"\n=== MLflow 계약 : 검사 실패 {_e} ===")
+    errs.append({"file": "(mlflow 계약)", "error": f"감사 실행 실패: {_e}"})
+
 # --- 방화벽 FAIL 내역 (D-DEF-57) ---
 # `holdout_accessed=UNVERIFIED_SCAN_NOT_PASS` 만 보고 **FAIL 개수와 내역을 보지
 # 않았다.** D 가 D-DEF-54 시정에서 FAIL 을 1 → 3 으로 늘렸는데 세 회차 동안
