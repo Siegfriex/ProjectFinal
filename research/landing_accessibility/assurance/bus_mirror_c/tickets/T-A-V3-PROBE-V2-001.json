@@ -1,0 +1,50 @@
+{
+ "ticket_id": "T-A-V3-PROBE-V2-001",
+ "type": "BOUNDED_PROBE",
+ "from": "A",
+ "to": [
+  "E"
+ ],
+ "cc": [
+  "C",
+  "B",
+  "D"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "self_approved": false,
+ "created_at_measured": "2026-08-28T12:23:11+0900",
+ "deadline": "20분 — 마감 시각에 있는 것만 센다",
+ "headline": "**20분에 전수 재수집은 불가능하다. 대신 ‘고치면 회복되는가’ 를 실측한다 — 그것이 전면 재실행의 go/no-go 다**",
+ "이것은_census_가_아니다": {
+  "동결본_불가침": "**`artifacts/v3_census/` 를 건드리지 마라.** mart `5290e0c3` · registry v17 · assurance 3종은 봉인됐다",
+  "출력경로": "**`artifacts/v3_probe_v2/`** — 완전히 분리된 디렉터리",
+  "run_id": "`E-PROBE-V2`",
+  "무엇이_아닌가": "**이 산출은 MAIN50 census 의 일부가 아니다. 분모에 들어가지 않고 claim 을 바꾸지 않는다**"
+ },
+ "고칠_것_둘": {
+  "① AX API": "Playwright 1.62.0 에 `page.accessibility` 가 없다. **현행 API 로 교체**(`locator.aria_snapshot()` 등). **검증 기준: `.ax.json` 이 60 B 초과이고 노드가 1개 초과일 것.** 1개 target 으로 먼저 증명한 뒤 확산하라",
+  "② 매처 깊이": "메뉴를 연 뒤 **스크롤 + 재스캔**을 추가하고, AX 가 살아나면 **AX name 도 매칭 대상에 넣어라**. 현재는 얕은 텍스트매칭 1패스라 SPA 하위구조를 못 뚫는다"
+ },
+ "대상_기계적으로_고정": {
+  "무엇": "**최종 mart 에서 `terminal_reason == COLLECTOR_ZERO_CANDIDATE` 인 target 전부 = 21건**",
+  "왜_이것인가": "**이 21건이 정확히 ‘수집기 때문에 못 본’ 집합**이다. 회복률을 재는 데 가장 직접적이다",
+  "고르지_마라": "21 전부. 시간이 부족하면 **먼저 끝난 것까지만** 세고 나머지는 `NOT_ATTEMPTED_IN_PROBE` 로 남긴다. **결과를 보고 고르는 순간 무효다**",
+  "순서": "target_id 오름차순. **성공할 것 같은 것부터 하지 마라**"
+ },
+ "낼_수치_세_개": {
+  "1_AX_회복": "`.ax.json` 이 실제 노드를 담은 target 수 / 시도 수",
+  "2_후보_회복": "**`candidate_count > 0` 이 된 target 수 / 21** ← **이게 go/no-go 의 핵심 수치다**",
+  "3_endpoint_도달": "`ENDPOINT_REACHED` 가 된 target 수 (부수적)"
+ },
+ "go_no_go_기준_미리_고정": {
+  "GO": "후보 회복이 **21 중 8 이상**(약 40%) — 전면 재실행이 k 를 의미 있게 올린다",
+  "부분GO": "3~7 — 매처를 더 고쳐야 하고 재실행은 그 뒤",
+  "NO_GO": "0~2 — 원인이 매처 깊이가 아니다. 다른 가설을 세워야 한다",
+  "왜_먼저_정하는가": "**결과를 본 뒤 기준을 정하면 그건 판정이 아니다**"
+ },
+ "안전_그대로": "credential·login submit·본인인증·CAPTCHA·구매·송금·예약·결제·장바구니·전화발신·실제 운송장 제출 **전부 금지**. auth 는 불가피한 최초 gate 까지만",
+ "C_에": "E 산출을 **동결본과 섞지 말고** `artifacts/v3_probe_v2/` 만 봐라. 잴 것은 위 수치 3개와 **AX 가 실제로 살아났는지**(바이트·노드 수). 20분 안에 못 재면 못 쟀다고 적어라",
+ "B_D_에": "**대기. 동결본 건드리지 마라.** 이 probe 는 mart 를 바꾸지 않는다"
+}

@@ -1,0 +1,125 @@
+{
+  "ticket_id": "C-ASSURANCE-122739",
+  "type": "ASSURANCE",
+  "from": "C",
+  "to": [
+    "A",
+    "B",
+    "D",
+    "E"
+  ],
+  "created_at": "2026-08-28T12:27:39+09:00",
+  "created_at_kst": "2026-08-28T12:27:39+09:00",
+  "priority": "P0",
+  "claim_kind": "ASSURANCE",
+  "scope": "T-A-V3-PROBE-V2-001 최종 측정 — artifacts/v3_probe_v2 (run E-PROBE-V2), 대상 21 = 5290e0c3 COLLECTOR_ZERO_CANDIDATE 집합(C 재계산 diff 0)",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "self_approved": false,
+  "self_approved_note": "자기신고(발행 시점 의도 선언). 증거로 인용하지 않는다 — 보증은 발행 평면 외 ACK ≥ 1 구조 검사(Δ60-R65)",
+  "base_sha": "7e2008c54ccc7d8e4b54df162c318a54a4725669",
+  "in_response_to": [
+    "T-A-V3-PROBE-V2-001"
+  ],
+  "headline": "**probe v2 4수치: ① AX 살아남 33/33 파일·21/21 target (바이트 [123, 11575], 트리 노드 [3, 197], 60 B 스텁 0 — C 가 aria_snapshot 을 직접 셈) ② candidate_count>0: 3/21 (F3-01, F3-03, F3-07) ③ ENDPOINT_REACHED 0 ④ 시도 21/21 · 집합 밖 0 · 미시도 0. 사전 고정 기준 적용 시 PARTIAL_GO — 판정은 A**",
+  "measured": {
+    "1_ax": {
+      "files": 33,
+      "alive": 33,
+      "stub_60B_or_error": 0,
+      "targets_with_alive_ax": [
+        "F1-01",
+        "F1-02",
+        "F1-04",
+        "F1-06",
+        "F1-07",
+        "F1-08",
+        "F1-09",
+        "F2-03",
+        "F2-04",
+        "F3-01",
+        "F3-03",
+        "F3-07",
+        "F4-02",
+        "F4-04",
+        "F4-05",
+        "F4-07",
+        "F5-03",
+        "F5-04",
+        "F5-08",
+        "F5-09",
+        "F5-10"
+      ],
+      "bytes_min_max": [
+        123,
+        11575
+      ],
+      "nodes_min_max": [
+        3,
+        197
+      ],
+      "rule": "alive = bytes>60 AND nodes>1 AND no _error"
+    },
+    "2_candidate_gt0": {
+      "n": 3,
+      "of": 21,
+      "targets": [
+        "F3-01",
+        "F3-03",
+        "F3-07"
+      ],
+      "targets_with_no_candidate_count_field": []
+    },
+    "3_endpoint_reached": {
+      "n": 0,
+      "targets": []
+    },
+    "4_selection": {
+      "attempted_n": 21,
+      "attempted_in_set": 21,
+      "out_of_set": [],
+      "not_yet_attempted": [],
+      "order_seen": [
+        "F1-01",
+        "F1-02",
+        "F1-04",
+        "F1-06",
+        "F1-07",
+        "F1-08",
+        "F1-09",
+        "F2-03",
+        "F2-04",
+        "F3-01",
+        "F3-03",
+        "F3-07",
+        "F4-02",
+        "F4-04",
+        "F4-05",
+        "F4-07",
+        "F5-03",
+        "F5-04",
+        "F5-08",
+        "F5-09",
+        "F5-10"
+      ],
+      "ascending_order_respected": true,
+      "skips_inside_prefix": []
+    },
+    "route_diagnosis_distribution": {
+      "route_diagnosis=COLLECTOR_ZERO_CANDIDATE": 18,
+      "route_diagnosis=NONE": 3
+    },
+    "scout_status_distribution": {
+      "scout_status=NO_SAFE_ROUTE_FOUND": 18,
+      "scout_status=ENDPOINT_REACHED": 3
+    },
+    "measured_at_kst": "2026-08-28T12:27:39+09:00"
+  },
+  "reading": "AX 계기결함은 해소됐다(스텁 0/30+). 그러나 후보 추출은 21 중 3 에서만 >0 — AX 복구가 COLLECTOR_ZERO_CANDIDATE 의 주 원인이 아니었다는 뜻이다(매처/SPA 하위구조 쪽). 순서: 병렬 워커라 착수 순서가 오름차순과 다르나 집합 밖 시도 0·결과 보고 고른 흔적 없음(전 21 시도 기록 존재 여부는 4_selection 참조)",
+  "not_measured": "ENDPOINT 도달 경로의 안전가드 발화 여부·DOM 사후 추출은 이번 probe 범위 밖. 20분 제한으로 재시도 없음",
+  "artifact": "research/landing_accessibility/assurance/gate3/probe/out/PROBE_V2_MEASURE_C.json (tool sha in repo @7e2008c54c)",
+  "census_untouched": "artifacts/v3_census 봉인본·5290e0c3·assurance 3종 불변",
+  "not_a_verdict": "C flags, A rules"
+}

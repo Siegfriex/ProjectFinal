@@ -1,6 +1,6 @@
 {
  "agent": "B",
- "timestamp": "2026-08-28T11:53:27+09:00",
+ "timestamp": "2026-08-28T12:26:43+09:00",
  "phase": "STEP 1 — task-first runner offline. 8 lane 병렬.",
  "current_ticket_id": "T-A-V3-TBX-006 (P0, deadline 12:30, B freeze 11:40)",
  "branch": "claude-b/diag-pilot-integration",
@@ -8,7 +8,7 @@
  "base_sha": "2281c853950d0c475c5d2c1678680b971c2804f4",
  "work_state": "V1_HOLD_DECLARED_AWAITING_DIRECTOR",
  "blocker_ids": [],
- "last_bus_seq": 1158,
+ "last_bus_seq": 1187,
  "last_push_at": "2026-08-27T20:56:51+09:00",
  "next_action": "Director 판단 대기. B 는 HOLD 무관 항목만 진행한다. REAL_TARGET NO-GO.",
  "real_target": {
@@ -68,9 +68,9 @@
  "self_correction": "T-B-FC-002 — §4.1 retry 판정 철회, C의 duplicate launch 판정 수락",
  "observed_remote": {
   "B_clean0_v21": "ba04a339bdb77c697bdb48a2fc758e47f5309610",
-  "A_control": "29eaeb1d9e099020651e422dddeefb1b41fe717b",
-  "C_assurance_v21": "872a25d55da44d502b2f4fba68c83c9e0b37b36a",
-  "at": "2026-08-28T11:53:27+09:00"
+  "A_control": "c2cb05a2979ddf594a7dfbbb6f03550225c7bea3",
+  "C_assurance_v21": "7e2008c54ccc7d8e4b54df162c318a54a4725669",
+  "at": "2026-08-28T12:26:43+09:00"
  },
  "loop_mode": "hybrid: machine fields @180s (b_heartbeat_180.sh), judgement fields on Monitor event",
  "workers": {
@@ -210,7 +210,7 @@
   "D-R0-72 OverlayCoverage construct",
   "blind set 존재 여부 E000 6 (본 HOLD 직결)"
  ],
- "updated_at": "2026-08-28T11:51:13+09:00",
+ "updated_at": "2026-08-28T11:56:41+09:00",
  "launch_gate_status": {
   "1_C_preflight_v2_manifest": "MET — C-COMPLETION-001706 sampling 12/12, A 가 PREFLIGHT_1_TO_5_ACCEPTED. 6항(exactly-once)은 최종 SHA 대기",
   "2_W1_completion_mask_in_SHA": "PENDING — W1 4ec538b 수신·검산 완료(소유권 위반 0, ancestry 확인). integration 288025ff 에 편입해 push 했고 C 재확인 대기",
@@ -223,7 +223,7 @@
   "T-B-FC-010 — composition 에서 mask 를 fed031f 에 귀속시킨 거짓 진술 철회"
  ],
  "awaiting": "Director 피벗 지침",
- "state": "MART_FINAL_FROZEN_5290e0c3",
+ "state": "B_COMPLETE_MART_FROZEN",
  "state_note": "Director override 수용 — 버스 실물로 검증 후 착수. **B 는 브라우저를 열지 않는다**",
  "preserved_unchanged": [
   "A/B/C 3평면 + D 연구소 오케스트레이션 구조와 티켓·ACK·COMPLETION 규약",
@@ -246,7 +246,7 @@
   "integration b094eaa2b0a9 — layer_firewall 종결 상태 서술(실행 코드 0줄)",
   "W5B d312c9a647fa — flow 정규화, 727 passed, 로그 sha256 2d76d21c26c9e4f0"
  ],
- "next_gate": "C CP7 재검산(9항) 결과 대기. B 산출 확정.",
+ "next_gate": "없음 — B 산출 확정. 추가 지시 수신 대기.",
  "decision_needed": [
   "T-B-V3-DR-001 ① SUBMIT_QUERY 를 activation_depth 에 포함하는가 ② SWITCH_TAB 이 reveal token 인가 — 04 와 03 이 다르게 읽힌다",
   "T-B-V3-E-ACK-001 은 ruling_9 로 해소됨"
@@ -286,7 +286,7 @@
  },
  "hard_stop_vocabulary": "R9 8종 채택 — wrong_scope · target_outside_manifest · forbidden_action · evidence_overwrite · duplicate_launch · task_contract_drift(endpoint drift 포함) · task_or_outcome_leakage · denominator_corruption. T-A-V3-P0-001 의 6종을 supersede.",
  "index_verified": "v9 e26e8714a62053a74b643edbb38e4be49cc1a4b230a2d61ca2edd4948de29154",
- "measured_at_kst": "2026-08-28T11:51:13+09:00",
+ "measured_at_kst": "2026-08-28T11:56:41+09:00",
  "resumed_at_kst": "2026-08-28T10:43:58.534912+09:00",
  "a_tickets_in_scope": {
   "T-A-V3-STEP1-039": "R54 확장 + probe 겨냥 확인 — 착수",
@@ -301,21 +301,25 @@
  },
  "tbx006": {
   "**최종 sha**": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+  "**C 검산**": "C-ASSURANCE-115007 — 9항 전부 재실행, 결과 불변, 전체정지 0",
   "mart_rows": 50,
   "columns": 27,
   "promoted": 50,
   "rejected": 0,
-  "regime": "**acquisition mart** — census 결과표가 아니다. collection_run/superseded_runs 는 provenance 전용, 통계변수 금지",
+  "regime": "acquisition mart — census 결과표 아님. collection_run/superseded_runs 는 provenance 전용",
   "terminal": "COLLECTOR_ZERO_CANDIDATE 21 · NO_SAFE_ROUTE_SITE 16 · ENDPOINT_REACHED 6 · AUTH_GATE 2 · TIMEOUT 2 · FORBIDDEN_ACTION_BOUNDARY 1 · UNVERIFIED 2",
-  "label_relation": "AX_NOT_INDEPENDENTLY_OBSERVED 28 · NONE 21 · VISIBLE_ONLY 1 — **MATCH 없음. AX 독립관측 0건**",
-  "entry_provenance": "ANCHOR_ON_E_LABEL 23(관측) · B_LEXICON_MATCHER 4(B 추측) — **C5 는 23/50 만**",
+  "label_relation": "AX_NOT_INDEPENDENTLY_OBSERVED 28 — **AX 원자료 부재(107/107 오류 스텁), 재추출 불가**",
+  "entry_control_type 출처": "E_SUPPLEMENT 8 · ANCHOR 18 · B_LEXICON 2 → **관측 26 · 추측 2**",
+  "nav_container_type": "**E 산출 없음.** B 파생 7 · 인용 가능 5(실질 4) — 사이트 발견에서 제외",
   "unwired": "reveal_direction · task_control_occlusion",
-  "**B 자기결함 5건**": [
-   "run 선택 이름(LATEST)과 계산(사전순) 불일치 — R2B 가 드러냄",
-   "병합/개명 누락 3회(_dir · scout_run_id · visible_label_text) — 세 번째가 P0",
+  "**B 자기결함 6건**": [
+   "run 선택 이름(LATEST)과 계산(사전순) 불일치",
+   "병합/개명 누락 3회 — 세 번째(visible_label_text)가 P0",
    "재라벨이 디렉터리 경로에만 걸려 정본 18건 미분리",
-   "provenance 토큰 하나에 두 방법(E 앵커 / B 매처)",
-   "결함 시정이 다른 열을 비움 — entry_control_type 28→9 회귀, 검사가 못 잡고 눈으로 잡음"
-  ]
+   "provenance 토큰 하나에 두 방법",
+   "결함 시정이 다른 열을 비움(entry_control_type 28→9) — 두 검사 사이 구멍",
+   "**내가 직접 관측·보고한 사실(.ax.json 60B 스텁)을 두 시간 뒤 반대 판정 받았을 때 대조하지 않았다**"
+  ],
+  "**남은 검사 항목**": "판본 간 열별 관측수 감소 flag — C 대장에 다음 실행분으로 등재"
  }
 }

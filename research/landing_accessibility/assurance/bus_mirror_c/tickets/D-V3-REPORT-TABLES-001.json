@@ -1,0 +1,88 @@
+{
+ "ticket_id": "D-V3-REPORT-TABLES-001",
+ "type": "FINDING",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "a19d8034bb23ea702a8466bd2ddbce1fb67a6581",
+ "in_response_to": [
+  "T-A-V3-TBX-025"
+ ],
+ "measured_at_kst": "2026-08-28T12:05:24+09:00",
+ "headline": "미충족 `canonical tables` 를 닫는다 — 표 4종. **표를 만들다 그림의 수치 결함 1건이 드러났다: 독립 관측 쌍은 28 이 아니라 0 이다**",
+ "closes": "T-A-V3-TBX-025 completion_contract 미충족 4항 중 `canonical tables` (표 산출물 0종)",
+ "표_4종": {
+  "T1_acquisition_state": "terminal_reason × 3집단, family k/10 + overall k/50",
+  "T2_observable_cases": "관측 가능한 8건 전체 필드 — nav container 는 E 산출 0 이라 뺐다",
+  "T3_measurement_boundary": "단계·축별 측정 가능 분모 + UNWIRED 표시",
+  "T4_collection_runs": "회차별 **목적과 선정규칙** — 성능 아님. rescue pass 필수 문장 수록",
+  "형식": "CSV + Markdown 각 4종. **그림과 같은 mart_pin(5290e0c3)에서 나왔고 pin 을 표 안에 적었다**",
+  "설계": "표는 그림보다 인용되기 쉽고 **그림의 경고 문구가 표에는 없다.** 그래서 각 표 첫 줄에 읽는 법을 적었다 — 특히 k/50 을 접근성 성공률로 읽지 못하게"
+ },
+ "발견_D_DEF_41": {
+  "무엇": "`paired visible+AX label` 을 '두 열이 채워짐' 으로 세어 **28** 을 냈다",
+  "정정": "`accessible_name` 은 visible text 복사이고 mart 자신이 `AX_NOT_INDEPENDENTLY_OBSERVED` 로 28건을 표시하고 있었다. 그 라벨을 무시하고 결측 여부만 봤다. **독립 관측 쌍 = 0**",
+  "A_판정과의_관계": "A 가 R120 에서 확정한 '이번 census 에 browser-computed accessible name 은 0건' 과 정면으로 어긋나는 수였다. 표에 28 로 나갔으면 'AX 비교가 28건 가능했다' 로 읽힌다",
+  "어떻게_잡았나": "**표를 만들다 그림과 다른 수가 나와서.** 표가 그림의 대조군 역할을 했다",
+  "계보": "열이 채워졌다는 것과 관측됐다는 것이 다르다 — 이 세션에서 **네 번째** 같은 자리다(D-DEF-33 골격 50행을 COMPLETE · D-DEF-37 미관측 토큰을 값으로 · D-DEF-39 확인 가능한 상위 주장 미확인 · D-DEF-41 채워진 열을 관측으로)",
+  "반영": "Figure 4 와 T3 를 `independently paired = 0` 으로 수정하고, T3 에 '함께 채워진 28 중 28 이 AX_NOT_INDEPENDENTLY_OBSERVED' 를 병기했다"
+ },
+ "D_DEF_40": "폐기 그림 6장이 최종본과 같은 디렉터리에 있던 것 — A 가 `_superseded_do_not_cite/` 로 격리했다. **폐기와 확정이 같은 출력에 있었다.** D_PROVENANCE 에 격리 경로를 명시했다",
+ "the_measurement": {
+  "mart_pin": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/mart/CANONICAL_MART_50.csv",
+   "sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+   "bytes": 28715,
+   "optional_present": [
+    "entry_observation_provenance",
+    "collection_run",
+    "superseded_runs",
+    "entry_geometry_provenance"
+   ]
+  },
+  "tables": {
+   "t1_acquisition_state": {
+    "rows": 8,
+    "csv_sha256": "5aefe115b12e97ba422fd443d3d0a4cc2f859182b20f37a8781873845db39be1"
+   },
+   "t2_observable_cases": {
+    "rows": 8,
+    "csv_sha256": "b88d490dfcb02ca09493cdbf4d942f4fe1590cb124b7ff4b7970728f3ca7b2ae"
+   },
+   "t3_measurement_boundary": {
+    "rows": 11,
+    "csv_sha256": "6a882b205adfc774da3616f6317de5f4fccc55919eaa3028e686023448047233"
+   },
+   "t4_collection_runs": {
+    "rows": 6,
+    "csv_sha256": "a60830885c3c3ecee2342b175607b7369e416baa8ba67f72609d397930d3ca7e"
+   }
+  },
+  "figures": {
+   "figure1_acquisition_state": "b6195e14b6441e51f2740085e8cb171587f2c3ad17d5cfa5cb754cb9adb3bbbd",
+   "figure2_spatial_cases": "72f195f35025747d892a96dd277900a8fa29baae71abbd7c17d1eca8436dbbac",
+   "figure3_flow_cases": "9026d2e6b6630f0e78eab946bd968be3a6120164da33aff798faad432f22dfb1",
+   "figure4_measurement_boundary": "34554421346d064d51aa15e92d8c82a30543df741555da687f885912775608cf"
+  },
+  "independently_paired_labels": {
+   "value": 0,
+   "filled_both": 28,
+   "note": "두 열이 함께 채워진 행은 28 이지만 전부 AX_NOT_INDEPENDENTLY_OBSERVED — accessible_name 이 visible text 복사다. **독립 관측 쌍 0**"
+  },
+  "mlflow_run_id": "239ed324fae54776840d0c508e8973c7"
+ },
+ "미충족_잔여": "`D ML / robustness` 는 여전히 미충족이다 — Gower 는 A 승인 하에 폐기했고 leave-one-service-out·missingness sensitivity 는 실행하지 않았다. **닫았다고 적지 않는다**",
+ "limitation": "표는 mart 를 읽은 결과이고 D 는 어떤 수치도 최종사실로 선언하지 않는다. 재현성 고지(결정론적 replay 면제)가 표에도 그대로 적용된다",
+ "not_a_verdict": "산출 보고다. C 재계산·A freeze 대상이다",
+ "created_at_kst": "2026-08-28T12:06:03+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

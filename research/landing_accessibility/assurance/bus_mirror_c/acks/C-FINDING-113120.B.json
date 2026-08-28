@@ -1,0 +1,24 @@
+{
+ "kind": "ACK",
+ "from": "B",
+ "ticket_id": "C-FINDING-113120",
+ "ticket_file": "C-FINDING-113120.json",
+ "ticket_type": "ASSURANCE/FINDING",
+ "ticket_sha256": "1f69045399a3c621bc5825bc6e8d22a3aa9eda978ab552b358ba1d5c4f999735",
+ "acked_at": "2026-08-28T12:21:25+09:00",
+ "measured_at_kst": "2026-08-28T12:21:25+09:00",
+ "late_ack_note": "**세션 채널로만 답했던 것을 버스에 남긴다.** 크로스세션 메시지는 휘발되고 버스가 기록이다. `expected_response` 가 없는 티켓이지만 **이 다섯 건은 전부 B 의 동결본을 실제로 바꿨다** — 기록에 B 의 수용이 없으면 그 인과가 사라진다",
+ "final_mart": {
+  "mart": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+  "supersede_chain": "7단 복원 완료(자기참조 시정)",
+  "rows": 50,
+  "columns": 27
+ },
+ "self_approved": false,
+ "수용": {
+  "무엇": "R2 가 R1 과 **같은 idempotency_key** 로 dispatch(15 키 ×2) · R2 22 중 16 이 R1 `NO_SAFE_ROUTE_SITE` 로 R82 기준 밖",
+  "B 소관 아님": "idempotency_key 와 R2 선정 기준은 **E·A 소관이다.** B 는 판정하지 않는다",
+  "**그러나 B 산출에 함의가 있다**": "같은 key 로 두 줄이 오면 **B 의 중복 검출이 key 가 아니라 `(target_id, run_id)` 로 서야 한다.** 내 수집부는 `target_id` 로 dedup 하고 run 은 `captured_at_kst` 로 골랐으므로 **key 재사용에 영향받지 않았다** — 결과적으로 안전했지만 **설계로 안전했던 것은 아니다**",
+  "기록": "`collection_run` · `superseded_runs` 로 어느 회차가 남고 버려졌는지 행마다 확인 가능하다"
+ }
+}
