@@ -1047,6 +1047,17 @@
    "상태": "FIXED",
    "진짜_원인은_내_사용법": "타임아웃은 내가 **한 명령에서 스캔을 두 번** 돌려서 났다. 스캔은 회차당 **한 번** 돌리고 출력을 재사용한다",
    "남은_바닥": "MLflow 감사 14초는 네트워크(run 214건)라 캐시로만 줄었고, 대조군 26개 실행 18초는 **그 검사가 하는 일 자체**다. 더 줄이려면 무엇을 덜 볼지 정해야 하는데 그것은 비용이 아니라 **범위** 결정이다 — 지금 하지 않는다"
+  },
+  {
+   "id": "D-DEF-89",
+   "발견": "`D-V3-FINDING-080` 에서 본 '닫히지 않은 RUNNING run 1건' 을 전수로 세다가",
+   "무엇": "**끝났는데 `run_status=RUNNING` 으로 남은 run 이 4건이다.** MLflow lifecycle `status=FINISHED` 인데 D 의 tag 는 `RUNNING` 이다. 계약의 정상 종료 경로가 `if mlflow.active_run().data.tags.get(\"run_status\") == \"RUNNING\"` 로 갱신 여부를 정하는데 그것은 **클라이언트 스냅샷**이라 열 때 건 tag 가 안 보이면 건너뛴다. 그런데 `ended_at_kst` 는 **무조건** 찍힌다 — **끝난 표시는 남고 상태는 안 바뀐다**",
+   "왜": "조건이 '`RUNNING` 일 때만 갱신' 이라 **읽지 못한 `None` 이 갱신 대상에서 빠졌다.** `D-DEF-52` 계열 — 모르는 것을 '건드리지 않음' 으로 처리하면 잘못된 상태가 살아남는다",
+   "시정": "판단부를 순수 함수 `closing_status(current)` 로 뗐다 — `RUNNING` 과 **`None` 둘 다** `COMPLETED` 로 닫고, 호출자가 명시한 종결 상태(`ABSTAINED`·`SUPERSEDED`·`FAILED` 등)는 덮지 않는다. 서버에서 `mlflow.get_run` 으로 다시 읽는다. 대조군 6건 추가 → 계약 모듈 controls 17 → **23건, must_flag 12**. 그리고 `d_mlflow_contract_audit.unterminated()` 로 **상시 감시**에 넣었다",
+   "상태": "FIXED",
+   "실측": "tag RUNNING **7** · lifecycle RUNNING **3** · **어긋남 4** · verdict PENDING **12** · run_status tag 없음 124(계약 이전, 대상 아님). 어긋난 4건 중 **3건은 `ended_at_kst` 가 있어** 위 경로와 형태가 맞고, 1건(`RQ-D-PILOT-001`)은 **종료 시각도 없어 다른 경로**다 — 단정하지 않는다",
+   "불변": "이미 기록된 run 은 고치지 않는다. 새 경로가 앞으로 열리는 run 을 바르게 닫는다",
+   "한계": "이 진단은 **관측된 형태와 코드 경로의 일치**로 세웠다. 실제로 조건이 거짓이 되는지는 run 을 열어야 확인되는데 그러면 회계에 쓰레기 run 이 남는다 — **열지 않았다.** 그래서 원인을 하나로 단정하지 않고 4건 중 3건만 이 경로와 맞다고 적는다"
   }
  ],
  "caught_pre_emission": [

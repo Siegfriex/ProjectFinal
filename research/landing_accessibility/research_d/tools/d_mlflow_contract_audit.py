@@ -124,6 +124,49 @@ def run_accounting(c) -> dict:
 # 두 번 이상 불리는데(스캔 + 표시누락 검사 + 자기 controls) 매번 전부 다시 쟀다.
 # 프로세스가 끝나면 캐시도 끝나므로 **회차 간 낡은 값이 남지 않는다.**
 @lru_cache(maxsize=1)
+def unterminated(c) -> dict:
+    """[D-DEF-89] **닫히지 않은 채 남은 run.** 열린 것과 닫힌 것을 가른다.
+
+    두 축이 어긋날 수 있다 — MLflow lifecycle `status` 와 D 의 `run_status` tag.
+    실측에서 `ended_at_kst` 는 있는데 `run_status=RUNNING` 인 run 이 나왔다:
+    종료부의 조건이 클라이언트 스냅샷을 읽어 갱신을 건너뛴 자리다.
+
+    **계약 이전 run 은 tag 자체가 없다** — 그것은 '미종결' 이 아니라 '대상 아님' 이다.
+    """
+    tag_running, life_running, pending, no_tag = [], [], [], 0
+    for e in c.search_experiments():
+        for r in c.search_runs([e.experiment_id], max_results=1000):
+            t = r.data.tags
+            if "run_status" not in t:
+                no_tag += 1
+                continue
+            row = {"exp": e.name, "run": r.info.run_name,
+                   "lifecycle": r.info.status,
+                   "run_status": t.get("run_status"),
+                   "started": t.get("started_at_kst"), "ended": t.get("ended_at_kst"),
+                   "ticket": t.get("ticket_id")}
+            if t.get("run_status") == "RUNNING":
+                tag_running.append(row)
+            if r.info.status == "RUNNING":
+                life_running.append(row)
+            if t.get("verdict") == "PENDING":
+                pending.append(row)
+    # 두 축이 어긋난 것 — **끝났다고 하면서 RUNNING 이라고도 한다**
+    disagree = [x for x in tag_running if x["lifecycle"] != "RUNNING"]
+    return {"verdict": "INFO",           # **판정이 아니다** — D 는 발행된 run 을 고치지 않는다
+            "n_tag_running": len(tag_running),
+            "n_lifecycle_running": len(life_running),
+            "n_disagree": len(disagree), "disagree": disagree,
+            "n_verdict_pending": len(pending),
+            "n_no_run_status_tag": no_tag,
+            "두_축이_다르다": ("MLflow lifecycle `status` 는 프로세스가 끝났는지, "
+                        "`run_status` tag 는 **D 가 무엇으로 닫았는지**를 말한다. "
+                        "어긋난 것(`disagree`)은 **끝났는데 RUNNING 으로 남은** run 이다"),
+            "왜_INFO_인가": ("발행된 run 은 고치지 않는다(불변). 새 종료 경로가 앞으로 열리는 run 을 "
+                       "바르게 닫고, 이미 남은 것은 **사실로 보고한다**"),
+            "tag_없는_것은_미종결이_아니다": "계약 이전 run 이다 — 대상이 아니다"}
+
+
 def audit() -> dict:
     try:
         import mlflow_contract as MC
@@ -172,6 +215,7 @@ def audit() -> dict:
             "contract_since": CONTRACT_SINCE,
             "대상": f"`mlflow_contract.EXPERIMENTS` {len(contract_exps)}개 실험의 `plane=D` run 만",
             "d_own": _audit_d_own(c),
+            "unterminated": unterminated(c),
             "accounting": run_accounting(c),
             "읽기만_한다": "MLflow run 은 삭제·수정하지 않는다(불변성). 잘못된 run 표시는 A/C 와 조율할 사안이다",
             "baseline_이_왜_있나": "계약 도입 이전 run 은 계약을 지킬 수 없었다 — 영구 FAIL 로 두면 새 위반이 묻힌다(D-DEF-52)"}
@@ -254,6 +298,20 @@ def _audit_d_own(c) -> dict:
 def controls() -> dict:
     """합성 run 으로 누락을 잡는지 본다. **서버를 건드리지 않는다.**"""
     rows = []
+
+    # [D-DEF-89] 미종결 축이 살아 있는가 — **비어 있으면 검사가 아니다**
+    _u = audit().get("unterminated") or {}
+    rows.append({"case": "[미종결] 두 축을 다 센다 — 키가 있다",
+                 "expectation": "must_not_flag",
+                 "ok": all(k in _u for k in ("n_tag_running", "n_lifecycle_running",
+                                             "n_disagree", "n_verdict_pending"))})
+    rows.append({"case": "[미종결] tag 없는 계약 이전 run 을 미종결로 세지 않는다",
+                 "expectation": "must_not_flag",
+                 "ok": _u.get("n_no_run_status_tag", 0) > 0
+                       and _u.get("n_tag_running", 0) < _u.get("n_no_run_status_tag", 0)})
+    rows.append({"case": "[미종결] 어긋남은 lifecycle 이 RUNNING 이 아닌 것만이다",
+                 "expectation": "must_not_flag",
+                 "ok": all(d.get("lifecycle") != "RUNNING" for d in (_u.get("disagree") or []))})
 
     def case(name, got, want, negative=False):
         rows.append({"case": name, "got": got, "want": want, "ok": got == want,

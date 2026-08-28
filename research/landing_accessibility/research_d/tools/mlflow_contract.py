@@ -186,6 +186,19 @@ def validate_args(*, experiment: str, plane: str, claim_kind: str, split: str,
     return authority
 
 
+# [D-DEF-89] 종료 시 `run_status` 를 무엇으로 둘지 — **순수 함수라 run 없이 시험된다.**
+# 이전 판정은 `== "RUNNING"` 하나였고, tag 를 못 읽으면(`None`) 갱신을 건너뛰어
+# **끝난 run 이 RUNNING 으로 남았다.** 미확정(`None`)도 갱신 대상이다.
+_TERMINAL_STATUS = ("COMPLETED", "FAILED", "ABSTAINED", "INVALIDATED", "SUPERSEDED")
+
+
+def closing_status(current: str | None) -> str | None:
+    """정상 종료 시 새로 쓸 `run_status`. 덮지 말아야 하면 `None`."""
+    if current in _TERMINAL_STATUS:
+        return None                 # 호출자가 명시한 종결 상태는 덮지 않는다
+    return "COMPLETED"              # `RUNNING` 도, **읽지 못한 `None` 도** 갱신한다
+
+
 @contextmanager
 def research_run(*, experiment: str, run_name: str, plane: str, objective: str, method: str,
                  dataset_grain: str, n_expected, n_observed, hypothesis_id: str = "NONE",
@@ -269,8 +282,17 @@ def research_run(*, experiment: str, run_name: str, plane: str, objective: str, 
             mlflow.log_text(f"{type(e).__name__}: {e}", "error_summary.txt")
             raise
         else:
-            if mlflow.active_run().data.tags.get("run_status") == "RUNNING":
-                mlflow.set_tag("run_status", "COMPLETED")
+            # [D-DEF-89] 조건이 `active_run().data.tags` — **클라이언트 스냅샷**을 읽어서
+            # 열 때 건 tag 가 안 보이면 갱신을 건너뛴다. 그런데 `ended_at_kst` 는
+            # **무조건** 찍히므로 "끝났는데 `run_status=RUNNING`" 인 run 이 남는다 —
+            # 실측 4건이 그렇다. 서버에서 다시 읽고, 판단은 순수 함수로 뗀다.
+            try:
+                cur = mlflow.get_run(run.info.run_id).data.tags.get("run_status")
+            except Exception:                       # noqa: BLE001
+                cur = None                          # 못 읽으면 미확정으로 본다
+            nxt = closing_status(cur)
+            if nxt:
+                mlflow.set_tag("run_status", nxt)
             mlflow.set_tag("ended_at_kst", datetime.now(KST).isoformat())
 
 
@@ -332,6 +354,23 @@ def controls() -> dict:
          ok_args | {"plane": "D", "authority_status": "DECISION"})
     case("A 는 DECISION 을 쓸 수 있다",
          ok_args | {"plane": "A", "authority_status": "DECISION"}, should_raise=False)
+
+    # [D-DEF-89] 종료 상태 판정
+    def ccase(name, cur, want):
+        got = closing_status(cur)
+        rows.append({"case": f"[종료] {name}", "got": got, "want": want,
+                     "expectation": "must_flag" if want else "must_not_flag",
+                     "ok": got == want})
+
+    ccase("RUNNING 은 COMPLETED 로 닫힌다", "RUNNING", "COMPLETED")
+    ccase("**읽지 못한 None 도 닫힌다** — 이것이 빠져서 4건이 RUNNING 으로 남았다",
+          None, "COMPLETED")
+    ccase("ABSTAINED 는 덮지 않는다", "ABSTAINED", None)
+    ccase("SUPERSEDED 는 덮지 않는다", "SUPERSEDED", None)
+    ccase("FAILED 는 덮지 않는다", "FAILED", None)
+    rows.append({"case": "[종료] 종결 상태 목록이 계약 enum 안에 있다",
+                 "expectation": "must_not_flag",
+                 "ok": set(_TERMINAL_STATUS).issubset(set(RUN_STATUS))})
 
     # [D-DEF-86] holdout 값 매핑 — **다른 축의 FAIL 을 holdout 접근으로 쓰지 않는다**
     def hcase(name, doc, want):

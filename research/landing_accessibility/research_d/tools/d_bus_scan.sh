@@ -91,6 +91,11 @@ try:
           f"· D자체 {_o.get('verdict')}(위반 {_o.get('n_violating','?')}) "
           f"· 회계 {_ac.get('verdict')}({_ac.get('total_runs','?')} run, 미귀속 "
           f"{(_ac.get('buckets') or {}).get('unaccounted', 0)}) ===")
+    _un = _m.get("unterminated") or {}
+    print(f"   미종결 run : tag RUNNING {_un.get('n_tag_running')} · lifecycle RUNNING "
+          f"{_un.get('n_lifecycle_running')} · **어긋남 {_un.get('n_disagree')}**(끝났는데 RUNNING) "
+          f"· verdict PENDING {_un.get('n_verdict_pending')} "
+          f"· tag 없음 {_un.get('n_no_run_status_tag')}(계약 이전, 대상 아님)")
     if _m.get("verdict") == "NO_SERVER":
         print("   서버 없음 — **통과가 아니다.** 재기동 후 다시 잰다")
 except Exception as _e:
