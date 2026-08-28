@@ -205,7 +205,12 @@ def figure4_measurement_boundary(df):
     stages = [("frozen targets", C.N_TOTAL), ("attempted", int(len(df))),
               ("usable path evidence  k=%d (CONFIRMED)" % usable, usable),
               ("geometry-complete cases", len(cs)),
-              ("independently paired visible+AX label", paired)]
+              ("independently observed label pairs", paired)]
+    # [A] 0 만 보이면 "라벨이 하나도 없었다" 로 읽힌다. **채워진 28 을 함께 보인다** —
+    # 두 수의 차이가 곧 "mart 가 경고를 값으로 들고 있었다" 는 사실이다.
+    filled_both = int(sum(1 for _, r in df.iterrows()
+                          if not C.is_missing(r["visible_label"])
+                          and not C.is_missing(r["accessible_name"])))
     fig, ax = plt.subplots(figsize=(10.5, 4.6))
     for i, (label, v) in enumerate(stages):
         w = v / C.N_TOTAL
@@ -220,8 +225,9 @@ def figure4_measurement_boundary(df):
     ax.set_title("Measurement boundary — 측정 가능한 분모가 축마다 다르다", fontsize=12)
     _foot(fig, "k=8은 '전체 acquisition history에서 8개 고유 target에 usable task-path evidence가 최소 1회 확보됐다'는 뜻이다. "
                "'50개 중 8개 서비스가 접근 가능했다'가 아니다 — 8/50 reachability로 읽지 마라.\n"
-               "R1 attempted 50 / R1-only surviving in mart 15 (두 수는 서로 다른 것을 센다).",
-          "darkred")
+               "independently observed label pairs %d · 두 열이 함께 채워진 행 %d — 그 %d 전부가 AX_NOT_INDEPENDENTLY_OBSERVED다"
+               "(accessible_name이 visible text 복사).   R1 attempted 50 / R1-only surviving in mart 15."
+               % (paired, filled_both, filled_both), "darkred")
     return _save(fig, "report_fig4_measurement_boundary.png")
 
 
