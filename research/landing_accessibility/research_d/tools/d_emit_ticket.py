@@ -266,9 +266,9 @@ def retraction_errors(t: dict) -> list:
         import d_retractions as _RET
     except Exception as e:
         return [f"철회 정본 도구를 불러오지 못했다 — 발행하지 않는다: {e}"]
-    declared = set(t.get(_RET.DECLARE_FIELD) or [])
-    hits = [h for h in _RET.audit_text(json.dumps(t, ensure_ascii=False))
-            if h["token"] not in declared]
+    # [D-DEF-49] 선언 인정은 `d_retractions` 한 곳에만 둔다. 여기서 따로
+    # 구현하면 사후 감사와 갈라진다 — 실제로 갈라졌다.
+    hits = _RET.audit_json_text(json.dumps(t, ensure_ascii=False), t.get("ticket_id", "?"))
     return [f"철회 라벨을 표시 없이 인용했다: {h['token']} — "
             f"`{_RET.MARK}` 를 달거나 `{_RET.DECLARE_FIELD}` 로 선언하라"
             for h in {h["token"]: h for h in hits}.values()]

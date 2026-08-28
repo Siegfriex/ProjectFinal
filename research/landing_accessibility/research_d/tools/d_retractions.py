@@ -118,6 +118,36 @@ def retracted_since(token: str) -> str | None:
     return min(times) if times else None
 
 
+def declared_in(obj) -> set:
+    """그 JSON 이 `retracted_labels_cited` 로 **선언한** 토큰 집합.
+
+    dict 든 list 든 받는다. 선언은 "이 문서는 이 토큰이 철회된 것을 알고
+    인용한다" 는 뜻이고, 철회 자체를 다루는 보고에는 필요하다.
+    """
+    v = (obj or {}).get(DECLARE_FIELD) if isinstance(obj, dict) else None
+    if isinstance(v, dict):
+        return set(v.keys())
+    if isinstance(v, (list, tuple, set)):
+        return set(v)
+    return set()
+
+
+def audit_json_text(txt: str, source: str) -> list:
+    """JSON 문서 하나를 감사한다 — **선언 인정은 여기 한 곳에만 있다**.
+
+    [D-DEF-49] 처음엔 선언 인정을 `audit_artifacts` 안에만 넣고
+    `audit_tickets` 에는 안 넣었다. 그래서 **발행 도구는 통과시킨 티켓을 사후
+    감사가 위반으로 잡았다**(`D-V3-FINDING-049`). 같은 규칙을 두 곳에 손으로
+    구현하면 갈라진다 — D-DEF-45·47 과 같은 뿌리다.
+    """
+    import json as _j
+    try:
+        declared = declared_in(_j.loads(txt))
+    except Exception:
+        declared = set()
+    return [h for h in audit_text(txt, source) if h["token"] not in declared]
+
+
 def audit_artifacts(root=None) -> dict:
     """**산출물**이 철회 토큰을 표시 없이 인용하는가.
 
@@ -134,17 +164,7 @@ def audit_artifacts(root=None) -> dict:
         except Exception:
             continue
         if p.suffix == ".json":
-            declared = set()
-            try:
-                import json as _j
-                declared = set((_j.loads(txt).get(DECLARE_FIELD) or {}).keys()
-                               if isinstance(_j.loads(txt).get(DECLARE_FIELD), dict)
-                               else (_j.loads(txt).get(DECLARE_FIELD) or []))
-            except Exception:
-                declared = set()
-            hits = [h for h in audit_text(txt, str(p.relative_to(root)))
-                    if h["token"] not in declared]
-            bad += hits
+            bad += audit_json_text(txt, str(p.relative_to(root)))
             continue
         bad += audit_text(txt, str(p.relative_to(root)))
     return {"verdict": "PASS" if not bad else "FAIL", "n": len(bad),
@@ -169,7 +189,7 @@ def audit_tickets(plane: str = "D") -> dict:
         if d.get("from") != plane:
             continue
         ts = str(d.get("created_at_kst") or d.get("created_at") or "")[:19]
-        for h in audit_text(txt, p.name):
+        for h in audit_json_text(txt, p.name):     # **선언 인정은 단일 경로**
             s0 = since.get(h["token"])
             if s0 and ts and ts < s0:
                 skipped.append({**h, "created_at_kst": ts, "retracted_since": s0})
@@ -231,6 +251,16 @@ def controls() -> dict:
             encoding="utf-8")
         case("JSON 이 선언하면 통과", audit_artifacts(d)["verdict"], "PASS")
     # 철회 시각을 정본의 근거 티켓에서 읽는다 — 없으면 시점 판정이 불가능하다
+    # [D-DEF-49] 발행 도구와 사후 감사가 **같은 규칙을 쓰는가**
+    _decl = ('{"headline":"NO_SAFE_ROUTE_SITE 16",'
+             ' "retracted_labels_cited":{"NO_SAFE_ROUTE_SITE":"철회 인지"}}')
+    case("선언한 JSON 은 통과 — 발행 도구와 같은 규칙",
+         len(audit_json_text(_decl, "synth")), 0)
+    case("선언 없는 JSON 은 걸린다",
+         len(audit_json_text('{"headline":"NO_SAFE_ROUTE_SITE 16"}', "synth")), 1)
+    case("다른 토큰을 선언해도 이 토큰은 걸린다",
+         len(audit_json_text('{"headline":"NO_SAFE_ROUTE_SITE 16",'
+                             ' "retracted_labels_cited":{"OTHER":"x"}}', "synth")), 1)
     case("철회 시각을 근거 티켓에서 읽는다",
          bool(retracted_since("NO_SAFE_ROUTE_SITE")), True)
     case("철회 아닌 토큰엔 시각이 없다",
