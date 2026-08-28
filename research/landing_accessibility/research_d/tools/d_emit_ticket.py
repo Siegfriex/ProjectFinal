@@ -320,7 +320,21 @@ def emit(t: dict, *, dry_run: bool = False) -> dict:
     return {"emitted": True, "path": str(p), "ticket_sha256": sha}
 
 
-def audit_emitted(v3_since: str = "2026-08-28T02:12") -> dict:
+def _v3_since() -> str:
+    """v3 규약 발효 시각 — **정의는 `d_ticket_schema_check` 한 곳에 있다**.
+
+    [D-DEF-49] 같은 개념이 두 곳에 하드코딩돼 있었다. 지금은 값이 같지만
+    한쪽만 고치면 조용히 갈라진다.
+    """
+    try:
+        from d_ticket_schema_check import V3_SINCE
+        return V3_SINCE
+    except Exception:
+        return "2026-08-28T02:12"     # 불러오지 못해도 감사가 멈추지는 않는다
+
+
+def audit_emitted(v3_since: str | None = None) -> dict:
+    v3_since = _v3_since() if v3_since is None else v3_since
     """D 발행분 전수 — v3 이후 base_sha 해석 여부. 스캐너가 매 회 호출한다."""
     rows = []
     for p in sorted((BUS / "tickets").glob("D-*.json")):

@@ -24,6 +24,19 @@ print(f"  verdict          : {ctl['verdict']}")
 print(f"  positive control : {ctl['positive']['detected']}/{ctl['positive']['expected']} 검출")
 print(f"  negative control : {ctl['negative']['not_detected']}/{ctl['negative']['expected']} 미검출(과탐 0)")
 print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['expected']} 명시 오류")
+# --- D 도구 문법 건전성 (D-DEF-50) ---
+# `d_presentation_eda.py` 가 syntax error 인 채로 두 회차를 지났다. 검사 7종이
+# 전부 exit 0 이었고 **그 파일을 실행하는 검사가 하나도 없었기 때문**이다.
+try:
+    from d_tool_health import check as _th
+    _t = _th()
+    print(f"\n=== D 도구 문법 : {_t['verdict']} · {_t['ok']}/{_t['n_tools']} ===")
+    for _b in _t["syntax_error"]:
+        print(f"   {_b['tool']}:{_b['line']}  {_b['msg']}")
+except Exception as _e:
+    print(f"\n=== D 도구 문법 : 검사 실패 {_e} ===")
+    errs.append({"file": "(도구 문법)", "error": f"문법 감사 실행 실패: {_e}"})
+
 # --- 철회 라벨 인용 상주 감사 (A R163 / D-DEF-48) ---
 # "검사는 CSV 의 값을 보지 그 값이 사람에게 어떻게 읽히는지를 안 본다" (B).
 # 철회 사실을 주석·문서에만 두면 아무것도 강제하지 않는다.

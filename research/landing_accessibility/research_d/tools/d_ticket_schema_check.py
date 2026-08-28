@@ -83,6 +83,49 @@ def check() -> dict:
                                 "**A 가 정한다**. D 는 불일치만 보고한다")}
 
 
+def constant_drift() -> dict:
+    """**같은 값을 여러 도구가 각자 들고 있는 자리**를 대조한다.
+
+    [D-DEF-49] 규칙이 하나인데 구현이 둘이면 갈라진다. 다만 **통합이 항상
+    답은 아니다** — `d_prereg_check.FROZEN_MART_SHA` 는 "사전등록 시점에 적어둔
+    것" 이고 `d_presentation_eda.EXPECTED_MART` 는 "EDA 가 읽어야 할 판본" 이라
+    개념이 다르다. 합치면 사전등록이 현재값을 따라가 버린다.
+
+    그래서 **합치지 않고 대조만 한다.** 갈라지면 그것이 의도인지 묻는다.
+    """
+    out = []
+
+    def pair(name, a_label, a, b_label, b, note):
+        out.append({"name": name, a_label: a, b_label: b,
+                    "same": a == b, "note": note})
+
+    try:
+        import d_prereg_check as _P
+        import d_presentation_eda as _E
+        pair("frozen mart sha",
+             "prereg(사전등록 시점)", getattr(_P, "FROZEN_MART_SHA", None),
+             "presentation_eda(읽어야 할 판본)", getattr(_E, "EXPECTED_MART", None),
+             "개념이 달라 **합치지 않는다**. 갈라지면 의도인지 확인한다")
+    except Exception as e:
+        out.append({"name": "frozen mart sha", "error": str(e), "same": None})
+
+    try:
+        import d_emit_ticket as _M
+        pair("v3 경계",
+             "schema_check(정의)", V3_SINCE,
+             "emit_ticket(참조)", _M._v3_since(),
+             "같은 개념이라 **통합했다** — emit 이 schema_check 를 읽는다")
+    except Exception as e:
+        out.append({"name": "v3 경계", "error": str(e), "same": None})
+
+    # **읽지 못한 것을 통과로 읽지 않는다.** `same is None` 은 예외가 났다는 뜻이고
+    # 실제로 그렇게 `d_presentation_eda.py` 의 syntax error 가 묻힐 뻔했다
+    drift = [o for o in out if o.get("same") is not True]
+    return {"verdict": "PASS" if not drift else "FAIL",
+            "n": len(out), "drift": drift, "pairs": out,
+            "규칙": "same 이 True 가 아니면 전부 drift 다 — 예외도 포함한다"}
+
+
 def controls() -> dict:
     """합성 티켓으로 막는지 본다."""
     rows = []
@@ -122,6 +165,6 @@ def controls() -> dict:
 
 if __name__ == "__main__":
     import sys
-    out = {"check": check(), "controls": controls()}
+    out = {"check": check(), "controls": controls(), "constant_drift": constant_drift()}
     print(json.dumps(out, ensure_ascii=False, indent=1))
     sys.exit(0 if out["controls"]["verdict"] == "PASS" else 1)
