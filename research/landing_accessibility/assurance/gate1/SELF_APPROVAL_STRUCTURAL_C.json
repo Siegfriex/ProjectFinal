@@ -1,0 +1,288 @@
+{
+ "schema": "C_SELF_APPROVAL_STRUCTURAL",
+ "ruling": "Δ60-R65 (T-A-V3-STEP1-044)",
+ "measured_at_kst": "2026-08-28T10:41:26+09:00",
+ "bus": "/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2",
+ "tool_sha256": "a0b790d52904282df3f3b19421807449382e24fa75b5f6875e0177c25ac45b1a",
+ "method": {
+  "issuing_plane": "ticket JSON `from`; absent/unreadable → TICKET_PLANE_UNKNOWN, counted as exception (fail closed)",
+  "ack_plane": "ACK JSON `from`, else `ack_by`; NEVER the file name",
+  "ack_to_ticket": "ACK JSON `ticket_id` == ticket `ticket_id` (exact)",
+  "ack_unreadable": "unparsable ACK, or ACK without plane / ticket_id → not an approval, listed",
+  "structural_ok": "exists ACK with plane != issuing plane",
+  "self_approved_field": "presence per plane is reported as an observation only and never enters the verdict (Δ60-R65)"
+ },
+ "controls": {
+  "n": 16,
+  "all_pass": true,
+  "cases": {
+   "must_flag:C-NOACK": "PASS",
+   "must_flag:C-SELFONLY": "PASS",
+   "must_flag:C-UNREADONLY": "PASS",
+   "must_flag:C-NOPLANE": "PASS",
+   "must_flag:C-WRONGID": "PASS",
+   "must_flag:C-FILENAMELIE": "PASS",
+   "must_flag:X-NOFROM": "PASS",
+   "must_not_flag:C-OK": "PASS",
+   "must_not_flag:C-REACK": "PASS",
+   "must_not_flag:C-ACKBY": "PASS",
+   "must_not_flag:C-MIXED": "PASS",
+   "must_not_flag:C-FILENAMEOK": "PASS",
+   "count:C.with_other_plane_ack_n==5": "PASS",
+   "count:acks_unreadable==2": "PASS",
+   "count:acks_dangling==1": "PASS",
+   "mutation:remove_ack→flag": "PASS"
+  }
+ },
+ "result": {
+  "tickets_n": 313,
+  "tickets_unreadable": [],
+  "acks_n": 698,
+  "acks_unreadable": [
+   {
+    "file": "T-P0-RELEASED-001.B.json",
+    "reason": "no plane field"
+   }
+  ],
+  "acks_dangling_n": 18,
+  "acks_dangling": [
+   {
+    "file": "C-COMPLETION-001151.A.B.json",
+    "ticket_id": "C-COMPLETION-001151.A"
+   },
+   {
+    "file": "C-FINDING-001512.A.B.json",
+    "ticket_id": "C-FINDING-001512.A"
+   },
+   {
+    "file": "C-FINDING-001847.A.B.json",
+    "ticket_id": "C-FINDING-001847.A"
+   },
+   {
+    "file": "C-FINDING-002355.A.B.json",
+    "ticket_id": "C-FINDING-002355.A"
+   },
+   {
+    "file": "D-R0-74-2.A.B.json",
+    "ticket_id": "D-R0-74-2"
+   },
+   {
+    "file": "D-R0-74-2.A.json",
+    "ticket_id": "D-R0-74-2"
+   },
+   {
+    "file": "D-R0-74-2.A2.json",
+    "ticket_id": "D-R0-74-2"
+   },
+   {
+    "file": "T-A-LABEL-FROZEN-001-DA5.A.json",
+    "ticket_id": "T-A-LABEL-FROZEN-001-DA5"
+   },
+   {
+    "file": "T-A-MLFLOW-001.B.json",
+    "ticket_id": "T-A-MLFLOW-001"
+   },
+   {
+    "file": "T-A-W4-001-REWORK.A.B.json",
+    "ticket_id": "T-A-W4-001-REWORK"
+   },
+   {
+    "file": "T-A-W4-001-REWORK.A.json",
+    "ticket_id": "T-A-W4-001-REWORK"
+   },
+   {
+    "file": "T-B-CLEAN0-001.A.json",
+    "ticket_id": "T-B-CLEAN0-001"
+   },
+   {
+    "file": "T-B-CLEAN0-001.A2.json",
+    "ticket_id": "T-B-CLEAN0-001"
+   },
+   {
+    "file": "T-B-FC-010.A.B.json",
+    "ticket_id": "T-B-FC-010.A"
+   },
+   {
+    "file": "T-B-PILOT-INT-002.A.B.json",
+    "ticket_id": "T-B-PILOT-INT-002.A"
+   },
+   {
+    "file": "T-B-V3-P0-ACK-001.A.B.json",
+    "ticket_id": "T-B-V3-P0-ACK-001.A"
+   },
+   {
+    "file": "W1-e2bb63e.A.B.json",
+    "ticket_id": "W1-e2bb63e"
+   },
+   {
+    "file": "W1-e2bb63e.A.json",
+    "ticket_id": "W1-e2bb63e"
+   }
+  ],
+  "per_plane": {
+   "A": {
+    "tickets_n": 108,
+    "with_other_plane_ack_n": 104,
+    "exceptions": [
+     {
+      "ticket_id": "T-A-V3-MAIN50-001",
+      "type": "DIRECTIVE",
+      "created_at_kst": "2026-08-28T10:44:00+0900",
+      "state": "NO_ACK",
+      "self_acks": []
+     },
+     {
+      "ticket_id": "T-A-V3-MAIN50-002",
+      "type": "DIRECTIVE",
+      "created_at_kst": "2026-08-28T10:44:00+0900",
+      "state": "NO_ACK",
+      "self_acks": []
+     },
+     {
+      "ticket_id": "T-A-V3-MAIN50-003",
+      "type": "DIRECTIVE",
+      "created_at_kst": "2026-08-28T10:44:00+0900",
+      "state": "NO_ACK",
+      "self_acks": []
+     },
+     {
+      "ticket_id": "T-A-V3-MAIN50-004",
+      "type": "DIRECTIVE",
+      "created_at_kst": "2026-08-28T10:44:00+0900",
+      "state": "NO_ACK",
+      "self_acks": []
+     }
+    ],
+    "self_approved_field_present_n": 23,
+    "self_approved_false_n": 23,
+    "ack_planes_seen": {
+     "B": 89,
+     "C": 97,
+     "D": 74,
+     "A": 4,
+     "E": 14
+    },
+    "exceptions_n": 4
+   },
+   "B": {
+    "tickets_n": 86,
+    "with_other_plane_ack_n": 86,
+    "exceptions": [],
+    "self_approved_field_present_n": 34,
+    "self_approved_false_n": 34,
+    "ack_planes_seen": {
+     "C": 85,
+     "A": 63,
+     "B": 9,
+     "D": 44,
+     "E": 1
+    },
+    "exceptions_n": 0
+   },
+   "C": {
+    "tickets_n": 60,
+    "with_other_plane_ack_n": 57,
+    "exceptions": [
+     {
+      "ticket_id": "C-ASSURANCE-024917",
+      "type": "ASSURANCE",
+      "created_at_kst": "2026-08-28T02:49:17+09:00",
+      "state": "NO_ACK",
+      "self_acks": []
+     },
+     {
+      "ticket_id": "C-FACT_CORRECTION-030523",
+      "type": "FACT_CORRECTION",
+      "created_at_kst": "2026-08-28T03:05:23+09:00",
+      "state": "NO_ACK",
+      "self_acks": []
+     },
+     {
+      "ticket_id": "C-FINDING-235248",
+      "type": "FINDING",
+      "created_at_kst": "2026-08-27T23:52:48+09:00",
+      "state": "NO_ACK",
+      "self_acks": []
+     }
+    ],
+    "self_approved_field_present_n": 18,
+    "self_approved_false_n": 18,
+    "ack_planes_seen": {
+     "A": 43,
+     "D": 8,
+     "B": 39,
+     "C": 2
+    },
+    "exceptions_n": 3
+   },
+   "D": {
+    "tickets_n": 57,
+    "with_other_plane_ack_n": 54,
+    "exceptions": [
+     {
+      "ticket_id": "D-V3-FC-031",
+      "type": "FACT_CORRECTION",
+      "created_at_kst": "2026-08-28T10:32:10+09:00",
+      "state": "NO_ACK",
+      "self_acks": []
+     },
+     {
+      "ticket_id": "D-V3-FINDING-030",
+      "type": "FINDING",
+      "created_at_kst": "2026-08-28T10:20:09+09:00",
+      "state": "NO_ACK",
+      "self_acks": []
+     },
+     {
+      "ticket_id": "D-V3-FINDING-032",
+      "type": "FINDING",
+      "created_at_kst": "2026-08-28T10:41:24+09:00",
+      "state": "NO_ACK",
+      "self_acks": []
+     }
+    ],
+    "self_approved_field_present_n": 14,
+    "self_approved_false_n": 14,
+    "ack_planes_seen": {
+     "C": 56,
+     "A": 28,
+     "B": 17
+    },
+    "exceptions_n": 3
+   },
+   "E": {
+    "tickets_n": 2,
+    "with_other_plane_ack_n": 2,
+    "exceptions": [],
+    "self_approved_field_present_n": 2,
+    "self_approved_false_n": 2,
+    "ack_planes_seen": {
+     "A": 2,
+     "B": 1,
+     "C": 2,
+     "D": 1
+    },
+    "exceptions_n": 0
+   }
+  },
+  "a_claim_recount": {
+   "claim": "T-A-V3-STEP1-044: A 의 T-A-V3-* 61건 전부 타 평면 ACK",
+   "T-A-V3_tickets_n": 66,
+   "with_other_plane_ack_n": 62,
+   "exceptions": [
+    "T-A-V3-MAIN50-001",
+    "T-A-V3-MAIN50-002",
+    "T-A-V3-MAIN50-003",
+    "T-A-V3-MAIN50-004"
+   ]
+  }
+ },
+ "reading": {
+  "A": "104/108 타 평면 ACK 보유 · 예외 4",
+  "B": "86/86 타 평면 ACK 보유 · 예외 0",
+  "C": "57/60 타 평면 ACK 보유 · 예외 3",
+  "D": "54/57 타 평면 ACK 보유 · 예외 3",
+  "E": "2/2 타 평면 ACK 보유 · 예외 0"
+ },
+ "not_a_verdict": "measurement; exceptions are listed, not judged (a just-issued ticket legitimately has no ACK yet — read created_at_kst)"
+}

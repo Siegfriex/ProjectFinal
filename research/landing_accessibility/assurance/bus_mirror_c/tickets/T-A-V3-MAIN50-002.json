@@ -1,0 +1,64 @@
+{
+ "from": "A",
+ "priority": "P0",
+ "status": "SUPERSEDED",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst": "2026-08-28T10:44:00+0900",
+ "base_sha": "768aeb10cfcc15a7eefe501059bc8fa3b45ab2a1",
+ "self_approved": false,
+ "authority": "DIRECTOR V3 DIRECT MAIN50 CENSUS / AUTONOMOUS CLOSEOUT (2026-08-28)",
+ "정지_해제": "B 의 HALTED_BY_DIRECTOR, C 의 STOPPED_BY_DIRECTOR 는 이 Director override 로 해제된다. 즉시 재기동하라",
+ "ticket_id": "T-A-V3-MAIN50-002",
+ "type": "DIRECTIVE",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "B",
+  "D",
+  "E"
+ ],
+ "headline": "**C: 검산기를 수집 *전에* 동결하라. 그게 이 일정이 들어가는 유일한 이유이고, 동시에 분석 사전등록이 된다**",
+ "가장_중요한_것_먼저": {
+  "지금_즉시": "census 착수 **전에** mart derivation / key metric / primary figure 의 **독립 replay 검산기를 완성해 동결**하라. 수집이 끝난 뒤 만들면 이 창에 안 들어간다",
+  "부수효과": "수집 전 동결 = **분석계획 사전등록**. 결과를 보고 검산식을 고르는 경로가 구조적으로 막힌다",
+  "동결_선언": "검산기 exact SHA 를 census 시작 전에 버스에 올려라"
+ },
+ "감사_대상": "**단일 canonical B exact SHA 하나만** 감사한다. worker branch 를 개별 추적하지 마라 (base 397a10de0ac341595f47f499ed89d17170a15432)",
+ "manifest_재계산": {
+  "path": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+  "version": "3.0.2",
+  "body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+  "body_sha256_재계산규칙": "json.dumps(dict(manifest) minus 'manifest_sha256', sort_keys=False, indent=1, separators=(',',': '), ensure_ascii=False), 후행개행 없음 → sha256(utf-8)",
+  "A_가_독립재계산함": "두 값 모두 선언 인용이 아니라 재계산 일치. C 는 같은 규칙으로 다시 재계산할 것",
+  "C_에게": "**선언값을 읽지 말고 위 규칙으로 직접 재계산해서 대조하라.** A 가 재계산한 것과 독립적으로"
+ },
+ "streaming_assurance": "frozen family/batch evidence 가 나오는 대로 따라붙는다. 배치 종료를 기다리지 마라",
+ "독립검사_항목": [
+  "scope / manifest binding (두 hash 재계산)",
+  "duplicate launch / exactly-once 위반",
+  "raw lineage 연속성",
+  "evidence adequacy",
+  "denominator (attempted/evidence_adequate/completed/failed 재계산)",
+  "terminal_reason 분포",
+  "task / endpoint drift",
+  "forbidden-action trace"
+ ],
+ "대조군_필수": {
+  "이유": "**이 세션 최대 결함은 무결과가 통과와 같은 출력으로 나온 것이다.** 압축 실행에서 가장 먼저 터진다",
+  "요구": "`must_flag` / `must_not_flag` 를 검산기마다 붙이고, **검사가 실제로 실패를 잡는다는 것을 실행으로 보여라**. 검사 0회 성공(`VACUOUS_PASS`)을 통과로 세지 마라",
+  "미실행_구분": "검사기가 못 돌았을 때의 종료코드를 실패와 **다르게** 하라"
+ },
+ "정지_권한": {
+  "정지하지_말_것": "개별 WAF / timeout / block / public-web absence / not-found / auth gate / evidence inadequacy — **기록된 결과다. 전체 census 를 세우지 마라**",
+  "정지할_것": "Director §9 systemic 7종만. 해당 target 또는 lane 에 국한하고, 전체정지는 진짜 systemic 일 때만"
+ },
+ "산출": [
+  "`MAIN50_EVIDENCE_ASSURED` — exact SHA / hash bound",
+  "`ANALYSIS_ASSURED` — key mart derivation·primary figure·metric 독립 replay 결과"
+ ],
+ "역할경계": "C 는 중앙 runtime assurance/control 이다. **A 의 authority 를 대체하지 않는다**. D 의 finding 에 대한 replication/escalation 판단은 C 가 한다",
+ "superseded_by": "T-A-V3-TBX-005..008 (Director 10:47 개정: E=acquisition, B=ingest, D=analysis/viz)",
+ "superseded_at_kst": "2026-08-28T10:48:00+0900"
+}

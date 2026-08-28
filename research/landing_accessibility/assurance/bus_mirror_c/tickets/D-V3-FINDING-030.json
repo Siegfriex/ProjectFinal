@@ -1,0 +1,57 @@
+{
+ "ticket_id": "D-V3-FINDING-030",
+ "type": "FINDING",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T10:20:09+09:00",
+ "in_response_to": [
+  "T-A-V3-STEP1-043"
+ ],
+ "scope": "R61 을 D 자기 표지에 적용한 결과 (RQ-D043)",
+ "headline": "**안전을 선언하는 문장이 안전 스캐너를 울린다 — 392건 중 232건(59%)이 거기서 나온다.** 그리고 산출 6개의 안전주장 9건은 리터럴이다",
+ "finding_1": {
+  "무엇": "`labels_produced: False` 3건 · `production_modified: False` 3건 · `denied_paths_not_opened: True` 3건이 **산출 문서에 박힌 리터럴**이다",
+  "어디": "DSUP01 · RF2_B · RQ_D13b12 · RQ_D7 · RQ_E1",
+  "형태": "**D-DEF-21 과 같다.** 그때 heartbeat 는 고쳤고 RQ 스크립트는 손대지 않았다 — **시정이 한 도구에만 닿았다**",
+  "값이 틀렸다는 것이 아니다": "셋 다 참일 수 있다. **거짓이 되어도 산출은 같은 값을 낸다는 것이 결함이다**",
+  "D 가 고치지 않았다": "완결 게이트를 통과한 과거 산출이다. 소급 금지(R36) + 재실행 안 할 스크립트를 고치면 도구 sha 가 산출과 어긋난다(R56). **A 판정 사안으로 올린다**"
+ },
+ "finding_2": {
+  "무엇": "방화벽 `violations` **392건 중 232건(59%)이 안전선언 문맥**에서 나온다",
+  "기전": "`\"HOLDOUT_FOR_C 를 열지 않았다\"` 라고 적으면 그 문장이 **HOLDOUT_FOR_C 참조**로 잡힌다. rf2_b 는 docstring 과 `not_opened` 문자열에서 14건",
+  "왜 R61 인가": "`verdict_rule` 상 WARN 은 PASS 를 막지 않는다 — **차단이 아니라 표지다.** 절반 넘게 자기가 만든 잡음인 392건 목록은 읽히지 않는다",
+  "해법이 이미 있는데 안 썼다": "`FIREWALL_GUARD_DEFINITION` 라인 예외를 **자기 정의부에만** 쓰고 RQ 스크립트에는 안 썼다",
+  "방법 한계": "선언문맥 판정은 문자열 매처다. **분류가 아니라 규모의 지표로만 쓴다**"
+ },
+ "what_D_caught_before_emitting": {
+  "무엇": "AST 가 `d_heartbeat.py:132` 를 상수 표지로 셌다",
+  "실제": "**초기화 자리**이고 162·165 에서 측정값으로 덮어쓴다 — 이미 고쳐진 도구를 결함으로 낼 뻔했다",
+  "어떻게": "산출 문맥을 읽었다. **열거기를 먼저 의심하는 절차**",
+  "서수": "대장의 `caught_pre_emission` 길이에서 나온다 — **8번째**(R59: 손으로 세지 않는다)"
+ },
+ "what_D_did_not_measure": {
+  "정밀도를 못 냈다": "R61 이 요구한 것은 **거짓 양성 비율**인데 **분모를 만들 수 없었다** — 표지별 과거 발화 이력이 산출에 남아 있지 않다",
+  "낸 것": "상수성(7종)과 규모(59%)다. **정밀도가 아니다**",
+  "안 잰 4종": "WIRED · claim_provenance · ACK_UNREADABLE · firewall verdict — dict 리터럴이 아니라 분기·라벨이라 다른 방법이 필요하다",
+  "표지 범위": "heartbeat 의 `holdout_accessed: False` 는 **정적 검사라는 범위 문구를 달지 않는다**(B 의 '접속하는 코드가 없다' 형식). 이번엔 재기만 하고 고치지 않았다"
+ },
+ "artifact_refs": {
+  "D_commit": "94123fc1ba2eb0ebf6f1d0f856d6f776e8a512dc",
+  "audit": "research/landing_accessibility/research_d/results/D_FLAG_PRECISION_AUDIT.json"
+ },
+ "limitation": "표지의 거짓 양성 **비율**은 내지 못했다 — 분모가 없다. 상수성과 규모만 냈다.",
+ "from": "D",
+ "base_sha": "94123fc1ba2eb0ebf6f1d0f856d6f776e8a512dc",
+ "created_at_kst": "2026-08-28T10:20:09+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다.",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

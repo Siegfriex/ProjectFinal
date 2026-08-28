@@ -1,0 +1,3002 @@
+{
+ "tool": "gate1/r54_matcher_sweep_c.py",
+ "plane": "C",
+ "ruling": "V3_0_1_SUCCESSOR_DELTA.md Δ54 / R54 (D-V3-FINDING-025)",
+ "measured_at_kst": "2026-08-28T10:38:07+09:00",
+ "sweep_tool_sha256": "e2540013ddfbd42813848970b39ba6ba49e95e79c08976edab352e6ae9820664",
+ "sources": {
+  "control_fetch": {
+   "fetched_at_kst": "2026-08-28T10:38:03+09:00",
+   "fetch_rc": 0,
+   "control_ref": "origin/control/landing-orchestrator",
+   "control_commit": "768aeb10cfcc15a7eefe501059bc8fa3b45ab2a1"
+  },
+  "delta_ref": "origin/control/landing-orchestrator:research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md",
+  "delta_sha256": "325d37c065cac007c86c5c09cc4658fb4848ea6f459c76d6b2006f080f864ee6",
+  "delta_bytes": 217354,
+  "index_ref": "origin/control/landing-orchestrator:research/landing_accessibility/control/v3/V3_RULING_INDEX.json",
+  "index_sha256": "86d226c52f56a3d5dd988eae1340c5db84cd9b8bab00f37a9c51affcd524445f",
+  "index_version": 50,
+  "index_rows": 183,
+  "bus_dir": "/home/sieg/projects-wsl/ProjectFinal/.agent_bus/landing_v2",
+  "tickets_n": 308,
+  "tickets_v3_era_n": 164,
+  "a_tickets_v3_era_n": 62,
+  "ack_and_completion_files_n": 737,
+  "c_worktree_head": "bfd6c826982c99418085615c76a02ba1b7acf672",
+  "tool_sha256": {
+   "c_bus_scan.py": "37a8600ef22786e2a54824558d1fe07cf1afb40e121392bb3decf2d3553e1b45",
+   "gate1/intake/r32_inventory.py": "f5406cd250752febadb7688421fc6b0419f711172ed29dd17c3b7ab4d9212b1b",
+   "gate1/lane5_evidence/evidence_lineage_check.py": "4bccced45f451923a99ea4e88beeaf76288c8e3fc1d4575dea3bbb30cae0ee9b",
+   "gate1/lane6_stats/c_flow_derive.py": "2d258881a716eecf5ab771c0c1e1bfd2f6af8b0a5118fa17ccc6f9a82a5a9543",
+   "gate1/comparators/adapter_map.py": "049689212f799990537581f0eeae2f924c0888e84a7bc60121e54d21bfc5e112",
+   "gate1/comparators/common.py": "7cc17f59a4a81116853c94dd1460d75d9af9f006a6a12a2cf3d16b7ce91d6773",
+   "gate1/comparators/compare_lane1.py": "79153c37eafa8deafc89d912d2cce46ef64c7da954ef6f717436323610ce1983",
+   "gate1/comparators/grade_lane4.py": "a1b32ae530a4ba82abdb37f0bfd813e7166c7a567a575bf8b2ce765504106e6a",
+   "gate1/GATE1_RUNBOOK_C.md": "7b71bd6b2ff18d7dd3bf8d4aff208d7cb5383917f29caa05a65180a68112c2e5",
+   "gate1/RULING_INDEX_COVERAGE_C.json": "c8cfe06eb6696144c848db14c7e7bb245d8f435038c6c338e60f0f7de5fe0ecf"
+  }
+ },
+ "vocabulary": {
+  "NARROW_MISS": "must_not_miss control fails (silent 0 / silent pass direction)",
+  "WIDE_OVER": "must_not_over control fails (silent over-count / over-flag)",
+  "OK": "both controls pass and the presence probe agrees",
+  "status_before_fix": "classification of the pre-sweep tool where a fix was applied",
+  "NOT_A_MATCHER": "inventoried for completeness; nothing to match"
+ },
+ "counts": {
+  "matchers": 32,
+  "by_classification_now": {
+   "OK": 28,
+   "WIDE_OVER": 3,
+   "NOT_A_MATCHER": 1
+  },
+  "fixed": 12,
+  "controls_total": 215,
+  "controls_failing": [],
+  "controls_failing_but_accepted_and_recorded": [
+   "M28",
+   "M29",
+   "M30"
+  ],
+  "status_before_fix_counts": {
+   "NARROW_MISS": 6,
+   "WIDE_OVER": 4,
+   "OK": 2
+  }
+ },
+ "fixed": [
+  {
+   "id": "M01",
+   "tool": "c_bus_scan.py",
+   "fix": "dangling entries now carry note SUFFIX_NOT_STRIPPED when a ticket exists by dot-prefix (regex unchanged)",
+   "status_before_fix": "NARROW_MISS (latent, pre-v3 only)"
+  },
+  {
+   "id": "M03",
+   "tool": "c_bus_scan.py",
+   "fix": "how_.*(found|surfaced|happened).* → how_.* ; strict + wide-probe counts and both rules emitted next to the count",
+   "status_before_fix": "NARROW_MISS (1 ticket: how_A_knows)"
+  },
+  {
+   "id": "M04",
+   "tool": "c_bus_scan.py",
+   "fix": "denominators (lines scanned / mentioning / prefixed / bare / ls-remote-exempted-with-bare) emitted next to the hit count",
+   "status_before_fix": "WIDE_OVER (line-wide exemption, 2 lines) + no denominator"
+  },
+  {
+   "id": "M05",
+   "tool": "c_bus_scan.py",
+   "fix": "(?:-[A-Za-z0-9]+)? → (?:-[A-Za-z0-9]+)* ; token_extraction block (rule, presence probe, zero-extraction list) emitted",
+   "status_before_fix": "NARROW_MISS (3 mentions, 1 misattributed row)"
+  },
+  {
+   "id": "M07",
+   "tool": "c_bus_scan.py",
+   "fix": "new extractor; forms listed under token_extraction and on the section_mentions_resolved_by_subrows entry",
+   "status_before_fix": "NARROW_MISS (extractor absent, 5 mentions folded)"
+  },
+  {
+   "id": "M08",
+   "tool": "c_bus_scan.py",
+   "fix": "'-' added to the boundary class (now identical in shape to _tok_delta / alias_fires_in_corpus except that Hangul adjacency does not block)",
+   "status_before_fix": "WIDE_OVER (1 row)"
+  },
+  {
+   "id": "M10",
+   "tool": "c_bus_scan.py",
+   "fix": "regex hoisted to a named constant; parser_rule + all/matched/unmatched denominators emitted in delta_heading_counts",
+   "status_before_fix": "OK (no denominator)"
+  },
+  {
+   "id": "M11",
+   "tool": "c_bus_scan.py",
+   "fix": "new extractor + per-section comparison with index rows sharing the section prefix",
+   "status_before_fix": "NARROW_MISS (extractor absent — 19 judgment-bearing subsections outside every C denominator)"
+  },
+  {
+   "id": "M13",
+   "tool": "c_bus_scan.py",
+   "fix": "presence probe list + rule emitted next to the count",
+   "status_before_fix": "OK (no presence probe)"
+  },
+  {
+   "id": "M14",
+   "tool": "c_bus_scan.py",
+   "fix": "epoch derived from the ISO literal (was a wrong hand-typed epoch, 4d01h20m early); 'Z'/any-offset timestamps compared as instants",
+   "status_before_fix": "WIDE_OVER (4 tickets) + NARROW_MISS (latent: 'Z' form)"
+  },
+  {
+   "id": "M18",
+   "tool": "gate1/intake/r32_inventory.py",
+   "fix": "word-start bounded, case-insensitive with a case-sensitive lowercase lookahead; helper_check_rule + regex emitted in the inventory JSON",
+   "status_before_fix": "WIDE_OVER (by control; 0 hits on C corpus)"
+  },
+  {
+   "id": "M31",
+   "tool": "(no C tool — GATE1_RUNBOOK_C.md 'Limitation rule r2' declares a heading parser; none existed in code)",
+   "fix": "reference implementation + controls provided here (import gate1.r54_matcher_sweep_c.limitation_status)",
+   "status_before_fix": "NARROW_MISS (no parser existed; the runbook rule was prose)"
+  }
+ ],
+ "edit_scope": "c_bus_scan.py and gate1/intake/r32_inventory.py only (per task); lane5 / lane6 / comparators are inventoried with proposed fixes",
+ "matchers": [
+  {
+   "id": "M01",
+   "tool": "c_bus_scan.py",
+   "where": "ACK_SUFFIX_RE / scan() dangling loop",
+   "feeds": "dangling_refs_v3_era (judgment: v3-era ACK without ticket)",
+   "pattern": "(\\.(A|B|C|D|E)(-\\d+)?)+$",
+   "rule": "strip one or more trailing `.<plane>[-<n>]` groups from the ACK/completion file stem; remainder must be a ticket id",
+   "direction_if_narrow": "over-alarm (false dangling)",
+   "direction_if_wide": "silent pass (hides a real dangling ref)",
+   "denominator": {
+    "name": "ack + completion files",
+    "n": 737
+   },
+   "extracted": {
+    "stripped_stem_is_a_ticket": 706,
+    "not_a_ticket": 31
+   },
+   "presence_probe": {
+    "rule": "some ticket id is a dot-prefix of the stem",
+    "disagreements_with_matcher": [
+     {
+      "file": "C-FINDING-234523.A2",
+      "stripped": "C-FINDING-234523.A2",
+      "ticket_by_prefix": "C-FINDING-234523"
+     },
+     {
+      "file": "T-A-R0-C-001.A2",
+      "stripped": "T-A-R0-C-001.A2",
+      "ticket_by_prefix": "T-A-R0-C-001"
+     },
+     {
+      "file": "T-A-R0-C-002.A2",
+      "stripped": "T-A-R0-C-002.A2",
+      "ticket_by_prefix": "T-A-R0-C-002"
+     },
+     {
+      "file": "T-B-HOLD-ACK-001.A2",
+      "stripped": "T-B-HOLD-ACK-001.A2",
+      "ticket_by_prefix": "T-B-HOLD-ACK-001"
+     }
+    ],
+    "note": "legacy `.A2` suffix form (no hyphen) is not stripped; all such files are pre-v3, so the v3-era judgment is unaffected"
+   },
+   "v3_era_dangling_now": [
+    {
+     "file": "acks/T-E001-RELEASE-001.B.json",
+     "missing_ticket": "T-E001-RELEASE-001"
+    }
+   ],
+   "must_not_miss": [
+    {
+     "sample": "X.C-1",
+     "expect": "X",
+     "got": "X",
+     "pass": true
+    },
+    {
+     "sample": "X.A.B",
+     "expect": "X",
+     "got": "X",
+     "pass": true
+    },
+    {
+     "sample": "T-A-V3-FC-001.C-12",
+     "expect": "T-A-V3-FC-001",
+     "got": "T-A-V3-FC-001",
+     "pass": true
+    },
+    {
+     "sample": "T-B-V3-X.E",
+     "expect": "T-B-V3-X",
+     "got": "T-B-V3-X",
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "T-A-V3-STEP1-001",
+     "expect": "T-A-V3-STEP1-001",
+     "got": "T-A-V3-STEP1-001",
+     "pass": true
+    },
+    {
+     "sample": "X.F",
+     "expect": "X.F",
+     "got": "X.F",
+     "pass": true
+    },
+    {
+     "sample": "X.DRAFT",
+     "expect": "X.DRAFT",
+     "got": "X.DRAFT",
+     "pass": true
+    },
+    {
+     "sample": "T-E001-RELEASE-001.DRAFT.C",
+     "expect": "T-E001-RELEASE-001.DRAFT",
+     "got": "T-E001-RELEASE-001.DRAFT",
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "4 legacy-suffix files (all pre-v3) — 0 v3-era entries affected",
+   "fix_applied": "dangling entries now carry note SUFFIX_NOT_STRIPPED when a ticket exists by dot-prefix (regex unchanged)",
+   "status_before_fix": "NARROW_MISS (latent, pre-v3 only)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M02",
+   "tool": "c_bus_scan.py",
+   "where": "check_fact_correction() ticket selector",
+   "feeds": "fact_correction_missing_how_known denominator",
+   "pattern": "type ∈ {FACT_CORRECTION, FACTUAL_CORRECTION} | 'FACT_CORRECTION' in id | id ~ -FC-\\d+",
+   "rule": "same",
+   "direction_if_narrow": "silent pass (correction never checked)",
+   "denominator": {
+    "name": "all tickets",
+    "n": 308
+   },
+   "extracted": {
+    "selected": 60
+   },
+   "presence_probe": {
+    "rule": "type or id contains CORRECT|RETRACT (case-insensitive on type)",
+    "not_selected": []
+   },
+   "must_not_miss": [
+    {
+     "sample": [
+      "T-D-V3-FC-003",
+      ""
+     ],
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": [
+      "X",
+      "FACTUAL_CORRECTION"
+     ],
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": [
+      "C-FACT_CORRECTION-210041",
+      "FINDING"
+     ],
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": [
+      "T-B-V3-FINDING-007",
+      "FACT_CHECK_REQUEST"
+     ],
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": [
+      "T-A-V3-STEP1-004",
+      "DIRECTIVE"
+     ],
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "presence probe agrees (0 not selected)",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M03",
+   "tool": "c_bus_scan.py",
+   "where": "HOW_KNOWN_RE over ticket keys (top level ∪ payload)",
+   "feeds": "fact_correction_missing_how_known (summary counter; Δ13-R17)",
+   "pattern": "^(how_known|evidence|evidence_refs|measurement|method|verified_against|how_.*|how_it_surfaced|artifact_refs|what_is_actually_true|corrected_facts|the_measurement)$",
+   "rule": "strict: a top-level or payload key equal (case-insensitive) to how_known|evidence|evidence_refs|measurement|method|verified_against|how_*|how_it_surfaced|artifact_refs|what_is_actually_true|corrected_facts|the_measurement",
+   "wide_probe_rule": "wide probe (report-only, never used for the count): key contains how_|evidence|measurement|verif|basis|root_cause|observ|reproduc|found|discover|detect|diagnos|proof|confirm and does not end in _at/_at_kst",
+   "direction_if_narrow": "over-accusation (ticket listed as lacking how-known)",
+   "direction_if_wide": "silent pass",
+   "denominator": {
+    "name": "FC tickets selected (M02)",
+    "n": 60
+   },
+   "extracted": {
+    "strict_missing": 37,
+    "strict_missing_but_wide_probe_hit": 5
+   },
+   "wide_only_detail": [
+    {
+     "ticket_id": "T-A-HOLDOUT-SCOPE-001",
+     "keys": [
+      "root_cause"
+     ]
+    },
+    {
+     "ticket_id": "T-A-V3-FC-006",
+     "keys": [
+      "A_confirmed_directly"
+     ]
+    },
+    {
+     "ticket_id": "T-B-FC-006",
+     "keys": [
+      "b_independent_reproduction",
+      "who_found_it"
+     ]
+    },
+    {
+     "ticket_id": "T-B-FC-009",
+     "keys": [
+      "w3_evidence"
+     ]
+    },
+    {
+     "ticket_id": "T-B-FC-010",
+     "keys": [
+      "consequence_if_undetected",
+      "root_cause"
+     ]
+    }
+   ],
+   "empty_extraction_ratio": "37/60",
+   "must_not_miss": [
+    {
+     "sample": "how_A_knows",
+     "expect": true,
+     "got": true,
+     "pass": true,
+     "note": "old pattern how_.*(found|surfaced|happened).* missed this (T-A-V3-FC-005)"
+    },
+    {
+     "sample": "how_known",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "HOW_KNOWN",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "how_it_was_found",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "verified_against",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "measured_at_kst",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "correction",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "showcase",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "evidence_root_path",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "old_pattern_control": {
+    "how_A_knows under old pattern": false
+   },
+   "impact_on_current_source": "strict count 37/60; 5 of the missing carry a wide-probe key (listed in the scanner output)",
+   "fix_applied": "how_.*(found|surfaced|happened).* → how_.* ; strict + wide-probe counts and both rules emitted next to the count",
+   "status_before_fix": "NARROW_MISS (1 ticket: how_A_knows)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M04",
+   "tool": "c_bus_scan.py",
+   "where": "BARE_REF_RE + 'ls-remote' line exemption (ref_lint)",
+   "feeds": "ref_lint_hits (Δ4)",
+   "pattern": "(?<!origin/)(?<!refs/remotes/origin/)research/landing-accessibility-main",
+   "rule": "bare = (?<!origin/)(?<!refs/remotes/origin/)research/landing-accessibility-main on a line without 'ls-remote'; presence probe = substring 'landing-accessibility-main'",
+   "direction_if_narrow": "silent pass",
+   "direction_if_wide": "over-flag of compliant refs",
+   "denominator": {
+    "lines_scanned": 29463,
+    "lines_mentioning_branch": 21,
+    "prefixed_only": 6,
+    "bare_hits": 13,
+    "ls_remote_exempted_with_bare_form": [
+     "gate1/RULING_INDEX_COVERAGE_C.md:56",
+     "tickets/T-A-V3-STEP1-002.json#L53"
+    ]
+   },
+   "extracted": {
+    "hits": 13
+   },
+   "presence_probe": {
+    "rule": "substring landing-accessibility-main on any line",
+    "lines": 21,
+    "exempted_by_ls_remote_but_bare": [
+     "gate1/RULING_INDEX_COVERAGE_C.md:56",
+     "tickets/T-A-V3-STEP1-002.json#L53"
+    ]
+   },
+   "must_not_miss": [
+    {
+     "sample": "`research/landing-accessibility-main`",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "(research/landing-accessibility-main)",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "refs/heads/research/landing-accessibility-main",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "branch research/landing-accessibility-main @ 4bbbc22",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "origin/research/landing-accessibility-main",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "refs/remotes/origin/research/landing-accessibility-main",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "research/landing-accessibility-main-v2 (other branch)",
+     "expect": true,
+     "got": true,
+     "pass": true,
+     "note": "NOTE: a sibling branch name starting with the same string IS flagged — over-match accepted, no such branch exists"
+    }
+   ],
+   "impact_on_current_source": "2 bare-form lines are exempted by the line-wide ls-remote rule (now listed)",
+   "fix_applied": "denominators (lines scanned / mentioning / prefixed / bare / ls-remote-exempted-with-bare) emitted next to the hit count",
+   "status_before_fix": "WIDE_OVER (line-wide exemption, 2 lines) + no denominator",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M05",
+   "tool": "c_bus_scan.py",
+   "where": "DELTA_TOKEN_RE over v3-era A tickets",
+   "feeds": "unrecorded_mentions / section_mentions_resolved_by_subrows / index_rows_unmentioned_in_A_tickets (Δ21)",
+   "pattern": "Δ\\d+(?:-[A-Za-z0-9]+)*",
+   "rule": "Δ<digits>(-<ASCII alnum run>)* ; numbered subsection = Δ<digits>[ -]?<circled digit ①-⑳>",
+   "direction_if_narrow": "silent pass (truncated id resolves to the wrong / parent row)",
+   "denominator": {
+    "name": "v3-era A tickets",
+    "n": 62
+   },
+   "extracted": {
+    "tickets_containing_Δ_or_Rn": 59,
+    "of_those_with_zero_tokens": [],
+    "hyphen_chain_mentions": {
+     "Δ50-exit2-common": 1,
+     "Δ48-runner-id": 1,
+     "Δ47-fixture-limit": 1,
+     "Δ51-allowlist-path": 1
+    }
+   },
+   "presence_probe": {
+    "rule": "ticket text contains 'Δ' or R<digit>",
+    "zero_extraction_with_presence": 0
+   },
+   "must_not_miss": [
+    {
+     "sample": "cites Δ47-fixture-limit",
+     "expect": [
+      "Δ47-fixture-limit"
+     ],
+     "got": [
+      "Δ47-fixture-limit"
+     ],
+     "pass": true,
+     "note": "old pattern gave Δ47-fixture = a DIFFERENT index row"
+    },
+    {
+     "sample": "Δ50-exit2-common",
+     "expect": [
+      "Δ50-exit2-common"
+     ],
+     "got": [
+      "Δ50-exit2-common"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "(Δ21)",
+     "expect": [
+      "Δ21"
+     ],
+     "got": [
+      "Δ21"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "`Δ18-R20`",
+     "expect": [
+      "Δ18-R20"
+     ],
+     "got": [
+      "Δ18-R20"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "Δ40-control-naming",
+     "expect": [
+      "Δ40-control-naming"
+     ],
+     "got": [
+      "Δ40-control-naming"
+     ],
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "Δ36-② (circled)",
+     "expect": [
+      "Δ36"
+     ],
+     "got": [
+      "Δ36"
+     ],
+     "pass": true,
+     "note": "circled digit is not part of the id — extracted separately (M07)"
+    },
+    {
+     "sample": "Δ21을 위반",
+     "expect": [
+      "Δ21"
+     ],
+     "got": [
+      "Δ21"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "Δ8-R3a/b",
+     "expect": [
+      "Δ8-R3a"
+     ],
+     "got": [
+      "Δ8-R3a"
+     ],
+     "pass": true
+    }
+   ],
+   "old_pattern_control": {
+    "Δ47-fixture-limit under old pattern": [
+     "Δ47-fixture"
+    ]
+   },
+   "impact_on_current_source": "4 hyphen-chain mentions were truncated before the fix (Δ50-exit2-common, Δ48-runner-id, Δ47-fixture-limit, Δ51-allowlist-path); Δ47-fixture-limit → credited to Δ47-fixture",
+   "fix_applied": "(?:-[A-Za-z0-9]+)? → (?:-[A-Za-z0-9]+)* ; token_extraction block (rule, presence probe, zero-extraction list) emitted",
+   "status_before_fix": "NARROW_MISS (3 mentions, 1 misattributed row)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M06",
+   "tool": "c_bus_scan.py",
+   "where": "R_TOKEN_RE over v3-era A tickets",
+   "feeds": "same as M05",
+   "pattern": "(?<![A-Za-z0-9_\\-Δ])R\\d+[a-z]?(?![A-Za-z0-9_])",
+   "rule": "R<digits>[a-z]? not preceded by [A-Za-z0-9_-Δ] and not followed by [A-Za-z0-9_] (so Δ18-R20 yields no bare R20; PR21 / R210 excluded)",
+   "direction_if_narrow": "silent pass",
+   "denominator": {
+    "name": "v3-era A tickets",
+    "n": 62
+   },
+   "extracted": {
+    "see": "M05 (joint token count in scanner: tokens_mentioned)"
+   },
+   "must_not_miss": [
+    {
+     "sample": "(R21)",
+     "expect": [
+      "R21"
+     ],
+     "got": [
+      "R21"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "R3a and R13b",
+     "expect": [
+      "R3a",
+      "R13b"
+     ],
+     "got": [
+      "R3a",
+      "R13b"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "R21,",
+     "expect": [
+      "R21"
+     ],
+     "got": [
+      "R21"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "R21을",
+     "expect": [
+      "R21"
+     ],
+     "got": [
+      "R21"
+     ],
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "PR21",
+     "expect": [],
+     "got": [],
+     "pass": true
+    },
+    {
+     "sample": "R21 must not leak out of R210",
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "R210 itself is a legitimate R-token (unrecorded → gap), the boundary keeps R21 out"
+    },
+    {
+     "sample": "Δ18-R20",
+     "expect": [],
+     "got": [],
+     "pass": true,
+     "note": "the full id is extracted by M05"
+    },
+    {
+     "sample": "FOR21",
+     "expect": [],
+     "got": [],
+     "pass": true
+    },
+    {
+     "sample": "R21_x",
+     "expect": [],
+     "got": [],
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "none observed",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M07",
+   "tool": "c_bus_scan.py",
+   "where": "DELTA_SUBSECTION_RE (numbered-subsection mentions)",
+   "feeds": "token_extraction.numbered_subsection_mentions (report; Δ54 — subsections carry independent judgments)",
+   "pattern": "Δ\\d+\\s?-?\\s?[①-⑳]",
+   "rule": "Δ<digits> then optional space/hyphen/space then one circled digit ①-⑳",
+   "direction_if_narrow": "silent fold into the bare section (the subsection judgment cited is invisible)",
+   "denominator": {
+    "name": "v3-era A tickets",
+    "n": 62
+   },
+   "extracted": {
+    "mentions": {
+     "Δ39①": 2,
+     "Δ36-②": 1,
+     "Δ47③": 1,
+     "Δ47①": 1
+    }
+   },
+   "must_not_miss": [
+    {
+     "sample": "Δ36-②",
+     "expect": [
+      "Δ36-②"
+     ],
+     "got": [
+      "Δ36-②"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "Δ39 ①",
+     "expect": [
+      "Δ39①"
+     ],
+     "got": [
+      "Δ39①"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "Δ47③",
+     "expect": [
+      "Δ47③"
+     ],
+     "got": [
+      "Δ47③"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "Δ36 - ④",
+     "expect": [
+      "Δ36-④"
+     ],
+     "got": [
+      "Δ36-④"
+     ],
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "Δ36-order",
+     "expect": [],
+     "got": [],
+     "pass": true
+    },
+    {
+     "sample": "① Δ36",
+     "expect": [],
+     "got": [],
+     "pass": true,
+     "note": "digit before the section is prose numbering, not a subsection ref"
+    }
+   ],
+   "impact_on_current_source": "5 mentions were folded into bare sections before (now listed beside the section resolution)",
+   "fix_applied": "new extractor; forms listed under token_extraction and on the section_mentions_resolved_by_subrows entry",
+   "status_before_fix": "NARROW_MISS (extractor absent, 5 mentions folded)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M08",
+   "tool": "c_bus_scan.py",
+   "where": "token_in() (alias/id presence in A tickets → index_rows_unmentioned_in_A_tickets)",
+   "feeds": "index_rows_unmentioned_in_A_tickets (report)",
+   "pattern": "(?<![A-Za-z0-9_\\-])<tok>(?![A-Za-z0-9_\\-])",
+   "rule": "token-bounded: not preceded/followed by [A-Za-z0-9_-] (v22/R54: '-' added — `Δ47-fixture` no longer matches inside `Δ47-fixture-limit`; Hangul adjacency does not block)",
+   "direction_if_narrow": "over-report of unmentioned rows",
+   "direction_if_wide": "silent credit of the wrong row",
+   "denominator": {
+    "name": "index rows × delta body (cross-check of the two boundary rules)",
+    "n": 183
+   },
+   "extracted": {
+    "rows_where_the_boundary_rules_disagree": [
+     {
+      "id": "Δ47-fixture",
+      "token_in_now": false,
+      "_tok_delta_strict": false,
+      "token_in_old": true
+     }
+    ],
+    "delta_tokens_immediately_followed_by_hangul": 0
+   },
+   "must_not_miss": [
+    {
+     "sample": "`Δ21`",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "(R21)",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "Δ21을",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "R21,",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "Δ47-fixture in Δ47-fixture-limit",
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "old boundary matched here (WIDE_OVER)"
+    },
+    {
+     "sample": "R21 in R210",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "R21 in PR21",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "Δ21 in Δ21-R22",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "1 row (Δ47-fixture) was credited from a mention of Δ47-fixture-limit; unmentioned list unchanged in size after the fix because Δ47-fixture is also cited on its own",
+   "fix_applied": "'-' added to the boundary class (now identical in shape to _tok_delta / alias_fires_in_corpus except that Hangul adjacency does not block)",
+   "status_before_fix": "WIDE_OVER (1 row)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M09",
+   "tool": "c_bus_scan.py",
+   "where": "alias_fires_in_corpus() / _tok_delta() boundary (?<![\\w-])…(?![\\w-])",
+   "feeds": "unsafe_aliases (Δ33 controls, refusal gate) and index_to_delta_reachability",
+   "pattern": "(?<![\\w-])<tok>(?![\\w-])",
+   "rule": "token-bounded by non-word/non-hyphen; \\w is Unicode so a Hangul particle glued to the token blocks the match",
+   "direction_if_narrow": "reachability: false 'unreachable' (over-alarm, fail-closed); alias safety: alias judged safe though it fires (silent pass)",
+   "denominator": {
+    "name": "delta tokens immediately followed by Hangul (presence probe for the \\w blind spot)",
+    "n": 0
+   },
+   "extracted": {
+    "rows_affected_now": []
+   },
+   "must_not_miss": [
+    {
+     "sample": "coverage in corpus",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "auth in corpus",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "skip in corpus",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "Δ18-R20 in corpus",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "scrollfix in corpus",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "cach (prefix of cache)",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "index (prefix of indexes)",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "0 rows differ between the two boundary rules on the current delta; 0 Hangul-glued tokens",
+   "fix_applied": null,
+   "proposed_fix": "none needed now; if A starts writing `Δ21을` in the delta body, the reachability check will over-alarm (fail-closed) — the sweep's presence probe counts such tokens",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M10",
+   "tool": "c_bus_scan.py",
+   "where": "DELTA_HEAD_RE (delta `##`/`###` id headings)",
+   "feeds": "delta_headings_without_index_row (summary counter) + reachability path (a)",
+   "pattern": "^#{2,3}\\s+(Δ\\d+(?:-[A-Za-z0-9\\-]+)?|R\\d+)(?![0-9A-Za-z_-])",
+   "rule": "line starts with ## or ### then an id token Δ<digits>(-<alnum/hyphen run>)? or R<digits>, token-bounded ([^0-9A-Za-z_-] or EOL); #### and prose-titled headings are NOT ids",
+   "direction_if_narrow": "silent pass (heading never checked against the index)",
+   "denominator": {
+    "name": "all heading lines in the delta",
+    "n": 284
+   },
+   "extracted": {
+    "matched_as_id": 131,
+    "unmatched": 153,
+    "unmatched_level2": [],
+    "unmatched_prose_headings_carrying_a_ruling_token": 12
+   },
+   "presence_probe": {
+    "rule": "any heading line whose title contains Δ<digit> or R<digit>",
+    "level2_headings_not_extracted": 0
+   },
+   "must_not_miss": [
+    {
+     "sample": "## Δ57 — title",
+     "expect": [
+      "Δ57"
+     ],
+     "got": [
+      "Δ57"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "### Δ36-order trailing text",
+     "expect": [
+      "Δ36-order"
+     ],
+     "got": [
+      "Δ36-order"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "### R54",
+     "expect": [
+      "R54"
+     ],
+     "got": [
+      "R54"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "## Δ40-control-naming — x",
+     "expect": [
+      "Δ40-control-naming"
+     ],
+     "got": [
+      "Δ40-control-naming"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "##  Δ12   (two spaces)",
+     "expect": [
+      "Δ12"
+     ],
+     "got": [
+      "Δ12"
+     ],
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "#### Δ36 (level 4)",
+     "expect": [],
+     "got": [],
+     "pass": true,
+     "note": "level-4 headings are prose sub-parts by A's convention"
+    },
+    {
+     "sample": "### `Δ36` 의 각 판정",
+     "expect": [],
+     "got": [],
+     "pass": true,
+     "note": "backticked prose title, not an id heading"
+    },
+    {
+     "sample": "## Δ12a",
+     "expect": [],
+     "got": [],
+     "pass": true
+    },
+    {
+     "sample": "### R54x",
+     "expect": [],
+     "got": [],
+     "pass": true
+    },
+    {
+     "sample": "### ① MIN-2",
+     "expect": [],
+     "got": [],
+     "pass": true,
+     "note": "numbered subsection — counted by M11, not as an id"
+    }
+   ],
+   "impact_on_current_source": "0 level-2 headings unextracted; denominator (all heading lines) was not reported before",
+   "fix_applied": "regex hoisted to a named constant; parser_rule + all/matched/unmatched denominators emitted in delta_heading_counts",
+   "status_before_fix": "OK (no denominator)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M11",
+   "tool": "c_bus_scan.py",
+   "where": "NUMBERED_SUB_STRICT_RE / NUMBERED_SUB_WIDE_RE (numbered subsections per `## Δn`)",
+   "feeds": "delta_heading_counts.numbered_subsection_shortfall (summary counter; Δ54-check10 counterpart)",
+   "pattern": {
+    "strict": "^(?:\\(?[①-⑳]|\\((?:i{1,3}|iv|v|vi{0,3})\\)|(?:판정|부기)\\s*[①-⑳])",
+    "wide": "^(?:\\(?[①-⑳]|\\((?:i{1,3}|iv|v|vi{0,3})\\)|(?:판정|부기)\\s*[①-⑳]|part\\s*\\d|\\d+[.)]\\s)"
+   },
+   "rule": "strict: heading (level>=3) under a `## Δn` section whose title starts with a circled digit ①-⑳, a roman (i)/(ii)/…, or 판정/부기 + circled digit; wide adds part<digit> and <digits>. / <digits>)",
+   "direction_if_narrow": "silent pass (a subsection judgment with no index row is never seen)",
+   "direction_if_wide": "false shortfall (part-headings counted as judgments)",
+   "denominator": {
+    "name": "`## Δn` sections with ≥1 numbered subsection",
+    "n": 8
+   },
+   "extracted": {
+    "Δ36": {
+     "numbered_strict": 4,
+     "numbered_wide": 5,
+     "index_rows_with_prefix": 4
+    },
+    "Δ43": {
+     "numbered_strict": 2,
+     "numbered_wide": 2,
+     "index_rows_with_prefix": 4
+    },
+    "Δ44": {
+     "numbered_strict": 2,
+     "numbered_wide": 2,
+     "index_rows_with_prefix": 3
+    },
+    "Δ47": {
+     "numbered_strict": 5,
+     "numbered_wide": 5,
+     "index_rows_with_prefix": 7
+    },
+    "Δ48": {
+     "numbered_strict": 3,
+     "numbered_wide": 3,
+     "index_rows_with_prefix": 7
+    },
+    "Δ51": {
+     "numbered_strict": 3,
+     "numbered_wide": 3,
+     "index_rows_with_prefix": 8
+    },
+    "Δ53": {
+     "numbered_strict": 1,
+     "numbered_wide": 1,
+     "index_rows_with_prefix": 5
+    },
+    "Δ56": {
+     "numbered_strict": 3,
+     "numbered_wide": 3,
+     "index_rows_with_prefix": 5
+    }
+   },
+   "shortfall": [],
+   "must_not_miss": [
+    {
+     "sample": "① MIN-2 — v3 에 요구하지 않는다",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "판정 ② `terminal_reason`",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "(ii) 경로 발견의 완전성",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "부기 ④ — x",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "(③) x",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "part4 — MIN-5",
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "wide rule counts it; strict does not (A counted Δ36 as 4)"
+    },
+    {
+     "sample": "판정 — `NULL`",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "A 자기적용",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "1차 시정",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "23 strict numbered subsections in 8 sections; shortfall []; A's check counts Δ36 = 4 — C strict agrees",
+   "fix_applied": "new extractor + per-section comparison with index rows sharing the section prefix",
+   "status_before_fix": "NARROW_MISS (extractor absent — 19 judgment-bearing subsections outside every C denominator)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M12",
+   "tool": "c_bus_scan.py",
+   "where": "RulingIndex.resolve_by_subrows()",
+   "feeds": "section_mentions_resolved_by_subrows (bare-section mentions are not gaps)",
+   "pattern": "ids starting with <tok>-  |  fullmatch <tok>[a-z]  |  alias fullmatch <tok>[a-z]",
+   "rule": "a bare section / prefix token resolves to its child rows; never to a different section",
+   "direction_if_wide": "silent pass (unrelated rows credited)",
+   "denominator": {
+    "name": "distinct tokens mentioned in A tickets",
+    "n": 164
+   },
+   "extracted": {
+    "resolved_by_subrows": 27
+   },
+   "must_not_miss": [
+    {
+     "sample": "Δ12",
+     "expect": [
+      "Δ12-C",
+      "Δ12-R15",
+      "Δ12-R16"
+     ],
+     "got": [
+      "Δ12-C",
+      "Δ12-R15",
+      "Δ12-R16"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "Δ8-R3",
+     "expect": [
+      "Δ8-R3a",
+      "Δ8-R3b"
+     ],
+     "got": [
+      "Δ8-R3a",
+      "Δ8-R3b"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "R13",
+     "expect": [
+      "Δ10-R13a",
+      "Δ10-R13b"
+     ],
+     "got": [
+      "Δ10-R13a",
+      "Δ10-R13b"
+     ],
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "Δ1 must not reach Δ10-*/Δ11/Δ12-*",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "Δ5 → only Δ5-*",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "Δ999",
+     "expect": [],
+     "got": [],
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "none observed",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M13",
+   "tool": "c_bus_scan.py",
+   "where": "check_plane_enum() REAL-bearing detector",
+   "feeds": "e_real_field_gaps (Δ6-a 5 mandatory fields)",
+   "pattern": "real_target truthy | \\bREAL(_TARGET)?\\b in scope/mode/execution_mode/real_scope_id/type/claim_kind/headline",
+   "rule": "strict: real_target truthy OR \\bREAL(_TARGET)?\\b in scope/mode/execution_mode/real_scope_id/type/claim_kind/headline (top level or payload)",
+   "direction_if_narrow": "silent pass (REAL ticket never checked for the 5 fields)",
+   "direction_if_wide": "false field-gap on prose mentions",
+   "denominator": {
+    "name": "v3-era tickets with E in from∪to",
+    "n": 15
+   },
+   "extracted": {
+    "real_bearing": 3,
+    "field_gaps": 3
+   },
+   "presence_probe": {
+    "rule": "\\bREAL\\b anywhere in the ticket JSON",
+    "mentioned_outside_declared_fields": [
+     "T-A-V3-STEP1-002",
+     "T-A-V3-STEP1-003",
+     "T-A-V3-STEP1-006",
+     "T-A-V3-STEP1-007"
+    ]
+   },
+   "must_not_miss": [
+    {
+     "sample": {
+      "scope": "REAL"
+     },
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": {
+      "payload": {
+       "execution_mode": "REAL_TARGET"
+      }
+     },
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": {
+      "real_target": true
+     },
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": {
+      "headline": "E REAL run on 5 targets"
+     },
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": {
+      "preregistration_status": "REAL 접속 누적 0건"
+     },
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "prose — the 4 listed tickets are of this kind"
+    },
+    {
+     "sample": {
+      "scope": "REALLY not"
+     },
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": {
+      "scope": "SYNTHETIC"
+     },
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "4 E tickets mention REAL only in prose (listed, not counted)",
+   "fix_applied": "presence probe list + rule emitted next to the count",
+   "status_before_fix": "OK (no presence probe)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M14",
+   "tool": "c_bus_scan.py",
+   "where": "is_v3_era() timestamp/mtime cutoff",
+   "feeds": "EVERY v3-era check (plane_enum, base_sha, ref-lint tickets, Δ21 token set, dangling)",
+   "pattern": "fromisoformat(ts.replace('Z','+00:00')).timestamp() >= V3_CUTOFF_EPOCH ; fallback string compare ; mtime fallback",
+   "rule": "created_at_kst|created_at parsed as ISO-8601 (Z → +00:00) and compared as an instant to 2026-08-28T02:12:00+09:00; naive or unparsable → KST string compare; no timestamp → file mtime",
+   "direction_if_narrow": "silent pass (ticket excluded from all v3 checks)",
+   "direction_if_wide": "pre-v3 tickets judged by v3 rules",
+   "denominator": {
+    "name": "tickets by timestamp form",
+    "n": 308
+   },
+   "extracted": {
+    "+09:00": 285,
+    "none(mtime)": 4,
+    "+0900": 19
+   },
+   "must_not_miss": [
+    {
+     "sample": "2026-08-27T17:12:00Z (= cutoff in UTC)",
+     "expect": true,
+     "got": true,
+     "pass": true,
+     "note": "old string compare said pre-v3"
+    },
+    {
+     "sample": "2026-08-28T02:12:00+0900",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "2026-08-28T02:12:00+09:00",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "2026-08-28T02:11:59+09:00",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "2026-08-27T17:11:59Z",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "no ts, mtime 2026-08-27T16:18 KST",
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "old epoch literal 1787500320 (= 2026-08-24 00:52 KST) said v3"
+    }
+   ],
+   "epoch_check": {
+    "V3_CUTOFF_EPOCH_now": 1787850720,
+    "expected_from_iso": 1787850720,
+    "old_literal": 1787500320,
+    "old_literal_kst": "2026-08-24T00:52:00+09:00"
+   },
+   "impact_on_current_source": "4 timestamp-less tickets (FINAL_READY / MART_READY / STATS_READY / T-E001-RELEASE-001.DRAFT, mtimes 2026-08-27 12:37–16:18 KST) were counted as v3-era by the wrong epoch literal — they leave v3_era_checked and the base_sha NO_FIELD list",
+   "fix_applied": "epoch derived from the ISO literal (was a wrong hand-typed epoch, 4d01h20m early); 'Z'/any-offset timestamps compared as instants",
+   "status_before_fix": "WIDE_OVER (4 tickets) + NARROW_MISS (latent: 'Z' form)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M15",
+   "tool": "c_bus_scan.py",
+   "where": "classify_base_sha() hex regex",
+   "feeds": "base_sha_unresolvable (Δ26, report)",
+   "pattern": "[0-9a-f]{7,40} else rev-parse --verify",
+   "rule": "lowercase hex 7-40 → cat-file; anything else → rev-parse (OK_ABBREV if it resolves, NOT_A_SHA otherwise)",
+   "direction_if_narrow": "uppercase full sha labelled OK_ABBREV (visible mislabel, not silent)",
+   "denominator": {
+    "name": "v3-era tickets with base_sha",
+    "n": 163
+   },
+   "extracted": {
+    "uppercase_hex_values": 0
+   },
+   "must_not_miss": [
+    {
+     "sample": "32460b87334a67f6a74823ac55f85ca80a9f8980",
+     "expect": "OK",
+     "got": "OK",
+     "pass": true
+    },
+    {
+     "sample": "32460b8733",
+     "expect": "OK_ABBREV",
+     "got": "OK_ABBREV",
+     "pass": true
+    },
+    {
+     "sample": "32460B87334A67F6A74823AC55F85CA80A9F8980",
+     "expect": "OK_ABBREV",
+     "got": "OK_ABBREV",
+     "pass": true,
+     "note": "documented mislabel: git resolves uppercase; value is shown in ok_abbrev, never hidden"
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+     "expect": "MISSING",
+     "got": "MISSING",
+     "pass": true
+    },
+    {
+     "sample": "origin/nonexistent-ref-r54",
+     "expect": "NOT_A_SHA",
+     "got": "NOT_A_SHA",
+     "pass": true
+    },
+    {
+     "sample": "",
+     "expect": "NO_FIELD",
+     "got": "NO_FIELD",
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "0 uppercase values on the bus",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M16",
+   "tool": "c_bus_scan.py",
+   "where": "shape_unsafe_alias() (Δ25 shape proxy, report-only) / unsafe_alias() (Δ33 corpus test)",
+   "feeds": "shape_unsafe_aliases_delta25_proxy (report only); unsafe_aliases feeds resolution",
+   "pattern": "len<=6 & lowercase & [a-z][a-z0-9]*",
+   "rule": "report-only proxy; the judgment uses the corpus test (M09)",
+   "direction_if_narrow": "n/a (report-only)",
+   "denominator": {
+    "name": "distinct aliases",
+    "n": 321
+   },
+   "extracted": {
+    "shape_unsafe": 0,
+    "corpus_unsafe": 0,
+    "collisions": 1
+   },
+   "must_not_miss": [
+    {
+     "sample": "auth",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "vr",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "scrollfix (7 chars)",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "R21",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "Δ2",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "report-only",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M17",
+   "tool": "c_bus_scan.py",
+   "where": "SHA40_RE (sha_on_same_line annotation of ref-lint hits)",
+   "feeds": "ref_lint hit annotation (report)",
+   "pattern": "\\b[0-9a-f]{40}\\b",
+   "rule": "40 lowercase hex, word-bounded",
+   "direction_if_narrow": "annotation only",
+   "denominator": {
+    "name": "ref-lint hits",
+    "n": 13
+   },
+   "extracted": {
+    "with_sha": 2
+   },
+   "must_not_miss": [
+    {
+     "sample": "@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "uppercase sha not annotated — annotation only"
+    }
+   ],
+   "impact_on_current_source": "annotation only",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M18",
+   "tool": "gate1/intake/r32_inventory.py",
+   "where": "HELPER_CHECK_RE over Expr-Call callee names (_collect_helper_checks → handling UNKNOWN 'helper check … on root')",
+   "feeds": "R32 site handling class (a helper hit converts a SILENT_DEFAULT verdict into UNKNOWN)",
+   "pattern": "(?<![A-Za-z])(require|check|validate|assert|ensure|expect|verify)(?!(?-i:[a-z]))",
+   "rule": "callee name contains require|check|validate|assert|ensure|expect|verify as a word start: not preceded by a letter, not followed by a lowercase letter (case-insensitive)",
+   "direction_if_wide": "silent pass (checkpoint/checksum/unexpected calls counted as checks)",
+   "denominator": {
+    "name": "bare-expression call sites (fixtures / C tree)",
+    "n": {
+     "gate1/intake/fixtures_py": {
+      "expr_call_sites": 0,
+      "distinct_callees": 0,
+      "helper_hits_now": 0,
+      "helper_hits_old_substring": 0,
+      "old_only_callees": []
+     },
+     "assurance_tree_as_corpus": {
+      "expr_call_sites": 1940,
+      "distinct_callees": 120,
+      "helper_hits_now": 22,
+      "helper_hits_old_substring": 22,
+      "old_only_callees": []
+     }
+    }
+   },
+   "extracted": {
+    "see": "denominator.helper_hits_now"
+   },
+   "must_not_miss": [
+    {
+     "sample": "require_field",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "validateInput",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "self.assertEqual",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "_check",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "CHECK_ALL",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "mod.Validate",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "write_checkpoint",
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "old substring rule matched"
+    },
+    {
+     "sample": "compute_checksum",
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "old rule matched"
+    },
+    {
+     "sample": "unexpected",
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "old rule matched"
+    },
+    {
+     "sample": "expectation",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "rechecked",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "verified_at",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "checkout",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "0 over-matches in C's fixtures or C's own tree (the SUT is B's — the control is the evidence, the corpus is the denominator)",
+   "fix_applied": "word-start bounded, case-insensitive with a case-sensitive lowercase lookahead; helper_check_rule + regex emitted in the inventory JSON",
+   "status_before_fix": "WIDE_OVER (by control; 0 hits on C corpus)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M19",
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "where": "FIELD_ALIASES / get() (canonical field ← accepted source names, first match wins)",
+   "feeds": "MISSING_FIELD / SCHEMA defects → verdict (fail-closed: a miss is a defect, not a pass)",
+   "pattern": {
+    "observation_id": [
+     "observation_id",
+     "state_id",
+     "obs_id"
+    ],
+    "flow_observation_id": [
+     "flow_observation_id",
+     "flow_id"
+    ],
+    "service_id": [
+     "service_id",
+     "service"
+    ],
+    "task_id": [
+     "task_id",
+     "task"
+    ],
+    "run_id": [
+     "run_id",
+     "run"
+    ],
+    "attempt_id": [
+     "attempt_id",
+     "attempt"
+    ],
+    "state_index": [
+     "state_index",
+     "state"
+    ],
+    "step_index": [
+     "step_index",
+     "step"
+    ],
+    "url": [
+     "url",
+     "page_url"
+    ],
+    "captured_at": [
+     "captured_at",
+     "timestamp",
+     "ts",
+     "observed_at"
+    ],
+    "collector_sha": [
+     "collector_sha",
+     "collector_sha256",
+     "collector_git_sha",
+     "collector_version_sha"
+    ],
+    "driver_sha256": [
+     "driver_sha256",
+     "session_sha256",
+     "capture_stack_sha256"
+    ],
+    "protocol_sha": [
+     "protocol_sha",
+     "protocol_git_sha",
+     "ssot_sha"
+    ],
+    "task_contract_sha256": [
+     "task_contract_sha256",
+     "task_contract_sha"
+    ],
+    "endpoint_contract_sha256": [
+     "endpoint_contract_sha256",
+     "endpoint_contract_sha"
+    ],
+    "action_token": [
+     "action_token",
+     "action"
+    ],
+    "state_before_id": [
+     "state_before_id",
+     "before_state_id"
+    ],
+    "state_after_id": [
+     "state_after_id",
+     "after_state_id"
+    ],
+    "url_before": [
+     "url_before"
+    ],
+    "url_after": [
+     "url_after"
+    ],
+    "artifacts": [
+     "artifacts",
+     "evidence",
+     "files"
+    ],
+    "display_name": [
+     "display_name",
+     "service_name",
+     "service_display_name"
+    ],
+    "endpoint_status": [
+     "endpoint_status"
+    ],
+    "terminal_reason": [
+     "terminal_reason"
+    ],
+    "terminal_note": [
+     "terminal_note",
+     "terminal_reason_note",
+     "note"
+    ],
+    "auth_gate_stage": [
+     "auth_gate_stage"
+    ]
+   },
+   "rule": "exact key equality against the alias tuple, first hit wins; empty string / None = absent",
+   "direction_if_narrow": "over-flag MISSING_FIELD (fail-closed)",
+   "direction_if_wide": "silent pass (display name accepted as id, wrong field read)",
+   "denominator": {
+    "name": "records in C lane5 fixtures (good/bad_lineage/bad_overwrite)",
+    "n": 20
+   },
+   "extracted": {
+    "observation_id": {
+     "canonical": 10,
+     "none": 10
+    },
+    "flow_observation_id": {
+     "none": 10,
+     "canonical": 10
+    },
+    "service_id": {
+     "canonical": 20
+    },
+    "task_id": {
+     "canonical": 20
+    },
+    "run_id": {
+     "canonical": 20
+    },
+    "attempt_id": {
+     "canonical": 20
+    },
+    "state_index": {
+     "canonical": 10,
+     "none": 10
+    },
+    "step_index": {
+     "none": 14,
+     "canonical": 6
+    },
+    "url": {
+     "canonical": 10,
+     "none": 10
+    },
+    "captured_at": {
+     "canonical": 20
+    },
+    "collector_sha": {
+     "canonical": 18,
+     "alias:collector_sha256": 2
+    },
+    "driver_sha256": {
+     "canonical": 17,
+     "none": 1,
+     "alias:session_sha256": 2
+    },
+    "protocol_sha": {
+     "canonical": 20
+    },
+    "task_contract_sha256": {
+     "canonical": 20
+    },
+    "endpoint_contract_sha256": {
+     "canonical": 20
+    },
+    "action_token": {
+     "none": 14,
+     "canonical": 6
+    },
+    "state_before_id": {
+     "none": 14,
+     "canonical": 6
+    },
+    "state_after_id": {
+     "none": 14,
+     "canonical": 6
+    },
+    "url_before": {
+     "none": 14,
+     "canonical": 6
+    },
+    "url_after": {
+     "none": 14,
+     "canonical": 6
+    },
+    "artifacts": {
+     "canonical": 10,
+     "none": 10
+    },
+    "display_name": {
+     "none": 20
+    },
+    "endpoint_status": {
+     "none": 16,
+     "canonical": 4
+    },
+    "terminal_reason": {
+     "none": 18,
+     "canonical": 2
+    },
+    "terminal_note": {
+     "none": 19,
+     "canonical": 1
+    },
+    "auth_gate_stage": {
+     "none": 16,
+     "canonical": 4
+    }
+   },
+   "presence_probe": {
+    "rule": "record key equal to the canonical name after lowercasing and stripping non-alphanumerics (camelCase / dashed variants)",
+    "near_miss_keys_not_in_alias_table": {
+     "terminal_reason←terminal_reason": 1
+    }
+   },
+   "must_not_miss": [
+    {
+     "sample": {
+      "state_id": "S1"
+     },
+     "expect": "S1",
+     "got": "S1",
+     "pass": true
+    },
+    {
+     "sample": {
+      "collector_sha256": "ab"
+     },
+     "expect": "ab",
+     "got": "ab",
+     "pass": true
+    },
+    {
+     "sample": {
+      "ts": "2026"
+     },
+     "expect": "2026",
+     "got": "2026",
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": {
+      "service_name": "Coupang"
+     },
+     "expect": null,
+     "got": null,
+     "pass": true,
+     "note": "display name must NOT satisfy service_id"
+    },
+    {
+     "sample": {
+      "observation_id": ""
+     },
+     "expect": null,
+     "got": null,
+     "pass": true,
+     "note": "empty = absent"
+    },
+    {
+     "sample": {
+      "serviceId": "svc"
+     },
+     "expect": null,
+     "got": null,
+     "pass": true,
+     "note": "camelCase is NOT accepted (by design: B's names are bound through the adapter map); the near-miss probe above would list it"
+    }
+   ],
+   "impact_on_current_source": "all fixture records read through canonical names; 0 near-miss keys",
+   "fix_applied": null,
+   "proposed_fix": "none — narrow direction is fail-closed here; keep the near-miss probe when reading B's tree",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M20",
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "where": "ARTIFACT_ALIASES (artifact kind ← manifest artifact keys)",
+   "feeds": "MISSING_ARTIFACT / sha binding defects",
+   "pattern": {
+    "dom": [
+     "dom",
+     "dom_html",
+     "html"
+    ],
+    "ax": [
+     "ax",
+     "ax_tree",
+     "accessibility_tree"
+    ],
+    "screenshot": [
+     "screenshot",
+     "png",
+     "image"
+    ],
+    "probe": [
+     "probe",
+     "geometry",
+     "css_geometry",
+     "probe_geometry"
+    ],
+    "control_facts": [
+     "control_facts",
+     "selected_control_facts",
+     "controls"
+    ]
+   },
+   "rule": "artifact kind resolved by exact key name (nested form artifacts{kind:{path,sha256}} or flat <kind>_path/<kind>_sha256)",
+   "direction_if_narrow": "over-flag (fail-closed)",
+   "direction_if_wide": "wrong artifact bound to a sha",
+   "denominator": {
+    "name": "artifact kinds",
+    "n": 5
+   },
+   "extracted": {
+    "aliases": 16
+   },
+   "must_not_miss": [
+    {
+     "sample": "dom_html",
+     "expect": "dom",
+     "got": "dom",
+     "pass": true
+    },
+    {
+     "sample": "accessibility_tree",
+     "expect": "ax",
+     "got": "ax",
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "dom_diff",
+     "expect": null,
+     "got": null,
+     "pass": true
+    },
+    {
+     "sample": "screenshot_thumb",
+     "expect": null,
+     "got": null,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "fixtures use canonical names",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M21",
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "where": "discover_manifests() filename heuristic",
+   "feeds": "the evidence denominator itself (0 manifests ⇒ NO_EVIDENCE_INPUT, exit 3 — R43, never COMPLETE)",
+   "pattern": "*.jsonl | *manifest*.json ; minus *.sha256, path_manifest*, the --path-manifest file",
+   "rule": "same",
+   "direction_if_narrow": "NO_EVIDENCE_INPUT (fail-closed by R43)",
+   "direction_if_wide": "artifact json files parsed as manifests → spurious MISSING_FIELD",
+   "denominator": {
+    "name": ".json/.jsonl files under C lane5 fixtures",
+    "n": 37
+   },
+   "extracted": {
+    "discovered_manifests": 4,
+    "names": [
+     "evidence_manifest.jsonl"
+    ]
+   },
+   "must_not_miss": [
+    {
+     "sample": "evidence_manifest.jsonl",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "MANIFEST.json",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "run_manifest_v2.json",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "steps.jsonl",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "path_manifest.json",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "evidence_manifest.jsonl.sha256",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "S0/ax.json",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "probe.json",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "run_result.json (B's summary — not a manifest)",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "3/3 fixture manifests discovered; 0 artifact json files mis-discovered",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M22",
+   "tool": "gate1/lane5_evidence/evidence_lineage_check.py",
+   "where": "ID_RE / SHA_RE / STATE_INDEX_RE / collector-sha 7-64 hex",
+   "feeds": "DISPLAY_NAME_AS_ID / MANIFEST_SHA_UNBOUND / SCHEMA_VIOLATION defects",
+   "pattern": {
+    "ID_RE": "^[A-Za-z0-9][A-Za-z0-9_.\\-:]*$",
+    "SHA_RE": "^[0-9a-f]{64}$",
+    "STATE_INDEX_RE": "^S\\d+$",
+    "collector_sha": "^[0-9a-f]{7,64}$"
+   },
+   "rule": "validators (a miss = defect, fail-closed)",
+   "direction_if_narrow": "over-flag",
+   "direction_if_wide": "display names / short shas accepted",
+   "denominator": {
+    "name": "records",
+    "n": 20
+   },
+   "extracted": {
+    "see": "lane5 report defects"
+   },
+   "must_not_miss": [
+    {
+     "sample": "ID 'svc_coupang_m'",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "ID 'T07:search'",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "S12",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "64-hex",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "ID 'Coupang Mobile App'",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "ID '쿠팡'",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "S1a",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "s1 (lowercase)",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "63-hex",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "uppercase 64-hex",
+     "expect": false,
+     "got": false,
+     "pass": true,
+     "note": "uppercase sha rejected — fail-closed, B must emit lowercase (contract)"
+    }
+   ],
+   "impact_on_current_source": "bad_lineage fixture is caught by ID_RE (display name as spine id)",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M23",
+   "tool": "gate1/lane6_stats/c_flow_derive.py",
+   "where": "_clean() sequence normaliser (split on '>' , strip, upper, CANONICAL_TOKENS membership)",
+   "feeds": "every derived count (activation_depth, flow_step_count, menu_dependency …)",
+   "pattern": "re.split(r'\\s*>\\s*') ; str(t).strip().upper() ; t in CANONICAL_TOKENS else ValueError (or dropped list when drop_noncanonical)",
+   "rule": "non-canonical tokens are never silently ignored: raise, or return them in `dropped`",
+   "direction_if_narrow": "raise (explicit)",
+   "direction_if_wide": "case-normalisation accepts lowercase tokens — declared, not silent (a lowercase token is still the canonical token)",
+   "denominator": {
+    "name": "canonical tokens",
+    "n": 18
+   },
+   "extracted": {
+    "canonical": [
+     "ABSTAIN",
+     "AUTH_GATE",
+     "DISMISS_OBSTRUCTION",
+     "ENDPOINT_REACHED",
+     "EXPAND_ACCORDION",
+     "INPUT_QUERY",
+     "OPEN_GLOBAL_MENU",
+     "OPEN_ITEM_DETAIL",
+     "OPEN_LOCAL_MENU",
+     "OPEN_PLACE_DETAIL",
+     "SELECT_CATEGORY",
+     "SELECT_DATE",
+     "SELECT_DESTINATION",
+     "SELECT_FUNCTION",
+     "SELECT_ORIGIN",
+     "SELECT_RESULT",
+     "SUBMIT_QUERY",
+     "SWITCH_TAB"
+    ]
+   },
+   "must_not_miss": [
+    {
+     "sample": "'OPEN_GLOBAL_MENU>SELECT_FUNCTION' (no spaces)",
+     "expect": [
+      "OPEN_GLOBAL_MENU",
+      "SELECT_FUNCTION"
+     ],
+     "got": [
+      "OPEN_GLOBAL_MENU",
+      "SELECT_FUNCTION"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "' OPEN_GLOBAL_MENU  >  ENDPOINT_REACHED '",
+     "expect": [
+      "OPEN_GLOBAL_MENU",
+      "ENDPOINT_REACHED"
+     ],
+     "got": [
+      "OPEN_GLOBAL_MENU",
+      "ENDPOINT_REACHED"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "list with trailing space token",
+     "expect": [
+      "AUTH_GATE"
+     ],
+     "got": [
+      "AUTH_GATE"
+     ],
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "OPEN_RIGHT_DRAWER (direction-bearing) raises",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "drop mode returns dropped list",
+     "expect": [
+      "OPEN_RIGHT_DRAWER"
+     ],
+     "got": [
+      "OPEN_RIGHT_DRAWER"
+     ],
+     "pass": true
+    },
+    {
+     "sample": "'SCROLL' raises",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "None → empty, no raise",
+     "expect": [
+      [],
+      []
+     ],
+     "got": [
+      [],
+      []
+     ],
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "C fixtures only; explicit failure path",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M24",
+   "tool": "gate1/lane6_stats/c_flow_derive.py",
+   "where": "_Q8_BARE_RE + Q8_QUALIFYING_KEYS (R6 Q8 AUTH_GATE/ABSTAIN layer qualification)",
+   "feeds": "assert_field_qualified → ValueError (fail-closed)",
+   "pattern": {
+    "regex": "(?<!endpoint_status=)(?<!action_token=)\\b(AUTH_GATE|ABSTAIN)\\b",
+    "qualifying_keys": [
+     "action_token",
+     "endpoint_status",
+     "experienced_flow_sequence",
+     "signature",
+     "signature_counts",
+     "task_flow_sequence"
+    ],
+    "suffix_rule": "key endswith action_token|endpoint_status"
+   },
+   "rule": "a bare AUTH_GATE/ABSTAIN under a non-qualifying key, as a dict key, or in free text without `endpoint_status=`/`action_token=` is flagged",
+   "direction_if_narrow": "silent pass (unqualified mention not flagged)",
+   "direction_if_wide": "over-flag (raise on compliant text — fail-closed)",
+   "denominator": {
+    "name": "n/a (validator; B rows not at hand)",
+    "n": null
+   },
+   "extracted": {},
+   "must_not_miss": [
+    {
+     "sample": {
+      "note": "status AUTH_GATE reached"
+     },
+     "expect": 1,
+     "got": 1,
+     "pass": true
+    },
+    {
+     "sample": {
+      "labels": [
+       "AUTH_GATE"
+      ]
+     },
+     "expect": 1,
+     "got": 1,
+     "pass": true
+    },
+    {
+     "sample": {
+      "AUTH_GATE": 1
+     },
+     "expect": 1,
+     "got": 1,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": {
+      "endpoint_status": "AUTH_GATE"
+     },
+     "expect": 0,
+     "got": 0,
+     "pass": true
+    },
+    {
+     "sample": {
+      "note": "endpoint_status=AUTH_GATE"
+     },
+     "expect": 0,
+     "got": 0,
+     "pass": true
+    },
+    {
+     "sample": {
+      "signature": "A>B>AUTH_GATE"
+     },
+     "expect": 0,
+     "got": 0,
+     "pass": true
+    },
+    {
+     "sample": {
+      "note": "AUTH_GATED page"
+     },
+     "expect": 0,
+     "got": 0,
+     "pass": true
+    },
+    {
+     "sample": {
+      "nav_anchor_action_token": "AUTH_GATE"
+     },
+     "expect": 0,
+     "got": 0,
+     "pass": true
+    },
+    {
+     "sample": {
+      "note": "endpoint_status: AUTH_GATE"
+     },
+     "expect": 1,
+     "got": 1,
+     "pass": true,
+     "note": "colon form IS flagged — declared wording is `key=VALUE`; over-flag direction is fail-closed (raise), listed as a known narrowness of the qualifier syntax"
+    }
+   ],
+   "impact_on_current_source": "n/a",
+   "fix_applied": null,
+   "proposed_fix": "accept `endpoint_status: AUTH_GATE` / `action_token: X` as qualified free-text forms if B's prose uses colons (would remove an over-flag, not a miss)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M25",
+   "tool": "gate1/lane6_stats/c_flow_derive.py",
+   "where": "classify_token() / row field readers (row.get('endpoint_status') …)",
+   "feeds": "activation_depth membership; endpoint_status comparisons",
+   "pattern": "frozenset membership per T-A-V3-STEP1-006; row.get(...) with explicit None handling (flow_evaluable / evidence_bearing return None-aware)",
+   "rule": "unknown token raises; absent row field → None → NOT_OBSERVED/UNDETERMINED paths, never a default count",
+   "direction_if_narrow": "raise",
+   "direction_if_wide": "n/a",
+   "denominator": {
+    "name": "canonical tokens",
+    "n": 18
+   },
+   "extracted": {
+    "activation_in": [
+     "EXPAND_ACCORDION",
+     "OPEN_GLOBAL_MENU",
+     "OPEN_ITEM_DETAIL",
+     "OPEN_LOCAL_MENU",
+     "OPEN_PLACE_DETAIL",
+     "SELECT_CATEGORY",
+     "SELECT_FUNCTION",
+     "SELECT_RESULT",
+     "SUBMIT_QUERY",
+     "SWITCH_TAB"
+    ],
+    "conditional": [
+     "SELECT_DATE",
+     "SELECT_DESTINATION",
+     "SELECT_ORIGIN"
+    ]
+   },
+   "must_not_miss": [
+    {
+     "sample": "SUBMIT_QUERY activation",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "SWITCH_TAB activation",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "INPUT_QUERY not activation",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "unknown token raises",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "n/a",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M26",
+   "tool": "gate1/comparators/adapter_map.py",
+   "where": "AdapterMap.field_key / file_spec / RunnerOutput.field (dict-driven lookups)",
+   "feeds": "every comparator PASS/FAIL (UNMAPPED ⇒ NOT_TESTABLE, never PASS)",
+   "pattern": "fields['<table>.<C field>'] → runner key (dotted) | None ; files['<table>'] → path[#dotted] | '@files.<key>' | None",
+   "rule": "no entry / null / absent-in-runner ⇒ Lookup(status=UNMAPPED); a default VALUE is never synthesised",
+   "direction_if_narrow": "NOT_TESTABLE (explicit)",
+   "direction_if_wide": "n/a (no fuzzy matching exists)",
+   "denominator": {
+    "name": "spec default field keys",
+    "n": 87
+   },
+   "extracted": {
+    "unmapped_rows_in_spec_defaults": 10,
+    "unmapped_rows_with_no_map": 0
+   },
+   "must_not_miss": [
+    {
+     "sample": "spec default flow.endpoint_status",
+     "expect": "OK",
+     "got": "OK",
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "no map: flow.endpoint_status",
+     "expect": "UNMAPPED",
+     "got": "UNMAPPED",
+     "pass": true
+    },
+    {
+     "sample": "unknown field",
+     "expect": "UNMAPPED",
+     "got": "UNMAPPED",
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "dry-run: 183 UNMAPPED without a map (comparators/selftest.py)",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M27",
+   "tool": "gate1/comparators/common.py",
+   "where": "state index normaliser [sS]\\d+",
+   "feeds": "state id equality in surface/step compares",
+   "pattern": "[sS]\\d+ fullmatch",
+   "rule": "S<n> or s<n> → index int; anything else left as-is (compared literally)",
+   "direction_if_narrow": "literal compare (visible mismatch)",
+   "direction_if_wide": "n/a",
+   "denominator": {
+    "name": "n/a",
+    "n": null
+   },
+   "extracted": {},
+   "must_not_miss": [
+    {
+     "sample": "S0",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "s12",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "S0a",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "state0",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "n/a",
+   "fix_applied": null,
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M28",
+   "tool": "gate1/comparators/compare_lane1.py",
+   "where": "waybill/tracking/운송장 key regex (input-value field detection)",
+   "feeds": "L1 input-field presence check",
+   "pattern": "waybill|tracking|운송장 (re.I, substring over runner keys)",
+   "rule": "substring, case-insensitive",
+   "direction_if_narrow": "silent pass (input field not found ⇒ check skipped?)",
+   "direction_if_wide": "unrelated key read as the tracking field",
+   "denominator": {
+    "name": "distinct keys in lane1 EXPECTATIONS.json (C side)",
+    "n": 39
+   },
+   "extracted": {
+    "matching_keys": [
+     "waybill_input_value_must_be_empty"
+    ]
+   },
+   "must_not_miss": [
+    {
+     "sample": "trackingNumber",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "운송장번호",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "WAYBILL_NO",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "backtracking_enabled",
+     "expect": false,
+     "got": true,
+     "pass": false,
+     "note": "substring rule matches — WIDE_OVER (latent; no such key in C fixtures); comparators outside this sweep's edit scope",
+     "accepted_failure": true
+    },
+    {
+     "sample": "query",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "0 over-matches in C's own expectation keys; B's keys unknown until the adapter map",
+   "fix_applied": null,
+   "proposed_fix": "word-start bound: (?<![a-z])(waybill|tracking)|운송장 — comparators are not in this sweep's edit scope; apply at the adapter-map step",
+   "controls_pass": false,
+   "controls_pass_or_accepted": true,
+   "classification": "WIDE_OVER"
+  },
+  {
+   "id": "M29",
+   "tool": "gate1/comparators/grade_lane4.py",
+   "where": "LAUNCH_RE (first browser-launch line in the runner log)",
+   "feeds": "S4 ordering: guard registered before launch",
+   "pattern": "Scout|\\bL0\\b|playwright|chromium|evidence/|browser launched|new_context",
+   "rule": "first log line matching, case-insensitive",
+   "direction_if_narrow": "no launch line ⇒ ordering NOT_TESTABLE (explicit)",
+   "direction_if_wide": "a prose line ('scouting') taken as the launch ⇒ ordering judged too early",
+   "denominator": {
+    "name": "n/a (B log)",
+    "n": null
+   },
+   "extracted": {},
+   "must_not_miss": [
+    {
+     "sample": "browser launched",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "[Scout] start",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "evidence/ dir created",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "scouting report written",
+     "expect": false,
+     "got": true,
+     "pass": false,
+     "note": "matches 'Scout' re.I — WIDE_OVER (latent); comparators outside this sweep's edit scope",
+     "accepted_failure": true
+    },
+    {
+     "sample": "L0 (bare token)",
+     "expect": true,
+     "got": true,
+     "pass": true,
+     "note": "\\bL0\\b matches any L0 mention — declared"
+    },
+    {
+     "sample": "plain line",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "n/a",
+   "fix_applied": null,
+   "proposed_fix": "anchor Scout to a launch verb (Scout.*(start|launch)) or read a structured launch event from action_log instead of prose",
+   "controls_pass": false,
+   "controls_pass_or_accepted": true,
+   "classification": "WIDE_OVER"
+  },
+  {
+   "id": "M30",
+   "tool": "gate1/comparators/grade_lane4.py",
+   "where": "TX_TEXT_RE over clicked-control accessible names (forbidden transaction click)",
+   "feeds": "FORBIDDEN grading (safety; over-flag = fail-closed)",
+   "pattern": "바로구매|장바구니|구매|결제|송금|예약|회원가입",
+   "rule": "substring over accname",
+   "direction_if_narrow": "silent pass on a real purchase click (dangerous)",
+   "direction_if_wide": "over-flag ('구매후기' review tab graded as purchase) — safe direction",
+   "denominator": {
+    "name": "n/a (B action log)",
+    "n": null
+   },
+   "extracted": {},
+   "must_not_miss": [
+    {
+     "sample": "바로구매하기",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "결제하기",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "장바구니 담기",
+     "expect": true,
+     "got": true,
+     "pass": true
+    },
+    {
+     "sample": "송금",
+     "expect": true,
+     "got": true,
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "구매후기 (review tab)",
+     "expect": false,
+     "got": true,
+     "pass": false,
+     "note": "WIDE_OVER by control; direction is fail-closed (extra FORBIDDEN), accepted for a safety matcher",
+     "accepted_failure": true
+    },
+    {
+     "sample": "예약확인",
+     "expect": false,
+     "got": true,
+     "pass": false,
+     "note": "same",
+     "accepted_failure": true
+    },
+    {
+     "sample": "검색",
+     "expect": false,
+     "got": false,
+     "pass": true
+    }
+   ],
+   "classification": "WIDE_OVER",
+   "impact_on_current_source": "n/a — safety direction; kept wide on purpose, recorded",
+   "fix_applied": null,
+   "proposed_fix": "none — a safety matcher is kept wide; grade output should list the accname so an over-flag is reviewable (it does: action_log row is quoted)",
+   "controls_pass": false,
+   "controls_pass_or_accepted": true
+  },
+  {
+   "id": "M31",
+   "tool": "(no C tool — GATE1_RUNBOOK_C.md 'Limitation rule r2' declares a heading parser; none existed in code)",
+   "where": "reference implementation limitation_status() in this sweep",
+   "feeds": "GATE limitation reading (LIMITATION_NOT_STATED / EMPTY / STATED — a sentinel is itself a claim)",
+   "pattern": "^(#{1,6})\\s+(?:[\\d①-⑳ivxIVX.)(\\s]+\\s*)?(.*?(?:\\blimitations?\\b|한계).*?)\\s*$",
+   "rule": "a heading line (1-6 #) outside fenced code whose title, after stripping leading numbering (digits, ①-⑳, roman, ./)/) and punctuation), contains the word 'limitation(s)' (case-insensitive) or '한계'; body = lines until the next heading of the same or higher level; NOT_STATED = no such heading (parser rule cited), EMPTY = heading with a blank body, STATED = body has text",
+   "direction_if_narrow": "NOT_STATED read as 'no limitation' (the D 18/27 defect, Δ54)",
+   "direction_if_wide": "prose or fenced text read as a section",
+   "denominator": {
+    "name": "n/a (no B artifact at hand); controls only",
+    "n": null
+   },
+   "extracted": {},
+   "must_not_miss": [
+    {
+     "sample": "## 12. Limitation",
+     "expect": "LIMITATION_STATED",
+     "got": "LIMITATION_STATED",
+     "pass": true
+    },
+    {
+     "sample": "### 12) 한계와 미검증",
+     "expect": "LIMITATION_STATED",
+     "got": "LIMITATION_STATED",
+     "pass": true
+    },
+    {
+     "sample": "## ③ 한계 — 3건",
+     "expect": "LIMITATION_STATED",
+     "got": "LIMITATION_STATED",
+     "pass": true
+    },
+    {
+     "sample": "#### Limitations of this run — see below",
+     "expect": "LIMITATION_STATED",
+     "got": "LIMITATION_STATED",
+     "pass": true
+    },
+    {
+     "sample": "## Limitations (empty body)",
+     "expect": "LIMITATION_EMPTY",
+     "got": "LIMITATION_EMPTY",
+     "pass": true
+    },
+    {
+     "sample": "no section at all (must_flag)",
+     "expect": "LIMITATION_NOT_STATED",
+     "got": "LIMITATION_NOT_STATED",
+     "pass": true
+    }
+   ],
+   "must_not_over": [
+    {
+     "sample": "prose 'no limitation here' is not a heading",
+     "expect": "LIMITATION_NOT_STATED",
+     "got": "LIMITATION_NOT_STATED",
+     "pass": true
+    },
+    {
+     "sample": "'## Unlimited retries' is not a limitation heading",
+     "expect": false,
+     "got": false,
+     "pass": true
+    },
+    {
+     "sample": "fenced '## Limitation' ignored",
+     "expect": "LIMITATION_NOT_STATED",
+     "got": "LIMITATION_NOT_STATED",
+     "pass": true
+    }
+   ],
+   "impact_on_current_source": "not yet applied to a B artifact — every GATE reading must cite this rule string next to the status",
+   "fix_applied": "reference implementation + controls provided here (import gate1.r54_matcher_sweep_c.limitation_status)",
+   "status_before_fix": "NARROW_MISS (no parser existed; the runbook rule was prose)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true,
+   "classification": "OK"
+  },
+  {
+   "id": "M32",
+   "tool": "gate1/RULING_INDEX_COVERAGE_C.{md,json}",
+   "where": "index_vs_delta block / row table",
+   "feeds": "C coverage claim (COVERED / PARTIAL / UNCOVERED counts)",
+   "pattern": "(hand-authored — no generator script exists; no regex to inventory)",
+   "rule": "rows are copied from V3_RULING_INDEX.json ids; index_vs_delta was derived by a worker pass, not by a tool",
+   "direction_if_narrow": "n/a",
+   "denominator": {
+    "name": "RIC rows vs index rows now",
+    "n": {
+     "ric_rows": 180,
+     "index_rows_now": 183,
+     "ric_index_sha256": "b489400709b69f842257b9d4ecf8543cd825456d148b9bd0a460405d084592e4",
+     "index_sha256_now": "86d226c52f56a3d5dd988eae1340c5db84cd9b8bab00f37a9c51affcd524445f"
+    }
+   },
+   "extracted": {
+    "ric_rows_not_in_index": [],
+    "index_rows_not_in_ric": [
+     "Δ60-B-list",
+     "Δ60-R65",
+     "Δ60-measured"
+    ]
+   },
+   "must_not_miss": [],
+   "must_not_over": [],
+   "classification": "NOT_A_MATCHER",
+   "impact_on_current_source": "the heading/row denominators the RIC cites are now produced by c_bus_scan (delta_heading_counts) — RIC should cite those, not a hand count",
+   "fix_applied": null,
+   "proposed_fix": "regenerate RIC rows from the scanner's index/delta identity at the next RIC revision (index has moved since the RIC's sha)",
+   "controls_pass": true,
+   "controls_pass_or_accepted": true
+  }
+ ],
+ "ok": true
+}

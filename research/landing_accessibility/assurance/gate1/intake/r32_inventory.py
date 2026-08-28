@@ -100,7 +100,10 @@ BUILTIN_CALLS = {
     "isinstance", "type", "repr", "print", "min", "max", "sum", "any", "all", "enumerate", "zip", "map", "filter",
     "abs", "round", "range", "iter", "next", "id", "hash", "format", "bytes", "getattr", "hasattr", "callable",
 }
-HELPER_CHECK_RE = re.compile(r"(require|check|validate|assert|ensure|expect|verify)", re.I)
+# R54 sweep 2026-08-28: word-start bounded (was a bare substring match — `write_checkpoint(x)` / `compute_checksum(x)` /
+# `unexpected(x)` counted as a helper CHECK on x and turned a SILENT_DEFAULT verdict into UNKNOWN). Rule is emitted as `helper_check_rule`.
+HELPER_CHECK_RULE = "callee name contains require|check|validate|assert|ensure|expect|verify as a word start: not preceded by a letter, not followed by a lowercase letter (case-insensitive)"
+HELPER_CHECK_RE = re.compile(r"(?<![A-Za-z])(require|check|validate|assert|ensure|expect|verify)(?!(?-i:[a-z]))", re.I)
 LOOKUP_HANDLERS = {"KeyError", "LookupError", "IndexError", "TypeError", "AttributeError", "Exception", "BaseException"}
 TERMINATORS = (ast.Return, ast.Raise, ast.Continue, ast.Break)
 
@@ -900,6 +903,7 @@ def build(target: pathlib.Path, fixtures_dir: pathlib.Path, include_private: boo
         "measured_at_kst": now_kst(), "label": label,
         "target_root": str(target), "target_sha": git["sha"] if git else None, "target_dirty": git["dirty"] if git else None,
         "unit_predicate": UNIT_PREDICATE, "out_of_unit_predicate": OUT_OF_UNIT_PREDICATE,
+        "helper_check_rule": HELPER_CHECK_RULE, "helper_check_regex": HELPER_CHECK_RE.pattern,
         "include_private": include_private,
         "sites": scan["sites"], "out_of_unit_candidates": scan["out_of_unit_candidates"],
         "counts": scan["counts"], "per_file": scan["per_file"], "functions": scan["functions"], "parse_errors": scan["parse_errors"],

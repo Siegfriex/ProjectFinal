@@ -1,0 +1,76 @@
+{
+ "from": "A",
+ "priority": "P0",
+ "status": "SUPERSEDED",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst": "2026-08-28T10:44:00+0900",
+ "base_sha": "768aeb10cfcc15a7eefe501059bc8fa3b45ab2a1",
+ "self_approved": false,
+ "authority": "DIRECTOR V3 DIRECT MAIN50 CENSUS / AUTONOMOUS CLOSEOUT (2026-08-28)",
+ "정지_해제": "B 의 HALTED_BY_DIRECTOR, C 의 STOPPED_BY_DIRECTOR 는 이 Director override 로 해제된다. 즉시 재기동하라",
+ "ticket_id": "T-A-V3-MAIN50-001",
+ "type": "DIRECTIVE",
+ "to": [
+  "B"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "headline": "**B: 단일 canonical SHA 수렴 → OFFLINE integrity 1회 → 그 게이트 통과 즉시 MAIN50 전수수집.** sampled REAL gate 는 이 경로에 없다",
+ "게이트는_하나뿐이다": {
+  "이름": "RUNNER_CONVERGENCE_OFFLINE",
+  "무엇": "단일 canonical V3 integration SHA 의 **clean checkout** 에서 full regression + positive/negative/malformed control + safety check **1회**",
+  "REAL_네트워크": "**금지**. 이 게이트는 전부 offline 이다",
+  "확장_금지": "이것을 새 pilot 이나 새 방법론 cycle 로 키우지 마라 — Director §0 명시",
+  "제거된_것": "Q12 REAL qualification, V3_FLOW_PILOT_10, Pilot5 **전부 release 선행조건에서 제거**. 새로 실행하지 마라"
+ },
+ "수렴": {
+  "base": "claude-b/integration-current @ 397a10de0ac341595f47f499ed89d17170a15432 (A 가 실측 대조 MATCH)",
+  "W5_레인": "w5g~w5t 를 **하나의 canonical integration SHA** 로 즉시 수렴",
+  "신규_브랜치": "**hard-stop 수리 외 금지**. R32/R43/R52/R57 중 systemic runner defect 에 해당하지 않는 것은 **미시정 상태로 진행하고 한계로 기록**한다"
+ },
+ "COMPLETION_에_반드시": [
+  "canonical runner exact SHA",
+  "offline regression 결과 (통과/실패 수, 실행 0회면 실행 0회라고 적어라)",
+  "positive control / negative control / malformed control **각각의 산출과 그것이 실패를 실제로 잡았다는 증명**",
+  "safety check 결과",
+  "이 SHA 에서 빠진 시정 목록 = A 가 한계 절에 싣는다"
+ ],
+ "게이트_통과_후_MAIN50": {
+  "허가원": "A 의 `V3_MAIN50_DIRECT_CENSUS_RELEASE` — **manifest hash + 네 exact SHA 에 묶여서** 발행된다. 그 티켓 없이 REAL 을 켜지 마라",
+  "단위": "frozen service × task **50**, exactly-once",
+  "병렬": "5 family lane 병렬 허용. **target lock / retry ledger / idempotency 필수**",
+  "착수순서": "**F1(금융) 먼저** — auth gate·WAF 로 꼬리가 가장 길다. 이어 F3/F5 → F2/F4",
+  "증거": "append-only + hash chain. **overwrite/mutation 은 §9 systemic hard-stop**",
+  "분리_필수": [
+   "raw `fact_task_step` ↔ normalized/derived",
+   "`task_flow_sequence` ↔ `experienced_flow_sequence`",
+   "`visible_label_text` ↔ browser-computed `accessible_name`"
+  ],
+  "보존_축": "spatial / control / navigation / reveal / activation_depth / auth_stage / task_obstruction",
+  "실패도_데이터": "WAF·timeout·block·not-found·auth gate·evidence inadequacy 는 **결과다**. `terminal_reason` + `evidence_adequacy` 와 함께 보존하고 **다른 target 은 계속한다**",
+  "분모": "family별 + overall 로 `attempted / evidence_adequate / completed / failed` **4개를 다 낸다**",
+  "교체_금지": "**수집 시작 후 outcome-based replacement 금지**. manifest 의 `replacement_reserve` 는 수집 개시 전 구조적 사유로만, 개시 후에는 어떤 사유로도 금지"
+ },
+ "적격성은_게이트가_아니라_결과다": "manifest `not_verified` 4건(모바일웹 적격성 등)은 precheck 미실시 상태다. Director §0 이 precheck 를 선행조건에서 뺐다. **따라서 부적격은 사전 교체가 아니라 `terminal_reason` 으로 기록된다** — 교체를 하지 않으므로 '결과 보고 교체' 금지에 걸리지 않는다",
+ "수집_후": "raw freeze 즉시 frozen V3 analysis contract 대로 **canonical service×task mart + 분석산출물** 생성. composite STFP 금지, within-family 45 pair 를 independent n=45 로 쓰지 마라 (n=10)",
+ "manifest": {
+  "path": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+  "version": "3.0.2",
+  "body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
+  "file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
+  "body_sha256_재계산규칙": "json.dumps(dict(manifest) minus 'manifest_sha256', sort_keys=False, indent=1, separators=(',',': '), ensure_ascii=False), 후행개행 없음 → sha256(utf-8)",
+  "A_가_독립재계산함": "두 값 모두 선언 인용이 아니라 재계산 일치. C 는 같은 규칙으로 다시 재계산할 것"
+ },
+ "타임박스_참고": {
+  "offline 게이트": "~11:00",
+  "census": "11:00–11:45",
+  "mart+분석": "11:45–12:05",
+  "목표 closeout": "12:30"
+ },
+ "묻지_말고_해결": "integration / fixture / retry / batch-size / worker allocation / 분석구현 — Director §10",
+ "superseded_by": "T-A-V3-TBX-005..008 (Director 10:47 개정: E=acquisition, B=ingest, D=analysis/viz)",
+ "superseded_at_kst": "2026-08-28T10:48:00+0900"
+}

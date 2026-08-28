@@ -1,0 +1,74 @@
+{
+ "ticket_id": "T-B-V3-HALT-002",
+ "from": "B",
+ "to": [
+  "A"
+ ],
+ "cc": [
+  "C",
+  "D",
+  "E"
+ ],
+ "type": "BLOCKER",
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "768aeb10cfcc15a7eefe501059bc8fa3b45ab2a1",
+ "status": "OPEN",
+ "created_at_kst": "2026-08-28T10:09:59+09:00",
+ "measured_at_kst": "2026-08-28T10:09:59+09:00",
+ "completed_at_kst": null,
+ "schema": "SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json",
+ "scope": "**Director 지시로 정지.** 상태를 동결한다",
+ "headline": "**Director 가 정지를 지시했다. B 가 루프와 워커 2개를 세웠다.** 결함이 아니며 재개 가능하도록 상태를 남긴다.",
+ "halt": {
+  "사유": "**Director 지시(`정지`)**",
+  "시각": "2026-08-28T10:09:59+09:00",
+  "B 가 한 것": "루프 중단 · 진행 중 워커 2개 정지(W5S·W5T) · 이 동결 기록 발행",
+  "**중단 시 손실**": "W5S·W5T 는 **미push**. 워크트리는 남아 있고 로컬 커밋이 있으면 보존된다 — 직전 정지(HALT-001) 때도 전부 생존했다"
+ },
+ "frozen_lanes_pushed": {
+  "w5a-task-registry": "056fe5f72b396f82406a62bcce64675ccfd8d9b5",
+  "w5b-flow-normalize": "6085f0b16f1a7192eaf4b972a94b8d7fa70393c4",
+  "w5c-surface-measure": "8285bd869a23a3ab0a7f23e1a6c3fc16207a1a8f",
+  "w5d-obstruction": "f388134cfedcdcb71e83b10965a5e850c0a5d976",
+  "w5d1-task-discovery": "f4cb83fc8e330cacf934fb2fcfc6c09331ba0669",
+  "w5e-v3-fixtures": "8496c700f6e0c8d06b90f623b8906353818508e7",
+  "w5f-runner-core": "e8d8829c15c49f8678dad4fe87a76783b1f04f78",
+  "w5g-v3-safety": "022729c7237dd88974f2955b0d4b9e6839c910d9",
+  "w5h-session-driver": "e535ae021b44118cb3dd1d24b8854d4d1cc69b95",
+  "w5i-ax-join": "8dea14a0268c2cb3dff53ec9f3ce66af5c87d4af",
+  "w5j-scroll-state": "b7d4447d2ac39e89abcb7be10ffad6feae4fa07a",
+  "w5k-seam-integration": "33b61836c8bd430d756cc1b8ae829f96134c9246",
+  "w5l-delta30": "5b6b00a5de884a861fc9ebb9ffbf96c1734b3e9a",
+  "w5m-seam-failures": "341c8177176af068bf2d23859d1ddf3de20f0675",
+  "w5n-delta35": "645c4171c84430bcad642d063bb58867065706dd",
+  "w5o-delta36": "abaefd67e9e54b74c23b1e806608fc4de3b11a82",
+  "w5p-r32-list": "a4185e4c858455f4a1c85112d6e619bbdb9762b1",
+  "w5q-delta47": "999c9baccd8765226f339d7be93ed289e17f2368",
+  "w5r-r43": "7ac2088e9ec7872f2cc85e5741de60b5839f0f0c"
+ },
+ "in_flight_stopped": {
+  "W5S (claude-b/w5s-r52)": "R52 호출 지점 실증 — 중단 직전 '합성 대조 차례' 단계",
+  "W5T (claude-b/w5t-r57)": "R57 배선 + Δ56 판정 4건 — 중단 직전 'lint/format 후 커밋, 그 뒤 R31 변이 검사' 단계"
+ },
+ "gate_state": {
+  "SUT": "**미확정.** A 판정(Δ50) — GATE 1 의 SUT 는 **B 의 COMPLETION SHA** 로 확정되며 그 전까지 미확정이다. **B 는 COMPLETION 을 내지 않았다**",
+  "재병합": "**미실시.** 마지막 병합본은 12 lane 의 `d4e9e09f`(미push, 3 failed/2069 passed)이고 그 뒤 7 lane 이 더 나왔다",
+  "전체 회귀": "**병합본 기준 미실시** — 레인별 회귀만 있다"
+ },
+ "open_for_A": {
+  "T-B-V3-BLK-018": "판정 4건 — ② 이음매 배선 소유(A 가 B 로 판정, **W5T 중단으로 미완**) · `seam_refusal_result` 거짓 기록 · `OTHER` vs 17번째 값 · `ignored` 범위(**승인됨**)",
+  "T-B-V3-BLK-017 / FC-002": "안전 13건 중 **배선 3건**이 Δ32 release 전제조건",
+  "T-B-V3-FC-007": "`self_approved` 처리 — **A 가 Δ60/R65 로 답했다.** B 미ACK",
+  "T-B-V3-FC-005 / FC-006": "R43 예시 정정 · B 추출기 분모 과다"
+ },
+ "real_target": {
+  "verdict": "NO-GO",
+  "measured_at_kst": "2026-08-28T10:09:59+09:00",
+  "방법": "`_b_tools/b_real_scope_measure.py` — **손 목록이 아니라 `origin/claude-b/*` 전수(40 브랜치)**",
+  "결과": "실주소 호출 **0** · controls PASS",
+  "**범위**": "**'접속하지 않았다' 가 아니라 '접속하는 코드가 없다'** — 정적 검사이며 런타임 우회는 잡지 않는다"
+ },
+ "self_approved": false,
+ "decision_required": null
+}

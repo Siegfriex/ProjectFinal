@@ -12,7 +12,8 @@ Report-only checks added 2026-08-28 (RULING_INDEX_COVERAGE_C rows Δ6-a / Δ4 / 
              verified_against / how_*found* / how_it_surfaced / artifact_refs / what_is_actually_true / corrected_facts, top level or payload).
   (d) Δ5-vr  FINDING tickets whose finding_class is VALIDITY_RISK with priority ∉ {P0, P1} (type VALIDITY_RISK_CANDIDATE below P1 is listed
              separately as informational — the ruling names finding_class).
-  (e) Δ21    ruling-index ↔ ticket cross-check. Ruling tokens mentioned in v3-era A tickets (`Δ\\d+(-[A-Za-z0-9]+)?`, `R\\d+[a-z]?`) are resolved
+  (e) Δ21    ruling-index ↔ ticket cross-check. Ruling tokens mentioned in v3-era A tickets (`Δ\\d+(-[A-Za-z0-9]+)*`, `R\\d+[a-z]?`; v22/R54:
+             inner hyphen chains are part of the id, `Δ36-②` numbered-subsection mentions are extracted separately) are resolved
              against V3_RULING_INDEX.json read from `origin/control/landing-orchestrator` — **id AND aliases[]** (T-A-V3-STEP1-023: the index declares
              its own aliases; consumers do not infer them — the Δn-Rm↔Rm pattern rule of T-A-V3-FC-004 misses bare Δn rows, T-B-V3-FINDING-005).
              Matching is token-bounded and case-sensitive (no partial match). Alias qualification = index v9 `alias_rules` / delta Δ25
@@ -46,22 +47,49 @@ Report-only checks added 2026-08-28 (RULING_INDEX_COVERAGE_C rows Δ6-a / Δ4 / 
 Usage: c_bus_scan.py [bus_dir] [--ref-lint] [--assurance-root DIR] [--repo DIR] [--index-ref REF] [--index-file PATH]
        -> prints JSON {pending, parse_errors, dangling_refs_v3_era, content_changed_after_ack, plane_enum, ref_lint, fact_correction_how_known,
                        validity_risk_priority, ruling_record_gaps, base_sha_unresolvable, failure_behaviour_demo, summary, status}
-Last run (2026-08-28 08:5x KST, --ref-lint, exit 0; `selftest` OK; gate1/control_failure_demo_c.py 7/7 cases + 4/4 binding controls PASS):
-  SUMMARY: scanned=270 pending=2 parse_errors=0 dangling=1 changed_after_ack=1 plane_enum_violations=0 e_real_field_gaps=3 ref_lint_hits=13 fact_correction_missing_how_known=32 validity_risk_below_p1=0 vrc_type_below_p1=2 ruling_unrecorded_mentions=2 resolved_by_subrows=20 alias_collisions=1 unsafe_aliases=0 empty_alias_rows=0 delta_headings_without_index_row=0 base_sha[no_field/not_sha/missing/ok_abbrev/ok]=5/0/0/11/114 controls=PASS demo_valid_for_this_commit=True
+R54 sweep (v22, 2026-08-28, gate1/r54_matcher_sweep_c.py → gate1/R54_MATCHER_SWEEP_C.json): every extractor states its parser rule next to
+  its count and a wider presence probe beside it. Fixed here: DELTA_TOKEN_RE hyphen chains (Δ47-fixture-limit was credited to Δ47-fixture),
+  numbered-subsection mentions (Δ36-②) extracted instead of folded, token_in boundary includes '-', HOW_KNOWN_RE accepts any how_* key
+  (how_A_knows), V3_CUTOFF_EPOCH derived from the ISO literal (the typed literal was 2026-08-24 00:52 KST — 4 timestamp-less pre-v3 tickets
+  were judged v3-era), 'Z'/any-offset timestamps compared as instants, ref-lint denominators (lines mentioning / prefixed / bare /
+  ls-remote-exempted-with-bare), REAL presence probe outside the declared fields, delta heading denominator (all lines / matched as id) and
+  per-`## Δn` numbered-subsection count vs index rows (numbered_subsection_shortfall; Δ54 check-10 counterpart), SUFFIX_NOT_STRIPPED note on dangling entries.
+Last run (2026-08-28 v22, --ref-lint, exit 0; `selftest` OK; gate1/control_failure_demo_c.py 10/10 cases + binding PASS — see the sweep JSON for the exact shas):
+  SUMMARY: scanned=304 pending=1 parse_errors=0 dangling=1 changed_after_ack=1 plane_enum_violations=0 e_real_field_gaps=3 ref_lint_hits=13 fact_correction_missing_how_known=37 validity_risk_below_p1=0 vrc_type_below_p1=2 ruling_unrecorded_mentions=2 resolved_by_subrows=27 alias_collisions=1 unsafe_aliases=0 empty_alias_rows=0 delta_headings_without_index_row=0 delta_headings[all/matched_as_id]=279/129 numbered_subsection_shortfall=0 base_sha[no_field/not_sha/missing/ok_abbrev/ok]=1/0/0/11/148 controls=PASS demo_valid_for_this_commit=True
 """
 import json, glob, os, sys, re, hashlib, subprocess, pathlib, collections
 # ACKs whose ticket_sha256 legitimately differs from the current file (documented provenance events); never silently drop
 EXPLAINED_CHANGES = {('T-A-V3-FC-001','T-A-V3-FC-001.C-1.json'): 'acked replaced content (now T-A-V3-FC-002); FC-001 restored by A STEP1-014'}
-V3_CUTOFF_EPOCH = 1787500320  # 2026-08-28T02:12:00+09:00 (T-A-V3-P0-001 adoption)
-V3_CUTOFF_ISO = "2026-08-28T02:12:00"
+V3_CUTOFF_ISO = "2026-08-28T02:12:00"   # T-A-V3-P0-001 adoption, KST
+# R54 sweep 2026-08-28: the literal 1787500320 used here since 7cc6771 was 2026-08-24T00:52:00+09:00 (4d01h20m early) — the mtime
+# fallback (tickets without a timestamp) and the new instant compare read the wrong day. Derived from the ISO literal now, never typed.
+import datetime as _dt0
+V3_CUTOFF_EPOCH = int(_dt0.datetime.fromisoformat(V3_CUTOFF_ISO + "+09:00").timestamp())   # = 1787850720
 PLANES = {"A", "B", "C", "D", "E", "DIRECTOR"}
 ACK_SUFFIX_RE = re.compile(r"(\.(A|B|C|D|E)(-\d+)?)+$")   # R19: re-ACK never overwrites → X.C-1.json is an ACK of ticket X
 E_REAL_REQUIRED = ("real_scope_id", "release_doc", "target_manifest_sha256", "allowlist_ref", "task_contract_sha256")
-HOW_KNOWN_RE = re.compile(r"^(how_known|evidence|evidence_refs|measurement|method|verified_against|how_.*(found|surfaced|happened).*|how_it_surfaced|artifact_refs|what_is_actually_true|corrected_facts|the_measurement)$", re.I)
+# R54 sweep 2026-08-28 (gate1/R54_MATCHER_SWEEP_C.json): every extractor below states its rule next to its count, and a wider
+# *presence probe* is reported beside the strict count so a narrow miss / wide over-count is visible in one comparison.
+HOW_KNOWN_RULE = "strict: a top-level or payload key equal (case-insensitive) to how_known|evidence|evidence_refs|measurement|method|verified_against|how_*|how_it_surfaced|artifact_refs|what_is_actually_true|corrected_facts|the_measurement"
+HOW_KNOWN_RE = re.compile(r"^(how_known|evidence|evidence_refs|measurement|method|verified_against|how_.*|how_it_surfaced|artifact_refs|what_is_actually_true|corrected_facts|the_measurement)$", re.I)
+HOW_KNOWN_WIDE_RULE = "wide probe (report-only, never used for the count): key contains how_|evidence|measurement|verif|basis|root_cause|observ|reproduc|found|discover|detect|diagnos|proof|confirm and does not end in _at/_at_kst"
+HOW_KNOWN_WIDE_RE = re.compile(r"(how_|evidence|measurement|verif|basis|root_cause|observ|reproduc|found|discover|detect|diagnos|proof|confirm)(?!.*_at(_kst)?$)", re.I)
 BARE_REF_RE = re.compile(r"(?<!origin/)(?<!refs/remotes/origin/)research/landing-accessibility-main")
+REF_PRESENCE = "landing-accessibility-main"      # presence probe for the ref-lint denominator (any prefix, any form)
 SHA40_RE = re.compile(r"\b[0-9a-f]{40}\b")
-DELTA_TOKEN_RE = re.compile(r"Δ\d+(?:-[A-Za-z0-9]+)?")
+# v22 (R54): inner hyphen chains are part of the id (`Δ47-fixture-limit` ≠ `Δ47-fixture`); a numbered-subsection mention
+# (`Δ36-②`, `Δ39 ①`, `Δ47③`) is extracted separately and never folded into the bare section token.
+DELTA_TOKEN_RULE = "Δ<digits>(-<ASCII alnum run>)* ; numbered subsection = Δ<digits>[ -]?<circled digit ①-⑳>"
+DELTA_TOKEN_RE = re.compile(r"Δ\d+(?:-[A-Za-z0-9]+)*")
+DELTA_SUBSECTION_RE = re.compile(r"Δ\d+\s?-?\s?[①-⑳]")
 R_TOKEN_RE = re.compile(r"(?<![A-Za-z0-9_\-Δ])R\d+[a-z]?(?![A-Za-z0-9_])")
+# delta heading extractor (the `delta_headings_without_index_row` denominator). Rule stated in delta_heading_counts.parser_rule.
+DELTA_HEAD_RULE = "line starts with ## or ### then an id token Δ<digits>(-<alnum/hyphen run>)? or R<digits>, token-bounded ([^0-9A-Za-z_-] or EOL); #### and prose-titled headings are NOT ids"
+DELTA_HEAD_RE = re.compile(r"^#{2,3}\s+(Δ\d+(?:-[A-Za-z0-9\-]+)?|R\d+)(?![0-9A-Za-z_-])", re.M)
+ALL_HEAD_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*$", re.M)
+NUMBERED_SUB_RULE = "strict: heading (level>=3) under a `## Δn` section whose title starts with a circled digit ①-⑳, a roman (i)/(ii)/…, or 판정/부기 + circled digit; wide adds part<digit> and <digits>. / <digits>)"
+NUMBERED_SUB_STRICT_RE = re.compile(r"^(?:\(?[①-⑳]|\((?:i{1,3}|iv|v|vi{0,3})\)|(?:판정|부기)\s*[①-⑳])")
+NUMBERED_SUB_WIDE_RE = re.compile(r"^(?:\(?[①-⑳]|\((?:i{1,3}|iv|v|vi{0,3})\)|(?:판정|부기)\s*[①-⑳]|part\s*\d|\d+[.)]\s)")
 DEFAULT_REPO = "/home/sieg/projects-wsl/ProjectFinal"
 # T-A-V3-FC-007 (R39): what A has published is defined ONLY by what A pushed. C reads `origin/control/landing-orchestrator`
 # after an explicit fetch — never the local branch (that is A's unpublished working state; producer ≠ reviewer at the byte
@@ -111,10 +139,16 @@ def failure_demo_binding(tool_path: pathlib.Path = pathlib.Path(__file__), sidec
 def _ts(d: dict) -> str:
     return str(d.get("created_at_kst") or d.get("created_at") or "")
 
+V3_ERA_RULE = "created_at_kst|created_at parsed as ISO-8601 (Z → +00:00) and compared as an instant to 2026-08-28T02:12:00+09:00; naive or unparsable → KST string compare; no timestamp → file mtime"
 def is_v3_era(d: dict, path: str) -> bool:
     ts = _ts(d)
     if ts:
-        return ts >= V3_CUTOFF_ISO          # ISO-KST string compare (monotonic here); a 'Z'/UTC created_at is at most 9h off and rare
+        import datetime as _dt
+        try:                                 # R54: a UTC/'Z' or non-KST offset is compared as an instant, not as a KST string
+            t = _dt.datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            if t.tzinfo is not None: return t.timestamp() >= V3_CUTOFF_EPOCH
+        except ValueError: pass
+        return ts >= V3_CUTOFF_ISO          # ISO-KST string compare (monotonic for +09:00/+0900 forms, the only ones on this bus)
     try: return os.stat(path).st_mtime >= V3_CUTOFF_EPOCH
     except OSError: return False
 
@@ -175,7 +209,11 @@ def scan(bus_dir: str, plane: str = "C") -> dict:
                 errors.append({"file": f"{sub}/{os.path.basename(p2)}", "kind": "REF_UNREADABLE", "error": f"{type(e).__name__}: {e}"[:120]})
                 dangling.append({"file": f"{sub}/{os.path.basename(p2)}", "missing_ticket": tid, "note": "UNREADABLE — era undeterminable"}); continue
             if ts >= V3_CUTOFF_ISO:  # v3 adoption (T-A-V3-P0-001); string compare on ISO-KST is monotonic here
-                dangling.append({"file": f"{sub}/{os.path.basename(p2)}", "missing_ticket": tid})
+                # R54 presence probe: a ticket id that is a dot-prefix of the file name means the SUFFIX FORM (e.g. `.A2`) was not
+                # stripped by ACK_SUFFIX_RE — reported on the entry, so a matcher miss is never read as a missing ticket.
+                pref = [x for x in ticket_ids if base.startswith(x + ".")]
+                dangling.append({"file": f"{sub}/{os.path.basename(p2)}", "missing_ticket": tid,
+                                 **({"note": f"SUFFIX_NOT_STRIPPED: ticket {max(pref, key=len)} exists by prefix; ACK_SUFFIX_RE={ACK_SUFFIX_RE.pattern}"} if pref else {})})
     import datetime as _dt
     _kst=_dt.timezone(_dt.timedelta(hours=9))
     return {"measured_at_kst": _dt.datetime.now(_kst).isoformat(timespec="seconds"), "scanned": len(files), "pending": pending, "parse_errors": errors, "dangling_refs_v3_era": dangling, "content_changed_after_ack": changed, "acked_sha_unrecorded_n": len(set(unrecorded)), "status": "PARSE_ERRORS_PRESENT" if errors else "OK"}
@@ -190,7 +228,8 @@ def load_tickets(bus_dir: str) -> list:
 
 # ---------------------------------------------------------------- (a) Δ6-a
 def check_plane_enum(tickets) -> dict:
-    viol, e_gaps, n_e_real = [], [], 0
+    viol, e_gaps, n_e_real, n_e, real_elsewhere = [], [], 0, 0, []
+    REAL_FIELDS = ("scope", "mode", "execution_mode", "real_scope_id", "type", "claim_kind", "headline")
     for tid, p, d, v3 in tickets:
         if not v3: continue
         for field in ("from", "to", "cc"):
@@ -199,45 +238,72 @@ def check_plane_enum(tickets) -> dict:
                     viol.append({"ticket_id": tid, "field": field, "value": v})
         frm, to = str(d.get("from")), [str(x) for x in _as_list(d.get("to"))]
         if "E" in {frm, *to}:
-            real = bool(d.get("real_target")) or any(re.search(r"\bREAL(_TARGET)?\b", str(_get(d, k) or "")) for k in ("scope", "mode", "execution_mode", "real_scope_id", "type", "claim_kind", "headline"))
+            n_e += 1
+            real = bool(d.get("real_target")) or any(re.search(r"\bREAL(_TARGET)?\b", str(_get(d, k) or "")) for k in REAL_FIELDS)
             if real:
                 n_e_real += 1
                 missing = [k for k in E_REAL_REQUIRED if _get(d, k) in (None, "")]
                 if missing: e_gaps.append({"ticket_id": tid, "from": frm, "to": to, "missing": missing})
+            elif re.search(r"\bREAL\b", json.dumps(d, ensure_ascii=False)):   # R54 presence probe: REAL mentioned outside the declared fields
+                real_elsewhere.append(tid)
     return {"rule": "Δ6-a: from/to/cc ⊆ {A,B,C,D,E,DIRECTOR}; E REAL ticket needs " + ", ".join(E_REAL_REQUIRED), "v3_era_checked": sum(1 for t in tickets if t[3]),
-            "violations": viol, "e_real_tickets": n_e_real, "e_real_field_gaps": e_gaps}
+            "violations": viol, "e_tickets_v3_era": n_e, "e_real_tickets": n_e_real, "e_real_field_gaps": e_gaps,
+            "real_bearing_rule": "strict: real_target truthy OR \\bREAL(_TARGET)?\\b in " + "/".join(REAL_FIELDS) + " (top level or payload)",
+            "real_mentioned_outside_declared_fields": real_elsewhere,
+            "real_mentioned_outside_declared_fields_note": "presence probe \\bREAL\\b over the whole ticket JSON; listed tickets are NOT counted as REAL-bearing (prose such as 'REAL scope 0') — read the list before calling the strict count complete"}
 
 # ---------------------------------------------------------------- (b) Δ4 --ref-lint
 def ref_lint(tickets, root: pathlib.Path) -> dict:
     hits = []
     self_path = pathlib.Path(__file__).resolve()
+    # R54 denominators: lines scanned / lines that mention the branch at all (presence) / prefixed (compliant) / exempted by the
+    # ls-remote rule while ALSO carrying the bare form (the exemption is line-wide — those are listed, not hidden).
+    pres = {"lines_scanned": 0, "lines_mentioning_branch": 0, "prefixed_only": 0, "bare_hits": 0, "ls_remote_exempted_with_bare_form": []}
+    def _line(where, kind, ln):
+        pres["lines_scanned"] += 1
+        if REF_PRESENCE not in ln: return
+        pres["lines_mentioning_branch"] += 1
+        bare = BARE_REF_RE.search(ln) is not None
+        if "ls-remote" in ln:
+            if bare: pres["ls_remote_exempted_with_bare_form"].append(where)
+            return
+        if bare:
+            pres["bare_hits"] += 1
+            hits.append({"where": where, "kind": kind, "sha_on_same_line": bool(SHA40_RE.search(ln)), "text": ln.strip()[:160]})
+        else: pres["prefixed_only"] += 1
     for p in sorted(root.rglob("*")):
         if p.suffix not in (".py", ".md") or "__pycache__" in p.parts or p.resolve() == self_path: continue
         try: lines = p.read_text(encoding="utf-8", errors="replace").splitlines()
         except OSError: continue
-        for i, ln in enumerate(lines, 1):
-            if "ls-remote" in ln: continue
-            if BARE_REF_RE.search(ln):
-                hits.append({"where": f"{p.relative_to(root)}:{i}", "kind": "c_file", "sha_on_same_line": bool(SHA40_RE.search(ln)), "text": ln.strip()[:160]})
+        for i, ln in enumerate(lines, 1): _line(f"{p.relative_to(root)}:{i}", "c_file", ln)
     for tid, p, d, v3 in tickets:
         if not v3: continue
-        for i, ln in enumerate(json.dumps(d, ensure_ascii=False, indent=1).splitlines(), 1):
-            if "ls-remote" in ln: continue
-            if BARE_REF_RE.search(ln):
-                hits.append({"where": f"tickets/{tid}.json#L{i}", "kind": "v3_ticket", "sha_on_same_line": bool(SHA40_RE.search(ln)), "text": ln.strip()[:160]})
-    return {"rule": "Δ4: promoted main only as origin/<branch> or exact SHA; bare branch name forbidden (ls-remote lines ignored)", "scanned_root": str(root), "hits": hits}
+        for i, ln in enumerate(json.dumps(d, ensure_ascii=False, indent=1).splitlines(), 1): _line(f"tickets/{tid}.json#L{i}", "v3_ticket", ln)
+    return {"rule": "Δ4: promoted main only as origin/<branch> or exact SHA; bare branch name forbidden (ls-remote lines ignored)", "scanned_root": str(root),
+            "parser_rule": f"bare = {BARE_REF_RE.pattern} on a line without 'ls-remote'; presence probe = substring '{REF_PRESENCE}'", "denominators": pres, "hits": hits}
 
 # ---------------------------------------------------------------- (c) Δ13-R17
 def check_fact_correction(tickets) -> dict:
-    rows = []
+    rows, n_sel, wide_only, probe_not_selected = [], 0, [], []
     for tid, p, d, v3 in tickets:
         t = str(d.get("type") or "")
-        if not (t in ("FACT_CORRECTION", "FACTUAL_CORRECTION") or "FACT_CORRECTION" in tid or re.search(r"-FC-\d+", tid)): continue
+        sel = t in ("FACT_CORRECTION", "FACTUAL_CORRECTION") or "FACT_CORRECTION" in tid or re.search(r"-FC-\d+", tid) is not None
+        if not sel:
+            if re.search(r"CORRECT|RETRACT", t, re.I) or re.search(r"RETRACT|CORRECT", tid): probe_not_selected.append({"ticket_id": tid, "type": t})
+            continue
+        n_sel += 1
         ks = _keys(d)
         hk = sorted(k for k in ks if HOW_KNOWN_RE.match(k))
         if not hk:
+            wk = sorted(k for k in ks if HOW_KNOWN_WIDE_RE.search(k))
+            if wk: wide_only.append({"ticket_id": tid, "keys_under_wide_probe": wk})
             rows.append({"ticket_id": tid, "from": d.get("from"), "type": t, "v3_era": v3, "keys": sorted(ks)[:25]})
-    return {"rule": "Δ13-R17: a retraction/correction states how it was known (how_known / evidence / measurement-like field)", "missing_how_known": rows}
+    return {"rule": "Δ13-R17: a retraction/correction states how it was known (how_known / evidence / measurement-like field)",
+            "selector_rule": "type ∈ {FACT_CORRECTION, FACTUAL_CORRECTION} OR 'FACT_CORRECTION' in ticket id OR ticket id matches -FC-\\d+; presence probe = type/id containing CORRECT|RETRACT",
+            "selected_n": n_sel, "presence_probe_not_selected": probe_not_selected,
+            "how_known_rule": HOW_KNOWN_RULE, "how_known_wide_rule": HOW_KNOWN_WIDE_RULE,
+            "missing_how_known": rows, "missing_under_strict_but_present_under_wide_probe": wide_only,
+            "reading": f"{len(rows)}/{n_sel} lack a strict how-known key; of those {len(wide_only)} carry a key the wide probe accepts — the strict count is the count, the wide list bounds the parser's own miss"}
 
 # ---------------------------------------------------------------- (d) Δ5-vr
 def check_validity_risk(tickets) -> dict:
@@ -325,8 +391,9 @@ def index_controls(idx: RulingIndex) -> list:
     ]
     return [{"control": n, "result": "PASS" if ok else "FAIL"} for n, ok in checks]
 
+TOKEN_BOUNDARY_RULE = "token-bounded: not preceded/followed by [A-Za-z0-9_-] (v22/R54: '-' added — `Δ47-fixture` no longer matches inside `Δ47-fixture-limit`; Hangul adjacency does not block)"
 def token_in(text: str, tok: str) -> bool:
-    return re.search(r"(?<![A-Za-z0-9_])" + re.escape(tok) + r"(?![A-Za-z0-9_])", text) is not None
+    return re.search(r"(?<![A-Za-z0-9_\-])" + re.escape(tok) + r"(?![A-Za-z0-9_\-])", text) is not None
 
 def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | None, delta_ref: str) -> dict:
     raw = None; source = None
@@ -348,10 +415,17 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
         out["status"] = "CONTROLS_FAILED_MAIN_CHECK_REFUSED"; return out
     a_tickets = [(tid, d) for tid, p, d, v3 in tickets if v3 and str(d.get("from")) == "A"]
     mentions = collections.defaultdict(set)          # token -> ticket ids
+    sub_mentions = collections.defaultdict(set)      # R54: `Δ36-②` style numbered-subsection mentions (section + circled digit)
+    tickets_with_delta_char, tickets_with_zero_tokens = 0, []
     for tid, d in a_tickets:
         text = json.dumps(d, ensure_ascii=False)
-        for m in DELTA_TOKEN_RE.findall(text): mentions[m].add(tid)
-        for m in R_TOKEN_RE.findall(text): mentions[m].add(tid)
+        n0 = 0
+        for m in DELTA_TOKEN_RE.findall(text): mentions[m].add(tid); n0 += 1
+        for m in R_TOKEN_RE.findall(text): mentions[m].add(tid); n0 += 1
+        for m in DELTA_SUBSECTION_RE.findall(text): sub_mentions[re.sub(r"\s", "", m)].add(tid)
+        if "Δ" in text or re.search(r"(?<![A-Za-z])R\d", text):
+            tickets_with_delta_char += 1
+            if n0 == 0: tickets_with_zero_tokens.append(tid)
     unrecorded, via_unsafe, via_sub, resolved_rows = [], [], [], set()
     for tok, tids in sorted(mentions.items()):
         ids = idx.resolve(tok)
@@ -359,7 +433,8 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
             resolved_rows.update(ids); continue
         sr = idx.resolve_by_subrows(tok)
         if sr:
-            resolved_rows.update(sr); via_sub.append({"token": tok, "rows": sr, "tickets": sorted(tids)}); continue
+            sect = {re.sub(r"\s", "", s) for s in sub_mentions if s.startswith(tok) and re.fullmatch(re.escape(tok) + r"-?[①-⑳]", s)}
+            resolved_rows.update(sr); via_sub.append({"token": tok, "rows": sr, "tickets": sorted(tids), **({"numbered_subsection_forms_seen": sorted(sect)} if sect else {})}); continue
         u = idx.resolve_unsafe(tok)
         if u: via_unsafe.append({"token": tok, "would_resolve_to": u, "tickets": sorted(tids)}); continue
         unrecorded.append({"token": tok, "tickets": sorted(tids)})
@@ -372,8 +447,34 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
             if token_in(text, i): resolved_rows.add(i)
     delta = git_show(repo, delta_ref) or ""
     # v21: delta headings include `### Rn` sub-headings (resolve via alias); id may carry inner hyphens; token-bounded end
-    heads = [h.strip() for h in re.findall(r"^#{2,3}\s+(Δ\d+(?:-[A-Za-z0-9\-]+)?|R\d+)(?![0-9A-Za-z_-])", delta, re.M)]
+    heads = [h.strip() for h in DELTA_HEAD_RE.findall(delta)]
     heads_without_row = sorted({h for h in heads if not idx.resolve(h) and not idx.resolve_by_subrows(h)})
+    # R54: the heading extractor's denominator = every heading line; the unmatched remainder is classified so a narrow miss is
+    # visible (a `##` heading that carries a ruling token but was not extracted as an id is listed, not dropped). Numbered
+    # subsections (`### ① …`, `### 판정 ②`, `#### (i)`) carry independent judgments (Δ54): count them per `## Δn` section and
+    # compare with the index rows whose id starts with that section — fewer rows than strict numbered subsections = shortfall.
+    all_heads = ALL_HEAD_RE.findall(delta)
+    id_titles = {m.group(1) for m in DELTA_HEAD_RE.finditer(delta)}
+    unmatched = [(len(lv), t) for lv, t in all_heads if not re.match(r"^(Δ\d+(?:-[A-Za-z0-9\-]+)?|R\d+)(?![0-9A-Za-z_-])", t)]
+    unmatched_lvl2 = [t for lv, t in unmatched if lv == 2]
+    unmatched_with_token = [t for lv, t in unmatched if re.search(r"Δ\d|(?<![A-Za-z])R\d", t)]
+    numbered = {}; cur = None
+    for lv, t in all_heads:
+        m = re.match(r"^(Δ\d+)(?![0-9])", t)
+        if len(lv) == 2 and m: cur = m.group(1); continue
+        if len(lv) >= 3 and cur:
+            if NUMBERED_SUB_STRICT_RE.match(t): numbered.setdefault(cur, {"strict": [], "wide_extra": []})["strict"].append(t[:60])
+            elif NUMBERED_SUB_WIDE_RE.match(t): numbered.setdefault(cur, {"strict": [], "wide_extra": []})["wide_extra"].append(t[:60])
+    rows_by_section = collections.Counter(re.match(r"^(Δ\d+)", i).group(1) for i in idx.ids if re.match(r"^Δ\d+", i))
+    numbered_cov = {s: {"numbered_strict": len(v["strict"]), "numbered_wide": len(v["strict"]) + len(v["wide_extra"]), "index_rows_with_prefix": rows_by_section.get(s, 0),
+                        "strict_titles": v["strict"], "wide_extra_titles": v["wide_extra"]} for s, v in sorted(numbered.items())}
+    numbered_shortfall = sorted(s for s, v in numbered_cov.items() if v["index_rows_with_prefix"] < v["numbered_strict"])
+    heading_counts = {"parser_rule": DELTA_HEAD_RULE, "all_heading_lines": len(all_heads), "matched_as_id": len(heads), "unmatched": len(unmatched),
+                      "unmatched_level2": unmatched_lvl2, "unmatched_carrying_a_ruling_token_prose_only": unmatched_with_token,
+                      "##_only_distinct": len({h for h in heads if not h.startswith("R")}), "all_with_dups": len(heads), "all_distinct": len(set(heads)),
+                      "numbered_subsection_rule": NUMBERED_SUB_RULE, "numbered_subsections_per_delta": numbered_cov,
+                      "numbered_subsection_shortfall": numbered_shortfall,
+                      "numbered_subsection_note": "shortfall = index rows with the section prefix < strict numbered subsections (A's check 10 counts by authority; C counts by id prefix — a row filed under another authority shows here as a false shortfall, read the titles)"}
     # (g) Δ21/STEP1-029 index→delta reachability: a row is reachable iff (a) its id is a delta heading, (b) any id/alias token
     # appears in the delta body (token-bounded, C's single boundary regex — Δ33 specificity, no shape filter), or
     # (c) it is a declared split row whose parent section exists (index `split_rows.map`). Positive control: fake row Δ999-R99.
@@ -403,6 +504,10 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
                       {"control": "discriminating: fake child Δ15-NOSUCH without authority → unreachable", "result": "PASS" if _reachable({"id": "Δ15-NOSUCH", "aliases": []}) is None else "FAIL"},
                       {"control": "documented: fake child Δ15-NOSUCH with authority=Δ15 → reachable via parent anchor under v21 rule (shows the rule's blind spot)", "result": "AS_DOCUMENTED" if _reachable({"id": "Δ15-NOSUCH", "aliases": [], "authority": "Δ15"}) == "authority_heading" else "UNEXPECTED"}]
     out.update({"status": "OK", "a_tickets_v3_era": len(a_tickets), "tokens_mentioned": len(mentions),
+                "token_extraction": {"rule": DELTA_TOKEN_RULE + " ; R<digits>[a-z]? not preceded by [A-Za-z0-9_-Δ]", "boundary_rule": TOKEN_BOUNDARY_RULE,
+                                     "a_tickets_containing_Δ_or_Rn": tickets_with_delta_char, "of_those_with_zero_tokens_extracted": tickets_with_zero_tokens,
+                                     "numbered_subsection_mentions": {k: sorted(v) for k, v in sorted(sub_mentions.items())},
+                                     "numbered_subsection_note": "Δn-① forms are resolved through the bare section (section_mentions_resolved_by_subrows) and listed here; the index has no ①-keyed ids"},
                 "index_to_delta_reachability": {"rule": "v21: id heading | id/alias token | authority heading | split_rows parent (STEP1-029 + D-V3-FINDING-015)", "split_rows_declared": len(split_map),
                                                 "unreachable_rows": unreachable_rows, "reached_only_via_split_parent": sorted(k for k, v in reach.items() if v == "split_parent"),
                                                 "reached_only_via_parent_anchor": sorted(k for k, v in reach.items() if v in ("authority_heading", "split_parent")),
@@ -411,7 +516,7 @@ def check_ruling_index(tickets, repo: str, index_ref: str, index_file: str | Non
                 "unrecorded_mentions": unrecorded, "resolved_only_via_unsafe_alias": via_unsafe, "section_mentions_resolved_by_subrows": via_sub,
                 "index_rows_unmentioned_in_A_tickets": sorted(set(idx.ids) - resolved_rows),
                 "delta_headings_without_index_row": heads_without_row, "delta_source": f"git show {delta_ref}",
-                "delta_sha256": hashlib.sha256(delta.encode("utf-8")).hexdigest(), "delta_heading_counts": {"##_only_distinct": len({h for h in heads if not h.startswith("R")}), "all_with_dups": len(heads), "all_distinct": len(set(heads))}})
+                "delta_sha256": hashlib.sha256(delta.encode("utf-8")).hexdigest(), "delta_heading_counts": heading_counts})
     return out
 
 # ---------------------------------------------------------------- (f) Δ26
@@ -496,7 +601,10 @@ def main(argv: list) -> int:
     res["summary"] = ("SUMMARY: scanned={scanned} pending={p} parse_errors={pe} dangling={dg} changed_after_ack={ch} plane_enum_violations={pv} e_real_field_gaps={eg} "
                       "ref_lint_hits={rl} fact_correction_missing_how_known={fc} validity_risk_below_p1={vr} vrc_type_below_p1={vrc} ruling_unrecorded_mentions={ru} "
                       "resolved_by_subrows={rs} alias_collisions={ac} unsafe_aliases={ua} empty_alias_rows={ea} delta_headings_without_index_row={dh} "
+                      "delta_headings[all/matched_as_id]={hd} numbered_subsection_shortfall={ns} "
                       "base_sha[no_field/not_sha/missing/ok_abbrev/ok]={bc} controls={ctl} demo_valid_for_this_commit={dv}").format(
+        hd=(f"{rg['delta_heading_counts']['all_heading_lines']}/{rg['delta_heading_counts']['matched_as_id']}" if ran else "n/a"),
+        ns=(len(rg["delta_heading_counts"]["numbered_subsection_shortfall"]) if ran else "n/a"),
         scanned=res["scanned"], p=len(res["pending"]), pe=len(res["parse_errors"]), dg=len(res["dangling_refs_v3_era"]), ch=len(res["content_changed_after_ack"]),
         pv=len(res["plane_enum"]["violations"]), eg=len(res["plane_enum"]["e_real_field_gaps"]), rl=len(res["ref_lint"].get("hits", [])) if do_lint else "skipped",
         fc=len(res["fact_correction_how_known"]["missing_how_known"]), vr=len(res["validity_risk_priority"]["below_p1"]),

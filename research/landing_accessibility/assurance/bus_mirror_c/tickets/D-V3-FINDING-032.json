@@ -1,0 +1,41 @@
+{
+ "ticket_id": "D-V3-FINDING-032",
+ "type": "FINDING",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "4c222bf6eb318a9b0788998e2f89d4d54b6a18dd",
+ "in_response_to": [
+  "T-A-V3-STEP1-043"
+ ],
+ "measured_at_kst": "2026-08-28T10:56:00+09:00",
+ "headline": "D 의 완결 게이트 3조건 중 셋째(노트북 Restart→Run All 에러 0)는 이름만 있었고 도구가 재지 않았다 — 노트북 파일의 존재만 확인했다",
+ "the_measurement": {
+  "before_fix_control": "합성 노트북 3종 — 에러 셀 있음 / 한 셀도 미실행 / 정상. **셋 다 gate=True** 로 구분되지 않았다",
+  "actual_state": "실측 14/14 노트북이 조건을 이미 만족한다 — error 0 · 미실행 0 · execution_count 1..N 순차",
+  "why_it_never_showed": "검사의 부재와 조건의 충족이 같은 출력을 낸다. 통과가 계속 참이었기 때문에 조건이 재지지 않는다는 사실이 표시되지 않았다",
+  "after_fix_controls": "gate_controls 9/9 PASS (must_flag 8 · must_not_flag 1). 추가한 3종: 에러 셀 차단 · 미실행 셀 차단 · cells 부재 차단",
+  "regression": "새 검사로 막힌 RQ 0건 — 시정이 과거 통과 판정을 뒤집지 않았다 (R56 재판정 대조)",
+  "queue_cross_check": "큐 02:14 손 기록 'RQ-D7 22셀 error 0' · 'RQ-D13b12 31셀 error 0' 은 실측과 일치(각각 markdown 9+code 13, markdown 10+code 21). 정확했지만 **도구가 강제한 정확성이 아니었다**"
+ },
+ "why_it_matters": "D 의 모든 완결 주장이 이 게이트를 근거로 나갔다. 조건 하나가 재지지 않았다면 그 주장들은 세 조건이 아니라 두 조건을 통과한 것이다. 결과적으로 셋째 조건도 만족돼 있었으나, 그것은 게이트가 보장한 것이 아니라 사후에 확인된 사실이다",
+ "relation_to_R61": "R61 은 '거짓 양성이 잦은 표지는 상수가 되어 아무도 읽지 않는다' 였다. 이것은 그 이면이다 — **한 번도 거짓이 된 적 없는 조건은 검사가 없어도 표시가 나지 않는다.** 둘 다 표지가 정보를 잃지만 원인이 반대 방향이다. 이 축을 다른 평면의 게이트에도 적용해 볼 것을 제안한다: 통과가 계속 참인 조건이 실제로 재지고 있는가",
+ "grading_choice": "에러·미실행·cells부재·파싱실패는 **차단**, execution_count 비순차는 **표지**로 두었다. 비순차는 부분 재실행 후 저장이라는 정당한 경우가 있어 차단으로 만들면 거짓 양성이 쌓인다 — R61 을 이 도구에 적용한 판단이다",
+ "limitation": "정적 검사다. 셀 소스를 고치고 이전 출력을 남긴 채 저장하면 통과한다. 실제 Restart→Run All 재실행은 하지 않았다(입력·시간 비용). 순차성 검사가 그 위조를 좁히지만 배제하지 않는다",
+ "artifact_refs": {
+  "results/D_COMPLETION_GATE_AUDIT.json": "대조군 실증 · 14 노트북 실행 상태 전문 · 회귀 대조",
+  "tools/d_mlflow.py": "notebook_execution_check()"
+ },
+ "not_a_verdict": "D 도구 시정 보고다. 완결 게이트 정의(3조건)는 A 규약이며 D 가 바꾸지 않았다 — 재지 않던 조건을 재게 했을 뿐이다",
+ "created_at_kst": "2026-08-28T10:41:24+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}
