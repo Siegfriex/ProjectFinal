@@ -2150,9 +2150,64 @@
    "coverage": "PARTIAL",
    "gap_note": null,
    "added_at_index_version": 48
+  },
+  {
+   "id": "Δ59-R61",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**안전 표지의 거짓 양성은 그 표지를 상수로 만든다** — 무시되기 시작하면 진짜 위반 때도 같은 자리에 같은 값으로 앉아 있다. **차단은 거짓 양성의 대가가 보이지만(작업이 멈춘다) 표지는 보이지 않게 신뢰가 닳는다** → **표지의 정밀도 요구는 차단보다 낮지 않다**. `fail-closed` 는 **차단**의 규율이지 표지에 무조건 적용하는 규율이 아니다",
+   "must_appear_in": "모든 안전·상태 표지",
+   "C_check": "c_hb_measure_selftest must_not_flag(정상 → MEASURED false/true, 거짓 경보 없음) 실증; UNVERIFIED 는 git/remote 불가 시에만",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 49
+  },
+  {
+   "id": "Δ59-R62",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**손으로 유지하는 제외/포함 목록은 새 산출이 생길 때마다 뒤처진다** — 가능하면 **정의상 참인 계산**(바이트 신원 재계산)으로 대체한다. `Δ51-allowlist-path`·`Δ54`(좁은 매처)와 같은 축이며 **손 목록은 전부 같은 방향으로 썩는다**",
+   "must_appear_in": "제외목록·allowlist 를 쓰는 모든 도구",
+   "C_check": "C 손 목록 명시: ALIAS_CONTROL_CORPUS(스캐너 대조 말뭉치 — 색인 control_corpus 와 2채널로 완화), EXPLAINED_CHANGES(설명된 ACK 변경 목록), mirror EXCLUDED_DIRS(선언된 제외 3), ALLOWED_PREFIXES(1) — 각각 '뒤처질 수 있음' 을 문서화, 정의상 계산 대체 검토",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 49
+  },
+  {
+   "id": "Δ59-R63",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**측정이 측정 대상을 바꾸는 자리에서는 두 sha 를 분리한다** — `scanned_*_sha256`(무엇을 쟀는가·R38)과 `freshness_*_sha256`(다시 재도 같은가). **자기참조만 분리하고 나머지를 제외로 덮지 않는다**(R62 와 정합). A 의 검사기에는 이 자기참조가 없음을 확인했다",
+   "must_appear_in": "자기 산출을 코퍼스에 쓰는 도구",
+   "C_check": "C 자기참조 확인: run_gate1 verdict/sidecar 는 fixtures manifest 밖(out/·sidecar 제외); 실증기 sidecar 는 도구 sha 만 결속 — 자기참조 없음(실측 필요 시 두 sha 분리)",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 49
+  },
+  {
+   "id": "Δ59-R64",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**통제 산출의 큰 diff 는 설명과 함께 낸다** — 집합 동일성을 실증한다(D: 3261행 변경, scanned 213→213·verdict PASS→PASS·violations 392→392 집합 동일, 전역 정렬로 순서만). **큰 diff 는 그 자체로 검토를 포기하게 만든다**",
+   "must_appear_in": "통제 산출 커밋",
+   "C_check": "C 미러 전량 전환 커밋(693 파일)은 3방향 계수(없음 691→0·다름 0·사본에만 0)로 집합 동일성 설명을 ACK 에 실었으나 커밋 메시지엔 없었다 — 이후 큰 diff 는 커밋 메시지에 집합 동일성 수치 병기",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 49
+  },
+  {
+   "id": "Δ59-writing",
+   "due": "상시",
+   "verified_by": "C",
+   "requires": "**규칙을 적는 행위가 그 규칙의 준수를 보장하지 않는다 — 오히려 적은 직후가 가장 위험하다(주의가 서술로 소모된다).** D 가 같은 커밋 docstring 에 '정의가 두 벌이면 조용하다' 를 쓰고 그대로 했고, **A 가 `Δ40` 에서 정확히 같은 것을 했다**",
+   "must_appear_in": "각 평면의 자기점검",
+   "C_check": "Δ59 계열 — STEP1-043 C ACK 참조",
+   "coverage": "COVERED",
+   "gap_note": null,
+   "added_at_index_version": 49
   }
  ],
- "index_version": 48,
+ "index_version": 49,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -2214,5 +2269,6 @@
  "index_sha256_v45": "8d704abcd3d18fc9e7b06c4b725b503fd548deda7efb76c89e5f585eadc5b136",
  "index_sha256_v46": "83c15df5cf9f2605184cf8e6ade3e484a2c8592dca14ff24f14f2447753cf9cd",
  "index_sha256_v47": "859dd65a670bb4361cc496f91ec7cf7fef3bec7234f5b2dd331d1ad2f5bcbf64",
- "index_sha256_v48": "5175210eec9b043eed5aed9edf1c59aba42d2cd1e19391cdd198b091b7d84a08"
+ "index_sha256_v48": "5175210eec9b043eed5aed9edf1c59aba42d2cd1e19391cdd198b091b7d84a08",
+ "index_sha256_v49": "9df5372e50c52b06925cb59b816d3cc6d795937718257e99ef181520234e63a6"
 }
