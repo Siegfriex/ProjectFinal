@@ -1135,3 +1135,19 @@ MLflow 회계 **214 run 불변**을 실행 전후로 확인했다.
 재현하려면 run 을 열어야 하고 그러면 회계에 쓰레기가 남으므로 **열지 않았다**.
 
 **미결**: `verdict=PENDING` 12건은 **세기만 했다** — 왜 최종 verdict 가 안 붙었는지는 다음 회차.
+
+## RQ-D-GATE — 게이트 대상 계산화 (`D-V3-FINDING-083`, D-DEF-90)
+
+게이트 목록이 **손 목록**이라 13개만 돌았다. 계산으로 바꾸니 **24개**.
+`d_mlflow_contract_audit` 가 빠져 있었고 그 모듈은 controls FAIL 에 exit 1 을 낸다.
+
+**`__main__` 을 돌리지 않는다** — 계산된 목록에는 `d_v3_census`·`d_mlflow`·`d_input_firewall`
+처럼 실행하면 산출을 쓰거나 run 을 만드는 것이 섞인다. `controls()` 만 부른다.
+
+첫 실행에서 드러난 것:
+- `d_v3_bundle_check` FAIL — **아무도 안 돌리던 검사.** `D code sha 기록 == 실제 파일` 이
+  이 세션에 고친 도구 4개에서 어긋난다. **번들은 A 의 동결 산출물이라 D 가 고치지 않는다.**
+  → `GATE_BASELINE` 에 이유·날짜와 함께, 사라지면 `목록 썩음` 자기신고.
+- `d_v3_census` 의 대조군 이름이 `contract_controls` 라 이름 손 목록에 안 걸림 → AST 이름 사용.
+
+**A 결정 대기**: 번들 code sha 축을 (a) 동결 커밋 기준으로 바꿀지 (b) baseline 으로 둘지.
