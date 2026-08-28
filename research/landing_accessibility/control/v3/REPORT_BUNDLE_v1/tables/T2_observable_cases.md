@@ -1,0 +1,14 @@
+> 관측 가능한 8개 개별 사례. **분포가 아니다** — n=8/50 이고 통계로 쓰지 않는다. 이 8건이 전부 얕은 경로였던 것은 사이트가 얕아서가 아니라 수집기가 깊은 경로를 뚫지 못했기 때문일 수 있다(한계 L13). navigation container 는 E 산출 0 이라 이 표에서 뺐다.
+
+`mart_sha256 = 5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf`
+
+| target_id | family_id | service | terminal_reason | entry_zone | entry_control_type | activation_depth | menu_dependency | auth_gate_stage | experienced_flow_sequence |
+|---|---|---|---|---|---|---|---|---|---|
+| F1-03 | F1 | 신한은행 | ENDPOINT_REACHED | TOP_LEFT | TEXT_LINK | 1 | False | NONE | ['SELECT_FUNCTION'] |
+| F1-05 | F1 | 우리은행 | AUTH_GATE | BOTTOM | TEXT_LINK | 1 | False | AT_ENDPOINT | ['SELECT_FUNCTION'] |
+| F2-01 | F2 | G마켓 | ENDPOINT_REACHED | TOP_CENTER | ICON_TEXT | 1 | False | NONE | ['SELECT_FUNCTION'] |
+| F2-08 | F2 | GS SHOP | ENDPOINT_REACHED | TOP_CENTER | TEXT_LINK | 1 | False | NONE | ['SELECT_FUNCTION'] |
+| F3-02 | F3 | 한진택배 | AUTH_GATE | MID | TEXT_LINK | 1 | False | AT_ENDPOINT | ['SELECT_FUNCTION'] |
+| F3-06 | F3 | 경동택배 | ENDPOINT_REACHED | BOTTOM | TEXT_LINK | 1 | False | NONE | ['SELECT_FUNCTION'] |
+| F5-02 | F5 | SRT | ENDPOINT_REACHED | TOP_RIGHT | ICON_TEXT | 1 | False | NONE | ['SELECT_FUNCTION'] |
+| F5-05 | F5 | 티머니 시외버스 | ENDPOINT_REACHED | MID | TEXT_LINK | 1 | False | NONE | ['SELECT_FUNCTION'] |

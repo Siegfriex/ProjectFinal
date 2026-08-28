@@ -10,6 +10,7 @@
 | `V3_REPRODUCIBILITY_MANIFEST.json` | 17 파일 sha · **replay 면제 고지** |
 | `V3_TIMEBOX_CENSUS_1230.json` | REAL 실행 허가 release |
 | `FINAL_MAIN50_MANIFEST.json` | 동결 프레임 v3.0.2 (무수정) |
+| `tables/T1~T4.{csv,md}` | ① acquisition state ② observable cases ③ measurement boundary ④ collection runs |
 | `figures/report_fig1~4.png` | ① acquisition state ② n=8 개별사례 ③ n=8 flow ④ measurement boundary |
 | `data/CANONICAL_MART_50.csv` | 정본 mart 50행 27컬럼 |
 | `data/EVIDENCE_MANIFEST.jsonl` | 수집 원장 85줄 · chain break 0 |

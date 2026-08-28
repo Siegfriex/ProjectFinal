@@ -1,0 +1,12 @@
+> Collection run은 교환가능한 반복측정이 아니다. R2와 R3는 이전 관측 결과에 따라 대상이 선택된 rescue pass이므로 run별 terminal 분포를 성능 비교나 서비스 특성 비교에 사용하지 않았다.  이 표는 **목적**을 보이기 위한 것이며 회차별 성공률로 읽으면 안 된다. `collection_run`·`superseded_runs` 는 provenance 전용이고 통계변수가 아니다.
+
+`mart_sha256 = 5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf`
+
+| collection_run | rows | purpose | selection rule |
+|---|---|---|---|
+| E-REAL-CENSUS-1230 | 15 | 전수 1차 | 전체 50 |
+| E-REAL-CENSUS-1230-R2 | 22 | click_failed 계기결함 재측정 | route[].error 에 click_failed |
+| E-REAL-CENSUS-1230-R2B | 13 | 계기결함 재측정 2차(합집합 gap) | 합집합 기준 중 R2 미실시분 |
+| E-REAL-CENSUS-1230-R3 | 0 | 이미 도달한 8건의 geometry 보충 — 선택 풀 제외 | R1/R2 에서 이미 endpoint 도달한 target |
+| (superseded rows) | 35 | 재수집으로 대체된 행 | provenance 전용 |
+| R1 attempted | 50 | R1 에서 시도된 target 수 | mart 잔존 15 와 다른 것을 센다 |
