@@ -47,7 +47,9 @@ accessibility success rate 가 아니다.
 
 1. **`accessible_name` — browser-computed AX 는 0/50.** 채워진 28건은 `label_relation ==
    AX_NOT_INDEPENDENTLY_OBSERVED` 로 **visible text 복사**이고, 나머지 22건은 AX 캡처
-   실패(오류 스텁)다. AX 원자료는 존재하지 않으며 재추출도 불가능하다.
+   실패(오류 스텁)다. **이번 census raw 로는 재추출할 수 없다.** 다만 probe v2 가
+   `page.aria_snapshot()` 으로 21/21 실제 트리를 얻었으므로 — **census 의 사실이지 방법의
+   한계가 아니다**(A R130, 2026-08-28 12:28 정정 반영).
 2. **`activation_depth` · `menu_dependency` · `task_flow_sequence` — 관측 28/50.**
    `activation_depth == 0` 인 22건은 **전부 시퀀스가 비어 있고**(`[]`) terminal 이 미도달
    계열이다(COLLECTOR_ZERO 17 · TIMEOUT 2 · UNVERIFIED 2 · FORBIDDEN 1). 그 `0` 은
@@ -122,3 +124,20 @@ n=8 개별점, 단일흐름 표기, k=8 CONFIRMED + independently observed label
 다만 **발표에서 쓰면 안 되는 자리 하나**를 새로 특정했다 — `activation_depth` 를 50 분모로
 평균 내면 0 22건이 섞여 값이 절반이 된다. 이 축의 분모는 **28** 이다. 이것은 claim 수정
 사안이 아니라 **발표 문안 주의사항**이라 RECONCILIATION_REQUIRED 로 올리지 않는다.
+
+
+---
+
+## 8. 정정 기록 (발행 후)
+
+**소급 은폐가 아니라 정정 기록이다.** 원 문구를 여기에 남긴다.
+
+| 항목 | 원 문구 | 정정 | 근거 |
+|---|---|---|---|
+| AX 재추출 가능성 | "AX 트리 원자료는 존재하지 않으며 향후 재추출도 불가능하다" | "AX 캡처가 이번 census 의 전 상태에서 실패했다(오류 스텁 107/107). `accessible_name` 은 visible text 복사이며 **browser-computed AX 는 0/50** 이다. **이번 census 의 raw 로는 재추출할 수 없다.** 다만 probe v2 가 `page.aria_snapshot()` 으로 21/21 실제 트리를 얻었으므로 — **이것은 census 의 사실이지 방법의 한계가 아니다**(A R130)." | A `T-A-V3-PROBE-V2-002` R130 — probe 가 `page.aria_snapshot()` 로 21/21 실제 트리 확보(60B 스텁 0) |
+
+**census 수치는 하나도 바뀌지 않았다.** AX 0/50 은 이 mart 의 사실 그대로다.
+바뀐 것은 **"방법이 불가능하다" 는 진술**이고 그것은 이제 거짓이다.
+
+원 문구는 A 가 준 것이고 A 가 스스로 뒤집었다 — D 는 그 판정을 받아 실었을 뿐
+직접 확인하지 않았다(`D-DEF-39` 와 같은 자리). 이번에는 **확인 주체가 probe 였다.**

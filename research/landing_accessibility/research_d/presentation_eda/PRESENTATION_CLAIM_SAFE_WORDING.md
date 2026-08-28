@@ -30,6 +30,10 @@ mart `5290e0c306ff7a11…` 기준. 각 문장의 근거는
    → **browser-computed AX 는 0/50** 이다. 채워진 값은 visible text 복사이고
    독립 관측 쌍은 **0** 이다. 라벨 축은 사이트 간 결과지표에서 제외됐다.
 
+   ❌ 그리고 **"AX 는 원리적으로 못 얻는다"** 도 쓰지 마라 — probe v2 가 `aria_snapshot()`
+   으로 21/21 실제 트리를 얻었다. 맞는 표현은 **"이번 census 에서 AX 캡처가 실패했고
+   그 raw 로는 복구할 수 없다"** 까지다(A R130).
+
 ## 반드시 붙일 단서
 
 - selected case series n=8 — random sample 이 아니다.
