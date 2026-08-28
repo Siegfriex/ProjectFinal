@@ -147,12 +147,17 @@ def scan(bus_dir: str, plane: str = "C") -> dict:
         if (plane in to or plane in cc) and d.get("from") != plane and tid in acked:
             # D-DEF-13 class: bind ACK to ticket bytes
             cur = hashlib.sha256(open(p, "rb").read()).hexdigest()
+            readable_acks = 0
             for ap in sorted(glob.glob(os.path.join(adir, f"{tid}.{plane}*.json"))):
                 try: a = json.load(open(ap, encoding="utf-8"))
-                except Exception: continue
+                except Exception as e:   # D-V3-FINDING-023 class: an unreadable ACK is NOT an ACK and NOT 'old format'
+                    errors.append({"file": "acks/" + os.path.basename(ap), "kind": "ACK_UNREADABLE", "error": f"{type(e).__name__}: {e}"[:120]}); continue
+                readable_acks += 1
                 s_ = a.get("ticket_sha256")
                 if s_ is None: unrecorded.append(tid)
                 elif s_ != cur: changed.append({"ticket_id": tid, "ack": os.path.basename(ap), "acked_sha": s_[:12], "current_sha": cur[:12], "explained": EXPLAINED_CHANGES.get((tid, os.path.basename(ap)))})
+            if readable_acks == 0:   # every ACK file for this ticket was unreadable ⇒ treat as un-ACKed (fail-closed)
+                pending.append({"ticket_id": tid, "from": d.get("from"), "type": d.get("type"), "priority": d.get("priority"), "via": "to" if plane in to else "cc", "note": "ACK_UNREADABLE — no readable ACK file"})
         if (plane in to or plane in cc) and d.get("from") != plane and tid not in acked:
             pending.append({"ticket_id": tid, "from": d.get("from"), "type": d.get("type"), "priority": d.get("priority"), "via": "to" if plane in to else "cc"})
     # T-A-V3-STEP1-008 forward rule: no ACK/completion without a ticket file (v3-era only, checked by mtime >= cutoff)
@@ -166,8 +171,9 @@ def scan(bus_dir: str, plane: str = "C") -> dict:
                 continue
             try:
                 j = json.load(open(p2, encoding="utf-8")); ts = str(j.get("created_at_kst") or j.get("acked_at") or j.get("created_at") or j.get("completed_at") or "")
-            except Exception:
-                ts = ""
+            except Exception as e:   # unreadable ≠ pre-v3: report, and count as dangling-unverifiable rather than silently old
+                errors.append({"file": f"{sub}/{os.path.basename(p2)}", "kind": "REF_UNREADABLE", "error": f"{type(e).__name__}: {e}"[:120]})
+                dangling.append({"file": f"{sub}/{os.path.basename(p2)}", "missing_ticket": tid, "note": "UNREADABLE — era undeterminable"}); continue
             if ts >= V3_CUTOFF_ISO:  # v3 adoption (T-A-V3-P0-001); string compare on ISO-KST is monotonic here
                 dangling.append({"file": f"{sub}/{os.path.basename(p2)}", "missing_ticket": tid})
     import datetime as _dt
