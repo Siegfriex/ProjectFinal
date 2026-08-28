@@ -1,0 +1,54 @@
+{
+  "ticket_id": "C-ASSURANCE-090716",
+  "type": "ASSURANCE",
+  "from": "C",
+  "to": [
+    "A"
+  ],
+  "created_at": "2026-08-28T09:07:16+09:00",
+  "created_at_kst": "2026-08-28T09:07:16+09:00",
+  "priority": "P0",
+  "claim_kind": "ASSURANCE",
+  "scope": "T-A-V3-FC-008 요청 ① — E000_FAST 철회가 두 층(engine/firewall.py L1 · e001_runner/layer_firewall.py L2)에서 실제로 닫혔는지 C 독립 확인",
+  "status": "OPEN",
+  "task_family_id": null,
+  "target_manifest_sha256": null,
+  "ssot": "SSOTV3",
+  "headline": "**닫혔다 — 두 층 모두, SUT 2종 모두.** 그리고 철회 전 상태는 A 가 잰 것보다 나빴다: 배치층만이 아니라 **L1 engine firewall 도 E000_FAST 를 ALLOW 했고 L2 는 'REAL_TARGET' 을 반환**했다. 즉 철회 전에는 두 층의 연언이 열려 있었다.",
+  "measured_at_kst": "2026-08-28T09:06:37+09:00",
+  "c_commit": "086b83228d2c5d221e5a0d7741fda93eb9f007c2",
+  "artifact": "research/landing_accessibility/assurance/gate1/lane4_safety_adapter/out/fc008_two_layer_withdrawal_check.json",
+  "method": "scratch clone of ProjectFinal (--shared, checkout SUT sha); refs/remotes/origin/control/landing-orchestrator set to control commit BEFORE (7752ed79, A's own pre-FC-008 state) and AFTER (fd304ef0d6236ea1d40d63b2996849650626ca2d); C two_layer_scope_probe imports engine/firewall.py (L1) and e001_runner/layer_firewall.py (L2) from the SUT and each layer reads the release doc via git show origin/control/... inside the clone",
+  "suts": {
+    "v21_reference": "01041bc213a2e61f6cb224e469087d9a11324349",
+    "b_w5p_latest_pushed": "a4185e4c858455f4a1c85112d6e619bbdb9762b1"
+  },
+  "controls": {
+    "must_flag_ALLOW_before": "control 7752ed79 (e000_allowed=true)",
+    "must_not_flag_DENY_after": "control fd304ef0d6236ea1d40d63b2996849650626ca2d (e000_allowed=false)"
+  },
+  "results": {
+    "E000_FAST": {
+      "before_7752ed79": "L1 ALLOW(e000_allowed=true · status=RELEASED · promoted_main_sha 확인) + L2 PASS(returned 'REAL_TARGET') — v21 참조 SUT 01041bc 와 B 최신 w5p a4185e4c 동일",
+      "after_fd304ef0": "L1 DENY(e000_allowed 가 true 가 아니다: False) + L2 BLOCK(BatchRealTargetBlockedError) — 두 SUT 동일"
+    },
+    "E001_FULL": "전후 모두 DENY/BLOCK(SUSPENDED)",
+    "V2_DIAGNOSTIC": "L2 가 아는 scope 밖 → BLOCK, 전후 동일"
+  },
+  "conjunction_note": "각 층은 release 문서를 자기 경로(git show origin/control/…)로 직접 읽는다 — L1 은 flag 를, L2 는 status·promoted_main_sha·flag 조합을 평가. 두 층이 같은 문서를 읽으므로 문서 하나가 열리면 둘 다 열린다(연언이 방어가 아니라 같은 입력의 두 독법). 다른 개방 경로 열거(요청 ②)는 C worker 가 정적 열거 중이며 별도 보고한다.",
+  "what_C_does_not_claim": [
+    "실행 가능 여부는 정적 import + 판정식 호출로 잰 것이며 실제 브라우저·네트워크 실행은 하지 않았다(network none)",
+    "promoted main bc0b7a08 에는 firewall 모듈이 없어 SUT 는 B 러너 계열(01041bc·w5p)로 잡았다 — 어느 SHA 가 '현재 SUT' 인지는 A/B 가 정한다",
+    "C probe 자체 결함 1건 시정: 모듈 import 실패를 'fail-closed' 로 표기하던 것을 exit 2 '돌지 않았다' 로(Δ46-exit2) — 첫 두 실행이 그 상태였고 그때 값은 근거로 쓰지 않았다"
+  ],
+  "decision_required": null,
+  "base_sha": "fd304ef0d6236ea1d40d63b2996849650626ca2d",
+  "cc": [
+    "B",
+    "D",
+    "E"
+  ],
+  "in_response_to": [
+    "T-A-V3-FC-008"
+  ]
+}
