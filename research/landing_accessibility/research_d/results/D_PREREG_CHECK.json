@@ -1,0 +1,107 @@
+{
+ "verdict": "PASS",
+ "n": 7,
+ "failed": [],
+ "cases": [
+  {
+   "case": "동결 mart sha 불변",
+   "ok": true,
+   "detail": {
+    "frozen": "5290e0c306ff7a11375f",
+    "live": "5290e0c306ff7a11375f"
+   }
+  },
+  {
+   "case": "census 3집단 수치 불변",
+   "ok": true,
+   "detail": {
+    "frozen": {
+     "USABLE PATH EVIDENCE": 8,
+     "SITE-SIDE ROUTE NOT OBSERVED": 16,
+     "MEASUREMENT / COLLECTOR LIMITED": 26
+    },
+    "now": {
+     "USABLE PATH EVIDENCE": 8,
+     "SITE-SIDE ROUTE NOT OBSERVED": 16,
+     "MEASUREMENT / COLLECTOR LIMITED": 26
+    },
+    "keys_match": true,
+    "values_match": true,
+    "note": ""
+   }
+  },
+  {
+   "case": "3집단 합 = 분모 50 · unmapped 0",
+   "ok": true,
+   "detail": {
+    "sum": 50,
+    "unmapped": {}
+   }
+  },
+  {
+   "case": "probe v4 산출이 census 밖에 있다",
+   "ok": true,
+   "detail": {
+    "stray": []
+   }
+  },
+  {
+   "case": "census 안에 probe 산출 없음",
+   "ok": true,
+   "detail": {
+    "leaked": []
+   }
+  },
+  {
+   "case": "D 발표물 provenance 가 동결 mart 를 가리킨다",
+   "ok": true,
+   "detail": {
+    "recorded": "5290e0c306ff7a11375f"
+   }
+  },
+  {
+   "case": "사전등록 존재 + 대상집합 대조 정합",
+   "ok": true,
+   "detail": {
+    "prereg": "D_PROBE_V4_PREREGISTRATION.json",
+    "정합": true
+   }
+  }
+ ],
+ "axis": "**자기 정합성** 검사다 (D-V3-FINDING-037 분류). 행위 유효성은 보지 않는다",
+ "what_this_does_not_prove": "동결본이 그대로라는 것까지다. **그 동결본이 옳은지는 말하지 않는다**",
+ "controls": {
+  "verdict": "PASS",
+  "n": 4,
+  "must_flag": 3,
+  "must_not_flag": 1,
+  "cases": [
+   {
+    "case": "현 상태는 통과",
+    "expectation": "must_not_flag",
+    "verdict": "PASS",
+    "ok": true
+   },
+   {
+    "case": "mart sha 가 어긋나면 막힘",
+    "expectation": "must_flag",
+    "verdict": "FAIL",
+    "ok": true
+   },
+   {
+    "case": "3집단 **값**이 어긋나면 막힘",
+    "expectation": "must_flag",
+    "verdict": "FAIL",
+    "ok": true
+   },
+   {
+    "case": "3집단 **키 이름**이 어긋나도 막힘 (값은 같아도)",
+    "expectation": "must_flag",
+    "verdict": "FAIL",
+    "ok": true
+   }
+  ]
+ },
+ "measured_at_kst": "2026-08-28T13:00:37+09:00",
+ "d_head_sha": "f582ee61edd43da602a4fd5d7875300c2a800d01"
+}
