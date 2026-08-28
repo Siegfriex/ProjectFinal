@@ -60,12 +60,18 @@ _PROSE = ("왜", "뜻", "note", "why", "규칙", "축", "이유", "말하지", "
 # [D-DEF-108] 지금까지 **한 방향**만 봤다 — 모듈이 낸 키가 스캔에 있는가.
 # 반대편(**스캔이 읽는데 모듈이 안 내는 키**)은 아무 검사도 안 봤고, 실제로
 # 키 이름을 바꾼 뒤 표시부 하나가 `selected_candidate None` 을 찍고 있었다.
-_BIND = re.compile(r"from\s+([a-z_0-9]+)\s+import\s+([a-z_0-9]+)\s+as\s+([_A-Za-z0-9]+)")
+# `as` 가 있는 것과 **없는 것**을 둘 다 잡는다 — `from X import f`(별칭 없음)를
+# 못 잡아 `ctl`·`au` 같은 결과 변수가 **검사 밖**에 있었다(전체 읽기의 절반).
+_BIND = re.compile(r"from\s+([a-z_0-9]+)\s+import\s+([a-z_0-9]+)"
+                   r"(?:\s+as\s+([_A-Za-z0-9]+))?")
 # 단일 대입과 **튜플 언패킹**(`_r, _k, _s = _ra(), _rk(), _rs()`) 둘 다 잡는다 —
 # 튜플을 안 잡아 `_s` 를 다른 함수에 매핑해 **오탐 1건**을 냈다.
 _CALL = re.compile(r"^\s*([_A-Za-z0-9, ]+?)\s*=\s*([_A-Za-z0-9(), ]+?)\s*$", re.M)
 # `for X in ...` 로 **다시 묶이는 이름**은 모듈 결과가 아니다 — 오탐 4건의 원인
 _LOOP = re.compile(r"for\s+([_A-Za-z0-9]+)\s+in\s")
+# `_er = _m.get("emission_record")` / `_er = _m["emission_record"]`
+_NEST = re.compile(r"([_A-Za-z0-9]+)\s*=\s*([_A-Za-z0-9]+)"
+                   r"(?:\.get\(['\"]([a-z_0-9]+)['\"]|\[['\"]([a-z_0-9]+)['\"]\])")
 _READ = re.compile(r"([_A-Za-z0-9]+)(?:\.get\(['\"]([a-z_0-9]+)['\"]|\[['\"]([a-z_0-9]+)['\"]\])")
 
 
@@ -82,7 +88,7 @@ def reads_missing_keys(text: str | None = None, keys_by: dict | None = None) -> 
         txt = SCAN.read_text(encoding="utf-8")
     else:
         txt = text
-    alias = {a: (m, f) for m, f, a in _BIND.findall(txt)}        # _g -> (module, fn)
+    alias = {(a or f): (m, f) for m, f, a in _BIND.findall(txt)}  # 별칭 없으면 함수명이 이름
     var = {}
     for lhs, rhs in _CALL.findall(txt):
         names = [x.strip() for x in lhs.split(",") if x.strip()]
@@ -92,13 +98,38 @@ def reads_missing_keys(text: str | None = None, keys_by: dict | None = None) -> 
         for n, c_ in zip(names, calls):
             if c_ in alias:
                 var[n] = alias[c_]
+    # [D-DEF-109] **중첩 한 단계**: `_er = _m.get("emission_record")` 처럼 모듈 결과의
+    # 하위 dict 를 받는 변수도 검사 대상으로 넣는다. 그 하위 키셋을 따로 들고 간다.
+    nested: dict = {}
+    for m2 in _NEST.finditer(txt):
+        child, parent, key = m2.group(1), m2.group(2), m2.group(3) or m2.group(4)
+        if parent not in var or not key:
+            continue
+        res = _RES_BY.get(var[parent])
+        if isinstance(res, dict) and isinstance(res.get(key), dict):
+            nested[child] = (f"{var[parent][0]}.{key}", set(res[key]))
+
     # **루프 변수로 다시 묶이는 이름은 뺀다** — 같은 이름이 다른 것을 가리킨다
     for v in set(_LOOP.findall(txt)):
         var.pop(v, None)
+        nested.pop(v, None)
     cache, missing, checked = {}, [], 0
+    total_reads = len(_READ.findall(txt))
+    loop_names = set(_LOOP.findall(txt))
+    n_loop_reads = sum(1 for v, _a, _b in _READ.findall(txt) if v in loop_names)
+    unresolved: dict = {}
     for v, k1, k2 in _READ.findall(txt):
         key = k1 or k2
-        if v not in var or not key:
+        if not key:
+            continue
+        if v in nested:
+            checked += 1
+            if key not in nested[v][1]:
+                missing.append({"var": v, "module": nested[v][0], "fn": "(중첩)", "key": key})
+            continue
+        if v not in var:
+            if v not in loop_names:
+                unresolved[v] = unresolved.get(v, 0) + 1
             continue
         mod, f = var[v]
         if (mod, f) not in cache:
@@ -118,7 +149,17 @@ def reads_missing_keys(text: str | None = None, keys_by: dict | None = None) -> 
         if key not in keys:
             missing.append({"var": v, "module": mod, "fn": f, "key": key})
     return {"verdict": "PASS" if not missing else "FAIL",
-            "n_bindings": len(var), "n_reads_checked": checked,
+            "n_bindings": len(var), "n_nested_bindings": len(nested),
+            "n_reads_total": total_reads, "n_reads_checked": checked,
+            "coverage_ratio": round(checked / total_reads, 3) if total_reads else None,
+            "n_loop_reads_out_of_scope": n_loop_reads,
+            "n_unresolved": sum(unresolved.values()), "unresolved": unresolved,
+            "**분모를 밝힌다**": (
+                "전체 읽기 중 **루프 변수**는 모듈 결과가 아니라 항목 dict 이므로 **범위 밖**이다. "
+                "범위 안(검사 + 미해석) 기준 비율이 실제 적용률이다 — "
+                "**`없는 키 0` 을 분모 없이 읽지 마라**"),
+            "coverage_in_scope": (round(checked / (checked + sum(unresolved.values())), 3)
+                                  if (checked + sum(unresolved.values())) else None),
             "n_missing": len(missing), "missing": missing,
             "**반대 방향이다**": (
                 "`check()` 는 **모듈 → 스캔**을 본다. 이것은 **스캔 → 모듈**이다 — "
@@ -128,6 +169,7 @@ def reads_missing_keys(text: str | None = None, keys_by: dict | None = None) -> 
 
 
 _KEYS_BY: dict = {}            # [D-DEF-108] `check()` 가 채운다 — 재호출 비용을 없앤다
+_RES_BY: dict = {}             # [D-DEF-109] 반환 전체 — 중첩 한 단계 해석
 
 
 def _deep_key_names(obj, depth: int = 0) -> set:
@@ -345,6 +387,7 @@ def check() -> dict:
         # **(모듈, 함수)** 로 키잉한다 — 모듈만으로 두면 같은 모듈의 다른 함수 키셋을
         # 섞어 '없는 키 29' 라는 거짓 신호를 냈다
         _KEYS_BY[(mod_name, fn_name)] = set(res)
+        _RES_BY[(mod_name, fn_name)] = res      # [D-DEF-109] 중첩 한 단계를 풀기 위해
         sig = [k for k, v in res.items() if _is_signal(k, v)]
         miss = [k for k in sig if not _referenced(k, scan_txt)]
         rows.append({"module": mod_name, "fn": fn_name,

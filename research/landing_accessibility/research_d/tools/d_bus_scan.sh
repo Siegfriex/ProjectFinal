@@ -342,7 +342,9 @@ try:
     _rm = _rmk()
     print(f"   반대 방향(스캔이 읽는데 모듈이 안 내는 키) : {_rm.get('verdict')} "
           f"· 바인딩 {_rm.get('n_bindings')} · 읽기 {_rm.get('n_reads_checked')} "
-          f"· **없는 키 {_rm.get('n_missing')}**")
+          f"· **없는 키 {_rm.get('n_missing')}** "
+          f"[범위 안 {_rm.get('coverage_in_scope')} = 검사 {_rm.get('n_reads_checked')}"
+          f"/(검사+미해석 {_rm.get('n_unresolved')}) · 루프변수 {_rm.get('n_loop_reads_out_of_scope')} 범위 밖]")
     for _mk in (_rm.get("missing") or [])[:5]:
         print(f"     ** 없는 키 ** {_mk['var']}={_mk['module']}.{_mk['fn']} → {_mk['key']}")
     print("   (판정이 아니다 — 무엇이 신호인지는 자동으로 정해지지 않는다)")
