@@ -2,7 +2,7 @@
   "agent": "E",
   "role": "PATHFINDER_DATA_RECONNAISSANCE_OPERATOR",
   "protocol_version": "SSOTV3 06_ABCD_ORCHESTRATION_PROTOCOL_v3.0 + LA-ORCH-3E + T-A-V3-TBX-005..017 + T-A-V3-PROBE-V2",
-  "phase": "PROBE-V2 완료 · PROBE-V3 발주대기 (NOT_DISPATCHED)",
+  "phase": "PROBE-V3 결함 정정 A 수용완료(registry v19, T-A-V3-PROBE-V3-003) — 코드 미커밋 유지, C 재분류 대기",
   "branch": "claude-e/pathfinder-v3",
   "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_e_pathfinder",
   "head_sha": "b2d8c95",
@@ -22,12 +22,16 @@
   "probe_v3_status": {
     "target_set_file": "artifacts/v3_probe_v3/PROBE_V3_TARGET_SET.json",
     "question": "NO_SAFE_ROUTE_SITE 판정 16건이 사이트 사실인가, 죽은 AX 시절 매처가 낸 오판인가",
-    "full_set_n": 16,
-    "1차_대상": ["F3-04", "F3-05", "F3-08", "F3-09", "F3-10"],
-    "criterion_pinned": "terminal_reason == NO_SAFE_ROUTE_SITE at mart 5290e0c3",
+    "dispatch_status": "A GO 수신, 16/16 전건 실행완료 (run_id E-PROBE-V3, 출력 artifacts/v3_probe_v3/raw/E-PROBE-V3/E-PROBE-V3/<target>/)",
+    "headline_UNVERIFIED": "16/16 candidate_count>0, 16/16 scout_status=ENDPOINT_REACHED — 이 수치 그대로 인용 금지",
+    "NEW_DEFECT_FOUND": "click_xy 좌표계 결함 자체발견 — aria_snapshot(boxes=True) 의 bbox 가 뷰포트 상대좌표가 아닌 것으로 의심(문서 절대좌표 등). S0/S1 screenshot sha256 대조 결과 16건 중 5건(F3-04,F3-10,F4-03,F4-06,F4-10) 클릭 전후 스크린샷 byte-identical=클릭 무효. 3건(F3-05 y=-19705, F3-08 x_end=761, F3-09 x=1970)은 좌표가 물리적으로 뷰포트(390px) 밖 — 스크린샷은 바뀌었으나 원인 불명. 신뢰가능 8건: F2 전체6 + F4-09 + F5-01",
+    "prior_probe_v2_F3-01/03/07_재검증": "정상 확인 — 좌표 뷰포트내, 스크린샷 변화 있음. 그 보고는 유효",
     "verdict_bands_pinned": {"회복>=1": "16건 사이트사실 주장 철회", "회복0": "16건 첫 실증"},
-    "dispatch_status": "NOT_DISPATCHED — A 및 E 모두 Director GO 대기, self-authorize 하지 않음",
-    "readiness": "5건 전부 WORKER_DISPATCH_PACKETS_V2 확인됨, 출력경로 artifacts/v3_probe_v3/raw/E-PROBE-V3 생성됨, scout_engine.py 코드 준비완료(REAL 미실행)"
+    "resolution": "A registry v19 / T-A-V3-PROBE-V3-003 — F3 5/5 근거 폐기 수용. 대체근거 8건(F2-02/05/06/07/09/10 + F4-09 + F5-01, 전부 E 가 '정상'으로 분류한 것과 일치)으로 철회 유지(사전기준 회복>=1, 8>=1). family 편향(R134 경고) 오히려 해소 — 회복이 F2/F4/F5 세 family에 걸쳐 나옴",
+    "C_reverify": "C 가 16건 전건 png diff·dom diff·좌표 뷰포트 내외 3축으로 재분류 진행중 — E 요청대로 자기계기결함은 C 독립검산에 위임",
+    "code_status": "A 지시로 좌표버그 지금 고치지 않음, 코드 미커밋 유지 — '검증 안 된 계기로 또 수치를 만들지 않는다'는 이유. 다음 실행 필수항목 2개 등록: ①뷰포트 상대좌표 변환 또는 locator.click() 전환 ②클릭 전후 산출물 byte-identical 시 실패 처리하는 검사 추가",
+    "F4-06_naver_issue": "별건으로 분리, 동결 매니페스트 미접촉 — 다음 실행 전 점검항목",
+    "registry_citation": "E 문장 그대로 인용됨: '\"evidence 파일이 존재한다\"가 \"클릭이 실제로 뭔가를 열었다\"의 증거가 아니다' — AX 파일존재≠내용유효 사례의 한 단계 위(파일존재≠행위유효)"
   },
   "code_changes_this_session": {
     "commit": "b2d8c95 (미push)",
