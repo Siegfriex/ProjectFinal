@@ -18,7 +18,10 @@ import re
 from pathlib import Path
 
 LEDGER = Path(__file__).resolve().parent.parent / "results" / "D_DEFECT_LEDGER.json"
-_PRE = re.compile(r"(발행[_ ]?전|자체검출)")
+# [D-DEF-78] 패턴이 한국어 표기만 잡았고 **축 자신의 정본 이름**을 안 잡았다 —
+# `caught_pre_emission: true` 를 entry 필드로 쓴 것이 그대로 통과했다.
+_PRE = re.compile(r"(발행[_ ]?전|자체검출|caught[_ ]?pre[_ ]?emission|pre[_ ]?emission)",
+                  re.IGNORECASE)
 
 
 def check() -> dict:
@@ -66,6 +69,17 @@ def controls() -> dict:
         inner = [e for e in (doc.get("entries") or [])
                  if any(_PRE.search(str(k)) for k in e)]
         return [e.get("id") for e in inner if e.get("id") not in covered]
+
+    # [D-DEF-78] 축 자신의 정본 이름을 패턴이 잡아야 한다
+    case("정본 이름 `caught_pre_emission` 을 잡는다",
+         probe({"entries": [{"id": "X", "caught_pre_emission": True}],
+                "caught_pre_emission": []}), ["X"], negative=True)
+    case("한국어 표기도 그대로 잡는다",
+         probe({"entries": [{"id": "X", "발행_전_자체검출": "y"}],
+                "caught_pre_emission": []}), ["X"], negative=True)
+    case("무관한 필드는 안 잡는다",
+         probe({"entries": [{"id": "X", "상태": "FIXED", "시정": "z"}],
+                "caught_pre_emission": []}), [])
 
     case("리스트에 반영된 포착은 안 걸린다",
          probe({"entries": [{"id": "X", "발행_전_자체검출": "y"}],

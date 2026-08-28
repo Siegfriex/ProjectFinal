@@ -119,8 +119,12 @@ try:
         try:
             from d_warn_baseline import check as _wb
             _w = _wb()
-            print(f"   WARN 종류 : {_w['verdict']} · 총수 {_w.get('n_now')} "
-                  f"(baseline {_w.get('n_base')}, Δ{_w.get('delta')})")
+            # [D-DEF-77] 라벨이 "종류"인데 총수를 찍고 있었다 — 그 검사 스스로
+            # "총수는 신호가 아니다"라고 한다. **종류를 앞에 두고 총수는 괄호로 내린다.**
+            _kn, _kb = _w.get('n_kinds_now'), _w.get('n_kinds_base')
+            _kd = (_kn - _kb) if (_kn is not None and _kb is not None) else None
+            print(f"   WARN 종류 : {_w['verdict']} · **종류 {_kn}** (baseline {_kb}, Δ{_kd}) "
+                  f"· 총수 {_w.get('n_now')}(Δ{_w.get('delta')} — **신호 아님**)")
             if _w.get("new_references"):
                 print(f"     ** 새 토큰 ** {_w['new_references']}")
             if _w.get("new_top_paths"):
@@ -213,11 +217,36 @@ except Exception as _e:
 # --- D 자기 발행분 **스키마 정본** 상주 감사 (D-DEF-47) ---
 # 발행 도구를 우회해 손으로 티켓을 쓰면 도구의 가드가 무의미하다.
 # 그래서 **사후 스캔**을 매 루프에 붙인다 — 우회해도 다음 스캔에서 보인다.
+# [D-DEF-77] **만든 신호가 표시되는가** — `D-DEF-57`·`D-DEF-76` 이 같은 형태였다.
+# 이 검사가 스캔에 안 들어가면 그 자체가 같은 결함이므로 여기에 둔다.
+try:
+    from d_surface_coverage import check as _surf
+    _sf = _surf()
+    print(f"\n=== 표시 누락(만든 신호가 안 보이는가) : INFO · 검사 {_sf['n_modules']} "
+          f"· 미표시 {_sf['n_unsurfaced']} (판단됨 {_sf['n_unsurfaced'] - _sf['n_unreviewed']} "
+          f"/ **미검토 {_sf['n_unreviewed']}**) ===")
+    for _u in _sf["unreviewed"]:
+        print(f"   ** 미검토 ** {_u['module']}.{_u['key']}")
+    for _st in _sf["stale_accepted"]:
+        print(f"   ** 목록 썩음 ** {_st['module']}.{_st['key']} — 검사가 더는 내지 않는다")
+    print("   (판정이 아니다 — 무엇이 신호인지는 자동으로 정해지지 않는다)")
+except Exception as _e9:
+    print(f"\n=== 표시 누락 : 검사 실패 {_e9} ===")
+    errs.append({"file": "(표시누락)", "error": str(_e9)})
+
 try:
     from d_ticket_schema_check import check as _schema_check
     _sc = _schema_check()
     print(f"\n=== D 발행분 스키마(SSOTV3 정본) : {_sc['verdict']} "
           f"· 새 {_sc['n_new']} / baseline {_sc['baseline_pre_guard']['n']} ===")
+    _au = _sc.get("authority") or {}
+    print(f"   권한 축(D 가 낼 수 없는 type) : {'PASS' if _au.get('n') == 0 else 'FAIL'} "
+          f"· 위반 {_au.get('n')} "
+          f"· 금지 {len(_au.get('forbidden') or [])}종  "
+          f"— **스키마와 다른 축이다**(enum 은 전 평면 공용)")
+    if _au.get("violations"):
+        for _v in _au["violations"][:5]:
+            print(f"     ** {_v} **")
     if _sc["by_field"]:
         for _k, _v in sorted(_sc["by_field"].items(), key=lambda x: -x[1]):
             print(f"   {_v:>3}  {_k}")
