@@ -4,12 +4,12 @@
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
  "verdict": "FAIL",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T15:30:14.408456+09:00",
- "d_head_sha": "c4c4118221ec75837433af87ba5b28b93ff8a0a4",
+ "checked_at_kst": "2026-08-28T15:40:36.353120+09:00",
+ "d_head_sha": "5795507b0ba79430891525a3fb11fc6da1dc62fc",
  "manifest_sha256": "5321e4f19d990d70ae9bc89370bb134d85970ac5f7a12d2f2ca048743529de94",
- "scanned_files": 254,
- "scanned_corpus_sha256": "4f9608238b4b2cc1aaa0022b6fb525d613f2432d2b02227d2461a0685b343b9d",
- "freshness_corpus_sha256": "e62a86580619a7b56ddf37bef814b1b0b96df214148a0ad5e56fb681ac2da1f5",
+ "scanned_files": 255,
+ "scanned_corpus_sha256": "248e75ce2eaf9e62213d5607cbf01d876332a270681858f60ad389f954767483",
+ "freshness_corpus_sha256": "9ba79d8b96371e4d978d0e6c52bc4572f5ea5a7750a25a4a3fe13c2cdfbe377c",
  "corpus_identity_note": "scanned_files 는 개수이고 이것은 신원이다. 두 실행의 코퍼스 sha 가 다르면 FAIL 수를 비교하지 않는다 (R38).",
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
  "controls": {
@@ -128,7 +128,7 @@
   "tool": {
    "path": "tools/d_input_firewall.py",
    "sha256": "43db0ab94a414d97726872b46aaa333d297e83ab664aa269285ee89ade410638",
-   "commit": "c4c4118221ec75837433af87ba5b28b93ff8a0a4"
+   "commit": "5795507b0ba79430891525a3fb11fc6da1dc62fc"
   },
   "on_control_failure": {
    "behavior": "verdict=CONTROL_FAIL 로 기록하고 exit 2 — 지우지 않고 남긴다",
@@ -196,7 +196,7 @@
  },
  "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
  "fail_count": 3,
- "warn_count": 397,
+ "warn_count": 398,
  "violations": [
   {
    "file": "notebooks/d_research/DSUP01_representation_ablation.ipynb",
@@ -1652,6 +1652,16 @@
    "denied_pattern": "token:LABEL_SPLIT_FROZEN",
    "kind": "DENIED_NAME_TOKEN",
    "context": "| unsafe FP | **NOT_AVAILABLE** | T5 | unsafe false positive 를 세려면 detector 예측과 gold label 을 대조해야 한다. detector 평가 run 이 없고, gold label 대조는 C 영역이다 — D 가 계산할 수 없다. |  > **holdout 경계** — holdout 은 C 영역이다. D 는 LABEL_SPLIT_FROZEN.json 과 control/label/** 를 열지 않는다. 여기 있는 값은 C 가 MLflow 에 남긴 요약 metric 이며, D ",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/results/D_DEFECT_LEDGER.json",
+   "line": 691,
+   "reference": "research/landing_accessibility/control/**",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "\"셸형_접근마커의_영어단어_오탐\": \"`ACCESS_MARKERS` 의 `tail `·`head ` 가 영어 단어에 걸린다 — 282 파일에서 `tail ` **131건**, `head ` **135건**이 앞에 영문자가 붙은 형태(`detail `·`overhead `)다\",     \"영향\": \"`severity()` 의 FAIL 판정에 쓰이므로 **FAIL 방향 오탐**이다 — 안전하지만 진단 노이즈를 만든다. 현재 FAIL 3건은 이 마커 때문이 아니다\",     \"고치지_않았다\": \"`ACCESS_MARKERS` 를 좁히는 ",
    "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
    "severity": "WARN"
   },
