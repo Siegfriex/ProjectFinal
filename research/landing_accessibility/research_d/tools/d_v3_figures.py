@@ -58,27 +58,45 @@ def fig1_coverage_terminal(df):
     else:
         fams = sorted(df["family_id"].astype(str).unique())
         reasons = sorted({str(r) for r in df["terminal_reason"] if str(r).strip()})
+        # [A R74] 수집기의 0 과 사이트의 사실을 **다른 색으로**. 합치면 그림이 사이트 탓을 한다.
+        COLORS = {C.COLLECTOR_ZERO: "#d95f02",      # 수집기 관측 — 주황
+                  C.SITE_NO_ROUTE: "#1b9e77",       # 사이트 관측 — 초록
+                  C.UNSPLIT_NO_ROUTE: "#999999",    # 아직 안 나뉨 — 회색. 어느 쪽인지 모른다
+                  "ENDPOINT_REACHED": "#2166ac"}
         bottom = [0] * len(fams)
         for r in reasons:
             vals = [int(((df["family_id"].astype(str) == f) &
                          (df["terminal_reason"].astype(str) == r)).sum()) for f in fams]
-            axes[0].bar(fams, vals, bottom=bottom, label=r)
+            lab = r
+            if r == C.COLLECTOR_ZERO: lab = f"{r} (collector obs.)"
+            elif r == C.SITE_NO_ROUTE: lab = f"{r} (site obs.)"
+            elif r == C.UNSPLIT_NO_ROUTE: lab = f"{r} (NOT YET SPLIT — unknown which)"
+            axes[0].bar(fams, vals, bottom=bottom, label=lab, color=COLORS.get(r))
             bottom = [b + v for b, v in zip(bottom, vals)]
         axes[0].set_ylabel("targets"); axes[0].set_ylim(0, C.N_PER_FAMILY)
         axes[0].legend(fontsize=7, ncol=2)
         for i, f in enumerate(fams):
-            k = den["by_family"].get(f, {}).get("completed", 0)
-            axes[0].text(i, C.N_PER_FAMILY * 0.96, f"{k}/{C.N_PER_FAMILY}",
+            b = den["by_family"].get(f, {})
+            axes[0].text(i, C.N_PER_FAMILY * 0.96,
+                         f"{b.get('completed',0)}/{C.N_PER_FAMILY}",
                          ha="center", fontsize=8)
+            axes[0].text(i, C.N_PER_FAMILY * 0.88,
+                         f"att {b.get('attempted',0)}", ha="center", fontsize=6,
+                         color="dimgray")
         o = den["overall"]
         labels = ["attempted", "evidence_adequate", "completed", "failed"]
+        axes[1].axvline(C.N_TOTAL, color="black", ls=":", lw=1)
         axes[1].barh(labels, [o[k] for k in labels], color="steelblue")
         for i, k in enumerate(labels):
             axes[1].text(o[k] + 0.4, i, f"{o[k]}/{C.N_TOTAL}", va="center", fontsize=9)
         axes[1].set_xlim(0, C.N_TOTAL * 1.15)
     axes[0].set_title("terminal_reason by family (k/10)", fontsize=10)
     axes[1].set_title("denominators — overall (k/50)", fontsize=10)
-    _stamp(fig, df, "1. coverage / terminal_reason")
+    sp = den["overall"].get("collector_vs_site", {})
+    _stamp(fig, df, "1. coverage / terminal_reason",
+           "R74 split: collector=%s site=%s NOT_YET_SPLIT=%s   |   denominator frozen at %d"
+           % (sp.get("collector_observation"), sp.get("site_observation"),
+              sp.get("NOT_YET_SPLIT"), C.N_TOTAL))
     return _save(fig, "fig1_coverage_terminal.png")
 
 

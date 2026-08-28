@@ -95,6 +95,16 @@ def is_missing(v) -> bool:
     return (v is None) or (str(v).strip() == "") or (str(v).strip() in MISSING_TOKENS)
 
 
+# [A R74] 수집기의 0 과 사이트의 사실을 분리한다. 합치면 분모가 사이트 탓을 한다.
+COLLECTOR_ZERO = "COLLECTOR_ZERO_CANDIDATE"      # 후보 추출이 0 을 반환 — 수집기 관측
+SITE_NO_ROUTE = "NO_SAFE_ROUTE_SITE"             # 후보는 찾았으나 안전 경로 없음 — 사이트 관측
+UNSPLIT_NO_ROUTE = "NO_SAFE_ROUTE"               # **아직 나뉘지 않은 옛 라벨.** 어느 쪽인지 모른다
+
+# [A R78] 분모 분류 확정
+COMPLETED_TOKENS = ("ENDPOINT_REACHED",)
+NOT_ATTEMPTED_TOKEN = "NOT_ATTEMPTED"
+
+
 def denominators(df) -> dict:
     """family별 + overall 로 attempted / evidence_adequate / completed / failed.
 
@@ -103,25 +113,38 @@ def denominators(df) -> dict:
     """
     fams = sorted({str(x) for x in df["family_id"].tolist() if str(x).strip()})
     def block(sub, attempted_target):
+        # [A R78] completed = ENDPOINT_REACHED 만. failed = attempted 했으나 미도달 전부.
+        # NOT_ATTEMPTED 는 attempted 에 세지 않는다. 분모(frozen)는 그대로 유지된다.
+        from collections import Counter
         ea = int(sum(1 for _, r in sub.iterrows()
                      if not is_missing(r["evidence_hash"])))
-        comp = int(sum(1 for _, r in sub.iterrows()
-                       if str(r["attempt_status"]).upper() in ("COMPLETED", "SUCCESS", "OK")))
-        fail = int(sum(1 for _, r in sub.iterrows()
-                       if str(r["attempt_status"]).upper() in ("FAILED", "FAIL", "ERROR", "BLOCKED")))
+        st = [str(r["attempt_status"]).strip().upper() for _, r in sub.iterrows()]
+        not_att = sum(1 for x in st if x == NOT_ATTEMPTED_TOKEN)
+        attempted = len(st) - not_att
+        comp = sum(1 for x in st if x in COMPLETED_TOKENS)
+        fail = attempted - comp
         # [D-DEF-35] `completed`/`failed` 는 **알려진 토큰만** 센다. 실데이터의
         # `TERMINAL_NO_ENDPOINT` 처럼 목록 밖 상태를 임의로 실패로 접으면 그것은
         # D 의 조작화다 — D 권한이 아니다. 접지 말고 **값별로 전수 분해해 드러낸다.**
         from collections import Counter
-        known = ("COMPLETED", "SUCCESS", "OK", "FAILED", "FAIL", "ERROR", "BLOCKED")
-        other = Counter(str(r["attempt_status"]) for _, r in sub.iterrows()
-                        if str(r["attempt_status"]).upper() not in known)
-        return {"attempted": attempted_target, "rows_present": int(len(sub)),
-                "rows_not_yet_arrived": max(0, attempted_target - int(len(sub))),
+        # failed 를 혼자 두지 않는다 (R78) — terminal_reason 을 항상 붙인다.
+        fr = Counter(str(r["terminal_reason"]).strip() for _, r in sub.iterrows()
+                     if str(r["attempt_status"]).strip().upper() != NOT_ATTEMPTED_TOKEN
+                     and str(r["attempt_status"]).strip().upper() not in COMPLETED_TOKENS)
+        split = {"collector_observation": int(fr.get(COLLECTOR_ZERO, 0)),
+                 "site_observation": int(fr.get(SITE_NO_ROUTE, 0)),
+                 "NOT_YET_SPLIT": int(fr.get(UNSPLIT_NO_ROUTE, 0))}
+        return {"denominator_frozen": attempted_target,
+                "rows_present": int(len(sub)),
+                "attempted": attempted, "not_attempted": not_att,
                 "evidence_adequate": ea, "completed": comp, "failed": fail,
-                "unaccounted": int(len(sub)) - comp - fail,
-                "unaccounted_by_status": dict(other),
-                "classification_note": "목록 밖 상태는 D 가 분류하지 않는다 — A/C 판정 사안"}
+                "unaccounted": attempted - comp - fail,
+                "failed_by_terminal_reason": dict(fr),
+                "collector_vs_site": split,
+                "split_note": ("R74 — 수집기의 0 과 사이트의 사실을 분리한다. "
+                               "`NOT_YET_SPLIT` 은 옛 `NO_SAFE_ROUTE` 라벨이며 **어느 쪽인지 모른다** — "
+                               "D 가 임의로 배분하지 않는다"),
+                "classification_note": "R78 적용. 목록 밖 상태가 나오면 unaccounted 가 0 이 아니게 되어 드러난다"}
     out = {"overall": block(df, N_TOTAL),
            "by_family": {f: block(df[df["family_id"].astype(str) == f], N_PER_FAMILY)
                          for f in fams}}
