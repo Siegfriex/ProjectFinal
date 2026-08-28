@@ -1264,6 +1264,17 @@
    "상태": "FIXED",
    "새로_올린_것": "nav 축에 **또 다른 정의 차** — D 관측 **26** vs 사이드카 **16**, 차이 **10 = `NONE`**. 사이드카는 `NONE` 을 missing 으로, D 화이트리스트는 **관측 값**으로 둔다('컨테이너 안에 없다는 관측'). **`AMBIGUOUS_MULTIPLE_CONTAINERS` 1건보다 10배 크다** — A 결정 사항으로 올렸다",
    "한계": "어느 블록이 정본인지 D 가 정하지 않는다. 그리고 `sidecar_observed` 는 `per_column` 이 있는 열만 읽는다 — 그 블록에 없는 축은 여전히 못 본다"
+  },
+  {
+   "id": "D-DEF-111",
+   "발견": "`D-DEF-110` 의 한계('`per_column` 이 있는 열만 읽는다')를 닫으려 보니 **27열 전부**가 있었다",
+   "무엇": "D 화이트리스트와 사이드카 `per_column` 을 **전수 대조**했다. **11축 대조 중 4축이 어긋나고 분쟁 셀은 19**다. B 는 미선언 토큰을 한 번에 하나씩 찾아 왔는데(7종) 전수는 **남은 것을 한 번에** 낸다",
+   "네_축_세_질문": "① **`NONE` 을 관측으로 세는가** — `nav_container_type` 10 + `auth_gate_stage` 6 = **16셀**. **한 질문이 두 축에 걸쳐 있다.** D 는 관측('컨테이너 없음'·'게이트 없음'은 관측된 사실), 사이드카는 비관측. ② `terminal_reason.NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT` **2셀** — 사이드카 관측, D 화이트리스트에 **그 토큰이 없다**. ③ `label_relation.VISIBLE_ONLY` **1셀** — 사이드카 관측, D 비관측",
+   "**②③ 의 근거를 원문에서 확인했다**": "② B 가 근거로 든 `T-A-V3-TBX-005 §실패는_결과다` 의 목록은 `WAF·APP_REQUIRED·AUTH_GATE·NO_SAFE_ROUTE·TIMEOUT·PUBLIC_WEB_UNOBSERVABLE` 이고 **`_UNVERIFIED_CANDIDATE_COUNT` 라는 이름은 없다**(`UNVERIFIED_CANDIDATE` 문자열이 그 티켓 전체에 없다). 상위 계열(`NO_SAFE_ROUTE`)에 든다고 볼 수는 있으나 **그 판단은 A 것**이다. ③ **C 가 이미 정했다** — `C-FACT_CORRECTION-133903`: '`AX_NOT_INDEPENDENTLY_OBSERVED 28·NONE 21·VISIBLE_ONLY 1` = **전부 관계 미관측**, `label_relation` **0/50**'. **사이드카의 1 은 그 정정과 어긋난다**",
+   "시정": "`tools/d_axis_reconcile.py` — 전수 대조. **D 정의 없는 16열은 일치로 세지 않는다**(세면 분모가 부푼다). 대조군 6건 · must_flag 2. 스캔에 축별 토큰까지 표시. 게이트 33 → **34**",
+   "상태": "FIXED",
+   "D_가_정하지_않는다": "어느 정의가 옳은지는 **A 소관**이다. D 는 차이와 토큰을 이름으로 낸다",
+   "한계": "D 화이트리스트가 있는 **11축만** 대조한다 — 나머지 16열은 D 에 정의가 없어 **어긋나는지조차 모른다**. 그 열들에 정의를 세우는 것은 **조작화**이고 A 지정 뒤다"
   }
  ],
  "caught_pre_emission": [

@@ -215,6 +215,15 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_axis_reconcile import compare as _ax_fn
+    _ax = _ax_fn()
+    print(f"   축 전수 대조(D 화이트리스트 vs 사이드카) : {_ax['verdict']} · "
+          f"축 {_ax['n_axes_compared']} 중 **어긋남 {_ax['n_axes_disagree']}** "
+          f"· 분쟁 셀 **{_ax['n_cells_in_dispute']}** · D 정의 없음 {len(_ax['d_has_no_definition'])}"
+          f"(**일치로 세지 않는다**)")
+    for _dg in _ax.get("disagreements") or []:
+        _tk = [f"{t['token']}×{t['n']}({t['sidecar']}/{t['D']})" for t in _dg["tokens"]]
+        print(f"     {_dg['column']:<22} 사이드카 {_dg['sidecar']} D {_dg['D']} → {_tk}")
     from d_prov_reconcile import recompute as _pr_fn
     _pv = _pr_fn()
     print(f"   출처 분해 재계산 : {_pv['verdict']} · D {_pv['n_observed_D']} vs 사이드카 "
