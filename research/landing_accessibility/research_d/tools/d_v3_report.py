@@ -175,13 +175,16 @@ def figure3_flow_cases(df):
                      fontsize=7.5)
         ax.set_xlim(-0.12, 1.12); ax.set_ylim(0, 1); ax.axis("off")
     fig.suptitle("관측 가능한 %d개 사례의 과업 진입 흐름" % len(cs), fontsize=12, y=1.0)
-    navs = Counter(str(c.get("nav_container_type")) for c in cs)
-    nav_obs = sum(v for k, v in navs.items() if not C.is_missing(k))
+    # [A 정정] `nav_container_type` 은 **E 가 산출한 적이 없는 변수**다(GEOMETRY_SUPPLEMENT 키에 없음).
+    # 7/8 은 전부 B 사후 파생이고 인용 가능한 것은 5, 그중 1 은 AMBIGUOUS → 실질 4.
+    # 따라서 "비수렴" 도 "미관측 8/8" 도 아니고 **이 주장에서 제외**한다.
     fig.text(0.5, 0.945,
-             "수렴: 조작순서 · activation_depth=1 · menu_dependency=False (8/8)      "
-             "비수렴: zone 5종/8 · control 2종/8 · nav container %d종/%d관측"
-             % (len([k for k in navs if not C.is_missing(k)]), nav_obs),
+             "수렴: SELECT_FUNCTION ×8 · activation_depth=1 ×8 · menu_dependency=False ×8      "
+             "비수렴: entry_zone 5종/8 · entry_control_type 2종/8   (둘 다 E 관측 8/8)",
              ha="center", fontsize=8.5, color="#2166ac")
+    fig.text(0.5, 0.915,
+             "navigation container는 이 주장에 포함하지 않는다 — E 산출 0 · B 사후파생 7 · 인용가능 5(실질 4).",
+             ha="center", fontsize=7.5, color="dimgray")
     _foot(fig, "관측된 스텝만 그렸다 — 없는 단계를 채우지 않았다. 이 %d개 사례는 모두 메뉴를 거치지 않는 단일 스텝이었다.\n"
                "[한계 L13] 관측된 8건이 전부 얕은 경로였던 것은 사이트가 얕아서가 아니라 수집기가 깊은 경로를 뚫지 못했기 때문일 수 있다 — "
                "COLLECTOR_ZERO_CANDIDATE 21의 계통적 한계와 같은 방향의 선택편향이다. '사이트가 얕다'로 해석하지 않는다."
