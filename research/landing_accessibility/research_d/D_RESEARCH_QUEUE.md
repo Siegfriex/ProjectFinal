@@ -1114,3 +1114,24 @@ MLflow 회계 **214 run 불변**을 실행 전후로 확인했다.
 **무엇을 덜 볼지는 범위 결정이라 D 가 혼자 하지 않는다.**
 
 운용: 스캔은 **회차당 한 번**, 출력을 재사용한다.
+
+## RQ-D-RUNSTATUS — 미종결 run 전수 (`D-V3-FINDING-082`, D-DEF-89)
+
+`D-080` 에서 본 "닫히지 않은 RUNNING run 1건" 을 전수로 셌다.
+
+| 축 | 수 |
+|---|---|
+| `run_status` tag = RUNNING | 7 |
+| lifecycle status = RUNNING | 3 |
+| **어긋남**(FINISHED 인데 tag RUNNING) | **4** |
+| `verdict` = PENDING | 12 |
+| `run_status` tag 없음 | 124 — **계약 이전, 대상 아님** |
+
+원인: 종료 경로가 `active_run().data.tags`(**클라이언트 스냅샷**)로 갱신 여부를 정하는데
+`ended_at_kst` 는 무조건 찍힌다. 조건이 "`RUNNING` 일 때만" 이라 **읽지 못한 `None`** 이 빠졌다.
+→ `closing_status()` 순수 함수로 분리, 서버 재조회. 대조군 6건(controls 17→23).
+
+**단정하지 않은 것**: 어긋난 4건 중 3건만 `ended_at_kst` 를 갖는다. 나머지 1건은 다른 경로다.
+재현하려면 run 을 열어야 하고 그러면 회계에 쓰레기가 남으므로 **열지 않았다**.
+
+**미결**: `verdict=PENDING` 12건은 **세기만 했다** — 왜 최종 verdict 가 안 붙었는지는 다음 회차.
