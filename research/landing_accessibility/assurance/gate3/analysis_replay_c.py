@@ -75,7 +75,7 @@ def replay_row(r):
     if observed(r.get("menu_dependency")) and "c_menu_dependency" in out:
         mv = str(r.get("menu_dependency")).strip().lower(); mv = 1 if mv in ("1", "true", "yes") else 0 if mv in ("0", "false", "no") else mv
         out["menu_dependency_match"] = (mv == out["c_menu_dependency"]) if isinstance(mv, int) else f"UNREADABLE:{mv}"
-    if observed(r.get("auth_gate_stage")) and "c_auth_gate_stage" not in out and str(r.get("attempt_status") or "").strip() != "ENDPOINT_REACHED":
+    if str(r.get("attempt_status") or "").strip() != "ENDPOINT_REACHED":   # R91 overrides the sequence-derived stage
         out["c_auth_gate_stage"] = "UNDETERMINED"; out["auth_basis"] = "R91: endpoint not reached ⇒ UNDETERMINED (NONE only allowed on ENDPOINT_REACHED)"
     if observed(r.get("auth_gate_stage")) and "c_auth_gate_stage" in out:
         out["auth_gate_stage_match"] = str(r.get("auth_gate_stage")).strip() == out["c_auth_gate_stage"]; out["mart_auth_gate_stage"] = r.get("auth_gate_stage")
