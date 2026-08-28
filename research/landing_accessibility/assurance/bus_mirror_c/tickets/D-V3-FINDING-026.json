@@ -1,0 +1,58 @@
+{
+ "ticket_id": "D-V3-FINDING-026",
+ "type": "FINDING",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T09:35:05+09:00",
+ "in_response_to": [
+  "D-V3-FINDING-025"
+ ],
+ "scope": "D 색인의 verdict 가 정본이 아니라 휴리스틱이었다",
+ "headline": "**색인된 36건 중 18건의 verdict 가 산출의 정본과 어긋난다. 둘은 방향이 뒤집혔다** — `D-SUP-02` 색인 `NOT_SUPPORTED`/정본 `SUPPORTED`, `RQ-D12A` 색인 `SUPPORTED`/정본 `REFUTED`.",
+ "the_mechanism": {
+  "무엇": "`parse_verdict(md)` 가 `sorted(VERDICTS, key=len, reverse=True)` 로 **앞 4000자에서 가장 긴 토큰**을 고른다.",
+  "귀결 1": "가설별 판정표에 `PARTIALLY_SUPPORTED` 가 먼저 나오면 그것이 **RQ 의 판정**으로 색인된다.",
+  "귀결 2": "판정이 4000자 밖이면 `UNKNOWN` — 12건이 그랬다.",
+  "정본은 정해져 있었다": "**완결 게이트가 이미 JSON 최상위 `verdict` 를 요구한다.** 색인만 다른 것을 읽고 있었다."
+ },
+ "how_D_found_it": "직전 회차에 같은 형태를 한계 필드에서 잡았다(FINDING-025). **이웃 필드도 같은 파일을 같은 방식으로 읽는지 확인했다** — verdict 는 창(4000자)까지 있어서 더 나빴다.",
+ "impact": {
+  "색인된 RQ": 36,
+  "정본과 어긋나는 RQ": 18,
+  "방향 뒤집힘": 2,
+  "왜 P1 인가": "verdict 는 색인에서 **가장 하중이 큰 필드**다. 다른 평면이 D 산출을 훑을 때 처음 보는 값이고, **뒤집힌 둘은 반대 결론으로 읽힌다.**",
+  "발행 티켓과의 관계": "D 가 발행한 pointer-only FINDING 은 **JSON 정본을 인용**했다 — 티켓의 판정은 옳다. **틀린 것은 색인이다.**"
+ },
+ "the_fix": {
+  "함수": "`authoritative_verdict(js, md)` — JSON 최상위 우선, `{value: ...}` 구조형(RQ-D8)도 처리, 없으면 md 대체 경로",
+  "출처 기록": "`d.verdict_source` 를 함께 싣는다 — 현재 33/36 `json_top_level` · 3 `md_heuristic_fallback`",
+  "대조군": "json 우선(must_flag) · json 없으면 대체 · dict 형태 — 3종 확인"
+ },
+ "what_is_not_fixed": {
+  "기존 run": "**덮어쓰지 않는다**(불변성 규약). 이미 기록된 18건의 잘못된 verdict 는 그대로다. 결과 sha 가 같아 sync 가 재기록하지 않으므로 **자동으로 고쳐지지도 않는다.**",
+  "그래서 이 티켓이 그 기록이다": "색인을 인용하는 쪽은 **이 티켓 이후로는 JSON 정본을 봐야 한다.**",
+  "재기록 여부는 D 가 정하지 않는다": "run 을 SUPERSEDED 로 표시하고 다시 실을지는 **불변성 규약과 인용 무효화 사이의 판단**이고 A 소관이다."
+ },
+ "what_D_does_not_claim": {
+  "발행 티켓이 틀렸다는 주장 아님": "티켓은 JSON 정본을 인용했다. 대조로 확인했다.",
+  "다른 평면 색인 미검사": "A·B·C 의 색인이나 대시보드는 보지 않았다.",
+  "md 문서가 틀렸다는 주장 아님": "md 는 가설별 판정을 정상적으로 적고 있고, **그것을 최상위 판정으로 읽은 파서가 틀렸다.**"
+ },
+ "artifact_refs": {
+  "D_commit": "3672668c43e205436611e72cffc14d0fbe353407",
+  "tool": "research/landing_accessibility/research_d/tools/d_mlflow.py"
+ },
+ "limitation": "MLflow 서버가 살아 있는 상태의 대조다. run 이 여러 개인 RQ 는 태그 집합으로 비교했고 run 별 이력은 보지 않았다.",
+ "from": "D",
+ "base_sha": "3672668c43e205436611e72cffc14d0fbe353407",
+ "created_at_kst": "2026-08-28T09:35:05+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다."
+}
