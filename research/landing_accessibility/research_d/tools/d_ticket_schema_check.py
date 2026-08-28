@@ -30,6 +30,11 @@ TICKETS = REPO / ".agent_bus/landing_v2/tickets"
 # [Δ26 / T-A-V3-STEP1-024] v3 규약은 이 시각 이후 발행분에 적용된다.
 # **그 전 것에 소급하지 않는다.**
 V3_SINCE = "2026-08-28T02:12"
+# [D-DEF-52] 발행분은 불변이라 고칠 수 없다. **차단 도입 시각**(`schema_errors()`
+# 가 들어간 커밋 `b352be0`, 2026-08-28T14:12:35) 이후 발행하고도 위반이면
+# 그것이 진짜 새 위반이다. 그 전은 baseline 이고 verdict 를 좌우하지 않는다 —
+# **영구 FAIL 은 신호를 죽인다.**
+SCHEMA_GUARD_SINCE = "2026-08-28T14:12:35"
 
 
 def schema() -> dict:
@@ -67,15 +72,33 @@ def violations(plane: str = "D", since: str = V3_SINCE, tickets=None) -> list:
 
 def check() -> dict:
     v = violations()
+    for r in v:
+        # [D-DEF-52] `created_at_kst` 는 자기신고다 — 실제 시각으로 분류한다.
+        # 규칙은 `d_retractions.ticket_time` 한 곳에 있다(D-DEF-49·51 의 반복 방지)
+        try:
+            from d_retractions import ticket_time as _tt
+            used, claimed, mtime = _tt(TICKETS / str(r["ticket"]))
+        except Exception:
+            used, claimed, mtime = str(r.get("created_at_kst", "")), "", ""
+        r["actual_at"] = used
+        r["self_reported_at"] = claimed
+        r["class"] = "NEW" if used >= SCHEMA_GUARD_SINCE else "BASELINE_PRE_GUARD"
+    new = [r for r in v if r["class"] == "NEW"]
     c = Counter()
     for r in v:
         for k in r["missing_required"]:
             c["missing:" + k] += 1
         for k in r["enum_violation"]:
             c["enum:" + k] += 1
-    return {"verdict": "PASS" if not v else "FAIL",
+    return {"verdict": "PASS" if not new else "FAIL",
             "schema": str(SCHEMA), "v3_since": V3_SINCE,
-            "n_violations": len(v), "by_field": dict(c),
+            "guard_since": SCHEMA_GUARD_SINCE,
+            "n_new": len(new), "n_violations": len(v), "by_field": dict(c),
+            "new": new,
+            "baseline_pre_guard": {
+                "n": len(v) - len(new),
+                "왜_PASS_인가": ("차단 이전 발행분이라 **고칠 수 없다**(불변). "
+                            "세되 verdict 를 좌우하지 않는다 — 영구 FAIL 은 신호를 죽인다")},
             "violations": v,
             "소급하지_않는다": "v3 이전 발행분은 대상이 아니다. 발행된 티켓은 고치지 않는다 — 사실만 보고한다",
             "type_enum_은_A_소관": ("`ADDENDUM`·`STATUS` 는 스키마 enum 에 없다. "

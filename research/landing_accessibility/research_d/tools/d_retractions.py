@@ -172,6 +172,41 @@ def audit_artifacts(root=None) -> dict:
             "대상": "산출물만 — 도구 소스는 정의하는 곳이고 표시는 cite() 가 붙인다"}
 
 
+def _ticket_time(p, d) -> tuple:
+    """티켓의 발행 시각. **`created_at_kst` 는 자기신고다.**
+
+    [D-DEF-52] D 가 손으로 만든 티켓 6건에서 자기신고 시각이 실제(파일 mtime)
+    보다 **앞서** 있었다 — 최대 54분. 시점 경계 판정이 그 값에 의존하고 있었다.
+
+    처음엔 **늦은 쪽**(`max`)을 썼다. 위반 판정에서는 안전했지만 **baseline 분류에서
+    과대 계상**을 냈다 — 자기신고가 실제보다 늦게 적힌 3건이 "차단 이후 발행" 으로
+    분류돼 새 위반 3건이라는 잘못된 경보가 됐다. **한 규칙을 두 용도에 쓰면서
+    한쪽만 보았다.**
+
+    그래서 **파일이 실제로 쓰인 시각(mtime)을 실제 발행 시각으로 쓴다.** 자기신고는
+    함께 반환해 불일치를 드러낸다. 도구(`d_emit_ticket`)로 발행하면 두 값이 일치한다.
+    """
+    import datetime as _dt
+    claimed = str(d.get("created_at_kst") or d.get("created_at") or "")[:19]
+    try:
+        mtime = _dt.datetime.fromtimestamp(p.stat().st_mtime).strftime("%Y-%m-%dT%H:%M:%S")
+    except Exception:
+        mtime = ""
+    used = mtime or claimed          # **실제로 쓰인 시각**이 정본이다
+    return used, claimed, mtime
+
+
+def ticket_time(path):
+    """다른 검사도 같은 판정을 쓴다 — 규칙은 한 곳에만 둔다(D-DEF-49·51)."""
+    import json as _j
+    p = Path(path)
+    try:
+        d = _j.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        d = {}
+    return _ticket_time(p, d)
+
+
 def audit_tickets(plane: str = "D") -> dict:
     """**발행 티켓**이 철회 토큰을 표시 없이 인용하는가 — 철회 이후 발행분만.
 
@@ -179,7 +214,7 @@ def audit_tickets(plane: str = "D") -> dict:
     """
     import json as _j
     since = {t: retracted_since(t) for t in retracted_tokens()}
-    bad, skipped = [], []
+    bad, skipped, clock_drift = [], [], []
     for p in sorted(BUS_TICKETS.glob("*.json")):
         try:
             txt = p.read_text(encoding="utf-8")
@@ -188,19 +223,39 @@ def audit_tickets(plane: str = "D") -> dict:
             continue
         if d.get("from") != plane:
             continue
-        ts = str(d.get("created_at_kst") or d.get("created_at") or "")[:19]
+        ts, claimed, mtime = _ticket_time(p, d)
+        if claimed and mtime and claimed[:16] != mtime[:16]:
+            clock_drift.append({"ticket": p.name, "claimed": claimed, "mtime": mtime})
         for h in audit_json_text(txt, p.name):     # **선언 인정은 단일 경로**
             s0 = since.get(h["token"])
             if s0 and ts and ts < s0:
                 skipped.append({**h, "created_at_kst": ts, "retracted_since": s0})
             else:
-                bad.append({**h, "created_at_kst": ts, "retracted_since": s0})
-    return {"verdict": "PASS" if not bad else "FAIL", "n": len(bad),
+                bad.append({**h, "created_at_kst": ts, "retracted_since": s0,
+                            "class": ("NEW" if ts >= RETRACTION_GUARD_SINCE
+                                      else "BASELINE_PRE_GUARD")})
+    new = [b for b in bad if b["class"] == "NEW"]
+    return {"verdict": "PASS" if not new else "FAIL",
+            "n_new": len(new), "n": len(bad),
+            "new": new,
+            "baseline_pre_guard": {
+                "n": len(bad) - len(new),
+                "tickets": sorted({b["source"] for b in bad if b["class"] != "NEW"}),
+                "왜_PASS_인가": ("차단(`retraction_errors`, `d8e689c` 14:26:06) **이전** 발행분이라 "
+                            "**고칠 수 없다**(불변). 영구 FAIL 로 두면 새 위반이 묻힌다 — "
+                            "세되 verdict 를 좌우하지 않는다")},
+            "guard_since": RETRACTION_GUARD_SINCE,
             "tickets": sorted({b["source"] for b in bad}), "hits": bad,
             "철회_이전_인용": {"n": len(skipped),
                           "tickets": sorted({s["source"] for s in skipped}),
                           "왜_세지_않나": "**철회 이전 인용은 위반이 아니다.** 소급해서 세면 과대 계상이다"},
-            "발행분은_고치지_않는다": "불변이다 — 사실만 보고한다"}
+            "발행분은_고치지_않는다": "불변이다 — 사실만 보고한다",
+            "자기신고_시각_불일치": {
+                "n": len(clock_drift), "rows": clock_drift[:10],
+                "무엇": ("`created_at_kst` 는 **자기신고**다. 손으로 만든 티켓에서 실제"
+                       "(파일 mtime)보다 앞선 값이 들어갔다 — 최대 54분"),
+                "어떻게_처리하나": ("시점 판정에 **늦은 쪽**을 쓴다. 위반을 놓치는 쪽이 아니라 "
+                             "과하게 세는 쪽으로 틀린다. 도구로 발행하면 두 값이 일치한다")}}
 
 
 # ── 폐기된 **산출물** 인용 ────────────────────────────────────────────────
@@ -217,6 +272,15 @@ _SUPERSEDED_MARK = "_superseded_do_not_cite"
 # 담기 때문에** 인정하지 않으면 선언한 문서가 걸린다 — D-DEF-49 에서 같은 형태를
 # 이미 겪고도 폐기 쪽에 반복했다.
 SUPERSEDED_DECLARE = "superseded_figures_cited"
+
+# [D-DEF-52] **영구 FAIL 은 신호를 죽인다.** 발행분은 불변이라 고칠 수 없고,
+# 그 위반이 매 스캔 그대로 뜨면 **새 위반이 하나 더해져도 차이를 놓친다**.
+#
+# 기준은 손 목록이 아니라 **차단이 도입된 시각**이다 — `d_emit_ticket.
+# retraction_errors()` 가 들어간 커밋 `d8e689c` (2026-08-28T14:26:06).
+# 그 뒤에 발행하고도 위반이면 **차단을 우회한 것**이고 그것이 진짜 새 위반이다.
+# 이 값을 뒤로 미루면 baseline 이 커지는데, 코드 변경이라 커밋에 남는다.
+RETRACTION_GUARD_SINCE = "2026-08-28T14:26:06"
 
 
 def superseded_files() -> set:

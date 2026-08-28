@@ -48,11 +48,17 @@ try:
     from d_retractions import audit_tickets as _rk, audit_superseded as _rs
     _r, _k, _s = _ra(), _rk(), _rs()
     print(f"\n=== 철회 라벨 인용 : 산출물 {_r['verdict']}({_r['n']}) · "
-          f"발행티켓 {_k['verdict']}({_k['n']}) · 철회토큰 {sorted(_rt())} ===")
+          f"발행티켓 {_k['verdict']}(새 {_k['n_new']} / baseline {_k['baseline_pre_guard']['n']}) "
+          f"· 철회토큰 {sorted(_rt())} ===")
     for _f in _r["files"]:
         print(f"   산출물  {_f}")
-    for _f in _k["tickets"]:
-        print(f"   티켓    {_f}  (발행분은 고치지 않는다 — 사실만 기록)")
+    for _f in _k["baseline_pre_guard"]["tickets"]:
+        print(f"   티켓    {_f}  (차단 이전 발행 — 고칠 수 없다. verdict 를 좌우하지 않음)")
+    for _h in _k["new"]:
+        print(f"   ** 새 위반 **  {_h['source']}  {_h['token']}")
+    if _k["자기신고_시각_불일치"]["n"]:
+        print(f"   자기신고 시각 불일치 {_k['자기신고_시각_불일치']['n']}건 "
+              f"— 분류는 파일 실제 시각으로 한다")
     if _k["철회_이전_인용"]["n"]:
         print(f"   철회 이전 인용 {_k['철회_이전_인용']['n']}건 — **위반 아님**")
     print(f"   폐기 산출물 인용 : {_s['verdict']}({_s['n']}) · 폐기본 {_s['n_superseded']}")
@@ -69,11 +75,14 @@ try:
     from d_ticket_schema_check import check as _schema_check
     _sc = _schema_check()
     print(f"\n=== D 발행분 스키마(SSOTV3 정본) : {_sc['verdict']} "
-          f"· 위반 {_sc['n_violations']} ===")
+          f"· 새 {_sc['n_new']} / baseline {_sc['baseline_pre_guard']['n']} ===")
     if _sc["by_field"]:
         for _k, _v in sorted(_sc["by_field"].items(), key=lambda x: -x[1]):
             print(f"   {_v:>3}  {_k}")
-        print("   (v3 이전 발행분은 대상 아님 — 소급하지 않는다. 발행분은 고치지 않는다)")
+        print("   (v3 이전은 대상 아님. 차단 이전 발행분은 baseline — "
+              "고칠 수 없고 verdict 를 좌우하지 않는다)")
+    for _n in _sc["new"]:
+        print(f"   ** 새 위반 **  {_n['ticket']}  {_n['missing_required']}{_n['enum_violation']}")
 except Exception as _e:
     print(f"\n=== D 발행분 스키마 : 검사 실패 {_e} ===")
     errs.append({"file": "(D 발행분 스키마)", "error": f"스키마 감사 실행 실패: {_e}"})
