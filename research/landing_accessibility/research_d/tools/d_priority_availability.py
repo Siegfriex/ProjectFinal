@@ -77,15 +77,16 @@ def availability() -> dict:
 def controls() -> dict:
     rows = []
 
-    def case(name, got, want):
-        rows.append({"case": name, "got": got, "want": want, "ok": got == want})
+    def case(name, got, want, negative=False):
+        rows.append({"case": name, "got": got, "want": want, "ok": got == want,
+                     "expectation": "must_flag" if negative else "must_not_flag"})
 
     a = availability()
     case("8개 항목을 모두 훑는다", len(a["rows"]), 8)
     # 축이 하나도 관측되지 않은 항목은 착수 불가로 나와야 한다
     tco = [r for r in a["rows"] if r["priority"] == "task-specific obstruction"][0]
     case("task_control_occlusion 0/50 → NOT_OBSERVED_AT_ALL",
-         tco["state"], "NOT_OBSERVED_AT_ALL")
+         tco["state"], "NOT_OBSERVED_AT_ALL", negative=True)
     seq = [r for r in a["rows"]
            if r["priority"].startswith("action sequence")][0]
     case("sequence 50/50 → OBSERVED", seq["state"], "OBSERVED")
@@ -94,11 +95,13 @@ def controls() -> dict:
     case("spatial n=8 은 상태가 OBSERVED 이되 min_n 이 8", (sp["state"], sp["min_n"]),
          ("OBSERVED", 8))
     case("n=8 항목은 작은_n_경고에 들어간다",
-         "spatial dispersion 조작화" in a["작은_n_경고"], True)
+         "spatial dispersion 조작화" in a["작은_n_경고"], True, negative=True)
     lab = [r for r in a["rows"] if r["priority"].startswith("visible label")][0]
-    case("label 축은 일부만 관측 → PARTIAL", lab["state"], "PARTIAL")
+    case("label 축은 일부만 관측 → PARTIAL", lab["state"], "PARTIAL", negative=True)
     ok = all(r["ok"] for r in rows)
     return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "must_flag": sum(1 for r in rows if r["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for r in rows if r["expectation"] == "must_not_flag"),
             "failed": [r["case"] for r in rows if not r["ok"]], "cases": rows}
 
 

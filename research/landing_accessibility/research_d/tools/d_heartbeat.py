@@ -85,6 +85,59 @@ def _firewall_claim(head: str) -> tuple:
     return "UNVERIFIED_SCAN_NOT_PASS", ev
 
 
+# production 으로 보는 경로 접두. FIREWALL_GUARD_DEFINITION 과 같은 목록이다.
+PROD_PREFIXES = (
+    "research/landing_accessibility/src/",
+    "research/landing_accessibility/control/",
+    "research/landing_accessibility/engine/",
+    "engine/", "v3_runner/",
+    "research/landing_accessibility/shadow/",
+)
+
+
+def is_production_path(f: str) -> bool:
+    return any(f.startswith(x) or ("/" + x) in f for x in PROD_PREFIXES)
+
+
+def production_path_controls() -> dict:
+    """[D-DEF-54] R41 의 must_flag/must_not_flag 를 **실행되는 대조군**으로.
+
+    이 함수는 원래 그 둘을 **문자열 서술**로만 갖고 있었다 — "production 경로
+    접두를 가진 파일이 있으면 true 여야 한다". 말은 맞지만 **아무것도 실행되지
+    않았다.** 안전 주장을 내는 측정기가 자기 판정을 검증하지 않은 것이고,
+    이 세션이 반복해 잡아온 형태다(적어둔 것과 실행되는 것이 다르다).
+
+    조작본이 아니라 **합성 경로**로 잰다 — 대상을 건드리지 않는다(D-DEF-50).
+    """
+    rows = []
+
+    def case(path, want):
+        got = is_production_path(path)
+        rows.append({"path": path, "got": got, "want": want, "ok": got == want,
+                     "expectation": "must_flag" if want else "must_not_flag"})
+
+    case("research/landing_accessibility/control/v3/x.py", True)
+    case("research/landing_accessibility/engine/run.py", True)
+    case("research/landing_accessibility/src/a.py", True)
+    case("engine/main.py", True)
+    case("v3_runner/go.py", True)
+    case("research/landing_accessibility/shadow/s.py", True)
+    case("a/b/engine/deep.py", True)                 # 중간 경로도 잡는다
+    case("research/landing_accessibility/research_d/tools/x.py", False)
+    case("research/landing_accessibility/notebooks/d_research/n.ipynb", False)
+    case("research/landing_accessibility/research_d/results/r.json", False)
+    ok = all(r["ok"] for r in rows)
+    return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "must_flag": sum(1 for r in rows if r["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for r in rows if r["expectation"] == "must_not_flag"),
+            "failed": [r["path"] for r in rows if not r["ok"]], "cases": rows}
+
+
+def controls() -> dict:
+    """모듈 수준 대조군 — 전수 점검이 찾을 수 있는 이름으로 노출한다."""
+    return production_path_controls()
+
+
 def _production_touch(base: str, head: str) -> tuple:
     """`production_modified` 를 **git 에서 잰다.**
 
@@ -95,13 +148,13 @@ def _production_touch(base: str, head: str) -> tuple:
     이지 '아무도 production 을 고치지 않았다' 가 아니다. A 가 자기 어휘를
     `REAL_TARGET 누적 0건` → `A_발행_REAL_허가: 없음` 으로 바꾼 것과 같다.
     """
-    PROD = ("research/landing_accessibility/src/",  # FIREWALL_GUARD_DEFINITION
+    files = git("diff", "--name-only", f"{base}..{head}").splitlines()
+    hits = sorted({f for f in files if is_production_path(f)})
+    _ = ("research/landing_accessibility/src/",  # FIREWALL_GUARD_DEFINITION
             "research/landing_accessibility/control/",  # FIREWALL_GUARD_DEFINITION
             "research/landing_accessibility/engine/",  # FIREWALL_GUARD_DEFINITION
             "engine/", "v3_runner/",
             "research/landing_accessibility/shadow/")  # FIREWALL_GUARD_DEFINITION
-    files = git("diff", "--name-only", f"{base}..{head}").splitlines()
-    hits = sorted({f for f in files if any(f.startswith(x) or ("/" + x) in f for x in PROD)})
     return bool(hits), {
         "measured": "git diff --name-only base..head 의 경로 접두 검사",
         "scope": "**D 브랜치 커밋이 production 경로를 건드렸는가.** "
@@ -112,8 +165,7 @@ def _production_touch(base: str, head: str) -> tuple:
                     "`d_input_integrity` 가 파일별 sha 로 잰다 [D-DEF-53]"),
         "base_sha": base, "head_sha": head,
         "changed_files": len(files), "production_hits": hits[:10],
-        "must_flag": "production 경로 접두를 가진 파일이 있으면 true 여야 한다",
-        "must_not_flag": "research_d/ · notebooks/d_research/ 만 바뀌면 false",
+        "controls": production_path_controls(),   # **말이 아니라 실행되는 대조군**
     }
 
 

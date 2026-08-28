@@ -97,8 +97,9 @@ def controls() -> dict:
     import tempfile
     rows = []
 
-    def case(name, got, want):
-        rows.append({"case": name, "got": got, "want": want, "ok": got == want})
+    def case(name, got, want, negative=False):
+        rows.append({"case": name, "got": got, "want": want, "ok": got == want,
+                     "expectation": "must_flag" if negative else "must_not_flag"})
 
     with tempfile.TemporaryDirectory() as td:
         d = Path(td)
@@ -115,11 +116,11 @@ def controls() -> dict:
 
         case("변경 없음", diff(d), ([], [], []))
         (d / "a.txt").write_text("two", encoding="utf-8")
-        case("내용이 바뀌면 changed", diff(d)[0], ["a.txt"])
+        case("내용이 바뀌면 changed", diff(d)[0], ["a.txt"], negative=True)
         (d / "b.txt").write_text("new", encoding="utf-8")
-        case("파일이 늘면 added", diff(d)[1], ["b.txt"])
+        case("파일이 늘면 added", diff(d)[1], ["b.txt"], negative=True)
         (d / "a.txt").unlink()
-        case("파일이 사라지면 removed", diff(d)[2], ["a.txt"])
+        case("파일이 사라지면 removed", diff(d)[2], ["a.txt"], negative=True)
 
     # 이 검사가 실제 입력을 바꾸지 않는지 — snapshot 은 읽기 전용이다
     before = snapshot()
@@ -128,6 +129,8 @@ def controls() -> dict:
 
     ok = all(r["ok"] for r in rows)
     return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "must_flag": sum(1 for r in rows if r["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for r in rows if r["expectation"] == "must_not_flag"),
             "failed": [r["case"] for r in rows if not r["ok"]], "cases": rows}
 
 

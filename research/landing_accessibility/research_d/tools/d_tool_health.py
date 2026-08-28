@@ -122,6 +122,84 @@ def coverage() -> dict:
                         "재발을 막는 것은 그 우연이 아니라 64/64 문법 검사다")}
 
 
+# 이름을 **손으로 열거하지 않는다** — `d_bus_lib.cross_plane_ack_controls` 가
+# 목록에 없어 NO_CONTROLS 로 잘못 나왔다. 손 목록은 뒤처진다(D-DEF-45).
+_CONTROL_NAME = __import__("re").compile(r"(controls?|self_?test)$")
+
+
+def control_coverage() -> dict:
+    """루프에서 도는 도구가 **실행되는 대조군**을 갖는가.
+
+    [D-DEF-54] `d_heartbeat._production_touch` 는 R41 의 must_flag/must_not_flag 를
+    **문자열 서술**로만 갖고 있었다 — 말은 맞지만 아무것도 실행되지 않았다.
+    안전 주장을 내는 측정기가 자기 판정을 검증하지 않은 것이다.
+
+    **부정 케이스 수를 자동으로 세려다 두 번 오분류했다.** 대조군의 표기 형태가
+    제각각이라(`must_flag` 필드 / `want=False` / `should_fail`) 형태에 걸렸다.
+    그래서 이 도구는 **확실한 것만 단정**한다 — 대조군 함수의 존재, 실행 가능
+    여부, verdict. 부정 케이스 수는 **추정치**이고 형태를 못 읽으면 `null` 이다.
+    """
+    import importlib
+    import sys as _sys
+    if str(TOOLS) not in _sys.path:
+        _sys.path.insert(0, str(TOOLS))
+    rows = []
+    for m in sorted(coverage()["covered"]):
+        row = {"module": m, "fn": None, "verdict": None,
+               "negative_cases": None, "state": ""}
+        try:
+            mod = importlib.import_module(m)
+        except Exception as e:
+            row["state"] = f"IMPORT_FAIL: {type(e).__name__}"
+            rows.append(row)
+            continue
+        fn = next((f for f in sorted(dir(mod))
+                   if _CONTROL_NAME.search(f) and callable(getattr(mod, f, None))
+                   and getattr(getattr(mod, f), "__module__", "") == m), None)
+        row["fn"] = fn
+        if not fn:
+            row["state"] = "NO_CONTROLS"
+            rows.append(row)
+            continue
+        try:
+            c = getattr(mod, fn)()
+        except TypeError:
+            row["state"] = "NEEDS_ARGS"     # 인자가 필요 — 없다고 셀 수 없다
+            rows.append(row)
+            continue
+        except Exception as e:
+            row["state"] = f"RUN_FAIL: {type(e).__name__}"
+            rows.append(row)
+            continue
+        if not isinstance(c, dict):
+            row["state"] = "NON_DICT"
+            rows.append(row)
+            continue
+        row["verdict"] = c.get("verdict")
+        cs = c.get("cases") or c.get("rows") or []
+        neg = sum(1 for x in cs if isinstance(x, dict) and (
+            x.get("expectation") == "must_flag" or x.get("should_fail") is True
+            or ("want" in x and x["want"] in (False, "FAIL", 0))))
+        if not neg and isinstance(c.get("must_flag"), int):
+            neg = c["must_flag"]
+        row["negative_cases"] = neg if (cs or c.get("must_flag") is not None) else None
+        row["state"] = "OK"
+        rows.append(row)
+    no_ctrl = [r["module"] for r in rows if r["state"] == "NO_CONTROLS"]
+    unread = [r["module"] for r in rows
+              if r["state"] in ("NEEDS_ARGS", "NON_DICT") or
+              (r["state"] == "OK" and r["negative_cases"] is None)]
+    zero = [r["module"] for r in rows
+            if r["state"] == "OK" and r["negative_cases"] == 0]
+    return {"n": len(rows), "rows": rows,
+            "no_controls": no_ctrl, "unreadable_shape": unread,
+            "negative_zero_suspect": zero,
+            "확실한_것": "대조군 함수의 **존재 여부**와 실행 가능 여부, verdict",
+            "추정인_것": ("부정 케이스 수. 표기 형태가 제각각이라 못 읽으면 "
+                     "`unreadable_shape` 로 둔다 — **0 으로 세지 않는다**"),
+            "왜_0_으로_세지_않나": "실제로 두 번 오분류했다. **읽지 못한 것을 없다고 세지 않는다**"}
+
+
 def controls() -> dict:
     """합성 파일로 문법 오류를 실제로 잡는지 본다."""
     import tempfile
@@ -155,7 +233,8 @@ def controls() -> dict:
 
 
 if __name__ == "__main__":
-    out = {"check": check(), "controls": controls(), "coverage": coverage()}
+    out = {"check": check(), "controls": controls(), "coverage": coverage(),
+           "control_coverage": control_coverage()}
     print(json.dumps(out, ensure_ascii=False, indent=1))
     sys.exit(0 if out["check"]["verdict"] == "PASS"
              and out["controls"]["verdict"] == "PASS" else 1)
