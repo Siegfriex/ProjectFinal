@@ -1974,9 +1974,53 @@
    "coverage": "COVERED_PENDING_ADAPTER",
    "gap_note": null,
    "added_at_index_version": 44
+  },
+  {
+   "id": "Δ55-R55",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**파생 산출은 정본 필드를 읽는다 — 재구성하지 않는다.** 정본이 있으면 **그것만** 읽고, 대체 경로를 탔으면 **`*_source` 를 함께 싣는다**. **'가장 긴 토큰'·'앞 N자' 같은 창·순위 휴리스틱으로 판정값을 뽑지 않는다.** 정본 우선·대체·구조형 세 갈래를 실증한다",
+   "must_appear_in": "모든 파생 색인·대시보드",
+   "C_check": "RUNBOOK 상시 규칙 ii: 정본 필드만 읽기, 대체 경로는 *_source 표기(HEURISTIC_FALLBACK 비근거), 창·순위 휴리스틱 금지 — C 파서 전수에 세 갈래 대조(정본/대체/구조형) 예정(R54 sweep worker)",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 45
+  },
+  {
+   "id": "Δ55-supersede",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "잘못된 기존 run 은 **덮어쓰지 않고 무효 표시를 붙인 뒤 새 run 을 추가한다** — 태그 `verdict_index_defect`·`superseded_by` 를 **추가**하고, 소비자는 `superseded_by` 가 있는 run 의 verdict 를 인용하지 않는다. **불변성은 값을 고치지 않는 것이지 메타를 못 붙이는 것이 아니다**. 그대로 두면 **이 티켓만이 유일한 경고가 되고 티켓은 흐른다**",
+   "must_appear_in": "D MLflow run · 색인 소비자",
+   "C_check": "Δ55 계열 — RUNBOOK 상시 규칙 ii/R56",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 45
+  },
+  {
+   "id": "Δ55-R56",
+   "due": "GATE1",
+   "verified_by": "C",
+   "requires": "**재계산 판단은 (입력 sha, 도구 sha) 쌍으로 한다.** 도구를 고쳤는데 입력이 같다고 건너뛰면 **도구 수정이 산출에 도달하지 않는다** — `Δ44-R38`(측정값에 입력 신원)의 뒷면이다. **캐시·sync·색인 갱신의 키는 `(input_sha, tool_sha)`**",
+   "must_appear_in": "모든 캐시·sync·색인 갱신",
+   "C_check": "C 캐시·sidecar 키 = (입력 sha, 도구 sha): CONTROL_FAILURE_DEMOS 는 tool sha 결속, run_gate1 compare_guard 는 항목 입력 sha + top-level run_gate1_file_sha256/comparators/index/delta sha 를 대조, mirror 는 바이트 3방향 — 색인 파생 coverage 는 (index sha) 만 키이므로 도구(인라인 스크립트) sha 를 병기하도록 갱신 예정",
+   "coverage": "COVERED_PENDING_ADAPTER",
+   "gap_note": null,
+   "added_at_index_version": 45
+  },
+  {
+   "id": "Δ55-firewall-held",
+   "due": "STEP3",
+   "verified_by": "A",
+   "requires": "**D 의 NON_CANONICAL 지위가 이 결함의 영향을 제한했다** — D 의 발행 티켓은 JSON 정본을 인용했고, **A 실측 결과 v3 주장 사슬에 D verdict 는 실려 있지 않다**(delta 매칭 1건이며 그것은 D 의 자기정정 사례 인용). **그 지위가 장식이 아니었음이 실측으로 확인됐다**",
+   "must_appear_in": "D 산출을 인용하는 곳",
+   "C_check": "D NON_CANONICAL 방화벽 실측(A) — C 의 v3 주장 사슬에도 D verdict 미사용 확인(GATE 3 에서 재확인)",
+   "coverage": "NOT_C",
+   "gap_note": null,
+   "added_at_index_version": 45
   }
  ],
- "index_version": 44,
+ "index_version": 45,
  "index_sha256_v2": "7bc8468bab30db567c12ff538faeb6106cc3ed03ca58043ccfe130e359cd080a",
  "index_sha256_v3": "4d158a286a7f9369c3b3248f1b5a1df3eda1e474343214cff6ecc2fd117e1365",
  "index_sha256_v4": "9605bf9c337ab5278283041b4e5c4e612cbbc7b0063c8f5fab266d248004fce1",
@@ -2034,5 +2078,6 @@
  "index_sha256_v41": "73c981ebb9acdfa258e36ee3abb6409a62a91d2a14a6ffce2b7f78ebd1e76073",
  "index_sha256_v42": "501a8ee6c36b28f93f471f65c42f070fd83c50d0bba8d798ea2e8c6eaaa3a968",
  "index_sha256_v43": "350b91aaf8b164976d26b8e9e9d5eeac79603a3c1169a587e3ecd87733ef6a6c",
- "index_sha256_v44": "8da051c43d5edd7783456991e59bd7815ade78507ee0d81602126e7a028fe6d8"
+ "index_sha256_v44": "8da051c43d5edd7783456991e59bd7815ade78507ee0d81602126e7a028fe6d8",
+ "index_sha256_v45": "8d704abcd3d18fc9e7b06c4b725b503fd548deda7efb76c89e5f585eadc5b136"
 }
