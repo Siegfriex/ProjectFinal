@@ -56,8 +56,37 @@ def plane_liveness() -> dict:
     return out
 
 
+CURRENT_MART_SHA = "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf"
+
+
+def _mart_status(txt: str) -> str:
+    """[D-DEF-65] **'대기 중' 이 두 가지를 섞고 있었다.**
+
+    `D-V3-CP6-FINAL` 은 mart `8cf57069` 를 인용하는데 현행은 `5290e0c3` 다 —
+    그것은 **응답을 기다리는 것이 아니라 판본이 지난 것**이다. 섞어 세면
+    영원히 대기로 남고, 상대는 검산할 필요 없는 것을 검산해야 한다.
+    """
+    import re
+    marts = set()
+    for m in re.finditer(r'"mart[_a-z]*sha[0-9]*"\s*:\s*"([0-9a-f]+)"', txt):
+        marts.add(m.group(1))
+    for m in re.finditer(r'"sha256"\s*:\s*"([0-9a-f]{64})"', txt):
+        marts.add(m.group(1))
+    if not marts:
+        return "NO_MART_CITED"
+    cur = [x for x in marts if CURRENT_MART_SHA.startswith(x)]
+    return "CURRENT" if cur else "STALE_MART_PIN"
+
+
+_PRIO_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3, "P4": 4}
+
+
 def pending() -> dict:
-    """`to` 대상이 아직 ACK 하지 않은 **D 발행 티켓**."""
+    """`to` 대상이 아직 ACK 하지 않은 **D 발행 티켓**.
+
+    **우선순위를 D 가 표시한다.** 티켓에 이미 `priority` 가 있는데 목록이
+    발행 순서로만 정렬돼 있었다 — 상대가 무엇을 먼저 볼지 알 수 없다.
+    """
     rows = []
     for p in sorted(TICKETS.glob("*.json")):
         try:
@@ -76,20 +105,35 @@ def pending() -> dict:
         if to and not (to & acked):
             m = _mtime(p)
             rows.append({"ticket": tid, "type": d.get("type"),
+                         "priority": d.get("priority", "?"),
+                         "mart_status": _mart_status(p.read_text(encoding="utf-8")),
                          "to": sorted(to), "acked": sorted(acked),
                          "emitted": m.strftime("%Y-%m-%dT%H:%M:%S") if m else None,
                          "minutes_ago": round((_now() - m).total_seconds() / 60) if m else None,
                          "decision_request": d.get("type") == "DECISION_REQUEST"
                                              or bool(d.get("decision_required"))})
-    rows.sort(key=lambda r: r["emitted"] or "")
+    # **우선순위 → 오래된 순.** 발행 순서만으로는 무엇을 먼저 볼지 알 수 없다
+    rows.sort(key=lambda r: (_PRIO_ORDER.get(r["priority"], 9), r["emitted"] or ""))
     by_to = {}
     for r in rows:
         for t in r["to"]:
             by_to[t] = by_to.get(t, 0) + 1
-    return {"n": len(rows), "by_to": by_to,
+    stale = [r for r in rows if r["mart_status"] == "STALE_MART_PIN"]
+    live = [r for r in rows if r["mart_status"] != "STALE_MART_PIN"]
+    by_prio = {}
+    for r in live:
+        by_prio[r["priority"]] = by_prio.get(r["priority"], 0) + 1
+    return {"n": len(rows), "n_live": len(live), "n_stale_mart": len(stale),
+            "by_priority_live": by_prio,
+            "stale_mart_pin": [{"ticket": r["ticket"], "priority": r["priority"]}
+                               for r in stale],
+            "판본_만료는_대기가_아니다": ("옛 mart sha 만 인용하는 티켓은 **응답을 "
+                              "기다리는 것이 아니라 판본이 지난 것**이다 — "
+                              "섞어 세면 상대가 검산할 필요 없는 것을 검산한다"),
+            "by_to": by_to,
             "oldest_minutes": max((r["minutes_ago"] or 0) for r in rows) if rows else 0,
             "decision_requests": [r for r in rows if r["decision_request"]],
-            "rows": rows[-12:]}
+            "rows": live[:12]}
 
 
 def check() -> dict:

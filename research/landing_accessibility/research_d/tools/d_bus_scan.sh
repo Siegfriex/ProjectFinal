@@ -31,8 +31,11 @@ try:
     from d_pending_response import check as _pr
     _p = _pr()
     _pen, _liv = _p["pending"], _p["liveness"]
-    print(f"\n=== D 발행분 응답 대기 : {_pen['n']}건 {_pen['by_to']} "
-          f"· 최장 {_pen['oldest_minutes']}분 ===")
+    print(f"\n=== D 발행분 응답 대기 : 실대기 {_pen['n_live']}건 "
+          f"{_pen['by_priority_live']} {_pen['by_to']} · 최장 {_pen['oldest_minutes']}분 "
+          f"· 판본만료 {_pen['n_stale_mart']} ===")
+    for _sm in _pen["stale_mart_pin"]:
+        print(f"   판본만료 {_sm['priority']} {_sm['ticket']} — **응답 대기가 아니다**")
     for _dr in _pen["decision_requests"]:
         print(f"   ** DECISION ** {_dr['ticket']}  to={_dr['to']}  {_dr['minutes_ago']}분")
     print("   평면 마지막 활동: " + " · ".join(
