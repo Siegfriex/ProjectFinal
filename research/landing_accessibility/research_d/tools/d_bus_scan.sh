@@ -45,6 +45,18 @@ try:
               f"· WARN {_d.get('warn_count')} ===")
         for _v in _f:
             print(f"   {_v.get('file')}:{_v.get('line')}  {_v.get('reference')}")
+        # [D-DEF-59] **총수는 신호가 아니다** — 새 토큰·새 경로만 본다
+        try:
+            from d_warn_baseline import check as _wb
+            _w = _wb()
+            print(f"   WARN 종류 : {_w['verdict']} · 총수 {_w.get('n_now')} "
+                  f"(baseline {_w.get('n_base')}, Δ{_w.get('delta')})")
+            if _w.get("new_references"):
+                print(f"     ** 새 토큰 ** {_w['new_references']}")
+            if _w.get("new_top_paths"):
+                print(f"     ** 새 경로 ** {_w['new_top_paths']}")
+        except Exception as _e2:
+            print(f"   WARN 종류 : 검사 실패 {_e2}")
 except Exception as _e:
     print(f"\n=== 방화벽 내역 : 읽기 실패 {_e} ===")
     errs.append({"file": "(방화벽)", "error": f"내역 읽기 실패: {_e}"})
