@@ -222,7 +222,7 @@ def qc(rows, manifest, file_sha, body_sha, expect_file, expect_body, adapter, b_
     checks["FAMILY_10x5"] = {"status": "FLAG" if not (fam_m_ok and fam_r_ok) or (isinstance(mism, list) and mism) else "PASS", "n_items": len(rows),
                              "manifest_families": {k: len(v) for k, v in sorted(fam_m.items())}, "row_families": {k: len(v) for k, v in sorted(fam_r.items())}, "family_mismatch": mism}
     # ---- R110 (TBX-020): per-column sentinel ratio; a column that is 100% sentinel/blank is UNWIRED — a column-level flag, never a pass
-    cols = sorted({k for r in rows for k in r.keys()}); col_stats = {}; unwired = []
+    cols = sorted({k for r in rows for k in r.keys()} - {"missing_reason"}); col_stats = {}; unwired = []   # missing_reason is a reason column: its values are not observations
     for c_ in cols:
         vals = [str(r.get(c_) if r.get(c_) is not None else "").strip() for r in rows]
         n_sent = sum(1 for v in vals if v in SENTINELS or v.startswith("NOT_RECORDED") or v.startswith("E_DID_NOT_SUPPLY") or v == "")
