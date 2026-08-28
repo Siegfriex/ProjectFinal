@@ -855,3 +855,30 @@ R61 의 이면 — 거짓이 된 적 없는 조건은 검사가 없어도 표시
 정확했지만 **도구가 강제한 정확성이 아니었다.**
 
 산출: `results/D_COMPLETION_GATE_AUDIT.json` · 티켓 `D-V3-FINDING-032`
+
+## 2026-08-28 11:5x — V3 MAIN50 census 분석 평면 (T-A-V3-TBX-008/022)
+
+A 가 D 를 분석·시각화 평면으로 재배치했다. `NON_CANONICAL` 은 계산·ML·그래프 금지가
+아니라 **자기 수치를 최종사실로 승인할 수 없다**는 뜻이라는 지위 정정을 받았다.
+
+| 축 | 결과 |
+|---|---|
+| 산출 | MAIN50 시간제한 전수관측 보고서 v1 — 그림 4장 |
+| mart_pin | `5290e0c306ff…` (C 최종 sha 와 바이트 일치) |
+| 분모 | attempted 50 · completed 6 · failed 44 · **unaccounted 0** |
+| acquisition 3집단 | USABLE 8 · SITE-SIDE 16 · MEASUREMENT 26 (합 50 · unmapped 0) |
+| k | **8 CONFIRMED** (C pre-R3 provenance 8/8) — 8/50 reachability 아님 |
+| claim 후보 | 8건 → C |
+| MLflow | run `239ed324fae54776840d0c508e8973c7` (LA_07_COLLECTION) |
+
+**D 자기결함 6건** (D-DEF-33~38): data_state 가 골격 50행을 COMPLETE 로 · 표와 sha
+비원자적 읽기 · 상태 토큰 목록 뒤처짐 · 대조군 출처 독립성 오판 · 미관측 토큰이
+값으로 샘 · 한글 폰트 깨짐이 정상 산출로 보임.
+
+**A 가 채택한 D 관측 3건**: 회차 수치 불일치(A R118 자기정정) · `superseded_runs` 의
+`NONE` 이 값이라는 지적(→ R125 'sentinel 목록은 전역이 아니라 컬럼별') · 허용문장
+'메뉴의존형도 관측됐다' 가 실측과 반대(→ 선택편향 한계 L13).
+
+우선연구 8개 대조: `spatial dispersion 조작화`(fig2 n=8) · `visible label vs AX`(D02 —
+이번 census 산출 불가로 확정) · `action sequence normalization`(단일 스텝이라 미산출) ·
+`auth-gate stage variation`(AT_ENDPOINT 2 관측) 네 축이 닿았고, 나머지 넷은 관측 부재.
