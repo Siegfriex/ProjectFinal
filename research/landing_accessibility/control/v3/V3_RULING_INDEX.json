@@ -1,11 +1,11 @@
 {
  "index": "V3_RULING_INDEX",
- "version": 37,
+ "version": 38,
  "purpose": "A 가 발행한 모든 조작적 정의·계약 요구의 정본 목록. **B 의 전달을 단일 실패점에서 제거하기 위해 만든다** — 워커가 항목의 존재 자체를 모르면 보고할 것도 없다(T-B-V3-SCOPE-001).",
  "how_to_use": "C 는 GATE 검증 시 **B 의 전달 기록이 아니라 이 목록**을 기준으로 대조한다. 목록에 있는데 산출에 없으면 미반영이다.",
  "source": "control/v3/V3_0_1_SUCCESSOR_DELTA.md — 이 목록은 그 문서의 색인이며 정본은 그 문서다. 충돌 시 delta 원문이 이긴다.",
- "authority_sha": "0f49e9504d609a5ec58c71064d52a67722c62196",
- "count": 122,
+ "authority_sha": "7752ed7970280da076e99a41caea4af32952a68d",
+ "count": 129,
  "rulings": [
   {
    "id": "Δ1-a",
@@ -1463,6 +1463,89 @@
    "aliases": [
     "Δ47-fixture-limit"
    ]
+  },
+  {
+   "id": "Δ48-e000",
+   "requires": "**`P0_RELEASE.json` 의 `E000_FAST` REAL 허가를 철회한다** — `e000_allowed`·`e001_allowed_after_e000_pass`·`real_target_allowed` 를 false 로. **승격 기록(`status`·`promoted_main_sha`·`promotion_verified`·`firewall_gate_status_*`)은 보존**한다. 다시 열려면 **새 release 문서**가 필요하고 이 문서를 고쳐서 열지 않는다",
+   "must_appear_in": "control/P0_RELEASE.json · C 독립 확인",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ48",
+   "aliases": [
+    "E000_FAST",
+    "Δ48-e000"
+   ]
+  },
+  {
+   "id": "Δ48-R41",
+   "requires": "**안전·상태 주장 필드는 상수일 수 없다.** 측정기가 내고 `must_flag`/`must_not_flag` 를 가지며 **측정 가능한 범위를 함께 적는다**. A 는 `REAL_TARGET 누적 0건` 대신 **`A_발행_REAL_허가: 없음(실측·문서 3종·판정식 재평가)`** 로 쓴다 — **항상 참인 필드는 아무것도 말하지 않는다**",
+   "must_appear_in": "A/B/C/D 의 모든 안전·상태 필드",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ48",
+   "aliases": [
+    "R41",
+    "Δ48-R41"
+   ]
+  },
+  {
+   "id": "Δ48-R42",
+   "requires": "**형태 오류가 관측 소견으로 변환되는 경로는 금지한다.** `dom_ax_divergence = ax_declared and not ax_observed` 처럼 형태 위반이 **다른, 의미 있어 보이는 출력**이 되면 계약 위반이 관측으로 위장하는 것을 넘어 **없는 현상을 만든다**. 형태 위반은 raise 로 끝나고 어떤 관측 변수에도 기여하지 않는다",
+   "must_appear_in": "ax_join · 관측 변수 산출",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ48",
+   "aliases": [
+    "R42",
+    "dom_ax_divergence",
+    "Δ48-R42"
+   ]
+  },
+  {
+   "id": "Δ48-R43",
+   "requires": "**검증 함수는 자기 실패를 실증하지 못하면 검증 함수가 아니다.** `verify_*`·`assert_*`·`check_*` **전수**에 대해 실패하는 입력이 존재함을 실증한다(**GATE 1 조건**). 실증 불가면 **이름이 약속을 하고 이행하지 않는 것**이므로 시정 또는 제거 — **이름만 남기지 않는다**",
+   "must_appear_in": "B 의 검증 함수 sweep · GATE1",
+   "verified_by": "C",
+   "due": "GATE1",
+   "authority": "Δ48",
+   "aliases": [
+    "R43",
+    "Δ48-R43"
+   ]
+  },
+  {
+   "id": "Δ48-safety-gate",
+   "requires": "**배선 3건**(`is_credential_field`·`observe_input_mode`·`resolve_forbidden_actions`)은 **`V3_PILOT_5` release 차단**(must_flag/must_not_flag 실증 필수). **미배선 10건은 그 함수를 배선하는 커밋이 그 함수의 R32 시정을 포함해야 한다** — **안전이 '현재 배선에서 발화 안 함' 에 기대면 배선 변경 한 번에 사라진다**",
+   "must_appear_in": "V3_PILOT_5 preconditions · 배선 커밋",
+   "verified_by": "C",
+   "due": "PILOT5",
+   "authority": "Δ48",
+   "aliases": [
+    "Δ48-safety-gate"
+   ]
+  },
+  {
+   "id": "Δ48-runner-id",
+   "requires": "`runner.py` 의 `service_id`·`task_id` **`or` fallback 4건은 배선 3건과 같은 급**이다. 조용히 다른 값으로 떨어지면 **증거가 다른 서비스에 귀속**되며 Director 가 즉시 HARD_STOP_CANDIDATE 로 지목한 **denominator corruption** 이다",
+   "must_appear_in": "runner 시정 · V3_PILOT_5 preconditions",
+   "verified_by": "C",
+   "due": "PILOT5",
+   "authority": "Δ48",
+   "aliases": [
+    "Δ48-runner-id"
+   ]
+  },
+  {
+   "id": "Δ48-R44",
+   "requires": "**판정 티켓 본문이 `Δ42` 오염 경로가 된다.** 순서가 걸린 사안은 독립 열거를 해야 하는 평면에 **수치와 항목명을 티켓 본문으로 보내지 않는다** — 등급·차단 여부·필요한 판정만 보낸다. 이미 도달한 것은 **오염으로 기록하고 '독립' 이라 쓰지 않는다**",
+   "must_appear_in": "버스 티켓 규약",
+   "verified_by": "C",
+   "due": "상시",
+   "authority": "Δ48",
+   "aliases": [
+    "R44",
+    "Δ48-R44"
+   ]
   }
  ],
  "corrected_by": "C-FINDING-040011 — 색인 누락 7 · Δ7 충돌 1 · delta 근거 부재 1. 근본원인은 R8·R9·R10 과 STEP1-015 를 티켓에만 두고 delta 에 기록하지 않은 것이며 Δ19·Δ20 으로 정본화했다. | v3: Δ19-R10 의 due 를 GATE1 → V3_PILOT_5_RELEASE 로 시정 (C 의 NOT_TESTABLE 매핑이 드러냄) | v4: Δ8-R3·Δ10-R13 을 각각 a/b 로 분할 (C-1 자기정정이 드러낸 복합 요구) | v5: Δ22(T-B-FC-015) — Δ20 전제 시정 + R22 포착 스택 신원 + R23 인용/추론 구분 + 커밋 스크롤 fixture | v6: 커버리지 분모 명시 + id 표기 규칙. **Δ21 은 누락된 적이 없다** — D 관측이 표기 불일치였고 A 가 검증 없이 수용했다(T-A-V3-FC-004) | v7: 패턴 규칙을 버리고 행별 aliases[] 선언 (T-B-V3-FINDING-005 — FC-004 규칙으로도 오탐이 재현된다) | v8: 별칭 유일성 자체검사 상주 (C 제안) | v9: 기계적 접미사 별칭 제거 + 토큰경계 매칭 + 길이3 미만 금지 (T-B-V3-FINDING-007) | v10: Δ23~Δ26·R24·R25 누락 5행 추가 + container_sections 명시 + delta 절 커버리지 검사 상주 (D-V3-FINDING-012). **A 의 Δ21 위반 네 번째** | v11: Δ28-R26 추가 (delta 기록과 색인 추가를 함께 — Δ21/Δ27 자기적용) | v12: Δ29 추가 + R26 보강 (D-V3-FACT_CORRECTION-003 — A 의 Δ28 이 너무 관대했다) | v13: Δ30 Scout 정책 승계 5행 + terminal_reason 14값 (T-B-V3-BLK-013) | v14: Δ31 계열 3행 (T-B-V3-FINDING-008) | v15: Δ32 계열 4행 + terminal_reason 15값 (T-B-V3-BLK-014 P0) | v16: Δ10-R11 을 15값 전체 열거로 (D-V3-FINDING-014 — 서술이 14/15 를 뒤집어 읽히게 했다) + 82 분해 기록 | v17: 별칭 기준을 모양에서 특정성으로 (D-V3-FACT_CORRECTION-004). 대조 말뭉치 검사 상주 | v18: split_rows 선언 + index→delta 도달성 검사 상주 (C 의 v16 11건 보고가 v17 에서 우연히 0 이 된 것을 구조로 고정) | v19: MIN-4/MIN-5 중복 해소 + 유령 별칭 7건 제거 (T-B-V3-FINDING-009 · D-V3-ADDENDUM-003) | v20: Δ27·Δ33·Δ34 색인 행 추가 — **서술로만 있던 검사가 실제로 돌자 A 의 Δ21 위반 다섯 번째가 나왔다** | v21: 도달성 선언에 authority 경로 명시 + 헤더 추출 정규식 시정 (D-V3-FINDING-015) | v22: authority 경로를 한계와 함께 선언 + 두 방향 양성대조 (C-FINDING-074834) | v23: probe 값 런타임 선택 — 문서가 자기 검사를 무력화한 두 번째 사례 | v24: Δ35 계열 3행 (T-B-V3-FINDING-010) | v25: Δ36 계열 4행 — A 의 MIN-2 과잉 승계 시정 (T-B-V3-BLK-015) | v26: Δ37 — legacy depth 필드 NULL + 사유 (D-V3-FINDING-016) | v27: 하위 블록의 낡은 측정값 제거 — 측정값 단일 출처 (D-V3-FINDING-017) | v28: Δ38 행 추가 | v29: Δ39/R32 계열 3행 (T-B-V3-FINDING-011)",
@@ -1499,14 +1582,14 @@
    "D3-06": "Δ1-a 와 Δ1-b 가 같은 D3-06 결정을 개정한다. 조회 시 두 행이 모두 반환되는 것이 옳다"
   },
   "last_run": {
-   "at_kst": "2026-08-28T08:55:58+0900",
-   "index_version": 37,
-   "rows": 122,
-   "total_aliases": 214,
+   "at_kst": "2026-08-28T09:01:32+0900",
+   "index_version": 38,
+   "rows": 129,
+   "total_aliases": 227,
    "duplicate": 1,
    "unexpected_duplicate": 0,
-   "delta_sections": 86,
-   "input_sha256": "40efa72d355100ec7244a6ba63b920d10d43b03443d7732015410e2f861ad3f9",
+   "delta_sections": 90,
+   "input_sha256": "b29120ef9388ca597912fb8240e98851431d79c2dcab3924f8db709ef56404a6",
    "positive_control": {
     "per_check": {
      "alias_uniqueness": true,
@@ -1633,7 +1716,7 @@
   "consumer_rule": "index→delta 도달성 검사에서 분할 행은 **부모 절 존재로 충족**이다. 이것은 `container_sections` 의 역방향 대응물이다",
   "why_declared": "v16 에서 C 가 도달 불가 11건을 보고했고 v17 에서 0 이 됐다. **그러나 그 해소는 구조가 아니라 산문 우연이다** — A 가 Δ33 본문 표에 `Δ32-R29` 등을 쓴 덕에 토큰이 등장했을 뿐이다. 다음에 A 가 그런 언급을 하지 않으면 다시 도달 불가가 된다. **우연에 기대지 않도록 선언한다**"
  },
- "source_sha256": "40efa72d355100ec7244a6ba63b920d10d43b03443d7732015410e2f861ad3f9",
+ "source_sha256": "b29120ef9388ca597912fb8240e98851431d79c2dcab3924f8db709ef56404a6",
  "authority_sha_semantics": "이 값을 쓴 시점의 git HEAD 다. **이 갱신 자체는 그 다음 커밋에 담기므로 항상 한 칸 뒤진다.** 정확한 입력 신원은 `source_sha256`(delta 바이트) 이며 그쪽을 인용하라",
  "failure_behavior_demo": {
   "sidecar": "control/v3/CONTROL_FAILURE_DEMO.json",
