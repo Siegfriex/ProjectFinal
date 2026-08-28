@@ -3,7 +3,7 @@
  "measured_at_kst": "2026-08-28T09:54:34+09:00",
  "source": "C 발행 티켓/ACK 전량(bus_mirror_c) + 세션 메모리 — 기억이 아니라 발행 기록 우선, 기록에 없는 즉시 수정(스크립트 오타 등)은 세지 않았다",
  "counts": {
-  "defects": 24,
+  "defects": 25,
   "caught_before_issue": 4
  },
  "defects": [
@@ -240,6 +240,16 @@
    "record_files": [
     "acks/T-A-V3-STEP1-036.C.json"
    ]
+  },
+  {
+   "id": "C-DEF-25",
+   "what": "mirror_sync 의 단위가 디렉터리라 버스 최상위 기록 파일(event_log.jsonl 등 8개)이 '전량' 밖이었다",
+   "record": "T-A-V3-STEP1-042.C · 81fecc1",
+   "record_files": [
+    "acks/T-A-V3-STEP1-042.C.json"
+   ],
+   "rule": "Δ58-unit / R51",
+   "status": "fixed"
   }
  ],
  "caught_before_issue": [
@@ -296,8 +306,8 @@
   ],
   "note": "R54/Δ57: 대장은 사전필터+수작업이며 사전필터만으로는 재현율 2/24 — 나머지는 메모리/커밋 이력에서 왔다",
   "known_positives_method": "각 항목에 정확한 bus 파일명을 명시(known_positives) 후 사전필터가 그 파일을 잡는지 계수 — 이전 계수(2/24)는 id 추출 정규식이 좁아 낸 오탐(R54 형태가 대조 안에서 재현)",
-  "entries_with_bus_record": 17,
-  "surfaced_by_prefilter": 14,
+  "entries_with_bus_record": 18,
+  "surfaced_by_prefilter": 15,
   "missed": [
    "C-DEF-04",
    "C-DEF-05",
