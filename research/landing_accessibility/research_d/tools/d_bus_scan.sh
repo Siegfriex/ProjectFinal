@@ -24,6 +24,9 @@ print(f"  verdict          : {ctl['verdict']}")
 print(f"  positive control : {ctl['positive']['detected']}/{ctl['positive']['expected']} 검출")
 print(f"  negative control : {ctl['negative']['not_detected']}/{ctl['negative']['expected']} 미검출(과탐 0)")
 print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['expected']} 명시 오류")
+# 지금은 비어 있어 신호로 안 잡히지만 **생기면 표시돼야 한다** — 빈 값은 나중에 조용해진다
+for _f in (ctl.get("failures") or []):
+    print(f"  ** control 실패 ** {_f}")
 # --- D 발행분 응답 대기 · 평면 생존 (D-DEF-64) ---
 # **티켓 발행 ≠ 전달.** D 는 매 회차 "A 판정 대기 · C 검산 대기" 라고 적으면서
 # 그 대기가 유효한지 재지 않았다. 발행은 세고 응답은 안 셌다.

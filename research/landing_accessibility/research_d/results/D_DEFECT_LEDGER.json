@@ -1008,6 +1008,16 @@
    "시정": "`d_tool_health.embedded_python_syntax()` — `.sh` 의 헤레독을 뽑아 `ast.parse`. 블록 0 이면 `PASS` 가 아니라 `NO_BLOCKS`(검사 무효). 스캔에 표시한다. 대조군은 **합성 헤레독 텍스트로 이 함수를 직접 시험**한다 — 처음엔 `ast.parse` 만 시험해 대상을 안 건드렸고, 깨진 사본 시험도 **바꾸려던 문자열이 파일에 없어** 아무것도 안 깬 채 PASS 가 나왔다(둘 다 발행 전에 잡았다)",
    "상태": "FIXED",
    "한계": "헤레독 **탐지**는 `<<TAG ... TAG` 형태에 기댄다. 다른 방식으로 python 을 넣으면 안 보인다 — 현재 `d_bus_scan.sh` 에는 블록이 1개(`PYEOF`, 328줄)뿐이고 그것이 감사 블록임을 확인했다"
+  },
+  {
+   "id": "D-DEF-85",
+   "발견": "앞 회차 등재분(`mlflow_contract` 대조군)을 수행하며",
+   "무엇": "**MLflow 계약 모듈에 대조군이 없었다.** `research_run` 이 6가지 계약 위반을 `ContractViolation` 으로 막는데, 그 가드가 아직 막고 있는지 재는 것이 없었다. 검증부가 `research_run` 안에 박혀 있어 **run 을 열지 않고는 시험할 수 없었고**, 대조군을 만들려면 서버에 쓰레기 run 을 남겨야 했다",
+   "왜": "이 모듈은 **21개 필수 tag / 7개 필수 param 을 강제하고 A 이외 평면의 DECISION 기록을 차단**한다 — 조용히 통과하게 되면 모든 run 이 그대로 기록되고 출력은 지금과 같다. `d_emit_ticket.self_test` 와 같은 자리인데 여기만 비어 있었다",
+   "시정": "`validate_args()` 를 순수 함수로 떼고 `research_run` 이 그것을 부르게 했다 — 행동은 그대로다. `controls()` 는 그 함수만 불러 **MLflow 를 전혀 건드리지 않는다**(회계 214 run 불변을 실행 전후로 확인했다). 9건 · must_flag 6: 모르는 experiment · plane enum · claim_kind enum · split enum · authority enum · **A 아닌 평면의 DECISION**. must_not_flag 3: 정상 인자 · A 의 DECISION · **enum 상수가 비어 있지 않음**(빈 enum 은 검사를 통째로 무의미하게 만든다)",
+   "상태": "FIXED",
+   "발행_전_자체검출": "`__main__` 이 **둘**이 됐다. 기존 것이 `ensure_experiments()` 를 부르므로 대조군을 돌릴 때마다 **MLflow 쓰기 경로가 같이 열렸다.** 하나로 합치고 기본을 대조군으로, 실험 보장은 `--ensure` 로 **명시할 때만** 돌게 했다",
+   "한계": "`validate_args` 는 **진입 인자**만 본다. 21개 tag / 7개 param 이 실제로 기록되는지는 run 을 열어야 알 수 있고, 그것은 `d_mlflow_contract_audit` 이 이미 기록된 run 을 훑어서 잰다 — 두 검사가 **다른 시점**을 본다"
   }
  ],
  "caught_pre_emission": [

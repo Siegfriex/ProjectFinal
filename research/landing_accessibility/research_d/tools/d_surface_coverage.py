@@ -56,6 +56,17 @@ _PROSE = ("왜", "뜻", "note", "why", "규칙", "축", "이유", "말하지", "
           "무엇을", "어떻게", "설명", "출처", "대상", "범위", "관계", "read")
 
 
+def _referenced(key: str, txt: str) -> bool:
+    """스캔이 그 키를 **값으로 꺼내 쓰는가**.
+
+    맨 단어로 맞추면 설명 문구 안의 언급도 표시로 센다 — 실제로 그랬다:
+    `f"... 계산된 \u0060covered\u0060 를 쓴다"` 한 줄 때문에 `covered` 가
+    표시된 것으로 읽혔다(**거짓 음성**). 값을 꺼내는 형태는 항상 따옴표가
+    붙는다(`_x['k']` · `_x.get("k")`) — 그 형태를 요구한다.
+    """
+    return (f"'{key}'" in txt) or (f'"{key}"' in txt)
+
+
 def _is_signal(k: str, v) -> bool:
     """수치나 목록을 담은 키만 신호 후보로 본다."""
     if any(p in str(k) for p in _PROSE):
@@ -90,6 +101,15 @@ ACCEPTED_UNSURFACED = {
     ("d_tool_health", "static_without_names"):
         "44개 도구 **이름**을 매 회차 찍는 것은 소음이다. 변화는 `문법만 1/45` 의 수로 드러나고, "
         "루프에서 도는 것 중 없는 것은 이름까지 찍는다 — **판정을 내는 쪽만 이름이 필요하다**",
+    ("d_bus_scan_selftest", "log"):
+        "케이스별 OK/FAIL 자취 14줄. 스캔은 verdict 와 positive/negative/malformed 계수를 찍고, "
+        "**`failures` 는 생기는 즉시 찍는다** — 그 셋이면 자취 없이도 무엇이 깨졌는지 안다",
+    ("d_warn_baseline", "n_base"):
+        "총수(398)의 baseline 이다. 그 검사 스스로 **총수는 신호가 아니라고** 하므로 그 baseline 도 "
+        "신호가 아니다 — 신호인 **종류** 쪽은 `종류 12 (baseline 12, Δ0)` 로 baseline 까지 찍는다",
+    ("d_tool_health", "blocks"):
+        "헤레독 블록의 tag·시작행·줄수. 스캔은 `헤레독 1블록` 으로 **개수**를 찍고 오류가 나면 "
+        "행 번호를 찍는다 — 정상일 때 블록 명세는 소음이다",
     ("d_ledger_shape", "inner_records"):
         "대장 형태 검사의 내부 세부. 상위 `entries`·`caught_pre_emission` 가 이미 표시되고 "
         "이 수가 바뀌어도 대장의 두 분류는 달라지지 않는다",
@@ -132,7 +152,7 @@ def check() -> dict:
             rows.append({"module": mod_name, "state": "NON_DICT"})
             continue
         sig = [k for k, v in res.items() if _is_signal(k, v)]
-        miss = [k for k in sig if k not in scan_txt]
+        miss = [k for k in sig if not _referenced(k, scan_txt)]
         rows.append({"module": mod_name, "fn": fn_name,
                      "signal_keys": len(sig), "unsurfaced": miss})
         for k in miss:
@@ -173,6 +193,11 @@ def controls() -> dict:
     case("`note` 도 설명이다", _is_signal("note", "x"), False)
     c = check()
     case("판정이 아니라 INFO 다", c["verdict"], "INFO")
+    case("설명 문구 안의 언급은 표시가 아니다",
+         _referenced("covered", "print(f'계산된 `covered` 를 쓴다')"), False)
+    case("따옴표로 꺼내 쓰면 표시다",
+         _referenced("covered", "print(_c['covered'])"), True)
+    case("쌍따옴표도 표시다", _referenced("covered", 'print(_c.get("covered"))'), True)
     _t = derive_targets()
     case("원본에서 9쌍보다 많이 뽑는다", len(_t) > 9, True)
     case("자기 자신은 빼야 한다 — 재귀", any(m == SELF_MODULE for m, _ in _t), False)

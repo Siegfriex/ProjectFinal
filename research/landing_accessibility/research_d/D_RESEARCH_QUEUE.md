@@ -1068,3 +1068,17 @@ B 가 `scope: 시각 가드 대조군` 으로 D 앞에 낸 시험 티켓. **ACK 
 
 **미결(다음 회차)**: `mlflow_contract` 대조군 — `verdict` 3개 + 계약 강제라 필요하다.
 계약 모듈이므로 따로 본다.
+
+## RQ-D-MLFLOWCTRL — 계약 모듈 대조군 (`D-DEF-85`, 2026-08-28)
+
+앞 회차 등재분 수행. `mlflow_contract.research_run` 의 6가지 계약 가드에 대조군이 없었다.
+`validate_args()` 를 순수 함수로 떼어 **run 을 열지 않고** 시험한다 — 9건 · must_flag 6.
+MLflow 회계 **214 run 불변**을 실행 전후로 확인했다.
+
+루프에서 도는 도구 중 대조군 정의 없는 것: **26개 중 2개**(`d_presentation_eda` · `d_v3_report`).
+
+- `d_v3_report` — `verdict` 키 0 · PASS/FAIL 0. **그림 생산기라 필요 없다.**
+- `d_presentation_eda` — **383행에서 가설 판정을 낸다**
+  (`"verdict": "SUPPORTED_AS_WEAKER_FORM" if supported else "NOT_SUPPORTED"`).
+  따라서 대조군이 **필요하다**. 다만 그 대조군은 `supported` 의 조작화를 건드리므로
+  **A 의 v3 역할 티켓 없이 즉석으로 만들지 않는다**(00 §13). → **A 지정 후**로 등재.

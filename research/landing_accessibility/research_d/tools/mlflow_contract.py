@@ -126,19 +126,15 @@ class ContractViolation(RuntimeError):
     pass
 
 
-@contextmanager
-def research_run(*, experiment: str, run_name: str, plane: str, objective: str, method: str,
-                 dataset_grain: str, n_expected, n_observed, hypothesis_id: str = "NONE",
-                 competing_hypothesis: str | None = None, claim_kind: str = "ANALYSIS",
-                 ticket_id: str = "NONE", phase: str = "I1", agent_id: str = "D",
-                 subagent_id: str = "NONE", split: str = "none", nested: bool = False,
-                 parent_run_id: str = "NONE", result_path: Path | None = None,
-                 model_or_rule_version: str = "NONE", label_snapshot_sha: str = "NONE",
-                 evidence_status: str = "EVIDENCE_BACKED", real_target: str = "no",
-                 authority_status: str | None = None, extra_tags: dict | None = None,
-                 extra_params: dict | None = None, seed=None, code_path: Path | str | None = None,
-                 limitation: str | None = None, notebook: str | None = None):
-    """계약을 만족하는 run 을 연다. 필수 항목이 빠지면 열지 않는다."""
+def validate_args(*, experiment: str, plane: str, claim_kind: str, split: str,
+                  authority_status: str | None) -> str:
+    """`research_run` 의 진입 검증 — **MLflow 를 건드리지 않는다.**
+
+    [D-DEF-85] 이 계약 모듈에는 대조군이 없었다. 검증부가 `research_run` 안에
+    박혀 있어 **run 을 열지 않고는 시험할 수 없었고**, 대조군을 만들려면 서버에
+    쓰레기 run 을 남겨야 했다. 순수 함수로 떼면 둘 다 피한다.
+    반환값은 확정된 `authority` 다.
+    """
     if experiment not in EXPERIMENTS:
         raise ContractViolation(f"unknown experiment: {experiment}")
     if plane not in ("A", "B", "C", "D"):
@@ -152,6 +148,24 @@ def research_run(*, experiment: str, run_name: str, plane: str, objective: str, 
         raise ContractViolation(f"authority_status: {authority}")
     if plane != "A" and authority == "DECISION":
         raise ContractViolation("A run 만 DECISION 상태를 기록할 수 있다")
+    return authority
+
+
+@contextmanager
+def research_run(*, experiment: str, run_name: str, plane: str, objective: str, method: str,
+                 dataset_grain: str, n_expected, n_observed, hypothesis_id: str = "NONE",
+                 competing_hypothesis: str | None = None, claim_kind: str = "ANALYSIS",
+                 ticket_id: str = "NONE", phase: str = "I1", agent_id: str = "D",
+                 subagent_id: str = "NONE", split: str = "none", nested: bool = False,
+                 parent_run_id: str = "NONE", result_path: Path | None = None,
+                 model_or_rule_version: str = "NONE", label_snapshot_sha: str = "NONE",
+                 evidence_status: str = "EVIDENCE_BACKED", real_target: str = "no",
+                 authority_status: str | None = None, extra_tags: dict | None = None,
+                 extra_params: dict | None = None, seed=None, code_path: Path | str | None = None,
+                 limitation: str | None = None, notebook: str | None = None):
+    """계약을 만족하는 run 을 연다. 필수 항목이 빠지면 열지 않는다."""
+    authority = validate_args(experiment=experiment, plane=plane, claim_kind=claim_kind,
+                              split=split, authority_status=authority_status)
 
     mlflow.set_tracking_uri(TRACKING_URI)
     mlflow.set_experiment(experiment)
@@ -243,7 +257,64 @@ def log_pointer(name: str, path: str, sha: str, bytes_: int | None = None) -> No
     mlflow.log_text(json.dumps(doc, ensure_ascii=False, indent=1), f"pointers/{name}.json")
 
 
+
+
+def controls() -> dict:
+    """[D-DEF-85] 계약 가드가 아직 막고 있는가 — **run 을 열지 않고** 잰다.
+
+    `validate_args` 만 부른다. MLflow 서버에 아무것도 쓰지 않는다 —
+    대조군이 쓰레기 run 을 남기면 그 자체가 회계를 오염시킨다.
+    """
+    rows = []
+    ok_args = dict(experiment=next(iter(EXPERIMENTS)), plane="D",
+                   claim_kind="ANALYSIS", split="none", authority_status=None)
+
+    def case(name, args, should_raise=True):
+        try:
+            validate_args(**args)
+            raised = False
+        except ContractViolation:
+            raised = True
+        rows.append({"case": name, "raised": raised,
+                     "expectation": "must_flag" if should_raise else "must_not_flag",
+                     "ok": raised == should_raise})
+
+    case("정상 인자는 통과한다", ok_args, should_raise=False)
+    case("모르는 experiment 는 막힌다", ok_args | {"experiment": "__no_such__"})
+    case("plane 은 A|B|C|D 만", ok_args | {"plane": "Z"})
+    case("claim_kind enum 밖은 막힌다", ok_args | {"claim_kind": "GUESS"})
+    case("split enum 밖은 막힌다", ok_args | {"split": "train"})
+    case("authority_status enum 밖은 막힌다", ok_args | {"authority_status": "TRUSTED"})
+    case("**A 아닌 평면은 DECISION 을 못 쓴다**",
+         ok_args | {"plane": "D", "authority_status": "DECISION"})
+    case("A 는 DECISION 을 쓸 수 있다",
+         ok_args | {"plane": "A", "authority_status": "DECISION"}, should_raise=False)
+
+    # 계약 상수가 비면 검사가 통째로 무의미해진다 — 빈 enum 은 통과가 아니다
+    rows.append({"case": "enum 상수가 비어 있지 않다 — 빈 enum 은 모든 값을 막거나 통과시킨다",
+                 "expectation": "must_not_flag",
+                 "ok": all(len(x) > 0 for x in (CLAIM_KINDS, SPLITS, AUTHORITY,
+                                                EXPERIMENTS, RUN_STATUS, VERDICTS))})
+    ok = all(r["ok"] for r in rows)
+    return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "must_flag": sum(1 for r in rows if r["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for r in rows if r["expectation"] == "must_not_flag"),
+            "failed": [r["case"] for r in rows if not r["ok"]],
+            "MLflow_를_건드리지_않는다": "run 을 열지 않는다 — 대조군이 회계를 오염시키면 안 된다",
+            "cases": rows}
+
+
 if __name__ == "__main__":
-    ids = ensure_experiments()
-    for k, v in ids.items():
-        print(f"{v:>3}  {k:<20} {EXPERIMENTS[k]}")
+    # [D-DEF-85] `__main__` 이 둘이었다. 뒤엣것을 붙이자 **대조군을 돌릴 때마다
+    # `ensure_experiments()` 가 같이 돌아 MLflow 에 쓰기 경로를 열었다.**
+    # 기본은 대조군(쓰지 않는다). 실험 보장은 `--ensure` 로 **명시할 때만** 한다.
+    import json as _j
+    import sys as _sys
+    if "--ensure" in _sys.argv:
+        _ids = ensure_experiments()
+        for _k, _v in _ids.items():
+            print(f"{_v:>3}  {_k:<20} {EXPERIMENTS[_k]}")
+        raise SystemExit(0)
+    _c = controls()
+    print(_j.dumps(_c, ensure_ascii=False, indent=1))
+    raise SystemExit(0 if _c["verdict"] == "PASS" else 3)
