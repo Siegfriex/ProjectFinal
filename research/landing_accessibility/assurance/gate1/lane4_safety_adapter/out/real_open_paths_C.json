@@ -1,0 +1,621 @@
+{
+ "task": "T-A-V3-FC-008 request 2 / Δ40-R34(b) out-of-unit search — REAL-target open paths, C independent enumeration",
+ "measured_at_kst": "2026-08-28T09:09:44+09:00",
+ "refs_read": {
+  "origin/main": {
+   "sha": "84afb35238c660c43da6401b5acc3904880eecbe",
+   "note": "research/landing_accessibility absent (0 files)"
+  },
+  "origin/control/landing-orchestrator": {
+   "sha_at_start": "f9c9c7b7db314c72828cf316f8873aed3c6b3e7a",
+   "sha_at_end": "0aabc89c7e100a4e6bd22d61c0191b218f380897",
+   "intermediate": [
+    "50ed953e468d087f8eb1fec157dbdd6058a3effa",
+    "fd304ef0d6236ea1d40d63b2996849650626ca2d"
+   ],
+   "note": "ref advanced 3x during enumeration; diffs touched only bus/ruling docs, the three release JSONs byte-identical across all four SHAs (sha256 prefixes P0 ccdaa5a8fa31 / E001 1406e1a8528a / V2 05ff463908fc)",
+   "code_files": [
+    "control/mlflow/a_gate_registry.py",
+    "control/v3/a_publish_guard.py",
+    "control/v3/check_ruling_index.py",
+    "control/v3/control_failure_demo.py",
+    "scripts/hooks/pre-push",
+    "scripts/install_hooks.sh",
+    "scripts/materialize_state.py",
+    "scripts/promote_landing_main.sh"
+   ]
+  },
+  "origin/claude-b/w5p-r32-list": {
+   "sha": "a4185e4c858455f4a1c85112d6e619bbdb9762b1",
+   "role": "primary code ref (newest, 519 files); engine/firewall.py blob 475519fd; layer_firewall.py blob 1e266a72"
+  },
+  "other_b_refs": {
+   "count": 37,
+   "firewall_blob_variants": {
+    "engine/firewall.py": [
+     "475519fd (w1,w5a..w5p,diag-pilot-integration)",
+     "2993e826 (clean0-v21,e000-real,measurement-recovery,w2,w3,w4)",
+     "9ba47b7b (analysis-current,e001-master-plan,integration-current,integration-prep-c007,pc-regression-c007,e001-runner,e001-runner-l1fix)",
+     "absent (analysis-skeleton,e000-fast,e000-plan,pa-qa,pb-prework,pc-fixture)"
+    ],
+    "layer_firewall.py": [
+     "1e266a72 (all w*/clean0/e000-real/measurement-recovery/diag-pilot-integration)",
+     "4c605956 (e001-runner,e001-runner-l1fix)",
+     "absent (others)"
+    ]
+   },
+   "method": "137 .py/.sh blobs present on other refs but absent from w5p were cat-file'd and grepped"
+  }
+ },
+ "release_docs_state_at_control_0aabc89c": {
+  "P0_RELEASE.json": {
+   "status": "RELEASED",
+   "promoted_main_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+   "e000_allowed": false,
+   "real_target_allowed": false
+  },
+  "E001_RELEASE.json": {
+   "status": "SUSPENDED",
+   "authority_refs.promoted_main_sha": "bc0b7a087faf2328cbafdfa9b40bd426c5080d7d",
+   "e001_allowed": false,
+   "real_target_allowed": false
+  },
+  "V2_DIAGNOSTIC_RELEASE.json": {
+   "status": "HISTORICAL_METHOD_ASSURANCE",
+   "v2_diagnostic_allowed": false,
+   "real_target_allowed": false
+  }
+ },
+ "sites": [
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py",
+   "line": "42-44",
+   "snippet": "BATCH_LAYER_RELEASE_REF = \"origin/control/landing-orchestrator\" / BATCH_LAYER_RELEASE_PATH = \".../control/P0_RELEASE.json\" / BATCH_LAYER_E001_RELEASE_PATH = \".../control/E001_RELEASE.json\"",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py",
+   "line": "48-51",
+   "snippet": "BATCH_LAYER_REAL_SCOPES = {\"E000_FAST\": (BATCH_LAYER_RELEASE_PATH, \"e000_allowed\"), \"E001_FULL\": (BATCH_LAYER_E001_RELEASE_PATH, \"e001_allowed\")}",
+   "class": "gated-by-release-doc",
+   "note": "MUST_FLAG control hit. V2_DIAGNOSTIC absent -> layer blocks that scope unconditionally (line 146-150)"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py",
+   "line": "65-90",
+   "snippet": "_release_document(repo_dir=None, path): subprocess git -C <repo_dir or _REPO_ROOT> show {BATCH_LAYER_RELEASE_REF}:{path}; any failure -> None -> block",
+   "class": "gated-by-release-doc",
+   "note": "repo_dir is a caller API parameter (not CLI/env); production callers pass None"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py",
+   "line": "112-118",
+   "snippet": "return bool(data.get(\"status\") == \"RELEASED\" and isinstance(promoted,str) and len(promoted)>=7 and data.get(allow_flag) is True and data.get(\"real_target_allowed\") is not False)",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py",
+   "line": "139-158",
+   "snippet": "if value == BATCH_LAYER_BLOCKED_MODE: scope None -> raise; scope not in BATCH_LAYER_REAL_SCOPES -> raise; not batch_layer_real_target_released(None, scope_value) -> raise",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "73",
+   "snippet": "P0_GATE_STATUS = \"CLOSED\"",
+   "class": "non-gating-constant",
+   "note": "only read by p0_closed()/firewall_state(); assert_mode_allowed does not consult it"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "117-119",
+   "snippet": "MODES_ALLOWED_BEFORE_P0 = frozenset({FIXTURE, SHADOW_DRY_RUN})",
+   "class": "gated-by-other-flag",
+   "note": "closed set; REAL_TARGET handled before this check"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "125",
+   "snippet": "REAL_TARGET_URL_SCHEMES = frozenset({\"https\",\"http\"})",
+   "class": "gated-by-other-flag"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "128-133",
+   "snippet": "P0_RELEASE_REF = \"origin/control/landing-orchestrator\"; P0_RELEASE_PATH=.../P0_RELEASE.json; E001_RELEASE_PATH=.../E001_RELEASE.json; V2_DIAGNOSTIC_RELEASE_PATH=.../V2_DIAGNOSTIC_RELEASE.json",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "142-152",
+   "snippet": "E000_FAST_PLAN_CANDIDATES = (_RESEARCH_ROOT/shadow/e000_plan/E000_FAST_PLAN.json, _REPO_ROOT/.agent_worktrees/claude_b_e000_fast/.../E000_FAST_PLAN.json)",
+   "class": "allowlist-source-path",
+   "note": "second candidate is an out-of-tree sibling worktree file (not ref-pinned, no hash check for E000_FAST)"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "171-185",
+   "snippet": "E001_MASTER_PLAN_CANDIDATES incl. _MAIN_REPO_ROOT/.agent_worktrees/claude_b_e001_master_plan/...; E001_FROZEN_PLAN_HASH = \"b48be3cb...\"",
+   "class": "allowlist-source-path",
+   "note": "hash-pinned"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "190-213",
+   "snippet": "E001_ELIGIBILITY_CSV_CANDIDATES / E001_TASK_CSV_CANDIDATES incl. .agent_worktrees/landing_pb_prework/...",
+   "class": "allowlist-source-path",
+   "note": "sibling worktree CSV, read-only join; not hash-pinned"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "229-247",
+   "snippet": "DIAGNOSTIC_PILOT_MANIFEST_CANDIDATES = _plan_candidates(\"control\",\"pilot\",\"DIAGNOSTIC_PILOT_MANIFEST.json\"); DIAGNOSTIC_PILOT_MANIFEST_SHA256 = \"78f2e32a...\"",
+   "class": "allowlist-source-path",
+   "note": "sha256-pinned"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "287-294",
+   "snippet": "def real_target_permitted() -> bool: return False  (permanently)",
+   "class": "unconditional-deny"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "339-385",
+   "snippet": "read_release_document(ref=P0_RELEASE_REF, path, repo_dir=None, use_cache=True): git -C <repo_dir or _REPO_ROOT> show {ref}:{path}; failure -> data None -> block",
+   "class": "gated-by-release-doc",
+   "note": "repo_dir/use_cache are API parameters; no CLI/env"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "425-479",
+   "snippet": "status != RELEASED -> deny; promoted_main_sha (top-level or authority_refs) must look like sha; real_target_allowed is False -> deny; manifest_sha256 must equal expected (V2 only); data.get(allow_flag) must be True",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "510-532",
+   "snippet": "E000_FAST -> P0_RELEASE.json/e000_allowed; V2_DIAGNOSTIC -> V2_DIAGNOSTIC_RELEASE.json/v2_diagnostic_allowed + expected_manifest_sha256; else (E001_FULL) -> E001_RELEASE.json/e001_allowed",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "1097-1110",
+   "snippet": "verdict = evaluate_execution_scope(scope); if not verdict.allowed: raise ExecutionScopeBlockedError; if target_id/url: assert_target_allowlisted(...)",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "1141-1150",
+   "snippet": "if resolved is ExecutionMode.REAL_TARGET: if scope is None: raise RealTargetBlockedError; assert_real_target_scope_allowed(scope)",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "1183-1230",
+   "snippet": "assert_navigation_allowed: REAL_TARGET -> scheme in {http,https} + netloc + assert_real_target_scope_allowed(target_id,url); FIXTURE -> file:// inside fixture_root only",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/batch.py",
+   "line": "607-609",
+   "snippet": "layer_mode = assert_batch_execution_mode_safe(execution_mode, execution_scope)\\nengine_mode = assert_mode_allowed(execution_mode, scope=execution_scope)\\nassert layer_mode == engine_mode.value",
+   "class": "gated-by-release-doc",
+   "note": "CONJUNCTION: both calls are sequential statements, each raises on deny"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/batch.py",
+   "line": "648-659",
+   "snippet": "REAL batch requires ticket_id and run_id (ExactlyOnceConfigError) unless target_executor injected; validate_real_target_scope_allowlist(plan, scope=scope)",
+   "class": "gated-by-other-flag",
+   "note": "target_executor injection bypasses exactly-once only, not firewalls (run() already passed both)"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/batch.py",
+   "line": "726",
+   "snippet": "scope = self._real_scope or ExecutionScope.E000_FAST",
+   "class": "gated-by-release-doc",
+   "note": "default only reachable if _real_executor called outside run(); _real_scope set at 657 after both firewalls"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/plan.py",
+   "line": "152",
+   "snippet": "resolved_scope = scope if scope is not None else ExecutionScope.E000_FAST",
+   "class": "gated-by-other-flag",
+   "note": "allowlist check default scope; not a release gate by itself"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/real_executor.py",
+   "line": "71-84,87-106,110-160",
+   "snippet": "scope: object = ExecutionScope.E000_FAST defaults; assert_real_target_scope_allowed(scope, target_id, url, canonical_service_key); L0Collector(execution_mode=REAL_TARGET, execution_scope=scope)",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/l0_collector.py",
+   "line": "591-598,632",
+   "snippet": "requested_url = assert_navigation_allowed(self.execution_mode, target.url(...), fixture_root, scope=self.execution_scope, target_id=...) ... page.goto(requested_url)",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/l1_engine.py",
+   "line": "1353-1368,1429",
+   "snippet": "entry_url = assert_navigation_allowed(self.execution_mode, entry_real_url, scope=self.execution_scope, target_id=web_target_id) | file:// fixture branch; page.goto(entry_url)",
+   "class": "gated-by-release-doc"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/l1_engine.py",
+   "line": "1763-1771",
+   "snippet": "replay(): entry_url = assert_navigation_allowed(execution_mode, f\"file://{...}\", fixture_root=root); page.goto(entry_url)",
+   "class": "gated-by-other-flag",
+   "note": "file:// only; REAL_TARGET would fail scheme check"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/l1_engine.py",
+   "line": "932-933",
+   "snippet": "os.environ.setdefault(\"HF_HUB_OFFLINE\",\"1\"); os.environ.setdefault(\"TRANSFORMERS_OFFLINE\",\"1\")",
+   "class": "env-or-CLI-override",
+   "note": "setdefault: an externally pre-set HF_HUB_OFFLINE=0 re-enables HuggingFace hub network (model download), not target access"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/v3_runner/session.py",
+   "line": "648,1016-1070",
+   "snippet": "EXECUTION_MODE = ExecutionMode.FIXTURE (class constant); _resolve_fixture_url -> assert_navigation_allowed(FIXTURE,...); page.goto(requested_url)",
+   "class": "gated-by-other-flag",
+   "note": "no REAL_TARGET path; fixture-only driver"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/v3_runner/discovery.py",
+   "line": "426,451",
+   "snippet": "L0Collector(run, fixture_root=fixture_root, execution_mode=ExecutionMode.FIXTURE)",
+   "class": "gated-by-other-flag",
+   "note": "fixture-only"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/src/landing_accessibility/v3_runner/registry.py",
+   "line": "529,1153",
+   "snippet": "real_target_allowed: bool ... real_target_allowed=bool(document.get(\"real_target_allowed\", False))",
+   "class": "non-gating-flag",
+   "note": "parsed from control/v3/FINAL_MAIN50_MANIFEST.json; zero consumers of .real_target_allowed on this ref (grep)"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/scripts/run_e000_fast_real.py",
+   "line": "56-68,75,85,95-99",
+   "snippet": "argparse: --plan --out --batch-size --check-only; verdict = evaluate_execution_scope(ExecutionScope.E000_FAST); runner.run(plan, execution_mode=REAL_TARGET, execution_scope=E000_FAST)",
+   "class": "gated-by-release-doc",
+   "note": "scope hardcoded; --plan changes plan file only, allowlist loaded from candidates and plan validated against it"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/scripts/run_e001_real.py",
+   "line": "93-111,117,147,161-165",
+   "snippet": "argparse: --worker(required) --plan --out --batch-size --check-only; evaluate_execution_scope(E001_FULL); load_e001_full_targets(args.plan) hash-verified; runner.run(..., REAL_TARGET, E001_FULL)",
+   "class": "gated-by-release-doc",
+   "note": "--plan path override is hash-pinned (E001_FROZEN_PLAN_HASH)"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/scripts/run_v2_diagnostic_pilot.py",
+   "line": "138-175,180,228-232",
+   "snippet": "argparse: --out --batch-size --manifest --check-only --ticket-id --run-id --lock-dir; evaluate_execution_scope(ExecutionScope.V2_DIAGNOSTIC) literal; runner.run(..., REAL_TARGET, V2_DIAGNOSTIC)",
+   "class": "gated-by-release-doc",
+   "note": "engine gate = V2_DIAGNOSTIC_RELEASE.json; layer_firewall additionally rejects scope V2_DIAGNOSTIC unconditionally (not in BATCH_LAYER_REAL_SCOPES) -> this driver cannot reach navigation on this ref"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/scripts/run_e001_batch_dryrun.py",
+   "line": "83-91,105",
+   "snippet": "--mode arg; assert firewall_state()[\"real_target_permitted\"] is False; runner.run(plan, execution_mode=args.mode)",
+   "class": "gated-by-release-doc",
+   "note": "no scope passed -> REAL_TARGET always blocked by both layers"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/scripts/run_fixture_engine.py",
+   "line": "124-139",
+   "snippet": "assert firewall_state()[\"real_target_permitted\"] is False; EvidenceRun.create(..., execution_mode=ExecutionMode.FIXTURE)",
+   "class": "gated-by-other-flag",
+   "note": "fixture-only"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/scripts/acquire_wiseapp_authority.py",
+   "line": "309-318,177-188,192-210",
+   "snippet": "mode.add_argument(\"--acquire\", ... help=\"원문 재취득 (네트워크 사용)\"); if args.acquire: return acquire(args.out) -> cffi_requests.post(DETAIL_API,...) + pw.chromium.launch(); page.goto(PAGE_URL, wait_until=\"networkidle\")",
+   "class": "env-or-CLI-override",
+   "note": "CLI flag opens real network (wiseapp authority page) with NO firewall/release-doc check; target is a source-authority site, not a measurement target"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/scripts/collect_certification_registry.py + src/landing_accessibility/registry.py",
+   "line": "script 30-37; module 247-262,266-286",
+   "snippet": "collect_snapshot(...) -> crawl() -> requests.Session().get(url) over KWACC certification list pages; default invocation (no flag) crawls; --reparse avoids network",
+   "class": "unconditional",
+   "note": "no firewall/release-doc check; requests only the certification list site, explicitly not target service URLs (docstring line 7)"
+  },
+  {
+   "ref": "origin/claude-b/w5p-r32-list",
+   "path": "research/landing_accessibility/shadow/lane_b/scripts/probe_official_urls_shadow.py",
+   "line": "162-171,271-284,240-245",
+   "snippet": "session = requests.Session() ... record = probe(url, ua, posture) for every candidate_urls entry (MOBILE+DESKTOP UA); only output-field check _firewall_assert(payload)",
+   "class": "unconditional",
+   "note": "HTTP GET to candidate OFFICIAL SERVICE URLs (the study targets) with no execution_mode argument and no release-doc/firewall call; self-labelled target-preparation, real_target_measurement=False"
+  },
+  {
+   "ref": "origin/control/landing-orchestrator@0aabc89c",
+   "path": "research/landing_accessibility/control/mlflow/a_gate_registry.py",
+   "line": "13,41-51",
+   "snippet": "TRACKING = os.environ.get(\"MLFLOW_TRACKING_URI\") or \"http://127.0.0.1:5000\"; mlflow.set_tags({... \"self_approved\": \"false\", \"real_target\": \"no\"})",
+   "class": "non-gating-flag",
+   "note": "MLflow tag is a hardcoded label; env var only selects tracking server"
+  },
+  {
+   "ref": "origin/claude-b/{analysis-current,e001-master-plan,integration-current,integration-prep-c007,pc-regression-c007,e001-runner,e001-runner-l1fix}",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "37,78,81-88,110-118",
+   "snippet": "P0_GATE_STATUS = \"OPEN\"; def real_target_permitted(): return p0_closed(); assert_mode_allowed: if REAL_TARGET and not real_target_permitted(): raise",
+   "class": "gated-by-other-flag",
+   "blob": "9ba47b7b4afbc3ea241b9337252f670c10c7eb75",
+   "note": "pre-scope variant: gate is a CODE CONSTANT (P0_GATE_STATUS), not a release document; flipping the constant on these refs would permit REAL_TARGET at the engine layer; no allowlist/scope machinery"
+  },
+  {
+   "ref": "origin/claude-b/{e001-runner,e001-runner-l1fix}",
+   "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py",
+   "line": "31,50-58",
+   "snippet": "BATCH_LAYER_BLOCKED_MODE = \"REAL_TARGET\"; any REAL_TARGET -> raise (no scope path)",
+   "class": "unconditional-deny",
+   "blob": "4c6059563d330318a80da6abb66af107344f5ff6"
+  },
+  {
+   "ref": "origin/claude-b/{clean0-v21,e000-real,measurement-recovery,w2-rf-detector,w3-kwcag,w4-axisc-mart}",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py",
+   "line": "(evaluate_execution_scope)",
+   "snippet": "E000_FAST -> P0_RELEASE.json/e000_allowed; else -> E001_RELEASE.json/e001_allowed (no V2_DIAGNOSTIC branch, no V2_DIAGNOSTIC_RELEASE_PATH, no manifest sha binding)",
+   "class": "gated-by-release-doc",
+   "blob": "2993e82618599f09a450e2f72eae723506941003",
+   "note": "older variant; V2_DIAGNOSTIC (if present) would fall to E001_RELEASE.json"
+  },
+  {
+   "ref": "origin/claude-b/pc-fixture",
+   "path": "research/landing_accessibility/src/landing_accessibility/pc_fixture/execution_mode.py",
+   "line": "33,50-55",
+   "snippet": "P0_CLOSED = False ... if execution_mode == \"REAL_TARGET\" and not P0_CLOSED: raise RealTargetForbiddenError",
+   "class": "gated-by-other-flag",
+   "blob": "231e72e29974352b1d94bf9d9c2a2998181d61a3",
+   "note": "code constant gate, legacy lane"
+  },
+  {
+   "ref": "origin/claude-b/pb-prework",
+   "path": "research/landing_accessibility/scripts/probe_official_urls.py",
+   "line": "233-241,~280 (require_execution_mode)",
+   "snippet": "--execution-mode choices=[FIXTURE, SHADOW_DRY_RUN, REAL_TARGET], default SHADOW_DRY_RUN; require_execution_mode(args.execution_mode); requests.Session GET probes in SHADOW_DRY_RUN",
+   "class": "env-or-CLI-override",
+   "blob": "2eb1906123506bff8f5abfb3e30040a80ac34fe7",
+   "note": "CLI flag exists but REAL_TARGET is rejected by shadow_provenance.ALLOWED_BEFORE_P0_CLOSE constant; network probing happens in default SHADOW_DRY_RUN mode without any release gate (legacy C013)"
+  },
+  {
+   "ref": "origin/claude-b/pb-prework",
+   "path": "research/landing_accessibility/src/landing_accessibility/shadow_provenance.py",
+   "line": "25-26,35-45",
+   "snippet": "ALLOWED_BEFORE_P0_CLOSE = frozenset({\"FIXTURE\",\"SHADOW_DRY_RUN\"}); require_execution_mode raises RealTargetFirewallError for REAL_TARGET",
+   "class": "unconditional-deny",
+   "blob": "e972d525e646ca57ec51ef1c578c0474497a916f"
+  },
+  {
+   "ref": "origin/claude-b/clean0-v21",
+   "path": "research/landing_accessibility/scripts/mlflow_b_track.py",
+   "line": "16,70,113-115,136",
+   "snippet": "TRACKING = os.environ.get(\"MLFLOW_TRACKING_URI\", ...); real_target=\"no\" param -> tags evidence_status/real_target",
+   "class": "non-gating-flag",
+   "note": "label only"
+  }
+ ],
+ "counts": {
+  "sites_total": 48,
+  "by_class": {
+   "allowlist-source-path": 4,
+   "env-or-CLI-override": 3,
+   "gated-by-other-flag": 10,
+   "gated-by-release-doc": 22,
+   "non-gating-constant": 1,
+   "non-gating-flag": 3,
+   "unconditional": 2,
+   "unconditional-deny": 3
+  },
+  "grep_hits_w5p_code_files": 492,
+  "grep_hit_files_w5p": 36,
+  "grep_hits_control_ref_all_files": 338,
+  "grep_hit_files_control_ref": 126,
+  "grep_hits_origin_main": 0
+ },
+ "firewall_layers": {
+  "engine": "research/landing_accessibility/src/landing_accessibility/engine/firewall.py (assert_mode_allowed 1134-1158 -> assert_real_target_scope_allowed 1078-1111 -> evaluate_execution_scope 500-532 -> read_release_document 339-385)",
+  "batch_layer": "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py (assert_batch_execution_mode_safe 121-171 -> batch_layer_real_target_released 93-118 -> _release_document 65-90)",
+  "relation": "CONJUNCTION at the batch entry point; navigation-time checks are engine-only",
+  "quotes": [
+   {
+    "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/batch.py",
+    "line": 607,
+    "text": "layer_mode = assert_batch_execution_mode_safe(execution_mode, execution_scope)"
+   },
+   {
+    "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/batch.py",
+    "line": 608,
+    "text": "engine_mode = assert_mode_allowed(execution_mode, scope=execution_scope)"
+   },
+   {
+    "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/batch.py",
+    "line": 609,
+    "text": "assert layer_mode == engine_mode.value  # 두 firewall이 같은 값을 봤다는 것을 명시"
+   },
+   {
+    "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/batch.py",
+    "line": "602-604",
+    "text": "scope 없는 REAL_TARGET을 요청하면 **두 firewall 모두** 통과하지 못하고 즉시 실패한다. 어느 한쪽만 통과시켜도 이 함수는 진행하지 않는다 — 순서와 무관하게 둘 다 호출된다."
+   },
+   {
+    "path": "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py",
+    "line": "4-5",
+    "text": "이 모듈은 그것을 대체하지 않는다 — `batch.py`는 엔진의 가드와 이 모듈의 가드를 **둘 다** 호출한다."
+   },
+   {
+    "path": "research/landing_accessibility/src/landing_accessibility/engine/l0_collector.py",
+    "line": "592-598",
+    "text": "requested_url = assert_navigation_allowed(self.execution_mode, target.url(self.fixture_root), fixture_root=self.fixture_root, scope=self.execution_scope, target_id=...)  # engine layer only, no layer_firewall call"
+   }
+  ],
+  "mechanism": "Both calls are unconditional sequential statements; each raises (BatchRealTargetBlockedError / RealTargetBlockedError|ExecutionScopeBlockedError) on deny, so run() proceeds only if BOTH allow. Each layer independently runs its own `git show origin/control/landing-orchestrator:<release json>` (layer 65-90; engine 339-385) with fail-closed None handling. Direct construction of L0Collector/Scout/run_l0_real bypasses layer_firewall but NOT the engine gate (assert_navigation_allowed -> assert_real_target_scope_allowed -> evaluate_execution_scope)."
+ },
+ "predicate_difference_between_layers": {
+  "layer_firewall": "status==\"RELEASED\" AND promoted_main_sha str len>=7 (top-level or authority_refs) AND data[allow_flag] is True AND real_target_allowed is not False; scopes known: {E000_FAST, E001_FULL} only",
+  "engine": "status==\"RELEASED\" AND _looks_like_sha(promoted) AND real_target_allowed is not False AND (V2 only) manifest_sha256==DIAGNOSTIC_PILOT_MANIFEST_SHA256 AND data[allow_flag] is True; scopes: {E000_FAST, E001_FULL, V2_DIAGNOSTIC}",
+  "consequence": "For E000_FAST/E001_FULL the two predicates are equivalent given the same document. For V2_DIAGNOSTIC the layer denies unconditionally (scope not in BATCH_LAYER_REAL_SCOPES), so run_v2_diagnostic_pilot.py cannot open REAL via BatchRunner regardless of V2_DIAGNOSTIC_RELEASE.json."
+ },
+ "override_paths_not_gated_by_release_document": [
+  {
+   "id": "OP-1",
+   "path": "research/landing_accessibility/shadow/lane_b/scripts/probe_official_urls_shadow.py",
+   "kind": "unconditional network to candidate official service URLs (requests GET, mobile+desktop UA)",
+   "gate": "none (no execution_mode arg, no firewall import, no release doc); only output-field assertion",
+   "present_on": "w5p and all B refs carrying shadow/lane_b"
+  },
+  {
+   "id": "OP-2",
+   "path": "research/landing_accessibility/scripts/acquire_wiseapp_authority.py --acquire",
+   "kind": "CLI flag -> curl_cffi POST + Playwright goto to wiseapp authority page",
+   "gate": "none",
+   "present_on": "w5p (+ analysis-skeleton variant)"
+  },
+  {
+   "id": "OP-3",
+   "path": "research/landing_accessibility/scripts/collect_certification_registry.py (default mode) -> src/landing_accessibility/registry.py crawl()",
+   "kind": "unconditional requests crawl of KWACC certification list pages",
+   "gate": "none",
+   "present_on": "w5p"
+  },
+  {
+   "id": "OP-4",
+   "path": "legacy refs: engine/firewall.py blob 9ba47b7b (7 refs) and pc_fixture/execution_mode.py (pc-fixture)",
+   "kind": "code-constant gate (P0_GATE_STATUS / P0_CLOSED) instead of release doc",
+   "gate": "constant edit would open REAL_TARGET at engine layer on those refs; no scope/allowlist machinery there",
+   "present_on": "analysis-current,e001-master-plan,integration-current,integration-prep-c007,pc-regression-c007,e001-runner,e001-runner-l1fix,pc-fixture"
+  },
+  {
+   "id": "OP-5",
+   "path": "research/landing_accessibility/src/landing_accessibility/engine/l1_engine.py:932-933",
+   "kind": "env setdefault HF_HUB_OFFLINE/TRANSFORMERS_OFFLINE",
+   "gate": "pre-set env var re-enables HF hub network (model download only, not target)"
+  },
+  {
+   "id": "OP-6",
+   "path": "engine/firewall.py read_release_document(repo_dir=...) / layer_firewall._release_document(repo_dir=...)",
+   "kind": "API parameter: caller may point git -C at another repository whose origin/control/landing-orchestrator ref carries a permissive doc",
+   "gate": "no CLI/env exposure; production callers pass None; tests use it"
+  },
+  {
+   "id": "OP-7",
+   "path": "git ref resolution of 'origin/control/landing-orchestrator' in the executing repo",
+   "kind": "a local branch refs/heads/origin/control/landing-orchestrator would shadow refs/remotes/... (git resolution order), or `git update-ref refs/remotes/origin/control/landing-orchestrator <sha>` / fetch from a different remote would substitute the document",
+   "gate": "not code; verified absent now (show-ref: only refs/heads/control/landing-orchestrator and refs/remotes/origin/control/landing-orchestrator exist)"
+  }
+ ],
+ "controls": {
+  "must_flag": [
+   {
+    "item": "BATCH_LAYER_REAL_SCOPES['E000_FAST'] site",
+    "found": true,
+    "where": "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py:49"
+   },
+   {
+    "item": "P0_RELEASE.json path",
+    "found": true,
+    "where": [
+     "research/landing_accessibility/src/landing_accessibility/e001_runner/layer_firewall.py:43",
+     "research/landing_accessibility/src/landing_accessibility/engine/firewall.py:129",
+     "origin/control/landing-orchestrator@0aabc89c:research/landing_accessibility/control/P0_RELEASE.json"
+    ]
+   }
+  ],
+  "must_not_flag": [
+   {
+    "item": "fixture-only lane test file with no real-target logic",
+    "file": "research/landing_accessibility/tests/test_w4_axisc_mart.py",
+    "ref": "origin/claude-b/w5p-r32-list",
+    "grep_hits": 1,
+    "hit_content": "line 4 docstring: '**REAL_TARGET 에 접속하지 않는다**' (prose only, no gating/opening logic)",
+    "listed_as_opening_path": false
+   },
+   {
+    "item": "analysis-only test",
+    "file": "research/landing_accessibility/analysis/mapping/test_analysis_interface.py",
+    "ref": "origin/claude-b/w5p-r32-list",
+    "grep_hits": 0,
+    "listed_as_opening_path": false
+   },
+   {
+    "item": "fixture-only v3 session driver",
+    "file": "research/landing_accessibility/src/landing_accessibility/v3_runner/session.py",
+    "ref": "origin/claude-b/w5p-r32-list",
+    "note": "listed as site but class gated-by-other-flag (EXECUTION_MODE=FIXTURE constant, no REAL_TARGET token in module)",
+    "listed_as_opening_path": false
+   }
+  ],
+  "test_files_with_real_target_tokens_not_treated_as_paths": [
+   "research/landing_accessibility/tests/test_w2_rf_detector.py (31 hits)",
+   "research/landing_accessibility/tests/test_w4_probe_execution_mode_gating.py (9 hits)"
+  ]
+ },
+ "ambiguities": [
+  "A1: layer_firewall.BATCH_LAYER_REAL_SCOPES lacks V2_DIAGNOSTIC while engine ExecutionScope has it; V2_DIAGNOSTIC_RELEASE.json carries a 'layer_firewall_note' key — A appears aware, but the runtime effect (V2 pilot driver hard-fails at batch layer) is not stated in the task.",
+  "A2: E000_FAST allowlist (E000_FAST_PLAN.json) is not hash-pinned (unlike E001 plan hash and V2 manifest sha256); second candidate path is an out-of-tree sibling worktree file. Allowlist scope (which targets) is therefore editable on disk without touching a ref, though the release-doc gate still blocks entry.",
+  "A3: control ref advanced three times during the run (f9c9c7b7 -> 50ed953e -> fd304ef0 -> 0aabc89c); all three release JSONs stayed byte-identical. Findings pinned to 0aabc89c.",
+  "A4: TaskRegistry.real_target_allowed (FINAL_MAIN50_MANIFEST.json) is parsed but consumed nowhere — a flag that gates nothing; a future consumer could treat it as authority outside the two firewalls.",
+  "A5: batch.py _real_executor default `scope = self._real_scope or ExecutionScope.E000_FAST` and real_executor/plan defaults to E000_FAST — harmless today because both firewalls run first in run(), but any direct call of _real_executor/run_l0_real skips layer_firewall (engine gate still applies).",
+  "A6: probe_official_urls_shadow.py performs real HTTP to candidate official service URLs; whether A classifies 'target-preparation' probing as REAL-target access is a policy question, not answerable from code. It is the only path on the current ref that contacts the study targets with no firewall call.",
+  "A7: engine/firewall._REPO_ROOT = parents of __file__ -> `git -C <worktree>` resolves refs via the worktree's common git dir; behaviour with a detached copy of the source tree outside any git repo = git show fails = fail-closed (verified by code, not executed)."
+ ],
+ "what_was_not_searched": [
+  "Other worktrees under .agent_worktrees (prohibited); the sibling-worktree candidate files referenced by engine/firewall.py 142-213 were not read.",
+  "Working-tree (uncommitted) state of any plane; only pushed refs listed.",
+  "Files outside research/landing_accessibility/** on any ref (e.g. repo-root .claude/settings.json env injection, pyproject, scripts/activate.sh).",
+  "JavaScript (l0_probe.js) execution_mode handling inside the browser.",
+  "Binary/xlsx/parquet contents (CROSS_SERVICE_FLOW_PIVOT_v3.0.xlsx, *.parquet).",
+  "Markdown/JSON prose in control ref (338 grep hits across 126 files) beyond the three release docs, PHASE_STATE.json, state.json, FINAL_MAIN50_MANIFEST.json — bus tickets/acks/rulings were not read for policy content.",
+  "Test files' fixtures for embedded http URLs (tests are not runtime paths).",
+  "Any execution: no script, collector, or runner was run; no network access; grep/git-show only.",
+  "Reflog/history of origin/control/landing-orchestrator prior to f9c9c7b7 (release-doc edit lineage).",
+  "MLflow server contents (127.0.0.1:5000) — only code that sets tags was read."
+ ]
+}
