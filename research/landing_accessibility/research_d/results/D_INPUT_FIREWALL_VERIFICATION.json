@@ -4,12 +4,12 @@
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
  "verdict": "FAIL",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T15:01:45.215543+09:00",
- "d_head_sha": "ee68f3aa40f5dd29e163580cd3bd4a0ee75546fc",
+ "checked_at_kst": "2026-08-28T15:07:25.913975+09:00",
+ "d_head_sha": "a71d697a7878b12a61fe08de7416bfba72252f4a",
  "manifest_sha256": "5321e4f19d990d70ae9bc89370bb134d85970ac5f7a12d2f2ca048743529de94",
  "scanned_files": 252,
- "scanned_corpus_sha256": "0f238ceaeb90dcd57e392248eb09404854ee437339f76ef0a6f984c2647c9620",
- "freshness_corpus_sha256": "0ef9ef69187bda7bb390dbd9792386c9bf70e34bed994534828f481b43906927",
+ "scanned_corpus_sha256": "6d1b8d19a93d3a0830f0cda007f964340f35f5bbda2c55a614fbf9f961a2c717",
+ "freshness_corpus_sha256": "99180a81a837799ae46c8162d1acb48d1256fa67dd1e66bcb693e69d969a5096",
  "corpus_identity_note": "scanned_files 는 개수이고 이것은 신원이다. 두 실행의 코퍼스 sha 가 다르면 FAIL 수를 비교하지 않는다 (R38).",
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
  "controls": {
@@ -128,7 +128,7 @@
   "tool": {
    "path": "tools/d_input_firewall.py",
    "sha256": "720757e79b69763b743c9e35701c179b753eaea870cfe4258b946ce80639c4e3",
-   "commit": "ee68f3aa40f5dd29e163580cd3bd4a0ee75546fc"
+   "commit": "a71d697a7878b12a61fe08de7416bfba72252f4a"
   },
   "on_control_failure": {
    "behavior": "verdict=CONTROL_FAIL 로 기록하고 exit 2 — 지우지 않고 남긴다",
@@ -195,7 +195,7 @@
   "note": "D 는 '돌지 않았다' 에 4 를 쓴다. A 는 2 를 쓰는데 D 의 2 는 이미 FAIL 이라 바꾸면 나간 산출의 의미가 소급해 달라진다."
  },
  "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
- "fail_count": 1,
+ "fail_count": 3,
  "warn_count": 396,
  "violations": [
   {
@@ -3085,6 +3085,27 @@
    "context": "NA, \"LA_03_RF_MAPPING 의 어떤 run 도 calibration coverage metric 을 남기지 않았다.\", \"T5\")      if hold is not None:         out[\"holdout_coverage\"] = n(int(hold), \"holdout-split labeled targets\",                                     denom=int(frozen) if frozen else None,                                     den",
    "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
    "severity": "WARN"
+  },
+  {
+   "file": "research_d/tools/d_heartbeat.py",
+   "line": 91,
+   "reference": "research/landing_accessibility/control",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "line_is_list_element": true,
+   "context": "if fresh is None:         return \"UNVERIFIED_CORPUS_UNCOMPARABLE\", ev     if not fresh:         return \"UNVERIFIED_STALE\", ev     if d.get(\"verdict\") == \"PASS\":         return False, ev     return \"UNVERIFIED_SCAN_NOT_PASS\", ev   # production 으로 보는 경로 접두. FIREWALL_GUARD_DEFINITION 과 같은 목록이다. PROD_PR",
+   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
+   "severity": "FAIL"
+  },
+  {
+   "file": "research_d/tools/d_heartbeat.py",
+   "line": 119,
+   "reference": "research/landing_accessibility/control/v3/x.py",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "\"expectation\": \"must_flag\" if want else \"must_not_flag\"})      case(\"research/landing_accessibility/control/v3/x.py\", True)     case(\"research/landing_accessibility/engine/run.py\", True)     case(\"research/landing_accessibility/src/a.py\", True)",
+   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
+   "severity": "FAIL"
   },
   {
    "file": "research_d/tools/d_presentation_eda.py",
