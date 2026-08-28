@@ -123,8 +123,13 @@ def figure2_spatial_cases(df):
         ax.set_xlim(0, 1); ax.set_ylim(1, 0)
         ax.set_xlabel("entry_x_norm (0=left)"); ax.set_ylabel("entry_y_norm (0=top)")
         ax.grid(alpha=.25, zorder=0)
+    zones = Counter(str(c.get("entry_zone")) for c in cs)
+    ctrls = Counter(str(c.get("entry_control_type")) for c in cs)
     ax.set_title("관측 가능한 %d개 사례의 진입점은 같은 위치에 모이지 않았다" % len(cs),
                  fontsize=12)
+    fig.text(0.5, 0.89, "zone %d종/%d · control %d종/%d  (비수렴)"
+             % (len(zones), len(cs), len(ctrls), len(cs)),
+             ha="center", fontsize=8.5, color="#2166ac")
     fig.text(0.5, 0.93, "Observed cases only, n=%d/%d" % (len(cs), len(df)),
              ha="center", fontsize=9, color="dimgray")
     _foot(fig, "개별 사례다. 나머지 %d개는 진입 후보 자체가 관측되지 않아 위치라는 것이 존재하지 않는다. "
@@ -170,10 +175,17 @@ def figure3_flow_cases(df):
                      fontsize=7.5)
         ax.set_xlim(-0.12, 1.12); ax.set_ylim(0, 1); ax.axis("off")
     fig.suptitle("관측 가능한 %d개 사례의 과업 진입 흐름" % len(cs), fontsize=12, y=1.0)
-    _foot(fig, "관측된 스텝만 그렸다 — 없는 단계를 채우지 않았다.  "
-               "이 %d개 사례의 activation_depth = %s · menu_dependency = %s."
-               % (len(cs), "/".join(sorted(depths)) or "-", "/".join(sorted(menus)) or "-"),
-          "darkred")
+    navs = Counter(str(c.get("nav_container_type")) for c in cs)
+    nav_obs = sum(v for k, v in navs.items() if not C.is_missing(k))
+    fig.text(0.5, 0.945,
+             "수렴: 조작순서 · activation_depth=1 · menu_dependency=False (8/8)      "
+             "비수렴: zone 5종/8 · control 2종/8 · nav container %d종/%d관측"
+             % (len([k for k in navs if not C.is_missing(k)]), nav_obs),
+             ha="center", fontsize=8.5, color="#2166ac")
+    _foot(fig, "관측된 스텝만 그렸다 — 없는 단계를 채우지 않았다. 이 %d개 사례는 모두 메뉴를 거치지 않는 단일 스텝이었다.\n"
+               "[한계 L13] 관측된 8건이 전부 얕은 경로였던 것은 사이트가 얕아서가 아니라 수집기가 깊은 경로를 뚫지 못했기 때문일 수 있다 — "
+               "COLLECTOR_ZERO_CANDIDATE 21의 계통적 한계와 같은 방향의 선택편향이다. '사이트가 얕다'로 해석하지 않는다."
+               % len(cs), "darkred")
     return _save(fig, "report_fig3_flow_cases.png")
 
 
@@ -185,8 +197,11 @@ def figure4_measurement_boundary(df):
     paired = int(sum(1 for _, r in df.iterrows()
                      if not C.is_missing(r["visible_label"])
                      and not C.is_missing(r["accessible_name"])))
+    # [C-ASSURANCE-114653] k=8 CONFIRMED — pre-R3 provenance 8/8 독립 확인.
+    # 의미는 '전체 acquisition history 에서 8 고유 target 에 usable evidence ≥1회' 이며
+    # **8/50 reachability 가 아니다**.
     stages = [("frozen targets", C.N_TOTAL), ("attempted", int(len(df))),
-              ("usable path evidence [k]", usable),
+              ("usable path evidence  k=%d (CONFIRMED)" % usable, usable),
               ("geometry-complete cases", len(cs)),
               ("paired visible+AX label cases", paired)]
     fig, ax = plt.subplots(figsize=(10.5, 4.6))
@@ -201,8 +216,9 @@ def figure4_measurement_boundary(df):
     for s in ax.spines.values():
         s.set_visible(False)
     ax.set_title("Measurement boundary — 측정 가능한 분모가 축마다 다르다", fontsize=12)
-    _foot(fig, "[k]는 C가 pre-R3 provenance를 독립 확인한 경우에만 확정된다. "
-               "'50개 중 k개 서비스가 접근 가능했다'로 읽지 마라 — acquisition 결과이지 접근성 성공률이 아니다.",
+    _foot(fig, "k=8은 '전체 acquisition history에서 8개 고유 target에 usable task-path evidence가 최소 1회 확보됐다'는 뜻이다. "
+               "'50개 중 8개 서비스가 접근 가능했다'가 아니다 — 8/50 reachability로 읽지 마라.\n"
+               "R1 attempted 50 / R1-only surviving in mart 15 (두 수는 서로 다른 것을 센다).",
           "darkred")
     return _save(fig, "report_fig4_measurement_boundary.png")
 
