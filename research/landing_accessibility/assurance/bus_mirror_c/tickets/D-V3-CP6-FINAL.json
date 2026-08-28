@@ -1,0 +1,144 @@
+{
+ "ticket_id": "D-V3-CP6-FINAL",
+ "type": "STATUS",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "6b1e1efe909a366ff01b6cada97ea8a8308a08f5",
+ "in_response_to": [
+  "T-A-V3-TBX-020",
+  "C-ASSURANCE-114151",
+  "D-V3-CP6-002"
+ ],
+ "measured_at_kst": "2026-08-28T11:43:59+09:00",
+ "headline": "최종 sha 8cf57069 재렌더 완료 — figure 6/6 · claim 후보 7. 회차 혼재 실측 R1 15 · R2 22 · R2B 13 · R3 0 · superseded 35 (A R118 정정 반영)",
+ "the_measurement": {
+  "mart_pin": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/mart/CANONICAL_MART_50.csv",
+   "sha256": "8cf57069e7588bbc3c45519e19774bebdef25cbbaa04054c854984218f429b21",
+   "bytes": 28372,
+   "optional_present": [
+    "entry_observation_provenance",
+    "collection_run",
+    "superseded_runs",
+    "entry_geometry_provenance"
+   ]
+  },
+  "matches_C_final_sha": true,
+  "분모": {
+   "denominator_frozen": 50,
+   "rows_present": 50,
+   "attempted": 50,
+   "not_attempted": 0,
+   "evidence_adequate": 50,
+   "completed": 6,
+   "failed": 44,
+   "unaccounted": 0,
+   "split_note": "R74 — 수집기의 0 과 사이트의 사실을 분리한다. `NOT_YET_SPLIT` 은 옛 `NO_SAFE_ROUTE` 라벨이며 **어느 쪽인지 모른다** — D 가 임의로 배분하지 않는다",
+   "classification_note": "R78 적용. 목록 밖 상태가 나오면 unaccounted 가 0 이 아니게 되어 드러난다"
+  },
+  "R74_R92_split": {
+   "collector_observation": 21,
+   "site_observation": 16,
+   "unverified_candidate_count": 2,
+   "NOT_YET_SPLIT": 0
+  },
+  "collection_run_mix": {
+   "E-REAL-CENSUS-1230": 15,
+   "E-REAL-CENSUS-1230-R2": 22,
+   "E-REAL-CENSUS-1230-R2B": 13
+  },
+  "superseded_rows": 35,
+  "unwired_columns": [
+   "reveal_direction",
+   "task_control_occlusion"
+  ],
+  "label_cross_table": {
+   "visible=False,ax=True,AX_ONLY": 25,
+   "visible=False,ax=False,NONE": 21,
+   "visible=True,ax=True,DIFFERENT": 3,
+   "visible=True,ax=False,VISIBLE_ONLY": 1
+  },
+  "both_observed": 3,
+  "geometry_supplement": {
+   "observed": 8,
+   "targets": [
+    "F1-03",
+    "F1-05",
+    "F2-01",
+    "F2-08",
+    "F3-02",
+    "F3-06",
+    "F5-02",
+    "F5-05"
+   ],
+   "provenance": "E_R3_SUPPLEMENT"
+  },
+  "figures": {
+   "fig1_coverage_terminal": "f0e7feab3f7ba60d6d59f80bb599808741c23219192acbd455abc2001d216847",
+   "fig2_entry_spatial_map": "727dd402e94b1366cad6587efb888a0db5efb74233a3d7696b4463fb513ceb72",
+   "fig3_entry_implementation": "e8f89603b237731fe19eef89beb4c396eeddb8d9289285cf73b7d99e7b48251f",
+   "fig4_activation_depth": "aef49d946edc0653091ff913443b1051a89e4dc75de92637267aa9b97559cae1",
+   "fig5_label_divergence": "3e7623126d6345b4ef02fa35578d978e0d7f05bd063a12d07cc54f64c7d349e6",
+   "fig6_sequence_divergence": "e75772ee85066f5570da870096968cb365f748c60b4966dd58be30b34cba4789"
+  }
+ },
+ "이번_회차_반영": {
+  "R110/R113 UNWIRED": "`reveal_direction`·`task_control_occlusion` 은 50/50 전건 sentinel 이다. fig3 에서 **축을 제거**했다 — 빈 패널도 두지 않는다. 0 으로 그리면 '없다' 로 읽힌다",
+  "R113 회차표": "회차별 terminal 을 **성능이 아니라 목적**으로 낸다. R3 의 100% 성공은 이미 도달한 8건을 모은 집합이라 **정의상 참이고 수집기 성능 정보가 0**이다. 목적과 선정규칙을 같은 칸에 적었다",
+  "안심되는_쪽도_함께": "R3 가 성공을 만든 것이 아니다. ENDPOINT_REACHED 6 은 R1/R2 에서 이미 도달한 것이므로 **회차 혼재가 성공률을 부풀리지 않았다**",
+  "Gower": "A 승인 하에 버렸다(축소사다리 1순위)"
+ },
+ "D_측정_주의_1건": "`superseded_runs` 의 `NONE` 15건은 결측이 아니라 '**supersede 없음' 이라는 값**이다. is_missing 만으로 세면 50 이 나온다 — 같은 토큰이 컬럼마다 다른 의미를 갖는다(label_relation 의 NONE 은 관계값). 컬럼 의미로 세어 A 의 35 와 일치시켰다",
+ "claim_candidates": [
+  {
+   "id": "D-CLAIM-01",
+   "axis": "coverage",
+   "statement": "frozen 50 전수 attempt. endpoint 도달 6/50, 미도달 44/50. family 별 분해는 fig1."
+  },
+  {
+   "id": "D-CLAIM-02",
+   "axis": "failure decomposition (R74/R92/R95)",
+   "statement": "미도달 44 중 **수집기 관측 21 · 사이트 관측 16 · 후보수 미확인 2**. 합산하면 '50 중 44 에서 경로를 못 찾았다' 가 되는데 그중 21 은 사이트 사실이 아니다."
+  },
+  {
+   "id": "D-CLAIM-03",
+   "axis": "spatial — 산출 불가",
+   "statement": "mart 의 공간 축은 0/50 이나 E 의 R3 보충에 **실값 8건**이 있다(ENDPOINT_REACHED 6 + AUTH_GATE 2). 나머지 42 는 후보 자체가 없어 NOT_OBSERVED 가 맞는 값이다."
+  },
+  {
+   "id": "D-CLAIM-04",
+   "axis": "label — 사이트 발견 아님 (R104)",
+   "statement": "양쪽이 함께 관측된 행은 **3/50** 이다. `AX_ONLY` 25 는 초기 AX 캡처 파손에 따른 **수집 비대칭**이지 사이트 현상이 아니다. D02 를 사이트 수준 발견으로 보고하지 않는다."
+  },
+  {
+   "id": "D-CLAIM-05",
+   "axis": "provenance (R93)",
+   "statement": "라벨·control 축 값은 E 의 현장 관측이 아니라 저장된 DOM 에서의 **사후 파생**이다. '사용자가 화면에서 실제로 본 라벨' 이라 말할 수 없고, '수집 시점 DOM 에 존재한 라벨' 까지만 말할 수 있다."
+  },
+  {
+   "id": "D-CLAIM-06",
+   "axis": "collection run mixture",
+   "statement": "수집 회차가 **넷** 혼재한다 — R1 15 · R2 22 · R2B 13 · R3 0(선택 풀 제외), superseded 35행. **R1-only 는 15행뿐이다.** family 간 비교의 교란요인이며 본문에 적는다."
+  },
+  {
+   "id": "D-CLAIM-07",
+   "axis": "unwired columns (A R110)",
+   "statement": "`reveal_direction` 과 `task_control_occlusion` 은 **50/50 전건 sentinel = UNWIRED** 다. 값이 0 인 것이 아니라 **한 건도 측정되지 않았다**. 그림 ③ 에서 두 축을 뺐다 — 0 으로 그리면 '없다' 로 읽힌다."
+  }
+ ],
+ "for_C": "대조 — mart sha 일치(8cf57069) · 분모 50/50/6/44 unaccounted 0 · split 21/16/2 · label 교차표 both_observed 3 · UNWIRED 2열 · 회차 4종과 superseded 35 · geometry 8 target",
+ "limitation": "공간 실값은 mart 가 아니라 E_R3_SUPPLEMENT 에서 왔다(n=8). 라벨·control 축은 사후 DOM 파생이다. 회차 혼재는 통제하지 못하고 보이게만 했다",
+ "not_a_verdict": "claim 후보다. A 가 12:20 에 freeze 한다",
+ "created_at_kst": "2026-08-28T11:45:25+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}
