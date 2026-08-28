@@ -3,7 +3,7 @@
  "title_ko": "MAIN50 시간제한 전수관측 보고서 v1",
  "title_en": "MAIN50 Time-boxed Acquisition Report v1",
  "closed_by": "A / Authority Plane",
- "closed_at_kst": "2026-08-28T12:02:16+0900",
+ "closed_at_kst": "2026-08-28T12:06:58+0900",
  "PUBLICATION_READY": false,
  "사유": "Director 유보 — replay 면제 · 수집기 계통한계 미해소 · 라벨축 측정불가 · geometry 보충 hash 미결속",
  "실행_요약": {
@@ -16,7 +16,7 @@
  "BINDING": {
   "release": "V3_TIMEBOX_CENSUS_1230",
   "manifest": "FINAL_MAIN50_MANIFEST v3.0.2 (body 81d55db9… / file ef4e19ad…) — 무수정",
-  "canonical_mart": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf · 50행 · supersede 사슬 7단 보존",
+  "canonical_mart": "`5290e0c3…` · 50행 · **supersede_chain 7단 산출물 기록 (B 시정, A 재측정 확인). 단 폐기 판본의 CSV 바이트는 없다 — L19**",
   "evidence": "EVIDENCE_MANIFEST.jsonl 85줄 · 고유 target 50 · hash chain break 0 · 컷오프 초과 0",
   "assurance": "MAIN50_EVIDENCE_ASSURED 71303b17… · ANALYSIS_ASSURED a9c756a6… · CHECKER_FROZEN v4 b82ec389…"
  },
@@ -43,8 +43,8 @@
  },
  "안전": {
   "실제_금지행위_실행": "**0건**",
-  "가드_차단": "**1건** (F1-10, 라벨 '이체하기' 를 실행형 패턴으로 감지해 클릭 이전 리턴)",
-  "표기": "‘안전가드가 금지 패턴 후보 1건을 감지하여 실행 전에 차단함. 실제 금지행위 실행 0건.’ — raw 필드명 `forbidden_actions_attempted` 를 그대로 쓰지 않는다",
+  "가드_차단": "**고유 target 1건**(F1-10) · **회차합산 2건** — E 가 raw 161건 전건 재검산",
+  "표기": "‘안전가드가 금지 패턴 후보를 감지하여 실행 전에 차단함 — **고유 target 1건**(F1-10) · **회차합산 2건**. 실제 금지행위 실행 0건.’ — raw 필드명 `forbidden_actions_attempted` 를 그대로 쓰지 않고, **고유 target 수와 회차합산 수를 구분해 적는다**",
   "의미": "**가드가 있다는 것과 작동한다는 것은 다른데, 이번에 작동이 관측됐다**"
  },
  "이_실행의_방법론적_산물": {
@@ -58,7 +58,8 @@
   "mart": "artifacts/v3_census/mart/CANONICAL_MART_50.csv",
   "raw": "artifacts/v3_census/raw/",
   "assurance": "artifacts/v3_census/assurance/",
-  "figures": "artifacts/v3_census/analysis/figures/ (4장)"
+  "figures": "artifacts/v3_census/analysis/figures/ (4장)",
+  "report_bundle": "research/landing_accessibility/control/v3/REPORT_BUNDLE_v1/ — 본문 00_REPORT.md · 색인 INDEX.md · figures 4 · data 4 · assurance 3"
  },
  "다음_단계_권고": [
   "**AX 트리 캡처 복구 — 원인은 Playwright 1.62.0 의 `page.accessibility` 제거다.** 현행 API(`page.locator(...).aria_snapshot()` 등)로 교체해야 한다. 이번 census 의 AX 캡처는 0/50 이다",
@@ -85,5 +86,6 @@
    "**한 번의 실측이 네 단계를 끊었다.** ⑤가 한 일은 `ls -l` 과 세기뿐이다"
   ],
   "왜_이것이_이_실행의_대표_산물인가": "이 census 가 겪은 모든 결함이 같은 형태였다 — **없음과 있음이 같은 출력으로 보이는 것**. 60바이트 오류 스텁은 **파일 목록에서 정상 파일과 구분되지 않는다.** 그리고 그 구분을 하지 않은 판단이 네 평면을 연쇄로 통과했다"
- }
+ },
+ "completion_contract": "**11항 중 3항 미충족** (offline regression · canonical tables · ML robustness). 번들 미구성은 해소"
 }
