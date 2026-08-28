@@ -215,6 +215,13 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_standing_control import read_only_checks as _sc_fn
+    _stc = _sc_fn()
+    print(f"   상주 대조(변형 대조군 내장) : {_stc['verdict']} · 드리프트 {_stc['drift']} "
+          f"· 대조군 {sum(1 for v in _stc['control_ok'].values() if v)}/{len(_stc['control_ok'])} "
+          f"— **대조군이 실패하면 드리프트 0 을 통과로 읽지 않는다**")
+    if _stc.get("control_fail") or _stc.get("drifted"):
+        print(f"     ** 대조군 실패 {_stc.get('control_fail')} · 드리프트 {_stc.get('drifted')} **")
     from d_ssot_manifest import verify as _sm_fn
     _sm = _sm_fn()
     print(f"   SSOTV3 manifest : {_sm['verdict']} · 일치 {_sm.get('n_ok')}/{_sm.get('n_entries')} "

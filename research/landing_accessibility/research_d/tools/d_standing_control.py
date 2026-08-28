@@ -279,6 +279,55 @@ def extend_baseline() -> dict:
     return {"extended": True, "added": sorted(added), "n": len(base)}
 
 
+def read_only_checks() -> dict:
+    """[D-DEF-101] **쓰기 없는 네 검사**만 모아 낸다 — 스캔·게이트가 부를 자리.
+
+    `main()` 은 drift 로그를 쓴다. 게이트가 상태를 바꾸면 안 되므로
+    (`D-V3-FINDING-083`) 여기만 부른다.
+    """
+    out = {"ssotv3": check_ssotv3(),
+           "endpoint_lock": check_endpoint_lock(),
+           "emitted_tickets": check_emitted_tickets(),
+           "out_of_pack_docs": check_out_of_pack_docs()}
+    ctl = {k: bool(v.get("control_ok")) for k, v in out.items() if "control_ok" in v}
+    drift = {k: v.get("drift") or v.get("mismatch") or 0 for k, v in out.items()}
+    bad_ctl = [k for k, v in ctl.items() if not v]
+    bad_drift = [k for k, v in drift.items() if v]
+    return {"verdict": ("CONTROL_FAIL" if bad_ctl else
+                        "FAIL" if bad_drift else "PASS"),
+            "checks": out, "control_ok": ctl, "drift": drift,
+            "control_fail": bad_ctl, "drifted": bad_drift,
+            "**대조군이 실패하면 결과를 내지 않는다**": (
+                "못 잡는 검사의 `0` 은 `0` 이 아니다 — 그래서 `control_ok` 가 하나라도 "
+                "거짓이면 `CONTROL_FAIL` 이고 drift 수치를 통과로 읽지 않는다"),
+            "왜_이제_도나": ("이 모듈의 docstring 첫 줄은 '**매 회 같은 코드로 잰다**' 인데 "
+                     "**어떤 자동 경로에도 없었다** [D-DEF-101] — "
+                     "`T-B-V3-FINDING-023` 이 자기 도구에서 같은 것을 찾았다")}
+
+
+def controls() -> dict:
+    rows = []
+
+    def case(name, got, want, negative=False):
+        rows.append({"case": name, "got": got, "want": want, "ok": got == want,
+                     "expectation": "must_flag" if negative else "must_not_flag"})
+
+    b = b"hello world"
+    case("**변형이 실제로 바이트를 바꾼다** — 안 바뀌면 내장 대조군이 무의미하다",
+         _mutate(b) != b, True, negative=True)
+    case("변형본의 sha 가 원본과 다르다", _sha(_mutate(b)) != _sha(b), True, negative=True)
+    case("빈 입력도 변형된다", _mutate(b"") != b"", True, negative=True)
+    r = read_only_checks()
+    case("네 검사의 내장 대조군이 모두 살아 있다", r["control_fail"], [])
+    case("검사를 네 개 다 돌았다 — 0 이면 무효다", len(r["checks"]), 4)
+    case("현재 드리프트 0", r["drifted"], [])
+    ok = all(x["ok"] for x in rows)
+    return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "must_flag": sum(1 for x in rows if x["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for x in rows if x["expectation"] == "must_not_flag"),
+            "failed": [x["case"] for x in rows if not x["ok"]], "cases": rows}
+
+
 def main() -> int:
     log_p = RESULTS / "D_STANDING_CONTROL_DRIFT_LOG.jsonl"
     prev = None
