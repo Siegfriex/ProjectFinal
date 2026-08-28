@@ -1,0 +1,319 @@
+{
+ "verification_id": "D-CHECK-TAXONOMY",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T12:53:57+09:00",
+ "d_head_sha": "073c523f8378d33a3dd341d7462231afc0c6f2f9",
+ "in_response_to": [
+  "T-A-V3-PROBE-V4-001"
+ ],
+ "question": "A 가 일반화한 '우리가 만든 검사는 전부 값을 보고, 이번에 통한 검사는 산출물의 동일성을 봤다' 가 **D 도구에도 참인가**",
+ "verdict": "SUPPORTED_AND_SHARPER",
+ "the_measurement": {
+  "n_check_functions": 27,
+  "by_kind": {
+   "IDENTITY": 4,
+   "VALUE": 17,
+   "OTHER": 2,
+   "DELTA": 4
+  },
+  "method": "AST 로 검사 함수를 뽑고, 본문이 **무엇을 읽는지**로 분류했다. 손으로 분류하면 그 분류가 또 값 검사다",
+  "definitions": {
+   "VALUE": "셀·필드·컬럼의 값을 읽는다",
+   "IDENTITY": "바이트/해시 신원을 읽는다 — 다만 한 시점이면 조작 유효성은 못 본다",
+   "DELTA": "**같은 대상의 두 신원을 비교한다** — 이번에 통한 축"
+  }
+ },
+ "핵심_발견": {
+  "표면": "검사 27개 중 **값 검사 17**. A 진단대로 다수가 값을 본다",
+  "그러나_더_정확한_것": "신원 비교(DELTA) 4개가 있는데 **그 4개가 비교하는 것이 전부 같은 종류다**",
+  "DELTA_4가_비교하는_것": {
+   "check_emitted_tickets": "기록된 sha ↔ 현재 sha",
+   "check_index_delta": "선언값 ↔ 재계산값",
+   "check_out_of_pack_docs": "현재 ↔ 기준",
+   "bundle_check.check": "provenance 기록 ↔ 실제 파일"
+  },
+  "즉": "**전부 '내 기록이 현재와 같은가'(자기 정합성)다.** 하나도 '**내 행위가 대상을 바꿨는가**'(행위 유효성)가 아니다",
+  "행위_유효성_검사": "**0개**",
+  "왜_이_구분이_중요한가": "probe v3 에서 통한 검사는 **클릭 전후 산출물 비교** — 행위 유효성이다. D 의 DELTA 4 는 그 형태를 하나도 잡지 못한다. 자기 정합성 검사는 **아무 일도 일어나지 않았을 때도 통과한다**"
+ },
+ "D_맥락으로_옮기면": {
+  "D_는_클릭하지_않는다": "그래서 '행위' 는 D 에게 **시정·재스캔·발행**이다",
+  "지금_있는_것": "시정이 그 형태를 막는지는 `must_flag` 대조군으로 확인한다 — **합성 입력에 대해서만**",
+  "없는_것": "시정 **전후 실제 산출물**이 어떻게 달라졌는지 비교하는 축. 예: D-DEF-37 시정으로 `entry_zone` 이 23→0 이 됐는데 **그 변화 자체를 기록·검사하는 자리가 없다**",
+  "A_가_이미_만든_것": "`control/v3/checks/column_regression_check.py`(판본 간 열별 관측수 diff). D 는 §16 에 승계만 했고 **구현하지 않았다**"
+ },
+ "limitation": "정적 분류다. 이름과 호출 패턴으로 판정하므로 개별 함수는 어긋날 수 있다 — **수치가 아니라 분포의 방향**으로 읽는다. 그리고 이 분류기 자체가 값 검사다(코드 문자열을 읽는다)",
+ "not_a_verdict": "관측이다. D 도구에 행위 유효성 축을 넣을지는 다음 실행 사안이며 지금 동결본을 흔들지 않는다",
+ "functions": [
+  {
+   "file": "d_bus_lib.py",
+   "fn": "scan",
+   "kind": "IDENTITY",
+   "value": true,
+   "identity": true,
+   "delta_candidate": false,
+   "identity_comparisons": 3,
+   "delta": false
+  },
+  {
+   "file": "d_bus_lib.py",
+   "fn": "read_event_log_controls",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_bus_lib.py",
+   "fn": "cross_plane_ack_audit",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_bus_lib.py",
+   "fn": "cross_plane_ack_controls",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_bus_scan_selftest.py",
+   "fn": "run_controls",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_check_taxonomy.py",
+   "fn": "scan",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_eda_selfcheck.py",
+   "fn": "check",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_eda_selfcheck.py",
+   "fn": "controls",
+   "kind": "IDENTITY",
+   "value": true,
+   "identity": true,
+   "delta_candidate": false,
+   "identity_comparisons": 1,
+   "delta": false
+  },
+  {
+   "file": "d_emit_ticket.py",
+   "fn": "check",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_emit_ticket.py",
+   "fn": "audit_emitted",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_input_firewall.py",
+   "fn": "scan_file",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_input_firewall.py",
+   "fn": "existence_check",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_input_firewall.py",
+   "fn": "run_controls",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": true,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_input_firewall.py",
+   "fn": "freshness_sha",
+   "kind": "OTHER",
+   "value": false,
+   "identity": false,
+   "delta_candidate": true,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "gate",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "notebook_execution_check",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_mlflow.py",
+   "fn": "gate_controls",
+   "kind": "OTHER",
+   "value": false,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "check_ssotv3",
+   "kind": "IDENTITY",
+   "value": true,
+   "identity": true,
+   "delta_candidate": false,
+   "identity_comparisons": 5,
+   "delta": false
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "check_endpoint_lock",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": true,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "check_emitted_tickets",
+   "kind": "DELTA",
+   "value": true,
+   "identity": true,
+   "delta_candidate": true,
+   "identity_comparisons": 9,
+   "delta": true
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "check_index_delta",
+   "kind": "DELTA",
+   "value": true,
+   "identity": true,
+   "delta_candidate": true,
+   "identity_comparisons": 2,
+   "delta": true
+  },
+  {
+   "file": "d_standing_control.py",
+   "fn": "check_out_of_pack_docs",
+   "kind": "DELTA",
+   "value": false,
+   "identity": true,
+   "delta_candidate": true,
+   "identity_comparisons": 3,
+   "delta": true
+  },
+  {
+   "file": "d_v3_bundle_check.py",
+   "fn": "check",
+   "kind": "DELTA",
+   "value": true,
+   "identity": true,
+   "delta_candidate": true,
+   "identity_comparisons": 4,
+   "delta": true
+  },
+  {
+   "file": "d_v3_bundle_check.py",
+   "fn": "controls",
+   "kind": "IDENTITY",
+   "value": true,
+   "identity": true,
+   "delta_candidate": false,
+   "identity_comparisons": 3,
+   "delta": false
+  },
+  {
+   "file": "d_v3_census.py",
+   "fn": "axis_coverage",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_v3_census.py",
+   "fn": "contract_controls",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  },
+  {
+   "file": "d_v3_figures.py",
+   "fn": "fig1_coverage_terminal",
+   "kind": "VALUE",
+   "value": true,
+   "identity": false,
+   "delta_candidate": false,
+   "identity_comparisons": 0,
+   "delta": false
+  }
+ ]
+}
