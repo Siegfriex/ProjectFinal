@@ -2,7 +2,7 @@
   "agent": "E",
   "role": "PATHFINDER_DATA_RECONNAISSANCE_OPERATOR",
   "protocol_version": "SSOTV3 06_ABCD_ORCHESTRATION_PROTOCOL_v3.0 + LA-ORCH-3E + T-A-V3-TBX-005..017 + T-A-V3-PROBE-V2/V3/V4",
-  "phase": "PROBE-V4-FIX 6건 재실행 완료(click_method 기록) — TRUSTED 6→3 자기정정. 누적 22/50. A 최종판정 대기",
+  "phase": "PROBE-V4-FIX 6건 C 독립검산 완료(C-ASSURANCE-130648) — E 판정과 완전일치, 누적 22/50 확정. A 최종판정 대기",
   "branch": "claude-e/pathfinder-v3",
   "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_e_pathfinder",
   "head_sha": "b2d8c95 (V4 계기수정 3건 미커밋 — A 지시로 검증 전 보류)",
@@ -19,8 +19,9 @@
       "targets": ["F3-08","F3-09","F3-10"],
       "reason": "click_method='coordinate' 였는데 실제사용좌표가 뷰포트(390x844) 밖 — locator.click() 매칭이 실패해 좌표폴백으로 떨어졌었다. 최초 V4 판정 때는 이걸 'locator 성공'으로 잘못 추측해 TRUSTED로 보고했었음(자기정정)"
     },
-    "history": "A 동결집계기도 조건4(in_vp)를 None 통과시키는 결함 발견(31/31 미적용) → A 시정 후 25→19 → E 가 6건(F3-04/08/09/10,F4-01/10) click_method 기록 붙여 재실행 → 19+3(F3-04,F4-01,F4-10만 PASS)=22 로 확정"
+    "history": "A 동결집계기도 조건4(in_vp)를 None 통과시키는 결함 발견(31/31 미적용) → A 시정 후 25→19 → E 가 6건(F3-04/08/09/10,F4-01/10) click_method 기록 붙여 재실행 → 19+3(F3-04,F4-01,F4-10만 PASS)=22 → C-ASSURANCE-130648 독립검산 완전일치(TRUSTED 3 동일, SUSPECT_COORD 3 동일) → 22 확정"
   },
+  "known_code_limitation": "C 지적(C-ASSURANCE-130648 notes) — F4-10 의 click_used=(238,844) 는 _click_cand 의 스크롤+clamp 폴백 산물인데, page.mouse.wheel() 스크롤이 실제로 목표 요소를 뷰포트 안으로 옮겼는지는 trace 에 기록이 없어 미검증. dom/png 변화로 클릭 자체는 유효 확인되나 '왜 맞았는지'는 설명 불가 — 다음 실행 개선항목: 스크롤량·스크롤후 재탐색 결과를 trace 에 남길 것",
   "probe_v4_result": {
     "trigger": "A T-A-V3-PROBE-V4-001 — 미해결 31건 전량 재측정, 순서 엄수(1순위 클릭무효검사→2순위 좌표계수정→3순위 S2전개)",
     "code_fixes_applied": {
