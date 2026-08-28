@@ -1,0 +1,372 @@
+<title>MAIN50 발표 슬라이드</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap">
+
+<style>
+  :root{
+    --page:#e8eaed; --deck:#ffffff;
+    --ink:#14181d; --ink-2:#4d545e; --ink-3:#828a95;
+    --rule:#d7dbe0; --rule-2:#b9c0c9;
+    --plan:#5c646f; --plan-bg:#f1f3f5;
+    --obs:#0e7c86; --obs-bg:#e6f4f5;
+    --concl:#c85a45; --concl-bg:#fdf0ed;
+    --retract:#b3341f;
+    --gain:#2f8f5b;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --sans:'Noto Sans KR',system-ui,-apple-system,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:where(:not([data-theme="light"])){
+      --page:#0e1114; --deck:#171b20;
+      --ink:#f2f4f6; --ink-2:#b6bdc6; --ink-3:#7d858f;
+      --rule:#2b3037; --rule-2:#3d444d;
+      --plan:#98a1ac; --plan-bg:#1e232a;
+      --obs:#4ab8c2; --obs-bg:#12292c;
+      --concl:#e08872; --concl-bg:#2a1d1a;
+      --retract:#e07a63; --gain:#5cbe89;
+    }
+  }
+  :root[data-theme="dark"]{
+    --page:#0e1114; --deck:#171b20;
+    --ink:#f2f4f6; --ink-2:#b6bdc6; --ink-3:#7d858f;
+    --rule:#2b3037; --rule-2:#3d444d;
+    --plan:#98a1ac; --plan-bg:#1e232a;
+    --obs:#4ab8c2; --obs-bg:#12292c;
+    --concl:#e08872; --concl-bg:#2a1d1a;
+    --retract:#e07a63; --gain:#5cbe89;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased}
+  .page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+
+  .top{margin-bottom:26px}
+  .top .k{font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}
+  .top h1{font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:-.02em}
+  .top p{font-size:14px;color:var(--ink-2);margin:0;font-weight:300;max-width:72ch}
+  .top p b{color:var(--ink);font-weight:500}
+
+  .slide{position:relative;aspect-ratio:16/9;background:var(--deck);
+    border:1px solid var(--rule);border-radius:4px;overflow:hidden;
+    container-type:size;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .cap{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin:0 0 8px;letter-spacing:.06em}
+  .cap b{color:var(--ink-2);font-weight:500}
+  section{margin-bottom:44px}
+
+  .s{position:absolute;inset:0;padding:3.1cqw 3.4cqw;display:flex;flex-direction:column}
+  .shead{display:flex;justify-content:space-between;align-items:flex-start;
+    padding-bottom:1.1cqw;border-bottom:.12cqw solid var(--ink);margin-bottom:1.5cqw}
+  .shead h2{margin:0;font-size:2.05cqw;font-weight:700;letter-spacing:-.02em;line-height:1.2;max-width:64cqw}
+  .shead .meta{font-family:var(--mono);font-size:.72cqw;color:var(--ink-3);
+    text-align:right;line-height:1.7;letter-spacing:.05em}
+  .shead .meta b{color:var(--ink-2);font-weight:500}
+  .h2sub{font-size:1.15cqw;color:var(--ink-2);margin:0 0 1.5cqw;font-weight:300;line-height:1.5}
+  .h2sub b{color:var(--ink);font-weight:500}
+
+  /* ── waterfall ── */
+  .wf{display:flex;flex-direction:column;gap:.62cqw}
+  .wr{display:grid;grid-template-columns:11cqw 1fr 6.4cqw;align-items:center;gap:1.1cqw}
+  .wr .wl{font-size:.98cqw;color:var(--ink-2);text-align:right;line-height:1.3}
+  .wr .wl b{font-family:var(--mono);font-size:.68cqw;color:var(--ink-3);display:block;font-weight:500}
+  .wr .wb{height:2.1cqw;background:var(--plan-bg);border-radius:.22cqw;
+    display:flex;gap:.14cqw;overflow:hidden}
+  .wr .wb i{display:block;height:100%}
+  .wr .wb i:first-child{border-radius:.22cqw 0 0 .22cqw}
+  .wr .wv{font-family:var(--mono);font-size:1.28cqw;font-weight:600;
+    font-variant-numeric:tabular-nums;text-align:right}
+  .wr.add .wv{color:var(--gain)}
+  .wr.tot{margin-top:.35cqw;padding-top:.62cqw;border-top:.08cqw solid var(--rule)}
+  .wr.tot .wl{font-weight:700;color:var(--ink);font-size:1.05cqw}
+  .wr.tot .wv{font-size:1.6cqw;color:var(--obs)}
+
+  .mini{display:grid;grid-template-columns:repeat(5,1fr);gap:.7cqw;margin-top:1.5cqw}
+  .mini div{background:var(--plan-bg);border-radius:.22cqw;padding:.72cqw .8cqw}
+  .mini .mv{font-family:var(--mono);font-size:1.32cqw;font-weight:600;
+    font-variant-numeric:tabular-nums;line-height:1.1}
+  .mini .ml{font-size:.72cqw;color:var(--ink-2);margin-top:.2cqw;line-height:1.3}
+  .mini .warn .mv{color:var(--retract)}
+
+  /* ── 21장 좌우 ── */
+  .s2{flex:1;display:grid;grid-template-columns:1fr .09cqw 1fr;gap:2cqw}
+  .s2 .vl{background:var(--rule-2)}
+  .colh{font-size:1.28cqw;font-weight:700;margin:0 0 1cqw;letter-spacing:-.01em}
+  .before{background:var(--plan-bg);border-radius:.3cqw;padding:1.3cqw 1.5cqw}
+  .before .bn{font-family:var(--mono);font-size:2.4cqw;font-weight:600;color:var(--plan);line-height:1}
+  .before .bl{font-size:.95cqw;color:var(--ink-2);margin-top:.4cqw;line-height:1.45}
+  .after{display:flex;flex-direction:column;gap:.6cqw}
+  .after .ar{display:flex;align-items:baseline;gap:.8cqw;padding:.75cqw 1cqw;
+    border-radius:.28cqw;background:var(--obs-bg)}
+  .after .ar.hold{background:var(--plan-bg)}
+  .after .an{font-family:var(--mono);font-size:1.7cqw;font-weight:600;color:var(--obs)}
+  .after .ar.hold .an{color:var(--plan)}
+  .after .al{font-size:.95cqw;color:var(--ink)}
+  .rtag{display:inline-block;font-family:var(--mono);font-size:.6cqw;font-weight:600;
+    letter-spacing:.08em;color:#fff;background:var(--retract);
+    padding:.12cqw .42cqw;border-radius:.15cqw;margin-top:.85cqw}
+
+  .famt{width:100%;border-collapse:collapse;margin-top:1.2cqw;font-size:.9cqw}
+  .famt th{font-family:var(--mono);font-size:.66cqw;letter-spacing:.06em;color:var(--ink-3);
+    text-align:right;padding:0 .5cqw .35cqw;border-bottom:.06cqw solid var(--rule);font-weight:500}
+  .famt th:first-child{text-align:left}
+  .famt td{padding:.34cqw .5cqw;border-bottom:.05cqw solid var(--rule);text-align:right;
+    font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+  .famt td:first-child{text-align:left;font-family:var(--sans);color:var(--ink)}
+  .famt td.fin{color:var(--obs);font-weight:600}
+  .famt .bar{width:36%}
+  .famt .bar span{display:inline-block;height:.62cqw;border-radius:.1cqw;
+    background:var(--obs);vertical-align:middle}
+  .famt .bar span.c0{background:var(--plan)}
+
+  /* ── 22장 ── */
+  .s3{flex:1;display:grid;grid-template-columns:.8fr 1.2fr;gap:2.2cqw}
+  .narr{display:flex;flex-direction:column;gap:.45cqw;padding-top:.2cqw}
+  .narr .nst{font-size:.98cqw;color:var(--ink-2);line-height:1.4}
+  .narr .nst.on{color:var(--ink);font-weight:500}
+  .narr .arrow{color:var(--rule-2);font-size:1.05cqw;padding-left:.3cqw;line-height:1}
+  .narr .side{font-family:var(--mono);font-size:.68cqw;color:var(--concl);display:block}
+  .imp{display:flex;flex-direction:column;gap:1cqw}
+  .imp .i{display:grid;grid-template-columns:3.1cqw 1fr;gap:.85cqw;align-items:start}
+  .imp .ik{font-family:var(--mono);font-size:.82cqw;font-weight:600;color:var(--concl);
+    text-align:right;padding-top:.2cqw;letter-spacing:.04em}
+  .imp .iv{font-size:1.05cqw;line-height:1.5;color:var(--ink)}
+  .imp .i.big .iv{font-size:1.22cqw;font-weight:500}
+  .imp .i.big .ik{font-size:.9cqw}
+
+  .kick{margin-top:auto;padding-top:1cqw;border-top:.08cqw solid var(--rule);
+    font-size:1.12cqw;font-weight:500;color:var(--ink);line-height:1.5}
+  .kick b{color:var(--obs)}
+  .foot{font-family:var(--mono);font-size:.62cqw;color:var(--ink-3);
+    line-height:1.6;margin-top:.9cqw;padding-top:.6cqw;border-top:.06cqw solid var(--rule)}
+  .foot b{color:var(--ink-2);font-weight:500}
+  .foot .warn{color:var(--retract)}
+
+  .box{margin-top:12px;background:var(--deck);border:1px solid var(--rule);
+    border-left:3px solid var(--plan);border-radius:4px;padding:16px 20px}
+  .box.w{border-left-color:var(--retract)}
+  .box .sh{font-family:var(--mono);font-size:11px;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:9px}
+  .box.w .sh{color:var(--retract)}
+  .box p{margin:0;font-size:13.5px;line-height:1.7;color:var(--ink-2)}
+  .box p b{color:var(--ink);font-weight:500}
+  .box p + p{margin-top:9px}
+  .box table{width:100%;border-collapse:collapse;font-family:var(--mono);
+    font-size:12px;margin-top:10px;font-variant-numeric:tabular-nums}
+  .box th{text-align:right;color:var(--ink-3);font-weight:500;padding:4px 8px;
+    border-bottom:1px solid var(--rule)}
+  .box th:first-child{text-align:left}
+  .box td{text-align:right;padding:4px 8px;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+  .box td:first-child{text-align:left;color:var(--ink)}
+  .box td.hi{color:var(--retract);font-weight:600}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="page">
+
+  <div class="top">
+    <p class="k">MAIN50 · 발표 슬라이드</p>
+    <h1>20 · 21 · 22 — 결과 A / 결과 B / 결론</h1>
+    <p>16:9 · 1920×1080. 색 세 단계가 <b>계획 → 관측 → 결론</b>을 가릅니다.
+      모든 숫자에 분모를 붙였고, 회복 수치는 <b>계기 판본이 혼재된 사후 recovery</b>임을 각 장 하단에 명시했습니다.</p>
+  </div>
+
+  <!-- ═══ 20장 ═══ -->
+  <section>
+    <p class="cap"><b>20</b> · 결과 A — 계기를 고치자 보이는 것이 늘었다</p>
+    <div class="slide"><div class="s">
+
+      <div class="shead">
+        <h2>처음엔 8개만 보였고, 계기를 고치자 22개까지 보였다</h2>
+        <div class="meta"><b>관측 결과 A</b><br>frozen 50 · 사후 recovery</div>
+      </div>
+
+      <p class="h2sub">미관측은 곧 사이트 실패가 아니었습니다.
+        <b>측정기를 바꾸자 결과가 달라졌습니다.</b></p>
+
+      <div class="wf">
+        <div class="wr"><div class="wl">원 census<b>동결 기준선</b></div>
+          <div class="wb"><i style="width:16%;background:var(--obs)"></i></div>
+          <div class="wv">8</div></div>
+        <div class="wr add"><div class="wl">+ AX / name probe<b>접근성 트리 복구</b></div>
+          <div class="wb"><i style="width:16%;background:var(--obs);opacity:.35"></i><i style="width:6%;background:var(--gain)"></i></div>
+          <div class="wv">+3</div></div>
+        <div class="wr add"><div class="wl">+ SITE 재검증<b>철회된 분류 재측정</b></div>
+          <div class="wb"><i style="width:22%;background:var(--obs);opacity:.35"></i><i style="width:16%;background:var(--gain)"></i></div>
+          <div class="wv">+8</div></div>
+        <div class="wr add"><div class="wl">+ V4 보정<b>좌표·클릭 유효성</b></div>
+          <div class="wb"><i style="width:38%;background:var(--obs);opacity:.35"></i><i style="width:6%;background:var(--gain)"></i></div>
+          <div class="wv">+3</div></div>
+        <div class="wr tot"><div class="wl">최종 확보</div>
+          <div class="wb"><i style="width:44%;background:var(--obs)"></i></div>
+          <div class="wv">22 / 50</div></div>
+      </div>
+
+      <div class="mini">
+        <div><div class="mv">50</div><div class="ml">Frozen target</div></div>
+        <div><div class="mv">8</div><div class="ml">초기 확보</div></div>
+        <div><div class="mv" style="color:var(--gain)">+14</div><div class="ml">사후 probe 회복</div></div>
+        <div><div class="mv" style="color:var(--obs)">22 / 50</div><div class="ml">누적 확보</div></div>
+        <div class="warn"><div class="mv">18</div><div class="ml">남은 depth-2 미관측</div></div>
+      </div>
+
+      <div class="kick">처음 보이지 않았던 길 중 일부는, 길이 없어서가 아니라
+        <b>보는 방법이 틀려서</b> 보이지 않았습니다.</div>
+
+      <div class="foot">
+        <b class="warn">22/50은 네 계기 판본이 혼재된 사후 recovery 수치이며 동일 조건 clean census 결과가 아닙니다.</b>
+        동결 census는 8/50이고 v2·v3·v4 회복으로 22/50이 됐습니다 · PUBLICATION_READY 미선언
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ═══ 21장 ═══ -->
+  <section>
+    <p class="cap"><b>21</b> · 결과 B — 유일한 사이트 진술이 철회됐다</p>
+    <div class="slide"><div class="s">
+
+      <div class="shead">
+        <h2>“사이트가 막았다”는 유일한 진술은 철회됐다</h2>
+        <div class="meta"><b>관측 결과 B</b><br>NO_SAFE_ROUTE_SITE 재검증</div>
+      </div>
+
+      <p class="h2sub"><b>NO_SAFE_ROUTE_SITE 16건 중 8건</b>이 재측정에서 회복됐습니다.</p>
+
+      <div class="s2">
+        <div>
+          <h3 class="colh" style="color:var(--plan)">원래 판정</h3>
+          <div class="before">
+            <div class="bn">16 / 50</div>
+            <div class="bl"><code>NO_SAFE_ROUTE_SITE</code><br>
+              = 사이트에 safe route가 안 보임</div>
+            <span class="rtag">⚠ 철회됨</span>
+          </div>
+        </div>
+
+        <div class="vl"></div>
+
+        <div>
+          <h3 class="colh" style="color:var(--obs)">재검증 후</h3>
+          <div class="after">
+            <div class="ar"><span class="an">8</span><span class="al">회복 — 같은 방법으로 다시 재니 도달</span></div>
+            <div class="ar hold"><span class="an">8</span><span class="al">미회복 · 판정 보류</span></div>
+          </div>
+          <p style="font-size:1cqw;color:var(--ink);margin:1cqw 0 0;font-weight:500;
+            padding-left:1cqw;border-left:.18cqw solid var(--retract)">
+            → SITE claim 철회</p>
+        </div>
+      </div>
+
+      <table class="famt">
+        <thead><tr><th>family</th><th>시작</th><th>최종</th><th class="bar"></th></tr></thead>
+        <tbody>
+          <tr><td>F1 은행</td><td>2</td><td class="fin">2 / 10</td><td class="bar"><span class="c0" style="width:20%"></span></td></tr>
+          <tr><td>F2 쇼핑</td><td>2</td><td class="fin">8 / 10</td><td class="bar"><span style="width:80%"></span></td></tr>
+          <tr><td>F3 배송</td><td>2</td><td class="fin">6 / 10</td><td class="bar"><span style="width:60%"></span></td></tr>
+          <tr><td>F4 의료</td><td>0</td><td class="fin">3 / 10</td><td class="bar"><span style="width:30%"></span></td></tr>
+          <tr><td>F5 교통</td><td>2</td><td class="fin">3 / 10</td><td class="bar"><span style="width:30%"></span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="kick">이제 census의 실패 분류는 사이트의 속성이 아니라,
+        <b>계측기의 관측 상태</b>로 읽어야 합니다.</div>
+
+      <div class="foot">
+        <b class="warn">family별 최종값은 네 계기 판본이 혼재된 사후 recovery 수치입니다.</b>
+        계기가 다르면 관측 가능한 변수도 다릅니다 — 접근성 이름은 22건 중 14건에서만 독립 관측됐습니다
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ═══ 22장 ═══ -->
+  <section>
+    <p class="cap"><b>22</b> · 결론 — 좌측 서사는 작게, 우측 시사점은 크게. B3만 한 단계 더</p>
+    <div class="slide"><div class="s">
+
+      <div class="shead">
+        <h2>서비스 구조를 말하려면, 먼저 서비스 구조를 제대로 재야 한다</h2>
+        <div class="meta"><b>결론</b><br>MAIN50 Time-boxed Acquisition</div>
+      </div>
+
+      <p class="h2sub">이번 연구는 “접근성 실패율”이 아니라
+        <b>task-flow 측정체계의 필요성</b>을 보여준 1차 관측입니다.</p>
+
+      <div class="s3">
+        <div class="narr">
+          <div class="nst">사람의 역량만 재고 있었다</div>
+          <div class="arrow">↓</div>
+          <div class="nst">서비스의 길을 재려 했다
+            <span class="side">→ 분류로는 안 됐다</span></div>
+          <div class="arrow">↓</div>
+          <div class="nst">과업을 고정하고 경로를 쟀다
+            <span class="side">→ 50개 중 8개만 관측됐다</span></div>
+          <div class="arrow">↓</div>
+          <div class="nst">계기를 고치자 22개까지 보였다
+            <span class="side">→ 미관측은 사이트 실패가 아니었다</span></div>
+          <div class="arrow">↓</div>
+          <div class="nst on">길을 잴 수 있는 측정체계가<br>먼저 필요하다</div>
+        </div>
+
+        <div class="imp">
+          <div class="i"><div class="ik">B1 교육</div>
+            <div class="iv">사용자 교육과 서비스 구조는 <b>서로 다른 개입대상</b>으로 구분해
+              평가해야 합니다.</div></div>
+          <div class="i"><div class="ik">B2 설계</div>
+            <div class="iv"><b>진입 위치와 control 표현</b>은 접근성 평가의 대상이 되어야 합니다.</div></div>
+          <div class="i big"><div class="ik">B3 정책·평가</div>
+            <div class="iv">개별 기준 준수와 <b>서비스 간 일관성은 다른 질문</b>입니다.
+              후자를 평가하려면 <b>task-aware interaction measurement</b>가 필요합니다.</div></div>
+        </div>
+      </div>
+
+      <div class="kick" style="border-top-color:var(--concl)">
+        사용자의 역량 문제와 서비스 구조의 문제를 분리해서 보려면 —
+        <b style="color:var(--concl)">서비스 구조부터 제대로 잴 수 있어야 합니다.</b></div>
+
+      <div class="foot">
+        <b class="warn">22/50은 네 계기 판본이 혼재된 사후 recovery 수치이며 동일 조건 clean census 결과가 아닙니다.</b>
+        동결 census 8/50 → v2·v3·v4 회복으로 22/50 · <b>PUBLICATION_READY 미선언</b><br>
+        ① 고령 사용자 실험이 아니라 모바일웹 구조 관측 연구입니다 ② 390×844 · 모바일웹 · 로그인 이전 한정
+        ③ 계열마다 과업 등가성의 강도가 다를 수 있습니다 ④ 사례 기술이며 분포 추정이 아닙니다(선택편향 가능)
+        ⑤ 계획한 8축 중 label 축은 동결 census에서 AX capture 0/50으로 결과에서 제외했습니다
+      </div>
+    </div></div>
+  </section>
+
+  <div class="box w">
+    <div class="sh">⚠ 22를 하나의 표본으로 쓰기 전에 — 축마다 n이 다르다</div>
+    <p>22건은 <b>네 계기 판본이 섞인 집합</b>입니다. 같은 이름의 변수라도 회차마다
+      관측할 수 있었는지가 달라서, <b>전부 22로 쓸 수 있는 축과 그럴 수 없는 축이 갈립니다.</b>
+      raw에서 같은 정의로 다시 뽑아 센 결과입니다.</p>
+    <table>
+      <thead><tr><th>변수</th><th>관측</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>endpoint predicate</td><td>22 / 22</td><td>네 회차 raw 스키마 동일</td></tr>
+        <tr><td>sequence</td><td>22 / 22</td><td>조작 스텝 존재</td></tr>
+        <tr><td>activation depth</td><td>22 / 22</td><td>시퀀스가 있는 건만</td></tr>
+        <tr><td>menu dependency</td><td>22 / 22</td><td>route에서 파생</td></tr>
+        <tr><td>entry label</td><td>22 / 22</td><td>route label</td></tr>
+        <tr><td>accessible name (독립 관측)</td><td class="hi">14 / 22</td><td>census 8은 60B 오류 스텁 — 계기 차이</td></tr>
+        <tr><td>geometry (판정 근거 run)</td><td class="hi">14 / 22</td><td>census 8의 bbox는 보충 run에만 존재</td></tr>
+      </tbody>
+    </table>
+    <p><b>이 표가 없으면 22를 clean sample로 쓰게 됩니다.</b> 접근성 이름과 진입 좌표를
+      22로 말하면 계기 차이를 사이트 차이로 옮기는 것이고, 그건 이번에 철회한
+      <code>NO_SAFE_ROUTE_SITE</code>와 같은 오류입니다.</p>
+    <p>특히 geometry는 한 번 잘못 나왔습니다 — 처음 계산이 22/22를 냈는데,
+      census 8건의 좌표가 <b>판정 근거 run이 아니라 나중의 보충 run</b>에서 읽히고 있었습니다.
+      <b>한 건 안에서 변수마다 다른 회차를 읽으면 그게 계기 혼입입니다.</b></p>
+  </div>
+
+  <div class="box">
+    <div class="sh">소리내어 말할 것 — 슬라이드에 없음</div>
+    <p><b>선택편향은 발표자가 먼저 말합니다.</b>
+      “18곳은 두 단계까지 열어봐도 후보가 안 잡혔습니다. 이건 그 사이트에 진입점이 없다는 뜻이 아니라,
+      저희 수집기가 거기까지 못 찾았다는 뜻입니다.”</p>
+    <p><b>회복을 성능으로 말하지 않습니다.</b>
+      “2·3차는 앞선 결과를 보고 대상을 고른 구제 시도입니다. 회차별 성공률로 비교하지 않았습니다.”</p>
+    <p><b>마지막 문단.</b> “저희는 50개 서비스를 같은 과업으로 재보았습니다. 모든 길을 끝까지 읽지는
+      못했습니다. 하지만 계기를 고칠 때마다 보이는 것이 늘었고, 그래서 다음 질문은 노인이 얼마나 잘
+      쓰는가가 아니라 서비스의 길을 어떻게 안정적으로 측정할 것인가입니다.”</p>
+  </div>
+
+</div>
