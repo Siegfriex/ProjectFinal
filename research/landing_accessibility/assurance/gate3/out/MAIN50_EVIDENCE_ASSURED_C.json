@@ -1,21 +1,22 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T11:03:57+09:00",
+ "measured_at_kst": "2026-08-28T11:07:47+09:00",
  "state": "STREAMING",
  "checker": {
-  "commit": "822cf0a30263cca6b03878b24be9a08cb30f5ff0",
+  "commit": "26ffa1e996b07d1faedf60ce0303dd4cf3c21f72",
   "census_qc_c_sha256": "503be50a6bd8ad0ad83f0bd3cbc47b3210a59cf7e6b8d808aadcf752574e13bd",
-  "census_stream_c_sha256": "190afd73d949ca14a2d0b8d0020c0afd396ad3ceb0bc337e3e8347c5a5162a89",
+  "census_stream_c_sha256": "9869a83fd81d514ef1f053cfa5e89a298cc83d60adaa221f6c0c7f6e34a4a48a",
   "checker_frozen": "43d7d4da52e0403a2b76d1322a170678e97a6f03"
  },
  "inputs": {
-  "mart": "snapshot_00.csv",
-  "mart_sha256": "546c5abe041e04332a861fc47da2b4d958a0d895ac488528c39628a56c49ea84",
+  "mart": "snapshot_10.csv",
+  "mart_sha256": "898f7af1f8299c4171e851f44fed82b60d28931c7ff11f8dc01dbbf4ffa7b5d6",
+  "mart_bytes": 22367,
   "mart_rows": 50,
-  "evidence_manifest_lines": 0,
-  "dispatch_lines": 0,
+  "evidence_manifest_lines": 7,
+  "dispatch_lines": 7,
   "ingest_lines": 50,
-  "raw_target_dirs": 7
+  "raw_target_dirs": 14
  },
  "manifest": {
   "file_sha256_recomputed": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
@@ -81,10 +82,10 @@
   }
  },
  "summary": {
-  "checks_pass": 7,
-  "checks_flag": 2,
-  "checks_not_testable_or_vacuous": 3,
-  "flags": 11,
+  "checks_pass": 9,
+  "checks_flag": 4,
+  "checks_not_testable_or_vacuous": 1,
+  "flags": 35,
   "systemic_candidates": []
  },
  "checks": {
@@ -113,14 +114,10 @@
   },
   "MART.EVIDENCE_OR_TERMINAL": {
    "status": "FLAG",
-   "k": 6,
+   "k": 13,
    "of": 50,
    "n_items": 50,
    "missing": [
-    "F1-03",
-    "F1-06",
-    "F1-09",
-    "F1-10",
     "F2-01",
     "F2-02",
     "F2-03",
@@ -141,7 +138,6 @@
     "F3-08",
     "F3-09",
     "F3-10",
-    "F4-01",
     "F4-02",
     "F4-03",
     "F4-04",
@@ -151,8 +147,6 @@
     "F4-08",
     "F4-09",
     "F4-10",
-    "F5-01",
-    "F5-02",
     "F5-03",
     "F5-04",
     "F5-05",
@@ -162,7 +156,16 @@
     "F5-09",
     "F5-10"
    ],
-   "non_canonical_terminal": []
+   "non_canonical_terminal": [
+    {
+     "target": "F1-10",
+     "terminal_reason": "UNMAPPED_SCOUT_STATUS:SAFETY_STOP"
+    },
+    {
+     "target": "F5-01",
+     "terminal_reason": "UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT"
+    }
+   ]
   },
   "MART.FORBIDDEN_ACTION": {
    "status": "NOT_TESTABLE",
@@ -195,11 +198,11 @@
     "F1": {
      "frozen": 10,
      "attempted": 10,
-     "attempted_observed": 6,
-     "evidence_adequate": 6,
-     "completed_endpoint_reached": 0,
+     "attempted_observed": 10,
+     "evidence_adequate": 10,
+     "completed_endpoint_reached": 1,
      "auth_gate_terminal": 0,
-     "failed": 6
+     "failed": 8
     },
     "F2": {
      "frozen": 10,
@@ -222,29 +225,29 @@
     "F4": {
      "frozen": 10,
      "attempted": 10,
-     "attempted_observed": 0,
-     "evidence_adequate": 0,
+     "attempted_observed": 1,
+     "evidence_adequate": 1,
      "completed_endpoint_reached": 0,
      "auth_gate_terminal": 0,
-     "failed": 0
+     "failed": 1
     },
     "F5": {
      "frozen": 10,
      "attempted": 10,
-     "attempted_observed": 0,
-     "evidence_adequate": 0,
-     "completed_endpoint_reached": 0,
+     "attempted_observed": 2,
+     "evidence_adequate": 2,
+     "completed_endpoint_reached": 1,
      "auth_gate_terminal": 0,
      "failed": 0
     },
     "overall": {
      "frozen": 50,
      "attempted": 50,
-     "attempted_observed": 6,
-     "evidence_adequate": 6,
-     "completed_endpoint_reached": 0,
+     "attempted_observed": 13,
+     "evidence_adequate": 13,
+     "completed_endpoint_reached": 2,
      "auth_gate_terminal": 0,
-     "failed": 6
+     "failed": 9
     }
    },
    "evidence_adequate_basis": "evidence_pointer",
@@ -268,29 +271,89 @@
    "status": "REPORT",
    "n_items": 50,
    "distribution": {
-    "NOT_ATTEMPTED": 44,
-    "TERMINAL_NO_ENDPOINT": 6
+    "ENDPOINT_REACHED": 2,
+    "ERROR": 2,
+    "NOT_ATTEMPTED": 37,
+    "TERMINAL_NO_ENDPOINT": 9
    },
    "completed_rule": "attempt_status ∈ ('ENDPOINT_REACHED', 'COMPLETED', 'SUCCESS')"
   },
   "RAW.DISPATCH": {
-   "status": "NOT_TESTABLE",
-   "reason": "DISPATCH_LEDGER ABSENT / 0 lines",
-   "n_items": 0
+   "status": "PASS",
+   "n_items": 7,
+   "dispatched_unique": 7,
+   "of": 50,
+   "dup_keys": {},
+   "dup_targets": {},
+   "outside": [],
+   "unparsable_lines": []
   },
   "RAW.CHAIN": {
-   "status": "NOT_TESTABLE",
-   "reason": "EVIDENCE_MANIFEST ABSENT / 0 lines",
-   "n_items": 0
+   "status": "PASS",
+   "n_items": 7,
+   "targets_with_evidence": 7,
+   "of": 50,
+   "chain_breaks": 0,
+   "changed_lines_vs_previous_run": [],
+   "previous_run_lines": 7,
+   "unparsable_lines": [],
+   "non_canonical_terminal": []
+  },
+  "MART.EVIDENCE_LINK": {
+   "status": "FLAG",
+   "n_items": 13,
+   "unlinked": [
+    {
+     "target": "F1-03",
+     "mart_evidence_hash": "4b119b8f28f8",
+     "E_evidence_hash": ""
+    },
+    {
+     "target": "F1-06",
+     "mart_evidence_hash": "2655cd29649f",
+     "E_evidence_hash": ""
+    },
+    {
+     "target": "F1-10",
+     "mart_evidence_hash": "73d08dc7a708",
+     "E_evidence_hash": ""
+    },
+    {
+     "target": "F4-01",
+     "mart_evidence_hash": "2bd3a82d294e",
+     "E_evidence_hash": ""
+    },
+    {
+     "target": "F5-01",
+     "mart_evidence_hash": "574825de96ae",
+     "E_evidence_hash": ""
+    },
+    {
+     "target": "F5-02",
+     "mart_evidence_hash": "5fcb963bcfa6",
+     "E_evidence_hash": ""
+    }
+   ],
+   "rule": "mart evidence_hash (hash-shaped only) must equal some EVIDENCE_MANIFEST.evidence_hash"
+  },
+  "RAW.CONTRACT_TBX011": {
+   "status": "FLAG",
+   "n_items": 7,
+   "problems": 10,
+   "by_kind": {
+    "NULL_WITHOUT_MISSING_REASON": 10
+   },
+   "control": "raw_contract_controls() PASS in this run",
+   "vocabulary_observation": "TBX-011 terminal_reason 8 values vs R11 16 values — C validates raw against TBX-011 (A's census contract); mart terminal_reason is checked against the union; entry_zone 5 values vs R7 7 zones; auth_gate_stage NONE vs R13 UNDETERMINED — reported, not judged"
   },
   "RAW.FORBIDDEN_PROBE": {
    "status": "FLAG",
-   "n_items": 36,
-   "raw_target_dirs": 7,
+   "n_items": 68,
+   "raw_target_dirs": 14,
    "run_root": "/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/raw/E/E-REAL-CENSUS-1230",
    "of": 50,
    "rule": "presence probe: regex (password|passwd|credential|login[_ -]?submit|SUBMIT_LOGIN|captcha|payment|purchase|checkout|transfer_execute|reservation_submit|결제|송금|예약확정|구매하기|장바구니 담기|본인인증 완료) over every text/json file under raw/<target_id>/ (case-insensitive); a hit is LISTED with file:line, not judged — a guard log that names the action it blocked also matches",
-   "hits": 10,
+   "hits": 16,
    "execution_shaped_hits": 0,
    "execution_rule": "same line also carries an action/event key valued click|tap|press|submit|enter (R71: vocabulary ≠ execution; both listed, neither summed into violations)",
    "note": "html bodies excluded from the probe (page text names payments legitimately); this is a presence probe, not proof of execution — 0 hits ≠ 'no forbidden action'"
@@ -298,10 +361,10 @@
   "MART.INGEST": {
    "status": "REPORT",
    "n_items": 50,
-   "promoted": 6,
-   "rejected": 44,
+   "promoted": 13,
+   "rejected": 37,
    "reject_reasons": {
-    "NO_EVIDENCE_ROW_FOR_TARGET": 44
+    "NO_EVIDENCE_ROW_FOR_TARGET": 37
    },
    "unparsable_lines": []
   }
@@ -309,13 +372,23 @@
  "flags": [
   {
    "check": "EVIDENCE_OR_TERMINAL",
-   "message": "44/50 frozen units have neither evidence nor a canonical terminal_reason (streaming: pending; at CANONICAL_MART_50 freeze this is denominator corruption)",
+   "message": "non-canonical terminal_reason 'UNMAPPED_SCOUT_STATUS:SAFETY_STOP' (16 values, R11/Δ30/Δ32/Δ47)",
+   "systemic_candidate": null,
+   "target": "F1-10",
+   "terminal_reason": "UNMAPPED_SCOUT_STATUS:SAFETY_STOP"
+  },
+  {
+   "check": "EVIDENCE_OR_TERMINAL",
+   "message": "non-canonical terminal_reason 'UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT' (16 values, R11/Δ30/Δ32/Δ47)",
+   "systemic_candidate": null,
+   "target": "F5-01",
+   "terminal_reason": "UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT"
+  },
+  {
+   "check": "EVIDENCE_OR_TERMINAL",
+   "message": "37/50 frozen units have neither evidence nor a canonical terminal_reason (streaming: pending; at CANONICAL_MART_50 freeze this is denominator corruption)",
    "systemic_candidate": null,
    "missing": [
-    "F1-03",
-    "F1-06",
-    "F1-09",
-    "F1-10",
     "F2-01",
     "F2-02",
     "F2-03",
@@ -336,7 +409,6 @@
     "F3-08",
     "F3-09",
     "F3-10",
-    "F4-01",
     "F4-02",
     "F4-03",
     "F4-04",
@@ -346,8 +418,6 @@
     "F4-08",
     "F4-09",
     "F4-10",
-    "F5-01",
-    "F5-02",
     "F5-03",
     "F5-04",
     "F5-05",
@@ -359,6 +429,154 @@
    ]
   },
   {
+   "check": "MART.EVIDENCE_LINK",
+   "message": "mart row F1-03 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "systemic_candidate": null,
+   "target": "F1-03",
+   "mart_evidence_hash": "4b119b8f28f8",
+   "E_evidence_hash": ""
+  },
+  {
+   "check": "MART.EVIDENCE_LINK",
+   "message": "mart row F1-06 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "systemic_candidate": null,
+   "target": "F1-06",
+   "mart_evidence_hash": "2655cd29649f",
+   "E_evidence_hash": ""
+  },
+  {
+   "check": "MART.EVIDENCE_LINK",
+   "message": "mart row F1-10 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "systemic_candidate": null,
+   "target": "F1-10",
+   "mart_evidence_hash": "73d08dc7a708",
+   "E_evidence_hash": ""
+  },
+  {
+   "check": "MART.EVIDENCE_LINK",
+   "message": "mart row F4-01 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "systemic_candidate": null,
+   "target": "F4-01",
+   "mart_evidence_hash": "2bd3a82d294e",
+   "E_evidence_hash": ""
+  },
+  {
+   "check": "MART.EVIDENCE_LINK",
+   "message": "mart row F5-01 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "systemic_candidate": null,
+   "target": "F5-01",
+   "mart_evidence_hash": "574825de96ae",
+   "E_evidence_hash": ""
+  },
+  {
+   "check": "MART.EVIDENCE_LINK",
+   "message": "mart row F5-02 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "systemic_candidate": null,
+   "target": "F5-02",
+   "mart_evidence_hash": "5fcb963bcfa6",
+   "E_evidence_hash": ""
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 1,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 1,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 2,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 2,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 4,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 4,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 5,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 5,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 7,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 7,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F1-06/E_SCOUT_TRACE_F1-06.jsonl",
+   "line": 1,
+   "match": "송금",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-06\",",
+   "execution_shaped": false
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F1-03/E_SCOUT_TRACE_F1-03.jsonl",
+   "line": 1,
+   "match": "송금",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-03\",",
+   "execution_shaped": false
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F1-03/E_SCOUT_TRACE_F1-03.jsonl",
+   "line": 2,
+   "match": "송금",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-03\",",
+   "execution_shaped": false
+  },
+  {
    "check": "RAW.FORBIDDEN_PROBE",
    "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
    "systemic_candidate": null,
@@ -366,6 +584,36 @@
    "line": 1,
    "match": "송금",
    "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-04\",",
+   "execution_shaped": false
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F1-09/E_SCOUT_TRACE_F1-09.jsonl",
+   "line": 1,
+   "match": "송금",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-09\",",
+   "execution_shaped": false
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F1-09/E_SCOUT_TRACE_F1-09.jsonl",
+   "line": 2,
+   "match": "송금",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-09\",",
+   "execution_shaped": false
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F1-10/E_SCOUT_TRACE_F1-10.jsonl",
+   "line": 1,
+   "match": "송금",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-10\",",
    "execution_shaped": false
   },
   {
@@ -603,6 +851,68 @@
     "dispatch_lines": 0,
     "ingest_lines": 50,
     "raw_target_dirs": 1
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:03:57+09:00",
+   "state": "STREAMING",
+   "summary": {
+    "checks_pass": 7,
+    "checks_flag": 2,
+    "checks_not_testable_or_vacuous": 3,
+    "flags": 11,
+    "systemic_candidates": []
+   },
+   "inputs": {
+    "mart": "snapshot_00.csv",
+    "mart_sha256": "546c5abe041e04332a861fc47da2b4d958a0d895ac488528c39628a56c49ea84",
+    "mart_rows": 50,
+    "evidence_manifest_lines": 0,
+    "dispatch_lines": 0,
+    "ingest_lines": 50,
+    "raw_target_dirs": 7
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:04:49+09:00",
+   "state": "STREAMING",
+   "summary": {
+    "checks_pass": 7,
+    "checks_flag": 2,
+    "checks_not_testable_or_vacuous": 3,
+    "flags": 13,
+    "systemic_candidates": []
+   },
+   "inputs": {
+    "mart": "snapshot_00.csv",
+    "mart_sha256": "0edb9b5502bd29eb99e0f5e98c4767ab0cffb7970dfc4b2aab4388af00bed554",
+    "mart_bytes": 20284,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 0,
+    "dispatch_lines": 0,
+    "ingest_lines": 50,
+    "raw_target_dirs": 7
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:07:17+09:00",
+   "state": "STREAMING",
+   "summary": {
+    "checks_pass": 9,
+    "checks_flag": 4,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 77,
+    "systemic_candidates": []
+   },
+   "inputs": {
+    "mart": "snapshot_00.csv",
+    "mart_sha256": "0edb9b5502bd29eb99e0f5e98c4767ab0cffb7970dfc4b2aab4388af00bed554",
+    "mart_bytes": 20284,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 7,
+    "dispatch_lines": 7,
+    "ingest_lines": 50,
+    "raw_target_dirs": 14
    }
   }
  ]

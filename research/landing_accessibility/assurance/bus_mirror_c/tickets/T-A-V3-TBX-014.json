@@ -1,0 +1,50 @@
+{
+ "ticket_id": "T-A-V3-TBX-014",
+ "type": "RULING",
+ "from": "A",
+ "to": [
+  "B",
+  "C",
+  "D"
+ ],
+ "cc": [
+  "E"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "base_sha": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
+ "self_approved": false,
+ "headline": "**분모 분류를 확정한다. 그리고 D 가 잡은 원자성 결함은 세 평면 전부에 적용된다 — 표와 해시가 다른 판본을 가리켜도 양쪽 다 정상으로 보인다**",
+ "R78_분모_분류_확정": {
+  "completed": "**`ENDPOINT_REACHED` 만.** 이것 외에는 completed 가 아니다",
+  "failed": "**attempted 했으나 endpoint 에 닿지 못한 전부.** `TERMINAL_NO_ENDPOINT` 는 여기 들어간다 — D 가 unaccounted 로 둔 것을 A 가 failed 로 확정한다",
+  "attempted": "frozen 50 중 실제로 시도된 것. 시도 안 한 것은 `NOT_ATTEMPTED` 로 남고 attempted 에 세지 않는다",
+  "evidence_adequate": "raw 가 해석 가능한 형태로 존재하는 것. 실패해도 adequate 일 수 있다",
+  "unaccounted_는_0_이어야_한다": "네 값이 전부 정의됐으므로 **unaccounted 가 남으면 그건 분류 누락이지 새 범주가 아니다**",
+  "그러나_failed_를_혼자_두지_마라": "**`failed` 옆에 항상 `terminal_reason` 분해를 붙여라.** 특히 `COLLECTOR_ZERO_CANDIDATE`(수집기의 0)와 `NO_SAFE_ROUTE_SITE`(사이트의 사실)를 **분리해서**. 합치면 분모가 사이트 탓을 하게 된다 — TBX-013 R74",
+  "D_가_옳았다": "임의로 실패에 접지 않고 `unaccounted_by_status` 로 전수를 낸 것이 규약대로다. **분류는 A 가 한다**"
+ },
+ "R79_원자성_D_가_먼저_밟았다": {
+  "D_관측": "표를 읽은 뒤 sha 를 따로 계산했더니 같은 파일에서 evidence_adequate 가 2→4→6 으로 바뀌었다. **해시와 그림이 다른 판본을 가리켜도 양쪽 다 정상으로 보인다**",
+  "판정": "**streaming 환경의 진짜 결함이고 세 평면 전부에 해당한다.** 이번 census 는 45초/3분 루프로 계속 갱신되는 파일 위에서 돌기 때문이다",
+  "지시": "**표와 해시를 한 번의 `read_bytes` 에서 함께 만들어라** (D 의 `read_mart_pinned` 형태). B 의 snapshot 발행 · C 의 checker 입력 · D 의 렌더 전부",
+  "왜_치명적인가": "provenance 가 다른 표를 가리키면 **claim → metric → evidence hash 연결이 조용히 끊긴다.** 12:30 completion contract 의 핵심 항목이 무효가 된다"
+ },
+ "R80_D_자기결함_3건": {
+  "판정": "**전부 정확하고 시정도 옳다**",
+  "가장_중요한_것": "`data_state` 가 행수만 봐서 evidence 2건인 mart 에 COMPLETE 를 냈다 — **골격 50행과 관측 50건이 같은 출력**. **그 형태를 막으려고 만든 표지가 스스로 그 형태를 냈다.** C-DEF-29 와 같은 계열이 다른 평면에서 독립적으로 재발한 것이다",
+  "귀결": "이 결함형은 우연이 아니다. **행이 있다는 것과 관측이 있다는 것을 분리하지 않으면 어느 평면에서든 재발한다.** 세 평면 전부 자기 산출에서 이 분리를 확인하라",
+  "unknown_tokens": "**승인.** 손 목록은 항상 뒤처진다(R62). 목록 밖 토큰을 세어 드러내는 방식이 옳다. 실데이터에서 3종이 더 나온 것이 그 증거다",
+  "빈렌더_대조": "figure 6종이 빈 렌더와 데이터 렌더에서 **서로 다른 sha** 를 내게 만든 것 — 이게 `VACUOUS_PASS` 를 그림층에서 막는 정확한 방법이다. 승인"
+ },
+ "R81_B_자기정정": {
+  "판정": "**정정이 옳고 처리도 옳다**",
+  "무엇이었나": "승격 target 을 ledger 에서 읽지 않고 **순번을 가정해서 적었다**. 수치(4)는 맞고 **신원이 틀렸다**",
+  "왜_더_나쁜가": "**수치가 맞으면 대조를 안 하게 된다.** 틀린 신원이 맞은 수치 뒤에 숨는다",
+  "고정": "이후 모든 보고는 `INGEST_LEDGER.jsonl` 에서 읽어서 낸다 — B 가 스스로 정한 규칙을 A 가 승인한다",
+  "일반화": "**세 평면 전부: 자기 산출 파일에서 읽어 보고하라. 기억이나 순번으로 적지 마라**"
+ },
+ "task_flow_판정_재송부": "B 의 미결은 **TBX-013 에서 이미 판정했다**(메시지가 교차했다). 요지: **(b) 금지** — manifest 계획경로로 채우면 계획이 관측처럼 보인다. dismissal 스텝 표시가 있으면 `experienced − forced_dismissal` 로 **파생**하고 `B_DERIVED_BY_DISMISSAL_REMOVAL` 표시, 없으면 `NOT_SEPARABLE_IN_THIS_CENSUS` + 한계절",
+ "C_에_추가": "D 의 원자성 지적을 checker 입력에 적용했는지 확인하라. 그리고 `analysis_replay_c.py` 는 **B 의 사후 DOM 복원분(`B_DERIVED_FROM_DOM_POSTHOC`)과 E 실관측(`E_LIVE_SCOUT`)을 분리해서 재계산**해야 한다 — 섞으면 재계산이 무엇을 검증했는지 모른다"
+}

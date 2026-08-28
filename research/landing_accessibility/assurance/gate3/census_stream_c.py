@@ -134,7 +134,10 @@ def main():
     disp, d_bad, d_state = jsonl(ROOT / "raw" / "DISPATCH_LEDGER.jsonl")
     ingest, i_bad, i_state = jsonl(ROOT / "mart" / "INGEST_LEDGER.jsonl")
     mart_path, mart_id = newest_mart()
-    rows = list(csv.DictReader(open(mart_path, encoding="utf-8", newline=""))) if mart_path else []
+    # D-DEF-34 (D-V3-FINDING-033): one read_bytes → sha AND rows from the same bytes, never two reads of a file B is rewriting
+    mart_bytes = mart_path.read_bytes() if mart_path else b""; mart_sha = hashlib.sha256(mart_bytes).hexdigest() if mart_path else None
+    import io as _io
+    rows = list(csv.DictReader(_io.StringIO(mart_bytes.decode("utf-8")))) if mart_path else []
     raw_manifest = Q.git_show(Q.MANIFEST_PATH); manifest, fsha, bsha = Q.manifest_hashes(raw_manifest)
     rel = json.loads(Q.git_show(Q.RELEASE_PATH).decode("utf-8"))["manifest_binding"]
     ctl = Q.controls(manifest, raw_manifest, fsha, bsha); ctl.update(raw_contract_controls(manifest)); failed = {k: v for k, v in ctl.items() if v != "PASS"}
@@ -198,9 +201,11 @@ def main():
         checks["RAW.CHAIN"] = {"status": "FLAG" if (breaks or changed or shrunk or bad_tr) else "PASS", "n_items": len(raw_m), "targets_with_evidence": len({r.get("target_id") for r in raw_m}), "of": 50,
                                "chain_breaks": len(breaks), "changed_lines_vs_previous_run": changed, "previous_run_lines": len(st["lines"]), "unparsable_lines": m_bad, "non_canonical_terminal": bad_tr}
         if rows:  # mart evidence_hash must exist in the chain
-            hs = {r.get("evidence_hash") for r in raw_m}; miss = [r.get("target_id") for r in rows if (r.get("evidence_hash") or "").strip() and r.get("evidence_hash") not in hs]
-            for t in miss: flag("MART.EVIDENCE_LINK", f"mart row {t} evidence_hash not found in EVIDENCE_MANIFEST chain", None, target=t)
-            checks["MART.EVIDENCE_LINK"] = {"status": "FLAG" if miss else "PASS", "n_items": len(rows), "unlinked": miss}
+            hs = {r.get("evidence_hash") for r in raw_m}; by_t = {r.get("target_id"): r.get("evidence_hash") for r in raw_m}
+            miss = [{"target": r.get("target_id"), "mart_evidence_hash": r.get("evidence_hash")[:12], "E_evidence_hash": (by_t.get(r.get("target_id")) or "")[:12]} for r in rows if Q._evidence_present(r.get("evidence_hash")) and r.get("evidence_hash") not in hs]
+            for t in miss: flag("MART.EVIDENCE_LINK", f"mart row {t['target']} evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)", None, **t)
+            n_real = sum(1 for r in rows if Q._evidence_present(r.get("evidence_hash")))
+            checks["MART.EVIDENCE_LINK"] = {"status": ("VACUOUS" if n_real == 0 else "FLAG" if miss else "PASS"), "n_items": n_real, "unlinked": miss, "rule": "mart evidence_hash (hash-shaped only) must equal some EVIDENCE_MANIFEST.evidence_hash"}
     else: checks["RAW.CHAIN"] = {"status": "NOT_TESTABLE", "reason": f"EVIDENCE_MANIFEST {m_state} / 0 lines", "n_items": 0}
     # --- TBX-011 raw record contract (E → B schema fixed by A). Enums are A's census contract; where they differ from the
     #     R11/R7/R13 vocabularies C reports the difference as an observation and validates against the TBX-011 set.
@@ -239,7 +244,7 @@ def main():
     head = subprocess.run(["git", "-C", Q.W, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
     rec = {"schema": "C_MAIN50_EVIDENCE_ASSURED", "measured_at_kst": now(), "state": "STREAMING" if mart_id != "CANONICAL_MART_50" else "CANONICAL_50_SEEN",
            "checker": {"commit": head, "census_qc_c_sha256": sha(Q.HERE), "census_stream_c_sha256": sha(HERE), "checker_frozen": json.load(open(ROOT / "assurance" / "CHECKER_FROZEN.json")).get("checker", {}).get("commit_sha") if (ROOT / "assurance" / "CHECKER_FROZEN.json").exists() else None},
-           "inputs": {"mart": mart_id, "mart_sha256": sha(mart_path) if mart_path else None, "mart_rows": len(rows), "evidence_manifest_lines": len(raw_m), "dispatch_lines": len(disp), "ingest_lines": len(ingest), "raw_target_dirs": len(dirs)},
+           "inputs": {"mart": mart_id, "mart_sha256": mart_sha, "mart_bytes": len(mart_bytes), "mart_rows": len(rows), "evidence_manifest_lines": len(raw_m), "dispatch_lines": len(disp), "ingest_lines": len(ingest), "raw_target_dirs": len(dirs)},
            "manifest": {"file_sha256_recomputed": fsha, "body_sha256_recomputed": bsha, "matches_release": fsha == rel["file_sha256"] and bsha == rel["body_sha256"]},
            "controls": {"n": len(ctl), "pass": len(ctl)}, "adapter": ADAPTER, "summary": {"checks_pass": n_pass, "checks_flag": n_flag, "checks_not_testable_or_vacuous": n_nt, "flags": len(flags),
            "systemic_candidates": sorted({f["systemic_candidate"] for f in flags if f["systemic_candidate"]})}, "checks": checks, "flags": flags,

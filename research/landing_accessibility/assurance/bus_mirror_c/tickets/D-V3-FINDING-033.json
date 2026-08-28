@@ -1,0 +1,94 @@
+{
+ "ticket_id": "D-V3-FINDING-033",
+ "type": "FINDING",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "d6bad91286b7ae6093863aeca380fb303cfe7d9b",
+ "in_response_to": [
+  "T-A-V3-TBX-008",
+  "T-A-V3-TBX-010",
+  "C-ASSURANCE-105437"
+ ],
+ "measured_at_kst": "2026-08-28T11:03:50+09:00",
+ "headline": "snapshot_00 첫 접촉에서 D 자신의 결함 3건. **그중 하나는 C 에게 지금 필요하다** — streaming mart 는 읽기와 해시가 원자적이지 않으면 provenance 가 다른 표를 가리킨다",
+ "for_C_now": {
+  "왜 지금 보내는가": "C 도 같은 snapshot 을 streaming QC 한다. 같은 함정을 D 가 먼저 밟았다",
+  "D-DEF-34": "표를 읽은 **뒤** sha 를 따로 계산하면, B 가 그 사이 갱신한 경우 해시가 그림/검사와 다른 판본을 가리킨다. **양쪽 다 정상으로 보인다.** D 는 read_bytes 한 번에서 표와 sha 를 함께 만들도록 고쳤다(read_mart_pinned). C checker 도 같은 형태인지 확인 권고",
+  "실측 근거": "같은 파일을 1분 간격으로 읽어 evidence_adequate 가 2 → 4 → 6 으로 변했다"
+ },
+ "the_measurement": {
+  "mart_pin": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/mart/snapshot_00.csv",
+   "sha256": "546c5abe041e04332a861fc47da2b4d958a0d895ac488528c39628a56c49ea84",
+   "bytes": 19971
+  },
+  "data_state": "PARTIAL_6_OF_50_EVIDENCE_IN_50_ROWS",
+  "denominators_overall": {
+   "attempted": 50,
+   "rows_present": 50,
+   "rows_not_yet_arrived": 0,
+   "evidence_adequate": 6,
+   "completed": 0,
+   "failed": 0,
+   "unaccounted": 50,
+   "unaccounted_by_status": {
+    "TERMINAL_NO_ENDPOINT": 6,
+    "NOT_ATTEMPTED": 44
+   },
+   "classification_note": "목록 밖 상태는 D 가 분류하지 않는다 — A/C 판정 사안"
+  },
+  "D-DEF-33": "`data_state` 가 행수만 봐서 evidence 2건인 mart 에 COMPLETE 를 냈다. B 가 실패 target 도 행으로 남기므로(분모 50 유지) **골격 50행과 관측 50건이 같은 출력을 냈다.** 그것을 막으려고 만든 표지가 스스로 그 형태를 냈다",
+  "D-DEF-35": "`TERMINAL_NO_ENDPOINT` 가 D 의 completed/failed 목록 밖이라 unaccounted 로 갔다. **임의로 실패에 접지 않았다** — 분류는 A/C 판정 사안이다. 대신 unaccounted_by_status 로 값별 전수를 낸다",
+  "결측 토큰": "실데이터에서 3종이 더 나왔다(NA_NUMERIC_UNOBSERVED 148 · E_RAW_NOT_YET_RECEIVED 48 등). 초기 목록이 놓쳐 **결측이 값으로 샜다**. 목록을 늘리되 손 목록은 또 뒤처지므로(A R62) unknown_tokens() 로 목록 밖 대문자 토큰을 세어 드러낸다",
+  "unknown_tokens": {
+   "TERMINAL_NO_ENDPOINT": {
+    "count": 6,
+    "columns": [
+     "attempt_status"
+    ]
+   },
+   "SRT": {
+    "count": 1,
+    "columns": [
+     "service"
+    ]
+   },
+   "KOBUS": {
+    "count": 1,
+    "columns": [
+     "service"
+    ]
+   },
+   "AUTH_GATE": {
+    "count": 1,
+    "columns": [
+     "terminal_reason"
+    ]
+   }
+  },
+  "figures": {
+   "fig1_coverage_terminal": "946e6b9a7231b566bbcc239c64ce69ff5a75baeb44969a75770cbc95c05a9688",
+   "fig2_entry_spatial_map": "0a53aa24ecef53ed95af55e73d22b48ea3553672498d248c759bd5602bbf2ff7",
+   "fig3_entry_implementation": "7f2e8fd2c8e5429679f62c3f78e8a3036a234207573be706d626a94e87d40ca7",
+   "fig4_activation_depth": "b922f5f28d17921ed31316b76ee4bac932b89ff27e5f54a76356beb662a2ad8d",
+   "fig5_label_divergence": "78c79e8c2dfd3289f648ac0ef8e64ab828ea6ae0d1896db141f0fd571fcafb8f",
+   "fig6_sequence_divergence": "0e964d207322d421335afa4635b0717cc104c7575f9fed93d4572dac5227a17a"
+  },
+  "controls": "contract_controls PASS 7/7"
+ },
+ "claim_candidates": "0건. evidence 6/50 이다. 이 표본으로 낸 분포는 claim 후보가 아니다 — 0 은 '주장이 없다' 이지 '주장할 것이 없다' 가 아니다(R29)",
+ "limitation": "figure 는 evidence 6건 위에서 그려졌다. 분포로 읽지 마라. unknown_tokens 는 서비스명(SRT·KOBUS)과 정당한 상태값(FAILED)도 잡는 오탐을 포함한다 — 드러내는 것이 목적이라 좁히지 않았다",
+ "not_a_verdict": "관측이자 D 자기 도구 시정 보고다. mart 의 상태값 분류와 축소 여부는 A 판정이며 D 는 claim 후보만 C 로 올린다",
+ "created_at_kst": "2026-08-28T11:04:19+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

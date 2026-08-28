@@ -1,0 +1,80 @@
+{
+ "ticket_id": "T-A-V3-TBX-013",
+ "type": "RULING",
+ "from": "A",
+ "to": [
+  "E",
+  "B"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "base_sha": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
+ "self_approved": false,
+ "headline": "**지금 나오는 `NO_SAFE_ROUTE` 는 사이트에 대한 관측이 아니라 수집기에 대한 관측이다. 라벨을 나눠라. 그러나 수집은 멈추지 않는다**",
+ "R72_A_실측": {
+  "본_것": "F1-01 · F1-02 route candidate 와 원본 파일",
+  "증거": [
+   "`S0.dom.html` **74,469 B** — 페이지는 실제로 떴다",
+   "`S0.png` 32,600 B — 렌더도 됐다",
+   "**`S0.ax.json` 60 B, 노드 1개** — AX 트리가 사실상 비었다",
+   "`attempted_branches` = `[{S0, candidate_count 0, labels []}, {S1(post-menu), candidate_count 0, labels []}]` — **두 상태 모두 후보 0, 라벨 0**",
+   "route = `OPEN_GLOBAL_MENU/전체메뉴` 한 스텝 뒤 `NO_SAFE_ROUTE_FOUND`"
+  ],
+  "판정": "**DOM 은 74KB 인데 후보가 0 이고 AX 가 1 노드다. 이건 '사이트에 안전경로가 없다' 가 아니라 '수집기가 아무것도 못 뽑았다' 이다.** Δ54 의 narrow-matcher false zero — 이 세션 최다 결함형이 수집층에서 재현됐다",
+  "왜_치명적인가": "이대로 50건이 나오면 최종결론은 **'관측할 수 없었음을 관측했다'** 가 된다. 공허결론이다"
+ },
+ "R73_수집은_멈추지_않는다": {
+  "결정": "**E 는 50 전수 수집을 계속한다.** 고치려고 세우지 마라",
+  "이유": "**DOM·AX·PNG 원본 캡처는 작동하고 있고 그게 가장 값비싼 부분이다.** 매처는 사후에 다시 돌릴 수 있지만 캡처는 다시 못 딴다. 지금 멈추면 둘 다 잃는다",
+  "Director_3종_대조": "이 결함은 전체정지 3종(오실행·금지행위·evidence 손상) 중 어디에도 해당하지 않는다. **정지 사유 아님**"
+ },
+ "R74_라벨을_나눠라": {
+  "결정": "`NO_SAFE_ROUTE` 하나로 두 사건을 내보내지 마라",
+  "COLLECTOR_ZERO_CANDIDATE": "**후보 추출이 0 을 반환했다.** 사이트에 대한 진술이 아니다. 현재 F1-01·02·03·04 가 여기 해당한다",
+  "NO_SAFE_ROUTE_SITE": "후보를 **찾았으나** 안전하게 도달할 경로가 없었다. 이것만이 사이트에 대한 진술이다",
+  "구분근거": "`candidate_count > 0` 인가. **0 이면 전자다**",
+  "원칙": "**부재와 못 뽑음을 같은 출력으로 내지 마라** — R54. 이 프로젝트가 계속 틀린 지점이고 지금 또 틀렸다",
+  "B_에": "`terminal_reason` enum 에 `COLLECTOR_ZERO_CANDIDATE` 추가. 기존 4건을 재라벨하라",
+  "C_에": "두 값을 **분리해서 세라**. 합산하면 분모가 거짓말을 한다",
+  "D_에": "coverage 그림에 **둘을 다른 색으로**. 하나로 묶으면 그림이 사이트 탓을 하게 된다"
+ },
+ "R75_AX_60바이트": {
+  "지시": "E — `S0.ax.json` 이 **60 B / 1 노드**다. AX 추출이 깨졌을 가능성이 높다. **2분 안에 확인 가능하면 고쳐라. 아니면 그대로 계속 수집하라**",
+  "영향": "AX 가 비면 `accessible_name` 축 전체가 `NOT_OBSERVED` 가 되고, **visible label ↔ AX name 분기(D02)는 이번 census 에서 산출 불가**가 된다. 그건 한계절에 적을 값이지 숨길 값이 아니다"
+ },
+ "R76_사후_DOM_복원_이_census_를_구한다": {
+  "결정": "**B 가 저장된 DOM 에서 사후 후보 추출을 수행한다**",
+  "근거": "DOM 74KB 가 디스크에 있다. E 의 실시간 매처가 0 을 냈어도 **원본에서 다시 뽑을 수 있다**",
+  "출처표시_필수": "`entry_observation_provenance` = `E_LIVE_SCOUT` 또는 **`B_DERIVED_FROM_DOM_POSTHOC`**. 섞지 마라",
+  "제약": "사후 추출은 **활성화 깊이·조작순서를 만들어내지 못한다**. 뽑을 수 있는 것은 label / control type / 공간좌표 / nav container 까지다. `activation_depth` 를 사후로 채우지 마라 — 그건 관측이 아니라 추정이다",
+  "우선순위": "B 는 승격 루프를 유지한 채 이 작업을 병행. **11:40 mart freeze 까지 되는 만큼만**"
+ },
+ "B_판정요청_3건": {
+  "① task_flow vs experienced_flow": {
+   "판정": "**(c) + 조건부 (d). manifest 계획경로로 채우는 (b) 는 금지한다**",
+   "이유": "계획을 관측 자리에 넣으면 계획이 관측처럼 보인다. **그건 이 프로젝트가 금지한 바로 그것이다**",
+   "조건부_허용": "E 의 trace 가 **강제 dismissal 스텝을 표시하고 있다면** B 가 `task_flow = experienced − forced_dismissal` 로 **파생**하고 `derivation: B_DERIVED_BY_DISMISSAL_REMOVAL` 을 단다. 이건 관측에서의 파생이라 허용된다",
+   "표시_없으면": "`task_flow_sequence` = **`NOT_SEPARABLE_IN_THIS_CENSUS`**, 한계절에 '두 흐름을 분리하지 못했다' 로 명시. `AMBIGUOUS_E_SUPPLIES_ONE_SEQUENCE` 로 둔 B 의 처리가 옳았다"
+  },
+  "② evidence_hash 를 B 가 계산": {
+   "판정": "**처리 방식 승인. 다만 성격을 못박는다**",
+   "무엇인가": "`B_COMPUTED_FROM_EVIDENCE_DIR` 는 **B 가 읽은 바이트의 지문**이지 **E 가 쓴 바이트의 증언**이 아니다",
+   "C_에": "**무결성 근거로 쓰지 마라.** 내용 지문으로는 유효하다. hash chain 검사는 E 의 EVIDENCE_MANIFEST 가 나올 때까지 `NOT_TESTABLE` 유지 — 통과로 바꾸지 마라",
+   "E_가_쓰면": "E 값이 우선. B 의 우선순위 설계 승인"
+  },
+  "③ evidence_dir 경로": "**E 의 실제 배치가 정본이다** (TBX-012 R66 에서 이미 확정). TBX-011 의 `raw/<target_id>/` 를 `raw/E/<run_id>/<target_id>/` 로 개정. **B 가 옳게 읽고 있다**"
+ },
+ "R77_E_재실행_depth_불일치": {
+  "관측": "E 개인 워크트리의 계약 이전 bootstrap run 둘에서 **같은 F1-01 의 `task_activation_depth` 가 0 과 1 로 갈렸다** (B 보고)",
+  "판정": "**분모 위험 없음** — B 는 계약 경로만 읽는다. 다만 **같은 target 재실행이 다른 depth 를 냈다는 사실은 재현성에 대한 값**이다",
+  "처리": "`reproducibility: REPLAY_REQUIRED` 와 함께 **한계절에 싣는다**. 이번 census 는 replay 를 면제받았으므로 이건 면제의 대가를 보여주는 실측이다 — 숨기지 말고 그대로 적는다",
+  "E_에": "두 run 의 차이가 방법 차이인지 사이트 비결정성인지 **아는 대로만** 보고하라. 모르면 모른다고 적어라"
+ },
+ "task_hash_관측": "A 실측 — F1-01 과 F1-02 의 `task_contract_hash` 가 **동일**(`4729bce9…`), `endpoint_contract_hash` 도 동일(`c5f65c45…`). F1 이 같은 과업이므로 정합이나, **이 해시는 target 을 구분하지 못한다**. B 의 task_hash 게이트는 family 수준 확인이지 target 수준이 아니다 — 그렇게 기록하라",
+ "다음": "**11:20 CP3 — E 25/50, B snapshot20.** 현재 E 6 dir / B 승격 4"
+}
