@@ -43,3 +43,60 @@ def run(main: Callable[[], int]) -> int:
               "통과로도 실패로도 읽지 마라. 산출 파일이 있다면 이전 실행의 것이다.",
               file=sys.stderr)
         return EXIT_DID_NOT_RUN
+
+
+def controls() -> dict:
+    """[D-DEF-83] **이 규약 자체에 대조군이 없었다.**
+
+    미실행과 실패를 가르는 도구인데, 그 가름이 실제로 일어나는지 재는 것이
+    없었다 — 규약이 조용히 무너져도 출력은 같다.
+    """
+    rows = []
+
+    def case(name, got, want, negative=False):
+        rows.append({"case": name, "got": got, "want": want, "ok": got == want,
+                     "expectation": "must_flag" if negative else "must_not_flag"})
+
+    def _boom():
+        raise RuntimeError("합성 크래시")
+
+    def _quiet(fn):
+        """합성 크래시의 traceback 을 삼킨다 — **스캔 출력에서 진짜 실패로 오독된다**.
+        삼키는 것은 **출력**이지 결과가 아니다."""
+        import contextlib
+        import io
+        with contextlib.redirect_stderr(io.StringIO()):
+            return fn()
+
+    case("예외는 4 로 내려간다 — **미실행**",
+         _quiet(lambda: run(_boom)), EXIT_DID_NOT_RUN, negative=True)
+    case("0 은 0 그대로", run(lambda: EXIT_OK), EXIT_OK)
+    case("1 은 1 그대로 — **부정 결과가 미실행으로 뭉개지지 않는다**",
+         run(lambda: EXIT_NEGATIVE), EXIT_NEGATIVE)
+    case("3 은 3 그대로 — 대조군 실패가 부정 결과로 읽히지 않는다",
+         run(lambda: EXIT_CONTROL_FAIL), EXIT_CONTROL_FAIL)
+
+    # `SystemExit` 를 삼키면 명시적 `sys.exit(3)` 이 4 로 바뀐다 — 의미가 섞인다
+    def _sysexit():
+        raise SystemExit(EXIT_CONTROL_FAIL)
+    try:
+        _quiet(lambda: run(_sysexit))
+        got = "삼켰다"
+    except SystemExit as e:
+        got = e.code
+    case("`SystemExit` 는 그대로 전파된다 — 삼키면 의미가 섞인다",
+         got, EXIT_CONTROL_FAIL, negative=True)
+    case("네 값의 뜻이 모두 적혀 있다", sorted(MEANING) == [0, 1, 3, 4], True)
+
+    ok = all(r["ok"] for r in rows)
+    return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "must_flag": sum(1 for r in rows if r["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for r in rows if r["expectation"] == "must_not_flag"),
+            "failed": [r["case"] for r in rows if not r["ok"]], "cases": rows}
+
+
+if __name__ == "__main__":
+    import json
+    c = controls()
+    print(json.dumps(c, ensure_ascii=False, indent=1))
+    raise SystemExit(EXIT_OK if c["verdict"] == "PASS" else EXIT_CONTROL_FAIL)

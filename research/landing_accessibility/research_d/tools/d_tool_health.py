@@ -130,6 +130,110 @@ def coverage() -> dict:
 _CONTROL_NAME = __import__("re").compile(r"(controls?|self_?test)$")
 
 
+# [D-DEF-83] `control_coverage()` 는 **루프에서 실행되는 26개**만 본다.
+# 나머지 45개(문법만 확인되는 것)의 대조군 유무는 오래 열려 있던 항목이다.
+# **임포트하지 않는다** — 임포트가 RQ_D9 figure 를 덮어쓴 적이 있다(D-DEF-50).
+# AST 로 **정의 존재**만 본다. 존재는 유효가 아니다.
+_CONTROL_DEF = ("controls", "self_test", "control", "selftest")
+
+
+# [D-DEF-84] **스캔 자신에는 구문 게이트가 없었다.** `d_bus_scan.sh` 는 `.sh` 라
+# `check()` 의 `*.py` 순회에 안 잡힌다. 그 안의 python 헤레독이 깨지면 감사 블록
+# **전체가 죽는데 셸은 계속 돌아** 출력이 조용히 짧아진다 — 세 번 앵커가 구문을
+# 가른 뒤 실제로 일어났다. 헤레독을 뽑아 `ast.parse` 한다.
+SCAN_SH = TOOLS / "d_bus_scan.sh"
+
+
+def embedded_python_syntax(text: str | None = None) -> dict:
+    """`.sh` 안의 python 헤레독을 뽑아 구문만 본다. 실행하지 않는다.
+
+    `text` 를 주면 그것을 본다 — **대조군이 합성 입력으로 이 함수를 시험**하기
+    위해서다. 파일만 읽으면 대조군이 `ast.parse` 만 시험하게 되고 그것은
+    이 함수를 시험한 것이 아니다.
+    """
+    import re
+    if text is None:
+        if not SCAN_SH.exists():
+            return {"verdict": "NO_FILE", "path": str(SCAN_SH)}
+        raw = SCAN_SH.read_text(encoding="utf-8")
+    else:
+        raw = text
+    # 따옴표를 정규식에서 다루지 않는다 — 먼저 지운다(`<<'EOF'` `<<"EOF"` `<<EOF`)
+    txt = raw.replace("<<'", "<<").replace('<<"', "<<")
+    txt = re.sub(r"(<<[A-Za-z_][A-Za-z0-9_]*)['\"]", r"\1", txt)
+    pat = re.compile(r"<<\s*(?P<tag>[A-Za-z_][A-Za-z0-9_]*)\s*\n"
+                     r"(?P<body>.*?)\n(?P=tag)\s*$", re.S | re.M)
+    blocks, errs = [], []
+    for m in pat.finditer(txt):
+        body = m.group("body")
+        line0 = txt[:m.start("body")].count("\n") + 1
+        blocks.append({"tag": m.group("tag"), "start_line": line0,
+                       "n_lines": body.count("\n") + 1})
+        try:
+            ast.parse(body)
+        except SyntaxError as e:
+            errs.append({"tag": m.group("tag"),
+                         "line_in_file": line0 + (e.lineno or 1) - 1,
+                         "msg": f"{e.msg}: {(e.text or '').strip()[:80]}"})
+    return {"verdict": "PASS" if (blocks and not errs) else
+                       ("FAIL" if errs else "NO_BLOCKS"),
+            "n_blocks": len(blocks), "blocks": blocks,
+            "n_errors": len(errs), "errors": errs,
+            "왜_필요한가": ("헤레독이 깨지면 감사 블록 전체가 죽는데 **셸은 계속 돌아** "
+                      "출력만 조용히 짧아진다 — 실패가 아니라 **부재**로 보인다"),
+            "블록이_0이면_PASS_가_아니다": "헤레독을 못 찾으면 이 검사가 무효다 — `NO_BLOCKS`"}
+
+
+def static_control_presence() -> dict:
+    """모든 도구에서 대조군 **함수 정의**가 있는지 AST 로만 본다."""
+    # [D-DEF-83] `LOOP_ENTRYPOINTS` 는 **손 목록**이고 `coverage()` 의 `covered` 는
+    # 계산된 것이다 — 둘이 19 와 26 으로 달랐다. 그리고 손 목록의 `d_bus_scan` 은
+    # `.sh` 라 `.py` 계수에서 **조용히 빠졌다**(19→18). 계산된 쪽에서 뽑는다(A R62).
+    loop = set(coverage()["covered"])
+    _hand_only = sorted(set(LOOP_ENTRYPOINTS) - loop)
+    rows = []
+    for f in sorted(TOOLS.glob("*.py")):
+        if f.name in SKIP:
+            continue
+        mod = f.stem
+        try:
+            tree = ast.parse(f.read_text(encoding="utf-8"))
+        except SyntaxError as e:
+            rows.append({"module": mod, "state": "SYNTAX_ERROR", "detail": str(e)})
+            continue
+        names = {n.name for n in ast.walk(tree)
+                 if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+        hit = sorted(n for n in names
+                     if any(n == c or n.endswith("_" + c) for c in _CONTROL_DEF))
+        rows.append({"module": mod, "in_loop": mod in loop,
+                     "has_control_def": bool(hit), "defs": hit})
+    def _cnt(pred):
+        return sum(1 for r in rows if r.get("state") != "SYNTAX_ERROR" and pred(r))
+    lack_loop = [r["module"] for r in rows
+                 if r.get("in_loop") and not r.get("has_control_def")]
+    lack_static = [r["module"] for r in rows
+                   if r.get("state") != "SYNTAX_ERROR"
+                   and not r.get("in_loop") and not r.get("has_control_def")]
+    return {"verdict": "INFO",          # **판정이 아니다** — 존재는 유효가 아니다
+            "n_tools": len(rows),
+            "hand_list_only": _hand_only,
+            "**두 수가 달랐다**": ("`LOOP_ENTRYPOINTS`(손 목록) 19 vs `coverage().covered`"
+                          "(계산) 26. 손 목록에만 있는 것은 `hand_list_only` — "
+                          "`d_bus_scan` 은 `.sh` 라 `.py` 계수에 안 잡힌다"),
+            "n_syntax_error": sum(1 for r in rows if r.get("state") == "SYNTAX_ERROR"),
+            "loop_with": _cnt(lambda r: r["in_loop"] and r["has_control_def"]),
+            "loop_without": len(lack_loop), "loop_without_names": lack_loop,
+            "static_with": _cnt(lambda r: not r["in_loop"] and r["has_control_def"]),
+            "static_without": len(lack_static),
+            "static_without_names": lack_static[:20],
+            "**존재는 유효가 아니다**": ("AST 는 `controls` 라는 **이름의 함수가 있는가**만 본다. "
+                              "그것이 must_flag 를 갖는지, 실행되면 통과하는지는 "
+                              "**여기서 알 수 없다** — 실행 검사는 `control_coverage()` 가 "
+                              "루프 26개에 대해서만 한다"),
+            "왜_임포트하지_않나": "임포트가 RQ_D9 figure 를 덮어쓴 적이 있다 [D-DEF-50]",
+            "rows": rows}
+
+
 def control_coverage() -> dict:
     """루프에서 도는 도구가 **실행되는 대조군**을 갖는가.
 
@@ -207,6 +311,29 @@ def controls() -> dict:
     """합성 파일로 문법 오류를 실제로 잡는지 본다."""
     import tempfile
     rows = []
+
+    # [D-DEF-84] 스캔 헤레독 구문 게이트
+    _eps = embedded_python_syntax()
+    rows.append({"case": "[헤레독] 블록을 찾았다 — 0 이면 이 검사가 무효다",
+                 "expectation": "must_not_flag", "ok": _eps.get("n_blocks", 0) > 0})
+    rows.append({"case": "[헤레독] 현재 스캔의 구문 오류 0",
+                 "expectation": "must_not_flag", "ok": _eps.get("n_errors", 1) == 0,
+                 "detail": _eps.get("errors")})
+    # **이 함수 자체**를 합성 입력으로 시험한다 — `ast.parse` 만 시험하면
+    # 대조군이 검사 대상을 안 건드린다
+    _ok_sh = "PY=x\n\"$PY\" - <<'TAG'\nx = 1\nprint(x)\nTAG\n"
+    _bad_sh = "PY=x\n\"$PY\" - <<'TAG'\nx = (\nprint(x)\nTAG\n"
+    _g = embedded_python_syntax(text=_ok_sh)
+    _b = embedded_python_syntax(text=_bad_sh)
+    rows.append({"case": "[헤레독] 정상 헤레독은 PASS 이고 블록을 1 개 찾는다",
+                 "expectation": "must_not_flag",
+                 "ok": _g.get("verdict") == "PASS" and _g.get("n_blocks") == 1})
+    rows.append({"case": "[헤레독] **깨진 헤레독은 FAIL 이다**",
+                 "expectation": "must_flag",
+                 "ok": _b.get("verdict") == "FAIL" and _b.get("n_errors") == 1})
+    rows.append({"case": "[헤레독] 헤레독이 없으면 PASS 가 아니라 NO_BLOCKS",
+                 "expectation": "must_flag",
+                 "ok": embedded_python_syntax(text="echo hi\n").get("verdict") == "NO_BLOCKS"})
 
     def case(name, got, want):
         rows.append({"case": name, "got": got, "want": want, "ok": got == want})

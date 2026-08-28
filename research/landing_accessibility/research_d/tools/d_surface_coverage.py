@@ -85,6 +85,11 @@ ACCEPTED_UNSURFACED = {
     ("d_retractions", "hits"):
         "값이 이미 표시된다 — 스캔의 `발행티켓 PASS(새 0 / baseline 2)` 가 이 2건이다. "
         "둘 다 `D-V3-FINDING-043` · `BASELINE_PRE_GUARD` 이고 발행분은 고치지 않으므로 변하지 않는다",
+    ("d_tool_health", "n_syntax_error"):
+        "같은 축이 이미 표시된다 — `D 도구 문법 : PASS · 71/71` 이 그 수다",
+    ("d_tool_health", "static_without_names"):
+        "44개 도구 **이름**을 매 회차 찍는 것은 소음이다. 변화는 `문법만 1/45` 의 수로 드러나고, "
+        "루프에서 도는 것 중 없는 것은 이름까지 찍는다 — **판정을 내는 쪽만 이름이 필요하다**",
     ("d_ledger_shape", "inner_records"):
         "대장 형태 검사의 내부 세부. 상위 `entries`·`caught_pre_emission` 가 이미 표시되고 "
         "이 수가 바뀌어도 대장의 두 분류는 달라지지 않는다",

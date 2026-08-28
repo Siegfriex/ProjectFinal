@@ -180,6 +180,22 @@ try:
     _c = _tc()
     print(f"\n=== D 도구 문법 : {_t['verdict']} · {_t['ok']}/{_t['n_tools']} "
           f"· 루프 실행 {_c['executed_in_loop']} / 문법만 {_c['syntax_only']} ===")
+    from d_tool_health import embedded_python_syntax as _eps_fn
+    _eps = _eps_fn()
+    print(f"   **스캔 자신의 구문**(헤레독 {_eps.get('n_blocks')}블록) : {_eps.get('verdict')} "
+          f"· 오류 {_eps.get('n_errors')} — 깨지면 감사가 **사라진다**(셸은 계속 돈다)")
+    for _e8 in (_eps.get("errors") or [])[:3]:
+        print(f"     ** {_e8['line_in_file']}행 ** {_e8['msg']}")
+    from d_tool_health import static_control_presence as _scp
+    _sp = _scp()
+    print(f"   대조군 정의(AST, 임포트 안 함) : 루프 {_sp['loop_with']}/{_sp['loop_with']+_sp['loop_without']} "
+          f"· 문법만 {_sp['static_with']}/{_sp['static_with']+_sp['static_without']} "
+          f"— **존재는 유효가 아니다**")
+    if _sp.get("hand_list_only"):
+        print(f"     손 목록에만 있는 것 : {_sp['hand_list_only']} "
+              f"— 계산된 `covered` 를 쓴다(A R62)")
+    if _sp.get("loop_without_names"):
+        print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
     for _b in _t["syntax_error"]:
         print(f"   {_b['tool']}:{_b['line']}  {_b['msg']}")
 except Exception as _e:
