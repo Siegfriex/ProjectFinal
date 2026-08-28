@@ -1082,3 +1082,20 @@ MLflow 회계 **214 run 불변**을 실행 전후로 확인했다.
   (`"verdict": "SUPPORTED_AS_WEAKER_FORM" if supported else "NOT_SUPPORTED"`).
   따라서 대조군이 **필요하다**. 다만 그 대조군은 `supported` 의 조작화를 건드리므로
   **A 의 v3 역할 티켓 없이 즉석으로 만들지 않는다**(00 §13). → **A 지정 후**로 등재.
+
+## RQ-D-HOLDOUTTAG — 안전 tag 값 매핑 (`D-V3-FINDING-080`, P1)
+
+`holdout_accessed=true` 가 holdout 접근을 뜻하지 않았다. 방화벽 `verdict != PASS` 를 곧장
+`true` 로 썼는데 FAIL 3건은 **전부 `control` 경로**(둘은 D 자신의 안전검사 대조군 경로)다.
+
+| 입력 | 새 값 |
+|---|---|
+| 스캔 PASS | `false` |
+| FAIL 중 holdout 참조 있음 | `SCAN_FLAGGED_HOLDOUT_REFERENCE` |
+| FAIL 이지만 holdout 축 아님 | `UNVERIFIED_SCAN_NOT_PASS` |
+
+**`true` 는 더 이상 나오지 않는다** — 정적 스캔은 참조를 보지 접근을 못 본다.
+`PROTECTED_TAGS` 17종은 `extra_tags` 로 덮을 수 없다.
+
+기록된 run: `false` 62 · `true` 1 · **부재 151**(계약 이전). true 1건은 방화벽에서 온 값이며
+**고치지 않는다**(불변). 그 run 은 `run_status: RUNNING` 인 채 닫히지 않았다.

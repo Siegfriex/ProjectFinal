@@ -4,12 +4,12 @@
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
  "verdict": "FAIL",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T18:14:48.102157+09:00",
- "d_head_sha": "dc24c4aa53b53e6d421a54b454ae5eb984949f94",
+ "checked_at_kst": "2026-08-28T18:24:52.753665+09:00",
+ "d_head_sha": "52a4c0d1deac003c1007ef87f433a2f452213ae6",
  "manifest_sha256": "5321e4f19d990d70ae9bc89370bb134d85970ac5f7a12d2f2ca048743529de94",
  "scanned_files": 258,
- "scanned_corpus_sha256": "3324b5c8637989dc2e308b717dbb46c057197037662f4675a50216a7deaf98ce",
- "freshness_corpus_sha256": "bfc69cde5430ef12bcd3d60a8cd1c8069e268c5a26f06a98d9a6037b276a8ffa",
+ "scanned_corpus_sha256": "3660486a2faaf4c50a6e2f3e04d15f0acf3e3b5569235c1e2a2335cdc5c0a4f7",
+ "freshness_corpus_sha256": "81be9534cd84074f87fd1d74f55aca5ecafe89420b7cb0320537e38f73070bf6",
  "corpus_identity_note": "scanned_files 는 개수이고 이것은 신원이다. 두 실행의 코퍼스 sha 가 다르면 FAIL 수를 비교하지 않는다 (R38).",
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
  "controls": {
@@ -128,7 +128,7 @@
   "tool": {
    "path": "tools/d_input_firewall.py",
    "sha256": "43db0ab94a414d97726872b46aaa333d297e83ab664aa269285ee89ade410638",
-   "commit": "dc24c4aa53b53e6d421a54b454ae5eb984949f94"
+   "commit": "52a4c0d1deac003c1007ef87f433a2f452213ae6"
   },
   "on_control_failure": {
    "behavior": "verdict=CONTROL_FAIL 로 기록하고 exit 2 — 지우지 않고 남긴다",
@@ -195,8 +195,8 @@
   "note": "D 는 '돌지 않았다' 에 4 를 쓴다. A 는 2 를 쓰는데 D 의 2 는 이미 FAIL 이라 바꾸면 나간 산출의 의미가 소급해 달라진다."
  },
  "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
- "fail_count": 3,
- "warn_count": 398,
+ "fail_count": 5,
+ "warn_count": 403,
  "violations": [
   {
    "file": "notebooks/d_research/DSUP01_representation_ablation.ipynb",
@@ -1662,6 +1662,16 @@
    "denied_pattern": "research/landing_accessibility/control/**",
    "kind": "DENIED_PATH",
    "context": "\"셸형_접근마커의_영어단어_오탐\": \"`ACCESS_MARKERS` 의 `tail `·`head ` 가 영어 단어에 걸린다 — 282 파일에서 `tail ` **131건**, `head ` **135건**이 앞에 영문자가 붙은 형태(`detail `·`overhead `)다\",     \"영향\": \"`severity()` 의 FAIL 판정에 쓰이므로 **FAIL 방향 오탐**이다 — 안전하지만 진단 노이즈를 만든다. 현재 FAIL 3건은 이 마커 때문이 아니다\",     \"고치지_않았다\": \"`ACCESS_MARKERS` 를 좁히는 ",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/results/D_DEFECT_LEDGER.json",
+   "line": 1024,
+   "reference": "research/landing_accessibility/control",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "\"발견\": \"앞 회차 등재분(`mlflow_contract` 대조군)을 수행하며\",    \"무엇\": \"**MLflow 계약 모듈에 대조군이 없었다.** `research_run` 이 6가지 계약 위반을 `ContractViolation` 으로 막는데, 그 가드가 아직 막고 있는지 재는 것이 없었다. 검증부가 `research_run` 안에 박혀 있어 **run 을 열지 않고는 시험할 수 없었고**, 대조군을 만들려면 서버에 쓰레기 run 을 남겨야 했다\",    \"왜\": \"이 모듈은 **21개 필수 tag / 7개 필수 param ",
    "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
    "severity": "WARN"
   },
@@ -3427,6 +3437,66 @@
    "context": "\"verdict\": verdict,         \"verdict_basis\": vbasis,         \"limitation\": (             \"후보는 존재 주장이지 도달 주장이 아니다. 어휘 사전은 연구자가 만든 것이고 상한 없는 \"             \"재현율을 주장하지 않는다. 제외 규칙(특히 E5 고객지원·E9 auth)은 보수적으로 설계돼 \"             \"후보를 과소계수하는 방향이며, 그래도 대상군이 거의 전부 RECOVERABLE 이면 그 결론은 \"             \"보수적 방향에서 안전",
    "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
    "severity": "WARN"
+  },
+  {
+   "file": "research_d/tools/mlflow_contract.py",
+   "line": 115,
+   "reference": "research/landing_accessibility/control",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "\"\"\"[D-DEF-86] `verdict != PASS` 를 곧장 `\"true\"` 로 쓰던 것을 가른다.      현재 FAIL 3 건은 전부 `research/landing_accessibility/control` **경로 참조**다 —     **holdout 과 다른 축**이다. 그것을 `holdout_accessed=true` 로 쓰면     **다른 축의 실패가 holdout 접근으로 보고된다.**",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/tools/mlflow_contract.py",
+   "line": 345,
+   "reference": "research/landing_accessibility/control/v3/x.py",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "hcase(\"**control 경로 FAIL 은 holdout 이 아니다**\",           {\"verdict\": \"FAIL\", \"violations\": [               {\"severity\": \"FAIL\", \"reference\": \"research/landing_accessibility/control/v3/x.py\",                \"file\": \"tools/d_heartbeat.py\"}]},           \"UNVERIFIED_SCAN_NOT_PASS\")",
+   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
+   "severity": "FAIL"
+  },
+  {
+   "file": "research_d/tools/mlflow_contract.py",
+   "line": 350,
+   "reference": "artifacts/HOLDOUT_FOR_C.csv",
+   "denied_pattern": "**/HOLDOUT_FOR_C*",
+   "kind": "DENIED_PATH",
+   "context": "hcase(\"holdout 참조 FAIL 은 그렇게 적는다\",           {\"verdict\": \"FAIL\", \"violations\": [               {\"severity\": \"FAIL\", \"reference\": \"artifacts/HOLDOUT_FOR_C.csv\", \"file\": \"x.py\"}]},           \"SCAN_FLAGGED_HOLDOUT_REFERENCE\")     hcase(\"**WARN 등급 holdout 언급은 FAIL 로 올리지 않는다**\",",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/tools/mlflow_contract.py",
+   "line": 350,
+   "reference": "HOLDOUT_FOR_C",
+   "denied_pattern": "token:HOLDOUT_FOR_C",
+   "kind": "DENIED_NAME_TOKEN",
+   "context": "hcase(\"holdout 참조 FAIL 은 그렇게 적는다\",           {\"verdict\": \"FAIL\", \"violations\": [               {\"severity\": \"FAIL\", \"reference\": \"artifacts/HOLDOUT_FOR_C.csv\", \"file\": \"x.py\"}]},           \"SCAN_FLAGGED_HOLDOUT_REFERENCE\")     hcase(\"**WARN 등급 holdout 언급은 FAIL 로 올리지 않는다**\",",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/tools/mlflow_contract.py",
+   "line": 354,
+   "reference": "HOLDOUT_FOR_C",
+   "denied_pattern": "token:HOLDOUT_FOR_C",
+   "kind": "DENIED_NAME_TOKEN",
+   "context": "hcase(\"**WARN 등급 holdout 언급은 FAIL 로 올리지 않는다**\",           {\"verdict\": \"FAIL\", \"violations\": [               {\"severity\": \"WARN\", \"reference\": \"HOLDOUT_FOR_C\", \"file\": \"nb.ipynb\"},               {\"severity\": \"FAIL\", \"reference\": \"control/x\", \"file\": \"y.py\"}]},           \"UNVERIFIED_SCAN_NOT_PASS\")",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/tools/mlflow_contract.py",
+   "line": 363,
+   "reference": "HOLDOUT_FOR_C",
+   "denied_pattern": "token:HOLDOUT_FOR_C",
+   "kind": "DENIED_NAME_TOKEN",
+   "context": "{\"verdict\": \"FAIL\", \"violations\": []},                      {\"verdict\": \"FAIL\", \"violations\": [                          {\"severity\": \"FAIL\", \"reference\": \"HOLDOUT_FOR_C\"}]}))})      # [D-DEF-86] extra_tags 가 기계 유래 tag 를 덮지 못하는가",
+   "why": "접근 호출도 부정 문맥도 아님 — 보수적으로 FAIL",
+   "severity": "FAIL"
   },
   {
    "file": "research_d/tools/pilot_e_slot_dependency.py",
