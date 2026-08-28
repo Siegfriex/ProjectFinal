@@ -142,8 +142,21 @@ try:
         _kd = (_i.get("sidecar_key_delta") or {}).get(_ld) or {}
         _g = len(_kd.get("gained_key_hashes") or [])
         _l = len(_kd.get("lost_key_hashes") or [])
+        _rv = len(_kd.get("revalued_key_hashes") or [])
+        # [D-DEF-76] `revalued` 를 만들어놓고 **출력에 안 넣었다** — 만든 기능이
+        # 보이지 않으면 없는 것과 같다(D-DEF-57 과 같은 형태).
+        _bits = []
+        if _g:
+            _bits.append(f"새 키 {_g}")
+        if _l:
+            _bits.append(f"사라진 키 {_l}")
+        if _rv:
+            _bits.append(f"**값 바뀐 키 {_rv}**")
         print(f"   사이드카 갱신 {_ld} — **읽어야 할 것이 생겼다**(FAIL 아님)"
-              + (f" · 새 키 {_g} · 사라진 키 {_l}" if (_g or _l) else " · 키 변화 없음(값만 바뀜)"))
+              + (" · " + " · ".join(_bits) if _bits else " · 변화 없음"))
+        if _rv:
+            print(f"     값 바뀐 키 해시: {(_kd.get('revalued_key_hashes') or [])[:5]}"
+                  f"  (원본에서 그 키만 읽으면 된다)")
     if _i["verdict"] == "FAIL":
         print(f"   변경 {_i['n_changed']} · 추가 {_i['n_added']} · 삭제 {_i['n_removed']}")
         for _f in (_i["changed"] + _i["added"] + _i["removed"])[:6]:
