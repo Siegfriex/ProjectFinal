@@ -801,3 +801,9 @@ D 가 커버리지 대조를 요구받는 시점에 `D-V3-FINDING-006` 과 같�
 — (a) SSOT 기준만 + limitation 명시 / (b) C 매개 추출 / (c) 파일 단위 예외 — 를 올린다.
 
 이 gap 자체는 `T-A-V3-STEP1-018` ACK 본문에 이미 적어 A 가 읽을 수 있게 해 뒀다.
+
+## RQ-D042 — R60 event_log 읽기 규약 (T-A-V3-STEP1-042)
+- 상태: DONE (같은 회차 처리)
+- 구현: `tools/d_bus_lib.py` normalize_event / read_event_log / read_event_log_controls
+- 통제: must_not_flag 4/4 · must_flag 3/3 · 실측 989행 UNPARSED 0
+- 부수 발견: D heartbeat 행이 공유 로그에 0건(색인 공백, 선언함) · 대장 서수 도출 결함(값은 상쇄로 우연히 일치)
