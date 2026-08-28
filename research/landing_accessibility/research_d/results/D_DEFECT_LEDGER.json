@@ -1,7 +1,7 @@
 {
  "artifact": "D_DEFECT_LEDGER",
  "produced_at_kst": "2026-08-28T09:51:38+09:00",
- "measured_at_kst": "2026-08-28T11:06:58+09:00",
+ "measured_at_kst": "2026-08-28T11:34:47+09:00",
  "d_head": "0074449403193d8dbb4d515fced3d5dc5fa15d96",
  "plane": "D",
  "claim_kind": "OBSERVATION",
@@ -219,6 +219,16 @@
    "ticket": "D-V3-FINDING-034",
    "fix": "대조군을 세울 때 두 값의 **생성 경로**가 다른지 먼저 적는다. 같은 손이 만든 두 값의 일치는 증거가 아니다",
    "control": "같은 회차에 B·C·D 가 같은 mart sha 에서 7 로 일치한 건은 **방법이 서로 다르므로**(B 승격판정 / C checker / D evidence_hash 비공백) 증거로 쓸 수 있다 — 두 경우를 구분해 적었다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-37",
+   "what": "미관측 토큰이 손 목록보다 앞서 늘어나 **미관측이 값으로 세어졌다**",
+   "mechanism": "`NOT_OBSERVED` → `NA_NUMERIC_UNOBSERVED` → `E_RAW_NOT_YET_RECEIVED` → `NOT_OBSERVABLE_FROM_STATIC_DOM` 순으로 네 번 뒤처졌다. 마지막 것은 B 의 사후 DOM 추출에서 새로 나왔고, `entry_zone` 23건이 전부 그 토큰인데 **23/50 관측으로 세어졌다**(실제 0/50)",
+   "why_it_matters": "C 는 같은 축을 0/50 으로 냈다. **C 가 맞고 D 가 틀렸다.** 그대로 갔으면 D 그림이 없는 공간분포를 그렸을 것이다 — A 가 R87 에서 금지한 바로 그 형태",
+   "ticket": "D-V3-FINDING-035",
+   "fix": "수치 축은 float 변환 가능성으로 판정(numeric_observed), 범주 축은 미관측 **패턴** 매칭 + STATUS_TOKENS 예외. 손 목록은 보조로만 둔다 (A R62)",
+   "control": "C 재계산과 9축 대조 — entry_x/y/zone·reveal_direction 4축이 0/50 으로 일치. 앞서 어긋났던 것이 맞춰졌다",
    "escaped": true
   }
  ],

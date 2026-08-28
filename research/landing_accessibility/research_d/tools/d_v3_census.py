@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 REPO = Path("/home/sieg/projects-wsl/ProjectFinal")
@@ -30,13 +31,21 @@ COLUMNS = [
     "collector_plane", "evidence_hash", "missing_reason",
 ]
 
+# [A R76] 사후 DOM 복원분의 출처 표시. CANONICAL_MART_50 에서 24번째 컬럼으로 들어왔다.
+# 계약 검사가 이것을 **초과 컬럼으로 막았다** — 조용히 통과시키지 않은 것이 옳고,
+# A 지시 필드이므로 optional 로 편입한다. 없어도 되고 있으면 읽는다.
+OPTIONAL_COLUMNS = ("entry_observation_provenance",)
+PROV_LIVE = "E_LIVE_SCOUT"
+PROV_POSTHOC = "B_DERIVED_FROM_DOM_POSTHOC"
+
 # 관측되지 않은 것을 나타내는 토큰. **빈칸과 0 과 다르다** (TBX-006 명시)
 # 실데이터(snapshot_00, 11:00)에서 관측된 결측 토큰을 포함한다.
 # `NA_NUMERIC_UNOBSERVED` 148건 · `E_RAW_NOT_YET_RECEIVED` 48건이 초기 목록에 없어
 # **결측이 값으로 새어 들어갔다**. 토큰 목록은 손 유지 목록이라 또 뒤처진다(A R62) —
 # 그래서 아래 `unknown_tokens()` 로 목록 밖 대문자 토큰을 **세어서 드러낸다**.
 MISSING_TOKENS = ("UNDETERMINED", "NOT_OBSERVED", "NA_NUMERIC_UNOBSERVED",
-                  "E_RAW_NOT_YET_RECEIVED", "NOT_YET_RECEIVED")
+                  "E_RAW_NOT_YET_RECEIVED", "NOT_YET_RECEIVED",
+                  "NOT_OBSERVABLE_FROM_STATIC_DOM", "NOT_SEPARABLE_IN_THIS_CENSUS")
 # 결측이 아니라 **상태값**이다. 결측으로 접으면 분모가 조용히 줄어든다.
 STATUS_TOKENS = ("NOT_ATTEMPTED", "NO_SAFE_ROUTE", "AMBIGUOUS_E_SUPPLIES_ONE_SEQUENCE")
 LABEL_RELATIONS = ("MATCH", "SEMANTIC_EQUIV", "DIFFERENT", "VISIBLE_ONLY", "AX_ONLY", "NONE")
@@ -67,10 +76,12 @@ def read_mart_pinned(path):
     sha = hashlib.sha256(raw).hexdigest()
     df = pd.read_csv(io.BytesIO(raw), dtype=str, keep_default_na=False)
     missing = [c for c in COLUMNS if c not in df.columns]
-    extra = [c for c in df.columns if c not in COLUMNS]
+    extra = [c for c in df.columns if c not in COLUMNS + list(OPTIONAL_COLUMNS)]
     if missing or extra:
         raise ValueError(f"컬럼 계약 위반 — 누락 {missing} / 초과 {extra}")
-    return df[COLUMNS], {"path": str(p), "sha256": sha, "bytes": len(raw)}
+    opt = [c for c in OPTIONAL_COLUMNS if c in df.columns]
+    return df[COLUMNS + opt], {"path": str(p), "sha256": sha, "bytes": len(raw),
+                               "optional_present": opt}
 
 
 def read_mart(path):
@@ -91,8 +102,21 @@ def read_mart(path):
     return df[COLUMNS]
 
 
+# 미관측을 뜻하는 토큰의 **패턴**. 손 목록은 매번 뒤처졌다 (A R62) —
+# 실제로 NOT_OBSERVED → NA_NUMERIC_UNOBSERVED → E_RAW_NOT_YET_RECEIVED →
+# NOT_OBSERVABLE_FROM_STATIC_DOM 순으로 네 번 뒤처졌고, 그때마다 **미관측이
+# 값으로 세어졌다**(entry_zone 이 0/50 인데 23/50 으로 보였다).
+_MISSING_PAT = re.compile(
+    r"(NOT_OBSERV|UNOBSERV|NOT_OBSERVABLE|UNDETERMINED|NOT_YET|NA_NUMERIC|NOT_SEPARABLE)")
+
+
 def is_missing(v) -> bool:
-    return (v is None) or (str(v).strip() == "") or (str(v).strip() in MISSING_TOKENS)
+    t = "" if v is None else str(v).strip()
+    if t == "" or t in MISSING_TOKENS:
+        return True
+    if t in STATUS_TOKENS:          # 상태값은 결측이 아니다 — 접으면 분모가 줄어든다
+        return False
+    return bool(_MISSING_PAT.search(t))
 
 
 # [A R74] 수집기의 0 과 사이트의 사실을 분리한다. 합치면 분모가 사이트 탓을 한다.
@@ -242,6 +266,51 @@ def synthetic_fixture(n=50, seed_note="deterministic, not random"):
     df.attrs["synthetic"] = True
     df.attrs["seed_note"] = seed_note
     return df
+
+
+NUMERIC_AXES = ("entry_x_norm", "entry_y_norm", "activation_depth")
+
+
+def numeric_observed(v) -> bool:
+    """수치 축은 **토큰 목록이 아니라 변환 가능성**으로 판정한다.
+
+    [D-DEF-37] `NOT_OBSERVABLE_FROM_STATIC_DOM` 이 B 의 사후 추출에서 새로 나왔고
+    손 목록에 없어 float() 에서 터졌다. 목록을 또 늘리면 다음 토큰에서 또 터진다 —
+    **수치로 읽히는가**가 정의상 참인 기준이다 (A R62).
+    """
+    if is_missing(v):
+        return False
+    try:
+        float(str(v).strip())
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+AXIS_COLUMNS = ("entry_x_norm", "entry_y_norm", "entry_zone", "entry_control_type",
+                "nav_container_type", "reveal_direction", "menu_dependency",
+                "auth_gate_stage", "activation_depth", "visible_label",
+                "accessible_name", "label_relation", "task_control_occlusion",
+                "experienced_flow_sequence")
+
+
+def axis_coverage(df) -> dict:
+    """축별 `k/n` 관측 수. **그림을 그릴지 말지의 입력이다** (A R87).
+
+    입력이 0 인 축을 그리면 빈 그림이 나오고 **없음이 0 으로 보인다.**
+    그래서 0 인 축은 렌더하지 않고 `AXIS_NOT_OBSERVED` 로 남긴다.
+    """
+    n = len(df)
+    out = {}
+    for c in AXIS_COLUMNS:
+        if c not in df.columns:
+            out[c] = {"observed": 0, "n": n, "state": "COLUMN_ABSENT"}
+            continue
+        pred = numeric_observed if c in NUMERIC_AXES else (lambda x: not is_missing(x))
+        k = int(sum(1 for v in df[c] if pred(v)))
+        out[c] = {"observed": k, "n": n,
+                  "state": "AXIS_NOT_OBSERVED" if k == 0 else f"{k}/{n}"}
+    return out
 
 
 def contract_controls() -> dict:

@@ -35,6 +35,18 @@ def _stamp(fig, df, title, extra=""):
     return st
 
 
+def _axis_absent(ax, col, cov):
+    """[A R87] 입력이 0 인 축은 **그리지 않는다.** 빈 그림은 없음을 0 으로 보이게 한다."""
+    ax.text(0.5, 0.55, "AXIS_NOT_OBSERVED", ha="center", va="center",
+            fontsize=11, color="darkred", transform=ax.transAxes)
+    ax.text(0.5, 0.38, f"{col}\n0/{cov.get(col,{}).get('n','?')} observed",
+            ha="center", va="center", fontsize=7, color="dimgray",
+            transform=ax.transAxes)
+    ax.set_xticks([]); ax.set_yticks([])
+    for sp in ax.spines.values():
+        sp.set_linestyle(":"); sp.set_color("darkred")
+
+
 def _nodata(ax, msg="NO DATA YET"):
     ax.text(0.5, 0.5, msg, ha="center", va="center", fontsize=14, color="red",
             transform=ax.transAxes)
@@ -101,9 +113,13 @@ def fig1_coverage_terminal(df):
 
 
 def fig2_entry_spatial_map(df):
+    cov = C.axis_coverage(df)
     fig, axes = plt.subplots(1, 2, figsize=(12.5, 5))
-    obs = df[[not C.is_missing(v) for v in df["entry_x_norm"]]] if len(df) else df
-    if len(obs) == 0:
+    obs = df[[C.numeric_observed(v) for v in df["entry_x_norm"]]] if len(df) else df
+    if len(df) and cov["entry_x_norm"]["state"] == "AXIS_NOT_OBSERVED":
+        _axis_absent(axes[0], "entry_x_norm", cov)
+        _axis_absent(axes[1], "entry_zone", cov)
+    elif len(obs) == 0:
         _nodata(axes[0], "NO OBSERVED COORDINATES")
         _nodata(axes[1])
     else:
@@ -120,7 +136,9 @@ def fig2_entry_spatial_map(df):
     axes[0].set_title("entry point position", fontsize=10)
     axes[1].set_title("entry_zone distribution", fontsize=10)
     _stamp(fig, df, "2. entry spatial map",
-           f"observed_coords={len(obs)}/{len(df)}" if len(df) else "")
+           (f"observed_coords={len(obs)}/{len(df)}   "
+            f"(provenance: E_LIVE_SCOUT vs B_DERIVED_FROM_DOM_POSTHOC — see D_PROVENANCE)")
+           if len(df) else "")
     return _save(fig, "fig2_entry_spatial_map.png")
 
 
@@ -128,23 +146,31 @@ def fig3_entry_implementation(df):
     cols = ["entry_control_type", "menu_dependency", "nav_container_type",
             "reveal_direction", "auth_gate_stage"]
     fig, axes = plt.subplots(1, len(cols), figsize=(17, 3.8))
+    cov = C.axis_coverage(df)
     for ax, c in zip(axes, cols):
         vals = Counter(str(v) for v in df[c] if not C.is_missing(v)) if len(df) else Counter()
-        if not vals:
+        if len(df) and cov.get(c, {}).get("state") == "AXIS_NOT_OBSERVED":
+            _axis_absent(ax, c, cov)          # 관측 0 — 빈 막대가 아니라 부재로 표시
+        elif not vals:
             _nodata(ax, "NO DATA")
         else:
             ax.bar(list(vals.keys()), list(vals.values()), color="cornflowerblue")
             ax.tick_params(axis="x", rotation=45, labelsize=7)
         ax.set_title(c, fontsize=9)
-    _stamp(fig, df, "3. entry implementation")
+    absent = [c for c in cols if cov.get(c, {}).get("state") == "AXIS_NOT_OBSERVED"]
+    _stamp(fig, df, "3. entry implementation",
+           ("AXIS_NOT_OBSERVED: " + ", ".join(absent)) if absent else "all axes observed")
     return _save(fig, "fig3_entry_implementation.png")
 
 
 def fig4_activation_depth(df):
     """scroll / typing / forced dismissal 을 **합산하지 않는다** (TBX-006)."""
     fig, ax = plt.subplots(figsize=(11, 4.6))
-    obs = df[[not C.is_missing(v) for v in df["activation_depth"]]] if len(df) else df
-    if len(obs) == 0:
+    cov = C.axis_coverage(df)
+    obs = df[[C.numeric_observed(v) for v in df["activation_depth"]]] if len(df) else df
+    if len(df) and cov["activation_depth"]["state"] == "AXIS_NOT_OBSERVED":
+        _axis_absent(ax, "activation_depth", cov)
+    elif len(obs) == 0:
         _nodata(ax, "NO OBSERVED DEPTH")
     else:
         fams = sorted(obs["family_id"].astype(str).unique())
