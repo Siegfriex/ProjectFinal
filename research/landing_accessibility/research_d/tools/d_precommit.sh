@@ -21,11 +21,20 @@ import sys
 import traceback
 
 sys.path.insert(0, "tools")
-from d_tool_health import static_control_presence, embedded_python_syntax
+from d_tool_health import (static_control_presence, embedded_python_syntax,
+                           import_side_effects)
 
+# [D-DEF-96] 조건이 `in_loop` 이었다 — 그래서 **루프 밖에서 만든 대조군은 아무도
+# 돌리지 않았다**(`d_ledger_add` 는 대장 쓰기 경로인데, `d_eda_selfcheck` 도).
+# 실제 안전 조건은 "루프 안" 이 아니라 **"임포트해도 상태가 안 바뀐다"** 다.
 rows = static_control_presence()["rows"]
+_fx = import_side_effects()["per_module_calls"]
 mods = sorted(x["module"] for x in rows
-              if x.get("in_loop") and x.get("has_control_def"))
+              if x.get("has_control_def") and _fx.get(x["module"], 1) == 0)
+_skipped = sorted(x["module"] for x in rows
+                  if x.get("has_control_def") and _fx.get(x["module"], 1) != 0)
+if _skipped:
+    print(f"  (임포트 부수효과가 있어 제외) {_skipped} — **돌리지 않은 것을 통과로 세지 않는다**")
 if not mods:
     print("  FAIL  게이트 대상 목록이 비었다 — **빈 목록은 통과가 아니다**")
     raise SystemExit(4)

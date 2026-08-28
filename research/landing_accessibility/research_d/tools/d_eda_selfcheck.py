@@ -83,9 +83,18 @@ def check() -> dict:
          {"csv_rows": len(rows), "metrics_vars": len(B), "mismatched": csv_bad})
 
     # 8. provenance 에 기록된 산출 sha 가 실제 파일과 같은가
+    # [D-DEF-96] **자기 항목은 뺀다.** provenance 파일이 `outputs` 에 자기 자신을
+    # 넣어 두었는데, 파일은 자기 sha 를 옳게 기록할 수 없다 — 기록한 뒤 쓰면 값이
+    # 달라진다. 실측: 7개 중 **6개는 일치**하고 **자기 것만 불일치**였다.
+    # 이 제외는 검사 쪽 시정이고, **산출기가 자기 sha 를 적는 것 자체가 결함**이다
+    # — 그것은 재생성이 필요하므로 D 가 지금 하지 않고 보고한다.
+    _SELF = "PRESENTATION_EDA_PROVENANCE.json"
     sbad = {k: v for k, v in pr["outputs"].items()
-            if not (OUT / k).exists() or _sha(OUT / k) != v}
-    case("산출 sha 기록 == 실제 파일", not sbad, {"mismatched": list(sbad)})
+            if k != _SELF and (not (OUT / k).exists() or _sha(OUT / k) != v)}
+    case("산출 sha 기록 == 실제 파일 (자기 항목 제외)", not sbad,
+         {"mismatched": list(sbad), "excluded_self": _SELF,
+          "왜_제외하나": "파일은 자기 sha 를 옳게 기록할 수 없다 — 자기참조",
+          "산출기_결함": "provenance 가 `outputs` 에 자기 자신을 넣는다. 재생성 때 빼야 한다"})
 
     # 9. mart sha 가 선언값과 같고 REPORT 에도 그 값이 적혀 있는가
     ms = pr["inputs"]["mart_sha256"]

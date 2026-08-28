@@ -295,6 +295,9 @@ def import_side_effects(text: str | None = None) -> dict:
     risky = [r for r in rows if r.get("n_calls") and r["module"] in gated]
     return {"verdict": "PASS" if not risky else "FAIL",
             "n_tools": len(rows),
+            # [D-DEF-96] 모듈별 수를 노출한다 — 게이트가 "임포트해도 안전한가" 를
+            # 직접 물어야 하기 때문이다. 키 이름은 `rows` 를 피한다(이미 충돌 키다).
+            "per_module_calls": {r["module"]: r.get("n_calls", 0) for r in rows},
             "n_gated": len(gated),
             "n_risky_gated": len(risky),
             "risky_gated": [{"module": r["module"], "side_calls": r["side_calls"]} for r in risky],
