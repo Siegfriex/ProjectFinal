@@ -7,6 +7,9 @@ TRUSTED 기준을 코드 상수로 박는다. 결과를 보고 기준을 고르�
 import json, glob, hashlib, os, sys, csv, collections, traceback
 
 VIEWPORT = (390, 900)            # 착수 전 고정
+# v2 수정(13:01) — 좌표를 못 찾으면 `None` 으로 두고 통과시키던 결함을 고쳤다.
+# 원본은 31/31 행에서 조건 4 를 한 번도 적용하지 않고 TRUSTED 6 을 냈다.
+# **판정 기준을 완화한 것이 아니라, 적용되지 않던 기준이 적용되게 한 것이다.**
 MART = "artifacts/v3_census/mart/CANONICAL_MART_50.csv"
 ALREADY = {  # census 8 ∪ v2 3 ∪ v3 TRUSTED 8 = 19 (C 확정)
  "F3-01","F3-03","F3-07",
@@ -42,6 +45,7 @@ def classify(d):
     if png_same and dom_same:       return False, "CLICK_NO_EFFECT", ev
     if png_same or dom_same:        return False, "CLICK_AMBIGUOUS", ev
     if in_vp is False:              return False, "COORD_OUT_OF_VIEWPORT", ev
+    if in_vp is None:               return False, "COORD_NOT_EVALUABLE", ev   # 없음을 통과로 만들지 않는다
     return True, "TRUSTED", ev
 
 def main():
