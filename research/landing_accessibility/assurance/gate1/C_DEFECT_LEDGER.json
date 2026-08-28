@@ -3,7 +3,7 @@
  "measured_at_kst": "2026-08-28T09:54:34+09:00",
  "source": "C 발행 티켓/ACK 전량(bus_mirror_c) + 세션 메모리 — 기억이 아니라 발행 기록 우선, 기록에 없는 즉시 수정(스크립트 오타 등)은 세지 않았다",
  "counts": {
-  "defects": 25,
+  "defects": 26,
   "caught_before_issue": 4
  },
  "defects": [
@@ -250,6 +250,15 @@
    ],
    "rule": "Δ58-unit / R51",
    "status": "fixed"
+  },
+  {
+   "id": "C-DEF-26",
+   "what": "heartbeat 데몬 재시작에 `pkill -f hb_daemon.sh` 를 써 그 문자열을 인자로 가진 C 자신의 Monitor 프로세스까지 죽였다(exit 144) — 넓은 매처의 과다(R54 반대 방향)가 프로세스 층에서 재현",
+   "record": "10:04 KST; Monitor 재무장",
+   "record_files": [],
+   "record_files_note": "bus 기록 없음 — 세션 이벤트",
+   "rule": "R54(넓은 매처)",
+   "status": "fixed(pgrep -f 'bash <절대경로>' 로 좁힘, Monitor 재생성)"
   }
  ],
  "caught_before_issue": [
