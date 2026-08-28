@@ -9,6 +9,11 @@ guard          --compare-with a previous verdict: unchanged inputs ⇒ every sha
                a previous verdict whose lane3 fixtures sha differs ⇒ exactly the lane3 items are refused.
 recompute      one lane manifest aggregate + one listed file sha re-derived with `sha256sum` (independent tool).
 fetch_fail     control_identity on a non-repo path ⇒ fetch_ok False, index/delta shas UNAVAILABLE (no local fallback).
+declared       (Δ46) the clean run carries `declared_failure_behaviour` (3 keys), `usable` true and a `failure_behaviour_demo` block.
+harness_defect (Δ46 behaviour 1) lane1 selfcheck.py mutated to FAIL in the scratch copy ⇒ verdict C_HARNESS_DEFECT, usable false,
+               counts.PASS 0, every other item NOT_TESTABLE reason `harness_defect` with status_before_harness_defect kept; file written; exit 1.
+crash          (Δ46 behaviour 2 / Δ46-exit2) evaluate() raises in the scratch copy ⇒ exit 2, did-not-run message, a pre-seeded
+               GATE1_VERDICT_C.json at --out left byte-identical (sha256sum).
 
     python3 run_gate1_selftest.py [--work <scratch dir>]
 Exit 0 iff every control holds. Prints one JSON line per control.
@@ -130,6 +135,41 @@ def main() -> int:
     ok &= ctl("fetch_fail_is_unavailable", (not ci["fetch_ok"]) and ci["ruling_index_bytes_sha256"] == "UNAVAILABLE"
               and ci["delta_bytes_sha256"] == "UNAVAILABLE" and ci["control_ref_commit_sha"] is None and bool(ci["fetch_error"]),
               fetch_error=ci["fetch_error"], control_ref=ci["control_ref"])
+
+    # --- declared (Δ46): declaration + R40 binding block present on the clean run, usable true
+    fbd = A.get("failure_behaviour_demo") or {}
+    dfb = A.get("declared_failure_behaviour") or {}
+    ok &= ctl("declared_failure_behaviour_present", A.get("usable") is True and {"internal_control_fails", "aggregator_crash", "normal"} <= set(dfb)
+              and {"valid_for_this_commit", "reason", "tool_sha256_now", "sidecar_tool_sha256"} <= set(fbd) and A["_rc"] == A["exit_code"],
+              usable=A.get("usable"), declared_keys=sorted(dfb), demo_valid_for_this_commit=fbd.get("valid_for_this_commit"), demo_reason=fbd.get("reason"))
+
+    # --- harness_defect (Δ46 behaviour 1): lane1 selfcheck mutated to FAIL in the scratch copy (never in the worktree)
+    sc = croot / "assurance" / "gate1" / "lane1_task_binding" / "selfcheck.py"
+    s = sc.read_text(encoding="utf-8"); anchor = '    status = "PASS" if not fails else "FAIL"\n'
+    assert s.count(anchor) == 1, "lane1 selfcheck anchor not found"
+    sc.write_text(s.replace(anchor, '    fails.append("injected internal-control failure (run_gate1_selftest)")\n' + anchor), encoding="utf-8")
+    H = run(croot / "assurance" / "gate1" / "run_gate1.py", work / "run_hd")
+    others = [i for i in H["items"] if i["id"] not in H["c_harness_defects"]]
+    ok &= ctl("harness_defect_verdict_unusable_zero_pass", H["_rc"] == 1 and H["verdict"] == "C_HARNESS_DEFECT" and H["usable"] is False
+              and H["c_harness_defects"] == ["L1-selfcheck"] and H["counts"]["PASS"] == 0 and len(others) == H["n_items"] - 1
+              and all(i["status"] == "NOT_TESTABLE" and i["reason"] == rg.HARNESS_DEFECT_REASON and "status_before_harness_defect" in i for i in others)
+              and sorted(H["neutralised_items"]) == sorted(i["id"] for i in others),
+              rc=H["_rc"], verdict=H["verdict"], usable=H["usable"], counts=H["counts"], c_harness_defects=H["c_harness_defects"],
+              n_neutralised=len(H["neutralised_items"]), statuses_before=sorted({i["status_before_harness_defect"] for i in others}))
+
+    # --- crash (Δ46 behaviour 2 / Δ46-exit2): evaluate() raises in the scratch copy ⇒ exit 2, nothing written
+    rgp = croot / "assurance" / "gate1" / "run_gate1.py"
+    s = rgp.read_text(encoding="utf-8"); anchor = "def evaluate(c: Ctx) -> dict:\n    items = c.items\n"
+    assert s.count(anchor) == 1, "evaluate anchor not found"
+    rgp.write_text(s.replace(anchor, "def evaluate(c: Ctx) -> dict:\n    raise RuntimeError('injected crash (run_gate1_selftest)')\n    items = c.items\n"),
+                   encoding="utf-8")
+    cdir = work / "run_crash"; cdir.mkdir(parents=True, exist_ok=True)
+    vf = cdir / "GATE1_VERDICT_C.json"; vf.write_text('{"sentinel": "pre-existing verdict file; must be left byte-identical on a crash"}\n', encoding="utf-8")
+    before = subprocess.check_output(["sha256sum", str(vf)], text=True).split()[0]
+    p = subprocess.run([sys.executable, str(rgp), "--dry-run", "--skip-browser", "--out", str(cdir)], capture_output=True, text=True, timeout=1800)
+    after = subprocess.check_output(["sha256sum", str(vf)], text=True).split()[0]
+    ok &= ctl("crash_exits_2_writes_no_verdict", p.returncode == 2 and before == after and rg.DID_NOT_RUN_MSG in p.stderr,
+              rc=p.returncode, sentinel_sha_before=before, sentinel_sha_after=after, stderr_last=p.stderr.strip().splitlines()[-1:])
 
     print(json.dumps({"selftest": "run_gate1_selftest", "work": str(work), "all_ok": bool(ok),
                       "controls": {r["control"]: r["result"] for r in RESULTS}}, ensure_ascii=False))

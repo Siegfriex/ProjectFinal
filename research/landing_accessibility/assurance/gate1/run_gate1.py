@@ -7,6 +7,21 @@ one JSON result per lane item, evaluates the pre-registered verdict rules (GATE1
     <out>/GATE1_REPORT_C.md      report skeleton with every mandatory section pre-filled
 Exit 0 ONLY on verdict PASS.
 
+Declared failure behaviour (Δ46-declared / Δ46-exit2 / R40 — demonstrated on an isolated copy by gate1/control_failure_demo_c.py,
+recorded in gate1/CONTROL_FAILURE_DEMOS_C.json; the verdict JSON carries `declared_failure_behaviour` and `failure_behaviour_demo`
+whose `valid_for_this_commit` is true only while the sidecar's run_gate1.py sha256 equals this file's sha256 now):
+  (1) any C_INTERNAL control item (the harness's own selftests: lane selfchecks, converge/determinism controls, pytest, synthetic
+      demo, comparators import) FAILs / ERRORs / is MISSING ⇒ verdict `C_HARNESS_DEFECT`; no PASS is counted — every other item
+      (lane items AND the C_INTERNAL items that passed) is rewritten to NOT_TESTABLE with reason `harness_defect` (its original
+      status is kept in `status_before_harness_defect`), `counts.PASS` is 0; the verdict file IS written (audit trail, like D's
+      firewall CONTROL_FAIL record) with `usable: false`; exit 1.
+  (2) the aggregator crashes (uncaught exception anywhere in main — lane drivers are caught per lane and become C_INTERNAL ERROR
+      items under (1)) ⇒ exit 2 + 'did not run — read neither as pass nor fail' on stderr; NO verdict file is written (a
+      pre-existing GATE1_VERDICT_C.json at --out is left byte-identical; the report is written before the verdict so a crash
+      while writing either leaves no verdict file).
+  (3) normal: exit 0 iff verdict PASS; exit 1 for every other verdict that was reached (METHOD_QUALIFIED_WITH_LIMITATIONS,
+      FAIL_SYSTEMIC, HARD_STOP, C_HARNESS_DEFECT) — exit 1 always means "ran and did not pass", never "did not run".
+
     run_gate1.py --sut <clone_root> --sha <sha> --out <dir>
                  [--runner-cmd '<template with {fixture} {contract} {out}>'] [--adapter-map MAP.json]
                  [--control-sha SHA] [--ssot-snapshot-sha SHA] [--ref-sha SHA] [--skip-browser] [--dry-run]
@@ -99,6 +114,45 @@ E001_REF_SHA_DEFAULT = "e02eee4b46b83bafc4576f4f96e8ef540ec37ae9"   # lane4 stub
 HARD_STOP_8 = ["wrong_scope", "target_outside_manifest", "forbidden_action", "evidence_overwrite",
                "duplicate_launch", "task_contract_drift", "task_or_outcome_leakage", "denominator_corruption"]
 VERDICTS = ["PASS", "METHOD_QUALIFIED_WITH_LIMITATIONS", "FAIL_SYSTEMIC", "HARD_STOP", "C_HARNESS_DEFECT"]
+# Δ46/R40: sidecar written by gate1/control_failure_demo_c.py (isolated mutated copies); this tool only READS it and compares shas.
+DEMO_SIDECAR = HERE / "CONTROL_FAILURE_DEMOS_C.json"
+TOOL_REL = "gate1/run_gate1.py"
+DID_NOT_RUN_MSG = "run_gate1: did not run — read neither as pass nor fail (exit 2)"
+HARNESS_DEFECT_REASON = "harness_defect"
+DECLARED_FAILURE_BEHAVIOUR = {
+    "internal_control_fails": "any C_INTERNAL item FAIL/ERROR/MISSING_SCRIPT ⇒ verdict C_HARNESS_DEFECT, usable=false, counts.PASS=0: every "
+                              "other item rewritten to NOT_TESTABLE reason 'harness_defect' (original status kept in status_before_harness_defect); "
+                              "verdict file IS written (audit trail); exit 1",
+    "aggregator_crash": "uncaught exception ⇒ exit 2 + 'did not run — read neither as pass nor fail' on stderr; NO verdict file written "
+                        "(pre-existing GATE1_VERDICT_C.json left byte-identical)",
+    "normal": "exit 0 iff verdict PASS; exit 1 for any other reached verdict (ran, did not pass)",
+    "ruling_refs": ["Δ46-R40", "Δ46-declared", "Δ46-exit2", "Δ46-casename", "P-67"],
+}
+
+
+def failure_demo_binding(tool_path: pathlib.Path = pathlib.Path(__file__), sidecar: pathlib.Path = DEMO_SIDECAR, tool_rel: str = TOOL_REL) -> dict:
+    """R40 binding: valid_for_this_commit iff the sidecar's tool sha256 (recorded at demo time) == this file's sha256 now and all demo cases PASSed."""
+    now = hashlib.sha256(tool_path.read_bytes()).hexdigest()
+    out = {"rule": "Δ46/R40: failure behaviour demonstrated on a mutated copy by gate1/control_failure_demo_c.py; binding = tool sha256", "sidecar": str(sidecar),
+           "tool_sha256_now": now, "sidecar_present": sidecar.is_file(), "sidecar_tool_sha256": None, "sha_match": False, "cases": [], "demo_all_pass": False,
+           "valid_for_this_commit": False, "reason": None}
+    if not sidecar.is_file():
+        out["reason"] = "NO_SIDECAR: demonstration never run (or not for this checkout)"; return out
+    try:
+        sc = json.loads(sidecar.read_text(encoding="utf-8"))
+        cases = [c for c in sc.get("cases", []) if c.get("tool_path") == tool_rel]
+    except Exception as e:  # noqa: BLE001
+        out["reason"] = f"SIDECAR_UNREADABLE: {type(e).__name__}: {e}"[:160]; return out
+    out["sidecar_measured_at_kst"] = sc.get("measured_at_kst"); out["sidecar_sha256"] = hashlib.sha256(sidecar.read_bytes()).hexdigest()
+    shas = sorted({c.get("tool_sha256_at_demo") for c in cases})
+    out["cases"] = [{"case_name": c.get("case_name"), "result": c.get("result")} for c in cases]
+    if not cases: out["reason"] = "NO_CASES_FOR_THIS_TOOL"; return out
+    if len(shas) != 1: out["reason"] = f"SIDECAR_INCONSISTENT: {len(shas)} distinct tool shas for one tool"; return out
+    out["sidecar_tool_sha256"] = shas[0]; out["sha_match"] = shas[0] == now
+    out["demo_all_pass"] = all(c.get("result") == "PASS" for c in cases)
+    out["valid_for_this_commit"] = out["sha_match"] and out["demo_all_pass"]
+    out["reason"] = "OK" if out["valid_for_this_commit"] else ("TOOL_CHANGED_SINCE_DEMO: re-run gate1/control_failure_demo_c.py" if not out["sha_match"] else "DEMO_CASE_FAILED")
+    return out
 
 
 # ----------------------------------------------------------------------------------------------- helpers
@@ -702,8 +756,20 @@ def evaluate(c: Ctx) -> dict:
         verdict = "METHOD_QUALIFIED_WITH_LIMITATIONS"
     else:
         verdict = "PASS"
+    neutralised: list[str] = []
+    if verdict == "C_HARNESS_DEFECT":
+        # declared failure behaviour (1): no PASS is counted — every item other than the failing controls is NOT_TESTABLE/harness_defect
+        for i in items:
+            if i["id"] in harness_defects:
+                continue
+            i["status_before_harness_defect"] = i["status"]; i["status"] = "NOT_TESTABLE"; i["reason"] = HARNESS_DEFECT_REASON
+            i["neutralised_by"] = harness_defects; neutralised.append(i["id"])
+        systemic, isolated = [], []
+        not_testable = [i["id"] for i in items if i["status"] == "NOT_TESTABLE" and i["kind"] != "C_INTERNAL"]
+        scroll_status = "NOT_TESTABLE"
     counts = {st: len(by(st)) for st in ("PASS", "FAIL", "NOT_TESTABLE", "ERROR", "MISSING_SCRIPT")}
-    return {"verdict": verdict, "exit_code": 0 if verdict == "PASS" else 1, "counts": counts, "n_items": len(items),
+    return {"verdict": verdict, "exit_code": 0 if verdict == "PASS" else 1, "usable": verdict != "C_HARNESS_DEFECT",
+            "counts": counts, "n_items": len(items), "neutralised_items": neutralised,
             "hard_stop_triggers_observed": hard_stops, "hard_stop_vocabulary_R9": HARD_STOP_8,
             "systemic_defects": systemic, "isolated_or_site_level_defects": isolated,
             "c_harness_defects": harness_defects, "not_testable_items": not_testable,
@@ -857,7 +923,7 @@ def write_report(c: Ctx, verdict: dict, shas: dict, path: pathlib.Path, top: dic
                    "03 §3 scroll-only surface capture: **NOT VERIFIED — declared** (T-A-V3-STEP1-012 GAP-02 coverage ruling). C's set holds exactly one scroll fixture (`seq_typing_and_scroll_not_depth`); the runner's S0/S1 `fact_surface_state` rows for it were not compared.")
     md = f"""# GATE1_REPORT_C — Claude C GATE 1 verdict (skeleton generated by run_gate1.py)
 
-**Verdict**: **{verdict['verdict']}** · generated {shas['generated_at_kst']} · dry_run={c.dry_run}
+**Verdict**: **{verdict['verdict']}** · usable={verdict['usable']} · generated {shas['generated_at_kst']} · dry_run={c.dry_run}
 Machine source of truth: `GATE1_VERDICT_C.json` (same directory). This file is derived; edit only the free-text sections marked `<<fill>>`.
 
 ## 1. Exact SHAs
@@ -961,15 +1027,25 @@ def main(argv: list[str] | None = None) -> int:
     guard = compare_guard(c, top)
     doc = {"artifact": "GATE1_VERDICT_C", "runner": "run_gate1.py", "dry_run": c.dry_run, "shas": shas,
            "runner_cmd": c.runner_cmd, "adapter_map": c.adapter_map_path, **verdict,
-           "next_automatic_action": next_action(verdict["verdict"]), "input_identity": top, "compare_guard": guard, "items": c.items}
-    (c.out / "GATE1_VERDICT_C.json").write_text(json.dumps(doc, ensure_ascii=False, indent=1, default=str) + "\n", encoding="utf-8")
+           "next_automatic_action": next_action(verdict["verdict"]), "declared_failure_behaviour": DECLARED_FAILURE_BEHAVIOUR,
+           "failure_behaviour_demo": failure_demo_binding(), "input_identity": top, "compare_guard": guard, "items": c.items}
+    # report first, verdict last: a crash anywhere before this line leaves NO verdict file (declared failure behaviour (2))
     write_report(c, verdict, shas, c.out / "GATE1_REPORT_C.md", top, guard)
-    summary = {k: doc[k] for k in ("verdict", "exit_code", "counts", "n_items", "hard_stop_triggers_observed",
+    (c.out / "GATE1_VERDICT_C.json").write_text(json.dumps(doc, ensure_ascii=False, indent=1, default=str) + "\n", encoding="utf-8")
+    summary = {k: doc[k] for k in ("verdict", "exit_code", "usable", "counts", "n_items", "hard_stop_triggers_observed",
                                    "systemic_defects", "c_harness_defects", "not_testable_items", "coverage")}
+    summary["failure_behaviour_demo"] = {k: doc["failure_behaviour_demo"][k] for k in ("valid_for_this_commit", "reason")}
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     print(f"wrote {c.out / 'GATE1_VERDICT_C.json'} and GATE1_REPORT_C.md")
     return verdict["exit_code"]
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        _rc = main()
+    except Exception:  # Δ46-exit2: did not run ≠ failed; no verdict file has been written at this point
+        import traceback
+        traceback.print_exc()
+        print(DID_NOT_RUN_MSG, file=sys.stderr)
+        _rc = 2
+    sys.exit(_rc)
