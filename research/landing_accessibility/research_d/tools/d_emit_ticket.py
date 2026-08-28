@@ -43,7 +43,7 @@ def _sh(*a: str) -> str:
     return subprocess.run(a, capture_output=True, text=True).stdout.strip()
 
 
-def _reachable_from_remote(sha: str) -> bool:
+def _reachable_from_remote(sha: str):
     """sha 가 D 원격 브랜치에서 도달 가능한가. 원격 ref 를 못 읽으면 True 로 둔다.
 
     원격을 못 읽는 것은 네트워크·설정 문제이지 티켓의 결함이 아니다.
@@ -52,7 +52,11 @@ def _reachable_from_remote(sha: str) -> bool:
     """
     if subprocess.run(["git", "rev-parse", "--verify", D_REMOTE],
                       capture_output=True).returncode != 0:
-        return True
+        # [A STEP1-037 지시로 시정] 예전에는 여기서 **True** 를 냈다 —
+        # '원격을 못 읽었다' 를 '도달 가능하다' 로 읽은 것이다.
+        # A·B·C 세 평면 도구에서 같은 오해가 나왔다(검사가 못 돈 것을
+        # '안전하게 막혔다'/'문제없다' 로 읽음). D 도 같았다.
+        return "UNVERIFIED"
     return subprocess.run(["git", "merge-base", "--is-ancestor", sha, D_REMOTE],
                           capture_output=True).returncode == 0
 
@@ -71,7 +75,10 @@ def check(t: dict) -> list[str]:
     elif subprocess.run(["git", "cat-file", "-e", f"{bs}^{{commit}}"],
                         capture_output=True).returncode != 0:
         errs.append(f"base_sha 가 실재 커밋이 아니다: {bs}")
-    elif not _reachable_from_remote(bs):
+    elif (_r := _reachable_from_remote(bs)) == "UNVERIFIED":
+        errs.append(f"{D_REMOTE} 를 읽지 못했다 — **검사가 돌지 않았다.** "
+                    "통과로 읽지 말고 fetch 후 다시 발행하라")
+    elif not _r:
         # **다른 평면이 조회할 수 있어야 한다.** 로컬에만 있는 커밋을 base_sha 로
         # 적으면 A 에게는 '해석 불가' 로 보인다 — A 가 STEP1-025 에서 그 사각을
         # 명시했고("A 는 A 의 object store 에 있는 객체만 해석할 수 있다"),
