@@ -82,7 +82,15 @@ def replay_row(r):
         else:
             out["c_auth_gate_stage"] = "UNDETERMINED"; out["auth_basis"] = "R91: endpoint not reached ⇒ UNDETERMINED (NONE only allowed on ENDPOINT_REACHED)"
     if observed(r.get("auth_gate_stage")) and "c_auth_gate_stage" in out:
-        out["auth_gate_stage_match"] = str(r.get("auth_gate_stage")).strip() == out["c_auth_gate_stage"]; out["mart_auth_gate_stage"] = r.get("auth_gate_stage")
+        mv = str(r.get("auth_gate_stage")).strip(); out["mart_auth_gate_stage"] = mv
+        reached = str(r.get("attempt_status") or "").strip() == "ENDPOINT_REACHED"; term_auth = str(r.get("terminal_reason") or "").strip() == "AUTH_GATE"
+        seq_has = seq is not None and ("AUTH_GATE" in seq or "ENDPOINT_REACHED" in seq)
+        if (reached or term_auth) and not seq_has and mv != "UNDETERMINED":
+            # R105: NONE on a reached row / a stage on an AUTH_GATE terminal is a positive observation C cannot derive when the sequence carries no
+            # endpoint/auth token — NOT_DERIVABLE, neither a match nor a mismatch (never counted as assured)
+            out["auth_not_derivable"] = "status/terminal asserts a stage the sequence does not carry (no ENDPOINT_REACHED/AUTH_GATE token)"
+        else:
+            out["auth_gate_stage_match"] = mv == out["c_auth_gate_stage"]
     # R90 (TBX-017): both unobserved → NONE · visible only → VISIBLE_ONLY · ax only → AX_ONLY · equal → MATCH · differ → DIFFERENT; no SEMANTIC_EQUIV
     vis = r.get("visible_label") if observed(r.get("visible_label")) else None; ax = r.get("accessible_name") if observed(r.get("accessible_name")) else None
     out["c_label_relation"] = F.label_relation(vis, ax, {})
@@ -114,6 +122,7 @@ def analyse(rows, manifest):
     rep = [replay_row(r) for r in obs_rows]
     metrics = {"activation_depth": metric(rep, "activation_depth_match"), "menu_dependency": metric(rep, "menu_dependency_match"),
                "auth_gate_stage": metric(rep, "auth_gate_stage_match"), "label_relation": metric(rep, "label_relation_match")}
+    metrics["auth_gate_stage"]["not_derivable_n"] = sum(1 for x in rep if "auth_not_derivable" in x)
     for k in metrics:
         metrics[k]["rows"] = [{kk: x.get(kk) for kk in x if k in kk or kk in ("target_id", "basis", "derive", "task_seq_state", "exp_seq_state")} for x in rep if f"{k}_match" in x]
     fam_stats = {}

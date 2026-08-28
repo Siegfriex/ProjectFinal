@@ -187,7 +187,7 @@ def main():
         dk = {k: n for k, n in Counter(d.get("idempotency_key") for d in disp).items() if n > 1}; dt = {k: n for k, n in Counter(d.get("target_id") for d in disp).items() if n > 1}
         out = sorted({d.get("target_id") for d in disp} - {t["target_id"] for t in manifest["targets"]})
         roots = {}
-        for d_ in disp: roots.setdefault(d_.get("idempotency_key"), set()).add(str(d_.get("evidence_dir") or d_.get("run_id") or d_.get("dispatched_at") or ""))
+        for d_ in disp: roots.setdefault(d_.get("idempotency_key"), set()).add(str(d_.get("scout_run_id") or d_.get("run_id") or d_.get("evidence_dir") or d_.get("dispatched_at_kst") or ""))
         for k, n in dk.items():
             same_run = len(roots.get(k, set())) < n
             flag("RAW.DISPATCH", f"idempotency_key {k} dispatched {n}×" + (" within the SAME run" if same_run else " across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch"), "duplicate_launch" if same_run else None, key=k, n=n)
@@ -227,7 +227,7 @@ def main():
     # --- R82 (TBX-015): every first-run target with candidate_count==0 / COLLECTOR_ZERO_CANDIDATE must appear in the R2 run — no exceptions
     if raw_m:
         def run_of(r):
-            m_ = re.search(r"-R(\d+)", str(r.get("evidence_dir") or "") + " " + str(r.get("idempotency_key") or "") + " " + str(r.get("run_id") or "") + " " + str(r.get("collection_run") or ""))
+            m_ = re.search(r"-R(\d+)", str(r.get("scout_run_id") or "") + " " + str(r.get("evidence_dir") or "") + " " + str(r.get("idempotency_key") or "") + " " + str(r.get("run_id") or "") + " " + str(r.get("collection_run") or ""))
             return f"R{m_.group(1)}" if m_ else "R1"
         # R1 basis for the criterion = the FIRST frozen 50-row table (mart/snapshot_50.csv, R1-only) — the current mart has been superseded by R2/R3 rows
         r1_rows = rows
@@ -248,6 +248,18 @@ def main():
         checks["RAW.R2_COVERAGE"] = {"status": ("NOT_TESTABLE" if not zero and not r2 else "FLAG" if (r2_open and missing_r2) or extra_r2 else "PASS" if r2_open else "PENDING_R2_NOT_OPENED"),
                                     "n_items": len(zero) + len(r2), "eligible_by_criterion": len(zero), "eligible_R82_narrow": len(zero_narrow), "eligible_R97_error_branch": len(err2), "criterion_history": "R82 narrow (COLLECTOR_ZERO_CANDIDATE) → R97 union with ERROR click_failed/Page.goto, widened after partial results (TBX-018)", "re_measured": len(r2), "r2_dirs_on_disk": len(r2_dirs), "r2_manifest_lines": sum(1 for r in raw_m if run_of(r) != "R1"), "r1_basis": r1_basis, "runs_seen": sorted({run_of(r) for r in raw_m}), "missing": missing_r2, "outside_criterion": extra_r2,
                                     "rule": "criterion = R1 candidate_count==0 / COLLECTOR_ZERO_CANDIDATE (mechanical, fixed before results); run detection = '-R2' in evidence_dir/idempotency_key"}
+    # --- R102 (TBX-019): collection cutoff 11:50:00 KST by the line's own captured_at_kst — later lines are outside the freeze (kept, counted, not analysed)
+    CUTOFF = "2026-08-28T11:50:00"
+    if raw_m:
+        late = [{"line": i + 1, "target_id": r.get("target_id"), "captured_at_kst": r.get("captured_at_kst"), "run": run_of(r)} for i, r in enumerate(raw_m) if str(r.get("captured_at_kst") or "")[:19] > CUTOFF]
+        no_ts = [i + 1 for i, r in enumerate(raw_m) if not r.get("captured_at_kst")]
+        checks["RAW.CUTOFF_1150"] = {"status": "REPORT", "n_items": len(raw_m), "after_cutoff_lines": len(late), "after_cutoff": late[:60], "lines_without_captured_at": no_ts, "rule": f"captured_at_kst > {CUTOFF} (string compare on ISO KST) — mtime is not used"}
+        if rows and "collection_run" in rows[0]:
+            late_t = {x["target_id"] for x in late}; late_runs = {}
+            for x in late: late_runs.setdefault(x["target_id"], set()).add(x["run"])
+            used_late = [r.get("target_id") for r in rows if r.get("target_id") in late_t and str(r.get("collection_run") or "")[-2:] in {u[-2:] for u in late_runs[r.get("target_id")]}]
+            for t in used_late: flag("RAW.CUTOFF_1150", f"mart row {t} carries a run whose manifest line is after the 11:50 cutoff", None, target=t)
+            checks["RAW.CUTOFF_1150"]["mart_rows_using_post_cutoff_run"] = used_late
     # --- forbidden-action presence probe over raw dirs
     dirs = [d for d in glob.glob(str(RUN_ROOT / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0; exec_hits = []
     EXEC_RE = re.compile(r'"(action|action_token|type|event|kind)"\s*:\s*"(click|tap|press|submit|SUBMIT_QUERY|SUBMIT|enter)"', re.I)

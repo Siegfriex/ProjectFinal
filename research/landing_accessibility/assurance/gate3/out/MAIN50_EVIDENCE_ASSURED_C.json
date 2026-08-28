@@ -1,11 +1,11 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T11:36:08+09:00",
+ "measured_at_kst": "2026-08-28T11:37:09+09:00",
  "state": "CANONICAL_50_SEEN",
  "checker": {
-  "commit": "17031f4a3b3498159e313683d4a58abb2e2689ab",
+  "commit": "e827d5c156a1ba5efcadd9c93e14d17b7fe386ce",
   "census_qc_c_sha256": "80a598ffe2c61b8644829223ba5b61e0c306a4a837fc8caa3073ba654d063df5",
-  "census_stream_c_sha256": "b0323aee1becb5cd1d291638381dc5728397ba0689b4498990c1f1b91a71008f",
+  "census_stream_c_sha256": "d29860e3d6e222adb8be30026520e23a1ee21628991eceaadec8b731ce4c1fa3",
   "checker_frozen": "43d7d4da52e0403a2b76d1322a170678e97a6f03"
  },
  "inputs": {
@@ -13,8 +13,8 @@
   "mart_sha256": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
   "mart_bytes": 26245,
   "mart_rows": 50,
-  "evidence_manifest_lines": 72,
-  "dispatch_lines": 72,
+  "evidence_manifest_lines": 85,
+  "dispatch_lines": 85,
   "ingest_lines": 50,
   "raw_target_dirs": 50
  },
@@ -85,9 +85,8 @@
   "checks_pass": 10,
   "checks_flag": 5,
   "checks_not_testable_or_vacuous": 1,
-  "flags": 225,
+  "flags": 251,
   "systemic_candidates": [
-   "duplicate_launch",
    "task_or_outcome_leakage"
   ]
  },
@@ -364,7 +363,7 @@
   },
   "RAW.DISPATCH": {
    "status": "FLAG",
-   "n_items": 72,
+   "n_items": 85,
    "dispatched_unique": 50,
    "of": 50,
    "dup_keys": {
@@ -394,33 +393,46 @@
    "dup_targets": {
     "F1-04": 2,
     "F1-08": 2,
+    "F1-06": 2,
     "F5-01": 2,
+    "F4-02": 2,
     "F3-01": 2,
+    "F5-03": 2,
+    "F5-04": 2,
     "F4-03": 2,
+    "F3-03": 2,
     "F3-04": 2,
     "F3-05": 2,
+    "F2-03": 2,
     "F4-04": 2,
     "F2-02": 2,
+    "F2-04": 2,
     "F2-05": 2,
     "F2-06": 2,
     "F2-07": 2,
     "F2-09": 2,
     "F2-10": 2,
     "F4-05": 2,
+    "F3-07": 2,
     "F3-08": 2,
     "F3-09": 2,
     "F3-10": 2,
     "F4-06": 2,
     "F4-07": 2,
     "F4-09": 2,
-    "F4-10": 2
+    "F4-10": 2,
+    "F5-06": 2,
+    "F5-07": 2,
+    "F5-08": 2,
+    "F5-09": 2,
+    "F5-10": 2
    },
    "outside": [],
    "unparsable_lines": []
   },
   "RAW.CHAIN": {
    "status": "PASS",
-   "n_items": 72,
+   "n_items": 85,
    "targets_with_evidence": 50,
    "of": 50,
    "chain_breaks": 0,
@@ -437,12 +449,12 @@
   },
   "RAW.CONTRACT_TBX011": {
    "status": "FLAG",
-   "n_items": 72,
-   "problems": 132,
+   "n_items": 85,
+   "problems": 145,
    "by_kind": {
     "NULL_WITHOUT_MISSING_REASON": 88,
     "IDEMPOTENCY_KEY_REUSED_ACROSS_RUNS(R99 E defect)": 22,
-    "TARGET_MULTI_LINE_REPORT": 22
+    "TARGET_MULTI_LINE_REPORT": 35
    },
    "control": "raw_contract_controls() PASS in this run",
    "vocabulary_observation": "TBX-011 terminal_reason 8 values vs R11 16 values — C validates raw against TBX-011 (A's census contract); mart terminal_reason is checked against the union; entry_zone 5 values vs R7 7 zones; auth_gate_stage NONE vs R13 UNDETERMINED — reported, not judged"
@@ -456,8 +468,8 @@
    "criterion_history": "R82 narrow (COLLECTOR_ZERO_CANDIDATE) → R97 union with ERROR click_failed/Page.goto, widened after partial results (TBX-018)",
    "re_measured": 43,
    "r2_dirs_on_disk": 43,
-   "r2_manifest_lines": 22,
-   "r1_basis": "snapshot_50.csv sha 92f18a2c015d",
+   "r2_manifest_lines": 35,
+   "r1_basis": "snapshot_50.csv sha cfa7bb1c383e",
    "runs_seen": [
     "R1",
     "R2"
@@ -498,6 +510,15 @@
    ],
    "rule": "criterion = R1 candidate_count==0 / COLLECTOR_ZERO_CANDIDATE (mechanical, fixed before results); run detection = '-R2' in evidence_dir/idempotency_key"
   },
+  "RAW.CUTOFF_1150": {
+   "status": "REPORT",
+   "n_items": 85,
+   "after_cutoff_lines": 0,
+   "after_cutoff": [],
+   "lines_without_captured_at": [],
+   "rule": "captured_at_kst > 2026-08-28T11:50:00 (string compare on ISO KST) — mtime is not used",
+   "mart_rows_using_post_cutoff_run": []
+  },
   "RAW.FORBIDDEN_PROBE": {
    "status": "FLAG",
    "n_items": 216,
@@ -527,155 +548,155 @@
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F1-04::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47 dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F1-04::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47 dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F1-04::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F1-08::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47 dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F1-08::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47 dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F1-08::4729bce971524b77a9f95f4b4b4feeadebfa2590a470e3d2849dc21df71a2a47",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F5-01::040f07bd630089410c43be8d91592618e8a67b650722170d5969d80205849bb6 dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F5-01::040f07bd630089410c43be8d91592618e8a67b650722170d5969d80205849bb6 dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F5-01::040f07bd630089410c43be8d91592618e8a67b650722170d5969d80205849bb6",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-01::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F3-01::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-01::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-03::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F4-03::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-03::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-04::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F3-04::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-04::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-05::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F3-05::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-05::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-04::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F4-04::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-04::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-02::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F2-02::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-02::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-05::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F2-05::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-05::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-09::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F3-09::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-09::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F3-10::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F3-10::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F3-10::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-06::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F4-06::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-06::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
    "check": "RAW.DISPATCH",
-   "message": "idempotency_key E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× within the SAME run",
-   "systemic_candidate": "duplicate_launch",
+   "message": "idempotency_key E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2× across different runs — R99: E defect (key lacks run_id); legitimate re-measurement, not duplicate_launch",
+   "systemic_candidate": null,
    "key": "E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
@@ -695,9 +716,23 @@
   },
   {
    "check": "RAW.DISPATCH",
+   "message": "target F1-06 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F1-06",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
    "message": "target F5-01 dispatched 2× (retry must be ledgered)",
    "systemic_candidate": null,
    "target": "F5-01",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F4-02 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F4-02",
    "n": 2
   },
   {
@@ -709,9 +744,30 @@
   },
   {
    "check": "RAW.DISPATCH",
+   "message": "target F5-03 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F5-03",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F5-04 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F5-04",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
    "message": "target F4-03 dispatched 2× (retry must be ledgered)",
    "systemic_candidate": null,
    "target": "F4-03",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F3-03 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F3-03",
    "n": 2
   },
   {
@@ -730,6 +786,13 @@
   },
   {
    "check": "RAW.DISPATCH",
+   "message": "target F2-03 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F2-03",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
    "message": "target F4-04 dispatched 2× (retry must be ledgered)",
    "systemic_candidate": null,
    "target": "F4-04",
@@ -740,6 +803,13 @@
    "message": "target F2-02 dispatched 2× (retry must be ledgered)",
    "systemic_candidate": null,
    "target": "F2-02",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F2-04 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F2-04",
    "n": 2
   },
   {
@@ -782,6 +852,13 @@
    "message": "target F4-05 dispatched 2× (retry must be ledgered)",
    "systemic_candidate": null,
    "target": "F4-05",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F3-07 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F3-07",
    "n": 2
   },
   {
@@ -831,6 +908,41 @@
    "message": "target F4-10 dispatched 2× (retry must be ledgered)",
    "systemic_candidate": null,
    "target": "F4-10",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F5-06 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F5-06",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F5-07 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F5-07",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F5-08 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F5-08",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F5-09 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F5-09",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F5-10 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F5-10",
    "n": 2
   },
   {
@@ -1623,7 +1735,23 @@
    "check": "RAW.CONTRACT_TBX011",
    "message": "TARGET_MULTI_LINE_REPORT",
    "systemic_candidate": null,
+   "target_id": "F1-06",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
    "target_id": "F5-01",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F4-02",
    "n": 2,
    "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
   },
@@ -1639,7 +1767,31 @@
    "check": "RAW.CONTRACT_TBX011",
    "message": "TARGET_MULTI_LINE_REPORT",
    "systemic_candidate": null,
+   "target_id": "F5-03",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F5-04",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
    "target_id": "F4-03",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F3-03",
    "n": 2,
    "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
   },
@@ -1663,6 +1815,14 @@
    "check": "RAW.CONTRACT_TBX011",
    "message": "TARGET_MULTI_LINE_REPORT",
    "systemic_candidate": null,
+   "target_id": "F2-03",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
    "target_id": "F4-04",
    "n": 2,
    "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
@@ -1672,6 +1832,14 @@
    "message": "TARGET_MULTI_LINE_REPORT",
    "systemic_candidate": null,
    "target_id": "F2-02",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F2-04",
    "n": 2,
    "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
   },
@@ -1720,6 +1888,14 @@
    "message": "TARGET_MULTI_LINE_REPORT",
    "systemic_candidate": null,
    "target_id": "F4-05",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F3-07",
    "n": 2,
    "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
   },
@@ -1776,6 +1952,46 @@
    "message": "TARGET_MULTI_LINE_REPORT",
    "systemic_candidate": null,
    "target_id": "F4-10",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F5-06",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F5-07",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F5-08",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F5-09",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F5-10",
    "n": 2,
    "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
   },
@@ -2550,6 +2766,30 @@
     "checks_flag": 5,
     "checks_not_testable_or_vacuous": 1,
     "flags": 215,
+    "systemic_candidates": [
+     "duplicate_launch",
+     "task_or_outcome_leakage"
+    ]
+   },
+   "inputs": {
+    "mart": "CANONICAL_MART_50",
+    "mart_sha256": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
+    "mart_bytes": 26245,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 72,
+    "dispatch_lines": 72,
+    "ingest_lines": 50,
+    "raw_target_dirs": 50
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:36:08+09:00",
+   "state": "CANONICAL_50_SEEN",
+   "summary": {
+    "checks_pass": 10,
+    "checks_flag": 5,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 225,
     "systemic_candidates": [
      "duplicate_launch",
      "task_or_outcome_leakage"
