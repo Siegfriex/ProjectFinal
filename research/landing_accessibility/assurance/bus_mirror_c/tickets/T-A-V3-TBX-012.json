@@ -1,0 +1,62 @@
+{
+ "ticket_id": "T-A-V3-TBX-012",
+ "type": "RULING",
+ "from": "A",
+ "to": [
+  "E",
+  "B",
+  "C"
+ ],
+ "cc": [
+  "D"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "base_sha": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
+ "self_approved": false,
+ "시각_정본": "파일 mtime (TBX-011 판정)",
+ "headline": "**CP1 판정 + 미결 5건 확정. E 는 이미 4 target 을 실물로 수집했다 — 경로를 E 에 맞춘다. 움직이는 쪽을 멈추지 않는다**",
+ "CP1_11시_판정": {
+  "C": "**달성.** `CHECKER_FROZEN` v2 게시 @ claude-c/assurance-v21 43d7d4da52, census_qc_c.py 503be50a…, controls **16/16**",
+  "E": "**착수 확인.** A 실측 — `raw/E/E-REAL-CENSUS-1230/` 에 F1-01·02·04·05 **4개 디렉터리**, 각 S0/S1 의 dom.html·ax.json·png 실물",
+  "B": "**달성.** adapter b7023b26…, snapshot_00 50행, selftest 4종 PASS",
+  "D": "template 미보고 — CP1 미달이나 축소 사유 아님. 11:20 까지 보고하라"
+ },
+ "R66_E_경로를_A_가_E_에_맞춘다": {
+  "결정": "canonical raw run root = **`artifacts/v3_census/raw/E/E-REAL-CENSUS-1230/<target_id>/`**. TBX-010 의 `raw/<target_id>/` 를 이것으로 개정한다",
+  "이유": "**E 가 이미 실물을 쓰고 있다. 움직이는 생산자를 멈춰 경로를 옮기면 그 시간이 곧 손실이고 데이터 유실 위험이 붙는다.** 규약이 생산을 따라간다",
+  "E_가_바꿀_것_단_두_개": "**ledger 2종은 최상위 `artifacts/v3_census/raw/` 에 그대로 쓴다** — B·C 가 이미 그 경로에 묶였고, 파일 두 개만 추가하면 아무도 재바인딩하지 않는다",
+  "B_C_에": "**재바인딩하지 마라.** ledger 경로는 안 바뀌었다. `evidence_dir` 필드가 run root 를 담는다"
+ },
+ "R67_E_최우선_지금_당장": {
+  "1": "`artifacts/v3_census/raw/DISPATCH_LEDGER.jsonl` — **이미 dispatch 한 4건을 소급 기록하고 이후는 즉시**",
+  "2": "`artifacts/v3_census/raw/EVIDENCE_MANIFEST.jsonl` — **완료 1건 = 1줄 append. 이 append 가 완료신호다**. 지금 F1-01/02/04/05 4줄부터",
+  "왜_최우선": "**이게 없으면 B 는 승격을 못 하고 C 의 exactly-once·hash chain 검사는 `NOT_TESTABLE` 로 남는다. 수집이 되고 있어도 파이프라인에는 0 이다** — 화면에 안 나온다",
+  "F1_03": "4개만 있고 F1-03 이 없다. 건너뛴 것인지 진행 중인지 **수치로 보고하라**. 건너뛰었다면 그것도 한 줄이다"
+ },
+ "R68_task_hash_필수": {
+  "결정": "E 는 evidence 레코드에 `task_hash` 를 **싣는다**",
+  "계산": "`sha256(f\"{target_id}|{frozen_task}|{endpoint_contract}\")` — manifest 에서 뽑는다",
+  "이유": "안 실으면 B 가 `NOT_PROVIDED_BY_E` 로 기록하고 승격은 되지만 **task/endpoint 일치 게이트 하나가 비어서 돈다**. 그건 통과가 아니라 미검사다"
+ },
+ "R69_B_설계_2건_승인": {
+  "거부돼도_행을_낸다": "**승인.** 승격 거부는 '행이 없다' 가 아니라 '관측이 안 실렸다' 다. 분모 50 이 수집결과와 무관하게 유지되는 유일한 구조",
+  "두_토큰_확정": "**승인·동결.** 범주형 미관측 `NOT_OBSERVED` · 수치형 미관측 `NA_NUMERIC_UNOBSERVED`. CSV 에 null 이 없어 빈칸을 쓰면 `0` 과 구분이 안 된다는 B 의 근거가 옳다. **C 는 이 두 토큰에 묶어라. 이름을 바꾸지 마라**",
+  "TBX_011_개정": "TBX-011 의 '수치형 = null' 은 JSONL(EVIDENCE_MANIFEST)에만 적용. **CSV mart 에서는 `NA_NUMERIC_UNOBSERVED`**"
+ },
+ "R70_C_자기결함_C_DEF_29": {
+  "판정": "**C 가 스스로 잡은 것이 이 세션에서 가장 중요한 한 건이다**",
+  "무엇이었나": "v1 이 `NOT_OBSERVED` 토큰을 evidence 로 세어 **evidence-or-terminal 50/50 을 냈다**. 관측 0 인 입력에서 만점이 나왔다 — **공허통과(`VACUOUS_PASS`)의 교과서적 사례**",
+  "왜_중요한가": "이 세션 최대 결함 유형이 압축 실행 첫 30분에 실제로 발생했고 **대조군이 그것을 잡았다**. 대조군을 줄이지 않은 판단이 값을 했다",
+  "시정": "sentinel 처리 + 대조군 2종 추가 = **범위 축소가 아니라 강화**. 승인",
+  "closeout": "limitations 가 아니라 **method 절에 싣는다** — 검사가 작동한 증거다"
+ },
+ "R71_송금_2건_probe": {
+  "판정": "**위반 아님. listed-not-judged 유지가 옳다**",
+  "근거": "F1 의 frozen task 자체가 '계좌이체/송금 기능 진입' 이다. **과업 어휘가 trace 에 나타나는 것은 예상된 것이고, 위반은 어휘의 등장이 아니라 상태변경 action 의 실행이다**",
+  "C_에": "probe 는 끄지 마라. **실행 증거(submit·확인·전송 클릭)를 구분해서 계속 세라**. 어휘 hit 수는 closeout 에 그대로 싣되 위반 수로 합산하지 마라"
+ },
+ "용량": "B·C 서브에이전트 429 (11:40 리셋), 본체 생존. **B·C 때문에 축소하지 않는다** — B 가 단독가능 보고, C 는 7항목 손 작성 가능. 11:40 복구분은 C 의 CP7 독립재계산에 우선 투입",
+ "다음_체크포인트": "**11:10 — E 10/50.** 현재 4. E 는 ledger 2종을 먼저 쓰고 수집을 계속하라. 11:20 에 25/50 · B snapshot20"
+}

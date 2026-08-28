@@ -60,6 +60,70 @@ def newest_mart():
     return (pathlib.Path(snaps[-1]), os.path.basename(snaps[-1])) if snaps else (None, None)
 
 
+def validate_raw_contract(raw_m, manifest):
+    """TBX-011 raw record contract → (problems[], by_kind). Pure function so a synthetic control can exercise it."""
+    probs = []
+    if not raw_m: return probs
+    TBX_TR = {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY"}
+    TBX_AS = {"ENDPOINT_REACHED", "TERMINAL_NO_ENDPOINT", "ERROR"}; TBX_LR = {"MATCH", "SEMANTIC_EQUIV", "DIFFERENT", "VISIBLE_ONLY", "AX_ONLY", "NONE", "NOT_OBSERVED"}
+    TBX_ZONE = {"TOP", "BOTTOM", "LEFT", "RIGHT", "CENTER", "NOT_OBSERVED"}; TBX_AUTH = {"BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "NONE", "NOT_OBSERVED"}
+    REQ = ["target_id", "family_id", "service", "worker_id", "idempotency_key", "captured_at_kst", "evidence_dir", "evidence_hash", "prev_hash", "task_hash", "endpoint_hash",
+           "attempt_status", "terminal_reason", "visible_label_text", "accessible_name", "accessible_name_source", "label_relation", "entry_x_norm", "entry_y_norm", "entry_zone",
+           "entry_control_type", "nav_container_type", "reveal_direction", "menu_dependency", "task_flow_sequence", "experienced_flow_sequence", "activation_depth",
+           "first_visible_scroll_state", "auth_gate_stage", "task_control_occlusion", "missing_reason"]
+    NUM = ("entry_x_norm", "entry_y_norm", "activation_depth"); tf = {t["target_id"]: t["family_id"] for t in manifest["targets"]}
+    probs = []; thash = {}
+    for i, r in enumerate(raw_m, 1):
+        miss = [k for k in REQ if k not in r]
+        if miss: probs.append({"line": i, "kind": "MISSING_KEYS", "keys": miss})
+        if r.get("target_id") not in tf: probs.append({"line": i, "kind": "TARGET_NOT_IN_MANIFEST", "target_id": r.get("target_id"), "systemic": "target_outside_manifest"})
+        elif r.get("family_id") != tf[r["target_id"]]: probs.append({"line": i, "kind": "FAMILY_MISMATCH", "target_id": r["target_id"], "systemic": "task_contract_drift"})
+        if i == 1 and r.get("prev_hash") is not None: probs.append({"line": 1, "kind": "FIRST_PREV_HASH_NOT_NULL"})
+        if r.get("attempt_status") not in TBX_AS: probs.append({"line": i, "kind": "ATTEMPT_STATUS_ENUM", "value": r.get("attempt_status")})
+        if r.get("terminal_reason") not in TBX_TR: probs.append({"line": i, "kind": "TERMINAL_REASON_ENUM(TBX-011)", "value": r.get("terminal_reason")})
+        if r.get("label_relation") not in TBX_LR: probs.append({"line": i, "kind": "LABEL_RELATION_ENUM", "value": r.get("label_relation")})
+        if r.get("entry_zone") not in TBX_ZONE: probs.append({"line": i, "kind": "ENTRY_ZONE_ENUM", "value": r.get("entry_zone")})
+        if r.get("auth_gate_stage") not in TBX_AUTH: probs.append({"line": i, "kind": "AUTH_GATE_STAGE_ENUM", "value": r.get("auth_gate_stage")})
+        for k in ("task_flow_sequence", "experienced_flow_sequence"):
+            if k in r and not isinstance(r[k], list) and r[k] != "NOT_OBSERVED": probs.append({"line": i, "kind": "SEQUENCE_NOT_ARRAY", "key": k})
+        for k in NUM:
+            v = r.get(k)
+            if v in ("", "NOT_OBSERVED", "NA_NUMERIC_UNOBSERVED"): probs.append({"line": i, "kind": "NUMERIC_MISSING_MUST_BE_NULL", "key": k, "value": v})
+            if v is None and not (r.get("missing_reason") or ""): probs.append({"line": i, "kind": "NULL_WITHOUT_MISSING_REASON", "key": k})
+        ed = r.get("evidence_dir")
+        if isinstance(ed, str) and ed and not os.path.isdir(ed if os.path.isabs(ed) else os.path.join("/home/sieg/projects-wsl/ProjectFinal", ed)): probs.append({"line": i, "kind": "EVIDENCE_DIR_ABSENT", "evidence_dir": ed})
+        if r.get("family_id") in tf.values(): thash.setdefault(r.get("family_id"), set()).add(r.get("task_hash"))
+    from collections import Counter
+    dk = {k: n for k, n in Counter(r.get("idempotency_key") for r in raw_m).items() if n > 1}; dt = {k: n for k, n in Counter(r.get("target_id") for r in raw_m).items() if n > 1}
+    for k, n in dk.items(): probs.append({"kind": "IDEMPOTENCY_KEY_DUP", "key": k, "n": n, "systemic": "duplicate_launch"})
+    for k, n in dt.items(): probs.append({"kind": "TARGET_MULTI_LINE", "target_id": k, "n": n, "systemic": "duplicate_launch", "note": "TBX-011: 1 target = 1 line"})
+    multi = {f: sorted(map(str, v)) for f, v in thash.items() if len(v) > 1}
+    for f, v in multi.items(): probs.append({"kind": "TASK_HASH_VARIES_WITHIN_FAMILY", "family": f, "hashes": v, "systemic": "task_contract_drift", "note": "one frozen task per family ⇒ one task_hash expected (hash rule not published; consistency only)"})
+    return probs
+
+
+def raw_contract_controls(manifest):
+    t0, t1 = manifest["targets"][0], manifest["targets"][1]
+    def good(t, i, prev):
+        return {"target_id": t["target_id"], "family_id": t["family_id"], "service": t["service_name"], "worker_id": "w1", "idempotency_key": f"k{i}", "captured_at_kst": "2026-08-28T11:00:00+09:00",
+                "evidence_dir": "/", "evidence_hash": "a" * 64, "prev_hash": prev, "task_hash": "t" * 8, "endpoint_hash": "e" * 8, "attempt_status": "ENDPOINT_REACHED", "terminal_reason": "ENDPOINT_REACHED",
+                "visible_label_text": "이체", "accessible_name": "이체", "accessible_name_source": "text", "label_relation": "MATCH", "entry_x_norm": 0.5, "entry_y_norm": 0.2, "entry_zone": "TOP",
+                "entry_control_type": "button", "nav_container_type": "tab", "reveal_direction": "NONE", "menu_dependency": False, "task_flow_sequence": ["SELECT_FUNCTION"], "experienced_flow_sequence": ["SELECT_FUNCTION"],
+                "activation_depth": 1, "first_visible_scroll_state": "S0", "auth_gate_stage": "NONE", "task_control_occlusion": False, "missing_reason": ""}
+    g = [good(t0, 0, None), good(t1, 1, "a" * 64)]
+    res = {"must_not_flag:two_good_lines": "PASS" if not validate_raw_contract(g, manifest) else f"FAIL {validate_raw_contract(g, manifest)[:2]}"}
+    cases = {"first_prev_hash_not_null": ([{**g[0], "prev_hash": "x"}], "FIRST_PREV_HASH_NOT_NULL"), "terminal_enum": ([{**g[0], "terminal_reason": "GAVE_UP"}], "TERMINAL_REASON_ENUM(TBX-011)"),
+             "attempt_enum": ([{**g[0], "attempt_status": "OK"}], "ATTEMPT_STATUS_ENUM"), "numeric_blank": ([{**g[0], "entry_x_norm": ""}], "NUMERIC_MISSING_MUST_BE_NULL"),
+             "null_without_reason": ([{**g[0], "activation_depth": None}], "NULL_WITHOUT_MISSING_REASON"), "dup_idempotency": ([g[0], {**g[1], "idempotency_key": "k0"}], "IDEMPOTENCY_KEY_DUP"),
+             "target_two_lines": ([g[0], {**g[1], "target_id": t0["target_id"], "family_id": t0["family_id"]}], "TARGET_MULTI_LINE"), "target_outside": ([{**g[0], "target_id": "F9-99"}], "TARGET_NOT_IN_MANIFEST"),
+             "missing_key": ([{k: v for k, v in g[0].items() if k != "task_hash"}], "MISSING_KEYS"), "sequence_not_array": ([{**g[0], "task_flow_sequence": "A>B"}], "SEQUENCE_NOT_ARRAY"),
+             "task_hash_varies": ([g[0], {**good(manifest["targets"][2], 2, "a" * 64), "task_hash": "other"}], "TASK_HASH_VARIES_WITHIN_FAMILY")}
+    for name, (rows, kind) in cases.items():
+        kinds = {p["kind"] for p in validate_raw_contract(rows, manifest)}
+        res[f"must_flag:{name}"] = "PASS" if kind in kinds else f"FAIL got {sorted(kinds)}"
+    return res
+
+
 def main():
     raw_m, m_bad, m_state = jsonl(ROOT / "raw" / "EVIDENCE_MANIFEST.jsonl")
     disp, d_bad, d_state = jsonl(ROOT / "raw" / "DISPATCH_LEDGER.jsonl")
@@ -68,7 +132,9 @@ def main():
     rows = list(csv.DictReader(open(mart_path, encoding="utf-8", newline=""))) if mart_path else []
     raw_manifest = Q.git_show(Q.MANIFEST_PATH); manifest, fsha, bsha = Q.manifest_hashes(raw_manifest)
     rel = json.loads(Q.git_show(Q.RELEASE_PATH).decode("utf-8"))["manifest_binding"]
-    ctl = Q.controls(manifest, raw_manifest, fsha, bsha); failed = {k: v for k, v in ctl.items() if v != "PASS"}
+    ctl = Q.controls(manifest, raw_manifest, fsha, bsha); ctl.update(raw_contract_controls(manifest)); failed = {k: v for k, v in ctl.items() if v != "PASS"}
+    if "--selftest" in sys.argv:
+        print(f"CONTROLS {len(ctl)-len(failed)}/{len(ctl)} PASS"); [print("  ", k, v) for k, v in ctl.items() if v != "PASS"]; return 2 if failed else 0
     if failed: print("controls failed", failed, file=sys.stderr); return 2
     if not rows and not raw_m and not disp:
         rec = {"schema": "C_MAIN50_EVIDENCE_ASSURED", "measured_at_kst": now(), "state": "NO_EVIDENCE_INPUT", "inputs": {"mart": mart_id, "evidence_manifest": m_state, "dispatch_ledger": d_state}, "exit": 3}
@@ -134,43 +200,10 @@ def main():
     # --- TBX-011 raw record contract (E → B schema fixed by A). Enums are A's census contract; where they differ from the
     #     R11/R7/R13 vocabularies C reports the difference as an observation and validates against the TBX-011 set.
     if raw_m:
-        TBX_TR = {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY"}
-        TBX_AS = {"ENDPOINT_REACHED", "TERMINAL_NO_ENDPOINT", "ERROR"}; TBX_LR = {"MATCH", "SEMANTIC_EQUIV", "DIFFERENT", "VISIBLE_ONLY", "AX_ONLY", "NONE", "NOT_OBSERVED"}
-        TBX_ZONE = {"TOP", "BOTTOM", "LEFT", "RIGHT", "CENTER", "NOT_OBSERVED"}; TBX_AUTH = {"BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "NONE", "NOT_OBSERVED"}
-        REQ = ["target_id", "family_id", "service", "worker_id", "idempotency_key", "captured_at_kst", "evidence_dir", "evidence_hash", "prev_hash", "task_hash", "endpoint_hash",
-               "attempt_status", "terminal_reason", "visible_label_text", "accessible_name", "accessible_name_source", "label_relation", "entry_x_norm", "entry_y_norm", "entry_zone",
-               "entry_control_type", "nav_container_type", "reveal_direction", "menu_dependency", "task_flow_sequence", "experienced_flow_sequence", "activation_depth",
-               "first_visible_scroll_state", "auth_gate_stage", "task_control_occlusion", "missing_reason"]
-        NUM = ("entry_x_norm", "entry_y_norm", "activation_depth"); tf = {t["target_id"]: t["family_id"] for t in manifest["targets"]}
-        probs = []; thash = {}
-        for i, r in enumerate(raw_m, 1):
-            miss = [k for k in REQ if k not in r]
-            if miss: probs.append({"line": i, "kind": "MISSING_KEYS", "keys": miss})
-            if r.get("target_id") not in tf: probs.append({"line": i, "kind": "TARGET_NOT_IN_MANIFEST", "target_id": r.get("target_id"), "systemic": "target_outside_manifest"})
-            elif r.get("family_id") != tf[r["target_id"]]: probs.append({"line": i, "kind": "FAMILY_MISMATCH", "target_id": r["target_id"], "systemic": "task_contract_drift"})
-            if i == 1 and r.get("prev_hash") is not None: probs.append({"line": 1, "kind": "FIRST_PREV_HASH_NOT_NULL"})
-            if r.get("attempt_status") not in TBX_AS: probs.append({"line": i, "kind": "ATTEMPT_STATUS_ENUM", "value": r.get("attempt_status")})
-            if r.get("terminal_reason") not in TBX_TR: probs.append({"line": i, "kind": "TERMINAL_REASON_ENUM(TBX-011)", "value": r.get("terminal_reason")})
-            if r.get("label_relation") not in TBX_LR: probs.append({"line": i, "kind": "LABEL_RELATION_ENUM", "value": r.get("label_relation")})
-            if r.get("entry_zone") not in TBX_ZONE: probs.append({"line": i, "kind": "ENTRY_ZONE_ENUM", "value": r.get("entry_zone")})
-            if r.get("auth_gate_stage") not in TBX_AUTH: probs.append({"line": i, "kind": "AUTH_GATE_STAGE_ENUM", "value": r.get("auth_gate_stage")})
-            for k in ("task_flow_sequence", "experienced_flow_sequence"):
-                if k in r and not isinstance(r[k], list) and r[k] != "NOT_OBSERVED": probs.append({"line": i, "kind": "SEQUENCE_NOT_ARRAY", "key": k})
-            for k in NUM:
-                v = r.get(k)
-                if v in ("", "NOT_OBSERVED", "NA_NUMERIC_UNOBSERVED"): probs.append({"line": i, "kind": "NUMERIC_MISSING_MUST_BE_NULL", "key": k, "value": v})
-                if v is None and not (r.get("missing_reason") or ""): probs.append({"line": i, "kind": "NULL_WITHOUT_MISSING_REASON", "key": k})
-            ed = r.get("evidence_dir")
-            if isinstance(ed, str) and ed and not os.path.isdir(ed if os.path.isabs(ed) else os.path.join("/home/sieg/projects-wsl/ProjectFinal", ed)): probs.append({"line": i, "kind": "EVIDENCE_DIR_ABSENT", "evidence_dir": ed})
-            if r.get("family_id") in tf.values(): thash.setdefault(r.get("family_id"), set()).add(r.get("task_hash"))
         from collections import Counter
-        dk = {k: n for k, n in Counter(r.get("idempotency_key") for r in raw_m).items() if n > 1}; dt = {k: n for k, n in Counter(r.get("target_id") for r in raw_m).items() if n > 1}
-        for k, n in dk.items(): probs.append({"kind": "IDEMPOTENCY_KEY_DUP", "key": k, "n": n, "systemic": "duplicate_launch"})
-        for k, n in dt.items(): probs.append({"kind": "TARGET_MULTI_LINE", "target_id": k, "n": n, "systemic": "duplicate_launch", "note": "TBX-011: 1 target = 1 line"})
-        multi = {f: sorted(map(str, v)) for f, v in thash.items() if len(v) > 1}
-        for f, v in multi.items(): probs.append({"kind": "TASK_HASH_VARIES_WITHIN_FAMILY", "family": f, "hashes": v, "systemic": "task_contract_drift", "note": "one frozen task per family ⇒ one task_hash expected (hash rule not published; consistency only)"})
+        probs = validate_raw_contract(raw_m, manifest)
         for x in probs: flag("RAW.CONTRACT_TBX011", x.get("kind"), x.get("systemic"), **{k: v for k, v in x.items() if k not in ("kind", "systemic")})
-        checks["RAW.CONTRACT_TBX011"] = {"status": "FLAG" if probs else "PASS", "n_items": len(raw_m), "problems": len(probs), "by_kind": dict(Counter(x["kind"] for x in probs)),
+        checks["RAW.CONTRACT_TBX011"] = {"status": "FLAG" if probs else "PASS", "n_items": len(raw_m), "problems": len(probs), "by_kind": dict(Counter(x["kind"] for x in probs)), "control": "raw_contract_controls() PASS in this run",
                                          "vocabulary_observation": "TBX-011 terminal_reason 8 values vs R11 16 values — C validates raw against TBX-011 (A's census contract); mart terminal_reason is checked against the union; entry_zone 5 values vs R7 7 zones; auth_gate_stage NONE vs R13 UNDETERMINED — reported, not judged"}
     # --- forbidden-action presence probe over raw dirs
     dirs = [d for d in glob.glob(str(ROOT / "raw" / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0

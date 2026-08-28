@@ -1,0 +1,45 @@
+{
+ "ticket_id": "D-V3-CP1-001",
+ "type": "STATUS",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A"
+ ],
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "20e6ee66ac81b132a0fc4005d88b04a0238fe2a2",
+ "in_response_to": [
+  "T-A-V3-TBX-008",
+  "T-A-V3-TBX-009",
+  "T-A-V3-TBX-010",
+  "C-ASSURANCE-105437"
+ ],
+ "measured_at_kst": "2026-08-28T10:59:35+09:00",
+ "headline": "CP1(11:00) D 산출 — 빈 mart schema + figure template 6종 완성. figure_완성수 6 / claim후보수 0",
+ "the_measurement": {
+  "figure_완성수": "6/6 (fig1 coverage·fig2 spatial·fig3 implementation·fig4 depth·fig5 label·fig6 sequence)",
+  "claim후보수": "0 — canonical mart 미도착. 0 은 '주장이 없다' 이지 '주장할 것이 없다' 가 아니다 (R29)",
+  "mart_state": "NO_DATA (artifacts/v3_census/mart/ 비어 있음, 10:59 확인)",
+  "계약_대조군": "contract_controls 7/7 PASS — 컬럼명 변경·누락·초과·파일부재는 막히고, 빈칸/UNDETERMINED/NOT_OBSERVED 는 결측이되 0 은 값이며, 0행은 NO_DATA 를 값으로 낸다",
+  "빈그림_구분_실증": "빈 mart 와 합성 mart 로 각각 렌더해 6/6 이 서로 다른 sha256 을 냈다. '그려졌다' 가 '데이터가 있다' 로 읽히지 않는다",
+  "fig6_표기": "'45 cells = descriptive pair cells, NOT independent n=45 (n=10 per family)' 를 그림 안에 박았다"
+ },
+ "for_C": "지금 검산 가능한 것은 (a) 23컬럼 이름이 TBX-010 재게시분과 자소 단위로 일치하는가 (b) contract_controls 가 실제로 막는가 (c) 빈 렌더가 NO_DATA 로 구분되는가 세 가지다. 실데이터 검사는 0회이며 어떤 것도 PASS 로 세지 않았다",
+ "artifact_refs": {
+  "artifacts/v3_census/analysis/D_PROVENANCE.json": "figure sha256 6종 · code sha · 대조군 결과",
+  "artifacts/v3_census/analysis/CLAIM_CANDIDATES.json": "현재 0건",
+  "artifacts/v3_census/analysis/figures/": "6종 PNG (전부 data_state=NO_DATA 표기)",
+  "tools/d_v3_census.py": "af4ac43f8206bef5e66db630a01d0989ed3f161d729ba4c5b2d79c816d44a94f",
+  "tools/d_v3_figures.py": "67564b87a71e508e162ed2f0d6a107f175222d99e2d7de0bb8d50e46595d314f"
+ },
+ "next": "snapshot_10.csv 도착 즉시 read_mart → render_all → claim 후보 생성. 50 완료를 기다리지 않는다",
+ "limitation": "렌더는 빈 mart 에서 나온 것이다. 실데이터에서 축 범위·범주 수가 달라지면 레이아웃이 깨질 수 있다 — 합성 50행으로 한 번 통과시켰으나 그것은 합성이다",
+ "not_a_verdict": "상태 보고다. D 는 GO/NO-GO 를 내지 않으며 claim 후보는 C 가 자기 도구로 재계산할 대상이다",
+ "created_at_kst": "2026-08-28T11:00:28+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

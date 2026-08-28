@@ -1,16 +1,16 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T11:00:24+09:00",
+ "measured_at_kst": "2026-08-28T11:02:29+09:00",
  "state": "STREAMING",
  "checker": {
-  "commit": "43d7d4da52e0403a2b76d1322a170678e97a6f03",
+  "commit": "eef7c9a3c34cc2f94df3edd67143f341d7dfb034",
   "census_qc_c_sha256": "503be50a6bd8ad0ad83f0bd3cbc47b3210a59cf7e6b8d808aadcf752574e13bd",
-  "census_stream_c_sha256": "fca3e40361386be67ad3745a65320d616d27de94ea70462a272f19f5d50c5269",
+  "census_stream_c_sha256": "8a12fd2014b2c013926adb17597a4e8854b5aba00c8917e3c6005453ae0e621f",
   "checker_frozen": "43d7d4da52e0403a2b76d1322a170678e97a6f03"
  },
  "inputs": {
   "mart": "snapshot_00.csv",
-  "mart_sha256": "20646524a337542260ce7feb1fd4238101bba458470e1afd242b7dd9274676ea",
+  "mart_sha256": "9137859c1c472f2d35fcbacc83b133814395c1df15d064806229ce4bf548f4e2",
   "mart_rows": 50,
   "evidence_manifest_lines": 0,
   "dispatch_lines": 0,
@@ -23,8 +23,8 @@
   "matches_release": true
  },
  "controls": {
-  "n": 16,
-  "pass": 16
+  "n": 28,
+  "pass": 28
  },
  "adapter": {
   "target_id": {
@@ -84,7 +84,7 @@
   "checks_pass": 7,
   "checks_flag": 2,
   "checks_not_testable_or_vacuous": 3,
-  "flags": 5,
+  "flags": 8,
   "systemic_candidates": []
  },
  "checks": {
@@ -113,13 +113,11 @@
   },
   "MART.EVIDENCE_OR_TERMINAL": {
    "status": "FLAG",
-   "k": 2,
+   "k": 4,
    "of": 50,
    "n_items": 50,
    "missing": [
     "F1-03",
-    "F1-04",
-    "F1-05",
     "F1-06",
     "F1-07",
     "F1-08",
@@ -199,11 +197,11 @@
     "F1": {
      "frozen": 10,
      "attempted": 10,
-     "attempted_observed": 2,
-     "evidence_adequate": 2,
+     "attempted_observed": 4,
+     "evidence_adequate": 4,
      "completed_endpoint_reached": 0,
      "auth_gate_terminal": 0,
-     "failed": 2
+     "failed": 4
     },
     "F2": {
      "frozen": 10,
@@ -244,11 +242,11 @@
     "overall": {
      "frozen": 50,
      "attempted": 50,
-     "attempted_observed": 2,
-     "evidence_adequate": 2,
+     "attempted_observed": 4,
+     "evidence_adequate": 4,
      "completed_endpoint_reached": 0,
      "auth_gate_terminal": 0,
-     "failed": 2
+     "failed": 4
     }
    },
    "evidence_adequate_basis": "evidence_pointer",
@@ -272,8 +270,8 @@
    "status": "REPORT",
    "n_items": 50,
    "distribution": {
-    "FAILED": 2,
-    "NOT_ATTEMPTED": 48
+    "NOT_ATTEMPTED": 46,
+    "TERMINAL_NO_ENDPOINT": 4
    },
    "completed_rule": "attempt_status ∈ ('ENDPOINT_REACHED', 'COMPLETED', 'SUCCESS')"
   },
@@ -289,20 +287,20 @@
   },
   "RAW.FORBIDDEN_PROBE": {
    "status": "FLAG",
-   "n_items": 12,
+   "n_items": 22,
    "raw_target_dirs": 1,
    "of": 50,
    "rule": "presence probe: regex (password|passwd|credential|login[_ -]?submit|SUBMIT_LOGIN|captcha|payment|purchase|checkout|transfer_execute|reservation_submit|결제|송금|예약확정|구매하기|장바구니 담기|본인인증 완료) over every text/json file under raw/<target_id>/ (case-insensitive); a hit is LISTED with file:line, not judged — a guard log that names the action it blocked also matches",
-   "hits": 4,
+   "hits": 7,
    "note": "html bodies excluded from the probe (page text names payments legitimately); this is a presence probe, not proof of execution — 0 hits ≠ 'no forbidden action'"
   },
   "MART.INGEST": {
    "status": "REPORT",
    "n_items": 50,
-   "promoted": 2,
-   "rejected": 48,
+   "promoted": 4,
+   "rejected": 46,
    "reject_reasons": {
-    "NO_EVIDENCE_ROW_FOR_TARGET": 48
+    "NO_EVIDENCE_ROW_FOR_TARGET": 46
    },
    "unparsable_lines": []
   }
@@ -310,12 +308,10 @@
  "flags": [
   {
    "check": "EVIDENCE_OR_TERMINAL",
-   "message": "48/50 frozen units have neither evidence nor a canonical terminal_reason (streaming: pending; at CANONICAL_MART_50 freeze this is denominator corruption)",
+   "message": "46/50 frozen units have neither evidence nor a canonical terminal_reason (streaming: pending; at CANONICAL_MART_50 freeze this is denominator corruption)",
    "systemic_candidate": null,
    "missing": [
     "F1-03",
-    "F1-04",
-    "F1-05",
     "F1-06",
     "F1-07",
     "F1-08",
@@ -367,6 +363,15 @@
    "check": "RAW.FORBIDDEN_PROBE",
    "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
    "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F1-04/E_SCOUT_TRACE_F1-04.jsonl",
+   "line": 1,
+   "match": "송금",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-04\","
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
    "file": "raw/E/E-REAL-CENSUS-1230/F1-01/E_SCOUT_TRACE_F1-01.jsonl",
    "line": 1,
    "match": "송금",
@@ -380,6 +385,24 @@
    "line": 2,
    "match": "송금",
    "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-01\","
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F1-05/E_SCOUT_TRACE_F1-05.jsonl",
+   "line": 1,
+   "match": "송금",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-05\","
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F1-05/E_SCOUT_TRACE_F1-05.jsonl",
+   "line": 2,
+   "match": "송금",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-05\","
   },
   {
    "check": "RAW.FORBIDDEN_PROBE",
@@ -459,6 +482,46 @@
    "inputs": {
     "mart": "snapshot_00.csv",
     "mart_sha256": "ec9129cc7754792bc78bb1e0b161f44922b935c479f85af6efab930595526dde",
+    "mart_rows": 50,
+    "evidence_manifest_lines": 0,
+    "dispatch_lines": 0,
+    "ingest_lines": 50,
+    "raw_target_dirs": 1
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:00:24+09:00",
+   "state": "STREAMING",
+   "summary": {
+    "checks_pass": 7,
+    "checks_flag": 2,
+    "checks_not_testable_or_vacuous": 3,
+    "flags": 5,
+    "systemic_candidates": []
+   },
+   "inputs": {
+    "mart": "snapshot_00.csv",
+    "mart_sha256": "20646524a337542260ce7feb1fd4238101bba458470e1afd242b7dd9274676ea",
+    "mart_rows": 50,
+    "evidence_manifest_lines": 0,
+    "dispatch_lines": 0,
+    "ingest_lines": 50,
+    "raw_target_dirs": 1
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:01:00+09:00",
+   "state": "STREAMING",
+   "summary": {
+    "checks_pass": 7,
+    "checks_flag": 2,
+    "checks_not_testable_or_vacuous": 3,
+    "flags": 8,
+    "systemic_candidates": []
+   },
+   "inputs": {
+    "mart": "snapshot_00.csv",
+    "mart_sha256": "20646524a337542260ce7feb1fd4238101bba458470e1afd242b7dd9274676ea",
     "mart_rows": 50,
     "evidence_manifest_lines": 0,
     "dispatch_lines": 0,
