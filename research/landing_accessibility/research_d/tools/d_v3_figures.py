@@ -104,6 +104,13 @@ def fig1_coverage_terminal(df):
         axes[1].set_xlim(0, C.N_TOTAL * 1.15)
     axes[0].set_title("terminal_reason by family (k/10)", fontsize=10)
     axes[1].set_title("denominators — overall (k/50)", fontsize=10)
+    if "collection_run" in df.columns and len(df):
+        rc = Counter(str(v).replace("E-REAL-CENSUS-1230", "R1").replace("R1-R", "R")
+                     for v in df["collection_run"])
+        fig.text(0.5, 0.925, "COLLECTION RUNS MIXED: " +
+                 " · ".join(f"{k} {v}" for k, v in sorted(rc.items())) +
+                 "   — R1-only rows are a minority; this confounds family comparison",
+                 ha="center", fontsize=8, color="darkred")
     sp = den["overall"].get("collector_vs_site", {})
     _stamp(fig, df, "1. coverage / terminal_reason",
            "R74 split: collector=%s site=%s NOT_YET_SPLIT=%s   |   denominator frozen at %d"
@@ -116,6 +123,15 @@ def fig2_entry_spatial_map(df):
     cov = C.axis_coverage(df)
     fig, axes = plt.subplots(1, 2, figsize=(12.5, 5))
     obs = df[[C.numeric_observed(v) for v in df["entry_x_norm"]]] if len(df) else df
+    # mart 에 좌표가 없으면 E 의 R3 보충을 쓴다 (A R106). 출처를 섞지 않는다.
+    supp = C.load_geometry_supplement() if (len(df) and len(obs) == 0) else {}
+    if supp:
+        rows = [r for _, r in df.iterrows() if str(r["target_id"]) in supp]
+        if rows:
+            import pandas as pd
+            obs = pd.DataFrame([dict(r) | supp[str(r["target_id"])] for r in rows])
+            cov = dict(cov); cov["entry_x_norm"] = {"observed": len(obs), "n": len(df),
+                                                    "state": f"{len(obs)}/{len(df)}"}
     if len(df) and cov["entry_x_norm"]["state"] == "AXIS_NOT_OBSERVED":
         _axis_absent(axes[0], "entry_x_norm", cov)
         _axis_absent(axes[1], "entry_zone", cov)
@@ -150,8 +166,8 @@ def fig2_entry_spatial_map(df):
         else:
             axes[1].bar(list(z.keys()), list(z.values()), color="darkseagreen")
             axes[1].set_ylabel("targets")
-    axes[0].set_title("entry point position  [POST-HOC DOM DERIVED, not live observation]",
-                      fontsize=9)
+    src = "E_R3_SUPPLEMENT (live click geometry)" if supp else "mart"
+    axes[0].set_title(f"entry point position  [source: {src}]", fontsize=9)
     axes[1].set_title("entry_zone" + ("" if len(obs) > 10 else "  (suppressed at small n)"),
                       fontsize=10)
     fig.suptitle("2. entry spatial map   n=%d / %d" % (len(obs), len(df)) if len(df) else "2. entry spatial map",
@@ -290,7 +306,11 @@ def fig6_sequence_divergence(df):
             ax.set_title(f"{f}  ({k}×{k})", fontsize=9)
             ax.set_xticks([]); ax.set_yticks([])
         fig.colorbar(im, ax=axes, fraction=0.02, label="normalized edit distance")
-    _stamp(fig, df, "6. experienced flow sequence divergence",
+    fig.text(0.5, 0.93,
+             "SINGLE OBSERVED FLOW — task_flow is NOT_SEPARABLE_IN_THIS_CENSUS (E supplies one sequence). "
+             "This is NOT a task-vs-experienced comparison.",
+             ha="center", fontsize=8, color="darkred")
+    _stamp(fig, df, "6. experienced flow sequence divergence (single observed flow)",
            "45 cells = descriptive pair cells, NOT independent n=45 (n=10 per family)")
     return _save(fig, "fig6_sequence_divergence.png")
 

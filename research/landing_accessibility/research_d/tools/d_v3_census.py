@@ -304,6 +304,34 @@ AXIS_COLUMNS = ("entry_x_norm", "entry_y_norm", "entry_zone", "entry_control_typ
                 "experienced_flow_sequence")
 
 
+def load_geometry_supplement():
+    """[A R106] E 의 R3 보충 geometry. **mart 가 아니라 보충 파일이다.**
+
+    B 의 join 이 아직 mart 에 없어 A 지시(② 를 n=8 로 그려라)를 이행하려면
+    D 가 직접 읽는다. 출처를 `E_R3_SUPPLEMENT` 로 명시하고 mart 값과 섞지 않는다.
+    """
+    import json
+    f = CENSUS / "raw/GEOMETRY_SUPPLEMENT_E.jsonl"
+    out = {}
+    if not f.exists():
+        return out
+    for line in f.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            r = json.loads(line)
+        except Exception:
+            continue
+        x, y = r.get("entry_x_norm"), r.get("entry_y_norm")
+        if x is None or y is None:
+            continue                      # null 은 '후보가 없었다' — 지어내지 않는다
+        out[str(r.get("target_id"))] = {"entry_x_norm": x, "entry_y_norm": y,
+                                        "entry_zone": r.get("entry_zone"),
+                                        "provenance": "E_R3_SUPPLEMENT"}
+    return out
+
+
 def axis_coverage(df) -> dict:
     """축별 `k/n` 관측 수. **그림을 그릴지 말지의 입력이다** (A R87).
 
