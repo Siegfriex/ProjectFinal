@@ -45,6 +45,20 @@ except Exception as _e:
     print(f"\n=== D 발행분 응답 대기 : 검사 실패 {_e} ===")
     errs.append({"file": "(응답 대기)", "error": f"검사 실행 실패: {_e}"})
 
+# --- 대장 두 분류 정합 (D-DEF-69) ---
+# 발행 전에 잡은 것은 `entries` 필드가 아니라 `caught_pre_emission` 리스트에
+# 들어간다 — **서수가 거기서 나온다**(R59). 6건이 빠져 있었다.
+try:
+    from d_ledger_shape import check as _ls
+    _l = _ls()
+    print(f"\n=== 대장 두 분류 : {_l['verdict']} · entries {_l.get('n_entries')} "
+          f"· caught_pre_emission {_l.get('n_caught_pre_emission')} ===")
+    for _m in (_l.get("not_in_list") or []):
+        print(f"   ** 리스트 미반영 ** {_m['id']} {_m['keys']}")
+except Exception as _e:
+    print(f"\n=== 대장 두 분류 : 검사 실패 {_e} ===")
+    errs.append({"file": "(대장 두 분류)", "error": f"검사 실행 실패: {_e}"})
+
 # --- coverage 교차 일치 (D-DEF-68) ---
 # 같은 축을 **세 곳**이 계산한다 — d_coverage · T3 표 · C 의 ANALYSIS_ASSURED.
 # 갈라지면 아무도 모른다. C 값이 달라지면 그것도 신호다(C 가 재계산했다).

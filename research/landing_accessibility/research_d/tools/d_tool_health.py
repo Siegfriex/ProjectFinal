@@ -55,6 +55,7 @@ LOOP_ENTRYPOINTS = [
     "d_input_integrity", "d_priority_availability", "d_warn_baseline",
     "d_mlflow_contract_audit",
     "d_pending_response",
+    "d_ledger_shape",
     "d_heartbeat", "d_mlflow", "d_emit_ticket",
 ]
 
