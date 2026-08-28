@@ -16,6 +16,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# 보고서 그림에 한글 제목이 들어간다. 폰트를 지정하지 않으면 **글자가 네모로 깨진 채
+# 저장되고 경고만 stderr 로 나간다** — 그림은 정상으로 보인다. 이 세션 계열의 실패다.
+for _f in ("NanumGothic", "NanumBarunGothic", "Noto Sans CJK KR", "Malgun Gothic"):
+    if any(_f == _x.name for _x in matplotlib.font_manager.fontManager.ttflist):
+        plt.rcParams["font.family"] = _f
+        break
+plt.rcParams["axes.unicode_minus"] = False
+
 import d_v3_census as C
 
 OUT = C.ANALYSIS / "figures"
