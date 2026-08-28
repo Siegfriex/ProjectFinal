@@ -78,7 +78,7 @@ def parse_limitation(md: Path) -> str:
     이 세션의 중심 결함이 메타데이터 층에 나타난 형태다. 셋을 가른다.
     """
     if not md.exists():
-        return "NO_FINDINGS_FILE"
+        return "NOT_STATED[rule=FINDINGS.md 파일 없음]"
     txt = md.read_text(encoding="utf-8")
     # [시정] `^##+\s*Limitations?` 는 **번호가 붙은 표제를 못 잡는다.**
     # D 산출은 `## 12. Limitation` · `## 8. 가장 무거운 limitation` 형태를 쓴다.
@@ -88,9 +88,11 @@ def parse_limitation(md: Path) -> str:
     m = re.search(r"^#{2,4}\s*[^\n]*?\blimitations?\b[^\n]*$(.*?)(?=^#{2,4}\s|\Z)",
                   txt, re.M | re.S | re.I)
     if not m:
-        return "NO_LIMITATION_SECTION"
+        # R54 — `NOT_STATED` 는 **파서 규칙을 병기**한다. 규칙 없이 '없음' 만
+        # 적으면 다음 사람이 그 '없음' 을 원문의 성질로 읽는다.
+        return ("NOT_STATED[rule=heading matching /^#{2,4}.*\\blimitations?\\b/i]")
     body = [ln.strip(" -*0123456789.") for ln in m.group(1).splitlines() if ln.strip()]
-    return (body[0] if body else "EMPTY_LIMITATION_SECTION")[:480]
+    return (body[0] if body else "EMPTY[절은 있고 내용이 비었다]")[:480]
 
 
 # RQ -> notebook 매핑. 번호가 1:1이 아니므로 추론하지 않고 명시한다.
@@ -193,6 +195,45 @@ def authoritative_verdict(js: Path | None, md: Path) -> tuple[str, str]:
     return mv, "md_heuristic_fallback"
 
 
+def extraction_health() -> dict:
+    """R54 — **추출 결과가 빈 비율을 원문의 존재 여부와 대조한다.**
+
+    D 의 한계 파서 결함(18/27 을 빈 값으로)은 **일회성 대조**로 드러났다.
+    A 가 STEP1-039 에서 적었다 — "분모 없이 빈 값만 보면 그것은 관측처럼
+    보인다". 그 대조를 매 sync 마다 한다.
+
+    분모는 **FINDINGS.md 를 가진 산출 수**이고, 분자는 추출이 값을 낸 수다.
+    비율이 떨어지면 파서를 의심한다 — 산출이 갑자기 한계를 안 적기 시작할
+    가능성보다 파서가 표기 변화를 못 따라갔을 가능성이 크다.
+    """
+    rows = {"with_md": 0, "limitation_value": 0, "limitation_not_stated": 0,
+            "limitation_empty": 0, "verdict_json": 0, "verdict_fallback": 0}
+    not_stated = []
+    for it in discover():
+        md, js = it["md"], it["json"]
+        if not md.exists():
+            continue
+        rows["with_md"] += 1
+        lim = parse_limitation(md)
+        if lim.startswith("NOT_STATED"):
+            rows["limitation_not_stated"] += 1
+            not_stated.append(it["rq_id"])
+        elif lim.startswith("EMPTY"):
+            rows["limitation_empty"] += 1
+        else:
+            rows["limitation_value"] += 1
+        _, src = authoritative_verdict(js, md)
+        rows["verdict_json" if src == "json_top_level" else "verdict_fallback"] += 1
+    d = rows["with_md"] or 1
+    rows["limitation_value_ratio"] = round(rows["limitation_value"] / d, 3)
+    rows["not_stated_ids"] = not_stated[:10]
+    rows["how_to_read"] = ("`NOT_STATED` 가 0 이 아니면 **원문을 직접 열어** "
+                           "다른 표기를 쓰는지 확인한다. 파서를 먼저 의심한다 — "
+                           "이 검사는 그 대조를 강제하려고 있다.")
+    rows["denominator"] = "FINDINGS.md 를 가진 산출 수"
+    return rows
+
+
 def gate(rq: str, md: Path, js: Path | None, nb_dir: Path) -> tuple[bool, str]:
     """완결 게이트 — 세 조건. `sync()` 안에 있던 것을 함수로 뺐다.
 
@@ -291,6 +332,12 @@ def sync() -> int:
                 print(f"   {c['case']}: passed={c['passed_gate']} expected={c['expected']}")
         return 3
     print(f"gate_controls={ctl['verdict']} ({len(ctl['cases'])}/{len(ctl['cases'])})")
+    _eh = extraction_health()
+    print(f"extraction_health: md보유 {_eh['with_md']} · 한계값 {_eh['limitation_value']} "
+          f"({_eh['limitation_value_ratio']}) · NOT_STATED {_eh['limitation_not_stated']} "
+          f"· verdict 정본 {_eh['verdict_json']}/fallback {_eh['verdict_fallback']}")
+    if _eh["limitation_not_stated"]:
+        print(f"   NOT_STATED: {_eh['not_stated_ids']} — 원문을 열어 표기를 확인하라")
 
     mlflow.set_tracking_uri(TRACKING_URI)
     mlflow.set_experiment(EXPERIMENT)
