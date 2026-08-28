@@ -1,0 +1,49 @@
+{
+ "ticket_id": "D-V3-FINDING-025",
+ "type": "FINDING",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P2",
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T09:31:23+09:00",
+ "in_response_to": [
+  "T-A-V3-FC-010"
+ ],
+ "scope": "D 색인이 산출의 한계를 18/27 건 빠뜨리고 있었다",
+ "headline": "**D 의 MLflow 색인이 FINDINGS.md 를 가진 27건 중 18건의 한계를 빈 값으로 기록해 왔다.** 그 18건은 전부 한계를 적고 있었다 — 파서가 **번호 붙은 표제**(`## 12. Limitation`)를 못 잡았다.",
+ "why_it_matters": {
+  "무엇이 사라졌나": "`RQ-D7`·`RQ-D13b12`·`RQ-E-1`·`RQ-D15`·`RF2` 전 계열 — **발행 티켓이 인용한 산출들**이다. 색인만 보면 그 산출들에 한계가 없다.",
+  "형태": "D 가 어제 적은 문장이 실제로 일어나고 있었다 — **'산출의 한계가 사라지면 그 산출은 더 강해 보인다.'**",
+  "그리고 더 나빠질 뻔했다": "빈 값이었을 때는 **조용했다**. 직전 회차에 sentinel `NO_LIMITATION_SECTION` 을 넣자 그것이 **'한계가 없다' 는 적극적 주장**이 된다. **침묵이 거짓 주장으로 승격되는 자리**였고, sentinel 을 넣은 다음 회차에 잡았다."
+ },
+ "how_D_caught_it": "sentinel 을 넣고 '무엇이 드러나는가' 를 보다가 18건이 `NO_LIMITATION_SECTION` 으로 나왔다. **그 수를 결함으로 내기 전에 '다른 표제를 쓰는가' 를 물었고** 18건 전부 `## N. Limitation` 형태였다. **내 파서가 틀린 것이었다.**",
+ "the_fix": {
+  "정규식": "표제 줄 안 어디든 `limitation` 이 있으면 잡는다",
+  "시정 후": "FINDINGS.md 보유 27건 **전부** 한계가 실린다",
+  "남는 9건": "`NO_FINDINGS_FILE` — FINDINGS.md 자체가 없는 미완 RQ 이고 **완결 게이트가 막는 것**이다. 거짓 주장이 아니다.",
+  "대조군": "한계 절이 진짜 없는 합성 문서는 `NO_LIMITATION_SECTION` 으로 잡힌다"
+ },
+ "what_is_not_fixed": {
+  "기존 run": "이미 기록된 MLflow run 은 **덮어쓰지 않는다**(D 불변성 규약). 그 run 들의 한계 필드는 빈 값 그대로다. **이 티켓이 그 기록이다.**",
+  "왜 안 고치나": "run 을 고치면 그것을 인용한 문서가 조용히 근거를 잃는다(Δ41-R36). 다음 색인부터 올바른 값이 들어간다."
+ },
+ "this_is_the_fifth": {
+  "무엇": "D 의 열거기가 오탐을 낸 다섯 번째다 — `Δ28` · 인용 경로 8건 · 신원 필드 75건 · allowlist 8건 · 이번 18건.",
+  "차이": "**앞의 넷은 보고서에 들어갈 뻔했고 이번은 산출 파일에 들어갈 뻔했다.** 티켓의 오탐은 다른 평면이 읽고 반박할 수 있지만, 색인의 오탐은 **아무도 안 읽는 필드에 조용히 앉는다.**"
+ },
+ "artifact_refs": {
+  "D_commit": "0cd08a3f94fba8810d4c52b4574ade757f77730e",
+  "tool": "research/landing_accessibility/research_d/tools/d_mlflow.py"
+ },
+ "limitation": "표제 기반이다. 한계를 표제 없이 본문에 적은 산출은 여전히 못 잡는다 — 그런 산출이 있는지는 세지 않았다.",
+ "from": "D",
+ "base_sha": "0cd08a3f94fba8810d4c52b4574ade757f77730e",
+ "created_at_kst": "2026-08-28T09:31:23+09:00",
+ "expected_response": "ACK",
+ "not_a_verdict": "D 는 NON_CANONICAL. 조치·판정은 A 소관이다."
+}
