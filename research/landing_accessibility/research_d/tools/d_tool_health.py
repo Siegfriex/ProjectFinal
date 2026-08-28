@@ -235,6 +235,81 @@ def static_control_presence() -> dict:
             "rows": rows}
 
 
+# [D-DEF-92] 게이트가 24개 모듈을 **임포트해서** `controls()` 를 부른다. 임포트
+# 시점에 파일을 쓰거나 네트워크를 타는 모듈이 있으면 **게이트가 상태를 바꾼다** —
+# `D-DEF-50` 이 바로 그 사고였다(임포트가 RQ_D9 figure 를 덮어썼다).
+# **임포트하지 않고** 센다: 모듈 최상위 문장만 AST 로 본다.
+_SIDE_CALLS = {
+    "write_text", "write_bytes", "mkdir", "unlink", "rmtree", "touch", "rename",
+    "savefig", "to_csv", "to_json", "to_parquet", "dump", "run", "check_output",
+    "Popen", "system", "post", "urlopen", "set_tracking_uri", "start_run",
+    "log_artifact", "set_tag", "set_tags", "log_params", "create_experiment",
+}
+_SIDE_NAMES = {"open", "print", "exec", "eval"}
+# `get` 은 뺐다 — `dict.get` 오탐이 압도적이다(`rq_d15_v3_replication:381` 이 그랬다).
+# `run`·`dump`·`set_tag` 는 남겼지만 **모호하다** — 잡히면 눈으로 봐야 한다.
+
+
+def _toplevel_side_hits(tree) -> list:
+    """AST 하나에서 최상위 부수효과 호출을 뽑는다 — **대조군이 부르는 지점**."""
+    hits = []
+    for node in tree.body:                          # **최상위만** — def/class 안은 안 돈다
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef,
+                             ast.Import, ast.ImportFrom)):
+            continue
+        if isinstance(node, ast.If) and "__name__" in ast.dump(node.test):
+            continue                                # 임포트 때 안 돈다
+        for sub in ast.walk(node):
+            if not isinstance(sub, ast.Call):
+                continue
+            fn = sub.func
+            nm = (fn.attr if isinstance(fn, ast.Attribute)
+                  else fn.id if isinstance(fn, ast.Name) else None)
+            if nm in _SIDE_CALLS or nm in _SIDE_NAMES:
+                hits.append({"call": nm, "line": getattr(sub, "lineno", None)})
+    return hits
+
+
+def import_side_effects(text: str | None = None) -> dict:
+    """모듈 **최상위**에서 부수효과로 보이는 호출을 센다. 임포트하지 않는다.
+
+    `text` 를 주면 그 소스 하나만 본다 — **대조군이 이 함수를 직접 시험**하기 위해서다.
+    """
+    if text is not None:
+        return {"verdict": "PASS", "n_tools": 1, "n_gated": 0, "n_risky_gated": 0,
+                "risky_gated": [], "n_any": 1 if _toplevel_side_hits(ast.parse(text)) else 0,
+                "hits": _toplevel_side_hits(ast.parse(text))}
+    rows = []
+    for f in sorted(TOOLS.glob("*.py")):
+        if f.name in SKIP:
+            continue
+        try:
+            tree = ast.parse(f.read_text(encoding="utf-8"))
+        except SyntaxError:
+            rows.append({"module": f.stem, "state": "SYNTAX_ERROR"})
+            continue
+        hits = _toplevel_side_hits(tree)
+        rows.append({"module": f.stem, "n_hits": len(hits), "hits": hits[:5]})
+    gated = {x["module"] for x in static_control_presence()["rows"]
+             if x.get("in_loop") and x.get("has_control_def")}
+    risky = [r for r in rows if r.get("n_hits") and r["module"] in gated]
+    return {"verdict": "PASS" if not risky else "FAIL",
+            "n_tools": len(rows),
+            "n_gated": len(gated),
+            "n_risky_gated": len(risky),
+            "risky_gated": [{"module": r["module"], "hits": r["hits"]} for r in risky],
+            "n_any": sum(1 for r in rows if r.get("n_hits")),
+            "**게이트가 상태를 바꾸면 안 된다**": (
+                "게이트는 `controls()` 를 부르려고 모듈을 **임포트한다**. 최상위에 "
+                "쓰기·네트워크 호출이 있으면 임포트만으로 그것이 일어난다 — "
+                "`D-DEF-50` 이 그 사고였다"),
+            "이_검사가_말하지_않는_것": (
+                "**이름으로 맞춘 정적 추정이다.** 간접 호출(`getattr` · 데코레이터 · "
+                "임포트한 함수 안의 부수효과)은 안 보인다. `0` 은 '없다' 가 아니라 "
+                "**'이 방법으로는 안 보인다'** 다"),
+            "왜_임포트하지_않나": "임포트해서 재면 재는 행위가 곧 그 사고다"}
+
+
 # [D-DEF-88] **한 프로세스 안에서만** 결과를 재사용한다. 이 함수가 한 회차에
 # 두 번 이상 불리는데(스캔 + 표시누락 검사 + 자기 controls) 매번 전부 다시 쟀다.
 # 프로세스가 끝나면 캐시도 끝나므로 **회차 간 낡은 값이 남지 않는다.**
@@ -316,6 +391,22 @@ def controls() -> dict:
     """합성 파일로 문법 오류를 실제로 잡는지 본다."""
     import tempfile
     rows = []
+
+    # [D-DEF-92] 임포트 부수효과 탐지가 **실제로 잡는가**
+    rows.append({"case": "[임포트] 최상위 `mkdir()` 를 잡는다",
+                 "expectation": "must_flag",
+                 "ok": import_side_effects(text="import x\np.mkdir()\n")["n_any"] == 1})
+    rows.append({"case": "[임포트] **함수 안**은 잡지 않는다 — 임포트 때 안 돈다",
+                 "expectation": "must_not_flag",
+                 "ok": import_side_effects(text="def f():\n    p.mkdir()\n")["n_any"] == 0})
+    rows.append({"case": "[임포트] `if __name__` 블록은 잡지 않는다",
+                 "expectation": "must_not_flag",
+                 "ok": import_side_effects(
+                     text="if __name__ == '__main__':\n    p.mkdir()\n")["n_any"] == 0})
+    _ise = import_side_effects()
+    rows.append({"case": "[임포트] **게이트 대상 중 위험 0** — 게이트가 상태를 바꾸지 않는다",
+                 "expectation": "must_not_flag", "ok": _ise["n_risky_gated"] == 0,
+                 "detail": _ise["risky_gated"]})
 
     # [D-DEF-84] 스캔 헤레독 구문 게이트
     _eps = embedded_python_syntax()

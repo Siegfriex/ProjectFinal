@@ -215,6 +215,13 @@ try:
               f"— 계산된 `covered` 를 쓴다(A R62)")
     if _sp.get("loop_without_names"):
         print(f"     ** 루프인데 대조군 정의 없음 ** {_sp['loop_without_names']}")
+    from d_tool_health import import_side_effects as _ise_fn
+    _ise = _ise_fn()
+    print(f"   임포트 부수효과(최상위, AST) : {_ise['verdict']} · **게이트 대상 {_ise['n_gated']} 중 "
+          f"위험 {_ise['n_risky_gated']}** · 전체 {_ise['n_tools']} 중 {_ise['n_any']} "
+          f"— 0 은 '없다' 가 아니라 **이 방법으로는 안 보인다**")
+    for _rg in _ise.get("risky_gated") or []:
+        print(f"     ** 게이트가 임포트하는데 최상위 부수효과 ** {_rg['module']} {_rg['hits']}")
     for _b in _t["syntax_error"]:
         print(f"   {_b['tool']}:{_b['line']}  {_b['msg']}")
 except Exception as _e:
