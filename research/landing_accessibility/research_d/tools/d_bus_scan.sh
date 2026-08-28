@@ -279,6 +279,12 @@ try:
     print(f"   발행기록(event_log 대조) : {_er.get('verdict')} · 기록 있음 {_er.get('n_with_record')} "
           f"· **새 누락 {_er.get('n_missing_new')}** · baseline 누락 {_er.get('n_missing_baseline')} "
           f"· created_at 없음 {_er.get('n_no_created_at')}")
+    _lnf = _er.get("logged_no_file_other_planes") or {}
+    print(f"     반대 방향(로그에만 있고 파일 없음) : D **{_er.get('n_logged_no_file_D')}** "
+          f"· 다른 평면 { {k: len(v) for k, v in _lnf.items() if k != 'D'} } "
+          f"— 다른 평면 것은 **관측만 한다**")
+    if _er.get("logged_no_file_D"):
+        print(f"     ** D 로그-only ** {_er['logged_no_file_D'][:5]}")
     if _er.get("missing_new"):
         print(f"     ** 새 누락 ** {_er['missing_new'][:5]}")
     for r in au["v3_era_non_resolving"]:

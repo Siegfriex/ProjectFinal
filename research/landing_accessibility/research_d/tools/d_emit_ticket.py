@@ -383,6 +383,40 @@ def emit(t: dict, *, dry_run: bool = False) -> dict:
     return {"emitted": True, "path": str(p), "ticket_sha256": sha}
 
 
+def emit_ack(ticket_id: str, body: dict, *, ack_type: str = "ACK",
+             dry_run: bool = False) -> dict:
+    """ACK 을 **시각 가드를 거쳐** 쓴다.
+
+    [D-DEF-81 한계 해소] ACK 파일은 지금까지 `emit()` 을 안 거쳐 손으로 쓴 시각이
+    그대로 들어갔다 — `C-FINDING-143044` ACK 은 실제 기록보다 **+5267초** 앞섰다.
+    시각은 여기서 스탬프하고, 호출자가 준 값은 `clock_errors` 로 막는다.
+    """
+    tp = BUS / "tickets" / f"{ticket_id}.json"
+    if not tp.exists():
+        return {"acked": False, "errors": [f"티켓 파일이 없다: {tp.name}"]}
+    a = dict(body)
+    a["ticket_id"] = ticket_id
+    a["ack_by"] = "D"
+    a.setdefault("ack_type", ack_type)
+    a.setdefault("ack_at_kst", _sh("date", "-Iseconds"))     # **도구가 스탬프한다**
+    # [D-DEF-13] ACK 은 "그때 그 내용" 에 대한 것이다 — 해시를 박는다
+    a["ticket_sha256"] = hashlib.sha256(tp.read_bytes()).hexdigest()
+    a.setdefault("not_a_verdict", "D 는 NON_CANONICAL. 판정은 A 소관이다.")
+    errs = clock_errors(a)
+    if errs:
+        return {"acked": False, "errors": errs}
+    if dry_run:
+        return {"acked": False, "errors": [], "dry_run": True}
+    ap = BUS / "acks" / f"{ticket_id}.D.json"
+    ap.write_text(json.dumps(a, ensure_ascii=False, indent=1), encoding="utf-8")
+    (BUS / "event_log.jsonl").open("a").write(json.dumps(
+        {"ts": a["ack_at_kst"], "actor": "D", "event": "ACK",
+         "ticket_id": ticket_id, "via": "emit_ack",
+         "ticket_sha256": a["ticket_sha256"]}, ensure_ascii=False) + "\n")
+    return {"acked": True, "path": str(ap), "ticket_sha256": a["ticket_sha256"],
+            "ack_at_kst": a["ack_at_kst"]}
+
+
 def _v3_since() -> str:
     """v3 규약 발효 시각 — **정의는 `d_ticket_schema_check` 한 곳에 있다**.
 
@@ -417,6 +451,26 @@ def emission_record() -> dict:
                 first_ts = ev.get("ts")
             if ev.get("actor") == "D" and ev.get("event") in ("EMIT", "TICKET_ISSUED"):
                 seen.add(ev.get("ticket_id"))
+    # [D-DEF-82] **반대 방향도 잰다.** 지금까지 티켓→로그 한 쪽만 봤다.
+    # 로그에 발행 기록이 있는데 **티켓 파일이 없는** 경우가 반대편이다 —
+    # `T-B-CLOCKTEST-002`(B, 17:41)가 실제로 그랬다. D 자신의 것은 FAIL 축이고
+    # 다른 평면 것은 **관측만 한다**(D 는 남을 판정하지 않는다).
+    on_disk = {f.name[:-5] for f in (BUS / "tickets").glob("*.json")}
+    logged_ids = {}
+    if log.exists():
+        for line in log.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                ev = json.loads(line)
+            except Exception:                       # noqa: BLE001
+                continue
+            if ev.get("event") in ("EMIT", "TICKET_ISSUED"):
+                logged_ids.setdefault(ev.get("actor"), set()).add(ev.get("ticket_id"))
+    logged_no_file = {act: sorted(ids - on_disk)
+                      for act, ids in logged_ids.items() if ids - on_disk}
+    d_logged_no_file = logged_no_file.get("D", [])
+
     have, miss_new, miss_base, no_ts = 0, [], [], []
     for p in (BUS / "tickets").glob("*.json"):
         try:
@@ -435,7 +489,13 @@ def emission_record() -> dict:
             miss_new.append(tid)
         else:
             miss_base.append(tid)
-    return {"verdict": "PASS" if not miss_new else "FAIL",
+    return {"verdict": "PASS" if not (miss_new or d_logged_no_file) else "FAIL",
+            "n_logged_no_file_D": len(d_logged_no_file),
+            "logged_no_file_D": d_logged_no_file,
+            "logged_no_file_other_planes": logged_no_file,
+            "반대_방향은_왜_보나": ("티켓→로그만 보면 **로그에만 있고 파일이 없는** 건을 못 본다. "
+                          "D 자신의 것은 FAIL 축이고, 다른 평면 것은 **관측만 한다** — "
+                          "왜 없는지(가드에 막힘·시험 후 삭제·기타)는 D 가 단정하지 않는다"),
             "n_with_record": have,
             "n_missing_new": len(miss_new), "missing_new": sorted(miss_new),
             "n_missing_baseline": len(miss_base),
@@ -515,6 +575,23 @@ def controls() -> dict:
     _clk("15분 뒤진 시각도 막힌다", -900)
     _clk("지금 시각은 통과한다", 0, should_fail=False)
     _clk("허용오차 안(60초)은 통과한다", 60, should_fail=False)
+    # [D-DEF-81] ACK 경로도 같은 가드를 거치는가
+    _ah = (_now + _dt.timedelta(seconds=900)).isoformat(timespec="seconds")
+    _r = emit_ack("D-V3-FINDING-076", {"ack_at_kst": _ah}, dry_run=True)
+    cases.append({"case": "[시각] ACK 도 손으로 쓴 시각이면 막힌다",
+                  "expectation": "must_flag",
+                  "ok": bool(_r.get("errors")) and not _r.get("acked")})
+    # [D-DEF-82] 반대 방향 축이 살아 있는가
+    _er = emission_record()
+    cases.append({"case": "[발행기록] D 의 로그-only 건은 0",
+                  "expectation": "must_not_flag", "ok": _er["n_logged_no_file_D"] == 0})
+    cases.append({"case": "[발행기록] 반대 방향 키가 존재한다 — 죽은 축이 아니다",
+                  "expectation": "must_not_flag",
+                  "ok": "logged_no_file_other_planes" in _er})
+    _r2 = emit_ack("__NO_SUCH_TICKET__", {}, dry_run=True)
+    cases.append({"case": "[ACK] 없는 티켓에는 ACK 하지 않는다",
+                  "expectation": "must_flag",
+                  "ok": bool(_r2.get("errors")) and not _r2.get("acked")})
     cases.append({"case": "[시각] 필드가 없으면 판정하지 않는다",
                   "expectation": "must_not_flag", "ok": not clock_errors({})})
 
