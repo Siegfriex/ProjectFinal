@@ -521,6 +521,59 @@ if __name__ == "__main__":
     raise SystemExit(d_exit.run(main))
 
 
+def negation_path_controls() -> dict:
+    """[D-DEF-58] **완화 경로(`부정 문맥 → WARN`)에 대조군이 0 이었다.**
+
+    기존 대조군 13건은 DENY 6 · ALLOW 4 · MARKER 2 · SANITY 1 로 **전부
+    FAIL/ALLOWED 경로**만 시험한다. 396건을 WARN 으로 내리는 그 경로는
+    **한 번도 검증되지 않았다** — Δ40 `VACUOUS_PASS` 의 정확한 형태다.
+
+    합성으로 재보니 **원리적으로 뚫린다**: 경로를 상수에 넣고 **다음 줄에서**
+    열면, 창 안의 부정 표지 하나로 WARN 이 된다. `NEGATION_MARKERS` 에는
+    `firewall`·`holdout_accessed` 같은 **필드 이름**까지 들어 있어 완화가 넓다.
+
+    **다만 D 산출물에서 실제 우회 사례는 확인되지 않았다** — WARN 396 중
+    ±5줄 안에 접근 호출이 있는 16건은 전부 과탐이었다(firewall 선언문 근처의
+    무관한 호출, 영어 `detail ` 이 `ACCESS_MARKERS` 의 `tail ` 에 걸린 것 등).
+
+    아래 케이스는 **현재 동작을 기록**한다. `KNOWN_GAP` 은 "지금 이렇게
+    동작한다" 이지 **"이것이 옳다" 가 아니다** — 완화를 좁힐지는 A 판정
+    사항이고 `D-V3-DR-001` 에 이어 보고한다.
+    """
+    rows = []
+
+    def case(name, text, ref, line, want, gap=False):
+        got = severity({"reference": ref, "file": "probe.py", "line": line}, text)
+        rows.append({"case": name, "got": got, "want": want, "ok": got == want,
+                     "expectation": "must_flag" if want == "FAIL" else "must_not_flag",
+                     "known_gap": gap})
+
+    DENIED = "research/landing_accessibility/control/label/x.json"
+    case("같은 줄 접근은 FAIL",
+         f'p = open("{DENIED}").read()\n', DENIED, 1, "FAIL")
+    case("부정 표지 없이 참조만 있어도 FAIL",
+         f'P = "{DENIED}"\ndata = open(P).read()\n', DENIED, 1, "FAIL")
+    case("진짜 부정 선언은 WARN",
+         f'아래 경로를 열지 않았다.\n{DENIED}\n', DENIED, 2, "WARN")
+    # ↓ **현재 동작을 기록하는 것이지 옳다고 선언하는 것이 아니다**
+    case("[KNOWN_GAP] 접근을 다음 줄로 분리하고 창에 `firewall` 한 단어가 있으면 WARN 으로 내려간다",
+         f'# firewall 관련 상수\nP = "{DENIED}"\ndata = open(P).read()\n',
+         DENIED, 2, "WARN", gap=True)
+    case("[KNOWN_GAP] 필드 이름 `holdout_accessed` 만 인접해도 WARN 이 된다",
+         f'holdout_accessed = check()\nP = "{DENIED}"\n', DENIED, 2, "WARN", gap=True)
+
+    ok = all(r["ok"] for r in rows)
+    return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),
+            "must_flag": sum(1 for r in rows if r["expectation"] == "must_flag"),
+            "must_not_flag": sum(1 for r in rows if r["expectation"] == "must_not_flag"),
+            "known_gaps": [r["case"] for r in rows if r["known_gap"]],
+            "failed": [r["case"] for r in rows if not r["ok"]], "cases": rows,
+            "이_대조군이_말하는_것": ("현재 동작의 **고정**이다. `KNOWN_GAP` 두 건은 "
+                             "**뚫리는 형태를 명시적으로 기록**한 것이고, 좁힐지는 "
+                             "A 판정 사항이다(`D-V3-DR-001` 후속)"),
+            "실측":"D 산출물에서 실제 우회 사례는 확인되지 않았다 — WARN 396 중 접근 인접 16건은 전부 과탐"}
+
+
 def controls() -> dict:
     """[D-DEF-55] **인자 없는 정규화 래퍼.**
 
@@ -554,10 +607,12 @@ def controls() -> dict:
         stale = (cur != doc.get("freshness_corpus_sha256"))
         fresh_note = ("코퍼스가 스캔 이후 바뀌었다 — 이 대조군 결과는 **옛 코퍼스**의 것이다"
                       if stale else "스캔 이후 코퍼스가 그대로다")
-    return {"verdict": c.get("verdict"), "n": len(cs),
-            "must_flag": sum(1 for x in cs if x.get("expectation") == "must_flag"),
-            "must_not_flag": sum(1 for x in cs if x.get("expectation") == "must_not_flag"),
+    _neg = negation_path_controls()
+    return {"verdict": c.get("verdict"), "n": len(cs) + _neg["n"],
+            "must_flag": sum(1 for x in cs if x.get("expectation") == "must_flag") + _neg["must_flag"],
+            "must_not_flag": sum(1 for x in cs if x.get("expectation") == "must_not_flag") + _neg["must_not_flag"],
             "cases": cs, "source": str(out),
+            "negation_path": _neg,      # [D-DEF-58] 완화 경로 대조군
             "freshness": {"stale": stale,
                           "recorded": doc.get("freshness_corpus_sha256", "")[:16],
                           "now": (cur or "")[:16] if cur else None,
