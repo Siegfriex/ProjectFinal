@@ -252,6 +252,28 @@ def schema_errors(t: dict) -> list:
     return out
 
 
+def retraction_errors(t: dict) -> list:
+    """[A R163 / D-DEF-48] 철회된 라벨을 **표시 없이** 인용하고 나가지 않는다.
+
+    `D-V3-FINDING-048` 의 limitation 이 "발행 전에는 못 막는다" 였다. 여기서
+    막는다 — 산출물 감사만 있으면 티켓은 그대로 새 나간다(실제로
+    `D-V3-FINDING-043` 이 그렇게 나갔다).
+
+    `retracted_labels_cited` 로 선언하면 통과한다. 토큰을 **논의 대상**으로
+    삼는 티켓(철회 자체를 다루는 보고)이 실제로 있기 때문이다.
+    """
+    try:
+        import d_retractions as _RET
+    except Exception as e:
+        return [f"철회 정본 도구를 불러오지 못했다 — 발행하지 않는다: {e}"]
+    declared = set(t.get(_RET.DECLARE_FIELD) or [])
+    hits = [h for h in _RET.audit_text(json.dumps(t, ensure_ascii=False))
+            if h["token"] not in declared]
+    return [f"철회 라벨을 표시 없이 인용했다: {h['token']} — "
+            f"`{_RET.MARK}` 를 달거나 `{_RET.DECLARE_FIELD}` 로 선언하라"
+            for h in {h["token"]: h for h in hits}.values()]
+
+
 def emit(t: dict, *, dry_run: bool = False) -> dict:
     """검사를 통과하면 티켓을 쓰고 event_log 에 append 한다."""
     t = dict(t)
@@ -279,6 +301,7 @@ def emit(t: dict, *, dry_run: bool = False) -> dict:
 
     errs = check(t)
     errs = list(errs) + schema_errors(t)     # [D-DEF-47] 정본 스키마도 본다
+    errs += retraction_errors(t)             # [D-DEF-48] 철회 라벨도 본다
     if errs:
         return {"emitted": False, "errors": errs}
     if dry_run:

@@ -55,6 +55,7 @@ def parse(text: str | None = None) -> dict:
         say = re.search(r"\*\*정확한 진술\*\*:\s*(.+)", seg)
         out[token]["replacement"] = alt.group(1) if alt else None
         out[token]["accurate_statement"] = say.group(1).strip() if say else None
+        out[token]["tickets"] = sorted(set(_TICKET_REF.findall(seg)))
     return out
 
 
@@ -83,6 +84,38 @@ def audit_text(text: str, source: str = "") -> list:
 
 
 ANALYSIS = REPO / "artifacts/v3_census/analysis"
+BUS_TICKETS = REPO / ".agent_bus/landing_v2/tickets"
+_TICKET_REF = re.compile(r"`(T-[A-Z0-9\-]+)`")
+
+
+def retracted_since(token: str) -> str | None:
+    """그 라벨이 **언제부터** 철회인가.
+
+    **철회 이전 인용은 위반이 아니다.** 시점을 보지 않으면 6건이 다 위반으로
+    세어진다 — 실제로는 5건이 철회 전(11:29~11:55)이고 철회는 12:39 다.
+    소급해서 세는 것은 이 연구가 반복해 잡아온 과대 계상 그대로다.
+
+    성립 시각은 **근거 티켓 중 가장 이른 것**이다. 근거가 나중에 교체돼도
+    (`R143`) 철회가 성립한 시점은 처음이다.
+    """
+    meta = parse().get(token)
+    if not meta or not meta.get("retracted"):
+        return None
+    times = []
+    for tid in meta.get("tickets", []):
+        f = BUS_TICKETS / f"{tid}.json"
+        if not f.exists():
+            continue
+        try:
+            import json as _j
+            d = _j.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        ts = str(d.get("created_at_kst") or d.get("created_at")
+                 or d.get("created_at_measured") or "")
+        if ts:
+            times.append(ts[:19])
+    return min(times) if times else None
 
 
 def audit_artifacts(root=None) -> dict:
@@ -117,6 +150,37 @@ def audit_artifacts(root=None) -> dict:
     return {"verdict": "PASS" if not bad else "FAIL", "n": len(bad),
             "files": sorted({b["source"] for b in bad}), "hits": bad[:20],
             "대상": "산출물만 — 도구 소스는 정의하는 곳이고 표시는 cite() 가 붙인다"}
+
+
+def audit_tickets(plane: str = "D") -> dict:
+    """**발행 티켓**이 철회 토큰을 표시 없이 인용하는가 — 철회 이후 발행분만.
+
+    발행분은 불변이라 고치지 않는다. 사실만 보고한다.
+    """
+    import json as _j
+    since = {t: retracted_since(t) for t in retracted_tokens()}
+    bad, skipped = [], []
+    for p in sorted(BUS_TICKETS.glob("*.json")):
+        try:
+            txt = p.read_text(encoding="utf-8")
+            d = _j.loads(txt)
+        except Exception:
+            continue
+        if d.get("from") != plane:
+            continue
+        ts = str(d.get("created_at_kst") or d.get("created_at") or "")[:19]
+        for h in audit_text(txt, p.name):
+            s0 = since.get(h["token"])
+            if s0 and ts and ts < s0:
+                skipped.append({**h, "created_at_kst": ts, "retracted_since": s0})
+            else:
+                bad.append({**h, "created_at_kst": ts, "retracted_since": s0})
+    return {"verdict": "PASS" if not bad else "FAIL", "n": len(bad),
+            "tickets": sorted({b["source"] for b in bad}), "hits": bad,
+            "철회_이전_인용": {"n": len(skipped),
+                          "tickets": sorted({s["source"] for s in skipped}),
+                          "왜_세지_않나": "**철회 이전 인용은 위반이 아니다.** 소급해서 세면 과대 계상이다"},
+            "발행분은_고치지_않는다": "불변이다 — 사실만 보고한다"}
 
 
 def controls() -> dict:
@@ -166,6 +230,11 @@ def controls() -> dict:
             ' "retracted_labels_cited": {"NO_SAFE_ROUTE_SITE": "SITE 라벨 철회 — R137"}}',
             encoding="utf-8")
         case("JSON 이 선언하면 통과", audit_artifacts(d)["verdict"], "PASS")
+    # 철회 시각을 정본의 근거 티켓에서 읽는다 — 없으면 시점 판정이 불가능하다
+    case("철회 시각을 근거 티켓에서 읽는다",
+         bool(retracted_since("NO_SAFE_ROUTE_SITE")), True)
+    case("철회 아닌 토큰엔 시각이 없다",
+         retracted_since("COLLECTOR_ZERO_CANDIDATE"), None)
 
     ok = all(r["ok"] for r in rows)
     return {"verdict": "PASS" if ok else "FAIL", "n": len(rows),

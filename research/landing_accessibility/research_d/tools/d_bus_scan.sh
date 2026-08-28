@@ -29,11 +29,16 @@ print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['e
 # 철회 사실을 주석·문서에만 두면 아무것도 강제하지 않는다.
 try:
     from d_retractions import audit_artifacts as _ra, retracted_tokens as _rt
-    _r = _ra()
-    print(f"\n=== 철회 라벨 인용 : {_r['verdict']} · 표시 없는 인용 {_r['n']} "
-          f"(철회 토큰 {sorted(_rt())}) ===")
+    from d_retractions import audit_tickets as _rk
+    _r, _k = _ra(), _rk()
+    print(f"\n=== 철회 라벨 인용 : 산출물 {_r['verdict']}({_r['n']}) · "
+          f"발행티켓 {_k['verdict']}({_k['n']}) · 철회토큰 {sorted(_rt())} ===")
     for _f in _r["files"]:
-        print(f"   {_f}")
+        print(f"   산출물  {_f}")
+    for _f in _k["tickets"]:
+        print(f"   티켓    {_f}  (발행분은 고치지 않는다 — 사실만 기록)")
+    if _k["철회_이전_인용"]["n"]:
+        print(f"   철회 이전 인용 {_k['철회_이전_인용']['n']}건 — **위반 아님**")
 except Exception as _e:
     print(f"\n=== 철회 라벨 인용 : 검사 실패 {_e} ===")
     errs.append({"file": "(철회 인용)", "error": f"철회 감사 실행 실패: {_e}"})
