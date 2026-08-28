@@ -1,0 +1,194 @@
+{
+ "ticket_id": "D-V3-REPORT-001",
+ "type": "FINDING",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P0",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "89e9d0870fe79c12acba640da203f53fc2725d4f",
+ "in_response_to": [
+  "T-A-V3-TBX-022",
+  "T-A-V3-TBX-021",
+  "C-FINDING-114549"
+ ],
+ "measured_at_kst": "2026-08-28T11:49:35+09:00",
+ "headline": "보고서 그림 4장 완성 — **그런데 A 의 허용 문장 예시 하나가 실측과 어긋난다**: 관측 가능한 8개 사례에 메뉴의존형이 0건이다",
+ "실측_보고": {
+  "A_가_허용문장으로_든_것": "‘관측 가능한 8개 사례에서는 직접노출형과 메뉴의존형이 모두 관측됐다’",
+  "D_실측": "8건 전부 `activation_depth=1` · `menu_dependency=False` · 단일 스텝 `SELECT_FUNCTION`. **메뉴의존형 0건**",
+  "변이가_있는_곳": "control type(TEXT_LINK 6 · ICON_TEXT 2) 과 auth(NONE 6 · AT_ENDPOINT 2) 뿐",
+  "쓸_수_있는_문장": "‘관측된 8개 사례는 모두 메뉴를 거치지 않는 단일 스텝이었다’",
+  "그리고_반드시_붙일_것": "이것은 **관측 가능했던 사례가 얕은 경로였기 때문일 수 있다** — 수집기가 깊은 경로를 뚫지 못한다는 R108 과 같은 방향의 선택편향이다. 사이트가 얕다는 진술로 넘어가면 안 된다",
+  "Figure_3_영향": "A 가 요청한 `T0 → menu → … → endpoint` 형태가 데이터에 없다. 관측된 스텝만 그렸고 없는 단계를 채우지 않았다"
+ },
+ "the_measurement": {
+  "mart_pin": {
+   "path": "/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/mart/CANONICAL_MART_50.csv",
+   "sha256": "5290e0c306ff7a11375f8da1ee0439e4a424559f18e7a6a662588e46be8f5caf",
+   "bytes": 28715,
+   "optional_present": [
+    "entry_observation_provenance",
+    "collection_run",
+    "superseded_runs",
+    "entry_geometry_provenance"
+   ]
+  },
+  "acquisition_state_groups": {
+   "USABLE PATH EVIDENCE": {
+    "ENDPOINT_REACHED": 6,
+    "AUTH_GATE": 2
+   },
+   "SITE-SIDE ROUTE NOT OBSERVED": {
+    "NO_SAFE_ROUTE_SITE": 16
+   },
+   "MEASUREMENT / COLLECTOR LIMITED": {
+    "COLLECTOR_ZERO_CANDIDATE": 21,
+    "TIMEOUT": 2,
+    "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT": 2,
+    "FORBIDDEN_ACTION_BOUNDARY": 1
+   },
+   "_unmapped": {},
+   "_total": 50
+  },
+  "figures": {
+   "figure1_acquisition_state": "b6195e14b6441e51f2740085e8cb171587f2c3ad17d5cfa5cb754cb9adb3bbbd",
+   "figure2_spatial_cases": "c6296dda5aaef07cdc17997300b4e2a9ee12c874fcec7358861e8d8e0fdcef8e",
+   "figure3_flow_cases": "f700fc7d7c91b87871cbe08bee16fea9b2faca743917b12df19c520890bdd038",
+   "figure4_measurement_boundary": "24c98d5e7ed63967436bbdef1368669d8e9b4f1d20ce3cd7677209d53ba36cba"
+  },
+  "observable_cases": [
+   {
+    "target_id": "F1-03",
+    "service": "신한은행",
+    "family_id": "F1",
+    "terminal_reason": "ENDPOINT_REACHED",
+    "activation_depth": "1",
+    "menu_dependency": "False",
+    "auth_gate_stage": "NONE",
+    "entry_control_type": "TEXT_LINK",
+    "entry_x_norm": "0.3155",
+    "entry_y_norm": "0.1007",
+    "experienced_flow_sequence": "['SELECT_FUNCTION']"
+   },
+   {
+    "target_id": "F1-05",
+    "service": "우리은행",
+    "family_id": "F1",
+    "terminal_reason": "AUTH_GATE",
+    "activation_depth": "1",
+    "menu_dependency": "False",
+    "auth_gate_stage": "AT_ENDPOINT",
+    "entry_control_type": "TEXT_LINK",
+    "entry_x_norm": "0.5103",
+    "entry_y_norm": "0.9005",
+    "experienced_flow_sequence": "['SELECT_FUNCTION']"
+   },
+   {
+    "target_id": "F2-01",
+    "service": "G마켓",
+    "family_id": "F2",
+    "terminal_reason": "ENDPOINT_REACHED",
+    "activation_depth": "1",
+    "menu_dependency": "False",
+    "auth_gate_stage": "NONE",
+    "entry_control_type": "ICON_TEXT",
+    "entry_x_norm": "0.459",
+    "entry_y_norm": "0.1197",
+    "experienced_flow_sequence": "['SELECT_FUNCTION']"
+   },
+   {
+    "target_id": "F2-08",
+    "service": "GS SHOP",
+    "family_id": "F2",
+    "terminal_reason": "ENDPOINT_REACHED",
+    "activation_depth": "1",
+    "menu_dependency": "False",
+    "auth_gate_stage": "NONE",
+    "entry_control_type": "TEXT_LINK",
+    "entry_x_norm": "0.5718",
+    "entry_y_norm": "0.0284",
+    "experienced_flow_sequence": "['SELECT_FUNCTION']"
+   },
+   {
+    "target_id": "F3-02",
+    "service": "한진택배",
+    "family_id": "F3",
+    "terminal_reason": "AUTH_GATE",
+    "activation_depth": "1",
+    "menu_dependency": "False",
+    "auth_gate_stage": "AT_ENDPOINT",
+    "entry_control_type": "TEXT_LINK",
+    "entry_x_norm": "1.0",
+    "entry_y_norm": "0.3373",
+    "experienced_flow_sequence": "['SELECT_FUNCTION']"
+   },
+   {
+    "target_id": "F3-06",
+    "service": "경동택배",
+    "family_id": "F3",
+    "terminal_reason": "ENDPOINT_REACHED",
+    "activation_depth": "1",
+    "menu_dependency": "False",
+    "auth_gate_stage": "NONE",
+    "entry_control_type": "TEXT_LINK",
+    "entry_x_norm": "0.8843",
+    "entry_y_norm": "0.8519",
+    "experienced_flow_sequence": "['SELECT_FUNCTION']"
+   },
+   {
+    "target_id": "F5-02",
+    "service": "SRT",
+    "family_id": "F5",
+    "terminal_reason": "ENDPOINT_REACHED",
+    "activation_depth": "1",
+    "menu_dependency": "False",
+    "auth_gate_stage": "NONE",
+    "entry_control_type": "ICON_TEXT",
+    "entry_x_norm": "1.0",
+    "entry_y_norm": "0.3146",
+    "experienced_flow_sequence": "['SELECT_FUNCTION']"
+   },
+   {
+    "target_id": "F5-05",
+    "service": "티머니 시외버스",
+    "family_id": "F5",
+    "terminal_reason": "ENDPOINT_REACHED",
+    "activation_depth": "1",
+    "menu_dependency": "False",
+    "auth_gate_stage": "NONE",
+    "entry_control_type": "TEXT_LINK",
+    "entry_x_norm": "0.5",
+    "entry_y_norm": "0.545",
+    "experienced_flow_sequence": "['SELECT_FUNCTION']"
+   }
+  ],
+  "collection_run_mix": {
+   "E-REAL-CENSUS-1230": 15,
+   "E-REAL-CENSUS-1230-R2": 22,
+   "E-REAL-CENSUS-1230-R2B": 13
+  },
+  "superseded_rows": 35
+ },
+ "이행_요약": {
+  "Figure1": "3집단 색 분리 — USABLE 8 / SITE-SIDE 16 / MEASUREMENT 26, 합 50 · unmapped 0. FORBIDDEN 은 measurement 쪽. 제목은 ‘시간제한 수집 종료 시점의 acquisition state’",
+  "Figure2": "n=8 개별 사례. ‘분포’ 어휘를 쓰지 않았다",
+  "Figure3": "n=8 flow. 관측된 스텝만",
+  "Figure4": "measurement boundary — 50 → 50 attempted → k usable → 8 geometry → 3 paired label",
+  "폐기": "implementation · label · sequence heatmap 3종",
+  "필수문장": "산출에 그대로 실었다",
+  "provenance_전용": "collection_run·superseded_runs 를 통계변수로 쓰지 않았다"
+ },
+ "D_자기결함_1건": "보고서 그림에 한글 제목이 들어가는데 폰트를 지정하지 않아 **글자가 네모로 깨진 채 저장되고 경고만 stderr 로 나갔다.** 그림 파일은 정상으로 보인다 — 이 세션 계열의 실패다. NanumGothic 지정으로 시정",
+ "limitation": "k 는 C 의 pre-R3 provenance 확인 전까지 미확정이다. Figure 4 의 [k] 자리는 현재 mart 실측값으로 그려져 있으며 C 확정 후 재렌더한다. mart 가 회차 중 5290e0c3 로 다시 바뀌어 최종 sha 확정 시 재렌더가 필요하다",
+ "not_a_verdict": "관측이자 그림 산출 보고다. claim 은 C 재계산·A freeze 대상이다",
+ "created_at_kst": "2026-08-28T11:50:53+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}
