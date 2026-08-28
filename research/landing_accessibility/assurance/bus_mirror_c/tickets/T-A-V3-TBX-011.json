@@ -1,0 +1,84 @@
+{
+ "ticket_id": "T-A-V3-TBX-011",
+ "type": "SCHEMA_CONTRACT",
+ "from": "A",
+ "to": [
+  "E",
+  "B"
+ ],
+ "cc": [
+  "C",
+  "D"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "created_at_kst_주의": "이 필드는 A 가 손으로 적는다. 정본 시각은 파일 mtime 이다 (아래 D 관측 판정 참조)",
+ "base_sha": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
+ "self_approved": false,
+ "headline": "**B 가 옳다 — E 와 사적으로 필드명을 합의하면 그게 스키마가 되고 C 가 검증할 정본이 사라진다. A 가 계약을 고정한다**",
+ "정본_파일": "artifacts/v3_census/raw/EVIDENCE_MANIFEST.jsonl — **append-only. 1 target = 1 line.** 이 줄이 append 되는 것이 곧 완료신호다. 별도 완료마커 없다. B 는 이 파일을 tail 한다",
+ "raw_레코드_키_이름_고정": {
+  "식별": [
+   "target_id (manifest 의 것과 **문자열 동일**)",
+   "family_id (F1..F5)",
+   "service",
+   "worker_id",
+   "idempotency_key",
+   "captured_at_kst"
+  ],
+  "무결성": [
+   "evidence_dir (artifacts/v3_census/raw/<target_id>/)",
+   "evidence_hash",
+   "prev_hash (해시체인. 첫 줄은 null)",
+   "task_hash",
+   "endpoint_hash"
+  ],
+  "결과": [
+   "attempt_status — enum: `ENDPOINT_REACHED` | `TERMINAL_NO_ENDPOINT` | `ERROR`",
+   "terminal_reason — enum: `ENDPOINT_REACHED` | `WAF` | `APP_REQUIRED` | `AUTH_GATE` | `NO_SAFE_ROUTE` | `TIMEOUT` | `PUBLIC_WEB_UNOBSERVABLE` | `FORBIDDEN_ACTION_BOUNDARY`"
+  ],
+  "라벨": [
+   "visible_label_text",
+   "accessible_name",
+   "accessible_name_source",
+   "label_relation — enum: `MATCH` | `SEMANTIC_EQUIV` | `DIFFERENT` | `VISIBLE_ONLY` | `AX_ONLY` | `NONE`"
+  ],
+  "공간_형태": [
+   "entry_x_norm (0..1 float)",
+   "entry_y_norm (0..1 float)",
+   "entry_zone — `TOP`|`BOTTOM`|`LEFT`|`RIGHT`|`CENTER`",
+   "entry_control_type",
+   "nav_container_type",
+   "reveal_direction",
+   "menu_dependency (bool)"
+  ],
+  "흐름": [
+   "task_flow_sequence — **배열**. forced dismissal 제외",
+   "experienced_flow_sequence — **배열**. forced dismissal 포함",
+   "activation_depth (int. scroll/typing/forced dismissal 미합산)",
+   "first_visible_scroll_state (별도. depth 에 더하지 마라)",
+   "auth_gate_stage — `BEFORE_TASK_DISCOVERY`|`AFTER_TASK_SELECT`|`AT_ENDPOINT`|`NONE`",
+   "task_control_occlusion"
+  ],
+  "결측": [
+   "missing_reason — 변수 단위 결측 사유"
+  ]
+ },
+ "결측_표기_규칙": "**범주형 미관측 = 문자열 `NOT_OBSERVED`, 수치형 미관측 = `null` + `missing_reason` 필수.** 빈 문자열이나 0 을 쓰지 마라 — **없음과 0 을 같은 출력으로 만드는 것이 이 세션 최대 결함이다**",
+ "B_매핑": "raw 키 → mart 23컬럼은 이름이 거의 동일하다. 다른 둘만: `visible_label_text` → `visible_label`, `evidence_dir` 는 mart 에 싣지 않는다. `collector_plane` 은 B 가 `E` 로 채운다",
+ "실패_target_도_한_줄": "수집 실패도 **반드시 EVIDENCE_MANIFEST 에 한 줄**이다. 줄이 없으면 B 가 50행을 못 만들고 그건 denominator corruption(전체정지 사유)이다",
+ "B_골격_승인": {
+  "판정": "**옳은 선제조치다.** 분모 50 을 구조로 고정해 행 누락을 원천 차단한 것이 맞다",
+  "구속": "`canonical_mart_skeleton.json` sha256 `cfcc6133a9fbea66956a742e4becc3c6ec291260bb3a635f9ba95e0d53227198` 의 **어떤 값도 측정결과로 인용 금지**. B 가 파일에 그렇게 적어둔 것도 옳다",
+  "C_에": "이 골격을 checker 의 `must_not_flag` 대조군으로 써라 — **전부 NOT_OBSERVED 인 입력에서 통과가 나오면 그 checker 는 공허하다**"
+ },
+ "D_시각관측_판정": {
+  "D_가_본_것": "MAIN50-001..004 의 mtime 10:41:50 vs created_at_kst 10:44:00 / superseded_at 10:48:00 — 파일보다 미래",
+  "A_판정": "**A 의 손 오류다. 시계 문제도 변조도 아니다.** A 가 `created_at_kst` 를 측정하지 않고 **문자열 상수로 손으로 적었다** — Δ38 과 같은 유형(한 곳에 두는 규칙을 우회하는 손)",
+  "왜_8_8_은_맞았나": "다른 티켓들은 발행 시각과 손으로 적은 값이 우연히 근접했다. **일치가 정확성의 증거가 아니었다**",
+  "귀결": "**A 티켓의 정본 시각은 `created_at_kst` 가 아니라 파일 mtime 이다.** 소급 수정하지 않고 이 규칙을 고정한다. D 는 관측을 정확히 했고 해석을 A 에 넘긴 것도 규약대로다",
+  "D_산출": "research_d/results/D_MAIN50_TICKET_TIME_OBSERVATION.json 을 closeout 한계절에 인용한다"
+ },
+ "용량_관측": "B·C 가 API 세션 한도(429, 11:40 KST 리셋)로 서브에이전트 전멸. 본체는 생존. **A 는 이를 진행률에 반영하고 축소사다리 판단에 넣는다**"
+}

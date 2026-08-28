@@ -17,6 +17,7 @@ exit 0 ran · 2 did not run (controls / crash) · 3 NO_EVIDENCE_INPUT (no mart r
 import csv, datetime, glob, hashlib, json, os, pathlib, re, subprocess, sys
 HERE = pathlib.Path(__file__).resolve(); sys.path.insert(0, str(HERE.parent)); sys.path.insert(0, str(HERE.parents[1]))
 import census_qc_c as Q  # noqa: E402
+Q.TERMINAL_REASONS = tuple(sorted(set(Q.TERMINAL_REASONS) | {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY"}))  # TBX-011 ∪ R11
 
 ROOT = pathlib.Path("/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census")
 OUT_A = ROOT / "assurance" / "MAIN50_EVIDENCE_ASSURED.json"; OUT_C = HERE.parent / "out" / "MAIN50_EVIDENCE_ASSURED_C.json"
@@ -130,6 +131,47 @@ def main():
             for t in miss: flag("MART.EVIDENCE_LINK", f"mart row {t} evidence_hash not found in EVIDENCE_MANIFEST chain", None, target=t)
             checks["MART.EVIDENCE_LINK"] = {"status": "FLAG" if miss else "PASS", "n_items": len(rows), "unlinked": miss}
     else: checks["RAW.CHAIN"] = {"status": "NOT_TESTABLE", "reason": f"EVIDENCE_MANIFEST {m_state} / 0 lines", "n_items": 0}
+    # --- TBX-011 raw record contract (E → B schema fixed by A). Enums are A's census contract; where they differ from the
+    #     R11/R7/R13 vocabularies C reports the difference as an observation and validates against the TBX-011 set.
+    if raw_m:
+        TBX_TR = {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY"}
+        TBX_AS = {"ENDPOINT_REACHED", "TERMINAL_NO_ENDPOINT", "ERROR"}; TBX_LR = {"MATCH", "SEMANTIC_EQUIV", "DIFFERENT", "VISIBLE_ONLY", "AX_ONLY", "NONE", "NOT_OBSERVED"}
+        TBX_ZONE = {"TOP", "BOTTOM", "LEFT", "RIGHT", "CENTER", "NOT_OBSERVED"}; TBX_AUTH = {"BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "NONE", "NOT_OBSERVED"}
+        REQ = ["target_id", "family_id", "service", "worker_id", "idempotency_key", "captured_at_kst", "evidence_dir", "evidence_hash", "prev_hash", "task_hash", "endpoint_hash",
+               "attempt_status", "terminal_reason", "visible_label_text", "accessible_name", "accessible_name_source", "label_relation", "entry_x_norm", "entry_y_norm", "entry_zone",
+               "entry_control_type", "nav_container_type", "reveal_direction", "menu_dependency", "task_flow_sequence", "experienced_flow_sequence", "activation_depth",
+               "first_visible_scroll_state", "auth_gate_stage", "task_control_occlusion", "missing_reason"]
+        NUM = ("entry_x_norm", "entry_y_norm", "activation_depth"); tf = {t["target_id"]: t["family_id"] for t in manifest["targets"]}
+        probs = []; thash = {}
+        for i, r in enumerate(raw_m, 1):
+            miss = [k for k in REQ if k not in r]
+            if miss: probs.append({"line": i, "kind": "MISSING_KEYS", "keys": miss})
+            if r.get("target_id") not in tf: probs.append({"line": i, "kind": "TARGET_NOT_IN_MANIFEST", "target_id": r.get("target_id"), "systemic": "target_outside_manifest"})
+            elif r.get("family_id") != tf[r["target_id"]]: probs.append({"line": i, "kind": "FAMILY_MISMATCH", "target_id": r["target_id"], "systemic": "task_contract_drift"})
+            if i == 1 and r.get("prev_hash") is not None: probs.append({"line": 1, "kind": "FIRST_PREV_HASH_NOT_NULL"})
+            if r.get("attempt_status") not in TBX_AS: probs.append({"line": i, "kind": "ATTEMPT_STATUS_ENUM", "value": r.get("attempt_status")})
+            if r.get("terminal_reason") not in TBX_TR: probs.append({"line": i, "kind": "TERMINAL_REASON_ENUM(TBX-011)", "value": r.get("terminal_reason")})
+            if r.get("label_relation") not in TBX_LR: probs.append({"line": i, "kind": "LABEL_RELATION_ENUM", "value": r.get("label_relation")})
+            if r.get("entry_zone") not in TBX_ZONE: probs.append({"line": i, "kind": "ENTRY_ZONE_ENUM", "value": r.get("entry_zone")})
+            if r.get("auth_gate_stage") not in TBX_AUTH: probs.append({"line": i, "kind": "AUTH_GATE_STAGE_ENUM", "value": r.get("auth_gate_stage")})
+            for k in ("task_flow_sequence", "experienced_flow_sequence"):
+                if k in r and not isinstance(r[k], list) and r[k] != "NOT_OBSERVED": probs.append({"line": i, "kind": "SEQUENCE_NOT_ARRAY", "key": k})
+            for k in NUM:
+                v = r.get(k)
+                if v in ("", "NOT_OBSERVED", "NA_NUMERIC_UNOBSERVED"): probs.append({"line": i, "kind": "NUMERIC_MISSING_MUST_BE_NULL", "key": k, "value": v})
+                if v is None and not (r.get("missing_reason") or ""): probs.append({"line": i, "kind": "NULL_WITHOUT_MISSING_REASON", "key": k})
+            ed = r.get("evidence_dir")
+            if isinstance(ed, str) and ed and not os.path.isdir(ed if os.path.isabs(ed) else os.path.join("/home/sieg/projects-wsl/ProjectFinal", ed)): probs.append({"line": i, "kind": "EVIDENCE_DIR_ABSENT", "evidence_dir": ed})
+            if r.get("family_id") in tf.values(): thash.setdefault(r.get("family_id"), set()).add(r.get("task_hash"))
+        from collections import Counter
+        dk = {k: n for k, n in Counter(r.get("idempotency_key") for r in raw_m).items() if n > 1}; dt = {k: n for k, n in Counter(r.get("target_id") for r in raw_m).items() if n > 1}
+        for k, n in dk.items(): probs.append({"kind": "IDEMPOTENCY_KEY_DUP", "key": k, "n": n, "systemic": "duplicate_launch"})
+        for k, n in dt.items(): probs.append({"kind": "TARGET_MULTI_LINE", "target_id": k, "n": n, "systemic": "duplicate_launch", "note": "TBX-011: 1 target = 1 line"})
+        multi = {f: sorted(map(str, v)) for f, v in thash.items() if len(v) > 1}
+        for f, v in multi.items(): probs.append({"kind": "TASK_HASH_VARIES_WITHIN_FAMILY", "family": f, "hashes": v, "systemic": "task_contract_drift", "note": "one frozen task per family ⇒ one task_hash expected (hash rule not published; consistency only)"})
+        for x in probs: flag("RAW.CONTRACT_TBX011", x.get("kind"), x.get("systemic"), **{k: v for k, v in x.items() if k not in ("kind", "systemic")})
+        checks["RAW.CONTRACT_TBX011"] = {"status": "FLAG" if probs else "PASS", "n_items": len(raw_m), "problems": len(probs), "by_kind": dict(Counter(x["kind"] for x in probs)),
+                                         "vocabulary_observation": "TBX-011 terminal_reason 8 values vs R11 16 values — C validates raw against TBX-011 (A's census contract); mart terminal_reason is checked against the union; entry_zone 5 values vs R7 7 zones; auth_gate_stage NONE vs R13 UNDETERMINED — reported, not judged"}
     # --- forbidden-action presence probe over raw dirs
     dirs = [d for d in glob.glob(str(ROOT / "raw" / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0
     for d in dirs:
