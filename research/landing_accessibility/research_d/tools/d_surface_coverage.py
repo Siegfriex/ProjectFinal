@@ -57,6 +57,27 @@ _PROSE = ("왜", "뜻", "note", "why", "규칙", "축", "이유", "말하지", "
           "무엇을", "어떻게", "설명", "출처", "대상", "범위", "관계", "read")
 
 
+def _deep_key_names(obj, depth: int = 0) -> set:
+    """반환 안의 **모든 깊이**의 키 이름. [D-DEF-94]
+
+    `ambiguous_keys` 는 최상위끼리만 봤다 — 그래서 `d_tool_health` 의 **중첩** 키
+    `hits` 가 `d_retractions.hits` 를 '표시됨' 으로 만든 것을 그 축이 못 봤다
+    (`D-DEF-93`). 이름을 바꿔 하나는 없앴지만 **나머지를 세지 않았다.**
+    """
+    if depth > 6:
+        return set()
+    out = set()
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if isinstance(k, str):
+                out.add(k)
+            out |= _deep_key_names(v, depth + 1)
+    elif isinstance(obj, (list, tuple)):
+        for v in obj[:50]:                         # 긴 목록은 앞부분만 — 키 이름은 같다
+            out |= _deep_key_names(v, depth + 1)
+    return out
+
+
 def _referenced(key: str, txt: str) -> bool:
     """스캔이 그 키를 **값으로 꺼내 쓰는가**.
 
@@ -111,6 +132,13 @@ ACCEPTED_UNSURFACED = {
     ("d_tool_health", "blocks"):
         "헤레독 블록의 tag·시작행·줄수. 스캔은 `헤레독 1블록` 으로 **개수**를 찍고 오류가 나면 "
         "행 번호를 찍는다 — 정상일 때 블록 명세는 소음이다",
+    # [D-DEF-94] 충돌로 되돌려진 둘 — 값은 안 찍히는 것이 맞다
+    ("d_tool_health", "rows"):
+        "도구 71개의 모듈별 명세다. 스캔은 `루프 24/26 · 문법만 1/45` 로 **수**를 찍고 "
+        "루프에서 대조군이 없는 것만 이름을 찍는다 — 71줄 명세는 소음이다",
+    ("d_ticket_schema_check", "violations"):
+        "위반 상세 목록이다. 스캔은 `새 0 / baseline 55` 와 `by_field` 분해를 찍는다 — "
+        "**새 위반이 생기면 그 분해가 먼저 움직인다**",
     ("d_ledger_shape", "inner_records"):
         "대장 형태 검사의 내부 세부. 상위 `entries`·`caught_pre_emission` 가 이미 표시되고 "
         "이 수가 바뀌어도 대장의 두 분류는 달라지지 않는다",
@@ -139,7 +167,8 @@ def check() -> dict:
         _s.path.insert(0, str(TOOLS))
     scan_txt = SCAN.read_text(encoding="utf-8") if SCAN.exists() else ""
     rows, unsurfaced = [], []
-    key_owners: dict = {}          # [D-DEF-93] 키 이름 → 그 키를 내는 모듈들
+    key_owners: dict = {}          # [D-DEF-93] 최상위 키 이름 → 그 키를 내는 모듈들
+    deep_owners: dict = {}         # [D-DEF-94] **모든 깊이**의 키 이름 → 모듈들
     for mod_name, fn_name in derive_targets():
         try:
             mod = importlib.import_module(mod_name)
@@ -163,29 +192,63 @@ def check() -> dict:
                      "signal_keys": len(sig), "unsurfaced": miss})
         for k in sig:
             key_owners.setdefault(k, set()).add(mod_name)
+        for k in _deep_key_names(res):
+            deep_owners.setdefault(k, set()).add(mod_name)
         for k in miss:
             rec = {"module": mod_name, "key": k}
             acc = ACCEPTED_UNSURFACED.get((mod_name, k))
             if acc:
                 rec["accepted_reason"] = acc
             unsurfaced.append(rec)
-    # 목록에는 있는데 검사가 더는 내지 않는 키 — **손 목록이 썩은 자리**
-    live = {(u["module"], u["key"]) for u in unsurfaced}
-    stale = [{"module": m, "key": k, "왜": "검사가 더는 이 키를 내지 않는다 — 목록에서 뺀다"}
-             for (m, k) in ACCEPTED_UNSURFACED if (m, k) not in live]
-    unreviewed = [u for u in unsurfaced if "accepted_reason" not in u]
     # [D-DEF-93] **이름 대조는 모듈을 구분하지 않는다.** 두 모듈이 같은 키 이름을 내면
     # 한쪽을 찍은 것이 다른 쪽도 찍은 것으로 읽힌다 — `hits` 가 실제로 그랬다
     # (`d_tool_health` 쪽 표시가 생기자 `d_retractions.hits` 가 '표시됨' 이 됐다).
     shared = {k: sorted(v) for k, v in key_owners.items() if len(v) > 1}
     ambiguous = [{"key": k, "modules": v} for k, v in sorted(shared.items())
                  if _referenced(k, scan_txt)]
+    # [D-DEF-94] 중첩까지 포함한 충돌 — 그런데 **총수는 신호가 아니다.**
+    # `verdict` 는 11개 모듈이 다 내는 보편 키다. 위험한 것은 **어딘가에서 신호인 키**
+    # 뿐이다: 그런 키만 '표시됨' 오판을 만든다(`hits` 가 그랬다). 나머지는 그냥 겹칠 뿐이다.
+    deep_shared = {k: sorted(v) for k, v in deep_owners.items() if len(v) > 1}
+    ambiguous_deep = [
+        {"key": k, "modules": v,
+         "signal_in": sorted(key_owners.get(k, ()))}
+        for k, v in sorted(deep_shared.items())
+        if _referenced(k, scan_txt) and k not in shared and k in key_owners]
+    deep_benign = [k for k, v in sorted(deep_shared.items())
+                   if _referenced(k, scan_txt) and k not in shared and k not in key_owners]
+
+    # [D-DEF-94] 충돌로 '표시됨' 판정이 **믿을 수 없는** 키는 미표시로 되돌린다 —
+    # **불확실한 것을 통과로 세지 않는다.** 그래야 사람이 판단하게 된다.
+    for amb in ambiguous_deep:
+        for mod in amb["signal_in"]:
+            if not any(u["module"] == mod and u["key"] == amb["key"] for u in unsurfaced):
+                rec = {"module": mod, "key": amb["key"],
+                       "왜_되돌렸나": f"이름 충돌 — {amb['modules']} 가 같은 이름을 쓴다"}
+                acc = ACCEPTED_UNSURFACED.get((mod, amb["key"]))
+                if acc:
+                    rec["accepted_reason"] = acc
+                unsurfaced.append(rec)
+
+    # 목록에는 있는데 검사가 더는 내지 않는 키 — **손 목록이 썩은 자리**
+    live = {(u["module"], u["key"]) for u in unsurfaced}
+    stale = [{"module": m, "key": k, "왜": "검사가 더는 이 키를 내지 않는다 — 목록에서 뺀다"}
+             for (m, k) in ACCEPTED_UNSURFACED if (m, k) not in live]
+    unreviewed = [u for u in unsurfaced if "accepted_reason" not in u]
+
     return {"verdict": "INFO",              # **판정이 아니다** — 목록만 낸다
             "n_modules": len(rows), "rows": rows,
             "n_unsurfaced": len(unsurfaced), "unsurfaced": unsurfaced,
             "n_unreviewed": len(unreviewed), "unreviewed": unreviewed,
             "n_stale_accepted": len(stale), "stale_accepted": stale,
             "n_ambiguous_keys": len(ambiguous), "ambiguous_keys": ambiguous,
+            "n_ambiguous_nested": len(ambiguous_deep), "ambiguous_nested": ambiguous_deep,
+            "n_nested_benign": len(deep_benign), "nested_benign": deep_benign,
+            "**중첩 충돌 총수는 신호가 아니다**": (
+                "`verdict` 처럼 **모든 검사가 내는 보편 키**는 겹쳐도 오판을 만들지 않는다 — "
+                "표시 대조는 **신호로 뽑힌 키**만 찾기 때문이다. "
+                "`ambiguous_nested` 는 **어딘가에서 신호인 키**만 세고, "
+                "나머지는 `nested_benign` 으로 따로 둔다"),
             "**이름 대조는 모듈을 구분하지 않는다**": (
                 "두 모듈이 같은 키 이름을 내면 한쪽 표시가 다른 쪽도 표시된 것으로 읽힌다. "
                 "`ambiguous_keys` 는 **그렇게 읽힌 것**이다 — '표시됨' 으로 세지만 "

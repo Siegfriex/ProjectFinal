@@ -272,6 +272,11 @@ try:
     if _sf.get("n_ambiguous_keys"):
         print(f"   이름 충돌 {_sf['n_ambiguous_keys']} — **이름 대조는 모듈을 구분하지 않는다**: "
               f"{[a['key'] for a in _sf['ambiguous_keys']]}")
+    if _sf.get("n_ambiguous_nested") or _sf.get("n_nested_benign"):
+        print(f"   중첩 충돌 : **위험 {_sf.get('n_ambiguous_nested')}**"
+              f"{[a['key'] for a in (_sf.get('ambiguous_nested') or [])]} "
+              f"· 무해 {_sf.get('n_nested_benign')}{_sf.get('nested_benign')} "
+              f"— 위험한 것만 **미표시로 되돌린다**(불확실한 것을 통과로 세지 않는다)")
     for _st in _sf["stale_accepted"]:
         print(f"   ** 목록 썩음 ** {_st['module']}.{_st['key']} — 검사가 더는 내지 않는다")
     print("   (판정이 아니다 — 무엇이 신호인지는 자동으로 정해지지 않는다)")
