@@ -80,7 +80,13 @@ def parse_limitation(md: Path) -> str:
     if not md.exists():
         return "NO_FINDINGS_FILE"
     txt = md.read_text(encoding="utf-8")
-    m = re.search(r"^##+\s*Limitations?\b.*?$(.*?)(?=^##\s|\Z)", txt, re.M | re.S)
+    # [시정] `^##+\s*Limitations?` 는 **번호가 붙은 표제를 못 잡는다.**
+    # D 산출은 `## 12. Limitation` · `## 8. 가장 무거운 limitation` 형태를 쓴다.
+    # 이 정규식 때문에 **한계가 있는 18건이 '한계 절 없음' 으로 나왔다** —
+    # 빈 값이었을 때는 조용했고, 직전 회차에 sentinel 을 넣자 그것이
+    # **'한계가 없다' 는 적극적 주장**이 될 뻔했다. 표제 안 어디든 허용한다.
+    m = re.search(r"^#{2,4}\s*[^\n]*?\blimitations?\b[^\n]*$(.*?)(?=^#{2,4}\s|\Z)",
+                  txt, re.M | re.S | re.I)
     if not m:
         return "NO_LIMITATION_SECTION"
     body = [ln.strip(" -*0123456789.") for ln in m.group(1).splitlines() if ln.strip()]
