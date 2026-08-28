@@ -172,6 +172,27 @@ W5E 가 `evidence_defect` fixture 에서 DOM `querySelector` 는 button 을 못 
 `ax_node` 키를 아예 넘기지 않은 것은 "AX 에 없다" 가 아니라 "호출자가 알려주지 않았다"
 이므로 divergence 판정에서 제외하고 `AX_NODE_ABSENT` note 만 남긴다.
 
+### `Δ48-R42` — 형태 오류는 `dom_ax_divergence` 에 값으로 기여하지 못한다
+
+`[Δ48 인용]` *"`dom_ax_divergence = ax_declared and not ax_observed` — **형태 오류가
+`DOM`/`AX` 불일치라는 실질 관측으로 위장한다.** `Δ39-R32` 는 부재와 형태 위반이 **같은
+출력**이 되는 것을 막았다. 이건 더 나쁘다 — 형태 위반이 **다른, 의미 있어 보이는
+출력**이 된다. 계약 위반이 관측으로 위장하는 것을 넘어 **없는 현상을 만든다.**
+**금지한다.** 형태 위반은 `raise` 로 끝나고, 어떤 관측 변수에도 값으로 기여하지 않는다."*
+
+그래서 `ax_node` 는 `R32` 세 상태로 갈린다 — 판정은 `_resolve_ax_observation()` 하나가
+갖는다:
+
+| 입력 | 상태 | 산출 |
+|---|---|---|
+| `ax_node` 키 부재 | **부재**(호출자가 안 알려줬다) | `dom_ax_divergence` 판정에서 제외 · `AX_NODE_ABSENT` |
+| `ax_node=None` · `dict` | **존재**(관측했다) | `dom_ax_divergence` 실측 |
+| `ax_node` 가 그 밖의 타입 | **형태 위반** | `AxNodeShapeError` **raise** — 값 없음 |
+
+`ax_node=None` 은 형태 위반이 아니다 — `ax_join` 이 *찾아봤는데 AX 에 없었다* 를 그렇게
+적기 때문이다(`task_control_ax_field`). 그 경우의 `dom_ax_divergence=True` 는 **실측이지
+형태 오류가 만든 값이 아니다.**
+
 ## SEMANTIC_EQUIV 를 내지 않는다
 
 04 §5: "Unicode normalize + whitespace normalize 후 exact; 사전 고정 synonym map 으로
@@ -195,6 +216,7 @@ __all__ = [
     "ZONE_LEFT_X_MAX",
     "ZONE_RIGHT_X_MIN",
     "ZONE_TOP_Y_MAX",
+    "AxNodeShapeError",
     "SurfaceMeasurement",
     "measure_surface",
     "normalize_label",
@@ -525,6 +547,63 @@ def _entry_observed_state(state_index: str | None, nav_container_type: str | Non
     return state_index
 
 
+# ── `Δ48-R42` — `ax_node` 형태는 관측 변수에 값으로 기여하지 못한다 ──────────
+
+
+class AxNodeShapeError(TypeError):
+    """`task_control["ax_node"]` 가 형태 계약 밖이다 — **계약 위반이지 관측이 아니다.**
+
+    `[Δ48-R42 인용]` *"형태 위반은 `raise` 로 끝나고, 어떤 관측 변수에도 값으로 기여하지
+    않는다."*
+
+    이 예외가 없던 동안 형태 위반(`ax_node` 가 문자열·리스트 등)은
+    `dom_ax_divergence=True` 로 흘렀다. 그것은 *"보조기술 사용자와 시각 사용자가 다른
+    화면을 보고 있다"* 는 **실질 관측**의 자리다 — 계약 위반이 그 자리에 앉으면
+    **없는 현상이 만들어진다.**
+    """
+
+
+def _resolve_ax_observation(task_control: dict[str, Any]) -> tuple[bool, bool]:
+    """`R32` 세 상태 판정 — `(ax_declared, ax_observed)`.
+
+    이 함수가 `dom_ax_divergence` 로 가는 **유일한 입구**다. 두 산출 경로(control 을 DOM
+    에서 찾은 경로 · 못 찾은 경로)가 각자 이 판정을 다시 쓰면 한쪽만 고쳐지는 날이 온다 —
+    `Δ48` 이 지적한 결함이 실제로 못 찾은 경로에서만 관측됐다.
+
+    Returns:
+        `ax_declared` — 호출자가 `ax_node` 키로 **무언가를 알려줬는가**.
+        `ax_observed` — AX 쪽에서 이 control 이 **실제로 관측됐는가**
+        (`ignored: True` 는 AX 가 무시한 노드이므로 관측되지 않은 것으로 센다).
+
+    Raises:
+        AxNodeShapeError: `ax_node` 가 `dict` 도 `None` 도 아니다(형태 위반), 또는
+            `ax_node["ignored"]` 가 `bool` 이 아니다. **`dom_ax_divergence` 를 포함해
+            어떤 관측 변수도 이 입력에서 값을 받지 않는다** (`Δ48-R42`).
+    """
+    if "ax_node" not in task_control:
+        # 부재 — "AX 에 없다" 가 아니라 "호출자가 알려주지 않았다". divergence 판정 제외.
+        return False, False
+    ax_raw = task_control["ax_node"]
+    if ax_raw is None:
+        # 존재하는 관측이다 — `ax_join.task_control_ax_field` 가 *찾아봤는데 AX 에 없었다*
+        # 를 이렇게 적는다. 형태 위반이 아니므로 divergence 가 **실측으로** 참이 된다.
+        return True, False
+    if not isinstance(ax_raw, dict):
+        raise AxNodeShapeError(
+            f"task_control['ax_node'] 는 dict 이거나 None 이어야 한다: {type(ax_raw).__name__} "
+            "— 형태 위반은 dom_ax_divergence 를 포함한 어떤 관측 변수에도 값으로 기여하지 "
+            "않는다 (Δ48-R42). 키를 아예 넘기지 않으면 '호출자가 알려주지 않았다' 로 기록된다."
+        )
+    ignored = ax_raw.get("ignored")
+    if ignored is not None and not isinstance(ignored, bool):
+        raise AxNodeShapeError(
+            f"task_control['ax_node']['ignored'] 는 bool 이거나 부재여야 한다: {ignored!r} "
+            "— 이 값이 형태 위반이면 ax_observed 가 조용히 True 로 떨어지고 "
+            "dom_ax_divergence 가 형태 오류로 정해진다 (Δ48-R42)."
+        )
+    return True, ignored is not True
+
+
 # ── 아이콘 / 텍스트 신호 ─────────────────────────────────────────────────────
 
 
@@ -833,6 +912,9 @@ def measure_surface(
     Raises:
         ValueError: `task_control["selector"]` 가 없거나 viewport 가 양수가 아닐 때.
             명세 공백을 추정으로 메우지 않는다.
+        AxNodeShapeError: `task_control["ax_node"]` 가 형태 계약 밖일 때. **형태 위반은
+            `dom_ax_divergence` 를 포함한 어떤 관측 변수에도 값으로 기여하지 않는다**
+            (`Δ48-R42`). 이 함수는 그 입력에 대해 `SurfaceMeasurement` 를 내지 않는다.
     """
     selector = task_control.get("selector")
     if not isinstance(selector, str) or not selector:
@@ -850,9 +932,11 @@ def measure_surface(
 
     # AX 쪽이 이 control 을 갖고 있는가. `ax_node` 키를 넘기지 않은 것은 "AX 에 없다" 가
     # 아니라 "호출자가 알려주지 않았다" 이므로 divergence 판정에서 제외한다.
-    ax_declared = "ax_node" in task_control
-    ax_raw = task_control.get("ax_node")
-    ax_observed = isinstance(ax_raw, dict) and ax_raw.get("ignored") is not True
+    #
+    # `Δ48-R42` — 형태 위반은 여기서 **raise 로 끝난다.** 이전에는 형태 위반이
+    # `ax_observed=False` 로 떨어져 `dom_ax_divergence=True` 라는 실질 관측을 만들어냈다.
+    # 판정은 `_resolve_ax_observation` 하나가 갖는다(두 산출 경로가 따로 판정하지 않는다).
+    ax_declared, ax_observed = _resolve_ax_observation(task_control)
 
     # ── control 을 각 state 에서 찾는다 ────────────────────────────────────
     found: list[tuple[str, dict[str, Any], dict[str, Any]]] = []  # (state, rec, raw)

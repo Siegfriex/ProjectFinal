@@ -480,7 +480,61 @@ class V3PathOrderDivergenceError(RuntimeError):
 
     이 예외가 나도 `discover_task_candidates` 의 후보 열거와 guard 판정은 **이미 끝나
     있고**, 호출부가 그것을 받는다. 잃는 것은 v2 순서로 밟은 경로 하나뿐이다.
+
+    ## `Δ47` ② — 이것은 `Δ36` ② 의 **부분 이행**이다
+
+    `[Δ47 인용]` *"이것은 **v3 가 자기 것을 쓰는 것이 아니라 v2 것을 쓰기를 거부하는
+    것**이다. `Δ36-②` 는 **`PARTIALLY_IMPLEMENTED`** 다."* / *"**막은 것이지 고친 것이
+    아니다.** 거부를 '해결' 로 적으면 안 된다."*
+
+    남은 이음매: `run_task_aware_scout` → v2 `l1_engine.Scout.scout()`. 두 전순서가
+    **일치할 때는 여전히 v2 Scout 가 경로를 밟는다.** v3 가 자기 전순서로 경로를 밟는
+    구현은 이 트리에 없다. 정본 서술은 `runner.DELTA36_2_REMAINING_SEAM` 이다.
+
+    ## 산출에 남는다
+
+    이 예외로 멈춘 run 은 `runner.seam_refusal_result()` 로 **행이 된다** —
+    `path_discovery_outcome=SEAM_REFUSED_V2_PATH_ORDER` · `policy_relative=True`.
+    행을 만들지 않으면 "발생하지 않았다" 와 "거부돼서 관측하지 못했다" 가 같은 출력이
+    되고, `pilot 5` 에서 발생 여부를 셀 수 없다 (`Δ47` ②).
     """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        task_id: str | None = None,
+        v2_order: Sequence[str] = (),
+        v3_order: Sequence[str] = (),
+    ) -> None:
+        super().__init__(message)
+        #: `pilot 5` 가 "어떤 구조에서 갈렸는가" 를 읽는 자리. 문자열 메시지를 다시 파싱해서
+        #: 복원하게 두지 않는다 — 그 파싱은 다음에 조용히 깨진다 (`Δ47` ① 과 같은 규율).
+        self.task_id = task_id
+        self.v2_order = tuple(v2_order)
+        self.v3_order = tuple(v3_order)
+
+    def divergence_detail(self) -> str:
+        """`runner.seam_refusal_result(divergence_detail=...)` 에 그대로 넣는 서술."""
+        return (
+            f"task_id={self.task_id!r} v2(min4)={list(self.v2_order[:5])} "
+            f"v3={list(self.v3_order[:5])}"
+        )
+
+    def as_observation_row(self, key: Any, **kwargs: Any) -> Any:
+        """이 거부를 **산출 행**으로 만든다 (`runner.seam_refusal_result`).
+
+        예외를 잡은 자리에서 행을 만드는 방법을 따로 찾아야 하면 그 자리는 결국 행을
+        만들지 않는다 — 그러면 "발생하지 않았다" 와 "거부돼서 관측하지 못했다" 가 같은
+        출력(행 없음)이 된다 (`Δ47` ②).
+
+        import 은 함수 안에서 한다. `runner` 는 `discovery` 를 import 하지 않지만,
+        모듈 최상단에서 역방향 의존을 만들면 다음에 그 방향이 생기는 날 순환이 된다.
+        """
+        from .runner import seam_refusal_result
+
+        kwargs.setdefault("divergence_detail", self.divergence_detail())
+        return seam_refusal_result(key, **kwargs)
 
 
 def path_order_divergence(
@@ -589,7 +643,12 @@ def run_task_aware_scout(
             f"v2(min4)={v2_order[:5]} / v3={v3_order[:5]}. "
             "Scout 내부 tie-break 은 l1_engine.py 에 하드코딩돼 있어 주입할 수 없고, "
             "그 파일은 v2 재현성 때문에 고치지 않는다 (Δ36 ②). v3 는 v2 순서로 고른 "
-            "경로를 자기 산출로 받지 않는다 — 발산이 남으면 ruling_10 위반이다."
+            "경로를 자기 산출로 받지 않는다 — 발산이 남으면 ruling_10 위반이다. "
+            "이 거부는 Δ36 ② 의 부분 이행이며(PARTIALLY_IMPLEMENTED) 이음매는 남아 "
+            "있다 — 막은 것이지 고친 것이 아니다 (Δ47 ②).",
+            task_id=task_id,
+            v2_order=v2_order,
+            v3_order=v3_order,
         )
 
     scout = Scout(

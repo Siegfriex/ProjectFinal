@@ -95,8 +95,8 @@ terminal 을 복원할 수 없고, 두 값을 **둘 다** 보존한다.
 ## 동반 필드 `terminal_reason` — `endpoint_status` 어휘는 안 바꾼다 (`T-A-V3-STEP1-007` R11)
 
 `endpoint_status` 는 7종 그대로 두고 **옆에 해상도를 둔다.** `Δ10-R11` 13값 + `Δ30`
-`BUDGET_EXCEEDED` + `Δ32` `NO_TASK_CANDIDATE_FOUND` = **15값**이며 정본은
-`TerminalReason` 이다. 규칙 셋:
+`BUDGET_EXCEEDED` + `Δ32` `NO_TASK_CANDIDATE_FOUND` + `Δ47` `PATH_NOT_FOUND_BY_POLICY`
+= **16값**이며 정본은 `TerminalReason` 이다. 규칙 셋:
 
 1. **모든 terminal 관측은 `endpoint_status` 와 `terminal_reason` 을 둘 다 갖는다.**
 2. `terminal_reason=OTHER` 는 **자유기술 note 필수**. note 없는 `OTHER` 는 스키마 위반이며
@@ -331,8 +331,9 @@ class TerminalResolution(StrEnum):
 
 
 class TerminalReason(StrEnum):
-    """`terminal_reason` **15값** — `T-A-V3-STEP1-007` (Δ10, R11) 13값
-    + `Δ30` `BUDGET_EXCEEDED`(14) + `Δ32` `NO_TASK_CANDIDATE_FOUND`(15).
+    """`terminal_reason` **16값** — `T-A-V3-STEP1-007` (Δ10, R11) 13값
+    + `Δ30` `BUDGET_EXCEEDED`(14) + `Δ32` `NO_TASK_CANDIDATE_FOUND`(15)
+    + `Δ47` `PATH_NOT_FOUND_BY_POLICY`(16).
 
     ## 왜 이 축이 따로 있는가
 
@@ -445,6 +446,39 @@ class TerminalReason(StrEnum):
     복원할 수 없다.
     """
 
+    PATH_NOT_FOUND_BY_POLICY = "PATH_NOT_FOUND_BY_POLICY"
+    """**16번째 값** — `Δ47` 이 추가했다. **선언된 정책이 허용 경로를 찾지 못했다.**
+
+    `[Δ47 인용]` *"`R37` 이 이 범주를 **분석에서 따로 세라**고 요구했다. `OTHER` 에 두면:
+    `OTHER` 하나가 **두 뜻**을 갖는다 — '정책이 못 찾았다' 와 '분류되지 않았다' /
+    구분이 **자유 텍스트 note 안**에 산다. **note 로만 구분되는 것은 범주가 아니다** /
+    세려면 문자열 매칭을 해야 하고, 그 매칭은 다음에 조용히 깨진다."*
+
+    ## 이것이 주장하는 것과 주장하지 않는 것
+
+    - 주장하는 것: `search_strategy` 로 선언된 정책이 이 후보 집합에서 endpoint 까지의
+      허용 경로에 도달하지 못했다는 **우리 정책에 대한 사실**.
+    - 주장하지 **않는** 것: 사이트에 그런 경로가 **없다**는 것. 그것은
+      `terminal=PUBLIC_WEB_UNOBSERVABLE` · `TASK_SURFACE_ABSENT` 이 하는 주장이며
+      이 값은 그 주장을 하지 않는다 (`R37` 2항 · `runner.assert_no_path_absence_claim`).
+
+    ## 다른 값들과의 경계
+
+    - `NO_TASK_CANDIDATE_FOUND`(15) — 후보가 **0건**이었다. 페이지에 대한 관측이지 정책에
+      대한 사실이 아니다. 이쪽은 후보가 **있었는데** 정책이 못 내려갔다.
+    - `BUDGET_EXCEEDED`(14) — 예산을 다 써서 **그만 봤다**. 이쪽은 예산이 남은 채로
+      더 갈 곳이 없었다.
+    - `AMBIGUOUS_MULTIPLE_CANDIDATES` — 후보가 여럿이라 **고르지 못했다**. 이쪽은 골랐고
+      그 끝이 endpoint 가 아니었다.
+    - `OTHER` — **분류되지 않았다.** `Δ47` 이전에는 이 값이 `OTHER` + note 로 기록됐고,
+      그래서 `OTHER` 하나가 두 뜻을 가졌다. 지금은 갈린다.
+
+    두 번째 축 `path_discovery_outcome=POLICY_DID_NOT_FIND_PATH` 가 **그대로 남아 있고**,
+    두 축이 서로를 검증한다 (`Δ47`: *"`path_discovery_outcome` 축은 `B` 가 만든 그대로
+    둔다. 두 축이 서로를 검증한다."*). note(`runner.PATH_NOT_FOUND_NOTE`)도 유지되지만
+    **구분은 note 에 의존하지 않는다** — 이 값 자체가 범주다.
+    """
+
 
 class TerminalCombinationError(ValueError):
     """`endpoint_status` × `terminal_reason` 이 허용 조합표 밖이다 — 불가능한 기록 시도."""
@@ -486,6 +520,9 @@ ALLOWED_ENDPOINT_STATUS_REASONS: dict[EndpointStatus, frozenset[TerminalReason |
             TerminalReason.BUDGET_EXCEEDED,
             # Δ32 — 페이지에 후보 control 이 실제로 없었다(관측). 계약 위반이 아니다.
             TerminalReason.NO_TASK_CANDIDATE_FOUND,
+            # Δ47 — 선언된 정책이 경로를 찾지 못했다. OTHER 에서 떼어낸 16번째 값이며
+            # `path_discovery_outcome=POLICY_DID_NOT_FIND_PATH` 와 짝이 된다.
+            TerminalReason.PATH_NOT_FOUND_BY_POLICY,
             TerminalReason.OTHER,
         }
     ),
@@ -686,6 +723,18 @@ class TerminalSignals:
     와 다르다 — 그쪽은 관측이고 이쪽은 관측을 그만둔 것이다. 둘 다 참이면 terminal 관측이
     앞서고, 이 사실은 `notes` 에 남는다(합치지 않는다)."""
 
+    policy_did_not_find_path: bool = False
+    """`Δ47` — 후보는 **있었는데** 선언된 정책이 endpoint 까지의 허용 경로를 찾지 못했다.
+
+    `scout_budget_exhausted`(예산을 다 써서 그만 봤다)와 **다른 사실**이고,
+    `task_candidate_count == 0`(후보가 아예 없었다)과도 **다른 사실**이다. 셋을 한 값에
+    담으면 분기가 넓은 서비스에서 더 자주 나는 탐색 실패가 사이트의 성질로 집계된다
+    (`Δ43`/`R37`).
+
+    이 값이 참이면 `endpoint_status=ABSTAIN` × `terminal_reason=PATH_NOT_FOUND_BY_POLICY`
+    다. **사이트에 경로가 없다는 주장이 아니다** — 그 주장은 이 모듈 어디에도 없다.
+    """
+
     task_candidate_count: int | None = None
     """`Δ32` — binding 단계에서 **실제로 바인딩된 후보 수**. `None` 은 미관측(binder 미주입)
     이며 `0`(관측했더니 후보가 없었다)과 다르다 — `Δ10-R13` 의 `NONE` ≠ `UNDETERMINED` 와
@@ -881,6 +930,32 @@ def classify_terminal(signals: TerminalSignals) -> TerminalOutcome:
                 endpoint_status=EndpointStatus.ABSTAIN,
                 terminal_reason=TerminalReason.BUDGET_EXCEEDED,
                 terminal_reason_note=budget_note,
+                resolution=TerminalResolution.UNDETERMINED,
+                auth_gate_stage=signals.auth_gate_stage,
+                challenge_kind=signals.challenge_kind,
+                notes=tuple(notes),
+            )
+
+        # `Δ47` — 후보는 있었는데 **선언된 정책이 허용 경로를 찾지 못했다.** `OTHER` 에
+        # 두면 한 값이 두 뜻('정책이 못 찾았다'·'분류되지 않았다')을 갖고 구분이 자유
+        # 텍스트 note 안에 산다. `[Δ47 인용]` *"note 로만 구분되는 것은 범주가 아니다."*
+        #
+        # 예산 소진 검사 **뒤**에 온다: 예산을 다 써서 멈춘 것은 "더 안 봤다" 이고
+        # 이 값은 "더 볼 곳이 없었다" 이므로, 둘 다 참이면 관측을 그만둔 사실이 앞선다
+        # (`runner._to_mart` 의 순서와 같다 — 두 자리가 어긋나면 같은 run 이 두 값을 낸다).
+        if signals.policy_did_not_find_path:
+            not_found_note = signals.other_reason_note or (
+                "선언된 정책이 허용 경로를 찾지 못했다 — 사이트에 경로가 부재한다는 "
+                "관측이 아니라 이 정책이 찾지 못했다는 사실이다 (R37)"
+            )
+            validate_status_reason(
+                EndpointStatus.ABSTAIN, TerminalReason.PATH_NOT_FOUND_BY_POLICY, not_found_note
+            )
+            return TerminalOutcome(
+                terminal=None,
+                endpoint_status=EndpointStatus.ABSTAIN,
+                terminal_reason=TerminalReason.PATH_NOT_FOUND_BY_POLICY,
+                terminal_reason_note=not_found_note,
                 resolution=TerminalResolution.UNDETERMINED,
                 auth_gate_stage=signals.auth_gate_stage,
                 challenge_kind=signals.challenge_kind,

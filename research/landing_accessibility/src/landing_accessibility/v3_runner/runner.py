@@ -272,6 +272,21 @@ PATH_DISCOVERY_NO_CANDIDATES = "NO_CANDIDATES_TO_SEARCH"
 PATH_DISCOVERY_PATH_FOUND = "PATH_FOUND"
 PATH_DISCOVERY_POLICY_DID_NOT_FIND = "POLICY_DID_NOT_FIND_PATH"
 PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET = "POLICY_STOPPED_ON_BUDGET"
+#: `Δ47` ② — **v2 전순서로 고른 경로를 v3 가 받기를 거부해서** 탐색이 성립하지 않았다
+#: (`discovery.V3PathOrderDivergenceError`). 다른 네 값 어디에도 접히면 안 된다:
+#:
+#: - `NOT_ATTEMPTED` — 탐색을 시도조차 안 했다. 이쪽은 **시도 직전에 거부했다.**
+#: - `NO_CANDIDATES_TO_SEARCH` — 후보가 0건이었다(페이지 관측). 이쪽은 후보가 **있었고**
+#:   그 후보 집합에서 두 전순서가 갈렸다.
+#: - `POLICY_DID_NOT_FIND_PATH` — 정책이 내려가다 막다른 곳에 빠졌다. 이쪽은 **한 걸음도
+#:   밟지 않았다** — v3 의 순서로 걷는 구현이 없어서다.
+#: - `POLICY_STOPPED_ON_BUDGET` — 예산을 다 썼다. 이쪽은 예산과 무관하다.
+#:
+#: `[Δ47 인용]` *"거부로 인한 미관측은 `R37` 과 같은 종류다. 거부는 페이지 구조(표시
+#: 원소의 `dom_order`)와 상관돼 발생한다. 따라서 **분모에 흡수하지 않고 별도 범주**로
+#: 세고, `policy_relative` 계열로 기록하며, **`pilot 5` 에서 발생 여부와 그 구조를
+#: 관측한다.**"*
+PATH_DISCOVERY_SEAM_REFUSED_V2_ORDER = "SEAM_REFUSED_V2_PATH_ORDER"
 PATH_DISCOVERY_VALUES: frozenset[str] = frozenset(
     {
         PATH_DISCOVERY_NOT_ATTEMPTED,
@@ -279,16 +294,106 @@ PATH_DISCOVERY_VALUES: frozenset[str] = frozenset(
         PATH_DISCOVERY_PATH_FOUND,
         PATH_DISCOVERY_POLICY_DID_NOT_FIND,
         PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET,
+        PATH_DISCOVERY_SEAM_REFUSED_V2_ORDER,
     }
 )
 
 #: 정책에 상대적인 결과 — **사이트에 대한 진술이 아니라 우리 정책에 대한 진술**이다.
 #: 분석에서 성공 분모에 흡수하면 편향이 사라진 것처럼 보인다 (`Δ43` 3항).
+#:
+#: `Δ47` ② 가 거부를 여기 넣는다 — 거부는 우리 도구의 상태에 대한 사실이지 사이트에 대한
+#: 관측이 아니다. 그리고 표시 원소의 `dom_order` 와 상관돼 발생하므로 `R37` 과 같은 종류의
+#: **구조와 상관된 편향**이다.
 POLICY_RELATIVE_OUTCOMES: frozenset[str] = frozenset(
-    {PATH_DISCOVERY_POLICY_DID_NOT_FIND, PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET}
+    {
+        PATH_DISCOVERY_POLICY_DID_NOT_FIND,
+        PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET,
+        PATH_DISCOVERY_SEAM_REFUSED_V2_ORDER,
+    }
 )
 
-#: `R37` 어휘 — `terminal_reason=OTHER` 의 의무 note. **"경로가 없다" 로 쓰지 않는다.**
+# ---------------------------------------------------------------------------
+# `Δ47` ② — `Δ36` ② 는 `PARTIALLY_IMPLEMENTED` 다. 이음매가 남았다
+# ---------------------------------------------------------------------------
+
+#: `Δ36` ②(v3 는 v2 전순서로 고른 경로를 받지 않는다)의 **이행 상태**. 산출 행마다 실린다.
+#:
+#: `[Δ47 인용]` *"이것은 **v3 가 자기 것을 쓰는 것이 아니라 v2 것을 쓰기를 거부하는
+#: 것**이다. `Δ36-②` 는 **`PARTIALLY_IMPLEMENTED`** 다. 이음매(`discovery.
+#: run_task_aware_scout` → v2 `Scout.scout()`)는 남아 있고, 그 사실이 산출에 남아야
+#: 한다."* / *"**막은 것이지 고친 것이 아니다.** 거부를 '해결' 로 적으면 안 된다."*
+DELTA36_2_STATUS = "PARTIALLY_IMPLEMENTED"
+
+#: 무엇이 **남아 있는가**. 상태 문자열만으로는 "무엇이 부분인지" 를 복원할 수 없다 —
+#: `Δ37` 의 `legacy_depth_null_reason` 과 같은 처리다(사유 없는 표지는 읽는 쪽이 지어낸다).
+DELTA36_2_REMAINING_SEAM = (
+    "v3 는 아직 자기 전순서로 경로를 밟지 않는다. `discovery.run_task_aware_scout` 는 "
+    "두 전순서가 일치할 때 v2 `l1_engine.Scout.scout()` 을 그대로 타고, 갈릴 때는 "
+    "`V3PathOrderDivergenceError` 로 거부한다(`path_discovery_outcome="
+    "SEAM_REFUSED_V2_PATH_ORDER`). `Scout._activation_candidates` 가 `min4_sort_key` 를 "
+    "본문에서 직접 부르는 `@staticmethod` 라 주입점이 없고, `l1_engine.py` 수정은 v2 "
+    "재현성 때문에 금지돼 있다. 막은 것이지 고친 것이 아니다 (Δ47 ②)."
+)
+
+# ---------------------------------------------------------------------------
+# `Δ48` ⑤ — `service_id`/`task_id` 는 조용히 다른 값으로 떨어지지 않는다
+# ---------------------------------------------------------------------------
+
+#: 호출자가 값을 줬다. 그 값이 그대로 실린다.
+IDENTITY_CALLER_SUPPLIED = "CALLER_SUPPLIED"
+#: 호출자가 **주지 않아서** 계약에서 파생했다. 부재를 값으로 메운 것이 아니라, 파생했다는
+#: 사실 자체를 산출에 남긴다 — `Δ37` 의 "NULL 에 사유를 붙인다" 와 같은 처리다.
+IDENTITY_DERIVED_FROM_CONTRACT = "DERIVED_FROM_CONTRACT"
+IDENTITY_PROVENANCE_VALUES: frozenset[str] = frozenset(
+    {IDENTITY_CALLER_SUPPLIED, IDENTITY_DERIVED_FROM_CONTRACT}
+)
+
+
+def _resolve_identity(
+    supplied: object,
+    *,
+    field: str,
+    contract_value: object,
+    contract_field: str,
+) -> tuple[str, str]:
+    """`R32` 세 상태로 가른다 — `(값, provenance)`.
+
+    이전 코드는 `supplied or contract_value` 였다. `or` 는 **부재와 형태 위반과 빈 값을
+    한 줄로 접는다**: `service_id=""` · `service_id=0` · `service_id=[]` 가 전부 조용히
+    계약의 `target_id` 로 떨어졌고, 산출은 그 행이 파생값이라는 것도 말하지 않았다.
+    그 결과가 `Δ48` 이 지목한 것이다 — **증거가 다른 서비스에 귀속된다.**
+
+    | 입력 | 상태 | 처리 |
+    |---|---|---|
+    | `None` | **부재** — 호출자가 안 줬다 | 계약에서 파생 + `DERIVED_FROM_CONTRACT` 기록 |
+    | `str` 이 아니거나 빈/공백 문자열 | **형태 위반** | `ObservationIdentityError` **raise** |
+    | 비어 있지 않은 `str` | **존재** | 그 값 + `CALLER_SUPPLIED` |
+
+    파생 자리도 검사한다 — 계약의 값이 형태 위반이면 파생값이 조용히 깨진 id 가 된다.
+
+    Raises:
+        ObservationIdentityError: 위 표의 형태 위반. 값을 지어내지 않고 멈춘다.
+    """
+    if supplied is None:
+        if not isinstance(contract_value, str) or not contract_value.strip():
+            raise ObservationIdentityError(
+                f"{field} 를 호출자가 주지 않았고 계약의 {contract_field} 도 형태 밖이다: "
+                f"{contract_value!r} — 증거 귀속이 걸린 값이라 지어내지 않는다 (Δ48 ⑤)"
+            )
+        return contract_value, IDENTITY_DERIVED_FROM_CONTRACT
+    if not isinstance(supplied, str) or not supplied.strip():
+        raise ObservationIdentityError(
+            f"{field} 형태 위반: {supplied!r} — 이전에는 이 값이 조용히 "
+            f"{contract_field} 로 떨어져 증거가 다른 서비스에 귀속됐다. 지금은 멈춘다 (Δ48 ⑤)"
+        )
+    return supplied, IDENTITY_CALLER_SUPPLIED
+
+
+#: `R37` 어휘 — 미발견 terminal 의 note. **"경로가 없다" 로 쓰지 않는다.**
+#:
+#: `Δ47` 이전에는 이것이 `terminal_reason=OTHER` 를 다른 `OTHER` 와 가르는 **유일한**
+#: 수단이었다. 지금은 `terminal_reason=PATH_NOT_FOUND_BY_POLICY` 가 범주를 갖고, 이 note
+#: 는 그 위에 얹히는 서술이다 — **구분이 이 문자열에 의존하지 않는다.**
 PATH_NOT_FOUND_NOTE = (
     "선언된 정책이 허용 경로를 찾지 못했다 (R37). 이것은 사이트에 그런 경로가 "
     "부재한다는 관측이 아니라 이 정책이 찾지 못했다는 사실이며, "
@@ -363,6 +468,15 @@ class ReplayStatus(StrEnum):
 
 class RunnerError(RuntimeError):
     """v3 runner 계약 위반."""
+
+
+class ObservationIdentityError(RunnerError):
+    """`Δ48` ⑤ — `service_id`/`task_id` 의 형태 위반. **증거 귀속이 걸린 값이다.**
+
+    `[Δ48 인용]` *"`runner.py` 의 `service_id`·`task_id` `or` fallback 4건은 배선 3건과
+    같은 급이다. `service_id` 가 조용히 다른 값으로 떨어지면 **증거가 다른 서비스에
+    귀속된다.** … **denominator corruption** 이다."*
+    """
 
 
 class ContractHashMismatchError(RunnerError):
@@ -647,7 +761,8 @@ class V3RunResult:
     #: `Δ32` — binding 단계에서 실제로 바인딩된 후보 수. `None` 은 **미관측**(binder
     #: 미주입)이고 `0` 은 **관측된 0건**이다. 둘을 합치면 분모를 복원할 수 없다.
     task_candidate_count: int | None = None
-    #: `Δ10-R11`(13) + `Δ30`(`BUDGET_EXCEEDED`) + `Δ32`(`NO_TASK_CANDIDATE_FOUND`) = 15값.
+    #: `Δ10-R11`(13) + `Δ30`(`BUDGET_EXCEEDED`) + `Δ32`(`NO_TASK_CANDIDATE_FOUND`)
+    #: + `Δ47`(`PATH_NOT_FOUND_BY_POLICY`) = 16값.
     #: 정본 어휘는 `terminal.TerminalReason` 이며 runner 는 자기가 아는 사유만 채운다.
     terminal_reason: str | None = None
     #: `Δ36` ③ — `terminal_reason=OTHER` 의 의무 note, 그리고 사유의 자유기술 근거.
@@ -657,6 +772,11 @@ class V3RunResult:
     path_discovery_outcome: str = PATH_DISCOVERY_NOT_ATTEMPTED
     #: `R3` — mart 의 모든 관측 행이 task_role 을 갖는다.
     task_role: str = TASK_ROLE_PRIMARY
+    #: `Δ48` ⑤ — 이 행의 `service_id`/`task_id` 가 **어디서 왔는가**. 호출자가 준 값과
+    #: 계약에서 파생한 값이 같은 출력이면, 파생이 틀렸을 때 어느 행이 영향을 받았는지
+    #: 복원할 수 없다. 증거 귀속이 걸린 축이라 값과 출처를 함께 싣는다.
+    service_id_provenance: str = IDENTITY_DERIVED_FROM_CONTRACT
+    task_id_provenance: str = IDENTITY_DERIVED_FROM_CONTRACT
     #: Δ9 — `(action_token, step_index, input_mode, included)` raw 근거.
     depth_conditional_tokens: tuple[Mapping[str, Any], ...] = ()
 
@@ -692,6 +812,10 @@ class V3RunResult:
             "service_id": self.service_id,
             "task_id": self.task_id,
             "run_id": self.run_id,
+            # `Δ48` ⑤ — 증거 귀속의 출처. 이 두 줄이 없으면 "호출자가 준 service_id" 와
+            # "계약에서 파생한 service_id" 가 산출에서 같은 값이 된다.
+            "service_id_provenance": self.service_id_provenance,
+            "task_id_provenance": self.task_id_provenance,
             "task_role": self.task_role,
             "phase_reached": self.phase_reached.value,
             "eligibility": self.eligibility,
@@ -707,6 +831,11 @@ class V3RunResult:
             "search_strategy": SEARCH_STRATEGY,
             "path_discovery_outcome": self.path_discovery_outcome,
             "policy_relative": self.policy_relative,
+            # `Δ47` ② — `Δ36` ② 는 **부분 이행**이다. 상태만 두면 무엇이 부분인지 복원할
+            # 수 없으므로 남은 이음매 서술을 함께 싣는다(`Δ37` 의 NULL+사유와 같은 처리).
+            # 이 두 줄을 지우면 소비자가 v3 경로 선택을 완전 이행으로 읽는다.
+            "delta36_2_seam_status": DELTA36_2_STATUS,
+            "delta36_2_remaining_seam": DELTA36_2_REMAINING_SEAM,
             # `Δ37` — legacy compatibility 컬럼은 **존재하고 값은 비어 있다**.
             # `02 §7` 이 요구한 것은 컬럼이고, 그 이름의 유일한 정의(v2.1 최소성 주장)를
             # v3 는 하지 않는다(`Δ36`). 값은 activation_depth · nav_container_depth 가 담는다.
@@ -993,12 +1122,31 @@ class V3Runner:
         task_id: str | None = None,
     ) -> V3RunResult:
         """`00 §9` 전체 경로. scout 는 여기서 **정확히 한 번의 탐색 국면**만 갖는다."""
+        # `Δ48` ⑤ — `or` fallback 을 걷어낸다. 부재·형태 위반·존재가 갈린다.
+        resolved_service, service_provenance = _resolve_identity(
+            service_id,
+            field="service_id",
+            contract_value=contract.target_id,
+            contract_field="contract.target_id",
+        )
+        resolved_task, task_provenance = _resolve_identity(
+            task_id,
+            field="task_id",
+            contract_value=contract.frozen_task,
+            contract_field="contract.frozen_task",
+        )
         key = ObservationKey(
-            service_id=service_id or contract.target_id,
-            task_id=task_id or contract.frozen_task,
+            service_id=resolved_service,
+            task_id=resolved_task,
             run_id=run_id,
         )
-        base = _empty_result(key, Phase.REGISTRY, task_role=contract.task_role)
+        base = _empty_result(
+            key,
+            Phase.REGISTRY,
+            task_role=contract.task_role,
+            service_id_provenance=service_provenance,
+            task_id_provenance=task_provenance,
+        )
 
         # 1. Frozen Task Registry — 해시 검증이 먼저다. 실패하면 세션을 열지 않는다.
         self.verify_contract_hashes(contract)
@@ -1106,12 +1254,31 @@ class V3Runner:
         조용히 대체하지 않는다" 를 주석이 아니라 부재로 집행한다. 실패는 `REPLAY_BROKEN` 과
         `endpoint_status=None` 으로만 나간다 (`09 D3-05` — 불능은 0/FAIL 이 아니다).
         """
+        # `Δ48` ⑤ — `or` fallback 을 걷어낸다. 부재·형태 위반·존재가 갈린다.
+        resolved_service, service_provenance = _resolve_identity(
+            service_id,
+            field="service_id",
+            contract_value=contract.target_id,
+            contract_field="contract.target_id",
+        )
+        resolved_task, task_provenance = _resolve_identity(
+            task_id,
+            field="task_id",
+            contract_value=contract.frozen_task,
+            contract_field="contract.frozen_task",
+        )
         key = ObservationKey(
-            service_id=service_id or contract.target_id,
-            task_id=task_id or contract.frozen_task,
+            service_id=resolved_service,
+            task_id=resolved_task,
             run_id=run_id,
         )
-        base = _empty_result(key, Phase.REGISTRY, task_role=contract.task_role)
+        base = _empty_result(
+            key,
+            Phase.REGISTRY,
+            task_role=contract.task_role,
+            service_id_provenance=service_provenance,
+            task_id_provenance=task_provenance,
+        )
         self.verify_contract_hashes(contract)
         actual_sha = verify_path_manifest_hash(manifest, declared_sha256)
 
@@ -1434,10 +1601,16 @@ class V3Runner:
             and endpoint_status is None
         ):
             endpoint_status = TerminalEndpointStatus.ABSTAIN.value
-            terminal_reason = TerminalReason.OTHER.value
+            # `Δ47` — **16번째 값.** 이전에는 `OTHER` + `PATH_NOT_FOUND_NOTE` 였고 구분이
+            # 자유 텍스트 note 안에 살았다. `[Δ47 인용]` *"note 로만 구분되는 것은 범주가
+            # 아니다. 세려면 문자열 매칭을 해야 하고, 그 매칭은 다음에 조용히 깨진다."*
+            # note 는 그대로 실리지만 **구분은 note 에 의존하지 않는다.**
+            terminal_reason = TerminalReason.PATH_NOT_FOUND_BY_POLICY.value
             terminal_reason_note = PATH_NOT_FOUND_NOTE
             terminal_validate_status_reason(
-                TerminalEndpointStatus.ABSTAIN, TerminalReason.OTHER, terminal_reason_note
+                TerminalEndpointStatus.ABSTAIN,
+                TerminalReason.PATH_NOT_FOUND_BY_POLICY,
+                terminal_reason_note,
             )
 
         derived_surface = (
@@ -1743,8 +1916,98 @@ def build_family_aggregate(
     return aggregate
 
 
+#: `Δ47` ② — 거부로 인한 미관측의 note. `terminal_reason=OTHER` 의 의무 note 이며,
+#: **범주는 이 문자열이 아니라 `path_discovery_outcome` 이 갖는다**(`Δ47` ① 의 규율을
+#: 이 축에도 적용한다 — 세려면 enum 값 비교면 되고 문자열 매칭이 필요 없다).
+SEAM_REFUSAL_NOTE = (
+    "v2 Scout 의 전순서와 v3 전순서가 이 후보 집합에서 갈려, v3 가 v2 순서로 고른 경로를 "
+    "받기를 거부했다 (Δ36 ②). 관측을 못 한 것은 우리 도구의 상태 때문이며 사이트에 대한 "
+    "진술이 아니다. 표시 원소의 dom_order 와 상관돼 발생하므로 분모에 흡수하지 않는다 "
+    "(Δ47 ②)."
+)
+
+
+def seam_refusal_result(
+    key: ObservationKey,
+    *,
+    task_role: str = TASK_ROLE_PRIMARY,
+    divergence_detail: str | None = None,
+    identity_provenance: str = IDENTITY_CALLER_SUPPLIED,
+) -> V3RunResult:
+    """`Δ47` ② — `V3PathOrderDivergenceError` 로 멈춘 run 을 **산출 행으로 만든다.**
+
+    거부는 `discovery.run_task_aware_scout` 안에서 예외로 끝나므로, 이 함수가 없으면 그
+    run 은 산출에 **아무 행도 남기지 않는다** — 그러면 "발생하지 않았다" 와 "거부돼서
+    관측하지 못했다" 가 같은 출력(행 없음)이 되고, `pilot 5` 에서 발생 여부를 셀 수 없다.
+
+    `[Δ47 인용]` *"거부로 인한 미관측은 `R37` 과 같은 종류다 … **분모에 흡수하지 않고
+    별도 범주**로 세고, `policy_relative` 계열로 기록하며, **`pilot 5` 에서 발생 여부와
+    그 구조를 관측한다.**"*
+
+    ## 어느 축이 이 사건을 갖는가 — 그리고 왜
+
+    범주는 **`path_discovery_outcome=SEAM_REFUSED_V2_PATH_ORDER`** 가 갖는다.
+    `terminal_reason` 은 `OTHER` + note 다. 근거:
+
+    1. `Δ47` 은 `terminal_reason` 에 **16번째 값 하나**를 신설했다(`PATH_NOT_FOUND_BY_POLICY`).
+       그 어휘를 판정 없이 17번째로 늘리지 않는다 — 어휘 크기는 `A` 의 판정 사항이다.
+    2. `Δ47` 이 ② 의 축 선택을 이 lane 에 맡기면서 건 조건은 **"다른 미관측과 같은 값으로
+       접히면 안 된다"** 하나다. `path_discovery_outcome` 은 **닫힌 어휘**(`PATH_DISCOVERY_
+       VALUES`)이므로 이 사건을 세는 데 문자열 매칭이 필요 없다 — `Δ47` ① 이 금지한
+       "note 로만 구분되는 범주" 가 아니다.
+    3. `Δ47` 은 `path_discovery_outcome` 을 **그대로 두라**고 했다("두 축이 서로를
+       검증한다"). 값을 **더하는** 것은 축을 바꾸는 것이 아니라 축이 하던 일을 계속하게
+       하는 것이다.
+
+    **`Δ36` ② 는 이것으로 해결되지 않는다.** 반환 행은 `delta36_2_seam_status=
+    PARTIALLY_IMPLEMENTED` 와 남은 이음매 서술을 함께 싣는다.
+
+    Args:
+        key: 이 run 의 observation identity. 거부돼도 identity 는 있다.
+        task_role: `R3` — 모든 관측 행이 갖는다.
+        divergence_detail: `V3PathOrderDivergenceError` 의 메시지 등 **관측된 구조**.
+            `pilot 5` 가 "어떤 구조에서 갈렸는가" 를 읽는 자리다. 없으면 `None` 이고,
+            없음을 "구조가 없었다" 로 적지 않는다.
+        identity_provenance: `Δ48` ⑤ — `key` 의 `service_id`/`task_id` 가 어디서 왔는가.
+            이 함수는 계약을 받지 않으므로 **파생 검사를 대신 할 수 없다** — 기본값이
+            `CALLER_SUPPLIED` 인 이유이고, 계약에서 파생한 key 를 넘기는 호출부는
+            `DERIVED_FROM_CONTRACT` 를 명시해야 한다. 잘못 적으면 그 자체가 거짓 기록이다.
+
+    Raises:
+        ObservationIdentityError: `key` 의 토큰이 형태 계약 밖이거나
+            `identity_provenance` 가 어휘 밖이다.
+    """
+    if identity_provenance not in IDENTITY_PROVENANCE_VALUES:
+        raise ObservationIdentityError(
+            f"identity_provenance 어휘 밖이다: {identity_provenance!r} — "
+            f"허용: {sorted(IDENTITY_PROVENANCE_VALUES)}"
+        )
+    note = SEAM_REFUSAL_NOTE
+    if divergence_detail:
+        note = f"{SEAM_REFUSAL_NOTE} 관측된 발산: {divergence_detail}"
+    terminal_validate_status_reason(TerminalEndpointStatus.ABSTAIN, TerminalReason.OTHER, note)
+    return dataclasses.replace(
+        _empty_result(
+            key,
+            Phase.BINDING,
+            task_role=task_role,
+            service_id_provenance=identity_provenance,
+            task_id_provenance=identity_provenance,
+        ),
+        endpoint_status=TerminalEndpointStatus.ABSTAIN.value,
+        terminal_reason=TerminalReason.OTHER.value,
+        terminal_reason_note=note,
+        path_discovery_outcome=PATH_DISCOVERY_SEAM_REFUSED_V2_ORDER,
+    )
+
+
 def _empty_result(
-    key: ObservationKey, phase: Phase, *, task_role: str = TASK_ROLE_PRIMARY
+    key: ObservationKey,
+    phase: Phase,
+    *,
+    task_role: str = TASK_ROLE_PRIMARY,
+    service_id_provenance: str = IDENTITY_DERIVED_FROM_CONTRACT,
+    task_id_provenance: str = IDENTITY_DERIVED_FROM_CONTRACT,
 ) -> V3RunResult:
     return V3RunResult(
         observation_id=key.observation_id(),
@@ -1753,6 +2016,8 @@ def _empty_result(
         run_id=key.run_id,
         phase_reached=phase,
         task_role=task_role,
+        service_id_provenance=service_id_provenance,
+        task_id_provenance=task_id_provenance,
     )
 
 
@@ -1762,12 +2027,17 @@ __all__ = [
     "BRANCH_INELIGIBLE_TOKENS",
     "CANONICAL_ACTION_TOKENS",
     "CROSS_FAMILY_COMPARISON",
+    "DELTA36_2_REMAINING_SEAM",
+    "DELTA36_2_STATUS",
     "DEPTH_CONDITIONAL_TOKENS",
     "DEPTH_IN_TOKENS",
     "DEPTH_OUT_TOKENS",
     "ELIGIBILITY_PROCEEDABLE",
     "ELIGIBILITY_VALUES",
     "ENDPOINT_STATUS_VALUES",
+    "IDENTITY_CALLER_SUPPLIED",
+    "IDENTITY_DERIVED_FROM_CONTRACT",
+    "IDENTITY_PROVENANCE_VALUES",
     "LEGACY_DEPTH_COLUMNS",
     "LEGACY_DEPTH_NULL_REASON",
     "PATH_ABSENCE_CLAIM_TERMS",
@@ -1775,11 +2045,13 @@ __all__ = [
     "PATH_DISCOVERY_PATH_FOUND",
     "PATH_DISCOVERY_POLICY_DID_NOT_FIND",
     "PATH_DISCOVERY_POLICY_STOPPED_ON_BUDGET",
+    "PATH_DISCOVERY_SEAM_REFUSED_V2_ORDER",
     "PATH_DISCOVERY_VALUES",
     "PATH_NOT_FOUND_NOTE",
     "POLICY_RELATIVE_OUTCOMES",
     "PREREGISTERED_DEPTH_ASYMMETRY",
     "PRIMARY_TASK_FILTER_EXPR",
+    "SEAM_REFUSAL_NOTE",
     "SEARCH_PARAMETER_UNOBSERVED",
     "SEARCH_PARAMETER_UNUSED",
     "SEARCH_STRATEGY",
@@ -1800,6 +2072,7 @@ __all__ = [
     "FlowStep",
     "LegacyDepthNullReasonError",
     "MissingDependencyError",
+    "ObservationIdentityError",
     "ObstructionAnalyzer",
     "PathAbsenceClaimError",
     "PathManifestContractError",
@@ -1830,5 +2103,6 @@ __all__ = [
     "build_path_manifest",
     "path_manifest_sha256",
     "qualified_layer_text",
+    "seam_refusal_result",
     "verify_path_manifest_hash",
 ]

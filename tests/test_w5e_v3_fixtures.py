@@ -224,12 +224,71 @@ def by_id(matrix: dict) -> dict:
     return {f["fixture_id"]: f for f in matrix["fixtures"]}
 
 
+def _gate1_added_ids() -> list[str]:
+    """`Δ47` ③ 가산분 — **matrix 가 선언한 것만** 이 디렉터리에 있어도 된다.
+
+    선언을 matrix 에서 읽는다. 이 파일에 목록을 다시 적으면 두 곳이 어긋나는 날이 온다.
+    """
+    section = json.loads(MATRIX_PATH.read_text("utf-8")).get("gate1_depth_signal_fixtures", {})
+    return sorted(f["fixture_id"] for f in section.get("must_flag_fixtures", []))
+
+
 # ── 1. fixture 파일 자체 ─────────────────────────────────────────────────────
 def test_the_thirteen_fixture_files_exist() -> None:
+    """Director 지정 13종은 그대로 있고, 그 밖의 파일은 **선언된 가산분뿐**이다.
+
+    `Δ47` ③ 이 `aria-haspopup`/`aria-controls` 가산을 허용·요구해 파일이 늘었다.
+    "그 밖의 파일이 없다" 를 "선언된 것만 있다" 로 **좁힌다** — 선언 없이 늘어나는 것은
+    여전히 실패다(`Δ31` — 다시 좁히는 것은 되고 지우는 것은 안 된다).
+    """
     missing = [fid for fid in FIXTURE_IDS if not (V3 / f"{fid}.html").is_file()]
     assert not missing, f"없는 fixture: {missing}"
-    extra = sorted(p.stem for p in V3.glob("*.html") if p.stem not in FIXTURE_IDS)
-    assert not extra, f"목록에 없는 fixture 가 v3 에 있다: {extra}"
+    declared = set(FIXTURE_IDS) | set(_gate1_added_ids())
+    extra = sorted(p.stem for p in V3.glob("*.html") if p.stem not in declared)
+    assert not extra, f"어디에도 선언되지 않은 fixture 가 v3 에 있다: {extra}"
+
+
+def test_the_gate1_additions_are_declared_and_present() -> None:
+    """`Δ47` ③ — 가산분이 matrix 에 선언돼 있고 파일이 실재한다. 선언만 있고 파일이
+    없으면 `GATE 1` 이 존재하지 않는 fixture 로 통과한다."""
+    added = _gate1_added_ids()
+    assert added, "Δ47 ③ 가산분이 matrix 에 하나도 선언되지 않았다"
+    missing = [fid for fid in added if not (V3 / f"{fid}.html").is_file()]
+    assert not missing, f"선언됐는데 파일이 없다: {missing}"
+    # 13종은 **고치지 않는다** — 가산분이 그 목록에 섞여 들어오지 않았는가.
+    assert not (set(added) & set(FIXTURE_IDS)), "가산분이 Director 13종 목록을 덮었다"
+
+
+def test_the_gate1_section_states_the_fixture_only_limitation() -> None:
+    """`Δ47` 이 **반드시 적으라**고 한 한계 문장이 matrix 에 있다.
+
+    `[Δ47 인용]` *"fixture 에 신호를 넣는 것이 실사이트에 그 신호가 있다는 근거는 아니다.
+    pilot 5 실측 전까지 v3 의 `menu_dependency` 양성 관측은 fixture 근거만 갖는다."*
+    """
+    section = json.loads(MATRIX_PATH.read_text("utf-8"))["gate1_depth_signal_fixtures"]
+    limitation = section["limitation"]
+    assert "실사이트에 그 신호가 있다는 근거는 아니다" in limitation
+    assert "fixture 근거만" in limitation
+    assert "pilot 5" in limitation
+
+
+@pytest.mark.parametrize("fid", _gate1_added_ids())
+def test_gate1_additions_obey_the_same_fixture_hygiene(fid: str) -> None:
+    """가산분도 13종과 같은 위생 규칙을 받는다 — 실서비스 참조 0 · 자격증명 0 ·
+    자기 id 선언 · 모바일 viewport."""
+    text = (V3 / f"{fid}.html").read_text("utf-8")
+    assert _fixture_attr(V3 / f"{fid}.html") == fid
+    for scheme in ("https://", "http://", "//cdn", 'src="//'):
+        assert scheme not in text, f"{fid} 가 외부 자원을 참조한다: {scheme}"
+    for m in re.finditer(r"<input\b[^>]*>", text):
+        assert "value=" not in m.group(0), f"{fid}: input 에 value 가 채워져 있다"
+    assert 'name="viewport"' in text
+    assert f"width:{VIEWPORT_W}px" in text.replace(" ", "")
+    assert f"height:{VIEWPORT_H}px" in text.replace(" ", "")
+    assert "검증 대상" in text
+    # 한계 문장을 fixture 파일 자신도 갖는다 — matrix 만 보는 사람과 파일만 보는 사람이
+    # 서로 다른 것을 읽으면 안 된다.
+    assert "실사이트에 그 신호가 있다는 근거는 아니다" in text
 
 
 @pytest.mark.parametrize("fid", FIXTURE_IDS)

@@ -1,0 +1,53 @@
+<!doctype html>
+<!--
+FIXTURE: menu_haspopup_local    W5Q GATE-1 depth 신호 가산 fixture (Δ47 ③)
+
+**A 가 범위를 열어 추가된 fixture 다.** `[Δ47 인용]` *"`A` 가 범위를 연다 — v3 fixture 에
+`aria-haspopup`/`aria-controls` 가산 허용, 그리고 요구한다."* 기존 13종은 한 줄도 고치지
+않았다(재현성). 이 파일은 **가산분**이다.
+
+검증 대상: `scout_strategy._classify_action_token_with_determinacy` 의 `aria-haspopup`
+분기가 실제로 발화해 `token_determinacy=DETERMINED` 를 내고, 그래서
+`flow.normalize_flow` 가 `activation_depth` 를 **수로 산출**하는가.
+
+대조짝: `hamburger.html` — trigger 의 `aria-haspopup="menu"` **한 속성**만 다르고 태그
+시퀀스·좌표·라벨이 전부 같다. 그 한 속성이 `activation_depth` 를 `None`(+사유) ↔ 수로
+가른다. 이 fixture 는 `must_flag`, `hamburger.html` 이 `must_not_flag` 다.
+
+**한계**: fixture 에 신호를 넣은 것이 실사이트에 그 신호가 있다는 근거는 아니다.
+`pilot 5` 실측 전까지 v3 의 `menu_dependency` 양성 관측은 **fixture 근거만** 갖는다
+(`FIXTURE_DISCRIMINATION_MATRIX.json` `gate1_depth_signal_fixtures.limitation`).
+-->
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>haspopup 신호 있는 메뉴 trigger — W5Q v3 가산 픽스처</title>
+<style>
+ *{box-sizing:border-box}
+ [hidden]{display:none !important}
+ body{margin:0;width:390px;height:844px;background:#fff;color:#111;
+      font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+ .hdr{margin:0;height:56px;line-height:56px;padding-left:16px;font-size:17px;
+      font-weight:600;border-bottom:1px solid #ddd}
+ .trigger{position:fixed;left:334px;top:8px;width:40px;height:40px;
+          border:0;background:transparent;color:#111;padding:0;line-height:0}
+ .ico{display:inline-block;width:22px;height:14px;
+      border-top:2px solid currentColor;border-bottom:2px solid currentColor}
+ .panel{position:fixed;left:0;top:56px;width:390px;height:200px;
+        background:#f4f6f9;border-bottom:1px solid #ccc}
+ .task{position:fixed;left:20px;top:72px;width:200px;height:48px;
+       border:0;border-radius:8px;background:#0b4f9e;color:#fff;font-size:16px}
+</style></head>
+<body data-fixture="menu_haspopup_local">
+<h1 class="hdr">시외버스 예매</h1>
+<button type="button" class="trigger" id="open" aria-label="전체메뉴 열기" aria-expanded="false" aria-haspopup="menu"><span class="ico" aria-hidden="true"></span></button>
+<nav class="panel" id="panel" hidden aria-label="전체메뉴">
+<button type="button" class="task" id="entry">운행정보 조회</button>
+</nav>
+<script>
+document.getElementById('open').addEventListener('click', function () {
+  var p = document.getElementById('panel');
+  p.hidden = false;
+  this.setAttribute('aria-expanded', 'true');
+});
+</script>
+</body></html>

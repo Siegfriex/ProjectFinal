@@ -14,8 +14,9 @@
    따로 갖는다.
 3. **분기 대상 집합** — `Δ9` IN 10 + CONDITIONAL 3. `SUBMIT_QUERY` 는 v3 에서 분기
    대상이다(v2.1 과 달라지는 실질).
-4. **`terminal_reason` 15값** — `Δ10-R11` 13 + `Δ30` `BUDGET_EXCEEDED` +
-   `Δ32` `NO_TASK_CANDIDATE_FOUND`. 기존 13값의 판정은 회귀 대조군으로 고정한다.
+4. **`terminal_reason` 16값** — `Δ10-R11` 13 + `Δ30` `BUDGET_EXCEEDED` +
+   `Δ32` `NO_TASK_CANDIDATE_FOUND` + `Δ47` `PATH_NOT_FOUND_BY_POLICY`.
+   기존 13값의 판정은 회귀 대조군으로 고정한다.
 5. **`Δ32` 두 갈래** — (a) binder 계약 위반은 `RunnerError`, (b) 관측된 후보 0건은
    `ABSTAIN` 과 `NO_TASK_CANDIDATE_FOUND` 조합. **둘이 같은 출력이면 이 파일은 실패한다.**
 6. **`Δ32-R29`** — 후보 0건 위에서 `endpoint_status=REACHED` 를 낼 수 없다.
@@ -393,11 +394,18 @@ def test_budget_exhaustion_never_overrides_an_observed_terminal() -> None:
 
 # ── 회귀 대조군 — 기존 13값의 판정이 바뀌지 않았다 ──────────────────────────
 def test_regression_control_the_original_thirteen_are_unchanged() -> None:
-    """`Δ30`/`Δ32` 는 값을 **더했을 뿐** 기존 13값을 재정의하지 않았다."""
+    """`Δ30`/`Δ32`/`Δ47` 은 값을 **더했을 뿐** 기존 13값을 재정의하지 않았다."""
     values = {r.value for r in TerminalReason}
     assert set(R11_ORIGINAL_THIRTEEN) <= values
-    assert values - set(R11_ORIGINAL_THIRTEEN) == {"BUDGET_EXCEEDED", "NO_TASK_CANDIDATE_FOUND"}
-    assert len(values) == 15
+    assert values - set(R11_ORIGINAL_THIRTEEN) == {
+        "BUDGET_EXCEEDED",
+        "NO_TASK_CANDIDATE_FOUND",
+        # `Δ47` — `OTHER` 에서 떼어낸 16번째 값. `OTHER` 자체는 어휘에 **그대로 남는다**
+        # (아래 단언이 그것을 붙든다) — 떼어낸 것은 뜻이지 값이 아니다.
+        "PATH_NOT_FOUND_BY_POLICY",
+    }
+    assert "OTHER" in values
+    assert len(values) == 16
 
 
 @pytest.mark.parametrize(
@@ -814,8 +822,8 @@ def test_task_candidate_satisfies_the_declared_binder_contract() -> None:
         assert "dom_order" in candidate
 
 
-def test_terminal_module_declares_fifteen_reasons() -> None:
-    """모듈 문서와 코드가 같은 수를 말한다 — 문서만 13 으로 남지 않았다."""
+def test_terminal_module_declares_sixteen_reasons() -> None:
+    """모듈 문서와 코드가 같은 수를 말한다 — 문서만 13/15 로 남지 않았다 (`Δ47` 로 16)."""
     doc = terminal_module.__doc__ or ""
-    assert "15값" in doc
-    assert len(set(TerminalReason)) == 15
+    assert "16값" in doc
+    assert len(set(TerminalReason)) == 16

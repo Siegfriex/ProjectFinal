@@ -1614,5 +1614,58 @@
     "uncovered_token_note": "위 not_covered 토큰들은 이 집합이 만들어내지 못하는 값이다. 측정기가 그 값을 낼 수 있는지는 이 fixture 로 확인되지 않는다. 특히 label_relation 의 SEMANTIC_EQUIV/DIFFERENT/VISIBLE_ONLY, accessible_name_source 의 ARIA_LABELLEDBY/LABEL/ALT/TITLE/VALUE/MIXED, auth_gate_stage 의 AT_ENDPOINT, endpoint_status 의 PUBLIC_WEB_UNOBSERVABLE/APP_REQUIRED/BLOCKED/ABSTAIN 이 비어 있다.",
     "partial_occlusion_not_covered": "task_control_occlusion 은 0.0 과 1.0 만 나온다. 0<v<1 인 부분 가림이 없어 겹침 비율 계산의 분자·분모가 맞는지는 이 집합으로 확인되지 않는다.",
     "no_measurement_logic_here": "W5E 는 fixture 와 판별 명세만 만든다. 이 문서의 expected_values 를 실제로 산출하는 파이썬 측정 로직은 W5B/W5C/W5D 담당이며 여기에 없다."
+  },
+  "gate1_depth_signal_fixtures": {
+    "_about": "Δ47 ③ 이 A 의 범위 개방으로 추가한 **가산분**이다. Director 가 지정한 13종(`fixtures` 키)은 한 줄도 고치지 않았다 — 재현성 때문에 기존 fixture 수정은 금지다. 이 절이 따로 있는 이유도 같다: 13종 계약을 선언하는 `fixtures` 배열을 건드리지 않는다.",
+    "why": "[Δ47 인용] \"GATE 1 이 depth 산출 경로를 한 번도 실행하지 않고 통과한다. … 게이트가 검증했다고 기록되지만 검증된 것이 없다.\" v3 fixture 13종에 aria-haspopup·aria-controls 가 0건이라, 토큰이 전부 UNDETERMINED 로 떨어져 activation_depth 가 산출되지 않았다.",
+    "gate1_pass_condition": {
+      "must_flag": "신호를 가진 fixture 최소 1건에서 activation_depth 가 수로 산출된다",
+      "must_not_flag": "신호가 없는 fixture 최소 1건에서 None + 사유가 나온다",
+      "and": "두 출력이 서로 다름을 실증한다",
+      "quote": "[Δ47 인용] \"한쪽만 만들면 조용한 상태를 다른 조용한 상태로 바꾼 것뿐이다.\"",
+      "executed_by": "tests/test_w5q_delta47.py — 실제 l0_probe 산출 → scout_strategy 분류 → flow.normalize_flow"
+    },
+    "limitation": "**fixture 에 신호를 넣는 것이 실사이트에 그 신호가 있다는 근거는 아니다.** pilot 5 실측 전까지 v3 의 menu_dependency 양성 관측은 **fixture 근거만** 갖는다. [Δ47 인용] \"그 전까지 v3 의 menu_dependency 양성 관측은 fixture 근거만 갖는다.\" 이 절의 어떤 값도 실서비스에 대한 research finding 이 아니다.",
+    "must_not_flag_control": {
+      "fixture_id": "hamburger",
+      "file": "hamburger.html",
+      "modified": false,
+      "why_this_one": "trigger 가 aria-expanded 만 갖고 aria-haspopup·aria-controls 가 없다. 구조 신호가 '무언가를 연다' 까지만 확정하고 전역메뉴/지역메뉴/아코디언을 가르지 못하므로 token_determinacy=UNDETERMINED 이고 activation_depth 는 None + 사유다. 새로 만들 필요가 없어 기존 것을 지정했다(Δ47 이 허용한 처리).",
+      "expected_action_token": "EXPAND_ACCORDION",
+      "expected_token_determinacy": "UNDETERMINED",
+      "expected_activation_depth": null,
+      "expected_activation_depth_undetermined_reason_contains": "구조 신호로 확정되지 않았다"
+    },
+    "must_flag_fixtures": [
+      {
+        "fixture_id": "menu_haspopup_local",
+        "file": "menu_haspopup_local.html",
+        "added_by": "W5Q (Δ47 ③)",
+        "signal_added": "aria-haspopup=\"menu\"",
+        "contrast_pair": "menu_aria_controls_global",
+        "no_signal_control": "hamburger",
+        "what_differs_from_control": "hamburger.html 의 trigger 에 aria-haspopup=\"menu\" 한 속성만 더했다. 태그 시퀀스·좌표·라벨·스크립트가 전부 같다.",
+        "dom_tag_sequence_identical_to_control": true,
+        "expected_action_token": "OPEN_LOCAL_MENU",
+        "expected_token_determinacy": "DETERMINED",
+        "expected_activation_depth": 1,
+        "expected_menu_dependency": true,
+        "why_local_not_global": "trigger 가 nav/header/[role=banner] 밖에 있어 in_nav_landmark 가 False 다. 전역/지역 구분은 landmark 소속으로만 정해지고 라벨 문구를 읽지 않는다."
+      },
+      {
+        "fixture_id": "menu_aria_controls_global",
+        "file": "menu_aria_controls_global.html",
+        "added_by": "W5Q (Δ47 ③)",
+        "signal_added": "aria-controls=\"panel\" (대상이 nav)",
+        "contrast_pair": "menu_haspopup_local",
+        "no_signal_control": "hamburger",
+        "what_differs_from_control": "hamburger.html 의 trigger 에 aria-controls=\"panel\" 한 속성만 더했다. 대상 #panel 이 nav 이므로 controls_is_nav_landmark 가 True 가 되고, aria-expanded 단독으로는 가를 수 없던 자리가 구조로 확정된다.",
+        "dom_tag_sequence_identical_to_control": true,
+        "expected_action_token": "OPEN_GLOBAL_MENU",
+        "expected_token_determinacy": "DETERMINED",
+        "expected_activation_depth": 1,
+        "expected_menu_dependency": true
+      }
+    ]
   }
 }

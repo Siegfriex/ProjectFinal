@@ -600,6 +600,75 @@
         "competing_signals": [],
         "terminal_reason": null
       }
+    },
+    {
+      "case_id": "path_not_found_by_policy_is_its_own_category",
+      "note": "Δ47 — 후보는 있었는데 선언된 정책이 허용 경로를 찾지 못했다. 16번째 값이며 OTHER 가 아니다. 사이트에 경로가 없다는 주장이 아니라 이 정책이 못 찾았다는 사실이다 (R37).",
+      "signals": {
+        "evidence_complete": true,
+        "task_candidate_count": 2,
+        "policy_did_not_find_path": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "ABSTAIN",
+        "resolution": "UNDETERMINED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "PATH_NOT_FOUND_BY_POLICY"
+      }
+    },
+    {
+      "case_id": "path_not_found_and_unclassified_are_different_values",
+      "note": "음성대조 — 정책 미발견 신호가 없는 미판정은 여전히 OTHER 다. 두 사건이 같은 값이면 Δ47 이 신설한 범주가 아무것도 가르지 않는다.",
+      "signals": {
+        "evidence_complete": true,
+        "task_candidate_count": 2
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "ABSTAIN",
+        "resolution": "UNDETERMINED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "OTHER"
+      }
+    },
+    {
+      "case_id": "budget_exceeded_precedes_path_not_found_by_policy",
+      "note": "둘 다 참이면 '더 안 봤다'(예산 소진)가 앞선다 — 예산이 남지 않은 채로 '더 볼 곳이 없었다' 고 적으면 탐색을 끝냈다는 주장이 된다. runner._to_mart 의 순서와 같은 자리다.",
+      "signals": {
+        "evidence_complete": true,
+        "task_candidate_count": 2,
+        "policy_did_not_find_path": true,
+        "scout_budget_exhausted": true
+      },
+      "expect": {
+        "terminal": null,
+        "endpoint_status": "ABSTAIN",
+        "resolution": "UNDETERMINED",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "BUDGET_EXCEEDED"
+      }
+    },
+    {
+      "case_id": "path_not_found_by_policy_does_not_override_a_real_terminal",
+      "note": "대조군 — 정책 미발견과 terminal 관측이 함께 참이면 terminal 이 이긴다. 정책에 대한 사실이 사이트에 대한 관측을 덮지 않는다.",
+      "signals": {
+        "evidence_complete": true,
+        "task_candidate_count": 2,
+        "policy_did_not_find_path": true,
+        "auth_required_to_proceed": true
+      },
+      "expect": {
+        "terminal": "AUTH_GATE",
+        "endpoint_status": "AUTH_GATE",
+        "resolution": "TERMINAL",
+        "auth_gate_stage": "NONE",
+        "competing_signals": [],
+        "terminal_reason": "AUTH_REQUIRED"
+      }
     }
   ]
 }
