@@ -1,11 +1,11 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T11:35:35+09:00",
+ "measured_at_kst": "2026-08-28T11:36:08+09:00",
  "state": "CANONICAL_50_SEEN",
  "checker": {
-  "commit": "526acf85f73695e6297fab868985371aab8316c8",
+  "commit": "17031f4a3b3498159e313683d4a58abb2e2689ab",
   "census_qc_c_sha256": "80a598ffe2c61b8644829223ba5b61e0c306a4a837fc8caa3073ba654d063df5",
-  "census_stream_c_sha256": "5ff7716f08ca3dd06346a8040e62c3f1732746e4ed44fdc2f1bfd45b2f2dc624",
+  "census_stream_c_sha256": "b0323aee1becb5cd1d291638381dc5728397ba0689b4498990c1f1b91a71008f",
   "checker_frozen": "43d7d4da52e0403a2b76d1322a170678e97a6f03"
  },
  "inputs": {
@@ -85,7 +85,7 @@
   "checks_pass": 10,
   "checks_flag": 5,
   "checks_not_testable_or_vacuous": 1,
-  "flags": 215,
+  "flags": 225,
   "systemic_candidates": [
    "duplicate_launch",
    "task_or_outcome_leakage"
@@ -449,40 +449,40 @@
   },
   "RAW.R2_COVERAGE": {
    "status": "FLAG",
-   "n_items": 43,
+   "n_items": 64,
    "eligible_by_criterion": 21,
    "eligible_R82_narrow": 21,
    "eligible_R97_error_branch": 0,
    "criterion_history": "R82 narrow (COLLECTOR_ZERO_CANDIDATE) → R97 union with ERROR click_failed/Page.goto, widened after partial results (TBX-018)",
-   "re_measured": 22,
-   "r2_dirs_on_disk": 22,
+   "re_measured": 43,
+   "r2_dirs_on_disk": 43,
    "r2_manifest_lines": 22,
+   "r1_basis": "snapshot_50.csv sha 92f18a2c015d",
+   "runs_seen": [
+    "R1",
+    "R2"
+   ],
    "missing": [
     "F1-01",
     "F1-02",
-    "F1-06",
     "F1-07",
-    "F1-09",
-    "F2-03",
-    "F2-04",
-    "F3-03",
-    "F3-07",
-    "F4-02",
-    "F5-03",
-    "F5-04",
-    "F5-08",
-    "F5-09",
-    "F5-10"
+    "F1-09"
    ],
    "outside_criterion": [
+    "F1-03",
+    "F1-05",
+    "F2-01",
     "F2-02",
     "F2-05",
     "F2-06",
     "F2-07",
+    "F2-08",
     "F2-09",
     "F2-10",
+    "F3-02",
     "F3-04",
     "F3-05",
+    "F3-06",
     "F3-08",
     "F3-09",
     "F3-10",
@@ -490,7 +490,11 @@
     "F4-06",
     "F4-09",
     "F4-10",
-    "F5-01"
+    "F5-01",
+    "F5-02",
+    "F5-05",
+    "F5-06",
+    "F5-07"
    ],
    "rule": "criterion = R1 candidate_count==0 / COLLECTOR_ZERO_CANDIDATE (mechanical, fixed before results); run detection = '-R2' in evidence_dir/idempotency_key"
   },
@@ -1777,25 +1781,32 @@
   },
   {
    "check": "RAW.R2_COVERAGE",
-   "message": "15/21 COLLECTOR_ZERO_CANDIDATE targets have no R2 line — at freeze this is an outcome-based selection (R82)",
+   "message": "4/21 criterion targets have no re-measurement — at freeze this is an outcome-based selection (R82)",
    "systemic_candidate": null,
    "missing": [
     "F1-01",
     "F1-02",
-    "F1-06",
     "F1-07",
-    "F1-09",
-    "F2-03",
-    "F2-04",
-    "F3-03",
-    "F3-07",
-    "F4-02",
-    "F5-03",
-    "F5-04",
-    "F5-08",
-    "F5-09",
-    "F5-10"
+    "F1-09"
    ]
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F1-03 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F1-03"
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F1-05 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F1-05"
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F2-01 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F2-01"
   },
   {
    "check": "RAW.R2_COVERAGE",
@@ -1823,6 +1834,12 @@
   },
   {
    "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F2-08 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F2-08"
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
    "message": "R2 line for F2-09 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
    "systemic_candidate": "task_or_outcome_leakage",
    "target": "F2-09"
@@ -1835,6 +1852,12 @@
   },
   {
    "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F3-02 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F3-02"
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
    "message": "R2 line for F3-04 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
    "systemic_candidate": "task_or_outcome_leakage",
    "target": "F3-04"
@@ -1844,6 +1867,12 @@
    "message": "R2 line for F3-05 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
    "systemic_candidate": "task_or_outcome_leakage",
    "target": "F3-05"
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F3-06 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F3-06"
   },
   {
    "check": "RAW.R2_COVERAGE",
@@ -1892,6 +1921,30 @@
    "message": "R2 line for F5-01 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
    "systemic_candidate": "task_or_outcome_leakage",
    "target": "F5-01"
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F5-02 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F5-02"
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F5-05 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F5-05"
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F5-06 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F5-06"
+  },
+  {
+   "check": "RAW.R2_COVERAGE",
+   "message": "R2 line for F5-07 whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion",
+   "systemic_candidate": "task_or_outcome_leakage",
+   "target": "F5-07"
   },
   {
    "check": "RAW.FORBIDDEN_PROBE",
@@ -2467,6 +2520,30 @@
   },
   {
    "measured_at_kst": "2026-08-28T11:35:13+09:00",
+   "state": "CANONICAL_50_SEEN",
+   "summary": {
+    "checks_pass": 10,
+    "checks_flag": 5,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 215,
+    "systemic_candidates": [
+     "duplicate_launch",
+     "task_or_outcome_leakage"
+    ]
+   },
+   "inputs": {
+    "mart": "CANONICAL_MART_50",
+    "mart_sha256": "3e6e6b42e71af446685b8056c0748bcd9a9fee857b890e41db8dcfde05cf7d3b",
+    "mart_bytes": 26245,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 72,
+    "dispatch_lines": 72,
+    "ingest_lines": 50,
+    "raw_target_dirs": 50
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:35:35+09:00",
    "state": "CANONICAL_50_SEEN",
    "summary": {
     "checks_pass": 10,

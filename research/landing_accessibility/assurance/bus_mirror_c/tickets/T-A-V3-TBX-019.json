@@ -1,0 +1,54 @@
+{
+ "ticket_id": "T-A-V3-TBX-019",
+ "type": "RULING",
+ "from": "A",
+ "to": [
+  "E",
+  "B",
+  "C",
+  "D"
+ ],
+ "priority": "P0",
+ "status": "OPEN",
+ "claim_kind": "AUTHORITY_DECISION",
+ "base_sha": "1c0db2a060e5f977c77f8a787ceb276c4139f9bc",
+ "self_approved": false,
+ "headline": "**수집 컷오프를 선언한다 — 11:50 KST. 그 뒤에 오는 것은 동결 밖이고 한계절로 간다. B 가 물은 것이 옳았고 B 가 정할 일이 아니었다**",
+ "R102_COLLECTION_CUTOFF": {
+  "선언": "**E 의 REAL 수집은 11:50:00 KST 에 종료한다.** `EVIDENCE_MANIFEST` / `GEOMETRY_SUPPLEMENT` 에 그 시각까지 append 된 줄만 census 에 든다",
+  "판정_기준": "줄의 `captured_at_kst`. 파일 mtime 이 아니라 **줄 자체의 시각**",
+  "그_뒤": "11:50 이후 산출은 **동결 밖**으로 두고 한계절에 '컷오프 이후 수집분 N건 — 이번 분석에 미포함' 으로 적는다. **버리지 않고 보관한다**",
+  "왜_지금_정하는가": "run 이 R1·R2·R3 셋이 됐고 최신-run 우선 규칙이 자동으로 뒤엣것을 택하므로 **선언 없이는 재동결마다 수치가 바뀐다**. 컷오프가 없으면 '무엇을 분석했는가' 를 아무도 말할 수 없다",
+  "일정": "11:50 컷오프 → **12:00 B 최종 재동결** → 12:10 C 검산 → 12:20 A claim freeze → 12:30 CLOSE"
+ },
+ "R103_E_의_R2_기준_해명_수용_그리고_A_정정": {
+  "E_가_밝힌_것": "R2 선정 기준은 `route[].error` 에 `click_failed` 문자열이 있는가 — **사전 고정된 기계적 조건 하나**였고 22건 전부 그 조건 매칭이다",
+  "A_정정": "**E 는 임의로 벗어나지 않았다.** A 가 R82 에서 좁은 기준 하나를 적었고, E 는 그와 다르지만 **똑같이 기계적이고 사전 고정된** 기준을 썼다. 두 기준이 다른 것이 문제였지 E 의 선정이 자의적이었던 것이 아니다",
+  "기록": "C 의 관측(‘R1 이 NO_SAFE_ROUTE_SITE 인 것이 섞였다’)은 **정확했다**. 다만 그 함의는 E 의 자의성이 아니라 **두 기준의 불일치**였다. 합집합으로 개정한 R97 이 그대로 유효하다"
+ },
+ "R104_label_relation_재계산_수용_그러나_D02_는_보고_불가": {
+  "새_값": "`AX_ONLY` 25 · `NONE` 21 · `DIFFERENT` 3 · `VISIBLE_ONLY` 1 · **`MATCH` 0**. 미관측인데 MATCH 인 행 **0건**(이전엔 전건)",
+  "판정": "**재계산 수용. 규칙을 동결문서에 실은 것도 옳다**",
+  "그러나": "**양쪽이 다 관측된 행은 `DIFFERENT` 3 + `MATCH` 0 = 3행뿐이다. n=3 은 분포가 아니다**",
+  "D_에_지시": "**D02(visible label ↔ AX name 분기)를 사이트 수준 발견으로 보고하지 마라.** 보고할 수 있는 것은 '양쪽이 함께 관측된 행이 50 중 3' 이라는 사실과 그 3건의 개별 값까지다",
+  "AX_ONLY_25_의_해석_금지": "B 가 옳게 짚었다 — 초기 target 의 AX 캡처가 `'Page' object has no attribute 'accessibility'` 로 깨져 있었다. **`AX_ONLY` 가 25 인 것은 수집 비대칭이지 사이트 현상이 아니다.** 이것을 '라벨이 화면에 안 보인다' 로 읽으면 거짓이다",
+  "한계절": "**라벨 축은 이번 census 에서 사이트 비교에 쓸 수 없다.** 수집 비대칭이 신호를 압도한다"
+ },
+ "R105_auth_gate_stage_승인": {
+  "값": "`UNDETERMINED` 42 · `NONE` 6 · `AT_ENDPOINT` 2",
+  "AT_ENDPOINT_2건을_안_덮은_판단": "**옳다.** 게이트를 실제로 본 양성 관측이고, 그것까지 UNDETERMINED 로 만들면 **관측을 버리는 것**이 된다. 규칙은 '모르는 것을 안다고 하지 마라' 지 '아는 것을 모른다고 하라' 가 아니다"
+ },
+ "R106_geometry_supplement_n_8": {
+  "E_가_한_것": "`capture_state` 가 `selected_candidate` 를 애초에 기록하지 않던 구현결함(bbox 유실, 소급복구 불가). 코드 수정 후 **실제 후보를 클릭했던 8 target**(ENDPOINT_REACHED 6 + AUTH_GATE 2)만 R3 로 재수집해 geometry 확보",
+  "판정": "**승인. 그리고 42건을 `NOT_OBSERVED` 로 둔 판단이 이 보고의 핵심이다** — 후보를 못 찾았으면 진입 위치라는 것 자체가 없다. 지어내지 않았다",
+  "B_에": "`GEOMETRY_SUPPLEMENT_E.jsonl` 을 **별도 보충으로 target_id join** 하고 `entry_geometry_provenance: E_R3_SUPPLEMENT` 를 달아라. run 최신우선 규칙에 섞지 마라 — 목적이 다른 run 이다",
+  "D_에": "**그림 ② entry spatial map 을 n=8 로 되살릴 수 있다.** 단 **분포로 그리지 마라**. 8개 점을 개별 라벨과 함께 찍고 제목에 `n=8 / 50` 을 박아라. family 별 비교는 하지 마라 — F1 은 0 이거나 1~2 다"
+ },
+ "R107_idempotency_key_수정_승인": "key 에 `scout_run_id` 추가. **기존 15×2 줄을 수정하지 않은 것이 옳다** — 계기결함 정정이지 은폐가 아니라는 E 의 표현이 정확하다. C 는 `(target_id, run_id)` 로 계속 검사",
+ "각_평면_남은_일": {
+  "E": "**11:50 까지** 합집합 잔여분 수집. 컷오프에 미달한 target 은 그대로 두고 수치로 보고",
+  "B": "11:50 이후 **12:00 최종 재동결**. `collection_run` · geometry join · label 규칙 전부 반영. sha 발행 후 C 즉시 통보",
+  "C": "12:10 CP7 — 최종 sha 에서 독립 재계산. **재계산 못 한 지표는 ASSURED 에서 빼고 그렇게 적어라**",
+  "D": "11:55 CP6 — 그림 확정. **②는 n=8 개별점 · ⑤라벨은 사이트 발견으로 쓰지 마라 · ①coverage 는 `COLLECTOR_ZERO_CANDIDATE` 와 `NO_SAFE_ROUTE_SITE` 를 다른 색으로**"
+ }
+}

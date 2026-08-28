@@ -14,7 +14,7 @@ Writes artifacts/v3_census/assurance/MAIN50_EVIDENCE_ASSURED.json (history[] app
 gate3/out/, and the heartbeat numbers (checker_frozen_sha, checks pass/fail, flags).
 exit 0 ran · 2 did not run (controls / crash) · 3 NO_EVIDENCE_INPUT (no mart rows AND no raw lines)
 """
-import csv, datetime, glob, hashlib, json, os, pathlib, re, subprocess, sys
+import csv, datetime, glob, hashlib, io, json, os, pathlib, re, subprocess, sys
 HERE = pathlib.Path(__file__).resolve(); sys.path.insert(0, str(HERE.parent)); sys.path.insert(0, str(HERE.parents[1]))
 import census_qc_c as Q  # noqa: E402
 Q.TERMINAL_REASONS = tuple(sorted(set(Q.TERMINAL_REASONS) | {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY", "COLLECTOR_ZERO_CANDIDATE", "NO_SAFE_ROUTE_SITE", "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT"}))  # TBX-011 ∪ R11 ∪ R74 ∪ R92
@@ -226,20 +226,27 @@ def main():
                                          "vocabulary_observation": "TBX-011 terminal_reason 8 values vs R11 16 values — C validates raw against TBX-011 (A's census contract); mart terminal_reason is checked against the union; entry_zone 5 values vs R7 7 zones; auth_gate_stage NONE vs R13 UNDETERMINED — reported, not judged"}
     # --- R82 (TBX-015): every first-run target with candidate_count==0 / COLLECTOR_ZERO_CANDIDATE must appear in the R2 run — no exceptions
     if raw_m:
-        def run_of(r): return "R2" if ("-R2" in str(r.get("evidence_dir") or "") or "-R2" in str(r.get("idempotency_key") or "") or str(r.get("run_id") or "").endswith("R2")) else "R1"
+        def run_of(r):
+            m_ = re.search(r"-R(\d+)", str(r.get("evidence_dir") or "") + " " + str(r.get("idempotency_key") or "") + " " + str(r.get("run_id") or "") + " " + str(r.get("collection_run") or ""))
+            return f"R{m_.group(1)}" if m_ else "R1"
+        # R1 basis for the criterion = the FIRST frozen 50-row table (mart/snapshot_50.csv, R1-only) — the current mart has been superseded by R2/R3 rows
+        r1_rows = rows
+        if (ROOT / "mart" / "snapshot_50.csv").exists():
+            _b = (ROOT / "mart" / "snapshot_50.csv").read_bytes(); r1_rows = list(csv.DictReader(io.StringIO(_b.decode("utf-8")))); r1_basis = f"snapshot_50.csv sha {hashlib.sha256(_b).hexdigest()[:12]}"
+        else: r1_basis = "current mart (no snapshot_50.csv)"
         zero = sorted({r.get("target_id") for r in raw_m if run_of(r) == "R1" and (r.get("terminal_reason") == "COLLECTOR_ZERO_CANDIDATE" or r.get("route_diagnosis") == "COLLECTOR_ZERO_CANDIDATE" or r.get("candidate_count") == 0)})
         # criterion source: raw label OR the mart relabel (TBX-013 R74 was applied in the mart); R2 evidence = manifest lines OR dirs under the -R2 run root
-        zero = sorted(set(zero) | {r.get("target_id") for r in rows if str(r.get("terminal_reason") or "").strip() == "COLLECTOR_ZERO_CANDIDATE"})
+        zero = sorted(set(zero) | {r.get("target_id") for r in r1_rows if str(r.get("terminal_reason") or "").strip() == "COLLECTOR_ZERO_CANDIDATE"})
         # R97 (TBX-018): criterion widened AFTER partial results (recorded as such) — union with ② attempt_status ERROR whose error is click_failed / Page.goto
-        err2 = sorted({r.get("target_id") for r in rows if str(r.get("attempt_status") or "").strip() == "ERROR" and re.search(r"click_failed|Page\.goto|page\.goto", str(r.get("experienced_flow_sequence") or "") + str(r.get("missing_reason") or ""))})
+        err2 = sorted({r.get("target_id") for r in r1_rows if str(r.get("attempt_status") or "").strip() == "ERROR" and re.search(r"click_failed|Page\.goto|page\.goto", str(r.get("experienced_flow_sequence") or "") + str(r.get("missing_reason") or ""))})
         zero_union = sorted(set(zero) | set(err2)); zero_narrow = zero; zero = zero_union
-        r2_dirs = sorted(os.path.basename(d_) for d_ in glob.glob(str(RUN_ROOT) + "-R2/*") if os.path.isdir(d_))
-        r2 = sorted({r.get("target_id") for r in raw_m if run_of(r) == "R2"} | set(r2_dirs)); r2_open = bool(r2)
+        r2_dirs = sorted({os.path.basename(d_) for d_ in glob.glob(str(RUN_ROOT) + "-R*/*") if os.path.isdir(d_)})
+        r2 = sorted({r.get("target_id") for r in raw_m if run_of(r) != "R1"} | set(r2_dirs)); r2_open = bool(r2)
         missing_r2 = [t for t in zero if t not in r2]; extra_r2 = [t for t in r2 if t not in zero]
-        if r2_open and missing_r2: flag("RAW.R2_COVERAGE", f"{len(missing_r2)}/{len(zero)} COLLECTOR_ZERO_CANDIDATE targets have no R2 line — at freeze this is an outcome-based selection (R82)", None, missing=missing_r2)
+        if r2_open and missing_r2: flag("RAW.R2_COVERAGE", f"{len(missing_r2)}/{len(zero)} criterion targets have no re-measurement — at freeze this is an outcome-based selection (R82)", None, missing=missing_r2)
         for t in extra_r2: flag("RAW.R2_COVERAGE", f"R2 line for {t} whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion", "task_or_outcome_leakage", target=t)
         checks["RAW.R2_COVERAGE"] = {"status": ("NOT_TESTABLE" if not zero and not r2 else "FLAG" if (r2_open and missing_r2) or extra_r2 else "PASS" if r2_open else "PENDING_R2_NOT_OPENED"),
-                                    "n_items": len(zero) + len(r2), "eligible_by_criterion": len(zero), "eligible_R82_narrow": len(zero_narrow), "eligible_R97_error_branch": len(err2), "criterion_history": "R82 narrow (COLLECTOR_ZERO_CANDIDATE) → R97 union with ERROR click_failed/Page.goto, widened after partial results (TBX-018)", "re_measured": len(r2), "r2_dirs_on_disk": len(r2_dirs), "r2_manifest_lines": sum(1 for r in raw_m if run_of(r) == "R2"), "missing": missing_r2, "outside_criterion": extra_r2,
+                                    "n_items": len(zero) + len(r2), "eligible_by_criterion": len(zero), "eligible_R82_narrow": len(zero_narrow), "eligible_R97_error_branch": len(err2), "criterion_history": "R82 narrow (COLLECTOR_ZERO_CANDIDATE) → R97 union with ERROR click_failed/Page.goto, widened after partial results (TBX-018)", "re_measured": len(r2), "r2_dirs_on_disk": len(r2_dirs), "r2_manifest_lines": sum(1 for r in raw_m if run_of(r) != "R1"), "r1_basis": r1_basis, "runs_seen": sorted({run_of(r) for r in raw_m}), "missing": missing_r2, "outside_criterion": extra_r2,
                                     "rule": "criterion = R1 candidate_count==0 / COLLECTOR_ZERO_CANDIDATE (mechanical, fixed before results); run detection = '-R2' in evidence_dir/idempotency_key"}
     # --- forbidden-action presence probe over raw dirs
     dirs = [d for d in glob.glob(str(RUN_ROOT / "*")) if os.path.isdir(d)]; hits = []; nfiles = 0; exec_hits = []
