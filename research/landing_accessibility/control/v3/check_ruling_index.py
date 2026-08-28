@@ -99,6 +99,24 @@ def run(idx, delta_text, delta_sha=None, writing=False):
             fail.append(("input_identity", {"declared": decl, "actual_delta": delta_sha,
                                             "뜻": "색인이 현재 delta 로 재생성되지 않았다. --write 로 갱신하라"}))
 
+    # 10. 번호 소절 피복 — 판정을 담는 소절은 관례상 번호(①②③…)가 붙는다.
+    #     절 표제만 세면 **번호 소절 안의 판정**이 색인에 없어도 검사가 통과한다 (Δ54).
+    #     D-V3-FINDING-025("파서가 번호 표제를 못 잡아 18건의 한계가 빈 값이었다")와 같은 축이다.
+    numbered = collections.Counter()
+    cur_auth = None
+    for line in delta_text.splitlines():
+        m = re.match(r'^##\s+(Δ[0-9]+)(?![0-9A-Za-z_-])', line)
+        if m:
+            cur_auth = m.group(1)
+            continue
+        if cur_auth and re.match(r'^#{3,4}\s+[①②③④⑤⑥⑦⑧⑨⑩]', line):
+            numbered[cur_auth] += 1
+    by_auth = collections.Counter(r.get("authority") for r in rows)
+    thin = {a: {"번호소절": n, "색인행": by_auth.get(a, 0)}
+            for a, n in numbered.items() if by_auth.get(a, 0) < n}
+    if thin:
+        fail.append(("numbered_subsection_coverage", thin))
+
     sections = sorted(set(re.findall(
         r'^#{2,3}\s+(Δ[0-9]+(?:-[A-Za-z0-9\-]+)?|R\d+)(?![0-9A-Za-z_-])', delta_text, re.M)))
     return fail, {"rows": len(rows), "total_aliases": len(own),
@@ -184,6 +202,24 @@ def positive_control(idx, delta_text, delta_sha=None):
     m["count"] = len(m["rulings"])
     f, _ = run(m, delta_text, delta_sha=(delta_sha or "1" * 64), writing=False)
     results["input_identity"] = "input_identity" in {k for k, _ in f}
+
+    # 번호 소절 피복 — **번호 소절을 가진** authority 를 골라야 한다.
+    # 첫 판은 "행이 가장 많은 authority" 를 골랐고 그 절에 번호 소절이 0개라
+    # 변이가 아무것도 깨지 않았다 — probe 가 **자기가 겨냥한 검사와 다른 곳**을 쳤다.
+    _num = collections.Counter()
+    _cur = None
+    for _line in delta_text.splitlines():
+        _m = re.match(r'^##\s+(Δ[0-9]+)(?![0-9A-Za-z_-])', _line)
+        if _m:
+            _cur = _m.group(1)
+        elif _cur and re.match(r'^#{3,4}\s+[①②③④⑤⑥⑦⑧⑨⑩]', _line):
+            _num[_cur] += 1
+    if not _num:
+        raise AssertionError("번호 소절이 하나도 없다 — 이 검사의 probe 를 만들 수 없다")
+    victim = _num.most_common(1)[0][0]
+    probe("numbered_subsection_coverage",
+          lambda m: m.__setitem__("rulings", [r for r in m["rulings"]
+                                              if r.get("authority") != victim]))
 
     probe("measurement_single_source",
           lambda m: m["self_check"].setdefault("alias_rules_probe", {}).__setitem__(
