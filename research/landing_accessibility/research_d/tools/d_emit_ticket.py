@@ -10,6 +10,14 @@ D 는 `D-V3-FINDING-012` 를 `base_sha` 없이 발행했다. v3 Δ26 은 v3 이�
   to             D 의 substantive finding 은 `to=[C]` 다 (A6/v3 §4)
   claim_kind     판정어가 아니어야 한다 — D 는 GO/NO-GO/BLOCKER/SUPERSEDE 를 내지 않는다
   heredoc 금지    이 모듈은 dict 를 받는다. 셸 heredoc 은 backtick 을 삼킨다(실제로 겪었다)
+
+[D-DEF-47] 이 docstring 은 "스키마를 강제한다" 고 적혀 있었지만 **스키마 파일을
+읽지 않았다.** 손으로 고른 4항목만 봤고 `scope` 와 `status` 는 필수인데 채우지도
+검사하지도 않았다 — v3-era D 발행분 68건 중 55건이 위반이다.
+
+**목록을 손으로 만들면 뒤처진다**(D-DEF-45 와 같은 형태). 이제 SSOTV3 의
+`15_TICKET_PROTOCOL_SCHEMA_v3.0.json` **정본을 읽어** required 와 enum 을
+검사한다. 스키마가 바뀌면 이 도구도 따라간다.
 """
 from __future__ import annotations
 
@@ -220,6 +228,30 @@ def self_test() -> dict:
             "why": "대조군이 실패하면 발행하지 않는다 — 못 막는 가드의 '오류 0' 은 0 이 아니다"}
 
 
+SSOT_SCHEMA = Path("/home/sieg/projects-wsl/ProjectFinal"
+                   "/SSOTV3/15_TICKET_PROTOCOL_SCHEMA_v3.0.json")
+
+
+def schema_errors(t: dict) -> list:
+    """[D-DEF-47] **정본 스키마 파일을 읽어** required·enum 을 검사한다.
+
+    손 목록이 아니다. 스키마가 바뀌면 이 검사가 따라간다.
+    """
+    try:
+        s = json.loads(SSOT_SCHEMA.read_text(encoding="utf-8"))
+    except Exception as e:                 # 읽지 못한 것을 통과로 읽지 않는다
+        return [f"스키마 정본을 읽지 못했다 — 발행하지 않는다: {SSOT_SCHEMA} ({e})"]
+    out = [f"스키마 필수 누락: {k}" for k in s["required"] if k not in t]
+    for k, spec in s["properties"].items():
+        if k in t and "enum" in spec and t[k] not in spec["enum"]:
+            out.append(f"스키마 enum 밖: {k}={t[k]!r} (허용 {spec['enum']})")
+        if k in t and spec.get("type") == "array" and "enum" in spec.get("items", {}):
+            for v in (t[k] or []):
+                if v not in spec["items"]["enum"]:
+                    out.append(f"스키마 enum 밖: {k}[]={v!r}")
+    return out
+
+
 def emit(t: dict, *, dry_run: bool = False) -> dict:
     """검사를 통과하면 티켓을 쓰고 event_log 에 append 한다."""
     t = dict(t)
@@ -235,6 +267,9 @@ def emit(t: dict, *, dry_run: bool = False) -> dict:
     t.setdefault("self_approved", False)
     t.setdefault("self_approved_note",
                  "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65")
+    # [D-DEF-47] 스키마 필수인데 아무도 채우지 않던 둘. `scope` 는 내용이라
+    # 자동으로 지어내지 않는다 — 없으면 아래 스키마 검사에서 막힌다.
+    t.setdefault("status", "OPEN")
 
     st = self_test()
     if st["verdict"] != "PASS":
@@ -243,6 +278,7 @@ def emit(t: dict, *, dry_run: bool = False) -> dict:
                            json.dumps(st, ensure_ascii=False)]}
 
     errs = check(t)
+    errs = list(errs) + schema_errors(t)     # [D-DEF-47] 정본 스키마도 본다
     if errs:
         return {"emitted": False, "errors": errs}
     if dry_run:

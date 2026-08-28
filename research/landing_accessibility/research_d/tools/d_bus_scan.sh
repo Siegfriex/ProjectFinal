@@ -24,6 +24,22 @@ print(f"  verdict          : {ctl['verdict']}")
 print(f"  positive control : {ctl['positive']['detected']}/{ctl['positive']['expected']} 검출")
 print(f"  negative control : {ctl['negative']['not_detected']}/{ctl['negative']['expected']} 미검출(과탐 0)")
 print(f"  malformed control: {ctl['malformed']['reported']}/{ctl['malformed']['expected']} 명시 오류")
+# --- D 자기 발행분 **스키마 정본** 상주 감사 (D-DEF-47) ---
+# 발행 도구를 우회해 손으로 티켓을 쓰면 도구의 가드가 무의미하다.
+# 그래서 **사후 스캔**을 매 루프에 붙인다 — 우회해도 다음 스캔에서 보인다.
+try:
+    from d_ticket_schema_check import check as _schema_check
+    _sc = _schema_check()
+    print(f"\n=== D 발행분 스키마(SSOTV3 정본) : {_sc['verdict']} "
+          f"· 위반 {_sc['n_violations']} ===")
+    if _sc["by_field"]:
+        for _k, _v in sorted(_sc["by_field"].items(), key=lambda x: -x[1]):
+            print(f"   {_v:>3}  {_k}")
+        print("   (v3 이전 발행분은 대상 아님 — 소급하지 않는다. 발행분은 고치지 않는다)")
+except Exception as _e:
+    print(f"\n=== D 발행분 스키마 : 검사 실패 {_e} ===")
+    errs.append({"file": "(D 발행분 스키마)", "error": f"스키마 감사 실행 실패: {_e}"})
+
 # --- D 자기 발행분 base_sha 상주 감사 (Δ26 / T-A-V3-STEP1-024) ---
 try:
     from d_emit_ticket import audit_emitted
