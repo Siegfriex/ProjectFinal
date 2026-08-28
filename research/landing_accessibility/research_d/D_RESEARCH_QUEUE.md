@@ -22,7 +22,7 @@
 | RQ-D4 | URL_PATTERN / DOM_AX_ROLE / FORM_STRUCTURE endpoint signal feasibility | OPEN | — |
 | RQ-D5 | Axis C raw의 즉시 재사용 범위와 task-specific occlusion의 한계 | OPEN | — |
 | **RQ-D6** | partial NED 보존 미구현이 detector 결함과 독립인가 (RQ-D1 F6 파생) | OPEN | — |
-| **RQ-D7** | mart의 조용한 분모 손실(59→56→31)이 계획된 association 추정에 주는 영향 상한 | OPEN | — |
+| **RQ-D7** | mart의 조용한 분모 손실(59→56→31)이 계획된 association 추정에 주는 영향 상한 | **CLOSED_WITH_FINDING** | `D-V3-FINDING-002` · 노트북 22셀 error 0 · 2026-08-28 14:4x 표 정정 |
 | RQ-D8 | `T-B-RQ-D-001 Q1` — l0_probe cap 절단이 interaction_archetype에 편향돼 있는가. ExcessDepth의 same-archetype median baseline을 어떻게 왜곡하는가 (검정력부터 판단) | **DONE** | `results/RQ_D8_FINDINGS.md` PARTIALLY_SUPPORTED |
 | RQ-D9 | `T-B-RQ-D-001 Q2` — dom.html 크기 · probe 신호 풍부도 · cap 도달의 관계 구조. 관측품질 대리변수는 무엇이 될 수 있고 무엇이 될 수 없는가 | **DONE** | `results/RQ_D9_FINDINGS.md` REFUTED |
 | RQ-D10 | `T-B-RQ-D-001 Q3` — evidence slot 간 시점 불일치(dom/ax = SPA shell vs probe = 렌더 후)를 raw에서 정량화하고 관측단위 지표로 정의할 수 있는가 | **DONE** | `results/RQ_D10_FINDINGS.md` PARTIALLY_SUPPORTED |
@@ -882,3 +882,34 @@ A 가 D 를 분석·시각화 평면으로 재배치했다. `NON_CANONICAL` 은 
 우선연구 8개 대조: `spatial dispersion 조작화`(fig2 n=8) · `visible label vs AX`(D02 —
 이번 census 산출 불가로 확정) · `action sequence normalization`(단일 스텝이라 미산출) ·
 `auth-gate stage variation`(AT_ENDPOINT 2 관측) 네 축이 닿았고, 나머지 넷은 관측 부재.
+
+---
+
+## 2026-08-28 14:45 — 마스터 표 상태 정정 (검사로 잡음)
+
+문서 상단 마스터 표가 **또 뒤처졌다.** 이 문서는 이미 `상태 정리 2026-08-27 23:45
+— 큐 표가 stale 했다` 섹션을 갖고 있다. **한 번 고쳤는데 재발했다** — 로그는
+계속 쌓이고 표는 손으로 갱신해야 하므로, 고치는 것으로는 재발을 막지 못한다.
+
+그래서 검사로 옮겼다: `tools/d_queue_consistency.py`.
+
+| RQ | 표에 적혀 있던 것 | 실제 | 근거 |
+|---|---|---|---|
+| **RQ-D7** | `OPEN` | **CLOSED_WITH_FINDING** | `D-V3-FINDING-002` 버스 실재 · `RQ_D7_denominator_bounds.ipynb` 22셀 **error 0 · 미실행 0** |
+| **RQ-D13b-1/2** | 로그 292행에 이미 `CLOSED_WITH_FINDING` | 동일 | `D-V3-FINDING-003` 버스 실재 · `RQ_D13b12_dismissal_dom_effect.ipynb` 31셀 **error 0 · 미실행 0** |
+
+노트북 14개 전수 재검 결과 **error 0 · 미실행 0**. 완결 게이트는 실제로 충족돼
+있었고 **표기만 뒤처져 있었다** — 이것이 D 가 반복해 잡아온 결함족의 문서판이다.
+적힌 것과 실제가 다르고, **적힌 쪽만 보면 통과한다.**
+
+### 검사가 스스로 낸 결함 2건 (발행 전 자체 검출)
+
+1. **대조군이 현재 상태에 묶여 있었다.** 처음엔 "지금 큐가 stale 하다" 를
+   must_flag 대조군으로 썼다. 그러면 **문서를 고치는 순간 대조군이 깨진다.**
+   검사의 성능이 대상의 상태에 의존해선 안 된다 — 합성 텍스트로 바꿨다.
+2. **한 줄의 모든 RQ 에 그 줄의 상태를 귀속시켰다.** `| RQ-D6 | … (RQ-D1 F6
+   파생) | OPEN |` 이 RQ-D1 을 OPEN 으로 만들어 **오탐**이 났다(RQ-D1 은 표에서
+   `DONE`). 표 행의 주어는 **첫 셀의 RQ** 다.
+
+대조군 7건 PASS (must_flag 3 · must_not_flag 4). 이 검사는 **문서를 자동으로
+고치지 않는다** — 상태 판정은 기록이고 덮으면 이력이 사라진다.
