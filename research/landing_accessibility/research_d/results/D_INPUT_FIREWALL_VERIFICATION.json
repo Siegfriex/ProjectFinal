@@ -4,12 +4,12 @@
  "scan_root": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_d_research",
  "verdict": "PASS",
  "claim_kind": "OBSERVATION",
- "checked_at_kst": "2026-08-28T10:20:19.435419+09:00",
- "d_head_sha": "94123fc1ba2eb0ebf6f1d0f856d6f776e8a512dc",
+ "checked_at_kst": "2026-08-28T10:32:34.627422+09:00",
+ "d_head_sha": "9cce958ce12b53abd31b0bd9de3e8071ad97b809",
  "manifest_sha256": "5321e4f19d990d70ae9bc89370bb134d85970ac5f7a12d2f2ca048743529de94",
- "scanned_files": 215,
- "scanned_corpus_sha256": "f526ea76bf4f3da5e24fb454f3de33a8c666d44001bd68cd8a385b2c2bcf0484",
- "freshness_corpus_sha256": "0e3d5c32dc0eb54fb3a88b12670a663c5427d2f55ca7700c3bdb325d599cdada",
+ "scanned_files": 216,
+ "scanned_corpus_sha256": "1006a5c89972b2c39fd10df9e60c602c484d3d5f4cc150b7fddf2c6990a9063f",
+ "freshness_corpus_sha256": "279bb3e70317a9221073d75d5d507bd2088cc0499f894a8841af09bd89a85598",
  "corpus_identity_note": "scanned_files 는 개수이고 이것은 신원이다. 두 실행의 코퍼스 sha 가 다르면 FAIL 수를 비교하지 않는다 (R38).",
  "scan_method": "경로 문자열 추출 + 금지 파일명 토큰 + 워크트리 물리 존재 확인",
  "controls": {
@@ -128,7 +128,7 @@
   "tool": {
    "path": "tools/d_input_firewall.py",
    "sha256": "720757e79b69763b743c9e35701c179b753eaea870cfe4258b946ce80639c4e3",
-   "commit": "94123fc1ba2eb0ebf6f1d0f856d6f776e8a512dc"
+   "commit": "9cce958ce12b53abd31b0bd9de3e8071ad97b809"
   },
   "on_control_failure": {
    "behavior": "verdict=CONTROL_FAIL 로 기록하고 exit 2 — 지우지 않고 남긴다",
@@ -151,41 +151,39 @@
  },
  "exception_wiring": {
   "rule": "R57 를 허용 예외에 적용 — 발화 0인 예외는 이 스캔이 검증하지 않았다",
-  "exempted_hits": 5,
+  "exempted_hits": 13,
   "per_exception": {
    ".agent_worktrees/claude_b_recovery/research/landing_accessibility/shadow/lane_b/state/representative_task_candidate_shadow.csv": {
     "fired": 0,
     "WIRED": false
    },
    "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json": {
-    "fired": 1,
+    "fired": 3,
     "WIRED": true
    },
    "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.sha256.json": {
-    "fired": 0,
-    "WIRED": false
+    "fired": 1,
+    "WIRED": true
    },
    "research/landing_accessibility/control/v3/SSOTV3_PROVENANCE_SNAPSHOT.json": {
-    "fired": 0,
-    "WIRED": false
+    "fired": 1,
+    "WIRED": true
    },
    "research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md": {
-    "fired": 2,
+    "fired": 3,
     "WIRED": true
    },
    "research/landing_accessibility/control/v3/V3_RULING_INDEX.json": {
-    "fired": 1,
+    "fired": 2,
     "WIRED": true
    },
    "research/landing_accessibility/control/v3/ssot_snapshot/**": {
-    "fired": 1,
+    "fired": 3,
     "WIRED": true
    }
   },
   "unfired": [
-   ".agent_worktrees/claude_b_recovery/research/landing_accessibility/shadow/lane_b/state/representative_task_candidate_shadow.csv",
-   "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.sha256.json",
-   "research/landing_accessibility/control/v3/SSOTV3_PROVENANCE_SNAPSHOT.json"
+   ".agent_worktrees/claude_b_recovery/research/landing_accessibility/shadow/lane_b/state/representative_task_candidate_shadow.csv"
   ],
   "what_unfired_means": "그 예외가 틀렸다는 뜻이 아니다. **이 스캔에서 아무것도 면제하지 않았다**는 뜻이고, 따라서 너무 넓더라도 여기서는 드러나지 않는다.",
   "not_a_verdict": "예외 축소 여부는 A 판정이다 — 예외는 A 가 확대한 것이다."
@@ -198,7 +196,7 @@
  },
  "verdict_rule": "대조군 PASS AND FAIL 등급 위반 0건 AND base SHA label 경로 0건 일 때만 PASS. WARN 은 산문 경계선 서술이라 PASS 를 막지 않지만 전부 기록한다.",
  "fail_count": 0,
- "warn_count": 389,
+ "warn_count": 395,
  "violations": [
   {
    "file": "notebooks/d_research/DSUP01_representation_ablation.ipynb",
@@ -1644,6 +1642,130 @@
    "denied_pattern": "token:LABEL_SPLIT_FROZEN",
    "kind": "DENIED_NAME_TOKEN",
    "context": "| unsafe FP | **NOT_AVAILABLE** | T5 | unsafe false positive 를 세려면 detector 예측과 gold label 을 대조해야 한다. detector 평가 run 이 없고, gold label 대조는 C 영역이다 — D 가 계산할 수 없다. |  > **holdout 경계** — holdout 은 C 영역이다. D 는 LABEL_SPLIT_FROZEN.json 과 control/label/** 를 열지 않는다. 여기 있는 값은 C 가 MLflow 에 남긴 요약 metric 이며, D ",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 43,
+   "reference": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "severity": "ALLOWED_BY_EXCEPTION"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 46,
+   "reference": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.sha256.json",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "severity": "ALLOWED_BY_EXCEPTION"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 49,
+   "reference": "research/landing_accessibility/control/v3/SSOTV3_PROVENANCE_SNAPSHOT.json",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "severity": "ALLOWED_BY_EXCEPTION"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 52,
+   "reference": "research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "severity": "ALLOWED_BY_EXCEPTION"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 55,
+   "reference": "research/landing_accessibility/control/v3/V3_RULING_INDEX.json",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "severity": "ALLOWED_BY_EXCEPTION"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 58,
+   "reference": "research/landing_accessibility/control/v3/ssot_snapshot/**",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "severity": "ALLOWED_BY_EXCEPTION"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 97,
+   "reference": "research/landing_accessibility/control",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "\"claim\": \"방화벽의 **차단(FAIL) 등급은 117 판본에서 4번 발화했고 4번 다 거짓 양성이었다**. 참 양성 0건.\",   \"fail_events\": [    {     \"rev_index\": 30,     \"committed_at_kst\": \"2026-08-28T09:07:44+09:00\",     \"commit\": \"b2a4433 chore(D): 방화벽 재스캔\",     \"fail_count\": 1,     \"violation\": {      \"file\": \"research_d/tools/d_heartbeat.p",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 98,
+   "reference": "research/landing_accessibility/control/**",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "\"fail_events\": [    {     \"rev_index\": 30,     \"committed_at_kst\": \"2026-08-28T09:07:44+09:00\",     \"commit\": \"b2a4433 chore(D): 방화벽 재스캔\",     \"fail_count\": 1,     \"violation\": {      \"file\": \"research_d/tools/d_heartbeat.py\",      \"line\": 88,      \"reference\": \"research/landing_accessibility/contro",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 110,
+   "reference": "research/landing_accessibility/control",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "}    },    {     \"rev_index\": 31,     \"committed_at_kst\": \"2026-08-28T09:06:43+09:00\",     \"commit\": \"4c1291b feat(D): R41 production_modified 측정화 + R43 실증 4종 (A FC-008)\",     \"fail_count\": 1,     \"violation\": {      \"file\": \"research_d/tools/d_heartbeat.py\",      \"line\": 71,      \"reference\": \"rese",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 111,
+   "reference": "research/landing_accessibility/control/**",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "},    {     \"rev_index\": 31,     \"committed_at_kst\": \"2026-08-28T09:06:43+09:00\",     \"commit\": \"4c1291b feat(D): R41 production_modified 측정화 + R43 실증 4종 (A FC-008)\",     \"fail_count\": 1,     \"violation\": {      \"file\": \"research_d/tools/d_heartbeat.py\",      \"line\": 71,      \"reference\": \"research/",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 123,
+   "reference": "research/landing_accessibility/control/v3/ssot_snapshot",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "severity": "ALLOWED_BY_EXCEPTION"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 124,
+   "reference": "research/landing_accessibility/control/**",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "},    {     \"rev_index\": 83,     \"committed_at_kst\": \"2026-08-28T03:23:24+09:00\",     \"commit\": \"0075e4a verify(BLK-011): SSOT 스냅샷 독립 재대조 22/22 · 매니페스트 20/20\",     \"fail_count\": 1,     \"violation\": {      \"file\": \"research_d/results/D_V3_SSOT_SNAPSHOT_VERIFICATION.json\",      \"line\": 4,      \"refere",
+   "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
+   "severity": "WARN"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 136,
+   "reference": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "severity": "ALLOWED_BY_EXCEPTION"
+  },
+  {
+   "file": "research_d/results/D_FLAG_HISTORY_AUDIT.json",
+   "line": 137,
+   "reference": "research/landing_accessibility/control/**",
+   "denied_pattern": "research/landing_accessibility/control/**",
+   "kind": "DENIED_PATH",
+   "context": "},    {     \"rev_index\": 87,     \"committed_at_kst\": \"2026-08-28T02:53:54+09:00\",     \"commit\": \"879ee85 P0(T-A-V3-STEP1-002): manifest 예외 수용 + v3.0.2 해시 독립 대조 · Lane A 통합\",     \"fail_count\": 1,     \"violation\": {      \"file\": \"research_d/results/D_V3_MAIN50_HASH_VERIFICATION.json\",      \"line\": 4, ",
    "why": "부정 선언 문맥 — 참조가 아니라 경계선 서술",
    "severity": "WARN"
   },
