@@ -73,14 +73,18 @@ def parse_verdict(md: Path) -> str:
 
 
 def parse_limitation(md: Path) -> str:
+    """[A STEP1-037 전수 재수행] 예전에는 **파일 부재**와 **한계 절 없음**을
+    둘 다 빈 문자열로 냈다. 빈 한계는 MLflow 에서 **'한계가 없다'** 로 읽힌다 —
+    이 세션의 중심 결함이 메타데이터 층에 나타난 형태다. 셋을 가른다.
+    """
     if not md.exists():
-        return ""
+        return "NO_FINDINGS_FILE"
     txt = md.read_text(encoding="utf-8")
     m = re.search(r"^##+\s*Limitations?\b.*?$(.*?)(?=^##\s|\Z)", txt, re.M | re.S)
     if not m:
-        return ""
+        return "NO_LIMITATION_SECTION"
     body = [ln.strip(" -*0123456789.") for ln in m.group(1).splitlines() if ln.strip()]
-    return (body[0] if body else "")[:480]
+    return (body[0] if body else "EMPTY_LIMITATION_SECTION")[:480]
 
 
 # RQ -> notebook 매핑. 번호가 1:1이 아니므로 추론하지 않고 명시한다.
