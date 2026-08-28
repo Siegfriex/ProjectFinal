@@ -245,7 +245,9 @@ def main():
         r2 = sorted({r.get("target_id") for r in raw_m if run_of(r) != "R1"} | set(r2_dirs)); r2_open = bool(r2)
         missing_r2 = [t for t in zero if t not in r2]; extra_r2 = [t for t in r2 if t not in zero]
         if r2_open and missing_r2: flag("RAW.R2_COVERAGE", f"{len(missing_r2)}/{len(zero)} criterion targets have no re-measurement — at freeze this is an outcome-based selection (R82)", None, missing=missing_r2)
-        for t in extra_r2: flag("RAW.R2_COVERAGE", f"R2 line for {t} whose R1 was not COLLECTOR_ZERO_CANDIDATE — outside the pre-fixed criterion", "task_or_outcome_leakage", target=t)
+        # R103 (TBX-019): E's own pre-fixed mechanical criterion (route[].error contains click_failed) was accepted by A — targets outside C's
+        # reconstructed criterion are REPORTED (criterion mismatch), not a leakage candidate; leakage would need a non-mechanical selection
+        for t in extra_r2: flag("RAW.R2_COVERAGE", f"re-measured {t} is outside C's reconstructed criterion (R82∪R97) — E's click_failed criterion accepted by A (R103); listed, not judged", None, target=t)
         checks["RAW.R2_COVERAGE"] = {"status": ("NOT_TESTABLE" if not zero and not r2 else "FLAG" if (r2_open and missing_r2) or extra_r2 else "PASS" if r2_open else "PENDING_R2_NOT_OPENED"),
                                     "n_items": len(zero) + len(r2), "eligible_by_criterion": len(zero), "eligible_R82_narrow": len(zero_narrow), "eligible_R97_error_branch": len(err2), "criterion_history": "R82 narrow (COLLECTOR_ZERO_CANDIDATE) → R97 union with ERROR click_failed/Page.goto, widened after partial results (TBX-018)", "re_measured": len(r2), "r2_dirs_on_disk": len(r2_dirs), "r2_manifest_lines": sum(1 for r in raw_m if run_of(r) != "R1"), "r1_basis": r1_basis, "runs_seen": sorted({run_of(r) for r in raw_m}), "missing": missing_r2, "outside_criterion": extra_r2,
                                     "rule": "criterion = R1 candidate_count==0 / COLLECTOR_ZERO_CANDIDATE (mechanical, fixed before results); run detection = '-R2' in evidence_dir/idempotency_key"}
