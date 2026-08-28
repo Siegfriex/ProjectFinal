@@ -58,12 +58,13 @@ def is_living_doc(rel: str) -> bool:
         return False
     if "." not in name:
         return False
-    suffix = "." + name.split(".", 1)[1]        # `.sha256.json` · `.csv`
+    # **최종 확장자**로 판정한다 — 접미사 사슬 전체가 아니다.
+    # B 가 `T-B` 사이드카 선언에서 whole-suffix-chain 으로 구현했다가
+    # `.backup.csv` 를 SIDECAR 로 분류했다 — **동결본을 검사에서 빼는 누출**이다.
     last = "." + name.rsplit(".", 1)[1]
-    # 데이터 확장자로 끝나면 동결본이다 — 같은 데이터의 다른 형식일 수 있다
     if last in DATA_SUFFIXES:
-        return False
-    return suffix != last or True               # stem 공유 + 비데이터 = 사이드카
+        return False                            # `.parquet` · `.backup.csv` = 동결본
+    return True                                 # stem 공유 + 비데이터 = 사이드카
 RD = Path(__file__).resolve().parent.parent
 BASELINE = RD / "results" / "D_INPUT_INTEGRITY_BASELINE.json"
 
@@ -74,6 +75,44 @@ def _sha(p: Path) -> str:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def _n_files(snap: dict) -> int:
+    """**실제 파일만** 센다 — `_sidecar_keys` 는 파일이 아니다."""
+    return sum(len(v) for k, v in snap.items()
+               if k != "_sidecar_keys" and isinstance(v, dict))
+
+
+def sidecar_keys() -> dict:
+    """사이드카 JSON 의 **top-level 키 집합**을 해시로 기록한다.
+
+    [D-DEF-74] 사이드카가 바뀌면 검사는 "읽어야 할 것이 생겼다" 고 알리지만
+    **무엇이 생겼는지는 말하지 않는다.** 실제로 D 는 이전 키 목록을 **손으로
+    하드코딩해** 대조했다 — 다음 회차에는 못 쓰는 방법이다.
+
+    키를 **해시로** 저장한다(D-DEF-60 — 감시 도구가 대상 이름을 기록하면 스스로
+    위반이 된다). baseline 은 **감지용**이고, 새 키가 잡히면 **원본을 열어
+    읽는다.**
+    """
+    import json as _j
+    out = {}
+    for name, root in WATCH:
+        if not root.is_dir():
+            continue
+        for p in sorted(root.rglob("*")):
+            if not p.is_file():
+                continue
+            rel = str(p.relative_to(CENSUS))
+            if not (is_living_doc(rel) and p.suffix == ".json"):
+                continue
+            try:
+                doc = _j.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if isinstance(doc, dict):
+                out[rel] = sorted(hashlib.sha256(k.encode("utf-8")).hexdigest()[:12]
+                                  for k in doc)
+    return out
 
 
 def snapshot() -> dict:
@@ -87,18 +126,29 @@ def snapshot() -> dict:
             if p.is_file():
                 files[str(p.relative_to(CENSUS))] = _sha(p)
         out[name] = files
+    out["_sidecar_keys"] = sidecar_keys()
     return out
 
 
 def check() -> dict:
     now = snapshot()
     if not BASELINE.exists():
-        return {"verdict": "NO_BASELINE", "n_files": sum(
-            len(v) for v in now.values() if isinstance(v, dict)),
+        return {"verdict": "NO_BASELINE", "n_files": _n_files(now),
             "무엇을_해야_하나": "`write_baseline()` 으로 기준을 한 번 기록한다"}
     base = json.loads(BASELINE.read_text(encoding="utf-8"))["snapshot"]
+    # 사이드카 키 변화 — **무엇이 늘었는지**를 다음 회차가 알 수 있게
+    bk, nk = base.get("_sidecar_keys") or {}, now.get("_sidecar_keys") or {}
+    key_delta = {}
+    for f in sorted(set(bk) | set(nk)):
+        gained = sorted(set(nk.get(f, [])) - set(bk.get(f, [])))
+        lost = sorted(set(bk.get(f, [])) - set(nk.get(f, [])))
+        if gained or lost:
+            key_delta[f] = {"gained_key_hashes": gained, "lost_key_hashes": lost,
+                            "n_now": len(nk.get(f, [])), "n_base": len(bk.get(f, []))}
     changed, added, removed = [], [], []
     for name in {*base, *now}:
+        if name == "_sidecar_keys":
+            continue
         b, n = base.get(name, {}), now.get(name, {})
         for k in sorted(set(b) | set(n)):
             if k not in n:
@@ -112,6 +162,10 @@ def check() -> dict:
     ok = not (frozen_changed or added or removed)
     return {"verdict": "PASS" if ok else "FAIL",
             "living_doc_changed": living,
+            "sidecar_key_delta": key_delta,
+            "키_해시로_두는_이유": ("감시 도구가 대상 이름을 원문으로 기록하면 스스로 "
+                          "위반이 된다(D-DEF-60). baseline 은 **감지용**이고 "
+                          "**새 키가 잡히면 원본을 열어 읽는다**"),
             "frozen_changed": frozen_changed,
             "규칙의_적용_범위": ("사이드카 판정은 `FROZEN_STEMS`(현재 `CANONICAL_MART_50`) "
                         "에 딸린 것만 본다. mart 의 `INGEST_LEDGER.jsonl`·`REINGEST.log` "
@@ -121,7 +175,7 @@ def check() -> dict:
             "동결_vs_사이드카": ("동결본(CSV·raw) 변경은 **FAIL** — D 의 수치가 다른 판본을 "
                           "가리킨다. 사이드카 변경은 **INFO** — 정상이고 다만 "
                           "**읽어야 할 것이 생겼다**는 신호다"),
-            "n_files": sum(len(v) for v in now.values() if isinstance(v, dict)),
+            "n_files": _n_files(now),
             "changed": changed[:20], "added": added[:20], "removed": removed[:20],
             "n_changed": len(changed), "n_added": len(added), "n_removed": len(removed),
             "이_검사가_말하지_않는_것": ("**누가 바꿨는가.** 다른 평면이 raw 를 갱신할 수 "
@@ -136,7 +190,7 @@ def write_baseline(note: str = "") -> dict:
     doc = {"measured_at_kst": subprocess.run(
         ["date", "-Iseconds"], capture_output=True, text=True).stdout.strip(),
         "note": note, "roots": [str(r.relative_to(REPO)) for _, r in WATCH],
-        "n_files": sum(len(v) for v in snap.values() if isinstance(v, dict)),
+        "n_files": _n_files(snap),
         "snapshot": snap}
     BASELINE.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n",
                         encoding="utf-8")
@@ -183,6 +237,11 @@ def controls() -> dict:
          is_living_doc("mart/CANONICAL_MART_50.csv"), False, negative=True)
     case("**같은 stem 의 데이터 파일도 동결본이다**",
          is_living_doc("mart/CANONICAL_MART_50.parquet"), False, negative=True)
+    # [B 가 짚은 자리] 접미사 사슬이 아니라 **최종 확장자**로 판정한다
+    case("`.backup.csv` 는 동결본이다 — 사슬이 아니라 최종 확장자",
+         is_living_doc("mart/CANONICAL_MART_50.backup.csv"), False, negative=True)
+    case("`.sha256.json` 은 사이드카 — 최종 확장자가 데이터가 아니다",
+         is_living_doc("mart/CANONICAL_MART_50.sha256.json"), True)
     case("남의 stem 은 대상이 아니다",
          is_living_doc("mart/snapshot_10.csv"), False, negative=True)
     case("raw 파일은 사이드카가 아니다",
