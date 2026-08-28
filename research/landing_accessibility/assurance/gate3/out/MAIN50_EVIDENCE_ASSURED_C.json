@@ -1,20 +1,20 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T11:30:27+09:00",
+ "measured_at_kst": "2026-08-28T11:33:52+09:00",
  "state": "CANONICAL_50_SEEN",
  "checker": {
-  "commit": "6bad699cade055ad99b2bcecb97407e303e4dd0f",
+  "commit": "2f346b044d9ba62d162abe99bc87a70057b9b637",
   "census_qc_c_sha256": "80a598ffe2c61b8644829223ba5b61e0c306a4a837fc8caa3073ba654d063df5",
-  "census_stream_c_sha256": "4eaec3e3e5adf8e90da523c9505976af3d49f02ef4c2266dab601759b67edc60",
+  "census_stream_c_sha256": "6bb890908ed2c798f3c7c7dc2dfc69fa5c5b04df11d0516a5fbbaa94e4b3d593",
   "checker_frozen": "43d7d4da52e0403a2b76d1322a170678e97a6f03"
  },
  "inputs": {
   "mart": "CANONICAL_MART_50",
-  "mart_sha256": "0deaed787bb5b6e00c093ac5303b6b3c83d2c950f6877568c3a16bd7d1c42ea7",
-  "mart_bytes": 24032,
+  "mart_sha256": "bce7850126643977fdc6d554448a33fded879bed61ad398c12d8d8b52b9b671a",
+  "mart_bytes": 24504,
   "mart_rows": 50,
-  "evidence_manifest_lines": 65,
-  "dispatch_lines": 65,
+  "evidence_manifest_lines": 72,
+  "dispatch_lines": 72,
   "ingest_lines": 50,
   "raw_target_dirs": 50
  },
@@ -82,10 +82,10 @@
   }
  },
  "summary": {
-  "checks_pass": 9,
-  "checks_flag": 6,
+  "checks_pass": 10,
+  "checks_flag": 5,
   "checks_not_testable_or_vacuous": 1,
-  "flags": 177,
+  "flags": 215,
   "systemic_candidates": [
    "duplicate_launch",
    "task_or_outcome_leakage"
@@ -116,21 +116,12 @@
    "identity_check": "RAN"
   },
   "MART.EVIDENCE_OR_TERMINAL": {
-   "status": "FLAG",
+   "status": "PASS",
    "k": 50,
    "of": 50,
    "n_items": 50,
    "missing": [],
-   "non_canonical_terminal": [
-    {
-     "target": "F5-06",
-     "terminal_reason": "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT"
-    },
-    {
-     "target": "F5-07",
-     "terminal_reason": "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT"
-    }
-   ]
+   "non_canonical_terminal": []
   },
   "MART.FORBIDDEN_ACTION": {
    "status": "NOT_TESTABLE",
@@ -277,12 +268,12 @@
   "MART.CANONICAL_50": {
    "status": "PASS",
    "n_items": 1,
-   "file_sha256_recomputed": "0deaed787bb5b6e00c093ac5303b6b3c83d2c950f6877568c3a16bd7d1c42ea7",
+   "file_sha256_recomputed": "bce7850126643977fdc6d554448a33fded879bed61ad398c12d8d8b52b9b671a",
    "declared": {
-    "file_sha256": "0deaed787bb5b6e00c093ac5303b6b3c83d2c950f6877568c3a16bd7d1c42ea7",
+    "file_sha256": "bce7850126643977fdc6d554448a33fded879bed61ad398c12d8d8b52b9b671a",
     "row_count": 50,
-    "frozen_at_kst": "2026-08-28T11:29:21+09:00",
-    "b_head_sha": "b9f1a687f56aa4a05c492c4da69b7320a2c87eef",
+    "frozen_at_kst": "2026-08-28T11:32:57+09:00",
+    "b_head_sha": "56d71af114a57c0e91adc08e791b46888f51d141",
     "manifest_file_sha256": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
     "manifest_body_sha256": "81d55db916866550a8e836231283357c5191c38edf762a739da9020c8687dc1d",
     "promoted": 50,
@@ -337,13 +328,25 @@
      "**`entry_observation_provenance` 가 `B_DERIVED_FROM_DOM_POSTHOC` 인 값** — 관측이 아니라 저장 DOM 에서의 파생이다",
      "**`activation_depth`** — 사후로 채우지 않았다. E 가 준 값만 실려 있다"
     ],
+    "label_relation_rule": {
+     "NONE": "둘 다 미관측",
+     "VISIBLE_ONLY": "visible_label 만 관측",
+     "AX_ONLY": "accessible_name 만 관측",
+     "MATCH": "둘 다 관측되고 **문자열 동일**",
+     "DIFFERENT": "둘 다 관측되고 다름",
+     "**금지**": "`SEMANTIC_EQUIV` 는 규칙을 명시하지 않는 한 쓰지 않는다",
+     "**불변식**": "어느 한쪽이라도 미관측이면 **MATCH 가 될 수 없다**"
+    },
+    "label_relation_provenance": "B_RECOMPUTED_BY_RULE_TBX_017",
+    "auth_gate_stage_rule": "`NONE` 은 `ENDPOINT_REACHED` 행에서만. endpoint 에 닿지 못한 행은 `UNDETERMINED` — 게이트 부재를 주장할 수 없다",
+    "supersedes": "0deaed787bb5b6e00c093ac5303b6b3c83d2c950f6877568c3a16bd7d1c42ea7",
     "self_approved": false
    },
    "rows": 50
   },
   "RAW.DISPATCH": {
    "status": "FLAG",
-   "n_items": 65,
+   "n_items": 72,
    "dispatched_unique": 50,
    "of": 50,
    "dup_keys": {
@@ -357,11 +360,18 @@
     "E_SCOUT::F4-04::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb": 2,
     "E_SCOUT::F2-02::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc": 2,
     "E_SCOUT::F2-05::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc": 2,
+    "E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc": 2,
+    "E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc": 2,
+    "E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc": 2,
+    "E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc": 2,
+    "E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb": 2,
     "E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e": 2,
     "E_SCOUT::F3-09::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e": 2,
     "E_SCOUT::F3-10::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e": 2,
     "E_SCOUT::F4-06::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb": 2,
-    "E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb": 2
+    "E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb": 2,
+    "E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb": 2,
+    "E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb": 2
    },
    "dup_targets": {
     "F1-04": 2,
@@ -374,23 +384,30 @@
     "F4-04": 2,
     "F2-02": 2,
     "F2-05": 2,
+    "F2-06": 2,
+    "F2-07": 2,
+    "F2-09": 2,
+    "F2-10": 2,
+    "F4-05": 2,
     "F3-08": 2,
     "F3-09": 2,
     "F3-10": 2,
     "F4-06": 2,
-    "F4-07": 2
+    "F4-07": 2,
+    "F4-09": 2,
+    "F4-10": 2
    },
    "outside": [],
    "unparsable_lines": []
   },
   "RAW.CHAIN": {
    "status": "PASS",
-   "n_items": 65,
+   "n_items": 72,
    "targets_with_evidence": 50,
    "of": 50,
    "chain_breaks": 0,
    "changed_lines_vs_previous_run": [],
-   "previous_run_lines": 50,
+   "previous_run_lines": 65,
    "unparsable_lines": [],
    "non_canonical_terminal": []
   },
@@ -402,12 +419,12 @@
   },
   "RAW.CONTRACT_TBX011": {
    "status": "FLAG",
-   "n_items": 65,
-   "problems": 106,
+   "n_items": 72,
+   "problems": 132,
    "by_kind": {
-    "NULL_WITHOUT_MISSING_REASON": 76,
-    "IDEMPOTENCY_KEY_DUP": 15,
-    "TARGET_MULTI_LINE_REPORT": 15
+    "NULL_WITHOUT_MISSING_REASON": 88,
+    "IDEMPOTENCY_KEY_DUP": 22,
+    "TARGET_MULTI_LINE_REPORT": 22
    },
    "control": "raw_contract_controls() PASS in this run",
    "vocabulary_observation": "TBX-011 terminal_reason 8 values vs R11 16 values — C validates raw against TBX-011 (A's census contract); mart terminal_reason is checked against the union; entry_zone 5 values vs R7 7 zones; auth_gate_stage NONE vs R13 UNDETERMINED — reported, not judged"
@@ -418,7 +435,7 @@
    "eligible_by_criterion": 21,
    "re_measured": 22,
    "r2_dirs_on_disk": 22,
-   "r2_manifest_lines": 15,
+   "r2_manifest_lines": 22,
    "missing": [
     "F1-01",
     "F1-02",
@@ -478,20 +495,6 @@
   }
  },
  "flags": [
-  {
-   "check": "EVIDENCE_OR_TERMINAL",
-   "message": "non-canonical terminal_reason 'NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT' (16 values, R11/Δ30/Δ32/Δ47)",
-   "systemic_candidate": null,
-   "target": "F5-06",
-   "terminal_reason": "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT"
-  },
-  {
-   "check": "EVIDENCE_OR_TERMINAL",
-   "message": "non-canonical terminal_reason 'NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT' (16 values, R11/Δ30/Δ32/Δ47)",
-   "systemic_candidate": null,
-   "target": "F5-07",
-   "terminal_reason": "NO_SAFE_ROUTE_UNVERIFIED_CANDIDATE_COUNT"
-  },
   {
    "check": "MART.COLUMNS",
    "message": "mart columns differ from the 23 fixed by TBX-006: missing [] extra ['entry_observation_provenance']",
@@ -569,6 +572,41 @@
   },
   {
    "check": "RAW.DISPATCH",
+   "message": "idempotency_key E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "idempotency_key E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "idempotency_key E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "idempotency_key E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc dispatched 2×",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "idempotency_key E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
    "message": "idempotency_key E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e dispatched 2×",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
@@ -600,6 +638,20 @@
    "message": "idempotency_key E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "idempotency_key E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "idempotency_key E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb dispatched 2×",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
@@ -674,6 +726,41 @@
   },
   {
    "check": "RAW.DISPATCH",
+   "message": "target F2-06 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F2-06",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F2-07 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F2-07",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F2-09 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F2-09",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F2-10 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F2-10",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F4-05 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F4-05",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
    "message": "target F3-08 dispatched 2× (retry must be ledgered)",
    "systemic_candidate": null,
    "target": "F3-08",
@@ -708,6 +795,20 @@
    "n": 2
   },
   {
+   "check": "RAW.DISPATCH",
+   "message": "target F4-09 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F4-09",
+   "n": 2
+  },
+  {
+   "check": "RAW.DISPATCH",
+   "message": "target F4-10 dispatched 2× (retry must be ledgered)",
+   "systemic_candidate": null,
+   "target": "F4-10",
+   "n": 2
+  },
+  {
    "check": "RAW.CONTRACT_TBX011",
    "message": "NULL_WITHOUT_MISSING_REASON",
    "systemic_candidate": null,
@@ -1237,6 +1338,90 @@
    "message": "NULL_WITHOUT_MISSING_REASON",
    "systemic_candidate": null,
    "line": 64,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 66,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 66,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 67,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 67,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 68,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 68,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 69,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 69,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 71,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 71,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 72,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 72,
    "key": "entry_y_norm"
   },
   {
@@ -1313,6 +1498,41 @@
    "check": "RAW.CONTRACT_TBX011",
    "message": "IDEMPOTENCY_KEY_DUP",
    "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F2-06::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
+   "n": 2
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "IDEMPOTENCY_KEY_DUP",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F2-07::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
+   "n": 2
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "IDEMPOTENCY_KEY_DUP",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F2-09::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
+   "n": 2
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "IDEMPOTENCY_KEY_DUP",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F2-10::94bf0c98312ea8274bb75cc933d8cd9c3c52c7227e1bff45930128b6d5f5dbbc",
+   "n": 2
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "IDEMPOTENCY_KEY_DUP",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F4-05::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
+   "n": 2
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "IDEMPOTENCY_KEY_DUP",
+   "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F3-08::a75422d2e6e5b1f26b444f78a3e272566aa5eb99ec070aae0b846e109435031e",
    "n": 2
   },
@@ -1342,6 +1562,20 @@
    "message": "IDEMPOTENCY_KEY_DUP",
    "systemic_candidate": "duplicate_launch",
    "key": "E_SCOUT::F4-07::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
+   "n": 2
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "IDEMPOTENCY_KEY_DUP",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F4-09::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
+   "n": 2
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "IDEMPOTENCY_KEY_DUP",
+   "systemic_candidate": "duplicate_launch",
+   "key": "E_SCOUT::F4-10::2948881ebd0ec2f495db5f407289c5c0a614c659cc125623fa05aa29c85280bb",
    "n": 2
   },
   {
@@ -1428,6 +1662,46 @@
    "check": "RAW.CONTRACT_TBX011",
    "message": "TARGET_MULTI_LINE_REPORT",
    "systemic_candidate": null,
+   "target_id": "F2-06",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F2-07",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F2-09",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F2-10",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F4-05",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
    "target_id": "F3-08",
    "n": 2,
    "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
@@ -1461,6 +1735,22 @@
    "message": "TARGET_MULTI_LINE_REPORT",
    "systemic_candidate": null,
    "target_id": "F4-07",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F4-09",
+   "n": 2,
+   "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "TARGET_MULTI_LINE_REPORT",
+   "systemic_candidate": null,
+   "target_id": "F4-10",
    "n": 2,
    "note": "R84: multiple runs per target are legitimate if run ids differ; duplicate_launch only on identical idempotency_key"
   },
@@ -2102,6 +2392,30 @@
     "mart_rows": 50,
     "evidence_manifest_lines": 50,
     "dispatch_lines": 50,
+    "ingest_lines": 50,
+    "raw_target_dirs": 50
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:30:27+09:00",
+   "state": "CANONICAL_50_SEEN",
+   "summary": {
+    "checks_pass": 9,
+    "checks_flag": 6,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 177,
+    "systemic_candidates": [
+     "duplicate_launch",
+     "task_or_outcome_leakage"
+    ]
+   },
+   "inputs": {
+    "mart": "CANONICAL_MART_50",
+    "mart_sha256": "0deaed787bb5b6e00c093ac5303b6b3c83d2c950f6877568c3a16bd7d1c42ea7",
+    "mart_bytes": 24032,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 65,
+    "dispatch_lines": 65,
     "ingest_lines": 50,
     "raw_target_dirs": 50
    }
