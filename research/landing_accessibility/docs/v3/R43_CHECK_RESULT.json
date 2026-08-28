@@ -1,0 +1,945 @@
+{
+  "briefed_control": {
+    "demonstrated_failure_inputs": [
+      "파일 sha256 을 0*64 로 변조",
+      "manifest 에만 있고 디스크에 없는 path",
+      "aggregate_sha256 을 0*64 로 변조"
+    ],
+    "expected": "CANNOT_FAIL",
+    "gating": false,
+    "observed": "CAN_FAIL",
+    "point_id": "evidence.py::verify_retention_manifest",
+    "role": "must_flag (B 의 과업 지시)",
+    "status": "FALSIFIED",
+    "vacuous": {
+      "detail": "{\"verified\": [], \"mismatched\": [], \"missing\": [], \"aggregate_mismatched\": [], \"ok\": true}",
+      "input": "manifest={} (roots 키 자체가 없다)",
+      "vacuous_pass": true
+    },
+    "why_not_gating": "이 대조는 방법이 아니라 저장소 상태에 대한 주장이다. 관측이 지시와 다르면 방법이 틀린 것이 아니라 지시의 전제가 틀린 것이므로, 게이트가 아니라 반증 기록으로 낸다. 방법 검증은 SYNTHETIC 대조 3건이 담당한다"
+  },
+  "controls": [
+    {
+      "detail": "Protocol 선언. 본문이 `...` 라 어떤 입력에도 None 을 낸다",
+      "expected": "CANNOT_FAIL",
+      "observed": "CANNOT_FAIL",
+      "passed": true,
+      "point_id": "runner.py::EligibilityChecker.check",
+      "role": "must_flag__protocol_stub"
+    },
+    {
+      "detail": "구조적으로 실패할 수 없다. 도구가 이것을 CANNOT_FAIL 로 잡아야 한다",
+      "expected": "CANNOT_FAIL",
+      "observed": "CANNOT_FAIL",
+      "passed": true,
+      "point_id": "SYNTHETIC::verify_always_ok",
+      "role": "must_flag__synthetic_always_ok"
+    },
+    {
+      "detail": "나쁜 입력에 크래시만 낸다. 크래시를 실패로 세면 CAN_FAIL 로 오판된다 (R36)",
+      "expected": "CANNOT_FAIL",
+      "observed": "CANNOT_FAIL",
+      "passed": true,
+      "point_id": "SYNTHETIC::verify_crash_only",
+      "role": "must_flag__synthetic_crash_only"
+    },
+    {
+      "detail": "",
+      "expected": "CAN_FAIL",
+      "observed": "CAN_FAIL",
+      "passed": true,
+      "point_id": "evidence.py::assert_layer_qualified",
+      "role": "must_not_flag__repo_raiser"
+    },
+    {
+      "detail": "정상적으로 실패를 내는 함수. 도구가 잡으면 안 된다",
+      "expected": "CAN_FAIL",
+      "observed": "CAN_FAIL",
+      "passed": true,
+      "point_id": "SYNTHETIC::assert_positive",
+      "role": "must_not_flag__synthetic_raiser"
+    }
+  ],
+  "counts": {
+    "CANNOT_FAIL": 3,
+    "CANNOT_FAIL_by_kind": {
+      "PROTOCOL_DECLARATION": 2,
+      "TEST_DOUBLE": 1
+    },
+    "CAN_FAIL": 17,
+    "VACUOUS_PASS": 2,
+    "by_kind": {
+      "ACTUATION_NAME_COLLISION": 1,
+      "PROTOCOL_DECLARATION": 2,
+      "TEST_DOUBLE": 1,
+      "VERIFIER": 16
+    },
+    "total": 20
+  },
+  "enumeration": [
+    {
+      "ellipsis_body": false,
+      "file": "evidence.py",
+      "lineno": 264,
+      "point_id": "evidence.py::_assert_no_inlined_binary",
+      "qualname": "_assert_no_inlined_binary"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "evidence.py",
+      "lineno": 352,
+      "point_id": "evidence.py::EvidenceRunWriter._assert_writable",
+      "qualname": "EvidenceRunWriter._assert_writable"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "evidence.py",
+      "lineno": 489,
+      "point_id": "evidence.py::verify_manifest_linkage",
+      "qualname": "verify_manifest_linkage"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "evidence.py",
+      "lineno": 516,
+      "point_id": "evidence.py::verify_evidence_run",
+      "qualname": "verify_evidence_run"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "evidence.py",
+      "lineno": 625,
+      "point_id": "evidence.py::verify_retention_manifest",
+      "qualname": "verify_retention_manifest"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "evidence.py",
+      "lineno": 682,
+      "point_id": "evidence.py::assert_layer_qualified",
+      "qualname": "assert_layer_qualified"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "evidence.py",
+      "lineno": 728,
+      "point_id": "evidence.py::assert_coordinates_preserved",
+      "qualname": "assert_coordinates_preserved"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "evidence.py",
+      "lineno": 940,
+      "point_id": "evidence.py::verify_denominator_chain",
+      "qualname": "verify_denominator_chain"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "evidence.py",
+      "lineno": 975,
+      "point_id": "evidence.py::assert_depth_attribution_evidenced",
+      "qualname": "assert_depth_attribution_evidenced"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "r32_check.py",
+      "lineno": 877,
+      "point_id": "r32_check.py::check",
+      "qualname": "check"
+    },
+    {
+      "ellipsis_body": true,
+      "file": "runner.py",
+      "lineno": 249,
+      "point_id": "runner.py::EligibilityChecker.check",
+      "qualname": "EligibilityChecker.check"
+    },
+    {
+      "ellipsis_body": true,
+      "file": "runner.py",
+      "lineno": 278,
+      "point_id": "runner.py::SafetyGuard.assert_action_allowed",
+      "qualname": "SafetyGuard.assert_action_allowed"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "runner.py",
+      "lineno": 512,
+      "point_id": "runner.py::verify_path_manifest_hash",
+      "qualname": "verify_path_manifest_hash"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "runner.py",
+      "lineno": 585,
+      "point_id": "runner.py::V3Runner.verify_contract_hashes",
+      "qualname": "V3Runner.verify_contract_hashes"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "runner.py",
+      "lineno": 615,
+      "point_id": "runner.py::V3Runner._assert_action_allowed",
+      "qualname": "V3Runner._assert_action_allowed"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "safety.py",
+      "lineno": 836,
+      "point_id": "safety.py::ActivationSafetyGuard.assert_action_allowed",
+      "qualname": "ActivationSafetyGuard.assert_action_allowed"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "safety.py",
+      "lineno": 927,
+      "point_id": "safety.py::GuardedPage._check_press",
+      "qualname": "GuardedPage._check_press"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "safety.py",
+      "lineno": 940,
+      "point_id": "safety.py::GuardedPage._check_text",
+      "qualname": "GuardedPage._check_text"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "safety.py",
+      "lineno": 990,
+      "point_id": "safety.py::GuardedPage.check",
+      "qualname": "GuardedPage.check"
+    },
+    {
+      "ellipsis_body": false,
+      "file": "safety.py",
+      "lineno": 1263,
+      "point_id": "safety.py::RecordingPage.check",
+      "qualname": "RecordingPage.check"
+    }
+  ],
+  "failure_demonstration": {
+    "cases": [
+      "clean",
+      "data_mutation_leaves_controls_intact",
+      "must_flag_control_disabled_by_source_edit",
+      "probe_target_renamed_in_source",
+      "target_module_unimportable"
+    ],
+    "present": true,
+    "sidecar": "docs/v3/R43_FAILURE_DEMO.json",
+    "tool_sha256_at_demo": "5a9ffd6d9e33e997e9c34fc33f0142a3d99e037db0e8f0216c0d75469e7ca60f",
+    "tool_sha256_now": "5a9ffd6d9e33e997e9c34fc33f0142a3d99e037db0e8f0216c0d75469e7ca60f",
+    "valid_for_this_commit": true
+  },
+  "failures": [],
+  "probes": [
+    {
+      "baseline_detail": "{\"ok\": true, \"checked\": []}",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "{\"ok\": true, \"checked\": []}",
+          "input": "payload={'ok': False}",
+          "outcome": "PASS"
+        },
+        {
+          "detail": "{\"ok\": true, \"checked\": []}",
+          "input": "payload=None",
+          "outcome": "PASS"
+        },
+        {
+          "detail": "{\"ok\": true, \"checked\": []}",
+          "input": "payload=<객체>",
+          "outcome": "PASS"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "DICT_OK_FALSE",
+      "demonstrated_failure_inputs": [],
+      "evidence": "",
+      "kind": "SYNTHETIC",
+      "note": "구조적으로 실패할 수 없다. 도구가 이것을 CANNOT_FAIL 로 잡아야 한다",
+      "point_id": "SYNTHETIC::verify_always_ok",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CANNOT_FAIL"
+    },
+    {
+      "baseline_detail": "{\"ok\": true, \"checked\": [{\"ok\": true}]}",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "TypeError: 'NoneType' object is not subscriptable",
+          "input": "payload=None (TypeError)",
+          "outcome": "CRASH"
+        },
+        {
+          "detail": "KeyError: 'ok'",
+          "input": "payload={} (KeyError)",
+          "outcome": "CRASH"
+        }
+      ],
+      "crash_only_inputs": [
+        "payload=None (TypeError)",
+        "payload={} (KeyError)"
+      ],
+      "declared_failure": "DICT_OK_FALSE",
+      "demonstrated_failure_inputs": [],
+      "evidence": "",
+      "kind": "SYNTHETIC",
+      "note": "나쁜 입력에 크래시만 낸다. 크래시를 실패로 세면 CAN_FAIL 로 오판된다 (R36)",
+      "point_id": "SYNTHETIC::verify_crash_only",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CANNOT_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "ValueError: 양수가 아니다: 0",
+          "input": "n=0",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "ValueError: 양수가 아니다: -3",
+          "input": "n=-3",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:ValueError",
+      "demonstrated_failure_inputs": [
+        "n=0",
+        "n=-3"
+      ],
+      "evidence": "",
+      "kind": "SYNTHETIC",
+      "note": "정상적으로 실패를 내는 함수. 도구가 잡으면 안 된다",
+      "point_id": "SYNTHETIC::assert_positive",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "InlinedBinaryError: screenshot slot $ 에 바이너리가 들어 있다 — screenshot 은 포인터로만 남긴다",
+          "input": "payload=b'\\x89PNG'",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "InlinedBinaryError: screenshot slot $ 에 data URI 가 인라인됐다 — 포인터 + sha256 만 남긴다",
+          "input": "payload='data:image/png;base64,...'",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "InlinedBinaryError: dom slot $.shot_b64 는 인라인 바이너리 키다 — 포인터만 남긴다",
+          "input": "payload={'shot_b64': 'AAAA'}",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:InlinedBinaryError",
+      "demonstrated_failure_inputs": [
+        "payload=b'\\x89PNG'",
+        "payload='data:image/png;base64,...'",
+        "payload={'shot_b64': 'AAAA'}"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "evidence.py::_assert_no_inlined_binary",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "EvidenceError: open() 하지 않은 run 에 쓸 수 없다",
+          "input": "open() 하지 않은 writer",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "RunSealedError: 봉인된 run 이다 — 재수집은 새 run 이다 (02 §8)",
+          "input": "seal() 된 writer",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:EvidenceError|RunSealedError",
+      "demonstrated_failure_inputs": [
+        "open() 하지 않은 writer",
+        "seal() 된 writer"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "evidence.py::EvidenceRunWriter._assert_writable",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 dict — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "ManifestLinkageError: path manifest 해시가 run.json 기록과 다르다 — frozen path 가 교체됐다",
+          "input": "path_manifest_bytes 를 다른 바이트로 교체",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "ManifestLinkageError: evidence manifest 해시가 run.json 기록과 다르다 — manifest 가 교체됐다",
+          "input": "manifest.jsonl 에 1바이트 덧붙임",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:ManifestLinkageError",
+      "demonstrated_failure_inputs": [
+        "path_manifest_bytes 를 다른 바이트로 교체",
+        "manifest.jsonl 에 1바이트 덧붙임"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "evidence.py::verify_manifest_linkage",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "{\"entry_count\": 1, \"verified\": [\"n1/dom.html\"], \"mismatched\": [], \"missing\": [], \"ok\": true}",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "{\"entry_count\": 1, \"verified\": [], \"mismatched\": [\"n1/dom.html\"], \"missing\": [], \"ok\": false}",
+          "input": "dom.html 내용 변조",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "DICT_OK_FALSE",
+      "demonstrated_failure_inputs": [
+        "dom.html 내용 변조"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "evidence.py::verify_evidence_run",
+      "vacuous": {
+        "detail": "{\"entry_count\": 0, \"verified\": [], \"mismatched\": [], \"missing\": [], \"ok\": true}",
+        "input": "slot 0개로 봉인된 run (manifest 가 비어 있다)",
+        "vacuous_pass": true
+      },
+      "vacuous_pass": true,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "{\"verified\": [\"real/a.txt\"], \"mismatched\": [], \"missing\": [], \"aggregate_mismatched\": [], \"ok\": true}",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "{\"verified\": [], \"mismatched\": [\"real/a.txt\"], \"missing\": [], \"aggregate_mismatched\": [], \"ok\": false}",
+          "input": "파일 sha256 을 0*64 로 변조",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "{\"verified\": [], \"mismatched\": [], \"missing\": [\"real/ghost.txt\"], \"aggregate_mismatched\": [], \"ok\": false}",
+          "input": "manifest 에만 있고 디스크에 없는 path",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "{\"verified\": [\"real/a.txt\"], \"mismatched\": [], \"missing\": [], \"aggregate_mismatched\": [\"real\"], \"ok\": false}",
+          "input": "aggregate_sha256 을 0*64 로 변조",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "DICT_OK_FALSE",
+      "demonstrated_failure_inputs": [
+        "파일 sha256 을 0*64 로 변조",
+        "manifest 에만 있고 디스크에 없는 path",
+        "aggregate_sha256 을 0*64 로 변조"
+      ],
+      "evidence": "evidence.py:625-652 — sha256_of_file 재계산 후 manifest 값과 비교한다",
+      "kind": "VERIFIER",
+      "note": "B 가 지정한 must_flag. 관측은 지정과 다르다 — 실패 입력이 존재한다",
+      "point_id": "evidence.py::verify_retention_manifest",
+      "vacuous": {
+        "detail": "{\"verified\": [], \"mismatched\": [], \"missing\": [], \"aggregate_mismatched\": [], \"ok\": true}",
+        "input": "manifest={} (roots 키 자체가 없다)",
+        "vacuous_pass": true
+      },
+      "vacuous_pass": true,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "LayerQualificationError: $.status 에 층 표시 없는 'AUTH_GATE' 가 있다 — ['action_token', 'endpoint_status'] 중 하나를 컬럼명으로 써라 (R6-Q8)",
+          "input": "{'status': 'AUTH_GATE'} — 층 미표시 키",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "LayerQualificationError: $[0] 에 층 표시 없는 'ABSTAIN' 가 있다 (R6-Q8)",
+          "input": "['ABSTAIN'] — 리스트 원소",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "LayerQualificationError: $ 에 층 표시 없는 'AUTH_GATE' 가 있다 (R6-Q8)",
+          "input": "'AUTH_GATE' — 최상위 문자열",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:LayerQualificationError",
+      "demonstrated_failure_inputs": [
+        "{'status': 'AUTH_GATE'} — 층 미표시 키",
+        "['ABSTAIN'] — 리스트 원소",
+        "'AUTH_GATE' — 최상위 문자열"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "evidence.py::assert_layer_qualified",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "CoordinateDropError: $ 에 entry_zone='TOP' 가 있는데 ['entry_x_norm', 'entry_y_norm'] 가 없다 — 요약값이 원자료를 덮었다 (04 §6 · R7)",
+          "input": "entry_zone 만 남기고 좌표 키 삭제",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "CoordinateDropError: $ 에 entry_zone='FLOATING' 가 있는데 ['entry_x_norm', 'entry_y_norm'] 가 없다 — 요약값이 원자료를 덮었다 (04 §6 · R7)",
+          "input": "FLOATING override 인데 좌표 키 삭제",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "CoordinateDropError: $.rows[0] 에 entry_zone='MID' 가 있는데 ['entry_x_norm', 'entry_y_norm'] 가 없다 — 요약값이 원자료를 덮었다 (04 §6 · R7)",
+          "input": "중첩 record 안에서 좌표 키 삭제",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:CoordinateDropError",
+      "demonstrated_failure_inputs": [
+        "entry_zone 만 남기고 좌표 키 삭제",
+        "FLOATING override 인데 좌표 키 삭제",
+        "중첩 record 안에서 좌표 키 삭제"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "evidence.py::assert_coordinates_preserved",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 dict — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "DenominatorError: 교체 원장 해시가 분모 사슬 기록과 다르다 — attempted 이후 교체가 끼어들었다 (R4)",
+          "input": "chain 의 원장 sha 를 0*64 로 변조",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "DenominatorError: 교체 원장 해시가 분모 사슬 기록과 다르다 — attempted 이후 교체가 끼어들었다 (R4)",
+          "input": "chain 에서 원장 sha 키 삭제",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:DenominatorError",
+      "demonstrated_failure_inputs": [
+        "chain 의 원장 sha 를 0*64 로 변조",
+        "chain 에서 원장 sha 키 삭제"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "evidence.py::verify_denominator_chain",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "DepthAttributionEvidenceError: depth_conditional_tokens[0] 필수 필드 누락 ['input_mode'] (Δ9)",
+          "input": "필수 필드 input_mode 삭제",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "DepthAttributionEvidenceError: depth_conditional_tokens[0].input_mode 가 Δ9 어휘 밖이다: 'VOICE'",
+          "input": "input_mode 를 Δ9 어휘 밖 값으로",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "DepthAttributionEvidenceError: depth_conditional_tokens[0] 는 근거(input_mode) 없이 included=False 만 갖고 있다 — 재검증이 불가능하다 (Δ9)",
+          "input": "input_mode=None 인데 included 판정만 존재",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:DepthAttributionEvidenceError",
+      "demonstrated_failure_inputs": [
+        "필수 필드 input_mode 삭제",
+        "input_mode 를 Δ9 어휘 밖 값으로",
+        "input_mode=None 인데 included 판정만 존재"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "evidence.py::assert_depth_attribution_evidenced",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "빈 목록",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "1건: [표류] 코드에 있으나 목록에 없는 후보: session.py::is_credential_field::password_scope  (직접)",
+          "input": "목록 문서에서 행 1개 삭제한 사본",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "NONEMPTY_LIST",
+      "demonstrated_failure_inputs": [
+        "목록 문서에서 행 1개 삭제한 사본"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "오라클 층은 브라우저를 열지 않지만 무겁다 — 구조/표류 층으로만 실증한다",
+      "point_id": "r32_check.py::check",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 None",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "반환 None",
+          "input": "contract=None",
+          "outcome": "PASS"
+        },
+        {
+          "detail": "반환 None",
+          "input": "contract=<객체>",
+          "outcome": "PASS"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "NEVER",
+      "demonstrated_failure_inputs": [],
+      "evidence": "runner.py:249 — 본문이 Ellipsis 하나",
+      "kind": "PROTOCOL_DECLARATION",
+      "note": "Protocol 선언. 본문이 `...` 라 어떤 입력에도 None 을 낸다",
+      "point_id": "runner.py::EligibilityChecker.check",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CANNOT_FAIL"
+    },
+    {
+      "baseline_detail": "반환 None",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "반환 None",
+          "input": "action_token 이 어휘 밖",
+          "outcome": "PASS"
+        },
+        {
+          "detail": "반환 None",
+          "input": "contract=None, action=None",
+          "outcome": "PASS"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "NEVER",
+      "demonstrated_failure_inputs": [],
+      "evidence": "runner.py:278 — 본문이 Ellipsis 하나",
+      "kind": "PROTOCOL_DECLARATION",
+      "note": "Protocol 선언. 집행은 safety.ActivationSafetyGuard 가 한다",
+      "point_id": "runner.py::SafetyGuard.assert_action_allowed",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CANNOT_FAIL"
+    },
+    {
+      "baseline_detail": "반환 str — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "PathManifestHashMismatchError: path manifest 해시가 없다 — 해시 없는 frozen path 는 replay 하지 않는다 (02 §8)",
+          "input": "declared_sha256=None (부재)",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "PathManifestHashMismatchError: path manifest 해시가 없다 — 해시 없는 frozen path 는 replay 하지 않는다 (02 §8)",
+          "input": "declared_sha256='' (빈 문자열)",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "PathManifestHashMismatchError: path manifest 해시 불일치: declared=0000000000000000000000000000000000000000000000000000000000000000 actual=4430e7786edc0f8419f02e909c15422ebf572287a58132d8f6f33250c",
+          "input": "declared_sha256=0*64 (불일치)",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:PathManifestHashMismatchError",
+      "demonstrated_failure_inputs": [
+        "declared_sha256=None (부재)",
+        "declared_sha256='' (빈 문자열)",
+        "declared_sha256=0*64 (불일치)"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "runner.py::verify_path_manifest_hash",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "ContractHashMismatchError: task_contract_hash 가 없다 — 실행 거부 (fail-closed)",
+          "input": "task_contract_hash='' (부재)",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "ContractHashMismatchError: endpoint_contract_hash 가 없다 — 실행 거부 (fail-closed)",
+          "input": "endpoint_contract_hash='' (부재)",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "ContractHashMismatchError: task_role 이 R3 어휘 밖이다: 'TERTIARY' — 실행 거부 (fail-closed)",
+          "input": "task_role 이 R3 어휘 밖",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "ContractHashMismatchError: task_contract_hash 불일치: declared=TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT actual=FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+          "input": "hasher 가 다른 해시를 낸다 (불일치)",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:ContractHashMismatchError",
+      "demonstrated_failure_inputs": [
+        "task_contract_hash='' (부재)",
+        "endpoint_contract_hash='' (부재)",
+        "task_role 이 R3 어휘 밖",
+        "hasher 가 다른 해시를 낸다 (불일치)"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "runner.py::V3Runner.verify_contract_hashes",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "ProhibitedActionError: NOT_A_TOKEN 은 04 §2 canonical token 이 아니다 — 새 조작화 금지",
+          "input": "action_token 이 04 §2 어휘 밖",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "ProhibitedActionError: OPEN_GLOBAL_MENU 은 이 계약의 forbidden_actions 다 (T1)",
+          "input": "계약의 forbidden_actions 에 든 토큰",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:ProhibitedActionError",
+      "demonstrated_failure_inputs": [
+        "action_token 이 04 §2 어휘 밖",
+        "계약의 forbidden_actions 에 든 토큰"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "runner.py::V3Runner._assert_action_allowed",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "SafetyStop: SAFETY_STOP: 금지 행위 활성화 시도 — action=PAYMENT method='OPEN_GLOBAL_MENU' selector='#pay' :: guard.classify_candidate: matched text: '결제하기'",
+          "input": "결제 실행으로 읽히는 control (visible_text='결제하기')",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:SafetyStop",
+      "demonstrated_failure_inputs": [
+        "결제 실행으로 읽히는 control (visible_text='결제하기')"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "safety.py::ActivationSafetyGuard.assert_action_allowed",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "SafetyStop: SAFETY_STOP: 금지 행위 활성화 시도 — action=PAYMENT method='click' selector='text=결제하기' :: guard.classify_candidate: matched text: 'text=결제하기'",
+          "input": "selector='text=결제하기'",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:SafetyStop",
+      "demonstrated_failure_inputs": [
+        "selector='text=결제하기'"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "safety.py::GuardedPage._check_press",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 NoneType — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "SafetyStop: SAFETY_STOP: 금지 행위 활성화 시도 — action=PERSONAL_DATA_INPUT method='fill' selector='#q' :: 계약이 고정한 fixture 값이 아닌 텍스트 입력 시도: '01012345678' (허용: ['FIX'])",
+          "input": "계약 fixture 밖의 텍스트 입력",
+          "outcome": "DECLARED_FAIL"
+        },
+        {
+          "detail": "반환 NoneType — 예외 없음",
+          "input": "자격정보 필드로 판정되는 selector",
+          "outcome": "PASS"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:SafetyStop",
+      "demonstrated_failure_inputs": [
+        "계약 fixture 밖의 텍스트 입력"
+      ],
+      "evidence": "",
+      "kind": "VERIFIER",
+      "note": "",
+      "point_id": "safety.py::GuardedPage._check_text",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 str — 예외 없음",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "SafetyStop: SAFETY_STOP: 금지 행위 활성화 시도 — action=PAYMENT method='check' selector='text=결제하기' :: guard.classify_candidate: matched text: 'text=결제하기'",
+          "input": "selector='text=결제하기'",
+          "outcome": "DECLARED_FAIL"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "RAISE:SafetyStop",
+      "demonstrated_failure_inputs": [
+        "selector='text=결제하기'"
+      ],
+      "evidence": "",
+      "kind": "ACTUATION_NAME_COLLISION",
+      "note": "playwright checkbox `check` 다 — 검증 함수가 아니다. 이름 충돌로 계열에 들어왔다",
+      "point_id": "safety.py::GuardedPage.check",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CAN_FAIL"
+    },
+    {
+      "baseline_detail": "반환 None",
+      "baseline_passes": true,
+      "cases": [
+        {
+          "detail": "반환 None",
+          "input": "selector='text=결제하기'",
+          "outcome": "PASS"
+        },
+        {
+          "detail": "반환 None",
+          "input": "selector=None",
+          "outcome": "PASS"
+        }
+      ],
+      "crash_only_inputs": [],
+      "declared_failure": "NEVER",
+      "demonstrated_failure_inputs": [],
+      "evidence": "",
+      "kind": "TEST_DOUBLE",
+      "note": "기록용 fake. 검증하지 않는다고 선언한 것이므로 R43 시정 대상이 아니다",
+      "point_id": "safety.py::RecordingPage.check",
+      "vacuous": null,
+      "vacuous_pass": false,
+      "verdict": "CANNOT_FAIL"
+    }
+  ],
+  "schema": "w5r/r43-check-result/1",
+  "scope": {
+    "engine_note": "0건이 아니라 미실증이다 (Δ48). 다른 평면 소관",
+    "engine_status": "ENUMERATED_NOT_DEMONSTRATED",
+    "engine_total": 27,
+    "enumerated_over": "src/landing_accessibility/v3_runner/**/*.py",
+    "excluded": "v3_runner/r43/** (이 lane 의 도구 자신)",
+    "rule": "def/async def 중 이름에서 선행 '_' 를 뗀 뒤 verify_ · assert_ · check_ 로 시작하거나 정확히 'check'/'verify'/'assert' 인 것 (AST, 중첩 포함)",
+    "v3_runner_total": 20
+  },
+  "status": "PASS",
+  "tool": {
+    "declared_failure_behaviour": "exit 1 은 산출을 남긴다(감사 흔적). exit 2 는 산출을 건드리지 않는다.",
+    "exit_codes": {
+      "0": "통과 — 산출을 쓴다 (status=PASS)",
+      "1": "검사가 돌았고 실패했다 — 산출을 쓴다 (status=FAIL). 지우지 않는다: 감사 흔적",
+      "2": "검사가 돌지 않았다 — 산출을 쓰지 않는다. 통과로도 실패로도 읽지 마라"
+    },
+    "module": "landing_accessibility.v3_runner.r43.check",
+    "path": "src/landing_accessibility/v3_runner/r43/check.py",
+    "sha256": "5a9ffd6d9e33e997e9c34fc33f0142a3d99e037db0e8f0216c0d75469e7ca60f"
+  }
+}

@@ -1,0 +1,321 @@
+{
+  "all_match_declaration": true,
+  "all_names_verified": true,
+  "binding_invalidation_test": {
+    "binding_is_informative": true,
+    "sha_matches": {
+      "exit": 0,
+      "tool_sha256_at_demo": "5a9ffd6d9e33e997e9c34fc33f0142a3d99e037db0e8f0216c0d75469e7ca60f",
+      "tool_sha256_now": "5a9ffd6d9e33e997e9c34fc33f0142a3d99e037db0e8f0216c0d75469e7ca60f",
+      "valid_for_this_commit": true
+    },
+    "sha_mutated": {
+      "exit": 0,
+      "tool_sha256_at_demo": "5a9ffd6d9e33e997e9c34fc33f0142a3d99e037db0e8f0216c0d75469e7ca60f",
+      "tool_sha256_now": "b24b971ebfbac0fbf1b484becf78e4f327f9749fe40b599cc448a3cdbdda943c",
+      "valid_for_this_commit": false
+    }
+  },
+  "cases": [
+    {
+      "asserts": "변형이 없으면 대조 5건이 전부 통과하고 실패 0건이다",
+      "expected": {
+        "exit": 0,
+        "wrote_output": true
+      },
+      "matches_declaration": true,
+      "mutation": "변형 없음 (대조)",
+      "name": "clean",
+      "name_verified": true,
+      "observed": {
+        "exit": 0,
+        "output_controls": [
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__protocol_stub"
+          },
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__synthetic_always_ok"
+          },
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__synthetic_crash_only"
+          },
+          {
+            "observed": "CAN_FAIL",
+            "passed": true,
+            "role": "must_not_flag__repo_raiser"
+          },
+          {
+            "observed": "CAN_FAIL",
+            "passed": true,
+            "role": "must_not_flag__synthetic_raiser"
+          }
+        ],
+        "output_counts": {
+          "CANNOT_FAIL": 3,
+          "CANNOT_FAIL_by_kind": {
+            "PROTOCOL_DECLARATION": 2,
+            "TEST_DOUBLE": 1
+          },
+          "CAN_FAIL": 17,
+          "VACUOUS_PASS": 2,
+          "by_kind": {
+            "ACTUATION_NAME_COLLISION": 1,
+            "PROTOCOL_DECLARATION": 2,
+            "TEST_DOUBLE": 1,
+            "VERIFIER": 16
+          },
+          "total": 20
+        },
+        "output_failures": [],
+        "output_sha256_after": "13629a8fc3a2b6b65d6c59d049615e7213f45dcd4497297c6a16b53a2e07b5e4",
+        "output_sha256_before": "ecc6e0ec30fb2e286cad8f10b837b8b6b06f391192be3f2239e2427a813d9b7b",
+        "output_status": "PASS",
+        "wrote_output": true
+      },
+      "stderr_tail": [
+        ""
+      ]
+    },
+    {
+      "asserts": "데이터(산출 JSON)만 고치면 대조군은 그대로 통과한다 — 데이터로는 대조군을 못 깬다",
+      "expected": {
+        "exit": 0,
+        "wrote_output": true
+      },
+      "matches_declaration": true,
+      "mutation": "docs/v3/R43_CHECK_RESULT.json: 산출 JSON 을 손으로 조작 (데이터 변형)",
+      "name": "data_mutation_leaves_controls_intact",
+      "name_verified": true,
+      "observed": {
+        "exit": 0,
+        "output_controls": [
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__protocol_stub"
+          },
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__synthetic_always_ok"
+          },
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__synthetic_crash_only"
+          },
+          {
+            "observed": "CAN_FAIL",
+            "passed": true,
+            "role": "must_not_flag__repo_raiser"
+          },
+          {
+            "observed": "CAN_FAIL",
+            "passed": true,
+            "role": "must_not_flag__synthetic_raiser"
+          }
+        ],
+        "output_counts": {
+          "CANNOT_FAIL": 3,
+          "CANNOT_FAIL_by_kind": {
+            "PROTOCOL_DECLARATION": 2,
+            "TEST_DOUBLE": 1
+          },
+          "CAN_FAIL": 17,
+          "VACUOUS_PASS": 2,
+          "by_kind": {
+            "ACTUATION_NAME_COLLISION": 1,
+            "PROTOCOL_DECLARATION": 2,
+            "TEST_DOUBLE": 1,
+            "VERIFIER": 16
+          },
+          "total": 20
+        },
+        "output_failures": [],
+        "output_sha256_after": "13629a8fc3a2b6b65d6c59d049615e7213f45dcd4497297c6a16b53a2e07b5e4",
+        "output_sha256_before": "685084670b2a8027f266952a7094906d7272de73a56e8a4bfa085bd1cf260388",
+        "output_status": "PASS",
+        "wrote_output": true
+      },
+      "stderr_tail": [
+        ""
+      ]
+    },
+    {
+      "asserts": "검사기 소스를 고쳐 크래시를 실패로 세게 만들면 must_flag 대조가 깨진다",
+      "expected": {
+        "exit": 1,
+        "wrote_output": true
+      },
+      "matches_declaration": true,
+      "mutation": "src/landing_accessibility/v3_runner/r43/check.py: `_classify` 의 CRASH 분기를 DECLARED_FAIL 로 바꿈 (**소스 변형**)",
+      "name": "must_flag_control_disabled_by_source_edit",
+      "name_verified": true,
+      "observed": {
+        "exit": 1,
+        "output_controls": [
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__protocol_stub"
+          },
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__synthetic_always_ok"
+          },
+          {
+            "observed": "CAN_FAIL",
+            "passed": false,
+            "role": "must_flag__synthetic_crash_only"
+          },
+          {
+            "observed": "CAN_FAIL",
+            "passed": true,
+            "role": "must_not_flag__repo_raiser"
+          },
+          {
+            "observed": "CAN_FAIL",
+            "passed": true,
+            "role": "must_not_flag__synthetic_raiser"
+          }
+        ],
+        "output_counts": {
+          "CANNOT_FAIL": 3,
+          "CANNOT_FAIL_by_kind": {
+            "PROTOCOL_DECLARATION": 2,
+            "TEST_DOUBLE": 1
+          },
+          "CAN_FAIL": 17,
+          "VACUOUS_PASS": 2,
+          "by_kind": {
+            "ACTUATION_NAME_COLLISION": 1,
+            "PROTOCOL_DECLARATION": 2,
+            "TEST_DOUBLE": 1,
+            "VERIFIER": 16
+          },
+          "total": 20
+        },
+        "output_failures": [
+          "[대조] must_flag__synthetic_crash_only: SYNTHETIC::verify_crash_only 기대=CANNOT_FAIL 관측=CAN_FAIL"
+        ],
+        "output_sha256_after": "e8025338e24a56c23738874be0a9427b0db47128501fbb842c8f9576496efa81",
+        "output_sha256_before": "ecc6e0ec30fb2e286cad8f10b837b8b6b06f391192be3f2239e2427a813d9b7b",
+        "output_status": "FAIL",
+        "wrote_output": true
+      },
+      "stderr_tail": [
+        "경고: 실패 동작 실증이 현재 도구 sha 와 묶여 있지 않다 (sidecar=5a9ffd6d9e33e997e9c34fc33f0142a3d99e037db0e8f0216c0d75469e7ca60f). r43.control_failure_demo 를 다시 돌려라."
+      ]
+    },
+    {
+      "asserts": "실증 대상 함수의 def 이름을 바꾸면(호출은 별칭으로 살아 있어도) [표류] 로 잡힌다 — 목록이 코드와 붙어 있다",
+      "expected": {
+        "exit": 1,
+        "wrote_output": true
+      },
+      "matches_declaration": true,
+      "mutation": "src/landing_accessibility/v3_runner/evidence.py: `assert_layer_qualified` 의 def 이름을 변경 + 별칭 유지 (**소스 변형**)",
+      "name": "probe_target_renamed_in_source",
+      "name_verified": true,
+      "observed": {
+        "exit": 1,
+        "output_controls": [
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__protocol_stub"
+          },
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__synthetic_always_ok"
+          },
+          {
+            "observed": "CANNOT_FAIL",
+            "passed": true,
+            "role": "must_flag__synthetic_crash_only"
+          },
+          {
+            "observed": "CAN_FAIL",
+            "passed": true,
+            "role": "must_not_flag__repo_raiser"
+          },
+          {
+            "observed": "CAN_FAIL",
+            "passed": true,
+            "role": "must_not_flag__synthetic_raiser"
+          }
+        ],
+        "output_counts": {
+          "CANNOT_FAIL": 3,
+          "CANNOT_FAIL_by_kind": {
+            "PROTOCOL_DECLARATION": 2,
+            "TEST_DOUBLE": 1
+          },
+          "CAN_FAIL": 17,
+          "VACUOUS_PASS": 2,
+          "by_kind": {
+            "ACTUATION_NAME_COLLISION": 1,
+            "PROTOCOL_DECLARATION": 2,
+            "TEST_DOUBLE": 1,
+            "VERIFIER": 16
+          },
+          "total": 20
+        },
+        "output_failures": [
+          "[표류] 실증 목록에 있으나 코드에 없다 — evidence.py::assert_layer_qualified"
+        ],
+        "output_sha256_after": "91db945a221e3b965f1ffb53a5de085b581e304e950bcea24c28343e838cf7dc",
+        "output_sha256_before": "ecc6e0ec30fb2e286cad8f10b837b8b6b06f391192be3f2239e2427a813d9b7b",
+        "output_status": "FAIL",
+        "wrote_output": true
+      },
+      "stderr_tail": [
+        ""
+      ]
+    },
+    {
+      "asserts": "검사 대상 모듈을 import 할 수 없으면 exit 2 이고 산출을 건드리지 않는다",
+      "expected": {
+        "exit": 2,
+        "wrote_output": false
+      },
+      "matches_declaration": true,
+      "mutation": "src/landing_accessibility/v3_runner/evidence.py: 문법 파괴로 import 불가 (**소스 변형**)",
+      "name": "target_module_unimportable",
+      "name_verified": true,
+      "observed": {
+        "exit": 2,
+        "output_controls": [],
+        "output_counts": {},
+        "output_failures": [],
+        "output_sha256_after": "ecc6e0ec30fb2e286cad8f10b837b8b6b06f391192be3f2239e2427a813d9b7b",
+        "output_sha256_before": "ecc6e0ec30fb2e286cad8f10b837b8b6b06f391192be3f2239e2427a813d9b7b",
+        "output_status": "SEED",
+        "wrote_output": false
+      },
+      "stderr_tail": [
+        "검사가 돌지 않았다 (SyntaxError). 통과로도 실패로도 읽지 마라. 산출은 갱신되지 않았다."
+      ]
+    }
+  ],
+  "declared_failure_behaviour": {
+    "0": "통과 — 산출을 쓴다 (status=PASS)",
+    "1": "검사가 돌았고 실패했다 — 산출을 쓴다 (status=FAIL). 지우지 않는다: 감사 흔적",
+    "2": "검사가 돌지 않았다 — 산출을 쓰지 않는다. 통과로도 실패로도 읽지 마라"
+  },
+  "demonstrator_path": "src/landing_accessibility/v3_runner/r43/control_failure_demo.py",
+  "demonstrator_sha256": "6a382eea32735a5accd319d1523579975cc9e7d441829e365030ded09523e5a6",
+  "isolation": "저장소 밖 임시 디렉터리로 src/ + docs/ 를 복사해 그 안에서만 변형한다",
+  "measured": "산출 파일(R43_CHECK_RESULT.json)의 sha256 변화. exit 은 파일에 남지 않는다",
+  "schema": "w5r/r43-failure-demo/1",
+  "tool_path": "src/landing_accessibility/v3_runner/r43/check.py",
+  "tool_sha256": "5a9ffd6d9e33e997e9c34fc33f0142a3d99e037db0e8f0216c0d75469e7ca60f"
+}
