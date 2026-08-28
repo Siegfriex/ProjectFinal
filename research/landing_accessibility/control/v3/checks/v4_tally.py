@@ -75,11 +75,20 @@ def main():
      "rows": res,
     }
     out["cumulative_n"] = len(set(out["already_secured_19"]) | trusted)
-    json.dump(out, open("artifacts/v3_probe_v4/V4_TALLY.json","w"), ensure_ascii=False, indent=1)
+    # 판본 표시 — 읽는 쪽이 무엇을 읽었는지 말할 수 있어야 한다 (B 제안)
+    out["tally_script_sha256"] = sha(__file__)
+    out["written_at_kst"] = __import__("datetime").datetime.now().strftime("%Y-%m-%dT%H:%M:%S+0900")
+    body = json.dumps({k: v for k, v in out.items() if k != "self_sha256"},
+                      ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    out["self_sha256"] = hashlib.sha256(body.encode()).hexdigest()
+    tmp = "artifacts/v3_probe_v4/V4_TALLY.json.tmp"        # 원자적 쓰기 — 중간 상태를 읽히지 않는다
+    json.dump(out, open(tmp, "w"), ensure_ascii=False, indent=1)
+    os.replace(tmp, "artifacts/v3_probe_v4/V4_TALLY.json")
     print(f"계획 {len(planned)} · 시도 {len(attempted)} · 미시도 {len(planned-attempted)} · 대상밖 {len(attempted-planned)}")
     print(f"V4 TRUSTED {len(trusted)}")
     for k,v in sorted(out['v4_reasons'].items(), key=lambda x:-x[1]): print(f"   {v:>3}  {k}")
     print(f"\n누적 확보 {out['cumulative_n']} / 50   (기존 {len(out['already_secured_19'])} + V4 신규 {out['cumulative_n']-len(out['already_secured_19'])})")
+    print(f"tally sha {out['self_sha256'][:16]} · script {out['tally_script_sha256'][:12]} · {out['written_at_kst']}")
     return 0
 
 if __name__ == "__main__":
