@@ -179,7 +179,7 @@ def main():
             by_run = {}
             for r in rows: by_run.setdefault((r.get("collection_run") or "").strip(), _Ct())[(r.get("terminal_reason") or "").strip()] += 1
             checks["MART.COLLECTION_RUN"] = {"status": "REPORT", "n_items": len(rows), "distribution": dict(_Ct((r.get("collection_run") or "").strip() for r in rows)),
-                                             "terminal_by_run": {k: dict(v) for k, v in sorted(by_run.items())}, "rows_with_superseded_runs": sum(1 for r in rows if str(r.get("superseded_runs") or "").strip() not in ("", "[]", "NOT_OBSERVED")),
+                                             "terminal_by_run": {k: dict(v) for k, v in sorted(by_run.items())}, "rows_with_superseded_runs": sum(1 for r in rows if str(r.get("superseded_runs") or "").strip() not in ("", "[]", "NOT_OBSERVED", "NONE")),
                                              "note": "R98/R110: R1-only vs re-measured targets must be visible; terminal distribution per run is a reportable value"}
         checks["MART.ATTEMPT_STATUS_VALUES"] = {"status": "REPORT", "n_items": len(rows), "distribution": dict(sorted(__import__("collections").Counter((r.get("attempt_status") or "").strip() for r in rows).items())), "completed_rule": f"attempt_status ∈ {COMPLETED_VALUES}"}
         c50 = ROOT / "mart" / "CANONICAL_MART_50.csv"; s50 = ROOT / "mart" / "CANONICAL_MART_50.sha256.json"
