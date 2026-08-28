@@ -809,7 +809,17 @@ D 가 커버리지 대조를 요구받는 시점에 `D-V3-FINDING-006` 과 같�
 - 부수 발견: D heartbeat 행이 공유 로그에 0건(색인 공백, 선언함) · 대장 서수 도출 결함(값은 상쇄로 우연히 일치)
 
 ## RQ-D043 — D 표지의 거짓 양성 측정 (T-A-V3-STEP1-043 / R61)
-- 상태: OPEN — 다음 회차
+- 상태: DONE — 11종 전부 측정 (7종 AST 상수성 / 4종 관측 분포)
+- 잔여 4종 결과: firewall verdict PASS 113·FAIL 4(상수 아님) · WIRED True/False 둘 다 관측 ·
+  claim_provenance 현 단면 2라벨 · ACK_UNREADABLE 실전 발화 0(합성 대조로 원리 작동 확인)
+- **정밀도 산출됨**: 차단(FAIL) 등급 4회 발화 **4회 다 거짓 양성** — 참 양성 0. 분모 = git 117 판본
+- 앞 회차 한계진술 정정: '분모를 만들 수 없다' 는 firewall 계열에 대해 거짓이었다(D-DEF-31).
+  산출 파일은 덮어써지지만 git 이 판본을 보존한다
+- 구조적 분모 부재 2종: claim_provenance(heartbeats/D.json 덮어쓰기 + .agent_bus gitignore) ·
+  ACK_UNREADABLE(bus 도구가 산출을 안 남김) — **못 잰 것이 아니라 기록되지 않는다**
+- 산출: results/D_FLAG_HISTORY_AUDIT.json
+- 남은 축: 표지의 **범위 미표기**(아래 RQ-D044 항목) — 미시정
+- (원 등재) 상태: OPEN — 다음 회차
 - 질문: D 표지 11종 각각에 must_flag/must_not_flag 가 **실증돼** 있는가, 거짓 양성 이력이 있는가
 - 선언 집합(손 선언, 매처 아님): holdout_accessed · production_modified · pushed ·
   denied_paths_not_opened · labels_produced · WIRED · verdict_source · claim_provenance ·

@@ -1,0 +1,172 @@
+{
+ "verification_id": "D-FLAG-HISTORY-AUDIT",
+ "rq": "RQ-D043 잔여 — 분기·라벨 표지 4종",
+ "in_response_to": [
+  "T-A-V3-STEP1-043 (R61)"
+ ],
+ "claim_kind": "OBSERVATION",
+ "measured_at_kst": "2026-08-28T10:30:23+09:00",
+ "d_head_sha": "298f0ca4086062508cdcadea17a4f8bfa72de02f",
+ "tool": "임시 집계기(scratchpad/flag_hist.py) + d_bus_lib 합성 대조",
+ "method": {
+  "왜 다른 방법이 필요했나": "앞 사이클은 AST 로 dict 리터럴의 값 노드를 봤다. 이 4종은 분기·라벨이라 리터럴이 아니다.",
+  "대신 쓴 축": "**관측 값 분포**. 코드에 갈래가 있어도 산출에 실제로 실린 값이 한 종이면 사실상 상수다.",
+  "분모": "산출 파일의 **git 판본**. 파일은 덮어써지지만 버전관리가 판본을 보존한다.",
+  "판정 규칙": "관측 2종 이상 = 상수 아님 / 1종 = 사실상 상수 / 분모 0 = 판정 불가(상수로 적지 않는다)"
+ },
+ "flags": {
+  "firewall verdict": {
+   "denominator": 117,
+   "denominator_kind": "git 판본",
+   "distribution": {
+    "PASS": 113,
+    "FAIL": 4
+   },
+   "constant": false,
+   "note": "값이 갈린 적이 있다. 이 표지는 상수가 아니다."
+  },
+  "WIRED": {
+   "denominator": 11,
+   "denominator_kind": "git 판본(exception_wiring 도입 후)",
+   "key_absent_revisions": 106,
+   "reconciliation": {
+    "key_present": 11,
+    "key_absent": 106,
+    "sum": 117,
+    "n_revisions": 117,
+    "balanced": true
+   },
+   "distribution_per_exception": {
+    ".agent_worktrees/claude_b_recovery/research/landing_accessibility/shadow/lane_b/state/representative_task_candidate_shadow.csv": {
+     "False": 11
+    },
+    "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json": {
+     "True": 11
+    },
+    "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.sha256.json": {
+     "False": 11
+    },
+    "research/landing_accessibility/control/v3/SSOTV3_PROVENANCE_SNAPSHOT.json": {
+     "False": 11
+    },
+    "research/landing_accessibility/control/v3/V3_0_1_SUCCESSOR_DELTA.md": {
+     "True": 11
+    },
+    "research/landing_accessibility/control/v3/V3_RULING_INDEX.json": {
+     "True": 11
+    },
+    "research/landing_accessibility/control/v3/ssot_snapshot/**": {
+     "True": 11
+    }
+   },
+   "constant": false,
+   "note": "표지 전체로는 True·False 둘 다 관측된다. 다만 **개별 예외는 도입 후 한 번도 값이 갈리지 않았다** — 코퍼스가 그대로면 fired 도 그대로이므로 이것만으로 결함이라 하지 않는다."
+  },
+  "claim_provenance": {
+   "denominator": 0,
+   "denominator_kind": "없음",
+   "why_no_denominator": "heartbeats/D.json 은 매 실행 **덮어쓰기**이고 `.agent_bus/` 전체가 .gitignore 라 커밋 0건이다. 과거 값을 복원할 경로가 없다.",
+   "cross_section_distribution": {
+    "MEASURED": 3,
+    "SELF_DECLARED": 1
+   },
+   "constant": false,
+   "note": "시계열은 못 냈지만 **현 단면에서 이미 두 라벨을 낸다** — 구분이 실제로 일어나고 있다."
+  },
+  "ACK_UNREADABLE": {
+   "denominator": 0,
+   "denominator_kind": "없음",
+   "why_no_denominator": "d_bus_lib/d_bus_scan 은 산출 파일을 남기지 않는다(stdout 전용). 버스도 gitignore 다.",
+   "fired_in_current_bus": 0,
+   "WIRED": false,
+   "synthetic_control": "tmp 합성 버스 3건(정상 ACK·깨진 ACK·ACK 없음)에서 ACKED_SHA_UNRECORDED / ACK_UNREADABLE / UNACKED 3종을 각각 1건씩 구분했다 — **원리상 작동은 보였고, 실전 발화는 0이다**(R57 그대로).",
+   "constant": null
+  }
+ },
+ "headline": {
+  "claim": "방화벽의 **차단(FAIL) 등급은 117 판본에서 4번 발화했고 4번 다 거짓 양성이었다**. 참 양성 0건.",
+  "fail_events": [
+   {
+    "rev_index": 30,
+    "committed_at_kst": "2026-08-28T09:07:44+09:00",
+    "commit": "b2a4433 chore(D): 방화벽 재스캔",
+    "fail_count": 1,
+    "violation": {
+     "file": "research_d/tools/d_heartbeat.py",
+     "line": 88,
+     "reference": "research/landing_accessibility/control",
+     "denied_pattern": "research/landing_accessibility/control/**",
+     "kind": "DENIED_PATH"
+    }
+   },
+   {
+    "rev_index": 31,
+    "committed_at_kst": "2026-08-28T09:06:43+09:00",
+    "commit": "4c1291b feat(D): R41 production_modified 측정화 + R43 실증 4종 (A FC-008)",
+    "fail_count": 1,
+    "violation": {
+     "file": "research_d/tools/d_heartbeat.py",
+     "line": 71,
+     "reference": "research/landing_accessibility/control",
+     "denied_pattern": "research/landing_accessibility/control/**",
+     "kind": "DENIED_PATH"
+    }
+   },
+   {
+    "rev_index": 83,
+    "committed_at_kst": "2026-08-28T03:23:24+09:00",
+    "commit": "0075e4a verify(BLK-011): SSOT 스냅샷 독립 재대조 22/22 · 매니페스트 20/20",
+    "fail_count": 1,
+    "violation": {
+     "file": "research_d/results/D_V3_SSOT_SNAPSHOT_VERIFICATION.json",
+     "line": 4,
+     "reference": "research/landing_accessibility/control/v3/ssot_snapshot",
+     "denied_pattern": "research/landing_accessibility/control/**",
+     "kind": "DENIED_PATH"
+    }
+   },
+   {
+    "rev_index": 87,
+    "committed_at_kst": "2026-08-28T02:53:54+09:00",
+    "commit": "879ee85 P0(T-A-V3-STEP1-002): manifest 예외 수용 + v3.0.2 해시 독립 대조 · Lane A 통합",
+    "fail_count": 1,
+    "violation": {
+     "file": "research_d/results/D_V3_MAIN50_HASH_VERIFICATION.json",
+     "line": 4,
+     "reference": "research/landing_accessibility/control/v3/FINAL_MAIN50_MANIFEST.json",
+     "denied_pattern": "research/landing_accessibility/control/**",
+     "kind": "DENIED_PATH"
+    }
+   }
+  ],
+  "false_positive_basis": {
+   "A 가 사후 예외로 승인한 건(2)": "idx 83·87 — A 가 허가한 control/v3 대조 작업의 **산출 기록**이 그 경로를 언급했다는 이유로 걸렸다. 이후 A 가 예외를 확대해 해소됐다(현 예외 목록에 존재, WIRED=True). 거짓 양성 판정의 근거가 내 해석이 아니라 **A 의 조치**다.",
+   "코드 의미로 판정한 건(2)": "idx 30·31 — `d_heartbeat.py` 의 `PROD` 상수는 그 경로들을 **회피하려고** 정의한 것이다. 접근이 아니라 회피의 선언이 걸렸다. 이 판정은 내 해석이다."
+  },
+  "precision": {
+   "true_positive": 0,
+   "false_positive": 4,
+   "value": 0.0,
+   "denominator_note": "발화 4회는 작은 표본이다. 0.0 을 '이 스캐너는 못 잡는다' 로 읽으면 안 된다 — 대조군은 통과한다(원리상 작동)."
+  },
+  "connects_to": "앞 사이클의 WARN 392 건 중 232(59%)가 자기선언 문장이라는 결과와 같은 기전이다. **안전을 선언하는 문장이 안전 스캐너를 울린다** — 이번엔 그것이 WARN 이 아니라 FAIL 등급에서도 일어났음을 보인다. R61 은 표지의 정밀도 요구가 차단보다 낮지 않다고 했는데, 여기서는 **차단 쪽이 먼저 무너져 있었다**."
+ },
+ "correction_of_prior_claim": {
+  "prior": "D_FLAG_PRECISION_AUDIT.json / D-V3-FINDING-030 limitation: '표지별 과거 발화 이력이 산출에 남아 있지 않아 분모를 만들 수 없다'",
+  "status": "OVERSTATED — firewall 계열에 대해 거짓",
+  "why": "산출 **파일**이 덮어써지는 것은 맞지만 git 이 117 판본을 보존하고 있었다. 버전관리를 확인하지 않고 '이력 없음' 으로 단정했다.",
+  "still_true_for": [
+   "claim_provenance",
+   "ACK_UNREADABLE"
+  ],
+  "handling": "R36 에 따라 기존 산출을 고치지 않는다. 이 파일과 FACT_CORRECTION 티켓으로 정정한다."
+ },
+ "controls": {
+  "must_flag — 변동 검출": "판본 0 의 verdict 를 합성값으로 바꿔 넣자 분포가 {SYNTHETIC 1, PASS 112, FAIL 4} 로 갈렸다. 집계기가 변동을 잡는다.",
+  "must_flag — 상태 구분": "합성 버스에서 ACK 3상태를 각 1건씩 구분.",
+  "must_not_flag — 총합 검산": "WIRED 키부재 106 + 키존재 11 = 117 = 판본 117. 균형.",
+  "why_needed": "'전부 상수' 라는 결과는 방법이 못 잡는 것과 구분되지 않는다. verdict 가 실제로 갈린 것을 잡았으므로 방법은 작동한다."
+ },
+ "limitation": "(1) 분모가 있는 것은 firewall 계열 2종뿐이다. 나머지 2종은 **구조적으로** 분모가 없다 — 못 잰 것이 아니라 기록되지 않는다. (2) 거짓 양성 4건 중 2건의 판정 근거는 내 코드 해석이다. (3) 'WARN 은 PASS 를 막지 않는다' 는 규칙상 참이지만, 그것이 사람에게 읽혔는지는 이 방법으로 알 수 없다.",
+ "what_this_does_not_prove": "참 양성 0 은 '위반이 없었다' 가 아니라 '이 스캐너가 잡은 것 중 참이 없었다' 다. 스캐너가 못 보는 위반은 분모에 들어오지 않는다."
+}
