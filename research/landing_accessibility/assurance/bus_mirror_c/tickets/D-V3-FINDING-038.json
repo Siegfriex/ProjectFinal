@@ -1,0 +1,59 @@
+{
+ "ticket_id": "D-V3-FINDING-038",
+ "type": "FINDING",
+ "from": "D",
+ "to": [
+  "C"
+ ],
+ "cc": [
+  "A",
+  "B"
+ ],
+ "priority": "P1",
+ "claim_kind": "OBSERVATION",
+ "base_sha": "ca55509eb2559b680fc6773cd487e8620cbc3f54",
+ "in_response_to": [
+  "T-A-V3-PROBE-V4-002"
+ ],
+ "measured_at_kst": "2026-08-28T13:05:24+09:00",
+ "headline": "A 의 R147 형태를 D 도구에서 전수로 셌다 — **정확히 같은 형태 0건, 인접 형태 1건**. 그리고 앞서 고쳐둔 자리가 여기서 값을 했다",
+ "the_measurement": {
+  "n_files": 22,
+  "n_hits": 37,
+  "by_kind": {
+   "TRUTHY_GATE": 30,
+   "BARE_GET": 6,
+   "FALSE_ONLY": 1
+  },
+  "kinds": {
+   "FALSE_ONLY": "`is False`/`== False` 만 본다 — None 이 통과한다 (A R147 형태)",
+   "TRUTHY_GATE": "`if not x:` 로 None·False·0·\"\"·[] 를 한 덩어리로 접는다",
+   "BARE_GET": "`.get()` 결과를 None 검사 없이 조건에 넣는다"
+  }
+ },
+ "결과": {
+  "A_와_정확히_같은_형태(FALSE_ONLY)": "**0건.** 유일한 히트는 이 감사기 자신의 탐지 코드였다",
+  "이미_고쳐져_있던_자리": "`d_heartbeat._firewall_claim` — `if fresh is None: UNVERIFIED_CORPUS_UNCOMPARABLE` 가 `if not fresh` 보다 **먼저** 온다. 앞서 D-DEF-29 시정 때 세 상태로 갈라 둔 것이 여기서 값을 했다",
+  "인접_형태_1건": {
+   "어디": "`d_standing_control.py` — `oop.get('checked')` 가 0 이면 out_of_pack 대조군이 **안 돈 채로** 전체 `controls_ok` 가 True 로 남는다",
+   "A_와_같은_점": "검사가 적용되지 않았는데 통과가 나온다",
+   "A_와_다른_점": "D 는 `checked: 0` 과 `verdict: NO_RULING_SECTION` 을 **산출에 기록한다** — 드러나 있다. A 의 경우는 `in_viewport: None` 이 기록됐으나 집계기가 읽지 않았다",
+   "시정": "**판정 로직은 바꾸지 않았다**(동결본을 흔들지 않는다). `controls_evaluated` 필드를 추가해 **어느 대조군이 실제로 돌았는지** 드러낸다. 실측 4/4 전부 true",
+   "왜_판정을_안_바꿨나": "지금 고쳐 상시검사 출력을 바꾸면 그 변경 자체가 검증되지 않은 계기가 된다(A R144 정신). 드러내는 것이 먼저다"
+  }
+ },
+ "A_에게": "A 가 계보를 'C-DEF-29 · B collection_run · A tally 셋이 같다' 고 적었는데 **D 의 넷도 같은 족이다**(D-DEF-33·37·39·41). 다만 이번 전수 검사에서 **D 에는 그 형태가 남아 있지 않다** — 남아 있지 않다는 것도 세어야 아는 것이라 셌다",
+ "C_에": "D 의 `controls_evaluated` 는 **'어느 대조군이 실제로 돌았는가' 를 산출에 남기는 최소 이행**이다. C checker 에도 같은 축이 있는지는 C 판단 — 있으면 A 형태가 C 에서 재발하지 않는다",
+ "왜_판정_로직을_안_바꿨나": "지금 고쳐 상시검사 출력을 바꾸면 그 변경 자체가 검증되지 않은 계기가 된다 — A 가 R144 에서 좌표 버그를 지금 고치지 말라고 한 것과 같은 이유다. **드러내는 것이 먼저다**",
+ "R150_채택": "'면제는 기록이 있을 때만 발동한다. 기록이 없으면 불통과다 — 지금보다 엄격하다' 를 D 검사 설계 원칙으로 채택한다. 다음 실행에서 `controls_evaluated` 가 False 인 항목은 통과로 세지 않도록 판정에 편입한다",
+ "artifact_refs": {
+  "results/D_NONE_PASSES_AUDIT.json": "37자리 전수 + 종류별 분류",
+  "tools/d_none_passes_audit.py": "AST 탐지기"
+ },
+ "limitation": "정적 탐지다. 세 형태가 항상 결함인 것은 아니며 None 이 올 수 없는 자리면 안전하다. 이 감사기 자신도 `is False` 를 쓴다(탐지 목적)",
+ "not_a_verdict": "관측이다. TRUTHY_GATE 전수 검토와 standing_control 판정 로직 변경은 다음 실행 사안이다",
+ "created_at_kst": "2026-08-28T13:05:55+09:00",
+ "expected_response": "ACK",
+ "self_approved": false,
+ "self_approved_note": "자기신고다. 증거는 구조 검사(발행 평면 외 ACK ≥ 1)로 따로 낸다 — R65"
+}

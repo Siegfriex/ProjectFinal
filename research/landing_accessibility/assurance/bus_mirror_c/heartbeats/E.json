@@ -1,54 +1,60 @@
 {
   "agent": "E",
   "role": "PATHFINDER_DATA_RECONNAISSANCE_OPERATOR",
-  "protocol_version": "SSOTV3 06_ABCD_ORCHESTRATION_PROTOCOL_v3.0 + LA-ORCH-3E + T-A-V3-TBX-005..017 + T-A-V3-PROBE-V2",
-  "phase": "PROBE-V3 결함 정정 A 수용완료(registry v19, T-A-V3-PROBE-V3-003) — 코드 미커밋 유지, C 재분류 대기",
+  "protocol_version": "SSOTV3 06_ABCD_ORCHESTRATION_PROTOCOL_v3.0 + LA-ORCH-3E + T-A-V3-TBX-005..017 + T-A-V3-PROBE-V2/V3/V4",
+  "phase": "PROBE-V4-FIX 6건 재실행 완료(click_method 기록) — TRUSTED 6→3 자기정정. 누적 22/50. A 최종판정 대기",
   "branch": "claude-e/pathfinder-v3",
   "worktree": "/home/sieg/projects-wsl/ProjectFinal/.agent_worktrees/claude_e_pathfinder",
-  "head_sha": "b2d8c95",
-  "collection_cutoff_kst": "census 원본은 11:50 컷오프 확정. PROBE-V2는 12:43 컷오프로 21/21 완주",
+  "head_sha": "b2d8c95 (V4 계기수정 3건 미커밋 — A 지시로 검증 전 보류)",
+  "collection_cutoff_kst": "census 11:50 / probe-v2 12:43 / probe-v3 ~12:47 / probe-v4 13:47(마감 준수, NOT_ATTEMPTED 0)",
   "origin_pushed": false,
-  "current_task": "PROBE-V3 대기 — A 가 NOT_DISPATCHED 로 선언, Director GO 대기중. 실행 준비만 완료(REAL 접속 없음)",
-  "real_target": "yes — census(50) + PROBE-V2(21) 기 실행 완료. PROBE-V3(5~16)는 미실행",
-  "probe_v2_result": {
-    "run_id": "E-PROBE-V2",
-    "attempted": "21/21 (NOT_ATTEMPTED 0)",
-    "ax_recovered": "21/21 — page.aria_snapshot(boxes=True) 로 60B 결함 완전 해소, C 가 독립 재계산으로 확인(C-ASSURANCE-122739)",
-    "candidate_recovered": "3/21 — F3-01/F3-03/F3-07, 전부 ENDPOINT_REACHED",
-    "matched_labels": {"F3-01": "조회/예약 레이어 팝업 열기", "F3-03": "운송장 번호", "F3-07": "화물조회"},
-    "no_recovery": "F1/F2/F4/F5 시도분 18/18 — max_candidates=0 그대로, 구조 깊이 문제로 분리",
-    "director_verdict": "A T-A-V3-PROBE-V2-002 부분GO — F3 계열 GO, 나머지 넷 NO-GO, family 별 원인 상이"
+  "real_target": "yes — census(50)+v2(21)+v3(16)+v4(31) 전건 REAL 접속 완료, 절대금지 위반 0",
+  "cumulative_trusted_n22": {
+    "formula": "census 8 ∪ v2 3 ∪ v3_TRUSTED 8 ∪ v4fix_TRUSTED 3 = 22/50, 겹침 0",
+    "census_8": ["F1-03","F1-05","F2-01","F2-08","F3-02","F3-06","F5-02","F5-05"],
+    "v2_3": ["F3-01","F3-03","F3-07"],
+    "v3_trusted_8": ["F2-02","F2-05","F2-06","F2-07","F2-09","F2-10","F4-09","F5-01"],
+    "v4fix_trusted_3": ["F3-04","F4-01","F4-10"],
+    "v4_rejected_after_click_method_fix_3": {
+      "targets": ["F3-08","F3-09","F3-10"],
+      "reason": "click_method='coordinate' 였는데 실제사용좌표가 뷰포트(390x844) 밖 — locator.click() 매칭이 실패해 좌표폴백으로 떨어졌었다. 최초 V4 판정 때는 이걸 'locator 성공'으로 잘못 추측해 TRUSTED로 보고했었음(자기정정)"
+    },
+    "history": "A 동결집계기도 조건4(in_vp)를 None 통과시키는 결함 발견(31/31 미적용) → A 시정 후 25→19 → E 가 6건(F3-04/08/09/10,F4-01/10) click_method 기록 붙여 재실행 → 19+3(F3-04,F4-01,F4-10만 PASS)=22 로 확정"
   },
-  "probe_v3_status": {
-    "target_set_file": "artifacts/v3_probe_v3/PROBE_V3_TARGET_SET.json",
-    "question": "NO_SAFE_ROUTE_SITE 판정 16건이 사이트 사실인가, 죽은 AX 시절 매처가 낸 오판인가",
-    "dispatch_status": "A GO 수신, 16/16 전건 실행완료 (run_id E-PROBE-V3, 출력 artifacts/v3_probe_v3/raw/E-PROBE-V3/E-PROBE-V3/<target>/)",
-    "headline_UNVERIFIED": "16/16 candidate_count>0, 16/16 scout_status=ENDPOINT_REACHED — 이 수치 그대로 인용 금지",
-    "NEW_DEFECT_FOUND": "click_xy 좌표계 결함 자체발견 — aria_snapshot(boxes=True) 의 bbox 가 뷰포트 상대좌표가 아닌 것으로 의심(문서 절대좌표 등). S0/S1 screenshot sha256 대조 결과 16건 중 5건(F3-04,F3-10,F4-03,F4-06,F4-10) 클릭 전후 스크린샷 byte-identical=클릭 무효. 3건(F3-05 y=-19705, F3-08 x_end=761, F3-09 x=1970)은 좌표가 물리적으로 뷰포트(390px) 밖 — 스크린샷은 바뀌었으나 원인 불명. 신뢰가능 8건: F2 전체6 + F4-09 + F5-01",
-    "prior_probe_v2_F3-01/03/07_재검증": "정상 확인 — 좌표 뷰포트내, 스크린샷 변화 있음. 그 보고는 유효",
-    "verdict_bands_pinned": {"회복>=1": "16건 사이트사실 주장 철회", "회복0": "16건 첫 실증"},
-    "resolution": "A registry v19 / T-A-V3-PROBE-V3-003 — F3 5/5 근거 폐기 수용. 대체근거 8건(F2-02/05/06/07/09/10 + F4-09 + F5-01, 전부 E 가 '정상'으로 분류한 것과 일치)으로 철회 유지(사전기준 회복>=1, 8>=1). family 편향(R134 경고) 오히려 해소 — 회복이 F2/F4/F5 세 family에 걸쳐 나옴",
-    "C_reverify": "C 가 16건 전건 png diff·dom diff·좌표 뷰포트 내외 3축으로 재분류 진행중 — E 요청대로 자기계기결함은 C 독립검산에 위임",
-    "code_status": "A 지시로 좌표버그 지금 고치지 않음, 코드 미커밋 유지 — '검증 안 된 계기로 또 수치를 만들지 않는다'는 이유. 다음 실행 필수항목 2개 등록: ①뷰포트 상대좌표 변환 또는 locator.click() 전환 ②클릭 전후 산출물 byte-identical 시 실패 처리하는 검사 추가",
-    "F4-06_naver_issue": "별건으로 분리, 동결 매니페스트 미접촉 — 다음 실행 전 점검항목",
-    "registry_citation": "E 문장 그대로 인용됨: '\"evidence 파일이 존재한다\"가 \"클릭이 실제로 뭔가를 열었다\"의 증거가 아니다' — AX 파일존재≠내용유효 사례의 한 단계 위(파일존재≠행위유효)"
+  "probe_v4_result": {
+    "trigger": "A T-A-V3-PROBE-V4-001 — 미해결 31건 전량 재측정, 순서 엄수(1순위 클릭무효검사→2순위 좌표계수정→3순위 S2전개)",
+    "code_fixes_applied": {
+      "1순위_클릭무효검사": "S0/S1 png+dom sha256 비교. 둘다동일=CLICK_NO_EFFECT(실패확정), 하나만동일=CLICK_AMBIGUOUS(성공으로 안셈), 둘다다름=정상판정",
+      "2순위_좌표계수정": "_click_cand 를 page.get_by_role(role,name).first.click() 우선 시도로 전환, 실패시에만 좌표폴백(+뷰포트밖이면 스크롤보정)",
+      "3순위_S2전개": "keywords 2-gram 부분일치로 depth2 진입 1회 추가, 그래도 0이면 NO_CANDIDATE_TO_DEPTH_2. S3 없음"
+    },
+    "results_31": {
+      "ENDPOINT_REACHED_6": ["F3-04","F3-08","F3-09","F3-10","F4-10","F4-01"],
+      "CLICK_AMBIGUOUS_3_성공으로_안셈": ["F3-05","F4-03","F4-06"],
+      "NO_CANDIDATE_TO_DEPTH_2_18": "B그룹 전부 — F1-01/02/04/06/07/08/09, F2-03/04, F4-02/04/05/07, F5-03/04/08/09/10",
+      "SAFETY_STOP_1": "F1-10 (금지패턴 정상차단 — 기대된 결과, 결함 아님)",
+      "TIMEOUT_1": "F4-08",
+      "EVIDENCE_DEFECT_2": ["F5-06","F5-07"]
+    },
+    "IMPORTANT_caveat_reported_to_A": "TRUSTED 6건 중 F3-08/09/10,F4-10 은 selected_candidate.click_xy 가 여전히 뷰포트 밖 값 — locator.click() 이 좌표를 아예 안쓰고 성공했기 때문(click_xy 필드는 원본 AX후보 잔재, 클릭방법 무관). png_same=False AND dom_same=False(전건 확인)가 이제 '좌표뷰포트내'보다 정확한 클릭유효 증거. A에게 4번째 판정조건 재정의 요청함, 응답 대기중",
+    "code_status": "scout_engine.py 3건 수정 미커밋 — 검증/판정 결과 나오면 커밋 예정"
   },
-  "code_changes_this_session": {
-    "commit": "b2d8c95 (미push)",
-    "summary": "page.accessibility.snapshot()(미존재 API, 전량 60B 무효)를 page.aria_snapshot(boxes=True)로 교체 + find_ax_candidates 추가 + raw_root override 인자 추가",
-    "self_detected": true,
-    "note": "이번 세션 최대 결함 자가발견·보고 항목. 60B/1노드 산출물은 census 원본에서 append-only 로 불변 유지, 이 커밋은 향후 실행에만 적용"
+  "prior_rounds_summary": {
+    "probe_v2": "21/21, AX복구 21/21, candidate회복 3/21(F3-01/03/07 전부 ENDPOINT_REACHED, 정상확인)",
+    "probe_v3": "16/16 1차실행 → C 재검산(C-ASSURANCE-124542)에서 TRUSTED 8/HOLD 5/SUSPECT 3 로 재분류, C-DEF-35 결함등재, 그 HOLD+SUSPECT 8건이 이번 v4 A그룹 재료가 됨"
   },
+  "self_detected_defects_this_session": [
+    "AX 60B 결함(page.accessibility 미존재 API, 전량 무효) — page.aria_snapshot(boxes=True) 로 교체, 자가발견·보고",
+    "click 좌표계 결함(aria_snapshot boxes 가 뷰포트상대 아님, 클릭무효인데 ENDPOINT_REACHED 오판정) — S0/S1 스크린샷 sha 대조로 자가발견, C 가 100% 동일 결론으로 재검산해 C-DEF-35 등재",
+    "이번 라운드: click_xy 필드가 locator-click 성공 후에도 원본값을 유지해 사후판독 시 오인 가능 — A 에 보고, 판정기준 재정의 요청중"
+  ],
   "artifacts": {
     "shared_raw_sealed": "artifacts/v3_census/raw/{DISPATCH_LEDGER,EVIDENCE_MANIFEST,GEOMETRY_SUPPLEMENT_E}.jsonl — A 지시로 봉인, 이번 세션 미접촉",
-    "probe_v2_raw": "artifacts/v3_probe_v2/raw/E-PROBE-V2/<target_id>/ — census 분모 밖, 21건",
-    "probe_v3_raw_prepared_empty": "artifacts/v3_probe_v3/raw/E-PROBE-V3/ — 발주 대기, 현재 빈 디렉토리",
+    "probe_v2_raw": "artifacts/v3_probe_v2/raw/E-PROBE-V2/<target_id>/",
+    "probe_v3_raw": "artifacts/v3_probe_v3/raw/E-PROBE-V3/E-PROBE-V3/<target_id>/",
+    "probe_v4_raw": "artifacts/v3_probe_v4/raw/E-PROBE-V4/E-PROBE-V4/<target_id>/ — 31건",
     "code": "research/landing_accessibility/pathfinder_e/scout/{scout_engine,emit_ledger,emit_geometry_supplement}.py"
   },
-  "known_limitations": [
-    "candidate_count>0 인데 NO_SAFE_ROUTE_SITE 로 분류된 16건은 죽은-AX 시절 매처의 산출물 — PROBE-V3 미실행 상태라 아직 검증 안 됨(요 하트비트 시점 기준 사이트 사실로 인용 금지)",
-    "F3 5건 회복 시 '사이트 사실 16건' 주장 자체가 보고서에서 철회 대상"
-  ],
   "safety": {
     "absolute_prohibitions_violated": 0,
     "credential_input": 0, "transaction_attempted": 0, "captcha_bypass": 0,
@@ -58,10 +64,9 @@
   "self_approved": false,
   "canonical": false,
   "authority_status": "AUXILIARY_EXECUTION_EVIDENCE",
-  "downstream_status": "C 가 probe-v2 4수치 독립검산 완료(C-ASSURANCE-122739) + fact correction 발행(C-FACT_CORRECTION-122808, ENDPOINT_REACHED 3 확인 일치). D 가 EDA presentation 문구 정정(AX 재추출 가능 확인, D-V3-EDA-FC-001)",
   "monitor": {"task_id": "b51ctkymm", "watch": ".agent_bus/landing_v2/{tickets,escalations}", "fallback_interval_s": 1500},
-  "blocker": "없음 — Director GO 수신 즉시 5건부터 target_id 오름차순 실행 가능",
-  "next_gate": "PROBE-V3 Director GO 대기",
-  "decision_needed": "Director: PROBE-V3(F3 5건, NO_SAFE_ROUTE_SITE 재검증) 실행 승인 여부",
-  "timestamp_kst": "2026-08-28T12:38:00+09:00"
+  "blocker": "없음",
+  "next_gate": "A 최종판정 + 4번째 TRUSTED조건(좌표뷰포트내) 재정의 응답 대기",
+  "decision_needed": "Director/A: 누적 25/50을 최종 수치로 확정할지, click_xy 판독 뉘앙스 반영 후 C 재검산 한번 더 거칠지",
+  "timestamp_kst": "2026-08-28T13:40:00+09:00"
 }
