@@ -1,0 +1,171 @@
+{
+ "artifact": "D_DEFECT_LEDGER",
+ "produced_at_kst": "2026-08-28T09:51:38+09:00",
+ "measured_at_kst": "2026-08-28T09:51:38+09:00",
+ "d_head": "723c8e55ec427343d10ef9031854fd580ce4d932",
+ "plane": "D",
+ "claim_kind": "OBSERVATION",
+ "why": "D 규약은 '결함이면 숨기지 말고 D-DEF-NN 으로 번호를 붙여 남긴다' 이다. results/ 의 개별 파일은 **D_DEF_14b 에서 멈춰 있었고**, 그 뒤 결함들은 티켓에는 남았으나 **대장 색인이 따라가지 않았다.** D 가 다른 평면의 낡은 색인을 지적해 온 그 형태가 D 대장에 있었다.",
+ "scope": "v3 세션(2026-08-28)의 D 자기결함. D-DEF-01~14b 는 개별 파일로 이미 존재한다.",
+ "how_built": "버스의 D 발행 티켓 전량(34건)을 읽어 자기결함을 뽑았다. 기억이 아니라 발행 기록이 출처다.",
+ "two_classes": {
+  "escaped": "산출·티켓에 들어갔고 정정이 필요했던 것",
+  "caught_pre_emission": "발행 전에 잡아 나가지 않은 것 — **결함이 아니라 절차가 작동한 기록**이다"
+ },
+ "entries": [
+  {
+   "id": "D-DEF-15",
+   "what": "`Δn ↔ Rn` 을 발명해 별칭 정규화에 넣었다",
+   "mechanism": "무충돌 사례 단 하나(Δ21)에서 일반화. bare Δn 10행 중 8행이 다른 절의 판정과 충돌",
+   "ticket": "D-V3-FACT_CORRECTION-004 · A delta Δ24",
+   "fix": "추론 폐기, 색인 aliases 조회만",
+   "control": "음성대조 6종을 v2 가 실제로 틀린 형태로 교체",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-16",
+   "what": "별칭 필터를 **모양**으로 걸러 가장 특정한 별칭을 버렸다",
+   "mechanism": "`DOM/AX 불일치` 가 id 형태가 아니라 제외됨 → 도달 불가 9 vs C 의 8",
+   "ticket": "D-V3-FACT_CORRECTION-004",
+   "fix": "기준을 길이(>=2)로 변경",
+   "control": "양성대조에 Δ15-domax 고정",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-17",
+   "what": "그 시정이 부분일치를 도입해 A 의 `alias_rules.matching` 을 어겼다",
+   "mechanism": "서술형 별칭만 원문 그대로 매칭 — 실측하니 15건 전부 경계매칭과 답이 같아 **필요하지도 않았다**",
+   "ticket": "D-V3-ADDENDUM-003",
+   "fix": "전 별칭 토큰 경계 통일(C 방식 채택)",
+   "control": "경계 3건 차이 실측",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-18",
+   "what": "티켓을 base_sha 없이 발행했다",
+   "mechanism": "발행 시점에 아무것도 막지 않았다 — A 전수감사에 걸리고 나서야 보였다",
+   "ticket": "D-V3-FINDING-012 self_correction",
+   "fix": "d_emit_ticket 발행 경로 단일화 + 스캐너 상주 감사",
+   "control": "음성 5종",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-19",
+   "what": "이미 시정한 상태를 현재형으로 보고했다",
+   "mechanism": "'지금 2건' 이라 썼는데 그 시점에 이미 1건. 창은 86초였고 A 관측이 그 안에 없다",
+   "ticket": "D-V3-FACT_CORRECTION-003 · A Δ29",
+   "fix": "headline 이 본문과 다른 시점을 가리키지 않게",
+   "control": "R26 measured_at 강제",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-20",
+   "what": "`index_delta_crosscheck` 가 대조군 실패에도 산출을 덮어썼다",
+   "mechanism": "exit 3 은 냈으나 파일을 먼저 씀 — **exit 코드는 파일에 남지 않는다**",
+   "ticket": "D-V3-FINDING-020",
+   "fix": "게이트를 쓰기 앞으로",
+   "control": "control_failure_demo 가 산출 sha 불변을 잰다",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-21",
+   "what": "heartbeat 의 `holdout_accessed` 가 상수 False 였다",
+   "mechanism": "D_PROTOCOL_SNAPSHOT.md:66 이 self-report 를 금지. 3분마다 나가는 안전 주장이 self-tag",
+   "ticket": "D-V3-FINDING-021 → A 가 REAL scope 개방 발견",
+   "fix": "스캐너 결과에서 읽고 낡으면 UNVERIFIED_STALE",
+   "control": "claim_provenance 로 MEASURED/SELF_DECLARED 구분",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-22",
+   "what": "미실행과 실패가 같은 exit(1)이었다 — 도구 5종",
+   "mechanism": "크래시 주입으로 측정. 셋이 1 을 의미값으로 사용(DRIFT·NOT_READY·demo FAIL)",
+   "ticket": "T-A-V3-STEP1-034 ACK",
+   "fix": "d_exit — 0/1/3/4, 미처리 예외는 4",
+   "control": "재주입 5종 전부 exit=4",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-23",
+   "what": "목록·수치를 티켓 본문에 실어 타 평면의 '재현' 을 informed 로 만들었다",
+   "mechanism": "D FINDING 29건이 목록을 실었고 타 평면 확인은 전부 그 뒤",
+   "ticket": "D-V3-FINDING-022 · A R44",
+   "fix": "목록형 산출은 본문에 수치·항목명을 싣지 않는다",
+   "control": "기계 판정 불가 — 사람 확인 항목",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-24",
+   "what": "'읽지 못했다' 를 알려진 양성 상태로 보고했다 — 3건",
+   "mechanism": "ACK 미독해→ACKED_SHA_UNRECORDED · 색인 미독해→NO_FIELD · metrics 파싱실패→빈 dict",
+   "ticket": "D-V3-FINDING-023",
+   "fix": "ACK_UNREADABLE · UNVERIFIED_INDEX_UNREADABLE · 색인 skip",
+   "control": "주입 2종",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-25",
+   "what": "`reconcile_lanes` 가 산출을 쓰지 않으면서 docstring 은 '실패 시 쓰지 않는다' 를 주장했다",
+   "mechanism": "커밋 메시지도 같은 거짓 주장 — 산출물과 도구가 조용히 갈라질 수 있었다",
+   "ticket": "D-V3-ADDENDUM-004 · A R36",
+   "fix": "도구가 쓰도록 구현",
+   "control": "변형 시 exit 3 · 파일 미변경",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-26",
+   "what": "한계 파서가 번호 붙은 표제를 못 잡아 18/27 을 빈 값으로 색인했다",
+   "mechanism": "`^##+\\s*Limitations?` 가 `## 12. Limitation` 을 못 잡음. sentinel 도입 후 거짓 '한계 없음' 이 될 뻔",
+   "ticket": "D-V3-FINDING-025 · A R54",
+   "fix": "표제 안 어디든 매칭",
+   "control": "extraction_health 상주 — 옛 정규식이면 1.0→0.333",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-27",
+   "what": "색인의 verdict 가 정본이 아니라 휴리스틱이었다 — 18/36 어긋남, 2건 방향 뒤집힘",
+   "mechanism": "`앞 4000자에서 가장 긴 토큰`. 게이트는 이미 JSON 최상위 verdict 를 요구하고 있었다",
+   "ticket": "D-V3-FINDING-026 · A R55",
+   "fix": "authoritative_verdict + verdict_source",
+   "control": "대조 3종",
+   "escaped": true
+  },
+  {
+   "id": "D-DEF-28",
+   "what": "재계산 키에 도구 sha 가 없어 도구 수정이 산출에 도달하지 않았다",
+   "mechanism": "`(rq, result_sha)` 만 봄 — verdict 파서를 고쳐도 18건이 그대로 남았다",
+   "ticket": "A R56 (D 가 짚은 지점)",
+   "fix": "키를 (input_sha, tool_sha) 로",
+   "control": "도구 sha 변경 시 전건 재기록 확인",
+   "escaped": true
+  }
+ ],
+ "caught_pre_emission": [
+  {
+   "what": "`Δ28` 미수록 오탐",
+   "why": "원시 id 대조만 함 — 자식 행 `Δ28-R26` 으로 커버돼 있었다"
+  },
+  {
+   "what": "인용 경로 8건 '실재하지 않음'",
+   "why": "기준 디렉터리 가정"
+  },
+  {
+   "what": "입력 신원 필드 '없음 75건'",
+   "why": "키 이름 6종만 봄 — 실제 34종"
+  },
+  {
+   "what": "allowlist 경로 8건 미해소",
+   "why": "글롭·기준·중괄호 처리"
+  },
+  {
+   "what": "한계 절 '없음 18건'",
+   "why": "번호 표제 — **이것만 발행 직전까지 갔고 D-DEF-26 으로 실체가 있었다**"
+  },
+  {
+   "note": "넷은 열거기 오탐이고 **발행 전에 잡혔다.** 다섯 번째는 파서 결함이 실재해 티켓이 됐다."
+  }
+ ],
+ "pattern": "14 건 중 다수가 같은 뿌리다 — **부재와 미독해, 실패와 미실행, 값과 휴리스틱을 같은 출력으로 냈다.** D 가 다른 평면에 반복해 지적한 형태이고 D 도구에 같은 수만큼 있었다.",
+ "not_a_verdict": "D 자기 기록이다. 다른 평면의 결함을 세지 않는다.",
+ "limitation": "발행 티켓에서 뽑았다. **티켓이 되지 않은 결함은 여기 없다** — 예: 회차 중 즉시 고치고 넘어간 스크립트 오류. 그런 것이 몇 건인지 세지 않았다."
+}
