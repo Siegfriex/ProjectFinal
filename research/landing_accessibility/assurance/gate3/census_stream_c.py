@@ -17,7 +17,7 @@ exit 0 ran · 2 did not run (controls / crash) · 3 NO_EVIDENCE_INPUT (no mart r
 import csv, datetime, glob, hashlib, json, os, pathlib, re, subprocess, sys
 HERE = pathlib.Path(__file__).resolve(); sys.path.insert(0, str(HERE.parent)); sys.path.insert(0, str(HERE.parents[1]))
 import census_qc_c as Q  # noqa: E402
-Q.TERMINAL_REASONS = tuple(sorted(set(Q.TERMINAL_REASONS) | {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY"}))  # TBX-011 ∪ R11
+Q.TERMINAL_REASONS = tuple(sorted(set(Q.TERMINAL_REASONS) | {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY", "COLLECTOR_ZERO_CANDIDATE", "NO_SAFE_ROUTE_SITE"}))  # TBX-011 ∪ R11 ∪ TBX-013 R74
 
 ROOT = pathlib.Path("/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census")
 RUN_ROOT = ROOT / "raw" / "E" / "E-REAL-CENSUS-1230"   # R66 (TBX-012): canonical raw run root; ledgers stay at raw/
@@ -65,7 +65,7 @@ def validate_raw_contract(raw_m, manifest):
     """TBX-011 raw record contract → (problems[], by_kind). Pure function so a synthetic control can exercise it."""
     probs = []
     if not raw_m: return probs
-    TBX_TR = {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY"}
+    TBX_TR = {"ENDPOINT_REACHED", "WAF", "APP_REQUIRED", "AUTH_GATE", "NO_SAFE_ROUTE", "TIMEOUT", "PUBLIC_WEB_UNOBSERVABLE", "FORBIDDEN_ACTION_BOUNDARY", "COLLECTOR_ZERO_CANDIDATE", "NO_SAFE_ROUTE_SITE"}
     TBX_AS = {"ENDPOINT_REACHED", "TERMINAL_NO_ENDPOINT", "ERROR"}; TBX_LR = {"MATCH", "SEMANTIC_EQUIV", "DIFFERENT", "VISIBLE_ONLY", "AX_ONLY", "NONE", "NOT_OBSERVED"}
     TBX_ZONE = {"TOP", "BOTTOM", "LEFT", "RIGHT", "CENTER", "NOT_OBSERVED"}; TBX_AUTH = {"BEFORE_TASK_DISCOVERY", "AFTER_TASK_SELECT", "AT_ENDPOINT", "NONE", "NOT_OBSERVED"}
     REQ = ["target_id", "family_id", "service", "worker_id", "idempotency_key", "captured_at_kst", "evidence_dir", "evidence_hash", "prev_hash", "task_hash", "endpoint_hash",

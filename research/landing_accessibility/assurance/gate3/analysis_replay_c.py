@@ -159,6 +159,13 @@ def main():
     if mp is None: print("no mart (exit 3)"); return 3
     b = mp.read_bytes(); msha = hashlib.sha256(b).hexdigest(); rows = list(csv.DictReader(io.StringIO(b.decode("utf-8"))))
     a = analyse(rows, manifest)
+    # TBX-014 C_에_추가: recompute E live observations and B post-hoc DOM derivations SEPARATELY (never mixed)
+    PROV = "entry_observation_provenance"
+    if rows and PROV in rows[0]:
+        a["by_provenance"] = {pv: analyse([r for r in rows if (r.get(PROV) or "").strip() == pv] + [], manifest) for pv in sorted({(r.get(PROV) or "").strip() for r in rows})}
+        for pv in a["by_provenance"]: a["by_provenance"][pv].pop("row_replay", None)
+        a["provenance_note"] = "per-provenance blocks computed on the rows carrying that value only; the top-level block mixes them and is NOT to be cited for label/spatial metrics"
+    else: a["by_provenance"] = "COLUMN_ABSENT (entry_observation_provenance not in mart — R76 split not verifiable; top-level metrics treated as E_LIVE_SCOUT-or-unknown)"
     dfiles = {os.path.relpath(p, ROOT): hashlib.sha256(open(p, "rb").read()).hexdigest()[:16] for p in glob.glob(str(ROOT / "analysis" / "**" / "*"), recursive=True) if os.path.isfile(p)}
     claims = None
     if (ROOT / "analysis" / "CLAIM_CANDIDATES.json").exists():
@@ -170,7 +177,7 @@ def main():
            "mart": {"path": str(mp), "sha256": msha, "bytes": len(b), "rows": len(rows), "is_canonical_50": mp == c50}, "manifest": {"file_sha256": fsha, "body_sha256": bsha},
            "controls": {"n": len(ctl), "pass": len(ctl)}, "summary": {"n_observed_rows": a["n_observed_rows"], "ASSURED": assured, "DIVERGENT": divergent, "NOT_ASSURED": not_assured,
            "coverage_overall": {k: f"{v['k']}/50" for k, v in a["coverage"]["overall"].items()}}, "coverage": a["coverage"], "metrics": a["metrics"], "per_family": a["per_family"],
-           "d_analysis_files_seen": dfiles, "d_claim_candidates_seen": claims, "row_replay": a["row_replay"],
+           "by_provenance": a["by_provenance"], "provenance_note": a.get("provenance_note"), "d_analysis_files_seen": dfiles, "d_claim_candidates_seen": claims, "row_replay": a["row_replay"],
            "reading_rules": {"ASSURED": "C recomputation equals the mart value on every compared row (n stated)", "DIVERGENT": "at least one compared row differs — listed; which side is wrong is A's call", "NOT_ASSURED": "0 rows recomputable — never counted as pass", "sequence_distance": "computed by C only (no B/D matrix to diff yet); cells of a matrix, not independent n"},
            "not_a_verdict": True, "exit": 0 if a["n_observed_rows"] else 3}
     OUT_C.parent.mkdir(parents=True, exist_ok=True); OUT_A.parent.mkdir(parents=True, exist_ok=True)

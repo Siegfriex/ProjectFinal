@@ -230,8 +230,11 @@ def qc(rows, manifest, file_sha, body_sha, expect_file, expect_body, adapter, b_
         ev_ok = {b.get(r, "target_id") for r in fr if (ev_bound and _evidence_present(b.get(r, "evidence_pointer"))) or (b.ok("evidence_adequacy") and _truthy(b.get(r, "evidence_adequacy")))}
         comp = {b.get(r, "target_id") for r in fr if b.ok("endpoint_status") and b.get(r, "endpoint_status") in ENDPOINT_OK}
         auth = {b.get(r, "target_id") for r in fr if b.ok("endpoint_status") and b.get(r, "endpoint_status") == "AUTH_GATE"}
-        failed = {b.get(r, "target_id") for r in fr if tr_bound and b.get(r, "terminal_reason") in TERMINAL_REASONS and b.get(r, "endpoint_status") not in ENDPOINT_OK}
-        den[f] = {"frozen": len(fam_m[f]), "attempted": len(att), "attempted_observed": len(att_obs), "evidence_adequate": len(ev_ok), "completed_endpoint_reached": len(comp), "auth_gate_terminal": len(auth), "failed": len(failed)}
+        failed = att_obs - comp   # R78 (TBX-014): failed = attempted but endpoint not reached (TERMINAL_NO_ENDPOINT included); unaccounted must be 0
+        from collections import Counter as _C
+        tb = dict(sorted(_C(str(b.get(r, "terminal_reason") or "").strip() for r in fr if b.get(r, "target_id") in failed).items())) if tr_bound else "NOT_TESTABLE"
+        den[f] = {"frozen": len(fam_m[f]), "attempted": len(att), "attempted_observed": len(att_obs), "evidence_adequate": len(ev_ok), "completed_endpoint_reached": len(comp), "auth_gate_terminal": len(auth), "failed": len(failed),
+                  "unaccounted": len(att_obs) - len(comp) - len(failed), "failed_by_terminal_reason": tb}
         if not (len(att) <= 10 and len(att_obs) <= len(att) and len(ev_ok) <= len(att_obs) and len(comp) <= len(ev_ok) + len(auth) and len(comp) + len(failed) <= len(att_obs)):
             flag("DENOMINATORS", f"family {f} denominators are not monotonic (frozen ≥ attempted ≥ evidence_adequate; completed+failed ≤ attempted)", "denominator_corruption", family=f, **den[f])
     den["overall"] = {k: sum(den[f][k] for f in fam_m) for k in ("frozen", "attempted", "attempted_observed", "evidence_adequate", "completed_endpoint_reached", "auth_gate_terminal", "failed")}
@@ -246,7 +249,7 @@ def qc(rows, manifest, file_sha, body_sha, expect_file, expect_body, adapter, b_
     checks["DENOMINATORS"] = {"status": "FLAG" if any(x["check"] == "DENOMINATORS" for x in flags) else "PASS", "n_items": len(rows), "per_family": den,
                               "evidence_adequate_basis": ("evidence_pointer" if ev_bound else "") + ("+evidence_adequacy" if b.ok("evidence_adequacy") else ""),
                               "completed_rule": "endpoint_status == ENDPOINT_REACHED (AUTH_GATE counted separately — R2 two denominators)",
-                              "attempted_rule": "attempted = rows present for the frozen unit (A: always 10/50); attempted_observed = attempt/endpoint status not in NOT_ATTEMPTED/blank; evidence_adequate = pointer is a hash/existing path (placeholder tokens never count)", "diff_vs_B": diff}
+                              "r78_rule": "completed = ENDPOINT_REACHED only; failed = attempted_observed − completed (TERMINAL_NO_ENDPOINT ∈ failed); COLLECTOR_ZERO_CANDIDATE (collector's zero) and NO_SAFE_ROUTE_SITE (site fact) are listed separately in failed_by_terminal_reason, never merged", "attempted_rule": "attempted = rows present for the frozen unit (A: always 10/50); attempted_observed = attempt/endpoint status not in NOT_ATTEMPTED/blank; evidence_adequate = pointer is a hash/existing path (placeholder tokens never count)", "diff_vs_B": diff}
     for c in checks.values():
         if c.get("status") == "PASS" and c.get("n_items", 0) == 0: c["status"] = "VACUOUS"
     return {"checks": checks, "flags": flags, "n_rows": len(rows)}

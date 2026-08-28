@@ -1,22 +1,22 @@
 {
  "schema": "C_MAIN50_EVIDENCE_ASSURED",
- "measured_at_kst": "2026-08-28T11:07:47+09:00",
+ "measured_at_kst": "2026-08-28T11:14:14+09:00",
  "state": "STREAMING",
  "checker": {
-  "commit": "26ffa1e996b07d1faedf60ce0303dd4cf3c21f72",
-  "census_qc_c_sha256": "503be50a6bd8ad0ad83f0bd3cbc47b3210a59cf7e6b8d808aadcf752574e13bd",
-  "census_stream_c_sha256": "9869a83fd81d514ef1f053cfa5e89a298cc83d60adaa221f6c0c7f6e34a4a48a",
+  "commit": "2cb3727ef2d68080115f60569536f67065db7ba3",
+  "census_qc_c_sha256": "80a598ffe2c61b8644829223ba5b61e0c306a4a837fc8caa3073ba654d063df5",
+  "census_stream_c_sha256": "e31ed05f8e8a2bb0a8c3938e9aa84ff0a8954dff376746c6596b8927ac545555",
   "checker_frozen": "43d7d4da52e0403a2b76d1322a170678e97a6f03"
  },
  "inputs": {
-  "mart": "snapshot_10.csv",
-  "mart_sha256": "898f7af1f8299c4171e851f44fed82b60d28931c7ff11f8dc01dbbf4ffa7b5d6",
-  "mart_bytes": 22367,
+  "mart": "snapshot_30.csv",
+  "mart_sha256": "00373c99e5b8a317b6f2e8ac2213c83793e0b1267f094317e70c67e6a22eada6",
+  "mart_bytes": 27673,
   "mart_rows": 50,
-  "evidence_manifest_lines": 7,
-  "dispatch_lines": 7,
+  "evidence_manifest_lines": 26,
+  "dispatch_lines": 26,
   "ingest_lines": 50,
-  "raw_target_dirs": 14
+  "raw_target_dirs": 31
  },
  "manifest": {
   "file_sha256_recomputed": "ef4e19ad2cf5da62dea518af932d3653759807359cec4a410788f996ecf703f0",
@@ -82,10 +82,10 @@
   }
  },
  "summary": {
-  "checks_pass": 9,
-  "checks_flag": 4,
+  "checks_pass": 8,
+  "checks_flag": 5,
   "checks_not_testable_or_vacuous": 1,
-  "flags": 35,
+  "flags": 56,
   "systemic_candidates": []
  },
  "checks": {
@@ -114,42 +114,25 @@
   },
   "MART.EVIDENCE_OR_TERMINAL": {
    "status": "FLAG",
-   "k": 13,
+   "k": 30,
    "of": 50,
    "n_items": 50,
    "missing": [
-    "F2-01",
-    "F2-02",
-    "F2-03",
-    "F2-04",
-    "F2-05",
     "F2-06",
     "F2-07",
     "F2-08",
     "F2-09",
     "F2-10",
-    "F3-01",
-    "F3-02",
-    "F3-03",
-    "F3-04",
-    "F3-05",
     "F3-06",
     "F3-07",
     "F3-08",
     "F3-09",
     "F3-10",
-    "F4-02",
-    "F4-03",
-    "F4-04",
-    "F4-05",
     "F4-06",
     "F4-07",
     "F4-08",
     "F4-09",
     "F4-10",
-    "F5-03",
-    "F5-04",
-    "F5-05",
     "F5-06",
     "F5-07",
     "F5-08",
@@ -158,11 +141,11 @@
    ],
    "non_canonical_terminal": [
     {
-     "target": "F1-10",
-     "terminal_reason": "UNMAPPED_SCOUT_STATUS:SAFETY_STOP"
+     "target": "F2-02",
+     "terminal_reason": "UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT"
     },
     {
-     "target": "F5-01",
+     "target": "F2-05",
      "terminal_reason": "UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT"
     }
    ]
@@ -202,64 +185,94 @@
      "evidence_adequate": 10,
      "completed_endpoint_reached": 1,
      "auth_gate_terminal": 0,
-     "failed": 8
+     "failed": 9,
+     "unaccounted": 0,
+     "failed_by_terminal_reason": {
+      "AUTH_GATE": 1,
+      "FORBIDDEN_ACTION_BOUNDARY": 1,
+      "NO_SAFE_ROUTE": 7
+     }
     },
     "F2": {
      "frozen": 10,
      "attempted": 10,
-     "attempted_observed": 0,
-     "evidence_adequate": 0,
-     "completed_endpoint_reached": 0,
+     "attempted_observed": 5,
+     "evidence_adequate": 5,
+     "completed_endpoint_reached": 1,
      "auth_gate_terminal": 0,
-     "failed": 0
+     "failed": 4,
+     "unaccounted": 0,
+     "failed_by_terminal_reason": {
+      "COLLECTOR_ZERO_CANDIDATE": 1,
+      "NO_SAFE_ROUTE": 1,
+      "UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT": 2
+     }
     },
     "F3": {
      "frozen": 10,
      "attempted": 10,
-     "attempted_observed": 0,
-     "evidence_adequate": 0,
+     "attempted_observed": 5,
+     "evidence_adequate": 5,
      "completed_endpoint_reached": 0,
      "auth_gate_terminal": 0,
-     "failed": 0
+     "failed": 5,
+     "unaccounted": 0,
+     "failed_by_terminal_reason": {
+      "AUTH_GATE": 1,
+      "NO_SAFE_ROUTE": 4
+     }
     },
     "F4": {
      "frozen": 10,
      "attempted": 10,
-     "attempted_observed": 1,
-     "evidence_adequate": 1,
+     "attempted_observed": 5,
+     "evidence_adequate": 5,
      "completed_endpoint_reached": 0,
      "auth_gate_terminal": 0,
-     "failed": 1
+     "failed": 5,
+     "unaccounted": 0,
+     "failed_by_terminal_reason": {
+      "COLLECTOR_ZERO_CANDIDATE": 1,
+      "NO_SAFE_ROUTE": 3,
+      "TIMEOUT": 1
+     }
     },
     "F5": {
      "frozen": 10,
      "attempted": 10,
-     "attempted_observed": 2,
-     "evidence_adequate": 2,
-     "completed_endpoint_reached": 1,
+     "attempted_observed": 5,
+     "evidence_adequate": 5,
+     "completed_endpoint_reached": 2,
      "auth_gate_terminal": 0,
-     "failed": 0
+     "failed": 3,
+     "unaccounted": 0,
+     "failed_by_terminal_reason": {
+      "NO_SAFE_ROUTE": 3
+     }
     },
     "overall": {
      "frozen": 50,
      "attempted": 50,
-     "attempted_observed": 13,
-     "evidence_adequate": 13,
-     "completed_endpoint_reached": 2,
+     "attempted_observed": 30,
+     "evidence_adequate": 30,
+     "completed_endpoint_reached": 4,
      "auth_gate_terminal": 0,
-     "failed": 9
+     "failed": 26
     }
    },
    "evidence_adequate_basis": "evidence_pointer",
    "completed_rule": "endpoint_status == ENDPOINT_REACHED (AUTH_GATE counted separately — R2 two denominators)",
+   "r78_rule": "completed = ENDPOINT_REACHED only; failed = attempted_observed − completed (TERMINAL_NO_ENDPOINT ∈ failed); COLLECTOR_ZERO_CANDIDATE (collector's zero) and NO_SAFE_ROUTE_SITE (site fact) are listed separately in failed_by_terminal_reason, never merged",
    "attempted_rule": "attempted = rows present for the frozen unit (A: always 10/50); attempted_observed = attempt/endpoint status not in NOT_ATTEMPTED/blank; evidence_adequate = pointer is a hash/existing path (placeholder tokens never count)",
    "diff_vs_B": null
   },
   "MART.COLUMNS": {
-   "status": "PASS",
-   "n_items": 23,
+   "status": "FLAG",
+   "n_items": 24,
    "missing": [],
-   "extra": []
+   "extra": [
+    "entry_observation_provenance"
+   ]
   },
   "MART.BLANKS": {
    "status": "PASS",
@@ -271,17 +284,17 @@
    "status": "REPORT",
    "n_items": 50,
    "distribution": {
-    "ENDPOINT_REACHED": 2,
-    "ERROR": 2,
-    "NOT_ATTEMPTED": 37,
-    "TERMINAL_NO_ENDPOINT": 9
+    "ENDPOINT_REACHED": 4,
+    "ERROR": 7,
+    "NOT_ATTEMPTED": 20,
+    "TERMINAL_NO_ENDPOINT": 19
    },
    "completed_rule": "attempt_status ∈ ('ENDPOINT_REACHED', 'COMPLETED', 'SUCCESS')"
   },
   "RAW.DISPATCH": {
    "status": "PASS",
-   "n_items": 7,
-   "dispatched_unique": 7,
+   "n_items": 26,
+   "dispatched_unique": 26,
    "of": 50,
    "dup_keys": {},
    "dup_targets": {},
@@ -290,8 +303,8 @@
   },
   "RAW.CHAIN": {
    "status": "PASS",
-   "n_items": 7,
-   "targets_with_evidence": 7,
+   "n_items": 26,
+   "targets_with_evidence": 26,
    "of": 50,
    "chain_breaks": 0,
    "changed_lines_vs_previous_run": [],
@@ -301,36 +314,26 @@
   },
   "MART.EVIDENCE_LINK": {
    "status": "FLAG",
-   "n_items": 13,
+   "n_items": 30,
    "unlinked": [
     {
-     "target": "F1-03",
-     "mart_evidence_hash": "4b119b8f28f8",
+     "target": "F2-02",
+     "mart_evidence_hash": "0efe8496ded8",
      "E_evidence_hash": ""
     },
     {
-     "target": "F1-06",
-     "mart_evidence_hash": "2655cd29649f",
+     "target": "F2-04",
+     "mart_evidence_hash": "384a4b9440d9",
      "E_evidence_hash": ""
     },
     {
-     "target": "F1-10",
-     "mart_evidence_hash": "73d08dc7a708",
+     "target": "F2-05",
+     "mart_evidence_hash": "c5cd1cf1d18b",
      "E_evidence_hash": ""
     },
     {
-     "target": "F4-01",
-     "mart_evidence_hash": "2bd3a82d294e",
-     "E_evidence_hash": ""
-    },
-    {
-     "target": "F5-01",
-     "mart_evidence_hash": "574825de96ae",
-     "E_evidence_hash": ""
-    },
-    {
-     "target": "F5-02",
-     "mart_evidence_hash": "5fcb963bcfa6",
+     "target": "F4-05",
+     "mart_evidence_hash": "4096487c6f47",
      "E_evidence_hash": ""
     }
    ],
@@ -338,22 +341,22 @@
   },
   "RAW.CONTRACT_TBX011": {
    "status": "FLAG",
-   "n_items": 7,
-   "problems": 10,
+   "n_items": 26,
+   "problems": 28,
    "by_kind": {
-    "NULL_WITHOUT_MISSING_REASON": 10
+    "NULL_WITHOUT_MISSING_REASON": 28
    },
    "control": "raw_contract_controls() PASS in this run",
    "vocabulary_observation": "TBX-011 terminal_reason 8 values vs R11 16 values — C validates raw against TBX-011 (A's census contract); mart terminal_reason is checked against the union; entry_zone 5 values vs R7 7 zones; auth_gate_stage NONE vs R13 UNDETERMINED — reported, not judged"
   },
   "RAW.FORBIDDEN_PROBE": {
    "status": "FLAG",
-   "n_items": 68,
-   "raw_target_dirs": 14,
+   "n_items": 142,
+   "raw_target_dirs": 31,
    "run_root": "/home/sieg/projects-wsl/ProjectFinal/artifacts/v3_census/raw/E/E-REAL-CENSUS-1230",
    "of": 50,
    "rule": "presence probe: regex (password|passwd|credential|login[_ -]?submit|SUBMIT_LOGIN|captcha|payment|purchase|checkout|transfer_execute|reservation_submit|결제|송금|예약확정|구매하기|장바구니 담기|본인인증 완료) over every text/json file under raw/<target_id>/ (case-insensitive); a hit is LISTED with file:line, not judged — a guard log that names the action it blocked also matches",
-   "hits": 16,
+   "hits": 20,
    "execution_shaped_hits": 0,
    "execution_rule": "same line also carries an action/event key valued click|tap|press|submit|enter (R71: vocabulary ≠ execution; both listed, neither summed into violations)",
    "note": "html bodies excluded from the probe (page text names payments legitimately); this is a presence probe, not proof of execution — 0 hits ≠ 'no forbidden action'"
@@ -361,10 +364,10 @@
   "MART.INGEST": {
    "status": "REPORT",
    "n_items": 50,
-   "promoted": 13,
-   "rejected": 37,
+   "promoted": 30,
+   "rejected": 20,
    "reject_reasons": {
-    "NO_EVIDENCE_ROW_FOR_TARGET": 37
+    "NO_EVIDENCE_ROW_FOR_TARGET": 20
    },
    "unparsable_lines": []
   }
@@ -372,55 +375,38 @@
  "flags": [
   {
    "check": "EVIDENCE_OR_TERMINAL",
-   "message": "non-canonical terminal_reason 'UNMAPPED_SCOUT_STATUS:SAFETY_STOP' (16 values, R11/Δ30/Δ32/Δ47)",
+   "message": "non-canonical terminal_reason 'UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT' (16 values, R11/Δ30/Δ32/Δ47)",
    "systemic_candidate": null,
-   "target": "F1-10",
-   "terminal_reason": "UNMAPPED_SCOUT_STATUS:SAFETY_STOP"
+   "target": "F2-02",
+   "terminal_reason": "UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT"
   },
   {
    "check": "EVIDENCE_OR_TERMINAL",
    "message": "non-canonical terminal_reason 'UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT' (16 values, R11/Δ30/Δ32/Δ47)",
    "systemic_candidate": null,
-   "target": "F5-01",
+   "target": "F2-05",
    "terminal_reason": "UNMAPPED_SCOUT_STATUS:EVIDENCE_DEFECT"
   },
   {
    "check": "EVIDENCE_OR_TERMINAL",
-   "message": "37/50 frozen units have neither evidence nor a canonical terminal_reason (streaming: pending; at CANONICAL_MART_50 freeze this is denominator corruption)",
+   "message": "20/50 frozen units have neither evidence nor a canonical terminal_reason (streaming: pending; at CANONICAL_MART_50 freeze this is denominator corruption)",
    "systemic_candidate": null,
    "missing": [
-    "F2-01",
-    "F2-02",
-    "F2-03",
-    "F2-04",
-    "F2-05",
     "F2-06",
     "F2-07",
     "F2-08",
     "F2-09",
     "F2-10",
-    "F3-01",
-    "F3-02",
-    "F3-03",
-    "F3-04",
-    "F3-05",
     "F3-06",
     "F3-07",
     "F3-08",
     "F3-09",
     "F3-10",
-    "F4-02",
-    "F4-03",
-    "F4-04",
-    "F4-05",
     "F4-06",
     "F4-07",
     "F4-08",
     "F4-09",
     "F4-10",
-    "F5-03",
-    "F5-04",
-    "F5-05",
     "F5-06",
     "F5-07",
     "F5-08",
@@ -429,51 +415,40 @@
    ]
   },
   {
+   "check": "MART.COLUMNS",
+   "message": "mart columns differ from the 23 fixed by TBX-006: missing [] extra ['entry_observation_provenance']",
+   "systemic_candidate": null
+  },
+  {
    "check": "MART.EVIDENCE_LINK",
-   "message": "mart row F1-03 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "message": "mart row F2-02 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
    "systemic_candidate": null,
-   "target": "F1-03",
-   "mart_evidence_hash": "4b119b8f28f8",
+   "target": "F2-02",
+   "mart_evidence_hash": "0efe8496ded8",
    "E_evidence_hash": ""
   },
   {
    "check": "MART.EVIDENCE_LINK",
-   "message": "mart row F1-06 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "message": "mart row F2-04 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
    "systemic_candidate": null,
-   "target": "F1-06",
-   "mart_evidence_hash": "2655cd29649f",
+   "target": "F2-04",
+   "mart_evidence_hash": "384a4b9440d9",
    "E_evidence_hash": ""
   },
   {
    "check": "MART.EVIDENCE_LINK",
-   "message": "mart row F1-10 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "message": "mart row F2-05 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
    "systemic_candidate": null,
-   "target": "F1-10",
-   "mart_evidence_hash": "73d08dc7a708",
+   "target": "F2-05",
+   "mart_evidence_hash": "c5cd1cf1d18b",
    "E_evidence_hash": ""
   },
   {
    "check": "MART.EVIDENCE_LINK",
-   "message": "mart row F4-01 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
+   "message": "mart row F4-05 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
    "systemic_candidate": null,
-   "target": "F4-01",
-   "mart_evidence_hash": "2bd3a82d294e",
-   "E_evidence_hash": ""
-  },
-  {
-   "check": "MART.EVIDENCE_LINK",
-   "message": "mart row F5-01 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
-   "systemic_candidate": null,
-   "target": "F5-01",
-   "mart_evidence_hash": "574825de96ae",
-   "E_evidence_hash": ""
-  },
-  {
-   "check": "MART.EVIDENCE_LINK",
-   "message": "mart row F5-02 evidence_hash not found in EVIDENCE_MANIFEST chain (B hash ≠ E hash for the same target — provenance does not link)",
-   "systemic_candidate": null,
-   "target": "F5-02",
-   "mart_evidence_hash": "5fcb963bcfa6",
+   "target": "F4-05",
+   "mart_evidence_hash": "4096487c6f47",
    "E_evidence_hash": ""
   },
   {
@@ -544,6 +519,132 @@
    "message": "NULL_WITHOUT_MISSING_REASON",
    "systemic_candidate": null,
    "line": 7,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 8,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 8,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 11,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 11,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 12,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 12,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 18,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 18,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 19,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 19,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 20,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 20,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 22,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 22,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 23,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 23,
+   "key": "entry_y_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 24,
+   "key": "entry_x_norm"
+  },
+  {
+   "check": "RAW.CONTRACT_TBX011",
+   "message": "NULL_WITHOUT_MISSING_REASON",
+   "systemic_candidate": null,
+   "line": 24,
    "key": "entry_y_norm"
   },
   {
@@ -554,6 +655,36 @@
    "line": 1,
    "match": "송금",
    "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-06\",",
+   "execution_shaped": false
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F3-05/E_SCOUT_TRACE_F3-05.jsonl",
+   "line": 1,
+   "match": "결제",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F3-05\",",
+   "execution_shaped": false
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F3-05/E_ROUTE_CANDIDATE_F3-05.json",
+   "line": 29,
+   "match": "결제",
+   "text": "\"착불배달우편물 요금 결제/조회\",",
+   "execution_shaped": false
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F3-05/E_ROUTE_CANDIDATE_F3-05.json",
+   "line": 45,
+   "match": "결제",
+   "text": "\"착불배달우편물 요금 결제/조회\",",
    "execution_shaped": false
   },
   {
@@ -604,6 +735,16 @@
    "line": 2,
    "match": "송금",
    "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F1-09\",",
+   "execution_shaped": false
+  },
+  {
+   "check": "RAW.FORBIDDEN_PROBE",
+   "message": "forbidden-action vocabulary present in raw evidence (probe hit — read before judging)",
+   "systemic_candidate": null,
+   "file": "raw/E/E-REAL-CENSUS-1230/F5-04/E_SCOUT_TRACE_F5-04.jsonl",
+   "line": 1,
+   "match": "결제",
+   "text": "{\"scout_run_id\": \"E-REAL-CENSUS-1230\", \"request_ticket_id\": \"T-A-V3-TBX-005\", \"requested_by\": \"A\", \"target_id\": \"F5-04\",",
    "execution_shaped": false
   },
   {
@@ -908,6 +1049,27 @@
     "mart": "snapshot_00.csv",
     "mart_sha256": "0edb9b5502bd29eb99e0f5e98c4767ab0cffb7970dfc4b2aab4388af00bed554",
     "mart_bytes": 20284,
+    "mart_rows": 50,
+    "evidence_manifest_lines": 7,
+    "dispatch_lines": 7,
+    "ingest_lines": 50,
+    "raw_target_dirs": 14
+   }
+  },
+  {
+   "measured_at_kst": "2026-08-28T11:07:47+09:00",
+   "state": "STREAMING",
+   "summary": {
+    "checks_pass": 9,
+    "checks_flag": 4,
+    "checks_not_testable_or_vacuous": 1,
+    "flags": 35,
+    "systemic_candidates": []
+   },
+   "inputs": {
+    "mart": "snapshot_10.csv",
+    "mart_sha256": "898f7af1f8299c4171e851f44fed82b60d28931c7ff11f8dc01dbbf4ffa7b5d6",
+    "mart_bytes": 22367,
     "mart_rows": 50,
     "evidence_manifest_lines": 7,
     "dispatch_lines": 7,
